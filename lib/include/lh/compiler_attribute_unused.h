@@ -4,7 +4,7 @@
 #include <lh/compiler_type.h>
 #include <lh/void.h>
 
-#if (LH_COMPILER_GCC_LIKE)
+#if (LH_COMPILER_TYPE_IS_GCC_LIKE)
 #    define LH_COMPILER_ATTRIBUTE_UNUSED __attribute__((unused))
 
 #elif (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC)

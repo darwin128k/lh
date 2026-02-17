@@ -4,7 +4,7 @@
 #include <lh/compiler_attribute_inline.h>
 #include <lh/compiler_type.h>
 
-#if (LH_COMPILER_GCC_LIKE)
+#if (LH_COMPILER_TYPE_IS_GCC_LIKE)
 #    define LH_COMPILER_ATTRIBUTE_FORCE_INLINE                                 \
         __attribute__((always_inline)) LH_COMPILER_ATTRIBUTE_INLINE
 

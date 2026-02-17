@@ -1,0 +1,8 @@
+#ifndef LH_ATTRIBUTE_TARGET_H
+#define LH_ATTRIBUTE_TARGET_H
+
+#include <lh/compiler.h>
+
+#define LH_ATTRIBUTE_TARGET(x) LH_COMPILER_ATTRIBUTE_TARGET(x)
+
+#endif // LH_ATTRIBUTE_TARGET_H

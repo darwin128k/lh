@@ -29,10 +29,10 @@
 #    endif
 #endif // LH_COMPILER_TYPE
 
-#ifndef LH_COMPILER_TYPE_GCC_LIKE
-#    define LH_COMPILER_TYPE_GCC_LIKE                                          \
+#ifndef LH_COMPILER_TYPE_IS_GCC_LIKE
+#    define LH_COMPILER_TYPE_IS_GCC_LIKE                                          \
         (LH_COMPILER_TYPE == LH_COMPILER_TYPE_GCC) ||                          \
             (LH_COMPILER_TYPE == LH_COMPILER_TYPE_CLANG)
-#endif // LH_COMPILER_TYPE_GCC_LIKE
+#endif // LH_COMPILER_TYPE_IS_GCC_LIKE
 
 #endif // LH_COMPILER_TYPE_H

@@ -1,0 +1,8 @@
+#ifndef LH_ATTRIBUTE_UNUSED_H
+#define LH_ATTRIBUTE_UNUSED_H
+
+#include <lh/compiler.h>
+
+#define LH_ATTRIBUTE_UNUSED LH_COMPILER_ATTRIBUTE_UNUSED
+
+#endif // LH_ATTRIBUTE_UNUSED_H

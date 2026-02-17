@@ -1,6 +1,8 @@
 #ifndef LH_NUMERIC_TYPES_H
 #define LH_NUMERIC_TYPES_H
 
+#include <lh/char.h>
+
 typedef unsigned short lh_ushort_t;
 typedef unsigned int lh_uint_t;
 typedef unsigned long lh_ulong_t;

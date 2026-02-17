@@ -3,7 +3,7 @@
 
 #include <lh/compiler_type.h>
 
-#if (LH_COMPILER_GCC_LIKE)
+#if (LH_COMPILER_TYPE_IS_GCC_LIKE)
 #    define LH_COMPILER_ATTRIBUTE_TARGET(x) __attribute__((target(x)))
 
 #elif (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC)
