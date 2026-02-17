@@ -1,0 +1,13 @@
+#ifndef LH_COMPILER_ATTRIBUTE_TARGET_H
+#define LH_COMPILER_ATTRIBUTE_TARGET_H
+
+#include <lh/compiler_type.h>
+
+#if (LH_COMPILER_GCC_LIKE)
+#    define LH_COMPILER_ATTRIBUTE_TARGET(x) __attribute__((target(x)))
+
+#elif (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC)
+#    define LH_COMPILER_ATTRIBUTE_TARGET(x)
+#endif
+
+#endif // LH_COMPILER_ATTRIBUTE_TARGET_H

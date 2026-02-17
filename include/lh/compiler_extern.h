@@ -1,0 +1,8 @@
+#ifndef LH_COMPILER_EXTERN_H
+#define LH_COMPILER_EXTERN_H
+
+#ifndef LH_COMPILER_EXTERN
+#    define LH_COMPILER_EXTERN extern
+#endif // LH_COMPILER_EXTERN
+
+#endif // LH_COMPILER_EXTERN_H

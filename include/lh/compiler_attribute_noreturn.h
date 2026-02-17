@@ -1,0 +1,12 @@
+#ifndef LH_COMPILER_ATTRIBUTE_NORETURN_H
+#define LH_COMPILER_ATTRIBUTE_NORETURN_H
+
+#include <lh/compiler_type.h>
+
+#if (LH_COMPILER_TYPE_GCC_LIKE)
+#    define LH_COMPILER_ATTRIBUTE_NORETURN __attribute__((noreturn))
+#elif (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC)
+#    define LH_COMPILER_ATTRIBUTE_NORETURN __declspec(noreturn)
+#endif
+
+#endif // LH_COMPILER_ATTRIBUTE_NORETURN_H

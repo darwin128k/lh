@@ -1,0 +1,14 @@
+#ifndef LH_COMPILE_OPTION_H
+#define LH_COMPILE_OPTION_H
+
+#include <lh/option.h>
+
+#ifndef LH_COMPILE_OPTION_OFF
+#    define LH_COMPILE_OPTION_OFF LH_OPTION_OFF
+#endif // LH_COMPILE_OPTION_OFF
+
+#ifndef LH_COMPILE_OPTION_ON
+#    define LH_COMPILE_OPTION_ON LH_OPTION_ON
+#endif // LH_COMPILE_OPTION_ON
+
+#endif // LH_COMPILE_OPTION_H

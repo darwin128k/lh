@@ -1,0 +1,14 @@
+#ifndef LH_LIBRARY_OPTION_H
+#define LH_LIBRARY_OPTION_H
+
+#include <lh/option.h>
+
+#ifndef LH_LIBRARY_OPTION_OFF
+#    define LH_LIBRARY_OPTION_OFF LH_OPTION_OFF
+#endif // LH_LIBRARY_OPTION_OFF
+
+#ifndef LH_LIBRARY_OPTION_ON
+#    define LH_LIBRARY_OPTION_ON LH_OPTION_ON
+#endif // LH_LIBRARY_OPTION_ON
+
+#endif // LH_LIBRARY_OPTION_H
