@@ -1,0 +1,119 @@
+// clang-format off
+
+/**
+ * @file config.h
+ * @brief Library build configuration (generated from `config.h.in` by CMake).
+ *
+ * When using **CMake**, reconfigure to refresh this file; do not edit it by hand.
+ *
+ * **Manual build (no CMake):** copy this file to `config.h` and substitute every
+ * CMake-style placeholder (at-sign delimited identifiers) with decimal integers:
+ * version macros from the root `VERSION` file; library options use `0` or `1`
+ * except `LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX`, which must be > 0.
+ *
+ * Also defines ::LH_CHAR_BITS (from `CHAR_BIT` in `<limits.h>`) unless you
+ * predefine `LH_CHAR_BITS` for a freestanding or unusual toolchain.
+ */
+
+#ifndef LH_CONFIG_H
+#define LH_CONFIG_H
+
+#include <limits.h>
+
+/**
+ * @def LH_CHAR_BITS
+ * @brief Bit width of `char` (usually `CHAR_BIT` from `<limits.h>`).
+ *
+ * Predefine `LH_CHAR_BITS` before including this header 
+ * on freestanding or unusual toolchains where `CHAR_BIT` is not provided.
+ *
+ * @see CHAR_BIT
+ */
+#ifndef LH_CHAR_BITS
+#    ifdef CHAR_BIT
+#        define LH_CHAR_BITS CHAR_BIT
+#    else
+#        error "CHAR_BIT is not defined"
+#    endif
+#endif
+
+/**
+ * @def LH_VERSION_MAJOR
+ * @brief Major component of the library version (semantic versioning).
+ */
+#define LH_VERSION_MAJOR @LH_VERSION_MAJOR@
+
+/**
+ * @def LH_VERSION_MINOR
+ * @brief Minor component of the library version.
+ */
+#define LH_VERSION_MINOR @LH_VERSION_MINOR@
+
+/**
+ * @def LH_VERSION_PATCH
+ * @brief Patch component of the library version.
+ */
+#define LH_VERSION_PATCH @LH_VERSION_PATCH@
+
+/**
+ * @def LH_COMPILE_BY
+ * @brief Username of the account that configured/built the project.
+ */
+#define LH_COMPILE_BY "@LH_COMPILE_BY@"
+
+/**
+ * @def LH_COMPILE_HOST
+ * @brief Hostname of the machine that configured/built the project.
+ */
+#define LH_COMPILE_HOST "@LH_COMPILE_HOST@"
+
+/**
+ * @def LH_LIBRARY_OPTION_SHARED_BUILD
+ * @brief Indicates whether the library is built as a shared object.
+ *
+ * Value is `1` for shared builds and `0` for static/object builds.
+ */
+#define LH_LIBRARY_OPTION_SHARED_BUILD @ValShared@
+
+/**
+ * @def LH_LIBRARY_OPTION_THREAD_LOCAL
+ * @brief Use `thread_local` / `__thread`
+ *        for internal state (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
+ */
+#define LH_LIBRARY_OPTION_THREAD_LOCAL @ValThreadLocal@
+
+/**
+ * @def LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB
+ * @brief Default terminate handler uses `abort()`
+ *        from the C library (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
+ */
+#define LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB @ValRtStdlib@
+
+/**
+ * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB
+ * @brief Default runtime allocator uses `malloc`/`free`
+ *        from the C library (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
+ */
+#define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB @ValAllocatorStdlib@
+
+/**
+ * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED
+ * @brief Zero-initialize allocated memory in ::lh_memory_allocator_alloc
+ *        (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
+ */
+#define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED @ValAllocatorInitAllocated@
+
+/**
+ * @def LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX
+ * @brief Maximum depth of nested runtime exception catch frames.
+ *
+ * Controls internal catch-stack capacity 
+ * used by the runtime exception subsystem. 
+ * 
+ * @note The value must be greater than zero.
+ */
+#define LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX @ValCatchStackMax@
+
+#endif /* LH_CONFIG_H */
+
+// clang-format on

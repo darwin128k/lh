@@ -1,0 +1,62 @@
+#---------------------------------------------------------------------------
+# Project
+#---------------------------------------------------------------------------
+PROJECT_NAME           = "lh"
+PROJECT_BRIEF          = "@PROJECT_DESCRIPTION@"
+PROJECT_NUMBER         = @PROJECT_VERSION@
+OUTPUT_DIRECTORY       = @CMAKE_SOURCE_DIR@/docs
+
+#---------------------------------------------------------------------------
+# Input
+#---------------------------------------------------------------------------
+INPUT                  = @CMAKE_SOURCE_DIR@/README.md \
+                         @CMAKE_SOURCE_DIR@/CHANGELOG.md \
+                         @CMAKE_SOURCE_DIR@/LICENSE.md \
+                         @CMAKE_SOURCE_DIR@/include \
+                         @CMAKE_SOURCE_DIR@/src
+
+# Search path for @image / \image in comments (files stay in place; paths are relative to this).
+IMAGE_PATH             = @CMAKE_SOURCE_DIR@/docs/assets
+FILE_PATTERNS          = *.h *.c *.md
+RECURSIVE              = YES
+EXCLUDE_PATTERNS       = */build/* */cmake-build-*/*
+USE_MDFILE_AS_MAINPAGE = @CMAKE_SOURCE_DIR@/README.md
+
+#---------------------------------------------------------------------------
+# Extraction
+#---------------------------------------------------------------------------
+EXTRACT_ALL            = NO
+EXTRACT_STATIC         = YES
+HIDE_UNDOC_MEMBERS     = NO
+OPTIMIZE_OUTPUT_FOR_C  = YES
+
+#---------------------------------------------------------------------------
+# Output
+#---------------------------------------------------------------------------
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+GENERATE_LATEX         = NO
+
+# README.md uses <img src="docs/assets/...">. Output is docs/html/, so the browser
+# resolves that to docs/html/docs/assets/... . CMake copies docs/assets/ there
+# after Doxygen runs (see docs/CMakeLists.txt).
+
+#---------------------------------------------------------------------------
+# Graphs (requires Graphviz)
+#---------------------------------------------------------------------------
+HAVE_DOT               = @DOXYGEN_HAVE_DOT@
+DOT_PATH               = @DOXYGEN_DOT_PATH@
+
+INCLUDE_GRAPH          = @DOXYGEN_HAVE_DOT@
+INCLUDED_BY_GRAPH      = @DOXYGEN_HAVE_DOT@
+DIRECTORY_GRAPH        = @DOXYGEN_HAVE_DOT@
+CALL_GRAPH             = @DOXYGEN_HAVE_DOT@
+CALLER_GRAPH           = @DOXYGEN_HAVE_DOT@
+
+#---------------------------------------------------------------------------
+# Warnings
+#---------------------------------------------------------------------------
+QUIET                  = NO
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_NO_PARAMDOC       = YES
