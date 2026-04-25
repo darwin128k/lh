@@ -49,6 +49,19 @@ lh_void lh_str_view_unpack(const lh_str_view_t *self, const lh_str_ptr *begin,
                            const lh_str_ptr *end);
 
 /**
+ * @brief Like ::lh_str_view_unpack, but requires valid bounds in @p self.
+ *
+ * Delegates to ::lh_memory_view_unpack_v.
+ *
+ * @param self  Source view.
+ * @param begin Optional output for begin.
+ * @param end   Optional output for end.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_void lh_str_view_unpack_v(const lh_str_view_t *self, const lh_str_ptr *begin,
+                             const lh_str_ptr *end);
+
+/**
  * @brief Store @p begin/@p end into @p self as half-open bounds `[begin, end)`.
  * @param self  View to modify.
  * @param begin Inclusive begin pointer.
@@ -132,11 +145,78 @@ LH_ATTRIBUTE(SYMBOL)
 lh_void lh_str_view_exchange(lh_str_view_t *self, lh_str_view_t *other);
 
 /**
+ * @brief Return a by-value copy of @p self.
+ * @param self Source view.
+ * @return Cloned view.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_str_view_t lh_str_view_clone(const lh_str_view_t *self);
+
+/**
+ * @brief Copy @p self into @p other.
+ * @param self  Source view.
+ * @param other Destination view.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_void lh_str_view_dup(const lh_str_view_t *self, lh_str_view_t *other);
+
+/**
+ * @brief Copy @p self into @p other with validated assignment.
+ * @param self  Source view.
+ * @param other Destination view.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_void lh_str_view_dup_v(const lh_str_view_t *self, lh_str_view_t *other);
+
+/**
+ * @brief Clone @p self with validated semantics.
+ * @param self Source view.
+ * @return Cloned valid view.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_str_view_t lh_str_view_clone_v(const lh_str_view_t *self);
+
+/**
+ * @brief Classify stored bounds into ::lh_memory_range_state_t.
+ * @param self View to inspect.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_memory_range_state_t lh_str_view_get_state(const lh_str_view_t *self);
+
+/**
+ * @brief True iff both bounds are ::lh_null.
+ * @param self View to inspect.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_bool_t lh_str_view_is_uninitialized(const lh_str_view_t *self);
+
+/**
+ * @brief True iff bounds are non-null and ordered strictly (`begin < end`).
+ * @param self View to inspect.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_bool_t lh_str_view_has_data(const lh_str_view_t *self);
+
+/**
  * @brief True iff @p self is an empty valid span (`begin == end` and both non-null).
  * @param self View to inspect.
  */
 LH_ATTRIBUTE(SYMBOL)
 lh_bool_t lh_str_view_is_empty(const lh_str_view_t *self);
+
+/**
+ * @brief True iff @p self is a valid span.
+ * @param self View to inspect.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_bool_t lh_str_view_is_valid(const lh_str_view_t *self);
+
+/**
+ * @brief Logical negation of ::lh_str_view_is_valid.
+ * @param self View to inspect.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_bool_t lh_str_view_is_invalid(const lh_str_view_t *self);
 
 /* ── constructors / slicing / indexing ───────────────────────────────────── */
 
@@ -150,6 +230,13 @@ LH_ATTRIBUTE(SYMBOL)
 lh_str_view_t lh_str_make(const lh_str_ptr begin, const lh_str_ptr end);
 
 /**
+ * @brief Return empty string view (`null`, `null`) by value.
+ * @return Empty view.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_str_view_t lh_str_make_by_empty(lh_void);
+
+/**
  * @brief Build a string view from begin pointer and size.
  * @param begin Inclusive begin pointer.
  * @param size  Number of characters in the view.
@@ -157,6 +244,16 @@ lh_str_view_t lh_str_make(const lh_str_ptr begin, const lh_str_ptr end);
  */
 LH_ATTRIBUTE(SYMBOL)
 lh_str_view_t lh_str_make_by_size(const lh_str_ptr begin, lh_usize_t size);
+
+/**
+ * @brief Like ::lh_str_make, but returns empty view on failure.
+ *
+ * @param begin Inclusive begin pointer.
+ * @param end   Exclusive end pointer.
+ * @return Valid view or empty view on failure.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_str_view_t lh_str_make_or_empty(const lh_str_ptr begin, const lh_str_ptr end);
 
 /**
  * @brief Check whether subview `[offset, offset + size)` can be formed from @p self.
@@ -175,6 +272,18 @@ lh_bool_t lh_str_is_sliceable(const lh_str_view_t *self, lh_uoffset_t offset, lh
  */
 LH_ATTRIBUTE(SYMBOL)
 lh_str_view_t lh_str_slice(const lh_str_view_t *self, lh_uoffset_t offset, lh_usize_t size);
+
+/**
+ * @brief Like ::lh_str_slice, but returns empty view on failure.
+ *
+ * @param self   Source view.
+ * @param offset Start offset from front.
+ * @param size   Requested subview length.
+ * @return Subview or empty view on failure.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_str_view_t lh_str_slice_or_empty(const lh_str_view_t *self, lh_uoffset_t offset,
+                                    lh_usize_t size);
 
 /**
  * @brief Byte length of the view (half-open span), like @c std::span::size_bytes.
@@ -210,22 +319,93 @@ LH_ATTRIBUTE(SYMBOL)
 lh_usize_t lh_str_get_size(const lh_str_view_t *self);
 
 /**
+ * @brief Raw address difference (`end - begin`) in bytes.
+ * @param self View to inspect.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_saddr_t lh_str_view_diff(const lh_str_view_t *self);
+
+/**
+ * @brief True iff begin pointer is aligned to @p align.
+ * @param self  View to inspect.
+ * @param align Required alignment in bytes (power-of-two contract).
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_bool_t lh_str_view_is_begin_aligned(const lh_str_view_t *self, lh_usize_t align);
+
+/**
+ * @brief True iff both bounds are aligned to @p align.
+ * @param self  View to inspect.
+ * @param align Required alignment in bytes (power-of-two contract).
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_bool_t lh_str_view_is_aligned(const lh_str_view_t *self, lh_usize_t align);
+
+/**
+ * @brief True iff byte size of @p self is divisible by @p multiple.
+ * @param self     View to inspect.
+ * @param multiple Divisor to test.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_bool_t lh_str_view_is_multiple_of(const lh_str_view_t *self, lh_usize_t multiple);
+
+/**
+ * @brief True iff @p offset is a valid byte offset inside @p self.
+ * @param self   View to inspect.
+ * @param offset Byte offset from begin.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_bool_t lh_str_view_is_valid_offset(const lh_str_view_t *self, lh_uoffset_t offset);
+
+/**
  * @brief Return pointer at @p offset from front or back.
  * @param self    Source view.
  * @param offset  Zero-based offset.
- * @param is_back If true, offset is interpreted from the back.
+ * @param from_back If true, offset is interpreted from the back.
  */
 LH_ATTRIBUTE(SYMBOL)
-const lh_str_ptr lh_str_get_ptr(const lh_str_view_t *self, lh_uoffset_t offset, lh_bool_t is_back);
+const lh_str_ptr lh_str_get_ptr(const lh_str_view_t *self, lh_uoffset_t offset, lh_bool_t from_back);
+
+/**
+ * @brief Return pointer at @p offset from front.
+ * @param self   Source view.
+ * @param offset Zero-based offset from begin.
+ */
+LH_ATTRIBUTE(SYMBOL)
+const lh_str_ptr lh_str_get_ptr_from_front(const lh_str_view_t *self, lh_uoffset_t offset);
+
+/**
+ * @brief Return pointer at @p offset from back.
+ * @param self   Source view.
+ * @param offset Zero-based offset from end-1.
+ */
+LH_ATTRIBUTE(SYMBOL)
+const lh_str_ptr lh_str_get_ptr_from_back(const lh_str_view_t *self, lh_uoffset_t offset);
 
 /**
  * @brief Return character value at @p offset from front or back.
  * @param self    Source view.
  * @param offset  Zero-based offset.
- * @param is_back If true, offset is interpreted from the back.
+ * @param from_back If true, offset is interpreted from the back.
  */
 LH_ATTRIBUTE(SYMBOL)
-lh_char_t lh_str_get_value(const lh_str_view_t *self, lh_uoffset_t offset, lh_bool_t is_back);
+lh_char_t lh_str_get_value(const lh_str_view_t *self, lh_uoffset_t offset, lh_bool_t from_back);
+
+/**
+ * @brief Return character value at @p offset from front.
+ * @param self   Source view.
+ * @param offset Zero-based offset from begin.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_char_t lh_str_get_value_from_front(const lh_str_view_t *self, lh_uoffset_t offset);
+
+/**
+ * @brief Return character value at @p offset from back.
+ * @param self   Source view.
+ * @param offset Zero-based offset from end-1.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_char_t lh_str_get_value_from_back(const lh_str_view_t *self, lh_uoffset_t offset);
 
 /**
  * @brief Pointer to first character.
@@ -246,14 +426,14 @@ const lh_str_ptr lh_str_get_back_ptr(const lh_str_view_t *self);
  * @param self Source view.
  */
 LH_ATTRIBUTE(SYMBOL)
-lh_char_t lh_str_get_front(const lh_str_view_t *self);
+lh_char_t lh_str_get_front_value(const lh_str_view_t *self);
 
 /**
  * @brief Last character.
  * @param self Source non-empty view.
  */
 LH_ATTRIBUTE(SYMBOL)
-lh_char_t lh_str_get_back(const lh_str_view_t *self);
+lh_char_t lh_str_get_back_value(const lh_str_view_t *self);
 
 /**
  * @brief Return next character pointer after @p ptr within @p self.

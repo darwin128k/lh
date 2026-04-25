@@ -57,6 +57,13 @@ TEST(memory_range_make_by_size, builds_expected_half_open_range) {
     EXPECT_EQ(lh_memory_range_get_size(&r), 5u);
 }
 
+TEST(memory_range_make_by_empty, returns_empty_initializer_state) {
+    const lh_memory_range_t r = lh_memory_range_make_by_empty();
+    EXPECT_TRUE(lh_memory_range_is_uninitialized(&r));
+    EXPECT_EQ(lh_memory_range_get_begin(&r), lh_null);
+    EXPECT_EQ(lh_memory_range_get_end(&r), lh_null);
+}
+
 TEST(memory_range_make, invalid_pair_is_allowed) {
     unsigned char buf[2];
     lh_ptr lo = lh_cast_static(lh_ptr, buf + 1);
@@ -127,6 +134,14 @@ TEST(memory_range_init_by_other, copies_bounds) {
     lh_memory_range_init_by_other(&b, &a);
     EXPECT_EQ(lh_memory_range_get_begin(&b), lh_memory_range_get_begin(&a));
     EXPECT_EQ(lh_memory_range_get_end(&b), lh_memory_range_get_end(&a));
+}
+
+TEST(memory_range_init_by_empty, resets_to_empty_initializer) {
+    lh_memory_range_t r = lh_memory_range_empty_initializer();
+    unsigned char buf[2];
+    lh_memory_range_set(&r, lh_cast_static(lh_ptr, buf), lh_cast_static(lh_ptr, buf + 2));
+    lh_memory_range_init_by_empty(&r);
+    EXPECT_TRUE(lh_memory_range_is_uninitialized(&r));
 }
 
 TEST(memory_range_contains, half_open_endpoints) {
@@ -236,8 +251,8 @@ TEST(memory_range_at, front_back_and_offsets) {
 
     EXPECT_EQ(lh_memory_range_get_front_ptr(&r), lh_cast_static(lh_ptr, buf));
     EXPECT_EQ(lh_memory_range_get_back_ptr(&r), lh_cast_static(lh_ptr, buf + 3));
-    EXPECT_EQ(lh_memory_range_get_front(&r), 0xA);
-    EXPECT_EQ(lh_memory_range_get_back(&r), 0xD);
+    EXPECT_EQ(lh_memory_range_get_front_value(&r), 0xA);
+    EXPECT_EQ(lh_memory_range_get_back_value(&r), 0xD);
 
     EXPECT_EQ(lh_memory_range_get_ptr_from_front(&r, 0), lh_cast_static(lh_ptr, buf));
     EXPECT_EQ(lh_memory_range_get_ptr_from_front(&r, 3), lh_cast_static(lh_ptr, buf + 3));
@@ -580,6 +595,23 @@ TEST(memory_range_make_v, accepts_valid_ordered_pair) {
     EXPECT_TRUE(lh_memory_range_is_valid(&r));
 }
 
+TEST(memory_range_make_or_empty, invalid_pair_returns_empty) {
+    unsigned char buf[2];
+    lh_ptr lo = lh_cast_static(lh_ptr, buf + 1);
+    lh_ptr hi = lh_cast_static(lh_ptr, buf);
+    const lh_memory_range_t r = lh_memory_range_make_or_empty(lo, hi);
+    EXPECT_TRUE(lh_memory_range_is_uninitialized(&r));
+}
+
+TEST(memory_range_make_or_empty, valid_pair_returns_range) {
+    unsigned char buf[4];
+    const lh_memory_range_t r =
+        lh_memory_range_make_or_empty(lh_cast_static(lh_ptr, buf), lh_cast_static(lh_ptr, buf + 4));
+    EXPECT_EQ(lh_memory_range_get_begin(&r), lh_cast_static(lh_ptr, buf));
+    EXPECT_EQ(lh_memory_range_get_end(&r), lh_cast_static(lh_ptr, buf + 4));
+    EXPECT_TRUE(lh_memory_range_is_valid(&r));
+}
+
 TEST(memory_range_unpack_v, reads_valid_range) {
     lh_memory_range_t r = lh_memory_range_empty_initializer();
     unsigned char buf[2];
@@ -598,6 +630,77 @@ TEST(memory_range_is_sliceable, in_bounds_and_out_of_bounds) {
     EXPECT_TRUE(lh_memory_range_is_sliceable(&r, 0, 8));
     EXPECT_TRUE(lh_memory_range_is_sliceable(&r, 1, 3));
     EXPECT_FALSE(lh_memory_range_is_sliceable(&r, 6, 3));
+}
+
+TEST(memory_range_slice_or_empty, returns_slice_or_empty) {
+    lh_memory_range_t r = lh_memory_range_empty_initializer();
+    unsigned char buf[8];
+    lh_memory_range_init_by_size(&r, lh_cast_static(lh_ptr, buf), 8);
+
+    const lh_memory_range_t s_ok = lh_memory_range_slice_or_empty(&r, 1, 3);
+    EXPECT_EQ(lh_memory_range_get_begin(&s_ok), lh_cast_static(lh_ptr, buf + 1));
+    EXPECT_EQ(lh_memory_range_get_end(&s_ok), lh_cast_static(lh_ptr, buf + 4));
+
+    const lh_memory_range_t s_bad = lh_memory_range_slice_or_empty(&r, 6, 3);
+    EXPECT_TRUE(lh_memory_range_is_uninitialized(&s_bad));
+}
+
+TEST(memory_range_slice_or_empty, invalid_self_returns_empty) {
+    lh_memory_range_t r = lh_memory_range_empty_initializer();
+    unsigned char buf[2];
+    lh_memory_range_set(&r, lh_cast_static(lh_ptr, buf + 1), lh_cast_static(lh_ptr, buf));
+    const lh_memory_range_t s = lh_memory_range_slice_or_empty(&r, 0, 1);
+    EXPECT_TRUE(lh_memory_range_is_uninitialized(&s));
+}
+
+TEST(memory_range_is_valid_offset, checks_bounds) {
+    lh_memory_range_t r = lh_memory_range_empty_initializer();
+    unsigned char buf[4];
+    lh_memory_range_set(&r, lh_cast_static(lh_ptr, buf), lh_cast_static(lh_ptr, buf + 4));
+    EXPECT_TRUE(lh_memory_range_is_valid_offset(&r, 0));
+    EXPECT_TRUE(lh_memory_range_is_valid_offset(&r, 3));
+    EXPECT_FALSE(lh_memory_range_is_valid_offset(&r, 4));
+}
+
+TEST(memory_range_clone_dup, raw_copy_semantics) {
+    lh_memory_range_t src = lh_memory_range_empty_initializer();
+    unsigned char buf[4];
+    lh_memory_range_set(&src, lh_cast_static(lh_ptr, buf), lh_cast_static(lh_ptr, buf + 4));
+
+    const lh_memory_range_t c = lh_memory_range_clone(&src);
+    EXPECT_EQ(lh_memory_range_get_begin(&c), lh_memory_range_get_begin(&src));
+    EXPECT_EQ(lh_memory_range_get_end(&c), lh_memory_range_get_end(&src));
+
+    lh_memory_range_t d = lh_memory_range_empty_initializer();
+    lh_memory_range_dup(&src, &d);
+    EXPECT_EQ(lh_memory_range_get_begin(&d), lh_memory_range_get_begin(&src));
+    EXPECT_EQ(lh_memory_range_get_end(&d), lh_memory_range_get_end(&src));
+}
+
+TEST(memory_range_clone_dup_v, validated_copy_semantics) {
+    lh_memory_range_t src = lh_memory_range_empty_initializer();
+    unsigned char buf[4];
+    lh_memory_range_set(&src, lh_cast_static(lh_ptr, buf), lh_cast_static(lh_ptr, buf + 4));
+
+    const lh_memory_range_t c = lh_memory_range_clone_v(&src);
+    EXPECT_EQ(lh_memory_range_get_begin(&c), lh_memory_range_get_begin(&src));
+    EXPECT_EQ(lh_memory_range_get_end(&c), lh_memory_range_get_end(&src));
+
+    lh_memory_range_t d = lh_memory_range_empty_initializer();
+    lh_memory_range_dup_v(&src, &d);
+    EXPECT_EQ(lh_memory_range_get_begin(&d), lh_memory_range_get_begin(&src));
+    EXPECT_EQ(lh_memory_range_get_end(&d), lh_memory_range_get_end(&src));
+}
+
+TEST(memory_range_pack_v, partial_update_preserves_validity) {
+    lh_memory_range_t r = lh_memory_range_empty_initializer();
+    unsigned char buf[8];
+    lh_memory_range_set(&r, lh_cast_static(lh_ptr, buf), lh_cast_static(lh_ptr, buf + 8));
+
+    lh_ptr new_begin = lh_cast_static(lh_ptr, buf + 2);
+    lh_memory_range_pack_v(&r, &new_begin, nullptr);
+    EXPECT_EQ(lh_memory_range_get_begin(&r), lh_cast_static(lh_ptr, buf + 2));
+    EXPECT_EQ(lh_memory_range_get_end(&r), lh_cast_static(lh_ptr, buf + 8));
 }
 
 TEST(memory_range_overlaps, two_ranges_intersect_or_not) {
@@ -814,6 +917,30 @@ TEST(memory_range_death, slice_offset_out_of_range) {
     unsigned char buf[4];
     lh_memory_range_init_by_size(&r, lh_cast_static(lh_ptr, buf), 4);
     LH_EXPECT_DEATH((void)lh_memory_range_slice(&r, 5, 0));
+}
+
+TEST(memory_range_death, pack_v_rejects_invalid_partial_update) {
+    lh_memory_range_t r = lh_memory_range_empty_initializer();
+    unsigned char buf[8];
+    lh_memory_range_set(&r, lh_cast_static(lh_ptr, buf), lh_cast_static(lh_ptr, buf + 8));
+    lh_ptr bad_begin = lh_cast_static(lh_ptr, buf + 9);
+    LH_EXPECT_DEATH((void)lh_memory_range_pack_v(&r, &bad_begin, nullptr));
+}
+
+TEST(memory_range_death, clone_v_rejects_invalid_source) {
+    lh_memory_range_t r = lh_memory_range_empty_initializer();
+    unsigned char buf[2];
+    lh_memory_range_set(&r, lh_cast_static(lh_ptr, buf + 1), lh_cast_static(lh_ptr, buf));
+    LH_EXPECT_DEATH((void)lh_memory_range_clone_v(&r));
+}
+
+TEST(memory_range_death, dup_v_rejects_invalid_source) {
+    lh_memory_range_t src = lh_memory_range_empty_initializer();
+    lh_memory_range_t dst = lh_memory_range_empty_initializer();
+    unsigned char buf[2];
+    lh_memory_range_set(&src, lh_cast_static(lh_ptr, buf + 1), lh_cast_static(lh_ptr, buf));
+    lh_memory_range_set(&dst, lh_cast_static(lh_ptr, buf), lh_cast_static(lh_ptr, buf + 1));
+    LH_EXPECT_DEATH((void)lh_memory_range_dup_v(&src, &dst));
 }
 
 #endif // LH_TEST_EXPECT_DEATH_ENABLED

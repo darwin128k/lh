@@ -11,13 +11,14 @@ A lightweight C utility library (headers + a small shared/static library) with p
 ## Features
 
 - **Portable types** — fixed-width integers (`lh_uint_t`, `lh_sllong_t`, …), explicit `lh_uchar_t` / `lh_schar_t`, `lh_bool_t`, `lh_void` / `lh_void_ptr`
-- **Compiler layer** — detection (Clang / GCC / MSVC), version, target OS, C++ vs C, `extern "C"` via `LH_COMPILER(EXTERN_C_BEGIN|END)`, attributes (`LH_ATTRIBUTE(SYMBOL)`, …)
+- **Compiler layer** — detection (Clang / GCC / MSVC), version, target OS, C++ vs C, `extern "C"` via `LH_COMPILER(EXTERN_C_BEGIN|END)`, attributes (`LH_ATTRIBUTE(SYMBOL)`, …), **subsystem detection macros** (`lh/subsys.h`) for Windows-specific visibility attributes
 - **Casts** — `lh_cast_static`, `lh_cast_reinterpret` (C++-style in C++, C casts in C)
 - **Pointers** — `lh_ptr`, `lh_void_ptr`, `lh_ptr_of`, `lh_cptr_of`, `lh_str_ptr` / `lh_str_cptr` (`lh/ptr.h`, `lh/void/ptr.h`, `lh/util/ptr.h`, `lh/str/ptr.h`)
 - **Compound literals** — `lh_initializer`, `lh_initializer_of_type`, … in `lh/initializer.h`
+- **Member-offset utility** — `lh_offset_of` macro in `lh/offset.h` for compile-time layout checks
 - **Errors** — `lh_error_t` (code + description); description type is `lh_error_desc_t` in `lh/error/desc.h` (today an alias of `lh_str_cptr`)
 - **Exceptions (runtime)** — `lh_exception_t` wrapping `lh_error_t`, optional debug `origin`, catch stack and throw macros under `lh/runtime/`
-- **Memory & intervals** — non-owning memory views/ranges/string views, numeric interval helpers and binary-search macros used by table lookups
+- **Memory & intervals** — non-owning memory views/ranges/typed spans with front/back and indexed access, validated and fallback APIs (`*_v`, `*_or_empty`), typed clone/dup helpers and typed slicing (`lh_memory_typed_slice`), numeric interval helpers and binary-search macros used by table lookups
 - **Wide text** — `lh_wchar_t`, raw wide-string helpers, Unicode simple case mapping for buffers and single-code-point case fold (UCD-backed tables under `src/lh/util/wstr/` and `src/lh/util/wchar/`)
 - **Version** — `lh_version_t`, `lh_get_version()` via `lh/lh.h`
 - **Build** — CMake, generated `lh/config.h`, optional Doxygen docs and bundled GoogleTest
@@ -47,11 +48,19 @@ cmake --build build
 | `LH_BUILD_DOCS`   | `ON`   | Generate Doxygen documentation       |
 | `LH_BUILD_TESTS`  | `ON`   | Build GoogleTest targets             |
 | `LH_DOCS_GRAPHS`  | `ON`   | Include Graphviz dependency graphs   |
+| `LH_LIBRARY_OPTION_RUNTIME_CHECK_REF` | `ON` | Enable `lh_runtime_check_ref` null-pointer checks (`OFF` makes it a no-op) |
 
 Example — static library without docs:
 
 ```sh
 cmake -S . -B build -DLH_BUILD_SHARED=OFF -DLH_BUILD_DOCS=OFF
+cmake --build build
+```
+
+Example — disable only `lh_runtime_check_ref` checks:
+
+```sh
+cmake -S . -B build -DLH_LIBRARY_OPTION_RUNTIME_CHECK_REF=OFF
 cmake --build build
 ```
 

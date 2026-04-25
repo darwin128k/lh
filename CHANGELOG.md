@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Subsystem detection macros for Windows-specific visibility attributes (`lh/subsys.h`)
+- Comprehensive unit tests for `lh_memory_typed_t` functions (getters, pack/unpack behavior, boundary conditions)
+- Typed memory pack/unpack/set functions (`lh_memory_typed_pack`, `lh_memory_typed_set`, `lh_memory_typed_unpack`)
+- Member-offset utility macro (`lh_offset_of`) for compile-time layout checks
+- Brace-enclosed initializer macros for `lh_memory_typed_t`
+- Runtime check option (`LH_LIBRARY_OPTION_RUNTIME_CHECK_REF`) to enable null-pointer checks in `lh_runtime_check_ref`
+- Validated typed update API and helpers: `lh_memory_typed_pack_v`, `lh_memory_typed_assign_v`, `lh_memory_typed_clone`, `lh_memory_typed_clone_v`, `lh_memory_typed_dup`, `lh_memory_typed_dup_v`, and `lh_memory_typed_unpack_to_range`
+- Typed slicing API: `lh_memory_typed_is_sliceable` and `lh_memory_typed_slice`
+- Range convenience/fallback APIs: `lh_memory_range_init_by_empty`, `lh_memory_range_make_by_empty`, `lh_memory_range_make_or_empty`, and `lh_memory_range_slice_or_empty`
+- Expanded test coverage for typed/range validated and fallback flows (`*_v`, `*_or_empty`, slice geometry and death cases)
+
+### Changed
+- Rename `is_back` parameter to `from_back` for consistency across memory and string APIs.
+- Rename memory accessors with 'value' suffix: `get_front`/`get_back` → `get_front_value`/`get_back_value` in range, typed, view, and str/view modules.
+- Rename `lh_memory_typed_at_*` functions to `lh_memory_typed_get_*` for consistency with range API.
+- Add `get_value_from_front`/`get_value_from_back`/`get_value` indexed accessors for byte values in typed spans.
+- Add Doxygen documentation for `lh_memory_typed_t` struct and all functions in typed.h.
+- Enhanced death.h documentation clarifying the role of `LH_LIBRARY_OPTION_RUNTIME_CHECK_REF` in enabling null-pointer death tests
+- `lh/memory/typed.h` and `src/lh/memory/typed.c` reorganized into range-style logical sections for better API parity and navigation
+- `lh_memory_typed_slice` now delegates slice geometry to `lh_memory_range_slice` using byte offsets computed from typed element offsets/sizes
+
 ## [0.2.0] - 2026-04-20
 
 ### Added

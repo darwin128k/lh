@@ -58,7 +58,7 @@ lh_void lh_memory_range_assign(lh_memory_range_t *self, const lh_memory_range_t 
 }
 
 lh_void lh_memory_range_clear(lh_memory_range_t *self) {
-    lh_memory_range_t other = lh_memory_range_empty_initializer();
+    const lh_memory_range_t other = lh_memory_range_empty_initializer();
     lh_memory_range_assign(self, &other);
 }
 
@@ -67,6 +67,28 @@ lh_void lh_memory_range_swap(lh_memory_range_t *self, lh_memory_range_t *other) 
     lh_runtime_check_ref(other);
 
     lh_algorithm_swap(lh_memory_range_t, lh_ptr_deref(self), lh_ptr_deref(other));
+}
+
+lh_memory_range_t lh_memory_range_clone(const lh_memory_range_t *self) {
+    lh_memory_range_t r;
+    lh_memory_range_unpack(self, lh_addr_ref(r.first), lh_addr_ref(r.second));
+    return r;
+}
+
+lh_void lh_memory_range_dup(const lh_memory_range_t *self, lh_memory_range_t *other) {
+    const lh_memory_range_t r = lh_memory_range_clone(self);
+    return lh_memory_range_assign(other, lh_addr_ref(r));
+}
+
+lh_void lh_memory_range_dup_v(const lh_memory_range_t *self, lh_memory_range_t *other) {
+    const lh_memory_range_t r = lh_memory_range_clone(self);
+    return lh_memory_range_assign_v(other, lh_addr_ref(r));
+}
+
+lh_memory_range_t lh_memory_range_clone_v(const lh_memory_range_t *self) {
+    lh_memory_range_t r;
+    lh_memory_range_dup_v(self, lh_addr_ref(r));
+    return r;
 }
 
 lh_void lh_memory_range_exchange(lh_memory_range_t *self, lh_memory_range_t *other) {
@@ -90,6 +112,11 @@ void lh_memory_range_init_by_size(lh_memory_range_t *self, lh_ptr begin, lh_usiz
 
 void lh_memory_range_init_by_other(lh_memory_range_t *self, const lh_memory_range_t *other) {
     lh_memory_range_assign(self, other);
+}
+
+void lh_memory_range_init_by_empty(lh_memory_range_t *self) {
+    const lh_memory_range_t other = lh_memory_range_empty_initializer();
+    lh_memory_range_assign(self, lh_addr_ref(other));
 }
 
 lh_memory_range_state_t lh_memory_range_get_state(const lh_memory_range_t *self) {
@@ -142,8 +169,15 @@ lh_bool_t lh_memory_range_is_invalid(const lh_memory_range_t *self) {
 }
 
 lh_memory_range_t lh_memory_range_make(lh_ptr begin, lh_ptr end) {
-    lh_memory_range_t range = lh_memory_range_initializer(begin, end);
-    return range;
+    lh_memory_range_t r;
+    lh_memory_range_init(lh_addr_ref(r), begin, end);
+    return r;
+}
+
+lh_memory_range_t lh_memory_range_make_by_empty(lh_void) {
+    lh_memory_range_t r;
+    lh_memory_range_init_by_empty(lh_addr_ref(r));
+    return r;
 }
 
 lh_memory_range_t lh_memory_range_make_v(lh_ptr begin, lh_ptr end) {
@@ -151,6 +185,14 @@ lh_memory_range_t lh_memory_range_make_v(lh_ptr begin, lh_ptr end) {
     lh_runtime_check_if(lh_memory_range_is_invalid(&range),
                         lh_runtime_error_code_invalid_memory_range);
     return range;
+}
+
+lh_memory_range_t lh_memory_range_make_or_empty(lh_ptr begin, lh_ptr end) {
+    lh_runtime_try(e) {
+        lh_memory_range_t r = lh_memory_range_make_v(begin, end);
+        lh_runtime_try_return(r);
+    }
+    return lh_memory_range_make_by_empty();
 }
 
 lh_memory_range_t lh_memory_range_make_by_size(lh_ptr begin, lh_usize_t size) {
@@ -177,6 +219,15 @@ lh_memory_range_t lh_memory_range_slice(const lh_memory_range_t *self, lh_uoffse
     lh_ptr begin = lh_memory_range_get_ptr(self, offset, lh_bool_false);
     lh_ptr end = lh_ptr_add_by_offset_unsafe(lh_void, begin, size);
     return lh_memory_range_make_v(begin, end);
+}
+
+lh_memory_range_t lh_memory_range_slice_or_empty(const lh_memory_range_t *self, lh_uoffset_t offset,
+                                                 lh_uoffset_t size) {
+    lh_runtime_try(e) {
+        lh_memory_range_t r = lh_memory_range_slice(self, offset, size);
+        lh_runtime_try_return(r);
+    }
+    return lh_memory_range_make_by_empty();
 }
 
 void lh_memory_range_unpack_v(const lh_memory_range_t *self, lh_ptr *begin, lh_ptr *end) {
@@ -235,9 +286,9 @@ lh_ptr lh_memory_range_get_ptr_from_back(const lh_memory_range_t *self, lh_uoffs
 }
 
 lh_ptr lh_memory_range_get_ptr(const lh_memory_range_t *self, lh_uoffset_t offset,
-                               lh_bool_t is_back) {
-    return is_back ? lh_memory_range_get_ptr_from_back(self, offset)
-                   : lh_memory_range_get_ptr_from_front(self, offset);
+                               lh_bool_t from_back) {
+    return from_back ? lh_memory_range_get_ptr_from_back(self, offset)
+                     : lh_memory_range_get_ptr_from_front(self, offset);
 }
 
 lh_byte_t lh_memory_range_get_value_from_front(const lh_memory_range_t *self, lh_uoffset_t offset) {
@@ -249,20 +300,20 @@ lh_byte_t lh_memory_range_get_value_from_back(const lh_memory_range_t *self, lh_
 }
 
 lh_byte_t lh_memory_range_get_value(const lh_memory_range_t *self, lh_uoffset_t offset,
-                                    lh_bool_t is_back) {
-    return lh_ptr_deref(lh_ptr_cast(lh_byte_t, lh_memory_range_get_ptr(self, offset, is_back)));
+                                    lh_bool_t from_back) {
+    return lh_ptr_deref(lh_ptr_cast(lh_byte_t, lh_memory_range_get_ptr(self, offset, from_back)));
 }
 
 lh_void lh_memory_range_set_value(lh_memory_range_t *self, lh_uoffset_t offset, lh_byte_t value,
-                                  lh_bool_t is_back) {
-    lh_ptr_deref(lh_ptr_cast(lh_byte_t, lh_memory_range_get_ptr(self, offset, is_back))) = value;
+                                  lh_bool_t from_back) {
+    lh_ptr_deref(lh_ptr_cast(lh_byte_t, lh_memory_range_get_ptr(self, offset, from_back))) = value;
 }
 
 lh_ptr lh_memory_range_get_front_ptr(const lh_memory_range_t *self) {
     return lh_memory_range_get_ptr(self, 0, lh_bool_false);
 }
 
-lh_byte_t lh_memory_range_get_front(const lh_memory_range_t *self) {
+lh_byte_t lh_memory_range_get_front_value(const lh_memory_range_t *self) {
     return lh_memory_range_get_value(self, 0, lh_bool_false);
 }
 
@@ -270,7 +321,7 @@ lh_ptr lh_memory_range_get_back_ptr(const lh_memory_range_t *self) {
     return lh_memory_range_get_ptr(self, 0, lh_bool_true);
 }
 
-lh_byte_t lh_memory_range_get_back(const lh_memory_range_t *self) {
+lh_byte_t lh_memory_range_get_back_value(const lh_memory_range_t *self) {
     return lh_memory_range_get_value(self, 0, lh_bool_true);
 }
 
@@ -372,6 +423,12 @@ lh_void lh_memory_range_assign_v(lh_memory_range_t *self, const lh_memory_range_
 lh_void lh_memory_range_set_v(lh_memory_range_t *self, lh_ptr begin, lh_ptr end) {
     const lh_memory_range_t range = lh_memory_range_initializer(begin, end);
     lh_memory_range_assign_v(self, &range);
+}
+
+lh_void lh_memory_range_pack_v(lh_memory_range_t *self, lh_ptr *begin, lh_ptr *end) {
+    lh_memory_range_t r = lh_memory_range_clone_v(self);
+    lh_memory_range_pack(lh_addr_ref(r), begin, end);
+    lh_memory_range_assign_v(self, lh_addr_ref(r));
 }
 
 lh_void lh_memory_range_set_by_size_or_clear(lh_memory_range_t *self, lh_ptr begin,

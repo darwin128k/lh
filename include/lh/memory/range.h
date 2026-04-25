@@ -159,6 +159,13 @@ void lh_memory_range_init_by_size(lh_memory_range_t *self, lh_ptr begin, lh_usiz
 LH_ATTRIBUTE(SYMBOL)
 void lh_memory_range_init_by_other(lh_memory_range_t *self, const lh_memory_range_t *other);
 
+/**
+ * @brief Initialize @p self with ::lh_memory_range_empty_initializer.
+ * @param self Destination range.
+ */
+LH_ATTRIBUTE(SYMBOL)
+void lh_memory_range_init_by_empty(lh_memory_range_t *self);
+
 /* ── classification ───────────────────────────────────────────────────────── */
 
 /**
@@ -357,13 +364,13 @@ lh_ptr lh_memory_range_get_ptr_from_back(const lh_memory_range_t *self, lh_uoffs
 /**
  * @brief Dispatch to ::lh_memory_range_get_ptr_from_front or ::lh_memory_range_get_ptr_from_back.
  * @param self      Valid range.
- * @param offset  Byte offset (interpretation depends on @p is_back).
- * @param is_back If true, count from the end of the span.
+ * @param offset    Byte offset (interpretation depends on @p from_back).
+ * @param from_back If true, count from the end of the span.
  * @return Pointer into the span.
  */
 LH_ATTRIBUTE(SYMBOL)
 lh_ptr lh_memory_range_get_ptr(const lh_memory_range_t *self, lh_uoffset_t offset,
-                               lh_bool_t is_back);
+                               lh_bool_t from_back);
 
 /**
  * @brief Byte value at @p offset from the front (requires valid offset).
@@ -387,13 +394,13 @@ lh_byte_t lh_memory_range_get_value_from_back(const lh_memory_range_t *self, lh_
  * @brief Dispatch to ::lh_memory_range_get_value_from_front or
  * ::lh_memory_range_get_value_from_back.
  * @param self      Valid range.
- * @param offset  Byte offset (interpretation depends on @p is_back).
- * @param is_back If true, count from the end of the span.
+ * @param offset    Byte offset (interpretation depends on @p from_back).
+ * @param from_back If true, count from the end of the span.
  * @return Byte stored at the resolved address.
  */
 LH_ATTRIBUTE(SYMBOL)
 lh_byte_t lh_memory_range_get_value(const lh_memory_range_t *self, lh_uoffset_t offset,
-                                    lh_bool_t is_back);
+                                    lh_bool_t from_back);
 
 /**
  * @brief True iff @p self can produce a valid slice for (@p offset, @p size).
@@ -425,16 +432,31 @@ lh_memory_range_t lh_memory_range_slice(const lh_memory_range_t *self, lh_uoffse
                                         lh_uoffset_t size);
 
 /**
- * @brief Write @p value at ::lh_memory_range_get_ptr(@p self, @p offset, @p is_back)
- * (inverse of ::lh_memory_range_get_value for the same @p offset / @p is_back).
+ * @brief Like ::lh_memory_range_slice, but returns empty range on any failure.
+ *
+ * On invalid @p self or out-of-range/overflow slice request, returns
+ * ::lh_memory_range_empty_initializer.
+ *
+ * @param self   Source range.
+ * @param offset Start byte offset from @c first.
+ * @param size   Length of the subrange in bytes.
+ * @return Constructed subrange or empty range on failure.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_memory_range_t lh_memory_range_slice_or_empty(const lh_memory_range_t *self,
+                                                 lh_uoffset_t offset, lh_uoffset_t size);
+
+/**
+ * @brief Write @p value at ::lh_memory_range_get_ptr(@p self, @p offset, @p from_back)
+ * (inverse of ::lh_memory_range_get_value for the same @p offset / @p from_back).
  * @param self      Range to modify.
  * @param offset    Index as for ::lh_memory_range_get_ptr.
  * @param value     Byte to store.
- * @param is_back If true, index from the end.
+ * @param from_back If true, index from the end.
  */
 LH_ATTRIBUTE(SYMBOL)
 lh_void lh_memory_range_set_value(lh_memory_range_t *self, lh_uoffset_t offset, lh_byte_t value,
-                                  lh_bool_t is_back);
+                                  lh_bool_t from_back);
 
 /**
  * @brief Same as ::lh_memory_range_get_ptr(@p self, 0, ::lh_bool_false).
@@ -448,7 +470,7 @@ lh_ptr lh_memory_range_get_front_ptr(const lh_memory_range_t *self);
  * @param self Valid range.
  */
 LH_ATTRIBUTE(SYMBOL)
-lh_byte_t lh_memory_range_get_front(const lh_memory_range_t *self);
+lh_byte_t lh_memory_range_get_front_value(const lh_memory_range_t *self);
 
 /**
  * @brief Same as ::lh_memory_range_get_ptr(@p self, 0, ::lh_bool_true).
@@ -462,7 +484,7 @@ lh_ptr lh_memory_range_get_back_ptr(const lh_memory_range_t *self);
  * @param self Valid non-empty range.
  */
 LH_ATTRIBUTE(SYMBOL)
-lh_byte_t lh_memory_range_get_back(const lh_memory_range_t *self);
+lh_byte_t lh_memory_range_get_back_value(const lh_memory_range_t *self);
 
 /**
  * @brief Return next pointer after @p ptr within @p self, or ::lh_null if no next element.
@@ -752,6 +774,21 @@ LH_ATTRIBUTE(SYMBOL)
 lh_void lh_memory_range_set_v(lh_memory_range_t *self, lh_ptr begin, lh_ptr end);
 
 /**
+ * @brief Optionally update bounds of @p self, then validate the resulting range.
+ *
+ * Works like ::lh_memory_range_pack: pass ::lh_null for @p begin and/or @p end
+ * to keep the corresponding stored endpoint unchanged. The updated value is then
+ * committed through ::lh_memory_range_assign_v, so invalid resulting bounds fail
+ * runtime validation.
+ *
+ * @param self  Destination range.
+ * @param begin Optional new value source for @c first, or ::lh_null to keep current value.
+ * @param end   Optional new value source for @c second, or ::lh_null to keep current value.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_void lh_memory_range_pack_v(lh_memory_range_t *self, lh_ptr *begin, lh_ptr *end);
+
+/**
  * @brief Like ::lh_memory_range_set_by_size, but on failure clears @p self.
  * @param self  Destination.
  * @param begin Start address.
@@ -770,6 +807,51 @@ LH_ATTRIBUTE(SYMBOL)
 lh_void lh_memory_range_swap(lh_memory_range_t *self, lh_memory_range_t *other);
 
 /**
+ * @brief Return a by-value copy of @p self without requiring validity.
+ *
+ * Copies raw stored endpoints (`first`, `second`) as-is.
+ *
+ * @param self Source range.
+ * @return Cloned range.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_memory_range_t lh_memory_range_clone(const lh_memory_range_t *self);
+
+/**
+ * @brief Copy @p self into @p other without requiring validity.
+ *
+ * Equivalent to cloning @p self and assigning the result to @p other via
+ * ::lh_memory_range_assign.
+ *
+ * @param self  Source range.
+ * @param other Destination range.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_void lh_memory_range_dup(const lh_memory_range_t *self, lh_memory_range_t *other);
+
+/**
+ * @brief Copy @p self into @p other, requiring destination assignment through
+ * ::lh_memory_range_assign_v.
+ *
+ * The copied value is produced by ::lh_memory_range_clone and then validated by
+ * assignment rules of ::lh_memory_range_assign_v.
+ *
+ * @param self  Source range.
+ * @param other Destination range.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_void lh_memory_range_dup_v(const lh_memory_range_t *self, lh_memory_range_t *other);
+
+/**
+ * @brief Clone @p self and validate the produced value as in ::lh_memory_range_dup_v.
+ *
+ * @param self Source range.
+ * @return Cloned valid range.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_memory_range_t lh_memory_range_clone_v(const lh_memory_range_t *self);
+
+/**
  * @brief Clear @p self, then swap with @p other (so @p other receives the cleared range).
  * @param self  Range to replace.
  * @param other Range to exchange with.
@@ -786,6 +868,13 @@ lh_void lh_memory_range_exchange(lh_memory_range_t *self, lh_memory_range_t *oth
  */
 LH_ATTRIBUTE(SYMBOL)
 lh_memory_range_t lh_memory_range_make(lh_ptr begin, lh_ptr end);
+
+/**
+ * @brief Return ::lh_memory_range_empty_initializer by value.
+ * @return Empty range value.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_memory_range_t lh_memory_range_make_by_empty(lh_void);
 
 /**
  * @brief Build and validate a range from @p begin and @p size.
@@ -816,6 +905,16 @@ lh_memory_range_t lh_memory_range_make_by_size(lh_ptr begin, lh_usize_t size);
  */
 LH_ATTRIBUTE(SYMBOL)
 lh_memory_range_t lh_memory_range_make_v(lh_ptr begin, lh_ptr end);
+
+/**
+ * @brief Like ::lh_memory_range_make_v, but returns empty range on failure.
+ *
+ * @param begin New @c first.
+ * @param end   New @c second.
+ * @return Constructed valid range or empty range on failure.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_memory_range_t lh_memory_range_make_or_empty(lh_ptr begin, lh_ptr end);
 
 LH_COMPILER(EXTERN_C_END)
 

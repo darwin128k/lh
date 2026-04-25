@@ -115,6 +115,13 @@ LH_ATTRIBUTE(SYMBOL)
 void lh_memory_view_init_by_other(lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
+ * @brief Initialize @p self with ::lh_memory_view_empty_initializer.
+ * @param self Destination view.
+ */
+LH_ATTRIBUTE(SYMBOL)
+void lh_memory_view_init_by_empty(lh_memory_view_t *self);
+
+/**
  * @brief Return @c first.
  * @param self View to read.
  * @return Stored begin pointer.
@@ -160,6 +167,44 @@ lh_void lh_memory_view_swap(lh_memory_view_t *self, lh_memory_view_t *other);
  */
 LH_ATTRIBUTE(SYMBOL)
 lh_void lh_memory_view_exchange(lh_memory_view_t *self, lh_memory_view_t *other);
+
+/**
+ * @brief Return a by-value copy of @p self without requiring validity.
+ *
+ * Copies raw stored endpoints (`first`, `second`) as-is.
+ *
+ * @param self Source view.
+ * @return Cloned view.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_memory_view_t lh_memory_view_clone(const lh_memory_view_t *self);
+
+/**
+ * @brief Copy @p self into @p other without requiring validity.
+ *
+ * @param self  Source view.
+ * @param other Destination view.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_void lh_memory_view_dup(const lh_memory_view_t *self, lh_memory_view_t *other);
+
+/**
+ * @brief Copy @p self into @p other through validated assignment.
+ *
+ * @param self  Source view.
+ * @param other Destination view.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_void lh_memory_view_dup_v(const lh_memory_view_t *self, lh_memory_view_t *other);
+
+/**
+ * @brief Clone @p self and validate the produced value as in ::lh_memory_view_dup_v.
+ *
+ * @param self Source view.
+ * @return Cloned valid view.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_memory_view_t lh_memory_view_clone_v(const lh_memory_view_t *self);
 
 /* ── classification ───────────────────────────────────────────────────────── */
 
@@ -358,13 +403,13 @@ const lh_ptr lh_memory_view_get_ptr_from_back(const lh_memory_view_t *self, lh_u
 /**
  * @brief Dispatch to ::lh_memory_view_get_ptr_from_front or ::lh_memory_view_get_ptr_from_back.
  * @param self      Valid view.
- * @param offset  Byte offset (interpretation depends on @p is_back).
- * @param is_back If true, count from the end of the span.
+ * @param offset    Byte offset (interpretation depends on @p from_back).
+ * @param from_back If true, count from the end of the span.
  * @return Pointer into the span.
  */
 LH_ATTRIBUTE(SYMBOL)
 const lh_ptr lh_memory_view_get_ptr(const lh_memory_view_t *self, lh_uoffset_t offset,
-                                    lh_bool_t is_back);
+                                    lh_bool_t from_back);
 
 /**
  * @brief Byte value at @p offset from the front (requires valid offset).
@@ -387,13 +432,13 @@ lh_byte_t lh_memory_view_get_value_from_back(const lh_memory_view_t *self, lh_uo
 /**
  * @brief Dispatch to ::lh_memory_view_get_value_from_front or ::lh_memory_view_get_value_from_back.
  * @param self      Valid view.
- * @param offset  Byte offset (interpretation depends on @p is_back).
- * @param is_back If true, count from the end of the span.
+ * @param offset    Byte offset (interpretation depends on @p from_back).
+ * @param from_back If true, count from the end of the span.
  * @return Byte stored at the resolved address.
  */
 LH_ATTRIBUTE(SYMBOL)
 lh_byte_t lh_memory_view_get_value(const lh_memory_view_t *self, lh_uoffset_t offset,
-                                   lh_bool_t is_back);
+                                   lh_bool_t from_back);
 
 /**
  * @brief True iff @p self can produce a valid slice for (@p offset, @p size).
@@ -425,6 +470,21 @@ lh_memory_view_t lh_memory_view_slice(const lh_memory_view_t *self, lh_uoffset_t
                                       lh_uoffset_t size);
 
 /**
+ * @brief Like ::lh_memory_view_slice, but returns empty view on any failure.
+ *
+ * On invalid @p self or out-of-range/overflow slice request, returns
+ * ::lh_memory_view_empty_initializer.
+ *
+ * @param self   Source view.
+ * @param offset Start byte offset from @c first.
+ * @param size   Length of the subview in bytes.
+ * @return Constructed subview or empty view on failure.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_memory_view_t lh_memory_view_slice_or_empty(const lh_memory_view_t *self, lh_uoffset_t offset,
+                                               lh_uoffset_t size);
+
+/**
  * @brief Same as ::lh_memory_view_get_ptr(@p self, 0, ::lh_bool_false).
  * @param self Valid view.
  */
@@ -436,7 +496,7 @@ const lh_ptr lh_memory_view_get_front_ptr(const lh_memory_view_t *self);
  * @param self Valid view.
  */
 LH_ATTRIBUTE(SYMBOL)
-lh_byte_t lh_memory_view_get_front(const lh_memory_view_t *self);
+lh_byte_t lh_memory_view_get_front_value(const lh_memory_view_t *self);
 
 /**
  * @brief Same as ::lh_memory_view_get_ptr(@p self, 0, ::lh_bool_true).
@@ -450,7 +510,7 @@ const lh_ptr lh_memory_view_get_back_ptr(const lh_memory_view_t *self);
  * @param self Valid non-empty view.
  */
 LH_ATTRIBUTE(SYMBOL)
-lh_byte_t lh_memory_view_get_back(const lh_memory_view_t *self);
+lh_byte_t lh_memory_view_get_back_value(const lh_memory_view_t *self);
 
 /**
  * @brief Return next pointer after @p ptr within @p self, or ::lh_null if no next element.
@@ -656,6 +716,13 @@ LH_ATTRIBUTE(SYMBOL)
 lh_memory_view_t lh_memory_view_make(const lh_ptr begin, const lh_ptr end);
 
 /**
+ * @brief Return ::lh_memory_view_empty_initializer by value.
+ * @return Empty view value.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_memory_view_t lh_memory_view_make_by_empty(lh_void);
+
+/**
  * @brief Build a view from @p begin and @p size and return it by value.
  *
  * Equivalent to constructing the half-open view <tt>[begin, begin + size)</tt>.
@@ -680,6 +747,16 @@ lh_memory_view_t lh_memory_view_make_by_size(const lh_ptr begin, lh_usize_t size
  */
 LH_ATTRIBUTE(SYMBOL)
 lh_memory_view_t lh_memory_view_make_v(const lh_ptr begin, const lh_ptr end);
+
+/**
+ * @brief Like ::lh_memory_view_make_v, but returns empty view on failure.
+ *
+ * @param begin New @c first.
+ * @param end   New @c second.
+ * @return Constructed valid view or empty view on failure.
+ */
+LH_ATTRIBUTE(SYMBOL)
+lh_memory_view_t lh_memory_view_make_or_empty(const lh_ptr begin, const lh_ptr end);
 
 LH_COMPILER(EXTERN_C_END)
 

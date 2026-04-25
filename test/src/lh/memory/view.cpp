@@ -62,6 +62,13 @@ TEST(memory_view_make_by_size, builds_expected_half_open_view) {
     EXPECT_EQ(lh_memory_view_get_size(&v), 5u);
 }
 
+TEST(memory_view_make_by_empty, returns_empty_initializer_state) {
+    const lh_memory_view_t v = lh_memory_view_make_by_empty();
+    EXPECT_TRUE(lh_memory_view_is_uninitialized(&v));
+    EXPECT_EQ(lh_memory_view_get_begin(&v), cv(lh_null));
+    EXPECT_EQ(lh_memory_view_get_end(&v), cv(lh_null));
+}
+
 TEST(memory_view_make, invalid_pair_is_allowed) {
     unsigned char buf[2];
     const lh_void *lo = cv(lh_cast_static(lh_ptr, buf + 1));
@@ -132,6 +139,14 @@ TEST(memory_view_init_by_other, copies_bounds) {
     lh_memory_view_init_by_other(&b, &a);
     EXPECT_EQ(lh_memory_view_get_begin(&b), lh_memory_view_get_begin(&a));
     EXPECT_EQ(lh_memory_view_get_end(&b), lh_memory_view_get_end(&a));
+}
+
+TEST(memory_view_init_by_empty, resets_to_empty_initializer) {
+    lh_memory_view_t v = lh_memory_range_empty_initializer();
+    unsigned char buf[2];
+    lh_memory_view_set(&v, cv(lh_cast_static(lh_ptr, buf)), cv(lh_cast_static(lh_ptr, buf + 2)));
+    lh_memory_view_init_by_empty(&v);
+    EXPECT_TRUE(lh_memory_view_is_uninitialized(&v));
 }
 
 TEST(memory_view_contains, half_open_endpoints) {
@@ -234,8 +249,8 @@ TEST(memory_view_at, front_back_and_offsets) {
 
     EXPECT_EQ(lh_memory_view_get_front_ptr(&v), cv(lh_cast_static(lh_ptr, buf)));
     EXPECT_EQ(lh_memory_view_get_back_ptr(&v), cv(lh_cast_static(lh_ptr, buf + 3)));
-    EXPECT_EQ(lh_memory_view_get_front(&v), 0xA);
-    EXPECT_EQ(lh_memory_view_get_back(&v), 0xD);
+    EXPECT_EQ(lh_memory_view_get_front_value(&v), 0xA);
+    EXPECT_EQ(lh_memory_view_get_back_value(&v), 0xD);
 
     EXPECT_EQ(lh_memory_view_get_ptr_from_front(&v, 0), cv(lh_cast_static(lh_ptr, buf)));
     EXPECT_EQ(lh_memory_view_get_ptr_from_front(&v, 3), cv(lh_cast_static(lh_ptr, buf + 3)));
@@ -321,6 +336,19 @@ TEST(memory_view_slice, supports_non_zero_offset) {
     EXPECT_EQ(lh_memory_view_get_size(&s), 3u);
 }
 
+TEST(memory_view_slice_or_empty, returns_slice_or_empty) {
+    lh_memory_view_t v = lh_memory_range_empty_initializer();
+    unsigned char buf[8] = {};
+    lh_memory_view_init_by_size(&v, cv(lh_cast_static(lh_ptr, buf)), 8);
+
+    const lh_memory_view_t ok = lh_memory_view_slice_or_empty(&v, 1, 3);
+    EXPECT_EQ(lh_memory_view_get_begin(&ok), cv(lh_cast_static(lh_ptr, buf + 1)));
+    EXPECT_EQ(lh_memory_view_get_end(&ok), cv(lh_cast_static(lh_ptr, buf + 4)));
+
+    const lh_memory_view_t bad = lh_memory_view_slice_or_empty(&v, 7, 2);
+    EXPECT_TRUE(lh_memory_view_is_uninitialized(&bad));
+}
+
 TEST(memory_view_alignment, begin_and_full) {
     alignas(16) unsigned char block[32];
     lh_memory_view_t v = lh_memory_range_empty_initializer();
@@ -390,6 +418,36 @@ TEST(memory_view_swap_exchange, mutates_pair) {
     lh_memory_view_exchange(&a, &b);
     EXPECT_TRUE(lh_memory_view_has_data(&a));
     EXPECT_TRUE(lh_memory_view_is_uninitialized(&b));
+}
+
+TEST(memory_view_clone_dup, raw_copy_semantics) {
+    lh_memory_view_t src = lh_memory_range_empty_initializer();
+    unsigned char buf[4];
+    lh_memory_view_init_by_size(&src, cv(lh_cast_static(lh_ptr, buf)), 4);
+
+    const lh_memory_view_t c = lh_memory_view_clone(&src);
+    EXPECT_EQ(lh_memory_view_get_begin(&c), lh_memory_view_get_begin(&src));
+    EXPECT_EQ(lh_memory_view_get_end(&c), lh_memory_view_get_end(&src));
+
+    lh_memory_view_t d = lh_memory_range_empty_initializer();
+    lh_memory_view_dup(&src, &d);
+    EXPECT_EQ(lh_memory_view_get_begin(&d), lh_memory_view_get_begin(&src));
+    EXPECT_EQ(lh_memory_view_get_end(&d), lh_memory_view_get_end(&src));
+}
+
+TEST(memory_view_clone_dup_v, validated_copy_semantics) {
+    lh_memory_view_t src = lh_memory_range_empty_initializer();
+    unsigned char buf[4];
+    lh_memory_view_init_by_size(&src, cv(lh_cast_static(lh_ptr, buf)), 4);
+
+    const lh_memory_view_t c = lh_memory_view_clone_v(&src);
+    EXPECT_EQ(lh_memory_view_get_begin(&c), lh_memory_view_get_begin(&src));
+    EXPECT_EQ(lh_memory_view_get_end(&c), lh_memory_view_get_end(&src));
+
+    lh_memory_view_t d = lh_memory_range_empty_initializer();
+    lh_memory_view_dup_v(&src, &d);
+    EXPECT_EQ(lh_memory_view_get_begin(&d), lh_memory_view_get_begin(&src));
+    EXPECT_EQ(lh_memory_view_get_end(&d), lh_memory_view_get_end(&src));
 }
 
 TEST(memory_view_find_range, finds_first_occurrence) {
@@ -496,6 +554,14 @@ TEST(memory_view_make_v, accepts_valid_ordered_pair) {
     EXPECT_EQ(lh_memory_view_get_begin(&v), b);
     EXPECT_EQ(lh_memory_view_get_end(&v), e);
     EXPECT_TRUE(lh_memory_view_is_valid(&v));
+}
+
+TEST(memory_view_make_or_empty, invalid_pair_returns_empty) {
+    unsigned char buf[2];
+    const lh_void *lo = cv(lh_cast_static(lh_ptr, buf + 1));
+    const lh_void *hi = cv(lh_cast_static(lh_ptr, buf));
+    const lh_memory_view_t v = lh_memory_view_make_or_empty(lo, hi);
+    EXPECT_TRUE(lh_memory_view_is_uninitialized(&v));
 }
 
 TEST(memory_view_unpack_v, reads_valid_view) {
@@ -624,6 +690,23 @@ TEST(memory_view_death, slice_offset_out_of_range) {
     unsigned char buf[4];
     lh_memory_view_init_by_size(&v, cv(lh_cast_static(lh_ptr, buf)), 4);
     LH_EXPECT_DEATH((void)lh_memory_view_slice(&v, 5, 0));
+}
+
+TEST(memory_view_death, clone_v_rejects_invalid_source) {
+    lh_memory_view_t v = lh_memory_range_empty_initializer();
+    unsigned char buf[2];
+    lh_memory_view_init(&v, cv(lh_cast_static(lh_ptr, buf + 1)), cv(lh_cast_static(lh_ptr, buf)));
+    LH_EXPECT_DEATH((void)lh_memory_view_clone_v(&v));
+}
+
+TEST(memory_view_death, dup_v_rejects_invalid_source) {
+    lh_memory_view_t src = lh_memory_range_empty_initializer();
+    lh_memory_view_t dst = lh_memory_range_empty_initializer();
+    unsigned char buf[2];
+    lh_memory_view_init(&src, cv(lh_cast_static(lh_ptr, buf + 1)), cv(lh_cast_static(lh_ptr, buf)));
+    lh_memory_view_init(&dst, cv(lh_cast_static(lh_ptr, buf)),
+                        cv(lh_cast_static(lh_ptr, buf + 1)));
+    LH_EXPECT_DEATH((void)lh_memory_view_dup_v(&src, &dst));
 }
 
 #endif // LH_TEST_EXPECT_DEATH_ENABLED

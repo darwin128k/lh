@@ -11,6 +11,7 @@
 #define LH_COMPILER_ATTRIBUTE_SYMBOL_H
 
 #include <lh/compiler/type.h>
+#include <lh/compiler/os/subsys.h>
 
 /**
  * @def LH_COMPILER_ATTRIBUTE_SYMBOL_EXPORT
@@ -68,10 +69,15 @@
  * @endcode
  */
 #if (LH_COMPILER_TYPE_IS_GCC_LIKE)
-#    define LH_COMPILER_ATTRIBUTE_SYMBOL_EXPORT __attribute__((visibility("default")))
-#    define LH_COMPILER_ATTRIBUTE_SYMBOL_IMPORT __attribute__((visibility("default")))
-#    define LH_COMPILER_ATTRIBUTE_SYMBOL_HIDDEN __attribute__((visibility("hidden")))
-
+#    if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS && LH_COMPILER_OS_SUBSYS != LH_COMPILER_OS_SUBSYS_CYGWIN
+#        define LH_COMPILER_ATTRIBUTE_SYMBOL_EXPORT __declspec(dllexport)
+#        define LH_COMPILER_ATTRIBUTE_SYMBOL_IMPORT __declspec(dllimport)
+#        define LH_COMPILER_ATTRIBUTE_SYMBOL_HIDDEN
+#    else
+#        define LH_COMPILER_ATTRIBUTE_SYMBOL_EXPORT __attribute__((visibility("default")))
+#        define LH_COMPILER_ATTRIBUTE_SYMBOL_IMPORT __attribute__((visibility("default")))
+#        define LH_COMPILER_ATTRIBUTE_SYMBOL_HIDDEN __attribute__((visibility("hidden")))
+#    endif
 #elif (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC)
 #    define LH_COMPILER_ATTRIBUTE_SYMBOL_EXPORT __declspec(dllexport)
 #    define LH_COMPILER_ATTRIBUTE_SYMBOL_IMPORT __declspec(dllimport)

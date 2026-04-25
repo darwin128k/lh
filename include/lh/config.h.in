@@ -104,6 +104,16 @@
 #define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED @ValAllocatorInitAllocated@
 
 /**
+ * @def LH_LIBRARY_OPTION_RUNTIME_CHECK_REF
+ * @brief Enable null-pointer validation in ::lh_runtime_check_ref
+ *        (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
+ *
+ * When OFF, ::lh_runtime_check_ref compiles to a no-op.
+ * Other checks performed via ::lh_runtime_check are unaffected.
+ */
+#define LH_LIBRARY_OPTION_RUNTIME_CHECK_REF @ValRuntimeCheckRef@
+
+/**
  * @def LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX
  * @brief Maximum depth of nested runtime exception catch frames.
  *

@@ -33,7 +33,9 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/memory/memory.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/raw.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/range.cpp
+        ${LH_TEST_SRC_PATH}/lh/memory/typed.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/view.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/view.cpp
         ${LH_TEST_SRC_PATH}/lh/util/interval.cpp
         ${LH_TEST_SRC_PATH}/lh/util/str/raw.cpp
         ${LH_TEST_SRC_PATH}/lh/util/str/case/map.cpp
