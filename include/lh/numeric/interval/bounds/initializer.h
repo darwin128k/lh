@@ -15,7 +15,7 @@
 #define LH_NUMERIC_INTERVAL_BOUNDS_INITIALIZER_H
 
 #include <lh/interval/bounds/initializer.h>
-#include <lh/numeric/limit.h>
+#include <lh/util/numeric.h>
 
 /**
  * @def lh_numeric_interval_bounds_initializer_unsigned(T)
