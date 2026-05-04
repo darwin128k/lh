@@ -48,19 +48,11 @@ cmake --build build
 | `LH_BUILD_DOCS`   | `ON`   | Generate Doxygen documentation       |
 | `LH_BUILD_TESTS`  | `ON`   | Build GoogleTest targets             |
 | `LH_DOCS_GRAPHS`  | `ON`   | Include Graphviz dependency graphs   |
-| `LH_LIBRARY_OPTION_RUNTIME_CHECK_REF` | `ON` | Enable `lh_runtime_check_ref` null-pointer checks (`OFF` makes it a no-op) |
 
 Example — static library without docs:
 
 ```sh
 cmake -S . -B build -DLH_BUILD_SHARED=OFF -DLH_BUILD_DOCS=OFF
-cmake --build build
-```
-
-Example — disable only `lh_runtime_check_ref` checks:
-
-```sh
-cmake -S . -B build -DLH_LIBRARY_OPTION_RUNTIME_CHECK_REF=OFF
 cmake --build build
 ```
 

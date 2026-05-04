@@ -56,11 +56,6 @@ function(lh_generate_config)
     else ()
         set(ValAllocatorInitAllocated 0)
     endif ()
-    if (LH_LIBRARY_OPTION_RUNTIME_CHECK_REF)
-        set(ValRuntimeCheckRef 1)
-    else ()
-        set(ValRuntimeCheckRef 0)
-    endif ()
 
     set(ValCatchStackMax "${LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX}")
 

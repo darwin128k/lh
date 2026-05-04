@@ -9,7 +9,7 @@
 #ifndef LH_BYTE_H
 #define LH_BYTE_H
 
-#include <lh/char.h>
+#include <lh/numeric/fixed.h>
 
 /**
  * @typedef lh_byte_t
@@ -20,6 +20,6 @@
  *
  * Alias for: `unsigned char`
  */
-typedef lh_uchar_t lh_byte_t;
+typedef lh_u8_t lh_byte_t;
 
 #endif // LH_BYTE_H

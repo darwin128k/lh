@@ -10,10 +10,6 @@
  * is abort(), which EXPECT_DEATH can rely on; OFF → initial handler is null,
  * calling terminate on failed checks is undefined — these tests are disabled.
  *
- * LH_LIBRARY_OPTION_RUNTIME_CHECK_REF is also checked because null-pointer death
- * tests rely on lh_runtime_check_ref being active. When this option is OFF,
- * lh_runtime_check_ref is a no-op and null-pointer death tests are disabled.
- *
  * This does not prove anything at runtime: lh_runtime_terminate_set() can
  * replace abort() with another function; then EXPECT_DEATH may fail unless
  * tests restore abort() or otherwise ensure the process still dies in a way
@@ -26,8 +22,7 @@
 #include <gtest/gtest.h>
 #include <lh/config.h>
 
-#if GTEST_HAS_DEATH_TEST && LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB &&                      \
-    LH_LIBRARY_OPTION_RUNTIME_CHECK_REF
+#if GTEST_HAS_DEATH_TEST && LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB
 
 /**
  * Failed lh_runtime_check_ref unwinds via lh_runtime_throw; with no catch frame this calls

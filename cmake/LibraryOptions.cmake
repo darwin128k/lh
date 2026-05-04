@@ -72,21 +72,6 @@ option(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED
         ON)
 
 # -----------------------------------------------------------------------------
-# Option: LH_LIBRARY_OPTION_RUNTIME_CHECK_REF
-#
-# Controls null-reference guard checks in lh_runtime_check_ref().
-#
-#   ON  — lh_runtime_check_ref(expr) throws when expr is false.
-#   OFF — lh_runtime_check_ref(expr) compiles to a no-op.
-#
-# This option affects only lh_runtime_check_ref and does not disable other
-# runtime checks performed via lh_runtime_check(...).
-# -----------------------------------------------------------------------------
-option(LH_LIBRARY_OPTION_RUNTIME_CHECK_REF
-        "Enable null-reference checks in lh_runtime_check_ref."
-        ON)
-
-# -----------------------------------------------------------------------------
 # LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX
 #
 # Maximum active catch frames for lh_runtime_exception_catch_stack_* (array size
