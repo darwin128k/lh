@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <lh/cast.h>
+#include <lh/cast/static.h>
 #include <lh/str/view.h>
 
 namespace {

@@ -10,7 +10,7 @@
 #ifndef LH_UTIL_TYPE_H
 #define LH_UTIL_TYPE_H
 
-#include <lh/cast.h>
+#include <lh/cast/static.h>
 #include <lh/config.h>
 #include <lh/util/bit.h>
 

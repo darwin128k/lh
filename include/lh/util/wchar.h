@@ -12,7 +12,7 @@
 #include <lh/attribute.h>
 #include <lh/compiler.h>
 #include <lh/wchar.h>
-#include <lh/cast.h>
+#include <lh/cast/static.h>
 
 /**
  * @def lh_wchar_ord_to(T, c)

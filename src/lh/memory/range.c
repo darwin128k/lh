@@ -7,6 +7,7 @@
 #include <lh/runtime/try.h>
 #include <lh/util/algorithm.h>
 #include <lh/util/interval.h>
+#include <lh/cast/const.h>
 #include <lh/util/ptr.h>
 
 void lh_memory_range_pack(lh_memory_range_t *self, lh_ptr *begin, lh_ptr *end) {

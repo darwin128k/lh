@@ -16,6 +16,7 @@
 
 #include <lh/addr.h>
 #include <lh/void.h>
+#include <lh/cast/reinterpret.h>
 
 /**
  * @def lh_void_ptr

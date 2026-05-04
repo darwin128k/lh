@@ -5,6 +5,7 @@
 #include <lh/runtime/check/ref.h>
 #include <lh/runtime/try.h>
 #include <lh/util/algorithm.h>
+#include <lh/cast/const.h>
 #include <lh/util/ptr.h>
 
 void lh_memory_view_pack(lh_memory_view_t *self, const lh_ptr *begin, const lh_ptr *end) {

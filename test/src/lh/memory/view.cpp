@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <lh/cast.h>
+#include <lh/cast/static.h>
 #include <lh/expect/death.h>
 #include <lh/memory/range/initializer.h>
 #include <lh/memory/view.h>

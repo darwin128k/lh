@@ -1,7 +1,7 @@
 #ifndef LH_UTIL_CHAR_H
 #define LH_UTIL_CHAR_H
 
-#include <lh/cast.h>
+#include <lh/cast/static.h>
 #include <lh/char.h>
 #include <lh/compiler.h>
 #include <lh/attribute.h>
