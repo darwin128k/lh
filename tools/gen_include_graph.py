@@ -90,8 +90,6 @@ def main():
     parser = argparse.ArgumentParser(description="Generate include graph for lh library.")
     parser.add_argument(
         "output",
-        nargs="?",
-        default=None,
         help="Output file path (extension determines format: .dot or .svg)"
     )
     parser.add_argument(
@@ -99,7 +97,7 @@ def main():
         nargs="*",
         default=[],
         choices=["dot", "svg"],
-        help="Output formats: dot, svg, or both (default: svg)"
+        help="Output formats: dot, svg (default: both)"
     )
     args = parser.parse_args()
 
@@ -107,21 +105,16 @@ def main():
     print(f"Total headers: {len(nodes)}")
     print(f"Total edges: {len(edges)}")
 
+    output = args.output
+    base, ext = os.path.splitext(output)
     explicit_formats = set(args.format) if args.format else set()
 
-    if args.output:
-        output = args.output
-        base, ext = os.path.splitext(output)
-        if ext in [".dot", ".svg"] and not explicit_formats:
-            output_formats = {ext[1:]}
-        else:
-            output_formats = explicit_formats if explicit_formats else {"svg"}
-        base = output.rsplit(".", 1)[0]
+    if ext in [".dot", ".svg"] and not explicit_formats:
+        output_formats = {ext[1:]}
     else:
-        base = "/tmp/full_includes"
-        output_formats = explicit_formats if explicit_formats else {"svg"}
+        output_formats = explicit_formats if explicit_formats else {"dot", "svg"}
 
-    keep_dot = "dot" in explicit_formats or ("dot" in output_formats and not explicit_formats)
+    keep_dot = "dot" in output_formats
 
     dot_path = base + ".dot"
     generate_dot(edges, nodes, dot_path)
