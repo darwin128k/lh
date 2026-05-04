@@ -109,6 +109,18 @@ Current version from `VERSION`: **0.2.0** — history and release notes in [CHAN
 
 Git tag **`v0.2.0`** marks this release on GitHub. Earlier **`v0.1.0`** remains available for the initial public snapshot.
 
+## Tools
+
+Scripts for code generation and analysis:
+
+| Script | Description |
+|--------|-------------|
+| `tools/gen_include_graph.py` | Generates Graphviz visualization of header dependencies. Output: `.dot` or `.svg`. Requires Graphviz. |
+| `tools/gen_wchar_case_map.py` | Parses UnicodeData.txt and generates `lh_wstr_raw_to_lower` / `lh_wstr_raw_to_upper` implementation. |
+| `tools/gen_wstr_case_fold.py` | Parses CaseFolding.txt and generates `lh_wchar_fold_case` for case-insensitive comparison. Uses single-code-point mappings only (excludes full expansions like `ß → ss`). |
+
+All scripts require Python 3 and work with Unicode data vendored in `tools/data/unicode/`.
+
 ## License
 
 See [LICENSE](LICENSE.md) for details.
