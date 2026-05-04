@@ -1,19 +1,19 @@
 /**
- * @file force_inline.h
- * @brief Compiler-portable force-inline attribute macro.
+ * @file builtin.h
+ * @brief Compiler-portable builtin attribute macro.
  *
- * Provides ::LH_COMPILER_ATTRIBUTE_FORCE_INLINE — a single macro
+ * Provides ::LH_COMPILER_ATTRIBUTE_BUILTIN — a single macro
  * that instructs the compiler to always inline a function,
  * bypassing its cost-benefit heuristic.
  */
 
-#ifndef LH_COMPILER_ATTRIBUTE_FORCE_INLINE_H
-#define LH_COMPILER_ATTRIBUTE_FORCE_INLINE_H
+#ifndef LH_COMPILER_ATTRIBUTE_BUILTIN_H
+#define LH_COMPILER_ATTRIBUTE_BUILTIN_H
 
 #include <lh/compiler/type.h>
 
 /**
- * @def LH_COMPILER_ATTRIBUTE_FORCE_INLINE
+ * @def LH_COMPILER_ATTRIBUTE_BUILTIN
  * @brief Force the compiler to inline the decorated function.
  *
  * Overrides the compiler's inlining heuristic
@@ -27,16 +27,16 @@
  *
  * Example usage:
  * @code{.c}
- * LH_COMPILER_ATTRIBUTE_FORCE_INLINE int add(int a, int b) { return a + b; }
+ * LH_COMPILER_ATTRIBUTE_BUILTIN int add(int a, int b) { return a + b; }
  * @endcode
  */
 #if (LH_COMPILER_TYPE_IS_GCC_LIKE)
-#    define LH_COMPILER_ATTRIBUTE_FORCE_INLINE __attribute__((always_inline)) inline
+#    define LH_COMPILER_ATTRIBUTE_BUILTIN __attribute__((always_inline)) inline
 
 #elif (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC)
-#    define LH_COMPILER_ATTRIBUTE_FORCE_INLINE __forceinline
+#    define LH_COMPILER_ATTRIBUTE_BUILTIN __forceinline
 #else
 #    error "Compiler does not support force inlining attribute"
 #endif
 
-#endif // LH_COMPILER_ATTRIBUTE_FORCE_INLINE_H
+#endif // LH_COMPILER_ATTRIBUTE_BUILTIN_H

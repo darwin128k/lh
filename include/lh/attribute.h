@@ -9,7 +9,7 @@
 #ifndef LH_ATTRIBUTE_H
 #define LH_ATTRIBUTE_H
 
-#include <lh/attribute/force_inline.h>
+#include <lh/attribute/builtin.h>
 #include <lh/attribute/noreturn.h>
 #include <lh/attribute/symbol.h>
 #include <lh/attribute/thread_local.h>
@@ -22,12 +22,12 @@
  * Expands to `LH_ATTRIBUTE_##name`, allowing attribute macros to be
  * referenced by their short token rather than their full name.
  *
- * @param name  Attribute token (e.g. `FORCE_INLINE`, `NORETURN`,
+ * @param name  Attribute token (e.g. `BUILTIN`, `NORETURN`,
  *              `THREAD_LOCAL`, `UNUSED`).
  *
  * Example usage:
  * @code{.c}
- * LH_ATTRIBUTE(FORCE_INLINE) int add(int a, int b) { return a + b; }
+ * LH_ATTRIBUTE(BUILTIN) int add(int a, int b) { return a + b; }
  * LH_ATTRIBUTE(NORETURN) void fatal(const char *msg);
  * @endcode
  */
