@@ -13,7 +13,8 @@
 #define LH_ADDR_H
 
 #include <lh/compiler/arch.h>
-#include <lh/numeric/fixed.h>
+#include <lh/numeric/fixed/types.h>
+#include <lh/numeric/fixed/limits.h>
 
 #if LH_COMPILER_ARCH == 64
 

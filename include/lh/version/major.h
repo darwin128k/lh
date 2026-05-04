@@ -6,7 +6,7 @@
 #ifndef LH_VERSION_MAJOR_H
 #define LH_VERSION_MAJOR_H
 
-#include <lh/numeric/types.h>
+#include <lh/numeric/fixed/types.h>
 
 /**
  * @typedef lh_version_major_t
@@ -17,10 +17,10 @@
  *
  * Range: 0 to 65535.
  *
- * Alias for: ::lh_ushort_t
+ * Alias for: ::lh_u16_t
  *
  * @see lh_version_t
  */
-typedef lh_ushort_t lh_version_major_t;
+typedef lh_u16_t lh_version_major_t;
 
 #endif // LH_VERSION_MAJOR_H

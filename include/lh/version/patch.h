@@ -6,7 +6,7 @@
 #ifndef LH_VERSION_PATCH_H
 #define LH_VERSION_PATCH_H
 
-#include <lh/char.h>
+#include <lh/numeric/fixed/types.h>
 
 /**
  * @typedef lh_version_patch_t
@@ -18,10 +18,10 @@
  *
  * Range: 0 to 255.
  *
- * Alias for: ::lh_uchar_t
+ * Alias for: ::lh_u8_t
  *
  * @see lh_version_t
  */
-typedef lh_uchar_t lh_version_patch_t;
+typedef lh_u8_t lh_version_patch_t;
 
 #endif // LH_VERSION_PATCH_H

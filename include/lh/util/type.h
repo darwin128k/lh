@@ -125,7 +125,7 @@
  * lh_type_is_signed(lh_uchar_t);   // → 0
  * @endcode
  */
-#define lh_type_is_signed(T) (lh_type_zero_v(T) > lh_type_neg_one_v(T))
+#define lh_type_is_signed(T) lh_math_gt(lh_type_zero_v(T), lh_type_neg_one_v(T))
 
 /**
  * @def lh_type_is_unsigned(T)

@@ -9,7 +9,7 @@
 #ifndef LH_BYTE_H
 #define LH_BYTE_H
 
-#include <lh/numeric/fixed.h>
+#include <lh/numeric/fixed/types.h>
 
 /**
  * @typedef lh_byte_t
