@@ -37,7 +37,7 @@
  * if (lh_null_eq(p)) { ... }
  * @endcode
  */
-#define lh_null_eq(ptr) ((ptr) == lh_null)
+#define lh_null_eq(ptr) lh_math_eq(ptr, lh_null)
 
 /**
  * @def lh_null_ne(ptr)
@@ -52,6 +52,6 @@
  * if (lh_null_ne(p)) { ... }
  * @endcode
  */
-#define lh_null_ne(ptr) ((ptr) != lh_null)
+#define lh_null_ne(ptr) lh_math_ne(ptr, lh_null)
 
 #endif // LH_NULL_H
