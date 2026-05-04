@@ -19,36 +19,7 @@
 #define LH_ERROR_CODE_H
 
 #include <lh/return/code.h>
-
-#ifndef LH_ERROR_CODE_T_SIZE
-/**
- * @def LH_ERROR_CODE_T_SIZE
- * @brief Size of ::lh_error_code_t in bytes.
- *
- * Expands to ::LH_RETURN_CODE_T_SIZE.
- */
-#    define LH_ERROR_CODE_T_SIZE LH_RETURN_CODE_T_SIZE
-#endif // LH_ERROR_CODE_T_SIZE
-
-#ifndef LH_ERROR_CODE_T_MIN
-/**
- * @def LH_ERROR_CODE_T_MIN
- * @brief Minimum value of ::lh_error_code_t.
- *
- * Expands to ::LH_RETURN_CODE_T_MIN.
- */
-#    define LH_ERROR_CODE_T_MIN LH_RETURN_CODE_T_MIN
-#endif // LH_ERROR_CODE_T_MIN
-
-#ifndef LH_ERROR_CODE_T_MAX
-/**
- * @def LH_ERROR_CODE_T_MAX
- * @brief Maximum value of ::lh_error_code_t.
- *
- * Expands to ::LH_RETURN_CODE_T_MAX.
- */
-#    define LH_ERROR_CODE_T_MAX LH_RETURN_CODE_T_MAX
-#endif // LH_ERROR_CODE_T_MAX
+#include <lh/error/code/limits.h>
 
 /**
  * @def lh_error_code_ok
@@ -62,7 +33,7 @@
  *
  * Callers can test with an exact comparison (e.g. @c result == lh_error_code_ok).
  */
-#define lh_error_code_ok 0
+#define lh_error_code_ok LH_ERROR_CODE_T_MIN
 
 /**
  * @typedef lh_error_code_t
