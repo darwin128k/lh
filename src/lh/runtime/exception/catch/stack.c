@@ -1,8 +1,10 @@
 #include <lh/assert/static.h>
 #include <lh/library/fallback.h>
-#include <lh/null.h>
+#include <lh/compiler/destructor.h>
+#include <lh/compiler/constructor.h>
 #include <lh/runtime/exception/catch/stack.h>
 #include <lh/util/addr.h>
+#include <lh/null.h>
 
 lh_assert_static(LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX,
                  "Zero stack depth makes exception handling impossible");

@@ -10,7 +10,7 @@
 #define LH_UTIL_WCHAR_H
 
 #include <lh/attribute.h>
-#include <lh/compiler.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/wchar.h>
 #include <lh/cast/static.h>
 
@@ -26,7 +26,7 @@
  */
 #define lh_wchar_ord(c) lh_wchar_ord_to(lh_sint_t, c)
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Fold one code unit for case-insensitive comparison
@@ -76,6 +76,6 @@ lh_wchar_t lh_wchar_to_lower(lh_wchar_t c);
 LH_ATTRIBUTE(SYMBOL)
 lh_wchar_t lh_wchar_to_upper(lh_wchar_t c);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_UTIL_WCHAR_H

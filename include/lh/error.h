@@ -12,7 +12,7 @@
 
 #include <lh/attribute.h>
 #include <lh/bool.h>
-#include <lh/compiler.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/error/code.h>
 #include <lh/error/desc.h>
 
@@ -25,7 +25,7 @@ typedef struct lh_error {
     lh_error_desc_t desc; /**< Optional message pointer; may be null. */
 } lh_error_t;             /**< Typedef for struct ::lh_error. */
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /* ── pack / unpack ───────────────────────────────────────────────────────── */
 
@@ -148,6 +148,6 @@ void lh_error_init_by_empty(lh_error_t *self);
 LH_ATTRIBUTE(SYMBOL)
 lh_error_code_t lh_error_get_code_and_clear(lh_error_t *self);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_ERROR_H

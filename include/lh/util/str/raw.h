@@ -11,7 +11,7 @@
 #define LH_UTIL_STR_RAW_H
 
 #include <lh/attribute.h>
-#include <lh/compiler.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/size.h>
 #include <lh/bool.h>
 #include <lh/str/ptr.h>
@@ -119,7 +119,7 @@
  */
 #define lh_str_raw_lit_va(...) lh_str_raw_lit(__VA_ARGS__)
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Find the first ::lh_char_t equal to @p ch
@@ -735,6 +735,6 @@ lh_str_ptr lh_str_raw_rtrim_auto(lh_str_ptr str, const lh_str_ptr whitespace_cha
 LH_ATTRIBUTE(SYMBOL)
 lh_str_ptr lh_str_raw_trim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_UTIL_STR_RAW_H

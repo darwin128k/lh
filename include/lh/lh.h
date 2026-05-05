@@ -11,7 +11,7 @@
 
 #include <lh/version.h>
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Return a pointer to the compiled library version.
@@ -28,6 +28,6 @@ LH_COMPILER(EXTERN_C_BEGIN)
 LH_ATTRIBUTE(SYMBOL)
 const lh_version_t *lh_get_version(void);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_H

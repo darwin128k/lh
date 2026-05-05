@@ -14,11 +14,11 @@
 #define LH_MEMORY_H
 
 #include <lh/attribute.h>
-#include <lh/compiler.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 #include <lh/size.h>
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Copy up to @c min(dst_size, src_size) bytes
@@ -223,6 +223,6 @@ LH_ATTRIBUTE(SYMBOL)
 lh_ptr lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src,
                              lh_usize_t src_size);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_MEMORY_H

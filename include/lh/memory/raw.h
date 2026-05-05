@@ -14,10 +14,10 @@
 #define LH_MEMORY_RAW_H
 
 #include <lh/attribute.h>
-#include <lh/compiler.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Copy up to @c min(dst_end - dst, src_end - src) bytes
@@ -168,6 +168,6 @@ LH_ATTRIBUTE(SYMBOL)
 lh_ptr lh_memory_raw_set_pattern(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src,
                                  const lh_ptr src_end);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_MEMORY_RAW_H

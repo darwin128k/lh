@@ -13,7 +13,9 @@ lh_usize_t g_test_alloc_last_size = 0;
 int g_test_alloc_calls = 0;
 int g_test_dealloc_calls = 0;
 
-LH_COMPILER(EXTERN_C_BEGIN)
+#include <lh/compiler/extern/c.h>
+
+LH_COMPILER_EXTERN_C_BEGIN
 
 lh_ptr test_alloc_malloc(lh_usize_t size) {
     ++g_test_alloc_calls;
@@ -40,7 +42,7 @@ lh_ptr test_alloc_always_null(lh_usize_t size) {
     return nullptr;
 }
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 TEST(memory_allocator_pack, updates_only_alloc_when_dealloc_pointer_null) {
     lh_memory_allocator_t a = lh_memory_allocator_initializer(test_alloc_malloc, test_dealloc_free);

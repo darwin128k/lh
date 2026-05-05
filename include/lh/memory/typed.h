@@ -41,7 +41,7 @@ typedef struct lh_memory_typed {
     lh_memory_typed_fields(lh_memory_range_t);
 } lh_memory_typed_t;
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /* ── pack / unpack ────────────────────────────────────────────────────────── */
 
@@ -514,6 +514,6 @@ lh_byte_t lh_memory_typed_get_front_value(const lh_memory_typed_t *self);
 LH_ATTRIBUTE(SYMBOL)
 lh_byte_t lh_memory_typed_get_back_value(const lh_memory_typed_t *self);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_MEMORY_TYPED_H

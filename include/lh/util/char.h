@@ -3,13 +3,13 @@
 
 #include <lh/cast/static.h>
 #include <lh/char.h>
-#include <lh/compiler.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/attribute.h>
 
 #define lh_char_ord_to(T, c) lh_cast_static(T, c)
 #define lh_char_ord(c) lh_char_ord_to(lh_sint_t, c)
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Fold one ::lh_char_t for case-insensitive comparison
@@ -24,6 +24,6 @@ LH_COMPILER(EXTERN_C_BEGIN)
 LH_ATTRIBUTE(SYMBOL)
 lh_char_t lh_char_fold_case(lh_char_t c);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_UTIL_CHAR_H

@@ -56,7 +56,7 @@
 #define lh_runtime_exception_catch_stack_capture(x)                                                \
     setjmp(lh_runtime_exception_catch_stack_push(x)->env)
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Registered catch pointer held in the stack slot at the internal cursor.
@@ -173,6 +173,6 @@ void lh_runtime_exception_catch_stack_rethrow(void) {
     lh_runtime_exception_catch_stack_throw(&cur->exception);
 }
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_RUNTIME_EXCEPTION_CATCH_STACK_H

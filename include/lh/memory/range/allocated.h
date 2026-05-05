@@ -13,7 +13,7 @@
  */
 typedef lh_memory_range_t lh_memory_range_allocated_t;
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Byte size of the stored span, or @c 0 if the range is uninitialized.
@@ -64,6 +64,6 @@ lh_void lh_memory_range_allocated_exchange(lh_memory_range_allocated_t *self,
 LH_ATTRIBUTE(SYMBOL)
 lh_void lh_memory_range_allocated_resize(lh_memory_range_allocated_t *self, lh_usize_t size);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_MEMORY_RANGE_ALLOCATED_H

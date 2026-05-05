@@ -27,7 +27,7 @@
 
 #include <lh/attribute.h>
 #include <lh/bool.h>
-#include <lh/compiler.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/memory/range/state.h>
 #include <lh/memory/view/fields.h>
 #include <lh/offset.h>
@@ -46,7 +46,7 @@ typedef struct lh_memory_view {
     lh_memory_view_fields(lh_void);
 } lh_memory_view_t; /**< Typedef for struct ::lh_memory_view. */
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /* ── pack / unpack / init ─────────────────────────────────────────────────── */
 
@@ -758,6 +758,6 @@ lh_memory_view_t lh_memory_view_make_v(const lh_ptr begin, const lh_ptr end);
 LH_ATTRIBUTE(SYMBOL)
 lh_memory_view_t lh_memory_view_make_or_empty(const lh_ptr begin, const lh_ptr end);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_MEMORY_VIEW_H

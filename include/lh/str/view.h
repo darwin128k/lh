@@ -18,7 +18,7 @@
  */
 typedef lh_memory_view_t lh_str_view_t;
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /* ── pack / unpack / init ─────────────────────────────────────────────────── */
 
@@ -641,6 +641,6 @@ const lh_str_ptr lh_str_rcompare_range(const lh_str_view_t *self, const lh_str_p
 LH_ATTRIBUTE(SYMBOL)
 const lh_str_ptr lh_str_rcompare(const lh_str_view_t *self, const lh_str_view_t *other);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_STR_VIEW_H

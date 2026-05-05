@@ -12,7 +12,7 @@
 #define LH_UTIL_WSTR_RAW_H
 
 #include <lh/attribute.h>
-#include <lh/compiler.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/size.h>
 #include <lh/bool.h>
 #include <lh/wstr/ptr.h>
@@ -131,7 +131,7 @@
  */
 #define lh_wstr_raw_lit_va(...) lh_wstr_raw_lit(__VA_ARGS__)
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Find the first ::lh_wchar_t equal to @p val
@@ -678,6 +678,6 @@ lh_wstr_ptr lh_wstr_raw_rtrim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace
 LH_ATTRIBUTE(SYMBOL)
 lh_wstr_ptr lh_wstr_raw_trim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_UTIL_WSTR_RAW_H

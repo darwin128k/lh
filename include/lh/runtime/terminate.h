@@ -14,10 +14,11 @@
 #define LH_RUNTIME_TERMINATE_H
 
 #include <lh/attribute.h>
-#include <lh/compiler.h>
+#include <lh/compiler/extern/c.h>
+#include <lh/compiler/unreachable.h>
 #include <lh/runtime/terminate/cb.h>
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Install a custom runtime terminate callback.
@@ -36,6 +37,6 @@ lh_runtime_terminate_cb lh_runtime_terminate_set(lh_runtime_terminate_cb fn);
 LH_ATTRIBUTE(NORETURN)
 void lh_runtime_terminate(void);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_RUNTIME_TERMINATE_H

@@ -13,7 +13,7 @@
 
 #include <lh/memory/allocator.h>
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Return address of the internal runtime allocator instance.
@@ -61,6 +61,6 @@ lh_void lh_runtime_allocator_free(lh_ptr ptr);
 LH_ATTRIBUTE(SYMBOL)
 lh_ptr lh_runtime_allocator_realloc(lh_ptr old_ptr, lh_usize_t old_size, lh_usize_t new_size);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_RUNTIME_ALLOCATOR_H

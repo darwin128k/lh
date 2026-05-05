@@ -13,7 +13,7 @@
 #define LH_MEMORY_ALLOCATOR_H
 
 #include <lh/attribute.h>
-#include <lh/compiler.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/memory/allocator/alloc/cb.h>
 #include <lh/memory/allocator/dealloc/cb.h>
 #include <lh/memory/allocator/fields.h>
@@ -32,7 +32,7 @@ typedef struct lh_memory_allocator {
     lh_memory_allocator_fields(lh_memory_allocator_alloc_fn, lh_memory_allocator_dealloc_fn);
 } lh_memory_allocator_t;
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Pack optional callback pointers into allocator fields.
@@ -149,6 +149,6 @@ LH_ATTRIBUTE(SYMBOL)
 lh_ptr lh_memory_allocator_realloc(lh_memory_allocator_t *self, lh_ptr old_ptr, lh_usize_t old_size,
                                    lh_usize_t new_size);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_MEMORY_ALLOCATOR_H

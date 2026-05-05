@@ -24,7 +24,7 @@
 
 #include <lh/attribute.h>
 #include <lh/bool.h>
-#include <lh/compiler.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/memory/range/fields.h>
 #include <lh/memory/range/state.h>
 #include <lh/offset.h>
@@ -43,7 +43,7 @@ typedef struct lh_memory_range {
     lh_memory_range_fields(lh_void);
 } lh_memory_range_t; /**< Typedef for struct ::lh_memory_range. */
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /* ── pack / unpack / init ─────────────────────────────────────────────────── */
 
@@ -916,6 +916,6 @@ lh_memory_range_t lh_memory_range_make_v(lh_ptr begin, lh_ptr end);
 LH_ATTRIBUTE(SYMBOL)
 lh_memory_range_t lh_memory_range_make_or_empty(lh_ptr begin, lh_ptr end);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_MEMORY_RANGE_H

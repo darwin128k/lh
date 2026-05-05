@@ -10,11 +10,11 @@
 #define LH_MEMORY_STD_H
 
 #include <lh/attribute.h>
-#include <lh/compiler.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 #include <lh/size.h>
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Copy @p n bytes from @p src to @p dst in forward (low-to-high address) order.
@@ -167,6 +167,6 @@ const lh_ptr lh_memory_std_compare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_
 LH_ATTRIBUTE(SYMBOL)
 const lh_ptr lh_memory_std_rcompare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_MEMORY_STD_H

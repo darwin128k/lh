@@ -12,13 +12,13 @@
 
 #include <lh/attribute.h>
 #include <lh/bool.h>
-#include <lh/compiler.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/version/major.h>
 #include <lh/version/minor.h>
 #include <lh/version/patch.h>
 #include <lh/version/view/fields.h>
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /* ── struct ──────────────────────────────────────────────────────────────── */
 
@@ -131,6 +131,6 @@ lh_version_patch_t lh_version_get_patch(const lh_version_t *self);
 LH_ATTRIBUTE(SYMBOL)
 lh_bool_t lh_version_is_at_least(const lh_version_t *self, const lh_version_t *minimum);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_VERSION_H

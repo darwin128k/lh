@@ -23,7 +23,9 @@
 #ifndef LH_ASSERT_STATIC_H
 #define LH_ASSERT_STATIC_H
 
-#include <lh/compiler.h>
+#include <lh/compiler/cxx.h>
+#include <lh/compiler/type.h>
+#include <lh/compiler/extern/c.h>
 
 /**
  * @def lh_assert_static(expr, msg)

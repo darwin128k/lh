@@ -47,7 +47,7 @@ typedef struct lh_exception {
 #endif
 } lh_exception_t; /**< Typedef for struct ::lh_exception. */
 
-LH_COMPILER(EXTERN_C_BEGIN)
+LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Mutable pointer to the embedded ::lh_error_t inside @p self.
@@ -61,6 +61,6 @@ LH_COMPILER(EXTERN_C_BEGIN)
 LH_ATTRIBUTE(SYMBOL)
 lh_error_t *lh_exception_get_error(const lh_exception_t *self);
 
-LH_COMPILER(EXTERN_C_END)
+LH_COMPILER_EXTERN_C_END
 
 #endif // LH_EXCEPTION_H
