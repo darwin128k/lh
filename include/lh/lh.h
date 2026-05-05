@@ -9,7 +9,6 @@
 #ifndef LH_H
 #define LH_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/version.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
