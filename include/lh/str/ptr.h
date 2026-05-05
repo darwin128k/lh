@@ -1,3 +1,12 @@
+/**
+ * @file ptr.h
+ * @brief String pointer type aliases.
+ *
+ * Provides type aliases for mutable and const string pointers.
+ *
+ * @see lh_str_cptr
+ */
+
 #ifndef LH_STR_PTR_H
 #define LH_STR_PTR_H
 

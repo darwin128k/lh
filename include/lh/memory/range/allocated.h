@@ -1,3 +1,14 @@
+/**
+ * @file allocated.h
+ * @brief Allocated memory range with ownership semantics.
+ *
+ * Provides a type and functions for managing a memory range that
+ * owns its allocated storage. Includes operations for getting size,
+ * clearing (freeing) the allocation, exchanging ranges, and resizing.
+ *
+ * @see lh_memory_range_t
+ */
+
 #ifndef LH_MEMORY_RANGE_ALLOCATED_H
 #define LH_MEMORY_RANGE_ALLOCATED_H
 

@@ -1,3 +1,11 @@
+/**
+ * @file fallback.h
+ * @brief Default fallback values for library build options.
+ *
+ * This header provides default values for optional library features
+ * when not explicitly configured via CMake or manual definition.
+ */
+
 #ifndef LH_LIBRARY_OPTION_FALLBACK_H
 #define LH_LIBRARY_OPTION_FALLBACK_H
 

@@ -1,3 +1,14 @@
+/**
+ * @file limits.h
+ * @brief Size and range limits for ::lh_error_code_t.
+ *
+ * Provides macros that expand to the limits
+ * of the underlying integer type used for error codes.
+ *
+ * @see lh_return_code_t
+ * @see lh_return_code_limits.h
+ */
+
 #ifndef LH_ERROR_CODE_LIMITS_H
 #define LH_ERROR_CODE_LIMITS_H
 

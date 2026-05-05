@@ -1,3 +1,14 @@
+/**
+ * @file char.h
+ * @brief Character utility functions and macros.
+ *
+ * Provides macros and functions for character manipulation,
+ * including case folding for ASCII characters.
+ *
+ * @see lh_char_t
+ * @see lh_wchar_fold_case
+ */
+
 #ifndef LH_UTIL_CHAR_H
 #define LH_UTIL_CHAR_H
 
