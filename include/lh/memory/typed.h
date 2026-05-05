@@ -20,7 +20,6 @@
 #ifndef LH_MEMORY_TYPED_H
 #define LH_MEMORY_TYPED_H
 
-#include <lh/bool.h>
 #include <lh/memory/range.h>
 #include <lh/memory/typed/fields.h>
 
