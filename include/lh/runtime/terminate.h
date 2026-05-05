@@ -13,7 +13,9 @@
 #ifndef LH_RUNTIME_TERMINATE_H
 #define LH_RUNTIME_TERMINATE_H
 
-#include <lh/attribute.h>
+#include <lh/attribute/noreturn.h>
+#include <lh/attribute/thread_local.h>
+#include <lh/library/fallback.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/compiler/unreachable.h>
 #include <lh/runtime/terminate/cb.h>
@@ -34,7 +36,7 @@ lh_runtime_terminate_cb lh_runtime_terminate_set(lh_runtime_terminate_cb fn);
  * handler if none was set.
  * The function is declared noreturn.
  */
-LH_ATTRIBUTE(NORETURN)
+LH_ATTRIBUTE_NORETURN
 void lh_runtime_terminate(void);
 
 LH_COMPILER_EXTERN_C_END

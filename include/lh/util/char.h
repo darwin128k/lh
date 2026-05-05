@@ -4,7 +4,7 @@
 #include <lh/cast/static.h>
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/attribute.h>
+#include <lh/attribute/symbol.h>
 
 #define lh_char_ord_to(T, c) lh_cast_static(T, c)
 #define lh_char_ord(c) lh_char_ord_to(lh_sint_t, c)
@@ -21,7 +21,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @see lh_wchar_fold_case
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_char_t lh_char_fold_case(lh_char_t c);
 
 LH_COMPILER_EXTERN_C_END

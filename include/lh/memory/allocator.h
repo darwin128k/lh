@@ -12,7 +12,7 @@
 #ifndef LH_MEMORY_ALLOCATOR_H
 #define LH_MEMORY_ALLOCATOR_H
 
-#include <lh/attribute.h>
+#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/memory/allocator/alloc/cb.h>
 #include <lh/memory/allocator/dealloc/cb.h>
@@ -43,7 +43,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param alloc_cb Optional pointer to allocation callback value (or ::lh_null to skip).
  * @param dealloc_cb Optional pointer to deallocation callback value (or ::lh_null to skip).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_allocator_pack(lh_memory_allocator_t *self,
                                  lh_memory_allocator_alloc_cb *alloc_cb,
                                  lh_memory_allocator_dealloc_cb *dealloc_cb);
@@ -55,7 +55,7 @@ lh_void lh_memory_allocator_pack(lh_memory_allocator_t *self,
  * @param alloc_cb Optional output for allocation callback (or ::lh_null to skip).
  * @param dealloc_cb Optional output for deallocation callback (or ::lh_null to skip).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_allocator_unpack(const lh_memory_allocator_t *self,
                                    lh_memory_allocator_alloc_cb *alloc_cb,
                                    lh_memory_allocator_dealloc_cb *dealloc_cb);
@@ -67,7 +67,7 @@ lh_void lh_memory_allocator_unpack(const lh_memory_allocator_t *self,
  * @param alloc_cb New allocation callback.
  * @param dealloc_cb New deallocation callback.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_allocator_set(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb,
                                 lh_memory_allocator_dealloc_cb dealloc_cb);
 
@@ -81,7 +81,7 @@ lh_void lh_memory_allocator_set(lh_memory_allocator_t *self, lh_memory_allocator
  * @param alloc_cb Allocation callback (may be ::lh_null to leave allocation disabled).
  * @param dealloc_cb Deallocation callback (may be ::lh_null to leave deallocation disabled).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_allocator_init(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb,
                                  lh_memory_allocator_dealloc_cb dealloc_cb);
 
@@ -89,7 +89,7 @@ lh_void lh_memory_allocator_init(lh_memory_allocator_t *self, lh_memory_allocato
  * @brief Reset allocator to empty state (both callbacks set to ::lh_null).
  * @param self Allocator object to reset.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_allocator_deinit(lh_memory_allocator_t *self);
 
 /**
@@ -97,7 +97,7 @@ lh_void lh_memory_allocator_deinit(lh_memory_allocator_t *self);
  * @param self Allocator object to read from.
  * @return Current allocation callback (may be ::lh_null).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_memory_allocator_alloc_cb lh_memory_allocator_get_alloc_cb(lh_memory_allocator_t *self);
 
 /**
@@ -105,7 +105,7 @@ lh_memory_allocator_alloc_cb lh_memory_allocator_get_alloc_cb(lh_memory_allocato
  * @param self Allocator object to read from.
  * @return Current deallocation callback (may be ::lh_null).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_memory_allocator_dealloc_cb lh_memory_allocator_get_dealloc_cb(lh_memory_allocator_t *self);
 
 /**
@@ -118,7 +118,7 @@ lh_memory_allocator_dealloc_cb lh_memory_allocator_get_dealloc_cb(lh_memory_allo
  * @param size Requested size in bytes.
  * @return Pointer to allocated memory.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_allocator_alloc(lh_memory_allocator_t *self, lh_usize_t size);
 
 /**
@@ -129,7 +129,7 @@ lh_ptr lh_memory_allocator_alloc(lh_memory_allocator_t *self, lh_usize_t size);
  * @param self Allocator object to use.
  * @param ptr Pointer to memory block to free.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_allocator_dealloc(lh_memory_allocator_t *self, lh_ptr ptr);
 
 /**
@@ -145,7 +145,7 @@ lh_void lh_memory_allocator_dealloc(lh_memory_allocator_t *self, lh_ptr ptr);
  * @param new_size Requested block size in bytes.
  * @return Pointer to resized block, @p old_ptr, or ::lh_null depending on inputs.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_allocator_realloc(lh_memory_allocator_t *self, lh_ptr old_ptr, lh_usize_t old_size,
                                    lh_usize_t new_size);
 

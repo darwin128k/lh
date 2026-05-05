@@ -18,7 +18,9 @@
 #define LH_RUNTIME_EXCEPTION_CATCH_STACK_H
 
 #include <lh/exception/catch.h>
-#include <lh/runtime/terminate.h>
+#include <lh/attribute/builtin.h>
+#include <lh/attribute/noreturn.h>
+#include <lh/attribute/thread_local.h>
 
 /**
  * @def lh_runtime_exception_catch_stack_capture(x)
@@ -144,8 +146,8 @@ lh_exception_catch_t *lh_runtime_exception_catch_stack_push(lh_exception_catch_t
  * @param exception Exception value to propagate to the outer catch.
  *                  Must not be null.
  */
-LH_ATTRIBUTE(BUILTIN)
-LH_ATTRIBUTE(NORETURN)
+LH_ATTRIBUTE_BUILTIN
+LH_ATTRIBUTE_NORETURN
 void lh_runtime_exception_catch_stack_throw(const lh_exception_t *exception) {
     lh_exception_catch_t *prev = lh_runtime_exception_catch_stack_prev();
     if (prev) {
@@ -166,8 +168,8 @@ void lh_runtime_exception_catch_stack_throw(const lh_exception_t *exception) {
  *      and refer to the catch that is currently handling the exception;
  *      otherwise behavior is undefined.
  */
-LH_ATTRIBUTE(BUILTIN)
-LH_ATTRIBUTE(NORETURN)
+LH_ATTRIBUTE_BUILTIN
+LH_ATTRIBUTE_NORETURN
 void lh_runtime_exception_catch_stack_rethrow(void) {
     const lh_exception_catch_t *cur = lh_runtime_exception_catch_stack_get_current();
     lh_runtime_exception_catch_stack_throw(&cur->exception);

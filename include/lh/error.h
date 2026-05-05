@@ -10,7 +10,7 @@
 #ifndef LH_ERROR_H
 #define LH_ERROR_H
 
-#include <lh/attribute.h>
+#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/error/code.h>
@@ -36,7 +36,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param code Input pointer for new error code, or ::lh_null to keep current value.
  * @param desc Input pointer for new description pointer, or ::lh_null to keep current value.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 void lh_error_pack(lh_error_t *self, const lh_error_code_t *code, lh_error_desc_t *desc);
 
 /**
@@ -54,7 +54,7 @@ void lh_error_pack(lh_error_t *self, const lh_error_code_t *code, lh_error_desc_
  * lh_error_unpack(&err, &code, lh_null);
  * @endcode
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 void lh_error_unpack(const lh_error_t *self, lh_error_code_t *code, lh_error_desc_t *desc);
 
 /**
@@ -66,7 +66,7 @@ void lh_error_unpack(const lh_error_t *self, lh_error_code_t *code, lh_error_des
  * @param code New error code.
  * @param desc New description pointer (may be null).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 void lh_error_set(lh_error_t *self, lh_error_code_t code, lh_error_desc_t desc);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
@@ -76,7 +76,7 @@ void lh_error_set(lh_error_t *self, lh_error_code_t code, lh_error_desc_t desc);
  * @param self Error object to read from.
  * @return Current ::lh_error_code_t value.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_error_code_t lh_error_get_code(const lh_error_t *self);
 
 /**
@@ -84,7 +84,7 @@ lh_error_code_t lh_error_get_code(const lh_error_t *self);
  * @param self Error object to read from.
  * @return Current @c desc (may be null).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_error_desc_t lh_error_get_desc(const lh_error_t *self);
 
 /* ── copy / clear ────────────────────────────────────────────────────────── */
@@ -94,7 +94,7 @@ lh_error_desc_t lh_error_get_desc(const lh_error_t *self);
  * @param self  Destination error object.
  * @param other Source error object to copy from.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 void lh_error_assign(lh_error_t *self, const lh_error_t *other);
 
 /**
@@ -104,7 +104,7 @@ void lh_error_assign(lh_error_t *self, const lh_error_t *other);
  *
  * @param self Error object to clear.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 void lh_error_clear(lh_error_t *self);
 
 /* ── init ────────────────────────────────────────────────────────────────── */
@@ -118,7 +118,7 @@ void lh_error_clear(lh_error_t *self);
  * @param code Initial error code.
  * @param desc Initial description pointer (may be null).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 void lh_error_init(lh_error_t *self, lh_error_code_t code, lh_error_desc_t desc);
 
 /**
@@ -126,7 +126,7 @@ void lh_error_init(lh_error_t *self, lh_error_code_t code, lh_error_desc_t desc)
  * @param self  Error object to initialize.
  * @param other Source error to copy from.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 void lh_error_init_by_other(lh_error_t *self, const lh_error_t *other);
 
 /**
@@ -136,7 +136,7 @@ void lh_error_init_by_other(lh_error_t *self, const lh_error_t *other);
  *
  * @param self Error object to initialize.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 void lh_error_init_by_empty(lh_error_t *self);
 
 /**
@@ -145,7 +145,7 @@ void lh_error_init_by_empty(lh_error_t *self);
  * @param self Error object to read and reset.
  * @return Code value before clearing.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_error_code_t lh_error_get_code_and_clear(lh_error_t *self);
 
 LH_COMPILER_EXTERN_C_END

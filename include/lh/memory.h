@@ -13,7 +13,7 @@
 #ifndef LH_MEMORY_H
 #define LH_MEMORY_H
 
-#include <lh/attribute.h>
+#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 #include <lh/size.h>
@@ -33,7 +33,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @return Pointer one past the last byte written (i.e. @c dst + n).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_copy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size);
 
 /**
@@ -48,7 +48,7 @@ lh_ptr lh_memory_copy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usiz
  *
  * @return Pointer one past the last byte of the destination range.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_copy_rev(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size);
 
 /**
@@ -62,7 +62,7 @@ lh_ptr lh_memory_copy_rev(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_
  *
  * @return @p dst.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_rcopy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size);
 
 /**
@@ -76,7 +76,7 @@ lh_ptr lh_memory_rcopy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usi
  *
  * @return Pointer one past the last byte written in the destination range.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_move(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size);
 
 /**
@@ -89,7 +89,7 @@ lh_ptr lh_memory_move(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usiz
  *
  * @return Pointer one past the last byte written.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_set(lh_ptr dst, lh_usize_t size, lh_uchar_t val);
 
 /**
@@ -104,7 +104,7 @@ lh_ptr lh_memory_set(lh_ptr dst, lh_usize_t size, lh_uchar_t val);
  * @return Pointer to the first differing byte in @p lhs,
  *         or ::lh_null if all compared bytes match.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_ptr lh_memory_compare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
                                lh_usize_t rhs_size);
 
@@ -122,7 +122,7 @@ const lh_ptr lh_memory_compare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_p
  * @return Pointer into @p lhs to the differing byte in that suffix window,
  *         or ::lh_null if equal.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_ptr lh_memory_rcompare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
                                 lh_usize_t rhs_size);
 
@@ -148,7 +148,7 @@ const lh_ptr lh_memory_rcompare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_
  *
  * @see lh_memory_find_step
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_ptr lh_memory_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
                             lh_usize_t rhs_size);
 
@@ -165,7 +165,7 @@ const lh_ptr lh_memory_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr 
  *
  * @return Pointer to the start of the first match, or ::lh_null if none.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_ptr lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
                                  lh_usize_t rhs_size, lh_usize_t step);
 
@@ -185,7 +185,7 @@ const lh_ptr lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh
  *
  * @see lh_memory_rfind_step
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_ptr lh_memory_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
                              lh_usize_t rhs_size);
 
@@ -201,7 +201,7 @@ const lh_ptr lh_memory_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr
  *
  * @return Pointer to the start of the last match, or ::lh_null if none.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_ptr lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
                                   lh_usize_t rhs_size, lh_usize_t step);
 
@@ -219,7 +219,7 @@ const lh_ptr lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const l
  *
  * @return Pointer one past the last byte written.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src,
                              lh_usize_t src_size);
 

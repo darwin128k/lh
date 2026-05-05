@@ -9,6 +9,7 @@
 #ifndef LH_H
 #define LH_H
 
+#include <lh/attribute/symbol.h>
 #include <lh/version.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -25,7 +26,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * lh_version_major_t major = lh_version_get_major(v);
  * @endcode
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_version_t *lh_get_version(void);
 
 LH_COMPILER_EXTERN_C_END

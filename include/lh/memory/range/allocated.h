@@ -1,6 +1,7 @@
 #ifndef LH_MEMORY_RANGE_ALLOCATED_H
 #define LH_MEMORY_RANGE_ALLOCATED_H
 
+#include <lh/attribute/symbol.h>
 #include <lh/memory/range.h>
 
 /**
@@ -23,7 +24,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return Span length in bytes, or @c 0 when uninitialized; otherwise
  *         same as ::lh_memory_range_get_size.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_usize_t lh_memory_range_allocated_get_size(const lh_memory_range_allocated_t *self);
 
 /**
@@ -34,7 +35,7 @@ lh_usize_t lh_memory_range_allocated_get_size(const lh_memory_range_allocated_t 
  *
  * @param self Range whose storage to release; may be uninitialized (no-op free).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_range_allocated_clear(lh_memory_range_allocated_t *self);
 
 /**
@@ -47,7 +48,7 @@ lh_void lh_memory_range_allocated_clear(lh_memory_range_allocated_t *self);
  * @param other Second range; receives cleared bounds from @p self after the swap
  *              (per ::lh_memory_range_swap).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_range_allocated_exchange(lh_memory_range_allocated_t *self,
                                            lh_memory_range_allocated_t *other);
 
@@ -61,7 +62,7 @@ lh_void lh_memory_range_allocated_exchange(lh_memory_range_allocated_t *self,
  * @param self Range holding the block to resize.
  * @param size New size in bytes.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_range_allocated_resize(lh_memory_range_allocated_t *self, lh_usize_t size);
 
 LH_COMPILER_EXTERN_C_END

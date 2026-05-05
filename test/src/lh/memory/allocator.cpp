@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <lh/attribute/unused.h>
 #include <lh/expect/death.h>
 #include <lh/memory/allocator.h>
 #include <lh/memory/allocator/initializer.h>

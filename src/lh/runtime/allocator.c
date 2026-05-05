@@ -1,3 +1,5 @@
+#include <lh/library/fallback.h>
+#include <lh/attribute/thread_local.h>
 #include <lh/memory/allocator/initializer.h>
 #include <lh/null.h>
 #include <lh/runtime/allocator.h>
@@ -5,10 +7,10 @@
 #if (LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB == LH_LIBRARY_OPTION_ON)
 #    include <stdlib.h>
 
-LH_ATTRIBUTE(THREAD_LOCAL)
+LH_ATTRIBUTE_THREAD_LOCAL
 lh_memory_allocator_t m_runtime_allocator = lh_memory_allocator_initializer(malloc, free);
 #else
-LH_ATTRIBUTE(THREAD_LOCAL)
+LH_ATTRIBUTE_THREAD_LOCAL
 lh_memory_allocator_t m_runtime_allocator = lh_memory_allocator_empty_initializer();
 #endif
 

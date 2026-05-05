@@ -22,6 +22,7 @@
 #ifndef LH_EXCEPTION_H
 #define LH_EXCEPTION_H
 
+#include <lh/attribute/symbol.h>
 #include <lh/error.h>
 
 #ifndef NDEBUG
@@ -58,7 +59,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param self Exception value (not null).
  * @return Pointer to @p self->error.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_error_t *lh_exception_get_error(const lh_exception_t *self);
 
 LH_COMPILER_EXTERN_C_END

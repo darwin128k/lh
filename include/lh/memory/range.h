@@ -22,7 +22,7 @@
 #ifndef LH_MEMORY_RANGE_H
 #define LH_MEMORY_RANGE_H
 
-#include <lh/attribute.h>
+#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/memory/range/fields.h>
@@ -65,7 +65,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *       Use lh_memory_range_get_state() to verify
  *       the resulting span before performing further operations.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 void lh_memory_range_pack(lh_memory_range_t *self, lh_ptr *begin, lh_ptr *end);
 
 /**
@@ -80,7 +80,7 @@ void lh_memory_range_pack(lh_memory_range_t *self, lh_ptr *begin, lh_ptr *end);
  *       Use lh_memory_range_get_state() to determine whether
  *       the resulting range is empty, has data, or is reversed.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 void lh_memory_range_set(lh_memory_range_t *self, lh_ptr begin, lh_ptr end);
 
 /**
@@ -98,7 +98,7 @@ void lh_memory_range_set(lh_memory_range_t *self, lh_ptr begin, lh_ptr end);
  *       In particular, if @p begin is NULL or @p size is not suitable for pointer arithmetic,
  *       a runtime error with code lh_runtime_error_code_invalid_argument may be raised.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_range_set_by_size(lh_memory_range_t *self, lh_ptr begin, lh_usize_t size);
 
 /**
@@ -114,7 +114,7 @@ lh_void lh_memory_range_set_by_size(lh_memory_range_t *self, lh_ptr begin, lh_us
  *       to enforce validity before consuming, consider using
  *       lh_memory_range_unpack_v or lh_memory_range_get_state().
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 void lh_memory_range_unpack(const lh_memory_range_t *self, lh_ptr *begin, lh_ptr *end);
 
 /**
@@ -122,7 +122,7 @@ void lh_memory_range_unpack(const lh_memory_range_t *self, lh_ptr *begin, lh_ptr
  * @param self Range to read.
  * @return Stored begin pointer.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_get_begin(const lh_memory_range_t *self);
 
 /**
@@ -130,7 +130,7 @@ lh_ptr lh_memory_range_get_begin(const lh_memory_range_t *self);
  * @param self Range to read.
  * @return Stored end pointer.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_get_end(const lh_memory_range_t *self);
 
 /**
@@ -139,7 +139,7 @@ lh_ptr lh_memory_range_get_end(const lh_memory_range_t *self);
  * @param begin Value stored as @c first.
  * @param end   Value stored as @c second.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 void lh_memory_range_init(lh_memory_range_t *self, lh_void *begin, lh_void *end);
 
 /**
@@ -148,7 +148,7 @@ void lh_memory_range_init(lh_memory_range_t *self, lh_void *begin, lh_void *end)
  * @param begin Start address.
  * @param size  Length in bytes.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 void lh_memory_range_init_by_size(lh_memory_range_t *self, lh_ptr begin, lh_usize_t size);
 
 /**
@@ -156,14 +156,14 @@ void lh_memory_range_init_by_size(lh_memory_range_t *self, lh_ptr begin, lh_usiz
  * @param self  Destination range.
  * @param other Source range (same layout).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 void lh_memory_range_init_by_other(lh_memory_range_t *self, const lh_memory_range_t *other);
 
 /**
  * @brief Initialize @p self with ::lh_memory_range_empty_initializer.
  * @param self Destination range.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 void lh_memory_range_init_by_empty(lh_memory_range_t *self);
 
 /* ── classification ───────────────────────────────────────────────────────── */
@@ -173,42 +173,42 @@ void lh_memory_range_init_by_empty(lh_memory_range_t *self);
  * @param self Range to inspect.
  * @return Bit pattern describing null endpoints and ordering when both are non-null.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_memory_range_state_t lh_memory_range_get_state(const lh_memory_range_t *self);
 
 /**
  * @brief True iff state is ::lh_memory_view_state_uninitialized (both endpoints null).
  * @param self Range to inspect.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_memory_range_is_uninitialized(const lh_memory_range_t *self);
 
 /**
  * @brief True iff both endpoints are non-null and @c first &lt; @c second.
  * @param self Range to inspect.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_memory_range_has_data(const lh_memory_range_t *self);
 
 /**
  * @brief True iff both endpoints are non-null and equal (degenerate span).
  * @param self Range to inspect.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_memory_range_is_empty(const lh_memory_range_t *self);
 
 /**
  * @brief True iff the range is ::lh_memory_range_is_empty or ::lh_memory_range_has_data.
  * @param self Range to inspect.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_memory_range_is_valid(const lh_memory_range_t *self);
 
 /**
  * @brief Logical negation of ::lh_memory_range_is_valid.
  * @param self Range to inspect.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_memory_range_is_invalid(const lh_memory_range_t *self);
 
 /* ── validated access, size, geometry ─────────────────────────────────────── */
@@ -219,7 +219,7 @@ lh_bool_t lh_memory_range_is_invalid(const lh_memory_range_t *self);
  * @param begin Output for @c first.
  * @param end   Output for @c second.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 void lh_memory_range_unpack_v(const lh_memory_range_t *self, lh_ptr *begin, lh_ptr *end);
 
 /**
@@ -227,14 +227,14 @@ void lh_memory_range_unpack_v(const lh_memory_range_t *self, lh_ptr *begin, lh_p
  * @param self Range to read.
  * @return Signed address difference; may be negative for reversed bounds.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_saddr_t lh_memory_range_diff(const lh_memory_range_t *self);
 
 /**
  * @brief Span length in bytes (::lh_memory_range_diff cast to ::lh_usize_t).
  * @param self Valid range to read.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_usize_t lh_memory_range_get_size(const lh_memory_range_t *self);
 
 /**
@@ -245,7 +245,7 @@ lh_usize_t lh_memory_range_get_size(const lh_memory_range_t *self);
  * @param self  Range to inspect.
  * @param align Required alignment in bytes.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_memory_range_is_begin_aligned(const lh_memory_range_t *self, lh_usize_t align);
 
 /**
@@ -256,7 +256,7 @@ lh_bool_t lh_memory_range_is_begin_aligned(const lh_memory_range_t *self, lh_usi
  * @param self  Range to inspect.
  * @param align Required alignment in bytes.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_memory_range_is_aligned(const lh_memory_range_t *self, lh_usize_t align);
 
 /**
@@ -264,7 +264,7 @@ lh_bool_t lh_memory_range_is_aligned(const lh_memory_range_t *self, lh_usize_t a
  * @param self     Valid range to inspect.
  * @param multiple Divisor to test (library convention for @p multiple applies).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_memory_range_is_multiple_of(const lh_memory_range_t *self, lh_usize_t multiple);
 
 /**
@@ -272,7 +272,7 @@ lh_bool_t lh_memory_range_is_multiple_of(const lh_memory_range_t *self, lh_usize
  * @param self Range to test (must be valid).
  * @param ptr  Address to test.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_memory_range_contains_ptr(const lh_memory_range_t *self, const lh_ptr ptr);
 
 /**
@@ -281,7 +281,7 @@ lh_bool_t lh_memory_range_contains_ptr(const lh_memory_range_t *self, const lh_p
  * @param begin Inner half-open start (inclusive).
  * @param end   Inner half-open end (exclusive).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_memory_range_contains_range(const lh_memory_range_t *self, const lh_ptr begin,
                                          const lh_ptr end);
 
@@ -290,7 +290,7 @@ lh_bool_t lh_memory_range_contains_range(const lh_memory_range_t *self, const lh
  * @param self  Range to test (must be valid).
  * @param other Range whose endpoints are tested (unpacked without extra validity check).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_memory_range_contains(const lh_memory_range_t *self, const lh_memory_range_t *other);
 
 /**
@@ -300,7 +300,7 @@ lh_bool_t lh_memory_range_contains(const lh_memory_range_t *self, const lh_memor
  * @param begin Expected begin pointer.
  * @param end   Expected end pointer.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_memory_range_equals_range(const lh_memory_range_t *self, const lh_ptr begin,
                                        const lh_ptr end);
 
@@ -312,7 +312,7 @@ lh_bool_t lh_memory_range_equals_range(const lh_memory_range_t *self, const lh_p
  * @param self  First range.
  * @param other Second range.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_memory_range_equals(const lh_memory_range_t *self, const lh_memory_range_t *other);
 
 /**
@@ -321,7 +321,7 @@ lh_bool_t lh_memory_range_equals(const lh_memory_range_t *self, const lh_memory_
  * @param begin Second half-open start (inclusive).
  * @param end   Second half-open end (exclusive).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_memory_range_overlaps_range(const lh_memory_range_t *self, const lh_ptr begin,
                                          const lh_ptr end);
 
@@ -330,7 +330,7 @@ lh_bool_t lh_memory_range_overlaps_range(const lh_memory_range_t *self, const lh
  * @param self  Range to test (must be valid).
  * @param other Second range (unpacked without extra validity check on @p other).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_memory_range_overlaps(const lh_memory_range_t *self, const lh_memory_range_t *other);
 
 /* ── indexing ─────────────────────────────────────────────────────────────── */
@@ -340,7 +340,7 @@ lh_bool_t lh_memory_range_overlaps(const lh_memory_range_t *self, const lh_memor
  * @param self   Valid range.
  * @param offset Zero-based byte offset from the start of the span.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_memory_range_is_valid_offset(const lh_memory_range_t *self, lh_uoffset_t offset);
 
 /**
@@ -349,7 +349,7 @@ lh_bool_t lh_memory_range_is_valid_offset(const lh_memory_range_t *self, lh_uoff
  * @param offset Byte offset from @c first.
  * @return Pointer into the span.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_get_ptr_from_front(const lh_memory_range_t *self, lh_uoffset_t offset);
 
 /**
@@ -358,7 +358,7 @@ lh_ptr lh_memory_range_get_ptr_from_front(const lh_memory_range_t *self, lh_uoff
  * @param offset Distance back from the last element (0 = last byte).
  * @return Pointer into the span.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_get_ptr_from_back(const lh_memory_range_t *self, lh_uoffset_t offset);
 
 /**
@@ -368,7 +368,7 @@ lh_ptr lh_memory_range_get_ptr_from_back(const lh_memory_range_t *self, lh_uoffs
  * @param from_back If true, count from the end of the span.
  * @return Pointer into the span.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_get_ptr(const lh_memory_range_t *self, lh_uoffset_t offset,
                                lh_bool_t from_back);
 
@@ -378,7 +378,7 @@ lh_ptr lh_memory_range_get_ptr(const lh_memory_range_t *self, lh_uoffset_t offse
  * @param offset Byte offset from @c first.
  * @return Byte stored at the resolved address.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_byte_t lh_memory_range_get_value_from_front(const lh_memory_range_t *self, lh_uoffset_t offset);
 
 /**
@@ -387,7 +387,7 @@ lh_byte_t lh_memory_range_get_value_from_front(const lh_memory_range_t *self, lh
  * @param offset Distance back from the last element (0 = last byte).
  * @return Byte stored at the resolved address.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_byte_t lh_memory_range_get_value_from_back(const lh_memory_range_t *self, lh_uoffset_t offset);
 
 /**
@@ -398,7 +398,7 @@ lh_byte_t lh_memory_range_get_value_from_back(const lh_memory_range_t *self, lh_
  * @param from_back If true, count from the end of the span.
  * @return Byte stored at the resolved address.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_byte_t lh_memory_range_get_value(const lh_memory_range_t *self, lh_uoffset_t offset,
                                     lh_bool_t from_back);
 
@@ -412,7 +412,7 @@ lh_byte_t lh_memory_range_get_value(const lh_memory_range_t *self, lh_uoffset_t 
  * @param offset Start byte offset from @c first.
  * @param size   Slice size in bytes.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_memory_range_is_sliceable(const lh_memory_range_t *self, lh_uoffset_t offset,
                                        lh_uoffset_t size);
 
@@ -427,7 +427,7 @@ lh_bool_t lh_memory_range_is_sliceable(const lh_memory_range_t *self, lh_uoffset
  * @param size   Length of the subrange in bytes.
  * @return Constructed valid subrange.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_memory_range_t lh_memory_range_slice(const lh_memory_range_t *self, lh_uoffset_t offset,
                                         lh_uoffset_t size);
 
@@ -442,7 +442,7 @@ lh_memory_range_t lh_memory_range_slice(const lh_memory_range_t *self, lh_uoffse
  * @param size   Length of the subrange in bytes.
  * @return Constructed subrange or empty range on failure.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_memory_range_t lh_memory_range_slice_or_empty(const lh_memory_range_t *self,
                                                  lh_uoffset_t offset, lh_uoffset_t size);
 
@@ -454,7 +454,7 @@ lh_memory_range_t lh_memory_range_slice_or_empty(const lh_memory_range_t *self,
  * @param value     Byte to store.
  * @param from_back If true, index from the end.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_range_set_value(lh_memory_range_t *self, lh_uoffset_t offset, lh_byte_t value,
                                   lh_bool_t from_back);
 
@@ -462,28 +462,28 @@ lh_void lh_memory_range_set_value(lh_memory_range_t *self, lh_uoffset_t offset, 
  * @brief Same as ::lh_memory_range_get_ptr(@p self, 0, ::lh_bool_false).
  * @param self Valid range.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_get_front_ptr(const lh_memory_range_t *self);
 
 /**
  * @brief Byte stored at ::lh_memory_range_get_front_ptr(@p self).
  * @param self Valid range.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_byte_t lh_memory_range_get_front_value(const lh_memory_range_t *self);
 
 /**
  * @brief Same as ::lh_memory_range_get_ptr(@p self, 0, ::lh_bool_true).
  * @param self Valid non-empty range.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_get_back_ptr(const lh_memory_range_t *self);
 
 /**
  * @brief Byte stored at ::lh_memory_range_get_back_ptr(@p self).
  * @param self Valid non-empty range.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_byte_t lh_memory_range_get_back_value(const lh_memory_range_t *self);
 
 /**
@@ -496,7 +496,7 @@ lh_byte_t lh_memory_range_get_back_value(const lh_memory_range_t *self);
  * @param ptr  Current pointer.
  * @return Next pointer in range, or ::lh_null.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_next_ptr(const lh_memory_range_t *self, lh_ptr ptr);
 
 /**
@@ -509,7 +509,7 @@ lh_ptr lh_memory_range_next_ptr(const lh_memory_range_t *self, lh_ptr ptr);
  * @param ptr  Current pointer.
  * @return Previous pointer in range, or ::lh_null.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_prev_ptr(const lh_memory_range_t *self, lh_ptr ptr);
 
 /**
@@ -522,7 +522,7 @@ lh_ptr lh_memory_range_prev_ptr(const lh_memory_range_t *self, lh_ptr ptr);
  * @param ptr  Current pointer.
  * @return Byte value at next position.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_byte_t lh_memory_range_next_value(const lh_memory_range_t *self, lh_ptr ptr);
 
 /**
@@ -535,7 +535,7 @@ lh_byte_t lh_memory_range_next_value(const lh_memory_range_t *self, lh_ptr ptr);
  * @param ptr  Current pointer.
  * @return Byte value at previous position.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_byte_t lh_memory_range_prev_value(const lh_memory_range_t *self, lh_ptr ptr);
 
 /* ── raw byte ops (half-open spans) ───────────────────────────────────────── */
@@ -552,7 +552,7 @@ lh_byte_t lh_memory_range_prev_value(const lh_memory_range_t *self, lh_ptr ptr);
  *
  * @return Pointer one past the last byte written into @p self.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_copy_range(lh_memory_range_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
@@ -562,7 +562,7 @@ lh_ptr lh_memory_range_copy_range(lh_memory_range_t *self, const lh_ptr begin, c
  *
  * @return Pointer one past the last byte written into @p self.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_copy(lh_memory_range_t *self, const lh_memory_range_t *other);
 
 /**
@@ -576,7 +576,7 @@ lh_ptr lh_memory_range_copy(lh_memory_range_t *self, const lh_memory_range_t *ot
  *
  * @return Pointer one past the last byte written into @p self.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_move_range(lh_memory_range_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
@@ -586,7 +586,7 @@ lh_ptr lh_memory_range_move_range(lh_memory_range_t *self, const lh_ptr begin, c
  *
  * @return Pointer one past the last byte written into @p self.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_move(lh_memory_range_t *self, const lh_memory_range_t *other);
 
 /**
@@ -599,7 +599,7 @@ lh_ptr lh_memory_range_move(lh_memory_range_t *self, const lh_memory_range_t *ot
  *
  * @return Pointer one past the last byte written into @p self.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_fill(lh_memory_range_t *self, lh_byte_t value);
 
 /**
@@ -614,7 +614,7 @@ lh_ptr lh_memory_range_fill(lh_memory_range_t *self, lh_byte_t value);
  *
  * @return Pointer one past the last byte written into @p self.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_fill_pattern_range(lh_memory_range_t *self, const lh_ptr begin,
                                           const lh_ptr end);
 
@@ -626,7 +626,7 @@ lh_ptr lh_memory_range_fill_pattern_range(lh_memory_range_t *self, const lh_ptr 
  *
  * @return Pointer one past the last byte written into @p self.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_fill_pattern(lh_memory_range_t *self, const lh_memory_range_t *other);
 
 /**
@@ -641,7 +641,7 @@ lh_ptr lh_memory_range_fill_pattern(lh_memory_range_t *self, const lh_memory_ran
  *
  * @return Start of the first match in @p self, or ::lh_null if none.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_find_range(const lh_memory_range_t *self, const lh_ptr begin,
                                   const lh_ptr end);
 
@@ -652,7 +652,7 @@ lh_ptr lh_memory_range_find_range(const lh_memory_range_t *self, const lh_ptr be
  *
  * @return Start of the first match in @p self, or ::lh_null if none.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_find(const lh_memory_range_t *self, const lh_memory_range_t *other);
 
 /**
@@ -667,7 +667,7 @@ lh_ptr lh_memory_range_find(const lh_memory_range_t *self, const lh_memory_range
  *
  * @return Start of the last match in @p self, or ::lh_null if none.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_rfind_range(const lh_memory_range_t *self, const lh_ptr begin,
                                    const lh_ptr end);
 
@@ -678,7 +678,7 @@ lh_ptr lh_memory_range_rfind_range(const lh_memory_range_t *self, const lh_ptr b
  *
  * @return Start of the last match in @p self, or ::lh_null if none.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_rfind(const lh_memory_range_t *self, const lh_memory_range_t *other);
 
 /**
@@ -692,7 +692,7 @@ lh_ptr lh_memory_range_rfind(const lh_memory_range_t *self, const lh_memory_rang
  *
  * @return Pointer to the first differing byte in @p self, or ::lh_null if all compared bytes match.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_compare_range(const lh_memory_range_t *self, const lh_ptr begin,
                                      const lh_ptr end);
 
@@ -704,7 +704,7 @@ lh_ptr lh_memory_range_compare_range(const lh_memory_range_t *self, const lh_ptr
  *
  * @return Pointer to the first differing byte in @p self, or ::lh_null if all compared bytes match.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_compare(const lh_memory_range_t *self, const lh_memory_range_t *other);
 
 /**
@@ -720,7 +720,7 @@ lh_ptr lh_memory_range_compare(const lh_memory_range_t *self, const lh_memory_ra
  * @return Pointer into @p self at the differing byte in the compared suffix window, or ::lh_null if
  * equal.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_rcompare_range(const lh_memory_range_t *self, const lh_ptr begin,
                                       const lh_ptr end);
 
@@ -733,7 +733,7 @@ lh_ptr lh_memory_range_rcompare_range(const lh_memory_range_t *self, const lh_pt
  * @return Pointer into @p self at the differing byte in the compared suffix window, or ::lh_null if
  * equal.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_memory_range_rcompare(const lh_memory_range_t *self, const lh_memory_range_t *other);
 
 /* ── copy / clear / swap ──────────────────────────────────────────────────── */
@@ -743,14 +743,14 @@ lh_ptr lh_memory_range_rcompare(const lh_memory_range_t *self, const lh_memory_r
  * @param self  Destination.
  * @param other Source.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_range_assign(lh_memory_range_t *self, const lh_memory_range_t *other);
 
 /**
  * @brief Reset @p self to the “both null” pattern (::lh_memory_range_empty_initializer).
  * @param self Range to clear.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_range_clear(lh_memory_range_t *self);
 
 /**
@@ -758,7 +758,7 @@ lh_void lh_memory_range_clear(lh_memory_range_t *self);
  * @param self  Destination.
  * @param other Source (must be valid).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_range_assign_v(lh_memory_range_t *self, const lh_memory_range_t *other);
 
 /**
@@ -770,7 +770,7 @@ lh_void lh_memory_range_assign_v(lh_memory_range_t *self, const lh_memory_range_
  * @param begin New @c first.
  * @param end   New @c second.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_range_set_v(lh_memory_range_t *self, lh_ptr begin, lh_ptr end);
 
 /**
@@ -785,7 +785,7 @@ lh_void lh_memory_range_set_v(lh_memory_range_t *self, lh_ptr begin, lh_ptr end)
  * @param begin Optional new value source for @c first, or ::lh_null to keep current value.
  * @param end   Optional new value source for @c second, or ::lh_null to keep current value.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_range_pack_v(lh_memory_range_t *self, lh_ptr *begin, lh_ptr *end);
 
 /**
@@ -794,7 +794,7 @@ lh_void lh_memory_range_pack_v(lh_memory_range_t *self, lh_ptr *begin, lh_ptr *e
  * @param begin Start address.
  * @param size  Length in bytes.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_range_set_by_size_or_clear(lh_memory_range_t *self, lh_ptr begin,
                                              lh_usize_t size);
 
@@ -803,7 +803,7 @@ lh_void lh_memory_range_set_by_size_or_clear(lh_memory_range_t *self, lh_ptr beg
  * @param self  First range.
  * @param other Second range.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_range_swap(lh_memory_range_t *self, lh_memory_range_t *other);
 
 /**
@@ -814,7 +814,7 @@ lh_void lh_memory_range_swap(lh_memory_range_t *self, lh_memory_range_t *other);
  * @param self Source range.
  * @return Cloned range.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_memory_range_t lh_memory_range_clone(const lh_memory_range_t *self);
 
 /**
@@ -826,7 +826,7 @@ lh_memory_range_t lh_memory_range_clone(const lh_memory_range_t *self);
  * @param self  Source range.
  * @param other Destination range.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_range_dup(const lh_memory_range_t *self, lh_memory_range_t *other);
 
 /**
@@ -839,7 +839,7 @@ lh_void lh_memory_range_dup(const lh_memory_range_t *self, lh_memory_range_t *ot
  * @param self  Source range.
  * @param other Destination range.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_range_dup_v(const lh_memory_range_t *self, lh_memory_range_t *other);
 
 /**
@@ -848,7 +848,7 @@ lh_void lh_memory_range_dup_v(const lh_memory_range_t *self, lh_memory_range_t *
  * @param self Source range.
  * @return Cloned valid range.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_memory_range_t lh_memory_range_clone_v(const lh_memory_range_t *self);
 
 /**
@@ -856,7 +856,7 @@ lh_memory_range_t lh_memory_range_clone_v(const lh_memory_range_t *self);
  * @param self  Range to replace.
  * @param other Range to exchange with.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_memory_range_exchange(lh_memory_range_t *self, lh_memory_range_t *other);
 
 /**
@@ -866,14 +866,14 @@ lh_void lh_memory_range_exchange(lh_memory_range_t *self, lh_memory_range_t *oth
  * @param end   New @c second.
  * @return Constructed range (may be invalid; see ::lh_memory_range_is_valid).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_memory_range_t lh_memory_range_make(lh_ptr begin, lh_ptr end);
 
 /**
  * @brief Return ::lh_memory_range_empty_initializer by value.
  * @return Empty range value.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_memory_range_t lh_memory_range_make_by_empty(lh_void);
 
 /**
@@ -891,7 +891,7 @@ lh_memory_range_t lh_memory_range_make_by_empty(lh_void);
  * @param size  Range length in bytes.
  * @return Constructed valid range.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_memory_range_t lh_memory_range_make_by_size(lh_ptr begin, lh_usize_t size);
 
 /**
@@ -903,7 +903,7 @@ lh_memory_range_t lh_memory_range_make_by_size(lh_ptr begin, lh_usize_t size);
  * @param end   New @c second.
  * @return Constructed valid range.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_memory_range_t lh_memory_range_make_v(lh_ptr begin, lh_ptr end);
 
 /**
@@ -913,7 +913,7 @@ lh_memory_range_t lh_memory_range_make_v(lh_ptr begin, lh_ptr end);
  * @param end   New @c second.
  * @return Constructed valid range or empty range on failure.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_memory_range_t lh_memory_range_make_or_empty(lh_ptr begin, lh_ptr end);
 
 LH_COMPILER_EXTERN_C_END

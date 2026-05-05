@@ -11,7 +11,7 @@
 #ifndef LH_UTIL_WSTR_RAW_H
 #define LH_UTIL_WSTR_RAW_H
 
-#include <lh/attribute.h>
+#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
 #include <lh/bool.h>
@@ -148,7 +148,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *       A byte-step search such as ::lh_memory_find (@c step 1)
  *       can match inside a code unit (e.g. UTF-16 LE ASCII high byte).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr lh_wstr_raw_find_char(const lh_wstr_ptr str, lh_usize_t size, lh_wchar_t val);
 
 /**
@@ -163,7 +163,7 @@ const lh_wstr_ptr lh_wstr_raw_find_char(const lh_wstr_ptr str, lh_usize_t size, 
  *
  * @see lh_wstr_raw_find_char
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr lh_wstr_raw_find_of_null_terminator_by_size(const lh_wstr_ptr str,
                                                               lh_usize_t size);
 
@@ -181,7 +181,7 @@ const lh_wstr_ptr lh_wstr_raw_find_of_null_terminator_by_size(const lh_wstr_ptr 
  * @see lh_wstr_raw_find_of_null_terminator_by_size
  * @see lh_wstr_raw_find_char
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr lh_wstr_raw_find_of_null_terminator(const lh_wstr_ptr str);
 
 /**
@@ -203,7 +203,7 @@ const lh_wstr_ptr lh_wstr_raw_find_of_null_terminator(const lh_wstr_ptr str);
  * @see lh_wstr_raw_find_of_null_terminator
  * @see lh_runtime_error_code_no_null_terminator
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_usize_t lh_wstr_raw_len(const lh_wstr_ptr str);
 
 /**
@@ -220,7 +220,7 @@ lh_usize_t lh_wstr_raw_len(const lh_wstr_ptr str);
  *
  * @see lh_memory_copy
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr lh_wstr_raw_copy(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                                    lh_usize_t src_size);
 
@@ -237,7 +237,7 @@ const lh_wstr_ptr lh_wstr_raw_copy(lh_wstr_ptr str, lh_usize_t str_size, const l
  *
  * @see lh_memory_move
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr lh_wstr_raw_move(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                                    lh_usize_t src_size);
 
@@ -253,7 +253,7 @@ const lh_wstr_ptr lh_wstr_raw_move(lh_wstr_ptr str, lh_usize_t str_size, const l
  *
  * @see lh_memory_set_pattern
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr lh_wstr_raw_set_pattern(lh_wstr_ptr str, lh_usize_t str_size,
                                           const lh_wstr_ptr src, lh_usize_t src_size);
 
@@ -272,7 +272,7 @@ const lh_wstr_ptr lh_wstr_raw_set_pattern(lh_wstr_ptr str, lh_usize_t str_size,
  *
  * @see lh_wstr_raw_set_pattern
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr lh_wstr_raw_set(lh_wstr_ptr str, lh_usize_t str_size, lh_wchar_t ch);
 
 /**
@@ -289,7 +289,7 @@ const lh_wstr_ptr lh_wstr_raw_set(lh_wstr_ptr str, lh_usize_t str_size, lh_wchar
  *
  * @see lh_wchar_to_lower
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr lh_wstr_raw_to_lower(lh_wstr_ptr str, lh_usize_t size);
 
 /**
@@ -303,7 +303,7 @@ lh_wstr_ptr lh_wstr_raw_to_lower(lh_wstr_ptr str, lh_usize_t size);
  *
  * @see lh_wchar_to_upper
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr lh_wstr_raw_to_upper(lh_wstr_ptr str, lh_usize_t size);
 
 /**
@@ -328,7 +328,7 @@ lh_wstr_ptr lh_wstr_raw_to_upper(lh_wstr_ptr str, lh_usize_t size);
  * @see lh_wstr_raw_compare
  * @see lh_wchar_fold_case
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr lh_wstr_raw_compare_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size,
                                                      const lh_wstr_ptr src, lh_usize_t src_size);
 
@@ -353,7 +353,7 @@ const lh_wstr_ptr lh_wstr_raw_compare_by_ignore_case(const lh_wstr_ptr str, lh_u
  * @see lh_wstr_raw_rcompare
  * @see lh_wchar_fold_case
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr lh_wstr_raw_rcompare_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size,
                                                       const lh_wstr_ptr src, lh_usize_t src_size);
 
@@ -375,7 +375,7 @@ const lh_wstr_ptr lh_wstr_raw_rcompare_by_ignore_case(const lh_wstr_ptr str, lh_
  * @see lh_wstr_raw_find
  * @see lh_wchar_fold_case
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr lh_wstr_raw_find_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size,
                                                   const lh_wstr_ptr src, lh_usize_t src_size);
 
@@ -396,7 +396,7 @@ const lh_wstr_ptr lh_wstr_raw_find_by_ignore_case(const lh_wstr_ptr str, lh_usiz
  * @see lh_wstr_raw_rfind
  * @see lh_wchar_fold_case
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr lh_wstr_raw_rfind_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size,
                                                    const lh_wstr_ptr src, lh_usize_t src_size);
 
@@ -421,7 +421,7 @@ const lh_wstr_ptr lh_wstr_raw_rfind_by_ignore_case(const lh_wstr_ptr str, lh_usi
  * @see lh_memory_find_step
  * @see lh_wstr_raw_find_by_ignore_case
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr lh_wstr_raw_find(const lh_wstr_ptr str, lh_usize_t str_size,
                                    const lh_wstr_ptr src, lh_usize_t src_size,
                                    lh_bool_t ignore_case);
@@ -446,7 +446,7 @@ const lh_wstr_ptr lh_wstr_raw_find(const lh_wstr_ptr str, lh_usize_t str_size,
  * @see lh_memory_rfind_step
  * @see lh_wstr_raw_rfind_by_ignore_case
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr lh_wstr_raw_rfind(const lh_wstr_ptr str, lh_usize_t str_size,
                                     const lh_wstr_ptr src, lh_usize_t src_size,
                                     lh_bool_t ignore_case);
@@ -472,7 +472,7 @@ const lh_wstr_ptr lh_wstr_raw_rfind(const lh_wstr_ptr str, lh_usize_t str_size,
  * @see lh_memory_compare
  * @see lh_wstr_raw_compare_by_ignore_case
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr lh_wstr_raw_compare(const lh_wstr_ptr str, lh_usize_t str_size,
                                       const lh_wstr_ptr src, lh_usize_t src_size,
                                       lh_bool_t ignore_case);
@@ -497,7 +497,7 @@ const lh_wstr_ptr lh_wstr_raw_compare(const lh_wstr_ptr str, lh_usize_t str_size
  * @see lh_memory_rcompare
  * @see lh_wstr_raw_rcompare_by_ignore_case
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr lh_wstr_raw_rcompare(const lh_wstr_ptr str, lh_usize_t str_size,
                                        const lh_wstr_ptr src, lh_usize_t src_size,
                                        lh_bool_t ignore_case);
@@ -514,7 +514,7 @@ const lh_wstr_ptr lh_wstr_raw_rcompare(const lh_wstr_ptr str, lh_usize_t str_siz
  * @return Zero-based index of the first match,
  *         or ::LH_WSTR_RAW_INVALID if not found.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_usize_t lh_wstr_raw_index_of_by_size(const lh_wstr_ptr str, lh_usize_t str_size,
                                         const lh_wstr_ptr src, lh_usize_t src_size,
                                         lh_bool_t ignore_case);
@@ -531,7 +531,7 @@ lh_usize_t lh_wstr_raw_index_of_by_size(const lh_wstr_ptr str, lh_usize_t str_si
  * @return Zero-based index of the first match,
  *         or ::LH_WSTR_RAW_INVALID if not found.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_usize_t lh_wstr_raw_index_of(const lh_wstr_ptr str, const lh_wstr_ptr src,
                                 lh_bool_t ignore_case);
 
@@ -553,7 +553,7 @@ lh_usize_t lh_wstr_raw_index_of(const lh_wstr_ptr str, const lh_wstr_ptr src,
  * @see lh_wstr_raw_find_by_ignore_case
  * @see lh_wchar_fold_case
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_wstr_raw_contains(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case);
 
 /**
@@ -576,7 +576,7 @@ lh_bool_t lh_wstr_raw_contains(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_
  * @see lh_wstr_raw_compare_by_ignore_case
  * @see lh_wchar_fold_case
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_wstr_raw_equals(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case);
 
 /**
@@ -602,7 +602,7 @@ lh_bool_t lh_wstr_raw_equals(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bo
  * @see lh_wstr_raw_compare
  * @see lh_wchar_fold_case
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_wstr_raw_starts_with(const lh_wstr_ptr str, const lh_wstr_ptr src,
                                   lh_bool_t ignore_case);
 
@@ -627,55 +627,55 @@ lh_bool_t lh_wstr_raw_starts_with(const lh_wstr_ptr str, const lh_wstr_ptr src,
  * @see lh_wstr_raw_rcompare_by_ignore_case
  * @see lh_wchar_fold_case
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_wstr_raw_ends_with(const lh_wstr_ptr str, const lh_wstr_ptr src,
                                 lh_bool_t ignore_case);
 
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t lh_wstr_raw_contains_char(const lh_wstr_ptr chars, lh_usize_t chars_size, lh_wchar_t ch);
 
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr lh_wstr_raw_ltrim(lh_wstr_ptr str);
 
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr lh_wstr_raw_rtrim(lh_wstr_ptr str);
 
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr lh_wstr_raw_trim(lh_wstr_ptr str);
 
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr lh_wstr_raw_ltrim_custom(lh_wstr_ptr str, lh_usize_t str_size,
                                      const lh_wstr_ptr whitespace_chars,
                                      lh_usize_t whitespace_size);
 
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr lh_wstr_raw_rtrim_custom(lh_wstr_ptr str, lh_usize_t str_size,
                                      const lh_wstr_ptr whitespace_chars,
                                      lh_usize_t whitespace_size);
 
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr lh_wstr_raw_trim_custom(lh_wstr_ptr str, lh_usize_t str_size,
                                     const lh_wstr_ptr whitespace_chars, lh_usize_t whitespace_size);
 
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr lh_wstr_raw_ltrim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
                                   lh_usize_t whitespace_size);
 
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr lh_wstr_raw_rtrim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
                                   lh_usize_t whitespace_size);
 
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr lh_wstr_raw_trim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
                                  lh_usize_t whitespace_size);
 
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr lh_wstr_raw_ltrim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars);
 
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr lh_wstr_raw_rtrim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars);
 
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr lh_wstr_raw_trim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars);
 
 LH_COMPILER_EXTERN_C_END

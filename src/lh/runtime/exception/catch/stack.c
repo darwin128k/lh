@@ -9,10 +9,10 @@
 lh_assert_static(LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX,
                  "Zero stack depth makes exception handling impossible");
 
-LH_ATTRIBUTE(THREAD_LOCAL)
+LH_ATTRIBUTE_THREAD_LOCAL
 lh_exception_catch_t *m_runtime_exceptions[LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX];
 
-LH_ATTRIBUTE(THREAD_LOCAL)
+LH_ATTRIBUTE_THREAD_LOCAL
 lh_exception_catch_t **m_runtime_exception = lh_null;
 
 lh_exception_catch_t *lh_runtime_exception_catch_stack_get_current(void) {

@@ -11,6 +11,7 @@
 #ifndef LH_RUNTIME_ALLOCATOR_H
 #define LH_RUNTIME_ALLOCATOR_H
 
+#include <lh/attribute/symbol.h>
 #include <lh/memory/allocator.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -24,7 +25,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @return Pointer to internal ::lh_memory_allocator_t object (never null).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_memory_allocator_t *lh_runtime_allocator(void);
 
 /**
@@ -35,7 +36,7 @@ lh_memory_allocator_t *lh_runtime_allocator(void);
  * @param size Requested size in bytes.
  * @return Pointer to allocated memory.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_runtime_allocator_alloc(lh_usize_t size);
 
 /**
@@ -45,7 +46,7 @@ lh_ptr lh_runtime_allocator_alloc(lh_usize_t size);
  *
  * @param ptr Block to release (null is a no-op).
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_void lh_runtime_allocator_free(lh_ptr ptr);
 
 /**
@@ -58,7 +59,7 @@ lh_void lh_runtime_allocator_free(lh_ptr ptr);
  * @param new_size New size in bytes.
  * @return Resized pointer, @p old_ptr, or null per ::lh_memory_allocator_realloc.
  */
-LH_ATTRIBUTE(SYMBOL)
+LH_ATTRIBUTE_SYMBOL
 lh_ptr lh_runtime_allocator_realloc(lh_ptr old_ptr, lh_usize_t old_size, lh_usize_t new_size);
 
 LH_COMPILER_EXTERN_C_END
