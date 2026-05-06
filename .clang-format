@@ -1,5 +1,6 @@
 AllowShortEnumsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: None
+BreakAfterReturnType: All
 ColumnLimit: 100
 InsertBraces: true
 IndentPPDirectives: AfterHash
