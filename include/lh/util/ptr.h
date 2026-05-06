@@ -138,6 +138,17 @@
  */
 #define lh_ptr_is_null(ptr) lh_null_eq(ptr)
 
+/**
+ * @def lh_ptr_is_set(ptr)
+ * @brief Check whether @p ptr is not a null pointer (same as ::lh_null_ne).
+ *
+ * @param ptr Pointer expression.
+ *
+ * Example usage:
+ * @code{.c}
+ * if (lh_ptr_is_set(p)) { ... }
+ * @endcode
+ */
 #define lh_ptr_is_set(ptr) lh_null_ne(ptr)
 
 /**
