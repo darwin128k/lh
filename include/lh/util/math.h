@@ -80,6 +80,18 @@
  */
 #define lh_math_neg(a) (-(a))
 
+/**
+ * @def lh_math_abs(a)
+ * @brief Absolute value (magnitude)
+ * @param a value to get absolute value of
+ * @return absolute value of @p a
+ *
+ * Returns @p a if non-negative, otherwise returns negated @p a.
+ *
+ * @see lh_math_neg(), lh_math_negative()
+ */
+#define lh_math_abs(a) lh_math_negative(a) ? lh_math_neg(a) : (a)
+
 /* ── increment / decrement ─────────────────────────────────────────────── */
 
 /**
