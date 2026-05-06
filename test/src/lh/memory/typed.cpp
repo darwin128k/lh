@@ -7,14 +7,14 @@
 
 namespace {
 
-TEST(memory_typed_basic, range_accessors_alias_embedded_range) {
+TEST(memory_typed_basic, bounds_accessors_alias_embedded_bounds) {
     lh_memory_typed_t typed;
     unsigned char buffer[4];
     lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 4),
                         1);
 
-    EXPECT_EQ(lh_memory_typed_get_range(&typed), &typed.range);
-    EXPECT_EQ(lh_memory_typed_get_crange(&typed), &typed.range);
+    EXPECT_EQ(lh_memory_typed_get_bounds(&typed), &typed.bounds);
+    EXPECT_EQ(lh_memory_typed_get_cbounds(&typed), &typed.bounds);
 }
 
 TEST(memory_typed_basic, set_and_unpack_roundtrip_all_fields) {
@@ -50,26 +50,26 @@ TEST(memory_typed_basic, pack_supports_optional_updates) {
     EXPECT_EQ(lh_memory_typed_get_type_size(&typed), 1u);
 }
 
-TEST(memory_typed_basic, pack_from_range_sets_bounds_and_type_size) {
+TEST(memory_typed_basic, pack_from_bounds_sets_bounds_and_type_size) {
     lh_memory_typed_t typed;
     lh_memory_typed_t baseline;
     unsigned char buffer[10];
     lh_memory_typed_set(&baseline, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 10),
                         2);
 
-    lh_memory_range_t range;
+    lh_memory_bounds_t bounds;
     lh_ptr begin = lh_cast_static(lh_ptr, buffer + 2);
     lh_ptr end = lh_cast_static(lh_ptr, buffer + 8);
-    lh_memory_range_pack(&range, &begin, &end);
+    lh_memory_bounds_pack(&bounds, &begin, &end);
 
     lh_memory_typed_assign(&typed, &baseline);
-    lh_memory_typed_pack_from_range(&typed, &range, nullptr);
+    lh_memory_typed_pack_from_bounds(&typed, &bounds, nullptr);
     EXPECT_EQ(lh_memory_typed_get_begin(&typed), lh_cast_static(lh_ptr, buffer + 2));
     EXPECT_EQ(lh_memory_typed_get_end(&typed), lh_cast_static(lh_ptr, buffer + 8));
     EXPECT_EQ(lh_memory_typed_get_type_size(&typed), 2u);
 
     lh_usize_t new_type_size = 3;
-    lh_memory_typed_pack_from_range(&typed, &range, &new_type_size);
+    lh_memory_typed_pack_from_bounds(&typed, &bounds, &new_type_size);
     EXPECT_EQ(lh_memory_typed_get_type_size(&typed), 3u);
 }
 
@@ -175,8 +175,8 @@ TEST(memory_typed_basic, assign_v_copies_from_valid_source) {
 
 TEST(memory_typed_basic, make_by_empty_returns_empty_initializer_state) {
     const lh_memory_typed_t t = lh_memory_typed_make_by_empty(4);
-    EXPECT_EQ(t.range.first, lh_null);
-    EXPECT_EQ(t.range.second, lh_null);
+    EXPECT_EQ(t.bounds.first, lh_null);
+    EXPECT_EQ(t.bounds.second, lh_null);
     EXPECT_EQ(t.type_size, 4u);
 }
 
@@ -185,12 +185,12 @@ TEST(memory_typed_basic, init_by_empty_resets_to_empty_initializer) {
     unsigned char buffer[6];
     lh_memory_typed_set(&t, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 6), 2);
     lh_memory_typed_init_by_empty(&t, 2);
-    EXPECT_EQ(t.range.first, lh_null);
-    EXPECT_EQ(t.range.second, lh_null);
+    EXPECT_EQ(t.bounds.first, lh_null);
+    EXPECT_EQ(t.bounds.second, lh_null);
     EXPECT_EQ(t.type_size, 2u);
 }
 
-TEST(memory_typed_basic, make_or_empty_returns_range_or_empty) {
+TEST(memory_typed_basic, make_or_empty_returns_bounds_or_empty) {
     unsigned char buffer[6];
     const lh_memory_typed_t ok = lh_memory_typed_make_or_empty(lh_cast_static(lh_ptr, buffer),
                                                                 lh_cast_static(lh_ptr, buffer + 6), 3);
@@ -200,8 +200,8 @@ TEST(memory_typed_basic, make_or_empty_returns_range_or_empty) {
 
     const lh_memory_typed_t bad =
         lh_memory_typed_make_or_empty(lh_cast_static(lh_ptr, buffer + 1), lh_cast_static(lh_ptr, buffer), 1);
-    EXPECT_EQ(bad.range.first, lh_null);
-    EXPECT_EQ(bad.range.second, lh_null);
+    EXPECT_EQ(bad.bounds.first, lh_null);
+    EXPECT_EQ(bad.bounds.second, lh_null);
 }
 
 TEST(memory_typed_basic, make_and_make_v_create_expected_typed) {
@@ -267,8 +267,8 @@ TEST(memory_typed_geometry, slice_or_empty_returns_subspan_or_empty) {
     EXPECT_EQ(lh_memory_typed_get_end(&ok), lh_cast_static(lh_ptr, buffer + 9));
 
     const lh_memory_typed_t bad = lh_memory_typed_slice_or_empty(&typed, 3, 2);
-    EXPECT_EQ(bad.range.first, lh_null);
-    EXPECT_EQ(bad.range.second, lh_null);
+    EXPECT_EQ(bad.bounds.first, lh_null);
+    EXPECT_EQ(bad.bounds.second, lh_null);
 }
 
 TEST(memory_typed_geometry, is_valid_reflects_type_multiple_for_valid_range) {
@@ -317,14 +317,14 @@ TEST(memory_typed_access, value_access_front_back_and_extremes) {
 
 #if LH_TEST_EXPECT_DEATH_ENABLED
 
-TEST(memory_typed_death, null_self_in_get_range) {
+TEST(memory_typed_death, null_self_in_get_bounds) {
     LH_EXPECT_DEATH(
-        (void)lh_memory_typed_get_range(reinterpret_cast<lh_memory_typed_t *>(lh_null)));
+        (void)lh_memory_typed_get_bounds(reinterpret_cast<lh_memory_typed_t *>(lh_null)));
 }
 
-TEST(memory_typed_death, null_self_in_get_crange) {
+TEST(memory_typed_death, null_self_in_get_cbounds) {
     LH_EXPECT_DEATH(
-        (void)lh_memory_typed_get_crange(reinterpret_cast<const lh_memory_typed_t *>(lh_null)));
+        (void)lh_memory_typed_get_cbounds(reinterpret_cast<const lh_memory_typed_t *>(lh_null)));
 }
 
 TEST(memory_typed_death, get_size_requires_multiple_of_type_size) {
@@ -335,13 +335,13 @@ TEST(memory_typed_death, get_size_requires_multiple_of_type_size) {
     LH_EXPECT_DEATH((void)lh_memory_typed_get_size(&typed));
 }
 
-TEST(memory_typed_death, is_valid_requires_valid_underlying_range) {
+TEST(memory_typed_death, is_valid_requires_valid_underlying_bounds) {
     lh_memory_typed_t typed;
     lh_memory_typed_init(&typed, lh_null, lh_null, 1);
     LH_EXPECT_DEATH((void)lh_memory_typed_is_valid(&typed));
 }
 
-TEST(memory_typed_death, is_invalid_requires_valid_underlying_range) {
+TEST(memory_typed_death, is_invalid_requires_valid_underlying_bounds) {
     lh_memory_typed_t typed;
     lh_memory_typed_init(&typed, lh_null, lh_null, 1);
     LH_EXPECT_DEATH((void)lh_memory_typed_is_invalid(&typed));

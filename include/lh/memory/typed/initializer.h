@@ -6,13 +6,13 @@
 #ifndef LH_MEMORY_TYPED_INITIALIZER_H
 #define LH_MEMORY_TYPED_INITIALIZER_H
 
-#include <lh/memory/range/initializer.h>
+#include <lh/memory/bounds/initializer.h>
 
 /**
  * @def lh_memory_typed_initializer(begin, end, type_size)
  * @brief Produces a brace-enclosed initializer for ::lh_memory_typed_t.
  *
- * Expands to ::lh_initializer with @p begin and @p end as the @c range field,
+ * Expands to ::lh_initializer with @p begin and @p end as the @c bounds field,
  * and @p type_size as the @c type_size field.
  *
  * @param begin     Start of the half-open span.
@@ -27,7 +27,7 @@
  * @see lh_initializer
  */
 #define lh_memory_typed_initializer(begin, end, type_size)                                         \
-    lh_initializer(lh_memory_range_initializer(begin, end), type_size)
+    lh_initializer(lh_memory_bounds_initializer(begin, end), type_size)
 
 /**
  * @def lh_memory_typed_empty_initializer(type_size)

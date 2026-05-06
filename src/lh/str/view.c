@@ -87,7 +87,7 @@ lh_str_view_clone_v(const lh_str_view_t *self) {
     return lh_memory_view_clone_v(self);
 }
 
-lh_memory_range_state_t
+lh_memory_bounds_state_t
 lh_str_view_get_state(const lh_str_view_t *self) {
     return lh_memory_view_get_state(self);
 }

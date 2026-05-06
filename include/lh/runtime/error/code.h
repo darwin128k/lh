@@ -62,10 +62,10 @@
 
 /**
  * @def lh_runtime_error_code_invalid_memory_range
- * @brief Runtime error code for invalid memory range state.
+ * @brief Runtime error code for invalid memory bounds state.
  *
  * Used when range validation fails (for example in
- * ::lh_memory_range_unpack_v before diff/size calculations).
+ * ::lh_memory_bounds_unpack_v before diff/size calculations).
  */
 #define lh_runtime_error_code_invalid_memory_range 0x06
 

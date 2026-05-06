@@ -2,18 +2,18 @@
  * @file typed.h
  * @brief Typed memory span type (::lh_memory_typed_t) and helpers.
  *
- * A typed span wraps a ::lh_memory_range_t and adds a @c type_size field denoting
+ * A typed span wraps a ::lh_memory_bounds_t and adds a @c type_size field denoting
  * the size of each element in bytes. This allows treating the raw memory as an
  * array of elements of a fixed size rather than as a byte buffer.
  *
- * The number of elements is computed as @c range.get_size() / @p type_size.
+ * The number of elements is computed as @c bounds.get_size() / @p type_size.
  * Typed validity is defined by divisibility of byte size by @p type_size.
- * Since divisibility is computed via range size, queries may raise
- * ::lh_runtime_error_code_invalid_memory_range when the underlying range is invalid.
+ * Since divisibility is computed via bounds size, queries may raise
+ * ::lh_runtime_error_code_invalid_memory_range when the underlying bounds is invalid.
  *
  * For the const-qualified counterpart, see ::lh_memory_view_t.
  *
- * @see lh_memory_range_t
+ * @see lh_memory_bounds_t
  * @see lh_memory_view_t
  */
 
@@ -21,25 +21,25 @@
 #define LH_MEMORY_TYPED_H
 
 #include <lh/attribute/symbol.h>
-#include <lh/memory/range.h>
+#include <lh/memory/bounds.h>
 #include <lh/memory/typed/fields.h>
 
 /**
  * @struct lh_memory_typed
- * @brief Non-owning typed memory span: wraps a ::lh_memory_range_t with element size.
+ * @brief Non-owning typed memory span: wraps a ::lh_memory_bounds_t with element size.
  *
- * Stores a range and a @c type_size field describing the size of each element
- * in bytes. Typed invariants require range byte size to be divisible by @c type_size.
+ * Stores a bounds and a @c type_size field describing the size of each element
+ * in bytes. Typed invariants require bounds byte size to be divisible by @c type_size.
  * Public typedef: ::lh_memory_typed_t.
  *
  * @attention This struct is @b not validated on construction.
  *           Use lh_memory_typed_make_v() to create a validated instance.
  *
- * @see lh_memory_range_t
+ * @see lh_memory_bounds_t
  * @see lh_memory_typed_make_v
  */
 typedef struct lh_memory_typed {
-    lh_memory_typed_fields(lh_memory_range_t);
+    lh_memory_typed_fields(lh_memory_bounds_t);
 } lh_memory_typed_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -47,24 +47,24 @@ LH_COMPILER_EXTERN_C_BEGIN
 /* ── pack / unpack ────────────────────────────────────────────────────────── */
 
 /**
- * @brief Return mutable pointer to the underlying byte range.
+ * @brief Return mutable pointer to the underlying byte bounds.
  *
  * @param self Typed span to access.
- * @return Pointer to the @c range field.
+ * @return Pointer to the @c bounds field.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_range_t *
-lh_memory_typed_get_range(lh_memory_typed_t *self);
+lh_memory_bounds_t *
+lh_memory_typed_get_bounds(lh_memory_typed_t *self);
 
 /**
- * @brief Return const pointer to the underlying byte range.
+ * @brief Return const pointer to the underlying byte bounds.
  *
  * @param self Typed span to access.
- * @return Const pointer to the @c range field.
+ * @return Const pointer to the @c bounds field.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_memory_range_t *
-lh_memory_typed_get_crange(const lh_memory_typed_t *self);
+const lh_memory_bounds_t *
+lh_memory_typed_get_cbounds(const lh_memory_typed_t *self);
 
 /**
  * @brief Return size of one element in bytes.
@@ -77,11 +77,11 @@ lh_usize_t
 lh_memory_typed_get_type_size(const lh_memory_typed_t *self);
 
 /**
- * @brief Pack range and type size into the typed span.
+ * @brief Pack bounds and type size into the typed span.
  *
  * @param self Typed span to initialize.
- * @param begin Start address of the memory range.
- * @param end End address of the memory range (one-past-last).
+ * @param begin Start address of the memory bounds.
+ * @param end End address of the memory bounds (one-past-last).
  * @param type_size Optional pointer to element size in bytes. If NULL, type_size is unchanged.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -90,15 +90,15 @@ lh_memory_typed_pack(lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
                      const lh_usize_t *type_size);
 
 /**
- * @brief Pack typed span fields from a range object plus optional type size.
+ * @brief Pack typed span fields from a bounds object plus optional type size.
  *
  * @param self Typed span to update.
- * @param range Source range for begin/end fields.
+ * @param bounds Source bounds for begin/end fields.
  * @param type_size Optional new element size in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_void
-lh_memory_typed_pack_from_range(lh_memory_typed_t *self, lh_memory_range_t *range,
+lh_memory_typed_pack_from_bounds(lh_memory_typed_t *self, lh_memory_bounds_t *bounds,
                                 const lh_usize_t *type_size);
 
 /**
@@ -118,7 +118,7 @@ lh_memory_typed_pack_v(lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
                        const lh_usize_t *type_size);
 
 /**
- * @brief Unpack range and type size from the typed span.
+ * @brief Unpack bounds and type size from the typed span.
  *
  * @param self Typed span to inspect.
  * @param begin Optional pointer to receive start address.
@@ -144,25 +144,25 @@ lh_memory_typed_unpack_v(const lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *e
                          lh_usize_t *type_size);
 
 /**
- * @brief Unpack into a range object plus optional type size output.
+ * @brief Unpack into a bounds object plus optional type size output.
  *
  * @param self Typed span to inspect.
- * @param range Output range receiving @c first and @c second.
+ * @param bounds Output bounds receiving @c first and @c second.
  * @param type_size Optional pointer to receive element size in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_void
-lh_memory_typed_unpack_to_range(const lh_memory_typed_t *self, lh_memory_range_t *range,
+lh_memory_typed_unpack_to_bounds(const lh_memory_typed_t *self, lh_memory_bounds_t *bounds,
                                 lh_usize_t *type_size);
 
 /* ── set / init / assign ──────────────────────────────────────────────────── */
 
 /**
- * @brief Set range and type size for the typed span.
+ * @brief Set bounds and type size for the typed span.
  *
  * @param self Typed span to modify.
- * @param begin Start address of the memory range.
- * @param end End address of the memory range (one-past-last).
+ * @param begin Start address of the memory bounds.
+ * @param end End address of the memory bounds (one-past-last).
  * @param type_size Element size in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -170,11 +170,11 @@ lh_void
 lh_memory_typed_set(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size);
 
 /**
- * @brief Initialize typed span with range and type size.
+ * @brief Initialize typed span with bounds and type size.
  *
  * @param self Typed span to initialize.
- * @param begin Start address of the memory range.
- * @param end End address of the memory range (one-past-last).
+ * @param begin Start address of the memory bounds.
+ * @param end End address of the memory bounds (one-past-last).
  * @param type_size Element size in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -192,10 +192,10 @@ lh_void
 lh_memory_typed_assign(lh_memory_typed_t *self, const lh_memory_typed_t *other);
 
 /**
- * @brief Set range and type size using begin pointer and size.
+ * @brief Set bounds and type size using begin pointer and size.
  *
  * @param self Typed span to modify.
- * @param begin Start address of the memory range.
+ * @param begin Start address of the memory bounds.
  * @param size Size in bytes.
  * @param type_size Element size in bytes.
  */
@@ -208,7 +208,7 @@ lh_memory_typed_set_by_size(lh_memory_typed_t *self, lh_ptr begin, lh_usize_t si
  * @brief Initialize typed span using begin pointer and size.
  *
  * @param self Typed span to initialize.
- * @param begin Start address of the memory range.
+ * @param begin Start address of the memory bounds.
  * @param size Size in bytes.
  * @param type_size Element size in bytes.
  */
@@ -218,7 +218,7 @@ lh_memory_typed_init_by_size(lh_memory_typed_t *self, lh_ptr begin, lh_usize_t s
                              lh_usize_t type_size);
 
 /**
- * @brief Initialize @p self to empty range with explicit element size.
+ * @brief Initialize @p self to empty bounds with explicit element size.
  * @param self Destination typed span.
  * @param type_size Element size to store in the empty typed span.
  */
@@ -281,8 +281,8 @@ lh_memory_typed_clone_v(const lh_memory_typed_t *self);
 /**
  * @brief Build typed span from explicit bounds and element size.
  *
- * @param begin Start address of the memory range.
- * @param end End address of the memory range (one-past-last).
+ * @param begin Start address of the memory bounds.
+ * @param end End address of the memory bounds (one-past-last).
  * @param type_size Element size in bytes.
  * @return Constructed typed span.
  */
@@ -293,8 +293,8 @@ lh_memory_typed_make(lh_ptr begin, lh_ptr end, lh_usize_t type_size);
 /**
  * @brief Validated variant of ::lh_memory_typed_make.
  *
- * @param begin Start address of the memory range.
- * @param end End address of the memory range (one-past-last).
+ * @param begin Start address of the memory bounds.
+ * @param end End address of the memory bounds (one-past-last).
  * @param type_size Element size in bytes.
  * @return Constructed typed span.
  */
@@ -313,8 +313,8 @@ lh_memory_typed_make_by_empty(lh_usize_t type_size);
 /**
  * @brief Build typed span from explicit bounds and element size, or empty on failure.
  *
- * @param begin Start address of the memory range.
- * @param end End address of the memory range (one-past-last).
+ * @param begin Start address of the memory bounds.
+ * @param end End address of the memory bounds (one-past-last).
  * @param type_size Element size in bytes.
  * @return Constructed typed span or empty typed span on failure.
  */
@@ -328,10 +328,10 @@ lh_memory_typed_make_or_empty(lh_ptr begin, lh_ptr end, lh_usize_t type_size);
  * @brief Check typed divisibility invariant for this span.
  *
  * @param self Typed span to check.
- * @return True iff @c range.get_size() is divisible by @c type_size.
+ * @return True iff @c bounds.get_size() is divisible by @c type_size.
  *
- * @note This function computes range size and therefore may raise
- *       ::lh_runtime_error_code_invalid_memory_range when @p self->range is invalid.
+ * @note This function computes bounds size and therefore may raise
+ *       ::lh_runtime_error_code_invalid_memory_range when @p self->bounds is invalid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
@@ -372,11 +372,11 @@ lh_memory_typed_get_end(const lh_memory_typed_t *self);
 /**
  * @brief Return number of elements in the typed span.
  *
- * Computes @c range.get_size() / @p type_size.
+ * Computes @c bounds.get_size() / @p type_size.
  * Fails with ::lh_runtime_error_code_size_not_multiple_of_type_size if
- * range size is not evenly divisible by @p type_size.
+ * bounds size is not evenly divisible by @p type_size.
  * May fail with ::lh_runtime_error_code_invalid_memory_range when the stored
- * range is invalid.
+ * bounds is invalid.
  *
  * @param self Typed span to inspect.
  * @return Number of elements.

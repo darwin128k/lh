@@ -1,5 +1,5 @@
 #include <lh/memory/typed.h>
-#include <lh/memory/range.h>
+#include <lh/memory/bounds.h>
 #include <lh/memory/typed/initializer.h>
 #include <lh/optional/ref.h>
 #include <lh/runtime/check/ref.h>
@@ -7,16 +7,16 @@
 #include <lh/util/interval.h>
 #include <lh/util/ptr.h>
 
-lh_memory_range_t *
-lh_memory_typed_get_range(lh_memory_typed_t *self) {
+lh_memory_bounds_t *
+lh_memory_typed_get_bounds(lh_memory_typed_t *self) {
     lh_runtime_check_ref(self);
-    return lh_addr_of(self->range);
+    return lh_addr_of(self->bounds);
 }
 
-const lh_memory_range_t *
-lh_memory_typed_get_crange(const lh_memory_typed_t *self) {
+const lh_memory_bounds_t *
+lh_memory_typed_get_cbounds(const lh_memory_typed_t *self) {
     lh_runtime_check_ref(self);
-    return lh_addr_of(self->range);
+    return lh_addr_of(self->bounds);
 }
 
 /* ── pack / unpack ────────────────────────────────────────────────────────── */
@@ -24,8 +24,8 @@ lh_memory_typed_get_crange(const lh_memory_typed_t *self) {
 lh_void
 lh_memory_typed_pack(lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
                      const lh_usize_t *type_size) {
-    lh_memory_range_t *r = lh_memory_typed_get_range(self);
-    lh_memory_range_pack(r, begin, end);
+    lh_memory_bounds_t *r = lh_memory_typed_get_bounds(self);
+    lh_memory_bounds_pack(r, begin, end);
 
     lh_optional_ref(type_size) {
         self->type_size = lh_ptr_deref(type_size);
@@ -33,17 +33,17 @@ lh_memory_typed_pack(lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
 }
 
 lh_void
-lh_memory_typed_pack_from_range(lh_memory_typed_t *self, lh_memory_range_t *range,
+lh_memory_typed_pack_from_bounds(lh_memory_typed_t *self, lh_memory_bounds_t *bounds,
                                 const lh_usize_t *type_size) {
-    lh_runtime_check_ref(range);
-    lh_memory_typed_pack(self, lh_addr_of(range->first), lh_addr_of(range->second), type_size);
+    lh_runtime_check_ref(bounds);
+    lh_memory_typed_pack(self, lh_addr_of(bounds->first), lh_addr_of(bounds->second), type_size);
 }
 
 lh_void
 lh_memory_typed_unpack(const lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
                        lh_usize_t *type_size) {
-    const lh_memory_range_t *r = lh_memory_typed_get_crange(self);
-    lh_memory_range_unpack(r, begin, end);
+    const lh_memory_bounds_t *r = lh_memory_typed_get_cbounds(self);
+    lh_memory_bounds_unpack(r, begin, end);
 
     lh_optional_ref(type_size) {
         lh_ptr_deref(type_size) = self->type_size;
@@ -59,10 +59,10 @@ lh_memory_typed_unpack_v(const lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *e
 }
 
 lh_void
-lh_memory_typed_unpack_to_range(const lh_memory_typed_t *self, lh_memory_range_t *range,
+lh_memory_typed_unpack_to_bounds(const lh_memory_typed_t *self, lh_memory_bounds_t *bounds,
                                 lh_usize_t *type_size) {
-    lh_runtime_check_ref(range);
-    lh_memory_typed_unpack(self, lh_addr_of(range->first), lh_addr_of(range->second), type_size);
+    lh_runtime_check_ref(bounds);
+    lh_memory_typed_unpack(self, lh_addr_of(bounds->first), lh_addr_of(bounds->second), type_size);
 }
 
 /* ── set / init / assign ──────────────────────────────────────────────────── */
@@ -120,7 +120,7 @@ lh_memory_typed_init_by_empty(lh_memory_typed_t *self, lh_usize_t type_size) {
 lh_memory_typed_t
 lh_memory_typed_clone(const lh_memory_typed_t *self) {
     lh_memory_typed_t t;
-    lh_memory_typed_unpack_to_range(self, lh_addr_of(t.range), lh_addr_of(t.type_size));
+    lh_memory_typed_unpack_to_bounds(self, lh_addr_of(t.bounds), lh_addr_of(t.type_size));
     return t;
 }
 
@@ -186,9 +186,9 @@ lh_memory_typed_pack_v(lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
 
 lh_bool_t
 lh_memory_typed_is_valid(const lh_memory_typed_t *self) {
-    const lh_memory_range_t *r = lh_memory_typed_get_crange(self);
+    const lh_memory_bounds_t *r = lh_memory_typed_get_cbounds(self);
     lh_usize_t type_size = lh_memory_typed_get_type_size(self);
-    return lh_memory_range_is_multiple_of(r, type_size);
+    return lh_memory_bounds_is_multiple_of(r, type_size);
 }
 
 lh_bool_t
@@ -224,8 +224,8 @@ lh_memory_typed_get_size(const lh_memory_typed_t *self) {
     lh_runtime_check_if(lh_memory_typed_is_invalid(self),
                         lh_runtime_error_code_size_not_multiple_of_type_size);
 
-    const lh_memory_range_t *r = lh_memory_typed_get_crange(self);
-    lh_usize_t size = lh_memory_range_get_size(r);
+    const lh_memory_bounds_t *r = lh_memory_typed_get_cbounds(self);
+    lh_usize_t size = lh_memory_bounds_get_size(r);
     lh_usize_t type_size = lh_memory_typed_get_type_size(self);
 
     return size / type_size;
@@ -245,7 +245,7 @@ lh_memory_typed_is_valid_index(const lh_memory_typed_t *self, lh_usize_t index) 
 
 lh_bool_t
 lh_memory_typed_is_sliceable(const lh_memory_typed_t *self, lh_usize_t offset, lh_usize_t size) {
-    const lh_memory_range_t *r = lh_memory_typed_get_crange(self);
+    const lh_memory_bounds_t *r = lh_memory_typed_get_cbounds(self);
     const lh_usize_t type_size = lh_memory_typed_get_type_size(self);
 
     if (lh_interval_closed_is_mul_overflow(offset, type_size, LH_USIZE_T_MIN, LH_USIZE_T_MAX)) {
@@ -256,7 +256,7 @@ lh_memory_typed_is_sliceable(const lh_memory_typed_t *self, lh_usize_t offset, l
         return lh_bool_false;
     }
 
-    return lh_memory_range_is_sliceable(r, lh_math_mul(offset, type_size),
+    return lh_memory_bounds_is_sliceable(r, lh_math_mul(offset, type_size),
                                         lh_math_mul(size, type_size));
 }
 
@@ -266,12 +266,12 @@ lh_memory_typed_slice(const lh_memory_typed_t *self, lh_usize_t offset, lh_usize
                      lh_runtime_error_code_out_of_range);
 
     const lh_usize_t type_size = lh_memory_typed_get_type_size(self);
-    lh_memory_range_t r =
-        lh_memory_range_slice(lh_memory_typed_get_crange(self), lh_math_mul(offset, type_size),
+    lh_memory_bounds_t r =
+        lh_memory_bounds_slice(lh_memory_typed_get_cbounds(self), lh_math_mul(offset, type_size),
                               lh_math_mul(size, type_size));
 
     lh_memory_typed_t t;
-    lh_memory_typed_pack_from_range(lh_addr_of(t), lh_addr_of(r), lh_addr_of(type_size));
+    lh_memory_typed_pack_from_bounds(lh_addr_of(t), lh_addr_of(r), lh_addr_of(type_size));
     return t;
 }
 
@@ -289,10 +289,10 @@ lh_memory_typed_get_ptr_from_front(const lh_memory_typed_t *self, lh_usize_t ind
     lh_runtime_check(lh_memory_typed_is_valid_index(self, index),
                      lh_runtime_error_code_out_of_range);
 
-    const lh_memory_range_t *r = lh_memory_typed_get_crange(self);
+    const lh_memory_bounds_t *r = lh_memory_typed_get_cbounds(self);
     lh_usize_t type_size = lh_memory_typed_get_type_size(self);
 
-    return lh_memory_range_get_ptr_from_front(r, index * type_size);
+    return lh_memory_bounds_get_ptr_from_front(r, index * type_size);
 }
 
 lh_ptr

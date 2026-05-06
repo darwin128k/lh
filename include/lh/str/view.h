@@ -193,11 +193,11 @@ lh_str_view_t
 lh_str_view_clone_v(const lh_str_view_t *self);
 
 /**
- * @brief Classify stored bounds into ::lh_memory_range_state_t.
+ * @brief Classify stored bounds into ::lh_memory_bounds_state_t.
  * @param self View to inspect.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_range_state_t
+lh_memory_bounds_state_t
 lh_str_view_get_state(const lh_str_view_t *self);
 
 /**

@@ -9,17 +9,17 @@
  *
  * Size in bytes is @c second @c - @c first when both are non-null and ordered.
  *
- * Values are classified into a ::lh_memory_range_state_t word (null patterns and
+ * Values are classified into a ::lh_memory_bounds_state_t word (null patterns and
  * address ordering). Helpers distinguish **valid** spans - empty (equal non-null
  * endpoints) or strictly ordered @c begin &lt; @c end - from reversed or
- * partially unspecified storage; see ::lh_memory_range_state_t.
+ * partially unspecified storage; see ::lh_memory_bounds_state_t.
  *
- * Mirrors the read-only subset of ::lh_memory_range_t.
+ * Mirrors the read-only subset of ::lh_memory_bounds_t.
  * Operations that write into the described memory
- * (copy, move, fill, indexed write) exist only on ::lh_memory_range_t.
+ * (copy, move, fill, indexed write) exist only on ::lh_memory_bounds_t.
  *
- * @see lh_memory_range_state_t
- * @see lh_memory_range_t
+ * @see lh_memory_bounds_state_t
+ * @see lh_memory_bounds_t
  */
 
 #ifndef LH_MEMORY_VIEW_H
@@ -28,7 +28,7 @@
 #include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/memory/range/state.h>
+#include <lh/memory/bounds/state.h>
 #include <lh/memory/view/fields.h>
 #include <lh/offset.h>
 #include <lh/size.h>
@@ -38,9 +38,9 @@
  * @struct lh_memory_view
  * @brief Non-owning read-only memory span: two @c const ::lh_ptr  endpoints.
  *
- * Endpoints describe <tt>[first, second)</tt> like ::lh_memory_range_t.
+ * Endpoints describe <tt>[first, second)</tt> like ::lh_memory_bounds_t.
  * Public typedef: ::lh_memory_view_t.
- * Same layout as ::lh_memory_range_t but with const-qualified pointers.
+ * Same layout as ::lh_memory_bounds_t but with const-qualified pointers.
  */
 typedef struct lh_memory_view {
     lh_memory_view_fields(lh_void);
@@ -226,12 +226,12 @@ lh_memory_view_clone_v(const lh_memory_view_t *self);
 /* ── classification ───────────────────────────────────────────────────────── */
 
 /**
- * @brief Classify stored endpoints into a flag word (::lh_memory_range_state_t).
+ * @brief Classify stored endpoints into a flag word (::lh_memory_bounds_state_t).
  * @param self View to inspect.
  * @return Bit pattern describing null endpoints and ordering when both are non-null.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_range_state_t
+lh_memory_bounds_state_t
 lh_memory_view_get_state(const lh_memory_view_t *self);
 
 /**

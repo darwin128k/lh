@@ -38,11 +38,11 @@ lh_memory_bounds_slice_get_flags(const lh_memory_bounds_slice_t *self) {
     lh_void *begin, *end;
     lh_memory_bounds_slice_unpack(self, lh_addr_of(begin), lh_addr_of(end));
 
-    if (!lh_ptr_is_null(begin)) {
+    if (lh_ptr_is_set(begin)) {
         lh_bit_set(flags, lh_memory_bounds_slice_flags_initialized_begin);
     }
 
-    if (!lh_ptr_is_null(end)) {
+    if (lh_ptr_is_set(end)) {
         lh_bit_set(flags, lh_memory_bounds_slice_flags_initialized_end);
     }
 
