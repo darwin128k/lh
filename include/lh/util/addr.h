@@ -17,7 +17,6 @@
 #define LH_UTIL_ADDR_H
 
 #include <lh/addr.h>
-#include <lh/ref.h>
 
 /**
  * @def lh_addr_of
@@ -29,7 +28,7 @@
  * int *p = lh_addr_of(n); // same as &n; useful inside macro-heavy expressions
  * @endcode
  */
-#define lh_addr_of(expr) lh_ref(expr)
+#define lh_addr_of(expr) &expr
 
 /**
  * @def lh_addr_diff(lhs, rhs)
