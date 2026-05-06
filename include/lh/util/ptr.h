@@ -138,50 +138,7 @@
  */
 #define lh_ptr_is_null(ptr) lh_null_eq(ptr)
 
-/**
- * @def lh_ptr_eq(a, b)
- * @brief Non-zero if @p a and @p b compare equal (`a == b`).
- */
-#define lh_ptr_eq(a, b) ((a) == (b))
-
-/**
- * @def lh_ptr_ne(a, b)
- * @brief Non-zero if @p a and @p b compare unequal (`a != b`).
- */
-#define lh_ptr_ne(a, b) ((a) != (b))
-
-/**
- * @def lh_ptr_lt(a, b)
- * @brief Non-zero if @p a compares less than @p b (`a < b`).
- *
- * @note In ISO C, `<` / `>` on pointers is only defined when both point into the
- *       same array object (or one past its end). Otherwise the behavior is undefined.
- */
-#define lh_ptr_lt(a, b) ((a) < (b))
-
-/**
- * @def lh_ptr_gt(a, b)
- * @brief Non-zero if @p a compares greater than @p b (`a > b`).
- *
- * @note Same pointer comparison restrictions as ::lh_ptr_lt().
- */
-#define lh_ptr_gt(a, b) ((a) > (b))
-
-/**
- * @def lh_ptr_le(a, b)
- * @brief Non-zero if @p a compares less than or equal to @p b (`a <= b`).
- *
- * @note Same pointer comparison restrictions as ::lh_ptr_lt().
- */
-#define lh_ptr_le(a, b) ((a) <= (b))
-
-/**
- * @def lh_ptr_ge(a, b)
- * @brief Non-zero if @p a compares greater than or equal to @p b (`a >= b`).
- *
- * @note Same pointer comparison restrictions as ::lh_ptr_lt().
- */
-#define lh_ptr_ge(a, b) ((a) >= (b))
+#define lh_ptr_is_set(ptr) lh_null_ne(ptr)
 
 /**
  * @def lh_addr_to_ptr(T, addr)
@@ -275,6 +232,99 @@
  * @endcode
  */
 #define lh_ptr_udiff(ptr1, ptr2) lh_addr_diff(lh_ptr_to_uaddr(ptr1), lh_ptr_to_uaddr(ptr2))
+
+/**
+ * @def lh_ptr_eq(a, b)
+ * @brief Non-zero if @p a and @p b compare equal (`a == b`).
+ *
+ * Example usage:
+ * @code{.c}
+ * unsigned char buf[8];
+ * if (lh_ptr_eq(&buf[2], &buf[2])) {
+ *     // same address
+ * }
+ * @endcode
+ */
+#define lh_ptr_eq(a, b) lh_math_eq(lh_ptr_to_uaddr(a), lh_ptr_to_uaddr(b))
+
+/**
+ * @def lh_ptr_ne(a, b)
+ * @brief Non-zero if @p a and @p b compare unequal (`a != b`).
+ *
+ * Example usage:
+ * @code{.c}
+ * unsigned char buf[8];
+ * if (lh_ptr_ne(&buf[1], &buf[3])) {
+ *     // different addresses
+ * }
+ * @endcode
+ */
+#define lh_ptr_ne(a, b) lh_math_ne(lh_ptr_to_uaddr(a), lh_ptr_to_uaddr(b))
+
+/**
+ * @def lh_ptr_lt(a, b)
+ * @brief Non-zero if @p a compares less than @p b (`a < b`).
+ *
+ * @note In ISO C, `<` / `>` on pointers is only defined when both point into the
+ *       same array object (or one past its end). Otherwise the behavior is undefined.
+ *
+ * Example usage:
+ * @code{.c}
+ * unsigned char buf[8];
+ * if (lh_ptr_lt(&buf[1], &buf[4])) {
+ *     // buf + 1 is before buf + 4
+ * }
+ * @endcode
+ */
+#define lh_ptr_lt(a, b) lh_math_lt(lh_ptr_to_uaddr(a), lh_ptr_to_uaddr(b))
+
+/**
+ * @def lh_ptr_gt(a, b)
+ * @brief Non-zero if @p a compares greater than @p b (`a > b`).
+ *
+ * @note Same pointer comparison restrictions as ::lh_ptr_lt().
+ *
+ * Example usage:
+ * @code{.c}
+ * unsigned char buf[8];
+ * if (lh_ptr_gt(&buf[6], &buf[2])) {
+ *     // buf + 6 is after buf + 2
+ * }
+ * @endcode
+ */
+#define lh_ptr_gt(a, b) lh_math_gt(lh_ptr_to_uaddr(a), lh_ptr_to_uaddr(b))
+
+/**
+ * @def lh_ptr_le(a, b)
+ * @brief Non-zero if @p a compares less than or equal to @p b (`a <= b`).
+ *
+ * @note Same pointer comparison restrictions as ::lh_ptr_lt().
+ *
+ * Example usage:
+ * @code{.c}
+ * unsigned char buf[8];
+ * if (lh_ptr_le(&buf[2], &buf[2])) {
+ *     // equal addresses are accepted
+ * }
+ * @endcode
+ */
+#define lh_ptr_le(a, b) lh_math_le(lh_ptr_to_uaddr(a), lh_ptr_to_uaddr(b))
+
+/**
+ * @def lh_ptr_ge(a, b)
+ * @brief Non-zero if @p a compares greater than or equal to @p b (`a >= b`).
+ *
+ * @note Same pointer comparison restrictions as ::lh_ptr_lt().
+ *
+ * Example usage:
+ * @code{.c}
+ * unsigned char buf[8];
+ * if (lh_ptr_ge(&buf[7], &buf[3])) {
+ *     // buf + 7 is not before buf + 3
+ * }
+ * @endcode
+ */
+#define lh_ptr_ge(a, b) lh_math_ge(lh_ptr_to_uaddr(a), lh_ptr_to_uaddr(b))
 
 /**
  * @def lh_ptr_is_aligned(ptr, align)

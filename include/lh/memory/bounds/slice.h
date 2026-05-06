@@ -1,0 +1,471 @@
+/**
+ * @file slice.h
+ * @brief Closed byte slice bounds (::lh_memory_bounds_slice_t) and helpers.
+ *
+ * A memory bounds slice stores two endpoints @c first and @c second describing
+ * a closed address interval <tt>[first, second]</tt>. Both endpoints point to
+ * bytes that belong to the slice. Consequently, size is
+ * @c second @c - @c first @c + @c 1 for initialized forward slices.
+ *
+ * The slice can also represent incomplete storage: each endpoint may be
+ * ::lh_null. The endpoint presence is reported as
+ * ::lh_memory_bounds_slice_flags_t, and initialized slices are classified by
+ * direction using ::lh_memory_bounds_slice_direction_t.
+ *
+ * Valid slices are initialized and forward ordered (@c first &lt;= @c second).
+ * Functions with the @c _v suffix and all size / containment / indexed access
+ * helpers require a valid slice and may raise runtime errors when that
+ * precondition is not met.
+ *
+ * @see lh_memory_bounds_slice_fields
+ * @see lh_memory_bounds_slice_flags_t
+ * @see lh_memory_bounds_slice_direction_t
+ */
+
+#ifndef LH_MEMORY_BOUNDS_SLICE_H
+#define LH_MEMORY_BOUNDS_SLICE_H
+
+#include <lh/ptr.h>
+#include <lh/bool.h>
+#include <lh/size.h>
+#include <lh/offset.h>
+#include <lh/attribute/symbol.h>
+#include <lh/compiler/extern/c.h>
+#include <lh/memory/bounds/slice/flags.h>
+#include <lh/memory/bounds/slice/fields.h>
+#include <lh/memory/bounds/slice/direction.h>
+
+/**
+ * @struct lh_memory_bounds_slice
+ * @brief Non-owning mutable closed byte slice: two ::lh_void * endpoints.
+ *
+ * Endpoints describe <tt>[first, second]</tt> in address space when both are
+ * non-null and ordered. Public typedef: ::lh_memory_bounds_slice_t.
+ */
+typedef struct lh_memory_bounds_slice {
+    lh_memory_bounds_slice_fields(lh_void);
+} lh_memory_bounds_slice_t; /**< Typedef for struct ::lh_memory_bounds_slice. */
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/* -- unpack / getters ------------------------------------------------------ */
+
+/**
+ * @brief Read @c first / @c second from @p self into optional outputs.
+ *
+ * Pass ::lh_null for @p begin or @p end to skip that output.
+ *
+ * @param self  Slice to read.
+ * @param begin Output for @c first, or ::lh_null.
+ * @param end   Output for @c second, or ::lh_null.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_slice_unpack(const lh_memory_bounds_slice_t *self, lh_ptr *begin, lh_ptr *end);
+
+/**
+ * @brief Return @c first without validating the slice range.
+ * @param self Slice to read.
+ * @return Stored begin pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_get_begin(const lh_memory_bounds_slice_t *self);
+
+/**
+ * @brief Return @c second without validating the slice range.
+ * @param self Slice to read.
+ * @return Stored end pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_get_end(const lh_memory_bounds_slice_t *self);
+
+/* -- classification -------------------------------------------------------- */
+
+/**
+ * @brief Return endpoint-initialization flags for @p self.
+ *
+ * The begin flag is set when @c first is non-null. The end flag is set when
+ * @c second is non-null.
+ *
+ * @param self Slice to inspect.
+ * @return Bit pattern from ::lh_memory_bounds_slice_flags_t.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_bounds_slice_flags_t
+lh_memory_bounds_slice_get_flags(const lh_memory_bounds_slice_t *self);
+
+/**
+ * @brief True iff neither endpoint is initialized.
+ * @param self Slice to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_is_uninitialized(const lh_memory_bounds_slice_t *self);
+
+/**
+ * @brief True iff both endpoints are initialized.
+ * @param self Slice to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_is_initialized(const lh_memory_bounds_slice_t *self);
+
+/**
+ * @brief Classify initialized endpoint order.
+ *
+ * Returns ::lh_memory_bounds_slice_direction_unknown until both endpoints are
+ * initialized. Otherwise returns forward for @c first &lt;= @c second and
+ * backward for reversed bounds.
+ *
+ * @param self Slice to inspect.
+ * @return Direction value from ::lh_memory_bounds_slice_direction_t.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_bounds_slice_direction_t
+lh_memory_bounds_slice_get_direction(const lh_memory_bounds_slice_t *self);
+
+/**
+ * @brief True iff @p self is initialized and ordered @c first &lt;= @c second.
+ * @param self Slice to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_is_forward_direction(const lh_memory_bounds_slice_t *self);
+
+/**
+ * @brief True iff @p self is initialized and reversed.
+ * @param self Slice to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_is_backward_direction(const lh_memory_bounds_slice_t *self);
+
+/**
+ * @brief True iff @p self is initialized and forward ordered.
+ * @param self Slice to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_is_valid(const lh_memory_bounds_slice_t *self);
+
+/* -- validated access, size, containment ---------------------------------- */
+
+/**
+ * @brief Like ::lh_memory_bounds_slice_unpack but requires a valid slice.
+ *
+ * @param self  Valid slice to read.
+ * @param begin Output for @c first, or ::lh_null.
+ * @param end   Output for @c second, or ::lh_null.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_slice_unpack_v(const lh_memory_bounds_slice_t *self, lh_ptr *begin, lh_ptr *end);
+
+/**
+ * @brief Return @c first after validating @p self.
+ * @param self Valid slice to read.
+ * @return Stored begin pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_get_begin_v(const lh_memory_bounds_slice_t *self);
+
+/**
+ * @brief Return @c second after validating @p self.
+ * @param self Valid slice to read.
+ * @return Stored end pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_get_end_v(const lh_memory_bounds_slice_t *self);
+
+/**
+ * @brief Return closed slice size in bytes.
+ *
+ * For a valid slice this is @c second @c - @c first @c + @c 1.
+ *
+ * @param self Valid slice to read.
+ * @return Number of bytes covered by the closed interval.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_usize_t
+lh_memory_bounds_slice_get_size(const lh_memory_bounds_slice_t *self);
+
+/**
+ * @brief True iff @p self is uninitialized or has zero size.
+ *
+ * For the closed interval representation, an initialized valid slice has at
+ * least one byte. Therefore the uninitialized state is the practical empty
+ * value.
+ *
+ * @param self Slice to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is invalid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_is_empty(const lh_memory_bounds_slice_t *self);
+
+/**
+ * @brief True iff @p offset addresses a byte inside @p self from the begin side.
+ *
+ * Valid offsets are in the half-open numeric interval
+ * <tt>[0, lh_memory_bounds_slice_get_size(self))</tt>.
+ *
+ * @param self   Valid slice to inspect.
+ * @param offset Byte offset from @c first.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_is_valid_offset(const lh_memory_bounds_slice_t *self, lh_uoffset_t offset);
+
+/**
+ * @brief True iff @p ptr lies inside the closed interval @p self.
+ * @param self Valid slice to inspect.
+ * @param ptr  Pointer to test.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_contains_ptr(const lh_memory_bounds_slice_t *self, const lh_ptr ptr);
+
+/**
+ * @brief True iff closed range <tt>[begin, end]</tt> lies inside @p self.
+ * @param self  Valid outer slice.
+ * @param begin Inner range begin pointer.
+ * @param end   Inner range end pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_contains_of(const lh_memory_bounds_slice_t *self, const lh_ptr begin,
+                                   const lh_ptr end);
+
+/**
+ * @brief True iff @p other lies completely inside @p self.
+ * @param self  Valid outer slice.
+ * @param other Valid inner slice.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        A slice is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_contains(const lh_memory_bounds_slice_t *self,
+                                const lh_memory_bounds_slice_t *other);
+
+/* -- pointer and value access --------------------------------------------- */
+
+/**
+ * @brief Return pointer at byte @p offset from @c first.
+ * @param self   Valid slice to index.
+ * @param offset Byte offset from the begin endpoint.
+ * @return Pointer to the requested byte.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_get_ptr_from_begin(const lh_memory_bounds_slice_t *self,
+                                          lh_uoffset_t offset);
+
+/**
+ * @brief Return pointer at byte @p offset from @c second, walking backward.
+ *
+ * Offset @c 0 returns @c second, offset @c 1 returns the previous byte, and so on.
+ *
+ * @param self   Valid slice to index.
+ * @param offset Byte offset from the end endpoint.
+ * @return Pointer to the requested byte.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_get_ptr_from_end(const lh_memory_bounds_slice_t *self, lh_uoffset_t offset);
+
+/**
+ * @brief Return pointer by signed offset.
+ *
+ * Non-negative offsets are measured from @c first. Negative offsets are
+ * measured from @c second: @c -1 addresses @c second, @c -2 the previous byte.
+ *
+ * @param self   Valid slice to index.
+ * @param offset Signed byte offset.
+ * @return Pointer to the requested byte.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_get_ptr(const lh_memory_bounds_slice_t *self, lh_soffset_t offset);
+
+/**
+ * @brief Read byte at @p offset from @c first.
+ * @param self   Valid slice to index.
+ * @param offset Byte offset from the begin endpoint.
+ * @return Byte stored at the requested address.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_bounds_slice_get_value_from_begin(const lh_memory_bounds_slice_t *self,
+                                            lh_uoffset_t offset);
+
+/**
+ * @brief Read byte at @p offset from @c second, walking backward.
+ * @param self   Valid slice to index.
+ * @param offset Byte offset from the end endpoint.
+ * @return Byte stored at the requested address.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_bounds_slice_get_value_from_end(const lh_memory_bounds_slice_t *self,
+                                          lh_uoffset_t offset);
+
+/**
+ * @brief Read byte by signed offset.
+ * @param self   Valid slice to index.
+ * @param offset Signed byte offset.
+ * @return Byte stored at the requested address.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_bounds_slice_get_value(const lh_memory_bounds_slice_t *self, lh_soffset_t offset);
+
+/**
+ * @brief Read the first byte of @p self.
+ * @param self Valid slice to read.
+ * @return Byte at @c first.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_bounds_slice_get_begin_value(const lh_memory_bounds_slice_t *self);
+
+/**
+ * @brief Read the last byte of @p self.
+ * @param self Valid slice to read.
+ * @return Byte at @c second.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_bounds_slice_get_end_value(const lh_memory_bounds_slice_t *self);
+
+LH_COMPILER_EXTERN_C_END
+
+#endif // LH_MEMORY_BOUNDS_SLICE_H

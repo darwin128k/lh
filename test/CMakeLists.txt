@@ -32,6 +32,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/memory/std.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/memory.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/raw.cpp
+        ${LH_TEST_SRC_PATH}/lh/memory/bounds/slice.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/range.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/typed.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/view.cpp

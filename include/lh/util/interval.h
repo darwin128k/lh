@@ -328,6 +328,30 @@
 #define lh_interval_open_midpoint(lower, upper) lh_interval_half_open_midpoint((lower), (upper))
 
 /**
+ * @def lh_interval_closed_get_size(lower, upper)
+ * @brief Computes the size of closed interval [lower, upper] as (upper - lower + 1).
+ */
+#define lh_interval_closed_get_size(lower, upper) lh_math_add_one(lh_math_sub((upper), (lower)))
+
+/**
+ * @def lh_interval_lopen_get_size(lower, upper)
+ * @brief Computes the size of left-open interval (lower, upper] as (upper - lower).
+ */
+#define lh_interval_lopen_get_size(lower, upper) lh_math_sub((upper), (lower))
+
+/**
+ * @def lh_interval_ropen_get_size(lower, upper)
+ * @brief Computes the size of right-open interval [lower, upper) as (upper - lower).
+ */
+#define lh_interval_ropen_get_size(lower, upper) lh_math_sub((upper), (lower))
+
+/**
+ * @def lh_interval_open_get_size(lower, upper)
+ * @brief Computes the size of open interval (lower, upper) as (upper - lower - 1).
+ */
+#define lh_interval_open_get_size(lower, upper) lh_math_sub_one(lh_math_sub((upper), (lower)))
+
+/**
  * @def lh_interval_closed_contains_value(lower, upper, value)
  * @brief Non-zero if @p value belongs to closed interval [lower, upper].
  */
