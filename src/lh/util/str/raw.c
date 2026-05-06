@@ -254,7 +254,7 @@ lh_str_raw_rtrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr wh
     }
 
     lh_usize_t end = str_size;
-    while (lh_math_positive(end) &&
+    while (lh_math_is_positive(end) &&
            lh_str_raw_contains_char(whitespace_chars, whitespace_size, str[end - 1])) {
         --end;
     }

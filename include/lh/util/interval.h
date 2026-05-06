@@ -22,7 +22,7 @@
  * @p add_overflow_macro to guard intermediate @c min + b bound reconstruction.
  */
 #define lh_interval_sub_below_min_exclusive(a, b, min, max, add_overflow_macro)                    \
-    (lh_math_positive(b) &&                                                                        \
+    (lh_math_is_positive(b) &&                                                                     \
      ((add_overflow_macro(min, b, min, max)) || lh_math_lt(a, lh_math_add(min, b))))
 
 /**
@@ -34,7 +34,7 @@
  * reconstruction safety via @p add_overflow_macro.
  */
 #define lh_interval_sub_below_min_inclusive(a, b, min, max, add_overflow_macro)                    \
-    (!lh_math_negative(b) &&                                                                       \
+    (!lh_math_is_negative(b) &&                                                                    \
      ((add_overflow_macro(min, b, min, max)) || lh_math_le(a, lh_math_add(min, b))))
 
 /**
@@ -46,7 +46,7 @@
  * safe @c max + b reconstruction.
  */
 #define lh_interval_sub_over_max_exclusive(a, b, min, max, add_overflow_macro)                     \
-    (lh_math_negative(b) &&                                                                        \
+    (lh_math_is_negative(b) &&                                                                     \
      ((add_overflow_macro(max, b, min, max)) || lh_math_gt(a, lh_math_add(max, b))))
 /**
  * @def lh_interval_sub_over_max_inclusive(a, b, min, max, add_overflow_macro)
@@ -57,7 +57,7 @@
  * for safe intermediate bound reconstruction.
  */
 #define lh_interval_sub_over_max_inclusive(a, b, min, max, add_overflow_macro)                     \
-    (!lh_math_positive(b) &&                                                                       \
+    (!lh_math_is_positive(b) &&                                                                    \
      ((add_overflow_macro(max, b, min, max)) || lh_math_ge(a, lh_math_add(max, b))))
 
 /**
@@ -171,7 +171,7 @@
 #define lh_interval_closed_is_mul_overflow(a, b, min, max)                                         \
     ((lh_math_is_zero(a) || lh_math_is_zero(b))                                                    \
          ? lh_interval_zero_product_outside(lh_interval_closed_contains_value, min, max)           \
-         : (lh_math_positive(b)                                                                    \
+         : (lh_math_is_positive(b)                                                                 \
                 ? lh_interval_mul_pos_b_outside(lh_math_lt, lh_math_gt, a, b, min, max)            \
                 : lh_interval_mul_neg_b_outside(lh_math_lt, lh_math_gt, a, b, min, max)))
 
@@ -182,7 +182,7 @@
 #define lh_interval_lopen_is_mul_overflow(a, b, min, max)                                          \
     ((lh_math_is_zero(a) || lh_math_is_zero(b))                                                    \
          ? lh_interval_zero_product_outside(lh_interval_lopen_contains_value, min, max)            \
-         : (lh_math_positive(b)                                                                    \
+         : (lh_math_is_positive(b)                                                                 \
                 ? lh_interval_mul_pos_b_outside(lh_math_le, lh_math_gt, a, b, min, max)            \
                 : lh_interval_mul_neg_b_outside(lh_math_le, lh_math_gt, a, b, min, max)))
 
@@ -193,7 +193,7 @@
 #define lh_interval_ropen_is_mul_overflow(a, b, min, max)                                          \
     ((lh_math_is_zero(a) || lh_math_is_zero(b))                                                    \
          ? lh_interval_zero_product_outside(lh_interval_ropen_contains_value, min, max)            \
-         : (lh_math_positive(b)                                                                    \
+         : (lh_math_is_positive(b)                                                                 \
                 ? lh_interval_mul_pos_b_outside(lh_math_lt, lh_math_gt, a, b, min,                 \
                                                 lh_math_sub_one(max))                              \
                 : lh_interval_mul_neg_b_outside(lh_math_lt, lh_math_ge, a, b, min, max)))
@@ -205,7 +205,7 @@
 #define lh_interval_open_is_mul_overflow(a, b, min, max)                                           \
     ((lh_math_is_zero(a) || lh_math_is_zero(b))                                                    \
          ? lh_interval_zero_product_outside(lh_interval_open_contains_value, min, max)             \
-         : (lh_math_positive(b)                                                                    \
+         : (lh_math_is_positive(b)                                                                 \
                 ? lh_interval_mul_pos_b_outside(lh_math_le, lh_math_gt, a, b, min,                 \
                                                 lh_math_sub_one(max))                              \
                 : lh_interval_mul_neg_b_outside(lh_math_le, lh_math_ge, a, b, min, max)))

@@ -88,9 +88,9 @@
  *
  * Returns @p a if non-negative, otherwise returns negated @p a.
  *
- * @see lh_math_neg(), lh_math_negative()
+ * @see lh_math_neg(), lh_math_is_negative()
  */
-#define lh_math_abs(a) lh_math_negative(a) ? lh_math_neg(a) : (a)
+#define lh_math_abs(a) lh_math_is_negative(a) ? lh_math_neg(a) : (a)
 
 /* ── increment / decrement ─────────────────────────────────────────────── */
 
@@ -216,7 +216,7 @@
 #define lh_math_is_zero(a) lh_math_eq((a), 0)
 
 /**
- * @def lh_math_positive(a)
+ * @def lh_math_is_positive(a)
  * @brief Non-zero if @p a is strictly greater than zero (`(a) > 0`).
  * @param a Value after usual arithmetic conversions.
  * @return Non-zero iff @p a compares greater than zero.
@@ -229,12 +229,12 @@
  *       @p a may be signed: a single high bit in a negative value can satisfy the `n & (n-1)` trick
  *       while still not being a positive power of two.
  *
- * @see lh_math_negative(), lh_math_is_zero()
+ * @see lh_math_is_negative(), lh_math_is_zero()
  */
-#define lh_math_positive(a) lh_math_gt((a), 0)
+#define lh_math_is_positive(a) lh_math_gt((a), 0)
 
 /**
- * @def lh_math_negative(a)
+ * @def lh_math_is_negative(a)
  * @brief Non-zero if @p a is strictly less than zero (`(a) < 0`).
  * @param a Value after usual arithmetic conversions.
  * @return Non-zero iff @p a compares less than zero.
@@ -244,9 +244,9 @@
  *
  * @warning @p a may be evaluated more than once if used inside other macros that repeat it.
  *
- * @see lh_math_positive(), lh_math_is_zero()
+ * @see lh_math_is_positive(), lh_math_is_zero()
  */
-#define lh_math_negative(a) lh_math_lt((a), 0)
+#define lh_math_is_negative(a) lh_math_lt((a), 0)
 
 /* ── bitwise ───────────────────────────────────────────────────────────── */
 
@@ -295,10 +295,10 @@
  *
  * @warning @p n may be evaluated more than once — avoid side effects.
  *
- * @see lh_math_positive(), lh_math_bit_disjoint(), lh_math_sub_one()
+ * @see lh_math_is_positive(), lh_math_bit_disjoint(), lh_math_sub_one()
  */
 #define lh_math_is_power_of_two(n)                                                                 \
-    (lh_math_positive((n)) && lh_math_bit_disjoint((n), lh_math_sub_one(n)))
+    (lh_math_is_positive((n)) && lh_math_bit_disjoint((n), lh_math_sub_one(n)))
 
 /**
  * @def lh_math_is_multiple_of(a, b)
@@ -411,7 +411,7 @@
  * Intended for overflow-style checks where @p max is exclusive.
  */
 #define lh_math_add_over_max_exclusive(a, b, max)                                                  \
-    (lh_math_positive(b) && lh_math_gt((a), lh_math_sub((max), (b))))
+    (lh_math_is_positive(b) && lh_math_gt((a), lh_math_sub((max), (b))))
 
 /**
  * @def lh_math_add_over_max_inclusive(a, b, max)
@@ -420,7 +420,7 @@
  * Inclusive variant: equality at @p max is treated as overflow.
  */
 #define lh_math_add_over_max_inclusive(a, b, max)                                                  \
-    (!lh_math_negative(b) && lh_math_ge((a), lh_math_sub((max), (b))))
+    (!lh_math_is_negative(b) && lh_math_ge((a), lh_math_sub((max), (b))))
 
 /**
  * @def lh_math_add_below_min_exclusive(a, b, min)
@@ -429,7 +429,7 @@
  * Intended for checks where @p min is exclusive.
  */
 #define lh_math_add_below_min_exclusive(a, b, min)                                                 \
-    (lh_math_negative(b) && lh_math_lt((a), lh_math_sub((min), (b))))
+    (lh_math_is_negative(b) && lh_math_lt((a), lh_math_sub((min), (b))))
 
 /**
  * @def lh_math_add_below_min_inclusive(a, b, min)
@@ -438,6 +438,6 @@
  * Inclusive variant: equality at @p min is treated as underflow.
  */
 #define lh_math_add_below_min_inclusive(a, b, min)                                                 \
-    (!lh_math_positive(b) && lh_math_le((a), lh_math_sub((min), (b))))
+    (!lh_math_is_positive(b) && lh_math_le((a), lh_math_sub((min), (b))))
 
 #endif // LH_UTIL_MATH_H
