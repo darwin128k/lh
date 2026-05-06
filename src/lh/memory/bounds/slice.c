@@ -130,6 +130,23 @@ lh_memory_bounds_slice_is_valid_offset(const lh_memory_bounds_slice_t *self, lh_
     return lh_interval_ropen_contains_value(LH_UOFFSET_T_MIN, size, offset);
 }
 
+lh_uoffset_t
+lh_memory_bounds_slice_get_offset_from_begin(const lh_memory_bounds_slice_t *self,
+                                             const lh_ptr ptr) {
+    lh_uoffset_t offset = lh_ptr_udiff(ptr, lh_memory_bounds_slice_get_begin(self));
+    lh_runtime_check(lh_memory_bounds_slice_is_valid_offset(self, offset),
+                     lh_runtime_error_code_out_of_range);
+    return offset;
+}
+
+lh_uoffset_t
+lh_memory_bounds_slice_get_offset_from_end(const lh_memory_bounds_slice_t *self, const lh_ptr ptr) {
+    lh_uoffset_t offset = lh_ptr_udiff(lh_memory_bounds_slice_get_end(self), ptr);
+    lh_runtime_check(lh_memory_bounds_slice_is_valid_offset(self, offset),
+                     lh_runtime_error_code_out_of_range);
+    return offset;
+}
+
 lh_bool_t
 lh_memory_bounds_slice_contains_ptr(const lh_memory_bounds_slice_t *self, const lh_ptr ptr) {
     lh_void *begin, *end;
@@ -174,8 +191,8 @@ lh_memory_bounds_slice_get_ptr(const lh_memory_bounds_slice_t *self, lh_soffset_
     if (lh_math_ge(offset, 0)) {
         return lh_memory_bounds_slice_get_ptr_from_begin(self, lh_type_cast(lh_uoffset_t, offset));
     } else {
-        return lh_memory_bounds_slice_get_ptr_from_end(self,
-                                                       lh_type_cast(lh_uoffset_t, -offset - 1));
+        return lh_memory_bounds_slice_get_ptr_from_end(
+            self, lh_type_cast(lh_uoffset_t, lh_math_sub_one(lh_math_neg(offset))));
     }
 }
 

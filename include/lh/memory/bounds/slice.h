@@ -280,6 +280,49 @@ lh_bool_t
 lh_memory_bounds_slice_is_valid_offset(const lh_memory_bounds_slice_t *self, lh_uoffset_t offset);
 
 /**
+ * @brief Return byte offset of @p ptr from @c first.
+ *
+ * This is the inverse of ::lh_memory_bounds_slice_get_ptr_from_begin for
+ * pointers inside @p self.
+ *
+ * @param self Valid slice to inspect.
+ * @param ptr  Pointer whose offset is requested.
+ * @return Byte offset from @c first to @p ptr.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p ptr is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uoffset_t
+lh_memory_bounds_slice_get_offset_from_begin(const lh_memory_bounds_slice_t *self,
+                                             const lh_ptr ptr);
+
+/**
+ * @brief Return byte offset of @p ptr from @c second, walking backward.
+ *
+ * Offset @c 0 means @p ptr equals @c second. This is the inverse of
+ * ::lh_memory_bounds_slice_get_ptr_from_end for pointers inside @p self.
+ *
+ * @param self Valid slice to inspect.
+ * @param ptr  Pointer whose reverse offset is requested.
+ * @return Byte offset from @c second back to @p ptr.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p ptr is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uoffset_t
+lh_memory_bounds_slice_get_offset_from_end(const lh_memory_bounds_slice_t *self, const lh_ptr ptr);
+
+/**
  * @brief True iff @p ptr lies inside the closed interval @p self.
  * @param self Valid slice to inspect.
  * @param ptr  Pointer to test.
