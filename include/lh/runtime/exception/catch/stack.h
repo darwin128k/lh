@@ -18,9 +18,9 @@
 #define LH_RUNTIME_EXCEPTION_CATCH_STACK_H
 
 #include <lh/exception/catch.h>
+#include <lh/runtime/terminate.h>
 #include <lh/attribute/builtin.h>
 #include <lh/attribute/noreturn.h>
-#include <lh/attribute/thread_local.h>
 
 /**
  * @def lh_runtime_exception_catch_stack_capture(x)
