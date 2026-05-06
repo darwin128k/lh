@@ -54,8 +54,9 @@ typedef struct lh_version lh_version_t;
  * @param patch New patch value, or ::lh_null to leave unchanged.
  */
 LH_ATTRIBUTE_SYMBOL
-void lh_version_pack(lh_version_t *self, const lh_version_major_t *major,
-                     const lh_version_minor_t *minor, const lh_version_patch_t *patch);
+void
+lh_version_pack(lh_version_t *self, const lh_version_major_t *major,
+                const lh_version_minor_t *minor, const lh_version_patch_t *patch);
 
 /**
  * @brief Read individual components out of a version struct.
@@ -74,8 +75,9 @@ void lh_version_pack(lh_version_t *self, const lh_version_major_t *major,
  * @endcode
  */
 LH_ATTRIBUTE_SYMBOL
-void lh_version_unpack(const lh_version_t *self, lh_version_major_t *major,
-                       lh_version_minor_t *minor, lh_version_patch_t *patch);
+void
+lh_version_unpack(const lh_version_t *self, lh_version_major_t *major, lh_version_minor_t *minor,
+                  lh_version_patch_t *patch);
 
 /* ── set ─────────────────────────────────────────────────────────────────── */
 
@@ -90,8 +92,9 @@ void lh_version_unpack(const lh_version_t *self, lh_version_major_t *major,
  * @param patch New patch component.
  */
 LH_ATTRIBUTE_SYMBOL
-void lh_version_set(lh_version_t *self, lh_version_major_t major, lh_version_minor_t minor,
-                    lh_version_patch_t patch);
+void
+lh_version_set(lh_version_t *self, lh_version_major_t major, lh_version_minor_t minor,
+               lh_version_patch_t patch);
 
 /* ── getters ─────────────────────────────────────────────────────────────── */
 
@@ -101,7 +104,8 @@ void lh_version_set(lh_version_t *self, lh_version_major_t major, lh_version_min
  * @return Major version number.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_version_major_t lh_version_get_major(const lh_version_t *self);
+lh_version_major_t
+lh_version_get_major(const lh_version_t *self);
 
 /**
  * @brief Return the minor component of @p self.
@@ -109,7 +113,8 @@ lh_version_major_t lh_version_get_major(const lh_version_t *self);
  * @return Minor version number.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_version_minor_t lh_version_get_minor(const lh_version_t *self);
+lh_version_minor_t
+lh_version_get_minor(const lh_version_t *self);
 
 /**
  * @brief Return the patch component of @p self.
@@ -117,7 +122,8 @@ lh_version_minor_t lh_version_get_minor(const lh_version_t *self);
  * @return Patch version number.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_version_patch_t lh_version_get_patch(const lh_version_t *self);
+lh_version_patch_t
+lh_version_get_patch(const lh_version_t *self);
 
 /* ── comparison ──────────────────────────────────────────────────────────── */
 
@@ -129,7 +135,8 @@ lh_version_patch_t lh_version_get_patch(const lh_version_t *self);
  * @param minimum Required floor (e.g. minimum supported version).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_version_is_at_least(const lh_version_t *self, const lh_version_t *minimum);
+lh_bool_t
+lh_version_is_at_least(const lh_version_t *self, const lh_version_t *minimum);
 
 LH_COMPILER_EXTERN_C_END
 

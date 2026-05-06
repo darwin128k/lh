@@ -27,7 +27,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param fn New callback (or null to restore default). Type: ::lh_runtime_terminate_cb.
  * @return Previous callback (may be null).
  */
-lh_runtime_terminate_cb lh_runtime_terminate_set(lh_runtime_terminate_cb fn);
+lh_runtime_terminate_cb
+lh_runtime_terminate_set(lh_runtime_terminate_cb fn);
 
 /**
  * @brief Invoke the current runtime terminate handler (does not return).
@@ -37,7 +38,8 @@ lh_runtime_terminate_cb lh_runtime_terminate_set(lh_runtime_terminate_cb fn);
  * The function is declared noreturn.
  */
 LH_ATTRIBUTE_NORETURN
-void lh_runtime_terminate(void);
+void
+lh_runtime_terminate(void);
 
 LH_COMPILER_EXTERN_C_END
 

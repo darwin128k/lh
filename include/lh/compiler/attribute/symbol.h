@@ -69,7 +69,8 @@
  * @endcode
  */
 #if (LH_COMPILER_TYPE_IS_GCC_LIKE)
-#    if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS && LH_COMPILER_OS_SUBSYS != LH_COMPILER_OS_SUBSYS_CYGWIN
+#    if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS &&                                                \
+        LH_COMPILER_OS_SUBSYS != LH_COMPILER_OS_SUBSYS_CYGWIN
 #        define LH_COMPILER_ATTRIBUTE_SYMBOL_EXPORT __declspec(dllexport)
 #        define LH_COMPILER_ATTRIBUTE_SYMBOL_IMPORT __declspec(dllimport)
 #        define LH_COMPILER_ATTRIBUTE_SYMBOL_HIDDEN

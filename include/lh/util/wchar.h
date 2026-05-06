@@ -49,7 +49,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @see lh_wchar_to_upper
  */
 LH_ATTRIBUTE_SYMBOL
-lh_wchar_t lh_wchar_fold_case(lh_wchar_t c);
+lh_wchar_t
+lh_wchar_fold_case(lh_wchar_t c);
 
 /**
  * @brief Simple lowercase mapping for one code unit (Unicode UCD, field 13).
@@ -66,7 +67,8 @@ lh_wchar_t lh_wchar_fold_case(lh_wchar_t c);
  * not full UTF-16 string lowercasing for supplementary planes (surrogate pairs).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_wchar_t lh_wchar_to_lower(lh_wchar_t c);
+lh_wchar_t
+lh_wchar_to_lower(lh_wchar_t c);
 
 /**
  * @brief Simple uppercase mapping for one code unit (Unicode UCD, field 12).
@@ -74,7 +76,8 @@ lh_wchar_t lh_wchar_to_lower(lh_wchar_t c);
  * Same data source and limitations as ::lh_wchar_to_lower.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_wchar_t lh_wchar_to_upper(lh_wchar_t c);
+lh_wchar_t
+lh_wchar_to_upper(lh_wchar_t c);
 
 LH_COMPILER_EXTERN_C_END
 

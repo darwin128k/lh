@@ -15,9 +15,9 @@ static const lh_char_t m_whitespace_chars[] = {lh_char_map_space, lh_char_map_lf
 
 static const lh_usize_t m_whitespace_size = lh_str_raw_size(m_whitespace_chars);
 
-lh_usize_t lh_str_raw_index_of_by_size(const lh_str_ptr str, lh_usize_t str_size,
-                                       const lh_str_ptr src, lh_usize_t src_size,
-                                       lh_bool_t ignore_case) {
+lh_usize_t
+lh_str_raw_index_of_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                            lh_usize_t src_size, lh_bool_t ignore_case) {
 
     lh_runtime_return_ifn(src_size, LH_USIZE_T_MIN);
     if (lh_math_lt(str_size, src_size)) {
@@ -28,46 +28,53 @@ lh_usize_t lh_str_raw_index_of_by_size(const lh_str_ptr str, lh_usize_t str_size
     return lh_null_ne(ptr) ? lh_ptr_udiff(ptr, str) : LH_STR_RAW_INVALID;
 }
 
-const lh_str_ptr lh_str_raw_find_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch) {
+const lh_str_ptr
+lh_str_raw_find_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch) {
     return lh_memory_find(str, size, &ch, LH_CHAR_T_SIZE);
 }
 
-const lh_str_ptr lh_str_raw_find_of_null_terminator_by_size(const lh_str_ptr str, lh_usize_t size) {
+const lh_str_ptr
+lh_str_raw_find_of_null_terminator_by_size(const lh_str_ptr str, lh_usize_t size) {
     return lh_str_raw_find_of_char(str, size, lh_char_map_nul);
 }
 
-const lh_str_ptr lh_str_raw_find_of_null_terminator(const lh_str_ptr str) {
+const lh_str_ptr
+lh_str_raw_find_of_null_terminator(const lh_str_ptr str) {
     lh_usize_t size = lh_addr_diff(LH_USIZE_T_MAX, lh_ptr_to_uaddr(str));
     return lh_str_raw_find_of_null_terminator_by_size(str, size);
 }
 
-lh_usize_t lh_str_raw_len(const lh_str_ptr str) {
+lh_usize_t
+lh_str_raw_len(const lh_str_ptr str) {
     const lh_str_ptr ptr = lh_str_raw_find_of_null_terminator(str);
     lh_runtime_check_ifn(ptr, lh_runtime_error_code_no_null_terminator);
     return lh_ptr_udiff(ptr, str);
 }
 
-lh_str_ptr lh_str_raw_copy(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
-                           lh_usize_t src_size) {
+lh_str_ptr
+lh_str_raw_copy(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src, lh_usize_t src_size) {
     return lh_memory_copy(str, str_size, src, src_size);
 }
 
-lh_str_ptr lh_str_raw_move(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
-                           lh_usize_t src_size) {
+lh_str_ptr
+lh_str_raw_move(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src, lh_usize_t src_size) {
     return lh_memory_move(str, str_size, src, src_size);
 }
 
-lh_str_ptr lh_str_raw_set_pattern(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
-                                  lh_usize_t src_size) {
+lh_str_ptr
+lh_str_raw_set_pattern(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                       lh_usize_t src_size) {
     return lh_memory_set_pattern(str, str_size, src, src_size);
 }
 
-lh_str_ptr lh_str_raw_set(lh_str_ptr str, lh_usize_t size, lh_char_t ch) {
+lh_str_ptr
+lh_str_raw_set(lh_str_ptr str, lh_usize_t size, lh_char_t ch) {
     return lh_memory_set(str, size, ch);
 }
 
-const lh_str_ptr lh_str_raw_compare_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size,
-                                                   const lh_str_ptr src, lh_usize_t src_size) {
+const lh_str_ptr
+lh_str_raw_compare_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                                  lh_usize_t src_size) {
     lh_runtime_check_ref(str);
     lh_runtime_check_ref(src);
 
@@ -80,8 +87,9 @@ const lh_str_ptr lh_str_raw_compare_by_ignore_case(const lh_str_ptr str, lh_usiz
     return lh_null;
 }
 
-const lh_str_ptr lh_str_raw_rcompare_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size,
-                                                    const lh_str_ptr src, lh_usize_t src_size) {
+const lh_str_ptr
+lh_str_raw_rcompare_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                                   lh_usize_t src_size) {
     lh_runtime_check_ref(str);
     lh_runtime_check_ref(src);
 
@@ -97,8 +105,9 @@ const lh_str_ptr lh_str_raw_rcompare_by_ignore_case(const lh_str_ptr str, lh_usi
     return lh_null;
 }
 
-const lh_str_ptr lh_str_raw_find_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size,
-                                                const lh_str_ptr src, lh_usize_t src_size) {
+const lh_str_ptr
+lh_str_raw_find_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                               lh_usize_t src_size) {
     lh_runtime_check_ref(str);
     lh_runtime_check_ref(src);
 
@@ -116,8 +125,9 @@ const lh_str_ptr lh_str_raw_find_by_ignore_case(const lh_str_ptr str, lh_usize_t
     return lh_null;
 }
 
-const lh_str_ptr lh_str_raw_rfind_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size,
-                                                 const lh_str_ptr src, lh_usize_t src_size) {
+const lh_str_ptr
+lh_str_raw_rfind_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                                lh_usize_t src_size) {
     lh_runtime_check_ref(str);
     lh_runtime_check_ref(src);
 
@@ -135,47 +145,53 @@ const lh_str_ptr lh_str_raw_rfind_by_ignore_case(const lh_str_ptr str, lh_usize_
     return lh_null;
 }
 
-const lh_str_ptr lh_str_raw_find(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
-                                 lh_usize_t src_size, lh_bool_t ignore_case) {
+const lh_str_ptr
+lh_str_raw_find(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                lh_usize_t src_size, lh_bool_t ignore_case) {
     return ignore_case ? lh_str_raw_find_by_ignore_case(str, str_size, src, src_size)
                        : lh_memory_find(str, str_size, src, src_size);
 }
 
-const lh_str_ptr lh_str_raw_rfind(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
-                                  lh_usize_t src_size, lh_bool_t ignore_case) {
+const lh_str_ptr
+lh_str_raw_rfind(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                 lh_usize_t src_size, lh_bool_t ignore_case) {
     return ignore_case ? lh_str_raw_rfind_by_ignore_case(str, str_size, src, src_size)
                        : lh_memory_rfind(str, str_size, src, src_size);
 }
 
-const lh_str_ptr lh_str_raw_compare(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
-                                    lh_usize_t src_size, lh_bool_t ignore_case) {
+const lh_str_ptr
+lh_str_raw_compare(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                   lh_usize_t src_size, lh_bool_t ignore_case) {
     return ignore_case ? lh_str_raw_compare_by_ignore_case(str, str_size, src, src_size)
                        : lh_memory_compare(str, str_size, src, src_size);
 }
 
-const lh_str_ptr lh_str_raw_rcompare(const lh_str_ptr str, lh_usize_t str_size,
-                                     const lh_str_ptr src, lh_usize_t src_size,
-                                     lh_bool_t ignore_case) {
+const lh_str_ptr
+lh_str_raw_rcompare(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                    lh_usize_t src_size, lh_bool_t ignore_case) {
     return ignore_case ? lh_str_raw_rcompare_by_ignore_case(str, str_size, src, src_size)
                        : lh_memory_rcompare(str, str_size, src, src_size);
 }
 
-lh_bool_t lh_str_raw_contains(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case) {
+lh_bool_t
+lh_str_raw_contains(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case) {
     return lh_math_ne(lh_str_raw_index_of(str, src, ignore_case), LH_STR_RAW_INVALID);
 }
 
-lh_usize_t lh_str_raw_index_of(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case) {
+lh_usize_t
+lh_str_raw_index_of(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case) {
     const lh_usize_t str_size = lh_str_raw_len(str);
     const lh_usize_t src_size = lh_str_raw_len(src);
     return lh_str_raw_index_of_by_size(str, str_size, src, src_size, ignore_case);
 }
 
-lh_bool_t lh_str_raw_starts_with(const lh_str_ptr str, const lh_str_ptr src,
-                                 lh_bool_t ignore_case) {
+lh_bool_t
+lh_str_raw_starts_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case) {
     return lh_math_eq(lh_str_raw_index_of(str, src, ignore_case), LH_USIZE_T_MIN);
 }
 
-lh_bool_t lh_str_raw_ends_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case) {
+lh_bool_t
+lh_str_raw_ends_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case) {
     const lh_usize_t str_size = lh_str_raw_len(str);
     const lh_usize_t src_size = lh_str_raw_len(src);
     if (lh_math_lt(str_size, src_size)) {
@@ -187,19 +203,22 @@ lh_bool_t lh_str_raw_ends_with(const lh_str_ptr str, const lh_str_ptr src, lh_bo
                       LH_USIZE_T_MIN);
 }
 
-lh_bool_t lh_str_raw_equals(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case) {
+lh_bool_t
+lh_str_raw_equals(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case) {
     const lh_usize_t str_size = lh_str_raw_len(str);
     const lh_usize_t src_size = lh_str_raw_len(src);
     return lh_math_eq(str_size, src_size) &&
            lh_null_eq(lh_str_raw_compare(str, str_size, src, str_size, ignore_case));
 }
 
-lh_bool_t lh_str_raw_contains_char(const lh_str_ptr chars, lh_usize_t chars_size, lh_char_t ch) {
+lh_bool_t
+lh_str_raw_contains_char(const lh_str_ptr chars, lh_usize_t chars_size, lh_char_t ch) {
     return lh_null_ne(lh_memory_find(chars, chars_size, &ch, LH_CHAR_T_SIZE));
 }
 
-lh_str_ptr lh_str_raw_ltrim_custom(lh_str_ptr str, lh_usize_t str_size,
-                                   const lh_str_ptr whitespace_chars, lh_usize_t whitespace_size) {
+lh_str_ptr
+lh_str_raw_ltrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whitespace_chars,
+                        lh_usize_t whitespace_size) {
     lh_runtime_check_ref(str);
     lh_runtime_check_ref(whitespace_chars);
 
@@ -224,8 +243,9 @@ lh_str_ptr lh_str_raw_ltrim_custom(lh_str_ptr str, lh_usize_t str_size,
     return str;
 }
 
-lh_str_ptr lh_str_raw_rtrim_custom(lh_str_ptr str, lh_usize_t str_size,
-                                   const lh_str_ptr whitespace_chars, lh_usize_t whitespace_size) {
+lh_str_ptr
+lh_str_raw_rtrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whitespace_chars,
+                        lh_usize_t whitespace_size) {
     lh_runtime_check_ref(str);
     lh_runtime_check_ref(whitespace_chars);
 
@@ -243,47 +263,56 @@ lh_str_ptr lh_str_raw_rtrim_custom(lh_str_ptr str, lh_usize_t str_size,
     return str;
 }
 
-lh_str_ptr lh_str_raw_trim_custom(lh_str_ptr str, lh_usize_t str_size,
-                                  const lh_str_ptr whitespace_chars, lh_usize_t whitespace_size) {
+lh_str_ptr
+lh_str_raw_trim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whitespace_chars,
+                       lh_usize_t whitespace_size) {
     lh_str_raw_rtrim_custom(str, str_size, whitespace_chars, whitespace_size);
     return lh_str_raw_ltrim_custom(str, lh_str_raw_len(str), whitespace_chars, whitespace_size);
 }
 
-lh_str_ptr lh_str_raw_ltrim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars,
-                                lh_usize_t whitespace_size) {
+lh_str_ptr
+lh_str_raw_ltrim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars,
+                     lh_usize_t whitespace_size) {
     return lh_str_raw_ltrim_custom(str, lh_str_raw_len(str), whitespace_chars, whitespace_size);
 }
 
-lh_str_ptr lh_str_raw_rtrim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars,
-                                lh_usize_t whitespace_size) {
+lh_str_ptr
+lh_str_raw_rtrim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars,
+                     lh_usize_t whitespace_size) {
     return lh_str_raw_rtrim_custom(str, lh_str_raw_len(str), whitespace_chars, whitespace_size);
 }
 
-lh_str_ptr lh_str_raw_trim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars,
-                               lh_usize_t whitespace_size) {
+lh_str_ptr
+lh_str_raw_trim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars, lh_usize_t whitespace_size) {
     return lh_str_raw_trim_custom(str, lh_str_raw_len(str), whitespace_chars, whitespace_size);
 }
 
-lh_str_ptr lh_str_raw_ltrim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars) {
+lh_str_ptr
+lh_str_raw_ltrim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars) {
     return lh_str_raw_ltrim_set(str, whitespace_chars, lh_str_raw_len(whitespace_chars));
 }
 
-lh_str_ptr lh_str_raw_rtrim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars) {
+lh_str_ptr
+lh_str_raw_rtrim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars) {
     return lh_str_raw_rtrim_set(str, whitespace_chars, lh_str_raw_len(whitespace_chars));
 }
 
-lh_str_ptr lh_str_raw_trim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars) {
+lh_str_ptr
+lh_str_raw_trim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars) {
     return lh_str_raw_trim_set(str, whitespace_chars, lh_str_raw_len(whitespace_chars));
 }
 
-lh_str_ptr lh_str_raw_ltrim(lh_str_ptr str) {
+lh_str_ptr
+lh_str_raw_ltrim(lh_str_ptr str) {
     return lh_str_raw_ltrim_set(str, m_whitespace_chars, m_whitespace_size);
 }
 
-lh_str_ptr lh_str_raw_rtrim(lh_str_ptr str) {
+lh_str_ptr
+lh_str_raw_rtrim(lh_str_ptr str) {
     return lh_str_raw_rtrim_set(str, m_whitespace_chars, m_whitespace_size);
 }
 
-lh_str_ptr lh_str_raw_trim(lh_str_ptr str) {
+lh_str_ptr
+lh_str_raw_trim(lh_str_ptr str) {
     return lh_str_raw_trim_set(str, m_whitespace_chars, m_whitespace_size);
 }

@@ -61,7 +61,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param end   Input pointer whose value is stored in @c second, or ::lh_null to skip.
  */
 LH_ATTRIBUTE_SYMBOL
-void lh_memory_view_pack(lh_memory_view_t *self, const lh_ptr *begin, const lh_ptr *end);
+void
+lh_memory_view_pack(lh_memory_view_t *self, const lh_ptr *begin, const lh_ptr *end);
 
 /**
  * @brief Store @p begin as @c first and @p end as @c second (half-open <tt>[begin, end)</tt>).
@@ -70,7 +71,8 @@ void lh_memory_view_pack(lh_memory_view_t *self, const lh_ptr *begin, const lh_p
  * @param end   Value for @c second (one past the last byte).
  */
 LH_ATTRIBUTE_SYMBOL
-void lh_memory_view_set(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
+void
+lh_memory_view_set(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
  * @brief Same as ::lh_memory_view_set.
@@ -79,7 +81,8 @@ void lh_memory_view_set(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr
  * @param end   Value for @c second (one past the last byte).
  */
 LH_ATTRIBUTE_SYMBOL
-void lh_memory_view_init(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
+void
+lh_memory_view_init(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
  * @brief Initialize @p self with @c first = @p begin and @c second = @p begin + @p size.
@@ -92,7 +95,8 @@ void lh_memory_view_init(lh_memory_view_t *self, const lh_ptr begin, const lh_pt
  * @param size  Length in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
-void lh_memory_view_init_by_size(lh_memory_view_t *self, const lh_ptr begin, lh_usize_t size);
+void
+lh_memory_view_init_by_size(lh_memory_view_t *self, const lh_ptr begin, lh_usize_t size);
 
 /**
  * @brief Read @c first / @c second from @p self into optional outputs.
@@ -104,7 +108,8 @@ void lh_memory_view_init_by_size(lh_memory_view_t *self, const lh_ptr begin, lh_
  * @param end   Output for @c second, or ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
-void lh_memory_view_unpack(const lh_memory_view_t *self, const lh_ptr *begin, const lh_ptr *end);
+void
+lh_memory_view_unpack(const lh_memory_view_t *self, const lh_ptr *begin, const lh_ptr *end);
 
 /**
  * @brief Copy bounds from @p other into @p self (no validity check on @p other).
@@ -112,14 +117,16 @@ void lh_memory_view_unpack(const lh_memory_view_t *self, const lh_ptr *begin, co
  * @param other Source view (same layout).
  */
 LH_ATTRIBUTE_SYMBOL
-void lh_memory_view_init_by_other(lh_memory_view_t *self, const lh_memory_view_t *other);
+void
+lh_memory_view_init_by_other(lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
  * @brief Initialize @p self with ::lh_memory_view_empty_initializer.
  * @param self Destination view.
  */
 LH_ATTRIBUTE_SYMBOL
-void lh_memory_view_init_by_empty(lh_memory_view_t *self);
+void
+lh_memory_view_init_by_empty(lh_memory_view_t *self);
 
 /**
  * @brief Return @c first.
@@ -127,7 +134,8 @@ void lh_memory_view_init_by_empty(lh_memory_view_t *self);
  * @return Stored begin pointer.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_view_get_begin(const lh_memory_view_t *self);
+const lh_ptr
+lh_memory_view_get_begin(const lh_memory_view_t *self);
 
 /**
  * @brief Return @c second.
@@ -135,7 +143,8 @@ const lh_ptr lh_memory_view_get_begin(const lh_memory_view_t *self);
  * @return Stored end pointer.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_view_get_end(const lh_memory_view_t *self);
+const lh_ptr
+lh_memory_view_get_end(const lh_memory_view_t *self);
 
 /**
  * @brief Copy @p other into @p self without requiring ::lh_memory_view_is_valid(@p other).
@@ -143,14 +152,16 @@ const lh_ptr lh_memory_view_get_end(const lh_memory_view_t *self);
  * @param other Source.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_view_assign(lh_memory_view_t *self, const lh_memory_view_t *other);
+lh_void
+lh_memory_view_assign(lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
  * @brief Reset @p self to the "both null" pattern (::lh_memory_view_empty_initializer).
  * @param self View to clear.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_view_clear(lh_memory_view_t *self);
+lh_void
+lh_memory_view_clear(lh_memory_view_t *self);
 
 /**
  * @brief Swap the contents of @p self and @p other.
@@ -158,7 +169,8 @@ lh_void lh_memory_view_clear(lh_memory_view_t *self);
  * @param other Second view.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_view_swap(lh_memory_view_t *self, lh_memory_view_t *other);
+lh_void
+lh_memory_view_swap(lh_memory_view_t *self, lh_memory_view_t *other);
 
 /**
  * @brief Clear @p self, then swap with @p other (so @p other receives the cleared view).
@@ -166,7 +178,8 @@ lh_void lh_memory_view_swap(lh_memory_view_t *self, lh_memory_view_t *other);
  * @param other View to exchange with.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_view_exchange(lh_memory_view_t *self, lh_memory_view_t *other);
+lh_void
+lh_memory_view_exchange(lh_memory_view_t *self, lh_memory_view_t *other);
 
 /**
  * @brief Return a by-value copy of @p self without requiring validity.
@@ -177,7 +190,8 @@ lh_void lh_memory_view_exchange(lh_memory_view_t *self, lh_memory_view_t *other)
  * @return Cloned view.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_view_t lh_memory_view_clone(const lh_memory_view_t *self);
+lh_memory_view_t
+lh_memory_view_clone(const lh_memory_view_t *self);
 
 /**
  * @brief Copy @p self into @p other without requiring validity.
@@ -186,7 +200,8 @@ lh_memory_view_t lh_memory_view_clone(const lh_memory_view_t *self);
  * @param other Destination view.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_view_dup(const lh_memory_view_t *self, lh_memory_view_t *other);
+lh_void
+lh_memory_view_dup(const lh_memory_view_t *self, lh_memory_view_t *other);
 
 /**
  * @brief Copy @p self into @p other through validated assignment.
@@ -195,7 +210,8 @@ lh_void lh_memory_view_dup(const lh_memory_view_t *self, lh_memory_view_t *other
  * @param other Destination view.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_view_dup_v(const lh_memory_view_t *self, lh_memory_view_t *other);
+lh_void
+lh_memory_view_dup_v(const lh_memory_view_t *self, lh_memory_view_t *other);
 
 /**
  * @brief Clone @p self and validate the produced value as in ::lh_memory_view_dup_v.
@@ -204,7 +220,8 @@ lh_void lh_memory_view_dup_v(const lh_memory_view_t *self, lh_memory_view_t *oth
  * @return Cloned valid view.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_view_t lh_memory_view_clone_v(const lh_memory_view_t *self);
+lh_memory_view_t
+lh_memory_view_clone_v(const lh_memory_view_t *self);
 
 /* ── classification ───────────────────────────────────────────────────────── */
 
@@ -214,42 +231,48 @@ lh_memory_view_t lh_memory_view_clone_v(const lh_memory_view_t *self);
  * @return Bit pattern describing null endpoints and ordering when both are non-null.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_range_state_t lh_memory_view_get_state(const lh_memory_view_t *self);
+lh_memory_range_state_t
+lh_memory_view_get_state(const lh_memory_view_t *self);
 
 /**
  * @brief True iff state is ::lh_memory_view_state_uninitialized (both endpoints null).
  * @param self View to inspect.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_view_is_uninitialized(const lh_memory_view_t *self);
+lh_bool_t
+lh_memory_view_is_uninitialized(const lh_memory_view_t *self);
 
 /**
  * @brief True iff both endpoints are non-null and @c first &lt; @c second.
  * @param self View to inspect.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_view_has_data(const lh_memory_view_t *self);
+lh_bool_t
+lh_memory_view_has_data(const lh_memory_view_t *self);
 
 /**
  * @brief True iff both endpoints are non-null and equal (degenerate span).
  * @param self View to inspect.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_view_is_empty(const lh_memory_view_t *self);
+lh_bool_t
+lh_memory_view_is_empty(const lh_memory_view_t *self);
 
 /**
  * @brief True iff the view is ::lh_memory_view_is_empty or ::lh_memory_view_has_data.
  * @param self View to inspect.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_view_is_valid(const lh_memory_view_t *self);
+lh_bool_t
+lh_memory_view_is_valid(const lh_memory_view_t *self);
 
 /**
  * @brief Logical negation of ::lh_memory_view_is_valid.
  * @param self View to inspect.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_view_is_invalid(const lh_memory_view_t *self);
+lh_bool_t
+lh_memory_view_is_invalid(const lh_memory_view_t *self);
 
 /* ── validated access, size, geometry ─────────────────────────────────────── */
 
@@ -260,7 +283,8 @@ lh_bool_t lh_memory_view_is_invalid(const lh_memory_view_t *self);
  * @param end   Output for @c second.
  */
 LH_ATTRIBUTE_SYMBOL
-void lh_memory_view_unpack_v(const lh_memory_view_t *self, const lh_ptr *begin, const lh_ptr *end);
+void
+lh_memory_view_unpack_v(const lh_memory_view_t *self, const lh_ptr *begin, const lh_ptr *end);
 
 /**
  * @brief Raw byte difference @c second @c - @c first (no validity check).
@@ -268,14 +292,16 @@ void lh_memory_view_unpack_v(const lh_memory_view_t *self, const lh_ptr *begin, 
  * @return Signed address difference; may be negative for reversed bounds.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_saddr_t lh_memory_view_diff(const lh_memory_view_t *self);
+lh_saddr_t
+lh_memory_view_diff(const lh_memory_view_t *self);
 
 /**
  * @brief Span length in bytes (::lh_memory_view_diff cast to ::lh_usize_t).
  * @param self Valid view to read.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_usize_t lh_memory_view_get_size(const lh_memory_view_t *self);
+lh_usize_t
+lh_memory_view_get_size(const lh_memory_view_t *self);
 
 /**
  * @brief True iff @c first is aligned to @p align.
@@ -286,7 +312,8 @@ lh_usize_t lh_memory_view_get_size(const lh_memory_view_t *self);
  * @param align Required alignment in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_view_is_begin_aligned(const lh_memory_view_t *self, lh_usize_t align);
+lh_bool_t
+lh_memory_view_is_begin_aligned(const lh_memory_view_t *self, lh_usize_t align);
 
 /**
  * @brief True iff both @c first and @c second satisfy alignment @p align.
@@ -297,7 +324,8 @@ lh_bool_t lh_memory_view_is_begin_aligned(const lh_memory_view_t *self, lh_usize
  * @param align Required alignment in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_view_is_aligned(const lh_memory_view_t *self, lh_usize_t align);
+lh_bool_t
+lh_memory_view_is_aligned(const lh_memory_view_t *self, lh_usize_t align);
 
 /**
  * @brief True iff ::lh_memory_view_get_size(@p self) is a multiple of @p multiple.
@@ -305,7 +333,8 @@ lh_bool_t lh_memory_view_is_aligned(const lh_memory_view_t *self, lh_usize_t ali
  * @param multiple Divisor to test (library convention for @p multiple applies).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_view_is_multiple_of(const lh_memory_view_t *self, lh_usize_t multiple);
+lh_bool_t
+lh_memory_view_is_multiple_of(const lh_memory_view_t *self, lh_usize_t multiple);
 
 /**
  * @brief Half-open containment: @p ptr satisfies @c first @c &lt;= @p ptr @c &lt; @c second.
@@ -313,7 +342,8 @@ lh_bool_t lh_memory_view_is_multiple_of(const lh_memory_view_t *self, lh_usize_t
  * @param ptr  Address to test.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_view_contains_ptr(const lh_memory_view_t *self, const lh_ptr ptr);
+lh_bool_t
+lh_memory_view_contains_ptr(const lh_memory_view_t *self, const lh_ptr ptr);
 
 /**
  * @brief Half-open containment: <tt>[begin, end)</tt> lies inside @p self.
@@ -322,8 +352,8 @@ lh_bool_t lh_memory_view_contains_ptr(const lh_memory_view_t *self, const lh_ptr
  * @param end   Inner half-open end (exclusive).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_view_contains_range(const lh_memory_view_t *self, const lh_ptr begin,
-                                        const lh_ptr end);
+lh_bool_t
+lh_memory_view_contains_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
  * @brief Same as ::lh_memory_view_contains_range after unpacking @p other.
@@ -331,7 +361,8 @@ lh_bool_t lh_memory_view_contains_range(const lh_memory_view_t *self, const lh_p
  * @param other View whose endpoints are tested (unpacked without extra validity check).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_view_contains(const lh_memory_view_t *self, const lh_memory_view_t *other);
+lh_bool_t
+lh_memory_view_contains(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
  * @brief True iff @p self has endpoints equal to @p begin / @p end.
@@ -340,8 +371,8 @@ lh_bool_t lh_memory_view_contains(const lh_memory_view_t *self, const lh_memory_
  * @param end   Expected end pointer.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_view_equals_range(const lh_memory_view_t *self, const lh_ptr begin,
-                                      const lh_ptr end);
+lh_bool_t
+lh_memory_view_equals_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
  * @brief True iff @p self and @p other have identical stored endpoints.
@@ -352,7 +383,8 @@ lh_bool_t lh_memory_view_equals_range(const lh_memory_view_t *self, const lh_ptr
  * @param other Second view.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_view_equals(const lh_memory_view_t *self, const lh_memory_view_t *other);
+lh_bool_t
+lh_memory_view_equals(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
  * @brief Half-open overlap between @p self and <tt>[begin, end)</tt>.
@@ -361,8 +393,8 @@ lh_bool_t lh_memory_view_equals(const lh_memory_view_t *self, const lh_memory_vi
  * @param end   Second half-open end (exclusive).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_view_overlaps_range(const lh_memory_view_t *self, const lh_ptr begin,
-                                        const lh_ptr end);
+lh_bool_t
+lh_memory_view_overlaps_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
  * @brief Same as ::lh_memory_view_overlaps_range after unpacking @p other.
@@ -370,7 +402,8 @@ lh_bool_t lh_memory_view_overlaps_range(const lh_memory_view_t *self, const lh_p
  * @param other Second view (unpacked without extra validity check on @p other).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_view_overlaps(const lh_memory_view_t *self, const lh_memory_view_t *other);
+lh_bool_t
+lh_memory_view_overlaps(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /* ── indexing ─────────────────────────────────────────────────────────────── */
 
@@ -380,7 +413,8 @@ lh_bool_t lh_memory_view_overlaps(const lh_memory_view_t *self, const lh_memory_
  * @param offset Zero-based byte offset from the start of the span.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_view_is_valid_offset(const lh_memory_view_t *self, lh_uoffset_t offset);
+lh_bool_t
+lh_memory_view_is_valid_offset(const lh_memory_view_t *self, lh_uoffset_t offset);
 
 /**
  * @brief Address @c first + @p offset (requires ::lh_memory_view_is_valid_offset).
@@ -389,7 +423,8 @@ lh_bool_t lh_memory_view_is_valid_offset(const lh_memory_view_t *self, lh_uoffse
  * @return Pointer into the span.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_view_get_ptr_from_front(const lh_memory_view_t *self, lh_uoffset_t offset);
+const lh_ptr
+lh_memory_view_get_ptr_from_front(const lh_memory_view_t *self, lh_uoffset_t offset);
 
 /**
  * @brief Address of the element @p offset from the last byte (toward @c first).
@@ -398,7 +433,8 @@ const lh_ptr lh_memory_view_get_ptr_from_front(const lh_memory_view_t *self, lh_
  * @return Pointer into the span.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_view_get_ptr_from_back(const lh_memory_view_t *self, lh_uoffset_t offset);
+const lh_ptr
+lh_memory_view_get_ptr_from_back(const lh_memory_view_t *self, lh_uoffset_t offset);
 
 /**
  * @brief Dispatch to ::lh_memory_view_get_ptr_from_front or ::lh_memory_view_get_ptr_from_back.
@@ -408,8 +444,8 @@ const lh_ptr lh_memory_view_get_ptr_from_back(const lh_memory_view_t *self, lh_u
  * @return Pointer into the span.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_view_get_ptr(const lh_memory_view_t *self, lh_uoffset_t offset,
-                                    lh_bool_t from_back);
+const lh_ptr
+lh_memory_view_get_ptr(const lh_memory_view_t *self, lh_uoffset_t offset, lh_bool_t from_back);
 
 /**
  * @brief Byte value at @p offset from the front (requires valid offset).
@@ -418,7 +454,8 @@ const lh_ptr lh_memory_view_get_ptr(const lh_memory_view_t *self, lh_uoffset_t o
  * @return Byte stored at the resolved address.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_byte_t lh_memory_view_get_value_from_front(const lh_memory_view_t *self, lh_uoffset_t offset);
+lh_byte_t
+lh_memory_view_get_value_from_front(const lh_memory_view_t *self, lh_uoffset_t offset);
 
 /**
  * @brief Byte value at @p offset from the back (requires valid offset).
@@ -427,7 +464,8 @@ lh_byte_t lh_memory_view_get_value_from_front(const lh_memory_view_t *self, lh_u
  * @return Byte stored at the resolved address.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_byte_t lh_memory_view_get_value_from_back(const lh_memory_view_t *self, lh_uoffset_t offset);
+lh_byte_t
+lh_memory_view_get_value_from_back(const lh_memory_view_t *self, lh_uoffset_t offset);
 
 /**
  * @brief Dispatch to ::lh_memory_view_get_value_from_front or ::lh_memory_view_get_value_from_back.
@@ -437,8 +475,8 @@ lh_byte_t lh_memory_view_get_value_from_back(const lh_memory_view_t *self, lh_uo
  * @return Byte stored at the resolved address.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_byte_t lh_memory_view_get_value(const lh_memory_view_t *self, lh_uoffset_t offset,
-                                   lh_bool_t from_back);
+lh_byte_t
+lh_memory_view_get_value(const lh_memory_view_t *self, lh_uoffset_t offset, lh_bool_t from_back);
 
 /**
  * @brief True iff @p self can produce a valid slice for (@p offset, @p size).
@@ -451,8 +489,8 @@ lh_byte_t lh_memory_view_get_value(const lh_memory_view_t *self, lh_uoffset_t of
  * @param size   Slice size in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_view_is_sliceable(const lh_memory_view_t *self, lh_uoffset_t offset,
-                                      lh_uoffset_t size);
+lh_bool_t
+lh_memory_view_is_sliceable(const lh_memory_view_t *self, lh_uoffset_t offset, lh_uoffset_t size);
 
 /**
  * @brief Return a validated half-open subview <tt>[offset, offset + size)</tt> of @p self.
@@ -466,8 +504,8 @@ lh_bool_t lh_memory_view_is_sliceable(const lh_memory_view_t *self, lh_uoffset_t
  * @return Constructed valid subview.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_view_t lh_memory_view_slice(const lh_memory_view_t *self, lh_uoffset_t offset,
-                                      lh_uoffset_t size);
+lh_memory_view_t
+lh_memory_view_slice(const lh_memory_view_t *self, lh_uoffset_t offset, lh_uoffset_t size);
 
 /**
  * @brief Like ::lh_memory_view_slice, but returns empty view on any failure.
@@ -481,36 +519,40 @@ lh_memory_view_t lh_memory_view_slice(const lh_memory_view_t *self, lh_uoffset_t
  * @return Constructed subview or empty view on failure.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_view_t lh_memory_view_slice_or_empty(const lh_memory_view_t *self, lh_uoffset_t offset,
-                                               lh_uoffset_t size);
+lh_memory_view_t
+lh_memory_view_slice_or_empty(const lh_memory_view_t *self, lh_uoffset_t offset, lh_uoffset_t size);
 
 /**
  * @brief Same as ::lh_memory_view_get_ptr(@p self, 0, ::lh_bool_false).
  * @param self Valid view.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_view_get_front_ptr(const lh_memory_view_t *self);
+const lh_ptr
+lh_memory_view_get_front_ptr(const lh_memory_view_t *self);
 
 /**
  * @brief Byte stored at ::lh_memory_view_get_front_ptr(@p self).
  * @param self Valid view.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_byte_t lh_memory_view_get_front_value(const lh_memory_view_t *self);
+lh_byte_t
+lh_memory_view_get_front_value(const lh_memory_view_t *self);
 
 /**
  * @brief Same as ::lh_memory_view_get_ptr(@p self, 0, ::lh_bool_true).
  * @param self Valid non-empty view.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_view_get_back_ptr(const lh_memory_view_t *self);
+const lh_ptr
+lh_memory_view_get_back_ptr(const lh_memory_view_t *self);
 
 /**
  * @brief Byte stored at ::lh_memory_view_get_back_ptr(@p self).
  * @param self Valid non-empty view.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_byte_t lh_memory_view_get_back_value(const lh_memory_view_t *self);
+lh_byte_t
+lh_memory_view_get_back_value(const lh_memory_view_t *self);
 
 /**
  * @brief Return next pointer after @p ptr within @p self, or ::lh_null if no next element.
@@ -523,7 +565,8 @@ lh_byte_t lh_memory_view_get_back_value(const lh_memory_view_t *self);
  * @return Next pointer in view, or ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_view_next_ptr(const lh_memory_view_t *self, const lh_ptr ptr);
+const lh_ptr
+lh_memory_view_next_ptr(const lh_memory_view_t *self, const lh_ptr ptr);
 
 /**
  * @brief Return previous pointer before @p ptr within @p self, or ::lh_null if no previous element.
@@ -536,7 +579,8 @@ const lh_ptr lh_memory_view_next_ptr(const lh_memory_view_t *self, const lh_ptr 
  * @return Previous pointer in view, or ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_view_prev_ptr(const lh_memory_view_t *self, const lh_ptr ptr);
+const lh_ptr
+lh_memory_view_prev_ptr(const lh_memory_view_t *self, const lh_ptr ptr);
 
 /**
  * @brief Return value at next pointer after @p ptr within @p self.
@@ -549,7 +593,8 @@ const lh_ptr lh_memory_view_prev_ptr(const lh_memory_view_t *self, const lh_ptr 
  * @return Byte value at next position.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_byte_t lh_memory_view_next_value(const lh_memory_view_t *self, const lh_ptr ptr);
+lh_byte_t
+lh_memory_view_next_value(const lh_memory_view_t *self, const lh_ptr ptr);
 
 /**
  * @brief Return value at previous pointer before @p ptr within @p self.
@@ -562,7 +607,8 @@ lh_byte_t lh_memory_view_next_value(const lh_memory_view_t *self, const lh_ptr p
  * @return Byte value at previous position.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_byte_t lh_memory_view_prev_value(const lh_memory_view_t *self, const lh_ptr ptr);
+lh_byte_t
+lh_memory_view_prev_value(const lh_memory_view_t *self, const lh_ptr ptr);
 
 /* ── raw byte search / compare (read-only) ───────────────────────────────── */
 
@@ -579,8 +625,8 @@ lh_byte_t lh_memory_view_prev_value(const lh_memory_view_t *self, const lh_ptr p
  * @return Start of the first match in @p self, or ::lh_null if none.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_view_find_range(const lh_memory_view_t *self, const lh_ptr begin,
-                                       const lh_ptr end);
+const lh_ptr
+lh_memory_view_find_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
  * @brief Same as ::lh_memory_view_find_range after unpacking @p other (requires valid @p other).
@@ -590,7 +636,8 @@ const lh_ptr lh_memory_view_find_range(const lh_memory_view_t *self, const lh_pt
  * @return Start of the first match in @p self, or ::lh_null if none.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_view_find(const lh_memory_view_t *self, const lh_memory_view_t *other);
+const lh_ptr
+lh_memory_view_find(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
  * @brief Find the rightmost occurrence of <tt>[begin, end)</tt> in @p self (see
@@ -605,8 +652,8 @@ const lh_ptr lh_memory_view_find(const lh_memory_view_t *self, const lh_memory_v
  * @return Start of the last match in @p self, or ::lh_null if none.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_view_rfind_range(const lh_memory_view_t *self, const lh_ptr begin,
-                                        const lh_ptr end);
+const lh_ptr
+lh_memory_view_rfind_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
  * @brief Same as ::lh_memory_view_rfind_range after unpacking @p other (requires valid @p other).
@@ -616,7 +663,8 @@ const lh_ptr lh_memory_view_rfind_range(const lh_memory_view_t *self, const lh_p
  * @return Start of the last match in @p self, or ::lh_null if none.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_view_rfind(const lh_memory_view_t *self, const lh_memory_view_t *other);
+const lh_ptr
+lh_memory_view_rfind(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
  * @brief Compare @p self to <tt>[begin, end)</tt> forward (see ::lh_memory_raw_compare).
@@ -630,8 +678,8 @@ const lh_ptr lh_memory_view_rfind(const lh_memory_view_t *self, const lh_memory_
  * @return Pointer to the first differing byte in @p self, or ::lh_null if all compared bytes match.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_view_compare_range(const lh_memory_view_t *self, const lh_ptr begin,
-                                          const lh_ptr end);
+const lh_ptr
+lh_memory_view_compare_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
  * @brief Same as ::lh_memory_view_compare_range after unpacking @p other (requires valid @p
@@ -642,7 +690,8 @@ const lh_ptr lh_memory_view_compare_range(const lh_memory_view_t *self, const lh
  * @return Pointer to the first differing byte in @p self, or ::lh_null if all compared bytes match.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_view_compare(const lh_memory_view_t *self, const lh_memory_view_t *other);
+const lh_ptr
+lh_memory_view_compare(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
  * @brief Compare suffixes of @p self and <tt>[begin, end)</tt> from the ends inward (see
@@ -658,8 +707,8 @@ const lh_ptr lh_memory_view_compare(const lh_memory_view_t *self, const lh_memor
  * equal.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_view_rcompare_range(const lh_memory_view_t *self, const lh_ptr begin,
-                                           const lh_ptr end);
+const lh_ptr
+lh_memory_view_rcompare_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
  * @brief Same as ::lh_memory_view_rcompare_range after unpacking @p other (requires valid @p
@@ -671,7 +720,8 @@ const lh_ptr lh_memory_view_rcompare_range(const lh_memory_view_t *self, const l
  * equal.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_view_rcompare(const lh_memory_view_t *self, const lh_memory_view_t *other);
+const lh_ptr
+lh_memory_view_rcompare(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /* ── bounds validation / convenience ───────────────────────────────────────── */
 
@@ -681,7 +731,8 @@ const lh_ptr lh_memory_view_rcompare(const lh_memory_view_t *self, const lh_memo
  * @param other Source (must be valid).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_view_assign_v(lh_memory_view_t *self, const lh_memory_view_t *other);
+lh_void
+lh_memory_view_assign_v(lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
  * @brief Build a temporary view from @p begin / @p end and ::lh_memory_view_assign_v.
@@ -693,7 +744,8 @@ lh_void lh_memory_view_assign_v(lh_memory_view_t *self, const lh_memory_view_t *
  * @param end   New @c second.
  */
 LH_ATTRIBUTE_SYMBOL
-void lh_memory_view_init_v(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
+void
+lh_memory_view_init_v(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
  * @brief Like ::lh_memory_view_init_by_size, but on failure clears @p self.
@@ -702,8 +754,8 @@ void lh_memory_view_init_v(lh_memory_view_t *self, const lh_ptr begin, const lh_
  * @param size  Length in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_view_init_by_size_or_clear(lh_memory_view_t *self, const lh_ptr begin,
-                                             lh_usize_t size);
+lh_void
+lh_memory_view_init_by_size_or_clear(lh_memory_view_t *self, const lh_ptr begin, lh_usize_t size);
 
 /**
  * @brief Build a view from @p begin / @p end and return it by value (no validation).
@@ -713,7 +765,8 @@ lh_void lh_memory_view_init_by_size_or_clear(lh_memory_view_t *self, const lh_pt
  * @return Constructed view (may be invalid; see ::lh_memory_view_is_valid).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_view_t lh_memory_view_make(const lh_ptr begin, const lh_ptr end);
+lh_memory_view_t
+lh_memory_view_make(const lh_ptr begin, const lh_ptr end);
 
 /**
  * @brief Return ::lh_memory_view_empty_initializer by value.
@@ -734,7 +787,8 @@ lh_memory_view_t lh_memory_view_make_by_empty(lh_void);
  * @return Constructed view.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_view_t lh_memory_view_make_by_size(const lh_ptr begin, lh_usize_t size);
+lh_memory_view_t
+lh_memory_view_make_by_size(const lh_ptr begin, lh_usize_t size);
 
 /**
  * @brief Build and validate a view from @p begin / @p end, then return it by value.
@@ -746,7 +800,8 @@ lh_memory_view_t lh_memory_view_make_by_size(const lh_ptr begin, lh_usize_t size
  * @return Constructed valid view.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_view_t lh_memory_view_make_v(const lh_ptr begin, const lh_ptr end);
+lh_memory_view_t
+lh_memory_view_make_v(const lh_ptr begin, const lh_ptr end);
 
 /**
  * @brief Like ::lh_memory_view_make_v, but returns empty view on failure.
@@ -756,7 +811,8 @@ lh_memory_view_t lh_memory_view_make_v(const lh_ptr begin, const lh_ptr end);
  * @return Constructed valid view or empty view on failure.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_view_t lh_memory_view_make_or_empty(const lh_ptr begin, const lh_ptr end);
+lh_memory_view_t
+lh_memory_view_make_or_empty(const lh_ptr begin, const lh_ptr end);
 
 LH_COMPILER_EXTERN_C_END
 

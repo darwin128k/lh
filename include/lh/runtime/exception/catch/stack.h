@@ -75,7 +75,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return The ::lh_exception_catch_t stored at the current slot,
  *         or null if the slot is empty.
  */
-lh_exception_catch_t *lh_runtime_exception_catch_stack_get_current(void);
+lh_exception_catch_t *
+lh_runtime_exception_catch_stack_get_current(void);
 
 /**
  * @brief Tests whether the cursor is at the bottom of the stack.
@@ -86,7 +87,8 @@ lh_exception_catch_t *lh_runtime_exception_catch_stack_get_current(void);
  * @retval lh_bool_true Cursor is at the first slot (initial / fully unwound position).
  * @retval lh_bool_false There is at least one populated slot below the cursor.
  */
-lh_bool_t lh_runtime_exception_catch_stack_is_begin(void);
+lh_bool_t
+lh_runtime_exception_catch_stack_is_begin(void);
 
 /**
  * @brief Tests whether the cursor is past the last usable slot (stack full).
@@ -100,7 +102,8 @@ lh_bool_t lh_runtime_exception_catch_stack_is_begin(void);
  * @retval lh_bool_false A new frame can still be registered with
  *                      ::lh_runtime_exception_catch_stack_push.
  */
-lh_bool_t lh_runtime_exception_catch_stack_is_end(void);
+lh_bool_t
+lh_runtime_exception_catch_stack_is_end(void);
 
 /**
  * @brief Advance the cursor to the next slot.
@@ -108,7 +111,8 @@ lh_bool_t lh_runtime_exception_catch_stack_is_end(void);
  * @return Pointer stored in the slot after advancing,
  *         or null if the cursor was already at the end.
  */
-lh_exception_catch_t *lh_runtime_exception_catch_stack_next(void);
+lh_exception_catch_t *
+lh_runtime_exception_catch_stack_next(void);
 
 /**
  * @brief Move the cursor to the previous slot.
@@ -116,7 +120,8 @@ lh_exception_catch_t *lh_runtime_exception_catch_stack_next(void);
  * @return Pointer stored at the new cursor,
  *         or null if the cursor was already at the beginning.
  */
-lh_exception_catch_t *lh_runtime_exception_catch_stack_prev(void);
+lh_exception_catch_t *
+lh_runtime_exception_catch_stack_prev(void);
 
 /**
  * @brief Store catch frame @p e at the current slot,
@@ -130,7 +135,8 @@ lh_exception_catch_t *lh_runtime_exception_catch_stack_prev(void);
  * @return @p e on success, or null if the stack was already full
  *         (::lh_runtime_exception_catch_stack_is_end()).
  */
-lh_exception_catch_t *lh_runtime_exception_catch_stack_push(lh_exception_catch_t *e);
+lh_exception_catch_t *
+lh_runtime_exception_catch_stack_push(lh_exception_catch_t *e);
 
 /**
  * @brief Throw @p exception to the previous registered catch frame.
@@ -148,7 +154,8 @@ lh_exception_catch_t *lh_runtime_exception_catch_stack_push(lh_exception_catch_t
  */
 LH_ATTRIBUTE_BUILTIN
 LH_ATTRIBUTE_NORETURN
-void lh_runtime_exception_catch_stack_throw(const lh_exception_t *exception) {
+void
+lh_runtime_exception_catch_stack_throw(const lh_exception_t *exception) {
     lh_exception_catch_t *prev = lh_runtime_exception_catch_stack_prev();
     if (prev) {
         prev->exception = *exception;
@@ -170,7 +177,8 @@ void lh_runtime_exception_catch_stack_throw(const lh_exception_t *exception) {
  */
 LH_ATTRIBUTE_BUILTIN
 LH_ATTRIBUTE_NORETURN
-void lh_runtime_exception_catch_stack_rethrow(void) {
+void
+lh_runtime_exception_catch_stack_rethrow(void) {
     const lh_exception_catch_t *cur = lh_runtime_exception_catch_stack_get_current();
     lh_runtime_exception_catch_stack_throw(&cur->exception);
 }

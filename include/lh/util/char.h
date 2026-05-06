@@ -33,7 +33,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @see lh_wchar_fold_case
  */
 LH_ATTRIBUTE_SYMBOL
-lh_char_t lh_char_fold_case(lh_char_t c);
+lh_char_t
+lh_char_fold_case(lh_char_t c);
 
 LH_COMPILER_EXTERN_C_END
 

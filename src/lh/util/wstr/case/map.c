@@ -2965,7 +2965,8 @@ static const lh_wchar_case_pair_t m_wchar_to_upper_table[] = {
 };
 static const lh_usize_t m_wchar_to_upper_table_size = lh_array_raw_size(m_wchar_to_upper_table);
 
-lh_wstr_ptr lh_wstr_raw_to_lower(lh_wstr_ptr str, lh_usize_t n) {
+lh_wstr_ptr
+lh_wstr_raw_to_lower(lh_wstr_ptr str, lh_usize_t n) {
     lh_runtime_check_ref(str);
     lh_wstr_ptr p = str;
 
@@ -2984,7 +2985,8 @@ lh_wstr_ptr lh_wstr_raw_to_lower(lh_wstr_ptr str, lh_usize_t n) {
     return p;
 }
 
-lh_wstr_ptr lh_wstr_raw_to_upper(lh_wstr_ptr str, lh_usize_t n) {
+lh_wstr_ptr
+lh_wstr_raw_to_upper(lh_wstr_ptr str, lh_usize_t n) {
     lh_runtime_check_ref(str);
     lh_wstr_ptr p = str;
 

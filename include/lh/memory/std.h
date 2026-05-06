@@ -37,7 +37,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @endcode
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n);
+lh_ptr
+lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n);
 
 /**
  * @brief Copy @p n bytes from @p src to @p dst while reversing byte order in the destination range.
@@ -60,7 +61,8 @@ lh_ptr lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n);
  * @endcode
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n);
+lh_ptr
+lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n);
 
 /**
  * @brief Copy @p n bytes from @p src to @p dst in reverse (high-to-low address) order.
@@ -82,7 +84,8 @@ lh_ptr lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n);
  * @endcode
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n);
+lh_ptr
+lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n);
 
 /**
  * @brief Move @p n bytes from @p src to @p dst, correctly handling overlapping ranges.
@@ -104,7 +107,8 @@ lh_ptr lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n);
  * @endcode
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n);
+lh_ptr
+lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n);
 
 /**
  * @brief Set each of @p n bytes starting at @p dst to @p val.
@@ -123,7 +127,8 @@ lh_ptr lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n);
  * @endcode
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n);
+lh_ptr
+lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n);
 
 /**
  * @brief Compare @p n bytes at @p lhs and @p rhs from the start toward higher addresses.
@@ -144,7 +149,8 @@ lh_ptr lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n);
  * @endcode
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_std_compare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
+const lh_ptr
+lh_memory_std_compare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
 
 /**
  * @brief Compare @p n bytes at @p lhs and @p rhs from the end toward lower addresses.
@@ -165,7 +171,8 @@ const lh_ptr lh_memory_std_compare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_
  * @endcode
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_std_rcompare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
+const lh_ptr
+lh_memory_std_rcompare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
 
 LH_COMPILER_EXTERN_C_END
 

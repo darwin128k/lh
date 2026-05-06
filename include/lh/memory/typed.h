@@ -53,7 +53,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return Pointer to the @c range field.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_range_t *lh_memory_typed_get_range(lh_memory_typed_t *self);
+lh_memory_range_t *
+lh_memory_typed_get_range(lh_memory_typed_t *self);
 
 /**
  * @brief Return const pointer to the underlying byte range.
@@ -62,7 +63,8 @@ lh_memory_range_t *lh_memory_typed_get_range(lh_memory_typed_t *self);
  * @return Const pointer to the @c range field.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_memory_range_t *lh_memory_typed_get_crange(const lh_memory_typed_t *self);
+const lh_memory_range_t *
+lh_memory_typed_get_crange(const lh_memory_typed_t *self);
 
 /**
  * @brief Return size of one element in bytes.
@@ -71,7 +73,8 @@ const lh_memory_range_t *lh_memory_typed_get_crange(const lh_memory_typed_t *sel
  * @return Value stored in @c type_size.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_usize_t lh_memory_typed_get_type_size(const lh_memory_typed_t *self);
+lh_usize_t
+lh_memory_typed_get_type_size(const lh_memory_typed_t *self);
 
 /**
  * @brief Pack range and type size into the typed span.
@@ -82,8 +85,9 @@ lh_usize_t lh_memory_typed_get_type_size(const lh_memory_typed_t *self);
  * @param type_size Optional pointer to element size in bytes. If NULL, type_size is unchanged.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_typed_pack(lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
-                             const lh_usize_t *type_size);
+lh_void
+lh_memory_typed_pack(lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
+                     const lh_usize_t *type_size);
 
 /**
  * @brief Pack typed span fields from a range object plus optional type size.
@@ -93,8 +97,9 @@ lh_void lh_memory_typed_pack(lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end
  * @param type_size Optional new element size in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_typed_pack_from_range(lh_memory_typed_t *self, lh_memory_range_t *range,
-                                        const lh_usize_t *type_size);
+lh_void
+lh_memory_typed_pack_from_range(lh_memory_typed_t *self, lh_memory_range_t *range,
+                                const lh_usize_t *type_size);
 
 /**
  * @brief Validated variant of ::lh_memory_typed_pack.
@@ -108,8 +113,9 @@ lh_void lh_memory_typed_pack_from_range(lh_memory_typed_t *self, lh_memory_range
  * @param type_size Optional new element size in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_typed_pack_v(lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
-                               const lh_usize_t *type_size);
+lh_void
+lh_memory_typed_pack_v(lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
+                       const lh_usize_t *type_size);
 
 /**
  * @brief Unpack range and type size from the typed span.
@@ -120,8 +126,9 @@ lh_void lh_memory_typed_pack_v(lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *e
  * @param type_size Optional pointer to receive element size in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_typed_unpack(const lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
-                               lh_usize_t *type_size);
+lh_void
+lh_memory_typed_unpack(const lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
+                       lh_usize_t *type_size);
 
 /**
  * @brief Validated variant of ::lh_memory_typed_unpack.
@@ -132,8 +139,9 @@ lh_void lh_memory_typed_unpack(const lh_memory_typed_t *self, lh_ptr *begin, lh_
  * @param type_size Optional pointer to receive element size in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_typed_unpack_v(const lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
-                                 lh_usize_t *type_size);
+lh_void
+lh_memory_typed_unpack_v(const lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
+                         lh_usize_t *type_size);
 
 /**
  * @brief Unpack into a range object plus optional type size output.
@@ -143,8 +151,9 @@ lh_void lh_memory_typed_unpack_v(const lh_memory_typed_t *self, lh_ptr *begin, l
  * @param type_size Optional pointer to receive element size in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_typed_unpack_to_range(const lh_memory_typed_t *self, lh_memory_range_t *range,
-                                        lh_usize_t *type_size);
+lh_void
+lh_memory_typed_unpack_to_range(const lh_memory_typed_t *self, lh_memory_range_t *range,
+                                lh_usize_t *type_size);
 
 /* ── set / init / assign ──────────────────────────────────────────────────── */
 
@@ -157,8 +166,8 @@ lh_void lh_memory_typed_unpack_to_range(const lh_memory_typed_t *self, lh_memory
  * @param type_size Element size in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_typed_set(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end,
-                            lh_usize_t type_size);
+lh_void
+lh_memory_typed_set(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size);
 
 /**
  * @brief Initialize typed span with range and type size.
@@ -169,8 +178,8 @@ lh_void lh_memory_typed_set(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end,
  * @param type_size Element size in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_typed_init(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end,
-                             lh_usize_t type_size);
+lh_void
+lh_memory_typed_init(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size);
 
 /**
  * @brief Assign contents of one typed span to another.
@@ -179,7 +188,8 @@ lh_void lh_memory_typed_init(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end,
  * @param other Typed span to copy from.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_typed_assign(lh_memory_typed_t *self, const lh_memory_typed_t *other);
+lh_void
+lh_memory_typed_assign(lh_memory_typed_t *self, const lh_memory_typed_t *other);
 
 /**
  * @brief Set range and type size using begin pointer and size.
@@ -190,8 +200,9 @@ lh_void lh_memory_typed_assign(lh_memory_typed_t *self, const lh_memory_typed_t 
  * @param type_size Element size in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_typed_set_by_size(lh_memory_typed_t *self, lh_ptr begin, lh_usize_t size,
-                                    lh_usize_t type_size);
+lh_void
+lh_memory_typed_set_by_size(lh_memory_typed_t *self, lh_ptr begin, lh_usize_t size,
+                            lh_usize_t type_size);
 
 /**
  * @brief Initialize typed span using begin pointer and size.
@@ -202,8 +213,9 @@ lh_void lh_memory_typed_set_by_size(lh_memory_typed_t *self, lh_ptr begin, lh_us
  * @param type_size Element size in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_typed_init_by_size(lh_memory_typed_t *self, lh_ptr begin, lh_usize_t size,
-                                     lh_usize_t type_size);
+lh_void
+lh_memory_typed_init_by_size(lh_memory_typed_t *self, lh_ptr begin, lh_usize_t size,
+                             lh_usize_t type_size);
 
 /**
  * @brief Initialize @p self to empty range with explicit element size.
@@ -211,7 +223,8 @@ lh_void lh_memory_typed_init_by_size(lh_memory_typed_t *self, lh_ptr begin, lh_u
  * @param type_size Element size to store in the empty typed span.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_typed_init_by_empty(lh_memory_typed_t *self, lh_usize_t type_size);
+lh_void
+lh_memory_typed_init_by_empty(lh_memory_typed_t *self, lh_usize_t type_size);
 
 /* ── clone / dup ──────────────────────────────────────────────────────────── */
 
@@ -222,7 +235,8 @@ lh_void lh_memory_typed_init_by_empty(lh_memory_typed_t *self, lh_usize_t type_s
  * @return Shallow copy of @p self.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_typed_t lh_memory_typed_clone(const lh_memory_typed_t *self);
+lh_memory_typed_t
+lh_memory_typed_clone(const lh_memory_typed_t *self);
 
 /**
  * @brief Validated assignment from @p other into @p self.
@@ -231,7 +245,8 @@ lh_memory_typed_t lh_memory_typed_clone(const lh_memory_typed_t *self);
  * @param other Source typed span expected to satisfy typed validity.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_typed_assign_v(lh_memory_typed_t *self, const lh_memory_typed_t *other);
+lh_void
+lh_memory_typed_assign_v(lh_memory_typed_t *self, const lh_memory_typed_t *other);
 
 /**
  * @brief Duplicate @p self into @p other.
@@ -240,7 +255,8 @@ lh_void lh_memory_typed_assign_v(lh_memory_typed_t *self, const lh_memory_typed_
  * @param other Destination typed span.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_typed_dup(const lh_memory_typed_t *self, lh_memory_typed_t *other);
+lh_void
+lh_memory_typed_dup(const lh_memory_typed_t *self, lh_memory_typed_t *other);
 
 /**
  * @brief Validated duplicate @p self into @p other.
@@ -249,7 +265,8 @@ lh_void lh_memory_typed_dup(const lh_memory_typed_t *self, lh_memory_typed_t *ot
  * @param other Destination typed span.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_typed_dup_v(const lh_memory_typed_t *self, lh_memory_typed_t *other);
+lh_void
+lh_memory_typed_dup_v(const lh_memory_typed_t *self, lh_memory_typed_t *other);
 
 /**
  * @brief Clone typed span with validation.
@@ -258,7 +275,8 @@ lh_void lh_memory_typed_dup_v(const lh_memory_typed_t *self, lh_memory_typed_t *
  * @return Validated copy of @p self.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_typed_t lh_memory_typed_clone_v(const lh_memory_typed_t *self);
+lh_memory_typed_t
+lh_memory_typed_clone_v(const lh_memory_typed_t *self);
 
 /**
  * @brief Build typed span from explicit bounds and element size.
@@ -269,7 +287,8 @@ lh_memory_typed_t lh_memory_typed_clone_v(const lh_memory_typed_t *self);
  * @return Constructed typed span.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_typed_t lh_memory_typed_make(lh_ptr begin, lh_ptr end, lh_usize_t type_size);
+lh_memory_typed_t
+lh_memory_typed_make(lh_ptr begin, lh_ptr end, lh_usize_t type_size);
 
 /**
  * @brief Validated variant of ::lh_memory_typed_make.
@@ -280,14 +299,16 @@ lh_memory_typed_t lh_memory_typed_make(lh_ptr begin, lh_ptr end, lh_usize_t type
  * @return Constructed typed span.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_typed_t lh_memory_typed_make_v(lh_ptr begin, lh_ptr end, lh_usize_t type_size);
+lh_memory_typed_t
+lh_memory_typed_make_v(lh_ptr begin, lh_ptr end, lh_usize_t type_size);
 
 /**
  * @brief Return an empty typed span with explicit element size.
  * @return Empty typed span value.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_typed_t lh_memory_typed_make_by_empty(lh_usize_t type_size);
+lh_memory_typed_t
+lh_memory_typed_make_by_empty(lh_usize_t type_size);
 
 /**
  * @brief Build typed span from explicit bounds and element size, or empty on failure.
@@ -298,7 +319,8 @@ lh_memory_typed_t lh_memory_typed_make_by_empty(lh_usize_t type_size);
  * @return Constructed typed span or empty typed span on failure.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_typed_t lh_memory_typed_make_or_empty(lh_ptr begin, lh_ptr end, lh_usize_t type_size);
+lh_memory_typed_t
+lh_memory_typed_make_or_empty(lh_ptr begin, lh_ptr end, lh_usize_t type_size);
 
 /* ── classification / geometry ────────────────────────────────────────────── */
 
@@ -312,7 +334,8 @@ lh_memory_typed_t lh_memory_typed_make_or_empty(lh_ptr begin, lh_ptr end, lh_usi
  *       ::lh_runtime_error_code_invalid_memory_range when @p self->range is invalid.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_typed_is_valid(const lh_memory_typed_t *self);
+lh_bool_t
+lh_memory_typed_is_valid(const lh_memory_typed_t *self);
 
 /**
  * @brief Logical negation of ::lh_memory_typed_is_valid.
@@ -323,7 +346,8 @@ lh_bool_t lh_memory_typed_is_valid(const lh_memory_typed_t *self);
  * @note Inherits failure behavior of ::lh_memory_typed_is_valid for invalid ranges.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_typed_is_invalid(const lh_memory_typed_t *self);
+lh_bool_t
+lh_memory_typed_is_invalid(const lh_memory_typed_t *self);
 
 /**
  * @brief Return @c first — start of the half-open span.
@@ -332,7 +356,8 @@ lh_bool_t lh_memory_typed_is_invalid(const lh_memory_typed_t *self);
  * @return Begin pointer.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_typed_get_begin(const lh_memory_typed_t *self);
+lh_ptr
+lh_memory_typed_get_begin(const lh_memory_typed_t *self);
 
 /**
  * @brief Return @c second — one past the last byte.
@@ -341,7 +366,8 @@ lh_ptr lh_memory_typed_get_begin(const lh_memory_typed_t *self);
  * @return End pointer.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_typed_get_end(const lh_memory_typed_t *self);
+lh_ptr
+lh_memory_typed_get_end(const lh_memory_typed_t *self);
 
 /**
  * @brief Return number of elements in the typed span.
@@ -356,7 +382,8 @@ lh_ptr lh_memory_typed_get_end(const lh_memory_typed_t *self);
  * @return Number of elements.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_usize_t lh_memory_typed_get_size(const lh_memory_typed_t *self);
+lh_usize_t
+lh_memory_typed_get_size(const lh_memory_typed_t *self);
 
 /**
  * @brief True iff the typed span contains no elements.
@@ -364,7 +391,8 @@ lh_usize_t lh_memory_typed_get_size(const lh_memory_typed_t *self);
  * @param self Typed span to inspect.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_typed_is_empty(const lh_memory_typed_t *self);
+lh_bool_t
+lh_memory_typed_is_empty(const lh_memory_typed_t *self);
 
 /**
  * @brief True iff @p index is a valid element offset.
@@ -373,7 +401,8 @@ lh_bool_t lh_memory_typed_is_empty(const lh_memory_typed_t *self);
  * @param index Element index to test (0-based).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_typed_is_valid_index(const lh_memory_typed_t *self, lh_usize_t index);
+lh_bool_t
+lh_memory_typed_is_valid_index(const lh_memory_typed_t *self, lh_usize_t index);
 
 /**
  * @brief True iff @p self can produce a typed slice for (@p offset, @p size).
@@ -383,8 +412,8 @@ lh_bool_t lh_memory_typed_is_valid_index(const lh_memory_typed_t *self, lh_usize
  * @param size   Slice size in elements.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_memory_typed_is_sliceable(const lh_memory_typed_t *self, lh_usize_t offset,
-                                       lh_usize_t size);
+lh_bool_t
+lh_memory_typed_is_sliceable(const lh_memory_typed_t *self, lh_usize_t offset, lh_usize_t size);
 
 /**
  * @brief Return a typed subspan covering elements <tt>[offset, offset + size)</tt>.
@@ -398,8 +427,8 @@ lh_bool_t lh_memory_typed_is_sliceable(const lh_memory_typed_t *self, lh_usize_t
  * @return Typed subspan with the same @c type_size as @p self.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_typed_t lh_memory_typed_slice(const lh_memory_typed_t *self, lh_usize_t offset,
-                                        lh_usize_t size);
+lh_memory_typed_t
+lh_memory_typed_slice(const lh_memory_typed_t *self, lh_usize_t offset, lh_usize_t size);
 
 /**
  * @brief Like ::lh_memory_typed_slice, but returns empty typed span on failure.
@@ -410,8 +439,8 @@ lh_memory_typed_t lh_memory_typed_slice(const lh_memory_typed_t *self, lh_usize_
  * @return Typed subspan or empty typed span on failure.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_typed_t lh_memory_typed_slice_or_empty(const lh_memory_typed_t *self, lh_usize_t offset,
-                                                 lh_usize_t size);
+lh_memory_typed_t
+lh_memory_typed_slice_or_empty(const lh_memory_typed_t *self, lh_usize_t offset, lh_usize_t size);
 
 /* ── element access ───────────────────────────────────────────────────────── */
 
@@ -423,7 +452,8 @@ lh_memory_typed_t lh_memory_typed_slice_or_empty(const lh_memory_typed_t *self, 
  * @return Pointer to the element.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_typed_get_ptr_from_front(const lh_memory_typed_t *self, lh_usize_t index);
+lh_ptr
+lh_memory_typed_get_ptr_from_front(const lh_memory_typed_t *self, lh_usize_t index);
 
 /**
  * @brief Address of element @p index from the back.
@@ -433,7 +463,8 @@ lh_ptr lh_memory_typed_get_ptr_from_front(const lh_memory_typed_t *self, lh_usiz
  * @return Pointer to the element.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_typed_get_ptr_from_back(const lh_memory_typed_t *self, lh_usize_t index);
+lh_ptr
+lh_memory_typed_get_ptr_from_back(const lh_memory_typed_t *self, lh_usize_t index);
 
 /**
  * @brief Dispatch to front or back pointer access.
@@ -444,8 +475,8 @@ lh_ptr lh_memory_typed_get_ptr_from_back(const lh_memory_typed_t *self, lh_usize
  * @return Pointer to the element.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_typed_get_ptr(const lh_memory_typed_t *self, lh_usize_t index,
-                               lh_bool_t from_back);
+lh_ptr
+lh_memory_typed_get_ptr(const lh_memory_typed_t *self, lh_usize_t index, lh_bool_t from_back);
 
 /**
  * @brief First byte of element @p index from the front.
@@ -455,7 +486,8 @@ lh_ptr lh_memory_typed_get_ptr(const lh_memory_typed_t *self, lh_usize_t index,
  * @return First byte located at the element address.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_byte_t lh_memory_typed_get_value_from_front(const lh_memory_typed_t *self, lh_usize_t index);
+lh_byte_t
+lh_memory_typed_get_value_from_front(const lh_memory_typed_t *self, lh_usize_t index);
 
 /**
  * @brief First byte of element @p index from the back.
@@ -465,7 +497,8 @@ lh_byte_t lh_memory_typed_get_value_from_front(const lh_memory_typed_t *self, lh
  * @return First byte located at the element address.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_byte_t lh_memory_typed_get_value_from_back(const lh_memory_typed_t *self, lh_usize_t index);
+lh_byte_t
+lh_memory_typed_get_value_from_back(const lh_memory_typed_t *self, lh_usize_t index);
 
 /**
  * @brief Dispatch to front or back first-byte access.
@@ -476,8 +509,8 @@ lh_byte_t lh_memory_typed_get_value_from_back(const lh_memory_typed_t *self, lh_
  * @return First byte located at the selected element address.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_byte_t lh_memory_typed_get_value(const lh_memory_typed_t *self, lh_usize_t index,
-                                    lh_bool_t from_back);
+lh_byte_t
+lh_memory_typed_get_value(const lh_memory_typed_t *self, lh_usize_t index, lh_bool_t from_back);
 
 /**
  * @brief Pointer to the first element.
@@ -486,7 +519,8 @@ lh_byte_t lh_memory_typed_get_value(const lh_memory_typed_t *self, lh_usize_t in
  * @return Pointer to element 0.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_typed_get_front_ptr(const lh_memory_typed_t *self);
+lh_ptr
+lh_memory_typed_get_front_ptr(const lh_memory_typed_t *self);
 
 /**
  * @brief Pointer to the last element.
@@ -495,7 +529,8 @@ lh_ptr lh_memory_typed_get_front_ptr(const lh_memory_typed_t *self);
  * @return Pointer to last element.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_typed_get_back_ptr(const lh_memory_typed_t *self);
+lh_ptr
+lh_memory_typed_get_back_ptr(const lh_memory_typed_t *self);
 
 /**
  * @brief First byte of the first element.
@@ -504,7 +539,8 @@ lh_ptr lh_memory_typed_get_back_ptr(const lh_memory_typed_t *self);
  * @return First byte at element 0.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_byte_t lh_memory_typed_get_front_value(const lh_memory_typed_t *self);
+lh_byte_t
+lh_memory_typed_get_front_value(const lh_memory_typed_t *self);
 
 /**
  * @brief First byte of the last element.
@@ -513,7 +549,8 @@ lh_byte_t lh_memory_typed_get_front_value(const lh_memory_typed_t *self);
  * @return First byte at last element.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_byte_t lh_memory_typed_get_back_value(const lh_memory_typed_t *self);
+lh_byte_t
+lh_memory_typed_get_back_value(const lh_memory_typed_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -32,7 +32,6 @@
  * @see lh_runtime_error_code_null_pointer
  * @see lh_runtime_throw_with_code
  */
-#define lh_runtime_check_ref(...)                                                                  \
-    lh_runtime_check(__VA_ARGS__, lh_runtime_error_code_null_pointer)
+#define lh_runtime_check_ref(...) lh_runtime_check(__VA_ARGS__, lh_runtime_error_code_null_pointer)
 
 #endif // LH_RUNTIME_CHECK_REF_H

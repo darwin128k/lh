@@ -36,7 +36,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  *         same as ::lh_memory_range_get_size.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_usize_t lh_memory_range_allocated_get_size(const lh_memory_range_allocated_t *self);
+lh_usize_t
+lh_memory_range_allocated_get_size(const lh_memory_range_allocated_t *self);
 
 /**
  * @brief Free the owned block and clear stored endpoints.
@@ -47,7 +48,8 @@ lh_usize_t lh_memory_range_allocated_get_size(const lh_memory_range_allocated_t 
  * @param self Range whose storage to release; may be uninitialized (no-op free).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_range_allocated_clear(lh_memory_range_allocated_t *self);
+lh_void
+lh_memory_range_allocated_clear(lh_memory_range_allocated_t *self);
 
 /**
  * @brief Release @p self’s storage, then swap bounds with @p other.
@@ -60,8 +62,9 @@ lh_void lh_memory_range_allocated_clear(lh_memory_range_allocated_t *self);
  *              (per ::lh_memory_range_swap).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_range_allocated_exchange(lh_memory_range_allocated_t *self,
-                                           lh_memory_range_allocated_t *other);
+lh_void
+lh_memory_range_allocated_exchange(lh_memory_range_allocated_t *self,
+                                   lh_memory_range_allocated_t *other);
 
 /**
  * @brief Resize the owned block in place using the runtime allocator.
@@ -74,7 +77,8 @@ lh_void lh_memory_range_allocated_exchange(lh_memory_range_allocated_t *self,
  * @param size New size in bytes.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_range_allocated_resize(lh_memory_range_allocated_t *self, lh_usize_t size);
+lh_void
+lh_memory_range_allocated_resize(lh_memory_range_allocated_t *self, lh_usize_t size);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -31,7 +31,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return Pointer one past the last byte written (i.e. @c dst + n).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_raw_copy(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, const lh_ptr src_end);
+lh_ptr
+lh_memory_raw_copy(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, const lh_ptr src_end);
 
 /**
  * @brief Copy up to @c min(dst_end - dst, src_end - src) bytes
@@ -45,8 +46,8 @@ lh_ptr lh_memory_raw_copy(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, co
  * @return Pointer one past the last byte of the destination range.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_raw_copy_rev(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src,
-                              const lh_ptr src_end);
+lh_ptr
+lh_memory_raw_copy_rev(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, const lh_ptr src_end);
 
 /**
  * @brief Copy up to @c min(dst_end - dst, src_end - src) bytes
@@ -60,8 +61,8 @@ lh_ptr lh_memory_raw_copy_rev(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src
  * @return @p dst.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_raw_rcopy(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src,
-                           const lh_ptr src_end);
+lh_ptr
+lh_memory_raw_rcopy(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, const lh_ptr src_end);
 
 /**
  * @brief Move up to @c min(dst_end - dst, src_end - src) bytes
@@ -75,7 +76,8 @@ lh_ptr lh_memory_raw_rcopy(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src,
  * @return Pointer one past the last byte written in the destination range.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_raw_move(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, const lh_ptr src_end);
+lh_ptr
+lh_memory_raw_move(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, const lh_ptr src_end);
 
 /**
  * @brief Set every byte in <code>[dst, dst_end)</code> to @p val (see ::lh_memory_set).
@@ -87,7 +89,8 @@ lh_ptr lh_memory_raw_move(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, co
  * @return Pointer one past the last byte written (i.e. @p dst_end).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_raw_set(lh_ptr dst, const lh_ptr dst_end, lh_uchar_t val);
+lh_ptr
+lh_memory_raw_set(lh_ptr dst, const lh_ptr dst_end, lh_uchar_t val);
 
 /**
  * @brief Compare the first @c min(lhs_end - lhs, rhs_end - rhs) bytes
@@ -102,8 +105,9 @@ lh_ptr lh_memory_raw_set(lh_ptr dst, const lh_ptr dst_end, lh_uchar_t val);
  *         or ::lh_null if all compared bytes match.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_raw_compare(const lh_ptr lhs, const lh_ptr lhs_end, const lh_ptr rhs,
-                                   const lh_ptr rhs_end);
+const lh_ptr
+lh_memory_raw_compare(const lh_ptr lhs, const lh_ptr lhs_end, const lh_ptr rhs,
+                      const lh_ptr rhs_end);
 
 /**
  * @brief Compare suffixes of length @c min(lhs_end - lhs, rhs_end - rhs),
@@ -118,8 +122,9 @@ const lh_ptr lh_memory_raw_compare(const lh_ptr lhs, const lh_ptr lhs_end, const
  *         or ::lh_null if equal.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_raw_rcompare(const lh_ptr lhs, const lh_ptr lhs_end, const lh_ptr rhs,
-                                    const lh_ptr rhs_end);
+const lh_ptr
+lh_memory_raw_rcompare(const lh_ptr lhs, const lh_ptr lhs_end, const lh_ptr rhs,
+                       const lh_ptr rhs_end);
 
 /**
  * @brief Find the leftmost match of <code>[rhs, rhs_end)</code> inside
@@ -133,8 +138,8 @@ const lh_ptr lh_memory_raw_rcompare(const lh_ptr lhs, const lh_ptr lhs_end, cons
  * @return Pointer to the start of the first match, or ::lh_null if none.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_raw_find(const lh_ptr lhs, const lh_ptr lhs_end, const lh_ptr rhs,
-                                const lh_ptr rhs_end);
+const lh_ptr
+lh_memory_raw_find(const lh_ptr lhs, const lh_ptr lhs_end, const lh_ptr rhs, const lh_ptr rhs_end);
 
 /**
  * @brief Find the rightmost match using the same suffix comparison rule as
@@ -148,8 +153,8 @@ const lh_ptr lh_memory_raw_find(const lh_ptr lhs, const lh_ptr lhs_end, const lh
  * @return Pointer to the start of the last matching occurrence, or ::lh_null if none.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_raw_rfind(const lh_ptr lhs, const lh_ptr lhs_end, const lh_ptr rhs,
-                                 const lh_ptr rhs_end);
+const lh_ptr
+lh_memory_raw_rfind(const lh_ptr lhs, const lh_ptr lhs_end, const lh_ptr rhs, const lh_ptr rhs_end);
 
 /**
  * @brief Fill <code>[dst, dst_end)</code> by repeating the pattern
@@ -165,8 +170,8 @@ const lh_ptr lh_memory_raw_rfind(const lh_ptr lhs, const lh_ptr lhs_end, const l
  * @return Pointer one past the last byte written, or ::lh_null when nothing is written.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_raw_set_pattern(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src,
-                                 const lh_ptr src_end);
+lh_ptr
+lh_memory_raw_set_pattern(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, const lh_ptr src_end);
 
 LH_COMPILER_EXTERN_C_END
 

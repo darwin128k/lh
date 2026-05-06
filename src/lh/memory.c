@@ -4,38 +4,43 @@
 #include <lh/runtime/check/ref.h>
 #include <lh/runtime/return/if.h>
 
-lh_ptr lh_memory_copy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size) {
+lh_ptr
+lh_memory_copy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size) {
     const lh_usize_t n = lh_math_min(dst_size, src_size);
     return lh_memory_std_copy(dst, src, n);
 }
 
-lh_ptr lh_memory_copy_rev(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size) {
+lh_ptr
+lh_memory_copy_rev(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size) {
     const lh_usize_t n = lh_math_min(dst_size, src_size);
     return lh_memory_std_copy_rev(dst, src, n);
 }
 
-lh_ptr lh_memory_rcopy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size) {
+lh_ptr
+lh_memory_rcopy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size) {
     const lh_usize_t n = lh_math_min(dst_size, src_size);
     return lh_memory_std_rcopy(dst, src, n);
 }
 
-lh_ptr lh_memory_move(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size) {
+lh_ptr
+lh_memory_move(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size) {
     const lh_usize_t n = lh_math_min(dst_size, src_size);
     return lh_memory_std_move(dst, src, n);
 }
 
-lh_ptr lh_memory_set(lh_ptr dst, lh_usize_t size, lh_uchar_t val) {
+lh_ptr
+lh_memory_set(lh_ptr dst, lh_usize_t size, lh_uchar_t val) {
     return lh_memory_std_set(dst, val, size);
 }
 
-const lh_ptr lh_memory_compare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
-                               lh_usize_t rhs_size) {
+const lh_ptr
+lh_memory_compare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size) {
     const lh_usize_t n = lh_math_min(lhs_size, rhs_size);
     return lh_memory_std_compare(lhs, rhs, n);
 }
 
-const lh_ptr lh_memory_rcompare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
-                                lh_usize_t rhs_size) {
+const lh_ptr
+lh_memory_rcompare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size) {
     const lh_usize_t n = lh_math_min(lhs_size, rhs_size);
     const lh_ptr l = lh_ptr_add(void, lhs, lh_math_sub(lhs_size, n));
     const lh_ptr r = lh_ptr_add(void, rhs, lh_math_sub(rhs_size, n));
@@ -43,8 +48,9 @@ const lh_ptr lh_memory_rcompare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_
     return lh_memory_std_rcompare(l, r, n);
 }
 
-const lh_ptr lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
-                                 lh_usize_t rhs_size, lh_usize_t step) {
+const lh_ptr
+lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
+                    lh_usize_t step) {
     lh_runtime_check_ref(lhs);
     lh_runtime_check_ref(rhs);
 
@@ -63,13 +69,14 @@ const lh_ptr lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh
     return lh_null;
 }
 
-const lh_ptr lh_memory_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
-                            lh_usize_t rhs_size) {
+const lh_ptr
+lh_memory_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size) {
     return lh_memory_find_step(lhs, lhs_size, rhs, rhs_size, LH_UCHAR_T_SIZE);
 }
 
-const lh_ptr lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
-                                  lh_usize_t rhs_size, lh_usize_t step) {
+const lh_ptr
+lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
+                     lh_usize_t step) {
     lh_runtime_check_ref(lhs);
     lh_runtime_check_ref(rhs);
 
@@ -98,13 +105,13 @@ const lh_ptr lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const l
     return lh_null;
 }
 
-const lh_ptr lh_memory_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
-                             lh_usize_t rhs_size) {
+const lh_ptr
+lh_memory_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size) {
     return lh_memory_rfind_step(lhs, lhs_size, rhs, rhs_size, 1);
 }
 
-lh_ptr lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src,
-                             lh_usize_t src_size) {
+lh_ptr
+lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size) {
     lh_runtime_check_ref(dst);
     lh_runtime_check_ref(src);
 

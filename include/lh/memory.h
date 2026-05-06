@@ -34,7 +34,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return Pointer one past the last byte written (i.e. @c dst + n).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_copy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size);
+lh_ptr
+lh_memory_copy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size);
 
 /**
  * @brief Copy up to @c min(dst_size, src_size) bytes
@@ -49,7 +50,8 @@ lh_ptr lh_memory_copy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usiz
  * @return Pointer one past the last byte of the destination range.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_copy_rev(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size);
+lh_ptr
+lh_memory_copy_rev(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size);
 
 /**
  * @brief Copy up to @c min(dst_size, src_size) bytes
@@ -63,7 +65,8 @@ lh_ptr lh_memory_copy_rev(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_
  * @return @p dst.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_rcopy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size);
+lh_ptr
+lh_memory_rcopy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size);
 
 /**
  * @brief Move up to @c min(dst_size, src_size) bytes
@@ -77,7 +80,8 @@ lh_ptr lh_memory_rcopy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usi
  * @return Pointer one past the last byte written in the destination range.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_move(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size);
+lh_ptr
+lh_memory_move(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size);
 
 /**
  * @brief Set every byte in @p dst
@@ -90,7 +94,8 @@ lh_ptr lh_memory_move(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usiz
  * @return Pointer one past the last byte written.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_set(lh_ptr dst, lh_usize_t size, lh_uchar_t val);
+lh_ptr
+lh_memory_set(lh_ptr dst, lh_usize_t size, lh_uchar_t val);
 
 /**
  * @brief Compare the first @c min(lhs_size, rhs_size) bytes
@@ -105,8 +110,8 @@ lh_ptr lh_memory_set(lh_ptr dst, lh_usize_t size, lh_uchar_t val);
  *         or ::lh_null if all compared bytes match.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_compare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
-                               lh_usize_t rhs_size);
+const lh_ptr
+lh_memory_compare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size);
 
 /**
  * @brief Compare the last @c n bytes of each span, where @c n is @c min(lhs_size, rhs_size),
@@ -123,8 +128,8 @@ const lh_ptr lh_memory_compare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_p
  *         or ::lh_null if equal.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_rcompare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
-                                lh_usize_t rhs_size);
+const lh_ptr
+lh_memory_rcompare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size);
 
 /**
  * @brief Find the leftmost offset in @p lhs where bytes
@@ -149,8 +154,8 @@ const lh_ptr lh_memory_rcompare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_
  * @see lh_memory_find_step
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
-                            lh_usize_t rhs_size);
+const lh_ptr
+lh_memory_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size);
 
 /**
  * @brief Like ::lh_memory_find, but only tries start offsets @c base, @c base+step,
@@ -166,8 +171,9 @@ const lh_ptr lh_memory_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr 
  * @return Pointer to the start of the first match, or ::lh_null if none.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
-                                 lh_usize_t rhs_size, lh_usize_t step);
+const lh_ptr
+lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
+                    lh_usize_t step);
 
 /**
  * @brief Find the rightmost offset in @p lhs
@@ -186,8 +192,8 @@ const lh_ptr lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh
  * @see lh_memory_rfind_step
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
-                             lh_usize_t rhs_size);
+const lh_ptr
+lh_memory_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size);
 
 /**
  * @brief Like ::lh_memory_rfind, but only considers start offsets on the same @p step grid
@@ -202,8 +208,9 @@ const lh_ptr lh_memory_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr
  * @return Pointer to the start of the last match, or ::lh_null if none.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_ptr lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs,
-                                  lh_usize_t rhs_size, lh_usize_t step);
+const lh_ptr
+lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
+                     lh_usize_t step);
 
 /**
  * @brief Fill @p dst with @p dst_size bytes
@@ -220,8 +227,8 @@ const lh_ptr lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const l
  * @return Pointer one past the last byte written.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src,
-                             lh_usize_t src_size);
+lh_ptr
+lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size);
 
 LH_COMPILER_EXTERN_C_END
 

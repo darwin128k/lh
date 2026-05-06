@@ -133,7 +133,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  *         or ::lh_null if @p ch does not occur in that prefix.
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_str_ptr lh_str_raw_find_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch);
+const lh_str_ptr
+lh_str_raw_find_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch);
 
 /**
  * @brief Find the first null terminator (`'\\0'`)
@@ -148,7 +149,8 @@ const lh_str_ptr lh_str_raw_find_of_char(const lh_str_ptr str, lh_usize_t size, 
  * @see lh_str_raw_find_of_char
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_str_ptr lh_str_raw_find_of_null_terminator_by_size(const lh_str_ptr str, lh_usize_t size);
+const lh_str_ptr
+lh_str_raw_find_of_null_terminator_by_size(const lh_str_ptr str, lh_usize_t size);
 
 /**
  * @brief Find the first null terminator (`'\\0'`)
@@ -168,7 +170,8 @@ const lh_str_ptr lh_str_raw_find_of_null_terminator_by_size(const lh_str_ptr str
  * @see lh_str_raw_find_of_char
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_str_ptr lh_str_raw_find_of_null_terminator(const lh_str_ptr str);
+const lh_str_ptr
+lh_str_raw_find_of_null_terminator(const lh_str_ptr str);
 
 /**
  * @brief Length of @p str in characters,
@@ -190,7 +193,8 @@ const lh_str_ptr lh_str_raw_find_of_null_terminator(const lh_str_ptr str);
  * @see lh_runtime_error_code_no_null_terminator
  */
 LH_ATTRIBUTE_SYMBOL
-lh_usize_t lh_str_raw_len(const lh_str_ptr str);
+lh_usize_t
+lh_str_raw_len(const lh_str_ptr str);
 
 /**
  * @brief Copy up to @c min(str_size, src_size) characters
@@ -210,8 +214,8 @@ lh_usize_t lh_str_raw_len(const lh_str_ptr str);
  * @see lh_memory_copy
  */
 LH_ATTRIBUTE_SYMBOL
-lh_str_ptr lh_str_raw_copy(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
-                           lh_usize_t src_size);
+lh_str_ptr
+lh_str_raw_copy(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src, lh_usize_t src_size);
 
 /**
  * @brief Move up to @c min(str_size, src_size)
@@ -221,8 +225,8 @@ lh_str_ptr lh_str_raw_copy(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr
  * @see lh_memory_move
  */
 LH_ATTRIBUTE_SYMBOL
-lh_str_ptr lh_str_raw_move(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
-                           lh_usize_t src_size);
+lh_str_ptr
+lh_str_raw_move(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src, lh_usize_t src_size);
 
 /**
  * @brief Fill @p str with a repeating pattern from @p src.
@@ -238,8 +242,9 @@ lh_str_ptr lh_str_raw_move(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr
  * @see lh_memory_set_pattern
  */
 LH_ATTRIBUTE_SYMBOL
-lh_str_ptr lh_str_raw_set_pattern(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
-                                  lh_usize_t src_size);
+lh_str_ptr
+lh_str_raw_set_pattern(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                       lh_usize_t src_size);
 
 /**
  * @brief Set every character in the first @p size elements of @p str to @p ch.
@@ -252,7 +257,8 @@ lh_str_ptr lh_str_raw_set_pattern(lh_str_ptr str, lh_usize_t str_size, const lh_
  * @see lh_memory_set
  */
 LH_ATTRIBUTE_SYMBOL
-lh_str_ptr lh_str_raw_set(lh_str_ptr str, lh_usize_t size, lh_char_t ch);
+lh_str_ptr
+lh_str_raw_set(lh_str_ptr str, lh_usize_t size, lh_char_t ch);
 
 /**
  * @brief Replace each of the first @p size ::lh_char_t elements of @p str
@@ -267,7 +273,8 @@ lh_str_ptr lh_str_raw_set(lh_str_ptr str, lh_usize_t size, lh_char_t ch);
  * @return Pointer one past the last element updated (@p str + @p size).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_str_ptr lh_str_raw_to_lower(lh_str_ptr str, lh_usize_t size);
+lh_str_ptr
+lh_str_raw_to_lower(lh_str_ptr str, lh_usize_t size);
 
 /**
  * @brief Replace each of the first @p size ::lh_char_t elements of @p str
@@ -276,7 +283,8 @@ lh_str_ptr lh_str_raw_to_lower(lh_str_ptr str, lh_usize_t size);
  * @see lh_str_raw_to_lower
  */
 LH_ATTRIBUTE_SYMBOL
-lh_str_ptr lh_str_raw_to_upper(lh_str_ptr str, lh_usize_t size);
+lh_str_ptr
+lh_str_raw_to_upper(lh_str_ptr str, lh_usize_t size);
 
 /**
  * @brief Compare the first min(@p str_size, @p src_size) characters
@@ -297,8 +305,9 @@ lh_str_ptr lh_str_raw_to_upper(lh_str_ptr str, lh_usize_t size);
  * @see lh_char_fold_case
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_str_ptr lh_str_raw_compare_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size,
-                                                   const lh_str_ptr src, lh_usize_t src_size);
+const lh_str_ptr
+lh_str_raw_compare_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                                  lh_usize_t src_size);
 
 /**
  * @brief Compare overlapping suffixes
@@ -318,8 +327,9 @@ const lh_str_ptr lh_str_raw_compare_by_ignore_case(const lh_str_ptr str, lh_usiz
  * @see lh_char_fold_case
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_str_ptr lh_str_raw_rcompare_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size,
-                                                    const lh_str_ptr src, lh_usize_t src_size);
+const lh_str_ptr
+lh_str_raw_rcompare_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                                   lh_usize_t src_size);
 
 /**
  * @brief Leftmost substring search in the first @p str_size characters of @p str
@@ -338,8 +348,9 @@ const lh_str_ptr lh_str_raw_rcompare_by_ignore_case(const lh_str_ptr str, lh_usi
  * @see lh_char_fold_case
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_str_ptr lh_str_raw_find_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size,
-                                                const lh_str_ptr src, lh_usize_t src_size);
+const lh_str_ptr
+lh_str_raw_find_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                               lh_usize_t src_size);
 
 /**
  * @brief Rightmost substring search with the same folded equality
@@ -358,8 +369,9 @@ const lh_str_ptr lh_str_raw_find_by_ignore_case(const lh_str_ptr str, lh_usize_t
  * @see lh_char_fold_case
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_str_ptr lh_str_raw_rfind_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size,
-                                                 const lh_str_ptr src, lh_usize_t src_size);
+const lh_str_ptr
+lh_str_raw_rfind_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                                lh_usize_t src_size);
 
 /**
  * @brief Find the leftmost position in @p str where a substring matches @p src.
@@ -377,8 +389,9 @@ const lh_str_ptr lh_str_raw_rfind_by_ignore_case(const lh_str_ptr str, lh_usize_
  * @see lh_str_raw_find_by_ignore_case
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_str_ptr lh_str_raw_find(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
-                                 lh_usize_t src_size, lh_bool_t ignore_case);
+const lh_str_ptr
+lh_str_raw_find(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
  * @brief Find the rightmost occurrence of @p src in @p str.
@@ -397,8 +410,9 @@ const lh_str_ptr lh_str_raw_find(const lh_str_ptr str, lh_usize_t str_size, cons
  * @see lh_str_raw_rfind_by_ignore_case
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_str_ptr lh_str_raw_rfind(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
-                                  lh_usize_t src_size, lh_bool_t ignore_case);
+const lh_str_ptr
+lh_str_raw_rfind(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                 lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
  * @brief Compare the overlapping prefix of @p str and @p src (forward).
@@ -417,8 +431,9 @@ const lh_str_ptr lh_str_raw_rfind(const lh_str_ptr str, lh_usize_t str_size, con
  * @see lh_str_raw_compare_by_ignore_case
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_str_ptr lh_str_raw_compare(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
-                                    lh_usize_t src_size, lh_bool_t ignore_case);
+const lh_str_ptr
+lh_str_raw_compare(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                   lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
  * @brief Compare the overlapping suffix of @p str and @p src (from the ends).
@@ -437,9 +452,9 @@ const lh_str_ptr lh_str_raw_compare(const lh_str_ptr str, lh_usize_t str_size, c
  * @see lh_str_raw_rcompare_by_ignore_case
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_str_ptr lh_str_raw_rcompare(const lh_str_ptr str, lh_usize_t str_size,
-                                     const lh_str_ptr src, lh_usize_t src_size,
-                                     lh_bool_t ignore_case);
+const lh_str_ptr
+lh_str_raw_rcompare(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                    lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
  * @brief Size-bounded leftmost substring index.
@@ -454,9 +469,9 @@ const lh_str_ptr lh_str_raw_rcompare(const lh_str_ptr str, lh_usize_t str_size,
  *         or ::LH_STR_RAW_INVALID if not found.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_usize_t lh_str_raw_index_of_by_size(const lh_str_ptr str, lh_usize_t str_size,
-                                       const lh_str_ptr src, lh_usize_t src_size,
-                                       lh_bool_t ignore_case);
+lh_usize_t
+lh_str_raw_index_of_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                            lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
  * @brief NUL-terminated leftmost substring index.
@@ -471,7 +486,8 @@ lh_usize_t lh_str_raw_index_of_by_size(const lh_str_ptr str, lh_usize_t str_size
  *         or ::LH_STR_RAW_INVALID if not found.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_usize_t lh_str_raw_index_of(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
+lh_usize_t
+lh_str_raw_index_of(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
 
 /**
  * @brief NUL-terminated substring search.
@@ -491,7 +507,8 @@ lh_usize_t lh_str_raw_index_of(const lh_str_ptr str, const lh_str_ptr src, lh_bo
  * @see lh_char_fold_case
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_str_raw_contains(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
+lh_bool_t
+lh_str_raw_contains(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
 
 /**
  * @brief NUL-terminated string equality.
@@ -512,7 +529,8 @@ lh_bool_t lh_str_raw_contains(const lh_str_ptr str, const lh_str_ptr src, lh_boo
  * @see lh_char_fold_case
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_str_raw_equals(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
+lh_bool_t
+lh_str_raw_equals(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
 
 /**
  * @brief NUL-terminated prefix compare using ::lh_str_raw_compare
@@ -531,7 +549,8 @@ lh_bool_t lh_str_raw_equals(const lh_str_ptr str, const lh_str_ptr src, lh_bool_
  * @see lh_char_fold_case
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_str_raw_starts_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
+lh_bool_t
+lh_str_raw_starts_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
 
 /**
  * @brief NUL-terminated suffix compare using ::lh_str_raw_rcompare on lengths from
@@ -551,7 +570,8 @@ lh_bool_t lh_str_raw_starts_with(const lh_str_ptr str, const lh_str_ptr src, lh_
  * @see lh_char_fold_case
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_str_raw_ends_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
+lh_bool_t
+lh_str_raw_ends_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
 
 /**
  * @brief Check whether @p ch exists in the first @p chars_size elements of @p chars.
@@ -565,7 +585,8 @@ lh_bool_t lh_str_raw_ends_with(const lh_str_ptr str, const lh_str_ptr src, lh_bo
  * @see lh_str_raw_find_of_char
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t lh_str_raw_contains_char(const lh_str_ptr chars, lh_usize_t chars_size, lh_char_t ch);
+lh_bool_t
+lh_str_raw_contains_char(const lh_str_ptr chars, lh_usize_t chars_size, lh_char_t ch);
 
 /**
  * @brief Left trim using the built-in default whitespace set.
@@ -577,7 +598,8 @@ lh_bool_t lh_str_raw_contains_char(const lh_str_ptr chars, lh_usize_t chars_size
  * @see lh_str_raw_ltrim_custom
  */
 LH_ATTRIBUTE_SYMBOL
-lh_str_ptr lh_str_raw_ltrim(lh_str_ptr str);
+lh_str_ptr
+lh_str_raw_ltrim(lh_str_ptr str);
 
 /**
  * @brief Right trim using the built-in default whitespace set.
@@ -589,7 +611,8 @@ lh_str_ptr lh_str_raw_ltrim(lh_str_ptr str);
  * @see lh_str_raw_rtrim_custom
  */
 LH_ATTRIBUTE_SYMBOL
-lh_str_ptr lh_str_raw_rtrim(lh_str_ptr str);
+lh_str_ptr
+lh_str_raw_rtrim(lh_str_ptr str);
 
 /**
  * @brief Two-sided trim using the built-in default whitespace set.
@@ -601,7 +624,8 @@ lh_str_ptr lh_str_raw_rtrim(lh_str_ptr str);
  * @see lh_str_raw_trim_custom
  */
 LH_ATTRIBUTE_SYMBOL
-lh_str_ptr lh_str_raw_trim(lh_str_ptr str);
+lh_str_ptr
+lh_str_raw_trim(lh_str_ptr str);
 
 /**
  * @brief Left trim with explicit string and trim-set sizes (custom mode).
@@ -616,8 +640,9 @@ lh_str_ptr lh_str_raw_trim(lh_str_ptr str);
  * @see lh_str_raw_ltrim_span
  */
 LH_ATTRIBUTE_SYMBOL
-lh_str_ptr lh_str_raw_ltrim_custom(lh_str_ptr str, lh_usize_t str_size,
-                                   const lh_str_ptr whitespace_chars, lh_usize_t whitespace_size);
+lh_str_ptr
+lh_str_raw_ltrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whitespace_chars,
+                        lh_usize_t whitespace_size);
 
 /**
  * @brief Right trim with explicit string and trim-set sizes (custom mode).
@@ -632,8 +657,9 @@ lh_str_ptr lh_str_raw_ltrim_custom(lh_str_ptr str, lh_usize_t str_size,
  * @see lh_str_raw_rtrim_span
  */
 LH_ATTRIBUTE_SYMBOL
-lh_str_ptr lh_str_raw_rtrim_custom(lh_str_ptr str, lh_usize_t str_size,
-                                   const lh_str_ptr whitespace_chars, lh_usize_t whitespace_size);
+lh_str_ptr
+lh_str_raw_rtrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whitespace_chars,
+                        lh_usize_t whitespace_size);
 
 /**
  * @brief Two-sided trim with explicit string and trim-set sizes (custom mode).
@@ -648,8 +674,9 @@ lh_str_ptr lh_str_raw_rtrim_custom(lh_str_ptr str, lh_usize_t str_size,
  * @see lh_str_raw_trim_span
  */
 LH_ATTRIBUTE_SYMBOL
-lh_str_ptr lh_str_raw_trim_custom(lh_str_ptr str, lh_usize_t str_size,
-                                  const lh_str_ptr whitespace_chars, lh_usize_t whitespace_size);
+lh_str_ptr
+lh_str_raw_trim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whitespace_chars,
+                       lh_usize_t whitespace_size);
 
 /**
  * @brief Left trim with explicit trim-set size; string size is auto-detected.
@@ -663,8 +690,8 @@ lh_str_ptr lh_str_raw_trim_custom(lh_str_ptr str, lh_usize_t str_size,
  * @see lh_str_raw_ltrim_set
  */
 LH_ATTRIBUTE_SYMBOL
-lh_str_ptr lh_str_raw_ltrim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars,
-                                lh_usize_t whitespace_size);
+lh_str_ptr
+lh_str_raw_ltrim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars, lh_usize_t whitespace_size);
 
 /**
  * @brief Right trim with explicit trim-set size; string size is auto-detected.
@@ -678,8 +705,8 @@ lh_str_ptr lh_str_raw_ltrim_set(lh_str_ptr str, const lh_str_ptr whitespace_char
  * @see lh_str_raw_rtrim_set
  */
 LH_ATTRIBUTE_SYMBOL
-lh_str_ptr lh_str_raw_rtrim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars,
-                                lh_usize_t whitespace_size);
+lh_str_ptr
+lh_str_raw_rtrim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars, lh_usize_t whitespace_size);
 
 /**
  * @brief Two-sided trim with explicit trim-set size; string size is auto-detected.
@@ -693,8 +720,8 @@ lh_str_ptr lh_str_raw_rtrim_set(lh_str_ptr str, const lh_str_ptr whitespace_char
  * @see lh_str_raw_trim_set
  */
 LH_ATTRIBUTE_SYMBOL
-lh_str_ptr lh_str_raw_trim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars,
-                               lh_usize_t whitespace_size);
+lh_str_ptr
+lh_str_raw_trim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars, lh_usize_t whitespace_size);
 
 /**
  * @brief Left trim with NUL-terminated trim set; both sizes are auto-detected.
@@ -707,7 +734,8 @@ lh_str_ptr lh_str_raw_trim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars
  * @see lh_str_raw_ltrim_custom
  */
 LH_ATTRIBUTE_SYMBOL
-lh_str_ptr lh_str_raw_ltrim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars);
+lh_str_ptr
+lh_str_raw_ltrim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars);
 
 /**
  * @brief Right trim with NUL-terminated trim set; both sizes are auto-detected.
@@ -720,7 +748,8 @@ lh_str_ptr lh_str_raw_ltrim_auto(lh_str_ptr str, const lh_str_ptr whitespace_cha
  * @see lh_str_raw_rtrim_custom
  */
 LH_ATTRIBUTE_SYMBOL
-lh_str_ptr lh_str_raw_rtrim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars);
+lh_str_ptr
+lh_str_raw_rtrim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars);
 
 /**
  * @brief Two-sided trim with NUL-terminated trim set; both sizes are auto-detected.
@@ -733,7 +762,8 @@ lh_str_ptr lh_str_raw_rtrim_auto(lh_str_ptr str, const lh_str_ptr whitespace_cha
  * @see lh_str_raw_trim_custom
  */
 LH_ATTRIBUTE_SYMBOL
-lh_str_ptr lh_str_raw_trim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars);
+lh_str_ptr
+lh_str_raw_trim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -60,7 +60,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return Pointer to @p self->error.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_error_t *lh_exception_get_error(const lh_exception_t *self);
+lh_error_t *
+lh_exception_get_error(const lh_exception_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -44,9 +44,9 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param dealloc_cb Optional pointer to deallocation callback value (or ::lh_null to skip).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_allocator_pack(lh_memory_allocator_t *self,
-                                 lh_memory_allocator_alloc_cb *alloc_cb,
-                                 lh_memory_allocator_dealloc_cb *dealloc_cb);
+lh_void
+lh_memory_allocator_pack(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb *alloc_cb,
+                         lh_memory_allocator_dealloc_cb *dealloc_cb);
 
 /**
  * @brief Unpack allocator callback fields into optional output pointers.
@@ -56,9 +56,10 @@ lh_void lh_memory_allocator_pack(lh_memory_allocator_t *self,
  * @param dealloc_cb Optional output for deallocation callback (or ::lh_null to skip).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_allocator_unpack(const lh_memory_allocator_t *self,
-                                   lh_memory_allocator_alloc_cb *alloc_cb,
-                                   lh_memory_allocator_dealloc_cb *dealloc_cb);
+lh_void
+lh_memory_allocator_unpack(const lh_memory_allocator_t *self,
+                           lh_memory_allocator_alloc_cb *alloc_cb,
+                           lh_memory_allocator_dealloc_cb *dealloc_cb);
 
 /**
  * @brief Set both callbacks at once.
@@ -68,8 +69,9 @@ lh_void lh_memory_allocator_unpack(const lh_memory_allocator_t *self,
  * @param dealloc_cb New deallocation callback.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_allocator_set(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb,
-                                lh_memory_allocator_dealloc_cb dealloc_cb);
+lh_void
+lh_memory_allocator_set(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb,
+                        lh_memory_allocator_dealloc_cb dealloc_cb);
 
 /**
  * @brief Initialize allocator callbacks.
@@ -82,15 +84,17 @@ lh_void lh_memory_allocator_set(lh_memory_allocator_t *self, lh_memory_allocator
  * @param dealloc_cb Deallocation callback (may be ::lh_null to leave deallocation disabled).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_allocator_init(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb,
-                                 lh_memory_allocator_dealloc_cb dealloc_cb);
+lh_void
+lh_memory_allocator_init(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb,
+                         lh_memory_allocator_dealloc_cb dealloc_cb);
 
 /**
  * @brief Reset allocator to empty state (both callbacks set to ::lh_null).
  * @param self Allocator object to reset.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_allocator_deinit(lh_memory_allocator_t *self);
+lh_void
+lh_memory_allocator_deinit(lh_memory_allocator_t *self);
 
 /**
  * @brief Get current allocation callback from @p self.
@@ -98,7 +102,8 @@ lh_void lh_memory_allocator_deinit(lh_memory_allocator_t *self);
  * @return Current allocation callback (may be ::lh_null).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_allocator_alloc_cb lh_memory_allocator_get_alloc_cb(lh_memory_allocator_t *self);
+lh_memory_allocator_alloc_cb
+lh_memory_allocator_get_alloc_cb(lh_memory_allocator_t *self);
 
 /**
  * @brief Get current deallocation callback from @p self.
@@ -106,7 +111,8 @@ lh_memory_allocator_alloc_cb lh_memory_allocator_get_alloc_cb(lh_memory_allocato
  * @return Current deallocation callback (may be ::lh_null).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_allocator_dealloc_cb lh_memory_allocator_get_dealloc_cb(lh_memory_allocator_t *self);
+lh_memory_allocator_dealloc_cb
+lh_memory_allocator_get_dealloc_cb(lh_memory_allocator_t *self);
 
 /**
  * @brief Allocate a memory block using allocator callback.
@@ -119,7 +125,8 @@ lh_memory_allocator_dealloc_cb lh_memory_allocator_get_dealloc_cb(lh_memory_allo
  * @return Pointer to allocated memory.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_allocator_alloc(lh_memory_allocator_t *self, lh_usize_t size);
+lh_ptr
+lh_memory_allocator_alloc(lh_memory_allocator_t *self, lh_usize_t size);
 
 /**
  * @brief Deallocate a memory block using deallocator callback.
@@ -130,7 +137,8 @@ lh_ptr lh_memory_allocator_alloc(lh_memory_allocator_t *self, lh_usize_t size);
  * @param ptr Pointer to memory block to free.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void lh_memory_allocator_dealloc(lh_memory_allocator_t *self, lh_ptr ptr);
+lh_void
+lh_memory_allocator_dealloc(lh_memory_allocator_t *self, lh_ptr ptr);
 
 /**
  * @brief Reallocate memory block using allocator callbacks.
@@ -146,8 +154,9 @@ lh_void lh_memory_allocator_dealloc(lh_memory_allocator_t *self, lh_ptr ptr);
  * @return Pointer to resized block, @p old_ptr, or ::lh_null depending on inputs.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr lh_memory_allocator_realloc(lh_memory_allocator_t *self, lh_ptr old_ptr, lh_usize_t old_size,
-                                   lh_usize_t new_size);
+lh_ptr
+lh_memory_allocator_realloc(lh_memory_allocator_t *self, lh_ptr old_ptr, lh_usize_t old_size,
+                            lh_usize_t new_size);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -26,7 +26,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @endcode
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_version_t *lh_get_version(void);
+const lh_version_t *
+lh_get_version(void);
 
 LH_COMPILER_EXTERN_C_END
 
