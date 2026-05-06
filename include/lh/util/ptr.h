@@ -217,8 +217,8 @@
 
 /**
  * @def lh_ptr_udiff(ptr1, ptr2)
- * @brief Unsigned difference of two pointers after converting both to ::lh_uaddr_t
- * (::lh_addr_diff).
+ * @brief Unsigned difference of two pointers
+ * after converting both to ::lh_uaddr_t (::lh_addr_diff).
  *
  * @note Unsigned subtraction wraps modulo `2^width`;
  *       use ::lh_ptr_sdiff when you need a signed span.
@@ -245,7 +245,7 @@
  * }
  * @endcode
  */
-#define lh_ptr_eq(a, b) lh_math_eq(lh_ptr_to_uaddr(a), lh_ptr_to_uaddr(b))
+#define lh_ptr_eq(a, b) lh_addr_eq(lh_ptr_to_uaddr(a), lh_ptr_to_uaddr(b))
 
 /**
  * @def lh_ptr_ne(a, b)
@@ -259,14 +259,15 @@
  * }
  * @endcode
  */
-#define lh_ptr_ne(a, b) lh_math_ne(lh_ptr_to_uaddr(a), lh_ptr_to_uaddr(b))
+#define lh_ptr_ne(a, b) lh_addr_ne(lh_ptr_to_uaddr(a), lh_ptr_to_uaddr(b))
 
 /**
  * @def lh_ptr_lt(a, b)
  * @brief Non-zero if @p a compares less than @p b (`a < b`).
  *
- * @note In ISO C, `<` / `>` on pointers is only defined when both point into the
- *       same array object (or one past its end). Otherwise the behavior is undefined.
+ * @note In ISO C, `<` / `>` on pointers is only defined
+ *       when both point into the same array object (or one past its end).
+ *       Otherwise the behavior is undefined.
  *
  * Example usage:
  * @code{.c}
@@ -276,7 +277,7 @@
  * }
  * @endcode
  */
-#define lh_ptr_lt(a, b) lh_math_lt(lh_ptr_to_uaddr(a), lh_ptr_to_uaddr(b))
+#define lh_ptr_lt(a, b) lh_addr_lt(lh_ptr_to_uaddr(a), lh_ptr_to_uaddr(b))
 
 /**
  * @def lh_ptr_gt(a, b)
@@ -292,7 +293,7 @@
  * }
  * @endcode
  */
-#define lh_ptr_gt(a, b) lh_math_gt(lh_ptr_to_uaddr(a), lh_ptr_to_uaddr(b))
+#define lh_ptr_gt(a, b) lh_addr_gt(lh_ptr_to_uaddr(a), lh_ptr_to_uaddr(b))
 
 /**
  * @def lh_ptr_le(a, b)
@@ -308,7 +309,7 @@
  * }
  * @endcode
  */
-#define lh_ptr_le(a, b) lh_math_le(lh_ptr_to_uaddr(a), lh_ptr_to_uaddr(b))
+#define lh_ptr_le(a, b) lh_addr_le(lh_ptr_to_uaddr(a), lh_ptr_to_uaddr(b))
 
 /**
  * @def lh_ptr_ge(a, b)
@@ -324,7 +325,7 @@
  * }
  * @endcode
  */
-#define lh_ptr_ge(a, b) lh_math_ge(lh_ptr_to_uaddr(a), lh_ptr_to_uaddr(b))
+#define lh_ptr_ge(a, b) lh_addr_ge(lh_ptr_to_uaddr(a), lh_ptr_to_uaddr(b))
 
 /**
  * @def lh_ptr_is_aligned(ptr, align)
@@ -346,13 +347,13 @@
 #define lh_ptr_is_aligned(ptr, align) lh_addr_is_aligned(lh_ptr_to_uaddr(ptr), align)
 
 /**
- * @def lh_ptr_copy_forward_safe(dst, src, src_end)
+ * @def lh_ptr_is_forward_copy(dst, src, src_end)
  * @brief `memmove`-style branch: non-zero when a naive **low-to-high** byte copy is safe.
  *
- * Expands to `(dst <= src) || (src_end <= dst)` — i.e. `dst <= src || src + n <= dst` when
- * @p src_end is `src + n`. Same predicate as in many `memmove` / `memcpy` sources when choosing
- * direction. Arguments: destination start @p dst, source start @p src, exclusive source end @p
- * src_end.
+ * Expands to `(dst <= src) || (src_end <= dst)` — i.e.
+ * `dst <= src || src + n <= dst` when @p src_end is `src + n`.
+ * Same predicate as in many `memmove` / `memcpy` sources when choosing direction.
+ * Arguments: destination start @p dst, source start @p src, exclusive source end @p src_end.
  *
  * @note Pointer `<` / `<=` is only fully specified for pointers into the same object (or one past);
  *       this assumes a flat ordering where the comparison is meaningful (typical libc style).
@@ -363,16 +364,16 @@
  * char *dst = &buf[10];
  * char *src = &buf[0];
  * char *src_end = &buf[32]; // src + 32 bytes
- * if (lh_ptr_copy_forward_safe(dst, src, src_end)) {
+ * if (lh_ptr_is_forward_copy(dst, src, src_end)) {
  *     // forward copy OK for this layout
  * }
  * @endcode
  */
-#define lh_ptr_copy_forward_safe(dst, src, src_end) (((dst) <= (src)) || ((src_end) <= (dst)))
+#define lh_ptr_is_forward_copy(dst, src, src_end) (lh_ptr_le(dst, src) || lh_ptr_le(src_end, dst))
 
 /**
- * @def lh_ptr_copy_backward_needed(dst, src, src_end)
- * @brief Complement of ::lh_ptr_copy_forward_safe — non-zero
+ * @def lh_ptr_is_backward_copy(dst, src, src_end)
+ * @brief Complement of ::lh_ptr_is_forward_copy — non-zero
  *        when forward copy can clobber unread source (use backward copy or `memmove`).
  *
  * Example usage:
@@ -381,13 +382,12 @@
  * char *dst = &buf[4];
  * char *src = &buf[8];
  * char *src_end = &buf[24];
- * if (lh_ptr_copy_backward_needed(dst, src, src_end)) {
+ * if (lh_ptr_is_backward_copy(dst, src, src_end)) {
  *     // copy high-to-low or call memmove
  * }
  * @endcode
  */
-#define lh_ptr_copy_backward_needed(dst, src, src_end)                                             \
-    (!lh_ptr_copy_forward_safe(dst, src, src_end))
+#define lh_ptr_is_backward_copy(dst, src, src_end) (!lh_ptr_is_forward_copy(dst, src, src_end))
 
 /**
  * @def lh_ptr_add_by_offset_unsafe(T, ptr, offset)
@@ -397,8 +397,8 @@
  *       the result may be misaligned for `T` unless @p offset is a multiple of the alignment
  *       — prefer `unsigned char *` for raw byte walking, or only use offsets you have proven safe.
  *
- * @warning Does not treat null specially; combining a null @p ptr with a non-zero @p offset is
- *          still undefined for downstream use.
+ * @warning Does not treat null specially; combining a null @p ptr
+ *          with a non-zero @p offset is still undefined for downstream use.
  *
  * Example usage:
  * @code{.c}

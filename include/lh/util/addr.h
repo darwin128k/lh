@@ -31,6 +31,90 @@
 #define lh_addr_of(expr) &expr
 
 /**
+ * @def lh_addr_eq(a, b)
+ * @brief Non-zero if @p a is equal to @p b (same as ::lh_math_eq).
+ *
+ * @code{.c}
+ * lh_uaddr_t a = (lh_uaddr_t)0x1000;
+ * lh_uaddr_t b = (lh_uaddr_t)0x1000;
+ * if (lh_addr_eq(a, b)) {
+ *     // true
+ * }
+ * @endcode
+ */
+#define lh_addr_eq(a, b) lh_math_eq(a, b)
+
+/**
+ * @def lh_addr_ne(a, b)
+ * @brief Non-zero if @p a is not equal to @p b (same as ::lh_math_ne).
+ *
+ * @code{.c}
+ * lh_uaddr_t a = (lh_uaddr_t)0x1000;
+ * lh_uaddr_t b = (lh_uaddr_t)0x2000;
+ * if (lh_addr_ne(a, b)) {
+ *     // true
+ * }
+ * @endcode
+ */
+#define lh_addr_ne(a, b) lh_math_ne(a, b)
+
+/**
+ * @def lh_addr_lt(a, b)
+ * @brief Non-zero if @p a is strictly less than @p b (same as ::lh_math_lt).
+ *
+ * @code{.c}
+ * lh_uaddr_t a = (lh_uaddr_t)0x1000;
+ * lh_uaddr_t b = (lh_uaddr_t)0x2000;
+ * if (lh_addr_lt(a, b)) {
+ *     // true
+ * }
+ * @endcode
+ */
+#define lh_addr_lt(a, b) lh_math_lt(a, b)
+
+/**
+ * @def lh_addr_le(a, b)
+ * @brief Non-zero if @p a is less than or equal to @p b (same as ::lh_math_le).
+ *
+ * @code{.c}
+ * lh_uaddr_t a = (lh_uaddr_t)0x1000;
+ * lh_uaddr_t b = (lh_uaddr_t)0x2000;
+ * if (lh_addr_le(a, b)) {
+ *     // true
+ * }
+ * @endcode
+ */
+#define lh_addr_le(a, b) lh_math_le(a, b)
+
+/**
+ * @def lh_addr_gt(a, b)
+ * @brief Non-zero if @p a is strictly greater than @p b (same as ::lh_math_gt).
+ *
+ * @code{.c}
+ * lh_uaddr_t a = (lh_uaddr_t)0x2000;
+ * lh_uaddr_t b = (lh_uaddr_t)0x1000;
+ * if (lh_addr_gt(a, b)) {
+ *     // true
+ * }
+ * @endcode
+ */
+#define lh_addr_gt(a, b) lh_math_gt(a, b)
+
+/**
+ * @def lh_addr_ge(a, b)
+ * @brief Non-zero if @p a is greater than or equal to @p b (same as ::lh_math_ge).
+ *
+ * @code{.c}
+ * lh_uaddr_t a = (lh_uaddr_t)0x2000;
+ * lh_uaddr_t b = (lh_uaddr_t)0x1000;
+ * if (lh_addr_ge(a, b)) {
+ *     // true
+ * }
+ * @endcode
+ */
+#define lh_addr_ge(a, b) lh_math_ge(a, b)
+
+/**
  * @def lh_addr_diff(lhs, rhs)
  * @brief Difference between two address values (::lh_math_sub).
  *
@@ -55,6 +139,11 @@
  * @param delta Byte (or unit) offset to add.
  *
  * @return Sum, with wraparound rules of the promoted integer type.
+ *
+ * @code{.c}
+ * lh_uaddr_t ptr = (lh_uaddr_t)0x1000;
+ * lh_uaddr_t next = lh_addr_add(ptr, 32); // 0x1020
+ * @endcode
  */
 #define lh_addr_add(addr, delta) lh_math_add((addr), (delta))
 
@@ -66,24 +155,47 @@
  * @param delta Offset to subtract.
  *
  * @return Difference, with wraparound rules of the promoted integer type.
+ *
+ * @code{.c}
+ * lh_uaddr_t ptr = (lh_uaddr_t)0x1020;
+ * lh_uaddr_t prev = lh_addr_sub(ptr, 32); // 0x1000
+ * @endcode
  */
 #define lh_addr_sub(addr, delta) lh_math_sub((addr), (delta))
 
 /**
  * @def lh_addr_min(a, b)
  * @brief Smaller of two address-sized values (::lh_math_min).
+ *
+ * @code{.c}
+ * lh_uaddr_t a = (lh_uaddr_t)0x1000;
+ * lh_uaddr_t b = (lh_uaddr_t)0x2000;
+ * lh_uaddr_t min = lh_addr_min(a, b); // 0x1000
+ * @endcode
  */
 #define lh_addr_min(a, b) lh_math_min((a), (b))
 
 /**
  * @def lh_addr_max(a, b)
  * @brief Larger of two address-sized values (::lh_math_max).
+ *
+ * @code{.c}
+ * lh_uaddr_t a = (lh_uaddr_t)0x1000;
+ * lh_uaddr_t b = (lh_uaddr_t)0x2000;
+ * lh_uaddr_t max = lh_addr_max(a, b); // 0x2000
+ * @endcode
  */
 #define lh_addr_max(a, b) lh_math_max((a), (b))
 
 /**
  * @def lh_addr_clamp(v, lo, hi)
  * @brief Clamp `v` to the inclusive range `[lo, hi]` (::lh_math_clamp). Requires `lo <= hi`.
+ *
+ * @code{.c}
+ * lh_uaddr_t v = lh_addr_clamp(0x1500, 0x1000, 0x2000); // 0x1500
+ * lh_uaddr_t below = lh_addr_clamp(0x0500, 0x1000, 0x2000); // 0x1000
+ * lh_uaddr_t above = lh_addr_clamp(0x3000, 0x1000, 0x2000); // 0x2000
+ * @endcode
  */
 #define lh_addr_clamp(v, lo, hi) lh_math_clamp((v), (lo), (hi))
 
