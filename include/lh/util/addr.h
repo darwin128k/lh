@@ -1,6 +1,6 @@
 /**
  * @file addr.h
- * @brief Address / pointer utilities: address-of wrapper (::lh_addr_ref),
+ * @brief Address / pointer utilities: address-of wrapper (::lh_addr_of),
  * integer addresses, ranges, and alignment.
  *
  * Alignment helpers use bitmask formulas (`align - 1`, complement)
@@ -20,16 +20,16 @@
 #include <lh/ref.h>
 
 /**
- * @def lh_addr_ref
+ * @def lh_addr_of
  * @brief Address-of wrapper: expands to @c &expr.
  * @param expr Lvalue (or other expression valid for unary @c &) whose address is required.
  *
  * @code{.c}
  * int n = 0;
- * int *p = lh_addr_ref(n); // same as &n; useful inside macro-heavy expressions
+ * int *p = lh_addr_of(n); // same as &n; useful inside macro-heavy expressions
  * @endcode
  */
-#define lh_addr_ref(expr) lh_ref(expr)
+#define lh_addr_of(expr) lh_ref(expr)
 
 /**
  * @def lh_addr_diff(lhs, rhs)
