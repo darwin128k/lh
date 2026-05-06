@@ -20,7 +20,6 @@
 #include <lh/exception/catch.h>
 #include <lh/runtime/terminate.h>
 #include <lh/attribute/builtin.h>
-#include <lh/attribute/noreturn.h>
 
 /**
  * @def lh_runtime_exception_catch_stack_capture(x)
@@ -65,8 +64,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * The implementation keeps a fixed array of ::lh_exception_catch_t pointers
  * and a cursor into that array.
- * This function returns whatever pointer is stored in the slot at the cursor; that value is often
- * null before anything is pushed into that slot.
+ * This function returns whatever pointer is stored in the slot at the cursor;
+ * that value is often null before anything is pushed into that slot.
  *
  * After ::lh_runtime_exception_catch_stack_throw lands in a handler,
  * the cursor lines up with that innermost frame, so the result is the active
@@ -74,9 +73,57 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @return The ::lh_exception_catch_t stored at the current slot,
  *         or null if the slot is empty.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_exception_catch_t *cur = lh_runtime_exception_catch_stack_get_cur();
+ * if (cur) {
+ *     // handle exception in cur->exception
+ * }
+ * @endcode
  */
 lh_exception_catch_t *
-lh_runtime_exception_catch_stack_get_current(void);
+lh_runtime_exception_catch_stack_get_cur(void);
+
+/**
+ * @brief Returns a pointer to the first (lowest) slot in the catch stack.
+ *
+ * The returned value is a pointer to the slot itself (not the stored pointer),
+ * allowing iteration from the base of the stack.
+ *
+ * @return Pointer to the first slot in the catch stack.
+ *
+ * Example usage:
+ * @code{.c}
+ * for (lh_exception_catch_t *it = lh_runtime_exception_catch_stack_get_begin();
+ *      it != lh_runtime_exception_catch_stack_get_end();
+ *      ++it) {
+ *     // inspect each slot
+ * }
+ * @endcode
+ */
+lh_exception_catch_t *
+lh_runtime_exception_catch_stack_get_begin(void);
+
+/**
+ * @brief Returns a pointer to one-past-the-last slot in the catch stack.
+ *
+ * Use with ::lh_runtime_exception_catch_stack_get_begin to iterate over
+ * all slots in the catch stack.
+ *
+ * @return Pointer to one-past-the-last slot.
+ *
+ * Example usage:
+ * @code{.c}
+ * for (lh_exception_catch_t *it = lh_runtime_exception_catch_stack_get_begin();
+ *      it != lh_runtime_exception_catch_stack_get_end();
+ *      ++it) {
+ *     // inspect each slot
+ * }
+ * @endcode
+ */
+lh_exception_catch_t *
+lh_runtime_exception_catch_stack_get_end(void);
 
 /**
  * @brief Tests whether the cursor is at the bottom of the stack.
@@ -86,6 +133,13 @@ lh_runtime_exception_catch_stack_get_current(void);
  *
  * @retval lh_bool_true Cursor is at the first slot (initial / fully unwound position).
  * @retval lh_bool_false There is at least one populated slot below the cursor.
+ *
+ * Example usage:
+ * @code{.c}
+ * if (lh_runtime_exception_catch_stack_is_begin()) {
+ *     // cursor at bottom, no active catch frames
+ * }
+ * @endcode
  */
 lh_bool_t
 lh_runtime_exception_catch_stack_is_begin(void);
@@ -101,6 +155,13 @@ lh_runtime_exception_catch_stack_is_begin(void);
  *                      returns null until the stack moves back.
  * @retval lh_bool_false A new frame can still be registered with
  *                      ::lh_runtime_exception_catch_stack_push.
+ *
+ * Example usage:
+ * @code{.c}
+ * if (lh_runtime_exception_catch_stack_is_end()) {
+ *     // stack full, cannot push more frames
+ * }
+ * @endcode
  */
 lh_bool_t
 lh_runtime_exception_catch_stack_is_end(void);
@@ -110,6 +171,14 @@ lh_runtime_exception_catch_stack_is_end(void);
  *
  * @return Pointer stored in the slot after advancing,
  *         or null if the cursor was already at the end.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_exception_catch_t *next = lh_runtime_exception_catch_stack_next();
+ * if (next) {
+ *     // moved to next slot
+ * }
+ * @endcode
  */
 lh_exception_catch_t *
 lh_runtime_exception_catch_stack_next(void);
@@ -119,6 +188,14 @@ lh_runtime_exception_catch_stack_next(void);
  *
  * @return Pointer stored at the new cursor,
  *         or null if the cursor was already at the beginning.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_exception_catch_t *prev = lh_runtime_exception_catch_stack_prev();
+ * if (prev) {
+ *     // moved to previous slot
+ * }
+ * @endcode
  */
 lh_exception_catch_t *
 lh_runtime_exception_catch_stack_prev(void);
@@ -134,6 +211,14 @@ lh_runtime_exception_catch_stack_prev(void);
  * @param e Catch site to register.
  * @return @p e on success, or null if the stack was already full
  *         (::lh_runtime_exception_catch_stack_is_end()).
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_exception_catch_t frame;
+ * if (lh_runtime_exception_catch_stack_push(&frame)) {
+ *     // frame pushed successfully
+ * }
+ * @endcode
  */
 lh_exception_catch_t *
 lh_runtime_exception_catch_stack_push(lh_exception_catch_t *e);
@@ -167,11 +252,11 @@ lh_runtime_exception_catch_stack_throw(const lh_exception_t *exception) {
 /**
  * @brief Re-throw the exception held in the innermost active catch frame.
  *
- * Reads ::lh_exception_catch_t::exception from ::lh_runtime_exception_catch_stack_get_current()
+ * Reads ::lh_exception_catch_t::exception from ::lh_runtime_exception_catch_stack_get_cur()
  * and forwards it to ::lh_runtime_exception_catch_stack_throw, so the next outer registered catch
  * receives the same ::lh_exception_t (or ::lh_runtime_terminate runs if there is no outer frame).
  *
- * @pre ::lh_runtime_exception_catch_stack_get_current() must be non-null
+ * @pre ::lh_runtime_exception_catch_stack_get_cur() must be non-null
  *      and refer to the catch that is currently handling the exception;
  *      otherwise behavior is undefined.
  */
@@ -179,7 +264,7 @@ LH_ATTRIBUTE_BUILTIN
 LH_ATTRIBUTE_NORETURN
 void
 lh_runtime_exception_catch_stack_rethrow(void) {
-    const lh_exception_catch_t *cur = lh_runtime_exception_catch_stack_get_current();
+    const lh_exception_catch_t *cur = lh_runtime_exception_catch_stack_get_cur();
     lh_runtime_exception_catch_stack_throw(&cur->exception);
 }
 

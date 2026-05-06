@@ -14,10 +14,8 @@
 #define LH_RUNTIME_TERMINATE_H
 
 #include <lh/attribute/noreturn.h>
-#include <lh/attribute/thread_local.h>
 #include <lh/library/fallback.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/compiler/unreachable.h>
 #include <lh/runtime/terminate/cb.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
