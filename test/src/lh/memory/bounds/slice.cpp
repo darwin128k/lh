@@ -268,6 +268,16 @@ TEST(memory_bounds_slice_get_ptr_after_shift, supports_boundary_relative_moves) 
     EXPECT_EQ(lh_memory_bounds_slice_get_ptr_after_shift(&s, p(buf + 4), -3), p(buf + 1));
 }
 
+TEST(memory_bounds_slice_get_ptr_after_shift, returns_null_after_boundary_shift) {
+    unsigned char buf[5];
+    lh_memory_bounds_slice_t s = slice(p(buf + 1), p(buf + 3));
+
+    EXPECT_EQ(lh_memory_bounds_slice_get_ptr_after_shift(&s, p(buf + 3), 1), lh_null);
+    EXPECT_EQ(lh_memory_bounds_slice_get_ptr_after_shift(&s, p(buf + 1), -1), lh_null);
+    EXPECT_EQ(lh_memory_bounds_slice_get_ptr_after_shift(&s, p(buf + 2), 3), lh_null);
+    EXPECT_EQ(lh_memory_bounds_slice_get_ptr_after_shift(&s, p(buf + 2), -2), lh_null);
+}
+
 TEST(memory_bounds_slice_next_ptr, moves_by_one_byte) {
     unsigned char buf[5];
     lh_memory_bounds_slice_t s = slice(p(buf + 1), p(buf + 4));
@@ -291,11 +301,25 @@ TEST(memory_bounds_slice_next_ptr, null_pointer_uses_absolute_shift) {
     EXPECT_EQ(lh_memory_bounds_slice_next_ptr(&s, lh_null), p(buf + 1));
 }
 
+TEST(memory_bounds_slice_next_ptr, returns_null_from_end_pointer) {
+    unsigned char buf[3];
+    lh_memory_bounds_slice_t s = slice(p(buf), p(buf + 2));
+
+    EXPECT_EQ(lh_memory_bounds_slice_next_ptr(&s, p(buf + 2)), lh_null);
+}
+
 TEST(memory_bounds_slice_prev_ptr, null_pointer_uses_absolute_shift) {
     unsigned char buf[4];
     lh_memory_bounds_slice_t s = slice(p(buf), p(buf + 3));
 
     EXPECT_EQ(lh_memory_bounds_slice_prev_ptr(&s, lh_null), p(buf + 3));
+}
+
+TEST(memory_bounds_slice_prev_ptr, returns_null_from_begin_pointer) {
+    unsigned char buf[3];
+    lh_memory_bounds_slice_t s = slice(p(buf), p(buf + 2));
+
+    EXPECT_EQ(lh_memory_bounds_slice_prev_ptr(&s, p(buf)), lh_null);
 }
 
 TEST(memory_bounds_slice_get_value_from_begin, reads_byte_from_begin_offset) {
@@ -390,34 +414,6 @@ TEST(memory_bounds_slice_get_ptr_after_shift, rejects_pointer_after_slice_death)
     lh_memory_bounds_slice_t s = slice(p(buf), p(buf + 2));
 
     LH_EXPECT_DEATH((void)lh_memory_bounds_slice_get_ptr_after_shift(&s, p(buf + 3), 0));
-}
-
-TEST(memory_bounds_slice_get_ptr_after_shift, rejects_positive_offset_past_end_death) {
-    unsigned char buf[4];
-    lh_memory_bounds_slice_t s = slice(p(buf), p(buf + 2));
-
-    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_get_ptr_after_shift(&s, p(buf + 1), 2));
-}
-
-TEST(memory_bounds_slice_get_ptr_after_shift, rejects_negative_offset_before_begin_death) {
-    unsigned char buf[4];
-    lh_memory_bounds_slice_t s = slice(p(buf + 1), p(buf + 3));
-
-    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_get_ptr_after_shift(&s, p(buf + 2), -2));
-}
-
-TEST(memory_bounds_slice_next_ptr, rejects_end_pointer_death) {
-    unsigned char buf[3];
-    lh_memory_bounds_slice_t s = slice(p(buf), p(buf + 2));
-
-    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_next_ptr(&s, p(buf + 2)));
-}
-
-TEST(memory_bounds_slice_prev_ptr, rejects_begin_pointer_death) {
-    unsigned char buf[3];
-    lh_memory_bounds_slice_t s = slice(p(buf), p(buf + 2));
-
-    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_prev_ptr(&s, p(buf)));
 }
 
 #endif // LH_TEST_EXPECT_DEATH_ENABLED

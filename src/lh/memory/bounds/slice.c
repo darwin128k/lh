@@ -2,6 +2,8 @@
 #include <lh/runtime/check/ref.h>
 #include <lh/util/interval.h>
 #include <lh/optional/ref.h>
+#include <lh/runtime/throw.h>
+#include <lh/runtime/try.h>
 #include <lh/util/ptr.h>
 
 lh_void
@@ -187,7 +189,8 @@ lh_memory_bounds_slice_get_ptr_from_end(const lh_memory_bounds_slice_t *self, lh
 }
 
 lh_ptr
-lh_memory_bounds_slice_get_ptr_by_offset(const lh_memory_bounds_slice_t *self, lh_soffset_t offset) {
+lh_memory_bounds_slice_get_ptr_by_offset(const lh_memory_bounds_slice_t *self,
+                                         lh_soffset_t offset) {
     if (lh_math_ge(offset, 0)) {
         return lh_memory_bounds_slice_get_ptr_from_begin(self, lh_type_cast(lh_uoffset_t, offset));
     } else {
@@ -248,14 +251,28 @@ lh_memory_bounds_slice_get_offset_after_shift(const lh_memory_bounds_slice_t *se
         lh_interval_closed_is_add_overflow(ptr_offset, offset, LH_UOFFSET_T_MIN, LH_UOFFSET_T_MAX),
         lh_runtime_error_code_overflow);
 
-    return lh_math_add(ptr_offset, offset);
+    const lh_uoffset_t target_offset = lh_math_add(ptr_offset, offset);
+    lh_runtime_check(lh_memory_bounds_slice_is_valid_offset(self, target_offset),
+                     lh_runtime_error_code_overflow);
+    return target_offset;
 }
 
 const lh_ptr
 lh_memory_bounds_slice_get_ptr_after_shift(const lh_memory_bounds_slice_t *self, const lh_ptr ptr,
                                            lh_soffset_t offset) {
-    return lh_memory_bounds_slice_get_ptr_from_begin(
-        self, lh_memory_bounds_slice_get_offset_after_shift(self, ptr, offset));
+    lh_runtime_try(e) {
+        offset = lh_memory_bounds_slice_get_offset_after_shift(self, ptr, offset);
+        ptr = lh_memory_bounds_slice_get_ptr_from_begin(self, offset);
+        lh_runtime_try_return(ptr);
+    }
+    lh_runtime_catch {
+        if (!lh_exception_has_code(&e.exception, lh_runtime_error_code_overflow) &&
+            !lh_exception_has_code(&e.exception, lh_runtime_error_code_underflow)) {
+            lh_runtime_rethrow();
+        }
+
+        return lh_null;
+    }
 }
 
 const lh_ptr

@@ -63,6 +63,152 @@ LH_ATTRIBUTE_SYMBOL
 lh_error_t *
 lh_exception_get_error(const lh_exception_t *self);
 
+#ifndef NDEBUG
+/**
+ * @brief Mutable pointer to the debug origin stored in @p self.
+ *
+ * This accessor is available only when `NDEBUG` is not defined, because
+ * ::lh_exception_t::origin is omitted from release builds.
+ *
+ * @param self Exception value (not null).
+ * @return Pointer to @p self->origin.
+ *
+ * @see lh_exception_origin_t
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_exception_origin_t *
+lh_exception_get_origin(const lh_exception_t *self);
+#endif
+
+/**
+ * @brief Replace only the embedded error code.
+ *
+ * @param self Exception value to modify (not null).
+ * @param code New error code.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_exception_set_code(lh_exception_t *self, lh_error_code_t code);
+
+/**
+ * @brief Replace only the embedded error description.
+ *
+ * @param self Exception value to modify (not null).
+ * @param desc New description pointer (may be null).
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_exception_set_desc(lh_exception_t *self, lh_error_desc_t desc);
+
+/**
+ * @brief Return the embedded error code.
+ *
+ * @param self Exception value (not null).
+ * @return Code stored in @p self->error.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_error_code_t
+lh_exception_get_code(const lh_exception_t *self);
+
+/**
+ * @brief Return the embedded error description.
+ *
+ * @param self Exception value (not null).
+ * @return Description stored in @p self->error; may be null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_error_desc_t
+lh_exception_get_desc(const lh_exception_t *self);
+
+/**
+ * @brief Return the embedded description or @p fallback when it is null.
+ *
+ * @param self Exception value (not null).
+ * @param fallback Description returned when @p self has no description.
+ * @return Stored description when non-null, otherwise @p fallback.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_error_desc_t
+lh_exception_get_desc_or(const lh_exception_t *self, lh_error_desc_t fallback);
+
+/**
+ * @brief Test whether the embedded error code is equal to @p code.
+ *
+ * @param self Exception value (not null).
+ * @param code Error code to compare with.
+ * @return ::lh_bool_true when @p self carries @p code, otherwise ::lh_bool_false.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_exception_has_code(const lh_exception_t *self, lh_error_code_t code);
+
+/**
+ * @brief Test whether the embedded error has the success code.
+ *
+ * @param self Exception value (not null).
+ * @return ::lh_bool_true when @p self stores ::lh_error_code_ok.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_exception_is_ok(const lh_exception_t *self);
+
+/**
+ * @brief Test whether the embedded error has a non-success code.
+ *
+ * @param self Exception value (not null).
+ * @return ::lh_bool_true when @p self does not store ::lh_error_code_ok.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_exception_is_failure(const lh_exception_t *self);
+
+/**
+ * @brief Test whether the embedded error has a non-null description.
+ *
+ * @param self Exception value (not null).
+ * @return ::lh_bool_true when @p self stores a description pointer.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_exception_has_desc(const lh_exception_t *self);
+
+/**
+ * @brief Test whether the embedded error is the cleared success state.
+ *
+ * @param self Exception value (not null).
+ * @return ::lh_bool_true when @p self stores ::lh_error_code_ok and no description.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_exception_is_empty(const lh_exception_t *self);
+
+/**
+ * @brief Test whether two exceptions carry equal embedded errors.
+ *
+ * Debug origin metadata is ignored. Description equality is pointer equality,
+ * matching ::lh_error_equals.
+ *
+ * @param self Exception value (not null).
+ * @param other Exception value to compare with (not null).
+ * @return ::lh_bool_true when both exceptions carry equal embedded errors.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_exception_equals(const lh_exception_t *self, const lh_exception_t *other);
+
+/**
+ * @brief Test whether two exceptions carry the same embedded error code.
+ *
+ * Descriptions and debug origins are ignored.
+ *
+ * @param self Exception value (not null).
+ * @param other Exception value to compare with (not null).
+ * @return ::lh_bool_true when both exceptions carry the same code.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_exception_has_same_code(const lh_exception_t *self, const lh_exception_t *other);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif // LH_EXCEPTION_H

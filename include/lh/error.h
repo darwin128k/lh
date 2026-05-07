@@ -72,6 +72,30 @@ LH_ATTRIBUTE_SYMBOL
 void
 lh_error_set(lh_error_t *self, lh_error_code_t code, lh_error_desc_t desc);
 
+/**
+ * @brief Replace only the error code stored in @p self.
+ *
+ * Equivalent to ::lh_error_pack with @p code provided and @c desc skipped.
+ *
+ * @param self Error object to modify.
+ * @param code New error code.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_error_set_code(lh_error_t *self, lh_error_code_t code);
+
+/**
+ * @brief Replace only the description pointer stored in @p self.
+ *
+ * Equivalent to ::lh_error_pack with @c code skipped and @p desc provided.
+ *
+ * @param self Error object to modify.
+ * @param desc New description pointer (may be null).
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_error_set_desc(lh_error_t *self, lh_error_desc_t desc);
+
 /* ── accessors ───────────────────────────────────────────────────────────── */
 
 /**
@@ -91,6 +115,95 @@ lh_error_get_code(const lh_error_t *self);
 LH_ATTRIBUTE_SYMBOL
 lh_error_desc_t
 lh_error_get_desc(const lh_error_t *self);
+
+/**
+ * @brief Return the description pointer or @p fallback when it is null.
+ *
+ * @param self Error object to read from.
+ * @param fallback Description returned when @p self has no description.
+ * @return Stored description when non-null, otherwise @p fallback.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_error_desc_t
+lh_error_get_desc_or(const lh_error_t *self, lh_error_desc_t fallback);
+
+/**
+ * @brief Test whether @p self stores @p code.
+ *
+ * @param self Error object to read from.
+ * @param code Error code to compare with.
+ * @return ::lh_bool_true when @p self carries @p code, otherwise ::lh_bool_false.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_error_has_code(const lh_error_t *self, lh_error_code_t code);
+
+/**
+ * @brief Test whether @p self has the success code.
+ *
+ * @param self Error object to read from.
+ * @return ::lh_bool_true when @p self stores ::lh_error_code_ok.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_error_is_ok(const lh_error_t *self);
+
+/**
+ * @brief Test whether @p self has a non-success code.
+ *
+ * @param self Error object to read from.
+ * @return ::lh_bool_true when @p self does not store ::lh_error_code_ok.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_error_is_failure(const lh_error_t *self);
+
+/**
+ * @brief Test whether @p self has a non-null description.
+ *
+ * @param self Error object to read from.
+ * @return ::lh_bool_true when @p self stores a description pointer.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_error_has_desc(const lh_error_t *self);
+
+/**
+ * @brief Test whether @p self is the cleared success state.
+ *
+ * @param self Error object to read from.
+ * @return ::lh_bool_true when @p self stores ::lh_error_code_ok and no description.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_error_is_empty(const lh_error_t *self);
+
+/**
+ * @brief Test whether two error objects store the same fields.
+ *
+ * Description equality is pointer equality; ::lh_error_t does not own or copy
+ * description text.
+ *
+ * @param self Error object to read from.
+ * @param other Error object to compare with.
+ * @return ::lh_bool_true when both objects store the same code and description pointer.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_error_equals(const lh_error_t *self, const lh_error_t *other);
+
+/**
+ * @brief Test whether two error objects store the same code.
+ *
+ * Description pointers are ignored.
+ *
+ * @param self Error object to read from.
+ * @param other Error object to compare with.
+ * @return ::lh_bool_true when both objects store the same code.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_error_has_same_code(const lh_error_t *self, const lh_error_t *other);
 
 /* ── copy / clear ────────────────────────────────────────────────────────── */
 
