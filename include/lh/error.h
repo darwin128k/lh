@@ -139,6 +139,17 @@ lh_bool_t
 lh_error_has_code(const lh_error_t *self, lh_error_code_t code);
 
 /**
+ * @brief Test whether @p self does not store @p code.
+ *
+ * @param self Error object to read from.
+ * @param code Error code to compare with.
+ * @return ::lh_bool_true when @p self carries any code except @p code.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_error_has_not_code(const lh_error_t *self, lh_error_code_t code);
+
+/**
  * @brief Test whether @p self has the success code.
  *
  * @param self Error object to read from.
@@ -169,6 +180,16 @@ lh_bool_t
 lh_error_has_desc(const lh_error_t *self);
 
 /**
+ * @brief Test whether @p self has no description.
+ *
+ * @param self Error object to read from.
+ * @return ::lh_bool_true when @p self stores a null description pointer.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_error_has_not_desc(const lh_error_t *self);
+
+/**
  * @brief Test whether @p self is the cleared success state.
  *
  * @param self Error object to read from.
@@ -177,6 +198,16 @@ lh_error_has_desc(const lh_error_t *self);
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_error_is_empty(const lh_error_t *self);
+
+/**
+ * @brief Test whether @p self is not the cleared success state.
+ *
+ * @param self Error object to read from.
+ * @return ::lh_bool_true when @p self has a non-ok code or a description.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_error_is_not_empty(const lh_error_t *self);
 
 /**
  * @brief Test whether two error objects store the same fields.
@@ -193,6 +224,19 @@ lh_bool_t
 lh_error_equals(const lh_error_t *self, const lh_error_t *other);
 
 /**
+ * @brief Test whether two error objects store different fields.
+ *
+ * Description equality is pointer equality, matching ::lh_error_equals.
+ *
+ * @param self Error object to read from.
+ * @param other Error object to compare with.
+ * @return ::lh_bool_true when the code or description pointer differs.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_error_not_equals(const lh_error_t *self, const lh_error_t *other);
+
+/**
  * @brief Test whether two error objects store the same code.
  *
  * Description pointers are ignored.
@@ -204,6 +248,19 @@ lh_error_equals(const lh_error_t *self, const lh_error_t *other);
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_error_has_same_code(const lh_error_t *self, const lh_error_t *other);
+
+/**
+ * @brief Test whether two error objects store different codes.
+ *
+ * Description pointers are ignored.
+ *
+ * @param self Error object to read from.
+ * @param other Error object to compare with.
+ * @return ::lh_bool_true when both objects store different codes.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_error_has_different_code(const lh_error_t *self, const lh_error_t *other);
 
 /* ── copy / clear ────────────────────────────────────────────────────────── */
 

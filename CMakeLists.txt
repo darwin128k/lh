@@ -69,6 +69,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/memory/raw.c
         ${LH_LIB_SRC_PATH}/memory.c
 
+        ${LH_LIB_SRC_PATH}/exception/catch.c
         ${LH_LIB_SRC_PATH}/exception.c
         ${LH_LIB_SRC_PATH}/version.c
         ${LH_LIB_SRC_PATH}/error.c
