@@ -122,6 +122,24 @@
 #define lh_runtime_error_code_size_not_multiple_of_type_size 0x0C
 
 /**
+ * @def lh_runtime_error_code_overflow
+ * @brief Runtime error code for arithmetic overflow.
+ *
+ * Emitted when a runtime calculation would exceed the maximum representable
+ * value for its type (for example during size or offset arithmetic).
+ */
+#define lh_runtime_error_code_overflow 0x0D
+
+/**
+ * @def lh_runtime_error_code_underflow
+ * @brief Runtime error code for arithmetic underflow.
+ *
+ * Emitted when a runtime calculation would go below the minimum representable
+ * value for its type (for example during backward offset arithmetic).
+ */
+#define lh_runtime_error_code_underflow 0x0E
+
+/**
  * @typedef lh_runtime_error_code_t
  * @brief Same representation as ::lh_error_code_t for runtime-layer APIs.
  *

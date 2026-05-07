@@ -156,7 +156,7 @@ lh_memory_bounds_slice_get_direction(const lh_memory_bounds_slice_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_slice_is_forward_direction(const lh_memory_bounds_slice_t *self);
+lh_memory_bounds_slice_is_forward(const lh_memory_bounds_slice_t *self);
 
 /**
  * @brief True iff @p self is initialized and reversed.
@@ -167,7 +167,7 @@ lh_memory_bounds_slice_is_forward_direction(const lh_memory_bounds_slice_t *self
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_slice_is_backward_direction(const lh_memory_bounds_slice_t *self);
+lh_memory_bounds_slice_is_backward(const lh_memory_bounds_slice_t *self);
 
 /**
  * @brief True iff @p self is initialized and forward ordered.
@@ -349,8 +349,8 @@ lh_memory_bounds_slice_contains_ptr(const lh_memory_bounds_slice_t *self, const 
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_slice_contains_of(const lh_memory_bounds_slice_t *self, const lh_ptr begin,
-                                   const lh_ptr end);
+lh_memory_bounds_slice_contains_range(const lh_memory_bounds_slice_t *self, const lh_ptr begin,
+                                      const lh_ptr end);
 
 /**
  * @brief True iff @p other lies completely inside @p self.
@@ -426,7 +426,7 @@ lh_memory_bounds_slice_get_ptr_from_end(const lh_memory_bounds_slice_t *self, lh
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
-lh_memory_bounds_slice_get_ptr(const lh_memory_bounds_slice_t *self, lh_soffset_t offset);
+lh_memory_bounds_slice_get_ptr_by_offset(const lh_memory_bounds_slice_t *self, lh_soffset_t offset);
 
 /**
  * @brief Read byte at @p offset from @c first.
@@ -479,7 +479,8 @@ lh_memory_bounds_slice_get_value_from_end(const lh_memory_bounds_slice_t *self,
  */
 LH_ATTRIBUTE_SYMBOL
 lh_byte_t
-lh_memory_bounds_slice_get_value(const lh_memory_bounds_slice_t *self, lh_soffset_t offset);
+lh_memory_bounds_slice_get_value_by_offset(const lh_memory_bounds_slice_t *self,
+                                           lh_soffset_t offset);
 
 /**
  * @brief Read the first byte of @p self.
@@ -508,6 +509,24 @@ lh_memory_bounds_slice_get_begin_value(const lh_memory_bounds_slice_t *self);
 LH_ATTRIBUTE_SYMBOL
 lh_byte_t
 lh_memory_bounds_slice_get_end_value(const lh_memory_bounds_slice_t *self);
+
+LH_ATTRIBUTE_SYMBOL
+lh_uoffset_t
+lh_memory_bounds_slice_get_offset_after_shift(const lh_memory_bounds_slice_t *self,
+                                              const lh_ptr ptr, lh_soffset_t offset);
+
+LH_ATTRIBUTE_SYMBOL
+const lh_ptr
+lh_memory_bounds_slice_get_ptr_after_shift(const lh_memory_bounds_slice_t *self, const lh_ptr ptr,
+                                           lh_soffset_t offset);
+
+LH_ATTRIBUTE_SYMBOL
+const lh_ptr
+lh_memory_bounds_slice_next_ptr(const lh_memory_bounds_slice_t *self, const lh_ptr ptr);
+
+LH_ATTRIBUTE_SYMBOL
+const lh_ptr
+lh_memory_bounds_slice_prev_ptr(const lh_memory_bounds_slice_t *self, const lh_ptr ptr);
 
 LH_COMPILER_EXTERN_C_END
 
