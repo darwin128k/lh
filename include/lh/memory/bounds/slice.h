@@ -935,6 +935,27 @@ LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_slice_swap_v(lh_memory_bounds_slice_t *self, lh_memory_bounds_slice_t *other);
 
+/**
+ * @brief Clear @p self, then swap it with @p other.
+ *
+ * When @p self and @p other are different objects, @p self receives the previous
+ * endpoints of valid @p other, and @p other receives the empty slice.
+ *
+ * When @p self and @p other are the same object, the slice is only cleared.
+ *
+ * @param self  Slice to clear and replace.
+ * @param other Valid slice to swap with.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_slice_swap_and_clear(lh_memory_bounds_slice_t *self,
+                                      lh_memory_bounds_slice_t *other);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif // LH_MEMORY_BOUNDS_SLICE_H

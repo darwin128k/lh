@@ -505,5 +505,17 @@ lh_memory_bounds_slice_set_by_size(lh_memory_bounds_slice_t *self, lh_ptr begin,
     lh_runtime_check_if(lh_math_is_zero(size), lh_runtime_error_code_invalid_range);
 
     lh_ptr end = lh_ptr_add_by_offset_unsafe(lh_void, begin, lh_math_sub_one(size));
-    lh_memory_bounds_slice_set_v(self, begin, end);
+    lh_memory_bounds_slice_set(self, begin, end);
+}
+
+lh_void
+lh_memory_bounds_slice_swap_and_clear(lh_memory_bounds_slice_t *self,
+                                      lh_memory_bounds_slice_t *other)
+{
+    lh_memory_bounds_slice_clear(self);
+
+    if (lh_math_ne(self, other))
+    {
+        lh_memory_bounds_slice_swap_v_other(self, other);
+    }
 }
