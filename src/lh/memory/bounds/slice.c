@@ -375,8 +375,8 @@ lh_memory_bounds_slice_overlaps(const lh_memory_bounds_slice_t *self,
 }
 
 lh_bool_t
-lh_memmory_bounds_slice_overlaps_v(const lh_memory_bounds_slice_t *self,
-                                   const lh_memory_bounds_slice_t *other)
+lh_memory_bounds_slice_overlaps_v(const lh_memory_bounds_slice_t *self,
+                                  const lh_memory_bounds_slice_t *other)
 {
     lh_runtime_check(lh_memory_bounds_slice_is_valid(other),
                      lh_runtime_error_code_invalid_range);

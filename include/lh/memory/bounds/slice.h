@@ -399,6 +399,21 @@ lh_bool_t
 lh_memory_bounds_slice_overlaps(const lh_memory_bounds_slice_t *self,
                                 const lh_memory_bounds_slice_t *other);
 
+/**
+ * @brief True iff valid @p other overlaps @p self.
+ * @param self  Valid slice.
+ * @param other Valid slice to test.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        A slice is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_overlaps_v(const lh_memory_bounds_slice_t *self,
+                                  const lh_memory_bounds_slice_t *other);
+
 /* -- pointer and value access --------------------------------------------- */
 
 /**
