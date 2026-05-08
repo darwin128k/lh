@@ -536,5 +536,5 @@ lh_void
 lh_memory_bounds_slice_init_by_other(lh_memory_bounds_slice_t *self,
                                      const lh_memory_bounds_slice_t *other)
 {
-    lh_memory_bounds_slice_assign(self, other);
+    lh_memory_bounds_slice_assign_v(self, other);
 }
