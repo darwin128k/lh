@@ -140,6 +140,14 @@
 #define lh_runtime_error_code_underflow 0x0E
 
 /**
+ * @def lh_runtime_error_code_division_by_zero
+ * @brief Runtime error code for division by zero.
+ *
+ * Emitted when a runtime calculation attempts to divide by zero.
+ */
+#define lh_runtime_error_code_division_by_zero 0x0F
+
+/**
  * @typedef lh_runtime_error_code_t
  * @brief Same representation as ::lh_error_code_t for runtime-layer APIs.
  *

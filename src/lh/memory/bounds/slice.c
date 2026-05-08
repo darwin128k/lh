@@ -113,8 +113,7 @@ lh_memory_bounds_slice_is_valid(const lh_memory_bounds_slice_t *self)
 lh_void
 lh_memory_bounds_slice_unpack_v(const lh_memory_bounds_slice_t *self, lh_ptr *begin, lh_ptr *end)
 {
-    lh_runtime_check(lh_memory_bounds_slice_is_valid(self),
-                     lh_runtime_error_code_invalid_range);
+    lh_runtime_check(lh_memory_bounds_slice_is_valid(self), lh_runtime_error_code_invalid_range);
     lh_memory_bounds_slice_unpack(self, begin, end);
 }
 
@@ -378,8 +377,50 @@ lh_bool_t
 lh_memory_bounds_slice_overlaps_v(const lh_memory_bounds_slice_t *self,
                                   const lh_memory_bounds_slice_t *other)
 {
-    lh_runtime_check(lh_memory_bounds_slice_is_valid(other),
-                     lh_runtime_error_code_invalid_range);
+    lh_runtime_check(lh_memory_bounds_slice_is_valid(other), lh_runtime_error_code_invalid_range);
 
     return lh_memory_bounds_slice_overlaps(self, other);
+}
+
+lh_bool_t
+lh_memory_bounds_slice_multiple_of(const lh_memory_bounds_slice_t *self, lh_usize_t alignment)
+{
+    lh_runtime_check_if(lh_math_is_zero(alignment), lh_runtime_error_code_division_by_zero);
+    const lh_usize_t size = lh_memory_bounds_slice_get_size(self);
+    return lh_math_is_zero(lh_math_mod(size, alignment));
+}
+
+lh_bool_t
+lh_memory_bounds_slice_aligned_is_begin_aligned(const lh_memory_bounds_slice_t *self,
+                                                lh_usize_t align)
+{
+    const lh_ptr begin = lh_memory_bounds_slice_get_begin_v(self);
+    lh_runtime_check(lh_math_is_power_of_two(align), lh_runtime_error_code_not_power_of_two);
+    return lh_ptr_is_aligned(begin, align);
+}
+
+lh_bool_t
+lh_memory_bounds_slice_is_aligned(const lh_memory_bounds_slice_t *self, lh_usize_t align)
+{
+    const lh_bool_t is_begin_aligned = lh_memory_bounds_slice_aligned_is_begin_aligned(self, align);
+    const lh_ptr end = lh_memory_bounds_slice_get_end_v(self);
+    return is_begin_aligned && lh_ptr_is_aligned(end, align);
+}
+
+lh_bool_t
+lh_memory_bounds_slice_equals_of(const lh_memory_bounds_slice_t *self, const lh_ptr begin,
+                                 const lh_ptr end)
+{
+    lh_void *self_begin, *self_end;
+    lh_memory_bounds_slice_unpack(self, lh_addr_of(self_begin), lh_addr_of(self_end));
+    return lh_ptr_eq(self_begin, begin) && lh_ptr_eq(self_end, end);
+}
+
+lh_bool_t
+lh_memory_bounds_slice_equals(const lh_memory_bounds_slice_t *self,
+                              const lh_memory_bounds_slice_t *other)
+{
+    lh_void *other_begin, *other_end;
+    lh_memory_bounds_slice_unpack(other, lh_addr_of(other_begin), lh_addr_of(other_end));
+    return lh_memory_bounds_slice_equals_of(self, other_begin, other_end);
 }

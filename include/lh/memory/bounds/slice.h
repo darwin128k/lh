@@ -245,6 +245,58 @@ lh_usize_t
 lh_memory_bounds_slice_get_size(const lh_memory_bounds_slice_t *self);
 
 /**
+ * @brief True iff closed slice size is divisible by @p alignment.
+ *
+ * @param self      Valid slice to inspect.
+ * @param alignment Non-zero divisor for the slice size.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_division_by_zero
+ *        @p alignment is zero.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_multiple_of(const lh_memory_bounds_slice_t *self, lh_usize_t alignment);
+
+/**
+ * @brief True iff @c first is aligned to @p align.
+ *
+ * @param self  Valid slice to inspect.
+ * @param align Power-of-two alignment.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_not_power_of_two
+ *        @p align is not a power of two.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_aligned_is_begin_aligned(const lh_memory_bounds_slice_t *self,
+                                                lh_usize_t align);
+
+/**
+ * @brief True iff both endpoints are aligned to @p align.
+ *
+ * @param self  Valid slice to inspect.
+ * @param align Power-of-two alignment.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_not_power_of_two
+ *        @p align is not a power of two.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_is_aligned(const lh_memory_bounds_slice_t *self, lh_usize_t align);
+
+/**
  * @brief True iff @p self is uninitialized or has zero size.
  *
  * For the closed interval representation, an initialized valid slice has at
