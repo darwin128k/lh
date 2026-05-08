@@ -69,20 +69,6 @@ TEST(exception_catch_has_code, returns_false_for_different_code)
     EXPECT_FALSE(lh_exception_catch_has_code(&catch_frame, 12));
 }
 
-TEST(exception_catch_has_not_code, returns_true_for_different_code)
-{
-    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(11, "eleven");
-
-    EXPECT_TRUE(lh_exception_catch_has_not_code(&catch_frame, 12));
-}
-
-TEST(exception_catch_has_not_code, returns_false_for_matching_code)
-{
-    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(11, "eleven");
-
-    EXPECT_FALSE(lh_exception_catch_has_not_code(&catch_frame, 11));
-}
-
 TEST(exception_catch_is_ok, returns_true_for_ok_code)
 {
     const lh_exception_catch_t catch_frame =
@@ -105,39 +91,11 @@ TEST(exception_catch_has_desc, returns_true_for_non_null_desc)
     EXPECT_TRUE(lh_exception_catch_has_desc(&catch_frame));
 }
 
-TEST(exception_catch_has_not_desc, returns_true_for_null_desc)
-{
-    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(1, nullptr);
-
-    EXPECT_TRUE(lh_exception_catch_has_not_desc(&catch_frame));
-}
-
-TEST(exception_catch_has_not_desc, returns_false_for_non_null_desc)
-{
-    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(1, "desc");
-
-    EXPECT_FALSE(lh_exception_catch_has_not_desc(&catch_frame));
-}
-
 TEST(exception_catch_is_empty, returns_true_for_empty_exception)
 {
     const lh_exception_catch_t catch_frame = lh_exception_catch_empty_initializer();
 
     EXPECT_TRUE(lh_exception_catch_is_empty(&catch_frame));
-}
-
-TEST(exception_catch_is_not_empty, returns_true_for_non_empty_exception)
-{
-    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(1, nullptr);
-
-    EXPECT_TRUE(lh_exception_catch_is_not_empty(&catch_frame));
-}
-
-TEST(exception_catch_is_not_empty, returns_false_for_empty_exception)
-{
-    const lh_exception_catch_t catch_frame = lh_exception_catch_empty_initializer();
-
-    EXPECT_FALSE(lh_exception_catch_is_not_empty(&catch_frame));
 }
 
 TEST(exception_catch_equals, returns_true_for_same_embedded_exception)
@@ -157,23 +115,6 @@ TEST(exception_catch_equals, returns_false_for_different_embedded_exception)
     EXPECT_FALSE(lh_exception_catch_equals(&lhs, &rhs));
 }
 
-TEST(exception_catch_not_equals, returns_true_for_different_embedded_exception)
-{
-    const lh_exception_catch_t lhs = lh_exception_catch_initializer(21, "same");
-    const lh_exception_catch_t rhs = lh_exception_catch_initializer(22, "same");
-
-    EXPECT_TRUE(lh_exception_catch_not_equals(&lhs, &rhs));
-}
-
-TEST(exception_catch_not_equals, returns_false_for_equal_embedded_exception)
-{
-    lh_error_desc_t desc = "same";
-    const lh_exception_catch_t lhs = lh_exception_catch_initializer(21, desc);
-    const lh_exception_catch_t rhs = lh_exception_catch_initializer(21, desc);
-
-    EXPECT_FALSE(lh_exception_catch_not_equals(&lhs, &rhs));
-}
-
 TEST(exception_catch_has_same_code, returns_true_for_same_code)
 {
     const lh_exception_catch_t lhs = lh_exception_catch_initializer(21, "lhs");
@@ -190,20 +131,20 @@ TEST(exception_catch_has_same_code, returns_false_for_different_code)
     EXPECT_FALSE(lh_exception_catch_has_same_code(&lhs, &rhs));
 }
 
-TEST(exception_catch_has_different_code, returns_true_for_different_code)
+TEST(exception_catch_has_diff_code, returns_true_for_different_code)
 {
     const lh_exception_catch_t lhs = lh_exception_catch_initializer(21, "same");
     const lh_exception_catch_t rhs = lh_exception_catch_initializer(22, "same");
 
-    EXPECT_TRUE(lh_exception_catch_has_different_code(&lhs, &rhs));
+    EXPECT_TRUE(lh_exception_catch_has_diff_code(&lhs, &rhs));
 }
 
-TEST(exception_catch_has_different_code, returns_false_for_same_code)
+TEST(exception_catch_has_diff_code, returns_false_for_same_code)
 {
     const lh_exception_catch_t lhs = lh_exception_catch_initializer(21, "lhs");
     const lh_exception_catch_t rhs = lh_exception_catch_initializer(21, "rhs");
 
-    EXPECT_FALSE(lh_exception_catch_has_different_code(&lhs, &rhs));
+    EXPECT_FALSE(lh_exception_catch_has_diff_code(&lhs, &rhs));
 }
 
 #if LH_TEST_EXPECT_DEATH_ENABLED
@@ -238,11 +179,6 @@ TEST(exception_catch_death, has_code_null_self)
     LH_EXPECT_DEATH(lh_exception_catch_has_code(nullptr, 1));
 }
 
-TEST(exception_catch_death, has_not_code_null_self)
-{
-    LH_EXPECT_DEATH(lh_exception_catch_has_not_code(nullptr, 1));
-}
-
 TEST(exception_catch_death, is_ok_null_self)
 {
     LH_EXPECT_DEATH(lh_exception_catch_is_ok(nullptr));
@@ -258,19 +194,9 @@ TEST(exception_catch_death, has_desc_null_self)
     LH_EXPECT_DEATH(lh_exception_catch_has_desc(nullptr));
 }
 
-TEST(exception_catch_death, has_not_desc_null_self)
-{
-    LH_EXPECT_DEATH(lh_exception_catch_has_not_desc(nullptr));
-}
-
 TEST(exception_catch_death, is_empty_null_self)
 {
     LH_EXPECT_DEATH(lh_exception_catch_is_empty(nullptr));
-}
-
-TEST(exception_catch_death, is_not_empty_null_self)
-{
-    LH_EXPECT_DEATH(lh_exception_catch_is_not_empty(nullptr));
 }
 
 TEST(exception_catch_death, equals_null_self)
@@ -285,18 +211,6 @@ TEST(exception_catch_death, equals_null_other)
     LH_EXPECT_DEATH(lh_exception_catch_equals(&catch_frame, nullptr));
 }
 
-TEST(exception_catch_death, not_equals_null_self)
-{
-    const lh_exception_catch_t catch_frame = lh_exception_catch_empty_initializer();
-    LH_EXPECT_DEATH(lh_exception_catch_not_equals(nullptr, &catch_frame));
-}
-
-TEST(exception_catch_death, not_equals_null_other)
-{
-    const lh_exception_catch_t catch_frame = lh_exception_catch_empty_initializer();
-    LH_EXPECT_DEATH(lh_exception_catch_not_equals(&catch_frame, nullptr));
-}
-
 TEST(exception_catch_death, has_same_code_null_self)
 {
     const lh_exception_catch_t catch_frame = lh_exception_catch_empty_initializer();
@@ -309,16 +223,16 @@ TEST(exception_catch_death, has_same_code_null_other)
     LH_EXPECT_DEATH(lh_exception_catch_has_same_code(&catch_frame, nullptr));
 }
 
-TEST(exception_catch_death, has_different_code_null_self)
+TEST(exception_catch_death, has_diff_code_null_self)
 {
     const lh_exception_catch_t catch_frame = lh_exception_catch_empty_initializer();
-    LH_EXPECT_DEATH(lh_exception_catch_has_different_code(nullptr, &catch_frame));
+    LH_EXPECT_DEATH(lh_exception_catch_has_diff_code(nullptr, &catch_frame));
 }
 
-TEST(exception_catch_death, has_different_code_null_other)
+TEST(exception_catch_death, has_diff_code_null_other)
 {
     const lh_exception_catch_t catch_frame = lh_exception_catch_empty_initializer();
-    LH_EXPECT_DEATH(lh_exception_catch_has_different_code(&catch_frame, nullptr));
+    LH_EXPECT_DEATH(lh_exception_catch_has_diff_code(&catch_frame, nullptr));
 }
 
 #endif // LH_TEST_EXPECT_DEATH_ENABLED

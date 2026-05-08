@@ -130,12 +130,6 @@ lh_error_has_code(const lh_error_t *self, lh_error_code_t code)
 }
 
 lh_bool_t
-lh_error_has_not_code(const lh_error_t *self, lh_error_code_t code)
-{
-    return !lh_error_has_code(self, code);
-}
-
-lh_bool_t
 lh_error_is_ok(const lh_error_t *self)
 {
     return lh_error_has_code(self, lh_error_code_ok);
@@ -154,21 +148,9 @@ lh_error_has_desc(const lh_error_t *self)
 }
 
 lh_bool_t
-lh_error_has_not_desc(const lh_error_t *self)
-{
-    return !lh_error_has_desc(self);
-}
-
-lh_bool_t
 lh_error_is_empty(const lh_error_t *self)
 {
     return lh_error_is_ok(self) && !lh_error_has_desc(self);
-}
-
-lh_bool_t
-lh_error_is_not_empty(const lh_error_t *self)
-{
-    return !lh_error_is_empty(self);
 }
 
 lh_bool_t
@@ -179,19 +161,13 @@ lh_error_equals(const lh_error_t *self, const lh_error_t *other)
 }
 
 lh_bool_t
-lh_error_not_equals(const lh_error_t *self, const lh_error_t *other)
-{
-    return !lh_error_equals(self, other);
-}
-
-lh_bool_t
 lh_error_has_same_code(const lh_error_t *self, const lh_error_t *other)
 {
     return lh_error_get_code(self) == lh_error_get_code(other);
 }
 
 lh_bool_t
-lh_error_has_different_code(const lh_error_t *self, const lh_error_t *other)
+lh_error_has_diff_code(const lh_error_t *self, const lh_error_t *other)
 {
     return !lh_error_has_same_code(self, other);
 }

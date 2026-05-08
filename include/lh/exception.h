@@ -144,17 +144,6 @@ lh_bool_t
 lh_exception_has_code(const lh_exception_t *self, lh_error_code_t code);
 
 /**
- * @brief Test whether the embedded error code is not equal to @p code.
- *
- * @param self Exception value (not null).
- * @param code Error code to compare with.
- * @return ::lh_bool_true when @p self carries any code except @p code.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_exception_has_not_code(const lh_exception_t *self, lh_error_code_t code);
-
-/**
  * @brief Test whether the embedded error has the success code.
  *
  * @param self Exception value (not null).
@@ -185,16 +174,6 @@ lh_bool_t
 lh_exception_has_desc(const lh_exception_t *self);
 
 /**
- * @brief Test whether the embedded error has no description.
- *
- * @param self Exception value (not null).
- * @return ::lh_bool_true when @p self stores a null description pointer.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_exception_has_not_desc(const lh_exception_t *self);
-
-/**
  * @brief Test whether the embedded error is the cleared success state.
  *
  * @param self Exception value (not null).
@@ -203,16 +182,6 @@ lh_exception_has_not_desc(const lh_exception_t *self);
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_is_empty(const lh_exception_t *self);
-
-/**
- * @brief Test whether the embedded error is not the cleared success state.
- *
- * @param self Exception value (not null).
- * @return ::lh_bool_true when @p self has a non-ok code or a description.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_exception_is_not_empty(const lh_exception_t *self);
 
 /**
  * @brief Test whether two exceptions carry equal embedded errors.
@@ -227,20 +196,6 @@ lh_exception_is_not_empty(const lh_exception_t *self);
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_equals(const lh_exception_t *self, const lh_exception_t *other);
-
-/**
- * @brief Test whether two exceptions carry different embedded errors.
- *
- * Debug origin metadata is ignored. Description equality is pointer equality,
- * matching ::lh_exception_equals.
- *
- * @param self Exception value (not null).
- * @param other Exception value to compare with (not null).
- * @return ::lh_bool_true when the embedded code or description pointer differs.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_exception_not_equals(const lh_exception_t *self, const lh_exception_t *other);
 
 /**
  * @brief Test whether two exceptions carry the same embedded error code.
@@ -266,7 +221,7 @@ lh_exception_has_same_code(const lh_exception_t *self, const lh_exception_t *oth
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_exception_has_different_code(const lh_exception_t *self, const lh_exception_t *other);
+lh_exception_has_diff_code(const lh_exception_t *self, const lh_exception_t *other);
 
 LH_COMPILER_EXTERN_C_END
 

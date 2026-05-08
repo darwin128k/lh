@@ -308,8 +308,8 @@ lh_memory_bounds_slice_get_ptr_after_shift(const lh_memory_bounds_slice_t *self,
     }
     lh_runtime_catch
     {
-        if (lh_exception_catch_has_not_code(lh_addr_of(e), lh_runtime_error_code_overflow) &&
-            lh_exception_catch_has_not_code(lh_addr_of(e), lh_runtime_error_code_underflow))
+        if (!lh_exception_catch_has_code(lh_addr_of(e), lh_runtime_error_code_overflow) &&
+            !lh_exception_catch_has_code(lh_addr_of(e), lh_runtime_error_code_underflow))
         {
             lh_runtime_rethrow();
         }

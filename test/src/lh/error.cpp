@@ -171,20 +171,6 @@ TEST(error_has_code, returns_false_for_different_code)
     EXPECT_FALSE(lh_error_has_code(&err, 14));
 }
 
-TEST(error_has_not_code, returns_true_for_different_code)
-{
-    const lh_error_t err = lh_error_initializer(13, "thirteen");
-
-    EXPECT_TRUE(lh_error_has_not_code(&err, 14));
-}
-
-TEST(error_has_not_code, returns_false_for_matching_code)
-{
-    const lh_error_t err = lh_error_initializer(13, "thirteen");
-
-    EXPECT_FALSE(lh_error_has_not_code(&err, 13));
-}
-
 TEST(error_get_desc_or, returns_desc_when_non_null)
 {
     const lh_error_t err = lh_error_initializer(1, "desc");
@@ -248,20 +234,6 @@ TEST(error_has_desc, returns_false_for_null_desc)
     EXPECT_FALSE(lh_error_has_desc(&err));
 }
 
-TEST(error_has_not_desc, returns_true_for_null_desc)
-{
-    const lh_error_t err = lh_error_initializer(1, nullptr);
-
-    EXPECT_TRUE(lh_error_has_not_desc(&err));
-}
-
-TEST(error_has_not_desc, returns_false_for_non_null_desc)
-{
-    const lh_error_t err = lh_error_initializer(1, "desc");
-
-    EXPECT_FALSE(lh_error_has_not_desc(&err));
-}
-
 TEST(error_is_empty, returns_true_for_ok_code_without_desc)
 {
     const lh_error_t err = lh_error_empty_initializer();
@@ -281,20 +253,6 @@ TEST(error_is_empty, returns_false_for_ok_code_with_desc)
     const lh_error_t err = lh_error_initializer(lh_error_code_ok, "desc");
 
     EXPECT_FALSE(lh_error_is_empty(&err));
-}
-
-TEST(error_is_not_empty, returns_true_for_non_ok_code)
-{
-    const lh_error_t err = lh_error_initializer(1, nullptr);
-
-    EXPECT_TRUE(lh_error_is_not_empty(&err));
-}
-
-TEST(error_is_not_empty, returns_false_for_empty_error)
-{
-    const lh_error_t err = lh_error_empty_initializer();
-
-    EXPECT_FALSE(lh_error_is_not_empty(&err));
 }
 
 TEST(error_equals, returns_true_for_same_code_and_desc_pointer)
@@ -333,23 +291,6 @@ TEST(error_equals, returns_false_for_different_desc_pointer)
     EXPECT_FALSE(lh_error_equals(&lhs, &rhs));
 }
 
-TEST(error_not_equals, returns_true_for_different_code)
-{
-    const lh_error_t lhs = lh_error_initializer(21, "same");
-    const lh_error_t rhs = lh_error_initializer(22, "same");
-
-    EXPECT_TRUE(lh_error_not_equals(&lhs, &rhs));
-}
-
-TEST(error_not_equals, returns_false_for_equal_errors)
-{
-    lh_error_desc_t desc = "same";
-    const lh_error_t lhs = lh_error_initializer(21, desc);
-    const lh_error_t rhs = lh_error_initializer(21, desc);
-
-    EXPECT_FALSE(lh_error_not_equals(&lhs, &rhs));
-}
-
 TEST(error_has_same_code, returns_true_for_same_code)
 {
     const lh_error_t lhs = lh_error_initializer(21, "lhs");
@@ -366,20 +307,20 @@ TEST(error_has_same_code, returns_false_for_different_code)
     EXPECT_FALSE(lh_error_has_same_code(&lhs, &rhs));
 }
 
-TEST(error_has_different_code, returns_true_for_different_code)
+TEST(error_has_diff_code, returns_true_for_different_code)
 {
     const lh_error_t lhs = lh_error_initializer(21, "same");
     const lh_error_t rhs = lh_error_initializer(22, "same");
 
-    EXPECT_TRUE(lh_error_has_different_code(&lhs, &rhs));
+    EXPECT_TRUE(lh_error_has_diff_code(&lhs, &rhs));
 }
 
-TEST(error_has_different_code, returns_false_for_same_code)
+TEST(error_has_diff_code, returns_false_for_same_code)
 {
     const lh_error_t lhs = lh_error_initializer(21, "lhs");
     const lh_error_t rhs = lh_error_initializer(21, "rhs");
 
-    EXPECT_FALSE(lh_error_has_different_code(&lhs, &rhs));
+    EXPECT_FALSE(lh_error_has_diff_code(&lhs, &rhs));
 }
 
 #if LH_TEST_EXPECT_DEATH_ENABLED
@@ -470,11 +411,6 @@ TEST(error_death, has_code_null_self)
     LH_EXPECT_DEATH(lh_error_has_code(nullptr, 1));
 }
 
-TEST(error_death, has_not_code_null_self)
-{
-    LH_EXPECT_DEATH(lh_error_has_not_code(nullptr, 1));
-}
-
 TEST(error_death, is_ok_null_self)
 {
     LH_EXPECT_DEATH(lh_error_is_ok(nullptr));
@@ -490,19 +426,9 @@ TEST(error_death, has_desc_null_self)
     LH_EXPECT_DEATH(lh_error_has_desc(nullptr));
 }
 
-TEST(error_death, has_not_desc_null_self)
-{
-    LH_EXPECT_DEATH(lh_error_has_not_desc(nullptr));
-}
-
 TEST(error_death, is_empty_null_self)
 {
     LH_EXPECT_DEATH(lh_error_is_empty(nullptr));
-}
-
-TEST(error_death, is_not_empty_null_self)
-{
-    LH_EXPECT_DEATH(lh_error_is_not_empty(nullptr));
 }
 
 TEST(error_death, equals_null_self)
@@ -517,18 +443,6 @@ TEST(error_death, equals_null_other)
     LH_EXPECT_DEATH(lh_error_equals(&err, nullptr));
 }
 
-TEST(error_death, not_equals_null_self)
-{
-    const lh_error_t err = lh_error_empty_initializer();
-    LH_EXPECT_DEATH(lh_error_not_equals(nullptr, &err));
-}
-
-TEST(error_death, not_equals_null_other)
-{
-    const lh_error_t err = lh_error_empty_initializer();
-    LH_EXPECT_DEATH(lh_error_not_equals(&err, nullptr));
-}
-
 TEST(error_death, has_same_code_null_self)
 {
     const lh_error_t err = lh_error_empty_initializer();
@@ -541,16 +455,16 @@ TEST(error_death, has_same_code_null_other)
     LH_EXPECT_DEATH(lh_error_has_same_code(&err, nullptr));
 }
 
-TEST(error_death, has_different_code_null_self)
+TEST(error_death, has_diff_code_null_self)
 {
     const lh_error_t err = lh_error_empty_initializer();
-    LH_EXPECT_DEATH(lh_error_has_different_code(nullptr, &err));
+    LH_EXPECT_DEATH(lh_error_has_diff_code(nullptr, &err));
 }
 
-TEST(error_death, has_different_code_null_other)
+TEST(error_death, has_diff_code_null_other)
 {
     const lh_error_t err = lh_error_empty_initializer();
-    LH_EXPECT_DEATH(lh_error_has_different_code(&err, nullptr));
+    LH_EXPECT_DEATH(lh_error_has_diff_code(&err, nullptr));
 }
 
 #endif // LH_TEST_EXPECT_DEATH_ENABLED

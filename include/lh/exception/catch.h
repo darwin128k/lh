@@ -107,17 +107,6 @@ lh_bool_t
 lh_exception_catch_has_code(const lh_exception_catch_t *self, lh_error_code_t code);
 
 /**
- * @brief Test whether the caught exception code is not equal to @p code.
- *
- * @param self Catch frame (not null).
- * @param code Error code to compare with.
- * @return ::lh_bool_true when the caught exception carries any code except @p code.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_exception_catch_has_not_code(const lh_exception_catch_t *self, lh_error_code_t code);
-
-/**
  * @brief Test whether the caught exception has the success code.
  *
  * @param self Catch frame (not null).
@@ -148,16 +137,6 @@ lh_bool_t
 lh_exception_catch_has_desc(const lh_exception_catch_t *self);
 
 /**
- * @brief Test whether the caught exception has no description.
- *
- * @param self Catch frame (not null).
- * @return ::lh_bool_true when the caught exception stores a null description pointer.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_exception_catch_has_not_desc(const lh_exception_catch_t *self);
-
-/**
  * @brief Test whether the caught exception is the cleared success state.
  *
  * @param self Catch frame (not null).
@@ -166,16 +145,6 @@ lh_exception_catch_has_not_desc(const lh_exception_catch_t *self);
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_catch_is_empty(const lh_exception_catch_t *self);
-
-/**
- * @brief Test whether the caught exception is not the cleared success state.
- *
- * @param self Catch frame (not null).
- * @return ::lh_bool_true when the caught exception has a non-ok code or a description.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_exception_catch_is_not_empty(const lh_exception_catch_t *self);
 
 /**
  * @brief Test whether two catch frames carry equal exceptions.
@@ -190,20 +159,6 @@ lh_exception_catch_is_not_empty(const lh_exception_catch_t *self);
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_catch_equals(const lh_exception_catch_t *self, const lh_exception_catch_t *other);
-
-/**
- * @brief Test whether two catch frames carry different exceptions.
- *
- * Jump buffer state is ignored. Debug origin metadata is ignored by
- * ::lh_exception_not_equals.
- *
- * @param self Catch frame (not null).
- * @param other Catch frame to compare with (not null).
- * @return ::lh_bool_true when both frames carry different exceptions.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_exception_catch_not_equals(const lh_exception_catch_t *self, const lh_exception_catch_t *other);
 
 /**
  * @brief Test whether two catch frames carry the same exception code.
@@ -230,7 +185,7 @@ lh_exception_catch_has_same_code(const lh_exception_catch_t *self,
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_exception_catch_has_different_code(const lh_exception_catch_t *self,
+lh_exception_catch_has_diff_code(const lh_exception_catch_t *self,
                                       const lh_exception_catch_t *other);
 
 LH_COMPILER_EXTERN_C_END
