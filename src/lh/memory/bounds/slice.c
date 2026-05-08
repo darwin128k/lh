@@ -267,8 +267,8 @@ lh_memory_bounds_slice_get_end_value(const lh_memory_bounds_slice_t *self)
 }
 
 lh_uoffset_t
-lh_memory_bounds_slice_get_offset_after_shift(const lh_memory_bounds_slice_t *self,
-                                              const lh_ptr ptr, lh_soffset_t offset)
+lh_memory_bounds_slice_get_offset_from_ptr(const lh_memory_bounds_slice_t *self, const lh_ptr ptr,
+                                           lh_soffset_t offset)
 {
     if (lh_ptr_is_null(ptr))
     {
@@ -293,6 +293,7 @@ lh_memory_bounds_slice_get_offset_after_shift(const lh_memory_bounds_slice_t *se
     const lh_uoffset_t target_offset = lh_math_add(ptr_offset, offset);
     lh_runtime_check(lh_memory_bounds_slice_is_valid_offset(self, target_offset),
                      lh_runtime_error_code_overflow);
+
     return target_offset;
 }
 
@@ -302,7 +303,7 @@ lh_memory_bounds_slice_seek_ptr(const lh_memory_bounds_slice_t *self, const lh_p
 {
     lh_runtime_try(e)
     {
-        offset = lh_memory_bounds_slice_get_offset_after_shift(self, ptr, offset);
+        offset = lh_memory_bounds_slice_get_offset_from_ptr(self, ptr, offset);
         ptr = lh_memory_bounds_slice_get_ptr_from_begin(self, offset);
         lh_runtime_try_return(ptr);
     }

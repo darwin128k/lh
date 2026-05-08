@@ -246,25 +246,25 @@ TEST(memory_bounds_slice_get_ptr_by_offset, supports_signed_offsets_from_both_en
     EXPECT_EQ(lh_memory_bounds_slice_get_ptr_by_offset(&s, -2), p(buf + 3));
 }
 
-TEST(memory_bounds_slice_get_offset_after_shift, null_pointer_uses_absolute_signed_offset)
+TEST(memory_bounds_slice_get_offset_from_ptr, null_pointer_uses_absolute_signed_offset)
 {
     unsigned char buf[5];
     lh_memory_bounds_slice_t s = slice(p(buf + 1), p(buf + 4));
 
-    EXPECT_EQ(lh_memory_bounds_slice_get_offset_after_shift(&s, lh_null, 0), 0u);
-    EXPECT_EQ(lh_memory_bounds_slice_get_offset_after_shift(&s, lh_null, 2), 2u);
-    EXPECT_EQ(lh_memory_bounds_slice_get_offset_after_shift(&s, lh_null, -1), 3u);
-    EXPECT_EQ(lh_memory_bounds_slice_get_offset_after_shift(&s, lh_null, -4), 0u);
+    EXPECT_EQ(lh_memory_bounds_slice_get_offset_from_ptr(&s, lh_null, 0), 0u);
+    EXPECT_EQ(lh_memory_bounds_slice_get_offset_from_ptr(&s, lh_null, 2), 2u);
+    EXPECT_EQ(lh_memory_bounds_slice_get_offset_from_ptr(&s, lh_null, -1), 3u);
+    EXPECT_EQ(lh_memory_bounds_slice_get_offset_from_ptr(&s, lh_null, -4), 0u);
 }
 
-TEST(memory_bounds_slice_get_offset_after_shift, shifts_relative_to_pointer_inside_slice)
+TEST(memory_bounds_slice_get_offset_from_ptr, shifts_relative_to_pointer_inside_slice)
 {
     unsigned char buf[6];
     lh_memory_bounds_slice_t s = slice(p(buf + 1), p(buf + 5));
 
-    EXPECT_EQ(lh_memory_bounds_slice_get_offset_after_shift(&s, p(buf + 3), 0), 2u);
-    EXPECT_EQ(lh_memory_bounds_slice_get_offset_after_shift(&s, p(buf + 3), 2), 4u);
-    EXPECT_EQ(lh_memory_bounds_slice_get_offset_after_shift(&s, p(buf + 3), -2), 0u);
+    EXPECT_EQ(lh_memory_bounds_slice_get_offset_from_ptr(&s, p(buf + 3), 0), 2u);
+    EXPECT_EQ(lh_memory_bounds_slice_get_offset_from_ptr(&s, p(buf + 3), 2), 4u);
+    EXPECT_EQ(lh_memory_bounds_slice_get_offset_from_ptr(&s, p(buf + 3), -2), 0u);
 }
 
 TEST(memory_bounds_slice_seek_ptr, null_pointer_uses_absolute_signed_offset)

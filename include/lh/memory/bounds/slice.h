@@ -536,8 +536,8 @@ lh_memory_bounds_slice_get_end_value(const lh_memory_bounds_slice_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uoffset_t
-lh_memory_bounds_slice_get_offset_after_shift(const lh_memory_bounds_slice_t *self,
-                                              const lh_ptr ptr, lh_soffset_t offset);
+lh_memory_bounds_slice_get_offset_from_ptr(const lh_memory_bounds_slice_t *self, const lh_ptr ptr,
+                                           lh_soffset_t offset);
 
 /**
  * @brief Return pointer reached by seeking @p offset bytes from @p ptr.
