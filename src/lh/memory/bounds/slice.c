@@ -339,7 +339,7 @@ lh_memory_bounds_slice_seek_value(const lh_memory_bounds_slice_t *self, const lh
 }
 
 lh_byte_t
-lh_memory_bounds_slice_get_value_next(const lh_memory_bounds_slice_t *self, const lh_ptr ptr)
+lh_memory_bounds_slice_next_value(const lh_memory_bounds_slice_t *self, const lh_ptr ptr)
 {
     const lh_ptr next_ptr = lh_memory_bounds_slice_next_ptr(self, ptr);
     lh_runtime_check(lh_ptr_is_set(next_ptr), lh_runtime_error_code_null_dereference);
@@ -347,7 +347,7 @@ lh_memory_bounds_slice_get_value_next(const lh_memory_bounds_slice_t *self, cons
 }
 
 lh_byte_t
-lh_memory_bounds_slice_get_value_prev(const lh_memory_bounds_slice_t *self, const lh_ptr ptr)
+lh_memory_bounds_slice_prev_value(const lh_memory_bounds_slice_t *self, const lh_ptr ptr)
 {
     const lh_ptr prev_ptr = lh_memory_bounds_slice_prev_ptr(self, ptr);
     lh_runtime_check(lh_ptr_is_set(prev_ptr), lh_runtime_error_code_null_dereference);

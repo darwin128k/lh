@@ -419,22 +419,22 @@ TEST(memory_bounds_slice_seek_value, null_pointer_reads_begin_value)
     EXPECT_EQ(lh_memory_bounds_slice_seek_value(&s, lh_null), 20);
 }
 
-TEST(memory_bounds_slice_get_value_next, reads_next_value)
+TEST(memory_bounds_slice_next_value, reads_next_value)
 {
     unsigned char buf[5] = {10, 20, 30, 40, 50};
     lh_memory_bounds_slice_t s = slice(p(buf + 1), p(buf + 3));
 
-    EXPECT_EQ(lh_memory_bounds_slice_get_value_next(&s, p(buf + 1)), 30);
-    EXPECT_EQ(lh_memory_bounds_slice_get_value_next(&s, p(buf + 2)), 40);
+    EXPECT_EQ(lh_memory_bounds_slice_next_value(&s, p(buf + 1)), 30);
+    EXPECT_EQ(lh_memory_bounds_slice_next_value(&s, p(buf + 2)), 40);
 }
 
-TEST(memory_bounds_slice_get_value_prev, reads_prev_value)
+TEST(memory_bounds_slice_prev_value, reads_prev_value)
 {
     unsigned char buf[5] = {10, 20, 30, 40, 50};
     lh_memory_bounds_slice_t s = slice(p(buf + 1), p(buf + 3));
 
-    EXPECT_EQ(lh_memory_bounds_slice_get_value_prev(&s, p(buf + 3)), 30);
-    EXPECT_EQ(lh_memory_bounds_slice_get_value_prev(&s, p(buf + 2)), 20);
+    EXPECT_EQ(lh_memory_bounds_slice_prev_value(&s, p(buf + 3)), 30);
+    EXPECT_EQ(lh_memory_bounds_slice_prev_value(&s, p(buf + 2)), 20);
 }
 
 #if LH_TEST_EXPECT_DEATH_ENABLED
@@ -509,20 +509,20 @@ TEST(memory_bounds_slice_seek_value, rejects_pointer_before_slice_death)
     LH_EXPECT_DEATH((void)lh_memory_bounds_slice_seek_value(&s, p(buf)));
 }
 
-TEST(memory_bounds_slice_get_value_next, rejects_end_boundary_death)
+TEST(memory_bounds_slice_next_value, rejects_end_boundary_death)
 {
     unsigned char buf[3] = {10, 20, 30};
     lh_memory_bounds_slice_t s = slice(p(buf), p(buf + 2));
 
-    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_get_value_next(&s, p(buf + 2)));
+    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_next_value(&s, p(buf + 2)));
 }
 
-TEST(memory_bounds_slice_get_value_prev, rejects_begin_boundary_death)
+TEST(memory_bounds_slice_prev_value, rejects_begin_boundary_death)
 {
     unsigned char buf[3] = {10, 20, 30};
     lh_memory_bounds_slice_t s = slice(p(buf), p(buf + 2));
 
-    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_get_value_prev(&s, p(buf)));
+    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_prev_value(&s, p(buf)));
 }
 
 #endif // LH_TEST_EXPECT_DEATH_ENABLED

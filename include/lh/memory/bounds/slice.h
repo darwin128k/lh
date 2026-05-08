@@ -535,11 +535,11 @@ lh_memory_bounds_slice_seek_value(const lh_memory_bounds_slice_t *self, const lh
 
 LH_ATTRIBUTE_SYMBOL
 lh_byte_t
-lh_memory_bounds_slice_get_value_next(const lh_memory_bounds_slice_t *self, const lh_ptr ptr);
+lh_memory_bounds_slice_next_value(const lh_memory_bounds_slice_t *self, const lh_ptr ptr);
 
 LH_ATTRIBUTE_SYMBOL
 lh_byte_t
-lh_memory_bounds_slice_get_value_prev(const lh_memory_bounds_slice_t *self, const lh_ptr ptr);
+lh_memory_bounds_slice_prev_value(const lh_memory_bounds_slice_t *self, const lh_ptr ptr);
 
 LH_COMPILER_EXTERN_C_END
 
