@@ -466,6 +466,39 @@ lh_bool_t
 lh_memory_bounds_slice_overlaps_v(const lh_memory_bounds_slice_t *self,
                                   const lh_memory_bounds_slice_t *other);
 
+/**
+ * @brief True iff @p self stores exactly @p begin and @p end.
+ *
+ * This compares the stored endpoints without requiring a valid range.
+ *
+ * @param self  Slice to inspect.
+ * @param begin Expected begin pointer.
+ * @param end   Expected end pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_equals_of(const lh_memory_bounds_slice_t *self, const lh_ptr begin,
+                                 const lh_ptr end);
+
+/**
+ * @brief True iff @p self and @p other store the same endpoints.
+ *
+ * This compares the stored endpoints without requiring valid ranges.
+ *
+ * @param self  Slice to inspect.
+ * @param other Slice to compare against.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_equals(const lh_memory_bounds_slice_t *self,
+                              const lh_memory_bounds_slice_t *other);
+
 /* -- pointer and value access --------------------------------------------- */
 
 /**

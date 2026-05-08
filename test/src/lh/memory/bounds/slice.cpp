@@ -251,6 +251,29 @@ TEST(memory_bounds_slice_overlaps_v, accepts_valid_overlapping_slice)
     EXPECT_FALSE(lh_memory_bounds_slice_overlaps_v(&left, &right));
 }
 
+TEST(memory_bounds_slice_equals_of, compares_stored_endpoints)
+{
+    unsigned char buf[4];
+    lh_memory_bounds_slice_t s = slice(p(buf + 1), p(buf + 3));
+
+    EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, p(buf + 1), p(buf + 3)));
+    EXPECT_FALSE(lh_memory_bounds_slice_equals_of(&s, p(buf), p(buf + 3)));
+    EXPECT_FALSE(lh_memory_bounds_slice_equals_of(&s, p(buf + 1), p(buf + 2)));
+}
+
+TEST(memory_bounds_slice_equals, compares_slice_endpoints)
+{
+    unsigned char buf[4];
+    lh_memory_bounds_slice_t a = slice(p(buf + 1), p(buf + 3));
+    lh_memory_bounds_slice_t same = slice(p(buf + 1), p(buf + 3));
+    lh_memory_bounds_slice_t different_begin = slice(p(buf), p(buf + 3));
+    lh_memory_bounds_slice_t different_end = slice(p(buf + 1), p(buf + 2));
+
+    EXPECT_TRUE(lh_memory_bounds_slice_equals(&a, &same));
+    EXPECT_FALSE(lh_memory_bounds_slice_equals(&a, &different_begin));
+    EXPECT_FALSE(lh_memory_bounds_slice_equals(&a, &different_end));
+}
+
 TEST(memory_bounds_slice_is_valid_offset, validates_offsets_within_closed_size)
 {
     unsigned char buf[4];

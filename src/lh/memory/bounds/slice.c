@@ -1,8 +1,10 @@
+#include <lh/memory/bounds/slice/initializer.h>
 #include <lh/memory/bounds/slice.h>
 #include <lh/runtime/check/ref.h>
+#include <lh/util/algorithm.h>
 #include <lh/util/interval.h>
-#include <lh/optional/ref.h>
 #include <lh/runtime/throw.h>
+#include <lh/optional/ref.h>
 #include <lh/runtime/try.h>
 #include <lh/util/ptr.h>
 
@@ -423,4 +425,74 @@ lh_memory_bounds_slice_equals(const lh_memory_bounds_slice_t *self,
     lh_void *other_begin, *other_end;
     lh_memory_bounds_slice_unpack(other, lh_addr_of(other_begin), lh_addr_of(other_end));
     return lh_memory_bounds_slice_equals_of(self, other_begin, other_end);
+}
+
+lh_void
+lh_memory_bounds_slice_set(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr end)
+{
+    lh_runtime_check_ref(self);
+
+    self->first = begin;
+    self->second = end;
+}
+
+lh_void
+lh_memory_bounds_slice_assign(lh_memory_bounds_slice_t *self, const lh_memory_bounds_slice_t *other)
+{
+    lh_runtime_return_if(lh_math_eq(self, other));
+
+    lh_void *other_begin, *other_end;
+    lh_memory_bounds_slice_unpack(other, lh_addr_of(other_begin), lh_addr_of(other_end));
+    lh_memory_bounds_slice_set(self, other_begin, other_end);
+}
+
+lh_void
+lh_memory_bounds_slice_clear(lh_memory_bounds_slice_t *self)
+{
+    const lh_memory_bounds_slice_t s = lh_memory_bounds_slice_initializer_empty();
+    lh_memory_bounds_slice_assign(self, lh_addr_of(s));
+}
+
+lh_void
+lh_memory_bounds_slice_assign_v(lh_memory_bounds_slice_t *self,
+                                const lh_memory_bounds_slice_t *other)
+{
+    lh_runtime_check(lh_memory_bounds_slice_is_valid(other), lh_runtime_error_code_invalid_range);
+    lh_memory_bounds_slice_assign(self, other);
+}
+
+lh_void
+lh_memory_bounds_slice_set_v(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr end)
+{
+    const lh_memory_bounds_slice_t s = lh_memory_bounds_slice_initializer(begin, end);
+    lh_memory_bounds_slice_assign_v(self, lh_addr_of(s));
+}
+
+lh_void
+lh_memory_bounds_slice_swap(lh_memory_bounds_slice_t *self, lh_memory_bounds_slice_t *other)
+{
+    lh_runtime_return_if(lh_math_eq(self, other));
+
+    lh_runtime_check_ref(self);
+    lh_runtime_check_ref(other);
+
+    lh_algorithm_swap(lh_memory_bounds_slice_t, lh_ptr_deref(self), lh_ptr_deref(other));
+}
+
+lh_void
+lh_memory_bounds_slice_swap_v_other(lh_memory_bounds_slice_t *self, lh_memory_bounds_slice_t *other)
+{
+    lh_runtime_check(lh_memory_bounds_slice_is_valid(other), lh_runtime_error_code_invalid_range);
+    lh_memory_bounds_slice_swap(self, other);
+}
+
+lh_void
+lh_memory_bounds_slice_swap_v(lh_memory_bounds_slice_t *self, lh_memory_bounds_slice_t *other)
+{
+    lh_memory_bounds_slice_clear(self);
+
+    if (lh_math_ne(self, other))
+    {
+        lh_memory_bounds_slice_swap_v_other(self, other);
+    }
 }
