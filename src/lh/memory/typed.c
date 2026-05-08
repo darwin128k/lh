@@ -62,7 +62,7 @@ lh_memory_typed_unpack_v(const lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *e
                          lh_usize_t *type_size)
 {
     lh_runtime_check_if(lh_memory_typed_is_invalid(self),
-                        lh_runtime_error_code_invalid_memory_range);
+                        lh_runtime_error_code_invalid_range);
     lh_memory_typed_unpack(self, begin, end, type_size);
 }
 
@@ -98,7 +98,7 @@ lh_void
 lh_memory_typed_assign_v(lh_memory_typed_t *self, const lh_memory_typed_t *other)
 {
     lh_runtime_check_if(lh_memory_typed_is_invalid(other),
-                        lh_runtime_error_code_invalid_memory_range);
+                        lh_runtime_error_code_invalid_range);
     lh_memory_typed_assign(self, other);
 }
 
@@ -176,7 +176,7 @@ lh_memory_typed_make_v(lh_ptr begin, lh_ptr end, lh_usize_t type_size)
 {
     lh_memory_typed_t t = lh_memory_typed_make(begin, end, type_size);
     lh_runtime_check_if(lh_memory_typed_is_invalid(lh_addr_of(t)),
-                        lh_runtime_error_code_invalid_memory_range);
+                        lh_runtime_error_code_invalid_range);
     return t;
 }
 

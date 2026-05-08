@@ -9,7 +9,7 @@
  * The number of elements is computed as @c bounds.get_size() / @p type_size.
  * Typed validity is defined by divisibility of byte size by @p type_size.
  * Since divisibility is computed via bounds size, queries may raise
- * ::lh_runtime_error_code_invalid_memory_range when the underlying bounds is invalid.
+ * ::lh_runtime_error_code_invalid_range when the underlying bounds is invalid.
  *
  * For the const-qualified counterpart, see ::lh_memory_view_t.
  *
@@ -332,7 +332,7 @@ lh_memory_typed_make_or_empty(lh_ptr begin, lh_ptr end, lh_usize_t type_size);
  * @return True iff @c bounds.get_size() is divisible by @c type_size.
  *
  * @note This function computes bounds size and therefore may raise
- *       ::lh_runtime_error_code_invalid_memory_range when @p self->bounds is invalid.
+ *       ::lh_runtime_error_code_invalid_range when @p self->bounds is invalid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
@@ -376,7 +376,7 @@ lh_memory_typed_get_end(const lh_memory_typed_t *self);
  * Computes @c bounds.get_size() / @p type_size.
  * Fails with ::lh_runtime_error_code_size_not_multiple_of_type_size if
  * bounds size is not evenly divisible by @p type_size.
- * May fail with ::lh_runtime_error_code_invalid_memory_range when the stored
+ * May fail with ::lh_runtime_error_code_invalid_range when the stored
  * bounds is invalid.
  *
  * @param self Typed span to inspect.

@@ -248,7 +248,7 @@ lh_memory_bounds_make_v(lh_ptr begin, lh_ptr end)
 {
     lh_memory_bounds_t range = lh_memory_bounds_make(begin, end);
     lh_runtime_check_if(lh_memory_bounds_is_invalid(&range),
-                        lh_runtime_error_code_invalid_memory_range);
+                        lh_runtime_error_code_invalid_range);
     return range;
 }
 
@@ -311,7 +311,7 @@ void
 lh_memory_bounds_unpack_v(const lh_memory_bounds_t *self, lh_ptr *begin, lh_ptr *end)
 {
     lh_runtime_check_if(lh_memory_bounds_is_invalid(self),
-                        lh_runtime_error_code_invalid_memory_range);
+                        lh_runtime_error_code_invalid_range);
     lh_memory_bounds_unpack(self, begin, end);
 }
 
@@ -329,7 +329,7 @@ lh_usize_t
 lh_memory_bounds_get_size(const lh_memory_bounds_t *self)
 {
     lh_runtime_check_if(lh_memory_bounds_is_invalid(self),
-                        lh_runtime_error_code_invalid_memory_range);
+                        lh_runtime_error_code_invalid_range);
     return lh_type_cast(lh_usize_t, lh_memory_bounds_diff(self));
 }
 
@@ -552,7 +552,7 @@ lh_void
 lh_memory_bounds_assign_v(lh_memory_bounds_t *self, const lh_memory_bounds_t *other)
 {
     lh_runtime_check_if(lh_memory_bounds_is_invalid(other),
-                        lh_runtime_error_code_invalid_memory_range);
+                        lh_runtime_error_code_invalid_range);
     lh_memory_bounds_assign(self, other);
 }
 

@@ -188,6 +188,29 @@ TEST(memory_bounds_slice_contains, accepts_inner_slice)
     EXPECT_TRUE(lh_memory_bounds_slice_contains(&outer, &inner));
 }
 
+TEST(memory_bounds_slice_overlaps_of, accepts_overlapping_ranges)
+{
+    unsigned char buf[8];
+    lh_memory_bounds_slice_t s = slice(p(buf + 2), p(buf + 5));
+
+    EXPECT_TRUE(lh_memory_bounds_slice_overlaps_of(&s, p(buf + 1), p(buf + 2)));
+    EXPECT_TRUE(lh_memory_bounds_slice_overlaps_of(&s, p(buf + 4), p(buf + 6)));
+    EXPECT_TRUE(lh_memory_bounds_slice_overlaps_of(&s, p(buf + 3), p(buf + 4)));
+    EXPECT_FALSE(lh_memory_bounds_slice_overlaps_of(&s, p(buf), p(buf + 1)));
+    EXPECT_FALSE(lh_memory_bounds_slice_overlaps_of(&s, p(buf + 6), p(buf + 7)));
+}
+
+TEST(memory_bounds_slice_overlaps, accepts_overlapping_slice)
+{
+    unsigned char buf[8];
+    lh_memory_bounds_slice_t left = slice(p(buf + 1), p(buf + 3));
+    lh_memory_bounds_slice_t middle = slice(p(buf + 3), p(buf + 5));
+    lh_memory_bounds_slice_t right = slice(p(buf + 4), p(buf + 6));
+
+    EXPECT_TRUE(lh_memory_bounds_slice_overlaps(&left, &middle));
+    EXPECT_FALSE(lh_memory_bounds_slice_overlaps(&left, &right));
+}
+
 TEST(memory_bounds_slice_is_valid_offset, validates_offsets_within_closed_size)
 {
     unsigned char buf[4];

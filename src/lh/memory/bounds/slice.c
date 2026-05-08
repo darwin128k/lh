@@ -114,7 +114,7 @@ lh_void
 lh_memory_bounds_slice_unpack_v(const lh_memory_bounds_slice_t *self, lh_ptr *begin, lh_ptr *end)
 {
     lh_runtime_check(lh_memory_bounds_slice_is_valid(self),
-                     lh_runtime_error_code_invalid_memory_range);
+                     lh_runtime_error_code_invalid_range);
     lh_memory_bounds_slice_unpack(self, begin, end);
 }
 
@@ -353,4 +353,33 @@ lh_memory_bounds_slice_prev_value(const lh_memory_bounds_slice_t *self, const lh
     const lh_ptr prev_ptr = lh_memory_bounds_slice_prev_ptr(self, ptr);
     lh_runtime_check(lh_ptr_is_set(prev_ptr), lh_runtime_error_code_null_dereference);
     return lh_ptr_deref(lh_ptr_cast(lh_byte_t, prev_ptr));
+}
+
+lh_bool_t
+lh_memory_bounds_slice_overlaps_of(const lh_memory_bounds_slice_t *self, const lh_ptr begin,
+                                   const lh_ptr end)
+{
+    lh_void *self_begin, *self_end;
+    lh_memory_bounds_slice_unpack_v(self, lh_addr_of(self_begin), lh_addr_of(self_end));
+    return lh_interval_closed_overlaps_range(lh_ptr_to_uaddr(self_begin), lh_ptr_to_uaddr(self_end),
+                                             lh_ptr_to_uaddr(begin), lh_ptr_to_uaddr(end));
+}
+
+lh_bool_t
+lh_memory_bounds_slice_overlaps(const lh_memory_bounds_slice_t *self,
+                                const lh_memory_bounds_slice_t *other)
+{
+    lh_void *other_begin, *other_end;
+    lh_memory_bounds_slice_unpack(other, lh_addr_of(other_begin), lh_addr_of(other_end));
+    return lh_memory_bounds_slice_overlaps_of(self, other_begin, other_end);
+}
+
+lh_bool_t
+lh_memmory_bounds_slice_overlaps_v(const lh_memory_bounds_slice_t *self,
+                                   const lh_memory_bounds_slice_t *other)
+{
+    lh_runtime_check(lh_memory_bounds_slice_is_valid(other),
+                     lh_runtime_error_code_invalid_range);
+
+    return lh_memory_bounds_slice_overlaps(self, other);
 }

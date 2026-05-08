@@ -211,7 +211,7 @@ lh_memory_view_make_v(const lh_ptr begin, const lh_ptr end)
 {
     lh_memory_view_t view = lh_memory_view_make(begin, end);
     lh_runtime_check_if(lh_memory_view_is_invalid(&view),
-                        lh_runtime_error_code_invalid_memory_range);
+                        lh_runtime_error_code_invalid_range);
     return view;
 }
 
@@ -258,7 +258,7 @@ void
 lh_memory_view_unpack_v(const lh_memory_view_t *self, const lh_ptr *begin, const lh_ptr *end)
 {
     lh_runtime_check_if(lh_memory_view_is_invalid(self),
-                        lh_runtime_error_code_invalid_memory_range);
+                        lh_runtime_error_code_invalid_range);
     lh_memory_view_unpack(self, begin, end);
 }
 
@@ -435,7 +435,7 @@ lh_void
 lh_memory_view_assign_v(lh_memory_view_t *self, const lh_memory_view_t *other)
 {
     lh_runtime_check_if(lh_memory_view_is_invalid(other),
-                        lh_runtime_error_code_invalid_memory_range);
+                        lh_runtime_error_code_invalid_range);
     lh_memory_view_assign(self, other);
 }
 

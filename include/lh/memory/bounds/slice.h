@@ -192,7 +192,7 @@ lh_memory_bounds_slice_is_valid(const lh_memory_bounds_slice_t *self);
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -206,7 +206,7 @@ lh_memory_bounds_slice_unpack_v(const lh_memory_bounds_slice_t *self, lh_ptr *be
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -220,7 +220,7 @@ lh_memory_bounds_slice_get_begin_v(const lh_memory_bounds_slice_t *self);
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -237,7 +237,7 @@ lh_memory_bounds_slice_get_end_v(const lh_memory_bounds_slice_t *self);
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -255,7 +255,7 @@ lh_memory_bounds_slice_get_size(const lh_memory_bounds_slice_t *self);
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is invalid.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -273,7 +273,7 @@ lh_memory_bounds_slice_is_empty(const lh_memory_bounds_slice_t *self);
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -292,7 +292,7 @@ lh_memory_bounds_slice_is_valid_offset(const lh_memory_bounds_slice_t *self, lh_
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p ptr is outside @p self.
@@ -314,7 +314,7 @@ lh_memory_bounds_slice_get_offset_from_begin(const lh_memory_bounds_slice_t *sel
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p ptr is outside @p self.
@@ -330,7 +330,7 @@ lh_memory_bounds_slice_get_offset_from_end(const lh_memory_bounds_slice_t *self,
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -345,7 +345,7 @@ lh_memory_bounds_slice_contains_ptr(const lh_memory_bounds_slice_t *self, const 
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -360,12 +360,43 @@ lh_memory_bounds_slice_contains_range(const lh_memory_bounds_slice_t *self, cons
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        A slice is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_slice_contains(const lh_memory_bounds_slice_t *self,
+                                const lh_memory_bounds_slice_t *other);
+
+/**
+ * @brief True iff closed range <tt>[begin, end]</tt> overlaps @p self.
+ * @param self  Valid slice.
+ * @param begin Range begin pointer.
+ * @param end   Range end pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_overlaps_of(const lh_memory_bounds_slice_t *self, const lh_ptr begin,
+                                   const lh_ptr end);
+
+/**
+ * @brief True iff @p other overlaps @p self.
+ * @param self  Valid slice.
+ * @param other Valid slice to test.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        A slice is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_overlaps(const lh_memory_bounds_slice_t *self,
                                 const lh_memory_bounds_slice_t *other);
 
 /* -- pointer and value access --------------------------------------------- */
@@ -378,7 +409,7 @@ lh_memory_bounds_slice_contains(const lh_memory_bounds_slice_t *self,
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
@@ -399,7 +430,7 @@ lh_memory_bounds_slice_get_ptr_from_begin(const lh_memory_bounds_slice_t *self,
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
@@ -420,7 +451,7 @@ lh_memory_bounds_slice_get_ptr_from_end(const lh_memory_bounds_slice_t *self, lh
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
@@ -437,7 +468,7 @@ lh_memory_bounds_slice_get_ptr_by_offset(const lh_memory_bounds_slice_t *self, l
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
@@ -455,7 +486,7 @@ lh_memory_bounds_slice_get_value_from_begin(const lh_memory_bounds_slice_t *self
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
@@ -473,7 +504,7 @@ lh_memory_bounds_slice_get_value_from_end(const lh_memory_bounds_slice_t *self,
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
@@ -490,7 +521,7 @@ lh_memory_bounds_slice_get_value_by_offset(const lh_memory_bounds_slice_t *self,
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -504,7 +535,7 @@ lh_memory_bounds_slice_get_begin_value(const lh_memory_bounds_slice_t *self);
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -525,7 +556,7 @@ lh_memory_bounds_slice_get_end_value(const lh_memory_bounds_slice_t *self);
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p ptr is outside @p self.
@@ -553,7 +584,7 @@ lh_memory_bounds_slice_get_offset_from_ptr(const lh_memory_bounds_slice_t *self,
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p ptr is outside @p self.
@@ -575,7 +606,7 @@ lh_memory_bounds_slice_seek_ptr(const lh_memory_bounds_slice_t *self, const lh_p
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p ptr is outside @p self.
@@ -596,7 +627,7 @@ lh_memory_bounds_slice_next_ptr(const lh_memory_bounds_slice_t *self, const lh_p
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p ptr is outside @p self.
@@ -617,7 +648,7 @@ lh_memory_bounds_slice_prev_ptr(const lh_memory_bounds_slice_t *self, const lh_p
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p ptr is outside @p self.
@@ -640,7 +671,7 @@ lh_memory_bounds_slice_seek_value(const lh_memory_bounds_slice_t *self, const lh
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p ptr is outside @p self.
@@ -663,7 +694,7 @@ lh_memory_bounds_slice_next_value(const lh_memory_bounds_slice_t *self, const lh
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_memory_range
+ * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p ptr is outside @p self.
