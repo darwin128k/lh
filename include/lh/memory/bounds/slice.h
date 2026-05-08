@@ -891,6 +891,52 @@ lh_void
 lh_memory_bounds_slice_set_by_size(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_usize_t size);
 
 /**
+ * @brief Initialize @p self as a closed slice starting at @p begin with @p size bytes.
+ *
+ * Same as ::lh_memory_bounds_slice_set_by_size.
+ *
+ * @param self  Slice to initialize.
+ * @param begin New @c first endpoint.
+ * @param size  Number of bytes in the closed slice; must be non-zero.
+ *
+ * @throw ::lh_runtime_error_code_invalid_argument
+ *        @p begin is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p size is zero or the computed slice is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_slice_init_by_size(lh_memory_bounds_slice_t *self, lh_ptr begin,
+                                    lh_usize_t size);
+
+/**
+ * @brief Initialize @p self with the empty slice initializer.
+ * @param self Slice to initialize.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_slice_init_empty(lh_memory_bounds_slice_t *self);
+
+/**
+ * @brief Initialize @p self by copying stored endpoints from @p other.
+ *
+ * This copies endpoints without validating @p other.
+ *
+ * @param self  Slice to initialize.
+ * @param other Slice to copy from.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p other is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_slice_init_by_other(lh_memory_bounds_slice_t *self,
+                                     const lh_memory_bounds_slice_t *other);
+
+/**
  * @brief Swap stored endpoints between @p self and @p other.
  * @param self  First slice.
  * @param other Second slice.
