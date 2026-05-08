@@ -511,32 +511,165 @@ LH_ATTRIBUTE_SYMBOL
 lh_byte_t
 lh_memory_bounds_slice_get_end_value(const lh_memory_bounds_slice_t *self);
 
+/**
+ * @brief Return target byte offset after applying signed @p offset.
+ *
+ * When @p ptr is ::lh_null, @p offset is treated as an absolute signed
+ * offset accepted by ::lh_memory_bounds_slice_get_ptr_by_offset.
+ * Otherwise @p offset is applied relative to @p ptr.
+ *
+ * @param self   Valid slice to seek in.
+ * @param ptr    Base pointer inside @p self, or ::lh_null for absolute seek.
+ * @param offset Signed byte offset.
+ * @return Target byte offset from @c first.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p ptr is outside @p self.
+ * @throw ::lh_runtime_error_code_underflow
+ *        Relative seek moves before @c first.
+ * @throw ::lh_runtime_error_code_overflow
+ *        Relative seek moves after @c second or overflows offset arithmetic.
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_uoffset_t
 lh_memory_bounds_slice_get_offset_after_shift(const lh_memory_bounds_slice_t *self,
                                               const lh_ptr ptr, lh_soffset_t offset);
 
+/**
+ * @brief Return pointer reached by seeking @p offset bytes from @p ptr.
+ *
+ * When @p ptr is ::lh_null, @p offset is treated as an absolute signed
+ * offset accepted by ::lh_memory_bounds_slice_get_ptr_by_offset.
+ * Boundary underflow and overflow are converted to ::lh_null.
+ *
+ * @param self   Valid slice to seek in.
+ * @param ptr    Base pointer inside @p self, or ::lh_null for absolute seek.
+ * @param offset Signed byte offset.
+ * @return Target pointer, or ::lh_null when the seek crosses slice bounds.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p ptr is outside @p self.
+ */
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_bounds_slice_seek_ptr(const lh_memory_bounds_slice_t *self, const lh_ptr ptr,
                                 lh_soffset_t offset);
 
+/**
+ * @brief Return the byte pointer after @p ptr.
+ *
+ * Equivalent to
+ * ::lh_memory_bounds_slice_seek_ptr(@p self, @p ptr, 1).
+ *
+ * @param self Valid slice to seek in.
+ * @param ptr  Base pointer inside @p self, or ::lh_null for absolute seek.
+ * @return Next pointer, or ::lh_null when the seek crosses @c second.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p ptr is outside @p self.
+ */
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_bounds_slice_next_ptr(const lh_memory_bounds_slice_t *self, const lh_ptr ptr);
 
+/**
+ * @brief Return the byte pointer before @p ptr.
+ *
+ * Equivalent to
+ * ::lh_memory_bounds_slice_seek_ptr(@p self, @p ptr, -1).
+ *
+ * @param self Valid slice to seek in.
+ * @param ptr  Base pointer inside @p self, or ::lh_null for absolute seek.
+ * @return Previous pointer, or ::lh_null when the seek crosses @c first.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p ptr is outside @p self.
+ */
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_bounds_slice_prev_ptr(const lh_memory_bounds_slice_t *self, const lh_ptr ptr);
 
+/**
+ * @brief Seek to @p ptr and read the byte there.
+ *
+ * Equivalent to dereferencing
+ * ::lh_memory_bounds_slice_seek_ptr(@p self, @p ptr, 0).
+ *
+ * @param self Valid slice to read.
+ * @param ptr  Pointer inside @p self, or ::lh_null to read @c first.
+ * @return Byte at the resolved pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p ptr is outside @p self.
+ * @throw ::lh_runtime_error_code_null_dereference
+ *        The seek resolves to ::lh_null.
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_byte_t
 lh_memory_bounds_slice_seek_value(const lh_memory_bounds_slice_t *self, const lh_ptr ptr);
 
+/**
+ * @brief Read the byte after @p ptr.
+ *
+ * Equivalent to dereferencing
+ * ::lh_memory_bounds_slice_next_ptr.
+ *
+ * @param self Valid slice to read.
+ * @param ptr  Base pointer inside @p self, or ::lh_null for absolute seek.
+ * @return Byte after @p ptr.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p ptr is outside @p self.
+ * @throw ::lh_runtime_error_code_null_dereference
+ *        No next byte exists inside @p self.
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_byte_t
 lh_memory_bounds_slice_next_value(const lh_memory_bounds_slice_t *self, const lh_ptr ptr);
 
+/**
+ * @brief Read the byte before @p ptr.
+ *
+ * Equivalent to dereferencing
+ * ::lh_memory_bounds_slice_prev_ptr.
+ *
+ * @param self Valid slice to read.
+ * @param ptr  Base pointer inside @p self, or ::lh_null for absolute seek.
+ * @return Byte before @p ptr.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_memory_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p ptr is outside @p self.
+ * @throw ::lh_runtime_error_code_null_dereference
+ *        No previous byte exists inside @p self.
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_byte_t
 lh_memory_bounds_slice_prev_value(const lh_memory_bounds_slice_t *self, const lh_ptr ptr);
