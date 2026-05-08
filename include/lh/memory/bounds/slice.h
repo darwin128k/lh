@@ -873,6 +873,24 @@ lh_void
 lh_memory_bounds_slice_set_v(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr end);
 
 /**
+ * @brief Store a closed slice starting at @p begin with @p size bytes.
+ *
+ * The resulting endpoints are <tt>[begin, begin + size - 1]</tt>.
+ *
+ * @param self  Slice to update.
+ * @param begin New @c first endpoint.
+ * @param size  Number of bytes in the closed slice; must be non-zero.
+ *
+ * @throw ::lh_runtime_error_code_invalid_argument
+ *        @p begin is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p size is zero or the computed slice is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_slice_set_by_size(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_usize_t size);
+
+/**
  * @brief Swap stored endpoints between @p self and @p other.
  * @param self  First slice.
  * @param other Second slice.

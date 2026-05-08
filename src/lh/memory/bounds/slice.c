@@ -497,3 +497,13 @@ lh_memory_bounds_slice_swap_v(lh_memory_bounds_slice_t *self, lh_memory_bounds_s
         lh_memory_bounds_slice_swap_v_other(self, other);
     }
 }
+
+lh_void
+lh_memory_bounds_slice_set_by_size(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_usize_t size)
+{
+    lh_runtime_check(lh_ptr_is_set(begin), lh_runtime_error_code_invalid_argument);
+    lh_runtime_check_if(lh_math_is_zero(size), lh_runtime_error_code_invalid_range);
+
+    lh_ptr end = lh_ptr_add_by_offset_unsafe(lh_void, begin, lh_math_sub_one(size));
+    lh_memory_bounds_slice_set_v(self, begin, end);
+}

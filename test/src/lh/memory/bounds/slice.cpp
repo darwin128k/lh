@@ -585,6 +585,26 @@ TEST(memory_bounds_slice_set_v, stores_valid_range)
     EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, p(buf + 1), p(buf + 3)));
 }
 
+TEST(memory_bounds_slice_set_by_size, stores_closed_span)
+{
+    unsigned char buf[4];
+    lh_memory_bounds_slice_t s = slice(lh_null, lh_null);
+
+    lh_memory_bounds_slice_set_by_size(&s, p(buf), 4);
+
+    EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, p(buf), p(buf + 3)));
+}
+
+TEST(memory_bounds_slice_set_by_size, one_byte_span_has_same_endpoints)
+{
+    unsigned char buf[1];
+    lh_memory_bounds_slice_t s = slice(lh_null, lh_null);
+
+    lh_memory_bounds_slice_set_by_size(&s, p(buf), 1);
+
+    EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, p(buf), p(buf)));
+}
+
 TEST(memory_bounds_slice_swap, swaps_endpoints)
 {
     unsigned char buf[4];
@@ -769,6 +789,21 @@ TEST(memory_bounds_slice_set_v, rejects_invalid_range_death)
     lh_memory_bounds_slice_t s = slice(lh_null, lh_null);
 
     LH_EXPECT_DEATH(lh_memory_bounds_slice_set_v(&s, p(buf + 3), p(buf + 1)));
+}
+
+TEST(memory_bounds_slice_set_by_size, rejects_null_begin_death)
+{
+    lh_memory_bounds_slice_t s = slice(lh_null, lh_null);
+
+    LH_EXPECT_DEATH(lh_memory_bounds_slice_set_by_size(&s, lh_null, 1));
+}
+
+TEST(memory_bounds_slice_set_by_size, rejects_zero_size_death)
+{
+    unsigned char buf[1];
+    lh_memory_bounds_slice_t s = slice(lh_null, lh_null);
+
+    LH_EXPECT_DEATH(lh_memory_bounds_slice_set_by_size(&s, p(buf), 0));
 }
 
 TEST(memory_bounds_slice_swap_v_other, rejects_invalid_other_death)
