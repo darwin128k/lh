@@ -3,6 +3,7 @@
 #include <lh/runtime/check/ref.h>
 #include <lh/util/algorithm.h>
 #include <lh/util/interval.h>
+#include <lh/runtime/return/if.h>
 #include <lh/runtime/throw.h>
 #include <lh/optional/ref.h>
 #include <lh/runtime/try.h>
