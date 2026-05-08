@@ -518,8 +518,8 @@ lh_memory_bounds_slice_get_offset_after_shift(const lh_memory_bounds_slice_t *se
 
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
-lh_memory_bounds_slice_get_ptr_after_shift(const lh_memory_bounds_slice_t *self, const lh_ptr ptr,
-                                           lh_soffset_t offset);
+lh_memory_bounds_slice_seek_ptr(const lh_memory_bounds_slice_t *self, const lh_ptr ptr,
+                                lh_soffset_t offset);
 
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
@@ -528,6 +528,18 @@ lh_memory_bounds_slice_next_ptr(const lh_memory_bounds_slice_t *self, const lh_p
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_bounds_slice_prev_ptr(const lh_memory_bounds_slice_t *self, const lh_ptr ptr);
+
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_bounds_slice_seek_value(const lh_memory_bounds_slice_t *self, const lh_ptr ptr);
+
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_bounds_slice_get_value_next(const lh_memory_bounds_slice_t *self, const lh_ptr ptr);
+
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_bounds_slice_get_value_prev(const lh_memory_bounds_slice_t *self, const lh_ptr ptr);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -464,7 +464,7 @@ lh_byte_t
 lh_memory_bounds_next_value(const lh_memory_bounds_t *self, lh_ptr ptr)
 {
     const lh_ptr next = lh_memory_bounds_next_ptr(self, ptr);
-    lh_runtime_check(next, lh_runtime_error_code_null_pointer_dereference);
+    lh_runtime_check(next, lh_runtime_error_code_null_dereference);
     return lh_ptr_deref(lh_ptr_cast(lh_byte_t, next));
 }
 
@@ -472,7 +472,7 @@ lh_byte_t
 lh_memory_bounds_prev_value(const lh_memory_bounds_t *self, lh_ptr ptr)
 {
     const lh_ptr prev = lh_memory_bounds_prev_ptr(self, ptr);
-    lh_runtime_check(prev, lh_runtime_error_code_null_pointer_dereference);
+    lh_runtime_check(prev, lh_runtime_error_code_null_dereference);
     return lh_ptr_deref(lh_ptr_cast(lh_byte_t, prev));
 }
 

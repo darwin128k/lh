@@ -297,8 +297,8 @@ lh_memory_bounds_slice_get_offset_after_shift(const lh_memory_bounds_slice_t *se
 }
 
 const lh_ptr
-lh_memory_bounds_slice_get_ptr_after_shift(const lh_memory_bounds_slice_t *self, const lh_ptr ptr,
-                                           lh_soffset_t offset)
+lh_memory_bounds_slice_seek_ptr(const lh_memory_bounds_slice_t *self, const lh_ptr ptr,
+                                lh_soffset_t offset)
 {
     lh_runtime_try(e)
     {
@@ -321,11 +321,35 @@ lh_memory_bounds_slice_get_ptr_after_shift(const lh_memory_bounds_slice_t *self,
 const lh_ptr
 lh_memory_bounds_slice_next_ptr(const lh_memory_bounds_slice_t *self, const lh_ptr ptr)
 {
-    return lh_memory_bounds_slice_get_ptr_after_shift(self, ptr, 1);
+    return lh_memory_bounds_slice_seek_ptr(self, ptr, 1);
 }
 
 const lh_ptr
 lh_memory_bounds_slice_prev_ptr(const lh_memory_bounds_slice_t *self, const lh_ptr ptr)
 {
-    return lh_memory_bounds_slice_get_ptr_after_shift(self, ptr, -1);
+    return lh_memory_bounds_slice_seek_ptr(self, ptr, -1);
+}
+
+lh_byte_t
+lh_memory_bounds_slice_seek_value(const lh_memory_bounds_slice_t *self, const lh_ptr ptr)
+{
+    const lh_ptr seek_ptr = lh_memory_bounds_slice_seek_ptr(self, ptr, 0);
+    lh_runtime_check(lh_ptr_is_set(seek_ptr), lh_runtime_error_code_null_dereference);
+    return lh_ptr_deref(lh_ptr_cast(lh_byte_t, seek_ptr));
+}
+
+lh_byte_t
+lh_memory_bounds_slice_get_value_next(const lh_memory_bounds_slice_t *self, const lh_ptr ptr)
+{
+    const lh_ptr next_ptr = lh_memory_bounds_slice_next_ptr(self, ptr);
+    lh_runtime_check(lh_ptr_is_set(next_ptr), lh_runtime_error_code_null_dereference);
+    return lh_ptr_deref(lh_ptr_cast(lh_byte_t, next_ptr));
+}
+
+lh_byte_t
+lh_memory_bounds_slice_get_value_prev(const lh_memory_bounds_slice_t *self, const lh_ptr ptr)
+{
+    const lh_ptr prev_ptr = lh_memory_bounds_slice_prev_ptr(self, ptr);
+    lh_runtime_check(lh_ptr_is_set(prev_ptr), lh_runtime_error_code_null_dereference);
+    return lh_ptr_deref(lh_ptr_cast(lh_byte_t, prev_ptr));
 }

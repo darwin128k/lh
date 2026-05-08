@@ -94,13 +94,13 @@
 #define lh_runtime_error_code_invalid_argument 0x09
 
 /**
- * @def lh_runtime_error_code_null_pointer_dereference
+ * @def lh_runtime_error_code_null_dereference
  * @brief Runtime error code for explicit null-pointer dereference attempts.
  *
  * Use when a pointer is about to be dereferenced and was found null
  * (distinct from generic pointer/reference validation checks).
  */
-#define lh_runtime_error_code_null_pointer_dereference 0x0A
+#define lh_runtime_error_code_null_dereference 0x0A
 
 /**
  * @def lh_runtime_error_code_no_null_terminator
