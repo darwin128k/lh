@@ -69,15 +69,18 @@ static const lh_char_case_pair_t m_char_case_fold_table[] = {
 static const lh_usize_t m_char_case_fold_table_size = lh_array_raw_size(m_char_case_fold_table);
 
 lh_char_t
-lh_char_fold_case(lh_char_t c) {
+lh_char_fold_case(lh_char_t c)
+{
     lh_char_case_pair_t r;
     lh_bool_t is_founded = lh_bool_false;
 
     lh_interval_ropen_binary_search(lh_usize_t, m_char_case_fold_table, m_char_case_fold_table_size,
                                     c, first, r, is_founded);
 
-    if (is_founded) {
-        if (lh_math_gt(r.second, LH_CHAR_T_MAX)) {
+    if (is_founded)
+    {
+        if (lh_math_gt(r.second, LH_CHAR_T_MAX))
+        {
             return c;
         }
         return r.second;

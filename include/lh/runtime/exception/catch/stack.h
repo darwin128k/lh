@@ -240,9 +240,11 @@ lh_runtime_exception_catch_stack_push(lh_exception_catch_t *e);
 LH_ATTRIBUTE_BUILTIN
 LH_ATTRIBUTE_NORETURN
 void
-lh_runtime_exception_catch_stack_throw(const lh_exception_t *exception) {
+lh_runtime_exception_catch_stack_throw(const lh_exception_t *exception)
+{
     lh_exception_catch_t *prev = lh_runtime_exception_catch_stack_prev();
-    if (prev) {
+    if (prev)
+    {
         prev->exception = *exception;
         longjmp(prev->env, lh_error_get_code(lh_exception_get_error(&prev->exception)));
     }
@@ -263,7 +265,8 @@ lh_runtime_exception_catch_stack_throw(const lh_exception_t *exception) {
 LH_ATTRIBUTE_BUILTIN
 LH_ATTRIBUTE_NORETURN
 void
-lh_runtime_exception_catch_stack_rethrow(void) {
+lh_runtime_exception_catch_stack_rethrow(void)
+{
     const lh_exception_catch_t *cur = lh_runtime_exception_catch_stack_get_cur();
     lh_runtime_exception_catch_stack_throw(&cur->exception);
 }

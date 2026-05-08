@@ -41,7 +41,8 @@
  * @see lh_exception_initializer()
  * @see lh_exception_empty_initializer()
  */
-typedef struct lh_exception {
+typedef struct lh_exception
+{
     lh_error_t error; /**< Primary payload (code and related error fields). */
 #ifndef NDEBUG
     lh_exception_origin_t origin; /**< Raise site metadata; absent when `NDEBUG` is defined. */

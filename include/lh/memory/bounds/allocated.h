@@ -64,7 +64,7 @@ lh_memory_bounds_allocated_clear(lh_memory_bounds_allocated_t *self);
 LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_allocated_exchange(lh_memory_bounds_allocated_t *self,
-                                   lh_memory_bounds_allocated_t *other);
+                                    lh_memory_bounds_allocated_t *other);
 
 /**
  * @brief Resize the owned block in place using the runtime allocator.

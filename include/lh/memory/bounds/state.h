@@ -49,7 +49,7 @@
  * @brief Mask of both null-endpoint bits (::lh_memory_bounds_state_null_begin |
  *        ::lh_memory_bounds_state_null_end): classified state when both stored endpoints were null.
  */
-#define lh_memory_bounds_state_uninitialized                                                        \
+#define lh_memory_bounds_state_uninitialized                                                       \
     (lh_memory_bounds_state_null_begin | lh_memory_bounds_state_null_end)
 
 /**

@@ -60,7 +60,9 @@
  * @endcode
  */
 #    ifdef LH_COMPILER_CXX
-#        define LH_COMPILER_EXTERN_C_BEGIN LH_COMPILER_EXTERN_C {
+#        define LH_COMPILER_EXTERN_C_BEGIN                                                         \
+            LH_COMPILER_EXTERN_C                                                                   \
+            {
 #    else
 #        define LH_COMPILER_EXTERN_C_BEGIN
 #    endif

@@ -46,7 +46,7 @@
  * @endcode
  */
 #define lh_memory_typed_fields(T)                                                                  \
-    T bounds;                                                                                       \
+    T bounds;                                                                                      \
     lh_usize_t type_size
 
 #endif // LH_MEMORY_TYPED_FIELDS_H

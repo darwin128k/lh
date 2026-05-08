@@ -41,7 +41,8 @@
  * @see lh_runtime_throw_by_desc
  */
 #define lh_runtime_throw(...)                                                                      \
-    do {                                                                                           \
+    do                                                                                             \
+    {                                                                                              \
         const lh_exception_t e = lh_exception_initializer(__VA_ARGS__);                            \
         lh_runtime_exception_catch_stack_throw(&e);                                                \
     } while (0)

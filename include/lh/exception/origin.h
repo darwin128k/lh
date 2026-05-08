@@ -34,7 +34,8 @@
  * @see lh_exception_origin_initializer()
  * @see lh_exception_origin_initializer_now()
  */
-typedef struct lh_exception_origin {
+typedef struct lh_exception_origin
+{
     lh_str_cptr timestamp; /**< Optional time stamp text (e.g. from `__TIMESTAMP__`). */
     lh_str_cptr filename;  /**< Source path fragment (often `__FILE__`). */
     lh_str_cptr function;  /**< Function name (often `__FUNCTION__` / `__func__`). */

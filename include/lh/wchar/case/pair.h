@@ -26,7 +26,8 @@
  *
  * @see lh_pair_fields
  */
-typedef struct lh_wchar_case_pair {
+typedef struct lh_wchar_case_pair
+{
     lh_pair_fields(lh_uchar32_t, lh_uchar32_t);
 } lh_wchar_case_pair_t;
 

@@ -38,7 +38,8 @@
  * @see lh_memory_bounds_t
  * @see lh_memory_typed_make_v
  */
-typedef struct lh_memory_typed {
+typedef struct lh_memory_typed
+{
     lh_memory_typed_fields(lh_memory_bounds_t);
 } lh_memory_typed_t;
 
@@ -99,7 +100,7 @@ lh_memory_typed_pack(lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
 LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_typed_pack_from_bounds(lh_memory_typed_t *self, lh_memory_bounds_t *bounds,
-                                const lh_usize_t *type_size);
+                                 const lh_usize_t *type_size);
 
 /**
  * @brief Validated variant of ::lh_memory_typed_pack.
@@ -153,7 +154,7 @@ lh_memory_typed_unpack_v(const lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *e
 LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_typed_unpack_to_bounds(const lh_memory_typed_t *self, lh_memory_bounds_t *bounds,
-                                lh_usize_t *type_size);
+                                 lh_usize_t *type_size);
 
 /* ── set / init / assign ──────────────────────────────────────────────────── */
 

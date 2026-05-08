@@ -33,7 +33,8 @@
  * that is still active, and respect C’s rules for locals across `setjmp`
  * (often `volatile` where required).
  */
-typedef struct lh_exception_catch {
+typedef struct lh_exception_catch
+{
     lh_exception_t exception; /**< Filled when unwinding reaches this catch (wraps ::lh_error_t). */
     lh_jump_buffer_t env;     /**< `setjmp` / `longjmp` state for this site (::lh_jump_buffer_t). */
 } lh_exception_catch_t;       /**< Typedef for struct ::lh_exception_catch. */
@@ -202,8 +203,7 @@ lh_exception_catch_equals(const lh_exception_catch_t *self, const lh_exception_c
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_exception_catch_not_equals(const lh_exception_catch_t *self,
-                              const lh_exception_catch_t *other);
+lh_exception_catch_not_equals(const lh_exception_catch_t *self, const lh_exception_catch_t *other);
 
 /**
  * @brief Test whether two catch frames carry the same exception code.

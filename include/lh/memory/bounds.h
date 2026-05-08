@@ -39,7 +39,8 @@
  * Public typedef: ::lh_memory_bounds_t.
  * Same layout as ::lh_memory_view_t without @c const on the pointer type.
  */
-typedef struct lh_memory_bounds {
+typedef struct lh_memory_bounds
+{
     lh_memory_bounds_fields(lh_void);
 } lh_memory_bounds_t; /**< Typedef for struct ::lh_memory_bounds. */
 
@@ -306,7 +307,8 @@ lh_memory_bounds_contains_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_contains_range(const lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
+lh_memory_bounds_contains_range(const lh_memory_bounds_t *self, const lh_ptr begin,
+                                const lh_ptr end);
 
 /**
  * @brief Same as ::lh_memory_bounds_contains_range after unpacking @p other.
@@ -348,7 +350,8 @@ lh_memory_bounds_equals(const lh_memory_bounds_t *self, const lh_memory_bounds_t
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_overlaps_range(const lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
+lh_memory_bounds_overlaps_range(const lh_memory_bounds_t *self, const lh_ptr begin,
+                                const lh_ptr end);
 
 /**
  * @brief Same as ::lh_memory_bounds_overlaps_range after unpacking @p other.
@@ -431,7 +434,8 @@ lh_memory_bounds_get_value_from_back(const lh_memory_bounds_t *self, lh_uoffset_
  */
 LH_ATTRIBUTE_SYMBOL
 lh_byte_t
-lh_memory_bounds_get_value(const lh_memory_bounds_t *self, lh_uoffset_t offset, lh_bool_t from_back);
+lh_memory_bounds_get_value(const lh_memory_bounds_t *self, lh_uoffset_t offset,
+                           lh_bool_t from_back);
 
 /**
  * @brief True iff @p self can produce a valid slice for (@p offset, @p size).
@@ -445,7 +449,8 @@ lh_memory_bounds_get_value(const lh_memory_bounds_t *self, lh_uoffset_t offset, 
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_is_sliceable(const lh_memory_bounds_t *self, lh_uoffset_t offset, lh_uoffset_t size);
+lh_memory_bounds_is_sliceable(const lh_memory_bounds_t *self, lh_uoffset_t offset,
+                              lh_uoffset_t size);
 
 /**
  * @brief Return a validated half-open subrange <tt>[offset, offset + size)</tt> of @p self.
@@ -476,7 +481,7 @@ lh_memory_bounds_slice(const lh_memory_bounds_t *self, lh_uoffset_t offset, lh_u
 LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_t
 lh_memory_bounds_slice_or_empty(const lh_memory_bounds_t *self, lh_uoffset_t offset,
-                               lh_uoffset_t size);
+                                lh_uoffset_t size);
 
 /**
  * @brief Write @p value at ::lh_memory_bounds_get_ptr(@p self, @p offset, @p from_back)
@@ -489,7 +494,7 @@ lh_memory_bounds_slice_or_empty(const lh_memory_bounds_t *self, lh_uoffset_t off
 LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_set_value(lh_memory_bounds_t *self, lh_uoffset_t offset, lh_byte_t value,
-                          lh_bool_t from_back);
+                           lh_bool_t from_back);
 
 /**
  * @brief Same as ::lh_memory_bounds_get_ptr(@p self, 0, ::lh_bool_false).
@@ -743,7 +748,8 @@ lh_memory_bounds_rfind(const lh_memory_bounds_t *self, const lh_memory_bounds_t 
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
-lh_memory_bounds_compare_range(const lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
+lh_memory_bounds_compare_range(const lh_memory_bounds_t *self, const lh_ptr begin,
+                               const lh_ptr end);
 
 /**
  * @brief Same as ::lh_memory_bounds_compare_range after unpacking @p other (requires valid @p
@@ -772,7 +778,8 @@ lh_memory_bounds_compare(const lh_memory_bounds_t *self, const lh_memory_bounds_
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
-lh_memory_bounds_rcompare_range(const lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
+lh_memory_bounds_rcompare_range(const lh_memory_bounds_t *self, const lh_ptr begin,
+                                const lh_ptr end);
 
 /**
  * @brief Same as ::lh_memory_bounds_rcompare_range after unpacking @p other (requires valid @p

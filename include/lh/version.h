@@ -29,7 +29,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * Fields are injected via ::lh_version_fields and typed as
  * ::lh_version_major_t, ::lh_version_minor_t, and ::lh_version_patch_t.
  */
-struct lh_version {
+struct lh_version
+{
     /** Major, minor, and patch fields of types ::lh_version_major_t,
      *  ::lh_version_minor_t, and ::lh_version_patch_t. */
     lh_version_fields(lh_version_major_t, lh_version_minor_t, lh_version_patch_t);

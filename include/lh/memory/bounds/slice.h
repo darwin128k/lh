@@ -42,7 +42,8 @@
  * Endpoints describe <tt>[first, second]</tt> in address space when both are
  * non-null and ordered. Public typedef: ::lh_memory_bounds_slice_t.
  */
-typedef struct lh_memory_bounds_slice {
+typedef struct lh_memory_bounds_slice
+{
     lh_memory_bounds_slice_fields(lh_void);
 } lh_memory_bounds_slice_t; /**< Typedef for struct ::lh_memory_bounds_slice. */
 

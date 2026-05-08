@@ -15,21 +15,25 @@ lh_memory_allocator_t m_runtime_allocator = lh_memory_allocator_empty_initialize
 #endif
 
 lh_memory_allocator_t *
-lh_runtime_allocator(void) {
+lh_runtime_allocator(void)
+{
     return lh_addr_of(m_runtime_allocator);
 }
 
 lh_ptr
-lh_runtime_allocator_alloc(lh_usize_t size) {
+lh_runtime_allocator_alloc(lh_usize_t size)
+{
     return lh_memory_allocator_alloc(lh_runtime_allocator(), size);
 }
 
 lh_void
-lh_runtime_allocator_free(lh_ptr ptr) {
+lh_runtime_allocator_free(lh_ptr ptr)
+{
     lh_memory_allocator_dealloc(lh_runtime_allocator(), ptr);
 }
 
 lh_ptr
-lh_runtime_allocator_realloc(lh_ptr old_ptr, lh_usize_t old_size, lh_usize_t new_size) {
+lh_runtime_allocator_realloc(lh_ptr old_ptr, lh_usize_t old_size, lh_usize_t new_size)
+{
     return lh_memory_allocator_realloc(lh_runtime_allocator(), old_ptr, old_size, new_size);
 }

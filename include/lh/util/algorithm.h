@@ -26,7 +26,8 @@
  * @endcode
  */
 #define lh_algorithm_swap(T, a, b)                                                                 \
-    do {                                                                                           \
+    do                                                                                             \
+    {                                                                                              \
         T temp = (a);                                                                              \
         (a) = (b);                                                                                 \
         (b) = temp;                                                                                \
@@ -50,7 +51,8 @@
  * @endcode
  */
 #define lh_algorithm_swap_no_temp(a, b)                                                            \
-    do {                                                                                           \
+    do                                                                                             \
+    {                                                                                              \
         (a) ^= (b);                                                                                \
         (b) ^= (a);                                                                                \
         (a) ^= (b);                                                                                \
@@ -72,11 +74,13 @@
  * @endcode
  */
 #define lh_algorithm_copy(T, dst, src, n)                                                          \
-    do {                                                                                           \
+    do                                                                                             \
+    {                                                                                              \
         T *d = lh_ptr_cast(T, dst);                                                                \
         const T *s = lh_ptr_ccast(T, src);                                                         \
                                                                                                    \
-        while (n--) {                                                                              \
+        while (n--)                                                                                \
+        {                                                                                          \
             *d++ = *s++;                                                                           \
         }                                                                                          \
     } while (0)
@@ -99,11 +103,13 @@
  * @endcode
  */
 #define lh_algorithm_rcopy(T, dst, src, n)                                                         \
-    do {                                                                                           \
+    do                                                                                             \
+    {                                                                                              \
         T *d = lh_ptr_add_by_offset_unsafe(T, dst, n);                                             \
         const T *s = lh_ptr_add_by_offset_unsafe(T, src, n);                                       \
                                                                                                    \
-        while (n--) {                                                                              \
+        while (n--)                                                                                \
+        {                                                                                          \
             *(--d) = *(--s);                                                                       \
         }                                                                                          \
     } while (0)
@@ -123,10 +129,12 @@
  * @endcode
  */
 #define lh_algorithm_set(T, dst, val, n)                                                           \
-    do {                                                                                           \
+    do                                                                                             \
+    {                                                                                              \
         T *d = lh_ptr_cast(T, dst);                                                                \
                                                                                                    \
-        while (n--) {                                                                              \
+        while (n--)                                                                                \
+        {                                                                                          \
             *d++ = val;                                                                            \
         }                                                                                          \
     } while (0)
@@ -146,11 +154,14 @@
  * function whose return type is compatible with `const T *`.
  */
 #define lh_algorithm_find_byte(T, lhs, rhs, n)                                                     \
-    do {                                                                                           \
+    do                                                                                             \
+    {                                                                                              \
         const T *l = lh_ptr_ccast(T, lhs);                                                         \
                                                                                                    \
-        while (n--) {                                                                              \
-            if (*l == (rhs)) {                                                                     \
+        while (n--)                                                                                \
+        {                                                                                          \
+            if (*l == (rhs))                                                                       \
+            {                                                                                      \
                 return l;                                                                          \
             }                                                                                      \
             l++;                                                                                   \
@@ -179,12 +190,15 @@
  * @endcode
  */
 #define lh_algorithm_compare(T, lhs, rhs, n)                                                       \
-    do {                                                                                           \
+    do                                                                                             \
+    {                                                                                              \
         const T *l = lh_ptr_ccast(T, lhs);                                                         \
         const T *r = lh_ptr_ccast(T, rhs);                                                         \
                                                                                                    \
-        while (n--) {                                                                              \
-            if (*l != *r) {                                                                        \
+        while (n--)                                                                                \
+        {                                                                                          \
+            if (*l != *r)                                                                          \
+            {                                                                                      \
                 return l;                                                                          \
             }                                                                                      \
             l++;                                                                                   \
@@ -214,12 +228,15 @@
  * @endcode
  */
 #define lh_algorithm_rcompare(T, lhs, rhs, n)                                                      \
-    do {                                                                                           \
+    do                                                                                             \
+    {                                                                                              \
         const T *l = lh_ptr_add_unsafe(T, lhs, lh_math_sub_one(n));                                \
         const T *r = lh_ptr_add_unsafe(T, rhs, lh_math_sub_one(n));                                \
                                                                                                    \
-        while (n--) {                                                                              \
-            if (*l != *r) {                                                                        \
+        while (n--)                                                                                \
+        {                                                                                          \
+            if (*l != *r)                                                                          \
+            {                                                                                      \
                 return l;                                                                          \
             }                                                                                      \
             l--;                                                                                   \
@@ -243,11 +260,13 @@
  * @endcode
  */
 #define lh_algorithm_copy_rev(T, dst, src, n)                                                      \
-    do {                                                                                           \
+    do                                                                                             \
+    {                                                                                              \
         T *d = lh_ptr_add_by_offset_unsafe(T, dst, n);                                             \
         const T *s = lh_ptr_ccast(T, src);                                                         \
                                                                                                    \
-        while (n--) {                                                                              \
+        while (n--)                                                                                \
+        {                                                                                          \
             *--d = *s++;                                                                           \
         }                                                                                          \
     } while (0)

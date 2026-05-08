@@ -1508,7 +1508,8 @@ static const lh_usize_t m_wchar_case_fold_table_size = lh_array_raw_size(m_wchar
 
 /* Table lookup: lh_interval_ropen_binary_search() — lh/util/interval.h */
 lh_wchar_t
-lh_wchar_fold_case(lh_wchar_t c) {
+lh_wchar_fold_case(lh_wchar_t c)
+{
     lh_wchar_case_pair_t result;
     lh_bool_t is_founded;
 
@@ -1516,9 +1517,11 @@ lh_wchar_fold_case(lh_wchar_t c) {
                                     m_wchar_case_fold_table_size, lh_cast_static(lh_uchar32_t, c),
                                     first, result, is_founded);
 
-    if (is_founded) {
+    if (is_founded)
+    {
         const lh_uchar32_t mapped = result.second;
-        if (lh_math_gt(mapped, lh_cast_static(lh_uchar32_t, LH_WCHAR_T_MAX))) {
+        if (lh_math_gt(mapped, lh_cast_static(lh_uchar32_t, LH_WCHAR_T_MAX)))
+        {
             return c;
         }
         return lh_cast_static(lh_wchar_t, mapped);

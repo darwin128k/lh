@@ -5,9 +5,11 @@
 #include <lh/memory/typed.h>
 #include <lh/null.h>
 
-namespace {
+namespace
+{
 
-TEST(memory_typed_basic, bounds_accessors_alias_embedded_bounds) {
+TEST(memory_typed_basic, bounds_accessors_alias_embedded_bounds)
+{
     lh_memory_typed_t typed;
     unsigned char buffer[4];
     lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 4),
@@ -17,7 +19,8 @@ TEST(memory_typed_basic, bounds_accessors_alias_embedded_bounds) {
     EXPECT_EQ(lh_memory_typed_get_cbounds(&typed), &typed.bounds);
 }
 
-TEST(memory_typed_basic, set_and_unpack_roundtrip_all_fields) {
+TEST(memory_typed_basic, set_and_unpack_roundtrip_all_fields)
+{
     lh_memory_typed_t typed;
     unsigned char buffer[10];
     lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 10),
@@ -33,7 +36,8 @@ TEST(memory_typed_basic, set_and_unpack_roundtrip_all_fields) {
     EXPECT_EQ(type_size, 2u);
 }
 
-TEST(memory_typed_basic, pack_supports_optional_updates) {
+TEST(memory_typed_basic, pack_supports_optional_updates)
+{
     lh_memory_typed_t typed;
     unsigned char buffer[8];
     lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 8),
@@ -50,12 +54,13 @@ TEST(memory_typed_basic, pack_supports_optional_updates) {
     EXPECT_EQ(lh_memory_typed_get_type_size(&typed), 1u);
 }
 
-TEST(memory_typed_basic, pack_from_bounds_sets_bounds_and_type_size) {
+TEST(memory_typed_basic, pack_from_bounds_sets_bounds_and_type_size)
+{
     lh_memory_typed_t typed;
     lh_memory_typed_t baseline;
     unsigned char buffer[10];
-    lh_memory_typed_set(&baseline, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 10),
-                        2);
+    lh_memory_typed_set(&baseline, lh_cast_static(lh_ptr, buffer),
+                        lh_cast_static(lh_ptr, buffer + 10), 2);
 
     lh_memory_bounds_t bounds;
     lh_ptr begin = lh_cast_static(lh_ptr, buffer + 2);
@@ -73,7 +78,8 @@ TEST(memory_typed_basic, pack_from_bounds_sets_bounds_and_type_size) {
     EXPECT_EQ(lh_memory_typed_get_type_size(&typed), 3u);
 }
 
-TEST(memory_typed_basic, pack_v_supports_optional_updates) {
+TEST(memory_typed_basic, pack_v_supports_optional_updates)
+{
     lh_memory_typed_t typed;
     unsigned char buffer[8];
     lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 8),
@@ -90,7 +96,8 @@ TEST(memory_typed_basic, pack_v_supports_optional_updates) {
     EXPECT_EQ(lh_memory_typed_get_type_size(&typed), 1u);
 }
 
-TEST(memory_typed_basic, unpack_v_roundtrip_all_fields_for_valid_typed) {
+TEST(memory_typed_basic, unpack_v_roundtrip_all_fields_for_valid_typed)
+{
     lh_memory_typed_t typed;
     unsigned char buffer[12];
     lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 12),
@@ -106,7 +113,8 @@ TEST(memory_typed_basic, unpack_v_roundtrip_all_fields_for_valid_typed) {
     EXPECT_EQ(type_size, 3u);
 }
 
-TEST(memory_typed_basic, assign_and_init_by_size_copy_expected_state) {
+TEST(memory_typed_basic, assign_and_init_by_size_copy_expected_state)
+{
     lh_memory_typed_t src;
     unsigned char buffer[12];
     lh_memory_typed_set_by_size(&src, lh_cast_static(lh_ptr, buffer), 12, 3);
@@ -124,10 +132,12 @@ TEST(memory_typed_basic, assign_and_init_by_size_copy_expected_state) {
     EXPECT_EQ(lh_memory_typed_get_size(&by_size), 4u);
 }
 
-TEST(memory_typed_basic, clone_and_clone_v_copy_all_fields) {
+TEST(memory_typed_basic, clone_and_clone_v_copy_all_fields)
+{
     lh_memory_typed_t src;
     unsigned char buffer[12];
-    lh_memory_typed_set(&src, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 12), 3);
+    lh_memory_typed_set(&src, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 12),
+                        3);
 
     const lh_memory_typed_t c1 = lh_memory_typed_clone(&src);
     EXPECT_EQ(lh_memory_typed_get_begin(&c1), lh_cast_static(lh_ptr, buffer));
@@ -140,14 +150,18 @@ TEST(memory_typed_basic, clone_and_clone_v_copy_all_fields) {
     EXPECT_EQ(lh_memory_typed_get_type_size(&c2), 3u);
 }
 
-TEST(memory_typed_basic, dup_and_dup_v_copy_all_fields) {
+TEST(memory_typed_basic, dup_and_dup_v_copy_all_fields)
+{
     lh_memory_typed_t src;
     lh_memory_typed_t dst;
     lh_memory_typed_t dst_v;
     unsigned char buffer[10];
-    lh_memory_typed_set(&src, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 10), 2);
-    lh_memory_typed_init(&dst, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 2), 1);
-    lh_memory_typed_init(&dst_v, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 2), 1);
+    lh_memory_typed_set(&src, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 10),
+                        2);
+    lh_memory_typed_init(&dst, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 2),
+                         1);
+    lh_memory_typed_init(&dst_v, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 2),
+                         1);
 
     lh_memory_typed_dup(&src, &dst);
     EXPECT_EQ(lh_memory_typed_get_begin(&dst), lh_cast_static(lh_ptr, buffer));
@@ -160,12 +174,15 @@ TEST(memory_typed_basic, dup_and_dup_v_copy_all_fields) {
     EXPECT_EQ(lh_memory_typed_get_type_size(&dst_v), 2u);
 }
 
-TEST(memory_typed_basic, assign_v_copies_from_valid_source) {
+TEST(memory_typed_basic, assign_v_copies_from_valid_source)
+{
     lh_memory_typed_t src;
     lh_memory_typed_t dst;
     unsigned char buffer[12];
-    lh_memory_typed_set(&src, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 12), 3);
-    lh_memory_typed_init(&dst, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 3), 1);
+    lh_memory_typed_set(&src, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 12),
+                        3);
+    lh_memory_typed_init(&dst, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 3),
+                         1);
 
     lh_memory_typed_assign_v(&dst, &src);
     EXPECT_EQ(lh_memory_typed_get_begin(&dst), lh_cast_static(lh_ptr, buffer));
@@ -173,14 +190,16 @@ TEST(memory_typed_basic, assign_v_copies_from_valid_source) {
     EXPECT_EQ(lh_memory_typed_get_type_size(&dst), 3u);
 }
 
-TEST(memory_typed_basic, make_by_empty_returns_empty_initializer_state) {
+TEST(memory_typed_basic, make_by_empty_returns_empty_initializer_state)
+{
     const lh_memory_typed_t t = lh_memory_typed_make_by_empty(4);
     EXPECT_EQ(t.bounds.first, lh_null);
     EXPECT_EQ(t.bounds.second, lh_null);
     EXPECT_EQ(t.type_size, 4u);
 }
 
-TEST(memory_typed_basic, init_by_empty_resets_to_empty_initializer) {
+TEST(memory_typed_basic, init_by_empty_resets_to_empty_initializer)
+{
     lh_memory_typed_t t;
     unsigned char buffer[6];
     lh_memory_typed_set(&t, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 6), 2);
@@ -190,21 +209,23 @@ TEST(memory_typed_basic, init_by_empty_resets_to_empty_initializer) {
     EXPECT_EQ(t.type_size, 2u);
 }
 
-TEST(memory_typed_basic, make_or_empty_returns_bounds_or_empty) {
+TEST(memory_typed_basic, make_or_empty_returns_bounds_or_empty)
+{
     unsigned char buffer[6];
-    const lh_memory_typed_t ok = lh_memory_typed_make_or_empty(lh_cast_static(lh_ptr, buffer),
-                                                                lh_cast_static(lh_ptr, buffer + 6), 3);
+    const lh_memory_typed_t ok = lh_memory_typed_make_or_empty(
+        lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 6), 3);
     EXPECT_EQ(lh_memory_typed_get_begin(&ok), lh_cast_static(lh_ptr, buffer));
     EXPECT_EQ(lh_memory_typed_get_end(&ok), lh_cast_static(lh_ptr, buffer + 6));
     EXPECT_EQ(lh_memory_typed_get_type_size(&ok), 3u);
 
-    const lh_memory_typed_t bad =
-        lh_memory_typed_make_or_empty(lh_cast_static(lh_ptr, buffer + 1), lh_cast_static(lh_ptr, buffer), 1);
+    const lh_memory_typed_t bad = lh_memory_typed_make_or_empty(lh_cast_static(lh_ptr, buffer + 1),
+                                                                lh_cast_static(lh_ptr, buffer), 1);
     EXPECT_EQ(bad.bounds.first, lh_null);
     EXPECT_EQ(bad.bounds.second, lh_null);
 }
 
-TEST(memory_typed_basic, make_and_make_v_create_expected_typed) {
+TEST(memory_typed_basic, make_and_make_v_create_expected_typed)
+{
     unsigned char buffer[8];
     const lh_memory_typed_t made =
         lh_memory_typed_make(lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 8), 2);
@@ -212,14 +233,15 @@ TEST(memory_typed_basic, make_and_make_v_create_expected_typed) {
     EXPECT_EQ(lh_memory_typed_get_end(&made), lh_cast_static(lh_ptr, buffer + 8));
     EXPECT_EQ(lh_memory_typed_get_type_size(&made), 2u);
 
-    const lh_memory_typed_t made_v =
-        lh_memory_typed_make_v(lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 8), 2);
+    const lh_memory_typed_t made_v = lh_memory_typed_make_v(lh_cast_static(lh_ptr, buffer),
+                                                            lh_cast_static(lh_ptr, buffer + 8), 2);
     EXPECT_EQ(lh_memory_typed_get_begin(&made_v), lh_cast_static(lh_ptr, buffer));
     EXPECT_EQ(lh_memory_typed_get_end(&made_v), lh_cast_static(lh_ptr, buffer + 8));
     EXPECT_EQ(lh_memory_typed_get_type_size(&made_v), 2u);
 }
 
-TEST(memory_typed_geometry, size_empty_and_index_validation) {
+TEST(memory_typed_geometry, size_empty_and_index_validation)
+{
     lh_memory_typed_t typed;
     unsigned char buffer[9];
     lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 9),
@@ -232,7 +254,8 @@ TEST(memory_typed_geometry, size_empty_and_index_validation) {
     EXPECT_FALSE(lh_memory_typed_is_valid_index(&typed, 3));
 }
 
-TEST(memory_typed_geometry, is_sliceable_in_bounds_and_out_of_bounds) {
+TEST(memory_typed_geometry, is_sliceable_in_bounds_and_out_of_bounds)
+{
     lh_memory_typed_t typed;
     unsigned char buffer[12];
     lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 12),
@@ -243,7 +266,8 @@ TEST(memory_typed_geometry, is_sliceable_in_bounds_and_out_of_bounds) {
     EXPECT_FALSE(lh_memory_typed_is_sliceable(&typed, 3, 2));
 }
 
-TEST(memory_typed_geometry, slice_returns_expected_subspan) {
+TEST(memory_typed_geometry, slice_returns_expected_subspan)
+{
     lh_memory_typed_t typed;
     unsigned char buffer[12];
     lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 12),
@@ -256,7 +280,8 @@ TEST(memory_typed_geometry, slice_returns_expected_subspan) {
     EXPECT_EQ(lh_memory_typed_get_size(&s), 2u);
 }
 
-TEST(memory_typed_geometry, slice_or_empty_returns_subspan_or_empty) {
+TEST(memory_typed_geometry, slice_or_empty_returns_subspan_or_empty)
+{
     lh_memory_typed_t typed;
     unsigned char buffer[12];
     lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 12),
@@ -271,7 +296,8 @@ TEST(memory_typed_geometry, slice_or_empty_returns_subspan_or_empty) {
     EXPECT_EQ(bad.bounds.second, lh_null);
 }
 
-TEST(memory_typed_geometry, is_valid_reflects_type_multiple_for_valid_range) {
+TEST(memory_typed_geometry, is_valid_reflects_type_multiple_for_valid_range)
+{
     lh_memory_typed_t typed;
     unsigned char buffer[2];
     lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 2),
@@ -280,7 +306,8 @@ TEST(memory_typed_geometry, is_valid_reflects_type_multiple_for_valid_range) {
     EXPECT_FALSE(lh_memory_typed_is_invalid(&typed));
 }
 
-TEST(memory_typed_access, ptr_access_front_back_and_dispatch) {
+TEST(memory_typed_access, ptr_access_front_back_and_dispatch)
+{
     lh_memory_typed_t typed;
     unsigned char buffer[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
     lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 12),
@@ -296,7 +323,8 @@ TEST(memory_typed_access, ptr_access_front_back_and_dispatch) {
     EXPECT_EQ(lh_memory_typed_get_ptr(&typed, 1, lh_bool_true), lh_cast_static(lh_ptr, buffer + 4));
 }
 
-TEST(memory_typed_access, value_access_front_back_and_extremes) {
+TEST(memory_typed_access, value_access_front_back_and_extremes)
+{
     lh_memory_typed_t typed;
     unsigned char buffer[6] = {0x10, 0x11, 0x20, 0x21, 0x30, 0x31};
     lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 6),
@@ -317,17 +345,20 @@ TEST(memory_typed_access, value_access_front_back_and_extremes) {
 
 #if LH_TEST_EXPECT_DEATH_ENABLED
 
-TEST(memory_typed_death, null_self_in_get_bounds) {
+TEST(memory_typed_death, null_self_in_get_bounds)
+{
     LH_EXPECT_DEATH(
         (void)lh_memory_typed_get_bounds(reinterpret_cast<lh_memory_typed_t *>(lh_null)));
 }
 
-TEST(memory_typed_death, null_self_in_get_cbounds) {
+TEST(memory_typed_death, null_self_in_get_cbounds)
+{
     LH_EXPECT_DEATH(
         (void)lh_memory_typed_get_cbounds(reinterpret_cast<const lh_memory_typed_t *>(lh_null)));
 }
 
-TEST(memory_typed_death, get_size_requires_multiple_of_type_size) {
+TEST(memory_typed_death, get_size_requires_multiple_of_type_size)
+{
     lh_memory_typed_t typed;
     unsigned char buffer[5];
     lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 5),
@@ -335,19 +366,22 @@ TEST(memory_typed_death, get_size_requires_multiple_of_type_size) {
     LH_EXPECT_DEATH((void)lh_memory_typed_get_size(&typed));
 }
 
-TEST(memory_typed_death, is_valid_requires_valid_underlying_bounds) {
+TEST(memory_typed_death, is_valid_requires_valid_underlying_bounds)
+{
     lh_memory_typed_t typed;
     lh_memory_typed_init(&typed, lh_null, lh_null, 1);
     LH_EXPECT_DEATH((void)lh_memory_typed_is_valid(&typed));
 }
 
-TEST(memory_typed_death, is_invalid_requires_valid_underlying_bounds) {
+TEST(memory_typed_death, is_invalid_requires_valid_underlying_bounds)
+{
     lh_memory_typed_t typed;
     lh_memory_typed_init(&typed, lh_null, lh_null, 1);
     LH_EXPECT_DEATH((void)lh_memory_typed_is_invalid(&typed));
 }
 
-TEST(memory_typed_death, get_ptr_from_front_rejects_out_of_range) {
+TEST(memory_typed_death, get_ptr_from_front_rejects_out_of_range)
+{
     lh_memory_typed_t typed;
     unsigned char buffer[4];
     lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 4),
@@ -355,7 +389,8 @@ TEST(memory_typed_death, get_ptr_from_front_rejects_out_of_range) {
     LH_EXPECT_DEATH((void)lh_memory_typed_get_ptr_from_front(&typed, 2));
 }
 
-TEST(memory_typed_death, pack_v_rejects_partial_update_that_makes_range_invalid) {
+TEST(memory_typed_death, pack_v_rejects_partial_update_that_makes_range_invalid)
+{
     lh_memory_typed_t typed;
     unsigned char buffer[8];
     lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 8),
@@ -365,19 +400,24 @@ TEST(memory_typed_death, pack_v_rejects_partial_update_that_makes_range_invalid)
     LH_EXPECT_DEATH((void)lh_memory_typed_pack_v(&typed, &bad_begin, nullptr, nullptr));
 }
 
-TEST(memory_typed_death, assign_v_rejects_source_with_non_multiple_size) {
+TEST(memory_typed_death, assign_v_rejects_source_with_non_multiple_size)
+{
     lh_memory_typed_t src;
     lh_memory_typed_t dst;
     unsigned char buffer[5];
-    lh_memory_typed_set(&src, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 5), 2);
-    lh_memory_typed_set(&dst, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 4), 2);
+    lh_memory_typed_set(&src, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 5),
+                        2);
+    lh_memory_typed_set(&dst, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 4),
+                        2);
     LH_EXPECT_DEATH((void)lh_memory_typed_assign_v(&dst, &src));
 }
 
-TEST(memory_typed_death, unpack_v_rejects_non_multiple_size) {
+TEST(memory_typed_death, unpack_v_rejects_non_multiple_size)
+{
     lh_memory_typed_t typed;
     unsigned char buffer[5];
-    lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 5), 2);
+    lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 5),
+                        2);
 
     lh_ptr begin = lh_null;
     lh_ptr end = lh_null;
@@ -385,29 +425,36 @@ TEST(memory_typed_death, unpack_v_rejects_non_multiple_size) {
     LH_EXPECT_DEATH((void)lh_memory_typed_unpack_v(&typed, &begin, &end, &type_size));
 }
 
-TEST(memory_typed_death, clone_v_rejects_source_with_non_multiple_size) {
+TEST(memory_typed_death, clone_v_rejects_source_with_non_multiple_size)
+{
     lh_memory_typed_t typed;
     unsigned char buffer[5];
-    lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 5), 2);
+    lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 5),
+                        2);
     LH_EXPECT_DEATH((void)lh_memory_typed_clone_v(&typed));
 }
 
-TEST(memory_typed_death, dup_v_rejects_source_with_non_multiple_size) {
+TEST(memory_typed_death, dup_v_rejects_source_with_non_multiple_size)
+{
     lh_memory_typed_t src;
     lh_memory_typed_t dst;
     unsigned char buffer[5];
-    lh_memory_typed_set(&src, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 5), 2);
-    lh_memory_typed_set(&dst, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 4), 2);
+    lh_memory_typed_set(&src, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 5),
+                        2);
+    lh_memory_typed_set(&dst, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 4),
+                        2);
     LH_EXPECT_DEATH((void)lh_memory_typed_dup_v(&src, &dst));
 }
 
-TEST(memory_typed_death, make_v_rejects_non_multiple_size) {
+TEST(memory_typed_death, make_v_rejects_non_multiple_size)
+{
     unsigned char buffer[5];
     LH_EXPECT_DEATH((void)lh_memory_typed_make_v(lh_cast_static(lh_ptr, buffer),
                                                  lh_cast_static(lh_ptr, buffer + 5), 2));
 }
 
-TEST(memory_typed_death, slice_rejects_out_of_range_window) {
+TEST(memory_typed_death, slice_rejects_out_of_range_window)
+{
     lh_memory_typed_t typed;
     unsigned char buffer[12];
     lh_memory_typed_set(&typed, lh_cast_static(lh_ptr, buffer), lh_cast_static(lh_ptr, buffer + 12),

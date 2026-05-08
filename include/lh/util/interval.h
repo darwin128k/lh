@@ -476,20 +476,27 @@
  * @param found_var  Variable to store search result (1 if found, 0 if not)
  */
 #define lh_interval_closed_binary_search(type, table, n, key, field_from, result_var, found_var)   \
-    do {                                                                                           \
+    do                                                                                             \
+    {                                                                                              \
         type lh_bs_lo = 0U;                                                                        \
         type lh_bs_hi = (n);                                                                       \
         (found_var) = lh_bool_false;                                                               \
-        while (lh_math_le(lh_bs_lo, lh_bs_hi)) {                                                   \
+        while (lh_math_le(lh_bs_lo, lh_bs_hi))                                                     \
+        {                                                                                          \
             const type lh_bs_mid = lh_interval_closed_midpoint(lh_bs_lo, lh_bs_hi);                \
             const type lh_bs_from = (table)[lh_bs_mid].field_from;                                 \
-            if (lh_math_lt((key), lh_bs_from)) {                                                   \
+            if (lh_math_lt((key), lh_bs_from))                                                     \
+            {                                                                                      \
                 if (lh_math_is_zero(lh_bs_mid))                                                    \
                     break;                                                                         \
                 lh_bs_hi = lh_math_sub_one(lh_bs_mid);                                             \
-            } else if (lh_math_gt((key), lh_bs_from)) {                                            \
+            }                                                                                      \
+            else if (lh_math_gt((key), lh_bs_from))                                                \
+            {                                                                                      \
                 lh_bs_lo = lh_math_add_one(lh_bs_mid);                                             \
-            } else {                                                                               \
+            }                                                                                      \
+            else                                                                                   \
+            {                                                                                      \
                 (result_var) = (table)[lh_bs_mid];                                                 \
                 (found_var) = lh_bool_true;                                                        \
                 break;                                                                             \
@@ -514,20 +521,27 @@
  * @param found_var  Variable to store search result (1 if found, 0 if not)
  */
 #define lh_interval_lopen_binary_search(type, table, n, key, field_from, result_var, found_var)    \
-    do {                                                                                           \
+    do                                                                                             \
+    {                                                                                              \
         type lh_bs_lo = 1U;                                                                        \
         type lh_bs_hi = (n);                                                                       \
         (found_var) = lh_bool_false;                                                               \
-        while (lh_math_le(lh_bs_lo, lh_bs_hi)) {                                                   \
+        while (lh_math_le(lh_bs_lo, lh_bs_hi))                                                     \
+        {                                                                                          \
             const type lh_bs_mid = lh_interval_lopen_midpoint(lh_bs_lo, lh_bs_hi);                 \
             const type lh_bs_from = (table)[lh_bs_mid].field_from;                                 \
-            if (lh_math_lt((key), lh_bs_from)) {                                                   \
+            if (lh_math_lt((key), lh_bs_from))                                                     \
+            {                                                                                      \
                 if (lh_math_le(lh_bs_mid, 1U))                                                     \
                     break;                                                                         \
                 lh_bs_hi = lh_math_sub_one(lh_bs_mid);                                             \
-            } else if (lh_math_gt((key), lh_bs_from)) {                                            \
+            }                                                                                      \
+            else if (lh_math_gt((key), lh_bs_from))                                                \
+            {                                                                                      \
                 lh_bs_lo = lh_math_add_one(lh_bs_mid);                                             \
-            } else {                                                                               \
+            }                                                                                      \
+            else                                                                                   \
+            {                                                                                      \
                 (result_var) = (table)[lh_bs_mid];                                                 \
                 (found_var) = lh_bool_true;                                                        \
                 break;                                                                             \
@@ -552,18 +566,25 @@
  * @param found_var  Variable to store search result (1 if found, 0 if not)
  */
 #define lh_interval_ropen_binary_search(type, table, n, key, field_from, result_var, found_var)    \
-    do {                                                                                           \
+    do                                                                                             \
+    {                                                                                              \
         type lh_bs_lo = 0U;                                                                        \
         type lh_bs_hi = (n);                                                                       \
         (found_var) = lh_bool_false;                                                               \
-        while (lh_math_lt(lh_bs_lo, lh_bs_hi)) {                                                   \
+        while (lh_math_lt(lh_bs_lo, lh_bs_hi))                                                     \
+        {                                                                                          \
             const type lh_bs_mid = lh_interval_ropen_midpoint(lh_bs_lo, lh_bs_hi);                 \
             const type lh_bs_from = (table)[lh_bs_mid].field_from;                                 \
-            if (lh_math_lt((key), lh_bs_from)) {                                                   \
+            if (lh_math_lt((key), lh_bs_from))                                                     \
+            {                                                                                      \
                 lh_bs_hi = lh_bs_mid;                                                              \
-            } else if (lh_math_gt((key), lh_bs_from)) {                                            \
+            }                                                                                      \
+            else if (lh_math_gt((key), lh_bs_from))                                                \
+            {                                                                                      \
                 lh_bs_lo = lh_math_add_one(lh_bs_mid);                                             \
-            } else {                                                                               \
+            }                                                                                      \
+            else                                                                                   \
+            {                                                                                      \
                 (result_var) = (table)[lh_bs_mid];                                                 \
                 (found_var) = lh_bool_true;                                                        \
                 break;                                                                             \
@@ -588,18 +609,25 @@
  * @param found_var  Variable to store search result (1 if found, 0 if not)
  */
 #define lh_interval_open_binary_search(type, table, n, key, field_from, result_var, found_var)     \
-    do {                                                                                           \
+    do                                                                                             \
+    {                                                                                              \
         type lh_bs_lo = 1U;                                                                        \
         type lh_bs_hi = (n);                                                                       \
         (found_var) = lh_bool_false;                                                               \
-        while (lh_math_lt(lh_bs_lo, lh_bs_hi)) {                                                   \
+        while (lh_math_lt(lh_bs_lo, lh_bs_hi))                                                     \
+        {                                                                                          \
             const type lh_bs_mid = lh_interval_open_midpoint(lh_bs_lo, lh_bs_hi);                  \
             const type lh_bs_from = (table)[lh_bs_mid].field_from;                                 \
-            if (lh_math_lt((key), lh_bs_from)) {                                                   \
+            if (lh_math_lt((key), lh_bs_from))                                                     \
+            {                                                                                      \
                 lh_bs_hi = lh_bs_mid;                                                              \
-            } else if (lh_math_gt((key), lh_bs_from)) {                                            \
+            }                                                                                      \
+            else if (lh_math_gt((key), lh_bs_from))                                                \
+            {                                                                                      \
                 lh_bs_lo = lh_math_add_one(lh_bs_mid);                                             \
-            } else {                                                                               \
+            }                                                                                      \
+            else                                                                                   \
+            {                                                                                      \
                 (result_var) = (table)[lh_bs_mid];                                                 \
                 (found_var) = lh_bool_true;                                                        \
                 break;                                                                             \

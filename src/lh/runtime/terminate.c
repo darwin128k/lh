@@ -13,17 +13,20 @@ lh_runtime_terminate_cb m_runtime_terminate = lh_null;
 #endif
 
 lh_runtime_terminate_cb
-lh_runtime_terminate_get(void) {
+lh_runtime_terminate_get(void)
+{
     return m_runtime_terminate;
 }
 
 void
-lh_runtime_terminate_set(lh_runtime_terminate_cb fn) {
+lh_runtime_terminate_set(lh_runtime_terminate_cb fn)
+{
     m_runtime_terminate = fn;
 }
 
 void
-lh_runtime_terminate(void) {
+lh_runtime_terminate(void)
+{
     m_runtime_terminate();
     lh_compiler_unreachable();
 }

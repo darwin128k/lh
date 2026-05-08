@@ -33,7 +33,8 @@
  * @see lh_interval_flags_t
  * @see lh_interval_fields
  */
-struct lh_uchar_interval {
+struct lh_uchar_interval
+{
     /** @c bounds — struct ::lh_uchar_interval_bounds. */
     lh_interval_fields(struct lh_uchar_interval_bounds);
 };
@@ -49,7 +50,8 @@ struct lh_uchar_interval {
  * @see lh_interval_flags_t
  * @see lh_interval_fields
  */
-struct lh_ushort_interval {
+struct lh_ushort_interval
+{
     /** @c bounds — struct ::lh_ushort_interval_bounds. */
     lh_interval_fields(struct lh_ushort_interval_bounds);
 };
@@ -65,7 +67,8 @@ struct lh_ushort_interval {
  * @see lh_interval_flags_t
  * @see lh_interval_fields
  */
-struct lh_uint_interval {
+struct lh_uint_interval
+{
     /** @c bounds — struct ::lh_uint_interval_bounds. */
     lh_interval_fields(struct lh_uint_interval_bounds);
 };
@@ -84,7 +87,8 @@ struct lh_uint_interval {
  * @see lh_interval_flags_t
  * @see lh_interval_fields
  */
-struct lh_ulong_interval {
+struct lh_ulong_interval
+{
     /** @c bounds — struct ::lh_ulong_interval_bounds. */
     lh_interval_fields(struct lh_ulong_interval_bounds);
 };
@@ -100,7 +104,8 @@ struct lh_ulong_interval {
  * @see lh_interval_flags_t
  * @see lh_interval_fields
  */
-struct lh_ullong_interval {
+struct lh_ullong_interval
+{
     /** @c bounds — struct ::lh_ullong_interval_bounds. */
     lh_interval_fields(struct lh_ullong_interval_bounds);
 };
@@ -118,7 +123,8 @@ struct lh_ullong_interval {
  * @see lh_interval_flags_t
  * @see lh_interval_fields
  */
-struct lh_schar_interval {
+struct lh_schar_interval
+{
     /** @c bounds — struct ::lh_schar_interval_bounds. */
     lh_interval_fields(struct lh_schar_interval_bounds);
 };
@@ -134,7 +140,8 @@ struct lh_schar_interval {
  * @see lh_interval_flags_t
  * @see lh_interval_fields
  */
-struct lh_sshort_interval {
+struct lh_sshort_interval
+{
     /** @c bounds — struct ::lh_sshort_interval_bounds. */
     lh_interval_fields(struct lh_sshort_interval_bounds);
 };
@@ -150,7 +157,8 @@ struct lh_sshort_interval {
  * @see lh_interval_flags_t
  * @see lh_interval_fields
  */
-struct lh_sint_interval {
+struct lh_sint_interval
+{
     /** @c bounds — struct ::lh_sint_interval_bounds. */
     lh_interval_fields(struct lh_sint_interval_bounds);
 };
@@ -169,7 +177,8 @@ struct lh_sint_interval {
  * @see lh_interval_flags_t
  * @see lh_interval_fields
  */
-struct lh_slong_interval {
+struct lh_slong_interval
+{
     /** @c bounds — struct ::lh_slong_interval_bounds. */
     lh_interval_fields(struct lh_slong_interval_bounds);
 };
@@ -185,7 +194,8 @@ struct lh_slong_interval {
  * @see lh_interval_flags_t
  * @see lh_interval_fields
  */
-struct lh_sllong_interval {
+struct lh_sllong_interval
+{
     /** @c bounds — struct ::lh_sllong_interval_bounds. */
     lh_interval_fields(struct lh_sllong_interval_bounds);
 };

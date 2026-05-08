@@ -20,7 +20,8 @@
  * @struct lh_error
  * @brief Error code and optional human-readable description.
  */
-typedef struct lh_error {
+typedef struct lh_error
+{
     lh_error_code_t code; /**< Discrete error kind; ::LH_ERROR_CODE_OK means success / empty. */
     lh_error_desc_t desc; /**< Optional message pointer; may be null. */
 } lh_error_t;             /**< Typedef for struct ::lh_error. */

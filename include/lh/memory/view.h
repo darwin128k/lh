@@ -42,7 +42,8 @@
  * Public typedef: ::lh_memory_view_t.
  * Same layout as ::lh_memory_bounds_t but with const-qualified pointers.
  */
-typedef struct lh_memory_view {
+typedef struct lh_memory_view
+{
     lh_memory_view_fields(lh_void);
 } lh_memory_view_t; /**< Typedef for struct ::lh_memory_view. */
 

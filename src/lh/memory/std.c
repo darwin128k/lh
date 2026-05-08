@@ -3,7 +3,8 @@
 #include <lh/util/algorithm.h>
 
 lh_ptr
-lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n) {
+lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
+{
     lh_runtime_check_ref(dst);
     lh_runtime_check_ref(src);
 
@@ -14,7 +15,8 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n) {
 }
 
 lh_ptr
-lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n) {
+lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n)
+{
     lh_runtime_check_ref(dst);
     lh_runtime_check_ref(src);
 
@@ -25,7 +27,8 @@ lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n) {
 }
 
 lh_ptr
-lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n) {
+lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
+{
     lh_runtime_check_ref(dst);
     lh_runtime_check_ref(src);
 
@@ -34,9 +37,11 @@ lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n) {
 }
 
 lh_ptr
-lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n) {
+lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n)
+{
     const lh_ptr src_end = lh_ptr_add_by_offset(lh_void, src, n);
-    if (lh_ptr_is_backward_copy(dst, src, src_end)) {
+    if (lh_ptr_is_backward_copy(dst, src, src_end))
+    {
         lh_memory_std_rcopy(dst, src, n);
         return lh_ptr_add_by_offset(lh_void, dst, n);
     }
@@ -44,7 +49,8 @@ lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n) {
 }
 
 lh_ptr
-lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n) {
+lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n)
+{
     lh_runtime_check_ref(dst);
 
     lh_ptr end = lh_ptr_add_unsafe(lh_void, dst, n);
@@ -53,7 +59,8 @@ lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n) {
 }
 
 const lh_ptr
-lh_memory_std_compare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n) {
+lh_memory_std_compare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
+{
     lh_runtime_check_ref(lhs);
     lh_runtime_check_ref(rhs);
 
@@ -62,7 +69,8 @@ lh_memory_std_compare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n) {
 }
 
 const lh_ptr
-lh_memory_std_rcompare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n) {
+lh_memory_std_rcompare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
+{
     lh_runtime_check_ref(lhs);
     lh_runtime_check_ref(rhs);
 

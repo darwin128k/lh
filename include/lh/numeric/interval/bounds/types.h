@@ -37,7 +37,8 @@
  * @see lh_uchar_t
  * @see lh_interval_bounds_fields
  */
-struct lh_uchar_interval_bounds {
+struct lh_uchar_interval_bounds
+{
     /** Endpoints of type ::lh_uchar_t (`first`, `second`). */
     lh_interval_bounds_fields(lh_uchar_t);
 };
@@ -52,7 +53,8 @@ struct lh_uchar_interval_bounds {
  * @see lh_ushort_t
  * @see lh_interval_bounds_fields
  */
-struct lh_ushort_interval_bounds {
+struct lh_ushort_interval_bounds
+{
     /** Endpoints of type ::lh_ushort_t (`first`, `second`). */
     lh_interval_bounds_fields(lh_ushort_t);
 };
@@ -67,7 +69,8 @@ struct lh_ushort_interval_bounds {
  * @see lh_uint_t
  * @see lh_interval_bounds_fields
  */
-struct lh_uint_interval_bounds {
+struct lh_uint_interval_bounds
+{
     /** Endpoints of type ::lh_uint_t (`first`, `second`). */
     lh_interval_bounds_fields(lh_uint_t);
 };
@@ -85,7 +88,8 @@ struct lh_uint_interval_bounds {
  * @see lh_ulong_t
  * @see lh_interval_bounds_fields
  */
-struct lh_ulong_interval_bounds {
+struct lh_ulong_interval_bounds
+{
     /** Endpoints of type ::lh_ulong_t (`first`, `second`). */
     lh_interval_bounds_fields(lh_ulong_t);
 };
@@ -101,7 +105,8 @@ struct lh_ulong_interval_bounds {
  * @see lh_ullong_t
  * @see lh_interval_bounds_fields
  */
-struct lh_ullong_interval_bounds {
+struct lh_ullong_interval_bounds
+{
     /** Endpoints of type ::lh_ullong_t (`first`, `second`). */
     lh_interval_bounds_fields(lh_ullong_t);
 };
@@ -119,7 +124,8 @@ struct lh_ullong_interval_bounds {
  * @see lh_schar_t
  * @see lh_interval_bounds_fields
  */
-struct lh_schar_interval_bounds {
+struct lh_schar_interval_bounds
+{
     /** Endpoints of type ::lh_schar_t (`first`, `second`). */
     lh_interval_bounds_fields(lh_schar_t);
 };
@@ -134,7 +140,8 @@ struct lh_schar_interval_bounds {
  * @see lh_sshort_t
  * @see lh_interval_bounds_fields
  */
-struct lh_sshort_interval_bounds {
+struct lh_sshort_interval_bounds
+{
     /** Endpoints of type ::lh_sshort_t (`first`, `second`). */
     lh_interval_bounds_fields(lh_sshort_t);
 };
@@ -149,7 +156,8 @@ struct lh_sshort_interval_bounds {
  * @see lh_sint_t
  * @see lh_interval_bounds_fields
  */
-struct lh_sint_interval_bounds {
+struct lh_sint_interval_bounds
+{
     /** Endpoints of type ::lh_sint_t (`first`, `second`). */
     lh_interval_bounds_fields(lh_sint_t);
 };
@@ -167,7 +175,8 @@ struct lh_sint_interval_bounds {
  * @see lh_slong_t
  * @see lh_interval_bounds_fields
  */
-struct lh_slong_interval_bounds {
+struct lh_slong_interval_bounds
+{
     /** Endpoints of type ::lh_slong_t (`first`, `second`). */
     lh_interval_bounds_fields(lh_slong_t);
 };
@@ -182,7 +191,8 @@ struct lh_slong_interval_bounds {
  * @see lh_sllong_t
  * @see lh_interval_bounds_fields
  */
-struct lh_sllong_interval_bounds {
+struct lh_sllong_interval_bounds
+{
     /** Endpoints of type ::lh_sllong_t (`first`, `second`). */
     lh_interval_bounds_fields(lh_sllong_t);
 };
