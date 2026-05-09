@@ -948,21 +948,6 @@ lh_memory_bounds_slice_init_by_other(lh_memory_bounds_slice_t *self,
                                      const lh_memory_bounds_slice_t *other);
 
 /**
- * @brief Swap @p self with valid @p other.
- * @param self  Slice to swap.
- * @param other Valid slice to swap with.
- *
- * @throw ::lh_runtime_error_code_null_pointer
- *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
- *        @p other is not valid.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_bounds_slice_swap_v_other(lh_memory_bounds_slice_t *self,
-                                    lh_memory_bounds_slice_t *other);
-
-/**
  * @brief Swap two valid slices.
  *
  * @param self  Valid slice to swap.

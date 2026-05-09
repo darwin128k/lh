@@ -483,6 +483,7 @@ lh_memory_bounds_slice_swap(lh_memory_bounds_slice_t *self, lh_memory_bounds_sli
     lh_algorithm_swap(lh_memory_bounds_slice_t, lh_ptr_deref(self), lh_ptr_deref(other));
 }
 
+LH_ATTRIBUTE_BUILTIN
 lh_void
 lh_memory_bounds_slice_swap_v_other(lh_memory_bounds_slice_t *self, lh_memory_bounds_slice_t *other)
 {
