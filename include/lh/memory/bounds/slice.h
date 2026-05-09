@@ -826,32 +826,6 @@ lh_memory_bounds_slice_prev_value(const lh_memory_bounds_slice_t *self, const lh
 /* -- mutation ------------------------------------------------------------- */
 
 /**
- * @brief Store @p begin and @p end in @p self without validating the range.
- * @param self  Slice to update.
- * @param begin New @c first endpoint.
- * @param end   New @c second endpoint.
- *
- * @throw ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_bounds_slice_set(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr end);
-
-/**
- * @brief Copy stored endpoints from @p other to @p self.
- * @param self  Slice to update.
- * @param other Slice to copy from.
- *
- * @throw ::lh_runtime_error_code_null_pointer
- *        @p other is ::lh_null.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_bounds_slice_assign(lh_memory_bounds_slice_t *self,
-                              const lh_memory_bounds_slice_t *other);
-
-/**
  * @brief Reset @p self to the uninitialized empty slice.
  * @param self Slice to clear.
  *
@@ -942,8 +916,7 @@ lh_memory_bounds_slice_init(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr
  */
 LH_ATTRIBUTE_SYMBOL
 lh_void
-lh_memory_bounds_slice_init_by_size(lh_memory_bounds_slice_t *self, lh_ptr begin,
-                                    lh_usize_t size);
+lh_memory_bounds_slice_init_by_size(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_usize_t size);
 
 /**
  * @brief Initialize @p self with the empty slice initializer.
@@ -975,18 +948,6 @@ lh_memory_bounds_slice_init_by_other(lh_memory_bounds_slice_t *self,
                                      const lh_memory_bounds_slice_t *other);
 
 /**
- * @brief Swap stored endpoints between @p self and @p other.
- * @param self  First slice.
- * @param other Second slice.
- *
- * @throw ::lh_runtime_error_code_null_pointer
- *        @p self or @p other is ::lh_null.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_bounds_slice_swap(lh_memory_bounds_slice_t *self, lh_memory_bounds_slice_t *other);
-
-/**
  * @brief Swap @p self with valid @p other.
  * @param self  Slice to swap.
  * @param other Valid slice to swap with.
@@ -1002,18 +963,15 @@ lh_memory_bounds_slice_swap_v_other(lh_memory_bounds_slice_t *self,
                                     lh_memory_bounds_slice_t *other);
 
 /**
- * @brief Clear @p self, then move valid @p other into it by swapping.
+ * @brief Swap two valid slices.
  *
- * When @p self and @p other are different objects, @p other receives the empty
- * slice left by ::lh_memory_bounds_slice_clear.
- *
- * @param self  Slice to replace.
- * @param other Valid slice to move from.
+ * @param self  Valid slice to swap.
+ * @param other Valid slice to swap with.
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  * @throw ::lh_runtime_error_code_invalid_range
- *        @p other is not valid.
+ *        @p self or @p other is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_void
