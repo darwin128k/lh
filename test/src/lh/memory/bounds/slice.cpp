@@ -473,6 +473,17 @@ TEST(memory_bounds_slice_get_value_by_offset, reads_byte_by_signed_offset)
     EXPECT_EQ(lh_memory_bounds_slice_get_value_by_offset(&s, -1), 50);
 }
 
+TEST(memory_bounds_slice_set_value, writes_byte_from_begin_offset)
+{
+    unsigned char buf[5] = {10, 20, 30, 40, 50};
+    lh_memory_bounds_slice_t s = slice(p(buf + 1), p(buf + 4));
+
+    lh_memory_bounds_slice_set_value(&s, 2, 99);
+
+    EXPECT_EQ(buf[3], 99);
+    EXPECT_EQ(lh_memory_bounds_slice_get_value_from_begin(&s, 2), 99);
+}
+
 TEST(memory_bounds_slice_get_begin_value, reads_begin_value)
 {
     unsigned char buf[5] = {10, 20, 30, 40, 50};
@@ -811,6 +822,14 @@ TEST(memory_bounds_slice_get_ptr_from_begin, rejects_out_of_range_offset_death)
     lh_memory_bounds_slice_t s = slice(p(buf), p(buf + 1));
 
     LH_EXPECT_DEATH((void)lh_memory_bounds_slice_get_ptr_from_begin(&s, 2));
+}
+
+TEST(memory_bounds_slice_set_value, rejects_out_of_range_offset_death)
+{
+    unsigned char buf[2] = {10, 20};
+    lh_memory_bounds_slice_t s = slice(p(buf), p(buf + 1));
+
+    LH_EXPECT_DEATH(lh_memory_bounds_slice_set_value(&s, 2, 99));
 }
 
 TEST(memory_bounds_slice_get_offset_from_begin, rejects_pointer_before_slice_death)

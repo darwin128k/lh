@@ -521,6 +521,14 @@ lh_memory_bounds_slice_swap_and_clear(lh_memory_bounds_slice_t *self,
 }
 
 lh_void
+lh_memory_bounds_slice_set_value(const lh_memory_bounds_slice_t *self, lh_uoffset_t offset,
+                                 lh_byte_t value)
+{
+    lh_ptr ptr = lh_memory_bounds_slice_get_ptr_from_begin(self, offset);
+    lh_ptr_deref(lh_ptr_cast(lh_byte_t, ptr)) = value;
+}
+
+lh_void
 lh_memory_bounds_slice_init(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr end)
 {
     lh_memory_bounds_slice_set_v(self, begin, end);

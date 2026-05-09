@@ -615,6 +615,24 @@ lh_memory_bounds_slice_get_value_by_offset(const lh_memory_bounds_slice_t *self,
                                            lh_soffset_t offset);
 
 /**
+ * @brief Write @p value at byte @p offset from @c first.
+ * @param self   Valid slice to index.
+ * @param offset Byte offset from the begin endpoint.
+ * @param value  Byte value to write.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_slice_set_value(const lh_memory_bounds_slice_t *self, lh_uoffset_t offset,
+                                 lh_byte_t value);
+
+/**
  * @brief Read the first byte of @p self.
  * @param self Valid slice to read.
  * @return Byte at @c first.
