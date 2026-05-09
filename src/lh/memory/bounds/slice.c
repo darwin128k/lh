@@ -521,6 +521,12 @@ lh_memory_bounds_slice_swap_and_clear(lh_memory_bounds_slice_t *self,
 }
 
 lh_void
+lh_memory_bounds_slice_init(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr end)
+{
+    lh_memory_bounds_slice_set_v(self, begin, end);
+}
+
+lh_void
 lh_memory_bounds_slice_init_by_size(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_usize_t size)
 {
     lh_memory_bounds_slice_set_by_size(self, begin, size);

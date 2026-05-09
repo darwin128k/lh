@@ -891,6 +891,24 @@ lh_void
 lh_memory_bounds_slice_set_by_size(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_usize_t size);
 
 /**
+ * @brief Initialize @p self with valid @p begin and @p end endpoints.
+ *
+ * Same as ::lh_memory_bounds_slice_set_v.
+ *
+ * @param self  Slice to initialize.
+ * @param begin New @c first endpoint.
+ * @param end   New @c second endpoint.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        <tt>[begin, end]</tt> is not a valid slice.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_slice_init(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr end);
+
+/**
  * @brief Initialize @p self as a closed slice starting at @p begin with @p size bytes.
  *
  * Same as ::lh_memory_bounds_slice_set_by_size.
@@ -921,15 +939,17 @@ lh_void
 lh_memory_bounds_slice_init_empty(lh_memory_bounds_slice_t *self);
 
 /**
- * @brief Initialize @p self by copying stored endpoints from @p other.
+ * @brief Initialize @p self by copying endpoints from valid @p other.
  *
- * This copies endpoints without validating @p other.
+ * Same as ::lh_memory_bounds_slice_assign_v.
  *
  * @param self  Slice to initialize.
- * @param other Slice to copy from.
+ * @param other Valid slice to copy from.
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p other is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_void
