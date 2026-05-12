@@ -55,7 +55,7 @@
 #define lh_wstr_raw_capacity(x) lh_array_raw_size(x)
 
 /**
- * @def lh_wstr_raw_size(x)
+ * @def lh_wstr_raw_get_size(x)
  * @brief Payload slot count: `::lh_wstr_raw_capacity(x) - 1`.
  *
  * Use when one `wchar_t` at the end is reserved for `L'\\0'`
@@ -73,18 +73,18 @@
  * Example usage:
  * @code{.c}
  * wchar_t s[] = L"ab";
- * // lh_wstr_raw_size(s) == 2  // body length; capacity still includes L'\0'
+ * // lh_wstr_raw_get_size(s) == 2  // body length; capacity still includes L'\0'
  * @endcode
  */
-#define lh_wstr_raw_size(x) ((lh_wstr_raw_capacity(x)) - 1)
+#define lh_wstr_raw_get_size(x) ((lh_wstr_raw_capacity(x)) - 1)
 
 /**
  * @def lh_wstr_raw_end(x)
- * @brief End of the payload span: `lh_wstr_raw_begin(x) + lh_wstr_raw_size(x)`.
+ * @brief End of the payload span: `lh_wstr_raw_begin(x) + lh_wstr_raw_get_size(x)`.
  *
  * Points at the slot where the terminating `L'\\0'` is stored
  * (first code unit after the last payload character).
- * The range `[begin, end)` has length ::lh_wstr_raw_size(x)
+ * The range `[begin, end)` has length ::lh_wstr_raw_get_size(x)
  * and does not include the terminator in the half-open interval.
  *
  * This is **not** one past the whole array;
@@ -97,7 +97,7 @@
  * // *lh_wstr_raw_end(s) == L'\0'
  * @endcode
  */
-#define lh_wstr_raw_end(x) ((lh_wstr_raw_begin(x)) + lh_wstr_raw_size(x))
+#define lh_wstr_raw_end(x) ((lh_wstr_raw_begin(x)) + lh_wstr_raw_get_size(x))
 
 /**
  * @brief Preprocessor paste: @c L##c
@@ -151,6 +151,83 @@ LH_COMPILER_EXTERN_C_BEGIN
 LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_raw_find_char(const lh_wstr_ptr str, lh_usize_t size, lh_wchar_t val);
+
+/**
+ * @brief Find the last ::lh_wchar_t equal to @p val
+ *        in the first @p size elements of @p str.
+ *
+ * @param str  Non-null sequence to scan (::lh_runtime_check_ref).
+ * @param size Maximum number of wide characters to inspect.
+ * @param val  Code unit to search for.
+ *
+ * @return Pointer to the last matching element (::lh_wchar_t-aligned relative to @p str),
+ *         or ::lh_null if @p val does not occur in that prefix.
+ *
+ * @see lh_wstr_raw_find_char
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_wstr_ptr
+lh_wstr_raw_rfind_char(const lh_wstr_ptr str, lh_usize_t size, lh_wchar_t val);
+
+/**
+ * @brief Find the first wide character in @p str that belongs to @p chars.
+ *
+ * @param str        Haystack buffer (::lh_runtime_check_ref).
+ * @param str_size   Length of @p str in wide characters.
+ * @param chars      Character set buffer (::lh_runtime_check_ref).
+ * @param chars_size Number of elements in @p chars.
+ *
+ * @return Pointer to the first matching wide character, or ::lh_null if none found.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_wstr_ptr
+lh_wstr_raw_find_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
+                           lh_usize_t chars_size);
+
+/**
+ * @brief Find the last wide character in @p str that belongs to @p chars.
+ *
+ * @param str        Haystack buffer (::lh_runtime_check_ref).
+ * @param str_size   Length of @p str in wide characters.
+ * @param chars      Character set buffer (::lh_runtime_check_ref).
+ * @param chars_size Number of elements in @p chars.
+ *
+ * @return Pointer to the last matching wide character, or ::lh_null if none found.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_wstr_ptr
+lh_wstr_raw_rfind_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
+                            lh_usize_t chars_size);
+
+/**
+ * @brief Find the first wide character in @p str that does not belong to @p chars.
+ *
+ * @param str        Haystack buffer (::lh_runtime_check_ref).
+ * @param str_size   Length of @p str in wide characters.
+ * @param chars      Character set buffer (::lh_runtime_check_ref).
+ * @param chars_size Number of elements in @p chars.
+ *
+ * @return Pointer to the first non-matching wide character, or ::lh_null if none found.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_wstr_ptr
+lh_wstr_raw_find_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
+                               lh_usize_t chars_size);
+
+/**
+ * @brief Find the last wide character in @p str that does not belong to @p chars.
+ *
+ * @param str        Haystack buffer (::lh_runtime_check_ref).
+ * @param str_size   Length of @p str in wide characters.
+ * @param chars      Character set buffer (::lh_runtime_check_ref).
+ * @param chars_size Number of elements in @p chars.
+ *
+ * @return Pointer to the last non-matching wide character, or ::lh_null if none found.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_wstr_ptr
+lh_wstr_raw_rfind_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
+                                lh_usize_t chars_size);
 
 /**
  * @brief Find the first wide NUL (@c L'\\0')
@@ -224,7 +301,7 @@ lh_wstr_raw_len(const lh_wstr_ptr str);
  * @see lh_memory_copy
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_wstr_ptr
+lh_wstr_ptr
 lh_wstr_raw_copy(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src, lh_usize_t src_size);
 
 /**
@@ -241,7 +318,7 @@ lh_wstr_raw_copy(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src, lh
  * @see lh_memory_move
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_wstr_ptr
+lh_wstr_ptr
 lh_wstr_raw_move(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src, lh_usize_t src_size);
 
 /**
@@ -257,7 +334,7 @@ lh_wstr_raw_move(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src, lh
  * @see lh_memory_set_pattern
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_wstr_ptr
+lh_wstr_ptr
 lh_wstr_raw_set_pattern(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                         lh_usize_t src_size);
 
@@ -277,7 +354,7 @@ lh_wstr_raw_set_pattern(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr 
  * @see lh_wstr_raw_set_pattern
  */
 LH_ATTRIBUTE_SYMBOL
-const lh_wstr_ptr
+lh_wstr_ptr
 lh_wstr_raw_set(lh_wstr_ptr str, lh_usize_t str_size, lh_wchar_t ch);
 
 /**
@@ -569,6 +646,25 @@ lh_bool_t
 lh_wstr_raw_contains(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case);
 
 /**
+ * @brief Size-bounded substring search.
+ *
+ * @param str          Haystack buffer.
+ * @param str_size     Haystack size in wide characters.
+ * @param src          Needle buffer.
+ * @param src_size     Needle size in wide characters.
+ * @param ignore_case  Same matching mode as ::lh_wstr_raw_find.
+ *
+ * @return ::lh_true if @p src occurs in @p str under the selected rules, ::lh_false otherwise.
+ *
+ * @see lh_wstr_raw_find
+ * @see lh_wstr_raw_contains
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_wstr_raw_contains_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
+                              lh_usize_t src_size, lh_bool_t ignore_case);
+
+/**
  * @brief NUL-terminated string equality.
  *
  * Lengths from ::lh_wstr_raw_len must match.
@@ -591,6 +687,28 @@ lh_wstr_raw_contains(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ign
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_wstr_raw_equals(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case);
+
+/**
+ * @brief Size-bounded string equality.
+ *
+ * @param str          First buffer.
+ * @param str_size     Length of @p str in wide characters.
+ * @param src          Second buffer.
+ * @param src_size     Length of @p src in wide characters.
+ * @param ignore_case  ::lh_bool_false → exact ::lh_wchar_t equality (::lh_memory_compare path).
+ *                     ::lh_bool_true → pair-wise ::lh_wchar_fold_case
+ *                     (::lh_wstr_raw_compare_by_ignore_case).
+ *
+ * @return ::lh_true if @p str_size equals @p src_size and
+ *         ::lh_wstr_raw_compare finds no difference, ::lh_false otherwise.
+ *
+ * @see lh_wstr_raw_equals
+ * @see lh_wstr_raw_compare
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_wstr_raw_equals_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
+                            lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
  * @brief NUL-terminated prefix compare
@@ -620,6 +738,27 @@ lh_bool_t
 lh_wstr_raw_starts_with(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case);
 
 /**
+ * @brief Size-bounded prefix compare using ::lh_wstr_raw_compare.
+ *
+ * @param str          Haystack buffer.
+ * @param str_size     Haystack size in wide characters.
+ * @param src          Prefix buffer.
+ * @param src_size     Prefix size in wide characters.
+ * @param ignore_case  ::lh_bool_false → raw code units (::lh_memory_compare on wide spans).
+ *                     ::lh_bool_true → ::lh_wchar_fold_case per code unit.
+ *
+ * @return ::lh_true if the leading @p src_size wide characters of @p str match @p src,
+ *         ::lh_false otherwise.
+ *
+ * @see lh_wstr_raw_compare
+ * @see lh_wstr_raw_starts_with
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_wstr_raw_starts_with_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
+                                lh_usize_t src_size, lh_bool_t ignore_case);
+
+/**
  * @brief NUL-terminated suffix compare using ::lh_wstr_raw_rcompare on lengths from
  * ::lh_wstr_raw_len.
  *
@@ -644,60 +783,218 @@ LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_wstr_raw_ends_with(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case);
 
+/**
+ * @brief Size-bounded suffix compare using ::lh_wstr_raw_rcompare.
+ *
+ * @param str          Haystack buffer.
+ * @param str_size     Haystack size in wide characters.
+ * @param src          Suffix buffer.
+ * @param src_size     Suffix size in wide characters.
+ * @param ignore_case  ::lh_bool_false → raw code units (::lh_memory_rcompare on wide spans).
+ *                     ::lh_bool_true → ::lh_wstr_raw_rcompare_by_ignore_case.
+ *
+ * @return ::lh_true if the trailing @p src_size wide characters of @p str match @p src,
+ *         ::lh_false otherwise.
+ *
+ * @see lh_wstr_raw_rcompare
+ * @see lh_wstr_raw_ends_with
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_wstr_raw_ends_with_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
+                               lh_usize_t src_size, lh_bool_t ignore_case);
+
+/**
+ * @brief Check whether @p ch exists in the first @p chars_size elements of @p chars.
+ *
+ * @param chars       Character set buffer.
+ * @param chars_size  Number of elements available in @p chars.
+ * @param ch          Wide character to search for.
+ *
+ * @return ::lh_true if found, ::lh_false otherwise.
+ *
+ * @see lh_wstr_raw_find_char
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_wstr_raw_contains_char(const lh_wstr_ptr chars, lh_usize_t chars_size, lh_wchar_t ch);
 
+/**
+ * @brief Left trim using the built-in default whitespace set.
+ *
+ * @param str NUL-terminated target string.
+ *
+ * @return Pointer to the resulting trimmed string (same address as @p str).
+ *
+ * @see lh_wstr_raw_ltrim_custom
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_raw_ltrim(lh_wstr_ptr str);
 
+/**
+ * @brief Right trim using the built-in default whitespace set.
+ *
+ * @param str NUL-terminated target string.
+ *
+ * @return Pointer to the resulting trimmed string (same address as @p str).
+ *
+ * @see lh_wstr_raw_rtrim_custom
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_raw_rtrim(lh_wstr_ptr str);
 
+/**
+ * @brief Two-sided trim using the built-in default whitespace set.
+ *
+ * @param str NUL-terminated target string.
+ *
+ * @return Pointer to the resulting trimmed string (same address as @p str).
+ *
+ * @see lh_wstr_raw_trim_custom
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_raw_trim(lh_wstr_ptr str);
 
+/**
+ * @brief Left trim with explicit string and trim-set sizes (custom mode).
+ *
+ * @param str               Target string buffer.
+ * @param str_size          Number of wide characters in @p str to inspect.
+ * @param whitespace_chars  Trim character set.
+ * @param whitespace_size   Number of elements in @p whitespace_chars.
+ *
+ * @return Pointer to the resulting trimmed string (same address as @p str).
+ *
+ * @see lh_wstr_raw_ltrim_set
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_raw_ltrim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr whitespace_chars,
                          lh_usize_t whitespace_size);
 
+/**
+ * @brief Right trim with explicit string and trim-set sizes (custom mode).
+ *
+ * @param str               Target string buffer.
+ * @param str_size          Number of wide characters in @p str to inspect.
+ * @param whitespace_chars  Trim character set.
+ * @param whitespace_size   Number of elements in @p whitespace_chars.
+ *
+ * @return Pointer to the resulting trimmed string (same address as @p str).
+ *
+ * @see lh_wstr_raw_rtrim_set
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_raw_rtrim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr whitespace_chars,
                          lh_usize_t whitespace_size);
 
+/**
+ * @brief Two-sided trim with explicit string and trim-set sizes (custom mode).
+ *
+ * @param str               Target string buffer.
+ * @param str_size          Number of wide characters in @p str to inspect.
+ * @param whitespace_chars  Trim character set.
+ * @param whitespace_size   Number of elements in @p whitespace_chars.
+ *
+ * @return Pointer to the resulting trimmed string (same address as @p str).
+ *
+ * @see lh_wstr_raw_trim_set
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_raw_trim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr whitespace_chars,
                         lh_usize_t whitespace_size);
 
+/**
+ * @brief Left trim with explicit trim-set size; string size is auto-detected.
+ *
+ * @param str               NUL-terminated target string.
+ * @param whitespace_chars  Trim character set.
+ * @param whitespace_size   Number of elements in @p whitespace_chars.
+ *
+ * @return Pointer to the resulting trimmed string (same address as @p str).
+ *
+ * @see lh_wstr_raw_ltrim_set
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_raw_ltrim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
                       lh_usize_t whitespace_size);
 
+/**
+ * @brief Right trim with explicit trim-set size; string size is auto-detected.
+ *
+ * @param str               NUL-terminated target string.
+ * @param whitespace_chars  Trim character set.
+ * @param whitespace_size   Number of elements in @p whitespace_chars.
+ *
+ * @return Pointer to the resulting trimmed string (same address as @p str).
+ *
+ * @see lh_wstr_raw_rtrim_set
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_raw_rtrim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
                       lh_usize_t whitespace_size);
 
+/**
+ * @brief Two-sided trim with explicit trim-set size; string size is auto-detected.
+ *
+ * @param str               NUL-terminated target string.
+ * @param whitespace_chars  Trim character set.
+ * @param whitespace_size   Number of elements in @p whitespace_chars.
+ *
+ * @return Pointer to the resulting trimmed string (same address as @p str).
+ *
+ * @see lh_wstr_raw_trim_set
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_raw_trim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
                      lh_usize_t whitespace_size);
 
+/**
+ * @brief Left trim with NUL-terminated trim set; both sizes are auto-detected.
+ *
+ * @param str               NUL-terminated target string.
+ * @param whitespace_chars  NUL-terminated trim character set.
+ *
+ * @return Pointer to the resulting trimmed string (same address as @p str).
+ *
+ * @see lh_wstr_raw_ltrim_custom
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_raw_ltrim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars);
 
+/**
+ * @brief Right trim with NUL-terminated trim set; both sizes are auto-detected.
+ *
+ * @param str               NUL-terminated target string.
+ * @param whitespace_chars  NUL-terminated trim character set.
+ *
+ * @return Pointer to the resulting trimmed string (same address as @p str).
+ *
+ * @see lh_wstr_raw_rtrim_custom
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_raw_rtrim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars);
 
+/**
+ * @brief Two-sided trim with NUL-terminated trim set; both sizes are auto-detected.
+ *
+ * @param str               NUL-terminated target string.
+ * @param whitespace_chars  NUL-terminated trim character set.
+ *
+ * @return Pointer to the resulting trimmed string (same address as @p str).
+ *
+ * @see lh_wstr_raw_trim_custom
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_raw_trim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars);

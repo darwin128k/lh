@@ -42,6 +42,18 @@ TEST(wstr_raw_find_char_death, null_str)
     LH_EXPECT_DEATH(lh_wstr_raw_find_char(reinterpret_cast<lh_wstr_cptr>(lh_null), 1, L'x'));
 }
 
+TEST(wstr_raw_rfind_char, returns_last_match_or_null)
+{
+    const lh_wchar_t units[] = {1, 2, 3, 2};
+    lh_wstr_cptr p = lh_wstr_raw_rfind_char(units, 4, static_cast<lh_wchar_t>(2));
+    ASSERT_TRUE(lh_null_ne(p));
+    expect_wchar_grid_aligned(units, p);
+    EXPECT_EQ(p, units + 3);
+
+    lh_wstr_cptr miss = lh_wstr_raw_rfind_char(units, 4, static_cast<lh_wchar_t>(99));
+    EXPECT_TRUE(lh_null_eq(miss));
+}
+
 TEST(wstr_raw_find_of_null_terminator_by_size, finds_wide_nul_or_null)
 {
     const lh_wchar_t with_nul[] = {L'a', L'b', lh_wstr_raw_cat_va(lh_char_map_nul), L'c'};
@@ -104,7 +116,7 @@ TEST(wstr_raw_copy, copies_code_units)
 {
     lh_wchar_t dst[8] = {};
     const lh_wchar_t src[] = {L'h', L'i', lh_wstr_raw_cat_va(lh_char_map_nul)};
-    lh_wstr_cptr end = lh_wstr_raw_copy(dst, 8, src, 3);
+    lh_wstr_ptr end = lh_wstr_raw_copy(dst, 8, src, 3);
     ASSERT_TRUE(lh_null_ne(end));
     expect_wchar_grid_aligned(dst, end - 1);
     EXPECT_EQ(dst[0], L'h');
@@ -115,7 +127,7 @@ TEST(wstr_raw_copy, copies_code_units)
 TEST(wstr_raw_set, fills_with_code_unit)
 {
     lh_wchar_t buf[4] = {L'a', L'b', L'c', L'd'};
-    lh_wstr_cptr end = lh_wstr_raw_set(buf, 4, L'z');
+    lh_wstr_ptr end = lh_wstr_raw_set(buf, 4, L'z');
     ASSERT_TRUE(lh_null_ne(end));
     expect_wchar_grid_aligned(buf, end - 1);
     for (lh_usize_t i = 0; i < 4; ++i)
@@ -128,7 +140,7 @@ TEST(wstr_raw_set_pattern, repeats_pattern_into_destination)
 {
     lh_wchar_t buf[5] = {};
     const lh_wchar_t pat[] = {L'a', L'b'};
-    lh_wstr_cptr end = lh_wstr_raw_set_pattern(buf, 5, pat, 2);
+    lh_wstr_ptr end = lh_wstr_raw_set_pattern(buf, 5, pat, 2);
     ASSERT_TRUE(lh_null_ne(end));
     expect_wchar_grid_aligned(buf, end - 1);
     EXPECT_EQ(buf[0], L'a');
@@ -145,6 +157,23 @@ TEST(wstr_raw_contains, returns_true_if_substring_exists)
     EXPECT_TRUE(lh_wstr_raw_contains(hay, L"world", lh_bool_false));
     EXPECT_TRUE(lh_wstr_raw_contains(hay, L"o w", lh_bool_false));
     EXPECT_FALSE(lh_wstr_raw_contains(hay, L"bye", lh_bool_false));
+}
+
+TEST(wstr_raw_contains_by_size, returns_true_if_substring_exists)
+{
+    const lh_wchar_t hay[] = {L'h', L'e', L'l', L'l', L'o'};
+    const lh_wchar_t nd[]  = {L'l', L'l'};
+    const lh_wchar_t nd2[] = {L'x', L'y'};
+    EXPECT_TRUE(lh_wstr_raw_contains_by_size(hay, 5, nd, 2, lh_bool_false));
+    EXPECT_FALSE(lh_wstr_raw_contains_by_size(hay, 5, nd2, 2, lh_bool_false));
+}
+
+TEST(wstr_raw_contains_by_size, ignore_case)
+{
+    const lh_wchar_t hay[] = {L'H', L'e', L'l', L'l', L'o'};
+    const lh_wchar_t nd[]  = {L'h', L'e'};
+    EXPECT_TRUE(lh_wstr_raw_contains_by_size(hay, 5, nd, 2, lh_bool_true));
+    EXPECT_FALSE(lh_wstr_raw_contains_by_size(hay, 5, nd, 2, lh_bool_false));
 }
 
 TEST(wstr_raw_equals, returns_true_only_if_strings_are_identical)
@@ -168,6 +197,22 @@ TEST(wstr_raw_equals, ascii_and_cyrillic_ignore_case)
     const lh_wchar_t cap_a[] = {static_cast<lh_wchar_t>(0x0410), static_cast<lh_wchar_t>(0)};
     const lh_wchar_t low_a[] = {static_cast<lh_wchar_t>(0x0430), static_cast<lh_wchar_t>(0)};
     EXPECT_TRUE(lh_wstr_raw_equals(cap_a, low_a, lh_bool_true));
+}
+
+TEST(wstr_raw_equals_by_size, returns_true_only_if_size_and_content_match)
+{
+    const lh_wchar_t *s = L"test";
+    EXPECT_TRUE(lh_wstr_raw_equals_by_size(s, 4, L"test", 4, lh_bool_false));
+    EXPECT_FALSE(lh_wstr_raw_equals_by_size(s, 4, L"tes", 3, lh_bool_false));
+    EXPECT_FALSE(lh_wstr_raw_equals_by_size(s, 4, L"tests", 5, lh_bool_false));
+    EXPECT_FALSE(lh_wstr_raw_equals_by_size(s, 4, L"TEST", 4, lh_bool_false));
+}
+
+TEST(wstr_raw_equals_by_size, ignore_case)
+{
+    const lh_wchar_t *s = L"test";
+    EXPECT_TRUE(lh_wstr_raw_equals_by_size(s, 4, L"TEST", 4, lh_bool_true));
+    EXPECT_FALSE(lh_wstr_raw_equals_by_size(s, 4, L"TES", 3, lh_bool_true));
 }
 
 TEST(wstr_raw_contains, finds_substring_ignore_case)
@@ -209,6 +254,36 @@ TEST(wstr_raw_starts_with, returns_true_if_str_starts_with_src)
     EXPECT_FALSE(lh_wstr_raw_starts_with(s, L"world", lh_bool_false));
 }
 
+TEST(wstr_raw_starts_with, ignore_case)
+{
+    const lh_wchar_t *s = L"Hello world";
+    EXPECT_TRUE(lh_wstr_raw_starts_with(s, L"hello", lh_bool_true));
+}
+
+TEST(wstr_raw_starts_with_by_size, matches_prefix)
+{
+    const lh_wchar_t hay[]    = {L'h', L'e', L'l', L'l', L'o'};
+    const lh_wchar_t prefix[] = {L'h', L'e'};
+    const lh_wchar_t other[]  = {L'l', L'o'};
+    EXPECT_TRUE(lh_wstr_raw_starts_with_by_size(hay, 5, prefix, 2, lh_bool_false));
+    EXPECT_FALSE(lh_wstr_raw_starts_with_by_size(hay, 5, other, 2, lh_bool_false));
+}
+
+TEST(wstr_raw_starts_with_by_size, returns_false_when_prefix_longer)
+{
+    const lh_wchar_t hay[]    = {L'h', L'i'};
+    const lh_wchar_t prefix[] = {L'h', L'i', L'x'};
+    EXPECT_FALSE(lh_wstr_raw_starts_with_by_size(hay, 2, prefix, 3, lh_bool_false));
+}
+
+TEST(wstr_raw_starts_with_by_size, ignore_case)
+{
+    const lh_wchar_t hay[]    = {L'H', L'E', L'l', L'l', L'o'};
+    const lh_wchar_t prefix[] = {L'h', L'e'};
+    EXPECT_TRUE(lh_wstr_raw_starts_with_by_size(hay, 5, prefix, 2, lh_bool_true));
+    EXPECT_FALSE(lh_wstr_raw_starts_with_by_size(hay, 5, prefix, 2, lh_bool_false));
+}
+
 TEST(wstr_raw_ends_with, returns_true_if_str_ends_with_src)
 {
     const lh_wchar_t *s = L"hello world";
@@ -216,6 +291,36 @@ TEST(wstr_raw_ends_with, returns_true_if_str_ends_with_src)
     EXPECT_TRUE(lh_wstr_raw_ends_with(s, L"d", lh_bool_false));
     EXPECT_TRUE(lh_wstr_raw_ends_with(s, L"", lh_bool_false));
     EXPECT_FALSE(lh_wstr_raw_ends_with(s, L"hello", lh_bool_false));
+}
+
+TEST(wstr_raw_ends_with, ignore_case)
+{
+    const lh_wchar_t *s = L"hello WORLD";
+    EXPECT_TRUE(lh_wstr_raw_ends_with(s, L"world", lh_bool_true));
+}
+
+TEST(wstr_raw_ends_with_by_size, matches_suffix)
+{
+    const lh_wchar_t hay[]    = {L'h', L'e', L'l', L'l', L'o'};
+    const lh_wchar_t suffix[] = {L'l', L'o'};
+    const lh_wchar_t other[]  = {L'h', L'e'};
+    EXPECT_TRUE(lh_wstr_raw_ends_with_by_size(hay, 5, suffix, 2, lh_bool_false));
+    EXPECT_FALSE(lh_wstr_raw_ends_with_by_size(hay, 5, other, 2, lh_bool_false));
+}
+
+TEST(wstr_raw_ends_with_by_size, returns_false_when_suffix_longer)
+{
+    const lh_wchar_t hay[]    = {L'h', L'i'};
+    const lh_wchar_t suffix[] = {L'x', L'h', L'i'};
+    EXPECT_FALSE(lh_wstr_raw_ends_with_by_size(hay, 2, suffix, 3, lh_bool_false));
+}
+
+TEST(wstr_raw_ends_with_by_size, ignore_case)
+{
+    const lh_wchar_t hay[]    = {L'h', L'e', L'l', L'l', L'O'};
+    const lh_wchar_t suffix[] = {L'l', L'o'};
+    EXPECT_TRUE(lh_wstr_raw_ends_with_by_size(hay, 5, suffix, 2, lh_bool_true));
+    EXPECT_FALSE(lh_wstr_raw_ends_with_by_size(hay, 5, suffix, 2, lh_bool_false));
 }
 
 TEST(wstr_raw_find, substring_match_points_at_needle_first_unit)
@@ -286,6 +391,76 @@ TEST(wstr_raw_find_by_ignore_case, finds_needle)
     EXPECT_EQ(p, hay + 2);
 }
 
+/* -- find_of_chars / rfind_of_chars ---------------------------------------- */
+
+TEST(wstr_raw_find_of_chars, returns_first_code_unit_from_set_or_null)
+{
+    const lh_wchar_t str[] = {L'x', L'b', L'a', L'y'};
+    const lh_wchar_t set[] = {L'a', L'b'};
+
+    lh_wstr_cptr p = lh_wstr_raw_find_of_chars(str, 4, set, 2);
+    ASSERT_TRUE(lh_null_ne(p));
+    expect_wchar_grid_aligned(str, p);
+    EXPECT_EQ(p, str + 1);
+
+    const lh_wchar_t no_match[] = {L'x', L'y', L'z'};
+    EXPECT_TRUE(lh_null_eq(lh_wstr_raw_find_of_chars(no_match, 3, set, 2)));
+}
+
+TEST(wstr_raw_rfind_of_chars, returns_last_code_unit_from_set_or_null)
+{
+    const lh_wchar_t str[] = {L'a', L'x', L'b', L'y'};
+    const lh_wchar_t set[] = {L'a', L'b'};
+
+    lh_wstr_cptr p = lh_wstr_raw_rfind_of_chars(str, 4, set, 2);
+    ASSERT_TRUE(lh_null_ne(p));
+    expect_wchar_grid_aligned(str, p);
+    EXPECT_EQ(p, str + 2);
+
+    const lh_wchar_t no_match[] = {L'x', L'y', L'z'};
+    EXPECT_TRUE(lh_null_eq(lh_wstr_raw_rfind_of_chars(no_match, 3, set, 2)));
+}
+
+/* -- find_not_of_chars / rfind_not_of_chars -------------------------------- */
+
+TEST(wstr_raw_find_not_of_chars, returns_first_code_unit_outside_set_or_null)
+{
+    const lh_wchar_t str[] = {L'a', L'a', L'b', L'x'};
+    const lh_wchar_t set[] = {L'a', L'b'};
+
+    lh_wstr_cptr p = lh_wstr_raw_find_not_of_chars(str, 4, set, 2);
+    ASSERT_TRUE(lh_null_ne(p));
+    expect_wchar_grid_aligned(str, p);
+    EXPECT_EQ(p, str + 3);
+
+    const lh_wchar_t all_in[] = {L'a', L'b', L'a'};
+    EXPECT_TRUE(lh_null_eq(lh_wstr_raw_find_not_of_chars(all_in, 3, set, 2)));
+}
+
+TEST(wstr_raw_rfind_not_of_chars, returns_last_code_unit_outside_set_or_null)
+{
+    const lh_wchar_t str[] = {L'x', L'a', L'b', L'b'};
+    const lh_wchar_t set[] = {L'a', L'b'};
+
+    lh_wstr_cptr p = lh_wstr_raw_rfind_not_of_chars(str, 4, set, 2);
+    ASSERT_TRUE(lh_null_ne(p));
+    expect_wchar_grid_aligned(str, p);
+    EXPECT_EQ(p, str + 0);
+
+    const lh_wchar_t all_in[] = {L'a', L'b', L'a'};
+    EXPECT_TRUE(lh_null_eq(lh_wstr_raw_rfind_not_of_chars(all_in, 3, set, 2)));
+}
+
+/* -- contains_char --------------------------------------------------------- */
+
+TEST(wstr_raw_contains_char, finds_code_unit_in_set_or_not)
+{
+    const lh_wchar_t set[] = {L'a', L'b', L'c'};
+    EXPECT_TRUE(lh_wstr_raw_contains_char(set, 3, L'b'));
+    EXPECT_FALSE(lh_wstr_raw_contains_char(set, 3, L'z'));
+    EXPECT_FALSE(lh_wstr_raw_contains_char(set, 0, L'a'));
+}
+
 TEST(wstr_raw_trim_custom, trims_left_right_and_all_whitespace)
 {
     lh_wchar_t s1[] = L" \t\nabc \t";
@@ -340,6 +515,16 @@ TEST(wstr_raw_trim_default, uses_builtin_whitespace_set)
     EXPECT_STREQ(lh_wstr_raw_ltrim(s1), L"abc \v");
     EXPECT_STREQ(lh_wstr_raw_rtrim(s2), L" \r\n\tabc");
     EXPECT_STREQ(lh_wstr_raw_trim(s3), L"abc");
+}
+
+TEST(wstr_raw_trim_auto, ltrim_and_rtrim_variants)
+{
+    lh_wchar_t s1[] = L"  abc  ";
+    lh_wchar_t s2[] = L"  abc  ";
+    const lh_wchar_t ws[] = L" ";
+
+    EXPECT_STREQ(lh_wstr_raw_ltrim_auto(s1, ws), L"abc  ");
+    EXPECT_STREQ(lh_wstr_raw_rtrim_auto(s2, ws), L"  abc");
 }
 
 TEST(wstr_raw_trim_death, null_arguments)
