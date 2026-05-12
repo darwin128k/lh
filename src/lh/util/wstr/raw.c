@@ -2,6 +2,7 @@
 #include <lh/util/wstr/raw.h>
 #include <lh/char/map.h>
 #include <lh/memory.h>
+#include <lh/util/math.h>
 #include <lh/util/wchar.h>
 #include <lh/runtime/check.h>
 #include <lh/runtime/check/ref.h>
@@ -50,6 +51,7 @@ lh_wstr_raw_find_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_w
 {
     lh_runtime_check_ref(str);
     lh_runtime_check_ref(chars);
+    lh_runtime_return_ifn(chars_size, lh_null);
 
     for (lh_usize_t i = 0; i < str_size; ++i)
     {
@@ -67,6 +69,7 @@ lh_wstr_raw_rfind_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_
 {
     lh_runtime_check_ref(str);
     lh_runtime_check_ref(chars);
+    lh_runtime_return_ifn(chars_size, lh_null);
 
     lh_runtime_return_ifn(str_size, lh_null);
     lh_usize_t i = str_size;
@@ -214,7 +217,7 @@ lh_wstr_raw_find_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size, cons
     lh_runtime_return_ifn(src_size, lh_null);
     lh_runtime_return_if(lh_math_lt(str_size, src_size), lh_null);
 
-    const lh_usize_t last = str_size - src_size;
+    const lh_usize_t last = lh_math_sub(str_size, src_size);
     for (lh_usize_t i = 0; i <= last; ++i)
     {
         if (lh_null_eq(lh_wstr_raw_compare_by_ignore_case(str + i, src_size, src, src_size)))
@@ -237,7 +240,7 @@ lh_wstr_raw_rfind_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size, con
     lh_runtime_return_ifn(src_size, lh_null);
     lh_runtime_return_if(lh_math_lt(str_size, src_size), lh_null);
 
-    lh_usize_t i = str_size - src_size;
+    lh_usize_t i = lh_math_sub(str_size, src_size);
     do
     {
         if (lh_null_eq(lh_wstr_raw_compare_by_ignore_case(str + i, src_size, src, src_size)))
@@ -361,8 +364,7 @@ lh_wstr_raw_equals(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignor
 lh_bool_t
 lh_wstr_raw_contains_char(const lh_wstr_ptr chars, lh_usize_t chars_size, lh_wchar_t ch)
 {
-    return lh_null_ne(lh_memory_find_step(chars, chars_size * LH_WCHAR_T_SIZE, &ch, LH_WCHAR_T_SIZE,
-                                          LH_WCHAR_T_SIZE));
+    return lh_null_ne(lh_wstr_raw_find_char(chars, chars_size, ch));
 }
 
 lh_wstr_ptr

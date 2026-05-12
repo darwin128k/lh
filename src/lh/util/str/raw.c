@@ -48,6 +48,7 @@ lh_str_raw_find_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str
 {
     lh_runtime_check_ref(str);
     lh_runtime_check_ref(chars);
+    lh_runtime_return_ifn(chars_size, lh_null);
 
     for (lh_usize_t i = 0; i < str_size; ++i)
     {
@@ -65,6 +66,7 @@ lh_str_raw_rfind_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_st
 {
     lh_runtime_check_ref(str);
     lh_runtime_check_ref(chars);
+    lh_runtime_return_ifn(chars_size, lh_null);
 
     lh_runtime_return_ifn(str_size, lh_null);
     lh_usize_t i = str_size;
@@ -354,7 +356,7 @@ lh_str_raw_equals(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_c
 lh_bool_t
 lh_str_raw_contains_char(const lh_str_ptr chars, lh_usize_t chars_size, lh_char_t ch)
 {
-    return lh_null_ne(lh_memory_find(chars, chars_size, &ch, LH_CHAR_T_SIZE));
+    return lh_null_ne(lh_str_raw_find_of_char(chars, chars_size, ch));
 }
 
 lh_str_ptr
