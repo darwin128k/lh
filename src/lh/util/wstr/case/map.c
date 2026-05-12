@@ -1480,7 +1480,7 @@ static const lh_wchar_case_pair_t m_wchar_to_lower_table[] = {
     { 125217U, 125251U },
     /* clang-format on */
 };
-static const lh_usize_t m_wchar_to_lower_table_size = lh_array_raw_size(m_wchar_to_lower_table);
+static const lh_usize_t m_wchar_to_lower_table_size = lh_array_raw_get_size(m_wchar_to_lower_table);
 
 static const lh_wchar_case_pair_t m_wchar_to_upper_table[] = {
     /* clang-format off */
@@ -2963,7 +2963,7 @@ static const lh_wchar_case_pair_t m_wchar_to_upper_table[] = {
     { 125251U, 125217U },
     /* clang-format on */
 };
-static const lh_usize_t m_wchar_to_upper_table_size = lh_array_raw_size(m_wchar_to_upper_table);
+static const lh_usize_t m_wchar_to_upper_table_size = lh_array_raw_get_size(m_wchar_to_upper_table);
 
 lh_wstr_ptr
 lh_wstr_raw_to_lower(lh_wstr_ptr str, lh_usize_t n)

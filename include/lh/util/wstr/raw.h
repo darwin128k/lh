@@ -27,36 +27,36 @@
 #endif // LH_WSTR_RAW_INVALID
 
 /**
- * @def lh_wstr_raw_begin(x)
- * @brief Same as ::lh_array_raw_begin(x) for a `wchar_t` array @p x.
+ * @def lh_wstr_raw_get_begin(x)
+ * @brief Same as ::lh_array_raw_get_begin(x) for a `wchar_t` array @p x.
  *
  * Example usage:
  * @code{.c}
  * wchar_t s[] = L"ab";
- * wchar_t *p = lh_wstr_raw_begin(s); // same as `s`, points at L'a'
+ * wchar_t *p = lh_wstr_raw_get_begin(s); // same as `s`, points at L'a'
  * @endcode
  */
-#define lh_wstr_raw_begin(x) lh_array_raw_begin(x)
+#define lh_wstr_raw_get_begin(x) lh_array_raw_get_begin(x)
 
 /**
- * @def lh_wstr_raw_capacity(x)
+ * @def lh_wstr_raw_get_capacity(x)
  * @brief Total number of `wchar_t` slots in the array object @p x.
  *
- * Same as ::lh_array_raw_size(x) for element type `wchar_t`.
+ * Same as ::lh_array_raw_get_size(x) for element type `wchar_t`.
  * For `wchar_t s[] = L"ab"`, capacity is `3` (`L'a'`, `L'b'`, `L'\\0'`).
  * For `wchar_t buf[64]`, capacity is `64`.
  *
  * Example usage:
  * @code{.c}
  * wchar_t s[] = L"ab";
- * // lh_wstr_raw_capacity(s) == 3
+ * // lh_wstr_raw_get_capacity(s) == 3
  * @endcode
  */
-#define lh_wstr_raw_capacity(x) lh_array_raw_size(x)
+#define lh_wstr_raw_get_capacity(x) lh_array_raw_get_size(x)
 
 /**
  * @def lh_wstr_raw_get_size(x)
- * @brief Payload slot count: `::lh_wstr_raw_capacity(x) - 1`.
+ * @brief Payload slot count: `::lh_wstr_raw_get_capacity(x) - 1`.
  *
  * Use when one `wchar_t` at the end is reserved for `L'\\0'`
  * (`wchar_t buf[N]` gives size `N - 1`), or for the literal body length of
@@ -76,11 +76,11 @@
  * // lh_wstr_raw_get_size(s) == 2  // body length; capacity still includes L'\0'
  * @endcode
  */
-#define lh_wstr_raw_get_size(x) ((lh_wstr_raw_capacity(x)) - 1)
+#define lh_wstr_raw_get_size(x) ((lh_wstr_raw_get_capacity(x)) - 1)
 
 /**
- * @def lh_wstr_raw_end(x)
- * @brief End of the payload span: `lh_wstr_raw_begin(x) + lh_wstr_raw_get_size(x)`.
+ * @def lh_wstr_raw_get_end(x)
+ * @brief End of the payload span: `lh_wstr_raw_get_begin(x) + lh_wstr_raw_get_size(x)`.
  *
  * Points at the slot where the terminating `L'\\0'` is stored
  * (first code unit after the last payload character).
@@ -88,16 +88,16 @@
  * and does not include the terminator in the half-open interval.
  *
  * This is **not** one past the whole array;
- * for that (e.g. to walk every code unit including `L'\\0'`) use ::lh_array_raw_end(x).
+ * for that (e.g. to walk every code unit including `L'\\0'`) use ::lh_array_raw_get_end(x).
  *
  * Example usage:
  * @code{.c}
  * wchar_t s[] = L"ab";
- * for (wchar_t *p = lh_wstr_raw_begin(s); p != lh_wstr_raw_end(s); ++p) { } // L'a', L'b' only
- * // *lh_wstr_raw_end(s) == L'\0'
+ * for (wchar_t *p = lh_wstr_raw_get_begin(s); p != lh_wstr_raw_get_end(s); ++p) { } // L'a', L'b' only
+ * // *lh_wstr_raw_get_end(s) == L'\0'
  * @endcode
  */
-#define lh_wstr_raw_end(x) ((lh_wstr_raw_begin(x)) + lh_wstr_raw_get_size(x))
+#define lh_wstr_raw_get_end(x) ((lh_wstr_raw_get_begin(x)) + lh_wstr_raw_get_size(x))
 
 /**
  * @brief Preprocessor paste: @c L##c

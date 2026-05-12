@@ -83,7 +83,7 @@ def emit_c(pairs: list[tuple[int, int]], unicode_version: str, out_path: str) ->
             "",
             "/* Table lookup: lh_interval_ropen_binary_search() — lh/util/interval.h */",
             "lh_wchar_t lh_wchar_fold_case(lh_wchar_t c) {",
-            "    const lh_usize_t n = lh_array_raw_size(m_wchar_case_fold_table);",
+            "    const lh_usize_t n = lh_array_raw_get_size(m_wchar_case_fold_table);",
             "    lh_wchar_case_pair_t result;",
             "    lh_bool_t is_founded;",
             "",

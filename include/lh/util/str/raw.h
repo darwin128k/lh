@@ -26,36 +26,36 @@
 #endif // LH_STR_RAW_INVALID
 
 /**
- * @def lh_str_raw_begin(x)
- * @brief Same as ::lh_array_raw_begin(x) for a `char` array @p x.
+ * @def lh_str_raw_get_begin(x)
+ * @brief Same as ::lh_array_raw_get_begin(x) for a `char` array @p x.
  *
  * Example usage:
  * @code{.c}
  * char s[] = "ab";
- * char *p = lh_str_raw_begin(s); // same as `s`, points at 'a'
+ * char *p = lh_str_raw_get_begin(s); // same as `s`, points at 'a'
  * @endcode
  */
-#define lh_str_raw_begin(x) lh_array_raw_begin(x)
+#define lh_str_raw_get_begin(x) lh_array_raw_get_begin(x)
 
 /**
- * @def lh_str_raw_capacity(x)
+ * @def lh_str_raw_get_capacity(x)
  * @brief Total number of `char` slots in the array object @p x.
  *
- * Same as ::lh_array_raw_size(x) for element type `char`.
+ * Same as ::lh_array_raw_get_size(x) for element type `char`.
  * For `char s[] = "ab"`, capacity is `3` (`'a'`, `'b'`, `'\0'`).
  * For `char buf[64]`, capacity is `64`.
  *
  * Example usage:
  * @code{.c}
  * char s[] = "ab";
- * // lh_str_raw_capacity(s) == 3
+ * // lh_str_raw_get_capacity(s) == 3
  * @endcode
  */
-#define lh_str_raw_capacity(x) lh_array_raw_size(x)
+#define lh_str_raw_get_capacity(x) lh_array_raw_get_size(x)
 
 /**
  * @def lh_str_raw_get_size(x)
- * @brief Payload slot count: `::lh_str_raw_capacity(x) - 1`.
+ * @brief Payload slot count: `::lh_str_raw_get_capacity(x) - 1`.
  *
  * Use when one `char` at the end is reserved for `'\0'` (`char buf[N]` gives size `N - 1`),
  * or for the literal body length of `char s[] = "text"` (excluding the stored terminator byte).
@@ -74,11 +74,11 @@
  * // lh_str_raw_get_size(s) == 2  // body length; capacity still includes '\0'
  * @endcode
  */
-#define lh_str_raw_get_size(x) ((lh_str_raw_capacity(x)) - 1)
+#define lh_str_raw_get_size(x) ((lh_str_raw_get_capacity(x)) - 1)
 
 /**
- * @def lh_str_raw_end(x)
- * @brief End of the payload span: `lh_str_raw_begin(x) + lh_str_raw_get_size(x)`.
+ * @def lh_str_raw_get_end(x)
+ * @brief End of the payload span: `lh_str_raw_get_begin(x) + lh_str_raw_get_size(x)`.
  *
  * Points at the slot where the terminating `'\0'`
  * is stored (first byte after the last payload character).
@@ -86,16 +86,16 @@
  * and does not include the terminator in the half-open interval.
  *
  * This is **not** one past the whole array;
- * for that (e.g. to walk every byte including `'\0'`) use ::lh_array_raw_end(x).
+ * for that (e.g. to walk every byte including `'\0'`) use ::lh_array_raw_get_end(x).
  *
  * Example usage:
  * @code{.c}
  * char s[] = "ab";
- * for (char *p = lh_str_raw_begin(s); p != lh_str_raw_end(s); ++p) { } // 'a', 'b' only
- * // *lh_str_raw_end(s) == '\0'
+ * for (char *p = lh_str_raw_get_begin(s); p != lh_str_raw_get_end(s); ++p) { } // 'a', 'b' only
+ * // *lh_str_raw_get_end(s) == '\0'
  * @endcode
  */
-#define lh_str_raw_end(x) ((lh_str_raw_begin(x)) + lh_str_raw_get_size(x))
+#define lh_str_raw_get_end(x) ((lh_str_raw_get_begin(x)) + lh_str_raw_get_size(x))
 
 /**
  * @brief Stringify a token.
