@@ -16,6 +16,7 @@
 #ifndef LH_SIZE_H
 #define LH_SIZE_H
 
+#include <lh/compiler/arch.h>
 #include <lh/numeric/limits.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
