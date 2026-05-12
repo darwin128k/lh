@@ -1,5 +1,3 @@
-#include "lh/offset.h"
-#include "lh/util/addr.h"
 #include <lh/util/str/raw.h>
 #include <lh/char/map.h>
 #include <lh/memory.h>
@@ -371,7 +369,7 @@ lh_str_raw_ltrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr wh
         return str;
     }
 
-    lh_uoffset_t offset = 0;
+    lh_usize_t offset = 0;
     while (lh_math_lt(offset, str_size) &&
            lh_str_raw_contains_char(whitespace_chars, whitespace_size, str[offset]))
     {
