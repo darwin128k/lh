@@ -625,6 +625,28 @@ lh_bool_t
 lh_str_raw_equals(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
 
 /**
+ * @brief Size-bounded string equality.
+ *
+ * @param str          First buffer.
+ * @param str_size     Length of @p str in characters.
+ * @param src          Second buffer.
+ * @param src_size     Length of @p src in characters.
+ * @param ignore_case  ::lh_bool_false → raw ::lh_char_t equality (::lh_memory_compare path).
+ *                     ::lh_bool_true → ::lh_char_fold_case per code unit
+ *                     (::lh_str_raw_compare_by_ignore_case).
+ *
+ * @return ::lh_true if @p str_size equals @p src_size and
+ *         ::lh_str_raw_compare finds no difference, ::lh_false otherwise.
+ *
+ * @see lh_str_raw_equals
+ * @see lh_str_raw_compare
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_str_raw_equals_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                          lh_usize_t src_size, lh_bool_t ignore_case);
+
+/**
  * @brief NUL-terminated prefix compare using ::lh_str_raw_compare
  *        on lengths from ::lh_str_raw_len.
  *

@@ -158,16 +158,9 @@ lh_str_view_rcompare(const lh_str_view_t *self, const lh_str_view_t *other, lh_b
 lh_bool_t
 lh_str_view_equals(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case)
 {
-    lh_usize_t size = lh_str_view_get_size(self);
-    lh_usize_t other_size = lh_str_view_get_size(other);
-
-    if (size != other_size)
-    {
-        return lh_bool_false;
-    }
-
-    return !lh_ptr_is_set(lh_str_raw_compare(lh_str_view_get_data(self), size,
-                                             lh_str_view_get_data(other), other_size, ignore_case));
+    return lh_str_raw_equals_by_size(lh_str_view_get_data(self), lh_str_view_get_size(self),
+                                     lh_str_view_get_data(other), lh_str_view_get_size(other),
+                                     ignore_case);
 }
 
 lh_bool_t

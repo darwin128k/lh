@@ -164,6 +164,22 @@ TEST(str_raw_equals, ignore_case_ascii)
     EXPECT_TRUE(lh_str_raw_equals(s, "TEST", lh_bool_true));
 }
 
+TEST(str_raw_equals_by_size, returns_true_only_if_size_and_content_match)
+{
+    const lh_char_t *s = "test";
+    EXPECT_TRUE(lh_str_raw_equals_by_size(s, 4, "test", 4, lh_bool_false));
+    EXPECT_FALSE(lh_str_raw_equals_by_size(s, 4, "tes", 3, lh_bool_false));
+    EXPECT_FALSE(lh_str_raw_equals_by_size(s, 4, "tests", 5, lh_bool_false));
+    EXPECT_FALSE(lh_str_raw_equals_by_size(s, 4, "TEST", 4, lh_bool_false));
+}
+
+TEST(str_raw_equals_by_size, ignore_case_ascii)
+{
+    const lh_char_t *s = "test";
+    EXPECT_TRUE(lh_str_raw_equals_by_size(s, 4, "TEST", 4, lh_bool_true));
+    EXPECT_FALSE(lh_str_raw_equals_by_size(s, 4, "TES", 3, lh_bool_true));
+}
+
 TEST(str_raw_starts_with, returns_true_if_str_starts_with_src)
 {
     const lh_char_t *s = "hello world";

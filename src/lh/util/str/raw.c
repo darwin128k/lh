@@ -337,12 +337,18 @@ lh_str_raw_ends_with_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh
 }
 
 lh_bool_t
+lh_str_raw_equals_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                          lh_usize_t src_size, lh_bool_t ignore_case)
+{
+    return lh_math_eq(str_size, src_size) &&
+           lh_null_eq(lh_str_raw_compare(str, str_size, src, src_size, ignore_case));
+}
+
+lh_bool_t
 lh_str_raw_equals(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case)
 {
-    const lh_usize_t str_size = lh_str_raw_len(str);
-    const lh_usize_t src_size = lh_str_raw_len(src);
-    return lh_math_eq(str_size, src_size) &&
-           lh_null_eq(lh_str_raw_compare(str, str_size, src, str_size, ignore_case));
+    return lh_str_raw_equals_by_size(str, lh_str_raw_len(str), src, lh_str_raw_len(src),
+                                     ignore_case);
 }
 
 lh_bool_t
