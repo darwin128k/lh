@@ -8,26 +8,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Subsystem detection macros for Windows-specific visibility attributes (`lh/subsys.h`)
-- Comprehensive unit tests for `lh_memory_typed_t` functions (getters, pack/unpack behavior, boundary conditions)
-- Typed memory pack/unpack/set functions (`lh_memory_typed_pack`, `lh_memory_typed_set`, `lh_memory_typed_unpack`)
+- Read-only closed-byte-slice type `lh_memory_view_slice_t` (`lh/memory/view/slice.h`) with full API: unpack, flags, direction, size, containment, offset distance, overlap, alignment checks, indexed byte access, and slicing
+- Supporting headers for view slice: `lh/memory/view/slice/direction.h`, `flags.h`, `fields.h`, `initializer.h`
+- `lh/attribute/static.h` and `lh/compiler/attribute/static.h` — static attribute helpers
+- `lh/str/view/initializer.h` — brace-enclosed initializer macros for `lh_str_view_t`
+- String view search API: `lh_str_view_find_char`, `lh_str_view_find`, `lh_str_view_rfind` (with optional case-ignore flag)
+- String view character-set search: `lh_str_view_find_of`, `lh_str_view_rfind_of`, `lh_str_view_find_not_of`, `lh_str_view_rfind_not_of`
+- String view comparison API: `lh_str_view_compare`, `lh_str_view_rcompare`, `lh_str_view_equals` (with optional case-ignore flag)
+- `lh_str_view_find_null_terminator`, `lh_str_view_is_null_terminated` — null-terminator detection
+- `lh_str_view_clear`, `lh_str_view_swap` — mutating helpers for string views
+- Raw string character-set search: `lh_str_raw_find_of_chars`, `lh_str_raw_rfind_of_chars`, `lh_str_raw_find_not_of_chars`, `lh_str_raw_rfind_not_of_chars`
 - Member-offset utility macro (`lh_offset_of`) for compile-time layout checks
-- Brace-enclosed initializer macros for `lh_memory_typed_t`
 - Runtime check option (`LH_LIBRARY_OPTION_RUNTIME_CHECK_REF`) to enable null-pointer checks in `lh_runtime_check_ref`
-- Validated typed update API and helpers: `lh_memory_typed_pack_v`, `lh_memory_typed_assign_v`, `lh_memory_typed_clone`, `lh_memory_typed_clone_v`, `lh_memory_typed_dup`, `lh_memory_typed_dup_v`, and `lh_memory_typed_unpack_to_bounds`
-- Typed slicing API: `lh_memory_typed_is_sliceable` and `lh_memory_typed_slice`
 - Bounds convenience/fallback APIs: `lh_memory_bounds_init_by_empty`, `lh_memory_bounds_make_by_empty`, `lh_memory_bounds_make_or_empty`, and `lh_memory_bounds_slice_or_empty`
-- Expanded test coverage for typed/bounds validated and fallback flows (`*_v`, `*_or_empty`, slice geometry and death cases)
+- Expanded test coverage for bounds validated and fallback flows (`*_v`, `*_or_empty`, slice geometry and death cases)
+- Subsystem detection macros for Windows-specific visibility attributes (`lh/subsys.h`)
 
 ### Changed
-- Rename `is_back` parameter to `from_back` for consistency across memory and string APIs.
-- Rename memory accessors with 'value' suffix: `get_front`/`get_back` → `get_front_value`/`get_back_value` in range, typed, view, and str/view modules.
-- Rename `lh_memory_typed_at_*` functions to `lh_memory_typed_get_*` for consistency with range API.
-- Add `get_value_from_front`/`get_value_from_back`/`get_value` indexed accessors for byte values in typed spans.
-- Add Doxygen documentation for `lh_memory_typed_t` struct and all functions in typed.h.
+- `lh_str_raw_size` renamed to `lh_str_raw_get_size` for naming consistency with the `get_` prefix convention
+- `lh_memory_view` slice methods now delegate geometry to `lh_memory_view_slice`
+- Slice flags and direction types (`lh_memory_view_slice_flags_t`, `lh_memory_view_slice_direction_t`) unified and shared between bounds/slice and view/slice layers
+- Rename `is_back` parameter to `from_back` for consistency across memory and string APIs
+- Rename memory accessors with 'value' suffix: `get_front`/`get_back` → `get_front_value`/`get_back_value` in view and str/view modules
 - Enhanced death.h documentation clarifying the role of `LH_LIBRARY_OPTION_RUNTIME_CHECK_REF` in enabling null-pointer death tests
-- `lh/memory/typed.h` and `src/lh/memory/typed.c` reorganized into bounds-style logical sections for better API parity and navigation
-- `lh_memory_typed_slice` now delegates slice geometry to `lh_memory_bounds_slice` using byte offsets computed from typed element offsets/sizes
+
+### Removed
+- `lh_memory_typed_t` and all associated functions (`lh/memory/typed.h`, `src/lh/memory/typed.c`) — superseded by the view-based API
+- `lh_memory_bounds_allocated_t` (`lh/memory/bounds/allocated.h`, `src/lh/memory/bounds/allocated.c`)
+- `lh/memory/bounds/state.h` — state flags consolidated into view/slice layer
+- Standalone `lh/memory/bounds/slice/direction.h` and `lh/memory/bounds/slice/flags.h` — replaced by shared `lh/memory/view/slice/direction.h` and `flags.h`
 
 ## [0.2.0] - 2026-04-20
 

@@ -18,7 +18,7 @@ A lightweight C utility library (headers + a small shared/static library) with p
 - **Member-offset utility** — `lh_offset_of` macro in `lh/offset.h` for compile-time layout checks
 - **Errors** — `lh_error_t` (code + description); description type is `lh_error_desc_t` in `lh/error/desc.h` (today an alias of `lh_str_cptr`)
 - **Exceptions (runtime)** — `lh_exception_t` wrapping `lh_error_t`, optional debug `origin`, catch stack and throw macros under `lh/runtime/`
-- **Memory & intervals** — non-owning memory views/ranges/typed spans with front/back and indexed access, validated and fallback APIs (`*_v`, `*_or_empty`), typed clone/dup helpers and typed slicing (`lh_memory_typed_slice`), numeric interval helpers and binary-search macros used by table lookups
+- **Memory & intervals** — non-owning memory views (`lh_memory_view_t`) and bounds (`lh_memory_bounds_t`) with front/back and indexed access, validated and fallback APIs (`*_v`, `*_or_empty`); read-only closed-byte-slice type `lh_memory_view_slice_t` (`lh/memory/view/slice.h`) with flags, direction, size, containment, overlap, alignment, and indexed access helpers; numeric interval helpers and binary-search macros used by table lookups
 - **Wide text** — `lh_wchar_t`, raw wide-string helpers, Unicode simple case mapping for buffers and single-code-point case fold (UCD-backed tables under `src/lh/util/wstr/` and `src/lh/util/wchar/`)
 - **Version** — `lh_version_t`, `lh_get_version()` via `lh/lh.h`
 - **Build** — CMake, generated `lh/config.h`, optional Doxygen docs and bundled GoogleTest
@@ -86,7 +86,7 @@ Include only what you need, for example:
 #include <lh/str/ptr.h>         /* lh_str_ptr, lh_str_cptr */
 ```
 
-String-related headers live under **`lh/str/`** (not `lh/string/`). Generic initializer macros are **`lh/initializer.h`** at the include root.
+String-related headers live under **`lh/str/`** (not `lh/string/`). Generic initializer macros are **`lh/initializer.h`** at the include root. `lh_str_view_t` search/compare API is in `lh/str/view.h`; raw buffer helpers are in `lh/util/str/raw.h`.
 
 ### Integer types
 
@@ -105,9 +105,7 @@ lh_version_t ver = { 0, 2, 0 };
 
 ## Version
 
-Current version from `VERSION`: **0.2.0** — history and release notes in [CHANGELOG](CHANGELOG.md).
-
-Git tag **`v0.2.0`** marks this release on GitHub. Earlier **`v0.1.0`** remains available for the initial public snapshot.
+Current version: **0.2.0** — history and release notes in [CHANGELOG](CHANGELOG.md).
 
 Documentation for tools is in [tools/README.md](tools/README.md).
 
