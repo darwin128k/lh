@@ -37,6 +37,12 @@ lh_str_raw_find_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch)
 }
 
 const lh_str_ptr
+lh_str_raw_rfind_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch)
+{
+    return lh_memory_rfind(str, size, &ch, LH_CHAR_T_SIZE);
+}
+
+const lh_str_ptr
 lh_str_raw_find_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
                            lh_usize_t chars_size)
 {
@@ -279,6 +285,13 @@ lh_str_raw_contains(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore
     return lh_math_ne(lh_str_raw_index_of(str, src, ignore_case), LH_STR_RAW_INVALID);
 }
 
+lh_bool_t
+lh_str_raw_contains_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                            lh_usize_t src_size, lh_bool_t ignore_case)
+{
+    return lh_null_ne(lh_str_raw_find(str, str_size, src, src_size, ignore_case));
+}
+
 lh_usize_t
 lh_str_raw_index_of(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case)
 {
@@ -290,22 +303,37 @@ lh_str_raw_index_of(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore
 lh_bool_t
 lh_str_raw_starts_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case)
 {
-    return lh_math_eq(lh_str_raw_index_of(str, src, ignore_case), LH_USIZE_T_MIN);
+    return lh_str_raw_starts_with_by_size(str, lh_str_raw_len(str), src, lh_str_raw_len(src),
+                                         ignore_case);
+}
+
+lh_bool_t
+lh_str_raw_starts_with_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                               lh_usize_t src_size, lh_bool_t ignore_case)
+{
+    if (lh_math_lt(str_size, src_size))
+    {
+        return lh_bool_false;
+    }
+    return lh_null_eq(lh_str_raw_compare(str, src_size, src, src_size, ignore_case));
 }
 
 lh_bool_t
 lh_str_raw_ends_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case)
 {
-    const lh_usize_t str_size = lh_str_raw_len(str);
-    const lh_usize_t src_size = lh_str_raw_len(src);
+    return lh_str_raw_ends_with_by_size(str, lh_str_raw_len(str), src, lh_str_raw_len(src),
+                                       ignore_case);
+}
+
+lh_bool_t
+lh_str_raw_ends_with_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                             lh_usize_t src_size, lh_bool_t ignore_case)
+{
     if (lh_math_lt(str_size, src_size))
     {
         return lh_bool_false;
     }
-
-    return lh_math_eq(lh_str_raw_index_of_by_size(str + (str_size - src_size), src_size, src,
-                                                  src_size, ignore_case),
-                      LH_USIZE_T_MIN);
+    return lh_null_eq(lh_str_raw_rcompare(str, str_size, src, src_size, ignore_case));
 }
 
 lh_bool_t

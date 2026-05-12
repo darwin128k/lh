@@ -25,6 +25,17 @@ TEST(str_raw_find_of_char_death, null_str)
     LH_EXPECT_DEATH(lh_str_raw_find_of_char(reinterpret_cast<lh_str_cptr>(lh_null), 1, 'x'));
 }
 
+TEST(str_raw_rfind_of_char, returns_last_match_or_null)
+{
+    const lh_char_t a[] = {1, 2, 3, 2};
+    lh_str_cptr p = lh_str_raw_rfind_of_char(a, 4, 2);
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, &a[3]);
+
+    lh_str_cptr miss = lh_str_raw_rfind_of_char(a, 4, 9);
+    EXPECT_TRUE(lh_null_eq(miss));
+}
+
 TEST(str_raw_find_of_null_terminator_by_size, finds_nul_inside_prefix_or_null)
 {
     const lh_char_t with_nul[] = {'a', 'b', lh_char_map_nul, 'c'};
@@ -99,6 +110,23 @@ TEST(str_raw_contains, ignore_case_ascii)
     EXPECT_FALSE(lh_str_raw_contains(hay, "bye", lh_bool_true));
 }
 
+TEST(str_raw_contains_by_size, returns_true_if_substring_exists)
+{
+    const lh_char_t hay[] = {'h', 'e', 'l', 'l', 'o'};
+    const lh_char_t nd[]  = {'l', 'l'};
+    const lh_char_t nd2[] = {'x', 'y'};
+    EXPECT_TRUE(lh_str_raw_contains_by_size(hay, 5, nd, 2, lh_bool_false));
+    EXPECT_FALSE(lh_str_raw_contains_by_size(hay, 5, nd2, 2, lh_bool_false));
+}
+
+TEST(str_raw_contains_by_size, ignore_case_ascii)
+{
+    const lh_char_t hay[] = {'H', 'e', 'l', 'l', 'o'};
+    const lh_char_t nd[]  = {'h', 'e'};
+    EXPECT_TRUE(lh_str_raw_contains_by_size(hay, 5, nd, 2, lh_bool_true));
+    EXPECT_FALSE(lh_str_raw_contains_by_size(hay, 5, nd, 2, lh_bool_false));
+}
+
 TEST(str_raw_index_of, returns_first_position_or_invalid)
 {
     const lh_char_t *hay = "hello world";
@@ -151,6 +179,30 @@ TEST(str_raw_starts_with, ignore_case_ascii)
     EXPECT_TRUE(lh_str_raw_starts_with(s, "hello", lh_bool_true));
 }
 
+TEST(str_raw_starts_with_by_size, matches_prefix)
+{
+    const lh_char_t hay[]    = {'h', 'e', 'l', 'l', 'o'};
+    const lh_char_t prefix[] = {'h', 'e'};
+    const lh_char_t other[]  = {'l', 'o'};
+    EXPECT_TRUE(lh_str_raw_starts_with_by_size(hay, 5, prefix, 2, lh_bool_false));
+    EXPECT_FALSE(lh_str_raw_starts_with_by_size(hay, 5, other, 2, lh_bool_false));
+}
+
+TEST(str_raw_starts_with_by_size, returns_false_when_prefix_longer)
+{
+    const lh_char_t hay[]    = {'h', 'i'};
+    const lh_char_t prefix[] = {'h', 'i', 'x'};
+    EXPECT_FALSE(lh_str_raw_starts_with_by_size(hay, 2, prefix, 3, lh_bool_false));
+}
+
+TEST(str_raw_starts_with_by_size, ignore_case_ascii)
+{
+    const lh_char_t hay[]    = {'H', 'E', 'l', 'l', 'o'};
+    const lh_char_t prefix[] = {'h', 'e'};
+    EXPECT_TRUE(lh_str_raw_starts_with_by_size(hay, 5, prefix, 2, lh_bool_true));
+    EXPECT_FALSE(lh_str_raw_starts_with_by_size(hay, 5, prefix, 2, lh_bool_false));
+}
+
 TEST(str_raw_ends_with, returns_true_if_str_ends_with_src)
 {
     const lh_char_t *s = "hello world";
@@ -164,6 +216,30 @@ TEST(str_raw_ends_with, ignore_case_ascii)
 {
     const lh_char_t *s = "hello WORLD";
     EXPECT_TRUE(lh_str_raw_ends_with(s, "world", lh_bool_true));
+}
+
+TEST(str_raw_ends_with_by_size, matches_suffix)
+{
+    const lh_char_t hay[]    = {'h', 'e', 'l', 'l', 'o'};
+    const lh_char_t suffix[] = {'l', 'o'};
+    const lh_char_t other[]  = {'h', 'e'};
+    EXPECT_TRUE(lh_str_raw_ends_with_by_size(hay, 5, suffix, 2, lh_bool_false));
+    EXPECT_FALSE(lh_str_raw_ends_with_by_size(hay, 5, other, 2, lh_bool_false));
+}
+
+TEST(str_raw_ends_with_by_size, returns_false_when_suffix_longer)
+{
+    const lh_char_t hay[]    = {'h', 'i'};
+    const lh_char_t suffix[] = {'x', 'h', 'i'};
+    EXPECT_FALSE(lh_str_raw_ends_with_by_size(hay, 2, suffix, 3, lh_bool_false));
+}
+
+TEST(str_raw_ends_with_by_size, ignore_case_ascii)
+{
+    const lh_char_t hay[]    = {'h', 'e', 'l', 'l', 'O'};
+    const lh_char_t suffix[] = {'l', 'o'};
+    EXPECT_TRUE(lh_str_raw_ends_with_by_size(hay, 5, suffix, 2, lh_bool_true));
+    EXPECT_FALSE(lh_str_raw_ends_with_by_size(hay, 5, suffix, 2, lh_bool_false));
 }
 
 TEST(str_raw_find_by_ignore_case, finds_needle)

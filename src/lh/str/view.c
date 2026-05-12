@@ -60,6 +60,20 @@ lh_str_view_find_char(const lh_str_view_t *self, lh_char_t ch)
 }
 
 lh_usize_t
+lh_str_view_rfind_char(const lh_str_view_t *self, lh_char_t ch)
+{
+    lh_str_cptr data = lh_str_view_get_data(self);
+    lh_str_cptr ptr = lh_str_raw_rfind_of_char(data, lh_str_view_get_size(self), ch);
+    return lh_ptr_is_set(ptr) ? lh_ptr_udiff(ptr, data) : LH_STR_VIEW_INVALID;
+}
+
+lh_bool_t
+lh_str_view_contains_char(const lh_str_view_t *self, lh_char_t ch)
+{
+    return lh_str_raw_contains_char(lh_str_view_get_data(self), lh_str_view_get_size(self), ch);
+}
+
+lh_usize_t
 lh_str_view_find(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case)
 {
     lh_usize_t result = lh_str_raw_index_of_by_size(
@@ -77,6 +91,12 @@ lh_str_view_rfind(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool
         lh_str_raw_rfind(data, lh_str_view_get_size(self), lh_str_view_get_data(other),
                          lh_str_view_get_size(other), ignore_case);
     return lh_ptr_is_set(ptr) ? lh_ptr_udiff(ptr, data) : LH_STR_VIEW_INVALID;
+}
+
+lh_bool_t
+lh_str_view_contains(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case)
+{
+    return lh_str_view_find(self, other, ignore_case) != LH_STR_VIEW_INVALID;
 }
 
 lh_usize_t
@@ -148,6 +168,24 @@ lh_str_view_equals(const lh_str_view_t *self, const lh_str_view_t *other, lh_boo
 
     return !lh_ptr_is_set(lh_str_raw_compare(lh_str_view_get_data(self), size,
                                              lh_str_view_get_data(other), other_size, ignore_case));
+}
+
+lh_bool_t
+lh_str_view_starts_with(const lh_str_view_t *self, const lh_str_view_t *other,
+                        lh_bool_t ignore_case)
+{
+    return lh_str_raw_starts_with_by_size(lh_str_view_get_data(self), lh_str_view_get_size(self),
+                                         lh_str_view_get_data(other), lh_str_view_get_size(other),
+                                         ignore_case);
+}
+
+lh_bool_t
+lh_str_view_ends_with(const lh_str_view_t *self, const lh_str_view_t *other,
+                      lh_bool_t ignore_case)
+{
+    return lh_str_raw_ends_with_by_size(lh_str_view_get_data(self), lh_str_view_get_size(self),
+                                       lh_str_view_get_data(other), lh_str_view_get_size(other),
+                                       ignore_case);
 }
 
 lh_usize_t

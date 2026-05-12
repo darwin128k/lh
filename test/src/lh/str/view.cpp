@@ -114,6 +114,30 @@ TEST(str_view_find_char, returns_invalid_when_absent)
     EXPECT_EQ(lh_str_view_find_char(&v, 'z'), LH_STR_VIEW_INVALID);
 }
 
+/* -- rfind_char ------------------------------------------------------------ */
+
+TEST(str_view_rfind_char, returns_last_occurrence)
+{
+    lh_str_view_t v = make("abcabc");
+    EXPECT_EQ(lh_str_view_rfind_char(&v, 'a'), 3u);
+    EXPECT_EQ(lh_str_view_rfind_char(&v, 'c'), 5u);
+}
+
+TEST(str_view_rfind_char, returns_invalid_when_absent)
+{
+    lh_str_view_t v = make("abc");
+    EXPECT_EQ(lh_str_view_rfind_char(&v, 'z'), LH_STR_VIEW_INVALID);
+}
+
+/* -- contains_char --------------------------------------------------------- */
+
+TEST(str_view_contains_char, returns_true_when_present)
+{
+    lh_str_view_t v = make("hello");
+    EXPECT_TRUE(lh_str_view_contains_char(&v, 'e'));
+    EXPECT_FALSE(lh_str_view_contains_char(&v, 'z'));
+}
+
 /* -- find ------------------------------------------------------------------ */
 
 TEST(str_view_find, finds_substring_at_start)
@@ -165,6 +189,30 @@ TEST(str_view_rfind, ignore_case)
     lh_str_view_t hay = make("abcABC");
     lh_str_view_t nd = make("abc");
     EXPECT_EQ(lh_str_view_rfind(&hay, &nd, lh_bool_true), 3u);
+}
+
+/* -- contains -------------------------------------------------------------- */
+
+TEST(str_view_contains, returns_true_when_substring_found)
+{
+    lh_str_view_t hay = make("hello world");
+    lh_str_view_t nd  = make("world");
+    EXPECT_TRUE(lh_str_view_contains(&hay, &nd, lh_bool_false));
+}
+
+TEST(str_view_contains, returns_false_when_absent)
+{
+    lh_str_view_t hay = make("hello");
+    lh_str_view_t nd  = make("bye");
+    EXPECT_FALSE(lh_str_view_contains(&hay, &nd, lh_bool_false));
+}
+
+TEST(str_view_contains, ignore_case)
+{
+    lh_str_view_t hay = make("Hello World");
+    lh_str_view_t nd  = make("world");
+    EXPECT_TRUE(lh_str_view_contains(&hay, &nd, lh_bool_true));
+    EXPECT_FALSE(lh_str_view_contains(&hay, &nd, lh_bool_false));
 }
 
 /* -- find_of / rfind_of ---------------------------------------------------- */
@@ -303,6 +351,66 @@ TEST(str_view_equals, ignore_case_different_content)
     lh_str_view_t a = make("Hello");
     lh_str_view_t b = make("world");
     EXPECT_FALSE(lh_str_view_equals(&a, &b, lh_bool_true));
+}
+
+/* -- starts_with ----------------------------------------------------------- */
+
+TEST(str_view_starts_with, matches_prefix)
+{
+    lh_str_view_t v      = make("hello world");
+    lh_str_view_t prefix = make("hello");
+    EXPECT_TRUE(lh_str_view_starts_with(&v, &prefix, lh_bool_false));
+}
+
+TEST(str_view_starts_with, returns_false_when_no_match)
+{
+    lh_str_view_t v      = make("hello world");
+    lh_str_view_t prefix = make("world");
+    EXPECT_FALSE(lh_str_view_starts_with(&v, &prefix, lh_bool_false));
+}
+
+TEST(str_view_starts_with, returns_false_when_prefix_longer)
+{
+    lh_str_view_t v      = make("hi");
+    lh_str_view_t prefix = make("hello");
+    EXPECT_FALSE(lh_str_view_starts_with(&v, &prefix, lh_bool_false));
+}
+
+TEST(str_view_starts_with, ignore_case)
+{
+    lh_str_view_t v      = make("Hello world");
+    lh_str_view_t prefix = make("hello");
+    EXPECT_TRUE(lh_str_view_starts_with(&v, &prefix, lh_bool_true));
+}
+
+/* -- ends_with ------------------------------------------------------------- */
+
+TEST(str_view_ends_with, matches_suffix)
+{
+    lh_str_view_t v      = make("hello world");
+    lh_str_view_t suffix = make("world");
+    EXPECT_TRUE(lh_str_view_ends_with(&v, &suffix, lh_bool_false));
+}
+
+TEST(str_view_ends_with, returns_false_when_no_match)
+{
+    lh_str_view_t v      = make("hello world");
+    lh_str_view_t suffix = make("hello");
+    EXPECT_FALSE(lh_str_view_ends_with(&v, &suffix, lh_bool_false));
+}
+
+TEST(str_view_ends_with, returns_false_when_suffix_longer)
+{
+    lh_str_view_t v      = make("hi");
+    lh_str_view_t suffix = make("hello");
+    EXPECT_FALSE(lh_str_view_ends_with(&v, &suffix, lh_bool_false));
+}
+
+TEST(str_view_ends_with, ignore_case)
+{
+    lh_str_view_t v      = make("hello WORLD");
+    lh_str_view_t suffix = make("world");
+    EXPECT_TRUE(lh_str_view_ends_with(&v, &suffix, lh_bool_true));
 }
 
 /* -- null terminator ------------------------------------------------------- */

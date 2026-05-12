@@ -137,6 +137,23 @@ const lh_str_ptr
 lh_str_raw_find_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch);
 
 /**
+ * @brief Find the last ::lh_char_t equal to @p ch
+ *        in the first @p size elements of @p str.
+ *
+ * @param str  Non-null sequence to scan (::lh_runtime_check_ref).
+ * @param size Maximum number of characters to inspect.
+ * @param ch   Code unit to search for.
+ *
+ * @return Pointer to the last match,
+ *         or ::lh_null if @p ch does not occur in that prefix.
+ *
+ * @see lh_str_raw_find_of_char
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_str_ptr
+lh_str_raw_rfind_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch);
+
+/**
  * @brief Find the first character in @p str that belongs to @p chars.
  *
  * @param str        Haystack buffer (::lh_runtime_check_ref).
@@ -567,6 +584,25 @@ lh_bool_t
 lh_str_raw_contains(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
 
 /**
+ * @brief Size-bounded substring search.
+ *
+ * @param str          Haystack buffer.
+ * @param str_size     Haystack size in characters.
+ * @param src          Needle buffer.
+ * @param src_size     Needle size in characters.
+ * @param ignore_case  Same matching mode as ::lh_str_raw_find.
+ *
+ * @return ::lh_true if @p src occurs in @p str under the selected rules, ::lh_false otherwise.
+ *
+ * @see lh_str_raw_find
+ * @see lh_str_raw_contains
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_str_raw_contains_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                            lh_usize_t src_size, lh_bool_t ignore_case);
+
+/**
  * @brief NUL-terminated string equality.
  *
  * Lengths from ::lh_str_raw_len must match; then ::lh_str_raw_compare on the full length.
@@ -609,6 +645,27 @@ lh_bool_t
 lh_str_raw_starts_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
 
 /**
+ * @brief Size-bounded prefix compare using ::lh_str_raw_compare.
+ *
+ * @param str          Haystack buffer.
+ * @param str_size     Haystack size in characters.
+ * @param src          Prefix buffer.
+ * @param src_size     Prefix size in characters.
+ * @param ignore_case  ::lh_bool_false → raw bytes (::lh_memory_compare).
+ *                     ::lh_bool_true → ::lh_char_fold_case per code unit.
+ *
+ * @return ::lh_true if the leading @p src_size characters of @p str match @p src,
+ *         ::lh_false otherwise.
+ *
+ * @see lh_str_raw_compare
+ * @see lh_str_raw_starts_with
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_str_raw_starts_with_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                               lh_usize_t src_size, lh_bool_t ignore_case);
+
+/**
  * @brief NUL-terminated suffix compare using ::lh_str_raw_rcompare on lengths from
  *        ::lh_str_raw_len.
  *
@@ -628,6 +685,27 @@ lh_str_raw_starts_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ign
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_raw_ends_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
+
+/**
+ * @brief Size-bounded suffix compare using ::lh_str_raw_rcompare.
+ *
+ * @param str          Haystack buffer.
+ * @param str_size     Haystack size in characters.
+ * @param src          Suffix buffer.
+ * @param src_size     Suffix size in characters.
+ * @param ignore_case  ::lh_bool_false → raw bytes (::lh_memory_rcompare).
+ *                     ::lh_bool_true → ::lh_str_raw_rcompare_by_ignore_case.
+ *
+ * @return ::lh_true if the trailing @p src_size characters of @p str match @p src,
+ *         ::lh_false otherwise.
+ *
+ * @see lh_str_raw_rcompare
+ * @see lh_str_raw_ends_with
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_str_raw_ends_with_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                             lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
  * @brief Check whether @p ch exists in the first @p chars_size elements of @p chars.

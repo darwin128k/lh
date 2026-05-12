@@ -205,6 +205,37 @@ lh_usize_t
 lh_str_view_find_char(const lh_str_view_t *self, lh_char_t ch);
 
 /**
+ * @brief Find the last occurrence of @p ch in @p self.
+ *
+ * @param self Valid view to search.
+ * @param ch   Character to find.
+ * @return Zero-based offset of the last match, or ::LH_STR_VIEW_INVALID if absent.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_usize_t
+lh_str_view_rfind_char(const lh_str_view_t *self, lh_char_t ch);
+
+/**
+ * @brief Return ::lh_bool_true if @p ch occurs anywhere in @p self.
+ *
+ * @param self Valid view to inspect.
+ * @param ch   Character to look for.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_str_view_contains_char(const lh_str_view_t *self, lh_char_t ch);
+
+/**
  * @brief Find the first occurrence of @p other in @p self.
  *
  * @param self        Haystack view.
@@ -237,6 +268,22 @@ lh_str_view_find(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_
 LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_view_rfind(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case);
+
+/**
+ * @brief Return ::lh_bool_true if @p other occurs anywhere in @p self.
+ *
+ * @param self        Haystack view.
+ * @param other       Needle view.
+ * @param ignore_case ::lh_bool_false for exact bytes, ::lh_bool_true for case-folded match.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_str_view_contains(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case);
 
 /**
  * @brief Find the first character of @p self that belongs to @p chars.
@@ -357,6 +404,46 @@ lh_str_view_rcompare(const lh_str_view_t *self, const lh_str_view_t *other, lh_b
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_view_equals(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case);
+
+/**
+ * @brief Return ::lh_bool_true if @p self begins with @p other.
+ *
+ * Requires @p self to be at least as long as @p other;
+ * then compares the leading @c size(@p other) characters.
+ *
+ * @param self        View whose prefix is inspected.
+ * @param other       Expected prefix.
+ * @param ignore_case ::lh_bool_false for exact bytes, ::lh_bool_true for case-folded match.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_str_view_starts_with(const lh_str_view_t *self, const lh_str_view_t *other,
+                        lh_bool_t ignore_case);
+
+/**
+ * @brief Return ::lh_bool_true if @p self ends with @p other.
+ *
+ * Requires @p self to be at least as long as @p other;
+ * then compares the trailing @c size(@p other) characters.
+ *
+ * @param self        View whose suffix is inspected.
+ * @param other       Expected suffix.
+ * @param ignore_case ::lh_bool_false for exact bytes, ::lh_bool_true for case-folded match.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_str_view_ends_with(const lh_str_view_t *self, const lh_str_view_t *other,
+                      lh_bool_t ignore_case);
 
 /* -- null terminator ------------------------------------------------------- */
 
