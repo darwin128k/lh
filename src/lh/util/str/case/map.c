@@ -1,4 +1,4 @@
-#include <lh/util/str/raw.h>
+﻿#include <lh/util/str/ptr.h>
 #include <lh/util/interval.h>
 #include <lh/runtime/check/ref.h>
 #include <lh/size.h>
@@ -130,7 +130,7 @@ static const lh_char_case_pair_t m_char_to_upper_table[] = {
 static const lh_usize_t m_char_to_upper_table_size = lh_array_raw_get_size(m_char_to_upper_table);
 
 lh_str_ptr
-lh_str_raw_to_lower(lh_str_ptr str, lh_usize_t n)
+lh_str_ptr_to_lower(lh_str_ptr str, lh_usize_t n)
 {
     lh_runtime_check_ref(str);
     lh_str_ptr p = str;
@@ -152,7 +152,7 @@ lh_str_raw_to_lower(lh_str_ptr str, lh_usize_t n)
 }
 
 lh_str_ptr
-lh_str_raw_to_upper(lh_str_ptr str, lh_usize_t n)
+lh_str_ptr_to_upper(lh_str_ptr str, lh_usize_t n)
 {
     lh_runtime_check_ref(str);
     lh_str_ptr p = str;

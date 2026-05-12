@@ -41,9 +41,9 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/util/interval.cpp
         ${LH_TEST_SRC_PATH}/lh/util/math.cpp
         ${LH_TEST_SRC_PATH}/lh/str/view.cpp
-        ${LH_TEST_SRC_PATH}/lh/util/str/raw.cpp
+        ${LH_TEST_SRC_PATH}/lh/util/str/ptr.cpp
         ${LH_TEST_SRC_PATH}/lh/util/str/case/map.cpp
-        ${LH_TEST_SRC_PATH}/lh/util/wstr/raw.cpp
+        ${LH_TEST_SRC_PATH}/lh/util/wstr/ptr.cpp
         ${LH_TEST_SRC_PATH}/lh/wchar/case/map.cpp
 )
 

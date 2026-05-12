@@ -1,7 +1,7 @@
-#include <lh/str/view.h>
+﻿#include <lh/str/view.h>
 #include <lh/util/ptr.h>
 #include <lh/cast/static.h>
-#include <lh/util/str/raw.h>
+#include <lh/util/str/ptr.h>
 
 lh_void
 lh_str_init_by_size(lh_str_view_t *self, lh_str_cptr data, lh_usize_t size)
@@ -12,7 +12,7 @@ lh_str_init_by_size(lh_str_view_t *self, lh_str_cptr data, lh_usize_t size)
 lh_void
 lh_str_view_init(lh_str_view_t *self, lh_str_cptr data)
 {
-    lh_str_init_by_size(self, data, lh_str_raw_len(data));
+    lh_str_init_by_size(self, data, lh_str_ptr_len(data));
 }
 
 lh_void
@@ -55,7 +55,7 @@ lh_usize_t
 lh_str_view_find_char(const lh_str_view_t *self, lh_char_t ch)
 {
     lh_str_cptr data = lh_str_view_get_data(self);
-    lh_str_cptr ptr = lh_str_raw_find_of_char(data, lh_str_view_get_size(self), ch);
+    lh_str_cptr ptr = lh_str_ptr_find_of_char(data, lh_str_view_get_size(self), ch);
     return lh_ptr_is_set(ptr) ? lh_ptr_udiff(ptr, data) : LH_STR_VIEW_INVALID;
 }
 
@@ -63,24 +63,24 @@ lh_usize_t
 lh_str_view_rfind_char(const lh_str_view_t *self, lh_char_t ch)
 {
     lh_str_cptr data = lh_str_view_get_data(self);
-    lh_str_cptr ptr = lh_str_raw_rfind_of_char(data, lh_str_view_get_size(self), ch);
+    lh_str_cptr ptr = lh_str_ptr_rfind_of_char(data, lh_str_view_get_size(self), ch);
     return lh_ptr_is_set(ptr) ? lh_ptr_udiff(ptr, data) : LH_STR_VIEW_INVALID;
 }
 
 lh_bool_t
 lh_str_view_contains_char(const lh_str_view_t *self, lh_char_t ch)
 {
-    return lh_str_raw_contains_char(lh_str_view_get_data(self), lh_str_view_get_size(self), ch);
+    return lh_str_ptr_contains_char(lh_str_view_get_data(self), lh_str_view_get_size(self), ch);
 }
 
 lh_usize_t
 lh_str_view_find(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case)
 {
-    lh_usize_t result = lh_str_raw_index_of_by_size(
+    lh_usize_t result = lh_str_ptr_index_of_by_size(
         lh_str_view_get_data(self), lh_str_view_get_size(self), lh_str_view_get_data(other),
         lh_str_view_get_size(other), ignore_case);
 
-    return result == LH_STR_RAW_INVALID ? LH_STR_VIEW_INVALID : result;
+    return result == LH_STR_PTR_INVALID ? LH_STR_VIEW_INVALID : result;
 }
 
 lh_usize_t
@@ -88,7 +88,7 @@ lh_str_view_rfind(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool
 {
     lh_str_cptr data = lh_str_view_get_data(self);
     lh_str_cptr ptr =
-        lh_str_raw_rfind(data, lh_str_view_get_size(self), lh_str_view_get_data(other),
+        lh_str_ptr_rfind(data, lh_str_view_get_size(self), lh_str_view_get_data(other),
                          lh_str_view_get_size(other), ignore_case);
     return lh_ptr_is_set(ptr) ? lh_ptr_udiff(ptr, data) : LH_STR_VIEW_INVALID;
 }
@@ -103,7 +103,7 @@ lh_usize_t
 lh_str_view_find_of(const lh_str_view_t *self, const lh_str_view_t *chars)
 {
     lh_str_cptr data = lh_str_view_get_data(self);
-    lh_str_cptr ptr = lh_str_raw_find_of_chars(
+    lh_str_cptr ptr = lh_str_ptr_find_of_chars(
         data, lh_str_view_get_size(self),
         lh_str_view_get_data(chars), lh_str_view_get_size(chars));
     return lh_ptr_is_set(ptr) ? lh_ptr_udiff(ptr, data) : LH_STR_VIEW_INVALID;
@@ -113,7 +113,7 @@ lh_usize_t
 lh_str_view_rfind_of(const lh_str_view_t *self, const lh_str_view_t *chars)
 {
     lh_str_cptr data = lh_str_view_get_data(self);
-    lh_str_cptr ptr = lh_str_raw_rfind_of_chars(
+    lh_str_cptr ptr = lh_str_ptr_rfind_of_chars(
         data, lh_str_view_get_size(self),
         lh_str_view_get_data(chars), lh_str_view_get_size(chars));
     return lh_ptr_is_set(ptr) ? lh_ptr_udiff(ptr, data) : LH_STR_VIEW_INVALID;
@@ -123,7 +123,7 @@ lh_usize_t
 lh_str_view_find_not_of(const lh_str_view_t *self, const lh_str_view_t *chars)
 {
     lh_str_cptr data = lh_str_view_get_data(self);
-    lh_str_cptr ptr = lh_str_raw_find_not_of_chars(
+    lh_str_cptr ptr = lh_str_ptr_find_not_of_chars(
         data, lh_str_view_get_size(self),
         lh_str_view_get_data(chars), lh_str_view_get_size(chars));
     return lh_ptr_is_set(ptr) ? lh_ptr_udiff(ptr, data) : LH_STR_VIEW_INVALID;
@@ -133,7 +133,7 @@ lh_usize_t
 lh_str_view_rfind_not_of(const lh_str_view_t *self, const lh_str_view_t *chars)
 {
     lh_str_cptr data = lh_str_view_get_data(self);
-    lh_str_cptr ptr = lh_str_raw_rfind_not_of_chars(
+    lh_str_cptr ptr = lh_str_ptr_rfind_not_of_chars(
         data, lh_str_view_get_size(self),
         lh_str_view_get_data(chars), lh_str_view_get_size(chars));
     return lh_ptr_is_set(ptr) ? lh_ptr_udiff(ptr, data) : LH_STR_VIEW_INVALID;
@@ -142,7 +142,7 @@ lh_str_view_rfind_not_of(const lh_str_view_t *self, const lh_str_view_t *chars)
 lh_str_cptr
 lh_str_view_compare(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case)
 {
-    return lh_str_raw_compare(lh_str_view_get_data(self), lh_str_view_get_size(self),
+    return lh_str_ptr_compare(lh_str_view_get_data(self), lh_str_view_get_size(self),
                               lh_str_view_get_data(other), lh_str_view_get_size(other),
                               ignore_case);
 }
@@ -150,7 +150,7 @@ lh_str_view_compare(const lh_str_view_t *self, const lh_str_view_t *other, lh_bo
 lh_str_cptr
 lh_str_view_rcompare(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case)
 {
-    return lh_str_raw_rcompare(lh_str_view_get_data(self), lh_str_view_get_size(self),
+    return lh_str_ptr_rcompare(lh_str_view_get_data(self), lh_str_view_get_size(self),
                                lh_str_view_get_data(other), lh_str_view_get_size(other),
                                ignore_case);
 }
@@ -158,7 +158,7 @@ lh_str_view_rcompare(const lh_str_view_t *self, const lh_str_view_t *other, lh_b
 lh_bool_t
 lh_str_view_equals(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case)
 {
-    return lh_str_raw_equals_by_size(lh_str_view_get_data(self), lh_str_view_get_size(self),
+    return lh_str_ptr_equals_by_size(lh_str_view_get_data(self), lh_str_view_get_size(self),
                                      lh_str_view_get_data(other), lh_str_view_get_size(other),
                                      ignore_case);
 }
@@ -167,7 +167,7 @@ lh_bool_t
 lh_str_view_starts_with(const lh_str_view_t *self, const lh_str_view_t *other,
                         lh_bool_t ignore_case)
 {
-    return lh_str_raw_starts_with_by_size(lh_str_view_get_data(self), lh_str_view_get_size(self),
+    return lh_str_ptr_starts_with_by_size(lh_str_view_get_data(self), lh_str_view_get_size(self),
                                          lh_str_view_get_data(other), lh_str_view_get_size(other),
                                          ignore_case);
 }
@@ -176,7 +176,7 @@ lh_bool_t
 lh_str_view_ends_with(const lh_str_view_t *self, const lh_str_view_t *other,
                       lh_bool_t ignore_case)
 {
-    return lh_str_raw_ends_with_by_size(lh_str_view_get_data(self), lh_str_view_get_size(self),
+    return lh_str_ptr_ends_with_by_size(lh_str_view_get_data(self), lh_str_view_get_size(self),
                                        lh_str_view_get_data(other), lh_str_view_get_size(other),
                                        ignore_case);
 }
@@ -187,7 +187,7 @@ lh_str_view_find_null_terminator(const lh_str_view_t *self)
     lh_usize_t size = lh_str_view_get_size(self);
 
     lh_str_cptr data = lh_str_view_get_data(self);
-    lh_str_cptr ptr = lh_str_raw_find_of_null_terminator_by_size(data, size);
+    lh_str_cptr ptr = lh_str_ptr_find_of_null_terminator_by_size(data, size);
 
     return lh_ptr_is_set(ptr) ? lh_ptr_udiff(ptr, lh_str_view_get_data(self)) : LH_STR_VIEW_INVALID;
 }

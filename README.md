@@ -1,4 +1,4 @@
-# Light Helper
+﻿# Light Helper
 
 <p align="center">
   <img src="docs/assets/logo.png" alt="lh — Light Helper" height="256"/>
@@ -86,7 +86,7 @@ Include only what you need, for example:
 #include <lh/str/ptr.h>         /* lh_str_ptr, lh_str_cptr */
 ```
 
-String-related headers live under **`lh/str/`** (not `lh/string/`). Generic initializer macros are **`lh/initializer.h`** at the include root. `lh_str_view_t` search/compare API is in `lh/str/view.h`; raw buffer helpers are in `lh/util/str/raw.h`.
+String-related headers live under **`lh/str/`** (not `lh/string/`). Generic initializer macros are **`lh/initializer.h`** at the include root. `lh_str_view_t` search/compare API is in `lh/str/view.h`; raw buffer helpers are in `lh/util/str/ptr.h`.
 
 ### Integer types
 

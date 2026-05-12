@@ -1,14 +1,14 @@
-/**
- * @file raw.h
- * @brief Narrow-string preprocessor helpers (::lh_str_raw_lit, …)
- *        and low-level C-string scan helpers (::lh_str_raw_find_of_char, …).
+﻿/**
+ * @file ptr.h
+ * @brief Narrow-string preprocessor helpers (::lh_str_ptr_lit, …)
+ *        and low-level C-string scan helpers (::lh_str_ptr_find_of_char, …).
  *
- * Functions ::lh_str_raw_* take ::lh_str_ptr views;
+ * Functions ::lh_str_ptr_* take ::lh_str_ptr views;
  * element counts are in ::lh_char_t code units.
  */
 
-#ifndef LH_UTIL_STR_RAW_H
-#define LH_UTIL_STR_RAW_H
+#ifndef LH_UTIL_STR_PTR_H
+#define LH_UTIL_STR_PTR_H
 
 #include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
@@ -17,28 +17,28 @@
 #include <lh/str/ptr.h>
 #include <lh/util/array/raw.h>
 
-#ifndef LH_STR_RAW_INVALID
+#ifndef LH_STR_PTR_INVALID
 /**
- * @def LH_STR_RAW_INVALID
+ * @def LH_STR_PTR_INVALID
  * @brief Sentinel value for invalid string index.
  */
-#    define LH_STR_RAW_INVALID LH_USIZE_T_MAX
-#endif // LH_STR_RAW_INVALID
+#    define LH_STR_PTR_INVALID LH_USIZE_T_MAX
+#endif // LH_STR_PTR_INVALID
 
 /**
- * @def lh_str_raw_get_begin(x)
+ * @def lh_str_ptr_get_begin(x)
  * @brief Same as ::lh_array_raw_get_begin(x) for a `char` array @p x.
  *
  * Example usage:
  * @code{.c}
  * char s[] = "ab";
- * char *p = lh_str_raw_get_begin(s); // same as `s`, points at 'a'
+ * char *p = lh_str_ptr_get_begin(s); // same as `s`, points at 'a'
  * @endcode
  */
-#define lh_str_raw_get_begin(x) lh_array_raw_get_begin(x)
+#define lh_str_ptr_get_begin(x) lh_array_raw_get_begin(x)
 
 /**
- * @def lh_str_raw_get_capacity(x)
+ * @def lh_str_ptr_get_capacity(x)
  * @brief Total number of `char` slots in the array object @p x.
  *
  * Same as ::lh_array_raw_get_size(x) for element type `char`.
@@ -48,14 +48,14 @@
  * Example usage:
  * @code{.c}
  * char s[] = "ab";
- * // lh_str_raw_get_capacity(s) == 3
+ * // lh_str_ptr_get_capacity(s) == 3
  * @endcode
  */
-#define lh_str_raw_get_capacity(x) lh_array_raw_get_size(x)
+#define lh_str_ptr_get_capacity(x) lh_array_raw_get_size(x)
 
 /**
- * @def lh_str_raw_get_size(x)
- * @brief Payload slot count: `::lh_str_raw_get_capacity(x) - 1`.
+ * @def lh_str_ptr_get_size(x)
+ * @brief Payload slot count: `::lh_str_ptr_get_capacity(x) - 1`.
  *
  * Use when one `char` at the end is reserved for `'\0'` (`char buf[N]` gives size `N - 1`),
  * or for the literal body length of `char s[] = "text"` (excluding the stored terminator byte).
@@ -71,18 +71,18 @@
  * Example usage:
  * @code{.c}
  * char s[] = "ab";
- * // lh_str_raw_get_size(s) == 2  // body length; capacity still includes '\0'
+ * // lh_str_ptr_get_size(s) == 2  // body length; capacity still includes '\0'
  * @endcode
  */
-#define lh_str_raw_get_size(x) ((lh_str_raw_get_capacity(x)) - 1)
+#define lh_str_ptr_get_size(x) ((lh_str_ptr_get_capacity(x)) - 1)
 
 /**
- * @def lh_str_raw_get_end(x)
- * @brief End of the payload span: `lh_str_raw_get_begin(x) + lh_str_raw_get_size(x)`.
+ * @def lh_str_ptr_get_end(x)
+ * @brief End of the payload span: `lh_str_ptr_get_begin(x) + lh_str_ptr_get_size(x)`.
  *
  * Points at the slot where the terminating `'\0'`
  * is stored (first byte after the last payload character).
- * The range `[begin, end)` has length ::lh_str_raw_get_size(x)
+ * The range `[begin, end)` has length ::lh_str_ptr_get_size(x)
  * and does not include the terminator in the half-open interval.
  *
  * This is **not** one past the whole array;
@@ -91,11 +91,11 @@
  * Example usage:
  * @code{.c}
  * char s[] = "ab";
- * for (char *p = lh_str_raw_get_begin(s); p != lh_str_raw_get_end(s); ++p) { } // 'a', 'b' only
- * // *lh_str_raw_get_end(s) == '\0'
+ * for (char *p = lh_str_ptr_get_begin(s); p != lh_str_ptr_get_end(s); ++p) { } // 'a', 'b' only
+ * // *lh_str_ptr_get_end(s) == '\0'
  * @endcode
  */
-#define lh_str_raw_get_end(x) ((lh_str_raw_get_begin(x)) + lh_str_raw_get_size(x))
+#define lh_str_ptr_get_end(x) ((lh_str_ptr_get_begin(x)) + lh_str_ptr_get_size(x))
 
 /**
  * @brief Stringify a token.
@@ -106,7 +106,7 @@
  * @param c Token to stringify.
  * @return Narrow string literal representation of the token.
  */
-#define lh_str_raw_lit(c) #c
+#define lh_str_ptr_lit(c) #c
 
 /**
  * @brief Stringify variadic tokens.
@@ -117,7 +117,7 @@
  * @param ... Tokens to stringify.
  * @return Narrow string literal representation of the tokens.
  */
-#define lh_str_raw_lit_va(...) lh_str_raw_lit(__VA_ARGS__)
+#define lh_str_ptr_lit_va(...) lh_str_ptr_lit(__VA_ARGS__)
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -134,7 +134,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
-lh_str_raw_find_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch);
+lh_str_ptr_find_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch);
 
 /**
  * @brief Find the last ::lh_char_t equal to @p ch
@@ -147,11 +147,11 @@ lh_str_raw_find_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch);
  * @return Pointer to the last match,
  *         or ::lh_null if @p ch does not occur in that prefix.
  *
- * @see lh_str_raw_find_of_char
+ * @see lh_str_ptr_find_of_char
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
-lh_str_raw_rfind_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch);
+lh_str_ptr_rfind_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch);
 
 /**
  * @brief Find the first character in @p str that belongs to @p chars.
@@ -164,7 +164,7 @@ lh_str_raw_rfind_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch);
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
-lh_str_raw_find_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
+lh_str_ptr_find_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
                            lh_usize_t chars_size);
 
 /**
@@ -178,7 +178,7 @@ lh_str_raw_find_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
-lh_str_raw_rfind_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
+lh_str_ptr_rfind_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
                             lh_usize_t chars_size);
 
 /**
@@ -192,7 +192,7 @@ lh_str_raw_rfind_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_st
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
-lh_str_raw_find_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
+lh_str_ptr_find_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
                                lh_usize_t chars_size);
 
 /**
@@ -206,7 +206,7 @@ lh_str_raw_find_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
-lh_str_raw_rfind_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
+lh_str_ptr_rfind_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
                                 lh_usize_t chars_size);
 
 /**
@@ -219,11 +219,11 @@ lh_str_raw_rfind_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const l
  * @return Pointer to the terminating NUL byte,
  *         or ::lh_null if none was found in that prefix.
  *
- * @see lh_str_raw_find_of_char
+ * @see lh_str_ptr_find_of_char
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
-lh_str_raw_find_of_null_terminator_by_size(const lh_str_ptr str, lh_usize_t size);
+lh_str_ptr_find_of_null_terminator_by_size(const lh_str_ptr str, lh_usize_t size);
 
 /**
  * @brief Find the first null terminator (`'\\0'`)
@@ -239,35 +239,35 @@ lh_str_raw_find_of_null_terminator_by_size(const lh_str_ptr str, lh_usize_t size
  * @return Pointer to the terminating NUL byte,
  *         or ::lh_null if none was found in range.
  *
- * @see lh_str_raw_find_of_null_terminator_by_size
- * @see lh_str_raw_find_of_char
+ * @see lh_str_ptr_find_of_null_terminator_by_size
+ * @see lh_str_ptr_find_of_char
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
-lh_str_raw_find_of_null_terminator(const lh_str_ptr str);
+lh_str_ptr_find_of_null_terminator(const lh_str_ptr str);
 
 /**
  * @brief Length of @p str in characters,
  *        not counting the terminating NUL.
  *
  * Equivalent to the distance from @p str
- * to the first `\\0` found by ::lh_str_raw_find_of_null_terminator.
+ * to the first `\\0` found by ::lh_str_ptr_find_of_null_terminator.
  *
  * @param str NUL-terminated string
- *            within the bounded scan used by ::lh_str_raw_find_of_null_terminator.
+ *            within the bounded scan used by ::lh_str_ptr_find_of_null_terminator.
  *
  * @return Number of characters before the terminator.
  *
- * @note If no NUL is found within the scan bound used by ::lh_str_raw_find_of_null_terminator,
+ * @note If no NUL is found within the scan bound used by ::lh_str_ptr_find_of_null_terminator,
  *       ::lh_runtime_check_ifn calls ::lh_runtime_throw_with_code with
  *       ::lh_runtime_error_code_no_null_terminator.
  *
- * @see lh_str_raw_find_of_null_terminator
+ * @see lh_str_ptr_find_of_null_terminator
  * @see lh_runtime_error_code_no_null_terminator
  */
 LH_ATTRIBUTE_SYMBOL
 lh_usize_t
-lh_str_raw_len(const lh_str_ptr str);
+lh_str_ptr_len(const lh_str_ptr str);
 
 /**
  * @brief Copy up to @c min(str_size, src_size) characters
@@ -288,18 +288,18 @@ lh_str_raw_len(const lh_str_ptr str);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
-lh_str_raw_copy(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src, lh_usize_t src_size);
+lh_str_ptr_copy(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src, lh_usize_t src_size);
 
 /**
  * @brief Move up to @c min(str_size, src_size)
  *        characters from @p src to @p str.
  *
- * @see lh_str_raw_copy
+ * @see lh_str_ptr_copy
  * @see lh_memory_move
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
-lh_str_raw_move(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src, lh_usize_t src_size);
+lh_str_ptr_move(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src, lh_usize_t src_size);
 
 /**
  * @brief Fill @p str with a repeating pattern from @p src.
@@ -316,27 +316,27 @@ lh_str_raw_move(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src, lh_us
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
-lh_str_raw_set_pattern(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+lh_str_ptr_set_pattern(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                        lh_usize_t src_size);
 
 /**
  * @brief Set every character in the first @p size elements of @p str to @p ch.
  *
- * @note Implemented with ::lh_str_raw_set_pattern:
+ * @note Implemented with ::lh_str_ptr_set_pattern:
  *       pattern length is 1 character,
  *       repeated to cover @p size code units.
  *
- * @see lh_str_raw_set_pattern
+ * @see lh_str_ptr_set_pattern
  * @see lh_memory_set
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
-lh_str_raw_set(lh_str_ptr str, lh_usize_t size, lh_char_t ch);
+lh_str_ptr_set(lh_str_ptr str, lh_usize_t size, lh_char_t ch);
 
 /**
  * @brief Replace each of the first @p size ::lh_char_t elements of @p str
  *        using Unicode simple lowercase mapping for single-byte scalars (0..255),
- *        same subset as ::lh_wstr_raw_to_lower for Latin-1 style buffers.
+ *        same subset as ::lh_wstr_ptr_to_lower for Latin-1 style buffers.
  *
  * @note Interprets each code unit as an unsigned byte; not UTF-8 scalar mapping.
  *
@@ -347,23 +347,23 @@ lh_str_raw_set(lh_str_ptr str, lh_usize_t size, lh_char_t ch);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
-lh_str_raw_to_lower(lh_str_ptr str, lh_usize_t size);
+lh_str_ptr_to_lower(lh_str_ptr str, lh_usize_t size);
 
 /**
  * @brief Replace each of the first @p size ::lh_char_t elements of @p str
  *        using Unicode simple uppercase mapping for single-byte scalars (0..255).
  *
- * @see lh_str_raw_to_lower
+ * @see lh_str_ptr_to_lower
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
-lh_str_raw_to_upper(lh_str_ptr str, lh_usize_t size);
+lh_str_ptr_to_upper(lh_str_ptr str, lh_usize_t size);
 
 /**
  * @brief Compare the first min(@p str_size, @p src_size) characters
  *        of @p str and @p src using ::lh_char_fold_case per code unit.
  *
- * Same idea as ::lh_str_raw_compare with @c ignore_case ::lh_bool_true,
+ * Same idea as ::lh_str_ptr_compare with @c ignore_case ::lh_bool_true,
  * but always uses the folding path. Not full Unicode string case fold for UTF-8.
  *
  * @param str      First buffer (::lh_runtime_check_ref).
@@ -374,19 +374,19 @@ lh_str_raw_to_upper(lh_str_ptr str, lh_usize_t size);
  * @return Pointer to the first differing character in @p str under folding,
  *         or ::lh_null if all compared positions match.
  *
- * @see lh_str_raw_compare
+ * @see lh_str_ptr_compare
  * @see lh_char_fold_case
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
-lh_str_raw_compare_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+lh_str_ptr_compare_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                                   lh_usize_t src_size);
 
 /**
  * @brief Compare overlapping suffixes
  *        of length min(@p str_size, @p src_size) using ::lh_char_fold_case.
  *
- * Same idea as ::lh_str_raw_rcompare with @c ignore_case ::lh_bool_true.
+ * Same idea as ::lh_str_ptr_rcompare with @c ignore_case ::lh_bool_true.
  *
  * @param str      First buffer (::lh_runtime_check_ref).
  * @param str_size Length of @p str in characters.
@@ -396,19 +396,19 @@ lh_str_raw_compare_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, con
  * @return Pointer into @p str at the first suffix mismatch under folding,
  *         or ::lh_null if the window matches.
  *
- * @see lh_str_raw_rcompare
+ * @see lh_str_ptr_rcompare
  * @see lh_char_fold_case
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
-lh_str_raw_rcompare_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+lh_str_ptr_rcompare_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                                    lh_usize_t src_size);
 
 /**
  * @brief Leftmost substring search in the first @p str_size characters of @p str
  *        (folded byte-wise match).
  *
- * Same idea as ::lh_str_raw_find with @c ignore_case ::lh_bool_true.
+ * Same idea as ::lh_str_ptr_find with @c ignore_case ::lh_bool_true.
  *
  * @param str      Haystack (::lh_runtime_check_ref).
  * @param str_size Haystack length in characters.
@@ -417,19 +417,19 @@ lh_str_raw_rcompare_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, co
  *
  * @return Pointer to the start of the first match, or ::lh_null if none.
  *
- * @see lh_str_raw_find
+ * @see lh_str_ptr_find
  * @see lh_char_fold_case
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
-lh_str_raw_find_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+lh_str_ptr_find_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                                lh_usize_t src_size);
 
 /**
  * @brief Rightmost substring search with the same folded equality
- *        as ::lh_str_raw_find_by_ignore_case.
+ *        as ::lh_str_ptr_find_by_ignore_case.
  *
- * Same idea as ::lh_str_raw_rfind with @c ignore_case ::lh_bool_true.
+ * Same idea as ::lh_str_ptr_rfind with @c ignore_case ::lh_bool_true.
  *
  * @param str      Haystack (::lh_runtime_check_ref).
  * @param str_size Haystack length in characters.
@@ -438,12 +438,12 @@ lh_str_raw_find_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const 
  *
  * @return Pointer to the start of the last match, or ::lh_null if none.
  *
- * @see lh_str_raw_rfind
+ * @see lh_str_ptr_rfind
  * @see lh_char_fold_case
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
-lh_str_raw_rfind_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+lh_str_ptr_rfind_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                                 lh_usize_t src_size);
 
 /**
@@ -454,16 +454,16 @@ lh_str_raw_rfind_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const
  * @param src          Needle.
  * @param src_size     Length of @p src in characters.
  * @param ignore_case  ::lh_bool_false → ::lh_memory_compare.
- *                     ::lh_bool_true → ::lh_str_raw_find_by_ignore_case.
+ *                     ::lh_bool_true → ::lh_str_ptr_find_by_ignore_case.
  *
  * @return Pointer to the start of the first match, or ::lh_null if none.
  *
  * @see lh_memory_find
- * @see lh_str_raw_find_by_ignore_case
+ * @see lh_str_ptr_find_by_ignore_case
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
-lh_str_raw_find(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+lh_str_ptr_find(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                 lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
@@ -474,17 +474,17 @@ lh_str_raw_find(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
  * @param src          Needle.
  * @param src_size     Length of @p src in characters.
  * @param ignore_case  ::lh_bool_false → ::lh_memory_rfind.
- *                     ::lh_bool_true → ::lh_str_raw_rfind_by_ignore_case.
+ *                     ::lh_bool_true → ::lh_str_ptr_rfind_by_ignore_case.
  *
  * @return Pointer to the start of the last match, or ::lh_null if none.
  *
- * @see lh_str_raw_find
+ * @see lh_str_ptr_find
  * @see lh_memory_rfind
- * @see lh_str_raw_rfind_by_ignore_case
+ * @see lh_str_ptr_rfind_by_ignore_case
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
-lh_str_raw_rfind(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+lh_str_ptr_rfind(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                  lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
@@ -495,17 +495,17 @@ lh_str_raw_rfind(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src
  * @param src          Second buffer.
  * @param src_size     Length of @p src in characters.
  * @param ignore_case  ::lh_bool_false → ::lh_memory_compare.
- *                     ::lh_bool_true → ::lh_str_raw_compare_by_ignore_case.
+ *                     ::lh_bool_true → ::lh_str_ptr_compare_by_ignore_case.
  *
  * @return Pointer to the first differing character in @p str,
  *         or ::lh_null if the compared prefixes match.
  *
  * @see lh_memory_compare
- * @see lh_str_raw_compare_by_ignore_case
+ * @see lh_str_ptr_compare_by_ignore_case
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
-lh_str_raw_compare(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+lh_str_ptr_compare(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                    lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
@@ -516,17 +516,17 @@ lh_str_raw_compare(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr s
  * @param src          Second buffer.
  * @param src_size     Length of @p src in characters.
  * @param ignore_case  ::lh_bool_false → ::lh_memory_rcompare.
- *                     ::lh_bool_true → ::lh_str_raw_rcompare_by_ignore_case.
+ *                     ::lh_bool_true → ::lh_str_ptr_rcompare_by_ignore_case.
  *
  * @return Pointer to the first differing character in the suffix window in @p str,
  *         or ::lh_null if that window matches.
  *
  * @see lh_memory_rcompare
- * @see lh_str_raw_rcompare_by_ignore_case
+ * @see lh_str_ptr_rcompare_by_ignore_case
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
-lh_str_raw_rcompare(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+lh_str_ptr_rcompare(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                     lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
@@ -536,52 +536,52 @@ lh_str_raw_rcompare(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr 
  * @param str_size     Haystack size in characters.
  * @param src          Needle buffer.
  * @param src_size     Needle size in characters.
- * @param ignore_case  Same matching mode as ::lh_str_raw_find.
+ * @param ignore_case  Same matching mode as ::lh_str_ptr_find.
  *
  * @return Zero-based index of the first match,
- *         or ::LH_STR_RAW_INVALID if not found.
+ *         or ::LH_STR_PTR_INVALID if not found.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_usize_t
-lh_str_raw_index_of_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+lh_str_ptr_index_of_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                             lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
  * @brief NUL-terminated leftmost substring index.
  *
- * Uses ::lh_str_raw_len on both strings, then ::lh_str_raw_find.
+ * Uses ::lh_str_ptr_len on both strings, then ::lh_str_ptr_find.
  *
  * @param str          Haystack (NUL-terminated).
  * @param src          Needle (NUL-terminated).
- * @param ignore_case  Same matching mode as ::lh_str_raw_find.
+ * @param ignore_case  Same matching mode as ::lh_str_ptr_find.
  *
  * @return Zero-based index of the first match,
- *         or ::LH_STR_RAW_INVALID if not found.
+ *         or ::LH_STR_PTR_INVALID if not found.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_usize_t
-lh_str_raw_index_of(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
+lh_str_ptr_index_of(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
 
 /**
  * @brief NUL-terminated substring search.
  *
- * Uses ::lh_str_raw_len on both arguments, then ::lh_str_raw_find.
+ * Uses ::lh_str_ptr_len on both arguments, then ::lh_str_ptr_find.
  * Both arguments must be NUL-terminated.
  *
  * @param str          Haystack.
  * @param src          Needle.
  * @param ignore_case  ::lh_bool_false → exact bytes (::lh_memory_find).
- *                     ::lh_bool_true → ::lh_str_raw_find_by_ignore_case.
+ *                     ::lh_bool_true → ::lh_str_ptr_find_by_ignore_case.
  *
  * @return ::lh_true if @p src occurs in @p str under the selected rules, ::lh_false otherwise.
  *
- * @see lh_str_raw_find
- * @see lh_str_raw_find_by_ignore_case
+ * @see lh_str_ptr_find
+ * @see lh_str_ptr_find_by_ignore_case
  * @see lh_char_fold_case
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_str_raw_contains(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
+lh_str_ptr_contains(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
 
 /**
  * @brief Size-bounded substring search.
@@ -590,39 +590,39 @@ lh_str_raw_contains(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore
  * @param str_size     Haystack size in characters.
  * @param src          Needle buffer.
  * @param src_size     Needle size in characters.
- * @param ignore_case  Same matching mode as ::lh_str_raw_find.
+ * @param ignore_case  Same matching mode as ::lh_str_ptr_find.
  *
  * @return ::lh_true if @p src occurs in @p str under the selected rules, ::lh_false otherwise.
  *
- * @see lh_str_raw_find
- * @see lh_str_raw_contains
+ * @see lh_str_ptr_find
+ * @see lh_str_ptr_contains
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_str_raw_contains_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+lh_str_ptr_contains_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                             lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
  * @brief NUL-terminated string equality.
  *
- * Lengths from ::lh_str_raw_len must match; then ::lh_str_raw_compare on the full length.
+ * Lengths from ::lh_str_ptr_len must match; then ::lh_str_ptr_compare on the full length.
  * Both arguments must be NUL-terminated.
  *
  * @param str          First string.
  * @param src          Second string.
  * @param ignore_case  ::lh_bool_false → raw ::lh_char_t equality (::lh_memory_compare path).
  *                     ::lh_bool_true → ::lh_char_fold_case per code unit
- *                     (::lh_str_raw_compare_by_ignore_case).
+ *                     (::lh_str_ptr_compare_by_ignore_case).
  *
  * @return ::lh_true if equal under the selected rules, ::lh_false otherwise.
  *
- * @see lh_str_raw_compare
- * @see lh_str_raw_compare_by_ignore_case
+ * @see lh_str_ptr_compare
+ * @see lh_str_ptr_compare_by_ignore_case
  * @see lh_char_fold_case
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_str_raw_equals(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
+lh_str_ptr_equals(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
 
 /**
  * @brief Size-bounded string equality.
@@ -633,22 +633,22 @@ lh_str_raw_equals(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_c
  * @param src_size     Length of @p src in characters.
  * @param ignore_case  ::lh_bool_false → raw ::lh_char_t equality (::lh_memory_compare path).
  *                     ::lh_bool_true → ::lh_char_fold_case per code unit
- *                     (::lh_str_raw_compare_by_ignore_case).
+ *                     (::lh_str_ptr_compare_by_ignore_case).
  *
  * @return ::lh_true if @p str_size equals @p src_size and
- *         ::lh_str_raw_compare finds no difference, ::lh_false otherwise.
+ *         ::lh_str_ptr_compare finds no difference, ::lh_false otherwise.
  *
- * @see lh_str_raw_equals
- * @see lh_str_raw_compare
+ * @see lh_str_ptr_equals
+ * @see lh_str_ptr_compare
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_str_raw_equals_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+lh_str_ptr_equals_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                           lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
- * @brief NUL-terminated prefix compare using ::lh_str_raw_compare
- *        on lengths from ::lh_str_raw_len.
+ * @brief NUL-terminated prefix compare using ::lh_str_ptr_compare
+ *        on lengths from ::lh_str_ptr_len.
  *
  * Both arguments must be NUL-terminated.
  *
@@ -659,15 +659,15 @@ lh_str_raw_equals_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_st
  *
  * @return ::lh_true if the compared prefixes match, ::lh_false otherwise.
  *
- * @see lh_str_raw_compare
+ * @see lh_str_ptr_compare
  * @see lh_char_fold_case
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_str_raw_starts_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
+lh_str_ptr_starts_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
 
 /**
- * @brief Size-bounded prefix compare using ::lh_str_raw_compare.
+ * @brief Size-bounded prefix compare using ::lh_str_ptr_compare.
  *
  * @param str          Haystack buffer.
  * @param str_size     Haystack size in characters.
@@ -679,54 +679,54 @@ lh_str_raw_starts_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ign
  * @return ::lh_true if the leading @p src_size characters of @p str match @p src,
  *         ::lh_false otherwise.
  *
- * @see lh_str_raw_compare
- * @see lh_str_raw_starts_with
+ * @see lh_str_ptr_compare
+ * @see lh_str_ptr_starts_with
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_str_raw_starts_with_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+lh_str_ptr_starts_with_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                                lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
- * @brief NUL-terminated suffix compare using ::lh_str_raw_rcompare on lengths from
- *        ::lh_str_raw_len.
+ * @brief NUL-terminated suffix compare using ::lh_str_ptr_rcompare on lengths from
+ *        ::lh_str_ptr_len.
  *
  * Both arguments must be NUL-terminated.
  *
  * @param str          Haystack.
  * @param src          Suffix.
  * @param ignore_case  ::lh_bool_false → raw bytes (::lh_memory_rcompare).
- *                     ::lh_bool_true → ::lh_str_raw_rcompare_by_ignore_case.
+ *                     ::lh_bool_true → ::lh_str_ptr_rcompare_by_ignore_case.
  *
  * @return ::lh_true if the suffix window matches under the selected rules, ::lh_false otherwise.
  *
- * @see lh_str_raw_rcompare
- * @see lh_str_raw_rcompare_by_ignore_case
+ * @see lh_str_ptr_rcompare
+ * @see lh_str_ptr_rcompare_by_ignore_case
  * @see lh_char_fold_case
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_str_raw_ends_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
+lh_str_ptr_ends_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case);
 
 /**
- * @brief Size-bounded suffix compare using ::lh_str_raw_rcompare.
+ * @brief Size-bounded suffix compare using ::lh_str_ptr_rcompare.
  *
  * @param str          Haystack buffer.
  * @param str_size     Haystack size in characters.
  * @param src          Suffix buffer.
  * @param src_size     Suffix size in characters.
  * @param ignore_case  ::lh_bool_false → raw bytes (::lh_memory_rcompare).
- *                     ::lh_bool_true → ::lh_str_raw_rcompare_by_ignore_case.
+ *                     ::lh_bool_true → ::lh_str_ptr_rcompare_by_ignore_case.
  *
  * @return ::lh_true if the trailing @p src_size characters of @p str match @p src,
  *         ::lh_false otherwise.
  *
- * @see lh_str_raw_rcompare
- * @see lh_str_raw_ends_with
+ * @see lh_str_ptr_rcompare
+ * @see lh_str_ptr_ends_with
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_str_raw_ends_with_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+lh_str_ptr_ends_with_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                              lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
@@ -738,11 +738,11 @@ lh_str_raw_ends_with_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh
  *
  * @return ::lh_true if found, ::lh_false otherwise.
  *
- * @see lh_str_raw_find_of_char
+ * @see lh_str_ptr_find_of_char
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_str_raw_contains_char(const lh_str_ptr chars, lh_usize_t chars_size, lh_char_t ch);
+lh_str_ptr_contains_char(const lh_str_ptr chars, lh_usize_t chars_size, lh_char_t ch);
 
 /**
  * @brief Left trim using the built-in default whitespace set.
@@ -751,11 +751,11 @@ lh_str_raw_contains_char(const lh_str_ptr chars, lh_usize_t chars_size, lh_char_
  *
  * @return Pointer to the resulting trimmed string (same address as @p str).
  *
- * @see lh_str_raw_ltrim_custom
+ * @see lh_str_ptr_ltrim_custom
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
-lh_str_raw_ltrim(lh_str_ptr str);
+lh_str_ptr_ltrim(lh_str_ptr str);
 
 /**
  * @brief Right trim using the built-in default whitespace set.
@@ -764,11 +764,11 @@ lh_str_raw_ltrim(lh_str_ptr str);
  *
  * @return Pointer to the resulting trimmed string (same address as @p str).
  *
- * @see lh_str_raw_rtrim_custom
+ * @see lh_str_ptr_rtrim_custom
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
-lh_str_raw_rtrim(lh_str_ptr str);
+lh_str_ptr_rtrim(lh_str_ptr str);
 
 /**
  * @brief Two-sided trim using the built-in default whitespace set.
@@ -777,11 +777,11 @@ lh_str_raw_rtrim(lh_str_ptr str);
  *
  * @return Pointer to the resulting trimmed string (same address as @p str).
  *
- * @see lh_str_raw_trim_custom
+ * @see lh_str_ptr_trim_custom
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
-lh_str_raw_trim(lh_str_ptr str);
+lh_str_ptr_trim(lh_str_ptr str);
 
 /**
  * @brief Left trim with explicit string and trim-set sizes (custom mode).
@@ -793,11 +793,11 @@ lh_str_raw_trim(lh_str_ptr str);
  *
  * @return Pointer to the resulting trimmed string (same address as @p str).
  *
- * @see lh_str_raw_ltrim_span
+ * @see lh_str_ptr_ltrim_span
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
-lh_str_raw_ltrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whitespace_chars,
+lh_str_ptr_ltrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whitespace_chars,
                         lh_usize_t whitespace_size);
 
 /**
@@ -810,11 +810,11 @@ lh_str_raw_ltrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr wh
  *
  * @return Pointer to the resulting trimmed string (same address as @p str).
  *
- * @see lh_str_raw_rtrim_span
+ * @see lh_str_ptr_rtrim_span
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
-lh_str_raw_rtrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whitespace_chars,
+lh_str_ptr_rtrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whitespace_chars,
                         lh_usize_t whitespace_size);
 
 /**
@@ -827,11 +827,11 @@ lh_str_raw_rtrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr wh
  *
  * @return Pointer to the resulting trimmed string (same address as @p str).
  *
- * @see lh_str_raw_trim_span
+ * @see lh_str_ptr_trim_span
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
-lh_str_raw_trim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whitespace_chars,
+lh_str_ptr_trim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whitespace_chars,
                        lh_usize_t whitespace_size);
 
 /**
@@ -843,11 +843,11 @@ lh_str_raw_trim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whi
  *
  * @return Pointer to the resulting trimmed string (same address as @p str).
  *
- * @see lh_str_raw_ltrim_set
+ * @see lh_str_ptr_ltrim_set
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
-lh_str_raw_ltrim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars, lh_usize_t whitespace_size);
+lh_str_ptr_ltrim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars, lh_usize_t whitespace_size);
 
 /**
  * @brief Right trim with explicit trim-set size; string size is auto-detected.
@@ -858,11 +858,11 @@ lh_str_raw_ltrim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars, lh_usize
  *
  * @return Pointer to the resulting trimmed string (same address as @p str).
  *
- * @see lh_str_raw_rtrim_set
+ * @see lh_str_ptr_rtrim_set
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
-lh_str_raw_rtrim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars, lh_usize_t whitespace_size);
+lh_str_ptr_rtrim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars, lh_usize_t whitespace_size);
 
 /**
  * @brief Two-sided trim with explicit trim-set size; string size is auto-detected.
@@ -873,11 +873,11 @@ lh_str_raw_rtrim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars, lh_usize
  *
  * @return Pointer to the resulting trimmed string (same address as @p str).
  *
- * @see lh_str_raw_trim_set
+ * @see lh_str_ptr_trim_set
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
-lh_str_raw_trim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars, lh_usize_t whitespace_size);
+lh_str_ptr_trim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars, lh_usize_t whitespace_size);
 
 /**
  * @brief Left trim with NUL-terminated trim set; both sizes are auto-detected.
@@ -887,11 +887,11 @@ lh_str_raw_trim_set(lh_str_ptr str, const lh_str_ptr whitespace_chars, lh_usize_
  *
  * @return Pointer to the resulting trimmed string (same address as @p str).
  *
- * @see lh_str_raw_ltrim_custom
+ * @see lh_str_ptr_ltrim_custom
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
-lh_str_raw_ltrim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars);
+lh_str_ptr_ltrim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars);
 
 /**
  * @brief Right trim with NUL-terminated trim set; both sizes are auto-detected.
@@ -901,11 +901,11 @@ lh_str_raw_ltrim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars);
  *
  * @return Pointer to the resulting trimmed string (same address as @p str).
  *
- * @see lh_str_raw_rtrim_custom
+ * @see lh_str_ptr_rtrim_custom
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
-lh_str_raw_rtrim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars);
+lh_str_ptr_rtrim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars);
 
 /**
  * @brief Two-sided trim with NUL-terminated trim set; both sizes are auto-detected.
@@ -915,12 +915,12 @@ lh_str_raw_rtrim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars);
  *
  * @return Pointer to the resulting trimmed string (same address as @p str).
  *
- * @see lh_str_raw_trim_custom
+ * @see lh_str_ptr_trim_custom
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
-lh_str_raw_trim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars);
+lh_str_ptr_trim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_UTIL_STR_RAW_H
+#endif // LH_UTIL_STR_PTR_H

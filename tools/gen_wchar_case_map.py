@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Parse Unicode UnicodeData.txt and emit map.c (simple to_lower / to_upper tables).
 
@@ -6,7 +6,7 @@ Uses UCD fields 12–13 (simple uppercase / simple lowercase). This is separate 
 CaseFolding.txt used by lh_wchar_fold_case: folding is for comparison; these mappings are
 for display-style case conversion (and differ from fold for some code points).
 
-lh_wstr_raw_to_lower / lh_wstr_raw_to_upper scan a lh_wstr buffer in place, using
+lh_wstr_ptr_to_lower / lh_wstr_ptr_to_upper scan a lh_wstr buffer in place, using
 lh_interval_ropen_binary_search() from lh/util/interval.h on the sorted tables.
 
 Input: tools/data/unicode/UnicodeData-16.0.0.txt
@@ -62,7 +62,7 @@ def emit_c(
         " * (lh_math_gt vs LH_WCHAR_T_MAX for mapped scalar).",
         " */",
         "",
-        "#include <lh/util/wstr/raw.h>",
+        "#include <lh/util/wstr/ptr.h>",
         "#include <lh/util/interval.h>",
         "#include <lh/runtime/check/ref.h>",
         "#include <lh/size.h>",
@@ -84,7 +84,7 @@ def emit_c(
     lines.extend(
         [
             "",
-            "lh_wstr_ptr lh_wstr_raw_to_lower(lh_wstr_ptr str, lh_usize_t n) {",
+            "lh_wstr_ptr lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n) {",
             "    lh_runtime_check_ref(str);",
             "",
             "    static const lh_usize_t sz = lh_array_raw_get_size(m_wchar_to_lower_table);",
@@ -105,7 +105,7 @@ def emit_c(
             "    return p;",
             "}",
             "",
-            "lh_wstr_ptr lh_wstr_raw_to_upper(lh_wstr_ptr str, lh_usize_t n) {",
+            "lh_wstr_ptr lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n) {",
             "    lh_runtime_check_ref(str);",
             "",
             "    static const lh_usize_t sz = lh_array_raw_get_size(m_wchar_to_upper_table);",

@@ -1,4 +1,4 @@
-# Tools
+﻿# Tools
 
 Scripts for code generation and analysis. These tools are used during development to generate source code from external data (Unicode tables) and analyze header dependencies.
 
@@ -44,7 +44,7 @@ Scripts that generate Unicode character tables from external data.
 
 ### Case Map
 
-Generates wide-char case mapping tables (`lh_wstr_raw_to_lower` / `lh_wstr_raw_to_upper`) from UnicodeData.txt.
+Generates wide-char case mapping tables (`lh_wstr_ptr_to_lower` / `lh_wstr_ptr_to_upper`) from UnicodeData.txt.
 
 ```sh
 python3 gen_wchar_case_map.py

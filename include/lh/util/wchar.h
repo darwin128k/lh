@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file wchar.h
  * @brief Wide-character utilities: ordinal casts and Unicode case (fold + simple map).
  *
@@ -43,7 +43,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *       case fold for supplementary characters (surrogate pairs).
  *
  *       Works per code unit,
- *       like the other ::lh_wstr_raw_* helpers.
+ *       like the other ::lh_wstr_ptr_* helpers.
  *
  * @see lh_wchar_to_lower
  * @see lh_wchar_to_upper

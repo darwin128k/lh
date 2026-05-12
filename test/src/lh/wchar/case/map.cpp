@@ -1,7 +1,7 @@
-#include <gtest/gtest.h>
+﻿#include <gtest/gtest.h>
 
 #include <lh/util/wchar.h>
-#include <lh/util/wstr/raw.h>
+#include <lh/util/wstr/ptr.h>
 
 namespace
 {
@@ -26,7 +26,7 @@ TEST(wchar_case_map, cyrillic_simple_mapping)
 TEST(wstr_raw_to_lower, maps_prefix_in_place)
 {
     lh_wchar_t buf[] = {L'H', L'i', L'!', L'\0'};
-    lh_wstr_cptr end = lh_wstr_raw_to_lower(buf, 3);
+    lh_wstr_cptr end = lh_wstr_ptr_to_lower(buf, 3);
     EXPECT_EQ(end, buf + 3);
     EXPECT_EQ(buf[0], L'h');
     EXPECT_EQ(buf[1], L'i');
@@ -36,7 +36,7 @@ TEST(wstr_raw_to_lower, maps_prefix_in_place)
 TEST(wstr_raw_to_upper, maps_prefix_in_place)
 {
     lh_wchar_t buf[] = {L'a', L'B', L'\0'};
-    lh_wstr_cptr end = lh_wstr_raw_to_upper(buf, 2);
+    lh_wstr_cptr end = lh_wstr_ptr_to_upper(buf, 2);
     EXPECT_EQ(end, buf + 2);
     EXPECT_EQ(buf[0], L'A');
     EXPECT_EQ(buf[1], L'B');

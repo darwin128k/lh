@@ -1,4 +1,4 @@
-#include <lh/util/wstr/raw.h>
+﻿#include <lh/util/wstr/ptr.h>
 #include <lh/char/map.h>
 #include <lh/memory.h>
 #include <lh/util/math.h>
@@ -9,43 +9,43 @@
 #include <lh/runtime/return/if.h>
 
 static const lh_wchar_t m_whitespace_chars[] = {
-    lh_wstr_raw_cat_va(lh_char_map_space), lh_wstr_raw_cat_va(lh_char_map_lf),
-    lh_wstr_raw_cat_va(lh_char_map_cr),    lh_wstr_raw_cat_va(lh_char_map_ht),
-    lh_wstr_raw_cat_va(lh_char_map_vt),    lh_wstr_raw_cat_va(lh_char_map_nul)};
+    lh_wstr_ptr_cat_va(lh_char_map_space), lh_wstr_ptr_cat_va(lh_char_map_lf),
+    lh_wstr_ptr_cat_va(lh_char_map_cr),    lh_wstr_ptr_cat_va(lh_char_map_ht),
+    lh_wstr_ptr_cat_va(lh_char_map_vt),    lh_wstr_ptr_cat_va(lh_char_map_nul)};
 
-static const lh_usize_t m_whitespace_size = lh_wstr_raw_get_size(m_whitespace_chars);
+static const lh_usize_t m_whitespace_size = lh_wstr_ptr_get_size(m_whitespace_chars);
 
 lh_usize_t
-lh_wstr_raw_index_of_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
+lh_wstr_ptr_index_of_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                              lh_usize_t src_size, lh_bool_t ignore_case)
 {
     /* empty needle matches at position 0 by convention */
     lh_runtime_return_ifn(src_size, LH_USIZE_T_MIN);
     if (lh_math_lt(str_size, src_size))
     {
-        return LH_WSTR_RAW_INVALID;
+        return LH_WSTR_PTR_INVALID;
     }
 
-    const lh_wstr_ptr ptr = lh_wstr_raw_find(str, str_size, src, src_size, ignore_case);
-    return lh_null_ne(ptr) ? (lh_ptr_udiff(ptr, str) / LH_WCHAR_T_SIZE) : LH_WSTR_RAW_INVALID;
+    const lh_wstr_ptr ptr = lh_wstr_ptr_find(str, str_size, src, src_size, ignore_case);
+    return lh_null_ne(ptr) ? (lh_ptr_udiff(ptr, str) / LH_WCHAR_T_SIZE) : LH_WSTR_PTR_INVALID;
 }
 
 const lh_wstr_ptr
-lh_wstr_raw_find_char(const lh_wstr_ptr str, lh_usize_t size, lh_wchar_t val)
+lh_wstr_ptr_find_char(const lh_wstr_ptr str, lh_usize_t size, lh_wchar_t val)
 {
     return lh_memory_find_step(str, size * LH_WCHAR_T_SIZE, lh_addr_of(val), LH_WCHAR_T_SIZE,
                                LH_WCHAR_T_SIZE);
 }
 
 const lh_wstr_ptr
-lh_wstr_raw_rfind_char(const lh_wstr_ptr str, lh_usize_t size, lh_wchar_t val)
+lh_wstr_ptr_rfind_char(const lh_wstr_ptr str, lh_usize_t size, lh_wchar_t val)
 {
     return lh_memory_rfind_step(str, size * LH_WCHAR_T_SIZE, lh_addr_of(val), LH_WCHAR_T_SIZE,
                                 LH_WCHAR_T_SIZE);
 }
 
 const lh_wstr_ptr
-lh_wstr_raw_find_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
+lh_wstr_ptr_find_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
                           lh_usize_t chars_size)
 {
     lh_runtime_check_ref(str);
@@ -54,7 +54,7 @@ lh_wstr_raw_find_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_w
 
     for (lh_usize_t i = 0; i < str_size; ++i)
     {
-        if (lh_wstr_raw_contains_char(chars, chars_size, str[i]))
+        if (lh_wstr_ptr_contains_char(chars, chars_size, str[i]))
         {
             return str + i;
         }
@@ -63,7 +63,7 @@ lh_wstr_raw_find_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_w
 }
 
 const lh_wstr_ptr
-lh_wstr_raw_rfind_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
+lh_wstr_ptr_rfind_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
                            lh_usize_t chars_size)
 {
     lh_runtime_check_ref(str);
@@ -76,7 +76,7 @@ lh_wstr_raw_rfind_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_
     do
     {
         --i;
-        if (lh_wstr_raw_contains_char(chars, chars_size, str[i]))
+        if (lh_wstr_ptr_contains_char(chars, chars_size, str[i]))
         {
             return str + i;
         }
@@ -85,7 +85,7 @@ lh_wstr_raw_rfind_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_
 }
 
 const lh_wstr_ptr
-lh_wstr_raw_find_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
+lh_wstr_ptr_find_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
                               lh_usize_t chars_size)
 {
     lh_runtime_check_ref(str);
@@ -93,7 +93,7 @@ lh_wstr_raw_find_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const 
 
     for (lh_usize_t i = 0; i < str_size; ++i)
     {
-        if (!lh_wstr_raw_contains_char(chars, chars_size, str[i]))
+        if (!lh_wstr_ptr_contains_char(chars, chars_size, str[i]))
         {
             return str + i;
         }
@@ -102,7 +102,7 @@ lh_wstr_raw_find_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const 
 }
 
 const lh_wstr_ptr
-lh_wstr_raw_rfind_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
+lh_wstr_ptr_rfind_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
                                lh_usize_t chars_size)
 {
     lh_runtime_check_ref(str);
@@ -114,7 +114,7 @@ lh_wstr_raw_rfind_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const
     do
     {
         --i;
-        if (!lh_wstr_raw_contains_char(chars, chars_size, str[i]))
+        if (!lh_wstr_ptr_contains_char(chars, chars_size, str[i]))
         {
             return str + i;
         }
@@ -123,53 +123,53 @@ lh_wstr_raw_rfind_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const
 }
 
 const lh_wstr_ptr
-lh_wstr_raw_find_of_null_terminator_by_size(const lh_wstr_ptr str, lh_usize_t size)
+lh_wstr_ptr_find_of_null_terminator_by_size(const lh_wstr_ptr str, lh_usize_t size)
 {
-    return lh_wstr_raw_find_char(str, size, lh_wstr_raw_cat_va(lh_char_map_nul));
+    return lh_wstr_ptr_find_char(str, size, lh_wstr_ptr_cat_va(lh_char_map_nul));
 }
 
 const lh_wstr_ptr
-lh_wstr_raw_find_of_null_terminator(const lh_wstr_ptr str)
+lh_wstr_ptr_find_of_null_terminator(const lh_wstr_ptr str)
 {
     lh_usize_t size = lh_addr_diff(LH_USIZE_T_MAX, lh_ptr_to_uaddr(str));
-    return lh_wstr_raw_find_of_null_terminator_by_size(str, size);
+    return lh_wstr_ptr_find_of_null_terminator_by_size(str, size);
 }
 
 lh_usize_t
-lh_wstr_raw_len(const lh_wstr_ptr str)
+lh_wstr_ptr_len(const lh_wstr_ptr str)
 {
-    const lh_wstr_ptr ptr = lh_wstr_raw_find_of_null_terminator(str);
+    const lh_wstr_ptr ptr = lh_wstr_ptr_find_of_null_terminator(str);
     lh_runtime_check_ifn(ptr, lh_runtime_error_code_no_null_terminator);
     return lh_ptr_udiff(ptr, str) / LH_WCHAR_T_SIZE;
 }
 
 lh_wstr_ptr
-lh_wstr_raw_copy(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src, lh_usize_t src_size)
+lh_wstr_ptr_copy(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src, lh_usize_t src_size)
 {
     return lh_memory_copy(str, str_size * LH_WCHAR_T_SIZE, src, src_size * LH_WCHAR_T_SIZE);
 }
 
 lh_wstr_ptr
-lh_wstr_raw_move(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src, lh_usize_t src_size)
+lh_wstr_ptr_move(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src, lh_usize_t src_size)
 {
     return lh_memory_move(str, str_size * LH_WCHAR_T_SIZE, src, src_size * LH_WCHAR_T_SIZE);
 }
 
 lh_wstr_ptr
-lh_wstr_raw_set_pattern(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
+lh_wstr_ptr_set_pattern(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                         lh_usize_t src_size)
 {
     return lh_memory_set_pattern(str, str_size * LH_WCHAR_T_SIZE, src, src_size * LH_WCHAR_T_SIZE);
 }
 
 lh_wstr_ptr
-lh_wstr_raw_set(lh_wstr_ptr str, lh_usize_t str_size, lh_wchar_t ch)
+lh_wstr_ptr_set(lh_wstr_ptr str, lh_usize_t str_size, lh_wchar_t ch)
 {
-    return lh_wstr_raw_set_pattern(str, str_size, lh_addr_of(ch), 1);
+    return lh_wstr_ptr_set_pattern(str, str_size, lh_addr_of(ch), 1);
 }
 
 const lh_wstr_ptr
-lh_wstr_raw_compare_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size,
+lh_wstr_ptr_compare_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size,
                                    const lh_wstr_ptr src, lh_usize_t src_size)
 {
     lh_runtime_check_ref(str);
@@ -187,7 +187,7 @@ lh_wstr_raw_compare_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size,
 }
 
 const lh_wstr_ptr
-lh_wstr_raw_rcompare_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size,
+lh_wstr_ptr_rcompare_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size,
                                     const lh_wstr_ptr src, lh_usize_t src_size)
 {
     lh_runtime_check_ref(str);
@@ -208,7 +208,7 @@ lh_wstr_raw_rcompare_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size,
 }
 
 const lh_wstr_ptr
-lh_wstr_raw_find_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
+lh_wstr_ptr_find_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                                 lh_usize_t src_size)
 {
     lh_runtime_check_ref(str);
@@ -222,7 +222,7 @@ lh_wstr_raw_find_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size, cons
     const lh_usize_t last = lh_math_sub(str_size, src_size);
     for (lh_usize_t i = 0; i <= last; ++i)
     {
-        if (lh_null_eq(lh_wstr_raw_compare_by_ignore_case(str + i, src_size, src, src_size)))
+        if (lh_null_eq(lh_wstr_ptr_compare_by_ignore_case(str + i, src_size, src, src_size)))
         {
             return str + i;
         }
@@ -232,7 +232,7 @@ lh_wstr_raw_find_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size, cons
 }
 
 const lh_wstr_ptr
-lh_wstr_raw_rfind_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
+lh_wstr_ptr_rfind_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                                  lh_usize_t src_size)
 {
     lh_runtime_check_ref(str);
@@ -246,7 +246,7 @@ lh_wstr_raw_rfind_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size, con
     lh_usize_t i = lh_math_sub(str_size, src_size);
     do
     {
-        if (lh_null_eq(lh_wstr_raw_compare_by_ignore_case(str + i, src_size, src, src_size)))
+        if (lh_null_eq(lh_wstr_ptr_compare_by_ignore_case(str + i, src_size, src, src_size)))
         {
             return str + i;
         }
@@ -256,122 +256,122 @@ lh_wstr_raw_rfind_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size, con
 }
 
 const lh_wstr_ptr
-lh_wstr_raw_find(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
+lh_wstr_ptr_find(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                  lh_usize_t src_size, lh_bool_t ignore_case)
 {
-    return ignore_case ? lh_wstr_raw_find_by_ignore_case(str, str_size, src, src_size)
+    return ignore_case ? lh_wstr_ptr_find_by_ignore_case(str, str_size, src, src_size)
                        : lh_memory_find_step(str, str_size * LH_WCHAR_T_SIZE, src,
                                              src_size * LH_WCHAR_T_SIZE, LH_WCHAR_T_SIZE);
 }
 
 const lh_wstr_ptr
-lh_wstr_raw_rfind(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
+lh_wstr_ptr_rfind(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                   lh_usize_t src_size, lh_bool_t ignore_case)
 {
 
-    return ignore_case ? lh_wstr_raw_rfind_by_ignore_case(str, str_size, src, src_size)
+    return ignore_case ? lh_wstr_ptr_rfind_by_ignore_case(str, str_size, src, src_size)
                        : lh_memory_rfind_step(str, str_size * LH_WCHAR_T_SIZE, src,
                                               src_size * LH_WCHAR_T_SIZE, LH_WCHAR_T_SIZE);
 }
 
 const lh_wstr_ptr
-lh_wstr_raw_compare(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
+lh_wstr_ptr_compare(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                     lh_usize_t src_size, lh_bool_t ignore_case)
 {
-    return ignore_case ? lh_wstr_raw_compare_by_ignore_case(str, str_size, src, src_size)
+    return ignore_case ? lh_wstr_ptr_compare_by_ignore_case(str, str_size, src, src_size)
                        : lh_memory_compare(str, str_size * LH_WCHAR_T_SIZE, src,
                                            src_size * LH_WCHAR_T_SIZE);
 }
 
 const lh_wstr_ptr
-lh_wstr_raw_rcompare(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
+lh_wstr_ptr_rcompare(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                      lh_usize_t src_size, lh_bool_t ignore_case)
 {
-    return ignore_case ? lh_wstr_raw_rcompare_by_ignore_case(str, str_size, src, src_size)
+    return ignore_case ? lh_wstr_ptr_rcompare_by_ignore_case(str, str_size, src, src_size)
                        : lh_memory_rcompare(str, str_size * LH_WCHAR_T_SIZE, src,
                                             src_size * LH_WCHAR_T_SIZE);
 }
 
 lh_bool_t
-lh_wstr_raw_contains(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case)
+lh_wstr_ptr_contains(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case)
 {
-    return lh_math_ne(lh_wstr_raw_index_of(str, src, ignore_case), LH_WSTR_RAW_INVALID);
+    return lh_math_ne(lh_wstr_ptr_index_of(str, src, ignore_case), LH_WSTR_PTR_INVALID);
 }
 
 lh_bool_t
-lh_wstr_raw_contains_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
+lh_wstr_ptr_contains_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                              lh_usize_t src_size, lh_bool_t ignore_case)
 {
-    return lh_null_ne(lh_wstr_raw_find(str, str_size, src, src_size, ignore_case));
+    return lh_null_ne(lh_wstr_ptr_find(str, str_size, src, src_size, ignore_case));
 }
 
 lh_usize_t
-lh_wstr_raw_index_of(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case)
+lh_wstr_ptr_index_of(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case)
 {
-    const lh_usize_t str_size = lh_wstr_raw_len(str);
-    const lh_usize_t src_size = lh_wstr_raw_len(src);
-    return lh_wstr_raw_index_of_by_size(str, str_size, src, src_size, ignore_case);
+    const lh_usize_t str_size = lh_wstr_ptr_len(str);
+    const lh_usize_t src_size = lh_wstr_ptr_len(src);
+    return lh_wstr_ptr_index_of_by_size(str, str_size, src, src_size, ignore_case);
 }
 
 lh_bool_t
-lh_wstr_raw_starts_with(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case)
+lh_wstr_ptr_starts_with(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case)
 {
-    return lh_wstr_raw_starts_with_by_size(str, lh_wstr_raw_len(str), src, lh_wstr_raw_len(src),
+    return lh_wstr_ptr_starts_with_by_size(str, lh_wstr_ptr_len(str), src, lh_wstr_ptr_len(src),
                                            ignore_case);
 }
 
 lh_bool_t
-lh_wstr_raw_starts_with_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
+lh_wstr_ptr_starts_with_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                                 lh_usize_t src_size, lh_bool_t ignore_case)
 {
     if (lh_math_lt(str_size, src_size))
     {
         return lh_bool_false;
     }
-    return lh_null_eq(lh_wstr_raw_compare(str, src_size, src, src_size, ignore_case));
+    return lh_null_eq(lh_wstr_ptr_compare(str, src_size, src, src_size, ignore_case));
 }
 
 lh_bool_t
-lh_wstr_raw_ends_with(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case)
+lh_wstr_ptr_ends_with(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case)
 {
-    return lh_wstr_raw_ends_with_by_size(str, lh_wstr_raw_len(str), src, lh_wstr_raw_len(src),
+    return lh_wstr_ptr_ends_with_by_size(str, lh_wstr_ptr_len(str), src, lh_wstr_ptr_len(src),
                                          ignore_case);
 }
 
 lh_bool_t
-lh_wstr_raw_ends_with_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
+lh_wstr_ptr_ends_with_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                               lh_usize_t src_size, lh_bool_t ignore_case)
 {
     if (lh_math_lt(str_size, src_size))
     {
         return lh_bool_false;
     }
-    return lh_null_eq(lh_wstr_raw_rcompare(str, str_size, src, src_size, ignore_case));
+    return lh_null_eq(lh_wstr_ptr_rcompare(str, str_size, src, src_size, ignore_case));
 }
 
 lh_bool_t
-lh_wstr_raw_equals_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
+lh_wstr_ptr_equals_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                            lh_usize_t src_size, lh_bool_t ignore_case)
 {
     return lh_math_eq(str_size, src_size) &&
-           lh_null_eq(lh_wstr_raw_compare(str, str_size, src, src_size, ignore_case));
+           lh_null_eq(lh_wstr_ptr_compare(str, str_size, src, src_size, ignore_case));
 }
 
 lh_bool_t
-lh_wstr_raw_equals(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case)
+lh_wstr_ptr_equals(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case)
 {
-    return lh_wstr_raw_equals_by_size(str, lh_wstr_raw_len(str), src, lh_wstr_raw_len(src),
+    return lh_wstr_ptr_equals_by_size(str, lh_wstr_ptr_len(str), src, lh_wstr_ptr_len(src),
                                       ignore_case);
 }
 
 lh_bool_t
-lh_wstr_raw_contains_char(const lh_wstr_ptr chars, lh_usize_t chars_size, lh_wchar_t ch)
+lh_wstr_ptr_contains_char(const lh_wstr_ptr chars, lh_usize_t chars_size, lh_wchar_t ch)
 {
-    return lh_null_ne(lh_wstr_raw_find_char(chars, chars_size, ch));
+    return lh_null_ne(lh_wstr_ptr_find_char(chars, chars_size, ch));
 }
 
 lh_wstr_ptr
-lh_wstr_raw_ltrim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr whitespace_chars,
+lh_wstr_ptr_ltrim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr whitespace_chars,
                          lh_usize_t whitespace_size)
 {
     lh_runtime_check_ref(str);
@@ -384,7 +384,7 @@ lh_wstr_raw_ltrim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr
 
     lh_usize_t offset = 0;
     while (lh_math_lt(offset, str_size) &&
-           lh_wstr_raw_contains_char(whitespace_chars, whitespace_size, str[offset]))
+           lh_wstr_ptr_contains_char(whitespace_chars, whitespace_size, str[offset]))
     {
         ++offset;
     }
@@ -392,17 +392,17 @@ lh_wstr_raw_ltrim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr
     lh_runtime_return_ifn(offset, str);
     if (lh_math_eq(offset, str_size))
     {
-        str[0] = lh_wstr_raw_cat_va(lh_char_map_nul);
+        str[0] = lh_wstr_ptr_cat_va(lh_char_map_nul);
         return str;
     }
 
     const lh_usize_t trimmed_size = str_size - offset;
-    lh_wstr_raw_move(str, trimmed_size + 1, str + offset, trimmed_size + 1);
+    lh_wstr_ptr_move(str, trimmed_size + 1, str + offset, trimmed_size + 1);
     return str;
 }
 
 lh_wstr_ptr
-lh_wstr_raw_rtrim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr whitespace_chars,
+lh_wstr_ptr_rtrim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr whitespace_chars,
                          lh_usize_t whitespace_size)
 {
     lh_runtime_check_ref(str);
@@ -415,76 +415,76 @@ lh_wstr_raw_rtrim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr
 
     lh_usize_t end = str_size;
     while (lh_math_is_positive(end) &&
-           lh_wstr_raw_contains_char(whitespace_chars, whitespace_size, str[end - 1]))
+           lh_wstr_ptr_contains_char(whitespace_chars, whitespace_size, str[end - 1]))
     {
         --end;
     }
 
-    str[end] = lh_wstr_raw_cat_va(lh_char_map_nul);
+    str[end] = lh_wstr_ptr_cat_va(lh_char_map_nul);
     return str;
 }
 
 lh_wstr_ptr
-lh_wstr_raw_trim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr whitespace_chars,
+lh_wstr_ptr_trim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr whitespace_chars,
                         lh_usize_t whitespace_size)
 {
-    lh_wstr_raw_rtrim_custom(str, str_size, whitespace_chars, whitespace_size);
-    return lh_wstr_raw_ltrim_custom(str, lh_wstr_raw_len(str), whitespace_chars, whitespace_size);
+    lh_wstr_ptr_rtrim_custom(str, str_size, whitespace_chars, whitespace_size);
+    return lh_wstr_ptr_ltrim_custom(str, lh_wstr_ptr_len(str), whitespace_chars, whitespace_size);
 }
 
 lh_wstr_ptr
-lh_wstr_raw_ltrim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
+lh_wstr_ptr_ltrim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
                       lh_usize_t whitespace_size)
 {
-    return lh_wstr_raw_ltrim_custom(str, lh_wstr_raw_len(str), whitespace_chars, whitespace_size);
+    return lh_wstr_ptr_ltrim_custom(str, lh_wstr_ptr_len(str), whitespace_chars, whitespace_size);
 }
 
 lh_wstr_ptr
-lh_wstr_raw_rtrim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
+lh_wstr_ptr_rtrim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
                       lh_usize_t whitespace_size)
 {
-    return lh_wstr_raw_rtrim_custom(str, lh_wstr_raw_len(str), whitespace_chars, whitespace_size);
+    return lh_wstr_ptr_rtrim_custom(str, lh_wstr_ptr_len(str), whitespace_chars, whitespace_size);
 }
 
 lh_wstr_ptr
-lh_wstr_raw_trim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
+lh_wstr_ptr_trim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
                      lh_usize_t whitespace_size)
 {
-    return lh_wstr_raw_trim_custom(str, lh_wstr_raw_len(str), whitespace_chars, whitespace_size);
+    return lh_wstr_ptr_trim_custom(str, lh_wstr_ptr_len(str), whitespace_chars, whitespace_size);
 }
 
 lh_wstr_ptr
-lh_wstr_raw_ltrim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars)
+lh_wstr_ptr_ltrim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars)
 {
-    return lh_wstr_raw_ltrim_set(str, whitespace_chars, lh_wstr_raw_len(whitespace_chars));
+    return lh_wstr_ptr_ltrim_set(str, whitespace_chars, lh_wstr_ptr_len(whitespace_chars));
 }
 
 lh_wstr_ptr
-lh_wstr_raw_rtrim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars)
+lh_wstr_ptr_rtrim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars)
 {
-    return lh_wstr_raw_rtrim_set(str, whitespace_chars, lh_wstr_raw_len(whitespace_chars));
+    return lh_wstr_ptr_rtrim_set(str, whitespace_chars, lh_wstr_ptr_len(whitespace_chars));
 }
 
 lh_wstr_ptr
-lh_wstr_raw_trim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars)
+lh_wstr_ptr_trim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars)
 {
-    return lh_wstr_raw_trim_set(str, whitespace_chars, lh_wstr_raw_len(whitespace_chars));
+    return lh_wstr_ptr_trim_set(str, whitespace_chars, lh_wstr_ptr_len(whitespace_chars));
 }
 
 lh_wstr_ptr
-lh_wstr_raw_ltrim(lh_wstr_ptr str)
+lh_wstr_ptr_ltrim(lh_wstr_ptr str)
 {
-    return lh_wstr_raw_ltrim_set(str, m_whitespace_chars, m_whitespace_size);
+    return lh_wstr_ptr_ltrim_set(str, m_whitespace_chars, m_whitespace_size);
 }
 
 lh_wstr_ptr
-lh_wstr_raw_rtrim(lh_wstr_ptr str)
+lh_wstr_ptr_rtrim(lh_wstr_ptr str)
 {
-    return lh_wstr_raw_rtrim_set(str, m_whitespace_chars, m_whitespace_size);
+    return lh_wstr_ptr_rtrim_set(str, m_whitespace_chars, m_whitespace_size);
 }
 
 lh_wstr_ptr
-lh_wstr_raw_trim(lh_wstr_ptr str)
+lh_wstr_ptr_trim(lh_wstr_ptr str)
 {
-    return lh_wstr_raw_trim_set(str, m_whitespace_chars, m_whitespace_size);
+    return lh_wstr_ptr_trim_set(str, m_whitespace_chars, m_whitespace_size);
 }

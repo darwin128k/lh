@@ -75,10 +75,10 @@ set(LH_LIB_SOURCES
 
         ${LH_LIB_SRC_PATH}/util/wchar/case/fold.c
         ${LH_LIB_SRC_PATH}/util/wstr/case/map.c
-        ${LH_LIB_SRC_PATH}/util/wstr/raw.c
+        ${LH_LIB_SRC_PATH}/util/wstr/ptr.c
         ${LH_LIB_SRC_PATH}/util/char/case/fold.c
         ${LH_LIB_SRC_PATH}/util/str/case/map.c
-        ${LH_LIB_SRC_PATH}/util/str/raw.c
+        ${LH_LIB_SRC_PATH}/util/str/ptr.c
         ${LH_LIB_SRC_PATH}/util/wchar.c
         ${LH_LIB_SRC_PATH}/str/view.c
         ${LH_LIB_SRC_PATH}/str.c

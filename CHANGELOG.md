@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 
@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - String view comparison API: `lh_str_view_compare`, `lh_str_view_rcompare`, `lh_str_view_equals` (with optional case-ignore flag)
 - `lh_str_view_find_null_terminator`, `lh_str_view_is_null_terminated` — null-terminator detection
 - `lh_str_view_clear`, `lh_str_view_swap` — mutating helpers for string views
-- Raw string character-set search: `lh_str_raw_find_of_chars`, `lh_str_raw_rfind_of_chars`, `lh_str_raw_find_not_of_chars`, `lh_str_raw_rfind_not_of_chars`
+- Raw string character-set search: `lh_str_ptr_find_of_chars`, `lh_str_ptr_rfind_of_chars`, `lh_str_ptr_find_not_of_chars`, `lh_str_ptr_rfind_not_of_chars`
 - Member-offset utility macro (`lh_offset_of`) for compile-time layout checks
 - Runtime check option (`LH_LIBRARY_OPTION_RUNTIME_CHECK_REF`) to enable null-pointer checks in `lh_runtime_check_ref`
 - Bounds convenience/fallback APIs: `lh_memory_bounds_init_by_empty`, `lh_memory_bounds_make_by_empty`, `lh_memory_bounds_make_or_empty`, and `lh_memory_bounds_slice_or_empty`
@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Subsystem detection macros for Windows-specific visibility attributes (`lh/subsys.h`)
 
 ### Changed
-- `lh_str_raw_size` renamed to `lh_str_raw_get_size` for naming consistency with the `get_` prefix convention
+- `lh_str_ptr_size` renamed to `lh_str_ptr_get_size` for naming consistency with the `get_` prefix convention
 - `lh_memory_view` slice methods now delegate geometry to `lh_memory_view_slice`
 - Slice flags and direction types (`lh_memory_view_slice_flags_t`, `lh_memory_view_slice_direction_t`) unified and shared between bounds/slice and view/slice layers
 - Rename `is_back` parameter to `from_back` for consistency across memory and string APIs
@@ -54,7 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`lh_interval_ropen_binary_search`, …) used by generated Unicode tables.
 - `lh_wchar_case_pair_t` for code-point mapping pairs; **case folding** for a single wide
   character (`lh_wchar_fold_case`, table in `src/lh/util/wchar/case/fold.c`) and **simple
-  case mapping** over wide buffers (`lh_wstr_raw_to_lower`, `lh_wstr_raw_to_upper`, table in
+  case mapping** over wide buffers (`lh_wstr_ptr_to_lower`, `lh_wstr_ptr_to_upper`, table in
   `src/lh/util/wstr/case/map.c`). Regenerate from UCD via `tools/gen_wstr_case_fold.py` and
   `tools/gen_wchar_case_map.py` (defaults write those paths).
 - Raw C string helpers: substring, equality, starts/ends with, fill with a repeating pattern.

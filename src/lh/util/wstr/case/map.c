@@ -1,4 +1,4 @@
-/*
+﻿/*
  * AUTO-GENERATED — do not edit.
  * Source: Unicode UCD UnicodeData.txt (Unicode 16.0.0).
  * Simple lowercase (field 13) and simple uppercase (field 12) only.
@@ -9,7 +9,7 @@
  * (lh_math_gt vs LH_WCHAR_T_MAX for mapped scalar).
  */
 
-#include <lh/util/wstr/raw.h>
+#include <lh/util/wstr/ptr.h>
 #include <lh/util/interval.h>
 #include <lh/runtime/check/ref.h>
 #include <lh/size.h>
@@ -2966,7 +2966,7 @@ static const lh_wchar_case_pair_t m_wchar_to_upper_table[] = {
 static const lh_usize_t m_wchar_to_upper_table_size = lh_array_raw_get_size(m_wchar_to_upper_table);
 
 lh_wstr_ptr
-lh_wstr_raw_to_lower(lh_wstr_ptr str, lh_usize_t n)
+lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n)
 {
     lh_runtime_check_ref(str);
     lh_wstr_ptr p = str;
@@ -2988,7 +2988,7 @@ lh_wstr_raw_to_lower(lh_wstr_ptr str, lh_usize_t n)
 }
 
 lh_wstr_ptr
-lh_wstr_raw_to_upper(lh_wstr_ptr str, lh_usize_t n)
+lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n)
 {
     lh_runtime_check_ref(str);
     lh_wstr_ptr p = str;
