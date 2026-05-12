@@ -60,10 +60,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/numeric/fixed/types.c
         ${LH_LIB_SRC_PATH}/numeric/fixed/limits.c
         ${LH_LIB_SRC_PATH}/memory/allocator.c
-        ${LH_LIB_SRC_PATH}/memory/bounds/allocated.c
         ${LH_LIB_SRC_PATH}/memory/bounds/slice.c
+        ${LH_LIB_SRC_PATH}/memory/view/slice.c
         ${LH_LIB_SRC_PATH}/memory/bounds.c
-        ${LH_LIB_SRC_PATH}/memory/typed.c
         ${LH_LIB_SRC_PATH}/memory/view.c
         ${LH_LIB_SRC_PATH}/memory/std.c
         ${LH_LIB_SRC_PATH}/memory/raw.c

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <lh/cast/static.h>
 #include <lh/expect/death.h>
 #include <lh/memory/bounds.h>
 #include <lh/memory/bounds/initializer.h>
@@ -8,1028 +9,375 @@
 namespace
 {
 
-TEST(memory_bounds_pack_unpack, partial_updates)
+lh_ptr
+p(unsigned char *ptr)
 {
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char low_mem;
-    unsigned char high_mem;
-    lh_ptr lo = lh_cast_static(lh_ptr, &low_mem);
-    lh_ptr hi = lh_cast_static(lh_ptr, &high_mem);
-    if (lo > hi)
-    {
-        lh_ptr t = lo;
-        lo = hi;
-        hi = t;
-    }
-
-    lh_memory_bounds_pack(&r, &lo, nullptr);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&r), lo);
-    EXPECT_EQ(lh_memory_bounds_get_end(&r), lh_null);
-
-    lh_memory_bounds_pack(&r, nullptr, &hi);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&r), lo);
-    EXPECT_EQ(lh_memory_bounds_get_end(&r), hi);
+    return lh_cast_static(lh_ptr, ptr);
 }
 
-TEST(memory_bounds_set, getters_roundtrip)
+lh_memory_bounds_t
+bounds(lh_ptr begin, lh_ptr end)
 {
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[4];
-    lh_ptr b = lh_cast_static(lh_ptr, buf);
-    lh_ptr e = lh_cast_static(lh_ptr, buf + 4);
-    lh_memory_bounds_set(&r, b, e);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&r), b);
-    EXPECT_EQ(lh_memory_bounds_get_end(&r), e);
+    return {begin, end};
 }
 
-TEST(memory_bounds_make, valid_pair_returns_expected_bounds)
+TEST(memory_bounds_unpack, skips_null_output_pointers)
 {
     unsigned char buf[4];
-    lh_ptr b = lh_cast_static(lh_ptr, buf);
-    lh_ptr e = lh_cast_static(lh_ptr, buf + 4);
-    lh_memory_bounds_t r = lh_memory_bounds_make(b, e);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&r), b);
-    EXPECT_EQ(lh_memory_bounds_get_end(&r), e);
-    EXPECT_TRUE(lh_memory_bounds_is_valid(&r));
+    lh_memory_bounds_t b = bounds(p(buf), p(buf + 4));
+
+    lh_ptr begin = lh_null;
+    lh_memory_bounds_unpack(&b, &begin, nullptr);
+    EXPECT_EQ(begin, p(buf));
+
+    lh_ptr end = lh_null;
+    lh_memory_bounds_unpack(&b, nullptr, &end);
+    EXPECT_EQ(end, p(buf + 4));
 }
 
-TEST(memory_bounds_make_by_size, builds_expected_half_open_range)
+TEST(memory_bounds_getters, return_stored_endpoints)
 {
-    unsigned char buf[5];
-    lh_memory_bounds_t r = lh_memory_bounds_make_by_size(lh_cast_static(lh_ptr, buf), 5);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&r), lh_cast_static(lh_ptr, buf));
-    EXPECT_EQ(lh_memory_bounds_get_end(&r), lh_cast_static(lh_ptr, buf + 5));
-    EXPECT_EQ(lh_memory_bounds_get_size(&r), 5u);
+    unsigned char buf[4];
+    lh_memory_bounds_t b = bounds(p(buf + 1), p(buf + 4));
+
+    EXPECT_EQ(lh_memory_bounds_get_begin(&b), p(buf + 1));
+    EXPECT_EQ(lh_memory_bounds_get_end(&b), p(buf + 4));
 }
 
-TEST(memory_bounds_make_by_empty, returns_empty_initializer_state)
+TEST(memory_bounds_make_slice, copies_half_open_bounds_as_closed_slice)
 {
-    const lh_memory_bounds_t r = lh_memory_bounds_make_by_empty();
-    EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&r));
-    EXPECT_EQ(lh_memory_bounds_get_begin(&r), lh_null);
-    EXPECT_EQ(lh_memory_bounds_get_end(&r), lh_null);
-}
-
-TEST(memory_bounds_make, invalid_pair_is_allowed)
-{
-    unsigned char buf[2];
-    lh_ptr lo = lh_cast_static(lh_ptr, buf + 1);
-    lh_ptr hi = lh_cast_static(lh_ptr, buf);
-    lh_memory_bounds_t r = lh_memory_bounds_make(lo, hi);
-    EXPECT_EQ(lh_memory_bounds_get_state(&r), lh_memory_bounds_state_reversed);
-    EXPECT_TRUE(lh_memory_bounds_is_invalid(&r));
-}
-
-TEST(memory_bounds_state, uninitialized_empty_initializer)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    EXPECT_EQ(lh_memory_bounds_get_state(&r), lh_memory_bounds_state_uninitialized);
-    EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&r));
-    EXPECT_FALSE(lh_memory_bounds_is_empty(&r));
-    EXPECT_FALSE(lh_memory_bounds_has_data(&r));
-    EXPECT_FALSE(lh_memory_bounds_is_valid(&r));
-    EXPECT_TRUE(lh_memory_bounds_is_invalid(&r));
-}
-
-TEST(memory_bounds_state, degenerate_equal_endpoints_is_empty)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char x = 0;
-    lh_ptr p = lh_cast_static(lh_ptr, &x);
-    lh_memory_bounds_set(&r, p, p);
-    EXPECT_EQ(lh_memory_bounds_get_state(&r), lh_memory_bounds_state_empty);
-    EXPECT_TRUE(lh_memory_bounds_is_empty(&r));
-    EXPECT_TRUE(lh_memory_bounds_is_valid(&r));
-    EXPECT_EQ(lh_memory_bounds_get_size(&r), 0u);
-}
-
-TEST(memory_bounds_state, forward_span_has_data)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
     unsigned char buf[8];
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 8);
-    EXPECT_EQ(lh_memory_bounds_get_state(&r), lh_memory_bounds_state_has_data);
-    EXPECT_TRUE(lh_memory_bounds_has_data(&r));
-    EXPECT_TRUE(lh_memory_bounds_is_valid(&r));
-    EXPECT_EQ(lh_memory_bounds_get_size(&r), 8u);
-    EXPECT_EQ(lh_memory_bounds_diff(&r), 8);
+    lh_memory_bounds_t b = bounds(p(buf + 1), p(buf + 5));
+
+    lh_memory_bounds_slice_t s = lh_memory_bounds_make_slice(&b);
+
+    EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, p(buf + 1), p(buf + 4)));
 }
 
-TEST(memory_bounds_state, reversed_bounds_invalid)
+TEST(memory_bounds_make_slice, copies_uninitialized_bounds_as_empty_slice)
 {
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[2];
-    lh_ptr lo = lh_cast_static(lh_ptr, buf + 1);
-    lh_ptr hi = lh_cast_static(lh_ptr, buf);
-    lh_memory_bounds_set(&r, lo, hi);
-    EXPECT_EQ(lh_memory_bounds_get_state(&r), lh_memory_bounds_state_reversed);
-    EXPECT_TRUE(lh_memory_bounds_is_invalid(&r));
-    EXPECT_LT(lh_memory_bounds_diff(&r), 0);
+    lh_memory_bounds_t b = bounds(lh_null, lh_null);
+
+    lh_memory_bounds_slice_t s = lh_memory_bounds_make_slice(&b);
+
+    EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, lh_null, lh_null));
 }
 
-TEST(memory_bounds_state, only_begin_null)
+TEST(memory_bounds_classification, distinguishes_states)
 {
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[1];
-    lh_ptr b = lh_cast_static(lh_ptr, buf);
-    lh_memory_bounds_pack(&r, &b, nullptr);
-    EXPECT_TRUE(lh_memory_bounds_is_invalid(&r));
-    EXPECT_FALSE(lh_memory_bounds_is_uninitialized(&r));
-}
-
-TEST(memory_bounds_init_by_other, copies_bounds)
-{
-    lh_memory_bounds_t a = lh_memory_bounds_empty_initializer();
     unsigned char buf[4];
-    lh_memory_bounds_init_by_size(&a, lh_cast_static(lh_ptr, buf), 4);
 
-    lh_memory_bounds_t b = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_init_by_other(&b, &a);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&b), lh_memory_bounds_get_begin(&a));
-    EXPECT_EQ(lh_memory_bounds_get_end(&b), lh_memory_bounds_get_end(&a));
+    lh_memory_bounds_t empty = bounds(lh_null, lh_null);
+    EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&empty));
+    EXPECT_FALSE(lh_memory_bounds_is_initialized(&empty));
+    EXPECT_TRUE(lh_memory_bounds_is_empty(&empty));
+    EXPECT_TRUE(lh_memory_bounds_is_invalid(&empty));
+
+    lh_memory_bounds_t unknown = bounds(p(buf), lh_null);
+    EXPECT_EQ(lh_memory_bounds_get_direction(&unknown), lh_memory_view_slice_direction_unknown);
+
+    lh_memory_bounds_t forward = bounds(p(buf), p(buf + 4));
+    EXPECT_TRUE(lh_memory_bounds_is_initialized(&forward));
+    EXPECT_EQ(lh_memory_bounds_get_direction(&forward), lh_memory_view_slice_direction_forward);
+    EXPECT_TRUE(lh_memory_bounds_is_forward(&forward));
+    EXPECT_TRUE(lh_memory_bounds_is_valid(&forward));
+    EXPECT_FALSE(lh_memory_bounds_is_invalid(&forward));
+
+    lh_memory_bounds_t equal = bounds(p(buf), p(buf));
+    EXPECT_EQ(lh_memory_bounds_get_direction(&equal), lh_memory_view_slice_direction_backward);
+    EXPECT_TRUE(lh_memory_bounds_is_backward(&equal));
+    EXPECT_FALSE(lh_memory_bounds_is_valid(&equal));
 }
 
-TEST(memory_bounds_init_by_empty, resets_to_empty_initializer)
+TEST(memory_bounds_validated_access, returns_endpoints_and_size)
 {
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[2];
-    lh_memory_bounds_set(&r, lh_cast_static(lh_ptr, buf), lh_cast_static(lh_ptr, buf + 2));
-    lh_memory_bounds_init_by_empty(&r);
-    EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&r));
-}
-
-TEST(memory_bounds_contains, half_open_endpoints)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[4];
-    lh_ptr b = lh_cast_static(lh_ptr, buf);
-    lh_ptr e = lh_cast_static(lh_ptr, buf + 3);
-    lh_memory_bounds_set(&r, b, e);
-    EXPECT_TRUE(lh_memory_bounds_contains_ptr(&r, b));
-    EXPECT_FALSE(lh_memory_bounds_contains_ptr(&r, e));
-    EXPECT_TRUE(lh_memory_bounds_contains_ptr(&r, lh_cast_static(lh_ptr, buf + 2)));
-    EXPECT_TRUE(lh_memory_bounds_contains_ptr(&r, lh_cast_static(lh_ptr, buf + 1)));
-    EXPECT_FALSE(lh_memory_bounds_contains_ptr(&r, lh_cast_static(lh_ptr, buf - 1)));
-}
-
-TEST(memory_bounds_contains_range, inner_within_outer)
-{
-    lh_memory_bounds_t outer = lh_memory_bounds_empty_initializer();
     unsigned char buf[8];
-    lh_memory_bounds_init_by_size(&outer, lh_cast_static(lh_ptr, buf), 8);
+    lh_memory_bounds_t b = bounds(p(buf + 1), p(buf + 5));
 
-    lh_ptr i0 = lh_cast_static(lh_ptr, buf + 2);
-    lh_ptr i1 = lh_cast_static(lh_ptr, buf + 5);
-    EXPECT_TRUE(lh_memory_bounds_contains_range(&outer, i0, i1));
+    lh_ptr begin = lh_null;
+    lh_ptr end = lh_null;
+    lh_memory_bounds_unpack_v(&b, &begin, &end);
 
-    lh_ptr o0 = lh_cast_static(lh_ptr, buf - 1);
-    EXPECT_FALSE(lh_memory_bounds_contains_range(&outer, o0, i1));
+    EXPECT_EQ(begin, p(buf + 1));
+    EXPECT_EQ(end, p(buf + 5));
+    EXPECT_EQ(lh_memory_bounds_get_begin_v(&b), p(buf + 1));
+    EXPECT_EQ(lh_memory_bounds_get_end_v(&b), p(buf + 5));
+    EXPECT_EQ(lh_memory_bounds_get_size(&b), 4u);
 }
 
-TEST(memory_bounds_contains, nested_range_object)
+TEST(memory_bounds_offsets, validate_half_open_offsets)
 {
-    lh_memory_bounds_t outer = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_t inner = lh_memory_bounds_empty_initializer();
+    unsigned char buf[6];
+    lh_memory_bounds_t b = bounds(p(buf + 1), p(buf + 5));
+
+    EXPECT_TRUE(lh_memory_bounds_is_valid_offset(&b, 0));
+    EXPECT_TRUE(lh_memory_bounds_is_valid_offset(&b, 3));
+    EXPECT_FALSE(lh_memory_bounds_is_valid_offset(&b, 4));
+
+    EXPECT_EQ(lh_memory_bounds_get_offset_from_begin(&b, p(buf + 1)), 0u);
+    EXPECT_EQ(lh_memory_bounds_get_offset_from_begin(&b, p(buf + 4)), 3u);
+    EXPECT_EQ(lh_memory_bounds_get_offset_from_end(&b, p(buf + 4)), 0u);
+    EXPECT_EQ(lh_memory_bounds_get_offset_from_end(&b, p(buf + 1)), 3u);
+}
+
+TEST(memory_bounds_contains, uses_half_open_ranges)
+{
     unsigned char buf[8];
-    lh_memory_bounds_init_by_size(&outer, lh_cast_static(lh_ptr, buf), 8);
-    lh_memory_bounds_init_by_size(&inner, lh_cast_static(lh_ptr, buf + 2), 3);
+    lh_memory_bounds_t outer = bounds(p(buf + 1), p(buf + 6));
+    lh_memory_bounds_t inner = bounds(p(buf + 2), p(buf + 5));
+
+    EXPECT_TRUE(lh_memory_bounds_contains_ptr(&outer, p(buf + 1)));
+    EXPECT_TRUE(lh_memory_bounds_contains_ptr(&outer, p(buf + 5)));
+    EXPECT_FALSE(lh_memory_bounds_contains_ptr(&outer, p(buf + 6)));
+
+    EXPECT_TRUE(lh_memory_bounds_contains_of(&outer, p(buf + 2), p(buf + 5)));
+    EXPECT_FALSE(lh_memory_bounds_contains_of(&outer, p(buf), p(buf + 5)));
     EXPECT_TRUE(lh_memory_bounds_contains(&outer, &inner));
 }
 
-TEST(memory_bounds_equals, true_for_identical_bounds)
+TEST(memory_bounds_pointer_access, supports_offsets_from_both_ends)
 {
-    lh_memory_bounds_t a = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_t b = lh_memory_bounds_empty_initializer();
-    unsigned char buf[8];
-    lh_ptr begin = lh_cast_static(lh_ptr, buf + 1);
-    lh_ptr end = lh_cast_static(lh_ptr, buf + 6);
+    unsigned char buf[5] = {10, 20, 30, 40, 50};
+    lh_memory_bounds_t b = bounds(p(buf + 1), p(buf + 5));
 
-    lh_memory_bounds_set(&a, begin, end);
-    lh_memory_bounds_set(&b, begin, end);
-    EXPECT_TRUE(lh_memory_bounds_equals(&a, &b));
+    EXPECT_EQ(lh_memory_bounds_get_ptr_from_begin(&b, 0), p(buf + 1));
+    EXPECT_EQ(lh_memory_bounds_get_ptr_from_begin(&b, 3), p(buf + 4));
+    EXPECT_EQ(lh_memory_bounds_get_ptr_from_end(&b, 0), p(buf + 4));
+    EXPECT_EQ(lh_memory_bounds_get_ptr_from_end(&b, 1), p(buf + 3));
+    EXPECT_EQ(lh_memory_bounds_get_ptr_by_offset(&b, 2), p(buf + 3));
+    EXPECT_EQ(lh_memory_bounds_get_ptr_by_offset(&b, -1), p(buf + 4));
+
+    EXPECT_EQ(lh_memory_bounds_get_value_from_begin(&b, 0), 20);
+    EXPECT_EQ(lh_memory_bounds_get_value_from_end(&b, 0), 50);
+    EXPECT_EQ(lh_memory_bounds_get_value_by_offset(&b, -2), 40);
+    EXPECT_EQ(lh_memory_bounds_get_first_value(&b), 20);
+    EXPECT_EQ(lh_memory_bounds_get_last_value(&b), 50);
 }
 
-TEST(memory_bounds_equals, false_for_different_bounds)
+TEST(memory_bounds_set_value, writes_from_begin_offset)
 {
-    lh_memory_bounds_t a = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_t b = lh_memory_bounds_empty_initializer();
-    unsigned char buf[8];
+    unsigned char buf[4] = {1, 2, 3, 4};
+    lh_memory_bounds_t b = bounds(p(buf), p(buf + 4));
 
-    lh_memory_bounds_set(&a, lh_cast_static(lh_ptr, buf + 1), lh_cast_static(lh_ptr, buf + 6));
-    lh_memory_bounds_set(&b, lh_cast_static(lh_ptr, buf + 2), lh_cast_static(lh_ptr, buf + 6));
-    EXPECT_FALSE(lh_memory_bounds_equals(&a, &b));
+    lh_memory_bounds_set_value(&b, 2, 99);
+
+    EXPECT_EQ(buf[2], 99);
 }
 
-TEST(memory_bounds_equals_range, true_for_identical_bounds)
+TEST(memory_bounds_seek, supports_absolute_and_relative_offsets)
 {
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[8];
-    lh_ptr begin = lh_cast_static(lh_ptr, buf + 1);
-    lh_ptr end = lh_cast_static(lh_ptr, buf + 6);
+    unsigned char buf[6] = {10, 20, 30, 40, 50, 60};
+    lh_memory_bounds_t b = bounds(p(buf + 1), p(buf + 5));
 
-    lh_memory_bounds_set(&r, begin, end);
-    EXPECT_TRUE(lh_memory_bounds_equals_range(&r, begin, end));
+    EXPECT_EQ(lh_memory_bounds_get_offset_from_ptr(&b, lh_null, 0), 0u);
+    EXPECT_EQ(lh_memory_bounds_get_offset_from_ptr(&b, lh_null, -1), 3u);
+    EXPECT_EQ(lh_memory_bounds_get_offset_from_ptr(&b, p(buf + 2), 2), 3u);
+    EXPECT_EQ(lh_memory_bounds_get_offset_from_ptr(&b, p(buf + 3), -2), 0u);
+
+    EXPECT_EQ(lh_memory_bounds_seek_ptr(&b, lh_null, 0), p(buf + 1));
+    EXPECT_EQ(lh_memory_bounds_seek_ptr(&b, p(buf + 2), 2), p(buf + 4));
+    EXPECT_EQ(lh_memory_bounds_seek_ptr(&b, p(buf + 4), 1), lh_null);
+    EXPECT_EQ(lh_memory_bounds_next_ptr(&b, p(buf + 2)), p(buf + 3));
+    EXPECT_EQ(lh_memory_bounds_prev_ptr(&b, p(buf + 2)), p(buf + 1));
+
+    EXPECT_EQ(lh_memory_bounds_seek_value(&b, p(buf + 2)), 30);
+    EXPECT_EQ(lh_memory_bounds_next_value(&b, p(buf + 2)), 40);
+    EXPECT_EQ(lh_memory_bounds_prev_value(&b, p(buf + 2)), 20);
 }
 
-TEST(memory_bounds_equals_range, false_for_different_bounds)
+TEST(memory_bounds_overlap_alignment_and_equality, reports_expected_values)
 {
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[8];
+    alignas(16) unsigned char buf[32];
+    lh_memory_bounds_t left = bounds(p(buf), p(buf + 8));
+    lh_memory_bounds_t touching = bounds(p(buf + 8), p(buf + 12));
+    lh_memory_bounds_t overlapping = bounds(p(buf + 7), p(buf + 12));
 
-    lh_memory_bounds_set(&r, lh_cast_static(lh_ptr, buf + 1), lh_cast_static(lh_ptr, buf + 6));
-    EXPECT_FALSE(lh_memory_bounds_equals_range(&r, lh_cast_static(lh_ptr, buf + 2),
-                                               lh_cast_static(lh_ptr, buf + 6)));
+    EXPECT_TRUE(lh_memory_bounds_overlaps_of(&left, p(buf + 7), p(buf + 9)));
+    EXPECT_FALSE(lh_memory_bounds_overlaps_range(&left, p(buf + 8), p(buf + 12)));
+    EXPECT_FALSE(lh_memory_bounds_overlaps(&left, &touching));
+    EXPECT_TRUE(lh_memory_bounds_overlaps_v(&left, &overlapping));
+
+    EXPECT_TRUE(lh_memory_bounds_multiple_of(&left, 4));
+    EXPECT_TRUE(lh_memory_bounds_is_multiple_of(&left, 8));
+    EXPECT_TRUE(lh_memory_bounds_aligned_is_begin_aligned(&left, 16));
+    EXPECT_TRUE(lh_memory_bounds_is_begin_aligned(&left, 16));
+    EXPECT_FALSE(lh_memory_bounds_is_aligned(&left, 16));
+
+    EXPECT_TRUE(lh_memory_bounds_equals_of(&left, p(buf), p(buf + 8)));
+    EXPECT_TRUE(lh_memory_bounds_equals_range(&left, p(buf), p(buf + 8)));
+    EXPECT_FALSE(lh_memory_bounds_equals(&left, &overlapping));
 }
 
-TEST(memory_bounds_overlaps, touches_and_disjoint)
+TEST(memory_bounds_raw_copy_and_move, delegate_to_raw_operations)
 {
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[4];
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 4);
+    unsigned char dst[4] = {};
+    unsigned char src[] = {1, 2, 3, 4, 5};
+    lh_memory_bounds_t dst_bounds = bounds(p(dst), p(dst + 4));
+    lh_memory_bounds_t src_bounds = bounds(p(src), p(src + 5));
 
-    lh_ptr a0 = lh_cast_static(lh_ptr, buf + 2);
-    lh_ptr a1 = lh_cast_static(lh_ptr, buf + 5);
-    EXPECT_TRUE(lh_memory_bounds_overlaps_range(&r, a0, a1));
-
-    lh_ptr d0 = lh_cast_static(lh_ptr, buf + 10);
-    lh_ptr d1 = lh_cast_static(lh_ptr, buf + 12);
-    EXPECT_FALSE(lh_memory_bounds_overlaps_range(&r, d0, d1));
-}
-
-TEST(memory_bounds_overlaps, adjacent_half_open_disjoint)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[8];
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 4);
-
-    lh_ptr tail0 = lh_cast_static(lh_ptr, buf + 4);
-    lh_ptr tail1 = lh_cast_static(lh_ptr, buf + 8);
-    EXPECT_FALSE(lh_memory_bounds_overlaps_range(&r, tail0, tail1));
-}
-
-TEST(memory_bounds_at, front_back_and_offsets)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[4] = {0xA, 0xB, 0xC, 0xD};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 4);
-
-    EXPECT_EQ(lh_memory_bounds_get_front_ptr(&r), lh_cast_static(lh_ptr, buf));
-    EXPECT_EQ(lh_memory_bounds_get_back_ptr(&r), lh_cast_static(lh_ptr, buf + 3));
-    EXPECT_EQ(lh_memory_bounds_get_front_value(&r), 0xA);
-    EXPECT_EQ(lh_memory_bounds_get_back_value(&r), 0xD);
-
-    EXPECT_EQ(lh_memory_bounds_get_ptr_from_front(&r, 0), lh_cast_static(lh_ptr, buf));
-    EXPECT_EQ(lh_memory_bounds_get_ptr_from_front(&r, 3), lh_cast_static(lh_ptr, buf + 3));
-    EXPECT_EQ(lh_memory_bounds_get_ptr_from_back(&r, 0), lh_cast_static(lh_ptr, buf + 3));
-    EXPECT_EQ(lh_memory_bounds_get_ptr_from_back(&r, 3), lh_cast_static(lh_ptr, buf));
-    EXPECT_EQ(lh_memory_bounds_get_ptr(&r, 1, lh_bool_false), lh_cast_static(lh_ptr, buf + 1));
-    EXPECT_EQ(lh_memory_bounds_get_ptr(&r, 1, lh_bool_true), lh_cast_static(lh_ptr, buf + 2));
-    EXPECT_EQ(lh_memory_bounds_get_value_from_front(&r, 1), 0xB);
-    EXPECT_EQ(lh_memory_bounds_get_value_from_back(&r, 1), 0xC);
-    EXPECT_EQ(lh_memory_bounds_get_value(&r, 2, lh_bool_false), 0xC);
-    EXPECT_EQ(lh_memory_bounds_get_value(&r, 2, lh_bool_true), 0xB);
-
-    EXPECT_TRUE(lh_memory_bounds_is_valid_offset(&r, 0));
-    EXPECT_TRUE(lh_memory_bounds_is_valid_offset(&r, 3));
-    EXPECT_FALSE(lh_memory_bounds_is_valid_offset(&r, 4));
-}
-
-TEST(memory_bounds_next_ptr, returns_next_or_null_at_end)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[4] = {0};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 4);
-
-    EXPECT_EQ(lh_memory_bounds_next_ptr(&r, lh_cast_static(lh_ptr, &buf[0])),
-              lh_cast_static(lh_ptr, &buf[1]));
-    EXPECT_EQ(lh_memory_bounds_next_ptr(&r, lh_cast_static(lh_ptr, &buf[2])),
-              lh_cast_static(lh_ptr, &buf[3]));
-    EXPECT_TRUE(lh_null_eq(lh_memory_bounds_next_ptr(&r, lh_cast_static(lh_ptr, &buf[3]))));
-}
-
-TEST(memory_bounds_next_ptr, returns_null_for_pointer_outside_range)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[4] = {0};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 4);
-    EXPECT_TRUE(lh_null_eq(lh_memory_bounds_next_ptr(&r, lh_cast_static(lh_ptr, buf - 1))));
-}
-
-TEST(memory_bounds_prev_ptr, returns_prev_or_null_at_begin)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[4] = {0};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 4);
-
-    EXPECT_EQ(lh_memory_bounds_prev_ptr(&r, lh_cast_static(lh_ptr, &buf[3])),
-              lh_cast_static(lh_ptr, &buf[2]));
-    EXPECT_EQ(lh_memory_bounds_prev_ptr(&r, lh_cast_static(lh_ptr, &buf[1])),
-              lh_cast_static(lh_ptr, &buf[0]));
-    EXPECT_TRUE(lh_null_eq(lh_memory_bounds_prev_ptr(&r, lh_cast_static(lh_ptr, &buf[0]))));
-}
-
-TEST(memory_bounds_prev_ptr, returns_null_for_pointer_outside_range)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[4] = {0};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 4);
-    EXPECT_TRUE(lh_null_eq(lh_memory_bounds_prev_ptr(&r, lh_cast_static(lh_ptr, buf + 4))));
-}
-
-TEST(memory_bounds_next_prev_value, returns_neighbor_values)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[4] = {10, 20, 30, 40};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 4);
-    EXPECT_EQ(lh_memory_bounds_next_value(&r, lh_cast_static(lh_ptr, &buf[1])), 30);
-    EXPECT_EQ(lh_memory_bounds_prev_value(&r, lh_cast_static(lh_ptr, &buf[2])), 20);
-}
-
-TEST(memory_bounds_slice, returns_expected_subrange_from_front)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[6] = {};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 6);
-
-    const lh_memory_bounds_t s = lh_memory_bounds_slice(&r, 0, 3);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&s), lh_cast_static(lh_ptr, buf));
-    EXPECT_EQ(lh_memory_bounds_get_end(&s), lh_cast_static(lh_ptr, buf + 3));
-    EXPECT_EQ(lh_memory_bounds_get_size(&s), 3u);
-}
-
-TEST(memory_bounds_slice, supports_non_zero_offset)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[8] = {};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 8);
-
-    const lh_memory_bounds_t s = lh_memory_bounds_slice(&r, 1, 3);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&s), lh_cast_static(lh_ptr, buf + 1));
-    EXPECT_EQ(lh_memory_bounds_get_end(&s), lh_cast_static(lh_ptr, buf + 4));
-    EXPECT_EQ(lh_memory_bounds_get_size(&s), 3u);
-}
-
-TEST(memory_bounds_slice, supports_end_at_range_end)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[4] = {};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 4);
-
-    const lh_memory_bounds_t s = lh_memory_bounds_slice(&r, 0, 4);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&s), lh_cast_static(lh_ptr, buf));
-    EXPECT_EQ(lh_memory_bounds_get_end(&s), lh_cast_static(lh_ptr, buf + 4));
-    EXPECT_EQ(lh_memory_bounds_get_size(&s), 4u);
-}
-
-TEST(memory_bounds_set_value, writes_byte)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[4] = {};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 4);
-    lh_memory_bounds_set_value(&r, 1, 0xEE, lh_bool_false);
-    EXPECT_EQ(buf[1], 0xEE);
-    lh_memory_bounds_set_value(&r, 0, 0xFF, lh_bool_true);
-    EXPECT_EQ(buf[3], 0xFF);
-}
-
-TEST(memory_bounds_alignment, begin_and_full)
-{
-    alignas(16) unsigned char block[32];
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, block), 16);
-    EXPECT_TRUE(lh_memory_bounds_is_begin_aligned(&r, 16));
-    EXPECT_TRUE(lh_memory_bounds_is_aligned(&r, 16));
-}
-
-TEST(memory_bounds_multiple_of, size_divisible)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[12];
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 12);
-    EXPECT_TRUE(lh_memory_bounds_is_multiple_of(&r, 4));
-    EXPECT_FALSE(lh_memory_bounds_is_multiple_of(&r, 5));
-}
-
-TEST(memory_bounds_clear, resets_to_empty_initializer)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[1];
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 1);
-    lh_memory_bounds_clear(&r);
-    EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&r));
-}
-
-TEST(memory_bounds_assign_v, copies_valid)
-{
-    lh_memory_bounds_t a = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_t b = lh_memory_bounds_empty_initializer();
-    unsigned char buf[2];
-    lh_memory_bounds_init_by_size(&a, lh_cast_static(lh_ptr, buf), 2);
-    lh_memory_bounds_assign_v(&b, &a);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&b), lh_memory_bounds_get_begin(&a));
-    EXPECT_EQ(lh_memory_bounds_get_end(&b), lh_memory_bounds_get_end(&a));
-}
-
-TEST(memory_bounds_set_v, valid_pair)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[3];
-    lh_ptr b = lh_cast_static(lh_ptr, buf);
-    lh_ptr e = lh_cast_static(lh_ptr, buf + 2);
-    lh_memory_bounds_set_v(&r, b, e);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&r), b);
-    EXPECT_EQ(lh_memory_bounds_get_end(&r), e);
-}
-
-TEST(memory_bounds_set_by_size_or_clear, clears_on_invalid_begin)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[1];
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 1);
-    ASSERT_TRUE(lh_memory_bounds_has_data(&r));
-
-    lh_memory_bounds_set_by_size_or_clear(&r, lh_null, 4);
-    EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&r));
-}
-
-TEST(memory_bounds_swap_exchange, mutates_pair)
-{
-    lh_memory_bounds_t a = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_t b = lh_memory_bounds_empty_initializer();
-    unsigned char x[1];
-    unsigned char y[2];
-    lh_memory_bounds_init_by_size(&a, lh_cast_static(lh_ptr, x), 1);
-    lh_memory_bounds_init_by_size(&b, lh_cast_static(lh_ptr, y), 2);
-
-    lh_memory_bounds_swap(&a, &b);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&a), lh_cast_static(lh_ptr, y));
-    EXPECT_EQ(lh_memory_bounds_get_begin(&b), lh_cast_static(lh_ptr, x));
-
-    lh_memory_bounds_exchange(&a, &b);
-    EXPECT_TRUE(lh_memory_bounds_has_data(&a));
-    EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&b));
-}
-
-TEST(memory_bounds_copy_range, truncates_when_destination_smaller)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char dst[2] = {};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, dst), 2);
-    unsigned char src[] = {1, 2, 3, 4};
-    lh_ptr end = lh_memory_bounds_copy_range(&r, lh_cast_static(lh_ptr, src),
-                                             lh_cast_static(lh_ptr, src + 4));
-    EXPECT_EQ(end, lh_cast_static(lh_ptr, dst + 2));
+    EXPECT_EQ(lh_memory_bounds_copy_range(&dst_bounds, p(src), p(src + 5)), p(dst + 4));
     EXPECT_EQ(dst[0], 1);
-    EXPECT_EQ(dst[1], 2);
-}
-
-TEST(memory_bounds_copy_range, source_smaller_writes_partial)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char dst[4] = {};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, dst), 4);
-    unsigned char src[] = {9, 8};
-    lh_ptr end = lh_memory_bounds_copy_range(&r, lh_cast_static(lh_ptr, src),
-                                             lh_cast_static(lh_ptr, src + 2));
-    EXPECT_EQ(end, lh_cast_static(lh_ptr, dst + 2));
-    EXPECT_EQ(dst[0], 9);
-    EXPECT_EQ(dst[1], 8);
-    EXPECT_EQ(dst[2], 0);
-}
-
-TEST(memory_bounds_move_range, disjoint_source_into_range)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char dst[4] = {};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, dst), 4);
-    unsigned char src[] = {7, 6, 5, 4};
-    lh_ptr end = lh_memory_bounds_move_range(&r, lh_cast_static(lh_ptr, src),
-                                             lh_cast_static(lh_ptr, src + 4));
-    EXPECT_EQ(end, lh_cast_static(lh_ptr, dst + 4));
-    EXPECT_EQ(dst[0], 7);
     EXPECT_EQ(dst[3], 4);
+
+    unsigned char moved[4] = {};
+    lh_memory_bounds_t moved_bounds = bounds(p(moved), p(moved + 4));
+    EXPECT_EQ(lh_memory_bounds_move(&moved_bounds, &src_bounds), p(moved + 4));
+    EXPECT_EQ(moved[0], 1);
+    EXPECT_EQ(moved[3], 4);
+
+    unsigned char moved_range[2] = {};
+    lh_memory_bounds_t moved_range_bounds = bounds(p(moved_range), p(moved_range + 2));
+    EXPECT_EQ(lh_memory_bounds_move_range(&moved_range_bounds, p(src + 1), p(src + 4)),
+              p(moved_range + 2));
+    EXPECT_EQ(moved_range[0], 2);
+    EXPECT_EQ(moved_range[1], 3);
 }
 
-TEST(memory_bounds_find_range, finds_first_occurrence)
+TEST(memory_bounds_raw_search_and_compare, delegate_to_raw_operations)
 {
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
     unsigned char hay[] = {'a', 'b', 'a', 'b', 'c'};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, hay), 5);
     unsigned char needle[] = {'a', 'b'};
-    const lh_ptr p = lh_memory_bounds_find_range(&r, lh_cast_static(lh_ptr, needle),
-                                                 lh_cast_static(lh_ptr, needle + 2));
-    ASSERT_TRUE(lh_null_ne(p));
-    EXPECT_EQ(p, lh_cast_static(const lh_ptr, &hay[0]));
+    unsigned char mismatch[] = {'a', 'x'};
+    lh_memory_bounds_t hay_bounds = bounds(p(hay), p(hay + 5));
+    lh_memory_bounds_t needle_bounds = bounds(p(needle), p(needle + 2));
+    lh_memory_bounds_t mismatch_bounds = bounds(p(mismatch), p(mismatch + 2));
+
+    EXPECT_EQ(lh_memory_bounds_find_range(&hay_bounds, p(needle), p(needle + 2)), p(hay));
+    EXPECT_EQ(lh_memory_bounds_find(&hay_bounds, &needle_bounds), p(hay));
+    EXPECT_EQ(lh_memory_bounds_rfind_range(&hay_bounds, p(needle), p(needle + 2)), p(hay + 2));
+    EXPECT_EQ(lh_memory_bounds_rfind(&hay_bounds, &needle_bounds), p(hay + 2));
+
+    EXPECT_EQ(lh_memory_bounds_compare_range(&hay_bounds, p(needle), p(needle + 2)), lh_null);
+    EXPECT_EQ(lh_memory_bounds_compare(&hay_bounds, &mismatch_bounds), p(hay + 1));
+    EXPECT_EQ(lh_memory_bounds_rcompare_range(&hay_bounds, p(needle), p(needle + 2)), p(hay + 4));
+    EXPECT_EQ(lh_memory_bounds_rcompare(&hay_bounds, &needle_bounds), p(hay + 4));
 }
 
-TEST(memory_bounds_find_range, not_found_returns_null)
+TEST(memory_bounds_raw_fill, fills_with_value_and_pattern)
 {
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char hay[] = {1, 2, 3};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, hay), 3);
-    unsigned char needle[] = {9, 9};
-    const lh_ptr p = lh_memory_bounds_find_range(&r, lh_cast_static(lh_ptr, needle),
-                                                 lh_cast_static(lh_ptr, needle + 2));
-    EXPECT_TRUE(lh_null_eq(p));
-}
-
-TEST(memory_bounds_rfind_range, finds_last_occurrence)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char hay[] = {'a', 'b', 'a', 'b', 'c'};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, hay), 5);
-    unsigned char needle[] = {'a', 'b'};
-    const lh_ptr p = lh_memory_bounds_rfind_range(&r, lh_cast_static(lh_ptr, needle),
-                                                  lh_cast_static(lh_ptr, needle + 2));
-    ASSERT_TRUE(lh_null_ne(p));
-    EXPECT_EQ(p, lh_cast_static(const lh_ptr, &hay[2]));
-}
-
-TEST(memory_bounds_compare_range, equal_within_min_length_returns_null)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char lhs[] = {1, 2, 3};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, lhs), 3);
-    unsigned char rhs[] = {1, 2};
-    const lh_ptr d = lh_memory_bounds_compare_range(&r, lh_cast_static(lh_ptr, rhs),
-                                                    lh_cast_static(lh_ptr, rhs + 2));
-    EXPECT_TRUE(lh_null_eq(d));
-}
-
-TEST(memory_bounds_compare_range, mismatch_returns_pointer_in_range)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char lhs[] = {1, 9, 3};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, lhs), 3);
-    unsigned char rhs[] = {1, 2, 3};
-    const lh_ptr d = lh_memory_bounds_compare_range(&r, lh_cast_static(lh_ptr, rhs),
-                                                    lh_cast_static(lh_ptr, rhs + 3));
-    ASSERT_TRUE(lh_null_ne(d));
-    EXPECT_EQ(d, lh_cast_static(const lh_ptr, &lhs[1]));
-}
-
-TEST(memory_bounds_rcompare_range, equal_suffix_returns_null)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char lhs[] = {0, 0, 1, 2, 3, 4};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, lhs), 6);
-    unsigned char rhs[] = {1, 2, 3, 4};
-    const lh_ptr d = lh_memory_bounds_rcompare_range(&r, lh_cast_static(lh_ptr, rhs),
-                                                     lh_cast_static(lh_ptr, rhs + 4));
-    EXPECT_TRUE(lh_null_eq(d));
-}
-
-TEST(memory_bounds_rcompare_range, suffix_mismatch_returns_pointer_in_range)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char lhs[] = {1, 2, 3, 9};
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, lhs), 4);
-    unsigned char rhs[] = {1, 2, 3, 4};
-    const lh_ptr d = lh_memory_bounds_rcompare_range(&r, lh_cast_static(lh_ptr, rhs),
-                                                     lh_cast_static(lh_ptr, rhs + 4));
-    ASSERT_TRUE(lh_null_ne(d));
-    EXPECT_EQ(d, lh_cast_static(const lh_ptr, &lhs[3]));
-}
-
-TEST(memory_bounds_unpack, writes_both_endpoints)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[3];
-    lh_ptr b = lh_cast_static(lh_ptr, buf);
-    lh_ptr e = lh_cast_static(lh_ptr, buf + 3);
-    lh_memory_bounds_set(&r, b, e);
-
-    lh_ptr out_b = lh_null;
-    lh_ptr out_e = lh_null;
-    lh_memory_bounds_unpack(&r, &out_b, &out_e);
-    EXPECT_EQ(out_b, b);
-    EXPECT_EQ(out_e, e);
-}
-
-TEST(memory_bounds_init, same_as_set_for_valid_bounds)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[2];
-    lh_ptr b = lh_cast_static(lh_ptr, buf);
-    lh_ptr e = lh_cast_static(lh_ptr, buf + 2);
-    lh_memory_bounds_init(&r, lh_cast_static(lh_void *, b), lh_cast_static(lh_void *, e));
-    EXPECT_EQ(lh_memory_bounds_get_begin(&r), b);
-    EXPECT_EQ(lh_memory_bounds_get_end(&r), e);
-    EXPECT_TRUE(lh_memory_bounds_has_data(&r));
-}
-
-TEST(memory_bounds_assign, copies_like_init_by_other)
-{
-    lh_memory_bounds_t a = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_t b = lh_memory_bounds_empty_initializer();
-    unsigned char buf[5];
-    lh_memory_bounds_init_by_size(&a, lh_cast_static(lh_ptr, buf), 5);
-    lh_memory_bounds_assign(&b, &a);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&b), lh_memory_bounds_get_begin(&a));
-    EXPECT_EQ(lh_memory_bounds_get_end(&b), lh_memory_bounds_get_end(&a));
-}
-
-TEST(memory_bounds_set_by_size, sets_half_open_span)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[4];
-    lh_memory_bounds_set_by_size(&r, lh_cast_static(lh_ptr, buf), 4);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&r), lh_cast_static(lh_ptr, buf));
-    EXPECT_EQ(lh_memory_bounds_get_end(&r), lh_cast_static(lh_ptr, buf + 4));
-    EXPECT_EQ(lh_memory_bounds_get_size(&r), 4u);
-}
-
-TEST(memory_bounds_make_v, accepts_valid_ordered_pair)
-{
-    unsigned char buf[3];
-    lh_ptr b = lh_cast_static(lh_ptr, buf);
-    lh_ptr e = lh_cast_static(lh_ptr, buf + 3);
-    lh_memory_bounds_t r = lh_memory_bounds_make_v(b, e);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&r), b);
-    EXPECT_EQ(lh_memory_bounds_get_end(&r), e);
-    EXPECT_TRUE(lh_memory_bounds_is_valid(&r));
-}
-
-TEST(memory_bounds_make_or_empty, invalid_pair_returns_empty)
-{
-    unsigned char buf[2];
-    lh_ptr lo = lh_cast_static(lh_ptr, buf + 1);
-    lh_ptr hi = lh_cast_static(lh_ptr, buf);
-    const lh_memory_bounds_t r = lh_memory_bounds_make_or_empty(lo, hi);
-    EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&r));
-}
-
-TEST(memory_bounds_make_or_empty, valid_pair_returns_range)
-{
-    unsigned char buf[4];
-    const lh_memory_bounds_t r = lh_memory_bounds_make_or_empty(lh_cast_static(lh_ptr, buf),
-                                                                lh_cast_static(lh_ptr, buf + 4));
-    EXPECT_EQ(lh_memory_bounds_get_begin(&r), lh_cast_static(lh_ptr, buf));
-    EXPECT_EQ(lh_memory_bounds_get_end(&r), lh_cast_static(lh_ptr, buf + 4));
-    EXPECT_TRUE(lh_memory_bounds_is_valid(&r));
-}
-
-TEST(memory_bounds_unpack_v, reads_valid_range)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[2];
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 2);
-    lh_ptr o0 = lh_null;
-    lh_ptr o1 = lh_null;
-    lh_memory_bounds_unpack_v(&r, &o0, &o1);
-    EXPECT_EQ(o0, lh_cast_static(lh_ptr, buf));
-    EXPECT_EQ(o1, lh_cast_static(lh_ptr, buf + 2));
-}
-
-TEST(memory_bounds_is_sliceable, in_bounds_and_out_of_bounds)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[8];
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 8);
-    EXPECT_TRUE(lh_memory_bounds_is_sliceable(&r, 0, 8));
-    EXPECT_TRUE(lh_memory_bounds_is_sliceable(&r, 1, 3));
-    EXPECT_FALSE(lh_memory_bounds_is_sliceable(&r, 6, 3));
-}
-
-TEST(memory_bounds_slice_or_empty, returns_slice_or_empty)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[8];
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 8);
-
-    const lh_memory_bounds_t s_ok = lh_memory_bounds_slice_or_empty(&r, 1, 3);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&s_ok), lh_cast_static(lh_ptr, buf + 1));
-    EXPECT_EQ(lh_memory_bounds_get_end(&s_ok), lh_cast_static(lh_ptr, buf + 4));
-
-    const lh_memory_bounds_t s_bad = lh_memory_bounds_slice_or_empty(&r, 6, 3);
-    EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&s_bad));
-}
-
-TEST(memory_bounds_slice_or_empty, invalid_self_returns_empty)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[2];
-    lh_memory_bounds_set(&r, lh_cast_static(lh_ptr, buf + 1), lh_cast_static(lh_ptr, buf));
-    const lh_memory_bounds_t s = lh_memory_bounds_slice_or_empty(&r, 0, 1);
-    EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&s));
-}
-
-TEST(memory_bounds_is_valid_offset, checks_bounds)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[4];
-    lh_memory_bounds_set(&r, lh_cast_static(lh_ptr, buf), lh_cast_static(lh_ptr, buf + 4));
-    EXPECT_TRUE(lh_memory_bounds_is_valid_offset(&r, 0));
-    EXPECT_TRUE(lh_memory_bounds_is_valid_offset(&r, 3));
-    EXPECT_FALSE(lh_memory_bounds_is_valid_offset(&r, 4));
-}
-
-TEST(memory_bounds_clone_dup, raw_copy_semantics)
-{
-    lh_memory_bounds_t src = lh_memory_bounds_empty_initializer();
-    unsigned char buf[4];
-    lh_memory_bounds_set(&src, lh_cast_static(lh_ptr, buf), lh_cast_static(lh_ptr, buf + 4));
-
-    const lh_memory_bounds_t c = lh_memory_bounds_clone(&src);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&c), lh_memory_bounds_get_begin(&src));
-    EXPECT_EQ(lh_memory_bounds_get_end(&c), lh_memory_bounds_get_end(&src));
-
-    lh_memory_bounds_t d = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_dup(&src, &d);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&d), lh_memory_bounds_get_begin(&src));
-    EXPECT_EQ(lh_memory_bounds_get_end(&d), lh_memory_bounds_get_end(&src));
-}
-
-TEST(memory_bounds_clone_dup_v, validated_copy_semantics)
-{
-    lh_memory_bounds_t src = lh_memory_bounds_empty_initializer();
-    unsigned char buf[4];
-    lh_memory_bounds_set(&src, lh_cast_static(lh_ptr, buf), lh_cast_static(lh_ptr, buf + 4));
-
-    const lh_memory_bounds_t c = lh_memory_bounds_clone_v(&src);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&c), lh_memory_bounds_get_begin(&src));
-    EXPECT_EQ(lh_memory_bounds_get_end(&c), lh_memory_bounds_get_end(&src));
-
-    lh_memory_bounds_t d = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_dup_v(&src, &d);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&d), lh_memory_bounds_get_begin(&src));
-    EXPECT_EQ(lh_memory_bounds_get_end(&d), lh_memory_bounds_get_end(&src));
-}
-
-TEST(memory_bounds_pack_v, partial_update_preserves_validity)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[8];
-    lh_memory_bounds_set(&r, lh_cast_static(lh_ptr, buf), lh_cast_static(lh_ptr, buf + 8));
-
-    lh_ptr new_begin = lh_cast_static(lh_ptr, buf + 2);
-    lh_memory_bounds_pack_v(&r, &new_begin, nullptr);
-    EXPECT_EQ(lh_memory_bounds_get_begin(&r), lh_cast_static(lh_ptr, buf + 2));
-    EXPECT_EQ(lh_memory_bounds_get_end(&r), lh_cast_static(lh_ptr, buf + 8));
-}
-
-TEST(memory_bounds_overlaps, two_ranges_intersect_or_not)
-{
-    lh_memory_bounds_t a = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_t b = lh_memory_bounds_empty_initializer();
-    unsigned char buf[8];
-    lh_memory_bounds_init_by_size(&a, lh_cast_static(lh_ptr, buf), 4);
-    lh_memory_bounds_init_by_size(&b, lh_cast_static(lh_ptr, buf + 3), 3);
-    EXPECT_TRUE(lh_memory_bounds_overlaps(&a, &b));
-
-    lh_memory_bounds_t c = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_init_by_size(&c, lh_cast_static(lh_ptr, buf + 4), 4);
-    EXPECT_FALSE(lh_memory_bounds_overlaps(&a, &c));
-}
-
-TEST(memory_bounds_copy, delegates_to_copy_range)
-{
-    lh_memory_bounds_t dst_r = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_t src_r = lh_memory_bounds_empty_initializer();
-    unsigned char dst[2] = {};
-    unsigned char src[] = {0x11, 0x22, 0x33};
-    lh_memory_bounds_init_by_size(&dst_r, lh_cast_static(lh_ptr, dst), 2);
-    lh_memory_bounds_init_by_size(&src_r, lh_cast_static(lh_ptr, src), 3);
-    lh_ptr end = lh_memory_bounds_copy(&dst_r, &src_r);
-    EXPECT_EQ(end, lh_cast_static(lh_ptr, dst + 2));
-    EXPECT_EQ(dst[0], 0x11);
-    EXPECT_EQ(dst[1], 0x22);
-}
-
-TEST(memory_bounds_move, delegates_to_move_range)
-{
-    lh_memory_bounds_t dst_r = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_t src_r = lh_memory_bounds_empty_initializer();
-    unsigned char dst[3] = {};
-    unsigned char src[] = {3, 2, 1};
-    lh_memory_bounds_init_by_size(&dst_r, lh_cast_static(lh_ptr, dst), 3);
-    lh_memory_bounds_init_by_size(&src_r, lh_cast_static(lh_ptr, src), 3);
-    lh_ptr end = lh_memory_bounds_move(&dst_r, &src_r);
-    EXPECT_EQ(end, lh_cast_static(lh_ptr, dst + 3));
-    EXPECT_EQ(dst[0], 3);
-    EXPECT_EQ(dst[2], 1);
-}
-
-TEST(memory_bounds_fill, fills_destination_with_value)
-{
-    lh_memory_bounds_t dst_r = lh_memory_bounds_empty_initializer();
-    unsigned char dst[5] = {1, 2, 3, 4, 5};
-
-    lh_memory_bounds_init_by_size(&dst_r, lh_cast_static(lh_ptr, dst), 5);
-    lh_ptr end = lh_memory_bounds_fill(&dst_r, 0x7E);
-
-    EXPECT_EQ(end, lh_cast_static(lh_ptr, dst + 5));
-    EXPECT_EQ(dst[0], 0x7E);
-    EXPECT_EQ(dst[1], 0x7E);
-    EXPECT_EQ(dst[2], 0x7E);
-    EXPECT_EQ(dst[3], 0x7E);
-    EXPECT_EQ(dst[4], 0x7E);
-}
-
-TEST(memory_bounds_fill_pattern_range, repeats_pattern_into_destination)
-{
-    lh_memory_bounds_t dst_r = lh_memory_bounds_empty_initializer();
-    unsigned char dst[7] = {};
-    unsigned char pattern[] = {0xAB, 0xCD, 0xEF};
-
-    lh_memory_bounds_init_by_size(&dst_r, lh_cast_static(lh_ptr, dst), 7);
-    lh_ptr end = lh_memory_bounds_fill_pattern_range(&dst_r, lh_cast_static(lh_ptr, pattern),
-                                                     lh_cast_static(lh_ptr, pattern + 3));
-
-    EXPECT_EQ(end, lh_cast_static(lh_ptr, dst + 7));
-    EXPECT_EQ(dst[0], 0xAB);
-    EXPECT_EQ(dst[1], 0xCD);
-    EXPECT_EQ(dst[2], 0xEF);
-    EXPECT_EQ(dst[3], 0xAB);
-    EXPECT_EQ(dst[4], 0xCD);
-    EXPECT_EQ(dst[5], 0xEF);
-    EXPECT_EQ(dst[6], 0xAB);
-}
-
-TEST(memory_bounds_fill_pattern, delegates_to_fill_pattern_range)
-{
-    lh_memory_bounds_t dst_r = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_t pattern_r = lh_memory_bounds_empty_initializer();
     unsigned char dst[5] = {};
     unsigned char pattern[] = {1, 2};
+    lh_memory_bounds_t dst_bounds = bounds(p(dst), p(dst + 5));
+    lh_memory_bounds_t pattern_bounds = bounds(p(pattern), p(pattern + 2));
 
-    lh_memory_bounds_init_by_size(&dst_r, lh_cast_static(lh_ptr, dst), 5);
-    lh_memory_bounds_init_by_size(&pattern_r, lh_cast_static(lh_ptr, pattern), 2);
-    lh_ptr end = lh_memory_bounds_fill_pattern(&dst_r, &pattern_r);
+    EXPECT_EQ(lh_memory_bounds_fill(&dst_bounds, 0x7E), p(dst + 5));
+    EXPECT_EQ(dst[0], 0x7E);
+    EXPECT_EQ(dst[4], 0x7E);
 
-    EXPECT_EQ(end, lh_cast_static(lh_ptr, dst + 5));
+    EXPECT_EQ(lh_memory_bounds_fill_pattern_range(&dst_bounds, p(pattern), p(pattern + 2)),
+              p(dst + 5));
     EXPECT_EQ(dst[0], 1);
     EXPECT_EQ(dst[1], 2);
     EXPECT_EQ(dst[2], 1);
+
+    EXPECT_EQ(lh_memory_bounds_fill_pattern(&dst_bounds, &pattern_bounds), p(dst + 5));
     EXPECT_EQ(dst[3], 2);
     EXPECT_EQ(dst[4], 1);
 }
 
-TEST(memory_bounds_find, finds_via_other_range)
+TEST(memory_bounds_mutation, clears_assigns_sets_and_initializes)
 {
-    lh_memory_bounds_t hay_r = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_t needle_r = lh_memory_bounds_empty_initializer();
-    unsigned char hay[] = {'x', 'y', 'z'};
-    unsigned char needle[] = {'y', 'z'};
-    lh_memory_bounds_init_by_size(&hay_r, lh_cast_static(lh_ptr, hay), 3);
-    lh_memory_bounds_init_by_size(&needle_r, lh_cast_static(lh_ptr, needle), 2);
-    const lh_ptr p = lh_memory_bounds_find(&hay_r, &needle_r);
-    ASSERT_TRUE(lh_null_ne(p));
-    EXPECT_EQ(p, lh_cast_static(const lh_ptr, &hay[1]));
+    unsigned char buf[8];
+    lh_memory_bounds_t b = bounds(lh_null, lh_null);
+    lh_memory_bounds_t other = bounds(p(buf + 1), p(buf + 5));
+
+    lh_memory_bounds_assign_v(&b, &other);
+    EXPECT_TRUE(lh_memory_bounds_equals(&b, &other));
+
+    lh_memory_bounds_clear(&b);
+    EXPECT_TRUE(lh_memory_bounds_equals_of(&b, lh_null, lh_null));
+
+    lh_memory_bounds_set_v(&b, p(buf), p(buf + 4));
+    EXPECT_TRUE(lh_memory_bounds_equals_of(&b, p(buf), p(buf + 4)));
+
+    lh_memory_bounds_set_by_size(&b, p(buf + 2), 3);
+    EXPECT_TRUE(lh_memory_bounds_equals_of(&b, p(buf + 2), p(buf + 5)));
+
+    lh_memory_bounds_init(&b, p(buf), p(buf + 2));
+    EXPECT_TRUE(lh_memory_bounds_equals_of(&b, p(buf), p(buf + 2)));
+
+    lh_memory_bounds_init_by_size(&b, p(buf + 1), 2);
+    EXPECT_TRUE(lh_memory_bounds_equals_of(&b, p(buf + 1), p(buf + 3)));
+
+    lh_memory_bounds_init_empty(&b);
+    EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&b));
+
+    lh_memory_bounds_init_by_other(&b, &other);
+    EXPECT_TRUE(lh_memory_bounds_equals(&b, &other));
 }
 
-TEST(memory_bounds_rfind, finds_last_via_other_range)
+TEST(memory_bounds_make, returns_validated_values)
 {
-    lh_memory_bounds_t hay_r = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_t needle_r = lh_memory_bounds_empty_initializer();
-    unsigned char hay[] = {1, 2, 1, 2, 9};
-    unsigned char needle[] = {1, 2};
-    lh_memory_bounds_init_by_size(&hay_r, lh_cast_static(lh_ptr, hay), 5);
-    lh_memory_bounds_init_by_size(&needle_r, lh_cast_static(lh_ptr, needle), 2);
-    const lh_ptr p = lh_memory_bounds_rfind(&hay_r, &needle_r);
-    ASSERT_TRUE(lh_null_ne(p));
-    EXPECT_EQ(p, lh_cast_static(const lh_ptr, &hay[2]));
+    unsigned char buf[8];
+
+    lh_memory_bounds_t by_end = lh_memory_bounds_make_v(p(buf), p(buf + 4));
+    EXPECT_TRUE(lh_memory_bounds_equals_of(&by_end, p(buf), p(buf + 4)));
+
+    lh_memory_bounds_t by_size = lh_memory_bounds_make_by_size(p(buf + 1), 3);
+    EXPECT_TRUE(lh_memory_bounds_equals_of(&by_size, p(buf + 1), p(buf + 4)));
+
+    lh_memory_bounds_t empty = lh_memory_bounds_make_empty();
+    EXPECT_TRUE(lh_memory_bounds_equals_of(&empty, lh_null, lh_null));
 }
 
-TEST(memory_bounds_compare, matches_compare_range)
+TEST(memory_bounds_swap, swaps_and_clears)
 {
-    lh_memory_bounds_t lhs_r = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_t rhs_r = lh_memory_bounds_empty_initializer();
-    unsigned char lhs[] = {5, 6, 7};
-    unsigned char rhs[] = {5, 6};
-    lh_memory_bounds_init_by_size(&lhs_r, lh_cast_static(lh_ptr, lhs), 3);
-    lh_memory_bounds_init_by_size(&rhs_r, lh_cast_static(lh_ptr, rhs), 2);
-    const lh_ptr d = lh_memory_bounds_compare(&lhs_r, &rhs_r);
-    EXPECT_TRUE(lh_null_eq(d));
-}
+    unsigned char buf[8];
+    lh_memory_bounds_t a = bounds(p(buf), p(buf + 2));
+    lh_memory_bounds_t b = bounds(p(buf + 4), p(buf + 8));
 
-TEST(memory_bounds_rcompare, matches_rcompare_range)
-{
-    lh_memory_bounds_t lhs_r = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_t rhs_r = lh_memory_bounds_empty_initializer();
-    unsigned char lhs[] = {0, 0, 3, 4};
-    unsigned char rhs[] = {3, 4};
-    lh_memory_bounds_init_by_size(&lhs_r, lh_cast_static(lh_ptr, lhs), 4);
-    lh_memory_bounds_init_by_size(&rhs_r, lh_cast_static(lh_ptr, rhs), 2);
-    const lh_ptr d = lh_memory_bounds_rcompare(&lhs_r, &rhs_r);
-    EXPECT_TRUE(lh_null_eq(d));
+    lh_memory_bounds_swap_v(&a, &b);
+    EXPECT_TRUE(lh_memory_bounds_equals_of(&a, p(buf + 4), p(buf + 8)));
+    EXPECT_TRUE(lh_memory_bounds_equals_of(&b, p(buf), p(buf + 2)));
+
+    lh_memory_bounds_swap_and_clear(&a, &b);
+    EXPECT_TRUE(lh_memory_bounds_equals_of(&a, p(buf), p(buf + 2)));
+    EXPECT_TRUE(lh_memory_bounds_equals_of(&b, lh_null, lh_null));
 }
 
 #if LH_TEST_EXPECT_DEATH_ENABLED
 
-TEST(memory_bounds_death, unpack_v_on_invalid)
+TEST(memory_bounds_unpack_v, rejects_uninitialized_death)
 {
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    lh_ptr out0 = nullptr;
-    lh_ptr out1 = nullptr;
-    LH_EXPECT_DEATH(lh_memory_bounds_unpack_v(&r, &out0, &out1));
+    lh_memory_bounds_t b = bounds(lh_null, lh_null);
+    lh_ptr begin = lh_null;
+
+    LH_EXPECT_DEATH(lh_memory_bounds_unpack_v(&b, &begin, nullptr));
 }
 
-TEST(memory_bounds_death, get_size_on_invalid)
+TEST(memory_bounds_make_v, rejects_invalid_range_death)
 {
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
+    unsigned char buf[2];
+
+    LH_EXPECT_DEATH((void)lh_memory_bounds_make_v(p(buf + 1), p(buf)));
+}
+
+TEST(memory_bounds_make_by_size, rejects_zero_size_death)
+{
     unsigned char buf[1];
-    lh_ptr lo = lh_cast_static(lh_ptr, buf);
-    lh_memory_bounds_pack(&r, &lo, nullptr);
-    LH_EXPECT_DEATH((void)lh_memory_bounds_get_size(&r));
+
+    LH_EXPECT_DEATH((void)lh_memory_bounds_make_by_size(p(buf), 0));
 }
 
-TEST(memory_bounds_death, assign_v_invalid_other)
-{
-    lh_memory_bounds_t a = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_t b = lh_memory_bounds_empty_initializer();
-    unsigned char buf[2];
-    lh_ptr lo = lh_cast_static(lh_ptr, buf + 1);
-    lh_ptr hi = lh_cast_static(lh_ptr, buf);
-    lh_memory_bounds_set(&b, lo, hi);
-    LH_EXPECT_DEATH(lh_memory_bounds_assign_v(&a, &b));
-}
-
-TEST(memory_bounds_death, set_v_invalid)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[2];
-    lh_ptr lo = lh_cast_static(lh_ptr, buf + 1);
-    lh_ptr hi = lh_cast_static(lh_ptr, buf);
-    LH_EXPECT_DEATH(lh_memory_bounds_set_v(&r, lo, hi));
-}
-
-TEST(memory_bounds_death, make_v_invalid)
-{
-    unsigned char buf[2];
-    lh_ptr lo = lh_cast_static(lh_ptr, buf + 1);
-    lh_ptr hi = lh_cast_static(lh_ptr, buf);
-    LH_EXPECT_DEATH((void)lh_memory_bounds_make_v(lo, hi));
-}
-
-TEST(memory_bounds_death, make_by_size_null_begin)
+TEST(memory_bounds_make_by_size, rejects_null_begin_death)
 {
     LH_EXPECT_DEATH((void)lh_memory_bounds_make_by_size(lh_null, 1));
 }
 
-TEST(memory_bounds_death, at_out_of_range)
+TEST(memory_bounds_make_slice, rejects_invalid_bounds_death)
 {
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
     unsigned char buf[2];
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 2);
-    LH_EXPECT_DEATH((void)lh_memory_bounds_get_ptr_from_front(&r, 2));
+    lh_memory_bounds_t b = bounds(p(buf), p(buf));
+
+    LH_EXPECT_DEATH((void)lh_memory_bounds_make_slice(&b));
 }
 
-TEST(memory_bounds_death, set_by_size_null_begin)
+TEST(memory_bounds_next_value, rejects_end_boundary_death)
 {
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    LH_EXPECT_DEATH(lh_memory_bounds_set_by_size(&r, lh_null, 1));
-}
+    unsigned char buf[2] = {1, 2};
+    lh_memory_bounds_t b = bounds(p(buf), p(buf + 2));
 
-TEST(memory_bounds_death, copy_range_invalid_self)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char src[] = {1};
-    LH_EXPECT_DEATH(lh_memory_bounds_copy_range(&r, lh_cast_static(lh_ptr, src),
-                                                lh_cast_static(lh_ptr, src + 1)));
-}
-
-TEST(memory_bounds_death, slice_out_of_range_by_offset_plus_size)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[8];
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 8);
-    LH_EXPECT_DEATH((void)lh_memory_bounds_slice(&r, 6, 3));
-}
-
-TEST(memory_bounds_death, slice_offset_out_of_range)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[4];
-    lh_memory_bounds_init_by_size(&r, lh_cast_static(lh_ptr, buf), 4);
-    LH_EXPECT_DEATH((void)lh_memory_bounds_slice(&r, 5, 0));
-}
-
-TEST(memory_bounds_death, pack_v_rejects_invalid_partial_update)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[8];
-    lh_memory_bounds_set(&r, lh_cast_static(lh_ptr, buf), lh_cast_static(lh_ptr, buf + 8));
-    lh_ptr bad_begin = lh_cast_static(lh_ptr, buf + 9);
-    LH_EXPECT_DEATH((void)lh_memory_bounds_pack_v(&r, &bad_begin, nullptr));
-}
-
-TEST(memory_bounds_death, clone_v_rejects_invalid_source)
-{
-    lh_memory_bounds_t r = lh_memory_bounds_empty_initializer();
-    unsigned char buf[2];
-    lh_memory_bounds_set(&r, lh_cast_static(lh_ptr, buf + 1), lh_cast_static(lh_ptr, buf));
-    LH_EXPECT_DEATH((void)lh_memory_bounds_clone_v(&r));
-}
-
-TEST(memory_bounds_death, dup_v_rejects_invalid_source)
-{
-    lh_memory_bounds_t src = lh_memory_bounds_empty_initializer();
-    lh_memory_bounds_t dst = lh_memory_bounds_empty_initializer();
-    unsigned char buf[2];
-    lh_memory_bounds_set(&src, lh_cast_static(lh_ptr, buf + 1), lh_cast_static(lh_ptr, buf));
-    lh_memory_bounds_set(&dst, lh_cast_static(lh_ptr, buf), lh_cast_static(lh_ptr, buf + 1));
-    LH_EXPECT_DEATH((void)lh_memory_bounds_dup_v(&src, &dst));
+    LH_EXPECT_DEATH((void)lh_memory_bounds_next_value(&b, p(buf + 1)));
 }
 
 #endif // LH_TEST_EXPECT_DEATH_ENABLED

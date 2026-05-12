@@ -54,7 +54,7 @@
 #define lh_str_raw_capacity(x) lh_array_raw_size(x)
 
 /**
- * @def lh_str_raw_size(x)
+ * @def lh_str_raw_get_size(x)
  * @brief Payload slot count: `::lh_str_raw_capacity(x) - 1`.
  *
  * Use when one `char` at the end is reserved for `'\0'` (`char buf[N]` gives size `N - 1`),
@@ -71,18 +71,18 @@
  * Example usage:
  * @code{.c}
  * char s[] = "ab";
- * // lh_str_raw_size(s) == 2  // body length; capacity still includes '\0'
+ * // lh_str_raw_get_size(s) == 2  // body length; capacity still includes '\0'
  * @endcode
  */
-#define lh_str_raw_size(x) ((lh_str_raw_capacity(x)) - 1)
+#define lh_str_raw_get_size(x) ((lh_str_raw_capacity(x)) - 1)
 
 /**
  * @def lh_str_raw_end(x)
- * @brief End of the payload span: `lh_str_raw_begin(x) + lh_str_raw_size(x)`.
+ * @brief End of the payload span: `lh_str_raw_begin(x) + lh_str_raw_get_size(x)`.
  *
  * Points at the slot where the terminating `'\0'`
  * is stored (first byte after the last payload character).
- * The range `[begin, end)` has length ::lh_str_raw_size(x)
+ * The range `[begin, end)` has length ::lh_str_raw_get_size(x)
  * and does not include the terminator in the half-open interval.
  *
  * This is **not** one past the whole array;
@@ -95,7 +95,7 @@
  * // *lh_str_raw_end(s) == '\0'
  * @endcode
  */
-#define lh_str_raw_end(x) ((lh_str_raw_begin(x)) + lh_str_raw_size(x))
+#define lh_str_raw_end(x) ((lh_str_raw_begin(x)) + lh_str_raw_get_size(x))
 
 /**
  * @brief Stringify a token.
@@ -135,6 +135,62 @@ LH_COMPILER_EXTERN_C_BEGIN
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
 lh_str_raw_find_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch);
+
+/**
+ * @brief Find the first character in @p str that belongs to @p chars.
+ *
+ * @param str        Haystack buffer (::lh_runtime_check_ref).
+ * @param str_size   Length of @p str in characters.
+ * @param chars      Character set buffer (::lh_runtime_check_ref).
+ * @param chars_size Number of elements in @p chars.
+ * @return Pointer to the first matching character, or ::lh_null if none found.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_str_ptr
+lh_str_raw_find_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
+                           lh_usize_t chars_size);
+
+/**
+ * @brief Find the last character in @p str that belongs to @p chars.
+ *
+ * @param str        Haystack buffer (::lh_runtime_check_ref).
+ * @param str_size   Length of @p str in characters.
+ * @param chars      Character set buffer (::lh_runtime_check_ref).
+ * @param chars_size Number of elements in @p chars.
+ * @return Pointer to the last matching character, or ::lh_null if none found.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_str_ptr
+lh_str_raw_rfind_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
+                            lh_usize_t chars_size);
+
+/**
+ * @brief Find the first character in @p str that does not belong to @p chars.
+ *
+ * @param str        Haystack buffer (::lh_runtime_check_ref).
+ * @param str_size   Length of @p str in characters.
+ * @param chars      Character set buffer (::lh_runtime_check_ref).
+ * @param chars_size Number of elements in @p chars.
+ * @return Pointer to the first non-matching character, or ::lh_null if none found.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_str_ptr
+lh_str_raw_find_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
+                               lh_usize_t chars_size);
+
+/**
+ * @brief Find the last character in @p str that does not belong to @p chars.
+ *
+ * @param str        Haystack buffer (::lh_runtime_check_ref).
+ * @param str_size   Length of @p str in characters.
+ * @param chars      Character set buffer (::lh_runtime_check_ref).
+ * @param chars_size Number of elements in @p chars.
+ * @return Pointer to the last non-matching character, or ::lh_null if none found.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_str_ptr
+lh_str_raw_rfind_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
+                                lh_usize_t chars_size);
 
 /**
  * @brief Find the first null terminator (`'\\0'`)

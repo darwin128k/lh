@@ -13,7 +13,7 @@
 static const lh_char_t m_whitespace_chars[] = {lh_char_map_space, lh_char_map_lf, lh_char_map_cr,
                                                lh_char_map_ht,    lh_char_map_vt, lh_char_map_nul};
 
-static const lh_usize_t m_whitespace_size = lh_str_raw_size(m_whitespace_chars);
+static const lh_usize_t m_whitespace_size = lh_str_raw_get_size(m_whitespace_chars);
 
 lh_usize_t
 lh_str_raw_index_of_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
@@ -34,6 +34,80 @@ const lh_str_ptr
 lh_str_raw_find_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch)
 {
     return lh_memory_find(str, size, &ch, LH_CHAR_T_SIZE);
+}
+
+const lh_str_ptr
+lh_str_raw_find_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
+                           lh_usize_t chars_size)
+{
+    lh_runtime_check_ref(str);
+    lh_runtime_check_ref(chars);
+
+    for (lh_usize_t i = 0; i < str_size; ++i)
+    {
+        if (lh_str_raw_contains_char(chars, chars_size, str[i]))
+        {
+            return str + i;
+        }
+    }
+    return lh_null;
+}
+
+const lh_str_ptr
+lh_str_raw_rfind_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
+                            lh_usize_t chars_size)
+{
+    lh_runtime_check_ref(str);
+    lh_runtime_check_ref(chars);
+
+    lh_runtime_return_ifn(str_size, lh_null);
+    lh_usize_t i = str_size;
+    do
+    {
+        --i;
+        if (lh_str_raw_contains_char(chars, chars_size, str[i]))
+        {
+            return str + i;
+        }
+    } while (i > 0);
+    return lh_null;
+}
+
+const lh_str_ptr
+lh_str_raw_find_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
+                               lh_usize_t chars_size)
+{
+    lh_runtime_check_ref(str);
+    lh_runtime_check_ref(chars);
+
+    for (lh_usize_t i = 0; i < str_size; ++i)
+    {
+        if (!lh_str_raw_contains_char(chars, chars_size, str[i]))
+        {
+            return str + i;
+        }
+    }
+    return lh_null;
+}
+
+const lh_str_ptr
+lh_str_raw_rfind_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
+                                lh_usize_t chars_size)
+{
+    lh_runtime_check_ref(str);
+    lh_runtime_check_ref(chars);
+
+    lh_runtime_return_ifn(str_size, lh_null);
+    lh_usize_t i = str_size;
+    do
+    {
+        --i;
+        if (!lh_str_raw_contains_char(chars, chars_size, str[i]))
+        {
+            return str + i;
+        }
+    } while (i > 0);
+    return lh_null;
 }
 
 const lh_str_ptr

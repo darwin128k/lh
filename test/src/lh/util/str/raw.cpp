@@ -258,4 +258,277 @@ TEST(str_raw_trim_death, null_arguments)
         lh_str_raw_ltrim_custom(s, lh_str_raw_len(s), reinterpret_cast<lh_str_cptr>(lh_null), 1));
 }
 
+TEST(str_raw_trim_auto, ltrim_and_rtrim_variants)
+{
+    lh_char_t s1[] = "  abc  ";
+    lh_char_t s2[] = "  abc  ";
+    const lh_char_t ws[] = " ";
+
+    EXPECT_STREQ(lh_str_raw_ltrim_auto(s1, ws), "abc  ");
+    EXPECT_STREQ(lh_str_raw_rtrim_auto(s2, ws), "  abc");
+}
+
+/* -- find_of_chars / rfind_of_chars ---------------------------------------- */
+
+TEST(str_raw_find_of_chars, returns_first_char_from_set_or_null)
+{
+    const lh_char_t str[] = {'x', 'b', 'a', 'y'};
+    const lh_char_t set[] = {'a', 'b'};
+
+    lh_str_cptr p = lh_str_raw_find_of_chars(str, 4, set, 2);
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, str + 1);
+
+    const lh_char_t no_match[] = {'x', 'y', 'z'};
+    EXPECT_TRUE(lh_null_eq(lh_str_raw_find_of_chars(no_match, 3, set, 2)));
+}
+
+TEST(str_raw_rfind_of_chars, returns_last_char_from_set_or_null)
+{
+    const lh_char_t str[] = {'a', 'x', 'b', 'y'};
+    const lh_char_t set[] = {'a', 'b'};
+
+    lh_str_cptr p = lh_str_raw_rfind_of_chars(str, 4, set, 2);
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, str + 2);
+
+    const lh_char_t no_match[] = {'x', 'y', 'z'};
+    EXPECT_TRUE(lh_null_eq(lh_str_raw_rfind_of_chars(no_match, 3, set, 2)));
+}
+
+/* -- find_not_of_chars / rfind_not_of_chars -------------------------------- */
+
+TEST(str_raw_find_not_of_chars, returns_first_char_outside_set_or_null)
+{
+    const lh_char_t str[] = {'a', 'a', 'b', 'x'};
+    const lh_char_t set[] = {'a', 'b'};
+
+    lh_str_cptr p = lh_str_raw_find_not_of_chars(str, 4, set, 2);
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, str + 3);
+
+    const lh_char_t all_in[] = {'a', 'b', 'a'};
+    EXPECT_TRUE(lh_null_eq(lh_str_raw_find_not_of_chars(all_in, 3, set, 2)));
+}
+
+TEST(str_raw_rfind_not_of_chars, returns_last_char_outside_set_or_null)
+{
+    const lh_char_t str[] = {'x', 'a', 'b', 'b'};
+    const lh_char_t set[] = {'a', 'b'};
+
+    lh_str_cptr p = lh_str_raw_rfind_not_of_chars(str, 4, set, 2);
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, str + 0);
+
+    const lh_char_t all_in[] = {'a', 'b', 'a'};
+    EXPECT_TRUE(lh_null_eq(lh_str_raw_rfind_not_of_chars(all_in, 3, set, 2)));
+}
+
+/* -- contains_char --------------------------------------------------------- */
+
+TEST(str_raw_contains_char, finds_char_in_set_or_not)
+{
+    const lh_char_t set[] = {'a', 'b', 'c'};
+    EXPECT_TRUE(lh_str_raw_contains_char(set, 3, 'b'));
+    EXPECT_FALSE(lh_str_raw_contains_char(set, 3, 'z'));
+    EXPECT_FALSE(lh_str_raw_contains_char(set, 0, 'a'));
+}
+
+/* -- find / rfind ---------------------------------------------------------- */
+
+TEST(str_raw_find, dispatches_exact_and_ignore_case)
+{
+    const lh_char_t hay[] = {'a', 'B', 'c', 'd'};
+    const lh_char_t nd[]  = {'b', 'c'};
+
+    EXPECT_TRUE(lh_null_eq(lh_str_raw_find(hay, 4, nd, 2, lh_bool_false)));
+    lh_str_cptr p = lh_str_raw_find(hay, 4, nd, 2, lh_bool_true);
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, hay + 1);
+}
+
+TEST(str_raw_rfind, returns_last_occurrence)
+{
+    const lh_char_t hay[] = {'a', 'b', 'x', 'a', 'b'};
+    const lh_char_t nd[]  = {'a', 'b'};
+
+    lh_str_cptr p = lh_str_raw_rfind(hay, 5, nd, 2, lh_bool_false);
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, hay + 3);
+}
+
+TEST(str_raw_rfind, dispatches_ignore_case)
+{
+    const lh_char_t hay[] = {'A', 'B', 'x', 'A', 'B'};
+    const lh_char_t nd[]  = {'a', 'b'};
+
+    EXPECT_TRUE(lh_null_eq(lh_str_raw_rfind(hay, 5, nd, 2, lh_bool_false)));
+
+    lh_str_cptr icase = lh_str_raw_rfind(hay, 5, nd, 2, lh_bool_true);
+    ASSERT_TRUE(lh_null_ne(icase));
+    EXPECT_EQ(icase, hay + 3);
+}
+
+/* -- compare / rcompare ---------------------------------------------------- */
+
+TEST(str_raw_compare, returns_null_when_prefix_matches)
+{
+    const lh_char_t a[] = {'a', 'b', 'c'};
+    const lh_char_t b[] = {'a', 'b', 'c'};
+    EXPECT_TRUE(lh_null_eq(lh_str_raw_compare(a, 3, b, 3, lh_bool_false)));
+}
+
+TEST(str_raw_compare, returns_pointer_to_first_mismatch)
+{
+    const lh_char_t a[] = {'a', 'x', 'c'};
+    const lh_char_t b[] = {'a', 'y', 'c'};
+    lh_str_cptr p = lh_str_raw_compare(a, 3, b, 3, lh_bool_false);
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, a + 1);
+}
+
+TEST(str_raw_compare, ignore_case_reports_equal)
+{
+    const lh_char_t a[] = {'A', 'B', 'C'};
+    const lh_char_t b[] = {'a', 'b', 'c'};
+    EXPECT_TRUE(lh_null_eq(lh_str_raw_compare(a, 3, b, 3, lh_bool_true)));
+}
+
+TEST(str_raw_rcompare, returns_null_when_suffix_matches)
+{
+    const lh_char_t a[] = {'a', 'b', 'c'};
+    const lh_char_t b[] = {'a', 'b', 'c'};
+    EXPECT_TRUE(lh_null_eq(lh_str_raw_rcompare(a, 3, b, 3, lh_bool_false)));
+}
+
+TEST(str_raw_rcompare, returns_pointer_to_suffix_mismatch)
+{
+    const lh_char_t a[] = {'a', 'x', 'c'};
+    const lh_char_t b[] = {'a', 'y', 'c'};
+    lh_str_cptr p = lh_str_raw_rcompare(a, 3, b, 3, lh_bool_false);
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, a + 1);
+}
+
+TEST(str_raw_rcompare, ignore_case_reports_equal)
+{
+    const lh_char_t a[] = {'A', 'B', 'C'};
+    const lh_char_t b[] = {'a', 'b', 'c'};
+    EXPECT_TRUE(lh_null_eq(lh_str_raw_rcompare(a, 3, b, 3, lh_bool_true)));
+}
+
+/* -- rcompare_by_ignore_case ----------------------------------------------- */
+
+TEST(str_raw_rcompare_by_ignore_case, first_suffix_mismatch_after_fold)
+{
+    const lh_char_t lhs[] = {'A', 'x', 'C'};
+    const lh_char_t rhs[] = {'a', 'Y', 'c'};
+    lh_str_cptr p = lh_str_raw_rcompare_by_ignore_case(lhs, 3, rhs, 3);
+    EXPECT_EQ(p, lh_str_raw_rcompare(lhs, 3, rhs, 3, lh_bool_true));
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, lhs + 1);
+}
+
+TEST(str_raw_rcompare_by_ignore_case, returns_null_when_suffix_folds_equal)
+{
+    const lh_char_t lhs[] = {'A', 'B', 'C'};
+    const lh_char_t rhs[] = {'a', 'b', 'c'};
+    EXPECT_TRUE(lh_null_eq(lh_str_raw_rcompare_by_ignore_case(lhs, 3, rhs, 3)));
+}
+
+/* -- rfind_by_ignore_case -------------------------------------------------- */
+
+TEST(str_raw_rfind_by_ignore_case, finds_last_needle)
+{
+    const lh_char_t hay[] = {'H', 'i', 'x', 'h', 'I'};
+    const lh_char_t nd[]  = {'h', 'i'};
+    lh_str_cptr p = lh_str_raw_rfind_by_ignore_case(hay, 5, nd, 2);
+    EXPECT_EQ(p, lh_str_raw_rfind(hay, 5, nd, 2, lh_bool_true));
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, hay + 3);
+}
+
+/* -- copy / move ----------------------------------------------------------- */
+
+TEST(str_raw_copy, copies_min_of_both_sizes)
+{
+    const lh_char_t src[] = {'a', 'b', 'c', 'd'};
+    lh_char_t dst[4] = {};
+
+    lh_str_ptr end = lh_str_raw_copy(dst, 4, src, 4);
+    EXPECT_EQ(end, dst + 4);
+    EXPECT_EQ(dst[0], 'a');
+    EXPECT_EQ(dst[3], 'd');
+}
+
+TEST(str_raw_copy, respects_dst_size_limit)
+{
+    const lh_char_t src[] = {'a', 'b', 'c', 'd'};
+    lh_char_t dst[2] = {};
+
+    lh_str_ptr end = lh_str_raw_copy(dst, 2, src, 4);
+    EXPECT_EQ(end, dst + 2);
+    EXPECT_EQ(dst[0], 'a');
+    EXPECT_EQ(dst[1], 'b');
+}
+
+TEST(str_raw_move, handles_overlapping_buffers)
+{
+    lh_char_t buf[] = {'a', 'b', 'c', 'd', 'e'};
+    lh_str_ptr end = lh_str_raw_move(buf + 1, 3, buf, 3);
+    EXPECT_EQ(end, buf + 4);
+    EXPECT_EQ(buf[1], 'a');
+    EXPECT_EQ(buf[2], 'b');
+    EXPECT_EQ(buf[3], 'c');
+}
+
+/* -- set / set_pattern ----------------------------------------------------- */
+
+TEST(str_raw_set, fills_buffer_with_char)
+{
+    lh_char_t buf[4] = {};
+    lh_str_ptr end = lh_str_raw_set(buf, 4, 'z');
+    EXPECT_EQ(end, buf + 4);
+    EXPECT_EQ(buf[0], 'z');
+    EXPECT_EQ(buf[3], 'z');
+}
+
+TEST(str_raw_set_pattern, repeats_pattern)
+{
+    lh_char_t buf[6] = {};
+    const lh_char_t pat[] = {'a', 'b'};
+    lh_str_ptr end = lh_str_raw_set_pattern(buf, 6, pat, 2);
+    EXPECT_EQ(end, buf + 6);
+    EXPECT_EQ(buf[0], 'a');
+    EXPECT_EQ(buf[1], 'b');
+    EXPECT_EQ(buf[2], 'a');
+    EXPECT_EQ(buf[3], 'b');
+    EXPECT_EQ(buf[4], 'a');
+    EXPECT_EQ(buf[5], 'b');
+}
+
+/* -- to_lower / to_upper --------------------------------------------------- */
+
+TEST(str_raw_to_lower, lowercases_ascii_letters)
+{
+    lh_char_t s[] = {'A', 'B', 'C', '1'};
+    lh_str_ptr end = lh_str_raw_to_lower(s, 4);
+    EXPECT_EQ(end, s + 4);
+    EXPECT_EQ(s[0], 'a');
+    EXPECT_EQ(s[1], 'b');
+    EXPECT_EQ(s[2], 'c');
+    EXPECT_EQ(s[3], '1');
+}
+
+TEST(str_raw_to_upper, uppercases_ascii_letters)
+{
+    lh_char_t s[] = {'a', 'b', 'c', '1'};
+    lh_str_ptr end = lh_str_raw_to_upper(s, 4);
+    EXPECT_EQ(end, s + 4);
+    EXPECT_EQ(s[0], 'A');
+    EXPECT_EQ(s[1], 'B');
+    EXPECT_EQ(s[2], 'C');
+    EXPECT_EQ(s[3], '1');
+}
+
 } // namespace

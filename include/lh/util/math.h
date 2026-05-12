@@ -411,7 +411,7 @@
  * Intended for overflow-style checks where @p max is exclusive.
  */
 #define lh_math_add_over_max_exclusive(a, b, max)                                                  \
-    (lh_math_is_positive(b) && lh_math_gt((a), lh_math_sub((max), (b))))
+    (lh_math_is_positive(b) && lh_math_lt(lh_math_sub((max), (a)), (b)))
 
 /**
  * @def lh_math_add_over_max_inclusive(a, b, max)
@@ -420,7 +420,7 @@
  * Inclusive variant: equality at @p max is treated as overflow.
  */
 #define lh_math_add_over_max_inclusive(a, b, max)                                                  \
-    (!lh_math_is_negative(b) && lh_math_ge((a), lh_math_sub((max), (b))))
+    (!lh_math_is_negative(b) && lh_math_le(lh_math_sub((max), (a)), (b)))
 
 /**
  * @def lh_math_add_below_min_exclusive(a, b, min)
@@ -429,7 +429,7 @@
  * Intended for checks where @p min is exclusive.
  */
 #define lh_math_add_below_min_exclusive(a, b, min)                                                 \
-    (lh_math_is_negative(b) && lh_math_lt((a), lh_math_sub((min), (b))))
+    (lh_math_is_negative(b) && lh_math_gt(lh_math_sub((min), (a)), (b)))
 
 /**
  * @def lh_math_add_below_min_inclusive(a, b, min)
@@ -438,6 +438,6 @@
  * Inclusive variant: equality at @p min is treated as underflow.
  */
 #define lh_math_add_below_min_inclusive(a, b, min)                                                 \
-    (!lh_math_is_positive(b) && lh_math_le((a), lh_math_sub((min), (b))))
+    (!lh_math_is_positive(b) && lh_math_ge(lh_math_sub((min), (a)), (b)))
 
 #endif // LH_UTIL_MATH_H

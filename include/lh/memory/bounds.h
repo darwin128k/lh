@@ -1,220 +1,172 @@
 /**
  * @file bounds.h
- * @brief Mutable non-owning memory span type (::lh_memory_bounds_t) and helpers.
+ * @brief Half-open mutable byte bounds (::lh_memory_bounds_t) and helpers.
  *
- * Memory bounds store two endpoints @c first and @c second (::lh_memory_bounds_fields)
- * denoting the half-open address interval <tt>[first, second)</tt>:
- * @c first points at the first byte, @c second is one past the last byte (the
- * usual C / C++ iterator / span convention). Size in bytes is
- * @c second @c - @c first when both are non-null and ordered.
+ * A memory bounds object stores two endpoints @c first and @c second describing
+ * a right-open address interval <tt>[first, second)</tt>. The first endpoint
+ * points to the first byte in the range; the second endpoint points one byte
+ * past the last byte. Consequently, size is @c second @c - @c first for
+ * initialized forward bounds.
  *
- * Values are classified into a ::lh_memory_bounds_state_t word (null patterns and
- * address ordering). Helpers distinguish **valid** spans — empty (equal non-null
- * endpoints) or strictly ordered @c begin &lt; @c end — from reversed or
- * partially unspecified storage; see ::lh_memory_bounds_state_t.
+ * This is intentionally different from ::lh_memory_bounds_slice_t helpers,
+ * which treat the same two-field storage as a closed interval
+ * <tt>[first, second]</tt>. The public typedef is layout-compatible with the
+ * slice type, but every function in this header interprets @c second as an
+ * exclusive endpoint.
  *
- * For the const-qualified counterpart, see ::lh_memory_view_t.
+ * The bounds can also represent incomplete storage: each endpoint may be
+ * ::lh_null. Endpoint presence is reported as
+ * ::lh_memory_view_slice_flags_t, and initialized bounds are classified by
+ * direction using ::lh_memory_view_slice_direction_t.
  *
- * @see lh_memory_bounds_state_t
- * @see lh_memory_view_t
+ * Valid bounds are initialized and forward ordered for a right-open interval
+ * (@c first &lt; @c second). Functions with the @c _v suffix and all size /
+ * containment / indexed access / raw byte operation helpers require valid
+ * bounds and may raise runtime errors when that precondition is not met.
+ *
+ * @see lh_memory_bounds_slice_t
+ * @see lh_memory_view_slice_flags_t
+ * @see lh_memory_view_slice_direction_t
  */
 
 #ifndef LH_MEMORY_BOUNDS_H
 #define LH_MEMORY_BOUNDS_H
 
-#include <lh/attribute/symbol.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/memory/bounds/fields.h>
-#include <lh/memory/bounds/state.h>
-#include <lh/offset.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
+#include <lh/memory/bounds/slice.h>
 
 /**
- * @struct lh_memory_bounds
- * @brief Non-owning mutable memory span: two ::lh_void * endpoints (@c first / @c second).
+ * @brief Non-owning mutable half-open byte bounds.
  *
- * Endpoints describe <tt>[first, second)</tt> in address space.
- * Public typedef: ::lh_memory_bounds_t.
- * Same layout as ::lh_memory_view_t without @c const on the pointer type.
+ * Endpoints describe <tt>[first, second)</tt> in address space when both are
+ * non-null and ordered. Public typedef: ::lh_memory_bounds_t.
  */
-typedef struct lh_memory_bounds
-{
-    lh_memory_bounds_fields(lh_void);
-} lh_memory_bounds_t; /**< Typedef for struct ::lh_memory_bounds. */
+typedef lh_memory_bounds_slice_t lh_memory_bounds_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── pack / unpack / init ─────────────────────────────────────────────────── */
-
-/**
- * @brief Update @p self from optional input pointers for @c first / @c second.
- *
- * Pass ::lh_null for @p begin or @p end to leave that field unchanged.
- *
- * @param self  Bounds to modify.
- * @param begin Input pointer whose value is stored in @c first, or ::lh_null to skip.
- * @param end   Input pointer whose value is stored in @c second, or ::lh_null to skip.
- *
- * @note This function does not perform range
- *       validity checks on the resulting endpoints.
- *
- *       It simply reads the pointed-to lh_ptr values
- *       and assigns them to the range fields (when non-null).
- *
- *       Use lh_memory_bounds_get_state() to verify
- *       the resulting span before performing further operations.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_memory_bounds_pack(lh_memory_bounds_t *self, lh_ptr *begin, lh_ptr *end);
-
-/**
- * @brief Store @p begin as @c first and @p end as @c second (half-open <tt>[begin, end)</tt>).
- * @param self  Range to modify.
- * @param begin Value for @c first (first byte).
- * @param end   Value for @c second (one past the last byte).
- *
- * @note This function does not validate the coherence
- *       of begin/end (e.g. that begin <= end).
- *
- *       Use lh_memory_bounds_get_state() to determine whether
- *       the resulting bounds are empty, have data, or are reversed.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_memory_bounds_set(lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end);
-
-/**
- * @brief Set @c first = @p begin and @c second = @p begin + @p size (byte offset).
- *
- * Equivalent to half-open <tt>[begin, begin + size)</tt>.
- * @p begin must be non-null. @p size must be valid for pointer arithmetic on @p begin.
- *
- * @param self  Range to modify.
- * @param begin Start address.
- * @param size  Length in bytes.
- *
- * @note This operation can fail if arguments are invalid.
- *
- *       In particular, if @p begin is NULL or @p size is not suitable for pointer arithmetic,
- *       a runtime error with code lh_runtime_error_code_invalid_argument may be raised.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_bounds_set_by_size(lh_memory_bounds_t *self, lh_ptr begin, lh_usize_t size);
+/* -- unpack / getters ------------------------------------------------------ */
 
 /**
  * @brief Read @c first / @c second from @p self into optional outputs.
  *
- * Pass ::lh_null for any pointer to skip that field.
+ * Pass ::lh_null for @p begin or @p end to skip that output.
  *
- * @param self  Range to read.
+ * @param self  Bounds to read.
  * @param begin Output for @c first, or ::lh_null.
  * @param end   Output for @c second, or ::lh_null.
  *
- * @note This function does not validate the retrieved endpoints;
- *       to enforce validity before consuming, consider using
- *       lh_memory_bounds_unpack_v or lh_memory_bounds_get_state().
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
-void
+lh_void
 lh_memory_bounds_unpack(const lh_memory_bounds_t *self, lh_ptr *begin, lh_ptr *end);
 
 /**
- * @brief Return @c first.
- * @param self Range to read.
+ * @brief Return @c first without validating the bounds range.
+ * @param self Bounds to read.
  * @return Stored begin pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_get_begin(const lh_memory_bounds_t *self);
 
 /**
- * @brief Return @c second.
- * @param self Range to read.
- * @return Stored end pointer.
+ * @brief Alias for ::lh_memory_bounds_get_begin.
+ * @param self Bounds to read.
+ * @return Stored begin pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_get_data(const lh_memory_bounds_t *self);
+
+/**
+ * @brief Return @c second without validating the bounds range.
+ * @param self Bounds to read.
+ * @return Stored exclusive end pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_get_end(const lh_memory_bounds_t *self);
 
-/**
- * @brief Same as ::lh_memory_bounds_set for @p begin / @p end.
- * @param self  Range to initialize.
- * @param begin Value stored as @c first.
- * @param end   Value stored as @c second.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_memory_bounds_init(lh_memory_bounds_t *self, lh_void *begin, lh_void *end);
+/* -- classification -------------------------------------------------------- */
 
 /**
- * @brief Same as ::lh_memory_bounds_set_by_size.
- * @param self  Range to initialize.
- * @param begin Start address.
- * @param size  Length in bytes.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_memory_bounds_init_by_size(lh_memory_bounds_t *self, lh_ptr begin, lh_usize_t size);
-
-/**
- * @brief Copy bounds from @p other into @p self (no validity check on @p other).
- * @param self  Destination range.
- * @param other Source range (same layout).
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_memory_bounds_init_by_other(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
-
-/**
- * @brief Initialize @p self with ::lh_memory_bounds_empty_initializer.
- * @param self Destination range.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_memory_bounds_init_by_empty(lh_memory_bounds_t *self);
-
-/* ── classification ───────────────────────────────────────────────────────── */
-
-/**
- * @brief Classify stored endpoints into a flag word (::lh_memory_bounds_state_t).
- * @param self Range to inspect.
- * @return Bit pattern describing null endpoints and ordering when both are non-null.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_memory_bounds_state_t
-lh_memory_bounds_get_state(const lh_memory_bounds_t *self);
-
-/**
- * @brief True iff state is ::lh_memory_view_state_uninitialized (both endpoints null).
- * @param self Range to inspect.
+ * @brief True iff neither endpoint is initialized.
+ * @param self Bounds to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_is_uninitialized(const lh_memory_bounds_t *self);
 
 /**
- * @brief True iff both endpoints are non-null and @c first &lt; @c second.
- * @param self Range to inspect.
+ * @brief True iff both endpoints are initialized.
+ * @param self Bounds to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_has_data(const lh_memory_bounds_t *self);
+lh_memory_bounds_is_initialized(const lh_memory_bounds_t *self);
 
 /**
- * @brief True iff both endpoints are non-null and equal (degenerate span).
- * @param self Range to inspect.
+ * @brief Classify initialized endpoint order for a half-open interval.
+ *
+ * Returns ::lh_memory_view_slice_direction_unknown until both endpoints are
+ * initialized. Otherwise returns forward for @c first &lt; @c second and
+ * backward for equal or reversed bounds.
+ *
+ * @param self Bounds to inspect.
+ * @return Direction value from ::lh_memory_view_slice_direction_t.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_view_slice_direction_t
+lh_memory_bounds_get_direction(const lh_memory_bounds_t *self);
+
+/**
+ * @brief True iff @p self is initialized and ordered @c first &lt; @c second.
+ * @param self Bounds to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_is_empty(const lh_memory_bounds_t *self);
+lh_memory_bounds_is_forward(const lh_memory_bounds_t *self);
 
 /**
- * @brief True iff the range is ::lh_memory_bounds_is_empty or ::lh_memory_bounds_has_data.
- * @param self Range to inspect.
+ * @brief True iff @p self is initialized and not forward.
+ * @param self Bounds to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_is_backward(const lh_memory_bounds_t *self);
+
+/**
+ * @brief True iff @p self is initialized and forward ordered.
+ * @param self Bounds to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
@@ -222,131 +174,497 @@ lh_memory_bounds_is_valid(const lh_memory_bounds_t *self);
 
 /**
  * @brief Logical negation of ::lh_memory_bounds_is_valid.
- * @param self Range to inspect.
+ * @param self Bounds to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_is_invalid(const lh_memory_bounds_t *self);
 
-/* ── validated access, size, geometry ─────────────────────────────────────── */
+/* -- validated access, size, containment ---------------------------------- */
 
 /**
- * @brief Like ::lh_memory_bounds_unpack but requires ::lh_memory_bounds_is_valid(@p self).
- * @param self  Valid range to read.
- * @param begin Output for @c first.
- * @param end   Output for @c second.
+ * @brief Like ::lh_memory_bounds_unpack but requires valid bounds.
+ *
+ * @param self  Valid bounds to read.
+ * @param begin Output for @c first, or ::lh_null.
+ * @param end   Output for @c second, or ::lh_null.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
-void
+lh_void
 lh_memory_bounds_unpack_v(const lh_memory_bounds_t *self, lh_ptr *begin, lh_ptr *end);
 
 /**
- * @brief Raw byte difference @c second @c - @c first (no range validity check).
- * @param self Range to read.
- * @return Signed address difference; may be negative for reversed bounds.
+ * @brief Return @c first after validating @p self.
+ * @param self Valid bounds to read.
+ * @return Stored begin pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_saddr_t
-lh_memory_bounds_diff(const lh_memory_bounds_t *self);
+lh_ptr
+lh_memory_bounds_get_begin_v(const lh_memory_bounds_t *self);
 
 /**
- * @brief Span length in bytes (::lh_memory_bounds_diff cast to ::lh_usize_t).
- * @param self Valid range to read.
+ * @brief Return @c second after validating @p self.
+ * @param self Valid bounds to read.
+ * @return Stored exclusive end pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_get_end_v(const lh_memory_bounds_t *self);
+
+/**
+ * @brief Return half-open bounds size in bytes.
+ *
+ * For valid bounds this is @c second @c - @c first.
+ *
+ * @param self Valid bounds to read.
+ * @return Number of bytes covered by the half-open interval.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_memory_bounds_get_size(const lh_memory_bounds_t *self);
 
 /**
- * @brief True iff @c first is aligned to @p align.
+ * @brief True iff @p self is uninitialized or has zero size.
  *
- * @p align must be a power of two.
+ * Because valid half-open bounds require @c first &lt; @c second, initialized
+ * valid bounds have non-zero size. The uninitialized state is therefore the
+ * practical empty value in this API.
  *
- * @param self  Range to inspect.
- * @param align Required alignment in bytes.
+ * @param self Bounds to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is invalid and not uninitialized.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_is_begin_aligned(const lh_memory_bounds_t *self, lh_usize_t align);
+lh_memory_bounds_is_empty(const lh_memory_bounds_t *self);
 
 /**
- * @brief True iff both @c first and @c second satisfy alignment @p align.
+ * @brief True iff @p offset addresses a byte inside @p self from the begin side.
  *
- * @p align must be a power of two.
+ * Valid offsets are in the half-open numeric interval
+ * <tt>[0, lh_memory_bounds_get_size(self))</tt>.
  *
- * @param self  Range to inspect.
- * @param align Required alignment in bytes.
+ * @param self   Valid bounds to inspect.
+ * @param offset Byte offset from @c first.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_is_aligned(const lh_memory_bounds_t *self, lh_usize_t align);
+lh_memory_bounds_is_valid_offset(const lh_memory_bounds_t *self, lh_uoffset_t offset);
 
 /**
- * @brief True iff ::lh_memory_bounds_get_size(@p self) is a multiple of @p multiple.
- * @param self     Valid range to inspect.
- * @param multiple Divisor to test (library convention for @p multiple applies).
+ * @brief Return byte offset of @p ptr from @c first.
+ *
+ * @param self Valid bounds to inspect.
+ * @param ptr  Pointer whose offset is requested.
+ * @return Byte offset from @c first to @p ptr.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p ptr is outside @p self.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_memory_bounds_is_multiple_of(const lh_memory_bounds_t *self, lh_usize_t multiple);
+lh_uoffset_t
+lh_memory_bounds_get_offset_from_begin(const lh_memory_bounds_t *self, const lh_ptr ptr);
 
 /**
- * @brief Half-open containment: @p ptr satisfies @c first @c &lt;= @p ptr @c &lt; @c second.
- * @param self Range to test (must be valid).
- * @param ptr  Address to test.
+ * @brief Return byte offset of @p ptr from the last byte, walking backward.
+ *
+ * Offset @c 0 means @p ptr equals @c second - 1. The exclusive @c second
+ * endpoint itself is not inside the bounds.
+ *
+ * @param self Valid bounds to inspect.
+ * @param ptr  Pointer whose reverse offset is requested.
+ * @return Byte offset from the last byte back to @p ptr.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p ptr is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uoffset_t
+lh_memory_bounds_get_offset_from_end(const lh_memory_bounds_t *self, const lh_ptr ptr);
+
+/**
+ * @brief True iff @p ptr lies inside the half-open interval @p self.
+ *
+ * @param self Valid bounds to inspect.
+ * @param ptr  Pointer to test.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_contains_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr);
 
 /**
- * @brief Half-open containment: <tt>[begin, end)</tt> lies inside @p self.
- * @param self Range to test (must be valid).
- * @param begin Inner half-open start (inclusive).
- * @param end   Inner half-open end (exclusive).
+ * @brief True iff half-open range <tt>[begin, end)</tt> lies inside @p self.
+ *
+ * @param self  Valid outer bounds.
+ * @param begin Inner range begin pointer.
+ * @param end   Inner range exclusive end pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_contains_range(const lh_memory_bounds_t *self, const lh_ptr begin,
+lh_memory_bounds_contains_of(const lh_memory_bounds_t *self, const lh_ptr begin,
                                 const lh_ptr end);
 
 /**
- * @brief Same as ::lh_memory_bounds_contains_range after unpacking @p other.
- * @param self  Range to test (must be valid).
- * @param other Range whose endpoints are tested (unpacked without extra validity check).
+ * @brief True iff @p other lies completely inside @p self.
+ *
+ * Both operands are interpreted as half-open bounds.
+ *
+ * @param self  Valid outer bounds.
+ * @param other Valid inner bounds.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        A bounds object is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_contains(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
+/* -- pointer and value access --------------------------------------------- */
+
 /**
- * @brief True iff @p self has endpoints equal to @p begin / @p end.
+ * @brief Return pointer at byte @p offset from @c first.
  *
- * @param self  Range to test.
- * @param begin Expected begin pointer.
- * @param end   Expected end pointer.
+ * @param self   Valid bounds to index.
+ * @param offset Byte offset from the begin endpoint.
+ * @return Pointer to the requested byte.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_get_ptr_from_begin(const lh_memory_bounds_t *self, lh_uoffset_t offset);
+
+/**
+ * @brief Return pointer at byte @p offset from the last byte, walking backward.
+ *
+ * Offset @c 0 returns @c second - 1, offset @c 1 returns the previous byte,
+ * and so on.
+ *
+ * @param self   Valid bounds to index.
+ * @param offset Byte offset from the last byte.
+ * @return Pointer to the requested byte.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_get_ptr_from_end(const lh_memory_bounds_t *self, lh_uoffset_t offset);
+
+/**
+ * @brief Return pointer by signed offset.
+ *
+ * Non-negative offsets are measured from @c first. Negative offsets are
+ * measured from the last byte: @c -1 addresses @c second - 1, @c -2 the
+ * previous byte.
+ *
+ * @param self   Valid bounds to index.
+ * @param offset Signed byte offset.
+ * @return Pointer to the requested byte.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_get_ptr_by_offset(const lh_memory_bounds_t *self, lh_soffset_t offset);
+
+/**
+ * @brief Read byte at @p offset from @c first.
+ *
+ * @param self   Valid bounds to index.
+ * @param offset Byte offset from the begin endpoint.
+ * @return Byte stored at the requested address.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_bounds_get_value_from_begin(const lh_memory_bounds_t *self, lh_uoffset_t offset);
+
+/**
+ * @brief Read byte at @p offset from the last byte, walking backward.
+ *
+ * @param self   Valid bounds to index.
+ * @param offset Byte offset from the last byte.
+ * @return Byte stored at the requested address.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_bounds_get_value_from_end(const lh_memory_bounds_t *self, lh_uoffset_t offset);
+
+/**
+ * @brief Read byte by signed offset.
+ *
+ * @param self   Valid bounds to index.
+ * @param offset Signed byte offset.
+ * @return Byte stored at the requested address.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_bounds_get_value_by_offset(const lh_memory_bounds_t *self, lh_soffset_t offset);
+
+/**
+ * @brief Read the first byte of @p self.
+ *
+ * @param self Valid bounds to read.
+ * @return Byte at @c first.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_bounds_get_first_value(const lh_memory_bounds_t *self);
+
+/**
+ * @brief Read the last byte of @p self.
+ *
+ * @param self Valid bounds to read.
+ * @return Byte at @c second - 1.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_bounds_get_last_value(const lh_memory_bounds_t *self);
+
+/**
+ * @brief Write @p value at byte @p offset from @c first.
+ *
+ * @param self   Valid bounds to index.
+ * @param offset Byte offset from the begin endpoint.
+ * @param value  Byte value to write.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_set_value(const lh_memory_bounds_t *self, lh_uoffset_t offset, lh_byte_t value);
+
+/**
+ * @brief Return target byte offset after applying signed @p offset.
+ *
+ * When @p ptr is ::lh_null, @p offset is treated as an absolute signed offset
+ * accepted by ::lh_memory_bounds_get_ptr_by_offset. Otherwise @p offset is
+ * applied relative to @p ptr.
+ *
+ * @param self   Valid bounds to seek in.
+ * @param ptr    Base pointer inside @p self, or ::lh_null for absolute seek.
+ * @param offset Signed byte offset.
+ * @return Target byte offset from @c first.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p ptr is outside @p self or the target offset is out of range.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uoffset_t
+lh_memory_bounds_get_offset_from_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr,
+                                     lh_soffset_t offset);
+
+/**
+ * @brief Return pointer reached by seeking @p offset bytes from @p ptr.
+ *
+ * Boundary underflow and overflow are converted to ::lh_null.
+ *
+ * @param self   Valid bounds to seek in.
+ * @param ptr    Base pointer inside @p self, or ::lh_null for absolute seek.
+ * @param offset Signed byte offset.
+ * @return Target pointer, or ::lh_null when the seek crosses bounds.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_ptr
+lh_memory_bounds_seek_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr, lh_soffset_t offset);
+
+/**
+ * @brief Return the byte pointer after @p ptr.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_ptr
+lh_memory_bounds_next_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr);
+
+/**
+ * @brief Return the byte pointer before @p ptr.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_ptr
+lh_memory_bounds_prev_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr);
+
+/**
+ * @brief Seek to @p ptr and read the byte there.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        The seek result is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_bounds_seek_value(const lh_memory_bounds_t *self, const lh_ptr ptr);
+
+/**
+ * @brief Read the byte after @p ptr.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        There is no next byte inside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_bounds_next_value(const lh_memory_bounds_t *self, const lh_ptr ptr);
+
+/**
+ * @brief Read the byte before @p ptr.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        There is no previous byte inside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_bounds_prev_value(const lh_memory_bounds_t *self, const lh_ptr ptr);
+
+/* -- overlap, alignment, equality ----------------------------------------- */
+
+/**
+ * @brief True iff half-open range <tt>[begin, end)</tt> overlaps @p self.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_equals_range(const lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
+lh_memory_bounds_overlaps_of(const lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
- * @brief True iff @p self and @p other have identical stored endpoints.
+ * @brief Alias for ::lh_memory_bounds_overlaps_of.
  *
- * Compares the raw bounds (`first`, `second`) for equality.
- *
- * @param self  First range.
- * @param other Second range.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_memory_bounds_equals(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
-
-/**
- * @brief Half-open overlap between @p self and <tt>[begin, end)</tt>.
- * @param self  Range to test (must be valid).
- * @param begin Second half-open start (inclusive).
- * @param end   Second half-open end (exclusive).
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
@@ -354,397 +672,337 @@ lh_memory_bounds_overlaps_range(const lh_memory_bounds_t *self, const lh_ptr beg
                                 const lh_ptr end);
 
 /**
- * @brief Same as ::lh_memory_bounds_overlaps_range after unpacking @p other.
- * @param self  Range to test (must be valid).
- * @param other Second range (unpacked without extra validity check on @p other).
+ * @brief True iff @p other overlaps @p self.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_overlaps(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
-/* ── indexing ─────────────────────────────────────────────────────────────── */
-
 /**
- * @brief True iff @p offset &lt; ::lh_memory_bounds_get_size(@p self).
- * @param self   Valid range.
- * @param offset Zero-based byte offset from the start of the span.
+ * @brief True iff valid @p other overlaps @p self.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_is_valid_offset(const lh_memory_bounds_t *self, lh_uoffset_t offset);
+lh_memory_bounds_overlaps_v(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
 /**
- * @brief Address @c first + @p offset (requires ::lh_memory_bounds_is_valid_offset).
- * @param self   Valid range.
- * @param offset Byte offset from @c first.
- * @return Pointer into the span.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_ptr
-lh_memory_bounds_get_ptr_from_front(const lh_memory_bounds_t *self, lh_uoffset_t offset);
-
-/**
- * @brief Address of the element @p offset from the last byte (toward @c first).
- * @param self   Valid non-empty range.
- * @param offset Distance back from the last element (0 = last byte).
- * @return Pointer into the span.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_ptr
-lh_memory_bounds_get_ptr_from_back(const lh_memory_bounds_t *self, lh_uoffset_t offset);
-
-/**
- * @brief Dispatch to ::lh_memory_bounds_get_ptr_from_front or ::lh_memory_bounds_get_ptr_from_back.
- * @param self      Valid range.
- * @param offset    Byte offset (interpretation depends on @p from_back).
- * @param from_back If true, count from the end of the span.
- * @return Pointer into the span.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_ptr
-lh_memory_bounds_get_ptr(const lh_memory_bounds_t *self, lh_uoffset_t offset, lh_bool_t from_back);
-
-/**
- * @brief Byte value at @p offset from the front (requires valid offset).
- * @param self   Valid range.
- * @param offset Byte offset from @c first.
- * @return Byte stored at the resolved address.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_byte_t
-lh_memory_bounds_get_value_from_front(const lh_memory_bounds_t *self, lh_uoffset_t offset);
-
-/**
- * @brief Byte value at @p offset from the back (requires valid offset).
- * @param self   Valid non-empty range.
- * @param offset Distance back from the last element (0 = last byte).
- * @return Byte stored at the resolved address.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_byte_t
-lh_memory_bounds_get_value_from_back(const lh_memory_bounds_t *self, lh_uoffset_t offset);
-
-/**
- * @brief Dispatch to ::lh_memory_bounds_get_value_from_front or
- * ::lh_memory_bounds_get_value_from_back.
- * @param self      Valid range.
- * @param offset    Byte offset (interpretation depends on @p from_back).
- * @param from_back If true, count from the end of the span.
- * @return Byte stored at the resolved address.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_byte_t
-lh_memory_bounds_get_value(const lh_memory_bounds_t *self, lh_uoffset_t offset,
-                           lh_bool_t from_back);
-
-/**
- * @brief True iff @p self can produce a valid slice for (@p offset, @p size).
+ * @brief True iff half-open bounds size is divisible by @p alignment.
  *
- * This predicate mirrors the runtime precondition used by
- * ::lh_memory_bounds_slice.
+ * @param self      Valid bounds to inspect.
+ * @param alignment Non-zero divisor for the bounds size.
  *
- * @param self   Source valid range.
- * @param offset Start byte offset from @c first.
- * @param size   Slice size in bytes.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_is_sliceable(const lh_memory_bounds_t *self, lh_uoffset_t offset,
-                              lh_uoffset_t size);
+lh_memory_bounds_multiple_of(const lh_memory_bounds_t *self, lh_usize_t alignment);
 
 /**
- * @brief Return a validated half-open subrange <tt>[offset, offset + size)</tt> of @p self.
+ * @brief Alias for ::lh_memory_bounds_multiple_of.
  *
- * Uses front-based indexing and fails the runtime check when the resulting
- * offsets are not sliceable for @p self (see ::lh_memory_bounds_is_sliceable).
- *
- * @param self   Source valid range.
- * @param offset Start byte offset from @c first.
- * @param size   Length of the subrange in bytes.
- * @return Constructed valid subrange.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_bounds_t
-lh_memory_bounds_slice(const lh_memory_bounds_t *self, lh_uoffset_t offset, lh_uoffset_t size);
+lh_bool_t
+lh_memory_bounds_is_multiple_of(const lh_memory_bounds_t *self, lh_usize_t multiple);
 
 /**
- * @brief Like ::lh_memory_bounds_slice, but returns empty range on any failure.
+ * @brief True iff @c first is aligned to @p align.
  *
- * On invalid @p self or out-of-range/overflow slice request, returns
- * ::lh_memory_bounds_empty_initializer.
- *
- * @param self   Source range.
- * @param offset Start byte offset from @c first.
- * @param size   Length of the subrange in bytes.
- * @return Constructed subrange or empty range on failure.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_bounds_t
-lh_memory_bounds_slice_or_empty(const lh_memory_bounds_t *self, lh_uoffset_t offset,
-                                lh_uoffset_t size);
+lh_bool_t
+lh_memory_bounds_aligned_is_begin_aligned(const lh_memory_bounds_t *self, lh_usize_t align);
 
 /**
- * @brief Write @p value at ::lh_memory_bounds_get_ptr(@p self, @p offset, @p from_back)
- * (inverse of ::lh_memory_bounds_get_value for the same @p offset / @p from_back).
- * @param self      Range to modify.
- * @param offset    Index as for ::lh_memory_bounds_get_ptr.
- * @param value     Byte to store.
- * @param from_back If true, index from the end.
+ * @brief Alias for ::lh_memory_bounds_aligned_is_begin_aligned.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_bounds_set_value(lh_memory_bounds_t *self, lh_uoffset_t offset, lh_byte_t value,
-                           lh_bool_t from_back);
+lh_bool_t
+lh_memory_bounds_is_begin_aligned(const lh_memory_bounds_t *self, lh_usize_t align);
 
 /**
- * @brief Same as ::lh_memory_bounds_get_ptr(@p self, 0, ::lh_bool_false).
- * @param self Valid range.
+ * @brief True iff both endpoints are aligned to @p align.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr
-lh_memory_bounds_get_front_ptr(const lh_memory_bounds_t *self);
+lh_bool_t
+lh_memory_bounds_is_aligned(const lh_memory_bounds_t *self, lh_usize_t align);
 
 /**
- * @brief Byte stored at ::lh_memory_bounds_get_front_ptr(@p self).
- * @param self Valid range.
+ * @brief True iff @p self stores exactly @p begin and @p end.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_byte_t
-lh_memory_bounds_get_front_value(const lh_memory_bounds_t *self);
+lh_bool_t
+lh_memory_bounds_equals_of(const lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
- * @brief Same as ::lh_memory_bounds_get_ptr(@p self, 0, ::lh_bool_true).
- * @param self Valid non-empty range.
+ * @brief Alias for ::lh_memory_bounds_equals_of.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_ptr
-lh_memory_bounds_get_back_ptr(const lh_memory_bounds_t *self);
+lh_bool_t
+lh_memory_bounds_equals_range(const lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
- * @brief Byte stored at ::lh_memory_bounds_get_back_ptr(@p self).
- * @param self Valid non-empty range.
+ * @brief True iff @p self and @p other store the same endpoints.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_byte_t
-lh_memory_bounds_get_back_value(const lh_memory_bounds_t *self);
+lh_bool_t
+lh_memory_bounds_equals(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
+
+/* -- raw byte operations --------------------------------------------------- */
 
 /**
- * @brief Return next pointer after @p ptr within @p self, or ::lh_null if no next element.
+ * @brief Copy bytes from half-open range <tt>[begin, end)</tt> into @p self.
  *
- * Returns ::lh_null when @p ptr is outside @p self or when @p ptr already points
- * to the last element (`second - 1`) of the half-open span.
+ * Delegates to ::lh_memory_raw_copy, so it writes up to the smaller of the
+ * destination and source sizes.
  *
- * @param self Range to iterate.
- * @param ptr  Current pointer.
- * @return Next pointer in range, or ::lh_null.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_ptr
-lh_memory_bounds_next_ptr(const lh_memory_bounds_t *self, lh_ptr ptr);
-
-/**
- * @brief Return previous pointer before @p ptr within @p self, or ::lh_null if no previous element.
+ * @param self  Valid destination bounds.
+ * @param begin Source range begin pointer.
+ * @param end   Source range exclusive end pointer.
+ * @return Pointer one past the last byte written.
  *
- * Returns ::lh_null when @p ptr is outside @p self or when @p ptr already points
- * to the first element (`first`) of the half-open span.
- *
- * @param self Range to iterate.
- * @param ptr  Current pointer.
- * @return Previous pointer in range, or ::lh_null.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_ptr
-lh_memory_bounds_prev_ptr(const lh_memory_bounds_t *self, lh_ptr ptr);
-
-/**
- * @brief Return value at next pointer after @p ptr within @p self.
- *
- * Equivalent to dereferencing ::lh_memory_bounds_next_ptr. Fails runtime check
- * when next element does not exist.
- *
- * @param self Range to iterate.
- * @param ptr  Current pointer.
- * @return Byte value at next position.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_byte_t
-lh_memory_bounds_next_value(const lh_memory_bounds_t *self, lh_ptr ptr);
-
-/**
- * @brief Return value at previous pointer before @p ptr within @p self.
- *
- * Equivalent to dereferencing ::lh_memory_bounds_prev_ptr. Fails runtime check
- * when previous element does not exist.
- *
- * @param self Range to iterate.
- * @param ptr  Current pointer.
- * @return Byte value at previous position.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_byte_t
-lh_memory_bounds_prev_value(const lh_memory_bounds_t *self, lh_ptr ptr);
-
-/* ── raw byte ops (half-open spans) ───────────────────────────────────────── */
-
-/**
- * @brief Copy bytes into @p self from <tt>[begin, end)</tt> (see ::lh_memory_raw_copy).
- *
- * Unpacks @p self as the destination span; @p begin / @p end are the source span.
- * Requires ::lh_memory_bounds_is_valid(@p self).
- *
- * @param self  Valid range used as @c dst / @c dst_end for ::lh_memory_raw_copy.
- * @param begin Source span start (inclusive).
- * @param end   Source span end (exclusive).
- *
- * @return Pointer one past the last byte written into @p self.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_copy_range(lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
- * @brief Same as ::lh_memory_bounds_copy_range after unpacking @p other (requires valid @p other).
- * @param self  Valid destination range.
- * @param other Valid source range.
+ * @brief Copy bytes from @p other into @p self.
  *
- * @return Pointer one past the last byte written into @p self.
+ * Both operands are interpreted as half-open bounds.
+ *
+ * @param self  Valid destination bounds.
+ * @param other Valid source bounds.
+ * @return Pointer one past the last byte written.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_copy(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
 /**
- * @brief Move bytes into @p self from <tt>[begin, end)</tt> (see ::lh_memory_raw_move).
+ * @brief Move bytes from half-open range <tt>[begin, end)</tt> into @p self.
  *
- * Requires ::lh_memory_bounds_is_valid(@p self).
+ * Delegates to ::lh_memory_raw_move and supports overlapping storage.
  *
- * @param self  Valid range used as destination.
- * @param begin Source span start (inclusive).
- * @param end   Source span end (exclusive).
+ * @param self  Valid destination bounds.
+ * @param begin Source range begin pointer.
+ * @param end   Source range exclusive end pointer.
+ * @return Pointer one past the last byte written.
  *
- * @return Pointer one past the last byte written into @p self.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_move_range(lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
- * @brief Same as ::lh_memory_bounds_move_range after unpacking @p other (requires valid @p other).
- * @param self  Valid destination range.
- * @param other Valid source range.
+ * @brief Move bytes from @p other into @p self.
  *
- * @return Pointer one past the last byte written into @p self.
+ * Both operands are interpreted as half-open bounds.
+ *
+ * @param self  Valid destination bounds.
+ * @param other Valid source bounds.
+ * @return Pointer one past the last byte written.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_move(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
 /**
- * @brief Fill @p self with a constant byte value (see ::lh_memory_raw_set).
+ * @brief Fill @p self with @p value.
  *
- * Requires ::lh_memory_bounds_is_valid(@p self).
+ * @param self  Valid destination bounds.
+ * @param value Byte value to write.
+ * @return Pointer one past the last byte written.
  *
- * @param self  Destination range (must be valid).
- * @param value Byte value to write into each element of @p self.
- *
- * @return Pointer one past the last byte written into @p self.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_fill(lh_memory_bounds_t *self, lh_byte_t value);
 
 /**
- * @brief Fill @p self by repeating bytes from <tt>[begin, end)</tt>
- * (see ::lh_memory_raw_set_pattern).
+ * @brief Fill @p self by repeating pattern range <tt>[begin, end)</tt>.
  *
- * Requires ::lh_memory_bounds_is_valid(@p self).
+ * @param self  Valid destination bounds.
+ * @param begin Pattern range begin pointer.
+ * @param end   Pattern range exclusive end pointer.
+ * @return Pointer one past the last byte written, or ::lh_null when nothing is
+ *         written by the raw operation.
  *
- * @param self  Destination range (must be valid).
- * @param begin Pattern span start (inclusive).
- * @param end   Pattern span end (exclusive).
- *
- * @return Pointer one past the last byte written into @p self.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_fill_pattern_range(lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
- * @brief Same as ::lh_memory_bounds_fill_pattern_range after unpacking @p other
- * (requires valid @p other).
- * @param self  Destination range (must be valid).
- * @param other Pattern range (must be valid).
+ * @brief Fill @p self by repeating bytes from @p other.
  *
- * @return Pointer one past the last byte written into @p self.
+ * Both operands are interpreted as half-open bounds.
+ *
+ * @param self  Valid destination bounds.
+ * @param other Valid pattern bounds.
+ * @return Pointer one past the last byte written, or ::lh_null when nothing is
+ *         written by the raw operation.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_fill_pattern(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
 /**
- * @brief Find the leftmost occurrence of <tt>[begin, end)</tt> inside @p self (see
- * ::lh_memory_raw_find).
+ * @brief Find the first occurrence of <tt>[begin, end)</tt> inside @p self.
  *
- * Requires ::lh_memory_bounds_is_valid(@p self).
+ * @param self  Valid bounds used as the haystack.
+ * @param begin Needle range begin pointer.
+ * @param end   Needle range exclusive end pointer.
+ * @return Pointer to the first match, or ::lh_null when no match exists.
  *
- * @param self  Valid range (haystack).
- * @param begin Needle start (inclusive).
- * @param end   Needle end (exclusive).
- *
- * @return Start of the first match in @p self, or ::lh_null if none.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_find_range(const lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
- * @brief Same as ::lh_memory_bounds_find_range after unpacking @p other (requires valid @p other).
- * @param self  Haystack (must be valid).
- * @param other Needle range (must be valid).
+ * @brief Find the first occurrence of @p other inside @p self.
  *
- * @return Start of the first match in @p self, or ::lh_null if none.
+ * Both operands are interpreted as half-open bounds.
+ *
+ * @param self  Valid bounds used as the haystack.
+ * @param other Valid bounds used as the needle.
+ * @return Pointer to the first match, or ::lh_null when no match exists.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_find(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
 /**
- * @brief Find the rightmost occurrence of <tt>[begin, end)</tt> in @p self (see
- * ::lh_memory_raw_rfind).
+ * @brief Find the last occurrence of <tt>[begin, end)</tt> inside @p self.
  *
- * Requires ::lh_memory_bounds_is_valid(@p self).
+ * @param self  Valid bounds used as the haystack.
+ * @param begin Needle range begin pointer.
+ * @param end   Needle range exclusive end pointer.
+ * @return Pointer to the last match, or ::lh_null when no match exists.
  *
- * @param self  Valid range (haystack).
- * @param begin Needle start (inclusive).
- * @param end   Needle end (exclusive).
- *
- * @return Start of the last match in @p self, or ::lh_null if none.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_rfind_range(const lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
- * @brief Same as ::lh_memory_bounds_rfind_range after unpacking @p other (requires valid @p other).
- * @param self  Haystack (must be valid).
- * @param other Needle range (must be valid).
+ * @brief Find the last occurrence of @p other inside @p self.
  *
- * @return Start of the last match in @p self, or ::lh_null if none.
+ * Both operands are interpreted as half-open bounds.
+ *
+ * @param self  Valid bounds used as the haystack.
+ * @param other Valid bounds used as the needle.
+ * @return Pointer to the last match, or ::lh_null when no match exists.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_rfind(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
 /**
- * @brief Compare @p self to <tt>[begin, end)</tt> forward (see ::lh_memory_raw_compare).
+ * @brief Compare @p self with half-open range <tt>[begin, end)</tt>.
  *
- * Requires ::lh_memory_bounds_is_valid(@p self).
+ * Delegates to ::lh_memory_raw_compare and compares up to the smaller size.
  *
- * @param self  Valid range (left-hand side).
- * @param begin Right-hand span start (inclusive).
- * @param end   Right-hand span end (exclusive).
+ * @param self  Valid left-hand bounds.
+ * @param begin Right-hand range begin pointer.
+ * @param end   Right-hand range exclusive end pointer.
+ * @return Pointer to the first differing byte in @p self, or ::lh_null when the
+ *         compared bytes are equal.
  *
- * @return Pointer to the first differing byte in @p self, or ::lh_null if all compared bytes match.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
@@ -752,29 +1010,39 @@ lh_memory_bounds_compare_range(const lh_memory_bounds_t *self, const lh_ptr begi
                                const lh_ptr end);
 
 /**
- * @brief Same as ::lh_memory_bounds_compare_range after unpacking @p other (requires valid @p
- * other).
- * @param self  Left-hand range (must be valid).
- * @param other Right-hand range (must be valid).
+ * @brief Compare @p self with @p other.
  *
- * @return Pointer to the first differing byte in @p self, or ::lh_null if all compared bytes match.
+ * Both operands are interpreted as half-open bounds.
+ *
+ * @param self  Valid left-hand bounds.
+ * @param other Valid right-hand bounds.
+ * @return Pointer to the first differing byte in @p self, or ::lh_null when the
+ *         compared bytes are equal.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_compare(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
 /**
- * @brief Compare suffixes of @p self and <tt>[begin, end)</tt> from the ends inward (see
- * ::lh_memory_raw_rcompare).
+ * @brief Compare suffixes of @p self and <tt>[begin, end)</tt>.
  *
- * Requires ::lh_memory_bounds_is_valid(@p self).
+ * Delegates to ::lh_memory_raw_rcompare.
  *
- * @param self  Valid range (left-hand side).
- * @param begin Right-hand span start (inclusive).
- * @param end   Right-hand span end (exclusive).
+ * @param self  Valid left-hand bounds.
+ * @param begin Right-hand range begin pointer.
+ * @param end   Right-hand range exclusive end pointer.
+ * @return Pointer to the differing byte in @p self, or ::lh_null when the
+ *         compared suffixes are equal.
  *
- * @return Pointer into @p self at the differing byte in the compared suffix window, or ::lh_null if
- * equal.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
@@ -782,212 +1050,234 @@ lh_memory_bounds_rcompare_range(const lh_memory_bounds_t *self, const lh_ptr beg
                                 const lh_ptr end);
 
 /**
- * @brief Same as ::lh_memory_bounds_rcompare_range after unpacking @p other (requires valid @p
- * other).
- * @param self  Left-hand range (must be valid).
- * @param other Right-hand range (must be valid).
+ * @brief Compare suffixes of @p self and @p other.
  *
- * @return Pointer into @p self at the differing byte in the compared suffix window, or ::lh_null if
- * equal.
+ * Both operands are interpreted as half-open bounds.
+ *
+ * @param self  Valid left-hand bounds.
+ * @param other Valid right-hand bounds.
+ * @return Pointer to the differing byte in @p self, or ::lh_null when the
+ *         compared suffixes are equal.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_rcompare(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
-/* ── copy / clear / swap ──────────────────────────────────────────────────── */
+/* -- mutation -------------------------------------------------------------- */
 
 /**
- * @brief Copy @p other into @p self without requiring ::lh_memory_bounds_is_valid(@p other).
- * @param self  Destination.
- * @param other Source.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_bounds_assign(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
-
-/**
- * @brief Reset @p self to the “both null” pattern (::lh_memory_bounds_empty_initializer).
- * @param self Range to clear.
+ * @brief Reset @p self to the uninitialized empty bounds.
+ *
+ * @param self Bounds to clear.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_clear(lh_memory_bounds_t *self);
 
 /**
- * @brief Like ::lh_memory_bounds_assign but requires ::lh_memory_bounds_is_valid(@p other).
- * @param self  Destination.
- * @param other Source (must be valid).
+ * @brief Copy endpoints from valid @p other to @p self.
+ *
+ * @param self  Bounds to update.
+ * @param other Valid bounds to copy from.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p other is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_assign_v(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
 /**
- * @brief Build a temporary range from @p begin / @p end and ::lh_memory_bounds_assign_v.
+ * @brief Store @p begin and @p end in @p self after validation.
  *
- * Fails the runtime check if the pair is not a valid range.
+ * @param self  Bounds to update.
+ * @param begin New @c first endpoint.
+ * @param end   New exclusive @c second endpoint.
  *
- * @param self  Destination.
- * @param begin New @c first.
- * @param end   New @c second.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        <tt>[begin, end)</tt> is not a valid half-open range.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_set_v(lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end);
 
 /**
- * @brief Optionally update bounds of @p self, then validate the resulting range.
+ * @brief Build and validate bounds from @p begin and @p end.
  *
- * Works like ::lh_memory_bounds_pack: pass ::lh_null for @p begin and/or @p end
- * to keep the corresponding stored endpoint unchanged. The updated value is then
- * committed through ::lh_memory_bounds_assign_v, so invalid resulting bounds fail
- * runtime validation.
+ * @param begin New @c first endpoint.
+ * @param end   New exclusive @c second endpoint.
+ * @return Constructed valid bounds value.
  *
- * @param self  Destination range.
- * @param begin Optional new value source for @c first, or ::lh_null to keep current value.
- * @param end   Optional new value source for @c second, or ::lh_null to keep current value.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_bounds_pack_v(lh_memory_bounds_t *self, lh_ptr *begin, lh_ptr *end);
-
-/**
- * @brief Like ::lh_memory_bounds_set_by_size, but on failure clears @p self.
- * @param self  Destination.
- * @param begin Start address.
- * @param size  Length in bytes.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_bounds_set_by_size_or_clear(lh_memory_bounds_t *self, lh_ptr begin, lh_usize_t size);
-
-/**
- * @brief Swap the contents of @p self and @p other.
- * @param self  First range.
- * @param other Second range.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_bounds_swap(lh_memory_bounds_t *self, lh_memory_bounds_t *other);
-
-/**
- * @brief Return a by-value copy of @p self without requiring validity.
- *
- * Copies raw stored endpoints (`first`, `second`) as-is.
- *
- * @param self Source range.
- * @return Cloned range.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_memory_bounds_t
-lh_memory_bounds_clone(const lh_memory_bounds_t *self);
-
-/**
- * @brief Copy @p self into @p other without requiring validity.
- *
- * Equivalent to cloning @p self and assigning the result to @p other via
- * ::lh_memory_bounds_assign.
- *
- * @param self  Source range.
- * @param other Destination range.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_bounds_dup(const lh_memory_bounds_t *self, lh_memory_bounds_t *other);
-
-/**
- * @brief Copy @p self into @p other, requiring destination assignment through
- * ::lh_memory_bounds_assign_v.
- *
- * The copied value is produced by ::lh_memory_bounds_clone and then validated by
- * assignment rules of ::lh_memory_bounds_assign_v.
- *
- * @param self  Source range.
- * @param other Destination range.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_bounds_dup_v(const lh_memory_bounds_t *self, lh_memory_bounds_t *other);
-
-/**
- * @brief Clone @p self and validate the produced value as in ::lh_memory_bounds_dup_v.
- *
- * @param self Source range.
- * @return Cloned valid range.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_memory_bounds_t
-lh_memory_bounds_clone_v(const lh_memory_bounds_t *self);
-
-/**
- * @brief Clear @p self, then swap with @p other (so @p other receives the cleared range).
- * @param self  Range to replace.
- * @param other Range to exchange with.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_bounds_exchange(lh_memory_bounds_t *self, lh_memory_bounds_t *other);
-
-/**
- * @brief Build a range from @p begin / @p end and return it by value (no validation).
- *
- * @param begin New @c first.
- * @param end   New @c second.
- * @return Constructed range (may be invalid; see ::lh_memory_bounds_is_valid).
- */
-LH_ATTRIBUTE_SYMBOL
-lh_memory_bounds_t
-lh_memory_bounds_make(lh_ptr begin, lh_ptr end);
-
-/**
- * @brief Return ::lh_memory_bounds_empty_initializer by value.
- * @return Empty range value.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_memory_bounds_t lh_memory_bounds_make_by_empty(lh_void);
-
-/**
- * @brief Build and validate a range from @p begin and @p size.
- *
- * Equivalent to constructing the half-open range <tt>[begin, begin + size)</tt>.
- * Uses the same preconditions as ::lh_memory_bounds_set_by_size and validates
- * the resulting bounds as in ::lh_memory_bounds_make_v.
- *
- * Fails the runtime check if the resulting pair is not a valid range.
- *
- * @p begin must be non-null and @p size must be valid for pointer arithmetic.
- *
- * @param begin New @c first.
- * @param size  Range length in bytes.
- * @return Constructed valid range.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_memory_bounds_t
-lh_memory_bounds_make_by_size(lh_ptr begin, lh_usize_t size);
-
-/**
- * @brief Build and validate a range from @p begin / @p end, then return it by value.
- *
- * Fails the runtime check if the pair is not a valid range.
- *
- * @param begin New @c first.
- * @param end   New @c second.
- * @return Constructed valid range.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        <tt>[begin, end)</tt> is not a valid half-open range.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_t
 lh_memory_bounds_make_v(lh_ptr begin, lh_ptr end);
 
 /**
- * @brief Like ::lh_memory_bounds_make_v, but returns empty range on failure.
+ * @brief Build valid half-open bounds starting at @p begin with @p size bytes.
  *
- * @param begin New @c first.
- * @param end   New @c second.
- * @return Constructed valid range or empty range on failure.
+ * The returned endpoints are <tt>[begin, begin + size)</tt>. @p size must be
+ * non-zero.
+ *
+ * @param begin New @c first endpoint.
+ * @param size  Number of bytes in the half-open bounds.
+ * @return Constructed valid bounds value.
+ *
+ * @throw ::lh_runtime_error_code_invalid_argument
+ *        @p begin is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p size is zero or the computed bounds are not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_t
-lh_memory_bounds_make_or_empty(lh_ptr begin, lh_ptr end);
+lh_memory_bounds_make_by_size(lh_ptr begin, lh_usize_t size);
+
+/**
+ * @brief Return bounds with both endpoints null.
+ *
+ * @return Uninitialized empty bounds value.
+ *
+ * @see lh_memory_bounds_empty_initializer
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_bounds_t lh_memory_bounds_make_empty(lh_void);
+
+/**
+ * @brief Store a half-open range starting at @p begin with @p size bytes.
+ *
+ * The resulting endpoints are <tt>[begin, begin + size)</tt>. @p size must be
+ * non-zero.
+ *
+ * @param self  Bounds to update.
+ * @param begin New @c first endpoint.
+ * @param size  Number of bytes in the half-open bounds.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_argument
+ *        @p begin is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p size is zero or the computed bounds are not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_set_by_size(lh_memory_bounds_t *self, lh_ptr begin, lh_usize_t size);
+
+/**
+ * @brief Initialize @p self with valid @p begin and @p end endpoints.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        <tt>[begin, end)</tt> is not a valid half-open range.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_init(lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end);
+
+/**
+ * @brief Initialize @p self as a half-open range starting at @p begin.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_argument
+ *        @p begin is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p size is zero or the computed bounds are not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_init_by_size(lh_memory_bounds_t *self, lh_ptr begin, lh_usize_t size);
+
+/**
+ * @brief Initialize @p self with the empty bounds initializer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_init_empty(lh_memory_bounds_t *self);
+
+/**
+ * @brief Initialize @p self by copying endpoints from valid @p other.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_init_by_other(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
+
+/**
+ * @brief Swap two valid bounds.
+ *
+ * @param self  Valid bounds to swap.
+ * @param other Valid bounds to swap with.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_swap_v(lh_memory_bounds_t *self, lh_memory_bounds_t *other);
+
+/**
+ * @brief Clear @p self, then swap it with @p other.
+ *
+ * When @p self and @p other are different objects, @p self receives the
+ * previous endpoints of valid @p other, and @p other receives empty bounds.
+ * When @p self and @p other are the same object, the bounds are only cleared.
+ *
+ * @param self  Bounds to clear and replace.
+ * @param other Valid bounds to swap with.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_swap_and_clear(lh_memory_bounds_t *self, lh_memory_bounds_t *other);
+
+/* -- slice conversion ------------------------------------------------------ */
+
+/**
+ * @brief Build a closed slice copy from half-open @p self.
+ *
+ * Valid bounds <tt>[begin, end)</tt> become closed slice
+ * <tt>[begin, end - 1]</tt>. Uninitialized empty bounds become an empty slice.
+ *
+ * @param self Bounds to copy as a closed slice.
+ * @return Converted slice value.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is neither uninitialized nor valid half-open bounds.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_bounds_slice_t
+lh_memory_bounds_make_slice(const lh_memory_bounds_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -1,267 +1,172 @@
 /**
  * @file view.h
- * @brief Non-owning read-only memory view type (::lh_memory_view_t) and helpers.
+ * @brief Half-open read-only byte view (::lh_memory_view_t) and helpers.
  *
- * A view stores two endpoints @c first and @c second (::lh_memory_view_fields)
- * denoting the half-open address interval <tt>[first, second)</tt>:
- * @c first points at the first byte, @c second is one past the last byte
- * (the usual C / C++ iterator / span convention).
+ * A memory view object stores two @c const endpoints @c first and @c second
+ * describing a right-open address interval <tt>[first, second)</tt>. The
+ * first endpoint points to the first byte in the range; the second endpoint
+ * points one byte past the last byte. Consequently, size is
+ * @c second @c - @c first for initialized forward views.
  *
- * Size in bytes is @c second @c - @c first when both are non-null and ordered.
+ * This is intentionally different from ::lh_memory_view_slice_t helpers,
+ * which treat the same two-field storage as a closed interval
+ * <tt>[first, second]</tt>. The public typedef is layout-compatible with the
+ * slice type, but every function in this header interprets @c second as an
+ * exclusive endpoint.
  *
- * Values are classified into a ::lh_memory_bounds_state_t word (null patterns and
- * address ordering). Helpers distinguish **valid** spans - empty (equal non-null
- * endpoints) or strictly ordered @c begin &lt; @c end - from reversed or
- * partially unspecified storage; see ::lh_memory_bounds_state_t.
+ * The view can also represent incomplete storage: each endpoint may be
+ * ::lh_null. Endpoint presence is reported as
+ * ::lh_memory_view_slice_flags_t, and initialized views are classified by
+ * direction using ::lh_memory_view_slice_direction_t.
  *
- * Mirrors the read-only subset of ::lh_memory_bounds_t.
- * Operations that write into the described memory
- * (copy, move, fill, indexed write) exist only on ::lh_memory_bounds_t.
+ * Valid views are initialized and forward ordered for a right-open interval
+ * (@c first &lt; @c second). Functions with the @c _v suffix and all size /
+ * containment / indexed access / raw byte operation helpers require valid
+ * views and may raise runtime errors when that precondition is not met.
  *
- * @see lh_memory_bounds_state_t
- * @see lh_memory_bounds_t
+ * @see lh_memory_view_slice_t
+ * @see lh_memory_view_slice_flags_t
+ * @see lh_memory_view_slice_direction_t
  */
 
 #ifndef LH_MEMORY_VIEW_H
 #define LH_MEMORY_VIEW_H
 
-#include <lh/attribute/symbol.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/memory/bounds/state.h>
-#include <lh/memory/view/fields.h>
-#include <lh/offset.h>
-#include <lh/size.h>
-#include <lh/ptr.h>
+#include <lh/memory/view/slice.h>
 
 /**
- * @struct lh_memory_view
- * @brief Non-owning read-only memory span: two @c const ::lh_ptr  endpoints.
+ * @brief Non-owning read-only half-open byte view.
  *
- * Endpoints describe <tt>[first, second)</tt> like ::lh_memory_bounds_t.
- * Public typedef: ::lh_memory_view_t.
- * Same layout as ::lh_memory_bounds_t but with const-qualified pointers.
+ * Endpoints describe <tt>[first, second)</tt> in address space when both are
+ * non-null and ordered. Public typedef: ::lh_memory_view_t.
  */
-typedef struct lh_memory_view
-{
-    lh_memory_view_fields(lh_void);
-} lh_memory_view_t; /**< Typedef for struct ::lh_memory_view. */
+typedef lh_memory_view_slice_t lh_memory_view_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── pack / unpack / init ─────────────────────────────────────────────────── */
-
-/**
- * @brief Update @p self from optional inputs for @c first / @c second.
- *
- * Pass ::lh_null for @p begin
- * or @p end to leave that field unchanged.
- *
- * @param self  View to modify.
- * @param begin Input pointer whose value is stored in @c first, or ::lh_null to skip.
- * @param end   Input pointer whose value is stored in @c second, or ::lh_null to skip.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_memory_view_pack(lh_memory_view_t *self, const lh_ptr *begin, const lh_ptr *end);
-
-/**
- * @brief Store @p begin as @c first and @p end as @c second (half-open <tt>[begin, end)</tt>).
- * @param self  View to modify.
- * @param begin Value for @c first (first byte).
- * @param end   Value for @c second (one past the last byte).
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_memory_view_set(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
-
-/**
- * @brief Same as ::lh_memory_view_set.
- * @param self  View to modify.
- * @param begin Value for @c first (first byte).
- * @param end   Value for @c second (one past the last byte).
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_memory_view_init(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
-
-/**
- * @brief Initialize @p self with @c first = @p begin and @c second = @p begin + @p size.
- *
- * Equivalent to half-open <tt>[begin, begin + size)</tt>.
- * @p begin must be non-null. @p size must be valid for byte offset arithmetic on @p begin.
- *
- * @param self  View to modify.
- * @param begin Start address.
- * @param size  Length in bytes.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_memory_view_init_by_size(lh_memory_view_t *self, const lh_ptr begin, lh_usize_t size);
+/* -- unpack / getters ------------------------------------------------------ */
 
 /**
  * @brief Read @c first / @c second from @p self into optional outputs.
  *
- * Pass ::lh_null for any pointer to skip that field.
+ * Pass ::lh_null for @p begin or @p end to skip that output.
  *
  * @param self  View to read.
  * @param begin Output for @c first, or ::lh_null.
  * @param end   Output for @c second, or ::lh_null.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
-void
+lh_void
 lh_memory_view_unpack(const lh_memory_view_t *self, const lh_ptr *begin, const lh_ptr *end);
 
 /**
- * @brief Copy bounds from @p other into @p self (no validity check on @p other).
- * @param self  Destination view.
- * @param other Source view (same layout).
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_memory_view_init_by_other(lh_memory_view_t *self, const lh_memory_view_t *other);
-
-/**
- * @brief Initialize @p self with ::lh_memory_view_empty_initializer.
- * @param self Destination view.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_memory_view_init_by_empty(lh_memory_view_t *self);
-
-/**
- * @brief Return @c first.
+ * @brief Return @c first without validating the view range.
  * @param self View to read.
  * @return Stored begin pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_view_get_begin(const lh_memory_view_t *self);
 
 /**
- * @brief Return @c second.
+ * @brief Alias for ::lh_memory_view_get_begin.
  * @param self View to read.
- * @return Stored end pointer.
+ * @return Stored begin pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_ptr
+lh_memory_view_get_data(const lh_memory_view_t *self);
+
+/**
+ * @brief Return @c second without validating the view range.
+ * @param self View to read.
+ * @return Stored exclusive end pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_view_get_end(const lh_memory_view_t *self);
 
-/**
- * @brief Copy @p other into @p self without requiring ::lh_memory_view_is_valid(@p other).
- * @param self  Destination.
- * @param other Source.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_view_assign(lh_memory_view_t *self, const lh_memory_view_t *other);
+/* -- classification -------------------------------------------------------- */
 
 /**
- * @brief Reset @p self to the "both null" pattern (::lh_memory_view_empty_initializer).
- * @param self View to clear.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_view_clear(lh_memory_view_t *self);
-
-/**
- * @brief Swap the contents of @p self and @p other.
- * @param self  First view.
- * @param other Second view.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_view_swap(lh_memory_view_t *self, lh_memory_view_t *other);
-
-/**
- * @brief Clear @p self, then swap with @p other (so @p other receives the cleared view).
- * @param self  View to replace.
- * @param other View to exchange with.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_view_exchange(lh_memory_view_t *self, lh_memory_view_t *other);
-
-/**
- * @brief Return a by-value copy of @p self without requiring validity.
+ * @brief Classify initialized endpoint order for a half-open interval.
  *
- * Copies raw stored endpoints (`first`, `second`) as-is.
+ * Returns ::lh_memory_view_slice_direction_unknown until both endpoints are
+ * initialized. Otherwise returns forward for @c first &lt; @c second and
+ * backward for equal or reversed views.
  *
- * @param self Source view.
- * @return Cloned view.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_memory_view_t
-lh_memory_view_clone(const lh_memory_view_t *self);
-
-/**
- * @brief Copy @p self into @p other without requiring validity.
- *
- * @param self  Source view.
- * @param other Destination view.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_view_dup(const lh_memory_view_t *self, lh_memory_view_t *other);
-
-/**
- * @brief Copy @p self into @p other through validated assignment.
- *
- * @param self  Source view.
- * @param other Destination view.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_view_dup_v(const lh_memory_view_t *self, lh_memory_view_t *other);
-
-/**
- * @brief Clone @p self and validate the produced value as in ::lh_memory_view_dup_v.
- *
- * @param self Source view.
- * @return Cloned valid view.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_memory_view_t
-lh_memory_view_clone_v(const lh_memory_view_t *self);
-
-/* ── classification ───────────────────────────────────────────────────────── */
-
-/**
- * @brief Classify stored endpoints into a flag word (::lh_memory_bounds_state_t).
  * @param self View to inspect.
- * @return Bit pattern describing null endpoints and ordering when both are non-null.
+ * @return Direction value from ::lh_memory_view_slice_direction_t.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_bounds_state_t
-lh_memory_view_get_state(const lh_memory_view_t *self);
+lh_memory_view_slice_direction_t
+lh_memory_view_get_direction(const lh_memory_view_t *self);
 
 /**
- * @brief True iff state is ::lh_memory_view_state_uninitialized (both endpoints null).
+ * @brief True iff neither endpoint is initialized.
  * @param self View to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_view_is_uninitialized(const lh_memory_view_t *self);
 
 /**
- * @brief True iff both endpoints are non-null and @c first &lt; @c second.
+ * @brief True iff both endpoints are initialized.
  * @param self View to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_view_has_data(const lh_memory_view_t *self);
+lh_memory_view_is_initialized(const lh_memory_view_t *self);
 
 /**
- * @brief True iff both endpoints are non-null and equal (degenerate span).
+ * @brief True iff @p self is initialized and ordered @c first &lt; @c second.
  * @param self View to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_view_is_empty(const lh_memory_view_t *self);
+lh_memory_view_is_forward(const lh_memory_view_t *self);
 
 /**
- * @brief True iff the view is ::lh_memory_view_is_empty or ::lh_memory_view_has_data.
+ * @brief True iff @p self is initialized and not forward.
  * @param self View to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_view_is_backward(const lh_memory_view_t *self);
+
+/**
+ * @brief True iff @p self is initialized and forward ordered.
+ * @param self View to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
@@ -270,550 +175,954 @@ lh_memory_view_is_valid(const lh_memory_view_t *self);
 /**
  * @brief Logical negation of ::lh_memory_view_is_valid.
  * @param self View to inspect.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_view_is_invalid(const lh_memory_view_t *self);
 
-/* ── validated access, size, geometry ─────────────────────────────────────── */
+/* -- validated access, size, containment ---------------------------------- */
 
 /**
- * @brief Like ::lh_memory_view_unpack but requires ::lh_memory_view_is_valid(@p self).
+ * @brief Like ::lh_memory_view_unpack but requires valid views.
+ *
  * @param self  Valid view to read.
- * @param begin Output for @c first.
- * @param end   Output for @c second.
+ * @param begin Output for @c first, or ::lh_null.
+ * @param end   Output for @c second, or ::lh_null.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
-void
+lh_void
 lh_memory_view_unpack_v(const lh_memory_view_t *self, const lh_ptr *begin, const lh_ptr *end);
 
 /**
- * @brief Raw byte difference @c second @c - @c first (no validity check).
- * @param self View to read.
- * @return Signed address difference; may be negative for reversed bounds.
+ * @brief Return @c first after validating @p self.
+ * @param self Valid view to read.
+ * @return Stored begin pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_saddr_t
-lh_memory_view_diff(const lh_memory_view_t *self);
+const lh_ptr
+lh_memory_view_get_begin_v(const lh_memory_view_t *self);
 
 /**
- * @brief Span length in bytes (::lh_memory_view_diff cast to ::lh_usize_t).
+ * @brief Return @c second after validating @p self.
  * @param self Valid view to read.
+ * @return Stored exclusive end pointer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_ptr
+lh_memory_view_get_end_v(const lh_memory_view_t *self);
+
+/**
+ * @brief Return half-open view size in bytes.
+ *
+ * For valid views this is @c second @c - @c first.
+ *
+ * @param self Valid view to read.
+ * @return Number of bytes covered by the half-open interval.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_memory_view_get_size(const lh_memory_view_t *self);
 
 /**
- * @brief True iff @c first is aligned to @p align.
+ * @brief True iff @p self is uninitialized or has zero size.
  *
- * @p align must be a power of two.
+ * Because valid half-open views require @c first &lt; @c second, initialized
+ * valid views have non-zero size. The uninitialized state is therefore the
+ * practical empty value in this API.
  *
- * @param self  View to inspect.
- * @param align Required alignment in bytes.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_memory_view_is_begin_aligned(const lh_memory_view_t *self, lh_usize_t align);
-
-/**
- * @brief True iff both @c first and @c second satisfy alignment @p align.
+ * @param self View to inspect.
  *
- * @p align must be a power of two.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is invalid and not uninitialized.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_view_is_empty(const lh_memory_view_t *self);
+
+/**
+ * @brief True iff @p offset addresses a byte inside @p self from the begin side.
  *
- * @param self  View to inspect.
- * @param align Required alignment in bytes.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_memory_view_is_aligned(const lh_memory_view_t *self, lh_usize_t align);
-
-/**
- * @brief True iff ::lh_memory_view_get_size(@p self) is a multiple of @p multiple.
- * @param self     Valid view to inspect.
- * @param multiple Divisor to test (library convention for @p multiple applies).
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_memory_view_is_multiple_of(const lh_memory_view_t *self, lh_usize_t multiple);
-
-/**
- * @brief Half-open containment: @p ptr satisfies @c first @c &lt;= @p ptr @c &lt; @c second.
- * @param self View to test (must be valid).
- * @param ptr  Address to test.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_memory_view_contains_ptr(const lh_memory_view_t *self, const lh_ptr ptr);
-
-/**
- * @brief Half-open containment: <tt>[begin, end)</tt> lies inside @p self.
- * @param self  View to test (must be valid).
- * @param begin Inner half-open start (inclusive).
- * @param end   Inner half-open end (exclusive).
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_memory_view_contains_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
-
-/**
- * @brief Same as ::lh_memory_view_contains_range after unpacking @p other.
- * @param self  View to test (must be valid).
- * @param other View whose endpoints are tested (unpacked without extra validity check).
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_memory_view_contains(const lh_memory_view_t *self, const lh_memory_view_t *other);
-
-/**
- * @brief True iff @p self has endpoints equal to @p begin / @p end.
- * @param self  View to test.
- * @param begin Expected begin pointer.
- * @param end   Expected end pointer.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_memory_view_equals_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
-
-/**
- * @brief True iff @p self and @p other have identical stored endpoints.
+ * Valid offsets are in the half-open numeric interval
+ * <tt>[0, lh_memory_view_get_size(self))</tt>.
  *
- * Compares the raw bounds (`first`, `second`) for equality.
+ * @param self   Valid view to inspect.
+ * @param offset Byte offset from @c first.
  *
- * @param self  First view.
- * @param other Second view.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_memory_view_equals(const lh_memory_view_t *self, const lh_memory_view_t *other);
-
-/**
- * @brief Half-open overlap between @p self and <tt>[begin, end)</tt>.
- * @param self  View to test (must be valid).
- * @param begin Second half-open start (inclusive).
- * @param end   Second half-open end (exclusive).
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_memory_view_overlaps_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
-
-/**
- * @brief Same as ::lh_memory_view_overlaps_range after unpacking @p other.
- * @param self  View to test (must be valid).
- * @param other Second view (unpacked without extra validity check on @p other).
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_memory_view_overlaps(const lh_memory_view_t *self, const lh_memory_view_t *other);
-
-/* ── indexing ─────────────────────────────────────────────────────────────── */
-
-/**
- * @brief True iff @p offset &lt; ::lh_memory_view_get_size(@p self).
- * @param self   Valid view.
- * @param offset Zero-based byte offset from the start of the span.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_view_is_valid_offset(const lh_memory_view_t *self, lh_uoffset_t offset);
 
 /**
- * @brief Address @c first + @p offset (requires ::lh_memory_view_is_valid_offset).
- * @param self   Valid view.
- * @param offset Byte offset from @c first.
- * @return Pointer into the span.
- */
-LH_ATTRIBUTE_SYMBOL
-const lh_ptr
-lh_memory_view_get_ptr_from_front(const lh_memory_view_t *self, lh_uoffset_t offset);
-
-/**
- * @brief Address of the element @p offset from the last byte (toward @c first).
- * @param self   Valid non-empty view.
- * @param offset Distance back from the last element (0 = last byte).
- * @return Pointer into the span.
- */
-LH_ATTRIBUTE_SYMBOL
-const lh_ptr
-lh_memory_view_get_ptr_from_back(const lh_memory_view_t *self, lh_uoffset_t offset);
-
-/**
- * @brief Dispatch to ::lh_memory_view_get_ptr_from_front or ::lh_memory_view_get_ptr_from_back.
- * @param self      Valid view.
- * @param offset    Byte offset (interpretation depends on @p from_back).
- * @param from_back If true, count from the end of the span.
- * @return Pointer into the span.
- */
-LH_ATTRIBUTE_SYMBOL
-const lh_ptr
-lh_memory_view_get_ptr(const lh_memory_view_t *self, lh_uoffset_t offset, lh_bool_t from_back);
-
-/**
- * @brief Byte value at @p offset from the front (requires valid offset).
- * @param self   Valid view.
- * @param offset Byte offset from @c first.
- * @return Byte stored at the resolved address.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_byte_t
-lh_memory_view_get_value_from_front(const lh_memory_view_t *self, lh_uoffset_t offset);
-
-/**
- * @brief Byte value at @p offset from the back (requires valid offset).
- * @param self   Valid non-empty view.
- * @param offset Distance back from the last element (0 = last byte).
- * @return Byte stored at the resolved address.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_byte_t
-lh_memory_view_get_value_from_back(const lh_memory_view_t *self, lh_uoffset_t offset);
-
-/**
- * @brief Dispatch to ::lh_memory_view_get_value_from_front or ::lh_memory_view_get_value_from_back.
- * @param self      Valid view.
- * @param offset    Byte offset (interpretation depends on @p from_back).
- * @param from_back If true, count from the end of the span.
- * @return Byte stored at the resolved address.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_byte_t
-lh_memory_view_get_value(const lh_memory_view_t *self, lh_uoffset_t offset, lh_bool_t from_back);
-
-/**
- * @brief True iff @p self can produce a valid slice for (@p offset, @p size).
+ * @brief Return byte offset of @p ptr from @c first.
  *
- * This predicate mirrors the runtime precondition used by
- * ::lh_memory_view_slice.
+ * @param self Valid view to inspect.
+ * @param ptr  Pointer whose offset is requested.
+ * @return Byte offset from @c first to @p ptr.
  *
- * @param self   Source valid view.
- * @param offset Start byte offset from @c first.
- * @param size   Slice size in bytes.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p ptr is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uoffset_t
+lh_memory_view_get_offset_from_begin(const lh_memory_view_t *self, const lh_ptr ptr);
+
+/**
+ * @brief Return byte offset of @p ptr from the last byte, walking backward.
+ *
+ * Offset @c 0 means @p ptr equals @c second - 1. The exclusive @c second
+ * endpoint itself is not inside the view.
+ *
+ * @param self Valid view to inspect.
+ * @param ptr  Pointer whose reverse offset is requested.
+ * @return Byte offset from the last byte back to @p ptr.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p ptr is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uoffset_t
+lh_memory_view_get_offset_from_end(const lh_memory_view_t *self, const lh_ptr ptr);
+
+/**
+ * @brief True iff @p ptr lies inside the half-open interval @p self.
+ *
+ * @param self Valid view to inspect.
+ * @param ptr  Pointer to test.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_view_is_sliceable(const lh_memory_view_t *self, lh_uoffset_t offset, lh_uoffset_t size);
+lh_memory_view_contains_ptr(const lh_memory_view_t *self, const lh_ptr ptr);
 
 /**
- * @brief Return a validated half-open subview <tt>[offset, offset + size)</tt> of @p self.
+ * @brief True iff half-open range <tt>[begin, end)</tt> lies inside @p self.
  *
- * Uses front-based indexing and fails the runtime check when the resulting
- * offsets are not sliceable for @p self (see ::lh_memory_view_is_sliceable).
+ * @param self  Valid outer view.
+ * @param begin Inner range begin pointer.
+ * @param end   Inner range exclusive end pointer.
  *
- * @param self   Source valid view.
- * @param offset Start byte offset from @c first.
- * @param size   Length of the subview in bytes.
- * @return Constructed valid subview.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_view_t
-lh_memory_view_slice(const lh_memory_view_t *self, lh_uoffset_t offset, lh_uoffset_t size);
+lh_bool_t
+lh_memory_view_contains_of(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
- * @brief Like ::lh_memory_view_slice, but returns empty view on any failure.
+ * @brief True iff @p other lies completely inside @p self.
  *
- * On invalid @p self or out-of-range/overflow slice request, returns
- * ::lh_memory_view_empty_initializer.
+ * Both operands are interpreted as half-open views.
  *
- * @param self   Source view.
- * @param offset Start byte offset from @c first.
- * @param size   Length of the subview in bytes.
- * @return Constructed subview or empty view on failure.
+ * @param self  Valid outer view.
+ * @param other Valid inner view.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        A view is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_view_t
-lh_memory_view_slice_or_empty(const lh_memory_view_t *self, lh_uoffset_t offset, lh_uoffset_t size);
+lh_bool_t
+lh_memory_view_contains(const lh_memory_view_t *self, const lh_memory_view_t *other);
+
+/* -- pointer and value access --------------------------------------------- */
 
 /**
- * @brief Same as ::lh_memory_view_get_ptr(@p self, 0, ::lh_bool_false).
- * @param self Valid view.
+ * @brief Return pointer at byte @p offset from @c first.
+ *
+ * @param self   Valid view to index.
+ * @param offset Byte offset from the begin endpoint.
+ * @return Pointer to the requested byte.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
-lh_memory_view_get_front_ptr(const lh_memory_view_t *self);
+lh_memory_view_get_ptr_from_begin(const lh_memory_view_t *self, lh_uoffset_t offset);
 
 /**
- * @brief Byte stored at ::lh_memory_view_get_front_ptr(@p self).
- * @param self Valid view.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_byte_t
-lh_memory_view_get_front_value(const lh_memory_view_t *self);
-
-/**
- * @brief Same as ::lh_memory_view_get_ptr(@p self, 0, ::lh_bool_true).
- * @param self Valid non-empty view.
+ * @brief Return pointer at byte @p offset from the last byte, walking backward.
+ *
+ * Offset @c 0 returns @c second - 1, offset @c 1 returns the previous byte,
+ * and so on.
+ *
+ * @param self   Valid view to index.
+ * @param offset Byte offset from the last byte.
+ * @return Pointer to the requested byte.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
-lh_memory_view_get_back_ptr(const lh_memory_view_t *self);
+lh_memory_view_get_ptr_from_end(const lh_memory_view_t *self, lh_uoffset_t offset);
 
 /**
- * @brief Byte stored at ::lh_memory_view_get_back_ptr(@p self).
- * @param self Valid non-empty view.
+ * @brief Return pointer by signed offset.
+ *
+ * Non-negative offsets are measured from @c first. Negative offsets are
+ * measured from the last byte: @c -1 addresses @c second - 1, @c -2 the
+ * previous byte.
+ *
+ * @param self   Valid view to index.
+ * @param offset Signed byte offset.
+ * @return Pointer to the requested byte.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_ptr
+lh_memory_view_get_ptr_by_offset(const lh_memory_view_t *self, lh_soffset_t offset);
+
+/**
+ * @brief Read byte at @p offset from @c first.
+ *
+ * @param self   Valid view to index.
+ * @param offset Byte offset from the begin endpoint.
+ * @return Byte stored at the requested address.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_byte_t
-lh_memory_view_get_back_value(const lh_memory_view_t *self);
+lh_memory_view_get_value_from_begin(const lh_memory_view_t *self, lh_uoffset_t offset);
 
 /**
- * @brief Return next pointer after @p ptr within @p self, or ::lh_null if no next element.
+ * @brief Read byte at @p offset from the last byte, walking backward.
  *
- * Returns ::lh_null when @p ptr is outside @p self or when @p ptr already points
- * to the last element (`second - 1`) of the half-open span.
+ * @param self   Valid view to index.
+ * @param offset Byte offset from the last byte.
+ * @return Byte stored at the requested address.
  *
- * @param self View to iterate.
- * @param ptr  Current pointer.
- * @return Next pointer in view, or ::lh_null.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_view_get_value_from_end(const lh_memory_view_t *self, lh_uoffset_t offset);
+
+/**
+ * @brief Read byte by signed offset.
+ *
+ * @param self   Valid view to index.
+ * @param offset Signed byte offset.
+ * @return Byte stored at the requested address.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p offset is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_view_get_value_by_offset(const lh_memory_view_t *self, lh_soffset_t offset);
+
+/**
+ * @brief Read the first byte of @p self.
+ *
+ * @param self Valid view to read.
+ * @return Byte at @c first.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_view_get_first_value(const lh_memory_view_t *self);
+
+/**
+ * @brief Read the last byte of @p self.
+ *
+ * @param self Valid view to read.
+ * @return Byte at @c second - 1.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_view_get_last_value(const lh_memory_view_t *self);
+
+/**
+ * @brief Return target byte offset after applying signed @p offset.
+ *
+ * When @p ptr is ::lh_null, @p offset is treated as an absolute signed offset
+ * accepted by ::lh_memory_view_get_ptr_by_offset. Otherwise @p offset is
+ * applied relative to @p ptr.
+ *
+ * @param self   Valid view to seek in.
+ * @param ptr    Base pointer inside @p self, or ::lh_null for absolute seek.
+ * @param offset Signed byte offset.
+ * @return Target byte offset from @c first.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p ptr is outside @p self or the target offset is out of range.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uoffset_t
+lh_memory_view_get_offset_from_ptr(const lh_memory_view_t *self, const lh_ptr ptr,
+                                   lh_soffset_t offset);
+
+/**
+ * @brief Return pointer reached by seeking @p offset bytes from @p ptr.
+ *
+ * Boundary underflow and overflow are converted to ::lh_null.
+ *
+ * @param self   Valid view to seek in.
+ * @param ptr    Base pointer inside @p self, or ::lh_null for absolute seek.
+ * @param offset Signed byte offset.
+ * @return Target pointer, or ::lh_null when the seek crosses bounds.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_ptr
+lh_memory_view_seek_ptr(const lh_memory_view_t *self, const lh_ptr ptr, lh_soffset_t offset);
+
+/**
+ * @brief Return the byte pointer after @p ptr.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_view_next_ptr(const lh_memory_view_t *self, const lh_ptr ptr);
 
 /**
- * @brief Return previous pointer before @p ptr within @p self, or ::lh_null if no previous element.
+ * @brief Return the byte pointer before @p ptr.
  *
- * Returns ::lh_null when @p ptr is outside @p self or when @p ptr already points
- * to the first element (`first`) of the half-open span.
- *
- * @param self View to iterate.
- * @param ptr  Current pointer.
- * @return Previous pointer in view, or ::lh_null.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_view_prev_ptr(const lh_memory_view_t *self, const lh_ptr ptr);
 
 /**
- * @brief Return value at next pointer after @p ptr within @p self.
+ * @brief Seek to @p ptr and read the byte there.
  *
- * Equivalent to dereferencing ::lh_memory_view_next_ptr. Fails runtime check
- * when next element does not exist.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        The seek result is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_byte_t
+lh_memory_view_seek_value(const lh_memory_view_t *self, const lh_ptr ptr);
+
+/**
+ * @brief Read the byte after @p ptr.
  *
- * @param self View to iterate.
- * @param ptr  Current pointer.
- * @return Byte value at next position.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        There is no next byte inside @p self.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_byte_t
 lh_memory_view_next_value(const lh_memory_view_t *self, const lh_ptr ptr);
 
 /**
- * @brief Return value at previous pointer before @p ptr within @p self.
+ * @brief Read the byte before @p ptr.
  *
- * Equivalent to dereferencing ::lh_memory_view_prev_ptr. Fails runtime check
- * when previous element does not exist.
- *
- * @param self View to iterate.
- * @param ptr  Current pointer.
- * @return Byte value at previous position.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        There is no previous byte inside @p self.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_byte_t
 lh_memory_view_prev_value(const lh_memory_view_t *self, const lh_ptr ptr);
 
-/* ── raw byte search / compare (read-only) ───────────────────────────────── */
+/* -- overlap, alignment, equality ----------------------------------------- */
 
 /**
- * @brief Find the leftmost occurrence of <tt>[begin, end)</tt> inside @p self (see
- * ::lh_memory_raw_find).
+ * @brief True iff half-open range <tt>[begin, end)</tt> overlaps @p self.
  *
- * Requires ::lh_memory_view_is_valid(@p self).
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_view_overlaps_of(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
+
+/**
+ * @brief Alias for ::lh_memory_view_overlaps_of.
  *
- * @param self  Valid view (haystack).
- * @param begin Needle start (inclusive).
- * @param end   Needle end (exclusive).
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_view_overlaps_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
+
+/**
+ * @brief True iff @p other overlaps @p self.
  *
- * @return Start of the first match in @p self, or ::lh_null if none.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_view_overlaps(const lh_memory_view_t *self, const lh_memory_view_t *other);
+
+/**
+ * @brief True iff valid @p other overlaps @p self.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_view_overlaps_v(const lh_memory_view_t *self, const lh_memory_view_t *other);
+
+/**
+ * @brief True iff half-open view size is divisible by @p alignment.
+ *
+ * @param self      Valid view to inspect.
+ * @param alignment Non-zero divisor for the view size.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_view_multiple_of(const lh_memory_view_t *self, lh_usize_t alignment);
+
+/**
+ * @brief Alias for ::lh_memory_view_multiple_of.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_view_is_multiple_of(const lh_memory_view_t *self, lh_usize_t multiple);
+
+/**
+ * @brief True iff @c first is aligned to @p align.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_view_aligned_is_begin_aligned(const lh_memory_view_t *self, lh_usize_t align);
+
+/**
+ * @brief Alias for ::lh_memory_view_aligned_is_begin_aligned.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_view_is_begin_aligned(const lh_memory_view_t *self, lh_usize_t align);
+
+/**
+ * @brief True iff both endpoints are aligned to @p align.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_view_is_aligned(const lh_memory_view_t *self, lh_usize_t align);
+
+/**
+ * @brief True iff @p self stores exactly @p begin and @p end.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_view_equals_of(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
+
+/**
+ * @brief Alias for ::lh_memory_view_equals_of.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_view_equals_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
+
+/**
+ * @brief True iff @p self and @p other store the same endpoints.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_view_equals(const lh_memory_view_t *self, const lh_memory_view_t *other);
+
+/* -- raw byte operations --------------------------------------------------- */
+
+/**
+ * @brief Find the first occurrence of <tt>[begin, end)</tt> inside @p self.
+ *
+ * @param self  Valid view used as the haystack.
+ * @param begin Needle range begin pointer.
+ * @param end   Needle range exclusive end pointer.
+ * @return Pointer to the first match, or ::lh_null when no match exists.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_view_find_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
- * @brief Same as ::lh_memory_view_find_range after unpacking @p other (requires valid @p other).
- * @param self  Haystack (must be valid).
- * @param other Needle view (must be valid).
+ * @brief Find the first occurrence of @p other inside @p self.
  *
- * @return Start of the first match in @p self, or ::lh_null if none.
+ * Both operands are interpreted as half-open views.
+ *
+ * @param self  Valid view used as the haystack.
+ * @param other Valid view used as the needle.
+ * @return Pointer to the first match, or ::lh_null when no match exists.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_view_find(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
- * @brief Find the rightmost occurrence of <tt>[begin, end)</tt> in @p self (see
- * ::lh_memory_raw_rfind).
+ * @brief Find the last occurrence of <tt>[begin, end)</tt> inside @p self.
  *
- * Requires ::lh_memory_view_is_valid(@p self).
+ * @param self  Valid view used as the haystack.
+ * @param begin Needle range begin pointer.
+ * @param end   Needle range exclusive end pointer.
+ * @return Pointer to the last match, or ::lh_null when no match exists.
  *
- * @param self  Valid view (haystack).
- * @param begin Needle start (inclusive).
- * @param end   Needle end (exclusive).
- *
- * @return Start of the last match in @p self, or ::lh_null if none.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_view_rfind_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
- * @brief Same as ::lh_memory_view_rfind_range after unpacking @p other (requires valid @p other).
- * @param self  Haystack (must be valid).
- * @param other Needle view (must be valid).
+ * @brief Find the last occurrence of @p other inside @p self.
  *
- * @return Start of the last match in @p self, or ::lh_null if none.
+ * Both operands are interpreted as half-open views.
+ *
+ * @param self  Valid view used as the haystack.
+ * @param other Valid view used as the needle.
+ * @return Pointer to the last match, or ::lh_null when no match exists.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_view_rfind(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
- * @brief Compare @p self to <tt>[begin, end)</tt> forward (see ::lh_memory_raw_compare).
+ * @brief Compare @p self with half-open range <tt>[begin, end)</tt>.
  *
- * Requires ::lh_memory_view_is_valid(@p self).
+ * Delegates to ::lh_memory_raw_compare and compares up to the smaller size.
  *
- * @param self  Valid view (left-hand side).
- * @param begin Right-hand span start (inclusive).
- * @param end   Right-hand span end (exclusive).
+ * @param self  Valid left-hand view.
+ * @param begin Right-hand range begin pointer.
+ * @param end   Right-hand range exclusive end pointer.
+ * @return Pointer to the first differing byte in @p self, or ::lh_null when
+ *         the compared bytes are equal.
  *
- * @return Pointer to the first differing byte in @p self, or ::lh_null if all compared bytes match.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_view_compare_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
- * @brief Same as ::lh_memory_view_compare_range after unpacking @p other (requires valid @p
- * other).
- * @param self  Left-hand view (must be valid).
- * @param other Right-hand view (must be valid).
+ * @brief Compare @p self with @p other.
  *
- * @return Pointer to the first differing byte in @p self, or ::lh_null if all compared bytes match.
+ * Both operands are interpreted as half-open views.
+ *
+ * @param self  Valid left-hand view.
+ * @param other Valid right-hand view.
+ * @return Pointer to the first differing byte in @p self, or ::lh_null when
+ *         the compared bytes are equal.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_view_compare(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
- * @brief Compare suffixes of @p self and <tt>[begin, end)</tt> from the ends inward (see
- * ::lh_memory_raw_rcompare).
+ * @brief Compare suffixes of @p self and <tt>[begin, end)</tt>.
  *
- * Requires ::lh_memory_view_is_valid(@p self).
+ * Delegates to ::lh_memory_raw_rcompare.
  *
- * @param self  Valid view (left-hand side).
- * @param begin Right-hand span start (inclusive).
- * @param end   Right-hand span end (exclusive).
+ * @param self  Valid left-hand view.
+ * @param begin Right-hand range begin pointer.
+ * @param end   Right-hand range exclusive end pointer.
+ * @return Pointer to the differing byte in @p self, or ::lh_null when the
+ *         compared suffixes are equal.
  *
- * @return Pointer into @p self at the differing byte in the compared suffix window, or ::lh_null if
- * equal.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_view_rcompare_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
- * @brief Same as ::lh_memory_view_rcompare_range after unpacking @p other (requires valid @p
- * other).
- * @param self  Left-hand view (must be valid).
- * @param other Right-hand view (must be valid).
+ * @brief Compare suffixes of @p self and @p other.
  *
- * @return Pointer into @p self at the differing byte in the compared suffix window, or ::lh_null if
- * equal.
+ * Both operands are interpreted as half-open views.
+ *
+ * @param self  Valid left-hand view.
+ * @param other Valid right-hand view.
+ * @return Pointer to the differing byte in @p self, or ::lh_null when the
+ *         compared suffixes are equal.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_view_rcompare(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
-/* ── bounds validation / convenience ───────────────────────────────────────── */
+/* -- mutation -------------------------------------------------------------- */
 
 /**
- * @brief Like ::lh_memory_view_assign but requires ::lh_memory_view_is_valid(@p other).
- * @param self  Destination.
- * @param other Source (must be valid).
+ * @brief Reset @p self to the uninitialized empty view.
+ *
+ * @param self View to clear.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_view_clear(lh_memory_view_t *self);
+
+/**
+ * @brief Copy endpoints from valid @p other to @p self.
+ *
+ * @param self  View to update.
+ * @param other Valid view to copy from.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p other is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_view_assign_v(lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /**
- * @brief Build a temporary view from @p begin / @p end and ::lh_memory_view_assign_v.
+ * @brief Exchange the contents of @p self and @p other.
  *
- * Fails the runtime check if the pair is not a valid view.
+ * @param self  First view.
+ * @param other Second view.
  *
- * @param self  Destination.
- * @param begin New @c first.
- * @param end   New @c second.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_memory_view_init_v(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
-
-/**
- * @brief Like ::lh_memory_view_init_by_size, but on failure clears @p self.
- * @param self  Destination.
- * @param begin Start address.
- * @param size  Length in bytes.
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_void
-lh_memory_view_init_by_size_or_clear(lh_memory_view_t *self, const lh_ptr begin, lh_usize_t size);
+lh_memory_view_swap(lh_memory_view_t *self, lh_memory_view_t *other);
 
 /**
- * @brief Build a view from @p begin / @p end and return it by value (no validation).
+ * @brief Clear @p self, then swap it with @p other.
  *
- * @param begin New @c first.
- * @param end   New @c second.
- * @return Constructed view (may be invalid; see ::lh_memory_view_is_valid).
+ * Discards the current contents of @p self, then moves the contents of
+ * @p other into @p self, leaving @p other empty.
+ *
+ * @param self  View to clear and receive @p other's contents.
+ * @param other View whose contents are moved into @p self.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_view_t
-lh_memory_view_make(const lh_ptr begin, const lh_ptr end);
+lh_void
+lh_memory_view_swap_and_clear(lh_memory_view_t *self, lh_memory_view_t *other);
 
 /**
- * @brief Return ::lh_memory_view_empty_initializer by value.
- * @return Empty view value.
+ * @brief Store @p begin and @p end in @p self after validation.
+ *
+ * @param self  View to update.
+ * @param begin New @c first endpoint.
+ * @param end   New exclusive @c second endpoint.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        <tt>[begin, end)</tt> is not a valid half-open range.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_memory_view_t lh_memory_view_make_by_empty(lh_void);
+lh_void
+lh_memory_view_set_v(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
- * @brief Build a view from @p begin and @p size and return it by value.
+ * @brief Build and validate a view from @p begin and @p end.
  *
- * Equivalent to constructing the half-open view <tt>[begin, begin + size)</tt>.
- * Uses the same preconditions as ::lh_memory_view_init_by_size:
- * @p begin must be non-null and @p size must be valid for pointer arithmetic.
+ * @param begin New @c first endpoint.
+ * @param end   New exclusive @c second endpoint.
+ * @return Constructed valid view value.
  *
- * @param begin New @c first.
- * @param size  View length in bytes.
- * @return Constructed view.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_memory_view_t
-lh_memory_view_make_by_size(const lh_ptr begin, lh_usize_t size);
-
-/**
- * @brief Build and validate a view from @p begin / @p end, then return it by value.
- *
- * Fails the runtime check if the pair is not a valid view.
- *
- * @param begin New @c first.
- * @param end   New @c second.
- * @return Constructed valid view.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        <tt>[begin, end)</tt> is not a valid half-open range.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_memory_view_t
 lh_memory_view_make_v(const lh_ptr begin, const lh_ptr end);
 
 /**
- * @brief Like ::lh_memory_view_make_v, but returns empty view on failure.
+ * @brief Build valid half-open view starting at @p begin with @p size bytes.
  *
- * @param begin New @c first.
- * @param end   New @c second.
- * @return Constructed valid view or empty view on failure.
+ * The returned endpoints are <tt>[begin, begin + size)</tt>. @p size must be
+ * non-zero.
+ *
+ * @param begin New @c first endpoint.
+ * @param size  Number of bytes in the half-open view.
+ * @return Constructed valid view value.
+ *
+ * @throw ::lh_runtime_error_code_invalid_argument
+ *        @p begin is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p size is zero or the computed view is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_memory_view_t
-lh_memory_view_make_or_empty(const lh_ptr begin, const lh_ptr end);
+lh_memory_view_make_by_size(const lh_ptr begin, lh_usize_t size);
+
+/**
+ * @brief Return a view with both endpoints null.
+ *
+ * @return Uninitialized empty view value.
+ *
+ * @see lh_memory_view_empty_initializer
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_view_t lh_memory_view_make_empty(lh_void);
+
+/**
+ * @brief Store a half-open range starting at @p begin with @p size bytes.
+ *
+ * The resulting endpoints are <tt>[begin, begin + size)</tt>. @p size must be
+ * non-zero.
+ *
+ * @param self  View to update.
+ * @param begin New @c first endpoint.
+ * @param size  Number of bytes in the half-open view.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_argument
+ *        @p begin is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p size is zero or the computed view is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_view_set_by_size(lh_memory_view_t *self, const lh_ptr begin, lh_usize_t size);
+
+/**
+ * @brief Initialize @p self with valid @p begin and @p end endpoints.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        <tt>[begin, end)</tt> is not a valid half-open range.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_view_init(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
+
+/**
+ * @brief Initialize @p self as a half-open range starting at @p begin.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_argument
+ *        @p begin is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p size is zero or the computed view is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_view_init_by_size(lh_memory_view_t *self, const lh_ptr begin, lh_usize_t size);
+
+/**
+ * @brief Initialize @p self with the empty view initializer.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_view_init_empty(lh_memory_view_t *self);
+
+/**
+ * @brief Initialize @p self by copying endpoints from valid @p other.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_view_init_by_other(lh_memory_view_t *self, const lh_memory_view_t *other);
+
+/* -- slice conversion ------------------------------------------------------ */
+
+/**
+ * @brief Build a closed slice copy from half-open @p self.
+ *
+ * Valid view <tt>[begin, end)</tt> becomes closed slice
+ * <tt>[begin, end - 1]</tt>. Uninitialized empty view becomes an empty slice.
+ *
+ * @param self View to copy as a closed slice.
+ * @return Converted slice value.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is neither uninitialized nor valid half-open view.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_view_slice_t
+lh_memory_view_make_slice(const lh_memory_view_t *self);
 
 LH_COMPILER_EXTERN_C_END
 
