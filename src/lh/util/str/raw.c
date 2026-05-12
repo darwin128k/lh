@@ -17,7 +17,7 @@ lh_usize_t
 lh_str_raw_index_of_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                             lh_usize_t src_size, lh_bool_t ignore_case)
 {
-
+    /* empty needle matches at position 0 by convention */
     lh_runtime_return_ifn(src_size, LH_USIZE_T_MIN);
     if (lh_math_lt(str_size, src_size))
     {
@@ -42,7 +42,7 @@ lh_str_raw_rfind_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch)
 
 const lh_str_ptr
 lh_str_raw_find_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
-                           lh_usize_t chars_size)
+                         lh_usize_t chars_size)
 {
     lh_runtime_check_ref(str);
     lh_runtime_check_ref(chars);
@@ -60,12 +60,13 @@ lh_str_raw_find_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str
 
 const lh_str_ptr
 lh_str_raw_rfind_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
-                            lh_usize_t chars_size)
+                          lh_usize_t chars_size)
 {
     lh_runtime_check_ref(str);
     lh_runtime_check_ref(chars);
     lh_runtime_return_ifn(chars_size, lh_null);
 
+    /* do-while starts with i = str_size; --i would wrap on unsigned 0 */
     lh_runtime_return_ifn(str_size, lh_null);
     lh_usize_t i = str_size;
     do
@@ -81,7 +82,7 @@ lh_str_raw_rfind_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_st
 
 const lh_str_ptr
 lh_str_raw_find_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
-                               lh_usize_t chars_size)
+                             lh_usize_t chars_size)
 {
     lh_runtime_check_ref(str);
     lh_runtime_check_ref(chars);
@@ -98,11 +99,12 @@ lh_str_raw_find_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh
 
 const lh_str_ptr
 lh_str_raw_rfind_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
-                                lh_usize_t chars_size)
+                              lh_usize_t chars_size)
 {
     lh_runtime_check_ref(str);
     lh_runtime_check_ref(chars);
 
+    /* do-while starts with i = str_size; --i would wrap on unsigned 0 */
     lh_runtime_return_ifn(str_size, lh_null);
     lh_usize_t i = str_size;
     do
@@ -210,6 +212,7 @@ lh_str_raw_find_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const 
 
     lh_runtime_return_ifn(str_size, lh_null);
     lh_runtime_return_ifn(src_size, lh_null);
+    /* lh_math_sub(str_size, src_size) below would underflow without this guard */
     lh_runtime_return_if(lh_math_lt(str_size, src_size), lh_null);
 
     const lh_usize_t last = lh_math_sub(str_size, src_size);
@@ -233,6 +236,7 @@ lh_str_raw_rfind_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const
 
     lh_runtime_return_ifn(str_size, lh_null);
     lh_runtime_return_ifn(src_size, lh_null);
+    /* lh_math_sub(str_size, src_size) below would underflow without this guard */
     lh_runtime_return_if(lh_math_lt(str_size, src_size), lh_null);
 
     lh_usize_t i = lh_math_sub(str_size, src_size);
@@ -304,7 +308,7 @@ lh_bool_t
 lh_str_raw_starts_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case)
 {
     return lh_str_raw_starts_with_by_size(str, lh_str_raw_len(str), src, lh_str_raw_len(src),
-                                         ignore_case);
+                                          ignore_case);
 }
 
 lh_bool_t
@@ -322,7 +326,7 @@ lh_bool_t
 lh_str_raw_ends_with(const lh_str_ptr str, const lh_str_ptr src, lh_bool_t ignore_case)
 {
     return lh_str_raw_ends_with_by_size(str, lh_str_raw_len(str), src, lh_str_raw_len(src),
-                                       ignore_case);
+                                        ignore_case);
 }
 
 lh_bool_t
