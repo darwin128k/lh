@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expanded test coverage for bounds validated and fallback flows (`*_v`, `*_or_empty`, slice geometry and death cases)
 - Subsystem detection macros for Windows-specific visibility attributes (`lh/subsys.h`)
 - Macro utilities (`lh/util/arg.h`): `lh_arg_concat` for token concatenation, `lh_arg_get_count` for variadic argument counting (1-10)
-- Runtime assertion macros (`lh/runtime/assert.h`): `lh_runtime_assert`, `lh_runtime_assert_if`, `lh_runtime_assert_ifn`, `lh_runtime_assert_ref` — conditional throw with three variants (code only, message only, code + message)
+- Runtime assertion macros (`lh/assert.h`): `lh_assert_runtime`, `lh_assert_runtime_if`, `lh_assert_runtime_if_not`, `lh_assert_runtime_ref` — conditional throw with three variants (code only, message only, code + message)
 - Raise dispatch (`lh/runtime/raise.h`): `lh_runtime_raise` macro with auto-detecting argument pattern via `_Generic`
 - Size-aware string comparison (`lh/str/view.h`, `lh/util/wstr/ptr.h`): `lh_str_ptr_compare_size`, `lh_wstr_ptr_compare_size` for length-bounded comparison
 - Wide string search functions: `lh_wstr_ptr_find_char`, `lh_wstr_ptr_find`, `lh_wstr_ptr_rfind`, `lh_wstr_ptr_compare`, `lh_wstr_ptr_equals`, with case-fold support
@@ -37,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rename `is_back` parameter to `from_back` for consistency across memory and string APIs
 - Rename memory accessors with 'value' suffix: `get_front`/`get_back` → `get_front_value`/`get_back_value` in view and str/view modules
 - Enhanced death.h documentation clarifying the role of `LH_LIBRARY_OPTION_RUNTIME_CHECK_REF` in enabling null-pointer death tests
-- Runtime assertions (`lh_runtime_assert_*`) replaced direct `lh_runtime_throw` calls in internal functions for consistency
+- Runtime assertions (`lh_assert_runtime_*`) replaced direct `lh_runtime_throw` calls in internal functions for consistency
 
 ### Removed
 - `lh_memory_typed_t` and all associated functions (`lh/memory/typed.h`, `src/lh/memory/typed.c`) — superseded by the view-based API
@@ -126,5 +126,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - `LH_COMPILE_OPTION_*` layer (`compile_option.h`, related CMake modules): optimization, debug symbols, `NDEBUG`, and LTO are expected from the toolchain / CMake flags, not the public lh API
-
 

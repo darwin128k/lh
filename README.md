@@ -17,7 +17,7 @@ A lightweight C utility library (headers + a small shared/static library) with p
 - **Compound literals** — `lh_initializer`, `lh_initializer_of_type`, … in `lh/initializer.h`
 - **Member-offset utility** — `lh_offset_of` macro in `lh/offset.h` for compile-time layout checks
 - **Macro utilities** — argument token concatenation (`lh_arg_concat`) and count (`lh_arg_get_count`) for variadic macro dispatch in `lh/util/arg.h`
-- **Runtime assertions** — `lh_runtime_assert`, `lh_runtime_assert_if`, `lh_runtime_assert_ifn`, `lh_runtime_assert_ref` — conditional throw with auto-detecting forms (code, message, or both) in `lh/runtime/assert.h`
+- **Runtime assertions** — `lh_assert_runtime`, `lh_assert_runtime_if`, `lh_assert_runtime_if_not`, `lh_assert_runtime_ref` — conditional throw with auto-detecting forms (code, message, or both) in `lh/assert.h`
 - **Errors** — `lh_error_t` (code + description); description type is `lh_error_desc_t` in `lh/error/desc.h` (today an alias of `lh_str_cptr`)
 - **Exceptions (runtime)** — `lh_exception_t` wrapping `lh_error_t`, optional debug `origin`, catch stack and throw macros under `lh/runtime/`, raise dispatch (`lh_runtime_raise`) with smart argument type detection
 - **Memory & intervals** — non-owning memory views (`lh_memory_view_t`) and bounds (`lh_memory_bounds_t`) with front/back and indexed access, validated and fallback APIs (`*_v`, `*_or_empty`); read-only closed-byte-slice type `lh_memory_view_slice_t` (`lh/memory/view/slice.h`) with flags, direction, size, containment, overlap, alignment, and indexed access helpers; numeric interval helpers and binary-search macros used by table lookups

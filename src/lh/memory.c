@@ -1,6 +1,6 @@
 #include <lh/memory.h>
 #include <lh/memory/std.h>
-#include <lh/runtime/assert.h>
+#include <lh/assert.h>
 #include <lh/util/return.h>
 
 lh_ptr
@@ -58,8 +58,8 @@ const lh_ptr
 lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
                     lh_usize_t step)
 {
-    lh_runtime_assert_ref(lhs);
-    lh_runtime_assert_ref(rhs);
+    lh_assert_runtime_ref(lhs);
+    lh_assert_runtime_ref(rhs);
 
     lh_return_ifn(lhs_size, lh_null);
     lh_return_ifn(rhs_size, lh_null);
@@ -88,8 +88,8 @@ const lh_ptr
 lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
                      lh_usize_t step)
 {
-    lh_runtime_assert_ref(lhs);
-    lh_runtime_assert_ref(rhs);
+    lh_assert_runtime_ref(lhs);
+    lh_assert_runtime_ref(rhs);
 
     lh_return_ifn(lhs_size, lh_null);
     lh_return_ifn(rhs_size, lh_null);
@@ -129,8 +129,8 @@ lh_memory_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usiz
 lh_ptr
 lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size)
 {
-    lh_runtime_assert_ref(dst);
-    lh_runtime_assert_ref(src);
+    lh_assert_runtime_ref(dst);
+    lh_assert_runtime_ref(src);
 
     lh_return_ifn(dst_size, lh_null);
     lh_return_ifn(src_size, lh_null);

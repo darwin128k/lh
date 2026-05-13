@@ -48,4 +48,17 @@
  */
 #define lh_assert_runtime_if_not(condition, ...) lh_runtime_assert_ifn(condition, __VA_ARGS__)
 
+/**
+ * @def lh_assert_runtime_ref(expr)
+ * @brief Alias for ::lh_runtime_assert_ref.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_assert_runtime_ref(ptr != lh_null);
+ * @endcode
+ *
+ * @see lh_runtime_assert_ref
+ */
+#define lh_assert_runtime_ref(expr) lh_runtime_assert_ref(expr)
+
 #endif // LH_ASSERT_RUNTIME_H

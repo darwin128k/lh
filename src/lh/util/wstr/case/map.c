@@ -11,7 +11,7 @@
 
 #include <lh/util/wstr/ptr.h>
 #include <lh/util/interval.h>
-#include <lh/runtime/assert.h>
+#include <lh/assert.h>
 #include <lh/wchar/case/pair.h>
 
 static const lh_wchar_case_pair_t m_wchar_to_lower_table[] = {
@@ -2966,7 +2966,7 @@ static const lh_usize_t m_wchar_to_upper_table_size = lh_array_ptr_get_size(m_wc
 lh_wstr_ptr
 lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n)
 {
-    lh_runtime_assert_ref(str);
+    lh_assert_runtime_ref(str);
     lh_wstr_ptr p = str;
 
     while (n--)
@@ -2988,7 +2988,7 @@ lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n)
 lh_wstr_ptr
 lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n)
 {
-    lh_runtime_assert_ref(str);
+    lh_assert_runtime_ref(str);
     lh_wstr_ptr p = str;
 
     while (n--)

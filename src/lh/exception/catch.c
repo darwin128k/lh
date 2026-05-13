@@ -1,11 +1,11 @@
 #include <lh/exception/catch.h>
-#include <lh/runtime/assert.h>
+#include <lh/assert.h>
 #include <lh/util/ptr.h>
 
 lh_exception_t *
 lh_exception_catch_get_exception(const lh_exception_catch_t *self)
 {
-    lh_runtime_assert_ref(self);
+    lh_assert_runtime_ref(self);
     return lh_ptr_cast(lh_exception_t, lh_addr_of(self->exception));
 }
 

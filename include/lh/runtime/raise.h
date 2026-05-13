@@ -18,7 +18,7 @@
  *       @endcode
  *
  * @see lh_runtime_throw
- * @see lh_runtime_assert
+ * @see lh_assert_runtime
  */
 
 #ifndef LH_RUNTIME_RAISE_H
@@ -72,7 +72,7 @@
  *
  * @see lh_runtime_throw
  * @see lh_runtime_error_code_interrupt
- * @see lh_runtime_assert
+ * @see lh_assert_runtime
  */
 #define lh_runtime_raise(...)                                                                      \
     lh_arg_concat(lh_runtime_raise_impl_, lh_arg_get_count(__VA_ARGS__))(__VA_ARGS__)
