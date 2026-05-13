@@ -15,6 +15,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/error/code.h>
 #include <lh/error/desc.h>
+#include <lh/error/fields.h>
 
 /**
  * @struct lh_error
@@ -22,8 +23,7 @@
  */
 typedef struct lh_error
 {
-    lh_error_code_t code; /**< Discrete error kind; ::LH_ERROR_CODE_OK means success / empty. */
-    lh_error_desc_t desc; /**< Optional message pointer; may be null. */
+    lh_error_fields(lh_error_code_t, lh_error_desc_t);
 } lh_error_t;             /**< Typedef for struct ::lh_error. */
 
 LH_COMPILER_EXTERN_C_BEGIN
