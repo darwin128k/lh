@@ -6,48 +6,103 @@
 #ifndef LH_RUNTIME_ASSERT_H
 #define LH_RUNTIME_ASSERT_H
 
-#include <lh/runtime/throw/by/desc.h>
+#include <lh/runtime/raise.h>
+#include <lh/util/arg.h>
 
-/**
- * @def lh_runtime_assert_if(expr, desc)
- * @brief Throw when @p expr evaluates to true.
- *
- * Expands to a plain @c if statement
- * that calls ::lh_runtime_throw_by_desc(@p desc).
- *
- * @param expr Condition that triggers the throw when true.
- * @param desc C string description forwarded to ::lh_runtime_throw_by_desc.
- *
- * Example usage:
- * @code{.c}
- * lh_runtime_assert_if(ptr == lh_null, "null pointer");
- * @endcode
- *
- * @see lh_runtime_throw_by_desc
- */
-#define lh_runtime_assert_if(expr, desc)                                                           \
-    if (expr)                                                                                      \
-    lh_runtime_throw_by_desc(desc)
+/* ── internal dispatch ─────────────────────────────────────────────────── */
 
-/**
- * @def lh_runtime_assert_ifn(expr, desc)
- * @brief Throw when @p expr evaluates to false.
- *
- * Equivalent to ::lh_runtime_assert_if(!(@p expr), @p desc).
- *
- * @param expr Condition that must be true to continue.
- * @param desc C string description used when assertion fails.
- *
- * @see lh_runtime_assert_if
- */
-#define lh_runtime_assert_ifn(expr, desc) lh_runtime_assert_if(!(expr), desc)
+#define LH_ASSERT_RUNTIME_1(expr)                                                                  \
+    do                                                                                             \
+    {                                                                                              \
+        if (!(expr))                                                                               \
+            lh_runtime_throw(lh_runtime_error_code_interrupt);                                     \
+    } while (0)
+
+#define LH_ASSERT_RUNTIME_2(expr, arg)                                                             \
+    do                                                                                             \
+    {                                                                                              \
+        if (!(expr))                                                                               \
+            lh_runtime_raise(arg);                                                                 \
+    } while (0)
+
+#define LH_ASSERT_RUNTIME_3(expr, code, msg)                                                       \
+    do                                                                                             \
+    {                                                                                              \
+        if (!(expr))                                                                               \
+            lh_runtime_raise(code, msg);                                                           \
+    } while (0)
+
+/* ── public API ────────────────────────────────────────────────────────── */
 
 /**
  * @def lh_runtime_assert(...)
- * @brief Variadic alias for ::lh_runtime_assert_ifn(expr, desc).
+ * @brief Conditional runtime assertion: throw if @p expr is false.
  *
- * Accepts two arguments: @c expr and @c desc.
+ * Three forms:
+ * - `(expr)`            — throws with ::lh_runtime_error_code_interrupt, no message
+ * - `(expr, arg)`       — throws via ::lh_runtime_raise(@p arg): code or message
+ * - `(expr, code, msg)` — throws with @p code and @p msg
+ *
+ * @param expr Condition; if false, throws.
+ * @param ... Optional: code, message, or both — see forms above.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_runtime_assert(ptr != lh_null);
+ * lh_runtime_assert(ptr != lh_null, lh_runtime_error_code_null_pointer);
+ * lh_runtime_assert(ptr != lh_null, (lh_str_cptr)"null pointer");
+ * lh_runtime_assert(ptr != lh_null, lh_runtime_error_code_null_pointer, "null pointer");
+ * @endcode
+ *
+ * @see lh_runtime_raise
+ * @see lh_runtime_throw
  */
-#define lh_runtime_assert(...) lh_runtime_assert_ifn(__VA_ARGS__)
+#define lh_runtime_assert(...)                                                                     \
+    lh_arg_concat(LH_ASSERT_RUNTIME_, lh_arg_get_count(__VA_ARGS__))(__VA_ARGS__)
+
+/**
+ * @def lh_runtime_assert_if(expr, arg)
+ * @brief Throw if @p expr is *true* (inverse of ::lh_runtime_assert).
+ *
+ * Useful for early-exit on error conditions without negating the predicate
+ * at the call site.
+ *
+ * @param expr Condition; if true, throws via ::lh_runtime_raise(@p arg).
+ * @param arg  Error code or message — same rules as the two-argument form of
+ *             ::lh_runtime_assert.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_runtime_assert_if(result < 0, lh_runtime_error_code_invalid_argument);
+ * @endcode
+ *
+ * @see lh_runtime_assert
+ * @see lh_runtime_raise
+ */
+#define lh_runtime_assert_if(expr, arg)                                                            \
+    do                                                                                             \
+    {                                                                                              \
+        if (expr)                                                                                  \
+            lh_runtime_raise(arg);                                                                 \
+    } while (0)
+
+/**
+ * @def lh_runtime_assert_ifn(expr, arg)
+ * @brief Throw if @p expr is *false* — shorthand for the two-argument form of
+ *        ::lh_runtime_assert.
+ *
+ * @param expr Condition; if false, throws via ::lh_runtime_raise(@p arg).
+ * @param arg  Error code or message — same rules as the two-argument form of
+ *             ::lh_runtime_assert.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_runtime_assert_ifn(ptr != lh_null, lh_runtime_error_code_null_pointer);
+ * @endcode
+ *
+ * @see lh_runtime_assert
+ * @see lh_runtime_assert_if
+ */
+#define lh_runtime_assert_ifn(expr, arg) lh_runtime_assert_if(!(expr), arg)
 
 #endif // LH_RUNTIME_ASSERT_H
