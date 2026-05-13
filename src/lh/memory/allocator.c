@@ -1,7 +1,7 @@
 #include <lh/memory.h>
 #include <lh/memory/allocator.h>
 #include <lh/optional/ref.h>
-#include <lh/runtime/check/ref.h>
+#include <lh/runtime/assert.h>
 #include <lh/runtime/return/if.h>
 #include <lh/util/addr.h>
 
@@ -9,7 +9,7 @@ lh_void
 lh_memory_allocator_pack(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb *alloc_cb,
                          lh_memory_allocator_dealloc_cb *dealloc_cb)
 {
-    lh_runtime_check_ref(self);
+    lh_runtime_assert_ref(self);
     lh_optional_ref(alloc_cb)
     {
         self->alloc_cb = lh_ptr_deref(alloc_cb);
@@ -26,7 +26,7 @@ lh_memory_allocator_unpack(const lh_memory_allocator_t *self,
                            lh_memory_allocator_alloc_cb *alloc_cb,
                            lh_memory_allocator_dealloc_cb *dealloc_cb)
 {
-    lh_runtime_check_ref(self);
+    lh_runtime_assert_ref(self);
     lh_optional_ref(alloc_cb)
     {
         lh_ptr_deref(alloc_cb) = self->alloc_cb;
@@ -78,10 +78,10 @@ lh_ptr
 lh_memory_allocator_alloc(lh_memory_allocator_t *self, lh_usize_t size)
 {
     lh_memory_allocator_alloc_cb alloc_cb = lh_memory_allocator_get_alloc_cb(self);
-    lh_runtime_check(alloc_cb, lh_runtime_error_code_allocator_function_not_initialized);
+    lh_runtime_assert_ifn(alloc_cb, lh_runtime_error_code_allocator_function_not_initialized);
 
     lh_ptr ptr = alloc_cb(size);
-    lh_runtime_check(ptr, lh_runtime_error_code_memory_not_allocated);
+    lh_runtime_assert_ifn(ptr, lh_runtime_error_code_memory_not_allocated);
 
 #if (LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED == LH_LIBRARY_OPTION_ON)
     lh_memory_set(ptr, size, 0);
@@ -96,7 +96,7 @@ lh_memory_allocator_dealloc(lh_memory_allocator_t *self, lh_ptr ptr)
     lh_runtime_return_ifn(ptr);
 
     lh_memory_allocator_dealloc_cb dealloc_cb = lh_memory_allocator_get_dealloc_cb(self);
-    lh_runtime_check(dealloc_cb, lh_runtime_error_code_deallocator_function_not_initialized);
+    lh_runtime_assert_ifn(dealloc_cb, lh_runtime_error_code_deallocator_function_not_initialized);
 
     dealloc_cb(ptr);
 }

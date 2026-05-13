@@ -3,9 +3,7 @@
 #include <lh/memory.h>
 #include <lh/util/char.h>
 #include <lh/util/math.h>
-#include <lh/runtime/check.h>
-#include <lh/runtime/check/ref.h>
-#include <lh/runtime/error/code.h>
+#include <lh/runtime/assert.h>
 #include <lh/runtime/return/if.h>
 
 static const lh_char_t m_whitespace_chars[] = {lh_char_map_space, lh_char_map_lf, lh_char_map_cr,
@@ -44,8 +42,8 @@ const lh_str_ptr
 lh_str_ptr_find_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
                          lh_usize_t chars_size)
 {
-    lh_runtime_check_ref(str);
-    lh_runtime_check_ref(chars);
+    lh_runtime_assert_ref(str);
+    lh_runtime_assert_ref(chars);
     lh_runtime_return_ifn(chars_size, lh_null);
 
     for (lh_usize_t i = 0; i < str_size; ++i)
@@ -62,8 +60,8 @@ const lh_str_ptr
 lh_str_ptr_rfind_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
                           lh_usize_t chars_size)
 {
-    lh_runtime_check_ref(str);
-    lh_runtime_check_ref(chars);
+    lh_runtime_assert_ref(str);
+    lh_runtime_assert_ref(chars);
     lh_runtime_return_ifn(chars_size, lh_null);
 
     /* do-while starts with i = str_size; --i would wrap on unsigned 0 */
@@ -84,8 +82,8 @@ const lh_str_ptr
 lh_str_ptr_find_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
                              lh_usize_t chars_size)
 {
-    lh_runtime_check_ref(str);
-    lh_runtime_check_ref(chars);
+    lh_runtime_assert_ref(str);
+    lh_runtime_assert_ref(chars);
 
     for (lh_usize_t i = 0; i < str_size; ++i)
     {
@@ -101,8 +99,8 @@ const lh_str_ptr
 lh_str_ptr_rfind_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
                               lh_usize_t chars_size)
 {
-    lh_runtime_check_ref(str);
-    lh_runtime_check_ref(chars);
+    lh_runtime_assert_ref(str);
+    lh_runtime_assert_ref(chars);
 
     /* do-while starts with i = str_size; --i would wrap on unsigned 0 */
     lh_runtime_return_ifn(str_size, lh_null);
@@ -135,7 +133,7 @@ lh_usize_t
 lh_str_ptr_len(const lh_str_ptr str)
 {
     const lh_str_ptr ptr = lh_str_ptr_find_of_null_terminator(str);
-    lh_runtime_check_ifn(ptr, lh_runtime_error_code_no_null_terminator);
+    lh_runtime_assert_ifn(lh_ptr_is_set(ptr), lh_runtime_error_code_no_null_terminator);
     return lh_ptr_udiff(ptr, str);
 }
 
@@ -168,8 +166,8 @@ const lh_str_ptr
 lh_str_ptr_compare_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                                   lh_usize_t src_size)
 {
-    lh_runtime_check_ref(str);
-    lh_runtime_check_ref(src);
+    lh_runtime_assert_ref(str);
+    lh_runtime_assert_ref(src);
 
     const lh_usize_t n = lh_math_min(str_size, src_size);
     for (lh_usize_t i = 0; i < n; ++i)
@@ -186,8 +184,8 @@ const lh_str_ptr
 lh_str_ptr_rcompare_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                                    lh_usize_t src_size)
 {
-    lh_runtime_check_ref(str);
-    lh_runtime_check_ref(src);
+    lh_runtime_assert_ref(str);
+    lh_runtime_assert_ref(src);
 
     const lh_usize_t n = lh_math_min(str_size, src_size);
     for (lh_usize_t k = 0; k < n; ++k)
@@ -207,8 +205,8 @@ const lh_str_ptr
 lh_str_ptr_find_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                                lh_usize_t src_size)
 {
-    lh_runtime_check_ref(str);
-    lh_runtime_check_ref(src);
+    lh_runtime_assert_ref(str);
+    lh_runtime_assert_ref(src);
 
     lh_runtime_return_ifn(str_size, lh_null);
     lh_runtime_return_ifn(src_size, lh_null);
@@ -231,8 +229,8 @@ const lh_str_ptr
 lh_str_ptr_rfind_by_ignore_case(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                                 lh_usize_t src_size)
 {
-    lh_runtime_check_ref(str);
-    lh_runtime_check_ref(src);
+    lh_runtime_assert_ref(str);
+    lh_runtime_assert_ref(src);
 
     lh_runtime_return_ifn(str_size, lh_null);
     lh_runtime_return_ifn(src_size, lh_null);
@@ -365,8 +363,8 @@ lh_str_ptr
 lh_str_ptr_ltrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whitespace_chars,
                         lh_usize_t whitespace_size)
 {
-    lh_runtime_check_ref(str);
-    lh_runtime_check_ref(whitespace_chars);
+    lh_runtime_assert_ref(str);
+    lh_runtime_assert_ref(whitespace_chars);
 
     if (!str_size || !whitespace_size)
     {
@@ -396,8 +394,8 @@ lh_str_ptr
 lh_str_ptr_rtrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr whitespace_chars,
                         lh_usize_t whitespace_size)
 {
-    lh_runtime_check_ref(str);
-    lh_runtime_check_ref(whitespace_chars);
+    lh_runtime_assert_ref(str);
+    lh_runtime_assert_ref(whitespace_chars);
 
     if (!str_size || !whitespace_size)
     {

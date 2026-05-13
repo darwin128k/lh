@@ -40,6 +40,16 @@
  * @param ... Values or expressions to return if `expr` is true.
  *            These must be valid return values/expressions for the host function.
  *
+ * Example usage:
+ * @code{.c}
+ * lh_usize_t find_index(lh_usize_t const* arr, lh_usize_t len, lh_usize_t target) {
+ *     for (lh_usize_t i = 0; i < len; ++i) {
+ *         lh_runtime_return_if(arr[i] == target, i);
+ *     }
+ *     return len;
+ * }
+ * @endcode
+ *
  * @note This macro simplifies early exits from functions when specific conditions are met,
  *       combining condition checks and return statements to reduce boilerplate.
  *
@@ -65,6 +75,15 @@
  *
  * @param ... Values or expressions to return if `expr` is false.
  *            These must be valid return values/expressions for the host function.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_str_ptr parse_token(lh_str_ptr input) {
+ *     lh_runtime_return_ifn(input.len > 0, lh_str_ptr_invalid());
+ *     // ... continue parsing
+ *     return result;
+ * }
+ * @endcode
  *
  * @note Useful for validating prerequisites in functions
  *       - if the condition fails (expr is false),

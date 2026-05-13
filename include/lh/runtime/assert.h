@@ -11,21 +11,21 @@
 
 /* ── internal dispatch ─────────────────────────────────────────────────── */
 
-#define LH_ASSERT_RUNTIME_1(expr)                                                                  \
+#define lh_runtime_assert_impl_1(expr)                                                             \
     do                                                                                             \
     {                                                                                              \
         if (!(expr))                                                                               \
             lh_runtime_throw(lh_runtime_error_code_interrupt);                                     \
     } while (0)
 
-#define LH_ASSERT_RUNTIME_2(expr, arg)                                                             \
+#define lh_runtime_assert_impl_2(expr, arg)                                                        \
     do                                                                                             \
     {                                                                                              \
         if (!(expr))                                                                               \
             lh_runtime_raise(arg);                                                                 \
     } while (0)
 
-#define LH_ASSERT_RUNTIME_3(expr, code, msg)                                                       \
+#define lh_runtime_assert_impl_3(expr, code, msg)                                                  \
     do                                                                                             \
     {                                                                                              \
         if (!(expr))                                                                               \
@@ -58,7 +58,7 @@
  * @see lh_runtime_throw
  */
 #define lh_runtime_assert(...)                                                                     \
-    lh_arg_concat(LH_ASSERT_RUNTIME_, lh_arg_get_count(__VA_ARGS__))(__VA_ARGS__)
+    lh_arg_concat(lh_runtime_assert_impl_, lh_arg_get_count(__VA_ARGS__))(__VA_ARGS__)
 
 /**
  * @def lh_runtime_assert_if(expr, arg)
@@ -67,7 +67,7 @@
  * Useful for early-exit on error conditions without negating the predicate
  * at the call site.
  *
- * @param expr Condition; if true, throws via ::lh_runtime_raise(@p arg).
+ * @param expr Condition; if true, throws via ::lh_runtime_throw(@p arg).
  * @param arg  Error code or message — same rules as the two-argument form of
  *             ::lh_runtime_assert.
  *
@@ -77,13 +77,13 @@
  * @endcode
  *
  * @see lh_runtime_assert
- * @see lh_runtime_raise
+ * @see lh_runtime_throw
  */
 #define lh_runtime_assert_if(expr, arg)                                                            \
     do                                                                                             \
     {                                                                                              \
         if (expr)                                                                                  \
-            lh_runtime_raise(arg);                                                                 \
+            lh_runtime_throw(arg);                                                                 \
     } while (0)
 
 /**
@@ -104,5 +104,23 @@
  * @see lh_runtime_assert_if
  */
 #define lh_runtime_assert_ifn(expr, arg) lh_runtime_assert_if(!(expr), arg)
+
+/**
+ * @def lh_runtime_assert_ref(expr)
+ * @brief Null-reference guard — throws ::lh_runtime_error_code_null_pointer if @p expr is false.
+ *
+ * Shorthand for `::lh_runtime_assert_ifn(@p expr, ::lh_runtime_error_code_null_pointer)`.
+ *
+ * @param expr Condition; if false (e.g. null pointer), throws.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_runtime_assert_ref(ptr != lh_null);
+ * @endcode
+ *
+ * @see lh_runtime_assert_ifn
+ * @see lh_runtime_error_code_null_pointer
+ */
+#define lh_runtime_assert_ref(expr) lh_runtime_assert_ifn(expr, lh_runtime_error_code_null_pointer)
 
 #endif // LH_RUNTIME_ASSERT_H

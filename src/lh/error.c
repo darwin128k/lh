@@ -1,13 +1,13 @@
 #include <lh/error.h>
 #include <lh/error/initializer.h>
+#include <lh/runtime/assert.h>
 #include <lh/optional/ref.h>
-#include <lh/runtime/check/ref.h>
 #include <lh/util/addr.h>
 
 void
 lh_error_pack(lh_error_t *self, const lh_error_code_t *code, lh_error_desc_t *desc)
 {
-    lh_runtime_check_ref(self);
+    lh_runtime_assert_ref(self);
 
     lh_optional_ref(code)
     {
@@ -23,7 +23,7 @@ lh_error_pack(lh_error_t *self, const lh_error_code_t *code, lh_error_desc_t *de
 void
 lh_error_unpack(const lh_error_t *self, lh_error_code_t *code, lh_error_desc_t *desc)
 {
-    lh_runtime_check_ref(self);
+    lh_runtime_assert_ref(self);
 
     lh_optional_ref(code)
     {

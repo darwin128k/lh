@@ -1,11 +1,11 @@
 #include <lh/exception.h>
-#include <lh/runtime/check/ref.h>
 #include <lh/util/ptr.h>
+#include <lh/runtime/assert.h>
 
 lh_error_t *
 lh_exception_get_error(const lh_exception_t *self)
 {
-    lh_runtime_check_ref(self);
+    lh_runtime_assert_ref(self);
     return lh_ptr_cast(lh_error_t, lh_addr_of(self->error));
 }
 
@@ -13,7 +13,7 @@ lh_exception_get_error(const lh_exception_t *self)
 lh_exception_origin_t *
 lh_exception_get_origin(const lh_exception_t *self)
 {
-    lh_runtime_check_ref(self);
+    lh_runtime_assert_ref(self);
     return lh_ptr_cast(lh_exception_origin_t, lh_addr_of(self->origin));
 }
 #endif

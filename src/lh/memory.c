@@ -1,6 +1,6 @@
 #include <lh/memory.h>
 #include <lh/memory/std.h>
-#include <lh/runtime/check/ref.h>
+#include <lh/runtime/assert.h>
 #include <lh/runtime/return/if.h>
 
 lh_ptr
@@ -58,12 +58,12 @@ const lh_ptr
 lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
                     lh_usize_t step)
 {
-    lh_runtime_check_ref(lhs);
-    lh_runtime_check_ref(rhs);
+    lh_runtime_assert_ref(lhs);
+    lh_runtime_assert_ref(rhs);
 
-    lh_runtime_return_if_not(lhs_size, lh_null);
-    lh_runtime_return_if_not(rhs_size, lh_null);
-    lh_runtime_return_if_not(step, lh_null);
+    lh_runtime_return_ifn(lhs_size, lh_null);
+    lh_runtime_return_ifn(rhs_size, lh_null);
+    lh_runtime_return_ifn(step, lh_null);
 
     const lh_uchar_t *base = lh_ptr_cast(const lh_uchar_t, lhs);
     const lh_uchar_t *end = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, lhs_size);
@@ -88,12 +88,12 @@ const lh_ptr
 lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
                      lh_usize_t step)
 {
-    lh_runtime_check_ref(lhs);
-    lh_runtime_check_ref(rhs);
+    lh_runtime_assert_ref(lhs);
+    lh_runtime_assert_ref(rhs);
 
-    lh_runtime_return_if_not(lhs_size, lh_null);
-    lh_runtime_return_if_not(rhs_size, lh_null);
-    lh_runtime_return_if_not(step, lh_null);
+    lh_runtime_return_ifn(lhs_size, lh_null);
+    lh_runtime_return_ifn(rhs_size, lh_null);
+    lh_runtime_return_ifn(step, lh_null);
 
     const lh_uchar_t *base = lh_ptr_cast(const lh_uchar_t, lhs);
     if (lhs_size < rhs_size)
@@ -129,11 +129,11 @@ lh_memory_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usiz
 lh_ptr
 lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size)
 {
-    lh_runtime_check_ref(dst);
-    lh_runtime_check_ref(src);
+    lh_runtime_assert_ref(dst);
+    lh_runtime_assert_ref(src);
 
-    lh_runtime_return_if_not(dst_size, lh_null);
-    lh_runtime_return_if_not(src_size, lh_null);
+    lh_runtime_return_ifn(dst_size, lh_null);
+    lh_runtime_return_ifn(src_size, lh_null);
 
     lh_uchar_t *d = lh_ptr_cast(lh_uchar_t, dst);
     const lh_uchar_t *s = lh_ptr_cast(const lh_uchar_t, src);

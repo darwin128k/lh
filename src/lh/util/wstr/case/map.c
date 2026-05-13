@@ -11,8 +11,8 @@
 
 #include <lh/util/wstr/ptr.h>
 #include <lh/util/interval.h>
-#include <lh/runtime/check/ref.h>
 #include <lh/size.h>
+#include <lh/runtime/assert.h>
 #include <lh/wchar/case/pair.h>
 #include <lh/util/array/raw.h>
 
@@ -2968,7 +2968,7 @@ static const lh_usize_t m_wchar_to_upper_table_size = lh_array_raw_get_size(m_wc
 lh_wstr_ptr
 lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n)
 {
-    lh_runtime_check_ref(str);
+    lh_runtime_assert_ref(str);
     lh_wstr_ptr p = str;
 
     while (n--)
@@ -2990,7 +2990,7 @@ lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n)
 lh_wstr_ptr
 lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n)
 {
-    lh_runtime_check_ref(str);
+    lh_runtime_assert_ref(str);
     lh_wstr_ptr p = str;
 
     while (n--)
