@@ -1,8 +1,8 @@
 #include <lh/error.h>
 #include <lh/error/initializer.h>
-#include <lh/assert.h>
 #include <lh/optional/ref.h>
 #include <lh/util/addr.h>
+#include <lh/assert.h>
 
 void
 lh_error_pack(lh_error_t *self, const lh_error_code_t *code, lh_error_desc_t *desc)

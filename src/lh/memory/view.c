@@ -2,13 +2,13 @@
 #include <lh/memory/view/initializer.h>
 #include <lh/util/return.h>
 #include <lh/attribute/static.h>
-#include <lh/assert.h>
 #include <lh/util/algorithm.h>
 #include <lh/util/interval.h>
 #include <lh/runtime/throw.h>
 #include <lh/optional/ref.h>
 #include <lh/runtime/try.h>
 #include <lh/memory/raw.h>
+#include <lh/assert.h>
 
 lh_void
 lh_memory_view_unpack(const lh_memory_view_t *self, const lh_ptr *begin, const lh_ptr *end)

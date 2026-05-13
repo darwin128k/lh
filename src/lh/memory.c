@@ -1,7 +1,7 @@
 #include <lh/memory.h>
 #include <lh/memory/std.h>
-#include <lh/assert.h>
 #include <lh/util/return.h>
+#include <lh/assert.h>
 
 lh_ptr
 lh_memory_copy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size)

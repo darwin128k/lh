@@ -1,6 +1,5 @@
 #include <lh/memory/bounds.h>
 #include <lh/memory/bounds/initializer.h>
-#include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/util/algorithm.h>
 #include <lh/util/interval.h>
@@ -10,6 +9,7 @@
 #include <lh/util/return.h>
 #include <lh/memory/raw.h>
 #include <lh/cast/const.h>
+#include <lh/assert.h>
 
 lh_void
 lh_memory_bounds_unpack(const lh_memory_bounds_t *self, lh_ptr *begin, lh_ptr *end)

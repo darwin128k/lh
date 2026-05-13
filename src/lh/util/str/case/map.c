@@ -1,9 +1,9 @@
 ﻿#include <lh/util/str/ptr.h>
 #include <lh/util/interval.h>
-#include <lh/assert.h>
 #include <lh/size.h>
 #include <lh/char/case/pair.h>
 #include <lh/util/array/ptr.h>
+#include <lh/assert.h>
 
 static const lh_char_case_pair_t m_char_to_lower_table[] = {
     /* clang-format off */

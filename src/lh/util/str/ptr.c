@@ -3,8 +3,8 @@
 #include <lh/memory.h>
 #include <lh/util/char.h>
 #include <lh/util/math.h>
-#include <lh/assert.h>
 #include <lh/util/return.h>
+#include <lh/assert.h>
 
 static const lh_char_t m_whitespace_chars[] = {lh_char_map_space, lh_char_map_lf, lh_char_map_cr,
                                                lh_char_map_ht,    lh_char_map_vt, lh_char_map_nul};

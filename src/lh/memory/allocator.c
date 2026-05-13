@@ -1,9 +1,9 @@
 #include <lh/memory/allocator.h>
 #include <lh/memory.h>
 #include <lh/optional/ref.h>
-#include <lh/assert.h>
 #include <lh/util/return.h>
 #include <lh/util/addr.h>
+#include <lh/assert.h>
 
 lh_void
 lh_memory_allocator_pack(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb *alloc_cb,

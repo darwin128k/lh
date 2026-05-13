@@ -4,9 +4,9 @@
 #include <lh/memory/view/slice.h>
 #include <lh/attribute/static.h>
 #include <lh/util/algorithm.h>
-#include <lh/assert.h>
 #include <lh/optional/ref.h>
 #include <lh/runtime/try.h>
+#include <lh/assert.h>
 
 lh_void
 lh_memory_bounds_slice_unpack(const lh_memory_bounds_slice_t *self, lh_ptr *begin, lh_ptr *end)

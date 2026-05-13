@@ -1,6 +1,6 @@
 #include <lh/exception/catch.h>
-#include <lh/assert.h>
 #include <lh/util/ptr.h>
+#include <lh/assert.h>
 
 lh_exception_t *
 lh_exception_catch_get_exception(const lh_exception_catch_t *self)

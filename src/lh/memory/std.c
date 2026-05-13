@@ -1,6 +1,6 @@
 #include <lh/memory/std.h>
-#include <lh/assert.h>
 #include <lh/util/algorithm.h>
+#include <lh/assert.h>
 
 lh_ptr
 lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
