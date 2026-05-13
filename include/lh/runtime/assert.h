@@ -11,6 +11,11 @@
 
 /* ── internal dispatch ─────────────────────────────────────────────────── */
 
+/**
+ * @internal
+ * @def lh_runtime_assert_impl_1(expr)
+ * @brief Internal: throw from single argument — throws interrupt code.
+ */
 #define lh_runtime_assert_impl_1(expr)                                                             \
     do                                                                                             \
     {                                                                                              \
@@ -18,6 +23,11 @@
             lh_runtime_throw(lh_runtime_error_code_interrupt);                                     \
     } while (0)
 
+/**
+ * @internal
+ * @def lh_runtime_assert_impl_2(expr, arg)
+ * @brief Internal: throw from expression + arg — detects if code or message.
+ */
 #define lh_runtime_assert_impl_2(expr, arg)                                                        \
     do                                                                                             \
     {                                                                                              \
@@ -25,6 +35,11 @@
             lh_runtime_raise(arg);                                                                 \
     } while (0)
 
+/**
+ * @internal
+ * @def lh_runtime_assert_impl_3(expr, code, msg)
+ * @brief Internal: throw from expression + code + message.
+ */
 #define lh_runtime_assert_impl_3(expr, code, msg)                                                  \
     do                                                                                             \
     {                                                                                              \
