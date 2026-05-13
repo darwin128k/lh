@@ -3,7 +3,7 @@
 #include <lh/uchar.h>
 #include <lh/size.h>
 #include <lh/char/case/pair.h>
-#include <lh/util/array/raw.h>
+#include <lh/util/array/ptr.h>
 
 static const lh_char_case_pair_t m_char_case_fold_table[] = {
     /* clang-format off */
@@ -65,7 +65,7 @@ static const lh_char_case_pair_t m_char_case_fold_table[] = {
     { 222U, 254U },
     /* clang-format on */
 };
-static const lh_usize_t m_char_case_fold_table_size = lh_array_raw_get_size(m_char_case_fold_table);
+static const lh_usize_t m_char_case_fold_table_size = lh_array_ptr_get_size(m_char_case_fold_table);
 
 lh_char_t
 lh_char_fold_case(lh_char_t c)

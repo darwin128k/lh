@@ -14,7 +14,7 @@
 #include <lh/util/interval.h>
 #include <lh/size.h>
 #include <lh/wchar/case/pair.h>
-#include <lh/util/array/raw.h>
+#include <lh/util/array/ptr.h>
 
 static const lh_wchar_case_pair_t m_wchar_case_fold_table[] = {
     /* clang-format off */
@@ -1505,7 +1505,7 @@ static const lh_wchar_case_pair_t m_wchar_case_fold_table[] = {
     /* clang-format on */
 };
 static const lh_usize_t m_wchar_case_fold_table_size =
-    lh_array_raw_get_size(m_wchar_case_fold_table);
+    lh_array_ptr_get_size(m_wchar_case_fold_table);
 
 /* Table lookup: lh_interval_ropen_binary_search() — lh/util/interval.h */
 lh_wchar_t

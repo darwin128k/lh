@@ -15,7 +15,7 @@
 #include <lh/size.h>
 #include <lh/bool.h>
 #include <lh/str/ptr.h>
-#include <lh/util/array/raw.h>
+#include <lh/util/array/ptr.h>
 
 #ifndef LH_STR_PTR_INVALID
 /**
@@ -27,7 +27,7 @@
 
 /**
  * @def lh_str_ptr_get_begin(x)
- * @brief Same as ::lh_array_raw_get_begin(x) for a `char` array @p x.
+ * @brief Same as ::lh_array_ptr_get_begin(x) for a `char` array @p x.
  *
  * Example usage:
  * @code{.c}
@@ -35,13 +35,13 @@
  * char *p = lh_str_ptr_get_begin(s); // same as `s`, points at 'a'
  * @endcode
  */
-#define lh_str_ptr_get_begin(x) lh_array_raw_get_begin(x)
+#define lh_str_ptr_get_begin(x) lh_array_ptr_get_begin(x)
 
 /**
  * @def lh_str_ptr_get_capacity(x)
  * @brief Total number of `char` slots in the array object @p x.
  *
- * Same as ::lh_array_raw_get_size(x) for element type `char`.
+ * Same as ::lh_array_ptr_get_size(x) for element type `char`.
  * For `char s[] = "ab"`, capacity is `3` (`'a'`, `'b'`, `'\0'`).
  * For `char buf[64]`, capacity is `64`.
  *
@@ -51,7 +51,7 @@
  * // lh_str_ptr_get_capacity(s) == 3
  * @endcode
  */
-#define lh_str_ptr_get_capacity(x) lh_array_raw_get_size(x)
+#define lh_str_ptr_get_capacity(x) lh_array_ptr_get_size(x)
 
 /**
  * @def lh_str_ptr_get_size(x)
@@ -86,7 +86,7 @@
  * and does not include the terminator in the half-open interval.
  *
  * This is **not** one past the whole array;
- * for that (e.g. to walk every byte including `'\0'`) use ::lh_array_raw_get_end(x).
+ * for that (e.g. to walk every byte including `'\0'`) use ::lh_array_ptr_get_end(x).
  *
  * Example usage:
  * @code{.c}

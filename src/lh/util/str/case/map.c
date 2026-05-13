@@ -3,7 +3,7 @@
 #include <lh/runtime/assert.h>
 #include <lh/size.h>
 #include <lh/char/case/pair.h>
-#include <lh/util/array/raw.h>
+#include <lh/util/array/ptr.h>
 
 static const lh_char_case_pair_t m_char_to_lower_table[] = {
     /* clang-format off */
@@ -65,7 +65,7 @@ static const lh_char_case_pair_t m_char_to_lower_table[] = {
     { 222U, 254U },
     /* clang-format on */
 };
-static const lh_usize_t m_char_to_lower_table_size = lh_array_raw_get_size(m_char_to_lower_table);
+static const lh_usize_t m_char_to_lower_table_size = lh_array_ptr_get_size(m_char_to_lower_table);
 
 static const lh_char_case_pair_t m_char_to_upper_table[] = {
     /* clang-format off */
@@ -127,7 +127,7 @@ static const lh_char_case_pair_t m_char_to_upper_table[] = {
     { 254U, 222U },
     /* clang-format on */
 };
-static const lh_usize_t m_char_to_upper_table_size = lh_array_raw_get_size(m_char_to_upper_table);
+static const lh_usize_t m_char_to_upper_table_size = lh_array_ptr_get_size(m_char_to_upper_table);
 
 lh_str_ptr
 lh_str_ptr_to_lower(lh_str_ptr str, lh_usize_t n)
