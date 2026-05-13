@@ -1,5 +1,5 @@
-#include <lh/assert/static.h>
 #include <lh/numeric/fixed/limits.h>
+#include <lh/assert/static.h>
 
 /*
  * LH_*_T_MIN / LH_*_T_MAX from lh/numeric/limits.h read interval struct members and

@@ -1,5 +1,5 @@
-#include <lh/assert/static.h>
 #include <lh/numeric/fixed/types.h>
+#include <lh/assert/static.h>
 #include <lh/util/type.h>
 
 lh_assert_static(lh_type_size(lh_u8_t) == 1, "lh_u8_t must be 1 byte");

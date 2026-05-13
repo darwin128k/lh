@@ -1,5 +1,5 @@
-#include <lh/memory.h>
 #include <lh/memory/allocator.h>
+#include <lh/memory.h>
 #include <lh/optional/ref.h>
 #include <lh/runtime/assert.h>
 #include <lh/util/return.h>

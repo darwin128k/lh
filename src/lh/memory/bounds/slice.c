@@ -1,5 +1,5 @@
-#include <lh/memory/bounds/slice/initializer.h>
 #include <lh/memory/bounds/slice.h>
+#include <lh/memory/bounds/slice/initializer.h>
 #include <lh/util/return.h>
 #include <lh/memory/view/slice.h>
 #include <lh/attribute/static.h>

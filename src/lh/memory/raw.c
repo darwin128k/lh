@@ -1,5 +1,5 @@
-#include <lh/memory.h>
 #include <lh/memory/raw.h>
+#include <lh/memory.h>
 #include <lh/runtime/assert.h>
 
 lh_ptr
