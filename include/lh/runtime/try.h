@@ -15,7 +15,7 @@
 
 #include <lh/exception/catch/initializer.h>
 #include <lh/runtime/exception/catch/stack.h>
-#include <lh/runtime/return.h>
+#include <lh/util/return.h>
 
 /**
  * @def lh_runtime_try
@@ -142,6 +142,6 @@
  */
 #define lh_runtime_try_return(...)                                                                 \
     lh_runtime_try_finalize();                                                                     \
-    lh_runtime_return(__VA_ARGS__)
+    lh_return(__VA_ARGS__)
 
 #endif // LH_RUNTIME_TRY_H

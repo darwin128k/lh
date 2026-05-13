@@ -1,7 +1,7 @@
 #include <lh/memory.h>
 #include <lh/memory/std.h>
 #include <lh/runtime/assert.h>
-#include <lh/runtime/return/if.h>
+#include <lh/util/return.h>
 
 lh_ptr
 lh_memory_copy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size)
@@ -61,9 +61,9 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
     lh_runtime_assert_ref(lhs);
     lh_runtime_assert_ref(rhs);
 
-    lh_runtime_return_ifn(lhs_size, lh_null);
-    lh_runtime_return_ifn(rhs_size, lh_null);
-    lh_runtime_return_ifn(step, lh_null);
+    lh_return_ifn(lhs_size, lh_null);
+    lh_return_ifn(rhs_size, lh_null);
+    lh_return_ifn(step, lh_null);
 
     const lh_uchar_t *base = lh_ptr_cast(const lh_uchar_t, lhs);
     const lh_uchar_t *end = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, lhs_size);
@@ -91,9 +91,9 @@ lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh
     lh_runtime_assert_ref(lhs);
     lh_runtime_assert_ref(rhs);
 
-    lh_runtime_return_ifn(lhs_size, lh_null);
-    lh_runtime_return_ifn(rhs_size, lh_null);
-    lh_runtime_return_ifn(step, lh_null);
+    lh_return_ifn(lhs_size, lh_null);
+    lh_return_ifn(rhs_size, lh_null);
+    lh_return_ifn(step, lh_null);
 
     const lh_uchar_t *base = lh_ptr_cast(const lh_uchar_t, lhs);
     if (lhs_size < rhs_size)
@@ -132,8 +132,8 @@ lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usiz
     lh_runtime_assert_ref(dst);
     lh_runtime_assert_ref(src);
 
-    lh_runtime_return_ifn(dst_size, lh_null);
-    lh_runtime_return_ifn(src_size, lh_null);
+    lh_return_ifn(dst_size, lh_null);
+    lh_return_ifn(src_size, lh_null);
 
     lh_uchar_t *d = lh_ptr_cast(lh_uchar_t, dst);
     const lh_uchar_t *s = lh_ptr_cast(const lh_uchar_t, src);

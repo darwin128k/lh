@@ -2,7 +2,7 @@
 #include <lh/memory/allocator.h>
 #include <lh/optional/ref.h>
 #include <lh/runtime/assert.h>
-#include <lh/runtime/return/if.h>
+#include <lh/util/return.h>
 #include <lh/util/addr.h>
 
 lh_void
@@ -93,7 +93,7 @@ lh_memory_allocator_alloc(lh_memory_allocator_t *self, lh_usize_t size)
 lh_void
 lh_memory_allocator_dealloc(lh_memory_allocator_t *self, lh_ptr ptr)
 {
-    lh_runtime_return_ifn(ptr);
+    lh_return_ifn(ptr);
 
     lh_memory_allocator_dealloc_cb dealloc_cb = lh_memory_allocator_get_dealloc_cb(self);
     lh_runtime_assert_ifn(dealloc_cb, lh_runtime_error_code_deallocator_function_not_initialized);
@@ -105,8 +105,8 @@ lh_ptr
 lh_memory_allocator_realloc(lh_memory_allocator_t *self, lh_ptr old_ptr, lh_usize_t old_size,
                             lh_usize_t new_size)
 {
-    lh_runtime_return_if(old_size == new_size, old_ptr);
-    lh_runtime_return_ifn(old_ptr, lh_memory_allocator_alloc(self, new_size));
+    lh_return_if(old_size == new_size, old_ptr);
+    lh_return_ifn(old_ptr, lh_memory_allocator_alloc(self, new_size));
 
     if (new_size == 0)
     {

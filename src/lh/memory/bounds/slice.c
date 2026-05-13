@@ -1,6 +1,6 @@
 #include <lh/memory/bounds/slice/initializer.h>
 #include <lh/memory/bounds/slice.h>
-#include <lh/runtime/return/if.h>
+#include <lh/util/return.h>
 #include <lh/memory/view/slice.h>
 #include <lh/attribute/static.h>
 #include <lh/util/algorithm.h>
@@ -367,7 +367,7 @@ LH_ATTRIBUTE_STATIC
 lh_void
 lh_memory_bounds_slice_assign(lh_memory_bounds_slice_t *self, const lh_memory_bounds_slice_t *other)
 {
-    lh_runtime_return_if(lh_math_eq(self, other));
+    lh_return_if(lh_math_eq(self, other));
 
     lh_void *other_begin, *other_end;
     lh_memory_bounds_slice_unpack(other, lh_addr_of(other_begin), lh_addr_of(other_end));
@@ -435,7 +435,7 @@ LH_ATTRIBUTE_STATIC
 lh_void
 lh_memory_bounds_slice_swap(lh_memory_bounds_slice_t *self, lh_memory_bounds_slice_t *other)
 {
-    lh_runtime_return_if(lh_math_eq(self, other));
+    lh_return_if(lh_math_eq(self, other));
 
     lh_runtime_assert_ref(self);
     lh_runtime_assert_ref(other);

@@ -4,7 +4,7 @@
 #include <lh/util/math.h>
 #include <lh/util/wchar.h>
 #include <lh/runtime/assert.h>
-#include <lh/runtime/return/if.h>
+#include <lh/util/return.h>
 
 static const lh_wchar_t m_whitespace_chars[] = {
     lh_wstr_ptr_cat_va(lh_char_map_space), lh_wstr_ptr_cat_va(lh_char_map_lf),
@@ -18,7 +18,7 @@ lh_wstr_ptr_index_of_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const l
                              lh_usize_t src_size, lh_bool_t ignore_case)
 {
     /* empty needle matches at position 0 by convention */
-    lh_runtime_return_ifn(src_size, LH_USIZE_T_MIN);
+    lh_return_ifn(src_size, LH_USIZE_T_MIN);
     if (lh_math_lt(str_size, src_size))
     {
         return LH_WSTR_PTR_INVALID;
@@ -48,7 +48,7 @@ lh_wstr_ptr_find_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_w
 {
     lh_runtime_assert_ref(str);
     lh_runtime_assert_ref(chars);
-    lh_runtime_return_ifn(chars_size, lh_null);
+    lh_return_ifn(chars_size, lh_null);
 
     for (lh_usize_t i = 0; i < str_size; ++i)
     {
@@ -66,10 +66,10 @@ lh_wstr_ptr_rfind_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_
 {
     lh_runtime_assert_ref(str);
     lh_runtime_assert_ref(chars);
-    lh_runtime_return_ifn(chars_size, lh_null);
+    lh_return_ifn(chars_size, lh_null);
 
     /* do-while starts with i = str_size; --i would wrap on unsigned 0 */
-    lh_runtime_return_ifn(str_size, lh_null);
+    lh_return_ifn(str_size, lh_null);
     lh_usize_t i = str_size;
     do
     {
@@ -107,7 +107,7 @@ lh_wstr_ptr_rfind_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const
     lh_runtime_assert_ref(chars);
 
     /* do-while starts with i = str_size; --i would wrap on unsigned 0 */
-    lh_runtime_return_ifn(str_size, lh_null);
+    lh_return_ifn(str_size, lh_null);
     lh_usize_t i = str_size;
     do
     {
@@ -212,10 +212,10 @@ lh_wstr_ptr_find_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size, cons
     lh_runtime_assert_ref(str);
     lh_runtime_assert_ref(src);
 
-    lh_runtime_return_ifn(str_size, lh_null);
-    lh_runtime_return_ifn(src_size, lh_null);
+    lh_return_ifn(str_size, lh_null);
+    lh_return_ifn(src_size, lh_null);
     /* lh_math_sub(str_size, src_size) below would underflow without this guard */
-    lh_runtime_return_if(lh_math_lt(str_size, src_size), lh_null);
+    lh_return_if(lh_math_lt(str_size, src_size), lh_null);
 
     const lh_usize_t last = lh_math_sub(str_size, src_size);
     for (lh_usize_t i = 0; i <= last; ++i)
@@ -236,10 +236,10 @@ lh_wstr_ptr_rfind_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size, con
     lh_runtime_assert_ref(str);
     lh_runtime_assert_ref(src);
 
-    lh_runtime_return_ifn(str_size, lh_null);
-    lh_runtime_return_ifn(src_size, lh_null);
+    lh_return_ifn(str_size, lh_null);
+    lh_return_ifn(src_size, lh_null);
     /* lh_math_sub(str_size, src_size) below would underflow without this guard */
-    lh_runtime_return_if(lh_math_lt(str_size, src_size), lh_null);
+    lh_return_if(lh_math_lt(str_size, src_size), lh_null);
 
     lh_usize_t i = lh_math_sub(str_size, src_size);
     do
@@ -387,7 +387,7 @@ lh_wstr_ptr_ltrim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr
         ++offset;
     }
 
-    lh_runtime_return_ifn(offset, str);
+    lh_return_ifn(offset, str);
     if (lh_math_eq(offset, str_size))
     {
         str[0] = lh_wstr_ptr_cat_va(lh_char_map_nul);
