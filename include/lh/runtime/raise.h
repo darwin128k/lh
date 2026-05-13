@@ -24,10 +24,10 @@
 #ifndef LH_RUNTIME_RAISE_H
 #define LH_RUNTIME_RAISE_H
 
-#include <lh/runtime/error/code.h>
-#include <lh/runtime/throw.h>
 #include <lh/util/arg.h>
 #include <lh/util/str/ptr.h>
+#include <lh/runtime/throw.h>
+#include <lh/runtime/error/code.h>
 
 /* ── internal dispatch ─────────────────────────────────────────────────── */
 
