@@ -16,10 +16,13 @@ A lightweight C utility library (headers + a small shared/static library) with p
 - **Pointers** — `lh_ptr`, `lh_void_ptr`, `lh_ptr_of`, `lh_cptr_of`, `lh_str_ptr` / `lh_str_cptr` (`lh/ptr.h`, `lh/void/ptr.h`, `lh/util/ptr.h`, `lh/str/ptr.h`)
 - **Compound literals** — `lh_initializer`, `lh_initializer_of_type`, … in `lh/initializer.h`
 - **Member-offset utility** — `lh_offset_of` macro in `lh/offset.h` for compile-time layout checks
+- **Macro utilities** — argument token concatenation (`lh_arg_concat`) and count (`lh_arg_get_count`) for variadic macro dispatch in `lh/util/arg.h`
+- **Runtime assertions** — `lh_runtime_assert`, `lh_runtime_assert_if`, `lh_runtime_assert_ifn`, `lh_runtime_assert_ref` — conditional throw with auto-detecting forms (code, message, or both) in `lh/runtime/assert.h`
 - **Errors** — `lh_error_t` (code + description); description type is `lh_error_desc_t` in `lh/error/desc.h` (today an alias of `lh_str_cptr`)
-- **Exceptions (runtime)** — `lh_exception_t` wrapping `lh_error_t`, optional debug `origin`, catch stack and throw macros under `lh/runtime/`
+- **Exceptions (runtime)** — `lh_exception_t` wrapping `lh_error_t`, optional debug `origin`, catch stack and throw macros under `lh/runtime/`, raise dispatch (`lh_runtime_raise`) with smart argument type detection
 - **Memory & intervals** — non-owning memory views (`lh_memory_view_t`) and bounds (`lh_memory_bounds_t`) with front/back and indexed access, validated and fallback APIs (`*_v`, `*_or_empty`); read-only closed-byte-slice type `lh_memory_view_slice_t` (`lh/memory/view/slice.h`) with flags, direction, size, containment, overlap, alignment, and indexed access helpers; numeric interval helpers and binary-search macros used by table lookups
 - **Wide text** — `lh_wchar_t`, raw wide-string helpers, Unicode simple case mapping for buffers and single-code-point case fold (UCD-backed tables under `src/lh/util/wstr/` and `src/lh/util/wchar/`)
+- **String search & compare** — `lh_str_view_find`, `lh_str_view_rfind`, `lh_str_view_find_of`, case-insensitive compare, size-aware comparison; same for wide strings (`lh_wstr_ptr_*`)
 - **Version** — `lh_version_t`, `lh_get_version()` via `lh/lh.h`
 - **Build** — CMake, generated `lh/config.h`, optional Doxygen docs and bundled GoogleTest
 
@@ -105,7 +108,7 @@ lh_version_t ver = { 0, 2, 0 };
 
 ## Version
 
-Current version: **0.2.0** — history and release notes in [CHANGELOG](CHANGELOG.md).
+Current version: **0.3.0** — history and release notes in [CHANGELOG](CHANGELOG.md).
 
 Documentation for tools is in [tools/README.md](tools/README.md).
 
