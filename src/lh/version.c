@@ -1,4 +1,3 @@
-#include <lh/null.h>
 #include <lh/optional/ref.h>
 #include <lh/version.h>
 #include <lh/util/ptr.h>

@@ -1,6 +1,5 @@
 #include <lh/util/char.h>
 #include <lh/util/interval.h>
-#include <lh/util/math.h>
 #include <lh/uchar.h>
 #include <lh/size.h>
 #include <lh/char/case/pair.h>

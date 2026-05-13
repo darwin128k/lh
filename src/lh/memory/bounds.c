@@ -10,7 +10,6 @@
 #include <lh/runtime/try.h>
 #include <lh/memory/raw.h>
 #include <lh/cast/const.h>
-#include <lh/util/ptr.h>
 
 lh_void
 lh_memory_bounds_unpack(const lh_memory_bounds_t *self, lh_ptr *begin, lh_ptr *end)

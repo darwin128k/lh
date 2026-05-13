@@ -5,9 +5,7 @@
 #include <lh/runtime/throw.h>
 #include <lh/runtime/try.h>
 #include <lh/optional/ref.h>
-#include <lh/util/bit.h>
 #include <lh/util/interval.h>
-#include <lh/util/ptr.h>
 
 lh_void
 lh_memory_view_slice_unpack(const lh_memory_view_slice_t *self, const lh_ptr *begin,

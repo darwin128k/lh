@@ -7,7 +7,6 @@
 #include <lh/runtime/assert.h>
 #include <lh/optional/ref.h>
 #include <lh/runtime/try.h>
-#include <lh/util/ptr.h>
 
 lh_void
 lh_memory_bounds_slice_unpack(const lh_memory_bounds_slice_t *self, lh_ptr *begin, lh_ptr *end)

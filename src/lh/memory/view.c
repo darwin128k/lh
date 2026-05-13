@@ -9,7 +9,6 @@
 #include <lh/optional/ref.h>
 #include <lh/runtime/try.h>
 #include <lh/memory/raw.h>
-#include <lh/util/ptr.h>
 
 lh_void
 lh_memory_view_unpack(const lh_memory_view_t *self, const lh_ptr *begin, const lh_ptr *end)

@@ -1,6 +1,4 @@
 ﻿#include <lh/str/view.h>
-#include <lh/util/ptr.h>
-#include <lh/cast/static.h>
 #include <lh/util/str/ptr.h>
 
 lh_void
