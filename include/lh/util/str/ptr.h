@@ -119,6 +119,14 @@
  */
 #define lh_str_ptr_lit_va(...) lh_str_ptr_lit(__VA_ARGS__)
 
+/**
+ * @brief Check whether @p x is ::lh_str_ptr or ::lh_str_cptr.
+ *
+ * @param x Expression to inspect.
+ * @return `1` if @p x has type ::lh_str_ptr or ::lh_str_cptr, `0` otherwise.
+ */
+#define lh_str_ptr_is(x) _Generic((x), lh_str_cptr: 1, lh_str_ptr: 1, default: 0)
+
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**

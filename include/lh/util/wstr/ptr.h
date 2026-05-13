@@ -131,6 +131,14 @@
  */
 #define lh_wstr_ptr_lit_va(...) lh_wstr_ptr_lit(__VA_ARGS__)
 
+/**
+ * @brief Check whether @p x is ::lh_wstr_ptr or ::lh_wstr_cptr.
+ *
+ * @param x Expression to inspect.
+ * @return `1` if @p x has type ::lh_wstr_ptr or ::lh_wstr_cptr, `0` otherwise.
+ */
+#define lh_wstr_ptr_is(x) _Generic((x), lh_wstr_cptr: 1, lh_wstr_ptr: 1, default: 0)
+
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
