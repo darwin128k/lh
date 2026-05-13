@@ -11,10 +11,8 @@
 
 #include <lh/util/wstr/ptr.h>
 #include <lh/util/interval.h>
-#include <lh/size.h>
 #include <lh/runtime/assert.h>
 #include <lh/wchar/case/pair.h>
-#include <lh/util/array/raw.h>
 
 static const lh_wchar_case_pair_t m_wchar_to_lower_table[] = {
     /* clang-format off */
