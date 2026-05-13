@@ -80,8 +80,8 @@ lh_exception_catch_has_same_code(const lh_exception_catch_t *self,
 
 lh_bool_t
 lh_exception_catch_has_diff_code(const lh_exception_catch_t *self,
-                                      const lh_exception_catch_t *other)
+                                 const lh_exception_catch_t *other)
 {
     return lh_exception_has_diff_code(lh_exception_catch_get_exception(self),
-                                           lh_exception_catch_get_exception(other));
+                                      lh_exception_catch_get_exception(other));
 }

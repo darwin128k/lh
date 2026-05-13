@@ -1504,7 +1504,8 @@ static const lh_wchar_case_pair_t m_wchar_case_fold_table[] = {
     { 125217U, 125251U },
     /* clang-format on */
 };
-static const lh_usize_t m_wchar_case_fold_table_size = lh_array_raw_get_size(m_wchar_case_fold_table);
+static const lh_usize_t m_wchar_case_fold_table_size =
+    lh_array_raw_get_size(m_wchar_case_fold_table);
 
 /* Table lookup: lh_interval_ropen_binary_search() — lh/util/interval.h */
 lh_wchar_t

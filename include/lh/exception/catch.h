@@ -186,7 +186,7 @@ lh_exception_catch_has_same_code(const lh_exception_catch_t *self,
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_catch_has_diff_code(const lh_exception_catch_t *self,
-                                      const lh_exception_catch_t *other);
+                                 const lh_exception_catch_t *other);
 
 LH_COMPILER_EXTERN_C_END
 

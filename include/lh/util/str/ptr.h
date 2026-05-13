@@ -173,7 +173,7 @@ lh_str_ptr_rfind_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch);
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
 lh_str_ptr_find_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
-                           lh_usize_t chars_size);
+                         lh_usize_t chars_size);
 
 /**
  * @brief Find the last character in @p str that belongs to @p chars.
@@ -187,7 +187,7 @@ lh_str_ptr_find_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
 lh_str_ptr_rfind_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
-                            lh_usize_t chars_size);
+                          lh_usize_t chars_size);
 
 /**
  * @brief Find the first character in @p str that does not belong to @p chars.
@@ -201,7 +201,7 @@ lh_str_ptr_rfind_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_st
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
 lh_str_ptr_find_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
-                               lh_usize_t chars_size);
+                             lh_usize_t chars_size);
 
 /**
  * @brief Find the last character in @p str that does not belong to @p chars.
@@ -215,7 +215,7 @@ lh_str_ptr_find_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
 lh_str_ptr_rfind_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
-                                lh_usize_t chars_size);
+                              lh_usize_t chars_size);
 
 /**
  * @brief Find the first null terminator (`'\\0'`)

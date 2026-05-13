@@ -350,8 +350,7 @@ lh_memory_bounds_contains_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_contains_of(const lh_memory_bounds_t *self, const lh_ptr begin,
-                                const lh_ptr end);
+lh_memory_bounds_contains_of(const lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
  * @brief True iff @p other lies completely inside @p self.

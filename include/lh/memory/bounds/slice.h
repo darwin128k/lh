@@ -1100,7 +1100,8 @@ lh_memory_bounds_slice_drop_last(const lh_memory_bounds_slice_t *self, lh_usize_
  */
 LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_slice_t
-lh_memory_bounds_slice_trim(const lh_memory_bounds_slice_t *self, lh_usize_t left, lh_usize_t right);
+lh_memory_bounds_slice_trim(const lh_memory_bounds_slice_t *self, lh_usize_t left,
+                            lh_usize_t right);
 
 /**
  * @brief Store a closed slice starting at @p begin with @p size bytes.

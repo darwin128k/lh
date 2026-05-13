@@ -322,7 +322,8 @@ lh_str_view_rfind_of(const lh_str_view_t *self, const lh_str_view_t *chars);
  *
  * @param self  Valid view to search.
  * @param chars Valid view used as the character set.
- * @return Zero-based offset of the first non-matching character, or ::LH_STR_VIEW_INVALID if absent.
+ * @return Zero-based offset of the first non-matching character,
+ *         or ::LH_STR_VIEW_INVALID if absent.
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self or @p chars is ::lh_null.
@@ -442,8 +443,7 @@ lh_str_view_starts_with(const lh_str_view_t *self, const lh_str_view_t *other,
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_str_view_ends_with(const lh_str_view_t *self, const lh_str_view_t *other,
-                      lh_bool_t ignore_case);
+lh_str_view_ends_with(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case);
 
 /* -- null terminator ------------------------------------------------------- */
 

@@ -93,7 +93,8 @@
  * Example usage:
  * @code{.c}
  * wchar_t s[] = L"ab";
- * for (wchar_t *p = lh_wstr_ptr_get_begin(s); p != lh_wstr_ptr_get_end(s); ++p) { } // L'a', L'b' only
+ * for (wchar_t *p = lh_wstr_ptr_get_begin(s);
+ *     p != lh_wstr_ptr_get_end(s); ++p) { } // L'a', L'b' only
  * // *lh_wstr_ptr_get_end(s) == L'\0'
  * @endcode
  */
@@ -190,7 +191,7 @@ lh_wstr_ptr_rfind_char(const lh_wstr_ptr str, lh_usize_t size, lh_wchar_t val);
 LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_find_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
-                           lh_usize_t chars_size);
+                          lh_usize_t chars_size);
 
 /**
  * @brief Find the last wide character in @p str that belongs to @p chars.
@@ -205,7 +206,7 @@ lh_wstr_ptr_find_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_w
 LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_rfind_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
-                            lh_usize_t chars_size);
+                           lh_usize_t chars_size);
 
 /**
  * @brief Find the first wide character in @p str that does not belong to @p chars.
@@ -220,7 +221,7 @@ lh_wstr_ptr_rfind_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_
 LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_find_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
-                               lh_usize_t chars_size);
+                              lh_usize_t chars_size);
 
 /**
  * @brief Find the last wide character in @p str that does not belong to @p chars.
@@ -235,7 +236,7 @@ lh_wstr_ptr_find_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const 
 LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_rfind_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
-                                lh_usize_t chars_size);
+                               lh_usize_t chars_size);
 
 /**
  * @brief Find the first wide NUL (@c L'\\0')
@@ -670,7 +671,7 @@ lh_wstr_ptr_contains(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ign
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_wstr_ptr_contains_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
-                              lh_usize_t src_size, lh_bool_t ignore_case);
+                             lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
  * @brief NUL-terminated string equality.
@@ -716,7 +717,7 @@ lh_wstr_ptr_equals(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignor
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_wstr_ptr_equals_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
-                            lh_usize_t src_size, lh_bool_t ignore_case);
+                           lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
  * @brief NUL-terminated prefix compare
@@ -810,7 +811,7 @@ lh_wstr_ptr_ends_with(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ig
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_wstr_ptr_ends_with_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
-                               lh_usize_t src_size, lh_bool_t ignore_case);
+                              lh_usize_t src_size, lh_bool_t ignore_case);
 
 /**
  * @brief Check whether @p ch exists in the first @p chars_size elements of @p chars.
