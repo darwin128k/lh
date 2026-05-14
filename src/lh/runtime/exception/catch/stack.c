@@ -5,7 +5,6 @@
 #include <lh/library/fallback.h>
 #include <lh/assert/static.h>
 #include <lh/util/addr.h>
-#include <lh/size.h>
 #include <lh/null.h>
 
 lh_assert_static(LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX,

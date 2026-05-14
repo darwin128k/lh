@@ -20,6 +20,7 @@
 #include <lh/exception/catch.h>
 #include <lh/runtime/terminate.h>
 #include <lh/attribute/builtin.h>
+#include <lh/size.h>
 
 /**
  * @def lh_runtime_exception_catch_stack_capture(x)
@@ -104,6 +105,29 @@ lh_runtime_exception_catch_stack_get_cur(void);
  */
 lh_exception_catch_t *
 lh_runtime_exception_catch_stack_get_begin(void);
+
+/**
+ * @brief Return the maximum number of catch frames the runtime stack can hold.
+ *
+ * The value is configured by ::LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX
+ * and is guaranteed to be greater than zero by the runtime static assertion.
+ *
+ * @return Catch stack capacity, in frames.
+ */
+lh_usize_t
+lh_runtime_exception_catch_stack_get_capacity(void);
+
+/**
+ * @brief Return the last valid zero-based slot index in the catch stack.
+ *
+ * This is a convenience value used when locating the final stack slot.
+ * Because the configured capacity must be greater than zero, the result is
+ * always `lh_runtime_exception_catch_stack_get_capacity() - 1`.
+ *
+ * @return Last valid slot index.
+ */
+lh_usize_t
+lh_runtime_exception_catch_stack_get_last_index(void);
 
 /**
  * @brief Returns a pointer to one-past-the-last slot in the catch stack.
