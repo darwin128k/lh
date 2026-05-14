@@ -28,10 +28,24 @@ lh_runtime_exception_catch_stack_get_begin(void)
     return m_runtime_exceptions[0];
 }
 
+lh_usize_t
+lh_runtime_exception_catch_stack_get_capacity(void)
+{
+    return LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX;
+}
+
+lh_usize_t
+lh_runtime_exception_catch_stack_get_last_index(void)
+{
+    lh_usize_t capacity = lh_runtime_exception_catch_stack_get_capacity();
+    return capacity - 1;
+}
+
 lh_exception_catch_t *
 lh_runtime_exception_catch_stack_get_end(void)
 {
-    return m_runtime_exceptions[LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX];
+    lh_usize_t last_index = lh_runtime_exception_catch_stack_get_last_index();
+    return m_runtime_exceptions[last_index];
 }
 
 lh_bool_t
