@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expanded test coverage for bounds validated and fallback flows (`*_v`, `*_or_empty`, slice geometry and death cases)
 - Subsystem detection macros for Windows-specific visibility attributes (`lh/subsys.h`)
 - Macro utilities (`lh/util/arg.h`): `lh_arg_concat` for token concatenation, `lh_arg_get_count` for variadic argument counting (1-10)
-- Runtime assertion macros (`lh/assert.h`): `lh_assert_runtime`, `lh_assert_runtime_if`, `lh_assert_runtime_if_not`, `lh_assert_runtime_ref` — conditional throw with three variants (code only, message only, code + message)
+- Runtime assertion macros (`lh/assert.h`): `lh_assert_runtime`, `lh_assert_runtime_if`, `lh_assert_runtime_ifn`, `lh_assert_runtime_ref` — conditional throw with three variants (code only, message only, code + message)
 - Raise dispatch (`lh/runtime/raise.h`): `lh_runtime_raise` macro with auto-detecting argument pattern via `_Generic`
 - Size-aware string comparison (`lh/str/view.h`, `lh/util/wstr/ptr.h`): `lh_str_ptr_compare_size`, `lh_wstr_ptr_compare_size` for length-bounded comparison
 - Wide string search functions: `lh_wstr_ptr_find_char`, `lh_wstr_ptr_find`, `lh_wstr_ptr_rfind`, `lh_wstr_ptr_compare`, `lh_wstr_ptr_equals`, with case-fold support

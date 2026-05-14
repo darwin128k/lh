@@ -36,17 +36,17 @@
 #define lh_assert_runtime_if(condition, ...) lh_runtime_assert_if(condition, __VA_ARGS__)
 
 /**
- * @def lh_assert_runtime_if_not(condition, ...)
+ * @def lh_assert_runtime_ifn(condition, ...)
  * @brief Alias for ::lh_runtime_assert_ifn.
  *
  * Example usage:
  * @code{.c}
- * lh_assert_runtime_if_not(ptr != lh_null, lh_runtime_error_code_null_pointer);
+ * lh_assert_runtime_ifn(ptr != lh_null, lh_runtime_error_code_null_pointer);
  * @endcode
  *
  * @see lh_runtime_assert_ifn
  */
-#define lh_assert_runtime_if_not(condition, ...) lh_runtime_assert_ifn(condition, __VA_ARGS__)
+#define lh_assert_runtime_ifn(condition, ...) lh_runtime_assert_ifn(condition, __VA_ARGS__)
 
 /**
  * @def lh_assert_runtime_ref(expr)

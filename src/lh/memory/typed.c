@@ -62,8 +62,7 @@ lh_bool_t
 lh_memory_typed_is_valid(const lh_memory_typed_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_memory_bounds_is_valid(&self->bounds) &&
-           !lh_math_is_zero(self->type_size) &&
+    return lh_memory_bounds_is_valid(&self->bounds) && !lh_math_is_zero(self->type_size) &&
            lh_math_is_zero(lh_math_mod(lh_memory_bounds_get_size(&self->bounds), self->type_size));
 }
 
@@ -77,7 +76,7 @@ lh_void
 lh_memory_typed_unpack_v(const lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
                          lh_usize_t *type_size)
 {
-    lh_assert_runtime_if_not(lh_memory_typed_is_valid(self), lh_runtime_error_code_invalid_range);
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid(self), lh_runtime_error_code_invalid_range);
     lh_memory_typed_unpack(self, begin, end, type_size);
 }
 
@@ -100,7 +99,7 @@ lh_memory_typed_get_end_v(const lh_memory_typed_t *self)
 lh_usize_t
 lh_memory_typed_get_byte_size(const lh_memory_typed_t *self)
 {
-    lh_assert_runtime_if_not(lh_memory_typed_is_valid(self), lh_runtime_error_code_invalid_range);
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid(self), lh_runtime_error_code_invalid_range);
     return lh_memory_bounds_get_size(&self->bounds);
 }
 
@@ -125,26 +124,25 @@ lh_memory_typed_is_empty(const lh_memory_typed_t *self)
 lh_bool_t
 lh_memory_typed_is_valid_index(const lh_memory_typed_t *self, lh_usize_t index)
 {
-    lh_assert_runtime_if_not(lh_memory_typed_is_valid(self), lh_runtime_error_code_invalid_range);
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid(self), lh_runtime_error_code_invalid_range);
     return index < lh_memory_typed_get_count(self);
 }
 
 lh_ptr
 lh_memory_typed_get_element_ptr_from_begin(const lh_memory_typed_t *self, lh_usize_t index)
 {
-    lh_assert_runtime_if_not(lh_memory_typed_is_valid_index(self, index),
-                             lh_runtime_error_code_out_of_range);
-    return lh_memory_bounds_get_ptr_from_begin(&self->bounds,
-                                               lh_math_mul(index, self->type_size));
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid_index(self, index),
+                          lh_runtime_error_code_out_of_range);
+    return lh_memory_bounds_get_ptr_from_begin(&self->bounds, lh_math_mul(index, self->type_size));
 }
 
 lh_ptr
 lh_memory_typed_get_element_ptr_from_end(const lh_memory_typed_t *self, lh_usize_t index)
 {
-    lh_assert_runtime_if_not(lh_memory_typed_is_valid_index(self, index),
-                             lh_runtime_error_code_out_of_range);
-    const lh_usize_t from_begin = lh_math_sub(lh_math_sub_one(lh_memory_typed_get_count(self)),
-                                              index);
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid_index(self, index),
+                          lh_runtime_error_code_out_of_range);
+    const lh_usize_t from_begin =
+        lh_math_sub(lh_math_sub_one(lh_memory_typed_get_count(self)), index);
     return lh_memory_bounds_get_ptr_from_begin(&self->bounds,
                                                lh_math_mul(from_begin, self->type_size));
 }
@@ -170,7 +168,7 @@ lh_memory_typed_assign(lh_memory_typed_t *self, const lh_memory_typed_t *other)
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(other);
 
-    self->bounds    = other->bounds;
+    self->bounds = other->bounds;
     self->type_size = other->type_size;
 }
 
@@ -184,7 +182,7 @@ lh_memory_typed_clear(lh_memory_typed_t *self)
 lh_void
 lh_memory_typed_assign_v(lh_memory_typed_t *self, const lh_memory_typed_t *other)
 {
-    lh_assert_runtime_if_not(lh_memory_typed_is_valid(other), lh_runtime_error_code_invalid_range);
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid(other), lh_runtime_error_code_invalid_range);
     lh_memory_typed_assign(self, other);
 }
 
@@ -205,7 +203,7 @@ lh_memory_typed_set_v(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usiz
 
 lh_void
 lh_memory_typed_set_by_count(lh_memory_typed_t *self, lh_ptr begin, lh_usize_t count,
-                              lh_usize_t type_size)
+                             lh_usize_t type_size)
 {
     const lh_memory_typed_t typed = lh_memory_typed_make_by_count(begin, count, type_size);
     lh_memory_typed_assign(self, lh_addr_of(typed));
@@ -214,8 +212,8 @@ lh_memory_typed_set_by_count(lh_memory_typed_t *self, lh_ptr begin, lh_usize_t c
 lh_void
 lh_memory_typed_swap_v(lh_memory_typed_t *self, lh_memory_typed_t *other)
 {
-    lh_assert_runtime_if_not(lh_memory_typed_is_valid(self), lh_runtime_error_code_invalid_range);
-    lh_assert_runtime_if_not(lh_memory_typed_is_valid(other), lh_runtime_error_code_invalid_range);
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid(self), lh_runtime_error_code_invalid_range);
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid(other), lh_runtime_error_code_invalid_range);
 
     lh_return_if(lh_math_eq(self, other));
 
@@ -230,7 +228,7 @@ lh_memory_typed_init(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize
 
 lh_void
 lh_memory_typed_init_by_count(lh_memory_typed_t *self, lh_ptr begin, lh_usize_t count,
-                               lh_usize_t type_size)
+                              lh_usize_t type_size)
 {
     lh_memory_typed_set_by_count(self, begin, count, type_size);
 }
@@ -252,8 +250,8 @@ lh_memory_typed_t
 lh_memory_typed_make_v(lh_ptr begin, lh_ptr end, lh_usize_t type_size)
 {
     const lh_memory_typed_t typed = lh_memory_typed_make(begin, end, type_size);
-    lh_assert_runtime_if_not(lh_memory_typed_is_valid(lh_addr_of(typed)),
-                             lh_runtime_error_code_invalid_range);
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid(lh_addr_of(typed)),
+                          lh_runtime_error_code_invalid_range);
     return typed;
 }
 
@@ -264,8 +262,7 @@ lh_memory_typed_make_by_count(lh_ptr begin, lh_usize_t count, lh_usize_t type_si
     const lh_usize_t byte_size = lh_math_mul(count, type_size);
     const lh_memory_bounds_t bounds = lh_memory_bounds_make_by_size(begin, byte_size);
     return lh_memory_typed_make(lh_memory_bounds_get_begin(lh_addr_of(bounds)),
-                                lh_memory_bounds_get_end(lh_addr_of(bounds)),
-                                type_size);
+                                lh_memory_bounds_get_end(lh_addr_of(bounds)), type_size);
 }
 
 lh_memory_typed_t
@@ -278,6 +275,6 @@ lh_memory_typed_make_empty(lh_usize_t type_size)
 lh_memory_typed_t
 lh_memory_typed_make_by_other(const lh_memory_typed_t *other)
 {
-    lh_assert_runtime_if_not(lh_memory_typed_is_valid(other), lh_runtime_error_code_invalid_range);
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid(other), lh_runtime_error_code_invalid_range);
     return lh_ptr_deref(other);
 }
