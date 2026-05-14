@@ -113,6 +113,14 @@ lh_runtime_exception_catch_stack_get_begin(void);
  * and is guaranteed to be greater than zero by the runtime static assertion.
  *
  * @return Catch stack capacity, in frames.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_usize_t capacity = lh_runtime_exception_catch_stack_get_capacity();
+ * for (lh_usize_t i = 0; i < capacity; ++i) {
+ *     // inspect slot i
+ * }
+ * @endcode
  */
 lh_usize_t
 lh_runtime_exception_catch_stack_get_capacity(void);
@@ -121,10 +129,16 @@ lh_runtime_exception_catch_stack_get_capacity(void);
  * @brief Return the last valid zero-based slot index in the catch stack.
  *
  * This is a convenience value used when locating the final stack slot.
- * Because the configured capacity must be greater than zero, the result is
- * always `lh_runtime_exception_catch_stack_get_capacity() - 1`.
+ * Because the configured capacity must be greater than zero,
+ * the result is always `lh_runtime_exception_catch_stack_get_capacity() - 1`.
  *
  * @return Last valid slot index.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_usize_t last = lh_runtime_exception_catch_stack_get_last_index();
+ * lh_exception_catch_t *last_slot = lh_runtime_exception_catch_stack_get_begin() + last;
+ * @endcode
  */
 lh_usize_t
 lh_runtime_exception_catch_stack_get_last_index(void);
@@ -132,8 +146,8 @@ lh_runtime_exception_catch_stack_get_last_index(void);
 /**
  * @brief Returns a pointer to one-past-the-last slot in the catch stack.
  *
- * Use with ::lh_runtime_exception_catch_stack_get_begin to iterate over
- * all slots in the catch stack.
+ * Use with ::lh_runtime_exception_catch_stack_get_begin
+ * to iterate over all slots in the catch stack.
  *
  * @return Pointer to one-past-the-last slot.
  *
