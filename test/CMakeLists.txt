@@ -65,7 +65,6 @@ if (WIN32)
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_FILE:${LH_CORE_TARGET}>
             $<TARGET_FILE_DIR:${PROJECT_NAME}>
-            COMMENT "[----] Copy ${LH_CORE_TARGET} library next to ${PROJECT_NAME}"
     )
 endif ()
 
