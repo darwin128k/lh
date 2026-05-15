@@ -43,6 +43,35 @@ cmake -S . -B build
 cmake --build build
 ```
 
+Convenience scripts are available for common platform builds:
+
+```powershell
+.\scripts\build-windows.ps1 -Config Release -RunTests
+```
+
+If local PowerShell policy blocks unsigned scripts, run the same build with:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-windows.ps1 -Config Release -RunTests
+```
+
+```sh
+./scripts/build-linux.sh --config Release --run-tests
+```
+
+Both scripts accept options for static/shared builds, docs/tests, target, build
+directory, compiler selection, clean builds, and parallelism. See
+[scripts/README.md](scripts/README.md) for the quick command list.
+
+Legacy Windows builds that must work from `cmd.exe` can use the batch wrappers:
+
+```bat
+scripts\build-windows-xp.bat --clean
+scripts\build-windows-vista.bat --clean
+```
+
+Details are in [scripts/README.md](scripts/README.md).
+
 ### Options
 
 | CMake option     | Default | Description                          |
