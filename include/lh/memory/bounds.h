@@ -172,7 +172,6 @@ LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_is_valid(const lh_memory_bounds_t *self);
 
-
 /* -- validated access, size, containment ---------------------------------- */
 
 /**
@@ -727,19 +726,7 @@ lh_memory_bounds_overlaps_v(const lh_memory_bounds_t *self, const lh_memory_boun
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_multiple_of(const lh_memory_bounds_t *self, lh_usize_t alignment);
-
-/**
- * @brief Alias for ::lh_memory_bounds_multiple_of.
- *
- * @throw ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_memory_bounds_is_multiple_of(const lh_memory_bounds_t *self, lh_usize_t multiple);
+lh_memory_bounds_is_multiple_of(const lh_memory_bounds_t *self, lh_usize_t alignment);
 
 /**
  * @brief True iff @c first is aligned to @p align.

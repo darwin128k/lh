@@ -357,17 +357,11 @@ lh_memory_bounds_overlaps_v(const lh_memory_bounds_t *self, const lh_memory_boun
 }
 
 lh_bool_t
-lh_memory_bounds_multiple_of(const lh_memory_bounds_t *self, lh_usize_t alignment)
+lh_memory_bounds_is_multiple_of(const lh_memory_bounds_t *self, lh_usize_t alignment)
 {
     lh_assert_runtime_if(lh_math_is_zero(alignment), lh_runtime_error_code_division_by_zero);
     const lh_usize_t size = lh_memory_bounds_get_size(self);
     return lh_math_is_zero(lh_math_mod(size, alignment));
-}
-
-lh_bool_t
-lh_memory_bounds_is_multiple_of(const lh_memory_bounds_t *self, lh_usize_t multiple)
-{
-    return lh_memory_bounds_multiple_of(self, multiple);
 }
 
 lh_bool_t
