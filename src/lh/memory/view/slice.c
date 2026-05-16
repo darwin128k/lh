@@ -299,6 +299,18 @@ lh_memory_view_slice_get_ptr_from_end(const lh_memory_view_slice_t *self, lh_uof
 }
 
 const lh_ptr
+lh_memory_bounds_slice_get_ptr(const lh_memory_view_slice_t *self, lh_soffset_t offset)
+{
+    if (lh_math_is_negative(offset))
+    {
+        return lh_memory_view_slice_get_ptr_from_end(
+            self, lh_type_cast(lh_uoffset_t, lh_math_neg(offset)));
+    }
+
+    return lh_memory_view_slice_get_ptr_from_begin(self, lh_type_cast(lh_uoffset_t, offset));
+}
+
+const lh_ptr
 lh_memory_view_slice_get_first_ptr(const lh_memory_view_slice_t *self)
 {
     return lh_memory_view_slice_get_ptr_from_begin(self, 0);

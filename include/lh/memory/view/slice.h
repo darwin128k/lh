@@ -553,6 +553,10 @@ LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_view_slice_get_ptr_from_end(const lh_memory_view_slice_t *self, lh_uoffset_t offset);
 
+LH_ATTRIBUTE_SYMBOL
+const lh_ptr
+lh_memory_bounds_slice_get_ptr(const lh_memory_view_slice_t *self, lh_soffset_t offset);
+
 /**
  * @brief Return pointer to the first byte.
  * @param self Valid slice to index.

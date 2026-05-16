@@ -172,7 +172,6 @@ LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_view_is_valid(const lh_memory_view_t *self);
 
-
 /* -- validated access, size, containment ---------------------------------- */
 
 /**
@@ -399,6 +398,10 @@ lh_memory_view_get_ptr_from_begin(const lh_memory_view_t *self, lh_uoffset_t off
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_view_get_ptr_from_end(const lh_memory_view_t *self, lh_uoffset_t offset);
+
+LH_ATTRIBUTE_SYMBOL
+const lh_ptr
+lh_memory_view_get_ptr(const lh_memory_view_t *self, lh_soffset_t offset);
 
 /**
  * @brief Return pointer to the first byte.

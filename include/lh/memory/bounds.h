@@ -399,6 +399,10 @@ LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_get_ptr_from_end(const lh_memory_bounds_t *self, lh_uoffset_t offset);
 
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_get_ptr(const lh_memory_bounds_t *self, lh_soffset_t offset);
+
 /**
  * @brief Return pointer to the first byte.
  * @param self Valid bounds to index.

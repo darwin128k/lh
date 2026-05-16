@@ -1,6 +1,4 @@
 #include <lh/memory/typed.h>
-#include <lh/memory/typed/initializer.h>
-#include <lh/attribute/static.h>
 #include <lh/util/algorithm.h>
 #include <lh/util/math.h>
 #include <lh/util/return.h>
@@ -147,6 +145,18 @@ lh_memory_typed_get_ptr_from_end(const lh_memory_typed_t *self, lh_usize_t index
 }
 
 lh_ptr
+lh_memory_typed_get_ptr(const lh_memory_typed_t *self, lh_ssize_t index)
+{
+    if (lh_math_is_negative(index))
+    {
+        return lh_memory_typed_get_ptr_from_end(self,
+                                                lh_type_cast(lh_uoffset_t, lh_math_neg(index)));
+    }
+
+    return lh_memory_typed_get_ptr_from_begin(self, lh_type_cast(lh_uoffset_t, index));
+}
+
+lh_ptr
 lh_memory_typed_get_first_ptr(const lh_memory_typed_t *self)
 {
     return lh_memory_typed_get_ptr_from_begin(self, 0);
@@ -178,12 +188,10 @@ lh_memory_typed_is_equal_type_size(const lh_memory_typed_t *self, const lh_memor
     return lh_memory_typed_get_type_size(self) == lh_memory_typed_get_type_size(other);
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_memory_typed_assign(lh_memory_typed_t *self, const lh_memory_typed_t *other)
 {
     lh_return_if(lh_math_eq(self, other));
-
     lh_memory_typed_init_by_bounds(self, lh_ptr_ccast(lh_memory_bounds_t, other),
                                    lh_memory_typed_get_type_size(other));
 }
@@ -207,11 +215,12 @@ lh_memory_typed_set(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end)
 }
 
 lh_void
-lh_memory_typed_set_by_size(lh_memory_typed_t *self, lh_ptr begin, lh_usize_t count)
+lh_memory_typed_set_by_size(lh_memory_typed_t *self, lh_ptr begin, lh_usize_t size)
 {
     lh_usize_t type_size = lh_memory_typed_get_type_size(self);
-    lh_usize_t size = lh_math_mul(count, type_size);
-    const lh_memory_bounds_t bounds = lh_memory_bounds_make_by_size(begin, size);
+
+    const lh_memory_bounds_t bounds =
+        lh_memory_bounds_make_by_size(begin, lh_math_mul(size, type_size));
     lh_memory_typed_set_by_bounds(self, lh_addr_of(bounds));
 }
 
