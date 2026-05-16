@@ -71,7 +71,6 @@ TEST(memory_bounds_classification, distinguishes_states)
     EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&empty));
     EXPECT_FALSE(lh_memory_bounds_is_initialized(&empty));
     EXPECT_TRUE(lh_memory_bounds_is_empty(&empty));
-    EXPECT_TRUE(lh_memory_bounds_is_invalid(&empty));
 
     lh_memory_bounds_t unknown = bounds(p(buf), lh_null);
     EXPECT_EQ(lh_memory_bounds_get_direction(&unknown), lh_memory_view_slice_direction_unknown);
@@ -81,7 +80,6 @@ TEST(memory_bounds_classification, distinguishes_states)
     EXPECT_EQ(lh_memory_bounds_get_direction(&forward), lh_memory_view_slice_direction_forward);
     EXPECT_TRUE(lh_memory_bounds_is_forward(&forward));
     EXPECT_TRUE(lh_memory_bounds_is_valid(&forward));
-    EXPECT_FALSE(lh_memory_bounds_is_invalid(&forward));
 
     lh_memory_bounds_t equal = bounds(p(buf), p(buf));
     EXPECT_EQ(lh_memory_bounds_get_direction(&equal), lh_memory_view_slice_direction_backward);
@@ -304,6 +302,16 @@ TEST(memory_bounds_mutation, clears_assigns_sets_and_initializes)
 
     lh_memory_bounds_init_by_other(&b, &other);
     EXPECT_TRUE(lh_memory_bounds_equals(&b, &other));
+}
+
+TEST(memory_bounds_assign, copies_state_without_validation)
+{
+    unsigned char buf[8];
+    lh_memory_bounds_t b = bounds(p(buf), p(buf + 4));
+    lh_memory_bounds_t empty = lh_memory_bounds_empty_initializer();
+
+    lh_memory_bounds_assign(&b, &empty);
+    EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&b));
 }
 
 TEST(memory_bounds_make, returns_validated_values)

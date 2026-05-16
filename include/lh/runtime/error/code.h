@@ -148,6 +148,24 @@
 #define lh_runtime_error_code_division_by_zero 0x0F
 
 /**
+ * @def lh_runtime_error_code_not_initialized
+ * @brief Runtime error code for use of an uninitialized object.
+ *
+ * Emitted when an operation is performed on an object that has not yet been
+ * initialized.
+ */
+#define lh_runtime_error_code_not_initialized 0x10
+
+/**
+ * @def lh_runtime_error_code_type_size_mismatch
+ * @brief Runtime error code for incompatible element type sizes.
+ *
+ * Emitted when two typed memory objects are expected to share the same element
+ * type size but do not (for example in ::lh_memory_typed_assign).
+ */
+#define lh_runtime_error_code_type_size_mismatch 0x11
+
+/**
  * @typedef lh_runtime_error_code_t
  * @brief Same representation as ::lh_error_code_t for runtime-layer APIs.
  *

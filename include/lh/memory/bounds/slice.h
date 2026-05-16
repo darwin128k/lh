@@ -552,6 +552,36 @@ lh_ptr
 lh_memory_bounds_slice_get_ptr_from_end(const lh_memory_bounds_slice_t *self, lh_uoffset_t offset);
 
 /**
+ * @brief Return pointer to the first byte.
+ * @param self Valid slice to index.
+ * @return Pointer to @c first.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_get_first_ptr(const lh_memory_bounds_slice_t *self);
+
+/**
+ * @brief Return pointer to the last byte (@c second).
+ * @param self Valid non-empty slice to index.
+ * @return Pointer to @c second.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p self is empty.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_get_last_ptr(const lh_memory_bounds_slice_t *self);
+
+/**
  * @brief Return pointer by signed offset.
  *
  * Non-negative offsets are measured from @c first. Negative offsets are

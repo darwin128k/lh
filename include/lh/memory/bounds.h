@@ -172,16 +172,6 @@ LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_is_valid(const lh_memory_bounds_t *self);
 
-/**
- * @brief Logical negation of ::lh_memory_bounds_is_valid.
- * @param self Bounds to inspect.
- *
- * @throw ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_memory_bounds_is_invalid(const lh_memory_bounds_t *self);
 
 /* -- validated access, size, containment ---------------------------------- */
 
@@ -409,6 +399,36 @@ lh_memory_bounds_get_ptr_from_begin(const lh_memory_bounds_t *self, lh_uoffset_t
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_get_ptr_from_end(const lh_memory_bounds_t *self, lh_uoffset_t offset);
+
+/**
+ * @brief Return pointer to the first byte.
+ * @param self Valid bounds to index.
+ * @return Pointer to @c first.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_get_first_ptr(const lh_memory_bounds_t *self);
+
+/**
+ * @brief Return pointer to the last byte.
+ * @param self Valid non-empty bounds to index.
+ * @return Pointer to @c second - 1.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p self is empty.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_get_last_ptr(const lh_memory_bounds_t *self);
 
 /**
  * @brief Return pointer by signed offset.
@@ -1080,6 +1100,22 @@ lh_memory_bounds_rcompare(const lh_memory_bounds_t *self, const lh_memory_bounds
 LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_clear(lh_memory_bounds_t *self);
+
+/**
+ * @brief Copy endpoints from @p other to @p self.
+ *
+ * This function preserves the bounds state as-is. Use
+ * ::lh_memory_bounds_assign_v when the source must be a valid half-open range.
+ *
+ * @param self  Bounds to update.
+ * @param other Bounds to copy from.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_assign(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
 /**
  * @brief Copy endpoints from valid @p other to @p self.

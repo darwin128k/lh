@@ -86,12 +86,6 @@ lh_memory_bounds_is_valid(const lh_memory_bounds_t *self)
     return lh_memory_bounds_is_forward(self);
 }
 
-lh_bool_t
-lh_memory_bounds_is_invalid(const lh_memory_bounds_t *self)
-{
-    return !lh_memory_bounds_is_valid(self);
-}
-
 lh_void
 lh_memory_bounds_unpack_v(const lh_memory_bounds_t *self, lh_ptr *begin, lh_ptr *end)
 {
@@ -190,6 +184,18 @@ lh_memory_bounds_get_ptr_from_end(const lh_memory_bounds_t *self, lh_uoffset_t o
     return lh_ptr_add_by_offset_unsafe(
         lh_void, lh_memory_bounds_get_end(self),
         lh_math_neg(lh_type_cast(lh_soffset_t, lh_math_add_one(offset))));
+}
+
+lh_ptr
+lh_memory_bounds_get_first_ptr(const lh_memory_bounds_t *self)
+{
+    return lh_memory_bounds_get_ptr_from_begin(self, 0);
+}
+
+lh_ptr
+lh_memory_bounds_get_last_ptr(const lh_memory_bounds_t *self)
+{
+    return lh_memory_bounds_get_ptr_from_end(self, 0);
 }
 
 lh_ptr
@@ -565,7 +571,6 @@ lh_memory_bounds_set(lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end)
     self->second = end;
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_memory_bounds_assign(lh_memory_bounds_t *self, const lh_memory_bounds_t *other)
 {

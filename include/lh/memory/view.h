@@ -172,16 +172,6 @@ LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_view_is_valid(const lh_memory_view_t *self);
 
-/**
- * @brief Logical negation of ::lh_memory_view_is_valid.
- * @param self View to inspect.
- *
- * @throw ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_memory_view_is_invalid(const lh_memory_view_t *self);
 
 /* -- validated access, size, containment ---------------------------------- */
 
@@ -409,6 +399,36 @@ lh_memory_view_get_ptr_from_begin(const lh_memory_view_t *self, lh_uoffset_t off
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_view_get_ptr_from_end(const lh_memory_view_t *self, lh_uoffset_t offset);
+
+/**
+ * @brief Return pointer to the first byte.
+ * @param self Valid view to index.
+ * @return Pointer to @c first.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_ptr
+lh_memory_view_get_first_ptr(const lh_memory_view_t *self);
+
+/**
+ * @brief Return pointer to the last byte.
+ * @param self Valid non-empty view to index.
+ * @return Pointer to @c second - 1.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p self is empty.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_ptr
+lh_memory_view_get_last_ptr(const lh_memory_view_t *self);
 
 /**
  * @brief Return pointer by signed offset.

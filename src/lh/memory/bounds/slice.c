@@ -191,6 +191,18 @@ lh_memory_bounds_slice_get_ptr_from_end(const lh_memory_bounds_slice_t *self, lh
 }
 
 lh_ptr
+lh_memory_bounds_slice_get_first_ptr(const lh_memory_bounds_slice_t *self)
+{
+    return lh_memory_bounds_slice_get_ptr_from_begin(self, 0);
+}
+
+lh_ptr
+lh_memory_bounds_slice_get_last_ptr(const lh_memory_bounds_slice_t *self)
+{
+    return lh_memory_bounds_slice_get_ptr_from_end(self, 0);
+}
+
+lh_ptr
 lh_memory_bounds_slice_get_ptr_by_offset(const lh_memory_bounds_slice_t *self, lh_soffset_t offset)
 {
     if (lh_math_is_negative(offset))
