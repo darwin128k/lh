@@ -365,7 +365,6 @@ lh_memory_bounds_slice_equals(const lh_memory_bounds_slice_t *self,
     return lh_memory_bounds_slice_equals_of(self, other_begin, other_end);
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_memory_bounds_slice_set(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr end)
 {
@@ -375,7 +374,6 @@ lh_memory_bounds_slice_set(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr 
     self->second = end;
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_memory_bounds_slice_assign(lh_memory_bounds_slice_t *self, const lh_memory_bounds_slice_t *other)
 {
@@ -409,7 +407,6 @@ lh_memory_bounds_slice_set_v(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_pt
     lh_memory_bounds_slice_assign_v(self, lh_addr_of(s));
 }
 
-LH_ATTRIBUTE_STATIC
 lh_memory_bounds_slice_t
 lh_memory_bounds_slice_make(lh_ptr begin, lh_ptr end)
 {
@@ -443,7 +440,6 @@ lh_memory_bounds_slice_make_empty(lh_void)
     return slice;
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_memory_bounds_slice_swap(lh_memory_bounds_slice_t *self, lh_memory_bounds_slice_t *other)
 {

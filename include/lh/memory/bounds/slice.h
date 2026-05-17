@@ -879,6 +879,25 @@ lh_void
 lh_memory_bounds_slice_clear(lh_memory_bounds_slice_t *self);
 
 /**
+ * @brief Copy endpoints from @p other to @p self without range validation.
+ *
+ * The caller is responsible for ensuring @p other is a meaningful slice.
+ * No range check is performed on the copied endpoints.
+ *
+ * @param self  Slice to update.
+ * @param other Slice to copy from (may be invalid or uninitialized).
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p other is ::lh_null.
+ *
+ * @warning Unsafe — no range validation. Caller assumes full responsibility.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_slice_assign(lh_memory_bounds_slice_t *self,
+                              const lh_memory_bounds_slice_t *other);
+
+/**
  * @brief Copy endpoints from valid @p other to @p self.
  * @param self  Slice to update.
  * @param other Valid slice to copy from.
@@ -894,6 +913,25 @@ lh_memory_bounds_slice_assign_v(lh_memory_bounds_slice_t *self,
                                 const lh_memory_bounds_slice_t *other);
 
 /**
+ * @brief Store @p begin and @p end in @p self without range validation.
+ *
+ * The caller is responsible for ensuring the resulting slice is meaningful.
+ * No range check is performed on @p begin or @p end.
+ *
+ * @param self  Slice to update.
+ * @param begin New @c first endpoint.
+ * @param end   New @c second endpoint.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ *
+ * @warning Unsafe — no range validation. Caller assumes full responsibility.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_slice_set(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr end);
+
+/**
  * @brief Store @p begin and @p end in @p self after validating the new slice.
  * @param self  Slice to update.
  * @param begin New @c first endpoint.
@@ -905,6 +943,22 @@ lh_memory_bounds_slice_assign_v(lh_memory_bounds_slice_t *self,
 LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_slice_set_v(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr end);
+
+/**
+ * @brief Build a slice from @p begin and @p end without range validation.
+ *
+ * The caller is responsible for ensuring the resulting slice is meaningful.
+ * No range check is performed on @p begin or @p end.
+ *
+ * @param begin New @c first endpoint.
+ * @param end   New @c second endpoint.
+ * @return Constructed slice value (may be invalid or uninitialized).
+ *
+ * @warning Unsafe — no range validation. Caller assumes full responsibility.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_bounds_slice_t
+lh_memory_bounds_slice_make(lh_ptr begin, lh_ptr end);
 
 /**
  * @brief Build and validate a slice from @p begin and @p end.
@@ -1215,6 +1269,24 @@ LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_slice_init_by_other(lh_memory_bounds_slice_t *self,
                                      const lh_memory_bounds_slice_t *other);
+
+/**
+ * @brief Swap @p self and @p other without range validation.
+ *
+ * The caller is responsible for ensuring both slices are meaningful.
+ * No range check is performed on either operand.
+ *
+ * @param self  Slice to swap.
+ * @param other Slice to swap with.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ *
+ * @warning Unsafe — no range validation. Caller assumes full responsibility.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_slice_swap(lh_memory_bounds_slice_t *self, lh_memory_bounds_slice_t *other);
 
 /**
  * @brief Swap two valid slices.

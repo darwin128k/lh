@@ -135,6 +135,30 @@ lh_version_t ver = { 0, 2, 0 };
 /* ver.major == 0, ver.minor == 2, ver.patch == 0 */
 ```
 
+## Safety conventions
+
+Most public APIs in this library perform runtime validation and raise an error
+on invalid input. However, a small number of functions are intentionally
+**unsafe** — they skip range validation to let callers who have already
+verified invariants avoid redundant checks. These functions are explicitly
+marked with a `@warning` tag in their documentation.
+
+Current unsafe functions:
+
+| Function | What is skipped |
+|---|---|
+| `lh_memory_bounds_slice_set` | range check on `[begin, end]` |
+| `lh_memory_bounds_slice_assign` | range check on the source slice |
+| `lh_memory_bounds_slice_make` | range check on `[begin, end]` |
+| `lh_memory_bounds_slice_swap` | range check on both operands |
+
+Null-pointer checks are still enforced even in unsafe functions.
+
+**When calling an unsafe function the caller assumes full responsibility** for
+the validity of the range. Passing a backward or otherwise invalid range
+produces a logically inconsistent slice and may cause failures in any
+subsequent operation that requires a valid slice.
+
 ## Version
 
 Current version: **0.3.0** — history and release notes in [CHANGELOG](CHANGELOG.md).
