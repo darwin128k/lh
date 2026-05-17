@@ -1,6 +1,38 @@
 #include <lh/exception.h>
+#include <lh/exception/origin.h>
 #include <lh/util/ptr.h>
 #include <lh/assert.h>
+
+#ifndef NDEBUG
+void
+lh_exception_set(lh_exception_t *self, const lh_error_t *error,
+                 const lh_exception_origin_t *origin)
+{
+    lh_assert_runtime_ref(self);
+    lh_error_assign(lh_exception_get_error(self), error);
+    lh_exception_origin_assign(lh_exception_get_origin(self), origin);
+}
+
+void
+lh_exception_init(lh_exception_t *self, const lh_error_t *error,
+                  const lh_exception_origin_t *origin)
+{
+    lh_exception_set(self, error, origin);
+}
+#else
+void
+lh_exception_set(lh_exception_t *self, const lh_error_t *error)
+{
+    lh_assert_runtime_ref(self);
+    lh_error_assign(lh_exception_get_error(self), error);
+}
+
+void
+lh_exception_init(lh_exception_t *self, const lh_error_t *error)
+{
+    lh_exception_set(self, error);
+}
+#endif
 
 lh_error_t *
 lh_exception_get_error(const lh_exception_t *self)

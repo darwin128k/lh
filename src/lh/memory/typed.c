@@ -4,10 +4,17 @@
 #include <lh/assert.h>
 
 lh_void
+lh_memory_typed_unpack_bounds(const lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end)
+{
+    lh_memory_bounds_unpack(lh_ptr_ccast(lh_memory_bounds_t, self), begin, end);
+}
+
+lh_void
 lh_memory_typed_unpack(const lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
                        lh_usize_t *type_size)
 {
-    lh_memory_bounds_unpack(lh_ptr_ccast(lh_memory_bounds_t, self), begin, end);
+
+    lh_memory_typed_unpack_bounds(self, begin, end);
     lh_optional_ref(type_size)
     {
         lh_ptr_deref(type_size) = self->type_size;
@@ -71,7 +78,7 @@ lh_void
 lh_memory_typed_unpack_v(const lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
                          lh_usize_t *type_size)
 {
-    lh_assert_runtime_ifn(lh_memory_typed_is_valid(self), lh_runtime_error_code_invalid_range);
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid(self), lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
     lh_memory_typed_unpack(self, begin, end, type_size);
 }
 
@@ -147,9 +154,8 @@ lh_memory_typed_get_ptr(const lh_memory_typed_t *self, lh_ssize_t index)
 {
     if (lh_math_is_negative(index))
     {
-        return lh_memory_typed_get_ptr_from_end(self,
-                                                lh_type_cast(lh_uoffset_t,
-                                                             lh_math_sub_one(lh_math_neg(index))));
+        return lh_memory_typed_get_ptr_from_end(
+            self, lh_type_cast(lh_uoffset_t, lh_math_sub_one(lh_math_neg(index))));
     }
 
     return lh_memory_typed_get_ptr_from_begin(self, lh_type_cast(lh_uoffset_t, index));
@@ -195,4 +201,15 @@ lh_byte_t
 lh_memory_typed_get_last_value(const lh_memory_typed_t *self)
 {
     return lh_memory_typed_get_value_from_end(self, 0);
+}
+
+lh_void
+lh_memory_typed_retype(lh_memory_typed_t *self, lh_usize_t new_type_size)
+{
+    self->type_size = new_type_size;
+}
+
+lh_void
+lh_memory_typed_set_by_bounds(lh_memory_typed_t *self, const lh_memory_bounds_t *bounds)
+{
 }

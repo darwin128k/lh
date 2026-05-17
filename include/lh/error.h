@@ -286,6 +286,29 @@ LH_ATTRIBUTE_SYMBOL
 lh_error_code_t
 lh_error_get_code_and_clear(lh_error_t *self);
 
+/* ── make ────────────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Construct an ::lh_error_t with @p code and @p desc.
+ *
+ * @param code Error code (::lh_error_code_t).
+ * @param desc Description string (may be @c lh_null).
+ * @return Constructed ::lh_error_t value.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_error_t
+lh_error_make(lh_error_code_t code, lh_error_desc_t desc);
+
+/**
+ * @brief Construct an ::lh_error_t with @p code and no description.
+ *
+ * @param code Error code (::lh_error_code_t).
+ * @return Constructed ::lh_error_t value.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_error_t
+lh_error_make_by_code(lh_error_code_t code);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif // LH_ERROR_H

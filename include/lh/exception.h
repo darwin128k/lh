@@ -51,6 +51,42 @@ typedef struct lh_exception
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/* ── set / init ──────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Replace all fields of @p self from @p error and @p origin.
+ *
+ * @param self   Exception to modify (not null).
+ * @param error  Source error (not null).
+ * @param origin Raise-site metadata (not null; debug builds only).
+ */
+LH_ATTRIBUTE_SYMBOL
+#ifndef NDEBUG
+void
+lh_exception_set(lh_exception_t *self, const lh_error_t *error,
+                 const lh_exception_origin_t *origin);
+#else
+void
+lh_exception_set(lh_exception_t *self, const lh_error_t *error);
+#endif
+
+/**
+ * @brief Initialize @p self by delegating to ::lh_exception_set.
+ *
+ * @param self   Exception to initialize (not null).
+ * @param error  Source error (not null).
+ * @param origin Raise-site metadata (not null; debug builds only).
+ */
+LH_ATTRIBUTE_SYMBOL
+#ifndef NDEBUG
+void
+lh_exception_init(lh_exception_t *self, const lh_error_t *error,
+                  const lh_exception_origin_t *origin);
+#else
+void
+lh_exception_init(lh_exception_t *self, const lh_error_t *error);
+#endif
+
 /**
  * @brief Mutable pointer to the embedded ::lh_error_t inside @p self.
  *

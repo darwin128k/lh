@@ -1,51 +1,64 @@
 /**
  * @file throw.h
- * @brief Macros to throw and rethrow ::lh_exception_t on the runtime catch stack.
+ * @brief Functions to throw
+ *        and rethrow ::lh_exception_t on the runtime catch stack.
  *
- * These wrap ::lh_exception_initializer and the `setjmp` / `longjmp`
- * unwinder (::lh_runtime_exception_catch_stack_throw).
+ * ::lh_runtime_throw assembles an ::lh_exception_t from an ::lh_runtime_error_t
+ * and unwinds to the innermost catch frame registered with
+ * ::lh_runtime_exception_catch_stack_capture.
  *
- * Use with ::lh_runtime_exception_catch_stack_capture
- * in the same translation unit’s catch regions.
+ * In debug builds (@c NDEBUG not defined) the caller supplies a pre-built
+ * ::lh_exception_origin_t with raise-site metadata; in release builds
+ * (@c NDEBUG defined) the origin parameter is absent and the exception
+ * carries only the ::lh_runtime_error_t fields.
+ *
+ * The origin is typically constructed by the ::lh_runtime_raise macro
+ * at the call site using @c __FILE__, @c __LINE__, @c __FUNCTION__,
+ * and @c __TIMESTAMP__.
  */
 
 #ifndef LH_RUNTIME_THROW_H
 #define LH_RUNTIME_THROW_H
 
-#include <lh/exception/initializer.h>
+#include <lh/runtime/error.h>
 #include <lh/runtime/exception/catch/stack.h>
 
 /**
- * @def lh_runtime_throw(...)
- * @brief Construct an exception from @p __VA_ARGS__ and unwind to the inner catch.
+ * @brief Assemble an ::lh_exception_t from @p error and @p origin, then unwind.
  *
- * Expands to a compound statement: builds a temporary ::lh_exception_t with
- * ::lh_exception_initializer(__VA_ARGS__), then calls ::lh_runtime_exception_catch_stack_throw
- * with its address.
+ * Delegates assembly to ::lh_exception_init and passes the result to
+ * ::lh_runtime_exception_catch_stack_throw, which copies it into the active
+ * catch frame and unwinds via @c longjmp.
+ *
+ * @param error  Pre-built ::lh_runtime_error_t value (not null).
+ * @param origin Pre-built raise-site metadata (not null; debug builds only).
  *
  * @note Does not return if a handler exists;
  *       otherwise ::lh_runtime_terminate is invoked.
  *
- * @param ... Arguments forwarded to ::lh_exception_initializer
- * (typically an error code and optional description for the embedded ::lh_error_t).
- *
- * Example usage:
- * @code{.c}
- * lh_runtime_throw(ENOENT, "open failed");
- * @endcode
- *
- * @see lh_exception_initializer
- * @see lh_runtime_exception_catch_stack_throw
- * @see lh_runtime_exception_catch_stack_capture
- * @see lh_runtime_throw_with_code
- * @see lh_runtime_throw_by_desc
+ * @see lh_runtime_rethrow
+ * @see lh_exception_init
+ * @see lh_runtime_error_t
+ * @see lh_exception_origin_t
  */
-#define lh_runtime_throw(...)                                                                      \
-    do                                                                                             \
-    {                                                                                              \
-        const lh_exception_t e = lh_exception_initializer(__VA_ARGS__);                            \
-        lh_runtime_exception_catch_stack_throw(&e);                                                \
-    } while (0)
+LH_ATTRIBUTE_BUILTIN
+LH_ATTRIBUTE_NORETURN
+#ifndef NDEBUG
+void
+lh_runtime_throw(const lh_runtime_error_t *error, const lh_exception_origin_t *origin)
+#else
+void
+lh_runtime_throw(const lh_runtime_error_t *error)
+#endif
+{
+    lh_exception_t exception;
+#ifndef NDEBUG
+    lh_exception_init(lh_addr_of(exception), lh_ptr_ccast(lh_error_t, error), origin);
+#else
+    lh_exception_init(lh_addr_of(exception), lh_ptr_ccast(lh_error_t, error));
+#endif
+    lh_runtime_exception_catch_stack_throw(lh_addr_of(exception));
+}
 
 /**
  * @def lh_runtime_rethrow()
@@ -53,9 +66,9 @@
  *
  * Expands to ::lh_runtime_exception_catch_stack_rethrow().
  *
- * @pre A catch registered with ::lh_runtime_exception_catch_stack_capture must
- *      be active and hold the exception being rethrown; otherwise behavior is
- *      undefined.
+ * @pre A catch registered with ::lh_runtime_exception_catch_stack_capture
+ *      must be active and hold the exception being rethrown;
+ *      otherwise behavior is undefined.
  *
  * @see lh_runtime_exception_catch_stack_rethrow
  * @see lh_runtime_throw
