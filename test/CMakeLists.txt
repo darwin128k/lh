@@ -29,6 +29,8 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/error.cpp
         ${LH_TEST_SRC_PATH}/lh/exception.cpp
         ${LH_TEST_SRC_PATH}/lh/exception/catch.cpp
+        ${LH_TEST_SRC_PATH}/lh/runtime/error.cpp
+        ${LH_TEST_SRC_PATH}/lh/runtime/assert.cpp
         ${LH_TEST_SRC_PATH}/lh/version.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/allocator.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/std.cpp

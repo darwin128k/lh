@@ -4,8 +4,8 @@
  *
  * ::lh_runtime_raise is the single public entry point for raising an exception.
  * It captures the call-site location (@c __FILE__, @c __LINE__, @c __FUNCTION__,
- * @c __TIMESTAMP__) by expanding a compound ::lh_exception_origin_t literal inline
- * at the macro expansion point, then delegates to ::lh_runtime_throw.
+ * @c __TIMESTAMP__) into a local ::lh_exception_origin_t variable at the macro
+ * expansion point, then delegates to ::lh_runtime_throw.
  *
  * In release builds (@c NDEBUG defined) origin capture is omitted:
  * the macro forwards @p error directly to the single-argument form of
@@ -30,7 +30,6 @@
 
 #include <lh/exception/origin/initializer.h>
 #include <lh/runtime/throw.h>
-#include <lh/clit.h>
 
 /**
  * @def lh_runtime_raise(error)
@@ -38,8 +37,8 @@
  *
  * Captures the call-site origin metadata
  * (@c __TIMESTAMP__, @c __FILE__, @c __FUNCTION__, @c __LINE__)
- * via ::lh_exception_origin_initializer_now and passes the resulting
- * compound-literal pointer alongside @p error to ::lh_runtime_throw.
+ * via ::lh_exception_origin_initializer_now into a local variable and passes
+ * its address alongside @p error to ::lh_runtime_throw.
  *
  * Because location capture relies on preprocessor macros, this must remain
  * a macro — wrapping it in a function would record the wrapper's location,
@@ -66,8 +65,11 @@
  */
 #ifndef NDEBUG
 #    define lh_runtime_raise(error)                                                                \
-        lh_runtime_throw(error,                                                                    \
-                         lh_clit_of(lh_exception_origin_t, lh_exception_origin_initializer_now))
+        do                                                                                         \
+        {                                                                                          \
+            const lh_exception_origin_t _origin = lh_exception_origin_initializer_now();           \
+            lh_runtime_throw(error, lh_addr_of(_origin));                                          \
+        } while (0)
 #else
 #    define lh_runtime_raise(error) lh_runtime_throw(error)
 #endif // NDEBUG
