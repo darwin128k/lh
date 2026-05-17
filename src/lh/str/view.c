@@ -218,7 +218,7 @@ lh_str_view_get_char_from_end(const lh_str_view_t *self, lh_uoffset_t offset)
 lh_char_t
 lh_str_view_get_char_by_offset(const lh_str_view_t *self, lh_soffset_t offset)
 {
-    return lh_cast_static(lh_char_t, lh_memory_view_get_value_by_offset(self, offset));
+    return lh_cast_static(lh_char_t, lh_memory_view_get_value(self, offset));
 }
 
 lh_bool_t

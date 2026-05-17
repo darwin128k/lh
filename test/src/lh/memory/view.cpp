@@ -142,12 +142,12 @@ TEST(memory_view_pointer_access, supports_offsets_from_both_ends)
     EXPECT_EQ(lh_memory_view_get_ptr_from_begin(&v, 3), p(buf + 4));
     EXPECT_EQ(lh_memory_view_get_ptr_from_end(&v, 0), p(buf + 4));
     EXPECT_EQ(lh_memory_view_get_ptr_from_end(&v, 1), p(buf + 3));
-    EXPECT_EQ(lh_memory_view_get_ptr_by_offset(&v, 2), p(buf + 3));
-    EXPECT_EQ(lh_memory_view_get_ptr_by_offset(&v, -1), p(buf + 4));
+    EXPECT_EQ(lh_memory_view_get_ptr(&v, 2), p(buf + 3));
+    EXPECT_EQ(lh_memory_view_get_ptr(&v, -1), p(buf + 4));
 
     EXPECT_EQ(lh_memory_view_get_value_from_begin(&v, 0), 20);
     EXPECT_EQ(lh_memory_view_get_value_from_end(&v, 0), 50);
-    EXPECT_EQ(lh_memory_view_get_value_by_offset(&v, -2), 40);
+    EXPECT_EQ(lh_memory_view_get_value(&v, -2), 40);
     EXPECT_EQ(lh_memory_view_get_first_value(&v), 20);
     EXPECT_EQ(lh_memory_view_get_last_value(&v), 50);
 }

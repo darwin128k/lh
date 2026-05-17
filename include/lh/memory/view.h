@@ -399,10 +399,6 @@ LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_view_get_ptr_from_end(const lh_memory_view_t *self, lh_uoffset_t offset);
 
-LH_ATTRIBUTE_SYMBOL
-const lh_ptr
-lh_memory_view_get_ptr(const lh_memory_view_t *self, lh_soffset_t offset);
-
 /**
  * @brief Return pointer to the first byte.
  * @param self Valid view to index.
@@ -453,7 +449,7 @@ lh_memory_view_get_last_ptr(const lh_memory_view_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_ptr
-lh_memory_view_get_ptr_by_offset(const lh_memory_view_t *self, lh_soffset_t offset);
+lh_memory_view_get_ptr(const lh_memory_view_t *self, lh_soffset_t offset);
 
 /**
  * @brief Read byte at @p offset from @c first.
@@ -507,7 +503,7 @@ lh_memory_view_get_value_from_end(const lh_memory_view_t *self, lh_uoffset_t off
  */
 LH_ATTRIBUTE_SYMBOL
 lh_byte_t
-lh_memory_view_get_value_by_offset(const lh_memory_view_t *self, lh_soffset_t offset);
+lh_memory_view_get_value(const lh_memory_view_t *self, lh_soffset_t offset);
 
 /**
  * @brief Read the first byte of @p self.
@@ -543,7 +539,7 @@ lh_memory_view_get_last_value(const lh_memory_view_t *self);
  * @brief Return target byte offset after applying signed @p offset.
  *
  * When @p ptr is ::lh_null, @p offset is treated as an absolute signed offset
- * accepted by ::lh_memory_view_get_ptr_by_offset. Otherwise @p offset is
+ * accepted by ::lh_memory_view_get_ptr. Otherwise @p offset is
  * applied relative to @p ptr.
  *
  * @param self   Valid view to seek in.

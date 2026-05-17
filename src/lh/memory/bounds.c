@@ -186,17 +186,6 @@ lh_memory_bounds_get_ptr_from_end(const lh_memory_bounds_t *self, lh_uoffset_t o
         lh_math_neg(lh_type_cast(lh_soffset_t, lh_math_add_one(offset))));
 }
 
-lh_ptr
-lh_memory_bounds_get_ptr(const lh_memory_bounds_t *self, lh_soffset_t offset)
-{
-    if (lh_math_is_negative(offset))
-    {
-        return lh_memory_bounds_get_ptr_from_end(self,
-                                                 lh_type_cast(lh_uoffset_t, lh_math_neg(offset)));
-    }
-
-    return lh_memory_bounds_get_ptr_from_begin(self, lh_type_cast(lh_uoffset_t, offset));
-}
 
 lh_ptr
 lh_memory_bounds_get_first_ptr(const lh_memory_bounds_t *self)
@@ -211,7 +200,7 @@ lh_memory_bounds_get_last_ptr(const lh_memory_bounds_t *self)
 }
 
 lh_ptr
-lh_memory_bounds_get_ptr_by_offset(const lh_memory_bounds_t *self, lh_soffset_t offset)
+lh_memory_bounds_get_ptr(const lh_memory_bounds_t *self, lh_soffset_t offset)
 {
     if (lh_math_is_negative(offset))
     {
@@ -235,9 +224,9 @@ lh_memory_bounds_get_value_from_end(const lh_memory_bounds_t *self, lh_uoffset_t
 }
 
 lh_byte_t
-lh_memory_bounds_get_value_by_offset(const lh_memory_bounds_t *self, lh_soffset_t offset)
+lh_memory_bounds_get_value(const lh_memory_bounds_t *self, lh_soffset_t offset)
 {
-    return lh_ptr_deref(lh_ptr_cast(lh_byte_t, lh_memory_bounds_get_ptr_by_offset(self, offset)));
+    return lh_ptr_deref(lh_ptr_cast(lh_byte_t, lh_memory_bounds_get_ptr(self, offset)));
 }
 
 lh_byte_t
@@ -259,7 +248,7 @@ lh_memory_bounds_get_offset_from_ptr(const lh_memory_bounds_t *self, const lh_pt
     if (lh_ptr_is_null(ptr))
     {
         return lh_memory_bounds_get_offset_from_begin(
-            self, lh_memory_bounds_get_ptr_by_offset(self, offset));
+            self, lh_memory_bounds_get_ptr(self, offset));
     }
 
     const lh_usize_t size = lh_memory_bounds_get_size(self);

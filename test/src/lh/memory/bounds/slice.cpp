@@ -327,9 +327,9 @@ TEST(memory_bounds_slice_get_ptr_by_offset, supports_signed_offsets_from_both_en
     unsigned char buf[5] = {10, 20, 30, 40, 50};
     lh_memory_bounds_slice_t s = slice(p(buf + 1), p(buf + 4));
 
-    EXPECT_EQ(lh_memory_bounds_slice_get_ptr_by_offset(&s, 2), p(buf + 3));
-    EXPECT_EQ(lh_memory_bounds_slice_get_ptr_by_offset(&s, -1), p(buf + 4));
-    EXPECT_EQ(lh_memory_bounds_slice_get_ptr_by_offset(&s, -2), p(buf + 3));
+    EXPECT_EQ(lh_memory_bounds_slice_get_ptr(&s, 2), p(buf + 3));
+    EXPECT_EQ(lh_memory_bounds_slice_get_ptr(&s, -1), p(buf + 4));
+    EXPECT_EQ(lh_memory_bounds_slice_get_ptr(&s, -2), p(buf + 3));
 }
 
 TEST(memory_bounds_slice_get_first_ptr, returns_begin_pointer)
@@ -501,8 +501,8 @@ TEST(memory_bounds_slice_get_value_by_offset, reads_byte_by_signed_offset)
     unsigned char buf[5] = {10, 20, 30, 40, 50};
     lh_memory_bounds_slice_t s = slice(p(buf + 1), p(buf + 4));
 
-    EXPECT_EQ(lh_memory_bounds_slice_get_value_by_offset(&s, 1), 30);
-    EXPECT_EQ(lh_memory_bounds_slice_get_value_by_offset(&s, -1), 50);
+    EXPECT_EQ(lh_memory_bounds_slice_get_value(&s, 1), 30);
+    EXPECT_EQ(lh_memory_bounds_slice_get_value(&s, -1), 50);
 }
 
 TEST(memory_bounds_slice_set_value, writes_byte_from_begin_offset)
@@ -1371,7 +1371,7 @@ TEST(memory_bounds_slice_get_ptr_by_offset, rejects_positive_out_of_range_death)
     unsigned char buf[2];
     lh_memory_bounds_slice_t s = slice(p(buf), p(buf + 1));
 
-    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_get_ptr_by_offset(&s, 2));
+    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_get_ptr(&s, 2));
 }
 
 TEST(memory_bounds_slice_get_ptr_by_offset, rejects_negative_out_of_range_death)
@@ -1379,7 +1379,7 @@ TEST(memory_bounds_slice_get_ptr_by_offset, rejects_negative_out_of_range_death)
     unsigned char buf[2];
     lh_memory_bounds_slice_t s = slice(p(buf), p(buf + 1));
 
-    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_get_ptr_by_offset(&s, -3));
+    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_get_ptr(&s, -3));
 }
 
 TEST(memory_bounds_slice_set, rejects_null_self_death)

@@ -315,8 +315,8 @@ TEST(memory_view_slice_get_value_by_offset, positive_and_negative)
 {
     const unsigned char buf[4] = {10, 20, 30, 40};
     lh_memory_view_slice_t s = slice(p(buf), p(buf + 3));
-    EXPECT_EQ(lh_memory_view_slice_get_value_by_offset(&s, 1), 20);
-    EXPECT_EQ(lh_memory_view_slice_get_value_by_offset(&s, -1), 40);
+    EXPECT_EQ(lh_memory_view_slice_get_value(&s, 1), 20);
+    EXPECT_EQ(lh_memory_view_slice_get_value(&s, -1), 40);
 }
 
 TEST(memory_view_slice_get_begin_value, returns_first_byte)

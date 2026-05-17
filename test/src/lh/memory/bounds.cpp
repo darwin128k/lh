@@ -142,12 +142,12 @@ TEST(memory_bounds_pointer_access, supports_offsets_from_both_ends)
     EXPECT_EQ(lh_memory_bounds_get_ptr_from_begin(&b, 3), p(buf + 4));
     EXPECT_EQ(lh_memory_bounds_get_ptr_from_end(&b, 0), p(buf + 4));
     EXPECT_EQ(lh_memory_bounds_get_ptr_from_end(&b, 1), p(buf + 3));
-    EXPECT_EQ(lh_memory_bounds_get_ptr_by_offset(&b, 2), p(buf + 3));
-    EXPECT_EQ(lh_memory_bounds_get_ptr_by_offset(&b, -1), p(buf + 4));
+    EXPECT_EQ(lh_memory_bounds_get_ptr(&b, 2), p(buf + 3));
+    EXPECT_EQ(lh_memory_bounds_get_ptr(&b, -1), p(buf + 4));
 
     EXPECT_EQ(lh_memory_bounds_get_value_from_begin(&b, 0), 20);
     EXPECT_EQ(lh_memory_bounds_get_value_from_end(&b, 0), 50);
-    EXPECT_EQ(lh_memory_bounds_get_value_by_offset(&b, -2), 40);
+    EXPECT_EQ(lh_memory_bounds_get_value(&b, -2), 40);
     EXPECT_EQ(lh_memory_bounds_get_first_value(&b), 20);
     EXPECT_EQ(lh_memory_bounds_get_last_value(&b), 50);
 }
