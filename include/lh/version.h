@@ -147,7 +147,7 @@ lh_version_get_patch(const lh_version_t *self);
 /* ── comparison ──────────────────────────────────────────────────────────── */
 
 /**
- * @brief Lexicographic order: true iff @p self is not less than @p minimum
+ * @brief Lexicographic order: true if @p self is not less than @p minimum
  * (major, then minor, then patch).
  *
  * @param self    Version under test (e.g. device or runtime).

@@ -81,7 +81,7 @@ lh_memory_typed_get_type_size(const lh_memory_typed_t *self);
 /* -- classification -------------------------------------------------------- */
 
 /**
- * @brief True iff both endpoints are ::lh_null.
+ * @brief True if both endpoints are ::lh_null.
  * @param self Typed memory to inspect.
  *
  * @throw ::lh_runtime_error_code_null_pointer
@@ -92,7 +92,7 @@ lh_bool_t
 lh_memory_typed_is_uninitialized(const lh_memory_typed_t *self);
 
 /**
- * @brief True iff both endpoints are non-null.
+ * @brief True if both endpoints are non-null.
  * @param self Typed memory to inspect.
  *
  * @throw ::lh_runtime_error_code_null_pointer
@@ -103,7 +103,7 @@ lh_bool_t
 lh_memory_typed_is_initialized(const lh_memory_typed_t *self);
 
 /**
- * @brief True iff the byte size of @p self is divisible by @p alignment.
+ * @brief True if the byte size of @p self is divisible by @p alignment.
  * @param self      Typed memory to inspect.
  * @param alignment Non-zero divisor.
  *
@@ -117,7 +117,7 @@ lh_bool_t
 lh_memory_typed_is_multiple_of(const lh_memory_typed_t *self, lh_usize_t alignment);
 
 /**
- * @brief True iff @p self has valid bounds and its byte size is divisible by @c type_size.
+ * @brief True if @p self has valid bounds and its byte size is divisible by @c type_size.
  * @param self Typed memory to inspect.
  *
  * @throw ::lh_runtime_error_code_null_pointer
@@ -209,7 +209,7 @@ lh_usize_t
 lh_memory_typed_get_size(const lh_memory_typed_t *self);
 
 /**
- * @brief True iff @p self is uninitialized or has zero elements.
+ * @brief True if @p self is uninitialized or has zero elements.
  * @param self Typed memory to inspect.
  *
  * @throw ::lh_runtime_error_code_null_pointer
@@ -220,7 +220,7 @@ lh_bool_t
 lh_memory_typed_is_empty(const lh_memory_typed_t *self);
 
 /**
- * @brief True iff @p index addresses a valid element inside @p self.
+ * @brief True if @p index addresses a valid element inside @p self.
  * @param self  Valid typed memory to inspect.
  * @param index Zero-based element index to test.
  *

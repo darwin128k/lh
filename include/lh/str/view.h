@@ -466,7 +466,7 @@ lh_usize_t
 lh_str_view_find_null_terminator(const lh_str_view_t *self);
 
 /**
- * @brief True iff the view contains at least one NUL character.
+ * @brief True if the view contains at least one NUL character.
  *
  * @param self Valid view to inspect.
  *

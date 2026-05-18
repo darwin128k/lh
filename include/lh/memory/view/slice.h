@@ -136,7 +136,7 @@ lh_memory_view_slice_flags_t
 lh_memory_view_slice_get_flags(const lh_memory_view_slice_t *self);
 
 /**
- * @brief True iff neither endpoint is initialized.
+ * @brief True if neither endpoint is initialized.
  * @param self Slice to inspect.
  *
  * @throw ::lh_runtime_error_code_null_pointer
@@ -147,7 +147,7 @@ lh_bool_t
 lh_memory_view_slice_is_uninitialized(const lh_memory_view_slice_t *self);
 
 /**
- * @brief True iff both endpoints are initialized.
+ * @brief True if both endpoints are initialized.
  * @param self Slice to inspect.
  *
  * @throw ::lh_runtime_error_code_null_pointer
@@ -175,7 +175,7 @@ lh_memory_view_slice_direction_t
 lh_memory_view_slice_get_direction(const lh_memory_view_slice_t *self);
 
 /**
- * @brief True iff @p self is initialized and ordered @c first &lt;= @c second.
+ * @brief True if @p self is initialized and ordered @c first &lt;= @c second.
  * @param self Slice to inspect.
  *
  * @throw ::lh_runtime_error_code_null_pointer
@@ -186,7 +186,7 @@ lh_bool_t
 lh_memory_view_slice_is_forward(const lh_memory_view_slice_t *self);
 
 /**
- * @brief True iff @p self is initialized and reversed.
+ * @brief True if @p self is initialized and reversed.
  * @param self Slice to inspect.
  *
  * @throw ::lh_runtime_error_code_null_pointer
@@ -197,7 +197,7 @@ lh_bool_t
 lh_memory_view_slice_is_backward(const lh_memory_view_slice_t *self);
 
 /**
- * @brief True iff @p self is initialized and forward ordered.
+ * @brief True if @p self is initialized and forward ordered.
  * @param self Slice to inspect.
  *
  * @throw ::lh_runtime_error_code_null_pointer
@@ -272,7 +272,7 @@ lh_usize_t
 lh_memory_view_slice_get_size(const lh_memory_view_slice_t *self);
 
 /**
- * @brief True iff @p self is uninitialized or has zero size.
+ * @brief True if @p self is uninitialized or has zero size.
  *
  * For the closed interval representation, an initialized valid slice has at
  * least one byte. Therefore the uninitialized state is the practical empty
@@ -290,7 +290,7 @@ lh_bool_t
 lh_memory_view_slice_is_empty(const lh_memory_view_slice_t *self);
 
 /**
- * @brief True iff @p offset addresses a byte inside @p self from the begin side.
+ * @brief True if @p offset addresses a byte inside @p self from the begin side.
  *
  * Valid offsets are in the half-open numeric interval
  * <tt>[0, lh_memory_view_slice_get_size(self))</tt>.
@@ -350,7 +350,7 @@ lh_uoffset_t
 lh_memory_view_slice_get_offset_from_end(const lh_memory_view_slice_t *self, const lh_ptr ptr);
 
 /**
- * @brief True iff @p ptr lies inside the closed interval @p self.
+ * @brief True if @p ptr lies inside the closed interval @p self.
  * @param self Valid slice to inspect.
  * @param ptr  Pointer to test.
  *
@@ -364,7 +364,7 @@ lh_bool_t
 lh_memory_view_slice_contains_ptr(const lh_memory_view_slice_t *self, const lh_ptr ptr);
 
 /**
- * @brief True iff closed range <tt>[begin, end]</tt> lies inside @p self.
+ * @brief True if closed range <tt>[begin, end]</tt> lies inside @p self.
  * @param self  Valid outer slice.
  * @param begin Inner range begin pointer.
  * @param end   Inner range end pointer.
@@ -380,7 +380,7 @@ lh_memory_view_slice_contains_range(const lh_memory_view_slice_t *self, const lh
                                     const lh_ptr end);
 
 /**
- * @brief True iff @p other lies completely inside @p self.
+ * @brief True if @p other lies completely inside @p self.
  * @param self  Valid outer slice.
  * @param other Valid inner slice.
  *
@@ -395,7 +395,7 @@ lh_memory_view_slice_contains(const lh_memory_view_slice_t *self,
                               const lh_memory_view_slice_t *other);
 
 /**
- * @brief True iff closed range <tt>[begin, end]</tt> overlaps @p self.
+ * @brief True if closed range <tt>[begin, end]</tt> overlaps @p self.
  * @param self  Valid slice.
  * @param begin Range begin pointer.
  * @param end   Range end pointer.
@@ -411,7 +411,7 @@ lh_memory_view_slice_overlaps_of(const lh_memory_view_slice_t *self, const lh_pt
                                  const lh_ptr end);
 
 /**
- * @brief True iff @p other overlaps @p self.
+ * @brief True if @p other overlaps @p self.
  * @param self  Valid slice.
  * @param other Slice to test.
  *
@@ -426,7 +426,7 @@ lh_memory_view_slice_overlaps(const lh_memory_view_slice_t *self,
                               const lh_memory_view_slice_t *other);
 
 /**
- * @brief True iff valid @p other overlaps @p self.
+ * @brief True if valid @p other overlaps @p self.
  * @param self  Valid slice.
  * @param other Valid slice to test.
  *
@@ -441,7 +441,7 @@ lh_memory_view_slice_overlaps_v(const lh_memory_view_slice_t *self,
                                 const lh_memory_view_slice_t *other);
 
 /**
- * @brief True iff closed slice size is divisible by @p alignment.
+ * @brief True if closed slice size is divisible by @p alignment.
  *
  * @param self      Valid slice to inspect.
  * @param alignment Non-zero divisor for the slice size.
@@ -458,7 +458,7 @@ lh_bool_t
 lh_memory_view_slice_multiple_of(const lh_memory_view_slice_t *self, lh_usize_t alignment);
 
 /**
- * @brief True iff @c first is aligned to @p align.
+ * @brief True if @c first is aligned to @p align.
  *
  * @param self  Valid slice to inspect.
  * @param align Power-of-two alignment.
@@ -475,7 +475,7 @@ lh_bool_t
 lh_memory_view_slice_aligned_is_begin_aligned(const lh_memory_view_slice_t *self, lh_usize_t align);
 
 /**
- * @brief True iff both endpoints are aligned to @p align.
+ * @brief True if both endpoints are aligned to @p align.
  *
  * @param self  Valid slice to inspect.
  * @param align Power-of-two alignment.
@@ -492,7 +492,7 @@ lh_bool_t
 lh_memory_view_slice_is_aligned(const lh_memory_view_slice_t *self, lh_usize_t align);
 
 /**
- * @brief True iff @p self stores exactly @p begin and @p end.
+ * @brief True if @p self stores exactly @p begin and @p end.
  *
  * This compares the stored endpoints without requiring a valid range.
  *
@@ -509,7 +509,7 @@ lh_memory_view_slice_equals_of(const lh_memory_view_slice_t *self, const lh_ptr 
                                const lh_ptr end);
 
 /**
- * @brief True iff @p self and @p other store the same endpoints.
+ * @brief True if @p self and @p other store the same endpoints.
  *
  * This compares the stored endpoints without requiring valid ranges.
  *

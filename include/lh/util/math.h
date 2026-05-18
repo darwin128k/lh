@@ -207,7 +207,7 @@
  * @def lh_math_is_zero(a)
  * @brief Non-zero if @p a compares equal to zero (`(a) == 0`).
  * @param a Value after usual arithmetic conversions.
- * @return Non-zero iff @p a is zero.
+ * @return Non-zero if @p a is zero.
  *
  * @warning @p a may be evaluated more than once if used inside other macros that repeat it.
  *
@@ -219,7 +219,7 @@
  * @def lh_math_is_positive(a)
  * @brief Non-zero if @p a is strictly greater than zero (`(a) > 0`).
  * @param a Value after usual arithmetic conversions.
- * @return Non-zero iff @p a compares greater than zero.
+ * @return Non-zero if @p a compares greater than zero.
  *
  * For unsigned integer types, this is equivalent to non-zero (the only non-positive value is zero).
  * For signed integers, zero and negatives (including two’s-complement minimum) yield false.
@@ -237,7 +237,7 @@
  * @def lh_math_is_negative(a)
  * @brief Non-zero if @p a is strictly less than zero (`(a) < 0`).
  * @param a Value after usual arithmetic conversions.
- * @return Non-zero iff @p a compares less than zero.
+ * @return Non-zero if @p a compares less than zero.
  *
  * For unsigned integer types, the result is always false (no value is less than zero).
  * For signed integers, true exactly for negative values.
@@ -289,7 +289,7 @@
  * @def lh_math_is_power_of_two(n)
  * @brief Non-zero if @p n is a positive integral power of two (1, 2, 4, …).
  * @param n Integer value after usual arithmetic conversions. Zero yields false.
- * @return Non-zero iff @p n is strictly positive and `n & (n - 1)` is zero (one set bit in value).
+ * @return Non-zero if @p n is strictly positive and `n & (n - 1)` is zero (one set bit in value).
  *
  * Typical use: validating an alignment value before masking with `align - 1`.
  *
@@ -305,7 +305,7 @@
  * @brief Non-zero if @p a is an exact multiple of @p b (`(a % b) == 0`).
  * @param a Dividend value.
  * @param b Divisor value.
- * @return Non-zero iff remainder of @p a divided by @p b is zero.
+ * @return Non-zero if remainder of @p a divided by @p b is zero.
  *
  * Typical use: validate size/alignment divisibility conditions.
  *
