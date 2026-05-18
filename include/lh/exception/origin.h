@@ -59,8 +59,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_exception_origin_pack(lh_exception_origin_t *self, const lh_str_cptr *timestamp,
-                         const lh_str_cptr *file, const lh_str_cptr *function,
+lh_exception_origin_pack(lh_exception_origin_t *self, const lh_str_ptr *timestamp,
+                         const lh_str_ptr *file, const lh_str_ptr *function,
                          const lh_usize_t *line);
 
 /* ── set / init ──────────────────────────────────────────────────────────── */
@@ -78,8 +78,8 @@ lh_exception_origin_pack(lh_exception_origin_t *self, const lh_str_cptr *timesta
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_exception_origin_set(lh_exception_origin_t *self, lh_str_cptr timestamp, lh_str_cptr file,
-                        lh_str_cptr function, lh_usize_t line);
+lh_exception_origin_set(lh_exception_origin_t *self, const lh_str_ptr timestamp,
+                        const lh_str_ptr file, const lh_str_ptr function, lh_usize_t line);
 
 /**
  * @brief Initialize @p self by delegating to ::lh_exception_origin_set.
@@ -92,8 +92,8 @@ lh_exception_origin_set(lh_exception_origin_t *self, lh_str_cptr timestamp, lh_s
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_exception_origin_init(lh_exception_origin_t *self, lh_str_cptr timestamp, lh_str_cptr file,
-                         lh_str_cptr function, lh_usize_t line);
+lh_exception_origin_init(lh_exception_origin_t *self, const lh_str_ptr timestamp,
+                         const lh_str_ptr file, const lh_str_ptr function, lh_usize_t line);
 
 /* ── unpack ──────────────────────────────────────────────────────────────── */
 
@@ -110,8 +110,8 @@ lh_exception_origin_init(lh_exception_origin_t *self, lh_str_cptr timestamp, lh_
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_exception_origin_unpack(const lh_exception_origin_t *self, lh_str_cptr *timestamp,
-                           lh_str_cptr *file, lh_str_cptr *function, lh_usize_t *line);
+lh_exception_origin_unpack(const lh_exception_origin_t *self, const lh_str_ptr *timestamp,
+                           const lh_str_ptr *file, const lh_str_ptr *function, lh_usize_t *line);
 
 /**
  * @brief Unpack @p self into @p other (alias for ::lh_exception_origin_assign).

@@ -3,8 +3,8 @@
 #include <lh/assert.h>
 
 void
-lh_exception_origin_pack(lh_exception_origin_t *self, const lh_str_cptr *timestamp,
-                         const lh_str_cptr *file, const lh_str_cptr *function,
+lh_exception_origin_pack(lh_exception_origin_t *self, const lh_str_ptr *timestamp,
+                         const lh_str_ptr *file, const lh_str_ptr *function,
                          const lh_usize_t *line)
 {
     lh_assert_runtime_ref(self);
@@ -27,23 +27,23 @@ lh_exception_origin_pack(lh_exception_origin_t *self, const lh_str_cptr *timesta
 }
 
 void
-lh_exception_origin_set(lh_exception_origin_t *self, lh_str_cptr timestamp, lh_str_cptr file,
-                        lh_str_cptr function, lh_usize_t line)
+lh_exception_origin_set(lh_exception_origin_t *self, const lh_str_ptr timestamp,
+                        const lh_str_ptr file, const lh_str_ptr function, lh_usize_t line)
 {
     lh_exception_origin_pack(self, lh_addr_of(timestamp), lh_addr_of(file), lh_addr_of(function),
                              lh_addr_of(line));
 }
 
 void
-lh_exception_origin_init(lh_exception_origin_t *self, lh_str_cptr timestamp, lh_str_cptr file,
-                         lh_str_cptr function, lh_usize_t line)
+lh_exception_origin_init(lh_exception_origin_t *self, const lh_str_ptr timestamp,
+                         const lh_str_ptr file, const lh_str_ptr function, lh_usize_t line)
 {
     lh_exception_origin_set(self, timestamp, file, function, line);
 }
 
 void
-lh_exception_origin_unpack(const lh_exception_origin_t *self, lh_str_cptr *timestamp,
-                           lh_str_cptr *file, lh_str_cptr *function, lh_usize_t *line)
+lh_exception_origin_unpack(const lh_exception_origin_t *self, const lh_str_ptr *timestamp,
+                           const lh_str_ptr *file, const lh_str_ptr *function, lh_usize_t *line)
 {
     lh_assert_runtime_ref(self);
     lh_optional_ref(timestamp)
