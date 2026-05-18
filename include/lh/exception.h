@@ -68,7 +68,8 @@ LH_ATTRIBUTE_SYMBOL
 #ifndef NDEBUG
 void
 lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc,
-                 const lh_str_ptr timestamp, const lh_str_ptr file, const lh_str_ptr function, lh_usize_t line);
+                 const lh_str_ptr timestamp, const lh_str_ptr file, const lh_str_ptr function,
+                 lh_usize_t line);
 #else
 void
 lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc);
@@ -89,7 +90,8 @@ LH_ATTRIBUTE_SYMBOL
 #ifndef NDEBUG
 void
 lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc,
-                  const lh_str_ptr timestamp, const lh_str_ptr file, const lh_str_ptr function, lh_usize_t line);
+                  const lh_str_ptr timestamp, const lh_str_ptr file, const lh_str_ptr function,
+                  lh_usize_t line);
 #else
 void
 lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc);
@@ -106,7 +108,7 @@ LH_ATTRIBUTE_SYMBOL
 #ifndef NDEBUG
 void
 lh_exception_init_by_error(lh_exception_t *self, const lh_error_t *error,
-                            const lh_exception_origin_t *origin);
+                           const lh_exception_origin_t *origin);
 #else
 void
 lh_exception_init_by_error(lh_exception_t *self, const lh_error_t *error);

@@ -133,7 +133,8 @@ lh_usize_t
 lh_str_ptr_len(const lh_str_ptr str)
 {
     const lh_str_ptr ptr = lh_str_ptr_find_of_null_terminator(str);
-    lh_assert_runtime_ifn(lh_ptr_is_set(ptr), lh_runtime_error_make_by_code(lh_runtime_error_code_no_null_terminator));
+    lh_assert_runtime_ifn(lh_ptr_is_set(ptr),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_no_null_terminator));
     return lh_ptr_udiff(ptr, str);
 }
 

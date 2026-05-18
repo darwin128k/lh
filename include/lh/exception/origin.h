@@ -46,10 +46,29 @@ typedef struct lh_exception_origin
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/* ── pack / unpack ───────────────────────────────────────────────────────── */
+
+/**
+ * @brief Update fields on @p self from optional input pointers.
+ *
+ * @param self      Origin to modify (not null).
+ * @param timestamp Input pointer for timestamp, or ::lh_null to keep current value.
+ * @param file      Input pointer for file path, or ::lh_null to keep current value.
+ * @param function  Input pointer for function name, or ::lh_null to keep current value.
+ * @param line      Input pointer for line number, or ::lh_null to keep current value.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_exception_origin_pack(lh_exception_origin_t *self, const lh_str_cptr *timestamp,
+                         const lh_str_cptr *file, const lh_str_cptr *function,
+                         const lh_usize_t *line);
+
 /* ── set / init ──────────────────────────────────────────────────────────── */
 
 /**
  * @brief Write all fields of @p self.
+ *
+ * Equivalent to ::lh_exception_origin_pack with all fields provided.
  *
  * @param self      Origin to modify (not null).
  * @param timestamp Build timestamp (typically @c __TIMESTAMP__).
@@ -59,8 +78,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_exception_origin_set(lh_exception_origin_t *self, lh_str_cptr timestamp,
-                        lh_str_cptr file, lh_str_cptr function, lh_usize_t line);
+lh_exception_origin_set(lh_exception_origin_t *self, lh_str_cptr timestamp, lh_str_cptr file,
+                        lh_str_cptr function, lh_usize_t line);
 
 /**
  * @brief Initialize @p self by delegating to ::lh_exception_origin_set.
@@ -73,8 +92,8 @@ lh_exception_origin_set(lh_exception_origin_t *self, lh_str_cptr timestamp,
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_exception_origin_init(lh_exception_origin_t *self, lh_str_cptr timestamp,
-                         lh_str_cptr file, lh_str_cptr function, lh_usize_t line);
+lh_exception_origin_init(lh_exception_origin_t *self, lh_str_cptr timestamp, lh_str_cptr file,
+                         lh_str_cptr function, lh_usize_t line);
 
 /* ── unpack ──────────────────────────────────────────────────────────────── */
 
@@ -156,8 +175,7 @@ lh_exception_origin_assign(lh_exception_origin_t *self, const lh_exception_origi
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_exception_origin_init_by_other(lh_exception_origin_t *self,
-                                  const lh_exception_origin_t *other);
+lh_exception_origin_init_by_other(lh_exception_origin_t *self, const lh_exception_origin_t *other);
 
 LH_COMPILER_EXTERN_C_END
 

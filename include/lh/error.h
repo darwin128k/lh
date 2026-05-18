@@ -24,7 +24,7 @@
 typedef struct lh_error
 {
     lh_error_fields(lh_error_code_t, lh_error_desc_t);
-} lh_error_t;             /**< Typedef for struct ::lh_error. */
+} lh_error_t; /**< Typedef for struct ::lh_error. */
 
 LH_COMPILER_EXTERN_C_BEGIN
 

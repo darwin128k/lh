@@ -54,7 +54,7 @@ lh_runtime_throw(const lh_runtime_error_t *error)
     lh_exception_t exception;
 #ifndef NDEBUG
     lh_exception_init_by_error(lh_addr_of(exception), lh_ptr_rcast(const lh_error_t, error),
-                                origin);
+                               origin);
 #else
     lh_exception_init_by_error(lh_addr_of(exception), lh_ptr_rcast(const lh_error_t, error));
 #endif

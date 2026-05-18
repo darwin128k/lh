@@ -78,7 +78,8 @@ lh_void
 lh_memory_typed_unpack_v(const lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end,
                          lh_usize_t *type_size)
 {
-    lh_assert_runtime_ifn(lh_memory_typed_is_valid(self), lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid(self),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
     lh_memory_typed_unpack(self, begin, end, type_size);
 }
 

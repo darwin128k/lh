@@ -663,8 +663,7 @@ lh_memory_bounds_slice_get_value_from_end(const lh_memory_bounds_slice_t *self,
  */
 LH_ATTRIBUTE_SYMBOL
 lh_byte_t
-lh_memory_bounds_slice_get_value(const lh_memory_bounds_slice_t *self,
-                                           lh_soffset_t offset);
+lh_memory_bounds_slice_get_value(const lh_memory_bounds_slice_t *self, lh_soffset_t offset);
 
 /**
  * @brief Write @p value at byte @p offset from @c first.
