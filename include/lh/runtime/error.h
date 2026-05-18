@@ -68,6 +68,15 @@ void
 lh_runtime_error_unpack(const lh_runtime_error_t *self, lh_runtime_error_code_t *code,
                         lh_runtime_error_desc_t *desc);
 
+/**
+ * @brief Unpack @p self into @p other (alias for ::lh_runtime_error_assign).
+ * @param self  Source error (not null).
+ * @param other Destination error (not null).
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_runtime_error_unpack_to_other(const lh_runtime_error_t *self, lh_runtime_error_t *other);
+
 /* ── set ─────────────────────────────────────────────────────────────────── */
 
 /**

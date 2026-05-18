@@ -54,38 +54,98 @@ LH_COMPILER_EXTERN_C_BEGIN
 /* ── set / init ──────────────────────────────────────────────────────────── */
 
 /**
- * @brief Replace all fields of @p self from @p error and @p origin.
+ * @brief Replace all fields of @p self from individual error and origin fields.
  *
- * @param self   Exception to modify (not null).
- * @param error  Source error (not null).
- * @param origin Raise-site metadata (not null; debug builds only).
+ * @param self      Exception to modify (not null).
+ * @param code      Error code.
+ * @param desc      Error description (may be null).
+ * @param timestamp Build timestamp (typically @c __TIMESTAMP__; debug builds only).
+ * @param file      Source file path (typically @c __FILE__; debug builds only).
+ * @param function  Function name (typically @c __FUNCTION__; debug builds only).
+ * @param line      Line number (typically @c __LINE__; debug builds only).
  */
 LH_ATTRIBUTE_SYMBOL
 #ifndef NDEBUG
 void
-lh_exception_set(lh_exception_t *self, const lh_error_t *error,
-                 const lh_exception_origin_t *origin);
+lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc,
+                 const lh_str_ptr timestamp, const lh_str_ptr file, const lh_str_ptr function, lh_usize_t line);
 #else
 void
-lh_exception_set(lh_exception_t *self, const lh_error_t *error);
+lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc);
 #endif
 
 /**
  * @brief Initialize @p self by delegating to ::lh_exception_set.
  *
- * @param self   Exception to initialize (not null).
- * @param error  Source error (not null).
- * @param origin Raise-site metadata (not null; debug builds only).
+ * @param self      Exception to initialize (not null).
+ * @param code      Error code.
+ * @param desc      Error description (may be null).
+ * @param timestamp Build timestamp (typically @c __TIMESTAMP__; debug builds only).
+ * @param file      Source file path (typically @c __FILE__; debug builds only).
+ * @param function  Function name (typically @c __FUNCTION__; debug builds only).
+ * @param line      Line number (typically @c __LINE__; debug builds only).
  */
 LH_ATTRIBUTE_SYMBOL
 #ifndef NDEBUG
 void
-lh_exception_init(lh_exception_t *self, const lh_error_t *error,
-                  const lh_exception_origin_t *origin);
+lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc,
+                  const lh_str_ptr timestamp, const lh_str_ptr file, const lh_str_ptr function, lh_usize_t line);
 #else
 void
-lh_exception_init(lh_exception_t *self, const lh_error_t *error);
+lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc);
 #endif
+
+/**
+ * @brief Initialize @p self by copying from @p error and @p origin.
+ *
+ * @param self   Exception to initialize (not null).
+ * @param error  Source error to copy from (not null).
+ * @param origin Source raise-site metadata to copy from (not null; debug builds only).
+ */
+LH_ATTRIBUTE_SYMBOL
+#ifndef NDEBUG
+void
+lh_exception_init_by_error(lh_exception_t *self, const lh_error_t *error,
+                            const lh_exception_origin_t *origin);
+#else
+void
+lh_exception_init_by_error(lh_exception_t *self, const lh_error_t *error);
+#endif
+
+/* ── unpack ──────────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Read fields from @p self into optional output pointers.
+ *
+ * Pass ::lh_null for any pointer to skip that field.
+ *
+ * @param self      Exception to read from (not null).
+ * @param code      Output for error code, or ::lh_null to skip.
+ * @param desc      Output for error description, or ::lh_null to skip.
+ * @param timestamp Output for origin timestamp, or ::lh_null to skip (debug builds only).
+ * @param file      Output for origin file path, or ::lh_null to skip (debug builds only).
+ * @param function  Output for origin function name, or ::lh_null to skip (debug builds only).
+ * @param line      Output for origin line number, or ::lh_null to skip (debug builds only).
+ */
+LH_ATTRIBUTE_SYMBOL
+#ifndef NDEBUG
+void
+lh_exception_unpack(const lh_exception_t *self, lh_error_code_t *code, lh_error_desc_t *desc,
+                    lh_str_cptr *timestamp, lh_str_cptr *file, lh_str_cptr *function,
+                    lh_usize_t *line);
+#else
+void
+lh_exception_unpack(const lh_exception_t *self, lh_error_code_t *code, lh_error_desc_t *desc);
+#endif
+
+/**
+ * @brief Unpack @p self into @p other (alias for exception assign).
+ * @param self  Source exception (not null).
+ * @param other Destination exception (not null).
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_exception_unpack_to_other(const lh_exception_t *self, lh_exception_t *other);
 
 /**
  * @brief Mutable pointer to the embedded ::lh_error_t inside @p self.

@@ -39,10 +39,26 @@ lh_memory_allocator_unpack(const lh_memory_allocator_t *self,
 }
 
 lh_void
+lh_memory_allocator_assign(lh_memory_allocator_t *self, const lh_memory_allocator_t *other)
+{
+    lh_memory_allocator_alloc_cb alloc_cb;
+    lh_memory_allocator_dealloc_cb dealloc_cb;
+    lh_memory_allocator_unpack(other, lh_addr_of(alloc_cb), lh_addr_of(dealloc_cb));
+    lh_memory_allocator_set(self, alloc_cb, dealloc_cb);
+}
+
+lh_void
 lh_memory_allocator_set(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb,
                         lh_memory_allocator_dealloc_cb dealloc_cb)
 {
     lh_memory_allocator_pack(self, lh_addr_of(alloc_cb), lh_addr_of(dealloc_cb));
+}
+
+lh_void
+lh_memory_allocator_unpack_to_other(const lh_memory_allocator_t *self,
+                                    lh_memory_allocator_t *other)
+{
+    lh_memory_allocator_assign(other, self);
 }
 
 lh_void

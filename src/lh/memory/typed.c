@@ -213,3 +213,10 @@ lh_void
 lh_memory_typed_set_by_bounds(lh_memory_typed_t *self, const lh_memory_bounds_t *bounds)
 {
 }
+
+lh_void
+lh_memory_typed_unpack_to_other(const lh_memory_typed_t *self, lh_memory_typed_t *other)
+{
+    lh_memory_bounds_assign(lh_addr_of(other->bounds), lh_addr_of(self->bounds));
+    other->type_size = self->type_size;
+}

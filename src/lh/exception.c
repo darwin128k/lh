@@ -5,34 +5,77 @@
 
 #ifndef NDEBUG
 void
-lh_exception_set(lh_exception_t *self, const lh_error_t *error,
-                 const lh_exception_origin_t *origin)
+lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc,
+                 const lh_str_ptr timestamp, const lh_str_ptr file, const lh_str_ptr function,
+                 lh_usize_t line)
 {
-    lh_assert_runtime_ref(self);
-    lh_error_assign(lh_exception_get_error(self), error);
-    lh_exception_origin_assign(lh_exception_get_origin(self), origin);
+    lh_error_init(lh_exception_get_error(self), code, desc);
+    lh_exception_origin_init(lh_exception_get_origin(self), timestamp, file, function, line);
 }
 
 void
-lh_exception_init(lh_exception_t *self, const lh_error_t *error,
-                  const lh_exception_origin_t *origin)
+lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc,
+                  const lh_str_ptr timestamp, const lh_str_ptr file, const lh_str_ptr function,
+                  lh_usize_t line)
 {
-    lh_exception_set(self, error, origin);
+    lh_exception_set(self, code, desc, timestamp, file, function, line);
 }
 #else
 void
-lh_exception_set(lh_exception_t *self, const lh_error_t *error)
+lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc)
 {
-    lh_assert_runtime_ref(self);
-    lh_error_assign(lh_exception_get_error(self), error);
+    lh_error_init(lh_exception_get_error(self), code, desc);
 }
 
 void
-lh_exception_init(lh_exception_t *self, const lh_error_t *error)
+lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc)
 {
-    lh_exception_set(self, error);
+    lh_exception_set(self, code, desc);
 }
 #endif
+
+#ifndef NDEBUG
+void
+lh_exception_init_by_error(lh_exception_t *self, const lh_error_t *error,
+                           const lh_exception_origin_t *origin)
+{
+    lh_error_init_by_other(lh_exception_get_error(self), error);
+    lh_exception_origin_init_by_other(lh_exception_get_origin(self), origin);
+}
+#else
+void
+lh_exception_init_by_error(lh_exception_t *self, const lh_error_t *error)
+{
+    lh_error_init_by_other(lh_exception_get_error(self), error);
+}
+#endif
+
+#ifndef NDEBUG
+void
+lh_exception_unpack(const lh_exception_t *self, lh_error_code_t *code, lh_error_desc_t *desc,
+                    lh_str_cptr *timestamp, lh_str_cptr *file, lh_str_cptr *function,
+                    lh_usize_t *line)
+{
+    lh_error_unpack(lh_exception_get_error(self), code, desc);
+    lh_exception_origin_unpack(lh_exception_get_origin(self), timestamp, file, function, line);
+}
+#else
+void
+lh_exception_unpack(const lh_exception_t *self, lh_error_code_t *code, lh_error_desc_t *desc)
+{
+    lh_error_unpack(lh_exception_get_error(self), code, desc);
+}
+#endif
+
+void
+lh_exception_unpack_to_other(const lh_exception_t *self, lh_exception_t *other)
+{
+    lh_error_unpack_to_other(lh_exception_get_error(self), lh_exception_get_error(other));
+#ifndef NDEBUG
+    lh_exception_origin_unpack_to_other(lh_exception_get_origin(self),
+                                        lh_exception_get_origin(other));
+#endif
+}
 
 lh_error_t *
 lh_exception_get_error(const lh_exception_t *self)

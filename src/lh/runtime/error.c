@@ -108,6 +108,12 @@ lh_runtime_error_assign(lh_runtime_error_t *self, const lh_runtime_error_t *othe
 }
 
 void
+lh_runtime_error_unpack_to_other(const lh_runtime_error_t *self, lh_runtime_error_t *other)
+{
+    lh_runtime_error_assign(other, self);
+}
+
+void
 lh_runtime_error_clear(lh_runtime_error_t *self)
 {
     lh_error_clear(lh_ptr_cast(lh_error_t, self));

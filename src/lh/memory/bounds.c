@@ -577,6 +577,12 @@ lh_memory_bounds_assign(lh_memory_bounds_t *self, const lh_memory_bounds_t *othe
 }
 
 lh_void
+lh_memory_bounds_unpack_to_other(const lh_memory_bounds_t *self, lh_memory_bounds_t *other)
+{
+    lh_memory_bounds_assign(other, self);
+}
+
+lh_void
 lh_memory_bounds_clear(lh_memory_bounds_t *self)
 {
     const lh_memory_bounds_t s = lh_memory_bounds_empty_initializer();

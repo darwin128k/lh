@@ -68,6 +68,16 @@ lh_void
 lh_memory_bounds_slice_unpack(const lh_memory_bounds_slice_t *self, lh_ptr *begin, lh_ptr *end);
 
 /**
+ * @brief Unpack @p self into @p other (alias for ::lh_memory_bounds_slice_assign).
+ * @param self  Source slice (not null).
+ * @param other Destination slice (not null).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_slice_unpack_to_other(const lh_memory_bounds_slice_t *self,
+                                       lh_memory_bounds_slice_t *other);
+
+/**
  * @brief Return @c first without validating the slice range.
  * @param self Slice to read.
  * @return Stored begin pointer.

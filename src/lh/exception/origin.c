@@ -64,3 +64,17 @@ lh_exception_origin_assign(lh_exception_origin_t *self, const lh_exception_origi
     lh_assert_runtime_ref(other);
     lh_exception_origin_set(self, other->timestamp, other->filename, other->function, other->line);
 }
+
+void
+lh_exception_origin_init_by_other(lh_exception_origin_t *self,
+                                  const lh_exception_origin_t *other)
+{
+    lh_exception_origin_assign(self, other);
+}
+
+void
+lh_exception_origin_unpack_to_other(const lh_exception_origin_t *self,
+                                    lh_exception_origin_t *other)
+{
+    lh_exception_origin_assign(other, self);
+}

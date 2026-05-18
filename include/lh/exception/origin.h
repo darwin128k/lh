@@ -94,6 +94,16 @@ void
 lh_exception_origin_unpack(const lh_exception_origin_t *self, lh_str_cptr *timestamp,
                            lh_str_cptr *file, lh_str_cptr *function, lh_usize_t *line);
 
+/**
+ * @brief Unpack @p self into @p other (alias for ::lh_exception_origin_assign).
+ * @param self  Source origin (not null).
+ * @param other Destination origin (not null).
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_exception_origin_unpack_to_other(const lh_exception_origin_t *self,
+                                    lh_exception_origin_t *other);
+
 /* ── getters ─────────────────────────────────────────────────────────────── */
 
 /**
@@ -138,6 +148,16 @@ lh_exception_origin_get_line(const lh_exception_origin_t *self);
 LH_ATTRIBUTE_SYMBOL
 void
 lh_exception_origin_assign(lh_exception_origin_t *self, const lh_exception_origin_t *other);
+
+/**
+ * @brief Initialize @p self by copying from @p other.
+ * @param self  Origin to initialize (not null).
+ * @param other Source origin to copy from (not null).
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_exception_origin_init_by_other(lh_exception_origin_t *self,
+                                  const lh_exception_origin_t *other);
 
 LH_COMPILER_EXTERN_C_END
 

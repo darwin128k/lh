@@ -81,6 +81,12 @@ lh_error_get_desc_or(const lh_error_t *self, lh_error_desc_t fallback)
 }
 
 void
+lh_error_unpack_to_other(const lh_error_t *self, lh_error_t *other)
+{
+    lh_error_assign(other, self);
+}
+
+void
 lh_error_assign(lh_error_t *self, const lh_error_t *other)
 {
     lh_error_code_t code;

@@ -53,9 +53,10 @@ lh_runtime_throw(const lh_runtime_error_t *error)
 {
     lh_exception_t exception;
 #ifndef NDEBUG
-    lh_exception_init(lh_addr_of(exception), lh_ptr_rcast(const lh_error_t, error), origin);
+    lh_exception_init_by_error(lh_addr_of(exception), lh_ptr_rcast(const lh_error_t, error),
+                                origin);
 #else
-    lh_exception_init(lh_addr_of(exception), lh_ptr_rcast(const lh_error_t, error));
+    lh_exception_init_by_error(lh_addr_of(exception), lh_ptr_rcast(const lh_error_t, error));
 #endif
     lh_runtime_exception_catch_stack_throw(lh_addr_of(exception));
 }

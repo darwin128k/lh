@@ -466,6 +466,13 @@ lh_memory_view_slice_assign(lh_memory_view_slice_t *self, const lh_memory_view_s
 }
 
 lh_void
+lh_memory_view_slice_unpack_to_other(const lh_memory_view_slice_t *self,
+                                     lh_memory_view_slice_t *other)
+{
+    lh_memory_view_slice_assign(other, self);
+}
+
+lh_void
 lh_memory_view_slice_clear(lh_memory_view_slice_t *self)
 {
     const lh_memory_view_slice_t s = lh_memory_view_slice_initializer_empty();

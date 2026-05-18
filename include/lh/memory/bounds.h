@@ -63,6 +63,15 @@ lh_void
 lh_memory_bounds_unpack(const lh_memory_bounds_t *self, lh_ptr *begin, lh_ptr *end);
 
 /**
+ * @brief Unpack @p self into @p other (alias for ::lh_memory_bounds_assign).
+ * @param self  Source bounds (not null).
+ * @param other Destination bounds (not null).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_bounds_unpack_to_other(const lh_memory_bounds_t *self, lh_memory_bounds_t *other);
+
+/**
  * @brief Return @c first without validating the bounds range.
  * @param self Bounds to read.
  * @return Stored begin pointer.

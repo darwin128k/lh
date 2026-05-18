@@ -34,6 +34,15 @@ lh_memory_typed_unpack(const lh_memory_typed_t *self, lh_ptr *begin, lh_ptr *end
                        lh_usize_t *type_size);
 
 /**
+ * @brief Unpack @p self into @p other.
+ * @param self  Source typed memory (not null).
+ * @param other Destination typed memory (not null).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_typed_unpack_to_other(const lh_memory_typed_t *self, lh_memory_typed_t *other);
+
+/**
  * @brief Return the begin pointer without validating the range.
  * @param self Typed memory to read.
  * @return Stored begin pointer.

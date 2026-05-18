@@ -516,6 +516,12 @@ lh_memory_view_assign(lh_memory_view_t *self, const lh_memory_view_t *other)
 }
 
 lh_void
+lh_memory_view_unpack_to_other(const lh_memory_view_t *self, lh_memory_view_t *other)
+{
+    lh_memory_view_assign(other, self);
+}
+
+lh_void
 lh_memory_view_swap(lh_memory_view_t *self, lh_memory_view_t *other)
 {
     lh_return_if(lh_math_eq(self, other));

@@ -61,6 +61,15 @@ void
 lh_error_unpack(const lh_error_t *self, lh_error_code_t *code, lh_error_desc_t *desc);
 
 /**
+ * @brief Unpack @p self into @p other (alias for ::lh_error_assign).
+ * @param self  Source error (not null).
+ * @param other Destination error (not null).
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_error_unpack_to_other(const lh_error_t *self, lh_error_t *other);
+
+/**
  * @brief Replace @p self with @p code and @p desc.
  *
  * Equivalent to ::lh_error_pack with both fields provided.

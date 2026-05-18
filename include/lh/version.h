@@ -80,7 +80,25 @@ void
 lh_version_unpack(const lh_version_t *self, lh_version_major_t *major, lh_version_minor_t *minor,
                   lh_version_patch_t *patch);
 
+/**
+ * @brief Unpack @p self into @p other.
+ * @param self  Source version (not null).
+ * @param other Destination version (not null).
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_version_unpack_to_other(const lh_version_t *self, lh_version_t *other);
+
 /* ── set ─────────────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Copy the version state from @p other into @p self.
+ * @param self  Destination version (not null).
+ * @param other Source version (not null).
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_version_assign(lh_version_t *self, const lh_version_t *other);
 
 /**
  * @brief Replace @p self with @p major, @p minor, and @p patch.

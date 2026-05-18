@@ -63,6 +63,15 @@ lh_void
 lh_memory_view_unpack(const lh_memory_view_t *self, const lh_ptr *begin, const lh_ptr *end);
 
 /**
+ * @brief Unpack @p self into @p other (alias for ::lh_memory_view_assign).
+ * @param self  Source view (not null).
+ * @param other Destination view (not null).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_view_unpack_to_other(const lh_memory_view_t *self, lh_memory_view_t *other);
+
+/**
  * @brief Return @c first without validating the view range.
  * @param self View to read.
  * @return Stored begin pointer.

@@ -63,6 +63,25 @@ lh_memory_allocator_unpack(const lh_memory_allocator_t *self,
                            lh_memory_allocator_dealloc_cb *dealloc_cb);
 
 /**
+ * @brief Unpack @p self into @p other.
+ * @param self  Source allocator (not null).
+ * @param other Destination allocator (not null).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_allocator_unpack_to_other(const lh_memory_allocator_t *self,
+                                    lh_memory_allocator_t *other);
+
+/**
+ * @brief Copy the allocator state from @p other into @p self.
+ * @param self  Destination allocator (not null).
+ * @param other Source allocator (not null).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_allocator_assign(lh_memory_allocator_t *self, const lh_memory_allocator_t *other);
+
+/**
  * @brief Set both callbacks at once.
  *
  * @param self Allocator object to modify.
