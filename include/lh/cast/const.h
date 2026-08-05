@@ -28,4 +28,4 @@
 #    define lh_cast_const(T, expr) ((T)(expr))
 #endif
 
-#endif // LH_CAST_CONST_H
+#endif /* LH_CAST_CONST_H */

@@ -17,4 +17,4 @@
 
 typedef lh_byte_t lh_memory_view_slice_flags_t;
 
-#endif // LH_MEMORY_VIEW_SLICE_FLAGS_H
+#endif /* LH_MEMORY_VIEW_SLICE_FLAGS_H */

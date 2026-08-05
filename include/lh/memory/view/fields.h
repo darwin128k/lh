@@ -19,4 +19,4 @@
  */
 #define lh_memory_view_fields(T) lh_memory_bounds_fields(const T)
 
-#endif // LH_MEMORY_VIEW_FIELDS_H
+#endif /* LH_MEMORY_VIEW_FIELDS_H */

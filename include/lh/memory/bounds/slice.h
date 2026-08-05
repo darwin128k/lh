@@ -1335,4 +1335,4 @@ lh_memory_bounds_slice_swap_and_clear(lh_memory_bounds_slice_t *self,
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_MEMORY_BOUNDS_SLICE_H
+#endif /* LH_MEMORY_BOUNDS_SLICE_H */

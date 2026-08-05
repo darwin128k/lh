@@ -72,4 +72,4 @@ lh_runtime_terminate(void);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_RUNTIME_TERMINATE_H
+#endif /* LH_RUNTIME_TERMINATE_H */

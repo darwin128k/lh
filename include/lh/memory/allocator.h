@@ -180,4 +180,4 @@ lh_memory_allocator_realloc(lh_memory_allocator_t *self, lh_ptr old_ptr, lh_usiz
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_MEMORY_ALLOCATOR_H
+#endif /* LH_MEMORY_ALLOCATOR_H */

@@ -20,4 +20,4 @@
  */
 #define lh_void void
 
-#endif // LH_VOID_H
+#endif /* LH_VOID_H */

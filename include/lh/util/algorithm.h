@@ -271,4 +271,4 @@
         }                                                                                          \
     } while (0)
 
-#endif // LH_UTIL_ALGORITHM_H
+#endif /* LH_UTIL_ALGORITHM_H */

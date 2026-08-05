@@ -33,4 +33,4 @@
  */
 #define lh_str_view_fields(T) lh_memory_bounds_fields(T)
 
-#endif // LH_STR_VIEW_FIELDS_H
+#endif /* LH_STR_VIEW_FIELDS_H */

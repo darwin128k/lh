@@ -505,6 +505,6 @@ TEST(memory_view_slice_make_between, rejects_out_of_bounds_ptrs_death)
     LH_EXPECT_DEATH((void)lh_memory_view_slice_make_between(&s, p(buf + 1), p(buf + 5)));
 }
 
-#endif // LH_TEST_EXPECT_DEATH_ENABLED
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 } // namespace

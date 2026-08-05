@@ -35,4 +35,4 @@
  */
 #define lh_interval_initializer(initializer, flags) lh_initializer(initializer, flags)
 
-#endif // LH_INTERVAL_INITIALIZER_H
+#endif /* LH_INTERVAL_INITIALIZER_H */

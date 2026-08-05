@@ -34,4 +34,4 @@
     Minor minor;                                                                                   \
     Patch patch
 
-#endif // LH_VERSION_FIELDS_H
+#endif /* LH_VERSION_FIELDS_H */

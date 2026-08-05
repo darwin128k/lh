@@ -81,4 +81,4 @@
 #define lh_numeric_interval_initializer(T, flags)                                                  \
     lh_interval_initializer(lh_numeric_interval_bounds_initializer(T), flags)
 
-#endif // LH_NUMERIC_INTERVAL_INITIALIZER_H
+#endif /* LH_NUMERIC_INTERVAL_INITIALIZER_H */

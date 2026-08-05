@@ -73,4 +73,4 @@
 #define lh_numeric_interval_bounds_initializer(T)                                                  \
     lh_interval_bounds_initializer(lh_numeric_limit_min(T), lh_numeric_limit_max(T))
 
-#endif // LH_NUMERIC_INTERVAL_BOUNDS_INITIALIZER_H
+#endif /* LH_NUMERIC_INTERVAL_BOUNDS_INITIALIZER_H */

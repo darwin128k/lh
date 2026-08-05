@@ -133,4 +133,4 @@
     lh_type_cast(                                                                                  \
         T, (lh_numeric_limit_is_signed(T) ? lh_numeric_limit_smax(T) : lh_numeric_limit_umax(T)))
 
-#endif // LH_NUMERIC_LIMIT_H
+#endif /* LH_NUMERIC_LIMIT_H */

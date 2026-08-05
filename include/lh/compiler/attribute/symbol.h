@@ -88,4 +88,4 @@
 #    error "Symbol visibility attributes not supported for this compiler"
 #endif
 
-#endif // LH_COMPILER_ATTRIBUTE_SYMBOL_H
+#endif /* LH_COMPILER_ATTRIBUTE_SYMBOL_H */

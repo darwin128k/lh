@@ -54,4 +54,4 @@
  */
 #define lh_null_ne(ptr) lh_math_ne(ptr, lh_null)
 
-#endif // LH_NULL_H
+#endif /* LH_NULL_H */

@@ -51,4 +51,4 @@
 #    error "Compiler version detection is not supported on this compiler"
 #endif
 
-#endif // LH_COMPILER_VERSION_H
+#endif /* LH_COMPILER_VERSION_H */

@@ -450,4 +450,4 @@ lh_memory_typed_make_by_bounds(const lh_memory_bounds_t *bounds, lh_usize_t type
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_MEMORY_TYPED_H
+#endif /* LH_MEMORY_TYPED_H */

@@ -1312,4 +1312,4 @@ lh_memory_bounds_make_slice(const lh_memory_bounds_t *self);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_MEMORY_BOUNDS_H
+#endif /* LH_MEMORY_BOUNDS_H */

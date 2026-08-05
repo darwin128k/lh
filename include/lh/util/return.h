@@ -72,4 +72,4 @@
  */
 #define lh_return_ifn(expr, ...) lh_return_if(!(expr), __VA_ARGS__)
 
-#endif // LH_UTIL_RETURN_H
+#endif /* LH_UTIL_RETURN_H */

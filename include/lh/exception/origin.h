@@ -179,4 +179,4 @@ lh_exception_origin_init_by_other(lh_exception_origin_t *self, const lh_exceptio
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_EXCEPTION_ORIGIN_H
+#endif /* LH_EXCEPTION_ORIGIN_H */

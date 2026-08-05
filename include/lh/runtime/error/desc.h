@@ -17,4 +17,4 @@
  */
 typedef lh_error_desc_t lh_runtime_error_desc_t;
 
-#endif // LH_RUNTIME_ERROR_DESC_H
+#endif /* LH_RUNTIME_ERROR_DESC_H */

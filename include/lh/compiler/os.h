@@ -18,7 +18,7 @@
  * @brief OS identifier for an unrecognised target (0).
  */
 #    define LH_COMPILER_OS_UNKNOWN 0
-#endif // LH_COMPILER_OS_UNKNOWN
+#endif /* LH_COMPILER_OS_UNKNOWN */
 
 #ifndef LH_COMPILER_OS_WINDOWS
 /**
@@ -26,7 +26,7 @@
  * @brief OS identifier for Windows (1).
  */
 #    define LH_COMPILER_OS_WINDOWS 1
-#endif // LH_COMPILER_OS_WINDOWS
+#endif /* LH_COMPILER_OS_WINDOWS */
 
 #ifndef LH_COMPILER_OS_LINUX
 /**
@@ -34,7 +34,7 @@
  * @brief OS identifier for Linux (2).
  */
 #    define LH_COMPILER_OS_LINUX 2
-#endif // LH_COMPILER_OS_LINUX
+#endif /* LH_COMPILER_OS_LINUX */
 
 #ifndef LH_COMPILER_OS_MAC
 /**
@@ -42,7 +42,7 @@
  * @brief OS identifier for macOS (3).
  */
 #    define LH_COMPILER_OS_MAC 3
-#endif // LH_COMPILER_OS_MAC
+#endif /* LH_COMPILER_OS_MAC */
 
 #ifndef LH_COMPILER_OS
 /**
@@ -76,6 +76,6 @@
 #    else
 #        define LH_COMPILER_OS LH_COMPILER_OS_UNKNOWN
 #    endif
-#endif // LH_COMPILER_OS
+#endif /* LH_COMPILER_OS */
 
-#endif // LH_COMPILER_OS_H
+#endif /* LH_COMPILER_OS_H */

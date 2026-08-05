@@ -60,4 +60,4 @@
 #    error "Destructor is not supported on this compiler"
 #endif
 
-#endif // LH_COMPILER_DESTRUCTOR_H
+#endif /* LH_COMPILER_DESTRUCTOR_H */

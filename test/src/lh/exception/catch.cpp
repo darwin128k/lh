@@ -235,6 +235,6 @@ TEST(exception_catch_death, has_diff_code_null_other)
     LH_EXPECT_DEATH(lh_exception_catch_has_diff_code(&catch_frame, nullptr));
 }
 
-#endif // LH_TEST_EXPECT_DEATH_ENABLED
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 } // namespace

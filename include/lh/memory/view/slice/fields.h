@@ -20,4 +20,4 @@
  */
 #define lh_memory_view_slice_fields(T) lh_interval_bounds_fields(const T *)
 
-#endif // LH_MEMORY_VIEW_SLICE_FIELDS_H
+#endif /* LH_MEMORY_VIEW_SLICE_FIELDS_H */

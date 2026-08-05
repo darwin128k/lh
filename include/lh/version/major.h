@@ -23,4 +23,4 @@
  */
 typedef lh_u16_t lh_version_major_t;
 
-#endif // LH_VERSION_MAJOR_H
+#endif /* LH_VERSION_MAJOR_H */

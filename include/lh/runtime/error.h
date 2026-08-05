@@ -348,4 +348,4 @@ lh_runtime_error_make_by_desc(lh_runtime_error_desc_t desc);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_RUNTIME_ERROR_H
+#endif /* LH_RUNTIME_ERROR_H */

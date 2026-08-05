@@ -39,4 +39,4 @@
 #    error "Compiler does not support force inlining attribute"
 #endif
 
-#endif // LH_COMPILER_ATTRIBUTE_BUILTIN_H
+#endif /* LH_COMPILER_ATTRIBUTE_BUILTIN_H */

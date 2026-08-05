@@ -144,4 +144,4 @@
     lh_runtime_try_finalize();                                                                     \
     lh_return(__VA_ARGS__)
 
-#endif // LH_RUNTIME_TRY_H
+#endif /* LH_RUNTIME_TRY_H */

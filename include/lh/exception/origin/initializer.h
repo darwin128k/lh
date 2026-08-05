@@ -58,4 +58,4 @@
 #define lh_exception_origin_initializer_now()                                                      \
     lh_exception_origin_initializer(__TIMESTAMP__, __FILE__, __FUNCTION__, __LINE__)
 
-#endif // LH_EXCEPTION_ORIGIN_INITIALIZER_H
+#endif /* LH_EXCEPTION_ORIGIN_INITIALIZER_H */

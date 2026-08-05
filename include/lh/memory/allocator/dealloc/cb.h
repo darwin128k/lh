@@ -22,4 +22,4 @@
  */
 #define lh_memory_allocator_dealloc_cb lh_ptr_of(lh_memory_allocator_dealloc_fn)
 
-#endif // LH_MEMORY_ALLOCATOR_DEALLOC_CB_H
+#endif /* LH_MEMORY_ALLOCATOR_DEALLOC_CB_H */

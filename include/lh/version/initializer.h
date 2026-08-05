@@ -28,4 +28,4 @@
  */
 #define lh_version_initializer(major, minor, patch) lh_initializer(major, minor, patch)
 
-#endif // LH_VERSION_INITIALIZER_H
+#endif /* LH_VERSION_INITIALIZER_H */

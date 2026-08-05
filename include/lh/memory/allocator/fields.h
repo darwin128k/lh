@@ -31,4 +31,4 @@
     allocator_type *alloc_cb;                                                                      \
     deallocator_type *dealloc_cb
 
-#endif // LH_MEMORY_ALLOCATOR_FIELDS_H
+#endif /* LH_MEMORY_ALLOCATOR_FIELDS_H */

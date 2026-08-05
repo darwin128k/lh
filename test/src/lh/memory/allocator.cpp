@@ -228,6 +228,6 @@ TEST(memory_allocator_death, dealloc_without_callback)
     LH_EXPECT_DEATH(lh_memory_allocator_dealloc(&a, lh_cast_static(lh_ptr, &x)));
 }
 
-#endif // LH_TEST_EXPECT_DEATH_ENABLED
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 } // namespace

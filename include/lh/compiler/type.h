@@ -18,7 +18,7 @@
  * @brief Compiler identifier for an unrecognised compiler (0).
  */
 #    define LH_COMPILER_TYPE_UNKNOWN 0
-#endif // LH_COMPILER_TYPE_UNKNOWN
+#endif /* LH_COMPILER_TYPE_UNKNOWN */
 
 #ifndef LH_COMPILER_TYPE_GCC
 /**
@@ -26,7 +26,7 @@
  * @brief Compiler identifier for GCC (1).
  */
 #    define LH_COMPILER_TYPE_GCC 1
-#endif // LH_COMPILER_TYPE_GCC
+#endif /* LH_COMPILER_TYPE_GCC */
 
 #ifndef LH_COMPILER_TYPE_MSVC
 /**
@@ -34,7 +34,7 @@
  * @brief Compiler identifier for MSVC (2).
  */
 #    define LH_COMPILER_TYPE_MSVC 2
-#endif // LH_COMPILER_TYPE_MSVC
+#endif /* LH_COMPILER_TYPE_MSVC */
 
 #ifndef LH_COMPILER_TYPE_CLANG
 /**
@@ -42,7 +42,7 @@
  * @brief Compiler identifier for Clang (3).
  */
 #    define LH_COMPILER_TYPE_CLANG 3
-#endif // LH_COMPILER_TYPE_CLANG
+#endif /* LH_COMPILER_TYPE_CLANG */
 
 /**
  * @def LH_COMPILER_TYPE
@@ -70,22 +70,22 @@
 #if defined(__clang__)
 #    ifndef LH_COMPILER_TYPE
 #        define LH_COMPILER_TYPE LH_COMPILER_TYPE_CLANG
-#    endif // LH_COMPILER_TYPE
+#    endif /* LH_COMPILER_TYPE */
 
 #elif defined(_MSC_VER)
 #    ifndef LH_COMPILER_TYPE
 #        define LH_COMPILER_TYPE LH_COMPILER_TYPE_MSVC
-#    endif // LH_COMPILER_TYPE
+#    endif /* LH_COMPILER_TYPE */
 
 #elif defined(__GNUC__)
 #    ifndef LH_COMPILER_TYPE
 #        define LH_COMPILER_TYPE LH_COMPILER_TYPE_GCC
-#    endif // LH_COMPILER_TYPE
+#    endif /* LH_COMPILER_TYPE */
 
 #else
 #    ifndef LH_COMPILER_TYPE
 #        define LH_COMPILER_TYPE LH_COMPILER_TYPE_UNKNOWN
-#    endif // LH_COMPILER_TYPE
+#    endif /* LH_COMPILER_TYPE */
 #endif
 
 #ifndef LH_COMPILER_TYPE_IS_GCC_LIKE
@@ -107,6 +107,6 @@
  */
 #    define LH_COMPILER_TYPE_IS_GCC_LIKE                                                           \
         (LH_COMPILER_TYPE == LH_COMPILER_TYPE_GCC) || (LH_COMPILER_TYPE == LH_COMPILER_TYPE_CLANG)
-#endif // LH_COMPILER_TYPE_IS_GCC_LIKE
+#endif /* LH_COMPILER_TYPE_IS_GCC_LIKE */
 
-#endif // LH_COMPILER_TYPE_H
+#endif /* LH_COMPILER_TYPE_H */

@@ -23,4 +23,4 @@
  */
 #define lh_ref(expr) &expr
 
-#endif // LH_REF_H
+#endif /* LH_REF_H */

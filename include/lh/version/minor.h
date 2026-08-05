@@ -24,4 +24,4 @@
  */
 typedef lh_u8_t lh_version_minor_t;
 
-#endif // LH_VERSION_MINOR_H
+#endif /* LH_VERSION_MINOR_H */

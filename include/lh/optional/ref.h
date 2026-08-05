@@ -25,4 +25,4 @@
  */
 #define lh_optional_ref(ptr) if (lh_null_ne(ptr))
 
-#endif // LH_OPTIONAL_REF_H
+#endif /* LH_OPTIONAL_REF_H */

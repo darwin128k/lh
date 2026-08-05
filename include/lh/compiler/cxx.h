@@ -39,6 +39,6 @@
  */
 #    define LH_COMPILER_CXX_VERSION __cplusplus
 
-#endif // __cplusplus
+#endif /* __cplusplus */
 
-#endif // LH_COMPILER_CXX_H
+#endif /* LH_COMPILER_CXX_H */

@@ -241,6 +241,6 @@ TEST(memory_raw_rfind_death, null_rhs_end)
     LH_EXPECT_DEATH(lh_memory_raw_rfind(hay, hay + 1, needle, lh_null));
 }
 
-#endif // LH_TEST_EXPECT_DEATH_ENABLED
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 } // namespace

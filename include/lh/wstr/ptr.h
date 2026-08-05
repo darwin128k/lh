@@ -24,4 +24,4 @@
  */
 #define lh_wstr_cptr lh_cptr_of(lh_wchar_t)
 
-#endif // LH_WSTR_PTR_H
+#endif /* LH_WSTR_PTR_H */

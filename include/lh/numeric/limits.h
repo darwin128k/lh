@@ -164,7 +164,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * @brief Size of ::lh_char_t in bytes.
  */
 #    define LH_CHAR_T_SIZE lh_type_size(lh_char_t)
-#endif // LH_CHAR_T_SIZE
+#endif /* LH_CHAR_T_SIZE */
 
 #ifndef LH_UCHAR_T_SIZE
 /**
@@ -174,7 +174,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `lh_type_size(lh_uchar_t)`.
  */
 #    define LH_UCHAR_T_SIZE lh_type_size(lh_uchar_t)
-#endif // LH_UCHAR_T_SIZE
+#endif /* LH_UCHAR_T_SIZE */
 
 #ifndef LH_USHORT_T_SIZE
 /**
@@ -184,7 +184,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `lh_type_size(lh_ushort_t)`.
  */
 #    define LH_USHORT_T_SIZE lh_type_size(lh_ushort_t)
-#endif // LH_USHORT_T_SIZE
+#endif /* LH_USHORT_T_SIZE */
 
 #ifndef LH_UINT_T_SIZE
 /**
@@ -194,7 +194,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `lh_type_size(lh_uint_t)`.
  */
 #    define LH_UINT_T_SIZE lh_type_size(lh_uint_t)
-#endif // LH_UINT_T_SIZE
+#endif /* LH_UINT_T_SIZE */
 
 #ifndef LH_ULONG_T_SIZE
 /**
@@ -204,7 +204,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `lh_type_size(lh_ulong_t)`.
  */
 #    define LH_ULONG_T_SIZE lh_type_size(lh_ulong_t)
-#endif // LH_ULONG_T_SIZE
+#endif /* LH_ULONG_T_SIZE */
 
 #ifndef LH_ULLONG_T_SIZE
 /**
@@ -214,7 +214,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `lh_type_size(lh_ullong_t)`.
  */
 #    define LH_ULLONG_T_SIZE lh_type_size(lh_ullong_t)
-#endif // LH_ULLONG_T_SIZE
+#endif /* LH_ULLONG_T_SIZE */
 
 #ifndef LH_SCHAR_T_SIZE
 /**
@@ -224,7 +224,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `lh_type_size(lh_schar_t)`.
  */
 #    define LH_SCHAR_T_SIZE lh_type_size(lh_schar_t)
-#endif // LH_SCHAR_T_SIZE
+#endif /* LH_SCHAR_T_SIZE */
 
 #ifndef LH_SHORT_T_SIZE
 /**
@@ -232,7 +232,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * @brief Size of ::lh_short_t in bytes.
  */
 #    define LH_SHORT_T_SIZE lh_type_size(lh_short_t)
-#endif // LH_SHORT_T_SIZE
+#endif /* LH_SHORT_T_SIZE */
 
 #ifndef LH_SSHORT_T_SIZE
 /**
@@ -242,7 +242,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `lh_type_size(lh_sshort_t)`.
  */
 #    define LH_SSHORT_T_SIZE lh_type_size(lh_sshort_t)
-#endif // LH_SSHORT_T_SIZE
+#endif /* LH_SSHORT_T_SIZE */
 
 #ifndef LH_SINT_T_SIZE
 /**
@@ -252,7 +252,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `lh_type_size(lh_sint_t)`.
  */
 #    define LH_SINT_T_SIZE lh_type_size(lh_sint_t)
-#endif // LH_SINT_T_SIZE
+#endif /* LH_SINT_T_SIZE */
 
 #ifndef LH_INT_T_SIZE
 /**
@@ -260,7 +260,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * @brief Size of ::lh_int_t in bytes.
  */
 #    define LH_INT_T_SIZE lh_type_size(lh_int_t)
-#endif // LH_INT_T_SIZE
+#endif /* LH_INT_T_SIZE */
 
 #ifndef LH_SLONG_T_SIZE
 /**
@@ -270,7 +270,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `lh_type_size(lh_slong_t)`.
  */
 #    define LH_SLONG_T_SIZE lh_type_size(lh_slong_t)
-#endif // LH_SLONG_T_SIZE
+#endif /* LH_SLONG_T_SIZE */
 
 #ifndef LH_LONG_T_SIZE
 /**
@@ -278,7 +278,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * @brief Size of ::lh_long_t in bytes.
  */
 #    define LH_LONG_T_SIZE lh_type_size(lh_long_t)
-#endif // LH_LONG_T_SIZE
+#endif /* LH_LONG_T_SIZE */
 
 #ifndef LH_SLLONG_T_SIZE
 /**
@@ -288,7 +288,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `lh_type_size(lh_sllong_t)`.
  */
 #    define LH_SLLONG_T_SIZE lh_type_size(lh_sllong_t)
-#endif // LH_SLLONG_T_SIZE
+#endif /* LH_SLLONG_T_SIZE */
 
 #ifndef LH_LLONG_T_SIZE
 /**
@@ -296,7 +296,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * @brief Size of ::lh_llong_t in bytes.
  */
 #    define LH_LLONG_T_SIZE lh_type_size(lh_llong_t)
-#endif // LH_LLONG_T_SIZE
+#endif /* LH_LLONG_T_SIZE */
 
 /* ── unsigned limits ────────────────────────────────────────────────────── */
 
@@ -308,7 +308,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `lh_numeric_limit_min(lh_char_t)`.
  */
 #    define LH_CHAR_T_MIN lh_numeric_limit_min(lh_char_t)
-#endif // LH_CHAR_T_MIN
+#endif /* LH_CHAR_T_MIN */
 
 #ifndef LH_CHAR_T_MAX
 /**
@@ -318,7 +318,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `lh_numeric_limit_max(lh_char_t)`.
  */
 #    define LH_CHAR_T_MAX lh_numeric_limit_max(lh_char_t)
-#endif // LH_CHAR_T_MAX
+#endif /* LH_CHAR_T_MAX */
 
 #ifndef LH_UCHAR_T_MIN
 /**
@@ -328,7 +328,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_UCHAR_T_INTERVAL.bounds.first`.
  */
 #    define LH_UCHAR_T_MIN LH_UCHAR_T_INTERVAL.bounds.first
-#endif // LH_UCHAR_T_MIN
+#endif /* LH_UCHAR_T_MIN */
 
 #ifndef LH_UCHAR_T_MAX
 /**
@@ -338,7 +338,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_UCHAR_T_INTERVAL.bounds.second`.
  */
 #    define LH_UCHAR_T_MAX LH_UCHAR_T_INTERVAL.bounds.second
-#endif // LH_UCHAR_T_MAX
+#endif /* LH_UCHAR_T_MAX */
 
 #ifndef LH_USHORT_T_MIN
 /**
@@ -348,7 +348,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_USHORT_T_INTERVAL.bounds.first`.
  */
 #    define LH_USHORT_T_MIN LH_USHORT_T_INTERVAL.bounds.first
-#endif // LH_USHORT_T_MIN
+#endif /* LH_USHORT_T_MIN */
 
 #ifndef LH_USHORT_T_MAX
 /**
@@ -358,7 +358,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_USHORT_T_INTERVAL.bounds.second`.
  */
 #    define LH_USHORT_T_MAX LH_USHORT_T_INTERVAL.bounds.second
-#endif // LH_USHORT_T_MAX
+#endif /* LH_USHORT_T_MAX */
 
 #ifndef LH_UINT_T_MIN
 /**
@@ -368,7 +368,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_UINT_T_INTERVAL.bounds.first`.
  */
 #    define LH_UINT_T_MIN LH_UINT_T_INTERVAL.bounds.first
-#endif // LH_UINT_T_MIN
+#endif /* LH_UINT_T_MIN */
 
 #ifndef LH_UINT_T_MAX
 /**
@@ -378,7 +378,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_UINT_T_INTERVAL.bounds.second`.
  */
 #    define LH_UINT_T_MAX LH_UINT_T_INTERVAL.bounds.second
-#endif // LH_UINT_T_MAX
+#endif /* LH_UINT_T_MAX */
 
 #ifndef LH_ULONG_T_MIN
 /**
@@ -388,7 +388,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_ULONG_T_INTERVAL.bounds.first`.
  */
 #    define LH_ULONG_T_MIN LH_ULONG_T_INTERVAL.bounds.first
-#endif // LH_ULONG_T_MIN
+#endif /* LH_ULONG_T_MIN */
 
 #ifndef LH_ULONG_T_MAX
 /**
@@ -398,7 +398,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_ULONG_T_INTERVAL.bounds.second`.
  */
 #    define LH_ULONG_T_MAX LH_ULONG_T_INTERVAL.bounds.second
-#endif // LH_ULONG_T_MAX
+#endif /* LH_ULONG_T_MAX */
 
 #ifndef LH_ULLONG_T_MIN
 /**
@@ -408,7 +408,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_ULLONG_T_INTERVAL.bounds.first`.
  */
 #    define LH_ULLONG_T_MIN LH_ULLONG_T_INTERVAL.bounds.first
-#endif // LH_ULLONG_T_MIN
+#endif /* LH_ULLONG_T_MIN */
 
 #ifndef LH_ULLONG_T_MAX
 /**
@@ -418,7 +418,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_ULLONG_T_INTERVAL.bounds.second`.
  */
 #    define LH_ULLONG_T_MAX LH_ULLONG_T_INTERVAL.bounds.second
-#endif // LH_ULLONG_T_MAX
+#endif /* LH_ULLONG_T_MAX */
 
 /* ── signed limits ──────────────────────────────────────────────────────── */
 
@@ -430,7 +430,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_SCHAR_T_INTERVAL.bounds.first`.
  */
 #    define LH_SCHAR_T_MIN LH_SCHAR_T_INTERVAL.bounds.first
-#endif // LH_SCHAR_T_MIN
+#endif /* LH_SCHAR_T_MIN */
 
 #ifndef LH_SCHAR_T_MAX
 /**
@@ -440,7 +440,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_SCHAR_T_INTERVAL.bounds.second`.
  */
 #    define LH_SCHAR_T_MAX LH_SCHAR_T_INTERVAL.bounds.second
-#endif // LH_SCHAR_T_MAX
+#endif /* LH_SCHAR_T_MAX */
 
 #ifndef LH_SHORT_T_MIN
 /**
@@ -450,7 +450,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_SHORT_T_INTERVAL.bounds.first`.
  */
 #    define LH_SHORT_T_MIN LH_SHORT_T_INTERVAL.bounds.first
-#endif // LH_SHORT_T_MIN
+#endif /* LH_SHORT_T_MIN */
 
 #ifndef LH_SHORT_T_MAX
 /**
@@ -460,7 +460,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_SHORT_T_INTERVAL.bounds.second`.
  */
 #    define LH_SHORT_T_MAX LH_SHORT_T_INTERVAL.bounds.second
-#endif // LH_SHORT_T_MAX
+#endif /* LH_SHORT_T_MAX */
 
 #ifndef LH_SSHORT_T_MIN
 /**
@@ -470,7 +470,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_SSHORT_T_INTERVAL.bounds.first`.
  */
 #    define LH_SSHORT_T_MIN LH_SSHORT_T_INTERVAL.bounds.first
-#endif // LH_SSHORT_T_MIN
+#endif /* LH_SSHORT_T_MIN */
 
 #ifndef LH_SSHORT_T_MAX
 /**
@@ -480,7 +480,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_SSHORT_T_INTERVAL.bounds.second`.
  */
 #    define LH_SSHORT_T_MAX LH_SSHORT_T_INTERVAL.bounds.second
-#endif // LH_SSHORT_T_MAX
+#endif /* LH_SSHORT_T_MAX */
 
 #ifndef LH_SINT_T_MIN
 /**
@@ -490,7 +490,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_SINT_T_INTERVAL.bounds.first`.
  */
 #    define LH_SINT_T_MIN LH_SINT_T_INTERVAL.bounds.first
-#endif // LH_SINT_T_MIN
+#endif /* LH_SINT_T_MIN */
 
 #ifndef LH_SINT_T_MAX
 /**
@@ -500,7 +500,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_SINT_T_INTERVAL.bounds.second`.
  */
 #    define LH_SINT_T_MAX LH_SINT_T_INTERVAL.bounds.second
-#endif // LH_SINT_T_MAX
+#endif /* LH_SINT_T_MAX */
 
 #ifndef LH_INT_T_MIN
 /**
@@ -510,7 +510,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_INT_T_INTERVAL.bounds.first`.
  */
 #    define LH_INT_T_MIN LH_INT_T_INTERVAL.bounds.first
-#endif // LH_INT_T_MIN
+#endif /* LH_INT_T_MIN */
 
 #ifndef LH_INT_T_MAX
 /**
@@ -520,7 +520,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_INT_T_INTERVAL.bounds.second`.
  */
 #    define LH_INT_T_MAX LH_INT_T_INTERVAL.bounds.second
-#endif // LH_INT_T_MAX
+#endif /* LH_INT_T_MAX */
 
 #ifndef LH_SLONG_T_MIN
 /**
@@ -530,7 +530,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_SLONG_T_INTERVAL.bounds.first`.
  */
 #    define LH_SLONG_T_MIN LH_SLONG_T_INTERVAL.bounds.first
-#endif // LH_SLONG_T_MIN
+#endif /* LH_SLONG_T_MIN */
 
 #ifndef LH_SLONG_T_MAX
 /**
@@ -540,7 +540,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_SLONG_T_INTERVAL.bounds.second`.
  */
 #    define LH_SLONG_T_MAX LH_SLONG_T_INTERVAL.bounds.second
-#endif // LH_SLONG_T_MAX
+#endif /* LH_SLONG_T_MAX */
 
 #ifndef LH_LONG_T_MIN
 /**
@@ -550,7 +550,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_LONG_T_INTERVAL.bounds.first`.
  */
 #    define LH_LONG_T_MIN LH_LONG_T_INTERVAL.bounds.first
-#endif // LH_LONG_T_MIN
+#endif /* LH_LONG_T_MIN */
 
 #ifndef LH_LONG_T_MAX
 /**
@@ -560,7 +560,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_LONG_T_INTERVAL.bounds.second`.
  */
 #    define LH_LONG_T_MAX LH_LONG_T_INTERVAL.bounds.second
-#endif // LH_LONG_T_MAX
+#endif /* LH_LONG_T_MAX */
 
 #ifndef LH_SLLONG_T_MIN
 /**
@@ -570,7 +570,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_SLLONG_T_INTERVAL.bounds.first`.
  */
 #    define LH_SLLONG_T_MIN LH_SLLONG_T_INTERVAL.bounds.first
-#endif // LH_SLLONG_T_MIN
+#endif /* LH_SLLONG_T_MIN */
 
 #ifndef LH_SLLONG_T_MAX
 /**
@@ -580,7 +580,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_SLLONG_T_INTERVAL.bounds.second`.
  */
 #    define LH_SLLONG_T_MAX LH_SLLONG_T_INTERVAL.bounds.second
-#endif // LH_SLLONG_T_MAX
+#endif /* LH_SLLONG_T_MAX */
 
 #ifndef LH_LLONG_T_MIN
 /**
@@ -590,7 +590,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_LLONG_T_INTERVAL.bounds.first`.
  */
 #    define LH_LLONG_T_MIN LH_LLONG_T_INTERVAL.bounds.first
-#endif // LH_LLONG_T_MIN
+#endif /* LH_LLONG_T_MIN */
 
 #ifndef LH_LLONG_T_MAX
 /**
@@ -600,6 +600,6 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  * Expands to `LH_LLONG_T_INTERVAL.bounds.second`.
  */
 #    define LH_LLONG_T_MAX LH_LLONG_T_INTERVAL.bounds.second
-#endif // LH_LLONG_T_MAX
+#endif /* LH_LLONG_T_MAX */
 
-#endif // LH_NUMERIC_LIMITS_H
+#endif /* LH_NUMERIC_LIMITS_H */

@@ -320,4 +320,4 @@ lh_error_make_by_code(lh_error_code_t code);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_ERROR_H
+#endif /* LH_ERROR_H */

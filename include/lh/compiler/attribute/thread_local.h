@@ -39,4 +39,4 @@
 #    error "Compiler does not support thread-local storage attribute"
 #endif
 
-#endif // LH_COMPILER_ATTRIBUTE_THREAD_LOCAL_H
+#endif /* LH_COMPILER_ATTRIBUTE_THREAD_LOCAL_H */

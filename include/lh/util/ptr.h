@@ -627,4 +627,4 @@
 #define lh_ptr_align_down(T, ptr, align)                                                           \
     lh_addr_to_ptr(T, lh_addr_align_down(lh_ptr_to_uaddr(ptr), align))
 
-#endif // LH_UTIL_PTR_H
+#endif /* LH_UTIL_PTR_H */

@@ -54,4 +54,4 @@
 #define lh_runtime_error_empty_initializer(...)                                                    \
     lh_runtime_error_initializer(lh_runtime_error_code_ok, __VA_ARGS__)
 
-#endif // LH_RUNTIME_ERROR_INITIALIZER_H
+#endif /* LH_RUNTIME_ERROR_INITIALIZER_H */

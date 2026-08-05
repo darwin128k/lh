@@ -41,6 +41,6 @@
 #    else
 #        error "Unsupported architecture bit width"
 #    endif
-#endif // LH_COMPILER_ARCH
+#endif /* LH_COMPILER_ARCH */
 
-#endif // LH_COMPILER_ARCH_H
+#endif /* LH_COMPILER_ARCH_H */

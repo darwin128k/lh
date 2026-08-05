@@ -72,6 +72,6 @@
         } while (0)
 #else
 #    define lh_runtime_raise(error) lh_runtime_throw(error)
-#endif // NDEBUG
+#endif /* NDEBUG */
 
-#endif // LH_RUNTIME_RAISE_H
+#endif /* LH_RUNTIME_RAISE_H */

@@ -14,4 +14,4 @@
 
 typedef lh_byte_t lh_memory_view_slice_direction_t;
 
-#endif // LH_MEMORY_VIEW_SLICE_DIRECTION_H
+#endif /* LH_MEMORY_VIEW_SLICE_DIRECTION_H */

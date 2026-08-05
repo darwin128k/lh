@@ -352,6 +352,6 @@ TEST(memory_std_rcompare_death, both_null_zero_bytes)
     LH_EXPECT_DEATH(lh_memory_std_rcompare(lh_null, lh_null, 0));
 }
 
-#endif // LH_TEST_EXPECT_DEATH_ENABLED
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 } // namespace

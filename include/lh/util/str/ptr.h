@@ -23,7 +23,7 @@
  * @brief Sentinel value for invalid string index.
  */
 #    define LH_STR_PTR_INVALID LH_USIZE_T_MAX
-#endif // LH_STR_PTR_INVALID
+#endif /* LH_STR_PTR_INVALID */
 
 /**
  * @def lh_str_ptr_get_begin(x)
@@ -931,4 +931,4 @@ lh_str_ptr_trim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_UTIL_STR_PTR_H
+#endif /* LH_UTIL_STR_PTR_H */

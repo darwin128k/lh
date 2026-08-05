@@ -32,7 +32,7 @@
  * Expands to `lh_numeric_limit_umin(lh_void_ptr)`.
  */
 #    define LH_VOID_PTR_T_MIN lh_numeric_limit_umin(lh_void_ptr)
-#endif // LH_VOID_PTR_T_MIN
+#endif /* LH_VOID_PTR_T_MIN */
 
 #ifndef LH_VOID_PTR_T_MAX
 /**
@@ -42,6 +42,6 @@
  * Represents the high end of the address integer range for the current target.
  */
 #    define LH_VOID_PTR_T_MAX lh_cast_reinterpret(lh_void_ptr, LH_UADDR_T_MAX)
-#endif // LH_VOID_PTR_T_MAX
+#endif /* LH_VOID_PTR_T_MAX */
 
-#endif // LH_VOID_PTR_H
+#endif /* LH_VOID_PTR_H */

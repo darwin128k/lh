@@ -32,4 +32,4 @@
  */
 #define lh_pair_initializer(first, second) lh_initializer(first, second)
 
-#endif // LH_PAIR_INITIALIZER_H
+#endif /* LH_PAIR_INITIALIZER_H */

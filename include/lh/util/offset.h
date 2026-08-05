@@ -26,4 +26,4 @@
  */
 #define lh_offset_of(T, member) offsetof(T, member)
 
-#endif // LH_UTIL_OFFSET_H
+#endif /* LH_UTIL_OFFSET_H */

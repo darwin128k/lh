@@ -560,6 +560,6 @@ TEST(str_view_equals_death, null_self)
         lh_str_view_equals(reinterpret_cast<const lh_str_view_t *>(lh_null), &b, lh_bool_false));
 }
 
-#endif // LH_TEST_EXPECT_DEATH_ENABLED
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 } // namespace

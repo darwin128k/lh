@@ -83,4 +83,4 @@ typedef lh_sint_t lh_s32_t;
  */
 typedef lh_sllong_t lh_s64_t;
 
-#endif // LH_NUMERIC_FIXED_TYPES_H
+#endif /* LH_NUMERIC_FIXED_TYPES_H */

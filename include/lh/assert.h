@@ -9,4 +9,4 @@
 #include <lh/assert/runtime.h>
 #include <lh/assert/static.h>
 
-#endif // LH_ASSERT_H
+#endif /* LH_ASSERT_H */

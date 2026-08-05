@@ -1213,4 +1213,4 @@ lh_memory_view_slice_init_by_other(lh_memory_view_slice_t *self,
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_MEMORY_VIEW_SLICE_H
+#endif /* LH_MEMORY_VIEW_SLICE_H */

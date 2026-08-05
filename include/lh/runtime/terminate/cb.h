@@ -24,4 +24,4 @@
  */
 #define lh_runtime_terminate_cb lh_ptr_of(lh_runtime_terminate_fn)
 
-#endif // LH_RUNTIME_TERMINATE_CB_H
+#endif /* LH_RUNTIME_TERMINATE_CB_H */

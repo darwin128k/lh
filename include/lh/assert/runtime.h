@@ -63,4 +63,4 @@
  */
 #define lh_assert_runtime_ref(expr) lh_runtime_assert_ref(expr)
 
-#endif // LH_ASSERT_RUNTIME_H
+#endif /* LH_ASSERT_RUNTIME_H */

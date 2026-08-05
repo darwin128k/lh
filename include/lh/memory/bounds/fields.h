@@ -33,4 +33,4 @@
  */
 #define lh_memory_bounds_fields(T) lh_interval_bounds_fields(T *)
 
-#endif // LH_MEMORY_BOUNDS_FIELDS_H
+#endif /* LH_MEMORY_BOUNDS_FIELDS_H */

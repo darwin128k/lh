@@ -202,7 +202,7 @@ typedef lh_ulong_t lh_usize_t;
  * Equal to ::LH_SIZE_T_SIZE; ::lh_ssize_t and ::lh_usize_t always have the same width.
  */
 #    define LH_SSIZE_T_SIZE LH_SIZE_T_SIZE
-#endif // LH_SSIZE_T_SIZE
+#endif /* LH_SSIZE_T_SIZE */
 
 #ifndef LH_USIZE_T_SIZE
 /**
@@ -212,6 +212,6 @@ typedef lh_ulong_t lh_usize_t;
  * Equal to ::LH_SIZE_T_SIZE; ::lh_ssize_t and ::lh_usize_t always have the same width.
  */
 #    define LH_USIZE_T_SIZE LH_SIZE_T_SIZE
-#endif // LH_USIZE_T_SIZE
+#endif /* LH_USIZE_T_SIZE */
 
-#endif // LH_SIZE_H
+#endif /* LH_SIZE_H */

@@ -24,4 +24,4 @@
  */
 typedef lh_u8_t lh_version_patch_t;
 
-#endif // LH_VERSION_PATCH_H
+#endif /* LH_VERSION_PATCH_H */

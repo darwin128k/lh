@@ -1154,4 +1154,4 @@ lh_memory_view_make_slice(const lh_memory_view_t *self);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_MEMORY_VIEW_H
+#endif /* LH_MEMORY_VIEW_H */

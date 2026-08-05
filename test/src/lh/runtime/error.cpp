@@ -361,6 +361,6 @@ TEST(runtime_error_death, get_code_and_clear_null_self)
     LH_EXPECT_DEATH(lh_runtime_error_get_code_and_clear(nullptr));
 }
 
-#endif // LH_TEST_EXPECT_DEATH_ENABLED
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 } // namespace

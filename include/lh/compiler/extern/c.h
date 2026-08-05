@@ -36,7 +36,7 @@
 #    else
 #        define LH_COMPILER_EXTERN_C
 #    endif
-#endif // LH_COMPILER_EXTERN_C
+#endif /* LH_COMPILER_EXTERN_C */
 
 #ifndef LH_COMPILER_EXTERN_C_BEGIN
 /**
@@ -66,7 +66,7 @@
 #    else
 #        define LH_COMPILER_EXTERN_C_BEGIN
 #    endif
-#endif // LH_COMPILER_EXTERN_C_BEGIN
+#endif /* LH_COMPILER_EXTERN_C_BEGIN */
 
 #ifndef LH_COMPILER_EXTERN_C_END
 /**
@@ -83,6 +83,6 @@
 #    else
 #        define LH_COMPILER_EXTERN_C_END
 #    endif
-#endif // LH_COMPILER_EXTERN_C_END
+#endif /* LH_COMPILER_EXTERN_C_END */
 
-#endif // LH_COMPILER_EXTERN_C_H
+#endif /* LH_COMPILER_EXTERN_C_H */

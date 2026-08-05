@@ -69,4 +69,4 @@
  */
 #define lh_array_ptr_get_end(x) ((x) + lh_array_ptr_get_size(x))
 
-#endif // LH_UTIL_ARRAY_PTR_H
+#endif /* LH_UTIL_ARRAY_PTR_H */

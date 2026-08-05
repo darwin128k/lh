@@ -39,4 +39,4 @@
  */
 #define lh_arg_get_count(...) lh_arg_get_count_impl(__VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
 
-#endif // LH_UTIL_ARG_H
+#endif /* LH_UTIL_ARG_H */

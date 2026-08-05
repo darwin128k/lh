@@ -70,4 +70,4 @@
 #    define lh_exception_empty_initializer() lh_initializer(lh_error_empty_initializer())
 #endif
 
-#endif // LH_EXCEPTION_INITIALIZER_H
+#endif /* LH_EXCEPTION_INITIALIZER_H */

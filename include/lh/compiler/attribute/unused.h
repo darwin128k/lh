@@ -32,4 +32,4 @@
  */
 #define LH_COMPILER_ATTRIBUTE_UNUSED(expr) ((void)(expr))
 
-#endif // LH_COMPILER_ATTRIBUTE_UNUSED_H
+#endif /* LH_COMPILER_ATTRIBUTE_UNUSED_H */

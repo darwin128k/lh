@@ -176,4 +176,4 @@ lh_memory_std_rcompare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_MEMORY_STD_H
+#endif /* LH_MEMORY_STD_H */

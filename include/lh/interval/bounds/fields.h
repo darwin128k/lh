@@ -39,4 +39,4 @@
  */
 #define lh_interval_bounds_fields(T) lh_pair_fields(T, T)
 
-#endif // LH_INTERVAL_BOUNDS_FIELDS_H
+#endif /* LH_INTERVAL_BOUNDS_FIELDS_H */

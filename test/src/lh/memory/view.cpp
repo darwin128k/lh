@@ -306,6 +306,6 @@ TEST(memory_view_next_value, rejects_end_boundary_death)
     LH_EXPECT_DEATH((void)lh_memory_view_next_value(&v, p(buf + 1)));
 }
 
-#endif // LH_TEST_EXPECT_DEATH_ENABLED
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 } // namespace

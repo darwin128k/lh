@@ -34,4 +34,4 @@
  */
 typedef jmp_buf lh_jump_buffer_t;
 
-#endif // LH_JUMP_BUFFER_H
+#endif /* LH_JUMP_BUFFER_H */

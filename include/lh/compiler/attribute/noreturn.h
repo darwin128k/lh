@@ -43,4 +43,4 @@
 #    error "Compiler does not support noreturn attribute"
 #endif
 
-#endif // LH_COMPILER_ATTRIBUTE_NORETURN_H
+#endif /* LH_COMPILER_ATTRIBUTE_NORETURN_H */

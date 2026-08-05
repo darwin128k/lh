@@ -30,4 +30,4 @@
  */
 typedef void(lh_runtime_terminate_fn)(void);
 
-#endif // LH_RUNTIME_TERMINATE_FN_H
+#endif /* LH_RUNTIME_TERMINATE_FN_H */

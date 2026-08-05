@@ -17,4 +17,4 @@
  */
 #define lh_error_desc_t lh_str_cptr
 
-#endif // LH_ERROR_DESC_H
+#endif /* LH_ERROR_DESC_H */

@@ -635,4 +635,4 @@
         }                                                                                          \
     } while (0)
 
-#endif // LH_UTIL_INTERVAL_H
+#endif /* LH_UTIL_INTERVAL_H */

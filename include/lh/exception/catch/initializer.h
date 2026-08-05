@@ -40,4 +40,4 @@
  */
 #define lh_exception_catch_empty_initializer() lh_initializer(lh_exception_empty_initializer())
 
-#endif // LH_EXCEPTION_CATCH_INITIALIZER_H
+#endif /* LH_EXCEPTION_CATCH_INITIALIZER_H */

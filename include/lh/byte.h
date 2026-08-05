@@ -22,4 +22,4 @@
  */
 typedef lh_u8_t lh_byte_t;
 
-#endif // LH_BYTE_H
+#endif /* LH_BYTE_H */

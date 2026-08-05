@@ -28,7 +28,7 @@
  * Expands to ::LH_RETURN_CODE_T_SIZE.
  */
 #    define LH_ERROR_CODE_T_SIZE LH_RETURN_CODE_T_SIZE
-#endif // LH_ERROR_CODE_T_SIZE
+#endif /* LH_ERROR_CODE_T_SIZE */
 
 #ifndef LH_ERROR_CODE_T_MIN
 /**
@@ -38,7 +38,7 @@
  * Expands to ::LH_RETURN_CODE_T_MIN.
  */
 #    define LH_ERROR_CODE_T_MIN LH_RETURN_CODE_T_MIN
-#endif // LH_ERROR_CODE_T_MIN
+#endif /* LH_ERROR_CODE_T_MIN */
 
 #ifndef LH_ERROR_CODE_T_MAX
 /**
@@ -48,7 +48,7 @@
  * Expands to ::LH_RETURN_CODE_T_MAX.
  */
 #    define LH_ERROR_CODE_T_MAX LH_RETURN_CODE_T_MAX
-#endif // LH_ERROR_CODE_T_MAX
+#endif /* LH_ERROR_CODE_T_MAX */
 
 /**
  * @def lh_error_code_ok
@@ -73,4 +73,4 @@
  */
 typedef lh_return_code_t lh_error_code_t;
 
-#endif // LH_ERROR_CODE_H
+#endif /* LH_ERROR_CODE_H */

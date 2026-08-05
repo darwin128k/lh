@@ -68,4 +68,4 @@ lh_runtime_allocator_realloc(lh_ptr old_ptr, lh_usize_t old_size, lh_usize_t new
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_RUNTIME_ALLOCATOR_H
+#endif /* LH_RUNTIME_ALLOCATOR_H */

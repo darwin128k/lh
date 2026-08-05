@@ -29,4 +29,4 @@
     code_type code;                                                                                \
     desc_type desc
 
-#endif // LH_ERROR_FIELDS_H
+#endif /* LH_ERROR_FIELDS_H */

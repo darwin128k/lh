@@ -37,4 +37,4 @@
  */
 #define lh_str_view_empty_initializer() lh_str_view_initializer(lh_null, lh_null)
 
-#endif // LH_STR_VIEW_INITIALIZER_H
+#endif /* LH_STR_VIEW_INITIALIZER_H */

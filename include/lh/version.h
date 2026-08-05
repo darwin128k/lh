@@ -159,4 +159,4 @@ lh_version_is_at_least(const lh_version_t *self, const lh_version_t *minimum);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_VERSION_H
+#endif /* LH_VERSION_H */

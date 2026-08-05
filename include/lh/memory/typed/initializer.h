@@ -42,4 +42,4 @@
 #define lh_memory_typed_empty_initializer(type_size)                                               \
     lh_memory_typed_initializer(lh_null, lh_null, type_size)
 
-#endif // LH_MEMORY_TYPED_INITIALIZER_H
+#endif /* LH_MEMORY_TYPED_INITIALIZER_H */

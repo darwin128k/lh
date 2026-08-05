@@ -49,4 +49,4 @@
     T bounds;                                                                                      \
     lh_usize_t type_size
 
-#endif // LH_MEMORY_TYPED_FIELDS_H
+#endif /* LH_MEMORY_TYPED_FIELDS_H */

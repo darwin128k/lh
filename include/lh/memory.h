@@ -232,4 +232,4 @@ lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usiz
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_MEMORY_H
+#endif /* LH_MEMORY_H */

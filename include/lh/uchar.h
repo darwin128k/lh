@@ -44,4 +44,4 @@ typedef lh_s16_t lh_schar16_t;
  */
 typedef lh_s32_t lh_schar32_t;
 
-#endif // LH_UCHAR_H
+#endif /* LH_UCHAR_H */

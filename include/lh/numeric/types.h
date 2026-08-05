@@ -131,4 +131,4 @@ typedef signed long lh_slong_t;
  */
 typedef signed long long lh_sllong_t;
 
-#endif // LH_NUMERIC_TYPES_H
+#endif /* LH_NUMERIC_TYPES_H */

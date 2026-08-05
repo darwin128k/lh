@@ -76,4 +76,4 @@ lh_runtime_throw(const lh_runtime_error_t *error)
  */
 #define lh_runtime_rethrow() lh_runtime_exception_catch_stack_rethrow()
 
-#endif // LH_RUNTIME_THROW_H
+#endif /* LH_RUNTIME_THROW_H */

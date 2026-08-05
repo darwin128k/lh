@@ -22,4 +22,4 @@
  */
 #define lh_memory_bounds_allocated_initializer() lh_memory_bounds_empty_initializer()
 
-#endif // LH_MEMORY_BOUNDS_ALLOCATED_INITIALIZER_H
+#endif /* LH_MEMORY_BOUNDS_ALLOCATED_INITIALIZER_H */

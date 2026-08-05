@@ -37,4 +37,4 @@
  */
 #define lh_interval_bounds_initializer(lower, upper) lh_pair_initializer(lower, upper)
 
-#endif // LH_INTERVAL_BOUNDS_INITIALIZER_H
+#endif /* LH_INTERVAL_BOUNDS_INITIALIZER_H */

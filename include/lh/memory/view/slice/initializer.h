@@ -13,4 +13,4 @@
 
 #define lh_memory_view_slice_initializer_empty() lh_memory_view_slice_initializer(lh_null, lh_null)
 
-#endif // LH_MEMORY_VIEW_SLICE_INITIALIZER_H
+#endif /* LH_MEMORY_VIEW_SLICE_INITIALIZER_H */

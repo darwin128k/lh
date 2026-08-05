@@ -20,4 +20,4 @@
  */
 #define lh_memory_bounds_slice_fields(T) lh_interval_bounds_fields(T *)
 
-#endif // LH_MEMORY_BOUNDS_SLICE_FIELDS_H
+#endif /* LH_MEMORY_BOUNDS_SLICE_FIELDS_H */

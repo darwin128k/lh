@@ -440,4 +440,4 @@
 #define lh_math_add_below_min_inclusive(a, b, min)                                                 \
     (!lh_math_is_positive(b) && lh_math_ge(lh_math_sub((min), (a)), (b)))
 
-#endif // LH_UTIL_MATH_H
+#endif /* LH_UTIL_MATH_H */

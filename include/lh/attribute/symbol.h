@@ -50,4 +50,4 @@
 #    define LH_ATTRIBUTE_SYMBOL
 #endif
 
-#endif // LH_ATTRIBUTE_SYMBOL_H
+#endif /* LH_ATTRIBUTE_SYMBOL_H */

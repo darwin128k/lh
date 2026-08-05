@@ -181,4 +181,4 @@
  */
 #define lh_type_msb(T) lh_bit_shl(lh_type_one_v(T), lh_type_msb_pos(T))
 
-#endif // LH_UTIL_TYPE_H
+#endif /* LH_UTIL_TYPE_H */

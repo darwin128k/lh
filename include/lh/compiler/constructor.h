@@ -60,4 +60,4 @@
 #    error "Constructor is not supported on this compiler"
 #endif
 
-#endif // LH_COMPILER_CONSTRUCTOR_H
+#endif /* LH_COMPILER_CONSTRUCTOR_H */

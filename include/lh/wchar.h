@@ -34,7 +34,7 @@
 #    else
 #        error "LH_WCHAR_T_MIN: WCHAR_MIN is not defined"
 #    endif
-#endif // LH_WCHAR_T_MIN
+#endif /* LH_WCHAR_T_MIN */
 
 /**
  * @def LH_WCHAR_T_MAX
@@ -49,7 +49,7 @@
 #    else
 #        error "LH_WCHAR_T_MAX: WCHAR_MAX is not defined"
 #    endif
-#endif // LH_WCHAR_T_MAX
+#endif /* LH_WCHAR_T_MAX */
 
 /**
  * @def LH_WCHAR_T_SIZE
@@ -61,7 +61,7 @@
  */
 #ifndef LH_WCHAR_T_SIZE
 #    define LH_WCHAR_T_SIZE sizeof(lh_wchar_t)
-#endif // LH_WCHAR_T_SIZE
+#endif /* LH_WCHAR_T_SIZE */
 
 /**
  * @typedef lh_wchar_t
@@ -72,4 +72,4 @@
  */
 #define lh_wchar_t wchar_t
 
-#endif // LH_WCHAR_H
+#endif /* LH_WCHAR_H */

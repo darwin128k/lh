@@ -1412,6 +1412,6 @@ TEST(memory_bounds_slice_swap, rejects_null_other_death)
     LH_EXPECT_DEATH(lh_memory_bounds_slice_swap(&s, nullptr));
 }
 
-#endif // LH_TEST_EXPECT_DEATH_ENABLED
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 } // namespace

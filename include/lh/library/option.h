@@ -20,7 +20,7 @@
  * Can be overridden by defining it before including this header.
  */
 #    define LH_LIBRARY_OPTION_OFF LH_OPTION_OFF
-#endif // LH_LIBRARY_OPTION_OFF
+#endif /* LH_LIBRARY_OPTION_OFF */
 
 #ifndef LH_LIBRARY_OPTION_ON
 /**
@@ -30,6 +30,6 @@
  * Can be overridden by defining it before including this header.
  */
 #    define LH_LIBRARY_OPTION_ON LH_OPTION_ON
-#endif // LH_LIBRARY_OPTION_ON
+#endif /* LH_LIBRARY_OPTION_ON */
 
-#endif // LH_LIBRARY_OPTION_H
+#endif /* LH_LIBRARY_OPTION_H */

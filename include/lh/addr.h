@@ -24,7 +24,7 @@
  * @brief Minimum value of ::lh_uaddr_t when ::LH_COMPILER_ARCH is `64`.
  */
 #        define LH_UADDR_T_MIN LH_U64_T_MIN
-#    endif // LH_UADDR_T_MIN
+#    endif /* LH_UADDR_T_MIN */
 
 #    ifndef LH_UADDR_T_MAX
 /**
@@ -32,7 +32,7 @@
  * @brief Maximum value of ::lh_uaddr_t when ::LH_COMPILER_ARCH is `64`.
  */
 #        define LH_UADDR_T_MAX LH_U64_T_MAX
-#    endif // LH_UADDR_T_MAX
+#    endif /* LH_UADDR_T_MAX */
 
 /**
  * @typedef lh_uaddr_t
@@ -46,7 +46,7 @@ typedef lh_ullong_t lh_uaddr_t;
  * @brief Minimum value of ::lh_saddr_t when ::LH_COMPILER_ARCH is `64`.
  */
 #        define LH_SADDR_T_MIN LH_S64_T_MIN
-#    endif // LH_SADDR_T_MIN
+#    endif /* LH_SADDR_T_MIN */
 
 #    ifndef LH_SADDR_T_MAX
 /**
@@ -54,7 +54,7 @@ typedef lh_ullong_t lh_uaddr_t;
  * @brief Maximum value of ::lh_saddr_t when ::LH_COMPILER_ARCH is `64`.
  */
 #        define LH_SADDR_T_MAX LH_S64_T_MAX
-#    endif // LH_SADDR_T_MAX
+#    endif /* LH_SADDR_T_MAX */
 
 /**
  * @typedef lh_saddr_t
@@ -70,7 +70,7 @@ typedef lh_sllong_t lh_saddr_t;
  * @brief Minimum value of ::lh_uaddr_t when ::LH_COMPILER_ARCH is `32`.
  */
 #        define LH_UADDR_T_MIN LH_U32_T_MIN
-#    endif // LH_UADDR_T_MIN
+#    endif /* LH_UADDR_T_MIN */
 
 #    ifndef LH_UADDR_T_MAX
 /**
@@ -78,7 +78,7 @@ typedef lh_sllong_t lh_saddr_t;
  * @brief Maximum value of ::lh_uaddr_t when ::LH_COMPILER_ARCH is `32`.
  */
 #        define LH_UADDR_T_MAX LH_U32_T_MAX
-#    endif // LH_UADDR_T_MAX
+#    endif /* LH_UADDR_T_MAX */
 
 /**
  * @typedef lh_uaddr_t
@@ -92,7 +92,7 @@ typedef lh_uint_t lh_uaddr_t;
  * @brief Minimum value of ::lh_saddr_t when ::LH_COMPILER_ARCH is `32`.
  */
 #        define LH_SADDR_T_MIN LH_S32_T_MIN
-#    endif // LH_SADDR_T_MIN
+#    endif /* LH_SADDR_T_MIN */
 
 #    ifndef LH_SADDR_T_MAX
 /**
@@ -100,7 +100,7 @@ typedef lh_uint_t lh_uaddr_t;
  * @brief Maximum value of ::lh_saddr_t when ::LH_COMPILER_ARCH is `32`.
  */
 #        define LH_SADDR_T_MAX LH_S32_T_MAX
-#    endif // LH_SADDR_T_MAX
+#    endif /* LH_SADDR_T_MAX */
 
 /**
  * @typedef lh_saddr_t
@@ -116,7 +116,7 @@ typedef lh_sint_t lh_saddr_t;
  * @brief Minimum value of ::lh_uaddr_t when ::LH_COMPILER_ARCH is `16` (manual config).
  */
 #        define LH_UADDR_T_MIN LH_U16_T_MIN
-#    endif // LH_UADDR_T_MIN
+#    endif /* LH_UADDR_T_MIN */
 
 #    ifndef LH_UADDR_T_MAX
 /**
@@ -124,7 +124,7 @@ typedef lh_sint_t lh_saddr_t;
  * @brief Maximum value of ::lh_uaddr_t when ::LH_COMPILER_ARCH is `16` (manual config).
  */
 #        define LH_UADDR_T_MAX LH_U16_T_MAX
-#    endif // LH_UADDR_T_MAX
+#    endif /* LH_UADDR_T_MAX */
 
 /**
  * @typedef lh_uaddr_t
@@ -138,7 +138,7 @@ typedef lh_ushort_t lh_uaddr_t;
  * @brief Minimum value of ::lh_saddr_t when ::LH_COMPILER_ARCH is `16` (manual config).
  */
 #        define LH_SADDR_T_MIN LH_S16_T_MIN
-#    endif // LH_SADDR_T_MIN
+#    endif /* LH_SADDR_T_MIN */
 
 #    ifndef LH_SADDR_T_MAX
 /**
@@ -146,7 +146,7 @@ typedef lh_ushort_t lh_uaddr_t;
  * @brief Maximum value of ::lh_saddr_t when ::LH_COMPILER_ARCH is `16` (manual config).
  */
 #        define LH_SADDR_T_MAX LH_S16_T_MAX
-#    endif // LH_SADDR_T_MAX
+#    endif /* LH_SADDR_T_MAX */
 
 /**
  * @typedef lh_saddr_t
@@ -162,7 +162,7 @@ typedef lh_sshort_t lh_saddr_t;
  * @brief Minimum value of ::lh_uaddr_t when ::LH_COMPILER_ARCH is `8` (manual config).
  */
 #        define LH_UADDR_T_MIN LH_U8_T_MIN
-#    endif // LH_UADDR_T_MIN
+#    endif /* LH_UADDR_T_MIN */
 
 #    ifndef LH_UADDR_T_MAX
 /**
@@ -170,7 +170,7 @@ typedef lh_sshort_t lh_saddr_t;
  * @brief Maximum value of ::lh_uaddr_t when ::LH_COMPILER_ARCH is `8` (manual config).
  */
 #        define LH_UADDR_T_MAX LH_U8_T_MAX
-#    endif // LH_UADDR_T_MAX
+#    endif /* LH_UADDR_T_MAX */
 
 /**
  * @typedef lh_uaddr_t
@@ -184,7 +184,7 @@ typedef lh_uchar_t lh_uaddr_t;
  * @brief Minimum value of ::lh_saddr_t when ::LH_COMPILER_ARCH is `8` (manual config).
  */
 #        define LH_SADDR_T_MIN LH_S8_T_MIN
-#    endif // LH_SADDR_T_MIN
+#    endif /* LH_SADDR_T_MIN */
 
 #    ifndef LH_SADDR_T_MAX
 /**
@@ -192,7 +192,7 @@ typedef lh_uchar_t lh_uaddr_t;
  * @brief Maximum value of ::lh_saddr_t when ::LH_COMPILER_ARCH is `8` (manual config).
  */
 #        define LH_SADDR_T_MAX LH_S8_T_MAX
-#    endif // LH_SADDR_T_MAX
+#    endif /* LH_SADDR_T_MAX */
 
 /**
  * @typedef lh_saddr_t
@@ -206,4 +206,4 @@ typedef lh_schar_t lh_saddr_t;
 
 #endif
 
-#endif // LH_ADDR_H
+#endif /* LH_ADDR_H */

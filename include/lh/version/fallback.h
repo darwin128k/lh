@@ -30,4 +30,4 @@
 #    define LH_VERSION_PATCH 0
 #endif
 
-#endif // LH_VERSION_BUILD_FALLBACK_H
+#endif /* LH_VERSION_BUILD_FALLBACK_H */

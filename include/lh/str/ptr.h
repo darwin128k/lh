@@ -32,4 +32,4 @@
  */
 #define lh_str_cptr lh_cptr_of(lh_char_t)
 
-#endif // LH_STR_PTR_H
+#endif /* LH_STR_PTR_H */

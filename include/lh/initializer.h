@@ -83,4 +83,4 @@
  */
 #define lh_initializer_of_struct(T, ...) lh_initializer_of_type(struct T, __VA_ARGS__)
 
-#endif // LH_INITIALIZER_H
+#endif /* LH_INITIALIZER_H */

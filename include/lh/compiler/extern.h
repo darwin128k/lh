@@ -19,6 +19,6 @@
  * specifier is needed.
  */
 #    define LH_COMPILER_EXTERN extern
-#endif // LH_COMPILER_EXTERN
+#endif /* LH_COMPILER_EXTERN */
 
-#endif // LH_COMPILER_EXTERN_H
+#endif /* LH_COMPILER_EXTERN_H */

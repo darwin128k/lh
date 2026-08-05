@@ -32,7 +32,7 @@
  * @brief Sentinel value returned when a search inside a ::lh_str_view_t fails.
  */
 #    define LH_STR_VIEW_INVALID LH_USIZE_T_MAX
-#endif // LH_STR_VIEW_INVALID
+#endif /* LH_STR_VIEW_INVALID */
 
 /**
  * @brief Non-owning read-only half-open string view.
@@ -625,4 +625,4 @@ lh_str_view_swap_and_clear(lh_str_view_t *self, lh_str_view_t *other);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_STR_VIEW_H
+#endif /* LH_STR_VIEW_H */

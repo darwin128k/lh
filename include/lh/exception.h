@@ -27,7 +27,7 @@
 
 #ifndef NDEBUG
 #    include <lh/exception/origin.h>
-#endif // NDEBUG
+#endif /* NDEBUG */
 
 /**
  * @struct lh_exception
@@ -323,4 +323,4 @@ lh_exception_has_diff_code(const lh_exception_t *self, const lh_exception_t *oth
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_EXCEPTION_H
+#endif /* LH_EXCEPTION_H */

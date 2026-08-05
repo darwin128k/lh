@@ -95,4 +95,4 @@
     lh_runtime_assert(expr, lh_runtime_error_make(lh_runtime_error_code_null_pointer,              \
                                                   "invalid reference to null pointer"))
 
-#endif // LH_RUNTIME_ASSERT_H
+#endif /* LH_RUNTIME_ASSERT_H */

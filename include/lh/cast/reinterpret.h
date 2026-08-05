@@ -35,6 +35,6 @@
 #    define lh_cast_reinterpret(T, expr) reinterpret_cast<T>(expr)
 #else
 #    define lh_cast_reinterpret(T, expr) ((T)(expr))
-#endif // LH_COMPILER_CXX
+#endif /* LH_COMPILER_CXX */
 
-#endif // LH_CAST_REINTERPRET_H
+#endif /* LH_CAST_REINTERPRET_H */

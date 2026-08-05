@@ -39,4 +39,4 @@
 
 #endif
 
-#endif // LH_TEST_EXPECT_DEATH_H
+#endif /* LH_TEST_EXPECT_DEATH_H */

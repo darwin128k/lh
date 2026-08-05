@@ -242,4 +242,4 @@ typedef struct lh_slong_interval lh_slong_interval_t;
  *  @brief Convenience alias for struct ::lh_sllong_interval. */
 typedef struct lh_sllong_interval lh_sllong_interval_t;
 
-#endif // LH_NUMERIC_INTERVAL_H
+#endif /* LH_NUMERIC_INTERVAL_H */

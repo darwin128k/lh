@@ -31,4 +31,4 @@ lh_get_version(void);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_H
+#endif /* LH_H */

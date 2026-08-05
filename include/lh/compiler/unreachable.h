@@ -43,4 +43,4 @@
 #    pragma error "Compiler does not support unreachable hint functionality"
 #endif
 
-#endif // LH_COMPILER_UNREACHABLE_H
+#endif /* LH_COMPILER_UNREACHABLE_H */

@@ -268,4 +268,4 @@
  */
 #define lh_addr_align_down(addr, align) lh_bit_and(addr, lh_bit_not(lh_math_sub_one(align)))
 
-#endif // LH_UTIL_ADDR_H
+#endif /* LH_UTIL_ADDR_H */

@@ -52,4 +52,4 @@
  */
 typedef lh_byte_t lh_interval_flags_t;
 
-#endif // LH_INTERVAL_FLAGS_H
+#endif /* LH_INTERVAL_FLAGS_H */

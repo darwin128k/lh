@@ -53,4 +53,4 @@
  */
 #define lh_error_empty_initializer(...) lh_error_initializer(lh_error_code_ok, __VA_ARGS__)
 
-#endif // LH_ERROR_INITIALIZER_H
+#endif /* LH_ERROR_INITIALIZER_H */

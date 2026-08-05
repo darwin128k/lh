@@ -190,4 +190,4 @@ lh_exception_catch_has_diff_code(const lh_exception_catch_t *self,
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_EXCEPTION_CATCH_H
+#endif /* LH_EXCEPTION_CATCH_H */

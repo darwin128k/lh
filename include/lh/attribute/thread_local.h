@@ -38,4 +38,4 @@
 #    define LH_ATTRIBUTE_THREAD_LOCAL
 #endif
 
-#endif // LH_ATTRIBUTE_THREAD_LOCAL_H
+#endif /* LH_ATTRIBUTE_THREAD_LOCAL_H */

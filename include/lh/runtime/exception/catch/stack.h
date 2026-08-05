@@ -311,4 +311,4 @@ lh_runtime_exception_catch_stack_rethrow(void)
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_RUNTIME_EXCEPTION_CATCH_STACK_H
+#endif /* LH_RUNTIME_EXCEPTION_CATCH_STACK_H */

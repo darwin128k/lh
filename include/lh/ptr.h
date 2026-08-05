@@ -26,7 +26,7 @@
  * Alias of ::LH_VOID_PTR_T_MIN.
  */
 #    define LH_PTR_T_MIN LH_VOID_PTR_T_MIN
-#endif // LH_PTR_T_MIN
+#endif /* LH_PTR_T_MIN */
 
 #ifndef LH_PTR_T_MAX
 /**
@@ -36,6 +36,6 @@
  * Alias of ::LH_VOID_PTR_T_MAX.
  */
 #    define LH_PTR_T_MAX LH_VOID_PTR_T_MAX
-#endif // LH_PTR_T_MAX
+#endif /* LH_PTR_T_MAX */
 
-#endif // LH_PTR_H
+#endif /* LH_PTR_H */

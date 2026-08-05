@@ -30,4 +30,4 @@
  */
 #define lh_runtime_error_fields(code_type, desc_type) lh_error_fields(code_type, desc_type)
 
-#endif // LH_RUNTIME_ERROR_FIELDS_H
+#endif /* LH_RUNTIME_ERROR_FIELDS_H */

@@ -160,4 +160,4 @@
  */
 #define lh_bit_shr(a, n) lh_math_bit_shr(a, n)
 
-#endif // LH_UTIL_BIT_H
+#endif /* LH_UTIL_BIT_H */

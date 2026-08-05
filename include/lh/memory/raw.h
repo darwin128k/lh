@@ -175,4 +175,4 @@ lh_memory_raw_set_pattern(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, co
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_MEMORY_RAW_H
+#endif /* LH_MEMORY_RAW_H */

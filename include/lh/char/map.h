@@ -802,4 +802,4 @@
  */
 #define lh_char_map_del '\x7f'
 
-#endif // LH_CHAR_MAP_H
+#endif /* LH_CHAR_MAP_H */

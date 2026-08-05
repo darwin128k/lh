@@ -22,4 +22,4 @@
  */
 typedef lh_void(lh_memory_allocator_dealloc_fn)(lh_ptr ptr);
 
-#endif // LH_MEMORY_ALLOCATOR_DEALLOC_FN_H
+#endif /* LH_MEMORY_ALLOCATOR_DEALLOC_FN_H */

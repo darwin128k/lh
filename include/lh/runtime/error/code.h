@@ -174,4 +174,4 @@
  */
 typedef lh_error_code_t lh_runtime_error_code_t;
 
-#endif // LH_RUNTIME_ERROR_CODE_H
+#endif /* LH_RUNTIME_ERROR_CODE_H */

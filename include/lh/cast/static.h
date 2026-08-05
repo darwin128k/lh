@@ -35,6 +35,6 @@
 #    define lh_cast_static(T, expr) static_cast<T>(expr)
 #else
 #    define lh_cast_static(T, expr) ((T)(expr))
-#endif // LH_COMPILER_CXX
+#endif /* LH_COMPILER_CXX */
 
-#endif // LH_CAST_STATIC_H
+#endif /* LH_CAST_STATIC_H */

@@ -24,7 +24,7 @@
  * @brief Sentinel value for invalid string index.
  */
 #    define LH_WSTR_PTR_INVALID LH_USIZE_T_MAX
-#endif // LH_WSTR_PTR_INVALID
+#endif /* LH_WSTR_PTR_INVALID */
 
 /**
  * @def lh_wstr_ptr_get_begin(x)
@@ -1010,4 +1010,4 @@ lh_wstr_ptr_trim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_UTIL_WSTR_PTR_H
+#endif /* LH_UTIL_WSTR_PTR_H */

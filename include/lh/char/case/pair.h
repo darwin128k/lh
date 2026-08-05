@@ -32,4 +32,4 @@ typedef struct lh_char_case_pair
     lh_pair_fields(lh_char_t, lh_char_t);
 } lh_char_case_pair_t;
 
-#endif // LH_CHAR_CASE_PAIR_H
+#endif /* LH_CHAR_CASE_PAIR_H */

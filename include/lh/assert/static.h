@@ -48,4 +48,4 @@
 #    define lh_assert_static(expr, msg) _Static_assert(expr, msg)
 #endif
 
-#endif // LH_ASSERT_STATIC_H
+#endif /* LH_ASSERT_STATIC_H */

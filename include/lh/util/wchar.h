@@ -81,4 +81,4 @@ lh_wchar_to_upper(lh_wchar_t c);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif // LH_UTIL_WCHAR_H
+#endif /* LH_UTIL_WCHAR_H */

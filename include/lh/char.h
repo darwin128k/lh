@@ -43,4 +43,4 @@ typedef unsigned char lh_uchar_t;
  */
 typedef signed char lh_schar_t;
 
-#endif // LH_CHAR_H
+#endif /* LH_CHAR_H */

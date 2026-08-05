@@ -43,4 +43,4 @@
     T bounds;                                                                                      \
     lh_interval_flags_t flags
 
-#endif // LH_INTERVAL_FIELDS_H
+#endif /* LH_INTERVAL_FIELDS_H */

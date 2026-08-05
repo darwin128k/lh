@@ -31,4 +31,4 @@
     T1 first;                                                                                      \
     T2 second
 
-#endif // LH_PAIR_FIELDS_H
+#endif /* LH_PAIR_FIELDS_H */

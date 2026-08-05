@@ -22,7 +22,7 @@
  * @brief Subsystem identifier for an unrecognised target (0).
  */
 #    define LH_COMPILER_OS_SUBSYS_UNKNOWN 0
-#endif // LH_COMPILER_OS_SUBSYS_UNKNOWN
+#endif /* LH_COMPILER_OS_SUBSYS_UNKNOWN */
 
 #ifndef LH_COMPILER_OS_SUBSYS_CYGWIN
 /**
@@ -30,7 +30,7 @@
  * @brief Subsystem identifier for Cygwin (1).
  */
 #    define LH_COMPILER_OS_SUBSYS_CYGWIN 1
-#endif // LH_COMPILER_OS_SUBSYS_CYGWIN
+#endif /* LH_COMPILER_OS_SUBSYS_CYGWIN */
 
 #ifndef LH_COMPILER_OS_SUBSYS_MINGW
 /**
@@ -38,7 +38,7 @@
  * @brief Subsystem identifier for MinGW (2).
  */
 #    define LH_COMPILER_OS_SUBSYS_MINGW 2
-#endif // LH_COMPILER_OS_SUBSYS_MINGW
+#endif /* LH_COMPILER_OS_SUBSYS_MINGW */
 
 #ifndef LH_COMPILER_OS_SUBSYS_MSYS
 /**
@@ -46,7 +46,7 @@
  * @brief Subsystem identifier for MSYS (3).
  */
 #    define LH_COMPILER_OS_SUBSYS_MSYS 3
-#endif // LH_COMPILER_OS_SUBSYS_MSYS
+#endif /* LH_COMPILER_OS_SUBSYS_MSYS */
 
 #ifndef LH_COMPILER_OS_SUBSYS_WINE
 /**
@@ -54,7 +54,7 @@
  * @brief Subsystem identifier for Wine (4).
  */
 #    define LH_COMPILER_OS_SUBSYS_WINE 4
-#endif // LH_COMPILER_OS_SUBSYS_WINE
+#endif /* LH_COMPILER_OS_SUBSYS_WINE */
 
 #ifndef LH_COMPILER_OS_SUBSYS_UWP
 /**
@@ -62,7 +62,7 @@
  * @brief Subsystem identifier for Universal Windows Platform (5).
  */
 #    define LH_COMPILER_OS_SUBSYS_UWP 5
-#endif // LH_COMPILER_OS_SUBSYS_UWP
+#endif /* LH_COMPILER_OS_SUBSYS_UWP */
 
 #ifndef LH_COMPILER_OS_SUBSYS
 /**
@@ -101,6 +101,6 @@
 #    else
 #        define LH_COMPILER_OS_SUBSYS LH_COMPILER_OS_SUBSYS_UNKNOWN
 #    endif
-#endif // LH_COMPILER_OS_SUBSYS
+#endif /* LH_COMPILER_OS_SUBSYS */
 
-#endif // LH_COMPILER_OS_SUBSYS_H
+#endif /* LH_COMPILER_OS_SUBSYS_H */

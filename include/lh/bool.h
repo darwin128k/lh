@@ -32,4 +32,4 @@
  */
 typedef lh_byte_t lh_bool_t;
 
-#endif // LH_BOOL_H
+#endif /* LH_BOOL_H */
