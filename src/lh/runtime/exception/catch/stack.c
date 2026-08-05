@@ -4,7 +4,6 @@
 #include <lh/compiler/destructor.h>
 #include <lh/library/fallback.h>
 #include <lh/assert/static.h>
-#include <lh/util/addr.h>
 #include <lh/null.h>
 
 lh_assert_static(LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX,
@@ -22,10 +21,10 @@ lh_runtime_exception_catch_stack_get_cur(void)
     return lh_ptr_deref(m_runtime_exception);
 }
 
-lh_exception_catch_t *
+lh_exception_catch_t **
 lh_runtime_exception_catch_stack_get_begin(void)
 {
-    return m_runtime_exceptions[0];
+    return m_runtime_exceptions;
 }
 
 lh_usize_t
@@ -41,25 +40,23 @@ lh_runtime_exception_catch_stack_get_last_index(void)
     return capacity - 1;
 }
 
-lh_exception_catch_t *
+lh_exception_catch_t **
 lh_runtime_exception_catch_stack_get_end(void)
 {
-    lh_usize_t last_index = lh_runtime_exception_catch_stack_get_last_index();
-    return m_runtime_exceptions[last_index];
+    lh_usize_t capacity = lh_runtime_exception_catch_stack_get_capacity();
+    return m_runtime_exceptions + capacity;
 }
 
 lh_bool_t
 lh_runtime_exception_catch_stack_is_begin(void)
 {
-    lh_exception_catch_t *begin = lh_runtime_exception_catch_stack_get_begin();
-    return m_runtime_exception == lh_addr_of(begin);
+    return m_runtime_exception == lh_runtime_exception_catch_stack_get_begin();
 }
 
 lh_bool_t
 lh_runtime_exception_catch_stack_is_end(void)
 {
-    lh_exception_catch_t *end = lh_runtime_exception_catch_stack_get_end();
-    return m_runtime_exception == lh_addr_of(end);
+    return m_runtime_exception == lh_runtime_exception_catch_stack_get_end();
 }
 
 lh_exception_catch_t *
@@ -68,7 +65,10 @@ lh_runtime_exception_catch_stack_next(void)
     if (!lh_runtime_exception_catch_stack_is_end())
     {
         m_runtime_exception++;
-        return lh_ptr_deref(m_runtime_exception);
+        if (!lh_runtime_exception_catch_stack_is_end())
+        {
+            return lh_ptr_deref(m_runtime_exception);
+        }
     }
     return lh_null;
 }

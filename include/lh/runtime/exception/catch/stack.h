@@ -96,14 +96,14 @@ lh_runtime_exception_catch_stack_get_cur(void);
  *
  * Example usage:
  * @code{.c}
- * for (lh_exception_catch_t *it = lh_runtime_exception_catch_stack_get_begin();
+ * for (lh_exception_catch_t **it = lh_runtime_exception_catch_stack_get_begin();
  *      it != lh_runtime_exception_catch_stack_get_end();
  *      ++it) {
  *     // inspect each slot
  * }
  * @endcode
  */
-lh_exception_catch_t *
+lh_exception_catch_t **
 lh_runtime_exception_catch_stack_get_begin(void);
 
 /**
@@ -153,14 +153,14 @@ lh_runtime_exception_catch_stack_get_last_index(void);
  *
  * Example usage:
  * @code{.c}
- * for (lh_exception_catch_t *it = lh_runtime_exception_catch_stack_get_begin();
+ * for (lh_exception_catch_t **it = lh_runtime_exception_catch_stack_get_begin();
  *      it != lh_runtime_exception_catch_stack_get_end();
  *      ++it) {
  *     // inspect each slot
  * }
  * @endcode
  */
-lh_exception_catch_t *
+lh_exception_catch_t **
 lh_runtime_exception_catch_stack_get_end(void);
 
 /**
@@ -208,7 +208,8 @@ lh_runtime_exception_catch_stack_is_end(void);
  * @brief Advance the cursor to the next slot.
  *
  * @return Pointer stored in the slot after advancing,
- *         or null if the cursor was already at the end.
+ *         or null if the cursor was already at the end
+ *         or the advance landed on the end sentinel.
  *
  * Example usage:
  * @code{.c}
