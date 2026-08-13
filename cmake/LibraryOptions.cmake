@@ -60,6 +60,25 @@ option(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB
         ON)
 
 # -----------------------------------------------------------------------------
+# LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_{ALLOC,DEALLOC,INCLUDE}
+#
+# Function names (and the header declaring them) used to seed the runtime
+# allocator when LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB is ON. Default
+# to malloc/free/<stdlib.h>; override to bind a different pair at compile
+# time (e.g. pvPortMalloc/vPortFree on FreeRTOS) without writing runtime
+# lh_memory_allocator_set() init code.
+#
+# CMake: -DLH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC=pvPortMalloc or ccmake.
+# Manual build: set in include/lh/config.h or -D on the compiler command line.
+# -----------------------------------------------------------------------------
+set(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC "malloc" CACHE STRING
+        "Function bound as the default runtime allocator's alloc_cb.")
+set(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC "free" CACHE STRING
+        "Function bound as the default runtime allocator's dealloc_cb.")
+set(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE "<stdlib.h>" CACHE STRING
+        "Header providing the default alloc/dealloc functions above.")
+
+# -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED
 #
 # Controls zero-initialization for memory returned by lh_memory_allocator_alloc().

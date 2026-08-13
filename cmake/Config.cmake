@@ -57,6 +57,10 @@ function(lh_generate_config)
         set(ValAllocatorInitAllocated 0)
     endif ()
 
+    set(ValAllocatorDefaultAlloc "${LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC}")
+    set(ValAllocatorDefaultDealloc "${LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC}")
+    set(ValAllocatorDefaultInclude "${LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE}")
+
     set(ValCatchStackMax "${LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX}")
 
     set(_in "${CMAKE_CURRENT_SOURCE_DIR}/include/lh/config.h.in")

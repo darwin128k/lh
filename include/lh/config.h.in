@@ -9,7 +9,9 @@
  * **Manual build (no CMake):** copy this file to `config.h` and substitute every
  * CMake-style placeholder (at-sign delimited identifiers) with decimal integers:
  * version macros from the root `VERSION` file; library options use `0` or `1`
- * except `LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX`, which must be > 0.
+ * except `LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX`, which must be > 0,
+ * and the `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_*` trio, which take raw
+ * C tokens instead (e.g. `malloc`, `free`, `<stdlib.h>`).
  *
  * Also defines ::LH_CHAR_BITS (from `CHAR_BIT` in `<limits.h>`) unless you
  * predefine `LH_CHAR_BITS` for a freestanding or unusual toolchain.
@@ -95,6 +97,27 @@
  *        from the C library (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
  */
 #define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB @ValAllocatorStdlib@
+
+/**
+ * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC
+ * @brief Function bound as the default runtime allocator's `alloc_cb`
+ *        when ::LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB is on (default `malloc`).
+ */
+#define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC @ValAllocatorDefaultAlloc@
+
+/**
+ * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC
+ * @brief Function bound as the default runtime allocator's `dealloc_cb`
+ *        when ::LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB is on (default `free`).
+ */
+#define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC @ValAllocatorDefaultDealloc@
+
+/**
+ * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE
+ * @brief Header declaring ::LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC
+ *        and ::LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC (default `<stdlib.h>`).
+ */
+#define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE @ValAllocatorDefaultInclude@
 
 /**
  * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED

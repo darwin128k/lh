@@ -5,10 +5,12 @@
 #include <lh/null.h>
 
 #if (LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB == LH_LIBRARY_OPTION_ON)
-#    include <stdlib.h>
+#    include LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE
 
 LH_ATTRIBUTE_THREAD_LOCAL
-lh_memory_allocator_t m_runtime_allocator = lh_memory_allocator_initializer(malloc, free);
+lh_memory_allocator_t m_runtime_allocator = lh_memory_allocator_initializer(
+    LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC,
+    LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC);
 #else
 LH_ATTRIBUTE_THREAD_LOCAL
 lh_memory_allocator_t m_runtime_allocator = lh_memory_allocator_empty_initializer();
