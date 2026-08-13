@@ -16,6 +16,7 @@
 #include <lh/exception/catch/initializer.h>
 #include <lh/runtime/exception/catch/stack.h>
 #include <lh/util/return.h>
+#include <lh/util/addr.h>
 
 /**
  * @def lh_runtime_try
@@ -46,7 +47,7 @@
  */
 #define lh_runtime_try(e)                                                                          \
     lh_exception_catch_t e = lh_exception_catch_empty_initializer();                               \
-    if (lh_runtime_exception_catch_stack_capture(&e) == 0)
+    if (lh_runtime_exception_catch_stack_capture(lh_addr_of(e)) == 0)
 
 /**
  * @def lh_runtime_catch

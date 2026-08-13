@@ -48,7 +48,7 @@
  * Example usage:
  * @code{.c}
  * lh_exception_catch_t frame;
- * if (lh_runtime_exception_catch_stack_capture(&frame) == 0) {
+ * if (lh_runtime_exception_catch_stack_capture(lh_addr_of(frame)) == 0) {
  *     // try
  * } else {
  *     // catch: frame.exception is filled

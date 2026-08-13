@@ -4,6 +4,7 @@
 #include <lh/util/char.h>
 #include <lh/util/math.h>
 #include <lh/util/return.h>
+#include <lh/util/addr.h>
 #include <lh/assert.h>
 
 static const lh_char_t m_whitespace_chars[] = {lh_char_map_space, lh_char_map_lf, lh_char_map_cr,
@@ -29,13 +30,13 @@ lh_str_ptr_index_of_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_
 const lh_str_ptr
 lh_str_ptr_find_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch)
 {
-    return lh_memory_find(str, size, &ch, LH_CHAR_T_SIZE);
+    return lh_memory_find(str, size, lh_addr_of(ch), LH_CHAR_T_SIZE);
 }
 
 const lh_str_ptr
 lh_str_ptr_rfind_of_char(const lh_str_ptr str, lh_usize_t size, lh_char_t ch)
 {
-    return lh_memory_rfind(str, size, &ch, LH_CHAR_T_SIZE);
+    return lh_memory_rfind(str, size, lh_addr_of(ch), LH_CHAR_T_SIZE);
 }
 
 const lh_str_ptr
