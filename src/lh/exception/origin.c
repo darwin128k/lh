@@ -1,5 +1,6 @@
 #include <lh/exception/origin.h>
 #include <lh/optional/ref.h>
+#include <lh/util/addr.h>
 #include <lh/assert.h>
 
 void
@@ -95,8 +96,13 @@ lh_exception_origin_get_line(const lh_exception_origin_t *self)
 void
 lh_exception_origin_assign(lh_exception_origin_t *self, const lh_exception_origin_t *other)
 {
-    lh_assert_runtime_ref(other);
-    lh_exception_origin_set(self, other->timestamp, other->filename, other->function, other->line);
+    lh_str_cptr timestamp;
+    lh_str_cptr file;
+    lh_str_cptr function;
+    lh_usize_t line;
+    lh_exception_origin_unpack(other, lh_addr_of(timestamp), lh_addr_of(file), lh_addr_of(function),
+                               lh_addr_of(line));
+    lh_exception_origin_set(self, timestamp, file, function, line);
 }
 
 void

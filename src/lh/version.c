@@ -92,13 +92,19 @@ lh_version_get_patch(const lh_version_t *self)
 lh_bool_t
 lh_version_is_at_least(const lh_version_t *self, const lh_version_t *minimum)
 {
-    if (self->major != minimum->major)
+    const lh_version_major_t self_major = lh_version_get_major(self);
+    const lh_version_major_t minimum_major = lh_version_get_major(minimum);
+    if (self_major != minimum_major)
     {
-        return self->major > minimum->major ? lh_bool_true : lh_bool_false;
+        return self_major > minimum_major ? lh_bool_true : lh_bool_false;
     }
-    if (self->minor != minimum->minor)
+
+    const lh_version_minor_t self_minor = lh_version_get_minor(self);
+    const lh_version_minor_t minimum_minor = lh_version_get_minor(minimum);
+    if (self_minor != minimum_minor)
     {
-        return self->minor > minimum->minor ? lh_bool_true : lh_bool_false;
+        return self_minor > minimum_minor ? lh_bool_true : lh_bool_false;
     }
-    return self->patch >= minimum->patch ? lh_bool_true : lh_bool_false;
+
+    return lh_version_get_patch(self) >= lh_version_get_patch(minimum) ? lh_bool_true : lh_bool_false;
 }
