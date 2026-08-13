@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rename memory accessors with 'value' suffix: `get_front`/`get_back` → `get_front_value`/`get_back_value` in view and str/view modules
 - Enhanced death.h documentation clarifying the role of `LH_LIBRARY_OPTION_RUNTIME_CHECK_REF` in enabling null-pointer death tests
 - Runtime assertions (`lh_assert_runtime_*`) replaced direct `lh_runtime_throw` calls in internal functions for consistency
+- Collapsed duplicate `*_multiple_of`/`is_multiple_of` and `*_aligned_is_begin_aligned`/`is_begin_aligned` alias pairs into single `is_multiple_of` / `is_begin_aligned` names across `lh_memory_bounds_t`, `lh_memory_bounds_slice_t`, `lh_memory_view_t`, and `lh_memory_view_slice_t`, for a consistent `is_` prefix on boolean predicates
 
 ### Removed
 - `lh_memory_typed_t` and all associated functions (`lh/memory/typed.h`, `src/lh/memory/typed.c`) — superseded by the view-based API

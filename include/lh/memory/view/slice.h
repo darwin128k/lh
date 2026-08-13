@@ -455,7 +455,7 @@ lh_memory_view_slice_overlaps_v(const lh_memory_view_slice_t *self,
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_view_slice_multiple_of(const lh_memory_view_slice_t *self, lh_usize_t alignment);
+lh_memory_view_slice_is_multiple_of(const lh_memory_view_slice_t *self, lh_usize_t alignment);
 
 /**
  * @brief True if @c first is aligned to @p align.
@@ -472,7 +472,7 @@ lh_memory_view_slice_multiple_of(const lh_memory_view_slice_t *self, lh_usize_t 
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_view_slice_aligned_is_begin_aligned(const lh_memory_view_slice_t *self, lh_usize_t align);
+lh_memory_view_slice_is_begin_aligned(const lh_memory_view_slice_t *self, lh_usize_t align);
 
 /**
  * @brief True if both endpoints are aligned to @p align.

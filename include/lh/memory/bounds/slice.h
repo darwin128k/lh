@@ -281,7 +281,7 @@ lh_memory_bounds_slice_get_size(const lh_memory_bounds_slice_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_slice_multiple_of(const lh_memory_bounds_slice_t *self, lh_usize_t alignment);
+lh_memory_bounds_slice_is_multiple_of(const lh_memory_bounds_slice_t *self, lh_usize_t alignment);
 
 /**
  * @brief True if @c first is aligned to @p align.
@@ -298,7 +298,7 @@ lh_memory_bounds_slice_multiple_of(const lh_memory_bounds_slice_t *self, lh_usiz
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_slice_aligned_is_begin_aligned(const lh_memory_bounds_slice_t *self,
+lh_memory_bounds_slice_is_begin_aligned(const lh_memory_bounds_slice_t *self,
                                                 lh_usize_t align);
 
 /**

@@ -747,18 +747,6 @@ lh_memory_bounds_is_multiple_of(const lh_memory_bounds_t *self, lh_usize_t align
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_aligned_is_begin_aligned(const lh_memory_bounds_t *self, lh_usize_t align);
-
-/**
- * @brief Alias for ::lh_memory_bounds_aligned_is_begin_aligned.
- *
- * @throw ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
 lh_memory_bounds_is_begin_aligned(const lh_memory_bounds_t *self, lh_usize_t align);
 
 /**

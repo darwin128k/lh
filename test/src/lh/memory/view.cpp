@@ -185,9 +185,8 @@ TEST(memory_view_overlap_alignment_and_equality, reports_expected_values)
     EXPECT_FALSE(lh_memory_view_overlaps(&left, &touching));
     EXPECT_TRUE(lh_memory_view_overlaps_v(&left, &overlapping));
 
-    EXPECT_TRUE(lh_memory_view_multiple_of(&left, 4));
+    EXPECT_TRUE(lh_memory_view_is_multiple_of(&left, 4));
     EXPECT_TRUE(lh_memory_view_is_multiple_of(&left, 8));
-    EXPECT_TRUE(lh_memory_view_aligned_is_begin_aligned(&left, 16));
     EXPECT_TRUE(lh_memory_view_is_begin_aligned(&left, 16));
     EXPECT_FALSE(lh_memory_view_is_aligned(&left, 16));
 

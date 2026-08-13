@@ -252,20 +252,20 @@ TEST(memory_view_slice_overlaps, true_for_overlapping_slices)
 
 /* ── alignment / multiple ───────────────────────────────────────────────── */
 
-TEST(memory_view_slice_multiple_of, true_when_size_divisible)
+TEST(memory_view_slice_is_multiple_of, true_when_size_divisible)
 {
     const unsigned char buf[4] = {10, 20, 30, 40};
     lh_memory_view_slice_t s = slice(p(buf), p(buf + 3));
-    EXPECT_TRUE(lh_memory_view_slice_multiple_of(&s, 4));
-    EXPECT_TRUE(lh_memory_view_slice_multiple_of(&s, 2));
-    EXPECT_FALSE(lh_memory_view_slice_multiple_of(&s, 3));
+    EXPECT_TRUE(lh_memory_view_slice_is_multiple_of(&s, 4));
+    EXPECT_TRUE(lh_memory_view_slice_is_multiple_of(&s, 2));
+    EXPECT_FALSE(lh_memory_view_slice_is_multiple_of(&s, 3));
 }
 
-TEST(memory_view_slice_aligned_is_begin_aligned, true_when_begin_aligned)
+TEST(memory_view_slice_is_begin_aligned, true_when_begin_aligned)
 {
     alignas(4) const unsigned char buf[4] = {10, 20, 30, 40};
     lh_memory_view_slice_t s = slice(p(buf), p(buf + 3));
-    EXPECT_TRUE(lh_memory_view_slice_aligned_is_begin_aligned(&s, 4));
+    EXPECT_TRUE(lh_memory_view_slice_is_begin_aligned(&s, 4));
 }
 
 TEST(memory_view_slice_is_aligned, true_when_both_ends_aligned_to_one)
@@ -489,12 +489,12 @@ TEST(memory_view_slice_get_offset_from_begin, rejects_out_of_range_ptr_death)
     LH_EXPECT_DEATH((void)lh_memory_view_slice_get_offset_from_begin(&s, p(buf + 4)));
 }
 
-TEST(memory_view_slice_multiple_of, rejects_zero_alignment_death)
+TEST(memory_view_slice_is_multiple_of, rejects_zero_alignment_death)
 {
     const unsigned char buf[4] = {10, 20, 30, 40};
     lh_memory_view_slice_t s = slice(p(buf), p(buf + 3));
 
-    LH_EXPECT_DEATH((void)lh_memory_view_slice_multiple_of(&s, 0));
+    LH_EXPECT_DEATH((void)lh_memory_view_slice_is_multiple_of(&s, 0));
 }
 
 TEST(memory_view_slice_make_between, rejects_out_of_bounds_ptrs_death)

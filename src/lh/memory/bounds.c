@@ -369,7 +369,7 @@ lh_memory_bounds_is_multiple_of(const lh_memory_bounds_t *self, lh_usize_t align
 }
 
 lh_bool_t
-lh_memory_bounds_aligned_is_begin_aligned(const lh_memory_bounds_t *self, lh_usize_t align)
+lh_memory_bounds_is_begin_aligned(const lh_memory_bounds_t *self, lh_usize_t align)
 {
     const lh_ptr begin = lh_memory_bounds_get_begin_v(self);
     lh_assert_runtime_ifn(lh_math_is_power_of_two(align),
@@ -378,15 +378,9 @@ lh_memory_bounds_aligned_is_begin_aligned(const lh_memory_bounds_t *self, lh_usi
 }
 
 lh_bool_t
-lh_memory_bounds_is_begin_aligned(const lh_memory_bounds_t *self, lh_usize_t align)
-{
-    return lh_memory_bounds_aligned_is_begin_aligned(self, align);
-}
-
-lh_bool_t
 lh_memory_bounds_is_aligned(const lh_memory_bounds_t *self, lh_usize_t align)
 {
-    const lh_bool_t is_begin_aligned = lh_memory_bounds_aligned_is_begin_aligned(self, align);
+    const lh_bool_t is_begin_aligned = lh_memory_bounds_is_begin_aligned(self, align);
     const lh_ptr end = lh_memory_bounds_get_end_v(self);
     return is_begin_aligned && lh_ptr_is_aligned(end, align);
 }
