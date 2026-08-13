@@ -5,8 +5,7 @@
 
 void
 lh_exception_origin_pack(lh_exception_origin_t *self, const lh_str_ptr *timestamp,
-                         const lh_str_ptr *file, const lh_str_ptr *function,
-                         const lh_usize_t *line)
+                         const lh_str_ptr *file, const lh_str_ptr *function, const lh_usize_t *line)
 {
     lh_assert_runtime_ref(self);
     lh_optional_ref(timestamp)

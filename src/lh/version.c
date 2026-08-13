@@ -106,5 +106,6 @@ lh_version_is_at_least(const lh_version_t *self, const lh_version_t *minimum)
         return self_minor > minimum_minor ? lh_bool_true : lh_bool_false;
     }
 
-    return lh_version_get_patch(self) >= lh_version_get_patch(minimum) ? lh_bool_true : lh_bool_false;
+    return lh_version_get_patch(self) >= lh_version_get_patch(minimum) ? lh_bool_true
+                                                                       : lh_bool_false;
 }
