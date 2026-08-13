@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # lh — library preprocessor options (LH_LIBRARY_OPTION_*)
 #
-# Values are written to include/lh/config.h via config.h.in (cmake/Config.cmake).
+# Values are written to include/lh/config.h via config.h.in (cmake/config.cmake).
 # Non-CMake: copy include/lh/config.h.in to config.h and substitute @...@ tokens.
 # library_option_fallback.h reads config.h for the effective values.
 # Numeric LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX: CACHE STRING here.

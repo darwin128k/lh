@@ -5,9 +5,9 @@ project(lh
 )
 
 # Project helper modules: version parsing, generated config, and feature options.
-include(cmake/Version.cmake)
-include(cmake/Config.cmake)
-include(cmake/LibraryOptions.cmake)
+include(cmake/version.cmake)
+include(cmake/config.cmake)
+include(cmake/library_options.cmake)
 
 # ---------------------------------------------------------------------------
 
