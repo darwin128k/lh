@@ -1,0 +1,48 @@
+#ifndef LH_MEMORY_TYPED_H
+#define LH_MEMORY_TYPED_H
+
+#include <lh/memory/typed/fields.h>
+#include <lh/memory/bounds.h>
+
+typedef struct lh_memory_typed
+{
+    lh_memory_typed_fields(lh_memory_bounds_t);
+} lh_memory_typed_t;
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+LH_ATTRIBUTE_SYMBOL
+lh_memory_bounds_t *
+lh_memory_typed_get_bounds(lh_memory_typed_t *self);
+
+LH_ATTRIBUTE_SYMBOL
+const lh_memory_bounds_t *
+lh_memory_typed_get_bounds_as_const(const lh_memory_typed_t *self);
+
+LH_ATTRIBUTE_SYMBOL
+lh_usize_t
+lh_memory_typed_get_type_size(const lh_memory_typed_t *self);
+
+LH_ATTRIBUTE_SYMBOL
+lh_usize_t
+lh_memory_typed_get_size_of_bytes(const lh_memory_typed_t *self);
+
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_typed_is_multiple_of(const lh_memory_typed_t *self);
+
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_typed_is_valid(const lh_memory_typed_t *self);
+
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_typed_is_empty(const lh_memory_typed_t *self);
+
+LH_ATTRIBUTE_SYMBOL
+lh_usize_t
+lh_memory_typed_get_size(const lh_memory_typed_t *self);
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_MEMORY_TYPED_H */
