@@ -48,6 +48,26 @@ LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_typed_is_valid_index(const lh_memory_typed_t *self, lh_uindex_t index);
 
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_typed_get_ptr_from_begin(const lh_memory_typed_t *self, lh_uindex_t index);
+
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_typed_get_ptr_from_end(const lh_memory_typed_t *self, lh_uindex_t index);
+
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_typed_get_first_ptr(const lh_memory_typed_t *self);
+
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_typed_get_last_ptr(const lh_memory_typed_t *self);
+
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_typed_get_ptr(const lh_memory_typed_t *self, lh_sindex_t index);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_MEMORY_TYPED_H */
