@@ -160,7 +160,16 @@ lh_exception_unpack_to_other(const lh_exception_t *self, lh_exception_t *other);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_error_t *
-lh_exception_get_error(const lh_exception_t *self);
+lh_exception_get_error(lh_exception_t *self);
+
+/**
+ * @brief Read-only pointer to the embedded ::lh_error_t inside @p self.
+ * @param self Exception value (not null).
+ * @return Pointer to @p self->error.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_error_t *
+lh_exception_get_error_as_const(const lh_exception_t *self);
 
 #ifndef NDEBUG
 /**
@@ -176,7 +185,22 @@ lh_exception_get_error(const lh_exception_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_exception_origin_t *
-lh_exception_get_origin(const lh_exception_t *self);
+lh_exception_get_origin(lh_exception_t *self);
+
+/**
+ * @brief Read-only pointer to the debug origin stored in @p self.
+ *
+ * This accessor is available only when `NDEBUG` is not defined, because
+ * ::lh_exception_t::origin is omitted from release builds.
+ *
+ * @param self Exception value (not null).
+ * @return Pointer to @p self->origin.
+ *
+ * @see lh_exception_origin_t
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_exception_origin_t *
+lh_exception_get_origin_as_const(const lh_exception_t *self);
 #endif
 
 /**

@@ -52,7 +52,16 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 LH_ATTRIBUTE_SYMBOL
 lh_exception_t *
-lh_exception_catch_get_exception(const lh_exception_catch_t *self);
+lh_exception_catch_get_exception(lh_exception_catch_t *self);
+
+/**
+ * @brief Read-only pointer to the exception stored in @p self.
+ * @param self Catch frame (not null).
+ * @return Pointer to @p self->exception.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_exception_t *
+lh_exception_catch_get_exception_as_const(const lh_exception_catch_t *self);
 
 /**
  * @brief Mutable pointer to the embedded error stored in the caught exception.
@@ -62,7 +71,16 @@ lh_exception_catch_get_exception(const lh_exception_catch_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_error_t *
-lh_exception_catch_get_error(const lh_exception_catch_t *self);
+lh_exception_catch_get_error(lh_exception_catch_t *self);
+
+/**
+ * @brief Read-only pointer to the embedded error stored in the caught exception.
+ * @param self Catch frame (not null).
+ * @return Pointer to the embedded ::lh_error_t.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_error_t *
+lh_exception_catch_get_error_as_const(const lh_exception_catch_t *self);
 
 /**
  * @brief Return the caught exception error code.
