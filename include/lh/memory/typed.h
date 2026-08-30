@@ -49,6 +49,10 @@ lh_bool_t
 lh_memory_typed_is_valid_index(const lh_memory_typed_t *self, lh_uindex_t index);
 
 LH_ATTRIBUTE_SYMBOL
+lh_uoffset_t
+lh_memory_typed_get_offset_from_index(const lh_memory_typed_t *self, lh_uindex_t index);
+
+LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_typed_get_ptr_from_begin(const lh_memory_typed_t *self, lh_uindex_t index);
 
@@ -67,6 +71,14 @@ lh_memory_typed_get_last_ptr(const lh_memory_typed_t *self);
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_typed_get_ptr(const lh_memory_typed_t *self, lh_sindex_t index);
+
+LH_ATTRIBUTE_SYMBOL
+lh_uindex_t
+lh_memory_typed_get_index_from_offset(const lh_memory_typed_t *self, lh_uoffset_t offset);
+
+LH_ATTRIBUTE_SYMBOL
+lh_uindex_t
+lh_memory_typed_get_index_from_ptr(const lh_memory_typed_t *self, const lh_ptr ptr);
 
 LH_COMPILER_EXTERN_C_END
 

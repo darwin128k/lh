@@ -73,15 +73,22 @@ lh_memory_typed_is_valid_index(const lh_memory_typed_t *self, lh_uindex_t index)
     return index < lh_memory_typed_get_size(self);
 }
 
-lh_ptr
-lh_memory_typed_get_ptr_from_begin(const lh_memory_typed_t *self, lh_uindex_t index)
+lh_uoffset_t
+lh_memory_typed_get_offset_from_index(const lh_memory_typed_t *self, lh_uindex_t index)
 {
     lh_assert_runtime_ifn(lh_memory_typed_is_valid_index(self, index),
                           lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
 
-    const lh_memory_bounds_t *bounds = lh_memory_typed_get_bounds_as_const(self);
     const lh_usize_t type_size = lh_memory_typed_get_type_size(self);
-    return lh_memory_bounds_get_ptr_from_begin(bounds, lh_math_mul(index, type_size));
+    return lh_math_mul(index, type_size);
+}
+
+lh_ptr
+lh_memory_typed_get_ptr_from_begin(const lh_memory_typed_t *self, lh_uindex_t index)
+{
+    const lh_memory_bounds_t *bounds = lh_memory_typed_get_bounds_as_const(self);
+    return lh_memory_bounds_get_ptr_from_begin(bounds,
+                                                lh_memory_typed_get_offset_from_index(self, index));
 }
 
 lh_ptr
@@ -116,4 +123,23 @@ lh_memory_typed_get_ptr(const lh_memory_typed_t *self, lh_sindex_t index)
     }
 
     return lh_memory_typed_get_ptr_from_begin(self, lh_type_cast(lh_uindex_t, index));
+}
+
+lh_uindex_t
+lh_memory_typed_get_index_from_offset(const lh_memory_typed_t *self, lh_uoffset_t offset)
+{
+    const lh_usize_t type_size = lh_memory_typed_get_type_size(self);
+    lh_assert_runtime(
+        lh_math_is_zero(lh_math_mod(offset, type_size)),
+        lh_runtime_error_make_by_code(lh_runtime_error_code_size_not_multiple_of_type_size));
+
+    return lh_math_div(offset, type_size);
+}
+
+lh_uindex_t
+lh_memory_typed_get_index_from_ptr(const lh_memory_typed_t *self, const lh_ptr ptr)
+{
+    const lh_memory_bounds_t *bounds = lh_memory_typed_get_bounds_as_const(self);
+    const lh_uoffset_t offset = lh_memory_bounds_get_offset_from_begin(bounds, ptr);
+    return lh_memory_typed_get_index_from_offset(self, offset);
 }
