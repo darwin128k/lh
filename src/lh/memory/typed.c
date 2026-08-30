@@ -133,7 +133,10 @@ lh_memory_typed_get_index_from_offset(const lh_memory_typed_t *self, lh_uoffset_
         lh_math_is_zero(lh_math_mod(offset, type_size)),
         lh_runtime_error_make_by_code(lh_runtime_error_code_size_not_multiple_of_type_size));
 
-    return lh_math_div(offset, type_size);
+    const lh_uindex_t index = lh_math_div(offset, type_size);
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid_index(self, index),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+    return index;
 }
 
 lh_uindex_t
