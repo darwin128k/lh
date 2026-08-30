@@ -64,3 +64,9 @@ lh_memory_typed_get_size(const lh_memory_typed_t *self)
     const lh_usize_t type_size = lh_memory_typed_get_type_size(self);
     return lh_math_div(size_of_bytes, type_size);
 }
+
+lh_bool_t
+lh_memory_typed_is_valid_index(const lh_memory_typed_t *self, lh_uindex_t index)
+{
+    return index < lh_memory_typed_get_size(self);
+}

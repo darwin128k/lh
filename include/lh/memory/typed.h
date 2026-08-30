@@ -3,6 +3,7 @@
 
 #include <lh/memory/typed/fields.h>
 #include <lh/memory/bounds.h>
+#include <lh/index.h>
 
 typedef struct lh_memory_typed
 {
@@ -42,6 +43,10 @@ lh_memory_typed_is_empty(const lh_memory_typed_t *self);
 LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_memory_typed_get_size(const lh_memory_typed_t *self);
+
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_typed_is_valid_index(const lh_memory_typed_t *self, lh_uindex_t index);
 
 LH_COMPILER_EXTERN_C_END
 
