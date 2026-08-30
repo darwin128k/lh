@@ -80,6 +80,30 @@ LH_ATTRIBUTE_SYMBOL
 lh_uindex_t
 lh_memory_typed_get_index_from_ptr(const lh_memory_typed_t *self, const lh_ptr ptr);
 
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_typed_set(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size);
+
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_typed_assign(lh_memory_typed_t *self, const lh_memory_typed_t *other);
+
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_typed_assign_v(lh_memory_typed_t *self, const lh_memory_typed_t *other);
+
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_typed_set_v(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size);
+
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_typed_init(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size);
+
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_typed_retype(lh_memory_typed_t *self, lh_usize_t type_size);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_MEMORY_TYPED_H */
