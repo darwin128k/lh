@@ -92,14 +92,29 @@ lh_memory_typed_get_ptr_from_begin(const lh_memory_typed_t *self, lh_uindex_t in
                                                lh_memory_typed_get_offset_from_index(self, index));
 }
 
-lh_ptr
-lh_memory_typed_get_ptr_from_end(const lh_memory_typed_t *self, lh_uindex_t index)
+lh_uindex_t
+lh_memory_typed_get_last_index(const lh_memory_typed_t *self)
+{
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid_index(self, 0),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+
+    return lh_math_sub_one(lh_memory_typed_get_size(self));
+}
+
+lh_uindex_t
+lh_memory_typed_get_index_from_end(const lh_memory_typed_t *self, lh_uindex_t index)
 {
     lh_assert_runtime_ifn(lh_memory_typed_is_valid_index(self, index),
                           lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
 
-    const lh_usize_t last_index = lh_math_sub_one(lh_memory_typed_get_size(self));
-    return lh_memory_typed_get_ptr_from_begin(self, lh_math_sub(last_index, index));
+    const lh_uindex_t last_index = lh_memory_typed_get_last_index(self);
+    return lh_math_sub(last_index, index);
+}
+
+lh_ptr
+lh_memory_typed_get_ptr_from_end(const lh_memory_typed_t *self, lh_uindex_t index)
+{
+    return lh_memory_typed_get_ptr_from_begin(self, lh_memory_typed_get_index_from_end(self, index));
 }
 
 lh_ptr
@@ -119,8 +134,10 @@ lh_memory_typed_get_ptr(const lh_memory_typed_t *self, lh_sindex_t index)
 {
     if (lh_math_is_negative(index))
     {
-        return lh_memory_typed_get_ptr_from_end(
-            self, lh_type_cast(lh_uindex_t, lh_math_sub_one(lh_math_neg(index))));
+        const lh_uindex_t distance_from_end =
+            lh_type_cast(lh_uindex_t, lh_math_sub_one(lh_math_neg(index)));
+        return lh_memory_typed_get_ptr_from_begin(
+            self, lh_memory_typed_get_index_from_end(self, distance_from_end));
     }
 
     return lh_memory_typed_get_ptr_from_begin(self, lh_type_cast(lh_uindex_t, index));

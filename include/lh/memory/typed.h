@@ -57,6 +57,14 @@ lh_ptr
 lh_memory_typed_get_ptr_from_begin(const lh_memory_typed_t *self, lh_uindex_t index);
 
 LH_ATTRIBUTE_SYMBOL
+lh_uindex_t
+lh_memory_typed_get_last_index(const lh_memory_typed_t *self);
+
+LH_ATTRIBUTE_SYMBOL
+lh_uindex_t
+lh_memory_typed_get_index_from_end(const lh_memory_typed_t *self, lh_uindex_t index);
+
+LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_typed_get_ptr_from_end(const lh_memory_typed_t *self, lh_uindex_t index);
 
