@@ -17,6 +17,44 @@ TEST(exception_get_error, returns_embedded_error)
     EXPECT_STREQ(error->desc, "msg");
 }
 
+TEST(exception_get_error_as_const, returns_embedded_error)
+{
+    lh_exception_t exception = lh_exception_initializer(42, "msg");
+    const lh_error_t *error = lh_exception_get_error_as_const(&exception);
+
+    ASSERT_NE(error, nullptr);
+    EXPECT_EQ(error->code, 42);
+    EXPECT_STREQ(error->desc, "msg");
+}
+
+#ifndef NDEBUG
+TEST(exception_get_origin, returns_embedded_origin)
+{
+    lh_exception_t exception = lh_exception_empty_initializer();
+    lh_exception_set(&exception, 1, "desc", "ts", "file.c", "func", 42);
+
+    lh_exception_origin_t *origin = lh_exception_get_origin(&exception);
+
+    ASSERT_NE(origin, nullptr);
+    EXPECT_STREQ(origin->filename, "file.c");
+    EXPECT_STREQ(origin->function, "func");
+    EXPECT_EQ(origin->line, 42u);
+}
+
+TEST(exception_get_origin_as_const, returns_embedded_origin)
+{
+    lh_exception_t exception = lh_exception_empty_initializer();
+    lh_exception_set(&exception, 1, "desc", "ts", "file.c", "func", 42);
+
+    const lh_exception_origin_t *origin = lh_exception_get_origin_as_const(&exception);
+
+    ASSERT_NE(origin, nullptr);
+    EXPECT_STREQ(origin->filename, "file.c");
+    EXPECT_STREQ(origin->function, "func");
+    EXPECT_EQ(origin->line, 42u);
+}
+#endif
+
 TEST(exception_get_code, returns_embedded_error_code)
 {
     const lh_exception_t exception = lh_exception_initializer(7, "seven");
@@ -218,6 +256,23 @@ TEST(exception_death, get_error_null_self)
 {
     LH_EXPECT_DEATH(lh_exception_get_error(nullptr));
 }
+
+TEST(exception_death, get_error_as_const_null_self)
+{
+    LH_EXPECT_DEATH(lh_exception_get_error_as_const(nullptr));
+}
+
+#ifndef NDEBUG
+TEST(exception_death, get_origin_null_self)
+{
+    LH_EXPECT_DEATH(lh_exception_get_origin(nullptr));
+}
+
+TEST(exception_death, get_origin_as_const_null_self)
+{
+    LH_EXPECT_DEATH(lh_exception_get_origin_as_const(nullptr));
+}
+#endif
 
 TEST(exception_death, set_code_null_self)
 {

@@ -17,10 +17,30 @@ TEST(exception_catch_get_exception, returns_stored_exception)
     EXPECT_STREQ(lh_exception_get_desc(exception), "msg");
 }
 
+TEST(exception_catch_get_exception_as_const, returns_stored_exception)
+{
+    lh_exception_catch_t catch_frame = lh_exception_catch_initializer(42, "msg");
+    const lh_exception_t *exception = lh_exception_catch_get_exception_as_const(&catch_frame);
+
+    ASSERT_NE(exception, nullptr);
+    EXPECT_EQ(lh_exception_get_code(exception), 42);
+    EXPECT_STREQ(lh_exception_get_desc(exception), "msg");
+}
+
 TEST(exception_catch_get_error, returns_stored_exception_error)
 {
     lh_exception_catch_t catch_frame = lh_exception_catch_initializer(42, "msg");
     lh_error_t *error = lh_exception_catch_get_error(&catch_frame);
+
+    ASSERT_NE(error, nullptr);
+    EXPECT_EQ(lh_error_get_code(error), 42);
+    EXPECT_STREQ(lh_error_get_desc(error), "msg");
+}
+
+TEST(exception_catch_get_error_as_const, returns_stored_exception_error)
+{
+    lh_exception_catch_t catch_frame = lh_exception_catch_initializer(42, "msg");
+    const lh_error_t *error = lh_exception_catch_get_error_as_const(&catch_frame);
 
     ASSERT_NE(error, nullptr);
     EXPECT_EQ(lh_error_get_code(error), 42);
@@ -154,9 +174,19 @@ TEST(exception_catch_death, get_exception_null_self)
     LH_EXPECT_DEATH(lh_exception_catch_get_exception(nullptr));
 }
 
+TEST(exception_catch_death, get_exception_as_const_null_self)
+{
+    LH_EXPECT_DEATH(lh_exception_catch_get_exception_as_const(nullptr));
+}
+
 TEST(exception_catch_death, get_error_null_self)
 {
     LH_EXPECT_DEATH(lh_exception_catch_get_error(nullptr));
+}
+
+TEST(exception_catch_death, get_error_as_const_null_self)
+{
+    LH_EXPECT_DEATH(lh_exception_catch_get_error_as_const(nullptr));
 }
 
 TEST(exception_catch_death, get_code_null_self)
