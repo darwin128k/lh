@@ -120,10 +120,26 @@ lh_void
 lh_vector_reserve(lh_vector_t *self, lh_usize_t min_capacity);
 
 /**
+ * @brief Append @p count contiguous elements to the end of @p self.
+ *
+ * Grows the vector at most once for the whole batch when needed: capacity
+ * becomes @c max(size + count, capacity * ::LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR)
+ * (or ::LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY from empty), via ::lh_vector_reserve.
+ *
+ * @param self   Vector to append to.
+ * @param values Pointer to @p count contiguous values of the vector's element
+ *               type (not null unless @p count is 0); their bytes are copied
+ *               into the new slots.
+ * @param count  Number of elements to append.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_vector_push_back_of(lh_vector_t *self, const lh_ptr values, lh_usize_t count);
+
+/**
  * @brief Append @p value to the end of @p self, growing the vector if needed.
  *
- * When the vector is full, capacity doubles (starting from 1 for an empty
- * vector) before the new element is written, via ::lh_vector_reserve.
+ * Equivalent to ::lh_vector_push_back_of with a count of 1.
  *
  * @param self  Vector to append to.
  * @param value Pointer to a value of the vector's element type (not null);
