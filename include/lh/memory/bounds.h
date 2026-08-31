@@ -382,19 +382,32 @@ lh_memory_bounds_contains_range(const lh_memory_bounds_t *self, const lh_ptr beg
 /**
  * @brief True if @p other lies completely inside @p self.
  *
- * Both operands are interpreted as half-open bounds.
+ * Both operands are interpreted as half-open bounds. @p other is not
+ * validated.
  *
  * @param self  Valid outer bounds.
- * @param other Valid inner bounds.
+ * @param other Inner bounds to test.
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  * @throw ::lh_runtime_error_code_invalid_range
- *        A bounds object is not valid.
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_contains(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
+
+/**
+ * @brief True if valid @p other lies completely inside @p self.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_contains_v(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
 /* -- pointer and value access --------------------------------------------- */
 

@@ -381,19 +381,32 @@ lh_memory_view_contains_range(const lh_memory_view_t *self, const lh_ptr begin, 
 /**
  * @brief True if @p other lies completely inside @p self.
  *
- * Both operands are interpreted as half-open views.
+ * Both operands are interpreted as half-open views. @p other is not
+ * validated.
  *
  * @param self  Valid outer view.
- * @param other Valid inner view.
+ * @param other Inner view to test.
  *
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  * @throw ::lh_runtime_error_code_invalid_range
- *        A view is not valid.
+ *        @p self is not valid.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_view_contains(const lh_memory_view_t *self, const lh_memory_view_t *other);
+
+/**
+ * @brief True if valid @p other lies completely inside @p self.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_view_contains_v(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
 /* -- pointer and value access --------------------------------------------- */
 

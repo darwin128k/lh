@@ -394,6 +394,24 @@ lh_memory_view_slice_contains_of(const lh_memory_view_slice_t *self, const lh_pt
 
 /**
  * @brief True if @p other lies completely inside @p self.
+ *
+ * @p other is not validated.
+ *
+ * @param self  Valid outer slice.
+ * @param other Inner slice to test.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_view_slice_contains(const lh_memory_view_slice_t *self,
+                              const lh_memory_view_slice_t *other);
+
+/**
+ * @brief True if valid @p other lies completely inside @p self.
  * @param self  Valid outer slice.
  * @param other Valid inner slice.
  *
@@ -404,8 +422,8 @@ lh_memory_view_slice_contains_of(const lh_memory_view_slice_t *self, const lh_pt
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_view_slice_contains(const lh_memory_view_slice_t *self,
-                              const lh_memory_view_slice_t *other);
+lh_memory_view_slice_contains_v(const lh_memory_view_slice_t *self,
+                                const lh_memory_view_slice_t *other);
 
 /**
  * @brief True if closed range <tt>[begin, end]</tt> overlaps @p self.

@@ -216,8 +216,17 @@ lh_memory_view_slice_contains(const lh_memory_view_slice_t *self,
                               const lh_memory_view_slice_t *other)
 {
     const lh_void *begin, *end;
-    lh_memory_view_slice_unpack_v(other, lh_addr_of(begin), lh_addr_of(end));
+    lh_memory_view_slice_unpack(other, lh_addr_of(begin), lh_addr_of(end));
     return lh_memory_view_slice_contains_range(self, begin, end);
+}
+
+lh_bool_t
+lh_memory_view_slice_contains_v(const lh_memory_view_slice_t *self,
+                                const lh_memory_view_slice_t *other)
+{
+    lh_assert_runtime_ifn(lh_memory_view_slice_is_valid(other),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    return lh_memory_view_slice_contains(self, other);
 }
 
 lh_bool_t

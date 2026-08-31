@@ -182,6 +182,15 @@ lh_memory_bounds_slice_contains(const lh_memory_bounds_slice_t *self,
     return lh_memory_view_slice_contains(s, o);
 }
 
+lh_bool_t
+lh_memory_bounds_slice_contains_v(const lh_memory_bounds_slice_t *self,
+                                  const lh_memory_bounds_slice_t *other)
+{
+    const lh_memory_view_slice_t *s = lh_ptr_ccast(lh_memory_view_slice_t, self);
+    const lh_memory_view_slice_t *o = lh_ptr_ccast(lh_memory_view_slice_t, other);
+    return lh_memory_view_slice_contains_v(s, o);
+}
+
 lh_ptr
 lh_memory_bounds_slice_get_ptr_from_begin(const lh_memory_bounds_slice_t *self, lh_uoffset_t offset)
 {

@@ -178,8 +178,16 @@ lh_bool_t
 lh_memory_bounds_contains(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other)
 {
     lh_void *other_begin, *other_end;
-    lh_memory_bounds_unpack_v(other, lh_addr_of(other_begin), lh_addr_of(other_end));
+    lh_memory_bounds_unpack(other, lh_addr_of(other_begin), lh_addr_of(other_end));
     return lh_memory_bounds_contains_of(self, other_begin, other_end);
+}
+
+lh_bool_t
+lh_memory_bounds_contains_v(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other)
+{
+    lh_assert_runtime_ifn(lh_memory_bounds_is_valid(other),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    return lh_memory_bounds_contains(self, other);
 }
 
 lh_ptr
@@ -412,7 +420,9 @@ lh_memory_bounds_equals_range(const lh_memory_bounds_t *self, const lh_ptr begin
 lh_bool_t
 lh_memory_bounds_equals(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other)
 {
-    return lh_memory_bounds_slice_equals(self, other);
+    lh_void *other_begin, *other_end;
+    lh_memory_bounds_unpack(other, lh_addr_of(other_begin), lh_addr_of(other_end));
+    return lh_memory_bounds_equals_of(self, other_begin, other_end);
 }
 
 lh_ptr
