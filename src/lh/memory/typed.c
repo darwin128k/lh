@@ -3,6 +3,8 @@
 #include <lh/util/return.h>
 #include <lh/util/math.h>
 #include <lh/util/type.h>
+#include <lh/util/ptr.h>
+#include <lh/cast/const.h>
 #include <lh/assert.h>
 
 lh_memory_bounds_t *
@@ -210,4 +212,46 @@ lh_void
 lh_memory_typed_init(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size)
 {
     lh_memory_typed_set_v(self, begin, end, type_size);
+}
+
+lh_memory_bounds_t
+lh_memory_typed_get_value_bounds(const lh_memory_typed_t *self, lh_uindex_t index)
+{
+    lh_ptr begin = lh_memory_typed_get_ptr_from_begin(self, index);
+    return lh_memory_bounds_make_by_size(begin, lh_memory_typed_get_type_size(self));
+}
+
+lh_void
+lh_memory_typed_set_value(lh_memory_typed_t *self, lh_uindex_t index, const lh_ptr value)
+{
+    lh_memory_bounds_t value_bounds = lh_memory_typed_get_value_bounds(self, index);
+    const lh_memory_bounds_t source = lh_memory_bounds_make_by_size(
+        lh_cast_const(lh_ptr, value), lh_memory_typed_get_type_size(self));
+    lh_memory_bounds_copy(lh_addr_of(value_bounds), lh_addr_of(source));
+}
+
+lh_void
+lh_memory_typed_get_value_into(const lh_memory_typed_t *self, lh_uindex_t index, lh_ptr dst)
+{
+    const lh_memory_bounds_t value_bounds = lh_memory_typed_get_value_bounds(self, index);
+    lh_memory_bounds_t destination =
+        lh_memory_bounds_make_by_size(dst, lh_memory_typed_get_type_size(self));
+    lh_memory_bounds_copy(lh_addr_of(destination), lh_addr_of(value_bounds));
+}
+
+lh_void
+lh_memory_typed_swap_values(lh_memory_typed_t *self, lh_uindex_t i, lh_uindex_t j, lh_ptr scratch)
+{
+    lh_memory_typed_get_value_into(self, i, scratch);
+    lh_memory_typed_set_value(self, i, lh_memory_typed_get_ptr_from_begin(self, j));
+    lh_memory_typed_set_value(self, j, scratch);
+}
+
+lh_bool_t
+lh_memory_typed_value_equals(const lh_memory_typed_t *self, lh_uindex_t index, const lh_ptr other)
+{
+    const lh_memory_bounds_t value_bounds = lh_memory_typed_get_value_bounds(self, index);
+    const lh_usize_t type_size = lh_memory_typed_get_type_size(self);
+    const lh_ptr other_end = lh_ptr_add_by_offset_unsafe(lh_void, other, type_size);
+    return lh_ptr_is_null(lh_memory_bounds_compare_range(lh_addr_of(value_bounds), other, other_end));
 }
