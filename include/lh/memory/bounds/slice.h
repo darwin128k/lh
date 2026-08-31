@@ -428,6 +428,19 @@ lh_memory_bounds_slice_contains_range(const lh_memory_bounds_slice_t *self, cons
                                       const lh_ptr end);
 
 /**
+ * @brief Alias for ::lh_memory_bounds_slice_contains_range.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_contains_of(const lh_memory_bounds_slice_t *self, const lh_ptr begin,
+                                   const lh_ptr end);
+
+/**
  * @brief True if @p other lies completely inside @p self.
  * @param self  Valid outer slice.
  * @param other Valid inner slice.
@@ -457,6 +470,19 @@ LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_slice_overlaps_of(const lh_memory_bounds_slice_t *self, const lh_ptr begin,
                                    const lh_ptr end);
+
+/**
+ * @brief Alias for ::lh_memory_bounds_slice_overlaps_of.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_overlaps_range(const lh_memory_bounds_slice_t *self, const lh_ptr begin,
+                                      const lh_ptr end);
 
 /**
  * @brief True if @p other overlaps @p self.
@@ -506,6 +532,17 @@ lh_memory_bounds_slice_equals_of(const lh_memory_bounds_slice_t *self, const lh_
                                  const lh_ptr end);
 
 /**
+ * @brief Alias for ::lh_memory_bounds_slice_equals_of.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_bounds_slice_equals_range(const lh_memory_bounds_slice_t *self, const lh_ptr begin,
+                                    const lh_ptr end);
+
+/**
  * @brief True if @p self and @p other store the same endpoints.
  *
  * This compares the stored endpoints without requiring valid ranges.
@@ -520,6 +557,282 @@ LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_slice_equals(const lh_memory_bounds_slice_t *self,
                               const lh_memory_bounds_slice_t *other);
+
+/* -- raw byte operations --------------------------------------------------- */
+
+/**
+ * @brief Copy bytes from closed range <tt>[begin, end]</tt> into @p self.
+ *
+ * Delegates to ::lh_memory_raw_copy, so it writes up to the smaller of the
+ * destination and source sizes.
+ *
+ * @param self  Valid destination slice.
+ * @param begin Source range begin pointer.
+ * @param end   Source range end pointer.
+ * @return Pointer one past the last byte written.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_copy_range(lh_memory_bounds_slice_t *self, const lh_ptr begin,
+                                  const lh_ptr end);
+
+/**
+ * @brief Copy bytes from @p other into @p self.
+ *
+ * @param self  Valid destination slice.
+ * @param other Valid source slice.
+ * @return Pointer one past the last byte written.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_copy(lh_memory_bounds_slice_t *self, const lh_memory_bounds_slice_t *other);
+
+/**
+ * @brief Move bytes from closed range <tt>[begin, end]</tt> into @p self.
+ *
+ * Delegates to ::lh_memory_raw_move and supports overlapping storage.
+ *
+ * @param self  Valid destination slice.
+ * @param begin Source range begin pointer.
+ * @param end   Source range end pointer.
+ * @return Pointer one past the last byte written.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_move_range(lh_memory_bounds_slice_t *self, const lh_ptr begin,
+                                  const lh_ptr end);
+
+/**
+ * @brief Move bytes from @p other into @p self.
+ *
+ * @param self  Valid destination slice.
+ * @param other Valid source slice.
+ * @return Pointer one past the last byte written.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_move(lh_memory_bounds_slice_t *self, const lh_memory_bounds_slice_t *other);
+
+/**
+ * @brief Find the first occurrence of closed range <tt>[begin, end]</tt>
+ *        inside @p self.
+ *
+ * @param self  Valid slice used as the haystack.
+ * @param begin Needle range begin pointer.
+ * @param end   Needle range end pointer.
+ * @return Pointer to the first match, or ::lh_null when no match exists.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_find_range(const lh_memory_bounds_slice_t *self, const lh_ptr begin,
+                                  const lh_ptr end);
+
+/**
+ * @brief Find the first occurrence of @p other inside @p self.
+ *
+ * @param self  Valid slice used as the haystack.
+ * @param other Valid slice used as the needle.
+ * @return Pointer to the first match, or ::lh_null when no match exists.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_find(const lh_memory_bounds_slice_t *self,
+                            const lh_memory_bounds_slice_t *other);
+
+/**
+ * @brief Find the last occurrence of closed range <tt>[begin, end]</tt>
+ *        inside @p self.
+ *
+ * @param self  Valid slice used as the haystack.
+ * @param begin Needle range begin pointer.
+ * @param end   Needle range end pointer.
+ * @return Pointer to the last match, or ::lh_null when no match exists.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_rfind_range(const lh_memory_bounds_slice_t *self, const lh_ptr begin,
+                                   const lh_ptr end);
+
+/**
+ * @brief Find the last occurrence of @p other inside @p self.
+ *
+ * @param self  Valid slice used as the haystack.
+ * @param other Valid slice used as the needle.
+ * @return Pointer to the last match, or ::lh_null when no match exists.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_rfind(const lh_memory_bounds_slice_t *self,
+                             const lh_memory_bounds_slice_t *other);
+
+/**
+ * @brief Compare @p self against closed range <tt>[begin, end]</tt> byte by
+ *        byte, from the front.
+ *
+ * @param self  Valid left-hand slice.
+ * @param begin Right-hand range begin pointer.
+ * @param end   Right-hand range end pointer.
+ * @return Pointer to the first differing byte in @p self, or ::lh_null when
+ *         the compared bytes are equal.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_compare_range(const lh_memory_bounds_slice_t *self, const lh_ptr begin,
+                                     const lh_ptr end);
+
+/**
+ * @brief Compare @p self against @p other byte by byte, from the front.
+ *
+ * @param self  Valid left-hand slice.
+ * @param other Valid right-hand slice.
+ * @return Pointer to the first differing byte in @p self, or ::lh_null when
+ *         the compared bytes are equal.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_compare(const lh_memory_bounds_slice_t *self,
+                               const lh_memory_bounds_slice_t *other);
+
+/**
+ * @brief Compare @p self against closed range <tt>[begin, end]</tt> byte by
+ *        byte, from the back.
+ *
+ * @param self  Valid left-hand slice.
+ * @param begin Right-hand range begin pointer.
+ * @param end   Right-hand range end pointer.
+ * @return Pointer to the differing byte in @p self, or ::lh_null when the
+ *         compared suffixes are equal.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_rcompare_range(const lh_memory_bounds_slice_t *self, const lh_ptr begin,
+                                      const lh_ptr end);
+
+/**
+ * @brief Compare @p self against @p other byte by byte, from the back.
+ *
+ * @param self  Valid left-hand slice.
+ * @param other Valid right-hand slice.
+ * @return Pointer to the differing byte in @p self, or ::lh_null when the
+ *         compared suffixes are equal.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_rcompare(const lh_memory_bounds_slice_t *self,
+                                const lh_memory_bounds_slice_t *other);
+
+/**
+ * @brief Fill @p self with @p value.
+ *
+ * @param self  Valid destination slice.
+ * @param value Byte value to write.
+ * @return Pointer one past the last byte written.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_fill(lh_memory_bounds_slice_t *self, lh_byte_t value);
+
+/**
+ * @brief Fill @p self by repeating pattern range <tt>[begin, end]</tt>.
+ *
+ * @param self  Valid destination slice.
+ * @param begin Pattern range begin pointer.
+ * @param end   Pattern range end pointer.
+ * @return Pointer one past the last byte written, or ::lh_null when nothing is
+ *         written by the raw operation.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_fill_pattern_range(lh_memory_bounds_slice_t *self, const lh_ptr begin,
+                                          const lh_ptr end);
+
+/**
+ * @brief Fill @p self by repeating bytes from @p other.
+ *
+ * @param self  Valid destination slice.
+ * @param other Valid pattern slice.
+ * @return Pointer one past the last byte written, or ::lh_null when nothing is
+ *         written by the raw operation.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_bounds_slice_fill_pattern(lh_memory_bounds_slice_t *self,
+                                    const lh_memory_bounds_slice_t *other);
 
 /* -- pointer and value access --------------------------------------------- */
 

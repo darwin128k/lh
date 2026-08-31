@@ -122,6 +122,14 @@ lh_memory_typed_init(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize
 
 LH_ATTRIBUTE_SYMBOL
 lh_void
+lh_memory_typed_swap(lh_memory_typed_t *self, lh_memory_typed_t *other);
+
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_typed_swap_v(lh_memory_typed_t *self, lh_memory_typed_t *other);
+
+LH_ATTRIBUTE_SYMBOL
+lh_void
 lh_memory_typed_retype(lh_memory_typed_t *self, lh_usize_t type_size);
 
 LH_ATTRIBUTE_SYMBOL

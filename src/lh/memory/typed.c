@@ -4,6 +4,7 @@
 #include <lh/util/math.h>
 #include <lh/util/type.h>
 #include <lh/util/ptr.h>
+#include <lh/util/algorithm.h>
 #include <lh/cast/const.h>
 #include <lh/assert.h>
 
@@ -219,10 +220,9 @@ lh_memory_typed_assign(lh_memory_typed_t *self, const lh_memory_typed_t *other)
 {
     lh_return_if(lh_math_eq(self, other));
 
-    lh_void *other_begin, *other_end;
-    lh_memory_bounds_unpack(lh_memory_typed_get_bounds_as_const(other), lh_addr_of(other_begin),
-                            lh_addr_of(other_end));
-    lh_memory_typed_set(self, other_begin, other_end, lh_memory_typed_get_type_size(other));
+    lh_memory_bounds_assign(lh_memory_typed_get_bounds(self),
+                            lh_memory_typed_get_bounds_as_const(other));
+    lh_memory_typed_retype(self, lh_memory_typed_get_type_size(other));
 }
 
 lh_void
@@ -244,6 +244,26 @@ lh_void
 lh_memory_typed_init(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size)
 {
     lh_memory_typed_set_v(self, begin, end, type_size);
+}
+
+lh_void
+lh_memory_typed_swap(lh_memory_typed_t *self, lh_memory_typed_t *other)
+{
+    lh_return_if(lh_math_eq(self, other));
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(other);
+
+    lh_algorithm_swap(lh_memory_typed_t, lh_ptr_deref(self), lh_ptr_deref(other));
+}
+
+lh_void
+lh_memory_typed_swap_v(lh_memory_typed_t *self, lh_memory_typed_t *other)
+{
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid(self),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid(other),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    lh_memory_typed_swap(self, other);
 }
 
 lh_memory_bounds_t

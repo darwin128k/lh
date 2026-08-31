@@ -127,6 +127,22 @@ lh_memory_view_slice_direction_t
 lh_memory_view_get_direction(const lh_memory_view_t *self);
 
 /**
+ * @brief Return endpoint-initialization flags for @p self.
+ *
+ * The begin flag is set when @c first is non-null. The end flag is set when
+ * @c second is non-null.
+ *
+ * @param self View to inspect.
+ * @return Bit pattern from ::lh_memory_view_slice_flags_t.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_view_slice_flags_t
+lh_memory_view_get_flags(const lh_memory_view_t *self);
+
+/**
  * @brief True if neither endpoint is initialized.
  * @param self View to inspect.
  *
@@ -349,6 +365,18 @@ lh_memory_view_contains_ptr(const lh_memory_view_t *self, const lh_ptr ptr);
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_view_contains_of(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
+
+/**
+ * @brief Alias for ::lh_memory_view_contains_of.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_memory_view_contains_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
  * @brief True if @p other lies completely inside @p self.
@@ -937,6 +965,22 @@ lh_void
 lh_memory_view_clear(lh_memory_view_t *self);
 
 /**
+ * @brief Copy endpoints from @p other to @p self without range validation.
+ *
+ * This function preserves the view state as-is. Use
+ * ::lh_memory_view_assign_v when the source must be a valid half-open range.
+ *
+ * @param self  View to update.
+ * @param other View to copy from.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_view_assign(lh_memory_view_t *self, const lh_memory_view_t *other);
+
+/**
  * @brief Copy endpoints from valid @p other to @p self.
  *
  * @param self  View to update.
@@ -965,6 +1009,21 @@ lh_void
 lh_memory_view_swap(lh_memory_view_t *self, lh_memory_view_t *other);
 
 /**
+ * @brief Swap two valid views.
+ *
+ * @param self  Valid view to swap.
+ * @param other Valid view to swap with.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self or @p other is not valid.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_view_swap_v(lh_memory_view_t *self, lh_memory_view_t *other);
+
+/**
  * @brief Clear @p self, then swap it with @p other.
  *
  * Discards the current contents of @p self, then moves the contents of
@@ -981,6 +1040,25 @@ lh_void
 lh_memory_view_swap_and_clear(lh_memory_view_t *self, lh_memory_view_t *other);
 
 /**
+ * @brief Store @p begin and @p end in @p self without range validation.
+ *
+ * The caller is responsible for ensuring the resulting view is meaningful.
+ * No range check is performed on @p begin or @p end.
+ *
+ * @param self  View to update.
+ * @param begin New @c first endpoint.
+ * @param end   New @c second endpoint.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ *
+ * @warning Unsafe — no range validation. Caller assumes full responsibility.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_view_set(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
+
+/**
  * @brief Store @p begin and @p end in @p self after validation.
  *
  * @param self  View to update.
@@ -995,6 +1073,22 @@ lh_memory_view_swap_and_clear(lh_memory_view_t *self, lh_memory_view_t *other);
 LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_view_set_v(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
+
+/**
+ * @brief Build a view from @p begin and @p end without range validation.
+ *
+ * The caller is responsible for ensuring the resulting view is meaningful.
+ * No range check is performed on @p begin or @p end.
+ *
+ * @param begin New @c first endpoint.
+ * @param end   New @c second endpoint.
+ * @return Constructed view value (may be invalid or uninitialized).
+ *
+ * @warning Unsafe — no range validation. Caller assumes full responsibility.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_view_t
+lh_memory_view_make(const lh_ptr begin, const lh_ptr end);
 
 /**
  * @brief Build and validate a view from @p begin and @p end.
@@ -1127,6 +1221,190 @@ lh_memory_view_init_by_other(lh_memory_view_t *self, const lh_memory_view_t *oth
 LH_ATTRIBUTE_SYMBOL
 lh_memory_view_slice_t
 lh_memory_view_make_slice(const lh_memory_view_t *self);
+
+/* -- sub-range construction -------------------------------------------------- */
+
+/**
+ * @brief Build a view containing the first @p n bytes of a valid half-open range.
+ *
+ * The source range is <tt>[begin, end)</tt>. If @p n is zero, the returned
+ * view is empty.
+ *
+ * @param begin Source range begin pointer.
+ * @param end   Source range exclusive end pointer.
+ * @param n     Number of bytes to keep from the beginning.
+ * @return View <tt>[begin, begin + n)</tt>, or an empty view when @p n is zero.
+ *
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        <tt>[begin, end)</tt> is not a valid view.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p n is greater than the source range size.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_view_t
+lh_memory_view_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t n);
+
+/**
+ * @brief Build a view containing the last @p n bytes of a valid half-open range.
+ *
+ * The source range is <tt>[begin, end)</tt>. If @p n is zero, the returned
+ * view is empty.
+ *
+ * @param begin Source range begin pointer.
+ * @param end   Source range exclusive end pointer.
+ * @param n     Number of bytes to keep from the end.
+ * @return View <tt>[end - n, end)</tt>, or an empty view when @p n is zero.
+ *
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        <tt>[begin, end)</tt> is not a valid view.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p n is greater than the source range size.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_view_t
+lh_memory_view_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t n);
+
+/**
+ * @brief Build a view containing the first @p size bytes of @p self.
+ *
+ * If @p size is zero, the returned view is empty.
+ *
+ * @param self Source view.
+ * @param size Number of bytes to keep from the beginning.
+ * @return View taken from the beginning of @p self.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p size is greater than the source view size.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_view_t
+lh_memory_view_make_from_begin(const lh_memory_view_t *self, lh_usize_t size);
+
+/**
+ * @brief Build a view containing the last @p size bytes of @p self.
+ *
+ * If @p size is zero, the returned view is empty.
+ *
+ * @param self Source view.
+ * @param size Number of bytes to keep from the end.
+ * @return View taken from the end of @p self.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p size is greater than the source view size.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_view_t
+lh_memory_view_make_from_end(const lh_memory_view_t *self, lh_usize_t size);
+
+/**
+ * @brief Build a sub-view between @p begin and @p end inside @p self.
+ *
+ * @param self  Source view that must contain the requested range.
+ * @param begin Inner range begin pointer.
+ * @param end   Inner range exclusive end pointer.
+ * @return Constructed valid inner view.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        <tt>[begin, end)</tt> is not contained by @p self.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        <tt>[begin, end)</tt> is not a valid view.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_view_t
+lh_memory_view_make_between(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
+
+/**
+ * @brief Build a sub-view starting at @p offset with @p size bytes.
+ *
+ * If @p size is zero, the returned view is empty.
+ *
+ * @param self   Source view.
+ * @param offset Offset from the source beginning.
+ * @param size   Number of bytes in the returned view.
+ * @return Constructed sub-view, or an empty view when @p size is zero.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        <tt>[offset, offset + size)</tt> is outside @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_view_t
+lh_memory_view_make_from_offset(const lh_memory_view_t *self, lh_uoffset_t offset,
+                                lh_usize_t size);
+
+/**
+ * @brief Build a view with @p n bytes removed from the beginning.
+ *
+ * If @p n equals the source size, the returned view is empty.
+ *
+ * @param self Source view.
+ * @param n    Number of bytes to remove from the beginning.
+ * @return Source view without the first @p n bytes.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p n is greater than the source view size.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_view_t
+lh_memory_view_drop_first(const lh_memory_view_t *self, lh_usize_t n);
+
+/**
+ * @brief Build a view with @p n bytes removed from the end.
+ *
+ * If @p n equals the source size, the returned view is empty.
+ *
+ * @param self Source view.
+ * @param n    Number of bytes to remove from the end.
+ * @return Source view without the last @p n bytes.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p n is greater than the source view size.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_view_t
+lh_memory_view_drop_last(const lh_memory_view_t *self, lh_usize_t n);
+
+/**
+ * @brief Build a view with bytes removed from both sides.
+ *
+ * If @p left + @p right equals the source size, the returned view is empty.
+ *
+ * @param self  Source view.
+ * @param left  Number of bytes to remove from the beginning.
+ * @param right Number of bytes to remove from the end.
+ * @return Trimmed source view.
+ *
+ * @throw ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @throw ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p left + @p right is greater than the source view size.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_view_t
+lh_memory_view_trim(const lh_memory_view_t *self, lh_usize_t left, lh_usize_t right);
 
 LH_COMPILER_EXTERN_C_END
 
