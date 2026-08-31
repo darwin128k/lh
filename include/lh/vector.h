@@ -120,15 +120,34 @@ lh_void
 lh_vector_reserve(lh_vector_t *self, lh_usize_t min_capacity);
 
 /**
+ * @brief Compute the capacity @p self would grow to for a given minimum.
+ *
+ * No-op-equivalent when @p capacity already satisfies @p min_capacity (returns
+ * @p capacity unchanged). Otherwise applies the vector's amortized growth
+ * policy: @c max(min_capacity, capacity * ::LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR)
+ * (or ::LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY when @p capacity is zero).
+ *
+ * This is a pure query — it performs no allocation. Callers can use it to
+ * predict or replicate the exact capacity a future insertion would grow to,
+ * without mutating a vector.
+ *
+ * @param capacity     Current capacity.
+ * @param min_capacity Minimum capacity that must be reached.
+ * @return Capacity to reserve: @p capacity itself, or the grown capacity.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_usize_t
+lh_vector_get_grown_capacity(lh_usize_t capacity, lh_usize_t min_capacity);
+
+/**
  * @brief Insert @p count contiguous elements at @p index, shifting later
  *        elements right by @p count.
  *
  * The one real insertion primitive: ::lh_vector_push_back_of and
  * ::lh_vector_insert are both expressed in terms of this function. Grows the
- * vector at most once for the whole batch when needed: capacity becomes
- * @c max(size + count, capacity * ::LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR)
- * (or ::LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY from empty), via ::lh_vector_reserve.
- * Passing @p index equal to the current size appends.
+ * vector at most once for the whole batch when needed, via
+ * ::lh_vector_get_grown_capacity and ::lh_vector_reserve. Passing @p index
+ * equal to the current size appends.
  *
  * @param self   Vector to insert into.
  * @param index  Position to insert at; must be <= ::lh_vector_get_size.

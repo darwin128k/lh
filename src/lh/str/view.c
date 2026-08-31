@@ -182,7 +182,7 @@ lh_str_view_find_null_terminator(const lh_str_view_t *self)
     lh_str_cptr data = lh_str_view_get_data(self);
     lh_str_cptr ptr = lh_str_ptr_find_of_null_terminator_by_size(data, size);
 
-    return lh_ptr_is_set(ptr) ? lh_ptr_udiff(ptr, lh_str_view_get_data(self)) : LH_STR_VIEW_INVALID;
+    return lh_ptr_is_set(ptr) ? lh_ptr_udiff(ptr, data) : LH_STR_VIEW_INVALID;
 }
 
 lh_bool_t

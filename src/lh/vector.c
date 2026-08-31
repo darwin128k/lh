@@ -67,6 +67,17 @@ lh_vector_reserve(lh_vector_t *self, lh_usize_t min_capacity)
     lh_memory_typed_allocated_resize(lh_addr_of(self->typed), min_capacity);
 }
 
+lh_usize_t
+lh_vector_get_grown_capacity(lh_usize_t capacity, lh_usize_t min_capacity)
+{
+    lh_return_if(capacity >= min_capacity, capacity);
+
+    const lh_usize_t policy_capacity = lh_math_is_zero(capacity)
+                                           ? LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY
+                                           : lh_math_mul(capacity, LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR);
+    return policy_capacity > min_capacity ? policy_capacity : min_capacity;
+}
+
 lh_void
 lh_vector_insert_of(lh_vector_t *self, lh_uindex_t index, const lh_ptr values, lh_usize_t count)
 {
@@ -80,11 +91,7 @@ lh_vector_insert_of(lh_vector_t *self, lh_uindex_t index, const lh_ptr values, l
     const lh_usize_t capacity = lh_vector_get_capacity(self);
     if (capacity < new_size)
     {
-        const lh_usize_t policy_capacity = lh_math_is_zero(capacity)
-                                               ? LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY
-                                               : lh_math_mul(capacity, LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR);
-        const lh_usize_t new_capacity = policy_capacity > new_size ? policy_capacity : new_size;
-        lh_vector_reserve(self, new_capacity);
+        lh_vector_reserve(self, lh_vector_get_grown_capacity(capacity, new_size));
     }
 
     if (index < size)
