@@ -89,7 +89,7 @@ lh_vector_insert_of(lh_vector_t *self, lh_uindex_t index, const lh_ptr values, l
 
     if (index < size)
     {
-        lh_memory_typed_move(lh_addr_of(self->typed), lh_math_add(index, count), index,
+        lh_memory_typed_move_within(lh_addr_of(self->typed), lh_math_add(index, count), index,
                              lh_math_sub(size, index));
     }
 
@@ -159,7 +159,7 @@ lh_vector_erase(lh_vector_t *self, lh_uindex_t index, lh_ptr dst)
     const lh_usize_t tail_count = lh_math_sub(size, lh_math_add_one(index));
     if (lh_math_is_positive(tail_count))
     {
-        lh_memory_typed_move(lh_addr_of(self->typed), index, lh_math_add_one(index), tail_count);
+        lh_memory_typed_move_within(lh_addr_of(self->typed), index, lh_math_add_one(index), tail_count);
     }
 
     self->size = lh_math_sub_one(size);
