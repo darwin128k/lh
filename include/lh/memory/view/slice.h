@@ -1246,8 +1246,7 @@ lh_memory_view_slice_swap_v(lh_memory_view_slice_t *self, lh_memory_view_slice_t
  */
 LH_ATTRIBUTE_SYMBOL
 lh_void
-lh_memory_view_slice_swap_and_clear(lh_memory_view_slice_t *self,
-                                    lh_memory_view_slice_t *other);
+lh_memory_view_slice_swap_and_clear(lh_memory_view_slice_t *self, lh_memory_view_slice_t *other);
 
 /**
  * @brief Build a slice containing the first @p n bytes of a valid closed range.

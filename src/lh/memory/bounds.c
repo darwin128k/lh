@@ -169,7 +169,8 @@ lh_memory_bounds_contains_of(const lh_memory_bounds_t *self, const lh_ptr begin,
 }
 
 lh_bool_t
-lh_memory_bounds_contains_range(const lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end)
+lh_memory_bounds_contains_range(const lh_memory_bounds_t *self, const lh_ptr begin,
+                                const lh_ptr end)
 {
     return lh_memory_bounds_contains_of(self, begin, end);
 }

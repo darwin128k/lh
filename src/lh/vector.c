@@ -42,7 +42,8 @@ lh_vector_get_data(const lh_vector_t *self)
 lh_ptr
 lh_vector_get_end(const lh_vector_t *self)
 {
-    const lh_usize_t used_bytes = lh_math_mul(lh_vector_get_size(self), lh_vector_get_type_size(self));
+    const lh_usize_t used_bytes =
+        lh_math_mul(lh_vector_get_size(self), lh_vector_get_type_size(self));
     return lh_ptr_add_by_offset_unsafe(lh_void, lh_vector_get_begin(self), used_bytes);
 }
 
@@ -72,9 +73,9 @@ lh_vector_get_grown_capacity(lh_usize_t capacity, lh_usize_t min_capacity)
 {
     lh_return_if(capacity >= min_capacity, capacity);
 
-    const lh_usize_t policy_capacity = lh_math_is_zero(capacity)
-                                           ? LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY
-                                           : lh_math_mul(capacity, LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR);
+    const lh_usize_t policy_capacity =
+        lh_math_is_zero(capacity) ? LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY
+                                  : lh_math_mul(capacity, LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR);
     return policy_capacity > min_capacity ? policy_capacity : min_capacity;
 }
 
@@ -97,7 +98,7 @@ lh_vector_insert_of(lh_vector_t *self, lh_uindex_t index, const lh_ptr values, l
     if (index < size)
     {
         lh_memory_typed_move_within(lh_addr_of(self->typed), lh_math_add(index, count), index,
-                             lh_math_sub(size, index));
+                                    lh_math_sub(size, index));
     }
 
     lh_memory_typed_set_values(lh_addr_of(self->typed), index, values, count);
@@ -166,7 +167,8 @@ lh_vector_erase(lh_vector_t *self, lh_uindex_t index, lh_ptr dst)
     const lh_usize_t tail_count = lh_math_sub(size, lh_math_add_one(index));
     if (lh_math_is_positive(tail_count))
     {
-        lh_memory_typed_move_within(lh_addr_of(self->typed), index, lh_math_add_one(index), tail_count);
+        lh_memory_typed_move_within(lh_addr_of(self->typed), index, lh_math_add_one(index),
+                                    tail_count);
     }
 
     self->size = lh_math_sub_one(size);

@@ -298,8 +298,7 @@ lh_memory_bounds_slice_is_multiple_of(const lh_memory_bounds_slice_t *self, lh_u
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_memory_bounds_slice_is_begin_aligned(const lh_memory_bounds_slice_t *self,
-                                                lh_usize_t align);
+lh_memory_bounds_slice_is_begin_aligned(const lh_memory_bounds_slice_t *self, lh_usize_t align);
 
 /**
  * @brief True if both endpoints are aligned to @p align.

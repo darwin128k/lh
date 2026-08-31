@@ -11,7 +11,8 @@ lh_void
 lh_memory_typed_allocated_resize(lh_memory_typed_allocated_t *self, lh_usize_t count)
 {
     const lh_usize_t type_size = lh_memory_typed_get_type_size(self);
-    lh_memory_bounds_allocated_resize(lh_memory_typed_get_bounds(self), lh_math_mul(count, type_size));
+    lh_memory_bounds_allocated_resize(lh_memory_typed_get_bounds(self),
+                                      lh_math_mul(count, type_size));
 }
 
 lh_void

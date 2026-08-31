@@ -1355,8 +1355,7 @@ lh_memory_view_make_between(const lh_memory_view_t *self, const lh_ptr begin, co
  */
 LH_ATTRIBUTE_SYMBOL
 lh_memory_view_t
-lh_memory_view_make_from_offset(const lh_memory_view_t *self, lh_uoffset_t offset,
-                                lh_usize_t size);
+lh_memory_view_make_from_offset(const lh_memory_view_t *self, lh_uoffset_t offset, lh_usize_t size);
 
 /**
  * @brief Build a view with @p n bytes removed from the beginning.

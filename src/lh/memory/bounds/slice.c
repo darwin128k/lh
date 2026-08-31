@@ -358,8 +358,7 @@ lh_memory_bounds_slice_is_multiple_of(const lh_memory_bounds_slice_t *self, lh_u
 }
 
 lh_bool_t
-lh_memory_bounds_slice_is_begin_aligned(const lh_memory_bounds_slice_t *self,
-                                                lh_usize_t align)
+lh_memory_bounds_slice_is_begin_aligned(const lh_memory_bounds_slice_t *self, lh_usize_t align)
 {
     const lh_memory_view_slice_t *s = lh_ptr_ccast(lh_memory_view_slice_t, self);
     return lh_memory_view_slice_is_begin_aligned(s, align);
