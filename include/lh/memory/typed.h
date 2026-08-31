@@ -152,6 +152,16 @@ LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_typed_value_equals(const lh_memory_typed_t *self, lh_uindex_t index, const lh_ptr other);
 
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_typed_set_values(lh_memory_typed_t *self, lh_uindex_t index, const lh_ptr values,
+                           lh_usize_t count);
+
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_typed_move(lh_memory_typed_t *self, lh_uindex_t dst_index, lh_uindex_t src_index,
+                     lh_usize_t count);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_MEMORY_TYPED_H */

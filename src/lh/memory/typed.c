@@ -286,3 +286,40 @@ lh_memory_typed_value_equals(const lh_memory_typed_t *self, lh_uindex_t index, c
     const lh_ptr other_end = lh_ptr_add_by_offset_unsafe(lh_void, other, type_size);
     return lh_ptr_is_null(lh_memory_bounds_compare_range(lh_addr_of(value_bounds), other, other_end));
 }
+
+lh_void
+lh_memory_typed_set_values(lh_memory_typed_t *self, lh_uindex_t index, const lh_ptr values,
+                           lh_usize_t count)
+{
+    lh_return_if(lh_math_is_zero(count));
+
+    lh_assert_runtime_ifn(lh_math_le(lh_math_add(index, count), lh_memory_typed_get_size(self)),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+
+    const lh_usize_t byte_count = lh_math_mul(count, lh_memory_typed_get_type_size(self));
+    lh_ptr dst_begin = lh_memory_typed_get_ptr_from_begin(self, index);
+    lh_memory_bounds_t dest = lh_memory_bounds_make_by_size(dst_begin, byte_count);
+    const lh_memory_bounds_t source =
+        lh_memory_bounds_make_by_size(lh_cast_const(lh_ptr, values), byte_count);
+    lh_memory_bounds_copy(lh_addr_of(dest), lh_addr_of(source));
+}
+
+lh_void
+lh_memory_typed_move(lh_memory_typed_t *self, lh_uindex_t dst_index, lh_uindex_t src_index,
+                     lh_usize_t count)
+{
+    lh_return_if(lh_math_is_zero(count));
+
+    const lh_usize_t size = lh_memory_typed_get_size(self);
+    lh_assert_runtime_ifn(lh_math_le(lh_math_add(dst_index, count), size),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+    lh_assert_runtime_ifn(lh_math_le(lh_math_add(src_index, count), size),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+
+    const lh_usize_t byte_count = lh_math_mul(count, lh_memory_typed_get_type_size(self));
+    lh_ptr src_begin = lh_memory_typed_get_ptr_from_begin(self, src_index);
+    lh_ptr src_end = lh_ptr_add_by_offset_unsafe(lh_void, src_begin, byte_count);
+    lh_ptr dst_begin = lh_memory_typed_get_ptr_from_begin(self, dst_index);
+    lh_memory_bounds_t dest = lh_memory_bounds_make_by_size(dst_begin, byte_count);
+    lh_memory_bounds_move_range(lh_addr_of(dest), src_begin, src_end);
+}

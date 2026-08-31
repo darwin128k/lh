@@ -1,10 +1,7 @@
 #include <lh/vector.h>
-#include <lh/memory/raw.h>
 #include <lh/util/math.h>
 #include <lh/util/return.h>
 #include <lh/util/ptr.h>
-#include <lh/attribute/static.h>
-#include <lh/cast/const.h>
 #include <lh/config.h>
 #include <lh/assert.h>
 
@@ -70,21 +67,6 @@ lh_vector_reserve(lh_vector_t *self, lh_usize_t min_capacity)
     lh_memory_typed_allocated_resize(lh_addr_of(self->typed), min_capacity);
 }
 
-LH_ATTRIBUTE_STATIC
-lh_void
-lh_vector_grow_to_at_least(lh_vector_t *self, lh_usize_t min_capacity)
-{
-    const lh_usize_t capacity = lh_vector_get_capacity(self);
-    lh_return_if(capacity >= min_capacity);
-
-    const lh_usize_t policy_capacity = lh_math_is_zero(capacity)
-                                           ? LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY
-                                           : lh_math_mul(capacity, LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR);
-    const lh_usize_t new_capacity =
-        policy_capacity > min_capacity ? policy_capacity : min_capacity;
-    lh_vector_reserve(self, new_capacity);
-}
-
 lh_void
 lh_vector_insert_of(lh_vector_t *self, lh_uindex_t index, const lh_ptr values, lh_usize_t count)
 {
@@ -93,28 +75,25 @@ lh_vector_insert_of(lh_vector_t *self, lh_uindex_t index, const lh_ptr values, l
                           lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
     lh_return_if(lh_math_is_zero(count));
 
-    const lh_usize_t type_size = lh_vector_get_type_size(self);
     const lh_usize_t new_size = lh_math_add(size, count);
-    lh_vector_grow_to_at_least(self, new_size);
+
+    const lh_usize_t capacity = lh_vector_get_capacity(self);
+    if (capacity < new_size)
+    {
+        const lh_usize_t policy_capacity = lh_math_is_zero(capacity)
+                                               ? LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY
+                                               : lh_math_mul(capacity, LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR);
+        const lh_usize_t new_capacity = policy_capacity > new_size ? policy_capacity : new_size;
+        lh_vector_reserve(self, new_capacity);
+    }
 
     if (index < size)
     {
-        const lh_usize_t move_bytes = lh_math_mul(lh_math_sub(size, index), type_size);
-        const lh_usize_t shift_bytes = lh_math_mul(count, type_size);
-        lh_ptr src_begin = lh_vector_get_ptr(self, index);
-        lh_ptr src_end = lh_ptr_add_by_offset_unsafe(lh_void, src_begin, move_bytes);
-        lh_ptr dst_begin = lh_ptr_add_by_offset_unsafe(lh_void, src_begin, shift_bytes);
-        lh_ptr dst_end = lh_ptr_add_by_offset_unsafe(lh_void, dst_begin, move_bytes);
-        lh_memory_raw_move(dst_begin, dst_end, src_begin, src_end);
+        lh_memory_typed_move(lh_addr_of(self->typed), lh_math_add(index, count), index,
+                             lh_math_sub(size, index));
     }
 
-    lh_ptr insert_begin =
-        lh_ptr_add_by_offset_unsafe(lh_void, lh_vector_get_begin(self), lh_math_mul(index, type_size));
-    lh_memory_bounds_t dest =
-        lh_memory_bounds_make_by_size(insert_begin, lh_math_mul(count, type_size));
-    const lh_memory_bounds_t source = lh_memory_bounds_make_by_size(lh_cast_const(lh_ptr, values),
-                                                                    lh_math_mul(count, type_size));
-    lh_memory_bounds_copy(lh_addr_of(dest), lh_addr_of(source));
+    lh_memory_typed_set_values(lh_addr_of(self->typed), index, values, count);
 
     self->size = new_size;
 }
@@ -180,13 +159,7 @@ lh_vector_erase(lh_vector_t *self, lh_uindex_t index, lh_ptr dst)
     const lh_usize_t tail_count = lh_math_sub(size, lh_math_add_one(index));
     if (lh_math_is_positive(tail_count))
     {
-        const lh_usize_t type_size = lh_vector_get_type_size(self);
-        const lh_usize_t move_bytes = lh_math_mul(tail_count, type_size);
-        lh_ptr dst_begin = lh_vector_get_ptr(self, index);
-        lh_ptr src_begin = lh_ptr_add_by_offset_unsafe(lh_void, dst_begin, type_size);
-        lh_ptr src_end = lh_ptr_add_by_offset_unsafe(lh_void, src_begin, move_bytes);
-        lh_ptr dst_end = lh_ptr_add_by_offset_unsafe(lh_void, dst_begin, move_bytes);
-        lh_memory_raw_move(dst_begin, dst_end, src_begin, src_end);
+        lh_memory_typed_move(lh_addr_of(self->typed), index, lh_math_add_one(index), tail_count);
     }
 
     self->size = lh_math_sub_one(size);
