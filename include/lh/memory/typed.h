@@ -113,6 +113,14 @@ lh_void
 lh_memory_typed_retype(lh_memory_typed_t *self, lh_usize_t type_size);
 
 LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_typed_clear(lh_memory_typed_t *self);
+
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_typed_init_empty(lh_memory_typed_t *self, lh_usize_t type_size);
+
+LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_t
 lh_memory_typed_get_value_bounds(const lh_memory_typed_t *self, lh_uindex_t index);
 

@@ -175,6 +175,19 @@ lh_memory_typed_retype(lh_memory_typed_t *self, lh_usize_t type_size)
 }
 
 lh_void
+lh_memory_typed_clear(lh_memory_typed_t *self)
+{
+    lh_memory_bounds_clear(lh_memory_typed_get_bounds(self));
+}
+
+lh_void
+lh_memory_typed_init_empty(lh_memory_typed_t *self, lh_usize_t type_size)
+{
+    lh_memory_typed_clear(self);
+    lh_memory_typed_retype(self, type_size);
+}
+
+lh_void
 lh_memory_typed_set(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size)
 {
     const lh_memory_bounds_t bounds = lh_memory_bounds_initializer(begin, end);
