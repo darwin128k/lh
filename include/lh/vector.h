@@ -120,11 +120,31 @@ lh_void
 lh_vector_reserve(lh_vector_t *self, lh_usize_t min_capacity);
 
 /**
+ * @brief Insert @p count contiguous elements at @p index, shifting later
+ *        elements right by @p count.
+ *
+ * The one real insertion primitive: ::lh_vector_push_back_of and
+ * ::lh_vector_insert are both expressed in terms of this function. Grows the
+ * vector at most once for the whole batch when needed: capacity becomes
+ * @c max(size + count, capacity * ::LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR)
+ * (or ::LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY from empty), via ::lh_vector_reserve.
+ * Passing @p index equal to the current size appends.
+ *
+ * @param self   Vector to insert into.
+ * @param index  Position to insert at; must be <= ::lh_vector_get_size.
+ * @param values Pointer to @p count contiguous values of the vector's element
+ *               type (not null unless @p count is 0); their bytes are copied
+ *               into the new slots.
+ * @param count  Number of elements to insert.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_vector_insert_of(lh_vector_t *self, lh_uindex_t index, const lh_ptr values, lh_usize_t count);
+
+/**
  * @brief Append @p count contiguous elements to the end of @p self.
  *
- * Grows the vector at most once for the whole batch when needed: capacity
- * becomes @c max(size + count, capacity * ::LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR)
- * (or ::LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY from empty), via ::lh_vector_reserve.
+ * Equivalent to ::lh_vector_insert_of at index ::lh_vector_get_size.
  *
  * @param self   Vector to append to.
  * @param values Pointer to @p count contiguous values of the vector's element
@@ -187,8 +207,7 @@ lh_vector_pop_back(lh_vector_t *self, lh_ptr dst);
 /**
  * @brief Insert @p value at @p index, shifting later elements right by one.
  *
- * Growing the vector (when full) follows the same policy as ::lh_vector_push_back.
- * Passing @p index equal to the current size appends, like push_back.
+ * Equivalent to ::lh_vector_insert_of with a count of 1.
  *
  * @param self  Vector to insert into.
  * @param index Position to insert at; must be <= ::lh_vector_get_size.
