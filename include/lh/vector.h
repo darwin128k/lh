@@ -56,6 +56,34 @@ lh_usize_t
 lh_vector_get_type_size(const lh_vector_t *self);
 
 /**
+ * @brief Return a pointer to the first element.
+ * @param self Vector to inspect.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_vector_get_begin(const lh_vector_t *self);
+
+/**
+ * @brief Alias for ::lh_vector_get_begin.
+ * @param self Vector to inspect.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_vector_get_data(const lh_vector_t *self);
+
+/**
+ * @brief Return a pointer one past the last element in use.
+ *
+ * Unlike the underlying typed storage (whose end sits at @c capacity), this
+ * reflects @c size, matching begin/end iteration idioms.
+ *
+ * @param self Vector to inspect.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_vector_get_end(const lh_vector_t *self);
+
+/**
  * @brief True when @p self has no elements in use.
  * @param self Vector to inspect.
  */

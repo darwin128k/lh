@@ -9,8 +9,10 @@
  * **Manual build (no CMake):** copy this file to `config.h` and substitute every
  * CMake-style placeholder (at-sign delimited identifiers) with decimal integers:
  * version macros from the root `VERSION` file; library options use `0` or `1`
- * except `LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX`, which must be > 0,
- * and the `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_*` trio, which take raw
+ * except `LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX` (must be > 0),
+ * `LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY` (must be > 0), and
+ * `LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR` (must be > 1); the
+ * `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_*` trio takes raw
  * C tokens instead (e.g. `malloc`, `free`, `<stdlib.h>`).
  *
  * Also defines ::LH_CHAR_BITS (from `CHAR_BIT` in `<limits.h>`) unless you
@@ -136,6 +138,22 @@
  * @note The value must be greater than zero.
  */
 #define LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX @ValCatchStackMax@
+
+/**
+ * @def LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY
+ * @brief Capacity ::lh_vector_t grows to from empty on its first insertion.
+ *
+ * @note The value must be greater than zero.
+ */
+#define LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY @ValVectorInitialCapacity@
+
+/**
+ * @def LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR
+ * @brief Factor by which ::lh_vector_t capacity grows once full.
+ *
+ * @note The value must be greater than one.
+ */
+#define LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR @ValVectorGrowthFactor@
 
 #endif /* LH_CONFIG_H */
 

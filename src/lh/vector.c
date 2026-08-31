@@ -3,6 +3,8 @@
 #include <lh/util/math.h>
 #include <lh/util/return.h>
 #include <lh/util/ptr.h>
+#include <lh/attribute/static.h>
+#include <lh/config.h>
 #include <lh/assert.h>
 
 lh_usize_t
@@ -26,6 +28,26 @@ lh_vector_get_type_size(const lh_vector_t *self)
     return lh_memory_typed_get_type_size(lh_addr_of(self->typed));
 }
 
+lh_ptr
+lh_vector_get_begin(const lh_vector_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_memory_typed_get_begin(lh_addr_of(self->typed));
+}
+
+lh_ptr
+lh_vector_get_data(const lh_vector_t *self)
+{
+    return lh_vector_get_begin(self);
+}
+
+lh_ptr
+lh_vector_get_end(const lh_vector_t *self)
+{
+    const lh_usize_t used_bytes = lh_math_mul(lh_vector_get_size(self), lh_vector_get_type_size(self));
+    return lh_ptr_add_by_offset_unsafe(lh_void, lh_vector_get_begin(self), used_bytes);
+}
+
 lh_bool_t
 lh_vector_is_empty(const lh_vector_t *self)
 {
@@ -47,14 +69,23 @@ lh_vector_reserve(lh_vector_t *self, lh_usize_t min_capacity)
     lh_memory_typed_allocated_resize(lh_addr_of(self->typed), min_capacity);
 }
 
+LH_ATTRIBUTE_STATIC
+lh_void
+lh_vector_grow_if_full(lh_vector_t *self, lh_usize_t size)
+{
+    lh_return_if(size != lh_vector_get_capacity(self));
+
+    const lh_usize_t new_capacity = lh_math_is_zero(size)
+                                        ? LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY
+                                        : lh_math_mul(size, LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR);
+    lh_vector_reserve(self, new_capacity);
+}
+
 lh_void
 lh_vector_push_back(lh_vector_t *self, const lh_ptr value)
 {
     const lh_usize_t size = lh_vector_get_size(self);
-    if (size == lh_vector_get_capacity(self))
-    {
-        lh_vector_reserve(self, lh_math_is_zero(size) ? 1 : lh_math_mul(size, 2));
-    }
+    lh_vector_grow_if_full(self, size);
 
     lh_memory_typed_set_value(lh_addr_of(self->typed), size, value);
     self->size = lh_math_add_one(size);
@@ -95,10 +126,7 @@ lh_vector_insert(lh_vector_t *self, lh_uindex_t index, const lh_ptr value)
     lh_assert_runtime_ifn(index <= size,
                           lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
 
-    if (size == lh_vector_get_capacity(self))
-    {
-        lh_vector_reserve(self, lh_math_is_zero(size) ? 1 : lh_math_mul(size, 2));
-    }
+    lh_vector_grow_if_full(self, size);
 
     if (index < size)
     {

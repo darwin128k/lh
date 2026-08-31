@@ -21,6 +21,18 @@ const lh_memory_bounds_t *
 lh_memory_typed_get_bounds_as_const(const lh_memory_typed_t *self);
 
 LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_typed_get_begin(const lh_memory_typed_t *self);
+
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_typed_get_data(const lh_memory_typed_t *self);
+
+LH_ATTRIBUTE_SYMBOL
+lh_ptr
+lh_memory_typed_get_end(const lh_memory_typed_t *self);
+
+LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_memory_typed_get_type_size(const lh_memory_typed_t *self);
 

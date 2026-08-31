@@ -63,6 +63,9 @@ function(lh_generate_config)
 
     set(ValCatchStackMax "${LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX}")
 
+    set(ValVectorInitialCapacity "${LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY}")
+    set(ValVectorGrowthFactor "${LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR}")
+
     set(_in "${CMAKE_CURRENT_SOURCE_DIR}/include/lh/config.h.in")
     set(_out "${CMAKE_CURRENT_SOURCE_DIR}/include/lh/config.h")
     configure_file("${_in}" "${_out}" @ONLY)

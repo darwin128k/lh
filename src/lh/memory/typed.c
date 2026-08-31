@@ -21,6 +21,24 @@ lh_memory_typed_get_bounds_as_const(const lh_memory_typed_t *self)
     return lh_addr_of(self->bounds);
 }
 
+lh_ptr
+lh_memory_typed_get_begin(const lh_memory_typed_t *self)
+{
+    return lh_memory_bounds_get_begin(lh_memory_typed_get_bounds_as_const(self));
+}
+
+lh_ptr
+lh_memory_typed_get_data(const lh_memory_typed_t *self)
+{
+    return lh_memory_typed_get_begin(self);
+}
+
+lh_ptr
+lh_memory_typed_get_end(const lh_memory_typed_t *self)
+{
+    return lh_memory_bounds_get_end(lh_memory_typed_get_bounds_as_const(self));
+}
+
 lh_usize_t
 lh_memory_typed_get_type_size(const lh_memory_typed_t *self)
 {

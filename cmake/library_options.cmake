@@ -101,3 +101,27 @@ option(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED
 # -----------------------------------------------------------------------------
 set(LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX "16" CACHE STRING
         "Maximum depth of lh runtime exception catch stack (must be > 0).")
+
+# -----------------------------------------------------------------------------
+# LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY
+#
+# Capacity lh_vector_t grows to from empty on its first push_back/insert
+# (src/lh/vector.c). Must be a positive decimal integer.
+#
+# CMake: -DLH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY=4 or ccmake.
+# Manual build: set in include/lh/config.h or -D on the compiler command line.
+# -----------------------------------------------------------------------------
+set(LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY "1" CACHE STRING
+        "Capacity lh_vector_t grows to from empty on first insertion (must be > 0).")
+
+# -----------------------------------------------------------------------------
+# LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR
+#
+# Factor by which lh_vector_t capacity grows once full (src/lh/vector.c).
+# Must be a decimal integer greater than 1.
+#
+# CMake: -DLH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR=3 or ccmake.
+# Manual build: set in include/lh/config.h or -D on the compiler command line.
+# -----------------------------------------------------------------------------
+set(LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR "2" CACHE STRING
+        "Factor by which lh_vector_t capacity grows when full (must be > 1).")
