@@ -137,6 +137,10 @@ lh_memory_bounds_t
 lh_memory_typed_get_value_bounds(const lh_memory_typed_t *self, lh_uindex_t index);
 
 LH_ATTRIBUTE_SYMBOL
+lh_memory_bounds_t
+lh_memory_typed_get_range_bounds(const lh_memory_typed_t *self, lh_uindex_t index, lh_usize_t count);
+
+LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_typed_set_value(lh_memory_typed_t *self, lh_uindex_t index, const lh_ptr value);
 
