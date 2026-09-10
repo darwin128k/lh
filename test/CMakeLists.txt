@@ -56,6 +56,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/net/ip.cpp
         ${LH_TEST_SRC_PATH}/lh/net/port.cpp
         ${LH_TEST_SRC_PATH}/lh/net/socket/addr/ip4.cpp
+        ${LH_TEST_SRC_PATH}/lh/net/socket/addr.cpp
 )
 
 # Build the test executable.

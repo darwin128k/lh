@@ -99,6 +99,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/net/ip.c
         ${LH_LIB_SRC_PATH}/net/port.c
         ${LH_LIB_SRC_PATH}/net/socket/addr/ip4.c
+        ${LH_LIB_SRC_PATH}/net/socket/addr.c
 
         ${LH_LIB_SRC_PATH}/lh.c
 )
