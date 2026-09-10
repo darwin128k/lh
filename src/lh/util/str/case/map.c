@@ -4,6 +4,7 @@
 #include <lh/char/case/pair.h>
 #include <lh/util/array/ptr.h>
 #include <lh/assert.h>
+#include <lh/cast/static.h>
 
 static const lh_char_case_pair_t m_char_to_lower_table[] = {
     /* clang-format off */
@@ -33,36 +34,39 @@ static const lh_char_case_pair_t m_char_to_lower_table[] = {
     { 88U, 120U },
     { 89U, 121U },
     { 90U, 122U },
-    { 192U, 224U },
-    { 193U, 225U },
-    { 194U, 226U },
-    { 195U, 227U },
-    { 196U, 228U },
-    { 197U, 229U },
-    { 198U, 230U },
-    { 199U, 231U },
-    { 200U, 232U },
-    { 201U, 233U },
-    { 202U, 234U },
-    { 203U, 235U },
-    { 204U, 236U },
-    { 205U, 237U },
-    { 206U, 238U },
-    { 207U, 239U },
-    { 208U, 240U },
-    { 209U, 241U },
-    { 210U, 242U },
-    { 211U, 243U },
-    { 212U, 244U },
-    { 213U, 245U },
-    { 214U, 246U },
-    { 216U, 248U },
-    { 217U, 249U },
-    { 218U, 250U },
-    { 219U, 251U },
-    { 220U, 252U },
-    { 221U, 253U },
-    { 222U, 254U },
+    /* 128..255 written as their lh_char_t (signed 8-bit) values: v - 256 for v in [128, 255],
+     * so the initializer is well-defined instead of relying on implementation-defined narrowing
+     * of an out-of-range unsigned literal into a signed char. */
+    { -64, -32 },
+    { -63, -31 },
+    { -62, -30 },
+    { -61, -29 },
+    { -60, -28 },
+    { -59, -27 },
+    { -58, -26 },
+    { -57, -25 },
+    { -56, -24 },
+    { -55, -23 },
+    { -54, -22 },
+    { -53, -21 },
+    { -52, -20 },
+    { -51, -19 },
+    { -50, -18 },
+    { -49, -17 },
+    { -48, -16 },
+    { -47, -15 },
+    { -46, -14 },
+    { -45, -13 },
+    { -44, -12 },
+    { -43, -11 },
+    { -42, -10 },
+    { -40, -8 },
+    { -39, -7 },
+    { -38, -6 },
+    { -37, -5 },
+    { -36, -4 },
+    { -35, -3 },
+    { -34, -2 },
     /* clang-format on */
 };
 static const lh_usize_t m_char_to_lower_table_size = lh_array_ptr_get_size(m_char_to_lower_table);
@@ -95,36 +99,39 @@ static const lh_char_case_pair_t m_char_to_upper_table[] = {
     { 120U, 88U },
     { 121U, 89U },
     { 122U, 90U },
-    { 224U, 192U },
-    { 225U, 193U },
-    { 226U, 194U },
-    { 227U, 195U },
-    { 228U, 196U },
-    { 229U, 197U },
-    { 230U, 198U },
-    { 231U, 199U },
-    { 232U, 200U },
-    { 233U, 201U },
-    { 234U, 202U },
-    { 235U, 203U },
-    { 236U, 204U },
-    { 237U, 205U },
-    { 238U, 206U },
-    { 239U, 207U },
-    { 240U, 208U },
-    { 241U, 209U },
-    { 242U, 210U },
-    { 243U, 211U },
-    { 244U, 212U },
-    { 245U, 213U },
-    { 246U, 214U },
-    { 248U, 216U },
-    { 249U, 217U },
-    { 250U, 218U },
-    { 251U, 219U },
-    { 252U, 220U },
-    { 253U, 221U },
-    { 254U, 222U },
+    /* 128..255 written as their lh_char_t (signed 8-bit) values: v - 256 for v in [128, 255],
+     * so the initializer is well-defined instead of relying on implementation-defined narrowing
+     * of an out-of-range unsigned literal into a signed char. */
+    { -32, -64 },
+    { -31, -63 },
+    { -30, -62 },
+    { -29, -61 },
+    { -28, -60 },
+    { -27, -59 },
+    { -26, -58 },
+    { -25, -57 },
+    { -24, -56 },
+    { -23, -55 },
+    { -22, -54 },
+    { -21, -53 },
+    { -20, -52 },
+    { -19, -51 },
+    { -18, -50 },
+    { -17, -49 },
+    { -16, -48 },
+    { -15, -47 },
+    { -14, -46 },
+    { -13, -45 },
+    { -12, -44 },
+    { -11, -43 },
+    { -10, -42 },
+    { -8, -40 },
+    { -7, -39 },
+    { -6, -38 },
+    { -5, -37 },
+    { -4, -36 },
+    { -3, -35 },
+    { -2, -34 },
     /* clang-format on */
 };
 static const lh_usize_t m_char_to_upper_table_size = lh_array_ptr_get_size(m_char_to_upper_table);
@@ -143,7 +150,8 @@ lh_str_ptr_to_lower(lh_str_ptr str, lh_usize_t n)
         lh_bool_t is_founded = lh_bool_false;
 
         lh_interval_ropen_binary_search(lh_usize_t, m_char_to_lower_table,
-                                        m_char_to_lower_table_size, c, first, r, is_founded);
+                                        m_char_to_lower_table_size, lh_cast_static(lh_usize_t, c),
+                                        first, r, is_founded);
 
         *p++ = is_founded ? r.second : c;
     }
@@ -165,7 +173,8 @@ lh_str_ptr_to_upper(lh_str_ptr str, lh_usize_t n)
         lh_bool_t is_founded = lh_bool_false;
 
         lh_interval_ropen_binary_search(lh_usize_t, m_char_to_upper_table,
-                                        m_char_to_upper_table_size, c, first, r, is_founded);
+                                        m_char_to_upper_table_size, lh_cast_static(lh_usize_t, c),
+                                        first, r, is_founded);
 
         *p++ = is_founded ? r.second : c;
     }

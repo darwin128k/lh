@@ -121,8 +121,12 @@
  *        into a one-element wide string literal (@c L#c).
  *
  * @param c Character token (e.g. @c a → @c L"a").
+ *
+ * @note Written as @c L""#c rather than @c L#c: adjacent string-literal
+ *       concatenation joins the empty wide literal with the stringized
+ *       token into one wide literal, avoiding MSVC C5104 on @c L#c.
  */
-#define lh_wstr_ptr_lit(c) L#c
+#define lh_wstr_ptr_lit(c) L"" #c
 
 /**
  * @brief Like ::lh_wstr_ptr_lit for several tokens

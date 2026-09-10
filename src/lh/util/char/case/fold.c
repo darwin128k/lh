@@ -4,6 +4,7 @@
 #include <lh/size.h>
 #include <lh/char/case/pair.h>
 #include <lh/util/array/ptr.h>
+#include <lh/cast/static.h>
 
 static const lh_char_case_pair_t m_char_case_fold_table[] = {
     /* clang-format off */
@@ -33,36 +34,39 @@ static const lh_char_case_pair_t m_char_case_fold_table[] = {
     { 88U, 120U },
     { 89U, 121U },
     { 90U, 122U },
-    { 192U, 224U },
-    { 193U, 225U },
-    { 194U, 226U },
-    { 195U, 227U },
-    { 196U, 228U },
-    { 197U, 229U },
-    { 198U, 230U },
-    { 199U, 231U },
-    { 200U, 232U },
-    { 201U, 233U },
-    { 202U, 234U },
-    { 203U, 235U },
-    { 204U, 236U },
-    { 205U, 237U },
-    { 206U, 238U },
-    { 207U, 239U },
-    { 208U, 240U },
-    { 209U, 241U },
-    { 210U, 242U },
-    { 211U, 243U },
-    { 212U, 244U },
-    { 213U, 245U },
-    { 214U, 246U },
-    { 216U, 248U },
-    { 217U, 249U },
-    { 218U, 250U },
-    { 219U, 251U },
-    { 220U, 252U },
-    { 221U, 253U },
-    { 222U, 254U },
+    /* 128..255 written as their lh_char_t (signed 8-bit) values: v - 256 for v in [128, 255],
+     * so the initializer is well-defined instead of relying on implementation-defined narrowing
+     * of an out-of-range unsigned literal into a signed char. */
+    { -64, -32 },
+    { -63, -31 },
+    { -62, -30 },
+    { -61, -29 },
+    { -60, -28 },
+    { -59, -27 },
+    { -58, -26 },
+    { -57, -25 },
+    { -56, -24 },
+    { -55, -23 },
+    { -54, -22 },
+    { -53, -21 },
+    { -52, -20 },
+    { -51, -19 },
+    { -50, -18 },
+    { -49, -17 },
+    { -48, -16 },
+    { -47, -15 },
+    { -46, -14 },
+    { -45, -13 },
+    { -44, -12 },
+    { -43, -11 },
+    { -42, -10 },
+    { -40, -8 },
+    { -39, -7 },
+    { -38, -6 },
+    { -37, -5 },
+    { -36, -4 },
+    { -35, -3 },
+    { -34, -2 },
     /* clang-format on */
 };
 static const lh_usize_t m_char_case_fold_table_size = lh_array_ptr_get_size(m_char_case_fold_table);
@@ -73,8 +77,11 @@ lh_char_fold_case(lh_char_t c)
     lh_char_case_pair_t r;
     lh_bool_t is_founded = lh_bool_false;
 
+    /* Key cast to lh_usize_t (the macro's own `type`) so it undergoes the same signed -> unsigned
+     * conversion as the table's lh_char_t field does inside the macro; matches by construction
+     * instead of mixing signed/unsigned operands in the comparison. */
     lh_interval_ropen_binary_search(lh_usize_t, m_char_case_fold_table, m_char_case_fold_table_size,
-                                    c, first, r, is_founded);
+                                    lh_cast_static(lh_usize_t, c), first, r, is_founded);
 
     if (is_founded)
     {
