@@ -26,6 +26,7 @@ add_subdirectory(${LH_TEST_LIB_PATH}/googletest)
 # Test runner sources.
 set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/main.cpp
+        ${LH_TEST_SRC_PATH}/lh/char/digit.cpp
         ${LH_TEST_SRC_PATH}/lh/error.cpp
         ${LH_TEST_SRC_PATH}/lh/exception.cpp
         ${LH_TEST_SRC_PATH}/lh/exception/catch.cpp
@@ -47,6 +48,14 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/util/str/case/map.cpp
         ${LH_TEST_SRC_PATH}/lh/util/wstr/ptr.cpp
         ${LH_TEST_SRC_PATH}/lh/wchar/case/map.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/parse/uint.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/format/uint.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/format/sint.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/format/hex.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/format/text.cpp
+        ${LH_TEST_SRC_PATH}/lh/net/ip.cpp
+        ${LH_TEST_SRC_PATH}/lh/net/port.cpp
+        ${LH_TEST_SRC_PATH}/lh/net/socket/addr.cpp
 )
 
 # Build the test executable.

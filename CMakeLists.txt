@@ -83,12 +83,22 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/util/wchar/case/fold.c
         ${LH_LIB_SRC_PATH}/util/wstr/case/map.c
         ${LH_LIB_SRC_PATH}/util/wstr/ptr.c
+        ${LH_LIB_SRC_PATH}/char/digit.c
         ${LH_LIB_SRC_PATH}/util/char/case/fold.c
         ${LH_LIB_SRC_PATH}/util/str/case/map.c
         ${LH_LIB_SRC_PATH}/util/str/ptr.c
         ${LH_LIB_SRC_PATH}/util/wchar.c
         ${LH_LIB_SRC_PATH}/str/view.c
         ${LH_LIB_SRC_PATH}/str.c
+        ${LH_LIB_SRC_PATH}/str/parse/uint.c
+        ${LH_LIB_SRC_PATH}/str/format/uint.c
+        ${LH_LIB_SRC_PATH}/str/format/sint.c
+        ${LH_LIB_SRC_PATH}/str/format/hex.c
+        ${LH_LIB_SRC_PATH}/str/format/text.c
+
+        ${LH_LIB_SRC_PATH}/net/ip.c
+        ${LH_LIB_SRC_PATH}/net/port.c
+        ${LH_LIB_SRC_PATH}/net/socket/addr.c
 
         ${LH_LIB_SRC_PATH}/lh.c
 )
