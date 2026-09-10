@@ -1,60 +1,66 @@
 /**
- * @file addr.h
- * @brief Socket address (IP + port) value type: parse and format.
+ * @file ip4.h
+ * @brief IPv4 socket address (IP + port) value type: parse and format.
  *
  * Protocol-agnostic — TCP vs UDP is a property of the socket you make with
  * this address, not of the address itself, so it is not stored here.
  *
- * @note IPv4 only for now (::lh_net_ip4_t). IPv6 needs extra fields (flow
- *       info, scope id) that do not fit this shape, so it is not a drop-in
- *       extension of this struct — it will be its own type when it exists.
+ * Named with the IP version (`ip4`), not just `lh_net_socket_addr_t`,
+ * because IPv6 needs extra fields (flow info, scope id) this shape doesn't
+ * have — it will be its own ::lh_net_ip4_socket_addr-shaped-but-not-identical
+ * type sharing ::lh_net_socket_addr_fields for the `ip`/`port` part, not a
+ * drop-in extension of this one. The unversioned `lh_net_socket_addr` name
+ * stays free for a future tagged union of the two (mirrors Rust's
+ * `Ipv4Addr`/`SocketAddrV4`/`SocketAddrV6` vs the version-agnostic `SocketAddr`).
  */
 
-#ifndef LH_NET_SOCKET_ADDR_H
-#define LH_NET_SOCKET_ADDR_H
+#ifndef LH_NET_SOCKET_ADDR_IP4_H
+#define LH_NET_SOCKET_ADDR_IP4_H
 
 #include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/net/ip.h>
 #include <lh/net/port.h>
+#include <lh/net/socket/addr/fields.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
 
 /**
- * @def LH_NET_SOCKET_ADDR_TEXT_MAX
+ * @def LH_NET_IP4_SOCKET_ADDR_TEXT_MAX
  * @brief Longest `ip:port` text, excluding a NUL terminator.
  *
  * ::LH_NET_IP4_TEXT_MAX (15) + `:` (1) + longest port `65535` (5) = 21.
  */
-#define LH_NET_SOCKET_ADDR_TEXT_MAX (LH_NET_IP4_TEXT_MAX + 1U + 5U)
+#define LH_NET_IP4_SOCKET_ADDR_TEXT_MAX (LH_NET_IP4_TEXT_MAX + 1U + 5U)
 
 /**
- * @struct lh_net_socket_addr
- * @typedef lh_net_socket_addr_t
+ * @struct lh_net_ip4_socket_addr
+ * @typedef lh_net_ip4_socket_addr_t
  * @brief An ::lh_net_ip4_t paired with an ::lh_net_port_t.
+ *
+ * Fields injected via ::lh_net_socket_addr_fields.
  */
-struct lh_net_socket_addr
+struct lh_net_ip4_socket_addr
 {
-    lh_net_ip4_t ip;
-    lh_net_port_t port;
+    lh_net_socket_addr_fields(lh_net_ip4_t);
 };
-typedef struct lh_net_socket_addr lh_net_socket_addr_t;
+typedef struct lh_net_ip4_socket_addr lh_net_ip4_socket_addr_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
 /* ── construct / set ─────────────────────────────────────────────────────── */
 
 /**
- * @brief Construct an ::lh_net_socket_addr_t from an IP and a port.
+ * @brief Construct an ::lh_net_ip4_socket_addr_t from an IP and a port.
  *
  * @param ip   IP address.
  * @param port Port number.
- * @return Constructed ::lh_net_socket_addr_t value.
+ * @return Constructed ::lh_net_ip4_socket_addr_t value.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_net_socket_addr_t
-lh_net_socket_addr_make(const lh_net_ip4_t *ip, lh_net_port_t port);
+lh_net_ip4_socket_addr_t
+lh_net_ip4_socket_addr_make(const lh_net_ip4_t *ip, lh_net_port_t port);
 
 /**
  * @brief Replace both the IP and the port of @p self.
@@ -65,7 +71,8 @@ lh_net_socket_addr_make(const lh_net_ip4_t *ip, lh_net_port_t port);
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_net_socket_addr_set(lh_net_socket_addr_t *self, const lh_net_ip4_t *ip, lh_net_port_t port);
+lh_net_ip4_socket_addr_set(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *ip,
+                           lh_net_port_t port);
 
 /**
  * @brief Copy the address state from @p other into @p self.
@@ -74,7 +81,8 @@ lh_net_socket_addr_set(lh_net_socket_addr_t *self, const lh_net_ip4_t *ip, lh_ne
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_net_socket_addr_assign(lh_net_socket_addr_t *self, const lh_net_socket_addr_t *other);
+lh_net_ip4_socket_addr_assign(lh_net_ip4_socket_addr_t *self,
+                              const lh_net_ip4_socket_addr_t *other);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
 
@@ -85,7 +93,7 @@ lh_net_socket_addr_assign(lh_net_socket_addr_t *self, const lh_net_socket_addr_t
  */
 LH_ATTRIBUTE_SYMBOL
 lh_net_ip4_t
-lh_net_socket_addr_get_ip(const lh_net_socket_addr_t *self);
+lh_net_ip4_socket_addr_get_ip(const lh_net_ip4_socket_addr_t *self);
 
 /**
  * @brief Replace the IP address stored in @p self.
@@ -94,7 +102,7 @@ lh_net_socket_addr_get_ip(const lh_net_socket_addr_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_net_socket_addr_set_ip(lh_net_socket_addr_t *self, const lh_net_ip4_t *ip);
+lh_net_ip4_socket_addr_set_ip(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *ip);
 
 /**
  * @brief Return the port stored in @p self.
@@ -103,7 +111,7 @@ lh_net_socket_addr_set_ip(lh_net_socket_addr_t *self, const lh_net_ip4_t *ip);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_net_port_t
-lh_net_socket_addr_get_port(const lh_net_socket_addr_t *self);
+lh_net_ip4_socket_addr_get_port(const lh_net_ip4_socket_addr_t *self);
 
 /**
  * @brief Replace the port stored in @p self.
@@ -112,7 +120,7 @@ lh_net_socket_addr_get_port(const lh_net_socket_addr_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_net_socket_addr_set_port(lh_net_socket_addr_t *self, lh_net_port_t port);
+lh_net_ip4_socket_addr_set_port(lh_net_ip4_socket_addr_t *self, lh_net_port_t port);
 
 /* ── parse / format / compare ────────────────────────────────────────────── */
 
@@ -131,7 +139,7 @@ lh_net_socket_addr_set_port(lh_net_socket_addr_t *self, lh_net_port_t port);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_net_socket_addr_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_socket_addr_t *out);
+lh_net_ip4_socket_addr_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_ip4_socket_addr_t *out);
 
 /**
  * @brief Format @p self as `ip:port` text.
@@ -144,7 +152,8 @@ lh_net_socket_addr_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_socket_add
  */
 LH_ATTRIBUTE_SYMBOL
 lh_usize_t
-lh_net_socket_addr_format(const lh_net_socket_addr_t *self, lh_str_ptr str, lh_usize_t str_size);
+lh_net_ip4_socket_addr_format(const lh_net_ip4_socket_addr_t *self, lh_str_ptr str,
+                              lh_usize_t str_size);
 
 /**
  * @brief Test whether @p self and @p other hold the same IP and port.
@@ -155,8 +164,9 @@ lh_net_socket_addr_format(const lh_net_socket_addr_t *self, lh_str_ptr str, lh_u
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_net_socket_addr_equals(const lh_net_socket_addr_t *self, const lh_net_socket_addr_t *other);
+lh_net_ip4_socket_addr_equals(const lh_net_ip4_socket_addr_t *self,
+                              const lh_net_ip4_socket_addr_t *other);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_NET_SOCKET_ADDR_H */
+#endif /* LH_NET_SOCKET_ADDR_IP4_H */
