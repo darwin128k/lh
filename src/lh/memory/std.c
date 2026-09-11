@@ -45,7 +45,11 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
     lh_ptr end = lh_ptr_add_unsafe(lh_void, dst, n);
 
 #if LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB
-    __movsb((unsigned char *)dst, (const unsigned char *)src, n);
+    /* __movsb's own declared signature is unsigned char* / const unsigned char* (fixed by
+     * <intrin.h>, not ours to change) — lh_uchar_t is a plain typedef of unsigned char
+     * (lh/char.h), so this cast is the same reinterpretation either way, just spelled with
+     * this file's own type alias instead of the raw C one, same as lh_algorithm_copy below. */
+    __movsb((lh_uchar_t *)dst, (const lh_uchar_t *)src, n);
 #else
     lh_algorithm_copy(lh_uchar_t, dst, src, n);
 #endif
