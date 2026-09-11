@@ -44,8 +44,20 @@ set(LH_BENCH_SOURCES
         ${LH_BENCH_SRC_PATH}/lh/str/format/hex.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/format/text.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/parse/uint.cpp
+        ${LH_BENCH_SRC_PATH}/lh/str/view.cpp
+        ${LH_BENCH_SRC_PATH}/lh/str/ptr.cpp
+        ${LH_BENCH_SRC_PATH}/lh/wstr/ptr.cpp
         ${LH_BENCH_SRC_PATH}/lh/net/ip.cpp
+        ${LH_BENCH_SRC_PATH}/lh/net/port.cpp
+        ${LH_BENCH_SRC_PATH}/lh/net/socket/addr.cpp
         ${LH_BENCH_SRC_PATH}/lh/io/stream.cpp
+        ${LH_BENCH_SRC_PATH}/lh/memory/allocator.cpp
+        ${LH_BENCH_SRC_PATH}/lh/memory/bounds.cpp
+        ${LH_BENCH_SRC_PATH}/lh/memory/bounds/allocated.cpp
+        ${LH_BENCH_SRC_PATH}/lh/memory/typed.cpp
+        ${LH_BENCH_SRC_PATH}/lh/memory/typed/allocated.cpp
+        ${LH_BENCH_SRC_PATH}/lh/memory/view.cpp
+        ${LH_BENCH_SRC_PATH}/lh/vector.cpp
 )
 
 add_executable(${PROJECT_NAME} ${LH_BENCH_SOURCES})
