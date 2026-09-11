@@ -1,6 +1,7 @@
 #include <lh/net/socket/addr/ip4.h>
 #include <lh/assert.h>
-#include <lh/str/format/text.h>
+#include <lh/memory/std.h>
+#include <lh/str/format/uint.h>
 #include <lh/str/split/next.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -104,22 +105,57 @@ lh_usize_t
 lh_net_ip4_socket_addr_format(const lh_net_ip4_socket_addr_t *self, lh_str_ptr str,
                               lh_usize_t str_size)
 {
+    /* Was lh_str_ptr_format_text(str, str_size, "%u.%u.%u.%u:%u", ...) — reparses that fixed
+     * five-conversion format string from scratch on every call. Same fix as
+     * lh_net_ip4_format: call lh_str_ptr_format_uint directly and splice in '.'/':' by hand.
+     * Builds into a fixed-size scratch buffer first and only copies out once the full result
+     * is known to fit — all-or-nothing on failure, same as lh_net_ip4_format. */
+    lh_char_t scratch[LH_NET_IP4_SOCKET_ADDR_TEXT_MAX];
     lh_net_ip4_t ip;
+    lh_usize_t pos = 0;
+    lh_usize_t octet_index;
+    lh_usize_t written;
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(str);
 
     ip = lh_net_ip4_socket_addr_get_ip(self);
 
-    /* Octets/port are narrower than int; variadic default promotion takes them to plain int,
-     * not lh_uint_t (the type %u reads via va_arg) — cast each one explicitly. */
-    return lh_str_ptr_format_text(
-        str, str_size, "%u.%u.%u.%u:%u",
-        (lh_uint_t)lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_0),
-        (lh_uint_t)lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_1),
-        (lh_uint_t)lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_2),
-        (lh_uint_t)lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_3),
-        (lh_uint_t)lh_net_ip4_socket_addr_get_port(self));
+    for (octet_index = 0; octet_index < LH_NET_IP4_OCTET_COUNT; octet_index++)
+    {
+        if (octet_index > 0)
+        {
+            scratch[pos] = '.';
+            pos++;
+        }
+
+        written = lh_str_ptr_format_uint((lh_uint_t)lh_net_ip4_get_octet(lh_addr_of(ip), octet_index),
+                                         scratch + pos, LH_NET_IP4_SOCKET_ADDR_TEXT_MAX - pos);
+        if (written == 0)
+        {
+            return 0; /* unreachable: each octet is <= 3 digits and scratch always has room */
+        }
+        pos += written;
+    }
+
+    scratch[pos] = ':';
+    pos++;
+
+    written = lh_str_ptr_format_uint((lh_uint_t)lh_net_ip4_socket_addr_get_port(self), scratch + pos,
+                                     LH_NET_IP4_SOCKET_ADDR_TEXT_MAX - pos);
+    if (written == 0)
+    {
+        return 0; /* unreachable: a port is <= 5 digits and scratch always has room */
+    }
+    pos += written;
+
+    if (pos > str_size)
+    {
+        return 0;
+    }
+
+    lh_memory_std_copy(str, scratch, pos);
+    return pos;
 }
 
 lh_bool_t
