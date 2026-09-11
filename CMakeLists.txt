@@ -8,6 +8,11 @@ project(lh
 include(cmake/version.cmake)
 include(cmake/config.cmake)
 include(cmake/library_options.cmake)
+include(cmake/check_simd.cmake)
+
+# Compile-only SIMD tier probes (see cmake/check_simd.cmake) — sets
+# LH_SIMD_HAVE_SSE2 / LH_SIMD_HAVE_AVX2, consumed by lh_generate_config() below.
+lh_check_simd()
 
 # ---------------------------------------------------------------------------
 

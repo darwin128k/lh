@@ -80,6 +80,18 @@ function(lh_generate_config)
         set(ValWstrCaseMapUseTable 0)
     endif ()
 
+    if (LH_SIMD_HAVE_SSE2)
+        set(ValSimdHaveSse2 1)
+    else ()
+        set(ValSimdHaveSse2 0)
+    endif ()
+
+    if (LH_SIMD_HAVE_AVX2)
+        set(ValSimdHaveAvx2 1)
+    else ()
+        set(ValSimdHaveAvx2 0)
+    endif ()
+
     set(_in "${CMAKE_CURRENT_SOURCE_DIR}/include/lh/config.h.in")
     set(_out "${CMAKE_CURRENT_SOURCE_DIR}/include/lh/config.h")
     configure_file("${_in}" "${_out}" @ONLY)

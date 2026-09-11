@@ -15,6 +15,10 @@
  * `LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK` (must be > 0); the
  * `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_*` trio takes raw
  * C tokens instead (e.g. `malloc`, `free`, `<stdlib.h>`).
+ * `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` / `_AVX2` are toolchain capability probes
+ * (see `cmake/check_simd.cmake`) — for a manual build, `0` is always a safe
+ * (if slower) default; set `1` only once you have confirmed the toolchain
+ * actually compiles that tier's intrinsics for your target.
  *
  * Also defines ::LH_CHAR_BITS (from `CHAR_BIT` in `<limits.h>`) unless you
  * predefine `LH_CHAR_BITS` for a freestanding or unusual toolchain.
@@ -182,6 +186,33 @@
  *        ~23KB — not really smaller, just simpler lookup code).
  */
 #define LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE @ValWstrCaseMapUseTable@
+
+/**
+ * @def LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+ * @brief Whether this toolchain, for this target, can compile the SSE2 tier used by
+ *        ::lh_memory_std_compare / ::lh_memory_std_rcompare (::LH_LIBRARY_OPTION_OFF /
+ *        ::LH_LIBRARY_OPTION_ON).
+ *
+ * Set by a compile-only probe (`cmake/check_simd.cmake`, never executed — safe under
+ * cross-compilation) that checks whether the compiler accepts the tier's intrinsics
+ * and its runtime CPU-feature-detection mechanism. This is a toolchain *capability*,
+ * not a promise that the CPU running the resulting binary has SSE2 — on 32-bit x86
+ * that is still checked at runtime before the tier is ever used; on x86-64 SSE2 is
+ * part of the baseline ISA and needs no runtime check.
+ */
+#define LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 @ValSimdHaveSse2@
+
+/**
+ * @def LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+ * @brief Whether this toolchain, for this target, can compile the AVX2 tier used by
+ *        ::lh_memory_std_compare / ::lh_memory_std_rcompare (::LH_LIBRARY_OPTION_OFF /
+ *        ::LH_LIBRARY_OPTION_ON).
+ *
+ * Same compile-only probe as ::LH_LIBRARY_OPTION_SIMD_HAVE_SSE2. AVX2 is never part of
+ * any baseline ISA, so it is always guarded by a runtime CPU-feature check regardless
+ * of pointer width.
+ */
+#define LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 @ValSimdHaveAvx2@
 
 #endif /* LH_CONFIG_H */
 

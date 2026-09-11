@@ -189,16 +189,17 @@ TEST(memory_std_compare, mismatch_in_tail_after_full_blocks)
 }
 
 /*
- * On a machine whose CPU has AVX2, lh_memory_std_compare dispatches to a 32-bytes-
- * at-a-time AVX2 kernel (src/lh/memory/std.c) instead of the scalar
- * LH_ALGORITHM_COMPARE_BLOCK path above — through the same public entry point, so
- * these cases exercise it for real there. On a machine without AVX2 (as it happens,
- * the one this suite was authored and last run on — checked directly with
- * __builtin_cpu_supports("avx2"), which returned false), dispatch falls back to the
- * scalar path and these just add more scalar coverage instead; either way the
- * result must be identical, which is the actual property under test. Sized and
- * positioned specifically to land mismatches in different AVX2 lanes/chunks that
- * the <=40-byte cases above never reach: 96 bytes = three full 32-byte AVX2 chunks.
+ * lh_memory_std_compare dispatches, at runtime, to the widest tier this CPU
+ * actually has: AVX2 (32 bytes/step) if available, else SSE2 (16 bytes/step) if
+ * available, else the scalar LH_ALGORITHM_COMPARE_BLOCK path above — through the
+ * same public entry point, so these cases exercise whichever tier this machine
+ * resolves to for real. On the machine this suite was authored and last run on
+ * (checked directly with __builtin_cpu_supports), that's SSE2: no AVX2, but SSE2 is
+ * baseline on x86-64 and needs no runtime check at all. Either way the result must
+ * be identical regardless of tier, which is the actual property under test. Sized
+ * and positioned specifically to land mismatches in different lanes/chunks that the
+ * <=40-byte cases above never reach: 96 bytes = three full 32-byte AVX2 chunks (and
+ * six full 16-byte SSE2 chunks).
  */
 
 TEST(memory_std_compare, equal_across_multiple_avx2_chunks)
@@ -269,6 +270,130 @@ TEST(memory_std_rcompare, returns_tail_mismatch_first)
     ASSERT_TRUE(lh_null_ne(d));
     EXPECT_EQ(d, static_cast<const lh_ptr>(&a[3]));
     EXPECT_EQ(*static_cast<const lh_uchar_t *>(d), 9);
+}
+
+/*
+ * lh_memory_std_rcompare's own SSE2/AVX2 tiers (src/lh/memory/std.c) scan from the
+ * end: each 16-/32-byte block covers the range ending at (and including) the
+ * current position, and — since the scan direction is high-to-low addresses — a
+ * mismatch is resolved via a *highest*-set-bit scan within the block, not a lowest-
+ * set-bit one like lh_memory_std_compare. These cases mirror the
+ * lh_memory_std_compare block/tail/AVX2-chunk cases above, adapted for that: the
+ * "first-scanned" block/chunk here is the one nearest the *end* of the range, and
+ * the scalar tail this falls back to (after consuming whole blocks from the end)
+ * sits at the *start* of the range instead of the end.
+ */
+
+TEST(memory_std_rcompare, equal_across_multiple_blocks)
+{
+    std::vector<lh_uchar_t> a(40);
+    std::vector<lh_uchar_t> b(40);
+    for (lh_usize_t i = 0; i < a.size(); ++i)
+    {
+        a[i] = b[i] = static_cast<lh_uchar_t>(i);
+    }
+    const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
+    EXPECT_TRUE(lh_null_eq(d));
+}
+
+TEST(memory_std_rcompare, equal_at_exact_block_boundary)
+{
+    std::vector<lh_uchar_t> a(16, 0x7A);
+    std::vector<lh_uchar_t> b(16, 0x7A);
+    const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
+    EXPECT_TRUE(lh_null_eq(d));
+}
+
+TEST(memory_std_rcompare, mismatch_at_last_byte_of_block)
+{
+    std::vector<lh_uchar_t> a(16, 0);
+    std::vector<lh_uchar_t> b(16, 0);
+    a[15] = 9; // highest offset in the (only) block: found via the highest-set-bit scan
+    const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
+    ASSERT_TRUE(lh_null_ne(d));
+    EXPECT_EQ(d, static_cast<const lh_ptr>(&a[15]));
+}
+
+TEST(memory_std_rcompare, mismatch_at_first_byte_of_block)
+{
+    std::vector<lh_uchar_t> a(16, 0);
+    std::vector<lh_uchar_t> b(16, 0);
+    a[0] = 9; // lowest offset in the (only) block
+    const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
+    ASSERT_TRUE(lh_null_ne(d));
+    EXPECT_EQ(d, static_cast<const lh_ptr>(&a[0]));
+}
+
+TEST(memory_std_rcompare, mismatch_in_second_scanned_block)
+{
+    std::vector<lh_uchar_t> a(32, 0);
+    std::vector<lh_uchar_t> b(32, 0);
+    a[0] = 9; // block [16..31] (scanned first, nearest the end) must compare equal first
+    const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
+    ASSERT_TRUE(lh_null_ne(d));
+    EXPECT_EQ(d, static_cast<const lh_ptr>(&a[0]));
+}
+
+TEST(memory_std_rcompare, mismatch_in_scalar_tail_after_full_blocks)
+{
+    std::vector<lh_uchar_t> a(20, 0); // one full 16-byte block (scanned first) + 4-byte tail
+    std::vector<lh_uchar_t> b(20, 0);
+    a[2] = 9; // tail sits at the *start* of the range for a reverse scan
+    const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
+    ASSERT_TRUE(lh_null_ne(d));
+    EXPECT_EQ(d, static_cast<const lh_ptr>(&a[2]));
+}
+
+TEST(memory_std_rcompare, equal_across_multiple_avx2_chunks)
+{
+    std::vector<lh_uchar_t> a(96);
+    std::vector<lh_uchar_t> b(96);
+    for (lh_usize_t i = 0; i < a.size(); ++i)
+    {
+        a[i] = b[i] = static_cast<lh_uchar_t>(i * 7);
+    }
+    const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
+    EXPECT_TRUE(lh_null_eq(d));
+}
+
+TEST(memory_std_rcompare, mismatch_at_last_lane_of_first_scanned_chunk)
+{
+    std::vector<lh_uchar_t> a(96, 0);
+    std::vector<lh_uchar_t> b(96, 0);
+    a[95] = 9; // very end of the range: highest lane of the chunk scanned first ([64..95])
+    const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
+    ASSERT_TRUE(lh_null_ne(d));
+    EXPECT_EQ(d, static_cast<const lh_ptr>(&a[95]));
+}
+
+TEST(memory_std_rcompare, mismatch_at_first_lane_of_first_scanned_chunk)
+{
+    std::vector<lh_uchar_t> a(96, 0);
+    std::vector<lh_uchar_t> b(96, 0);
+    a[64] = 9; // lowest offset of the chunk scanned first ([64..95])
+    const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
+    ASSERT_TRUE(lh_null_ne(d));
+    EXPECT_EQ(d, static_cast<const lh_ptr>(&a[64]));
+}
+
+TEST(memory_std_rcompare, mismatch_in_middle_avx2_chunk)
+{
+    std::vector<lh_uchar_t> a(96, 0);
+    std::vector<lh_uchar_t> b(96, 0);
+    a[50] = 9; // chunk [64..95] (scanned first) must compare equal first
+    const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
+    ASSERT_TRUE(lh_null_ne(d));
+    EXPECT_EQ(d, static_cast<const lh_ptr>(&a[50]));
+}
+
+TEST(memory_std_rcompare, mismatch_in_scalar_tail_after_avx2_chunks)
+{
+    std::vector<lh_uchar_t> a(100, 0); // 96 = 3 AVX2 chunks (scanned first), 4-byte tail
+    std::vector<lh_uchar_t> b(100, 0);
+    a[1] = 9; // tail sits at the *start* of the range for a reverse scan
+    const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
+    ASSERT_TRUE(lh_null_ne(d));
+    EXPECT_EQ(d, static_cast<const lh_ptr>(&a[1]));
 }
 
 #if LH_TEST_EXPECT_DEATH_ENABLED

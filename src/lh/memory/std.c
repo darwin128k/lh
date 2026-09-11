@@ -2,24 +2,146 @@
 #include <lh/util/algorithm.h>
 #include <lh/assert.h>
 #include <lh/compiler/type.h>
+#include <lh/compiler/arch.h>
 #include <lh/compiler/arch/family.h>
+#include <lh/config.h>
 
-/* Real SIMD, runtime-dispatched: only where it can be done safely and portably —
- * GCC/Clang's __builtin_cpu_supports (checks CPUID *and* that the OS has actually
- * enabled AVX register state via XGETBV/XCR0, not just the raw feature bit) plus a
- * per-function __attribute__((target(...))), which asks the compiler for AVX2 code
- * generation in that one function only, without needing -mavx2 anywhere in the
- * project's build flags. See lh_memory_std_compare below for why this is worth
- * doing at all (an 11x+ throughput gap measured against lh_memory_std_copy on the
- * same data, with no SIMD instructions in the compiler's own output). Everywhere
- * this isn't available (non-x86, or a compiler other than GCC/Clang) falls back to
- * the portable scalar path, unchanged. */
-#if LH_COMPILER_TYPE_IS_GCC_LIKE && LH_COMPILER_ARCH_FAMILY_IS_X86
-#    define LH_MEMORY_STD_HAVE_X86_SIMD 1
+/* Real SIMD, runtime-dispatched, for both GCC/Clang and MSVC: whether a tier's
+ * intrinsics + its runtime CPU-feature check are even compilable by this toolchain
+ * for this target is decided once, at CMake configure time, by a compile-only probe
+ * (cmake/check_simd.cmake — never executed, so it stays correct under cross-
+ * compilation) and recorded as LH_LIBRARY_OPTION_SIMD_HAVE_{SSE2,AVX2} in config.h.
+ * Which tier a given CPU can actually *run* is a separate, runtime-only question
+ * (checked below by lh_memory_std_cpu_has_sse2/avx2), because the machine that
+ * configured the build is not necessarily the machine that runs the binary.
+ *
+ * See lh_memory_std_compare below for why this is worth doing at all (a 7x+
+ * throughput gap measured for the SSE2 tier alone against the portable scalar
+ * block loop, on the same data, on this project's own GCC/MinGW toolchain — GCC's
+ * auto-vectorizer was tried and rejected for this job first: at -O3 it either
+ * declines to vectorize the scalar loop at all, or (once nudged into trying, via a
+ * target attribute) produces a bloated multi-versioned loop that measured no
+ * faster than the plain scalar path. Hand-written intrinsics, not autovectorization,
+ * are what actually pays off here). Everywhere no tier is compilable (non-x86, or
+ * an old toolchain without these intrinsics) falls back to the portable scalar
+ * path, unchanged, with none of the dispatch machinery below even compiled in. */
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 #    include <immintrin.h>
-#else
-#    define LH_MEMORY_STD_HAVE_X86_SIMD 0
+#    if LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
+#        include <intrin.h>
+#    endif
 #endif
+
+/* GCC/Clang ask for a specific ISA's code generation per function via a target
+ * attribute (no effect on any other function, no need for a global -msse2/-mavx2);
+ * MSVC has no such mechanism at all — its intrinsics simply compile to the matching
+ * instruction regardless of /arch, so the macro expands to nothing there. */
+#if LH_COMPILER_TYPE_IS_GCC_LIKE
+#    define LH_MEMORY_STD_SIMD_TARGET(isa) __attribute__((target(isa)))
+#else
+#    define LH_MEMORY_STD_SIMD_TARGET(isa)
+#endif
+
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+
+/* SSE2 is part of the mandatory baseline ISA on x86-64 (every x86-64 CPU has it,
+ * by architecture definition) but not on 32-bit x86, where it must still be
+ * checked at runtime like every other tier below. */
+#    if LH_COMPILER_ARCH_FAMILY_IS_X86 && (LH_COMPILER_ARCH == LH_COMPILER_ARCH_64)
+static int
+lh_memory_std_cpu_has_sse2(void)
+{
+    return 1;
+}
+#    elif LH_COMPILER_TYPE_IS_GCC_LIKE
+static int
+lh_memory_std_cpu_has_sse2(void)
+{
+    return __builtin_cpu_supports("sse2");
+}
+#    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
+static int
+lh_memory_std_cpu_has_sse2(void)
+{
+    int info[4];
+    __cpuid(info, 1);
+    return (info[3] >> 26) & 1; /* CPUID.1:EDX.SSE2 */
+}
+#    endif
+
+#endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
+
+#if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+
+/* AVX2 is never part of any baseline ISA — always a real runtime check. GCC/Clang's
+ * __builtin_cpu_supports already checks CPUID *and* that the OS has enabled AVX
+ * register state via XGETBV/XCR0, not just the raw feature bit; the MSVC branch
+ * below does the same check by hand, since MSVC has no equivalent builtin. */
+#    if LH_COMPILER_TYPE_IS_GCC_LIKE
+static int
+lh_memory_std_cpu_has_avx2(void)
+{
+    return __builtin_cpu_supports("avx2");
+}
+#    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
+static int
+lh_memory_std_cpu_has_avx2(void)
+{
+    int info[4];
+
+    __cpuid(info, 0);
+    if (info[0] < 7)
+    {
+        return 0; /* CPUID leaf 7 (structured extended features) not available */
+    }
+
+    __cpuid(info, 1);
+    if (!((info[2] >> 27) & 1) || !((info[2] >> 28) & 1))
+    {
+        return 0; /* no OSXSAVE, or no AVX */
+    }
+
+    if ((_xgetbv(0) & 0x6) != 0x6)
+    {
+        return 0; /* OS hasn't enabled XMM+YMM state (XCR0 bits 1-2) */
+    }
+
+    __cpuidex(info, 7, 0);
+    return (info[1] >> 5) & 1; /* CPUID.(EAX=7,ECX=0):EBX.AVX2 */
+}
+#    endif
+
+#endif /* LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
+
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+
+/* Portable "index of lowest/highest set bit" for the movemask results below —
+ * __builtin_ctz/clz (GCC/Clang) vs _BitScanForward/Reverse (MSVC), same operation. */
+static lh_usize_t
+lh_memory_std_bit_scan_forward(unsigned x)
+{
+#    if LH_COMPILER_TYPE_IS_GCC_LIKE
+    return (lh_usize_t)__builtin_ctz(x);
+#    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
+    unsigned long index;
+    _BitScanForward(&index, x);
+    return (lh_usize_t)index;
+#    endif
+}
+
+static lh_usize_t
+lh_memory_std_bit_scan_reverse(unsigned x)
+{
+#    if LH_COMPILER_TYPE_IS_GCC_LIKE
+    return (lh_usize_t)(31 - __builtin_clz(x));
+#    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
+    unsigned long index;
+    _BitScanReverse(&index, x);
+    return (lh_usize_t)index;
+#    endif
+}
+
+#endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
 /* lh_memory_std_copy's plain while(n--) *d++ = *s++; loop (still used as-is on every
  * other compiler, including GCC/Clang here) measured ~9x slower under MSVC /O2 /Oi /Ot
@@ -103,7 +225,7 @@ lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n)
     return end;
 }
 
-#if LH_MEMORY_STD_HAVE_X86_SIMD
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
 static const lh_ptr
 lh_memory_std_compare_scalar(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
@@ -112,13 +234,51 @@ lh_memory_std_compare_scalar(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
     return lh_null;
 }
 
-/* 32 bytes/compare via a single AVX2 packed-byte-equal + movemask, instead of the
+#    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+
+/* 16 bytes/compare via a single packed-byte-equal + movemask, instead of the
  * scalar block's 16 elements/compare via ILP alone — see lh_algorithm_compare's own
- * doc comment for that technique, which this still falls back to for the < 32-byte
- * tail (and for CPUs without AVX2, via the dispatch below). movemask turns the
- * 32-lane comparison into a 32-bit "which lanes matched" bitmap directly usable by
- * a single bit-scan, rather than needing any lane-by-lane branching at all. */
-__attribute__((target("avx2"))) static const lh_ptr
+ * doc comment for that technique. GCC's own auto-vectorizer was tried for this exact
+ * loop first (see the file-level comment above) and rejected: either it declines to
+ * vectorize at all, or it produces a bloated multi-versioned loop that measured no
+ * faster than the scalar path. This hand-written version is what actually measured
+ * a 7x+ win on this project's own benchmark data. Falls back to the scalar tail
+ * below the block width, and to plain scalar via the dispatch if not even SSE2 is
+ * available at runtime (32-bit x86 only — SSE2 is baseline on x86-64). */
+LH_MEMORY_STD_SIMD_TARGET("sse2") static const lh_ptr
+lh_memory_std_compare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
+{
+    const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs);
+    const lh_uchar_t *r = lh_ptr_ccast(lh_uchar_t, rhs);
+
+    while (n >= 16U)
+    {
+        const __m128i va = _mm_loadu_si128((const __m128i *)l);
+        const __m128i vb = _mm_loadu_si128((const __m128i *)r);
+        const unsigned eq_mask = (unsigned)_mm_movemask_epi8(_mm_cmpeq_epi8(va, vb));
+
+        if (eq_mask != 0xFFFFU)
+        {
+            return l + lh_memory_std_bit_scan_forward((~eq_mask) & 0xFFFFU);
+        }
+
+        l += 16;
+        r += 16;
+        n -= 16U;
+    }
+
+    return lh_memory_std_compare_scalar(l, r, n);
+}
+
+#    endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
+
+#    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+
+/* Same technique as the SSE2 tier above, twice the width. Falls back to plain
+ * scalar (not the SSE2 tier) for its <32-byte tail: mixing legacy (non-VEX) SSE
+ * encoding into an AVX2-attributed function risks an SSE/AVX transition penalty
+ * on older microarchitectures, so this stays on VEX-encoded/scalar code only. */
+LH_MEMORY_STD_SIMD_TARGET("avx2") static const lh_ptr
 lh_memory_std_compare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs);
@@ -132,7 +292,7 @@ lh_memory_std_compare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
         if (eq_mask != 0xFFFFFFFFU)
         {
-            return l + __builtin_ctz(~eq_mask);
+            return l + lh_memory_std_bit_scan_forward(~eq_mask);
         }
 
         l += 32;
@@ -142,6 +302,8 @@ lh_memory_std_compare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
     return lh_memory_std_compare_scalar(l, r, n);
 }
+
+#    endif /* LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
 typedef const lh_ptr (*lh_memory_std_compare_fn)(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
 
@@ -156,8 +318,24 @@ static lh_memory_std_compare_fn m_compare_impl = lh_memory_std_compare_dispatch;
 static const lh_ptr
 lh_memory_std_compare_dispatch(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
-    m_compare_impl =
-        __builtin_cpu_supports("avx2") ? lh_memory_std_compare_avx2 : lh_memory_std_compare_scalar;
+#    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+    if (lh_memory_std_cpu_has_avx2())
+    {
+        m_compare_impl = lh_memory_std_compare_avx2;
+    }
+    else
+#    endif
+#    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+        if (lh_memory_std_cpu_has_sse2())
+    {
+        m_compare_impl = lh_memory_std_compare_sse2;
+    }
+    else
+#    endif
+    {
+        m_compare_impl = lh_memory_std_compare_scalar;
+    }
+
     return m_compare_impl(lhs, rhs, n);
 }
 
@@ -170,7 +348,7 @@ lh_memory_std_compare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
     return m_compare_impl(lhs, rhs, n);
 }
 
-#else /* !LH_MEMORY_STD_HAVE_X86_SIMD */
+#else /* !(LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2) */
 
 const lh_ptr
 lh_memory_std_compare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
@@ -182,7 +360,135 @@ lh_memory_std_compare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
     return lh_null;
 }
 
-#endif /* LH_MEMORY_STD_HAVE_X86_SIMD */
+#endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
+
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+
+static const lh_ptr
+lh_memory_std_rcompare_scalar(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
+{
+    lh_algorithm_rcompare(lh_uchar_t, lhs, rhs, n);
+    return lh_null;
+}
+
+#    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+
+/* Mirrors lh_memory_std_compare_sse2, scanning from the end: the 16-byte block
+ * ending at (and including) the current position is loaded starting 15 bytes
+ * before it, so a mismatch is found with a *highest*-set-bit scan instead of a
+ * lowest-set-bit one — the mismatch closest to the end of the block is the first
+ * one this direction of scan should report. */
+LH_MEMORY_STD_SIMD_TARGET("sse2") static const lh_ptr
+lh_memory_std_rcompare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
+{
+    const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs) + (n - 1U);
+    const lh_uchar_t *r = lh_ptr_ccast(lh_uchar_t, rhs) + (n - 1U);
+
+    while (n >= 16U)
+    {
+        const lh_uchar_t *lb = l - 15;
+        const lh_uchar_t *rb = r - 15;
+
+        const __m128i va = _mm_loadu_si128((const __m128i *)lb);
+        const __m128i vb = _mm_loadu_si128((const __m128i *)rb);
+        const unsigned eq_mask = (unsigned)_mm_movemask_epi8(_mm_cmpeq_epi8(va, vb));
+
+        if (eq_mask != 0xFFFFU)
+        {
+            return lb + lh_memory_std_bit_scan_reverse((~eq_mask) & 0xFFFFU);
+        }
+
+        l -= 16;
+        r -= 16;
+        n -= 16U;
+    }
+
+    /* l/r are the tail's *last*-byte pointer (this is a reverse scan), but
+     * lh_memory_std_rcompare_scalar expects the tail's *base* pointer (it derives
+     * its own last-byte pointer as base + (n-1) internally) — undo that offset once
+     * here so the two don't compound. Matches lh_algorithm_rcompare's own tolerance
+     * for an out-of-range-but-never-dereferenced base pointer when n is 0. */
+    return lh_memory_std_rcompare_scalar(l - (n - 1U), r - (n - 1U), n);
+}
+
+#    endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
+
+#    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+
+/* Same technique as lh_memory_std_rcompare_sse2, twice the width; see
+ * lh_memory_std_compare_avx2 for why the tail falls back to scalar, not SSE2. */
+LH_MEMORY_STD_SIMD_TARGET("avx2") static const lh_ptr
+lh_memory_std_rcompare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
+{
+    const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs) + (n - 1U);
+    const lh_uchar_t *r = lh_ptr_ccast(lh_uchar_t, rhs) + (n - 1U);
+
+    while (n >= 32U)
+    {
+        const lh_uchar_t *lb = l - 31;
+        const lh_uchar_t *rb = r - 31;
+
+        const __m256i va = _mm256_loadu_si256((const __m256i *)lb);
+        const __m256i vb = _mm256_loadu_si256((const __m256i *)rb);
+        const unsigned eq_mask = (unsigned)_mm256_movemask_epi8(_mm256_cmpeq_epi8(va, vb));
+
+        if (eq_mask != 0xFFFFFFFFU)
+        {
+            return lb + lh_memory_std_bit_scan_reverse(~eq_mask);
+        }
+
+        l -= 32;
+        r -= 32;
+        n -= 32U;
+    }
+
+    /* See the matching comment in lh_memory_std_rcompare_sse2 above. */
+    return lh_memory_std_rcompare_scalar(l - (n - 1U), r - (n - 1U), n);
+}
+
+#    endif /* LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
+
+typedef const lh_ptr (*lh_memory_std_rcompare_fn)(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
+
+static const lh_ptr
+lh_memory_std_rcompare_dispatch(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
+
+static lh_memory_std_rcompare_fn m_rcompare_impl = lh_memory_std_rcompare_dispatch;
+
+static const lh_ptr
+lh_memory_std_rcompare_dispatch(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
+{
+#    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+    if (lh_memory_std_cpu_has_avx2())
+    {
+        m_rcompare_impl = lh_memory_std_rcompare_avx2;
+    }
+    else
+#    endif
+#    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+        if (lh_memory_std_cpu_has_sse2())
+    {
+        m_rcompare_impl = lh_memory_std_rcompare_sse2;
+    }
+    else
+#    endif
+    {
+        m_rcompare_impl = lh_memory_std_rcompare_scalar;
+    }
+
+    return m_rcompare_impl(lhs, rhs, n);
+}
+
+const lh_ptr
+lh_memory_std_rcompare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
+{
+    lh_assert_runtime_ref(lhs);
+    lh_assert_runtime_ref(rhs);
+
+    return m_rcompare_impl(lhs, rhs, n);
+}
+
+#else /* !(LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2) */
 
 const lh_ptr
 lh_memory_std_rcompare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
@@ -193,3 +499,5 @@ lh_memory_std_rcompare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
     lh_algorithm_rcompare(lh_uchar_t, lhs, rhs, n);
     return lh_null;
 }
+
+#endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
