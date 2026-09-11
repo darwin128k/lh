@@ -14,7 +14,9 @@
 #    define LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO 1     /* processor feature bits */
 #    define LH_CPU_SIMD_CPUID_LEAF_EXTENDED_FEATURES 7 /* AVX2 and newer feature bits */
 
-/* __cpuid/__cpuidex always fill info[] in this order: EAX, EBX, ECX, EDX. */
+/* __cpuid/__cpuidex's own fixed signature: void __cpuid(int cpuInfo[4], ...) —
+ * always exactly one int per register, filled in this order: EAX, EBX, ECX, EDX. */
+#    define LH_CPU_SIMD_CPUID_REGISTER_COUNT 4
 #    define LH_CPU_SIMD_CPUID_EAX 0
 #    define LH_CPU_SIMD_CPUID_EBX 1
 #    define LH_CPU_SIMD_CPUID_ECX 2
@@ -43,7 +45,7 @@ lh_cpu_simd_has_sse2(void)
 #    elif LH_COMPILER_TYPE_IS_GCC_LIKE
     return (lh_bool_t)__builtin_cpu_supports("sse2");
 #    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
-    int info[4];
+    int info[LH_CPU_SIMD_CPUID_REGISTER_COUNT];
     __cpuid(info, LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO);
     return (lh_bool_t)((info[LH_CPU_SIMD_CPUID_EDX] >> LH_CPU_SIMD_CPUID_EDX_SSE2_BIT) & 1);
 #    else
@@ -65,7 +67,7 @@ lh_cpu_simd_has_avx2(void)
 #    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
     /* Same check as __builtin_cpu_supports above, hand-rolled: MSVC has no
      * equivalent builtin. */
-    int info[4];
+    int info[LH_CPU_SIMD_CPUID_REGISTER_COUNT];
 
     __cpuid(info, LH_CPU_SIMD_CPUID_LEAF_MAX_FUNCTION);
     if (info[LH_CPU_SIMD_CPUID_EAX] < LH_CPU_SIMD_CPUID_LEAF_EXTENDED_FEATURES)
