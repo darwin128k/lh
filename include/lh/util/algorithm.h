@@ -10,20 +10,26 @@
 #define LH_UTIL_ALGORITHM_H
 
 #include <lh/bool.h>
+#include <lh/config.h>
 #include <lh/size.h>
 #include <lh/util/ptr.h>
 
 /**
  * @def LH_ALGORITHM_COMPARE_BLOCK
- * @brief Element block size ::lh_algorithm_compare / ::lh_algorithm_rcompare
- *        scan branchlessly before falling back to a precise, element-by-element
- *        scan of the block that turned out to differ.
+ * @brief Element block size ::lh_algorithm_compare (and the matching fast path in
+ *        ::lh_memory_find_step, src/lh/memory.c) scans branchlessly before falling
+ *        back to a precise, element-by-element scan of the block that turned out
+ *        to differ/match.
  *
  * Branchless (no early exit) so the compiler is free to auto-vectorize the
- * block loop; only the block containing a mismatch (if any) pays for a
+ * block loop; only the block containing a mismatch/hit (if any) pays for a
  * branch per element.
+ *
+ * Configurable via ::LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK
+ * (`-DLH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK=<n>` at CMake configure time,
+ * or edit `include/lh/config.h` directly on a non-CMake build).
  */
-#define LH_ALGORITHM_COMPARE_BLOCK 16U
+#define LH_ALGORITHM_COMPARE_BLOCK ((lh_usize_t)LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK)
 
 /**
  * @brief Swap two values using a temporary variable.

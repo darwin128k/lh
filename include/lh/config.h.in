@@ -11,7 +11,8 @@
  * version macros from the root `VERSION` file; library options use `0` or `1`
  * except `LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX` (must be > 0),
  * `LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY` (must be > 0), and
- * `LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR` (must be > 1); the
+ * `LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR` (must be > 1),
+ * `LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK` (must be > 0); the
  * `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_*` trio takes raw
  * C tokens instead (e.g. `malloc`, `free`, `<stdlib.h>`).
  *
@@ -154,6 +155,16 @@
  * @note The value must be greater than one.
  */
 #define LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR @ValVectorGrowthFactor@
+
+/**
+ * @def LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK
+ * @brief Element block size ::lh_algorithm_compare (and the matching fast path in
+ *        ::lh_memory_find_step) scans branchlessly before falling back to a precise
+ *        scan of the block that turned out to differ/match.
+ *
+ * @note The value must be greater than zero.
+ */
+#define LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK @ValAlgorithmCompareBlock@
 
 #endif /* LH_CONFIG_H */
 

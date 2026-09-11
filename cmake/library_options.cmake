@@ -125,3 +125,20 @@ set(LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY "1" CACHE STRING
 # -----------------------------------------------------------------------------
 set(LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR "2" CACHE STRING
         "Factor by which lh_vector_t capacity grows when full (must be > 1).")
+
+# -----------------------------------------------------------------------------
+# LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK
+#
+# Element block size lh_algorithm_compare (include/lh/util/algorithm.h) scans
+# branchlessly before falling back to a precise, element-by-element scan of
+# the block that turned out to differ — same block used by the single-element
+# fast path in lh_memory_find_step (src/lh/memory.c). Larger values give the
+# compiler more to auto-vectorize per block at the cost of a longer worst-case
+# precise rescan when a block does contain a mismatch/hit; smaller values do
+# the opposite. Must be a positive decimal integer.
+#
+# CMake: -DLH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK=32 or ccmake.
+# Manual build: set in include/lh/config.h or -D on the compiler command line.
+# -----------------------------------------------------------------------------
+set(LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK "16" CACHE STRING
+        "Block size for lh_algorithm_compare / lh_memory_find_step's branchless scan (must be > 0).")

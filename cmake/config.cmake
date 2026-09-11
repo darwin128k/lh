@@ -66,6 +66,8 @@ function(lh_generate_config)
     set(ValVectorInitialCapacity "${LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY}")
     set(ValVectorGrowthFactor "${LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR}")
 
+    set(ValAlgorithmCompareBlock "${LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK}")
+
     set(_in "${CMAKE_CURRENT_SOURCE_DIR}/include/lh/config.h.in")
     set(_out "${CMAKE_CURRENT_SOURCE_DIR}/include/lh/config.h")
     configure_file("${_in}" "${_out}" @ONLY)
