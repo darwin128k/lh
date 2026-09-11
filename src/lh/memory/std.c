@@ -2,7 +2,7 @@
 #include <lh/util/algorithm.h>
 #include <lh/assert.h>
 #include <lh/compiler/type.h>
-#include <lh/compiler/arch.h>
+#include <lh/compiler/arch/family.h>
 
 /* Real SIMD, runtime-dispatched: only where it can be done safely and portably —
  * GCC/Clang's __builtin_cpu_supports (checks CPUID *and* that the OS has actually
