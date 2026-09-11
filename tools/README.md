@@ -42,7 +42,7 @@ Generates both `graph.dot` and `graph.svg`.
 
 Scripts that generate Unicode character tables from external data.
 
-### Case Map
+### Case Map (wide)
 
 Generates wide-char case mapping tables (`lh_wstr_ptr_to_lower` / `lh_wstr_ptr_to_upper`) from UnicodeData.txt.
 
@@ -50,6 +50,21 @@ Generates wide-char case mapping tables (`lh_wstr_ptr_to_lower` / `lh_wstr_ptr_t
 python3 gen_wchar_case_map.py
 ```
 Writes to `src/lh/util/wstr/case/map.c`.
+
+### Case Map (narrow)
+
+Generates narrow `lh_char_t` case mapping tables (`lh_str_ptr_to_lower` / `lh_str_ptr_to_upper`)
+from the same UnicodeData.txt, restricted to code points where both the source and mapped
+scalar fit in a single byte (0..255) — a handful of Latin-1 mappings whose target escapes that
+range (e.g. MICRO SIGN, LATIN SMALL LETTER Y WITH DIAERESIS) are dropped, since they can't be
+represented. Emits both implementations selected by `LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE`
+(see that option in `cmake/library_options.cmake`): a dense 256-entry lookup table, and the
+sorted sparse pair table with binary search.
+
+```sh
+python3 gen_str_case_map.py
+```
+Writes to `src/lh/util/str/case/map.c`.
 
 ### Case Fold
 
