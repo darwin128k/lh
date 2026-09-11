@@ -74,6 +74,12 @@ function(lh_generate_config)
         set(ValStrCaseMapUseTable 0)
     endif ()
 
+    if (LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE)
+        set(ValWstrCaseMapUseTable 1)
+    else ()
+        set(ValWstrCaseMapUseTable 0)
+    endif ()
+
     set(_in "${CMAKE_CURRENT_SOURCE_DIR}/include/lh/config.h.in")
     set(_out "${CMAKE_CURRENT_SOURCE_DIR}/include/lh/config.h")
     configure_file("${_in}" "${_out}" @ONLY)

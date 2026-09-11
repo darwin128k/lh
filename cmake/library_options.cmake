@@ -162,3 +162,33 @@ set(LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK "16" CACHE STRING
 option(LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE
         "lh_str_ptr_to_lower/_to_upper use a dense 256-entry table (ON, faster, +~400B) instead of binary search over the sparse pair table (OFF, smaller)."
         ON)
+
+# -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE
+#
+# Implementation lh_wstr_ptr_to_lower / lh_wstr_ptr_to_upper (src/lh/util/wstr/case/map.c)
+# use for the full-Unicode simple case mapping (~1.4k pairs across the whole UCD, vs ~56
+# for the narrow LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE — too many, and too sparse across
+# too wide a range, for a single dense table to be sane at any code point width):
+#
+#   ON  — two-level (block) table for the BMP (code points 0x0000..0xFFFF, i.e. every
+#         lh_wchar_t value on a 16-bit wchar_t platform, and effectively all real-world
+#         text on any platform): a 256-entry stage-1 index (one byte per 256-code-point
+#         block; ~239 of 256 blocks have no case mapping at all and collapse to a single
+#         sentinel) into a stage-2 table holding only the ~17-20 blocks that actually have
+#         mappings. O(1) per character. Falls back to a small binary search (~282 entries,
+#         supplementary-plane scripts with case pairs — Deseret, Osage, Adlam, ...) only for
+#         code points above the BMP, which requires a 32-bit wchar_t to even reach.
+#   OFF — binary search over the full sorted sparse pair table (~1.4k entries per
+#         direction). O(log n) per character (~11 comparisons).
+#
+# Unlike LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE, this is not really a size/speed
+# trade-off: each OFF pair entry is two lh_uchar32_t (8 bytes) — the existing sparse
+# table alone already costs ~23KB (both directions); the ON stage-1/stage-2 tables plus
+# their much-smaller supplementary-plane fallback cost about the same, ~23.5KB. ON is
+# close to a strict win here; kept as an option mainly for code-size (less lookup logic)
+# on the very tightest targets, and for symmetry with the narrow option above.
+# -----------------------------------------------------------------------------
+option(LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE
+        "lh_wstr_ptr_to_lower/_to_upper use a two-level BMP block table (ON, faster, ~same size) instead of binary search over the full sparse pair table (OFF, simpler code)."
+        ON)

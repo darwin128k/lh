@@ -40,3 +40,15 @@ BM_wstr_ptr_equals(benchmark::State &state)
     }
 }
 BENCHMARK(BM_wstr_ptr_equals);
+
+static void
+BM_wstr_ptr_to_lower_45B(benchmark::State &state)
+{
+    lh_wchar_t buf[] = L"THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG";
+    const lh_usize_t len = lh_wstr_ptr_len(buf);
+    for (auto _ : state)
+    {
+        benchmark::DoNotOptimize(lh_wstr_ptr_to_lower(buf, len));
+    }
+}
+BENCHMARK(BM_wstr_ptr_to_lower_45B);
