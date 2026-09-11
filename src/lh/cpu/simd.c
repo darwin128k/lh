@@ -4,6 +4,8 @@
 #include <lh/compiler/arch/family.h>
 #include <lh/compiler/type.h>
 #include <lh/config.h>
+#include <lh/numeric/fixed/types.h>
+#include <lh/util/bit.h>
 
 #if (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC) &&                                                   \
     (LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2)
@@ -45,9 +47,10 @@ lh_cpu_simd_has_sse2(void)
 #    elif LH_COMPILER_TYPE_IS_GCC_LIKE
     return (lh_bool_t)__builtin_cpu_supports("sse2");
 #    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
-    int info[LH_CPU_SIMD_CPUID_REGISTER_COUNT];
+    lh_s32_t info[LH_CPU_SIMD_CPUID_REGISTER_COUNT];
     __cpuid(info, LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO);
-    return (lh_bool_t)((info[LH_CPU_SIMD_CPUID_EDX] >> LH_CPU_SIMD_CPUID_EDX_SSE2_BIT) & 1);
+    return (lh_bool_t)!lh_bit_disjoint(info[LH_CPU_SIMD_CPUID_EDX],
+                                        lh_bit_mask(LH_CPU_SIMD_CPUID_EDX_SSE2_BIT));
 #    else
     return lh_bool_false;
 #    endif
@@ -67,7 +70,7 @@ lh_cpu_simd_has_avx2(void)
 #    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
     /* Same check as __builtin_cpu_supports above, hand-rolled: MSVC has no
      * equivalent builtin. */
-    int info[LH_CPU_SIMD_CPUID_REGISTER_COUNT];
+    lh_s32_t info[LH_CPU_SIMD_CPUID_REGISTER_COUNT];
 
     __cpuid(info, LH_CPU_SIMD_CPUID_LEAF_MAX_FUNCTION);
     if (info[LH_CPU_SIMD_CPUID_EAX] < LH_CPU_SIMD_CPUID_LEAF_EXTENDED_FEATURES)
@@ -76,22 +79,25 @@ lh_cpu_simd_has_avx2(void)
     }
 
     __cpuid(info, LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO);
-    if (!((info[LH_CPU_SIMD_CPUID_ECX] >> LH_CPU_SIMD_CPUID_ECX_OSXSAVE_BIT) & 1) ||
-        !((info[LH_CPU_SIMD_CPUID_ECX] >> LH_CPU_SIMD_CPUID_ECX_AVX_BIT) & 1))
+    if (lh_bit_disjoint(info[LH_CPU_SIMD_CPUID_ECX], lh_bit_mask(LH_CPU_SIMD_CPUID_ECX_OSXSAVE_BIT)) ||
+        lh_bit_disjoint(info[LH_CPU_SIMD_CPUID_ECX], lh_bit_mask(LH_CPU_SIMD_CPUID_ECX_AVX_BIT)))
     {
         return lh_bool_false; /* no OSXSAVE, or no AVX */
     }
 
-    if ((_xgetbv(LH_CPU_SIMD_XCR0) &
-         ((1U << LH_CPU_SIMD_XCR0_SSE_STATE_BIT) | (1U << LH_CPU_SIMD_XCR0_AVX_STATE_BIT))) !=
-        ((1U << LH_CPU_SIMD_XCR0_SSE_STATE_BIT) | (1U << LH_CPU_SIMD_XCR0_AVX_STATE_BIT)))
     {
-        return lh_bool_false; /* OS hasn't enabled XMM+YMM state */
+        const lh_u64_t xcr0_required_state = lh_bit_or(lh_bit_mask(LH_CPU_SIMD_XCR0_SSE_STATE_BIT),
+                                                        lh_bit_mask(LH_CPU_SIMD_XCR0_AVX_STATE_BIT));
+
+        if (lh_bit_and(_xgetbv(LH_CPU_SIMD_XCR0), xcr0_required_state) != xcr0_required_state)
+        {
+            return lh_bool_false; /* OS hasn't enabled XMM+YMM state */
+        }
     }
 
     __cpuidex(info, LH_CPU_SIMD_CPUID_LEAF_EXTENDED_FEATURES, 0);
-    return (lh_bool_t)((info[LH_CPU_SIMD_CPUID_EBX] >> LH_CPU_SIMD_CPUID_EXTENDED_FEATURES_EBX_AVX2_BIT) &
-                        1);
+    return (lh_bool_t)!lh_bit_disjoint(info[LH_CPU_SIMD_CPUID_EBX],
+                                        lh_bit_mask(LH_CPU_SIMD_CPUID_EXTENDED_FEATURES_EBX_AVX2_BIT));
 #    else
     return lh_bool_false;
 #    endif
