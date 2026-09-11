@@ -1,11 +1,15 @@
 #include <lh/memory/std.h>
 #include <lh/util/algorithm.h>
 #include <lh/assert.h>
+#include <lh/cast/static.h>
 #include <lh/compiler/type.h>
 #include <lh/compiler/arch.h>
 #include <lh/compiler/arch/family.h>
 #include <lh/config.h>
 #include <lh/cpu/simd.h>
+#include <lh/numeric/fixed/types.h>
+#include <lh/numeric/types.h>
+#include <lh/util/bit.h>
 
 /* Real SIMD, runtime-dispatched, for both GCC/Clang and MSVC: whether a tier's
  * intrinsics + its runtime CPU-feature check are even compilable by this toolchain
@@ -48,26 +52,26 @@
 /* Portable "index of lowest/highest set bit" for the movemask results below —
  * __builtin_ctz/clz (GCC/Clang) vs _BitScanForward/Reverse (MSVC), same operation. */
 static lh_usize_t
-lh_memory_std_bit_scan_forward(unsigned x)
+lh_memory_std_bit_scan_forward(lh_u32_t x)
 {
 #    if LH_COMPILER_TYPE_IS_GCC_LIKE
-    return (lh_usize_t)__builtin_ctz(x);
+    return lh_cast_static(lh_usize_t, __builtin_ctz(x));
 #    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
-    unsigned long index;
+    lh_ulong_t index;
     _BitScanForward(&index, x);
-    return (lh_usize_t)index;
+    return lh_cast_static(lh_usize_t, index);
 #    endif
 }
 
 static lh_usize_t
-lh_memory_std_bit_scan_reverse(unsigned x)
+lh_memory_std_bit_scan_reverse(lh_u32_t x)
 {
 #    if LH_COMPILER_TYPE_IS_GCC_LIKE
-    return (lh_usize_t)(31 - __builtin_clz(x));
+    return lh_cast_static(lh_usize_t, 31 - __builtin_clz(x));
 #    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
-    unsigned long index;
+    lh_ulong_t index;
     _BitScanReverse(&index, x);
-    return (lh_usize_t)index;
+    return lh_cast_static(lh_usize_t, index);
 #    endif
 }
 
@@ -103,7 +107,7 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
      * <intrin.h>, not ours to change) — lh_uchar_t is a plain typedef of unsigned char
      * (lh/char.h), so this cast is the same reinterpretation either way, just spelled with
      * this file's own type alias instead of the raw C one, same as lh_algorithm_copy below. */
-    __movsb((lh_uchar_t *)dst, (const lh_uchar_t *)src, n);
+    __movsb(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
 #else
     lh_algorithm_copy(lh_uchar_t, dst, src, n);
 #endif
@@ -183,13 +187,13 @@ lh_memory_std_compare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
     while (n >= 16U)
     {
-        const __m128i va = _mm_loadu_si128((const __m128i *)l);
-        const __m128i vb = _mm_loadu_si128((const __m128i *)r);
-        const unsigned eq_mask = (unsigned)_mm_movemask_epi8(_mm_cmpeq_epi8(va, vb));
+        const __m128i va = _mm_loadu_si128(lh_ptr_rcast(const __m128i, l));
+        const __m128i vb = _mm_loadu_si128(lh_ptr_rcast(const __m128i, r));
+        const lh_u32_t eq_mask = lh_cast_static(lh_u32_t, _mm_movemask_epi8(_mm_cmpeq_epi8(va, vb)));
 
         if (eq_mask != 0xFFFFU)
         {
-            return l + lh_memory_std_bit_scan_forward((~eq_mask) & 0xFFFFU);
+            return l + lh_memory_std_bit_scan_forward(lh_bit_and(lh_bit_not(eq_mask), 0xFFFFU));
         }
 
         l += 16;
@@ -216,13 +220,14 @@ lh_memory_std_compare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
     while (n >= 32U)
     {
-        const __m256i va = _mm256_loadu_si256((const __m256i *)l);
-        const __m256i vb = _mm256_loadu_si256((const __m256i *)r);
-        const unsigned eq_mask = (unsigned)_mm256_movemask_epi8(_mm256_cmpeq_epi8(va, vb));
+        const __m256i va = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, l));
+        const __m256i vb = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, r));
+        const lh_u32_t eq_mask =
+            lh_cast_static(lh_u32_t, _mm256_movemask_epi8(_mm256_cmpeq_epi8(va, vb)));
 
         if (eq_mask != 0xFFFFFFFFU)
         {
-            return l + lh_memory_std_bit_scan_forward(~eq_mask);
+            return l + lh_memory_std_bit_scan_forward(lh_bit_not(eq_mask));
         }
 
         l += 32;
@@ -319,13 +324,13 @@ lh_memory_std_rcompare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
         const lh_uchar_t *lb = l - 15;
         const lh_uchar_t *rb = r - 15;
 
-        const __m128i va = _mm_loadu_si128((const __m128i *)lb);
-        const __m128i vb = _mm_loadu_si128((const __m128i *)rb);
-        const unsigned eq_mask = (unsigned)_mm_movemask_epi8(_mm_cmpeq_epi8(va, vb));
+        const __m128i va = _mm_loadu_si128(lh_ptr_rcast(const __m128i, lb));
+        const __m128i vb = _mm_loadu_si128(lh_ptr_rcast(const __m128i, rb));
+        const lh_u32_t eq_mask = lh_cast_static(lh_u32_t, _mm_movemask_epi8(_mm_cmpeq_epi8(va, vb)));
 
         if (eq_mask != 0xFFFFU)
         {
-            return lb + lh_memory_std_bit_scan_reverse((~eq_mask) & 0xFFFFU);
+            return lb + lh_memory_std_bit_scan_reverse(lh_bit_and(lh_bit_not(eq_mask), 0xFFFFU));
         }
 
         l -= 16;
@@ -358,13 +363,14 @@ lh_memory_std_rcompare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
         const lh_uchar_t *lb = l - 31;
         const lh_uchar_t *rb = r - 31;
 
-        const __m256i va = _mm256_loadu_si256((const __m256i *)lb);
-        const __m256i vb = _mm256_loadu_si256((const __m256i *)rb);
-        const unsigned eq_mask = (unsigned)_mm256_movemask_epi8(_mm256_cmpeq_epi8(va, vb));
+        const __m256i va = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, lb));
+        const __m256i vb = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, rb));
+        const lh_u32_t eq_mask =
+            lh_cast_static(lh_u32_t, _mm256_movemask_epi8(_mm256_cmpeq_epi8(va, vb)));
 
         if (eq_mask != 0xFFFFFFFFU)
         {
-            return lb + lh_memory_std_bit_scan_reverse(~eq_mask);
+            return lb + lh_memory_std_bit_scan_reverse(lh_bit_not(eq_mask));
         }
 
         l -= 32;
