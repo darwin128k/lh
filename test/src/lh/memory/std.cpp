@@ -4,6 +4,8 @@
 #include <lh/memory/std.h>
 #include <lh/null.h>
 
+#include <vector>
+
 namespace
 {
 
@@ -116,6 +118,74 @@ TEST(memory_std_compare, returns_first_mismatch_in_lhs)
     ASSERT_TRUE(lh_null_ne(d));
     EXPECT_EQ(d, static_cast<const lh_ptr>(&a[2]));
     EXPECT_EQ(*static_cast<const lh_uchar_t *>(d), 9);
+}
+
+/*
+ * lh_memory_std_compare scans LH_ALGORITHM_COMPARE_BLOCK (16) elements at a
+ * time branchlessly before falling back to a precise scan of whichever block
+ * turned out to differ — these cases exercise that block loop specifically
+ * (equal/mismatching spans crossing and landing on block boundaries), which
+ * the n=3/n=4 cases above never reach.
+ */
+
+TEST(memory_std_compare, equal_across_multiple_blocks)
+{
+    std::vector<lh_uchar_t> a(40);
+    std::vector<lh_uchar_t> b(40);
+    for (lh_usize_t i = 0; i < a.size(); ++i)
+    {
+        a[i] = b[i] = static_cast<lh_uchar_t>(i);
+    }
+    const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
+    EXPECT_TRUE(lh_null_eq(d));
+}
+
+TEST(memory_std_compare, equal_at_exact_block_boundary)
+{
+    std::vector<lh_uchar_t> a(16, 0x7A);
+    std::vector<lh_uchar_t> b(16, 0x7A);
+    const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
+    EXPECT_TRUE(lh_null_eq(d));
+}
+
+TEST(memory_std_compare, mismatch_at_first_byte_of_first_block)
+{
+    std::vector<lh_uchar_t> a(16, 0);
+    std::vector<lh_uchar_t> b(16, 0);
+    a[0] = 9;
+    const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
+    ASSERT_TRUE(lh_null_ne(d));
+    EXPECT_EQ(d, static_cast<const lh_ptr>(&a[0]));
+}
+
+TEST(memory_std_compare, mismatch_at_last_byte_of_first_block)
+{
+    std::vector<lh_uchar_t> a(16, 0);
+    std::vector<lh_uchar_t> b(16, 0);
+    a[15] = 9;
+    const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
+    ASSERT_TRUE(lh_null_ne(d));
+    EXPECT_EQ(d, static_cast<const lh_ptr>(&a[15]));
+}
+
+TEST(memory_std_compare, mismatch_at_first_byte_of_second_block)
+{
+    std::vector<lh_uchar_t> a(32, 0);
+    std::vector<lh_uchar_t> b(32, 0);
+    a[16] = 9;
+    const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
+    ASSERT_TRUE(lh_null_ne(d));
+    EXPECT_EQ(d, static_cast<const lh_ptr>(&a[16]));
+}
+
+TEST(memory_std_compare, mismatch_in_tail_after_full_blocks)
+{
+    std::vector<lh_uchar_t> a(20, 0);
+    std::vector<lh_uchar_t> b(20, 0);
+    a[17] = 9;
+    const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
+    ASSERT_TRUE(lh_null_ne(d));
+    EXPECT_EQ(d, static_cast<const lh_ptr>(&a[17]));
 }
 
 TEST(memory_std_rcompare, equal_returns_null)

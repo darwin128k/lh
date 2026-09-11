@@ -9,7 +9,21 @@
 #ifndef LH_UTIL_ALGORITHM_H
 #define LH_UTIL_ALGORITHM_H
 
+#include <lh/bool.h>
+#include <lh/size.h>
 #include <lh/util/ptr.h>
+
+/**
+ * @def LH_ALGORITHM_COMPARE_BLOCK
+ * @brief Element block size ::lh_algorithm_compare / ::lh_algorithm_rcompare
+ *        scan branchlessly before falling back to a precise, element-by-element
+ *        scan of the block that turned out to differ.
+ *
+ * Branchless (no early exit) so the compiler is free to auto-vectorize the
+ * block loop; only the block containing a mismatch (if any) pays for a
+ * branch per element.
+ */
+#define LH_ALGORITHM_COMPARE_BLOCK 16U
 
 /**
  * @brief Swap two values using a temporary variable.
@@ -194,6 +208,23 @@
     {                                                                                              \
         const T *l = lh_ptr_ccast(T, lhs);                                                         \
         const T *r = lh_ptr_ccast(T, rhs);                                                         \
+                                                                                                   \
+        while (n >= LH_ALGORITHM_COMPARE_BLOCK)                                                    \
+        {                                                                                          \
+            lh_bool_t block_diff = lh_bool_false;                                                  \
+            lh_usize_t block_i;                                                                    \
+            for (block_i = 0; block_i < LH_ALGORITHM_COMPARE_BLOCK; ++block_i)                     \
+            {                                                                                      \
+                block_diff = (lh_bool_t)(block_diff | (l[block_i] != r[block_i]));                 \
+            }                                                                                      \
+            if (block_diff)                                                                        \
+            {                                                                                      \
+                break; /* precise scan below finds the exact mismatch in this block */             \
+            }                                                                                      \
+            l += LH_ALGORITHM_COMPARE_BLOCK;                                                       \
+            r += LH_ALGORITHM_COMPARE_BLOCK;                                                       \
+            n -= LH_ALGORITHM_COMPARE_BLOCK;                                                       \
+        }                                                                                          \
                                                                                                    \
         while (n--)                                                                                \
         {                                                                                          \

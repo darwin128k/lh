@@ -22,6 +22,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 option(LH_BUILD_SHARED "Build as shared library" ON)
 option(LH_BUILD_DOCS "Build documentation" ON)
 option(LH_BUILD_TESTS "Build tests" ON)
+option(LH_BUILD_BENCH "Build microbenchmarks" ON)
 
 # ---------------------------------------------------------------------------
 # Release optimization options
@@ -133,6 +134,11 @@ endif ()
 if (LH_BUILD_TESTS)
     enable_testing()
     add_subdirectory(test)
+endif ()
+
+# Benchmarks (after ${PROJECT_NAME} exists for target_link_libraries).
+if (LH_BUILD_BENCH)
+    add_subdirectory(bench)
 endif ()
 
 # Strong release optimizations for the core library (optional; Release only).

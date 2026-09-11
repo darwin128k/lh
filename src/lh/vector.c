@@ -1,4 +1,5 @@
 #include <lh/vector.h>
+#include <lh/memory/std.h>
 #include <lh/util/math.h>
 #include <lh/util/return.h>
 #include <lh/util/ptr.h>
@@ -115,7 +116,32 @@ lh_vector_push_back_of(lh_vector_t *self, const lh_ptr values, lh_usize_t count)
 lh_void
 lh_vector_push_back(lh_vector_t *self, const lh_ptr value)
 {
-    lh_vector_push_back_of(self, value, 1);
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(value);
+
+    /*
+     * Fast path for the common case (room already reserved): avoid
+     * lh_vector_push_back_of / lh_vector_insert_of's generic machinery, which
+     * re-derives capacity through lh_memory_typed_get_size (and, through it,
+     * validity + a division) several times over for a single element. Every
+     * value used below still comes from the public, bounds-checked accessors
+     * — this only removes the redundant re-derivation, not the checks
+     * themselves. Falls back to the general path whenever growth is needed.
+     */
+    const lh_usize_t size = lh_vector_get_size(self);
+    const lh_usize_t capacity = lh_vector_get_capacity(self);
+
+    if (size >= capacity)
+    {
+        lh_vector_push_back_of(self, value, 1);
+        return;
+    }
+
+    const lh_usize_t type_size = lh_vector_get_type_size(self);
+    lh_ptr dst = lh_ptr_add_by_offset_unsafe(lh_void, lh_vector_get_begin(self),
+                                             lh_math_mul(size, type_size));
+    lh_memory_std_copy(dst, value, type_size);
+    self->size = lh_math_add_one(size);
 }
 
 lh_bool_t
