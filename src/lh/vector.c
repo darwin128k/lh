@@ -153,9 +153,14 @@ lh_vector_is_valid_index(const lh_vector_t *self, lh_uindex_t index)
 lh_ptr
 lh_vector_get_ptr(const lh_vector_t *self, lh_uindex_t index)
 {
+    /* lh_memory_typed_get_ptr_from_begin would re-validate index against the typed block's
+     * own capacity via lh_memory_typed_get_size (division + a validity check of its own) —
+     * redundant, since lh_vector_is_valid_index (a plain field compare against self->size)
+     * already guarantees index < size <= capacity. Compute the pointer directly instead. */
     lh_assert_runtime_ifn(lh_vector_is_valid_index(self, index),
                           lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
-    return lh_memory_typed_get_ptr_from_begin(lh_addr_of(self->typed), index);
+    return lh_ptr_add_by_offset_unsafe(lh_void, lh_vector_get_begin(self),
+                                       lh_math_mul(index, lh_vector_get_type_size(self)));
 }
 
 lh_void
