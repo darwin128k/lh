@@ -12,16 +12,26 @@
  * ::lh_str_ptr_format_uint, ::lh_str_ptr_format_hex) takes its radix as a
  * parameter instead, because it already has two real callers needing
  * different bases.
+ *
+ * Every function here is ::LH_ATTRIBUTE_FORCE_INLINE — small and called
+ * from other hot, force-inlined callers (::lh_str_ptr_parse_uint,
+ * ::lh_net_ip4_parse's digit loop by way of it); measured to cost real,
+ * compounding overhead as ordinary exported calls. See the note in
+ * `net/ip.c` for the numbers.
  */
 
 #ifndef LH_CHAR_DIGIT_H
 #define LH_CHAR_DIGIT_H
 
-#include <lh/attribute/symbol.h>
+#include <lh/assert.h>
+#include <lh/attribute/force_inline.h>
 #include <lh/bool.h>
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/types.h>
+#include <lh/runtime/error.h>
+#include <lh/util/char.h>
+#include <lh/util/numeric.h>
 
 /**
  * @def LH_CHAR_DIGIT_RADIX
@@ -42,9 +52,12 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param ch Character to test.
  * @return ::lh_bool_true if @p ch is `0`-`9`, ::lh_bool_false otherwise.
  */
-LH_ATTRIBUTE_SYMBOL
+LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
-lh_char_is_digit(lh_char_t ch);
+lh_char_is_digit(lh_char_t ch)
+{
+    return (ch >= '0' && ch <= '9') ? lh_bool_true : lh_bool_false;
+}
 
 /**
  * @brief Convert an ASCII decimal digit to its numeric value.
@@ -52,9 +65,14 @@ lh_char_is_digit(lh_char_t ch);
  * @param ch Digit character; must satisfy ::lh_char_is_digit.
  * @return Value in `[0, 9]`.
  */
-LH_ATTRIBUTE_SYMBOL
+LH_ATTRIBUTE_FORCE_INLINE
 lh_uchar_t
-lh_char_to_digit(lh_char_t ch);
+lh_char_to_digit(lh_char_t ch)
+{
+    lh_assert_runtime_if(!lh_char_is_digit(ch),
+                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+    return (lh_uchar_t)(lh_char_ord(ch) - lh_char_ord('0'));
+}
 
 /**
  * @brief Convert a numeric value to its ASCII decimal digit.
@@ -62,9 +80,14 @@ lh_char_to_digit(lh_char_t ch);
  * @param digit Value in `[0, 9]`.
  * @return Digit character `0`-`9`.
  */
-LH_ATTRIBUTE_SYMBOL
+LH_ATTRIBUTE_FORCE_INLINE
 lh_char_t
-lh_char_from_digit(lh_uchar_t digit);
+lh_char_from_digit(lh_uchar_t digit)
+{
+    lh_assert_runtime_if(digit > 9U,
+                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+    return lh_char_ord_to(lh_char_t, lh_char_ord('0') + digit);
+}
 
 /**
  * @brief Fold @p digit into @p value as the next (least significant)
@@ -80,9 +103,21 @@ lh_char_from_digit(lh_uchar_t digit);
  * @return ::lh_bool_true if it fit in ::lh_uint_t, ::lh_bool_false if it
  *         would have overflowed (@p value is then left unmodified).
  */
-LH_ATTRIBUTE_SYMBOL
+LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
-lh_char_digit_accumulate(lh_uint_t *value, lh_uchar_t digit);
+lh_char_digit_accumulate(lh_uint_t *value, lh_uchar_t digit)
+{
+    lh_assert_runtime_ref(value);
+    lh_assert_runtime_if(digit > 9U,
+                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+
+    if (*value > (lh_numeric_limit_max(lh_uint_t) - digit) / LH_CHAR_DIGIT_RADIX)
+    {
+        return lh_bool_false; /* would overflow lh_uint_t */
+    }
+    *value = *value * LH_CHAR_DIGIT_RADIX + digit;
+    return lh_bool_true;
+}
 
 /**
  * @brief Pull the next (least significant) digit out of @p value in base
@@ -102,9 +137,18 @@ lh_char_digit_accumulate(lh_uint_t *value, lh_uchar_t digit);
  *         themselves (::lh_char_from_digit for decimal; a lookup table for
  *         radixes with letter digits, like hex).
  */
-LH_ATTRIBUTE_SYMBOL
+LH_ATTRIBUTE_FORCE_INLINE
 lh_uchar_t
-lh_char_digit_extract(lh_uint_t *value, lh_uint_t radix);
+lh_char_digit_extract(lh_uint_t *value, lh_uint_t radix)
+{
+    lh_uchar_t digit;
+
+    lh_assert_runtime_ref(value);
+
+    digit = (lh_uchar_t)(*value % radix);
+    *value /= radix;
+    return digit;
+}
 
 LH_COMPILER_EXTERN_C_END
 
