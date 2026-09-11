@@ -36,10 +36,6 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/memory/std.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/memory.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/raw.cpp
-        ${LH_TEST_SRC_PATH}/lh/memory/bounds.cpp
-        ${LH_TEST_SRC_PATH}/lh/memory/bounds/slice.cpp
-        ${LH_TEST_SRC_PATH}/lh/memory/bounds/allocated.cpp
-        ${LH_TEST_SRC_PATH}/lh/memory/view/slice.cpp
         ${LH_TEST_SRC_PATH}/lh/util/interval.cpp
         ${LH_TEST_SRC_PATH}/lh/util/math.cpp
         ${LH_TEST_SRC_PATH}/lh/util/str/ptr.cpp
