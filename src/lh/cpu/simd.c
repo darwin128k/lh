@@ -11,7 +11,7 @@
 #endif
 
 lh_bool_t
-lh_cpu_has_sse2(void)
+lh_cpu_simd_has_sse2(void)
 {
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 #    if LH_COMPILER_ARCH_FAMILY_IS_X86 && (LH_COMPILER_ARCH == LH_COMPILER_ARCH_64)
@@ -32,7 +32,7 @@ lh_cpu_has_sse2(void)
 }
 
 lh_bool_t
-lh_cpu_has_avx2(void)
+lh_cpu_simd_has_avx2(void)
 {
 #if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 #    if LH_COMPILER_TYPE_IS_GCC_LIKE

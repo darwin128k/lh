@@ -9,7 +9,7 @@
  * actually running the resulting binary supports that tier is a separate,
  * runtime-only question — the two differ under cross-compilation, or simply
  * because a binary built for a wide baseline ends up running on older hardware.
- * ::lh_cpu_has_sse2 / ::lh_cpu_has_avx2 answer that runtime question; both are safe
+ * ::lh_cpu_simd_has_sse2 / ::lh_cpu_simd_has_avx2 answer that runtime question; both are safe
  * to call unconditionally and return ::lh_bool_false whenever the corresponding
  * build-time option is off, regardless of the actual CPU.
  */
@@ -35,7 +35,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_cpu_has_sse2(void);
+lh_cpu_simd_has_sse2(void);
 
 /**
  * @brief Whether this CPU supports AVX2.
@@ -49,7 +49,7 @@ lh_cpu_has_sse2(void);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_cpu_has_avx2(void);
+lh_cpu_simd_has_avx2(void);
 
 LH_COMPILER_EXTERN_C_END
 

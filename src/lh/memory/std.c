@@ -13,7 +13,7 @@
  * (cmake/check_simd.cmake — never executed, so it stays correct under cross-
  * compilation) and recorded as LH_LIBRARY_OPTION_SIMD_HAVE_{SSE2,AVX2} in config.h.
  * Which tier a given CPU can actually *run* is a separate, runtime-only question
- * (lh_cpu_has_sse2/avx2, lh/cpu/simd.h), because the machine that configured the
+ * (lh_cpu_simd_has_sse2/avx2, lh/cpu/simd.h), because the machine that configured the
  * build is not necessarily the machine that runs the binary.
  *
  * See lh_memory_std_compare below for why this is worth doing at all (a 7x+
@@ -249,14 +249,14 @@ static const lh_ptr
 lh_memory_std_compare_dispatch(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
-    if (lh_cpu_has_avx2())
+    if (lh_cpu_simd_has_avx2())
     {
         m_compare_impl = lh_memory_std_compare_avx2;
     }
     else
 #    endif
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
-        if (lh_cpu_has_sse2())
+        if (lh_cpu_simd_has_sse2())
     {
         m_compare_impl = lh_memory_std_compare_sse2;
     }
@@ -389,14 +389,14 @@ static const lh_ptr
 lh_memory_std_rcompare_dispatch(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
-    if (lh_cpu_has_avx2())
+    if (lh_cpu_simd_has_avx2())
     {
         m_rcompare_impl = lh_memory_std_rcompare_avx2;
     }
     else
 #    endif
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
-        if (lh_cpu_has_sse2())
+        if (lh_cpu_simd_has_sse2())
     {
         m_rcompare_impl = lh_memory_std_rcompare_sse2;
     }
