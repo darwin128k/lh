@@ -8,17 +8,32 @@
  * enabled AVX register state via XGETBV/XCR0, not just the raw feature bit) plus a
  * per-function __attribute__((target(...))), which asks the compiler for AVX2 code
  * generation in that one function only, without needing -mavx2 anywhere in the
- * project's build flags. Everything else in this file — and this file entirely on
- * any other compiler/architecture (MSVC, ARM/STM32, ...) — stays the portable
- * scalar path unchanged; see lh_memory_std_compare below for why this is worth
+ * project's build flags. See lh_memory_std_compare below for why this is worth
  * doing at all (an 11x+ throughput gap measured against lh_memory_std_copy on the
- * same data, with no SIMD instructions in the compiler's own output). */
+ * same data, with no SIMD instructions in the compiler's own output). Everywhere
+ * this isn't available (non-x86, or a compiler other than GCC/Clang) falls back to
+ * the portable scalar path, unchanged. */
 #if LH_COMPILER_TYPE_IS_GCC_LIKE &&                                                                \
     (defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86))
 #    define LH_MEMORY_STD_HAVE_X86_SIMD 1
 #    include <immintrin.h>
 #else
 #    define LH_MEMORY_STD_HAVE_X86_SIMD 0
+#endif
+
+/* lh_memory_std_copy's plain while(n--) *d++ = *s++; loop (still used as-is on every
+ * other compiler, including GCC/Clang here) measured ~9x slower under MSVC /O2 /Oi /Ot
+ * than under GCC on the same data — checked directly with dumpbin /DISASM: MSVC emits
+ * it as a literal byte-at-a-time movzx+mov loop, no vectorization, no recognized-memcpy
+ * substitution, where GCC's own output for the identical C is dramatically better. No
+ * CPU feature detection needed here (unlike the AVX2 path above): REP MOVSB is a
+ * baseline x86 string instruction, present and correct on every x86/x86-64 CPU — using
+ * it is a straight win, not a runtime-conditional one. */
+#if defined(_MSC_VER) && (defined(_M_X64) || defined(_M_IX86))
+#    define LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB 1
+#    include <intrin.h>
+#else
+#    define LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB 0
 #endif
 
 lh_ptr
@@ -28,7 +43,12 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
     lh_assert_runtime_ref(src);
 
     lh_ptr end = lh_ptr_add_unsafe(lh_void, dst, n);
+
+#if LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB
+    __movsb((unsigned char *)dst, (const unsigned char *)src, n);
+#else
     lh_algorithm_copy(lh_uchar_t, dst, src, n);
+#endif
 
     return end;
 }
