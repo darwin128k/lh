@@ -1,5 +1,5 @@
 /**
- * @file cpu_supports.h
+ * @file supports.h
  * @brief Macro wrapping the compiler's own "does this CPU support feature X" builtin.
  *
  * GCC/Clang provide `__builtin_cpu_supports(feature)` directly: it checks CPUID for

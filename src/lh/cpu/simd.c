@@ -3,7 +3,7 @@
 #include <lh/cast/static.h>
 #include <lh/compiler/arch.h>
 #include <lh/compiler/arch/family.h>
-#include <lh/compiler/cpu_supports.h>
+#include <lh/compiler/cpu/supports.h>
 #include <lh/compiler/type.h>
 #include <lh/config.h>
 #include <lh/numeric/fixed/types.h>
