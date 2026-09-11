@@ -17,22 +17,14 @@ endif ()
 # google/benchmark tags raise their own CMake/C++ standard floor (v1.8+ wants CMake 3.10,
 # v1.9+ wants C++17 to build), which would sit above what lh itself claims to support
 # (CMake 3.12, legacy/XP toolchains — see scripts/build-windows-xp.bat).
-
-# google/benchmark's src/string_util.cc uses int64_t without including <cstdint> directly
-# (relies on it leaking in transitively) — breaks with newer, stricter libstdc++
-# ("'int64_t' does not name a type"), and is unfixed upstream as of the latest release too.
-# Patched here at configure time, in place, rather than as a commit carried in the submodule
-# itself: a commit only this machine has isn't fetchable by anyone who clones lh and runs
-# `git submodule update --init` — they'd get "not our ref" from GitHub. Idempotent (checked
-# before writing) so re-running configure doesn't touch the file once it's already patched.
-set(LH_BENCH_STRING_UTIL_CC "${LH_BENCH_LIB_PATH}/benchmark/src/string_util.cc")
-file(READ "${LH_BENCH_STRING_UTIL_CC}" LH_BENCH_STRING_UTIL_CONTENT)
-if (NOT LH_BENCH_STRING_UTIL_CONTENT MATCHES "#include <cstdint>")
-    string(REPLACE "#include <cstdarg>" "#include <cstdarg>\n#include <cstdint>"
-            LH_BENCH_STRING_UTIL_CONTENT "${LH_BENCH_STRING_UTIL_CONTENT}")
-    file(WRITE "${LH_BENCH_STRING_UTIL_CC}" "${LH_BENCH_STRING_UTIL_CONTENT}")
-endif ()
-
+#
+# The submodule points at github.com/darwin128k/benchmark (branch
+# lh/v1.7.1-cstdint-fix), a fork of v1.7.1 carrying one commit on top: a fix for
+# src/string_util.cc using int64_t without including <cstdint> directly (it relies
+# on the header leaking in transitively), which breaks under newer, stricter
+# libstdc++ ("'int64_t' does not name a type") and is still unfixed upstream as of
+# the latest release. Bumping this submodule to a newer upstream tag later means
+# re-checking whether that fix is still needed and, if so, rebasing it there too.
 set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
 set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
 set(BENCHMARK_ENABLE_WERROR OFF CACHE BOOL "" FORCE)
