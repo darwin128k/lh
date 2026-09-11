@@ -1,5 +1,6 @@
 #include <lh/memory.h>
 #include <lh/memory/std.h>
+#include <lh/util/algorithm.h>
 #include <lh/util/return.h>
 #include <lh/assert.h>
 
@@ -68,6 +69,55 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
     const lh_uchar_t *base = lh_ptr_cast(const lh_uchar_t, lhs);
     const lh_uchar_t *end = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, lhs_size);
 
+    if (rhs_size == 1)
+    {
+        /* Single-element needle (lh_str_ptr_find_of_char, lh_str_view_find_char, ... all
+         * bottom out here with rhs_size 1) — read it once and compare directly instead of
+         * paying a lh_memory_compare call (itself calling into lh_memory_std_compare) at
+         * every one of up to lhs_size candidate positions. */
+        const lh_uchar_t needle = *lh_ptr_cast(const lh_uchar_t, rhs);
+
+        if (step == 1)
+        {
+            /* Contiguous scan: check LH_ALGORITHM_COMPARE_BLOCK bytes at a time with no
+             * branch inside the block (same technique as lh_algorithm_compare) so the
+             * compiler can auto-vectorize the common no-match-yet case; only the block
+             * that actually contains a hit pays for a per-byte branch. */
+            const lh_uchar_t *cand = base;
+            while (cand + LH_ALGORITHM_COMPARE_BLOCK <= end)
+            {
+                lh_bool_t block_hit = lh_bool_false;
+                lh_usize_t block_i;
+                for (block_i = 0; block_i < LH_ALGORITHM_COMPARE_BLOCK; ++block_i)
+                {
+                    block_hit = (lh_bool_t)(block_hit | (cand[block_i] == needle));
+                }
+                if (block_hit)
+                {
+                    break;
+                }
+                cand += LH_ALGORITHM_COMPARE_BLOCK;
+            }
+            for (; cand + 1 <= end; ++cand)
+            {
+                if (*cand == needle)
+                {
+                    return cand;
+                }
+            }
+            return lh_null;
+        }
+
+        for (const lh_uchar_t *cand = base; cand + 1 <= end; cand += step)
+        {
+            if (*cand == needle)
+            {
+                return cand;
+            }
+        }
+        return lh_null;
+    }
+
     for (const lh_uchar_t *cand = base; cand + rhs_size <= end; cand += step)
     {
         if (!lh_memory_compare(cand, (end - cand), rhs, rhs_size))
@@ -103,6 +153,26 @@ lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh
 
     const lh_usize_t max_start = lhs_size - rhs_size;
     lh_usize_t off = (max_start / step) * step;
+
+    if (rhs_size == 1)
+    {
+        /* See the matching fast path in lh_memory_find_step. */
+        const lh_uchar_t needle = *lh_ptr_cast(const lh_uchar_t, rhs);
+        for (;;)
+        {
+            const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
+            if (*cand == needle)
+            {
+                return cand;
+            }
+            if (off < step)
+            {
+                break;
+            }
+            off -= step;
+        }
+        return lh_null;
+    }
 
     for (;;)
     {
