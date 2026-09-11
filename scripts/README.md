@@ -43,20 +43,6 @@ Final XP/Vista compatibility also depends on the compiler runtime and linked
 system libraries. For XP, prefer a 32-bit toolchain when the artifact must run
 on ordinary XP systems.
 
-## Modern Windows
-
-Use the PowerShell wrapper:
-
-```powershell
-.\scripts\build-windows.ps1 -Config Release -RunTests
-```
-
-If local policy blocks unsigned scripts:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-windows.ps1 -Config Release -RunTests
-```
-
 ## Linux
 
 Use the POSIX shell wrapper:

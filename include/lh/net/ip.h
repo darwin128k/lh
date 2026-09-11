@@ -10,11 +10,14 @@
 #ifndef LH_NET_IP_H
 #define LH_NET_IP_H
 
+#include <lh/assert.h>
+#include <lh/attribute/force_inline.h>
 #include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/limits.h>
 #include <lh/numeric/fixed/types.h>
+#include <lh/runtime/error.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
 
@@ -154,24 +157,41 @@ lh_net_ip4_assign(lh_net_ip4_t *self, const lh_net_ip4_t *other);
 /**
  * @brief Return the octet at @p index.
  *
+ * ::LH_ATTRIBUTE_FORCE_INLINE — called from ::lh_net_ip4_parse's/
+ * ::lh_net_ip4_format's force-inlined bodies; see the note in `net/ip.c`.
+ *
  * @param self  Address to read from.
  * @param index Octet position (0-3; `0` is `192` in `192.168.0.1`).
  * @return Octet value at @p index.
  */
-LH_ATTRIBUTE_SYMBOL
+LH_ATTRIBUTE_FORCE_INLINE
 lh_u8_t
-lh_net_ip4_get_octet(const lh_net_ip4_t *self, lh_usize_t index);
+lh_net_ip4_get_octet(const lh_net_ip4_t *self, lh_usize_t index)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_if(index >= LH_NET_IP4_OCTET_COUNT,
+                         lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+    return self->octets[index];
+}
 
 /**
  * @brief Replace the octet at @p index.
+ *
+ * ::LH_ATTRIBUTE_FORCE_INLINE — see ::lh_net_ip4_get_octet.
  *
  * @param self  Address to modify.
  * @param index Octet position (0-3).
  * @param value New octet value.
  */
-LH_ATTRIBUTE_SYMBOL
+LH_ATTRIBUTE_FORCE_INLINE
 void
-lh_net_ip4_set_octet(lh_net_ip4_t *self, lh_usize_t index, lh_u8_t value);
+lh_net_ip4_set_octet(lh_net_ip4_t *self, lh_usize_t index, lh_u8_t value)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_if(index >= LH_NET_IP4_OCTET_COUNT,
+                         lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+    self->octets[index] = value;
+}
 
 /* ── parse / format / compare ────────────────────────────────────────────── */
 

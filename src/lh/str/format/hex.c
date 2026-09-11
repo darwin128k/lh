@@ -18,7 +18,8 @@ lh_str_ptr_format_hex(lh_uint_t value, lh_bool_t uppercase, lh_str_ptr str, lh_u
 
     do
     {
-        digits[digit_count++] = alphabet[lh_char_digit_extract(lh_addr_of(value), LH_STR_FORMAT_HEX_RADIX)];
+        digits[digit_count++] =
+            alphabet[lh_char_digit_extract(lh_addr_of(value), LH_STR_FORMAT_HEX_RADIX)];
     } while (value > 0U);
 
     if (digit_count > str_size)

@@ -80,7 +80,8 @@ lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, v
             have_precision = lh_bool_true;
             while (lh_char_is_digit(fmt[fmt_pos]))
             {
-                if (!lh_char_digit_accumulate(lh_addr_of(precision), lh_char_to_digit(fmt[fmt_pos])))
+                if (!lh_char_digit_accumulate(lh_addr_of(precision),
+                                              lh_char_to_digit(fmt[fmt_pos])))
                 {
                     return 0; /* precision overflow */
                 }

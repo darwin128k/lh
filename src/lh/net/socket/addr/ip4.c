@@ -1,10 +1,9 @@
 #include <lh/net/socket/addr/ip4.h>
 #include <lh/assert.h>
-#include <lh/null.h>
 #include <lh/str/format/text.h>
+#include <lh/str/split/next.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
-#include <lh/util/str/ptr.h>
 
 lh_net_ip4_socket_addr_t
 lh_net_ip4_socket_addr_make(const lh_net_ip4_t *ip, lh_net_port_t port)
@@ -25,8 +24,7 @@ lh_net_ip4_socket_addr_set(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *i
 }
 
 void
-lh_net_ip4_socket_addr_assign(lh_net_ip4_socket_addr_t *self,
-                              const lh_net_ip4_socket_addr_t *other)
+lh_net_ip4_socket_addr_assign(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_socket_addr_t *other)
 {
     lh_net_ip4_t ip;
 
@@ -71,24 +69,29 @@ lh_net_ip4_socket_addr_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_ip4_so
 {
     lh_net_ip4_t ip;
     lh_net_port_t port;
-    lh_str_cptr colon;
-    lh_usize_t ip_len;
+    lh_usize_t pos = 0;
+    lh_str_cptr field;
+    lh_usize_t field_size;
+    lh_bool_t had_delim;
 
     lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(out);
 
-    colon = lh_str_ptr_find_of_char(str, str_size, ':');
-    if (colon == lh_null)
+    if (!lh_str_ptr_split_next(str, str_size, ':', lh_addr_of(pos), lh_addr_of(field),
+                               lh_addr_of(field_size), lh_addr_of(had_delim)))
     {
         return lh_bool_false;
     }
-    ip_len = (lh_usize_t)(colon - str);
+    if (!had_delim)
+    {
+        return lh_bool_false; /* no ':' found */
+    }
 
-    if (!lh_net_ip4_parse(str, ip_len, lh_addr_of(ip)))
+    if (!lh_net_ip4_parse(field, field_size, lh_addr_of(ip)))
     {
         return lh_bool_false;
     }
-    if (!lh_net_port_parse(colon + 1, str_size - ip_len - 1, lh_addr_of(port)))
+    if (!lh_net_port_parse(str + pos, str_size - pos, lh_addr_of(port)))
     {
         return lh_bool_false;
     }

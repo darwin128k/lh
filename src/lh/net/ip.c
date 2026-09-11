@@ -3,12 +3,11 @@
 #include <lh/memory.h>
 #include <lh/null.h>
 #include <lh/optional/ref.h>
-#include <lh/runtime/error.h>
 #include <lh/str/format/text.h>
 #include <lh/str/parse/uint.h>
+#include <lh/str/split/next.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
-#include <lh/util/str/ptr.h>
 
 void
 lh_net_ip4_pack(lh_net_ip4_t *self, const lh_u8_t *octet0, const lh_u8_t *octet1,
@@ -82,24 +81,18 @@ lh_net_ip4_assign(lh_net_ip4_t *self, const lh_net_ip4_t *other)
     lh_net_ip4_set(self, octet0, octet1, octet2, octet3);
 }
 
-lh_u8_t
-lh_net_ip4_get_octet(const lh_net_ip4_t *self, lh_usize_t index)
-{
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_if(index >= LH_NET_IP4_OCTET_COUNT,
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
-    return self->octets[index];
-}
-
-void
-lh_net_ip4_set_octet(lh_net_ip4_t *self, lh_usize_t index, lh_u8_t value)
-{
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_if(index >= LH_NET_IP4_OCTET_COUNT,
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
-    self->octets[index] = value;
-}
-
+/* lh_net_ip4_get_octet / lh_net_ip4_set_octet are LH_ATTRIBUTE_FORCE_INLINE,
+ * defined in the header — nothing to put here.
+ *
+ * lh_net_ip4_parse's octet loop used to go through lh_str_ptr_split_next +
+ * lh_str_ptr_parse_uint + lh_net_ip4_set_octet as ordinary exported calls;
+ * measured ~4-5x slower (Release, LTO, both static and DLL) than a fully
+ * inlined equivalent. lh_str_ptr_split_next, lh_str_ptr_parse_uint, and
+ * lh_net_ip4_get_octet/set_octet are now all LH_ATTRIBUTE_FORCE_INLINE in
+ * their own headers, so this loop keeps the same decomposed shape while
+ * compiling down to the fast version — lh_str_ptr_find_of_char (called once
+ * per octet, from inside the now-inlined split_next) is the one real call
+ * left, since it is shared, general-purpose, and used broadly elsewhere. */
 lh_bool_t
 lh_net_ip4_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_ip4_t *out)
 {
@@ -113,22 +106,27 @@ lh_net_ip4_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_ip4_t *out)
     for (octet_index = 0; octet_index < LH_NET_IP4_OCTET_COUNT; octet_index++)
     {
         lh_bool_t is_last = octet_index == LH_NET_IP4_OCTET_COUNT - 1U;
-        lh_str_cptr dot = lh_str_ptr_find_of_char(str + pos, str_size - pos, '.');
-        lh_usize_t octet_len = dot != lh_null ? (lh_usize_t)(dot - (str + pos)) : str_size - pos;
+        lh_str_cptr field;
+        lh_usize_t field_size;
+        lh_bool_t had_delim;
         lh_uint_t octet_value;
 
-        if (is_last != (dot == lh_null))
+        if (!lh_str_ptr_split_next(str, str_size, '.', lh_addr_of(pos), lh_addr_of(field),
+                                   lh_addr_of(field_size), lh_addr_of(had_delim)))
+        {
+            return lh_bool_false; /* ran out of string before all octets were read */
+        }
+        if (had_delim == is_last)
         {
             return lh_bool_false; /* missing '.' before the last octet, or an extra one after it */
         }
 
-        if (!lh_str_ptr_parse_uint(str + pos, octet_len, LH_NET_IP4_OCTET_MAX, lh_addr_of(octet_value)))
+        if (!lh_str_ptr_parse_uint(field, field_size, LH_NET_IP4_OCTET_MAX,
+                                   lh_addr_of(octet_value)))
         {
             return lh_bool_false;
         }
         lh_net_ip4_set_octet(lh_addr_of(result), octet_index, (lh_u8_t)octet_value);
-
-        pos += octet_len + (is_last ? 0U : 1U); /* also skip the '.' except after the last octet */
     }
 
     *out = result;
@@ -143,12 +141,11 @@ lh_net_ip4_format(const lh_net_ip4_t *self, lh_str_ptr str, lh_usize_t str_size)
 
     /* Octets are lh_u8_t; variadic default promotion takes them to plain int, not lh_uint_t
      * (the type %u reads via va_arg) — cast each one explicitly. */
-    return lh_str_ptr_format_text(
-        str, str_size, "%u.%u.%u.%u",
-        (lh_uint_t)lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_0),
-        (lh_uint_t)lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_1),
-        (lh_uint_t)lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_2),
-        (lh_uint_t)lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_3));
+    return lh_str_ptr_format_text(str, str_size, "%u.%u.%u.%u",
+                                  (lh_uint_t)lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_0),
+                                  (lh_uint_t)lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_1),
+                                  (lh_uint_t)lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_2),
+                                  (lh_uint_t)lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_3));
 }
 
 lh_bool_t

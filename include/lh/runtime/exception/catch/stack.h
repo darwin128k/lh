@@ -20,6 +20,7 @@
 #include <lh/exception/catch.h>
 #include <lh/runtime/terminate.h>
 #include <lh/attribute/builtin.h>
+#include <lh/attribute/symbol.h>
 #include <lh/size.h>
 
 /**
@@ -83,6 +84,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * }
  * @endcode
  */
+LH_ATTRIBUTE_SYMBOL
 lh_exception_catch_t *
 lh_runtime_exception_catch_stack_get_cur(void);
 
@@ -103,6 +105,7 @@ lh_runtime_exception_catch_stack_get_cur(void);
  * }
  * @endcode
  */
+LH_ATTRIBUTE_SYMBOL
 lh_exception_catch_t **
 lh_runtime_exception_catch_stack_get_begin(void);
 
@@ -122,6 +125,7 @@ lh_runtime_exception_catch_stack_get_begin(void);
  * }
  * @endcode
  */
+LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_runtime_exception_catch_stack_get_capacity(void);
 
@@ -140,6 +144,7 @@ lh_runtime_exception_catch_stack_get_capacity(void);
  * lh_exception_catch_t *last_slot = lh_runtime_exception_catch_stack_get_begin() + last;
  * @endcode
  */
+LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_runtime_exception_catch_stack_get_last_index(void);
 
@@ -160,6 +165,7 @@ lh_runtime_exception_catch_stack_get_last_index(void);
  * }
  * @endcode
  */
+LH_ATTRIBUTE_SYMBOL
 lh_exception_catch_t **
 lh_runtime_exception_catch_stack_get_end(void);
 
@@ -179,6 +185,7 @@ lh_runtime_exception_catch_stack_get_end(void);
  * }
  * @endcode
  */
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_runtime_exception_catch_stack_is_begin(void);
 
@@ -201,6 +208,7 @@ lh_runtime_exception_catch_stack_is_begin(void);
  * }
  * @endcode
  */
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_runtime_exception_catch_stack_is_end(void);
 
@@ -219,6 +227,7 @@ lh_runtime_exception_catch_stack_is_end(void);
  * }
  * @endcode
  */
+LH_ATTRIBUTE_SYMBOL
 lh_exception_catch_t *
 lh_runtime_exception_catch_stack_next(void);
 
@@ -236,6 +245,7 @@ lh_runtime_exception_catch_stack_next(void);
  * }
  * @endcode
  */
+LH_ATTRIBUTE_SYMBOL
 lh_exception_catch_t *
 lh_runtime_exception_catch_stack_prev(void);
 
@@ -259,6 +269,7 @@ lh_runtime_exception_catch_stack_prev(void);
  * }
  * @endcode
  */
+LH_ATTRIBUTE_SYMBOL
 lh_exception_catch_t *
 lh_runtime_exception_catch_stack_push(lh_exception_catch_t *e);
 

@@ -83,14 +83,12 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/util/wchar/case/fold.c
         ${LH_LIB_SRC_PATH}/util/wstr/case/map.c
         ${LH_LIB_SRC_PATH}/util/wstr/ptr.c
-        ${LH_LIB_SRC_PATH}/char/digit.c
         ${LH_LIB_SRC_PATH}/util/char/case/fold.c
         ${LH_LIB_SRC_PATH}/util/str/case/map.c
         ${LH_LIB_SRC_PATH}/util/str/ptr.c
         ${LH_LIB_SRC_PATH}/util/wchar.c
         ${LH_LIB_SRC_PATH}/str/view.c
         ${LH_LIB_SRC_PATH}/str.c
-        ${LH_LIB_SRC_PATH}/str/parse/uint.c
         ${LH_LIB_SRC_PATH}/str/format/uint.c
         ${LH_LIB_SRC_PATH}/str/format/sint.c
         ${LH_LIB_SRC_PATH}/str/format/hex.c
@@ -100,6 +98,13 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/net/port.c
         ${LH_LIB_SRC_PATH}/net/socket/addr/ip4.c
         ${LH_LIB_SRC_PATH}/net/socket/addr.c
+
+        ${LH_LIB_SRC_PATH}/io/reader.c
+        ${LH_LIB_SRC_PATH}/io/writer.c
+        ${LH_LIB_SRC_PATH}/io/stream.c
+
+        ${LH_LIB_SRC_PATH}/os/net.c
+        ${LH_LIB_SRC_PATH}/os/net/socket.c
 
         ${LH_LIB_SRC_PATH}/lh.c
 )
@@ -118,6 +123,11 @@ target_include_directories(
         PUBLIC
         ${LH_LIB_INCLUDE_PATH}
 )
+
+# lh/os/net/socket.c needs Winsock on Windows (WSAStartup, socket, connect, send/recv).
+if (WIN32)
+    target_link_libraries(${PROJECT_NAME} PUBLIC ws2_32)
+endif ()
 
 # Tests (after ${PROJECT_NAME} exists for target_link_libraries).
 if (LH_BUILD_TESTS)
