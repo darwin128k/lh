@@ -188,6 +188,71 @@ TEST(memory_std_compare, mismatch_in_tail_after_full_blocks)
     EXPECT_EQ(d, static_cast<const lh_ptr>(&a[17]));
 }
 
+/*
+ * On a machine whose CPU has AVX2, lh_memory_std_compare dispatches to a 32-bytes-
+ * at-a-time AVX2 kernel (src/lh/memory/std.c) instead of the scalar
+ * LH_ALGORITHM_COMPARE_BLOCK path above — through the same public entry point, so
+ * these cases exercise it for real there. On a machine without AVX2 (as it happens,
+ * the one this suite was authored and last run on — checked directly with
+ * __builtin_cpu_supports("avx2"), which returned false), dispatch falls back to the
+ * scalar path and these just add more scalar coverage instead; either way the
+ * result must be identical, which is the actual property under test. Sized and
+ * positioned specifically to land mismatches in different AVX2 lanes/chunks that
+ * the <=40-byte cases above never reach: 96 bytes = three full 32-byte AVX2 chunks.
+ */
+
+TEST(memory_std_compare, equal_across_multiple_avx2_chunks)
+{
+    std::vector<lh_uchar_t> a(96);
+    std::vector<lh_uchar_t> b(96);
+    for (lh_usize_t i = 0; i < a.size(); ++i)
+    {
+        a[i] = b[i] = static_cast<lh_uchar_t>(i * 7);
+    }
+    const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
+    EXPECT_TRUE(lh_null_eq(d));
+}
+
+TEST(memory_std_compare, mismatch_at_first_lane_of_first_avx2_chunk)
+{
+    std::vector<lh_uchar_t> a(96, 0);
+    std::vector<lh_uchar_t> b(96, 0);
+    a[0] = 9;
+    const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
+    ASSERT_TRUE(lh_null_ne(d));
+    EXPECT_EQ(d, static_cast<const lh_ptr>(&a[0]));
+}
+
+TEST(memory_std_compare, mismatch_at_last_lane_of_first_avx2_chunk)
+{
+    std::vector<lh_uchar_t> a(96, 0);
+    std::vector<lh_uchar_t> b(96, 0);
+    a[31] = 9;
+    const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
+    ASSERT_TRUE(lh_null_ne(d));
+    EXPECT_EQ(d, static_cast<const lh_ptr>(&a[31]));
+}
+
+TEST(memory_std_compare, mismatch_in_middle_avx2_chunk)
+{
+    std::vector<lh_uchar_t> a(96, 0);
+    std::vector<lh_uchar_t> b(96, 0);
+    a[50] = 9; // chunk 1 (bytes 32..63): first two chunks must compare equal first
+    const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
+    ASSERT_TRUE(lh_null_ne(d));
+    EXPECT_EQ(d, static_cast<const lh_ptr>(&a[50]));
+}
+
+TEST(memory_std_compare, mismatch_in_scalar_tail_after_avx2_chunks)
+{
+    std::vector<lh_uchar_t> a(100, 0); // 96 = 3 AVX2 chunks, 4-byte scalar tail
+    std::vector<lh_uchar_t> b(100, 0);
+    a[98] = 9;
+    const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
+    ASSERT_TRUE(lh_null_ne(d));
+    EXPECT_EQ(d, static_cast<const lh_ptr>(&a[98]));
+}
+
 TEST(memory_std_rcompare, equal_returns_null)
 {
     const lh_uchar_t a[] = {1, 2, 3};
