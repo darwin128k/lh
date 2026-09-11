@@ -5,6 +5,7 @@
 #include <lh/compiler/arch.h>
 #include <lh/compiler/arch/family.h>
 #include <lh/config.h>
+#include <lh/cpu/simd.h>
 
 /* Real SIMD, runtime-dispatched, for both GCC/Clang and MSVC: whether a tier's
  * intrinsics + its runtime CPU-feature check are even compilable by this toolchain
@@ -12,8 +13,8 @@
  * (cmake/check_simd.cmake — never executed, so it stays correct under cross-
  * compilation) and recorded as LH_LIBRARY_OPTION_SIMD_HAVE_{SSE2,AVX2} in config.h.
  * Which tier a given CPU can actually *run* is a separate, runtime-only question
- * (checked below by lh_memory_std_cpu_has_sse2/avx2), because the machine that
- * configured the build is not necessarily the machine that runs the binary.
+ * (lh_cpu_has_sse2/avx2, lh/cpu/simd.h), because the machine that configured the
+ * build is not necessarily the machine that runs the binary.
  *
  * See lh_memory_std_compare below for why this is worth doing at all (a 7x+
  * throughput gap measured for the SSE2 tier alone against the portable scalar
@@ -41,77 +42,6 @@
 #else
 #    define LH_MEMORY_STD_SIMD_TARGET(isa)
 #endif
-
-#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
-
-/* SSE2 is part of the mandatory baseline ISA on x86-64 (every x86-64 CPU has it,
- * by architecture definition) but not on 32-bit x86, where it must still be
- * checked at runtime like every other tier below. */
-#    if LH_COMPILER_ARCH_FAMILY_IS_X86 && (LH_COMPILER_ARCH == LH_COMPILER_ARCH_64)
-static int
-lh_memory_std_cpu_has_sse2(void)
-{
-    return 1;
-}
-#    elif LH_COMPILER_TYPE_IS_GCC_LIKE
-static int
-lh_memory_std_cpu_has_sse2(void)
-{
-    return __builtin_cpu_supports("sse2");
-}
-#    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
-static int
-lh_memory_std_cpu_has_sse2(void)
-{
-    int info[4];
-    __cpuid(info, 1);
-    return (info[3] >> 26) & 1; /* CPUID.1:EDX.SSE2 */
-}
-#    endif
-
-#endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
-
-#if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
-
-/* AVX2 is never part of any baseline ISA — always a real runtime check. GCC/Clang's
- * __builtin_cpu_supports already checks CPUID *and* that the OS has enabled AVX
- * register state via XGETBV/XCR0, not just the raw feature bit; the MSVC branch
- * below does the same check by hand, since MSVC has no equivalent builtin. */
-#    if LH_COMPILER_TYPE_IS_GCC_LIKE
-static int
-lh_memory_std_cpu_has_avx2(void)
-{
-    return __builtin_cpu_supports("avx2");
-}
-#    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
-static int
-lh_memory_std_cpu_has_avx2(void)
-{
-    int info[4];
-
-    __cpuid(info, 0);
-    if (info[0] < 7)
-    {
-        return 0; /* CPUID leaf 7 (structured extended features) not available */
-    }
-
-    __cpuid(info, 1);
-    if (!((info[2] >> 27) & 1) || !((info[2] >> 28) & 1))
-    {
-        return 0; /* no OSXSAVE, or no AVX */
-    }
-
-    if ((_xgetbv(0) & 0x6) != 0x6)
-    {
-        return 0; /* OS hasn't enabled XMM+YMM state (XCR0 bits 1-2) */
-    }
-
-    __cpuidex(info, 7, 0);
-    return (info[1] >> 5) & 1; /* CPUID.(EAX=7,ECX=0):EBX.AVX2 */
-}
-#    endif
-
-#endif /* LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
@@ -319,14 +249,14 @@ static const lh_ptr
 lh_memory_std_compare_dispatch(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
-    if (lh_memory_std_cpu_has_avx2())
+    if (lh_cpu_has_avx2())
     {
         m_compare_impl = lh_memory_std_compare_avx2;
     }
     else
 #    endif
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
-        if (lh_memory_std_cpu_has_sse2())
+        if (lh_cpu_has_sse2())
     {
         m_compare_impl = lh_memory_std_compare_sse2;
     }
@@ -459,14 +389,14 @@ static const lh_ptr
 lh_memory_std_rcompare_dispatch(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
-    if (lh_memory_std_cpu_has_avx2())
+    if (lh_cpu_has_avx2())
     {
         m_rcompare_impl = lh_memory_std_rcompare_avx2;
     }
     else
 #    endif
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
-        if (lh_memory_std_cpu_has_sse2())
+        if (lh_cpu_has_sse2())
     {
         m_rcompare_impl = lh_memory_std_rcompare_sse2;
     }
