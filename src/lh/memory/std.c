@@ -2,6 +2,7 @@
 #include <lh/util/algorithm.h>
 #include <lh/assert.h>
 #include <lh/compiler/type.h>
+#include <lh/compiler/arch.h>
 
 /* Real SIMD, runtime-dispatched: only where it can be done safely and portably —
  * GCC/Clang's __builtin_cpu_supports (checks CPUID *and* that the OS has actually
@@ -13,8 +14,7 @@
  * same data, with no SIMD instructions in the compiler's own output). Everywhere
  * this isn't available (non-x86, or a compiler other than GCC/Clang) falls back to
  * the portable scalar path, unchanged. */
-#if LH_COMPILER_TYPE_IS_GCC_LIKE &&                                                                \
-    (defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86))
+#if LH_COMPILER_TYPE_IS_GCC_LIKE && LH_COMPILER_ARCH_FAMILY_IS_X86
 #    define LH_MEMORY_STD_HAVE_X86_SIMD 1
 #    include <immintrin.h>
 #else
@@ -28,8 +28,10 @@
  * substitution, where GCC's own output for the identical C is dramatically better. No
  * CPU feature detection needed here (unlike the AVX2 path above): REP MOVSB is a
  * baseline x86 string instruction, present and correct on every x86/x86-64 CPU — using
- * it is a straight win, not a runtime-conditional one. */
-#if defined(_MSC_VER) && (defined(_M_X64) || defined(_M_IX86))
+ * it is a straight win, not a runtime-conditional one. Gated on x86 specifically:
+ * REP MOVSB has no equivalent on other architectures MSVC targets (e.g. ARM64), which
+ * fall through to the portable scalar path below instead. */
+#if (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC) && LH_COMPILER_ARCH_FAMILY_IS_X86
 #    define LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB 1
 #    include <intrin.h>
 #else
