@@ -42,13 +42,13 @@
 #    define lh_compiler_constructor(f) __attribute__((constructor)) static void f(void)
 
 #elif (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC)
-#    if LH_COMPILER_ARCH == 64
+#    if LH_COMPILER_ARCH == LH_COMPILER_ARCH_64
 #        define lh_compiler_constructor(f)                                                         \
             __pragma(section(".CRT$XCU", read)) static void __cdecl f(void);                       \
             __declspec(allocate(".CRT$XCU")) void(__cdecl * f##_)(void) = f;                       \
             __pragma(comment(linker, "/include:" #f "_"));                                         \
             static void __cdecl f(void)
-#    elif LH_COMPILER_ARCH == 32
+#    elif LH_COMPILER_ARCH == LH_COMPILER_ARCH_32
 #        define lh_compiler_constructor(f)                                                         \
             __pragma(section(".CRT$XCU", read)) static void __cdecl f(void);                       \
             __declspec(allocate(".CRT$XCU")) void(__cdecl * f##_)(void) = f;                       \

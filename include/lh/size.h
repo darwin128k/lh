@@ -20,7 +20,7 @@
 #include <lh/numeric/limits.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-#    if LH_COMPILER_ARCH == 64
+#    if LH_COMPILER_ARCH == LH_COMPILER_ARCH_64
 
 #        ifndef LH_SIZE_T_SIZE
 /**

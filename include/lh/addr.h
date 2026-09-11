@@ -16,7 +16,7 @@
 #include <lh/numeric/fixed/types.h>
 #include <lh/numeric/fixed/limits.h>
 
-#if LH_COMPILER_ARCH == 64
+#if LH_COMPILER_ARCH == LH_COMPILER_ARCH_64
 
 #    ifndef LH_UADDR_T_MIN
 /**
@@ -62,7 +62,7 @@ typedef lh_ullong_t lh_uaddr_t;
  */
 typedef lh_sllong_t lh_saddr_t;
 
-#elif LH_COMPILER_ARCH == 32
+#elif LH_COMPILER_ARCH == LH_COMPILER_ARCH_32
 
 #    ifndef LH_UADDR_T_MIN
 /**
@@ -108,7 +108,7 @@ typedef lh_uint_t lh_uaddr_t;
  */
 typedef lh_sint_t lh_saddr_t;
 
-#elif LH_COMPILER_ARCH == 16
+#elif LH_COMPILER_ARCH == LH_COMPILER_ARCH_16
 
 #    ifndef LH_UADDR_T_MIN
 /**
@@ -154,7 +154,7 @@ typedef lh_ushort_t lh_uaddr_t;
  */
 typedef lh_sshort_t lh_saddr_t;
 
-#elif LH_COMPILER_ARCH == 8
+#elif LH_COMPILER_ARCH == LH_COMPILER_ARCH_8
 
 #    ifndef LH_UADDR_T_MIN
 /**
