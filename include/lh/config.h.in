@@ -166,6 +166,14 @@
  */
 #define LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK @ValAlgorithmCompareBlock@
 
+/**
+ * @def LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE
+ * @brief ::lh_str_ptr_to_lower / ::lh_str_ptr_to_upper use a dense 256-entry lookup
+ *        table (::LH_LIBRARY_OPTION_ON, O(1), +~400 bytes) instead of binary search
+ *        over the sparse pair table (::LH_LIBRARY_OPTION_OFF, O(log n), smaller).
+ */
+#define LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE @ValStrCaseMapUseTable@
+
 #endif /* LH_CONFIG_H */
 
 // clang-format on

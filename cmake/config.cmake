@@ -68,6 +68,12 @@ function(lh_generate_config)
 
     set(ValAlgorithmCompareBlock "${LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK}")
 
+    if (LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE)
+        set(ValStrCaseMapUseTable 1)
+    else ()
+        set(ValStrCaseMapUseTable 0)
+    endif ()
+
     set(_in "${CMAKE_CURRENT_SOURCE_DIR}/include/lh/config.h.in")
     set(_out "${CMAKE_CURRENT_SOURCE_DIR}/include/lh/config.h")
     configure_file("${_in}" "${_out}" @ONLY)

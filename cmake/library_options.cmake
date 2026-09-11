@@ -142,3 +142,23 @@ set(LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR "2" CACHE STRING
 # -----------------------------------------------------------------------------
 set(LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK "16" CACHE STRING
         "Block size for lh_algorithm_compare / lh_memory_find_step's branchless scan (must be > 0).")
+
+# -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE
+#
+# Implementation lh_str_ptr_to_lower / lh_str_ptr_to_upper (src/lh/util/str/case/map.c)
+# use for single-byte (0..255) simple case mapping:
+#
+#   ON  — direct 256-entry lookup table per direction (512 bytes total flash/ROM).
+#         O(1) per character, no branch: table[(unsigned char)c] is always the
+#         mapped byte (identity for characters with no case mapping).
+#   OFF — binary search over the existing sorted sparse pair table (~112 bytes
+#         total). O(log n) per character (~6 comparisons for the current ~56
+#         entries per direction) — smaller, slower.
+#
+# Pure speed/flash trade-off, same shape as LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK:
+# no way to know which matters more for a given target without measuring on it.
+# -----------------------------------------------------------------------------
+option(LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE
+        "lh_str_ptr_to_lower/_to_upper use a dense 256-entry table (ON, faster, +~400B) instead of binary search over the sparse pair table (OFF, smaller)."
+        ON)
