@@ -2,11 +2,33 @@
 set(LH_CORE_TARGET ${PROJECT_NAME})
 project(${LH_CORE_TARGET}_bench)
 
+set(LH_BENCH_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 set(LH_BENCH_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(LH_BENCH_INCLUDE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+# Skip the bench target if the google/benchmark submodule is not initialized.
+if (NOT EXISTS "${LH_BENCH_LIB_PATH}/benchmark/CMakeLists.txt")
+    message(WARNING
+            "google/benchmark not found — benchmarks disabled.\n"
+            "Run: git submodule update --init --recursive")
+    return()
+endif ()
+
+# Pinned to v1.7.1 (CMake >= 3.5.1, C++14 to build) rather than a later release: newer
+# google/benchmark tags raise their own CMake/C++ standard floor (v1.8+ wants CMake 3.10,
+# v1.9+ wants C++17 to build), which would sit above what lh itself claims to support
+# (CMake 3.12, legacy/XP toolchains — see scripts/build-windows-xp.bat).
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+set(BENCHMARK_ENABLE_WERROR OFF CACHE BOOL "" FORCE)
+
+# Keep benchmark's CRT consistent with this project on MSVC (/MD vs /MT), same as googletest.
+if (MSVC)
+    set(BENCHMARK_USE_LIBCXX OFF CACHE BOOL "" FORCE)
+endif ()
+
+add_subdirectory(${LH_BENCH_LIB_PATH}/benchmark)
 
 set(LH_BENCH_SOURCES
-        ${LH_BENCH_SRC_PATH}/main.cpp
         ${LH_BENCH_SRC_PATH}/lh/memory/std.cpp
         ${LH_BENCH_SRC_PATH}/lh/vector.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/format/uint.cpp
@@ -20,11 +42,9 @@ set(LH_BENCH_SOURCES
 
 add_executable(${PROJECT_NAME} ${LH_BENCH_SOURCES})
 
-target_include_directories(${PROJECT_NAME} PRIVATE "${LH_BENCH_INCLUDE_PATH}")
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LH_CORE_TARGET} benchmark::benchmark_main)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${LH_CORE_TARGET})
-
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON)
 
 # Windows: put the shared library next to the bench executable so the loader finds it.
 if (WIN32)

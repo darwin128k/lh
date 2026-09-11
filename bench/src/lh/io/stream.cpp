@@ -1,4 +1,4 @@
-#include <bench/bench.h>
+#include <benchmark/benchmark.h>
 
 #include <lh/io/reader.h>
 #include <lh/io/writer.h>
@@ -49,53 +49,64 @@ constexpr lh_usize_t kChunkSize = 4096;
 
 } // namespace
 
-BENCH_BYTES(io_reader_read_4KB, kChunkSize)
+static void
+BM_io_reader_read_4KB(benchmark::State &state)
 {
-    static std::vector<char> data(kChunkSize, 'x');
-    static char dst[kChunkSize];
+    std::vector<char> data(kChunkSize, 'x');
+    char dst[kChunkSize];
 
     MemorySource src{data.data(), data.size(), 0};
     lh_io_reader_t reader;
     lh_io_reader_init(&reader, &MemorySourceRead, &src);
 
-    for (std::uint64_t i = 0; i < iterations; ++i)
+    for (auto _ : state)
     {
         src.pos = 0;
-        bench::DoNotOptimize(lh_io_reader_read(&reader, dst, sizeof(dst)));
+        benchmark::DoNotOptimize(lh_io_reader_read(&reader, dst, sizeof(dst)));
     }
+    state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * kChunkSize);
 }
+BENCHMARK(BM_io_reader_read_4KB);
 
-BENCH_BYTES(io_writer_write_4KB, kChunkSize)
+static void
+BM_io_writer_write_4KB(benchmark::State &state)
 {
-    static std::vector<char> src(kChunkSize, 'x');
-    static char dst[kChunkSize];
+    std::vector<char> src(kChunkSize, 'x');
+    char dst[kChunkSize];
 
     MemorySink sink{dst, sizeof(dst), 0};
     lh_io_writer_t writer;
     lh_io_writer_init(&writer, &MemorySinkWrite, &sink);
 
-    for (std::uint64_t i = 0; i < iterations; ++i)
+    for (auto _ : state)
     {
         sink.pos = 0;
-        bench::DoNotOptimize(lh_io_writer_write(&writer, src.data(), src.size()));
+        benchmark::DoNotOptimize(lh_io_writer_write(&writer, src.data(), src.size()));
     }
+    state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * kChunkSize);
 }
+BENCHMARK(BM_io_writer_write_4KB);
 
-BENCH_BYTES(io_reader_read_1KB_chunks_of_64B, 1024)
+static void
+BM_io_reader_read_1KB_in_64B_chunks(benchmark::State &state)
 {
-    static std::vector<char> data(1024, 'x');
-    static char dst[64];
+    constexpr lh_usize_t kTotal = 1024;
+    constexpr lh_usize_t kStep = 64;
+    std::vector<char> data(kTotal, 'x');
+    char dst[kStep];
 
     MemorySource src{data.data(), data.size(), 0};
     lh_io_reader_t reader;
     lh_io_reader_init(&reader, &MemorySourceRead, &src);
 
-    for (std::uint64_t i = 0; i < iterations; ++i)
+    for (auto _ : state)
     {
         src.pos = 0;
         while (src.pos < src.size)
         {
-            bench::DoNotOptimize(lh_io_reader_read(&reader, dst, sizeof(dst)));
+            benchmark::DoNotOptimize(lh_io_reader_read(&reader, dst, sizeof(dst)));
         }
     }
+    state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * kTotal);
 }
+BENCHMARK(BM_io_reader_read_1KB_in_64B_chunks);

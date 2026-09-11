@@ -1,21 +1,26 @@
-#include <bench/bench.h>
+#include <benchmark/benchmark.h>
 
 #include <lh/str/format/text.h>
 
-BENCH(str_format_text_literal)
+static void
+BM_str_format_text_literal(benchmark::State &state)
 {
     char buf[64];
-    for (std::uint64_t i = 0; i < iterations; ++i)
+    for (auto _ : state)
     {
-        bench::DoNotOptimize(lh_str_ptr_format_text(buf, sizeof(buf), "hello world"));
+        benchmark::DoNotOptimize(lh_str_ptr_format_text(buf, sizeof(buf), "hello world"));
     }
 }
+BENCHMARK(BM_str_format_text_literal);
 
-BENCH(str_format_text_mixed_conversions)
+static void
+BM_str_format_text_mixed_conversions(benchmark::State &state)
 {
     char buf[64];
-    for (std::uint64_t i = 0; i < iterations; ++i)
+    for (auto _ : state)
     {
-        bench::DoNotOptimize(lh_str_ptr_format_text(buf, sizeof(buf), "id=%u name=%s x=%x", 7U, "abc", 255U));
+        benchmark::DoNotOptimize(
+            lh_str_ptr_format_text(buf, sizeof(buf), "id=%u name=%s x=%x", 7U, "abc", 255U));
     }
 }
+BENCHMARK(BM_str_format_text_mixed_conversions);

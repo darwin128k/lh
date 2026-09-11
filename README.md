@@ -71,6 +71,7 @@ Details are in [scripts/README.md](scripts/README.md).
 | `LH_BUILD_SHARED` | `ON`   | Build as a shared library            |
 | `LH_BUILD_DOCS`   | `ON`   | Generate Doxygen documentation       |
 | `LH_BUILD_TESTS`  | `ON`   | Build GoogleTest targets             |
+| `LH_BUILD_BENCH`  | `OFF`  | Build Google Benchmark microbenchmarks (`bench/lib/benchmark` submodule) |
 | `LH_DOCS_GRAPHS`  | `ON`   | Include Graphviz dependency graphs   |
 
 Example — static library without docs:

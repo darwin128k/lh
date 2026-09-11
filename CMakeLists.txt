@@ -22,7 +22,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 option(LH_BUILD_SHARED "Build as shared library" ON)
 option(LH_BUILD_DOCS "Build documentation" ON)
 option(LH_BUILD_TESTS "Build tests" ON)
-option(LH_BUILD_BENCH "Build microbenchmarks" ON)
+option(LH_BUILD_BENCH "Build microbenchmarks (requires the bench/lib/benchmark submodule)" OFF)
 
 # ---------------------------------------------------------------------------
 # Release optimization options

@@ -1,33 +1,39 @@
-#include <bench/bench.h>
+#include <benchmark/benchmark.h>
 
 #include <lh/net/ip.h>
 
-BENCH(net_ip4_parse)
+static void
+BM_net_ip4_parse(benchmark::State &state)
 {
     const char text[] = "192.168.0.1";
     lh_net_ip4_t out;
-    for (std::uint64_t i = 0; i < iterations; ++i)
+    for (auto _ : state)
     {
-        bench::DoNotOptimize(lh_net_ip4_parse(text, sizeof(text) - 1, &out));
+        benchmark::DoNotOptimize(lh_net_ip4_parse(text, sizeof(text) - 1, &out));
     }
 }
+BENCHMARK(BM_net_ip4_parse);
 
-BENCH(net_ip4_format)
+static void
+BM_net_ip4_format(benchmark::State &state)
 {
     lh_net_ip4_t addr = lh_net_ip4_make(192, 168, 0, 1);
     char buf[LH_NET_IP4_TEXT_MAX];
-    for (std::uint64_t i = 0; i < iterations; ++i)
+    for (auto _ : state)
     {
-        bench::DoNotOptimize(lh_net_ip4_format(&addr, buf, sizeof(buf)));
+        benchmark::DoNotOptimize(lh_net_ip4_format(&addr, buf, sizeof(buf)));
     }
 }
+BENCHMARK(BM_net_ip4_format);
 
-BENCH(net_ip4_equals)
+static void
+BM_net_ip4_equals(benchmark::State &state)
 {
     lh_net_ip4_t a = lh_net_ip4_make(192, 168, 0, 1);
     lh_net_ip4_t b = lh_net_ip4_make(192, 168, 0, 2);
-    for (std::uint64_t i = 0; i < iterations; ++i)
+    for (auto _ : state)
     {
-        bench::DoNotOptimize(lh_net_ip4_equals(&a, &b));
+        benchmark::DoNotOptimize(lh_net_ip4_equals(&a, &b));
     }
 }
+BENCHMARK(BM_net_ip4_equals);
