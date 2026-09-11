@@ -66,13 +66,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/memory/bounds/allocated.c
         ${LH_LIB_SRC_PATH}/memory/view/slice.c
         ${LH_LIB_SRC_PATH}/memory/bounds.c
-        ${LH_LIB_SRC_PATH}/memory/typed.c
-        ${LH_LIB_SRC_PATH}/memory/typed/allocated.c
-        ${LH_LIB_SRC_PATH}/memory/view.c
         ${LH_LIB_SRC_PATH}/memory/std.c
         ${LH_LIB_SRC_PATH}/memory/raw.c
         ${LH_LIB_SRC_PATH}/memory.c
-        ${LH_LIB_SRC_PATH}/vector.c
 
         ${LH_LIB_SRC_PATH}/exception/origin.c
         ${LH_LIB_SRC_PATH}/exception/catch.c
@@ -88,7 +84,6 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/util/str/case/map.c
         ${LH_LIB_SRC_PATH}/util/str/ptr.c
         ${LH_LIB_SRC_PATH}/util/wchar.c
-        ${LH_LIB_SRC_PATH}/str/view.c
         ${LH_LIB_SRC_PATH}/str.c
         ${LH_LIB_SRC_PATH}/str/format/uint.c
         ${LH_LIB_SRC_PATH}/str/format/sint.c
