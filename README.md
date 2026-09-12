@@ -28,6 +28,8 @@ A lightweight C utility library (headers + a small shared/static library) with p
 - **SIMD memory operations** — `lh/memory/std.h`'s `copy` / `copy_rev` / `rcopy` / `set` / `compare` / `rcompare` runtime-dispatch to a hand-written SSE2/SSSE3/AVX2 tier (resolved once via a self-rewriting function pointer) when the toolchain can compile it and the running CPU supports it, falling back to a portable scalar path everywhere else — see [Performance](#performance)
 - **CPU feature/vendor detection** — `lh_cpu_simd_has_sse2/ssse3/avx2` (`lh/cpu/simd.h`), `lh_cpu_vendor_is_intel/is_amd` (`lh/cpu/vendor.h`)
 - **Bit scan** — header-only, force-inlined `lh_bit_scan_forward/reverse` for `u8`/`u16`/`u32`/`u64` in `lh/util/bit/scan.h`
+- **IO abstraction** — callback-based `lh_io_reader_t` / `lh_io_writer_t` and the duplex `lh_io_stream_t` that pairs them (`lh/io/`), so code written against read/write does not need to know whether a socket, file, or pipe is behind it
+- **Networking** — pure value types for IPv4 (`lh_net_ip4_t` — parse/format/pack/unpack, `lh/net/ip.h`), a TCP/UDP port (`lh_net_port_t`, `lh/net/port.h`), and an address pair (`lh_net_ip4_socket_addr_t`, `lh/net/socket/addr/ip4.h`); a blocking IPv4 TCP/UDP client socket (`lh_os_net_socket_t`, `lh/os/net/socket.h`) that hands out an `lh_io_stream_t` — no bind/listen/accept or non-blocking mode yet
 - **Version** — `lh_version_t`, `lh_get_version()` via `lh/lh.h`
 - **Build** — CMake, generated `lh/config.h`, optional Doxygen docs and bundled GoogleTest
 
