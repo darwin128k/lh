@@ -89,8 +89,8 @@ lh_os_net_socket_connect(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_
     struct sockaddr_in native_addr;
     lh_net_ip4_t ip;
     lh_net_port_t port;
-    unsigned char *addr_bytes;
-    unsigned char *port_bytes;
+    lh_uchar_t *addr_bytes;
+    lh_uchar_t *port_bytes;
     lh_int_t result;
 
     lh_assert_runtime_ref(self);
@@ -105,15 +105,15 @@ lh_os_net_socket_connect(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_
     /* sin_addr/sin_port are always network byte order in memory, byte for
      * byte the same order as the dotted-quad octets / the port's high byte
      * first — writing the raw bytes avoids depending on htons/htonl. */
-    addr_bytes = (unsigned char *)lh_addr_of(native_addr.sin_addr);
+    addr_bytes = (lh_uchar_t *)lh_addr_of(native_addr.sin_addr);
     addr_bytes[0] = lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_0);
     addr_bytes[1] = lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_1);
     addr_bytes[2] = lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_2);
     addr_bytes[3] = lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_3);
 
-    port_bytes = (unsigned char *)lh_addr_of(native_addr.sin_port);
-    port_bytes[0] = (unsigned char)(port >> 8);
-    port_bytes[1] = (unsigned char)(port & 0xFFU);
+    port_bytes = (lh_uchar_t *)lh_addr_of(native_addr.sin_port);
+    port_bytes[0] = (lh_uchar_t)(port >> 8);
+    port_bytes[1] = (lh_uchar_t)(port & 0xFFU);
 
     result = connect((lh_os_net_native_handle_t)self->handle, (struct sockaddr *)lh_addr_of(native_addr),
                      sizeof(native_addr));
