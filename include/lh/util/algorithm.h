@@ -12,6 +12,7 @@
 #include <lh/bool.h>
 #include <lh/config.h>
 #include <lh/size.h>
+#include <lh/util/arg.h>
 #include <lh/util/ptr.h>
 
 /**
@@ -309,5 +310,31 @@
             *--d = *s++;                                                                           \
         }                                                                                          \
     } while (0)
+
+/**
+ * @brief Iterate over @p n elements starting at @p ptr, binding each in turn to @p var.
+ *
+ * Unlike every other macro in this file, this one is not a statement on its own —
+ * it expands to a `for` loop header, the same way ::lh_optional_ref expands to an
+ * `if` header. Follow it with the loop body as a statement or block.
+ *
+ * @param T   Element type.
+ * @param var Name for the loop variable (declared as `T *`, bound to each element
+ *            in turn) — a fresh identifier, not an existing variable.
+ * @param ptr Sequence pointer.
+ * @param n   Number of elements to iterate.
+ *
+ * @code
+ * int v[3] = {1, 2, 3};
+ * lh_algorithm_foreach(int, it, v, 3)
+ * {
+ *     *it *= 2;
+ * }
+ * // v == {2, 4, 6}
+ * @endcode
+ */
+#define lh_algorithm_foreach(T, var, ptr, n)                                                       \
+    for (T *var = lh_ptr_cast(T, ptr), *lh_arg_concat(var, _end) = var + (n);                      \
+         var != lh_arg_concat(var, _end); ++var)
 
 #endif /* LH_UTIL_ALGORITHM_H */
