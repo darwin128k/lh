@@ -139,22 +139,52 @@ lh_memory_std_bit_scan_reverse(lh_u32_t x)
 LH_MEMORY_STD_SIMD_TARGET("sse2") static void
 lh_memory_std_copy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 {
+    /* Align the destination to 16 bytes so the bulk loop can use aligned stores
+     * (movdqa / _mm_store_si128). Unaligned loads from src stay on loadu — src
+     * alignment is independent. Aligned stores are what CRT memcpy leans on for
+     * mid-size in-cache copies; the previous storeu-only loop left ~1.5x-2x on
+     * the table against CRT at 512B-256KB on this project's SSE2-only target. */
+    {
+        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)16);
+        lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
+
+        if (head > n)
+        {
+            head = n;
+        }
+
+        if (head != 0U)
+        {
+            lh_usize_t head_n = head;
+            lh_algorithm_copy(lh_uchar_t, dst, src, head_n);
+            dst += head;
+            src += head;
+            n -= head;
+        }
+    }
+
     /* Unrolled 4-wide, same shape/reason as lh_memory_std_copy_avx2's own 128-byte
      * loop below: a single load+store per iteration serializes on that one register's
      * load-to-store latency, leaving the CPU's other load/store ports idle. Measured
      * 1.7x-2.4x faster than the single-register loop across 512B-8KB on this
-     * project's own GCC/MinGW toolchain — enough to close most of the gap against the
-     * platform CRT's own memcpy that this tier was originally missing at this width. */
+     * project's own GCC/MinGW toolchain. Prefetch the source a few lines ahead once
+     * the remaining span is past a couple of cache lines — helps the mid-size band
+     * where CRT was still winning after the 4-wide unroll alone. */
     while (n >= 64U)
     {
+        if (n >= 256U)
+        {
+            _mm_prefetch(lh_ptr_ccast(char, src + 256), _MM_HINT_T0);
+        }
+
         const __m128i v0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 0));
         const __m128i v1 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 16));
         const __m128i v2 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 32));
         const __m128i v3 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 48));
-        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 0), v0);
-        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 16), v1);
-        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 32), v2);
-        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 48), v3);
+        _mm_store_si128(lh_ptr_rcast(__m128i, dst + 0), v0);
+        _mm_store_si128(lh_ptr_rcast(__m128i, dst + 16), v1);
+        _mm_store_si128(lh_ptr_rcast(__m128i, dst + 32), v2);
+        _mm_store_si128(lh_ptr_rcast(__m128i, dst + 48), v3);
         dst += 64;
         src += 64;
         n -= 64U;
@@ -353,11 +383,13 @@ static lh_memory_std_copy_simd_fn m_copy_simd_impl = lh_memory_std_copy_simd_dis
  * only implementations of this tier). */
 static lh_memory_std_copy_simd_fn m_copy_stream_impl = lh_null;
 
-/* Below this, lh_algorithm_copy's own inline scalar/auto-vectorized loop stays in use
- * (measured faster than going through this tier's indirect function-pointer call for
- * anything under ~512 bytes — the call overhead is not worth paying yet at that size,
- * same crossover point REP MOVSB used above before this tier replaced it). */
-#    define LH_MEMORY_STD_SIMD_COPY_THRESHOLD ((lh_usize_t)512)
+/* Below this, the overlapping-word tiny ladder (lh_memory_std_copy_tiny) handles the
+ * copy — small enough that an indirect SIMD call cannot pay for itself, and on MSVC
+ * the plain lh_algorithm_copy byte loop is catastrophically bad (see the Release
+ * bench: 64B was ~9x behind CRT before the ladder). At/above this size the SIMD
+ * tier is used directly; 16 matches one SSE register so the first vector iteration
+ * always does real work. */
+#    define LH_MEMORY_STD_SIMD_COPY_THRESHOLD ((lh_usize_t)16)
 
 /* Above this, the non-temporal stream tier (lh_memory_std_copy_avx2_stream, or
  * lh_memory_std_copy_sse2_stream when AVX2 isn't available) takes over from the plain
@@ -403,6 +435,54 @@ lh_memory_std_copy_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usiz
 
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
+/* Overlapping word/halfword/byte ladder for copies below one SSE register (16 bytes).
+ * Same technique CRT memcpy uses for the tiniest sizes: for any n in [8, 15] two
+ * overlapping 8-byte moves cover the whole span with no loop; likewise for 4 and 2.
+ * Critical under MSVC, whose lh_algorithm_copy codegen is a literal byte-at-a-time
+ * movzx+mov loop (Release bench: 64B was ~44ns vs CRT ~5ns before SIMD took over
+ * at 512 — this ladder closes the hole below the new 16-byte SIMD threshold).
+ * On x86/x86-64 unaligned integer loads/stores are architecturally defined. */
+#if LH_COMPILER_ARCH_FAMILY_IS_X86
+static void
+lh_memory_std_copy_tiny(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+{
+    if (n >= 8U)
+    {
+        const lh_u64_t first = *lh_ptr_rcast(const lh_u64_t, src);
+        const lh_u64_t last = *lh_ptr_rcast(const lh_u64_t, src + n - 8U);
+        *lh_ptr_rcast(lh_u64_t, dst) = first;
+        *lh_ptr_rcast(lh_u64_t, dst + n - 8U) = last;
+        return;
+    }
+
+    if (n >= 4U)
+    {
+        const lh_u32_t first = *lh_ptr_rcast(const lh_u32_t, src);
+        const lh_u32_t last = *lh_ptr_rcast(const lh_u32_t, src + n - 4U);
+        *lh_ptr_rcast(lh_u32_t, dst) = first;
+        *lh_ptr_rcast(lh_u32_t, dst + n - 4U) = last;
+        return;
+    }
+
+    if (n >= 2U)
+    {
+        const lh_u16_t first = *lh_ptr_rcast(const lh_u16_t, src);
+        const lh_u16_t last = *lh_ptr_rcast(const lh_u16_t, src + n - 2U);
+        *lh_ptr_rcast(lh_u16_t, dst) = first;
+        *lh_ptr_rcast(lh_u16_t, dst + n - 2U) = last;
+        return;
+    }
+
+    if (n != 0U)
+    {
+        *dst = *src;
+    }
+}
+#    define LH_MEMORY_STD_HAVE_COPY_TINY 1
+#else
+#    define LH_MEMORY_STD_HAVE_COPY_TINY 0
+#endif
+
 lh_ptr
 lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 {
@@ -425,15 +505,33 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
         {
             m_copy_stream_impl(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
         }
+#    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 && (LH_COMPILER_ARCH == LH_COMPILER_ARCH_64)
+        /* x86-64 guarantees SSE2 — call the SSE2 kernel directly below the size where
+         * an AVX2 upgrade (via the indirect m_copy_simd_impl) is worth the FP. Avoids
+         * paying dispatch/indirect-call overhead on the 16-255 band, where Release
+         * MinGW otherwise lost to CRT's specialized small-copy path (and to GCC's own
+         * earlier auto-vectorized inline loop before the threshold dropped to 16). */
+        else if (n < 256U)
+        {
+            lh_memory_std_copy_sse2(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+        }
+#    endif
         else
         {
             m_copy_simd_impl(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
         }
     }
+#    if LH_MEMORY_STD_HAVE_COPY_TINY
+    else
+    {
+        lh_memory_std_copy_tiny(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+    }
+#    else
     else
     {
         lh_algorithm_copy(lh_uchar_t, dst, src, n);
     }
+#    endif
 #elif LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB
     /* Fallback for an MSVC x86 build where SIMD intrinsics turned out not to be
      * compilable at all (see cmake/check_simd.cmake) — the SIMD branch above wins
@@ -458,10 +556,19 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
          * cmake/check_simd.cmake) — the branch above wins whenever it is available. */
         __asm__ volatile("rep movsb" : "+D"(d), "+S"(s), "+c"(n) : : "memory");
     }
+#    if LH_MEMORY_STD_HAVE_COPY_TINY
+    else
+    {
+        lh_memory_std_copy_tiny(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+    }
+#    else
     else
     {
         lh_algorithm_copy(lh_uchar_t, dst, src, n);
     }
+#    endif
+#elif LH_MEMORY_STD_HAVE_COPY_TINY
+    lh_memory_std_copy_tiny(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
 #else
     lh_algorithm_copy(lh_uchar_t, dst, src, n);
 #endif
@@ -647,15 +754,34 @@ lh_memory_std_set_sse2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 {
     const __m128i v = _mm_set1_epi8(lh_cast_static(char, val));
 
+    /* Align dst for movdqa stores — same reason as lh_memory_std_copy_sse2. */
+    {
+        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)16);
+        lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
+
+        if (head > n)
+        {
+            head = n;
+        }
+
+        if (head != 0U)
+        {
+            lh_usize_t head_n = head;
+            lh_algorithm_set(lh_uchar_t, dst, val, head_n);
+            dst += head;
+            n -= head;
+        }
+    }
+
     /* Unrolled 4-wide — see lh_memory_std_copy_sse2's own doc comment for why (this
      * tier has only one memory stream to drive, not two, but is still four
      * independent stores per iteration instead of one, for the same reason). */
     while (n >= 64U)
     {
-        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 0), v);
-        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 16), v);
-        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 32), v);
-        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 48), v);
+        _mm_store_si128(lh_ptr_rcast(__m128i, dst + 0), v);
+        _mm_store_si128(lh_ptr_rcast(__m128i, dst + 16), v);
+        _mm_store_si128(lh_ptr_rcast(__m128i, dst + 32), v);
+        _mm_store_si128(lh_ptr_rcast(__m128i, dst + 48), v);
         dst += 64;
         n -= 64U;
     }
@@ -670,6 +796,54 @@ lh_memory_std_set_sse2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
     lh_algorithm_set(lh_uchar_t, dst, val, n);
 }
 
+/* Non-temporal SSE2 fill — twin of lh_memory_std_copy_sse2_stream. CRT memset uses
+ * NT stores past a few MiB; without this tier large sets keep paying RFO on every
+ * destination line (Release MSVC bench: 16MB set was ~2x behind CRT). */
+LH_MEMORY_STD_SIMD_TARGET("sse2") static void
+lh_memory_std_set_sse2_stream(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
+{
+    const __m128i v = _mm_set1_epi8(lh_cast_static(char, val));
+
+    {
+        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)16);
+        lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
+
+        if (head > n)
+        {
+            head = n;
+        }
+
+        if (head != 0U)
+        {
+            lh_usize_t head_n = head;
+            lh_algorithm_set(lh_uchar_t, dst, val, head_n);
+            dst += head;
+            n -= head;
+        }
+    }
+
+    while (n >= 64U)
+    {
+        _mm_stream_si128(lh_ptr_rcast(__m128i, dst + 0), v);
+        _mm_stream_si128(lh_ptr_rcast(__m128i, dst + 16), v);
+        _mm_stream_si128(lh_ptr_rcast(__m128i, dst + 32), v);
+        _mm_stream_si128(lh_ptr_rcast(__m128i, dst + 48), v);
+        dst += 64;
+        n -= 64U;
+    }
+
+    while (n >= 16U)
+    {
+        _mm_stream_si128(lh_ptr_rcast(__m128i, dst), v);
+        dst += 16;
+        n -= 16U;
+    }
+
+    _mm_sfence();
+
+    lh_algorithm_set(lh_uchar_t, dst, val, n);
+}
+
 #    endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
 
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
@@ -680,12 +854,30 @@ lh_memory_std_set_avx2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 {
     const __m256i v = _mm256_set1_epi8(lh_cast_static(char, val));
 
+    {
+        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)32);
+        lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
+
+        if (head > n)
+        {
+            head = n;
+        }
+
+        if (head != 0U)
+        {
+            lh_usize_t head_n = head;
+            lh_algorithm_set(lh_uchar_t, dst, val, head_n);
+            dst += head;
+            n -= head;
+        }
+    }
+
     while (n >= 128U)
     {
-        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + 0), v);
-        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + 32), v);
-        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + 64), v);
-        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + 96), v);
+        _mm256_store_si256(lh_ptr_rcast(__m256i, dst + 0), v);
+        _mm256_store_si256(lh_ptr_rcast(__m256i, dst + 32), v);
+        _mm256_store_si256(lh_ptr_rcast(__m256i, dst + 64), v);
+        _mm256_store_si256(lh_ptr_rcast(__m256i, dst + 96), v);
         dst += 128;
         n -= 128U;
     }
@@ -696,6 +888,51 @@ lh_memory_std_set_avx2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
         dst += 32;
         n -= 32U;
     }
+
+    lh_algorithm_set(lh_uchar_t, dst, val, n);
+}
+
+LH_MEMORY_STD_SIMD_TARGET("avx2") static void
+lh_memory_std_set_avx2_stream(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
+{
+    const __m256i v = _mm256_set1_epi8(lh_cast_static(char, val));
+
+    {
+        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)32);
+        lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
+
+        if (head > n)
+        {
+            head = n;
+        }
+
+        if (head != 0U)
+        {
+            lh_usize_t head_n = head;
+            lh_algorithm_set(lh_uchar_t, dst, val, head_n);
+            dst += head;
+            n -= head;
+        }
+    }
+
+    while (n >= 128U)
+    {
+        _mm256_stream_si256(lh_ptr_rcast(__m256i, dst + 0), v);
+        _mm256_stream_si256(lh_ptr_rcast(__m256i, dst + 32), v);
+        _mm256_stream_si256(lh_ptr_rcast(__m256i, dst + 64), v);
+        _mm256_stream_si256(lh_ptr_rcast(__m256i, dst + 96), v);
+        dst += 128;
+        n -= 128U;
+    }
+
+    while (n >= 32U)
+    {
+        _mm256_stream_si256(lh_ptr_rcast(__m256i, dst), v);
+        dst += 32;
+        n -= 32U;
+    }
+
+    _mm_sfence();
 
     lh_algorithm_set(lh_uchar_t, dst, val, n);
 }
@@ -714,6 +951,11 @@ static void
 lh_memory_std_set_simd_dispatch(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n);
 
 static lh_memory_std_set_simd_fn m_set_simd_impl = lh_memory_std_set_simd_dispatch;
+static lh_memory_std_set_simd_fn m_set_stream_impl = lh_null;
+
+/* Same crossover as the copy stream tier — past this, RFO on every destination line
+ * dominates, and NT stores win. */
+#    define LH_MEMORY_STD_SIMD_SET_STREAM_THRESHOLD ((lh_usize_t)2 * 1024 * 1024)
 
 static void
 lh_memory_std_set_simd_dispatch(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
@@ -722,6 +964,7 @@ lh_memory_std_set_simd_dispatch(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
     if (lh_cpu_simd_has_avx2())
     {
         m_set_simd_impl = lh_memory_std_set_avx2;
+        m_set_stream_impl = lh_memory_std_set_avx2_stream;
     }
     else
 #    endif
@@ -729,6 +972,7 @@ lh_memory_std_set_simd_dispatch(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
         if (lh_cpu_simd_has_sse2())
     {
         m_set_simd_impl = lh_memory_std_set_sse2;
+        m_set_stream_impl = lh_memory_std_set_sse2_stream;
     }
     else
 #    endif
@@ -736,7 +980,14 @@ lh_memory_std_set_simd_dispatch(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
         m_set_simd_impl = lh_memory_std_set_simd_scalar;
     }
 
-    m_set_simd_impl(dst, val, n);
+    if (n >= LH_MEMORY_STD_SIMD_SET_STREAM_THRESHOLD && m_set_stream_impl != lh_null)
+    {
+        m_set_stream_impl(dst, val, n);
+    }
+    else
+    {
+        m_set_simd_impl(dst, val, n);
+    }
 }
 
 /* Measured lower than lh_memory_std_copy's own threshold: lh_algorithm_set has only
@@ -755,7 +1006,14 @@ lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n)
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
     if (n >= LH_MEMORY_STD_SIMD_SET_THRESHOLD)
     {
-        m_set_simd_impl(lh_ptr_cast(lh_uchar_t, dst), val, n);
+        if (n >= LH_MEMORY_STD_SIMD_SET_STREAM_THRESHOLD && m_set_stream_impl != lh_null)
+        {
+            m_set_stream_impl(lh_ptr_cast(lh_uchar_t, dst), val, n);
+        }
+        else
+        {
+            m_set_simd_impl(lh_ptr_cast(lh_uchar_t, dst), val, n);
+        }
     }
     else
     {
@@ -792,6 +1050,32 @@ lh_memory_std_compare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs);
     const lh_uchar_t *r = lh_ptr_ccast(lh_uchar_t, rhs);
+
+    /* 2-wide unroll on the equal-path hot loop — same ILP idea as the copy tiers;
+     * early-exit still fires on the first mismatched register. */
+    while (n >= 32U)
+    {
+        const __m128i va0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, l + 0));
+        const __m128i vb0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, r + 0));
+        const __m128i va1 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, l + 16));
+        const __m128i vb1 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, r + 16));
+        const lh_u32_t eq0 = lh_cast_static(lh_u32_t, _mm_movemask_epi8(_mm_cmpeq_epi8(va0, vb0)));
+        const lh_u32_t eq1 = lh_cast_static(lh_u32_t, _mm_movemask_epi8(_mm_cmpeq_epi8(va1, vb1)));
+
+        if (eq0 != 0xFFFFU)
+        {
+            return l + lh_memory_std_bit_scan_forward(lh_bit_and(lh_bit_not(eq0), 0xFFFFU));
+        }
+
+        if (eq1 != 0xFFFFU)
+        {
+            return l + 16 + lh_memory_std_bit_scan_forward(lh_bit_and(lh_bit_not(eq1), 0xFFFFU));
+        }
+
+        l += 32;
+        r += 32;
+        n -= 32U;
+    }
 
     while (n >= 16U)
     {
