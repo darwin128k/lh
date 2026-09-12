@@ -47,6 +47,17 @@
 #    define LH_MEMORY_STD_SIMD_TARGET(isa)
 #endif
 
+/* Shared by lh_memory_std_copy/copy_rev/rcopy's own dispatch (not the tiers
+ * themselves): below this size, call the SSE2 tier directly (x86-64 guarantees
+ * SSE2, so no runtime check is needed to do that); at or above it, go through the
+ * indirect, AVX2-capable dispatch instead, since only then does that indirection
+ * reliably pay for itself. A measured crossover, not a correctness fact — see
+ * cmake/library_options.cmake for the full rationale and how to override it. */
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 && (LH_COMPILER_ARCH == LH_COMPILER_ARCH_64)
+#    define LH_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD                                             \
+        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD)
+#endif
+
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
 /* Portable "index of lowest/highest set bit" for the movemask results below —
@@ -109,7 +120,8 @@ lh_memory_std_bit_scan_reverse(lh_u32_t x)
  * LH_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD picks a size at that measured crossover. */
 #if LH_COMPILER_TYPE_IS_GCC_LIKE && LH_COMPILER_ARCH_FAMILY_IS_X86
 #    define LH_MEMORY_STD_HAVE_GCC_REP_MOVSB 1
-#    define LH_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD ((lh_usize_t)512)
+#    define LH_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD                                                    \
+        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD)
 #else
 #    define LH_MEMORY_STD_HAVE_GCC_REP_MOVSB 0
 #endif
@@ -129,6 +141,11 @@ lh_memory_std_bit_scan_reverse(lh_u32_t x)
  * its block width, same as lh_memory_std_compare's tiers. */
 
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+
+/* Both are measured crossovers, not correctness facts — see
+ * cmake/library_options.cmake for the full rationale and how to override them. */
+#        define LH_MEMORY_STD_PREFETCH_TRIGGER ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER)
+#        define LH_MEMORY_STD_PREFETCH_DISTANCE ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE)
 
 /* Parameters are named dst/src, not the shorter d/s, deliberately: lh_algorithm_copy
  * (and friends) declare their own internal T *d/const T *s locals from whatever
@@ -173,9 +190,9 @@ lh_memory_std_copy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
      * where CRT was still winning after the 4-wide unroll alone. */
     while (n >= 64U)
     {
-        if (n >= 256U)
+        if (n >= LH_MEMORY_STD_PREFETCH_TRIGGER)
         {
-            _mm_prefetch(lh_ptr_ccast(char, src + 256), _MM_HINT_T0);
+            _mm_prefetch(lh_ptr_ccast(char, src + LH_MEMORY_STD_PREFETCH_DISTANCE), _MM_HINT_T0);
         }
 
         const __m128i v0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 0));
@@ -390,14 +407,15 @@ static lh_memory_std_copy_simd_fn m_copy_stream_impl = lh_null;
  * bench: 64B was ~9x behind CRT before the ladder). At/above this size the SIMD
  * tier is used directly; 16 matches one SSE register so the first vector iteration
  * always does real work. */
-#    define LH_MEMORY_STD_SIMD_COPY_THRESHOLD ((lh_usize_t)16)
+#    define LH_MEMORY_STD_SIMD_COPY_THRESHOLD ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD)
 
 /* Above this, the non-temporal stream tier (lh_memory_std_copy_avx2_stream, or
  * lh_memory_std_copy_sse2_stream when AVX2 isn't available) takes over from the plain
  * SIMD copy above — see those functions' own doc comments for why; the crossover was
  * measured on this project's own Zen2 benchmark target somewhere between 1MB (the
  * plain AVX2 tier still wins there) and 4MB (it loses clearly). */
-#    define LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD ((lh_usize_t)2 * 1024 * 1024)
+#    define LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD                                                  \
+        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD)
 
 static void
 lh_memory_std_copy_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
@@ -512,7 +530,7 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
          * paying dispatch/indirect-call overhead on the 16-255 band, where Release
          * MinGW otherwise lost to CRT's specialized small-copy path (and to GCC's own
          * earlier auto-vectorized inline loop before the threshold dropped to 16). */
-        else if (n < 256U)
+        else if (n < LH_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD)
         {
             lh_memory_std_copy_sse2(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
         }
@@ -750,7 +768,8 @@ lh_memory_std_copy_rev_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_
 
 static lh_memory_std_copy_rev_simd_fn m_copy_rev_simd_impl = lh_memory_std_copy_rev_simd_dispatch;
 
-#    define LH_MEMORY_STD_SIMD_COPY_REV_THRESHOLD ((lh_usize_t)16)
+#    define LH_MEMORY_STD_SIMD_COPY_REV_THRESHOLD                                                     \
+        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD)
 
 static void
 lh_memory_std_copy_rev_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
@@ -803,7 +822,7 @@ lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n)
          * below. The measured SSSE3 win is real at this size too, but the biggest
          * gains (2.1x-2.6x) were at 1KB-4KB, already past this threshold and served
          * by m_copy_rev_simd_impl, which does resolve to the SSSE3 tier when usable. */
-        if (n < 256U)
+        if (n < LH_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD)
         {
             lh_memory_std_copy_rev_sse2(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
         }
@@ -985,7 +1004,8 @@ lh_memory_std_rcopy_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usi
     m_rcopy_simd_impl(dst, src, n);
 }
 
-#    define LH_MEMORY_STD_SIMD_RCOPY_THRESHOLD ((lh_usize_t)16)
+#    define LH_MEMORY_STD_SIMD_RCOPY_THRESHOLD                                                        \
+        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD)
 
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
@@ -999,7 +1019,7 @@ lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
     if (n >= LH_MEMORY_STD_SIMD_RCOPY_THRESHOLD)
     {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 && (LH_COMPILER_ARCH == LH_COMPILER_ARCH_64)
-        if (n < 256U)
+        if (n < LH_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD)
         {
             lh_memory_std_rcopy_sse2(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
         }
@@ -1251,7 +1271,8 @@ static lh_memory_std_set_simd_fn m_set_stream_impl = lh_null;
 
 /* Same crossover as the copy stream tier — past this, RFO on every destination line
  * dominates, and NT stores win. */
-#    define LH_MEMORY_STD_SIMD_SET_STREAM_THRESHOLD ((lh_usize_t)2 * 1024 * 1024)
+#    define LH_MEMORY_STD_SIMD_SET_STREAM_THRESHOLD                                                   \
+        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD)
 
 static void
 lh_memory_std_set_simd_dispatch(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
@@ -1289,7 +1310,7 @@ lh_memory_std_set_simd_dispatch(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 /* Measured lower than lh_memory_std_copy's own threshold: lh_algorithm_set has only
  * one memory stream to drive (no read side), so the indirect call here pays for
  * itself sooner. */
-#    define LH_MEMORY_STD_SIMD_SET_THRESHOLD ((lh_usize_t)32)
+#    define LH_MEMORY_STD_SIMD_SET_THRESHOLD ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_SET_THRESHOLD)
 
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 

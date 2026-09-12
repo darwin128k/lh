@@ -12,7 +12,8 @@
  * except `LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX` (must be > 0),
  * `LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY` (must be > 0), and
  * `LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR` (must be > 1),
- * `LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK` (must be > 0); the
+ * `LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK` (must be > 0), and the
+ * `LH_LIBRARY_OPTION_MEMORY_STD_*` tuning thresholds below (must be > 0); the
  * `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_*` trio takes raw
  * C tokens instead (e.g. `malloc`, `free`, `<stdlib.h>`).
  * `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` / `_SSSE3` / `_AVX2` are toolchain capability probes
@@ -224,6 +225,93 @@
  * of pointer width.
  */
 #define LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 @ValSimdHaveAvx2@
+
+/**
+ * @def LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD
+ * @brief ::lh_memory_std_copy / ::lh_memory_std_copy_rev / ::lh_memory_std_rcopy:
+ *        below this size (bytes), skip SIMD entirely.
+ *
+ * Measured crossover, not a correctness fact (see `cmake/library_options.cmake` for
+ * the full rationale) — below one SSE register's width there is nothing for SIMD to
+ * do, so this falls back to the plain scalar/tiny-ladder path instead.
+ *
+ * @note The value must be greater than zero.
+ */
+#define LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD @ValMemoryStdSimdMinThreshold@
+
+/**
+ * @def LH_LIBRARY_OPTION_MEMORY_STD_SIMD_SET_THRESHOLD
+ * @brief ::lh_memory_std_set: below this size (bytes), skip SIMD entirely.
+ *
+ * Lower than ::LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD: a fill has only one
+ * memory stream to drive (no read side), so the indirect dispatch call pays for
+ * itself sooner.
+ *
+ * @note The value must be greater than zero.
+ */
+#define LH_LIBRARY_OPTION_MEMORY_STD_SIMD_SET_THRESHOLD @ValMemoryStdSimdSetThreshold@
+
+/**
+ * @def LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD
+ * @brief ::lh_memory_std_copy / ::lh_memory_std_copy_rev / ::lh_memory_std_rcopy,
+ *        x86-64 only: below this size (bytes), call the SSE2 tier directly instead
+ *        of through the indirect, AVX2-capable dispatch.
+ *
+ * SSE2 needs no runtime check on x86-64 (mandatory baseline ISA there), so calling
+ * it directly below this size avoids paying for an indirect function-pointer call
+ * before the possibility of an AVX2 upgrade is worth it.
+ *
+ * @note The value must be greater than zero, and should stay at or above
+ *       ::LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD.
+ */
+#define LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD @ValMemoryStdSimdDirectDispatchThreshold@
+
+/**
+ * @def LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD
+ * @brief ::lh_memory_std_copy / ::lh_memory_std_set: at and above this size (bytes),
+ *        switch to the non-temporal (streaming-store) tier.
+ *
+ * Regular stores pull each destination cache line in before overwriting it (read-
+ * for-ownership) — wasted memory bandwidth once the copy/fill is far larger than
+ * cache and unlikely to be re-read soon. Default is 2MiB (2097152).
+ *
+ * @note The value must be greater than zero.
+ */
+#define LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD @ValMemoryStdSimdStreamThreshold@
+
+/**
+ * @def LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD
+ * @brief ::lh_memory_std_copy under GCC/Clang, x86 only: below this size (bytes),
+ *        prefer the SIMD tier over REP MOVSB in the fallback path used when SIMD
+ *        intrinsics did not compile at all.
+ *
+ * Normally dead code (SIMD intrinsics compile on essentially every real GCC/Clang
+ * x86 target) — kept for the rare toolchain where they do not. REP MOVSB's fixed
+ * microcode setup cost is not worth paying for small copies.
+ *
+ * @note The value must be greater than zero.
+ */
+#define LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD @ValMemoryStdGccRepMovsbThreshold@
+
+/**
+ * @def LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER
+ * @brief ::lh_memory_std_copy_sse2: minimum remaining bytes (after the current
+ *        64-byte block) before it bothers issuing a prefetch at all.
+ *
+ * @note The value must be greater than zero.
+ */
+#define LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER @ValMemoryStdPrefetchTrigger@
+
+/**
+ * @def LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE
+ * @brief ::lh_memory_std_copy_sse2: how many bytes ahead of the current read
+ *        position to prefetch.
+ *
+ * Optimal distance is cache-latency-dependent and can vary by microarchitecture.
+ *
+ * @note The value must be greater than zero.
+ */
+#define LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE @ValMemoryStdPrefetchDistance@
 
 #endif /* LH_CONFIG_H */
 

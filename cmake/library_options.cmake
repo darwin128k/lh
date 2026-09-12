@@ -192,3 +192,40 @@ option(LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE
 option(LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE
         "lh_wstr_ptr_to_lower/_to_upper use a two-level BMP block table (ON, faster, ~same size) instead of binary search over the full sparse pair table (OFF, simpler code)."
         ON)
+
+# -----------------------------------------------------------------------------
+# LH_LIBRARY_OPTION_MEMORY_STD_SIMD_* (src/lh/memory/std.c)
+#
+# Every value below is a measured *crossover point* — "below this many bytes, X is
+# faster; above it, Y is" — not a correctness fact. All were measured on this
+# project's own x86-64 GCC/MinGW and MSVC targets (both Intel- and Zen2-class CPUs);
+# a very different microarchitecture (older/newer x86, or a future one) could shift
+# where these crossovers actually sit. None of this changes what gets computed, only
+# which already-correct tier handles a given size, so retuning is always safe to try.
+#
+# Deliberately NOT included here: the SIMD block widths themselves (16/32/64/128
+# bytes/iteration scattered through the tiers) — those are register-width facts tied
+# 1:1 to hardcoded pointer offsets in the same loop bodies (e.g. src+16, src+32), not
+# heuristics, and are not something a config value could safely change.
+# -----------------------------------------------------------------------------
+
+set(LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD "16" CACHE STRING
+        "lh_memory_std_copy/copy_rev/rcopy: below this size (bytes), skip SIMD entirely (below one SSE register, there is nothing for it to do) and use the plain scalar/tiny-ladder path instead. Must be a positive decimal integer.")
+
+set(LH_LIBRARY_OPTION_MEMORY_STD_SIMD_SET_THRESHOLD "32" CACHE STRING
+        "lh_memory_std_set: below this size (bytes), skip SIMD and use the plain scalar path. Lower than the copy-side threshold above: a fill has only one memory stream to drive (no read side), so the indirect dispatch call pays for itself sooner. Must be a positive decimal integer.")
+
+set(LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD "256" CACHE STRING
+        "lh_memory_std_copy/copy_rev/rcopy, x86-64 only: below this size (bytes), call the SSE2 tier directly (SSE2 needs no runtime check on x86-64) instead of going through the indirect, AVX2-capable dispatch — avoids paying for an indirect call before it is worth it. Must be a positive decimal integer, and should stay at or above LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD.")
+
+set(LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD "2097152" CACHE STRING
+        "lh_memory_std_copy/set: at and above this size (bytes, default 2MiB), switch to the non-temporal (streaming-store) tier — regular stores pull each destination cache line in before overwriting it, wasted bandwidth once the copy/fill is far larger than cache and unlikely to be re-read soon. Must be a positive decimal integer.")
+
+set(LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD "512" CACHE STRING
+        "lh_memory_std_copy under GCC/Clang, x86 only: below this size (bytes), prefer the SIMD tier over REP MOVSB in the (normally unused) fallback path taken when SIMD intrinsics did not compile at all — REP MOVSB's fixed microcode setup cost is not worth paying for small copies. Must be a positive decimal integer.")
+
+set(LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER "256" CACHE STRING
+        "lh_memory_std_copy_sse2: minimum remaining bytes (after the current 64-byte block) before it bothers issuing a prefetch at all. Must be a positive decimal integer.")
+
+set(LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE "256" CACHE STRING
+        "lh_memory_std_copy_sse2: how many bytes ahead of the current read position to prefetch. Optimal distance is cache-latency-dependent and can vary by microarchitecture. Must be a positive decimal integer.")
