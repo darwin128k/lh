@@ -77,21 +77,38 @@ lh_memory_std_bit_scan_reverse(lh_u32_t x)
 
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
-/* lh_memory_std_copy's plain while(n--) *d++ = *s++; loop (still used as-is on every
- * other compiler, including GCC/Clang here) measured ~9x slower under MSVC /O2 /Oi /Ot
- * than under GCC on the same data — checked directly with dumpbin /DISASM: MSVC emits
- * it as a literal byte-at-a-time movzx+mov loop, no vectorization, no recognized-memcpy
- * substitution, where GCC's own output for the identical C is dramatically better. No
- * CPU feature detection needed here (unlike the AVX2 path above): REP MOVSB is a
- * baseline x86 string instruction, present and correct on every x86/x86-64 CPU — using
- * it is a straight win, not a runtime-conditional one. Gated on x86 specifically:
- * REP MOVSB has no equivalent on other architectures MSVC targets (e.g. ARM64), which
- * fall through to the portable scalar path below instead. */
+/* lh_memory_std_copy's plain while(n--) *d++ = *s++; loop (still used as-is under
+ * every other compiler) measured ~9x slower under MSVC /O2 /Oi /Ot than under GCC on
+ * the same data — checked directly with dumpbin /DISASM: MSVC emits it as a literal
+ * byte-at-a-time movzx+mov loop, no vectorization, no recognized-memcpy substitution.
+ * REP MOVSB is a baseline x86 string instruction, present and correct on every
+ * x86/x86-64 CPU — no CPU feature detection needed (unlike the AVX2 path above) — and
+ * under MSVC it wins at every size that was measured (3x-15x over MSVC's own scalar
+ * loop, from 64 bytes up), so it is used unconditionally there. Gated on x86
+ * specifically: REP MOVSB has no equivalent on other architectures MSVC targets (e.g.
+ * ARM64), which fall through to the portable scalar path below instead. */
 #if (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC) && LH_COMPILER_ARCH_FAMILY_IS_X86
 #    define LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB 1
 #    include <intrin.h>
 #else
 #    define LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB 0
+#endif
+
+/* Under GCC/Clang, lh_algorithm_copy's plain loop is not the same story: GCC's own
+ * auto-vectorizer already turns it into a 16-byte movdqu/movups loop (checked via
+ * objdump — unlike lh_memory_std_compare's block loop, this one *does* get
+ * vectorized), so REP MOVSB is competing against real SIMD here, not a scalar loop.
+ * Measured on this project's own GCC/MinGW toolchain: REP MOVSB (via inline asm — GCC
+ * has no __movsb-style intrinsic) loses to the compiler's own vectorized loop below
+ * ~400-500 bytes (0.46x-0.82x: slower) and wins above it (1.24x-1.62x at 512-4096
+ * bytes), matching the well-known "Enhanced REP MOVSB" (ERMSB) crossover behavior on
+ * modern x86: fixed microcode setup cost that is not worth paying for small copies.
+ * LH_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD picks a size at that measured crossover. */
+#if LH_COMPILER_TYPE_IS_GCC_LIKE && LH_COMPILER_ARCH_FAMILY_IS_X86
+#    define LH_MEMORY_STD_HAVE_GCC_REP_MOVSB 1
+#    define LH_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD ((lh_usize_t)512)
+#else
+#    define LH_MEMORY_STD_HAVE_GCC_REP_MOVSB 0
 #endif
 
 lh_ptr
@@ -108,6 +125,25 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
      * (lh/char.h), so this cast is the same reinterpretation either way, just spelled with
      * this file's own type alias instead of the raw C one, same as lh_algorithm_copy below. */
     __movsb(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+#elif LH_MEMORY_STD_HAVE_GCC_REP_MOVSB
+    if (n >= LH_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD)
+    {
+        lh_uchar_t *d = lh_ptr_cast(lh_uchar_t, dst);
+        const lh_uchar_t *s = lh_ptr_ccast(lh_uchar_t, src);
+
+        /* No GCC/Clang builtin for REP MOVSB (unlike MSVC's __movsb) — inline asm is
+         * the only way to ask for this instruction specifically. The three registers
+         * it reads/advances (destination, source, count) are both inputs and outputs
+         * (each is left pointing/counting past the copied range), and the compiler is
+         * told the whole addressable memory may have changed ("memory" clobber),
+         * since REP MOVSB writes through dst without that being visible from the
+         * constraint list alone. */
+        __asm__ volatile("rep movsb" : "+D"(d), "+S"(s), "+c"(n) : : "memory");
+    }
+    else
+    {
+        lh_algorithm_copy(lh_uchar_t, dst, src, n);
+    }
 #else
     lh_algorithm_copy(lh_uchar_t, dst, src, n);
 #endif

@@ -30,6 +30,30 @@ TEST(memory_std_copy, zero_bytes)
     EXPECT_EQ(dst[0], 42);
 }
 
+/*
+ * lh_memory_std_copy has a REP MOVSB path on both MSVC (__movsb, unconditional) and
+ * GCC/Clang (inline asm, only above LH_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD — see
+ * src/lh/memory/std.c) — the n=4 case above never reaches either. 1024 bytes crosses
+ * that GCC-side threshold (measured at 512) with room either side; every byte gets a
+ * distinct value so any off-by-one in the copied range or its returned end pointer
+ * would show up as a mismatch, not just a coincidentally-right total.
+ */
+TEST(memory_std_copy, copies_bytes_above_rep_movsb_threshold)
+{
+    const lh_usize_t n = 1024;
+    std::vector<lh_uchar_t> src(n);
+    std::vector<lh_uchar_t> dst(n, 0);
+    for (lh_usize_t i = 0; i < n; ++i)
+    {
+        src[i] = static_cast<lh_uchar_t>(i);
+    }
+
+    lh_ptr end = lh_memory_std_copy(dst.data(), src.data(), n);
+
+    EXPECT_EQ(end, static_cast<lh_ptr>(dst.data() + n));
+    EXPECT_EQ(dst, src);
+}
+
 TEST(memory_std_copy_rev, reverses_order_in_destination)
 {
     lh_uchar_t src[] = {1, 2, 3, 4};
