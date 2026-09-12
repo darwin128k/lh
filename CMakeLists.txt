@@ -89,6 +89,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/error.c
         ${LH_LIB_SRC_PATH}/runtime/error.c
 
+        ${LH_LIB_SRC_PATH}/util/bit/scan.c
         ${LH_LIB_SRC_PATH}/util/wchar/case/fold.c
         ${LH_LIB_SRC_PATH}/util/wstr/case/map.c
         ${LH_LIB_SRC_PATH}/util/wstr/ptr.c

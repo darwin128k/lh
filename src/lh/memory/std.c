@@ -8,8 +8,8 @@
 #include <lh/config.h>
 #include <lh/cpu/simd.h>
 #include <lh/numeric/fixed/types.h>
-#include <lh/numeric/types.h>
 #include <lh/util/bit.h>
+#include <lh/util/bit/scan.h>
 
 /* Real SIMD, runtime-dispatched, for both GCC/Clang and MSVC: whether a tier's
  * intrinsics + its runtime CPU-feature check are even compilable by this toolchain
@@ -57,36 +57,6 @@
 #    define LH_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD                                             \
         ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD)
 #endif
-
-#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
-
-/* Portable "index of lowest/highest set bit" for the movemask results below —
- * __builtin_ctz/clz (GCC/Clang) vs _BitScanForward/Reverse (MSVC), same operation. */
-static lh_usize_t
-lh_memory_std_bit_scan_forward(lh_u32_t x)
-{
-#    if LH_COMPILER_TYPE_IS_GCC_LIKE
-    return lh_cast_static(lh_usize_t, __builtin_ctz(x));
-#    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
-    lh_ulong_t index;
-    _BitScanForward(&index, x);
-    return lh_cast_static(lh_usize_t, index);
-#    endif
-}
-
-static lh_usize_t
-lh_memory_std_bit_scan_reverse(lh_u32_t x)
-{
-#    if LH_COMPILER_TYPE_IS_GCC_LIKE
-    return lh_cast_static(lh_usize_t, 31 - __builtin_clz(x));
-#    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
-    lh_ulong_t index;
-    _BitScanReverse(&index, x);
-    return lh_cast_static(lh_usize_t, index);
-#    endif
-}
-
-#endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
 /* lh_memory_std_copy's plain while(n--) *d++ = *s++; loop (still used as-is under
  * every other compiler) measured ~9x slower under MSVC /O2 /Oi /Ot than under GCC on
@@ -1381,12 +1351,12 @@ lh_memory_std_compare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
         if (eq0 != 0xFFFFU)
         {
-            return l + lh_memory_std_bit_scan_forward(lh_bit_and(lh_bit_not(eq0), 0xFFFFU));
+            return l + lh_bit_scan_forward(lh_bit_and(lh_bit_not(eq0), 0xFFFFU));
         }
 
         if (eq1 != 0xFFFFU)
         {
-            return l + 16 + lh_memory_std_bit_scan_forward(lh_bit_and(lh_bit_not(eq1), 0xFFFFU));
+            return l + 16 + lh_bit_scan_forward(lh_bit_and(lh_bit_not(eq1), 0xFFFFU));
         }
 
         l += 32;
@@ -1402,7 +1372,7 @@ lh_memory_std_compare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
         if (eq_mask != 0xFFFFU)
         {
-            return l + lh_memory_std_bit_scan_forward(lh_bit_and(lh_bit_not(eq_mask), 0xFFFFU));
+            return l + lh_bit_scan_forward(lh_bit_and(lh_bit_not(eq_mask), 0xFFFFU));
         }
 
         l += 16;
@@ -1436,7 +1406,7 @@ lh_memory_std_compare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
         if (eq_mask != 0xFFFFFFFFU)
         {
-            return l + lh_memory_std_bit_scan_forward(lh_bit_not(eq_mask));
+            return l + lh_bit_scan_forward(lh_bit_not(eq_mask));
         }
 
         l += 32;
@@ -1545,12 +1515,12 @@ lh_memory_std_rcompare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
         /* Higher-address block first — that's the first mismatch a reverse scan must report. */
         if (eq1 != 0xFFFFU)
         {
-            return lb1 + lh_memory_std_bit_scan_reverse(lh_bit_and(lh_bit_not(eq1), 0xFFFFU));
+            return lb1 + lh_bit_scan_reverse(lh_bit_and(lh_bit_not(eq1), 0xFFFFU));
         }
 
         if (eq0 != 0xFFFFU)
         {
-            return lb0 + lh_memory_std_bit_scan_reverse(lh_bit_and(lh_bit_not(eq0), 0xFFFFU));
+            return lb0 + lh_bit_scan_reverse(lh_bit_and(lh_bit_not(eq0), 0xFFFFU));
         }
 
         l -= 32;
@@ -1569,7 +1539,7 @@ lh_memory_std_rcompare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
         if (eq_mask != 0xFFFFU)
         {
-            return lb + lh_memory_std_bit_scan_reverse(lh_bit_and(lh_bit_not(eq_mask), 0xFFFFU));
+            return lb + lh_bit_scan_reverse(lh_bit_and(lh_bit_not(eq_mask), 0xFFFFU));
         }
 
         l -= 16;
@@ -1609,7 +1579,7 @@ lh_memory_std_rcompare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
         if (eq_mask != 0xFFFFFFFFU)
         {
-            return lb + lh_memory_std_bit_scan_reverse(lh_bit_not(eq_mask));
+            return lb + lh_bit_scan_reverse(lh_bit_not(eq_mask));
         }
 
         l -= 32;
