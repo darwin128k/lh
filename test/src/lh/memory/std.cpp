@@ -189,6 +189,26 @@ TEST(memory_std_copy_rev, reverses_order_in_destination)
     EXPECT_EQ(dst[3], 1);
 }
 
+TEST(memory_std_copy_rev, exact_bytes_across_every_tail_remainder)
+{
+    for (lh_usize_t n = 0; n <= 256; ++n)
+    {
+        std::vector<lh_uchar_t> src(n == 0 ? 1 : n);
+        std::vector<lh_uchar_t> dst(n == 0 ? 1 : n, 0xEE);
+        for (lh_usize_t i = 0; i < n; ++i)
+        {
+            src[i] = static_cast<lh_uchar_t>((i * 131U + 7U) & 0xFFU);
+        }
+
+        lh_memory_std_copy_rev(dst.data(), src.data(), n);
+
+        for (lh_usize_t i = 0; i < n; ++i)
+        {
+            ASSERT_EQ(dst[i], src[n - 1U - i]) << "n=" << n << " i=" << i;
+        }
+    }
+}
+
 TEST(memory_std_rcopy, overlapping_backward_copy)
 {
     lh_uchar_t v[] = {1, 2, 3, 4, 5};

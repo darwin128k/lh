@@ -57,6 +57,18 @@ BM_memory_std_rcopy(benchmark::State &state)
 }
 BENCHMARK(BM_memory_std_rcopy)->Arg(64)->Arg(4096)->Arg(65536)->Arg(1024 * 1024);
 
+static void
+BM_memory_std_copy_rev(benchmark::State &state)
+{
+    Buffers bufs(static_cast<lh_usize_t>(state.range(0)));
+    for (auto _ : state)
+    {
+        benchmark::DoNotOptimize(lh_memory_std_copy_rev(bufs.dst.data(), bufs.src.data(), bufs.src.size()));
+    }
+    state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
+}
+BENCHMARK(BM_memory_std_copy_rev)->Arg(64)->Arg(4096)->Arg(65536)->Arg(1024 * 1024);
+
 // Comparison baseline: the platform CRT's own memcpy, interleaved with the run above so
 // both see the same CPU boost/power state at each size.
 static void

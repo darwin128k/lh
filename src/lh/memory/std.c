@@ -92,6 +92,7 @@ lh_memory_std_bit_scan_reverse(lh_u32_t x)
 #if (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC) && LH_COMPILER_ARCH_FAMILY_IS_X86
 #    define LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB 1
 #    include <intrin.h>
+#    include <stdlib.h> /* _byteswap_uint64 for lh_memory_std_copy_rev's tiny path */
 #else
 #    define LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB 0
 #endif
@@ -576,6 +577,154 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
     return end;
 }
 
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+
+/* Reverse 16 bytes inside an SSE register using only SSE2 (no SSSE3 pshufb):
+ * shuffle dwords end-to-end, swap 16-bit lanes inside each half, then swap the
+ * two bytes of every u16. Verified against the scalar lh_algorithm_copy_rev path. */
+LH_MEMORY_STD_SIMD_TARGET("sse2") static __m128i
+lh_memory_std_reverse_epi8_sse2(__m128i v)
+{
+    v = _mm_shuffle_epi32(v, _MM_SHUFFLE(0, 1, 2, 3));
+    v = _mm_shufflelo_epi16(v, _MM_SHUFFLE(2, 3, 0, 1));
+    v = _mm_shufflehi_epi16(v, _MM_SHUFFLE(2, 3, 0, 1));
+    return _mm_or_si128(_mm_slli_epi16(v, 8), _mm_srli_epi16(v, 8));
+}
+
+#    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+
+/* lh_memory_std_copy_rev: src walks low-to-high, dst is filled high-to-low so
+ * dst[i] = src[n-1-i]. Load a forward block from src, byte-reverse it in-register,
+ * store it at the descending destination cursor. */
+LH_MEMORY_STD_SIMD_TARGET("sse2") static void
+lh_memory_std_copy_rev_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+{
+    lh_uchar_t *d_end = dst + n;
+
+    while (n >= 64U)
+    {
+        const __m128i v0 = lh_memory_std_reverse_epi8_sse2(_mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 0)));
+        const __m128i v1 = lh_memory_std_reverse_epi8_sse2(_mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 16)));
+        const __m128i v2 = lh_memory_std_reverse_epi8_sse2(_mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 32)));
+        const __m128i v3 = lh_memory_std_reverse_epi8_sse2(_mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 48)));
+        /* After reversing each 16-byte chunk, the chunk that was read first (src+0)
+         * must land at the highest addresses of this 64-byte dest window. */
+        d_end -= 64;
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, d_end + 48), v0);
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, d_end + 32), v1);
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, d_end + 16), v2);
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, d_end + 0), v3);
+        src += 64;
+        n -= 64U;
+    }
+
+    while (n >= 16U)
+    {
+        d_end -= 16;
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, d_end),
+                         lh_memory_std_reverse_epi8_sse2(_mm_loadu_si128(lh_ptr_rcast(const __m128i, src))));
+        src += 16;
+        n -= 16U;
+    }
+
+    {
+        lh_usize_t rem = n;
+        lh_algorithm_copy_rev(lh_uchar_t, dst, src, rem);
+    }
+}
+
+#    endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
+
+#    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+
+LH_MEMORY_STD_SIMD_TARGET("avx2") static void
+lh_memory_std_copy_rev_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+{
+    /* AVX2 vpshufb only reverses within each 128-bit lane — swap the lanes
+     * afterward (permute2x128) to get a full 32-byte reverse. */
+    const __m256i lane_rev =
+        _mm256_setr_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11,
+                         10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+    lh_uchar_t *d_end = dst + n;
+
+    while (n >= 128U)
+    {
+        __m256i v0 = _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 0)), lane_rev);
+        __m256i v1 = _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 32)), lane_rev);
+        __m256i v2 = _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 64)), lane_rev);
+        __m256i v3 = _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 96)), lane_rev);
+        v0 = _mm256_permute2x128_si256(v0, v0, 0x01);
+        v1 = _mm256_permute2x128_si256(v1, v1, 0x01);
+        v2 = _mm256_permute2x128_si256(v2, v2, 0x01);
+        v3 = _mm256_permute2x128_si256(v3, v3, 0x01);
+        d_end -= 128;
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, d_end + 96), v0);
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, d_end + 64), v1);
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, d_end + 32), v2);
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, d_end + 0), v3);
+        src += 128;
+        n -= 128U;
+    }
+
+    while (n >= 32U)
+    {
+        __m256i v = _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src)), lane_rev);
+        v = _mm256_permute2x128_si256(v, v, 0x01);
+        d_end -= 32;
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, d_end), v);
+        src += 32;
+        n -= 32U;
+    }
+
+    {
+        lh_usize_t rem = n;
+        lh_algorithm_copy_rev(lh_uchar_t, dst, src, rem);
+    }
+}
+
+#    endif /* LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
+
+static void
+lh_memory_std_copy_rev_simd_scalar(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+{
+    lh_algorithm_copy_rev(lh_uchar_t, dst, src, n);
+}
+
+typedef void (*lh_memory_std_copy_rev_simd_fn)(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n);
+
+static void
+lh_memory_std_copy_rev_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n);
+
+static lh_memory_std_copy_rev_simd_fn m_copy_rev_simd_impl = lh_memory_std_copy_rev_simd_dispatch;
+
+#    define LH_MEMORY_STD_SIMD_COPY_REV_THRESHOLD ((lh_usize_t)16)
+
+static void
+lh_memory_std_copy_rev_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+{
+#    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+    if (lh_cpu_simd_has_avx2())
+    {
+        m_copy_rev_simd_impl = lh_memory_std_copy_rev_avx2;
+    }
+    else
+#    endif
+#    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+        if (lh_cpu_simd_has_sse2())
+    {
+        m_copy_rev_simd_impl = lh_memory_std_copy_rev_sse2;
+    }
+    else
+#    endif
+    {
+        m_copy_rev_simd_impl = lh_memory_std_copy_rev_simd_scalar;
+    }
+
+    m_copy_rev_simd_impl(dst, src, n);
+}
+
+#endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
+
 lh_ptr
 lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 {
@@ -583,7 +732,64 @@ lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n)
     lh_assert_runtime_ref(src);
 
     lh_ptr end = lh_ptr_add_unsafe(lh_void, dst, n);
-    lh_algorithm_copy_rev(lh_uchar_t, dst, src, n);
+
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+    if (n >= LH_MEMORY_STD_SIMD_COPY_REV_THRESHOLD)
+    {
+#    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 && (LH_COMPILER_ARCH == LH_COMPILER_ARCH_64)
+        if (n < 256U)
+        {
+            lh_memory_std_copy_rev_sse2(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+        }
+        else
+#    endif
+        {
+            m_copy_rev_simd_impl(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+        }
+    }
+    else
+#endif
+#if LH_COMPILER_ARCH_FAMILY_IS_X86
+    if (n >= 8U)
+    {
+        /* Tiny reverse via bswap — same idea as lh_memory_std_copy_tiny.
+         * Parameters named dst_b/src_b: lh_algorithm_copy_rev declares its own
+         * T *d / const T *s locals from whatever identifiers are passed in (see
+         * lh_memory_std_copy_sse2's doc comment for the same trap). */
+        lh_uchar_t *dst_b = lh_ptr_cast(lh_uchar_t, dst);
+        const lh_uchar_t *src_b = lh_ptr_ccast(lh_uchar_t, src);
+        lh_uchar_t *d_end = dst_b + n;
+
+        while (n >= 8U)
+        {
+            d_end -= 8;
+#    if LH_COMPILER_TYPE_IS_GCC_LIKE
+            const lh_u64_t v = lh_cast_static(lh_u64_t, __builtin_bswap64(*lh_ptr_rcast(const lh_u64_t, src_b)));
+#    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
+            const lh_u64_t v = lh_cast_static(lh_u64_t, _byteswap_uint64(*lh_ptr_rcast(const lh_u64_t, src_b)));
+#    else
+            const lh_u64_t raw = *lh_ptr_rcast(const lh_u64_t, src_b);
+            const lh_u64_t v =
+                ((raw & 0x00000000000000FFULL) << 56) | ((raw & 0x000000000000FF00ULL) << 40) |
+                ((raw & 0x0000000000FF0000ULL) << 24) | ((raw & 0x00000000FF000000ULL) << 8) |
+                ((raw & 0x000000FF00000000ULL) >> 8) | ((raw & 0x0000FF0000000000ULL) >> 24) |
+                ((raw & 0x00FF000000000000ULL) >> 40) | ((raw & 0xFF00000000000000ULL) >> 56);
+#    endif
+            *lh_ptr_rcast(lh_u64_t, d_end) = v;
+            src_b += 8;
+            n -= 8U;
+        }
+
+        {
+            lh_usize_t rem = n;
+            lh_algorithm_copy_rev(lh_uchar_t, dst_b, src_b, rem);
+        }
+    }
+    else
+#endif
+    {
+        lh_algorithm_copy_rev(lh_uchar_t, dst, src, n);
+    }
 
     return end;
 }
@@ -648,6 +854,21 @@ lh_memory_std_rcopy_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
     lh_uchar_t *d = dst + n;
     const lh_uchar_t *s = src + n;
 
+    while (n >= 128U)
+    {
+        d -= 128;
+        s -= 128;
+        const __m256i v0 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, s + 0));
+        const __m256i v1 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, s + 32));
+        const __m256i v2 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, s + 64));
+        const __m256i v3 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, s + 96));
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, d + 0), v0);
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, d + 32), v1);
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, d + 64), v2);
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, d + 96), v3);
+        n -= 128U;
+    }
+
     while (n >= 32U)
     {
         d -= 32;
@@ -698,7 +919,7 @@ lh_memory_std_rcopy_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usi
     m_rcopy_simd_impl(dst, src, n);
 }
 
-#    define LH_MEMORY_STD_SIMD_RCOPY_THRESHOLD ((lh_usize_t)32)
+#    define LH_MEMORY_STD_SIMD_RCOPY_THRESHOLD ((lh_usize_t)16)
 
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
@@ -711,7 +932,16 @@ lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
     if (n >= LH_MEMORY_STD_SIMD_RCOPY_THRESHOLD)
     {
-        m_rcopy_simd_impl(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+#    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 && (LH_COMPILER_ARCH == LH_COMPILER_ARCH_64)
+        if (n < 256U)
+        {
+            lh_memory_std_rcopy_sse2(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+        }
+        else
+#    endif
+        {
+            m_rcopy_simd_impl(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+        }
     }
     else
     {
@@ -1210,6 +1440,36 @@ lh_memory_std_rcompare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs) + (n - 1U);
     const lh_uchar_t *r = lh_ptr_ccast(lh_uchar_t, rhs) + (n - 1U);
+
+    while (n >= 32U)
+    {
+        const lh_uchar_t *lb1 = l - 15;
+        const lh_uchar_t *rb1 = r - 15;
+        const lh_uchar_t *lb0 = l - 31;
+        const lh_uchar_t *rb0 = r - 31;
+
+        const __m128i va1 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, lb1));
+        const __m128i vb1 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, rb1));
+        const __m128i va0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, lb0));
+        const __m128i vb0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, rb0));
+        const lh_u32_t eq1 = lh_cast_static(lh_u32_t, _mm_movemask_epi8(_mm_cmpeq_epi8(va1, vb1)));
+        const lh_u32_t eq0 = lh_cast_static(lh_u32_t, _mm_movemask_epi8(_mm_cmpeq_epi8(va0, vb0)));
+
+        /* Higher-address block first — that's the first mismatch a reverse scan must report. */
+        if (eq1 != 0xFFFFU)
+        {
+            return lb1 + lh_memory_std_bit_scan_reverse(lh_bit_and(lh_bit_not(eq1), 0xFFFFU));
+        }
+
+        if (eq0 != 0xFFFFU)
+        {
+            return lb0 + lh_memory_std_bit_scan_reverse(lh_bit_and(lh_bit_not(eq0), 0xFFFFU));
+        }
+
+        l -= 32;
+        r -= 32;
+        n -= 32U;
+    }
 
     while (n >= 16U)
     {
