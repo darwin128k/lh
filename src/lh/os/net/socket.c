@@ -3,6 +3,7 @@
 #include <lh/memory.h>
 #include <lh/numeric/types.h>
 #include <lh/util/addr.h>
+#include <lh/util/bit/endian.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
 #    define WIN32_LEAN_AND_MEAN
@@ -90,7 +91,6 @@ lh_os_net_socket_connect(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_
     lh_net_ip4_t ip;
     lh_net_port_t port;
     lh_uchar_t *addr_bytes;
-    lh_uchar_t *port_bytes;
     lh_int_t result;
 
     lh_assert_runtime_ref(self);
@@ -102,18 +102,18 @@ lh_os_net_socket_connect(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_
     lh_memory_set(lh_addr_of(native_addr), sizeof(native_addr), 0);
     native_addr.sin_family = AF_INET;
 
-    /* sin_addr/sin_port are always network byte order in memory, byte for
-     * byte the same order as the dotted-quad octets / the port's high byte
-     * first — writing the raw bytes avoids depending on htons/htonl. */
+    /* sin_addr is always network byte order in memory, byte for byte the same
+     * order as the dotted-quad octets — writing the raw bytes avoids
+     * depending on htonl. sin_port is also network byte order, but that one
+     * genuinely is "pack a u16 as big-endian bytes", so it goes through
+     * lh_bit_pack_be16 instead of a second hand-rolled shift/mask. */
     addr_bytes = (lh_uchar_t *)lh_addr_of(native_addr.sin_addr);
     addr_bytes[0] = lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_0);
     addr_bytes[1] = lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_1);
     addr_bytes[2] = lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_2);
     addr_bytes[3] = lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_3);
 
-    port_bytes = (lh_uchar_t *)lh_addr_of(native_addr.sin_port);
-    port_bytes[0] = (lh_uchar_t)(port >> 8);
-    port_bytes[1] = (lh_uchar_t)(port & 0xFFU);
+    lh_bit_pack_be16(port, (lh_uchar_t *)lh_addr_of(native_addr.sin_port));
 
     result = connect((lh_os_net_native_handle_t)self->handle, (struct sockaddr *)lh_addr_of(native_addr),
                      sizeof(native_addr));
