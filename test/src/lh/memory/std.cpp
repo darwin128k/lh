@@ -137,17 +137,18 @@ TEST(memory_std_copy, exact_bytes_with_misaligned_src_and_dst)
 
 /*
  * Above LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD (2MB), lh_memory_std_copy switches to
- * a non-temporal ("streaming store") AVX2 tier with its own alignment-prologue (copies
- * a short unaligned head with regular stores first, since MOVNTDQ requires a 32-byte-
- * aligned destination) and tail handling — dead code below that threshold, so it needs
- * its own coverage. Sweeps destination/source misalignments across that 32-byte
- * boundary at a few sizes straddling the threshold itself.
+ * a non-temporal ("streaming store") tier — AVX2 (_mm256_stream_si256, 32-byte align)
+ * when available, otherwise SSE2 (_mm_stream_si128, 16-byte align) — with its own
+ * alignment-prologue (copies a short unaligned head with regular stores first, since
+ * MOVNTDQ requires an aligned destination) and tail handling. Dead code below that
+ * threshold, so it needs its own coverage. Sweeps destination/source misalignments
+ * across that alignment boundary at a few sizes straddling the threshold itself.
  */
 TEST(memory_std_copy, streaming_tier_bytes_and_alignment_head)
 {
     const lh_usize_t stream_threshold = 2U * 1024U * 1024U; // LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD
     const lh_usize_t sizes[] = {stream_threshold - 1, stream_threshold, stream_threshold + 137};
-    const lh_usize_t offsets[] = {0, 1, 17, 31};
+    const lh_usize_t offsets[] = {0, 1, 15, 17, 31};
 
     for (lh_usize_t size : sizes)
     {

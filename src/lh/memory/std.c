@@ -83,10 +83,12 @@ lh_memory_std_bit_scan_reverse(lh_u32_t x)
  * byte-at-a-time movzx+mov loop, no vectorization, no recognized-memcpy substitution.
  * REP MOVSB is a baseline x86 string instruction, present and correct on every
  * x86/x86-64 CPU — no CPU feature detection needed (unlike the AVX2 path above) — and
- * under MSVC it wins at every size that was measured (3x-15x over MSVC's own scalar
- * loop, from 64 bytes up), so it is used unconditionally there. Gated on x86
- * specifically: REP MOVSB has no equivalent on other architectures MSVC targets (e.g.
- * ARM64), which fall through to the portable scalar path below instead. */
+ * under MSVC it wins at every size that was measured against MSVC's own scalar loop
+ * (3x-15x, from 64 bytes up), so it remains the fallback when SIMD intrinsics are not
+ * compilable. Gated on x86 specifically: REP MOVSB has no equivalent on other
+ * architectures MSVC targets (e.g. ARM64), which fall through to the portable scalar
+ * path below instead. When SSE2/AVX2 *are* compilable, lh_memory_std_copy prefers that
+ * hand-written SIMD path under MSVC too (same Zen2 ERMSB lesson as the GCC side). */
 #if (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC) && LH_COMPILER_ARCH_FAMILY_IS_X86
 #    define LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB 1
 #    include <intrin.h>
@@ -169,6 +171,65 @@ lh_memory_std_copy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
     lh_algorithm_copy(lh_uchar_t, dst, src, n);
 }
 
+/* Non-temporal SSE2 twin of lh_memory_std_copy_avx2_stream below — same RFO/cache-
+ * pollution reason, same 2MB crossover (LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD), but
+ * for CPUs that have SSE2 and not AVX2. Without this tier the multi-MB copies on an
+ * SSE2-only machine stay on regular _mm_storeu_si128 and keep losing to the platform
+ * CRT's memcpy (the gap the 4-wide unroll in lh_memory_std_copy_sse2 closed for mid
+ * sizes, left open at multi-MB). MOVNTDQ (_mm_stream_si128) needs a 16-byte-aligned
+ * destination; the short unaligned head is copied with regular stores first, and
+ * _mm_sfence() fences the weakly-ordered NT stores before the scalar tail runs. */
+LH_MEMORY_STD_SIMD_TARGET("sse2") static void
+lh_memory_std_copy_sse2_stream(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+{
+    {
+        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)16);
+        lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
+
+        if (head > n)
+        {
+            head = n;
+        }
+
+        /* lh_algorithm_copy's while(n--) clobbers its count argument — copy into a
+         * temporary so the post-adjust of dst/src/n below still sees the original head. */
+        {
+            lh_usize_t head_n = head;
+            lh_algorithm_copy(lh_uchar_t, dst, src, head_n);
+        }
+        dst += head;
+        src += head;
+        n -= head;
+    }
+
+    while (n >= 64U)
+    {
+        const __m128i v0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 0));
+        const __m128i v1 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 16));
+        const __m128i v2 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 32));
+        const __m128i v3 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 48));
+        _mm_stream_si128(lh_ptr_rcast(__m128i, dst + 0), v0);
+        _mm_stream_si128(lh_ptr_rcast(__m128i, dst + 16), v1);
+        _mm_stream_si128(lh_ptr_rcast(__m128i, dst + 32), v2);
+        _mm_stream_si128(lh_ptr_rcast(__m128i, dst + 48), v3);
+        dst += 64;
+        src += 64;
+        n -= 64U;
+    }
+
+    while (n >= 16U)
+    {
+        _mm_stream_si128(lh_ptr_rcast(__m128i, dst), _mm_loadu_si128(lh_ptr_rcast(const __m128i, src)));
+        dst += 16;
+        src += 16;
+        n -= 16U;
+    }
+
+    _mm_sfence();
+
+    lh_algorithm_copy(lh_uchar_t, dst, src, n);
+}
+
 #    endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
 
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
@@ -230,7 +291,12 @@ lh_memory_std_copy_avx2_stream(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_
             head = n;
         }
 
-        lh_algorithm_copy(lh_uchar_t, dst, src, head);
+        /* lh_algorithm_copy's while(n--) clobbers its count argument — copy into a
+         * temporary so the post-adjust of dst/src/n below still sees the original head. */
+        {
+            lh_usize_t head_n = head;
+            lh_algorithm_copy(lh_uchar_t, dst, src, head_n);
+        }
         dst += head;
         src += head;
         n -= head;
@@ -282,11 +348,23 @@ lh_memory_std_copy_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usiz
 static lh_memory_std_copy_simd_fn m_copy_simd_impl = lh_memory_std_copy_simd_dispatch;
 
 /* Resolved alongside m_copy_simd_impl above, on that same first real call — stays
- * lh_null (never called) whenever AVX2 isn't both compiled in and usable on this CPU,
- * since lh_memory_std_copy_avx2_stream is the only implementation of this tier. */
-#    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+ * lh_null (never called) whenever neither AVX2 nor SSE2 is both compiled in and usable
+ * on this CPU (lh_memory_std_copy_avx2_stream / lh_memory_std_copy_sse2_stream are the
+ * only implementations of this tier). */
 static lh_memory_std_copy_simd_fn m_copy_stream_impl = lh_null;
-#    endif
+
+/* Below this, lh_algorithm_copy's own inline scalar/auto-vectorized loop stays in use
+ * (measured faster than going through this tier's indirect function-pointer call for
+ * anything under ~512 bytes — the call overhead is not worth paying yet at that size,
+ * same crossover point REP MOVSB used above before this tier replaced it). */
+#    define LH_MEMORY_STD_SIMD_COPY_THRESHOLD ((lh_usize_t)512)
+
+/* Above this, the non-temporal stream tier (lh_memory_std_copy_avx2_stream, or
+ * lh_memory_std_copy_sse2_stream when AVX2 isn't available) takes over from the plain
+ * SIMD copy above — see those functions' own doc comments for why; the crossover was
+ * measured on this project's own Zen2 benchmark target somewhere between 1MB (the
+ * plain AVX2 tier still wins there) and 4MB (it loses clearly). */
+#    define LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD ((lh_usize_t)2 * 1024 * 1024)
 
 static void
 lh_memory_std_copy_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
@@ -303,6 +381,7 @@ lh_memory_std_copy_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usiz
         if (lh_cpu_simd_has_sse2())
     {
         m_copy_simd_impl = lh_memory_std_copy_sse2;
+        m_copy_stream_impl = lh_memory_std_copy_sse2_stream;
     }
     else
 #    endif
@@ -310,20 +389,17 @@ lh_memory_std_copy_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usiz
         m_copy_simd_impl = lh_memory_std_copy_simd_scalar;
     }
 
-    m_copy_simd_impl(dst, src, n);
+    /* Honour the stream threshold on this first call too — otherwise a first-ever
+     * multi-MB copy would resolve the pointers and then run the plain SIMD tier. */
+    if (n >= LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD && m_copy_stream_impl != lh_null)
+    {
+        m_copy_stream_impl(dst, src, n);
+    }
+    else
+    {
+        m_copy_simd_impl(dst, src, n);
+    }
 }
-
-/* Below this, lh_algorithm_copy's own inline scalar/auto-vectorized loop stays in use
- * (measured faster than going through this tier's indirect function-pointer call for
- * anything under ~512 bytes — the call overhead is not worth paying yet at that size,
- * same crossover point REP MOVSB used above before this tier replaced it). */
-#    define LH_MEMORY_STD_SIMD_COPY_THRESHOLD ((lh_usize_t)512)
-
-/* Above this, lh_memory_std_copy_avx2_stream's non-temporal tier takes over from
- * lh_memory_std_copy_avx2 above — see that function's own doc comment for why; the
- * crossover was measured on this project's own Zen2 benchmark target somewhere
- * between 1MB (the plain AVX2 tier still wins there) and 4MB (it loses clearly). */
-#    define LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD ((lh_usize_t)2 * 1024 * 1024)
 
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
@@ -335,30 +411,36 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 
     lh_ptr end = lh_ptr_add_unsafe(lh_void, dst, n);
 
-#if LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB
-    /* __movsb's own declared signature is unsigned char* / const unsigned char* (fixed by
-     * <intrin.h>, not ours to change) — lh_uchar_t is a plain typedef of unsigned char
-     * (lh/char.h), so this cast is the same reinterpretation either way, just spelled with
-     * this file's own type alias instead of the raw C one, same as lh_algorithm_copy below. */
-    __movsb(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
-#elif LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
     /* See lh_memory_std_copy_simd_dispatch's doc comment above for why this tier —
-     * not REP MOVSB — is the default under GCC/Clang now. */
+     * not REP MOVSB — is the default whenever SIMD is compilable, for both GCC/Clang
+     * and MSVC. Under MSVC, __movsb (below) was originally used unconditionally because
+     * it beat MSVC's own scalar byte loop by 3x-15x; once the hand-written SIMD path
+     * existed, the same Zen2 measurement that retired REP MOVSB under GCC also applies
+     * here (ERMSB is not equally fast on every x86 vendor), so MSVC takes this branch
+     * too whenever the intrinsics compiled in. */
     if (n >= LH_MEMORY_STD_SIMD_COPY_THRESHOLD)
     {
-#    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
         if (n >= LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD && m_copy_stream_impl != lh_null)
         {
             m_copy_stream_impl(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
         }
         else
-#    endif
-        m_copy_simd_impl(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+        {
+            m_copy_simd_impl(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+        }
     }
     else
     {
         lh_algorithm_copy(lh_uchar_t, dst, src, n);
     }
+#elif LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB
+    /* Fallback for an MSVC x86 build where SIMD intrinsics turned out not to be
+     * compilable at all (see cmake/check_simd.cmake) — the SIMD branch above wins
+     * whenever it is available. __movsb's declared signature is unsigned char* /
+     * const unsigned char* (fixed by <intrin.h>); lh_uchar_t is a plain typedef of
+     * unsigned char (lh/char.h), so this cast is the same reinterpretation either way. */
+    __movsb(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
 #elif LH_MEMORY_STD_HAVE_GCC_REP_MOVSB
     if (n >= LH_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD)
     {
