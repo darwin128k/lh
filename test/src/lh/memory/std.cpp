@@ -189,9 +189,17 @@ TEST(memory_std_copy_rev, reverses_order_in_destination)
     EXPECT_EQ(dst[3], 1);
 }
 
+/*
+ * Range extended to 600 (was 256): lh_memory_std_copy_rev's own dispatch calls the
+ * SSE2 tier directly below 256 bytes but goes through m_copy_rev_simd_impl at and
+ * above it, which resolves to SSSE3 (or AVX2) when the CPU has it — a sweep that
+ * stopped at 256 landed on that boundary exactly (256 % 64 == 0) and never
+ * exercised the SSSE3/AVX2 tiers' own tail-remainder handling at all. 600 crosses
+ * several 64-/128-byte block boundaries past 256 in both tiers.
+ */
 TEST(memory_std_copy_rev, exact_bytes_across_every_tail_remainder)
 {
-    for (lh_usize_t n = 0; n <= 256; ++n)
+    for (lh_usize_t n = 0; n <= 600; ++n)
     {
         std::vector<lh_uchar_t> src(n == 0 ? 1 : n);
         std::vector<lh_uchar_t> dst(n == 0 ? 1 : n, 0xEE);
@@ -205,6 +213,42 @@ TEST(memory_std_copy_rev, exact_bytes_across_every_tail_remainder)
         for (lh_usize_t i = 0; i < n; ++i)
         {
             ASSERT_EQ(dst[i], src[n - 1U - i]) << "n=" << n << " i=" << i;
+        }
+    }
+}
+
+/*
+ * Same concern as lh_memory_std_copy's own misalignment sweep: every SIMD tier here
+ * uses unaligned loads/stores (_mm_loadu_si128 / _mm256_loadu_si256, never the
+ * aligned _mm_store_si128 family), so misalignment should never affect correctness
+ * — this is what actually distinguishes "the reverse/tail math is right" from "it
+ * happens to be right when both pointers are naturally aligned".
+ */
+TEST(memory_std_copy_rev, exact_bytes_with_misaligned_src_and_dst)
+{
+    const lh_usize_t n = 350; // past LH_MEMORY_STD_SIMD_COPY_REV_THRESHOLD, not block-aligned
+    const lh_usize_t offsets[] = {0, 1, 3, 7, 15, 17, 31};
+
+    for (lh_usize_t dst_off : offsets)
+    {
+        for (lh_usize_t src_off : offsets)
+        {
+            std::vector<lh_uchar_t> src_buf(n + 32);
+            std::vector<lh_uchar_t> dst_buf(n + 32, 0xEE);
+            lh_uchar_t *src = src_buf.data() + src_off;
+            lh_uchar_t *dst = dst_buf.data() + dst_off;
+            for (lh_usize_t i = 0; i < n; ++i)
+            {
+                src[i] = static_cast<lh_uchar_t>((i * 37U + 11U) & 0xFFU);
+            }
+
+            lh_memory_std_copy_rev(dst, src, n);
+
+            for (lh_usize_t i = 0; i < n; ++i)
+            {
+                ASSERT_EQ(dst[i], src[n - 1U - i]) << "dst_off=" << dst_off << " src_off=" << src_off
+                                                    << " i=" << i;
+            }
         }
     }
 }
