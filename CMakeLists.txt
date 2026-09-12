@@ -67,6 +67,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/numeric/fixed/limits.c
 
         ${LH_LIB_SRC_PATH}/cpu/simd.c
+        ${LH_LIB_SRC_PATH}/cpu/vendor.c
 
         ${LH_LIB_SRC_PATH}/memory/allocator.c
         ${LH_LIB_SRC_PATH}/memory/bounds/slice.c
