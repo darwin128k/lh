@@ -118,15 +118,16 @@
  *
  * @code
  * int v[5] = {1, 2, 3, 4, 5};
- * lh_algorithm_rcopy(int, v + 1, v, 4);
+ * size_t n = 4;
+ * lh_algorithm_rcopy(int, v + 1, v, n);
  * // v == {1, 1, 2, 3, 4}
  * @endcode
  */
 #define lh_algorithm_rcopy(T, dst, src, n)                                                         \
     do                                                                                             \
     {                                                                                              \
-        T *d = lh_ptr_add_by_offset_unsafe(T, dst, n);                                             \
-        const T *s = lh_ptr_add_by_offset_unsafe(T, src, n);                                       \
+        T *d = lh_ptr_cast(T, dst) + (n);                                                          \
+        const T *s = lh_ptr_ccast(T, src) + (n);                                                   \
                                                                                                    \
         while (n--)                                                                                \
         {                                                                                          \
@@ -267,8 +268,8 @@
 #define lh_algorithm_rcompare(T, lhs, rhs, n)                                                      \
     do                                                                                             \
     {                                                                                              \
-        const T *l = lh_ptr_add_unsafe(T, lhs, lh_math_sub_one(n));                                \
-        const T *r = lh_ptr_add_unsafe(T, rhs, lh_math_sub_one(n));                                \
+        const T *l = lh_ptr_ccast(T, lhs) + lh_math_sub_one(n);                                    \
+        const T *r = lh_ptr_ccast(T, rhs) + lh_math_sub_one(n);                                    \
                                                                                                    \
         while (n--)                                                                                \
         {                                                                                          \
@@ -292,14 +293,15 @@
  * @code
  * int src[4] = {1, 2, 3, 4};
  * int dst[4];
- * lh_algorithm_copy_rev(int, dst, src, 4);
+ * size_t n = 4;
+ * lh_algorithm_copy_rev(int, dst, src, n);
  * // dst == {4, 3, 2, 1}
  * @endcode
  */
 #define lh_algorithm_copy_rev(T, dst, src, n)                                                      \
     do                                                                                             \
     {                                                                                              \
-        T *d = lh_ptr_add_by_offset_unsafe(T, dst, n);                                             \
+        T *d = lh_ptr_cast(T, dst) + (n);                                                          \
         const T *s = lh_ptr_ccast(T, src);                                                         \
                                                                                                    \
         while (n--)                                                                                \
