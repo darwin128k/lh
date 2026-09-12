@@ -16,6 +16,7 @@
 #include <lh/numeric/fixed/types.h>
 #include <lh/assert.h>
 #include <lh/config.h>
+#include <lh/foreach.h>
 
 #if LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE
 
@@ -4202,9 +4203,7 @@ static const lh_wchar_case_pair_t m_wchar_to_upper_table[] = {
 lh_wstr_ptr lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n) {
     lh_assert_runtime_ref(str);
 
-    lh_wstr_ptr p = str;
-
-    while (n--) {
+    lh_foreach(lh_wchar_t, p, str, n) {
         lh_wchar_t c = *p;
 
 #if LH_WCHAR_T_MAX > 0xFFFF
@@ -4216,18 +4215,18 @@ lh_wstr_ptr lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n) {
                                             m_wchar_to_lower_smp_table_size, c, first,
                                             result, found);
 
-            *p++ = found ? result.second : c;
+            *p = found ? result.second : c;
         } else
 #endif /* LH_WCHAR_T_MAX > 0xFFFF */
         {
             const lh_u8_t block = m_wchar_to_lower_stage1[(lh_usize_t)c >> 8];
-            *p++ = (block == 0xFFU)
-                       ? c
-                       : (lh_wchar_t)m_wchar_to_lower_stage2[(lh_usize_t)block * 256U + ((lh_usize_t)c & 0xFFU)];
+            *p = (block == 0xFFU)
+                     ? c
+                     : (lh_wchar_t)m_wchar_to_lower_stage2[(lh_usize_t)block * 256U + ((lh_usize_t)c & 0xFFU)];
         }
     }
 
-    return p;
+    return str + n;
 }
 
 #else
@@ -4235,9 +4234,8 @@ lh_wstr_ptr lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n) {
     lh_assert_runtime_ref(str);
 
     static const lh_usize_t sz = lh_array_ptr_get_size(m_wchar_to_lower_table);
-    lh_wstr_ptr p = str;
 
-    while (n--) {
+    lh_foreach(lh_wchar_t, p, str, n) {
         lh_wchar_t c = *p;
 
         lh_wchar_case_pair_t result;
@@ -4246,10 +4244,10 @@ lh_wstr_ptr lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n) {
         lh_interval_ropen_binary_search(lh_usize_t, m_wchar_to_lower_table, sz, c, first, result,
                                         found);
 
-        *p++ = found ? result.second : c;
+        *p = found ? result.second : c;
     }
 
-    return p;
+    return str + n;
 }
 
 #endif /* LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE */
@@ -4258,9 +4256,7 @@ lh_wstr_ptr lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n) {
 lh_wstr_ptr lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n) {
     lh_assert_runtime_ref(str);
 
-    lh_wstr_ptr p = str;
-
-    while (n--) {
+    lh_foreach(lh_wchar_t, p, str, n) {
         lh_wchar_t c = *p;
 
 #if LH_WCHAR_T_MAX > 0xFFFF
@@ -4272,18 +4268,18 @@ lh_wstr_ptr lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n) {
                                             m_wchar_to_upper_smp_table_size, c, first,
                                             result, found);
 
-            *p++ = found ? result.second : c;
+            *p = found ? result.second : c;
         } else
 #endif /* LH_WCHAR_T_MAX > 0xFFFF */
         {
             const lh_u8_t block = m_wchar_to_upper_stage1[(lh_usize_t)c >> 8];
-            *p++ = (block == 0xFFU)
-                       ? c
-                       : (lh_wchar_t)m_wchar_to_upper_stage2[(lh_usize_t)block * 256U + ((lh_usize_t)c & 0xFFU)];
+            *p = (block == 0xFFU)
+                     ? c
+                     : (lh_wchar_t)m_wchar_to_upper_stage2[(lh_usize_t)block * 256U + ((lh_usize_t)c & 0xFFU)];
         }
     }
 
-    return p;
+    return str + n;
 }
 
 #else
@@ -4291,9 +4287,8 @@ lh_wstr_ptr lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n) {
     lh_assert_runtime_ref(str);
 
     static const lh_usize_t sz = lh_array_ptr_get_size(m_wchar_to_upper_table);
-    lh_wstr_ptr p = str;
 
-    while (n--) {
+    lh_foreach(lh_wchar_t, p, str, n) {
         lh_wchar_t c = *p;
 
         lh_wchar_case_pair_t result;
@@ -4302,10 +4297,10 @@ lh_wstr_ptr lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n) {
         lh_interval_ropen_binary_search(lh_usize_t, m_wchar_to_upper_table, sz, c, first, result,
                                         found);
 
-        *p++ = found ? result.second : c;
+        *p = found ? result.second : c;
     }
 
-    return p;
+    return str + n;
 }
 
 #endif /* LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE */
