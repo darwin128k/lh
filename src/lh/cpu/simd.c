@@ -10,7 +10,8 @@
 #include <lh/util/bit.h>
 
 #if (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC) &&                                                   \
-    (LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2)
+    (LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_SSSE3 ||                         \
+     LH_LIBRARY_OPTION_SIMD_HAVE_AVX2)
 #    include <intrin.h>
 
 /* CPUID leaves (the __cpuid/__cpuidex "function_id" argument) used below. */
@@ -28,6 +29,7 @@
 
 /* Feature bit positions within the registers above. */
 #    define LH_CPU_SIMD_CPUID_EDX_SSE2_BIT 26              /* leaf 1, EDX */
+#    define LH_CPU_SIMD_CPUID_ECX_SSSE3_BIT 9              /* leaf 1, ECX */
 #    define LH_CPU_SIMD_CPUID_ECX_OSXSAVE_BIT 27           /* leaf 1, ECX */
 #    define LH_CPU_SIMD_CPUID_ECX_AVX_BIT 28               /* leaf 1, ECX */
 #    define LH_CPU_SIMD_CPUID_EXTENDED_FEATURES_EBX_AVX2_BIT 5 /* leaf 7 sub-leaf 0, EBX */
@@ -39,6 +41,13 @@
 
 #endif
 
+/* __builtin_cpu_supports (wrapped by lh_compiler_cpu_has_feature) does not promise
+ * exactly 0/1 — checked directly on this project's own GCC: __builtin_cpu_supports
+ * ("sse2") returned 16, ("ssse3") returned 64, both nonzero-but-not-1 raw feature-bit
+ * values. Fine for a plain `if (...)` truthiness check, but lh_bool_t only has two
+ * canonical values (lh_bool_true == 1), so every call below is normalized with `!!`
+ * before the cast — a plain cast to the 1-byte lh_bool_t does not do that normalization
+ * itself, it would just truncate (e.g. 256 -> 0), which is its own way to end up wrong. */
 lh_bool_t
 lh_cpu_simd_has_sse2(void)
 {
@@ -47,7 +56,7 @@ lh_cpu_simd_has_sse2(void)
     /* SSE2 is part of the mandatory baseline ISA on x86-64 — no runtime check needed. */
     return lh_bool_true;
 #    elif LH_COMPILER_TYPE_IS_GCC_LIKE
-    return lh_cast_static(lh_bool_t, lh_compiler_cpu_has_feature("sse2"));
+    return lh_cast_static(lh_bool_t, !!lh_compiler_cpu_has_feature("sse2"));
 #    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
     lh_s32_t info[LH_CPU_SIMD_CPUID_REGISTER_COUNT];
     __cpuid(info, LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO);
@@ -63,13 +72,35 @@ lh_cpu_simd_has_sse2(void)
 }
 
 lh_bool_t
+lh_cpu_simd_has_ssse3(void)
+{
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSSE3
+#    if LH_COMPILER_TYPE_IS_GCC_LIKE
+    return lh_cast_static(lh_bool_t, !!lh_compiler_cpu_has_feature("ssse3"));
+#    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
+    /* Unlike AVX2, no XCR0/XGETBV check needed: SSSE3 uses the same XMM state SSE2
+     * already does, which every OS running on x86-64 has enabled from the start. */
+    lh_s32_t info[LH_CPU_SIMD_CPUID_REGISTER_COUNT];
+    __cpuid(info, LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO);
+    return lh_cast_static(
+        lh_bool_t,
+        !lh_bit_disjoint(info[LH_CPU_SIMD_CPUID_ECX], lh_bit_mask(LH_CPU_SIMD_CPUID_ECX_SSSE3_BIT)));
+#    else
+    return lh_bool_false;
+#    endif
+#else
+    return lh_bool_false;
+#endif
+}
+
+lh_bool_t
 lh_cpu_simd_has_avx2(void)
 {
 #if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 #    if LH_COMPILER_TYPE_IS_GCC_LIKE
     /* Checks CPUID *and* that the OS has enabled AVX register state via XGETBV/XCR0,
      * not just the raw feature bit. */
-    return lh_cast_static(lh_bool_t, lh_compiler_cpu_has_feature("avx2"));
+    return lh_cast_static(lh_bool_t, !!lh_compiler_cpu_has_feature("avx2"));
 #    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
     /* Same check as __builtin_cpu_supports above, hand-rolled: MSVC has no
      * equivalent builtin. */

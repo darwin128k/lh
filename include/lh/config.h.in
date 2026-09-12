@@ -15,7 +15,7 @@
  * `LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK` (must be > 0); the
  * `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_*` trio takes raw
  * C tokens instead (e.g. `malloc`, `free`, `<stdlib.h>`).
- * `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` / `_AVX2` are toolchain capability probes
+ * `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` / `_SSSE3` / `_AVX2` are toolchain capability probes
  * (see `cmake/check_simd.cmake`) — for a manual build, `0` is always a safe
  * (if slower) default; set `1` only once you have confirmed the toolchain
  * actually compiles that tier's intrinsics for your target.
@@ -201,6 +201,17 @@
  * part of the baseline ISA and needs no runtime check.
  */
 #define LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 @ValSimdHaveSse2@
+
+/**
+ * @def LH_LIBRARY_OPTION_SIMD_HAVE_SSSE3
+ * @brief Whether this toolchain, for this target, can compile the SSSE3 tier used by
+ *        ::lh_memory_std_copy_rev (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
+ *
+ * Same compile-only probe as ::LH_LIBRARY_OPTION_SIMD_HAVE_SSE2. SSSE3 is never part
+ * of any baseline ISA (unlike SSE2 on x86-64), so it is always guarded by a runtime
+ * CPU-feature check.
+ */
+#define LH_LIBRARY_OPTION_SIMD_HAVE_SSSE3 @ValSimdHaveSsse3@
 
 /**
  * @def LH_LIBRARY_OPTION_SIMD_HAVE_AVX2

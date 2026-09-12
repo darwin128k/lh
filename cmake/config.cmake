@@ -86,6 +86,12 @@ function(lh_generate_config)
         set(ValSimdHaveSse2 0)
     endif ()
 
+    if (LH_SIMD_HAVE_SSSE3)
+        set(ValSimdHaveSsse3 1)
+    else ()
+        set(ValSimdHaveSsse3 0)
+    endif ()
+
     if (LH_SIMD_HAVE_AVX2)
         set(ValSimdHaveAvx2 1)
     else ()

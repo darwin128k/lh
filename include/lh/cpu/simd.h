@@ -5,13 +5,14 @@
  * Whether the compiler can even compile a given tier's intrinsics for this target
  * at all is a build-time toolchain fact — decided once, at CMake configure time, by
  * a compile-only probe (cmake/check_simd.cmake) and recorded as
- * `LH_LIBRARY_OPTION_SIMD_HAVE_{SSE2,AVX2}` in `lh/config.h`. Whether the CPU
+ * `LH_LIBRARY_OPTION_SIMD_HAVE_{SSE2,SSSE3,AVX2}` in `lh/config.h`. Whether the CPU
  * actually running the resulting binary supports that tier is a separate,
  * runtime-only question — the two differ under cross-compilation, or simply
  * because a binary built for a wide baseline ends up running on older hardware.
- * ::lh_cpu_simd_has_sse2 / ::lh_cpu_simd_has_avx2 answer that runtime question; both are safe
- * to call unconditionally and return ::lh_bool_false whenever the corresponding
- * build-time option is off, regardless of the actual CPU.
+ * ::lh_cpu_simd_has_sse2 / ::lh_cpu_simd_has_ssse3 / ::lh_cpu_simd_has_avx2 answer
+ * that runtime question; all three are safe to call unconditionally and return
+ * ::lh_bool_false whenever the corresponding build-time option is off, regardless
+ * of the actual CPU.
  */
 
 #ifndef LH_CPU_SIMD_H
@@ -36,6 +37,21 @@ LH_COMPILER_EXTERN_C_BEGIN
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_cpu_simd_has_sse2(void);
+
+/**
+ * @brief Whether this CPU supports SSSE3.
+ *
+ * SSSE3 is never part of any baseline ISA (unlike SSE2 on x86-64), so this is always
+ * a real check: CPUID for the feature bit. Unlike AVX2, SSSE3 uses the same XMM
+ * register state SSE2 already does, so there is no separate OS-enablement check
+ * needed (XCR0/XGETBV is an AVX-and-later concept).
+ *
+ * @return ::lh_bool_true if SSSE3 is usable on this CPU, ::lh_bool_false otherwise
+ *         (including whenever `LH_LIBRARY_OPTION_SIMD_HAVE_SSSE3` is off).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_cpu_simd_has_ssse3(void);
 
 /**
  * @brief Whether this CPU supports AVX2.

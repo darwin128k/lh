@@ -9,9 +9,10 @@
 # itself, via __builtin_cpu_supports (GCC/Clang) or CPUID + XGETBV (MSVC).
 #
 # Sets (in the caller's scope):
-#   LH_SIMD_HAVE_SSE2 — TRUE if the toolchain can compile the SSE2 tier
-#                        (intrinsics + its "is SSE2 usable here" runtime check).
-#   LH_SIMD_HAVE_AVX2 — same, for the AVX2 tier.
+#   LH_SIMD_HAVE_SSE2  — TRUE if the toolchain can compile the SSE2 tier
+#                         (intrinsics + its "is SSE2 usable here" runtime check).
+#   LH_SIMD_HAVE_SSSE3 — same, for the SSSE3 tier.
+#   LH_SIMD_HAVE_AVX2  — same, for the AVX2 tier.
 #
 # Both are plain (non-cache) variables — this is a toolchain fact, not a user
 # choice, same treatment as LH_IPO_SUPPORTED in the top-level CMakeLists.txt.
@@ -37,6 +38,22 @@ function(lh_check_simd)
             }
             int main(void) { char a[16] = {0}, b[16] = {0}; return f(a, b) + cpu_has_sse2(); }
         " LH_SIMD_HAVE_SSE2)
+
+        check_c_source_compiles("
+            #include <intrin.h>
+            #include <immintrin.h>
+            static int f(const char *a) {
+                __m128i v = _mm_loadu_si128((const __m128i *)a);
+                __m128i mask = _mm_setr_epi8(15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0);
+                return _mm_movemask_epi8(_mm_shuffle_epi8(v, mask));
+            }
+            static int cpu_has_ssse3(void) {
+                int info[4];
+                __cpuid(info, 1);
+                return (info[2] >> 9) & 1;
+            }
+            int main(void) { char a[16] = {0}; return f(a) + cpu_has_ssse3(); }
+        " LH_SIMD_HAVE_SSSE3)
 
         check_c_source_compiles("
             #include <intrin.h>
@@ -77,6 +94,20 @@ function(lh_check_simd)
 
         check_c_source_compiles("
             #include <immintrin.h>
+            __attribute__((target(\"ssse3\")))
+            static int f(const char *a) {
+                __m128i v = _mm_loadu_si128((const __m128i *)a);
+                __m128i mask = _mm_setr_epi8(15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0);
+                return _mm_movemask_epi8(_mm_shuffle_epi8(v, mask));
+            }
+            int main(void) {
+                char a[16] = {0};
+                return f(a) + __builtin_cpu_supports(\"ssse3\");
+            }
+        " LH_SIMD_HAVE_SSSE3)
+
+        check_c_source_compiles("
+            #include <immintrin.h>
             __attribute__((target(\"avx2\")))
             static int f(const char *a, const char *b) {
                 __m256i va = _mm256_loadu_si256((const __m256i *)a);
@@ -91,5 +122,6 @@ function(lh_check_simd)
     endif ()
 
     set(LH_SIMD_HAVE_SSE2 "${LH_SIMD_HAVE_SSE2}" PARENT_SCOPE)
+    set(LH_SIMD_HAVE_SSSE3 "${LH_SIMD_HAVE_SSSE3}" PARENT_SCOPE)
     set(LH_SIMD_HAVE_AVX2 "${LH_SIMD_HAVE_AVX2}" PARENT_SCOPE)
 endfunction()

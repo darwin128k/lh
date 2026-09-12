@@ -13,6 +13,12 @@ TEST(cpu_simd, has_sse2_returns_a_valid_bool)
     EXPECT_TRUE(result == lh_bool_true || result == lh_bool_false);
 }
 
+TEST(cpu_simd, has_ssse3_returns_a_valid_bool)
+{
+    const lh_bool_t result = lh_cpu_simd_has_ssse3();
+    EXPECT_TRUE(result == lh_bool_true || result == lh_bool_false);
+}
+
 TEST(cpu_simd, has_avx2_returns_a_valid_bool)
 {
     const lh_bool_t result = lh_cpu_simd_has_avx2();
@@ -34,6 +40,25 @@ TEST(cpu_simd, avx2_implies_sse2)
     // No real CPU has AVX2 without SSE2 — a true AVX2 result without a true SSE2
     // result would indicate a bug in one of the two detectors, not a real CPU.
     if (lh_cpu_simd_has_avx2())
+    {
+        EXPECT_EQ(lh_cpu_simd_has_sse2(), lh_bool_true);
+    }
+}
+
+TEST(cpu_simd, avx2_implies_ssse3)
+{
+    // No real CPU has AVX2 without SSSE3 either (SSSE3 predates AVX2 by several
+    // years in every CPU generation that shipped either).
+    if (lh_cpu_simd_has_avx2())
+    {
+        EXPECT_EQ(lh_cpu_simd_has_ssse3(), lh_bool_true);
+    }
+}
+
+TEST(cpu_simd, ssse3_implies_sse2)
+{
+    // No real CPU has SSSE3 without SSE2 — SSSE3 is a strict superset.
+    if (lh_cpu_simd_has_ssse3())
     {
         EXPECT_EQ(lh_cpu_simd_has_sse2(), lh_bool_true);
     }
