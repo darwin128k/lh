@@ -1351,12 +1351,12 @@ lh_memory_std_compare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
         if (eq0 != 0xFFFFU)
         {
-            return l + lh_bit_scan_forward(lh_bit_and(lh_bit_not(eq0), 0xFFFFU));
+            return l + lh_bit_scan_forward_u32(lh_bit_and(lh_bit_not(eq0), 0xFFFFU));
         }
 
         if (eq1 != 0xFFFFU)
         {
-            return l + 16 + lh_bit_scan_forward(lh_bit_and(lh_bit_not(eq1), 0xFFFFU));
+            return l + 16 + lh_bit_scan_forward_u32(lh_bit_and(lh_bit_not(eq1), 0xFFFFU));
         }
 
         l += 32;
@@ -1372,7 +1372,7 @@ lh_memory_std_compare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
         if (eq_mask != 0xFFFFU)
         {
-            return l + lh_bit_scan_forward(lh_bit_and(lh_bit_not(eq_mask), 0xFFFFU));
+            return l + lh_bit_scan_forward_u32(lh_bit_and(lh_bit_not(eq_mask), 0xFFFFU));
         }
 
         l += 16;
@@ -1406,7 +1406,7 @@ lh_memory_std_compare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
         if (eq_mask != 0xFFFFFFFFU)
         {
-            return l + lh_bit_scan_forward(lh_bit_not(eq_mask));
+            return l + lh_bit_scan_forward_u32(lh_bit_not(eq_mask));
         }
 
         l += 32;
@@ -1515,12 +1515,12 @@ lh_memory_std_rcompare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
         /* Higher-address block first — that's the first mismatch a reverse scan must report. */
         if (eq1 != 0xFFFFU)
         {
-            return lb1 + lh_bit_scan_reverse(lh_bit_and(lh_bit_not(eq1), 0xFFFFU));
+            return lb1 + lh_bit_scan_reverse_u32(lh_bit_and(lh_bit_not(eq1), 0xFFFFU));
         }
 
         if (eq0 != 0xFFFFU)
         {
-            return lb0 + lh_bit_scan_reverse(lh_bit_and(lh_bit_not(eq0), 0xFFFFU));
+            return lb0 + lh_bit_scan_reverse_u32(lh_bit_and(lh_bit_not(eq0), 0xFFFFU));
         }
 
         l -= 32;
@@ -1539,7 +1539,7 @@ lh_memory_std_rcompare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
         if (eq_mask != 0xFFFFU)
         {
-            return lb + lh_bit_scan_reverse(lh_bit_and(lh_bit_not(eq_mask), 0xFFFFU));
+            return lb + lh_bit_scan_reverse_u32(lh_bit_and(lh_bit_not(eq_mask), 0xFFFFU));
         }
 
         l -= 16;
@@ -1579,7 +1579,7 @@ lh_memory_std_rcompare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
         if (eq_mask != 0xFFFFFFFFU)
         {
-            return lb + lh_bit_scan_reverse(lh_bit_not(eq_mask));
+            return lb + lh_bit_scan_reverse_u32(lh_bit_not(eq_mask));
         }
 
         l -= 32;
