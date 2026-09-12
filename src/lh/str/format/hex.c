@@ -2,6 +2,7 @@
 #include <lh/assert.h>
 #include <lh/char/digit.h>
 #include <lh/util/addr.h>
+#include <lh/util/algorithm.h>
 
 /* lh_uint_t is 32-bit; 8 hex digits is its longest form. */
 #define LH_STR_FORMAT_HEX_DIGITS_MAX 8U
@@ -12,7 +13,7 @@ lh_str_ptr_format_hex(lh_uint_t value, lh_bool_t uppercase, lh_str_ptr str, lh_u
     lh_str_cptr alphabet = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
     lh_char_t digits[LH_STR_FORMAT_HEX_DIGITS_MAX];
     lh_usize_t digit_count = 0;
-    lh_usize_t i;
+    lh_usize_t n;
 
     lh_assert_runtime_ref(str);
 
@@ -27,9 +28,11 @@ lh_str_ptr_format_hex(lh_uint_t value, lh_bool_t uppercase, lh_str_ptr str, lh_u
         return 0;
     }
 
-    for (i = 0; i < digit_count; i++)
-    {
-        str[i] = digits[digit_count - 1U - i];
-    }
+    /* digits[] holds the least significant digit first; str wants the most
+     * significant first, i.e. exactly a reverse copy. n is a scratch copy of
+     * digit_count: lh_algorithm_copy_rev consumes its count argument via
+     * while(n--), and digit_count is still needed below for the return value. */
+    n = digit_count;
+    lh_algorithm_copy_rev(lh_char_t, str, digits, n);
     return digit_count;
 }
