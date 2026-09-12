@@ -1,5 +1,5 @@
 /**
- * @file supports.h
+ * @file cpu.h
  * @brief Macro wrapping the compiler's own "does this CPU support feature X" builtin.
  *
  * GCC/Clang provide `__builtin_cpu_supports(feature)` directly: it checks CPUID for
@@ -11,15 +11,15 @@
  * ever needs to be defined — under GCC/Clang.
  */
 
-#ifndef LH_COMPILER_CPU_SUPPORTS_H
-#define LH_COMPILER_CPU_SUPPORTS_H
+#ifndef LH_COMPILER_CPU_H
+#define LH_COMPILER_CPU_H
 
 #include <lh/compiler/type.h>
 
 #if (LH_COMPILER_TYPE_IS_GCC_LIKE)
 /**
- * @def lh_compiler_cpu_supports(feature)
- * @brief Whether the running CPU supports @p feature.
+ * @def lh_compiler_cpu_has_feature(feature)
+ * @brief Whether the running CPU has @p feature.
  *
  * @param feature A GCC/Clang feature-name string literal (e.g. `"sse2"`, `"avx2"`).
  *
@@ -29,10 +29,10 @@
  *
  * Example usage:
  * @code{.c}
- * if (lh_compiler_cpu_supports("avx2")) { ... }
+ * if (lh_compiler_cpu_has_feature("avx2")) { ... }
  * @endcode
  */
-#    define lh_compiler_cpu_supports(feature) __builtin_cpu_supports(feature)
+#    define lh_compiler_cpu_has_feature(feature) __builtin_cpu_supports(feature)
 #endif /* LH_COMPILER_TYPE_IS_GCC_LIKE */
 
-#endif /* LH_COMPILER_CPU_SUPPORTS_H */
+#endif /* LH_COMPILER_CPU_H */

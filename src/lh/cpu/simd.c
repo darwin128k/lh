@@ -3,7 +3,7 @@
 #include <lh/cast/static.h>
 #include <lh/compiler/arch.h>
 #include <lh/compiler/arch/family.h>
-#include <lh/compiler/cpu/supports.h>
+#include <lh/compiler/cpu.h>
 #include <lh/compiler/type.h>
 #include <lh/config.h>
 #include <lh/numeric/fixed/types.h>
@@ -47,7 +47,7 @@ lh_cpu_simd_has_sse2(void)
     /* SSE2 is part of the mandatory baseline ISA on x86-64 — no runtime check needed. */
     return lh_bool_true;
 #    elif LH_COMPILER_TYPE_IS_GCC_LIKE
-    return lh_cast_static(lh_bool_t, lh_compiler_cpu_supports("sse2"));
+    return lh_cast_static(lh_bool_t, lh_compiler_cpu_has_feature("sse2"));
 #    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
     lh_s32_t info[LH_CPU_SIMD_CPUID_REGISTER_COUNT];
     __cpuid(info, LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO);
@@ -69,7 +69,7 @@ lh_cpu_simd_has_avx2(void)
 #    if LH_COMPILER_TYPE_IS_GCC_LIKE
     /* Checks CPUID *and* that the OS has enabled AVX register state via XGETBV/XCR0,
      * not just the raw feature bit. */
-    return lh_cast_static(lh_bool_t, lh_compiler_cpu_supports("avx2"));
+    return lh_cast_static(lh_bool_t, lh_compiler_cpu_has_feature("avx2"));
 #    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
     /* Same check as __builtin_cpu_supports above, hand-rolled: MSVC has no
      * equivalent builtin. */
