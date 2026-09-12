@@ -2,6 +2,7 @@
 
 #include <lh/memory/std.h>
 
+#include <cstring>
 #include <vector>
 
 namespace
@@ -29,7 +30,59 @@ BM_memory_std_copy(benchmark::State &state)
     }
     state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
 }
-BENCHMARK(BM_memory_std_copy)->Arg(64)->Arg(4096)->Arg(1024 * 1024);
+BENCHMARK(BM_memory_std_copy)
+    ->Arg(64)
+    ->Arg(128)
+    ->Arg(256)
+    ->Arg(512)
+    ->Arg(1024)
+    ->Arg(2048)
+    ->Arg(4096)
+    ->Arg(8192)
+    ->Arg(65536)
+    ->Arg(262144)
+    ->Arg(1024 * 1024)
+    ->Arg(4 * 1024 * 1024)
+    ->Arg(16 * 1024 * 1024);
+
+static void
+BM_memory_std_rcopy(benchmark::State &state)
+{
+    Buffers bufs(static_cast<lh_usize_t>(state.range(0)));
+    for (auto _ : state)
+    {
+        benchmark::DoNotOptimize(lh_memory_std_rcopy(bufs.dst.data(), bufs.src.data(), bufs.src.size()));
+    }
+    state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
+}
+BENCHMARK(BM_memory_std_rcopy)->Arg(64)->Arg(4096)->Arg(65536)->Arg(1024 * 1024);
+
+// Comparison baseline: the platform CRT's own memcpy, interleaved with the run above so
+// both see the same CPU boost/power state at each size.
+static void
+BM_crt_memcpy(benchmark::State &state)
+{
+    Buffers bufs(static_cast<lh_usize_t>(state.range(0)));
+    for (auto _ : state)
+    {
+        benchmark::DoNotOptimize(std::memcpy(bufs.dst.data(), bufs.src.data(), bufs.src.size()));
+    }
+    state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
+}
+BENCHMARK(BM_crt_memcpy)
+    ->Arg(64)
+    ->Arg(128)
+    ->Arg(256)
+    ->Arg(512)
+    ->Arg(1024)
+    ->Arg(2048)
+    ->Arg(4096)
+    ->Arg(8192)
+    ->Arg(65536)
+    ->Arg(262144)
+    ->Arg(1024 * 1024)
+    ->Arg(4 * 1024 * 1024)
+    ->Arg(16 * 1024 * 1024);
 
 static void
 BM_memory_std_set(benchmark::State &state)
@@ -41,7 +94,47 @@ BM_memory_std_set(benchmark::State &state)
     }
     state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
 }
-BENCHMARK(BM_memory_std_set)->Arg(4096);
+BENCHMARK(BM_memory_std_set)
+    ->Arg(64)
+    ->Arg(128)
+    ->Arg(256)
+    ->Arg(512)
+    ->Arg(1024)
+    ->Arg(2048)
+    ->Arg(4096)
+    ->Arg(8192)
+    ->Arg(65536)
+    ->Arg(262144)
+    ->Arg(1024 * 1024)
+    ->Arg(4 * 1024 * 1024)
+    ->Arg(16 * 1024 * 1024);
+
+// Comparison baseline: the platform CRT's own memset, interleaved with the run above so
+// both see the same CPU boost/power state at each size.
+static void
+BM_crt_memset(benchmark::State &state)
+{
+    Buffers bufs(static_cast<lh_usize_t>(state.range(0)));
+    for (auto _ : state)
+    {
+        benchmark::DoNotOptimize(std::memset(bufs.dst.data(), 0x33, bufs.dst.size()));
+    }
+    state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
+}
+BENCHMARK(BM_crt_memset)
+    ->Arg(64)
+    ->Arg(128)
+    ->Arg(256)
+    ->Arg(512)
+    ->Arg(1024)
+    ->Arg(2048)
+    ->Arg(4096)
+    ->Arg(8192)
+    ->Arg(65536)
+    ->Arg(262144)
+    ->Arg(1024 * 1024)
+    ->Arg(4 * 1024 * 1024)
+    ->Arg(16 * 1024 * 1024);
 
 static void
 BM_memory_std_compare_equal(benchmark::State &state)
@@ -54,7 +147,21 @@ BM_memory_std_compare_equal(benchmark::State &state)
     }
     state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
 }
-BENCHMARK(BM_memory_std_compare_equal)->Arg(4096);
+BENCHMARK(BM_memory_std_compare_equal)->Arg(4096)->Arg(65536)->Arg(1024 * 1024);
+
+// Comparison baseline: the platform CRT's own memcmp.
+static void
+BM_crt_memcmp(benchmark::State &state)
+{
+    Buffers bufs(static_cast<lh_usize_t>(state.range(0)));
+    bufs.dst = bufs.src;
+    for (auto _ : state)
+    {
+        benchmark::DoNotOptimize(std::memcmp(bufs.dst.data(), bufs.src.data(), bufs.dst.size()));
+    }
+    state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
+}
+BENCHMARK(BM_crt_memcmp)->Arg(4096)->Arg(65536)->Arg(1024 * 1024);
 
 static void
 BM_memory_std_compare_mismatch_at_start(benchmark::State &state)

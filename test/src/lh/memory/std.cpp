@@ -54,6 +54,128 @@ TEST(memory_std_copy, copies_bytes_above_rep_movsb_threshold)
     EXPECT_EQ(dst, src);
 }
 
+/*
+ * lh_memory_std_copy's SIMD tier (src/lh/memory/std.c, above
+ * LH_MEMORY_STD_SIMD_COPY_THRESHOLD) processes the bulk of a copy in fixed-width
+ * blocks — 128 bytes at a time for AVX2's unrolled loop, then 32, then 16 for SSE2 —
+ * and hands off whatever is left over (0 to one block width minus one) to
+ * lh_algorithm_copy for the tail. A regression here once had that handoff read an
+ * uninitialized pointer instead of the real one (a local named the same as a macro-
+ * internal variable, shadowing it at its own initializer — see git history for
+ * src/lh/memory/std.c), silently leaving the tail bytes untouched for any length that
+ * wasn't an exact multiple of every block width in play; it passed every other test in
+ * this file because none of them used a length large enough to reach the SIMD tier
+ * *and* leave a non-empty tail. This sweeps every tail remainder from 0 to past one
+ * full 128-byte block so no particular leftover count can go unexercised again, and
+ * checks both that every requested byte is correct and that nothing past the
+ * requested range was touched.
+ */
+TEST(memory_std_copy, exact_bytes_across_every_tail_remainder)
+{
+    const lh_usize_t base = 512; // LH_MEMORY_STD_SIMD_COPY_THRESHOLD
+    const lh_usize_t guard = 8;
+
+    for (lh_usize_t extra = 0; extra <= 200; ++extra)
+    {
+        const lh_usize_t n = base + extra;
+        std::vector<lh_uchar_t> src(n);
+        std::vector<lh_uchar_t> dst(n + guard, 0xEE);
+        for (lh_usize_t i = 0; i < n; ++i)
+        {
+            src[i] = static_cast<lh_uchar_t>((i * 37U + 11U) & 0xFFU);
+        }
+
+        lh_ptr end = lh_memory_std_copy(dst.data(), src.data(), n);
+
+        ASSERT_EQ(end, static_cast<lh_ptr>(dst.data() + n)) << "n=" << n;
+        for (lh_usize_t i = 0; i < n; ++i)
+        {
+            ASSERT_EQ(dst[i], src[i]) << "n=" << n << " i=" << i;
+        }
+        for (lh_usize_t i = n; i < dst.size(); ++i)
+        {
+            ASSERT_EQ(dst[i], 0xEE) << "n=" << n << " i=" << i << " (past requested range)";
+        }
+    }
+}
+
+/*
+ * Same tail-remainder concern as the sweep above, but with src/dst each offset by a
+ * few bytes from their own allocation's start — the SIMD tiers' loads/stores are all
+ * unaligned (_mm_loadu_si128/_mm256_loadu_si256 etc.) so this should make no
+ * difference, but it is what actually distinguishes "the tail math is right" from
+ * "the tail math happens to be right when both pointers are naturally aligned".
+ */
+TEST(memory_std_copy, exact_bytes_with_misaligned_src_and_dst)
+{
+    const lh_usize_t n = 700; // past LH_MEMORY_STD_SIMD_COPY_THRESHOLD, not block-aligned
+    const lh_usize_t offsets[] = {0, 1, 3, 7, 15, 17, 31};
+
+    for (lh_usize_t dst_off : offsets)
+    {
+        for (lh_usize_t src_off : offsets)
+        {
+            std::vector<lh_uchar_t> src_buf(n + 32);
+            std::vector<lh_uchar_t> dst_buf(n + 32, 0xEE);
+            lh_uchar_t *src = src_buf.data() + src_off;
+            lh_uchar_t *dst = dst_buf.data() + dst_off;
+            for (lh_usize_t i = 0; i < n; ++i)
+            {
+                src[i] = static_cast<lh_uchar_t>((i * 37U + 11U) & 0xFFU);
+            }
+
+            lh_memory_std_copy(dst, src, n);
+
+            for (lh_usize_t i = 0; i < n; ++i)
+            {
+                ASSERT_EQ(dst[i], src[i]) << "dst_off=" << dst_off << " src_off=" << src_off
+                                           << " i=" << i;
+            }
+        }
+    }
+}
+
+/*
+ * Above LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD (2MB), lh_memory_std_copy switches to
+ * a non-temporal ("streaming store") AVX2 tier with its own alignment-prologue (copies
+ * a short unaligned head with regular stores first, since MOVNTDQ requires a 32-byte-
+ * aligned destination) and tail handling — dead code below that threshold, so it needs
+ * its own coverage. Sweeps destination/source misalignments across that 32-byte
+ * boundary at a few sizes straddling the threshold itself.
+ */
+TEST(memory_std_copy, streaming_tier_bytes_and_alignment_head)
+{
+    const lh_usize_t stream_threshold = 2U * 1024U * 1024U; // LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD
+    const lh_usize_t sizes[] = {stream_threshold - 1, stream_threshold, stream_threshold + 137};
+    const lh_usize_t offsets[] = {0, 1, 17, 31};
+
+    for (lh_usize_t size : sizes)
+    {
+        for (lh_usize_t dst_off : offsets)
+        {
+            for (lh_usize_t src_off : offsets)
+            {
+                std::vector<lh_uchar_t> src_buf(size + 64);
+                std::vector<lh_uchar_t> dst_buf(size + 64, 0xEE);
+                lh_uchar_t *src = src_buf.data() + src_off;
+                lh_uchar_t *dst = dst_buf.data() + dst_off;
+                for (lh_usize_t i = 0; i < size; ++i)
+                {
+                    src[i] = static_cast<lh_uchar_t>((i * 2654435761U) & 0xFFU);
+                }
+
+                lh_memory_std_copy(dst, src, size);
+
+                for (lh_usize_t i = 0; i < size; ++i)
+                {
+                    ASSERT_EQ(dst[i], src[i]) << "size=" << size << " dst_off=" << dst_off
+                                               << " src_off=" << src_off << " i=" << i;
+                }
+            }
+        }
+    }
+}
+
 TEST(memory_std_copy_rev, reverses_order_in_destination)
 {
     lh_uchar_t src[] = {1, 2, 3, 4};
@@ -76,6 +198,44 @@ TEST(memory_std_rcopy, overlapping_backward_copy)
     EXPECT_EQ(v[2], 2);
     EXPECT_EQ(v[3], 3);
     EXPECT_EQ(v[4], 4);
+}
+
+/*
+ * Same tail-remainder concern as memory_std_copy's sweep above, mirrored for
+ * lh_memory_std_rcopy's own SIMD tier (LH_MEMORY_STD_SIMD_RCOPY_THRESHOLD, walking
+ * from the end of the range down to its start in 32-/16-byte blocks, handing off the
+ * remaining head to lh_algorithm_rcopy). Non-overlapping buffers here — the
+ * overlap-specific semantics are already covered by the test above — just to isolate
+ * "is every byte in range copied correctly" from "is the overlap direction correct".
+ */
+TEST(memory_std_rcopy, exact_bytes_across_every_tail_remainder)
+{
+    const lh_usize_t guard = 8;
+
+    for (lh_usize_t n = 0; n <= 200; ++n)
+    {
+        // Guarded the same as dst below, not just sized n: an empty (n=0) std::vector's
+        // data() is permitted to be null, which lh_memory_std_rcopy's own null-pointer
+        // assertion (checked regardless of n — see the memory_std_rcopy_death tests
+        // below) would reject even though a zero-byte rcopy is otherwise a no-op.
+        std::vector<lh_uchar_t> src(n + guard);
+        std::vector<lh_uchar_t> dst(n + guard, 0xEE);
+        for (lh_usize_t i = 0; i < n; ++i)
+        {
+            src[i] = static_cast<lh_uchar_t>((i * 37U + 11U) & 0xFFU);
+        }
+
+        lh_memory_std_rcopy(dst.data(), src.data(), n);
+
+        for (lh_usize_t i = 0; i < n; ++i)
+        {
+            ASSERT_EQ(dst[i], src[i]) << "n=" << n << " i=" << i;
+        }
+        for (lh_usize_t i = n; i < dst.size(); ++i)
+        {
+            ASSERT_EQ(dst[i], 0xEE) << "n=" << n << " i=" << i << " (past requested range)";
+        }
+    }
 }
 
 TEST(memory_std_move, forward_overlap_matches_memmove_example)
@@ -123,6 +283,34 @@ TEST(memory_std_set, fills_range)
     for (lh_usize_t i = 0; i < 16; ++i)
     {
         EXPECT_EQ(block[i], 0xAB);
+    }
+}
+
+/*
+ * Same tail-remainder concern as memory_std_copy's sweep above, mirrored for
+ * lh_memory_std_set's own SIMD tier (LH_MEMORY_STD_SIMD_SET_THRESHOLD, filling in
+ * 128-/32-/16-byte broadcast-store blocks and handing off the remainder to
+ * lh_algorithm_set).
+ */
+TEST(memory_std_set, fills_every_byte_across_every_tail_remainder)
+{
+    const lh_usize_t guard = 8;
+
+    for (lh_usize_t n = 0; n <= 200; ++n)
+    {
+        std::vector<lh_uchar_t> dst(n + guard, 0xEE);
+
+        lh_ptr end = lh_memory_std_set(dst.data(), 0x77, n);
+
+        ASSERT_EQ(end, static_cast<lh_ptr>(dst.data() + n)) << "n=" << n;
+        for (lh_usize_t i = 0; i < n; ++i)
+        {
+            ASSERT_EQ(dst[i], 0x77) << "n=" << n << " i=" << i;
+        }
+        for (lh_usize_t i = n; i < dst.size(); ++i)
+        {
+            ASSERT_EQ(dst[i], 0xEE) << "n=" << n << " i=" << i << " (past requested range)";
+        }
     }
 }
 
