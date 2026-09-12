@@ -38,32 +38,12 @@ import argparse
 import os
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from unicode_data import parse_unicode_data  # noqa: E402
+
 BLOCK_SIZE = 256
 BMP_MAX = 0xFFFF
 NO_BLOCK = 0xFF
-
-
-def parse_unicode_data(text: str) -> tuple[list[tuple[int, int]], list[tuple[int, int]]]:
-    """Return (to_lower_pairs, to_upper_pairs) as sorted lists of (code, mapped)."""
-    to_lower: dict[int, int] = {}
-    to_upper: dict[int, int] = {}
-    for raw in text.splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
-        parts = line.split(";")
-        if len(parts) < 15:
-            continue
-        code = int(parts[0], 16)
-        su = parts[12].strip()
-        sl = parts[13].strip()
-        if sl:
-            to_lower[code] = int(sl, 16)
-        if su:
-            to_upper[code] = int(su, 16)
-    lo = sorted(to_lower.items(), key=lambda kv: kv[0])
-    up = sorted(to_upper.items(), key=lambda kv: kv[0])
-    return lo, up
 
 
 def split_bmp_smp(

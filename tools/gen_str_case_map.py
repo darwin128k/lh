@@ -31,35 +31,8 @@ import argparse
 import os
 import sys
 
-
-def parse_unicode_data(text: str) -> tuple[list[tuple[int, int]], list[tuple[int, int]]]:
-    """Return (to_lower_pairs, to_upper_pairs) as sorted lists of (code, mapped),
-    restricted to code, mapped both in 0..255."""
-    to_lower: dict[int, int] = {}
-    to_upper: dict[int, int] = {}
-    for raw in text.splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
-        parts = line.split(";")
-        if len(parts) < 15:
-            continue
-        code = int(parts[0], 16)
-        if code > 255:
-            continue
-        su = parts[12].strip()
-        sl = parts[13].strip()
-        if sl:
-            mapped = int(sl, 16)
-            if mapped <= 255:
-                to_lower[code] = mapped
-        if su:
-            mapped = int(su, 16)
-            if mapped <= 255:
-                to_upper[code] = mapped
-    lo = sorted(to_lower.items(), key=lambda kv: kv[0])
-    up = sorted(to_upper.items(), key=lambda kv: kv[0])
-    return lo, up
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from unicode_data import parse_unicode_data  # noqa: E402
 
 
 def signed_byte(v: int) -> int:
@@ -236,7 +209,7 @@ def main() -> int:
     args = ap.parse_args()
     with open(args.input, encoding="utf-8") as f:
         text = f.read()
-    lo, up = parse_unicode_data(text)
+    lo, up = parse_unicode_data(text, max_code=255)
     emit_c(lo, up, args.version, args.output)
     print(
         f"wrote to_lower={len(lo)} to_upper={len(up)} entries -> {args.output}",
