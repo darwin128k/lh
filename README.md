@@ -25,6 +25,9 @@ A lightweight C utility library (headers + a small shared/static library) with p
 - **Heap-owning memory bounds** — `lh_memory_bounds_allocated_t` (`lh/memory/bounds/allocated.h`) is layout-identical to `lh_memory_bounds_t` but routes `clear` / `resize` / `exchange` through the runtime allocator, freeing or reallocating the owned block as needed
 - **Wide text** — `lh_wchar_t`, raw wide-string helpers, Unicode simple case mapping for buffers and single-code-point case fold (UCD-backed tables under `src/lh/util/wstr/` and `src/lh/util/wchar/`)
 - **String search & compare** — `lh_str_view_find`, `lh_str_view_rfind`, `lh_str_view_find_of`, case-insensitive compare, size-aware comparison; same for wide strings (`lh_wstr_ptr_*`)
+- **SIMD memory operations** — `lh/memory/std.h`'s `copy` / `copy_rev` / `rcopy` / `set` / `compare` / `rcompare` runtime-dispatch to a hand-written SSE2/SSSE3/AVX2 tier (resolved once via a self-rewriting function pointer) when the toolchain can compile it and the running CPU supports it, falling back to a portable scalar path everywhere else — see [Performance](#performance)
+- **CPU feature/vendor detection** — `lh_cpu_simd_has_sse2/ssse3/avx2` (`lh/cpu/simd.h`), `lh_cpu_vendor_is_intel/is_amd` (`lh/cpu/vendor.h`)
+- **Bit scan** — header-only, force-inlined `lh_bit_scan_forward/reverse` for `u8`/`u16`/`u32`/`u64` in `lh/util/bit/scan.h`
 - **Version** — `lh_version_t`, `lh_get_version()` via `lh/lh.h`
 - **Build** — CMake, generated `lh/config.h`, optional Doxygen docs and bundled GoogleTest
 
@@ -97,6 +100,15 @@ Manual (no-CMake) builds set the same names directly in `config.h` or via `-D`.
 | `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE` | `<stdlib.h>` | Header declaring the two functions above |
 | `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED` | `ON` | Zero-initialize memory returned by `lh_memory_allocator_alloc` |
 | `LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX` | `16` | Maximum depth of nested runtime exception catch frames (must be `> 0`) |
+| `LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD` | `16` | Below this size (bytes), `lh_memory_std_copy`/`copy_rev`/`rcopy` skip SIMD entirely and use the scalar/tiny-copy path |
+| `LH_LIBRARY_OPTION_MEMORY_STD_SIMD_SET_THRESHOLD` | `32` | Below this size (bytes), `lh_memory_std_set` skips SIMD |
+| `LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD` | `256` | x86-64 only: below this size (bytes), call the SSE2 tier directly instead of going through the indirect, AVX2-capable dispatch |
+| `LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD` | `2097152` | At/above this size (bytes, 2 MiB), `copy`/`set` switch to non-temporal streaming stores |
+| `LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD` | `512` | GCC/Clang x86 only: below this size, prefer SIMD over `REP MOVSB` in the (normally unused) no-SIMD fallback path |
+| `LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER` | `256` | Minimum remaining bytes before `lh_memory_std_copy_sse2` bothers issuing a prefetch |
+| `LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE` | `256` | How many bytes ahead of the read position to prefetch |
+
+Every `MEMORY_STD_*` value above is a measured crossover point (this project's own x86-64 GCC/MinGW and MSVC targets), not a correctness fact — retuning for a different microarchitecture is always safe to try. See the option comments in `cmake/library_options.cmake` for the full rationale.
 
 Example — bind the runtime allocator to a custom pair at compile time instead
 of writing `lh_memory_allocator_set()` init code:
@@ -159,6 +171,47 @@ lh_uchar_t  byte    = 0xFF; /* 8-bit unsigned  */
 lh_version_t ver = lh_version_initializer(0, 3, 0);
 lh_version_major_t major = lh_version_get_major(&ver); /* 0 */
 ```
+
+## Performance
+
+`lh/memory/std.h`'s `copy` / `copy_rev` / `rcopy` / `set` / `compare` / `rcompare`
+dispatch at runtime to a hand-written SSE2/SSSE3/AVX2 tier when two things both
+hold: the toolchain can compile it for the target (decided once at CMake
+configure time by a compile-only probe — `cmake/check_simd.cmake` — never by
+running code, so this stays correct under cross-compilation) and the CPU the
+binary actually runs on supports it (`lh/cpu/simd.h`, checked once and cached
+behind a self-rewriting function pointer). Everywhere either doesn't hold, it
+falls back to the portable scalar path, unchanged.
+
+Throughput against the platform CRT, measured on this project's own x86-64
+GCC/MinGW dev machine (SSE2 present, no AVX2 — an AVX2-capable CPU pushes the
+SIMD numbers further still):
+
+```
+                                                      GB/s
+copy     64 B   lh ####                              6.5  crt #####                             8.1
+copy     4 KB   lh ##################               31.2  crt #########################        43.8
+copy     64 KB  lh #############                    21.9  crt ##############                   25.0
+copy     1 MB   lh ########                         14.7  crt #####                             8.9
+copy     16 MB  lh #####                             8.3  crt ####                              6.9
+set      64 B   lh ####                              7.2  crt ###                               5.9
+set      4 KB   lh ###########################      46.0  crt ##############################   52.1
+set      64 KB  lh #################                30.1  crt #####################            36.5
+set      1 MB   lh ##############                   24.9  crt ##############                   24.4
+set      16 MB  lh #########                        15.1  crt ####                              7.5
+compare  4 KB   lh #############                    23.4  crt ###########                      19.2
+compare  64 KB  lh #############                    22.0  crt ##########                       17.9
+compare  1 MB   lh ########                         14.7  crt ########                         14.0
+```
+
+No universal winner: `lh` tends to pull ahead at the very small end (its SIMD/
+`REP MOVSB` tiers avoid the platform CRT's own dispatch overhead) and at the
+very large end (non-temporal streaming stores above the 2 MiB threshold avoid
+cache pollution the CRT's regular stores pay for); in the middle band the two
+trade blows depending on the operation and size. Reproduce or extend these
+numbers with `lh_bench --benchmark_filter=memory_std` (see [bench/](bench));
+tune the crossover points for your own CPU via the `LH_LIBRARY_OPTION_MEMORY_STD_*`
+options above.
 
 ## Safety conventions
 
