@@ -2,6 +2,7 @@
 #include <lh/assert.h>
 #include <lh/bool.h>
 #include <lh/char/digit.h>
+#include <lh/memory/std.h>
 #include <lh/null.h>
 #include <lh/numeric/types.h>
 #include <lh/str/format/hex.h>
@@ -38,11 +39,20 @@ lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, v
 
         if (fmt[fmt_pos] != '%')
         {
-            if (out_pos >= str_size)
+            lh_usize_t run_start = fmt_pos;
+            while (fmt[fmt_pos] != '\0' && fmt[fmt_pos] != '%')
             {
-                return 0;
+                fmt_pos++;
             }
-            str[out_pos++] = fmt[fmt_pos++];
+            {
+                lh_usize_t run = fmt_pos - run_start;
+                if (out_pos + run > str_size)
+                {
+                    return 0;
+                }
+                lh_memory_std_copy(str + out_pos, fmt + run_start, run);
+                out_pos += run;
+            }
             continue;
         }
         fmt_pos++; /* consume '%' */
@@ -150,9 +160,9 @@ lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, v
                 {
                     return 0;
                 }
-                lh_str_ptr_copy(str + out_pos, content_len, content, content_len);
+                lh_memory_std_copy(str + out_pos, content, content_len);
                 out_pos += content_len;
-                lh_str_ptr_set(str + out_pos, pad_len, ' ');
+                lh_memory_std_set(str + out_pos, (lh_uchar_t)' ', pad_len);
                 out_pos += pad_len;
             }
             else if (zero_pad && has_sign)
@@ -162,9 +172,9 @@ lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, v
                     return 0;
                 }
                 str[out_pos++] = content[0];
-                lh_str_ptr_set(str + out_pos, pad_len, '0');
+                lh_memory_std_set(str + out_pos, (lh_uchar_t)'0', pad_len);
                 out_pos += pad_len;
-                lh_str_ptr_copy(str + out_pos, content_len - 1U, content + 1, content_len - 1U);
+                lh_memory_std_copy(str + out_pos, content + 1, content_len - 1U);
                 out_pos += content_len - 1U;
             }
             else
@@ -174,9 +184,9 @@ lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, v
                 {
                     return 0;
                 }
-                lh_str_ptr_set(str + out_pos, pad_len, pad_char);
+                lh_memory_std_set(str + out_pos, (lh_uchar_t)pad_char, pad_len);
                 out_pos += pad_len;
-                lh_str_ptr_copy(str + out_pos, content_len, content, content_len);
+                lh_memory_std_copy(str + out_pos, content, content_len);
                 out_pos += content_len;
             }
         }
