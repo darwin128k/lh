@@ -107,7 +107,7 @@ Manual (no-CMake) builds set the same names directly in `config.h` or via `-D`.
 | `LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD` | `256` | x86-64 only: below this size (bytes), call the SSE2 tier directly instead of going through the indirect, AVX2-capable dispatch |
 | `LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD` | `2097152` | At/above this size (bytes, 2 MiB), `copy`/`set` switch to non-temporal streaming stores |
 | `LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD` | `512` | GCC/Clang x86 only: below this size, prefer SIMD over `REP MOVSB` in the (normally unused) no-SIMD fallback path |
-| `LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER` | `256` | Minimum remaining bytes before `lh_memory_std_copy_sse2` bothers issuing a prefetch |
+| `LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER` | `4096` | Minimum remaining bytes before `lh_memory_std_copy` issues a prefetch |
 | `LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE` | `256` | How many bytes ahead of the read position to prefetch |
 
 Every `MEMORY_STD_*` value above is a measured crossover point (this project's own x86-64 GCC/MinGW and MSVC targets), not a correctness fact — retuning for a different microarchitecture is always safe to try. See the option comments in `cmake/library_options.cmake` for the full rationale.

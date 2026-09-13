@@ -295,8 +295,7 @@
 
 /**
  * @def LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER
- * @brief ::lh_memory_std_copy_sse2: minimum remaining bytes (after the current
- *        64-byte block) before it bothers issuing a prefetch at all.
+ * @brief ::lh_memory_std_copy: minimum remaining bytes before issuing a prefetch.
  *
  * @note The value must be greater than zero.
  */

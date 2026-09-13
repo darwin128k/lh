@@ -224,8 +224,8 @@ set(LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD "2097152" CACHE STRING
 set(LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD "512" CACHE STRING
         "lh_memory_std_copy under GCC/Clang, x86 only: below this size (bytes), prefer the SIMD tier over REP MOVSB in the (normally unused) fallback path taken when SIMD intrinsics did not compile at all — REP MOVSB's fixed microcode setup cost is not worth paying for small copies. Must be a positive decimal integer.")
 
-set(LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER "256" CACHE STRING
-        "lh_memory_std_copy_sse2: minimum remaining bytes (after the current 64-byte block) before it bothers issuing a prefetch at all. Must be a positive decimal integer.")
+set(LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER "4096" CACHE STRING
+        "lh_memory_std_copy: minimum remaining bytes before issuing a prefetch. Prefetch on sub-4KiB copies was measured to lose to CRT on the 512B-2KiB band. Must be a positive decimal integer.")
 
 set(LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE "256" CACHE STRING
         "lh_memory_std_copy_sse2: how many bytes ahead of the current read position to prefetch. Optimal distance is cache-latency-dependent and can vary by microarchitecture. Must be a positive decimal integer.")
