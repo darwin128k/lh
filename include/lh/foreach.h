@@ -2,11 +2,10 @@
  * @file foreach.h
  * @brief Generic "iterate n elements, bind each to a name" loop macro.
  *
- * Unlike the operation-specific macros in `lh/util/algorithm.h` (copy, set,
- * compare, ...), this one carries no operation of its own — it is a general
+ * Unlike ::lh_memory_std_copy / ::lh_memory_std_set and the rest of the byte
+ * kernels, this one carries no operation of its own — it is a general
  * control-flow primitive, the same kind of thing ::lh_optional_ref is (a
- * macro that expands to a loop/branch header rather than a full statement),
- * just not tied to any particular memory algorithm.
+ * macro that expands to a loop/branch header rather than a full statement).
  */
 
 #ifndef LH_FOREACH_H

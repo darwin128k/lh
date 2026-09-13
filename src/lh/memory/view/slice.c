@@ -5,7 +5,7 @@
 #include <lh/runtime/try.h>
 #include <lh/optional/ref.h>
 #include <lh/util/interval.h>
-#include <lh/util/algorithm.h>
+#include <lh/util/swap.h>
 #include <lh/memory/raw.h>
 #include <lh/assert.h>
 
@@ -660,7 +660,7 @@ lh_memory_view_slice_swap(lh_memory_view_slice_t *self, lh_memory_view_slice_t *
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(other);
 
-    lh_algorithm_swap(lh_memory_view_slice_t, lh_ptr_deref(self), lh_ptr_deref(other));
+    lh_swap(lh_memory_view_slice_t, lh_ptr_deref(self), lh_ptr_deref(other));
 }
 
 LH_ATTRIBUTE_STATIC

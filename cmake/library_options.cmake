@@ -129,8 +129,8 @@ set(LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR "2" CACHE STRING
 # -----------------------------------------------------------------------------
 # LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK
 #
-# Element block size lh_algorithm_compare (include/lh/util/algorithm.h) scans
-# branchlessly before falling back to a precise, element-by-element scan of
+# Byte block size the scalar path of lh_memory_std_compare (src/lh/memory/std.c)
+# scans branchlessly before falling back to a precise, byte-by-byte scan of
 # the block that turned out to differ — same block used by the single-element
 # fast path in lh_memory_find_step (src/lh/memory.c). Larger values give the
 # compiler more to auto-vectorize per block at the cost of a longer worst-case
@@ -141,7 +141,7 @@ set(LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR "2" CACHE STRING
 # Manual build: set in include/lh/config.h or -D on the compiler command line.
 # -----------------------------------------------------------------------------
 set(LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK "16" CACHE STRING
-        "Block size for lh_algorithm_compare / lh_memory_find_step's branchless scan (must be > 0).")
+        "Block size for lh_memory_std_compare / lh_memory_find_step's branchless scan (must be > 0).")
 
 # -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE

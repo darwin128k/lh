@@ -59,7 +59,7 @@ TEST(memory_std_copy, copies_bytes_above_rep_movsb_threshold)
  * LH_MEMORY_STD_SIMD_COPY_THRESHOLD) processes the bulk of a copy in fixed-width
  * blocks — 128 bytes at a time for AVX2's unrolled loop, then 32, then 16 for SSE2 —
  * and hands off whatever is left over (0 to one block width minus one) to
- * lh_algorithm_copy for the tail. A regression here once had that handoff read an
+ * the scalar copy kernel for the tail. A regression here once had that handoff read an
  * uninitialized pointer instead of the real one (a local named the same as a macro-
  * internal variable, shadowing it at its own initializer — see git history for
  * src/lh/memory/std.c), silently leaving the tail bytes untouched for any length that
@@ -269,7 +269,7 @@ TEST(memory_std_rcopy, overlapping_backward_copy)
  * Same tail-remainder concern as memory_std_copy's sweep above, mirrored for
  * lh_memory_std_rcopy's own SIMD tier (LH_MEMORY_STD_SIMD_RCOPY_THRESHOLD, walking
  * from the end of the range down to its start in 32-/16-byte blocks, handing off the
- * remaining head to lh_algorithm_rcopy). Non-overlapping buffers here — the
+ * remaining head to the scalar rcopy kernel). Non-overlapping buffers here — the
  * overlap-specific semantics are already covered by the test above — just to isolate
  * "is every byte in range copied correctly" from "is the overlap direction correct".
  */
@@ -355,7 +355,7 @@ TEST(memory_std_set, fills_range)
  * Same tail-remainder concern as memory_std_copy's sweep above, mirrored for
  * lh_memory_std_set's own SIMD tier (LH_MEMORY_STD_SIMD_SET_THRESHOLD, filling in
  * 128-/32-/16-byte broadcast-store blocks and handing off the remainder to
- * lh_algorithm_set).
+ * the scalar set kernel).
  */
 TEST(memory_std_set, fills_every_byte_across_every_tail_remainder)
 {

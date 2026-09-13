@@ -4,7 +4,7 @@
 #include <lh/util/math.h>
 #include <lh/util/type.h>
 #include <lh/util/ptr.h>
-#include <lh/util/algorithm.h>
+#include <lh/util/swap.h>
 #include <lh/cast/const.h>
 #include <lh/assert.h>
 
@@ -265,7 +265,7 @@ lh_memory_typed_swap(lh_memory_typed_t *self, lh_memory_typed_t *other)
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(other);
 
-    lh_algorithm_swap(lh_memory_typed_t, lh_ptr_deref(self), lh_ptr_deref(other));
+    lh_swap(lh_memory_typed_t, lh_ptr_deref(self), lh_ptr_deref(other));
 }
 
 lh_void

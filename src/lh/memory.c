@@ -1,8 +1,12 @@
 #include <lh/memory.h>
 #include <lh/memory/std.h>
-#include <lh/util/algorithm.h>
-#include <lh/util/return.h>
 #include <lh/assert.h>
+#include <lh/bool.h>
+#include <lh/config.h>
+#include <lh/util/ptr.h>
+#include <lh/util/return.h>
+
+#define LH_MEMORY_SCAN_BLOCK ((lh_usize_t)LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK)
 
 lh_ptr
 lh_memory_copy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size)
@@ -79,16 +83,16 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
 
         if (step == 1)
         {
-            /* Contiguous scan: check LH_ALGORITHM_COMPARE_BLOCK bytes at a time with no
-             * branch inside the block (same technique as lh_algorithm_compare) so the
-             * compiler can auto-vectorize the common no-match-yet case; only the block
-             * that actually contains a hit pays for a per-byte branch. */
+            /* Contiguous scan: check LH_MEMORY_SCAN_BLOCK bytes at a time with no
+             * branch inside the block so the compiler can auto-vectorize the common
+             * no-match-yet case; only the block that actually contains a hit pays
+             * for a per-byte branch. */
             const lh_uchar_t *cand = base;
-            while (cand + LH_ALGORITHM_COMPARE_BLOCK <= end)
+            while (cand + LH_MEMORY_SCAN_BLOCK <= end)
             {
                 lh_bool_t block_hit = lh_bool_false;
                 lh_usize_t block_i;
-                for (block_i = 0; block_i < LH_ALGORITHM_COMPARE_BLOCK; ++block_i)
+                for (block_i = 0; block_i < LH_MEMORY_SCAN_BLOCK; ++block_i)
                 {
                     block_hit = (lh_bool_t)(block_hit | (cand[block_i] == needle));
                 }
@@ -96,7 +100,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
                 {
                     break;
                 }
-                cand += LH_ALGORITHM_COMPARE_BLOCK;
+                cand += LH_MEMORY_SCAN_BLOCK;
             }
             for (; cand + 1 <= end; ++cand)
             {
@@ -214,10 +218,7 @@ lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usiz
         lh_usize_t remaining = dst_size - i;
         lh_usize_t copy_size = (remaining < src_size) ? remaining : src_size;
 
-        for (lh_usize_t j = 0; j < copy_size; j++)
-        {
-            d[i + j] = s[j];
-        }
+        lh_memory_std_copy(d + i, s, copy_size);
 
         cur = d + i + copy_size;
     }

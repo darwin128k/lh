@@ -3,7 +3,7 @@
 #include <lh/util/return.h>
 #include <lh/memory/view/slice.h>
 #include <lh/attribute/static.h>
-#include <lh/util/algorithm.h>
+#include <lh/util/swap.h>
 #include <lh/optional/ref.h>
 #include <lh/runtime/try.h>
 #include <lh/cast/const.h>
@@ -632,7 +632,7 @@ lh_memory_bounds_slice_swap(lh_memory_bounds_slice_t *self, lh_memory_bounds_sli
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(other);
 
-    lh_algorithm_swap(lh_memory_bounds_slice_t, lh_ptr_deref(self), lh_ptr_deref(other));
+    lh_swap(lh_memory_bounds_slice_t, lh_ptr_deref(self), lh_ptr_deref(other));
 }
 
 LH_ATTRIBUTE_STATIC

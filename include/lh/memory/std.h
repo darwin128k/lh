@@ -1,8 +1,14 @@
 /**
  * @file std.h
- * @brief Untyped byte memory operations: copy, move, fill, and compare.
+ * @brief Canonical untyped byte kernels: copy, move, fill, and compare.
  *
- * All sizes are in bytes (::lh_usize_t).
+ * All sizes are in bytes (::lh_usize_t). Implementation files that need to
+ * copy, fill, or compare bytes go through these functions — a second
+ * hand-rolled loop is the thing these exist to replace. Call overhead at
+ * this boundary is accepted; the work inside is the fast path (SIMD when
+ * available, overlapping-word tiny copies below one vector, portable scalar
+ * otherwise).
+ *
  * Pointers are checked in debug builds via ::lh_runtime_check_ref where applicable.
  */
 

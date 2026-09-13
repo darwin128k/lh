@@ -46,7 +46,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/memory/bounds/allocated.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/view/slice.cpp
         ${LH_TEST_SRC_PATH}/lh/vector.cpp
-        ${LH_TEST_SRC_PATH}/lh/util/algorithm.cpp
+        ${LH_TEST_SRC_PATH}/lh/util/swap.cpp
         ${LH_TEST_SRC_PATH}/lh/util/bit/endian.cpp
         ${LH_TEST_SRC_PATH}/lh/util/bit/scan.cpp
         ${LH_TEST_SRC_PATH}/lh/util/interval.cpp

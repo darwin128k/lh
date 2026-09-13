@@ -163,9 +163,9 @@
 
 /**
  * @def LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK
- * @brief Element block size ::lh_algorithm_compare (and the matching fast path in
- *        ::lh_memory_find_step) scans branchlessly before falling back to a precise
- *        scan of the block that turned out to differ/match.
+ * @brief Byte block size the scalar path of ::lh_memory_std_compare (and the
+ *        matching fast path in ::lh_memory_find_step) scans branchlessly before
+ *        falling back to a precise scan of the block that turned out to differ/match.
  *
  * @note The value must be greater than zero.
  */

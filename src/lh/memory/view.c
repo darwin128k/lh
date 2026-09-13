@@ -2,7 +2,7 @@
 #include <lh/memory/view/initializer.h>
 #include <lh/util/return.h>
 #include <lh/attribute/static.h>
-#include <lh/util/algorithm.h>
+#include <lh/util/swap.h>
 #include <lh/util/interval.h>
 #include <lh/runtime/throw.h>
 #include <lh/optional/ref.h>
@@ -541,7 +541,7 @@ lh_memory_view_swap(lh_memory_view_t *self, lh_memory_view_t *other)
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(other);
 
-    lh_algorithm_swap(lh_memory_view_t, lh_ptr_deref(self), lh_ptr_deref(other));
+    lh_swap(lh_memory_view_t, lh_ptr_deref(self), lh_ptr_deref(other));
 }
 
 LH_ATTRIBUTE_STATIC

@@ -1,6 +1,7 @@
 #include <lh/str/format/uint.h>
 #include <lh/assert.h>
 #include <lh/char/digit.h>
+#include <lh/memory/std.h>
 #include <lh/util/addr.h>
 
 /* lh_uint_t is 32-bit; "4294967295" is its longest decimal form. */
@@ -11,7 +12,6 @@ lh_str_ptr_format_uint(lh_uint_t value, lh_str_ptr str, lh_usize_t str_size)
 {
     lh_char_t digits[LH_STR_FORMAT_UINT_DIGITS_MAX];
     lh_usize_t digit_count = 0;
-    lh_usize_t i;
 
     lh_assert_runtime_ref(str);
 
@@ -26,9 +26,6 @@ lh_str_ptr_format_uint(lh_uint_t value, lh_str_ptr str, lh_usize_t str_size)
         return 0;
     }
 
-    for (i = 0; i < digit_count; i++)
-    {
-        str[i] = digits[digit_count - 1U - i];
-    }
+    lh_memory_std_copy_rev(str, digits, digit_count);
     return digit_count;
 }
