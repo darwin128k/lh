@@ -312,36 +312,89 @@ lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
-/* lh_memory_std_copy's own SIMD tier, same technique/dispatch shape as
- * lh_memory_std_compare's below (plain 16/32-byte load+store, no movemask needed
- * since there is nothing to compare) — added after REP MOVSB (above) measured a 6x-27x
- * *loss* against the platform CRT's own memcpy on an AMD Zen2 target, across roughly
- * the same 500B-256KB range the file comment above says REP MOVSB was originally
- * measured to win on (an Intel target): REP MOVSB's ERMSB fast path is not equally
- * fast on every x86 vendor/generation, unlike a plain vector load/store loop, which
- * has no microcoded setup cost to lose on. This tier is what closes that gap without
- * taking a libc dependency (the project's other memory_std_* primitives are hand-
- * rolled precisely to avoid one). Falls back to lh_memory_std_copy_bytes for the tail
- * below its block width, same as lh_memory_std_compare's tiers. */
+/* Both are measured crossovers, not correctness facts — see
+ * cmake/library_options.cmake for the full rationale and how to override them. */
+#    define LH_MEMORY_STD_PREFETCH_TRIGGER ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER)
+#    define LH_MEMORY_STD_PREFETCH_DISTANCE ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE)
 
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 
-/* Both are measured crossovers, not correctness facts — see
- * cmake/library_options.cmake for the full rationale and how to override them. */
-#        define LH_MEMORY_STD_PREFETCH_TRIGGER ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER)
-#        define LH_MEMORY_STD_PREFETCH_DISTANCE ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE)
+LH_MEMORY_STD_SIMD_TARGET("sse2") static void
+lh_memory_std_copy64_storeu(lh_uchar_t *dst, const lh_uchar_t *src)
+{
+    const __m128i v0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 0));
+    const __m128i v1 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 16));
+    const __m128i v2 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 32));
+    const __m128i v3 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 48));
+    _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 0), v0);
+    _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 16), v1);
+    _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 32), v2);
+    _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 48), v3);
+}
 
 LH_MEMORY_STD_SIMD_TARGET("sse2") static void
 lh_memory_std_copy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 {
-    /* Align the destination to 16 bytes so the bulk loop can use aligned stores
-     * (movdqa / _mm_store_si128). Unaligned loads from src stay on loadu — src
-     * alignment is independent. Aligned stores are what CRT memcpy leans on for
-     * mid-size in-cache copies; the previous storeu-only loop left ~1.5x-2x on
-     * the table against CRT at 512B-256KB on this project's SSE2-only target. */
+    /* CRT-style overlapping vector stores: two (or four) unaligned 16-byte moves
+     * cover any length in [16, 63] with no loop, no alignment prologue, no scalar
+     * tail. x86-64 calls this function directly for every copy below
+     * DIRECT_DISPATCH_THRESHOLD — that prologue is what lost the 64-255 band. */
+    if (n < 64U)
+    {
+        if (n >= 32U)
+        {
+            const __m128i a = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src));
+            const __m128i b = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 16));
+            const __m128i c = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + n - 32));
+            const __m128i d = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + n - 16));
+            _mm_storeu_si128(lh_ptr_rcast(__m128i, dst), a);
+            _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 16), b);
+            _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + n - 32), c);
+            _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + n - 16), d);
+            return;
+        }
+
+        if (n >= 16U)
+        {
+            const __m128i a = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src));
+            const __m128i b = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + n - 16));
+            _mm_storeu_si128(lh_ptr_rcast(__m128i, dst), a);
+            _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + n - 16), b);
+            return;
+        }
+
+        lh_memory_std_copy_bytes(dst, src, n);
+        return;
+    }
+
+    /* Unaligned 64-byte loop + one overlapping last block. Aligned movdqa still
+     * wins for big in-cache copies on SSE2-only targets, but only after the
+     * setup cost is amortized — keep that path for n >= 512. */
+    if (n < 512U)
+    {
+        lh_uchar_t *dst_end = dst + n;
+        const lh_uchar_t *src_end = src + n;
+
+        while (n >= 64U)
+        {
+            lh_memory_std_copy64_storeu(dst, src);
+            dst += 64;
+            src += 64;
+            n -= 64U;
+        }
+
+        if (n != 0U)
+        {
+            lh_memory_std_copy64_storeu(dst_end - 64, src_end - 64);
+        }
+        return;
+    }
+
     {
         lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)16);
         lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
+        lh_uchar_t *dst_end = dst + n;
+        const lh_uchar_t *src_end = src + n;
 
         if (head > n)
         {
@@ -355,44 +408,32 @@ lh_memory_std_copy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
             src += head;
             n -= head;
         }
-    }
 
-    /* Unrolled 4-wide, same shape/reason as lh_memory_std_copy_avx2's own 128-byte
-     * loop below: a single load+store per iteration serializes on that one register's
-     * load-to-store latency, leaving the CPU's other load/store ports idle. Measured
-     * 1.7x-2.4x faster than the single-register loop across 512B-8KB on this
-     * project's own GCC/MinGW toolchain. Prefetch the source a few lines ahead once
-     * the remaining span is past a couple of cache lines — helps the mid-size band
-     * where CRT was still winning after the 4-wide unroll alone. */
-    while (n >= 64U)
-    {
-        if (n >= LH_MEMORY_STD_PREFETCH_TRIGGER)
+        while (n >= 64U)
         {
-            _mm_prefetch(lh_ptr_ccast(char, src + LH_MEMORY_STD_PREFETCH_DISTANCE), _MM_HINT_T0);
+            if (n >= LH_MEMORY_STD_PREFETCH_TRIGGER)
+            {
+                _mm_prefetch(lh_ptr_ccast(char, src + LH_MEMORY_STD_PREFETCH_DISTANCE), _MM_HINT_T0);
+            }
+
+            const __m128i v0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 0));
+            const __m128i v1 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 16));
+            const __m128i v2 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 32));
+            const __m128i v3 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 48));
+            _mm_store_si128(lh_ptr_rcast(__m128i, dst + 0), v0);
+            _mm_store_si128(lh_ptr_rcast(__m128i, dst + 16), v1);
+            _mm_store_si128(lh_ptr_rcast(__m128i, dst + 32), v2);
+            _mm_store_si128(lh_ptr_rcast(__m128i, dst + 48), v3);
+            dst += 64;
+            src += 64;
+            n -= 64U;
         }
 
-        const __m128i v0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 0));
-        const __m128i v1 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 16));
-        const __m128i v2 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 32));
-        const __m128i v3 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 48));
-        _mm_store_si128(lh_ptr_rcast(__m128i, dst + 0), v0);
-        _mm_store_si128(lh_ptr_rcast(__m128i, dst + 16), v1);
-        _mm_store_si128(lh_ptr_rcast(__m128i, dst + 32), v2);
-        _mm_store_si128(lh_ptr_rcast(__m128i, dst + 48), v3);
-        dst += 64;
-        src += 64;
-        n -= 64U;
+        if (n != 0U)
+        {
+            lh_memory_std_copy64_storeu(dst_end - 64, src_end - 64);
+        }
     }
-
-    while (n >= 16U)
-    {
-        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst), _mm_loadu_si128(lh_ptr_rcast(const __m128i, src)));
-        dst += 16;
-        src += 16;
-        n -= 16U;
-    }
-
-    lh_memory_std_copy_bytes(dst, src, n);
 }
 
 /* Non-temporal SSE2 twin of lh_memory_std_copy_avx2_stream below — same RFO/cache-
@@ -406,20 +447,20 @@ lh_memory_std_copy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 LH_MEMORY_STD_SIMD_TARGET("sse2") static void
 lh_memory_std_copy_sse2_stream(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 {
+    lh_uchar_t *dst_end = dst + n;
+    const lh_uchar_t *src_end = src + n;
+    lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)16);
+    lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
+
+    if (head > n)
     {
-        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)16);
-        lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
-
-        if (head > n)
-        {
-            head = n;
-        }
-
-        lh_memory_std_copy_bytes(dst, src, head);
-        dst += head;
-        src += head;
-        n -= head;
+        head = n;
     }
+
+    lh_memory_std_copy_bytes(dst, src, head);
+    dst += head;
+    src += head;
+    n -= head;
 
     while (n >= 64U)
     {
@@ -436,17 +477,12 @@ lh_memory_std_copy_sse2_stream(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_
         n -= 64U;
     }
 
-    while (n >= 16U)
-    {
-        _mm_stream_si128(lh_ptr_rcast(__m128i, dst), _mm_loadu_si128(lh_ptr_rcast(const __m128i, src)));
-        dst += 16;
-        src += 16;
-        n -= 16U;
-    }
-
     _mm_sfence();
 
-    lh_memory_std_copy_bytes(dst, src, n);
+    if (n != 0U)
+    {
+        lh_memory_std_copy64_storeu(dst_end - 64, src_end - 64);
+    }
 }
 
 #    endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
@@ -457,29 +493,53 @@ lh_memory_std_copy_sse2_stream(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_
  * mixing legacy (non-VEX) SSE encoding into an AVX2-attributed function risks an
  * SSE/AVX transition penalty on older microarchitectures. */
 LH_MEMORY_STD_SIMD_TARGET("avx2") static void
+lh_memory_std_copy128_storeu(lh_uchar_t *dst, const lh_uchar_t *src)
+{
+    const __m256i v0 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 0));
+    const __m256i v1 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 32));
+    const __m256i v2 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 64));
+    const __m256i v3 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 96));
+    _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + 0), v0);
+    _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + 32), v1);
+    _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + 64), v2);
+    _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + 96), v3);
+}
+
+LH_MEMORY_STD_SIMD_TARGET("avx2") static void
 lh_memory_std_copy_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 {
-    while (n >= 128U)
+    if (n >= 128U)
     {
-        const __m256i v0 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 0));
-        const __m256i v1 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 32));
-        const __m256i v2 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 64));
-        const __m256i v3 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 96));
-        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + 0), v0);
-        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + 32), v1);
-        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + 64), v2);
-        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + 96), v3);
-        dst += 128;
-        src += 128;
-        n -= 128U;
+        lh_uchar_t *dst_end = dst + n;
+        const lh_uchar_t *src_end = src + n;
+
+        while (n >= 128U)
+        {
+            if (n >= LH_MEMORY_STD_PREFETCH_TRIGGER)
+            {
+                _mm_prefetch(lh_ptr_ccast(char, src + LH_MEMORY_STD_PREFETCH_DISTANCE), _MM_HINT_T0);
+            }
+
+            lh_memory_std_copy128_storeu(dst, src);
+            dst += 128;
+            src += 128;
+            n -= 128U;
+        }
+
+        if (n != 0U)
+        {
+            lh_memory_std_copy128_storeu(dst_end - 128, src_end - 128);
+        }
+        return;
     }
 
-    while (n >= 32U)
+    if (n >= 32U)
     {
-        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst), _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src)));
-        dst += 32;
-        src += 32;
-        n -= 32U;
+        const __m256i a = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src));
+        const __m256i b = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + n - 32));
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst), a);
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + n - 32), b);
+        return;
     }
 
     lh_memory_std_copy_bytes(dst, src, n);
@@ -501,20 +561,20 @@ lh_memory_std_copy_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 LH_MEMORY_STD_SIMD_TARGET("avx2") static void
 lh_memory_std_copy_avx2_stream(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 {
+    lh_uchar_t *dst_end = dst + n;
+    const lh_uchar_t *src_end = src + n;
+    lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)32);
+    lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
+
+    if (head > n)
     {
-        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)32);
-        lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
-
-        if (head > n)
-        {
-            head = n;
-        }
-
-        lh_memory_std_copy_bytes(dst, src, head);
-        dst += head;
-        src += head;
-        n -= head;
+        head = n;
     }
+
+    lh_memory_std_copy_bytes(dst, src, head);
+    dst += head;
+    src += head;
+    n -= head;
 
     while (n >= 128U)
     {
@@ -531,17 +591,12 @@ lh_memory_std_copy_avx2_stream(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_
         n -= 128U;
     }
 
-    while (n >= 32U)
-    {
-        _mm256_stream_si256(lh_ptr_rcast(__m256i, dst), _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src)));
-        dst += 32;
-        src += 32;
-        n -= 32U;
-    }
-
     _mm_sfence();
 
-    lh_memory_std_copy_bytes(dst, src, n);
+    if (n != 0U)
+    {
+        lh_memory_std_copy128_storeu(dst_end - 128, src_end - 128);
+    }
 }
 
 #    endif /* LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
@@ -1166,45 +1221,79 @@ lh_memory_std_set_sse2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 {
     const __m128i v = _mm_set1_epi8(lh_cast_static(char, val));
 
-    /* Align dst for movdqa stores — same reason as lh_memory_std_copy_sse2. */
+    if (n < 64U)
     {
-        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)16);
-        lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
-
-        if (head > n)
+        if (n >= 32U)
         {
-            head = n;
+            _mm_storeu_si128(lh_ptr_rcast(__m128i, dst), v);
+            _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 16), v);
+            _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + n - 32), v);
+            _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + n - 16), v);
+            return;
         }
 
-        if (head != 0U)
+        if (n >= 16U)
         {
-            lh_memory_std_set_bytes(dst, val, head);
-            dst += head;
-            n -= head;
+            _mm_storeu_si128(lh_ptr_rcast(__m128i, dst), v);
+            _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + n - 16), v);
+            return;
+        }
+
+        lh_memory_std_set_bytes(dst, val, n);
+        return;
+    }
+
+    {
+        lh_uchar_t *dst_end = dst + n;
+
+        if (n >= 512U)
+        {
+            lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)16);
+            lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
+
+            if (head > n)
+            {
+                head = n;
+            }
+
+            if (head != 0U)
+            {
+                lh_memory_std_set_bytes(dst, val, head);
+                dst += head;
+                n -= head;
+            }
+
+            while (n >= 64U)
+            {
+                _mm_store_si128(lh_ptr_rcast(__m128i, dst + 0), v);
+                _mm_store_si128(lh_ptr_rcast(__m128i, dst + 16), v);
+                _mm_store_si128(lh_ptr_rcast(__m128i, dst + 32), v);
+                _mm_store_si128(lh_ptr_rcast(__m128i, dst + 48), v);
+                dst += 64;
+                n -= 64U;
+            }
+        }
+        else
+        {
+            while (n >= 64U)
+            {
+                _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 0), v);
+                _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 16), v);
+                _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 32), v);
+                _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 48), v);
+                dst += 64;
+                n -= 64U;
+            }
+        }
+
+        if (n != 0U)
+        {
+            _mm_storeu_si128(lh_ptr_rcast(__m128i, dst_end - 64), v);
+            _mm_storeu_si128(lh_ptr_rcast(__m128i, dst_end - 48), v);
+            _mm_storeu_si128(lh_ptr_rcast(__m128i, dst_end - 32), v);
+            _mm_storeu_si128(lh_ptr_rcast(__m128i, dst_end - 16), v);
         }
     }
-
-    /* Unrolled 4-wide — see lh_memory_std_copy_sse2's own doc comment for why (this
-     * tier has only one memory stream to drive, not two, but is still four
-     * independent stores per iteration instead of one, for the same reason). */
-    while (n >= 64U)
-    {
-        _mm_store_si128(lh_ptr_rcast(__m128i, dst + 0), v);
-        _mm_store_si128(lh_ptr_rcast(__m128i, dst + 16), v);
-        _mm_store_si128(lh_ptr_rcast(__m128i, dst + 32), v);
-        _mm_store_si128(lh_ptr_rcast(__m128i, dst + 48), v);
-        dst += 64;
-        n -= 64U;
-    }
-
-    while (n >= 16U)
-    {
-        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst), v);
-        dst += 16;
-        n -= 16U;
-    }
-
-    lh_memory_std_set_bytes(dst, val, n);
 }
 
 /* Non-temporal SSE2 fill — twin of lh_memory_std_copy_sse2_stream. CRT memset uses
@@ -1264,38 +1353,35 @@ lh_memory_std_set_avx2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 {
     const __m256i v = _mm256_set1_epi8(lh_cast_static(char, val));
 
+    if (n >= 128U)
     {
-        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)32);
-        lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
+        lh_uchar_t *dst_end = dst + n;
 
-        if (head > n)
+        while (n >= 128U)
         {
-            head = n;
+            _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + 0), v);
+            _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + 32), v);
+            _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + 64), v);
+            _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + 96), v);
+            dst += 128;
+            n -= 128U;
         }
 
-        if (head != 0U)
+        if (n != 0U)
         {
-            lh_memory_std_set_bytes(dst, val, head);
-            dst += head;
-            n -= head;
+            _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst_end - 128), v);
+            _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst_end - 96), v);
+            _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst_end - 64), v);
+            _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst_end - 32), v);
         }
+        return;
     }
 
-    while (n >= 128U)
-    {
-        _mm256_store_si256(lh_ptr_rcast(__m256i, dst + 0), v);
-        _mm256_store_si256(lh_ptr_rcast(__m256i, dst + 32), v);
-        _mm256_store_si256(lh_ptr_rcast(__m256i, dst + 64), v);
-        _mm256_store_si256(lh_ptr_rcast(__m256i, dst + 96), v);
-        dst += 128;
-        n -= 128U;
-    }
-
-    while (n >= 32U)
+    if (n >= 32U)
     {
         _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst), v);
-        dst += 32;
-        n -= 32U;
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + n - 32), v);
+        return;
     }
 
     lh_memory_std_set_bytes(dst, val, n);
@@ -1516,6 +1602,32 @@ lh_memory_std_compare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs);
     const lh_uchar_t *r = lh_ptr_ccast(lh_uchar_t, rhs);
+
+    while (n >= 64U)
+    {
+        const __m256i va0 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, l + 0));
+        const __m256i vb0 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, r + 0));
+        const __m256i va1 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, l + 32));
+        const __m256i vb1 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, r + 32));
+        const lh_u32_t eq0 =
+            lh_cast_static(lh_u32_t, _mm256_movemask_epi8(_mm256_cmpeq_epi8(va0, vb0)));
+        const lh_u32_t eq1 =
+            lh_cast_static(lh_u32_t, _mm256_movemask_epi8(_mm256_cmpeq_epi8(va1, vb1)));
+
+        if (eq0 != 0xFFFFFFFFU)
+        {
+            return l + lh_bit_scan_forward_u32(lh_bit_not(eq0));
+        }
+
+        if (eq1 != 0xFFFFFFFFU)
+        {
+            return l + 32 + lh_bit_scan_forward_u32(lh_bit_not(eq1));
+        }
+
+        l += 64;
+        r += 64;
+        n -= 64U;
+    }
 
     while (n >= 32U)
     {
