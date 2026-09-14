@@ -55,10 +55,25 @@ lh_vector_is_empty(const lh_vector_t *self)
 }
 
 lh_void
+lh_vector_clear(lh_vector_t *self)
+{
+    lh_assert_runtime_ref(self);
+    self->size = 0;
+}
+
+lh_void
 lh_vector_init(lh_vector_t *self, lh_usize_t type_size)
 {
     lh_assert_runtime_ref(self);
     lh_memory_typed_init_empty(lh_addr_of(self->typed), type_size);
+    self->size = 0;
+}
+
+lh_void
+lh_vector_deinit(lh_vector_t *self)
+{
+    lh_assert_runtime_ref(self);
+    lh_memory_typed_allocated_clear(lh_addr_of(self->typed));
     self->size = 0;
 }
 

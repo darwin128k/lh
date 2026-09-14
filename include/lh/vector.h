@@ -92,6 +92,18 @@ lh_bool_t
 lh_vector_is_empty(const lh_vector_t *self);
 
 /**
+ * @brief Drop every element in use without releasing the allocated block.
+ *
+ * Unlike ::lh_vector_deinit, the current capacity is kept, so pushing back
+ * afterwards does not need to reallocate.
+ *
+ * @param self Vector to clear.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_vector_clear(lh_vector_t *self);
+
+/**
  * @brief Initialize @p self as an empty vector of elements sized @p type_size.
  *
  * No allocation happens until the vector is grown.
@@ -102,6 +114,17 @@ lh_vector_is_empty(const lh_vector_t *self);
 LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_vector_init(lh_vector_t *self, lh_usize_t type_size);
+
+/**
+ * @brief Free the block owned by @p self and reset it to an empty vector.
+ *
+ * Element type size is preserved; only the owned allocation is released.
+ *
+ * @param self Vector to deinitialize.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_vector_deinit(lh_vector_t *self);
 
 /**
  * @brief Ensure @p self can hold at least @p min_capacity elements.

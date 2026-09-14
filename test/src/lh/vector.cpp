@@ -16,7 +16,7 @@ struct IntVector
 
     ~IntVector()
     {
-        lh_memory_typed_allocated_clear(&v.typed);
+        lh_vector_deinit(&v);
     }
 
     void
