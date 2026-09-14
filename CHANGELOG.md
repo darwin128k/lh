@@ -5,9 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2026-09-14
 
 ### Added
+
 - Read-only closed-byte-slice type `lh_memory_view_slice_t` (`lh/memory/view/slice.h`) with full API: unpack, flags, direction, size, containment, offset distance, overlap, alignment checks, indexed byte access, and slicing
 - Supporting headers for view slice: `lh/memory/view/slice/direction.h`, `flags.h`, `fields.h`, `initializer.h`
 - `lh/attribute/static.h` and `lh/compiler/attribute/static.h` — static attribute helpers
@@ -29,8 +30,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Size-aware string comparison (`lh/str/view.h`, `lh/util/wstr/ptr.h`): `lh_str_ptr_compare_size`, `lh_wstr_ptr_compare_size` for length-bounded comparison
 - Wide string search functions: `lh_wstr_ptr_find_char`, `lh_wstr_ptr_find`, `lh_wstr_ptr_rfind`, `lh_wstr_ptr_compare`, `lh_wstr_ptr_equals`, with case-fold support
 - Doxygen documentation for internal macro implementations (raise.h, assert.h, arg.h, fields.h)
+- New growable typed array `lh_vector_t` (`lh/vector.h`): `lh_vector_init`/`deinit`, `push_back`/`push_back_of`, `insert`/`insert_of`, `erase`, `pop_back`, `reserve`, `clear`, a capacity growth policy (`lh_vector_get_grown_capacity`), and accessors (`get_size`, `get_capacity`, `get_data`, `get_ptr`, `get_begin`/`get_end`, `get_type_size`, `get_typed`/`get_typed_as_const`, `is_empty`, `is_valid_index`)
+- `lh_str_t` (`lh/str.h`), an owning growable NUL-terminated string built on `lh_vector_t`: `lh_str_init`, `lh_str_deinit`, `lh_str_clear`, `lh_str_push_back`, `lh_str_append`, `lh_str_as_view`, `lh_str_get_data`/`get_size`, `lh_str_is_empty`
+- `lh_memory_typed_t` (`lh/memory/typed.h`) and `lh_memory_typed_allocated_t` (`lh/memory/typed/allocated.h`): a byte range paired with an element type size, layered under `lh_memory_bounds_t`/`lh_vector_t` — indexed get/set, value-copy and value-swap helpers, retype, assign/swap, offset-from-index and index-from-offset lookups, and range-bounds retrieval
+- Level-filtered logger (`lh/logger.h`): `lh_logger_init`/`init_of`, `lh_logger_pack`/`unpack`/`set`/`deinit`, per-level callback slots (`lh_logger_get_emit_cb`/`get_context`/`get_flags`), `lh_logger_log`/`lh_logger_log_v`, and level shortcut macros `lh_logger_debug`/`info`/`notice`/`warning`/`error`/`critical`/`alert`/`emergency`
+- IO abstraction (`lh/io/`): callback-based `lh_io_reader_t`/`lh_io_writer_t` and a unified `lh_io_stream_t` combining both
+- `lh_net_ip4_t` IPv4 address type (`lh/net/ip.h`): make/set/assign/parse/format/pack/unpack/equals, octet access, `is_loopback`/`is_private`
+- `lh_net_port_t` parsing (`lh/net/port.h`)
+- Generic socket address type `lh_net_socket_addr_t` (`lh/net/socket/addr.h`) with an IPv4 backing (`lh/net/socket/addr/ip4.h`)
+- `lh_os_net_socket_t` (`lh/os/net/socket.h`): a blocking TCP/UDP client socket — init/open/connect/send/recv/close, plus handle/reader/writer/stream accessors
+- Integer formatting: `lh_str_ptr_format_uint`, `lh_str_ptr_format_sint` (`lh/str/format/uint.h`, `sint.h`)
+- Hex formatting/parsing: `lh_str_ptr_format_hex`, `lh_str_ptr_parse_hex` (`lh/str/format/hex.h`, `lh/str/parse/hex.h`)
+- Byte-buffer formatting: `lh_str_ptr_format_bytes_hex`, `lh_str_ptr_format_bytes_hex_dump` (`lh/str/format/bytes.h`)
+- Text formatting: `lh_str_ptr_format_text`/`_v` (`lh/str/format/text.h`)
+- Header-only, force-inline decimal parsing: `lh_str_ptr_parse_uint` (`lh/str/parse/uint.h`)
+- String splitting (`lh/str/split/next.h`): `lh_str_ptr_split_next`, `lh_str_ptr_find_of_char`
+- Byte swap (`lh/util/bit/bswap.h`): `lh_bit_bswap_u16`/`u32`/`u64`
+- Endian pack/unpack (`lh/util/bit/endian.h`): `lh_bit_pack_be16`/`le16`/`be32`/`le32`/`be64`/`le64` and matching `unpack_*`
+- Bit rotate (`lh/util/bit/rotate.h`): `lh_bit_rotate_left`/`right_u32`/`u64`
+- Bit scan (`lh/util/bit/scan.h`), extracted as a shared, header-only force-inline primitive: `lh_bit_scan_forward`/`reverse_u8`/`u16`/`u32`/`u64`
+- Hex-digit helpers (`lh/char/xdigit.h`): `lh_char_is_xdigit`, `lh_char_to_xdigit`, `lh_char_from_xdigit`, `lh_char_xdigit_accumulate`, `lh_char_ord`/`ord_to`
+- Runtime SIMD feature detection (`lh/cpu/simd.h`): `lh_cpu_simd_has_sse2`/`has_ssse3`/`has_avx2`
+- CPU vendor detection (`lh/cpu/vendor.h`): `lh_cpu_vendor_is_intel`/`is_amd` (standalone utility, not currently wired into `memory/std.c`'s dispatch)
+- `lh/compiler/cpu.h`: `lh_compiler_cpu_has_feature`, a portable wrapper around `__builtin_cpu_supports`
+- `lh/compiler/arch.h` / `lh/compiler/arch/family.h`: `LH_COMPILER_ARCH_8/16/32/64` width constants and `LH_COMPILER_ARCH_FAMILY_IS_X86`/`_ARM`
+- SSE2/SSSE3/AVX2 tiered, runtime-dispatched SIMD kernels for `lh_memory_std_copy`, `copy_rev`, `rcopy`, `set`, `compare`, `rcompare` (`lh/memory/std.h`)
+- A size-gated REP MOVSB path for `lh_memory_std_copy` (MSVC `__movsb` intrinsic / GCC-Clang inline `rep movsb`)
+- SSE2 non-temporal streaming stores for large copies, and prefetching ahead of the copy cursor, both above tunable size thresholds
+- CMake-tunable SIMD thresholds (`LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD`, `_SET_THRESHOLD`, `_DIRECT_DISPATCH_THRESHOLD`, `_STREAM_THRESHOLD`, `LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD`, `_PREFETCH_TRIGGER`, `_PREFETCH_DISTANCE`, `LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK`), plus a compile-time SIMD probe (`cmake/check_simd.cmake`) recording `LH_LIBRARY_OPTION_SIMD_HAVE_{SSE2,SSSE3,AVX2}`
+- Compiler-portable force-inline attribute macro (`lh/attribute/force_inline.h`, `LH_ATTRIBUTE_FORCE_INLINE`)
+- `lh_foreach` (`lh/foreach.h`): a generic "iterate n elements, bind each to a name" `for`-loop header macro
+- Rijndael/AES block cipher (`lh/crypto/rijndael.h`, `lh/crypto/rijndael/mode.h`)
+- SHA hashing (`lh/crypto/sha.h`, `lh/crypto/sha/kind.h`)
+- Const accessors for exception/error/origin retrieval: `lh_exception_get_error_as_const`, `lh_exception_get_origin_as_const` (and catch-stack equivalents)
+- Google Benchmark-based microbenchmark harness under `bench/` (opt-in via `LH_BUILD_BENCH`), covering `memory/std`, bounds, typed, view, vector, allocator, net, and str/wstr pointer operations
 
 ### Changed
+
 - `lh_str_ptr_size` renamed to `lh_str_ptr_get_size` for naming consistency with the `get_` prefix convention
 - `lh_memory_view` slice methods now delegate geometry to `lh_memory_view_slice`
 - Slice flags and direction types (`lh_memory_view_slice_flags_t`, `lh_memory_view_slice_direction_t`) unified and shared between bounds/slice and view/slice layers
@@ -39,11 +75,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced death.h documentation clarifying the role of `LH_LIBRARY_OPTION_RUNTIME_CHECK_REF` in enabling null-pointer death tests
 - Runtime assertions (`lh_assert_runtime_*`) replaced direct `lh_runtime_throw` calls in internal functions for consistency
 - Collapsed duplicate `*_multiple_of`/`is_multiple_of` and `*_aligned_is_begin_aligned`/`is_begin_aligned` alias pairs into single `is_multiple_of` / `is_begin_aligned` names across `lh_memory_bounds_t`, `lh_memory_bounds_slice_t`, `lh_memory_view_t`, and `lh_memory_view_slice_t`, for a consistent `is_` prefix on boolean predicates
+- Memory bounds/view/typed/vector model went through a full internal rewrite that stores size instead of end pointers, with the element count cached on `lh_memory_typed_t`/`lh_vector_t` instead of re-derived from the byte range on every call; `lh_memory_bounds_allocated_t` is now a thin typedef marker over `lh_memory_bounds_t` rather than a distinct layout
+- Broad internal renames for naming-convention consistency across the CPU/SIMD/bit-scan/compiler layers (e.g. `lh_cpu_has_sse2`/`avx2` → `lh_cpu_simd_has_sse2`/`avx2`; `compiler/cpu/supports.h` flattened into `lh/compiler/cpu.h`), and consistent use of `lh_cast_static`/`lh_uchar_t` in place of raw casts/`unsigned char` in the CPU-detection and socket code
+- Unicode case-map generator now derives `src/lh/util/str/case/map.c` directly from `UnicodeData.txt` instead of hand-transcribing it, and shares its Unicode-data parsing between the narrow and wide-char generators
+- `lh_str_ptr_to_lower`/`_to_upper` sped up via an optional dense 256-entry table (`LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE`, ~10.7x when on); `lh_wstr_ptr_to_lower`/`_to_upper` sped up via an optional two-level BMP block table (`LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE`, ~12.8x when on)
+- `lh_net_ip4_format`/`lh_net_socket_addr_format` and `lh_vector_get_ptr` optimized to cut redundant work on the hot path
+- README updated to document the SIMD/CPU/bit-scan work and the new IO/networking features
+
+### Fixed
+
+- `lh_memory_std_copy` under MSVC was 6-15x slower than GCC due to byte-at-a-time codegen
+- `lh_net_ip4_socket_addr_format` (like `lh_net_ip4_format`) was going through the printf engine instead of formatting directly
+- Wide string literal macro fixed to avoid an MSVC C5104 warning; character case-mapping initialization order fixed
+- `__builtin_cpu_supports` boolean-normalization bug fixed while adding SSSE3 detection (a non-zero-but-not-1 return value was being treated as false)
 
 ### Removed
-- `lh_memory_typed_t` and all associated functions (`lh/memory/typed.h`, `src/lh/memory/typed.c`) — superseded by the view-based API
-- `lh_memory_bounds_allocated_t` (`lh/memory/bounds/allocated.h`, `src/lh/memory/bounds/allocated.c`)
-- `lh/memory/bounds/state.h` — state flags consolidated into view/slice layer
+
+- `lh/memory/bounds/state.h` — state flags consolidated into the view/slice layer
 - Standalone `lh/memory/bounds/slice/direction.h` and `lh/memory/bounds/slice/flags.h` — replaced by shared `lh/memory/view/slice/direction.h` and `flags.h`
 
 ## [0.2.0] - 2026-04-20
