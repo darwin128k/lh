@@ -183,7 +183,11 @@ void
 lh_logger_assign(lh_logger_t *self, const lh_logger_t *other);
 
 /**
- * @brief Set every logger field at once.
+ * @brief Reconfigure every field of an already-initialized logger at once.
+ *
+ * Reach for this when @p self is live and you're changing it (e.g. swapping
+ * sinks at runtime); for first-time construction with an explicit callback
+ * per level, use ::lh_logger_init_of instead — the name is the hint.
  *
  * @param self         Logger to modify.
  * @param flags        Level filter.
@@ -204,6 +208,25 @@ lh_logger_set(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_c
               lh_logger_emit_cb warning_cb, lh_logger_emit_cb notice_cb, lh_logger_emit_cb info_cb,
               lh_logger_emit_cb debug_cb, lh_ptr context);
 
+/**
+ * @brief Initialize a fresh logger with an explicit callback per level.
+ *
+ * The per-level counterpart to ::lh_logger_init (which stores one callback
+ * in every slot); use ::lh_logger_set instead once @p self is already live
+ * and you're just reconfiguring it.
+ *
+ * @param self         Logger to initialize.
+ * @param flags        Level filter.
+ * @param emergency_cb Emergency slot (may be ::lh_null).
+ * @param alert_cb     Alert slot (may be ::lh_null).
+ * @param critical_cb  Critical slot (may be ::lh_null).
+ * @param error_cb     Error slot (may be ::lh_null).
+ * @param warning_cb   Warning slot (may be ::lh_null).
+ * @param notice_cb    Notice slot (may be ::lh_null).
+ * @param info_cb      Info slot (may be ::lh_null).
+ * @param debug_cb     Debug slot (may be ::lh_null).
+ * @param context      Userdata passed to whichever slot runs.
+ */
 LH_ATTRIBUTE_SYMBOL
 void
 lh_logger_init_of(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emergency_cb,
