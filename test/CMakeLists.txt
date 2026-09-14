@@ -76,6 +76,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/io/reader.cpp
         ${LH_TEST_SRC_PATH}/lh/io/writer.cpp
         ${LH_TEST_SRC_PATH}/lh/io/stream.cpp
+        ${LH_TEST_SRC_PATH}/lh/logger.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/socket.cpp
 )
 

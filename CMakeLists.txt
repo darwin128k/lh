@@ -104,6 +104,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/str/format/text.c
         ${LH_LIB_SRC_PATH}/str/format/bytes.c
 
+        ${LH_LIB_SRC_PATH}/logger.c
+
         ${LH_LIB_SRC_PATH}/crypto/sha.c
         ${LH_LIB_SRC_PATH}/crypto/rijndael.c
 
