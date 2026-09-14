@@ -144,4 +144,27 @@ TEST(net_ip4_equals, compares_octets)
     EXPECT_FALSE(lh_net_ip4_equals(&a, &b));
 }
 
+TEST(net_ip4_is_loopback, matches_127_net)
+{
+    lh_net_ip4_t loop = lh_net_ip4_make(127, 0, 0, 1);
+    lh_net_ip4_t public_addr = lh_net_ip4_make(8, 8, 8, 8);
+    EXPECT_TRUE(lh_net_ip4_is_loopback(&loop));
+    EXPECT_FALSE(lh_net_ip4_is_loopback(&public_addr));
+}
+
+TEST(net_ip4_is_private, matches_rfc1918)
+{
+    lh_net_ip4_t ten = lh_net_ip4_make(10, 1, 2, 3);
+    lh_net_ip4_t one_seventy_two = lh_net_ip4_make(172, 16, 0, 1);
+    lh_net_ip4_t one_ninety_two = lh_net_ip4_make(192, 168, 1, 1);
+    lh_net_ip4_t public_addr = lh_net_ip4_make(8, 8, 8, 8);
+    lh_net_ip4_t loop = lh_net_ip4_make(127, 0, 0, 1);
+
+    EXPECT_TRUE(lh_net_ip4_is_private(&ten));
+    EXPECT_TRUE(lh_net_ip4_is_private(&one_seventy_two));
+    EXPECT_TRUE(lh_net_ip4_is_private(&one_ninety_two));
+    EXPECT_FALSE(lh_net_ip4_is_private(&public_addr));
+    EXPECT_FALSE(lh_net_ip4_is_private(&loop));
+}
+
 } // namespace

@@ -102,6 +102,10 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/str/format/sint.c
         ${LH_LIB_SRC_PATH}/str/format/hex.c
         ${LH_LIB_SRC_PATH}/str/format/text.c
+        ${LH_LIB_SRC_PATH}/str/format/bytes.c
+
+        ${LH_LIB_SRC_PATH}/crypto/sha.c
+        ${LH_LIB_SRC_PATH}/crypto/rijndael.c
 
         ${LH_LIB_SRC_PATH}/net/ip.c
         ${LH_LIB_SRC_PATH}/net/port.c

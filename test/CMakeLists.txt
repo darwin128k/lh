@@ -28,6 +28,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/main.cpp
         ${LH_TEST_SRC_PATH}/lh/foreach.cpp
         ${LH_TEST_SRC_PATH}/lh/char/digit.cpp
+        ${LH_TEST_SRC_PATH}/lh/char/xdigit.cpp
         ${LH_TEST_SRC_PATH}/lh/error.cpp
         ${LH_TEST_SRC_PATH}/lh/exception.cpp
         ${LH_TEST_SRC_PATH}/lh/exception/catch.cpp
@@ -48,6 +49,8 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/vector.cpp
         ${LH_TEST_SRC_PATH}/lh/util/swap.cpp
         ${LH_TEST_SRC_PATH}/lh/util/bit/endian.cpp
+        ${LH_TEST_SRC_PATH}/lh/util/bit/bswap.cpp
+        ${LH_TEST_SRC_PATH}/lh/util/bit/rotate.cpp
         ${LH_TEST_SRC_PATH}/lh/util/bit/scan.cpp
         ${LH_TEST_SRC_PATH}/lh/util/interval.cpp
         ${LH_TEST_SRC_PATH}/lh/util/math.cpp
@@ -57,11 +60,15 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/util/wstr/ptr.cpp
         ${LH_TEST_SRC_PATH}/lh/wchar/case/map.cpp
         ${LH_TEST_SRC_PATH}/lh/str/parse/uint.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/parse/hex.cpp
         ${LH_TEST_SRC_PATH}/lh/str/split/next.cpp
         ${LH_TEST_SRC_PATH}/lh/str/format/uint.cpp
         ${LH_TEST_SRC_PATH}/lh/str/format/sint.cpp
         ${LH_TEST_SRC_PATH}/lh/str/format/hex.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/format/bytes.cpp
         ${LH_TEST_SRC_PATH}/lh/str/format/text.cpp
+        ${LH_TEST_SRC_PATH}/lh/crypto/sha.cpp
+        ${LH_TEST_SRC_PATH}/lh/crypto/rijndael.cpp
         ${LH_TEST_SRC_PATH}/lh/net/ip.cpp
         ${LH_TEST_SRC_PATH}/lh/net/port.cpp
         ${LH_TEST_SRC_PATH}/lh/net/socket/addr/ip4.cpp

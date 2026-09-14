@@ -44,6 +44,9 @@ set(LH_BENCH_SOURCES
         ${LH_BENCH_SRC_PATH}/lh/str/format/hex.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/format/text.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/parse/uint.cpp
+        ${LH_BENCH_SRC_PATH}/lh/str/parse/hex.cpp
+        ${LH_BENCH_SRC_PATH}/lh/str/format/bytes.cpp
+        ${LH_BENCH_SRC_PATH}/lh/crypto/sha.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/view.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/ptr.cpp
         ${LH_BENCH_SRC_PATH}/lh/wstr/ptr.cpp

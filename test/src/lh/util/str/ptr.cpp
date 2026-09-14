@@ -623,4 +623,29 @@ TEST(str_raw_to_upper, uppercases_ascii_letters)
     EXPECT_EQ(s[3], '1');
 }
 
+TEST(str_raw_copy_except, drops_excepted_characters)
+{
+    const lh_char_t src[] = {'a', '/', 'b', '-', 'c'};
+    const lh_char_t except[] = {'/', '-', '\\'};
+    lh_char_t dst[8];
+    lh_str_ptr end = lh_str_ptr_copy_except(dst, sizeof(dst), src, 5, except, 3, nullptr);
+    EXPECT_EQ(end, dst + 3);
+    EXPECT_EQ(dst[0], 'a');
+    EXPECT_EQ(dst[1], 'b');
+    EXPECT_EQ(dst[2], 'c');
+}
+
+TEST(str_raw_copy_except, replaces_excepted_characters)
+{
+    const lh_char_t src[] = {'a', '/', 'b'};
+    const lh_char_t except[] = {'/'};
+    const lh_char_t replace = '_';
+    lh_char_t dst[8];
+    lh_str_ptr end = lh_str_ptr_copy_except(dst, sizeof(dst), src, 3, except, 1, &replace);
+    EXPECT_EQ(end, dst + 3);
+    EXPECT_EQ(dst[0], 'a');
+    EXPECT_EQ(dst[1], '_');
+    EXPECT_EQ(dst[2], 'b');
+}
+
 } // namespace

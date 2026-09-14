@@ -193,6 +193,56 @@ lh_net_ip4_set_octet(lh_net_ip4_t *self, lh_usize_t index, lh_u8_t value)
     self->octets[index] = value;
 }
 
+/**
+ * @brief Test whether @p self is in 127.0.0.0/8 (loopback).
+ *
+ * @param self Address to classify.
+ * @return ::lh_bool_true if the first octet is 127.
+ */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
+lh_net_ip4_is_loopback(const lh_net_ip4_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return (lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_0) == 127U) ? lh_bool_true
+                                                                          : lh_bool_false;
+}
+
+/**
+ * @brief Test whether @p self is in RFC 1918 private space.
+ *
+ * Matches `10.0.0.0/8`, `172.16.0.0/12`, and `192.168.0.0/16`. Loopback
+ * is a separate predicate (::lh_net_ip4_is_loopback).
+ *
+ * @param self Address to classify.
+ * @return ::lh_bool_true if the address is RFC 1918 private.
+ */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
+lh_net_ip4_is_private(const lh_net_ip4_t *self)
+{
+    lh_u8_t octet0;
+    lh_u8_t octet1;
+
+    lh_assert_runtime_ref(self);
+    octet0 = lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_0);
+    octet1 = lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_1);
+
+    if (octet0 == 10U)
+    {
+        return lh_bool_true;
+    }
+    if (octet0 == 192U && octet1 == 168U)
+    {
+        return lh_bool_true;
+    }
+    if (octet0 == 172U && octet1 >= 16U && octet1 <= 31U)
+    {
+        return lh_bool_true;
+    }
+    return lh_bool_false;
+}
+
 /* ── parse / format / compare ────────────────────────────────────────────── */
 
 /**

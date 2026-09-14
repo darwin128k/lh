@@ -1,6 +1,7 @@
 ﻿#include <lh/util/str/ptr.h>
 #include <lh/char/map.h>
 #include <lh/memory.h>
+#include <lh/optional/ref.h>
 #include <lh/util/char.h>
 #include <lh/util/math.h>
 #include <lh/util/return.h>
@@ -143,6 +144,35 @@ lh_str_ptr
 lh_str_ptr_copy(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src, lh_usize_t src_size)
 {
     return lh_memory_copy(str, str_size, src, src_size);
+}
+
+lh_str_ptr
+lh_str_ptr_copy_except(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                       lh_usize_t src_size, const lh_str_ptr except, lh_usize_t except_size,
+                       const lh_char_t *replace)
+{
+    lh_usize_t si;
+    lh_usize_t di;
+
+    lh_assert_runtime_ref(str);
+    lh_assert_runtime_ref(src);
+    lh_assert_runtime_ref(except);
+
+    di = 0;
+    for (si = 0; si < src_size && di < str_size; ++si)
+    {
+        lh_char_t c = src[si];
+        if (lh_str_ptr_contains_char(except, except_size, c))
+        {
+            lh_optional_ref(replace)
+            {
+                str[di++] = *replace;
+            }
+            continue;
+        }
+        str[di++] = c;
+    }
+    return str + di;
 }
 
 lh_str_ptr

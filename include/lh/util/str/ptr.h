@@ -14,6 +14,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
 #include <lh/bool.h>
+#include <lh/null.h>
 #include <lh/str/ptr.h>
 #include <lh/util/array/ptr.h>
 
@@ -297,6 +298,37 @@ lh_str_ptr_len(const lh_str_ptr str);
 LH_ATTRIBUTE_SYMBOL
 lh_str_ptr
 lh_str_ptr_copy(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src, lh_usize_t src_size);
+
+/**
+ * @brief Copy characters from @p src to @p str, skipping or replacing any
+ *        character that occurs in @p except.
+ *
+ * Stops when @p src is exhausted or @p str is full. Unlike
+ * ::lh_str_ptr_copy, the number written can be smaller than both sizes
+ * because skipped characters do not occupy destination slots. No NUL is
+ * appended.
+ *
+ * If @p replace is ::lh_null, excepted characters are dropped. If it is
+ * non-null, each excepted character is written as @c *replace instead.
+ *
+ * @param str         Destination buffer.
+ * @param str_size    Capacity of @p str in characters.
+ * @param src         Source buffer.
+ * @param src_size    Available length of @p src in characters.
+ * @param except      Character set to skip or replace.
+ * @param except_size Number of characters in @p except.
+ * @param replace     Optional replacement character, or ::lh_null to drop.
+ *
+ * @return Pointer one past the last character written.
+ *
+ * @see lh_str_ptr_copy
+ * @see lh_str_ptr_contains_char
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_str_ptr
+lh_str_ptr_copy_except(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
+                       lh_usize_t src_size, const lh_str_ptr except, lh_usize_t except_size,
+                       const lh_char_t *replace);
 
 /**
  * @brief Move up to @c min(str_size, src_size)
