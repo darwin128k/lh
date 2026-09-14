@@ -32,6 +32,27 @@ typedef struct lh_vector
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
+ * @brief Return a pointer to the @c typed field, after validating @p self.
+ *
+ * The single validation point for @c typed: every other function that needs
+ * it goes through this (or ::lh_vector_get_typed_as_const) instead of
+ * checking @p self again and reaching into the field directly.
+ *
+ * @param self Vector to inspect.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_typed_allocated_t *
+lh_vector_get_typed(lh_vector_t *self);
+
+/**
+ * @brief `const` counterpart to ::lh_vector_get_typed.
+ * @param self Vector to inspect.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_memory_typed_allocated_t *
+lh_vector_get_typed_as_const(const lh_vector_t *self);
+
+/**
  * @brief Return the number of elements the current allocation can hold.
  * @param self Vector to inspect.
  */

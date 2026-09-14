@@ -6,11 +6,24 @@
 #include <lh/config.h>
 #include <lh/assert.h>
 
+lh_memory_typed_allocated_t *
+lh_vector_get_typed(lh_vector_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->typed);
+}
+
+const lh_memory_typed_allocated_t *
+lh_vector_get_typed_as_const(const lh_vector_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->typed);
+}
+
 lh_usize_t
 lh_vector_get_capacity(const lh_vector_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return lh_memory_typed_get_size(lh_addr_of(self->typed));
+    return lh_memory_typed_get_size(lh_vector_get_typed_as_const(self));
 }
 
 lh_usize_t
@@ -23,15 +36,13 @@ lh_vector_get_size(const lh_vector_t *self)
 lh_usize_t
 lh_vector_get_type_size(const lh_vector_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return lh_memory_typed_get_type_size(lh_addr_of(self->typed));
+    return lh_memory_typed_get_type_size(lh_vector_get_typed_as_const(self));
 }
 
 lh_ptr
 lh_vector_get_begin(const lh_vector_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return lh_memory_typed_get_begin(lh_addr_of(self->typed));
+    return lh_memory_typed_get_begin(lh_vector_get_typed_as_const(self));
 }
 
 lh_ptr
@@ -64,24 +75,23 @@ lh_vector_clear(lh_vector_t *self)
 lh_void
 lh_vector_init(lh_vector_t *self, lh_usize_t type_size)
 {
-    lh_assert_runtime_ref(self);
-    lh_memory_typed_init_empty(lh_addr_of(self->typed), type_size);
+    lh_memory_typed_init_empty(lh_vector_get_typed(self), type_size);
     self->size = 0;
 }
 
 lh_void
 lh_vector_deinit(lh_vector_t *self)
 {
-    lh_assert_runtime_ref(self);
-    lh_memory_typed_allocated_clear(lh_addr_of(self->typed));
+    lh_memory_typed_allocated_clear(lh_vector_get_typed(self));
     self->size = 0;
 }
 
 lh_void
 lh_vector_reserve(lh_vector_t *self, lh_usize_t min_capacity)
 {
-    lh_return_if(lh_vector_get_capacity(self) >= min_capacity);
-    lh_memory_typed_allocated_resize(lh_addr_of(self->typed), min_capacity);
+    lh_memory_typed_allocated_t *typed = lh_vector_get_typed(self);
+    lh_return_if(lh_memory_typed_get_size(typed) >= min_capacity);
+    lh_memory_typed_allocated_resize(typed, min_capacity);
 }
 
 lh_usize_t
@@ -131,7 +141,8 @@ lh_vector_push_back_of(lh_vector_t *self, const lh_ptr values, lh_usize_t count)
 lh_void
 lh_vector_push_back(lh_vector_t *self, const lh_ptr value)
 {
-    lh_assert_runtime_ref(self);
+    /* self not re-checked here: lh_vector_get_size(self) right below does it.
+     * value still needs its own check — nothing downstream validates it. */
     lh_assert_runtime_ref(value);
 
     /*
