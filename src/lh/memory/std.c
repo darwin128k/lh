@@ -57,7 +57,7 @@
  * reliably pay for itself. A measured crossover, not a correctness fact — see
  * cmake/library_options.cmake for the full rationale and how to override it. */
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 && (LH_COMPILER_ARCH == LH_COMPILER_ARCH_64)
-#    define LH_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD                                             \
+#    define LH_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD                                           \
         ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD)
 #endif
 
@@ -92,12 +92,11 @@
  * LH_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD picks a size at that measured crossover. */
 #if LH_COMPILER_TYPE_IS_GCC_LIKE && LH_COMPILER_ARCH_FAMILY_IS_X86
 #    define LH_MEMORY_STD_HAVE_GCC_REP_MOVSB 1
-#    define LH_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD                                                    \
+#    define LH_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD                                                  \
         ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD)
 #else
 #    define LH_MEMORY_STD_HAVE_GCC_REP_MOVSB 0
 #endif
-
 
 /* Scalar kernels owned by this file. SIMD tiers (and the public entry points
  * below their dispatch thresholds) force-inline these for heads/tails — they
@@ -438,8 +437,10 @@ lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
 /* Both are measured crossovers, not correctness facts — see
  * cmake/library_options.cmake for the full rationale and how to override them. */
-#    define LH_MEMORY_STD_PREFETCH_TRIGGER ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER)
-#    define LH_MEMORY_STD_PREFETCH_DISTANCE ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE)
+#    define LH_MEMORY_STD_PREFETCH_TRIGGER                                                         \
+        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER)
+#    define LH_MEMORY_STD_PREFETCH_DISTANCE                                                        \
+        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE)
 
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 
@@ -481,7 +482,8 @@ lh_memory_std_copy128_store_sse2(lh_uchar_t *dst, const lh_uchar_t *src)
     _mm_store_si128(lh_ptr_rcast(__m128i, dst + 112), v7);
 }
 
-LH_MEMORY_STD_SIMD_TARGET("sse2") static void
+LH_MEMORY_STD_SIMD_TARGET("sse2")
+static void
 lh_memory_std_copy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 {
     /* CRT-style overlapping vector stores: two (or four) unaligned 16-byte moves
@@ -561,7 +563,8 @@ lh_memory_std_copy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
         {
             if (n >= LH_MEMORY_STD_PREFETCH_TRIGGER)
             {
-                _mm_prefetch(lh_ptr_ccast(char, src + LH_MEMORY_STD_PREFETCH_DISTANCE), _MM_HINT_T0);
+                _mm_prefetch(lh_ptr_ccast(char, src + LH_MEMORY_STD_PREFETCH_DISTANCE),
+                             _MM_HINT_T0);
             }
 
             lh_memory_std_copy128_store_sse2(dst, src);
@@ -600,7 +603,8 @@ lh_memory_std_copy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
  * sizes, left open at multi-MB). MOVNTDQ (_mm_stream_si128) needs a 16-byte-aligned
  * destination; the short unaligned head is copied with regular stores first, and
  * _mm_sfence() fences the weakly-ordered NT stores before the scalar tail runs. */
-LH_MEMORY_STD_SIMD_TARGET("sse2") static void
+LH_MEMORY_STD_SIMD_TARGET("sse2")
+static void
 lh_memory_std_copy_sse2_stream(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 {
     lh_uchar_t *dst_end = dst + n;
@@ -709,7 +713,8 @@ lh_memory_std_copy256_store(lh_uchar_t *dst, const lh_uchar_t *src)
     _mm256_store_si256(lh_ptr_rcast(__m256i, dst + 224), v7);
 }
 
-LH_MEMORY_STD_SIMD_TARGET("avx2") static void
+LH_MEMORY_STD_SIMD_TARGET("avx2")
+static void
 lh_memory_std_copy_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 {
     /* 16-31: overlapping XMM. Compiled under target("avx2") so GCC/Clang emit
@@ -764,7 +769,8 @@ lh_memory_std_copy_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
             {
                 if (n >= LH_MEMORY_STD_PREFETCH_TRIGGER)
                 {
-                    _mm_prefetch(lh_ptr_ccast(char, src + LH_MEMORY_STD_PREFETCH_DISTANCE), _MM_HINT_T0);
+                    _mm_prefetch(lh_ptr_ccast(char, src + LH_MEMORY_STD_PREFETCH_DISTANCE),
+                                 _MM_HINT_T0);
                 }
 
                 lh_memory_std_copy256_store(dst, src);
@@ -819,7 +825,8 @@ lh_memory_std_copy_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
  * otherwise, not just slow), handled by copying a short unaligned head with regular stores
  * first; and the stores are weakly ordered against everything after them until a fence, handled
  * by _mm_sfence() before the tail below runs. */
-LH_MEMORY_STD_SIMD_TARGET("avx2") static void
+LH_MEMORY_STD_SIMD_TARGET("avx2")
+static void
 lh_memory_std_copy_avx2_stream(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 {
     lh_uchar_t *dst_end = dst + n;
@@ -923,14 +930,15 @@ static unsigned char m_copy_rev_kind;
  * bench: 64B was ~9x behind CRT before the ladder). At/above this size the SIMD
  * tier is used directly; 16 matches one SSE register so the first vector iteration
  * always does real work. */
-#    define LH_MEMORY_STD_SIMD_COPY_THRESHOLD ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD)
+#    define LH_MEMORY_STD_SIMD_COPY_THRESHOLD                                                      \
+        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD)
 
 /* Above this, the non-temporal stream tier (lh_memory_std_copy_avx2_stream, or
  * lh_memory_std_copy_sse2_stream when AVX2 isn't available) takes over from the plain
  * SIMD copy above — see those functions' own doc comments for why; the crossover was
  * measured on this project's own Zen2 benchmark target somewhere between 1MB (the
  * plain AVX2 tier still wins there) and 4MB (it loses clearly). */
-#    define LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD                                                  \
+#    define LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD                                               \
         ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD)
 
 static void
@@ -1088,8 +1096,7 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 /* Reverse 16 bytes inside an SSE register using only SSE2 (no SSSE3 pshufb):
  * shuffle dwords end-to-end, swap 16-bit lanes inside each half, then swap the
  * two bytes of every u16. Verified against the scalar reverse-copy path. */
-LH_MEMORY_STD_SIMD_TARGET("sse2") static __m128i
-lh_memory_std_reverse_epi8_sse2(__m128i v)
+LH_MEMORY_STD_SIMD_TARGET("sse2") static __m128i lh_memory_std_reverse_epi8_sse2(__m128i v)
 {
     v = _mm_shuffle_epi32(v, _MM_SHUFFLE(0, 1, 2, 3));
     v = _mm_shufflelo_epi16(v, _MM_SHUFFLE(2, 3, 0, 1));
@@ -1102,7 +1109,8 @@ lh_memory_std_reverse_epi8_sse2(__m128i v)
 /* lh_memory_std_copy_rev: src walks low-to-high, dst is filled high-to-low so
  * dst[i] = src[n-1-i]. Load a forward block from src, byte-reverse it in-register,
  * store it at the descending destination cursor. */
-LH_MEMORY_STD_SIMD_TARGET("sse2") static void
+LH_MEMORY_STD_SIMD_TARGET("sse2")
+static void
 lh_memory_std_copy_rev_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 {
     lh_uchar_t *d_end = dst + n;
@@ -1126,10 +1134,14 @@ lh_memory_std_copy_rev_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n
 
     while (n >= 64U)
     {
-        const __m128i v0 = lh_memory_std_reverse_epi8_sse2(_mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 0)));
-        const __m128i v1 = lh_memory_std_reverse_epi8_sse2(_mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 16)));
-        const __m128i v2 = lh_memory_std_reverse_epi8_sse2(_mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 32)));
-        const __m128i v3 = lh_memory_std_reverse_epi8_sse2(_mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 48)));
+        const __m128i v0 =
+            lh_memory_std_reverse_epi8_sse2(_mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 0)));
+        const __m128i v1 =
+            lh_memory_std_reverse_epi8_sse2(_mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 16)));
+        const __m128i v2 =
+            lh_memory_std_reverse_epi8_sse2(_mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 32)));
+        const __m128i v3 =
+            lh_memory_std_reverse_epi8_sse2(_mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 48)));
         d_end -= 64;
         _mm_storeu_si128(lh_ptr_rcast(__m128i, d_end + 48), v0);
         _mm_storeu_si128(lh_ptr_rcast(__m128i, d_end + 32), v1);
@@ -1151,8 +1163,7 @@ lh_memory_std_copy_rev_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n
  * own GCC/MinGW toolchain (the mid-size band, ~1KB-4KB, saw the largest win: 2.6x
  * and 2.1x respectively). SSSE3 (2006+ on Intel, Bulldozer+ on AMD) is not part of
  * any baseline ISA, unlike SSE2 on x86-64, so this tier is still runtime-checked. */
-LH_MEMORY_STD_SIMD_TARGET("ssse3") static __m128i
-lh_memory_std_reverse_epi8_ssse3(__m128i v)
+LH_MEMORY_STD_SIMD_TARGET("ssse3") static __m128i lh_memory_std_reverse_epi8_ssse3(__m128i v)
 {
     const __m128i mask = _mm_setr_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
     return _mm_shuffle_epi8(v, mask);
@@ -1160,7 +1171,8 @@ lh_memory_std_reverse_epi8_ssse3(__m128i v)
 
 /* Same structure as lh_memory_std_copy_rev_sse2 — only the in-register reverse
  * differs. See that function's own comments for the block/chunk-order reasoning. */
-LH_MEMORY_STD_SIMD_TARGET("ssse3") static void
+LH_MEMORY_STD_SIMD_TARGET("ssse3")
+static void
 lh_memory_std_copy_rev_ssse3(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 {
     lh_uchar_t *d_end = dst + n;
@@ -1184,10 +1196,14 @@ lh_memory_std_copy_rev_ssse3(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t 
 
     while (n >= 64U)
     {
-        const __m128i v0 = lh_memory_std_reverse_epi8_ssse3(_mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 0)));
-        const __m128i v1 = lh_memory_std_reverse_epi8_ssse3(_mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 16)));
-        const __m128i v2 = lh_memory_std_reverse_epi8_ssse3(_mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 32)));
-        const __m128i v3 = lh_memory_std_reverse_epi8_ssse3(_mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 48)));
+        const __m128i v0 =
+            lh_memory_std_reverse_epi8_ssse3(_mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 0)));
+        const __m128i v1 = lh_memory_std_reverse_epi8_ssse3(
+            _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 16)));
+        const __m128i v2 = lh_memory_std_reverse_epi8_ssse3(
+            _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 32)));
+        const __m128i v3 = lh_memory_std_reverse_epi8_ssse3(
+            _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 48)));
         d_end -= 64;
         _mm_storeu_si128(lh_ptr_rcast(__m128i, d_end + 48), v0);
         _mm_storeu_si128(lh_ptr_rcast(__m128i, d_end + 32), v1);
@@ -1204,20 +1220,21 @@ lh_memory_std_copy_rev_ssse3(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t 
 
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
-LH_MEMORY_STD_SIMD_TARGET("avx2") static void
+LH_MEMORY_STD_SIMD_TARGET("avx2")
+static void
 lh_memory_std_copy_rev_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 {
-    const __m256i lane_rev =
-        _mm256_setr_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11,
-                         10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+    const __m256i lane_rev = _mm256_setr_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,
+                                              15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
 
     if (n < 64U)
     {
         if (n >= 32U)
         {
-            __m256i a = _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src)), lane_rev);
-            __m256i b =
-                _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + n - 32)), lane_rev);
+            __m256i a =
+                _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src)), lane_rev);
+            __m256i b = _mm256_shuffle_epi8(
+                _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + n - 32)), lane_rev);
             a = _mm256_permute2x128_si256(a, a, 0x01);
             b = _mm256_permute2x128_si256(b, b, 0x01);
             _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + n - 32), a);
@@ -1234,14 +1251,22 @@ lh_memory_std_copy_rev_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n
 
         while (n >= 256U)
         {
-            __m256i v0 = _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 0)), lane_rev);
-            __m256i v1 = _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 32)), lane_rev);
-            __m256i v2 = _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 64)), lane_rev);
-            __m256i v3 = _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 96)), lane_rev);
-            __m256i v4 = _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 128)), lane_rev);
-            __m256i v5 = _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 160)), lane_rev);
-            __m256i v6 = _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 192)), lane_rev);
-            __m256i v7 = _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 224)), lane_rev);
+            __m256i v0 = _mm256_shuffle_epi8(
+                _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 0)), lane_rev);
+            __m256i v1 = _mm256_shuffle_epi8(
+                _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 32)), lane_rev);
+            __m256i v2 = _mm256_shuffle_epi8(
+                _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 64)), lane_rev);
+            __m256i v3 = _mm256_shuffle_epi8(
+                _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 96)), lane_rev);
+            __m256i v4 = _mm256_shuffle_epi8(
+                _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 128)), lane_rev);
+            __m256i v5 = _mm256_shuffle_epi8(
+                _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 160)), lane_rev);
+            __m256i v6 = _mm256_shuffle_epi8(
+                _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 192)), lane_rev);
+            __m256i v7 = _mm256_shuffle_epi8(
+                _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 224)), lane_rev);
             v0 = _mm256_permute2x128_si256(v0, v0, 0x01);
             v1 = _mm256_permute2x128_si256(v1, v1, 0x01);
             v2 = _mm256_permute2x128_si256(v2, v2, 0x01);
@@ -1265,10 +1290,14 @@ lh_memory_std_copy_rev_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n
 
         while (n >= 128U)
         {
-            __m256i v0 = _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 0)), lane_rev);
-            __m256i v1 = _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 32)), lane_rev);
-            __m256i v2 = _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 64)), lane_rev);
-            __m256i v3 = _mm256_shuffle_epi8(_mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 96)), lane_rev);
+            __m256i v0 = _mm256_shuffle_epi8(
+                _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 0)), lane_rev);
+            __m256i v1 = _mm256_shuffle_epi8(
+                _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 32)), lane_rev);
+            __m256i v2 = _mm256_shuffle_epi8(
+                _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 64)), lane_rev);
+            __m256i v3 = _mm256_shuffle_epi8(
+                _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 96)), lane_rev);
             v0 = _mm256_permute2x128_si256(v0, v0, 0x01);
             v1 = _mm256_permute2x128_si256(v1, v1, 0x01);
             v2 = _mm256_permute2x128_si256(v2, v2, 0x01);
@@ -1294,14 +1323,15 @@ lh_memory_std_copy_rev_simd_scalar(lh_uchar_t *dst, const lh_uchar_t *src, lh_us
     lh_memory_std_copy_rev_bytes(dst, src, n);
 }
 
-typedef void (*lh_memory_std_copy_rev_simd_fn)(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n);
+typedef void (*lh_memory_std_copy_rev_simd_fn)(lh_uchar_t *dst, const lh_uchar_t *src,
+                                               lh_usize_t n);
 
 static void
 lh_memory_std_copy_rev_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n);
 
 static lh_memory_std_copy_rev_simd_fn m_copy_rev_simd_impl = lh_memory_std_copy_rev_simd_dispatch;
 
-#    define LH_MEMORY_STD_SIMD_COPY_REV_THRESHOLD                                                     \
+#    define LH_MEMORY_STD_SIMD_COPY_REV_THRESHOLD                                                  \
         ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD)
 
 static void
@@ -1407,7 +1437,8 @@ lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 
-LH_MEMORY_STD_SIMD_TARGET("sse2") static void
+LH_MEMORY_STD_SIMD_TARGET("sse2")
+static void
 lh_memory_std_rcopy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 {
     if (n < 64U)
@@ -1489,7 +1520,8 @@ lh_memory_std_rcopy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
 /* See lh_memory_std_compare_avx2 for why the tail falls back to scalar, not SSE2. */
-LH_MEMORY_STD_SIMD_TARGET("avx2") static void
+LH_MEMORY_STD_SIMD_TARGET("avx2")
+static void
 lh_memory_std_rcopy_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 {
     if (n < 64U)
@@ -1595,7 +1627,7 @@ lh_memory_std_rcopy_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usi
     m_rcopy_simd_impl(dst, src, n);
 }
 
-#    define LH_MEMORY_STD_SIMD_RCOPY_THRESHOLD                                                        \
+#    define LH_MEMORY_STD_SIMD_RCOPY_THRESHOLD                                                     \
         ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD)
 
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
@@ -1668,7 +1700,8 @@ lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 
-LH_MEMORY_STD_SIMD_TARGET("sse2") static void
+LH_MEMORY_STD_SIMD_TARGET("sse2")
+static void
 lh_memory_std_set_sse2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 {
     const __m128i v = _mm_set1_epi8(lh_cast_static(char, val));
@@ -1751,7 +1784,8 @@ lh_memory_std_set_sse2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 /* Non-temporal SSE2 fill — twin of lh_memory_std_copy_sse2_stream. CRT memset uses
  * NT stores past a few MiB; without this tier large sets keep paying RFO on every
  * destination line (Release MSVC bench: 16MB set was ~2x behind CRT). */
-LH_MEMORY_STD_SIMD_TARGET("sse2") static void
+LH_MEMORY_STD_SIMD_TARGET("sse2")
+static void
 lh_memory_std_set_sse2_stream(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 {
     const __m128i v = _mm_set1_epi8(lh_cast_static(char, val));
@@ -1800,7 +1834,8 @@ lh_memory_std_set_sse2_stream(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
 /* See lh_memory_std_compare_avx2 for why the tail falls back to scalar, not SSE2. */
-LH_MEMORY_STD_SIMD_TARGET("avx2") static void
+LH_MEMORY_STD_SIMD_TARGET("avx2")
+static void
 lh_memory_std_set_avx2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 {
     const __m256i v = _mm256_set1_epi8(lh_cast_static(char, val));
@@ -1885,7 +1920,8 @@ lh_memory_std_set_avx2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
     }
 }
 
-LH_MEMORY_STD_SIMD_TARGET("avx2") static void
+LH_MEMORY_STD_SIMD_TARGET("avx2")
+static void
 lh_memory_std_set_avx2_stream(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 {
     const __m256i v = _mm256_set1_epi8(lh_cast_static(char, val));
@@ -1947,7 +1983,7 @@ static lh_memory_std_set_simd_fn m_set_stream_impl = lh_null;
 
 /* Same crossover as the copy stream tier — past this, RFO on every destination line
  * dominates, and NT stores win. */
-#    define LH_MEMORY_STD_SIMD_SET_STREAM_THRESHOLD                                                   \
+#    define LH_MEMORY_STD_SIMD_SET_STREAM_THRESHOLD                                                \
         ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD)
 
 static void
@@ -1989,7 +2025,8 @@ lh_memory_std_set_simd_dispatch(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 /* Measured lower than lh_memory_std_copy's own threshold: a fill has only
  * one memory stream to drive (no read side), so the indirect call here pays for
  * itself sooner. */
-#    define LH_MEMORY_STD_SIMD_SET_THRESHOLD ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_SET_THRESHOLD)
+#    define LH_MEMORY_STD_SIMD_SET_THRESHOLD                                                       \
+        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_SET_THRESHOLD)
 
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
@@ -2066,14 +2103,15 @@ lh_memory_std_compare_scalar(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 
 /* 16 bytes/compare via a single packed-byte-equal + movemask, instead of the
- * scalar block's 16 elements/compare via ILP alone. GCC's own auto-vectorizer was tried for this exact
- * loop first (see the file-level comment above) and rejected: either it declines to
- * vectorize at all, or it produces a bloated multi-versioned loop that measured no
- * faster than the scalar path. This hand-written version is what actually measured
- * a 7x+ win on this project's own benchmark data. Falls back to the scalar tail
- * below the block width, and to plain scalar via the dispatch if not even SSE2 is
- * available at runtime (32-bit x86 only — SSE2 is baseline on x86-64). */
-LH_MEMORY_STD_SIMD_TARGET("sse2") static const lh_ptr
+ * scalar block's 16 elements/compare via ILP alone. GCC's own auto-vectorizer was tried for this
+ * exact loop first (see the file-level comment above) and rejected: either it declines to vectorize
+ * at all, or it produces a bloated multi-versioned loop that measured no faster than the scalar
+ * path. This hand-written version is what actually measured a 7x+ win on this project's own
+ * benchmark data. Falls back to the scalar tail below the block width, and to plain scalar via the
+ * dispatch if not even SSE2 is available at runtime (32-bit x86 only — SSE2 is baseline on x86-64).
+ */
+LH_MEMORY_STD_SIMD_TARGET("sse2")
+static const lh_ptr
 lh_memory_std_compare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs);
@@ -2109,7 +2147,8 @@ lh_memory_std_compare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
     {
         const __m128i va = _mm_loadu_si128(lh_ptr_rcast(const __m128i, l));
         const __m128i vb = _mm_loadu_si128(lh_ptr_rcast(const __m128i, r));
-        const lh_u32_t eq_mask = lh_cast_static(lh_u32_t, _mm_movemask_epi8(_mm_cmpeq_epi8(va, vb)));
+        const lh_u32_t eq_mask =
+            lh_cast_static(lh_u32_t, _mm_movemask_epi8(_mm_cmpeq_epi8(va, vb)));
 
         if (eq_mask != 0xFFFFU)
         {
@@ -2153,7 +2192,8 @@ lh_memory_std_compare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
  * scalar (not the SSE2 tier) for its <32-byte tail: mixing legacy (non-VEX) SSE
  * encoding into an AVX2-attributed function risks an SSE/AVX transition penalty
  * on older microarchitectures, so this stays on VEX-encoded/scalar code only. */
-LH_MEMORY_STD_SIMD_TARGET("avx2") static const lh_ptr
+LH_MEMORY_STD_SIMD_TARGET("avx2")
+static const lh_ptr
 lh_memory_std_compare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs);
@@ -2363,7 +2403,8 @@ lh_memory_std_rcompare_scalar(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
  * before it, so a mismatch is found with a *highest*-set-bit scan instead of a
  * lowest-set-bit one — the mismatch closest to the end of the block is the first
  * one this direction of scan should report. */
-LH_MEMORY_STD_SIMD_TARGET("sse2") static const lh_ptr
+LH_MEMORY_STD_SIMD_TARGET("sse2")
+static const lh_ptr
 lh_memory_std_rcompare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs) + (n - 1U);
@@ -2406,7 +2447,8 @@ lh_memory_std_rcompare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
         const __m128i va = _mm_loadu_si128(lh_ptr_rcast(const __m128i, lb));
         const __m128i vb = _mm_loadu_si128(lh_ptr_rcast(const __m128i, rb));
-        const lh_u32_t eq_mask = lh_cast_static(lh_u32_t, _mm_movemask_epi8(_mm_cmpeq_epi8(va, vb)));
+        const lh_u32_t eq_mask =
+            lh_cast_static(lh_u32_t, _mm_movemask_epi8(_mm_cmpeq_epi8(va, vb)));
 
         if (eq_mask != 0xFFFFU)
         {
@@ -2432,7 +2474,8 @@ lh_memory_std_rcompare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
 /* Same technique as lh_memory_std_rcompare_sse2, twice the width; see
  * lh_memory_std_compare_avx2 for why the tail falls back to scalar, not SSE2. */
-LH_MEMORY_STD_SIMD_TARGET("avx2") static const lh_ptr
+LH_MEMORY_STD_SIMD_TARGET("avx2")
+static const lh_ptr
 lh_memory_std_rcompare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     const lh_usize_t orig = n;

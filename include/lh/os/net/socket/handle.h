@@ -28,6 +28,6 @@ typedef lh_ssize_t lh_os_net_socket_handle_t;
  * @brief Sentinel for "no socket" (matches POSIX `-1` and Windows
  *        `INVALID_SOCKET` once both are read back as this type).
  */
-#define LH_OS_NET_SOCKET_HANDLE_INVALID ((lh_os_net_socket_handle_t)-1)
+#define LH_OS_NET_SOCKET_HANDLE_INVALID ((lh_os_net_socket_handle_t) - 1)
 
 #endif /* LH_OS_NET_SOCKET_HANDLE_H */

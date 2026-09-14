@@ -72,7 +72,7 @@ struct lh_crypto_rijndael
     lh_usize_t block_size;          /**< 16, 24, or 32. */
     lh_usize_t round_count;         /**< Number of rounds for this key/block pair. */
     lh_uchar_t expanded_key[LH_CRYPTO_RIJNDAEL_EXPANDED_KEY_SIZE_MAX]; /**< Round keys. */
-    lh_uchar_t chain[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX];               /**< CBC/CFB chaining block. */
+    lh_uchar_t chain[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX]; /**< CBC/CFB chaining block. */
 };
 typedef struct lh_crypto_rijndael lh_crypto_rijndael_t;
 

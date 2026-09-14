@@ -318,7 +318,7 @@ static const lh_u16_t m_wchar_to_lower_stage2[4352] = {
     /* clang-format on */
 };
 
-#if LH_WCHAR_T_MAX > 0xFFFF
+#    if LH_WCHAR_T_MAX > 0xFFFF
 
 static const lh_wchar_case_pair_t m_wchar_to_lower_smp_table[] = {
     /* clang-format off */
@@ -606,9 +606,10 @@ static const lh_wchar_case_pair_t m_wchar_to_lower_smp_table[] = {
     { 125217U, 125251U },
     /* clang-format on */
 };
-static const lh_usize_t m_wchar_to_lower_smp_table_size = lh_array_ptr_get_size(m_wchar_to_lower_smp_table);
+static const lh_usize_t m_wchar_to_lower_smp_table_size =
+    lh_array_ptr_get_size(m_wchar_to_lower_smp_table);
 
-#endif /* LH_WCHAR_T_MAX > 0xFFFF */
+#    endif /* LH_WCHAR_T_MAX > 0xFFFF */
 
 static const lh_u8_t m_wchar_to_upper_stage1[256] = {
     /* clang-format off */
@@ -956,7 +957,7 @@ static const lh_u16_t m_wchar_to_upper_stage2[5120] = {
     /* clang-format on */
 };
 
-#if LH_WCHAR_T_MAX > 0xFFFF
+#    if LH_WCHAR_T_MAX > 0xFFFF
 
 static const lh_wchar_case_pair_t m_wchar_to_upper_smp_table[] = {
     /* clang-format off */
@@ -1244,9 +1245,10 @@ static const lh_wchar_case_pair_t m_wchar_to_upper_smp_table[] = {
     { 125251U, 125217U },
     /* clang-format on */
 };
-static const lh_usize_t m_wchar_to_upper_smp_table_size = lh_array_ptr_get_size(m_wchar_to_upper_smp_table);
+static const lh_usize_t m_wchar_to_upper_smp_table_size =
+    lh_array_ptr_get_size(m_wchar_to_upper_smp_table);
 
-#endif /* LH_WCHAR_T_MAX > 0xFFFF */
+#    endif /* LH_WCHAR_T_MAX > 0xFFFF */
 
 #else /* !LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE */
 
@@ -4200,29 +4202,34 @@ static const lh_wchar_case_pair_t m_wchar_to_upper_table[] = {
 #endif /* LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE */
 
 #if LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE
-lh_wstr_ptr lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n) {
+lh_wstr_ptr
+lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n)
+{
     lh_assert_runtime_ref(str);
 
-    lh_foreach(lh_wchar_t, p, str, n) {
+    lh_foreach(lh_wchar_t, p, str, n)
+    {
         lh_wchar_t c = *p;
 
-#if LH_WCHAR_T_MAX > 0xFFFF
-        if (c > 0xFFFF) {
+#    if LH_WCHAR_T_MAX > 0xFFFF
+        if (c > 0xFFFF)
+        {
             lh_wchar_case_pair_t result;
             lh_bool_t found = lh_bool_false;
 
             lh_interval_ropen_binary_search(lh_usize_t, m_wchar_to_lower_smp_table,
-                                            m_wchar_to_lower_smp_table_size, c, first,
-                                            result, found);
+                                            m_wchar_to_lower_smp_table_size, c, first, result,
+                                            found);
 
             *p = found ? result.second : c;
-        } else
-#endif /* LH_WCHAR_T_MAX > 0xFFFF */
+        }
+        else
+#    endif /* LH_WCHAR_T_MAX > 0xFFFF */
         {
             const lh_u8_t block = m_wchar_to_lower_stage1[(lh_usize_t)c >> 8];
-            *p = (block == 0xFFU)
-                     ? c
-                     : (lh_wchar_t)m_wchar_to_lower_stage2[(lh_usize_t)block * 256U + ((lh_usize_t)c & 0xFFU)];
+            *p = (block == 0xFFU) ? c
+                                  : (lh_wchar_t)m_wchar_to_lower_stage2[(lh_usize_t)block * 256U +
+                                                                        ((lh_usize_t)c & 0xFFU)];
         }
     }
 
@@ -4230,12 +4237,15 @@ lh_wstr_ptr lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n) {
 }
 
 #else
-lh_wstr_ptr lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n) {
+lh_wstr_ptr
+lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n)
+{
     lh_assert_runtime_ref(str);
 
     static const lh_usize_t sz = lh_array_ptr_get_size(m_wchar_to_lower_table);
 
-    lh_foreach(lh_wchar_t, p, str, n) {
+    lh_foreach(lh_wchar_t, p, str, n)
+    {
         lh_wchar_t c = *p;
 
         lh_wchar_case_pair_t result;
@@ -4253,29 +4263,34 @@ lh_wstr_ptr lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n) {
 #endif /* LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE */
 
 #if LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE
-lh_wstr_ptr lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n) {
+lh_wstr_ptr
+lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n)
+{
     lh_assert_runtime_ref(str);
 
-    lh_foreach(lh_wchar_t, p, str, n) {
+    lh_foreach(lh_wchar_t, p, str, n)
+    {
         lh_wchar_t c = *p;
 
-#if LH_WCHAR_T_MAX > 0xFFFF
-        if (c > 0xFFFF) {
+#    if LH_WCHAR_T_MAX > 0xFFFF
+        if (c > 0xFFFF)
+        {
             lh_wchar_case_pair_t result;
             lh_bool_t found = lh_bool_false;
 
             lh_interval_ropen_binary_search(lh_usize_t, m_wchar_to_upper_smp_table,
-                                            m_wchar_to_upper_smp_table_size, c, first,
-                                            result, found);
+                                            m_wchar_to_upper_smp_table_size, c, first, result,
+                                            found);
 
             *p = found ? result.second : c;
-        } else
-#endif /* LH_WCHAR_T_MAX > 0xFFFF */
+        }
+        else
+#    endif /* LH_WCHAR_T_MAX > 0xFFFF */
         {
             const lh_u8_t block = m_wchar_to_upper_stage1[(lh_usize_t)c >> 8];
-            *p = (block == 0xFFU)
-                     ? c
-                     : (lh_wchar_t)m_wchar_to_upper_stage2[(lh_usize_t)block * 256U + ((lh_usize_t)c & 0xFFU)];
+            *p = (block == 0xFFU) ? c
+                                  : (lh_wchar_t)m_wchar_to_upper_stage2[(lh_usize_t)block * 256U +
+                                                                        ((lh_usize_t)c & 0xFFU)];
         }
     }
 
@@ -4283,12 +4298,15 @@ lh_wstr_ptr lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n) {
 }
 
 #else
-lh_wstr_ptr lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n) {
+lh_wstr_ptr
+lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n)
+{
     lh_assert_runtime_ref(str);
 
     static const lh_usize_t sz = lh_array_ptr_get_size(m_wchar_to_upper_table);
 
-    lh_foreach(lh_wchar_t, p, str, n) {
+    lh_foreach(lh_wchar_t, p, str, n)
+    {
         lh_wchar_t c = *p;
 
         lh_wchar_case_pair_t result;

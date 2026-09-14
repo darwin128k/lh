@@ -38,15 +38,15 @@ lh_cpu_vendor_matches(lh_u32_t want_ebx, lh_u32_t want_edx, lh_u32_t want_ecx)
     }
 
     return lh_cast_static(lh_bool_t, (lh_cast_static(lh_u32_t, ebx) == want_ebx) &&
-                                          (lh_cast_static(lh_u32_t, edx) == want_edx) &&
-                                          (lh_cast_static(lh_u32_t, ecx) == want_ecx));
+                                         (lh_cast_static(lh_u32_t, edx) == want_edx) &&
+                                         (lh_cast_static(lh_u32_t, ecx) == want_ecx));
 #    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
     int info[4];
     __cpuid(info, LH_CPU_VENDOR_CPUID_LEAF_VENDOR);
 
     return lh_cast_static(lh_bool_t, (lh_cast_static(lh_u32_t, info[1]) == want_ebx) &&
-                                          (lh_cast_static(lh_u32_t, info[3]) == want_edx) &&
-                                          (lh_cast_static(lh_u32_t, info[2]) == want_ecx));
+                                         (lh_cast_static(lh_u32_t, info[3]) == want_edx) &&
+                                         (lh_cast_static(lh_u32_t, info[2]) == want_ecx));
 #    else
     return lh_bool_false;
 #    endif
@@ -59,7 +59,7 @@ lh_cpu_vendor_is_intel(void)
 {
 #if LH_COMPILER_ARCH_FAMILY_IS_X86
     return lh_cpu_vendor_matches(LH_CPU_VENDOR_INTEL_EBX, LH_CPU_VENDOR_INTEL_EDX,
-                                  LH_CPU_VENDOR_INTEL_ECX);
+                                 LH_CPU_VENDOR_INTEL_ECX);
 #else
     return lh_bool_false;
 #endif
@@ -69,7 +69,8 @@ lh_bool_t
 lh_cpu_vendor_is_amd(void)
 {
 #if LH_COMPILER_ARCH_FAMILY_IS_X86
-    return lh_cpu_vendor_matches(LH_CPU_VENDOR_AMD_EBX, LH_CPU_VENDOR_AMD_EDX, LH_CPU_VENDOR_AMD_ECX);
+    return lh_cpu_vendor_matches(LH_CPU_VENDOR_AMD_EBX, LH_CPU_VENDOR_AMD_EDX,
+                                 LH_CPU_VENDOR_AMD_ECX);
 #else
     return lh_bool_false;
 #endif

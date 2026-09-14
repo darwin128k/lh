@@ -89,7 +89,8 @@ lh_char_from_xdigit(lh_uchar_t digit, lh_bool_t uppercase)
     {
         return lh_char_ord_to(lh_char_t, lh_char_ord('0') + digit);
     }
-    return lh_char_ord_to(lh_char_t, (uppercase ? lh_char_ord('A') : lh_char_ord('a')) + (digit - 10U));
+    return lh_char_ord_to(lh_char_t,
+                          (uppercase ? lh_char_ord('A') : lh_char_ord('a')) + (digit - 10U));
 }
 
 /**

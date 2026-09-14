@@ -84,8 +84,7 @@ lh_bit_bswap_u64(lh_u64_t x)
 #elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
     return _byteswap_uint64(x);
 #else
-    return (lh_u64_t)lh_bit_bswap_u32((lh_u32_t)x) << 32
-           | lh_bit_bswap_u32((lh_u32_t)(x >> 32));
+    return (lh_u64_t)lh_bit_bswap_u32((lh_u32_t)x) << 32 | lh_bit_bswap_u32((lh_u32_t)(x >> 32));
 #endif
 }
 

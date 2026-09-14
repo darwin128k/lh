@@ -124,8 +124,8 @@ lh_u32_t
 lh_bit_unpack_be32(const lh_uchar_t *in)
 {
     lh_assert_runtime_ref(in);
-    return (lh_cast_static(lh_u32_t, in[0]) << 24) | (lh_cast_static(lh_u32_t, in[1]) << 16)
-           | (lh_cast_static(lh_u32_t, in[2]) << 8) | lh_cast_static(lh_u32_t, in[3]);
+    return (lh_cast_static(lh_u32_t, in[0]) << 24) | (lh_cast_static(lh_u32_t, in[1]) << 16) |
+           (lh_cast_static(lh_u32_t, in[2]) << 8) | lh_cast_static(lh_u32_t, in[3]);
 }
 
 /**
@@ -159,8 +159,8 @@ lh_u32_t
 lh_bit_unpack_le32(const lh_uchar_t *in)
 {
     lh_assert_runtime_ref(in);
-    return lh_cast_static(lh_u32_t, in[0]) | (lh_cast_static(lh_u32_t, in[1]) << 8)
-           | (lh_cast_static(lh_u32_t, in[2]) << 16) | (lh_cast_static(lh_u32_t, in[3]) << 24);
+    return lh_cast_static(lh_u32_t, in[0]) | (lh_cast_static(lh_u32_t, in[1]) << 8) |
+           (lh_cast_static(lh_u32_t, in[2]) << 16) | (lh_cast_static(lh_u32_t, in[3]) << 24);
 }
 
 /**

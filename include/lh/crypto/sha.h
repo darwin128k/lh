@@ -71,11 +71,11 @@
  */
 struct lh_crypto_sha
 {
-    lh_crypto_sha_kind_t kind;                      /**< Algorithm selected at init. */
-    lh_bool_t finished;                             /**< Set by finish; update is then invalid. */
-    lh_u64_t state[8];                              /**< Hash chaining value (low 32 bits for SHA-1/224/256). */
-    lh_u64_t bit_count_lo;                          /**< Message length in bits, low 64. */
-    lh_u64_t bit_count_hi;                          /**< Message length in bits, high 64 (SHA-384/512). */
+    lh_crypto_sha_kind_t kind; /**< Algorithm selected at init. */
+    lh_bool_t finished;        /**< Set by finish; update is then invalid. */
+    lh_u64_t state[8];         /**< Hash chaining value (low 32 bits for SHA-1/224/256). */
+    lh_u64_t bit_count_lo;     /**< Message length in bits, low 64. */
+    lh_u64_t bit_count_hi;     /**< Message length in bits, high 64 (SHA-384/512). */
     lh_uchar_t block[LH_CRYPTO_SHA_BLOCK_SIZE_MAX]; /**< Partial compression block. */
     lh_usize_t block_fill;                          /**< Bytes currently in @c block. */
 };

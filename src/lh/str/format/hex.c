@@ -19,8 +19,7 @@ lh_usize_t
 lh_str_ptr_format_hex(lh_uint_t value, lh_bool_t uppercase, lh_str_ptr str, lh_usize_t str_size)
 {
     lh_str_cptr alphabet = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
-    lh_usize_t digit_count =
-        (value == 0U) ? 1U : (lh_bit_scan_reverse_u32(value) / 4U + 1U);
+    lh_usize_t digit_count = (value == 0U) ? 1U : (lh_bit_scan_reverse_u32(value) / 4U + 1U);
     lh_usize_t i;
 
     lh_assert_runtime_ref(str);

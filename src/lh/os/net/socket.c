@@ -115,8 +115,8 @@ lh_os_net_socket_connect(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_
 
     lh_bit_pack_be16(port, (lh_uchar_t *)lh_addr_of(native_addr.sin_port));
 
-    result = connect((lh_os_net_native_handle_t)self->handle, (struct sockaddr *)lh_addr_of(native_addr),
-                     sizeof(native_addr));
+    result = connect((lh_os_net_native_handle_t)self->handle,
+                     (struct sockaddr *)lh_addr_of(native_addr), sizeof(native_addr));
     return result == 0 ? lh_bool_true : lh_bool_false;
 }
 
@@ -130,8 +130,8 @@ lh_os_net_socket_send(lh_ptr context, const lh_ptr buf, lh_usize_t size)
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     {
-        lh_int_t result = send((lh_os_net_native_handle_t)self->handle, (const char *)buf,
-                               (lh_int_t)size, 0);
+        lh_int_t result =
+            send((lh_os_net_native_handle_t)self->handle, (const char *)buf, (lh_int_t)size, 0);
         return result == SOCKET_ERROR ? (lh_ssize_t)-1 : (lh_ssize_t)result;
     }
 #else
@@ -149,7 +149,8 @@ lh_os_net_socket_recv(lh_ptr context, lh_ptr buf, lh_usize_t size)
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     {
-        lh_int_t result = recv((lh_os_net_native_handle_t)self->handle, (char *)buf, (lh_int_t)size, 0);
+        lh_int_t result =
+            recv((lh_os_net_native_handle_t)self->handle, (char *)buf, (lh_int_t)size, 0);
         return result == SOCKET_ERROR ? (lh_ssize_t)-1 : (lh_ssize_t)result;
     }
 #else

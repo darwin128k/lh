@@ -50,11 +50,11 @@
  * #endif
  * @endcode
  */
-#    if defined(__x86_64__) || defined(__x86_64) || defined(__amd64__) || defined(__amd64) ||        \
-        defined(_M_X64) || defined(_M_IX86) || defined(__i386__) || defined(__i386) ||               \
+#    if defined(__x86_64__) || defined(__x86_64) || defined(__amd64__) || defined(__amd64) ||      \
+        defined(_M_X64) || defined(_M_IX86) || defined(__i386__) || defined(__i386) ||             \
         defined(i386)
 #        define LH_COMPILER_ARCH_FAMILY LH_COMPILER_ARCH_FAMILY_X86
-#    elif defined(__aarch64__) || defined(__arm64__) || defined(_M_ARM64) || defined(__arm__) ||     \
+#    elif defined(__aarch64__) || defined(__arm64__) || defined(_M_ARM64) || defined(__arm__) ||   \
         defined(_M_ARM) || defined(__ARM_ARCH)
 #        define LH_COMPILER_ARCH_FAMILY LH_COMPILER_ARCH_FAMILY_ARM
 #    else
@@ -70,8 +70,7 @@
  * Use in `#if` directives to guard x86-specific intrinsics (e.g. `<immintrin.h>`,
  * `<intrin.h>`).
  */
-#    define LH_COMPILER_ARCH_FAMILY_IS_X86                                                           \
-        (LH_COMPILER_ARCH_FAMILY == LH_COMPILER_ARCH_FAMILY_X86)
+#    define LH_COMPILER_ARCH_FAMILY_IS_X86 (LH_COMPILER_ARCH_FAMILY == LH_COMPILER_ARCH_FAMILY_X86)
 #endif /* LH_COMPILER_ARCH_FAMILY_IS_X86 */
 
 #ifndef LH_COMPILER_ARCH_FAMILY_IS_ARM
@@ -81,8 +80,7 @@
  *
  * Use in `#if` directives to guard ARM-specific intrinsics (e.g. `<arm_neon.h>`).
  */
-#    define LH_COMPILER_ARCH_FAMILY_IS_ARM                                                           \
-        (LH_COMPILER_ARCH_FAMILY == LH_COMPILER_ARCH_FAMILY_ARM)
+#    define LH_COMPILER_ARCH_FAMILY_IS_ARM (LH_COMPILER_ARCH_FAMILY == LH_COMPILER_ARCH_FAMILY_ARM)
 #endif /* LH_COMPILER_ARCH_FAMILY_IS_ARM */
 
 #endif /* LH_COMPILER_ARCH_FAMILY_H */

@@ -16,16 +16,18 @@ lh_str_ptr_format_bytes_hex_dump_needed(lh_usize_t data_size)
         return 0;
     }
 
-    lines = (data_size + LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH - 1U) / LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH;
+    lines =
+        (data_size + LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH - 1U) / LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH;
     last = data_size % LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH;
     if (last == 0)
     {
         last = LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH;
     }
     /* "hhhhhhhh: " + "xx " * count + "\n" */
-    per_full = LH_STR_FORMAT_BYTES_HEX_DUMP_OFFSET_DIGITS + 2U
-               + LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH * 3U + 1U;
-    return (lines - 1U) * per_full + (LH_STR_FORMAT_BYTES_HEX_DUMP_OFFSET_DIGITS + 2U + last * 3U + 1U);
+    per_full = LH_STR_FORMAT_BYTES_HEX_DUMP_OFFSET_DIGITS + 2U +
+               LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH * 3U + 1U;
+    return (lines - 1U) * per_full +
+           (LH_STR_FORMAT_BYTES_HEX_DUMP_OFFSET_DIGITS + 2U + last * 3U + 1U);
 }
 
 lh_usize_t

@@ -38,8 +38,8 @@
  * // v == {2, 4, 6}
  * @endcode
  */
-#define lh_foreach(T, var, ptr, n)                                                                \
-    for (T *var = lh_ptr_cast(T, ptr), *lh_arg_concat(var, _end) = var + (n);                     \
+#define lh_foreach(T, var, ptr, n)                                                                 \
+    for (T *var = lh_ptr_cast(T, ptr), *lh_arg_concat(var, _end) = var + (n);                      \
          var != lh_arg_concat(var, _end); ++var)
 
 #endif /* LH_FOREACH_H */

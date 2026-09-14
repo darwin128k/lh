@@ -170,10 +170,10 @@ lh_crypto_sha_process_256(lh_crypto_sha_t *self, const lh_uchar_t *block)
     }
     for (i = 16; i < 64U; ++i)
     {
-        lh_u32_t s0 = lh_bit_rotate_right_u32(w[i - 15U], 7U) ^ lh_bit_rotate_right_u32(w[i - 15U], 18U)
-                      ^ (w[i - 15U] >> 3);
-        lh_u32_t s1 = lh_bit_rotate_right_u32(w[i - 2U], 17U) ^ lh_bit_rotate_right_u32(w[i - 2U], 19U)
-                      ^ (w[i - 2U] >> 10);
+        lh_u32_t s0 = lh_bit_rotate_right_u32(w[i - 15U], 7U) ^
+                      lh_bit_rotate_right_u32(w[i - 15U], 18U) ^ (w[i - 15U] >> 3);
+        lh_u32_t s1 = lh_bit_rotate_right_u32(w[i - 2U], 17U) ^
+                      lh_bit_rotate_right_u32(w[i - 2U], 19U) ^ (w[i - 2U] >> 10);
         w[i] = w[i - 16U] + s0 + w[i - 7U] + s1;
     }
 
@@ -188,12 +188,12 @@ lh_crypto_sha_process_256(lh_crypto_sha_t *self, const lh_uchar_t *block)
 
     for (i = 0; i < 64U; ++i)
     {
-        lh_u32_t s1 = lh_bit_rotate_right_u32(e, 6U) ^ lh_bit_rotate_right_u32(e, 11U)
-                      ^ lh_bit_rotate_right_u32(e, 25U);
+        lh_u32_t s1 = lh_bit_rotate_right_u32(e, 6U) ^ lh_bit_rotate_right_u32(e, 11U) ^
+                      lh_bit_rotate_right_u32(e, 25U);
         lh_u32_t ch = (e & f) ^ ((~e) & g);
         lh_u32_t temp1 = h + s1 + ch + m_k256[i] + w[i];
-        lh_u32_t s0 = lh_bit_rotate_right_u32(a, 2U) ^ lh_bit_rotate_right_u32(a, 13U)
-                      ^ lh_bit_rotate_right_u32(a, 22U);
+        lh_u32_t s0 = lh_bit_rotate_right_u32(a, 2U) ^ lh_bit_rotate_right_u32(a, 13U) ^
+                      lh_bit_rotate_right_u32(a, 22U);
         lh_u32_t maj = (a & b) ^ (a & c) ^ (b & c);
         lh_u32_t temp2 = s0 + maj;
 
@@ -237,10 +237,10 @@ lh_crypto_sha_process_512(lh_crypto_sha_t *self, const lh_uchar_t *block)
     }
     for (i = 16; i < 80U; ++i)
     {
-        lh_u64_t s0 = lh_bit_rotate_right_u64(w[i - 15U], 1U) ^ lh_bit_rotate_right_u64(w[i - 15U], 8U)
-                      ^ (w[i - 15U] >> 7);
-        lh_u64_t s1 = lh_bit_rotate_right_u64(w[i - 2U], 19U) ^ lh_bit_rotate_right_u64(w[i - 2U], 61U)
-                      ^ (w[i - 2U] >> 6);
+        lh_u64_t s0 = lh_bit_rotate_right_u64(w[i - 15U], 1U) ^
+                      lh_bit_rotate_right_u64(w[i - 15U], 8U) ^ (w[i - 15U] >> 7);
+        lh_u64_t s1 = lh_bit_rotate_right_u64(w[i - 2U], 19U) ^
+                      lh_bit_rotate_right_u64(w[i - 2U], 61U) ^ (w[i - 2U] >> 6);
         w[i] = w[i - 16U] + s0 + w[i - 7U] + s1;
     }
 
@@ -255,12 +255,12 @@ lh_crypto_sha_process_512(lh_crypto_sha_t *self, const lh_uchar_t *block)
 
     for (i = 0; i < 80U; ++i)
     {
-        lh_u64_t s1 = lh_bit_rotate_right_u64(e, 14U) ^ lh_bit_rotate_right_u64(e, 18U)
-                      ^ lh_bit_rotate_right_u64(e, 41U);
+        lh_u64_t s1 = lh_bit_rotate_right_u64(e, 14U) ^ lh_bit_rotate_right_u64(e, 18U) ^
+                      lh_bit_rotate_right_u64(e, 41U);
         lh_u64_t ch = (e & f) ^ ((~e) & g);
         lh_u64_t temp1 = h + s1 + ch + m_k512[i] + w[i];
-        lh_u64_t s0 = lh_bit_rotate_right_u64(a, 28U) ^ lh_bit_rotate_right_u64(a, 34U)
-                      ^ lh_bit_rotate_right_u64(a, 39U);
+        lh_u64_t s0 = lh_bit_rotate_right_u64(a, 28U) ^ lh_bit_rotate_right_u64(a, 34U) ^
+                      lh_bit_rotate_right_u64(a, 39U);
         lh_u64_t maj = (a & b) ^ (a & c) ^ (b & c);
         lh_u64_t temp2 = s0 + maj;
 
@@ -468,7 +468,8 @@ lh_crypto_sha_finish(lh_crypto_sha_t *self, lh_ptr out, lh_usize_t out_size)
         lh_crypto_sha_process(self, self->block);
         self->block_fill = 0;
     }
-    lh_memory_std_set(self->block + self->block_fill, 0, block_size - length_size - self->block_fill);
+    lh_memory_std_set(self->block + self->block_fill, 0,
+                      block_size - length_size - self->block_fill);
 
     if (lh_crypto_sha_kind_is_wide(self->kind))
     {

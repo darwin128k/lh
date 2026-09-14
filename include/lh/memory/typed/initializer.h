@@ -30,7 +30,7 @@
  * @see lh_initializer
  */
 #define lh_memory_typed_initializer(begin, end, type_size)                                         \
-    lh_initializer(lh_memory_bounds_initializer(begin, end), type_size,                             \
+    lh_initializer(lh_memory_bounds_initializer(begin, end), type_size,                            \
                    lh_math_div(lh_ptr_udiff(end, begin), type_size))
 
 /**
