@@ -110,9 +110,9 @@ lh_logger_unpack(const lh_logger_t *self, lh_logger_level_flags_t *flags,
 
 void
 lh_logger_set(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emergency_cb,
-              lh_logger_emit_cb alert_cb, lh_logger_emit_cb critical_cb,
-              lh_logger_emit_cb error_cb, lh_logger_emit_cb warning_cb, lh_logger_emit_cb notice_cb,
-              lh_logger_emit_cb info_cb, lh_logger_emit_cb debug_cb, lh_ptr context)
+              lh_logger_emit_cb alert_cb, lh_logger_emit_cb critical_cb, lh_logger_emit_cb error_cb,
+              lh_logger_emit_cb warning_cb, lh_logger_emit_cb notice_cb, lh_logger_emit_cb info_cb,
+              lh_logger_emit_cb debug_cb, lh_ptr context)
 {
     lh_logger_pack(self, lh_addr_of(flags), lh_addr_of(emergency_cb), lh_addr_of(alert_cb),
                    lh_addr_of(critical_cb), lh_addr_of(error_cb), lh_addr_of(warning_cb),
@@ -143,11 +143,24 @@ lh_logger_assign(lh_logger_t *self, const lh_logger_t *other)
 }
 
 void
+lh_logger_init_of(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emergency_cb,
+                  lh_logger_emit_cb alert_cb, lh_logger_emit_cb critical_cb,
+                  lh_logger_emit_cb error_cb, lh_logger_emit_cb warning_cb,
+                  lh_logger_emit_cb notice_cb, lh_logger_emit_cb info_cb,
+                  lh_logger_emit_cb debug_cb, lh_ptr context)
+{
+    lh_logger_pack(self, lh_addr_of(flags), lh_addr_of(emergency_cb), lh_addr_of(alert_cb),
+                   lh_addr_of(critical_cb), lh_addr_of(error_cb), lh_addr_of(warning_cb),
+                   lh_addr_of(notice_cb), lh_addr_of(info_cb), lh_addr_of(debug_cb),
+                   lh_addr_of(context));
+}
+
+void
 lh_logger_init(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emit_cb,
                lh_ptr context)
 {
-    lh_logger_set(self, flags, emit_cb, emit_cb, emit_cb, emit_cb, emit_cb, emit_cb, emit_cb,
-                  emit_cb, context);
+    lh_logger_init_of(self, flags, emit_cb, emit_cb, emit_cb, emit_cb, emit_cb, emit_cb, emit_cb,
+                      emit_cb, context);
 }
 
 void
@@ -245,30 +258,11 @@ lh_ssize_t
 lh_logger_log(lh_logger_t *self, lh_logger_level_t level, lh_str_cptr fmt, ...)
 {
     va_list args;
-    lh_ssize_t n;
 
     va_start(args, fmt);
-    n = lh_logger_log_v(self, level, fmt, args);
+    const lh_ssize_t n = lh_logger_log_v(self, level, fmt, args);
     va_end(args);
     return n;
 }
 
-#define LH_LOGGER_DEFINE_LEVEL_FN(fn, level)                                                       \
-    lh_ssize_t fn(lh_logger_t *self, lh_str_cptr fmt, ...)                                         \
-    {                                                                                              \
-        va_list args;                                                                              \
-        lh_ssize_t n;                                                                              \
-        va_start(args, fmt);                                                                       \
-        n = lh_logger_log_v(self, level, fmt, args);                                               \
-        va_end(args);                                                                              \
-        return n;                                                                                  \
-    }
-
-LH_LOGGER_DEFINE_LEVEL_FN(lh_logger_emergency, lh_logger_level_emergency)
-LH_LOGGER_DEFINE_LEVEL_FN(lh_logger_alert, lh_logger_level_alert)
-LH_LOGGER_DEFINE_LEVEL_FN(lh_logger_critical, lh_logger_level_critical)
-LH_LOGGER_DEFINE_LEVEL_FN(lh_logger_error, lh_logger_level_error)
-LH_LOGGER_DEFINE_LEVEL_FN(lh_logger_warning, lh_logger_level_warning)
-LH_LOGGER_DEFINE_LEVEL_FN(lh_logger_notice, lh_logger_level_notice)
-LH_LOGGER_DEFINE_LEVEL_FN(lh_logger_info, lh_logger_level_info)
-LH_LOGGER_DEFINE_LEVEL_FN(lh_logger_debug, lh_logger_level_debug)
+/* lh_logger_emergency … lh_logger_debug are macros; see logger.h. */

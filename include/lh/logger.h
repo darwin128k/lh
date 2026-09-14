@@ -33,6 +33,82 @@
 
 #include <stdarg.h>
 
+/* ── shortcuts ───────────────────────────────────────────────────────────── */
+
+/**
+ * @def lh_logger_emergency(self, ...)
+ * @brief Emit at ::lh_logger_level_emergency.
+ * @param self Logger.
+ * @param ...  Format mask followed by its arguments.
+ * @return See ::lh_logger_log_v.
+ */
+#define lh_logger_emergency(self, ...) lh_logger_log((self), lh_logger_level_emergency, __VA_ARGS__)
+
+/**
+ * @def lh_logger_alert(self, ...)
+ * @brief Emit at ::lh_logger_level_alert.
+ * @param self Logger.
+ * @param ...  Format mask followed by its arguments.
+ * @return See ::lh_logger_log_v.
+ */
+#define lh_logger_alert(self, ...) lh_logger_log((self), lh_logger_level_alert, __VA_ARGS__)
+
+/**
+ * @def lh_logger_critical(self, ...)
+ * @brief Emit at ::lh_logger_level_critical.
+ * @param self Logger.
+ * @param ...  Format mask followed by its arguments.
+ * @return See ::lh_logger_log_v.
+ */
+#define lh_logger_critical(self, ...) lh_logger_log((self), lh_logger_level_critical, __VA_ARGS__)
+
+/**
+ * @def lh_logger_error(self, ...)
+ * @brief Emit at ::lh_logger_level_error.
+ * @param self Logger.
+ * @param ...  Format mask followed by its arguments.
+ * @return See ::lh_logger_log_v.
+ */
+#define lh_logger_error(self, ...) lh_logger_log((self), lh_logger_level_error, __VA_ARGS__)
+
+/**
+ * @def lh_logger_warning(self, ...)
+ * @brief Emit at ::lh_logger_level_warning.
+ * @param self Logger.
+ * @param ...  Format mask followed by its arguments.
+ * @return See ::lh_logger_log_v.
+ */
+#define lh_logger_warning(self, ...) lh_logger_log((self), lh_logger_level_warning, __VA_ARGS__)
+
+/**
+ * @def lh_logger_notice(self, ...)
+ * @brief Emit at ::lh_logger_level_notice.
+ * @param self Logger.
+ * @param ...  Format mask followed by its arguments.
+ * @return See ::lh_logger_log_v.
+ */
+#define lh_logger_notice(self, ...) lh_logger_log((self), lh_logger_level_notice, __VA_ARGS__)
+
+/**
+ * @def lh_logger_info(self, ...)
+ * @brief Emit at ::lh_logger_level_info.
+ * @param self Logger.
+ * @param ...  Format mask followed by its arguments.
+ * @return See ::lh_logger_log_v.
+ */
+#define lh_logger_info(self, ...) lh_logger_log((self), lh_logger_level_info, __VA_ARGS__)
+
+/**
+ * @def lh_logger_debug(self, ...)
+ * @brief Emit at ::lh_logger_level_debug.
+ * @param self Logger.
+ * @param ...  Format mask followed by its arguments.
+ * @return See ::lh_logger_log_v.
+ */
+#define lh_logger_debug(self, ...) lh_logger_log((self), lh_logger_level_debug, __VA_ARGS__)
+
+/* ── struct ──────────────────────────────────────────────────────────────── */
+
 /**
  * @struct lh_logger
  * @brief A level-filtered logger with a callback slot per severity.
@@ -124,9 +200,17 @@ lh_logger_assign(lh_logger_t *self, const lh_logger_t *other);
 LH_ATTRIBUTE_SYMBOL
 void
 lh_logger_set(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emergency_cb,
-              lh_logger_emit_cb alert_cb, lh_logger_emit_cb critical_cb,
-              lh_logger_emit_cb error_cb, lh_logger_emit_cb warning_cb, lh_logger_emit_cb notice_cb,
-              lh_logger_emit_cb info_cb, lh_logger_emit_cb debug_cb, lh_ptr context);
+              lh_logger_emit_cb alert_cb, lh_logger_emit_cb critical_cb, lh_logger_emit_cb error_cb,
+              lh_logger_emit_cb warning_cb, lh_logger_emit_cb notice_cb, lh_logger_emit_cb info_cb,
+              lh_logger_emit_cb debug_cb, lh_ptr context);
+
+LH_ATTRIBUTE_SYMBOL
+void
+lh_logger_init_of(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emergency_cb,
+                  lh_logger_emit_cb alert_cb, lh_logger_emit_cb critical_cb,
+                  lh_logger_emit_cb error_cb, lh_logger_emit_cb warning_cb,
+                  lh_logger_emit_cb notice_cb, lh_logger_emit_cb info_cb,
+                  lh_logger_emit_cb debug_cb, lh_ptr context);
 
 /**
  * @brief Initialize a logger: @p emit_cb is stored in every level slot.
@@ -214,94 +298,6 @@ lh_logger_log_v(lh_logger_t *self, lh_logger_level_t level, lh_str_cptr fmt, va_
 LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_logger_log(lh_logger_t *self, lh_logger_level_t level, lh_str_cptr fmt, ...);
-
-/**
- * @brief Emit at ::lh_logger_level_emergency.
- * @param self Logger.
- * @param fmt  Format mask.
- * @param ...  Format arguments.
- * @return See ::lh_logger_log_v.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_ssize_t
-lh_logger_emergency(lh_logger_t *self, lh_str_cptr fmt, ...);
-
-/**
- * @brief Emit at ::lh_logger_level_alert.
- * @param self Logger.
- * @param fmt  Format mask.
- * @param ...  Format arguments.
- * @return See ::lh_logger_log_v.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_ssize_t
-lh_logger_alert(lh_logger_t *self, lh_str_cptr fmt, ...);
-
-/**
- * @brief Emit at ::lh_logger_level_critical.
- * @param self Logger.
- * @param fmt  Format mask.
- * @param ...  Format arguments.
- * @return See ::lh_logger_log_v.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_ssize_t
-lh_logger_critical(lh_logger_t *self, lh_str_cptr fmt, ...);
-
-/**
- * @brief Emit at ::lh_logger_level_error.
- * @param self Logger.
- * @param fmt  Format mask.
- * @param ...  Format arguments.
- * @return See ::lh_logger_log_v.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_ssize_t
-lh_logger_error(lh_logger_t *self, lh_str_cptr fmt, ...);
-
-/**
- * @brief Emit at ::lh_logger_level_warning.
- * @param self Logger.
- * @param fmt  Format mask.
- * @param ...  Format arguments.
- * @return See ::lh_logger_log_v.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_ssize_t
-lh_logger_warning(lh_logger_t *self, lh_str_cptr fmt, ...);
-
-/**
- * @brief Emit at ::lh_logger_level_notice.
- * @param self Logger.
- * @param fmt  Format mask.
- * @param ...  Format arguments.
- * @return See ::lh_logger_log_v.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_ssize_t
-lh_logger_notice(lh_logger_t *self, lh_str_cptr fmt, ...);
-
-/**
- * @brief Emit at ::lh_logger_level_info.
- * @param self Logger.
- * @param fmt  Format mask.
- * @param ...  Format arguments.
- * @return See ::lh_logger_log_v.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_ssize_t
-lh_logger_info(lh_logger_t *self, lh_str_cptr fmt, ...);
-
-/**
- * @brief Emit at ::lh_logger_level_debug.
- * @param self Logger.
- * @param fmt  Format mask.
- * @param ...  Format arguments.
- * @return See ::lh_logger_log_v.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_ssize_t
-lh_logger_debug(lh_logger_t *self, lh_str_cptr fmt, ...);
 
 LH_COMPILER_EXTERN_C_END
 
