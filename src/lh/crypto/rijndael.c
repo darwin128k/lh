@@ -4,6 +4,8 @@
 #include <lh/null.h>
 #include <lh/runtime/error.h>
 #include <lh/util/addr.h>
+#include <lh/util/bit/endian.h>
+#include <lh/util/bit/rotate.h>
 #include <lh/util/ptr.h>
 
 static const lh_uchar_t m_sbox[256] = {
@@ -201,7 +203,7 @@ lh_crypto_rijndael_sub_word(lh_u32_t w)
 static lh_u32_t
 lh_crypto_rijndael_rot_word(lh_u32_t w)
 {
-    return (w << 8) | (w >> 24);
+    return lh_bit_rotate_left_u32(w, 8U);
 }
 
 static void
@@ -217,8 +219,7 @@ lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, const lh_uchar_t *key,
 
     for (i = 0; i < nk; ++i)
     {
-        w[i] = ((lh_u32_t)key[4U * i] << 24) | ((lh_u32_t)key[4U * i + 1U] << 16)
-               | ((lh_u32_t)key[4U * i + 2U] << 8) | (lh_u32_t)key[4U * i + 3U];
+        w[i] = lh_bit_unpack_be32(key + 4U * i);
     }
 
     for (i = nk; i < total; ++i)
@@ -239,10 +240,7 @@ lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, const lh_uchar_t *key,
 
     for (i = 0; i < total; ++i)
     {
-        self->expanded_key[4U * i] = (lh_uchar_t)(w[i] >> 24);
-        self->expanded_key[4U * i + 1U] = (lh_uchar_t)(w[i] >> 16);
-        self->expanded_key[4U * i + 2U] = (lh_uchar_t)(w[i] >> 8);
-        self->expanded_key[4U * i + 3U] = (lh_uchar_t)w[i];
+        lh_bit_pack_be32(w[i], self->expanded_key + 4U * i);
     }
 }
 

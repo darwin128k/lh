@@ -10,6 +10,7 @@
 #include <lh/cpu/simd.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/util/bit.h>
+#include <lh/util/bit/bswap.h>
 #include <lh/util/bit/scan.h>
 #include <lh/util/ptr.h>
 
@@ -75,7 +76,6 @@
 #if (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC) && LH_COMPILER_ARCH_FAMILY_IS_X86
 #    define LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB 1
 #    include <intrin.h>
-#    include <stdlib.h> /* _byteswap_uint64 for lh_memory_std_copy_rev's tiny path */
 #else
 #    define LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB 0
 #endif
@@ -185,36 +185,6 @@ lh_memory_std_copy_bytes(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 }
 
 #if LH_COMPILER_ARCH_FAMILY_IS_X86
-LH_ATTRIBUTE_FORCE_INLINE
-lh_u64_t
-lh_memory_std_bswap64(lh_u64_t v)
-{
-#    if LH_COMPILER_TYPE_IS_GCC_LIKE
-    return lh_cast_static(lh_u64_t, __builtin_bswap64(v));
-#    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
-    return lh_cast_static(lh_u64_t, _byteswap_uint64(v));
-#    else
-    return ((v & 0x00000000000000FFULL) << 56) | ((v & 0x000000000000FF00ULL) << 40) |
-           ((v & 0x0000000000FF0000ULL) << 24) | ((v & 0x00000000FF000000ULL) << 8) |
-           ((v & 0x000000FF00000000ULL) >> 8) | ((v & 0x0000FF0000000000ULL) >> 24) |
-           ((v & 0x00FF000000000000ULL) >> 40) | ((v & 0xFF00000000000000ULL) >> 56);
-#    endif
-}
-
-LH_ATTRIBUTE_FORCE_INLINE
-lh_u32_t
-lh_memory_std_bswap32(lh_u32_t v)
-{
-#    if LH_COMPILER_TYPE_IS_GCC_LIKE
-    return lh_cast_static(lh_u32_t, __builtin_bswap32(v));
-#    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
-    return lh_cast_static(lh_u32_t, _byteswap_ulong(v));
-#    else
-    return ((v & 0x000000FFU) << 24) | ((v & 0x0000FF00U) << 8) | ((v & 0x00FF0000U) >> 8) |
-           ((v & 0xFF000000U) >> 24);
-#    endif
-}
-
 /* dst[i] = src[n-1-i] for n < 16. Both ends loaded before any store so an
  * in-place reverse is defined. Precondition: n < 16. */
 LH_ATTRIBUTE_FORCE_INLINE
@@ -223,8 +193,8 @@ lh_memory_std_copy_rev_tiny(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n
 {
     if (n >= 8U)
     {
-        const lh_u64_t first = lh_memory_std_bswap64(*lh_ptr_rcast(const lh_u64_t, src));
-        const lh_u64_t last = lh_memory_std_bswap64(*lh_ptr_rcast(const lh_u64_t, src + n - 8U));
+        const lh_u64_t first = lh_bit_bswap_u64(*lh_ptr_rcast(const lh_u64_t, src));
+        const lh_u64_t last = lh_bit_bswap_u64(*lh_ptr_rcast(const lh_u64_t, src + n - 8U));
         *lh_ptr_rcast(lh_u64_t, dst + n - 8U) = first;
         *lh_ptr_rcast(lh_u64_t, dst) = last;
         return;
@@ -232,8 +202,8 @@ lh_memory_std_copy_rev_tiny(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n
 
     if (n >= 4U)
     {
-        const lh_u32_t first = lh_memory_std_bswap32(*lh_ptr_rcast(const lh_u32_t, src));
-        const lh_u32_t last = lh_memory_std_bswap32(*lh_ptr_rcast(const lh_u32_t, src + n - 4U));
+        const lh_u32_t first = lh_bit_bswap_u32(*lh_ptr_rcast(const lh_u32_t, src));
+        const lh_u32_t last = lh_bit_bswap_u32(*lh_ptr_rcast(const lh_u32_t, src + n - 4U));
         *lh_ptr_rcast(lh_u32_t, dst + n - 4U) = first;
         *lh_ptr_rcast(lh_u32_t, dst) = last;
         return;
@@ -241,10 +211,8 @@ lh_memory_std_copy_rev_tiny(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n
 
     if (n >= 2U)
     {
-        const lh_u16_t first = *lh_ptr_rcast(const lh_u16_t, src);
-        const lh_u16_t last = *lh_ptr_rcast(const lh_u16_t, src + n - 2U);
-        const lh_u16_t first_rev = (lh_u16_t)((first << 8) | (first >> 8));
-        const lh_u16_t last_rev = (lh_u16_t)((last << 8) | (last >> 8));
+        const lh_u16_t first_rev = lh_bit_bswap_u16(*lh_ptr_rcast(const lh_u16_t, src));
+        const lh_u16_t last_rev = lh_bit_bswap_u16(*lh_ptr_rcast(const lh_u16_t, src + n - 2U));
         *lh_ptr_rcast(lh_u16_t, dst + n - 2U) = first_rev;
         *lh_ptr_rcast(lh_u16_t, dst) = last_rev;
         return;
@@ -269,7 +237,7 @@ lh_memory_std_copy_rev_bytes(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t 
         do
         {
             d_end -= 8;
-            *lh_ptr_rcast(lh_u64_t, d_end) = lh_memory_std_bswap64(*lh_ptr_rcast(const lh_u64_t, src));
+            *lh_ptr_rcast(lh_u64_t, d_end) = lh_bit_bswap_u64(*lh_ptr_rcast(const lh_u64_t, src));
             src += 8;
             n -= 8U;
         } while (n >= 8U);
