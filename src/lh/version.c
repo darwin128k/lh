@@ -3,8 +3,7 @@
 #include <lh/null.h>
 #include <lh/optional/ref.h>
 #include <lh/str/format/text.h>
-#include <lh/str/parse/uint.h>
-#include <lh/str/split/next.h>
+#include <lh/str/parse/text.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 
@@ -157,40 +156,25 @@ lh_version_is_compatible(const lh_version_t *self, const lh_version_t *required)
 lh_bool_t
 lh_version_parse(lh_str_cptr str, lh_usize_t str_size, lh_version_t *out)
 {
-    static const lh_uint_t component_max[LH_VERSION_COMPONENT_COUNT] = {
-        LH_VERSION_MAJOR_MAX, LH_VERSION_MINOR_MAX, LH_VERSION_PATCH_MAX};
-    lh_uint_t component[LH_VERSION_COMPONENT_COUNT];
-    lh_usize_t pos = 0;
-    lh_usize_t component_index;
+    lh_uint_t major;
+    lh_uint_t minor;
+    lh_uint_t patch;
 
     lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(out);
 
-    for (component_index = 0; component_index < LH_VERSION_COMPONENT_COUNT; component_index++)
+    if (!lh_str_ptr_parse_text(str, str_size, "%u.%u.%u", lh_addr_of(major), lh_addr_of(minor),
+                               lh_addr_of(patch)))
     {
-        lh_bool_t is_last = component_index == LH_VERSION_COMPONENT_COUNT - 1U;
-        lh_str_cptr field;
-        lh_usize_t field_size;
-        lh_bool_t had_delim;
-
-        if (!lh_str_ptr_split_next(str, str_size, '.', lh_addr_of(pos), lh_addr_of(field),
-                                   lh_addr_of(field_size), lh_addr_of(had_delim)))
-        {
-            return lh_bool_false;
-        }
-        if (had_delim == is_last)
-        {
-            return lh_bool_false;
-        }
-        if (!lh_str_ptr_parse_uint(field, field_size, component_max[component_index],
-                                   lh_addr_of(component[component_index])))
-        {
-            return lh_bool_false;
-        }
+        return lh_bool_false;
+    }
+    if (major > LH_VERSION_MAJOR_MAX || minor > LH_VERSION_MINOR_MAX || patch > LH_VERSION_PATCH_MAX)
+    {
+        return lh_bool_false;
     }
 
-    lh_version_set(out, (lh_version_major_t)component[0], (lh_version_minor_t)component[1],
-                   (lh_version_patch_t)component[2]);
+    lh_version_set(out, (lh_version_major_t)major, (lh_version_minor_t)minor,
+                   (lh_version_patch_t)patch);
     return lh_bool_true;
 }
 

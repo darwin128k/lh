@@ -62,6 +62,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/wchar/case/map.cpp
         ${LH_TEST_SRC_PATH}/lh/str/parse/uint.cpp
         ${LH_TEST_SRC_PATH}/lh/str/parse/hex.cpp
+        ${LH_TEST_SRC_PATH}/lh/str/parse/text.cpp
         ${LH_TEST_SRC_PATH}/lh/str/split/next.cpp
         ${LH_TEST_SRC_PATH}/lh/str/format/uint.cpp
         ${LH_TEST_SRC_PATH}/lh/str/format/sint.cpp
