@@ -734,12 +734,25 @@ lh_memory_std_copy_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
         return;
     }
 
-    if (n < 128U)
+    if (n < 64U)
     {
         const __m256i a = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src));
         const __m256i b = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + n - 32));
         _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst), a);
         _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + n - 32), b);
+        return;
+    }
+
+    if (n < 128U)
+    {
+        const __m256i a = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src));
+        const __m256i b = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 32));
+        const __m256i c = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + n - 64));
+        const __m256i d = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + n - 32));
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst), a);
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + 32), b);
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + n - 64), c);
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + n - 32), d);
         return;
     }
 
@@ -1846,9 +1859,20 @@ lh_memory_std_set_avx2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
         return;
     }
 
+    /* First and last 32 bytes cover [32, 64]; four overlapping 32-byte stores
+     * cover [64, 128). Two stores leave a hole in the middle for n > 64. */
+    if (n < 64U)
+    {
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst), v);
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + n - 32), v);
+        return;
+    }
+
     if (n < 128U)
     {
         _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst), v);
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + 32), v);
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + n - 64), v);
         _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + n - 32), v);
         return;
     }
