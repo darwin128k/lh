@@ -7,6 +7,8 @@
 include/lh/config.h
 
 build
+build-h
+build-rel
 build-static
 build-bench
 build-bench-static

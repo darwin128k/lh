@@ -1,7 +1,10 @@
 /**
  * @file text.h
- * @brief printf-style text formatting — portable, no libc/OS dependency
- *        (built entirely on ::lh_str_ptr_format_uint / _sint / _hex).
+ * @brief printf-style text formatting — portable, no libc/OS dependency.
+ *
+ * The format mask is walked by ::lh_str_ptr_scanf_next (shared with
+ * ::lh_str_ptr_parse_text). Values are emitted by ::lh_str_ptr_format_uint /
+ * _sint / _hex.
  *
  * Supported conversions: `%%`, `%c`, `%s`, `%d`, `%i`, `%u`, `%x`, `%X`.
  * Supported flags: `0` (zero-pad), `-` (left-justify). Supported field: a
