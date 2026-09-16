@@ -97,6 +97,7 @@ lh_time_hour_sub(lh_time_hour_t *self, lh_uint_t value);
  * @brief Read the stored hour (`0`–::LH_TIME_HOUR_MAX).
  *
  * @param self Hour to read (not null).
+ * @return Stored hour (`0`–::LH_TIME_HOUR_MAX).
  */
 LH_ATTRIBUTE_SYMBOL
 lh_time_hour_t

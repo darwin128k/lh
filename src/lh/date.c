@@ -353,7 +353,7 @@ lh_date_parse(lh_str_cptr str, lh_usize_t str_size, lh_date_t *out)
     lh_usize_t pos = 0;
     lh_usize_t i;
     lh_uint_t component[3];
-    const lh_uint_t max[3] = {LH_DATE_YEAR_MAX, LH_DATE_MONTH_MAX, 31U};
+    const lh_uint_t max[3] = {LH_DATE_YEAR_MAX, LH_DATE_MONTH_MAX, LH_DATE_DAY_MAX};
 
     for (i = 0; i < 3U; i++)
     {

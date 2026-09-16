@@ -102,9 +102,13 @@ void
 lh_date_set(lh_date_t *self, lh_date_year_t year, lh_date_month_t month, lh_date_day_t day);
 
 /**
- * @brief Add @p value years. Delegates to ::lh_date_year_add, then clamps the day.
+ * @brief Add @p value years. Delegates to ::lh_date_year_add, then clamps the day
+ *        if it is past the new month length (e.g. 29 Feb → 28 Feb).
  *
- * @return Year-radix overflow.
+ * @param self  Date to update (not null).
+ * @param value Years to add (any ::lh_uint_t).
+ *
+ * @return Year-radix overflow from ::lh_date_year_add. `0` if the year stayed in range.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
@@ -113,43 +117,68 @@ lh_date_add_year(lh_date_t *self, lh_uint_t value);
 /**
  * @brief Subtract @p value years. Delegates to ::lh_date_year_sub, then clamps the day.
  *
- * @return Year-radix units borrowed.
+ * @param self  Date to update (not null).
+ * @param value Years to subtract (any ::lh_uint_t).
+ *
+ * @return Year-radix units borrowed. `0` if the year stayed in range.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_date_sub_year(lh_date_t *self, lh_uint_t value);
 
 /**
- * @brief Add @p value months. Delegates to ::lh_date_month_add, then ::lh_date_add_year.
+ * @brief Add @p value months. Delegates to ::lh_date_month_add, then ::lh_date_add_year,
+ *        then clamps the day.
  *
- * @return Year-radix overflow.
+ * @param self  Date to update (not null).
+ * @param value Months to add (any ::lh_uint_t).
+ *
+ * @return Year-radix overflow. `0` if the year stayed in range.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_date_add_month(lh_date_t *self, lh_uint_t value);
 
 /**
- * @brief Subtract @p value months. Delegates to ::lh_date_month_sub, then ::lh_date_sub_year.
+ * @brief Subtract @p value months. Delegates to ::lh_date_month_sub, then
+ *        ::lh_date_sub_year, then clamps the day.
  *
- * @return Year-radix units borrowed.
+ * @param self  Date to update (not null).
+ * @param value Months to subtract (any ::lh_uint_t).
+ *
+ * @return Year-radix units borrowed. `0` if the year stayed in range.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_date_sub_month(lh_date_t *self, lh_uint_t value);
 
 /**
- * @brief Add @p value calendar days. Overflowing a month calls ::lh_date_add_month.
+ * @brief Add @p value calendar days. Overflowing a month calls ::lh_date_add_month
+ *        and sets the day to ::LH_DATE_DAY_MIN.
  *
- * @return Year-radix overflow.
+ * If the current day is not a valid calendar day (`left` is `0`), the loop
+ * stops and @p value is not fully applied.
+ *
+ * @param self  Date to update (not null).
+ * @param value Days to add (any ::lh_uint_t).
+ *
+ * @return Year-radix overflow from month/year carry. `0` if the year stayed in range.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_date_add_day(lh_date_t *self, lh_uint_t value);
 
 /**
- * @brief Subtract @p value calendar days. Borrowing a month calls ::lh_date_sub_month.
+ * @brief Subtract @p value calendar days. Borrowing a month calls ::lh_date_sub_month
+ *        and sets the day to that month's last day.
  *
- * @return Year-radix units borrowed.
+ * A stored day below ::LH_DATE_DAY_MIN is treated as ::LH_DATE_DAY_MIN so the
+ * loop does not hang.
+ *
+ * @param self  Date to update (not null).
+ * @param value Days to subtract (any ::lh_uint_t).
+ *
+ * @return Year-radix units borrowed. `0` if the year stayed in range.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
@@ -157,20 +186,42 @@ lh_date_sub_day(lh_date_t *self, lh_uint_t value);
 
 /**
  * @brief Add days, then months, then years (::lh_date_add_day / `_month` / `_year`).
+ *
+ * @param self  Date to update (not null).
+ * @param year  Years to add.
+ * @param month Months to add.
+ * @param day   Days to add.
+ *
+ * @return Sum of year-radix overflow from the three steps.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_date_add_custom(lh_date_t *self, lh_uint_t year, lh_uint_t month, lh_uint_t day);
 
 /**
- * @brief Subtract years, then months, then days.
+ * @brief Subtract years, then months, then days (::lh_date_sub_year / `_month` / `_day`).
+ *
+ * Inverse field order of ::lh_date_add_custom.
+ *
+ * @param self  Date to update (not null).
+ * @param year  Years to subtract.
+ * @param month Months to subtract.
+ * @param day   Days to subtract.
+ *
+ * @return Sum of year-radix units borrowed from the three steps.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_date_sub_custom(lh_date_t *self, lh_uint_t year, lh_uint_t month, lh_uint_t day);
 
 /**
- * @brief Add @p other as a duration. Delegates to ::lh_date_add_custom.
+ * @brief Add @p other as a duration. Delegates to ::lh_date_add_custom
+ *        with other's year, month, and day as unsigned counts (not a calendar delta).
+ *
+ * @param self  Date to update (not null).
+ * @param other Duration (not null).
+ *
+ * @return Same as ::lh_date_add_custom.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
@@ -178,6 +229,11 @@ lh_date_add(lh_date_t *self, const lh_date_t *other);
 
 /**
  * @brief Subtract @p other as a duration. Delegates to ::lh_date_sub_custom.
+ *
+ * @param self  Date to update (not null).
+ * @param other Duration (not null).
+ *
+ * @return Same as ::lh_date_sub_custom.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
@@ -185,6 +241,9 @@ lh_date_sub(lh_date_t *self, const lh_date_t *other);
 
 /**
  * @brief Days in @p self's month. Delegates to ::lh_date_days_in_month.
+ *
+ * @param self Date to read (not null).
+ * @return `28`–`31`, or `0` if the month is not `1…12`.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_date_day_t
@@ -192,13 +251,20 @@ lh_date_max_days(const lh_date_t *self);
 
 /**
  * @brief Days after today until month end. Delegates to ::lh_date_days_left.
+ *
+ * @param self Date to read (not null).
+ * @return `dim - day`, or `0` if the date is not a valid calendar day.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_date_day_t
 lh_date_left_days(const lh_date_t *self);
 
 /**
- * @brief Days until the next month starts. Delegates to ::lh_date_days_left_with_today.
+ * @brief Days until the next month starts (includes today).
+ *        Delegates to ::lh_date_days_left_with_today.
+ *
+ * @param self Date to read (not null).
+ * @return `dim - day + 1`, or `0` if the date is not a valid calendar day.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_date_day_t
@@ -208,6 +274,7 @@ lh_date_left_days_with_today(const lh_date_t *self);
  * @brief Return the year of @p self.
  *
  * @param self Date to read (not null).
+ * @return Stored year.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_date_year_t
@@ -217,6 +284,7 @@ lh_date_get_year(const lh_date_t *self);
  * @brief Return the month of @p self.
  *
  * @param self Date to read (not null).
+ * @return Stored month (`1`–`12` when valid).
  */
 LH_ATTRIBUTE_SYMBOL
 lh_date_month_t
@@ -226,6 +294,7 @@ lh_date_get_month(const lh_date_t *self);
  * @brief Return the day of month of @p self.
  *
  * @param self Date to read (not null).
+ * @return Stored day of month.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_date_day_t

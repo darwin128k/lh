@@ -129,6 +129,7 @@ lh_datetime_sub(lh_datetime_t *self, const lh_datetime_t *other);
  * @brief Return the date of @p self.
  *
  * @param self Date-time to read (not null).
+ * @return Copy of the stored ::lh_date_t.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_date_t
@@ -138,6 +139,7 @@ lh_datetime_get_date(const lh_datetime_t *self);
  * @brief Return the time of @p self.
  *
  * @param self Date-time to read (not null).
+ * @return Copy of the stored ::lh_time_t.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_time_t

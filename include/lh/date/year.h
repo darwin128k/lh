@@ -4,6 +4,9 @@
  *
  * Closed interval `[0, ::LH_DATE_YEAR_MAX]`. Leap-year test lives here so
  * day/month helpers do not copy the Gregorian rule.
+ *
+ * There is no separate init: the type is ::lh_u16_t. Wrap add/sub take
+ * ::lh_uint_t so the amount can be larger than the year radix.
  */
 
 #ifndef LH_DATE_YEAR_H
@@ -33,14 +36,39 @@ typedef lh_u16_t lh_date_year_t;
 
 /**
  * @def LH_DATE_YEAR_RADIX
- * @brief ::lh_interval_closed_get_size of `[0, ::LH_DATE_YEAR_MAX]`.
+ * @brief Years in the closed interval — ::lh_interval_closed_get_size of
+ *        `[0, ::LH_DATE_YEAR_MAX]`.
  */
 #define LH_DATE_YEAR_RADIX lh_interval_closed_get_size(0U, LH_DATE_YEAR_MAX)
+
+/**
+ * @def LH_DATE_YEAR_LEAP_CYCLE
+ * @brief Common leap-year stride (divisible by 4).
+ */
+#define LH_DATE_YEAR_LEAP_CYCLE 4U
+
+/**
+ * @def LH_DATE_YEAR_CENTURY
+ * @brief Century year (not a leap year unless also ::LH_DATE_YEAR_GREGORIAN_CYCLE).
+ */
+#define LH_DATE_YEAR_CENTURY 100U
+
+/**
+ * @def LH_DATE_YEAR_GREGORIAN_CYCLE
+ * @brief 400-year Gregorian leap-year exception for centuries.
+ */
+#define LH_DATE_YEAR_GREGORIAN_CYCLE 400U
 
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief True if @p self is a Gregorian leap year.
+ *
+ * Rule: divisible by ::LH_DATE_YEAR_LEAP_CYCLE, except centuries not divisible
+ * by ::LH_DATE_YEAR_GREGORIAN_CYCLE.
+ *
+ * @param self Year value (by value, not a pointer).
+ * @return ::lh_bool_true if February has 29 days in @p self.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
@@ -49,7 +77,10 @@ lh_date_year_is_leap(lh_date_year_t self);
 /**
  * @brief Add @p value years, wrapping on `[0, ::LH_DATE_YEAR_MAX]`.
  *
- * @return Whole radix overflows. `0` if it fit.
+ * @param self  Year to update (not null).
+ * @param value Years to add (any ::lh_uint_t).
+ *
+ * @return Whole radix overflows (`total / radix` beyond the interval). `0` if it fit.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
@@ -57,6 +88,9 @@ lh_date_year_add(lh_date_year_t *self, lh_uint_t value);
 
 /**
  * @brief Subtract @p value years, wrapping on `[0, ::LH_DATE_YEAR_MAX]`.
+ *
+ * @param self  Year to update (not null).
+ * @param value Years to subtract (any ::lh_uint_t).
  *
  * @return Whole radix units borrowed. `0` if it fit.
  */

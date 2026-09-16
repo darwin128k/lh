@@ -5,15 +5,15 @@
 lh_bool_t
 lh_date_year_is_leap(lh_date_year_t self)
 {
-    if (self % 4U != 0)
+    if (self % LH_DATE_YEAR_LEAP_CYCLE != 0)
     {
         return lh_bool_false;
     }
-    if (self % 100U != 0)
+    if (self % LH_DATE_YEAR_CENTURY != 0)
     {
         return lh_bool_true;
     }
-    return (self % 400U == 0) ? lh_bool_true : lh_bool_false;
+    return (self % LH_DATE_YEAR_GREGORIAN_CYCLE == 0) ? lh_bool_true : lh_bool_false;
 }
 
 lh_uint_t

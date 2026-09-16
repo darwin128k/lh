@@ -97,6 +97,7 @@ lh_time_minute_sub(lh_time_minute_t *self, lh_uint_t value);
  * @brief Read the stored minute (`0`–::LH_TIME_MINUTE_MAX).
  *
  * @param self Minute to read (not null).
+ * @return Stored minute (`0`–::LH_TIME_MINUTE_MAX).
  */
 LH_ATTRIBUTE_SYMBOL
 lh_time_minute_t

@@ -25,14 +25,25 @@ typedef lh_u8_t lh_date_month_index_t;
 
 /**
  * @def LH_DATE_MONTH_INDEX_JANUARY
+ * @brief January (`0`).
  */
 #define LH_DATE_MONTH_INDEX_JANUARY 0U
+
+/**
+ * @def LH_DATE_MONTH_INDEX_FEBRUARY
+ * @brief February (`1`).
+ */
 #define LH_DATE_MONTH_INDEX_FEBRUARY 1U
+
+/**
+ * @def LH_DATE_MONTH_INDEX_DECEMBER
+ * @brief December (`11`).
+ */
 #define LH_DATE_MONTH_INDEX_DECEMBER 11U
 
 /**
  * @def LH_DATE_MONTH_INDEX_MAX
- * @brief Last month index (closed upper bound).
+ * @brief Last month index (closed upper bound). Same as ::LH_DATE_MONTH_INDEX_DECEMBER.
  */
 #define LH_DATE_MONTH_INDEX_MAX LH_DATE_MONTH_INDEX_DECEMBER
 
@@ -45,7 +56,10 @@ typedef lh_u8_t lh_date_month_index_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Add @p value to @p self, wrapping on the month-index interval.
+ * @brief Add @p value to @p self, wrapping on `[0, ::LH_DATE_MONTH_INDEX_MAX]`.
+ *
+ * @param self  Index to update (not null).
+ * @param value Months to add (any ::lh_uint_t).
  *
  * @return Whole years of overflow. `0` if it fit.
  */
@@ -54,7 +68,10 @@ lh_uint_t
 lh_date_month_index_add(lh_date_month_index_t *self, lh_uint_t value);
 
 /**
- * @brief Subtract @p value from @p self, wrapping on the month-index interval.
+ * @brief Subtract @p value from @p self, wrapping on `[0, ::LH_DATE_MONTH_INDEX_MAX]`.
+ *
+ * @param self  Index to update (not null).
+ * @param value Months to subtract (any ::lh_uint_t).
  *
  * @return Whole years borrowed. `0` if it fit.
  */

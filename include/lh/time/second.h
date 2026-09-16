@@ -101,6 +101,7 @@ lh_time_second_sub(lh_time_second_t *self, lh_uint_t value);
  * @brief Read the stored second (`0`–::LH_TIME_SECOND_MAX).
  *
  * @param self Second to read (not null).
+ * @return Stored second (`0`–::LH_TIME_SECOND_MAX).
  */
 LH_ATTRIBUTE_SYMBOL
 lh_time_second_t

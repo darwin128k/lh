@@ -104,7 +104,10 @@ lh_time_set(lh_time_t *self, lh_time_hour_t hour, lh_time_minute_t minute, lh_ti
 /**
  * @brief Add @p value hours. Delegates to ::lh_time_hour_add.
  *
- * @return Whole days of overflow.
+ * @param self  Time to update (not null).
+ * @param value Hours to add (any ::lh_uint_t).
+ *
+ * @return Whole days of overflow. `0` if the hour stayed in range.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
@@ -113,64 +116,106 @@ lh_time_add_hour(lh_time_t *self, lh_uint_t value);
 /**
  * @brief Subtract @p value hours. Delegates to ::lh_time_hour_sub.
  *
- * @return Whole days borrowed.
+ * @param self  Time to update (not null).
+ * @param value Hours to subtract (any ::lh_uint_t).
+ *
+ * @return Whole days borrowed. `0` if the hour stayed in range.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_sub_hour(lh_time_t *self, lh_uint_t value);
 
 /**
- * @brief Add @p value minutes, then ::lh_time_add_hour for the overflow.
+ * @brief Add @p value minutes. Delegates to ::lh_time_minute_add, then
+ *        ::lh_time_add_hour for the overflow.
  *
- * @return Whole days of overflow.
+ * @param self  Time to update (not null).
+ * @param value Minutes to add (any ::lh_uint_t).
+ *
+ * @return Whole days of overflow from the hour carry.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_add_minute(lh_time_t *self, lh_uint_t value);
 
 /**
- * @brief Subtract @p value minutes, then ::lh_time_sub_hour for the borrow.
+ * @brief Subtract @p value minutes. Delegates to ::lh_time_minute_sub, then
+ *        ::lh_time_sub_hour for the borrow.
  *
- * @return Whole days borrowed.
+ * @param self  Time to update (not null).
+ * @param value Minutes to subtract (any ::lh_uint_t).
+ *
+ * @return Whole days borrowed from the hour carry.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_sub_minute(lh_time_t *self, lh_uint_t value);
 
 /**
- * @brief Add @p value seconds, then ::lh_time_add_minute for the overflow.
+ * @brief Add @p value seconds. Delegates to ::lh_time_second_add, then
+ *        ::lh_time_add_minute for the overflow.
  *
- * @return Whole days of overflow.
+ * @param self  Time to update (not null).
+ * @param value Seconds to add (any ::lh_uint_t).
+ *
+ * @return Whole days of overflow from the minute/hour carry.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_add_second(lh_time_t *self, lh_uint_t value);
 
 /**
- * @brief Subtract @p value seconds, then ::lh_time_sub_minute for the borrow.
+ * @brief Subtract @p value seconds. Delegates to ::lh_time_second_sub, then
+ *        ::lh_time_sub_minute for the borrow.
  *
- * @return Whole days borrowed.
+ * @param self  Time to update (not null).
+ * @param value Seconds to subtract (any ::lh_uint_t).
+ *
+ * @return Whole days borrowed from the minute/hour carry.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_sub_second(lh_time_t *self, lh_uint_t value);
 
 /**
- * @brief Add seconds, then minutes, then hours.
+ * @brief Add seconds, then minutes, then hours (::lh_time_add_second / `_minute` / `_hour`).
+ *
+ * @param self   Time to update (not null).
+ * @param hour   Hours to add.
+ * @param minute Minutes to add.
+ * @param second Seconds to add.
+ *
+ * @return Sum of whole days of overflow from the three steps.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_add_custom(lh_time_t *self, lh_uint_t hour, lh_uint_t minute, lh_uint_t second);
 
 /**
- * @brief Subtract seconds, then minutes, then hours.
+ * @brief Subtract seconds, then minutes, then hours
+ *        (::lh_time_sub_second / `_minute` / `_hour`).
+ *
+ * Same field order as ::lh_time_add_custom.
+ *
+ * @param self   Time to update (not null).
+ * @param hour   Hours to subtract.
+ * @param minute Minutes to subtract.
+ * @param second Seconds to subtract.
+ *
+ * @return Sum of whole days borrowed from the three steps.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_sub_custom(lh_time_t *self, lh_uint_t hour, lh_uint_t minute, lh_uint_t second);
 
 /**
- * @brief Add @p other as a duration. Delegates to ::lh_time_add_custom.
+ * @brief Add @p other as a duration. Delegates to ::lh_time_add_custom
+ *        with other's hour, minute, and second as unsigned counts.
+ *
+ * @param self  Time to update (not null).
+ * @param other Duration (not null).
+ *
+ * @return Same as ::lh_time_add_custom.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
@@ -178,6 +223,11 @@ lh_time_add(lh_time_t *self, const lh_time_t *other);
 
 /**
  * @brief Subtract @p other as a duration. Delegates to ::lh_time_sub_custom.
+ *
+ * @param self  Time to update (not null).
+ * @param other Duration (not null).
+ *
+ * @return Same as ::lh_time_sub_custom.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
@@ -187,6 +237,7 @@ lh_time_sub(lh_time_t *self, const lh_time_t *other);
  * @brief Return the hour of @p self.
  *
  * @param self Time to read (not null).
+ * @return Stored hour (`0`–::LH_TIME_HOUR_MAX when valid).
  */
 LH_ATTRIBUTE_SYMBOL
 lh_time_hour_t
@@ -196,6 +247,7 @@ lh_time_get_hour(const lh_time_t *self);
  * @brief Return the minute of @p self.
  *
  * @param self Time to read (not null).
+ * @return Stored minute (`0`–::LH_TIME_MINUTE_MAX when valid).
  */
 LH_ATTRIBUTE_SYMBOL
 lh_time_minute_t
@@ -205,6 +257,7 @@ lh_time_get_minute(const lh_time_t *self);
  * @brief Return the second of @p self.
  *
  * @param self Time to read (not null).
+ * @return Stored second (`0`–::LH_TIME_SECOND_MAX when valid).
  */
 LH_ATTRIBUTE_SYMBOL
 lh_time_second_t

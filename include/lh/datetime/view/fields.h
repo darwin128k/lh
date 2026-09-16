@@ -12,6 +12,13 @@
  *
  * @param date_type Type of the `date` field.
  * @param time_type Type of the `time` field.
+ *
+ * Example usage:
+ * @code{.c}
+ * struct lh_datetime {
+ *     lh_datetime_fields(lh_date_t, lh_time_t);
+ * };
+ * @endcode
  */
 #define lh_datetime_fields(date_type, time_type)                                                   \
     date_type date;                                                                                \
