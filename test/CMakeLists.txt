@@ -30,6 +30,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/char/digit.cpp
         ${LH_TEST_SRC_PATH}/lh/char/xdigit.cpp
         ${LH_TEST_SRC_PATH}/lh/error.cpp
+        ${LH_TEST_SRC_PATH}/lh/werror.cpp
         ${LH_TEST_SRC_PATH}/lh/exception.cpp
         ${LH_TEST_SRC_PATH}/lh/exception/catch.cpp
         ${LH_TEST_SRC_PATH}/lh/runtime/error.cpp
@@ -62,6 +63,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/util/interval.cpp
         ${LH_TEST_SRC_PATH}/lh/util/math.cpp
         ${LH_TEST_SRC_PATH}/lh/str/view.cpp
+        ${LH_TEST_SRC_PATH}/lh/wstr/view.cpp
         ${LH_TEST_SRC_PATH}/lh/util/str/ptr.cpp
         ${LH_TEST_SRC_PATH}/lh/util/str/case/map.cpp
         ${LH_TEST_SRC_PATH}/lh/util/wstr/ptr.cpp

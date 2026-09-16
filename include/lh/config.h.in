@@ -101,6 +101,15 @@
  */
 #define LH_LIBRARY_OPTION_OS @ValOs@
 
+/**
+ * @def LH_LIBRARY_OPTION_OS_WERROR
+ * @brief OS last-error slot uses wide ::lh_werror_t (::LH_LIBRARY_OPTION_OFF /
+ *        ::LH_LIBRARY_OPTION_ON).
+ *
+ * ON: `FormatMessageW` / ::lh_wstr_view_t. OFF: `FormatMessageA` / ::lh_str_view_t.
+ */
+#define LH_LIBRARY_OPTION_OS_WERROR @ValOsWerror@
+
 
 /**
  * @def LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB

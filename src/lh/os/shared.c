@@ -2,7 +2,6 @@
 #include <lh/compiler/os.h>
 #include <lh/null.h>
 #include <lh/os.h>
-#include <lh/str/view.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
 #    define WIN32_LEAN_AND_MEAN
@@ -18,7 +17,7 @@ lh_os_shared_open(lh_str_cptr path)
 
     if (lh_null_eq(path))
     {
-        lh_os_set_last_error(1, lh_str_view_lit("path is null"));
+        lh_os_set_last_error(1, lh_os_error_desc_lit("path is null"));
         return lh_null;
     }
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
@@ -33,7 +32,7 @@ lh_os_shared_open(lh_str_cptr path)
     handle = (lh_os_shared_handle_t)dlopen(path, RTLD_NOW);
     if (lh_null_eq(handle))
     {
-        lh_os_set_last_error(1, lh_str_view_make(dlerror()));
+        lh_os_set_last_error_cstr(1, dlerror());
         return lh_null;
     }
 #endif
@@ -45,7 +44,7 @@ lh_os_shared_close(lh_os_shared_handle_t handle)
 {
     if (lh_null_eq(handle))
     {
-        lh_os_set_last_error(1, lh_str_view_lit("handle is null"));
+        lh_os_set_last_error(1, lh_os_error_desc_lit("handle is null"));
         return lh_bool_false;
     }
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
@@ -58,7 +57,7 @@ lh_os_shared_close(lh_os_shared_handle_t handle)
     (void)dlerror();
     if (dlclose(handle) != 0)
     {
-        lh_os_set_last_error(1, lh_str_view_make(dlerror()));
+        lh_os_set_last_error_cstr(1, dlerror());
         return lh_bool_false;
     }
 #endif
@@ -72,7 +71,7 @@ lh_os_shared_get_sym(lh_os_shared_handle_t handle, lh_str_cptr name)
 
     if (lh_null_eq(handle) || lh_null_eq(name))
     {
-        lh_os_set_last_error(1, lh_str_view_lit("handle or name is null"));
+        lh_os_set_last_error(1, lh_os_error_desc_lit("handle or name is null"));
         return lh_null;
     }
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
@@ -87,7 +86,7 @@ lh_os_shared_get_sym(lh_os_shared_handle_t handle, lh_str_cptr name)
     sym = (lh_ptr)dlsym(handle, name);
     if (lh_null_eq(sym))
     {
-        lh_os_set_last_error(1, lh_str_view_make(dlerror()));
+        lh_os_set_last_error_cstr(1, dlerror());
         return lh_null;
     }
 #endif

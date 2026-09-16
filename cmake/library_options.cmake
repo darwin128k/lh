@@ -45,6 +45,24 @@ option(LH_LIBRARY_OPTION_OS
         "Compile lh OS backends (dlopen/LoadLibrary, sockets). OFF for freestanding/STM."
         ON)
 
+# -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_OS_WERROR
+#
+# Encoding of the OS last-error slot (include/lh/os.h, src/lh/os.c).
+# Only used when LH_LIBRARY_OPTION_OS is ON.
+#
+#   ON  — lh_werror_t / wchar buffer; Windows FormatMessageW.
+#   OFF — lh_error_t / char buffer; Windows FormatMessageA.
+# -----------------------------------------------------------------------------
+if (WIN32)
+    set(_LH_OS_WERROR_DEFAULT ON)
+else ()
+    set(_LH_OS_WERROR_DEFAULT OFF)
+endif ()
+option(LH_LIBRARY_OPTION_OS_WERROR
+        "OS last-error slot uses lh_werror_t / FormatMessageW (ON) instead of lh_error_t / FormatMessageA (OFF)."
+        ${_LH_OS_WERROR_DEFAULT})
+unset(_LH_OS_WERROR_DEFAULT)
 
 # -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB
