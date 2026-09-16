@@ -3,7 +3,7 @@
  * @brief Runtime error value type (::lh_runtime_error_t) and its API.
  *
  * ::lh_runtime_error_t is binary-compatible with ::lh_error_t — both carry
- * a numeric code and an optional description pointer in the same field order.
+ * a numeric code and an optional ::lh_runtime_error_desc_t description in the same field order.
  * All functions delegate to the corresponding ::lh_error_* counterparts.
  *
  * The runtime-namespaced type exists to document intent: an
@@ -297,7 +297,8 @@ lh_runtime_error_get_code_and_clear(lh_runtime_error_t *self);
  *
  * Example usage:
  * @code{.c}
- * lh_runtime_assert(ptr, lh_runtime_error_make(lh_runtime_error_code_null_pointer, "bad ptr"));
+ * lh_runtime_assert(ptr, lh_runtime_error_make(lh_runtime_error_code_null_pointer,
+ *                                              lh_str_view_make("bad ptr")));
  * @endcode
  *
  * @see lh_runtime_error_make_by_code
@@ -336,7 +337,7 @@ lh_runtime_error_make_by_code(lh_runtime_error_code_t code);
  *
  * Example usage:
  * @code{.c}
- * lh_runtime_assert(ok, lh_runtime_error_make_by_desc("operation failed"));
+ * lh_runtime_assert(ok, lh_runtime_error_make_by_desc(lh_str_view_make("operation failed")));
  * @endcode
  *
  * @see lh_runtime_error_make

@@ -21,6 +21,7 @@
 
 #include <lh/memory/view.h>
 #include <lh/str/ptr.h>
+#include <lh/str/view/initializer.h>
 #include <lh/char.h>
 #include <lh/size.h>
 #include <lh/offset.h>
@@ -108,6 +109,20 @@ lh_str_view_init_empty(lh_str_view_t *self);
 LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_view_init_by_other(lh_str_view_t *self, const lh_str_view_t *other);
+
+/**
+ * @brief Construct a view over a NUL-terminated C string @p data.
+ *
+ * ::lh_null or an empty string become ::lh_str_view_empty_initializer.
+ * Otherwise the view covers the characters before the terminator
+ * (same length as ::lh_str_ptr_len).
+ *
+ * @param data NUL-terminated string, or ::lh_null.
+ * @return Constructed view (does not own @p data).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_str_view_t
+lh_str_view_make(lh_str_cptr data);
 
 /* -- getters --------------------------------------------------------------- */
 

@@ -1,4 +1,6 @@
 ﻿#include <lh/str/view.h>
+#include <lh/null.h>
+#include <lh/util/addr.h>
 #include <lh/util/str/ptr.h>
 
 lh_void
@@ -23,6 +25,20 @@ lh_void
 lh_str_view_init_by_other(lh_str_view_t *self, const lh_str_view_t *other)
 {
     lh_memory_view_init_by_other(self, other);
+}
+
+lh_str_view_t
+lh_str_view_make(lh_str_cptr data)
+{
+    lh_str_view_t self;
+
+    if (lh_null_eq(data) || data[0] == '\0')
+    {
+        lh_str_view_init_empty(lh_addr_of(self));
+        return self;
+    }
+    lh_str_view_init(lh_addr_of(self), data);
+    return self;
 }
 
 lh_str_cptr

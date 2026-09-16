@@ -33,7 +33,7 @@
  *
  * Example usage:
  * @code{.c}
- * lh_exception_t ex = lh_exception_initializer(LH_ERROR_CODE_OK, lh_null);
+ * lh_exception_t ex = lh_exception_initializer(LH_ERROR_CODE_OK, lh_str_view_empty_initializer());
  * @endcode
  *
  * @see lh_error_initializer

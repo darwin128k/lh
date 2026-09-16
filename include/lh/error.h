@@ -2,7 +2,8 @@
  * @file error.h
  * @brief Error value type (::lh_error_t) and pack/unpack API.
  *
- * An error bundles a numeric ::lh_error_code_t with an optional C string description.
+ * An error bundles a numeric ::lh_error_code_t with an optional
+ * ::lh_error_desc_t description (a ::lh_str_view_t). The view does not own text.
  * The pack/unpack API supports optional field pointers, so callers can update/read
  * code and description together or independently.
  */
@@ -35,7 +36,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @param self Error object to modify.
  * @param code Input pointer for new error code, or ::lh_null to keep current value.
- * @param desc Input pointer for new description pointer, or ::lh_null to keep current value.
+ * @param desc Input pointer for a new description view, or ::lh_null to keep current value.
  */
 LH_ATTRIBUTE_SYMBOL
 void
@@ -76,7 +77,7 @@ lh_error_unpack_to_other(const lh_error_t *self, lh_error_t *other);
  *
  * @param self Error object to modify.
  * @param code New error code.
- * @param desc New description pointer (may be null).
+ * @param desc New description view (empty view = no description).
  */
 LH_ATTRIBUTE_SYMBOL
 void
@@ -95,12 +96,12 @@ void
 lh_error_set_code(lh_error_t *self, lh_error_code_t code);
 
 /**
- * @brief Replace only the description pointer stored in @p self.
+ * @brief Replace only the description view stored in @p self.
  *
  * Equivalent to ::lh_error_pack with @c code skipped and @p desc provided.
  *
  * @param self Error object to modify.
- * @param desc New description pointer (may be null).
+ * @param desc New description view (empty view = no description).
  */
 LH_ATTRIBUTE_SYMBOL
 void
@@ -118,20 +119,20 @@ lh_error_code_t
 lh_error_get_code(const lh_error_t *self);
 
 /**
- * @brief Return the description pointer stored in @p self.
+ * @brief Return the description view stored in @p self.
  * @param self Error object to read from.
- * @return Current @c desc (may be null).
+ * @return Current @c desc (empty view when there is no description).
  */
 LH_ATTRIBUTE_SYMBOL
 lh_error_desc_t
 lh_error_get_desc(const lh_error_t *self);
 
 /**
- * @brief Return the description pointer or @p fallback when it is null.
+ * @brief Return the description view or @p fallback when it is empty.
  *
  * @param self Error object to read from.
  * @param fallback Description returned when @p self has no description.
- * @return Stored description when non-null, otherwise @p fallback.
+ * @return Stored description when non-empty, otherwise @p fallback.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_error_desc_t
@@ -169,10 +170,10 @@ lh_bool_t
 lh_error_is_failure(const lh_error_t *self);
 
 /**
- * @brief Test whether @p self has a non-null description.
+ * @brief Test whether @p self has a non-empty description.
  *
  * @param self Error object to read from.
- * @return ::lh_bool_true when @p self stores a description pointer.
+ * @return ::lh_bool_true when @p self stores a non-empty description view.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
@@ -191,12 +192,12 @@ lh_error_is_empty(const lh_error_t *self);
 /**
  * @brief Test whether two error objects store the same fields.
  *
- * Description equality is pointer equality; ::lh_error_t does not own or copy
- * description text.
+ * Description equality is span identity (same begin and end pointers);
+ * ::lh_error_t does not own or copy description text.
  *
  * @param self Error object to read from.
  * @param other Error object to compare with.
- * @return ::lh_bool_true when both objects store the same code and description pointer.
+ * @return ::lh_bool_true when both objects store the same code and description span.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
@@ -205,7 +206,7 @@ lh_error_equals(const lh_error_t *self, const lh_error_t *other);
 /**
  * @brief Test whether two error objects store the same code.
  *
- * Description pointers are ignored.
+ * Description views are ignored.
  *
  * @param self Error object to read from.
  * @param other Error object to compare with.
@@ -218,7 +219,7 @@ lh_error_has_same_code(const lh_error_t *self, const lh_error_t *other);
 /**
  * @brief Test whether two error objects store different codes.
  *
- * Description pointers are ignored.
+ * Description views are ignored.
  *
  * @param self Error object to read from.
  * @param other Error object to compare with.
@@ -240,7 +241,7 @@ void
 lh_error_assign(lh_error_t *self, const lh_error_t *other);
 
 /**
- * @brief Reset @p self to an empty success state (::LH_ERROR_CODE_OK, null @c desc).
+ * @brief Reset @p self to an empty success state (::LH_ERROR_CODE_OK, empty @c desc).
  *
  * Uses ::lh_error_empty_initializer via ::lh_error_assign.
  *
@@ -259,7 +260,7 @@ lh_error_clear(lh_error_t *self);
  *
  * @param self Error object to initialize.
  * @param code Initial error code.
- * @param desc Initial description pointer (may be null).
+ * @param desc Initial description view (empty view = no description).
  */
 LH_ATTRIBUTE_SYMBOL
 void
@@ -301,7 +302,7 @@ lh_error_get_code_and_clear(lh_error_t *self);
  * @brief Construct an ::lh_error_t with @p code and @p desc.
  *
  * @param code Error code (::lh_error_code_t).
- * @param desc Description string (may be @c lh_null).
+ * @param desc Description view (empty view = no description).
  * @return Constructed ::lh_error_t value.
  */
 LH_ATTRIBUTE_SYMBOL

@@ -4,87 +4,94 @@
 #include <lh/exception/catch/initializer.h>
 #include <lh/expect/death.h>
 
+
 namespace
 {
 
+const char *
+desc_cstr(lh_error_desc_t desc)
+{
+    return lh_str_view_is_empty(&desc) ? nullptr : lh_str_view_get_data(&desc);
+}
+
 TEST(exception_catch_get_exception, returns_stored_exception)
 {
-    lh_exception_catch_t catch_frame = lh_exception_catch_initializer(42, "msg");
+    lh_exception_catch_t catch_frame = lh_exception_catch_initializer(42, lh_str_view_make("msg"));
     lh_exception_t *exception = lh_exception_catch_get_exception(&catch_frame);
 
     ASSERT_NE(exception, nullptr);
     EXPECT_EQ(lh_exception_get_code(exception), 42);
-    EXPECT_STREQ(lh_exception_get_desc(exception), "msg");
+    EXPECT_STREQ(desc_cstr(lh_exception_get_desc(exception)), "msg");
 }
 
 TEST(exception_catch_get_exception_as_const, returns_stored_exception)
 {
-    lh_exception_catch_t catch_frame = lh_exception_catch_initializer(42, "msg");
+    lh_exception_catch_t catch_frame = lh_exception_catch_initializer(42, lh_str_view_make("msg"));
     const lh_exception_t *exception = lh_exception_catch_get_exception_as_const(&catch_frame);
 
     ASSERT_NE(exception, nullptr);
     EXPECT_EQ(lh_exception_get_code(exception), 42);
-    EXPECT_STREQ(lh_exception_get_desc(exception), "msg");
+    EXPECT_STREQ(desc_cstr(lh_exception_get_desc(exception)), "msg");
 }
 
 TEST(exception_catch_get_error, returns_stored_exception_error)
 {
-    lh_exception_catch_t catch_frame = lh_exception_catch_initializer(42, "msg");
+    lh_exception_catch_t catch_frame = lh_exception_catch_initializer(42, lh_str_view_make("msg"));
     lh_error_t *error = lh_exception_catch_get_error(&catch_frame);
 
     ASSERT_NE(error, nullptr);
     EXPECT_EQ(lh_error_get_code(error), 42);
-    EXPECT_STREQ(lh_error_get_desc(error), "msg");
+    EXPECT_STREQ(desc_cstr(lh_error_get_desc(error)), "msg");
 }
 
 TEST(exception_catch_get_error_as_const, returns_stored_exception_error)
 {
-    lh_exception_catch_t catch_frame = lh_exception_catch_initializer(42, "msg");
+    lh_exception_catch_t catch_frame = lh_exception_catch_initializer(42, lh_str_view_make("msg"));
     const lh_error_t *error = lh_exception_catch_get_error_as_const(&catch_frame);
 
     ASSERT_NE(error, nullptr);
     EXPECT_EQ(lh_error_get_code(error), 42);
-    EXPECT_STREQ(lh_error_get_desc(error), "msg");
+    EXPECT_STREQ(desc_cstr(lh_error_get_desc(error)), "msg");
 }
 
 TEST(exception_catch_get_code, returns_stored_exception_code)
 {
-    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(7, "seven");
+    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(7, lh_str_view_make("seven"));
 
     EXPECT_EQ(lh_exception_catch_get_code(&catch_frame), 7);
 }
 
 TEST(exception_catch_get_desc, returns_stored_exception_desc)
 {
-    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(9, "nine");
+    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(9, lh_str_view_make("nine"));
 
-    EXPECT_STREQ(lh_exception_catch_get_desc(&catch_frame), "nine");
+    EXPECT_STREQ(desc_cstr(lh_exception_catch_get_desc(&catch_frame)), "nine");
 }
 
 TEST(exception_catch_get_desc_or, returns_desc_when_non_null)
 {
-    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(1, "desc");
+    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(1, lh_str_view_make("desc"));
 
-    EXPECT_STREQ(lh_exception_catch_get_desc_or(&catch_frame, "fallback"), "desc");
+    EXPECT_STREQ(desc_cstr(lh_exception_catch_get_desc_or(&catch_frame, lh_str_view_make("fallback"))), "desc");
 }
 
 TEST(exception_catch_get_desc_or, returns_fallback_when_desc_is_null)
 {
-    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(1, nullptr);
+    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(1, lh_str_view_make(nullptr));
 
-    EXPECT_STREQ(lh_exception_catch_get_desc_or(&catch_frame, "fallback"), "fallback");
+    EXPECT_STREQ(desc_cstr(lh_exception_catch_get_desc_or(&catch_frame, lh_str_view_make("fallback"))), "fallback");
 }
 
 TEST(exception_catch_has_code, returns_true_for_matching_code)
 {
-    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(11, "eleven");
+    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(11, lh_str_view_make("eleven"));
 
     EXPECT_TRUE(lh_exception_catch_has_code(&catch_frame, 11));
 }
 
 TEST(exception_catch_has_code, returns_false_for_different_code)
 {
-    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(11, "eleven");
+    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(11, lh_str_view_make("eleven"));
 
     EXPECT_FALSE(lh_exception_catch_has_code(&catch_frame, 12));
 }
@@ -92,21 +99,21 @@ TEST(exception_catch_has_code, returns_false_for_different_code)
 TEST(exception_catch_is_ok, returns_true_for_ok_code)
 {
     const lh_exception_catch_t catch_frame =
-        lh_exception_catch_initializer(lh_error_code_ok, nullptr);
+        lh_exception_catch_initializer(lh_error_code_ok, lh_str_view_make(nullptr));
 
     EXPECT_TRUE(lh_exception_catch_is_ok(&catch_frame));
 }
 
 TEST(exception_catch_is_failure, returns_true_for_non_ok_code)
 {
-    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(1, nullptr);
+    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(1, lh_str_view_make(nullptr));
 
     EXPECT_TRUE(lh_exception_catch_is_failure(&catch_frame));
 }
 
 TEST(exception_catch_has_desc, returns_true_for_non_null_desc)
 {
-    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(1, "desc");
+    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(1, lh_str_view_make("desc"));
 
     EXPECT_TRUE(lh_exception_catch_has_desc(&catch_frame));
 }
@@ -120,7 +127,7 @@ TEST(exception_catch_is_empty, returns_true_for_empty_exception)
 
 TEST(exception_catch_equals, returns_true_for_same_embedded_exception)
 {
-    lh_error_desc_t desc = "same";
+    lh_error_desc_t desc = lh_str_view_make("same");
     const lh_exception_catch_t lhs = lh_exception_catch_initializer(21, desc);
     const lh_exception_catch_t rhs = lh_exception_catch_initializer(21, desc);
 
@@ -129,40 +136,40 @@ TEST(exception_catch_equals, returns_true_for_same_embedded_exception)
 
 TEST(exception_catch_equals, returns_false_for_different_embedded_exception)
 {
-    const lh_exception_catch_t lhs = lh_exception_catch_initializer(21, "same");
-    const lh_exception_catch_t rhs = lh_exception_catch_initializer(22, "same");
+    const lh_exception_catch_t lhs = lh_exception_catch_initializer(21, lh_str_view_make("same"));
+    const lh_exception_catch_t rhs = lh_exception_catch_initializer(22, lh_str_view_make("same"));
 
     EXPECT_FALSE(lh_exception_catch_equals(&lhs, &rhs));
 }
 
 TEST(exception_catch_has_same_code, returns_true_for_same_code)
 {
-    const lh_exception_catch_t lhs = lh_exception_catch_initializer(21, "lhs");
-    const lh_exception_catch_t rhs = lh_exception_catch_initializer(21, "rhs");
+    const lh_exception_catch_t lhs = lh_exception_catch_initializer(21, lh_str_view_make("lhs"));
+    const lh_exception_catch_t rhs = lh_exception_catch_initializer(21, lh_str_view_make("rhs"));
 
     EXPECT_TRUE(lh_exception_catch_has_same_code(&lhs, &rhs));
 }
 
 TEST(exception_catch_has_same_code, returns_false_for_different_code)
 {
-    const lh_exception_catch_t lhs = lh_exception_catch_initializer(21, "same");
-    const lh_exception_catch_t rhs = lh_exception_catch_initializer(22, "same");
+    const lh_exception_catch_t lhs = lh_exception_catch_initializer(21, lh_str_view_make("same"));
+    const lh_exception_catch_t rhs = lh_exception_catch_initializer(22, lh_str_view_make("same"));
 
     EXPECT_FALSE(lh_exception_catch_has_same_code(&lhs, &rhs));
 }
 
 TEST(exception_catch_has_diff_code, returns_true_for_different_code)
 {
-    const lh_exception_catch_t lhs = lh_exception_catch_initializer(21, "same");
-    const lh_exception_catch_t rhs = lh_exception_catch_initializer(22, "same");
+    const lh_exception_catch_t lhs = lh_exception_catch_initializer(21, lh_str_view_make("same"));
+    const lh_exception_catch_t rhs = lh_exception_catch_initializer(22, lh_str_view_make("same"));
 
     EXPECT_TRUE(lh_exception_catch_has_diff_code(&lhs, &rhs));
 }
 
 TEST(exception_catch_has_diff_code, returns_false_for_same_code)
 {
-    const lh_exception_catch_t lhs = lh_exception_catch_initializer(21, "lhs");
-    const lh_exception_catch_t rhs = lh_exception_catch_initializer(21, "rhs");
+    const lh_exception_catch_t lhs = lh_exception_catch_initializer(21, lh_str_view_make("lhs"));
+    const lh_exception_catch_t rhs = lh_exception_catch_initializer(21, lh_str_view_make("rhs"));
 
     EXPECT_FALSE(lh_exception_catch_has_diff_code(&lhs, &rhs));
 }
@@ -201,7 +208,7 @@ TEST(exception_catch_death, get_desc_null_self)
 
 TEST(exception_catch_death, get_desc_or_null_self)
 {
-    LH_EXPECT_DEATH(lh_exception_catch_get_desc_or(nullptr, "fallback"));
+    LH_EXPECT_DEATH(lh_exception_catch_get_desc_or(nullptr, lh_str_view_make("fallback")));
 }
 
 TEST(exception_catch_death, has_code_null_self)

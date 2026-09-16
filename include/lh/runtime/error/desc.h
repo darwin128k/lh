@@ -1,6 +1,6 @@
 /**
  * @file desc.h
- * @brief Type alias for runtime error description pointers (::lh_runtime_error_desc_t).
+ * @brief Type alias for runtime error descriptions (::lh_runtime_error_desc_t).
  */
 
 #ifndef LH_RUNTIME_ERROR_DESC_H
@@ -10,10 +10,10 @@
 
 /**
  * @typedef lh_runtime_error_desc_t
- * @brief Same representation as ::lh_error_desc_t for runtime-layer APIs.
+ * @brief Same type as ::lh_error_desc_t for runtime-layer APIs.
  *
- * Distinct typedef documents intent (runtime throw / check paths) while keeping
- * binary compatibility with ::lh_error_desc_t.
+ * Distinct name documents intent (throw / check paths) while remaining
+ * layout-compatible with ::lh_error_desc_t.
  */
 typedef lh_error_desc_t lh_runtime_error_desc_t;
 

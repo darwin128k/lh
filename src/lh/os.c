@@ -3,6 +3,7 @@
 #include <lh/compiler/os.h>
 #include <lh/null.h>
 #include <lh/size.h>
+#include <lh/str/view.h>
 #include <lh/util/str/ptr.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
@@ -22,17 +23,19 @@ static void
 lh_os_last_error_copy_desc(lh_error_desc_t text)
 {
     const lh_usize_t cap = lh_str_ptr_get_size(g_lh_os_last_error_desc);
+    lh_str_cptr data;
     lh_str_ptr end;
 
-    if (lh_null_eq(text))
+    if (lh_str_view_is_empty(&text))
     {
         g_lh_os_last_error_desc[0] = '\0';
         return;
     }
-    if (text != g_lh_os_last_error_desc)
+    data = lh_str_view_get_data(&text);
+    if (data != g_lh_os_last_error_desc)
     {
-        end = lh_str_ptr_copy(g_lh_os_last_error_desc, cap, (lh_str_ptr)text,
-                              lh_str_ptr_len((lh_str_ptr)text));
+        end = lh_str_ptr_copy(g_lh_os_last_error_desc, cap, (lh_str_ptr)data,
+                              lh_str_view_get_size(&text));
         end[0] = '\0';
     }
     lh_str_ptr_rtrim(g_lh_os_last_error_desc);
@@ -60,11 +63,11 @@ lh_os_capture_last_error(void)
     }
     else
     {
-        lh_os_last_error_copy_desc(g_lh_os_last_error_desc);
+        lh_os_last_error_copy_desc(lh_str_view_make(g_lh_os_last_error_desc));
     }
 #else
     g_lh_os_last_error_code = (lh_error_code_t)errno;
-    lh_os_last_error_copy_desc(strerror(errno));
+    lh_os_last_error_copy_desc(lh_str_view_make(strerror(errno)));
 #endif
 }
 
@@ -77,7 +80,7 @@ lh_os_get_last_error_code(void)
 lh_error_desc_t
 lh_os_get_last_error_desc(void)
 {
-    return g_lh_os_last_error_desc;
+    return lh_str_view_make(g_lh_os_last_error_desc);
 }
 
 lh_error_t

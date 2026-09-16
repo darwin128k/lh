@@ -27,7 +27,7 @@
  * Example usage:
  * @code{.c}
  * lh_runtime_assert_if(result < 0,
- *     lh_runtime_error_make(lh_runtime_error_code_invalid_argument, "bad result"));
+ *     lh_runtime_error_make(lh_runtime_error_code_invalid_argument, lh_str_view_make("bad result"));
  * @endcode
  *
  * @see lh_runtime_assert_ifn
@@ -52,7 +52,7 @@
  * Example usage:
  * @code{.c}
  * lh_runtime_assert_ifn(ptr != lh_null,
- *     lh_runtime_error_make(lh_runtime_error_code_null_pointer, lh_null));
+ *     lh_runtime_error_make(lh_runtime_error_code_null_pointer, lh_str_view_make(lh_null)));
  * @endcode
  *
  * @see lh_runtime_assert_if
@@ -69,7 +69,7 @@
  * Example usage:
  * @code{.c}
  * lh_runtime_assert(ptr != lh_null,
- *     lh_runtime_error_make(lh_runtime_error_code_null_pointer, lh_null));
+ *     lh_runtime_error_make(lh_runtime_error_code_null_pointer, lh_str_view_make(lh_null)));
  * @endcode
  *
  * @see lh_runtime_assert_if
@@ -93,6 +93,6 @@
  */
 #define lh_runtime_assert_ref(expr)                                                                \
     lh_runtime_assert(expr, lh_runtime_error_make(lh_runtime_error_code_null_pointer,              \
-                                                  "invalid reference to null pointer"))
+                                                  lh_str_view_make("invalid reference to null pointer")))
 
 #endif /* LH_RUNTIME_ASSERT_H */

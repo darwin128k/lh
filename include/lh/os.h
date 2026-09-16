@@ -27,7 +27,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Store @p code and a copy of @p desc as the last OS-layer error.
  *
- * @p desc may be ::lh_null (empty message). The copy is valid until the next
+ * @p desc may be empty (no message). The copy is valid until the next
  * ::lh_os_set_last_error / ::lh_os_capture_last_error.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -53,7 +53,7 @@ lh_error_code_t
 lh_os_get_last_error_code(void);
 
 /**
- * @brief Last error message. Valid until the next set/capture.
+ * @brief Last error message as a view into the slot. Valid until the next set/capture.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_error_desc_t

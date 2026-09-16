@@ -1,4 +1,5 @@
 #include <lh/runtime/error.h>
+#include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 #include <lh/error.h>
 
@@ -155,7 +156,10 @@ lh_runtime_error_make(lh_runtime_error_code_t code, lh_runtime_error_desc_t desc
 lh_runtime_error_t
 lh_runtime_error_make_by_code(lh_runtime_error_code_t code)
 {
-    return lh_runtime_error_make(code, lh_null);
+    lh_runtime_error_t self;
+    lh_runtime_error_init_by_empty(lh_addr_of(self));
+    lh_runtime_error_set_code(lh_addr_of(self), code);
+    return self;
 }
 
 lh_runtime_error_t
