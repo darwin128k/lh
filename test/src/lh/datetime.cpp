@@ -31,4 +31,28 @@ TEST(datetime_is_at_least, later_time_same_date)
     EXPECT_EQ(lh_datetime_is_at_least(&a, &b), lh_bool_true);
 }
 
+TEST(datetime_add, time_overflow_into_date)
+{
+    lh_datetime_t dt = lh_datetime_initializer(lh_date_initializer(2026, 9, 16),
+                                               lh_time_initializer(23, 0, 0));
+    const lh_datetime_t addend = lh_datetime_initializer(lh_date_initializer(0, 0, 0),
+                                                         lh_time_initializer(2, 0, 0));
+
+    EXPECT_EQ(lh_datetime_add(&dt, &addend), 0U);
+    EXPECT_EQ(lh_date_get_day(&dt.date), 17);
+    EXPECT_EQ(lh_time_get_hour(&dt.time), 1);
+}
+
+TEST(datetime_sub, time_borrow_from_date)
+{
+    lh_datetime_t dt = lh_datetime_initializer(lh_date_initializer(2026, 9, 17),
+                                               lh_time_initializer(1, 0, 0));
+    const lh_datetime_t subtrahend = lh_datetime_initializer(lh_date_initializer(0, 0, 0),
+                                                             lh_time_initializer(2, 0, 0));
+
+    EXPECT_EQ(lh_datetime_sub(&dt, &subtrahend), 0U);
+    EXPECT_EQ(lh_date_get_day(&dt.date), 16);
+    EXPECT_EQ(lh_time_get_hour(&dt.time), 23);
+}
+
 } // namespace

@@ -53,6 +53,60 @@ lh_datetime_assign(lh_datetime_t *self, const lh_datetime_t *other)
     lh_datetime_set(self, lh_addr_of(date), lh_addr_of(time));
 }
 
+lh_uint_t
+lh_datetime_add(lh_datetime_t *self, const lh_datetime_t *other)
+{
+    lh_date_t date;
+    lh_time_t time;
+    lh_date_t other_date;
+    lh_time_t other_time;
+    lh_uint_t day_carry;
+    lh_uint_t overflow;
+
+    lh_datetime_unpack(self, lh_addr_of(date), lh_addr_of(time));
+    lh_datetime_unpack(other, lh_addr_of(other_date), lh_addr_of(other_time));
+    day_carry = lh_time_add(lh_addr_of(time), lh_addr_of(other_time));
+    overflow = lh_date_add(lh_addr_of(date), lh_addr_of(other_date));
+    while (day_carry > 0)
+    {
+        lh_date_t extra;
+        lh_date_day_t chunk = day_carry > 31U ? (lh_date_day_t)31U : (lh_date_day_t)day_carry;
+
+        lh_date_set(lh_addr_of(extra), 0, 0, chunk);
+        overflow += lh_date_add(lh_addr_of(date), lh_addr_of(extra));
+        day_carry -= chunk;
+    }
+    lh_datetime_set(self, lh_addr_of(date), lh_addr_of(time));
+    return overflow;
+}
+
+lh_uint_t
+lh_datetime_sub(lh_datetime_t *self, const lh_datetime_t *other)
+{
+    lh_date_t date;
+    lh_time_t time;
+    lh_date_t other_date;
+    lh_time_t other_time;
+    lh_uint_t day_borrow;
+    lh_uint_t overflow;
+
+    lh_datetime_unpack(self, lh_addr_of(date), lh_addr_of(time));
+    lh_datetime_unpack(other, lh_addr_of(other_date), lh_addr_of(other_time));
+    day_borrow = lh_time_sub(lh_addr_of(time), lh_addr_of(other_time));
+    overflow = lh_date_sub(lh_addr_of(date), lh_addr_of(other_date));
+    while (day_borrow > 0)
+    {
+        lh_date_t extra;
+        lh_date_day_t chunk = day_borrow > 31U ? (lh_date_day_t)31U : (lh_date_day_t)day_borrow;
+
+        lh_date_set(lh_addr_of(extra), 0, 0, chunk);
+        overflow += lh_date_sub(lh_addr_of(date), lh_addr_of(extra));
+        day_borrow -= chunk;
+    }
+    lh_datetime_set(self, lh_addr_of(date), lh_addr_of(time));
+    return overflow;
+}
+
 lh_date_t
 lh_datetime_get_date(const lh_datetime_t *self)
 {

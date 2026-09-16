@@ -99,6 +99,44 @@ lh_time_assign(lh_time_t *self, const lh_time_t *other)
     lh_time_set(self, hour, minute, second);
 }
 
+lh_uint_t
+lh_time_add(lh_time_t *self, const lh_time_t *other)
+{
+    lh_time_hour_t hour;
+    lh_time_minute_t minute;
+    lh_time_second_t second;
+    lh_uint_t minute_overflow;
+    lh_uint_t hour_overflow;
+
+    lh_time_unpack(self, lh_addr_of(hour), lh_addr_of(minute), lh_addr_of(second));
+    minute_overflow = lh_time_second_add(lh_addr_of(second), lh_time_get_second(other));
+    hour_overflow = lh_time_minute_add(lh_addr_of(minute),
+                                       (lh_uint_t)lh_time_get_minute(other) + minute_overflow);
+    hour_overflow = lh_time_hour_add(lh_addr_of(hour),
+                                     (lh_uint_t)lh_time_get_hour(other) + hour_overflow);
+    lh_time_set(self, hour, minute, second);
+    return hour_overflow;
+}
+
+lh_uint_t
+lh_time_sub(lh_time_t *self, const lh_time_t *other)
+{
+    lh_time_hour_t hour;
+    lh_time_minute_t minute;
+    lh_time_second_t second;
+    lh_uint_t minute_borrow;
+    lh_uint_t hour_borrow;
+
+    lh_time_unpack(self, lh_addr_of(hour), lh_addr_of(minute), lh_addr_of(second));
+    minute_borrow = lh_time_second_sub(lh_addr_of(second), lh_time_get_second(other));
+    hour_borrow = lh_time_minute_sub(lh_addr_of(minute),
+                                     (lh_uint_t)lh_time_get_minute(other) + minute_borrow);
+    hour_borrow = lh_time_hour_sub(lh_addr_of(hour),
+                                   (lh_uint_t)lh_time_get_hour(other) + hour_borrow);
+    lh_time_set(self, hour, minute, second);
+    return hour_borrow;
+}
+
 lh_time_hour_t
 lh_time_get_hour(const lh_time_t *self)
 {

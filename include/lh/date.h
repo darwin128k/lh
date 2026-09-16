@@ -128,6 +128,39 @@ void
 lh_date_set(lh_date_t *self, lh_date_year_t year, lh_date_month_t month, lh_date_day_t day);
 
 /**
+ * @brief Add @p other to @p self as a duration (`year/month/day`).
+ *
+ * Days move on the Gregorian calendar. Months then years follow; a day that
+ * does not exist in the new month is clamped to that month's last day
+ * (January 31 plus one month is February 28/29). Years wrap on
+ * `[0, ::LH_DATE_YEAR_MAX]`.
+ *
+ * @param self  Date to update (not null).
+ * @param other Duration to add (not null).
+ *
+ * @return Whole year-radix overflows (`::LH_DATE_YEAR_MAX + 1`). `0` if the
+ *         year stayed in range.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_date_add(lh_date_t *self, const lh_date_t *other);
+
+/**
+ * @brief Subtract @p other from @p self as a duration (`year/month/day`).
+ *
+ * Same calendar rules as ::lh_date_add. Years wrap on
+ * `[0, ::LH_DATE_YEAR_MAX]`.
+ *
+ * @param self  Date to update (not null).
+ * @param other Duration to subtract (not null).
+ *
+ * @return Whole year-radix units borrowed. `0` if the year stayed in range.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_date_sub(lh_date_t *self, const lh_date_t *other);
+
+/**
  * @brief Return the year of @p self.
  *
  * @param self Date to read (not null).

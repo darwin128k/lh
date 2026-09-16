@@ -54,4 +54,11 @@ TEST(time_second_compare, equals_and_is_at_least)
     EXPECT_EQ(lh_time_second_is_greater(&a, &c), lh_bool_false);
 }
 
+TEST(time_second_sub, borrows_minutes)
+{
+    lh_time_second_t second = lh_time_second_initializer(10);
+    EXPECT_EQ(lh_time_second_sub(&second, 20), 1U);
+    EXPECT_EQ(lh_time_second_get(&second), 50);
+}
+
 } // namespace

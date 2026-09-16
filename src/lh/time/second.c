@@ -13,6 +13,28 @@ lh_time_second_wrap(lh_time_second_t *self, lh_ullong_t total)
                                                        (lh_ullong_t)LH_TIME_SECOND_MAX);
 }
 
+static lh_uint_t
+lh_time_second_wrap_sub(lh_time_second_t *self, lh_uint_t value)
+{
+    lh_ullong_t cur = (lh_ullong_t)(*self);
+    lh_ullong_t size = (lh_ullong_t)LH_TIME_SECOND_RADIX;
+    lh_ullong_t sub = (lh_ullong_t)value;
+
+    if (sub <= cur)
+    {
+        *self = (lh_time_second_t)(cur - sub);
+        return 0;
+    }
+
+    {
+        lh_ullong_t need = sub - cur;
+        lh_ullong_t borrow = (need + size - 1U) / size;
+
+        *self = (lh_time_second_t)(borrow * size + cur - sub);
+        return (lh_uint_t)borrow;
+    }
+}
+
 lh_uint_t
 lh_time_second_set(lh_time_second_t *self, lh_uint_t value)
 {
@@ -31,6 +53,13 @@ lh_uint_t
 lh_time_second_add(lh_time_second_t *self, lh_uint_t value)
 {
     return lh_time_second_wrap(self, (lh_ullong_t)lh_time_second_get(self) + (lh_ullong_t)value);
+}
+
+lh_uint_t
+lh_time_second_sub(lh_time_second_t *self, lh_uint_t value)
+{
+    lh_assert_runtime_ref(self);
+    return lh_time_second_wrap_sub(self, value);
 }
 
 lh_time_second_t

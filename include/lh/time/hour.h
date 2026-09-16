@@ -7,7 +7,7 @@
  *
  * Brace init: ::lh_time_hour_initializer in `lh/time/hour/initializer.h`.
  * Runtime init: ::lh_time_hour_init. Overflow into days: ::lh_time_hour_set
- * / ::lh_time_hour_add.
+ * / ::lh_time_hour_add / ::lh_time_hour_sub.
  */
 
 #ifndef LH_TIME_HOUR_H
@@ -80,6 +80,18 @@ lh_time_hour_set(lh_time_hour_t *self, lh_uint_t value);
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_hour_add(lh_time_hour_t *self, lh_uint_t value);
+
+/**
+ * @brief Subtract @p value from @p self, wrapping on the closed hour interval.
+ *
+ * @param self  Hour to update (not null).
+ * @param value Hours to subtract (any ::lh_uint_t).
+ *
+ * @return Whole days borrowed. `0` if the difference stayed in range.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_time_hour_sub(lh_time_hour_t *self, lh_uint_t value);
 
 /**
  * @brief Read the stored hour (`0`–::LH_TIME_HOUR_MAX).

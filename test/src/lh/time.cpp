@@ -38,4 +38,26 @@ TEST(time_compare, less_greater)
     EXPECT_EQ(lh_time_is_at_least(&later, &earlier), lh_bool_true);
 }
 
+TEST(time_add, wraps_into_days)
+{
+    lh_time_t time = lh_time_initializer(23, 50, 40);
+    const lh_time_t addend = lh_time_initializer(1, 20, 30);
+
+    EXPECT_EQ(lh_time_add(&time, &addend), 1U);
+    EXPECT_EQ(lh_time_get_hour(&time), 1);
+    EXPECT_EQ(lh_time_get_minute(&time), 11);
+    EXPECT_EQ(lh_time_get_second(&time), 10);
+}
+
+TEST(time_sub, borrows_days)
+{
+    lh_time_t time = lh_time_initializer(1, 11, 10);
+    const lh_time_t subtrahend = lh_time_initializer(1, 20, 30);
+
+    EXPECT_EQ(lh_time_sub(&time, &subtrahend), 1U);
+    EXPECT_EQ(lh_time_get_hour(&time), 23);
+    EXPECT_EQ(lh_time_get_minute(&time), 50);
+    EXPECT_EQ(lh_time_get_second(&time), 40);
+}
+
 } // namespace

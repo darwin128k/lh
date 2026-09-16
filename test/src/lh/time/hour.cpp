@@ -30,6 +30,13 @@ TEST(time_hour_add, carries_into_days)
     EXPECT_EQ(lh_time_hour_get(&hour), 2);
 }
 
+TEST(time_hour_sub, borrows_days)
+{
+    lh_time_hour_t hour = lh_time_hour_initializer(2);
+    EXPECT_EQ(lh_time_hour_sub(&hour, 6), 1U);
+    EXPECT_EQ(lh_time_hour_get(&hour), 20);
+}
+
 TEST(time_hour_compare, equals_and_is_at_least)
 {
     const lh_time_hour_t a = lh_time_hour_initializer(9);

@@ -37,4 +37,30 @@ TEST(date_is_at_least, later_month)
     EXPECT_EQ(lh_date_equals(&a, &b), lh_bool_false);
 }
 
+TEST(date_add, days_and_month_clamp)
+{
+    lh_date_t date = lh_date_initializer(2026, 1, 31);
+    const lh_date_t one_day = lh_date_initializer(0, 0, 1);
+    const lh_date_t one_month = lh_date_initializer(0, 1, 0);
+
+    EXPECT_EQ(lh_date_add(&date, &one_day), 0U);
+    EXPECT_EQ(lh_date_get_month(&date), 2);
+    EXPECT_EQ(lh_date_get_day(&date), 1);
+
+    date = lh_date_initializer(2026, 1, 31);
+    EXPECT_EQ(lh_date_add(&date, &one_month), 0U);
+    EXPECT_EQ(lh_date_get_month(&date), 2);
+    EXPECT_EQ(lh_date_get_day(&date), 28);
+}
+
+TEST(date_sub, previous_month)
+{
+    lh_date_t date = lh_date_initializer(2026, 3, 1);
+    const lh_date_t one_day = lh_date_initializer(0, 0, 1);
+
+    EXPECT_EQ(lh_date_sub(&date, &one_day), 0U);
+    EXPECT_EQ(lh_date_get_month(&date), 2);
+    EXPECT_EQ(lh_date_get_day(&date), 28);
+}
+
 } // namespace

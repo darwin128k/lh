@@ -7,6 +7,7 @@
 #include <lh/str/format/text.h>
 #include <lh/str/split/next.h>
 #include <lh/util/addr.h>
+#include <lh/util/interval.h>
 #include <lh/util/ptr.h>
 
 static lh_bool_t
@@ -72,6 +73,161 @@ lh_date_days_in_month(lh_date_year_t year, lh_date_month_t month)
     return days[month - 1U];
 }
 
+static lh_uint_t
+lh_date_year_add_amount(lh_date_year_t *year, lh_ullong_t value)
+{
+    lh_ullong_t total = (lh_ullong_t)(*year) + value;
+
+    *year = (lh_date_year_t)lh_interval_closed_wrap_value(total, (lh_ullong_t)0,
+                                                          (lh_ullong_t)LH_DATE_YEAR_MAX);
+    return (lh_uint_t)lh_interval_closed_wrap_overflow(total, (lh_ullong_t)0,
+                                                       (lh_ullong_t)LH_DATE_YEAR_MAX);
+}
+
+static lh_uint_t
+lh_date_year_sub_amount(lh_date_year_t *year, lh_ullong_t value)
+{
+    lh_ullong_t cur = (lh_ullong_t)(*year);
+    lh_ullong_t size = lh_interval_closed_get_size((lh_ullong_t)0, (lh_ullong_t)LH_DATE_YEAR_MAX);
+
+    if (value <= cur)
+    {
+        *year = (lh_date_year_t)(cur - value);
+        return 0;
+    }
+
+    {
+        lh_ullong_t need = value - cur;
+        lh_ullong_t borrow = (need + size - 1U) / size;
+
+        *year = (lh_date_year_t)(borrow * size + cur - value);
+        return (lh_uint_t)borrow;
+    }
+}
+
+static lh_uint_t
+lh_date_inc_month(lh_date_year_t *year, lh_date_month_t *month)
+{
+    if (*month < LH_DATE_MONTH_MAX)
+    {
+        *month = (lh_date_month_t)(*month + 1U);
+        return 0;
+    }
+
+    *month = LH_DATE_MONTH_MIN;
+    return lh_date_year_add_amount(year, 1U);
+}
+
+static lh_uint_t
+lh_date_dec_month(lh_date_year_t *year, lh_date_month_t *month)
+{
+    if (*month > LH_DATE_MONTH_MIN)
+    {
+        *month = (lh_date_month_t)(*month - 1U);
+        return 0;
+    }
+
+    *month = LH_DATE_MONTH_MAX;
+    return lh_date_year_sub_amount(year, 1U);
+}
+
+static void
+lh_date_clamp_day(lh_date_year_t year, lh_date_month_t month, lh_date_day_t *day)
+{
+    lh_date_day_t dim = lh_date_days_in_month(year, month);
+
+    if (dim != 0 && *day > dim)
+    {
+        *day = dim;
+    }
+}
+
+static lh_uint_t
+lh_date_add_amount(lh_date_t *self, lh_ullong_t add_years, lh_ullong_t add_months,
+                   lh_ullong_t add_days)
+{
+    lh_date_year_t year;
+    lh_date_month_t month;
+    lh_date_day_t day;
+    lh_ullong_t overflow = 0;
+    lh_ullong_t i;
+
+    lh_date_unpack(self, lh_addr_of(year), lh_addr_of(month), lh_addr_of(day));
+
+    for (i = 0; i < add_days; i++)
+    {
+        lh_date_day_t dim = lh_date_days_in_month(year, month);
+
+        if (dim == 0)
+        {
+            break;
+        }
+        if (day < dim)
+        {
+            day = (lh_date_day_t)(day + 1U);
+        }
+        else
+        {
+            day = LH_DATE_DAY_MIN;
+            overflow += lh_date_inc_month(lh_addr_of(year), lh_addr_of(month));
+        }
+    }
+
+    for (i = 0; i < add_months; i++)
+    {
+        overflow += lh_date_inc_month(lh_addr_of(year), lh_addr_of(month));
+        lh_date_clamp_day(year, month, lh_addr_of(day));
+    }
+
+    overflow += lh_date_year_add_amount(lh_addr_of(year), add_years);
+    lh_date_clamp_day(year, month, lh_addr_of(day));
+
+    lh_date_set(self, year, month, day);
+    return (lh_uint_t)overflow;
+}
+
+static lh_uint_t
+lh_date_sub_amount(lh_date_t *self, lh_ullong_t sub_years, lh_ullong_t sub_months,
+                   lh_ullong_t sub_days)
+{
+    lh_date_year_t year;
+    lh_date_month_t month;
+    lh_date_day_t day;
+    lh_ullong_t overflow = 0;
+    lh_ullong_t i;
+
+    lh_date_unpack(self, lh_addr_of(year), lh_addr_of(month), lh_addr_of(day));
+
+    for (i = 0; i < sub_days; i++)
+    {
+        if (day > LH_DATE_DAY_MIN)
+        {
+            day = (lh_date_day_t)(day - 1U);
+        }
+        else
+        {
+            overflow += lh_date_dec_month(lh_addr_of(year), lh_addr_of(month));
+            day = lh_date_days_in_month(year, month);
+            if (day == 0)
+            {
+                day = LH_DATE_DAY_MIN;
+            }
+        }
+    }
+
+    for (i = 0; i < sub_months; i++)
+    {
+        overflow += lh_date_dec_month(lh_addr_of(year), lh_addr_of(month));
+        lh_date_clamp_day(year, month, lh_addr_of(day));
+    }
+
+    overflow += lh_date_year_sub_amount(lh_addr_of(year), sub_years);
+    lh_date_clamp_day(year, month, lh_addr_of(day));
+
+    lh_date_set(self, year, month, day);
+    return (lh_uint_t)overflow;
+}
+
 void
 lh_date_pack(lh_date_t *self, const lh_date_year_t *year, const lh_date_month_t *month,
              const lh_date_day_t *day)
@@ -127,6 +283,22 @@ lh_date_assign(lh_date_t *self, const lh_date_t *other)
 
     lh_date_unpack(other, lh_addr_of(year), lh_addr_of(month), lh_addr_of(day));
     lh_date_set(self, year, month, day);
+}
+
+lh_uint_t
+lh_date_add(lh_date_t *self, const lh_date_t *other)
+{
+    return lh_date_add_amount(self, (lh_ullong_t)lh_date_get_year(other),
+                              (lh_ullong_t)lh_date_get_month(other),
+                              (lh_ullong_t)lh_date_get_day(other));
+}
+
+lh_uint_t
+lh_date_sub(lh_date_t *self, const lh_date_t *other)
+{
+    return lh_date_sub_amount(self, (lh_ullong_t)lh_date_get_year(other),
+                              (lh_ullong_t)lh_date_get_month(other),
+                              (lh_ullong_t)lh_date_get_day(other));
 }
 
 lh_date_year_t

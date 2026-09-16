@@ -30,6 +30,13 @@ TEST(time_minute_add, carries_into_hours)
     EXPECT_EQ(lh_time_minute_get(&minute), 10);
 }
 
+TEST(time_minute_sub, borrows_hours)
+{
+    lh_time_minute_t minute = lh_time_minute_initializer(10);
+    EXPECT_EQ(lh_time_minute_sub(&minute, 20), 1U);
+    EXPECT_EQ(lh_time_minute_get(&minute), 50);
+}
+
 TEST(time_minute_compare, equals_and_is_at_least)
 {
     const lh_time_minute_t a = lh_time_minute_initializer(10);

@@ -10,8 +10,8 @@
  * - brace init (::lh_time_second_initializer in `lh/time/second/initializer.h`);
  * - ::lh_time_second_init on an existing object.
  * Both take an in-range second. A count that may overflow into minutes goes
- * through ::lh_time_second_set / ::lh_time_second_add (`lh_uint_t` so the addend
- * can be larger than one minute).
+ * through ::lh_time_second_set / ::lh_time_second_add / ::lh_time_second_sub
+ * (`lh_uint_t` so the amount can be larger than one minute).
  */
 
 #ifndef LH_TIME_SECOND_H
@@ -84,6 +84,18 @@ lh_time_second_set(lh_time_second_t *self, lh_uint_t value);
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_second_add(lh_time_second_t *self, lh_uint_t value);
+
+/**
+ * @brief Subtract @p value from @p self, wrapping on the closed second interval.
+ *
+ * @param self  Second to update (not null).
+ * @param value Seconds to subtract (any ::lh_uint_t).
+ *
+ * @return Whole minutes borrowed. `0` if the difference stayed in range.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_time_second_sub(lh_time_second_t *self, lh_uint_t value);
 
 /**
  * @brief Read the stored second (`0`–::LH_TIME_SECOND_MAX).

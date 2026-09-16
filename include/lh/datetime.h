@@ -94,6 +94,38 @@ void
 lh_datetime_set(lh_datetime_t *self, const lh_date_t *date, const lh_time_t *time);
 
 /**
+ * @brief Add @p other to @p self as a duration (date + time of day).
+ *
+ * Time is added first (::lh_time_add); leftover days join @p other's day
+ * count, then the date is added (::lh_date_add).
+ *
+ * @param self  Date-time to update (not null).
+ * @param other Duration to add (not null).
+ *
+ * @return Year-radix overflow from the date half. `0` if the year stayed in
+ *         range.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_datetime_add(lh_datetime_t *self, const lh_datetime_t *other);
+
+/**
+ * @brief Subtract @p other from @p self as a duration (date + time of day).
+ *
+ * Time is subtracted first (::lh_time_sub); borrowed days join @p other's day
+ * count, then the date is subtracted (::lh_date_sub).
+ *
+ * @param self  Date-time to update (not null).
+ * @param other Duration to subtract (not null).
+ *
+ * @return Year-radix units borrowed from the date half. `0` if the year
+ *         stayed in range.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_datetime_sub(lh_datetime_t *self, const lh_datetime_t *other);
+
+/**
  * @brief Return the date of @p self.
  *
  * @param self Date-time to read (not null).

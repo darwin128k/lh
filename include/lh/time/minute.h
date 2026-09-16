@@ -7,7 +7,7 @@
  *
  * Brace init: ::lh_time_minute_initializer in `lh/time/minute/initializer.h`.
  * Runtime init: ::lh_time_minute_init. Overflow into hours: ::lh_time_minute_set
- * / ::lh_time_minute_add.
+ * / ::lh_time_minute_add / ::lh_time_minute_sub.
  */
 
 #ifndef LH_TIME_MINUTE_H
@@ -80,6 +80,18 @@ lh_time_minute_set(lh_time_minute_t *self, lh_uint_t value);
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_minute_add(lh_time_minute_t *self, lh_uint_t value);
+
+/**
+ * @brief Subtract @p value from @p self, wrapping on the closed minute interval.
+ *
+ * @param self  Minute to update (not null).
+ * @param value Minutes to subtract (any ::lh_uint_t).
+ *
+ * @return Whole hours borrowed. `0` if the difference stayed in range.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_time_minute_sub(lh_time_minute_t *self, lh_uint_t value);
 
 /**
  * @brief Read the stored minute (`0`–::LH_TIME_MINUTE_MAX).

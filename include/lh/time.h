@@ -102,6 +102,33 @@ void
 lh_time_set(lh_time_t *self, lh_time_hour_t hour, lh_time_minute_t minute, lh_time_second_t second);
 
 /**
+ * @brief Add @p other to @p self as a duration (`hour:minute:second`).
+ *
+ * Seconds wrap into minutes, minutes into hours, hours into days
+ * via ::lh_time_second_add / ::lh_time_minute_add / ::lh_time_hour_add.
+ *
+ * @param self  Time to update (not null).
+ * @param other Duration to add (not null).
+ *
+ * @return Whole days of overflow. `0` if the sum stayed in the day.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_time_add(lh_time_t *self, const lh_time_t *other);
+
+/**
+ * @brief Subtract @p other from @p self as a duration (`hour:minute:second`).
+ *
+ * @param self  Time to update (not null).
+ * @param other Duration to subtract (not null).
+ *
+ * @return Whole days borrowed. `0` if the difference stayed in the day.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_time_sub(lh_time_t *self, const lh_time_t *other);
+
+/**
  * @brief Return the hour of @p self.
  *
  * @param self Time to read (not null).
