@@ -34,6 +34,9 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/exception/catch.cpp
         ${LH_TEST_SRC_PATH}/lh/runtime/error.cpp
         ${LH_TEST_SRC_PATH}/lh/version.cpp
+        ${LH_TEST_SRC_PATH}/lh/date.cpp
+        ${LH_TEST_SRC_PATH}/lh/time.cpp
+        ${LH_TEST_SRC_PATH}/lh/datetime.cpp
         ${LH_TEST_SRC_PATH}/lh/cpu/simd.cpp
         ${LH_TEST_SRC_PATH}/lh/cpu/vendor.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/allocator.cpp

@@ -86,6 +86,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/exception/catch.c
         ${LH_LIB_SRC_PATH}/exception.c
         ${LH_LIB_SRC_PATH}/version.c
+        ${LH_LIB_SRC_PATH}/date.c
+        ${LH_LIB_SRC_PATH}/time.c
+        ${LH_LIB_SRC_PATH}/datetime.c
         ${LH_LIB_SRC_PATH}/error.c
         ${LH_LIB_SRC_PATH}/runtime/error.c
 
