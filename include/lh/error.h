@@ -172,6 +172,9 @@ lh_error_is_failure(const lh_error_t *self);
 /**
  * @brief Test whether @p self has a non-empty description.
  *
+ * Empty text, ::lh_str_view_make of an empty / null string, and an
+ * uninitialized view all mean “no description”.
+ *
  * @param self Error object to read from.
  * @return ::lh_bool_true when @p self stores a non-empty description view.
  */

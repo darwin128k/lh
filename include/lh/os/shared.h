@@ -33,6 +33,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Open the shared library at @p path.
  *
+ * @param path Filesystem path (`LoadLibraryA` / `dlopen`). ::lh_null is an error.
  * @return Handle, or ::lh_null on failure. Then ::lh_os_get_last_error.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -42,6 +43,7 @@ lh_os_shared_open(lh_str_cptr path);
 /**
  * @brief Close @p handle.
  *
+ * @param handle Module from ::lh_os_shared_open. ::lh_null is an error.
  * @return ::lh_bool_true if the OS reported success.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -50,6 +52,9 @@ lh_os_shared_close(lh_os_shared_handle_t handle);
 
 /**
  * @brief Address of exported symbol @p name, or ::lh_null.
+ *
+ * @param handle Module from ::lh_os_shared_open.
+ * @param name   Exported symbol (`GetProcAddress` / `dlsym`).
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ptr
@@ -57,6 +62,9 @@ lh_os_shared_get_sym(lh_os_shared_handle_t handle, lh_str_cptr name);
 
 /**
  * @brief True if @p name is exported from @p handle.
+ *
+ * @param handle Module from ::lh_os_shared_open.
+ * @param name   Exported symbol name.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t

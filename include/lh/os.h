@@ -27,6 +27,30 @@
 #    error "lh/os.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
 #endif
 
+/**
+ * @typedef lh_os_error_t
+ * @brief Last-error payload stored by `lh/os`.
+ *
+ * ::lh_werror_t when ::LH_LIBRARY_OPTION_OS_WERROR is on, otherwise ::lh_error_t.
+ */
+
+/**
+ * @typedef lh_os_error_desc_t
+ * @brief Description view of the last-error slot (wide or narrow, same option).
+ */
+
+/**
+ * @def lh_os_error_desc_lit(s)
+ * @brief Compile-time description view over a narrow string literal @p s.
+ *
+ * When WERROR is on, expands to ::lh_wstr_view_lit with an @c L prefix on @p s.
+ * When off, expands to ::lh_str_view_lit(@p s). Pass a quoted literal, not a pointer.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_os_set_last_error(1, lh_os_error_desc_lit("path is null"));
+ * @endcode
+ */
 #if LH_LIBRARY_OPTION_OS_WERROR
 #    include <lh/werror.h>
 typedef lh_werror_t lh_os_error_t;
@@ -44,9 +68,13 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Store @p code and a copy of @p desc as the last OS-layer error.
  *
- * @p desc may be empty (no message). The copy is valid until the next
+ * @p desc may be empty (no message). Text is copied into the slot; the
+ * returned view from ::lh_os_get_last_error_desc is valid until the next
  * ::lh_os_set_last_error / ::lh_os_set_last_error_cstr /
  * ::lh_os_capture_last_error.
+ *
+ * @param code Native or lh-side code stored in the slot.
+ * @param desc View over the message in the slot encoding (narrow or wide).
  */
 LH_ATTRIBUTE_SYMBOL
 void
@@ -57,6 +85,10 @@ lh_os_set_last_error(lh_error_code_t code, lh_os_error_desc_t desc);
  *
  * When ::LH_LIBRARY_OPTION_OS_WERROR is on, @p text is converted into the
  * wide slot (Windows: ACP via `MultiByteToWideChar`; POSIX: `mbstowcs`).
+ * When off, this is a copy of a ::lh_str_view_make(@p text) into the char slot.
+ *
+ * @param code Native or lh-side code stored in the slot.
+ * @param text NUL-terminated narrow string, or ::lh_null (no description).
  */
 LH_ATTRIBUTE_SYMBOL
 void
@@ -77,13 +109,18 @@ lh_os_capture_last_error(void);
 
 /**
  * @brief Last error code (native OS code, or a small lh-side code).
+ * @return Code from the most recent set / capture. Zero if nothing was stored.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_error_code_t
 lh_os_get_last_error_code(void);
 
 /**
- * @brief Last error message as a view into the slot. Valid until the next set/capture.
+ * @brief Last error message as a view into the slot.
+ *
+ * Valid until the next set/capture. Empty view means no message.
+ *
+ * @return ::lh_os_error_desc_t over the internal buffer (does not own it).
  */
 LH_ATTRIBUTE_SYMBOL
 lh_os_error_desc_t
@@ -91,6 +128,11 @@ lh_os_get_last_error_desc(void);
 
 /**
  * @brief Code + description as ::lh_os_error_t.
+ *
+ * The description field is a view into the slot, same lifetime as
+ * ::lh_os_get_last_error_desc.
+ *
+ * @return Snapshot of the current last-error pair.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_os_error_t
