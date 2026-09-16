@@ -18,7 +18,7 @@ lh_os_shared_open(lh_str_cptr path)
 
     if (lh_null_eq(path))
     {
-        lh_os_set_last_error(1, lh_str_view_make("path is null"));
+        lh_os_set_last_error(1, lh_str_view_lit("path is null"));
         return lh_null;
     }
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
@@ -45,7 +45,7 @@ lh_os_shared_close(lh_os_shared_handle_t handle)
 {
     if (lh_null_eq(handle))
     {
-        lh_os_set_last_error(1, lh_str_view_make("handle is null"));
+        lh_os_set_last_error(1, lh_str_view_lit("handle is null"));
         return lh_bool_false;
     }
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
@@ -72,7 +72,7 @@ lh_os_shared_get_sym(lh_os_shared_handle_t handle, lh_str_cptr name)
 
     if (lh_null_eq(handle) || lh_null_eq(name))
     {
-        lh_os_set_last_error(1, lh_str_view_make("handle or name is null"));
+        lh_os_set_last_error(1, lh_str_view_lit("handle or name is null"));
         return lh_null;
     }
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS

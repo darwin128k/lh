@@ -17,7 +17,7 @@ desc_cstr(lh_runtime_error_desc_t desc)
 TEST(runtime_error_set, roundtrip_code_and_desc)
 {
     lh_runtime_error_t err{};
-    lh_runtime_error_set(&err, lh_runtime_error_code_interrupt, lh_str_view_make("msg"));
+    lh_runtime_error_set(&err, lh_runtime_error_code_interrupt, lh_str_view_lit("msg"));
     EXPECT_EQ(lh_runtime_error_get_code(&err), lh_runtime_error_code_interrupt);
     EXPECT_STREQ(desc_cstr(lh_runtime_error_get_desc(&err)), "msg");
 }
@@ -32,7 +32,7 @@ TEST(runtime_error_set, null_desc_roundtrip)
 
 TEST(runtime_error_set_code, updates_code_and_keeps_desc)
 {
-    lh_runtime_error_t err = lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_make("keep"));
+    lh_runtime_error_t err = lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_lit("keep"));
     lh_runtime_error_set_code(&err, lh_runtime_error_code_null_pointer);
     EXPECT_EQ(lh_runtime_error_get_code(&err), lh_runtime_error_code_null_pointer);
     EXPECT_STREQ(desc_cstr(lh_runtime_error_get_desc(&err)), "keep");
@@ -40,15 +40,15 @@ TEST(runtime_error_set_code, updates_code_and_keeps_desc)
 
 TEST(runtime_error_set_desc, updates_desc_and_keeps_code)
 {
-    lh_runtime_error_t err = lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_make("old"));
-    lh_runtime_error_set_desc(&err, lh_str_view_make("new"));
+    lh_runtime_error_t err = lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_lit("old"));
+    lh_runtime_error_set_desc(&err, lh_str_view_lit("new"));
     EXPECT_EQ(lh_runtime_error_get_code(&err), lh_runtime_error_code_interrupt);
     EXPECT_STREQ(desc_cstr(lh_runtime_error_get_desc(&err)), "new");
 }
 
 TEST(runtime_error_set_desc, accepts_null_desc)
 {
-    lh_runtime_error_t err = lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_make("old"));
+    lh_runtime_error_t err = lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_lit("old"));
     lh_runtime_error_set_desc(&err, lh_str_view_make(nullptr));
     EXPECT_EQ(lh_runtime_error_get_code(&err), lh_runtime_error_code_interrupt);
     EXPECT_EQ(desc_cstr(lh_runtime_error_get_desc(&err)), nullptr);
@@ -56,7 +56,7 @@ TEST(runtime_error_set_desc, accepts_null_desc)
 
 TEST(runtime_error_pack, updates_only_code_when_desc_pointer_null)
 {
-    lh_runtime_error_t err = lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_make("keep"));
+    lh_runtime_error_t err = lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_lit("keep"));
     const lh_runtime_error_code_t new_code = lh_runtime_error_code_null_pointer;
     lh_runtime_error_pack(&err, &new_code, nullptr);
     EXPECT_EQ(lh_runtime_error_get_code(&err), lh_runtime_error_code_null_pointer);
@@ -65,8 +65,8 @@ TEST(runtime_error_pack, updates_only_code_when_desc_pointer_null)
 
 TEST(runtime_error_pack, updates_only_desc_when_code_pointer_null)
 {
-    lh_runtime_error_t err = lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_make("old"));
-    lh_runtime_error_desc_t new_desc = lh_str_view_make("new");
+    lh_runtime_error_t err = lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_lit("old"));
+    lh_runtime_error_desc_t new_desc = lh_str_view_lit("new");
     lh_runtime_error_pack(&err, nullptr, &new_desc);
     EXPECT_EQ(lh_runtime_error_get_code(&err), lh_runtime_error_code_interrupt);
     EXPECT_STREQ(desc_cstr(lh_runtime_error_get_desc(&err)), "new");
@@ -75,7 +75,7 @@ TEST(runtime_error_pack, updates_only_desc_when_code_pointer_null)
 TEST(runtime_error_unpack, writes_both_outputs_when_non_null)
 {
     const lh_runtime_error_t err =
-        lh_runtime_error_initializer(lh_runtime_error_code_invalid_range, lh_str_view_make("msg"));
+        lh_runtime_error_initializer(lh_runtime_error_code_invalid_range, lh_str_view_lit("msg"));
     lh_runtime_error_code_t code = lh_runtime_error_code_ok;
     lh_runtime_error_desc_t desc = lh_str_view_make(nullptr);
     lh_runtime_error_unpack(&err, &code, &desc);
@@ -86,7 +86,7 @@ TEST(runtime_error_unpack, writes_both_outputs_when_non_null)
 TEST(runtime_error_unpack, skips_null_output_pointers)
 {
     const lh_runtime_error_t err =
-        lh_runtime_error_initializer(lh_runtime_error_code_out_of_range, lh_str_view_make("x"));
+        lh_runtime_error_initializer(lh_runtime_error_code_out_of_range, lh_str_view_lit("x"));
     lh_runtime_error_code_t code = lh_runtime_error_code_ok;
     lh_runtime_error_unpack(&err, &code, nullptr);
     EXPECT_EQ(code, lh_runtime_error_code_out_of_range);
@@ -99,15 +99,15 @@ TEST(runtime_error_unpack, skips_null_output_pointers)
 TEST(runtime_error_get_desc_or, returns_desc_when_non_null)
 {
     const lh_runtime_error_t err =
-        lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_make("desc"));
-    EXPECT_STREQ(desc_cstr(lh_runtime_error_get_desc_or(&err, lh_str_view_make("fallback"))), "desc");
+        lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_lit("desc"));
+    EXPECT_STREQ(desc_cstr(lh_runtime_error_get_desc_or(&err, lh_str_view_lit("fallback"))), "desc");
 }
 
 TEST(runtime_error_get_desc_or, returns_fallback_when_desc_is_null)
 {
     const lh_runtime_error_t err =
         lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_make(nullptr));
-    EXPECT_STREQ(desc_cstr(lh_runtime_error_get_desc_or(&err, lh_str_view_make("fallback"))), "fallback");
+    EXPECT_STREQ(desc_cstr(lh_runtime_error_get_desc_or(&err, lh_str_view_lit("fallback"))), "fallback");
 }
 
 TEST(runtime_error_is_ok, returns_true_for_ok_code)
@@ -153,7 +153,7 @@ TEST(runtime_error_has_code, returns_false_for_different_code)
 TEST(runtime_error_has_desc, returns_true_for_non_null_desc)
 {
     const lh_runtime_error_t err =
-        lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_make("desc"));
+        lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_lit("desc"));
     EXPECT_TRUE(lh_runtime_error_has_desc(&err));
 }
 
@@ -180,13 +180,13 @@ TEST(runtime_error_is_empty, returns_false_for_non_ok_code)
 TEST(runtime_error_is_empty, returns_false_for_ok_code_with_desc)
 {
     const lh_runtime_error_t err =
-        lh_runtime_error_initializer(lh_runtime_error_code_ok, lh_str_view_make("desc"));
+        lh_runtime_error_initializer(lh_runtime_error_code_ok, lh_str_view_lit("desc"));
     EXPECT_FALSE(lh_runtime_error_is_empty(&err));
 }
 
 TEST(runtime_error_equals, returns_true_for_same_code_and_desc_pointer)
 {
-    lh_runtime_error_desc_t desc = lh_str_view_make("same");
+    lh_runtime_error_desc_t desc = lh_str_view_lit("same");
     const lh_runtime_error_t lhs =
         lh_runtime_error_initializer(lh_runtime_error_code_interrupt, desc);
     const lh_runtime_error_t rhs =
@@ -196,7 +196,7 @@ TEST(runtime_error_equals, returns_true_for_same_code_and_desc_pointer)
 
 TEST(runtime_error_equals, returns_false_for_different_code)
 {
-    lh_runtime_error_desc_t desc = lh_str_view_make("same");
+    lh_runtime_error_desc_t desc = lh_str_view_lit("same");
     const lh_runtime_error_t lhs =
         lh_runtime_error_initializer(lh_runtime_error_code_interrupt, desc);
     const lh_runtime_error_t rhs =
@@ -207,9 +207,9 @@ TEST(runtime_error_equals, returns_false_for_different_code)
 TEST(runtime_error_has_same_code, returns_true_for_same_code)
 {
     const lh_runtime_error_t lhs =
-        lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_make("lhs"));
+        lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_lit("lhs"));
     const lh_runtime_error_t rhs =
-        lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_make("rhs"));
+        lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_lit("rhs"));
     EXPECT_TRUE(lh_runtime_error_has_same_code(&lhs, &rhs));
 }
 
@@ -225,7 +225,7 @@ TEST(runtime_error_has_diff_code, returns_true_for_different_code)
 TEST(runtime_error_assign, copies_from_other)
 {
     const lh_runtime_error_t src =
-        lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_make("src"));
+        lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_lit("src"));
     lh_runtime_error_t dst = lh_runtime_error_empty_initializer();
     lh_runtime_error_assign(&dst, &src);
     EXPECT_EQ(lh_runtime_error_get_code(&dst), lh_runtime_error_code_interrupt);
@@ -235,7 +235,7 @@ TEST(runtime_error_assign, copies_from_other)
 TEST(runtime_error_clear, resets_to_ok_and_null_desc)
 {
     lh_runtime_error_t err =
-        lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_make("gone"));
+        lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_lit("gone"));
     lh_runtime_error_clear(&err);
     EXPECT_EQ(lh_runtime_error_get_code(&err), lh_runtime_error_code_ok);
     EXPECT_EQ(desc_cstr(lh_runtime_error_get_desc(&err)), nullptr);
@@ -244,7 +244,7 @@ TEST(runtime_error_clear, resets_to_ok_and_null_desc)
 TEST(runtime_error_get_code_and_clear, returns_previous_then_ok)
 {
     lh_runtime_error_t err =
-        lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_make("z"));
+        lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_lit("z"));
     EXPECT_EQ(lh_runtime_error_get_code_and_clear(&err), lh_runtime_error_code_interrupt);
     EXPECT_EQ(lh_runtime_error_get_code(&err), lh_runtime_error_code_ok);
     EXPECT_EQ(desc_cstr(lh_runtime_error_get_desc(&err)), nullptr);
@@ -253,7 +253,7 @@ TEST(runtime_error_get_code_and_clear, returns_previous_then_ok)
 TEST(runtime_error_make, constructs_with_code_and_desc)
 {
     const lh_runtime_error_t err =
-        lh_runtime_error_make(lh_runtime_error_code_interrupt, lh_str_view_make("msg"));
+        lh_runtime_error_make(lh_runtime_error_code_interrupt, lh_str_view_lit("msg"));
     EXPECT_EQ(lh_runtime_error_get_code(&err), lh_runtime_error_code_interrupt);
     EXPECT_STREQ(desc_cstr(lh_runtime_error_get_desc(&err)), "msg");
 }
@@ -268,7 +268,7 @@ TEST(runtime_error_make_by_code, constructs_with_null_desc)
 
 TEST(runtime_error_make_by_desc, constructs_with_interrupt_code)
 {
-    const lh_runtime_error_t err = lh_runtime_error_make_by_desc(lh_str_view_make("operation failed"));
+    const lh_runtime_error_t err = lh_runtime_error_make_by_desc(lh_str_view_lit("operation failed"));
     EXPECT_EQ(lh_runtime_error_get_code(&err), lh_runtime_error_code_interrupt);
     EXPECT_STREQ(desc_cstr(lh_runtime_error_get_desc(&err)), "operation failed");
 }
@@ -276,8 +276,8 @@ TEST(runtime_error_make_by_desc, constructs_with_interrupt_code)
 TEST(runtime_error_init, matches_make)
 {
     lh_runtime_error_t a{};
-    lh_runtime_error_init(&a, lh_runtime_error_code_interrupt, lh_str_view_make("eight"));
-    const lh_runtime_error_t b = lh_runtime_error_make(lh_runtime_error_code_interrupt, lh_str_view_make("eight"));
+    lh_runtime_error_init(&a, lh_runtime_error_code_interrupt, lh_str_view_lit("eight"));
+    const lh_runtime_error_t b = lh_runtime_error_make(lh_runtime_error_code_interrupt, lh_str_view_lit("eight"));
     EXPECT_EQ(lh_runtime_error_get_code(&a), lh_runtime_error_get_code(&b));
     EXPECT_STREQ(desc_cstr(lh_runtime_error_get_desc(&a)), desc_cstr(lh_runtime_error_get_desc(&b)));
 }
@@ -285,9 +285,9 @@ TEST(runtime_error_init, matches_make)
 TEST(runtime_error_init_by_empty, clears_like_clear)
 {
     lh_runtime_error_t a =
-        lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_make("two"));
+        lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_lit("two"));
     lh_runtime_error_t b =
-        lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_make("two"));
+        lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_lit("two"));
     lh_runtime_error_init_by_empty(&a);
     lh_runtime_error_clear(&b);
     EXPECT_EQ(lh_runtime_error_get_code(&a), lh_runtime_error_get_code(&b));
@@ -323,7 +323,7 @@ TEST(runtime_error_death, get_desc_null_self)
 
 TEST(runtime_error_death, get_desc_or_null_self)
 {
-    LH_EXPECT_DEATH(lh_runtime_error_get_desc_or(nullptr, lh_str_view_make("fallback")));
+    LH_EXPECT_DEATH(lh_runtime_error_get_desc_or(nullptr, lh_str_view_lit("fallback")));
 }
 
 TEST(runtime_error_death, has_code_null_self)

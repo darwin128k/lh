@@ -298,7 +298,7 @@ lh_runtime_error_get_code_and_clear(lh_runtime_error_t *self);
  * Example usage:
  * @code{.c}
  * lh_runtime_assert(ptr, lh_runtime_error_make(lh_runtime_error_code_null_pointer,
- *                                              lh_str_view_make("bad ptr")));
+ *                                              lh_str_view_lit("bad ptr")));
  * @endcode
  *
  * @see lh_runtime_error_make_by_code
@@ -337,7 +337,7 @@ lh_runtime_error_make_by_code(lh_runtime_error_code_t code);
  *
  * Example usage:
  * @code{.c}
- * lh_runtime_assert(ok, lh_runtime_error_make_by_desc(lh_str_view_make("operation failed")));
+ * lh_runtime_assert(ok, lh_runtime_error_make_by_desc(lh_str_view_lit("operation failed")));
  * @endcode
  *
  * @see lh_runtime_error_make

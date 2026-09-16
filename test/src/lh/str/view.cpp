@@ -39,6 +39,15 @@ TEST(str_view_init, sets_endpoints_from_cstr)
     EXPECT_EQ(lh_str_view_get_end(&v), s + 3);
 }
 
+TEST(str_view_lit, uses_sizeof_of_string_literal)
+{
+    const lh_str_view_t v = lh_str_view_lit("abc");
+
+    EXPECT_EQ(lh_str_view_get_size(&v), 3u);
+    EXPECT_EQ(lh_str_view_get_data(&v)[0], 'a');
+    EXPECT_EQ(lh_str_view_get_end(&v), lh_str_view_get_begin(&v) + 3);
+}
+
 TEST(str_view_init_by_size, uses_explicit_size)
 {
     const lh_char_t s[] = {'x', 'y', 'z', 'w'};

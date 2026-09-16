@@ -27,7 +27,7 @@
  * lh_runtime_error_t err = lh_runtime_error_initializer(lh_runtime_error_code_interrupt,
  *                                                       lh_str_view_empty_initializer());
  * lh_runtime_error_t e2  = lh_runtime_error_initializer(lh_runtime_error_code_null_pointer,
- *                                                       lh_str_view_make("msg"));
+ *                                                       lh_str_view_lit("msg"));
  * @endcode
  *
  * @see lh_initializer

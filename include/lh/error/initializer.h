@@ -25,7 +25,7 @@
  * Example usage:
  * @code{.c}
  * lh_error_t err = lh_error_initializer(lh_error_code_ok, lh_str_view_empty_initializer());
- * lh_error_t e2 = lh_error_initializer(42, lh_str_view_make("message"));
+ * lh_error_t e2 = lh_error_initializer(42, lh_str_view_lit("message"));
  * @endcode
  *
  * @see lh_initializer

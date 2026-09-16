@@ -14,6 +14,7 @@
  *
  * @see lh_memory_view_t
  * @see lh_str_view_initializer
+ * @see lh_str_view_lit
  */
 
 #ifndef LH_STR_VIEW_H
