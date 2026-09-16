@@ -21,6 +21,7 @@
 #include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/config.h>
 #include <lh/io/reader.h>
 #include <lh/io/stream.h>
 #include <lh/io/writer.h>
@@ -29,6 +30,10 @@
 #include <lh/os/net/socket/type.h>
 #include <lh/ptr.h>
 #include <lh/size.h>
+
+#if !LH_LIBRARY_OPTION_OS
+#    error "lh/os/net/socket.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
+#endif
 
 /**
  * @struct lh_os_net_socket

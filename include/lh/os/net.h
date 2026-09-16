@@ -14,6 +14,11 @@
 #include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/config.h>
+
+#if !LH_LIBRARY_OPTION_OS
+#    error "lh/os/net.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
+#endif
 
 LH_COMPILER_EXTERN_C_BEGIN
 

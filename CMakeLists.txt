@@ -129,11 +129,18 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/io/writer.c
         ${LH_LIB_SRC_PATH}/io/stream.c
 
-        ${LH_LIB_SRC_PATH}/os/net.c
-        ${LH_LIB_SRC_PATH}/os/net/socket.c
-
         ${LH_LIB_SRC_PATH}/lh.c
 )
+
+if (LH_LIBRARY_OPTION_OS)
+    list(APPEND LH_LIB_SOURCES
+            ${LH_LIB_SRC_PATH}/os.c
+            ${LH_LIB_SRC_PATH}/os/net.c
+            ${LH_LIB_SRC_PATH}/os/net/socket.c
+            ${LH_LIB_SRC_PATH}/os/shared.c
+    )
+endif ()
+
 
 # Build either shared or static target from the same source list.
 if (LH_BUILD_SHARED)
@@ -150,9 +157,13 @@ target_include_directories(
         ${LH_LIB_INCLUDE_PATH}
 )
 
-# lh/os/net/socket.c needs Winsock on Windows (WSAStartup, socket, connect, send/recv).
-if (WIN32)
-    target_link_libraries(${PROJECT_NAME} PUBLIC ws2_32)
+# OS backends: Winsock on Windows, libdl on POSIX (dlopen).
+if (LH_LIBRARY_OPTION_OS)
+    if (WIN32)
+        target_link_libraries(${PROJECT_NAME} PUBLIC ws2_32)
+    else ()
+        target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_DL_LIBS})
+    endif ()
 endif ()
 
 # Tests (after ${PROJECT_NAME} exists for target_link_libraries).

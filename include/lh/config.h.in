@@ -93,6 +93,16 @@
 #define LH_LIBRARY_OPTION_THREAD_LOCAL @ValThreadLocal@
 
 /**
+ * @def LH_LIBRARY_OPTION_OS
+ * @brief Compile OS backends under `lh/os` (::LH_LIBRARY_OPTION_OFF /
+ *        ::LH_LIBRARY_OPTION_ON).
+ *
+ * OFF is the freestanding / STM cut: no `dlopen` / `LoadLibrary`, no sockets.
+ */
+#define LH_LIBRARY_OPTION_OS @ValOs@
+
+
+/**
  * @def LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB
  * @brief Default terminate handler uses `abort()`
  *        from the C library (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).

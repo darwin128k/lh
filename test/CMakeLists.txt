@@ -86,8 +86,13 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/io/writer.cpp
         ${LH_TEST_SRC_PATH}/lh/io/stream.cpp
         ${LH_TEST_SRC_PATH}/lh/logger.cpp
-        ${LH_TEST_SRC_PATH}/lh/os/net/socket.cpp
 )
+
+if (LH_LIBRARY_OPTION_OS)
+    list(APPEND LH_TEST_SOURCES
+            ${LH_TEST_SRC_PATH}/lh/os/net/socket.cpp
+    )
+endif ()
 
 # Build the test executable.
 add_executable(${PROJECT_NAME} ${LH_TEST_SOURCES})

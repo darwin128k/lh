@@ -33,6 +33,20 @@ option(LH_LIBRARY_OPTION_THREAD_LOCAL
         ON)
 
 # -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_OS
+#
+# OS-backed translation units under include/lh/os and src/lh/os
+# (shared libraries, sockets, Winsock/dl).
+#
+#   ON  — compile and link OS backends (desktop / HLDS plugin).
+#   OFF — bare metal / STM: no OS sources, no ws2_32 / libdl.
+# -----------------------------------------------------------------------------
+option(LH_LIBRARY_OPTION_OS
+        "Compile lh OS backends (dlopen/LoadLibrary, sockets). OFF for freestanding/STM."
+        ON)
+
+
+# -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB
 #
 # Default handler for lh_runtime_terminate() (lh/runtime_terminate.c).
