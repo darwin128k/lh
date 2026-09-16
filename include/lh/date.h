@@ -2,7 +2,10 @@
  * @file date.h
  * @brief Calendar date value type (`year/month/day`).
  *
- * Pure value — no clock, no OS. Gregorian calendar on parse.
+ * Pure value — no clock, no OS. Gregorian calendar on parse. Fields are
+ * ::lh_date_year_t, ::lh_date_month_t, and ::lh_date_day_t.
+ *
+ * Brace init: ::lh_date_initializer in `lh/date/initializer.h`.
  */
 
 #ifndef LH_DATE_H
@@ -56,6 +59,8 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @struct lh_date
  * @brief Gregorian calendar date.
+ *
+ * Fields are injected via ::lh_date_fields.
  */
 struct lh_date
 {
@@ -68,40 +73,105 @@ struct lh_date
  */
 typedef struct lh_date lh_date_t;
 
+/**
+ * @brief Write individual components into a date struct.
+ *
+ * Each pointer is optional: pass ::lh_null to leave that field unchanged.
+ *
+ * @param self  Date to modify (not null).
+ * @param year  New year, or ::lh_null to skip.
+ * @param month New month, or ::lh_null to skip.
+ * @param day   New day, or ::lh_null to skip.
+ */
 LH_ATTRIBUTE_SYMBOL
 void
 lh_date_pack(lh_date_t *self, const lh_date_year_t *year, const lh_date_month_t *month,
              const lh_date_day_t *day);
 
+/**
+ * @brief Read individual components out of a date struct.
+ *
+ * Each pointer is optional: pass ::lh_null to skip that field.
+ *
+ * @param self  Date to read (not null).
+ * @param year  Output for year, or ::lh_null to skip.
+ * @param month Output for month, or ::lh_null to skip.
+ * @param day   Output for day, or ::lh_null to skip.
+ */
 LH_ATTRIBUTE_SYMBOL
 void
 lh_date_unpack(const lh_date_t *self, lh_date_year_t *year, lh_date_month_t *month,
                lh_date_day_t *day);
 
+/**
+ * @brief Copy @p other into @p self.
+ *
+ * @param self  Destination (not null).
+ * @param other Source (not null).
+ */
 LH_ATTRIBUTE_SYMBOL
 void
 lh_date_assign(lh_date_t *self, const lh_date_t *other);
 
+/**
+ * @brief Replace @p self with @p year, @p month, and @p day.
+ *
+ * Equivalent to ::lh_date_pack with all three pointers provided.
+ *
+ * @param self  Date to modify (not null).
+ * @param year  Year (`0`–::LH_DATE_YEAR_MAX).
+ * @param month Month (::LH_DATE_MONTH_MIN–::LH_DATE_MONTH_MAX).
+ * @param day   Day of month (::LH_DATE_DAY_MIN and up).
+ */
 LH_ATTRIBUTE_SYMBOL
 void
 lh_date_set(lh_date_t *self, lh_date_year_t year, lh_date_month_t month, lh_date_day_t day);
 
+/**
+ * @brief Return the year of @p self.
+ *
+ * @param self Date to read (not null).
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_date_year_t
 lh_date_get_year(const lh_date_t *self);
 
+/**
+ * @brief Return the month of @p self.
+ *
+ * @param self Date to read (not null).
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_date_month_t
 lh_date_get_month(const lh_date_t *self);
 
+/**
+ * @brief Return the day of month of @p self.
+ *
+ * @param self Date to read (not null).
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_date_day_t
 lh_date_get_day(const lh_date_t *self);
 
+/**
+ * @brief True if @p self and @p other hold the same year, month, and day.
+ *
+ * @param self  Left (not null).
+ * @param other Right (not null).
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_date_equals(const lh_date_t *self, const lh_date_t *other);
 
+/**
+ * @brief True if @p self is not earlier than @p minimum.
+ *
+ * Order: year, then month, then day.
+ *
+ * @param self    Value under test (not null).
+ * @param minimum Floor (not null).
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_date_is_at_least(const lh_date_t *self, const lh_date_t *minimum);
@@ -110,6 +180,12 @@ lh_date_is_at_least(const lh_date_t *self, const lh_date_t *minimum);
  * @brief Parse `Y/M/D` (slashes; leading zeros on month/day allowed).
  *
  * All of @p str_size must be consumed. Rejects impossible calendar days.
+ *
+ * @param str      Buffer to parse (not required to be NUL-terminated).
+ * @param str_size Number of characters available in @p str.
+ * @param out      Receives the parsed date on success; untouched on failure.
+ *
+ * @return ::lh_bool_true if all of @p str_size was consumed as a valid date.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
@@ -118,7 +194,14 @@ lh_date_parse(lh_str_cptr str, lh_usize_t str_size, lh_date_t *out);
 /**
  * @brief Format @p self as `YYYY/MM/DD` (month and day zero-padded).
  *
- * No NUL terminator. Returns 0 if @p str_size is too small.
+ * No NUL terminator. A buffer of ::LH_DATE_TEXT_MAX + 1 always has room
+ * to add one after the returned length.
+ *
+ * @param self     Date to format (not null).
+ * @param str      Destination buffer.
+ * @param str_size Capacity of @p str in characters.
+ *
+ * @return Characters written, or 0 if @p str_size was too small.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_usize_t
