@@ -13,14 +13,16 @@
 #include <lh/interval/bounds/fields.h>
 
 /**
- * @def lh_memory_bounds_fields(T)
- * @brief Expands to two `T *` members via ::lh_interval_bounds_fields (`first`, `second`).
+ * @def lh_memory_bounds_fields(elem_type)
+ * @brief Expands to two `elem_type *` members via ::lh_interval_bounds_fields
+ *        (`first`, `second`).
  *
  * Use inside a struct body when two pointers delimit memory bounds
  * (@c first inclusive begin, @c second exclusive end).
- * Equivalent to `lh_interval_bounds_fields(T *)`.
+ * Equivalent to `lh_interval_bounds_fields(elem_type *)`.
  *
- * @param T Pointee type (not a pointer type); each field has type `T *`.
+ * @param elem_type Pointee type (not a pointer type); each field has type
+ *                  `elem_type *`.
  *
  * Example usage:
  * @code{.c}
@@ -31,6 +33,6 @@
  *
  * @see lh_interval_bounds_fields
  */
-#define lh_memory_bounds_fields(T) lh_interval_bounds_fields(T *)
+#define lh_memory_bounds_fields(elem_type) lh_interval_bounds_fields(elem_type *)
 
 #endif /* LH_MEMORY_BOUNDS_FIELDS_H */

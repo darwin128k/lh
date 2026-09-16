@@ -13,13 +13,15 @@
 #include <lh/memory/bounds/fields.h>
 
 /**
- * @def lh_str_view_fields(T)
+ * @def lh_str_view_fields(elem_type)
  * @brief Expands to the same member declarations as ::lh_memory_bounds_fields.
  *
  * Use inside a struct body when two pointers delimit a string view.
- * Equivalent to `lh_memory_bounds_fields(T)` and thus to `lh_interval_bounds_fields(T *)`.
+ * Equivalent to `lh_memory_bounds_fields(elem_type)` and thus to
+ * `lh_interval_bounds_fields(elem_type *)`.
  *
- * @param T Pointee type (not a pointer type); each field has type `T *`.
+ * @param elem_type Pointee type (not a pointer type); each field has type
+ *                  `elem_type *`.
  *
  * Example usage:
  * @code{.c}
@@ -31,6 +33,6 @@
  * @see lh_memory_bounds_fields
  * @see lh_interval_bounds_fields
  */
-#define lh_str_view_fields(T) lh_memory_bounds_fields(T)
+#define lh_str_view_fields(elem_type) lh_memory_bounds_fields(elem_type)
 
 #endif /* LH_STR_VIEW_FIELDS_H */

@@ -12,12 +12,12 @@
 #include <lh/interval/bounds/fields.h>
 
 /**
- * @def lh_memory_view_slice_fields(T)
+ * @def lh_memory_view_slice_fields(elem_type)
  * @brief Generate read-only slice fields for a given element type.
  *
- * @param T Element type (e.g., lh_void, lh_char_t).
+ * @param elem_type Element type (e.g. lh_void, lh_char_t), not a pointer.
  * Expands to interval bounds fields with const pointer element type.
  */
-#define lh_memory_view_slice_fields(T) lh_interval_bounds_fields(const T *)
+#define lh_memory_view_slice_fields(elem_type) lh_interval_bounds_fields(const elem_type *)
 
 #endif /* LH_MEMORY_VIEW_SLICE_FIELDS_H */

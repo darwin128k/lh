@@ -9,16 +9,12 @@
 #include <lh/size.h>
 
 /**
- * @def lh_memory_typed_fields(T)
- * @brief Declares `bounds` and `type_size` members for typed-memory structs.
+ * @def lh_memory_typed_fields(bounds_type)
+ * @brief Declares `bounds`, `type_size`, and `size` members for typed-memory structs.
  *
- * Embeds the given type @p T as the @c bounds field and adds a @c type_size field.
- * The resulting struct inherits all fields from @p T (if any), plus these two new fields.
- *
- * @param T Type of the @c bounds field — must be a struct type with two pointer fields
- *        named @c first and @c second (for example ::lh_memory_bounds_t,
- *        ::lh_memory_view_t). These fields are accessed via the wrapper's
- *        @c bounds member.
+ * @param bounds_type Type of the @c bounds field — a struct with two pointer
+ *        fields named @c first and @c second (for example ::lh_memory_bounds_t,
+ *        ::lh_memory_view_t).
  *
  * Example usage — creates a typed wrapper around lh_memory_bounds_t:
  * @code{.c}
@@ -29,7 +25,7 @@
  *
  * The resulting struct has:
  * @code{.c}
- * lh_memory_bounds_t bounds;   // inherited from T
+ * lh_memory_bounds_t bounds;
  * lh_usize_t type_size;      // size of one element in bytes
  * lh_usize_t size;           // element count — a cached fact, not derived from bounds on
  *                            // read; every mutator that changes bounds or type_size is
@@ -48,8 +44,8 @@
  * } my_typed_t;
  * @endcode
  */
-#define lh_memory_typed_fields(T)                                                                  \
-    T bounds;                                                                                      \
+#define lh_memory_typed_fields(bounds_type)                                                        \
+    bounds_type bounds;                                                                            \
     lh_usize_t type_size;                                                                          \
     lh_usize_t size
 

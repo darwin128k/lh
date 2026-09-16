@@ -7,31 +7,26 @@
 #define LH_VERSION_FIELDS_H
 
 /**
- * @def lh_version_fields(Major, Minor, Patch)
+ * @def lh_version_fields(major_type, minor_type, patch_type)
  * @brief Expands to three member variable declarations for a version struct.
  *
  * Intended to be embedded inside a struct or union body to inject typed
  * `major`, `minor`, and `patch` fields in a single, consistent declaration.
  *
- * @param Major Type of the major version field.
- * @param Minor Type of the minor version field.
- * @param Patch Type of the patch version field.
+ * @param major_type Type of the `major` field.
+ * @param minor_type Type of the `minor` field.
+ * @param patch_type Type of the `patch` field.
  *
  * Example usage:
  * @code{.c}
- * struct Version {
- *     lh_version_fields(uint8_t, uint8_t, uint16_t);
+ * struct lh_version {
+ *     lh_version_fields(lh_u16_t, lh_u8_t, lh_u8_t);
  * };
- *
- * Version v;
- * v.major = 1;
- * v.minor = 2;
- * v.patch = 3;
  * @endcode
  */
-#define lh_version_fields(Major, Minor, Patch)                                                     \
-    Major major;                                                                                   \
-    Minor minor;                                                                                   \
-    Patch patch
+#define lh_version_fields(major_type, minor_type, patch_type)                                      \
+    major_type major;                                                                              \
+    minor_type minor;                                                                              \
+    patch_type patch
 
 #endif /* LH_VERSION_FIELDS_H */
