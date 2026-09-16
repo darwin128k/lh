@@ -27,4 +27,15 @@ TEST(time_format, zero_pads)
     EXPECT_EQ(std::string(buf, n), "09:05:00");
 }
 
+TEST(time_compare, less_greater)
+{
+    const lh_time_t earlier = lh_time_initializer(9, 5, 0);
+    const lh_time_t later = lh_time_initializer(9, 5, 1);
+
+    EXPECT_EQ(lh_time_is_less(&earlier, &later), lh_bool_true);
+    EXPECT_EQ(lh_time_is_greater(&later, &earlier), lh_bool_true);
+    EXPECT_EQ(lh_time_is_less(&earlier, &earlier), lh_bool_false);
+    EXPECT_EQ(lh_time_is_at_least(&later, &earlier), lh_bool_true);
+}
+
 } // namespace

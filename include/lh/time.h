@@ -19,24 +19,6 @@
 #include <lh/time/view/fields.h>
 
 /**
- * @def LH_TIME_HOUR_MAX
- * @brief Last hour of the day.
- */
-#define LH_TIME_HOUR_MAX 23U
-
-/**
- * @def LH_TIME_MINUTE_MAX
- * @brief Last minute of an hour.
- */
-#define LH_TIME_MINUTE_MAX 59U
-
-/**
- * @def LH_TIME_SECOND_MAX
- * @brief Last second of a minute.
- */
-#define LH_TIME_SECOND_MAX 59U
-
-/**
  * @def LH_TIME_TEXT_MAX
  * @brief Longest `HH:MM:SS` text, excluding NUL (`23:59:59` is 8).
  */
@@ -93,9 +75,26 @@ LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_time_equals(const lh_time_t *self, const lh_time_t *other);
 
+/**
+ * @brief True if @p self is not earlier than @p minimum (hour, then minute, then second).
+ */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_time_is_at_least(const lh_time_t *self, const lh_time_t *minimum);
+
+/**
+ * @brief True if @p self is strictly earlier than @p other.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_time_is_less(const lh_time_t *self, const lh_time_t *other);
+
+/**
+ * @brief True if @p self is strictly later than @p other.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_time_is_greater(const lh_time_t *self, const lh_time_t *other);
 
 /**
  * @brief Parse `H:M:S` (colons; leading zeros allowed).

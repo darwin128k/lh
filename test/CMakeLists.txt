@@ -36,6 +36,9 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/version.cpp
         ${LH_TEST_SRC_PATH}/lh/date.cpp
         ${LH_TEST_SRC_PATH}/lh/time.cpp
+        ${LH_TEST_SRC_PATH}/lh/time/second.cpp
+        ${LH_TEST_SRC_PATH}/lh/time/minute.cpp
+        ${LH_TEST_SRC_PATH}/lh/time/hour.cpp
         ${LH_TEST_SRC_PATH}/lh/datetime.cpp
         ${LH_TEST_SRC_PATH}/lh/cpu/simd.cpp
         ${LH_TEST_SRC_PATH}/lh/cpu/vendor.cpp

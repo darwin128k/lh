@@ -10,6 +10,8 @@
 void
 lh_datetime_pack(lh_datetime_t *self, const lh_date_t *date, const lh_time_t *time)
 {
+    lh_assert_runtime_ref(self);
+
     lh_optional_ref(date)
     {
         lh_date_assign(lh_addr_of(self->date), date);
@@ -23,6 +25,8 @@ lh_datetime_pack(lh_datetime_t *self, const lh_date_t *date, const lh_time_t *ti
 void
 lh_datetime_unpack(const lh_datetime_t *self, lh_date_t *date, lh_time_t *time)
 {
+    lh_assert_runtime_ref(self);
+
     lh_optional_ref(date)
     {
         lh_date_assign(date, lh_addr_of(self->date));
@@ -73,9 +77,6 @@ lh_datetime_equals(const lh_datetime_t *self, const lh_datetime_t *other)
     lh_time_t self_time;
     lh_time_t other_time;
 
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(other);
-
     self_date = lh_datetime_get_date(self);
     other_date = lh_datetime_get_date(other);
     if (!lh_date_equals(lh_addr_of(self_date), lh_addr_of(other_date)))
@@ -95,9 +96,6 @@ lh_datetime_is_at_least(const lh_datetime_t *self, const lh_datetime_t *minimum)
     lh_date_t min_date;
     lh_time_t self_time;
     lh_time_t min_time;
-
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(minimum);
 
     self_date = lh_datetime_get_date(self);
     min_date = lh_datetime_get_date(minimum);
@@ -122,9 +120,6 @@ lh_datetime_parse(lh_str_cptr str, lh_usize_t str_size, lh_datetime_t *out)
     lh_usize_t pos = 0;
     lh_date_t date;
     lh_time_t time;
-
-    lh_assert_runtime_ref(str);
-    lh_assert_runtime_ref(out);
 
     if (!lh_str_ptr_split_next(str, str_size, ' ', lh_addr_of(pos), lh_addr_of(date_field),
                                lh_addr_of(date_size), lh_addr_of(had_delim)))
@@ -166,9 +161,6 @@ lh_datetime_format(const lh_datetime_t *self, lh_str_ptr str, lh_usize_t str_siz
     lh_usize_t date_len;
     lh_usize_t time_len;
     lh_usize_t total;
-
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(str);
 
     date = lh_datetime_get_date(self);
     time = lh_datetime_get_time(self);

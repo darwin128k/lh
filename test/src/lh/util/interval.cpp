@@ -497,4 +497,36 @@ TEST(interval_open, binary_search_not_found)
     EXPECT_EQ(found, 0);
 }
 
+TEST(interval_closed, wrap_seconds)
+{
+    EXPECT_EQ(lh_interval_closed_wrap_value(125, 0, 59), 5);
+    EXPECT_EQ(lh_interval_closed_wrap_overflow(125, 0, 59), 2);
+    EXPECT_EQ(lh_interval_closed_add_wrap_value(50, 20, 0, 59), 10);
+    EXPECT_EQ(lh_interval_closed_add_wrap_overflow(50, 20, 0, 59), 1);
+    EXPECT_EQ(lh_interval_closed_mul_wrap_value(10, 10, 0, 59), 40);
+    EXPECT_EQ(lh_interval_closed_mul_wrap_overflow(10, 10, 0, 59), 1);
+}
+
+TEST(interval_ropen, wrap_same_set_as_closed_seconds)
+{
+    EXPECT_EQ(lh_interval_ropen_wrap_value(125, 0, 60), 5);
+    EXPECT_EQ(lh_interval_ropen_wrap_overflow(125, 0, 60), 2);
+}
+
+TEST(interval_lopen, wrap)
+{
+    EXPECT_EQ(lh_interval_lopen_wrap_value(60, 0, 60), 60);
+    EXPECT_EQ(lh_interval_lopen_wrap_overflow(60, 0, 60), 0);
+    EXPECT_EQ(lh_interval_lopen_wrap_value(61, 0, 60), 1);
+    EXPECT_EQ(lh_interval_lopen_wrap_overflow(61, 0, 60), 1);
+}
+
+TEST(interval_open, wrap)
+{
+    EXPECT_EQ(lh_interval_open_wrap_value(60, 0, 61), 60);
+    EXPECT_EQ(lh_interval_open_wrap_overflow(60, 0, 61), 0);
+    EXPECT_EQ(lh_interval_open_wrap_value(61, 0, 61), 1);
+    EXPECT_EQ(lh_interval_open_wrap_overflow(61, 0, 61), 1);
+}
+
 } // namespace

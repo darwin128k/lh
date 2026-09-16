@@ -11,6 +11,8 @@ void
 lh_version_pack(lh_version_t *self, const lh_version_major_t *major,
                 const lh_version_minor_t *minor, const lh_version_patch_t *patch)
 {
+    lh_assert_runtime_ref(self);
+
     lh_optional_ref(major)
     {
         self->major = lh_ptr_deref(major);
@@ -31,6 +33,8 @@ void
 lh_version_unpack(const lh_version_t *self, lh_version_major_t *major, lh_version_minor_t *minor,
                   lh_version_patch_t *patch)
 {
+    lh_assert_runtime_ref(self);
+
     lh_optional_ref(major)
     {
         lh_ptr_deref(major) = self->major;
@@ -160,9 +164,6 @@ lh_version_parse(lh_str_cptr str, lh_usize_t str_size, lh_version_t *out)
     lh_uint_t minor;
     lh_uint_t patch;
 
-    lh_assert_runtime_ref(str);
-    lh_assert_runtime_ref(out);
-
     if (!lh_str_ptr_parse_text(str, str_size, "%u.%u.%u", lh_addr_of(major), lh_addr_of(minor),
                                lh_addr_of(patch)))
     {
@@ -181,9 +182,6 @@ lh_version_parse(lh_str_cptr str, lh_usize_t str_size, lh_version_t *out)
 lh_usize_t
 lh_version_format(const lh_version_t *self, lh_str_ptr str, lh_usize_t str_size)
 {
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(str);
-
     return lh_str_ptr_format_text(str, str_size, "%u.%u.%u", (lh_uint_t)lh_version_get_major(self),
                                   (lh_uint_t)lh_version_get_minor(self),
                                   (lh_uint_t)lh_version_get_patch(self));

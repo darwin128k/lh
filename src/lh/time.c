@@ -46,6 +46,8 @@ void
 lh_time_pack(lh_time_t *self, const lh_time_hour_t *hour, const lh_time_minute_t *minute,
              const lh_time_second_t *second)
 {
+    lh_assert_runtime_ref(self);
+
     lh_optional_ref(hour)
     {
         self->hour = lh_ptr_deref(hour);
@@ -64,6 +66,8 @@ void
 lh_time_unpack(const lh_time_t *self, lh_time_hour_t *hour, lh_time_minute_t *minute,
                lh_time_second_t *second)
 {
+    lh_assert_runtime_ref(self);
+
     lh_optional_ref(hour)
     {
         lh_ptr_deref(hour) = self->hour;
@@ -122,9 +126,6 @@ lh_time_get_second(const lh_time_t *self)
 lh_bool_t
 lh_time_equals(const lh_time_t *self, const lh_time_t *other)
 {
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(other);
-
     if (lh_time_get_hour(self) != lh_time_get_hour(other))
     {
         return lh_bool_false;
@@ -144,9 +145,6 @@ lh_time_is_at_least(const lh_time_t *self, const lh_time_t *minimum)
     lh_time_minute_t self_minute;
     lh_time_minute_t min_minute;
 
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(minimum);
-
     self_hour = lh_time_get_hour(self);
     min_hour = lh_time_get_hour(minimum);
     if (self_hour != min_hour)
@@ -165,15 +163,24 @@ lh_time_is_at_least(const lh_time_t *self, const lh_time_t *minimum)
 }
 
 lh_bool_t
+lh_time_is_less(const lh_time_t *self, const lh_time_t *other)
+{
+    return lh_time_is_at_least(self, other) ? lh_bool_false : lh_bool_true;
+}
+
+lh_bool_t
+lh_time_is_greater(const lh_time_t *self, const lh_time_t *other)
+{
+    return lh_time_is_less(other, self);
+}
+
+lh_bool_t
 lh_time_parse(lh_str_cptr str, lh_usize_t str_size, lh_time_t *out)
 {
     lh_uint_t component[3];
     const lh_uint_t max[3] = {LH_TIME_HOUR_MAX, LH_TIME_MINUTE_MAX, LH_TIME_SECOND_MAX};
     lh_usize_t pos = 0;
     lh_usize_t i;
-
-    lh_assert_runtime_ref(str);
-    lh_assert_runtime_ref(out);
 
     for (i = 0; i < 3U; i++)
     {
@@ -205,9 +212,6 @@ lh_time_parse(lh_str_cptr str, lh_usize_t str_size, lh_time_t *out)
 lh_usize_t
 lh_time_format(const lh_time_t *self, lh_str_ptr str, lh_usize_t str_size)
 {
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(str);
-
     return lh_str_ptr_format_text(str, str_size, "%02u:%02u:%02u",
                                   (lh_uint_t)lh_time_get_hour(self),
                                   (lh_uint_t)lh_time_get_minute(self),

@@ -76,6 +76,8 @@ void
 lh_date_pack(lh_date_t *self, const lh_date_year_t *year, const lh_date_month_t *month,
              const lh_date_day_t *day)
 {
+    lh_assert_runtime_ref(self);
+
     lh_optional_ref(year)
     {
         self->year = lh_ptr_deref(year);
@@ -94,6 +96,8 @@ void
 lh_date_unpack(const lh_date_t *self, lh_date_year_t *year, lh_date_month_t *month,
                lh_date_day_t *day)
 {
+    lh_assert_runtime_ref(self);
+
     lh_optional_ref(year)
     {
         lh_ptr_deref(year) = self->year;
@@ -152,9 +156,6 @@ lh_date_get_day(const lh_date_t *self)
 lh_bool_t
 lh_date_equals(const lh_date_t *self, const lh_date_t *other)
 {
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(other);
-
     if (lh_date_get_year(self) != lh_date_get_year(other))
     {
         return lh_bool_false;
@@ -173,9 +174,6 @@ lh_date_is_at_least(const lh_date_t *self, const lh_date_t *minimum)
     lh_date_year_t min_year;
     lh_date_month_t self_month;
     lh_date_month_t min_month;
-
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(minimum);
 
     self_year = lh_date_get_year(self);
     min_year = lh_date_get_year(minimum);
@@ -204,9 +202,6 @@ lh_date_parse(lh_str_cptr str, lh_usize_t str_size, lh_date_t *out)
     lh_usize_t i;
     lh_uint_t component[3];
     const lh_uint_t max[3] = {LH_DATE_YEAR_MAX, LH_DATE_MONTH_MAX, 31U};
-
-    lh_assert_runtime_ref(str);
-    lh_assert_runtime_ref(out);
 
     for (i = 0; i < 3U; i++)
     {
@@ -249,9 +244,6 @@ lh_date_parse(lh_str_cptr str, lh_usize_t str_size, lh_date_t *out)
 lh_usize_t
 lh_date_format(const lh_date_t *self, lh_str_ptr str, lh_usize_t str_size)
 {
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(str);
-
     return lh_str_ptr_format_text(str, str_size, "%u/%02u/%02u", (lh_uint_t)lh_date_get_year(self),
                                   (lh_uint_t)lh_date_get_month(self),
                                   (lh_uint_t)lh_date_get_day(self));
