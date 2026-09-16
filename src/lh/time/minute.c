@@ -13,28 +13,6 @@ lh_time_minute_wrap(lh_time_minute_t *self, lh_ullong_t total)
                                                        (lh_ullong_t)LH_TIME_MINUTE_MAX);
 }
 
-static lh_uint_t
-lh_time_minute_wrap_sub(lh_time_minute_t *self, lh_uint_t value)
-{
-    lh_ullong_t cur = (lh_ullong_t)(*self);
-    lh_ullong_t size = (lh_ullong_t)LH_TIME_MINUTE_RADIX;
-    lh_ullong_t sub = (lh_ullong_t)value;
-
-    if (sub <= cur)
-    {
-        *self = (lh_time_minute_t)(cur - sub);
-        return 0;
-    }
-
-    {
-        lh_ullong_t need = sub - cur;
-        lh_ullong_t borrow = (need + size - 1U) / size;
-
-        *self = (lh_time_minute_t)(borrow * size + cur - sub);
-        return (lh_uint_t)borrow;
-    }
-}
-
 lh_uint_t
 lh_time_minute_set(lh_time_minute_t *self, lh_uint_t value)
 {
@@ -58,8 +36,12 @@ lh_time_minute_add(lh_time_minute_t *self, lh_uint_t value)
 lh_uint_t
 lh_time_minute_sub(lh_time_minute_t *self, lh_uint_t value)
 {
-    lh_assert_runtime_ref(self);
-    return lh_time_minute_wrap_sub(self, value);
+    lh_ullong_t cur = (lh_ullong_t)lh_time_minute_get(self);
+
+    *self = (lh_time_minute_t)lh_interval_closed_unsigned_sub_wrap_value(
+        cur, (lh_ullong_t)value, (lh_ullong_t)0, (lh_ullong_t)LH_TIME_MINUTE_MAX);
+    return (lh_uint_t)lh_interval_closed_unsigned_sub_wrap_overflow(
+        cur, (lh_ullong_t)value, (lh_ullong_t)0, (lh_ullong_t)LH_TIME_MINUTE_MAX);
 }
 
 lh_time_minute_t

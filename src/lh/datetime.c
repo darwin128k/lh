@@ -66,16 +66,8 @@ lh_datetime_add(lh_datetime_t *self, const lh_datetime_t *other)
     lh_datetime_unpack(self, lh_addr_of(date), lh_addr_of(time));
     lh_datetime_unpack(other, lh_addr_of(other_date), lh_addr_of(other_time));
     day_carry = lh_time_add(lh_addr_of(time), lh_addr_of(other_time));
-    overflow = lh_date_add(lh_addr_of(date), lh_addr_of(other_date));
-    while (day_carry > 0)
-    {
-        lh_date_t extra;
-        lh_date_day_t chunk = day_carry > 31U ? (lh_date_day_t)31U : (lh_date_day_t)day_carry;
-
-        lh_date_set(lh_addr_of(extra), 0, 0, chunk);
-        overflow += lh_date_add(lh_addr_of(date), lh_addr_of(extra));
-        day_carry -= chunk;
-    }
+    overflow = lh_date_add_day(lh_addr_of(date), day_carry);
+    overflow += lh_date_add(lh_addr_of(date), lh_addr_of(other_date));
     lh_datetime_set(self, lh_addr_of(date), lh_addr_of(time));
     return overflow;
 }
@@ -94,15 +86,7 @@ lh_datetime_sub(lh_datetime_t *self, const lh_datetime_t *other)
     lh_datetime_unpack(other, lh_addr_of(other_date), lh_addr_of(other_time));
     day_borrow = lh_time_sub(lh_addr_of(time), lh_addr_of(other_time));
     overflow = lh_date_sub(lh_addr_of(date), lh_addr_of(other_date));
-    while (day_borrow > 0)
-    {
-        lh_date_t extra;
-        lh_date_day_t chunk = day_borrow > 31U ? (lh_date_day_t)31U : (lh_date_day_t)day_borrow;
-
-        lh_date_set(lh_addr_of(extra), 0, 0, chunk);
-        overflow += lh_date_sub(lh_addr_of(date), lh_addr_of(extra));
-        day_borrow -= chunk;
-    }
+    overflow += lh_date_sub_day(lh_addr_of(date), day_borrow);
     lh_datetime_set(self, lh_addr_of(date), lh_addr_of(time));
     return overflow;
 }
@@ -161,6 +145,18 @@ lh_datetime_is_at_least(const lh_datetime_t *self, const lh_datetime_t *minimum)
     self_time = lh_datetime_get_time(self);
     min_time = lh_datetime_get_time(minimum);
     return lh_time_is_at_least(lh_addr_of(self_time), lh_addr_of(min_time));
+}
+
+lh_bool_t
+lh_datetime_is_less(const lh_datetime_t *self, const lh_datetime_t *other)
+{
+    return lh_datetime_is_at_least(self, other) ? lh_bool_false : lh_bool_true;
+}
+
+lh_bool_t
+lh_datetime_is_greater(const lh_datetime_t *self, const lh_datetime_t *other)
+{
+    return lh_datetime_is_less(other, self);
 }
 
 lh_bool_t

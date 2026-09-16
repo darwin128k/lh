@@ -31,6 +31,19 @@ TEST(datetime_is_at_least, later_time_same_date)
     EXPECT_EQ(lh_datetime_is_at_least(&a, &b), lh_bool_true);
 }
 
+TEST(datetime_compare, less_greater)
+{
+    const lh_datetime_t earlier = lh_datetime_initializer(lh_date_initializer(2026, 9, 16),
+                                                          lh_time_initializer(23, 0, 0));
+    const lh_datetime_t later = lh_datetime_initializer(lh_date_initializer(2026, 9, 17),
+                                                        lh_time_initializer(0, 0, 0));
+
+    EXPECT_EQ(lh_datetime_is_less(&earlier, &later), lh_bool_true);
+    EXPECT_EQ(lh_datetime_is_greater(&later, &earlier), lh_bool_true);
+    EXPECT_EQ(lh_datetime_is_less(&earlier, &earlier), lh_bool_false);
+    EXPECT_EQ(lh_datetime_is_at_least(&later, &earlier), lh_bool_true);
+}
+
 TEST(datetime_add, time_overflow_into_date)
 {
     lh_datetime_t dt = lh_datetime_initializer(lh_date_initializer(2026, 9, 16),

@@ -60,4 +60,12 @@ TEST(time_sub, borrows_days)
     EXPECT_EQ(lh_time_get_second(&time), 40);
 }
 
+TEST(time_add_hour, wraps_into_days)
+{
+    lh_time_t time = lh_time_initializer(20, 0, 0);
+
+    EXPECT_EQ(lh_time_add_hour(&time, 6), 1U);
+    EXPECT_EQ(lh_time_get_hour(&time), 2);
+}
+
 } // namespace

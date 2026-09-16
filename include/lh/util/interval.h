@@ -431,6 +431,53 @@
                               (lower), (upper))
 
 /**
+ * @def lh_interval_wrap_unsigned_sub_overflow(a, b, origin, size)
+ * @brief Whole @p size steps borrowed when subtracting @p b from @p a (unsigned).
+ *
+ * @p a is a stored value (`>= origin`). Unlike ::lh_interval_wrap_get_overflow on
+ * `a - b`, this does not use wrapping unsigned subtraction.
+ */
+#define lh_interval_wrap_unsigned_sub_overflow(a, b, origin, size)                                 \
+    ((lh_math_le((b), lh_math_sub((a), (origin))))                                                 \
+         ? 0                                                                                       \
+         : lh_math_div(lh_math_add(lh_math_sub((b), lh_math_sub((a), (origin))),                   \
+                                   lh_math_sub((size), 1)),                                        \
+                       (size)))
+
+/**
+ * @def lh_interval_wrap_unsigned_sub_value(a, b, origin, size)
+ * @brief Remainder after unsigned subtract-and-wrap of @p b from @p a.
+ *
+ * Pair with ::lh_interval_wrap_unsigned_sub_overflow.
+ */
+#define lh_interval_wrap_unsigned_sub_value(a, b, origin, size)                                    \
+    ((lh_math_le((b), lh_math_sub((a), (origin))))                                                 \
+         ? lh_math_sub((a), (b))                                                                   \
+         : lh_math_add((origin),                                                                   \
+                       lh_math_sub(lh_math_add(lh_math_mul(lh_interval_wrap_unsigned_sub_overflow( \
+                                                                (a), (b), (origin), (size)),       \
+                                                            (size)),                               \
+                                               lh_math_sub((a), (origin))),                        \
+                                   (b))))
+
+/**
+ * @def lh_interval_closed_unsigned_sub_wrap_overflow(a, b, lower, upper)
+ * @brief ::lh_interval_wrap_unsigned_sub_overflow on a closed interval.
+ */
+#define lh_interval_closed_unsigned_sub_wrap_overflow(a, b, lower, upper)                          \
+    lh_interval_wrap_unsigned_sub_overflow((a), (b), lh_interval_closed_get_origin((lower),        \
+                                                                                  (upper)),        \
+                                           lh_interval_closed_get_size((lower), (upper)))
+
+/**
+ * @def lh_interval_closed_unsigned_sub_wrap_value(a, b, lower, upper)
+ * @brief ::lh_interval_wrap_unsigned_sub_value on a closed interval.
+ */
+#define lh_interval_closed_unsigned_sub_wrap_value(a, b, lower, upper)                             \
+    lh_interval_wrap_unsigned_sub_value((a), (b), lh_interval_closed_get_origin((lower), (upper)),  \
+                                        lh_interval_closed_get_size((lower), (upper)))
+
+/**
  * @def lh_interval_lopen_wrap_overflow(value, lower, upper)
  * @brief Overflow count folding @p value into (@p lower, @p upper].
  */

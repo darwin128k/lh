@@ -102,27 +102,82 @@ void
 lh_time_set(lh_time_t *self, lh_time_hour_t hour, lh_time_minute_t minute, lh_time_second_t second);
 
 /**
- * @brief Add @p other to @p self as a duration (`hour:minute:second`).
+ * @brief Add @p value hours. Delegates to ::lh_time_hour_add.
  *
- * Seconds wrap into minutes, minutes into hours, hours into days
- * via ::lh_time_second_add / ::lh_time_minute_add / ::lh_time_hour_add.
+ * @return Whole days of overflow.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_time_add_hour(lh_time_t *self, lh_uint_t value);
+
+/**
+ * @brief Subtract @p value hours. Delegates to ::lh_time_hour_sub.
  *
- * @param self  Time to update (not null).
- * @param other Duration to add (not null).
+ * @return Whole days borrowed.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_time_sub_hour(lh_time_t *self, lh_uint_t value);
+
+/**
+ * @brief Add @p value minutes, then ::lh_time_add_hour for the overflow.
  *
- * @return Whole days of overflow. `0` if the sum stayed in the day.
+ * @return Whole days of overflow.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_time_add_minute(lh_time_t *self, lh_uint_t value);
+
+/**
+ * @brief Subtract @p value minutes, then ::lh_time_sub_hour for the borrow.
+ *
+ * @return Whole days borrowed.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_time_sub_minute(lh_time_t *self, lh_uint_t value);
+
+/**
+ * @brief Add @p value seconds, then ::lh_time_add_minute for the overflow.
+ *
+ * @return Whole days of overflow.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_time_add_second(lh_time_t *self, lh_uint_t value);
+
+/**
+ * @brief Subtract @p value seconds, then ::lh_time_sub_minute for the borrow.
+ *
+ * @return Whole days borrowed.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_time_sub_second(lh_time_t *self, lh_uint_t value);
+
+/**
+ * @brief Add seconds, then minutes, then hours.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_time_add_custom(lh_time_t *self, lh_uint_t hour, lh_uint_t minute, lh_uint_t second);
+
+/**
+ * @brief Subtract seconds, then minutes, then hours.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_time_sub_custom(lh_time_t *self, lh_uint_t hour, lh_uint_t minute, lh_uint_t second);
+
+/**
+ * @brief Add @p other as a duration. Delegates to ::lh_time_add_custom.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_add(lh_time_t *self, const lh_time_t *other);
 
 /**
- * @brief Subtract @p other from @p self as a duration (`hour:minute:second`).
- *
- * @param self  Time to update (not null).
- * @param other Duration to subtract (not null).
- *
- * @return Whole days borrowed. `0` if the difference stayed in the day.
+ * @brief Subtract @p other as a duration. Delegates to ::lh_time_sub_custom.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t

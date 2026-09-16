@@ -505,6 +505,10 @@ TEST(interval_closed, wrap_seconds)
     EXPECT_EQ(lh_interval_closed_add_wrap_overflow(50, 20, 0, 59), 1);
     EXPECT_EQ(lh_interval_closed_mul_wrap_value(10, 10, 0, 59), 40);
     EXPECT_EQ(lh_interval_closed_mul_wrap_overflow(10, 10, 0, 59), 1);
+    EXPECT_EQ(lh_interval_closed_unsigned_sub_wrap_value(10, 20, 0, 59), 50);
+    EXPECT_EQ(lh_interval_closed_unsigned_sub_wrap_overflow(10, 20, 0, 59), 1);
+    EXPECT_EQ(lh_interval_closed_unsigned_sub_wrap_value(10, 125, 0, 59), 5);
+    EXPECT_EQ(lh_interval_closed_unsigned_sub_wrap_overflow(10, 125, 0, 59), 2);
 }
 
 TEST(interval_ropen, wrap_same_set_as_closed_seconds)

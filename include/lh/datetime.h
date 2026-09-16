@@ -96,8 +96,8 @@ lh_datetime_set(lh_datetime_t *self, const lh_date_t *date, const lh_time_t *tim
 /**
  * @brief Add @p other to @p self as a duration (date + time of day).
  *
- * Time is added first (::lh_time_add); leftover days join @p other's day
- * count, then the date is added (::lh_date_add).
+ * Time is added first (::lh_time_add); leftover days go through
+ * ::lh_date_add_day, then the date duration (::lh_date_add).
  *
  * @param self  Date-time to update (not null).
  * @param other Duration to add (not null).
@@ -112,8 +112,8 @@ lh_datetime_add(lh_datetime_t *self, const lh_datetime_t *other);
 /**
  * @brief Subtract @p other from @p self as a duration (date + time of day).
  *
- * Time is subtracted first (::lh_time_sub); borrowed days join @p other's day
- * count, then the date is subtracted (::lh_date_sub).
+ * Time is subtracted first (::lh_time_sub); the date duration (::lh_date_sub)
+ * is applied next, then borrowed days (::lh_date_sub_day) — inverse of add.
  *
  * @param self  Date-time to update (not null).
  * @param other Duration to subtract (not null).
@@ -164,6 +164,30 @@ lh_datetime_equals(const lh_datetime_t *self, const lh_datetime_t *other);
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_datetime_is_at_least(const lh_datetime_t *self, const lh_datetime_t *minimum);
+
+/**
+ * @brief True if @p self is strictly earlier than @p other.
+ *
+ * Same field order as ::lh_datetime_is_at_least (date, then time).
+ *
+ * @param self  Value under test (not null).
+ * @param other Bound (not null).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_datetime_is_less(const lh_datetime_t *self, const lh_datetime_t *other);
+
+/**
+ * @brief True if @p self is strictly later than @p other.
+ *
+ * Same field order as ::lh_datetime_is_at_least (date, then time).
+ *
+ * @param self  Value under test (not null).
+ * @param other Bound (not null).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_datetime_is_greater(const lh_datetime_t *self, const lh_datetime_t *other);
 
 /**
  * @brief Parse `Y/M/D H:M:S` (one space between date and time).

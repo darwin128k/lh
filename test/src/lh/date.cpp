@@ -4,6 +4,7 @@
 
 #include <lh/date.h>
 #include <lh/date/initializer.h>
+#include <lh/date/month/index.h>
 
 namespace
 {
@@ -37,6 +38,17 @@ TEST(date_is_at_least, later_month)
     EXPECT_EQ(lh_date_equals(&a, &b), lh_bool_false);
 }
 
+TEST(date_compare, less_greater)
+{
+    const lh_date_t earlier = lh_date_initializer(2026, 9, 16);
+    const lh_date_t later = lh_date_initializer(2026, 9, 17);
+
+    EXPECT_EQ(lh_date_is_less(&earlier, &later), lh_bool_true);
+    EXPECT_EQ(lh_date_is_greater(&later, &earlier), lh_bool_true);
+    EXPECT_EQ(lh_date_is_less(&earlier, &earlier), lh_bool_false);
+    EXPECT_EQ(lh_date_is_at_least(&later, &earlier), lh_bool_true);
+}
+
 TEST(date_add, days_and_month_clamp)
 {
     lh_date_t date = lh_date_initializer(2026, 1, 31);
@@ -61,6 +73,23 @@ TEST(date_sub, previous_month)
     EXPECT_EQ(lh_date_sub(&date, &one_day), 0U);
     EXPECT_EQ(lh_date_get_month(&date), 2);
     EXPECT_EQ(lh_date_get_day(&date), 28);
+}
+
+TEST(date_add_day, last_of_month)
+{
+    lh_date_t date = lh_date_initializer(2026, 1, 31);
+
+    EXPECT_EQ(lh_date_add_day(&date, 1), 0U);
+    EXPECT_EQ(lh_date_get_month(&date), 2);
+    EXPECT_EQ(lh_date_get_day(&date), 1);
+}
+
+TEST(date_month_index, wrap_years)
+{
+    lh_date_month_index_t index = LH_DATE_MONTH_INDEX_JANUARY;
+
+    EXPECT_EQ(lh_date_month_index_add(&index, 13), 1U);
+    EXPECT_EQ(index, LH_DATE_MONTH_INDEX_FEBRUARY);
 }
 
 } // namespace

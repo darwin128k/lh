@@ -87,6 +87,10 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/exception.c
         ${LH_LIB_SRC_PATH}/version.c
         ${LH_LIB_SRC_PATH}/date.c
+        ${LH_LIB_SRC_PATH}/date/year.c
+        ${LH_LIB_SRC_PATH}/date/month.c
+        ${LH_LIB_SRC_PATH}/date/month/index.c
+        ${LH_LIB_SRC_PATH}/date/day.c
         ${LH_LIB_SRC_PATH}/time.c
         ${LH_LIB_SRC_PATH}/time/second.c
         ${LH_LIB_SRC_PATH}/time/minute.c
