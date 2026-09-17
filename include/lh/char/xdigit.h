@@ -7,8 +7,8 @@
  * `lh/char/digit.h`. ::lh_char_xdigit_accumulate is the overflow-checked
  * fold used by ::lh_str_ptr_parse_hex.
  *
- * Every function here is ::LH_ATTRIBUTE_FORCE_INLINE — small and called
- * from other force-inlined parsers (::lh_str_ptr_parse_hex).
+ * Every function here is ::LH_ATTRIBUTE_FORCE_INLINE — the hex digit kernel
+ * under ::lh_str_ptr_parse_hex. That parser is ordinary exported API.
  */
 
 #ifndef LH_CHAR_XDIGIT_H

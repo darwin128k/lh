@@ -73,6 +73,15 @@ lh_date_day_t
 lh_date_days_in_month(lh_date_year_t year, lh_date_month_t month);
 
 /**
+ * @brief ::lh_date_days_in_month if @p day is a valid day of that month, else `0`.
+ *
+ * Shared by ::lh_date_days_left and ::lh_date_days_left_with_today.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_date_day_t
+lh_date_days_in_month_if_valid(lh_date_year_t year, lh_date_month_t month, lh_date_day_t day);
+
+/**
  * @brief Days after @p day until month end (`dim - day`), not counting today.
  *
  * @param year  Calendar year.

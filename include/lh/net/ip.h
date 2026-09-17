@@ -10,14 +10,11 @@
 #ifndef LH_NET_IP_H
 #define LH_NET_IP_H
 
-#include <lh/assert.h>
-#include <lh/attribute/force_inline.h>
 #include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/limits.h>
 #include <lh/numeric/fixed/types.h>
-#include <lh/runtime/error.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
 
@@ -157,41 +154,24 @@ lh_net_ip4_assign(lh_net_ip4_t *self, const lh_net_ip4_t *other);
 /**
  * @brief Return the octet at @p index.
  *
- * ::LH_ATTRIBUTE_FORCE_INLINE — called from ::lh_net_ip4_parse's/
- * ::lh_net_ip4_format's force-inlined bodies; see the note in `net/ip.c`.
- *
  * @param self  Address to read from.
  * @param index Octet position (0-3; `0` is `192` in `192.168.0.1`).
  * @return Octet value at @p index.
  */
-LH_ATTRIBUTE_FORCE_INLINE
+LH_ATTRIBUTE_SYMBOL
 lh_u8_t
-lh_net_ip4_get_octet(const lh_net_ip4_t *self, lh_usize_t index)
-{
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_if(index >= LH_NET_IP4_OCTET_COUNT,
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
-    return self->octets[index];
-}
+lh_net_ip4_get_octet(const lh_net_ip4_t *self, lh_usize_t index);
 
 /**
  * @brief Replace the octet at @p index.
- *
- * ::LH_ATTRIBUTE_FORCE_INLINE — see ::lh_net_ip4_get_octet.
  *
  * @param self  Address to modify.
  * @param index Octet position (0-3).
  * @param value New octet value.
  */
-LH_ATTRIBUTE_FORCE_INLINE
+LH_ATTRIBUTE_SYMBOL
 void
-lh_net_ip4_set_octet(lh_net_ip4_t *self, lh_usize_t index, lh_u8_t value)
-{
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_if(index >= LH_NET_IP4_OCTET_COUNT,
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
-    self->octets[index] = value;
-}
+lh_net_ip4_set_octet(lh_net_ip4_t *self, lh_usize_t index, lh_u8_t value);
 
 /**
  * @brief Test whether @p self is in 127.0.0.0/8 (loopback).
@@ -199,14 +179,9 @@ lh_net_ip4_set_octet(lh_net_ip4_t *self, lh_usize_t index, lh_u8_t value)
  * @param self Address to classify.
  * @return ::lh_bool_true if the first octet is 127.
  */
-LH_ATTRIBUTE_FORCE_INLINE
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_net_ip4_is_loopback(const lh_net_ip4_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return (lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_0) == 127U) ? lh_bool_true
-                                                                          : lh_bool_false;
-}
+lh_net_ip4_is_loopback(const lh_net_ip4_t *self);
 
 /**
  * @brief Test whether @p self is in RFC 1918 private space.
@@ -217,31 +192,9 @@ lh_net_ip4_is_loopback(const lh_net_ip4_t *self)
  * @param self Address to classify.
  * @return ::lh_bool_true if the address is RFC 1918 private.
  */
-LH_ATTRIBUTE_FORCE_INLINE
+LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_net_ip4_is_private(const lh_net_ip4_t *self)
-{
-    lh_u8_t octet0;
-    lh_u8_t octet1;
-
-    lh_assert_runtime_ref(self);
-    octet0 = lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_0);
-    octet1 = lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_1);
-
-    if (octet0 == 10U)
-    {
-        return lh_bool_true;
-    }
-    if (octet0 == 192U && octet1 == 168U)
-    {
-        return lh_bool_true;
-    }
-    if (octet0 == 172U && octet1 >= 16U && octet1 <= 31U)
-    {
-        return lh_bool_true;
-    }
-    return lh_bool_false;
-}
+lh_net_ip4_is_private(const lh_net_ip4_t *self);
 
 /* ── parse / format / compare ────────────────────────────────────────────── */
 

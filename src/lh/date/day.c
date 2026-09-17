@@ -1,8 +1,8 @@
 #include <lh/date/day.h>
 #include <lh/cast/static.h>
 
-static lh_date_day_t
-lh_date_day_dim_if_valid(lh_date_year_t year, lh_date_month_t month, lh_date_day_t day)
+lh_date_day_t
+lh_date_days_in_month_if_valid(lh_date_year_t year, lh_date_month_t month, lh_date_day_t day)
 {
     lh_date_day_t dim = lh_date_days_in_month(year, month);
 
@@ -39,7 +39,7 @@ lh_date_days_in_month(lh_date_year_t year, lh_date_month_t month)
 lh_date_day_t
 lh_date_days_left(lh_date_year_t year, lh_date_month_t month, lh_date_day_t day)
 {
-    lh_date_day_t dim = lh_date_day_dim_if_valid(year, month, day);
+    lh_date_day_t dim = lh_date_days_in_month_if_valid(year, month, day);
 
     if (dim == 0)
     {
@@ -52,7 +52,7 @@ lh_date_days_left(lh_date_year_t year, lh_date_month_t month, lh_date_day_t day)
 lh_date_day_t
 lh_date_days_left_with_today(lh_date_year_t year, lh_date_month_t month, lh_date_day_t day)
 {
-    lh_date_day_t dim = lh_date_day_dim_if_valid(year, month, day);
+    lh_date_day_t dim = lh_date_days_in_month_if_valid(year, month, day);
 
     if (dim == 0)
     {

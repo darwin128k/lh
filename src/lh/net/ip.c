@@ -5,6 +5,7 @@
 #include <lh/memory/std.h>
 #include <lh/null.h>
 #include <lh/optional/ref.h>
+#include <lh/runtime/error.h>
 #include <lh/str/format/uint.h>
 #include <lh/str/parse/uint.h>
 #include <lh/str/split/next.h>
@@ -83,18 +84,55 @@ lh_net_ip4_assign(lh_net_ip4_t *self, const lh_net_ip4_t *other)
     lh_net_ip4_set(self, octet0, octet1, octet2, octet3);
 }
 
-/* lh_net_ip4_get_octet / lh_net_ip4_set_octet are LH_ATTRIBUTE_FORCE_INLINE,
- * defined in the header — nothing to put here.
- *
- * lh_net_ip4_parse's octet loop used to go through lh_str_ptr_split_next +
- * lh_str_ptr_parse_uint + lh_net_ip4_set_octet as ordinary exported calls;
- * measured ~4-5x slower (Release, LTO, both static and DLL) than a fully
- * inlined equivalent. lh_str_ptr_split_next, lh_str_ptr_parse_uint, and
- * lh_net_ip4_get_octet/set_octet are now all LH_ATTRIBUTE_FORCE_INLINE in
- * their own headers, so this loop keeps the same decomposed shape while
- * compiling down to the fast version — lh_str_ptr_find_of_char (called once
- * per octet, from inside the now-inlined split_next) is the one real call
- * left, since it is shared, general-purpose, and used broadly elsewhere. */
+lh_u8_t
+lh_net_ip4_get_octet(const lh_net_ip4_t *self, lh_usize_t index)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_if(index >= LH_NET_IP4_OCTET_COUNT,
+                         lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+    return self->octets[index];
+}
+
+void
+lh_net_ip4_set_octet(lh_net_ip4_t *self, lh_usize_t index, lh_u8_t value)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_if(index >= LH_NET_IP4_OCTET_COUNT,
+                         lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+    self->octets[index] = value;
+}
+
+lh_bool_t
+lh_net_ip4_is_loopback(const lh_net_ip4_t *self)
+{
+    return lh_cast_static(lh_bool_t,
+                          lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_0) == 127U);
+}
+
+lh_bool_t
+lh_net_ip4_is_private(const lh_net_ip4_t *self)
+{
+    lh_u8_t octet0;
+    lh_u8_t octet1;
+
+    octet0 = lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_0);
+    octet1 = lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_1);
+
+    if (octet0 == 10U)
+    {
+        return lh_bool_true;
+    }
+    if (octet0 == 192U && octet1 == 168U)
+    {
+        return lh_bool_true;
+    }
+    if (octet0 == 172U && octet1 >= 16U && octet1 <= 31U)
+    {
+        return lh_bool_true;
+    }
+    return lh_bool_false;
+}
+
 lh_bool_t
 lh_net_ip4_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_ip4_t *out)
 {

@@ -102,6 +102,27 @@ void
 lh_date_set(lh_date_t *self, lh_date_year_t year, lh_date_month_t month, lh_date_day_t day);
 
 /**
+ * @brief Write only the day field. Delegates to ::lh_date_pack.
+ *
+ * @param self Date to modify (not null).
+ * @param day  New day of month.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_date_set_day(lh_date_t *self, lh_date_day_t day);
+
+/**
+ * @brief Clamp the day down to ::lh_date_max_days if it is past this month.
+ *
+ * Used after year/month wrap (e.g. 29 Feb → 28 Feb).
+ *
+ * @param self Date to modify (not null).
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_date_clamp_day(lh_date_t *self);
+
+/**
  * @brief Add @p value years. Delegates to ::lh_date_year_add, then clamps the day
  *        if it is past the new month length (e.g. 29 Feb → 28 Feb).
  *
@@ -183,6 +204,56 @@ lh_date_add_day(lh_date_t *self, lh_uint_t value);
 LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_date_sub_day(lh_date_t *self, lh_uint_t value);
+
+/**
+ * @brief Add @p value days that still fit in the current month.
+ *
+ * @param self  Date to update (not null).
+ * @param value Days to add; caller guarantees they stay in this month.
+ *
+ * @return Always `0`.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_date_add_within_month(lh_date_t *self, lh_uint_t value);
+
+/**
+ * @brief Consume the rest of this month and roll to day 1 of the next.
+ *
+ * @param self  Date to update (not null).
+ * @param value Remaining days; reduced by ::lh_date_left_days_with_today.
+ *
+ * @return Year-radix overflow from ::lh_date_add_month.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_date_roll_to_next_month(lh_date_t *self, lh_uint_t *value);
+
+/**
+ * @brief Subtract @p value days that still fit in the current month.
+ *
+ * @param self  Date to update (not null).
+ * @param day   Current day of month (already read by the caller).
+ * @param value Days to subtract; caller guarantees `value < day`.
+ *
+ * @return Always `0`.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_date_sub_within_month(lh_date_t *self, lh_date_day_t day, lh_uint_t value);
+
+/**
+ * @brief Consume this month's day count and roll to the previous month's last day.
+ *
+ * @param self  Date to update (not null).
+ * @param value Remaining days; reduced by @p day.
+ * @param day   Current day of month before the roll.
+ *
+ * @return Year-radix units borrowed from ::lh_date_sub_month.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uint_t
+lh_date_roll_to_prev_month(lh_date_t *self, lh_uint_t *value, lh_date_day_t day);
 
 /**
  * @brief Add days, then months, then years (::lh_date_add_day / `_month` / `_year`).
@@ -345,6 +416,16 @@ lh_date_is_less(const lh_date_t *self, const lh_date_t *other);
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_date_is_greater(const lh_date_t *self, const lh_date_t *other);
+
+/**
+ * @brief True if @p year/@p month/@p day is a real Gregorian calendar day.
+ *
+ * Month and day must be at least ::LH_DATE_MONTH_MIN / ::LH_DATE_DAY_MIN,
+ * and @p day must not exceed ::lh_date_days_in_month.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_date_ymd_is_valid(lh_uint_t year, lh_uint_t month, lh_uint_t day);
 
 /**
  * @brief Parse `Y/M/D` (slashes; leading zeros on month/day allowed).

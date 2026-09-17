@@ -9,21 +9,6 @@
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 
-static lh_bool_t
-lh_time_parse_field(lh_str_cptr str, lh_usize_t str_size, lh_usize_t *pos, lh_uint_t max,
-                    lh_uint_t *out, lh_bool_t want_delim)
-{
-    lh_bool_t had_delim;
-
-    if (!lh_str_ptr_split_next_uint_digits(str, str_size, ':', pos, max, out,
-                                           lh_addr_of(had_delim)))
-    {
-        return lh_bool_false;
-    }
-
-    return lh_cast_static(lh_bool_t, had_delim == want_delim);
-}
-
 void
 lh_time_pack(lh_time_t *self, const lh_time_hour_t *hour, const lh_time_minute_t *minute,
              const lh_time_second_t *second)
@@ -260,18 +245,18 @@ lh_time_parse(lh_str_cptr str, lh_usize_t str_size, lh_time_t *out)
     lh_uint_t second;
     lh_usize_t pos = 0;
 
-    if (!lh_time_parse_field(str, str_size, lh_addr_of(pos), LH_TIME_HOUR_MAX, lh_addr_of(hour),
-                             lh_bool_true))
+    if (!lh_str_ptr_split_next_uint_digits(str, str_size, ':', lh_addr_of(pos), LH_TIME_HOUR_MAX,
+                                           lh_addr_of(hour), lh_bool_true))
     {
         return lh_bool_false;
     }
-    if (!lh_time_parse_field(str, str_size, lh_addr_of(pos), LH_TIME_MINUTE_MAX, lh_addr_of(minute),
-                             lh_bool_true))
+    if (!lh_str_ptr_split_next_uint_digits(str, str_size, ':', lh_addr_of(pos), LH_TIME_MINUTE_MAX,
+                                           lh_addr_of(minute), lh_bool_true))
     {
         return lh_bool_false;
     }
-    if (!lh_time_parse_field(str, str_size, lh_addr_of(pos), LH_TIME_SECOND_MAX, lh_addr_of(second),
-                             lh_bool_false))
+    if (!lh_str_ptr_split_next_uint_digits(str, str_size, ':', lh_addr_of(pos), LH_TIME_SECOND_MAX,
+                                           lh_addr_of(second), lh_bool_false))
     {
         return lh_bool_false;
     }

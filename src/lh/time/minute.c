@@ -4,13 +4,6 @@
 #include <lh/util/interval/wrap.h>
 #include <lh/util/math.h>
 
-static lh_uint_t
-lh_time_minute_commit(lh_time_minute_t *self, lh_ullong_t cur, lh_uint_t overflow)
-{
-    *self = lh_cast_static(lh_time_minute_t, cur);
-    return overflow;
-}
-
 lh_uint_t
 lh_time_minute_set(lh_time_minute_t *self, lh_uint_t value)
 {
@@ -20,7 +13,8 @@ lh_time_minute_set(lh_time_minute_t *self, lh_uint_t value)
     lh_assert_runtime_ref(self);
     overflow = lh_interval_closed_wrap_set(&cur, lh_cast_static(lh_ullong_t, value), 0,
                                            lh_cast_static(lh_ullong_t, LH_TIME_MINUTE_MAX));
-    return lh_time_minute_commit(self, cur, overflow);
+    *self = lh_cast_static(lh_time_minute_t, cur);
+    return overflow;
 }
 
 void
@@ -38,7 +32,8 @@ lh_time_minute_add(lh_time_minute_t *self, lh_uint_t value)
 
     overflow = lh_interval_closed_wrap_add(&cur, lh_cast_static(lh_ullong_t, value), 0,
                                            lh_cast_static(lh_ullong_t, LH_TIME_MINUTE_MAX));
-    return lh_time_minute_commit(self, cur, overflow);
+    *self = lh_cast_static(lh_time_minute_t, cur);
+    return overflow;
 }
 
 lh_uint_t
@@ -49,7 +44,8 @@ lh_time_minute_sub(lh_time_minute_t *self, lh_uint_t value)
 
     overflow = lh_interval_closed_wrap_sub(&cur, lh_cast_static(lh_ullong_t, value), 0,
                                            lh_cast_static(lh_ullong_t, LH_TIME_MINUTE_MAX));
-    return lh_time_minute_commit(self, cur, overflow);
+    *self = lh_cast_static(lh_time_minute_t, cur);
+    return overflow;
 }
 
 lh_time_minute_t

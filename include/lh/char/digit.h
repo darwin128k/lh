@@ -13,11 +13,9 @@
  * parameter instead, because it already has two real callers needing
  * different bases.
  *
- * Every function here is ::LH_ATTRIBUTE_FORCE_INLINE — small and called
- * from other hot, force-inlined callers (::lh_str_ptr_parse_uint,
- * ::lh_net_ip4_parse's digit loop by way of it); measured to cost real,
- * compounding overhead as ordinary exported calls. See the note in
- * `net/ip.c` for the numbers.
+ * Every function here is ::LH_ATTRIBUTE_FORCE_INLINE — the digit kernel
+ * under ::lh_str_ptr_parse_uint / ::lh_str_ptr_format_uint. Those parsers
+ * are ordinary exported API; this file is the hot primitive they call.
  */
 
 #ifndef LH_CHAR_DIGIT_H

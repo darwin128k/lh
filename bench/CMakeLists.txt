@@ -45,6 +45,9 @@ set(LH_BENCH_SOURCES
         ${LH_BENCH_SRC_PATH}/lh/str/format/text.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/parse/uint.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/parse/hex.cpp
+        ${LH_BENCH_SRC_PATH}/lh/date.cpp
+        ${LH_BENCH_SRC_PATH}/lh/time.cpp
+        ${LH_BENCH_SRC_PATH}/lh/datetime.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/format/bytes.cpp
         ${LH_BENCH_SRC_PATH}/lh/crypto/sha.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/view.cpp

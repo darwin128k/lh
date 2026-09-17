@@ -3,7 +3,9 @@
  * @brief Closed-interval wrap add/sub/assign on ::lh_ullong_t.
  *
  * One implementation for year, month-index, hour, minute, and second.
- * Callers store the result back with ::lh_cast_static to their field type.
+ * This is the util speed floor: wrap stays in the header so those field
+ * types can stay ordinary exported functions. Callers store the result
+ * back with ::lh_cast_static.
  */
 
 #ifndef LH_UTIL_INTERVAL_WRAP_H
