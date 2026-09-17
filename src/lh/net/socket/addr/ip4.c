@@ -1,5 +1,6 @@
 #include <lh/net/socket/addr/ip4.h>
 #include <lh/assert.h>
+#include <lh/cast/static.h>
 #include <lh/memory/std.h>
 #include <lh/str/format/uint.h>
 #include <lh/str/split/next.h>
@@ -130,7 +131,7 @@ lh_net_ip4_socket_addr_format(const lh_net_ip4_socket_addr_t *self, lh_str_ptr s
         }
 
         written =
-            lh_str_ptr_format_uint((lh_uint_t)lh_net_ip4_get_octet(lh_addr_of(ip), octet_index),
+            lh_str_ptr_format_uint(lh_cast_static(lh_uint_t, lh_net_ip4_get_octet(lh_addr_of(ip), octet_index)),
                                    scratch + pos, LH_NET_IP4_SOCKET_ADDR_TEXT_MAX - pos);
         if (written == 0)
         {
@@ -142,7 +143,7 @@ lh_net_ip4_socket_addr_format(const lh_net_ip4_socket_addr_t *self, lh_str_ptr s
     scratch[pos] = ':';
     pos++;
 
-    written = lh_str_ptr_format_uint((lh_uint_t)lh_net_ip4_socket_addr_get_port(self),
+    written = lh_str_ptr_format_uint(lh_cast_static(lh_uint_t, lh_net_ip4_socket_addr_get_port(self)),
                                      scratch + pos, LH_NET_IP4_SOCKET_ADDR_TEXT_MAX - pos);
     if (written == 0)
     {

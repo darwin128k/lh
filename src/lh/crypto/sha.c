@@ -1,5 +1,6 @@
 #include <lh/crypto/sha.h>
 #include <lh/assert.h>
+#include <lh/cast/static.h>
 #include <lh/memory/std.h>
 #include <lh/runtime/error.h>
 #include <lh/util/addr.h>
@@ -102,11 +103,11 @@ lh_crypto_sha_process_1(lh_crypto_sha_t *self, const lh_uchar_t *block)
         w[i] = lh_bit_rotate_left_u32(w[i - 3U] ^ w[i - 8U] ^ w[i - 14U] ^ w[i - 16U], 1U);
     }
 
-    a = (lh_u32_t)self->state[0];
-    b = (lh_u32_t)self->state[1];
-    c = (lh_u32_t)self->state[2];
-    d = (lh_u32_t)self->state[3];
-    e = (lh_u32_t)self->state[4];
+    a = lh_cast_static(lh_u32_t, self->state[0]);
+    b = lh_cast_static(lh_u32_t, self->state[1]);
+    c = lh_cast_static(lh_u32_t, self->state[2]);
+    d = lh_cast_static(lh_u32_t, self->state[3]);
+    e = lh_cast_static(lh_u32_t, self->state[4]);
 
     for (i = 0; i < 80U; ++i)
     {
@@ -143,11 +144,11 @@ lh_crypto_sha_process_1(lh_crypto_sha_t *self, const lh_uchar_t *block)
         a = temp;
     }
 
-    self->state[0] = (lh_u32_t)self->state[0] + a;
-    self->state[1] = (lh_u32_t)self->state[1] + b;
-    self->state[2] = (lh_u32_t)self->state[2] + c;
-    self->state[3] = (lh_u32_t)self->state[3] + d;
-    self->state[4] = (lh_u32_t)self->state[4] + e;
+    self->state[0] = lh_cast_static(lh_u32_t, self->state[0]) + a;
+    self->state[1] = lh_cast_static(lh_u32_t, self->state[1]) + b;
+    self->state[2] = lh_cast_static(lh_u32_t, self->state[2]) + c;
+    self->state[3] = lh_cast_static(lh_u32_t, self->state[3]) + d;
+    self->state[4] = lh_cast_static(lh_u32_t, self->state[4]) + e;
 }
 
 static void
@@ -177,14 +178,14 @@ lh_crypto_sha_process_256(lh_crypto_sha_t *self, const lh_uchar_t *block)
         w[i] = w[i - 16U] + s0 + w[i - 7U] + s1;
     }
 
-    a = (lh_u32_t)self->state[0];
-    b = (lh_u32_t)self->state[1];
-    c = (lh_u32_t)self->state[2];
-    d = (lh_u32_t)self->state[3];
-    e = (lh_u32_t)self->state[4];
-    f = (lh_u32_t)self->state[5];
-    g = (lh_u32_t)self->state[6];
-    h = (lh_u32_t)self->state[7];
+    a = lh_cast_static(lh_u32_t, self->state[0]);
+    b = lh_cast_static(lh_u32_t, self->state[1]);
+    c = lh_cast_static(lh_u32_t, self->state[2]);
+    d = lh_cast_static(lh_u32_t, self->state[3]);
+    e = lh_cast_static(lh_u32_t, self->state[4]);
+    f = lh_cast_static(lh_u32_t, self->state[5]);
+    g = lh_cast_static(lh_u32_t, self->state[6]);
+    h = lh_cast_static(lh_u32_t, self->state[7]);
 
     for (i = 0; i < 64U; ++i)
     {
@@ -207,14 +208,14 @@ lh_crypto_sha_process_256(lh_crypto_sha_t *self, const lh_uchar_t *block)
         a = temp1 + temp2;
     }
 
-    self->state[0] = (lh_u32_t)self->state[0] + a;
-    self->state[1] = (lh_u32_t)self->state[1] + b;
-    self->state[2] = (lh_u32_t)self->state[2] + c;
-    self->state[3] = (lh_u32_t)self->state[3] + d;
-    self->state[4] = (lh_u32_t)self->state[4] + e;
-    self->state[5] = (lh_u32_t)self->state[5] + f;
-    self->state[6] = (lh_u32_t)self->state[6] + g;
-    self->state[7] = (lh_u32_t)self->state[7] + h;
+    self->state[0] = lh_cast_static(lh_u32_t, self->state[0]) + a;
+    self->state[1] = lh_cast_static(lh_u32_t, self->state[1]) + b;
+    self->state[2] = lh_cast_static(lh_u32_t, self->state[2]) + c;
+    self->state[3] = lh_cast_static(lh_u32_t, self->state[3]) + d;
+    self->state[4] = lh_cast_static(lh_u32_t, self->state[4]) + e;
+    self->state[5] = lh_cast_static(lh_u32_t, self->state[5]) + f;
+    self->state[6] = lh_cast_static(lh_u32_t, self->state[6]) + g;
+    self->state[7] = lh_cast_static(lh_u32_t, self->state[7]) + h;
 }
 
 static void
@@ -304,7 +305,7 @@ lh_crypto_sha_process(lh_crypto_sha_t *self, const lh_uchar_t *block)
 static void
 lh_crypto_sha_add_bits(lh_crypto_sha_t *self, lh_usize_t byte_count)
 {
-    lh_u64_t bits = (lh_u64_t)byte_count << 3;
+    lh_u64_t bits = lh_cast_static(lh_u64_t, byte_count) << 3;
     lh_u64_t lo = self->bit_count_lo + bits;
 
     if (lo < self->bit_count_lo)
@@ -312,7 +313,7 @@ lh_crypto_sha_add_bits(lh_crypto_sha_t *self, lh_usize_t byte_count)
         self->bit_count_hi += 1U;
     }
     self->bit_count_lo = lo;
-    self->bit_count_hi += (lh_u64_t)byte_count >> 61;
+    self->bit_count_hi += lh_cast_static(lh_u64_t, byte_count) >> 61;
 }
 
 void
@@ -496,7 +497,7 @@ lh_crypto_sha_finish(lh_crypto_sha_t *self, lh_ptr out, lh_usize_t out_size)
     {
         for (i = 0; i < 5U; ++i)
         {
-            lh_bit_pack_be32((lh_u32_t)self->state[i], out_bytes + i * 4U);
+            lh_bit_pack_be32(lh_cast_static(lh_u32_t, self->state[i]), out_bytes + i * 4U);
         }
     }
     else
@@ -504,7 +505,7 @@ lh_crypto_sha_finish(lh_crypto_sha_t *self, lh_ptr out, lh_usize_t out_size)
         lh_usize_t words = digest_size / 4U;
         for (i = 0; i < words; ++i)
         {
-            lh_bit_pack_be32((lh_u32_t)self->state[i], out_bytes + i * 4U);
+            lh_bit_pack_be32(lh_cast_static(lh_u32_t, self->state[i]), out_bytes + i * 4U);
         }
     }
 

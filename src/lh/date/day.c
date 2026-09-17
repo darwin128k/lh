@@ -1,4 +1,18 @@
 #include <lh/date/day.h>
+#include <lh/cast/static.h>
+
+static lh_date_day_t
+lh_date_day_dim_if_valid(lh_date_year_t year, lh_date_month_t month, lh_date_day_t day)
+{
+    lh_date_day_t dim = lh_date_days_in_month(year, month);
+
+    if (dim == 0 || day < LH_DATE_DAY_MIN || day > dim)
+    {
+        return 0;
+    }
+
+    return dim;
+}
 
 lh_date_day_t
 lh_date_days_in_month(lh_date_year_t year, lh_date_month_t month)
@@ -25,23 +39,25 @@ lh_date_days_in_month(lh_date_year_t year, lh_date_month_t month)
 lh_date_day_t
 lh_date_days_left(lh_date_year_t year, lh_date_month_t month, lh_date_day_t day)
 {
-    lh_date_day_t dim = lh_date_days_in_month(year, month);
+    lh_date_day_t dim = lh_date_day_dim_if_valid(year, month, day);
 
-    if (dim == 0 || day < LH_DATE_DAY_MIN || day > dim)
+    if (dim == 0)
     {
         return 0;
     }
-    return (lh_date_day_t)(dim - day);
+
+    return lh_cast_static(lh_date_day_t, (dim - day));
 }
 
 lh_date_day_t
 lh_date_days_left_with_today(lh_date_year_t year, lh_date_month_t month, lh_date_day_t day)
 {
-    lh_date_day_t dim = lh_date_days_in_month(year, month);
+    lh_date_day_t dim = lh_date_day_dim_if_valid(year, month, day);
 
-    if (dim == 0 || day < LH_DATE_DAY_MIN || day > dim)
+    if (dim == 0)
     {
         return 0;
     }
-    return (lh_date_day_t)((dim - day) + 1U);
+
+    return lh_cast_static(lh_date_day_t, ((dim - day) + 1U));
 }

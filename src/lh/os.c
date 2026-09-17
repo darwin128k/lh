@@ -1,5 +1,7 @@
 #include <lh/os.h>
 #include <lh/attribute/thread_local.h>
+#include <lh/cast/const.h>
+#include <lh/cast/static.h>
 #include <lh/compiler/os.h>
 #include <lh/null.h>
 #include <lh/size.h>
@@ -43,7 +45,7 @@ lh_os_last_error_copy_desc(lh_os_error_desc_t text)
     data = lh_wstr_view_get_data(&text);
     if (data != g_lh_os_last_error_desc)
     {
-        end = lh_wstr_ptr_copy(g_lh_os_last_error_desc, cap, (lh_wstr_ptr)data,
+        end = lh_wstr_ptr_copy(g_lh_os_last_error_desc, cap, lh_cast_const(lh_wstr_ptr, data),
                                lh_wstr_view_get_size(&text));
         end[0] = L'\0';
     }
@@ -60,16 +62,17 @@ lh_os_last_error_copy_cstr(lh_str_cptr text)
     }
 #    if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     if (MultiByteToWideChar(CP_ACP, 0, text, -1, g_lh_os_last_error_desc,
-                            (int)LH_OS_LAST_ERROR_DESC_MAX) <= 0)
+                            lh_cast_static(int, LH_OS_LAST_ERROR_DESC_MAX)) <= 0)
     {
         g_lh_os_last_error_desc[0] = L'\0';
         return;
     }
 #    else
     {
-        const size_t n = mbstowcs(g_lh_os_last_error_desc, text, (size_t)(LH_OS_LAST_ERROR_DESC_MAX - 1U));
+        const size_t n = mbstowcs(g_lh_os_last_error_desc, text,
+                                  lh_cast_static(size_t, LH_OS_LAST_ERROR_DESC_MAX - 1U));
 
-        if (n == (size_t)-1)
+        if (n == lh_cast_static(size_t, -1))
         {
             g_lh_os_last_error_desc[0] = L'\0';
             return;
@@ -97,7 +100,7 @@ lh_os_last_error_copy_desc(lh_os_error_desc_t text)
     data = lh_str_view_get_data(&text);
     if (data != g_lh_os_last_error_desc)
     {
-        end = lh_str_ptr_copy(g_lh_os_last_error_desc, cap, (lh_str_ptr)data,
+        end = lh_str_ptr_copy(g_lh_os_last_error_desc, cap, lh_cast_const(lh_str_ptr, data),
                               lh_str_view_get_size(&text));
         end[0] = '\0';
     }
@@ -131,11 +134,11 @@ lh_os_capture_last_error(void)
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     const DWORD code = GetLastError();
 
-    g_lh_os_last_error_code = (lh_error_code_t)code;
+    g_lh_os_last_error_code = lh_cast_static(lh_error_code_t, code);
 #    if LH_LIBRARY_OPTION_OS_WERROR
     if (FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, lh_null, code,
                        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), g_lh_os_last_error_desc,
-                       (DWORD)LH_OS_LAST_ERROR_DESC_MAX, lh_null) == 0)
+                       lh_cast_static(DWORD, LH_OS_LAST_ERROR_DESC_MAX), lh_null) == 0)
     {
         g_lh_os_last_error_desc[0] = L'\0';
     }
@@ -146,7 +149,7 @@ lh_os_capture_last_error(void)
 #    else
     if (FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, lh_null, code,
                        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), g_lh_os_last_error_desc,
-                       (DWORD)LH_OS_LAST_ERROR_DESC_MAX, lh_null) == 0)
+                       lh_cast_static(DWORD, LH_OS_LAST_ERROR_DESC_MAX), lh_null) == 0)
     {
         g_lh_os_last_error_desc[0] = '\0';
     }
@@ -156,7 +159,7 @@ lh_os_capture_last_error(void)
     }
 #    endif
 #else
-    g_lh_os_last_error_code = (lh_error_code_t)errno;
+    g_lh_os_last_error_code = lh_cast_static(lh_error_code_t, errno);
     lh_os_last_error_copy_cstr(strerror(errno));
 #endif
 }

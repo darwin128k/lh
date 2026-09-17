@@ -1,6 +1,7 @@
 #include <lh/date/year.h>
 #include <lh/assert.h>
-#include <lh/util/interval.h>
+#include <lh/cast/static.h>
+#include <lh/util/interval/wrap.h>
 
 lh_bool_t
 lh_date_year_is_leap(lh_date_year_t self)
@@ -13,31 +14,33 @@ lh_date_year_is_leap(lh_date_year_t self)
     {
         return lh_bool_true;
     }
-    return (self % LH_DATE_YEAR_GREGORIAN_CYCLE == 0) ? lh_bool_true : lh_bool_false;
+    return lh_cast_static(lh_bool_t, self % LH_DATE_YEAR_GREGORIAN_CYCLE == 0);
 }
 
 lh_uint_t
 lh_date_year_add(lh_date_year_t *self, lh_uint_t value)
 {
-    lh_ullong_t total;
+    lh_ullong_t cur;
+    lh_uint_t overflow;
 
     lh_assert_runtime_ref(self);
-    total = (lh_ullong_t)(*self) + (lh_ullong_t)value;
-    *self = (lh_date_year_t)lh_interval_closed_wrap_value(total, (lh_ullong_t)0,
-                                                          (lh_ullong_t)LH_DATE_YEAR_MAX);
-    return (lh_uint_t)lh_interval_closed_wrap_overflow(total, (lh_ullong_t)0,
-                                                       (lh_ullong_t)LH_DATE_YEAR_MAX);
+    cur = lh_cast_static(lh_ullong_t, *self);
+    overflow = lh_interval_closed_wrap_add(&cur, lh_cast_static(lh_ullong_t, value), 0,
+                                           lh_cast_static(lh_ullong_t, LH_DATE_YEAR_MAX));
+    *self = lh_cast_static(lh_date_year_t, cur);
+    return overflow;
 }
 
 lh_uint_t
 lh_date_year_sub(lh_date_year_t *self, lh_uint_t value)
 {
     lh_ullong_t cur;
+    lh_uint_t overflow;
 
     lh_assert_runtime_ref(self);
-    cur = (lh_ullong_t)(*self);
-    *self = (lh_date_year_t)lh_interval_closed_unsigned_sub_wrap_value(
-        cur, (lh_ullong_t)value, (lh_ullong_t)0, (lh_ullong_t)LH_DATE_YEAR_MAX);
-    return (lh_uint_t)lh_interval_closed_unsigned_sub_wrap_overflow(
-        cur, (lh_ullong_t)value, (lh_ullong_t)0, (lh_ullong_t)LH_DATE_YEAR_MAX);
+    cur = lh_cast_static(lh_ullong_t, *self);
+    overflow = lh_interval_closed_wrap_sub(&cur, lh_cast_static(lh_ullong_t, value), 0,
+                                           lh_cast_static(lh_ullong_t, LH_DATE_YEAR_MAX));
+    *self = lh_cast_static(lh_date_year_t, cur);
+    return overflow;
 }

@@ -38,6 +38,13 @@ TEST(str_ptr_parse_uint, rejects_leading_zero)
     EXPECT_FALSE(lh_str_ptr_parse_uint("080", 3, 255U, &value));
 }
 
+TEST(str_ptr_parse_uint_digits, allows_leading_zero)
+{
+    lh_uint_t value = 0;
+    EXPECT_TRUE(lh_str_ptr_parse_uint_digits("09", 2, 255U, &value));
+    EXPECT_EQ(value, 9U);
+}
+
 TEST(str_ptr_parse_uint, rejects_value_above_max)
 {
     lh_uint_t value = 0;

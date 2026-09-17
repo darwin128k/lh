@@ -23,6 +23,7 @@
 #define LH_UTIL_BIT_ROTATE_H
 
 #include <lh/attribute/force_inline.h>
+#include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/compiler/type.h>
 #include <lh/numeric/fixed/types.h>
@@ -47,9 +48,9 @@ lh_bit_rotate_left_u32(lh_u32_t x, lh_usize_t r)
 {
     r &= 31U;
 #if LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
-    return _rotl(x, (int)r);
+    return _rotl(x, lh_cast_static(int, r));
 #else
-    return (r == 0U) ? x : (lh_u32_t)((x << r) | (x >> (32U - r)));
+    return (r == 0U) ? x : lh_cast_static(lh_u32_t, ((x << r) | (x >> (32U - r))));
 #endif
 }
 
@@ -68,9 +69,9 @@ lh_bit_rotate_right_u32(lh_u32_t x, lh_usize_t r)
 {
     r &= 31U;
 #if LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
-    return _rotr(x, (int)r);
+    return _rotr(x, lh_cast_static(int, r));
 #else
-    return (r == 0U) ? x : (lh_u32_t)((x >> r) | (x << (32U - r)));
+    return (r == 0U) ? x : lh_cast_static(lh_u32_t, ((x >> r) | (x << (32U - r))));
 #endif
 }
 
@@ -87,9 +88,9 @@ lh_bit_rotate_left_u64(lh_u64_t x, lh_usize_t r)
 {
     r &= 63U;
 #if LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
-    return _rotl64(x, (int)r);
+    return _rotl64(x, lh_cast_static(int, r));
 #else
-    return (r == 0U) ? x : (lh_u64_t)((x << r) | (x >> (64U - r)));
+    return (r == 0U) ? x : lh_cast_static(lh_u64_t, ((x << r) | (x >> (64U - r))));
 #endif
 }
 
@@ -108,9 +109,9 @@ lh_bit_rotate_right_u64(lh_u64_t x, lh_usize_t r)
 {
     r &= 63U;
 #if LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
-    return _rotr64(x, (int)r);
+    return _rotr64(x, lh_cast_static(int, r));
 #else
-    return (r == 0U) ? x : (lh_u64_t)((x >> r) | (x << (64U - r)));
+    return (r == 0U) ? x : lh_cast_static(lh_u64_t, ((x >> r) | (x << (64U - r))));
 #endif
 }
 

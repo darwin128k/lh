@@ -1,5 +1,6 @@
 #include <lh/str/format/bytes.h>
 #include <lh/assert.h>
+#include <lh/cast/static.h>
 #include <lh/char/xdigit.h>
 #include <lh/size.h>
 #include <lh/util/ptr.h>
@@ -58,8 +59,8 @@ lh_str_ptr_format_bytes_hex(const lh_ptr data, lh_usize_t data_size, lh_bool_t u
     bytes = lh_ptr_rcast(const lh_uchar_t, data);
     for (i = 0; i < data_size; ++i)
     {
-        str[i * 2U] = lh_char_from_xdigit((lh_uchar_t)(bytes[i] >> 4), uppercase);
-        str[i * 2U + 1U] = lh_char_from_xdigit((lh_uchar_t)(bytes[i] & 0x0FU), uppercase);
+        str[i * 2U] = lh_char_from_xdigit(lh_cast_static(lh_uchar_t, (bytes[i] >> 4)), uppercase);
+        str[i * 2U + 1U] = lh_char_from_xdigit(lh_cast_static(lh_uchar_t, (bytes[i] & 0x0FU)), uppercase);
     }
     return needed;
 }
@@ -93,11 +94,11 @@ lh_str_ptr_format_bytes_hex_dump(const lh_ptr data, lh_usize_t data_size, lh_boo
         lh_usize_t d;
         lh_usize_t count;
         lh_usize_t j;
-        lh_u32_t rest = (lh_u32_t)offset;
+        lh_u32_t rest = lh_cast_static(lh_u32_t, offset);
 
         for (d = LH_STR_FORMAT_BYTES_HEX_DUMP_OFFSET_DIGITS; d > 0U; --d)
         {
-            str[pos + d - 1U] = lh_char_from_xdigit((lh_uchar_t)(rest & 0x0FU), uppercase);
+            str[pos + d - 1U] = lh_char_from_xdigit(lh_cast_static(lh_uchar_t, (rest & 0x0FU)), uppercase);
             rest >>= 4;
         }
         pos += LH_STR_FORMAT_BYTES_HEX_DUMP_OFFSET_DIGITS;
@@ -112,8 +113,8 @@ lh_str_ptr_format_bytes_hex_dump(const lh_ptr data, lh_usize_t data_size, lh_boo
         for (j = 0; j < count; ++j)
         {
             lh_uchar_t b = bytes[offset + j];
-            str[pos++] = lh_char_from_xdigit((lh_uchar_t)(b >> 4), uppercase);
-            str[pos++] = lh_char_from_xdigit((lh_uchar_t)(b & 0x0FU), uppercase);
+            str[pos++] = lh_char_from_xdigit(lh_cast_static(lh_uchar_t, (b >> 4)), uppercase);
+            str[pos++] = lh_char_from_xdigit(lh_cast_static(lh_uchar_t, (b & 0x0FU)), uppercase);
             str[pos++] = ' ';
         }
         str[pos++] = '\n';

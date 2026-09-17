@@ -26,6 +26,7 @@
 #include <lh/assert.h>
 #include <lh/attribute/force_inline.h>
 #include <lh/bool.h>
+#include <lh/cast/static.h>
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/types.h>
@@ -71,7 +72,7 @@ lh_char_to_digit(lh_char_t ch)
 {
     lh_assert_runtime_if(!lh_char_is_digit(ch),
                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
-    return (lh_uchar_t)(lh_char_ord(ch) - lh_char_ord('0'));
+    return lh_cast_static(lh_uchar_t, (lh_char_ord(ch) - lh_char_ord('0')));
 }
 
 /**
@@ -145,7 +146,7 @@ lh_char_digit_extract(lh_uint_t *value, lh_uint_t radix)
 
     lh_assert_runtime_ref(value);
 
-    digit = (lh_uchar_t)(*value % radix);
+    digit = lh_cast_static(lh_uchar_t, (*value % radix));
     *value /= radix;
     return digit;
 }

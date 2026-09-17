@@ -1,5 +1,6 @@
 #include <lh/datetime.h>
 #include <lh/assert.h>
+#include <lh/cast/static.h>
 #include <lh/memory/std.h>
 #include <lh/null.h>
 #include <lh/optional/ref.h>
@@ -150,7 +151,7 @@ lh_datetime_is_at_least(const lh_datetime_t *self, const lh_datetime_t *minimum)
 lh_bool_t
 lh_datetime_is_less(const lh_datetime_t *self, const lh_datetime_t *other)
 {
-    return lh_datetime_is_at_least(self, other) ? lh_bool_false : lh_bool_true;
+    return lh_cast_static(lh_bool_t, !lh_datetime_is_at_least(self, other));
 }
 
 lh_bool_t

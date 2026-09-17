@@ -1,5 +1,6 @@
 #include <lh/net/port.h>
 #include <lh/assert.h>
+#include <lh/cast/static.h>
 #include <lh/str/parse/uint.h>
 #include <lh/util/addr.h>
 
@@ -15,6 +16,6 @@ lh_net_port_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_port_t *out)
         return lh_bool_false;
     }
 
-    *out = (lh_net_port_t)value;
+    *out = lh_cast_static(lh_net_port_t, value);
     return lh_bool_true;
 }

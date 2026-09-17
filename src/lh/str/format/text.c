@@ -1,6 +1,7 @@
 #include <lh/str/format/text.h>
 #include <lh/assert.h>
 #include <lh/bool.h>
+#include <lh/cast/static.h>
 #include <lh/memory/std.h>
 #include <lh/numeric/types.h>
 #include <lh/str/format/hex.h>
@@ -54,7 +55,7 @@ lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, v
             content_len = 1;
             break;
         case lh_str_scanf_spec_kind_char:
-            value_buf[0] = (lh_char_t)va_arg(args, lh_sint_t);
+            value_buf[0] = lh_cast_static(lh_char_t, va_arg(args, lh_sint_t));
             content_len = 1;
             break;
         case lh_str_scanf_spec_kind_uint:
@@ -98,7 +99,7 @@ lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, v
                 }
                 lh_memory_std_copy(str + out_pos, content, content_len);
                 out_pos += content_len;
-                lh_memory_std_set(str + out_pos, (lh_uchar_t)' ', pad_len);
+                lh_memory_std_set(str + out_pos, lh_cast_static(lh_uchar_t, ' '), pad_len);
                 out_pos += pad_len;
             }
             else if (spec.zero_pad && has_sign)
@@ -108,7 +109,7 @@ lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, v
                     return 0;
                 }
                 str[out_pos++] = content[0];
-                lh_memory_std_set(str + out_pos, (lh_uchar_t)'0', pad_len);
+                lh_memory_std_set(str + out_pos, lh_cast_static(lh_uchar_t, '0'), pad_len);
                 out_pos += pad_len;
                 lh_memory_std_copy(str + out_pos, content + 1, content_len - 1U);
                 out_pos += content_len - 1U;
@@ -120,7 +121,7 @@ lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, v
                 {
                     return 0;
                 }
-                lh_memory_std_set(str + out_pos, (lh_uchar_t)pad_char, pad_len);
+                lh_memory_std_set(str + out_pos, lh_cast_static(lh_uchar_t, pad_char), pad_len);
                 out_pos += pad_len;
                 lh_memory_std_copy(str + out_pos, content, content_len);
                 out_pos += content_len;

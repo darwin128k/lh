@@ -1,6 +1,7 @@
 #include <lh/str/parse/text.h>
 #include <lh/assert.h>
 #include <lh/bool.h>
+#include <lh/cast/static.h>
 #include <lh/char/digit.h>
 #include <lh/char/xdigit.h>
 #include <lh/memory/std.h>
@@ -171,7 +172,7 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
                 {
                     return 0;
                 }
-                offset = (lh_usize_t)(found - (str + in_pos));
+                offset = lh_cast_static(lh_usize_t, (found - (str + in_pos)));
                 if (offset > field_size)
                 {
                     return 0;
@@ -220,7 +221,7 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
                 in_pos++;
                 digit_limit = limit - 1U;
             }
-            max = is_negative ? (0U - (lh_uint_t)LH_SINT_T_MIN) : (lh_uint_t)LH_SINT_T_MAX;
+            max = is_negative ? (0U - lh_cast_static(lh_uint_t, LH_SINT_T_MIN)) : lh_cast_static(lh_uint_t, LH_SINT_T_MAX);
             if (!lh_str_ptr_parse_text_uint_run(str, str_size, lh_addr_of(in_pos), digit_limit, max,
                                                 lh_addr_of(magnitude)))
             {
@@ -228,12 +229,12 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
             }
             if (is_negative)
             {
-                *out = (magnitude == (0U - (lh_uint_t)LH_SINT_T_MIN)) ? LH_SINT_T_MIN
-                                                                      : -(lh_sint_t)magnitude;
+                *out = (magnitude == (0U - lh_cast_static(lh_uint_t, LH_SINT_T_MIN))) ? LH_SINT_T_MIN
+                                                                      : -lh_cast_static(lh_sint_t, magnitude);
             }
             else
             {
-                *out = (lh_sint_t)magnitude;
+                *out = lh_cast_static(lh_sint_t, magnitude);
             }
             break;
         }

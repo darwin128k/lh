@@ -1,45 +1,27 @@
 #include <lh/time.h>
 #include <lh/assert.h>
-#include <lh/char/digit.h>
+#include <lh/cast/static.h>
 #include <lh/null.h>
 #include <lh/numeric/types.h>
 #include <lh/optional/ref.h>
 #include <lh/str/format/text.h>
-#include <lh/str/split/next.h>
+#include <lh/str/parse/uint.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 
 static lh_bool_t
-lh_time_parse_component(lh_str_cptr field, lh_usize_t field_size, lh_uint_t max, lh_uint_t *out)
+lh_time_parse_field(lh_str_cptr str, lh_usize_t str_size, lh_usize_t *pos, lh_uint_t max,
+                    lh_uint_t *out, lh_bool_t want_delim)
 {
-    lh_uint_t value = 0;
-    lh_usize_t pos = 0;
+    lh_bool_t had_delim;
 
-    if (field_size == 0)
+    if (!lh_str_ptr_split_next_uint_digits(str, str_size, ':', pos, max, out,
+                                           lh_addr_of(had_delim)))
     {
         return lh_bool_false;
     }
 
-    while (pos < field_size && lh_char_is_digit(field[pos]))
-    {
-        if (!lh_char_digit_accumulate(lh_addr_of(value), lh_char_to_digit(field[pos])))
-        {
-            return lh_bool_false;
-        }
-        if (value > max)
-        {
-            return lh_bool_false;
-        }
-        pos++;
-    }
-
-    if (pos != field_size)
-    {
-        return lh_bool_false;
-    }
-
-    *out = value;
-    return lh_bool_true;
+    return lh_cast_static(lh_bool_t, had_delim == want_delim);
 }
 
 void
@@ -182,17 +164,17 @@ lh_time_sub_custom(lh_time_t *self, lh_uint_t hour, lh_uint_t minute, lh_uint_t 
 lh_uint_t
 lh_time_add(lh_time_t *self, const lh_time_t *other)
 {
-    return lh_time_add_custom(self, (lh_uint_t)lh_time_get_hour(other),
-                              (lh_uint_t)lh_time_get_minute(other),
-                              (lh_uint_t)lh_time_get_second(other));
+    return lh_time_add_custom(self, lh_cast_static(lh_uint_t, lh_time_get_hour(other)),
+                              lh_cast_static(lh_uint_t, lh_time_get_minute(other)),
+                              lh_cast_static(lh_uint_t, lh_time_get_second(other)));
 }
 
 lh_uint_t
 lh_time_sub(lh_time_t *self, const lh_time_t *other)
 {
-    return lh_time_sub_custom(self, (lh_uint_t)lh_time_get_hour(other),
-                              (lh_uint_t)lh_time_get_minute(other),
-                              (lh_uint_t)lh_time_get_second(other));
+    return lh_time_sub_custom(self, lh_cast_static(lh_uint_t, lh_time_get_hour(other)),
+                              lh_cast_static(lh_uint_t, lh_time_get_minute(other)),
+                              lh_cast_static(lh_uint_t, lh_time_get_second(other)));
 }
 
 lh_time_hour_t
@@ -230,7 +212,7 @@ lh_time_equals(const lh_time_t *self, const lh_time_t *other)
     {
         return lh_bool_false;
     }
-    return lh_time_get_second(self) == lh_time_get_second(other) ? lh_bool_true : lh_bool_false;
+    return lh_cast_static(lh_bool_t, lh_time_get_second(self) == lh_time_get_second(other));
 }
 
 lh_bool_t
@@ -245,23 +227,23 @@ lh_time_is_at_least(const lh_time_t *self, const lh_time_t *minimum)
     min_hour = lh_time_get_hour(minimum);
     if (self_hour != min_hour)
     {
-        return self_hour > min_hour ? lh_bool_true : lh_bool_false;
+        return lh_cast_static(lh_bool_t, self_hour > min_hour);
     }
 
     self_minute = lh_time_get_minute(self);
     min_minute = lh_time_get_minute(minimum);
     if (self_minute != min_minute)
     {
-        return self_minute > min_minute ? lh_bool_true : lh_bool_false;
+        return lh_cast_static(lh_bool_t, self_minute > min_minute);
     }
 
-    return lh_time_get_second(self) >= lh_time_get_second(minimum) ? lh_bool_true : lh_bool_false;
+    return lh_cast_static(lh_bool_t, lh_time_get_second(self) >= lh_time_get_second(minimum));
 }
 
 lh_bool_t
 lh_time_is_less(const lh_time_t *self, const lh_time_t *other)
 {
-    return lh_time_is_at_least(self, other) ? lh_bool_false : lh_bool_true;
+    return lh_cast_static(lh_bool_t, !lh_time_is_at_least(self, other));
 }
 
 lh_bool_t
@@ -273,35 +255,29 @@ lh_time_is_greater(const lh_time_t *self, const lh_time_t *other)
 lh_bool_t
 lh_time_parse(lh_str_cptr str, lh_usize_t str_size, lh_time_t *out)
 {
-    lh_uint_t component[3];
-    const lh_uint_t max[3] = {LH_TIME_HOUR_MAX, LH_TIME_MINUTE_MAX, LH_TIME_SECOND_MAX};
+    lh_uint_t hour;
+    lh_uint_t minute;
+    lh_uint_t second;
     lh_usize_t pos = 0;
-    lh_usize_t i;
 
-    for (i = 0; i < 3U; i++)
+    if (!lh_time_parse_field(str, str_size, lh_addr_of(pos), LH_TIME_HOUR_MAX, lh_addr_of(hour),
+                             lh_bool_true))
     {
-        lh_bool_t is_last = i == 2U;
-        lh_str_cptr field;
-        lh_usize_t field_size;
-        lh_bool_t had_delim;
-
-        if (!lh_str_ptr_split_next(str, str_size, ':', lh_addr_of(pos), lh_addr_of(field),
-                                   lh_addr_of(field_size), lh_addr_of(had_delim)))
-        {
-            return lh_bool_false;
-        }
-        if (had_delim == is_last)
-        {
-            return lh_bool_false;
-        }
-        if (!lh_time_parse_component(field, field_size, max[i], lh_addr_of(component[i])))
-        {
-            return lh_bool_false;
-        }
+        return lh_bool_false;
+    }
+    if (!lh_time_parse_field(str, str_size, lh_addr_of(pos), LH_TIME_MINUTE_MAX, lh_addr_of(minute),
+                             lh_bool_true))
+    {
+        return lh_bool_false;
+    }
+    if (!lh_time_parse_field(str, str_size, lh_addr_of(pos), LH_TIME_SECOND_MAX, lh_addr_of(second),
+                             lh_bool_false))
+    {
+        return lh_bool_false;
     }
 
-    lh_time_set(out, (lh_time_hour_t)component[0], (lh_time_minute_t)component[1],
-                (lh_time_second_t)component[2]);
+    lh_time_set(out, lh_cast_static(lh_time_hour_t, hour), lh_cast_static(lh_time_minute_t, minute),
+                lh_cast_static(lh_time_second_t, second));
     return lh_bool_true;
 }
 
@@ -309,7 +285,7 @@ lh_usize_t
 lh_time_format(const lh_time_t *self, lh_str_ptr str, lh_usize_t str_size)
 {
     return lh_str_ptr_format_text(str, str_size, "%02u:%02u:%02u",
-                                  (lh_uint_t)lh_time_get_hour(self),
-                                  (lh_uint_t)lh_time_get_minute(self),
-                                  (lh_uint_t)lh_time_get_second(self));
+                                  lh_cast_static(lh_uint_t, lh_time_get_hour(self)),
+                                  lh_cast_static(lh_uint_t, lh_time_get_minute(self)),
+                                  lh_cast_static(lh_uint_t, lh_time_get_second(self)));
 }

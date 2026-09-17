@@ -1,4 +1,5 @@
 #include <lh/wstr/view.h>
+#include <lh/cast/static.h>
 #include <lh/null.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -7,7 +8,7 @@
 lh_void
 lh_wstr_view_init_by_size(lh_wstr_view_t *self, lh_wstr_cptr data, lh_usize_t size)
 {
-    lh_memory_view_init_by_size(self, data, size * (lh_usize_t)LH_WCHAR_T_SIZE);
+    lh_memory_view_init_by_size(self, data, size * lh_cast_static(lh_usize_t, LH_WCHAR_T_SIZE));
 }
 
 lh_void
@@ -63,7 +64,7 @@ lh_wstr_view_get_data(const lh_wstr_view_t *self)
 lh_usize_t
 lh_wstr_view_get_size(const lh_wstr_view_t *self)
 {
-    return lh_memory_view_get_size(self) / (lh_usize_t)LH_WCHAR_T_SIZE;
+    return lh_memory_view_get_size(self) / lh_cast_static(lh_usize_t, LH_WCHAR_T_SIZE);
 }
 
 lh_bool_t

@@ -17,6 +17,7 @@
 #include <lh/assert.h>
 #include <lh/attribute/force_inline.h>
 #include <lh/bool.h>
+#include <lh/cast/static.h>
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/types.h>
@@ -63,13 +64,13 @@ lh_char_to_xdigit(lh_char_t ch)
                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
     if (ch >= '0' && ch <= '9')
     {
-        return (lh_uchar_t)(lh_char_ord(ch) - lh_char_ord('0'));
+        return lh_cast_static(lh_uchar_t, (lh_char_ord(ch) - lh_char_ord('0')));
     }
     if (ch >= 'a' && ch <= 'f')
     {
-        return (lh_uchar_t)(lh_char_ord(ch) - lh_char_ord('a') + 10);
+        return lh_cast_static(lh_uchar_t, (lh_char_ord(ch) - lh_char_ord('a') + 10));
     }
-    return (lh_uchar_t)(lh_char_ord(ch) - lh_char_ord('A') + 10);
+    return lh_cast_static(lh_uchar_t, (lh_char_ord(ch) - lh_char_ord('A') + 10));
 }
 
 /**

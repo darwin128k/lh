@@ -1,23 +1,26 @@
 #include <lh/time/second.h>
 #include <lh/assert.h>
-#include <lh/numeric/types.h>
-#include <lh/util/interval.h>
+#include <lh/cast/static.h>
+#include <lh/util/interval/wrap.h>
 #include <lh/util/math.h>
 
 static lh_uint_t
-lh_time_second_wrap(lh_time_second_t *self, lh_ullong_t total)
+lh_time_second_commit(lh_time_second_t *self, lh_ullong_t cur, lh_uint_t overflow)
 {
-    *self = (lh_time_second_t)lh_interval_closed_wrap_value(total, (lh_ullong_t)0,
-                                                            (lh_ullong_t)LH_TIME_SECOND_MAX);
-    return (lh_uint_t)lh_interval_closed_wrap_overflow(total, (lh_ullong_t)0,
-                                                       (lh_ullong_t)LH_TIME_SECOND_MAX);
+    *self = lh_cast_static(lh_time_second_t, cur);
+    return overflow;
 }
 
 lh_uint_t
 lh_time_second_set(lh_time_second_t *self, lh_uint_t value)
 {
+    lh_ullong_t cur = 0;
+    lh_uint_t overflow;
+
     lh_assert_runtime_ref(self);
-    return lh_time_second_wrap(self, (lh_ullong_t)value);
+    overflow = lh_interval_closed_wrap_set(&cur, lh_cast_static(lh_ullong_t, value), 0,
+                                           lh_cast_static(lh_ullong_t, LH_TIME_SECOND_MAX));
+    return lh_time_second_commit(self, cur, overflow);
 }
 
 void
@@ -30,18 +33,23 @@ lh_time_second_init(lh_time_second_t *self, lh_time_second_t value)
 lh_uint_t
 lh_time_second_add(lh_time_second_t *self, lh_uint_t value)
 {
-    return lh_time_second_wrap(self, (lh_ullong_t)lh_time_second_get(self) + (lh_ullong_t)value);
+    lh_ullong_t cur = lh_cast_static(lh_ullong_t, lh_time_second_get(self));
+    lh_uint_t overflow;
+
+    overflow = lh_interval_closed_wrap_add(&cur, lh_cast_static(lh_ullong_t, value), 0,
+                                           lh_cast_static(lh_ullong_t, LH_TIME_SECOND_MAX));
+    return lh_time_second_commit(self, cur, overflow);
 }
 
 lh_uint_t
 lh_time_second_sub(lh_time_second_t *self, lh_uint_t value)
 {
-    lh_ullong_t cur = (lh_ullong_t)lh_time_second_get(self);
+    lh_ullong_t cur = lh_cast_static(lh_ullong_t, lh_time_second_get(self));
+    lh_uint_t overflow;
 
-    *self = (lh_time_second_t)lh_interval_closed_unsigned_sub_wrap_value(
-        cur, (lh_ullong_t)value, (lh_ullong_t)0, (lh_ullong_t)LH_TIME_SECOND_MAX);
-    return (lh_uint_t)lh_interval_closed_unsigned_sub_wrap_overflow(
-        cur, (lh_ullong_t)value, (lh_ullong_t)0, (lh_ullong_t)LH_TIME_SECOND_MAX);
+    overflow = lh_interval_closed_wrap_sub(&cur, lh_cast_static(lh_ullong_t, value), 0,
+                                           lh_cast_static(lh_ullong_t, LH_TIME_SECOND_MAX));
+    return lh_time_second_commit(self, cur, overflow);
 }
 
 lh_time_second_t
@@ -54,22 +62,22 @@ lh_time_second_get(const lh_time_second_t *self)
 lh_bool_t
 lh_time_second_equals(const lh_time_second_t *self, const lh_time_second_t *other)
 {
-    return lh_math_eq(lh_time_second_get(self), lh_time_second_get(other)) ? lh_bool_true
-                                                                          : lh_bool_false;
+    return lh_cast_static(lh_bool_t,
+                          lh_math_eq(lh_time_second_get(self), lh_time_second_get(other)));
 }
 
 lh_bool_t
 lh_time_second_is_at_least(const lh_time_second_t *self, const lh_time_second_t *minimum)
 {
-    return lh_math_ge(lh_time_second_get(self), lh_time_second_get(minimum)) ? lh_bool_true
-                                                                            : lh_bool_false;
+    return lh_cast_static(lh_bool_t,
+                          lh_math_ge(lh_time_second_get(self), lh_time_second_get(minimum)));
 }
 
 lh_bool_t
 lh_time_second_is_less(const lh_time_second_t *self, const lh_time_second_t *other)
 {
-    return lh_math_lt(lh_time_second_get(self), lh_time_second_get(other)) ? lh_bool_true
-                                                                          : lh_bool_false;
+    return lh_cast_static(lh_bool_t,
+                          lh_math_lt(lh_time_second_get(self), lh_time_second_get(other)));
 }
 
 lh_bool_t

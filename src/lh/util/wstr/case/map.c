@@ -10,6 +10,7 @@
  */
 
 #include <lh/util/wstr/ptr.h>
+#include <lh/cast/static.h>
 #include <lh/util/interval.h>
 #include <lh/wchar/case/pair.h>
 #include <lh/wchar.h>
@@ -4226,10 +4227,14 @@ lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n)
         else
 #    endif /* LH_WCHAR_T_MAX > 0xFFFF */
         {
-            const lh_u8_t block = m_wchar_to_lower_stage1[(lh_usize_t)c >> 8];
-            *p = (block == 0xFFU) ? c
-                                  : (lh_wchar_t)m_wchar_to_lower_stage2[(lh_usize_t)block * 256U +
-                                                                        ((lh_usize_t)c & 0xFFU)];
+            const lh_u8_t block = m_wchar_to_lower_stage1[lh_cast_static(lh_usize_t, c) >> 8];
+            *p = (block == 0xFFU)
+                     ? c
+                     : lh_cast_static(lh_wchar_t,
+                                      m_wchar_to_lower_stage2[lh_cast_static(lh_usize_t, block) *
+                                                                  256U +
+                                                              (lh_cast_static(lh_usize_t, c) &
+                                                               0xFFU)]);
         }
     }
 
@@ -4287,10 +4292,14 @@ lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n)
         else
 #    endif /* LH_WCHAR_T_MAX > 0xFFFF */
         {
-            const lh_u8_t block = m_wchar_to_upper_stage1[(lh_usize_t)c >> 8];
-            *p = (block == 0xFFU) ? c
-                                  : (lh_wchar_t)m_wchar_to_upper_stage2[(lh_usize_t)block * 256U +
-                                                                        ((lh_usize_t)c & 0xFFU)];
+            const lh_u8_t block = m_wchar_to_upper_stage1[lh_cast_static(lh_usize_t, c) >> 8];
+            *p = (block == 0xFFU)
+                     ? c
+                     : lh_cast_static(lh_wchar_t,
+                                      m_wchar_to_upper_stage2[lh_cast_static(lh_usize_t, block) *
+                                                                  256U +
+                                                              (lh_cast_static(lh_usize_t, c) &
+                                                               0xFFU)]);
         }
     }
 

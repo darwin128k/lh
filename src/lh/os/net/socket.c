@@ -1,9 +1,12 @@
 #include <lh/os/net/socket.h>
 #include <lh/assert.h>
+#include <lh/cast/reinterpret.h>
+#include <lh/cast/static.h>
 #include <lh/memory.h>
 #include <lh/numeric/types.h>
 #include <lh/util/addr.h>
 #include <lh/util/bit/endian.h>
+#include <lh/util/ptr.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
 #    define WIN32_LEAN_AND_MEAN
@@ -45,7 +48,7 @@ lh_os_net_socket_open(lh_os_net_socket_t *self, lh_os_net_socket_type_t type)
         native_protocol = IPPROTO_UDP;
     }
 
-    handle = (lh_os_net_socket_handle_t)socket(AF_INET, native_type, native_protocol);
+    handle = lh_cast_static(lh_os_net_socket_handle_t, socket(AF_INET, native_type, native_protocol));
     if (handle == LH_OS_NET_SOCKET_HANDLE_INVALID)
     {
         return lh_bool_false;
@@ -62,9 +65,9 @@ lh_os_net_socket_close(lh_os_net_socket_t *self)
     if (self->handle != LH_OS_NET_SOCKET_HANDLE_INVALID)
     {
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-        closesocket((lh_os_net_native_handle_t)self->handle);
+        closesocket(lh_cast_static(lh_os_net_native_handle_t, self->handle));
 #else
-        close((lh_os_net_native_handle_t)self->handle);
+        close(lh_cast_static(lh_os_net_native_handle_t, self->handle));
 #endif
         self->handle = LH_OS_NET_SOCKET_HANDLE_INVALID;
     }
@@ -81,7 +84,7 @@ lh_bool_t
 lh_os_net_socket_is_valid(const lh_os_net_socket_t *self)
 {
     lh_assert_runtime_ref(self);
-    return self->handle != LH_OS_NET_SOCKET_HANDLE_INVALID ? lh_bool_true : lh_bool_false;
+    return lh_cast_static(lh_bool_t, self->handle != LH_OS_NET_SOCKET_HANDLE_INVALID);
 }
 
 lh_bool_t
@@ -107,17 +110,17 @@ lh_os_net_socket_connect(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_
      * depending on htonl. sin_port is also network byte order, but that one
      * genuinely is "pack a u16 as big-endian bytes", so it goes through
      * lh_bit_pack_be16 instead of a second hand-rolled shift/mask. */
-    addr_bytes = (lh_uchar_t *)lh_addr_of(native_addr.sin_addr);
+    addr_bytes = lh_ptr_rcast(lh_uchar_t, lh_addr_of(native_addr.sin_addr));
     addr_bytes[0] = lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_0);
     addr_bytes[1] = lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_1);
     addr_bytes[2] = lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_2);
     addr_bytes[3] = lh_net_ip4_get_octet(lh_addr_of(ip), LH_NET_IP4_OCTET_INDEX_3);
 
-    lh_bit_pack_be16(port, (lh_uchar_t *)lh_addr_of(native_addr.sin_port));
+    lh_bit_pack_be16(port, lh_ptr_rcast(lh_uchar_t, lh_addr_of(native_addr.sin_port)));
 
-    result = connect((lh_os_net_native_handle_t)self->handle,
-                     (struct sockaddr *)lh_addr_of(native_addr), sizeof(native_addr));
-    return result == 0 ? lh_bool_true : lh_bool_false;
+    result = connect(lh_cast_static(lh_os_net_native_handle_t, self->handle),
+                     lh_ptr_rcast(struct sockaddr, lh_addr_of(native_addr)), sizeof(native_addr));
+    return lh_cast_static(lh_bool_t, result == 0);
 }
 
 lh_ssize_t
@@ -126,16 +129,20 @@ lh_os_net_socket_send(lh_ptr context, const lh_ptr buf, lh_usize_t size)
     lh_os_net_socket_t *self;
 
     lh_assert_runtime_ref(context);
-    self = (lh_os_net_socket_t *)context;
+    self = lh_ptr_cast(lh_os_net_socket_t, context);
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     {
         lh_int_t result =
-            send((lh_os_net_native_handle_t)self->handle, (const char *)buf, (lh_int_t)size, 0);
-        return result == SOCKET_ERROR ? (lh_ssize_t)-1 : (lh_ssize_t)result;
+            send(lh_cast_static(lh_os_net_native_handle_t, self->handle), lh_ptr_ccast(char, buf),
+                 lh_cast_static(lh_int_t, size), 0);
+        return result == SOCKET_ERROR ? lh_cast_static(lh_ssize_t, -1)
+                                      : lh_cast_static(lh_ssize_t, result);
     }
 #else
-    return (lh_ssize_t)send((lh_os_net_native_handle_t)self->handle, buf, (size_t)size, 0);
+    return lh_cast_static(lh_ssize_t,
+                          send(lh_cast_static(lh_os_net_native_handle_t, self->handle), buf,
+                               lh_cast_static(size_t, size), 0));
 #endif
 }
 
@@ -145,16 +152,20 @@ lh_os_net_socket_recv(lh_ptr context, lh_ptr buf, lh_usize_t size)
     lh_os_net_socket_t *self;
 
     lh_assert_runtime_ref(context);
-    self = (lh_os_net_socket_t *)context;
+    self = lh_ptr_cast(lh_os_net_socket_t, context);
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     {
         lh_int_t result =
-            recv((lh_os_net_native_handle_t)self->handle, (char *)buf, (lh_int_t)size, 0);
-        return result == SOCKET_ERROR ? (lh_ssize_t)-1 : (lh_ssize_t)result;
+            recv(lh_cast_static(lh_os_net_native_handle_t, self->handle), lh_ptr_cast(char, buf),
+                 lh_cast_static(lh_int_t, size), 0);
+        return result == SOCKET_ERROR ? lh_cast_static(lh_ssize_t, -1)
+                                      : lh_cast_static(lh_ssize_t, result);
     }
 #else
-    return (lh_ssize_t)recv((lh_os_net_native_handle_t)self->handle, buf, (size_t)size, 0);
+    return lh_cast_static(lh_ssize_t,
+                          recv(lh_cast_static(lh_os_net_native_handle_t, self->handle), buf,
+                               lh_cast_static(size_t, size), 0));
 #endif
 }
 

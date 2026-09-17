@@ -1,5 +1,6 @@
 #include <lh/version.h>
 #include <lh/assert.h>
+#include <lh/cast/static.h>
 #include <lh/null.h>
 #include <lh/optional/ref.h>
 #include <lh/str/format/text.h>
@@ -174,15 +175,15 @@ lh_version_parse(lh_str_cptr str, lh_usize_t str_size, lh_version_t *out)
         return lh_bool_false;
     }
 
-    lh_version_set(out, (lh_version_major_t)major, (lh_version_minor_t)minor,
-                   (lh_version_patch_t)patch);
+    lh_version_set(out, lh_cast_static(lh_version_major_t, major), lh_cast_static(lh_version_minor_t, minor),
+                   lh_cast_static(lh_version_patch_t, patch));
     return lh_bool_true;
 }
 
 lh_usize_t
 lh_version_format(const lh_version_t *self, lh_str_ptr str, lh_usize_t str_size)
 {
-    return lh_str_ptr_format_text(str, str_size, "%u.%u.%u", (lh_uint_t)lh_version_get_major(self),
-                                  (lh_uint_t)lh_version_get_minor(self),
-                                  (lh_uint_t)lh_version_get_patch(self));
+    return lh_str_ptr_format_text(str, str_size, "%u.%u.%u", lh_cast_static(lh_uint_t, lh_version_get_major(self)),
+                                  lh_cast_static(lh_uint_t, lh_version_get_minor(self)),
+                                  lh_cast_static(lh_uint_t, lh_version_get_patch(self)));
 }

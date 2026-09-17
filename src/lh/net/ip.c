@@ -1,5 +1,6 @@
 #include <lh/net/ip.h>
 #include <lh/assert.h>
+#include <lh/cast/static.h>
 #include <lh/memory.h>
 #include <lh/memory/std.h>
 #include <lh/null.h>
@@ -127,7 +128,7 @@ lh_net_ip4_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_ip4_t *out)
         {
             return lh_bool_false;
         }
-        lh_net_ip4_set_octet(lh_addr_of(result), octet_index, (lh_u8_t)octet_value);
+        lh_net_ip4_set_octet(lh_addr_of(result), octet_index, lh_cast_static(lh_u8_t, octet_value));
     }
 
     *out = result;
@@ -162,7 +163,7 @@ lh_net_ip4_format(const lh_net_ip4_t *self, lh_str_ptr str, lh_usize_t str_size)
             pos++;
         }
 
-        written = lh_str_ptr_format_uint((lh_uint_t)lh_net_ip4_get_octet(self, octet_index),
+        written = lh_str_ptr_format_uint(lh_cast_static(lh_uint_t, lh_net_ip4_get_octet(self, octet_index)),
                                          scratch + pos, LH_NET_IP4_TEXT_MAX - pos);
         if (written == 0)
         {

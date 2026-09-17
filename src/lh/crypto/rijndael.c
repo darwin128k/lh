@@ -1,5 +1,6 @@
 #include <lh/crypto/rijndael.h>
 #include <lh/assert.h>
+#include <lh/cast/static.h>
 #include <lh/memory/std.h>
 #include <lh/null.h>
 #include <lh/runtime/error.h>
@@ -61,7 +62,7 @@ lh_crypto_rijndael_size_ok(lh_usize_t n)
 static lh_uchar_t
 lh_crypto_rijndael_xtime(lh_uchar_t x)
 {
-    return (lh_uchar_t)((x << 1) ^ ((x & 0x80U) ? 0x1BU : 0U));
+    return lh_cast_static(lh_uchar_t, ((x << 1) ^ ((x & 0x80U) ? 0x1BU : 0U)));
 }
 
 static lh_uchar_t
@@ -74,10 +75,10 @@ lh_crypto_rijndael_gf_mul(lh_uchar_t a, lh_uchar_t b)
     {
         if (b & 1U)
         {
-            p = (lh_uchar_t)(p ^ a);
+            p = lh_cast_static(lh_uchar_t, (p ^ a));
         }
         a = lh_crypto_rijndael_xtime(a);
-        b = (lh_uchar_t)(b >> 1);
+        b = lh_cast_static(lh_uchar_t, (b >> 1));
     }
     return p;
 }
@@ -158,30 +159,34 @@ lh_crypto_rijndael_mix_columns(lh_uchar_t *state, lh_usize_t nb, lh_bool_t inver
 
         if (inverse)
         {
-            col[0] = (lh_uchar_t)(lh_crypto_rijndael_gf_mul(a0, 0x0EU) ^
+            col[0] = lh_cast_static(lh_uchar_t, (lh_crypto_rijndael_gf_mul(a0, 0x0EU) ^
                                   lh_crypto_rijndael_gf_mul(a1, 0x0BU) ^
                                   lh_crypto_rijndael_gf_mul(a2, 0x0DU) ^
-                                  lh_crypto_rijndael_gf_mul(a3, 0x09U));
-            col[1] = (lh_uchar_t)(lh_crypto_rijndael_gf_mul(a0, 0x09U) ^
+                                  lh_crypto_rijndael_gf_mul(a3, 0x09U)));
+            col[1] = lh_cast_static(lh_uchar_t, (lh_crypto_rijndael_gf_mul(a0, 0x09U) ^
                                   lh_crypto_rijndael_gf_mul(a1, 0x0EU) ^
                                   lh_crypto_rijndael_gf_mul(a2, 0x0BU) ^
-                                  lh_crypto_rijndael_gf_mul(a3, 0x0DU));
-            col[2] = (lh_uchar_t)(lh_crypto_rijndael_gf_mul(a0, 0x0DU) ^
+                                  lh_crypto_rijndael_gf_mul(a3, 0x0DU)));
+            col[2] = lh_cast_static(lh_uchar_t, (lh_crypto_rijndael_gf_mul(a0, 0x0DU) ^
                                   lh_crypto_rijndael_gf_mul(a1, 0x09U) ^
                                   lh_crypto_rijndael_gf_mul(a2, 0x0EU) ^
-                                  lh_crypto_rijndael_gf_mul(a3, 0x0BU));
-            col[3] = (lh_uchar_t)(lh_crypto_rijndael_gf_mul(a0, 0x0BU) ^
+                                  lh_crypto_rijndael_gf_mul(a3, 0x0BU)));
+            col[3] = lh_cast_static(lh_uchar_t, (lh_crypto_rijndael_gf_mul(a0, 0x0BU) ^
                                   lh_crypto_rijndael_gf_mul(a1, 0x0DU) ^
                                   lh_crypto_rijndael_gf_mul(a2, 0x09U) ^
-                                  lh_crypto_rijndael_gf_mul(a3, 0x0EU));
+                                  lh_crypto_rijndael_gf_mul(a3, 0x0EU)));
         }
         else
         {
-            lh_uchar_t t = (lh_uchar_t)(a0 ^ a1 ^ a2 ^ a3);
-            col[0] = (lh_uchar_t)(a0 ^ t ^ lh_crypto_rijndael_xtime((lh_uchar_t)(a0 ^ a1)));
-            col[1] = (lh_uchar_t)(a1 ^ t ^ lh_crypto_rijndael_xtime((lh_uchar_t)(a1 ^ a2)));
-            col[2] = (lh_uchar_t)(a2 ^ t ^ lh_crypto_rijndael_xtime((lh_uchar_t)(a2 ^ a3)));
-            col[3] = (lh_uchar_t)(a3 ^ t ^ lh_crypto_rijndael_xtime((lh_uchar_t)(a3 ^ a0)));
+            lh_uchar_t t = lh_cast_static(lh_uchar_t, (a0 ^ a1 ^ a2 ^ a3));
+            col[0] = lh_cast_static(
+                lh_uchar_t, a0 ^ t ^ lh_crypto_rijndael_xtime(lh_cast_static(lh_uchar_t, a0 ^ a1)));
+            col[1] = lh_cast_static(
+                lh_uchar_t, a1 ^ t ^ lh_crypto_rijndael_xtime(lh_cast_static(lh_uchar_t, a1 ^ a2)));
+            col[2] = lh_cast_static(
+                lh_uchar_t, a2 ^ t ^ lh_crypto_rijndael_xtime(lh_cast_static(lh_uchar_t, a2 ^ a3)));
+            col[3] = lh_cast_static(
+                lh_uchar_t, a3 ^ t ^ lh_crypto_rijndael_xtime(lh_cast_static(lh_uchar_t, a3 ^ a0)));
         }
     }
 }
@@ -194,16 +199,16 @@ lh_crypto_rijndael_add_round_key(lh_uchar_t *state, const lh_uchar_t *round_key,
 
     for (i = 0; i < block_size; ++i)
     {
-        state[i] = (lh_uchar_t)(state[i] ^ round_key[i]);
+        state[i] = lh_cast_static(lh_uchar_t, (state[i] ^ round_key[i]));
     }
 }
 
 static lh_u32_t
 lh_crypto_rijndael_sub_word(lh_u32_t w)
 {
-    return ((lh_u32_t)m_sbox[(w >> 24) & 0xFFU] << 24) |
-           ((lh_u32_t)m_sbox[(w >> 16) & 0xFFU] << 16) | ((lh_u32_t)m_sbox[(w >> 8) & 0xFFU] << 8) |
-           (lh_u32_t)m_sbox[w & 0xFFU];
+    return (lh_cast_static(lh_u32_t, m_sbox[(w >> 24) & 0xFFU]) << 24) |
+           (lh_cast_static(lh_u32_t, m_sbox[(w >> 16) & 0xFFU]) << 16) | (lh_cast_static(lh_u32_t, m_sbox[(w >> 8) & 0xFFU]) << 8) |
+           lh_cast_static(lh_u32_t, m_sbox[w & 0xFFU]);
 }
 
 static lh_u32_t
@@ -236,7 +241,9 @@ lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, const lh_uchar_t *key,
         if (i % nk == 0)
         {
             temp = lh_crypto_rijndael_sub_word(lh_crypto_rijndael_rot_word(temp)) ^ rcon;
-            rcon = (lh_u32_t)lh_crypto_rijndael_xtime((lh_uchar_t)(rcon >> 24)) << 24;
+            rcon = lh_cast_static(lh_u32_t, lh_crypto_rijndael_xtime(
+                                               lh_cast_static(lh_uchar_t, rcon >> 24)))
+                   << 24;
         }
         else if (nk > 6U && (i % nk) == 4U)
         {
@@ -305,7 +312,7 @@ lh_crypto_rijndael_xor(lh_uchar_t *dst, const lh_uchar_t *a, const lh_uchar_t *b
 
     for (i = 0; i < n; ++i)
     {
-        dst[i] = (lh_uchar_t)(a[i] ^ b[i]);
+        dst[i] = lh_cast_static(lh_uchar_t, (a[i] ^ b[i]));
     }
 }
 

@@ -58,7 +58,7 @@
  * cmake/library_options.cmake for the full rationale and how to override it. */
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 && (LH_COMPILER_ARCH == LH_COMPILER_ARCH_64)
 #    define LH_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD                                           \
-        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD)
+        (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD))
 #endif
 
 /* lh_memory_std_copy's plain while(n--) *d++ = *s++; loop (still used as-is under
@@ -93,7 +93,7 @@
 #if LH_COMPILER_TYPE_IS_GCC_LIKE && LH_COMPILER_ARCH_FAMILY_IS_X86
 #    define LH_MEMORY_STD_HAVE_GCC_REP_MOVSB 1
 #    define LH_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD                                                  \
-        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD)
+        (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD))
 #else
 #    define LH_MEMORY_STD_HAVE_GCC_REP_MOVSB 0
 #endif
@@ -104,7 +104,7 @@
  *
  * Block size for the branchless scalar compare / find scan: same CMake knob as
  * before (LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK). */
-#define LH_MEMORY_STD_SCAN_BLOCK ((lh_usize_t)LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK)
+#define LH_MEMORY_STD_SCAN_BLOCK (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK))
 
 #if LH_COMPILER_ARCH_FAMILY_IS_X86
 /* Overlapping word/halfword/byte ladder for copies below one SSE register (16
@@ -337,7 +337,7 @@ lh_memory_std_set_bytes(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 #if LH_COMPILER_ARCH_FAMILY_IS_X86
     if (n >= 8U)
     {
-        const lh_u64_t v = (lh_u64_t)val * 0x0101010101010101ULL;
+        const lh_u64_t v = lh_cast_static(lh_u64_t, val) * 0x0101010101010101ULL;
         do
         {
             *lh_ptr_rcast(lh_u64_t, dst) = v;
@@ -354,7 +354,7 @@ lh_memory_std_set_bytes(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 
     if (n >= 4U)
     {
-        const lh_u32_t v = (lh_u32_t)val * 0x01010101U;
+        const lh_u32_t v = lh_cast_static(lh_u32_t, val) * 0x01010101U;
         *lh_ptr_rcast(lh_u32_t, dst) = v;
         *lh_ptr_rcast(lh_u32_t, dst + n - 4U) = v;
         return;
@@ -362,7 +362,7 @@ lh_memory_std_set_bytes(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 
     if (n >= 2U)
     {
-        const lh_u16_t v = (lh_u16_t)((lh_u16_t)val * 0x0101U);
+        const lh_u16_t v = lh_cast_static(lh_u16_t, lh_cast_static(lh_u16_t, val) * 0x0101U);
         *lh_ptr_rcast(lh_u16_t, dst) = v;
         *lh_ptr_rcast(lh_u16_t, dst + n - 2U) = v;
         return;
@@ -392,7 +392,7 @@ lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
         lh_usize_t block_i;
         for (block_i = 0; block_i < LH_MEMORY_STD_SCAN_BLOCK; ++block_i)
         {
-            block_diff = (lh_bool_t)(block_diff | (l[block_i] != r[block_i]));
+            block_diff = lh_cast_static(lh_bool_t, (block_diff | (l[block_i] != r[block_i])));
         }
         if (block_diff)
         {
@@ -438,9 +438,9 @@ lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 /* Both are measured crossovers, not correctness facts — see
  * cmake/library_options.cmake for the full rationale and how to override them. */
 #    define LH_MEMORY_STD_PREFETCH_TRIGGER                                                         \
-        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER)
+        (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER))
 #    define LH_MEMORY_STD_PREFETCH_DISTANCE                                                        \
-        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE)
+        (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE))
 
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 
@@ -541,7 +541,7 @@ lh_memory_std_copy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
     }
 
     {
-        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)16);
+        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, lh_cast_static(lh_uaddr_t, 16));
         lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
         lh_uchar_t *dst_end = dst + n;
         const lh_uchar_t *src_end = src + n;
@@ -609,7 +609,7 @@ lh_memory_std_copy_sse2_stream(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_
 {
     lh_uchar_t *dst_end = dst + n;
     const lh_uchar_t *src_end = src + n;
-    lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)16);
+    lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, lh_cast_static(lh_uaddr_t, 16));
     lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
     if (head > n)
@@ -762,7 +762,7 @@ lh_memory_std_copy_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 
         if (n >= 512U)
         {
-            lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)32);
+            lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, lh_cast_static(lh_uaddr_t, 32));
             lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
             if (head > n)
@@ -844,7 +844,7 @@ lh_memory_std_copy_avx2_stream(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_
 {
     lh_uchar_t *dst_end = dst + n;
     const lh_uchar_t *src_end = src + n;
-    lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)32);
+    lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, lh_cast_static(lh_uaddr_t, 32));
     lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
     if (head > n)
@@ -944,7 +944,7 @@ static unsigned char m_copy_rev_kind;
  * tier is used directly; 16 matches one SSE register so the first vector iteration
  * always does real work. */
 #    define LH_MEMORY_STD_SIMD_COPY_THRESHOLD                                                      \
-        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD)
+        (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD))
 
 /* Above this, the non-temporal stream tier (lh_memory_std_copy_avx2_stream, or
  * lh_memory_std_copy_sse2_stream when AVX2 isn't available) takes over from the plain
@@ -952,7 +952,7 @@ static unsigned char m_copy_rev_kind;
  * measured on this project's own Zen2 benchmark target somewhere between 1MB (the
  * plain AVX2 tier still wins there) and 4MB (it loses clearly). */
 #    define LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD                                               \
-        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD)
+        (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD))
 
 static void
 lh_memory_std_copy_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
@@ -1345,7 +1345,7 @@ lh_memory_std_copy_rev_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_
 static lh_memory_std_copy_rev_simd_fn m_copy_rev_simd_impl = lh_memory_std_copy_rev_simd_dispatch;
 
 #    define LH_MEMORY_STD_SIMD_COPY_REV_THRESHOLD                                                  \
-        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD)
+        (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD))
 
 static void
 lh_memory_std_copy_rev_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
@@ -1641,7 +1641,7 @@ lh_memory_std_rcopy_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usi
 }
 
 #    define LH_MEMORY_STD_SIMD_RCOPY_THRESHOLD                                                     \
-        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD)
+        (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD))
 
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
@@ -1746,7 +1746,7 @@ lh_memory_std_set_sse2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 
         if (n >= 512U)
         {
-            lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)16);
+            lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, lh_cast_static(lh_uaddr_t, 16));
             lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
             if (head > n)
@@ -1804,7 +1804,7 @@ lh_memory_std_set_sse2_stream(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
     const __m128i v = _mm_set1_epi8(lh_cast_static(char, val));
 
     {
-        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)16);
+        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, lh_cast_static(lh_uaddr_t, 16));
         lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
         if (head > n)
@@ -1882,7 +1882,7 @@ lh_memory_std_set_avx2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 
         if (n >= 512U)
         {
-            lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)32);
+            lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, lh_cast_static(lh_uaddr_t, 32));
             lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
             if (head > n)
@@ -1951,7 +1951,7 @@ lh_memory_std_set_avx2_stream(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
     const __m256i v = _mm256_set1_epi8(lh_cast_static(char, val));
 
     {
-        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, (lh_uaddr_t)32);
+        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, lh_cast_static(lh_uaddr_t, 32));
         lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
         if (head > n)
@@ -2008,7 +2008,7 @@ static lh_memory_std_set_simd_fn m_set_stream_impl = lh_null;
 /* Same crossover as the copy stream tier — past this, RFO on every destination line
  * dominates, and NT stores win. */
 #    define LH_MEMORY_STD_SIMD_SET_STREAM_THRESHOLD                                                \
-        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD)
+        (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD))
 
 static void
 lh_memory_std_set_simd_dispatch(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
@@ -2050,7 +2050,7 @@ lh_memory_std_set_simd_dispatch(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
  * one memory stream to drive (no read side), so the indirect call here pays for
  * itself sooner. */
 #    define LH_MEMORY_STD_SIMD_SET_THRESHOLD                                                       \
-        ((lh_usize_t)LH_LIBRARY_OPTION_MEMORY_STD_SIMD_SET_THRESHOLD)
+        (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_SIMD_SET_THRESHOLD))
 
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
@@ -2187,7 +2187,7 @@ lh_memory_std_compare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
     if (n != 0U)
     {
         const lh_uchar_t *const l0 = lh_ptr_ccast(lh_uchar_t, lhs);
-        if ((lh_usize_t)((l + n) - l0) >= 16U)
+        if (lh_cast_static(lh_usize_t, ((l + n) - l0)) >= 16U)
         {
             const lh_uchar_t *lt = l + n - 16U;
             const lh_uchar_t *rt = r + n - 16U;
@@ -2313,7 +2313,7 @@ lh_memory_std_compare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
     if (n != 0U)
     {
         const lh_uchar_t *const l0 = lh_ptr_ccast(lh_uchar_t, lhs);
-        if ((lh_usize_t)((l + n) - l0) >= 32U)
+        if (lh_cast_static(lh_usize_t, ((l + n) - l0)) >= 32U)
         {
             const lh_uchar_t *lt = l + n - 32U;
             const lh_uchar_t *rt = r + n - 32U;

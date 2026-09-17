@@ -1,4 +1,5 @@
 #include <lh/memory.h>
+#include <lh/cast/static.h>
 #include <lh/memory/std.h>
 #include <lh/assert.h>
 #include <lh/bool.h>
@@ -6,7 +7,7 @@
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
-#define LH_MEMORY_SCAN_BLOCK ((lh_usize_t)LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK)
+#define LH_MEMORY_SCAN_BLOCK (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK))
 
 lh_ptr
 lh_memory_copy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size)
@@ -94,7 +95,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
                 lh_usize_t block_i;
                 for (block_i = 0; block_i < LH_MEMORY_SCAN_BLOCK; ++block_i)
                 {
-                    block_hit = (lh_bool_t)(block_hit | (cand[block_i] == needle));
+                    block_hit = lh_cast_static(lh_bool_t, (block_hit | (cand[block_i] == needle)));
                 }
                 if (block_hit)
                 {

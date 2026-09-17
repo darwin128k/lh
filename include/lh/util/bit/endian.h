@@ -175,8 +175,8 @@ void
 lh_bit_pack_be64(lh_u64_t value, lh_uchar_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_bit_pack_be32((lh_u32_t)(value >> 32), out);
-    lh_bit_pack_be32((lh_u32_t)value, out + 4);
+    lh_bit_pack_be32(lh_cast_static(lh_u32_t, (value >> 32)), out);
+    lh_bit_pack_be32(lh_cast_static(lh_u32_t, value), out + 4);
 }
 
 /**
@@ -192,7 +192,7 @@ lh_u64_t
 lh_bit_unpack_be64(const lh_uchar_t *in)
 {
     lh_assert_runtime_ref(in);
-    return ((lh_u64_t)lh_bit_unpack_be32(in) << 32) | lh_bit_unpack_be32(in + 4);
+    return (lh_cast_static(lh_u64_t, lh_bit_unpack_be32(in)) << 32) | lh_bit_unpack_be32(in + 4);
 }
 
 /**
@@ -207,8 +207,8 @@ void
 lh_bit_pack_le64(lh_u64_t value, lh_uchar_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_bit_pack_le32((lh_u32_t)value, out);
-    lh_bit_pack_le32((lh_u32_t)(value >> 32), out + 4);
+    lh_bit_pack_le32(lh_cast_static(lh_u32_t, value), out);
+    lh_bit_pack_le32(lh_cast_static(lh_u32_t, (value >> 32)), out + 4);
 }
 
 /**
@@ -224,7 +224,7 @@ lh_u64_t
 lh_bit_unpack_le64(const lh_uchar_t *in)
 {
     lh_assert_runtime_ref(in);
-    return (lh_u64_t)lh_bit_unpack_le32(in) | ((lh_u64_t)lh_bit_unpack_le32(in + 4) << 32);
+    return lh_cast_static(lh_u64_t, lh_bit_unpack_le32(in)) | (lh_cast_static(lh_u64_t, lh_bit_unpack_le32(in + 4)) << 32);
 }
 
 LH_COMPILER_EXTERN_C_END

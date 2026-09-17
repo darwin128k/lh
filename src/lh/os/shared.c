@@ -1,4 +1,6 @@
 #include <lh/os/shared.h>
+#include <lh/cast/reinterpret.h>
+#include <lh/cast/static.h>
 #include <lh/compiler/os.h>
 #include <lh/null.h>
 #include <lh/os.h>
@@ -21,7 +23,7 @@ lh_os_shared_open(lh_str_cptr path)
         return lh_null;
     }
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-    handle = (lh_os_shared_handle_t)LoadLibraryA(path);
+    handle = lh_cast_reinterpret(lh_os_shared_handle_t, LoadLibraryA(path));
     if (lh_null_eq(handle))
     {
         lh_os_capture_last_error();
@@ -29,7 +31,7 @@ lh_os_shared_open(lh_str_cptr path)
     }
 #else
     (void)dlerror();
-    handle = (lh_os_shared_handle_t)dlopen(path, RTLD_NOW);
+    handle = lh_cast_reinterpret(lh_os_shared_handle_t, dlopen(path, RTLD_NOW));
     if (lh_null_eq(handle))
     {
         lh_os_set_last_error_cstr(1, dlerror());
@@ -48,7 +50,7 @@ lh_os_shared_close(lh_os_shared_handle_t handle)
         return lh_bool_false;
     }
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-    if (!FreeLibrary((HMODULE)handle))
+    if (!FreeLibrary(lh_cast_reinterpret(HMODULE, handle)))
     {
         lh_os_capture_last_error();
         return lh_bool_false;
@@ -75,7 +77,7 @@ lh_os_shared_get_sym(lh_os_shared_handle_t handle, lh_str_cptr name)
         return lh_null;
     }
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-    sym = (lh_ptr)GetProcAddress((HMODULE)handle, name);
+    sym = lh_cast_reinterpret(lh_ptr, GetProcAddress(lh_cast_reinterpret(HMODULE, handle), name));
     if (lh_null_eq(sym))
     {
         lh_os_capture_last_error();
@@ -83,7 +85,7 @@ lh_os_shared_get_sym(lh_os_shared_handle_t handle, lh_str_cptr name)
     }
 #else
     (void)dlerror();
-    sym = (lh_ptr)dlsym(handle, name);
+    sym = lh_cast_reinterpret(lh_ptr, dlsym(handle, name));
     if (lh_null_eq(sym))
     {
         lh_os_set_last_error_cstr(1, dlerror());
@@ -96,5 +98,5 @@ lh_os_shared_get_sym(lh_os_shared_handle_t handle, lh_str_cptr name)
 lh_bool_t
 lh_os_shared_has_sym(lh_os_shared_handle_t handle, lh_str_cptr name)
 {
-    return lh_null_ne(lh_os_shared_get_sym(handle, name)) ? lh_bool_true : lh_bool_false;
+    return lh_cast_static(lh_bool_t, lh_null_ne(lh_os_shared_get_sym(handle, name)));
 }

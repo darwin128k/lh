@@ -1,16 +1,17 @@
 #include <lh/date/month.h>
 #include <lh/assert.h>
+#include <lh/cast/static.h>
 
 lh_date_month_index_t
 lh_date_month_to_index(lh_date_month_t month)
 {
-    return (lh_date_month_index_t)(month - LH_DATE_MONTH_MIN);
+    return lh_cast_static(lh_date_month_index_t, month - LH_DATE_MONTH_MIN);
 }
 
 lh_date_month_t
 lh_date_month_from_index(lh_date_month_index_t index)
 {
-    return (lh_date_month_t)(index + LH_DATE_MONTH_MIN);
+    return lh_cast_static(lh_date_month_t, index + LH_DATE_MONTH_MIN);
 }
 
 lh_uint_t
