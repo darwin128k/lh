@@ -40,11 +40,8 @@ lh_memory_view_get_direction(const lh_memory_view_t *self)
     lh_memory_view_slice_direction_t direction = lh_memory_view_slice_direction_unknown;
     if (lh_memory_view_is_initialized(self))
     {
-        const lh_ptr begin;
-        const lh_ptr end;
-        lh_memory_view_unpack(self, lh_addr_of(begin), lh_addr_of(end));
-
-        if (lh_interval_ropen_is_valid(lh_ptr_to_uaddr(begin), lh_ptr_to_uaddr(end)))
+        if (lh_interval_ropen_is_valid(lh_ptr_to_uaddr(self->first),
+                                       lh_ptr_to_uaddr(self->second)))
         {
             direction = lh_memory_view_slice_direction_forward;
         }
@@ -103,25 +100,26 @@ lh_memory_view_unpack_v(const lh_memory_view_t *self, const lh_ptr *begin, const
 const lh_ptr
 lh_memory_view_get_begin_v(const lh_memory_view_t *self)
 {
-    const lh_ptr begin;
-    lh_memory_view_unpack_v(self, lh_addr_of(begin), lh_null);
-    return begin;
+    lh_assert_runtime_ifn(lh_memory_view_is_valid(self),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    return lh_memory_view_get_begin(self);
 }
 
 const lh_ptr
 lh_memory_view_get_end_v(const lh_memory_view_t *self)
 {
-    const lh_ptr end;
-    lh_memory_view_unpack_v(self, lh_null, lh_addr_of(end));
-    return end;
+    lh_assert_runtime_ifn(lh_memory_view_is_valid(self),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    return lh_memory_view_get_end(self);
 }
 
 lh_usize_t
 lh_memory_view_get_size(const lh_memory_view_t *self)
 {
-    const lh_void *begin, *end;
-    lh_memory_view_unpack_v(self, lh_addr_of(begin), lh_addr_of(end));
-    return lh_interval_ropen_get_size(lh_ptr_to_uaddr(begin), lh_ptr_to_uaddr(end));
+    lh_assert_runtime_ifn(lh_memory_view_is_valid(self),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    return lh_interval_ropen_get_size(lh_ptr_to_uaddr(self->first),
+                                      lh_ptr_to_uaddr(self->second));
 }
 
 lh_bool_t
@@ -427,9 +425,7 @@ lh_memory_view_equals_range(const lh_memory_view_t *self, const lh_ptr begin, co
 lh_bool_t
 lh_memory_view_equals(const lh_memory_view_t *self, const lh_memory_view_t *other)
 {
-    const lh_void *begin, *end;
-    lh_memory_view_unpack(other, lh_addr_of(begin), lh_addr_of(end));
-    return lh_memory_view_equals_of(self, begin, end);
+    return lh_memory_view_slice_equals(self, other);
 }
 
 const lh_ptr

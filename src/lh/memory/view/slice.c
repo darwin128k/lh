@@ -29,9 +29,8 @@ lh_memory_view_slice_unpack(const lh_memory_view_slice_t *self, const lh_ptr *be
 const lh_ptr
 lh_memory_view_slice_get_begin(const lh_memory_view_slice_t *self)
 {
-    const lh_ptr begin;
-    lh_memory_view_slice_unpack(self, lh_addr_of(begin), lh_null);
-    return begin;
+    lh_assert_runtime_ref(self);
+    return self->first;
 }
 
 const lh_ptr
@@ -43,9 +42,8 @@ lh_memory_view_slice_get_data(const lh_memory_view_slice_t *self)
 const lh_ptr
 lh_memory_view_slice_get_end(const lh_memory_view_slice_t *self)
 {
-    const lh_ptr end;
-    lh_memory_view_slice_unpack(self, lh_null, lh_addr_of(end));
-    return end;
+    lh_assert_runtime_ref(self);
+    return self->second;
 }
 
 lh_memory_view_slice_flags_t
@@ -53,15 +51,14 @@ lh_memory_view_slice_get_flags(const lh_memory_view_slice_t *self)
 {
     lh_memory_view_slice_flags_t flags = lh_memory_view_slice_flags_uninitialized;
 
-    const lh_void *begin, *end;
-    lh_memory_view_slice_unpack(self, lh_addr_of(begin), lh_addr_of(end));
+    lh_assert_runtime_ref(self);
 
-    if (lh_ptr_is_set(begin))
+    if (lh_ptr_is_set(self->first))
     {
         lh_bit_set(flags, lh_memory_view_slice_flags_initialized_begin);
     }
 
-    if (lh_ptr_is_set(end))
+    if (lh_ptr_is_set(self->second))
     {
         lh_bit_set(flags, lh_memory_view_slice_flags_initialized_end);
     }
@@ -87,11 +84,8 @@ lh_memory_view_slice_get_direction(const lh_memory_view_slice_t *self)
     lh_memory_view_slice_direction_t direction = lh_memory_view_slice_direction_unknown;
     if (lh_memory_view_slice_is_initialized(self))
     {
-        const lh_ptr begin;
-        const lh_ptr end;
-        lh_memory_view_slice_unpack(self, lh_addr_of(begin), lh_addr_of(end));
-
-        if (lh_interval_closed_is_valid(lh_ptr_to_uaddr(begin), lh_ptr_to_uaddr(end)))
+        if (lh_interval_closed_is_valid(lh_ptr_to_uaddr(self->first),
+                                        lh_ptr_to_uaddr(self->second)))
         {
             direction = lh_memory_view_slice_direction_forward;
         }
@@ -133,25 +127,26 @@ lh_memory_view_slice_unpack_v(const lh_memory_view_slice_t *self, const lh_ptr *
 const lh_ptr
 lh_memory_view_slice_get_begin_v(const lh_memory_view_slice_t *self)
 {
-    const lh_ptr begin;
-    lh_memory_view_slice_unpack_v(self, lh_addr_of(begin), lh_null);
-    return begin;
+    lh_assert_runtime_ifn(lh_memory_view_slice_is_valid(self),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    return lh_memory_view_slice_get_begin(self);
 }
 
 const lh_ptr
 lh_memory_view_slice_get_end_v(const lh_memory_view_slice_t *self)
 {
-    const lh_ptr end;
-    lh_memory_view_slice_unpack_v(self, lh_null, lh_addr_of(end));
-    return end;
+    lh_assert_runtime_ifn(lh_memory_view_slice_is_valid(self),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    return lh_memory_view_slice_get_end(self);
 }
 
 lh_usize_t
 lh_memory_view_slice_get_size(const lh_memory_view_slice_t *self)
 {
-    const lh_void *begin, *end;
-    lh_memory_view_slice_unpack_v(self, lh_addr_of(begin), lh_addr_of(end));
-    return lh_interval_closed_get_size(lh_ptr_to_uaddr(begin), lh_ptr_to_uaddr(end));
+    lh_assert_runtime_ifn(lh_memory_view_slice_is_valid(self),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    return lh_interval_closed_get_size(lh_ptr_to_uaddr(self->first),
+                                       lh_ptr_to_uaddr(self->second));
 }
 
 lh_bool_t
@@ -295,10 +290,8 @@ lh_bool_t
 lh_memory_view_slice_equals_of(const lh_memory_view_slice_t *self, const lh_ptr begin,
                                const lh_ptr end)
 {
-    const lh_ptr self_begin;
-    const lh_ptr self_end;
-    lh_memory_view_slice_unpack(self, lh_addr_of(self_begin), lh_addr_of(self_end));
-    return lh_ptr_eq(self_begin, begin) && lh_ptr_eq(self_end, end);
+    lh_assert_runtime_ref(self);
+    return lh_ptr_eq(self->first, begin) && lh_ptr_eq(self->second, end);
 }
 
 lh_bool_t
@@ -311,9 +304,8 @@ lh_memory_view_slice_equals_range(const lh_memory_view_slice_t *self, const lh_p
 lh_bool_t
 lh_memory_view_slice_equals(const lh_memory_view_slice_t *self, const lh_memory_view_slice_t *other)
 {
-    const lh_void *begin, *end;
-    lh_memory_view_slice_unpack(other, lh_addr_of(begin), lh_addr_of(end));
-    return lh_memory_view_slice_equals_of(self, begin, end);
+    lh_assert_runtime_ref(other);
+    return lh_memory_view_slice_equals_of(self, other->first, other->second);
 }
 
 const lh_ptr

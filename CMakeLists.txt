@@ -119,6 +119,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/str/parse/uint.c
         ${LH_LIB_SRC_PATH}/str/parse/hex.c
         ${LH_LIB_SRC_PATH}/str/split/next.c
+        ${LH_LIB_SRC_PATH}/str/scanf/next.c
 
         ${LH_LIB_SRC_PATH}/logger.c
 

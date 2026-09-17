@@ -59,10 +59,8 @@ lh_memory_bounds_get_direction(const lh_memory_bounds_t *self)
     lh_memory_view_slice_direction_t direction = lh_memory_view_slice_direction_unknown;
     if (lh_memory_bounds_is_initialized(self))
     {
-        lh_void *begin, *end;
-        lh_memory_bounds_unpack(self, lh_addr_of(begin), lh_addr_of(end));
-
-        if (lh_interval_ropen_is_valid(lh_ptr_to_uaddr(begin), lh_ptr_to_uaddr(end)))
+        if (lh_interval_ropen_is_valid(lh_ptr_to_uaddr(self->first),
+                                       lh_ptr_to_uaddr(self->second)))
         {
             direction = lh_memory_view_slice_direction_forward;
         }
@@ -102,25 +100,23 @@ lh_memory_bounds_unpack_v(const lh_memory_bounds_t *self, lh_ptr *begin, lh_ptr 
 lh_ptr
 lh_memory_bounds_get_begin_v(const lh_memory_bounds_t *self)
 {
-    lh_ptr begin;
-    lh_memory_bounds_unpack_v(self, lh_addr_of(begin), lh_null);
-    return begin;
+    lh_assert_runtime_ref(lh_memory_bounds_is_valid(self));
+    return lh_memory_bounds_get_begin(self);
 }
 
 lh_ptr
 lh_memory_bounds_get_end_v(const lh_memory_bounds_t *self)
 {
-    lh_ptr end;
-    lh_memory_bounds_unpack_v(self, lh_null, lh_addr_of(end));
-    return end;
+    lh_assert_runtime_ref(lh_memory_bounds_is_valid(self));
+    return lh_memory_bounds_get_end(self);
 }
 
 lh_usize_t
 lh_memory_bounds_get_size(const lh_memory_bounds_t *self)
 {
-    lh_void *begin, *end;
-    lh_memory_bounds_unpack_v(self, lh_addr_of(begin), lh_addr_of(end));
-    return lh_interval_ropen_get_size(lh_ptr_to_uaddr(begin), lh_ptr_to_uaddr(end));
+    lh_assert_runtime_ref(lh_memory_bounds_is_valid(self));
+    return lh_interval_ropen_get_size(lh_ptr_to_uaddr(self->first),
+                                      lh_ptr_to_uaddr(self->second));
 }
 
 lh_bool_t
@@ -421,9 +417,7 @@ lh_memory_bounds_equals_range(const lh_memory_bounds_t *self, const lh_ptr begin
 lh_bool_t
 lh_memory_bounds_equals(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other)
 {
-    lh_void *other_begin, *other_end;
-    lh_memory_bounds_unpack(other, lh_addr_of(other_begin), lh_addr_of(other_end));
-    return lh_memory_bounds_equals_of(self, other_begin, other_end);
+    return lh_memory_bounds_slice_equals(self, other);
 }
 
 lh_ptr
