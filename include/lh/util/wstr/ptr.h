@@ -261,7 +261,9 @@ lh_wstr_ptr_find_of_null_terminator_by_size(const lh_wstr_ptr str, lh_usize_t si
 /**
  * @brief Find the first wide NUL in @p str within a bounded scan range.
  *
- * At most @c (::LH_USIZE_T_MAX - ::lh_ptr_to_uaddr(str)) wide characters are read (not bytes).
+ * Delegates to ::lh_memory_scan_step with a one-code-unit wide NUL needle and
+ * step ::LH_WCHAR_T_SIZE. The bound is remaining bytes from @p str, not a
+ * fake wide-character count; the search stays on the ::lh_wchar_t grid.
  * Returns ::lh_null if no NUL appears in that prefix.
  *
  * @param str String to scan (non-null for defined behaviour).
@@ -270,7 +272,7 @@ lh_wstr_ptr_find_of_null_terminator_by_size(const lh_wstr_ptr str, lh_usize_t si
  *         or ::lh_null if none in range.
  *
  * @see lh_wstr_ptr_find_of_null_terminator_by_size
- * @see lh_wstr_ptr_find_char
+ * @see lh_memory_scan_step
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
@@ -293,6 +295,7 @@ lh_wstr_ptr_find_of_null_terminator(const lh_wstr_ptr str);
  *       ::lh_runtime_throw_with_code with ::lh_runtime_error_code_no_null_terminator.
  *
  * @see lh_wstr_ptr_find_of_null_terminator
+ * @see lh_memory_scan_step
  * @see lh_runtime_error_code_no_null_terminator
  */
 LH_ATTRIBUTE_SYMBOL

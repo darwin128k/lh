@@ -2,8 +2,13 @@
  * @file werror.h
  * @brief Wide error value type (::lh_werror_t) and field accessors.
  *
- * Same shape as ::lh_error_t: a numeric ::lh_error_code_t with an optional
- * ::lh_wstr_view_t description. The view does not own text. Layout is compatible with ::lh_error_t (code + ::lh_memory_view_t).
+ * ::lh_werror_t is binary-compatible with ::lh_error_t — both carry a numeric
+ * code and a ::lh_memory_view_t description span in the same field order.
+ * The description is interpreted as ::lh_wstr_view_t (::lh_wchar_t units).
+ * All functions delegate to the corresponding ::lh_error_* counterparts.
+ *
+ * The wide-namespaced type documents intent: text is a wide view, not
+ * ::lh_str_view_t. The view does not own text.
  *
  * @see lh_error_t
  * @see lh_wstr_view_t
@@ -21,7 +26,7 @@
 
 /**
  * @struct lh_werror
- * @brief Error code and optional wide human-readable description.
+ * Binary-compatible with ::lh_error_t; description field is a wide view.
  */
 typedef struct lh_werror
 {

@@ -16,6 +16,17 @@ BM_wstr_ptr_len(benchmark::State &state)
 BENCHMARK(BM_wstr_ptr_len);
 
 static void
+BM_wstr_ptr_get_size(benchmark::State &state)
+{
+    const lh_wchar_t text[] = L"the quick brown fox jumps over the lazy dog";
+    for (auto _ : state)
+    {
+        benchmark::DoNotOptimize(lh_wstr_ptr_get_size(text));
+    }
+}
+BENCHMARK(BM_wstr_ptr_get_size);
+
+static void
 BM_wstr_ptr_find(benchmark::State &state)
 {
     const lh_wchar_t text[] = L"the quick brown fox jumps over the lazy dog";

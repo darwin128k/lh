@@ -1,10 +1,15 @@
 /**
  * @file memory.h
- * @brief Sized memory operations: copy, fill, compare, search.
+ * @brief Sized memory operations: copy, fill, compare, search, sentinel scan.
  *
  * All sizes are in bytes (::lh_usize_t). Copy/move/compare helpers pass
  * <code>min(dst_size, src_size)</code> (or the analogous minimum for compare) to the
  * underlying ::lh_memory_std_* routines, so transfers never exceed the smaller span.
+ *
+ * Sized search (::lh_memory_find / ::lh_memory_find_step) takes an explicit haystack
+ * length. Sentinel scan (::lh_memory_scan / ::lh_memory_scan_step) walks from @c lhs
+ * until the first match or the remaining address space; callers do not pass
+ * @c SIZE_MAX.
  *
  * Pointer validity is enforced where the implementation checks references (see each
  * function and ::lh/memory/std.h for the low-level behaviour).
@@ -174,6 +179,48 @@ LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
                     lh_usize_t step);
+
+/**
+ * @brief Sentinel scan: find the leftmost match of @p rhs starting at @p lhs,
+ *        with no caller-supplied haystack length.
+ *
+ * The scan bound is the remaining address space from @p lhs
+ * (<code>::LH_USIZE_T_MAX - ::lh_ptr_to_uaddr(lhs)</code> bytes). Equivalent to
+ * ::lh_memory_scan_step with @p step @c 1.
+ *
+ * @param lhs       Haystack start.
+ * @param rhs       Needle.
+ * @param rhs_size  Size of @p rhs in bytes.
+ *
+ * @return Pointer to the start of the first match, or ::lh_null if none
+ *         before the address-space bound.
+ *
+ * @see lh_memory_scan_step
+ * @see lh_memory_find
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_ptr
+lh_memory_scan(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t rhs_size);
+
+/**
+ * @brief Like ::lh_memory_scan, but only tries start offsets on a @p step grid.
+ *
+ * Use @p step equal to @p rhs_size for fixed-size units (e.g. ::lh_wchar_t).
+ * The bound is remaining bytes from @p lhs, not a fake element count.
+ *
+ * @param lhs       Haystack start.
+ * @param rhs       Needle.
+ * @param rhs_size  Size of @p rhs in bytes.
+ * @param step      Byte distance between candidate starts; must be non-zero.
+ *
+ * @return Pointer to the start of the first match, or ::lh_null if none
+ *         before the address-space bound.
+ *
+ * @see lh_memory_find_step
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_ptr
+lh_memory_scan_step(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t rhs_size, lh_usize_t step);
 
 /**
  * @brief Find the rightmost offset in @p lhs

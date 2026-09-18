@@ -127,8 +127,8 @@ lh_str_ptr_find_of_null_terminator_by_size(const lh_str_ptr str, lh_usize_t size
 const lh_str_ptr
 lh_str_ptr_find_of_null_terminator(const lh_str_ptr str)
 {
-    lh_usize_t size = lh_addr_diff(LH_USIZE_T_MAX, lh_ptr_to_uaddr(str));
-    return lh_str_ptr_find_of_null_terminator_by_size(str, size);
+    const lh_char_t ch = lh_char_map_nul;
+    return lh_memory_scan(str, lh_addr_of(ch), LH_CHAR_T_SIZE);
 }
 
 lh_usize_t

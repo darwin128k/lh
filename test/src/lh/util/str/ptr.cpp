@@ -84,7 +84,7 @@ TEST(str_raw_len, counts_chars_before_nul)
 
 TEST(str_raw_len_death, no_null_terminator_when_scan_size_is_zero)
 {
-    // ::lh_str_ptr_find_of_null_terminator scans `LH_USIZE_T_MAX - lh_ptr_to_uaddr(str)` bytes.
+    // ::lh_memory_scan bound is `LH_USIZE_T_MAX - lh_ptr_to_uaddr(str)` bytes.
     // If that value is 0, no memory is read, no NUL is found, and ::lh_str_ptr_len terminates with
     // ::lh_runtime_error_code_no_null_terminator.
     const lh_uaddr_t addr = static_cast<lh_uaddr_t>(LH_USIZE_T_MAX);

@@ -1,6 +1,7 @@
 ﻿#include <lh/util/wstr/ptr.h>
 #include <lh/char/map.h>
 #include <lh/memory.h>
+#include <lh/util/addr.h>
 #include <lh/util/math.h>
 #include <lh/util/wchar.h>
 #include <lh/util/return.h>
@@ -129,8 +130,8 @@ lh_wstr_ptr_find_of_null_terminator_by_size(const lh_wstr_ptr str, lh_usize_t si
 const lh_wstr_ptr
 lh_wstr_ptr_find_of_null_terminator(const lh_wstr_ptr str)
 {
-    lh_usize_t size = lh_addr_diff(LH_USIZE_T_MAX, lh_ptr_to_uaddr(str));
-    return lh_wstr_ptr_find_of_null_terminator_by_size(str, size);
+    const lh_wchar_t ch = lh_wstr_ptr_cat_va(lh_char_map_nul);
+    return lh_memory_scan_step(str, lh_addr_of(ch), LH_WCHAR_T_SIZE, LH_WCHAR_T_SIZE);
 }
 
 lh_usize_t

@@ -238,9 +238,9 @@ lh_str_ptr_find_of_null_terminator_by_size(const lh_str_ptr str, lh_usize_t size
  * @brief Find the first null terminator (`'\\0'`)
  *        in @p str within a bounded scan range.
  *
- * The scan length is `::LH_USIZE_T_MAX - ::lh_ptr_to_uaddr(str)` elements,
- * so the search stops before wrapping the address space.
- * If no NUL appears in that prefix, returns ::lh_null.
+ * Delegates to ::lh_memory_scan with a one-byte NUL needle. The bound is the
+ * remaining address space from @p str (see ::lh_memory_scan); callers do not
+ * pass @c SIZE_MAX. If no NUL appears in that prefix, returns ::lh_null.
  *
  * @param str String to scan
  *            (typically non-null; behaviour is defined only for valid pointers).
@@ -249,7 +249,7 @@ lh_str_ptr_find_of_null_terminator_by_size(const lh_str_ptr str, lh_usize_t size
  *         or ::lh_null if none was found in range.
  *
  * @see lh_str_ptr_find_of_null_terminator_by_size
- * @see lh_str_ptr_find_of_char
+ * @see lh_memory_scan
  */
 LH_ATTRIBUTE_SYMBOL
 const lh_str_ptr
@@ -272,6 +272,7 @@ lh_str_ptr_find_of_null_terminator(const lh_str_ptr str);
  *       ::lh_runtime_error_code_no_null_terminator.
  *
  * @see lh_str_ptr_find_of_null_terminator
+ * @see lh_memory_scan
  * @see lh_runtime_error_code_no_null_terminator
  */
 LH_ATTRIBUTE_SYMBOL

@@ -209,6 +209,59 @@ TEST(memory_find_step, aligned_step_finds_on_grid)
     EXPECT_EQ(p, static_cast<const lh_ptr>(&hay[0]));
 }
 
+TEST(memory_find_step, two_byte_unit_past_scan_block)
+{
+    lh_uchar_t hay[32] = {};
+    hay[16] = 0xAB;
+    hay[17] = 0xCD;
+    const lh_uchar_t needle[] = {0xAB, 0xCD};
+    const lh_ptr p = lh_memory_find_step(hay, 32, needle, 2, 2);
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, static_cast<const lh_ptr>(&hay[16]));
+}
+
+TEST(memory_scan, finds_first_byte)
+{
+    const lh_uchar_t hay[] = {'x', 'a', 'b', 0};
+    const lh_uchar_t needle = 'a';
+    const lh_ptr p = lh_memory_scan(hay, &needle, 1);
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, static_cast<const lh_ptr>(&hay[1]));
+}
+
+TEST(memory_scan, finds_nul_like_c_string_len)
+{
+    const lh_uchar_t hay[] = {'a', 'b', 'c', 0, 'x'};
+    const lh_uchar_t needle = 0;
+    const lh_ptr p = lh_memory_scan(hay, &needle, 1);
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, static_cast<const lh_ptr>(&hay[3]));
+    EXPECT_EQ(p, lh_memory_find(hay, 4, &needle, 1));
+}
+
+TEST(memory_scan_step, two_byte_nul_on_wchar_grid)
+{
+    const lh_uchar_t hay[] = {'a', 0, 'b', 0, 0, 0};
+    const lh_uchar_t needle[] = {0, 0};
+    const lh_ptr p = lh_memory_scan_step(hay, needle, 2, 2);
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, static_cast<const lh_ptr>(&hay[4]));
+}
+
+TEST(memory_scan_step, two_byte_step_skips_misaligned_nul_pair)
+{
+    /* Sentinel scan has no haystack length: the on-grid terminator must exist. */
+    const lh_uchar_t hay[] = {'x', 0, 0, 'y', 0xAB, 0xCD, 0, 0};
+    const lh_uchar_t needle[] = {0, 0};
+    const lh_ptr p_byte = lh_memory_scan(hay, needle, 2);
+    ASSERT_TRUE(lh_null_ne(p_byte));
+    EXPECT_EQ(p_byte, static_cast<const lh_ptr>(&hay[1]));
+
+    const lh_ptr p_step = lh_memory_scan_step(hay, needle, 2, 2);
+    ASSERT_TRUE(lh_null_ne(p_step));
+    EXPECT_EQ(p_step, static_cast<const lh_ptr>(&hay[6]));
+}
+
 TEST(memory_rfind_step, step_one_matches_memory_rfind)
 {
     const lh_uchar_t hay[] = {'a', 'b', 'a', 'b', 'c'};
@@ -268,6 +321,18 @@ TEST(memory_find_death, null_rhs)
 {
     const lh_uchar_t hay[] = {1};
     LH_EXPECT_DEATH(lh_memory_find(hay, 1, lh_null, 1));
+}
+
+TEST(memory_scan_death, null_lhs)
+{
+    const lh_uchar_t needle[] = {1};
+    LH_EXPECT_DEATH(lh_memory_scan(lh_null, needle, 1));
+}
+
+TEST(memory_scan_death, null_rhs)
+{
+    const lh_uchar_t hay[] = {1};
+    LH_EXPECT_DEATH(lh_memory_scan(hay, lh_null, 1));
 }
 
 TEST(memory_rfind_death, null_lhs)
