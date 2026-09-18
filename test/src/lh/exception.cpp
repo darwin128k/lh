@@ -9,7 +9,7 @@ namespace
 {
 
 const char *
-desc_cstr(lh_error_desc_t desc)
+desc_cstr(lh_str_view_t desc)
 {
     return lh_str_view_is_empty(&desc) ? nullptr : lh_str_view_get_data(&desc);
 }
@@ -199,7 +199,7 @@ TEST(exception_is_empty, returns_false_for_ok_code_with_desc)
 
 TEST(exception_equals, returns_true_for_same_embedded_error)
 {
-    lh_error_desc_t desc = lh_str_view_lit("same");
+    lh_str_view_t desc = lh_str_view_lit("same");
     const lh_exception_t lhs = lh_exception_initializer(21, desc);
     const lh_exception_t rhs = lh_exception_initializer(21, desc);
 
@@ -208,7 +208,7 @@ TEST(exception_equals, returns_true_for_same_embedded_error)
 
 TEST(exception_equals, returns_false_for_different_code)
 {
-    lh_error_desc_t desc = lh_str_view_lit("same");
+    lh_str_view_t desc = lh_str_view_lit("same");
     const lh_exception_t lhs = lh_exception_initializer(21, desc);
     const lh_exception_t rhs = lh_exception_initializer(22, desc);
 

@@ -54,12 +54,12 @@
 #if LH_LIBRARY_OPTION_OS_WERROR
 #    include <lh/werror.h>
 typedef lh_werror_t lh_os_error_t;
-typedef lh_werror_desc_t lh_os_error_desc_t;
+typedef lh_wstr_view_t lh_os_error_desc_t;
 #    define lh_os_error_desc_lit(s) lh_wstr_view_lit(L##s)
 #else
 #    include <lh/error.h>
 typedef lh_error_t lh_os_error_t;
-typedef lh_error_desc_t lh_os_error_desc_t;
+typedef lh_str_view_t lh_os_error_desc_t;
 #    define lh_os_error_desc_lit(s) lh_str_view_lit(s)
 #endif
 

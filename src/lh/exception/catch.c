@@ -34,14 +34,14 @@ lh_exception_catch_get_code(const lh_exception_catch_t *self)
     return lh_exception_get_code(lh_exception_catch_get_exception_as_const(self));
 }
 
-lh_error_desc_t
+lh_str_view_t
 lh_exception_catch_get_desc(const lh_exception_catch_t *self)
 {
     return lh_exception_get_desc(lh_exception_catch_get_exception_as_const(self));
 }
 
-lh_error_desc_t
-lh_exception_catch_get_desc_or(const lh_exception_catch_t *self, lh_error_desc_t fallback)
+lh_str_view_t
+lh_exception_catch_get_desc_or(const lh_exception_catch_t *self, lh_str_view_t fallback)
 {
     return lh_exception_get_desc_or(lh_exception_catch_get_exception_as_const(self), fallback);
 }

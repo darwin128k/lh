@@ -3,7 +3,7 @@
  * @brief Runtime error value type (::lh_runtime_error_t) and its API.
  *
  * ::lh_runtime_error_t is binary-compatible with ::lh_error_t — both carry
- * a numeric code and an optional ::lh_runtime_error_desc_t description in the same field order.
+ * a numeric code and an optional ::lh_str_view_t description in the same field order.
  * All functions delegate to the corresponding ::lh_error_* counterparts.
  *
  * The runtime-namespaced type exists to document intent: an
@@ -18,8 +18,8 @@
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/runtime/error/code.h>
-#include <lh/runtime/error/desc.h>
 #include <lh/runtime/error/fields.h>
+#include <lh/str/view.h>
 
 /**
  * @struct lh_runtime_error
@@ -29,7 +29,7 @@
  */
 typedef struct lh_runtime_error
 {
-    lh_runtime_error_fields(lh_runtime_error_code_t, lh_runtime_error_desc_t);
+    lh_runtime_error_fields(lh_runtime_error_code_t, lh_str_view_t);
 } lh_runtime_error_t; /**< Typedef for struct ::lh_runtime_error. */
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -41,12 +41,12 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @param self Error object to modify.
  * @param code New error code.
- * @param desc New description pointer (may be null).
+ * @param desc New description view (empty view = no description).
  */
 LH_ATTRIBUTE_SYMBOL
 void
 lh_runtime_error_set(lh_runtime_error_t *self, lh_runtime_error_code_t code,
-                     lh_runtime_error_desc_t desc);
+                     lh_str_view_t desc);
 
 /**
  * @brief Replace only the error code stored in @p self.
@@ -59,14 +59,14 @@ void
 lh_runtime_error_set_code(lh_runtime_error_t *self, lh_runtime_error_code_t code);
 
 /**
- * @brief Replace only the description pointer stored in @p self.
+ * @brief Replace only the description view stored in @p self.
  *
  * @param self Error object to modify.
- * @param desc New description pointer (may be null).
+ * @param desc New description view (empty view = no description).
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_runtime_error_set_desc(lh_runtime_error_t *self, lh_runtime_error_desc_t desc);
+lh_runtime_error_set_desc(lh_runtime_error_t *self, lh_str_view_t desc);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
 
@@ -80,24 +80,24 @@ lh_runtime_error_code_t
 lh_runtime_error_get_code(const lh_runtime_error_t *self);
 
 /**
- * @brief Return the description pointer stored in @p self.
+ * @brief Return the description view stored in @p self.
  * @param self Error object to read from.
- * @return Current @c desc (may be null).
+ * @return Current @c desc (empty view when there is no description).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_runtime_error_desc_t
+lh_str_view_t
 lh_runtime_error_get_desc(const lh_runtime_error_t *self);
 
 /**
- * @brief Return the description pointer or @p fallback when it is null.
+ * @brief Return the description view or @p fallback when it is empty.
  *
  * @param self     Error object to read from.
  * @param fallback Description returned when @p self has no description.
- * @return Stored description when non-null, otherwise @p fallback.
+ * @return Stored description when non-empty, otherwise @p fallback.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_runtime_error_desc_t
-lh_runtime_error_get_desc_or(const lh_runtime_error_t *self, lh_runtime_error_desc_t fallback);
+lh_str_view_t
+lh_runtime_error_get_desc_or(const lh_runtime_error_t *self, lh_str_view_t fallback);
 
 /* ── predicates ──────────────────────────────────────────────────────────── */
 
@@ -131,9 +131,9 @@ lh_bool_t
 lh_runtime_error_is_failure(const lh_runtime_error_t *self);
 
 /**
- * @brief Test whether @p self has a non-null description.
+ * @brief Test whether @p self has a non-empty description.
  * @param self Error object to read from.
- * @return ::lh_bool_true when @p self stores a description pointer.
+ * @return ::lh_bool_true when @p self stores a non-empty description view.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
@@ -151,11 +151,11 @@ lh_runtime_error_is_empty(const lh_runtime_error_t *self);
 /**
  * @brief Test whether two runtime error objects store the same fields.
  *
- * Description equality is pointer equality.
+ * Description equality is view endpoint equality (same begin and end).
  *
  * @param self  Error object to read from.
  * @param other Error object to compare with.
- * @return ::lh_bool_true when both store the same code and description pointer.
+ * @return ::lh_bool_true when both store the same code and description view.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
@@ -209,12 +209,12 @@ lh_runtime_error_clear(lh_runtime_error_t *self);
  *
  * @param self Error object to initialize.
  * @param code Initial error code.
- * @param desc Initial description pointer (may be null).
+ * @param desc Initial description view (empty view = no description).
  */
 LH_ATTRIBUTE_SYMBOL
 void
 lh_runtime_error_init(lh_runtime_error_t *self, lh_runtime_error_code_t code,
-                      lh_runtime_error_desc_t desc);
+                      lh_str_view_t desc);
 
 /**
  * @brief Initialize @p self by copying from @p other.
@@ -262,7 +262,7 @@ lh_runtime_error_get_code_and_clear(lh_runtime_error_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_runtime_error_t
-lh_runtime_error_make(lh_runtime_error_code_t code, lh_runtime_error_desc_t desc);
+lh_runtime_error_make(lh_runtime_error_code_t code, lh_str_view_t desc);
 
 /**
  * @brief Construct an ::lh_runtime_error_t with @p code and no description.
@@ -302,7 +302,7 @@ lh_runtime_error_make_by_code(lh_runtime_error_code_t code);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_runtime_error_t
-lh_runtime_error_make_by_desc(lh_runtime_error_desc_t desc);
+lh_runtime_error_make_by_desc(lh_str_view_t desc);
 
 LH_COMPILER_EXTERN_C_END
 

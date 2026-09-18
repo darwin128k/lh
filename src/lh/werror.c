@@ -4,7 +4,7 @@
 #include <lh/werror/initializer.h>
 
 void
-lh_werror_set(lh_werror_t *self, lh_error_code_t code, lh_werror_desc_t desc)
+lh_werror_set(lh_werror_t *self, lh_error_code_t code, lh_wstr_view_t desc)
 {
     lh_werror_set_code(self, code);
     lh_werror_set_desc(self, desc);
@@ -18,7 +18,7 @@ lh_werror_set_code(lh_werror_t *self, lh_error_code_t code)
 }
 
 void
-lh_werror_set_desc(lh_werror_t *self, lh_werror_desc_t desc)
+lh_werror_set_desc(lh_werror_t *self, lh_wstr_view_t desc)
 {
     lh_assert_runtime_ref(self);
     self->desc = desc;
@@ -31,15 +31,15 @@ lh_werror_get_code(const lh_werror_t *self)
     return self->code;
 }
 
-lh_werror_desc_t
+lh_wstr_view_t
 lh_werror_get_desc(const lh_werror_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->desc;
 }
 
-lh_werror_desc_t
-lh_werror_get_desc_or(const lh_werror_t *self, lh_werror_desc_t fallback)
+lh_wstr_view_t
+lh_werror_get_desc_or(const lh_werror_t *self, lh_wstr_view_t fallback)
 {
     if (lh_werror_has_desc(self))
     {
@@ -62,7 +62,7 @@ lh_werror_clear(lh_werror_t *self)
 }
 
 void
-lh_werror_init(lh_werror_t *self, lh_error_code_t code, lh_werror_desc_t desc)
+lh_werror_init(lh_werror_t *self, lh_error_code_t code, lh_wstr_view_t desc)
 {
     lh_werror_set(self, code, desc);
 }
@@ -88,7 +88,7 @@ lh_werror_get_code_and_clear(lh_werror_t *self)
 }
 
 lh_werror_t
-lh_werror_make(lh_error_code_t code, lh_werror_desc_t desc)
+lh_werror_make(lh_error_code_t code, lh_wstr_view_t desc)
 {
     lh_werror_t self;
     lh_werror_init(lh_addr_of(self), code, desc);
@@ -125,7 +125,7 @@ lh_werror_is_failure(const lh_werror_t *self)
 lh_bool_t
 lh_werror_has_desc(const lh_werror_t *self)
 {
-    const lh_werror_desc_t desc = lh_werror_get_desc(self);
+    const lh_wstr_view_t desc = lh_werror_get_desc(self);
     return !lh_wstr_view_is_empty(&desc);
 }
 
@@ -138,8 +138,8 @@ lh_werror_is_empty(const lh_werror_t *self)
 lh_bool_t
 lh_werror_equals(const lh_werror_t *self, const lh_werror_t *other)
 {
-    const lh_werror_desc_t a = lh_werror_get_desc(self);
-    const lh_werror_desc_t b = lh_werror_get_desc(other);
+    const lh_wstr_view_t a = lh_werror_get_desc(self);
+    const lh_wstr_view_t b = lh_werror_get_desc(other);
 
     return lh_werror_get_code(self) == lh_werror_get_code(other) &&
            lh_memory_view_get_begin(&a) == lh_memory_view_get_begin(&b) &&

@@ -96,22 +96,22 @@ lh_exception_catch_get_code(const lh_exception_catch_t *self);
  * @brief Return the caught exception description.
  *
  * @param self Catch frame (not null).
- * @return Description stored in the caught exception; may be null.
+ * @return Description stored in the caught exception (empty view when there is no description).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_error_desc_t
+lh_str_view_t
 lh_exception_catch_get_desc(const lh_exception_catch_t *self);
 
 /**
- * @brief Return the caught exception description or @p fallback when it is null.
+ * @brief Return the caught exception description or @p fallback when it is empty.
  *
  * @param self Catch frame (not null).
  * @param fallback Description returned when the caught exception has no description.
- * @return Stored description when non-null, otherwise @p fallback.
+ * @return Stored description when non-empty, otherwise @p fallback.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_error_desc_t
-lh_exception_catch_get_desc_or(const lh_exception_catch_t *self, lh_error_desc_t fallback);
+lh_str_view_t
+lh_exception_catch_get_desc_or(const lh_exception_catch_t *self, lh_str_view_t fallback);
 
 /**
  * @brief Test whether the caught exception code is equal to @p code.
@@ -145,10 +145,10 @@ lh_bool_t
 lh_exception_catch_is_failure(const lh_exception_catch_t *self);
 
 /**
- * @brief Test whether the caught exception has a non-null description.
+ * @brief Test whether the caught exception has a non-empty description.
  *
  * @param self Catch frame (not null).
- * @return ::lh_bool_true when the caught exception stores a description pointer.
+ * @return ::lh_bool_true when the caught exception stores a non-empty description view.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t

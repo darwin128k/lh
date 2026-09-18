@@ -58,7 +58,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @param self      Exception to modify (not null).
  * @param code      Error code.
- * @param desc      Error description (may be null).
+ * @param desc      Error description view (empty view = no description).
  * @param timestamp Build timestamp (typically @c __TIMESTAMP__; debug builds only).
  * @param file      Source file path (typically @c __FILE__; debug builds only).
  * @param function  Function name (typically @c __FUNCTION__; debug builds only).
@@ -67,12 +67,12 @@ LH_COMPILER_EXTERN_C_BEGIN
 LH_ATTRIBUTE_SYMBOL
 #ifndef NDEBUG
 void
-lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc,
+lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_str_view_t desc,
                  const lh_str_ptr timestamp, const lh_str_ptr file, const lh_str_ptr function,
                  lh_usize_t line);
 #else
 void
-lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc);
+lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_str_view_t desc);
 #endif
 
 /**
@@ -80,7 +80,7 @@ lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t des
  *
  * @param self      Exception to initialize (not null).
  * @param code      Error code.
- * @param desc      Error description (may be null).
+ * @param desc      Error description view (empty view = no description).
  * @param timestamp Build timestamp (typically @c __TIMESTAMP__; debug builds only).
  * @param file      Source file path (typically @c __FILE__; debug builds only).
  * @param function  Function name (typically @c __FUNCTION__; debug builds only).
@@ -89,12 +89,12 @@ lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t des
 LH_ATTRIBUTE_SYMBOL
 #ifndef NDEBUG
 void
-lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc,
+lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_str_view_t desc,
                   const lh_str_ptr timestamp, const lh_str_ptr file, const lh_str_ptr function,
                   lh_usize_t line);
 #else
 void
-lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc);
+lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_str_view_t desc);
 #endif
 
 /**
@@ -193,11 +193,11 @@ lh_exception_set_code(lh_exception_t *self, lh_error_code_t code);
  * @brief Replace only the embedded error description.
  *
  * @param self Exception value to modify (not null).
- * @param desc New description pointer (may be null).
+ * @param desc New description view (empty view = no description).
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_exception_set_desc(lh_exception_t *self, lh_error_desc_t desc);
+lh_exception_set_desc(lh_exception_t *self, lh_str_view_t desc);
 
 /**
  * @brief Return the embedded error code.
@@ -213,22 +213,22 @@ lh_exception_get_code(const lh_exception_t *self);
  * @brief Return the embedded error description.
  *
  * @param self Exception value (not null).
- * @return Description stored in @p self->error; may be null.
+ * @return Description stored in @p self->error (empty view when there is no description).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_error_desc_t
+lh_str_view_t
 lh_exception_get_desc(const lh_exception_t *self);
 
 /**
- * @brief Return the embedded description or @p fallback when it is null.
+ * @brief Return the embedded description or @p fallback when it is empty.
  *
  * @param self Exception value (not null).
  * @param fallback Description returned when @p self has no description.
- * @return Stored description when non-null, otherwise @p fallback.
+ * @return Stored description when non-empty, otherwise @p fallback.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_error_desc_t
-lh_exception_get_desc_or(const lh_exception_t *self, lh_error_desc_t fallback);
+lh_str_view_t
+lh_exception_get_desc_or(const lh_exception_t *self, lh_str_view_t fallback);
 
 /**
  * @brief Test whether the embedded error code is equal to @p code.
@@ -262,10 +262,10 @@ lh_bool_t
 lh_exception_is_failure(const lh_exception_t *self);
 
 /**
- * @brief Test whether the embedded error has a non-null description.
+ * @brief Test whether the embedded error has a non-empty description.
  *
  * @param self Exception value (not null).
- * @return ::lh_bool_true when @p self stores a description pointer.
+ * @return ::lh_bool_true when @p self stores a non-empty description view.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t

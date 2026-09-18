@@ -5,7 +5,7 @@
 
 #ifndef NDEBUG
 void
-lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc,
+lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_str_view_t desc,
                  const lh_str_ptr timestamp, const lh_str_ptr file, const lh_str_ptr function,
                  lh_usize_t line)
 {
@@ -14,7 +14,7 @@ lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t des
 }
 
 void
-lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc,
+lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_str_view_t desc,
                   const lh_str_ptr timestamp, const lh_str_ptr file, const lh_str_ptr function,
                   lh_usize_t line)
 {
@@ -22,13 +22,13 @@ lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t de
 }
 #else
 void
-lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc)
+lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_str_view_t desc)
 {
     lh_error_init(lh_exception_get_error(self), code, desc);
 }
 
 void
-lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_error_desc_t desc)
+lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_str_view_t desc)
 {
     lh_exception_set(self, code, desc);
 }
@@ -97,7 +97,7 @@ lh_exception_set_code(lh_exception_t *self, lh_error_code_t code)
 }
 
 void
-lh_exception_set_desc(lh_exception_t *self, lh_error_desc_t desc)
+lh_exception_set_desc(lh_exception_t *self, lh_str_view_t desc)
 {
     lh_error_set_desc(lh_exception_get_error(self), desc);
 }
@@ -108,14 +108,14 @@ lh_exception_get_code(const lh_exception_t *self)
     return lh_error_get_code(lh_exception_get_error_as_const(self));
 }
 
-lh_error_desc_t
+lh_str_view_t
 lh_exception_get_desc(const lh_exception_t *self)
 {
     return lh_error_get_desc(lh_exception_get_error_as_const(self));
 }
 
-lh_error_desc_t
-lh_exception_get_desc_or(const lh_exception_t *self, lh_error_desc_t fallback)
+lh_str_view_t
+lh_exception_get_desc_or(const lh_exception_t *self, lh_str_view_t fallback)
 {
     return lh_error_get_desc_or(lh_exception_get_error_as_const(self), fallback);
 }

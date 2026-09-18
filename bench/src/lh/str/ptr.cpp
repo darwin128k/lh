@@ -16,6 +16,17 @@ BM_str_ptr_len(benchmark::State &state)
 BENCHMARK(BM_str_ptr_len);
 
 static void
+BM_str_ptr_get_size(benchmark::State &state)
+{
+    const char text[] = "the quick brown fox jumps over the lazy dog";
+    for (auto _ : state)
+    {
+        benchmark::DoNotOptimize(lh_str_ptr_get_size(text));
+    }
+}
+BENCHMARK(BM_str_ptr_get_size);
+
+static void
 BM_str_ptr_find(benchmark::State &state)
 {
     const char text[] = "the quick brown fox jumps over the lazy dog";

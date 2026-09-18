@@ -20,7 +20,7 @@
  *
  * @param code Error code (::lh_runtime_error_code_t).
  * @param ...  Optional remainder of the initializer list
- *             (e.g. description pointer or @c .desc = ...).
+ *             (e.g. a ::lh_str_view_t or @c .desc = ...).
  *
  * Example usage:
  * @code{.c}

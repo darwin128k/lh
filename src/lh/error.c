@@ -4,7 +4,7 @@
 #include <lh/assert.h>
 
 void
-lh_error_set(lh_error_t *self, lh_error_code_t code, lh_error_desc_t desc)
+lh_error_set(lh_error_t *self, lh_error_code_t code, lh_str_view_t desc)
 {
     lh_error_set_code(self, code);
     lh_error_set_desc(self, desc);
@@ -18,7 +18,7 @@ lh_error_set_code(lh_error_t *self, lh_error_code_t code)
 }
 
 void
-lh_error_set_desc(lh_error_t *self, lh_error_desc_t desc)
+lh_error_set_desc(lh_error_t *self, lh_str_view_t desc)
 {
     lh_assert_runtime_ref(self);
     self->desc = desc;
@@ -31,15 +31,15 @@ lh_error_get_code(const lh_error_t *self)
     return self->code;
 }
 
-lh_error_desc_t
+lh_str_view_t
 lh_error_get_desc(const lh_error_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->desc;
 }
 
-lh_error_desc_t
-lh_error_get_desc_or(const lh_error_t *self, lh_error_desc_t fallback)
+lh_str_view_t
+lh_error_get_desc_or(const lh_error_t *self, lh_str_view_t fallback)
 {
     if (lh_error_has_desc(self))
     {
@@ -62,7 +62,7 @@ lh_error_clear(lh_error_t *self)
 }
 
 void
-lh_error_init(lh_error_t *self, lh_error_code_t code, lh_error_desc_t desc)
+lh_error_init(lh_error_t *self, lh_error_code_t code, lh_str_view_t desc)
 {
     lh_error_set(self, code, desc);
 }
@@ -88,7 +88,7 @@ lh_error_get_code_and_clear(lh_error_t *self)
 }
 
 lh_error_t
-lh_error_make(lh_error_code_t code, lh_error_desc_t desc)
+lh_error_make(lh_error_code_t code, lh_str_view_t desc)
 {
     lh_error_t self;
     lh_error_init(lh_addr_of(self), code, desc);
@@ -125,7 +125,7 @@ lh_error_is_failure(const lh_error_t *self)
 lh_bool_t
 lh_error_has_desc(const lh_error_t *self)
 {
-    const lh_error_desc_t desc = lh_error_get_desc(self);
+    const lh_str_view_t desc = lh_error_get_desc(self);
     return !lh_str_view_is_empty(&desc);
 }
 
@@ -138,8 +138,8 @@ lh_error_is_empty(const lh_error_t *self)
 lh_bool_t
 lh_error_equals(const lh_error_t *self, const lh_error_t *other)
 {
-    const lh_error_desc_t a = lh_error_get_desc(self);
-    const lh_error_desc_t b = lh_error_get_desc(other);
+    const lh_str_view_t a = lh_error_get_desc(self);
+    const lh_str_view_t b = lh_error_get_desc(other);
 
     return lh_error_get_code(self) == lh_error_get_code(other) &&
            lh_memory_view_get_begin(&a) == lh_memory_view_get_begin(&b) &&

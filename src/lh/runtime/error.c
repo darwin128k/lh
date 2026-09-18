@@ -4,7 +4,7 @@
 
 void
 lh_runtime_error_set(lh_runtime_error_t *self, lh_runtime_error_code_t code,
-                     lh_runtime_error_desc_t desc)
+                     lh_str_view_t desc)
 {
     lh_error_set(lh_ptr_cast(lh_error_t, self), code, desc);
 }
@@ -16,7 +16,7 @@ lh_runtime_error_set_code(lh_runtime_error_t *self, lh_runtime_error_code_t code
 }
 
 void
-lh_runtime_error_set_desc(lh_runtime_error_t *self, lh_runtime_error_desc_t desc)
+lh_runtime_error_set_desc(lh_runtime_error_t *self, lh_str_view_t desc)
 {
     lh_error_set_desc(lh_ptr_cast(lh_error_t, self), desc);
 }
@@ -27,14 +27,14 @@ lh_runtime_error_get_code(const lh_runtime_error_t *self)
     return lh_error_get_code(lh_ptr_ccast(lh_error_t, self));
 }
 
-lh_runtime_error_desc_t
+lh_str_view_t
 lh_runtime_error_get_desc(const lh_runtime_error_t *self)
 {
     return lh_error_get_desc(lh_ptr_ccast(lh_error_t, self));
 }
 
-lh_runtime_error_desc_t
-lh_runtime_error_get_desc_or(const lh_runtime_error_t *self, lh_runtime_error_desc_t fallback)
+lh_str_view_t
+lh_runtime_error_get_desc_or(const lh_runtime_error_t *self, lh_str_view_t fallback)
 {
     return lh_error_get_desc_or(lh_ptr_ccast(lh_error_t, self), fallback);
 }
@@ -101,7 +101,7 @@ lh_runtime_error_clear(lh_runtime_error_t *self)
 
 void
 lh_runtime_error_init(lh_runtime_error_t *self, lh_runtime_error_code_t code,
-                      lh_runtime_error_desc_t desc)
+                      lh_str_view_t desc)
 {
     lh_error_init(lh_ptr_cast(lh_error_t, self), code, desc);
 }
@@ -125,7 +125,7 @@ lh_runtime_error_get_code_and_clear(lh_runtime_error_t *self)
 }
 
 lh_runtime_error_t
-lh_runtime_error_make(lh_runtime_error_code_t code, lh_runtime_error_desc_t desc)
+lh_runtime_error_make(lh_runtime_error_code_t code, lh_str_view_t desc)
 {
     lh_runtime_error_t self;
     lh_runtime_error_init(lh_addr_of(self), code, desc);
@@ -142,7 +142,7 @@ lh_runtime_error_make_by_code(lh_runtime_error_code_t code)
 }
 
 lh_runtime_error_t
-lh_runtime_error_make_by_desc(lh_runtime_error_desc_t desc)
+lh_runtime_error_make_by_desc(lh_str_view_t desc)
 {
     return lh_runtime_error_make(lh_runtime_error_code_interrupt, desc);
 }

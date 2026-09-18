@@ -3,7 +3,7 @@
  * @brief Error value type (::lh_error_t) and field accessors.
  *
  * An error bundles a numeric ::lh_error_code_t with an optional
- * ::lh_error_desc_t description (a ::lh_str_view_t). The view does not own text.
+ * ::lh_str_view_t description. The view does not own text.
  */
 
 #ifndef LH_ERROR_H
@@ -13,8 +13,8 @@
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/error/code.h>
-#include <lh/error/desc.h>
 #include <lh/error/fields.h>
+#include <lh/str/view.h>
 
 /**
  * @struct lh_error
@@ -22,7 +22,7 @@
  */
 typedef struct lh_error
 {
-    lh_error_fields(lh_error_code_t, lh_error_desc_t);
+    lh_error_fields(lh_error_code_t, lh_str_view_t);
 } lh_error_t; /**< Typedef for struct ::lh_error. */
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -38,7 +38,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_error_set(lh_error_t *self, lh_error_code_t code, lh_error_desc_t desc);
+lh_error_set(lh_error_t *self, lh_error_code_t code, lh_str_view_t desc);
 
 /**
  * @brief Replace only the error code stored in @p self.
@@ -58,7 +58,7 @@ lh_error_set_code(lh_error_t *self, lh_error_code_t code);
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_error_set_desc(lh_error_t *self, lh_error_desc_t desc);
+lh_error_set_desc(lh_error_t *self, lh_str_view_t desc);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
 
@@ -77,7 +77,7 @@ lh_error_get_code(const lh_error_t *self);
  * @return Current @c desc (empty view when there is no description).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_error_desc_t
+lh_str_view_t
 lh_error_get_desc(const lh_error_t *self);
 
 /**
@@ -88,8 +88,8 @@ lh_error_get_desc(const lh_error_t *self);
  * @return Stored description when non-empty, otherwise @p fallback.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_error_desc_t
-lh_error_get_desc_or(const lh_error_t *self, lh_error_desc_t fallback);
+lh_str_view_t
+lh_error_get_desc_or(const lh_error_t *self, lh_str_view_t fallback);
 
 /**
  * @brief Test whether @p self stores @p code.
@@ -218,7 +218,7 @@ lh_error_clear(lh_error_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_error_init(lh_error_t *self, lh_error_code_t code, lh_error_desc_t desc);
+lh_error_init(lh_error_t *self, lh_error_code_t code, lh_str_view_t desc);
 
 /**
  * @brief Initialize @p self by copying from @p other.
@@ -261,7 +261,7 @@ lh_error_get_code_and_clear(lh_error_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_error_t
-lh_error_make(lh_error_code_t code, lh_error_desc_t desc);
+lh_error_make(lh_error_code_t code, lh_str_view_t desc);
 
 /**
  * @brief Construct an ::lh_error_t with @p code and no description.

@@ -3,8 +3,7 @@
  * @brief Wide error value type (::lh_werror_t) and field accessors.
  *
  * Same shape as ::lh_error_t: a numeric ::lh_error_code_t with an optional
- * ::lh_werror_desc_t description (a ::lh_wstr_view_t). The view does not own
- * text. Layout is compatible with ::lh_error_t (code + ::lh_memory_view_t).
+ * ::lh_wstr_view_t description. The view does not own text. Layout is compatible with ::lh_error_t (code + ::lh_memory_view_t).
  *
  * @see lh_error_t
  * @see lh_wstr_view_t
@@ -18,7 +17,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/error/code.h>
 #include <lh/error/fields.h>
-#include <lh/werror/desc.h>
+#include <lh/wstr/view.h>
 
 /**
  * @struct lh_werror
@@ -26,7 +25,7 @@
  */
 typedef struct lh_werror
 {
-    lh_error_fields(lh_error_code_t, lh_werror_desc_t);
+    lh_error_fields(lh_error_code_t, lh_wstr_view_t);
 } lh_werror_t; /**< Typedef for struct ::lh_werror. */
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -42,7 +41,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_werror_set(lh_werror_t *self, lh_error_code_t code, lh_werror_desc_t desc);
+lh_werror_set(lh_werror_t *self, lh_error_code_t code, lh_wstr_view_t desc);
 
 /**
  * @brief Replace only the error code stored in @p self.
@@ -62,7 +61,7 @@ lh_werror_set_code(lh_werror_t *self, lh_error_code_t code);
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_werror_set_desc(lh_werror_t *self, lh_werror_desc_t desc);
+lh_werror_set_desc(lh_werror_t *self, lh_wstr_view_t desc);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
 
@@ -81,7 +80,7 @@ lh_werror_get_code(const lh_werror_t *self);
  * @return Current @c desc (empty view when there is no description).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_werror_desc_t
+lh_wstr_view_t
 lh_werror_get_desc(const lh_werror_t *self);
 
 /**
@@ -92,8 +91,8 @@ lh_werror_get_desc(const lh_werror_t *self);
  * @return Stored description when non-empty, otherwise @p fallback.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_werror_desc_t
-lh_werror_get_desc_or(const lh_werror_t *self, lh_werror_desc_t fallback);
+lh_wstr_view_t
+lh_werror_get_desc_or(const lh_werror_t *self, lh_wstr_view_t fallback);
 
 /**
  * @brief Test whether @p self stores @p code.
@@ -222,7 +221,7 @@ lh_werror_clear(lh_werror_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_werror_init(lh_werror_t *self, lh_error_code_t code, lh_werror_desc_t desc);
+lh_werror_init(lh_werror_t *self, lh_error_code_t code, lh_wstr_view_t desc);
 
 /**
  * @brief Initialize @p self by copying from @p other.
@@ -265,7 +264,7 @@ lh_werror_get_code_and_clear(lh_werror_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_werror_t
-lh_werror_make(lh_error_code_t code, lh_werror_desc_t desc);
+lh_werror_make(lh_error_code_t code, lh_wstr_view_t desc);
 
 /**
  * @brief Construct an ::lh_werror_t with @p code and no description.
