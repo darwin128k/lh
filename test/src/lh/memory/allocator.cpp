@@ -56,35 +56,28 @@ test_alloc_always_null(lh_usize_t size)
 
 LH_COMPILER_EXTERN_C_END
 
-TEST(memory_allocator_pack, updates_only_alloc_when_dealloc_pointer_null)
+TEST(memory_allocator_set_alloc_cb, keeps_dealloc)
 {
     lh_memory_allocator_t a = lh_memory_allocator_initializer(test_alloc_malloc, test_dealloc_free);
-    lh_memory_allocator_alloc_cb new_alloc = test_alloc_other;
-    lh_memory_allocator_pack(&a, &new_alloc, nullptr);
+    lh_memory_allocator_set_alloc_cb(&a, test_alloc_other);
     EXPECT_EQ(lh_memory_allocator_get_alloc_cb(&a), test_alloc_other);
     EXPECT_EQ(lh_memory_allocator_get_dealloc_cb(&a), test_dealloc_free);
 }
 
-TEST(memory_allocator_pack, updates_only_dealloc_when_alloc_pointer_null)
+TEST(memory_allocator_set_dealloc_cb, keeps_alloc)
 {
     lh_memory_allocator_t a = lh_memory_allocator_initializer(test_alloc_malloc, test_dealloc_free);
-    lh_memory_allocator_dealloc_cb new_dealloc = test_dealloc_alt;
-    lh_memory_allocator_pack(&a, nullptr, &new_dealloc);
+    lh_memory_allocator_set_dealloc_cb(&a, test_dealloc_alt);
     EXPECT_EQ(lh_memory_allocator_get_alloc_cb(&a), test_alloc_malloc);
     EXPECT_EQ(lh_memory_allocator_get_dealloc_cb(&a), test_dealloc_alt);
 }
 
-TEST(memory_allocator_unpack, skips_null_output_pointers)
+TEST(memory_allocator_getters, return_stored_callbacks)
 {
     const lh_memory_allocator_t a =
         lh_memory_allocator_initializer(test_alloc_malloc, test_dealloc_free);
-    lh_memory_allocator_alloc_cb ac = nullptr;
-    lh_memory_allocator_unpack(&a, &ac, nullptr);
-    EXPECT_EQ(ac, test_alloc_malloc);
-
-    lh_memory_allocator_dealloc_cb dc = nullptr;
-    lh_memory_allocator_unpack(&a, nullptr, &dc);
-    EXPECT_EQ(dc, test_dealloc_free);
+    EXPECT_EQ(lh_memory_allocator_get_alloc_cb(&a), test_alloc_malloc);
+    EXPECT_EQ(lh_memory_allocator_get_dealloc_cb(&a), test_dealloc_free);
 }
 
 TEST(memory_allocator_init, matches_set)
@@ -195,17 +188,14 @@ TEST(memory_allocator_realloc, grows_and_copies_prefix)
 
 #if LH_TEST_EXPECT_DEATH_ENABLED
 
-TEST(memory_allocator_death, pack_null_self)
+TEST(memory_allocator_death, set_null_self)
 {
-    lh_memory_allocator_alloc_cb ac = test_alloc_malloc;
-    lh_memory_allocator_dealloc_cb dc = test_dealloc_free;
-    LH_EXPECT_DEATH(lh_memory_allocator_pack(nullptr, &ac, &dc));
+    LH_EXPECT_DEATH(lh_memory_allocator_set(nullptr, test_alloc_malloc, test_dealloc_free));
 }
 
-TEST(memory_allocator_death, unpack_null_self)
+TEST(memory_allocator_death, get_alloc_cb_null_self)
 {
-    lh_memory_allocator_alloc_cb ac = nullptr;
-    LH_EXPECT_DEATH(lh_memory_allocator_unpack(nullptr, &ac, nullptr));
+    LH_EXPECT_DEATH((void)lh_memory_allocator_get_alloc_cb(nullptr));
 }
 
 TEST(memory_allocator_death, alloc_uninitialized_callback)

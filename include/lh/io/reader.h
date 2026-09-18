@@ -4,7 +4,7 @@
  *        wired up so any concrete byte source (socket, file, ...) can hand
  *        callers an ::lh_io_reader_t without those callers knowing which.
  *
- * Same shape as ::lh_memory_allocator_t (pack/unpack/set/init/deinit/get_*),
+ * Same shape as ::lh_memory_allocator_t (set/init/deinit/get_*),
  * except the callback itself carries a `context` — a memory allocator is
  * global/stateless like `malloc`, but a reader has to say *which* stream
  * it's reading, since there can be many open at once.
@@ -33,31 +33,7 @@ typedef struct lh_io_reader
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── pack / unpack ───────────────────────────────────────────────────────── */
-
-/**
- * @brief Pack optional callback/context pointers into reader fields.
- *
- * Only fields with non-null input pointers are updated.
- *
- * @param self    Reader object to modify.
- * @param read_cb Optional pointer to the read callback value (or ::lh_null to skip).
- * @param context Optional pointer to the context value (or ::lh_null to skip).
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_io_reader_pack(lh_io_reader_t *self, lh_io_reader_read_cb *read_cb, lh_ptr *context);
-
-/**
- * @brief Unpack reader fields into optional output pointers.
- *
- * @param self    Reader object to read from.
- * @param read_cb Optional output for the read callback (or ::lh_null to skip).
- * @param context Optional output for the context (or ::lh_null to skip).
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_io_reader_unpack(const lh_io_reader_t *self, lh_io_reader_read_cb *read_cb, lh_ptr *context);
+/* ── set / init ──────────────────────────────────────────────────────────── */
 
 /**
  * @brief Copy the reader state from @p other into @p self.
@@ -78,6 +54,20 @@ lh_io_reader_assign(lh_io_reader_t *self, const lh_io_reader_t *other);
 LH_ATTRIBUTE_SYMBOL
 void
 lh_io_reader_set(lh_io_reader_t *self, lh_io_reader_read_cb read_cb, lh_ptr context);
+
+/**
+ * @brief Write only the read callback.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_io_reader_set_read_cb(lh_io_reader_t *self, lh_io_reader_read_cb read_cb);
+
+/**
+ * @brief Write only the context.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_io_reader_set_context(lh_io_reader_t *self, lh_ptr context);
 
 /**
  * @brief Initialize a reader's callback and context.

@@ -1,11 +1,9 @@
 /**
  * @file error.h
- * @brief Error value type (::lh_error_t) and pack/unpack API.
+ * @brief Error value type (::lh_error_t) and field accessors.
  *
  * An error bundles a numeric ::lh_error_code_t with an optional
  * ::lh_error_desc_t description (a ::lh_str_view_t). The view does not own text.
- * The pack/unpack API supports optional field pointers, so callers can update/read
- * code and description together or independently.
  */
 
 #ifndef LH_ERROR_H
@@ -29,51 +27,10 @@ typedef struct lh_error
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── pack / unpack ───────────────────────────────────────────────────────── */
-
-/**
- * @brief Update fields on @p self from optional input pointers.
- *
- * @param self Error object to modify.
- * @param code Input pointer for new error code, or ::lh_null to keep current value.
- * @param desc Input pointer for a new description view, or ::lh_null to keep current value.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_error_pack(lh_error_t *self, const lh_error_code_t *code, lh_error_desc_t *desc);
-
-/**
- * @brief Read fields from @p self into optional output pointers.
- *
- * Pass ::lh_null for any pointer to skip that field.
- *
- * @param self  Error object to read from.
- * @param code  Output for @c code, or ::lh_null to skip.
- * @param desc  Output for @c desc (::lh_error_desc_t *), or ::lh_null to skip.
- *
- * Example usage:
- * @code{.c}
- * lh_error_code_t code;
- * lh_error_unpack(&err, &code, lh_null);
- * @endcode
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_error_unpack(const lh_error_t *self, lh_error_code_t *code, lh_error_desc_t *desc);
-
-/**
- * @brief Unpack @p self into @p other (alias for ::lh_error_assign).
- * @param self  Source error (not null).
- * @param other Destination error (not null).
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_error_unpack_to_other(const lh_error_t *self, lh_error_t *other);
+/* ── set ─────────────────────────────────────────────────────────────────── */
 
 /**
  * @brief Replace @p self with @p code and @p desc.
- *
- * Equivalent to ::lh_error_pack with both fields provided.
  *
  * @param self Error object to modify.
  * @param code New error code.
@@ -86,8 +43,6 @@ lh_error_set(lh_error_t *self, lh_error_code_t code, lh_error_desc_t desc);
 /**
  * @brief Replace only the error code stored in @p self.
  *
- * Equivalent to ::lh_error_pack with @p code provided and @c desc skipped.
- *
  * @param self Error object to modify.
  * @param code New error code.
  */
@@ -97,8 +52,6 @@ lh_error_set_code(lh_error_t *self, lh_error_code_t code);
 
 /**
  * @brief Replace only the description view stored in @p self.
- *
- * Equivalent to ::lh_error_pack with @c code skipped and @p desc provided.
  *
  * @param self Error object to modify.
  * @param desc New description view (empty view = no description).
@@ -258,8 +211,6 @@ lh_error_clear(lh_error_t *self);
 
 /**
  * @brief Initialize @p self with @p code and @p desc.
- *
- * Equivalent to ::lh_error_pack with both fields provided.
  *
  * @param self Error object to initialize.
  * @param code Initial error code.

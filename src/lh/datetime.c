@@ -2,55 +2,36 @@
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/memory/std.h>
-#include <lh/null.h>
-#include <lh/optional/ref.h>
 #include <lh/str/split/next.h>
 #include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 
 void
-lh_datetime_pack(lh_datetime_t *self, const lh_date_t *date, const lh_time_t *time)
+lh_datetime_set_date(lh_datetime_t *self, const lh_date_t *date)
 {
     lh_assert_runtime_ref(self);
-
-    lh_optional_ref(date)
-    {
-        lh_date_assign(lh_addr_of(self->date), date);
-    }
-    lh_optional_ref(time)
-    {
-        lh_time_assign(lh_addr_of(self->time), time);
-    }
+    lh_date_assign(lh_addr_of(self->date), date);
 }
 
 void
-lh_datetime_unpack(const lh_datetime_t *self, lh_date_t *date, lh_time_t *time)
+lh_datetime_set_time(lh_datetime_t *self, const lh_time_t *time)
 {
     lh_assert_runtime_ref(self);
-
-    lh_optional_ref(date)
-    {
-        lh_date_assign(date, lh_addr_of(self->date));
-    }
-    lh_optional_ref(time)
-    {
-        lh_time_assign(time, lh_addr_of(self->time));
-    }
+    lh_time_assign(lh_addr_of(self->time), time);
 }
 
 void
 lh_datetime_set(lh_datetime_t *self, const lh_date_t *date, const lh_time_t *time)
 {
-    lh_datetime_pack(self, date, time);
+    lh_datetime_set_date(self, date);
+    lh_datetime_set_time(self, time);
 }
 
 void
 lh_datetime_assign(lh_datetime_t *self, const lh_datetime_t *other)
 {
-    lh_date_t date;
-    lh_time_t time;
+    lh_date_t date = lh_datetime_get_date(other);
+    lh_time_t time = lh_datetime_get_time(other);
 
-    lh_datetime_unpack(other, lh_addr_of(date), lh_addr_of(time));
     lh_datetime_set(self, lh_addr_of(date), lh_addr_of(time));
 }
 
@@ -64,8 +45,10 @@ lh_datetime_add(lh_datetime_t *self, const lh_datetime_t *other)
     lh_uint_t day_carry;
     lh_uint_t overflow;
 
-    lh_datetime_unpack(self, lh_addr_of(date), lh_addr_of(time));
-    lh_datetime_unpack(other, lh_addr_of(other_date), lh_addr_of(other_time));
+    date = lh_datetime_get_date(self);
+    time = lh_datetime_get_time(self);
+    other_date = lh_datetime_get_date(other);
+    other_time = lh_datetime_get_time(other);
     day_carry = lh_time_add(lh_addr_of(time), lh_addr_of(other_time));
     overflow = lh_date_add_day(lh_addr_of(date), day_carry);
     overflow += lh_date_add(lh_addr_of(date), lh_addr_of(other_date));
@@ -83,8 +66,10 @@ lh_datetime_sub(lh_datetime_t *self, const lh_datetime_t *other)
     lh_uint_t day_borrow;
     lh_uint_t overflow;
 
-    lh_datetime_unpack(self, lh_addr_of(date), lh_addr_of(time));
-    lh_datetime_unpack(other, lh_addr_of(other_date), lh_addr_of(other_time));
+    date = lh_datetime_get_date(self);
+    time = lh_datetime_get_time(self);
+    other_date = lh_datetime_get_date(other);
+    other_time = lh_datetime_get_time(other);
     day_borrow = lh_time_sub(lh_addr_of(time), lh_addr_of(other_time));
     overflow = lh_date_sub(lh_addr_of(date), lh_addr_of(other_date));
     overflow += lh_date_sub_day(lh_addr_of(date), day_borrow);
@@ -95,17 +80,15 @@ lh_datetime_sub(lh_datetime_t *self, const lh_datetime_t *other)
 lh_date_t
 lh_datetime_get_date(const lh_datetime_t *self)
 {
-    lh_date_t date;
-    lh_datetime_unpack(self, lh_addr_of(date), lh_null);
-    return date;
+    lh_assert_runtime_ref(self);
+    return self->date;
 }
 
 lh_time_t
 lh_datetime_get_time(const lh_datetime_t *self)
 {
-    lh_time_t time;
-    lh_datetime_unpack(self, lh_null, lh_addr_of(time));
-    return time;
+    lh_assert_runtime_ref(self);
+    return self->time;
 }
 
 lh_bool_t

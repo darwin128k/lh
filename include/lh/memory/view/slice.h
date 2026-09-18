@@ -52,34 +52,7 @@ typedef struct lh_memory_view_slice
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* -- unpack / getters ------------------------------------------------------ */
-
-/**
- * @brief Read @c first / @c second from @p self into optional outputs.
- *
- * Pass ::lh_null for @p begin or @p end to skip that output.
- *
- * @param self  Slice to read.
- * @param begin Output for @c first, or ::lh_null.
- * @param end   Output for @c second, or ::lh_null.
- *
- * @throw ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_view_slice_unpack(const lh_memory_view_slice_t *self, const lh_ptr *begin,
-                            const lh_ptr *end);
-
-/**
- * @brief Unpack @p self into @p other (alias for ::lh_memory_view_slice_assign).
- * @param self  Source slice (not null).
- * @param other Destination slice (not null).
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_view_slice_unpack_to_other(const lh_memory_view_slice_t *self,
-                                     lh_memory_view_slice_t *other);
+/* -- getters --------------------------------------------------------------- */
 
 /**
  * @brief Return @c first without validating the slice range.
@@ -208,23 +181,6 @@ lh_bool_t
 lh_memory_view_slice_is_valid(const lh_memory_view_slice_t *self);
 
 /* -- validated access, size, containment ---------------------------------- */
-
-/**
- * @brief Like ::lh_memory_view_slice_unpack but requires a valid slice.
- *
- * @param self  Valid slice to read.
- * @param begin Output for @c first, or ::lh_null.
- * @param end   Output for @c second, or ::lh_null.
- *
- * @throw ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_view_slice_unpack_v(const lh_memory_view_slice_t *self, const lh_ptr *begin,
-                              const lh_ptr *end);
 
 /**
  * @brief Return @c first after validating @p self.

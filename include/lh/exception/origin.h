@@ -46,29 +46,38 @@ typedef struct lh_exception_origin
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── pack / unpack ───────────────────────────────────────────────────────── */
-
-/**
- * @brief Update fields on @p self from optional input pointers.
- *
- * @param self      Origin to modify (not null).
- * @param timestamp Input pointer for timestamp, or ::lh_null to keep current value.
- * @param file      Input pointer for file path, or ::lh_null to keep current value.
- * @param function  Input pointer for function name, or ::lh_null to keep current value.
- * @param line      Input pointer for line number, or ::lh_null to keep current value.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_exception_origin_pack(lh_exception_origin_t *self, const lh_str_ptr *timestamp,
-                         const lh_str_ptr *file, const lh_str_ptr *function,
-                         const lh_usize_t *line);
-
 /* ── set / init ──────────────────────────────────────────────────────────── */
 
 /**
+ * @brief Write only the timestamp.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_exception_origin_set_timestamp(lh_exception_origin_t *self, const lh_str_ptr timestamp);
+
+/**
+ * @brief Write only the file path.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_exception_origin_set_file(lh_exception_origin_t *self, const lh_str_ptr file);
+
+/**
+ * @brief Write only the function name.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_exception_origin_set_function(lh_exception_origin_t *self, const lh_str_ptr function);
+
+/**
+ * @brief Write only the line number.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_exception_origin_set_line(lh_exception_origin_t *self, lh_usize_t line);
+
+/**
  * @brief Write all fields of @p self.
- *
- * Equivalent to ::lh_exception_origin_pack with all fields provided.
  *
  * @param self      Origin to modify (not null).
  * @param timestamp Build timestamp (typically @c __TIMESTAMP__).
@@ -94,34 +103,6 @@ LH_ATTRIBUTE_SYMBOL
 void
 lh_exception_origin_init(lh_exception_origin_t *self, const lh_str_ptr timestamp,
                          const lh_str_ptr file, const lh_str_ptr function, lh_usize_t line);
-
-/* ── unpack ──────────────────────────────────────────────────────────────── */
-
-/**
- * @brief Read fields from @p self into optional output pointers.
- *
- * Pass ::lh_null for any pointer to skip that field.
- *
- * @param self      Origin to read from (not null).
- * @param timestamp Output for @c timestamp, or ::lh_null to skip.
- * @param file      Output for @c filename, or ::lh_null to skip.
- * @param function  Output for @c function, or ::lh_null to skip.
- * @param line      Output for @c line, or ::lh_null to skip.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_exception_origin_unpack(const lh_exception_origin_t *self, const lh_str_ptr *timestamp,
-                           const lh_str_ptr *file, const lh_str_ptr *function, lh_usize_t *line);
-
-/**
- * @brief Unpack @p self into @p other (alias for ::lh_exception_origin_assign).
- * @param self  Source origin (not null).
- * @param other Destination origin (not null).
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_exception_origin_unpack_to_other(const lh_exception_origin_t *self,
-                                    lh_exception_origin_t *other);
 
 /* ── getters ─────────────────────────────────────────────────────────────── */
 

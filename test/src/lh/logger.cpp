@@ -5,7 +5,6 @@
 
 #include <lh/logger.h>
 #include <lh/str/format/text.h>
-#include <lh/util/addr.h>
 
 namespace
 {
@@ -75,11 +74,10 @@ TEST(logger_log, null_slot_skips_even_when_flag_set)
 {
     MemorySink sink{};
     lh_logger_t logger{};
-    lh_logger_emit_cb debug_cb = nullptr;
 
-    lh_logger_init(&logger, lh_logger_level_flags_all, &MemorySinkEmit, &sink);
-    lh_logger_pack(&logger, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                   lh_addr_of(debug_cb), nullptr);
+    lh_logger_init_of(&logger, lh_logger_level_flags_all, &MemorySinkEmit, &MemorySinkEmit,
+                      &MemorySinkEmit, &MemorySinkEmit, &MemorySinkEmit, &MemorySinkEmit,
+                      &MemorySinkEmit, nullptr, &sink);
 
     EXPECT_EQ(lh_logger_debug(&logger, "nope"), 0);
     EXPECT_EQ(lh_logger_error(&logger, "ok"), 2);

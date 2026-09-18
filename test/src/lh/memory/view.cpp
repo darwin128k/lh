@@ -21,20 +21,6 @@ view(const lh_ptr begin, const lh_ptr end)
     return {begin, end};
 }
 
-TEST(memory_view_unpack, skips_null_output_pointers)
-{
-    const unsigned char buf[4] = {};
-    lh_memory_view_t v = view(p(buf), p(buf + 4));
-
-    const lh_ptr begin = lh_null;
-    lh_memory_view_unpack(&v, &begin, nullptr);
-    EXPECT_EQ(begin, p(buf));
-
-    const lh_ptr end = lh_null;
-    lh_memory_view_unpack(&v, nullptr, &end);
-    EXPECT_EQ(end, p(buf + 4));
-}
-
 TEST(memory_view_getters, return_stored_endpoints)
 {
     const unsigned char buf[4] = {};
@@ -92,12 +78,6 @@ TEST(memory_view_validated_access, returns_endpoints_and_size)
     const unsigned char buf[8] = {};
     lh_memory_view_t v = view(p(buf + 1), p(buf + 5));
 
-    const lh_ptr begin = lh_null;
-    const lh_ptr end = lh_null;
-    lh_memory_view_unpack_v(&v, &begin, &end);
-
-    EXPECT_EQ(begin, p(buf + 1));
-    EXPECT_EQ(end, p(buf + 5));
     EXPECT_EQ(lh_memory_view_get_begin_v(&v), p(buf + 1));
     EXPECT_EQ(lh_memory_view_get_end_v(&v), p(buf + 5));
     EXPECT_EQ(lh_memory_view_get_size(&v), 4u);
@@ -262,12 +242,11 @@ TEST(memory_view_make, returns_validated_values)
 
 #if LH_TEST_EXPECT_DEATH_ENABLED
 
-TEST(memory_view_unpack_v, rejects_uninitialized_death)
+TEST(memory_view_get_begin_v, rejects_uninitialized_death)
 {
     lh_memory_view_t v = view(lh_null, lh_null);
-    const lh_ptr begin = lh_null;
 
-    LH_EXPECT_DEATH(lh_memory_view_unpack_v(&v, &begin, nullptr));
+    LH_EXPECT_DEATH((void)lh_memory_view_get_begin_v(&v));
 }
 
 TEST(memory_view_make_v, rejects_invalid_range_death)

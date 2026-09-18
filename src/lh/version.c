@@ -1,102 +1,66 @@
 #include <lh/version.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
-#include <lh/null.h>
-#include <lh/optional/ref.h>
 #include <lh/str/format/text.h>
 #include <lh/str/parse/text.h>
 #include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 
 void
-lh_version_pack(lh_version_t *self, const lh_version_major_t *major,
-                const lh_version_minor_t *minor, const lh_version_patch_t *patch)
+lh_version_set_major(lh_version_t *self, lh_version_major_t major)
 {
     lh_assert_runtime_ref(self);
-
-    lh_optional_ref(major)
-    {
-        self->major = lh_ptr_deref(major);
-    }
-
-    lh_optional_ref(minor)
-    {
-        self->minor = lh_ptr_deref(minor);
-    }
-
-    lh_optional_ref(patch)
-    {
-        self->patch = lh_ptr_deref(patch);
-    }
+    self->major = major;
 }
 
 void
-lh_version_unpack(const lh_version_t *self, lh_version_major_t *major, lh_version_minor_t *minor,
-                  lh_version_patch_t *patch)
+lh_version_set_minor(lh_version_t *self, lh_version_minor_t minor)
 {
     lh_assert_runtime_ref(self);
-
-    lh_optional_ref(major)
-    {
-        lh_ptr_deref(major) = self->major;
-    }
-
-    lh_optional_ref(minor)
-    {
-        lh_ptr_deref(minor) = self->minor;
-    }
-
-    lh_optional_ref(patch)
-    {
-        lh_ptr_deref(patch) = self->patch;
-    }
+    self->minor = minor;
 }
 
 void
-lh_version_assign(lh_version_t *self, const lh_version_t *other)
+lh_version_set_patch(lh_version_t *self, lh_version_patch_t patch)
 {
-    lh_version_major_t major;
-    lh_version_minor_t minor;
-    lh_version_patch_t patch;
-    lh_version_unpack(other, lh_addr_of(major), lh_addr_of(minor), lh_addr_of(patch));
-    lh_version_set(self, major, minor, patch);
+    lh_assert_runtime_ref(self);
+    self->patch = patch;
 }
 
 void
 lh_version_set(lh_version_t *self, lh_version_major_t major, lh_version_minor_t minor,
                lh_version_patch_t patch)
 {
-    lh_version_pack(self, lh_addr_of(major), lh_addr_of(minor), lh_addr_of(patch));
+    lh_version_set_major(self, major);
+    lh_version_set_minor(self, minor);
+    lh_version_set_patch(self, patch);
 }
 
 void
-lh_version_unpack_to_other(const lh_version_t *self, lh_version_t *other)
+lh_version_assign(lh_version_t *self, const lh_version_t *other)
 {
-    lh_version_assign(other, self);
+    lh_version_set(self, lh_version_get_major(other), lh_version_get_minor(other),
+                   lh_version_get_patch(other));
 }
 
 lh_version_major_t
 lh_version_get_major(const lh_version_t *self)
 {
-    lh_version_major_t major;
-    lh_version_unpack(self, lh_addr_of(major), lh_null, lh_null);
-    return major;
+    lh_assert_runtime_ref(self);
+    return self->major;
 }
 
 lh_version_minor_t
 lh_version_get_minor(const lh_version_t *self)
 {
-    lh_version_minor_t minor;
-    lh_version_unpack(self, lh_null, lh_addr_of(minor), lh_null);
-    return minor;
+    lh_assert_runtime_ref(self);
+    return self->minor;
 }
 
 lh_version_patch_t
 lh_version_get_patch(const lh_version_t *self)
 {
-    lh_version_patch_t patch;
-    lh_version_unpack(self, lh_null, lh_null, lh_addr_of(patch));
-    return patch;
+    lh_assert_runtime_ref(self);
+    return self->patch;
 }
 
 lh_bool_t

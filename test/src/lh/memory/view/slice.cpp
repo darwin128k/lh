@@ -19,20 +19,15 @@ slice(const lh_ptr begin, const lh_ptr end)
     return {begin, end};
 }
 
-/* ── unpack ──────────────────────────────────────────────────────────────── */
+/* ── getters ─────────────────────────────────────────────────────────────── */
 
-TEST(memory_view_slice_unpack, returns_const_endpoints)
+TEST(memory_view_slice_getters, return_stored_endpoints)
 {
     const unsigned char buf[4] = {10, 20, 30, 40};
     lh_memory_view_slice_t s = slice(p(buf), p(buf + 3));
 
-    const lh_ptr begin = lh_null;
-    const lh_ptr end = lh_null;
-
-    lh_memory_view_slice_unpack(&s, &begin, &end);
-
-    EXPECT_EQ(begin, p(buf));
-    EXPECT_EQ(end, p(buf + 3));
+    EXPECT_EQ(lh_memory_view_slice_get_begin(&s), p(buf));
+    EXPECT_EQ(lh_memory_view_slice_get_end(&s), p(buf + 3));
 }
 
 /* ── flags / initialization ─────────────────────────────────────────────── */

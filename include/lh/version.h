@@ -3,8 +3,8 @@
  * @brief Version struct and associated API.
  *
  * Provides ::lh_version_t — a three-component semantic version (major, minor,
- * patch) — along with functions for packing, unpacking, individual field
- * access, comparison, SemVer compatibility, and `major.minor.patch` text.
+ * patch) — along with functions for field access, comparison, SemVer
+ * compatibility, and `major.minor.patch` text.
  */
 
 #ifndef LH_VERSION_H
@@ -83,53 +83,6 @@ struct lh_version
  */
 typedef struct lh_version lh_version_t;
 
-/* ── pack / unpack ───────────────────────────────────────────────────────── */
-
-/**
- * @brief Write individual components into a version struct.
- *
- * Each output pointer is optional: pass ::lh_null to skip that component.
- *
- * @param self  Version struct to modify.
- * @param major New major value, or ::lh_null to leave unchanged.
- * @param minor New minor value, or ::lh_null to leave unchanged.
- * @param patch New patch value, or ::lh_null to leave unchanged.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_version_pack(lh_version_t *self, const lh_version_major_t *major,
-                const lh_version_minor_t *minor, const lh_version_patch_t *patch);
-
-/**
- * @brief Read individual components out of a version struct.
- *
- * Each output pointer is optional: pass ::lh_null to skip that component.
- *
- * @param self  Version struct to read from.
- * @param major Output for major, or ::lh_null to skip.
- * @param minor Output for minor, or ::lh_null to skip.
- * @param patch Output for patch, or ::lh_null to skip.
- *
- * Example usage:
- * @code{.c}
- * lh_version_major_t major;
- * lh_version_unpack(&ver, &major, lh_null, lh_null);
- * @endcode
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_version_unpack(const lh_version_t *self, lh_version_major_t *major, lh_version_minor_t *minor,
-                  lh_version_patch_t *patch);
-
-/**
- * @brief Unpack @p self into @p other.
- * @param self  Source version (not null).
- * @param other Destination version (not null).
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_version_unpack_to_other(const lh_version_t *self, lh_version_t *other);
-
 /* ── set ─────────────────────────────────────────────────────────────────── */
 
 /**
@@ -144,8 +97,6 @@ lh_version_assign(lh_version_t *self, const lh_version_t *other);
 /**
  * @brief Replace @p self with @p major, @p minor, and @p patch.
  *
- * Equivalent to ::lh_version_pack with all three component pointers provided.
- *
  * @param self  Version struct to modify.
  * @param major New major component.
  * @param minor New minor component.
@@ -155,6 +106,27 @@ LH_ATTRIBUTE_SYMBOL
 void
 lh_version_set(lh_version_t *self, lh_version_major_t major, lh_version_minor_t minor,
                lh_version_patch_t patch);
+
+/**
+ * @brief Write only the major component.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_version_set_major(lh_version_t *self, lh_version_major_t major);
+
+/**
+ * @brief Write only the minor component.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_version_set_minor(lh_version_t *self, lh_version_minor_t minor);
+
+/**
+ * @brief Write only the patch component.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_version_set_patch(lh_version_t *self, lh_version_patch_t patch);
 
 /* ── getters ─────────────────────────────────────────────────────────────── */
 

@@ -9,9 +9,8 @@
  * name once — see `lh/util/bit/scan.h` for the same reasoning applied to
  * bit-scan.
  *
- * Named `pack`/`unpack` to match this project's own established shape for
- * "value <-> its serialized bytes" (::lh_net_ip4_pack, ::lh_io_reader_pack,
- * ...), not `to_be16`/`from_be16` or similar.
+ * Named `pack`/`unpack` for the wire-byte conversion itself
+ * (integer value <-> serialized bytes), not `to_be16`/`from_be16`.
  *
  * Every function here is ::LH_ATTRIBUTE_FORCE_INLINE: a two-or-four-shift
  * sequence like this is exactly the kind of tiny, hot operation a real

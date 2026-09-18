@@ -45,32 +45,6 @@ struct lh_datetime
 typedef struct lh_datetime lh_datetime_t;
 
 /**
- * @brief Write date and/or time into a datetime struct.
- *
- * Each pointer is optional: pass ::lh_null to leave that field unchanged.
- *
- * @param self Date-time to modify (not null).
- * @param date New date, or ::lh_null to skip.
- * @param time New time, or ::lh_null to skip.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_datetime_pack(lh_datetime_t *self, const lh_date_t *date, const lh_time_t *time);
-
-/**
- * @brief Read date and/or time out of a datetime struct.
- *
- * Each pointer is optional: pass ::lh_null to skip that field.
- *
- * @param self Date-time to read (not null).
- * @param date Output for date, or ::lh_null to skip.
- * @param time Output for time, or ::lh_null to skip.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_datetime_unpack(const lh_datetime_t *self, lh_date_t *date, lh_time_t *time);
-
-/**
  * @brief Copy @p other into @p self.
  *
  * @param self  Destination (not null).
@@ -83,8 +57,6 @@ lh_datetime_assign(lh_datetime_t *self, const lh_datetime_t *other);
 /**
  * @brief Replace @p self with @p date and @p time.
  *
- * Equivalent to ::lh_datetime_pack with both pointers provided.
- *
  * @param self Date-time to modify (not null).
  * @param date Date (not null).
  * @param time Time (not null).
@@ -92,6 +64,26 @@ lh_datetime_assign(lh_datetime_t *self, const lh_datetime_t *other);
 LH_ATTRIBUTE_SYMBOL
 void
 lh_datetime_set(lh_datetime_t *self, const lh_date_t *date, const lh_time_t *time);
+
+/**
+ * @brief Write only the date field.
+ *
+ * @param self Date-time to modify (not null).
+ * @param date Date (not null).
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_datetime_set_date(lh_datetime_t *self, const lh_date_t *date);
+
+/**
+ * @brief Write only the time field.
+ *
+ * @param self Date-time to modify (not null).
+ * @param time Time (not null).
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_datetime_set_time(lh_datetime_t *self, const lh_time_t *time);
 
 /**
  * @brief Add @p other to @p self as a duration (date + time of day).

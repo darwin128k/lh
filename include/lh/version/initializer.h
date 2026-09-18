@@ -24,7 +24,7 @@
  * static lh_version_t ver = lh_version_initializer(1, 0, 0);
  * @endcode
  *
- * @see lh_version_pack
+ * @see lh_version_set
  */
 #define lh_version_initializer(major, minor, patch) lh_initializer(major, minor, patch)
 

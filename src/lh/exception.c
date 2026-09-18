@@ -50,31 +50,13 @@ lh_exception_init_by_error(lh_exception_t *self, const lh_error_t *error)
 }
 #endif
 
+void
+lh_exception_assign(lh_exception_t *self, const lh_exception_t *other)
+{
+    lh_error_assign(lh_exception_get_error(self), lh_exception_get_error_as_const(other));
 #ifndef NDEBUG
-void
-lh_exception_unpack(const lh_exception_t *self, lh_error_code_t *code, lh_error_desc_t *desc,
-                    lh_str_cptr *timestamp, lh_str_cptr *file, lh_str_cptr *function,
-                    lh_usize_t *line)
-{
-    lh_error_unpack(lh_exception_get_error_as_const(self), code, desc);
-    lh_exception_origin_unpack(lh_exception_get_origin_as_const(self), timestamp, file, function,
-                               line);
-}
-#else
-void
-lh_exception_unpack(const lh_exception_t *self, lh_error_code_t *code, lh_error_desc_t *desc)
-{
-    lh_error_unpack(lh_exception_get_error_as_const(self), code, desc);
-}
-#endif
-
-void
-lh_exception_unpack_to_other(const lh_exception_t *self, lh_exception_t *other)
-{
-    lh_error_unpack_to_other(lh_exception_get_error_as_const(self), lh_exception_get_error(other));
-#ifndef NDEBUG
-    lh_exception_origin_unpack_to_other(lh_exception_get_origin_as_const(self),
-                                        lh_exception_get_origin(other));
+    lh_exception_origin_assign(lh_exception_get_origin(self),
+                               lh_exception_get_origin_as_const(other));
 #endif
 }
 

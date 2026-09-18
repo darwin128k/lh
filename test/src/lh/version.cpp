@@ -17,85 +17,39 @@ TEST(version_set, roundtrip_via_getters)
     EXPECT_EQ(lh_version_get_patch(&ver), 9);
 }
 
-TEST(version_set, matches_pack_with_all_pointers)
-{
-    lh_version_t a{};
-    lh_version_t b{};
-    lh_version_major_t maj = 10;
-    lh_version_minor_t min = 20;
-    lh_version_patch_t pat = 30;
-    lh_version_set(&a, maj, min, pat);
-    lh_version_pack(&b, &maj, &min, &pat);
-    EXPECT_EQ(lh_version_get_major(&a), lh_version_get_major(&b));
-    EXPECT_EQ(lh_version_get_minor(&a), lh_version_get_minor(&b));
-    EXPECT_EQ(lh_version_get_patch(&a), lh_version_get_patch(&b));
-}
-
-TEST(version_pack, updates_only_major_when_others_null)
+TEST(version_set_major, keeps_minor_and_patch)
 {
     lh_version_t ver = lh_version_initializer(1, 2, 3);
-    lh_version_major_t new_major = 99;
-    lh_version_pack(&ver, &new_major, nullptr, nullptr);
+    lh_version_set_major(&ver, 99);
     EXPECT_EQ(lh_version_get_major(&ver), 99);
     EXPECT_EQ(lh_version_get_minor(&ver), 2);
     EXPECT_EQ(lh_version_get_patch(&ver), 3);
 }
 
-TEST(version_pack, updates_only_minor_when_others_null)
+TEST(version_set_minor, keeps_major_and_patch)
 {
     lh_version_t ver = lh_version_initializer(1, 2, 3);
-    lh_version_minor_t new_minor = 88;
-    lh_version_pack(&ver, nullptr, &new_minor, nullptr);
+    lh_version_set_minor(&ver, 88);
     EXPECT_EQ(lh_version_get_major(&ver), 1);
     EXPECT_EQ(lh_version_get_minor(&ver), 88);
     EXPECT_EQ(lh_version_get_patch(&ver), 3);
 }
 
-TEST(version_pack, updates_only_patch_when_others_null)
+TEST(version_set_patch, keeps_major_and_minor)
 {
     lh_version_t ver = lh_version_initializer(1, 2, 3);
-    lh_version_patch_t new_patch = 77;
-    lh_version_pack(&ver, nullptr, nullptr, &new_patch);
+    lh_version_set_patch(&ver, 77);
     EXPECT_EQ(lh_version_get_major(&ver), 1);
     EXPECT_EQ(lh_version_get_minor(&ver), 2);
     EXPECT_EQ(lh_version_get_patch(&ver), 77);
 }
 
-TEST(version_pack, no_op_when_all_component_pointers_null)
-{
-    lh_version_t ver = lh_version_initializer(4, 5, 6);
-    lh_version_pack(&ver, nullptr, nullptr, nullptr);
-    EXPECT_EQ(lh_version_get_major(&ver), 4);
-    EXPECT_EQ(lh_version_get_minor(&ver), 5);
-    EXPECT_EQ(lh_version_get_patch(&ver), 6);
-}
-
-TEST(version_unpack, skips_null_output_pointers)
-{
-    const lh_version_t ver = lh_version_initializer(7, 8, 9);
-    lh_version_major_t major = 0;
-    lh_version_unpack(&ver, &major, nullptr, nullptr);
-    EXPECT_EQ(major, 7);
-
-    lh_version_minor_t minor = 0;
-    lh_version_unpack(&ver, nullptr, &minor, nullptr);
-    EXPECT_EQ(minor, 8);
-
-    lh_version_patch_t patch = 0;
-    lh_version_unpack(&ver, nullptr, nullptr, &patch);
-    EXPECT_EQ(patch, 9);
-}
-
-TEST(version_unpack, writes_all_outputs_when_non_null)
+TEST(version_getters, return_stored_components)
 {
     const lh_version_t ver = lh_version_initializer(11, 12, 13);
-    lh_version_major_t major = 0;
-    lh_version_minor_t minor = 0;
-    lh_version_patch_t patch = 0;
-    lh_version_unpack(&ver, &major, &minor, &patch);
-    EXPECT_EQ(major, 11);
-    EXPECT_EQ(minor, 12);
-    EXPECT_EQ(patch, 13);
+    EXPECT_EQ(lh_version_get_major(&ver), 11);
+    EXPECT_EQ(lh_version_get_minor(&ver), 12);
+    EXPECT_EQ(lh_version_get_patch(&ver), 13);
 }
 
 TEST(version_is_at_least, greater_major)

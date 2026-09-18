@@ -36,43 +36,6 @@ typedef struct lh_memory_allocator
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Pack optional callback pointers into allocator fields.
- *
- * Only fields with non-null input pointers are updated.
- *
- * @param self Allocator object to modify.
- * @param alloc_cb Optional pointer to allocation callback value (or ::lh_null to skip).
- * @param dealloc_cb Optional pointer to deallocation callback value (or ::lh_null to skip).
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_allocator_pack(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb *alloc_cb,
-                         lh_memory_allocator_dealloc_cb *dealloc_cb);
-
-/**
- * @brief Unpack allocator callback fields into optional output pointers.
- *
- * @param self Allocator object to read from.
- * @param alloc_cb Optional output for allocation callback (or ::lh_null to skip).
- * @param dealloc_cb Optional output for deallocation callback (or ::lh_null to skip).
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_allocator_unpack(const lh_memory_allocator_t *self,
-                           lh_memory_allocator_alloc_cb *alloc_cb,
-                           lh_memory_allocator_dealloc_cb *dealloc_cb);
-
-/**
- * @brief Unpack @p self into @p other.
- * @param self  Source allocator (not null).
- * @param other Destination allocator (not null).
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_allocator_unpack_to_other(const lh_memory_allocator_t *self,
-                                    lh_memory_allocator_t *other);
-
-/**
  * @brief Copy the allocator state from @p other into @p self.
  * @param self  Destination allocator (not null).
  * @param other Source allocator (not null).
@@ -92,6 +55,21 @@ LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_allocator_set(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb,
                         lh_memory_allocator_dealloc_cb dealloc_cb);
+
+/**
+ * @brief Write only the allocation callback.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_allocator_set_alloc_cb(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb);
+
+/**
+ * @brief Write only the deallocation callback.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_allocator_set_dealloc_cb(lh_memory_allocator_t *self,
+                                   lh_memory_allocator_dealloc_cb dealloc_cb);
 
 /**
  * @brief Initialize allocator callbacks.
@@ -123,7 +101,7 @@ lh_memory_allocator_deinit(lh_memory_allocator_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_memory_allocator_alloc_cb
-lh_memory_allocator_get_alloc_cb(lh_memory_allocator_t *self);
+lh_memory_allocator_get_alloc_cb(const lh_memory_allocator_t *self);
 
 /**
  * @brief Get current deallocation callback from @p self.
@@ -132,7 +110,7 @@ lh_memory_allocator_get_alloc_cb(lh_memory_allocator_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_memory_allocator_dealloc_cb
-lh_memory_allocator_get_dealloc_cb(lh_memory_allocator_t *self);
+lh_memory_allocator_get_dealloc_cb(const lh_memory_allocator_t *self);
 
 /**
  * @brief Allocate a memory block using allocator callback.

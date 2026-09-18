@@ -17,7 +17,6 @@
  *
  * Example usage:
  * @code{.c}
- * lh_version_unpack(self, &major, lh_null, lh_null);
  * if (lh_null_eq(p)) { ... }
  * @endcode
  */

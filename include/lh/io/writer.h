@@ -29,31 +29,7 @@ typedef struct lh_io_writer
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── pack / unpack ───────────────────────────────────────────────────────── */
-
-/**
- * @brief Pack optional callback/context pointers into writer fields.
- *
- * Only fields with non-null input pointers are updated.
- *
- * @param self     Writer object to modify.
- * @param write_cb Optional pointer to the write callback value (or ::lh_null to skip).
- * @param context  Optional pointer to the context value (or ::lh_null to skip).
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_io_writer_pack(lh_io_writer_t *self, lh_io_writer_write_cb *write_cb, lh_ptr *context);
-
-/**
- * @brief Unpack writer fields into optional output pointers.
- *
- * @param self     Writer object to read from.
- * @param write_cb Optional output for the write callback (or ::lh_null to skip).
- * @param context  Optional output for the context (or ::lh_null to skip).
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_io_writer_unpack(const lh_io_writer_t *self, lh_io_writer_write_cb *write_cb, lh_ptr *context);
+/* ── set / init ──────────────────────────────────────────────────────────── */
 
 /**
  * @brief Copy the writer state from @p other into @p self.
@@ -74,6 +50,20 @@ lh_io_writer_assign(lh_io_writer_t *self, const lh_io_writer_t *other);
 LH_ATTRIBUTE_SYMBOL
 void
 lh_io_writer_set(lh_io_writer_t *self, lh_io_writer_write_cb write_cb, lh_ptr context);
+
+/**
+ * @brief Write only the write callback.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_io_writer_set_write_cb(lh_io_writer_t *self, lh_io_writer_write_cb write_cb);
+
+/**
+ * @brief Write only the context.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_io_writer_set_context(lh_io_writer_t *self, lh_ptr context);
 
 /**
  * @brief Initialize a writer's callback and context.

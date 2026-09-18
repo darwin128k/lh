@@ -34,49 +34,6 @@ typedef struct lh_runtime_error
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── pack / unpack ───────────────────────────────────────────────────────── */
-
-/**
- * @brief Update fields on @p self from optional input pointers.
- *
- * @param self Error object to modify.
- * @param code Input pointer for new error code, or ::lh_null to keep current value.
- * @param desc Input pointer for new description, or ::lh_null to keep current value.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_runtime_error_pack(lh_runtime_error_t *self, const lh_runtime_error_code_t *code,
-                      lh_runtime_error_desc_t *desc);
-
-/**
- * @brief Read fields from @p self into optional output pointers.
- *
- * Pass ::lh_null for any pointer to skip that field.
- *
- * @param self Error object to read from.
- * @param code Output for @c code, or ::lh_null to skip.
- * @param desc Output for @c desc, or ::lh_null to skip.
- *
- * Example usage:
- * @code{.c}
- * lh_runtime_error_code_t code;
- * lh_runtime_error_unpack(&err, &code, lh_null);
- * @endcode
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_runtime_error_unpack(const lh_runtime_error_t *self, lh_runtime_error_code_t *code,
-                        lh_runtime_error_desc_t *desc);
-
-/**
- * @brief Unpack @p self into @p other (alias for ::lh_runtime_error_assign).
- * @param self  Source error (not null).
- * @param other Destination error (not null).
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_runtime_error_unpack_to_other(const lh_runtime_error_t *self, lh_runtime_error_t *other);
-
 /* ── set ─────────────────────────────────────────────────────────────────── */
 
 /**

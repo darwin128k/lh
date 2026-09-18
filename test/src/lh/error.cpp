@@ -22,54 +22,6 @@ TEST(error_set, roundtrip_code_and_desc)
     EXPECT_STREQ(desc_cstr(lh_error_get_desc(&err)), "msg");
 }
 
-TEST(error_pack, updates_only_code_when_desc_pointer_null)
-{
-    lh_error_t err = lh_error_initializer(1, lh_str_view_lit("keep"));
-    const lh_error_code_t new_code = 99;
-    lh_error_pack(&err, &new_code, nullptr);
-    EXPECT_EQ(lh_error_get_code(&err), 99);
-    EXPECT_STREQ(desc_cstr(lh_error_get_desc(&err)), "keep");
-}
-
-TEST(error_pack, updates_only_desc_when_code_pointer_null)
-{
-    lh_error_t err = lh_error_initializer(7, lh_str_view_lit("old"));
-    lh_error_desc_t new_desc = lh_str_view_lit("new");
-    lh_error_pack(&err, nullptr, &new_desc);
-    EXPECT_EQ(lh_error_get_code(&err), 7);
-    EXPECT_STREQ(desc_cstr(lh_error_get_desc(&err)), "new");
-}
-
-TEST(error_pack, no_op_when_both_input_pointers_null)
-{
-    lh_error_t err = lh_error_initializer(1, lh_str_view_lit("unchanged"));
-    lh_error_pack(&err, nullptr, nullptr);
-    EXPECT_EQ(lh_error_get_code(&err), 1);
-    EXPECT_STREQ(desc_cstr(lh_error_get_desc(&err)), "unchanged");
-}
-
-TEST(error_unpack, skips_null_output_pointers)
-{
-    const lh_error_t err = lh_error_initializer(3, lh_str_view_lit("x"));
-    lh_error_code_t code = 0;
-    lh_error_unpack(&err, &code, nullptr);
-    EXPECT_EQ(code, 3);
-
-    lh_error_desc_t desc = lh_str_view_make(nullptr);
-    lh_error_unpack(&err, nullptr, &desc);
-    EXPECT_STREQ(desc_cstr(desc), "x");
-}
-
-TEST(error_unpack, writes_both_outputs_when_non_null)
-{
-    const lh_error_t err = lh_error_initializer(9, lh_str_view_lit("both"));
-    lh_error_code_t code = 0;
-    lh_error_desc_t desc = lh_str_view_make(nullptr);
-    lh_error_unpack(&err, &code, &desc);
-    EXPECT_EQ(code, 9);
-    EXPECT_STREQ(desc_cstr(desc), "both");
-}
-
 TEST(error_set, null_desc_roundtrip)
 {
     lh_error_t err{};
@@ -331,19 +283,6 @@ TEST(error_has_diff_code, returns_false_for_same_code)
 }
 
 #if LH_TEST_EXPECT_DEATH_ENABLED
-
-TEST(error_death, pack_null_self)
-{
-    lh_error_code_t c = 1;
-    lh_error_desc_t d = lh_str_view_make(nullptr);
-    LH_EXPECT_DEATH(lh_error_pack(nullptr, &c, &d));
-}
-
-TEST(error_death, unpack_null_self)
-{
-    lh_error_code_t c = 0;
-    LH_EXPECT_DEATH(lh_error_unpack(nullptr, &c, nullptr));
-}
 
 TEST(error_death, assign_null_self)
 {

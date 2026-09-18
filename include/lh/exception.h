@@ -114,40 +114,16 @@ void
 lh_exception_init_by_error(lh_exception_t *self, const lh_error_t *error);
 #endif
 
-/* ── unpack ──────────────────────────────────────────────────────────────── */
+/* ── copy ────────────────────────────────────────────────────────────────── */
 
 /**
- * @brief Read fields from @p self into optional output pointers.
- *
- * Pass ::lh_null for any pointer to skip that field.
- *
- * @param self      Exception to read from (not null).
- * @param code      Output for error code, or ::lh_null to skip.
- * @param desc      Output for error description, or ::lh_null to skip.
- * @param timestamp Output for origin timestamp, or ::lh_null to skip (debug builds only).
- * @param file      Output for origin file path, or ::lh_null to skip (debug builds only).
- * @param function  Output for origin function name, or ::lh_null to skip (debug builds only).
- * @param line      Output for origin line number, or ::lh_null to skip (debug builds only).
- */
-LH_ATTRIBUTE_SYMBOL
-#ifndef NDEBUG
-void
-lh_exception_unpack(const lh_exception_t *self, lh_error_code_t *code, lh_error_desc_t *desc,
-                    lh_str_cptr *timestamp, lh_str_cptr *file, lh_str_cptr *function,
-                    lh_usize_t *line);
-#else
-void
-lh_exception_unpack(const lh_exception_t *self, lh_error_code_t *code, lh_error_desc_t *desc);
-#endif
-
-/**
- * @brief Unpack @p self into @p other (alias for exception assign).
- * @param self  Source exception (not null).
- * @param other Destination exception (not null).
+ * @brief Copy the exception state from @p other into @p self.
+ * @param self  Destination exception (not null).
+ * @param other Source exception (not null).
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_exception_unpack_to_other(const lh_exception_t *self, lh_exception_t *other);
+lh_exception_assign(lh_exception_t *self, const lh_exception_t *other);
 
 /**
  * @brief Mutable pointer to the embedded ::lh_error_t inside @p self.

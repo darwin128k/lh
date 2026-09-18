@@ -1,73 +1,41 @@
 #include <lh/werror.h>
 #include <lh/assert.h>
-#include <lh/optional/ref.h>
 #include <lh/util/addr.h>
 #include <lh/werror/initializer.h>
 
 void
-lh_werror_pack(lh_werror_t *self, const lh_error_code_t *code, lh_werror_desc_t *desc)
-{
-    lh_assert_runtime_ref(self);
-
-    lh_optional_ref(code)
-    {
-        self->code = lh_ptr_deref(code);
-    }
-
-    lh_optional_ref(desc)
-    {
-        self->desc = lh_ptr_deref(desc);
-    }
-}
-
-void
-lh_werror_unpack(const lh_werror_t *self, lh_error_code_t *code, lh_werror_desc_t *desc)
-{
-    lh_assert_runtime_ref(self);
-
-    lh_optional_ref(code)
-    {
-        lh_ptr_deref(code) = self->code;
-    }
-
-    lh_optional_ref(desc)
-    {
-        lh_ptr_deref(desc) = self->desc;
-    }
-}
-
-void
 lh_werror_set(lh_werror_t *self, lh_error_code_t code, lh_werror_desc_t desc)
 {
-    lh_werror_pack(self, lh_addr_of(code), lh_addr_of(desc));
+    lh_werror_set_code(self, code);
+    lh_werror_set_desc(self, desc);
 }
 
 void
 lh_werror_set_code(lh_werror_t *self, lh_error_code_t code)
 {
-    lh_werror_pack(self, lh_addr_of(code), lh_null);
+    lh_assert_runtime_ref(self);
+    self->code = code;
 }
 
 void
 lh_werror_set_desc(lh_werror_t *self, lh_werror_desc_t desc)
 {
-    lh_werror_pack(self, lh_null, lh_addr_of(desc));
+    lh_assert_runtime_ref(self);
+    self->desc = desc;
 }
 
 lh_error_code_t
 lh_werror_get_code(const lh_werror_t *self)
 {
-    lh_error_code_t code;
-    lh_werror_unpack(self, lh_addr_of(code), lh_null);
-    return code;
+    lh_assert_runtime_ref(self);
+    return self->code;
 }
 
 lh_werror_desc_t
 lh_werror_get_desc(const lh_werror_t *self)
 {
-    lh_werror_desc_t desc;
-    lh_werror_unpack(self, lh_null, lh_addr_of(desc));
-    return desc;
+    lh_assert_runtime_ref(self);
+    return self->desc;
 }
 
 lh_werror_desc_t
@@ -81,19 +49,9 @@ lh_werror_get_desc_or(const lh_werror_t *self, lh_werror_desc_t fallback)
 }
 
 void
-lh_werror_unpack_to_other(const lh_werror_t *self, lh_werror_t *other)
-{
-    lh_werror_assign(other, self);
-}
-
-void
 lh_werror_assign(lh_werror_t *self, const lh_werror_t *other)
 {
-    lh_error_code_t code;
-    lh_werror_desc_t desc;
-
-    lh_werror_unpack(other, lh_addr_of(code), lh_addr_of(desc));
-    lh_werror_set(self, code, desc);
+    lh_werror_set(self, lh_werror_get_code(other), lh_werror_get_desc(other));
 }
 
 void

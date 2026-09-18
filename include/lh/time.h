@@ -48,36 +48,6 @@ struct lh_time
 typedef struct lh_time lh_time_t;
 
 /**
- * @brief Write individual components into a time struct.
- *
- * Each pointer is optional: pass ::lh_null to leave that field unchanged.
- *
- * @param self   Time to modify (not null).
- * @param hour   New hour, or ::lh_null to skip.
- * @param minute New minute, or ::lh_null to skip.
- * @param second New second, or ::lh_null to skip.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_time_pack(lh_time_t *self, const lh_time_hour_t *hour, const lh_time_minute_t *minute,
-             const lh_time_second_t *second);
-
-/**
- * @brief Read individual components out of a time struct.
- *
- * Each pointer is optional: pass ::lh_null to skip that field.
- *
- * @param self   Time to read (not null).
- * @param hour   Output for hour, or ::lh_null to skip.
- * @param minute Output for minute, or ::lh_null to skip.
- * @param second Output for second, or ::lh_null to skip.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_time_unpack(const lh_time_t *self, lh_time_hour_t *hour, lh_time_minute_t *minute,
-               lh_time_second_t *second);
-
-/**
  * @brief Copy @p other into @p self.
  *
  * @param self  Destination (not null).
@@ -90,8 +60,6 @@ lh_time_assign(lh_time_t *self, const lh_time_t *other);
 /**
  * @brief Replace @p self with @p hour, @p minute, and @p second.
  *
- * Equivalent to ::lh_time_pack with all three pointers provided.
- *
  * @param self   Time to modify (not null).
  * @param hour   Hour (`0`–::LH_TIME_HOUR_MAX).
  * @param minute Minute (`0`–::LH_TIME_MINUTE_MAX).
@@ -100,6 +68,36 @@ lh_time_assign(lh_time_t *self, const lh_time_t *other);
 LH_ATTRIBUTE_SYMBOL
 void
 lh_time_set(lh_time_t *self, lh_time_hour_t hour, lh_time_minute_t minute, lh_time_second_t second);
+
+/**
+ * @brief Write only the hour field.
+ *
+ * @param self Time to modify (not null).
+ * @param hour New hour.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_time_set_hour(lh_time_t *self, lh_time_hour_t hour);
+
+/**
+ * @brief Write only the minute field.
+ *
+ * @param self   Time to modify (not null).
+ * @param minute New minute.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_time_set_minute(lh_time_t *self, lh_time_minute_t minute);
+
+/**
+ * @brief Write only the second field.
+ *
+ * @param self   Time to modify (not null).
+ * @param second New second.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_time_set_second(lh_time_t *self, lh_time_second_t second);
 
 /**
  * @brief Add @p value hours. Delegates to ::lh_time_hour_add.

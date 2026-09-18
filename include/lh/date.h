@@ -48,36 +48,6 @@ struct lh_date
 typedef struct lh_date lh_date_t;
 
 /**
- * @brief Write individual components into a date struct.
- *
- * Each pointer is optional: pass ::lh_null to leave that field unchanged.
- *
- * @param self  Date to modify (not null).
- * @param year  New year, or ::lh_null to skip.
- * @param month New month, or ::lh_null to skip.
- * @param day   New day, or ::lh_null to skip.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_date_pack(lh_date_t *self, const lh_date_year_t *year, const lh_date_month_t *month,
-             const lh_date_day_t *day);
-
-/**
- * @brief Read individual components out of a date struct.
- *
- * Each pointer is optional: pass ::lh_null to skip that field.
- *
- * @param self  Date to read (not null).
- * @param year  Output for year, or ::lh_null to skip.
- * @param month Output for month, or ::lh_null to skip.
- * @param day   Output for day, or ::lh_null to skip.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_date_unpack(const lh_date_t *self, lh_date_year_t *year, lh_date_month_t *month,
-               lh_date_day_t *day);
-
-/**
  * @brief Copy @p other into @p self.
  *
  * @param self  Destination (not null).
@@ -90,8 +60,6 @@ lh_date_assign(lh_date_t *self, const lh_date_t *other);
 /**
  * @brief Replace @p self with @p year, @p month, and @p day.
  *
- * Equivalent to ::lh_date_pack with all three pointers provided.
- *
  * @param self  Date to modify (not null).
  * @param year  Year (`0`–::LH_DATE_YEAR_MAX).
  * @param month Month (::LH_DATE_MONTH_MIN–::LH_DATE_MONTH_MAX).
@@ -102,7 +70,27 @@ void
 lh_date_set(lh_date_t *self, lh_date_year_t year, lh_date_month_t month, lh_date_day_t day);
 
 /**
- * @brief Write only the day field. Delegates to ::lh_date_pack.
+ * @brief Write only the year field.
+ *
+ * @param self Date to modify (not null).
+ * @param year New year.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_date_set_year(lh_date_t *self, lh_date_year_t year);
+
+/**
+ * @brief Write only the month field.
+ *
+ * @param self  Date to modify (not null).
+ * @param month New month.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_date_set_month(lh_date_t *self, lh_date_month_t month);
+
+/**
+ * @brief Write only the day field.
  *
  * @param self Date to modify (not null).
  * @param day  New day of month.

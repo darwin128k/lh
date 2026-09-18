@@ -54,48 +54,6 @@ TEST(runtime_error_set_desc, accepts_null_desc)
     EXPECT_EQ(desc_cstr(lh_runtime_error_get_desc(&err)), nullptr);
 }
 
-TEST(runtime_error_pack, updates_only_code_when_desc_pointer_null)
-{
-    lh_runtime_error_t err = lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_lit("keep"));
-    const lh_runtime_error_code_t new_code = lh_runtime_error_code_null_pointer;
-    lh_runtime_error_pack(&err, &new_code, nullptr);
-    EXPECT_EQ(lh_runtime_error_get_code(&err), lh_runtime_error_code_null_pointer);
-    EXPECT_STREQ(desc_cstr(lh_runtime_error_get_desc(&err)), "keep");
-}
-
-TEST(runtime_error_pack, updates_only_desc_when_code_pointer_null)
-{
-    lh_runtime_error_t err = lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_lit("old"));
-    lh_runtime_error_desc_t new_desc = lh_str_view_lit("new");
-    lh_runtime_error_pack(&err, nullptr, &new_desc);
-    EXPECT_EQ(lh_runtime_error_get_code(&err), lh_runtime_error_code_interrupt);
-    EXPECT_STREQ(desc_cstr(lh_runtime_error_get_desc(&err)), "new");
-}
-
-TEST(runtime_error_unpack, writes_both_outputs_when_non_null)
-{
-    const lh_runtime_error_t err =
-        lh_runtime_error_initializer(lh_runtime_error_code_invalid_range, lh_str_view_lit("msg"));
-    lh_runtime_error_code_t code = lh_runtime_error_code_ok;
-    lh_runtime_error_desc_t desc = lh_str_view_make(nullptr);
-    lh_runtime_error_unpack(&err, &code, &desc);
-    EXPECT_EQ(code, lh_runtime_error_code_invalid_range);
-    EXPECT_STREQ(desc_cstr(desc), "msg");
-}
-
-TEST(runtime_error_unpack, skips_null_output_pointers)
-{
-    const lh_runtime_error_t err =
-        lh_runtime_error_initializer(lh_runtime_error_code_out_of_range, lh_str_view_lit("x"));
-    lh_runtime_error_code_t code = lh_runtime_error_code_ok;
-    lh_runtime_error_unpack(&err, &code, nullptr);
-    EXPECT_EQ(code, lh_runtime_error_code_out_of_range);
-
-    lh_runtime_error_desc_t desc = lh_str_view_make(nullptr);
-    lh_runtime_error_unpack(&err, nullptr, &desc);
-    EXPECT_STREQ(desc_cstr(desc), "x");
-}
-
 TEST(runtime_error_get_desc_or, returns_desc_when_non_null)
 {
     const lh_runtime_error_t err =

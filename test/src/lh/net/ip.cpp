@@ -7,35 +7,6 @@
 namespace
 {
 
-TEST(net_ip4_pack, updates_only_provided_octets)
-{
-    lh_net_ip4_t addr = lh_net_ip4_make(1, 2, 3, 4);
-    lh_u8_t new_octet1 = 99;
-    lh_net_ip4_pack(&addr, nullptr, &new_octet1, nullptr, nullptr);
-    EXPECT_EQ(lh_net_ip4_get_octet(&addr, LH_NET_IP4_OCTET_INDEX_0), 1);
-    EXPECT_EQ(lh_net_ip4_get_octet(&addr, LH_NET_IP4_OCTET_INDEX_1), 99);
-    EXPECT_EQ(lh_net_ip4_get_octet(&addr, LH_NET_IP4_OCTET_INDEX_2), 3);
-    EXPECT_EQ(lh_net_ip4_get_octet(&addr, LH_NET_IP4_OCTET_INDEX_3), 4);
-}
-
-TEST(net_ip4_unpack, skips_null_outputs)
-{
-    lh_net_ip4_t addr = lh_net_ip4_make(10, 20, 30, 40);
-    lh_u8_t octet2 = 0;
-    lh_net_ip4_unpack(&addr, nullptr, nullptr, &octet2, nullptr);
-    EXPECT_EQ(octet2, 30);
-}
-
-TEST(net_ip4_unpack, matches_pack_with_all_pointers)
-{
-    lh_net_ip4_t a = lh_net_ip4_make(5, 6, 7, 8);
-    lh_net_ip4_t b{};
-    lh_u8_t o0, o1, o2, o3;
-    lh_net_ip4_unpack(&a, &o0, &o1, &o2, &o3);
-    lh_net_ip4_pack(&b, &o0, &o1, &o2, &o3);
-    EXPECT_TRUE(lh_net_ip4_equals(&a, &b));
-}
-
 TEST(net_ip4_make, roundtrip_via_get_octet)
 {
     lh_net_ip4_t addr = lh_net_ip4_make(192, 168, 0, 1);

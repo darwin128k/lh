@@ -20,20 +20,6 @@ slice(lh_ptr begin, lh_ptr end)
     return {begin, end};
 }
 
-TEST(memory_bounds_slice_unpack, skips_null_output_pointers)
-{
-    unsigned char buf[4];
-    lh_memory_bounds_slice_t s = slice(p(buf), p(buf + 3));
-
-    lh_ptr begin = lh_null;
-    lh_memory_bounds_slice_unpack(&s, &begin, nullptr);
-    EXPECT_EQ(begin, p(buf));
-
-    lh_ptr end = lh_null;
-    lh_memory_bounds_slice_unpack(&s, nullptr, &end);
-    EXPECT_EQ(end, p(buf + 3));
-}
-
 TEST(memory_bounds_slice_get_begin, returns_stored_begin)
 {
     unsigned char buf[4];
@@ -1020,19 +1006,17 @@ TEST(memory_bounds_slice_swap, self_swap_is_no_op)
 
 #if LH_TEST_EXPECT_DEATH_ENABLED
 
-TEST(memory_bounds_slice_unpack, null_self_death)
+TEST(memory_bounds_slice_get_begin, null_self_death)
 {
-    lh_ptr begin = lh_null;
-    LH_EXPECT_DEATH(lh_memory_bounds_slice_unpack(nullptr, &begin, nullptr));
+    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_get_begin(nullptr));
 }
 
-TEST(memory_bounds_slice_unpack_v, rejects_backward_range_death)
+TEST(memory_bounds_slice_get_begin_v, rejects_backward_range_death)
 {
     unsigned char buf[2];
     lh_memory_bounds_slice_t s = slice(p(buf + 1), p(buf));
-    lh_ptr begin = lh_null;
 
-    LH_EXPECT_DEATH(lh_memory_bounds_slice_unpack_v(&s, &begin, nullptr));
+    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_get_begin_v(&s));
 }
 
 TEST(memory_bounds_slice_get_size, rejects_uninitialized_range_death)

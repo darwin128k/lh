@@ -122,55 +122,7 @@ typedef struct lh_logger
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── pack / unpack ───────────────────────────────────────────────────────── */
-
-/**
- * @brief Pack optional field pointers into the logger.
- *
- * Only fields with non-null input pointers are updated.
- *
- * @param self         Logger to modify.
- * @param flags        Optional new filter mask.
- * @param emergency_cb Optional emergency slot.
- * @param alert_cb     Optional alert slot.
- * @param critical_cb  Optional critical slot.
- * @param error_cb     Optional error slot.
- * @param warning_cb   Optional warning slot.
- * @param notice_cb    Optional notice slot.
- * @param info_cb      Optional info slot.
- * @param debug_cb     Optional debug slot.
- * @param context      Optional userdata for every slot.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_logger_pack(lh_logger_t *self, const lh_logger_level_flags_t *flags,
-               lh_logger_emit_cb *emergency_cb, lh_logger_emit_cb *alert_cb,
-               lh_logger_emit_cb *critical_cb, lh_logger_emit_cb *error_cb,
-               lh_logger_emit_cb *warning_cb, lh_logger_emit_cb *notice_cb,
-               lh_logger_emit_cb *info_cb, lh_logger_emit_cb *debug_cb, lh_ptr *context);
-
-/**
- * @brief Unpack logger fields into optional output pointers.
- *
- * @param self         Logger to read from.
- * @param flags        Optional output for the filter mask.
- * @param emergency_cb Optional output for the emergency slot.
- * @param alert_cb     Optional output for the alert slot.
- * @param critical_cb  Optional output for the critical slot.
- * @param error_cb     Optional output for the error slot.
- * @param warning_cb   Optional output for the warning slot.
- * @param notice_cb    Optional output for the notice slot.
- * @param info_cb      Optional output for the info slot.
- * @param debug_cb     Optional output for the debug slot.
- * @param context      Optional output for userdata.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_logger_unpack(const lh_logger_t *self, lh_logger_level_flags_t *flags,
-                 lh_logger_emit_cb *emergency_cb, lh_logger_emit_cb *alert_cb,
-                 lh_logger_emit_cb *critical_cb, lh_logger_emit_cb *error_cb,
-                 lh_logger_emit_cb *warning_cb, lh_logger_emit_cb *notice_cb,
-                 lh_logger_emit_cb *info_cb, lh_logger_emit_cb *debug_cb, lh_ptr *context);
+/* ── set / init ──────────────────────────────────────────────────────────── */
 
 /**
  * @brief Copy logger state from @p other into @p self.
@@ -238,7 +190,7 @@ lh_logger_init_of(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_em
 /**
  * @brief Initialize a logger: @p emit_cb is stored in every level slot.
  *
- * Same callback on all eight fields is the usual case; use ::lh_logger_pack
+ * Same callback on all eight fields is the usual case; use ::lh_logger_init_of
  * afterwards to null (or replace) individual slots.
  *
  * @param self    Logger to initialize.

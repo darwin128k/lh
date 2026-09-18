@@ -1,18 +1,30 @@
 #include <lh/date.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
-#include <lh/null.h>
 #include <lh/numeric/types.h>
-#include <lh/optional/ref.h>
 #include <lh/str/format/text.h>
 #include <lh/str/parse/uint.h>
 #include <lh/util/addr.h>
-#include <lh/util/ptr.h>
+
+void
+lh_date_set_year(lh_date_t *self, lh_date_year_t year)
+{
+    lh_assert_runtime_ref(self);
+    self->year = year;
+}
+
+void
+lh_date_set_month(lh_date_t *self, lh_date_month_t month)
+{
+    lh_assert_runtime_ref(self);
+    self->month = month;
+}
 
 void
 lh_date_set_day(lh_date_t *self, lh_date_day_t day)
 {
-    lh_date_pack(self, lh_null, lh_null, lh_addr_of(day));
+    lh_assert_runtime_ref(self);
+    self->day = day;
 }
 
 void
@@ -81,60 +93,17 @@ lh_date_roll_to_prev_month(lh_date_t *self, lh_uint_t *value, lh_date_day_t day)
 }
 
 void
-lh_date_pack(lh_date_t *self, const lh_date_year_t *year, const lh_date_month_t *month,
-             const lh_date_day_t *day)
-{
-    lh_assert_runtime_ref(self);
-
-    lh_optional_ref(year)
-    {
-        self->year = lh_ptr_deref(year);
-    }
-    lh_optional_ref(month)
-    {
-        self->month = lh_ptr_deref(month);
-    }
-    lh_optional_ref(day)
-    {
-        self->day = lh_ptr_deref(day);
-    }
-}
-
-void
-lh_date_unpack(const lh_date_t *self, lh_date_year_t *year, lh_date_month_t *month,
-               lh_date_day_t *day)
-{
-    lh_assert_runtime_ref(self);
-
-    lh_optional_ref(year)
-    {
-        lh_ptr_deref(year) = self->year;
-    }
-    lh_optional_ref(month)
-    {
-        lh_ptr_deref(month) = self->month;
-    }
-    lh_optional_ref(day)
-    {
-        lh_ptr_deref(day) = self->day;
-    }
-}
-
-void
 lh_date_set(lh_date_t *self, lh_date_year_t year, lh_date_month_t month, lh_date_day_t day)
 {
-    lh_date_pack(self, lh_addr_of(year), lh_addr_of(month), lh_addr_of(day));
+    lh_date_set_year(self, year);
+    lh_date_set_month(self, month);
+    lh_date_set_day(self, day);
 }
 
 void
 lh_date_assign(lh_date_t *self, const lh_date_t *other)
 {
-    lh_date_year_t year;
-    lh_date_month_t month;
-    lh_date_day_t day;
-
-    lh_date_unpack(other, lh_addr_of(year), lh_addr_of(month), lh_addr_of(day));
-    lh_date_set(self, year, month, day);
+    lh_date_set(self, lh_date_get_year(other), lh_date_get_month(other), lh_date_get_day(other));
 }
 
 lh_date_day_t
@@ -163,7 +132,7 @@ lh_date_add_year(lh_date_t *self, lh_uint_t value)
     lh_date_year_t year = lh_date_get_year(self);
     lh_uint_t overflow = lh_date_year_add(lh_addr_of(year), value);
 
-    lh_date_pack(self, lh_addr_of(year), lh_null, lh_null);
+    lh_date_set_year(self, year);
     lh_date_clamp_day(self);
     return overflow;
 }
@@ -174,7 +143,7 @@ lh_date_sub_year(lh_date_t *self, lh_uint_t value)
     lh_date_year_t year = lh_date_get_year(self);
     lh_uint_t overflow = lh_date_year_sub(lh_addr_of(year), value);
 
-    lh_date_pack(self, lh_addr_of(year), lh_null, lh_null);
+    lh_date_set_year(self, year);
     lh_date_clamp_day(self);
     return overflow;
 }
@@ -185,7 +154,7 @@ lh_date_add_month(lh_date_t *self, lh_uint_t value)
     lh_date_month_t month = lh_date_get_month(self);
     lh_uint_t years = lh_date_month_add(lh_addr_of(month), value);
 
-    lh_date_pack(self, lh_null, lh_addr_of(month), lh_null);
+    lh_date_set_month(self, month);
     return lh_date_add_year(self, years);
 }
 
@@ -195,7 +164,7 @@ lh_date_sub_month(lh_date_t *self, lh_uint_t value)
     lh_date_month_t month = lh_date_get_month(self);
     lh_uint_t years = lh_date_month_sub(lh_addr_of(month), value);
 
-    lh_date_pack(self, lh_null, lh_addr_of(month), lh_null);
+    lh_date_set_month(self, month);
     return lh_date_sub_year(self, years);
 }
 
@@ -282,25 +251,22 @@ lh_date_sub(lh_date_t *self, const lh_date_t *other)
 lh_date_year_t
 lh_date_get_year(const lh_date_t *self)
 {
-    lh_date_year_t year;
-    lh_date_unpack(self, lh_addr_of(year), lh_null, lh_null);
-    return year;
+    lh_assert_runtime_ref(self);
+    return self->year;
 }
 
 lh_date_month_t
 lh_date_get_month(const lh_date_t *self)
 {
-    lh_date_month_t month;
-    lh_date_unpack(self, lh_null, lh_addr_of(month), lh_null);
-    return month;
+    lh_assert_runtime_ref(self);
+    return self->month;
 }
 
 lh_date_day_t
 lh_date_get_day(const lh_date_t *self)
 {
-    lh_date_day_t day;
-    lh_date_unpack(self, lh_null, lh_null, lh_addr_of(day));
-    return day;
+    lh_assert_runtime_ref(self);
+    return self->day;
 }
 
 lh_bool_t

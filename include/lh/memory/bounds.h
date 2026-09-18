@@ -44,32 +44,7 @@ typedef lh_memory_bounds_slice_t lh_memory_bounds_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* -- unpack / getters ------------------------------------------------------ */
-
-/**
- * @brief Read @c first / @c second from @p self into optional outputs.
- *
- * Pass ::lh_null for @p begin or @p end to skip that output.
- *
- * @param self  Bounds to read.
- * @param begin Output for @c first, or ::lh_null.
- * @param end   Output for @c second, or ::lh_null.
- *
- * @throw ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_bounds_unpack(const lh_memory_bounds_t *self, lh_ptr *begin, lh_ptr *end);
-
-/**
- * @brief Unpack @p self into @p other (alias for ::lh_memory_bounds_assign).
- * @param self  Source bounds (not null).
- * @param other Destination bounds (not null).
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_bounds_unpack_to_other(const lh_memory_bounds_t *self, lh_memory_bounds_t *other);
+/* -- getters --------------------------------------------------------------- */
 
 /**
  * @brief Return @c first without validating the bounds range.
@@ -198,22 +173,6 @@ lh_bool_t
 lh_memory_bounds_is_valid(const lh_memory_bounds_t *self);
 
 /* -- validated access, size, containment ---------------------------------- */
-
-/**
- * @brief Like ::lh_memory_bounds_unpack but requires valid bounds.
- *
- * @param self  Valid bounds to read.
- * @param begin Output for @c first, or ::lh_null.
- * @param end   Output for @c second, or ::lh_null.
- *
- * @throw ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_void
-lh_memory_bounds_unpack_v(const lh_memory_bounds_t *self, lh_ptr *begin, lh_ptr *end);
 
 /**
  * @brief Return @c first after validating @p self.

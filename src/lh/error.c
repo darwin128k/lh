@@ -1,73 +1,41 @@
 #include <lh/error.h>
 #include <lh/error/initializer.h>
-#include <lh/optional/ref.h>
 #include <lh/util/addr.h>
 #include <lh/assert.h>
 
 void
-lh_error_pack(lh_error_t *self, const lh_error_code_t *code, lh_error_desc_t *desc)
-{
-    lh_assert_runtime_ref(self);
-
-    lh_optional_ref(code)
-    {
-        self->code = lh_ptr_deref(code);
-    }
-
-    lh_optional_ref(desc)
-    {
-        self->desc = lh_ptr_deref(desc);
-    }
-}
-
-void
-lh_error_unpack(const lh_error_t *self, lh_error_code_t *code, lh_error_desc_t *desc)
-{
-    lh_assert_runtime_ref(self);
-
-    lh_optional_ref(code)
-    {
-        lh_ptr_deref(code) = self->code;
-    }
-
-    lh_optional_ref(desc)
-    {
-        lh_ptr_deref(desc) = self->desc;
-    }
-}
-
-void
 lh_error_set(lh_error_t *self, lh_error_code_t code, lh_error_desc_t desc)
 {
-    lh_error_pack(self, lh_addr_of(code), lh_addr_of(desc));
+    lh_error_set_code(self, code);
+    lh_error_set_desc(self, desc);
 }
 
 void
 lh_error_set_code(lh_error_t *self, lh_error_code_t code)
 {
-    lh_error_pack(self, lh_addr_of(code), lh_null);
+    lh_assert_runtime_ref(self);
+    self->code = code;
 }
 
 void
 lh_error_set_desc(lh_error_t *self, lh_error_desc_t desc)
 {
-    lh_error_pack(self, lh_null, lh_addr_of(desc));
+    lh_assert_runtime_ref(self);
+    self->desc = desc;
 }
 
 lh_error_code_t
 lh_error_get_code(const lh_error_t *self)
 {
-    lh_error_code_t code;
-    lh_error_unpack(self, lh_addr_of(code), lh_null);
-    return code;
+    lh_assert_runtime_ref(self);
+    return self->code;
 }
 
 lh_error_desc_t
 lh_error_get_desc(const lh_error_t *self)
 {
-    lh_error_desc_t desc;
-    lh_error_unpack(self, lh_null, lh_addr_of(desc));
-    return desc;
+    lh_assert_runtime_ref(self);
+    return self->desc;
 }
 
 lh_error_desc_t
@@ -81,19 +49,9 @@ lh_error_get_desc_or(const lh_error_t *self, lh_error_desc_t fallback)
 }
 
 void
-lh_error_unpack_to_other(const lh_error_t *self, lh_error_t *other)
-{
-    lh_error_assign(other, self);
-}
-
-void
 lh_error_assign(lh_error_t *self, const lh_error_t *other)
 {
-    lh_error_code_t code;
-    lh_error_desc_t desc;
-
-    lh_error_unpack(other, lh_addr_of(code), lh_addr_of(desc));
-    lh_error_set(self, code, desc);
+    lh_error_set(self, lh_error_get_code(other), lh_error_get_desc(other));
 }
 
 void

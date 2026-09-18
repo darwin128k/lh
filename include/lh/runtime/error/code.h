@@ -65,7 +65,7 @@
  * @brief Runtime error code for invalid range state.
  *
  * Used when range validation fails (for example in
- * ::lh_memory_bounds_unpack_v before diff/size calculations).
+ * ::lh_memory_bounds_get_begin_v before size calculations).
  */
 #define lh_runtime_error_code_invalid_range 0x06
 

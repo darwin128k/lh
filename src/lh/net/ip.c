@@ -3,58 +3,11 @@
 #include <lh/cast/static.h>
 #include <lh/memory.h>
 #include <lh/memory/std.h>
-#include <lh/null.h>
-#include <lh/optional/ref.h>
 #include <lh/runtime/error.h>
 #include <lh/str/format/uint.h>
 #include <lh/str/parse/uint.h>
 #include <lh/str/split/next.h>
 #include <lh/util/addr.h>
-#include <lh/util/ptr.h>
-
-void
-lh_net_ip4_pack(lh_net_ip4_t *self, const lh_u8_t *octet0, const lh_u8_t *octet1,
-                const lh_u8_t *octet2, const lh_u8_t *octet3)
-{
-    lh_optional_ref(octet0)
-    {
-        self->octets[LH_NET_IP4_OCTET_INDEX_0] = lh_ptr_deref(octet0);
-    }
-    lh_optional_ref(octet1)
-    {
-        self->octets[LH_NET_IP4_OCTET_INDEX_1] = lh_ptr_deref(octet1);
-    }
-    lh_optional_ref(octet2)
-    {
-        self->octets[LH_NET_IP4_OCTET_INDEX_2] = lh_ptr_deref(octet2);
-    }
-    lh_optional_ref(octet3)
-    {
-        self->octets[LH_NET_IP4_OCTET_INDEX_3] = lh_ptr_deref(octet3);
-    }
-}
-
-void
-lh_net_ip4_unpack(const lh_net_ip4_t *self, lh_u8_t *octet0, lh_u8_t *octet1, lh_u8_t *octet2,
-                  lh_u8_t *octet3)
-{
-    lh_optional_ref(octet0)
-    {
-        lh_ptr_deref(octet0) = self->octets[LH_NET_IP4_OCTET_INDEX_0];
-    }
-    lh_optional_ref(octet1)
-    {
-        lh_ptr_deref(octet1) = self->octets[LH_NET_IP4_OCTET_INDEX_1];
-    }
-    lh_optional_ref(octet2)
-    {
-        lh_ptr_deref(octet2) = self->octets[LH_NET_IP4_OCTET_INDEX_2];
-    }
-    lh_optional_ref(octet3)
-    {
-        lh_ptr_deref(octet3) = self->octets[LH_NET_IP4_OCTET_INDEX_3];
-    }
-}
 
 lh_net_ip4_t
 lh_net_ip4_make(lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet2, lh_u8_t octet3)
@@ -67,21 +20,19 @@ lh_net_ip4_make(lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet2, lh_u8_t octet3)
 void
 lh_net_ip4_set(lh_net_ip4_t *self, lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet2, lh_u8_t octet3)
 {
-    lh_net_ip4_pack(self, lh_addr_of(octet0), lh_addr_of(octet1), lh_addr_of(octet2),
-                    lh_addr_of(octet3));
+    lh_net_ip4_set_octet(self, LH_NET_IP4_OCTET_INDEX_0, octet0);
+    lh_net_ip4_set_octet(self, LH_NET_IP4_OCTET_INDEX_1, octet1);
+    lh_net_ip4_set_octet(self, LH_NET_IP4_OCTET_INDEX_2, octet2);
+    lh_net_ip4_set_octet(self, LH_NET_IP4_OCTET_INDEX_3, octet3);
 }
 
 void
 lh_net_ip4_assign(lh_net_ip4_t *self, const lh_net_ip4_t *other)
 {
-    lh_u8_t octet0;
-    lh_u8_t octet1;
-    lh_u8_t octet2;
-    lh_u8_t octet3;
-
-    lh_net_ip4_unpack(other, lh_addr_of(octet0), lh_addr_of(octet1), lh_addr_of(octet2),
-                      lh_addr_of(octet3));
-    lh_net_ip4_set(self, octet0, octet1, octet2, octet3);
+    lh_net_ip4_set(self, lh_net_ip4_get_octet(other, LH_NET_IP4_OCTET_INDEX_0),
+                   lh_net_ip4_get_octet(other, LH_NET_IP4_OCTET_INDEX_1),
+                   lh_net_ip4_get_octet(other, LH_NET_IP4_OCTET_INDEX_2),
+                   lh_net_ip4_get_octet(other, LH_NET_IP4_OCTET_INDEX_3));
 }
 
 lh_u8_t

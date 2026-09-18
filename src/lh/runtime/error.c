@@ -1,21 +1,6 @@
 #include <lh/runtime/error.h>
-#include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 #include <lh/error.h>
-
-void
-lh_runtime_error_pack(lh_runtime_error_t *self, const lh_runtime_error_code_t *code,
-                      lh_runtime_error_desc_t *desc)
-{
-    lh_error_pack(lh_ptr_cast(lh_error_t, self), code, desc);
-}
-
-void
-lh_runtime_error_unpack(const lh_runtime_error_t *self, lh_runtime_error_code_t *code,
-                        lh_runtime_error_desc_t *desc)
-{
-    lh_error_unpack(lh_ptr_ccast(lh_error_t, self), code, desc);
-}
 
 void
 lh_runtime_error_set(lh_runtime_error_t *self, lh_runtime_error_code_t code,
@@ -106,12 +91,6 @@ void
 lh_runtime_error_assign(lh_runtime_error_t *self, const lh_runtime_error_t *other)
 {
     lh_error_assign(lh_ptr_cast(lh_error_t, self), lh_ptr_ccast(lh_error_t, other));
-}
-
-void
-lh_runtime_error_unpack_to_other(const lh_runtime_error_t *self, lh_runtime_error_t *other)
-{
-    lh_runtime_error_assign(other, self);
 }
 
 void

@@ -21,20 +21,6 @@ bounds(lh_ptr begin, lh_ptr end)
     return {begin, end};
 }
 
-TEST(memory_bounds_unpack, skips_null_output_pointers)
-{
-    unsigned char buf[4];
-    lh_memory_bounds_t b = bounds(p(buf), p(buf + 4));
-
-    lh_ptr begin = lh_null;
-    lh_memory_bounds_unpack(&b, &begin, nullptr);
-    EXPECT_EQ(begin, p(buf));
-
-    lh_ptr end = lh_null;
-    lh_memory_bounds_unpack(&b, nullptr, &end);
-    EXPECT_EQ(end, p(buf + 4));
-}
-
 TEST(memory_bounds_getters, return_stored_endpoints)
 {
     unsigned char buf[4];
@@ -92,12 +78,6 @@ TEST(memory_bounds_validated_access, returns_endpoints_and_size)
     unsigned char buf[8];
     lh_memory_bounds_t b = bounds(p(buf + 1), p(buf + 5));
 
-    lh_ptr begin = lh_null;
-    lh_ptr end = lh_null;
-    lh_memory_bounds_unpack_v(&b, &begin, &end);
-
-    EXPECT_EQ(begin, p(buf + 1));
-    EXPECT_EQ(end, p(buf + 5));
     EXPECT_EQ(lh_memory_bounds_get_begin_v(&b), p(buf + 1));
     EXPECT_EQ(lh_memory_bounds_get_end_v(&b), p(buf + 5));
     EXPECT_EQ(lh_memory_bounds_get_size(&b), 4u);
@@ -343,12 +323,11 @@ TEST(memory_bounds_swap, swaps_and_clears)
 
 #if LH_TEST_EXPECT_DEATH_ENABLED
 
-TEST(memory_bounds_unpack_v, rejects_uninitialized_death)
+TEST(memory_bounds_get_begin_v, rejects_uninitialized_death)
 {
     lh_memory_bounds_t b = bounds(lh_null, lh_null);
-    lh_ptr begin = lh_null;
 
-    LH_EXPECT_DEATH(lh_memory_bounds_unpack_v(&b, &begin, nullptr));
+    LH_EXPECT_DEATH((void)lh_memory_bounds_get_begin_v(&b));
 }
 
 TEST(memory_bounds_make_v, rejects_invalid_range_death)

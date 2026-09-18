@@ -1,13 +1,10 @@
 /**
  * @file werror.h
- * @brief Wide error value type (::lh_werror_t) and pack/unpack API.
+ * @brief Wide error value type (::lh_werror_t) and field accessors.
  *
  * Same shape as ::lh_error_t: a numeric ::lh_error_code_t with an optional
  * ::lh_werror_desc_t description (a ::lh_wstr_view_t). The view does not own
  * text. Layout is compatible with ::lh_error_t (code + ::lh_memory_view_t).
- *
- * The pack/unpack API supports optional field pointers, so callers can
- * update/read code and description together or independently.
  *
  * @see lh_error_t
  * @see lh_wstr_view_t
@@ -34,51 +31,10 @@ typedef struct lh_werror
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── pack / unpack ───────────────────────────────────────────────────────── */
-
-/**
- * @brief Update fields on @p self from optional input pointers.
- *
- * @param self Wide error object to modify.
- * @param code Input pointer for new error code, or ::lh_null to keep current value.
- * @param desc Input pointer for a new description view, or ::lh_null to keep current value.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_werror_pack(lh_werror_t *self, const lh_error_code_t *code, lh_werror_desc_t *desc);
-
-/**
- * @brief Read fields from @p self into optional output pointers.
- *
- * Pass ::lh_null for any pointer to skip that field.
- *
- * @param self Wide error object to read from.
- * @param code Output for @c code, or ::lh_null to skip.
- * @param desc Output for @c desc (::lh_werror_desc_t *), or ::lh_null to skip.
- *
- * Example usage:
- * @code{.c}
- * lh_error_code_t code;
- * lh_werror_unpack(&err, &code, lh_null);
- * @endcode
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_werror_unpack(const lh_werror_t *self, lh_error_code_t *code, lh_werror_desc_t *desc);
-
-/**
- * @brief Unpack @p self into @p other (alias for ::lh_werror_assign).
- * @param self  Source error (not null).
- * @param other Destination error (not null).
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_werror_unpack_to_other(const lh_werror_t *self, lh_werror_t *other);
+/* ── set ─────────────────────────────────────────────────────────────────── */
 
 /**
  * @brief Replace @p self with @p code and @p desc.
- *
- * Equivalent to ::lh_werror_pack with both fields provided.
  *
  * @param self Wide error object to modify.
  * @param code New error code.
@@ -91,8 +47,6 @@ lh_werror_set(lh_werror_t *self, lh_error_code_t code, lh_werror_desc_t desc);
 /**
  * @brief Replace only the error code stored in @p self.
  *
- * Equivalent to ::lh_werror_pack with @p code provided and @c desc skipped.
- *
  * @param self Wide error object to modify.
  * @param code New error code.
  */
@@ -102,8 +56,6 @@ lh_werror_set_code(lh_werror_t *self, lh_error_code_t code);
 
 /**
  * @brief Replace only the description view stored in @p self.
- *
- * Equivalent to ::lh_werror_pack with @c code skipped and @p desc provided.
  *
  * @param self Wide error object to modify.
  * @param desc New description view (empty view = no description).
@@ -263,8 +215,6 @@ lh_werror_clear(lh_werror_t *self);
 
 /**
  * @brief Initialize @p self with @p code and @p desc.
- *
- * Equivalent to ::lh_werror_pack with both fields provided.
  *
  * @param self Wide error object to initialize.
  * @param code Initial error code.

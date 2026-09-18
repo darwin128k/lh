@@ -1,63 +1,36 @@
 #include <lh/memory/allocator.h>
 #include <lh/memory.h>
-#include <lh/optional/ref.h>
 #include <lh/util/return.h>
-#include <lh/util/addr.h>
 #include <lh/assert.h>
 
 lh_void
-lh_memory_allocator_pack(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb *alloc_cb,
-                         lh_memory_allocator_dealloc_cb *dealloc_cb)
+lh_memory_allocator_set_alloc_cb(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb)
 {
     lh_assert_runtime_ref(self);
-    lh_optional_ref(alloc_cb)
-    {
-        self->alloc_cb = lh_ptr_deref(alloc_cb);
-    }
-
-    lh_optional_ref(dealloc_cb)
-    {
-        self->dealloc_cb = lh_ptr_deref(dealloc_cb);
-    }
+    self->alloc_cb = alloc_cb;
 }
 
 lh_void
-lh_memory_allocator_unpack(const lh_memory_allocator_t *self,
-                           lh_memory_allocator_alloc_cb *alloc_cb,
-                           lh_memory_allocator_dealloc_cb *dealloc_cb)
+lh_memory_allocator_set_dealloc_cb(lh_memory_allocator_t *self,
+                                   lh_memory_allocator_dealloc_cb dealloc_cb)
 {
     lh_assert_runtime_ref(self);
-    lh_optional_ref(alloc_cb)
-    {
-        lh_ptr_deref(alloc_cb) = self->alloc_cb;
-    }
-
-    lh_optional_ref(dealloc_cb)
-    {
-        lh_ptr_deref(dealloc_cb) = self->dealloc_cb;
-    }
-}
-
-lh_void
-lh_memory_allocator_assign(lh_memory_allocator_t *self, const lh_memory_allocator_t *other)
-{
-    lh_memory_allocator_alloc_cb alloc_cb;
-    lh_memory_allocator_dealloc_cb dealloc_cb;
-    lh_memory_allocator_unpack(other, lh_addr_of(alloc_cb), lh_addr_of(dealloc_cb));
-    lh_memory_allocator_set(self, alloc_cb, dealloc_cb);
+    self->dealloc_cb = dealloc_cb;
 }
 
 lh_void
 lh_memory_allocator_set(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb,
                         lh_memory_allocator_dealloc_cb dealloc_cb)
 {
-    lh_memory_allocator_pack(self, lh_addr_of(alloc_cb), lh_addr_of(dealloc_cb));
+    lh_memory_allocator_set_alloc_cb(self, alloc_cb);
+    lh_memory_allocator_set_dealloc_cb(self, dealloc_cb);
 }
 
 lh_void
-lh_memory_allocator_unpack_to_other(const lh_memory_allocator_t *self, lh_memory_allocator_t *other)
+lh_memory_allocator_assign(lh_memory_allocator_t *self, const lh_memory_allocator_t *other)
 {
-    lh_memory_allocator_assign(other, self);
+    lh_memory_allocator_set(self, lh_memory_allocator_get_alloc_cb(other),
+                            lh_memory_allocator_get_dealloc_cb(other));
 }
 
 lh_void
@@ -74,19 +47,17 @@ lh_memory_allocator_deinit(lh_memory_allocator_t *self)
 }
 
 lh_memory_allocator_alloc_cb
-lh_memory_allocator_get_alloc_cb(lh_memory_allocator_t *self)
+lh_memory_allocator_get_alloc_cb(const lh_memory_allocator_t *self)
 {
-    lh_memory_allocator_alloc_cb alloc_cb;
-    lh_memory_allocator_unpack(self, lh_addr_of(alloc_cb), lh_null);
-    return alloc_cb;
+    lh_assert_runtime_ref(self);
+    return self->alloc_cb;
 }
 
 lh_memory_allocator_dealloc_cb
-lh_memory_allocator_get_dealloc_cb(lh_memory_allocator_t *self)
+lh_memory_allocator_get_dealloc_cb(const lh_memory_allocator_t *self)
 {
-    lh_memory_allocator_dealloc_cb dealloc_cb;
-    lh_memory_allocator_unpack(self, lh_null, lh_addr_of(dealloc_cb));
-    return dealloc_cb;
+    lh_assert_runtime_ref(self);
+    return self->dealloc_cb;
 }
 
 lh_ptr

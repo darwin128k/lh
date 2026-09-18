@@ -1,69 +1,44 @@
 #include <lh/time.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
-#include <lh/null.h>
 #include <lh/numeric/types.h>
-#include <lh/optional/ref.h>
 #include <lh/str/format/text.h>
 #include <lh/str/parse/uint.h>
 #include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 
 void
-lh_time_pack(lh_time_t *self, const lh_time_hour_t *hour, const lh_time_minute_t *minute,
-             const lh_time_second_t *second)
+lh_time_set_hour(lh_time_t *self, lh_time_hour_t hour)
 {
     lh_assert_runtime_ref(self);
-
-    lh_optional_ref(hour)
-    {
-        self->hour = lh_ptr_deref(hour);
-    }
-    lh_optional_ref(minute)
-    {
-        self->minute = lh_ptr_deref(minute);
-    }
-    lh_optional_ref(second)
-    {
-        self->second = lh_ptr_deref(second);
-    }
+    self->hour = hour;
 }
 
 void
-lh_time_unpack(const lh_time_t *self, lh_time_hour_t *hour, lh_time_minute_t *minute,
-               lh_time_second_t *second)
+lh_time_set_minute(lh_time_t *self, lh_time_minute_t minute)
 {
     lh_assert_runtime_ref(self);
+    self->minute = minute;
+}
 
-    lh_optional_ref(hour)
-    {
-        lh_ptr_deref(hour) = self->hour;
-    }
-    lh_optional_ref(minute)
-    {
-        lh_ptr_deref(minute) = self->minute;
-    }
-    lh_optional_ref(second)
-    {
-        lh_ptr_deref(second) = self->second;
-    }
+void
+lh_time_set_second(lh_time_t *self, lh_time_second_t second)
+{
+    lh_assert_runtime_ref(self);
+    self->second = second;
 }
 
 void
 lh_time_set(lh_time_t *self, lh_time_hour_t hour, lh_time_minute_t minute, lh_time_second_t second)
 {
-    lh_time_pack(self, lh_addr_of(hour), lh_addr_of(minute), lh_addr_of(second));
+    lh_time_set_hour(self, hour);
+    lh_time_set_minute(self, minute);
+    lh_time_set_second(self, second);
 }
 
 void
 lh_time_assign(lh_time_t *self, const lh_time_t *other)
 {
-    lh_time_hour_t hour;
-    lh_time_minute_t minute;
-    lh_time_second_t second;
-
-    lh_time_unpack(other, lh_addr_of(hour), lh_addr_of(minute), lh_addr_of(second));
-    lh_time_set(self, hour, minute, second);
+    lh_time_set(self, lh_time_get_hour(other), lh_time_get_minute(other), lh_time_get_second(other));
 }
 
 lh_uint_t
@@ -72,7 +47,7 @@ lh_time_add_hour(lh_time_t *self, lh_uint_t value)
     lh_time_hour_t hour = lh_time_get_hour(self);
     lh_uint_t overflow = lh_time_hour_add(lh_addr_of(hour), value);
 
-    lh_time_pack(self, lh_addr_of(hour), lh_null, lh_null);
+    lh_time_set_hour(self, hour);
     return overflow;
 }
 
@@ -82,7 +57,7 @@ lh_time_sub_hour(lh_time_t *self, lh_uint_t value)
     lh_time_hour_t hour = lh_time_get_hour(self);
     lh_uint_t overflow = lh_time_hour_sub(lh_addr_of(hour), value);
 
-    lh_time_pack(self, lh_addr_of(hour), lh_null, lh_null);
+    lh_time_set_hour(self, hour);
     return overflow;
 }
 
@@ -92,7 +67,7 @@ lh_time_add_minute(lh_time_t *self, lh_uint_t value)
     lh_time_minute_t minute = lh_time_get_minute(self);
     lh_uint_t hours = lh_time_minute_add(lh_addr_of(minute), value);
 
-    lh_time_pack(self, lh_null, lh_addr_of(minute), lh_null);
+    lh_time_set_minute(self, minute);
     return lh_time_add_hour(self, hours);
 }
 
@@ -102,7 +77,7 @@ lh_time_sub_minute(lh_time_t *self, lh_uint_t value)
     lh_time_minute_t minute = lh_time_get_minute(self);
     lh_uint_t hours = lh_time_minute_sub(lh_addr_of(minute), value);
 
-    lh_time_pack(self, lh_null, lh_addr_of(minute), lh_null);
+    lh_time_set_minute(self, minute);
     return lh_time_sub_hour(self, hours);
 }
 
@@ -112,7 +87,7 @@ lh_time_add_second(lh_time_t *self, lh_uint_t value)
     lh_time_second_t second = lh_time_get_second(self);
     lh_uint_t minutes = lh_time_second_add(lh_addr_of(second), value);
 
-    lh_time_pack(self, lh_null, lh_null, lh_addr_of(second));
+    lh_time_set_second(self, second);
     return lh_time_add_minute(self, minutes);
 }
 
@@ -122,7 +97,7 @@ lh_time_sub_second(lh_time_t *self, lh_uint_t value)
     lh_time_second_t second = lh_time_get_second(self);
     lh_uint_t minutes = lh_time_second_sub(lh_addr_of(second), value);
 
-    lh_time_pack(self, lh_null, lh_null, lh_addr_of(second));
+    lh_time_set_second(self, second);
     return lh_time_sub_minute(self, minutes);
 }
 
@@ -165,25 +140,22 @@ lh_time_sub(lh_time_t *self, const lh_time_t *other)
 lh_time_hour_t
 lh_time_get_hour(const lh_time_t *self)
 {
-    lh_time_hour_t hour;
-    lh_time_unpack(self, lh_addr_of(hour), lh_null, lh_null);
-    return hour;
+    lh_assert_runtime_ref(self);
+    return self->hour;
 }
 
 lh_time_minute_t
 lh_time_get_minute(const lh_time_t *self)
 {
-    lh_time_minute_t minute;
-    lh_time_unpack(self, lh_null, lh_addr_of(minute), lh_null);
-    return minute;
+    lh_assert_runtime_ref(self);
+    return self->minute;
 }
 
 lh_time_second_t
 lh_time_get_second(const lh_time_t *self)
 {
-    lh_time_second_t second;
-    lh_time_unpack(self, lh_null, lh_null, lh_addr_of(second));
-    return second;
+    lh_assert_runtime_ref(self);
+    return self->second;
 }
 
 lh_bool_t

@@ -78,40 +78,6 @@ typedef struct lh_net_ip4 lh_net_ip4_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── pack / unpack ───────────────────────────────────────────────────────── */
-
-/**
- * @brief Write individual octets into @p self.
- *
- * Each output pointer is optional: pass ::lh_null to leave that octet unchanged.
- *
- * @param self   Address to modify.
- * @param octet0 New first octet, or ::lh_null to leave unchanged.
- * @param octet1 New second octet, or ::lh_null to leave unchanged.
- * @param octet2 New third octet, or ::lh_null to leave unchanged.
- * @param octet3 New fourth octet, or ::lh_null to leave unchanged.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_net_ip4_pack(lh_net_ip4_t *self, const lh_u8_t *octet0, const lh_u8_t *octet1,
-                const lh_u8_t *octet2, const lh_u8_t *octet3);
-
-/**
- * @brief Read individual octets out of @p self.
- *
- * Each output pointer is optional: pass ::lh_null to skip that octet.
- *
- * @param self   Address to read from.
- * @param octet0 Output for the first octet, or ::lh_null to skip.
- * @param octet1 Output for the second octet, or ::lh_null to skip.
- * @param octet2 Output for the third octet, or ::lh_null to skip.
- * @param octet3 Output for the fourth octet, or ::lh_null to skip.
- */
-LH_ATTRIBUTE_SYMBOL
-void
-lh_net_ip4_unpack(const lh_net_ip4_t *self, lh_u8_t *octet0, lh_u8_t *octet1, lh_u8_t *octet2,
-                  lh_u8_t *octet3);
-
 /* ── construct / set ─────────────────────────────────────────────────────── */
 
 /**
