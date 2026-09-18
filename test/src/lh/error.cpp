@@ -25,7 +25,7 @@ TEST(error_set, roundtrip_code_and_desc)
 TEST(error_set, null_desc_roundtrip)
 {
     lh_error_t err{};
-    lh_error_set(&err, 3, lh_str_view_make(nullptr));
+    lh_error_set(&err, 3, lh_str_view_empty());
     EXPECT_EQ(lh_error_get_code(&err), 3);
     EXPECT_EQ(desc_cstr(lh_error_get_desc(&err)), nullptr);
 }
@@ -54,7 +54,7 @@ TEST(error_set_desc, accepts_null_desc)
 {
     lh_error_t err = lh_error_initializer(1, lh_str_view_lit("old"));
 
-    lh_error_set_desc(&err, lh_str_view_make(nullptr));
+    lh_error_set_desc(&err, lh_str_view_empty());
 
     EXPECT_EQ(lh_error_get_code(&err), 1);
     EXPECT_EQ(desc_cstr(lh_error_get_desc(&err)), nullptr);
@@ -63,7 +63,7 @@ TEST(error_set_desc, accepts_null_desc)
 TEST(error_assign, copies_from_other)
 {
     const lh_error_t src = lh_error_initializer(11, lh_str_view_lit("src"));
-    lh_error_t dst = lh_error_initializer(0, lh_str_view_make(nullptr));
+    lh_error_t dst = lh_error_initializer(0, lh_str_view_empty());
     lh_error_assign(&dst, &src);
     EXPECT_EQ(lh_error_get_code(&dst), 11);
     EXPECT_STREQ(desc_cstr(lh_error_get_desc(&dst)), "src");
@@ -139,42 +139,42 @@ TEST(error_get_desc_or, returns_desc_when_non_null)
 
 TEST(error_get_desc_or, returns_fallback_when_desc_is_null)
 {
-    const lh_error_t err = lh_error_initializer(1, lh_str_view_make(nullptr));
+    const lh_error_t err = lh_error_initializer(1, lh_str_view_empty());
 
     EXPECT_STREQ(desc_cstr(lh_error_get_desc_or(&err, lh_str_view_lit("fallback"))), "fallback");
 }
 
 TEST(error_get_desc_or, accepts_null_fallback)
 {
-    const lh_error_t err = lh_error_initializer(1, lh_str_view_make(nullptr));
+    const lh_error_t err = lh_error_initializer(1, lh_str_view_empty());
 
-    EXPECT_EQ(desc_cstr(lh_error_get_desc_or(&err, lh_str_view_make(nullptr))), nullptr);
+    EXPECT_EQ(desc_cstr(lh_error_get_desc_or(&err, lh_str_view_empty())), nullptr);
 }
 
 TEST(error_is_ok, returns_true_for_ok_code)
 {
-    const lh_error_t err = lh_error_initializer(lh_error_code_ok, lh_str_view_make(nullptr));
+    const lh_error_t err = lh_error_initializer(lh_error_code_ok, lh_str_view_empty());
 
     EXPECT_TRUE(lh_error_is_ok(&err));
 }
 
 TEST(error_is_ok, returns_false_for_non_ok_code)
 {
-    const lh_error_t err = lh_error_initializer(1, lh_str_view_make(nullptr));
+    const lh_error_t err = lh_error_initializer(1, lh_str_view_empty());
 
     EXPECT_FALSE(lh_error_is_ok(&err));
 }
 
 TEST(error_is_failure, returns_true_for_non_ok_code)
 {
-    const lh_error_t err = lh_error_initializer(1, lh_str_view_make(nullptr));
+    const lh_error_t err = lh_error_initializer(1, lh_str_view_empty());
 
     EXPECT_TRUE(lh_error_is_failure(&err));
 }
 
 TEST(error_is_failure, returns_false_for_ok_code)
 {
-    const lh_error_t err = lh_error_initializer(lh_error_code_ok, lh_str_view_make(nullptr));
+    const lh_error_t err = lh_error_initializer(lh_error_code_ok, lh_str_view_empty());
 
     EXPECT_FALSE(lh_error_is_failure(&err));
 }
@@ -188,7 +188,7 @@ TEST(error_has_desc, returns_true_for_non_null_desc)
 
 TEST(error_has_desc, returns_false_for_null_desc)
 {
-    const lh_error_t err = lh_error_initializer(1, lh_str_view_make(nullptr));
+    const lh_error_t err = lh_error_initializer(1, lh_str_view_empty());
 
     EXPECT_FALSE(lh_error_has_desc(&err));
 }
@@ -202,7 +202,7 @@ TEST(error_is_empty, returns_true_for_ok_code_without_desc)
 
 TEST(error_is_empty, returns_false_for_non_ok_code)
 {
-    const lh_error_t err = lh_error_initializer(1, lh_str_view_make(nullptr));
+    const lh_error_t err = lh_error_initializer(1, lh_str_view_empty());
 
     EXPECT_FALSE(lh_error_is_empty(&err));
 }
@@ -244,8 +244,8 @@ TEST(error_equals, returns_false_for_different_desc_pointer)
 {
     const char lhs_desc[] = "same";
     const char rhs_desc[] = "same";
-    const lh_error_t lhs = lh_error_initializer(21, lh_str_view_make(lhs_desc));
-    const lh_error_t rhs = lh_error_initializer(21, lh_str_view_make(rhs_desc));
+    const lh_error_t lhs = lh_error_initializer(21, lh_str_view_lit(lhs_desc));
+    const lh_error_t rhs = lh_error_initializer(21, lh_str_view_lit(rhs_desc));
 
     EXPECT_FALSE(lh_error_equals(&lhs, &rhs));
 }
@@ -298,7 +298,7 @@ TEST(error_death, assign_null_other)
 
 TEST(error_death, init_null_self)
 {
-    LH_EXPECT_DEATH(lh_error_init(nullptr, 1, lh_str_view_make(nullptr)));
+    LH_EXPECT_DEATH(lh_error_init(nullptr, 1, lh_str_view_empty()));
 }
 
 TEST(error_death, init_by_other_null_self)
@@ -314,7 +314,7 @@ TEST(error_death, init_by_empty_null_self)
 
 TEST(error_death, set_null_self)
 {
-    LH_EXPECT_DEATH(lh_error_set(nullptr, 0, lh_str_view_make(nullptr)));
+    LH_EXPECT_DEATH(lh_error_set(nullptr, 0, lh_str_view_empty()));
 }
 
 TEST(error_death, set_code_null_self)
@@ -324,7 +324,7 @@ TEST(error_death, set_code_null_self)
 
 TEST(error_death, set_desc_null_self)
 {
-    LH_EXPECT_DEATH(lh_error_set_desc(nullptr, lh_str_view_make(nullptr)));
+    LH_EXPECT_DEATH(lh_error_set_desc(nullptr, lh_str_view_empty()));
 }
 
 TEST(error_death, clear_null_self)

@@ -128,7 +128,7 @@ lh_werror_is_failure(const lh_werror_t *self);
 /**
  * @brief Test whether @p self has a non-empty description.
  *
- * Empty text, ::lh_wstr_view_make of an empty / null string, and an
+ * Empty text, ::lh_wstr_view_empty, and an
  * uninitialized view all mean “no description”.
  *
  * @param self Wide error object to read from.

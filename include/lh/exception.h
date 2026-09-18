@@ -59,16 +59,19 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param self      Exception to modify (not null).
  * @param code      Error code.
  * @param desc      Error description view (empty view = no description).
- * @param timestamp Build timestamp (typically @c __TIMESTAMP__; debug builds only).
- * @param file      Source file path (typically @c __FILE__; debug builds only).
- * @param function  Function name (typically @c __FUNCTION__; debug builds only).
+ * @param timestamp Build timestamp view (typically ::lh_str_view_lit of @c __TIMESTAMP__;
+ *                  debug builds only).
+ * @param file      Source file path view (typically ::lh_str_view_lit of @c __FILE__;
+ *                  debug builds only).
+ * @param function  Function name view (typically ::lh_str_view_lit of @c __FUNCTION__;
+ *                  debug builds only).
  * @param line      Line number (typically @c __LINE__; debug builds only).
  */
 LH_ATTRIBUTE_SYMBOL
 #ifndef NDEBUG
 void
 lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_str_view_t desc,
-                 const lh_str_ptr timestamp, const lh_str_ptr file, const lh_str_ptr function,
+                 lh_str_view_t timestamp, lh_str_view_t file, lh_str_view_t function,
                  lh_usize_t line);
 #else
 void
@@ -81,16 +84,19 @@ lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_str_view_t desc)
  * @param self      Exception to initialize (not null).
  * @param code      Error code.
  * @param desc      Error description view (empty view = no description).
- * @param timestamp Build timestamp (typically @c __TIMESTAMP__; debug builds only).
- * @param file      Source file path (typically @c __FILE__; debug builds only).
- * @param function  Function name (typically @c __FUNCTION__; debug builds only).
+ * @param timestamp Build timestamp view (typically ::lh_str_view_lit of @c __TIMESTAMP__;
+ *                  debug builds only).
+ * @param file      Source file path view (typically ::lh_str_view_lit of @c __FILE__;
+ *                  debug builds only).
+ * @param function  Function name view (typically ::lh_str_view_lit of @c __FUNCTION__;
+ *                  debug builds only).
  * @param line      Line number (typically @c __LINE__; debug builds only).
  */
 LH_ATTRIBUTE_SYMBOL
 #ifndef NDEBUG
 void
 lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_str_view_t desc,
-                  const lh_str_ptr timestamp, const lh_str_ptr file, const lh_str_ptr function,
+                  lh_str_view_t timestamp, lh_str_view_t file, lh_str_view_t function,
                   lh_usize_t line);
 #else
 void

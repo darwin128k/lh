@@ -27,6 +27,22 @@
 #define lh_str_view_empty_initializer() lh_memory_view_empty_initializer()
 
 /**
+ * @def lh_str_view_empty()
+ * @brief Typed empty ::lh_str_view_t for function arguments.
+ *
+ * Same endpoints as ::lh_str_view_empty_initializer. No scan.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_error_set_desc(&err, lh_str_view_empty());
+ * @endcode
+ *
+ * @see lh_str_view_empty_initializer
+ * @see lh_str_view_lit
+ */
+#define lh_str_view_empty() lh_initializer_of(lh_str_view_t, lh_str_view_empty_initializer)
+
+/**
  * @def lh_str_view_initializer_lit(s)
  * @brief Brace-enclosed view over a string literal @p s, length at compile time.
  *

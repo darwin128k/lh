@@ -38,26 +38,28 @@ TEST(exception_get_error_as_const, returns_embedded_error)
 TEST(exception_get_origin, returns_embedded_origin)
 {
     lh_exception_t exception = lh_exception_empty_initializer();
-    lh_exception_set(&exception, 1, lh_str_view_lit("desc"), "ts", "file.c", "func", 42);
+    lh_exception_set(&exception, 1, lh_str_view_lit("desc"), lh_str_view_lit("ts"),
+                     lh_str_view_lit("file.c"), lh_str_view_lit("func"), 42);
 
     lh_exception_origin_t *origin = lh_exception_get_origin(&exception);
 
     ASSERT_NE(origin, nullptr);
-    EXPECT_STREQ(origin->filename, "file.c");
-    EXPECT_STREQ(origin->function, "func");
+    EXPECT_STREQ(desc_cstr(origin->filename), "file.c");
+    EXPECT_STREQ(desc_cstr(origin->function), "func");
     EXPECT_EQ(origin->line, 42u);
 }
 
 TEST(exception_get_origin_as_const, returns_embedded_origin)
 {
     lh_exception_t exception = lh_exception_empty_initializer();
-    lh_exception_set(&exception, 1, lh_str_view_lit("desc"), "ts", "file.c", "func", 42);
+    lh_exception_set(&exception, 1, lh_str_view_lit("desc"), lh_str_view_lit("ts"),
+                     lh_str_view_lit("file.c"), lh_str_view_lit("func"), 42);
 
     const lh_exception_origin_t *origin = lh_exception_get_origin_as_const(&exception);
 
     ASSERT_NE(origin, nullptr);
-    EXPECT_STREQ(origin->filename, "file.c");
-    EXPECT_STREQ(origin->function, "func");
+    EXPECT_STREQ(desc_cstr(origin->filename), "file.c");
+    EXPECT_STREQ(desc_cstr(origin->function), "func");
     EXPECT_EQ(origin->line, 42u);
 }
 #endif
@@ -100,7 +102,7 @@ TEST(exception_set_desc, accepts_null_desc)
 {
     lh_exception_t exception = lh_exception_initializer(1, lh_str_view_lit("old"));
 
-    lh_exception_set_desc(&exception, lh_str_view_make(nullptr));
+    lh_exception_set_desc(&exception, lh_str_view_empty());
 
     EXPECT_EQ(lh_exception_get_code(&exception), 1);
     EXPECT_EQ(desc_cstr(lh_exception_get_desc(&exception)), nullptr);
@@ -115,7 +117,7 @@ TEST(exception_get_desc_or, returns_desc_when_non_null)
 
 TEST(exception_get_desc_or, returns_fallback_when_desc_is_null)
 {
-    const lh_exception_t exception = lh_exception_initializer(1, lh_str_view_make(nullptr));
+    const lh_exception_t exception = lh_exception_initializer(1, lh_str_view_empty());
 
     EXPECT_STREQ(desc_cstr(lh_exception_get_desc_or(&exception, lh_str_view_lit("fallback"))), "fallback");
 }
@@ -136,28 +138,28 @@ TEST(exception_has_code, returns_false_for_different_code)
 
 TEST(exception_is_ok, returns_true_for_ok_code)
 {
-    const lh_exception_t exception = lh_exception_initializer(lh_error_code_ok, lh_str_view_make(nullptr));
+    const lh_exception_t exception = lh_exception_initializer(lh_error_code_ok, lh_str_view_empty());
 
     EXPECT_TRUE(lh_exception_is_ok(&exception));
 }
 
 TEST(exception_is_ok, returns_false_for_non_ok_code)
 {
-    const lh_exception_t exception = lh_exception_initializer(1, lh_str_view_make(nullptr));
+    const lh_exception_t exception = lh_exception_initializer(1, lh_str_view_empty());
 
     EXPECT_FALSE(lh_exception_is_ok(&exception));
 }
 
 TEST(exception_is_failure, returns_true_for_non_ok_code)
 {
-    const lh_exception_t exception = lh_exception_initializer(1, lh_str_view_make(nullptr));
+    const lh_exception_t exception = lh_exception_initializer(1, lh_str_view_empty());
 
     EXPECT_TRUE(lh_exception_is_failure(&exception));
 }
 
 TEST(exception_is_failure, returns_false_for_ok_code)
 {
-    const lh_exception_t exception = lh_exception_initializer(lh_error_code_ok, lh_str_view_make(nullptr));
+    const lh_exception_t exception = lh_exception_initializer(lh_error_code_ok, lh_str_view_empty());
 
     EXPECT_FALSE(lh_exception_is_failure(&exception));
 }
@@ -171,7 +173,7 @@ TEST(exception_has_desc, returns_true_for_non_null_desc)
 
 TEST(exception_has_desc, returns_false_for_null_desc)
 {
-    const lh_exception_t exception = lh_exception_initializer(1, lh_str_view_make(nullptr));
+    const lh_exception_t exception = lh_exception_initializer(1, lh_str_view_empty());
 
     EXPECT_FALSE(lh_exception_has_desc(&exception));
 }
@@ -185,7 +187,7 @@ TEST(exception_is_empty, returns_true_for_ok_code_without_desc)
 
 TEST(exception_is_empty, returns_false_for_non_ok_code)
 {
-    const lh_exception_t exception = lh_exception_initializer(1, lh_str_view_make(nullptr));
+    const lh_exception_t exception = lh_exception_initializer(1, lh_str_view_empty());
 
     EXPECT_FALSE(lh_exception_is_empty(&exception));
 }
@@ -219,8 +221,8 @@ TEST(exception_equals, returns_false_for_different_desc_pointer)
 {
     const char lhs_desc[] = "same";
     const char rhs_desc[] = "same";
-    const lh_exception_t lhs = lh_exception_initializer(21, lh_str_view_make(lhs_desc));
-    const lh_exception_t rhs = lh_exception_initializer(21, lh_str_view_make(rhs_desc));
+    const lh_exception_t lhs = lh_exception_initializer(21, lh_str_view_lit(lhs_desc));
+    const lh_exception_t rhs = lh_exception_initializer(21, lh_str_view_lit(rhs_desc));
 
     EXPECT_FALSE(lh_exception_equals(&lhs, &rhs));
 }
@@ -288,7 +290,7 @@ TEST(exception_death, set_code_null_self)
 
 TEST(exception_death, set_desc_null_self)
 {
-    LH_EXPECT_DEATH(lh_exception_set_desc(nullptr, lh_str_view_make(nullptr)));
+    LH_EXPECT_DEATH(lh_exception_set_desc(nullptr, lh_str_view_empty()));
 }
 
 TEST(exception_death, get_code_null_self)

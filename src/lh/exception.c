@@ -6,7 +6,7 @@
 #ifndef NDEBUG
 void
 lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_str_view_t desc,
-                 const lh_str_ptr timestamp, const lh_str_ptr file, const lh_str_ptr function,
+                 lh_str_view_t timestamp, lh_str_view_t file, lh_str_view_t function,
                  lh_usize_t line)
 {
     lh_error_init(lh_exception_get_error(self), code, desc);
@@ -15,7 +15,7 @@ lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_str_view_t desc,
 
 void
 lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_str_view_t desc,
-                  const lh_str_ptr timestamp, const lh_str_ptr file, const lh_str_ptr function,
+                  lh_str_view_t timestamp, lh_str_view_t file, lh_str_view_t function,
                   lh_usize_t line)
 {
     lh_exception_set(self, code, desc, timestamp, file, function, line);

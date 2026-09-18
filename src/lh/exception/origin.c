@@ -2,21 +2,21 @@
 #include <lh/assert.h>
 
 void
-lh_exception_origin_set_timestamp(lh_exception_origin_t *self, const lh_str_ptr timestamp)
+lh_exception_origin_set_timestamp(lh_exception_origin_t *self, lh_str_view_t timestamp)
 {
     lh_assert_runtime_ref(self);
     self->timestamp = timestamp;
 }
 
 void
-lh_exception_origin_set_file(lh_exception_origin_t *self, const lh_str_ptr file)
+lh_exception_origin_set_file(lh_exception_origin_t *self, lh_str_view_t file)
 {
     lh_assert_runtime_ref(self);
     self->filename = file;
 }
 
 void
-lh_exception_origin_set_function(lh_exception_origin_t *self, const lh_str_ptr function)
+lh_exception_origin_set_function(lh_exception_origin_t *self, lh_str_view_t function)
 {
     lh_assert_runtime_ref(self);
     self->function = function;
@@ -30,8 +30,8 @@ lh_exception_origin_set_line(lh_exception_origin_t *self, lh_usize_t line)
 }
 
 void
-lh_exception_origin_set(lh_exception_origin_t *self, const lh_str_ptr timestamp,
-                        const lh_str_ptr file, const lh_str_ptr function, lh_usize_t line)
+lh_exception_origin_set(lh_exception_origin_t *self, lh_str_view_t timestamp, lh_str_view_t file,
+                        lh_str_view_t function, lh_usize_t line)
 {
     lh_exception_origin_set_timestamp(self, timestamp);
     lh_exception_origin_set_file(self, file);
@@ -40,8 +40,8 @@ lh_exception_origin_set(lh_exception_origin_t *self, const lh_str_ptr timestamp,
 }
 
 void
-lh_exception_origin_init(lh_exception_origin_t *self, const lh_str_ptr timestamp,
-                         const lh_str_ptr file, const lh_str_ptr function, lh_usize_t line)
+lh_exception_origin_init(lh_exception_origin_t *self, lh_str_view_t timestamp, lh_str_view_t file,
+                         lh_str_view_t function, lh_usize_t line)
 {
     lh_exception_origin_set(self, timestamp, file, function, line);
 }
@@ -61,21 +61,21 @@ lh_exception_origin_init_by_other(lh_exception_origin_t *self, const lh_exceptio
     lh_exception_origin_assign(self, other);
 }
 
-lh_str_cptr
+lh_str_view_t
 lh_exception_origin_get_timestamp(const lh_exception_origin_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->timestamp;
 }
 
-lh_str_cptr
+lh_str_view_t
 lh_exception_origin_get_file(const lh_exception_origin_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->filename;
 }
 
-lh_str_cptr
+lh_str_view_t
 lh_exception_origin_get_function(const lh_exception_origin_t *self)
 {
     lh_assert_runtime_ref(self);

@@ -52,7 +52,7 @@
  * Example usage:
  * @code{.c}
  * lh_runtime_assert_ifn(ptr != lh_null,
- *     lh_runtime_error_make(lh_runtime_error_code_null_pointer, lh_str_view_make(lh_null)));
+ *     lh_runtime_error_make(lh_runtime_error_code_null_pointer, lh_str_view_empty()));
  * @endcode
  *
  * @see lh_runtime_assert_if
@@ -69,7 +69,7 @@
  * Example usage:
  * @code{.c}
  * lh_runtime_assert(ptr != lh_null,
- *     lh_runtime_error_make(lh_runtime_error_code_null_pointer, lh_str_view_make(lh_null)));
+ *     lh_runtime_error_make(lh_runtime_error_code_null_pointer, lh_str_view_empty()));
  * @endcode
  *
  * @see lh_runtime_assert_if

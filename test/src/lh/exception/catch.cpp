@@ -77,7 +77,7 @@ TEST(exception_catch_get_desc_or, returns_desc_when_non_null)
 
 TEST(exception_catch_get_desc_or, returns_fallback_when_desc_is_null)
 {
-    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(1, lh_str_view_make(nullptr));
+    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(1, lh_str_view_empty());
 
     EXPECT_STREQ(desc_cstr(lh_exception_catch_get_desc_or(&catch_frame, lh_str_view_lit("fallback"))), "fallback");
 }
@@ -99,14 +99,14 @@ TEST(exception_catch_has_code, returns_false_for_different_code)
 TEST(exception_catch_is_ok, returns_true_for_ok_code)
 {
     const lh_exception_catch_t catch_frame =
-        lh_exception_catch_initializer(lh_error_code_ok, lh_str_view_make(nullptr));
+        lh_exception_catch_initializer(lh_error_code_ok, lh_str_view_empty());
 
     EXPECT_TRUE(lh_exception_catch_is_ok(&catch_frame));
 }
 
 TEST(exception_catch_is_failure, returns_true_for_non_ok_code)
 {
-    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(1, lh_str_view_make(nullptr));
+    const lh_exception_catch_t catch_frame = lh_exception_catch_initializer(1, lh_str_view_empty());
 
     EXPECT_TRUE(lh_exception_catch_is_failure(&catch_frame));
 }

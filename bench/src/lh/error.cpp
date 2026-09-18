@@ -1,6 +1,8 @@
 #include <benchmark/benchmark.h>
 
 #include <lh/error.h>
+#include <lh/exception/origin.h>
+#include <lh/exception/origin/initializer.h>
 #include <lh/runtime/error.h>
 #include <lh/str/view.h>
 #include <lh/str/view/initializer.h>
@@ -20,6 +22,14 @@ struct view_error
 {
     lh_error_code_t code;
     lh_str_view_t desc;
+};
+
+struct raw_ptr_origin
+{
+    const char *timestamp;
+    const char *filename;
+    const char *function;
+    lh_usize_t line;
 };
 
 const char k_desc[] = "invalid argument";
@@ -85,7 +95,7 @@ BENCHMARK(BM_error_make_from_ptr_size);
 static void
 BM_error_make_from_ptr_len(benchmark::State &state)
 {
-    const lh_str_cptr text = k_desc;
+    lh_str_cptr text = k_desc;
     for (auto _ : state)
     {
         lh_str_view_t desc;
@@ -157,3 +167,40 @@ BM_error_init_lit(benchmark::State &state)
     }
 }
 BENCHMARK(BM_error_init_lit);
+
+static void
+BM_error_make_empty(benchmark::State &state)
+{
+    for (auto _ : state)
+    {
+        lh_error_t err = lh_error_make(1, lh_str_view_empty());
+        benchmark::DoNotOptimize(err);
+    }
+}
+BENCHMARK(BM_error_make_empty);
+
+static void
+BM_exception_origin_now(benchmark::State &state)
+{
+    for (auto _ : state)
+    {
+        lh_exception_origin_t origin = lh_exception_origin_initializer_now();
+        benchmark::DoNotOptimize(origin);
+    }
+}
+BENCHMARK(BM_exception_origin_now);
+
+static void
+BM_raw_ptr_origin_store(benchmark::State &state)
+{
+    for (auto _ : state)
+    {
+        raw_ptr_origin origin;
+        origin.timestamp = __TIMESTAMP__;
+        origin.filename = __FILE__;
+        origin.function = __FUNCTION__;
+        origin.line = __LINE__;
+        benchmark::DoNotOptimize(origin);
+    }
+}
+BENCHMARK(BM_raw_ptr_origin_store);
