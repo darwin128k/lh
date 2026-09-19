@@ -103,6 +103,12 @@
 #define lh_os_error_code_failed 0x0E
 
 /**
+ * @def lh_os_error_code_invalid_offset
+ * @brief Seek/map offset is past the file, or does not fit the OS type.
+ */
+#define lh_os_error_code_invalid_offset 0x0F
+
+/**
  * @typedef lh_os_error_code_t
  * @brief Same representation as ::lh_error_code_t for OS-layer last-error codes.
  */

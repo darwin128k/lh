@@ -35,4 +35,11 @@ typedef lh_u8_t lh_os_fs_file_mode_t;
  */
 #define lh_os_fs_file_mode_write 1U
 
+/**
+ * @def lh_os_fs_file_mode_readwrite
+ * @brief Existing or created, read-write (`GENERIC_READ | GENERIC_WRITE` /
+ *        `O_RDWR | O_CREAT`). Needed to map pages writable.
+ */
+#define lh_os_fs_file_mode_readwrite 2U
+
 #endif /* LH_OS_FS_FILE_MODE_H */

@@ -1,4 +1,5 @@
 #include <lh/os/fs/file.h>
+#include "file/local.h"
 #include <lh/assert.h>
 #include <lh/cast/reinterpret.h>
 #include <lh/cast/static.h>
@@ -13,24 +14,10 @@
 #include <lh/util/ptr.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-#    define WIN32_LEAN_AND_MEAN
-#    include <windows.h>
-typedef HANDLE lh_os_fs_native_handle_t;
 #else
 #    include <fcntl.h>
 #    include <unistd.h>
-typedef int lh_os_fs_native_handle_t;
 #endif
-
-static lh_os_fs_native_handle_t
-lh_os_fs_file_native_handle(const lh_os_fs_file_t *self)
-{
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-    return lh_cast_reinterpret(lh_os_fs_native_handle_t, self->handle);
-#else
-    return lh_cast_static(lh_os_fs_native_handle_t, self->handle);
-#endif
-}
 
 void
 lh_os_fs_file_init(lh_os_fs_file_t *self)
@@ -45,7 +32,8 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_os_fs_path_t *path, lh_os_fs_
     lh_str_cptr cstr;
 
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_if(mode != lh_os_fs_file_mode_read && mode != lh_os_fs_file_mode_write,
+    lh_assert_runtime_if(mode != lh_os_fs_file_mode_read && mode != lh_os_fs_file_mode_write &&
+                             mode != lh_os_fs_file_mode_readwrite,
                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
 
     lh_assert_runtime_ref(path);
@@ -67,10 +55,15 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_os_fs_path_t *path, lh_os_fs_
             access = GENERIC_READ;
             disposition = OPEN_EXISTING;
         }
-        else
+        else if (mode == lh_os_fs_file_mode_write)
         {
             access = GENERIC_WRITE;
             disposition = CREATE_ALWAYS;
+        }
+        else
+        {
+            access = GENERIC_READ | GENERIC_WRITE;
+            disposition = OPEN_ALWAYS;
         }
 
         native = CreateFileA(cstr, access, FILE_SHARE_READ, lh_null, disposition,
@@ -93,9 +86,14 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_os_fs_path_t *path, lh_os_fs_
             flags = O_RDONLY;
             native = open(cstr, flags);
         }
-        else
+        else if (mode == lh_os_fs_file_mode_write)
         {
             flags = O_WRONLY | O_CREAT | O_TRUNC;
+            native = open(cstr, flags, 0644);
+        }
+        else
+        {
+            flags = O_RDWR | O_CREAT;
             native = open(cstr, flags, 0644);
         }
         if (native < 0)
@@ -151,6 +149,78 @@ lh_os_fs_file_get_size(const lh_os_fs_file_t *self, lh_u64_t *out)
     }
     *out = lh_os_fs_stat_get_size(lh_addr_of(st));
     return lh_bool_true;
+}
+
+lh_bool_t
+lh_os_fs_file_seek(lh_os_fs_file_t *self, lh_s64_t offset, lh_os_fs_file_seek_whence_t whence,
+                   lh_u64_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_assert_runtime_if(whence != lh_os_fs_file_seek_set && whence != lh_os_fs_file_seek_cur &&
+                             whence != lh_os_fs_file_seek_end,
+                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+    if (!lh_os_fs_file_is_valid(self))
+    {
+        lh_os_set_last_error(lh_os_error_code_not_open, lh_os_error_desc_lit("file is not open"));
+        return lh_bool_false;
+    }
+
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+    {
+        LARGE_INTEGER dist;
+        LARGE_INTEGER pos;
+        DWORD method;
+
+        dist.QuadPart = offset;
+        method = whence == lh_os_fs_file_seek_set
+                     ? FILE_BEGIN
+                     : (whence == lh_os_fs_file_seek_cur ? FILE_CURRENT : FILE_END);
+        if (!SetFilePointerEx(lh_os_fs_file_native_handle(self), dist, lh_addr_of(pos), method))
+        {
+            lh_os_capture_last_error();
+            return lh_bool_false;
+        }
+        if (pos.QuadPart < 0)
+        {
+            lh_os_set_last_error(lh_os_error_code_negative_size,
+                                 lh_os_error_desc_lit("file size is negative"));
+            return lh_bool_false;
+        }
+        *out = lh_cast_static(lh_u64_t, pos.QuadPart);
+        return lh_bool_true;
+    }
+#else
+    {
+        off_t dist;
+        off_t pos;
+        int method;
+
+        dist = lh_cast_static(off_t, offset);
+        if (lh_cast_static(lh_s64_t, dist) != offset)
+        {
+            lh_os_set_last_error(lh_os_error_code_invalid_offset,
+                                 lh_os_error_desc_lit("offset does not fit"));
+            return lh_bool_false;
+        }
+        method = whence == lh_os_fs_file_seek_set
+                     ? SEEK_SET
+                     : (whence == lh_os_fs_file_seek_cur ? SEEK_CUR : SEEK_END);
+        pos = lseek(lh_os_fs_file_native_handle(self), dist, method);
+        if (pos == (off_t)-1)
+        {
+            lh_os_capture_last_error();
+            return lh_bool_false;
+        }
+        if (pos < 0)
+        {
+            lh_os_set_last_error(lh_os_error_code_negative_size,
+                                 lh_os_error_desc_lit("file size is negative"));
+            return lh_bool_false;
+        }
+        *out = lh_cast_static(lh_u64_t, pos);
+        return lh_bool_true;
+    }
+#endif
 }
 
 lh_ssize_t

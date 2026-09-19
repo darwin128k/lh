@@ -3,13 +3,15 @@
  * @brief A blocking OS file — the second real ::lh_io_stream_t backend
  *        (a file, per that file's doc).
  *
- * One struct, one open function for both access modes (see
- * ::lh_os_fs_file_mode_t): read and write are not different kinds of
- * object, just the flags argument to the same `CreateFile` / `open`.
+ * One struct, one open function for the access modes (see
+ * ::lh_os_fs_file_mode_t): read, write, and read-write are not different
+ * kinds of object, just the flags argument to the same `CreateFile` /
+ * `open`.
  *
- * Deliberately narrow otherwise: no seek, no mapping. Directory listing is
- * ::lh_os_fs_dir_t (`lh/os/fs/dir.h`). Object state is ::lh_os_fs_stat_t
- * via ::lh_os_fs_file_stat — not cached on the handle.
+ * Seek is ::lh_os_fs_file_seek (`lseek`). Mapping is ::lh_os_fs_file_map_t
+ * (`mmap`) — a separate value, not stored on the handle. Directory listing
+ * is ::lh_os_fs_dir_t. Object state is ::lh_os_fs_stat_t via
+ * ::lh_os_fs_file_stat.
  *
  * On failure the reason is in ::lh_os_get_last_error (see `lh/os.h`).
  * Requires ::LH_LIBRARY_OPTION_OS.
@@ -27,7 +29,9 @@
 #include <lh/io/writer.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/os/fs/file/handle.h>
+#include <lh/os/fs/file/map.h>
 #include <lh/os/fs/file/mode.h>
+#include <lh/os/fs/file/seek.h>
 #include <lh/os/fs/path.h>
 #include <lh/ptr.h>
 #include <lh/size.h>
@@ -69,7 +73,8 @@ lh_os_fs_file_init(lh_os_fs_file_t *self);
  * @param self File object to open; must be in the empty state
  *             (::lh_os_fs_file_init or freshly ::lh_os_fs_file_close'd).
  * @param path Filesystem path (`CreateFileA` / `open`). Empty is an error.
- * @param mode ::lh_os_fs_file_mode_read or ::lh_os_fs_file_mode_write.
+ * @param mode ::lh_os_fs_file_mode_read, ::lh_os_fs_file_mode_write, or
+ *             ::lh_os_fs_file_mode_readwrite.
  * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -130,6 +135,20 @@ lh_os_fs_file_get_size(const lh_os_fs_file_t *self, lh_u64_t *out);
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_fs_file_stat(const lh_os_fs_file_t *self, lh_os_fs_stat_t *out);
+
+/**
+ * @brief Move the file position (`lseek` / `SetFilePointerEx`).
+ *
+ * @param self   Open file.
+ * @param offset Signed distance; meaning depends on @p whence.
+ * @param whence ::lh_os_fs_file_seek_set, `_cur`, or `_end`.
+ * @param out    Receives the new absolute position.
+ * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_file_seek(lh_os_fs_file_t *self, lh_s64_t offset, lh_os_fs_file_seek_whence_t whence,
+                   lh_u64_t *out);
 
 /* ── operations ──────────────────────────────────────────────────────────── */
 
