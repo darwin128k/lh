@@ -1,7 +1,7 @@
 #include <lh/os/fs/path.h>
 #include "local.h"
-#include <lh/cast/static.h>
 #include <lh/char/letter.h>
+#include <lh/char/map.h>
 #include <lh/compiler/os.h>
 #include <lh/str/view.h>
 #include <lh/str/view/initializer.h>
@@ -17,13 +17,21 @@ lh_os_fs_path_is_drive_view(lh_str_view_t part)
         return lh_bool_false;
     }
     return (lh_char_is_letter(lh_str_view_get_char_from_begin(lh_addr_of(part), 0U)) &&
-            lh_str_view_get_char_from_begin(lh_addr_of(part), 1U) == ':')
+            lh_str_view_get_char_from_begin(lh_addr_of(part), 1U) == lh_char_map_colon)
                ? lh_bool_true
                : lh_bool_false;
 #else
     (void)part;
     return lh_bool_false;
 #endif
+}
+
+static lh_bool_t
+lh_os_fs_path_is_root_part(lh_str_view_t part)
+{
+    return (lh_str_view_is_empty(lh_addr_of(part)) || lh_os_fs_path_is_drive_view(part))
+               ? lh_bool_true
+               : lh_bool_false;
 }
 
 static lh_bool_t
@@ -53,9 +61,7 @@ lh_os_fs_path_has_root_suffix(const lh_os_fs_path_t *self)
         return lh_bool_false;
     }
     first = lh_os_fs_path_get_part(self, 0U);
-    return (lh_str_view_is_empty(lh_addr_of(first)) || lh_os_fs_path_is_drive_view(first))
-               ? lh_bool_true
-               : lh_bool_false;
+    return lh_os_fs_path_is_root_part(first);
 }
 
 static void
@@ -91,7 +97,7 @@ lh_os_fs_path_finish_singleton(lh_os_fs_path_t *self)
         return;
     }
     part = lh_os_fs_path_get_part(self, 0U);
-    if (lh_str_view_is_empty(lh_addr_of(part)) || lh_os_fs_path_is_drive_view(part))
+    if (lh_os_fs_path_is_root_part(part))
     {
         if (!lh_os_fs_path_text_ends_with_sep(self))
         {
@@ -149,17 +155,20 @@ lh_os_fs_path_set(lh_os_fs_path_t *self, lh_str_view_t text)
     i = 0U;
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-    if (n >= 2U && lh_ptr_deref(lh_ptr_add_by_offset(const lh_char_t, data, 1U)) == ':' &&
-        lh_char_is_letter(lh_ptr_deref(data)))
+    if (n >= 2U)
     {
         lh_str_view_t drive;
 
         lh_str_init_by_size(lh_addr_of(drive), data, 2U);
-        lh_os_fs_path_append_part(self, drive);
-        i = 2U;
-        if (i < n && lh_os_fs_path_is_sep(lh_ptr_deref(lh_ptr_add_by_offset(const lh_char_t, data, i))))
+        if (lh_os_fs_path_is_drive_view(drive))
         {
-            i += 1U;
+            lh_os_fs_path_append_part(self, drive);
+            i = 2U;
+            if (i < n &&
+                lh_os_fs_path_is_sep(lh_ptr_deref(lh_ptr_add_by_offset(const lh_char_t, data, i))))
+            {
+                i += 1U;
+            }
         }
     }
 #endif
@@ -220,7 +229,7 @@ lh_os_fs_path_drop_last(lh_os_fs_path_t *self)
     if (n == 1U)
     {
         first = lh_os_fs_path_get_part(self, 0U);
-        if (lh_str_view_is_empty(lh_addr_of(first)) || lh_os_fs_path_is_drive_view(first))
+        if (lh_os_fs_path_is_root_part(first))
         {
             return lh_bool_true;
         }
@@ -242,8 +251,7 @@ lh_os_fs_path_drop_last(lh_os_fs_path_t *self)
             else
             {
                 first = lh_os_fs_path_get_part(self, 0U);
-                if (!lh_str_view_is_empty(lh_addr_of(first)) &&
-                    !lh_os_fs_path_is_drive_view(first))
+                if (!lh_os_fs_path_is_root_part(first))
                 {
                     keep -= 1U;
                 }

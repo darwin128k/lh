@@ -18,7 +18,8 @@
 #include <lh/attribute/force_inline.h>
 #include <lh/bool.h>
 #include <lh/cast/static.h>
-#include <lh/char.h>
+#include <lh/char/digit.h>
+#include <lh/char/letter.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/types.h>
 #include <lh/runtime/error.h>
@@ -45,7 +46,8 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
 lh_char_is_xdigit(lh_char_t ch)
 {
-    return ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F'))
+    return (lh_char_is_digit(ch) || (lh_char_is_lower(ch) && ch <= 'f') ||
+            (lh_char_is_upper(ch) && ch <= 'F'))
                ? lh_bool_true
                : lh_bool_false;
 }
@@ -62,11 +64,11 @@ lh_char_to_xdigit(lh_char_t ch)
 {
     lh_assert_runtime_if(!lh_char_is_xdigit(ch),
                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
-    if (ch >= '0' && ch <= '9')
+    if (lh_char_is_digit(ch))
     {
-        return lh_cast_static(lh_uchar_t, (lh_char_ord(ch) - lh_char_ord('0')));
+        return lh_char_to_digit(ch);
     }
-    if (ch >= 'a' && ch <= 'f')
+    if (lh_char_is_lower(ch))
     {
         return lh_cast_static(lh_uchar_t, (lh_char_ord(ch) - lh_char_ord('a') + 10));
     }
@@ -88,7 +90,7 @@ lh_char_from_xdigit(lh_uchar_t digit, lh_bool_t uppercase)
                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
     if (digit < 10U)
     {
-        return lh_char_ord_to(lh_char_t, lh_char_ord('0') + digit);
+        return lh_char_from_digit(digit);
     }
     return lh_char_ord_to(lh_char_t,
                           (uppercase ? lh_char_ord('A') : lh_char_ord('a')) + (digit - 10U));

@@ -13,6 +13,8 @@
 
 #include <lh/attribute/force_inline.h>
 #include <lh/bool.h>
+#include <lh/char/dot.h>
+#include <lh/char/map.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/str/ptr.h>
 #include <lh/util/ptr.h>
@@ -29,8 +31,8 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
 lh_str_ptr_is_dot(lh_str_cptr name)
 {
-    return (lh_ptr_deref(name) == '.' &&
-            lh_ptr_deref(lh_ptr_add_by_offset(const lh_char_t, name, 1U)) == '\0')
+    return (lh_char_is_dot(lh_ptr_deref(name)) &&
+            lh_ptr_deref(lh_ptr_add_by_offset(const lh_char_t, name, 1U)) == lh_char_map_nul)
                ? lh_bool_true
                : lh_bool_false;
 }
@@ -47,7 +49,7 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
 lh_str_ptr_is_double_dot(lh_str_cptr name)
 {
-    return (lh_ptr_deref(name) == '.' &&
+    return (lh_char_is_dot(lh_ptr_deref(name)) &&
             lh_str_ptr_is_dot(lh_ptr_add_by_offset(const lh_char_t, name, 1U)))
                ? lh_bool_true
                : lh_bool_false;
