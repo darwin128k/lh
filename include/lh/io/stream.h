@@ -2,8 +2,8 @@
  * @file stream.h
  * @brief Duplex stream: an ::lh_io_reader_t and an ::lh_io_writer_t together.
  *
- * Whatever hands out an ::lh_io_stream_t (a TCP connection today; a file or
- * pipe later) plugs its own read/write callbacks and context into the two
+ * Whatever hands out an ::lh_io_stream_t (a TCP socket or an
+ * ::lh_os_fs_file_t today) plugs its own read/write callbacks and context into the two
  * halves — everything above this point (a manifest client, for instance)
  * works against ::lh_io_reader_read / ::lh_io_writer_write without knowing
  * or caring which concrete thing it's actually talking to.

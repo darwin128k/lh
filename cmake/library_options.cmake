@@ -36,7 +36,7 @@ option(LH_LIBRARY_OPTION_THREAD_LOCAL
 # Option: LH_LIBRARY_OPTION_OS
 #
 # OS-backed translation units under include/lh/os and src/lh/os
-# (shared libraries, sockets, Winsock/dl).
+# (shared libraries, sockets, files, Winsock/dl).
 #
 #   ON  — compile and link OS backends (desktop / HLDS plugin).
 #   OFF — bare metal / STM: no OS sources, no ws2_32 / libdl.
