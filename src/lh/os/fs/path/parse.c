@@ -114,6 +114,23 @@ lh_os_fs_path_commit(lh_os_fs_path_t *self)
     return lh_bool_true;
 }
 
+static lh_bool_t
+lh_os_fs_path_append_path(lh_os_fs_path_t *self, const lh_os_fs_path_t *name)
+{
+    const lh_vector_t *parts;
+    lh_usize_t n;
+    lh_uindex_t i;
+
+    parts = lh_os_fs_path_get_parts_as_const(name);
+    n = lh_vector_get_size(parts);
+    for (i = 0U; i < n; ++i)
+    {
+        lh_os_fs_path_append_part(self, lh_os_fs_path_get_part(name, i));
+    }
+    lh_os_fs_path_finish_singleton(self);
+    return lh_os_fs_path_commit(self);
+}
+
 lh_bool_t
 lh_os_fs_path_set(lh_os_fs_path_t *self, lh_str_view_t text)
 {
@@ -186,13 +203,14 @@ lh_os_fs_path_set(lh_os_fs_path_t *self, lh_str_view_t text)
 static lh_bool_t
 lh_os_fs_path_drop_last(lh_os_fs_path_t *self)
 {
-    const lh_vector_t *parts;
+    lh_vector_t *parts;
     lh_usize_t n;
-    lh_os_fs_path_t tmp;
-    lh_uindex_t i;
+    lh_os_fs_path_span_t last;
     lh_str_view_t first;
+    lh_str_view_t view;
+    lh_usize_t keep;
 
-    parts = lh_os_fs_path_get_parts_as_const(self);
+    parts = lh_os_fs_path_get_parts(self);
     n = lh_vector_get_size(parts);
     if (n == 0U)
     {
@@ -209,22 +227,34 @@ lh_os_fs_path_drop_last(lh_os_fs_path_t *self)
         return lh_os_fs_path_set(self, lh_str_view_lit("."));
     }
 
-    lh_os_fs_path_init(lh_addr_of(tmp));
-    lh_ptr_deref(lh_os_fs_path_get_sep(lh_addr_of(tmp))) =
-        lh_ptr_deref(lh_os_fs_path_get_sep_as_const(self));
-    for (i = 0U; i + 1U < n; ++i)
+    lh_vector_pop_back(parts, lh_addr_of(last));
+    n = lh_vector_get_size(parts);
+    keep = last.offset;
+    if (keep > 0U)
     {
-        lh_os_fs_path_append_part(lh_addr_of(tmp), lh_os_fs_path_get_part(self, i));
+        view = lh_os_fs_path_as_view(self);
+        if (lh_os_fs_path_is_sep(lh_str_view_get_char_from_begin(lh_addr_of(view), keep - 1U)))
+        {
+            if (n != 1U)
+            {
+                keep -= 1U;
+            }
+            else
+            {
+                first = lh_os_fs_path_get_part(self, 0U);
+                if (!lh_str_view_is_empty(lh_addr_of(first)) &&
+                    !lh_os_fs_path_is_drive_view(first))
+                {
+                    keep -= 1U;
+                }
+            }
+        }
     }
-    lh_os_fs_path_finish_singleton(lh_addr_of(tmp));
-    if (!lh_os_fs_path_commit(lh_addr_of(tmp)))
+    lh_str_truncate(lh_os_fs_path_get_text(self), keep);
+    if (n == 1U)
     {
-        lh_os_fs_path_deinit(lh_addr_of(tmp));
-        lh_os_fs_path_clear(self);
-        return lh_bool_false;
+        lh_os_fs_path_finish_singleton(self);
     }
-    lh_os_fs_path_assign(self, lh_addr_of(tmp));
-    lh_os_fs_path_deinit(lh_addr_of(tmp));
     return lh_bool_true;
 }
 
@@ -254,8 +284,6 @@ lh_bool_t
 lh_os_fs_path_join(lh_os_fs_path_t *out, const lh_os_fs_path_t *dir, const lh_os_fs_path_t *name)
 {
     lh_os_fs_path_t tmp;
-    lh_usize_t n;
-    lh_uindex_t i;
 
     lh_assert_runtime_ref(dir);
     if (!lh_os_fs_path_require(name))
@@ -264,21 +292,24 @@ lh_os_fs_path_join(lh_os_fs_path_t *out, const lh_os_fs_path_t *dir, const lh_os
         return lh_bool_false;
     }
 
-    lh_os_fs_path_init(lh_addr_of(tmp));
-    lh_os_fs_path_assign(lh_addr_of(tmp), dir);
-    n = lh_vector_get_size(lh_os_fs_path_get_parts_as_const(name));
-    for (i = 0U; i < n; ++i)
+    if (out == name)
     {
-        lh_os_fs_path_append_part(lh_addr_of(tmp), lh_os_fs_path_get_part(name, i));
-    }
-    lh_os_fs_path_finish_singleton(lh_addr_of(tmp));
-    if (!lh_os_fs_path_commit(lh_addr_of(tmp)))
-    {
+        lh_os_fs_path_init(lh_addr_of(tmp));
+        lh_os_fs_path_assign(lh_addr_of(tmp), dir);
+        if (!lh_os_fs_path_append_path(lh_addr_of(tmp), name))
+        {
+            lh_os_fs_path_deinit(lh_addr_of(tmp));
+            lh_os_fs_path_clear(out);
+            return lh_bool_false;
+        }
+        lh_os_fs_path_assign(out, lh_addr_of(tmp));
         lh_os_fs_path_deinit(lh_addr_of(tmp));
-        lh_os_fs_path_clear(out);
-        return lh_bool_false;
+        return lh_bool_true;
     }
-    lh_os_fs_path_assign(out, lh_addr_of(tmp));
-    lh_os_fs_path_deinit(lh_addr_of(tmp));
-    return lh_bool_true;
+
+    if (out != dir)
+    {
+        lh_os_fs_path_assign(out, dir);
+    }
+    return lh_os_fs_path_append_path(out, name);
 }

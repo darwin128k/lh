@@ -37,30 +37,6 @@ struct lh_os_fs_dir_state
     lh_bool_t ready;
 };
 
-static void
-lh_os_fs_dir_fail_empty(void)
-{
-    lh_os_set_last_error(lh_os_error_code_path_empty, lh_os_error_desc_lit("path is empty"));
-}
-
-static void
-lh_os_fs_dir_fail_too_long(void)
-{
-    lh_os_set_last_error(lh_os_error_code_name_too_long, lh_os_error_desc_lit("name is too long"));
-}
-
-static void
-lh_os_fs_dir_fail_not_open(void)
-{
-    lh_os_set_last_error(lh_os_error_code_not_open, lh_os_error_desc_lit("directory is not open"));
-}
-
-static void
-lh_os_fs_dir_fail_oom(void)
-{
-    lh_os_set_last_error(lh_os_error_code_out_of_memory, lh_os_error_desc_lit("out of memory"));
-}
-
 static lh_bool_t
 lh_os_fs_dir_is_dot(lh_str_cptr name)
 {
@@ -133,14 +109,14 @@ lh_os_fs_dir_open(lh_os_fs_dir_t *self, const lh_os_fs_path_t *path)
 
     if (lh_os_fs_path_is_empty(path))
     {
-        lh_os_fs_dir_fail_empty();
+        lh_os_set_last_error(lh_os_error_code_path_empty, lh_os_error_desc_lit("path is empty"));
         return lh_bool_false;
     }
 
     state = lh_ptr_cast(struct lh_os_fs_dir_state, lh_runtime_allocator_alloc(sizeof(*state)));
     if (lh_null_eq(state))
     {
-        lh_os_fs_dir_fail_oom();
+        lh_os_set_last_error(lh_os_error_code_out_of_memory, lh_os_error_desc_lit("out of memory"));
         return lh_bool_false;
     }
 
@@ -234,7 +210,7 @@ lh_os_fs_dir_copy_name(lh_str_cptr name, lh_os_fs_path_t *out, lh_os_fs_dir_entr
     n = lh_str_view_is_empty(lh_addr_of(view)) ? 0U : lh_str_view_get_size(lh_addr_of(view));
     if (n > LH_OS_FS_DIR_NAME_MAX)
     {
-        lh_os_fs_dir_fail_too_long();
+        lh_os_set_last_error(lh_os_error_code_name_too_long, lh_os_error_desc_lit("name is too long"));
         return -1;
     }
     if (!lh_os_fs_path_set(out, view))
@@ -258,7 +234,7 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_os_fs_path_t *name, lh_os_fs_dir_entr
 
     if (lh_null_eq(self->handle))
     {
-        lh_os_fs_dir_fail_not_open();
+        lh_os_set_last_error(lh_os_error_code_not_open, lh_os_error_desc_lit("directory is not open"));
         return -1;
     }
 

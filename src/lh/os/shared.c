@@ -13,6 +13,7 @@
 #include <lh/os/fs/path.h>
 #include <lh/char.h>
 #include <lh/str.h>
+#include <lh/str/view/initializer.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 #include <lh/util/str/ptr.h>
@@ -319,6 +320,7 @@ lh_os_shared_path_is(const lh_os_fs_path_t *path)
     const lh_vector_t *parts;
     lh_usize_t n;
     lh_str_view_t name;
+    lh_str_view_t lnk;
 
     if (lh_null_eq(path) || lh_os_fs_path_is_empty(path))
     {
@@ -335,7 +337,13 @@ lh_os_shared_path_is(const lh_os_fs_path_t *path)
     {
         return lh_bool_false;
     }
-    if (lh_os_fs_path_is(path, lh_os_fs_kind_dir) || lh_os_fs_path_is(path, lh_os_fs_kind_shortcut))
+    lnk = lh_str_view_lit(".lnk");
+    if (lh_str_view_ends_with(lh_addr_of(name), lh_addr_of(lnk), lh_bool_true) &&
+        lh_os_fs_path_is(path, lh_os_fs_kind_shortcut))
+    {
+        return lh_bool_false;
+    }
+    if (lh_os_fs_path_is(path, lh_os_fs_kind_dir))
     {
         return lh_bool_false;
     }

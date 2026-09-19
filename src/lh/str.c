@@ -1,4 +1,6 @@
 #include <lh/str.h>
+#include <lh/assert.h>
+#include <lh/null.h>
 #include <lh/util/addr.h>
 #include <lh/util/math.h>
 #include <lh/util/ptr.h>
@@ -67,6 +69,19 @@ lh_void
 lh_str_clear(lh_str_t *self)
 {
     lh_vector_clear(self);
+    lh_str_terminate(self);
+}
+
+lh_void
+lh_str_truncate(lh_str_t *self, lh_usize_t n)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_if(n > lh_str_get_size(self),
+                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    while (lh_vector_get_size(self) > n)
+    {
+        lh_vector_pop_back(self, lh_null);
+    }
     lh_str_terminate(self);
 }
 

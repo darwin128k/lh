@@ -60,7 +60,8 @@ lh_os_shared_is(const lh_str_view_t *name);
 /**
  * @brief True if @p path is a loadable shared library file.
  *
- * ::lh_os_shared_is, not a directory, not a shortcut, and a file.
+ * ::lh_os_shared_is, not a directory, not a shortcut (checked only when the
+ * last name ends with `.lnk`), and a file.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t

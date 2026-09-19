@@ -6,8 +6,9 @@
  * element (`type_size == sizeof(lh_char_t)`) — the owning, growable
  * counterpart to the non-owning ::lh_str_view_t.
  *
- * Every mutator (::lh_str_push_back, ::lh_str_append, ::lh_str_clear, plus
- * ::lh_str_init itself) keeps one spare byte past ::lh_str_get_size set to
+ * Every mutator (::lh_str_push_back, ::lh_str_append, ::lh_str_clear,
+ * ::lh_str_truncate, plus ::lh_str_init itself) keeps one spare byte past
+ * ::lh_str_get_size set to
  * `'\0'`, so ::lh_str_get_data can be handed straight to libc / printf-style
  * APIs without a separate termination step. The terminator does not count
  * toward ::lh_str_get_size, matching ::lh_vector_get_size semantics.
@@ -119,6 +120,16 @@ lh_str_append(lh_str_t *self, lh_str_cptr text, lh_usize_t count);
 LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_clear(lh_str_t *self);
+
+/**
+ * @brief Shrink @p self to @p n characters and keep it NUL-terminated.
+ *
+ * @param self String to shrink.
+ * @param n    New size; must be <= ::lh_str_get_size.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_str_truncate(lh_str_t *self, lh_usize_t n);
 
 /* ── view ────────────────────────────────────────────────────────────────── */
 

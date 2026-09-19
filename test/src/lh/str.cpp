@@ -92,4 +92,23 @@ TEST(str_as_view, reflects_current_contents)
     lh_str_deinit(&s);
 }
 
+TEST(str_truncate, shrinks_and_stays_terminated)
+{
+    lh_str_t s;
+    lh_str_init(&s);
+    lh_str_append(&s, "hello", 5);
+
+    lh_str_truncate(&s, 2);
+
+    ASSERT_EQ(lh_str_get_size(&s), 2u);
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&s), "he"), 0);
+
+    lh_str_truncate(&s, 0);
+
+    EXPECT_TRUE(lh_str_is_empty(&s));
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&s), ""), 0);
+
+    lh_str_deinit(&s);
+}
+
 } // namespace

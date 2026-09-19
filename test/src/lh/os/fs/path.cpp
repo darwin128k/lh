@@ -111,6 +111,29 @@ TEST(os_fs_path_dir, drops_last_component)
     EXPECT_STREQ(path_cstr(lh_addr_of(out)), ".");
 }
 
+TEST(os_fs_path_dir, keeps_root)
+{
+    lh_os_fs_path_t path;
+    lh_os_fs_path_t out;
+
+    lh_os_fs_path_init(lh_addr_of(out));
+#if defined(_WIN32)
+    path_set_lit(lh_addr_of(path), "C:/foo/bar");
+    ASSERT_EQ(lh_os_fs_path_dir(lh_addr_of(path), lh_addr_of(out)), lh_bool_true);
+    EXPECT_STREQ(path_cstr(lh_addr_of(out)), "C:\\foo");
+    ASSERT_EQ(lh_os_fs_path_set(lh_addr_of(path), lh_str_view_make("C:/foo")), lh_bool_true);
+    ASSERT_EQ(lh_os_fs_path_dir(lh_addr_of(path), lh_addr_of(out)), lh_bool_true);
+    EXPECT_STREQ(path_cstr(lh_addr_of(out)), "C:\\");
+#else
+    path_set_lit(lh_addr_of(path), "/usr/bin");
+    ASSERT_EQ(lh_os_fs_path_dir(lh_addr_of(path), lh_addr_of(out)), lh_bool_true);
+    EXPECT_STREQ(path_cstr(lh_addr_of(out)), "/usr");
+    ASSERT_EQ(lh_os_fs_path_set(lh_addr_of(path), lh_str_view_make("/usr")), lh_bool_true);
+    ASSERT_EQ(lh_os_fs_path_dir(lh_addr_of(path), lh_addr_of(out)), lh_bool_true);
+    EXPECT_STREQ(path_cstr(lh_addr_of(out)), "/");
+#endif
+}
+
 TEST(os_fs_path_dir, rejects_empty)
 {
     lh_os_fs_path_t empty;
@@ -174,6 +197,38 @@ TEST(os_fs_path_join, rejects_empty_name)
     EXPECT_EQ(lh_os_fs_path_join(lh_addr_of(out), lh_addr_of(dir), lh_addr_of(name)),
               lh_bool_false);
     EXPECT_EQ(lh_os_fs_path_is_empty(lh_addr_of(out)), lh_bool_true);
+}
+
+TEST(os_fs_path_join, appends_when_out_is_dir)
+{
+    lh_os_fs_path_t dir;
+    lh_os_fs_path_t name;
+
+    path_set_lit(lh_addr_of(dir), "dir");
+    path_set_lit(lh_addr_of(name), "file");
+    ASSERT_EQ(lh_os_fs_path_join(lh_addr_of(dir), lh_addr_of(dir), lh_addr_of(name)),
+              lh_bool_true);
+#if defined(_WIN32)
+    EXPECT_STREQ(path_cstr(lh_addr_of(dir)), "dir\\file");
+#else
+    EXPECT_STREQ(path_cstr(lh_addr_of(dir)), "dir/file");
+#endif
+}
+
+TEST(os_fs_path_join, copies_when_out_is_name)
+{
+    lh_os_fs_path_t dir;
+    lh_os_fs_path_t name;
+
+    path_set_lit(lh_addr_of(dir), "dir");
+    path_set_lit(lh_addr_of(name), "file");
+    ASSERT_EQ(lh_os_fs_path_join(lh_addr_of(name), lh_addr_of(dir), lh_addr_of(name)),
+              lh_bool_true);
+#if defined(_WIN32)
+    EXPECT_STREQ(path_cstr(lh_addr_of(name)), "dir\\file");
+#else
+    EXPECT_STREQ(path_cstr(lh_addr_of(name)), "dir/file");
+#endif
 }
 
 TEST(os_fs_path_mtime, missing_file_fails)
