@@ -144,6 +144,7 @@ set(LH_LIB_SOURCES
 if (LH_LIBRARY_OPTION_OS)
     list(APPEND LH_LIB_SOURCES
             ${LH_LIB_SRC_PATH}/os.c
+            ${LH_LIB_SRC_PATH}/os/clock.c
             ${LH_LIB_SRC_PATH}/os/net.c
             ${LH_LIB_SRC_PATH}/os/net/socket.c
             ${LH_LIB_SRC_PATH}/os/shared.c
