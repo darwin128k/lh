@@ -24,16 +24,42 @@ lh_os_shared_module_get_modules_as_const(const lh_os_shared_module_t *self)
     return lh_addr_of(self->modules);
 }
 
+lh_os_shared_handle_t *
+lh_os_shared_module_get_handle(lh_os_shared_module_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->handle);
+}
+
+const lh_os_shared_handle_t *
+lh_os_shared_module_get_handle_as_const(const lh_os_shared_module_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->handle);
+}
+
+lh_bool_t *
+lh_os_shared_module_get_owned(lh_os_shared_module_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->owned);
+}
+
+const lh_bool_t *
+lh_os_shared_module_get_owned_as_const(const lh_os_shared_module_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->owned);
+}
+
 void
 lh_os_shared_module_init(lh_os_shared_module_t *self, lh_usize_t type_size)
 {
-    lh_vector_t *modules = lh_os_shared_module_get_modules(self);
-
     lh_assert_runtime_if(type_size < sizeof(lh_os_shared_module_t),
                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
-    self->handle = lh_null;
-    self->owned = lh_bool_false;
-    lh_vector_init(modules, type_size);
+    *lh_os_shared_module_get_handle(self) = lh_null;
+    *lh_os_shared_module_get_owned(self) = lh_bool_false;
+    lh_vector_init(lh_os_shared_module_get_modules(self), type_size);
 }
 
 void
@@ -46,8 +72,8 @@ lh_os_shared_module_deinit(lh_os_shared_module_t *self)
 lh_bool_t
 lh_os_shared_module_is_loaded(const lh_os_shared_module_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return lh_cast_static(lh_bool_t, lh_null_ne(self->handle));
+    return lh_cast_static(lh_bool_t,
+                          lh_null_ne(*lh_os_shared_module_get_handle_as_const(self)));
 }
 
 lh_bool_t
@@ -65,8 +91,8 @@ lh_os_shared_module_open(lh_os_shared_module_t *self, lh_str_cptr path)
     {
         return lh_bool_false;
     }
-    self->handle = handle;
-    self->owned = lh_bool_true;
+    *lh_os_shared_module_get_handle(self) = handle;
+    *lh_os_shared_module_get_owned(self) = lh_bool_true;
     return lh_bool_true;
 }
 
@@ -85,11 +111,11 @@ lh_os_shared_module_bind(lh_os_shared_module_t *self, lh_ptr addr)
     {
         return lh_bool_false;
     }
-    self->handle = handle;
+    *lh_os_shared_module_get_handle(self) = handle;
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-    self->owned = lh_bool_false;
+    *lh_os_shared_module_get_owned(self) = lh_bool_false;
 #else
-    self->owned = lh_bool_true;
+    *lh_os_shared_module_get_owned(self) = lh_bool_true;
 #endif
     return lh_bool_true;
 }
@@ -113,20 +139,22 @@ lh_os_shared_module_unload_all(lh_os_shared_module_t *self)
 lh_bool_t
 lh_os_shared_module_close(lh_os_shared_module_t *self)
 {
-    lh_assert_runtime_ref(self);
-    if (lh_null_eq(self->handle))
+    lh_os_shared_handle_t *handle = lh_os_shared_module_get_handle(self);
+    lh_bool_t *owned = lh_os_shared_module_get_owned(self);
+
+    if (lh_null_eq(*handle))
     {
         return lh_bool_true;
     }
-    if (self->owned)
+    if (*owned)
     {
-        if (!lh_os_shared_close(self->handle))
+        if (!lh_os_shared_close(*handle))
         {
             return lh_bool_false;
         }
     }
-    self->handle = lh_null;
-    self->owned = lh_bool_false;
+    *handle = lh_null;
+    *owned = lh_bool_false;
     return lh_bool_true;
 }
 
@@ -170,7 +198,7 @@ lh_os_shared_module_get_sym(const lh_os_shared_module_t *self, lh_str_cptr name)
         lh_os_set_last_error(1, lh_os_error_desc_lit("not loaded"));
         return lh_null;
     }
-    return lh_os_shared_get_sym(self->handle, name);
+    return lh_os_shared_get_sym(*lh_os_shared_module_get_handle_as_const(self), name);
 }
 
 lh_bool_t
@@ -181,5 +209,5 @@ lh_os_shared_module_has_sym(const lh_os_shared_module_t *self, lh_str_cptr name)
         lh_os_set_last_error(1, lh_os_error_desc_lit("not loaded"));
         return lh_bool_false;
     }
-    return lh_os_shared_has_sym(self->handle, name);
+    return lh_os_shared_has_sym(*lh_os_shared_module_get_handle_as_const(self), name);
 }

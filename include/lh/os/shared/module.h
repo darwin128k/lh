@@ -69,6 +69,40 @@ const lh_vector_t *
 lh_os_shared_module_get_modules_as_const(const lh_os_shared_module_t *self);
 
 /**
+ * @brief OS handle of @p self, after validating the module pointer.
+ *
+ * Single access to `handle`. Other functions go through this or
+ * ::lh_os_shared_module_get_handle_as_const instead of `self->handle`.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_os_shared_handle_t *
+lh_os_shared_module_get_handle(lh_os_shared_module_t *self);
+
+/**
+ * @brief `const` counterpart to ::lh_os_shared_module_get_handle.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_os_shared_handle_t *
+lh_os_shared_module_get_handle_as_const(const lh_os_shared_module_t *self);
+
+/**
+ * @brief Close-ownership flag of @p self, after validating the module pointer.
+ *
+ * Single access to `owned`. Other functions go through this or
+ * ::lh_os_shared_module_get_owned_as_const instead of `self->owned`.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t *
+lh_os_shared_module_get_owned(lh_os_shared_module_t *self);
+
+/**
+ * @brief `const` counterpart to ::lh_os_shared_module_get_owned.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_bool_t *
+lh_os_shared_module_get_owned_as_const(const lh_os_shared_module_t *self);
+
+/**
  * @brief Empty image: no handle, empty child table of elements sized @p type_size.
  *
  * @p type_size is `sizeof` of the derived module (at least
