@@ -1,6 +1,6 @@
 /**
  * @file path.h
- * @brief Narrow filesystem paths: exe location, join, mtime, remove.
+ * @brief Narrow filesystem paths: exe location, join, mtime, read, remove.
  *
  * Path text is a NUL-terminated ::lh_str_cptr, same encoding as
  * ::lh_os_shared_open (`LoadLibraryA` / POSIX bytes). No directory walk,
@@ -19,6 +19,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/numeric/fixed/types.h>
+#include <lh/ptr.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
 
@@ -102,6 +103,23 @@ lh_os_fs_path_join(lh_str_ptr out, lh_usize_t out_size, lh_str_cptr dir, lh_str_
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_fs_path_mtime(lh_str_cptr path, lh_s64_t *out);
+
+/**
+ * @brief Read the whole file at @p path into @p buf (PHP `file_get_contents`).
+ *
+ * All-or-nothing: if the file is larger than @p buf_size, nothing is copied
+ * and the call fails. Does not append a NUL — @p out_size is the byte count.
+ * An empty file succeeds with @p out_size `0`.
+ *
+ * @param path     Filesystem path. ::lh_null or empty is an error.
+ * @param buf      Destination buffer. Ignored when the file is empty.
+ * @param buf_size Capacity of @p buf in bytes.
+ * @param out_size Receives the number of bytes written.
+ * @return ::lh_bool_true on success, ::lh_bool_false on failure.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_path_read(lh_str_cptr path, lh_ptr buf, lh_usize_t buf_size, lh_usize_t *out_size);
 
 /**
  * @brief Delete the file at @p path.

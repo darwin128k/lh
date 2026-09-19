@@ -146,6 +146,21 @@ LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_os_fs_file_write(lh_ptr context, const lh_ptr buf, lh_usize_t size);
 
+/**
+ * @brief Read exactly @p size bytes from @p self into @p buf.
+ *
+ * Loops ::lh_os_fs_file_read until @p size bytes arrive. A short file (EOF
+ * before @p size) is a failure. @p size `0` succeeds without touching @p buf.
+ *
+ * @param self Open file (read mode).
+ * @param buf  Destination buffer.
+ * @param size Number of bytes to read.
+ * @return ::lh_bool_true if every byte was read, ::lh_bool_false on failure.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_file_read_all(lh_os_fs_file_t *self, lh_ptr buf, lh_usize_t size);
+
 /* ── lh_io adapters ──────────────────────────────────────────────────────── */
 
 /**

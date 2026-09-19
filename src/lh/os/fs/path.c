@@ -5,6 +5,7 @@
 #include <lh/compiler/os.h>
 #include <lh/null.h>
 #include <lh/os.h>
+#include <lh/os/fs/file.h>
 #include <lh/util/addr.h>
 #include <lh/util/str/ptr.h>
 
@@ -313,6 +314,40 @@ lh_os_fs_path_mtime(lh_str_cptr path, lh_s64_t *out)
         return lh_bool_true;
     }
 #endif
+}
+
+lh_bool_t
+lh_os_fs_path_read(lh_str_cptr path, lh_ptr buf, lh_usize_t buf_size, lh_usize_t *out_size)
+{
+    lh_os_fs_file_t file;
+    lh_u64_t size;
+
+    lh_assert_runtime_ref(out_size);
+
+    lh_os_fs_file_init(lh_addr_of(file));
+    if (!lh_os_fs_file_open(lh_addr_of(file), path, lh_os_fs_file_mode_read))
+    {
+        return lh_bool_false;
+    }
+    if (!lh_os_fs_file_get_size(lh_addr_of(file), lh_addr_of(size)))
+    {
+        lh_os_fs_file_close(lh_addr_of(file));
+        return lh_bool_false;
+    }
+    if (size > buf_size)
+    {
+        lh_os_fs_file_close(lh_addr_of(file));
+        lh_os_fs_path_fail_too_small();
+        return lh_bool_false;
+    }
+    if (!lh_os_fs_file_read_all(lh_addr_of(file), buf, lh_cast_static(lh_usize_t, size)))
+    {
+        lh_os_fs_file_close(lh_addr_of(file));
+        return lh_bool_false;
+    }
+    lh_os_fs_file_close(lh_addr_of(file));
+    *out_size = lh_cast_static(lh_usize_t, size);
+    return lh_bool_true;
 }
 
 lh_bool_t

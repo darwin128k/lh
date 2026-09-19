@@ -2,6 +2,7 @@
 #include <lh/assert.h>
 #include <lh/cast/reinterpret.h>
 #include <lh/cast/static.h>
+#include <lh/char.h>
 #include <lh/compiler/os.h>
 #include <lh/null.h>
 #include <lh/os.h>
@@ -262,6 +263,39 @@ lh_os_fs_file_write(lh_ptr context, const lh_ptr buf, lh_usize_t size)
         return n;
     }
 #endif
+}
+
+lh_bool_t
+lh_os_fs_file_read_all(lh_os_fs_file_t *self, lh_ptr buf, lh_usize_t size)
+{
+    lh_uchar_t *bytes;
+    lh_usize_t got;
+    lh_ssize_t n;
+
+    lh_assert_runtime_ref(self);
+
+    if (size == 0U)
+    {
+        return lh_bool_true;
+    }
+    lh_assert_runtime_ref(buf);
+
+    bytes = lh_ptr_cast(lh_uchar_t, buf);
+    got = 0U;
+    while (got < size)
+    {
+        n = lh_os_fs_file_read(self, bytes + got, size - got);
+        if (n <= 0)
+        {
+            if (n == 0)
+            {
+                lh_os_set_last_error(1, lh_os_error_desc_lit("file ended before all bytes were read"));
+            }
+            return lh_bool_false;
+        }
+        got += lh_cast_static(lh_usize_t, n);
+    }
+    return lh_bool_true;
 }
 
 lh_io_reader_t
