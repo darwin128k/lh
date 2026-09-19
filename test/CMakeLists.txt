@@ -62,6 +62,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/util/bit/scan.cpp
         ${LH_TEST_SRC_PATH}/lh/util/interval.cpp
         ${LH_TEST_SRC_PATH}/lh/util/math.cpp
+        ${LH_TEST_SRC_PATH}/lh/util/memory.cpp
         ${LH_TEST_SRC_PATH}/lh/str/view.cpp
         ${LH_TEST_SRC_PATH}/lh/wstr/view.cpp
         ${LH_TEST_SRC_PATH}/lh/util/str/ptr.cpp

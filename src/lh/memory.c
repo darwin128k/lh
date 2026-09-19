@@ -6,24 +6,11 @@
 #include <lh/bool.h>
 #include <lh/config.h>
 #include <lh/util/math.h>
+#include <lh/util/memory.h>
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 #define LH_MEMORY_SCAN_BLOCK (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK))
-
-LH_ATTRIBUTE_STATIC
-lh_usize_t
-lh_memory_size_rest(lh_usize_t size, lh_usize_t off)
-{
-    return lh_math_le(off, size) ? lh_math_sub(size, off) : 0;
-}
-
-LH_ATTRIBUTE_STATIC
-lh_usize_t
-lh_memory_scan_bound(const lh_ptr ptr)
-{
-    return lh_addr_diff(LH_USIZE_T_MAX, lh_ptr_to_uaddr(ptr));
-}
 
 LH_ATTRIBUTE_STATIC
 lh_bool_t
