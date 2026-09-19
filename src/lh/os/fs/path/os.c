@@ -2,6 +2,7 @@
 #include "local.h"
 #include <lh/cast/const.h>
 #include <lh/cast/static.h>
+#include <lh/char/map.h>
 #include <lh/compiler/os.h>
 #include <lh/memory.h>
 #include <lh/null.h>
@@ -93,7 +94,8 @@ lh_os_fs_path_exe(lh_os_fs_path_t *out)
             lh_os_capture_last_error();
             return lh_bool_false;
         }
-        lh_ptr_deref(lh_ptr_add_by_offset(lh_char_t, buf, lh_cast_static(lh_usize_t, n))) = '\0';
+        lh_ptr_deref(lh_ptr_add_by_offset(lh_char_t, buf, lh_cast_static(lh_usize_t, n))) =
+            lh_char_map_nul;
         return lh_os_fs_path_from_os_buf(out, buf);
     }
 #endif
@@ -101,16 +103,13 @@ lh_os_fs_path_exe(lh_os_fs_path_t *out)
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
 static lh_bool_t
-lh_os_fs_path_attrs(lh_str_cptr cstr, DWORD *attrs)
+lh_os_fs_path_stat_win(lh_str_cptr cstr, WIN32_FILE_ATTRIBUTE_DATA *info)
 {
-    WIN32_FILE_ATTRIBUTE_DATA info;
-
-    if (!GetFileAttributesExA(cstr, GetFileExInfoStandard, lh_addr_of(info)))
+    if (!GetFileAttributesExA(cstr, GetFileExInfoStandard, info))
     {
         lh_os_capture_last_error();
         return lh_bool_false;
     }
-    *attrs = info.dwFileAttributes;
     return lh_bool_true;
 }
 #endif
@@ -138,7 +137,7 @@ lh_os_fs_path_is(const lh_os_fs_path_t *path, lh_os_fs_kind_t kind)
     if (kind == lh_os_fs_kind_shortcut)
     {
         lh_os_fs_file_t file;
-        lh_u8_t buf[20];
+        lh_u8_t buf[sizeof(lh_os_fs_path_shortcut_magic)];
         lh_ssize_t n;
 
         if (!lh_os_fs_path_is(path, lh_os_fs_kind_file))
@@ -168,11 +167,13 @@ lh_os_fs_path_is(const lh_os_fs_path_t *path, lh_os_fs_kind_t kind)
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     {
         DWORD attrs;
+        WIN32_FILE_ATTRIBUTE_DATA info;
 
-        if (!lh_os_fs_path_attrs(cstr, lh_addr_of(attrs)))
+        if (!lh_os_fs_path_stat_win(cstr, lh_addr_of(info)))
         {
             return lh_bool_false;
         }
+        attrs = info.dwFileAttributes;
         if (kind == lh_os_fs_kind_dir)
         {
             return lh_cast_static(lh_bool_t, (attrs & FILE_ATTRIBUTE_DIRECTORY) != 0U);
@@ -267,9 +268,8 @@ lh_os_fs_path_mtime(const lh_os_fs_path_t *path, lh_s64_t *out)
         WIN32_FILE_ATTRIBUTE_DATA info;
         ULARGE_INTEGER ticks;
 
-        if (!GetFileAttributesExA(cstr, GetFileExInfoStandard, lh_addr_of(info)))
+        if (!lh_os_fs_path_stat_win(cstr, lh_addr_of(info)))
         {
-            lh_os_capture_last_error();
             return lh_bool_false;
         }
         ticks.LowPart = info.ftLastWriteTime.dwLowDateTime;

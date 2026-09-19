@@ -1,6 +1,8 @@
 #include <lh/os/fs/path.h>
 #include "path/local.h"
 #include <lh/assert.h>
+#include <lh/char/map.h>
+#include <lh/memory/view.h>
 #include <lh/str/view.h>
 #include <lh/str/view/initializer.h>
 #include <lh/util/addr.h>
@@ -67,12 +69,8 @@ lh_os_fs_path_get_part(const lh_os_fs_path_t *self, lh_uindex_t index)
         lh_str_view_init_empty(lh_addr_of(view));
         return view;
     }
-    lh_str_init_by_size(
-        lh_addr_of(view),
-        lh_ptr_add_by_offset(const lh_char_t,
-                             lh_str_get_data(lh_os_fs_path_get_text_as_const(self)), span->offset),
-        span->size);
-    return view;
+    view = lh_os_fs_path_as_view(self);
+    return lh_memory_view_make_from_offset(lh_addr_of(view), span->offset, span->size);
 }
 
 lh_str_view_t
@@ -100,9 +98,9 @@ lh_char_t
 lh_os_fs_path_sep(void)
 {
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-    return '\\';
+    return lh_char_map_backslash;
 #else
-    return '/';
+    return lh_char_map_slash;
 #endif
 }
 

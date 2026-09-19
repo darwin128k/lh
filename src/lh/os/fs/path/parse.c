@@ -3,6 +3,7 @@
 #include <lh/char/letter.h>
 #include <lh/char/map.h>
 #include <lh/compiler/os.h>
+#include <lh/memory/view.h>
 #include <lh/str/view.h>
 #include <lh/str/view/initializer.h>
 #include <lh/util/addr.h>
@@ -140,7 +141,6 @@ lh_os_fs_path_append_path(lh_os_fs_path_t *self, const lh_os_fs_path_t *name)
 lh_bool_t
 lh_os_fs_path_set(lh_os_fs_path_t *self, lh_str_view_t text)
 {
-    lh_str_cptr data;
     lh_usize_t n;
     lh_usize_t i;
 
@@ -150,7 +150,6 @@ lh_os_fs_path_set(lh_os_fs_path_t *self, lh_str_view_t text)
         return lh_bool_true;
     }
 
-    data = lh_str_view_get_data(lh_addr_of(text));
     n = lh_str_view_get_size(lh_addr_of(text));
     i = 0U;
 
@@ -159,13 +158,12 @@ lh_os_fs_path_set(lh_os_fs_path_t *self, lh_str_view_t text)
     {
         lh_str_view_t drive;
 
-        lh_str_init_by_size(lh_addr_of(drive), data, 2U);
+        drive = lh_memory_view_make_from_offset(lh_addr_of(text), 0U, 2U);
         if (lh_os_fs_path_is_drive_view(drive))
         {
             lh_os_fs_path_append_part(self, drive);
             i = 2U;
-            if (i < n &&
-                lh_os_fs_path_is_sep(lh_ptr_deref(lh_ptr_add_by_offset(const lh_char_t, data, i))))
+            if (i < n && lh_os_fs_path_is_sep_at(lh_addr_of(text), i))
             {
                 i += 1U;
             }
@@ -173,7 +171,7 @@ lh_os_fs_path_set(lh_os_fs_path_t *self, lh_str_view_t text)
     }
 #endif
 
-    while (i < n && lh_os_fs_path_is_sep(lh_ptr_deref(lh_ptr_add_by_offset(const lh_char_t, data, i))))
+    while (i < n && lh_os_fs_path_is_sep_at(lh_addr_of(text), i))
     {
         lh_str_view_t empty;
 
@@ -185,19 +183,16 @@ lh_os_fs_path_set(lh_os_fs_path_t *self, lh_str_view_t text)
     while (i < n)
     {
         lh_usize_t start;
-        lh_str_view_t piece;
 
         start = i;
-        while (i < n &&
-               !lh_os_fs_path_is_sep(lh_ptr_deref(lh_ptr_add_by_offset(const lh_char_t, data, i))))
+        while (i < n && !lh_os_fs_path_is_sep_at(lh_addr_of(text), i))
         {
             i += 1U;
         }
         if (i > start)
         {
-            lh_str_init_by_size(lh_addr_of(piece),
-                                lh_ptr_add_by_offset(const lh_char_t, data, start), i - start);
-            lh_os_fs_path_append_part(self, piece);
+            lh_os_fs_path_append_part(
+                self, lh_memory_view_make_from_offset(lh_addr_of(text), start, i - start));
         }
         if (i < n)
         {
@@ -219,13 +214,12 @@ lh_os_fs_path_drop_last(lh_os_fs_path_t *self)
     lh_str_view_t view;
     lh_usize_t keep;
 
-    parts = lh_os_fs_path_get_parts(self);
-    n = lh_vector_get_size(parts);
-    if (n == 0U)
+    if (!lh_os_fs_path_require(self))
     {
-        lh_os_set_last_error(lh_os_error_code_path_empty, lh_os_error_desc_lit("path is empty"));
         return lh_bool_false;
     }
+    parts = lh_os_fs_path_get_parts(self);
+    n = lh_vector_get_size(parts);
     if (n == 1U)
     {
         first = lh_os_fs_path_get_part(self, 0U);
@@ -242,20 +236,10 @@ lh_os_fs_path_drop_last(lh_os_fs_path_t *self)
     if (keep > 0U)
     {
         view = lh_os_fs_path_as_view(self);
-        if (lh_os_fs_path_is_sep(lh_str_view_get_char_from_begin(lh_addr_of(view), keep - 1U)))
+        if (lh_os_fs_path_is_sep_at(lh_addr_of(view), keep - 1U) &&
+            (n != 1U || !lh_os_fs_path_is_root_part(lh_os_fs_path_get_part(self, 0U))))
         {
-            if (n != 1U)
-            {
-                keep -= 1U;
-            }
-            else
-            {
-                first = lh_os_fs_path_get_part(self, 0U);
-                if (!lh_os_fs_path_is_root_part(first))
-                {
-                    keep -= 1U;
-                }
-            }
+            keep -= 1U;
         }
     }
     lh_str_truncate(lh_os_fs_path_get_text(self), keep);

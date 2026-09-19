@@ -13,6 +13,7 @@
 #include <lh/char/slash.h>
 #include <lh/os.h>
 #include <lh/str.h>
+#include <lh/str/view.h>
 #include <lh/util/addr.h>
 
 typedef struct
@@ -51,6 +52,13 @@ lh_os_fs_path_is_sep(lh_char_t ch)
 #else
     return lh_char_is_slash(ch);
 #endif
+}
+
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
+lh_os_fs_path_is_sep_at(const lh_str_view_t *text, lh_usize_t i)
+{
+    return lh_os_fs_path_is_sep(lh_str_view_get_char_from_begin(text, i));
 }
 
 #endif /* LH_OS_FS_PATH_LOCAL_H */
