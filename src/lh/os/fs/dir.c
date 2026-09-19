@@ -99,11 +99,8 @@ lh_os_fs_dir_open(lh_os_fs_dir_t *self, const lh_os_fs_path_t *path)
     struct lh_os_fs_dir_state *state;
 
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(path);
-
-    if (lh_os_fs_path_is_empty(path))
+    if (!lh_os_fs_path_require(path))
     {
-        lh_os_set_last_error(lh_os_error_code_path_empty, lh_os_error_desc_lit("path is empty"));
         return lh_bool_false;
     }
 

@@ -48,10 +48,8 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_os_fs_path_t *path, lh_os_fs_
     lh_assert_runtime_if(mode != lh_os_fs_file_mode_read && mode != lh_os_fs_file_mode_write,
                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
 
-    lh_assert_runtime_ref(path);
-    if (lh_os_fs_path_is_empty(path))
+    if (!lh_os_fs_path_require(path))
     {
-        lh_os_set_last_error(lh_os_error_code_path_empty, lh_os_error_desc_lit("path is empty"));
         return lh_bool_false;
     }
     cstr = lh_str_get_data(lh_os_fs_path_get_text_as_const(path));
