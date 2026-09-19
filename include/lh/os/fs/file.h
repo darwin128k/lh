@@ -27,9 +27,9 @@
 #include <lh/numeric/fixed/types.h>
 #include <lh/os/fs/file/handle.h>
 #include <lh/os/fs/file/mode.h>
+#include <lh/os/fs/path.h>
 #include <lh/ptr.h>
 #include <lh/size.h>
-#include <lh/str/ptr.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/fs/file.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
@@ -67,13 +67,13 @@ lh_os_fs_file_init(lh_os_fs_file_t *self);
  *
  * @param self File object to open; must be in the empty state
  *             (::lh_os_fs_file_init or freshly ::lh_os_fs_file_close'd).
- * @param path Filesystem path (`CreateFileA` / `open`). ::lh_null is an error.
+ * @param path Filesystem path (`CreateFileA` / `open`). Empty is an error.
  * @param mode ::lh_os_fs_file_mode_read or ::lh_os_fs_file_mode_write.
  * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_fs_file_open(lh_os_fs_file_t *self, lh_str_cptr path, lh_os_fs_file_mode_t mode);
+lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_os_fs_path_t *path, lh_os_fs_file_mode_t mode);
 
 /**
  * @brief Close @p self's handle (if open) and return it to the empty state.

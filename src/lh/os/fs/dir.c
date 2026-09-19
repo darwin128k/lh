@@ -6,6 +6,9 @@
 #include <lh/os.h>
 #include <lh/os/fs/path.h>
 #include <lh/runtime/allocator.h>
+#include <lh/str.h>
+#include <lh/str/view.h>
+#include <lh/str/view/initializer.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 #include <lh/util/str/ptr.h>
@@ -35,21 +38,9 @@ struct lh_os_fs_dir_state
 };
 
 static void
-lh_os_fs_dir_fail_null(void)
-{
-    lh_os_set_last_error(1, lh_os_error_desc_lit("path is null"));
-}
-
-static void
 lh_os_fs_dir_fail_empty(void)
 {
     lh_os_set_last_error(1, lh_os_error_desc_lit("path is empty"));
-}
-
-static void
-lh_os_fs_dir_fail_too_small(void)
-{
-    lh_os_set_last_error(1, lh_os_error_desc_lit("name buffer is too small"));
 }
 
 static void
@@ -133,18 +124,14 @@ lh_os_fs_dir_init(lh_os_fs_dir_t *self)
 }
 
 lh_bool_t
-lh_os_fs_dir_open(lh_os_fs_dir_t *self, lh_str_cptr path)
+lh_os_fs_dir_open(lh_os_fs_dir_t *self, const lh_os_fs_path_t *path)
 {
     struct lh_os_fs_dir_state *state;
 
     lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(path);
 
-    if (lh_null_eq(path))
-    {
-        lh_os_fs_dir_fail_null();
-        return lh_bool_false;
-    }
-    if (path[0] == '\0')
+    if (lh_os_fs_path_is_empty(path))
     {
         lh_os_fs_dir_fail_empty();
         return lh_bool_false;
@@ -159,15 +146,24 @@ lh_os_fs_dir_open(lh_os_fs_dir_t *self, lh_str_cptr path)
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     {
-        lh_char_t pattern[4096];
+        lh_os_fs_path_t pattern;
+        lh_os_fs_path_t star;
 
-        if (!lh_os_fs_path_join(pattern, sizeof(pattern), path, "*"))
+        lh_os_fs_path_init(lh_addr_of(pattern));
+        lh_os_fs_path_init(lh_addr_of(star));
+        if (!lh_os_fs_path_set(lh_addr_of(star), lh_str_view_lit("*")) ||
+            !lh_os_fs_path_join(lh_addr_of(pattern), path, lh_addr_of(star)))
         {
+            lh_os_fs_path_deinit(lh_addr_of(pattern));
+            lh_os_fs_path_deinit(lh_addr_of(star));
             lh_runtime_allocator_free(state);
             return lh_bool_false;
         }
 
-        state->find = FindFirstFileA(pattern, lh_addr_of(state->data));
+        state->find = FindFirstFileA(lh_str_get_data(lh_os_fs_path_get_text_as_const(lh_addr_of(pattern))),
+                                     lh_addr_of(state->data));
+        lh_os_fs_path_deinit(lh_addr_of(pattern));
+        lh_os_fs_path_deinit(lh_addr_of(star));
         if (state->find == INVALID_HANDLE_VALUE)
         {
             lh_os_capture_last_error();
@@ -177,7 +173,7 @@ lh_os_fs_dir_open(lh_os_fs_dir_t *self, lh_str_cptr path)
         state->ready = lh_bool_true;
     }
 #else
-    state->dir = opendir(path);
+    state->dir = opendir(lh_str_get_data(lh_os_fs_path_get_text_as_const(path)));
     if (lh_null_eq(state->dir))
     {
         lh_os_capture_last_error();
@@ -228,24 +224,23 @@ lh_os_fs_dir_is_valid(const lh_os_fs_dir_t *self)
 }
 
 static lh_ssize_t
-lh_os_fs_dir_copy_name(lh_str_cptr name, lh_str_ptr out, lh_usize_t out_size,
-                       lh_os_fs_dir_entry_kind_t kind, lh_os_fs_dir_entry_kind_t *kind_out)
+lh_os_fs_dir_copy_name(lh_str_cptr name, lh_os_fs_path_t *out, lh_os_fs_dir_entry_kind_t kind,
+                       lh_os_fs_dir_entry_kind_t *kind_out)
 {
+    lh_str_view_t view;
     lh_usize_t n;
 
-    n = lh_str_ptr_len(name);
+    view = lh_str_view_make(name);
+    n = lh_str_view_is_empty(lh_addr_of(view)) ? 0U : lh_str_view_get_size(lh_addr_of(view));
     if (n > LH_OS_FS_DIR_NAME_MAX)
     {
         lh_os_fs_dir_fail_too_long();
         return -1;
     }
-    if (n + 1U > out_size)
+    if (!lh_os_fs_path_set(out, view))
     {
-        lh_os_fs_dir_fail_too_small();
         return -1;
     }
-    lh_str_ptr_copy(out, n, name, n);
-    out[n] = '\0';
     if (lh_null_ne(kind_out))
     {
         *kind_out = kind;
@@ -254,13 +249,12 @@ lh_os_fs_dir_copy_name(lh_str_cptr name, lh_str_ptr out, lh_usize_t out_size,
 }
 
 lh_ssize_t
-lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_ptr out, lh_usize_t out_size,
-                  lh_os_fs_dir_entry_kind_t *kind)
+lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_os_fs_path_t *name, lh_os_fs_dir_entry_kind_t *kind)
 {
     struct lh_os_fs_dir_state *state;
 
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(out);
+    lh_assert_runtime_ref(name);
 
     if (lh_null_eq(self->handle))
     {
@@ -281,6 +275,7 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_ptr out, lh_usize_t out_size,
             {
                 if (GetLastError() == ERROR_NO_MORE_FILES)
                 {
+                    lh_os_fs_path_clear(name);
                     return 0;
                 }
                 lh_os_capture_last_error();
@@ -293,7 +288,7 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_ptr out, lh_usize_t out_size,
             state->ready = lh_bool_false;
             continue;
         }
-        n = lh_os_fs_dir_copy_name(state->data.cFileName, out, out_size,
+        n = lh_os_fs_dir_copy_name(state->data.cFileName, name,
                                    lh_os_fs_dir_kind_win(lh_addr_of(state->data)), kind);
         if (n >= 0)
         {
@@ -308,7 +303,7 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_ptr out, lh_usize_t out_size,
 #else
     for (;;)
     {
-        lh_str_cptr name;
+        lh_str_cptr entry_name;
         unsigned char type;
         lh_ssize_t n;
 
@@ -325,39 +320,40 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_ptr out, lh_usize_t out_size,
                     lh_os_capture_last_error();
                     return -1;
                 }
+                lh_os_fs_path_clear(name);
                 return 0;
             }
-            name = entry->d_name;
+            entry_name = entry->d_name;
             type = entry->d_type;
         }
         else
         {
-            name = state->pending;
+            entry_name = state->pending;
             type = state->type;
         }
 
-        if (lh_os_fs_dir_is_dot(name))
+        if (lh_os_fs_dir_is_dot(entry_name))
         {
             state->ready = lh_bool_false;
             continue;
         }
 
-        n = lh_os_fs_dir_copy_name(name, out, out_size, lh_os_fs_dir_kind_posix(type), kind);
+        n = lh_os_fs_dir_copy_name(entry_name, name, lh_os_fs_dir_kind_posix(type), kind);
         if (n >= 0)
         {
             state->ready = lh_bool_false;
             return n;
         }
-        if (lh_str_ptr_len(name) > LH_OS_FS_DIR_NAME_MAX)
+        if (lh_str_ptr_len(entry_name) > LH_OS_FS_DIR_NAME_MAX)
         {
             state->ready = lh_bool_false;
             return n;
         }
         if (!state->ready)
         {
-            lh_usize_t pn = lh_str_ptr_len(name);
+            lh_usize_t pn = lh_str_ptr_len(entry_name);
 
-            lh_str_ptr_copy(state->pending, pn, name, pn);
+            lh_str_ptr_copy(state->pending, pn, entry_name, pn);
             state->pending[pn] = '\0';
             state->type = type;
             state->ready = lh_bool_true;

@@ -6,6 +6,9 @@
 #include <lh/compiler/os.h>
 #include <lh/null.h>
 #include <lh/os.h>
+#include <lh/os/fs/path.h>
+#include <lh/runtime/error.h>
+#include <lh/str.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 
@@ -38,22 +41,21 @@ lh_os_fs_file_init(lh_os_fs_file_t *self)
 }
 
 lh_bool_t
-lh_os_fs_file_open(lh_os_fs_file_t *self, lh_str_cptr path, lh_os_fs_file_mode_t mode)
+lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_os_fs_path_t *path, lh_os_fs_file_mode_t mode)
 {
+    lh_str_cptr cstr;
+
     lh_assert_runtime_ref(self);
     lh_assert_runtime_if(mode != lh_os_fs_file_mode_read && mode != lh_os_fs_file_mode_write,
                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
 
-    if (lh_null_eq(path))
-    {
-        lh_os_set_last_error(1, lh_os_error_desc_lit("path is null"));
-        return lh_bool_false;
-    }
-    if (path[0] == '\0')
+    lh_assert_runtime_ref(path);
+    if (lh_os_fs_path_is_empty(path))
     {
         lh_os_set_last_error(1, lh_os_error_desc_lit("path is empty"));
         return lh_bool_false;
     }
+    cstr = lh_str_get_data(lh_os_fs_path_get_text_as_const(path));
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     {
@@ -72,7 +74,7 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, lh_str_cptr path, lh_os_fs_file_mode_t
             disposition = CREATE_ALWAYS;
         }
 
-        native = CreateFileA(path, access, FILE_SHARE_READ, lh_null, disposition,
+        native = CreateFileA(cstr, access, FILE_SHARE_READ, lh_null, disposition,
                              FILE_ATTRIBUTE_NORMAL, lh_null);
         if (native == INVALID_HANDLE_VALUE)
         {
@@ -90,12 +92,12 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, lh_str_cptr path, lh_os_fs_file_mode_t
         if (mode == lh_os_fs_file_mode_read)
         {
             flags = O_RDONLY;
-            native = open(path, flags);
+            native = open(cstr, flags);
         }
         else
         {
             flags = O_WRONLY | O_CREAT | O_TRUNC;
-            native = open(path, flags, 0644);
+            native = open(cstr, flags, 0644);
         }
         if (native < 0)
         {

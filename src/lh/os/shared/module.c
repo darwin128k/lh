@@ -52,13 +52,27 @@ lh_os_shared_module_get_owned_as_const(const lh_os_shared_module_t *self)
     return lh_addr_of(self->owned);
 }
 
+lh_bool_t
+lh_os_shared_module_get_path(const lh_os_shared_module_t *self, lh_os_fs_path_t *out)
+{
+    lh_assert_runtime_ref(out);
+    if (!lh_os_shared_module_is_loaded(self))
+    {
+        lh_os_fs_path_clear(out);
+        lh_os_set_last_error(1, lh_os_error_desc_lit("not loaded"));
+        return lh_bool_false;
+    }
+    return lh_os_shared_get_path_of(lh_ptr_deref(lh_os_shared_module_get_handle_as_const(self)),
+                                    out);
+}
+
 void
 lh_os_shared_module_init(lh_os_shared_module_t *self, lh_usize_t type_size)
 {
     lh_assert_runtime_if(type_size < sizeof(lh_os_shared_module_t),
                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
-    *lh_os_shared_module_get_handle(self) = lh_null;
-    *lh_os_shared_module_get_owned(self) = lh_bool_false;
+    lh_ptr_deref(lh_os_shared_module_get_handle(self)) = lh_null;
+    lh_ptr_deref(lh_os_shared_module_get_owned(self)) = lh_bool_false;
     lh_vector_init(lh_os_shared_module_get_modules(self), type_size);
 }
 
@@ -73,11 +87,11 @@ lh_bool_t
 lh_os_shared_module_is_loaded(const lh_os_shared_module_t *self)
 {
     return lh_cast_static(lh_bool_t,
-                          lh_null_ne(*lh_os_shared_module_get_handle_as_const(self)));
+                          lh_null_ne(lh_ptr_deref(lh_os_shared_module_get_handle_as_const(self))));
 }
 
 lh_bool_t
-lh_os_shared_module_open(lh_os_shared_module_t *self, lh_str_cptr path)
+lh_os_shared_module_open(lh_os_shared_module_t *self, const lh_os_fs_path_t *path)
 {
     lh_os_shared_handle_t handle;
 
@@ -91,8 +105,8 @@ lh_os_shared_module_open(lh_os_shared_module_t *self, lh_str_cptr path)
     {
         return lh_bool_false;
     }
-    *lh_os_shared_module_get_handle(self) = handle;
-    *lh_os_shared_module_get_owned(self) = lh_bool_true;
+    lh_ptr_deref(lh_os_shared_module_get_handle(self)) = handle;
+    lh_ptr_deref(lh_os_shared_module_get_owned(self)) = lh_bool_true;
     return lh_bool_true;
 }
 
@@ -111,11 +125,11 @@ lh_os_shared_module_bind(lh_os_shared_module_t *self, lh_ptr addr)
     {
         return lh_bool_false;
     }
-    *lh_os_shared_module_get_handle(self) = handle;
+    lh_ptr_deref(lh_os_shared_module_get_handle(self)) = handle;
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-    *lh_os_shared_module_get_owned(self) = lh_bool_false;
+    lh_ptr_deref(lh_os_shared_module_get_owned(self)) = lh_bool_false;
 #else
-    *lh_os_shared_module_get_owned(self) = lh_bool_true;
+    lh_ptr_deref(lh_os_shared_module_get_owned(self)) = lh_bool_true;
 #endif
     return lh_bool_true;
 }
@@ -142,19 +156,19 @@ lh_os_shared_module_close(lh_os_shared_module_t *self)
     lh_os_shared_handle_t *handle = lh_os_shared_module_get_handle(self);
     lh_bool_t *owned = lh_os_shared_module_get_owned(self);
 
-    if (lh_null_eq(*handle))
+    if (lh_null_eq(lh_ptr_deref(handle)))
     {
         return lh_bool_true;
     }
-    if (*owned)
+    if (lh_ptr_deref(owned))
     {
-        if (!lh_os_shared_close(*handle))
+        if (!lh_os_shared_close(lh_ptr_deref(handle)))
         {
             return lh_bool_false;
         }
     }
-    *handle = lh_null;
-    *owned = lh_bool_false;
+    lh_ptr_deref(handle) = lh_null;
+    lh_ptr_deref(owned) = lh_bool_false;
     return lh_bool_true;
 }
 
@@ -198,7 +212,7 @@ lh_os_shared_module_get_sym(const lh_os_shared_module_t *self, lh_str_cptr name)
         lh_os_set_last_error(1, lh_os_error_desc_lit("not loaded"));
         return lh_null;
     }
-    return lh_os_shared_get_sym(*lh_os_shared_module_get_handle_as_const(self), name);
+    return lh_os_shared_get_sym(lh_ptr_deref(lh_os_shared_module_get_handle_as_const(self)), name);
 }
 
 lh_bool_t
@@ -209,5 +223,5 @@ lh_os_shared_module_has_sym(const lh_os_shared_module_t *self, lh_str_cptr name)
         lh_os_set_last_error(1, lh_os_error_desc_lit("not loaded"));
         return lh_bool_false;
     }
-    return lh_os_shared_has_sym(*lh_os_shared_module_get_handle_as_const(self), name);
+    return lh_os_shared_has_sym(lh_ptr_deref(lh_os_shared_module_get_handle_as_const(self)), name);
 }

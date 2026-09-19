@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <cstring>
-
 #if !defined(_WIN32)
 #    include <unistd.h>
 #endif
@@ -9,10 +7,29 @@
 #include <lh/os.h>
 #include <lh/os/fs/file.h>
 #include <lh/os/fs/path.h>
+#include <lh/str.h>
+#include <lh/str/view.h>
+#include <lh/str/view/initializer.h>
+#include <lh/util/addr.h>
+#include <lh/util/ptr.h>
 #include <lh/util/str/ptr.h>
+#include <lh/vector.h>
 
 namespace
 {
+
+static const char *
+path_cstr(const lh_os_fs_path_t *path)
+{
+    return lh_str_get_data(lh_os_fs_path_get_text_as_const(path));
+}
+
+static void
+path_set_lit(lh_os_fs_path_t *path, const char *text)
+{
+    lh_os_fs_path_init(path);
+    ASSERT_EQ(lh_os_fs_path_set(path, lh_str_view_make(text)), lh_bool_true);
+}
 
 TEST(os_fs_path_sep, matches_os)
 {
@@ -25,251 +42,323 @@ TEST(os_fs_path_sep, matches_os)
 
 TEST(os_fs_path_exe, writes_non_empty_absolute_looking_path)
 {
-    char exe[4096];
+    lh_os_fs_path_t exe;
+    lh_str_view_t view;
 
-    ASSERT_EQ(lh_os_fs_path_exe(exe, sizeof(exe)), lh_bool_true);
-    EXPECT_NE(exe[0], '\0');
-    EXPECT_TRUE(lh_str_ptr_find_of_char(exe, lh_str_ptr_len(exe), lh_os_fs_path_sep()) != lh_null ||
-                lh_str_ptr_find_of_char(exe, lh_str_ptr_len(exe), '/') != lh_null);
-}
-
-TEST(os_fs_path_exe, rejects_tiny_buffer)
-{
-    char exe[4];
-
-    EXPECT_EQ(lh_os_fs_path_exe(exe, sizeof(exe)), lh_bool_false);
-    EXPECT_EQ(exe[0], '\0');
-    EXPECT_NE(lh_os_get_last_error_code(), 0);
+    lh_os_fs_path_init(lh_addr_of(exe));
+    ASSERT_EQ(lh_os_fs_path_exe(lh_addr_of(exe)), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_empty(lh_addr_of(exe)), lh_bool_false);
+    view = lh_os_fs_path_as_view(lh_addr_of(exe));
+    EXPECT_TRUE(lh_str_view_contains_char(lh_addr_of(view), lh_os_fs_path_sep()) == lh_bool_true ||
+                lh_str_view_contains_char(lh_addr_of(view), '/') == lh_bool_true);
 }
 
 TEST(os_fs_path_exe_dir, is_prefix_of_exe_and_join_restores_exe)
 {
-    char exe[4096];
-    char dir[4096];
-    char joined[4096];
-    const char *slash;
-    const char *name;
+    lh_os_fs_path_t exe;
+    lh_os_fs_path_t dir;
+    lh_os_fs_path_t name;
+    lh_os_fs_path_t joined;
+    const lh_vector_t *parts;
+    lh_usize_t n;
+    lh_str_view_t last;
 
-    ASSERT_EQ(lh_os_fs_path_exe(exe, sizeof(exe)), lh_bool_true);
-    ASSERT_EQ(lh_os_fs_path_exe_dir(dir, sizeof(dir)), lh_bool_true);
-    EXPECT_NE(dir[0], '\0');
+    lh_os_fs_path_init(lh_addr_of(exe));
+    lh_os_fs_path_init(lh_addr_of(dir));
+    lh_os_fs_path_init(lh_addr_of(name));
+    lh_os_fs_path_init(lh_addr_of(joined));
+    ASSERT_EQ(lh_os_fs_path_exe(lh_addr_of(exe)), lh_bool_true);
+    ASSERT_EQ(lh_os_fs_path_exe_dir(lh_addr_of(dir)), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_empty(lh_addr_of(dir)), lh_bool_false);
 
-    slash = strrchr(exe, lh_os_fs_path_sep());
-    if (slash == NULL)
-    {
-        slash = strrchr(exe, '/');
-    }
-    ASSERT_TRUE(slash != NULL);
-    name = slash + 1;
-    ASSERT_EQ(lh_os_fs_path_join(joined, sizeof(joined), dir, name), lh_bool_true);
-    EXPECT_STREQ(joined, exe);
+    parts = lh_os_fs_path_get_parts_as_const(lh_addr_of(exe));
+    n = lh_vector_get_size(parts);
+    ASSERT_GT(n, 0U);
+    last = lh_os_fs_path_get_part(lh_addr_of(exe), n - 1U);
+    ASSERT_EQ(lh_str_view_is_empty(lh_addr_of(last)), lh_bool_false);
+    ASSERT_EQ(lh_os_fs_path_set(lh_addr_of(name), last), lh_bool_true);
+    ASSERT_EQ(lh_os_fs_path_join(lh_addr_of(joined), lh_addr_of(dir), lh_addr_of(name)),
+              lh_bool_true);
+    EXPECT_STREQ(path_cstr(lh_addr_of(joined)), path_cstr(lh_addr_of(exe)));
 }
 
 TEST(os_fs_path_dir, of_exe_matches_exe_dir)
 {
-    char exe[4096];
-    char from_exe[4096];
-    char dir[4096];
+    lh_os_fs_path_t exe;
+    lh_os_fs_path_t from_exe;
+    lh_os_fs_path_t dir;
 
-    ASSERT_EQ(lh_os_fs_path_exe(exe, sizeof(exe)), lh_bool_true);
-    ASSERT_EQ(lh_os_fs_path_dir(exe, from_exe, sizeof(from_exe)), lh_bool_true);
-    ASSERT_EQ(lh_os_fs_path_exe_dir(dir, sizeof(dir)), lh_bool_true);
-    EXPECT_STREQ(from_exe, dir);
+    lh_os_fs_path_init(lh_addr_of(exe));
+    lh_os_fs_path_init(lh_addr_of(from_exe));
+    lh_os_fs_path_init(lh_addr_of(dir));
+    ASSERT_EQ(lh_os_fs_path_exe(lh_addr_of(exe)), lh_bool_true);
+    ASSERT_EQ(lh_os_fs_path_dir(lh_addr_of(exe), lh_addr_of(from_exe)), lh_bool_true);
+    ASSERT_EQ(lh_os_fs_path_exe_dir(lh_addr_of(dir)), lh_bool_true);
+    EXPECT_STREQ(path_cstr(lh_addr_of(from_exe)), path_cstr(lh_addr_of(dir)));
 }
 
 TEST(os_fs_path_dir, drops_last_component)
 {
-    char out[64];
+    lh_os_fs_path_t path;
+    lh_os_fs_path_t out;
 
-    ASSERT_EQ(lh_os_fs_path_dir("dir/file", out, sizeof(out)), lh_bool_true);
-    EXPECT_STREQ(out, "dir");
-    ASSERT_EQ(lh_os_fs_path_dir("file", out, sizeof(out)), lh_bool_true);
-    EXPECT_STREQ(out, ".");
+    path_set_lit(lh_addr_of(path), "dir/file");
+    lh_os_fs_path_init(lh_addr_of(out));
+    ASSERT_EQ(lh_os_fs_path_dir(lh_addr_of(path), lh_addr_of(out)), lh_bool_true);
+    EXPECT_STREQ(path_cstr(lh_addr_of(out)), "dir");
+    ASSERT_EQ(lh_os_fs_path_set(lh_addr_of(path), lh_str_view_make("file")), lh_bool_true);
+    ASSERT_EQ(lh_os_fs_path_dir(lh_addr_of(path), lh_addr_of(out)), lh_bool_true);
+    EXPECT_STREQ(path_cstr(lh_addr_of(out)), ".");
 }
 
-TEST(os_fs_path_dir, rejects_null_and_empty)
+TEST(os_fs_path_dir, rejects_empty)
 {
-    char out[16];
+    lh_os_fs_path_t empty;
+    lh_os_fs_path_t out;
 
-    EXPECT_EQ(lh_os_fs_path_dir(nullptr, out, sizeof(out)), lh_bool_false);
-    EXPECT_EQ(out[0], '\0');
-    EXPECT_EQ(lh_os_fs_path_dir("", out, sizeof(out)), lh_bool_false);
-    EXPECT_EQ(out[0], '\0');
+    lh_os_fs_path_init(lh_addr_of(empty));
+    lh_os_fs_path_init(lh_addr_of(out));
+    EXPECT_EQ(lh_os_fs_path_dir(lh_addr_of(empty), lh_addr_of(out)), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is_empty(lh_addr_of(out)), lh_bool_true);
 }
 
 TEST(os_fs_path_join, inserts_sep_when_missing)
 {
-    char out[64];
+    lh_os_fs_path_t dir;
+    lh_os_fs_path_t name;
+    lh_os_fs_path_t out;
 
-    ASSERT_EQ(lh_os_fs_path_join(out, sizeof(out), "dir", "file"), lh_bool_true);
+    path_set_lit(lh_addr_of(dir), "dir");
+    path_set_lit(lh_addr_of(name), "file");
+    lh_os_fs_path_init(lh_addr_of(out));
+    ASSERT_EQ(lh_os_fs_path_join(lh_addr_of(out), lh_addr_of(dir), lh_addr_of(name)),
+              lh_bool_true);
 #if defined(_WIN32)
-    EXPECT_STREQ(out, "dir\\file");
+    EXPECT_STREQ(path_cstr(lh_addr_of(out)), "dir\\file");
 #else
-    EXPECT_STREQ(out, "dir/file");
+    EXPECT_STREQ(path_cstr(lh_addr_of(out)), "dir/file");
 #endif
 }
 
 TEST(os_fs_path_join, does_not_double_sep)
 {
-    char out[64];
-    char dir[8];
+    lh_os_fs_path_t dir;
+    lh_os_fs_path_t name;
+    lh_os_fs_path_t out;
+    lh_char_t dir_text[3];
 
-    dir[0] = 'd';
-    dir[1] = lh_os_fs_path_sep();
-    dir[2] = '\0';
-    ASSERT_EQ(lh_os_fs_path_join(out, sizeof(out), dir, "file"), lh_bool_true);
+    dir_text[0] = 'd';
+    dir_text[1] = lh_os_fs_path_sep();
+    dir_text[2] = '\0';
+    path_set_lit(lh_addr_of(dir), dir_text);
+    path_set_lit(lh_addr_of(name), "file");
+    lh_os_fs_path_init(lh_addr_of(out));
+    ASSERT_EQ(lh_os_fs_path_join(lh_addr_of(out), lh_addr_of(dir), lh_addr_of(name)),
+              lh_bool_true);
 #if defined(_WIN32)
-    EXPECT_STREQ(out, "d\\file");
+    EXPECT_STREQ(path_cstr(lh_addr_of(out)), "d\\file");
 #else
-    EXPECT_STREQ(out, "d/file");
+    EXPECT_STREQ(path_cstr(lh_addr_of(out)), "d/file");
 #endif
 }
 
 TEST(os_fs_path_join, rejects_empty_name)
 {
-    char out[16];
+    lh_os_fs_path_t dir;
+    lh_os_fs_path_t name;
+    lh_os_fs_path_t out;
 
-    EXPECT_EQ(lh_os_fs_path_join(out, sizeof(out), "dir", ""), lh_bool_false);
-    EXPECT_EQ(out[0], '\0');
+    path_set_lit(lh_addr_of(dir), "dir");
+    lh_os_fs_path_init(lh_addr_of(name));
+    lh_os_fs_path_init(lh_addr_of(out));
+    EXPECT_EQ(lh_os_fs_path_join(lh_addr_of(out), lh_addr_of(dir), lh_addr_of(name)),
+              lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is_empty(lh_addr_of(out)), lh_bool_true);
 }
 
 TEST(os_fs_path_mtime, missing_file_fails)
 {
+    lh_os_fs_path_t path;
     lh_s64_t mtime = 1;
 
-    EXPECT_EQ(lh_os_fs_path_mtime("lh_os_fs_path_missing_no_such_file", &mtime), lh_bool_false);
+    path_set_lit(lh_addr_of(path), "lh_os_fs_path_missing_no_such_file");
+    EXPECT_EQ(lh_os_fs_path_mtime(lh_addr_of(path), &mtime), lh_bool_false);
     EXPECT_NE(lh_os_get_last_error_code(), 0);
 }
 
 TEST(os_fs_path_read, returns_whole_file_and_rejects_tiny_buffer)
 {
-    char dir[4096];
-    char path[4096];
+    lh_os_fs_path_t dir;
+    lh_os_fs_path_t name;
+    lh_os_fs_path_t path;
+    lh_os_fs_path_t missing;
     char payload[] = "file_get_contents";
     char buf[64];
     char tiny[4];
     lh_os_fs_file_t file;
     lh_usize_t n = 0;
 
-    ASSERT_EQ(lh_os_fs_path_exe_dir(dir, sizeof(dir)), lh_bool_true);
-    ASSERT_EQ(lh_os_fs_path_join(path, sizeof(path), dir, "lh_os_fs_path_read.bin"), lh_bool_true);
-    (void)lh_os_fs_path_remove(path);
+    lh_os_fs_path_init(lh_addr_of(dir));
+    lh_os_fs_path_init(lh_addr_of(path));
+    path_set_lit(lh_addr_of(name), "lh_os_fs_path_read.bin");
+    path_set_lit(lh_addr_of(missing), "lh_os_fs_path_read_missing");
+    ASSERT_EQ(lh_os_fs_path_exe_dir(lh_addr_of(dir)), lh_bool_true);
+    ASSERT_EQ(lh_os_fs_path_join(lh_addr_of(path), lh_addr_of(dir), lh_addr_of(name)),
+              lh_bool_true);
+    (void)lh_os_fs_path_remove(lh_addr_of(path));
 
     lh_os_fs_file_init(&file);
-    ASSERT_EQ(lh_os_fs_file_open(&file, path, lh_os_fs_file_mode_write), lh_bool_true);
+    ASSERT_EQ(lh_os_fs_file_open(&file, lh_addr_of(path), lh_os_fs_file_mode_write), lh_bool_true);
     ASSERT_EQ(lh_os_fs_file_write(&file, payload, sizeof(payload) - 1U),
               static_cast<lh_ssize_t>(sizeof(payload) - 1U));
     lh_os_fs_file_close(&file);
 
-    ASSERT_EQ(lh_os_fs_path_read(path, buf, sizeof(buf), &n), lh_bool_true);
+    ASSERT_EQ(lh_os_fs_path_read(lh_addr_of(path), buf, sizeof(buf), &n), lh_bool_true);
     EXPECT_EQ(n, sizeof(payload) - 1U);
     buf[n] = '\0';
     EXPECT_STREQ(buf, payload);
 
-    EXPECT_EQ(lh_os_fs_path_read(path, tiny, sizeof(tiny), &n), lh_bool_false);
-    EXPECT_EQ(lh_os_fs_path_read("lh_os_fs_path_read_missing", buf, sizeof(buf), &n), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_read(lh_addr_of(path), tiny, sizeof(tiny), &n), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_read(lh_addr_of(missing), buf, sizeof(buf), &n), lh_bool_false);
 
-    EXPECT_EQ(lh_os_fs_path_remove(path), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_remove(lh_addr_of(path)), lh_bool_true);
 }
 
 TEST(os_fs_path_is, file_and_dir_of_exe)
 {
-    char exe[4096];
-    char dir[4096];
+    lh_os_fs_path_t exe;
+    lh_os_fs_path_t dir;
 
-    ASSERT_EQ(lh_os_fs_path_exe(exe, sizeof(exe)), lh_bool_true);
-    ASSERT_EQ(lh_os_fs_path_exe_dir(dir, sizeof(dir)), lh_bool_true);
+    lh_os_fs_path_init(lh_addr_of(exe));
+    lh_os_fs_path_init(lh_addr_of(dir));
+    ASSERT_EQ(lh_os_fs_path_exe(lh_addr_of(exe)), lh_bool_true);
+    ASSERT_EQ(lh_os_fs_path_exe_dir(lh_addr_of(dir)), lh_bool_true);
 
-    EXPECT_EQ(lh_os_fs_path_is_file(exe), lh_bool_true);
-    EXPECT_EQ(lh_os_fs_path_is(exe, lh_os_fs_kind_file), lh_bool_true);
-    EXPECT_EQ(lh_os_fs_path_is_dir(exe), lh_bool_false);
-    EXPECT_EQ(lh_os_fs_path_is(exe, lh_os_fs_kind_dir), lh_bool_false);
-    EXPECT_EQ(lh_os_fs_path_is_symlink(exe), lh_bool_false);
-    EXPECT_EQ(lh_os_fs_path_is_shortcut(exe), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is_file(lh_addr_of(exe)), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is(lh_addr_of(exe), lh_os_fs_kind_file), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_dir(lh_addr_of(exe)), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is(lh_addr_of(exe), lh_os_fs_kind_dir), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is_symlink(lh_addr_of(exe)), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is_shortcut(lh_addr_of(exe)), lh_bool_false);
 
-    EXPECT_EQ(lh_os_fs_path_is_dir(dir), lh_bool_true);
-    EXPECT_EQ(lh_os_fs_path_is(dir, lh_os_fs_kind_dir), lh_bool_true);
-    EXPECT_EQ(lh_os_fs_path_is_file(dir), lh_bool_false);
-    EXPECT_EQ(lh_os_fs_path_is(dir, lh_os_fs_kind_file), lh_bool_false);
-    EXPECT_EQ(lh_os_fs_path_is_symlink(dir), lh_bool_false);
-    EXPECT_EQ(lh_os_fs_path_is_shortcut(dir), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is_dir(lh_addr_of(dir)), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is(lh_addr_of(dir), lh_os_fs_kind_dir), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_file(lh_addr_of(dir)), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is(lh_addr_of(dir), lh_os_fs_kind_file), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is_symlink(lh_addr_of(dir)), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is_shortcut(lh_addr_of(dir)), lh_bool_false);
 }
 
 TEST(os_fs_path_is, missing_is_false)
 {
-    EXPECT_EQ(lh_os_fs_path_is_file("lh_os_fs_path_missing_no_such_file"), lh_bool_false);
-    EXPECT_EQ(lh_os_fs_path_is_dir("lh_os_fs_path_missing_no_such_file"), lh_bool_false);
-    EXPECT_EQ(lh_os_fs_path_is_symlink("lh_os_fs_path_missing_no_such_file"), lh_bool_false);
-    EXPECT_EQ(lh_os_fs_path_is_shortcut("lh_os_fs_path_missing_no_such_file"), lh_bool_false);
-    EXPECT_EQ(lh_os_fs_path_is("lh_os_fs_path_missing_no_such_file", lh_os_fs_kind_file),
-              lh_bool_false);
-    EXPECT_EQ(lh_os_fs_path_is("lh_os_fs_path_missing_no_such_file", 255U), lh_bool_false);
+    lh_os_fs_path_t path;
+
+    path_set_lit(lh_addr_of(path), "lh_os_fs_path_missing_no_such_file");
+    EXPECT_EQ(lh_os_fs_path_is_file(lh_addr_of(path)), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is_dir(lh_addr_of(path)), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is_symlink(lh_addr_of(path)), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is_shortcut(lh_addr_of(path)), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is(lh_addr_of(path), lh_os_fs_kind_file), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is(lh_addr_of(path), 255U), lh_bool_false);
     EXPECT_NE(lh_os_get_last_error_code(), 0);
 }
 
 TEST(os_fs_path_is, shortcut_magic_and_not_plain_file)
 {
-    char dir[4096];
-    char path[4096];
+    lh_os_fs_path_t dir;
+    lh_os_fs_path_t name;
+    lh_os_fs_path_t path;
     unsigned char magic[20] = {0x4C, 0x00, 0x00, 0x00, 0x01, 0x14, 0x02, 0x00, 0x00, 0x00,
                                0x00, 0x00, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46};
     char plain[] = "not-a-shortcut";
     lh_os_fs_file_t file;
 
-    ASSERT_EQ(lh_os_fs_path_exe_dir(dir, sizeof(dir)), lh_bool_true);
-    ASSERT_EQ(lh_os_fs_path_join(path, sizeof(path), dir, "lh_os_fs_path_shortcut.bin"),
+    lh_os_fs_path_init(lh_addr_of(dir));
+    lh_os_fs_path_init(lh_addr_of(path));
+    path_set_lit(lh_addr_of(name), "lh_os_fs_path_shortcut.bin");
+    ASSERT_EQ(lh_os_fs_path_exe_dir(lh_addr_of(dir)), lh_bool_true);
+    ASSERT_EQ(lh_os_fs_path_join(lh_addr_of(path), lh_addr_of(dir), lh_addr_of(name)),
               lh_bool_true);
-    (void)lh_os_fs_path_remove(path);
+    (void)lh_os_fs_path_remove(lh_addr_of(path));
 
     lh_os_fs_file_init(&file);
-    ASSERT_EQ(lh_os_fs_file_open(&file, path, lh_os_fs_file_mode_write), lh_bool_true);
+    ASSERT_EQ(lh_os_fs_file_open(&file, lh_addr_of(path), lh_os_fs_file_mode_write), lh_bool_true);
     ASSERT_EQ(lh_os_fs_file_write(&file, magic, sizeof(magic)),
               static_cast<lh_ssize_t>(sizeof(magic)));
     lh_os_fs_file_close(&file);
 
-    EXPECT_EQ(lh_os_fs_path_is_file(path), lh_bool_true);
-    EXPECT_EQ(lh_os_fs_path_is(path, lh_os_fs_kind_file), lh_bool_true);
-    EXPECT_EQ(lh_os_fs_path_is_shortcut(path), lh_bool_true);
-    EXPECT_EQ(lh_os_fs_path_is(path, lh_os_fs_kind_shortcut), lh_bool_true);
-    EXPECT_EQ(lh_os_fs_path_is_symlink(path), lh_bool_false);
-    EXPECT_EQ(lh_os_fs_path_is_dir(path), lh_bool_false);
-    EXPECT_EQ(lh_os_fs_path_remove(path), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_file(lh_addr_of(path)), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is(lh_addr_of(path), lh_os_fs_kind_file), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_shortcut(lh_addr_of(path)), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is(lh_addr_of(path), lh_os_fs_kind_shortcut), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_symlink(lh_addr_of(path)), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is_dir(lh_addr_of(path)), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_remove(lh_addr_of(path)), lh_bool_true);
 
     lh_os_fs_file_init(&file);
-    ASSERT_EQ(lh_os_fs_file_open(&file, path, lh_os_fs_file_mode_write), lh_bool_true);
+    ASSERT_EQ(lh_os_fs_file_open(&file, lh_addr_of(path), lh_os_fs_file_mode_write), lh_bool_true);
     ASSERT_EQ(lh_os_fs_file_write(&file, plain, sizeof(plain) - 1U),
               static_cast<lh_ssize_t>(sizeof(plain) - 1U));
     lh_os_fs_file_close(&file);
 
-    EXPECT_EQ(lh_os_fs_path_is_file(path), lh_bool_true);
-    EXPECT_EQ(lh_os_fs_path_is_shortcut(path), lh_bool_false);
-    EXPECT_EQ(lh_os_fs_path_remove(path), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_file(lh_addr_of(path)), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_shortcut(lh_addr_of(path)), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_remove(lh_addr_of(path)), lh_bool_true);
 }
 
 #if !defined(_WIN32)
 TEST(os_fs_path_is, posix_symlink_to_file)
 {
-    char exe[4096];
-    char dir[4096];
-    char link_path[4096];
+    lh_os_fs_path_t exe;
+    lh_os_fs_path_t dir;
+    lh_os_fs_path_t name;
+    lh_os_fs_path_t link_path;
 
-    ASSERT_EQ(lh_os_fs_path_exe(exe, sizeof(exe)), lh_bool_true);
-    ASSERT_EQ(lh_os_fs_path_exe_dir(dir, sizeof(dir)), lh_bool_true);
-    ASSERT_EQ(lh_os_fs_path_join(link_path, sizeof(link_path), dir, "lh_os_fs_path_symlink"),
+    lh_os_fs_path_init(lh_addr_of(exe));
+    lh_os_fs_path_init(lh_addr_of(dir));
+    lh_os_fs_path_init(lh_addr_of(link_path));
+    path_set_lit(lh_addr_of(name), "lh_os_fs_path_symlink");
+    ASSERT_EQ(lh_os_fs_path_exe(lh_addr_of(exe)), lh_bool_true);
+    ASSERT_EQ(lh_os_fs_path_exe_dir(lh_addr_of(dir)), lh_bool_true);
+    ASSERT_EQ(lh_os_fs_path_join(lh_addr_of(link_path), lh_addr_of(dir), lh_addr_of(name)),
               lh_bool_true);
-    (void)lh_os_fs_path_remove(link_path);
-    if (symlink(exe, link_path) != 0)
+    (void)lh_os_fs_path_remove(lh_addr_of(link_path));
+    if (symlink(path_cstr(lh_addr_of(exe)), path_cstr(lh_addr_of(link_path))) != 0)
     {
         return;
     }
-    EXPECT_EQ(lh_os_fs_path_is_symlink(link_path), lh_bool_true);
-    EXPECT_EQ(lh_os_fs_path_is(link_path, lh_os_fs_kind_symlink), lh_bool_true);
-    EXPECT_EQ(lh_os_fs_path_is_file(link_path), lh_bool_true);
-    EXPECT_EQ(lh_os_fs_path_is(link_path, lh_os_fs_kind_file), lh_bool_true);
-    EXPECT_EQ(lh_os_fs_path_is_dir(link_path), lh_bool_false);
-    EXPECT_EQ(lh_os_fs_path_is_shortcut(link_path), lh_bool_false);
-    EXPECT_EQ(lh_os_fs_path_remove(link_path), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_symlink(lh_addr_of(link_path)), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is(lh_addr_of(link_path), lh_os_fs_kind_symlink), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_file(lh_addr_of(link_path)), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is(lh_addr_of(link_path), lh_os_fs_kind_file), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_dir(lh_addr_of(link_path)), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is_shortcut(lh_addr_of(link_path)), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_remove(lh_addr_of(link_path)), lh_bool_true);
 }
 #endif
+
+TEST(os_fs_path_parts, parse_glues_with_os_sep)
+{
+    lh_os_fs_path_t path;
+    lh_str_view_t part0;
+    lh_str_view_t part1;
+    lh_str_view_t part2;
+
+    path_set_lit(lh_addr_of(path), "a/b/c");
+    ASSERT_EQ(lh_vector_get_size(lh_os_fs_path_get_parts_as_const(lh_addr_of(path))), 3U);
+    part0 = lh_os_fs_path_get_part(lh_addr_of(path), 0U);
+    part1 = lh_os_fs_path_get_part(lh_addr_of(path), 1U);
+    part2 = lh_os_fs_path_get_part(lh_addr_of(path), 2U);
+    EXPECT_EQ(lh_str_view_get_size(lh_addr_of(part0)), 1U);
+    EXPECT_EQ(lh_ptr_deref(lh_str_view_get_data(lh_addr_of(part0))), 'a');
+    EXPECT_EQ(lh_ptr_deref(lh_str_view_get_data(lh_addr_of(part1))), 'b');
+    EXPECT_EQ(lh_ptr_deref(lh_str_view_get_data(lh_addr_of(part2))), 'c');
+#if defined(_WIN32)
+    EXPECT_STREQ(path_cstr(lh_addr_of(path)), "a\\b\\c");
+#else
+    EXPECT_STREQ(path_cstr(lh_addr_of(path)), "a/b/c");
+#endif
+    EXPECT_EQ(lh_ptr_deref(lh_os_fs_path_get_sep_as_const(lh_addr_of(path))), lh_os_fs_path_sep());
+}
 
 } // namespace

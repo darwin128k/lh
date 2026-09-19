@@ -4,7 +4,9 @@
  *
  * Prefix of a derived module (C++ `class AuthumModule : SharedModule`):
  * handle, whether ::lh_os_shared_close owns it, then the child table.
- * The vector's element size is the derived type, so children may be larger.
+ * Image path is not stored — ::lh_os_shared_get_path_of asks the OS from the
+ * handle. The vector's element size is the derived type, so children may
+ * be larger.
  */
 
 #ifndef LH_OS_SHARED_MODULE_FIELDS_H

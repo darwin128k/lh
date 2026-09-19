@@ -19,8 +19,11 @@
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
+#include <lh/os/fs/path.h>
 #include <lh/ptr.h>
+#include <lh/size.h>
 #include <lh/str/ptr.h>
+#include <lh/str/view.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/shared.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
@@ -46,34 +49,32 @@ lh_os_shared_ext(void);
 /**
  * @brief True if @p name ends with ::lh_os_shared_ext (case-insensitive).
  *
- * A predicate: ::lh_null or empty is false, no last-error.
+ * A predicate: empty is false, no last-error.
  *
- * @param name File name or path.
+ * @param name File name or path view.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_shared_is(lh_str_cptr name);
+lh_os_shared_is(const lh_str_view_t *name);
 
 /**
  * @brief True if @p path is a loadable shared library file.
  *
  * ::lh_os_shared_is, not a directory, not a shortcut, and a file.
- *
- * @param path Filesystem path.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_shared_path_is(lh_str_cptr path);
+lh_os_shared_path_is(const lh_os_fs_path_t *path);
 
 /**
  * @brief Open the shared library at @p path.
  *
- * @param path Filesystem path (`LoadLibraryA` / `dlopen`). ::lh_null is an error.
+ * @param path Filesystem path (`LoadLibraryA` / `dlopen`). Empty is an error.
  * @return Handle, or ::lh_null on failure. Then ::lh_os_get_last_error.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_os_shared_handle_t
-lh_os_shared_open(lh_str_cptr path);
+lh_os_shared_open(const lh_os_fs_path_t *path);
 
 /**
  * @brief Handle of the already-loaded image that contains @p addr.
@@ -88,6 +89,32 @@ lh_os_shared_open(lh_str_cptr path);
 LH_ATTRIBUTE_SYMBOL
 lh_os_shared_handle_t
 lh_os_shared_of_addr(lh_ptr addr);
+
+/**
+ * @brief Filesystem path of the image @p handle was loaded from.
+ *
+ * OS fills @p out. Windows: `GetModuleFileNameA`. POSIX: `dlinfo`
+ * `RTLD_DI_LINKMAP` (`l_name`), then `dladdr` on the handle if that is empty.
+ *
+ * @param handle Module from ::lh_os_shared_open / ::lh_os_shared_of_addr.
+ * @param out    Destination path.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_shared_get_path_of(lh_os_shared_handle_t handle, lh_os_fs_path_t *out);
+
+/**
+ * @brief Filesystem path of the already-loaded image that contains @p addr.
+ *
+ * Resolves the handle, then ::lh_os_shared_get_path_of. POSIX `dladdr` `dli_fname`
+ * if the handle path is unavailable.
+ *
+ * @param addr An address inside the loaded module.
+ * @param out  Destination path.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_shared_get_path_of_addr(lh_ptr addr, lh_os_fs_path_t *out);
 
 /**
  * @brief Close @p handle.

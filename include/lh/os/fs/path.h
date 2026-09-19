@@ -1,11 +1,12 @@
 /**
  * @file path.h
- * @brief Narrow filesystem paths: exe location, join, mtime, read, remove.
+ * @brief A filesystem path (::lh_os_fs_path_t): levels plus a separator.
  *
- * Path text is a NUL-terminated ::lh_str_cptr, same encoding as
- * ::lh_os_shared_open (`LoadLibraryA` / POSIX bytes). One directory's
- * names are ::lh_os_fs_dir_t (`lh/os/fs/dir.h`) — not a recursive walk,
- * not a glob. No wide paths.
+ * Not a string at the API: levels plus a separator. Internally one
+ * ::lh_str_t buffer and offsets of each name (OpenJDK `UnixPath`). `set`
+ * parses into that buffer; ::lh_os_fs_path_join appends a level; OS APIs
+ * use ::lh_os_fs_path_get_text. Same encoding as `LoadLibraryA` / POSIX
+ * bytes. No wide paths.
  *
  * On failure the reason is in ::lh_os_get_last_error (see `lh/os.h`).
  * Requires ::LH_LIBRARY_OPTION_OS.
@@ -19,15 +20,34 @@
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/numeric/fixed/types.h>
+#include <lh/index.h>
 #include <lh/os/fs/kind.h>
+#include <lh/os/fs/path/fields.h>
 #include <lh/ptr.h>
 #include <lh/size.h>
+#include <lh/str.h>
 #include <lh/str/ptr.h>
+#include <lh/str/view.h>
+#include <lh/vector.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/fs/path.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
 #endif
+
+/**
+ * @struct lh_os_fs_path
+ * @brief One filesystem path. Fields via ::lh_os_fs_path_fields.
+ */
+struct lh_os_fs_path
+{
+    lh_os_fs_path_fields(lh_char_t, lh_str_t, lh_vector_t);
+};
+
+/**
+ * @typedef lh_os_fs_path_t
+ * @brief Alias for `struct lh_os_fs_path`.
+ */
+typedef struct lh_os_fs_path lh_os_fs_path_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -35,79 +55,153 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Preferred directory separator for this OS (`'\\'` on Windows,
  *        `'/'` elsewhere).
  *
- * Join accepts either slash on Windows. This is the character
- * ::lh_os_fs_path_join inserts when the left side has none.
- *
- * @return Directory separator character.
+ * Join glues with this character. Parse accepts `'/'` as well on Windows.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_char_t
 lh_os_fs_path_sep(void);
 
 /**
- * @brief Absolute path of the running executable.
+ * @brief Empty path: no levels, empty buffer, OS separator stored.
  *
- * Windows: `GetModuleFileNameA` of the process. POSIX: `readlink` of
- * `/proc/self/exe`. macOS: `_NSGetExecutablePath`.
- *
- * All-or-nothing: if @p out_size is too small, @p out is left with an
- * empty string and the call fails.
- *
- * @param out      Destination buffer (receives a NUL-terminated path).
- * @param out_size Capacity of @p out in characters, including NUL.
- * @return ::lh_bool_true on success, ::lh_bool_false on failure.
+ * Call once on uninitialized storage. Reset an already-initialized path
+ * with ::lh_os_fs_path_clear; free it with ::lh_os_fs_path_deinit.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_os_fs_path_init(lh_os_fs_path_t *self);
+
+/**
+ * @brief Drop every level and empty the buffer. Keeps allocations.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_os_fs_path_clear(lh_os_fs_path_t *self);
+
+/**
+ * @brief Release the buffer and the offset table.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_os_fs_path_deinit(lh_os_fs_path_t *self);
+
+/**
+ * @brief Copy @p other into @p self (buffer and offsets).
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_os_fs_path_assign(lh_os_fs_path_t *self, const lh_os_fs_path_t *other);
+
+/**
+ * @brief Parse @p text into the buffer and name offsets.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_fs_path_exe(lh_str_ptr out, lh_usize_t out_size);
+lh_os_fs_path_set(lh_os_fs_path_t *self, lh_str_view_t text);
+
+/**
+ * @brief Stored separator of @p self, after validating the pointer.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_char_t *
+lh_os_fs_path_get_sep(lh_os_fs_path_t *self);
+
+/**
+ * @brief `const` counterpart to ::lh_os_fs_path_get_sep.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_char_t *
+lh_os_fs_path_get_sep_as_const(const lh_os_fs_path_t *self);
+
+/**
+ * @brief Offset table of @p self, after validating the pointer.
+ *
+ * Elements are `{offset, size}` into ::lh_os_fs_path_get_text. Other
+ * functions go through this or ::lh_os_fs_path_get_parts_as_const instead
+ * of `self->parts`.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_vector_t *
+lh_os_fs_path_get_parts(lh_os_fs_path_t *self);
+
+/**
+ * @brief `const` counterpart to ::lh_os_fs_path_get_parts.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_vector_t *
+lh_os_fs_path_get_parts_as_const(const lh_os_fs_path_t *self);
+
+/**
+ * @brief Level at @p index, as a view into the path buffer.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_str_view_t
+lh_os_fs_path_get_part(const lh_os_fs_path_t *self, lh_uindex_t index);
+
+/**
+ * @brief Path buffer of @p self, after validating the pointer.
+ *
+ * Single access to `text`. OS wrappers use ::lh_str_get_data of this.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_str_t *
+lh_os_fs_path_get_text(lh_os_fs_path_t *self);
+
+/**
+ * @brief `const` counterpart to ::lh_os_fs_path_get_text.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_str_t *
+lh_os_fs_path_get_text_as_const(const lh_os_fs_path_t *self);
+
+/**
+ * @brief View over the path buffer of @p self (does not include the NUL).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_str_view_t
+lh_os_fs_path_as_view(const lh_os_fs_path_t *self);
+
+/**
+ * @brief True when @p self has no levels.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_path_is_empty(const lh_os_fs_path_t *self);
+
+/**
+ * @brief Absolute path of the running executable into @p out.
+ *
+ * Windows: `GetModuleFileNameA` of the process. POSIX: `readlink` of
+ * `/proc/self/exe`. macOS: `_NSGetExecutablePath`. Then parsed into levels.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_path_exe(lh_os_fs_path_t *out);
 
 /**
  * @brief Directory containing the running executable, without a trailing
  *        separator except for a drive/root (`C:\\`, `/`).
- *
- * Same OS query as ::lh_os_fs_path_exe, then the last path component is
- * dropped.
- *
- * @param out      Destination buffer (receives a NUL-terminated path).
- * @param out_size Capacity of @p out in characters, including NUL.
- * @return ::lh_bool_true on success, ::lh_bool_false on failure.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_fs_path_exe_dir(lh_str_ptr out, lh_usize_t out_size);
+lh_os_fs_path_exe_dir(lh_os_fs_path_t *out);
 
 /**
- * @brief Join @p dir and @p name into @p out.
+ * @brief Join @p dir and @p name into @p out by appending @p name's levels.
  *
- * Inserts ::lh_os_fs_path_sep between them only when @p dir is non-empty
- * and does not already end with a separator, and @p name does not begin
- * with one. All-or-nothing on overflow.
- *
- * @param out      Destination buffer.
- * @param out_size Capacity of @p out in characters, including NUL.
- * @param dir      Left side (directory). Empty means @p name alone.
- * @param name     Right side (file name). Empty is an error.
- * @return ::lh_bool_true on success, ::lh_bool_false on failure.
+ * Empty @p name is an error.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_fs_path_join(lh_str_ptr out, lh_usize_t out_size, lh_str_cptr dir, lh_str_cptr name);
+lh_os_fs_path_join(lh_os_fs_path_t *out, const lh_os_fs_path_t *dir, const lh_os_fs_path_t *name);
 
 /**
- * @brief Directory containing @p path, without a trailing separator except
- *        for a drive/root (`C:\\`, `/`).
- *
- * Same last-component drop as ::lh_os_fs_path_exe_dir, for any path (plugin
- * DLL, data file). A path with no separator becomes `"."`.
- *
- * @param path     Filesystem path. ::lh_null or empty is an error.
- * @param out      Destination buffer (receives a NUL-terminated path).
- * @param out_size Capacity of @p out in characters, including NUL.
- * @return ::lh_bool_true on success, ::lh_bool_false on failure.
+ * @brief Directory containing @p path. A single relative level becomes `.`.
+ *        A drive or `/` is left as the root.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_fs_path_dir(lh_str_cptr path, lh_str_ptr out, lh_usize_t out_size);
+lh_os_fs_path_dir(const lh_os_fs_path_t *path, lh_os_fs_path_t *out);
 
 /**
  * @brief True when @p path matches @p kind.
@@ -115,76 +209,45 @@ lh_os_fs_path_dir(lh_str_cptr path, lh_str_ptr out, lh_usize_t out_size);
  * Kinds may overlap: a Shell Link is also a file; a symlink to a directory
  * is also a directory. ::lh_os_fs_kind_other is listing-only and is false
  * here. Missing path is false (reason in ::lh_os_get_last_error).
- *
- * @param path Filesystem path. ::lh_null or empty is false.
- * @param kind ::lh_os_fs_kind_file / `_dir` / `_symlink` / `_shortcut`.
- * @return ::lh_bool_true if @p path has that kind.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_fs_path_is(lh_str_cptr path, lh_os_fs_kind_t kind);
+lh_os_fs_path_is(const lh_os_fs_path_t *path, lh_os_fs_kind_t kind);
 
 /**
  * @brief True when @p path is a directory.
- *
- * Same as ::lh_os_fs_path_is(@p path, ::lh_os_fs_kind_dir).
- *
- * @param path Filesystem path. ::lh_null or empty is false.
- * @return ::lh_bool_true if @p path is a directory.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_fs_path_is_dir(lh_str_cptr path);
+lh_os_fs_path_is_dir(const lh_os_fs_path_t *path);
 
 /**
- * @brief True when @p path is a regular file.
- *
- * Same as ::lh_os_fs_path_is(@p path, ::lh_os_fs_kind_file).
- * A `.lnk` shortcut is a file.
- *
- * @param path Filesystem path. ::lh_null or empty is false.
- * @return ::lh_bool_true if @p path is a regular file.
+ * @brief True when @p path is a regular file. A `.lnk` shortcut is a file.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_fs_path_is_file(lh_str_cptr path);
+lh_os_fs_path_is_file(const lh_os_fs_path_t *path);
 
 /**
  * @brief True when @p path itself is a symbolic link.
- *
- * Same as ::lh_os_fs_path_is(@p path, ::lh_os_fs_kind_symlink).
- *
- * @param path Filesystem path. ::lh_null or empty is false.
- * @return ::lh_bool_true if @p path is a symbolic link.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_fs_path_is_symlink(lh_str_cptr path);
+lh_os_fs_path_is_symlink(const lh_os_fs_path_t *path);
 
 /**
  * @brief True when @p path is a Windows Shell Link (`.lnk` shortcut).
- *
- * Same as ::lh_os_fs_path_is(@p path, ::lh_os_fs_kind_shortcut).
- *
- * @param path Filesystem path. ::lh_null or empty is false.
- * @return ::lh_bool_true if @p path is a Shell Link file.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_fs_path_is_shortcut(lh_str_cptr path);
+lh_os_fs_path_is_shortcut(const lh_os_fs_path_t *path);
 
 /**
  * @brief Last-write time of @p path as Unix seconds.
- *
- * Windows: `GetFileAttributesExA`. POSIX: `stat`.
- *
- * @param path Filesystem path. ::lh_null or empty is an error.
- * @param out  Receives `mtime` (seconds since 1970-01-01 UTC).
- * @return ::lh_bool_true on success, ::lh_bool_false on failure.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_fs_path_mtime(lh_str_cptr path, lh_s64_t *out);
+lh_os_fs_path_mtime(const lh_os_fs_path_t *path, lh_s64_t *out);
 
 /**
  * @brief Read the whole file at @p path into @p buf (PHP `file_get_contents`).
@@ -192,28 +255,18 @@ lh_os_fs_path_mtime(lh_str_cptr path, lh_s64_t *out);
  * All-or-nothing: if the file is larger than @p buf_size, nothing is copied
  * and the call fails. Does not append a NUL — @p out_size is the byte count.
  * An empty file succeeds with @p out_size `0`.
- *
- * @param path     Filesystem path. ::lh_null or empty is an error.
- * @param buf      Destination buffer. Ignored when the file is empty.
- * @param buf_size Capacity of @p buf in bytes.
- * @param out_size Receives the number of bytes written.
- * @return ::lh_bool_true on success, ::lh_bool_false on failure.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_fs_path_read(lh_str_cptr path, lh_ptr buf, lh_usize_t buf_size, lh_usize_t *out_size);
+lh_os_fs_path_read(const lh_os_fs_path_t *path, lh_ptr buf, lh_usize_t buf_size,
+                   lh_usize_t *out_size);
 
 /**
- * @brief Delete the file at @p path.
- *
- * Windows: `DeleteFileA`. POSIX: `unlink`. Directories are not removed.
- *
- * @param path Filesystem path. ::lh_null or empty is an error.
- * @return ::lh_bool_true on success, ::lh_bool_false on failure.
+ * @brief Delete the file at @p path. Directories are not removed.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_fs_path_remove(lh_str_cptr path);
+lh_os_fs_path_remove(const lh_os_fs_path_t *path);
 
 LH_COMPILER_EXTERN_C_END
 

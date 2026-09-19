@@ -103,6 +103,18 @@ const lh_bool_t *
 lh_os_shared_module_get_owned_as_const(const lh_os_shared_module_t *self);
 
 /**
+ * @brief Filesystem path of this loaded image, filled by the OS from the handle.
+ *
+ * ::lh_os_shared_get_path_of. Unloaded slots fail with last-error “not loaded”.
+ *
+ * @param self Loaded module.
+ * @param out  Destination path, filled by the OS from the handle.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_shared_module_get_path(const lh_os_shared_module_t *self, lh_os_fs_path_t *out);
+
+/**
  * @brief Empty image: no handle, empty child table of elements sized @p type_size.
  *
  * @p type_size is `sizeof` of the derived module (at least
@@ -137,7 +149,7 @@ lh_os_shared_module_is_loaded(const lh_os_shared_module_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_shared_module_open(lh_os_shared_module_t *self, lh_str_cptr path);
+lh_os_shared_module_open(lh_os_shared_module_t *self, const lh_os_fs_path_t *path);
 
 /**
  * @brief Bind the already-loaded image that contains @p addr.

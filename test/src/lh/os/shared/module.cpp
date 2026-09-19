@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
 
 #include <lh/null.h>
+#include <lh/os/fs/path.h>
 #include <lh/os/shared.h>
 #include <lh/os/shared/module.h>
+#include <lh/str/view.h>
 #include <lh/util/addr.h>
+#include <lh/util/ptr.h>
 
 namespace
 {
@@ -21,22 +24,29 @@ char in_image;
 TEST(os_shared_module, init_deinit_empty)
 {
     lh_os_shared_module_t module;
+    lh_os_fs_path_t path;
 
+    lh_os_fs_path_init(lh_addr_of(path));
     lh_os_shared_module_init(lh_addr_of(module), sizeof(module));
     EXPECT_EQ(lh_os_shared_module_is_loaded(lh_addr_of(module)), lh_bool_false);
     EXPECT_EQ(lh_os_shared_module_get_loaded(lh_addr_of(module)), 0U);
     EXPECT_EQ(lh_os_shared_module_get(lh_addr_of(module), 0), lh_null);
+    EXPECT_EQ(lh_os_shared_module_get_path(lh_addr_of(module), lh_addr_of(path)), lh_bool_false);
     lh_os_shared_module_deinit(lh_addr_of(module));
 }
 
 TEST(os_shared_module, bind_this_image)
 {
     lh_os_shared_module_t module;
+    lh_os_fs_path_t path;
 
+    lh_os_fs_path_init(lh_addr_of(path));
     lh_os_shared_module_init(lh_addr_of(module), sizeof(module));
     ASSERT_EQ(lh_os_shared_module_bind(lh_addr_of(module), lh_addr_of(in_image)),
               lh_bool_true);
     EXPECT_EQ(lh_os_shared_module_is_loaded(lh_addr_of(module)), lh_bool_true);
+    ASSERT_EQ(lh_os_shared_module_get_path(lh_addr_of(module), lh_addr_of(path)), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_empty(lh_addr_of(path)), lh_bool_false);
     lh_os_shared_module_deinit(lh_addr_of(module));
     EXPECT_EQ(lh_os_shared_module_is_loaded(lh_addr_of(module)), lh_bool_false);
 }
@@ -44,10 +54,13 @@ TEST(os_shared_module, bind_this_image)
 TEST(os_shared_module, open_missing_fails)
 {
     lh_os_shared_module_t module;
+    lh_os_fs_path_t path;
 
+    lh_os_fs_path_init(lh_addr_of(path));
+    ASSERT_EQ(lh_os_fs_path_set(lh_addr_of(path), lh_str_view_make("no-such-authum-module.dll")),
+              lh_bool_true);
     lh_os_shared_module_init(lh_addr_of(module), sizeof(module));
-    EXPECT_EQ(lh_os_shared_module_open(lh_addr_of(module), "no-such-authum-module.dll"),
-              lh_bool_false);
+    EXPECT_EQ(lh_os_shared_module_open(lh_addr_of(module), lh_addr_of(path)), lh_bool_false);
     EXPECT_EQ(lh_os_shared_module_is_loaded(lh_addr_of(module)), lh_bool_false);
     lh_os_shared_module_deinit(lh_addr_of(module));
 }

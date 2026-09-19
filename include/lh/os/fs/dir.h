@@ -19,8 +19,8 @@
 #include <lh/config.h>
 #include <lh/os/fs/dir/entry/kind.h>
 #include <lh/os/fs/dir/handle.h>
+#include <lh/os/fs/path.h>
 #include <lh/size.h>
-#include <lh/str/ptr.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/fs/dir.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
@@ -61,12 +61,12 @@ lh_os_fs_dir_init(lh_os_fs_dir_t *self);
  *
  * @param self Directory object; must be empty (::lh_os_fs_dir_init or freshly
  *             ::lh_os_fs_dir_close'd).
- * @param path Directory path. ::lh_null or empty is an error.
+ * @param path Directory path. Empty is an error.
  * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_fs_dir_open(lh_os_fs_dir_t *self, lh_str_cptr path);
+lh_os_fs_dir_open(lh_os_fs_dir_t *self, const lh_os_fs_path_t *path);
 
 /**
  * @brief Close @p self (if open) and return it to the empty state.
@@ -98,24 +98,20 @@ lh_bool_t
 lh_os_fs_dir_is_valid(const lh_os_fs_dir_t *self);
 
 /**
- * @brief Next entry name into @p out (NUL-terminated).
+ * @brief Next entry name into @p name.
  *
- * Skips `.` and `..`. Same all-or-nothing rule as paths: if @p out_size is
- * too small, the entry is kept for a later call with a larger buffer.
+ * Skips `.` and `..`. The name is stored as a path value (one path component).
  *
- * @param self     Open directory.
- * @param out      Destination for the name.
- * @param out_size Capacity of @p out, including NUL. A buffer of
- *                 ::LH_OS_FS_DIR_NAME_MAX + 1 always fits.
- * @param kind     Receives ::lh_os_fs_dir_entry_kind_file / `_dir` / `_symlink`
- *                 / `_other`. May be ::lh_null.
+ * @param self Open directory.
+ * @param name Receives the entry name. Cleared when there are no more entries.
+ * @param kind Receives ::lh_os_fs_dir_entry_kind_file / `_dir` / `_symlink`
+ *             / `_other`. May be ::lh_null.
  * @return Name length excluding NUL, `0` when there are no more entries,
  *         or a negative value on failure.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
-lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_ptr out, lh_usize_t out_size,
-                  lh_os_fs_dir_entry_kind_t *kind);
+lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_os_fs_path_t *name, lh_os_fs_dir_entry_kind_t *kind);
 
 LH_COMPILER_EXTERN_C_END
 
