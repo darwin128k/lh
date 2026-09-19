@@ -2,8 +2,8 @@
  * @file clock.h
  * @brief Monotonic millisecond clock for the current process.
  *
- * OS-backed elapsed time, not wall-clock ::lh_time_t. Use this for timeouts
- * and rate limits; do not use it as a calendar.
+ * OS-backed elapsed time, not a calendar. Use this for timeouts and rate
+ * limits. Local wall clock is ::lh_os_datetime_now (`lh/os/datetime.h`).
  *
  * Requires ::LH_LIBRARY_OPTION_OS.
  */

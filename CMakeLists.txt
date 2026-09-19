@@ -145,6 +145,7 @@ if (LH_LIBRARY_OPTION_OS)
     list(APPEND LH_LIB_SOURCES
             ${LH_LIB_SRC_PATH}/os.c
             ${LH_LIB_SRC_PATH}/os/clock.c
+            ${LH_LIB_SRC_PATH}/os/datetime.c
             ${LH_LIB_SRC_PATH}/os/fs/path.c
             ${LH_LIB_SRC_PATH}/os/fs/file.c
             ${LH_LIB_SRC_PATH}/os/net.c

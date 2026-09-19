@@ -2,7 +2,8 @@
  * @file datetime.h
  * @brief Date and time of day together (::lh_date_t + ::lh_time_t).
  *
- * Pure value — no clock, no OS, no timezone.
+ * Pure value — no clock, no OS, no timezone. Local wall clock into this
+ * type is ::lh_os_datetime_now (`lh/os/datetime.h`).
  *
  * Brace init: ::lh_datetime_initializer in `lh/datetime/initializer.h`.
  */
