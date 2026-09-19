@@ -134,6 +134,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/io/reader.c
         ${LH_LIB_SRC_PATH}/io/writer.c
         ${LH_LIB_SRC_PATH}/io/stream.c
+        ${LH_LIB_SRC_PATH}/io/dgram/reader.c
+        ${LH_LIB_SRC_PATH}/io/dgram/writer.c
+        ${LH_LIB_SRC_PATH}/io/dgram.c
 
         ${LH_LIB_SRC_PATH}/lh.c
 )

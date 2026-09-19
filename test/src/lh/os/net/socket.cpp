@@ -8,46 +8,24 @@
 #include <lh/os/net.h>
 #include <lh/os/net/socket.h>
 
-#if defined(_WIN32)
-#    define WIN32_LEAN_AND_MEAN
-#    include <winsock2.h>
-using native_socket_t = SOCKET;
-using socklen_compat_t = int;
-#else
-#    include <arpa/inet.h>
-#    include <netinet/in.h>
-#    include <sys/socket.h>
-#    include <unistd.h>
-using native_socket_t = int;
-using socklen_compat_t = socklen_t;
-#endif
-
 namespace
 {
 
-// A tiny loopback echo server built directly on native sockets — not on
-// lh_os_net_socket_t, which is deliberately client-only for now (see
-// os/net/socket.h). This lets the client-side test below prove a real
-// connect/send/recv round trip without lh needing bind/listen/accept yet.
 class LoopbackEchoServer
 {
 public:
     LoopbackEchoServer()
     {
-        sockaddr_in addr{};
-        socklen_compat_t addr_len = sizeof(addr);
+        lh_net_ip4_t loopback_ip = lh_net_ip4_make(127, 0, 0, 1);
+        lh_net_ip4_socket_addr_t addr = lh_net_ip4_socket_addr_make(&loopback_ip, 0);
+        lh_net_ip4_socket_addr_t local{};
 
-        listen_socket_ = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-        addr.sin_family = AF_INET;
-        addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-        addr.sin_port = 0; /* ask the OS for an ephemeral port */
-        bind(listen_socket_, reinterpret_cast<sockaddr *>(&addr), sizeof(addr));
-
-        getsockname(listen_socket_, reinterpret_cast<sockaddr *>(&addr), &addr_len);
-        port_ = static_cast<lh_net_port_t>(ntohs(addr.sin_port));
-
-        listen(listen_socket_, 1);
+        lh_os_net_socket_init(&listen_);
+        lh_os_net_socket_open(&listen_, lh_os_net_socket_type_tcp);
+        lh_os_net_socket_bind(&listen_, &addr);
+        lh_os_net_socket_get_local_addr(&listen_, &local);
+        port_ = lh_net_ip4_socket_addr_get_port(&local);
+        lh_os_net_socket_listen(&listen_, 1);
 
         thread_ = std::thread([this] { AcceptAndEchoOnce(); });
     }
@@ -55,11 +33,7 @@ public:
     ~LoopbackEchoServer()
     {
         thread_.join();
-#if defined(_WIN32)
-        closesocket(listen_socket_);
-#else
-        close(listen_socket_);
-#endif
+        lh_os_net_socket_close(&listen_);
     }
 
     lh_net_port_t
@@ -72,21 +46,28 @@ private:
     void
     AcceptAndEchoOnce()
     {
-        native_socket_t client = accept(listen_socket_, nullptr, nullptr);
+        lh_os_net_socket_t client;
+        lh_net_ip4_socket_addr_t peer{};
         char buf[64];
-        int n = static_cast<int>(recv(client, buf, sizeof(buf), 0));
-        if (n > 0)
+        lh_ssize_t n;
+
+        lh_os_net_socket_init(&client);
+        if (lh_os_net_socket_accept(&listen_, &client, &peer) != lh_bool_true)
         {
-            send(client, buf, n, 0);
+            return;
         }
-#if defined(_WIN32)
-        closesocket(client);
-#else
-        close(client);
-#endif
+        {
+            lh_io_stream_t stream = lh_os_net_socket_get_stream(&client);
+            n = lh_io_stream_read(&stream, buf, sizeof(buf));
+            if (n > 0)
+            {
+                lh_io_stream_write(&stream, buf, static_cast<lh_usize_t>(n));
+            }
+        }
+        lh_os_net_socket_close(&client);
     }
 
-    native_socket_t listen_socket_{};
+    lh_os_net_socket_t listen_{};
     lh_net_port_t port_{};
     std::thread thread_;
 };
@@ -138,6 +119,57 @@ TEST_F(OsNetSocketTest, open_udp_socket_succeeds)
     lh_os_net_socket_close(&sock);
 }
 
+TEST_F(OsNetSocketTest, bind_zero_port_reports_ephemeral_via_get_local_addr)
+{
+    lh_os_net_socket_t sock;
+    lh_net_ip4_t loopback_ip = lh_net_ip4_make(127, 0, 0, 1);
+    lh_net_ip4_socket_addr_t addr = lh_net_ip4_socket_addr_make(&loopback_ip, 0);
+    lh_net_ip4_socket_addr_t local{};
+
+    lh_os_net_socket_init(&sock);
+    ASSERT_EQ(lh_os_net_socket_open(&sock, lh_os_net_socket_type_tcp), lh_bool_true);
+    ASSERT_EQ(lh_os_net_socket_bind(&sock, &addr), lh_bool_true);
+    ASSERT_EQ(lh_os_net_socket_get_local_addr(&sock, &local), lh_bool_true);
+
+    EXPECT_NE(lh_net_ip4_socket_addr_get_port(&local), 0U);
+    {
+        lh_net_ip4_t local_ip = lh_net_ip4_socket_addr_get_ip(&local);
+        EXPECT_TRUE(lh_net_ip4_is_loopback(&local_ip));
+    }
+
+    lh_os_net_socket_close(&sock);
+}
+
+TEST_F(OsNetSocketTest, set_reuse_addr_then_bind_succeeds)
+{
+    lh_os_net_socket_t sock;
+    lh_net_ip4_t loopback_ip = lh_net_ip4_make(127, 0, 0, 1);
+    lh_net_ip4_socket_addr_t addr = lh_net_ip4_socket_addr_make(&loopback_ip, 0);
+
+    lh_os_net_socket_init(&sock);
+    ASSERT_EQ(lh_os_net_socket_open(&sock, lh_os_net_socket_type_tcp), lh_bool_true);
+    ASSERT_EQ(lh_os_net_socket_set_reuse_addr(&sock, lh_bool_true), lh_bool_true);
+    ASSERT_EQ(lh_os_net_socket_bind(&sock, &addr), lh_bool_true);
+
+    lh_os_net_socket_close(&sock);
+}
+
+TEST_F(OsNetSocketTest, udp_bind_zero_port_reports_ephemeral)
+{
+    lh_os_net_socket_t sock;
+    lh_net_ip4_t loopback_ip = lh_net_ip4_make(127, 0, 0, 1);
+    lh_net_ip4_socket_addr_t addr = lh_net_ip4_socket_addr_make(&loopback_ip, 0);
+    lh_net_ip4_socket_addr_t local{};
+
+    lh_os_net_socket_init(&sock);
+    ASSERT_EQ(lh_os_net_socket_open(&sock, lh_os_net_socket_type_udp), lh_bool_true);
+    ASSERT_EQ(lh_os_net_socket_bind(&sock, &addr), lh_bool_true);
+    ASSERT_EQ(lh_os_net_socket_get_local_addr(&sock, &local), lh_bool_true);
+    EXPECT_NE(lh_net_ip4_socket_addr_get_port(&local), 0U);
+
+    lh_os_net_socket_close(&sock);
+}
+
 TEST_F(OsNetSocketTest, connect_send_recv_round_trip_over_real_loopback_socket)
 {
     LoopbackEchoServer server;
@@ -162,6 +194,49 @@ TEST_F(OsNetSocketTest, connect_send_recv_round_trip_over_real_loopback_socket)
     EXPECT_EQ(std::string(buf, static_cast<size_t>(n)), "ping");
 
     lh_os_net_socket_close(&sock);
+}
+
+TEST_F(OsNetSocketTest, sendto_recvfrom_round_trip_over_real_loopback_udp)
+{
+    lh_os_net_socket_t server;
+    lh_os_net_socket_t client;
+    lh_net_ip4_t loopback_ip = lh_net_ip4_make(127, 0, 0, 1);
+    lh_net_ip4_socket_addr_t bind_any = lh_net_ip4_socket_addr_make(&loopback_ip, 0);
+    lh_net_ip4_socket_addr_t server_addr{};
+
+    lh_os_net_socket_init(&server);
+    lh_os_net_socket_init(&client);
+    ASSERT_EQ(lh_os_net_socket_open(&server, lh_os_net_socket_type_udp), lh_bool_true);
+    ASSERT_EQ(lh_os_net_socket_open(&client, lh_os_net_socket_type_udp), lh_bool_true);
+    ASSERT_EQ(lh_os_net_socket_bind(&server, &bind_any), lh_bool_true);
+    ASSERT_EQ(lh_os_net_socket_bind(&client, &bind_any), lh_bool_true);
+    ASSERT_EQ(lh_os_net_socket_get_local_addr(&server, &server_addr), lh_bool_true);
+
+    std::thread echo([&server] {
+        lh_io_dgram_t dgram = lh_os_net_socket_get_dgram(&server);
+        char buf[64] = {};
+        lh_net_ip4_socket_addr_t peer{};
+        lh_ssize_t n = lh_io_dgram_recv(&dgram, buf, sizeof(buf), &peer);
+        if (n > 0)
+        {
+            lh_io_dgram_send(&dgram, buf, static_cast<lh_usize_t>(n), &peer);
+        }
+    });
+
+    lh_io_dgram_t dgram = lh_os_net_socket_get_dgram(&client);
+    ASSERT_EQ(lh_io_dgram_send(&dgram, "ping", 4, &server_addr), 4);
+
+    char buf[8] = {};
+    lh_net_ip4_socket_addr_t peer{};
+    lh_ssize_t n = lh_io_dgram_recv(&dgram, buf, sizeof(buf), &peer);
+    echo.join();
+
+    ASSERT_EQ(n, 4);
+    EXPECT_EQ(std::string(buf, static_cast<size_t>(n)), "ping");
+    EXPECT_TRUE(lh_net_ip4_socket_addr_equals(&peer, &server_addr));
+
+    lh_os_net_socket_close(&client);
+    lh_os_net_socket_close(&server);
 }
 
 } // namespace

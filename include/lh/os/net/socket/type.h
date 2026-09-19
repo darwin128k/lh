@@ -36,10 +36,11 @@ typedef lh_u8_t lh_os_net_socket_type_t;
  * @def lh_os_net_socket_type_udp
  * @brief Connectionless, message-oriented transport (`SOCK_DGRAM`).
  *
- * ::lh_os_net_socket_open supports this today; sending/receiving whole
- * datagrams (`sendto`/`recvfrom`) is separate, not-yet-added API — treating
- * a UDP socket as an ::lh_io_stream_t would silently drop packet
- * boundaries, so ::lh_os_net_socket_get_stream is not offered for it.
+ * ::lh_os_net_socket_open supports this today. Whole datagrams go through
+ * ::lh_os_net_socket_sendto / ::lh_os_net_socket_recvfrom (and
+ * ::lh_os_net_socket_get_dgram). Treating a UDP socket as an
+ * ::lh_io_stream_t would silently drop packet boundaries, so
+ * ::lh_os_net_socket_get_stream is not offered for it.
  */
 #define lh_os_net_socket_type_udp 1U
 
