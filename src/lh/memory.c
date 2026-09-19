@@ -1,5 +1,4 @@
 #include <lh/memory.h>
-#include <lh/attribute/static.h>
 #include <lh/cast/static.h>
 #include <lh/memory/std.h>
 #include <lh/assert.h>
@@ -11,21 +10,6 @@
 #include <lh/util/return.h>
 
 #define LH_MEMORY_SCAN_BLOCK (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK))
-
-LH_ATTRIBUTE_STATIC
-lh_bool_t
-lh_memory_bytes_eq(const lh_uchar_t *lhs, const lh_uchar_t *rhs, lh_usize_t n)
-{
-    lh_usize_t i;
-    for (i = 0; i < n; ++i)
-    {
-        if (lhs[i] != rhs[i])
-        {
-            return lh_bool_false;
-        }
-    }
-    return lh_bool_true;
-}
 
 lh_ptr
 lh_memory_copy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size)
@@ -107,13 +91,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
             while (lh_math_ge(lh_memory_size_rest(lhs_size, off), LH_MEMORY_SCAN_BLOCK))
             {
                 const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
-                lh_bool_t block_hit = lh_bool_false;
-                lh_usize_t block_i;
-                for (block_i = 0; block_i < LH_MEMORY_SCAN_BLOCK; ++block_i)
-                {
-                    block_hit = lh_cast_static(lh_bool_t, (block_hit | (cand[block_i] == needle)));
-                }
-                if (block_hit)
+                if (lh_memory_bytes_any_eq(cand, LH_MEMORY_SCAN_BLOCK, needle))
                 {
                     break;
                 }
@@ -153,14 +131,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
             while (lh_math_ge(lh_memory_size_rest(lhs_size, off), LH_MEMORY_SCAN_BLOCK))
             {
                 const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
-                lh_bool_t block_hit = lh_bool_false;
-                lh_usize_t block_i;
-                for (block_i = 0; block_i < LH_MEMORY_SCAN_BLOCK; block_i += step)
-                {
-                    block_hit = lh_cast_static(
-                        lh_bool_t, (block_hit | lh_memory_bytes_eq(cand + block_i, needle, rhs_size)));
-                }
-                if (block_hit)
+                if (lh_memory_bytes_any_eq_step(cand, LH_MEMORY_SCAN_BLOCK, needle, rhs_size, step))
                 {
                     break;
                 }
@@ -236,6 +207,25 @@ lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh
         {
             const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
             if (*cand == needle)
+            {
+                return cand;
+            }
+            if (off < step)
+            {
+                break;
+            }
+            off -= step;
+        }
+        return lh_null;
+    }
+
+    if (rhs_size == step)
+    {
+        const lh_uchar_t *needle = lh_ptr_cast(const lh_uchar_t, rhs);
+        for (;;)
+        {
+            const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
+            if (lh_memory_bytes_eq(cand, needle, rhs_size))
             {
                 return cand;
             }

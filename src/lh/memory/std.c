@@ -12,6 +12,7 @@
 #include <lh/util/bit.h>
 #include <lh/util/bit/bswap.h>
 #include <lh/util/bit/scan.h>
+#include <lh/util/memory.h>
 #include <lh/util/ptr.h>
 
 /* Real SIMD, runtime-dispatched, for both GCC/Clang and MSVC: whether a tier's
@@ -388,13 +389,7 @@ lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
     while (n >= LH_MEMORY_STD_SCAN_BLOCK)
     {
-        lh_bool_t block_diff = lh_bool_false;
-        lh_usize_t block_i;
-        for (block_i = 0; block_i < LH_MEMORY_STD_SCAN_BLOCK; ++block_i)
-        {
-            block_diff = lh_cast_static(lh_bool_t, (block_diff | (l[block_i] != r[block_i])));
-        }
-        if (block_diff)
+        if (lh_memory_bytes_any_ne(l, r, LH_MEMORY_STD_SCAN_BLOCK))
         {
             break;
         }
