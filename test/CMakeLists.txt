@@ -28,6 +28,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/main.cpp
         ${LH_TEST_SRC_PATH}/lh/foreach.cpp
         ${LH_TEST_SRC_PATH}/lh/char/digit.cpp
+        ${LH_TEST_SRC_PATH}/lh/char/letter.cpp
         ${LH_TEST_SRC_PATH}/lh/char/xdigit.cpp
         ${LH_TEST_SRC_PATH}/lh/error.cpp
         ${LH_TEST_SRC_PATH}/lh/werror.cpp
