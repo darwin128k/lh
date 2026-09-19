@@ -3,13 +3,16 @@
 #endif
 
 #include <lh/os/shared.h>
+#include <lh/cast/const.h>
 #include <lh/cast/reinterpret.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/os.h>
 #include <lh/null.h>
 #include <lh/os.h>
+#include <lh/os/fs/path.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+#include <lh/util/str/ptr.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
 #    define WIN32_LEAN_AND_MEAN
@@ -159,4 +162,38 @@ lh_bool_t
 lh_os_shared_has_sym(lh_os_shared_handle_t handle, lh_str_cptr name)
 {
     return lh_cast_static(lh_bool_t, lh_null_ne(lh_os_shared_get_sym(handle, name)));
+}
+
+lh_str_cptr
+lh_os_shared_ext(void)
+{
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+    return ".dll";
+#else
+    return ".so";
+#endif
+}
+
+lh_bool_t
+lh_os_shared_is(lh_str_cptr name)
+{
+    if (lh_null_eq(name) || name[0] == '\0')
+    {
+        return lh_bool_false;
+    }
+    return lh_str_ptr_ends_with(lh_cast_const(lh_str_ptr, name), lh_os_shared_ext(), lh_bool_true);
+}
+
+lh_bool_t
+lh_os_shared_path_is(lh_str_cptr path)
+{
+    if (!lh_os_shared_is(path))
+    {
+        return lh_bool_false;
+    }
+    if (lh_os_fs_path_is(path, lh_os_fs_kind_dir) || lh_os_fs_path_is(path, lh_os_fs_kind_shortcut))
+    {
+        return lh_bool_false;
+    }
+    return lh_os_fs_path_is(path, lh_os_fs_kind_file);
 }

@@ -152,6 +152,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/net.c
             ${LH_LIB_SRC_PATH}/os/net/socket.c
             ${LH_LIB_SRC_PATH}/os/shared.c
+            ${LH_LIB_SRC_PATH}/os/shared/module.c
     )
 endif ()
 

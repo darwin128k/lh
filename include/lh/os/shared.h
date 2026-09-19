@@ -6,7 +6,8 @@
  * `FreeLibrary`. POSIX: `dlopen` / `dlsym` / `dlclose`.
  *
  * ::lh_os_shared_of_addr maps an already-loaded image (the host plugin)
- * without `LoadLibrary` / a fresh `dlopen`.
+ * without `LoadLibrary` / a fresh `dlopen`. A loaded image with a child
+ * table is ::lh_os_shared_module_t (`lh/os/shared/module.h`).
  *
  * On failure the reason is in ::lh_os_get_last_error (see `lh/os.h`).
  */
@@ -32,6 +33,37 @@
 typedef lh_ptr lh_os_shared_handle_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief Shared-library suffix for this OS (`".dll"` / `".so"`).
+ *
+ * @return Pointer to a static string; never ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_str_cptr
+lh_os_shared_ext(void);
+
+/**
+ * @brief True if @p name ends with ::lh_os_shared_ext (case-insensitive).
+ *
+ * A predicate: ::lh_null or empty is false, no last-error.
+ *
+ * @param name File name or path.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_shared_is(lh_str_cptr name);
+
+/**
+ * @brief True if @p path is a loadable shared library file.
+ *
+ * ::lh_os_shared_is, not a directory, not a shortcut, and a file.
+ *
+ * @param path Filesystem path.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_shared_path_is(lh_str_cptr path);
 
 /**
  * @brief Open the shared library at @p path.
