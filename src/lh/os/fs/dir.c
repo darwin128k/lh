@@ -12,6 +12,7 @@
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 #include <lh/util/str/ptr.h>
+#include <lh/util/str/ptr/dot.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
 #    define WIN32_LEAN_AND_MEAN
@@ -36,13 +37,6 @@ struct lh_os_fs_dir_state
 #endif
     lh_bool_t ready;
 };
-
-static lh_bool_t
-lh_os_fs_dir_is_dot(lh_str_cptr name)
-{
-    return lh_cast_static(lh_bool_t, name[0] == '.' &&
-                                         (name[1] == '\0' || (name[1] == '.' && name[2] == '\0')));
-}
 
 static struct lh_os_fs_dir_state *
 lh_os_fs_dir_state(lh_os_fs_dir_t *self)
@@ -259,7 +253,8 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_os_fs_path_t *name, lh_os_fs_dir_entr
             }
             state->ready = lh_bool_true;
         }
-        if (lh_os_fs_dir_is_dot(state->data.cFileName))
+        if (lh_str_ptr_is_dot(state->data.cFileName) ||
+            lh_str_ptr_is_double_dot(state->data.cFileName))
         {
             state->ready = lh_bool_false;
             continue;
@@ -308,7 +303,7 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_os_fs_path_t *name, lh_os_fs_dir_entr
             type = state->type;
         }
 
-        if (lh_os_fs_dir_is_dot(entry_name))
+        if (lh_str_ptr_is_dot(entry_name) || lh_str_ptr_is_double_dot(entry_name))
         {
             state->ready = lh_bool_false;
             continue;
