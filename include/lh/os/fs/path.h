@@ -15,14 +15,12 @@
 #ifndef LH_OS_FS_PATH_H
 #define LH_OS_FS_PATH_H
 
-#include <lh/attribute/force_inline.h>
 #include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/index.h>
-#include <lh/os.h>
 #include <lh/os/fs/kind.h>
 #include <lh/os/fs/path/fields.h>
 #include <lh/os/fs/stat.h>
@@ -170,25 +168,6 @@ lh_os_fs_path_as_view(const lh_os_fs_path_t *self);
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_fs_path_is_empty(const lh_os_fs_path_t *self);
-
-/**
- * @brief False when @p self has no levels; writes ::lh_os_error_code_path_empty.
- *
- * OS calls that need a real path go through this instead of repeating
- * `is_empty` + `set_last_error`.
- */
-LH_ATTRIBUTE_FORCE_INLINE
-lh_bool_t
-lh_os_fs_path_require(const lh_os_fs_path_t *self)
-{
-    if (lh_os_fs_path_is_empty(self))
-    {
-        lh_os_set_last_error(lh_os_error_code_path_empty,
-                             lh_os_error_desc_lit("path is empty"));
-        return lh_bool_false;
-    }
-    return lh_bool_true;
-}
 
 /**
  * @brief Absolute path of the running executable into @p out.

@@ -44,8 +44,10 @@ lh_os_shared_open(const lh_os_fs_path_t *path)
     lh_os_shared_handle_t handle;
     lh_str_cptr cstr;
 
-    if (!lh_os_fs_path_require(path))
+    lh_assert_runtime_ref(path);
+    if (lh_os_fs_path_is_empty(path))
     {
+        lh_os_set_last_error(lh_os_error_code_path_empty, lh_os_error_desc_lit("path is empty"));
         return lh_null;
     }
     cstr = lh_str_get_data(lh_os_fs_path_get_text_as_const(path));

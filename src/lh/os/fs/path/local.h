@@ -11,6 +11,7 @@
 #include <lh/attribute/force_inline.h>
 #include <lh/compiler/os.h>
 #include <lh/char/slash.h>
+#include <lh/os.h>
 #include <lh/str.h>
 #include <lh/str/view.h>
 #include <lh/util/addr.h>
@@ -26,6 +27,20 @@ lh_str_cptr
 lh_os_fs_path_cstr(const lh_os_fs_path_t *self)
 {
     return lh_str_get_data(lh_os_fs_path_get_text_as_const(self));
+}
+
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
+lh_os_fs_path_require(const lh_os_fs_path_t *self)
+{
+    lh_assert_runtime_ref(self);
+    if (lh_os_fs_path_is_empty(self))
+    {
+        lh_os_set_last_error(lh_os_error_code_path_empty,
+                             lh_os_error_desc_lit("path is empty"));
+        return lh_bool_false;
+    }
+    return lh_bool_true;
 }
 
 LH_ATTRIBUTE_FORCE_INLINE
