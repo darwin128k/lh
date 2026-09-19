@@ -40,25 +40,25 @@ struct lh_os_fs_dir_state
 static void
 lh_os_fs_dir_fail_empty(void)
 {
-    lh_os_set_last_error(1, lh_os_error_desc_lit("path is empty"));
+    lh_os_set_last_error(lh_os_error_code_path_empty, lh_os_error_desc_lit("path is empty"));
 }
 
 static void
 lh_os_fs_dir_fail_too_long(void)
 {
-    lh_os_set_last_error(1, lh_os_error_desc_lit("name is too long"));
+    lh_os_set_last_error(lh_os_error_code_name_too_long, lh_os_error_desc_lit("name is too long"));
 }
 
 static void
 lh_os_fs_dir_fail_not_open(void)
 {
-    lh_os_set_last_error(1, lh_os_error_desc_lit("directory is not open"));
+    lh_os_set_last_error(lh_os_error_code_not_open, lh_os_error_desc_lit("directory is not open"));
 }
 
 static void
 lh_os_fs_dir_fail_oom(void)
 {
-    lh_os_set_last_error(1, lh_os_error_desc_lit("out of memory"));
+    lh_os_set_last_error(lh_os_error_code_out_of_memory, lh_os_error_desc_lit("out of memory"));
 }
 
 static lh_bool_t

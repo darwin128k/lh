@@ -46,7 +46,7 @@ lh_os_shared_open(const lh_os_fs_path_t *path)
     lh_assert_runtime_ref(path);
     if (lh_os_fs_path_is_empty(path))
     {
-        lh_os_set_last_error(1, lh_os_error_desc_lit("path is empty"));
+        lh_os_set_last_error(lh_os_error_code_path_empty, lh_os_error_desc_lit("path is empty"));
         return lh_null;
     }
     cstr = lh_str_get_data(lh_os_fs_path_get_text_as_const(path));
@@ -62,7 +62,7 @@ lh_os_shared_open(const lh_os_fs_path_t *path)
     handle = lh_cast_reinterpret(lh_os_shared_handle_t, dlopen(cstr, RTLD_NOW));
     if (lh_null_eq(handle))
     {
-        lh_os_set_last_error_cstr(1, dlerror());
+        lh_os_set_last_error_cstr(lh_os_error_code_failed, dlerror());
         return lh_null;
     }
 #endif
@@ -76,7 +76,7 @@ lh_os_shared_of_addr(lh_ptr addr)
 
     if (lh_null_eq(addr))
     {
-        lh_os_set_last_error(1, lh_os_error_desc_lit("address is null"));
+        lh_os_set_last_error(lh_os_error_code_null_pointer, lh_os_error_desc_lit("address is null"));
         return lh_null;
     }
 
@@ -99,14 +99,15 @@ lh_os_shared_of_addr(lh_ptr addr)
 
         if (dladdr(addr, lh_addr_of(info)) == 0 || lh_null_eq(info.dli_fname))
         {
-            lh_os_set_last_error(1, lh_os_error_desc_lit("address is not in a loaded image"));
+            lh_os_set_last_error(lh_os_error_code_not_in_image,
+                                 lh_os_error_desc_lit("address is not in a loaded image"));
             return lh_null;
         }
         (void)dlerror();
         handle = lh_cast_reinterpret(lh_os_shared_handle_t, dlopen(info.dli_fname, RTLD_NOW | RTLD_NOLOAD));
         if (lh_null_eq(handle))
         {
-            lh_os_set_last_error_cstr(1, dlerror());
+            lh_os_set_last_error_cstr(lh_os_error_code_failed, dlerror());
             return lh_null;
         }
     }
@@ -120,7 +121,7 @@ lh_os_shared_path_fill(lh_str_cptr src, lh_os_fs_path_t *out)
     if (lh_null_eq(src) || lh_ptr_deref(src) == '\0')
     {
         lh_os_fs_path_clear(out);
-        lh_os_set_last_error(1, lh_os_error_desc_lit("path is empty"));
+        lh_os_set_last_error(lh_os_error_code_path_empty, lh_os_error_desc_lit("path is empty"));
         return lh_bool_false;
     }
     return lh_os_fs_path_set(out, lh_str_view_make(src));
@@ -134,7 +135,7 @@ lh_os_shared_get_path_of(lh_os_shared_handle_t handle, lh_os_fs_path_t *out)
     if (lh_null_eq(handle))
     {
         lh_os_fs_path_clear(out);
-        lh_os_set_last_error(1, lh_os_error_desc_lit("handle is null"));
+        lh_os_set_last_error(lh_os_error_code_null_pointer, lh_os_error_desc_lit("handle is null"));
         return lh_bool_false;
     }
 
@@ -156,7 +157,7 @@ lh_os_shared_get_path_of(lh_os_shared_handle_t handle, lh_os_fs_path_t *out)
         if (n >= cap)
         {
             lh_os_fs_path_clear(out);
-            lh_os_set_last_error(1, lh_os_error_desc_lit("buffer too small"));
+            lh_os_set_last_error(lh_os_error_code_too_small, lh_os_error_desc_lit("buffer too small"));
             return lh_bool_false;
         }
         return lh_os_fs_path_set(out, lh_str_view_make(buf));
@@ -179,7 +180,8 @@ lh_os_shared_get_path_of(lh_os_shared_handle_t handle, lh_os_fs_path_t *out)
         if (lh_null_eq(src))
         {
             lh_os_fs_path_clear(out);
-            lh_os_set_last_error(1, lh_os_error_desc_lit("handle has no image path"));
+            lh_os_set_last_error(lh_os_error_code_no_image_path,
+                                 lh_os_error_desc_lit("handle has no image path"));
             return lh_bool_false;
         }
         return lh_os_shared_path_fill(src, out);
@@ -195,7 +197,7 @@ lh_os_shared_get_path_of_addr(lh_ptr addr, lh_os_fs_path_t *out)
     if (lh_null_eq(addr))
     {
         lh_os_fs_path_clear(out);
-        lh_os_set_last_error(1, lh_os_error_desc_lit("address is null"));
+        lh_os_set_last_error(lh_os_error_code_null_pointer, lh_os_error_desc_lit("address is null"));
         return lh_bool_false;
     }
 
@@ -218,7 +220,8 @@ lh_os_shared_get_path_of_addr(lh_ptr addr, lh_os_fs_path_t *out)
         if (dladdr(addr, lh_addr_of(info)) == 0)
         {
             lh_os_fs_path_clear(out);
-            lh_os_set_last_error(1, lh_os_error_desc_lit("address is not in a loaded image"));
+            lh_os_set_last_error(lh_os_error_code_not_in_image,
+                                 lh_os_error_desc_lit("address is not in a loaded image"));
             return lh_bool_false;
         }
         return lh_os_shared_path_fill(info.dli_fname, out);
@@ -231,7 +234,7 @@ lh_os_shared_close(lh_os_shared_handle_t handle)
 {
     if (lh_null_eq(handle))
     {
-        lh_os_set_last_error(1, lh_os_error_desc_lit("handle is null"));
+        lh_os_set_last_error(lh_os_error_code_null_pointer, lh_os_error_desc_lit("handle is null"));
         return lh_bool_false;
     }
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
@@ -244,7 +247,7 @@ lh_os_shared_close(lh_os_shared_handle_t handle)
     (void)dlerror();
     if (dlclose(handle) != 0)
     {
-        lh_os_set_last_error_cstr(1, dlerror());
+        lh_os_set_last_error_cstr(lh_os_error_code_failed, dlerror());
         return lh_bool_false;
     }
 #endif
@@ -258,7 +261,8 @@ lh_os_shared_get_sym(lh_os_shared_handle_t handle, lh_str_cptr name)
 
     if (lh_null_eq(handle) || lh_null_eq(name))
     {
-        lh_os_set_last_error(1, lh_os_error_desc_lit("handle or name is null"));
+        lh_os_set_last_error(lh_os_error_code_null_pointer,
+                             lh_os_error_desc_lit("handle or name is null"));
         return lh_null;
     }
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
@@ -273,7 +277,7 @@ lh_os_shared_get_sym(lh_os_shared_handle_t handle, lh_str_cptr name)
     sym = lh_cast_reinterpret(lh_ptr, dlsym(handle, name));
     if (lh_null_eq(sym))
     {
-        lh_os_set_last_error_cstr(1, dlerror());
+        lh_os_set_last_error_cstr(lh_os_error_code_failed, dlerror());
         return lh_null;
     }
 #endif

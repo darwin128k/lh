@@ -59,7 +59,7 @@ lh_os_shared_module_get_path(const lh_os_shared_module_t *self, lh_os_fs_path_t 
     if (!lh_os_shared_module_is_loaded(self))
     {
         lh_os_fs_path_clear(out);
-        lh_os_set_last_error(1, lh_os_error_desc_lit("not loaded"));
+        lh_os_set_last_error(lh_os_error_code_not_loaded, lh_os_error_desc_lit("not loaded"));
         return lh_bool_false;
     }
     return lh_os_shared_get_path_of(lh_ptr_deref(lh_os_shared_module_get_handle_as_const(self)),
@@ -97,7 +97,7 @@ lh_os_shared_module_open(lh_os_shared_module_t *self, const lh_os_fs_path_t *pat
 
     if (lh_os_shared_module_is_loaded(self))
     {
-        lh_os_set_last_error(1, lh_os_error_desc_lit("already loaded"));
+        lh_os_set_last_error(lh_os_error_code_already_loaded, lh_os_error_desc_lit("already loaded"));
         return lh_bool_false;
     }
     handle = lh_os_shared_open(path);
@@ -117,7 +117,7 @@ lh_os_shared_module_bind(lh_os_shared_module_t *self, lh_ptr addr)
 
     if (lh_os_shared_module_is_loaded(self))
     {
-        lh_os_set_last_error(1, lh_os_error_desc_lit("already loaded"));
+        lh_os_set_last_error(lh_os_error_code_already_loaded, lh_os_error_desc_lit("already loaded"));
         return lh_bool_false;
     }
     handle = lh_os_shared_of_addr(addr);
@@ -209,7 +209,7 @@ lh_os_shared_module_get_sym(const lh_os_shared_module_t *self, lh_str_cptr name)
 {
     if (!lh_os_shared_module_is_loaded(self))
     {
-        lh_os_set_last_error(1, lh_os_error_desc_lit("not loaded"));
+        lh_os_set_last_error(lh_os_error_code_not_loaded, lh_os_error_desc_lit("not loaded"));
         return lh_null;
     }
     return lh_os_shared_get_sym(lh_ptr_deref(lh_os_shared_module_get_handle_as_const(self)), name);
@@ -220,7 +220,7 @@ lh_os_shared_module_has_sym(const lh_os_shared_module_t *self, lh_str_cptr name)
 {
     if (!lh_os_shared_module_is_loaded(self))
     {
-        lh_os_set_last_error(1, lh_os_error_desc_lit("not loaded"));
+        lh_os_set_last_error(lh_os_error_code_not_loaded, lh_os_error_desc_lit("not loaded"));
         return lh_bool_false;
     }
     return lh_os_shared_has_sym(lh_ptr_deref(lh_os_shared_module_get_handle_as_const(self)), name);

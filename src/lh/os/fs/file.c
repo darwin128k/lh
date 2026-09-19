@@ -52,7 +52,7 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_os_fs_path_t *path, lh_os_fs_
     lh_assert_runtime_ref(path);
     if (lh_os_fs_path_is_empty(path))
     {
-        lh_os_set_last_error(1, lh_os_error_desc_lit("path is empty"));
+        lh_os_set_last_error(lh_os_error_code_path_empty, lh_os_error_desc_lit("path is empty"));
         return lh_bool_false;
     }
     cstr = lh_str_get_data(lh_os_fs_path_get_text_as_const(path));
@@ -157,7 +157,8 @@ lh_os_fs_file_get_size(const lh_os_fs_file_t *self, lh_u64_t *out)
         }
         if (size.QuadPart < 0)
         {
-            lh_os_set_last_error(1, lh_os_error_desc_lit("file size is negative"));
+            lh_os_set_last_error(lh_os_error_code_negative_size,
+                                 lh_os_error_desc_lit("file size is negative"));
             return lh_bool_false;
         }
         *out = lh_cast_static(lh_u64_t, size.QuadPart);
@@ -174,7 +175,8 @@ lh_os_fs_file_get_size(const lh_os_fs_file_t *self, lh_u64_t *out)
         }
         if (info.st_size < 0)
         {
-            lh_os_set_last_error(1, lh_os_error_desc_lit("file size is negative"));
+            lh_os_set_last_error(lh_os_error_code_negative_size,
+                                 lh_os_error_desc_lit("file size is negative"));
             return lh_bool_false;
         }
         *out = lh_cast_static(lh_u64_t, info.st_size);
@@ -291,7 +293,8 @@ lh_os_fs_file_read_all(lh_os_fs_file_t *self, lh_ptr buf, lh_usize_t size)
         {
             if (n == 0)
             {
-                lh_os_set_last_error(1, lh_os_error_desc_lit("file ended before all bytes were read"));
+                lh_os_set_last_error(lh_os_error_code_short_read,
+                                     lh_os_error_desc_lit("file ended before all bytes were read"));
             }
             return lh_bool_false;
         }

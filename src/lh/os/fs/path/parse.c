@@ -107,7 +107,8 @@ lh_os_fs_path_commit(lh_os_fs_path_t *self)
     if (lh_str_get_size(lh_os_fs_path_get_text_as_const(self)) + 1U > LH_OS_FS_PATH_MAX)
     {
         lh_os_fs_path_clear(self);
-        lh_os_fs_path_fail_too_small();
+        lh_os_set_last_error(lh_os_error_code_too_small,
+                             lh_os_error_desc_lit("path buffer is too small"));
         return lh_bool_false;
     }
     return lh_bool_true;
@@ -195,7 +196,7 @@ lh_os_fs_path_drop_last(lh_os_fs_path_t *self)
     n = lh_vector_get_size(parts);
     if (n == 0U)
     {
-        lh_os_fs_path_fail_empty();
+        lh_os_set_last_error(lh_os_error_code_path_empty, lh_os_error_desc_lit("path is empty"));
         return lh_bool_false;
     }
     if (n == 1U)

@@ -63,7 +63,8 @@ lh_os_fs_path_exe(lh_os_fs_path_t *out)
         if (n >= cap)
         {
             lh_os_fs_path_clear(out);
-            lh_os_fs_path_fail_too_small();
+            lh_os_set_last_error(lh_os_error_code_too_small,
+                                 lh_os_error_desc_lit("path buffer is too small"));
             return lh_bool_false;
         }
         return lh_os_fs_path_from_os_buf(out, buf);
@@ -75,7 +76,8 @@ lh_os_fs_path_exe(lh_os_fs_path_t *out)
         if (_NSGetExecutablePath(buf, lh_addr_of(cap)) != 0)
         {
             lh_os_fs_path_clear(out);
-            lh_os_fs_path_fail_too_small();
+            lh_os_set_last_error(lh_os_error_code_too_small,
+                                 lh_os_error_desc_lit("path buffer is too small"));
             return lh_bool_false;
         }
         return lh_os_fs_path_from_os_buf(out, buf);
@@ -125,7 +127,7 @@ lh_os_fs_path_is(const lh_os_fs_path_t *path, lh_os_fs_kind_t kind)
     if (kind != lh_os_fs_kind_file && kind != lh_os_fs_kind_dir &&
         kind != lh_os_fs_kind_symlink && kind != lh_os_fs_kind_shortcut)
     {
-        lh_os_fs_path_fail_kind();
+        lh_os_set_last_error(lh_os_error_code_invalid_kind, lh_os_error_desc_lit("kind is invalid"));
         return lh_bool_false;
     }
     if (!lh_os_fs_path_require(path))
@@ -317,7 +319,8 @@ lh_os_fs_path_read(const lh_os_fs_path_t *path, lh_ptr buf, lh_usize_t buf_size,
     if (size > buf_size)
     {
         lh_os_fs_file_close(lh_addr_of(file));
-        lh_os_fs_path_fail_too_small();
+        lh_os_set_last_error(lh_os_error_code_too_small,
+                             lh_os_error_desc_lit("path buffer is too small"));
         return lh_bool_false;
     }
     if (!lh_os_fs_file_read_all(lh_addr_of(file), buf, lh_cast_static(lh_usize_t, size)))

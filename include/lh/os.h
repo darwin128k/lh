@@ -21,6 +21,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/error/code.h>
+#include <lh/os/error/code.h>
 #include <lh/str/ptr.h>
 
 #if !LH_LIBRARY_OPTION_OS
@@ -48,7 +49,7 @@
  *
  * Example usage:
  * @code{.c}
- * lh_os_set_last_error(1, lh_os_error_desc_lit("path is null"));
+ * lh_os_set_last_error(lh_os_error_code_path_empty, lh_os_error_desc_lit("path is empty"));
  * @endcode
  */
 #if LH_LIBRARY_OPTION_OS_WERROR
@@ -73,7 +74,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * ::lh_os_set_last_error / ::lh_os_set_last_error_cstr /
  * ::lh_os_capture_last_error.
  *
- * @param code Native or lh-side code stored in the slot.
+ * @param code Native OS code, or an ::lh_os_error_code_* value.
  * @param desc View over the message in the slot encoding (narrow or wide).
  */
 LH_ATTRIBUTE_SYMBOL
@@ -87,7 +88,7 @@ lh_os_set_last_error(lh_error_code_t code, lh_os_error_desc_t desc);
  * wide slot (Windows: ACP via `MultiByteToWideChar`; POSIX: `mbstowcs`).
  * When off, this is a copy of a ::lh_str_view_make(@p text) into the char slot.
  *
- * @param code Native or lh-side code stored in the slot.
+ * @param code Native OS code, or an ::lh_os_error_code_* value.
  * @param text NUL-terminated narrow string, or ::lh_null (no description).
  */
 LH_ATTRIBUTE_SYMBOL
@@ -108,7 +109,7 @@ void
 lh_os_capture_last_error(void);
 
 /**
- * @brief Last error code (native OS code, or a small lh-side code).
+ * @brief Last error code (native OS code, or ::lh_os_error_code_*).
  * @return Code from the most recent set / capture. Zero if nothing was stored.
  */
 LH_ATTRIBUTE_SYMBOL

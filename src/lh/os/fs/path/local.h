@@ -21,27 +21,6 @@ typedef struct
 } lh_os_fs_path_span_t;
 
 LH_ATTRIBUTE_FORCE_INLINE
-void
-lh_os_fs_path_fail_empty(void)
-{
-    lh_os_set_last_error(1, lh_os_error_desc_lit("path is empty"));
-}
-
-LH_ATTRIBUTE_FORCE_INLINE
-void
-lh_os_fs_path_fail_too_small(void)
-{
-    lh_os_set_last_error(1, lh_os_error_desc_lit("path buffer is too small"));
-}
-
-LH_ATTRIBUTE_FORCE_INLINE
-void
-lh_os_fs_path_fail_kind(void)
-{
-    lh_os_set_last_error(1, lh_os_error_desc_lit("kind is invalid"));
-}
-
-LH_ATTRIBUTE_FORCE_INLINE
 lh_str_cptr
 lh_os_fs_path_cstr(const lh_os_fs_path_t *self)
 {
@@ -55,7 +34,8 @@ lh_os_fs_path_require(const lh_os_fs_path_t *self)
     lh_assert_runtime_ref(self);
     if (lh_os_fs_path_is_empty(self))
     {
-        lh_os_fs_path_fail_empty();
+        lh_os_set_last_error(lh_os_error_code_path_empty,
+                             lh_os_error_desc_lit("path is empty"));
         return lh_bool_false;
     }
     return lh_bool_true;
