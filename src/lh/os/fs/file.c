@@ -18,7 +18,6 @@
 typedef HANDLE lh_os_fs_native_handle_t;
 #else
 #    include <fcntl.h>
-#    include <sys/stat.h>
 #    include <unistd.h>
 typedef int lh_os_fs_native_handle_t;
 #endif
@@ -143,46 +142,15 @@ lh_os_fs_file_is_valid(const lh_os_fs_file_t *self)
 lh_bool_t
 lh_os_fs_file_get_size(const lh_os_fs_file_t *self, lh_u64_t *out)
 {
-    lh_assert_runtime_ref(self);
+    lh_os_fs_stat_t st;
+
     lh_assert_runtime_ref(out);
-
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+    if (!lh_os_fs_file_stat(self, lh_addr_of(st)))
     {
-        LARGE_INTEGER size;
-
-        if (!GetFileSizeEx(lh_os_fs_file_native_handle(self), lh_addr_of(size)))
-        {
-            lh_os_capture_last_error();
-            return lh_bool_false;
-        }
-        if (size.QuadPart < 0)
-        {
-            lh_os_set_last_error(lh_os_error_code_negative_size,
-                                 lh_os_error_desc_lit("file size is negative"));
-            return lh_bool_false;
-        }
-        *out = lh_cast_static(lh_u64_t, size.QuadPart);
-        return lh_bool_true;
+        return lh_bool_false;
     }
-#else
-    {
-        struct stat info;
-
-        if (fstat(lh_os_fs_file_native_handle(self), lh_addr_of(info)) != 0)
-        {
-            lh_os_capture_last_error();
-            return lh_bool_false;
-        }
-        if (info.st_size < 0)
-        {
-            lh_os_set_last_error(lh_os_error_code_negative_size,
-                                 lh_os_error_desc_lit("file size is negative"));
-            return lh_bool_false;
-        }
-        *out = lh_cast_static(lh_u64_t, info.st_size);
-        return lh_bool_true;
-    }
-#endif
+    *out = lh_os_fs_stat_get_size(lh_addr_of(st));
+    return lh_bool_true;
 }
 
 lh_ssize_t

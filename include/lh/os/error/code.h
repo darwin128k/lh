@@ -62,7 +62,7 @@
 
 /**
  * @def lh_os_error_code_not_open
- * @brief The directory iterator is not open.
+ * @brief The directory iterator or file handle is not open.
  */
 #define lh_os_error_code_not_open 0x08
 

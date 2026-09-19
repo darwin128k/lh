@@ -8,7 +8,8 @@
  * object, just the flags argument to the same `CreateFile` / `open`.
  *
  * Deliberately narrow otherwise: no seek, no mapping. Directory listing is
- * ::lh_os_fs_dir_t (`lh/os/fs/dir.h`).
+ * ::lh_os_fs_dir_t (`lh/os/fs/dir.h`). Object state is ::lh_os_fs_stat_t
+ * via ::lh_os_fs_file_stat — not cached on the handle.
  *
  * On failure the reason is in ::lh_os_get_last_error (see `lh/os.h`).
  * Requires ::LH_LIBRARY_OPTION_OS.
@@ -110,7 +111,7 @@ lh_os_fs_file_is_valid(const lh_os_fs_file_t *self);
 /**
  * @brief Byte size of the file currently open on @p self.
  *
- * Windows: `GetFileSizeEx`. POSIX: `fstat`.
+ * Delegates to ::lh_os_fs_file_stat.
  *
  * @param self Open file.
  * @param out  Receives the size in bytes.
@@ -119,6 +120,16 @@ lh_os_fs_file_is_valid(const lh_os_fs_file_t *self);
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_fs_file_get_size(const lh_os_fs_file_t *self, lh_u64_t *out);
+
+/**
+ * @brief Unix-shaped snapshot of the open file into @p out (`fstat`).
+ *
+ * Windows: `GetFileInformationByHandle`. Extra flags in
+ * ::lh_os_fs_stat_get_attr; leading-dot hidden is path-only.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_file_stat(const lh_os_fs_file_t *self, lh_os_fs_stat_t *out);
 
 /* ── operations ──────────────────────────────────────────────────────────── */
 

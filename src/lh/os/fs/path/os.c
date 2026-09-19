@@ -7,6 +7,7 @@
 #include <lh/memory.h>
 #include <lh/null.h>
 #include <lh/os/fs/file.h>
+#include <lh/os/fs/stat.h>
 #include <lh/str/view.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -22,9 +23,6 @@
 #    include <sys/stat.h>
 #    include <unistd.h>
 #endif
-
-#define LH_OS_FS_FILETIME_UNIX_EPOCH 116444736000000000ULL
-#define LH_OS_FS_FILETIME_HZ 10000000ULL
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
 #    ifndef IO_REPARSE_TAG_SYMLINK
@@ -254,48 +252,15 @@ lh_os_fs_path_is_shortcut(const lh_os_fs_path_t *path)
 lh_bool_t
 lh_os_fs_path_mtime(const lh_os_fs_path_t *path, lh_s64_t *out)
 {
-    lh_str_cptr cstr;
+    lh_os_fs_stat_t st;
 
     lh_assert_runtime_ref(out);
-    if (!lh_os_fs_path_require(path))
+    if (!lh_os_fs_path_stat(path, lh_addr_of(st)))
     {
         return lh_bool_false;
     }
-    cstr = lh_os_fs_path_cstr(path);
-
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-    {
-        WIN32_FILE_ATTRIBUTE_DATA info;
-        ULARGE_INTEGER ticks;
-
-        if (!lh_os_fs_path_stat_win(cstr, lh_addr_of(info)))
-        {
-            return lh_bool_false;
-        }
-        ticks.LowPart = info.ftLastWriteTime.dwLowDateTime;
-        ticks.HighPart = info.ftLastWriteTime.dwHighDateTime;
-        if (ticks.QuadPart < LH_OS_FS_FILETIME_UNIX_EPOCH)
-        {
-            *out = 0;
-            return lh_bool_true;
-        }
-        *out = lh_cast_static(lh_s64_t,
-                              (ticks.QuadPart - LH_OS_FS_FILETIME_UNIX_EPOCH) / LH_OS_FS_FILETIME_HZ);
-        return lh_bool_true;
-    }
-#else
-    {
-        struct stat info;
-
-        if (stat(cstr, lh_addr_of(info)) != 0)
-        {
-            lh_os_capture_last_error();
-            return lh_bool_false;
-        }
-        *out = lh_cast_static(lh_s64_t, info.st_mtime);
-        return lh_bool_true;
-    }
-#endif
+    *out = lh_os_fs_stat_get_mtime(lh_addr_of(st));
+    return lh_bool_true;
 }
 
 lh_bool_t

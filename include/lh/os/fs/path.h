@@ -23,6 +23,7 @@
 #include <lh/index.h>
 #include <lh/os/fs/kind.h>
 #include <lh/os/fs/path/fields.h>
+#include <lh/os/fs/stat.h>
 #include <lh/ptr.h>
 #include <lh/size.h>
 #include <lh/str.h>
@@ -244,10 +245,25 @@ lh_os_fs_path_is_shortcut(const lh_os_fs_path_t *path);
 
 /**
  * @brief Last-write time of @p path as Unix seconds.
+ *
+ * Delegates to ::lh_os_fs_path_stat (`lstat` / `GetFileAttributesEx`).
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_fs_path_mtime(const lh_os_fs_path_t *path, lh_s64_t *out);
+
+/**
+ * @brief Unix-shaped snapshot of @p path into @p out (`lstat`).
+ *
+ * Kind is one value: symlink, else directory, else file, else other.
+ * Overlapping queries (symlink-to-dir is also a dir; `.lnk` is also a
+ * file) stay on ::lh_os_fs_path_is. Extra Windows flags are in
+ * ::lh_os_fs_stat_get_attr. A name that starts with `.` (not `.` / `..`)
+ * sets ::lh_os_fs_attr_hidden.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_path_stat(const lh_os_fs_path_t *path, lh_os_fs_stat_t *out);
 
 /**
  * @brief Read the whole file at @p path into @p buf (PHP `file_get_contents`).
