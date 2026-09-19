@@ -7,7 +7,8 @@
  * ::lh_os_fs_file_mode_t): read and write are not different kinds of
  * object, just the flags argument to the same `CreateFile` / `open`.
  *
- * Deliberately narrow otherwise: no seek, no directory, no mapping.
+ * Deliberately narrow otherwise: no seek, no mapping. Directory listing is
+ * ::lh_os_fs_dir_t (`lh/os/fs/dir.h`).
  *
  * On failure the reason is in ::lh_os_get_last_error (see `lh/os.h`).
  * Requires ::LH_LIBRARY_OPTION_OS.

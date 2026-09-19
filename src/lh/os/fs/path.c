@@ -6,6 +6,7 @@
 #include <lh/null.h>
 #include <lh/os.h>
 #include <lh/os/fs/file.h>
+#include <lh/memory.h>
 #include <lh/util/addr.h>
 #include <lh/util/str/ptr.h>
 
@@ -24,6 +25,16 @@
 #define LH_OS_FS_FILETIME_UNIX_EPOCH 116444736000000000ULL
 #define LH_OS_FS_FILETIME_HZ 10000000ULL
 
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+#    ifndef IO_REPARSE_TAG_SYMLINK
+#        define IO_REPARSE_TAG_SYMLINK 0xA000000CUL
+#    endif
+#endif
+
+static const lh_u8_t lh_os_fs_path_shortcut_magic[20] = {
+    0x4CU, 0x00U, 0x00U, 0x00U, 0x01U, 0x14U, 0x02U, 0x00U, 0x00U, 0x00U,
+    0x00U, 0x00U, 0xC0U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x46U};
+
 static void
 lh_os_fs_path_fail_null(void)
 {
@@ -40,6 +51,12 @@ static void
 lh_os_fs_path_fail_too_small(void)
 {
     lh_os_set_last_error(1, lh_os_error_desc_lit("path buffer is too small"));
+}
+
+static void
+lh_os_fs_path_fail_kind(void)
+{
+    lh_os_set_last_error(1, lh_os_error_desc_lit("kind is invalid"));
 }
 
 static lh_bool_t
@@ -146,16 +163,11 @@ lh_os_fs_path_exe(lh_str_ptr out, lh_usize_t out_size)
 #endif
 }
 
-lh_bool_t
-lh_os_fs_path_exe_dir(lh_str_ptr out, lh_usize_t out_size)
+static lh_bool_t
+lh_os_fs_path_drop_last(lh_str_ptr out, lh_usize_t out_size)
 {
     const lh_char_t *slash;
     lh_usize_t len;
-
-    if (!lh_os_fs_path_exe(out, out_size))
-    {
-        return lh_bool_false;
-    }
 
     len = lh_str_ptr_len(out);
     slash = lh_os_fs_path_last_sep(out, len);
@@ -191,6 +203,226 @@ lh_os_fs_path_exe_dir(lh_str_ptr out, lh_usize_t out_size)
         cut[0] = '\0';
     }
     return lh_bool_true;
+}
+
+lh_bool_t
+lh_os_fs_path_exe_dir(lh_str_ptr out, lh_usize_t out_size)
+{
+    if (!lh_os_fs_path_exe(out, out_size))
+    {
+        return lh_bool_false;
+    }
+    return lh_os_fs_path_drop_last(out, out_size);
+}
+
+lh_bool_t
+lh_os_fs_path_dir(lh_str_cptr path, lh_str_ptr out, lh_usize_t out_size)
+{
+    lh_usize_t len;
+
+    lh_assert_runtime_ref(out);
+
+    if (lh_null_eq(path))
+    {
+        if (out_size > 0U)
+        {
+            out[0] = '\0';
+        }
+        lh_os_fs_path_fail_null();
+        return lh_bool_false;
+    }
+    if (path[0] == '\0')
+    {
+        if (out_size > 0U)
+        {
+            out[0] = '\0';
+        }
+        lh_os_fs_path_fail_empty();
+        return lh_bool_false;
+    }
+    if (out_size < 2U)
+    {
+        if (out_size > 0U)
+        {
+            out[0] = '\0';
+        }
+        lh_os_fs_path_fail_too_small();
+        return lh_bool_false;
+    }
+
+    len = lh_str_ptr_len(path);
+    if (len + 1U > out_size)
+    {
+        out[0] = '\0';
+        lh_os_fs_path_fail_too_small();
+        return lh_bool_false;
+    }
+    lh_str_ptr_copy(out, len, path, len);
+    out[len] = '\0';
+    return lh_os_fs_path_drop_last(out, out_size);
+}
+
+static lh_bool_t
+lh_os_fs_path_require(lh_str_cptr path)
+{
+    if (lh_null_eq(path))
+    {
+        lh_os_fs_path_fail_null();
+        return lh_bool_false;
+    }
+    if (path[0] == '\0')
+    {
+        lh_os_fs_path_fail_empty();
+        return lh_bool_false;
+    }
+    return lh_bool_true;
+}
+
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+static lh_bool_t
+lh_os_fs_path_attrs(lh_str_cptr path, DWORD *attrs)
+{
+    WIN32_FILE_ATTRIBUTE_DATA info;
+
+    if (!GetFileAttributesExA(path, GetFileExInfoStandard, lh_addr_of(info)))
+    {
+        lh_os_capture_last_error();
+        return lh_bool_false;
+    }
+    *attrs = info.dwFileAttributes;
+    return lh_bool_true;
+}
+#endif
+
+lh_bool_t
+lh_os_fs_path_is(lh_str_cptr path, lh_os_fs_kind_t kind)
+{
+    if (kind == lh_os_fs_kind_other)
+    {
+        return lh_bool_false;
+    }
+    if (kind != lh_os_fs_kind_file && kind != lh_os_fs_kind_dir &&
+        kind != lh_os_fs_kind_symlink && kind != lh_os_fs_kind_shortcut)
+    {
+        lh_os_fs_path_fail_kind();
+        return lh_bool_false;
+    }
+    if (!lh_os_fs_path_require(path))
+    {
+        return lh_bool_false;
+    }
+
+    if (kind == lh_os_fs_kind_shortcut)
+    {
+        lh_os_fs_file_t file;
+        lh_u8_t buf[20];
+        lh_ssize_t n;
+
+        if (!lh_os_fs_path_is(path, lh_os_fs_kind_file))
+        {
+            return lh_bool_false;
+        }
+        lh_os_fs_file_init(lh_addr_of(file));
+        if (!lh_os_fs_file_open(lh_addr_of(file), path, lh_os_fs_file_mode_read))
+        {
+            return lh_bool_false;
+        }
+        n = lh_os_fs_file_read(lh_addr_of(file), buf, sizeof(buf));
+        lh_os_fs_file_close(lh_addr_of(file));
+        if (n != lh_cast_static(lh_ssize_t, sizeof(buf)))
+        {
+            return lh_bool_false;
+        }
+        return lh_memory_compare(buf, sizeof(buf),
+                                 lh_cast_const(lh_ptr, lh_os_fs_path_shortcut_magic),
+                                 sizeof(lh_os_fs_path_shortcut_magic)) == lh_null
+                   ? lh_bool_true
+                   : lh_bool_false;
+    }
+
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+    {
+        DWORD attrs;
+
+        if (!lh_os_fs_path_attrs(path, lh_addr_of(attrs)))
+        {
+            return lh_bool_false;
+        }
+        if (kind == lh_os_fs_kind_dir)
+        {
+            return lh_cast_static(lh_bool_t, (attrs & FILE_ATTRIBUTE_DIRECTORY) != 0U);
+        }
+        if (kind == lh_os_fs_kind_file)
+        {
+            return lh_cast_static(lh_bool_t, (attrs & FILE_ATTRIBUTE_DIRECTORY) == 0U);
+        }
+        if ((attrs & FILE_ATTRIBUTE_REPARSE_POINT) == 0U)
+        {
+            return lh_bool_false;
+        }
+        {
+            WIN32_FIND_DATAA data;
+            HANDLE find;
+
+            find = FindFirstFileA(path, lh_addr_of(data));
+            if (find == INVALID_HANDLE_VALUE)
+            {
+                lh_os_capture_last_error();
+                return lh_bool_false;
+            }
+            FindClose(find);
+            return lh_cast_static(lh_bool_t, data.dwReserved0 == IO_REPARSE_TAG_SYMLINK);
+        }
+    }
+#else
+    {
+        struct stat info;
+
+        if (kind == lh_os_fs_kind_symlink)
+        {
+            if (lstat(path, lh_addr_of(info)) != 0)
+            {
+                lh_os_capture_last_error();
+                return lh_bool_false;
+            }
+            return lh_cast_static(lh_bool_t, S_ISLNK(info.st_mode));
+        }
+        if (stat(path, lh_addr_of(info)) != 0)
+        {
+            lh_os_capture_last_error();
+            return lh_bool_false;
+        }
+        if (kind == lh_os_fs_kind_dir)
+        {
+            return lh_cast_static(lh_bool_t, S_ISDIR(info.st_mode));
+        }
+        return lh_cast_static(lh_bool_t, S_ISREG(info.st_mode));
+    }
+#endif
+}
+
+lh_bool_t
+lh_os_fs_path_is_dir(lh_str_cptr path)
+{
+    return lh_os_fs_path_is(path, lh_os_fs_kind_dir);
+}
+
+lh_bool_t
+lh_os_fs_path_is_file(lh_str_cptr path)
+{
+    return lh_os_fs_path_is(path, lh_os_fs_kind_file);
+}
+
+lh_bool_t
+lh_os_fs_path_is_symlink(lh_str_cptr path)
+{
+    return lh_os_fs_path_is(path, lh_os_fs_kind_symlink);
+}
+
+lh_bool_t
+lh_os_fs_path_is_shortcut(lh_str_cptr path)
+{
+    return lh_os_fs_path_is(path, lh_os_fs_kind_shortcut);
 }
 
 lh_bool_t
