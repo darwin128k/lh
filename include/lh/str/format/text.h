@@ -63,6 +63,23 @@ LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_ptr_format_text(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, ...);
 
+/**
+ * @brief Characters ::lh_str_ptr_format_text_v would write for @p fmt.
+ *
+ * Does not write. On a malformed mask returns ::LH_USIZE_T_MAX.
+ * A valid empty mask returns 0.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_usize_t
+lh_str_ptr_format_text_size_v(lh_str_cptr fmt, va_list args);
+
+/**
+ * @brief Variadic wrapper for ::lh_str_ptr_format_text_size_v.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_usize_t
+lh_str_ptr_format_text_size(lh_str_cptr fmt, ...);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_STR_FORMAT_TEXT_H */

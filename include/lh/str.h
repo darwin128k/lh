@@ -6,8 +6,10 @@
  * element (`type_size == sizeof(lh_char_t)`) — the owning, growable
  * counterpart to the non-owning ::lh_str_view_t.
  *
- * Every mutator (::lh_str_push_back, ::lh_str_append, ::lh_str_clear,
- * ::lh_str_truncate, plus ::lh_str_init itself) keeps one spare byte past
+ * Every mutator (::lh_str_push_back, ::lh_str_append, ::lh_str_append_view,
+ * ::lh_str_append_str, ::lh_str_assign, ::lh_str_assign_view, ::lh_str_join,
+ * ::lh_str_format, ::lh_str_clear, ::lh_str_truncate, plus ::lh_str_init
+ * itself) keeps one spare byte past
  * ::lh_str_get_size set to
  * `'\0'`, so ::lh_str_get_data can be handed straight to libc / printf-style
  * APIs without a separate termination step. The terminator does not count
@@ -33,6 +35,8 @@
 #include <lh/char.h>
 #include <lh/size.h>
 #include <lh/bool.h>
+
+#include <stdarg.h>
 
 /**
  * @struct lh_str
@@ -112,6 +116,66 @@ lh_str_push_back(lh_str_t *self, lh_char_t ch);
 LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_append(lh_str_t *self, lh_str_cptr text, lh_usize_t count);
+
+/**
+ * @brief Append the characters of @p view to @p self.
+ *
+ * Empty @p view is a no-op.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_str_append_view(lh_str_t *self, lh_str_view_t view);
+
+/**
+ * @brief Append the characters of @p other to @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_str_append_str(lh_str_t *self, const lh_str_t *other);
+
+/**
+ * @brief Replace @p self with a copy of @p other.
+ *
+ * No-op when @p self is @p other.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_str_assign(lh_str_t *self, const lh_str_t *other);
+
+/**
+ * @brief Replace @p self with a copy of @p view.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_str_assign_view(lh_str_t *self, lh_str_view_t view);
+
+/**
+ * @brief Replace @p self with @p count views glued by @p sep.
+ *
+ * Empty views are kept (two empties yield a lone separator).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_str_join(lh_str_t *self, const lh_str_view_t *parts, lh_usize_t count, lh_char_t sep);
+
+/**
+ * @brief Format @p fmt into @p self, replacing current contents.
+ *
+ * Same conversions as ::lh_str_ptr_format_text. On a malformed mask @p self
+ * is left unchanged and 0 is returned. An empty mask clears @p self.
+ *
+ * @return Characters written, or 0 on failure.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_usize_t
+lh_str_format_v(lh_str_t *self, lh_str_cptr fmt, va_list args);
+
+/**
+ * @brief Variadic wrapper for ::lh_str_format_v.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_usize_t
+lh_str_format(lh_str_t *self, lh_str_cptr fmt, ...);
 
 /**
  * @brief Empty @p self without releasing its buffer.

@@ -98,16 +98,7 @@ set(LH_TEST_SOURCES
 
 if (LH_LIBRARY_OPTION_OS)
     list(APPEND LH_TEST_SOURCES
-            ${LH_TEST_SRC_PATH}/lh/os/clock.cpp
-            ${LH_TEST_SRC_PATH}/lh/os/datetime.cpp
             ${LH_TEST_SRC_PATH}/lh/os/fs/path.cpp
-            ${LH_TEST_SRC_PATH}/lh/os/fs/exists.cpp
-            ${LH_TEST_SRC_PATH}/lh/os/fs/file.cpp
-            ${LH_TEST_SRC_PATH}/lh/os/fs/stat.cpp
-            ${LH_TEST_SRC_PATH}/lh/os/fs/dir.cpp
-            ${LH_TEST_SRC_PATH}/lh/os/net/socket.cpp
-            ${LH_TEST_SRC_PATH}/lh/os/shared.cpp
-            ${LH_TEST_SRC_PATH}/lh/os/shared/module.cpp
     )
 endif ()
 

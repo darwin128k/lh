@@ -282,6 +282,31 @@ lh_void
 lh_vector_insert(lh_vector_t *self, lh_uindex_t index, const lh_ptr value);
 
 /**
+ * @brief Shrink or grow @p self so ::lh_vector_get_size equals @p n.
+ *
+ * Growing reserves capacity if needed and leaves new slots uninitialized.
+ * Shrinking drops trailing elements without releasing capacity.
+ *
+ * @param self Vector to resize.
+ * @param n    New size in elements.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_vector_resize(lh_vector_t *self, lh_usize_t n);
+
+/**
+ * @brief Replace @p self's elements with a copy of @p other.
+ *
+ * No-op when @p self is @p other. Both must have the same element size.
+ *
+ * @param self  Destination vector.
+ * @param other Source vector.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_vector_assign(lh_vector_t *self, const lh_vector_t *other);
+
+/**
  * @brief Remove the element at @p index, shifting later elements left by one.
  *
  * @param self  Vector to remove from.

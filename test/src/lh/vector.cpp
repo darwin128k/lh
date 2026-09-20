@@ -88,4 +88,20 @@ TEST(vector_push_back, crossing_reserved_capacity_falls_back_and_still_grows)
     }
 }
 
+TEST(vector_assign, copies_elements)
+{
+    IntVector a;
+    IntVector b;
+
+    a.push(1);
+    a.push(2);
+    b.push(9);
+    lh_vector_assign(&b.v, &a.v);
+    ASSERT_EQ(lh_vector_get_size(&b.v), 2u);
+    EXPECT_EQ(b.at(0), 1);
+    EXPECT_EQ(b.at(1), 2);
+    lh_vector_assign(&a.v, &a.v);
+    ASSERT_EQ(lh_vector_get_size(&a.v), 2u);
+}
+
 } // namespace

@@ -146,6 +146,8 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os.c
             ${LH_LIB_SRC_PATH}/os/error/desc.c
             ${LH_LIB_SRC_PATH}/os/system/error.c
+            ${LH_LIB_SRC_PATH}/os/fs/path.c
+            ${LH_LIB_SRC_PATH}/os/fs/path/parse.c
     )
 endif ()
 

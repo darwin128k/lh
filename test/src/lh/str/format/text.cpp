@@ -3,6 +3,7 @@
 #include <string>
 
 #include <lh/str/format/text.h>
+#include <lh/util/str/ptr.h>
 
 namespace
 {
@@ -119,6 +120,13 @@ TEST(str_ptr_format_text, variadic_wrapper_matches_v)
     lh_usize_t written = lh_str_ptr_format_text(buf, sizeof(buf), "%s-%u", "id", 7U);
     ASSERT_EQ(written, 4U);
     EXPECT_EQ(std::string(buf, written), "id-7");
+}
+
+TEST(str_ptr_format_text_size, counts_without_writing)
+{
+    EXPECT_EQ(lh_str_ptr_format_text_size("%s-%u", "id", 7U), 4U);
+    EXPECT_EQ(lh_str_ptr_format_text_size(""), 0U);
+    EXPECT_EQ(lh_str_ptr_format_text_size("%q", 1), LH_STR_PTR_INVALID);
 }
 
 } // namespace

@@ -111,4 +111,97 @@ TEST(str_truncate, shrinks_and_stays_terminated)
     lh_str_deinit(&s);
 }
 
+TEST(str_append_view, appends_view_and_skips_empty)
+{
+    lh_str_t s;
+    lh_str_view_t empty;
+
+    lh_str_init(&s);
+    lh_str_view_init_empty(&empty);
+    lh_str_append_view(&s, empty);
+    EXPECT_TRUE(lh_str_is_empty(&s));
+
+    lh_str_append_view(&s, lh_str_view_make("ab"));
+    lh_str_append_view(&s, lh_str_view_make("cd"));
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&s), "abcd"), 0);
+
+    lh_str_deinit(&s);
+}
+
+TEST(str_append_str, appends_other_string)
+{
+    lh_str_t a;
+    lh_str_t b;
+
+    lh_str_init(&a);
+    lh_str_init(&b);
+    lh_str_append(&a, "xy", 2);
+    lh_str_append_str(&b, &a);
+    lh_str_append_str(&b, &a);
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&b), "xyxy"), 0);
+
+    lh_str_append_str(&a, &a);
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&a), "xyxy"), 0);
+
+    lh_str_deinit(&a);
+    lh_str_deinit(&b);
+}
+
+TEST(str_assign, replaces_contents)
+{
+    lh_str_t a;
+    lh_str_t b;
+
+    lh_str_init(&a);
+    lh_str_init(&b);
+    lh_str_append(&a, "src", 3);
+    lh_str_append(&b, "dst", 3);
+    lh_str_assign(&b, &a);
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&b), "src"), 0);
+    lh_str_assign(&a, &a);
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&a), "src"), 0);
+
+    lh_str_assign_view(&b, lh_str_view_make("view"));
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&b), "view"), 0);
+
+    lh_str_deinit(&a);
+    lh_str_deinit(&b);
+}
+
+TEST(str_join, glues_views_with_sep)
+{
+    lh_str_t s;
+    lh_str_view_t parts[3];
+
+    lh_str_init(&s);
+    parts[0] = lh_str_view_make("a");
+    parts[1] = lh_str_view_make("b");
+    parts[2] = lh_str_view_make("c");
+    lh_str_join(&s, parts, 3, '/');
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&s), "a/b/c"), 0);
+
+    parts[1] = lh_str_view_make("");
+    lh_str_join(&s, parts, 3, '/');
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&s), "a//c"), 0);
+
+    lh_str_join(&s, parts, 0, '/');
+    EXPECT_TRUE(lh_str_is_empty(&s));
+
+    lh_str_deinit(&s);
+}
+
+TEST(str_format, writes_into_self)
+{
+    lh_str_t s;
+
+    lh_str_init(&s);
+    lh_str_append(&s, "old", 3);
+    EXPECT_EQ(lh_str_format(&s, "%s:%u", "id", 7U), 4u);
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&s), "id:7"), 0);
+    EXPECT_EQ(lh_str_format(&s, "%q", 1), 0u);
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&s), "id:7"), 0);
+
+    lh_str_deinit(&s);
+}
+
 } // namespace

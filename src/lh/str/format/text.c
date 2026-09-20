@@ -3,6 +3,7 @@
 #include <lh/bool.h>
 #include <lh/cast/static.h>
 #include <lh/memory/std.h>
+#include <lh/null.h>
 #include <lh/numeric/types.h>
 #include <lh/str/format/hex.h>
 #include <lh/str/format/sint.h>
@@ -16,14 +17,14 @@
  * buffer entirely and is copied straight from the caller's argument. */
 #define LH_STR_FORMAT_TEXT_VALUE_BUF_MAX 16U
 
-lh_usize_t
-lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, va_list args)
+static lh_usize_t
+lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, va_list args)
 {
+    const lh_bool_t counting = lh_null_eq(str);
     lh_usize_t out_pos = 0;
     lh_usize_t fmt_pos = 0;
     lh_str_scanf_spec_t spec;
 
-    lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(fmt);
 
     while (lh_str_ptr_scanf_next(fmt, lh_addr_of(fmt_pos), lh_addr_of(spec)))
@@ -34,11 +35,16 @@ lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, v
 
         if (spec.kind == lh_str_scanf_spec_kind_invalid)
         {
-            return 0;
+            return counting ? LH_STR_PTR_INVALID : 0;
         }
 
         if (spec.kind == lh_str_scanf_spec_kind_literal)
         {
+            if (counting)
+            {
+                out_pos += spec.literal_size;
+                continue;
+            }
             if (out_pos + spec.literal_size > str_size)
             {
                 return 0;
@@ -79,17 +85,23 @@ lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, v
             }
             break;
         default:
-            return 0;
+            return counting ? LH_STR_PTR_INVALID : 0;
         }
 
         if (content_len == 0 && spec.kind != lh_str_scanf_spec_kind_str)
         {
-            return 0; /* the per-type formatter ran out of buffer space */
+            return counting ? LH_STR_PTR_INVALID : 0;
         }
 
         {
             lh_bool_t has_sign = content_len > 0 && content[0] == '-';
             lh_usize_t pad_len = spec.width > content_len ? spec.width - content_len : 0U;
+
+            if (counting)
+            {
+                out_pos += pad_len + content_len;
+                continue;
+            }
 
             if (spec.left_justify)
             {
@@ -133,6 +145,13 @@ lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, v
 }
 
 lh_usize_t
+lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, va_list args)
+{
+    lh_assert_runtime_ref(str);
+    return lh_str_ptr_format_text_walk(str, str_size, fmt, args);
+}
+
+lh_usize_t
 lh_str_ptr_format_text(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, ...)
 {
     lh_usize_t result;
@@ -140,6 +159,25 @@ lh_str_ptr_format_text(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, ...
 
     va_start(args, fmt);
     result = lh_str_ptr_format_text_v(str, str_size, fmt, args);
+    va_end(args);
+
+    return result;
+}
+
+lh_usize_t
+lh_str_ptr_format_text_size_v(lh_str_cptr fmt, va_list args)
+{
+    return lh_str_ptr_format_text_walk(lh_null, 0, fmt, args);
+}
+
+lh_usize_t
+lh_str_ptr_format_text_size(lh_str_cptr fmt, ...)
+{
+    lh_usize_t result;
+    va_list args;
+
+    va_start(args, fmt);
+    result = lh_str_ptr_format_text_size_v(fmt, args);
     va_end(args);
 
     return result;

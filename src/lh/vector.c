@@ -230,3 +230,28 @@ lh_vector_erase(lh_vector_t *self, lh_uindex_t index, lh_ptr dst)
 
     self->size = lh_math_sub_one(size);
 }
+
+lh_void
+lh_vector_resize(lh_vector_t *self, lh_usize_t n)
+{
+    if (n > lh_vector_get_size(self))
+    {
+        lh_vector_reserve(self, n);
+    }
+    lh_assert_runtime_ref(self);
+    self->size = n;
+}
+
+lh_void
+lh_vector_assign(lh_vector_t *self, const lh_vector_t *other)
+{
+    lh_assert_runtime_ref(other);
+    if (self == other)
+    {
+        return;
+    }
+    lh_assert_runtime_if(lh_vector_get_type_size(self) != lh_vector_get_type_size(other),
+                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+    lh_vector_clear(self);
+    lh_vector_push_back_of(self, lh_vector_get_data(other), lh_vector_get_size(other));
+}

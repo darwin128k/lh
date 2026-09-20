@@ -12,6 +12,7 @@
 #define LH_OS_ERROR_H
 
 #include <lh/config.h>
+#include <lh/os/error/code.h>
 #include <lh/os/error/desc.h>
 #include <lh/str/ptr.h>
 
