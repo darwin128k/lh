@@ -1,4 +1,4 @@
-﻿#include <lh/util/wstr/ptr.h>
+#include <lh/util/wstr/ptr.h>
 #include <lh/char/map.h>
 #include <lh/memory.h>
 #include <lh/util/addr.h>

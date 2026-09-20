@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file ptr.h
  * @brief Wide-string preprocessor helpers and low-level wide-character buffer routines.
  *

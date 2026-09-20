@@ -2,7 +2,8 @@
  * @file file.h
  * @brief A filesystem file (::lh_os_fs_file_t): path plus handle.
  *
- * A name and an OS handle. Not a directory listing, not a mapping, not a
+ * A name and an OS handle. One ::lh_os_fs_file_open for all access modes
+ * (::lh_os_fs_file_mode_t). Not a directory listing, not a mapping, not a
  * stat snapshot, not an ::lh_io_stream_t — ::lh_os_fs_file_read talks to
  * the OS; ::lh_os_fs_file_get_reader plugs that into a stream half.
  * Close drops the handle and keeps the path; ::lh_os_fs_file_deinit
@@ -22,6 +23,7 @@
 #include <lh/io/reader.h>
 #include <lh/os/fs/file/fields.h>
 #include <lh/os/fs/file/handle.h>
+#include <lh/os/fs/file/mode.h>
 #include <lh/os/fs/path.h>
 #include <lh/ptr.h>
 #include <lh/size.h>
@@ -65,10 +67,24 @@ void
 lh_os_fs_file_deinit(lh_os_fs_file_t *self);
 
 /**
+ * @brief Open @p path on @p self with the given access mode.
+ *
+ * Closes any previous handle first. Empty @p path is an error.
+ *
+ * @param self File object to open.
+ * @param path Filesystem path (`CreateFileA` / `open`).
+ * @param mode ::lh_os_fs_file_mode_read, ::lh_os_fs_file_mode_write, or
+ *             ::lh_os_fs_file_mode_readwrite.
+ * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_os_fs_path_t *path, lh_os_fs_file_mode_t mode);
+
+/**
  * @brief Drop the handle (if any). The stored path is kept.
  *
- * Safe to call on an already-closed file. Does not touch the OS until
- * open exists.
+ * Safe to call on an already-closed file. Releases the OS handle when open.
  */
 LH_ATTRIBUTE_SYMBOL
 void

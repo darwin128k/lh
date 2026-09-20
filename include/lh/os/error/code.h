@@ -37,6 +37,12 @@
 #define lh_os_error_code_not_open 0x03
 
 /**
+ * @def lh_os_error_code_negative_size
+ * @brief The OS reported a negative file size.
+ */
+#define lh_os_error_code_negative_size 0x04
+
+/**
  * @typedef lh_os_error_code_t
  * @brief Same representation as ::lh_error_code_t for OS-layer last-error codes.
  */

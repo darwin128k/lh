@@ -151,7 +151,9 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/fs/path/parts.c
             ${LH_LIB_SRC_PATH}/os/fs/path/parse.c
             ${LH_LIB_SRC_PATH}/os/fs/file.c
+            ${LH_LIB_SRC_PATH}/os/fs/file/open.c
             ${LH_LIB_SRC_PATH}/os/fs/file/read.c
+            ${LH_LIB_SRC_PATH}/os/fs/stat.c
             ${LH_LIB_SRC_PATH}/os/fs/dir.c
     )
 endif ()

@@ -101,6 +101,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_TEST_SRC_PATH}/lh/os/fs/path.cpp
             ${LH_TEST_SRC_PATH}/lh/os/fs/file.cpp
             ${LH_TEST_SRC_PATH}/lh/os/fs/dir.cpp
+            ${LH_TEST_SRC_PATH}/lh/os/fs/stat.cpp
     )
 endif ()
 

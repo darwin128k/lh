@@ -1,7 +1,17 @@
 #include <lh/os/fs/file.h>
 #include <lh/assert.h>
+#include <lh/cast/reinterpret.h>
+#include <lh/cast/static.h>
+#include <lh/compiler/os.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+#    define WIN32_LEAN_AND_MEAN
+#    include <windows.h>
+#else
+#    include <unistd.h>
+#endif
 
 lh_os_fs_path_t *
 lh_os_fs_file_get_path(lh_os_fs_file_t *self)
@@ -43,6 +53,17 @@ lh_os_fs_file_is_valid(const lh_os_fs_file_t *self)
 void
 lh_os_fs_file_close(lh_os_fs_file_t *self)
 {
+    lh_assert_runtime_ref(self);
+    if (!lh_os_fs_file_is_valid(self))
+    {
+        return;
+    }
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+    (void)CloseHandle(lh_cast_reinterpret(
+        HANDLE, lh_ptr_deref(lh_os_fs_file_get_handle_as_const(self))));
+#else
+    (void)close(lh_cast_static(int, lh_ptr_deref(lh_os_fs_file_get_handle_as_const(self))));
+#endif
     lh_ptr_deref(lh_os_fs_file_get_handle(self)) = LH_OS_FS_FILE_HANDLE_INVALID;
 }
 
@@ -56,7 +77,7 @@ void
 lh_os_fs_file_init(lh_os_fs_file_t *self)
 {
     lh_os_fs_path_init(lh_os_fs_file_get_path(self));
-    lh_os_fs_file_close(self);
+    lh_ptr_deref(lh_os_fs_file_get_handle(self)) = LH_OS_FS_FILE_HANDLE_INVALID;
 }
 
 void

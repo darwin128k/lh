@@ -3,6 +3,7 @@
 #include <lh/cast/reinterpret.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/os.h>
+#include <lh/null.h>
 #include <lh/os.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -21,13 +22,6 @@ lh_os_fs_file_on_reader_read(lh_ptr context, lh_ptr buf, lh_usize_t size)
 }
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-static HANDLE
-lh_os_fs_file_native(const lh_os_fs_file_t *self)
-{
-    return lh_cast_reinterpret(HANDLE,
-                               lh_ptr_deref(lh_os_fs_file_get_handle_as_const(self)));
-}
-
 static DWORD
 lh_os_fs_file_win_chunk(lh_usize_t size)
 {
@@ -50,8 +44,9 @@ lh_os_fs_file_read(lh_os_fs_file_t *self, lh_ptr buf, lh_usize_t size)
                              lh_os_error_desc_lit("file is not open")));
         return lh_cast_static(lh_ssize_t, -1);
     }
-    if (!ReadFile(lh_os_fs_file_native(self), buf, lh_os_fs_file_win_chunk(size),
-                  lh_addr_of(got), lh_null))
+    if (!ReadFile(lh_cast_reinterpret(HANDLE,
+                                      lh_ptr_deref(lh_os_fs_file_get_handle_as_const(self))),
+                  buf, lh_os_fs_file_win_chunk(size), lh_addr_of(got), lh_null))
     {
         lh_os_system_error_capture();
         return lh_cast_static(lh_ssize_t, -1);
@@ -75,9 +70,10 @@ lh_os_fs_file_read(lh_os_fs_file_t *self, lh_ptr buf, lh_usize_t size)
                              lh_os_error_desc_lit("file is not open")));
         return lh_cast_static(lh_ssize_t, -1);
     }
-    n = lh_cast_static(lh_ssize_t,
-                       read(lh_cast_static(int, lh_ptr_deref(lh_os_fs_file_get_handle_as_const(self))),
-                            buf, lh_cast_static(size_t, size)));
+    n = lh_cast_static(
+        lh_ssize_t,
+        read(lh_cast_static(int, lh_ptr_deref(lh_os_fs_file_get_handle_as_const(self))), buf,
+             lh_cast_static(size_t, size)));
     if (n < 0)
     {
         lh_os_system_error_capture();

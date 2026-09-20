@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file ptr.h
  * @brief Narrow-string preprocessor helpers (::lh_str_ptr_lit, …)
  *        and low-level C-string scan helpers (::lh_str_ptr_find_of_char, …).
