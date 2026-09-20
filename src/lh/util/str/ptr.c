@@ -413,8 +413,7 @@ lh_str_ptr_ltrim_custom(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr wh
     lh_return_ifn(offset, str);
     if (lh_math_eq(offset, str_size))
     {
-        str[0] = lh_char_map_nul;
-        return str;
+        return lh_str_ptr_clear(str);
     }
 
     const lh_usize_t trimmed_size = str_size - offset;
@@ -487,6 +486,20 @@ lh_str_ptr
 lh_str_ptr_trim_auto(lh_str_ptr str, const lh_str_ptr whitespace_chars)
 {
     return lh_str_ptr_trim_set(str, whitespace_chars, lh_str_ptr_len(whitespace_chars));
+}
+
+lh_str_ptr
+lh_str_ptr_erase(lh_str_ptr str, lh_usize_t index)
+{
+    lh_assert_runtime_ref(str);
+    str[index] = lh_char_map_nul;
+    return str;
+}
+
+lh_str_ptr
+lh_str_ptr_clear(lh_str_ptr str)
+{
+    return lh_str_ptr_erase(str, 0);
 }
 
 lh_str_ptr

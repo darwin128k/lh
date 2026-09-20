@@ -786,6 +786,31 @@ lh_bool_t
 lh_str_ptr_contains_char(const lh_str_ptr chars, lh_usize_t chars_size, lh_char_t ch);
 
 /**
+ * @brief Write the terminator at @p index, cutting the C string there.
+ *
+ * @param str   Target buffer.
+ * @param index Offset of the terminator in @p str.
+ *
+ * @return @p str.
+ *
+ * @see lh_str_ptr_clear
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_str_ptr
+lh_str_ptr_erase(lh_str_ptr str, lh_usize_t index);
+
+/**
+ * @brief Make @p str an empty C string (::lh_str_ptr_erase at index 0).
+ *
+ * @param str NUL-terminated target buffer.
+ *
+ * @return @p str.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_str_ptr
+lh_str_ptr_clear(lh_str_ptr str);
+
+/**
  * @brief Left trim using the built-in default whitespace set.
  *
  * @param str NUL-terminated target string.

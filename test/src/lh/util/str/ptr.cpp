@@ -648,4 +648,31 @@ TEST(str_raw_copy_except, replaces_excepted_characters)
     EXPECT_EQ(dst[2], 'b');
 }
 
+TEST(str_raw_clear, writes_nul_at_index_zero)
+{
+    lh_char_t s[] = "abc";
+    EXPECT_EQ(lh_str_ptr_clear(s), s);
+    EXPECT_EQ(s[0], lh_char_map_nul);
+    EXPECT_EQ(lh_str_ptr_len(s), 0U);
+}
+
+TEST(str_raw_erase, writes_nul_at_index)
+{
+    lh_char_t s[] = "abc";
+    EXPECT_EQ(lh_str_ptr_erase(s, 1), s);
+    EXPECT_EQ(s[0], 'a');
+    EXPECT_EQ(s[1], lh_char_map_nul);
+    EXPECT_EQ(lh_str_ptr_len(s), 1U);
+}
+
+TEST(str_raw_clear_death, null_str)
+{
+    LH_EXPECT_DEATH(lh_str_ptr_clear(reinterpret_cast<lh_str_ptr>(lh_null)));
+}
+
+TEST(str_raw_erase_death, null_str)
+{
+    LH_EXPECT_DEATH(lh_str_ptr_erase(reinterpret_cast<lh_str_ptr>(lh_null), 0));
+}
+
 } // namespace

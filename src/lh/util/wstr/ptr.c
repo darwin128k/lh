@@ -392,8 +392,7 @@ lh_wstr_ptr_ltrim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr
     lh_return_ifn(offset, str);
     if (lh_math_eq(offset, str_size))
     {
-        str[0] = lh_wstr_ptr_cat_va(lh_char_map_nul);
-        return str;
+        return lh_wstr_ptr_clear(str);
     }
 
     const lh_usize_t trimmed_size = str_size - offset;
@@ -469,6 +468,20 @@ lh_wstr_ptr
 lh_wstr_ptr_trim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars)
 {
     return lh_wstr_ptr_trim_set(str, whitespace_chars, lh_wstr_ptr_len(whitespace_chars));
+}
+
+lh_wstr_ptr
+lh_wstr_ptr_erase(lh_wstr_ptr str, lh_usize_t index)
+{
+    lh_assert_runtime_ref(str);
+    str[index] = lh_wstr_ptr_cat_va(lh_char_map_nul);
+    return str;
+}
+
+lh_wstr_ptr
+lh_wstr_ptr_clear(lh_wstr_ptr str)
+{
+    return lh_wstr_ptr_erase(str, 0);
 }
 
 lh_wstr_ptr

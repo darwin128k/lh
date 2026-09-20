@@ -145,6 +145,7 @@ if (LH_LIBRARY_OPTION_OS)
     list(APPEND LH_LIB_SOURCES
             ${LH_LIB_SRC_PATH}/os.c
             ${LH_LIB_SRC_PATH}/os/error/desc.c
+            ${LH_LIB_SRC_PATH}/os/system/error.c
     )
 endif ()
 

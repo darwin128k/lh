@@ -50,17 +50,17 @@ typedef lh_error_t lh_os_error_t;
 #endif
 
 /**
- * @def lh_os_error_set_cstr(self, code, text)
- * @brief Replace @p self with @p code and a view over narrow C string @p text.
+ * @def lh_os_error_set_cstr(self, code, dest, dest_size, text)
+ * @brief Replace @p self with @p code and a view of @p text copied into @p dest.
  */
-#define lh_os_error_set_cstr(self, code, text)                                                     \
-    lh_os_error_set((self), (code), lh_os_error_desc_from_cstr(text))
+#define lh_os_error_set_cstr(self, code, dest, dest_size, text)                                    \
+    lh_os_error_set((self), (code), lh_os_error_desc_from_cstr((dest), (dest_size), (text)))
 
 /**
- * @def lh_os_error_make_by_cstr(code, text)
- * @brief Construct an ::lh_os_error_t from @p code and narrow C string @p text.
+ * @def lh_os_error_make_by_cstr(code, dest, dest_size, text)
+ * @brief Construct an ::lh_os_error_t from @p code and @p text copied into @p dest.
  */
-#define lh_os_error_make_by_cstr(code, text)                                                       \
-    lh_os_error_make((code), lh_os_error_desc_from_cstr(text))
+#define lh_os_error_make_by_cstr(code, dest, dest_size, text)                                      \
+    lh_os_error_make((code), lh_os_error_desc_from_cstr((dest), (dest_size), (text)))
 
 #endif /* LH_OS_ERROR_H */

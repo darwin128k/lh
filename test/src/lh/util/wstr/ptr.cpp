@@ -543,4 +543,31 @@ TEST(wstr_raw_trim_death, null_arguments)
                                              reinterpret_cast<lh_wstr_cptr>(lh_null), 1));
 }
 
+TEST(wstr_raw_clear, writes_nul_at_index_zero)
+{
+    lh_wchar_t s[] = L"abc";
+    EXPECT_EQ(lh_wstr_ptr_clear(s), s);
+    EXPECT_EQ(s[0], lh_wstr_ptr_cat_va(lh_char_map_nul));
+    EXPECT_EQ(lh_wstr_ptr_len(s), 0U);
+}
+
+TEST(wstr_raw_erase, writes_nul_at_index)
+{
+    lh_wchar_t s[] = L"abc";
+    EXPECT_EQ(lh_wstr_ptr_erase(s, 1), s);
+    EXPECT_EQ(s[0], L'a');
+    EXPECT_EQ(s[1], lh_wstr_ptr_cat_va(lh_char_map_nul));
+    EXPECT_EQ(lh_wstr_ptr_len(s), 1U);
+}
+
+TEST(wstr_raw_clear_death, null_str)
+{
+    LH_EXPECT_DEATH(lh_wstr_ptr_clear(reinterpret_cast<lh_wstr_ptr>(lh_null)));
+}
+
+TEST(wstr_raw_erase_death, null_str)
+{
+    LH_EXPECT_DEATH(lh_wstr_ptr_erase(reinterpret_cast<lh_wstr_ptr>(lh_null), 0));
+}
+
 } // namespace
