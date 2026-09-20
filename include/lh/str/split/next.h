@@ -2,10 +2,11 @@
  * @file next.h
  * @brief Walk delimiter-separated fields in a buffer, one at a time.
  *
- * The one piece shared between anything that currently hand-rolls
+ * Shared by parsers that would otherwise hand-roll
  * "find the next delimiter, measure the field, advance the cursor"
- * (::lh_net_ip4_parse, ::lh_net_ip4_socket_addr_parse) — built on
- * ::lh_str_ptr_find_of_char in `lh/util/str/ptr.h`, not a second scanner.
+ * (::lh_net_ip4_parse, ::lh_os_fs_path_set). One-character split uses
+ * ::lh_str_ptr_find_of_char; a predicate split uses
+ * ::lh_str_ptr_split_next_if.
  */
 
 #ifndef LH_STR_SPLIT_NEXT_H
@@ -13,11 +14,18 @@
 
 #include <lh/attribute/symbol.h>
 #include <lh/bool.h>
+#include <lh/char.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
+#include <lh/str/view.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief True when @p ch is a field delimiter.
+ */
+typedef lh_bool_t (*lh_str_ptr_split_is_delim_t)(lh_char_t ch);
 
 /**
  * @brief Extract the next @p delim-separated field starting at `*pos`.
@@ -46,6 +54,28 @@ LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_ptr_split_next(lh_str_cptr str, lh_usize_t str_size, lh_char_t delim, lh_usize_t *pos,
                       lh_str_cptr *field, lh_usize_t *field_size, lh_bool_t *had_delim);
+
+/**
+ * @brief Same walk as ::lh_str_ptr_split_next, with a delimiter predicate.
+ *
+ * @param is_delim True for characters that end a field. Not null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_str_ptr_split_next_if(lh_str_cptr str, lh_usize_t str_size, lh_str_ptr_split_is_delim_t is_delim,
+                         lh_usize_t *pos, lh_str_cptr *field, lh_usize_t *field_size,
+                         lh_bool_t *had_delim);
+
+/**
+ * @brief View wrapper for ::lh_str_ptr_split_next_if.
+ *
+ * Empty @p self yields ::lh_bool_false. A zero-length field is an empty
+ * view (leading or doubled delimiter).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_str_view_split_next_if(const lh_str_view_t *self, lh_str_ptr_split_is_delim_t is_delim,
+                          lh_usize_t *pos, lh_str_view_t *field, lh_bool_t *had_delim);
 
 LH_COMPILER_EXTERN_C_END
 

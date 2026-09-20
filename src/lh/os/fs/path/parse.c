@@ -3,6 +3,7 @@
 #include <lh/compiler/os.h>
 #include <lh/memory/view.h>
 #include <lh/os.h>
+#include <lh/str/split/next.h>
 #include <lh/str/view.h>
 #include <lh/str/view/initializer.h>
 #include <lh/util/addr.h>
@@ -19,12 +20,6 @@ lh_os_fs_path_require(const lh_os_fs_path_t *self)
         return lh_bool_false;
     }
     return lh_bool_true;
-}
-
-static lh_bool_t
-lh_os_fs_path_is_sep_at(const lh_str_view_t *text, lh_usize_t i)
-{
-    return lh_os_fs_path_is_sep(lh_str_view_get_char_from_begin(text, i));
 }
 
 static void
@@ -104,7 +99,7 @@ lh_os_fs_path_take_drive(lh_os_fs_path_t *self, const lh_str_view_t *text, lh_us
         return 0U;
     }
     lh_os_fs_path_append_part(self, drive);
-    return (2U < n && lh_os_fs_path_is_sep_at(text, 2U)) ? 3U : 2U;
+    return (2U < n && lh_os_fs_path_is_sep(lh_str_view_get_char_from_begin(text, 2U))) ? 3U : 2U;
 #else
     (void)self;
     (void)text;
@@ -113,49 +108,13 @@ lh_os_fs_path_take_drive(lh_os_fs_path_t *self, const lh_str_view_t *text, lh_us
 #endif
 }
 
-static lh_usize_t
-lh_os_fs_path_take_leading_seps(lh_os_fs_path_t *self, const lh_str_view_t *text, lh_usize_t i,
-                               lh_usize_t n)
-{
-    while (i < n && lh_os_fs_path_is_sep_at(text, i))
-    {
-        lh_str_view_t empty;
-
-        lh_str_view_init_empty(lh_addr_of(empty));
-        lh_os_fs_path_append_part(self, empty);
-        i += 1U;
-    }
-    return i;
-}
-
-static void
-lh_os_fs_path_take_names(lh_os_fs_path_t *self, const lh_str_view_t *text, lh_usize_t i, lh_usize_t n)
-{
-    while (i < n)
-    {
-        lh_usize_t start;
-
-        start = i;
-        while (i < n && !lh_os_fs_path_is_sep_at(text, i))
-        {
-            i += 1U;
-        }
-        if (i > start)
-        {
-            lh_os_fs_path_append_part(self, lh_memory_view_make_from_offset(text, start, i - start));
-        }
-        if (i < n)
-        {
-            i += 1U;
-        }
-    }
-}
-
 lh_bool_t
 lh_os_fs_path_set(lh_os_fs_path_t *self, lh_str_view_t text)
 {
     lh_usize_t n;
-    lh_usize_t i;
+    lh_usize_t pos;
+    lh_str_view_t piece;
+    lh_bool_t had_delim;
 
     lh_os_fs_path_clear(self);
     if (lh_str_view_is_empty(lh_addr_of(text)))
@@ -163,9 +122,12 @@ lh_os_fs_path_set(lh_os_fs_path_t *self, lh_str_view_t text)
         return lh_bool_true;
     }
     n = lh_str_view_get_size(lh_addr_of(text));
-    i = lh_os_fs_path_take_drive(self, lh_addr_of(text), n);
-    i = lh_os_fs_path_take_leading_seps(self, lh_addr_of(text), i, n);
-    lh_os_fs_path_take_names(self, lh_addr_of(text), i, n);
+    pos = lh_os_fs_path_take_drive(self, lh_addr_of(text), n);
+    while (lh_str_view_split_next_if(lh_addr_of(text), lh_os_fs_path_is_sep, lh_addr_of(pos),
+                                     lh_addr_of(piece), lh_addr_of(had_delim)))
+    {
+        lh_os_fs_path_append_part(self, piece);
+    }
     lh_os_fs_path_finish_singleton(self);
     return lh_os_fs_path_commit(self);
 }
@@ -198,7 +160,7 @@ lh_os_fs_path_drop_last(lh_os_fs_path_t *self)
     if (keep > 0U)
     {
         view = lh_os_fs_path_as_view(self);
-        if (lh_os_fs_path_is_sep_at(lh_addr_of(view), keep - 1U) &&
+        if (lh_os_fs_path_is_sep(lh_str_view_get_char_from_begin(lh_addr_of(view), keep - 1U)) &&
             (n != 1U || !lh_os_fs_path_is_root_part(lh_os_fs_path_get_part(self, 0U))))
         {
             keep -= 1U;
