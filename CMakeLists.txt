@@ -143,21 +143,7 @@ set(LH_LIB_SOURCES
 
 if (LH_LIBRARY_OPTION_OS)
     list(APPEND LH_LIB_SOURCES
-            ${LH_LIB_SRC_PATH}/os.c
-            ${LH_LIB_SRC_PATH}/os/error/desc.c
-            ${LH_LIB_SRC_PATH}/os/system/error.c
-            ${LH_LIB_SRC_PATH}/os/fs/path.c
-            ${LH_LIB_SRC_PATH}/os/fs/path/span.c
-            ${LH_LIB_SRC_PATH}/os/fs/path/parts.c
-            ${LH_LIB_SRC_PATH}/os/fs/path/parse.c
-            ${LH_LIB_SRC_PATH}/os/fs/file.c
-            ${LH_LIB_SRC_PATH}/os/fs/file/open.c
-            ${LH_LIB_SRC_PATH}/os/fs/file/read.c
-            ${LH_LIB_SRC_PATH}/os/fs/stat.c
-            ${LH_LIB_SRC_PATH}/os/fs/access.c
-            ${LH_LIB_SRC_PATH}/os/fs/dir.c
-            ${LH_LIB_SRC_PATH}/os/fs/dir/open.c
-            ${LH_LIB_SRC_PATH}/os/fs/dir/read.c
+            # os and os/fs are being redesigned from scratch.
     )
 endif ()
 

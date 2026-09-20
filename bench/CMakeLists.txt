@@ -70,7 +70,7 @@ set(LH_BENCH_SOURCES
 )
 
 if (LH_LIBRARY_OPTION_OS)
-    list(APPEND LH_BENCH_SOURCES ${LH_BENCH_SRC_PATH}/lh/os/fs/path.cpp)
+    # os and os/fs are being redesigned from scratch.
 endif()
 
 add_executable(${PROJECT_NAME} ${LH_BENCH_SOURCES})
