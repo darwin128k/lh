@@ -18,16 +18,17 @@
 #include <lh/index.h>
 #include <lh/size.h>
 #include <lh/str.h>
+#include <lh/str/list/fields.h>
 #include <lh/str/view.h>
 #include <lh/vector.h>
 
 /**
  * @struct lh_str_list
- * @brief Growable list of ::lh_str_t elements.
+ * @brief Growable list of ::lh_str_t elements. Fields via ::lh_str_list_fields.
  */
 typedef struct lh_str_list
 {
-    lh_vector_t items; /**< Element type: ::lh_str_t. */
+    lh_str_list_fields(lh_vector_t);
 } lh_str_list_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

@@ -110,6 +110,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/str/view.c
         ${LH_LIB_SRC_PATH}/wstr/view.c
         ${LH_LIB_SRC_PATH}/str.c
+        ${LH_LIB_SRC_PATH}/wstr.c
         ${LH_LIB_SRC_PATH}/str/format/uint.c
         ${LH_LIB_SRC_PATH}/str/format/sint.c
         ${LH_LIB_SRC_PATH}/str/format/hex.c
@@ -121,6 +122,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/str/split/next.c
         ${LH_LIB_SRC_PATH}/str/scanf/next.c
         ${LH_LIB_SRC_PATH}/str/list.c
+        ${LH_LIB_SRC_PATH}/wstr/list.c
 
         ${LH_LIB_SRC_PATH}/logger.c
 
@@ -147,7 +149,8 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os.c
             ${LH_LIB_SRC_PATH}/os/error.c
             ${LH_LIB_SRC_PATH}/os/system/error.c
-            # os/fs is being redesigned from scratch.
+            ${LH_LIB_SRC_PATH}/os/fs/path.c
+            # rest of os/fs is being redesigned from scratch.
     )
 endif ()
 
