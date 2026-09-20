@@ -31,7 +31,8 @@ typedef lh_u8_t lh_os_fs_file_mode_t;
 /**
  * @def lh_os_fs_file_mode_write
  * @brief Create or replace, write-only (`GENERIC_WRITE` + `CREATE_ALWAYS` /
- *        `O_WRONLY | O_CREAT | O_TRUNC`).
+ *        `O_WRONLY | O_CREAT | O_TRUNC`). Truncates an existing file.
+ *        Not a capability probe — use ::lh_os_fs_can for that.
  */
 #define lh_os_fs_file_mode_write 1U
 
