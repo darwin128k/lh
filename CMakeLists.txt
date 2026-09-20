@@ -144,19 +144,7 @@ set(LH_LIB_SOURCES
 if (LH_LIBRARY_OPTION_OS)
     list(APPEND LH_LIB_SOURCES
             ${LH_LIB_SRC_PATH}/os.c
-            ${LH_LIB_SRC_PATH}/os/clock.c
-            ${LH_LIB_SRC_PATH}/os/datetime.c
-            ${LH_LIB_SRC_PATH}/os/fs/path.c
-            ${LH_LIB_SRC_PATH}/os/fs/path/parse.c
-            ${LH_LIB_SRC_PATH}/os/fs/path/os.c
-            ${LH_LIB_SRC_PATH}/os/fs/file.c
-            ${LH_LIB_SRC_PATH}/os/fs/file/map.c
-            ${LH_LIB_SRC_PATH}/os/fs/stat.c
-            ${LH_LIB_SRC_PATH}/os/fs/dir.c
-            ${LH_LIB_SRC_PATH}/os/net.c
-            ${LH_LIB_SRC_PATH}/os/net/socket.c
-            ${LH_LIB_SRC_PATH}/os/shared.c
-            ${LH_LIB_SRC_PATH}/os/shared/module.c
+            ${LH_LIB_SRC_PATH}/os/error/desc.c
     )
 endif ()
 

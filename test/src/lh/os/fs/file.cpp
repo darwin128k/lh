@@ -4,8 +4,7 @@
 #include <lh/memory.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
-#include <lh/os/fs/file.h>
-#include <lh/os/fs/path.h>
+#include <lh/os/fs.h>
 #include <lh/str/view.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -40,6 +39,8 @@ TEST(os_fs_file, init_leaves_handle_invalid)
     lh_os_fs_file_init(&file);
     EXPECT_EQ(lh_os_fs_file_is_valid(&file), lh_bool_false);
     EXPECT_EQ(lh_os_fs_file_get_handle(&file), LH_OS_FS_FILE_HANDLE_INVALID);
+    EXPECT_EQ(lh_os_fs_path_is_empty(lh_os_fs_file_get_path_as_const(&file)), lh_bool_true);
+    lh_os_fs_file_deinit(&file);
 }
 
 TEST(os_fs_file, open_missing_read_fails)
@@ -54,6 +55,7 @@ TEST(os_fs_file, open_missing_read_fails)
     EXPECT_EQ(lh_os_fs_file_open(&file, lh_addr_of(path), lh_os_fs_file_mode_read), lh_bool_false);
     EXPECT_EQ(lh_os_fs_file_is_valid(&file), lh_bool_false);
     EXPECT_NE(lh_os_get_last_error_code(), 0);
+    lh_os_fs_file_deinit(&file);
 }
 
 TEST(os_fs_file, write_then_read_round_trips_bytes_size_and_mtime)
@@ -67,7 +69,7 @@ TEST(os_fs_file, write_then_read_round_trips_bytes_size_and_mtime)
     lh_ssize_t n;
 
     ASSERT_TRUE(fill_test_path(lh_addr_of(path)));
-    (void)lh_os_fs_path_remove(lh_addr_of(path));
+    (void)lh_os_fs_remove(lh_addr_of(path));
 
     lh_os_fs_file_init(&file);
     ASSERT_EQ(lh_os_fs_file_open(&file, lh_addr_of(path), lh_os_fs_file_mode_write), lh_bool_true);
@@ -77,11 +79,11 @@ TEST(os_fs_file, write_then_read_round_trips_bytes_size_and_mtime)
     EXPECT_EQ(size, static_cast<lh_u64_t>(sizeof(payload) - 1U));
     lh_os_fs_file_close(&file);
     EXPECT_EQ(lh_os_fs_file_is_valid(&file), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is_empty(lh_os_fs_file_get_path_as_const(&file)), lh_bool_false);
 
-    ASSERT_EQ(lh_os_fs_path_mtime(lh_addr_of(path), &mtime), lh_bool_true);
+    ASSERT_EQ(lh_os_fs_mtime(lh_addr_of(path), &mtime), lh_bool_true);
     EXPECT_NE(mtime, 0);
 
-    lh_os_fs_file_init(&file);
     ASSERT_EQ(lh_os_fs_file_open(&file, lh_addr_of(path), lh_os_fs_file_mode_read), lh_bool_true);
     n = lh_os_fs_file_read(&file, buf, sizeof(buf));
     ASSERT_EQ(n, static_cast<lh_ssize_t>(sizeof(payload) - 1U));
@@ -89,9 +91,9 @@ TEST(os_fs_file, write_then_read_round_trips_bytes_size_and_mtime)
     EXPECT_STREQ(buf, payload);
     n = lh_os_fs_file_read(&file, buf, sizeof(buf));
     EXPECT_EQ(n, 0);
-    lh_os_fs_file_close(&file);
+    lh_os_fs_file_deinit(&file);
 
-    EXPECT_EQ(lh_os_fs_path_remove(lh_addr_of(path)), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_remove(lh_addr_of(path)), lh_bool_true);
 }
 
 TEST(os_fs_file, stream_write_then_read)
@@ -103,7 +105,7 @@ TEST(os_fs_file, stream_write_then_read)
     lh_ssize_t n;
 
     ASSERT_TRUE(fill_test_path(lh_addr_of(path)));
-    (void)lh_os_fs_path_remove(lh_addr_of(path));
+    (void)lh_os_fs_remove(lh_addr_of(path));
 
     lh_os_fs_file_init(&file);
     ASSERT_EQ(lh_os_fs_file_open(&file, lh_addr_of(path), lh_os_fs_file_mode_write), lh_bool_true);
@@ -114,7 +116,6 @@ TEST(os_fs_file, stream_write_then_read)
     }
     lh_os_fs_file_close(&file);
 
-    lh_os_fs_file_init(&file);
     ASSERT_EQ(lh_os_fs_file_open(&file, lh_addr_of(path), lh_os_fs_file_mode_read), lh_bool_true);
     {
         lh_io_stream_t stream = lh_os_fs_file_get_stream(&file);
@@ -123,8 +124,8 @@ TEST(os_fs_file, stream_write_then_read)
         buf[n] = '\0';
         EXPECT_STREQ(buf, payload);
     }
-    lh_os_fs_file_close(&file);
-    EXPECT_EQ(lh_os_fs_path_remove(lh_addr_of(path)), lh_bool_true);
+    lh_os_fs_file_deinit(&file);
+    EXPECT_EQ(lh_os_fs_remove(lh_addr_of(path)), lh_bool_true);
 }
 
 TEST(os_fs_file, seek_set_cur_end)
@@ -137,7 +138,7 @@ TEST(os_fs_file, seek_set_cur_end)
     lh_ssize_t n;
 
     ASSERT_TRUE(fill_test_path(lh_addr_of(path)));
-    (void)lh_os_fs_path_remove(lh_addr_of(path));
+    (void)lh_os_fs_remove(lh_addr_of(path));
 
     lh_os_fs_file_init(&file);
     ASSERT_EQ(lh_os_fs_file_open(&file, lh_addr_of(path), lh_os_fs_file_mode_write), lh_bool_true);
@@ -145,7 +146,6 @@ TEST(os_fs_file, seek_set_cur_end)
               static_cast<lh_ssize_t>(sizeof(payload) - 1U));
     lh_os_fs_file_close(&file);
 
-    lh_os_fs_file_init(&file);
     ASSERT_EQ(lh_os_fs_file_open(&file, lh_addr_of(path), lh_os_fs_file_mode_read), lh_bool_true);
     ASSERT_EQ(lh_os_fs_file_seek(&file, 3, lh_os_fs_file_seek_set, &pos), lh_bool_true);
     EXPECT_EQ(pos, 3U);
@@ -162,9 +162,9 @@ TEST(os_fs_file, seek_set_cur_end)
     n = lh_os_fs_file_read(&file, buf, 1U);
     ASSERT_EQ(n, 1);
     EXPECT_EQ(buf[0], 'F');
-    lh_os_fs_file_close(&file);
+    lh_os_fs_file_deinit(&file);
 
-    EXPECT_EQ(lh_os_fs_path_remove(lh_addr_of(path)), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_remove(lh_addr_of(path)), lh_bool_true);
 }
 
 TEST(os_fs_file, seek_on_closed_fails_not_open)
@@ -175,6 +175,7 @@ TEST(os_fs_file, seek_on_closed_fails_not_open)
     lh_os_fs_file_init(&file);
     EXPECT_EQ(lh_os_fs_file_seek(&file, 0, lh_os_fs_file_seek_set, &pos), lh_bool_false);
     EXPECT_EQ(lh_os_get_last_error_code(), lh_os_error_code_not_open);
+    lh_os_fs_file_deinit(&file);
 }
 
 TEST(os_fs_file, map_reads_written_bytes)
@@ -185,7 +186,7 @@ TEST(os_fs_file, map_reads_written_bytes)
     lh_os_fs_file_map_t map;
 
     ASSERT_TRUE(fill_test_path(lh_addr_of(path)));
-    (void)lh_os_fs_path_remove(lh_addr_of(path));
+    (void)lh_os_fs_remove(lh_addr_of(path));
 
     lh_os_fs_file_init(&file);
     ASSERT_EQ(lh_os_fs_file_open(&file, lh_addr_of(path), lh_os_fs_file_mode_write), lh_bool_true);
@@ -193,7 +194,6 @@ TEST(os_fs_file, map_reads_written_bytes)
               static_cast<lh_ssize_t>(sizeof(payload) - 1U));
     lh_os_fs_file_close(&file);
 
-    lh_os_fs_file_init(&file);
     ASSERT_EQ(lh_os_fs_file_open(&file, lh_addr_of(path), lh_os_fs_file_mode_read), lh_bool_true);
     lh_os_fs_file_map_init(lh_addr_of(map));
     ASSERT_EQ(lh_os_fs_file_map(&file, 0, 0, lh_os_fs_file_map_prot_read, lh_addr_of(map)),
@@ -205,9 +205,9 @@ TEST(os_fs_file, map_reads_written_bytes)
               static_cast<void *>(lh_null));
     lh_os_fs_file_map_unmap(lh_addr_of(map));
     EXPECT_EQ(lh_os_fs_file_map_is_valid(lh_addr_of(map)), lh_bool_false);
-    lh_os_fs_file_close(&file);
+    lh_os_fs_file_deinit(&file);
 
-    EXPECT_EQ(lh_os_fs_path_remove(lh_addr_of(path)), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_remove(lh_addr_of(path)), lh_bool_true);
 }
 
 TEST(os_fs_file, map_offset_and_write_through)
@@ -221,7 +221,7 @@ TEST(os_fs_file, map_offset_and_write_through)
     lh_ssize_t n;
 
     ASSERT_TRUE(fill_test_path(lh_addr_of(path)));
-    (void)lh_os_fs_path_remove(lh_addr_of(path));
+    (void)lh_os_fs_remove(lh_addr_of(path));
 
     lh_os_fs_file_init(&file);
     ASSERT_EQ(lh_os_fs_file_open(&file, lh_addr_of(path), lh_os_fs_file_mode_write), lh_bool_true);
@@ -229,7 +229,6 @@ TEST(os_fs_file, map_offset_and_write_through)
               static_cast<lh_ssize_t>(sizeof(payload) - 1U));
     lh_os_fs_file_close(&file);
 
-    lh_os_fs_file_init(&file);
     ASSERT_EQ(lh_os_fs_file_open(&file, lh_addr_of(path), lh_os_fs_file_mode_readwrite),
               lh_bool_true);
     lh_os_fs_file_map_init(lh_addr_of(map));
@@ -243,15 +242,14 @@ TEST(os_fs_file, map_offset_and_write_through)
     lh_os_fs_file_map_unmap(lh_addr_of(map));
     lh_os_fs_file_close(&file);
 
-    lh_os_fs_file_init(&file);
     ASSERT_EQ(lh_os_fs_file_open(&file, lh_addr_of(path), lh_os_fs_file_mode_read), lh_bool_true);
     n = lh_os_fs_file_read(&file, buf, sizeof(buf));
     ASSERT_EQ(n, static_cast<lh_ssize_t>(sizeof(payload) - 1U));
     buf[n] = '\0';
     EXPECT_STREQ(buf, "ABCXEF");
-    lh_os_fs_file_close(&file);
+    lh_os_fs_file_deinit(&file);
 
-    EXPECT_EQ(lh_os_fs_path_remove(lh_addr_of(path)), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_remove(lh_addr_of(path)), lh_bool_true);
 }
 
 } // namespace
