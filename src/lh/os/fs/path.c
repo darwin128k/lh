@@ -12,11 +12,7 @@
 lh_char_t
 lh_os_fs_path_sep(void)
 {
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-    return lh_char_map_backslash;
-#else
-    return lh_char_map_slash;
-#endif
+    return LH_OS_FS_PATH_SEP;
 }
 
 lh_bool_t

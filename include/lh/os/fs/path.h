@@ -16,7 +16,9 @@
 #include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/char.h>
+#include <lh/char/map.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/compiler/os.h>
 #include <lh/config.h>
 #include <lh/os/fs/path/fields.h>
 #include <lh/os/fs/path/root/kind.h>
@@ -26,6 +28,22 @@
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/fs/path.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
+#endif
+
+/**
+ * @def LH_OS_FS_PATH_SEP
+ * @brief Preferred directory separator for this OS, as a compile-time
+ *        constant (`'\\'` on Windows, `'/'` elsewhere).
+ *
+ * The OS a binary targets is a build-time fact, not something that changes
+ * while it runs — so this is a `#define`, not a value computed at runtime
+ * behind a function. ::lh_os_fs_path_sep is a thin function wrapper over
+ * it, for callers who want a symbol instead of a macro.
+ */
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+#    define LH_OS_FS_PATH_SEP lh_char_map_backslash
+#else
+#    define LH_OS_FS_PATH_SEP lh_char_map_slash
 #endif
 
 /**
