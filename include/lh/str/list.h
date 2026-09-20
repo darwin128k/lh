@@ -13,8 +13,12 @@
 #define LH_STR_LIST_H
 
 #include <lh/attribute/symbol.h>
+#include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/index.h>
+#include <lh/size.h>
 #include <lh/str.h>
+#include <lh/str/view.h>
 #include <lh/vector.h>
 
 /**
@@ -29,6 +33,24 @@ typedef struct lh_str_list
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
+ * @brief Underlying storage of @p self (element type ::lh_str_t).
+ *
+ * Raw escape hatch: ::lh_vector_clear / ::lh_vector_erase / ::lh_vector_assign
+ * and friends do not know an element owns a heap buffer and will leak or
+ * double-free it if used here instead of the ::lh_str_list_* equivalents.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_vector_t *
+lh_str_list_get_items(lh_str_list_t *self);
+
+/**
+ * @brief `const` counterpart to ::lh_str_list_get_items.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_vector_t *
+lh_str_list_get_items_as_const(const lh_str_list_t *self);
+
+/**
  * @brief Initialize @p self as an empty list.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -41,6 +63,53 @@ lh_str_list_init(lh_str_list_t *self);
 LH_ATTRIBUTE_SYMBOL
 void
 lh_str_list_deinit(lh_str_list_t *self);
+
+/**
+ * @brief Deinit every stored string, keeping the list's own allocation.
+ *
+ * Unlike ::lh_str_list_deinit, @p self can be pushed to again afterwards
+ * without reallocating its item storage.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_str_list_clear(lh_str_list_t *self);
+
+/**
+ * @brief True when @p self has no elements.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_str_list_is_empty(const lh_str_list_t *self);
+
+/**
+ * @brief Number of strings in @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_usize_t
+lh_str_list_get_size(const lh_str_list_t *self);
+
+/**
+ * @brief String at @p index.
+ *
+ * @param index Element index; must be < ::lh_str_list_get_size.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_str_t *
+lh_str_list_get(lh_str_list_t *self, lh_uindex_t index);
+
+/**
+ * @brief `const` counterpart to ::lh_str_list_get.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_str_t *
+lh_str_list_get_as_const(const lh_str_list_t *self, lh_uindex_t index);
+
+/**
+ * @brief Append a copy of @p text as a new owned string at the end of @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_str_list_push_back(lh_str_list_t *self, lh_str_view_t text);
 
 LH_COMPILER_EXTERN_C_END
 
