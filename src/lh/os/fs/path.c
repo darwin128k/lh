@@ -9,22 +9,6 @@
 #include <lh/str/split/next.h>
 #include <lh/util/addr.h>
 
-lh_char_t
-lh_os_fs_path_sep(void)
-{
-    return LH_OS_FS_PATH_SEP;
-}
-
-lh_bool_t
-lh_os_fs_path_is_sep(lh_char_t ch)
-{
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-    return (lh_char_is_backslash(ch) || lh_char_is_slash(ch)) ? lh_bool_true : lh_bool_false;
-#else
-    return lh_char_is_slash(ch);
-#endif
-}
-
 void
 lh_os_fs_path_init(lh_os_fs_path_t *self)
 {
@@ -156,7 +140,7 @@ lh_os_fs_path_take_drive(lh_os_fs_path_t *self, const lh_str_view_t *text, lh_us
     }
     self->root_kind = lh_os_fs_path_root_kind_drive;
     self->root_drive = lh_str_view_get_char_from_begin(lh_addr_of(drive), 0U);
-    return (2U < n && lh_os_fs_path_is_sep(lh_str_view_get_char_from_begin(text, 2U))) ? 3U : 2U;
+    return (2U < n && lh_char_is_path_sep(lh_str_view_get_char_from_begin(text, 2U))) ? 3U : 2U;
 #else
     (void)self;
     (void)text;
@@ -180,7 +164,7 @@ lh_os_fs_path_set(lh_os_fs_path_t *self, lh_str_view_t text)
     }
     n = lh_str_view_get_size(lh_addr_of(text));
     pos = lh_os_fs_path_take_drive(self, lh_addr_of(text), n);
-    if (pos == 0U && lh_os_fs_path_is_sep(lh_str_view_get_char_from_begin(lh_addr_of(text), 0U)))
+    if (pos == 0U && lh_char_is_path_sep(lh_str_view_get_char_from_begin(lh_addr_of(text), 0U)))
     {
         self->root_kind = lh_os_fs_path_root_kind_posix;
         pos = 1U;

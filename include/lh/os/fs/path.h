@@ -16,9 +16,7 @@
 #include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/char.h>
-#include <lh/char/map.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/compiler/os.h>
 #include <lh/config.h>
 #include <lh/os/fs/path/fields.h>
 #include <lh/os/fs/path/root/kind.h>
@@ -31,22 +29,6 @@
 #endif
 
 /**
- * @def LH_OS_FS_PATH_SEP
- * @brief Preferred directory separator for this OS, as a compile-time
- *        constant (`'\\'` on Windows, `'/'` elsewhere).
- *
- * The OS a binary targets is a build-time fact, not something that changes
- * while it runs — so this is a `#define`, not a value computed at runtime
- * behind a function. ::lh_os_fs_path_sep is a thin function wrapper over
- * it, for callers who want a symbol instead of a macro.
- */
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-#    define LH_OS_FS_PATH_SEP lh_char_map_backslash
-#else
-#    define LH_OS_FS_PATH_SEP lh_char_map_slash
-#endif
-
-/**
  * @struct lh_os_fs_path
  * @brief Root plus segments. Fields via ::lh_os_fs_path_fields.
  */
@@ -56,26 +38,6 @@ typedef struct lh_os_fs_path
 } lh_os_fs_path_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
-
-/**
- * @brief Preferred directory separator for this OS (`'\\'` on Windows,
- *        `'/'` elsewhere).
- *
- * ::lh_os_fs_path_join and friends glue with this character. Parse accepts
- * `'/'` as well on Windows.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_char_t
-lh_os_fs_path_sep(void);
-
-/**
- * @brief True when @p ch is a directory separator for this OS.
- *
- * Windows accepts `'\\'` and `'/'`. Elsewhere only `'/'`.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_bool_t
-lh_os_fs_path_is_sep(lh_char_t ch);
 
 /**
  * @brief Empty, relative path (no root, no segments). Does not touch the OS.
