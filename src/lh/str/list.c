@@ -48,7 +48,7 @@ lh_str_list_deinit(lh_str_list_t *self)
     lh_vector_deinit(lh_str_list_get_items(self));
 }
 
-void
+lh_uindex_t
 lh_str_list_push_back(lh_str_list_t *self, lh_str_view_t text)
 {
     lh_str_t value;
@@ -57,7 +57,13 @@ lh_str_list_push_back(lh_str_list_t *self, lh_str_view_t text)
     lh_str_assign_view(lh_addr_of(value), text);
     /* Bytes of value (including its heap pointer) are copied into the new
        slot; ownership moves there, so value itself is not deinited. */
-    lh_vector_push_back(lh_str_list_get_items(self), lh_addr_of(value));
+    return lh_vector_push_back(lh_str_list_get_items(self), lh_addr_of(value));
+}
+
+lh_uindex_t
+lh_str_list_push_back_str(lh_str_list_t *self, const lh_str_t *value)
+{
+    return lh_str_list_push_back(self, lh_str_as_view(value));
 }
 
 lh_bool_t

@@ -106,10 +106,22 @@ lh_str_list_get_as_const(const lh_str_list_t *self, lh_uindex_t index);
 
 /**
  * @brief Append a copy of @p text as a new owned string at the end of @p self.
+ * @return Index the new string was stored at (::lh_str_list_get_size before
+ *         the call).
  */
 LH_ATTRIBUTE_SYMBOL
-void
+lh_uindex_t
 lh_str_list_push_back(lh_str_list_t *self, lh_str_view_t text);
+
+/**
+ * @brief Append a copy of @p value (an existing ::lh_str_t) at the end of @p self.
+ *
+ * Equivalent to ::lh_str_list_push_back with ::lh_str_as_view(@p value).
+ * @return Index the new string was stored at.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_uindex_t
+lh_str_list_push_back_str(lh_str_list_t *self, const lh_str_t *value);
 
 LH_COMPILER_EXTERN_C_END
 

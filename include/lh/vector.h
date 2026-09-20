@@ -214,9 +214,12 @@ lh_vector_insert_of(lh_vector_t *self, lh_uindex_t index, const lh_ptr values, l
  *               type (not null unless @p count is 0); their bytes are copied
  *               into the new slots.
  * @param count  Number of elements to append.
+ * @return Index of the first appended element (::lh_vector_get_size before
+ *         the call). Meaningful even when @p count is `0`: the position
+ *         the (empty) batch would have started at.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void
+lh_uindex_t
 lh_vector_push_back_of(lh_vector_t *self, const lh_ptr values, lh_usize_t count);
 
 /**
@@ -227,9 +230,10 @@ lh_vector_push_back_of(lh_vector_t *self, const lh_ptr values, lh_usize_t count)
  * @param self  Vector to append to.
  * @param value Pointer to a value of the vector's element type (not null);
  *              its bytes are copied into the new slot.
+ * @return Index @p value was stored at (::lh_vector_get_size before the call).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_void
+lh_uindex_t
 lh_vector_push_back(lh_vector_t *self, const lh_ptr value);
 
 /**

@@ -132,13 +132,15 @@ lh_vector_insert_of(lh_vector_t *self, lh_uindex_t index, const lh_ptr values, l
     self->size = new_size;
 }
 
-lh_void
+lh_uindex_t
 lh_vector_push_back_of(lh_vector_t *self, const lh_ptr values, lh_usize_t count)
 {
-    lh_vector_insert_of(self, lh_vector_get_size(self), values, count);
+    const lh_usize_t index = lh_vector_get_size(self);
+    lh_vector_insert_of(self, index, values, count);
+    return index;
 }
 
-lh_void
+lh_uindex_t
 lh_vector_push_back(lh_vector_t *self, const lh_ptr value)
 {
     /* self not re-checked here: lh_vector_get_size(self) right below does it.
@@ -159,8 +161,7 @@ lh_vector_push_back(lh_vector_t *self, const lh_ptr value)
 
     if (size >= capacity)
     {
-        lh_vector_push_back_of(self, value, 1);
-        return;
+        return lh_vector_push_back_of(self, value, 1);
     }
 
     const lh_usize_t type_size = lh_vector_get_type_size(self);
@@ -168,6 +169,7 @@ lh_vector_push_back(lh_vector_t *self, const lh_ptr value)
                                              lh_math_mul(size, type_size));
     lh_memory_std_copy(dst, value, type_size);
     self->size = lh_math_add_one(size);
+    return size;
 }
 
 lh_bool_t
