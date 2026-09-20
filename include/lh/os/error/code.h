@@ -31,6 +31,12 @@
 #define lh_os_error_code_too_small 0x02
 
 /**
+ * @def lh_os_error_code_not_open
+ * @brief The file or directory handle is not open.
+ */
+#define lh_os_error_code_not_open 0x03
+
+/**
  * @typedef lh_os_error_code_t
  * @brief Same representation as ::lh_error_code_t for OS-layer last-error codes.
  */

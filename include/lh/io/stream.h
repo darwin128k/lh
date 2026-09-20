@@ -2,11 +2,13 @@
  * @file stream.h
  * @brief Duplex stream: an ::lh_io_reader_t and an ::lh_io_writer_t together.
  *
- * Whatever hands out an ::lh_io_stream_t (a TCP socket or an
- * ::lh_os_fs_file_t today) plugs its own read/write callbacks and context into the two
- * halves — everything above this point (a manifest client, for instance)
- * works against ::lh_io_reader_read / ::lh_io_writer_write without knowing
- * or caring which concrete thing it's actually talking to.
+ * Not a file and not a directory. A file owns a path and a handle;
+ * ::lh_os_fs_file_read talks to the OS. A stream is only the adapter:
+ * whoever owns the bytes (file, TCP socket, a test buffer) plugs
+ * its read/write callbacks into the two halves. Everything above this
+ * point works against ::lh_io_stream_read / ::lh_io_stream_write without
+ * knowing which concrete thing is behind it. A directory listing is
+ * names, not bytes — it does not plug in here.
  */
 
 #ifndef LH_IO_STREAM_H
