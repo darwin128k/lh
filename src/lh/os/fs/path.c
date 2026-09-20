@@ -215,6 +215,14 @@ lh_os_fs_path_to_str(const lh_os_fs_path_t *self, lh_str_t *out)
     lh_str_list_join(lh_os_fs_path_get_segments_as_const(self), out, sep);
 }
 
+lh_str_cptr
+lh_os_fs_path_to_cstr(const lh_os_fs_path_t *self, lh_str_t *scratch)
+{
+    lh_str_init(scratch);
+    lh_os_fs_path_to_str(self, scratch);
+    return lh_str_get_data(scratch);
+}
+
 lh_bool_t
 lh_os_fs_path_join(lh_os_fs_path_t *self, const lh_os_fs_path_t *dir, const lh_os_fs_path_t *name)
 {

@@ -14,6 +14,7 @@
 #define LH_OS_FS_FILE_H
 
 #include <lh/attribute/symbol.h>
+#include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/fs/file/fields.h>
@@ -56,11 +57,86 @@ lh_os_fs_file_deinit(lh_os_fs_file_t *self);
 /**
  * @brief Drop the handle (if any). The stored path is kept.
  *
- * Safe to call on an already-closed file.
+ * Safe to call on an already-closed file. Releases the OS handle when open.
  */
 LH_ATTRIBUTE_SYMBOL
 void
 lh_os_fs_file_close(lh_os_fs_file_t *self);
+
+/**
+ * @brief Copy @p path into the stored path. The handle is not touched.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_os_fs_file_set_path(lh_os_fs_file_t *self, const lh_os_fs_path_t *path);
+
+/**
+ * @brief Stored path of @p self, after validating the pointer.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_os_fs_path_t *
+lh_os_fs_file_get_path(lh_os_fs_file_t *self);
+
+/**
+ * @brief `const` counterpart to ::lh_os_fs_file_get_path.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_os_fs_path_t *
+lh_os_fs_file_get_path_as_const(const lh_os_fs_file_t *self);
+
+/**
+ * @brief Stored handle of @p self, after validating the pointer.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_os_fs_file_handle_t *
+lh_os_fs_file_get_handle(lh_os_fs_file_t *self);
+
+/**
+ * @brief `const` counterpart to ::lh_os_fs_file_get_handle.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_os_fs_file_handle_t *
+lh_os_fs_file_get_handle_as_const(const lh_os_fs_file_t *self);
+
+/**
+ * @brief True when @p self currently holds an open handle.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_file_is_valid(const lh_os_fs_file_t *self);
+
+/**
+ * @brief Mode last passed to a successful ::lh_os_fs_file_open, or
+ *        ::lh_os_fs_file_mode_none when closed.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_os_fs_file_mode_t
+lh_os_fs_file_get_mode(const lh_os_fs_file_t *self);
+
+/**
+ * @brief Overwrite the stored mode. Does not touch the path or handle.
+ *
+ * Internal bookkeeping for ::lh_os_fs_file_open/::lh_os_fs_file_close —
+ * does not itself open or close anything.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_os_fs_file_set_mode(lh_os_fs_file_t *self, lh_os_fs_file_mode_t mode);
+
+/**
+ * @brief Open @p path on @p self with the given access mode.
+ *
+ * Closes any previous handle first. Empty @p path is an error.
+ *
+ * @param self File object to open.
+ * @param path Filesystem path (`CreateFileA` / `open`).
+ * @param mode ::lh_os_fs_file_mode_read, ::lh_os_fs_file_mode_write, or
+ *             ::lh_os_fs_file_mode_readwrite.
+ * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_os_fs_path_t *path, lh_os_fs_file_mode_t mode);
 
 LH_COMPILER_EXTERN_C_END
 

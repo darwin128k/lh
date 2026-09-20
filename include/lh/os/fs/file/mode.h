@@ -11,6 +11,8 @@
 #ifndef LH_OS_FS_FILE_MODE_H
 #define LH_OS_FS_FILE_MODE_H
 
+#include <lh/bool.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
 
 /**
@@ -47,5 +49,31 @@ typedef lh_u8_t lh_os_fs_file_mode_t;
  * @brief No open mode (handle is invalid).
  */
 #define lh_os_fs_file_mode_none 0xFFU
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief True when @p mode grants read access (`read` or `readwrite`).
+ */
+static inline lh_bool_t
+lh_os_fs_file_mode_is_readable(lh_os_fs_file_mode_t mode)
+{
+    return (mode == lh_os_fs_file_mode_read || mode == lh_os_fs_file_mode_readwrite)
+               ? lh_bool_true
+               : lh_bool_false;
+}
+
+/**
+ * @brief True when @p mode grants write access (`write` or `readwrite`).
+ */
+static inline lh_bool_t
+lh_os_fs_file_mode_is_writable(lh_os_fs_file_mode_t mode)
+{
+    return (mode == lh_os_fs_file_mode_write || mode == lh_os_fs_file_mode_readwrite)
+               ? lh_bool_true
+               : lh_bool_false;
+}
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_FS_FILE_MODE_H */

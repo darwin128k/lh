@@ -23,6 +23,7 @@
 #include <lh/size.h>
 #include <lh/str.h>
 #include <lh/str/list.h>
+#include <lh/str/ptr.h>
 #include <lh/str/view.h>
 
 #if !LH_LIBRARY_OPTION_OS
@@ -159,6 +160,19 @@ lh_os_fs_path_set(lh_os_fs_path_t *self, lh_str_view_t text);
 LH_ATTRIBUTE_SYMBOL
 void
 lh_os_fs_path_to_str(const lh_os_fs_path_t *self, lh_str_t *out);
+
+/**
+ * @brief Render @p self into @p scratch and return its `const char *`.
+ *
+ * @p scratch is initialized by this call (must not already be initialized)
+ * and owns the text ::lh_os_fs_path_to_str builds; the caller is
+ * responsible for ::lh_str_deinit(@p scratch) once done with the returned
+ * pointer. Equivalent to init + ::lh_os_fs_path_to_str + ::lh_str_get_data,
+ * collapsed for the common "one OS call" case.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_str_cptr
+lh_os_fs_path_to_cstr(const lh_os_fs_path_t *self, lh_str_t *scratch);
 
 /**
  * @brief Join @p dir and @p name into @p self by appending @p name's
