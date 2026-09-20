@@ -114,8 +114,10 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_os_fs_path_t *path, lh_os_fs_
     if (!lh_os_fs_file_open_native(self, lh_str_get_data(lh_os_fs_path_get_text_as_const(path)),
                                    mode))
     {
+        self->mode = lh_os_fs_file_mode_none;
         return lh_bool_false;
     }
     lh_os_fs_path_assign(lh_os_fs_file_get_path(self), path);
+    self->mode = mode;
     return lh_bool_true;
 }

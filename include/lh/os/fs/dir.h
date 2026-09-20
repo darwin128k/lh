@@ -22,6 +22,7 @@
 #include <lh/config.h>
 #include <lh/os/fs/file/fields.h>
 #include <lh/os/fs/file/handle.h>
+#include <lh/os/fs/file/mode.h>
 #include <lh/os/fs/path.h>
 #include <lh/size.h>
 
@@ -35,7 +36,7 @@
  */
 struct lh_os_fs_dir
 {
-    lh_os_fs_file_fields(lh_os_fs_path_t, lh_os_fs_file_handle_t);
+    lh_os_fs_file_fields(lh_os_fs_path_t, lh_os_fs_file_handle_t, lh_os_fs_file_mode_t);
 };
 
 /**

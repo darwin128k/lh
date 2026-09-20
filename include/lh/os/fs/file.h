@@ -21,6 +21,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/io/reader.h>
+#include <lh/os/fs/access.h>
 #include <lh/os/fs/file/fields.h>
 #include <lh/os/fs/file/handle.h>
 #include <lh/os/fs/file/mode.h>
@@ -38,7 +39,7 @@
  */
 struct lh_os_fs_file
 {
-    lh_os_fs_file_fields(lh_os_fs_path_t, lh_os_fs_file_handle_t);
+    lh_os_fs_file_fields(lh_os_fs_path_t, lh_os_fs_file_handle_t, lh_os_fs_file_mode_t);
 };
 
 /**
@@ -131,6 +132,24 @@ lh_os_fs_file_get_handle_as_const(const lh_os_fs_file_t *self);
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_fs_file_is_valid(const lh_os_fs_file_t *self);
+
+/**
+ * @brief Mode last passed to a successful ::lh_os_fs_file_open, or
+ *        ::lh_os_fs_file_mode_none when closed.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_os_fs_file_mode_t
+lh_os_fs_file_get_mode(const lh_os_fs_file_t *self);
+
+/**
+ * @brief True when the open @p self was opened with @p access.
+ *
+ * Closed file is false. ::lh_os_fs_access_executable is false (open
+ * modes are read/write only).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_file_is(const lh_os_fs_file_t *self, lh_os_fs_access_t access);
 
 /**
  * @brief Read up to @p size bytes from @p self into @p buf.

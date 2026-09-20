@@ -42,4 +42,10 @@ typedef lh_u8_t lh_os_fs_file_mode_t;
  */
 #define lh_os_fs_file_mode_readwrite 2U
 
+/**
+ * @def lh_os_fs_file_mode_none
+ * @brief No open mode (handle is invalid).
+ */
+#define lh_os_fs_file_mode_none 0xFFU
+
 #endif /* LH_OS_FS_FILE_MODE_H */

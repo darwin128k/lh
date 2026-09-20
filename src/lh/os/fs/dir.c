@@ -46,6 +46,7 @@ void
 lh_os_fs_dir_close(lh_os_fs_dir_t *self)
 {
     lh_ptr_deref(lh_os_fs_dir_get_handle(self)) = LH_OS_FS_FILE_HANDLE_INVALID;
+    self->mode = lh_os_fs_file_mode_none;
 }
 
 void
@@ -58,7 +59,8 @@ void
 lh_os_fs_dir_init(lh_os_fs_dir_t *self)
 {
     lh_os_fs_path_init(lh_os_fs_dir_get_path(self));
-    lh_os_fs_dir_close(self);
+    lh_ptr_deref(lh_os_fs_dir_get_handle(self)) = LH_OS_FS_FILE_HANDLE_INVALID;
+    self->mode = lh_os_fs_file_mode_none;
 }
 
 void
