@@ -143,7 +143,10 @@ set(LH_LIB_SOURCES
 
 if (LH_LIBRARY_OPTION_OS)
     list(APPEND LH_LIB_SOURCES
-            # os and os/fs are being redesigned from scratch.
+            ${LH_LIB_SRC_PATH}/os.c
+            ${LH_LIB_SRC_PATH}/os/error.c
+            ${LH_LIB_SRC_PATH}/os/system/error.c
+            # os/fs is being redesigned from scratch.
     )
 endif ()
 
