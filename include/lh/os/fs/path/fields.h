@@ -18,7 +18,7 @@
  *
  * @param sep_type   Type of the separator (::lh_char_t).
  * @param text_type  Type of the path buffer (::lh_str_t).
- * @param parts_type Type of the offset table (::lh_vector_t of ::lh_os_fs_path_span_t).
+ * @param parts_type Type of the offset table (::lh_os_fs_path_parts_t).
  */
 #define lh_os_fs_path_fields(sep_type, text_type, parts_type)                                      \
     sep_type sep;                                                                                  \

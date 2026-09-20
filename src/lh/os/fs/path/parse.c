@@ -42,7 +42,7 @@ lh_os_fs_path_append_part(lh_os_fs_path_t *self, lh_str_view_t piece)
     n = lh_str_view_is_empty(lh_addr_of(piece)) ? 0U : lh_str_view_get_size(lh_addr_of(piece));
     span = lh_os_fs_path_span_make(lh_str_get_size(text), n);
     lh_str_append_view(text, piece);
-    lh_vector_push_back(lh_os_fs_path_get_parts(self), lh_addr_of(span));
+    lh_os_fs_path_parts_push(lh_os_fs_path_get_parts(self), lh_addr_of(span));
 }
 
 static void
@@ -192,7 +192,7 @@ lh_os_fs_path_drop_last(lh_os_fs_path_t *self)
         return lh_os_fs_path_set(self, lh_str_view_lit("."));
     }
 
-    lh_vector_pop_back(lh_os_fs_path_get_parts(self), lh_addr_of(last));
+    lh_os_fs_path_parts_pop(lh_os_fs_path_get_parts(self), lh_addr_of(last));
     n = lh_os_fs_path_get_part_count(self);
     keep = lh_os_fs_path_span_get_offset(lh_addr_of(last));
     if (keep > 0U)

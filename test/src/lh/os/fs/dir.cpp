@@ -9,7 +9,6 @@
 #include <lh/str/view.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
-#include <lh/vector.h>
 
 namespace
 {
@@ -42,7 +41,7 @@ TEST(os_fs_dir, lists_exe_dir_and_finds_exe)
     lh_os_fs_path_t exe;
     lh_os_fs_path_t parent;
     lh_os_fs_path_t name;
-    const lh_vector_t *exe_parts;
+    const lh_os_fs_path_parts_t *exe_parts;
     lh_usize_t exe_n;
     lh_str_view_t want;
     lh_os_fs_dir_t dir;
@@ -55,7 +54,7 @@ TEST(os_fs_dir, lists_exe_dir_and_finds_exe)
     lh_os_fs_path_init(lh_addr_of(name));
     ASSERT_EQ(lh_os_fs_path_exe(lh_addr_of(exe)), lh_bool_true);
     exe_parts = lh_os_fs_path_get_parts_as_const(lh_addr_of(exe));
-    exe_n = lh_vector_get_size(exe_parts);
+    exe_n = lh_os_fs_path_parts_get_size(exe_parts);
     ASSERT_GT(exe_n, 0U);
     want = lh_os_fs_path_get_part(lh_addr_of(exe), exe_n - 1U);
     ASSERT_EQ(lh_os_fs_path_exe_dir(lh_addr_of(parent)), lh_bool_true);
@@ -74,7 +73,7 @@ TEST(os_fs_dir, lists_exe_dir_and_finds_exe)
         {
             break;
         }
-        ASSERT_EQ(lh_vector_get_size(lh_os_fs_path_get_parts_as_const(lh_addr_of(name))), 1U);
+        ASSERT_EQ(lh_os_fs_path_get_part_count(lh_addr_of(name)), 1U);
         part = lh_os_fs_path_get_part(lh_addr_of(name), 0U);
         EXPECT_EQ(static_cast<lh_usize_t>(n), lh_str_view_get_size(lh_addr_of(part)));
         EXPECT_STRNE(lh_str_get_data(lh_os_fs_path_get_text_as_const(lh_addr_of(name))), ".");

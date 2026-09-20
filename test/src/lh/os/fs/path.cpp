@@ -197,7 +197,8 @@ TEST(os_fs_path_span, table_entry_slices_text)
     lh_str_view_t part;
 
     path_set_lit(lh_addr_of(path), "a/b/c");
-    span = lh_os_fs_path_get_span_as_const(lh_addr_of(path), 1U);
+    span = lh_os_fs_path_parts_get_as_const(lh_os_fs_path_get_parts_as_const(lh_addr_of(path)),
+                                           1U);
     EXPECT_EQ(lh_os_fs_path_span_get_offset(span), 2U);
     EXPECT_EQ(lh_os_fs_path_span_get_size(span), 1U);
     EXPECT_EQ(lh_os_fs_path_span_is_empty(span), lh_bool_false);

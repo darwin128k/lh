@@ -2,7 +2,7 @@
  * @file span.h
  * @brief One name in a path: offset and length in the path buffer.
  *
- * Element of ::lh_os_fs_path_get_parts. Slice the buffer with
+ * Element of ::lh_os_fs_path_parts_t. Slice the buffer with
  * ::lh_os_fs_path_span_as_view. Requires ::LH_LIBRARY_OPTION_OS.
  */
 
