@@ -22,6 +22,7 @@
 #include <lh/config.h>
 #include <lh/index.h>
 #include <lh/os/fs/path/fields.h>
+#include <lh/os/fs/path/span.h>
 #include <lh/ptr.h>
 #include <lh/size.h>
 #include <lh/str.h>
@@ -59,6 +60,15 @@ LH_COMPILER_EXTERN_C_BEGIN
 LH_ATTRIBUTE_SYMBOL
 lh_char_t
 lh_os_fs_path_sep(void);
+
+/**
+ * @brief True when @p ch is a directory separator for this OS.
+ *
+ * Windows accepts `'\\'` and `'/'`. Elsewhere only `'/'`.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_path_is_sep(lh_char_t ch);
 
 /**
  * @brief Empty path: no levels, empty buffer, OS separator stored.
@@ -115,7 +125,7 @@ lh_os_fs_path_get_sep_as_const(const lh_os_fs_path_t *self);
 /**
  * @brief Offset table of @p self, after validating the pointer.
  *
- * Elements are `{offset, size}` into ::lh_os_fs_path_get_text. Other
+ * Elements are ::lh_os_fs_path_span_t into ::lh_os_fs_path_get_text. Other
  * functions go through this or ::lh_os_fs_path_get_parts_as_const instead
  * of `self->parts`.
  */
@@ -129,6 +139,20 @@ lh_os_fs_path_get_parts(lh_os_fs_path_t *self);
 LH_ATTRIBUTE_SYMBOL
 const lh_vector_t *
 lh_os_fs_path_get_parts_as_const(const lh_os_fs_path_t *self);
+
+/**
+ * @brief Offset table entry at @p index.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_os_fs_path_span_t *
+lh_os_fs_path_get_span(lh_os_fs_path_t *self, lh_uindex_t index);
+
+/**
+ * @brief `const` counterpart to ::lh_os_fs_path_get_span.
+ */
+LH_ATTRIBUTE_SYMBOL
+const lh_os_fs_path_span_t *
+lh_os_fs_path_get_span_as_const(const lh_os_fs_path_t *self, lh_uindex_t index);
 
 /**
  * @brief Level at @p index, as a view into the path buffer.

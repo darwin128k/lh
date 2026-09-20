@@ -191,4 +191,31 @@ TEST(os_fs_path_parts, parse_glues_with_os_sep)
     EXPECT_EQ(lh_ptr_deref(lh_os_fs_path_get_sep_as_const(lh_addr_of(path))), lh_os_fs_path_sep());
 }
 
+TEST(os_fs_path_span, table_entry_slices_text)
+{
+    lh_os_fs_path_t path;
+    const lh_os_fs_path_span_t *span;
+    lh_str_view_t part;
+
+    path_set_lit(lh_addr_of(path), "a/b/c");
+    span = lh_os_fs_path_get_span_as_const(lh_addr_of(path), 1U);
+    EXPECT_EQ(lh_os_fs_path_span_get_offset(span), 2U);
+    EXPECT_EQ(lh_os_fs_path_span_get_size(span), 1U);
+    EXPECT_EQ(lh_os_fs_path_span_is_empty(span), lh_bool_false);
+    part = lh_os_fs_path_span_as_view(span, lh_os_fs_path_as_view(lh_addr_of(path)));
+    EXPECT_EQ(lh_str_view_get_size(lh_addr_of(part)), 1U);
+    EXPECT_EQ(lh_ptr_deref(lh_str_view_get_data(lh_addr_of(part))), 'b');
+}
+
+TEST(os_fs_path_is_sep, matches_os)
+{
+    EXPECT_EQ(lh_os_fs_path_is_sep('/'), lh_bool_true);
+#if defined(_WIN32)
+    EXPECT_EQ(lh_os_fs_path_is_sep('\\'), lh_bool_true);
+#else
+    EXPECT_EQ(lh_os_fs_path_is_sep('\\'), lh_bool_false);
+#endif
+    EXPECT_EQ(lh_os_fs_path_is_sep('a'), lh_bool_false);
+}
+
 } // namespace

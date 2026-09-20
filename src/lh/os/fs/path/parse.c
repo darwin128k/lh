@@ -1,13 +1,33 @@
 #include <lh/os/fs/path.h>
-#include "local.h"
+#include <lh/assert.h>
 #include <lh/char/letter.h>
 #include <lh/char/map.h>
 #include <lh/compiler/os.h>
 #include <lh/memory/view.h>
+#include <lh/os.h>
 #include <lh/str/view.h>
 #include <lh/str/view/initializer.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+
+static lh_bool_t
+lh_os_fs_path_require(const lh_os_fs_path_t *self)
+{
+    lh_assert_runtime_ref(self);
+    if (lh_os_fs_path_is_empty(self))
+    {
+        lh_os_set_last_error(lh_os_error_make(lh_os_error_code_path_empty,
+                             lh_os_error_desc_lit("path is empty")));
+        return lh_bool_false;
+    }
+    return lh_bool_true;
+}
+
+static lh_bool_t
+lh_os_fs_path_is_sep_at(const lh_str_view_t *text, lh_usize_t i)
+{
+    return lh_os_fs_path_is_sep(lh_str_view_get_char_from_begin(text, i));
+}
 
 static lh_bool_t
 lh_os_fs_path_is_drive_view(lh_str_view_t part)
@@ -79,8 +99,7 @@ lh_os_fs_path_append_part(lh_os_fs_path_t *self, lh_str_view_t piece)
         lh_str_push_back(text, lh_ptr_deref(lh_os_fs_path_get_sep_as_const(self)));
     }
     n = lh_str_view_is_empty(lh_addr_of(piece)) ? 0U : lh_str_view_get_size(lh_addr_of(piece));
-    span.offset = lh_str_get_size(text);
-    span.size = n;
+    span = lh_os_fs_path_span_make(lh_str_get_size(text), n);
     lh_str_append_view(text, piece);
     lh_vector_push_back(lh_os_fs_path_get_parts(self), lh_addr_of(span));
 }
@@ -245,7 +264,7 @@ lh_os_fs_path_drop_last(lh_os_fs_path_t *self)
 
     lh_vector_pop_back(parts, lh_addr_of(last));
     n = lh_vector_get_size(parts);
-    keep = last.offset;
+    keep = lh_os_fs_path_span_get_offset(lh_addr_of(last));
     if (keep > 0U)
     {
         view = lh_os_fs_path_as_view(self);

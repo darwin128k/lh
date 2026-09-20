@@ -1,9 +1,8 @@
 #include <lh/os/fs/path.h>
-#include "path/local.h"
 #include <lh/assert.h>
 #include <lh/char/map.h>
+#include <lh/char/slash.h>
 #include <lh/compiler/os.h>
-#include <lh/memory/view.h>
 #include <lh/str/view.h>
 #include <lh/str/view/initializer.h>
 #include <lh/util/addr.h>
@@ -51,8 +50,15 @@ lh_os_fs_path_get_parts_as_const(const lh_os_fs_path_t *self)
     return lh_addr_of(self->parts);
 }
 
-static const lh_os_fs_path_span_t *
-lh_os_fs_path_get_span(const lh_os_fs_path_t *self, lh_uindex_t index)
+lh_os_fs_path_span_t *
+lh_os_fs_path_get_span(lh_os_fs_path_t *self, lh_uindex_t index)
+{
+    return lh_ptr_cast(lh_os_fs_path_span_t,
+                       lh_vector_get_ptr(lh_os_fs_path_get_parts(self), index));
+}
+
+const lh_os_fs_path_span_t *
+lh_os_fs_path_get_span_as_const(const lh_os_fs_path_t *self, lh_uindex_t index)
 {
     return lh_ptr_cast(const lh_os_fs_path_span_t,
                        lh_vector_get_ptr(lh_os_fs_path_get_parts_as_const(self), index));
@@ -61,17 +67,8 @@ lh_os_fs_path_get_span(const lh_os_fs_path_t *self, lh_uindex_t index)
 lh_str_view_t
 lh_os_fs_path_get_part(const lh_os_fs_path_t *self, lh_uindex_t index)
 {
-    const lh_os_fs_path_span_t *span;
-    lh_str_view_t view;
-
-    span = lh_os_fs_path_get_span(self, index);
-    if (span->size == 0U)
-    {
-        lh_str_view_init_empty(lh_addr_of(view));
-        return view;
-    }
-    view = lh_os_fs_path_as_view(self);
-    return lh_memory_view_make_from_offset(lh_addr_of(view), span->offset, span->size);
+    return lh_os_fs_path_span_as_view(lh_os_fs_path_get_span_as_const(self, index),
+                                      lh_os_fs_path_as_view(self));
 }
 
 lh_str_view_t
@@ -102,6 +99,16 @@ lh_os_fs_path_sep(void)
     return lh_char_map_backslash;
 #else
     return lh_char_map_slash;
+#endif
+}
+
+lh_bool_t
+lh_os_fs_path_is_sep(lh_char_t ch)
+{
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+    return (lh_char_is_backslash(ch) || lh_char_is_slash(ch)) ? lh_bool_true : lh_bool_false;
+#else
+    return lh_char_is_slash(ch);
 #endif
 }
 
