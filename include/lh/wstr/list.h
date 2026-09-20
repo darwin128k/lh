@@ -126,6 +126,24 @@ LH_ATTRIBUTE_SYMBOL
 lh_uindex_t
 lh_wstr_list_push_back_str(lh_wstr_list_t *self, const lh_wstr_t *value);
 
+/**
+ * @brief Replace @p self with a deep copy of @p other.
+ *
+ * Every string is copied, not aliased. No-op when @p self is @p other.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_wstr_list_assign(lh_wstr_list_t *self, const lh_wstr_list_t *other);
+
+/**
+ * @brief Append a copy of every string in @p other to the end of @p self.
+ *
+ * Safe when @p self is @p other (doubles @p self).
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_wstr_list_append(lh_wstr_list_t *self, const lh_wstr_list_t *other);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_WSTR_LIST_H */

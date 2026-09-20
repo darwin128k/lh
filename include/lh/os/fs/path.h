@@ -22,6 +22,7 @@
 #include <lh/os/fs/path/root/kind.h>
 #include <lh/size.h>
 #include <lh/str/list.h>
+#include <lh/str/view.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/fs/path.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
@@ -39,6 +40,26 @@ typedef struct lh_os_fs_path
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
+ * @brief Preferred directory separator for this OS (`'\\'` on Windows,
+ *        `'/'` elsewhere).
+ *
+ * ::lh_os_fs_path_join and friends glue with this character. Parse accepts
+ * `'/'` as well on Windows.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_char_t
+lh_os_fs_path_sep(void);
+
+/**
+ * @brief True when @p ch is a directory separator for this OS.
+ *
+ * Windows accepts `'\\'` and `'/'`. Elsewhere only `'/'`.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_path_is_sep(lh_char_t ch);
+
+/**
  * @brief Empty, relative path (no root, no segments). Does not touch the OS.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -51,6 +72,20 @@ lh_os_fs_path_init(lh_os_fs_path_t *self);
 LH_ATTRIBUTE_SYMBOL
 void
 lh_os_fs_path_deinit(lh_os_fs_path_t *self);
+
+/**
+ * @brief Reset @p self to empty (no root, no segments). Keeps allocations.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_os_fs_path_clear(lh_os_fs_path_t *self);
+
+/**
+ * @brief Copy @p other into @p self (root and segments).
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_os_fs_path_assign(lh_os_fs_path_t *self, const lh_os_fs_path_t *other);
 
 /**
  * @brief What (if anything) @p self is rooted at.
@@ -66,6 +101,13 @@ lh_os_fs_path_get_root_kind(const lh_os_fs_path_t *self);
 LH_ATTRIBUTE_SYMBOL
 lh_char_t
 lh_os_fs_path_get_root_drive(const lh_os_fs_path_t *self);
+
+/**
+ * @brief True when @p part is a Windows drive (`C:`). Elsewhere always false.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_path_is_drive(lh_str_view_t part);
 
 /**
  * @brief Segments of @p self, after validating the pointer.
@@ -104,6 +146,39 @@ lh_os_fs_path_is_empty(const lh_os_fs_path_t *self);
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_fs_path_is_absolute(const lh_os_fs_path_t *self);
+
+/**
+ * @brief True when @p self is exactly a root (`/` or a drive) with no
+ *        segments — nothing to drop before hitting bedrock.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_path_is_root(const lh_os_fs_path_t *self);
+
+/**
+ * @brief Parse @p text into @p self's root and segments, replacing its
+ *        current contents.
+ *
+ * A leading separator becomes ::lh_os_fs_path_root_kind_posix; a drive
+ * letter (`C:`) becomes ::lh_os_fs_path_root_kind_drive. Repeated and
+ * trailing separators produce no empty segments.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_os_fs_path_set(lh_os_fs_path_t *self, lh_str_view_t text);
+
+/**
+ * @brief Join @p dir and @p name into @p self by appending @p name's
+ *        segments. @p name's own root (if any) is ignored — @p self keeps
+ *        @p dir's root.
+ *
+ * @p self may alias @p dir and/or @p name.
+ *
+ * @return ::lh_bool_false (and clears @p self) when @p name has no segments.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_path_join(lh_os_fs_path_t *self, const lh_os_fs_path_t *dir, const lh_os_fs_path_t *name);
 
 LH_COMPILER_EXTERN_C_END
 
