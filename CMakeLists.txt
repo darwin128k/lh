@@ -156,6 +156,8 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/fs/stat.c
             ${LH_LIB_SRC_PATH}/os/fs/access.c
             ${LH_LIB_SRC_PATH}/os/fs/dir.c
+            ${LH_LIB_SRC_PATH}/os/fs/dir/open.c
+            ${LH_LIB_SRC_PATH}/os/fs/dir/read.c
     )
 endif ()
 

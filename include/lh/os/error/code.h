@@ -43,6 +43,18 @@
 #define lh_os_error_code_negative_size 0x04
 
 /**
+ * @def lh_os_error_code_name_too_long
+ * @brief A directory entry name does not fit in ::LH_OS_FS_DIR_NAME_MAX.
+ */
+#define lh_os_error_code_name_too_long 0x05
+
+/**
+ * @def lh_os_error_code_out_of_memory
+ * @brief A heap allocation for an OS object failed.
+ */
+#define lh_os_error_code_out_of_memory 0x06
+
+/**
  * @typedef lh_os_error_code_t
  * @brief Same representation as ::lh_error_code_t for OS-layer last-error codes.
  */

@@ -1,9 +1,18 @@
 #include <lh/os/fs/dir.h>
+#include "dir/state.h"
 #include <lh/assert.h>
 #include <lh/cast/static.h>
+#include <lh/compiler/os.h>
+#include <lh/null.h>
 #include <lh/os.h>
+#include <lh/runtime/allocator.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+#else
+#    include <dirent.h>
+#endif
 
 lh_os_fs_path_t *
 lh_os_fs_dir_get_path(lh_os_fs_dir_t *self)
@@ -45,6 +54,21 @@ lh_os_fs_dir_is_valid(const lh_os_fs_dir_t *self)
 void
 lh_os_fs_dir_close(lh_os_fs_dir_t *self)
 {
+    struct lh_os_fs_dir_state *state;
+
+    lh_assert_runtime_ref(self);
+    if (!lh_os_fs_dir_is_valid(self))
+    {
+        self->mode = lh_os_fs_file_mode_none;
+        return;
+    }
+    state = lh_os_fs_dir_get_state(self);
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+    FindClose(state->find);
+#else
+    (void)closedir(state->dir);
+#endif
+    lh_runtime_allocator_free(state);
     lh_ptr_deref(lh_os_fs_dir_get_handle(self)) = LH_OS_FS_FILE_HANDLE_INVALID;
     self->mode = lh_os_fs_file_mode_none;
 }
@@ -68,18 +92,4 @@ lh_os_fs_dir_deinit(lh_os_fs_dir_t *self)
 {
     lh_os_fs_dir_close(self);
     lh_os_fs_path_deinit(lh_os_fs_dir_get_path(self));
-}
-
-lh_ssize_t
-lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_os_fs_path_t *name)
-{
-    lh_assert_runtime_ref(name);
-    if (!lh_os_fs_dir_is_valid(self))
-    {
-        lh_os_set_last_error(lh_os_error_make(lh_os_error_code_not_open,
-                             lh_os_error_desc_lit("directory is not open")));
-        return lh_cast_static(lh_ssize_t, -1);
-    }
-    lh_os_fs_path_clear(name);
-    return 0;
 }
