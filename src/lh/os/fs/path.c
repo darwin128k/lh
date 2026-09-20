@@ -4,8 +4,8 @@
 #include <lh/char/map.h>
 #include <lh/char/slash.h>
 #include <lh/compiler/os.h>
-#include <lh/index.h>
 #include <lh/memory/view.h>
+#include <lh/str.h>
 #include <lh/str/split/next.h>
 #include <lh/util/addr.h>
 
@@ -185,6 +185,34 @@ lh_os_fs_path_set(lh_os_fs_path_t *self, lh_str_view_t text)
             }
         }
     }
+}
+
+void
+lh_os_fs_path_to_str(const lh_os_fs_path_t *self, lh_str_t *out)
+{
+    lh_char_t sep;
+
+    lh_assert_runtime_ref(self);
+    lh_str_clear(out);
+
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+    sep = lh_char_map_backslash;
+#else
+    sep = lh_char_map_slash;
+#endif
+
+    if (lh_os_fs_path_get_root_kind(self) == lh_os_fs_path_root_kind_drive)
+    {
+        lh_str_push_back(out, lh_os_fs_path_get_root_drive(self));
+        lh_str_push_back(out, lh_char_map_colon);
+        lh_str_push_back(out, sep);
+    }
+    else if (lh_os_fs_path_get_root_kind(self) == lh_os_fs_path_root_kind_posix)
+    {
+        lh_str_push_back(out, sep);
+    }
+
+    lh_str_list_join(lh_os_fs_path_get_segments_as_const(self), out, sep);
 }
 
 lh_bool_t

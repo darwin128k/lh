@@ -21,6 +21,7 @@
 #include <lh/os/fs/path/fields.h>
 #include <lh/os/fs/path/root/kind.h>
 #include <lh/size.h>
+#include <lh/str.h>
 #include <lh/str/list.h>
 #include <lh/str/view.h>
 
@@ -146,6 +147,18 @@ lh_os_fs_path_is_root(const lh_os_fs_path_t *self);
 LH_ATTRIBUTE_SYMBOL
 void
 lh_os_fs_path_set(lh_os_fs_path_t *self, lh_str_view_t text);
+
+/**
+ * @brief Render @p self's root and segments into @p out as OS-ready text
+ *        (`CreateFileA` / `open` encoding), replacing its current contents.
+ *
+ * Pure and stateless: @p self keeps no cached text of its own — this is
+ * computed fresh every call. @p out is an ordinary ::lh_str_t; get the
+ * `const char *` for an OS call with ::lh_str_get_data(@p out).
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_os_fs_path_to_str(const lh_os_fs_path_t *self, lh_str_t *out);
 
 /**
  * @brief Join @p dir and @p name into @p self by appending @p name's

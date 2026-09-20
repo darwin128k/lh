@@ -142,6 +142,17 @@ LH_ATTRIBUTE_SYMBOL
 void
 lh_str_list_append(lh_str_list_t *self, const lh_str_list_t *other);
 
+/**
+ * @brief Append every string in @p self to @p out, with @p sep between
+ *        consecutive strings.
+ *
+ * Unlike ::lh_str_join, this does not clear @p out first — it appends.
+ * No separator before the first string or after the last.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_str_list_join(const lh_str_list_t *self, lh_str_t *out, lh_char_t sep);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_STR_LIST_H */

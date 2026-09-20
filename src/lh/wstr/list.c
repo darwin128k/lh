@@ -99,6 +99,23 @@ lh_wstr_list_append(lh_wstr_list_t *self, const lh_wstr_list_t *other)
     }
 }
 
+void
+lh_wstr_list_join(const lh_wstr_list_t *self, lh_wstr_t *out, lh_wchar_t sep)
+{
+    lh_usize_t n;
+    lh_uindex_t i;
+
+    n = lh_wstr_list_get_size(self);
+    for (i = 0U; i < n; ++i)
+    {
+        if (i > 0U)
+        {
+            lh_wstr_push_back(out, sep);
+        }
+        lh_wstr_append_str(out, lh_wstr_list_get_as_const(self, i));
+    }
+}
+
 lh_bool_t
 lh_wstr_list_is_empty(const lh_wstr_list_t *self)
 {
