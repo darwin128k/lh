@@ -192,6 +192,41 @@ lh_bool_t
 lh_os_fs_path_is_empty(const lh_os_fs_path_t *self);
 
 /**
+ * @brief Number of levels in @p self.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_usize_t
+lh_os_fs_path_get_part_count(const lh_os_fs_path_t *self);
+
+/**
+ * @brief True when @p part is a Windows drive (`C:`). Elsewhere always false.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_path_is_drive(lh_str_view_t part);
+
+/**
+ * @brief True when @p part is a root level: empty (`/`) or a drive (`C:`).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_path_is_root_part(lh_str_view_t part);
+
+/**
+ * @brief True when @p self is exactly a root (`/` or `C:\`).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_path_is_root(const lh_os_fs_path_t *self);
+
+/**
+ * @brief True when the first level of @p self is a root part.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_path_is_absolute(const lh_os_fs_path_t *self);
+
+/**
  * @brief Join @p dir and @p name into @p out by appending @p name's levels.
  *
  * Empty @p name is an error.

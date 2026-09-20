@@ -6,7 +6,6 @@
 #include <lh/str/view.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
-#include <lh/vector.h>
 
 namespace
 {
@@ -175,7 +174,7 @@ TEST(os_fs_path_parts, parse_glues_with_os_sep)
     lh_str_view_t part2;
 
     path_set_lit(lh_addr_of(path), "a/b/c");
-    ASSERT_EQ(lh_vector_get_size(lh_os_fs_path_get_parts_as_const(lh_addr_of(path))), 3U);
+    ASSERT_EQ(lh_os_fs_path_get_part_count(lh_addr_of(path)), 3U);
     part0 = lh_os_fs_path_get_part(lh_addr_of(path), 0U);
     part1 = lh_os_fs_path_get_part(lh_addr_of(path), 1U);
     part2 = lh_os_fs_path_get_part(lh_addr_of(path), 2U);
@@ -216,6 +215,35 @@ TEST(os_fs_path_is_sep, matches_os)
     EXPECT_EQ(lh_os_fs_path_is_sep('\\'), lh_bool_false);
 #endif
     EXPECT_EQ(lh_os_fs_path_is_sep('a'), lh_bool_false);
+}
+
+TEST(os_fs_path_is_root, slash_or_drive_only)
+{
+    lh_os_fs_path_t path;
+
+#if defined(_WIN32)
+    path_set_lit(lh_addr_of(path), "C:/");
+    EXPECT_EQ(lh_os_fs_path_is_root(lh_addr_of(path)), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_absolute(lh_addr_of(path)), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_drive(lh_os_fs_path_get_part(lh_addr_of(path), 0U)), lh_bool_true);
+    ASSERT_EQ(lh_os_fs_path_set(lh_addr_of(path), lh_str_view_make("C:/foo")), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_root(lh_addr_of(path)), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is_absolute(lh_addr_of(path)), lh_bool_true);
+#else
+    path_set_lit(lh_addr_of(path), "/");
+    EXPECT_EQ(lh_os_fs_path_is_root(lh_addr_of(path)), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_absolute(lh_addr_of(path)), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_root_part(lh_os_fs_path_get_part(lh_addr_of(path), 0U)),
+              lh_bool_true);
+    ASSERT_EQ(lh_os_fs_path_set(lh_addr_of(path), lh_str_view_make("/usr")), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_root(lh_addr_of(path)), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is_absolute(lh_addr_of(path)), lh_bool_true);
+#endif
+    ASSERT_EQ(lh_os_fs_path_set(lh_addr_of(path), lh_str_view_make("file")), lh_bool_true);
+    EXPECT_EQ(lh_os_fs_path_is_root(lh_addr_of(path)), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is_absolute(lh_addr_of(path)), lh_bool_false);
+    EXPECT_EQ(lh_os_fs_path_is_root_part(lh_os_fs_path_get_part(lh_addr_of(path), 0U)),
+              lh_bool_false);
 }
 
 } // namespace

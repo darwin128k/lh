@@ -1,7 +1,5 @@
 #include <lh/os/fs/path.h>
 #include <lh/assert.h>
-#include <lh/char/letter.h>
-#include <lh/char/map.h>
 #include <lh/compiler/os.h>
 #include <lh/memory/view.h>
 #include <lh/os.h>
@@ -29,62 +27,6 @@ lh_os_fs_path_is_sep_at(const lh_str_view_t *text, lh_usize_t i)
     return lh_os_fs_path_is_sep(lh_str_view_get_char_from_begin(text, i));
 }
 
-static lh_bool_t
-lh_os_fs_path_is_drive_view(lh_str_view_t part)
-{
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-    if (lh_str_view_get_size(lh_addr_of(part)) != 2U)
-    {
-        return lh_bool_false;
-    }
-    return (lh_char_is_letter(lh_str_view_get_char_from_begin(lh_addr_of(part), 0U)) &&
-            lh_str_view_get_char_from_begin(lh_addr_of(part), 1U) == lh_char_map_colon)
-               ? lh_bool_true
-               : lh_bool_false;
-#else
-    (void)part;
-    return lh_bool_false;
-#endif
-}
-
-static lh_bool_t
-lh_os_fs_path_is_root_part(lh_str_view_t part)
-{
-    return (lh_str_view_is_empty(lh_addr_of(part)) || lh_os_fs_path_is_drive_view(part))
-               ? lh_bool_true
-               : lh_bool_false;
-}
-
-static lh_bool_t
-lh_os_fs_path_text_ends_with_sep(const lh_os_fs_path_t *self)
-{
-    lh_str_view_t view;
-
-    view = lh_os_fs_path_as_view(self);
-    if (lh_str_view_is_empty(lh_addr_of(view)))
-    {
-        return lh_bool_false;
-    }
-    return lh_os_fs_path_is_sep(lh_str_view_get_char_from_end(lh_addr_of(view), 0U));
-}
-
-static lh_bool_t
-lh_os_fs_path_has_root_suffix(const lh_os_fs_path_t *self)
-{
-    lh_str_view_t first;
-
-    if (lh_vector_get_size(lh_os_fs_path_get_parts_as_const(self)) != 1U)
-    {
-        return lh_bool_false;
-    }
-    if (!lh_os_fs_path_text_ends_with_sep(self))
-    {
-        return lh_bool_false;
-    }
-    first = lh_os_fs_path_get_part(self, 0U);
-    return lh_os_fs_path_is_root_part(first);
-}
-
 static void
 lh_os_fs_path_append_part(lh_os_fs_path_t *self, lh_str_view_t piece)
 {
@@ -93,8 +35,7 @@ lh_os_fs_path_append_part(lh_os_fs_path_t *self, lh_str_view_t piece)
     lh_usize_t n;
 
     text = lh_os_fs_path_get_text(self);
-    if (!lh_vector_is_empty(lh_os_fs_path_get_parts_as_const(self)) &&
-        !lh_os_fs_path_has_root_suffix(self))
+    if (!lh_os_fs_path_is_empty(self) && !lh_os_fs_path_is_root(self))
     {
         lh_str_push_back(text, lh_ptr_deref(lh_os_fs_path_get_sep_as_const(self)));
     }
@@ -107,20 +48,15 @@ lh_os_fs_path_append_part(lh_os_fs_path_t *self, lh_str_view_t piece)
 static void
 lh_os_fs_path_finish_singleton(lh_os_fs_path_t *self)
 {
-    lh_str_view_t part;
-
-    if (lh_vector_get_size(lh_os_fs_path_get_parts_as_const(self)) != 1U)
+    if (lh_os_fs_path_get_part_count(self) != 1U)
     {
         return;
     }
-    part = lh_os_fs_path_get_part(self, 0U);
-    if (lh_os_fs_path_is_root_part(part))
+    if (lh_os_fs_path_is_root_part(lh_os_fs_path_get_part(self, 0U)) &&
+        !lh_os_fs_path_is_root(self))
     {
-        if (!lh_os_fs_path_text_ends_with_sep(self))
-        {
-            lh_str_push_back(lh_os_fs_path_get_text(self),
-                             lh_ptr_deref(lh_os_fs_path_get_sep_as_const(self)));
-        }
+        lh_str_push_back(lh_os_fs_path_get_text(self),
+                         lh_ptr_deref(lh_os_fs_path_get_sep_as_const(self)));
     }
 }
 
@@ -140,12 +76,10 @@ lh_os_fs_path_commit(lh_os_fs_path_t *self)
 static lh_bool_t
 lh_os_fs_path_append_path(lh_os_fs_path_t *self, const lh_os_fs_path_t *name)
 {
-    const lh_vector_t *parts;
     lh_usize_t n;
     lh_uindex_t i;
 
-    parts = lh_os_fs_path_get_parts_as_const(name);
-    n = lh_vector_get_size(parts);
+    n = lh_os_fs_path_get_part_count(name);
     for (i = 0U; i < n; ++i)
     {
         lh_os_fs_path_append_part(self, lh_os_fs_path_get_part(name, i));
@@ -165,7 +99,7 @@ lh_os_fs_path_take_drive(lh_os_fs_path_t *self, const lh_str_view_t *text, lh_us
         return 0U;
     }
     drive = lh_memory_view_make_from_offset(text, 0U, 2U);
-    if (!lh_os_fs_path_is_drive_view(drive))
+    if (!lh_os_fs_path_is_drive(drive))
     {
         return 0U;
     }
@@ -239,31 +173,27 @@ lh_os_fs_path_set(lh_os_fs_path_t *self, lh_str_view_t text)
 static lh_bool_t
 lh_os_fs_path_drop_last(lh_os_fs_path_t *self)
 {
-    lh_vector_t *parts;
-    lh_usize_t n;
     lh_os_fs_path_span_t last;
-    lh_str_view_t first;
     lh_str_view_t view;
     lh_usize_t keep;
+    lh_usize_t n;
 
     if (!lh_os_fs_path_require(self))
     {
         return lh_bool_false;
     }
-    parts = lh_os_fs_path_get_parts(self);
-    n = lh_vector_get_size(parts);
+    n = lh_os_fs_path_get_part_count(self);
     if (n == 1U)
     {
-        first = lh_os_fs_path_get_part(self, 0U);
-        if (lh_os_fs_path_is_root_part(first))
+        if (lh_os_fs_path_is_root(self))
         {
             return lh_bool_true;
         }
         return lh_os_fs_path_set(self, lh_str_view_lit("."));
     }
 
-    lh_vector_pop_back(parts, lh_addr_of(last));
-    n = lh_vector_get_size(parts);
+    lh_vector_pop_back(lh_os_fs_path_get_parts(self), lh_addr_of(last));
+    n = lh_os_fs_path_get_part_count(self);
     keep = lh_os_fs_path_span_get_offset(lh_addr_of(last));
     if (keep > 0U)
     {
