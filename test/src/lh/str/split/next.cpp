@@ -4,22 +4,6 @@
 
 #include <lh/str/split/next.h>
 
-extern "C" {
-
-static lh_bool_t
-is_dot(lh_char_t ch)
-{
-    return (ch == '.') ? lh_bool_true : lh_bool_false;
-}
-
-static lh_bool_t
-is_slash_or_backslash(lh_char_t ch)
-{
-    return (ch == '/' || ch == '\\') ? lh_bool_true : lh_bool_false;
-}
-
-}
-
 namespace
 {
 
@@ -105,40 +89,45 @@ TEST(str_ptr_split_next, empty_input_returns_false)
     EXPECT_FALSE(lh_str_ptr_split_next(str, 0, '.', &pos, &field, &field_size, &had_delim));
 }
 
-TEST(str_ptr_split_next_if, matches_char_split_for_single_delim)
+TEST(str_ptr_split_next_of, matches_char_split_for_single_delim)
 {
     lh_str_cptr str = "a..b";
     lh_usize_t pos = 0;
     lh_str_cptr field;
     lh_usize_t field_size;
     lh_bool_t had_delim;
+    const lh_char_t delims[] = {'.'};
 
-    ASSERT_TRUE(lh_str_ptr_split_next_if(str, 4, is_dot, &pos, &field, &field_size, &had_delim));
+    ASSERT_TRUE(
+        lh_str_ptr_split_next_of(str, 4, delims, 1, &pos, &field, &field_size, &had_delim));
     EXPECT_EQ(field_size, 1U);
-    ASSERT_TRUE(lh_str_ptr_split_next_if(str, 4, is_dot, &pos, &field, &field_size, &had_delim));
+    ASSERT_TRUE(
+        lh_str_ptr_split_next_of(str, 4, delims, 1, &pos, &field, &field_size, &had_delim));
     EXPECT_EQ(field_size, 0U);
-    ASSERT_TRUE(lh_str_ptr_split_next_if(str, 4, is_dot, &pos, &field, &field_size, &had_delim));
+    ASSERT_TRUE(
+        lh_str_ptr_split_next_of(str, 4, delims, 1, &pos, &field, &field_size, &had_delim));
     EXPECT_EQ(field_size, 1U);
     EXPECT_FALSE(had_delim);
 }
 
-TEST(str_view_split_next_if, splits_on_either_slash)
+TEST(str_view_split_next_of, splits_on_either_slash)
 {
     lh_str_view_t text;
     lh_str_view_t field;
     lh_usize_t pos = 0;
     lh_bool_t had_delim;
+    const lh_char_t seps[] = {'/', '\\'};
 
     lh_str_view_init(&text, "a/b\\c");
-    ASSERT_TRUE(lh_str_view_split_next_if(&text, is_slash_or_backslash, &pos, &field, &had_delim));
+    ASSERT_TRUE(lh_str_view_split_next_of(&text, seps, 2, &pos, &field, &had_delim));
     EXPECT_EQ(lh_str_view_get_size(&field), 1U);
     EXPECT_EQ(lh_str_view_get_char_from_begin(&field, 0U), 'a');
-    ASSERT_TRUE(lh_str_view_split_next_if(&text, is_slash_or_backslash, &pos, &field, &had_delim));
+    ASSERT_TRUE(lh_str_view_split_next_of(&text, seps, 2, &pos, &field, &had_delim));
     EXPECT_EQ(lh_str_view_get_char_from_begin(&field, 0U), 'b');
-    ASSERT_TRUE(lh_str_view_split_next_if(&text, is_slash_or_backslash, &pos, &field, &had_delim));
+    ASSERT_TRUE(lh_str_view_split_next_of(&text, seps, 2, &pos, &field, &had_delim));
     EXPECT_EQ(lh_str_view_get_char_from_begin(&field, 0U), 'c');
     EXPECT_FALSE(had_delim);
-    EXPECT_FALSE(lh_str_view_split_next_if(&text, is_slash_or_backslash, &pos, &field, &had_delim));
+    EXPECT_FALSE(lh_str_view_split_next_of(&text, seps, 2, &pos, &field, &had_delim));
 }
 
 } // namespace

@@ -54,6 +54,7 @@ set(LH_BENCH_SOURCES
         ${LH_BENCH_SRC_PATH}/lh/crypto/sha.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/view.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/ptr.cpp
+        ${LH_BENCH_SRC_PATH}/lh/str/split/next.cpp
         ${LH_BENCH_SRC_PATH}/lh/wstr/ptr.cpp
         ${LH_BENCH_SRC_PATH}/lh/net/ip.cpp
         ${LH_BENCH_SRC_PATH}/lh/net/port.cpp
@@ -67,6 +68,10 @@ set(LH_BENCH_SOURCES
         ${LH_BENCH_SRC_PATH}/lh/memory/view.cpp
         ${LH_BENCH_SRC_PATH}/lh/vector.cpp
 )
+
+if (LH_LIBRARY_OPTION_OS)
+    list(APPEND LH_BENCH_SOURCES ${LH_BENCH_SRC_PATH}/lh/os/fs/path.cpp)
+endif()
 
 add_executable(${PROJECT_NAME} ${LH_BENCH_SOURCES})
 

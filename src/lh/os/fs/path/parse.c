@@ -1,5 +1,6 @@
 #include <lh/os/fs/path.h>
 #include <lh/assert.h>
+#include <lh/char/map.h>
 #include <lh/compiler/os.h>
 #include <lh/memory/view.h>
 #include <lh/os.h>
@@ -123,10 +124,18 @@ lh_os_fs_path_set(lh_os_fs_path_t *self, lh_str_view_t text)
     }
     n = lh_str_view_get_size(lh_addr_of(text));
     pos = lh_os_fs_path_take_drive(self, lh_addr_of(text), n);
-    while (lh_str_view_split_next_if(lh_addr_of(text), lh_os_fs_path_is_sep, lh_addr_of(pos),
-                                     lh_addr_of(piece), lh_addr_of(had_delim)))
     {
-        lh_os_fs_path_append_part(self, piece);
+        static const lh_char_t seps[] = {
+            lh_char_map_slash,
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+            lh_char_map_backslash,
+#endif
+        };
+        while (lh_str_view_split_next_of(lh_addr_of(text), seps, sizeof(seps) / sizeof(seps[0]),
+                                         lh_addr_of(pos), lh_addr_of(piece), lh_addr_of(had_delim)))
+        {
+            lh_os_fs_path_append_part(self, piece);
+        }
     }
     lh_os_fs_path_finish_singleton(self);
     return lh_os_fs_path_commit(self);
