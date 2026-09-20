@@ -150,6 +150,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/error.c
             ${LH_LIB_SRC_PATH}/os/system/error.c
             ${LH_LIB_SRC_PATH}/os/fs/path.c
+            ${LH_LIB_SRC_PATH}/os/fs/file.c
             # rest of os/fs is being redesigned from scratch.
     )
 endif ()
