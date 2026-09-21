@@ -96,6 +96,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/time/minute.c
         ${LH_LIB_SRC_PATH}/time/hour.c
         ${LH_LIB_SRC_PATH}/datetime.c
+        ${LH_LIB_SRC_PATH}/timestamp.c
         ${LH_LIB_SRC_PATH}/error.c
         ${LH_LIB_SRC_PATH}/werror.c
         ${LH_LIB_SRC_PATH}/runtime/error.c
