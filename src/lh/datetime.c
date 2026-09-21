@@ -39,21 +39,20 @@ lh_datetime_assign(lh_datetime_t *self, const lh_datetime_t *other)
 lh_uint_t
 lh_datetime_add(lh_datetime_t *self, const lh_datetime_t *other)
 {
+    lh_date_t other_date = lh_datetime_get_date(other);
+    lh_time_t other_time = lh_datetime_get_time(other);
+    lh_date_t self_date = lh_datetime_get_date(self);
+    lh_date_year_t before = lh_date_get_year(lh_addr_of(self_date));
+    lh_timestamp_t shifted = lh_timestamp_add_seconds(lh_timestamp_from_datetime(self),
+                                                      lh_timestamp_from_time(lh_addr_of(other_time)));
     lh_date_t date;
-    lh_time_t time;
-    lh_date_t other_date;
-    lh_time_t other_time;
-    lh_uint_t day_carry;
     lh_uint_t overflow;
 
+    lh_timestamp_to_datetime(shifted, self);
     date = lh_datetime_get_date(self);
-    time = lh_datetime_get_time(self);
-    other_date = lh_datetime_get_date(other);
-    other_time = lh_datetime_get_time(other);
-    day_carry = lh_time_add(lh_addr_of(time), lh_addr_of(other_time));
-    overflow = lh_date_add_day(lh_addr_of(date), day_carry);
+    overflow = lh_cast_static(lh_uint_t, lh_date_get_year(lh_addr_of(date)) < before);
     overflow += lh_date_add(lh_addr_of(date), lh_addr_of(other_date));
-    lh_datetime_set(self, lh_addr_of(date), lh_addr_of(time));
+    lh_datetime_set_date(self, lh_addr_of(date));
     return overflow;
 }
 

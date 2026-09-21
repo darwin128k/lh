@@ -56,6 +56,24 @@ TEST(datetime_add, time_overflow_into_date)
     EXPECT_EQ(lh_time_get_hour(&dt.time), 1);
 }
 
+TEST(datetime_add, day_carry_applies_before_month_duration)
+{
+    // Order matters here: day-carry first lands on 31 Jan, +1 month then clamps
+    // to 28 Feb. Applying the month duration first would clamp 30 Jan to 28 Feb
+    // right away, and the day-carry would then push it to 1 Mar instead - a
+    // different (wrong) answer. This pins the day-carry-first order.
+    lh_datetime_t dt = lh_datetime_initializer(lh_date_initializer(2026, 1, 30),
+                                               lh_time_initializer(23, 59, 0));
+    const lh_datetime_t addend =
+        lh_datetime_initializer(lh_date_initializer(0, 1, 0), lh_time_initializer(0, 2, 0));
+
+    EXPECT_EQ(lh_datetime_add(&dt, &addend), 0U);
+    EXPECT_EQ(lh_date_get_month(&dt.date), 2);
+    EXPECT_EQ(lh_date_get_day(&dt.date), 28);
+    EXPECT_EQ(lh_time_get_hour(&dt.time), 0);
+    EXPECT_EQ(lh_time_get_minute(&dt.time), 1);
+}
+
 TEST(datetime_sub, time_borrow_from_date)
 {
     lh_datetime_t dt = lh_datetime_initializer(lh_date_initializer(2026, 9, 17),
