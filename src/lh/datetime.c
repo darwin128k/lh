@@ -48,6 +48,9 @@ lh_datetime_add(lh_datetime_t *self, const lh_datetime_t *other)
     lh_date_t date;
     lh_uint_t overflow;
 
+    /* Day-carry from the time addition lands first (via the round trip
+       above), then the y/m/d duration - order matters for day-of-month
+       clamping, see datetime_add.day_carry_applies_before_month_duration. */
     lh_timestamp_to_datetime(shifted, self);
     date = lh_datetime_get_date(self);
     overflow = lh_cast_static(lh_uint_t, lh_date_get_year(lh_addr_of(date)) < before);
@@ -59,21 +62,24 @@ lh_datetime_add(lh_datetime_t *self, const lh_datetime_t *other)
 lh_uint_t
 lh_datetime_sub(lh_datetime_t *self, const lh_datetime_t *other)
 {
-    lh_date_t date;
-    lh_time_t time;
-    lh_date_t other_date;
-    lh_time_t other_time;
-    lh_uint_t day_borrow;
-    lh_uint_t overflow;
+    lh_date_t other_date = lh_datetime_get_date(other);
+    lh_time_t other_time = lh_datetime_get_time(other);
+    lh_date_t date = lh_datetime_get_date(self);
+    lh_uint_t overflow = lh_date_sub(lh_addr_of(date), lh_addr_of(other_date));
+    lh_date_year_t before;
+    lh_timestamp_t shifted;
 
+    /* Mirror of lh_datetime_add with the two steps swapped: the y/m/d
+       duration lands first, then the day-borrow from the time subtraction
+       (via the round trip below) - see
+       datetime_sub.day_borrow_applies_after_month_duration. */
+    lh_datetime_set_date(self, lh_addr_of(date));
+    before = lh_date_get_year(lh_addr_of(date));
+    shifted = lh_timestamp_sub_seconds(lh_timestamp_from_datetime(self),
+                                       lh_timestamp_from_time(lh_addr_of(other_time)));
+    lh_timestamp_to_datetime(shifted, self);
     date = lh_datetime_get_date(self);
-    time = lh_datetime_get_time(self);
-    other_date = lh_datetime_get_date(other);
-    other_time = lh_datetime_get_time(other);
-    day_borrow = lh_time_sub(lh_addr_of(time), lh_addr_of(other_time));
-    overflow = lh_date_sub(lh_addr_of(date), lh_addr_of(other_date));
-    overflow += lh_date_sub_day(lh_addr_of(date), day_borrow);
-    lh_datetime_set(self, lh_addr_of(date), lh_addr_of(time));
+    overflow += lh_cast_static(lh_uint_t, lh_date_get_year(lh_addr_of(date)) > before);
     return overflow;
 }
 

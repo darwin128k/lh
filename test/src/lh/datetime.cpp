@@ -86,4 +86,24 @@ TEST(datetime_sub, time_borrow_from_date)
     EXPECT_EQ(lh_time_get_hour(&dt.time), 23);
 }
 
+TEST(datetime_sub, day_borrow_applies_after_month_duration)
+{
+    // Mirror of datetime_add's order-sensitive case: the month duration must
+    // land BEFORE the day-borrow from the time-of-day (31 Mar -> -1 month ->
+    // clamped to 28 Feb -> -1 day (borrow) -> 27 Feb). Borrowing the day
+    // first would give 30 Mar -> -1 month -> clamped to 28 Feb instead - a
+    // different (wrong) answer.
+    lh_datetime_t dt = lh_datetime_initializer(lh_date_initializer(2026, 3, 31),
+                                               lh_time_initializer(0, 0, 30));
+    const lh_datetime_t subtrahend =
+        lh_datetime_initializer(lh_date_initializer(0, 1, 0), lh_time_initializer(0, 1, 0));
+
+    EXPECT_EQ(lh_datetime_sub(&dt, &subtrahend), 0U);
+    EXPECT_EQ(lh_date_get_month(&dt.date), 2);
+    EXPECT_EQ(lh_date_get_day(&dt.date), 27);
+    EXPECT_EQ(lh_time_get_hour(&dt.time), 23);
+    EXPECT_EQ(lh_time_get_minute(&dt.time), 59);
+    EXPECT_EQ(lh_time_get_second(&dt.time), 30);
+}
+
 } // namespace
