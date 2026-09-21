@@ -56,6 +56,12 @@ typedef lh_s64_t lh_timestamp_t;
  */
 #define LH_TIMESTAMP_MONTHS_PER_YEAR 12U
 
+/**
+ * @def LH_TIMESTAMP_DAYS_PER_COMMON_YEAR
+ * @brief Days in a non-leap year. A leap year has one more (::lh_date_year_is_leap).
+ */
+#define LH_TIMESTAMP_DAYS_PER_COMMON_YEAR 365LL
+
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
@@ -95,7 +101,16 @@ lh_date_day_t
 lh_timestamp_days_in_month(lh_date_year_t year, lh_date_month_t month);
 
 /**
+ * @brief Days from proleptic year 0 (Jan 1, itself a leap year) to @p year (Jan 1).
+ *        Closed-form Gregorian leap-year count — O(1), no loop.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_s64_t
+lh_timestamp_days_from_year_zero(lh_date_year_t year);
+
+/**
  * @brief Days from 1970-01-01 to @p year-01-01 (negative when @p year < 1970).
+ *        Delegates to ::lh_timestamp_days_from_year_zero.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_s64_t

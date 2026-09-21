@@ -24,7 +24,7 @@ lh_timestamp_floor_mod(lh_s64_t a, lh_s64_t b)
 lh_s64_t
 lh_timestamp_days_in_year(lh_date_year_t year)
 {
-    return lh_date_year_is_leap(year) ? 366 : 365;
+    return lh_date_year_is_leap(year) ? LH_TIMESTAMP_DAYS_PER_COMMON_YEAR + 1 : LH_TIMESTAMP_DAYS_PER_COMMON_YEAR;
 }
 
 lh_date_day_t
@@ -37,27 +37,20 @@ lh_timestamp_days_in_month(lh_date_year_t year, lh_date_month_t month)
 }
 
 lh_s64_t
+lh_timestamp_days_from_year_zero(lh_date_year_t year)
+{
+    lh_s64_t y = lh_cast_static(lh_s64_t, year) - 1;
+    lh_s64_t leap_count = lh_timestamp_floor_div(y, 4) - lh_timestamp_floor_div(y, 100) +
+                         lh_timestamp_floor_div(y, 400) + 1;
+
+    return LH_TIMESTAMP_DAYS_PER_COMMON_YEAR * lh_cast_static(lh_s64_t, year) + leap_count;
+}
+
+lh_s64_t
 lh_timestamp_days_before_year(lh_date_year_t year)
 {
-    lh_s64_t days;
-    lh_date_year_t y;
-
-    days = 0;
-    if (year >= LH_TIMESTAMP_EPOCH_YEAR)
-    {
-        for (y = LH_TIMESTAMP_EPOCH_YEAR; y < year; ++y)
-        {
-            days += lh_timestamp_days_in_year(y);
-        }
-    }
-    else
-    {
-        for (y = year; y < LH_TIMESTAMP_EPOCH_YEAR; ++y)
-        {
-            days -= lh_timestamp_days_in_year(y);
-        }
-    }
-    return days;
+    return lh_timestamp_days_from_year_zero(year) -
+           lh_timestamp_days_from_year_zero(LH_TIMESTAMP_EPOCH_YEAR);
 }
 
 lh_uint_t
