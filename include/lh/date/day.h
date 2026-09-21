@@ -72,41 +72,6 @@ LH_ATTRIBUTE_SYMBOL
 lh_date_day_t
 lh_date_days_in_month(lh_date_year_t year, lh_date_month_t month);
 
-/**
- * @brief ::lh_date_days_in_month if @p day is a valid day of that month, else `0`.
- *
- * Shared by ::lh_date_days_left and ::lh_date_days_left_with_today.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_date_day_t
-lh_date_days_in_month_if_valid(lh_date_year_t year, lh_date_month_t month, lh_date_day_t day);
-
-/**
- * @brief Days after @p day until month end (`dim - day`), not counting today.
- *
- * @param year  Calendar year.
- * @param month Calendar month.
- * @param day   Day of month (::LH_DATE_DAY_MIN and up).
- *
- * @return Remaining days, or `0` if the triple is not a valid calendar day.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_date_day_t
-lh_date_days_left(lh_date_year_t year, lh_date_month_t month, lh_date_day_t day);
-
-/**
- * @brief Days until the next month starts, including today (`dim - day + 1`).
- *
- * @param year  Calendar year.
- * @param month Calendar month.
- * @param day   Day of month (::LH_DATE_DAY_MIN and up).
- *
- * @return Count including today, or `0` if the triple is not a valid calendar day.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_date_day_t
-lh_date_days_left_with_today(lh_date_year_t year, lh_date_month_t month, lh_date_day_t day);
-
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_DATE_DAY_H */

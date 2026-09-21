@@ -60,13 +60,6 @@ lh_date_max_days(const lh_date_t *self)
     return lh_date_days_in_month(lh_date_get_year(self), lh_date_get_month(self));
 }
 
-lh_date_day_t
-lh_date_left_days(const lh_date_t *self)
-{
-    return lh_date_days_left(lh_date_get_year(self), lh_date_get_month(self),
-                             lh_date_get_day(self));
-}
-
 lh_uint_t
 lh_date_add_year(lh_date_t *self, lh_uint_t value)
 {

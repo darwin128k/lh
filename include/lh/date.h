@@ -242,16 +242,6 @@ lh_date_day_t
 lh_date_max_days(const lh_date_t *self);
 
 /**
- * @brief Days after today until month end. Delegates to ::lh_date_days_left.
- *
- * @param self Date to read (not null).
- * @return `dim - day`, or `0` if the date is not a valid calendar day.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_date_day_t
-lh_date_left_days(const lh_date_t *self);
-
-/**
  * @brief Return the year of @p self.
  *
  * @param self Date to read (not null).
