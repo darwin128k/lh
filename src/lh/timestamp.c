@@ -7,8 +7,6 @@
 #include <lh/util/addr.h>
 
 #define LH_TIMESTAMP_EPOCH_YEAR 1970U
-#define LH_TIMESTAMP_SECONDS_PER_DAY 86400LL
-#define LH_TIMESTAMP_MONTHS_PER_YEAR 12U
 
 lh_s64_t
 lh_timestamp_floor_div(lh_s64_t a, lh_s64_t b)
@@ -62,34 +60,38 @@ lh_timestamp_days_before_year(lh_date_year_t year)
     return days;
 }
 
-void
+lh_uint_t
 lh_timestamp_date_add_months(lh_date_t *date, lh_uint_t months)
 {
     lh_date_month_t month;
     lh_date_year_t year;
+    lh_uint_t overflow;
     lh_date_day_t max_day;
 
     lh_assert_runtime_ref(date);
     month = lh_date_get_month(date);
     year = lh_date_get_year(date);
-    lh_date_year_add(lh_addr_of(year), lh_date_month_add(lh_addr_of(month), months));
+    overflow = lh_date_year_add(lh_addr_of(year), lh_date_month_add(lh_addr_of(month), months));
     max_day = lh_timestamp_days_in_month(year, month);
     lh_date_set(date, year, month, (lh_date_get_day(date) > max_day) ? max_day : lh_date_get_day(date));
+    return overflow;
 }
 
-void
+lh_uint_t
 lh_timestamp_date_sub_months(lh_date_t *date, lh_uint_t months)
 {
     lh_date_month_t month;
     lh_date_year_t year;
+    lh_uint_t overflow;
     lh_date_day_t max_day;
 
     lh_assert_runtime_ref(date);
     month = lh_date_get_month(date);
     year = lh_date_get_year(date);
-    lh_date_year_sub(lh_addr_of(year), lh_date_month_sub(lh_addr_of(month), months));
+    overflow = lh_date_year_sub(lh_addr_of(year), lh_date_month_sub(lh_addr_of(month), months));
     max_day = lh_timestamp_days_in_month(year, month);
     lh_date_set(date, year, month, (lh_date_get_day(date) > max_day) ? max_day : lh_date_get_day(date));
+    return overflow;
 }
 
 lh_timestamp_t
@@ -116,8 +118,8 @@ lh_timestamp_t
 lh_timestamp_from_time(const lh_time_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_cast_static(lh_timestamp_t, lh_time_get_hour(self)) * 3600 +
-           lh_cast_static(lh_timestamp_t, lh_time_get_minute(self)) * 60 +
+    return lh_cast_static(lh_timestamp_t, lh_time_get_hour(self)) * LH_TIMESTAMP_SECONDS_PER_HOUR +
+           lh_cast_static(lh_timestamp_t, lh_time_get_minute(self)) * LH_TIMESTAMP_SECONDS_PER_MINUTE +
            lh_cast_static(lh_timestamp_t, lh_time_get_second(self));
 }
 
@@ -184,9 +186,11 @@ lh_timestamp_get_time(lh_timestamp_t self)
     lh_time_t time;
 
     seconds_of_day = lh_timestamp_get_seconds_of_day(self);
-    lh_time_set(lh_addr_of(time), lh_cast_static(lh_time_hour_t, seconds_of_day / 3600),
-               lh_cast_static(lh_time_minute_t, (seconds_of_day % 3600) / 60),
-               lh_cast_static(lh_time_second_t, seconds_of_day % 60));
+    lh_time_set(lh_addr_of(time),
+               lh_cast_static(lh_time_hour_t, seconds_of_day / LH_TIMESTAMP_SECONDS_PER_HOUR),
+               lh_cast_static(lh_time_minute_t, (seconds_of_day % LH_TIMESTAMP_SECONDS_PER_HOUR) /
+                                                    LH_TIMESTAMP_SECONDS_PER_MINUTE),
+               lh_cast_static(lh_time_second_t, seconds_of_day % LH_TIMESTAMP_SECONDS_PER_MINUTE));
     return time;
 }
 

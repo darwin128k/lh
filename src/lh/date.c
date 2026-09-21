@@ -4,6 +4,7 @@
 #include <lh/numeric/types.h>
 #include <lh/str/format/text.h>
 #include <lh/str/parse/uint.h>
+#include <lh/timestamp.h>
 #include <lh/util/addr.h>
 
 void
@@ -27,17 +28,6 @@ lh_date_set_day(lh_date_t *self, lh_date_day_t day)
     self->day = day;
 }
 
-void
-lh_date_clamp_day(lh_date_t *self)
-{
-    lh_date_day_t dim = lh_date_max_days(self);
-
-    if (dim != 0 && lh_date_get_day(self) > dim)
-    {
-        lh_date_set_day(self, dim);
-    }
-}
-
 lh_bool_t
 lh_date_ymd_is_valid(lh_uint_t year, lh_uint_t month, lh_uint_t day)
 {
@@ -48,48 +38,6 @@ lh_date_ymd_is_valid(lh_uint_t year, lh_uint_t month, lh_uint_t day)
 
     return lh_cast_static(lh_bool_t, day <= lh_date_days_in_month(lh_cast_static(lh_date_year_t, year),
                                                                   lh_cast_static(lh_date_month_t, month)));
-}
-
-lh_uint_t
-lh_date_add_within_month(lh_date_t *self, lh_uint_t value)
-{
-    lh_date_day_t day = lh_cast_static(
-        lh_date_day_t, lh_cast_static(lh_uint_t, lh_date_get_day(self)) + value);
-
-    lh_date_set_day(self, day);
-    return 0;
-}
-
-lh_uint_t
-lh_date_roll_to_next_month(lh_date_t *self, lh_uint_t *value)
-{
-    *value -= lh_date_left_days_with_today(self);
-    lh_date_set_day(self, LH_DATE_DAY_MIN);
-    return lh_date_add_month(self, 1U);
-}
-
-lh_uint_t
-lh_date_sub_within_month(lh_date_t *self, lh_date_day_t day, lh_uint_t value)
-{
-    lh_date_set_day(self, lh_cast_static(lh_date_day_t, lh_cast_static(lh_uint_t, day) - value));
-    return 0;
-}
-
-lh_uint_t
-lh_date_roll_to_prev_month(lh_date_t *self, lh_uint_t *value, lh_date_day_t day)
-{
-    lh_uint_t overflow;
-    lh_date_day_t dim;
-
-    *value -= day;
-    overflow = lh_date_sub_month(self, 1U);
-    dim = lh_date_max_days(self);
-    if (dim == 0)
-    {
-        dim = LH_DATE_DAY_MIN;
-    }
-    lh_date_set_day(self, dim);
-    return overflow;
 }
 
 void
@@ -119,97 +67,50 @@ lh_date_left_days(const lh_date_t *self)
                              lh_date_get_day(self));
 }
 
-lh_date_day_t
-lh_date_left_days_with_today(const lh_date_t *self)
-{
-    return lh_date_days_left_with_today(lh_date_get_year(self), lh_date_get_month(self),
-                                        lh_date_get_day(self));
-}
-
 lh_uint_t
 lh_date_add_year(lh_date_t *self, lh_uint_t value)
 {
-    lh_date_year_t year = lh_date_get_year(self);
-    lh_uint_t overflow = lh_date_year_add(lh_addr_of(year), value);
-
-    lh_date_set_year(self, year);
-    lh_date_clamp_day(self);
-    return overflow;
+    return lh_timestamp_date_add_months(self, value * LH_TIMESTAMP_MONTHS_PER_YEAR);
 }
 
 lh_uint_t
 lh_date_sub_year(lh_date_t *self, lh_uint_t value)
 {
-    lh_date_year_t year = lh_date_get_year(self);
-    lh_uint_t overflow = lh_date_year_sub(lh_addr_of(year), value);
-
-    lh_date_set_year(self, year);
-    lh_date_clamp_day(self);
-    return overflow;
+    return lh_timestamp_date_sub_months(self, value * LH_TIMESTAMP_MONTHS_PER_YEAR);
 }
 
 lh_uint_t
 lh_date_add_month(lh_date_t *self, lh_uint_t value)
 {
-    lh_date_month_t month = lh_date_get_month(self);
-    lh_uint_t years = lh_date_month_add(lh_addr_of(month), value);
-
-    lh_date_set_month(self, month);
-    return lh_date_add_year(self, years);
+    return lh_timestamp_date_add_months(self, value);
 }
 
 lh_uint_t
 lh_date_sub_month(lh_date_t *self, lh_uint_t value)
 {
-    lh_date_month_t month = lh_date_get_month(self);
-    lh_uint_t years = lh_date_month_sub(lh_addr_of(month), value);
-
-    lh_date_set_month(self, month);
-    return lh_date_sub_year(self, years);
+    return lh_timestamp_date_sub_months(self, value);
 }
 
 lh_uint_t
 lh_date_add_day(lh_date_t *self, lh_uint_t value)
 {
-    lh_uint_t overflow = 0;
+    lh_date_year_t before = lh_date_get_year(self);
+    lh_timestamp_t shifted = lh_timestamp_add_days(lh_timestamp_from_date(self), lh_cast_static(lh_s64_t, value));
+    lh_date_t result = lh_timestamp_get_date(shifted);
 
-    while (value > 0)
-    {
-        lh_date_day_t left = lh_date_left_days_with_today(self);
-
-        if (left == 0)
-        {
-            break;
-        }
-        if (value < left)
-        {
-            return overflow + lh_date_add_within_month(self, value);
-        }
-        overflow += lh_date_roll_to_next_month(self, lh_addr_of(value));
-    }
-    return overflow;
+    lh_date_assign(self, lh_addr_of(result));
+    return lh_cast_static(lh_uint_t, lh_date_get_year(self) < before);
 }
 
 lh_uint_t
 lh_date_sub_day(lh_date_t *self, lh_uint_t value)
 {
-    lh_uint_t overflow = 0;
+    lh_date_year_t before = lh_date_get_year(self);
+    lh_timestamp_t shifted = lh_timestamp_sub_days(lh_timestamp_from_date(self), lh_cast_static(lh_s64_t, value));
+    lh_date_t result = lh_timestamp_get_date(shifted);
 
-    while (value > 0)
-    {
-        lh_date_day_t day = lh_date_get_day(self);
-
-        if (day < LH_DATE_DAY_MIN)
-        {
-            day = LH_DATE_DAY_MIN;
-        }
-        if (value < lh_cast_static(lh_uint_t, day))
-        {
-            return overflow + lh_date_sub_within_month(self, day, value);
-        }
-        overflow += lh_date_roll_to_prev_month(self, lh_addr_of(value), day);
-    }
-    return overflow;
+    lh_date_assign(self, lh_addr_of(result));
+    return lh_cast_static(lh_uint_t, lh_date_get_year(self) > before);
 }
 
 lh_uint_t
@@ -272,40 +173,13 @@ lh_date_get_day(const lh_date_t *self)
 lh_bool_t
 lh_date_equals(const lh_date_t *self, const lh_date_t *other)
 {
-    if (lh_date_get_year(self) != lh_date_get_year(other))
-    {
-        return lh_bool_false;
-    }
-    if (lh_date_get_month(self) != lh_date_get_month(other))
-    {
-        return lh_bool_false;
-    }
-    return lh_cast_static(lh_bool_t, lh_date_get_day(self) == lh_date_get_day(other));
+    return lh_timestamp_equals(lh_timestamp_from_date(self), lh_timestamp_from_date(other));
 }
 
 lh_bool_t
 lh_date_is_at_least(const lh_date_t *self, const lh_date_t *minimum)
 {
-    lh_date_year_t self_year;
-    lh_date_year_t min_year;
-    lh_date_month_t self_month;
-    lh_date_month_t min_month;
-
-    self_year = lh_date_get_year(self);
-    min_year = lh_date_get_year(minimum);
-    if (self_year != min_year)
-    {
-        return lh_cast_static(lh_bool_t, self_year > min_year);
-    }
-
-    self_month = lh_date_get_month(self);
-    min_month = lh_date_get_month(minimum);
-    if (self_month != min_month)
-    {
-        return lh_cast_static(lh_bool_t, self_month > min_month);
-    }
-
-    return lh_cast_static(lh_bool_t, lh_date_get_day(self) >= lh_date_get_day(minimum));
+    return lh_timestamp_is_at_least(lh_timestamp_from_date(self), lh_timestamp_from_date(minimum));
 }
 
 lh_bool_t

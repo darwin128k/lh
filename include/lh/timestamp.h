@@ -32,6 +32,30 @@
  */
 typedef lh_s64_t lh_timestamp_t;
 
+/**
+ * @def LH_TIMESTAMP_SECONDS_PER_MINUTE
+ * @brief Seconds in a minute.
+ */
+#define LH_TIMESTAMP_SECONDS_PER_MINUTE 60LL
+
+/**
+ * @def LH_TIMESTAMP_SECONDS_PER_HOUR
+ * @brief Seconds in an hour.
+ */
+#define LH_TIMESTAMP_SECONDS_PER_HOUR 3600LL
+
+/**
+ * @def LH_TIMESTAMP_SECONDS_PER_DAY
+ * @brief Seconds in a day.
+ */
+#define LH_TIMESTAMP_SECONDS_PER_DAY 86400LL
+
+/**
+ * @def LH_TIMESTAMP_MONTHS_PER_YEAR
+ * @brief Months in a year.
+ */
+#define LH_TIMESTAMP_MONTHS_PER_YEAR 12U
+
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
@@ -84,9 +108,10 @@ lh_timestamp_days_before_year(lh_date_year_t year);
  *
  * @param date   Date to update (not null).
  * @param months Months to add.
+ * @return Year-radix overflow from ::lh_date_year_add. `0` if the year stayed in range.
  */
 LH_ATTRIBUTE_SYMBOL
-void
+lh_uint_t
 lh_timestamp_date_add_months(lh_date_t *date, lh_uint_t months);
 
 /**
@@ -95,9 +120,10 @@ lh_timestamp_date_add_months(lh_date_t *date, lh_uint_t months);
  *
  * @param date   Date to update (not null).
  * @param months Months to subtract.
+ * @return Year-radix units borrowed. `0` if the year stayed in range.
  */
 LH_ATTRIBUTE_SYMBOL
-void
+lh_uint_t
 lh_timestamp_date_sub_months(lh_date_t *date, lh_uint_t months);
 
 /**

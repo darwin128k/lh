@@ -4,6 +4,7 @@
 #include <lh/numeric/types.h>
 #include <lh/str/format/text.h>
 #include <lh/str/parse/uint.h>
+#include <lh/timestamp.h>
 #include <lh/util/addr.h>
 
 void
@@ -42,83 +43,65 @@ lh_time_assign(lh_time_t *self, const lh_time_t *other)
 }
 
 lh_uint_t
-lh_time_add_hour(lh_time_t *self, lh_uint_t value)
-{
-    lh_time_hour_t hour = lh_time_get_hour(self);
-    lh_uint_t overflow = lh_time_hour_add(lh_addr_of(hour), value);
-
-    lh_time_set_hour(self, hour);
-    return overflow;
-}
-
-lh_uint_t
-lh_time_sub_hour(lh_time_t *self, lh_uint_t value)
-{
-    lh_time_hour_t hour = lh_time_get_hour(self);
-    lh_uint_t overflow = lh_time_hour_sub(lh_addr_of(hour), value);
-
-    lh_time_set_hour(self, hour);
-    return overflow;
-}
-
-lh_uint_t
-lh_time_add_minute(lh_time_t *self, lh_uint_t value)
-{
-    lh_time_minute_t minute = lh_time_get_minute(self);
-    lh_uint_t hours = lh_time_minute_add(lh_addr_of(minute), value);
-
-    lh_time_set_minute(self, minute);
-    return lh_time_add_hour(self, hours);
-}
-
-lh_uint_t
-lh_time_sub_minute(lh_time_t *self, lh_uint_t value)
-{
-    lh_time_minute_t minute = lh_time_get_minute(self);
-    lh_uint_t hours = lh_time_minute_sub(lh_addr_of(minute), value);
-
-    lh_time_set_minute(self, minute);
-    return lh_time_sub_hour(self, hours);
-}
-
-lh_uint_t
-lh_time_add_second(lh_time_t *self, lh_uint_t value)
-{
-    lh_time_second_t second = lh_time_get_second(self);
-    lh_uint_t minutes = lh_time_second_add(lh_addr_of(second), value);
-
-    lh_time_set_second(self, second);
-    return lh_time_add_minute(self, minutes);
-}
-
-lh_uint_t
-lh_time_sub_second(lh_time_t *self, lh_uint_t value)
-{
-    lh_time_second_t second = lh_time_get_second(self);
-    lh_uint_t minutes = lh_time_second_sub(lh_addr_of(second), value);
-
-    lh_time_set_second(self, second);
-    return lh_time_sub_minute(self, minutes);
-}
-
-lh_uint_t
 lh_time_add_custom(lh_time_t *self, lh_uint_t hour, lh_uint_t minute, lh_uint_t second)
 {
-    lh_uint_t days = lh_time_add_second(self, second);
+    lh_timestamp_t duration = lh_cast_static(lh_timestamp_t, hour) * LH_TIMESTAMP_SECONDS_PER_HOUR +
+                              lh_cast_static(lh_timestamp_t, minute) * LH_TIMESTAMP_SECONDS_PER_MINUTE +
+                              lh_cast_static(lh_timestamp_t, second);
+    lh_timestamp_t total = lh_timestamp_from_time(self) + duration;
+    lh_time_t result = lh_timestamp_get_time(total);
 
-    days += lh_time_add_minute(self, minute);
-    days += lh_time_add_hour(self, hour);
-    return days;
+    lh_time_assign(self, lh_addr_of(result));
+    return lh_cast_static(lh_uint_t, lh_timestamp_floor_div(total, LH_TIMESTAMP_SECONDS_PER_DAY));
 }
 
 lh_uint_t
 lh_time_sub_custom(lh_time_t *self, lh_uint_t hour, lh_uint_t minute, lh_uint_t second)
 {
-    lh_uint_t days = lh_time_sub_second(self, second);
+    lh_timestamp_t duration = lh_cast_static(lh_timestamp_t, hour) * LH_TIMESTAMP_SECONDS_PER_HOUR +
+                              lh_cast_static(lh_timestamp_t, minute) * LH_TIMESTAMP_SECONDS_PER_MINUTE +
+                              lh_cast_static(lh_timestamp_t, second);
+    lh_timestamp_t total = lh_timestamp_from_time(self) - duration;
+    lh_time_t result = lh_timestamp_get_time(total);
 
-    days += lh_time_sub_minute(self, minute);
-    days += lh_time_sub_hour(self, hour);
-    return days;
+    lh_time_assign(self, lh_addr_of(result));
+    return lh_cast_static(lh_uint_t, -lh_timestamp_floor_div(total, LH_TIMESTAMP_SECONDS_PER_DAY));
+}
+
+lh_uint_t
+lh_time_add_hour(lh_time_t *self, lh_uint_t value)
+{
+    return lh_time_add_custom(self, value, 0U, 0U);
+}
+
+lh_uint_t
+lh_time_sub_hour(lh_time_t *self, lh_uint_t value)
+{
+    return lh_time_sub_custom(self, value, 0U, 0U);
+}
+
+lh_uint_t
+lh_time_add_minute(lh_time_t *self, lh_uint_t value)
+{
+    return lh_time_add_custom(self, 0U, value, 0U);
+}
+
+lh_uint_t
+lh_time_sub_minute(lh_time_t *self, lh_uint_t value)
+{
+    return lh_time_sub_custom(self, 0U, value, 0U);
+}
+
+lh_uint_t
+lh_time_add_second(lh_time_t *self, lh_uint_t value)
+{
+    return lh_time_add_custom(self, 0U, 0U, value);
+}
+
+lh_uint_t
+lh_time_sub_second(lh_time_t *self, lh_uint_t value)
+{
+    return lh_time_sub_custom(self, 0U, 0U, value);
 }
 
 lh_uint_t
@@ -161,40 +144,13 @@ lh_time_get_second(const lh_time_t *self)
 lh_bool_t
 lh_time_equals(const lh_time_t *self, const lh_time_t *other)
 {
-    if (lh_time_get_hour(self) != lh_time_get_hour(other))
-    {
-        return lh_bool_false;
-    }
-    if (lh_time_get_minute(self) != lh_time_get_minute(other))
-    {
-        return lh_bool_false;
-    }
-    return lh_cast_static(lh_bool_t, lh_time_get_second(self) == lh_time_get_second(other));
+    return lh_timestamp_equals(lh_timestamp_from_time(self), lh_timestamp_from_time(other));
 }
 
 lh_bool_t
 lh_time_is_at_least(const lh_time_t *self, const lh_time_t *minimum)
 {
-    lh_time_hour_t self_hour;
-    lh_time_hour_t min_hour;
-    lh_time_minute_t self_minute;
-    lh_time_minute_t min_minute;
-
-    self_hour = lh_time_get_hour(self);
-    min_hour = lh_time_get_hour(minimum);
-    if (self_hour != min_hour)
-    {
-        return lh_cast_static(lh_bool_t, self_hour > min_hour);
-    }
-
-    self_minute = lh_time_get_minute(self);
-    min_minute = lh_time_get_minute(minimum);
-    if (self_minute != min_minute)
-    {
-        return lh_cast_static(lh_bool_t, self_minute > min_minute);
-    }
-
-    return lh_cast_static(lh_bool_t, lh_time_get_second(self) >= lh_time_get_second(minimum));
+    return lh_timestamp_is_at_least(lh_timestamp_from_time(self), lh_timestamp_from_time(minimum));
 }
 
 lh_bool_t

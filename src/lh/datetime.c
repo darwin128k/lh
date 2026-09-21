@@ -3,6 +3,7 @@
 #include <lh/cast/static.h>
 #include <lh/memory/std.h>
 #include <lh/str/split/next.h>
+#include <lh/timestamp.h>
 #include <lh/util/addr.h>
 
 void
@@ -94,41 +95,13 @@ lh_datetime_get_time(const lh_datetime_t *self)
 lh_bool_t
 lh_datetime_equals(const lh_datetime_t *self, const lh_datetime_t *other)
 {
-    lh_date_t self_date;
-    lh_date_t other_date;
-    lh_time_t self_time;
-    lh_time_t other_time;
-
-    self_date = lh_datetime_get_date(self);
-    other_date = lh_datetime_get_date(other);
-    if (!lh_date_equals(lh_addr_of(self_date), lh_addr_of(other_date)))
-    {
-        return lh_bool_false;
-    }
-
-    self_time = lh_datetime_get_time(self);
-    other_time = lh_datetime_get_time(other);
-    return lh_time_equals(lh_addr_of(self_time), lh_addr_of(other_time));
+    return lh_timestamp_equals(lh_timestamp_from_datetime(self), lh_timestamp_from_datetime(other));
 }
 
 lh_bool_t
 lh_datetime_is_at_least(const lh_datetime_t *self, const lh_datetime_t *minimum)
 {
-    lh_date_t self_date;
-    lh_date_t min_date;
-    lh_time_t self_time;
-    lh_time_t min_time;
-
-    self_date = lh_datetime_get_date(self);
-    min_date = lh_datetime_get_date(minimum);
-    if (!lh_date_equals(lh_addr_of(self_date), lh_addr_of(min_date)))
-    {
-        return lh_date_is_at_least(lh_addr_of(self_date), lh_addr_of(min_date));
-    }
-
-    self_time = lh_datetime_get_time(self);
-    min_time = lh_datetime_get_time(minimum);
-    return lh_time_is_at_least(lh_addr_of(self_time), lh_addr_of(min_time));
+    return lh_timestamp_is_at_least(lh_timestamp_from_datetime(self), lh_timestamp_from_datetime(minimum));
 }
 
 lh_bool_t
