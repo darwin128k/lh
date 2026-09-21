@@ -163,6 +163,13 @@ lh_os_fs_attr_hidden_from_path(const lh_os_fs_path_t *path)
 #define LH_OS_FS_WIN_ATTR_COMPRESSED 0x00000800UL
 #define LH_OS_FS_WIN_ATTR_ENCRYPTED 0x00004000UL
 
+/**
+ * @brief Raw `FILE_ATTRIBUTE_*` bitmask (`dwFileAttributes`), before it's
+ *        decoded into ::lh_os_fs_perm_t/::lh_os_fs_attr_t/::lh_os_fs_kind_t.
+ *        Never crosses the public API — internal to this file.
+ */
+typedef lh_u32_t lh_os_fs_win_attrs_t;
+
 static lh_os_fs_time_t
 lh_os_fs_time_from_filetime_ticks(lh_u64_t ticks)
 {
@@ -180,7 +187,7 @@ lh_os_fs_size_from_win_parts(lh_u32_t high, lh_u32_t low)
 }
 
 static lh_os_fs_perm_t
-lh_os_fs_perm_from_win_attrs(lh_u32_t attrs)
+lh_os_fs_perm_from_win_attrs(lh_os_fs_win_attrs_t attrs)
 {
     lh_os_fs_perm_t perm;
 
@@ -197,7 +204,7 @@ lh_os_fs_perm_from_win_attrs(lh_u32_t attrs)
 }
 
 static lh_os_fs_attr_t
-lh_os_fs_attr_from_win_attrs(lh_u32_t attrs)
+lh_os_fs_attr_from_win_attrs(lh_os_fs_win_attrs_t attrs)
 {
     lh_os_fs_attr_t attr;
 
@@ -230,7 +237,7 @@ lh_os_fs_attr_from_win_attrs(lh_u32_t attrs)
 }
 
 static lh_os_fs_kind_t
-lh_os_fs_kind_from_win_attrs(lh_u32_t attrs, lh_bool_t is_symlink)
+lh_os_fs_kind_from_win_attrs(lh_os_fs_win_attrs_t attrs, lh_bool_t is_symlink)
 {
     if (is_symlink)
     {
@@ -244,7 +251,7 @@ lh_os_fs_kind_from_win_attrs(lh_u32_t attrs, lh_bool_t is_symlink)
 }
 
 static void
-lh_os_fs_stat_fill_from_win_attrs(lh_os_fs_stat_t *out, lh_u32_t attrs, lh_u32_t size_high,
+lh_os_fs_stat_fill_from_win_attrs(lh_os_fs_stat_t *out, lh_os_fs_win_attrs_t attrs, lh_u32_t size_high,
                                   lh_u32_t size_low, lh_u64_t atime_ticks, lh_u64_t mtime_ticks,
                                   lh_u64_t ctime_ticks, lh_bool_t is_symlink, lh_os_fs_attr_t extra)
 {
@@ -270,8 +277,16 @@ lh_os_fs_stat_fill_from_win_attrs(lh_os_fs_stat_t *out, lh_u32_t attrs, lh_u32_t
 #define LH_OS_FS_UNIX_S_IFDIR 0040000U
 #define LH_OS_FS_UNIX_S_IFREG 0100000U
 
+/**
+ * @brief Raw POSIX `st_mode` bits (file-type bits + permission bits,
+ *        undecoded). Not ::lh_os_fs_file_mode_t (that's our own read/write
+ *        open-mode discriminator — unrelated). Never crosses the public
+ *        API — internal to this file.
+ */
+typedef lh_u32_t lh_os_fs_unix_mode_t;
+
 static lh_os_fs_kind_t
-lh_os_fs_kind_from_unix_mode(lh_u32_t mode)
+lh_os_fs_kind_from_unix_mode(lh_os_fs_unix_mode_t mode)
 {
     lh_u32_t fmt;
 
@@ -292,9 +307,9 @@ lh_os_fs_kind_from_unix_mode(lh_u32_t mode)
 }
 
 static lh_bool_t
-lh_os_fs_stat_fill_from_unix_fields(lh_os_fs_stat_t *out, lh_u32_t mode_bits, lh_s64_t size,
-                                    lh_s64_t atime, lh_s64_t mtime, lh_s64_t ctime,
-                                    lh_os_fs_attr_t extra)
+lh_os_fs_stat_fill_from_unix_fields(lh_os_fs_stat_t *out, lh_os_fs_unix_mode_t mode_bits, lh_s64_t size,
+                                    lh_os_fs_time_t atime, lh_os_fs_time_t mtime,
+                                    lh_os_fs_time_t ctime, lh_os_fs_attr_t extra)
 {
     if (size < 0)
     {
@@ -304,9 +319,7 @@ lh_os_fs_stat_fill_from_unix_fields(lh_os_fs_stat_t *out, lh_u32_t mode_bits, lh
     }
     lh_os_fs_stat_fill(out, lh_os_fs_kind_from_unix_mode(mode_bits),
                        lh_cast_static(lh_os_fs_perm_t, lh_bit_and(mode_bits, LH_OS_FS_PERM_UNIX_MASK)),
-                       lh_cast_static(lh_os_fs_size_t, size), lh_cast_static(lh_os_fs_time_t, atime),
-                       lh_cast_static(lh_os_fs_time_t, mtime),
-                       lh_cast_static(lh_os_fs_time_t, ctime), extra);
+                       lh_cast_static(lh_os_fs_size_t, size), atime, mtime, ctime, extra);
     return lh_bool_true;
 }
 
@@ -357,7 +370,7 @@ lh_os_fs_stat(const lh_os_fs_path_t *path, lh_os_fs_stat_t *out)
         /* Native FILETIME -> a plain u64 tick count; the actual math lives
            in the portable lh_os_fs_time_from_filetime_ticks above. */
         lh_os_fs_stat_fill_from_win_attrs(
-            out, lh_cast_static(lh_u32_t, info.dwFileAttributes),
+            out, lh_cast_static(lh_os_fs_win_attrs_t, info.dwFileAttributes),
             lh_cast_static(lh_u32_t, info.nFileSizeHigh), lh_cast_static(lh_u32_t, info.nFileSizeLow),
             lh_bit_or(lh_bit_shl(lh_cast_static(lh_u64_t, info.ftLastAccessTime.dwHighDateTime), 32),
                      lh_cast_static(lh_u64_t, info.ftLastAccessTime.dwLowDateTime)),
@@ -379,9 +392,10 @@ lh_os_fs_stat(const lh_os_fs_path_t *path, lh_os_fs_stat_t *out)
             return lh_bool_false;
         }
         ok = lh_os_fs_stat_fill_from_unix_fields(
-            out, lh_cast_static(lh_u32_t, info.st_mode), lh_cast_static(lh_s64_t, info.st_size),
-            lh_cast_static(lh_s64_t, info.st_atime), lh_cast_static(lh_s64_t, info.st_mtime),
-            lh_cast_static(lh_s64_t, info.st_ctime), lh_os_fs_attr_hidden_from_path(path));
+            out, lh_cast_static(lh_os_fs_unix_mode_t, info.st_mode),
+            lh_cast_static(lh_s64_t, info.st_size), lh_cast_static(lh_os_fs_time_t, info.st_atime),
+            lh_cast_static(lh_os_fs_time_t, info.st_mtime),
+            lh_cast_static(lh_os_fs_time_t, info.st_ctime), lh_os_fs_attr_hidden_from_path(path));
     }
 #endif
 
