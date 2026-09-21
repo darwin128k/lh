@@ -257,19 +257,34 @@ lh_os_fs_stat_fill_from_win_attrs(lh_os_fs_stat_t *out, lh_u32_t attrs, lh_u32_t
                        lh_bit_or(lh_os_fs_attr_from_win_attrs(attrs), extra));
 }
 
-#if LH_COMPILER_OS != LH_COMPILER_OS_WINDOWS
+/*
+ * Pure decoder for POSIX st_mode's S_IFMT bit format. Deliberately built on
+ * a portable lh_u32_t, not mode_t, and on our own mirrors of the S_IF*
+ * numeric values — not <sys/stat.h>'s. These values are not POSIX-mandated
+ * numbers, but every mainstream Unix (Linux, BSD, macOS, Solaris) has used
+ * them unchanged since traditional Unix, so they're safe to hardcode; no
+ * <sys/stat.h>, no #if, compiles/is callable on every OS lh targets.
+ */
+#define LH_OS_FS_UNIX_S_IFMT 0170000U
+#define LH_OS_FS_UNIX_S_IFLNK 0120000U
+#define LH_OS_FS_UNIX_S_IFDIR 0040000U
+#define LH_OS_FS_UNIX_S_IFREG 0100000U
+
 static lh_os_fs_kind_t
-lh_os_fs_kind_from_unix(mode_t mode)
+lh_os_fs_kind_from_unix_mode(lh_u32_t mode)
 {
-    if (S_ISLNK(mode))
+    lh_u32_t fmt;
+
+    fmt = lh_bit_and(mode, LH_OS_FS_UNIX_S_IFMT);
+    if (fmt == LH_OS_FS_UNIX_S_IFLNK)
     {
         return lh_os_fs_kind_symlink;
     }
-    if (S_ISDIR(mode))
+    if (fmt == LH_OS_FS_UNIX_S_IFDIR)
     {
         return lh_os_fs_kind_dir;
     }
-    if (S_ISREG(mode))
+    if (fmt == LH_OS_FS_UNIX_S_IFREG)
     {
         return lh_os_fs_kind_file;
     }
@@ -277,23 +292,23 @@ lh_os_fs_kind_from_unix(mode_t mode)
 }
 
 static lh_bool_t
-lh_os_fs_stat_fill_from_unix(lh_os_fs_stat_t *out, const struct stat *info, lh_os_fs_attr_t extra)
+lh_os_fs_stat_fill_from_unix_fields(lh_os_fs_stat_t *out, lh_u32_t mode_bits, lh_s64_t size,
+                                    lh_s64_t atime, lh_s64_t mtime, lh_s64_t ctime,
+                                    lh_os_fs_attr_t extra)
 {
-    if (info->st_size < 0)
+    if (size < 0)
     {
         lh_os_set_last_error(lh_os_error_make(lh_os_error_code_negative_size,
                              lh_os_error_desc_lit("file size is negative")));
         return lh_bool_false;
     }
-    lh_os_fs_stat_fill(out, lh_os_fs_kind_from_unix(info->st_mode),
-                       lh_cast_static(lh_os_fs_perm_t, lh_bit_and(info->st_mode, LH_OS_FS_PERM_UNIX_MASK)),
-                       lh_cast_static(lh_os_fs_size_t, info->st_size),
-                       lh_cast_static(lh_os_fs_time_t, info->st_atime),
-                       lh_cast_static(lh_os_fs_time_t, info->st_mtime),
-                       lh_cast_static(lh_os_fs_time_t, info->st_ctime), extra);
+    lh_os_fs_stat_fill(out, lh_os_fs_kind_from_unix_mode(mode_bits),
+                       lh_cast_static(lh_os_fs_perm_t, lh_bit_and(mode_bits, LH_OS_FS_PERM_UNIX_MASK)),
+                       lh_cast_static(lh_os_fs_size_t, size), lh_cast_static(lh_os_fs_time_t, atime),
+                       lh_cast_static(lh_os_fs_time_t, mtime),
+                       lh_cast_static(lh_os_fs_time_t, ctime), extra);
     return lh_bool_true;
 }
-#endif
 
 lh_bool_t
 lh_os_fs_stat(const lh_os_fs_path_t *path, lh_os_fs_stat_t *out)
@@ -303,7 +318,6 @@ lh_os_fs_stat(const lh_os_fs_path_t *path, lh_os_fs_stat_t *out)
     lh_bool_t ok;
 
     lh_assert_runtime_ref(out);
-    lh_assert_runtime_ref(path);
     if (lh_os_fs_path_is_empty(path))
     {
         lh_os_set_last_error(lh_os_error_make(lh_os_error_code_path_empty,
@@ -364,7 +378,10 @@ lh_os_fs_stat(const lh_os_fs_path_t *path, lh_os_fs_stat_t *out)
             lh_str_deinit(lh_addr_of(buf));
             return lh_bool_false;
         }
-        ok = lh_os_fs_stat_fill_from_unix(out, lh_addr_of(info), lh_os_fs_attr_hidden_from_path(path));
+        ok = lh_os_fs_stat_fill_from_unix_fields(
+            out, lh_cast_static(lh_u32_t, info.st_mode), lh_cast_static(lh_s64_t, info.st_size),
+            lh_cast_static(lh_s64_t, info.st_atime), lh_cast_static(lh_s64_t, info.st_mtime),
+            lh_cast_static(lh_s64_t, info.st_ctime), lh_os_fs_attr_hidden_from_path(path));
     }
 #endif
 

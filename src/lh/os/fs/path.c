@@ -227,7 +227,6 @@ lh_bool_t
 lh_os_fs_path_join(lh_os_fs_path_t *self, const lh_os_fs_path_t *dir, const lh_os_fs_path_t *name)
 {
     lh_assert_runtime_ref(dir);
-    lh_assert_runtime_ref(name);
     if (lh_os_fs_path_get_segment_count(name) == 0U)
     {
         lh_os_fs_path_clear(self);

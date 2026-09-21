@@ -198,7 +198,6 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_os_fs_path_t *path, lh_os_fs_
     lh_bool_t ok;
 
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(path);
     lh_assert_runtime_if(!lh_os_fs_file_mode_is_readable(mode) && !lh_os_fs_file_mode_is_writable(mode),
                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
     if (lh_os_fs_path_is_empty(path))
