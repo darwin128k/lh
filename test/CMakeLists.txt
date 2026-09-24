@@ -99,7 +99,7 @@ set(LH_TEST_SOURCES
 
 if (LH_LIBRARY_OPTION_OS)
     list(APPEND LH_TEST_SOURCES
-            # os and os/fs are being redesigned from scratch.
+            # os is being rebuilt from scratch, one piece at a time.
     )
 endif ()
 

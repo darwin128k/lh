@@ -70,7 +70,7 @@ set(LH_BENCH_SOURCES
 )
 
 if (LH_LIBRARY_OPTION_OS)
-    # os and os/fs are being redesigned from scratch.
+    # os is being rebuilt from scratch, one piece at a time.
 endif()
 
 add_executable(${PROJECT_NAME} ${LH_BENCH_SOURCES})
