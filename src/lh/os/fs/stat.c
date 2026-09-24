@@ -183,10 +183,16 @@ lh_os_fs_time_from_filetime_ticks(lh_u64_t ticks)
                           lh_math_div(lh_math_sub(ticks, LH_OS_FS_FILETIME_UNIX_EPOCH), LH_OS_FS_FILETIME_HZ));
 }
 
+static lh_u64_t
+lh_os_fs_u64_from_win_parts(lh_u32_t high, lh_u32_t low)
+{
+    return lh_bit_or(lh_bit_shl(lh_cast_static(lh_u64_t, high), 32), lh_cast_static(lh_u64_t, low));
+}
+
 static lh_os_fs_size_t
 lh_os_fs_size_from_win_parts(lh_u32_t high, lh_u32_t low)
 {
-    return lh_bit_or(lh_bit_shl(lh_cast_static(lh_u64_t, high), 32), lh_cast_static(lh_u64_t, low));
+    return lh_cast_static(lh_os_fs_size_t, lh_os_fs_u64_from_win_parts(high, low));
 }
 
 static lh_os_fs_perm_t
@@ -375,12 +381,12 @@ lh_os_fs_stat(const lh_fs_path_t *path, lh_os_fs_stat_t *out)
         lh_os_fs_stat_fill_from_win_attrs(
             out, lh_cast_static(lh_os_fs_win_attrs_t, info.dwFileAttributes),
             lh_cast_static(lh_u32_t, info.nFileSizeHigh), lh_cast_static(lh_u32_t, info.nFileSizeLow),
-            lh_bit_or(lh_bit_shl(lh_cast_static(lh_u64_t, info.ftLastAccessTime.dwHighDateTime), 32),
-                     lh_cast_static(lh_u64_t, info.ftLastAccessTime.dwLowDateTime)),
-            lh_bit_or(lh_bit_shl(lh_cast_static(lh_u64_t, info.ftLastWriteTime.dwHighDateTime), 32),
-                     lh_cast_static(lh_u64_t, info.ftLastWriteTime.dwLowDateTime)),
-            lh_bit_or(lh_bit_shl(lh_cast_static(lh_u64_t, info.ftCreationTime.dwHighDateTime), 32),
-                     lh_cast_static(lh_u64_t, info.ftCreationTime.dwLowDateTime)),
+            lh_os_fs_u64_from_win_parts(lh_cast_static(lh_u32_t, info.ftLastAccessTime.dwHighDateTime),
+                                        lh_cast_static(lh_u32_t, info.ftLastAccessTime.dwLowDateTime)),
+            lh_os_fs_u64_from_win_parts(lh_cast_static(lh_u32_t, info.ftLastWriteTime.dwHighDateTime),
+                                        lh_cast_static(lh_u32_t, info.ftLastWriteTime.dwLowDateTime)),
+            lh_os_fs_u64_from_win_parts(lh_cast_static(lh_u32_t, info.ftCreationTime.dwHighDateTime),
+                                        lh_cast_static(lh_u32_t, info.ftCreationTime.dwLowDateTime)),
             is_symlink, lh_os_fs_attr_hidden_from_path(path));
         ok = lh_bool_true;
     }
