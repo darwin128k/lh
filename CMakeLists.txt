@@ -147,7 +147,8 @@ set(LH_LIB_SOURCES
 
 if (LH_LIBRARY_OPTION_OS)
     list(APPEND LH_LIB_SOURCES
-            # os is being rebuilt from scratch, one piece at a time.
+            ${LH_LIB_SRC_PATH}/os/error.c
+            # rest of os is being rebuilt from scratch, one piece at a time.
     )
 endif ()
 
