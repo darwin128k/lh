@@ -100,9 +100,9 @@ void
 lh_date_set_day(lh_date_t *self, lh_date_day_t day);
 
 /**
- * @brief Add @p value years. Delegates to ::lh_timestamp_date_add_months
- *        (`value * 12` months), which clamps the day if it is past the new
- *        month length (e.g. 29 Feb → 28 Feb).
+ * @brief Add @p value years. Delegates to ::lh_date_add_month
+ *        (`value * ::LH_DATE_MONTHS_PER_YEAR` months), which clamps the day if
+ *        it is past the new month length (e.g. 29 Feb → 28 Feb).
  *
  * @param self  Date to update (not null).
  * @param value Years to add (any ::lh_uint_t).
@@ -114,7 +114,7 @@ lh_uint_t
 lh_date_add_year(lh_date_t *self, lh_uint_t value);
 
 /**
- * @brief Subtract @p value years. Delegates to ::lh_timestamp_date_sub_months.
+ * @brief Subtract @p value years. Delegates to ::lh_date_sub_month.
  *
  * @param self  Date to update (not null).
  * @param value Years to subtract (any ::lh_uint_t).
@@ -126,7 +126,9 @@ lh_uint_t
 lh_date_sub_year(lh_date_t *self, lh_uint_t value);
 
 /**
- * @brief Add @p value months. Delegates to ::lh_timestamp_date_add_months.
+ * @brief Add @p value months, wrapping the month/year via ::lh_date_month_add /
+ *        ::lh_date_year_add, then clamping the day if it no longer fits
+ *        (e.g. 31 Jan + 1 month → 28/29 Feb).
  *
  * @param self  Date to update (not null).
  * @param value Months to add (any ::lh_uint_t).
@@ -138,7 +140,7 @@ lh_uint_t
 lh_date_add_month(lh_date_t *self, lh_uint_t value);
 
 /**
- * @brief Subtract @p value months. Delegates to ::lh_timestamp_date_sub_months.
+ * @brief Subtract @p value months. Mirror of ::lh_date_add_month.
  *
  * @param self  Date to update (not null).
  * @param value Months to subtract (any ::lh_uint_t).
@@ -150,9 +152,9 @@ lh_uint_t
 lh_date_sub_month(lh_date_t *self, lh_uint_t value);
 
 /**
- * @brief Add @p value calendar days. Converts to ::lh_timestamp_t
- *        (::lh_timestamp_from_date), shifts by whole days
- *        (::lh_timestamp_add_days), and converts back (::lh_timestamp_get_date).
+ * @brief Add @p value calendar days. Shifts the epoch-day number
+ *        (::lh_date_days_since_epoch) by @p value and converts back
+ *        (::lh_date_from_epoch_days).
  *
  * @param self  Date to update (not null).
  * @param value Days to add (any ::lh_uint_t).
@@ -164,8 +166,7 @@ lh_uint_t
 lh_date_add_day(lh_date_t *self, lh_uint_t value);
 
 /**
- * @brief Subtract @p value calendar days. Mirror of ::lh_date_add_day, via
- *        ::lh_timestamp_sub_days.
+ * @brief Subtract @p value calendar days. Mirror of ::lh_date_add_day.
  *
  * @param self  Date to update (not null).
  * @param value Days to subtract (any ::lh_uint_t).
@@ -240,6 +241,33 @@ lh_date_sub(lh_date_t *self, const lh_date_t *other);
 LH_ATTRIBUTE_SYMBOL
 lh_date_day_t
 lh_date_max_days(const lh_date_t *self);
+
+/**
+ * @brief Days from 1970-01-01 to @p self (negative when @p self is before the
+ *        epoch). O(months in the year) — walks @p self's months, plus an O(1)
+ *        closed-form Gregorian leap-year count for the year offset.
+ *
+ * This is the ground-truth day count the rest of the library is built on:
+ * ::lh_date_add_day / ::lh_date_sub_day use it directly, and
+ * ::lh_timestamp_from_date is just this multiplied by seconds-per-day.
+ *
+ * @param self Date to read (not null).
+ * @return Epoch-day number (`0` for 1970-01-01).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_s64_t
+lh_date_days_since_epoch(const lh_date_t *self);
+
+/**
+ * @brief Inverse of ::lh_date_days_since_epoch: the calendar date @p days
+ *        after 1970-01-01 (before it, if negative).
+ *
+ * @param days Epoch-day number.
+ * @return Calendar date.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_date_t
+lh_date_from_epoch_days(lh_s64_t days);
 
 /**
  * @brief Return the year of @p self.

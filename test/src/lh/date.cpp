@@ -92,4 +92,53 @@ TEST(date_month_index, wrap_years)
     EXPECT_EQ(index, LH_DATE_MONTH_INDEX_FEBRUARY);
 }
 
+TEST(date_add_month, updates_date_in_place)
+{
+    lh_date_t date = lh_date_initializer(2026, 1, 31);
+
+    EXPECT_EQ(lh_date_add_month(&date, 1), 0U);
+    EXPECT_EQ(lh_date_get_month(&date), 2);
+    EXPECT_EQ(lh_date_get_day(&date), 28);
+}
+
+TEST(date_sub_month, updates_date_in_place)
+{
+    lh_date_t date = lh_date_initializer(2026, 3, 31);
+
+    EXPECT_EQ(lh_date_sub_month(&date, 1), 0U);
+    EXPECT_EQ(lh_date_get_month(&date), 2);
+    EXPECT_EQ(lh_date_get_day(&date), 28);
+}
+
+TEST(date_days_since_epoch, known_offsets)
+{
+    const lh_date_t epoch = lh_date_initializer(1970, 1, 1);
+    const lh_date_t after = lh_date_initializer(1970, 1, 2);
+    const lh_date_t before = lh_date_initializer(1969, 12, 31);
+
+    EXPECT_EQ(lh_date_days_since_epoch(&epoch), 0);
+    EXPECT_EQ(lh_date_days_since_epoch(&after), 1);
+    EXPECT_EQ(lh_date_days_since_epoch(&before), -1);
+}
+
+TEST(date_from_epoch_days, roundtrip_before_and_after_epoch)
+{
+    const lh_date_t date = lh_date_initializer(2026, 9, 16);
+    const lh_date_t result = lh_date_from_epoch_days(lh_date_days_since_epoch(&date));
+    const lh_date_t before_epoch = lh_date_from_epoch_days(-1);
+
+    EXPECT_EQ(lh_date_equals(&date, &result), lh_bool_true);
+    EXPECT_EQ(lh_date_get_year(&before_epoch), 1969);
+    EXPECT_EQ(lh_date_get_month(&before_epoch), 12);
+    EXPECT_EQ(lh_date_get_day(&before_epoch), 31);
+}
+
+TEST(date_year_days, leap_and_common)
+{
+    EXPECT_EQ(lh_date_year_days(2024), 366);
+    EXPECT_EQ(lh_date_year_days(2026), 365);
+    EXPECT_EQ(lh_date_year_days(2000), 366);
+    EXPECT_EQ(lh_date_year_days(1900), 365);
+}
+
 } // namespace

@@ -195,22 +195,4 @@ TEST(timestamp_floor_mod, always_has_sign_of_divisor)
     EXPECT_EQ(lh_timestamp_floor_mod(-6, 2), 0);
 }
 
-TEST(timestamp_date_add_months, updates_date_in_place)
-{
-    lh_date_t date = lh_date_initializer(2026, 1, 31);
-
-    EXPECT_EQ(lh_timestamp_date_add_months(&date, 1), 0U);
-    EXPECT_EQ(lh_date_get_month(&date), 2);
-    EXPECT_EQ(lh_date_get_day(&date), 28);
-}
-
-TEST(timestamp_date_sub_months, updates_date_in_place)
-{
-    lh_date_t date = lh_date_initializer(2026, 3, 31);
-
-    EXPECT_EQ(lh_timestamp_date_sub_months(&date, 1), 0U);
-    EXPECT_EQ(lh_date_get_month(&date), 2);
-    EXPECT_EQ(lh_date_get_day(&date), 28);
-}
-
 } // namespace

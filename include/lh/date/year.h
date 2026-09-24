@@ -59,6 +59,12 @@ typedef lh_u16_t lh_date_year_t;
  */
 #define LH_DATE_YEAR_GREGORIAN_CYCLE 400U
 
+/**
+ * @def LH_DATE_YEAR_DAYS_COMMON
+ * @brief Days in a non-leap year. A leap year has one more (::lh_date_year_is_leap).
+ */
+#define LH_DATE_YEAR_DAYS_COMMON 365U
+
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
@@ -73,6 +79,15 @@ LH_COMPILER_EXTERN_C_BEGIN
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_date_year_is_leap(lh_date_year_t self);
+
+/**
+ * @brief Days in @p self (365, or 366 when ::lh_date_year_is_leap).
+ *
+ * @param self Year value (by value, not a pointer).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_u16_t
+lh_date_year_days(lh_date_year_t self);
 
 /**
  * @brief Add @p value years, wrapping on `[0, ::LH_DATE_YEAR_MAX]`.

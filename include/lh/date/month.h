@@ -35,6 +35,12 @@ typedef lh_u8_t lh_date_month_t;
  */
 #define LH_DATE_MONTH_MAX 12U
 
+/**
+ * @def LH_DATE_MONTHS_PER_YEAR
+ * @brief Months in a year.
+ */
+#define LH_DATE_MONTHS_PER_YEAR 12U
+
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**

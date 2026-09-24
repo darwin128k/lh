@@ -7,14 +7,15 @@
  * does not depend on platform/compiler (unlike `time_t`, which is 32 or
  * 64 bits depending on both).
  *
- * This is the kernel: all calendar math lives here. ::lh_date_t /
- * ::lh_time_t / ::lh_datetime_t are plain field-structs — a scalar
- * timestamp is what actually gets stored, compared, and sent over the
- * wire (a database column, a filesystem's mtime, a socket payload), so
- * this type exposes everything needed to work with a point in time
- * directly, without a round trip through a calendar representation:
- * pulling out a single component, shifting by seconds/days/months/years,
- * comparing, diffing.
+ * This is a derived, thin scalar view — not the kernel. All calendar/clock
+ * math lives on the components: ::lh_date_t (::lh_date_days_since_epoch /
+ * ::lh_date_from_epoch_days, ::lh_date_add_month, …) and ::lh_time_t
+ * (::lh_time_seconds_of_day / ::lh_time_from_seconds_of_day, …). This type
+ * only converts seconds ↔ components and does pure scalar-seconds
+ * arithmetic (add/sub seconds, diff, compare) — it exists because a scalar
+ * is what actually gets stored, compared, and sent over the wire (a
+ * database column, a filesystem's mtime, a socket payload), not because it
+ * owns the calendar rules.
  */
 
 #ifndef LH_TIMESTAMP_H
@@ -50,18 +51,6 @@ typedef lh_s64_t lh_timestamp_t;
  */
 #define LH_TIMESTAMP_SECONDS_PER_DAY 86400LL
 
-/**
- * @def LH_TIMESTAMP_MONTHS_PER_YEAR
- * @brief Months in a year.
- */
-#define LH_TIMESTAMP_MONTHS_PER_YEAR 12U
-
-/**
- * @def LH_TIMESTAMP_DAYS_PER_COMMON_YEAR
- * @brief Days in a non-leap year. A leap year has one more (::lh_date_year_is_leap).
- */
-#define LH_TIMESTAMP_DAYS_PER_COMMON_YEAR 365LL
-
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
@@ -87,62 +76,8 @@ lh_s64_t
 lh_timestamp_floor_mod(lh_s64_t a, lh_s64_t b);
 
 /**
- * @brief Days in @p year (365 or 366).
- */
-LH_ATTRIBUTE_SYMBOL
-lh_s64_t
-lh_timestamp_days_in_year(lh_date_year_t year);
-
-/**
- * @brief Days in @p month of @p year (28–31). Delegates to ::lh_date_max_days.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_date_day_t
-lh_timestamp_days_in_month(lh_date_year_t year, lh_date_month_t month);
-
-/**
- * @brief Days from proleptic year 0 (Jan 1, itself a leap year) to @p year (Jan 1).
- *        Closed-form Gregorian leap-year count — O(1), no loop.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_s64_t
-lh_timestamp_days_from_year_zero(lh_date_year_t year);
-
-/**
- * @brief Days from 1970-01-01 to @p year-01-01 (negative when @p year < 1970).
- *        Delegates to ::lh_timestamp_days_from_year_zero.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_s64_t
-lh_timestamp_days_before_year(lh_date_year_t year);
-
-/**
- * @brief Add @p months to @p date in place, wrapping the month/year via
- *        ::lh_date_month_add / ::lh_date_year_add, then clamping the day
- *        if it no longer fits (e.g. 31 Jan + 1 month → 28/29 Feb).
- *
- * @param date   Date to update (not null).
- * @param months Months to add.
- * @return Year-radix overflow from ::lh_date_year_add. `0` if the year stayed in range.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_uint_t
-lh_timestamp_date_add_months(lh_date_t *date, lh_uint_t months);
-
-/**
- * @brief Subtract @p months from @p date in place. Mirror of
- *        ::lh_timestamp_date_add_months.
- *
- * @param date   Date to update (not null).
- * @param months Months to subtract.
- * @return Year-radix units borrowed. `0` if the year stayed in range.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_uint_t
-lh_timestamp_date_sub_months(lh_date_t *date, lh_uint_t months);
-
-/**
  * @brief Convert @p self (midnight on that date) to a scalar timestamp.
+ *        Delegates to ::lh_date_days_since_epoch.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_timestamp_t
@@ -150,6 +85,7 @@ lh_timestamp_from_date(const lh_date_t *self);
 
 /**
  * @brief Convert @p self (time of day, no date) to seconds since midnight.
+ *        Delegates to ::lh_time_seconds_of_day.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_timestamp_t
@@ -177,14 +113,14 @@ lh_s64_t
 lh_timestamp_get_seconds_of_day(lh_timestamp_t self);
 
 /**
- * @brief Calendar date of @p self.
+ * @brief Calendar date of @p self. Delegates to ::lh_date_from_epoch_days.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_date_t
 lh_timestamp_get_date(lh_timestamp_t self);
 
 /**
- * @brief Time of day of @p self.
+ * @brief Time of day of @p self. Delegates to ::lh_time_from_seconds_of_day.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_time_t
@@ -268,29 +204,32 @@ lh_timestamp_t
 lh_timestamp_sub_days(lh_timestamp_t self, lh_s64_t days);
 
 /**
- * @brief Add @p months to @p self. Delegates to ::lh_timestamp_date_add_months
- *        on @p self's date; time of day is unchanged.
+ * @brief Add @p months to @p self. Delegates to ::lh_date_add_month on
+ *        @p self's date; time of day is unchanged.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_timestamp_t
 lh_timestamp_add_months(lh_timestamp_t self, lh_uint_t months);
 
 /**
- * @brief Subtract @p months from @p self. Mirror of ::lh_timestamp_add_months.
+ * @brief Subtract @p months from @p self. Mirror of ::lh_timestamp_add_months,
+ *        via ::lh_date_sub_month.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_timestamp_t
 lh_timestamp_sub_months(lh_timestamp_t self, lh_uint_t months);
 
 /**
- * @brief Add @p years to @p self. Delegates to ::lh_timestamp_add_months.
+ * @brief Add @p years to @p self. Delegates to ::lh_date_add_year on
+ *        @p self's date; time of day is unchanged.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_timestamp_t
 lh_timestamp_add_years(lh_timestamp_t self, lh_uint_t years);
 
 /**
- * @brief Subtract @p years from @p self. Delegates to ::lh_timestamp_sub_months.
+ * @brief Subtract @p years from @p self. Mirror of ::lh_timestamp_add_years,
+ *        via ::lh_date_sub_year.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_timestamp_t

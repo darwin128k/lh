@@ -28,6 +28,18 @@
  */
 #define LH_TIME_TEXT_MAX 8U
 
+/**
+ * @def LH_TIME_SECONDS_PER_MINUTE
+ * @brief Seconds in a minute. Alias for ::LH_TIME_SECOND_RADIX.
+ */
+#define LH_TIME_SECONDS_PER_MINUTE LH_TIME_SECOND_RADIX
+
+/**
+ * @def LH_TIME_SECONDS_PER_HOUR
+ * @brief Seconds in an hour.
+ */
+#define LH_TIME_SECONDS_PER_HOUR (LH_TIME_MINUTE_RADIX * LH_TIME_SECOND_RADIX)
+
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
@@ -260,6 +272,30 @@ lh_time_get_minute(const lh_time_t *self);
 LH_ATTRIBUTE_SYMBOL
 lh_time_second_t
 lh_time_get_second(const lh_time_t *self);
+
+/**
+ * @brief Seconds since midnight of @p self (`0`–`86399`).
+ *
+ * This is the ground-truth conversion the rest of the library is built on:
+ * ::lh_timestamp_from_time is just this value, unchanged.
+ *
+ * @param self Time to read (not null).
+ * @return Seconds since midnight.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_u32_t
+lh_time_seconds_of_day(const lh_time_t *self);
+
+/**
+ * @brief Inverse of ::lh_time_seconds_of_day: the time of day @p seconds
+ *        after midnight.
+ *
+ * @param seconds Seconds since midnight (`0`–`86399`).
+ * @return Time of day.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_time_t
+lh_time_from_seconds_of_day(lh_u32_t seconds);
 
 /**
  * @brief True if @p self and @p other hold the same hour, minute, and second.

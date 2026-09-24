@@ -17,6 +17,13 @@ lh_date_year_is_leap(lh_date_year_t self)
     return lh_cast_static(lh_bool_t, self % LH_DATE_YEAR_GREGORIAN_CYCLE == 0);
 }
 
+lh_u16_t
+lh_date_year_days(lh_date_year_t self)
+{
+    return lh_cast_static(lh_u16_t, lh_date_year_is_leap(self) ? LH_DATE_YEAR_DAYS_COMMON + 1
+                                                                : LH_DATE_YEAR_DAYS_COMMON);
+}
+
 lh_uint_t
 lh_date_year_add(lh_date_year_t *self, lh_uint_t value)
 {
