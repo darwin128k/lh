@@ -147,7 +147,9 @@ set(LH_LIB_SOURCES
 
 if (LH_LIBRARY_OPTION_OS)
     list(APPEND LH_LIB_SOURCES
+            ${LH_LIB_SRC_PATH}/os.c
             ${LH_LIB_SRC_PATH}/os/error.c
+            ${LH_LIB_SRC_PATH}/os/system.c
             ${LH_LIB_SRC_PATH}/os/system/error.c
             # rest of os is being rebuilt from scratch, one piece at a time.
     )
