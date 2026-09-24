@@ -32,6 +32,24 @@
 #define lh_os_error_code_negative_size 0x02
 
 /**
+ * @def lh_os_error_code_out_of_memory
+ * @brief ::lh_runtime_allocator_alloc returned ::lh_null.
+ */
+#define lh_os_error_code_out_of_memory 0x03
+
+/**
+ * @def lh_os_error_code_name_too_long
+ * @brief A directory entry name exceeds ::LH_OS_FS_DIR_NAME_MAX.
+ */
+#define lh_os_error_code_name_too_long 0x04
+
+/**
+ * @def lh_os_error_code_not_open
+ * @brief The call requires an open handle, but none is held.
+ */
+#define lh_os_error_code_not_open 0x05
+
+/**
  * @typedef lh_os_error_code_t
  * @brief Same representation as ::lh_error_code_t for OS-layer last-error codes.
  */
