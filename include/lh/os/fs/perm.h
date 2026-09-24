@@ -106,6 +106,37 @@ lh_os_fs_perm_has(lh_os_fs_perm_t perm, lh_os_fs_perm_t mask)
     return lh_cast_static(lh_bool_t, lh_math_eq(lh_bit_and(perm, mask), mask));
 }
 
+/**
+ * @brief True when the owner-read bit (::lh_os_fs_perm_irusr) is set.
+ *
+ * Owner bits only: there is no second permission model (see this file's
+ * doc), and the Windows mapping always mirrors owner into group/other, so
+ * checking owner is checking the only bits that ever actually differ.
+ */
+static inline lh_bool_t
+lh_os_fs_perm_is_readable(lh_os_fs_perm_t perm)
+{
+    return lh_os_fs_perm_has(perm, lh_os_fs_perm_irusr);
+}
+
+/**
+ * @brief True when the owner-write bit (::lh_os_fs_perm_iwusr) is set.
+ */
+static inline lh_bool_t
+lh_os_fs_perm_is_writable(lh_os_fs_perm_t perm)
+{
+    return lh_os_fs_perm_has(perm, lh_os_fs_perm_iwusr);
+}
+
+/**
+ * @brief True when the owner-execute bit (::lh_os_fs_perm_ixusr) is set.
+ */
+static inline lh_bool_t
+lh_os_fs_perm_is_executable(lh_os_fs_perm_t perm)
+{
+    return lh_os_fs_perm_has(perm, lh_os_fs_perm_ixusr);
+}
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_FS_PERM_H */

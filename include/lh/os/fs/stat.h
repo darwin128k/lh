@@ -116,6 +116,42 @@ LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_fs_mtime(const lh_fs_path_t *path, lh_os_fs_time_t *out);
 
+/**
+ * @brief Owner-read permission of @p path (::lh_os_fs_perm_is_readable).
+ *
+ * Delegates to ::lh_os_fs_stat; @p out is only written on success.
+ *
+ * @return ::lh_bool_true if @p path could be stat'd, ::lh_bool_false if the
+ *         stat itself failed (see ::lh_os_fs_stat for where the reason is).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_is_readable(const lh_fs_path_t *path, lh_bool_t *out);
+
+/**
+ * @brief Owner-write permission of @p path (::lh_os_fs_perm_is_writable).
+ *
+ * Delegates to ::lh_os_fs_stat; @p out is only written on success.
+ *
+ * @return ::lh_bool_true if @p path could be stat'd, ::lh_bool_false if the
+ *         stat itself failed (see ::lh_os_fs_stat for where the reason is).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_is_writable(const lh_fs_path_t *path, lh_bool_t *out);
+
+/**
+ * @brief Owner-execute permission of @p path (::lh_os_fs_perm_is_executable).
+ *
+ * Delegates to ::lh_os_fs_stat; @p out is only written on success.
+ *
+ * @return ::lh_bool_true if @p path could be stat'd, ::lh_bool_false if the
+ *         stat itself failed (see ::lh_os_fs_stat for where the reason is).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_os_fs_is_executable(const lh_fs_path_t *path, lh_bool_t *out);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_FS_STAT_H */
