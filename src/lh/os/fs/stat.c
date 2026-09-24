@@ -1,14 +1,12 @@
 #include <lh/os/fs/stat.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
-#include <lh/char/dot.h>
 #include <lh/compiler/os.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
 #include <lh/os/system.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/str.h>
-#include <lh/str/view.h>
 #include <lh/util/addr.h>
 #include <lh/util/bit.h>
 #include <lh/util/math.h>
@@ -112,50 +110,17 @@ lh_os_fs_stat_fill(lh_os_fs_stat_t *self, lh_os_fs_kind_t kind, lh_os_fs_perm_t 
     self->attr = attr;
 }
 
-static lh_os_fs_attr_t
-lh_os_fs_attr_hidden_from_path(const lh_fs_path_t *path)
-{
-    const lh_str_list_t *segments;
-    lh_str_view_t last;
-    lh_usize_t n;
-    lh_usize_t size;
-
-    segments = lh_fs_path_get_segments_as_const(path);
-    n = lh_str_list_get_size(segments);
-    if (lh_math_eq(n, 0U))
-    {
-        return 0U;
-    }
-    last = lh_str_as_view(lh_str_list_get_as_const(segments, n - 1U));
-    if (lh_str_view_is_empty(lh_addr_of(last)))
-    {
-        return 0U;
-    }
-    size = lh_str_view_get_size(lh_addr_of(last));
-    if (!lh_char_is_dot(lh_str_view_get_char_from_begin(lh_addr_of(last), 0U)))
-    {
-        return 0U;
-    }
-    if (lh_math_eq(size, 1U))
-    {
-        return 0U;
-    }
-    if (lh_math_eq(size, 2U) && lh_char_is_dot(lh_str_view_get_char_from_begin(lh_addr_of(last), 1U)))
-    {
-        return 0U;
-    }
-    return lh_os_fs_attr_hidden;
-}
-
 /*
  * Pure decoders for Windows' on-disk bit formats (FILE_ATTRIBUTE_* flags,
  * FILETIME's 100ns-ticks-since-1601). Deliberately built on portable
  * lh_u32_t/lh_u64_t, not DWORD/FILETIME/ULARGE_INTEGER, and on our own
  * mirrors of the FILE_ATTRIBUTE_* numeric values (stable, documented Win32
- * ABI constants, unchanged for decades) instead of <windows.h>'s. None of
- * this is a native API call — it's arithmetic — so it needs no #if and
- * compiles/is callable on every OS lh targets, Windows included.
+ * ABI constants, unchanged for decades) instead of <windows.h>'s. Only
+ * called from the Windows branch of lh_os_fs_stat below, so guarded by the
+ * same #if as everything else that's Windows-only.
  */
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+
 #define LH_OS_FS_WIN_ATTR_READONLY 0x00000001UL
 #define LH_OS_FS_WIN_ATTR_HIDDEN 0x00000002UL
 #define LH_OS_FS_WIN_ATTR_SYSTEM 0x00000004UL
@@ -187,12 +152,6 @@ static lh_u64_t
 lh_os_fs_u64_from_win_parts(lh_u32_t high, lh_u32_t low)
 {
     return lh_bit_or(lh_bit_shl(lh_cast_static(lh_u64_t, high), 32), lh_cast_static(lh_u64_t, low));
-}
-
-static lh_os_fs_size_t
-lh_os_fs_size_from_win_parts(lh_u32_t high, lh_u32_t low)
-{
-    return lh_cast_static(lh_os_fs_size_t, lh_os_fs_u64_from_win_parts(high, low));
 }
 
 static lh_os_fs_perm_t
@@ -266,20 +225,22 @@ lh_os_fs_stat_fill_from_win_attrs(lh_os_fs_stat_t *out, lh_os_fs_win_attrs_t att
 {
     lh_os_fs_stat_fill(out, lh_os_fs_kind_from_win_attrs(attrs, is_symlink),
                        lh_os_fs_perm_from_win_attrs(attrs),
-                       lh_os_fs_size_from_win_parts(size_high, size_low),
+                       lh_cast_static(lh_os_fs_size_t, lh_os_fs_u64_from_win_parts(size_high, size_low)),
                        lh_os_fs_time_from_filetime_ticks(atime_ticks),
                        lh_os_fs_time_from_filetime_ticks(mtime_ticks),
                        lh_os_fs_time_from_filetime_ticks(ctime_ticks),
                        lh_bit_or(lh_os_fs_attr_from_win_attrs(attrs), extra));
 }
 
+#else
+
 /*
  * Pure decoder for POSIX st_mode's S_IFMT bit format. Deliberately built on
  * a portable lh_u32_t, not mode_t, and on our own mirrors of the S_IF*
  * numeric values — not <sys/stat.h>'s. These values are not POSIX-mandated
  * numbers, but every mainstream Unix (Linux, BSD, macOS, Solaris) has used
- * them unchanged since traditional Unix, so they're safe to hardcode; no
- * <sys/stat.h>, no #if, compiles/is callable on every OS lh targets.
+ * them unchanged since traditional Unix, so they're safe to hardcode. Only
+ * called from the POSIX branch of lh_os_fs_stat below, hence the #else.
  */
 #define LH_OS_FS_UNIX_S_IFMT 0170000U
 #define LH_OS_FS_UNIX_S_IFLNK 0120000U
@@ -331,6 +292,8 @@ lh_os_fs_stat_fill_from_unix_fields(lh_os_fs_stat_t *out, lh_os_fs_unix_mode_t m
                        lh_cast_static(lh_os_fs_size_t, size), atime, mtime, ctime, extra);
     return lh_bool_true;
 }
+
+#endif /* LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS */
 
 lh_bool_t
 lh_os_fs_stat(const lh_fs_path_t *path, lh_os_fs_stat_t *out)
@@ -387,7 +350,7 @@ lh_os_fs_stat(const lh_fs_path_t *path, lh_os_fs_stat_t *out)
                                         lh_cast_static(lh_u32_t, info.ftLastWriteTime.dwLowDateTime)),
             lh_os_fs_u64_from_win_parts(lh_cast_static(lh_u32_t, info.ftCreationTime.dwHighDateTime),
                                         lh_cast_static(lh_u32_t, info.ftCreationTime.dwLowDateTime)),
-            is_symlink, lh_os_fs_attr_hidden_from_path(path));
+            is_symlink, lh_fs_path_is_hidden(path) ? lh_os_fs_attr_hidden : 0U);
         ok = lh_bool_true;
     }
 #else
@@ -404,7 +367,7 @@ lh_os_fs_stat(const lh_fs_path_t *path, lh_os_fs_stat_t *out)
             out, lh_cast_static(lh_os_fs_unix_mode_t, info.st_mode),
             lh_cast_static(lh_s64_t, info.st_size), lh_cast_static(lh_os_fs_time_t, info.st_atime),
             lh_cast_static(lh_os_fs_time_t, info.st_mtime),
-            lh_cast_static(lh_os_fs_time_t, info.st_ctime), lh_os_fs_attr_hidden_from_path(path));
+            lh_cast_static(lh_os_fs_time_t, info.st_ctime), lh_fs_path_is_hidden(path) ? lh_os_fs_attr_hidden : 0U);
     }
 #endif
 

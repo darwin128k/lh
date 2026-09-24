@@ -1,6 +1,7 @@
 #include <lh/fs/path.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
+#include <lh/char/dot.h>
 #include <lh/char/letter.h>
 #include <lh/char/map.h>
 #include <lh/char/slash.h>
@@ -101,6 +102,41 @@ lh_fs_path_is_root(const lh_fs_path_t *self)
 {
     return lh_cast_static(lh_bool_t, lh_fs_path_is_absolute(self) &&
                                      lh_math_eq(lh_fs_path_get_segment_count(self), 0U));
+}
+
+lh_bool_t
+lh_fs_path_is_hidden(const lh_fs_path_t *self)
+{
+    const lh_str_list_t *segments;
+    lh_str_view_t last;
+    lh_usize_t n;
+    lh_usize_t size;
+
+    segments = lh_fs_path_get_segments_as_const(self);
+    n = lh_str_list_get_size(segments);
+    if (lh_math_eq(n, 0U))
+    {
+        return lh_bool_false;
+    }
+    last = lh_str_as_view(lh_str_list_get_as_const(segments, n - 1U));
+    if (lh_str_view_is_empty(lh_addr_of(last)))
+    {
+        return lh_bool_false;
+    }
+    size = lh_str_view_get_size(lh_addr_of(last));
+    if (!lh_char_is_dot(lh_str_view_get_char_from_begin(lh_addr_of(last), 0U)))
+    {
+        return lh_bool_false;
+    }
+    if (lh_math_eq(size, 1U))
+    {
+        return lh_bool_false;
+    }
+    if (lh_math_eq(size, 2U) && lh_char_is_dot(lh_str_view_get_char_from_begin(lh_addr_of(last), 1U)))
+    {
+        return lh_bool_false;
+    }
+    return lh_bool_true;
 }
 
 lh_bool_t

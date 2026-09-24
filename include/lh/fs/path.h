@@ -138,6 +138,18 @@ lh_bool_t
 lh_fs_path_is_root(const lh_fs_path_t *self);
 
 /**
+ * @brief True when @p self's last segment is hidden by the dot-prefix
+ *        naming convention (`.name`, but not `.` or `..`).
+ *
+ * Pure naming convention, not a filesystem attribute — no OS call, no
+ * dependency on any platform's actual "hidden" bit (see `lh/os/fs/attr.h`
+ * for that). ::lh_bool_false for an empty path or one with no segments.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_bool_t
+lh_fs_path_is_hidden(const lh_fs_path_t *self);
+
+/**
  * @brief Parse @p text into @p self's root and segments, replacing its
  *        current contents.
  *
