@@ -263,8 +263,12 @@
 /**
  * @def lh_interval_ropen_is_valid(lower, upper)
  * @brief Non-zero if right-open interval [lower, upper) is valid.
+ *
+ * `lower == upper` is the empty range `[x, x)` — a legitimate, well-formed
+ * interval (same convention as `begin() == end()` for an empty container),
+ * not a corrupted/reversed one. Only `lower > upper` is invalid.
  */
-#define lh_interval_ropen_is_valid(lower, upper) lh_math_lt(lower, upper)
+#define lh_interval_ropen_is_valid(lower, upper) lh_math_le(lower, upper)
 
 /**
  * @def lh_interval_open_is_valid(lower, upper)

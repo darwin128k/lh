@@ -67,10 +67,17 @@ TEST(memory_bounds_classification, distinguishes_states)
     EXPECT_TRUE(lh_memory_bounds_is_forward(&forward));
     EXPECT_TRUE(lh_memory_bounds_is_valid(&forward));
 
+    // [x, x) is the empty range - valid and forward, not a reversed/corrupted state.
     lh_memory_bounds_t equal = bounds(p(buf), p(buf));
-    EXPECT_EQ(lh_memory_bounds_get_direction(&equal), lh_memory_view_slice_direction_backward);
-    EXPECT_TRUE(lh_memory_bounds_is_backward(&equal));
-    EXPECT_FALSE(lh_memory_bounds_is_valid(&equal));
+    EXPECT_EQ(lh_memory_bounds_get_direction(&equal), lh_memory_view_slice_direction_forward);
+    EXPECT_TRUE(lh_memory_bounds_is_forward(&equal));
+    EXPECT_TRUE(lh_memory_bounds_is_valid(&equal));
+    EXPECT_TRUE(lh_memory_bounds_is_empty(&equal));
+
+    lh_memory_bounds_t backward = bounds(p(buf + 4), p(buf));
+    EXPECT_EQ(lh_memory_bounds_get_direction(&backward), lh_memory_view_slice_direction_backward);
+    EXPECT_TRUE(lh_memory_bounds_is_backward(&backward));
+    EXPECT_FALSE(lh_memory_bounds_is_valid(&backward));
 }
 
 TEST(memory_bounds_validated_access, returns_endpoints_and_size)

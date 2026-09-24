@@ -21,7 +21,7 @@ TEST(interval_lopen, validity)
 TEST(interval_ropen, validity)
 {
     EXPECT_TRUE(lh_interval_ropen_is_valid(4, 5));
-    EXPECT_FALSE(lh_interval_ropen_is_valid(5, 5));
+    EXPECT_TRUE(lh_interval_ropen_is_valid(5, 5)); // [5, 5) is the empty range - valid, not reversed
     EXPECT_FALSE(lh_interval_ropen_is_valid(6, 5));
 }
 
