@@ -95,7 +95,6 @@ lh_date_days_since_epoch(const lh_date_t *self)
     lh_date_month_t m;
     lh_s64_t days;
 
-    lh_assert_runtime_ref(self);
     year = lh_date_get_year(self);
     month = lh_date_get_month(self);
     days = lh_date_days_from_year_zero(year) - lh_date_days_from_year_zero(LH_DATE_EPOCH_YEAR);
@@ -144,7 +143,6 @@ lh_date_add_month(lh_date_t *self, lh_uint_t value)
     lh_uint_t overflow;
     lh_date_day_t max_day;
 
-    lh_assert_runtime_ref(self);
     month = lh_date_get_month(self);
     year = lh_date_get_year(self);
     overflow = lh_date_year_add(lh_addr_of(year), lh_date_month_add(lh_addr_of(month), value));
@@ -161,7 +159,6 @@ lh_date_sub_month(lh_date_t *self, lh_uint_t value)
     lh_uint_t overflow;
     lh_date_day_t max_day;
 
-    lh_assert_runtime_ref(self);
     month = lh_date_get_month(self);
     year = lh_date_get_year(self);
     overflow = lh_date_year_sub(lh_addr_of(year), lh_date_month_sub(lh_addr_of(month), value));
@@ -262,8 +259,6 @@ lh_date_get_day(const lh_date_t *self)
 lh_bool_t
 lh_date_equals(const lh_date_t *self, const lh_date_t *other)
 {
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(other);
     return lh_cast_static(lh_bool_t, lh_date_get_year(self) == lh_date_get_year(other) &&
                                      lh_date_get_month(self) == lh_date_get_month(other) &&
                                      lh_date_get_day(self) == lh_date_get_day(other));
@@ -277,8 +272,6 @@ lh_date_is_at_least(const lh_date_t *self, const lh_date_t *minimum)
     lh_date_month_t self_month;
     lh_date_month_t minimum_month;
 
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(minimum);
     self_year = lh_date_get_year(self);
     minimum_year = lh_date_get_year(minimum);
     if (self_year != minimum_year)

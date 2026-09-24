@@ -283,7 +283,7 @@ lh_time_get_second(const lh_time_t *self);
  * @return Seconds since midnight.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_u32_t
+lh_uint_t
 lh_time_seconds_of_day(const lh_time_t *self);
 
 /**
@@ -295,7 +295,7 @@ lh_time_seconds_of_day(const lh_time_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_time_t
-lh_time_from_seconds_of_day(lh_u32_t seconds);
+lh_time_from_seconds_of_day(lh_uint_t seconds);
 
 /**
  * @brief True if @p self and @p other hold the same hour, minute, and second.
