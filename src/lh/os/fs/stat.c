@@ -1,5 +1,6 @@
 #include <lh/os/fs/stat.h>
 #include <lh/assert.h>
+#include <lh/attribute/static.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/os.h>
 #include <lh/os.h>
@@ -96,7 +97,8 @@ lh_os_fs_stat_get_attr(const lh_os_fs_stat_t *self)
     return self->attr;
 }
 
-static void
+LH_ATTRIBUTE_STATIC
+void
 lh_os_fs_stat_fill(lh_os_fs_stat_t *self, lh_os_fs_kind_t kind, lh_os_fs_perm_t perm,
                    lh_os_fs_size_t size, lh_os_fs_time_t atime, lh_os_fs_time_t mtime,
                    lh_os_fs_time_t ctime, lh_os_fs_attr_t attr)
@@ -137,7 +139,8 @@ lh_os_fs_stat_fill(lh_os_fs_stat_t *self, lh_os_fs_kind_t kind, lh_os_fs_perm_t 
  */
 typedef lh_u32_t lh_os_fs_win_attrs_t;
 
-static lh_os_fs_time_t
+LH_ATTRIBUTE_STATIC
+lh_os_fs_time_t
 lh_os_fs_time_from_filetime_ticks(lh_u64_t ticks)
 {
     if (lh_math_lt(ticks, LH_OS_FS_FILETIME_UNIX_EPOCH))
@@ -148,13 +151,15 @@ lh_os_fs_time_from_filetime_ticks(lh_u64_t ticks)
                           lh_math_div(lh_math_sub(ticks, LH_OS_FS_FILETIME_UNIX_EPOCH), LH_OS_FS_FILETIME_HZ));
 }
 
-static lh_u64_t
+LH_ATTRIBUTE_STATIC
+lh_u64_t
 lh_os_fs_u64_from_win_parts(lh_u32_t high, lh_u32_t low)
 {
     return lh_bit_or(lh_bit_shl(lh_cast_static(lh_u64_t, high), 32), lh_cast_static(lh_u64_t, low));
 }
 
-static lh_os_fs_perm_t
+LH_ATTRIBUTE_STATIC
+lh_os_fs_perm_t
 lh_os_fs_perm_from_win_attrs(lh_os_fs_win_attrs_t attrs)
 {
     lh_os_fs_perm_t perm;
@@ -171,7 +176,8 @@ lh_os_fs_perm_from_win_attrs(lh_os_fs_win_attrs_t attrs)
     return perm;
 }
 
-static lh_os_fs_attr_t
+LH_ATTRIBUTE_STATIC
+lh_os_fs_attr_t
 lh_os_fs_attr_from_win_attrs(lh_os_fs_win_attrs_t attrs)
 {
     lh_os_fs_attr_t attr;
@@ -204,7 +210,8 @@ lh_os_fs_attr_from_win_attrs(lh_os_fs_win_attrs_t attrs)
     return attr;
 }
 
-static lh_os_fs_kind_t
+LH_ATTRIBUTE_STATIC
+lh_os_fs_kind_t
 lh_os_fs_kind_from_win_attrs(lh_os_fs_win_attrs_t attrs, lh_bool_t is_symlink)
 {
     if (is_symlink)
@@ -218,7 +225,8 @@ lh_os_fs_kind_from_win_attrs(lh_os_fs_win_attrs_t attrs, lh_bool_t is_symlink)
     return lh_os_fs_kind_file;
 }
 
-static void
+LH_ATTRIBUTE_STATIC
+void
 lh_os_fs_stat_fill_from_win_attrs(lh_os_fs_stat_t *out, lh_os_fs_win_attrs_t attrs, lh_u32_t size_high,
                                   lh_u32_t size_low, lh_u64_t atime_ticks, lh_u64_t mtime_ticks,
                                   lh_u64_t ctime_ticks, lh_bool_t is_symlink, lh_os_fs_attr_t extra)
@@ -255,7 +263,8 @@ lh_os_fs_stat_fill_from_win_attrs(lh_os_fs_stat_t *out, lh_os_fs_win_attrs_t att
  */
 typedef lh_u32_t lh_os_fs_unix_mode_t;
 
-static lh_os_fs_kind_t
+LH_ATTRIBUTE_STATIC
+lh_os_fs_kind_t
 lh_os_fs_kind_from_unix_mode(lh_os_fs_unix_mode_t mode)
 {
     lh_u32_t fmt;
@@ -276,7 +285,8 @@ lh_os_fs_kind_from_unix_mode(lh_os_fs_unix_mode_t mode)
     return lh_os_fs_kind_other;
 }
 
-static lh_bool_t
+LH_ATTRIBUTE_STATIC
+lh_bool_t
 lh_os_fs_stat_fill_from_unix_fields(lh_os_fs_stat_t *out, lh_os_fs_unix_mode_t mode_bits, lh_s64_t size,
                                     lh_os_fs_time_t atime, lh_os_fs_time_t mtime,
                                     lh_os_fs_time_t ctime, lh_os_fs_attr_t extra)

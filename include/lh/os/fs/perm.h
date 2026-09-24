@@ -10,6 +10,7 @@
 #ifndef LH_OS_FS_PERM_H
 #define LH_OS_FS_PERM_H
 
+#include <lh/attribute/force_inline.h>
 #include <lh/bool.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
@@ -100,7 +101,8 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief True when every bit in @p mask is set in @p perm.
  */
-static inline lh_bool_t
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
 lh_os_fs_perm_has(lh_os_fs_perm_t perm, lh_os_fs_perm_t mask)
 {
     return lh_cast_static(lh_bool_t, lh_math_eq(lh_bit_and(perm, mask), mask));
@@ -113,7 +115,8 @@ lh_os_fs_perm_has(lh_os_fs_perm_t perm, lh_os_fs_perm_t mask)
  * doc), and the Windows mapping always mirrors owner into group/other, so
  * checking owner is checking the only bits that ever actually differ.
  */
-static inline lh_bool_t
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
 lh_os_fs_perm_is_readable(lh_os_fs_perm_t perm)
 {
     return lh_os_fs_perm_has(perm, lh_os_fs_perm_irusr);
@@ -122,7 +125,8 @@ lh_os_fs_perm_is_readable(lh_os_fs_perm_t perm)
 /**
  * @brief True when the owner-write bit (::lh_os_fs_perm_iwusr) is set.
  */
-static inline lh_bool_t
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
 lh_os_fs_perm_is_writable(lh_os_fs_perm_t perm)
 {
     return lh_os_fs_perm_has(perm, lh_os_fs_perm_iwusr);
@@ -131,7 +135,8 @@ lh_os_fs_perm_is_writable(lh_os_fs_perm_t perm)
 /**
  * @brief True when the owner-execute bit (::lh_os_fs_perm_ixusr) is set.
  */
-static inline lh_bool_t
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
 lh_os_fs_perm_is_executable(lh_os_fs_perm_t perm)
 {
     return lh_os_fs_perm_has(perm, lh_os_fs_perm_ixusr);

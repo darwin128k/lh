@@ -1,5 +1,6 @@
 #include <lh/fs/path.h>
 #include <lh/assert.h>
+#include <lh/attribute/static.h>
 #include <lh/cast/static.h>
 #include <lh/char/dot.h>
 #include <lh/char/letter.h>
@@ -157,7 +158,8 @@ lh_fs_path_is_drive(lh_str_view_t part)
 #endif
 }
 
-static lh_usize_t
+LH_ATTRIBUTE_STATIC
+lh_usize_t
 lh_fs_path_take_drive(lh_fs_path_t *self, const lh_str_view_t *text, lh_usize_t n)
 {
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS

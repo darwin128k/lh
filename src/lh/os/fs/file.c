@@ -1,5 +1,6 @@
 #include <lh/os/fs/file.h>
 #include <lh/assert.h>
+#include <lh/attribute/static.h>
 #include <lh/cast/reinterpret.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/os.h>
@@ -113,7 +114,8 @@ lh_os_fs_file_deinit(lh_os_fs_file_t *self)
 }
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-static DWORD
+LH_ATTRIBUTE_STATIC
+DWORD
 lh_os_fs_file_win_access(lh_os_fs_file_mode_t mode)
 {
     if (lh_math_eq(mode, lh_os_fs_file_mode_read))
@@ -127,7 +129,8 @@ lh_os_fs_file_win_access(lh_os_fs_file_mode_t mode)
     return GENERIC_READ | GENERIC_WRITE;
 }
 
-static DWORD
+LH_ATTRIBUTE_STATIC
+DWORD
 lh_os_fs_file_win_disposition(lh_os_fs_file_mode_t mode)
 {
     if (lh_math_eq(mode, lh_os_fs_file_mode_read))
@@ -141,7 +144,8 @@ lh_os_fs_file_win_disposition(lh_os_fs_file_mode_t mode)
     return OPEN_ALWAYS;
 }
 
-static lh_bool_t
+LH_ATTRIBUTE_STATIC
+lh_bool_t
 lh_os_fs_file_open_native(lh_os_fs_file_t *self, lh_str_cptr cstr, lh_os_fs_file_mode_t mode)
 {
     HANDLE native;
@@ -158,7 +162,8 @@ lh_os_fs_file_open_native(lh_os_fs_file_t *self, lh_str_cptr cstr, lh_os_fs_file
     return lh_bool_true;
 }
 #else
-static int
+LH_ATTRIBUTE_STATIC
+int
 lh_os_fs_file_posix_flags(lh_os_fs_file_mode_t mode)
 {
     if (lh_math_eq(mode, lh_os_fs_file_mode_read))
@@ -172,7 +177,8 @@ lh_os_fs_file_posix_flags(lh_os_fs_file_mode_t mode)
     return O_RDWR | O_CREAT;
 }
 
-static lh_bool_t
+LH_ATTRIBUTE_STATIC
+lh_bool_t
 lh_os_fs_file_open_native(lh_os_fs_file_t *self, lh_str_cptr cstr, lh_os_fs_file_mode_t mode)
 {
     int native;

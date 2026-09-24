@@ -13,6 +13,7 @@
 #ifndef LH_OS_FS_ATTR_H
 #define LH_OS_FS_ATTR_H
 
+#include <lh/attribute/force_inline.h>
 #include <lh/bool.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
@@ -67,7 +68,8 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief True when every bit in @p mask is set in @p attr.
  */
-static inline lh_bool_t
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
 lh_os_fs_attr_has(lh_os_fs_attr_t attr, lh_os_fs_attr_t mask)
 {
     return lh_cast_static(lh_bool_t, lh_math_eq(lh_bit_and(attr, mask), mask));

@@ -1,5 +1,6 @@
 #include <lh/os/fs/dir.h>
 #include <lh/assert.h>
+#include <lh/attribute/static.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/os.h>
 #include <lh/null.h>
@@ -41,14 +42,16 @@ struct lh_os_fs_dir_state
     lh_bool_t ready;
 };
 
-static struct lh_os_fs_dir_state *
+LH_ATTRIBUTE_STATIC
+struct lh_os_fs_dir_state *
 lh_os_fs_dir_state(lh_os_fs_dir_t *self)
 {
     return lh_ptr_cast(struct lh_os_fs_dir_state, self->handle);
 }
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-static lh_os_fs_dir_entry_kind_t
+LH_ATTRIBUTE_STATIC
+lh_os_fs_dir_entry_kind_t
 lh_os_fs_dir_kind_win(const WIN32_FIND_DATAA *data)
 {
     if (!lh_math_is_zero(lh_bit_and(data->dwFileAttributes, FILE_ATTRIBUTE_REPARSE_POINT)) &&
@@ -63,7 +66,8 @@ lh_os_fs_dir_kind_win(const WIN32_FIND_DATAA *data)
     return lh_os_fs_dir_entry_kind_file;
 }
 #else
-static lh_os_fs_dir_entry_kind_t
+LH_ATTRIBUTE_STATIC
+lh_os_fs_dir_entry_kind_t
 lh_os_fs_dir_kind_posix(unsigned char type)
 {
 #    ifdef DT_LNK
@@ -204,7 +208,8 @@ lh_os_fs_dir_is_valid(const lh_os_fs_dir_t *self)
     return lh_cast_static(lh_bool_t, lh_null_ne(self->handle));
 }
 
-static lh_ssize_t
+LH_ATTRIBUTE_STATIC
+lh_ssize_t
 lh_os_fs_dir_copy_name(lh_str_cptr name, lh_fs_path_t *out, lh_os_fs_dir_entry_kind_t kind,
                        lh_os_fs_dir_entry_kind_t *kind_out)
 {

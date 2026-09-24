@@ -11,6 +11,7 @@
 #ifndef LH_OS_FS_FILE_MODE_H
 #define LH_OS_FS_FILE_MODE_H
 
+#include <lh/attribute/force_inline.h>
 #include <lh/bool.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
@@ -57,7 +58,8 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief True when @p mode grants read access (`read` or `readwrite`).
  */
-static inline lh_bool_t
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
 lh_os_fs_file_mode_is_readable(lh_os_fs_file_mode_t mode)
 {
     return lh_cast_static(lh_bool_t, lh_math_eq(mode, lh_os_fs_file_mode_read) ||
@@ -67,7 +69,8 @@ lh_os_fs_file_mode_is_readable(lh_os_fs_file_mode_t mode)
 /**
  * @brief True when @p mode grants write access (`write` or `readwrite`).
  */
-static inline lh_bool_t
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
 lh_os_fs_file_mode_is_writable(lh_os_fs_file_mode_t mode)
 {
     return lh_cast_static(lh_bool_t, lh_math_eq(mode, lh_os_fs_file_mode_write) ||

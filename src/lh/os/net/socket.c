@@ -1,5 +1,6 @@
 #include <lh/os/net/socket.h>
 #include <lh/assert.h>
+#include <lh/attribute/static.h>
 #include <lh/cast/reinterpret.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/os.h>
@@ -26,13 +27,15 @@ typedef int lh_os_net_native_handle_t;
 typedef socklen_t lh_os_net_native_addr_len_t;
 #endif
 
-static lh_os_net_native_handle_t
+LH_ATTRIBUTE_STATIC
+lh_os_net_native_handle_t
 lh_os_net_socket_native_handle(const lh_os_net_socket_t *self)
 {
     return lh_cast_static(lh_os_net_native_handle_t, self->handle);
 }
 
-static void
+LH_ATTRIBUTE_STATIC
+void
 lh_os_net_socket_native_addr_from_ip4(struct sockaddr_in *native_addr,
                                       const lh_net_ip4_socket_addr_t *addr)
 {
@@ -60,7 +63,8 @@ lh_os_net_socket_native_addr_from_ip4(struct sockaddr_in *native_addr,
     lh_bit_pack_be16(port, lh_ptr_rcast(lh_uchar_t, lh_addr_of(native_addr->sin_port)));
 }
 
-static void
+LH_ATTRIBUTE_STATIC
+void
 lh_os_net_socket_ip4_from_native_addr(lh_net_ip4_socket_addr_t *addr,
                                       const struct sockaddr_in *native_addr)
 {
