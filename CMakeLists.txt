@@ -151,6 +151,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/error.c
             ${LH_LIB_SRC_PATH}/os/system.c
             ${LH_LIB_SRC_PATH}/os/system/error.c
+            ${LH_LIB_SRC_PATH}/os/system/error/capture.c
             # rest of os is being rebuilt from scratch, one piece at a time.
     )
 endif ()
