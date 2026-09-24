@@ -5,20 +5,10 @@
 #include <lh/str/format/text.h>
 #include <lh/str/parse/uint.h>
 #include <lh/util/addr.h>
+#include <lh/util/math.h>
+#include <lh/util/math/floor.h>
 
 #define LH_DATE_EPOCH_YEAR 1970U
-
-/**
- * Floor division: rounds toward negative infinity, unlike `/`. Local to this
- * file so date.c has no dependency on lh/timestamp.h (which is the derived
- * layer, not the other way around).
- */
-static lh_s64_t
-lh_date_epoch_floor_div(lh_s64_t a, lh_s64_t b)
-{
-    lh_s64_t q = a / b;
-    return (a % b != 0 && (a % b < 0) != (b < 0)) ? q - 1 : q;
-}
 
 /**
  * Days from proleptic year 0 (Jan 1, itself a leap year) to @p year (Jan 1).
@@ -27,11 +17,15 @@ lh_date_epoch_floor_div(lh_s64_t a, lh_s64_t b)
 static lh_s64_t
 lh_date_days_from_year_zero(lh_date_year_t year)
 {
-    lh_s64_t y = lh_cast_static(lh_s64_t, year) - 1;
-    lh_s64_t leap_count = lh_date_epoch_floor_div(y, 4) - lh_date_epoch_floor_div(y, 100) +
-                         lh_date_epoch_floor_div(y, 400) + 1;
+    const lh_s64_t y = lh_math_sub_one(lh_cast_static(lh_s64_t, year));
+    const lh_s64_t leap_4 = lh_math_floor_div(y, 4);
+    const lh_s64_t leap_100 = lh_math_floor_div(y, 100);
+    const lh_s64_t leap_400 = lh_math_floor_div(y, 400);
+    const lh_s64_t leap_count = lh_math_add_one(lh_math_add(lh_math_sub(leap_4, leap_100), leap_400));
+    const lh_s64_t common_days =
+        lh_math_mul(lh_cast_static(lh_s64_t, LH_DATE_YEAR_DAYS_COMMON), lh_cast_static(lh_s64_t, year));
 
-    return lh_cast_static(lh_s64_t, LH_DATE_YEAR_DAYS_COMMON) * lh_cast_static(lh_s64_t, year) + leap_count;
+    return lh_math_add(common_days, leap_count);
 }
 
 void
@@ -97,12 +91,12 @@ lh_date_days_since_epoch(const lh_date_t *self)
 
     year = lh_date_get_year(self);
     month = lh_date_get_month(self);
-    days = lh_date_days_from_year_zero(year) - lh_date_days_from_year_zero(LH_DATE_EPOCH_YEAR);
-    for (m = 1U; m < month; ++m)
+    days = lh_math_sub(lh_date_days_from_year_zero(year), lh_date_days_from_year_zero(LH_DATE_EPOCH_YEAR));
+    for (m = 1U; lh_math_lt(m, month); m = lh_math_add_one(m))
     {
-        days += lh_date_days_in_month(year, m);
+        days = lh_math_add(days, lh_date_days_in_month(year, m));
     }
-    days += lh_cast_static(lh_s64_t, lh_date_get_day(self)) - 1;
+    days = lh_math_add(days, lh_math_sub_one(lh_cast_static(lh_s64_t, lh_date_get_day(self))));
     return days;
 }
 
@@ -113,25 +107,25 @@ lh_date_from_epoch_days(lh_s64_t days)
     lh_date_month_t month;
     lh_date_t date;
 
-    while (days < 0)
+    while (lh_math_is_negative(days))
     {
-        --year;
-        days += lh_date_year_days(year);
+        year = lh_math_sub_one(year);
+        days = lh_math_add(days, lh_date_year_days(year));
     }
-    while (days >= lh_date_year_days(year))
+    while (lh_math_ge(days, lh_date_year_days(year)))
     {
-        days -= lh_date_year_days(year);
-        ++year;
+        days = lh_math_sub(days, lh_date_year_days(year));
+        year = lh_math_add_one(year);
     }
 
     month = 1U;
-    while (days >= lh_date_days_in_month(year, month))
+    while (lh_math_ge(days, lh_date_days_in_month(year, month)))
     {
-        days -= lh_date_days_in_month(year, month);
-        ++month;
+        days = lh_math_sub(days, lh_date_days_in_month(year, month));
+        month = lh_math_add_one(month);
     }
 
-    lh_date_set(lh_addr_of(date), year, month, lh_cast_static(lh_date_day_t, days + 1));
+    lh_date_set(lh_addr_of(date), year, month, lh_cast_static(lh_date_day_t, lh_math_add_one(days)));
     return date;
 }
 
@@ -147,7 +141,7 @@ lh_date_add_month(lh_date_t *self, lh_uint_t value)
     year = lh_date_get_year(self);
     overflow = lh_date_year_add(lh_addr_of(year), lh_date_month_add(lh_addr_of(month), value));
     max_day = lh_date_days_in_month(year, month);
-    lh_date_set(self, year, month, (lh_date_get_day(self) > max_day) ? max_day : lh_date_get_day(self));
+    lh_date_set(self, year, month, lh_math_gt(lh_date_get_day(self), max_day) ? max_day : lh_date_get_day(self));
     return overflow;
 }
 
@@ -163,40 +157,42 @@ lh_date_sub_month(lh_date_t *self, lh_uint_t value)
     year = lh_date_get_year(self);
     overflow = lh_date_year_sub(lh_addr_of(year), lh_date_month_sub(lh_addr_of(month), value));
     max_day = lh_date_days_in_month(year, month);
-    lh_date_set(self, year, month, (lh_date_get_day(self) > max_day) ? max_day : lh_date_get_day(self));
+    lh_date_set(self, year, month, lh_math_gt(lh_date_get_day(self), max_day) ? max_day : lh_date_get_day(self));
     return overflow;
 }
 
 lh_uint_t
 lh_date_add_year(lh_date_t *self, lh_uint_t value)
 {
-    return lh_date_add_month(self, value * LH_DATE_MONTHS_PER_YEAR);
+    return lh_date_add_month(self, lh_math_mul(value, LH_DATE_MONTHS_PER_YEAR));
 }
 
 lh_uint_t
 lh_date_sub_year(lh_date_t *self, lh_uint_t value)
 {
-    return lh_date_sub_month(self, value * LH_DATE_MONTHS_PER_YEAR);
+    return lh_date_sub_month(self, lh_math_mul(value, LH_DATE_MONTHS_PER_YEAR));
 }
 
 lh_uint_t
 lh_date_add_day(lh_date_t *self, lh_uint_t value)
 {
     lh_date_year_t before = lh_date_get_year(self);
-    lh_date_t result = lh_date_from_epoch_days(lh_date_days_since_epoch(self) + lh_cast_static(lh_s64_t, value));
+    lh_date_t result =
+        lh_date_from_epoch_days(lh_math_add(lh_date_days_since_epoch(self), lh_cast_static(lh_s64_t, value)));
 
     lh_date_assign(self, lh_addr_of(result));
-    return lh_cast_static(lh_uint_t, lh_date_get_year(self) < before);
+    return lh_cast_static(lh_uint_t, lh_math_lt(lh_date_get_year(self), before));
 }
 
 lh_uint_t
 lh_date_sub_day(lh_date_t *self, lh_uint_t value)
 {
     lh_date_year_t before = lh_date_get_year(self);
-    lh_date_t result = lh_date_from_epoch_days(lh_date_days_since_epoch(self) - lh_cast_static(lh_s64_t, value));
+    lh_date_t result =
+        lh_date_from_epoch_days(lh_math_sub(lh_date_days_since_epoch(self), lh_cast_static(lh_s64_t, value)));
 
     lh_date_assign(self, lh_addr_of(result));
-    return lh_cast_static(lh_uint_t, lh_date_get_year(self) > before);
+    return lh_cast_static(lh_uint_t, lh_math_gt(lh_date_get_year(self), before));
 }
 
 lh_uint_t
@@ -259,9 +255,9 @@ lh_date_get_day(const lh_date_t *self)
 lh_bool_t
 lh_date_equals(const lh_date_t *self, const lh_date_t *other)
 {
-    return lh_cast_static(lh_bool_t, lh_date_get_year(self) == lh_date_get_year(other) &&
-                                     lh_date_get_month(self) == lh_date_get_month(other) &&
-                                     lh_date_get_day(self) == lh_date_get_day(other));
+    return lh_cast_static(lh_bool_t, lh_math_eq(lh_date_get_year(self), lh_date_get_year(other)) &&
+                                     lh_math_eq(lh_date_get_month(self), lh_date_get_month(other)) &&
+                                     lh_math_eq(lh_date_get_day(self), lh_date_get_day(other)));
 }
 
 lh_bool_t
@@ -274,17 +270,17 @@ lh_date_is_at_least(const lh_date_t *self, const lh_date_t *minimum)
 
     self_year = lh_date_get_year(self);
     minimum_year = lh_date_get_year(minimum);
-    if (self_year != minimum_year)
+    if (lh_math_ne(self_year, minimum_year))
     {
-        return lh_cast_static(lh_bool_t, self_year > minimum_year);
+        return lh_cast_static(lh_bool_t, lh_math_gt(self_year, minimum_year));
     }
     self_month = lh_date_get_month(self);
     minimum_month = lh_date_get_month(minimum);
-    if (self_month != minimum_month)
+    if (lh_math_ne(self_month, minimum_month))
     {
-        return lh_cast_static(lh_bool_t, self_month > minimum_month);
+        return lh_cast_static(lh_bool_t, lh_math_gt(self_month, minimum_month));
     }
-    return lh_cast_static(lh_bool_t, lh_date_get_day(self) >= lh_date_get_day(minimum));
+    return lh_cast_static(lh_bool_t, lh_math_ge(lh_date_get_day(self), lh_date_get_day(minimum)));
 }
 
 lh_bool_t

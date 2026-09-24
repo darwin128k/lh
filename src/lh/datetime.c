@@ -4,6 +4,7 @@
 #include <lh/memory/std.h>
 #include <lh/str/split/next.h>
 #include <lh/util/addr.h>
+#include <lh/util/math.h>
 
 void
 lh_datetime_set_date(lh_datetime_t *self, const lh_date_t *date)
@@ -50,7 +51,7 @@ lh_datetime_add(lh_datetime_t *self, const lh_datetime_t *other)
        datetime_add.day_carry_applies_before_month_duration. */
     day_carry = lh_time_add(lh_addr_of(time), lh_addr_of(other_time));
     overflow = lh_date_add_day(lh_addr_of(date), day_carry);
-    overflow += lh_date_add(lh_addr_of(date), lh_addr_of(other_date));
+    overflow = lh_math_add(overflow, lh_date_add(lh_addr_of(date), lh_addr_of(other_date)));
     lh_datetime_set(self, lh_addr_of(date), lh_addr_of(time));
     return overflow;
 }
@@ -70,7 +71,7 @@ lh_datetime_sub(lh_datetime_t *self, const lh_datetime_t *other)
        see datetime_sub.day_borrow_applies_after_month_duration. */
     overflow = lh_date_sub(lh_addr_of(date), lh_addr_of(other_date));
     day_borrow = lh_time_sub(lh_addr_of(time), lh_addr_of(other_time));
-    overflow += lh_date_sub_day(lh_addr_of(date), day_borrow);
+    overflow = lh_math_add(overflow, lh_date_sub_day(lh_addr_of(date), day_borrow));
     lh_datetime_set(self, lh_addr_of(date), lh_addr_of(time));
     return overflow;
 }

@@ -1,5 +1,23 @@
 #include <gtest/gtest.h>
 #include <lh/util/math.h>
+#include <lh/util/math/floor.h>
+
+/* ── floor_div / floor_mod ─────────────────────────────────────────────── */
+
+TEST(math_floor_div, rounds_toward_negative_infinity)
+{
+    EXPECT_EQ(lh_math_floor_div(7, 2), 3);
+    EXPECT_EQ(lh_math_floor_div(-7, 2), -4);
+    EXPECT_EQ(lh_math_floor_div(-6, 2), -3);
+    EXPECT_EQ(lh_math_floor_div(6, 2), 3);
+}
+
+TEST(math_floor_mod, always_has_sign_of_divisor)
+{
+    EXPECT_EQ(lh_math_floor_mod(7, 2), 1);
+    EXPECT_EQ(lh_math_floor_mod(-7, 2), 1);
+    EXPECT_EQ(lh_math_floor_mod(-6, 2), 0);
+}
 
 /* ── add_over_max_exclusive ─────────────────────────────────────────────── */
 

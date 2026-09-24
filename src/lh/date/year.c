@@ -2,6 +2,7 @@
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/util/interval/wrap.h>
+#include <lh/util/math.h>
 
 lh_bool_t
 lh_date_year_is_leap(lh_date_year_t self)
@@ -20,7 +21,7 @@ lh_date_year_is_leap(lh_date_year_t self)
 lh_u16_t
 lh_date_year_days(lh_date_year_t self)
 {
-    return lh_cast_static(lh_u16_t, lh_date_year_is_leap(self) ? LH_DATE_YEAR_DAYS_COMMON + 1
+    return lh_cast_static(lh_u16_t, lh_date_year_is_leap(self) ? lh_math_add_one(LH_DATE_YEAR_DAYS_COMMON)
                                                                 : LH_DATE_YEAR_DAYS_COMMON);
 }
 

@@ -55,6 +55,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Floor division: rounds toward negative infinity, unlike `/`.
+ *        Delegates to ::lh_math_floor_div (`lh/util/math/floor.h`).
  *
  * @param a Dividend.
  * @param b Divisor (nonzero, any sign).
@@ -66,6 +67,7 @@ lh_timestamp_floor_div(lh_s64_t a, lh_s64_t b);
 
 /**
  * @brief Floor modulo: always has the sign of @p b, unlike `%`.
+ *        Delegates to ::lh_math_floor_mod.
  *
  * @param a Dividend.
  * @param b Divisor (nonzero, any sign).

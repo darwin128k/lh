@@ -5,24 +5,25 @@
 #include <lh/datetime.h>
 #include <lh/time.h>
 #include <lh/util/addr.h>
+#include <lh/util/math.h>
+#include <lh/util/math/floor.h>
 
 lh_s64_t
 lh_timestamp_floor_div(lh_s64_t a, lh_s64_t b)
 {
-    lh_s64_t q = a / b;
-    return (a % b != 0 && (a % b < 0) != (b < 0)) ? q - 1 : q;
+    return lh_math_floor_div(a, b);
 }
 
 lh_s64_t
 lh_timestamp_floor_mod(lh_s64_t a, lh_s64_t b)
 {
-    return a - b * lh_timestamp_floor_div(a, b);
+    return lh_math_floor_mod(a, b);
 }
 
 lh_timestamp_t
 lh_timestamp_from_date(const lh_date_t *self)
 {
-    return lh_date_days_since_epoch(self) * LH_TIMESTAMP_SECONDS_PER_DAY;
+    return lh_math_mul(lh_date_days_since_epoch(self), LH_TIMESTAMP_SECONDS_PER_DAY);
 }
 
 lh_timestamp_t
@@ -150,7 +151,7 @@ lh_timestamp_add_months(lh_timestamp_t self, lh_uint_t months)
     lh_s64_t seconds_of_day = lh_timestamp_get_seconds_of_day(self);
 
     lh_date_add_month(lh_addr_of(date), months);
-    return lh_timestamp_from_date(lh_addr_of(date)) + seconds_of_day;
+    return lh_math_add(lh_timestamp_from_date(lh_addr_of(date)), seconds_of_day);
 }
 
 lh_timestamp_t
@@ -160,7 +161,7 @@ lh_timestamp_sub_months(lh_timestamp_t self, lh_uint_t months)
     lh_s64_t seconds_of_day = lh_timestamp_get_seconds_of_day(self);
 
     lh_date_sub_month(lh_addr_of(date), months);
-    return lh_timestamp_from_date(lh_addr_of(date)) + seconds_of_day;
+    return lh_math_add(lh_timestamp_from_date(lh_addr_of(date)), seconds_of_day);
 }
 
 lh_timestamp_t
@@ -170,7 +171,7 @@ lh_timestamp_add_years(lh_timestamp_t self, lh_uint_t years)
     lh_s64_t seconds_of_day = lh_timestamp_get_seconds_of_day(self);
 
     lh_date_add_year(lh_addr_of(date), years);
-    return lh_timestamp_from_date(lh_addr_of(date)) + seconds_of_day;
+    return lh_math_add(lh_timestamp_from_date(lh_addr_of(date)), seconds_of_day);
 }
 
 lh_timestamp_t
@@ -180,7 +181,7 @@ lh_timestamp_sub_years(lh_timestamp_t self, lh_uint_t years)
     lh_s64_t seconds_of_day = lh_timestamp_get_seconds_of_day(self);
 
     lh_date_sub_year(lh_addr_of(date), years);
-    return lh_timestamp_from_date(lh_addr_of(date)) + seconds_of_day;
+    return lh_math_add(lh_timestamp_from_date(lh_addr_of(date)), seconds_of_day);
 }
 
 lh_timestamp_t
