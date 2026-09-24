@@ -125,6 +125,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/str/list.c
         ${LH_LIB_SRC_PATH}/wstr/list.c
 
+        ${LH_LIB_SRC_PATH}/fs/path.c
+
         ${LH_LIB_SRC_PATH}/logger.c
 
         ${LH_LIB_SRC_PATH}/crypto/sha.c
@@ -153,7 +155,6 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/error.c
             ${LH_LIB_SRC_PATH}/os/system/error/capture.c
             ${LH_LIB_SRC_PATH}/os/timestamp.c
-            ${LH_LIB_SRC_PATH}/os/fs/path.c
             # rest of os is being rebuilt from scratch, one piece at a time.
     )
 endif ()

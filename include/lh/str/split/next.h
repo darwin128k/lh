@@ -4,7 +4,7 @@
  *
  * Shared by parsers that would otherwise hand-roll
  * "find the next delimiter, measure the field, advance the cursor"
- * (::lh_net_ip4_parse, ::lh_os_fs_path_set). The delimiter is located with
+ * (::lh_net_ip4_parse, ::lh_fs_path_set). The delimiter is located with
  * ::lh_memory_find.
  */
 

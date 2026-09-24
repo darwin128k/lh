@@ -2,6 +2,7 @@
 #include <lh/assert.h>
 #include <lh/index.h>
 #include <lh/size.h>
+#include <lh/str/split/next.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 
@@ -113,6 +114,23 @@ lh_str_list_join(const lh_str_list_t *self, lh_str_t *out, lh_char_t sep)
             lh_str_push_back(out, sep);
         }
         lh_str_append_str(out, lh_str_list_get_as_const(self, i));
+    }
+}
+
+void
+lh_str_list_split_of(lh_str_list_t *self, lh_str_view_t text, lh_str_cptr delims, lh_usize_t delim_count)
+{
+    lh_usize_t pos = 0U;
+    lh_str_view_t piece;
+    lh_bool_t had_delim;
+
+    while (lh_str_view_split_next_of(lh_addr_of(text), delims, delim_count, lh_addr_of(pos),
+                                     lh_addr_of(piece), lh_addr_of(had_delim)))
+    {
+        if (!lh_str_view_is_empty(lh_addr_of(piece)))
+        {
+            lh_str_list_push_back(self, piece);
+        }
     }
 }
 

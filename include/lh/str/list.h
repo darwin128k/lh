@@ -19,6 +19,7 @@
 #include <lh/size.h>
 #include <lh/str.h>
 #include <lh/str/list/fields.h>
+#include <lh/str/ptr.h>
 #include <lh/str/view.h>
 #include <lh/vector.h>
 
@@ -152,6 +153,28 @@ lh_str_list_append(lh_str_list_t *self, const lh_str_list_t *other);
 LH_ATTRIBUTE_SYMBOL
 void
 lh_str_list_join(const lh_str_list_t *self, lh_str_t *out, lh_char_t sep);
+
+/**
+ * @brief Split @p text on any of @p delims, appending one entry to @p self
+ *        per non-empty piece.
+ *
+ * Inverse of ::lh_str_list_join for the common "segments" shape (a
+ * filesystem path, a URL path, ...): leading, trailing, and consecutive
+ * delimiters produce no empty entries — same skip-empty behavior
+ * ::lh_fs_path_set already needs, factored out so any other
+ * delimiter-separated-segments parser can reuse it instead of hand-rolling
+ * the same ::lh_str_view_split_next_of loop again.
+ *
+ * Does not clear @p self first — it appends, mirroring ::lh_str_list_join.
+ *
+ * @param self        List to append to (not null).
+ * @param text        Text to split.
+ * @param delims      Delimiter characters. Not empty.
+ * @param delim_count Number of elements in @p delims.
+ */
+LH_ATTRIBUTE_SYMBOL
+void
+lh_str_list_split_of(lh_str_list_t *self, lh_str_view_t text, lh_str_cptr delims, lh_usize_t delim_count);
 
 LH_COMPILER_EXTERN_C_END
 
