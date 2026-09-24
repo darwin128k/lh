@@ -1,10 +1,11 @@
 /**
  * @file code.h
- * @brief OS-layer error code alias.
+ * @brief OS-layer codes on top of ::lh_error_code_t.
  *
- * Same representation as ::lh_error_code_t. Kept as its own type so OS-layer
- * APIs read as OS-layer in their signatures, without implying they share a
- * code space with unrelated modules.
+ * Native failures go through ::lh_os_system_error_capture
+ * (`GetLastError` / `errno`) into the *separate* ::lh_os_system_error_t
+ * slot — these codes are only the lh-side values raised by our own checks
+ * (see `lh/os.h` / ::lh_os_set_last_error), not anything the OS reported.
  */
 
 #ifndef LH_OS_ERROR_CODE_H
@@ -19,8 +20,20 @@
 #define lh_os_error_code_ok lh_error_code_ok
 
 /**
+ * @def lh_os_error_code_path_empty
+ * @brief The path has no root and no segments.
+ */
+#define lh_os_error_code_path_empty 0x01
+
+/**
+ * @def lh_os_error_code_negative_size
+ * @brief The OS reported a negative file size.
+ */
+#define lh_os_error_code_negative_size 0x02
+
+/**
  * @typedef lh_os_error_code_t
- * @brief Same representation as ::lh_error_code_t for OS-layer error codes.
+ * @brief Same representation as ::lh_error_code_t for OS-layer last-error codes.
  */
 typedef lh_error_code_t lh_os_error_code_t;
 
