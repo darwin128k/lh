@@ -126,6 +126,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/wstr/list.c
 
         ${LH_LIB_SRC_PATH}/fs/path.c
+        ${LH_LIB_SRC_PATH}/fs/stat.c
 
         ${LH_LIB_SRC_PATH}/logger.c
 
@@ -169,7 +170,14 @@ if (LH_LIBRARY_OPTION_OS)
         set(LH_OS_SYSTEM_BACKEND posix)
     endif ()
     list(APPEND LH_LIB_SOURCES
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/error/capture.c
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/timestamp.c
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/path.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/file.c
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/dir.c
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/stat.c
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/net.c
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/net/socket.c
     )
 endif ()
 

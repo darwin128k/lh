@@ -62,6 +62,16 @@ lh_os_error_desc_ptr
 lh_os_system_error_format(lh_os_system_error_code_t code, lh_os_error_desc_ptr dest, lh_usize_t dest_size);
 
 /**
+ * @brief The calling thread's native last-error code, unformatted
+ *        (`GetLastError()` on Windows, `errno` on POSIX).
+ *
+ * Only reads; does not touch ::lh_os_system_last_error.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_os_system_error_code_t
+lh_os_system_error_get_native_code(void);
+
+/**
  * @brief Snapshot the native last error as the *native* last error on this
  *        thread (::lh_os_system_set_last_error).
  *

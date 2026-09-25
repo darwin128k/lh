@@ -12,7 +12,7 @@
  *
  * @param path_type   Type of the stored path (::lh_fs_path_t).
  * @param handle_type Type of the handle (::lh_os_system_fs_file_handle_t).
- * @param mode_type   Type of the open mode (::lh_os_system_fs_file_mode_t).
+ * @param mode_type   Type of the open mode (::lh_fs_file_mode_t).
  */
 #define lh_os_fs_file_fields(path_type, handle_type, mode_type)                                    \
     path_type path;                                                                                \

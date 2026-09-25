@@ -4,6 +4,7 @@
 #include <lh/os.h>
 #include <lh/os/error/code.h>
 #include <lh/os/system/fs/file.h>
+#include <lh/os/system/fs/path.h>
 #include <lh/str.h>
 #include <lh/util/addr.h>
 #include <lh/util/math.h>
@@ -44,7 +45,7 @@ lh_os_fs_file_is_valid(const lh_os_fs_file_t *self)
         lh_bool_t, lh_math_ne(lh_ptr_deref(lh_os_fs_file_get_handle_as_const(self)), LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID));
 }
 
-lh_os_system_fs_file_mode_t
+lh_fs_file_mode_t
 lh_os_fs_file_get_mode(const lh_os_fs_file_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -52,7 +53,7 @@ lh_os_fs_file_get_mode(const lh_os_fs_file_t *self)
 }
 
 void
-lh_os_fs_file_set_mode(lh_os_fs_file_t *self, lh_os_system_fs_file_mode_t mode)
+lh_os_fs_file_set_mode(lh_os_fs_file_t *self, lh_fs_file_mode_t mode)
 {
     lh_assert_runtime_ref(self);
     self->mode = mode;
@@ -70,7 +71,7 @@ lh_os_fs_file_init(lh_os_fs_file_t *self)
     lh_assert_runtime_ref(self);
     lh_fs_path_init(lh_os_fs_file_get_path(self));
     lh_ptr_deref(lh_os_fs_file_get_handle(self)) = LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID;
-    lh_os_fs_file_set_mode(self, lh_os_system_fs_file_mode_none);
+    lh_os_fs_file_set_mode(self, lh_fs_file_mode_none);
 }
 
 void
@@ -79,12 +80,12 @@ lh_os_fs_file_close(lh_os_fs_file_t *self)
     lh_assert_runtime_ref(self);
     if (!lh_os_fs_file_is_valid(self))
     {
-        lh_os_fs_file_set_mode(self, lh_os_system_fs_file_mode_none);
+        lh_os_fs_file_set_mode(self, lh_fs_file_mode_none);
         return;
     }
     lh_os_system_fs_file_close(lh_ptr_deref(lh_os_fs_file_get_handle_as_const(self)));
     lh_ptr_deref(lh_os_fs_file_get_handle(self)) = LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID;
-    lh_os_fs_file_set_mode(self, lh_os_system_fs_file_mode_none);
+    lh_os_fs_file_set_mode(self, lh_fs_file_mode_none);
 }
 
 void
@@ -96,7 +97,7 @@ lh_os_fs_file_deinit(lh_os_fs_file_t *self)
 }
 
 lh_bool_t
-lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_os_system_fs_file_mode_t mode)
+lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_fs_file_mode_t mode)
 {
     lh_str_t buf;
     lh_os_system_fs_file_handle_t handle;
@@ -110,7 +111,7 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_os_system
     }
     lh_os_fs_file_close(self);
 
-    handle = lh_os_system_fs_file_open(lh_fs_path_to_cstr(path, lh_addr_of(buf)), mode);
+    handle = lh_os_system_fs_file_open(lh_fs_path_to_cstr(path, lh_os_system_fs_path_style_native(), lh_addr_of(buf)), mode);
     lh_str_deinit(lh_addr_of(buf));
     if (lh_math_eq(handle, LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID))
     {

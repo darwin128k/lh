@@ -8,8 +8,8 @@
  * function, and this constant says which flags the OS should use.
  */
 
-#ifndef LH_OS_SYSTEM_FS_FILE_MODE_H
-#define LH_OS_SYSTEM_FS_FILE_MODE_H
+#ifndef LH_FS_FILE_MODE_H
+#define LH_FS_FILE_MODE_H
 
 #include <lh/attribute/force_inline.h>
 #include <lh/bool.h>
@@ -19,39 +19,39 @@
 #include <lh/util/math.h>
 
 /**
- * @typedef lh_os_system_fs_file_mode_t
+ * @typedef lh_fs_file_mode_t
  * @brief Discriminator for which access to open.
  *
- * Alias for ::lh_u8_t; canonical values are the `lh_os_system_fs_file_mode_*`
+ * Alias for ::lh_u8_t; canonical values are the `lh_fs_file_mode_*`
  * constants below.
  */
-typedef lh_u8_t lh_os_system_fs_file_mode_t;
+typedef lh_u8_t lh_fs_file_mode_t;
 
 /**
- * @def lh_os_system_fs_file_mode_read
+ * @def lh_fs_file_mode_read
  * @brief Existing file, read-only (`GENERIC_READ` / `O_RDONLY`).
  */
-#define lh_os_system_fs_file_mode_read 0U
+#define lh_fs_file_mode_read 0U
 
 /**
- * @def lh_os_system_fs_file_mode_write
+ * @def lh_fs_file_mode_write
  * @brief Create or replace, write-only (`GENERIC_WRITE` + `CREATE_ALWAYS` /
  *        `O_WRONLY | O_CREAT | O_TRUNC`).
  */
-#define lh_os_system_fs_file_mode_write 1U
+#define lh_fs_file_mode_write 1U
 
 /**
- * @def lh_os_system_fs_file_mode_readwrite
+ * @def lh_fs_file_mode_readwrite
  * @brief Existing or created, read-write (`GENERIC_READ | GENERIC_WRITE` /
  *        `O_RDWR | O_CREAT`). Needed to map pages writable.
  */
-#define lh_os_system_fs_file_mode_readwrite 2U
+#define lh_fs_file_mode_readwrite 2U
 
 /**
- * @def lh_os_system_fs_file_mode_none
+ * @def lh_fs_file_mode_none
  * @brief No open mode (handle is invalid).
  */
-#define lh_os_system_fs_file_mode_none 0xFFU
+#define lh_fs_file_mode_none 0xFFU
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -60,10 +60,10 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
-lh_os_system_fs_file_mode_is_readable(lh_os_system_fs_file_mode_t mode)
+lh_fs_file_mode_is_readable(lh_fs_file_mode_t mode)
 {
-    return lh_cast_static(lh_bool_t, lh_math_eq(mode, lh_os_system_fs_file_mode_read) ||
-                                     lh_math_eq(mode, lh_os_system_fs_file_mode_readwrite));
+    return lh_cast_static(lh_bool_t, lh_math_eq(mode, lh_fs_file_mode_read) ||
+                                     lh_math_eq(mode, lh_fs_file_mode_readwrite));
 }
 
 /**
@@ -71,12 +71,12 @@ lh_os_system_fs_file_mode_is_readable(lh_os_system_fs_file_mode_t mode)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
-lh_os_system_fs_file_mode_is_writable(lh_os_system_fs_file_mode_t mode)
+lh_fs_file_mode_is_writable(lh_fs_file_mode_t mode)
 {
-    return lh_cast_static(lh_bool_t, lh_math_eq(mode, lh_os_system_fs_file_mode_write) ||
-                                     lh_math_eq(mode, lh_os_system_fs_file_mode_readwrite));
+    return lh_cast_static(lh_bool_t, lh_math_eq(mode, lh_fs_file_mode_write) ||
+                                     lh_math_eq(mode, lh_fs_file_mode_readwrite));
 }
 
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_OS_SYSTEM_FS_FILE_MODE_H */
+#endif /* LH_FS_FILE_MODE_H */

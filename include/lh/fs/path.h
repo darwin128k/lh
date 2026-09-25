@@ -24,6 +24,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/fs/path/fields.h>
 #include <lh/fs/path/root/kind.h>
+#include <lh/fs/path/style.h>
 #include <lh/size.h>
 #include <lh/str.h>
 #include <lh/str/list.h>
@@ -85,7 +86,10 @@ lh_char_t
 lh_fs_path_get_root_drive(const lh_fs_path_t *self);
 
 /**
- * @brief True when @p part is a Windows drive (`C:`). Elsewhere always false.
+ * @brief True when @p part has the shape of a drive: one letter and `:`
+ *        (`C:`). A shape test only — whether a drive is meaningful is the
+ *        style's call (::lh_fs_path_set only looks for one in
+ *        ::lh_fs_path_style_windows).
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
@@ -142,7 +146,7 @@ lh_fs_path_is_root(const lh_fs_path_t *self);
  *        naming convention (`.name`, but not `.` or `..`).
  *
  * Pure naming convention, not a filesystem attribute — no OS call, no
- * dependency on any platform's actual "hidden" bit (see `lh/os/fs/attr.h`
+ * dependency on any platform's actual "hidden" bit (see `lh/fs/attr.h`
  * for that). ::lh_bool_false for an empty path or one with no segments.
  */
 LH_ATTRIBUTE_SYMBOL
@@ -153,17 +157,22 @@ lh_fs_path_is_hidden(const lh_fs_path_t *self);
  * @brief Parse @p text into @p self's root and segments, replacing its
  *        current contents.
  *
- * A leading separator becomes ::lh_fs_path_root_kind_posix; a drive letter
- * (`C:`) becomes ::lh_fs_path_root_kind_drive. Repeated and trailing
- * separators produce no empty segments.
+ * @p style decides which characters separate segments and whether a
+ * leading `C:` is a drive (see ::lh_fs_path_style_t). A leading separator
+ * becomes ::lh_fs_path_root_kind_posix; a drive letter becomes
+ * ::lh_fs_path_root_kind_drive. Repeated and trailing separators produce no
+ * empty segments.
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_fs_path_set(lh_fs_path_t *self, lh_str_view_t text);
+lh_fs_path_set(lh_fs_path_t *self, lh_str_view_t text, lh_fs_path_style_t style);
 
 /**
- * @brief Render @p self's root and segments into @p out as OS-ready text
- *        (`CreateFileA` / `open` encoding), replacing its current contents.
+ * @brief Render @p self's root and segments into @p out in @p style,
+ *        replacing its current contents.
+ *
+ * A drive root renders as `C:` plus the style's separator in either style;
+ * the posix style has no drives of its own, but does not drop one.
  *
  * Pure and stateless: @p self keeps no cached text of its own — this is
  * computed fresh every call. @p out is an ordinary ::lh_str_t; get the
@@ -171,10 +180,11 @@ lh_fs_path_set(lh_fs_path_t *self, lh_str_view_t text);
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_fs_path_to_str(const lh_fs_path_t *self, lh_str_t *out);
+lh_fs_path_to_str(const lh_fs_path_t *self, lh_fs_path_style_t style, lh_str_t *out);
 
 /**
- * @brief Render @p self into @p scratch and return its `const char *`.
+ * @brief Render @p self in @p style into @p scratch and return its
+ *        `const char *`.
  *
  * @p scratch is initialized by this call (must not already be initialized)
  * and owns the text ::lh_fs_path_to_str builds; the caller is responsible
@@ -184,7 +194,7 @@ lh_fs_path_to_str(const lh_fs_path_t *self, lh_str_t *out);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_str_cptr
-lh_fs_path_to_cstr(const lh_fs_path_t *self, lh_str_t *scratch);
+lh_fs_path_to_cstr(const lh_fs_path_t *self, lh_fs_path_style_t style, lh_str_t *scratch);
 
 /**
  * @brief Join @p dir and @p name into @p self by appending @p name's

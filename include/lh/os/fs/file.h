@@ -26,7 +26,7 @@
 #include <lh/io/writer.h>
 #include <lh/os/fs/file/fields.h>
 #include <lh/os/system/fs/file/handle.h>
-#include <lh/os/system/fs/file/mode.h>
+#include <lh/fs/file/mode.h>
 #include <lh/ptr.h>
 #include <lh/size.h>
 
@@ -40,7 +40,7 @@
  */
 typedef struct lh_os_fs_file
 {
-    lh_os_fs_file_fields(lh_fs_path_t, lh_os_system_fs_file_handle_t, lh_os_system_fs_file_mode_t);
+    lh_os_fs_file_fields(lh_fs_path_t, lh_os_system_fs_file_handle_t, lh_fs_file_mode_t);
 } lh_os_fs_file_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -115,10 +115,10 @@ lh_os_fs_file_is_valid(const lh_os_fs_file_t *self);
 
 /**
  * @brief Mode last passed to a successful ::lh_os_fs_file_open, or
- *        ::lh_os_system_fs_file_mode_none when closed.
+ *        ::lh_fs_file_mode_none when closed.
  */
 LH_ATTRIBUTE_SYMBOL
-lh_os_system_fs_file_mode_t
+lh_fs_file_mode_t
 lh_os_fs_file_get_mode(const lh_os_fs_file_t *self);
 
 /**
@@ -129,7 +129,7 @@ lh_os_fs_file_get_mode(const lh_os_fs_file_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 void
-lh_os_fs_file_set_mode(lh_os_fs_file_t *self, lh_os_system_fs_file_mode_t mode);
+lh_os_fs_file_set_mode(lh_os_fs_file_t *self, lh_fs_file_mode_t mode);
 
 /**
  * @brief Open @p path on @p self with the given access mode.
@@ -138,13 +138,13 @@ lh_os_fs_file_set_mode(lh_os_fs_file_t *self, lh_os_system_fs_file_mode_t mode);
  *
  * @param self File object to open.
  * @param path Filesystem path; rendered and passed to ::lh_os_system_fs_file_open.
- * @param mode ::lh_os_system_fs_file_mode_read, ::lh_os_system_fs_file_mode_write, or
- *             ::lh_os_system_fs_file_mode_readwrite.
+ * @param mode ::lh_fs_file_mode_read, ::lh_fs_file_mode_write, or
+ *             ::lh_fs_file_mode_readwrite.
  * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_os_system_fs_file_mode_t mode);
+lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_fs_file_mode_t mode);
 
 /**
  * @brief ::lh_io_reader_read_fn backed by @p context's file.

@@ -2,7 +2,8 @@
  * @file slash.h
  * @brief ASCII solidus (`/`) and reverse solidus (`\`) tests.
  *
- * Path separators go through ::lh_char_is_path_sep, which combines these.
+ * Which of these separate path segments is a path-style question, not a
+ * character one — see ::lh_fs_path_style_t.
  *
  * Every function here is ::LH_ATTRIBUTE_FORCE_INLINE.
  */
@@ -15,7 +16,6 @@
 #include <lh/char.h>
 #include <lh/char/map.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/compiler/os.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -43,27 +43,6 @@ lh_bool_t
 lh_char_is_backslash(lh_char_t ch)
 {
     return (ch == lh_char_map_backslash) ? lh_bool_true : lh_bool_false;
-}
-
-/**
- * @brief Test whether @p ch is a directory separator for the target OS.
- *
- * Windows accepts `/` and `\`; elsewhere only `/`. Only needs
- * ::LH_COMPILER_OS (a compile-time platform fact), not ::LH_LIBRARY_OPTION_OS.
- *
- * @param ch Character to test.
- * @return ::lh_bool_true if @p ch separates directories on this OS,
- *         otherwise ::lh_bool_false.
- */
-LH_ATTRIBUTE_FORCE_INLINE
-lh_bool_t
-lh_char_is_path_sep(lh_char_t ch)
-{
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-    return (lh_char_is_slash(ch) || lh_char_is_backslash(ch)) ? lh_bool_true : lh_bool_false;
-#else
-    return lh_char_is_slash(ch);
-#endif
 }
 
 LH_COMPILER_EXTERN_C_END

@@ -28,13 +28,13 @@ lh_os_system_fs_file_size(lh_usize_t size)
 
 LH_ATTRIBUTE_STATIC
 DWORD
-lh_os_system_fs_file_access(lh_os_system_fs_file_mode_t mode)
+lh_os_system_fs_file_access(lh_fs_file_mode_t mode)
 {
-    if (lh_math_eq(mode, lh_os_system_fs_file_mode_read))
+    if (lh_math_eq(mode, lh_fs_file_mode_read))
     {
         return GENERIC_READ;
     }
-    if (lh_math_eq(mode, lh_os_system_fs_file_mode_write))
+    if (lh_math_eq(mode, lh_fs_file_mode_write))
     {
         return GENERIC_WRITE;
     }
@@ -43,13 +43,13 @@ lh_os_system_fs_file_access(lh_os_system_fs_file_mode_t mode)
 
 LH_ATTRIBUTE_STATIC
 DWORD
-lh_os_system_fs_file_disposition(lh_os_system_fs_file_mode_t mode)
+lh_os_system_fs_file_disposition(lh_fs_file_mode_t mode)
 {
-    if (lh_math_eq(mode, lh_os_system_fs_file_mode_read))
+    if (lh_math_eq(mode, lh_fs_file_mode_read))
     {
         return OPEN_EXISTING;
     }
-    if (lh_math_eq(mode, lh_os_system_fs_file_mode_write))
+    if (lh_math_eq(mode, lh_fs_file_mode_write))
     {
         return CREATE_ALWAYS;
     }
@@ -57,13 +57,13 @@ lh_os_system_fs_file_disposition(lh_os_system_fs_file_mode_t mode)
 }
 
 lh_os_system_fs_file_handle_t
-lh_os_system_fs_file_open(lh_str_cptr path, lh_os_system_fs_file_mode_t mode)
+lh_os_system_fs_file_open(lh_str_cptr path, lh_fs_file_mode_t mode)
 {
     HANDLE native;
 
     lh_assert_runtime_ref(path);
-    lh_assert_runtime_if(!lh_os_system_fs_file_mode_is_readable(mode) &&
-                             !lh_os_system_fs_file_mode_is_writable(mode),
+    lh_assert_runtime_if(!lh_fs_file_mode_is_readable(mode) &&
+                             !lh_fs_file_mode_is_writable(mode),
                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
 
     native = CreateFileA(path, lh_os_system_fs_file_access(mode), FILE_SHARE_READ, lh_null,

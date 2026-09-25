@@ -6,8 +6,8 @@
 #include <lh/char/letter.h>
 #include <lh/char/map.h>
 #include <lh/char/slash.h>
-#include <lh/compiler/os.h>
 #include <lh/memory/view.h>
+#include <lh/runtime/error.h>
 #include <lh/str.h>
 #include <lh/util/addr.h>
 #include <lh/util/math.h>
@@ -140,10 +140,27 @@ lh_fs_path_is_hidden(const lh_fs_path_t *self)
     return lh_bool_true;
 }
 
+LH_ATTRIBUTE_STATIC
+lh_bool_t
+lh_fs_path_is_sep(lh_char_t ch, lh_fs_path_style_t style)
+{
+    if (lh_char_is_slash(ch))
+    {
+        return lh_bool_true;
+    }
+    return lh_cast_static(lh_bool_t, lh_math_eq(style, lh_fs_path_style_windows) && lh_char_is_backslash(ch));
+}
+
+LH_ATTRIBUTE_STATIC
+lh_char_t
+lh_fs_path_sep(lh_fs_path_style_t style)
+{
+    return lh_math_eq(style, lh_fs_path_style_windows) ? lh_char_map_backslash : lh_char_map_slash;
+}
+
 lh_bool_t
 lh_fs_path_is_drive(lh_str_view_t part)
 {
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     if (lh_math_ne(lh_str_view_get_size(lh_addr_of(part)), 2U))
     {
         return lh_bool_false;
@@ -152,17 +169,12 @@ lh_fs_path_is_drive(lh_str_view_t part)
                           lh_char_is_letter(lh_str_view_get_char_from_begin(lh_addr_of(part), 0U)) &&
                               lh_math_eq(lh_str_view_get_char_from_begin(lh_addr_of(part), 1U),
                                         lh_char_map_colon));
-#else
-    (void)part;
-    return lh_bool_false;
-#endif
 }
 
 LH_ATTRIBUTE_STATIC
 lh_usize_t
 lh_fs_path_take_drive(lh_fs_path_t *self, const lh_str_view_t *text, lh_usize_t n)
 {
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     lh_str_view_t drive;
 
     if (lh_math_lt(n, 2U))
@@ -176,58 +188,54 @@ lh_fs_path_take_drive(lh_fs_path_t *self, const lh_str_view_t *text, lh_usize_t 
     }
     self->root_kind = lh_fs_path_root_kind_drive;
     self->root_drive = lh_str_view_get_char_from_begin(lh_addr_of(drive), 0U);
-    return (lh_math_lt(2U, n) && lh_char_is_path_sep(lh_str_view_get_char_from_begin(text, 2U))) ? 3U : 2U;
-#else
-    (void)self;
-    (void)text;
-    (void)n;
-    return 0U;
-#endif
+    return (lh_math_lt(2U, n) &&
+            lh_fs_path_is_sep(lh_str_view_get_char_from_begin(text, 2U), lh_fs_path_style_windows))
+               ? 3U
+               : 2U;
 }
 
 void
-lh_fs_path_set(lh_fs_path_t *self, lh_str_view_t text)
+lh_fs_path_set(lh_fs_path_t *self, lh_str_view_t text, lh_fs_path_style_t style)
 {
+    static const lh_char_t posix_seps[] = {lh_char_map_slash};
+    static const lh_char_t windows_seps[] = {lh_char_map_slash, lh_char_map_backslash};
     lh_usize_t n;
     lh_usize_t pos;
 
+    lh_assert_runtime_if(lh_math_ne(style, lh_fs_path_style_posix) && lh_math_ne(style, lh_fs_path_style_windows),
+                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
     lh_fs_path_clear(self);
     if (lh_str_view_is_empty(lh_addr_of(text)))
     {
         return;
     }
     n = lh_str_view_get_size(lh_addr_of(text));
-    pos = lh_fs_path_take_drive(self, lh_addr_of(text), n);
-    if (lh_math_eq(pos, 0U) && lh_char_is_path_sep(lh_str_view_get_char_from_begin(lh_addr_of(text), 0U)))
+    pos = lh_math_eq(style, lh_fs_path_style_windows) ? lh_fs_path_take_drive(self, lh_addr_of(text), n) : 0U;
+    if (lh_math_eq(pos, 0U) && lh_fs_path_is_sep(lh_str_view_get_char_from_begin(lh_addr_of(text), 0U), style))
     {
         self->root_kind = lh_fs_path_root_kind_posix;
         pos = 1U;
     }
+    if (lh_math_eq(style, lh_fs_path_style_windows))
     {
-        static const lh_char_t seps[] = {
-            lh_char_map_slash,
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-            lh_char_map_backslash,
-#endif
-        };
-        lh_str_list_split_of(lh_fs_path_get_segments(self), lh_memory_view_drop_first(lh_addr_of(text), pos), seps,
-                             sizeof(seps) / sizeof(seps[0]));
+        lh_str_list_split_of(lh_fs_path_get_segments(self), lh_memory_view_drop_first(lh_addr_of(text), pos),
+                             windows_seps, sizeof(windows_seps) / sizeof(windows_seps[0]));
+    }
+    else
+    {
+        lh_str_list_split_of(lh_fs_path_get_segments(self), lh_memory_view_drop_first(lh_addr_of(text), pos),
+                             posix_seps, sizeof(posix_seps) / sizeof(posix_seps[0]));
     }
 }
 
 void
-lh_fs_path_to_str(const lh_fs_path_t *self, lh_str_t *out)
+lh_fs_path_to_str(const lh_fs_path_t *self, lh_fs_path_style_t style, lh_str_t *out)
 {
     lh_char_t sep;
 
     lh_assert_runtime_ref(self);
     lh_str_clear(out);
-
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-    sep = lh_char_map_backslash;
-#else
-    sep = lh_char_map_slash;
-#endif
+    sep = lh_fs_path_sep(style);
 
     if (lh_math_eq(lh_fs_path_get_root_kind(self), lh_fs_path_root_kind_drive))
     {
@@ -244,10 +252,10 @@ lh_fs_path_to_str(const lh_fs_path_t *self, lh_str_t *out)
 }
 
 lh_str_cptr
-lh_fs_path_to_cstr(const lh_fs_path_t *self, lh_str_t *scratch)
+lh_fs_path_to_cstr(const lh_fs_path_t *self, lh_fs_path_style_t style, lh_str_t *scratch)
 {
     lh_str_init(scratch);
-    lh_fs_path_to_str(self, scratch);
+    lh_fs_path_to_str(self, style, scratch);
     return lh_str_get_data(scratch);
 }
 

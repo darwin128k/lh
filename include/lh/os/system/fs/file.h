@@ -24,7 +24,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/system/fs/file/handle.h>
-#include <lh/os/system/fs/file/mode.h>
+#include <lh/fs/file/mode.h>
 #include <lh/ptr.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
@@ -39,14 +39,14 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Open @p path with the access and creation flags of @p mode.
  *
  * @param path Native, NUL-terminated path text.
- * @param mode ::lh_os_system_fs_file_mode_read,
- *             ::lh_os_system_fs_file_mode_write, or
- *             ::lh_os_system_fs_file_mode_readwrite.
+ * @param mode ::lh_fs_file_mode_read,
+ *             ::lh_fs_file_mode_write, or
+ *             ::lh_fs_file_mode_readwrite.
  * @return Open handle, or ::LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID on failure.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_os_system_fs_file_handle_t
-lh_os_system_fs_file_open(lh_str_cptr path, lh_os_system_fs_file_mode_t mode);
+lh_os_system_fs_file_open(lh_str_cptr path, lh_fs_file_mode_t mode);
 
 /**
  * @brief Release @p handle. The close result is not reported.

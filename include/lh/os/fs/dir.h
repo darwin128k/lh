@@ -22,7 +22,7 @@
 #include <lh/config.h>
 #include <lh/fs/path.h>
 #include <lh/os/fs/dir/entry/kind.h>
-#include <lh/os/fs/dir/handle.h>
+#include <lh/os/system/fs/dir/handle.h>
 #include <lh/size.h>
 
 #if !LH_LIBRARY_OPTION_OS
@@ -42,7 +42,7 @@
  */
 struct lh_os_fs_dir
 {
-    lh_os_fs_dir_handle_t handle;
+    lh_os_system_fs_dir_handle_t handle;
 };
 typedef struct lh_os_fs_dir lh_os_fs_dir_t;
 
@@ -85,11 +85,11 @@ lh_os_fs_dir_close(lh_os_fs_dir_t *self);
 /**
  * @brief Raw handle stored in @p self.
  * @param self Directory to read from.
- * @return Current ::lh_os_fs_dir_handle_t
- *         (::LH_OS_FS_DIR_HANDLE_INVALID if not open).
+ * @return Current ::lh_os_system_fs_dir_handle_t
+ *         (::LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID if not open).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_os_fs_dir_handle_t
+lh_os_system_fs_dir_handle_t
 lh_os_fs_dir_get_handle(const lh_os_fs_dir_t *self);
 
 /**

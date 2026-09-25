@@ -6,22 +6,22 @@
  * as ::lh_ptr. ::lh_null means not open.
  */
 
-#ifndef LH_OS_FS_DIR_HANDLE_H
-#define LH_OS_FS_DIR_HANDLE_H
+#ifndef LH_OS_SYSTEM_FS_DIR_HANDLE_H
+#define LH_OS_SYSTEM_FS_DIR_HANDLE_H
 
 #include <lh/null.h>
 #include <lh/ptr.h>
 
 /**
- * @typedef lh_os_fs_dir_handle_t
+ * @typedef lh_os_system_fs_dir_handle_t
  * @brief Opaque OS directory iterator (`DIR *` / private find state).
  */
-typedef lh_ptr lh_os_fs_dir_handle_t;
+typedef lh_ptr lh_os_system_fs_dir_handle_t;
 
 /**
- * @def LH_OS_FS_DIR_HANDLE_INVALID
+ * @def LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID
  * @brief Sentinel for "not open".
  */
-#define LH_OS_FS_DIR_HANDLE_INVALID lh_null
+#define LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID lh_null
 
-#endif /* LH_OS_FS_DIR_HANDLE_H */
+#endif /* LH_OS_SYSTEM_FS_DIR_HANDLE_H */

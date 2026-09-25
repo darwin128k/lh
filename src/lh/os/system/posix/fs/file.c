@@ -18,13 +18,13 @@ lh_os_system_fs_file_native(lh_os_system_fs_file_handle_t handle)
 
 LH_ATTRIBUTE_STATIC
 int
-lh_os_system_fs_file_flags(lh_os_system_fs_file_mode_t mode)
+lh_os_system_fs_file_flags(lh_fs_file_mode_t mode)
 {
-    if (lh_math_eq(mode, lh_os_system_fs_file_mode_read))
+    if (lh_math_eq(mode, lh_fs_file_mode_read))
     {
         return O_RDONLY;
     }
-    if (lh_math_eq(mode, lh_os_system_fs_file_mode_write))
+    if (lh_math_eq(mode, lh_fs_file_mode_write))
     {
         return O_WRONLY | O_CREAT | O_TRUNC;
     }
@@ -32,16 +32,16 @@ lh_os_system_fs_file_flags(lh_os_system_fs_file_mode_t mode)
 }
 
 lh_os_system_fs_file_handle_t
-lh_os_system_fs_file_open(lh_str_cptr path, lh_os_system_fs_file_mode_t mode)
+lh_os_system_fs_file_open(lh_str_cptr path, lh_fs_file_mode_t mode)
 {
     int native;
 
     lh_assert_runtime_ref(path);
-    lh_assert_runtime_if(!lh_os_system_fs_file_mode_is_readable(mode) &&
-                             !lh_os_system_fs_file_mode_is_writable(mode),
+    lh_assert_runtime_if(!lh_fs_file_mode_is_readable(mode) &&
+                             !lh_fs_file_mode_is_writable(mode),
                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
 
-    native = lh_math_eq(mode, lh_os_system_fs_file_mode_read)
+    native = lh_math_eq(mode, lh_fs_file_mode_read)
                  ? open(path, lh_os_system_fs_file_flags(mode))
                  : open(path, lh_os_system_fs_file_flags(mode), 0644);
     if (lh_math_is_negative(native))

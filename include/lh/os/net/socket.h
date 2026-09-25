@@ -4,7 +4,7 @@
  *        (a socket "today", per that file's doc).
  *
  * One struct, one open function for both transports (see
- * ::lh_os_net_socket_type_t): TCP and UDP are not different kinds of
+ * ::lh_os_system_net_socket_type_t): TCP and UDP are not different kinds of
  * object, just the `type`/`protocol` argument to the same `socket()` call.
  * The same handle is a client after ::lh_os_net_socket_connect or a
  * listening server after ::lh_os_net_socket_bind / ::lh_os_net_socket_listen
@@ -29,8 +29,8 @@
 #include <lh/io/writer.h>
 #include <lh/net/socket/addr/ip4.h>
 #include <lh/numeric/types.h>
-#include <lh/os/net/socket/handle.h>
-#include <lh/os/net/socket/type.h>
+#include <lh/os/system/net/socket/handle.h>
+#include <lh/os/system/net/socket/type.h>
 #include <lh/ptr.h>
 #include <lh/size.h>
 
@@ -45,7 +45,7 @@
  */
 struct lh_os_net_socket
 {
-    lh_os_net_socket_handle_t handle;
+    lh_os_system_net_socket_handle_t handle;
 };
 typedef struct lh_os_net_socket lh_os_net_socket_t;
 
@@ -72,12 +72,12 @@ lh_os_net_socket_init(lh_os_net_socket_t *self);
  *
  * @param self Socket object to open; must be in the empty state
  *             (::lh_os_net_socket_init or freshly ::lh_os_net_socket_close'd).
- * @param type ::lh_os_net_socket_type_tcp or ::lh_os_net_socket_type_udp.
+ * @param type ::lh_os_system_net_socket_type_tcp or ::lh_os_system_net_socket_type_udp.
  * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_bool_t
-lh_os_net_socket_open(lh_os_net_socket_t *self, lh_os_net_socket_type_t type);
+lh_os_net_socket_open(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t type);
 
 /**
  * @brief Close @p self's handle (if open) and return it to the empty state.
@@ -95,11 +95,11 @@ lh_os_net_socket_close(lh_os_net_socket_t *self);
 /**
  * @brief Return the raw handle stored in @p self.
  * @param self Socket to read from.
- * @return Current ::lh_os_net_socket_handle_t
- *         (::LH_OS_NET_SOCKET_HANDLE_INVALID if not open).
+ * @return Current ::lh_os_system_net_socket_handle_t
+ *         (::LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID if not open).
  */
 LH_ATTRIBUTE_SYMBOL
-lh_os_net_socket_handle_t
+lh_os_system_net_socket_handle_t
 lh_os_net_socket_get_handle(const lh_os_net_socket_t *self);
 
 /**
@@ -278,7 +278,7 @@ lh_os_net_socket_get_writer(lh_os_net_socket_t *self);
  * This is the point of ::lh_io_stream_t: everything above this call sees a
  * generic duplex stream and does not need to know a socket is behind it.
  *
- * @p self should be a ::lh_os_net_socket_type_tcp socket — a stream has no
+ * @p self should be a ::lh_os_system_net_socket_type_tcp socket — a stream has no
  * message boundaries, and treating a UDP socket this way would silently
  * lose the fact that each ::lh_os_net_socket_recv call actually returns one
  * whole datagram (or drops the rest of one that didn't fit in @c buf).
@@ -318,7 +318,7 @@ lh_os_net_socket_get_dgram_writer(lh_os_net_socket_t *self);
  * above this call sees datagrams plus addresses and does not need to know a
  * socket is behind it.
  *
- * @p self should be a ::lh_os_net_socket_type_udp socket — TCP has no
+ * @p self should be a ::lh_os_system_net_socket_type_udp socket — TCP has no
  * message boundaries or per-call destination, which is exactly what a
  * datagram pair is for.
  *

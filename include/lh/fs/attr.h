@@ -2,16 +2,16 @@
  * @file attr.h
  * @brief Extra filesystem flags that Unix `st_mode` does not carry.
  *
- * Canonical state is ::lh_os_fs_stat_t (kind + Unix perms + times). These
+ * Canonical state is ::lh_fs_stat_t (kind + Unix perms + times). These
  * bits are the platform leftover: Windows `FILE_ATTRIBUTE_*` mapped onto
- * names we own, Unix only fills ::lh_os_fs_attr_hidden (a leading `.` in
+ * names we own, Unix only fills ::lh_fs_attr_hidden (a leading `.` in
  * the last path name, not `.` / `..`).
  *
  * Bits are not Windows `FILE_ATTRIBUTE_*` values.
  */
 
-#ifndef LH_OS_FS_ATTR_H
-#define LH_OS_FS_ATTR_H
+#ifndef LH_FS_ATTR_H
+#define LH_FS_ATTR_H
 
 #include <lh/attribute/force_inline.h>
 #include <lh/bool.h>
@@ -22,46 +22,46 @@
 #include <lh/util/math.h>
 
 /**
- * @typedef lh_os_fs_attr_t
- * @brief Extra attribute mask on a ::lh_os_fs_stat_t.
+ * @typedef lh_fs_attr_t
+ * @brief Extra attribute mask on a ::lh_fs_stat_t.
  */
-typedef lh_u32_t lh_os_fs_attr_t;
+typedef lh_u32_t lh_fs_attr_t;
 
 /**
- * @def lh_os_fs_attr_hidden
+ * @def lh_fs_attr_hidden
  * @brief Not shown in a default listing (`FILE_ATTRIBUTE_HIDDEN` / leading `.`).
  */
-#define lh_os_fs_attr_hidden 0x0001U
+#define lh_fs_attr_hidden 0x0001U
 
 /**
- * @def lh_os_fs_attr_system
+ * @def lh_fs_attr_system
  * @brief Operating-system file (`FILE_ATTRIBUTE_SYSTEM`). Unix: unset.
  */
-#define lh_os_fs_attr_system 0x0002U
+#define lh_fs_attr_system 0x0002U
 
 /**
- * @def lh_os_fs_attr_archive
+ * @def lh_fs_attr_archive
  * @brief Backup/archive (`FILE_ATTRIBUTE_ARCHIVE`). Unix: unset.
  */
-#define lh_os_fs_attr_archive 0x0004U
+#define lh_fs_attr_archive 0x0004U
 
 /**
- * @def lh_os_fs_attr_compressed
+ * @def lh_fs_attr_compressed
  * @brief Compressed (`FILE_ATTRIBUTE_COMPRESSED`). Unix: unset.
  */
-#define lh_os_fs_attr_compressed 0x0008U
+#define lh_fs_attr_compressed 0x0008U
 
 /**
- * @def lh_os_fs_attr_encrypted
+ * @def lh_fs_attr_encrypted
  * @brief Encrypted (`FILE_ATTRIBUTE_ENCRYPTED`). Unix: unset.
  */
-#define lh_os_fs_attr_encrypted 0x0010U
+#define lh_fs_attr_encrypted 0x0010U
 
 /**
- * @def lh_os_fs_attr_temporary
+ * @def lh_fs_attr_temporary
  * @brief Temporary (`FILE_ATTRIBUTE_TEMPORARY`). Unix: unset.
  */
-#define lh_os_fs_attr_temporary 0x0020U
+#define lh_fs_attr_temporary 0x0020U
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -70,11 +70,11 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
-lh_os_fs_attr_has(lh_os_fs_attr_t attr, lh_os_fs_attr_t mask)
+lh_fs_attr_has(lh_fs_attr_t attr, lh_fs_attr_t mask)
 {
     return lh_cast_static(lh_bool_t, lh_math_eq(lh_bit_and(attr, mask), mask));
 }
 
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_OS_FS_ATTR_H */
+#endif /* LH_FS_ATTR_H */
