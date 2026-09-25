@@ -337,24 +337,27 @@ TEST(memory_allocator_death, get_alloc_cb_null_self)
     LH_EXPECT_DEATH((void)lh_memory_allocator_get_alloc_cb(nullptr));
 }
 
+
+/* Allocator failures are lh_runtime_check_* — they die in every build. */
+
 TEST(memory_allocator_death, alloc_uninitialized_callback)
 {
     lh_memory_allocator_t a = lh_memory_allocator_empty_initializer();
-    LH_EXPECT_DEATH(lh_memory_allocator_alloc(&a, 1));
+    LH_EXPECT_CHECK_DEATH(lh_memory_allocator_alloc(&a, 1));
 }
 
 TEST(memory_allocator_death, alloc_callback_returns_null)
 {
     lh_memory_allocator_t a = lh_memory_allocator_empty_initializer();
     lh_memory_allocator_set(&a, test_alloc_always_null, test_dealloc_free);
-    LH_EXPECT_DEATH(lh_memory_allocator_alloc(&a, 8));
+    LH_EXPECT_CHECK_DEATH(lh_memory_allocator_alloc(&a, 8));
 }
 
 TEST(memory_allocator_death, dealloc_without_callback)
 {
     lh_memory_allocator_t a = lh_memory_allocator_empty_initializer();
     int x = 0;
-    LH_EXPECT_DEATH(lh_memory_allocator_dealloc(&a, lh_cast_static(lh_ptr, &x)));
+    LH_EXPECT_CHECK_DEATH(lh_memory_allocator_dealloc(&a, lh_cast_static(lh_ptr, &x)));
 }
 
 TEST(memory_allocator_death, native_realloc_returns_null)
@@ -362,7 +365,7 @@ TEST(memory_allocator_death, native_realloc_returns_null)
     lh_memory_allocator_t a = lh_memory_allocator_initializer_with_realloc(test_alloc_malloc, test_dealloc_free,
                                                                            test_realloc_always_null);
     lh_ptr p = lh_memory_allocator_alloc(&a, 4);
-    LH_EXPECT_DEATH((void)lh_memory_allocator_realloc(&a, p, 4, 8));
+    LH_EXPECT_CHECK_DEATH((void)lh_memory_allocator_realloc(&a, p, 4, 8));
     lh_memory_allocator_dealloc(&a, p);
 }
 

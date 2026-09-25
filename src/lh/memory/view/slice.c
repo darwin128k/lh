@@ -2,7 +2,6 @@
 #include <lh/attribute/static.h>
 #include <lh/util/return.h>
 #include <lh/runtime/throw.h>
-#include <lh/runtime/try.h>
 #include <lh/optional/ref.h>
 #include <lh/util/interval.h>
 #include <lh/util/swap.h>
@@ -477,14 +476,18 @@ lh_memory_view_slice_get_last_value(const lh_memory_view_slice_t *self)
     return lh_memory_view_slice_get_value_from_end(self, 0);
 }
 
-lh_uoffset_t
-lh_memory_view_slice_get_offset_from_ptr(const lh_memory_view_slice_t *self, const lh_ptr ptr,
-                                         lh_soffset_t offset)
+/* ptr moved by offset, as an offset from begin — or why it would leave the
+   range. Shared by the asserting getter and by seek, which turns "out of
+   range" into lh_null without going through an exception. */
+LH_ATTRIBUTE_STATIC
+lh_runtime_error_code_t
+lh_memory_view_slice_find_offset_from_ptr(const lh_memory_view_slice_t *self, const lh_ptr ptr, lh_soffset_t offset,
+                                          lh_uoffset_t *out)
 {
     if (lh_ptr_is_null(ptr))
     {
-        return lh_memory_view_slice_get_offset_from_begin(
-            self, lh_memory_view_slice_get_ptr(self, offset));
+        lh_ptr_deref(out) = lh_memory_view_slice_get_offset_from_begin(self, lh_memory_view_slice_get_ptr(self, offset));
+        return lh_runtime_error_code_ok;
     }
 
     const lh_usize_t size = lh_memory_view_slice_get_size(self);
@@ -494,40 +497,45 @@ lh_memory_view_slice_get_offset_from_ptr(const lh_memory_view_slice_t *self, con
     if (lh_math_is_negative(offset))
     {
         const lh_uoffset_t abs_offset = lh_type_cast(lh_uoffset_t, lh_math_neg(offset));
-        lh_assert_runtime_if(
-            lh_interval_closed_is_sub_overflow(ptr_offset, abs_offset, 0, max_offset),
-            lh_runtime_error_make_by_code(lh_runtime_error_code_underflow));
-
-        return lh_math_sub(ptr_offset, abs_offset);
+        if (lh_interval_closed_is_sub_overflow(ptr_offset, abs_offset, 0, max_offset))
+        {
+            return lh_runtime_error_code_underflow;
+        }
+        lh_ptr_deref(out) = lh_math_sub(ptr_offset, abs_offset);
+        return lh_runtime_error_code_ok;
     }
 
-    lh_assert_runtime_if(lh_interval_closed_is_add_overflow(
-                             ptr_offset, lh_type_cast(lh_uoffset_t, offset), 0, max_offset),
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_overflow));
+    if (lh_interval_closed_is_add_overflow(ptr_offset, lh_type_cast(lh_uoffset_t, offset), 0, max_offset))
+    {
+        return lh_runtime_error_code_overflow;
+    }
+    lh_ptr_deref(out) = lh_math_add(ptr_offset, lh_type_cast(lh_uoffset_t, offset));
+    return lh_runtime_error_code_ok;
+}
 
-    return lh_math_add(ptr_offset, lh_type_cast(lh_uoffset_t, offset));
+lh_uoffset_t
+lh_memory_view_slice_get_offset_from_ptr(const lh_memory_view_slice_t *self, const lh_ptr ptr,
+                                         lh_soffset_t offset)
+{
+    lh_uoffset_t result = 0U;
+    lh_runtime_error_code_t code;
+
+    code = lh_memory_view_slice_find_offset_from_ptr(self, ptr, offset, lh_addr_of(result));
+    lh_assert_runtime_if(lh_math_ne(code, lh_runtime_error_code_ok), lh_runtime_error_make_by_code(code));
+    return result;
 }
 
 const lh_ptr
 lh_memory_view_slice_seek_ptr(const lh_memory_view_slice_t *self, const lh_ptr ptr,
                               lh_soffset_t offset)
 {
-    lh_runtime_try(e)
-    {
-        lh_uoffset_t cur = lh_memory_view_slice_get_offset_from_ptr(self, ptr, offset);
-        ptr = lh_memory_view_slice_get_ptr_from_begin(self, cur);
-        lh_runtime_try_return(ptr);
-    }
-    lh_runtime_catch
-    {
-        if (!lh_exception_catch_has_code(lh_addr_of(e), lh_runtime_error_code_overflow) &&
-            !lh_exception_catch_has_code(lh_addr_of(e), lh_runtime_error_code_underflow))
-        {
-            lh_runtime_rethrow();
-        }
+    lh_uoffset_t cur;
 
+    if (lh_math_ne(lh_memory_view_slice_find_offset_from_ptr(self, ptr, offset, lh_addr_of(cur)), lh_runtime_error_code_ok))
+    {
         return lh_null;
     }
+    return lh_memory_view_slice_get_ptr_from_begin(self, cur);
 }
 
 const lh_ptr

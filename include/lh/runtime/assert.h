@@ -1,8 +1,19 @@
 /**
  * @file assert.h
- * @brief Runtime assertion macros that raise an ::lh_runtime_error_t on failure.
+ * @brief Runtime checks that raise an ::lh_runtime_error_t on failure.
  *
- * The second argument to all assertion macros is an @p initializer — any expression
+ * Two families, split by what a failure means:
+ *   - `lh_runtime_check_*` — the environment failed (allocation, a missing
+ *     allocator callback): always compiled in, in every build;
+ *   - `lh_runtime_assert_*` — the caller broke a contract (null pointer,
+ *     index out of range, bad argument): compiled in only while
+ *     ::LH_RUNTIME_ASSERT_ENABLED is 1 — by default in builds without
+ *     `NDEBUG`, i.e. not in Release, the same rule as C's `assert`.
+ *
+ * A disabled assertion does not evaluate its condition or its initializer,
+ * so they must have no side effects.
+ *
+ * The second argument to all these macros is an @p initializer — any expression
  * that produces an ::lh_runtime_error_t value, e.g.
  * ::lh_runtime_error_make or a compound literal.
  * The value is stored in a local variable before its address is taken, so
@@ -14,11 +25,58 @@
 
 #include <lh/runtime/raise.h>
 
-/* ── public API ────────────────────────────────────────────────────────── */
+/**
+ * @def LH_RUNTIME_ASSERT_ENABLED
+ * @brief `1` when `lh_runtime_assert_*` (and `lh_assert_runtime_*`) are
+ *        compiled in, `0` when they vanish.
+ *
+ * Defaults to `1` without `NDEBUG` and `0` with it. Define it yourself
+ * (e.g. `-DLH_RUNTIME_ASSERT_ENABLED=1`) to keep assertions in a Release
+ * build, or to drop them from a Debug one. The library and code that inlines
+ * its headers should agree on it.
+ */
+#ifndef LH_RUNTIME_ASSERT_ENABLED
+#    if defined(NDEBUG)
+#        define LH_RUNTIME_ASSERT_ENABLED 0
+#    else
+#        define LH_RUNTIME_ASSERT_ENABLED 1
+#    endif
+#endif
+
+/* ── always-on checks ──────────────────────────────────────────────────── */
+
+/**
+ * @def lh_runtime_check_if(expr, initializer)
+ * @brief Throw if @p expr is *true* — in every build.
+ *
+ * For failures of the environment rather than of the caller (allocation
+ * failed, allocator not configured). Contract violations use
+ * ::lh_runtime_assert_if instead.
+ *
+ * @see lh_runtime_check_ifn
+ */
+#define lh_runtime_check_if(expr, initializer)                                                     \
+    do                                                                                             \
+    {                                                                                              \
+        if (expr)                                                                                  \
+        {                                                                                          \
+            lh_runtime_error_t _err = (initializer);                                               \
+            lh_runtime_raise(lh_addr_of(_err));                                                    \
+        }                                                                                          \
+    } while (0)
+
+/**
+ * @def lh_runtime_check_ifn(expr, initializer)
+ * @brief Throw if @p expr is *false* — in every build. Inverse of
+ *        ::lh_runtime_check_if.
+ */
+#define lh_runtime_check_ifn(expr, initializer) lh_runtime_check_if(!(expr), initializer)
+
+/* ── contract assertions (not in Release) ──────────────────────────────── */
 
 /**
  * @def lh_runtime_assert_if(expr, initializer)
- * @brief Throw if @p expr is *true*.
+ * @brief Throw if @p expr is *true* — only while ::LH_RUNTIME_ASSERT_ENABLED.
  *
  * @param expr        Condition; if true, throws.
  * @param initializer An ::lh_runtime_error_t value — any expression
@@ -32,15 +90,13 @@
  *
  * @see lh_runtime_assert_ifn
  */
-#define lh_runtime_assert_if(expr, initializer)                                                    \
-    do                                                                                             \
-    {                                                                                              \
-        if (expr)                                                                                  \
-        {                                                                                          \
-            lh_runtime_error_t _err = (initializer);                                               \
-            lh_runtime_raise(lh_addr_of(_err));                                                    \
-        }                                                                                          \
-    } while (0)
+#if LH_RUNTIME_ASSERT_ENABLED
+#    define lh_runtime_assert_if(expr, initializer) lh_runtime_check_if(expr, initializer)
+#else
+/* sizeof keeps the operands "used" (no unused-variable warnings) without
+   evaluating them. */
+#    define lh_runtime_assert_if(expr, initializer) ((void)sizeof(!(expr)))
+#endif
 
 /**
  * @def lh_runtime_assert_ifn(expr, initializer)

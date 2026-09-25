@@ -22,14 +22,36 @@
 #include <gtest/gtest.h>
 #include <lh/config.h>
 
+#include <lh/runtime/assert.h>
+
 #if GTEST_HAS_DEATH_TEST && LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB
 
 /**
- * Failed lh_runtime_check_ref unwinds via lh_runtime_throw; with no catch frame this calls
+ * A failed check unwinds via lh_runtime_throw; with no catch frame this calls
  * lh_runtime_terminate(). With the default stdlib-backed handler that is abort(); the child
  * process exits and EXPECT_DEATH matches stderr with ".*".
  */
-#    define LH_EXPECT_DEATH(stmt) EXPECT_DEATH((stmt), ".*")
+
+/**
+ * LH_EXPECT_DEATH(stmt): @p stmt breaks a contract (lh_runtime_assert_* /
+ * lh_assert_runtime_*). Those checks are compiled out without
+ * LH_RUNTIME_ASSERT_ENABLED (Release), and running a contract violation with
+ * no check is undefined behaviour — so there @p stmt is not run at all.
+ */
+#    if LH_RUNTIME_ASSERT_ENABLED
+#        define LH_EXPECT_DEATH(stmt) EXPECT_DEATH((stmt), ".*")
+#    else
+#        define LH_EXPECT_DEATH(stmt)                                                              \
+            do                                                                                     \
+            {                                                                                      \
+            } while (0)
+#    endif
+
+/**
+ * LH_EXPECT_CHECK_DEATH(stmt): @p stmt trips an always-on lh_runtime_check_*
+ * (environment failure, e.g. allocation) — it dies in every build.
+ */
+#    define LH_EXPECT_CHECK_DEATH(stmt) EXPECT_DEATH((stmt), ".*")
 
 #    define LH_TEST_EXPECT_DEATH_ENABLED 1
 
