@@ -1,9 +1,12 @@
 /**
  * @file allocator.h
- * @brief Configurable memory allocator wrapper with alloc/dealloc callbacks.
+ * @brief Configurable memory allocator wrapper with alloc/dealloc (and
+ *        optional realloc) callbacks.
  *
- * ::lh_memory_allocator_t stores two function pointers:
- * one for allocation and one for deallocation.
+ * ::lh_memory_allocator_t stores function pointers for allocation and
+ * deallocation, plus an optional native reallocation that lets a block grow
+ * in place. Changing alloc or dealloc drops realloc (it would no longer
+ * match the heap); set it again with ::lh_memory_allocator_set_realloc_cb.
  *
  * The API provides init/set/get helpers plus allocation/deallocation
  * calls that validate callback availability via runtime checks.
@@ -17,6 +20,7 @@
 #include <lh/memory/allocator/alloc/cb.h>
 #include <lh/memory/allocator/dealloc/cb.h>
 #include <lh/memory/allocator/fields.h>
+#include <lh/memory/allocator/realloc/cb.h>
 
 /**
  * @struct lh_memory_allocator
@@ -25,12 +29,14 @@
  * Stores function pointers for allocate/free operations:
  * - `alloc_cb` allocates a block of requested size
  * - `dealloc_cb` releases a previously allocated block
+ * - `realloc_cb` resizes a block, possibly in place (optional, may be null)
  *
  * The concrete fields are expanded by ::lh_memory_allocator_fields.
  */
 typedef struct lh_memory_allocator
 {
-    lh_memory_allocator_fields(lh_memory_allocator_alloc_fn, lh_memory_allocator_dealloc_fn);
+    lh_memory_allocator_fields(lh_memory_allocator_alloc_fn, lh_memory_allocator_dealloc_fn,
+                               lh_memory_allocator_realloc_fn);
 } lh_memory_allocator_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -155,6 +161,23 @@ LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_allocator_realloc(lh_memory_allocator_t *self, lh_ptr old_ptr, lh_usize_t old_size,
                             lh_usize_t new_size);
+
+/**
+ * @brief Set the native reallocation callback (::lh_null for none).
+ *
+ * @p realloc_cb must belong to the same heap as the current alloc/dealloc
+ * callbacks. Setting alloc or dealloc afterwards clears it again.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_memory_allocator_set_realloc_cb(lh_memory_allocator_t *self, lh_memory_allocator_realloc_cb realloc_cb);
+
+/**
+ * @brief Current native reallocation callback, or ::lh_null.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_memory_allocator_realloc_cb
+lh_memory_allocator_get_realloc_cb(const lh_memory_allocator_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

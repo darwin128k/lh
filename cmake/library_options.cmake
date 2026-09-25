@@ -109,6 +109,18 @@ set(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC "free" CACHE STRING
         "Function bound as the default runtime allocator's dealloc_cb.")
 set(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE "<stdlib.h>" CACHE STRING
         "Header providing the default alloc/dealloc functions above.")
+# Native realloc paired with the pair above. Defaults to `realloc` only for the
+# stdlib malloc/free pair — any other pair gets lh_null (alloc + copy + dealloc
+# fallback) unless you name its own realloc, since mixing heaps is undefined.
+if (LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC STREQUAL "malloc" AND
+        LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC STREQUAL "free")
+    set(_LH_DEFAULT_REALLOC "realloc")
+else ()
+    set(_LH_DEFAULT_REALLOC "lh_null")
+endif ()
+set(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC "${_LH_DEFAULT_REALLOC}" CACHE STRING
+        "Function bound as the default runtime allocator's realloc_cb (lh_null for none).")
+unset(_LH_DEFAULT_REALLOC)
 
 # -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED

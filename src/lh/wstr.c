@@ -1,22 +1,40 @@
 #include <lh/wstr.h>
 #include <lh/assert.h>
+#include <lh/attribute/static.h>
 #include <lh/null.h>
 #include <lh/util/addr.h>
 #include <lh/util/math.h>
 #include <lh/util/ptr.h>
 
-static void
-lh_wstr_terminate(lh_wstr_t *self)
+/* What an empty string with no buffer of its own reads as. */
+static const lh_wchar_t m_wstr_empty[1] = {0};
+
+/* Write the NUL after the last character. Only for a string that owns a
+   buffer: every buffer is sized for size + 1, so the slot exists. */
+LH_ATTRIBUTE_STATIC
+void
+lh_wstr_write_terminator(lh_wstr_t *self)
 {
     lh_ptr_deref_of(lh_wchar_t, lh_vector_get_end(self)) = 0;
+}
+
+/* Same, for callers that may run on a string that never grew (no buffer,
+   nothing to write). */
+LH_ATTRIBUTE_STATIC
+void
+lh_wstr_terminate(lh_wstr_t *self)
+{
+    if (lh_math_is_zero(lh_vector_get_capacity(self)))
+    {
+        return;
+    }
+    lh_wstr_write_terminator(self);
 }
 
 void
 lh_wstr_init(lh_wstr_t *self)
 {
     lh_vector_init(self, sizeof(lh_wchar_t));
-    lh_vector_reserve(self, 1);
-    lh_wstr_terminate(self);
 }
 
 void
@@ -28,6 +46,10 @@ lh_wstr_deinit(lh_wstr_t *self)
 lh_wstr_cptr
 lh_wstr_get_data(const lh_wstr_t *self)
 {
+    if (lh_math_is_zero(lh_vector_get_capacity(self)))
+    {
+        return m_wstr_empty;
+    }
     return lh_ptr_cast(lh_wchar_t, lh_vector_get_data(self));
 }
 
@@ -46,17 +68,23 @@ lh_wstr_is_empty(const lh_wstr_t *self)
 void
 lh_wstr_append(lh_wstr_t *self, lh_wstr_cptr text, lh_usize_t count)
 {
-    lh_vector_push_back_of(self, text, count);
+    lh_usize_t needed;
+    lh_usize_t capacity;
 
-    /* push_back_of only guarantees capacity >= size; top up by one more slot
-     * when there's no room left for the terminator. */
-    const lh_usize_t size = lh_vector_get_size(self);
-    if (lh_vector_get_capacity(self) == size)
+    if (lh_math_is_zero(count))
     {
-        lh_vector_reserve(self, lh_vector_get_grown_capacity(size, lh_math_add_one(size)));
+        return;
     }
-
-    lh_wstr_terminate(self);
+    /* Grow once, for the text and the terminator together — push_back_of
+       alone would size for the text and then need a second grow for the NUL. */
+    needed = lh_math_add_one(lh_math_add(lh_vector_get_size(self), count));
+    capacity = lh_vector_get_capacity(self);
+    if (lh_math_lt(capacity, needed))
+    {
+        lh_vector_reserve(self, lh_vector_get_grown_capacity(capacity, needed));
+    }
+    lh_vector_push_back_of(self, text, count);
+    lh_wstr_write_terminator(self);
 }
 
 void
@@ -147,10 +175,7 @@ lh_wstr_truncate(lh_wstr_t *self, lh_usize_t n)
     lh_assert_runtime_ref(self);
     lh_assert_runtime_if(n > lh_wstr_get_size(self),
                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
-    while (lh_vector_get_size(self) > n)
-    {
-        lh_vector_pop_back(self, lh_null);
-    }
+    lh_vector_resize(self, n);
     lh_wstr_terminate(self);
 }
 
@@ -158,6 +183,13 @@ lh_wstr_view_t
 lh_wstr_as_view(const lh_wstr_t *self)
 {
     lh_wstr_view_t view;
+
+    /* A sized view rejects size 0; an empty string is the empty view. */
+    if (lh_wstr_is_empty(self))
+    {
+        lh_wstr_view_init_empty(lh_addr_of(view));
+        return view;
+    }
     lh_wstr_view_init_by_size(lh_addr_of(view), lh_wstr_get_data(self), lh_wstr_get_size(self));
     return view;
 }

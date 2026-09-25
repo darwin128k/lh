@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/str.h>
+#include <lh/test/alloc_counter.h>
 
 #include <cstring>
 
@@ -201,6 +202,104 @@ TEST(str_format, writes_into_self)
     EXPECT_EQ(lh_str_format(&s, "%q", 1), 0u);
     EXPECT_EQ(std::strcmp(lh_str_get_data(&s), "id:7"), 0);
 
+    lh_str_deinit(&s);
+}
+
+TEST(str_init, allocates_nothing)
+{
+    lh_test::alloc_counter counter;
+    lh_str_t s;
+
+    lh_str_init(&s);
+    EXPECT_EQ(counter.count(), 0);
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&s), ""), 0);
+    lh_str_deinit(&s);
+    EXPECT_EQ(counter.count(), 0);
+}
+
+TEST(str_bufferless, every_reader_and_reset_works_before_first_grow)
+{
+    lh_test::alloc_counter counter;
+    lh_str_t s;
+    lh_str_t other;
+
+    lh_str_init(&s);
+    lh_str_init(&other);
+
+    lh_str_clear(&s);
+    lh_str_truncate(&s, 0);
+    lh_str_view_t view = lh_str_as_view(&s);
+    EXPECT_TRUE(lh_str_view_is_empty(&view));
+    lh_str_append_str(&s, &other);
+    lh_str_assign(&s, &other);
+    lh_str_append(&s, "", 0);
+    EXPECT_TRUE(lh_str_is_empty(&s));
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&s), ""), 0);
+    EXPECT_EQ(counter.count(), 0);
+
+    lh_str_deinit(&other);
+    lh_str_deinit(&s);
+}
+
+TEST(str_assign, from_empty_string_empties_target)
+{
+    lh_str_t s;
+    lh_str_t empty;
+
+    lh_str_init(&s);
+    lh_str_init(&empty);
+    lh_str_append(&s, "abc", 3);
+    lh_str_assign(&s, &empty);
+    EXPECT_TRUE(lh_str_is_empty(&s));
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&s), ""), 0);
+
+    lh_str_deinit(&empty);
+    lh_str_deinit(&s);
+}
+
+TEST(str_append, first_append_grows_once_for_text_and_terminator)
+{
+    lh_test::alloc_counter counter;
+    lh_str_t s;
+
+    lh_str_init(&s);
+    lh_str_append(&s, "segment", 7);
+    EXPECT_EQ(counter.count(), 1);
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&s), "segment"), 0);
+    lh_str_deinit(&s);
+}
+
+TEST(str_reserve, then_appends_within_it_do_not_allocate)
+{
+    lh_test::alloc_counter counter;
+    lh_str_t s;
+    int i;
+
+    lh_str_init(&s);
+    lh_str_reserve(&s, 64);
+    EXPECT_EQ(counter.count(), 1);
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&s), ""), 0);
+    for (i = 0; i < 64; ++i)
+    {
+        lh_str_push_back(&s, 'x');
+    }
+    EXPECT_EQ(counter.count(), 1);
+    EXPECT_EQ(lh_str_get_size(&s), 64u);
+    EXPECT_EQ(lh_str_get_data(&s)[64], '\0');
+    lh_str_deinit(&s);
+}
+
+TEST(str_clear, keeps_the_buffer_for_reuse)
+{
+    lh_test::alloc_counter counter;
+    lh_str_t s;
+
+    lh_str_init(&s);
+    lh_str_append(&s, "abcdef", 6);
+    lh_str_clear(&s);
+    lh_str_append(&s, "xyz", 3);
+    EXPECT_EQ(counter.count(), 1);
+    EXPECT_EQ(std::strcmp(lh_str_get_data(&s), "xyz"), 0);
     lh_str_deinit(&s);
 }
 

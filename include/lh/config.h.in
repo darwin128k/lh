@@ -14,7 +14,7 @@
  * `LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR` (must be > 1),
  * `LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK` (must be > 0), and the
  * `LH_LIBRARY_OPTION_MEMORY_STD_*` tuning thresholds below (must be > 0); the
- * `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_*` trio takes raw
+ * `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_*` options take raw
  * C tokens instead (e.g. `malloc`, `free`, `<stdlib.h>`).
  * `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` / `_SSSE3` / `_AVX2` are toolchain capability probes
  * (see `cmake/check_simd.cmake`) — for a manual build, `0` is always a safe
@@ -138,6 +138,14 @@
  *        when ::LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB is on (default `free`).
  */
 #define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC @ValAllocatorDefaultDealloc@
+
+/**
+ * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC
+ * @brief Function bound as the default runtime allocator's `realloc_cb`
+ *        (default `realloc` for the stdlib pair, ::lh_null otherwise — then
+ *        growth falls back to alloc + copy + dealloc).
+ */
+#define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC @ValAllocatorDefaultRealloc@
 
 /**
  * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE

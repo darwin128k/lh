@@ -2,17 +2,19 @@
  * @file path.h
  * @brief A filesystem path (::lh_fs_path_t): root plus segments.
  *
- * Pure value type — no clock, no OS, no allocation beyond the segment
- * list's own. Builds and runs anywhere ::lh itself does, including without
+ * Pure value type — no clock, no OS, one buffer of its own. Builds and runs anywhere ::lh itself does, including without
  * an OS (see `lh/os/fs` for the actual filesystem I/O contract — open,
  * stat, list — which does depend on the platform and takes an
  * ::lh_fs_path_t as input). Same split as ::lh_net_ip4_t (`lh/net/ip.h`)
  * vs `lh/os/net`.
  *
- * Root (::lh_fs_path_root_kind_t + drive letter) and segments
- * (::lh_str_list_t of real names) are separate fields — a segment is never
- * asked "are you secretly the root". A name, not a disk probe: exists /
- * is-file / stat are not here.
+ * Stored the way `java.nio`'s UnixPath/WindowsPath are: one normalized
+ * text (root prefix, then segments joined by `/`) plus the root kind. A
+ * segment is a slice of that text (::lh_fs_path_get_segment), never a
+ * string of its own, so parsing is one allocation and one pass and reading a
+ * segment allocates nothing. The root is still its own field — a segment is
+ * never asked "are you secretly the root". A name, not a disk probe:
+ * exists / is-file / stat are not here.
  */
 
 #ifndef LH_FS_PATH_H
@@ -25,19 +27,19 @@
 #include <lh/fs/path/fields.h>
 #include <lh/fs/path/root/kind.h>
 #include <lh/fs/path/style.h>
+#include <lh/index.h>
 #include <lh/size.h>
 #include <lh/str.h>
-#include <lh/str/list.h>
 #include <lh/str/ptr.h>
 #include <lh/str/view.h>
 
 /**
  * @struct lh_fs_path
- * @brief Root plus segments. Fields via ::lh_fs_path_fields.
+ * @brief Normalized text plus root kind. Fields via ::lh_fs_path_fields.
  */
 typedef struct lh_fs_path
 {
-    lh_fs_path_fields(lh_fs_path_root_kind_t, lh_char_t, lh_str_list_t);
+    lh_fs_path_fields(lh_str_t, lh_fs_path_root_kind_t);
 } lh_fs_path_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -96,27 +98,24 @@ lh_bool_t
 lh_fs_path_is_drive(lh_str_view_t part);
 
 /**
- * @brief Segments of @p self, after validating the pointer.
- *
- * Single access to `segments`.
- */
-LH_ATTRIBUTE_SYMBOL
-lh_str_list_t *
-lh_fs_path_get_segments(lh_fs_path_t *self);
-
-/**
- * @brief `const` counterpart to ::lh_fs_path_get_segments.
- */
-LH_ATTRIBUTE_SYMBOL
-const lh_str_list_t *
-lh_fs_path_get_segments_as_const(const lh_fs_path_t *self);
-
-/**
  * @brief Number of segments in @p self.
  */
 LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_fs_path_get_segment_count(const lh_fs_path_t *self);
+
+/**
+ * @brief Segment @p index of @p self (`0` is the first after the root), as
+ *        a view into @p self's own text.
+ *
+ * Valid until @p self is next modified or deinitialized.
+ *
+ * @throw ::lh_runtime_error_code_out_of_range
+ *        @p index is not below ::lh_fs_path_get_segment_count.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_str_view_t
+lh_fs_path_get_segment(const lh_fs_path_t *self, lh_uindex_t index);
 
 /**
  * @brief True when @p self has neither a root nor any segments.
@@ -174,9 +173,10 @@ lh_fs_path_set(lh_fs_path_t *self, lh_str_view_t text, lh_fs_path_style_t style)
  * A drive root renders as `C:` plus the style's separator in either style;
  * the posix style has no drives of its own, but does not drop one.
  *
- * Pure and stateless: @p self keeps no cached text of its own — this is
- * computed fresh every call. @p out is an ordinary ::lh_str_t; get the
- * `const char *` for an OS call with ::lh_str_get_data(@p out).
+ * One copy of @p self's text: verbatim for ::lh_fs_path_style_posix, with
+ * `/` swapped for a backslash for ::lh_fs_path_style_windows. @p out is an
+ * ordinary ::lh_str_t; get the `const char *` for an OS call with
+ * ::lh_str_get_data(@p out).
  */
 LH_ATTRIBUTE_SYMBOL
 void
@@ -198,7 +198,7 @@ lh_fs_path_to_cstr(const lh_fs_path_t *self, lh_fs_path_style_t style, lh_str_t 
 
 /**
  * @brief Join @p dir and @p name into @p self by appending @p name's
- *        segments. @p name's own root (if any) is ignored — @p self keeps
+ *        segments (one append of @p name's text). @p name's own root (if any) is ignored — @p self keeps
  *        @p dir's root.
  *
  * @p self may alias @p dir and/or @p name.

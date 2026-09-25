@@ -39,6 +39,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Initialize @p self as an empty, NUL-terminated wide string.
+ *        Allocates nothing until the first append.
  */
 LH_ATTRIBUTE_SYMBOL
 void

@@ -6,7 +6,6 @@
 #include <lh/os/error/code.h>
 #include <lh/os/fs/path.h>
 #include <lh/os/system/fs/dir.h>
-#include <lh/os/system/fs/path.h>
 #include <lh/str.h>
 #include <lh/str/view.h>
 #include <lh/util/addr.h>
@@ -65,7 +64,7 @@ lh_os_fs_dir_is_valid(const lh_os_fs_dir_t *self)
 }
 
 lh_ssize_t
-lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_fs_path_t *name, lh_os_fs_dir_entry_kind_t *kind)
+lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_view_t *name, lh_os_fs_dir_entry_kind_t *kind)
 {
     lh_str_cptr entry;
     lh_os_fs_dir_entry_kind_t entry_kind;
@@ -86,7 +85,7 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_fs_path_t *name, lh_os_fs_dir_entry_k
         {
             if (lh_math_is_zero(n))
             {
-                lh_fs_path_clear(name);
+                lh_ptr_deref(name) = lh_str_view_make(lh_null);
             }
             return n;
         }
@@ -100,7 +99,7 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_fs_path_t *name, lh_os_fs_dir_entry_k
             lh_os_error_make(lh_os_error_code_name_too_long, lh_os_error_desc_lit("name is too long")));
         return -1;
     }
-    lh_fs_path_set(name, lh_str_view_make(entry), lh_os_system_fs_path_style_native());
+    lh_ptr_deref(name) = lh_str_view_make(entry);
     if (lh_null_ne(kind))
     {
         lh_ptr_deref(kind) = entry_kind;

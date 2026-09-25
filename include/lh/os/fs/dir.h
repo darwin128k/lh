@@ -3,8 +3,10 @@
  * @brief One directory's names: open, read, close.
  *
  * Not a recursive walk and not a glob. Each ::lh_os_fs_dir_read returns the
- * next entry's name (`.` and `..` are skipped). Join with ::lh_fs_path_join
- * to make a full path.
+ * next entry's name (`.` and `..` are skipped) as a view into the
+ * iterator's own storage — no copy, no allocation per entry. To keep a name
+ * or make a full path, copy it out (e.g. ::lh_fs_path_set, then
+ * ::lh_fs_path_join) before the next read.
  *
  * On failure the reason is in ::lh_os_last_error (our own checks) or
  * ::lh_os_system_last_error (the native call failed) — see `lh/os.h` /
@@ -24,6 +26,7 @@
 #include <lh/os/fs/dir/entry/kind.h>
 #include <lh/os/system/fs/dir/handle.h>
 #include <lh/size.h>
+#include <lh/str/view.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/fs/dir.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
@@ -97,10 +100,13 @@ lh_os_fs_dir_is_valid(const lh_os_fs_dir_t *self);
 /**
  * @brief Next entry name into @p name.
  *
- * Skips `.` and `..`. The name is stored as a path value (one path component).
+ * Skips `.` and `..`.
  *
  * @param self Open directory.
- * @param name Receives the entry name. Cleared when there are no more entries.
+ * @param name Receives a view of the entry name (one path component, no
+ *             separators). Valid until the next ::lh_os_fs_dir_read or
+ *             ::lh_os_fs_dir_close on @p self. Empty when there are no more
+ *             entries.
  * @param kind Receives ::lh_os_fs_dir_entry_kind_file / `_dir` / `_symlink`
  *             / `_other`. May be ::lh_null.
  * @return Name length excluding NUL, `0` when there are no more entries,
@@ -108,7 +114,7 @@ lh_os_fs_dir_is_valid(const lh_os_fs_dir_t *self);
  */
 LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
-lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_fs_path_t *name, lh_os_fs_dir_entry_kind_t *kind);
+lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_view_t *name, lh_os_fs_dir_entry_kind_t *kind);
 
 LH_COMPILER_EXTERN_C_END
 

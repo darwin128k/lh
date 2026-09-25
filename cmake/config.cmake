@@ -69,6 +69,7 @@ function(lh_generate_config)
 
     set(ValAllocatorDefaultAlloc "${LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC}")
     set(ValAllocatorDefaultDealloc "${LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC}")
+    set(ValAllocatorDefaultRealloc "${LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC}")
     set(ValAllocatorDefaultInclude "${LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE}")
 
     set(ValCatchStackMax "${LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX}")

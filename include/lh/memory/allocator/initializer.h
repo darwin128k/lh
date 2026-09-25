@@ -9,11 +9,13 @@
 #include <lh/initializer.h>
 #include <lh/memory/allocator/alloc/cb.h>
 #include <lh/memory/allocator/dealloc/cb.h>
+#include <lh/memory/allocator/realloc/cb.h>
 #include <lh/null.h>
 
 /**
  * @def lh_memory_allocator_initializer(malloc_fn, dealloc_fn)
- * @brief Produces a brace-enclosed initializer for ::lh_memory_allocator_t.
+ * @brief Produces a brace-enclosed initializer for ::lh_memory_allocator_t
+ *        with no native realloc (`realloc_cb` null).
  *
  * Expands to ::lh_initializer with each argument passed through ::lh_ptr_rcast
  * to `lh_memory_allocator_alloc_fn *` and `lh_memory_allocator_dealloc_fn *`
@@ -42,8 +44,19 @@
  * @see lh_memory_allocator_init
  */
 #define lh_memory_allocator_initializer(malloc_fn, dealloc_fn)                                     \
+    lh_memory_allocator_initializer_with_realloc(malloc_fn, dealloc_fn, lh_null)
+
+/**
+ * @def lh_memory_allocator_initializer_with_realloc(malloc_fn, dealloc_fn, realloc_fn)
+ * @brief ::lh_memory_allocator_initializer plus a native reallocation callback.
+ *
+ * @p realloc_fn must belong to the same heap as @p malloc_fn / @p dealloc_fn
+ * (e.g. `malloc`, `free`, `realloc`), or be ::lh_null.
+ */
+#define lh_memory_allocator_initializer_with_realloc(malloc_fn, dealloc_fn, realloc_fn)            \
     lh_initializer(lh_ptr_rcast(lh_memory_allocator_alloc_fn, malloc_fn),                          \
-                   lh_ptr_rcast(lh_memory_allocator_dealloc_fn, dealloc_fn))
+                   lh_ptr_rcast(lh_memory_allocator_dealloc_fn, dealloc_fn),                       \
+                   lh_ptr_rcast(lh_memory_allocator_realloc_fn, realloc_fn))
 
 /**
  * @def lh_memory_allocator_empty_initializer()

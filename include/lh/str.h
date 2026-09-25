@@ -8,12 +8,13 @@
  *
  * Every mutator (::lh_str_push_back, ::lh_str_append, ::lh_str_append_view,
  * ::lh_str_append_str, ::lh_str_assign, ::lh_str_assign_view, ::lh_str_join,
- * ::lh_str_format, ::lh_str_clear, ::lh_str_truncate, plus ::lh_str_init
- * itself) keeps one spare byte past
- * ::lh_str_get_size set to
- * `'\0'`, so ::lh_str_get_data can be handed straight to libc / printf-style
- * APIs without a separate termination step. The terminator does not count
- * toward ::lh_str_get_size, matching ::lh_vector_get_size semantics.
+ * ::lh_str_format, ::lh_str_clear, ::lh_str_truncate) keeps one spare byte
+ * past ::lh_str_get_size set to `'\0'`, so ::lh_str_get_data can be handed
+ * straight to libc / printf-style APIs without a separate termination step.
+ * The terminator does not count toward ::lh_str_get_size, matching
+ * ::lh_vector_get_size semantics. A string that has never grown owns no
+ * buffer (::lh_str_init allocates nothing); ::lh_str_get_data then returns a
+ * static empty string.
  *
  * Because the type is layout-compatible with ::lh_vector_t, all
  * ::lh_vector functions accept an ::lh_str_t pointer without a cast —
@@ -53,7 +54,8 @@ LH_COMPILER_EXTERN_C_BEGIN
 /* ── init / deinit ───────────────────────────────────────────────────────── */
 
 /**
- * @brief Initialize @p self as an empty, NUL-terminated string.
+ * @brief Initialize @p self as an empty, NUL-terminated string. Allocates
+ *        nothing until the first append or reserve.
  * @param self String to initialize.
  */
 LH_ATTRIBUTE_SYMBOL
