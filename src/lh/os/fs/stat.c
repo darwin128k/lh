@@ -257,7 +257,7 @@ lh_os_fs_stat_fill_from_win_attrs(lh_os_fs_stat_t *out, lh_os_fs_win_attrs_t att
 
 /**
  * @brief Raw POSIX `st_mode` bits (file-type bits + permission bits,
- *        undecoded). Not ::lh_os_fs_file_mode_t (that's our own read/write
+ *        undecoded). Not ::lh_os_system_fs_file_mode_t (that's our own read/write
  *        open-mode discriminator — unrelated). Never crosses the public
  *        API — internal to this file.
  */

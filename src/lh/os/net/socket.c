@@ -6,6 +6,7 @@
 #include <lh/compiler/os.h>
 #include <lh/memory.h>
 #include <lh/net/ip.h>
+#include <lh/numeric/limits.h>
 #include <lh/numeric/types.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/runtime/error.h>
@@ -25,6 +26,15 @@ typedef int lh_os_net_native_addr_len_t;
 #    include <unistd.h>
 typedef int lh_os_net_native_handle_t;
 typedef socklen_t lh_os_net_native_addr_len_t;
+#endif
+
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+LH_ATTRIBUTE_STATIC
+lh_int_t
+lh_os_net_socket_win_size(lh_usize_t size)
+{
+    return lh_cast_static(lh_int_t, lh_math_min(size, lh_cast_static(lh_usize_t, LH_INT_T_MAX)));
+}
 #endif
 
 LH_ATTRIBUTE_STATIC
@@ -297,7 +307,7 @@ lh_os_net_socket_send(lh_ptr context, const lh_ptr buf, lh_usize_t size)
     {
         lh_int_t result =
             send(lh_cast_static(lh_os_net_native_handle_t, self->handle), lh_ptr_ccast(char, buf),
-                 lh_cast_static(lh_int_t, size), 0);
+                 lh_os_net_socket_win_size(size), 0);
         if (lh_math_eq(result, SOCKET_ERROR))
         {
             lh_os_system_error_capture();
@@ -331,7 +341,7 @@ lh_os_net_socket_recv(lh_ptr context, lh_ptr buf, lh_usize_t size)
     {
         lh_int_t result =
             recv(lh_cast_static(lh_os_net_native_handle_t, self->handle), lh_ptr_cast(char, buf),
-                 lh_cast_static(lh_int_t, size), 0);
+                 lh_os_net_socket_win_size(size), 0);
         if (lh_math_eq(result, SOCKET_ERROR))
         {
             lh_os_system_error_capture();
@@ -369,7 +379,7 @@ lh_os_net_socket_sendto(lh_ptr context, const lh_ptr buf, lh_usize_t size,
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     {
         lh_int_t result = sendto(lh_os_net_socket_native_handle(self), lh_ptr_ccast(char, buf),
-                                 lh_cast_static(lh_int_t, size), 0,
+                                 lh_os_net_socket_win_size(size), 0,
                                  lh_ptr_rcast(struct sockaddr, lh_addr_of(native_addr)),
                                  sizeof(native_addr));
         if (lh_math_eq(result, SOCKET_ERROR))
@@ -412,7 +422,7 @@ lh_os_net_socket_recvfrom(lh_ptr context, lh_ptr buf, lh_usize_t size,
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     {
         lh_int_t result = recvfrom(lh_os_net_socket_native_handle(self), lh_ptr_cast(char, buf),
-                                   lh_cast_static(lh_int_t, size), 0,
+                                   lh_os_net_socket_win_size(size), 0,
                                    lh_ptr_rcast(struct sockaddr, lh_addr_of(native_addr)),
                                    lh_addr_of(addr_len));
         if (lh_math_eq(result, SOCKET_ERROR))

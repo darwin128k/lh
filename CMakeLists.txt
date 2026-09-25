@@ -162,6 +162,15 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/net/socket.c
             # rest of os is being rebuilt from scratch, one piece at a time.
     )
+    # Kernel backend: the only sources that call Win32 / POSIX directly.
+    if (WIN32)
+        set(LH_OS_SYSTEM_BACKEND win)
+    else ()
+        set(LH_OS_SYSTEM_BACKEND posix)
+    endif ()
+    list(APPEND LH_LIB_SOURCES
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/file.c
+    )
 endif ()
 
 

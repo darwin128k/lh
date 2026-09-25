@@ -9,23 +9,23 @@
  * without this header naming `<windows.h>` or `<unistd.h>`.
  */
 
-#ifndef LH_OS_FS_FILE_HANDLE_H
-#define LH_OS_FS_FILE_HANDLE_H
+#ifndef LH_OS_SYSTEM_FS_FILE_HANDLE_H
+#define LH_OS_SYSTEM_FS_FILE_HANDLE_H
 
 #include <lh/cast/static.h>
 #include <lh/size.h>
 
 /**
- * @typedef lh_os_fs_file_handle_t
+ * @typedef lh_os_system_fs_file_handle_t
  * @brief Raw OS file handle, stored by bit pattern.
  */
-typedef lh_ssize_t lh_os_fs_file_handle_t;
+typedef lh_ssize_t lh_os_system_fs_file_handle_t;
 
 /**
- * @def LH_OS_FS_FILE_HANDLE_INVALID
+ * @def LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID
  * @brief Sentinel for "no file" (POSIX `-1` and Windows
  *        `INVALID_HANDLE_VALUE` as this type).
  */
-#define LH_OS_FS_FILE_HANDLE_INVALID (lh_cast_static(lh_os_fs_file_handle_t, -1))
+#define LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID (lh_cast_static(lh_os_system_fs_file_handle_t, -1))
 
-#endif /* LH_OS_FS_FILE_HANDLE_H */
+#endif /* LH_OS_SYSTEM_FS_FILE_HANDLE_H */
