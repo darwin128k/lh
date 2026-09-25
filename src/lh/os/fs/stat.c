@@ -1,9 +1,8 @@
 #include <lh/os/fs/stat.h>
 #include <lh/assert.h>
-#include <lh/os.h>
-#include <lh/os/error/code.h>
+#include <lh/null.h>
+#include <lh/os/fs/path.h>
 #include <lh/os/system/fs/stat.h>
-#include <lh/os/system/fs/path.h>
 #include <lh/str.h>
 #include <lh/util/addr.h>
 #include <lh/util/bit.h>
@@ -13,16 +12,11 @@ lh_bool_t
 lh_os_fs_stat(const lh_fs_path_t *path, lh_fs_stat_t *out)
 {
     lh_str_t buf;
+    lh_str_cptr cstr;
     lh_bool_t ok;
 
-    if (lh_fs_path_is_empty(path))
-    {
-        lh_os_set_last_error(lh_os_error_make(lh_os_error_code_path_empty,
-                             lh_os_error_desc_lit("path is empty")));
-        return lh_bool_false;
-    }
-
-    ok = lh_os_system_fs_stat(lh_fs_path_to_cstr(path, lh_os_system_fs_path_style_native(), lh_addr_of(buf)), out);
+    cstr = lh_os_fs_path_to_cstr(path, lh_addr_of(buf));
+    ok = lh_null_ne(cstr) && lh_os_system_fs_stat(cstr, out);
     lh_str_deinit(lh_addr_of(buf));
     if (ok && lh_fs_path_is_hidden(path))
     {

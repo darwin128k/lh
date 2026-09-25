@@ -30,12 +30,6 @@
 #endif
 
 /**
- * @def LH_OS_FS_DIR_NAME_MAX
- * @brief Longest entry name, excluding NUL (`259` matches Windows `MAX_PATH - 1`).
- */
-#define LH_OS_FS_DIR_NAME_MAX 259U
-
-/**
  * @struct lh_os_fs_dir
  * @typedef lh_os_fs_dir_t
  * @brief Open directory iterator.

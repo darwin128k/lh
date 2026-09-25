@@ -1,10 +1,9 @@
 #include <lh/os/fs/file.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
-#include <lh/os.h>
-#include <lh/os/error/code.h>
+#include <lh/null.h>
+#include <lh/os/fs/path.h>
 #include <lh/os/system/fs/file.h>
-#include <lh/os/system/fs/path.h>
 #include <lh/str.h>
 #include <lh/util/addr.h>
 #include <lh/util/math.h>
@@ -100,18 +99,19 @@ lh_bool_t
 lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_fs_file_mode_t mode)
 {
     lh_str_t buf;
+    lh_str_cptr cstr;
     lh_os_system_fs_file_handle_t handle;
 
     lh_assert_runtime_ref(self);
-    if (lh_fs_path_is_empty(path))
+    cstr = lh_os_fs_path_to_cstr(path, lh_addr_of(buf));
+    if (lh_null_eq(cstr))
     {
-        lh_os_set_last_error(lh_os_error_make(lh_os_error_code_path_empty,
-                             lh_os_error_desc_lit("path is empty")));
+        lh_str_deinit(lh_addr_of(buf));
         return lh_bool_false;
     }
     lh_os_fs_file_close(self);
 
-    handle = lh_os_system_fs_file_open(lh_fs_path_to_cstr(path, lh_os_system_fs_path_style_native(), lh_addr_of(buf)), mode);
+    handle = lh_os_system_fs_file_open(cstr, mode);
     lh_str_deinit(lh_addr_of(buf));
     if (lh_math_eq(handle, LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID))
     {

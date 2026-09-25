@@ -4,6 +4,7 @@
 #include <lh/null.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
+#include <lh/os/fs/path.h>
 #include <lh/os/system/fs/dir.h>
 #include <lh/os/system/fs/path.h>
 #include <lh/str.h>
@@ -24,16 +25,12 @@ lh_bool_t
 lh_os_fs_dir_open(lh_os_fs_dir_t *self, const lh_fs_path_t *path)
 {
     lh_str_t buf;
+    lh_str_cptr cstr;
     lh_os_system_fs_dir_handle_t handle;
 
     lh_assert_runtime_ref(self);
-    if (lh_fs_path_is_empty(path))
-    {
-        lh_os_set_last_error(lh_os_error_make(lh_os_error_code_path_empty, lh_os_error_desc_lit("path is empty")));
-        return lh_bool_false;
-    }
-
-    handle = lh_os_system_fs_dir_open(lh_fs_path_to_cstr(path, lh_os_system_fs_path_style_native(), lh_addr_of(buf)));
+    cstr = lh_os_fs_path_to_cstr(path, lh_addr_of(buf));
+    handle = lh_null_eq(cstr) ? LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID : lh_os_system_fs_dir_open(cstr);
     lh_str_deinit(lh_addr_of(buf));
     if (lh_null_eq(handle))
     {
@@ -97,7 +94,7 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_fs_path_t *name, lh_os_fs_dir_entry_k
 
     /* The entry is consumed either way: an over-long name is reported once,
        and the next read moves on. */
-    if (lh_math_gt(n, LH_OS_FS_DIR_NAME_MAX))
+    if (lh_math_gt(lh_cast_static(lh_usize_t, n), lh_os_system_fs_dir_name_max()))
     {
         lh_os_set_last_error(
             lh_os_error_make(lh_os_error_code_name_too_long, lh_os_error_desc_lit("name is too long")));

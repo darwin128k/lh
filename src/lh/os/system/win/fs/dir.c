@@ -128,3 +128,9 @@ lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, lh_str_cptr *name,
     lh_ptr_deref(kind) = lh_os_system_fs_dir_kind(lh_addr_of(state->data));
     return lh_cast_static(lh_ssize_t, lh_str_ptr_len(state->data.cFileName));
 }
+
+lh_usize_t
+lh_os_system_fs_dir_name_max(void)
+{
+    return lh_cast_static(lh_usize_t, lh_math_sub(MAX_PATH, 1));
+}

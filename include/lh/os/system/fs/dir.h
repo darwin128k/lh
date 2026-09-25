@@ -66,6 +66,14 @@ LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, lh_str_cptr *name, lh_fs_kind_t *kind);
 
+/**
+ * @brief Longest directory-entry name the platform reports, in `char`s,
+ *        excluding the NUL (Windows `MAX_PATH - 1`; POSIX `NAME_MAX`).
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_usize_t
+lh_os_system_fs_dir_name_max(void);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_SYSTEM_FS_DIR_H */

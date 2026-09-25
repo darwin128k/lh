@@ -156,6 +156,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/error.c
             ${LH_LIB_SRC_PATH}/os/system/error/capture.c
             ${LH_LIB_SRC_PATH}/os/timestamp.c
+            ${LH_LIB_SRC_PATH}/os/fs/path.c
             ${LH_LIB_SRC_PATH}/os/fs/stat.c
             ${LH_LIB_SRC_PATH}/os/fs/file.c
             ${LH_LIB_SRC_PATH}/os/fs/dir.c
@@ -164,10 +165,13 @@ if (LH_LIBRARY_OPTION_OS)
             # rest of os is being rebuilt from scratch, one piece at a time.
     )
     # Kernel backend: the only sources that call Win32 / POSIX directly.
+    # Each backend also names the system libraries it links against.
     if (WIN32)
         set(LH_OS_SYSTEM_BACKEND win)
+        set(LH_OS_SYSTEM_LINK_LIBS ws2_32)
     else ()
         set(LH_OS_SYSTEM_BACKEND posix)
+        set(LH_OS_SYSTEM_LINK_LIBS)
     endif ()
     list(APPEND LH_LIB_SOURCES
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/error/capture.c
@@ -197,13 +201,9 @@ target_include_directories(
         ${LH_LIB_INCLUDE_PATH}
 )
 
-# OS backends: Winsock on Windows, libdl on POSIX (dlopen).
-if (LH_LIBRARY_OPTION_OS)
-    if (WIN32)
-        target_link_libraries(${PROJECT_NAME} PUBLIC ws2_32)
-    else ()
-        target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_DL_LIBS})
-    endif ()
+# Kernel backend's system libraries (chosen with LH_OS_SYSTEM_BACKEND above).
+if (LH_LIBRARY_OPTION_OS AND LH_OS_SYSTEM_LINK_LIBS)
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${LH_OS_SYSTEM_LINK_LIBS})
 endif ()
 
 # Tests (after ${PROJECT_NAME} exists for target_link_libraries).

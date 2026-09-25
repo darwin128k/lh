@@ -39,7 +39,7 @@
 
 /**
  * @def lh_os_error_code_name_too_long
- * @brief A directory entry name exceeds ::LH_OS_FS_DIR_NAME_MAX.
+ * @brief A directory entry name exceeds ::lh_os_system_fs_dir_name_max.
  */
 #define lh_os_error_code_name_too_long 0x04
 

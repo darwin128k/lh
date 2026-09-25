@@ -10,6 +10,11 @@
 
 #include <dirent.h>
 #include <errno.h>
+#include <limits.h>
+
+#ifndef NAME_MAX
+#    define NAME_MAX 255
+#endif
 
 LH_ATTRIBUTE_STATIC
 DIR *
@@ -88,4 +93,10 @@ lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, lh_str_cptr *name,
     lh_ptr_deref(name) = entry->d_name;
     lh_ptr_deref(kind) = lh_os_system_fs_dir_kind(entry->d_type);
     return lh_cast_static(lh_ssize_t, lh_str_ptr_len(entry->d_name));
+}
+
+lh_usize_t
+lh_os_system_fs_dir_name_max(void)
+{
+    return lh_cast_static(lh_usize_t, NAME_MAX);
 }
