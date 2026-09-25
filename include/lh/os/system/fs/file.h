@@ -20,7 +20,6 @@
 #ifndef LH_OS_SYSTEM_FS_FILE_H
 #define LH_OS_SYSTEM_FS_FILE_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/system/fs/file/handle.h>
@@ -44,7 +43,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  *             ::lh_fs_file_mode_readwrite.
  * @return Open handle, or ::LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_os_system_fs_file_handle_t
 lh_os_system_fs_file_open(lh_str_cptr path, lh_fs_file_mode_t mode);
 
@@ -53,7 +51,6 @@ lh_os_system_fs_file_open(lh_str_cptr path, lh_fs_file_mode_t mode);
  *
  * @param handle Open handle; must not be ::LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_os_system_fs_file_close(lh_os_system_fs_file_handle_t handle);
 
@@ -69,7 +66,6 @@ lh_os_system_fs_file_close(lh_os_system_fs_file_handle_t handle);
  * @return Bytes actually read (`0` at end of file), or a negative value on
  *         failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_os_system_fs_file_read(lh_os_system_fs_file_handle_t handle, lh_ptr buf, lh_usize_t size);
 
@@ -84,7 +80,6 @@ lh_os_system_fs_file_read(lh_os_system_fs_file_handle_t handle, lh_ptr buf, lh_u
  * @param size   Number of bytes from @p buf to write.
  * @return Bytes actually written, or a negative value on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_os_system_fs_file_write(lh_os_system_fs_file_handle_t handle, const lh_ptr buf, lh_usize_t size);
 

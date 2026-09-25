@@ -9,7 +9,6 @@
 #ifndef LH_UTIL_WCHAR_H
 #define LH_UTIL_WCHAR_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/wchar.h>
 #include <lh/cast/static.h>
@@ -48,7 +47,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @see lh_wchar_to_lower
  * @see lh_wchar_to_upper
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wchar_t
 lh_wchar_fold_case(lh_wchar_t c);
 
@@ -66,7 +64,6 @@ lh_wchar_fold_case(lh_wchar_t c);
  * Per-code-unit only;
  * not full UTF-16 string lowercasing for supplementary planes (surrogate pairs).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wchar_t
 lh_wchar_to_lower(lh_wchar_t c);
 
@@ -75,7 +72,6 @@ lh_wchar_to_lower(lh_wchar_t c);
  *
  * Same data source and limitations as ::lh_wchar_to_lower.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wchar_t
 lh_wchar_to_upper(lh_wchar_t c);
 

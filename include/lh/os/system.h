@@ -20,7 +20,6 @@
 #ifndef LH_OS_SYSTEM_H
 #define LH_OS_SYSTEM_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/system/error.h>
@@ -36,7 +35,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @return Pointer to internal ::lh_os_system_error_t object (never null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_os_system_error_t *
 lh_os_system_last_error(void);
 
@@ -46,28 +44,24 @@ lh_os_system_last_error(void);
  * Description is not copied. Literals stay valid; text captured from the
  * OS must keep its own buffer alive for as long as it is stored here.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_os_system_set_last_error(lh_os_system_error_t error);
 
 /**
  * @brief Last native error on this thread, as ::lh_os_system_error_t.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_os_system_error_t
 lh_os_system_get_last_error(void);
 
 /**
  * @brief Code of the last native error on this thread.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_os_system_error_code_t
 lh_os_system_get_last_error_code(void);
 
 /**
  * @brief Description of the last native error on this thread.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_os_error_desc_t
 lh_os_system_get_last_error_desc(void);
 

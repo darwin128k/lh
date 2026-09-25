@@ -22,7 +22,6 @@
 #ifndef LH_LOGGER_H
 #define LH_LOGGER_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/logger/emit/cb.h>
 #include <lh/logger/fields.h>
@@ -130,7 +129,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param self  Destination logger.
  * @param other Source logger.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_logger_assign(lh_logger_t *self, const lh_logger_t *other);
 
@@ -153,7 +151,6 @@ lh_logger_assign(lh_logger_t *self, const lh_logger_t *other);
  * @param debug_cb     Debug slot (may be ::lh_null).
  * @param context      Userdata passed to whichever slot runs.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_logger_set(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emergency_cb,
               lh_logger_emit_cb alert_cb, lh_logger_emit_cb critical_cb, lh_logger_emit_cb error_cb,
@@ -179,7 +176,6 @@ lh_logger_set(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_c
  * @param debug_cb     Debug slot (may be ::lh_null).
  * @param context      Userdata passed to whichever slot runs.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_logger_init_of(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emergency_cb,
                   lh_logger_emit_cb alert_cb, lh_logger_emit_cb critical_cb,
@@ -198,7 +194,6 @@ lh_logger_init_of(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_em
  * @param emit_cb Callback for every slot (may be ::lh_null).
  * @param context Userdata passed to @p emit_cb.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_logger_init(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emit_cb,
                lh_ptr context);
@@ -208,7 +203,6 @@ lh_logger_init(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_
  *
  * @param self Logger to reset.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_logger_deinit(lh_logger_t *self);
 
@@ -218,7 +212,6 @@ lh_logger_deinit(lh_logger_t *self);
  * @brief Get the current level filter from @p self.
  * @param self Logger to read from.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_logger_level_flags_t
 lh_logger_get_flags(const lh_logger_t *self);
 
@@ -229,7 +222,6 @@ lh_logger_get_flags(const lh_logger_t *self);
  * @param level Slot to read (0–7).
  * @return That slot's callback (may be ::lh_null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_logger_emit_cb
 lh_logger_get_emit_cb(const lh_logger_t *self, lh_logger_level_t level);
 
@@ -237,7 +229,6 @@ lh_logger_get_emit_cb(const lh_logger_t *self, lh_logger_level_t level);
  * @brief Get the userdata passed to callbacks.
  * @param self Logger to read from.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_logger_get_context(const lh_logger_t *self);
 
@@ -256,7 +247,6 @@ lh_logger_get_context(const lh_logger_t *self);
  *
  * @return Whatever the slot callback returns, or 0 if filtered / no slot.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_logger_log_v(lh_logger_t *self, lh_logger_level_t level, lh_str_cptr fmt, va_list args);
 
@@ -270,7 +260,6 @@ lh_logger_log_v(lh_logger_t *self, lh_logger_level_t level, lh_str_cptr fmt, va_
  *
  * @return See ::lh_logger_log_v.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_logger_log(lh_logger_t *self, lh_logger_level_t level, lh_str_cptr fmt, ...);
 

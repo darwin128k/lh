@@ -9,7 +9,6 @@
 #ifndef LH_DATE_DAY_H
 #define LH_DATE_DAY_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/date/month.h>
 #include <lh/date/year.h>
@@ -68,7 +67,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return ::LH_DATE_DAY_FEBRUARY–::LH_DATE_DAY_MAX, or `0` if @p month is not in
  *         `[::LH_DATE_MONTH_MIN, ::LH_DATE_MONTH_MAX]`.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_date_day_t
 lh_date_days_in_month(lh_date_year_t year, lh_date_month_t month);
 

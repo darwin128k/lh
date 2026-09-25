@@ -22,7 +22,6 @@
 #ifndef LH_EXCEPTION_H
 #define LH_EXCEPTION_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/error.h>
 
 #ifndef NDEBUG
@@ -67,7 +66,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  *                  debug builds only).
  * @param line      Line number (typically @c __LINE__; debug builds only).
  */
-LH_ATTRIBUTE_SYMBOL
 #ifndef NDEBUG
 void
 lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_str_view_t desc,
@@ -92,7 +90,6 @@ lh_exception_set(lh_exception_t *self, lh_error_code_t code, lh_str_view_t desc)
  *                  debug builds only).
  * @param line      Line number (typically @c __LINE__; debug builds only).
  */
-LH_ATTRIBUTE_SYMBOL
 #ifndef NDEBUG
 void
 lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_str_view_t desc,
@@ -110,7 +107,6 @@ lh_exception_init(lh_exception_t *self, lh_error_code_t code, lh_str_view_t desc
  * @param error  Source error to copy from (not null).
  * @param origin Source raise-site metadata to copy from (not null; debug builds only).
  */
-LH_ATTRIBUTE_SYMBOL
 #ifndef NDEBUG
 void
 lh_exception_init_by_error(lh_exception_t *self, const lh_error_t *error,
@@ -127,7 +123,6 @@ lh_exception_init_by_error(lh_exception_t *self, const lh_error_t *error);
  * @param self  Destination exception (not null).
  * @param other Source exception (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_exception_assign(lh_exception_t *self, const lh_exception_t *other);
 
@@ -140,7 +135,6 @@ lh_exception_assign(lh_exception_t *self, const lh_exception_t *other);
  * @param self Exception value (not null).
  * @return Pointer to @p self->error.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_error_t *
 lh_exception_get_error(lh_exception_t *self);
 
@@ -149,7 +143,6 @@ lh_exception_get_error(lh_exception_t *self);
  * @param self Exception value (not null).
  * @return Pointer to @p self->error.
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_error_t *
 lh_exception_get_error_as_const(const lh_exception_t *self);
 
@@ -165,7 +158,6 @@ lh_exception_get_error_as_const(const lh_exception_t *self);
  *
  * @see lh_exception_origin_t
  */
-LH_ATTRIBUTE_SYMBOL
 lh_exception_origin_t *
 lh_exception_get_origin(lh_exception_t *self);
 
@@ -180,7 +172,6 @@ lh_exception_get_origin(lh_exception_t *self);
  *
  * @see lh_exception_origin_t
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_exception_origin_t *
 lh_exception_get_origin_as_const(const lh_exception_t *self);
 #endif
@@ -191,7 +182,6 @@ lh_exception_get_origin_as_const(const lh_exception_t *self);
  * @param self Exception value to modify (not null).
  * @param code New error code.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_exception_set_code(lh_exception_t *self, lh_error_code_t code);
 
@@ -201,7 +191,6 @@ lh_exception_set_code(lh_exception_t *self, lh_error_code_t code);
  * @param self Exception value to modify (not null).
  * @param desc New description view (empty view = no description).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_exception_set_desc(lh_exception_t *self, lh_str_view_t desc);
 
@@ -211,7 +200,6 @@ lh_exception_set_desc(lh_exception_t *self, lh_str_view_t desc);
  * @param self Exception value (not null).
  * @return Code stored in @p self->error.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_error_code_t
 lh_exception_get_code(const lh_exception_t *self);
 
@@ -221,7 +209,6 @@ lh_exception_get_code(const lh_exception_t *self);
  * @param self Exception value (not null).
  * @return Description stored in @p self->error (empty view when there is no description).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_view_t
 lh_exception_get_desc(const lh_exception_t *self);
 
@@ -232,7 +219,6 @@ lh_exception_get_desc(const lh_exception_t *self);
  * @param fallback Description returned when @p self has no description.
  * @return Stored description when non-empty, otherwise @p fallback.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_view_t
 lh_exception_get_desc_or(const lh_exception_t *self, lh_str_view_t fallback);
 
@@ -243,7 +229,6 @@ lh_exception_get_desc_or(const lh_exception_t *self, lh_str_view_t fallback);
  * @param code Error code to compare with.
  * @return ::lh_bool_true when @p self carries @p code, otherwise ::lh_bool_false.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_has_code(const lh_exception_t *self, lh_error_code_t code);
 
@@ -253,7 +238,6 @@ lh_exception_has_code(const lh_exception_t *self, lh_error_code_t code);
  * @param self Exception value (not null).
  * @return ::lh_bool_true when @p self stores ::lh_error_code_ok.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_is_ok(const lh_exception_t *self);
 
@@ -263,7 +247,6 @@ lh_exception_is_ok(const lh_exception_t *self);
  * @param self Exception value (not null).
  * @return ::lh_bool_true when @p self does not store ::lh_error_code_ok.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_is_failure(const lh_exception_t *self);
 
@@ -273,7 +256,6 @@ lh_exception_is_failure(const lh_exception_t *self);
  * @param self Exception value (not null).
  * @return ::lh_bool_true when @p self stores a non-empty description view.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_has_desc(const lh_exception_t *self);
 
@@ -283,7 +265,6 @@ lh_exception_has_desc(const lh_exception_t *self);
  * @param self Exception value (not null).
  * @return ::lh_bool_true when @p self stores ::lh_error_code_ok and no description.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_is_empty(const lh_exception_t *self);
 
@@ -297,7 +278,6 @@ lh_exception_is_empty(const lh_exception_t *self);
  * @param other Exception value to compare with (not null).
  * @return ::lh_bool_true when both exceptions carry equal embedded errors.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_equals(const lh_exception_t *self, const lh_exception_t *other);
 
@@ -310,7 +290,6 @@ lh_exception_equals(const lh_exception_t *self, const lh_exception_t *other);
  * @param other Exception value to compare with (not null).
  * @return ::lh_bool_true when both exceptions carry the same code.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_has_same_code(const lh_exception_t *self, const lh_exception_t *other);
 
@@ -323,7 +302,6 @@ lh_exception_has_same_code(const lh_exception_t *self, const lh_exception_t *oth
  * @param other Exception value to compare with (not null).
  * @return ::lh_bool_true when both exceptions carry different codes.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_has_diff_code(const lh_exception_t *self, const lh_exception_t *other);
 

@@ -10,7 +10,6 @@
 #ifndef LH_IO_DGRAM_WRITER_H
 #define LH_IO_DGRAM_WRITER_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/io/dgram/writer/cb.h>
 #include <lh/io/dgram/writer/fields.h>
@@ -29,20 +28,16 @@ typedef struct lh_io_dgram_writer
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_dgram_writer_assign(lh_io_dgram_writer_t *self, const lh_io_dgram_writer_t *other);
 
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_dgram_writer_set(lh_io_dgram_writer_t *self, lh_io_dgram_writer_send_cb send_cb,
                        lh_ptr context);
 
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_dgram_writer_set_send_cb(lh_io_dgram_writer_t *self, lh_io_dgram_writer_send_cb send_cb);
 
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_dgram_writer_set_context(lh_io_dgram_writer_t *self, lh_ptr context);
 
@@ -53,20 +48,16 @@ lh_io_dgram_writer_set_context(lh_io_dgram_writer_t *self, lh_ptr context);
  * @param send_cb Send callback (may be ::lh_null to leave sending disabled).
  * @param context Context passed to @p send_cb on every call.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_dgram_writer_init(lh_io_dgram_writer_t *self, lh_io_dgram_writer_send_cb send_cb,
                         lh_ptr context);
 
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_dgram_writer_deinit(lh_io_dgram_writer_t *self);
 
-LH_ATTRIBUTE_SYMBOL
 lh_io_dgram_writer_send_cb
 lh_io_dgram_writer_get_send_cb(const lh_io_dgram_writer_t *self);
 
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_io_dgram_writer_get_context(const lh_io_dgram_writer_t *self);
 
@@ -82,7 +73,6 @@ lh_io_dgram_writer_get_context(const lh_io_dgram_writer_t *self);
  *
  * @return Bytes actually sent, or negative on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_io_dgram_writer_send(lh_io_dgram_writer_t *self, const lh_ptr buf, lh_usize_t size,
                         const lh_net_ip4_socket_addr_t *addr);

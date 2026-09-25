@@ -16,11 +16,9 @@
  * @def LH_ATTRIBUTE_FORCE_INLINE
  * @brief Write in place of `static inline` to mandate inlining.
  *
- * Unlike ::LH_ATTRIBUTE_SYMBOL functions (declared in a header, defined
- * once in a `.c` file, exported from the shared build), a
- * force-inline function is defined entirely in the header — there is no
- * `.c` file, no single shared copy, and no DLL boundary to cross, on
- * either a static or a shared build of `lh`.
+ * Unlike an ordinary `lh` function (declared in a header, defined once in
+ * a `.c` file), a force-inline function is defined entirely in the header —
+ * there is no `.c` file and no single shared copy.
  *
  * @see LH_COMPILER_ATTRIBUTE_FORCE_INLINE
  */

@@ -17,7 +17,6 @@
 #ifndef LH_NET_SOCKET_ADDR_IP4_H
 #define LH_NET_SOCKET_ADDR_IP4_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/net/ip.h>
@@ -58,7 +57,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param port Port number.
  * @return Constructed ::lh_net_ip4_socket_addr_t value.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_net_ip4_socket_addr_t
 lh_net_ip4_socket_addr_make(const lh_net_ip4_t *ip, lh_net_port_t port);
 
@@ -69,7 +67,6 @@ lh_net_ip4_socket_addr_make(const lh_net_ip4_t *ip, lh_net_port_t port);
  * @param ip   New IP address.
  * @param port New port number.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_net_ip4_socket_addr_set(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *ip,
                            lh_net_port_t port);
@@ -79,7 +76,6 @@ lh_net_ip4_socket_addr_set(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *i
  * @param self  Destination address.
  * @param other Source address.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_net_ip4_socket_addr_assign(lh_net_ip4_socket_addr_t *self,
                               const lh_net_ip4_socket_addr_t *other);
@@ -91,7 +87,6 @@ lh_net_ip4_socket_addr_assign(lh_net_ip4_socket_addr_t *self,
  * @param self Address to read from.
  * @return Current IP address.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_net_ip4_t
 lh_net_ip4_socket_addr_get_ip(const lh_net_ip4_socket_addr_t *self);
 
@@ -100,7 +95,6 @@ lh_net_ip4_socket_addr_get_ip(const lh_net_ip4_socket_addr_t *self);
  * @param self Address to modify.
  * @param ip   New IP address.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_net_ip4_socket_addr_set_ip(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *ip);
 
@@ -109,7 +103,6 @@ lh_net_ip4_socket_addr_set_ip(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t
  * @param self Address to read from.
  * @return Current port number.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_net_port_t
 lh_net_ip4_socket_addr_get_port(const lh_net_ip4_socket_addr_t *self);
 
@@ -118,7 +111,6 @@ lh_net_ip4_socket_addr_get_port(const lh_net_ip4_socket_addr_t *self);
  * @param self Address to modify.
  * @param port New port number.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_net_ip4_socket_addr_set_port(lh_net_ip4_socket_addr_t *self, lh_net_port_t port);
 
@@ -137,7 +129,6 @@ lh_net_ip4_socket_addr_set_port(lh_net_ip4_socket_addr_t *self, lh_net_port_t po
  * @return ::lh_bool_true if all of @p str_size was consumed as a valid
  *         `ip:port` pair, ::lh_bool_false otherwise.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_net_ip4_socket_addr_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_ip4_socket_addr_t *out);
 
@@ -150,7 +141,6 @@ lh_net_ip4_socket_addr_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_ip4_so
  *
  * @return Characters written, or 0 if @p str_size was too small.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_net_ip4_socket_addr_format(const lh_net_ip4_socket_addr_t *self, lh_str_ptr str,
                               lh_usize_t str_size);
@@ -162,7 +152,6 @@ lh_net_ip4_socket_addr_format(const lh_net_ip4_socket_addr_t *self, lh_str_ptr s
  * @param other Address to compare against.
  * @return ::lh_bool_true if both the IP and the port match, ::lh_bool_false otherwise.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_net_ip4_socket_addr_equals(const lh_net_ip4_socket_addr_t *self,
                               const lh_net_ip4_socket_addr_t *other);

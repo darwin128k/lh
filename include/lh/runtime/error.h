@@ -14,7 +14,6 @@
 #ifndef LH_RUNTIME_ERROR_H
 #define LH_RUNTIME_ERROR_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/runtime/error/code.h>
@@ -43,7 +42,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param code New error code.
  * @param desc New description view (empty view = no description).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_runtime_error_set(lh_runtime_error_t *self, lh_runtime_error_code_t code,
                      lh_str_view_t desc);
@@ -54,7 +52,6 @@ lh_runtime_error_set(lh_runtime_error_t *self, lh_runtime_error_code_t code,
  * @param self Error object to modify.
  * @param code New error code.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_runtime_error_set_code(lh_runtime_error_t *self, lh_runtime_error_code_t code);
 
@@ -64,7 +61,6 @@ lh_runtime_error_set_code(lh_runtime_error_t *self, lh_runtime_error_code_t code
  * @param self Error object to modify.
  * @param desc New description view (empty view = no description).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_runtime_error_set_desc(lh_runtime_error_t *self, lh_str_view_t desc);
 
@@ -75,7 +71,6 @@ lh_runtime_error_set_desc(lh_runtime_error_t *self, lh_str_view_t desc);
  * @param self Error object to read from.
  * @return Current ::lh_runtime_error_code_t value.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_runtime_error_code_t
 lh_runtime_error_get_code(const lh_runtime_error_t *self);
 
@@ -84,7 +79,6 @@ lh_runtime_error_get_code(const lh_runtime_error_t *self);
  * @param self Error object to read from.
  * @return Current @c desc (empty view when there is no description).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_view_t
 lh_runtime_error_get_desc(const lh_runtime_error_t *self);
 
@@ -95,7 +89,6 @@ lh_runtime_error_get_desc(const lh_runtime_error_t *self);
  * @param fallback Description returned when @p self has no description.
  * @return Stored description when non-empty, otherwise @p fallback.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_view_t
 lh_runtime_error_get_desc_or(const lh_runtime_error_t *self, lh_str_view_t fallback);
 
@@ -108,7 +101,6 @@ lh_runtime_error_get_desc_or(const lh_runtime_error_t *self, lh_str_view_t fallb
  * @param code Error code to compare with.
  * @return ::lh_bool_true when @p self carries @p code, otherwise ::lh_bool_false.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_runtime_error_has_code(const lh_runtime_error_t *self, lh_runtime_error_code_t code);
 
@@ -117,7 +109,6 @@ lh_runtime_error_has_code(const lh_runtime_error_t *self, lh_runtime_error_code_
  * @param self Error object to read from.
  * @return ::lh_bool_true when @p self stores ::lh_runtime_error_code_ok.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_runtime_error_is_ok(const lh_runtime_error_t *self);
 
@@ -126,7 +117,6 @@ lh_runtime_error_is_ok(const lh_runtime_error_t *self);
  * @param self Error object to read from.
  * @return ::lh_bool_true when @p self does not store ::lh_runtime_error_code_ok.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_runtime_error_is_failure(const lh_runtime_error_t *self);
 
@@ -135,7 +125,6 @@ lh_runtime_error_is_failure(const lh_runtime_error_t *self);
  * @param self Error object to read from.
  * @return ::lh_bool_true when @p self stores a non-empty description view.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_runtime_error_has_desc(const lh_runtime_error_t *self);
 
@@ -144,7 +133,6 @@ lh_runtime_error_has_desc(const lh_runtime_error_t *self);
  * @param self Error object to read from.
  * @return ::lh_bool_true when @p self stores ::lh_runtime_error_code_ok and no description.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_runtime_error_is_empty(const lh_runtime_error_t *self);
 
@@ -157,7 +145,6 @@ lh_runtime_error_is_empty(const lh_runtime_error_t *self);
  * @param other Error object to compare with.
  * @return ::lh_bool_true when both store the same code and description view.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_runtime_error_equals(const lh_runtime_error_t *self, const lh_runtime_error_t *other);
 
@@ -168,7 +155,6 @@ lh_runtime_error_equals(const lh_runtime_error_t *self, const lh_runtime_error_t
  * @param other Error object to compare with.
  * @return ::lh_bool_true when both store the same code.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_runtime_error_has_same_code(const lh_runtime_error_t *self, const lh_runtime_error_t *other);
 
@@ -179,7 +165,6 @@ lh_runtime_error_has_same_code(const lh_runtime_error_t *self, const lh_runtime_
  * @param other Error object to compare with.
  * @return ::lh_bool_true when both store different codes.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_runtime_error_has_diff_code(const lh_runtime_error_t *self, const lh_runtime_error_t *other);
 
@@ -190,7 +175,6 @@ lh_runtime_error_has_diff_code(const lh_runtime_error_t *self, const lh_runtime_
  * @param self  Destination error object.
  * @param other Source error object to copy from.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_runtime_error_assign(lh_runtime_error_t *self, const lh_runtime_error_t *other);
 
@@ -198,7 +182,6 @@ lh_runtime_error_assign(lh_runtime_error_t *self, const lh_runtime_error_t *othe
  * @brief Reset @p self to an empty success state.
  * @param self Error object to clear.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_runtime_error_clear(lh_runtime_error_t *self);
 
@@ -211,7 +194,6 @@ lh_runtime_error_clear(lh_runtime_error_t *self);
  * @param code Initial error code.
  * @param desc Initial description view (empty view = no description).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_runtime_error_init(lh_runtime_error_t *self, lh_runtime_error_code_t code,
                       lh_str_view_t desc);
@@ -221,7 +203,6 @@ lh_runtime_error_init(lh_runtime_error_t *self, lh_runtime_error_code_t code,
  * @param self  Error object to initialize.
  * @param other Source error to copy from.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_runtime_error_init_by_other(lh_runtime_error_t *self, const lh_runtime_error_t *other);
 
@@ -229,7 +210,6 @@ lh_runtime_error_init_by_other(lh_runtime_error_t *self, const lh_runtime_error_
  * @brief Initialize @p self to an empty success state.
  * @param self Error object to initialize.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_runtime_error_init_by_empty(lh_runtime_error_t *self);
 
@@ -239,7 +219,6 @@ lh_runtime_error_init_by_empty(lh_runtime_error_t *self);
  * @param self Error object to read and reset.
  * @return Code value before clearing.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_runtime_error_code_t
 lh_runtime_error_get_code_and_clear(lh_runtime_error_t *self);
 
@@ -260,7 +239,6 @@ lh_runtime_error_get_code_and_clear(lh_runtime_error_t *self);
  *
  * @see lh_runtime_error_make_by_code
  */
-LH_ATTRIBUTE_SYMBOL
 lh_runtime_error_t
 lh_runtime_error_make(lh_runtime_error_code_t code, lh_str_view_t desc);
 
@@ -278,7 +256,6 @@ lh_runtime_error_make(lh_runtime_error_code_t code, lh_str_view_t desc);
  * @see lh_runtime_error_make
  * @see lh_runtime_error_make_by_desc
  */
-LH_ATTRIBUTE_SYMBOL
 lh_runtime_error_t
 lh_runtime_error_make_by_code(lh_runtime_error_code_t code);
 
@@ -300,7 +277,6 @@ lh_runtime_error_make_by_code(lh_runtime_error_code_t code);
  * @see lh_runtime_error_make
  * @see lh_runtime_error_make_by_code
  */
-LH_ATTRIBUTE_SYMBOL
 lh_runtime_error_t
 lh_runtime_error_make_by_desc(lh_str_view_t desc);
 

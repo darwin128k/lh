@@ -14,7 +14,6 @@
 #ifndef LH_IO_STREAM_H
 #define LH_IO_STREAM_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/io/reader.h>
 #include <lh/io/writer.h>
@@ -44,7 +43,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param writer Write half.
  * @return Constructed ::lh_io_stream_t value.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_io_stream_t
 lh_io_stream_make(const lh_io_reader_t *reader, const lh_io_writer_t *writer);
 
@@ -55,7 +53,6 @@ lh_io_stream_make(const lh_io_reader_t *reader, const lh_io_writer_t *writer);
  * @param reader New read half.
  * @param writer New write half.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_stream_set(lh_io_stream_t *self, const lh_io_reader_t *reader, const lh_io_writer_t *writer);
 
@@ -64,7 +61,6 @@ lh_io_stream_set(lh_io_stream_t *self, const lh_io_reader_t *reader, const lh_io
  * @param self  Destination stream.
  * @param other Source stream.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_stream_assign(lh_io_stream_t *self, const lh_io_stream_t *other);
 
@@ -75,7 +71,6 @@ lh_io_stream_assign(lh_io_stream_t *self, const lh_io_stream_t *other);
  * @param self Stream to read from.
  * @return Current ::lh_io_reader_t.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_io_reader_t
 lh_io_stream_get_reader(const lh_io_stream_t *self);
 
@@ -84,7 +79,6 @@ lh_io_stream_get_reader(const lh_io_stream_t *self);
  * @param self   Stream to modify.
  * @param reader New read half.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_stream_set_reader(lh_io_stream_t *self, const lh_io_reader_t *reader);
 
@@ -93,7 +87,6 @@ lh_io_stream_set_reader(lh_io_stream_t *self, const lh_io_reader_t *reader);
  * @param self Stream to read from.
  * @return Current ::lh_io_writer_t.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_io_writer_t
 lh_io_stream_get_writer(const lh_io_stream_t *self);
 
@@ -102,7 +95,6 @@ lh_io_stream_get_writer(const lh_io_stream_t *self);
  * @param self   Stream to modify.
  * @param writer New write half.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_stream_set_writer(lh_io_stream_t *self, const lh_io_writer_t *writer);
 
@@ -115,7 +107,6 @@ lh_io_stream_set_writer(lh_io_stream_t *self, const lh_io_writer_t *writer);
  * @param size Maximum bytes to read into @p buf.
  * @return Bytes read (`0` at end of stream), or negative on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_io_stream_read(lh_io_stream_t *self, lh_ptr buf, lh_usize_t size);
 
@@ -126,7 +117,6 @@ lh_io_stream_read(lh_io_stream_t *self, lh_ptr buf, lh_usize_t size);
  * @param size Number of bytes from @p buf to write.
  * @return Bytes written, or negative on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_io_stream_write(lh_io_stream_t *self, const lh_ptr buf, lh_usize_t size);
 

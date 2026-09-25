@@ -15,7 +15,6 @@
 #ifndef LH_MEMORY_STD_H
 #define LH_MEMORY_STD_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 #include <lh/size.h>
@@ -42,7 +41,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * // buf[0..3] == {1,2,3,4}; end == buf + 4
  * @endcode
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n);
 
@@ -66,7 +64,6 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n);
  * // dst == {4, 3, 2, 1}
  * @endcode
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n);
 
@@ -89,7 +86,6 @@ lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n);
  * // v == {1, 1, 2, 3, 4}
  * @endcode
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n);
 
@@ -112,7 +108,6 @@ lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n);
  * // buf == {1, 2, 1, 2, 3, 4, 5, 6}
  * @endcode
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n);
 
@@ -132,7 +127,6 @@ lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n);
  * // all bytes in block are 0; end == block + 16
  * @endcode
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n);
 
@@ -154,7 +148,6 @@ lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n);
  * // diff points to a[2] (value 9)
  * @endcode
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_std_compare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
 
@@ -176,7 +169,6 @@ lh_memory_std_compare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
  * // diff points to a[3] (last byte differs first when comparing from the end)
  * @endcode
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_std_rcompare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
 

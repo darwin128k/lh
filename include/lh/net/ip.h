@@ -10,7 +10,6 @@
 #ifndef LH_NET_IP_H
 #define LH_NET_IP_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/limits.h>
@@ -89,7 +88,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param octet3 Fourth octet.
  * @return Constructed ::lh_net_ip4_t value.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_net_ip4_t
 lh_net_ip4_make(lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet2, lh_u8_t octet3);
 
@@ -102,7 +100,6 @@ lh_net_ip4_make(lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet2, lh_u8_t octet3);
  * @param octet2 Third octet.
  * @param octet3 Fourth octet.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_net_ip4_set(lh_net_ip4_t *self, lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet2, lh_u8_t octet3);
 
@@ -111,7 +108,6 @@ lh_net_ip4_set(lh_net_ip4_t *self, lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet
  * @param self  Destination address.
  * @param other Source address.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_net_ip4_assign(lh_net_ip4_t *self, const lh_net_ip4_t *other);
 
@@ -124,7 +120,6 @@ lh_net_ip4_assign(lh_net_ip4_t *self, const lh_net_ip4_t *other);
  * @param index Octet position (0-3; `0` is `192` in `192.168.0.1`).
  * @return Octet value at @p index.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_u8_t
 lh_net_ip4_get_octet(const lh_net_ip4_t *self, lh_usize_t index);
 
@@ -135,7 +130,6 @@ lh_net_ip4_get_octet(const lh_net_ip4_t *self, lh_usize_t index);
  * @param index Octet position (0-3).
  * @param value New octet value.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_net_ip4_set_octet(lh_net_ip4_t *self, lh_usize_t index, lh_u8_t value);
 
@@ -145,7 +139,6 @@ lh_net_ip4_set_octet(lh_net_ip4_t *self, lh_usize_t index, lh_u8_t value);
  * @param self Address to classify.
  * @return ::lh_bool_true if the first octet is 127.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_net_ip4_is_loopback(const lh_net_ip4_t *self);
 
@@ -158,7 +151,6 @@ lh_net_ip4_is_loopback(const lh_net_ip4_t *self);
  * @param self Address to classify.
  * @return ::lh_bool_true if the address is RFC 1918 private.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_net_ip4_is_private(const lh_net_ip4_t *self);
 
@@ -178,7 +170,6 @@ lh_net_ip4_is_private(const lh_net_ip4_t *self);
  * @return ::lh_bool_true if all of @p str_size was consumed as a valid
  *         address, ::lh_bool_false otherwise.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_net_ip4_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_ip4_t *out);
 
@@ -194,7 +185,6 @@ lh_net_ip4_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_ip4_t *out);
  *
  * @return Characters written (3-15), or 0 if @p str_size was too small.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_net_ip4_format(const lh_net_ip4_t *self, lh_str_ptr str, lh_usize_t str_size);
 
@@ -205,7 +195,6 @@ lh_net_ip4_format(const lh_net_ip4_t *self, lh_str_ptr str, lh_usize_t str_size)
  * @param other Address to compare against.
  * @return ::lh_bool_true if every octet matches, ::lh_bool_false otherwise.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_net_ip4_equals(const lh_net_ip4_t *self, const lh_net_ip4_t *other);
 

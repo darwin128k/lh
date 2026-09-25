@@ -11,7 +11,6 @@
 #ifndef LH_DATETIME_H
 #define LH_DATETIME_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/date.h>
@@ -51,7 +50,6 @@ typedef struct lh_datetime lh_datetime_t;
  * @param self  Destination (not null).
  * @param other Source (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_datetime_assign(lh_datetime_t *self, const lh_datetime_t *other);
 
@@ -62,7 +60,6 @@ lh_datetime_assign(lh_datetime_t *self, const lh_datetime_t *other);
  * @param date Date (not null).
  * @param time Time (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_datetime_set(lh_datetime_t *self, const lh_date_t *date, const lh_time_t *time);
 
@@ -72,7 +69,6 @@ lh_datetime_set(lh_datetime_t *self, const lh_date_t *date, const lh_time_t *tim
  * @param self Date-time to modify (not null).
  * @param date Date (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_datetime_set_date(lh_datetime_t *self, const lh_date_t *date);
 
@@ -82,7 +78,6 @@ lh_datetime_set_date(lh_datetime_t *self, const lh_date_t *date);
  * @param self Date-time to modify (not null).
  * @param time Time (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_datetime_set_time(lh_datetime_t *self, const lh_time_t *time);
 
@@ -98,7 +93,6 @@ lh_datetime_set_time(lh_datetime_t *self, const lh_time_t *time);
  * @return Year-radix overflow from the date half. `0` if the year stayed in
  *         range.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_datetime_add(lh_datetime_t *self, const lh_datetime_t *other);
 
@@ -114,7 +108,6 @@ lh_datetime_add(lh_datetime_t *self, const lh_datetime_t *other);
  * @return Year-radix units borrowed from the date half. `0` if the year
  *         stayed in range.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_datetime_sub(lh_datetime_t *self, const lh_datetime_t *other);
 
@@ -124,7 +117,6 @@ lh_datetime_sub(lh_datetime_t *self, const lh_datetime_t *other);
  * @param self Date-time to read (not null).
  * @return Copy of the stored ::lh_date_t.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_date_t
 lh_datetime_get_date(const lh_datetime_t *self);
 
@@ -134,7 +126,6 @@ lh_datetime_get_date(const lh_datetime_t *self);
  * @param self Date-time to read (not null).
  * @return Copy of the stored ::lh_time_t.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_time_t
 lh_datetime_get_time(const lh_datetime_t *self);
 
@@ -144,7 +135,6 @@ lh_datetime_get_time(const lh_datetime_t *self);
  * @param self  Left (not null).
  * @param other Right (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_datetime_equals(const lh_datetime_t *self, const lh_datetime_t *other);
 
@@ -156,7 +146,6 @@ lh_datetime_equals(const lh_datetime_t *self, const lh_datetime_t *other);
  * @param self    Value under test (not null).
  * @param minimum Floor (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_datetime_is_at_least(const lh_datetime_t *self, const lh_datetime_t *minimum);
 
@@ -168,7 +157,6 @@ lh_datetime_is_at_least(const lh_datetime_t *self, const lh_datetime_t *minimum)
  * @param self  Value under test (not null).
  * @param other Bound (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_datetime_is_less(const lh_datetime_t *self, const lh_datetime_t *other);
 
@@ -180,7 +168,6 @@ lh_datetime_is_less(const lh_datetime_t *self, const lh_datetime_t *other);
  * @param self  Value under test (not null).
  * @param other Bound (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_datetime_is_greater(const lh_datetime_t *self, const lh_datetime_t *other);
 
@@ -196,7 +183,6 @@ lh_datetime_is_greater(const lh_datetime_t *self, const lh_datetime_t *other);
  *
  * @return ::lh_bool_true if all of @p str_size was consumed as a valid datetime.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_datetime_parse(lh_str_cptr str, lh_usize_t str_size, lh_datetime_t *out);
 
@@ -212,7 +198,6 @@ lh_datetime_parse(lh_str_cptr str, lh_usize_t str_size, lh_datetime_t *out);
  *
  * @return Characters written, or 0 if @p str_size was too small.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_datetime_format(const lh_datetime_t *self, lh_str_ptr str, lh_usize_t str_size);
 

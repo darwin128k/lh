@@ -20,7 +20,6 @@
 #ifndef LH_EXCEPTION_ORIGIN_H
 #define LH_EXCEPTION_ORIGIN_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
 #include <lh/str/view.h>
@@ -51,28 +50,24 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Write only the timestamp.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_exception_origin_set_timestamp(lh_exception_origin_t *self, lh_str_view_t timestamp);
 
 /**
  * @brief Write only the file path.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_exception_origin_set_file(lh_exception_origin_t *self, lh_str_view_t file);
 
 /**
  * @brief Write only the function name.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_exception_origin_set_function(lh_exception_origin_t *self, lh_str_view_t function);
 
 /**
  * @brief Write only the line number.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_exception_origin_set_line(lh_exception_origin_t *self, lh_usize_t line);
 
@@ -85,7 +80,6 @@ lh_exception_origin_set_line(lh_exception_origin_t *self, lh_usize_t line);
  * @param function  Function name view (typically ::lh_str_view_lit of @c __FUNCTION__).
  * @param line      Line number (typically @c __LINE__).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_exception_origin_set(lh_exception_origin_t *self, lh_str_view_t timestamp, lh_str_view_t file,
                         lh_str_view_t function, lh_usize_t line);
@@ -99,7 +93,6 @@ lh_exception_origin_set(lh_exception_origin_t *self, lh_str_view_t timestamp, lh
  * @param function  Function name view (typically ::lh_str_view_lit of @c __FUNCTION__).
  * @param line      Line number (typically @c __LINE__).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_exception_origin_init(lh_exception_origin_t *self, lh_str_view_t timestamp, lh_str_view_t file,
                          lh_str_view_t function, lh_usize_t line);
@@ -110,7 +103,6 @@ lh_exception_origin_init(lh_exception_origin_t *self, lh_str_view_t timestamp, l
  * @brief Return the timestamp stored in @p self.
  * @param self Origin to read from (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_view_t
 lh_exception_origin_get_timestamp(const lh_exception_origin_t *self);
 
@@ -118,7 +110,6 @@ lh_exception_origin_get_timestamp(const lh_exception_origin_t *self);
  * @brief Return the filename stored in @p self.
  * @param self Origin to read from (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_view_t
 lh_exception_origin_get_file(const lh_exception_origin_t *self);
 
@@ -126,7 +117,6 @@ lh_exception_origin_get_file(const lh_exception_origin_t *self);
  * @brief Return the function name stored in @p self.
  * @param self Origin to read from (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_view_t
 lh_exception_origin_get_function(const lh_exception_origin_t *self);
 
@@ -134,7 +124,6 @@ lh_exception_origin_get_function(const lh_exception_origin_t *self);
  * @brief Return the line number stored in @p self.
  * @param self Origin to read from (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_exception_origin_get_line(const lh_exception_origin_t *self);
 
@@ -145,7 +134,6 @@ lh_exception_origin_get_line(const lh_exception_origin_t *self);
  * @param self  Destination (not null).
  * @param other Source (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_exception_origin_assign(lh_exception_origin_t *self, const lh_exception_origin_t *other);
 
@@ -154,7 +142,6 @@ lh_exception_origin_assign(lh_exception_origin_t *self, const lh_exception_origi
  * @param self  Origin to initialize (not null).
  * @param other Source origin to copy from (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_exception_origin_init_by_other(lh_exception_origin_t *self, const lh_exception_origin_t *other);
 

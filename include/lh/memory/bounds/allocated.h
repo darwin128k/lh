@@ -40,7 +40,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_memory_bounds_allocated_get_size(const lh_memory_bounds_allocated_t *self);
 
@@ -54,7 +53,6 @@ lh_memory_bounds_allocated_get_size(const lh_memory_bounds_allocated_t *self);
  * @throw ::lh_runtime_error_code_deallocator_function_not_initialized
  *        The runtime deallocation callback is not initialized.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_allocated_clear(lh_memory_bounds_allocated_t *self);
 
@@ -78,7 +76,6 @@ lh_memory_bounds_allocated_clear(lh_memory_bounds_allocated_t *self);
  * @throw ::lh_runtime_error_code_deallocator_function_not_initialized
  *        The runtime deallocation callback is not initialized.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_allocated_resize(lh_memory_bounds_allocated_t *self, lh_usize_t size);
 
@@ -99,7 +96,6 @@ lh_memory_bounds_allocated_resize(lh_memory_bounds_allocated_t *self, lh_usize_t
  * @throw ::lh_runtime_error_code_deallocator_function_not_initialized
  *        The runtime deallocation callback is not initialized.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_allocated_exchange(lh_memory_bounds_allocated_t *self,
                                     lh_memory_bounds_allocated_t *other);

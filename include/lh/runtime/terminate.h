@@ -14,7 +14,6 @@
 #define LH_RUNTIME_TERMINATE_H
 
 #include <lh/library/fallback.h>
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/attribute/noreturn.h>
 #include <lh/runtime/terminate/cb.h>
@@ -33,7 +32,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * // install new handler
  * @endcode
  */
-LH_ATTRIBUTE_SYMBOL
 lh_runtime_terminate_cb
 lh_runtime_terminate_get(void);
 
@@ -47,7 +45,6 @@ lh_runtime_terminate_get(void);
  * lh_runtime_terminate_set(my_handler);
  * @endcode
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_runtime_terminate_set(lh_runtime_terminate_cb fn);
 
@@ -65,7 +62,6 @@ lh_runtime_terminate_set(lh_runtime_terminate_cb fn);
  * }
  * @endcode
  */
-LH_ATTRIBUTE_SYMBOL
 LH_ATTRIBUTE_NORETURN
 void
 lh_runtime_terminate(void);

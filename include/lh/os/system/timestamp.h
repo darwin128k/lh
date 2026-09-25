@@ -11,7 +11,6 @@
 #ifndef LH_OS_SYSTEM_TIMESTAMP_H
 #define LH_OS_SYSTEM_TIMESTAMP_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -28,7 +27,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return ::lh_bool_true on success; ::lh_bool_false if the native clock
  *         failed (@p out untouched, reason in ::lh_os_system_last_error).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_system_timestamp_now(lh_timestamp_t *out);
 

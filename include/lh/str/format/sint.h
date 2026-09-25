@@ -6,7 +6,6 @@
 #ifndef LH_STR_FORMAT_SINT_H
 #define LH_STR_FORMAT_SINT_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/types.h>
 #include <lh/size.h>
@@ -27,7 +26,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @return Characters written (at least 1), or 0 if @p str_size was too small.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_ptr_format_sint(lh_sint_t value, lh_str_ptr str, lh_usize_t str_size);
 

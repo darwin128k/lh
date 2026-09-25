@@ -6,7 +6,6 @@
 #ifndef LH_STR_PARSE_HEX_H
 #define LH_STR_PARSE_HEX_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/types.h>
@@ -34,7 +33,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return ::lh_bool_true if all of @p str_size was consumed as a hexadecimal
  *         integer not exceeding @p max, ::lh_bool_false otherwise.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_ptr_parse_hex(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
 

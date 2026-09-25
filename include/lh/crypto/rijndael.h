@@ -13,7 +13,6 @@
 #ifndef LH_CRYPTO_RIJNDAEL_H
 #define LH_CRYPTO_RIJNDAEL_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/crypto/rijndael/mode.h>
@@ -97,7 +96,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return ::lh_bool_true on success, ::lh_bool_false if a length or @p mode
  *         is invalid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_crypto_rijndael_init(lh_crypto_rijndael_t *self, const lh_ptr key, lh_usize_t key_size,
                         const lh_ptr chain, lh_usize_t chain_size, lh_usize_t block_size,
@@ -115,7 +113,6 @@ lh_crypto_rijndael_init(lh_crypto_rijndael_t *self, const lh_ptr key, lh_usize_t
  *
  * @return ::lh_bool_true on success.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_crypto_rijndael_encrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh_ptr out);
 
@@ -131,7 +128,6 @@ lh_crypto_rijndael_encrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh
  *
  * @return ::lh_bool_true on success.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_crypto_rijndael_decrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh_ptr out);
 

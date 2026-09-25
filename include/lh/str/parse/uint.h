@@ -6,7 +6,6 @@
 #ifndef LH_STR_PARSE_UINT_H
 #define LH_STR_PARSE_UINT_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/types.h>
@@ -33,7 +32,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return ::lh_bool_true if all of @p str_size was consumed as a decimal
  *         integer not exceeding @p max, ::lh_bool_false otherwise.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_ptr_parse_uint_digits(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
 
@@ -51,7 +49,6 @@ lh_str_ptr_parse_uint_digits(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max
  * @return ::lh_bool_true if the field is a decimal integer not exceeding
  *         @p max and not zero-padded, ::lh_bool_false otherwise.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_ptr_parse_uint(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
 
@@ -73,7 +70,6 @@ lh_str_ptr_parse_uint(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_ui
  * @return ::lh_bool_true if a field was split, parsed, and ended as
  *         @p want_delim requires.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_ptr_split_next_uint_digits(lh_str_cptr str, lh_usize_t str_size, lh_char_t delim,
                                   lh_usize_t *pos, lh_uint_t max, lh_uint_t *out,

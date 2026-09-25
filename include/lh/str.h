@@ -28,7 +28,6 @@
 #ifndef LH_STR_H
 #define LH_STR_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/vector.h>
 #include <lh/str/ptr.h>
@@ -58,7 +57,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  *        nothing until the first append or reserve.
  * @param self String to initialize.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_init(lh_str_t *self);
 
@@ -66,7 +64,6 @@ lh_str_init(lh_str_t *self);
  * @brief Free the buffer owned by @p self and reset it to empty.
  * @param self String to deinitialize.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_deinit(lh_str_t *self);
 
@@ -76,7 +73,6 @@ lh_str_deinit(lh_str_t *self);
  * @brief Return a pointer to the NUL-terminated character data.
  * @param self String to inspect.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_cptr
 lh_str_get_data(const lh_str_t *self);
 
@@ -84,7 +80,6 @@ lh_str_get_data(const lh_str_t *self);
  * @brief Return the number of characters in @p self (excluding the terminator).
  * @param self String to inspect.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_get_size(const lh_str_t *self);
 
@@ -92,7 +87,6 @@ lh_str_get_size(const lh_str_t *self);
  * @brief True when @p self has no characters.
  * @param self String to inspect.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_is_empty(const lh_str_t *self);
 
@@ -103,7 +97,6 @@ lh_str_is_empty(const lh_str_t *self);
  * @param self String to append to.
  * @param ch   Character to append.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_push_back(lh_str_t *self, lh_char_t ch);
 
@@ -115,7 +108,6 @@ lh_str_push_back(lh_str_t *self, lh_char_t ch);
  *              @p count is 0); their bytes are copied.
  * @param count Number of characters to append.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_append(lh_str_t *self, lh_str_cptr text, lh_usize_t count);
 
@@ -124,14 +116,12 @@ lh_str_append(lh_str_t *self, lh_str_cptr text, lh_usize_t count);
  *
  * Empty @p view is a no-op.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_append_view(lh_str_t *self, lh_str_view_t view);
 
 /**
  * @brief Append the characters of @p other to @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_append_str(lh_str_t *self, const lh_str_t *other);
 
@@ -140,14 +130,12 @@ lh_str_append_str(lh_str_t *self, const lh_str_t *other);
  *
  * No-op when @p self is @p other.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_assign(lh_str_t *self, const lh_str_t *other);
 
 /**
  * @brief Replace @p self with a copy of @p view.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_assign_view(lh_str_t *self, lh_str_view_t view);
 
@@ -156,7 +144,6 @@ lh_str_assign_view(lh_str_t *self, lh_str_view_t view);
  *
  * Empty views are kept (two empties yield a lone separator).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_join(lh_str_t *self, const lh_str_view_t *parts, lh_usize_t count, lh_char_t sep);
 
@@ -168,14 +155,12 @@ lh_str_join(lh_str_t *self, const lh_str_view_t *parts, lh_usize_t count, lh_cha
  *
  * @return Characters written, or 0 on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_format_v(lh_str_t *self, lh_str_cptr fmt, va_list args);
 
 /**
  * @brief Variadic wrapper for ::lh_str_format_v.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_format(lh_str_t *self, lh_str_cptr fmt, ...);
 
@@ -190,7 +175,6 @@ lh_str_format(lh_str_t *self, lh_str_cptr fmt, ...);
  * @param self  String to grow.
  * @param count Characters @p self must be able to hold, excluding the NUL.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_reserve(lh_str_t *self, lh_usize_t count);
 
@@ -198,7 +182,6 @@ lh_str_reserve(lh_str_t *self, lh_usize_t count);
  * @brief Empty @p self without releasing its buffer.
  * @param self String to clear.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_clear(lh_str_t *self);
 
@@ -208,7 +191,6 @@ lh_str_clear(lh_str_t *self);
  * @param self String to shrink.
  * @param n    New size; must be <= ::lh_str_get_size.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_truncate(lh_str_t *self, lh_usize_t n);
 
@@ -222,7 +204,6 @@ lh_str_truncate(lh_str_t *self, lh_usize_t n);
  *
  * @param self String to view.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_view_t
 lh_str_as_view(const lh_str_t *self);
 

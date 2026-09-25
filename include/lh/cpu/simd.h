@@ -18,7 +18,6 @@
 #ifndef LH_CPU_SIMD_H
 #define LH_CPU_SIMD_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 
@@ -34,7 +33,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return ::lh_bool_true if SSE2 is usable on this CPU, ::lh_bool_false otherwise
  *         (including whenever `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` is off).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_cpu_simd_has_sse2(void);
 
@@ -49,7 +47,6 @@ lh_cpu_simd_has_sse2(void);
  * @return ::lh_bool_true if SSSE3 is usable on this CPU, ::lh_bool_false otherwise
  *         (including whenever `LH_LIBRARY_OPTION_SIMD_HAVE_SSSE3` is off).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_cpu_simd_has_ssse3(void);
 
@@ -63,7 +60,6 @@ lh_cpu_simd_has_ssse3(void);
  * @return ::lh_bool_true if AVX2 is usable on this CPU, ::lh_bool_false otherwise
  *         (including whenever `LH_LIBRARY_OPTION_SIMD_HAVE_AVX2` is off).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_cpu_simd_has_avx2(void);
 

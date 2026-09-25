@@ -42,7 +42,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @throw ::lh_runtime_error_code_deallocator_function_not_initialized
  *        The runtime deallocation callback is not initialized.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_typed_allocated_clear(lh_memory_typed_allocated_t *self);
 
@@ -65,7 +64,6 @@ lh_memory_typed_allocated_clear(lh_memory_typed_allocated_t *self);
  * @throw ::lh_runtime_error_code_deallocator_function_not_initialized
  *        The runtime deallocation callback is not initialized.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_typed_allocated_resize(lh_memory_typed_allocated_t *self, lh_usize_t count);
 
@@ -85,7 +83,6 @@ lh_memory_typed_allocated_resize(lh_memory_typed_allocated_t *self, lh_usize_t c
  * @throw ::lh_runtime_error_code_deallocator_function_not_initialized
  *        The runtime deallocation callback is not initialized.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_typed_allocated_exchange(lh_memory_typed_allocated_t *self,
                                    lh_memory_typed_allocated_t *other);

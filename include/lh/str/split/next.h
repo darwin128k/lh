@@ -11,7 +11,6 @@
 #ifndef LH_STR_SPLIT_NEXT_H
 #define LH_STR_SPLIT_NEXT_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
@@ -42,7 +41,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return ::lh_bool_true if a field was produced, ::lh_bool_false if
  *         `*pos` was already at @p str_size (nothing left to read).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_ptr_split_next_of(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr delims,
                          lh_usize_t delim_count, lh_usize_t *pos, lh_str_cptr *field,
@@ -71,7 +69,6 @@ lh_str_ptr_split_next_of(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr delim
  * @return ::lh_bool_true if a field was produced, ::lh_bool_false if
  *         `*pos` was already at @p str_size (nothing left to read).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_ptr_split_next(lh_str_cptr str, lh_usize_t str_size, lh_char_t delim, lh_usize_t *pos,
                       lh_str_cptr *field, lh_usize_t *field_size, lh_bool_t *had_delim);
@@ -82,7 +79,6 @@ lh_str_ptr_split_next(lh_str_cptr str, lh_usize_t str_size, lh_char_t delim, lh_
  * Empty @p self yields ::lh_bool_false. A zero-length field is an empty
  * view (leading or doubled delimiter).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_view_split_next_of(const lh_str_view_t *self, lh_str_cptr delims, lh_usize_t delim_count,
                           lh_usize_t *pos, lh_str_view_t *field, lh_bool_t *had_delim);

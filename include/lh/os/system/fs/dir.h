@@ -19,7 +19,6 @@
 #ifndef LH_OS_SYSTEM_FS_DIR_H
 #define LH_OS_SYSTEM_FS_DIR_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/fs/kind.h>
@@ -39,7 +38,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param path Native, NUL-terminated directory path text.
  * @return Open handle, or ::LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_os_system_fs_dir_handle_t
 lh_os_system_fs_dir_open(lh_str_cptr path);
 
@@ -48,7 +46,6 @@ lh_os_system_fs_dir_open(lh_str_cptr path);
  *
  * @param handle Open handle; must not be ::LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_os_system_fs_dir_close(lh_os_system_fs_dir_handle_t handle);
 
@@ -62,7 +59,6 @@ lh_os_system_fs_dir_close(lh_os_system_fs_dir_handle_t handle);
  * @return Length of @p name (`> 0`) for an entry, `0` when the listing is
  *         exhausted, or a negative value on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, lh_str_cptr *name, lh_fs_kind_t *kind);
 
@@ -70,7 +66,6 @@ lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, lh_str_cptr *name,
  * @brief Longest directory-entry name the platform reports, in `char`s,
  *        excluding the NUL (Windows `MAX_PATH - 1`; POSIX `NAME_MAX`).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_os_system_fs_dir_name_max(void);
 

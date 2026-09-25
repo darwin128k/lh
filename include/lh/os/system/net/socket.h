@@ -22,7 +22,6 @@
 #ifndef LH_OS_SYSTEM_NET_SOCKET_H
 #define LH_OS_SYSTEM_NET_SOCKET_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -46,7 +45,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  *             ::lh_os_system_net_socket_type_udp.
  * @return Open handle, or ::LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_os_system_net_socket_handle_t
 lh_os_system_net_socket_open(lh_os_system_net_socket_type_t type);
 
@@ -55,7 +53,6 @@ lh_os_system_net_socket_open(lh_os_system_net_socket_type_t type);
  *
  * @param handle Open handle; must not be ::LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_os_system_net_socket_close(lh_os_system_net_socket_handle_t handle);
 
@@ -63,7 +60,6 @@ lh_os_system_net_socket_close(lh_os_system_net_socket_handle_t handle);
  * @brief Connect @p handle to @p addr (blocking).
  * @return ::lh_bool_true on success, ::lh_bool_false if the native call failed.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_system_net_socket_connect(lh_os_system_net_socket_handle_t handle, const lh_net_ip4_socket_addr_t *addr);
 
@@ -71,7 +67,6 @@ lh_os_system_net_socket_connect(lh_os_system_net_socket_handle_t handle, const l
  * @brief Bind @p handle to the local @p addr.
  * @return ::lh_bool_true on success, ::lh_bool_false if the native call failed.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_system_net_socket_bind(lh_os_system_net_socket_handle_t handle, const lh_net_ip4_socket_addr_t *addr);
 
@@ -80,7 +75,6 @@ lh_os_system_net_socket_bind(lh_os_system_net_socket_handle_t handle, const lh_n
  * @param backlog Maximum pending connections to queue; must not be negative.
  * @return ::lh_bool_true on success, ::lh_bool_false if the native call failed.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_system_net_socket_listen(lh_os_system_net_socket_handle_t handle, lh_int_t backlog);
 
@@ -92,7 +86,6 @@ lh_os_system_net_socket_listen(lh_os_system_net_socket_handle_t handle, lh_int_t
  * @return The connected handle, or ::LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID
  *         on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_os_system_net_socket_handle_t
 lh_os_system_net_socket_accept(lh_os_system_net_socket_handle_t handle, lh_net_ip4_socket_addr_t *peer);
 
@@ -100,7 +93,6 @@ lh_os_system_net_socket_accept(lh_os_system_net_socket_handle_t handle, lh_net_i
  * @brief Read the local IPv4 address bound to @p handle into @p out.
  * @return ::lh_bool_true on success, ::lh_bool_false if the native call failed.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_system_net_socket_get_local_addr(lh_os_system_net_socket_handle_t handle, lh_net_ip4_socket_addr_t *out);
 
@@ -108,7 +100,6 @@ lh_os_system_net_socket_get_local_addr(lh_os_system_net_socket_handle_t handle, 
  * @brief Enable or disable `SO_REUSEADDR` on @p handle.
  * @return ::lh_bool_true on success, ::lh_bool_false if the native call failed.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_system_net_socket_set_reuse_addr(lh_os_system_net_socket_handle_t handle, lh_bool_t enabled);
 
@@ -120,7 +111,6 @@ lh_os_system_net_socket_set_reuse_addr(lh_os_system_net_socket_handle_t handle, 
  *
  * @return Bytes actually sent, or a negative value on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_os_system_net_socket_send(lh_os_system_net_socket_handle_t handle, const lh_ptr buf, lh_usize_t size);
 
@@ -132,7 +122,6 @@ lh_os_system_net_socket_send(lh_os_system_net_socket_handle_t handle, const lh_p
  * @return Bytes actually received (`0` if the peer closed the connection),
  *         or a negative value on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_os_system_net_socket_recv(lh_os_system_net_socket_handle_t handle, lh_ptr buf, lh_usize_t size);
 
@@ -145,7 +134,6 @@ lh_os_system_net_socket_recv(lh_os_system_net_socket_handle_t handle, lh_ptr buf
  *
  * @return Bytes actually sent, or a negative value on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_os_system_net_socket_sendto(lh_os_system_net_socket_handle_t handle, const lh_ptr buf, lh_usize_t size,
                                const lh_net_ip4_socket_addr_t *addr);
@@ -158,7 +146,6 @@ lh_os_system_net_socket_sendto(lh_os_system_net_socket_handle_t handle, const lh
  *
  * @return Bytes actually received, or a negative value on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_os_system_net_socket_recvfrom(lh_os_system_net_socket_handle_t handle, lh_ptr buf, lh_usize_t size,
                                  lh_net_ip4_socket_addr_t *addr);

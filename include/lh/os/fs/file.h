@@ -16,7 +16,6 @@
 #ifndef LH_OS_FS_FILE_H
 #define LH_OS_FS_FILE_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -51,14 +50,12 @@ LH_COMPILER_EXTERN_C_BEGIN
  * Call once on uninitialized storage. Reset an already-initialized file
  * with ::lh_os_fs_file_close (handle only) or ::lh_os_fs_file_deinit.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_os_fs_file_init(lh_os_fs_file_t *self);
 
 /**
  * @brief Close the handle and release the stored path.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_os_fs_file_deinit(lh_os_fs_file_t *self);
 
@@ -67,49 +64,42 @@ lh_os_fs_file_deinit(lh_os_fs_file_t *self);
  *
  * Safe to call on an already-closed file. Releases the OS handle when open.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_os_fs_file_close(lh_os_fs_file_t *self);
 
 /**
  * @brief Copy @p path into the stored path. The handle is not touched.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_os_fs_file_set_path(lh_os_fs_file_t *self, const lh_fs_path_t *path);
 
 /**
  * @brief Stored path of @p self, after validating the pointer.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_fs_path_t *
 lh_os_fs_file_get_path(lh_os_fs_file_t *self);
 
 /**
  * @brief `const` counterpart to ::lh_os_fs_file_get_path.
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_fs_path_t *
 lh_os_fs_file_get_path_as_const(const lh_os_fs_file_t *self);
 
 /**
  * @brief Stored handle of @p self, after validating the pointer.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_os_system_fs_file_handle_t *
 lh_os_fs_file_get_handle(lh_os_fs_file_t *self);
 
 /**
  * @brief `const` counterpart to ::lh_os_fs_file_get_handle.
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_os_system_fs_file_handle_t *
 lh_os_fs_file_get_handle_as_const(const lh_os_fs_file_t *self);
 
 /**
  * @brief True when @p self currently holds an open handle.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_fs_file_is_valid(const lh_os_fs_file_t *self);
 
@@ -117,7 +107,6 @@ lh_os_fs_file_is_valid(const lh_os_fs_file_t *self);
  * @brief Mode last passed to a successful ::lh_os_fs_file_open, or
  *        ::lh_fs_file_mode_none when closed.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_fs_file_mode_t
 lh_os_fs_file_get_mode(const lh_os_fs_file_t *self);
 
@@ -127,7 +116,6 @@ lh_os_fs_file_get_mode(const lh_os_fs_file_t *self);
  * Internal bookkeeping for ::lh_os_fs_file_open/::lh_os_fs_file_close —
  * does not itself open or close anything.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_os_fs_file_set_mode(lh_os_fs_file_t *self, lh_fs_file_mode_t mode);
 
@@ -142,7 +130,6 @@ lh_os_fs_file_set_mode(lh_os_fs_file_t *self, lh_fs_file_mode_t mode);
  *             ::lh_fs_file_mode_readwrite.
  * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_fs_file_mode_t mode);
 
@@ -155,7 +142,6 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_fs_file_m
  * @return Bytes actually read (`0` at end of file), or a negative value on
  *         failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_os_fs_file_read(lh_ptr context, lh_ptr buf, lh_usize_t size);
 
@@ -167,7 +153,6 @@ lh_os_fs_file_read(lh_ptr context, lh_ptr buf, lh_usize_t size);
  * @param size    Number of bytes from @p buf to write.
  * @return Bytes actually written, or a negative value on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_os_fs_file_write(lh_ptr context, const lh_ptr buf, lh_usize_t size);
 
@@ -179,7 +164,6 @@ lh_os_fs_file_write(lh_ptr context, const lh_ptr buf, lh_usize_t size);
  * @param self File to read from; must outlive the returned reader.
  * @return An ::lh_io_reader_t wired to ::lh_os_fs_file_read.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_io_reader_t
 lh_os_fs_file_get_reader(lh_os_fs_file_t *self);
 
@@ -189,7 +173,6 @@ lh_os_fs_file_get_reader(lh_os_fs_file_t *self);
  * @param self File to write to; must outlive the returned writer.
  * @return An ::lh_io_writer_t wired to ::lh_os_fs_file_write.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_io_writer_t
 lh_os_fs_file_get_writer(lh_os_fs_file_t *self);
 
@@ -199,7 +182,6 @@ lh_os_fs_file_get_writer(lh_os_fs_file_t *self);
  * @param self File to wrap; must outlive the returned stream.
  * @return An ::lh_io_stream_t backed by @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_io_stream_t
 lh_os_fs_file_get_stream(lh_os_fs_file_t *self);
 

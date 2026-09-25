@@ -19,7 +19,6 @@
 #ifndef LH_OS_NET_SOCKET_H
 #define LH_OS_NET_SOCKET_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -61,7 +60,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @param self Socket object to initialize.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_os_net_socket_init(lh_os_net_socket_t *self);
 
@@ -75,7 +73,6 @@ lh_os_net_socket_init(lh_os_net_socket_t *self);
  * @param type ::lh_os_system_net_socket_type_tcp or ::lh_os_system_net_socket_type_udp.
  * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_net_socket_open(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t type);
 
@@ -86,7 +83,6 @@ lh_os_net_socket_open(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t t
  *
  * @param self Socket object to close.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_os_net_socket_close(lh_os_net_socket_t *self);
 
@@ -98,7 +94,6 @@ lh_os_net_socket_close(lh_os_net_socket_t *self);
  * @return Current ::lh_os_system_net_socket_handle_t
  *         (::LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID if not open).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_os_system_net_socket_handle_t
 lh_os_net_socket_get_handle(const lh_os_net_socket_t *self);
 
@@ -107,7 +102,6 @@ lh_os_net_socket_get_handle(const lh_os_net_socket_t *self);
  * @param self Socket to test.
  * @return ::lh_bool_true if open, ::lh_bool_false otherwise.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_net_socket_is_valid(const lh_os_net_socket_t *self);
 
@@ -121,7 +115,6 @@ lh_os_net_socket_is_valid(const lh_os_net_socket_t *self);
  * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed
  *         (connection refused, unreachable, timed out, ...).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_net_socket_connect(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_t *addr);
 
@@ -136,7 +129,6 @@ lh_os_net_socket_connect(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_
  * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed
  *         (address in use, permission denied, ...).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_net_socket_bind(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_t *addr);
 
@@ -147,7 +139,6 @@ lh_os_net_socket_bind(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_t *
  * @param backlog Maximum pending connections the OS should queue.
  * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_net_socket_listen(lh_os_net_socket_t *self, lh_int_t backlog);
 
@@ -160,7 +151,6 @@ lh_os_net_socket_listen(lh_os_net_socket_t *self, lh_int_t backlog);
  * @param peer   Receives the remote IPv4 address.
  * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_net_socket_accept(lh_os_net_socket_t *self, lh_os_net_socket_t *client,
                         lh_net_ip4_socket_addr_t *peer);
@@ -174,7 +164,6 @@ lh_os_net_socket_accept(lh_os_net_socket_t *self, lh_os_net_socket_t *client,
  * @param out  Receives the local IPv4 address.
  * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_net_socket_get_local_addr(const lh_os_net_socket_t *self, lh_net_ip4_socket_addr_t *out);
 
@@ -188,7 +177,6 @@ lh_os_net_socket_get_local_addr(const lh_os_net_socket_t *self, lh_net_ip4_socke
  * @param enabled ::lh_bool_true to allow reuse, ::lh_bool_false to clear it.
  * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_net_socket_set_reuse_addr(lh_os_net_socket_t *self, lh_bool_t enabled);
 
@@ -200,7 +188,6 @@ lh_os_net_socket_set_reuse_addr(lh_os_net_socket_t *self, lh_bool_t enabled);
  * @param size    Number of bytes from @p buf to send.
  * @return Bytes actually sent, or a negative value on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_os_net_socket_send(lh_ptr context, const lh_ptr buf, lh_usize_t size);
 
@@ -213,7 +200,6 @@ lh_os_net_socket_send(lh_ptr context, const lh_ptr buf, lh_usize_t size);
  * @return Bytes actually received (`0` if the peer closed the connection),
  *         or a negative value on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_os_net_socket_recv(lh_ptr context, lh_ptr buf, lh_usize_t size);
 
@@ -228,7 +214,6 @@ lh_os_net_socket_recv(lh_ptr context, lh_ptr buf, lh_usize_t size);
  * @param addr    Destination IPv4 address.
  * @return Bytes actually sent, or a negative value on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_os_net_socket_sendto(lh_ptr context, const lh_ptr buf, lh_usize_t size,
                         const lh_net_ip4_socket_addr_t *addr);
@@ -245,7 +230,6 @@ lh_os_net_socket_sendto(lh_ptr context, const lh_ptr buf, lh_usize_t size,
  * @param addr    Receives the sender's IPv4 address.
  * @return Bytes actually received, or a negative value on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_os_net_socket_recvfrom(lh_ptr context, lh_ptr buf, lh_usize_t size,
                           lh_net_ip4_socket_addr_t *addr);
@@ -258,7 +242,6 @@ lh_os_net_socket_recvfrom(lh_ptr context, lh_ptr buf, lh_usize_t size,
  * @param self Socket to read from; must outlive the returned reader.
  * @return An ::lh_io_reader_t wired to ::lh_os_net_socket_recv.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_io_reader_t
 lh_os_net_socket_get_reader(lh_os_net_socket_t *self);
 
@@ -268,7 +251,6 @@ lh_os_net_socket_get_reader(lh_os_net_socket_t *self);
  * @param self Socket to write to; must outlive the returned writer.
  * @return An ::lh_io_writer_t wired to ::lh_os_net_socket_send.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_io_writer_t
 lh_os_net_socket_get_writer(lh_os_net_socket_t *self);
 
@@ -287,7 +269,6 @@ lh_os_net_socket_get_writer(lh_os_net_socket_t *self);
  *             returned stream.
  * @return An ::lh_io_stream_t backed by @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_io_stream_t
 lh_os_net_socket_get_stream(lh_os_net_socket_t *self);
 
@@ -297,7 +278,6 @@ lh_os_net_socket_get_stream(lh_os_net_socket_t *self);
  * @param self Socket to receive from; must outlive the returned reader.
  * @return An ::lh_io_dgram_reader_t wired to ::lh_os_net_socket_recvfrom.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_io_dgram_reader_t
 lh_os_net_socket_get_dgram_reader(lh_os_net_socket_t *self);
 
@@ -307,7 +287,6 @@ lh_os_net_socket_get_dgram_reader(lh_os_net_socket_t *self);
  * @param self Socket to send through; must outlive the returned writer.
  * @return An ::lh_io_dgram_writer_t wired to ::lh_os_net_socket_sendto.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_io_dgram_writer_t
 lh_os_net_socket_get_dgram_writer(lh_os_net_socket_t *self);
 
@@ -325,7 +304,6 @@ lh_os_net_socket_get_dgram_writer(lh_os_net_socket_t *self);
  * @param self Open UDP socket to wrap; must outlive the returned dgram.
  * @return An ::lh_io_dgram_t backed by @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_io_dgram_t
 lh_os_net_socket_get_dgram(lh_os_net_socket_t *self);
 

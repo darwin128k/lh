@@ -18,7 +18,6 @@
 #ifndef LH_OS_SYSTEM_ERROR_CAPTURE_H
 #define LH_OS_SYSTEM_ERROR_CAPTURE_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/error/desc.h>
@@ -57,7 +56,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param dest_size Capacity of @p dest in characters, including the NUL.
  * @return @p dest.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_os_error_desc_ptr
 lh_os_system_error_format(lh_os_system_error_code_t code, lh_os_error_desc_ptr dest, lh_usize_t dest_size);
 
@@ -67,7 +65,6 @@ lh_os_system_error_format(lh_os_system_error_code_t code, lh_os_error_desc_ptr d
  *
  * Only reads; does not touch ::lh_os_system_last_error.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_os_system_error_code_t
 lh_os_system_error_get_native_code(void);
 
@@ -80,7 +77,6 @@ lh_os_system_error_get_native_code(void);
  * buffer. The stored description views that buffer; it stays valid until
  * the next call to this function on the same thread.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_os_system_error_capture(void);
 

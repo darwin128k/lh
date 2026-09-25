@@ -10,7 +10,6 @@
 #ifndef LH_CRYPTO_SHA_H
 #define LH_CRYPTO_SHA_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/crypto/sha/kind.h>
@@ -89,7 +88,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param kind Algorithm; one of the `lh_crypto_sha_kind_*` constants.
  * @return Digest size, or 0 if @p kind is not a known algorithm.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_crypto_sha_digest_size(lh_crypto_sha_kind_t kind);
 
@@ -99,7 +97,6 @@ lh_crypto_sha_digest_size(lh_crypto_sha_kind_t kind);
  * @param kind Algorithm; one of the `lh_crypto_sha_kind_*` constants.
  * @return 64 for SHA-1/224/256, 128 for SHA-384/512, or 0 if @p kind is unknown.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_crypto_sha_block_size(lh_crypto_sha_kind_t kind);
 
@@ -109,7 +106,6 @@ lh_crypto_sha_block_size(lh_crypto_sha_kind_t kind);
  * @param self Hasher to initialise.
  * @param kind Algorithm; one of the `lh_crypto_sha_kind_*` constants.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_crypto_sha_init(lh_crypto_sha_t *self, lh_crypto_sha_kind_t kind);
 
@@ -122,7 +118,6 @@ lh_crypto_sha_init(lh_crypto_sha_t *self, lh_crypto_sha_kind_t kind);
  * @param data Input span. Ignored when @p size is 0.
  * @param size Number of bytes in @p data.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_crypto_sha_update(lh_crypto_sha_t *self, const lh_ptr data, lh_usize_t size);
 
@@ -138,7 +133,6 @@ lh_crypto_sha_update(lh_crypto_sha_t *self, const lh_ptr data, lh_usize_t size);
  * @return Bytes written (the digest size for this kind), or 0 if @p out_size
  *         was too small.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_crypto_sha_finish(lh_crypto_sha_t *self, lh_ptr out, lh_usize_t out_size);
 
@@ -155,7 +149,6 @@ lh_crypto_sha_finish(lh_crypto_sha_t *self, lh_ptr out, lh_usize_t out_size);
  *
  * @return Bytes written, or 0 if @p out_size was too small or @p kind is unknown.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_crypto_sha_hash(lh_crypto_sha_kind_t kind, const lh_ptr data, lh_usize_t size, lh_ptr out,
                    lh_usize_t out_size);

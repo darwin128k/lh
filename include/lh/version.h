@@ -10,7 +10,6 @@
 #ifndef LH_VERSION_H
 #define LH_VERSION_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/limits.h>
@@ -90,7 +89,6 @@ typedef struct lh_version lh_version_t;
  * @param self  Destination version (not null).
  * @param other Source version (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_version_assign(lh_version_t *self, const lh_version_t *other);
 
@@ -102,7 +100,6 @@ lh_version_assign(lh_version_t *self, const lh_version_t *other);
  * @param minor New minor component.
  * @param patch New patch component.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_version_set(lh_version_t *self, lh_version_major_t major, lh_version_minor_t minor,
                lh_version_patch_t patch);
@@ -110,21 +107,18 @@ lh_version_set(lh_version_t *self, lh_version_major_t major, lh_version_minor_t 
 /**
  * @brief Write only the major component.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_version_set_major(lh_version_t *self, lh_version_major_t major);
 
 /**
  * @brief Write only the minor component.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_version_set_minor(lh_version_t *self, lh_version_minor_t minor);
 
 /**
  * @brief Write only the patch component.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_version_set_patch(lh_version_t *self, lh_version_patch_t patch);
 
@@ -135,7 +129,6 @@ lh_version_set_patch(lh_version_t *self, lh_version_patch_t patch);
  * @param self Version struct to read from.
  * @return Major version number.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_version_major_t
 lh_version_get_major(const lh_version_t *self);
 
@@ -144,7 +137,6 @@ lh_version_get_major(const lh_version_t *self);
  * @param self Version struct to read from.
  * @return Minor version number.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_version_minor_t
 lh_version_get_minor(const lh_version_t *self);
 
@@ -153,7 +145,6 @@ lh_version_get_minor(const lh_version_t *self);
  * @param self Version struct to read from.
  * @return Patch version number.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_version_patch_t
 lh_version_get_patch(const lh_version_t *self);
 
@@ -166,7 +157,6 @@ lh_version_get_patch(const lh_version_t *self);
  * @param self    Version under test (e.g. device or runtime).
  * @param minimum Required floor (e.g. minimum supported version).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_version_is_at_least(const lh_version_t *self, const lh_version_t *minimum);
 
@@ -177,7 +167,6 @@ lh_version_is_at_least(const lh_version_t *self, const lh_version_t *minimum);
  * @param other Version to compare against.
  * @return ::lh_bool_true if major, minor, and patch all match.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_version_equals(const lh_version_t *self, const lh_version_t *other);
 
@@ -193,7 +182,6 @@ lh_version_equals(const lh_version_t *self, const lh_version_t *other);
  * @param self     Provided version (e.g. a loaded plugin).
  * @param required Floor the caller asked for.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_version_is_compatible(const lh_version_t *self, const lh_version_t *required);
 
@@ -217,7 +205,6 @@ lh_version_is_compatible(const lh_version_t *self, const lh_version_t *required)
  * @return ::lh_bool_true if all of @p str_size was consumed as a valid
  *         version, ::lh_bool_false otherwise.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_version_parse(lh_str_cptr str, lh_usize_t str_size, lh_version_t *out);
 
@@ -233,7 +220,6 @@ lh_version_parse(lh_str_cptr str, lh_usize_t str_size, lh_version_t *out);
  *
  * @return Characters written (5–13), or 0 if @p str_size was too small.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_version_format(const lh_version_t *self, lh_str_ptr str, lh_usize_t str_size);
 

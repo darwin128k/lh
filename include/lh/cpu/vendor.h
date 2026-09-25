@@ -15,7 +15,6 @@
 #ifndef LH_CPU_VENDOR_H
 #define LH_CPU_VENDOR_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 
@@ -28,7 +27,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  *         ::lh_bool_false otherwise (including on non-x86 targets, or where CPUID
  *         itself could not be read).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_cpu_vendor_is_intel(void);
 
@@ -39,7 +37,6 @@ lh_cpu_vendor_is_intel(void);
  *         ::lh_bool_false otherwise (including on non-x86 targets, or where CPUID
  *         itself could not be read).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_cpu_vendor_is_amd(void);
 

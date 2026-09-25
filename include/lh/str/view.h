@@ -65,7 +65,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p size is zero or the computed view is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_init_by_size(lh_str_view_t *self, lh_str_cptr data, lh_usize_t size);
 
@@ -82,7 +81,6 @@ lh_str_init_by_size(lh_str_view_t *self, lh_str_cptr data, lh_usize_t size);
  * @throw ::lh_runtime_error_code_invalid_argument
  *        @p data is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_view_init(lh_str_view_t *self, lh_str_cptr data);
 
@@ -94,7 +92,6 @@ lh_str_view_init(lh_str_view_t *self, lh_str_cptr data);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_view_init_empty(lh_str_view_t *self);
 
@@ -107,7 +104,6 @@ lh_str_view_init_empty(lh_str_view_t *self);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_view_init_by_other(lh_str_view_t *self, const lh_str_view_t *other);
 
@@ -121,7 +117,6 @@ lh_str_view_init_by_other(lh_str_view_t *self, const lh_str_view_t *other);
  * @param data NUL-terminated string, or ::lh_null.
  * @return Constructed view (does not own @p data).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_view_t
 lh_str_view_make(lh_str_cptr data);
 
@@ -138,7 +133,6 @@ lh_str_view_make(lh_str_cptr data);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_cptr
 lh_str_view_get_begin(const lh_str_view_t *self);
 
@@ -155,7 +149,6 @@ lh_str_view_get_begin(const lh_str_view_t *self);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_cptr
 lh_str_view_get_end(const lh_str_view_t *self);
 
@@ -167,7 +160,6 @@ lh_str_view_get_end(const lh_str_view_t *self);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_cptr
 lh_str_view_get_data(const lh_str_view_t *self);
 
@@ -184,7 +176,6 @@ lh_str_view_get_data(const lh_str_view_t *self);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_view_get_size(const lh_str_view_t *self);
 
@@ -198,7 +189,6 @@ lh_str_view_get_size(const lh_str_view_t *self);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_view_is_empty(const lh_str_view_t *self);
 
@@ -216,7 +206,6 @@ lh_str_view_is_empty(const lh_str_view_t *self);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_view_find_char(const lh_str_view_t *self, lh_char_t ch);
 
@@ -232,7 +221,6 @@ lh_str_view_find_char(const lh_str_view_t *self, lh_char_t ch);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_view_rfind_char(const lh_str_view_t *self, lh_char_t ch);
 
@@ -247,7 +235,6 @@ lh_str_view_rfind_char(const lh_str_view_t *self, lh_char_t ch);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_view_contains_char(const lh_str_view_t *self, lh_char_t ch);
 
@@ -264,7 +251,6 @@ lh_str_view_contains_char(const lh_str_view_t *self, lh_char_t ch);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_view_find(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case);
 
@@ -281,7 +267,6 @@ lh_str_view_find(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_view_rfind(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case);
 
@@ -297,7 +282,6 @@ lh_str_view_rfind(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_view_contains(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case);
 
@@ -313,7 +297,6 @@ lh_str_view_contains(const lh_str_view_t *self, const lh_str_view_t *other, lh_b
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p chars is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_view_find_of(const lh_str_view_t *self, const lh_str_view_t *chars);
 
@@ -329,7 +312,6 @@ lh_str_view_find_of(const lh_str_view_t *self, const lh_str_view_t *chars);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p chars is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_view_rfind_of(const lh_str_view_t *self, const lh_str_view_t *chars);
 
@@ -346,7 +328,6 @@ lh_str_view_rfind_of(const lh_str_view_t *self, const lh_str_view_t *chars);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p chars is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_view_find_not_of(const lh_str_view_t *self, const lh_str_view_t *chars);
 
@@ -362,7 +343,6 @@ lh_str_view_find_not_of(const lh_str_view_t *self, const lh_str_view_t *chars);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p chars is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_view_rfind_not_of(const lh_str_view_t *self, const lh_str_view_t *chars);
 
@@ -382,7 +362,6 @@ lh_str_view_rfind_not_of(const lh_str_view_t *self, const lh_str_view_t *chars);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_cptr
 lh_str_view_compare(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case);
 
@@ -400,7 +379,6 @@ lh_str_view_compare(const lh_str_view_t *self, const lh_str_view_t *other, lh_bo
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_cptr
 lh_str_view_rcompare(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case);
 
@@ -418,7 +396,6 @@ lh_str_view_rcompare(const lh_str_view_t *self, const lh_str_view_t *other, lh_b
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_view_equals(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case);
 
@@ -437,7 +414,6 @@ lh_str_view_equals(const lh_str_view_t *self, const lh_str_view_t *other, lh_boo
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_view_starts_with(const lh_str_view_t *self, const lh_str_view_t *other,
                         lh_bool_t ignore_case);
@@ -457,7 +433,6 @@ lh_str_view_starts_with(const lh_str_view_t *self, const lh_str_view_t *other,
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_view_ends_with(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case);
 
@@ -477,7 +452,6 @@ lh_str_view_ends_with(const lh_str_view_t *self, const lh_str_view_t *other, lh_
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_view_find_null_terminator(const lh_str_view_t *self);
 
@@ -491,7 +465,6 @@ lh_str_view_find_null_terminator(const lh_str_view_t *self);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_view_is_null_terminated(const lh_str_view_t *self);
 
@@ -508,7 +481,6 @@ lh_str_view_is_null_terminated(const lh_str_view_t *self);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_char_t
 lh_str_view_get_first_char(const lh_str_view_t *self);
 
@@ -523,7 +495,6 @@ lh_str_view_get_first_char(const lh_str_view_t *self);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_char_t
 lh_str_view_get_last_char(const lh_str_view_t *self);
 
@@ -541,7 +512,6 @@ lh_str_view_get_last_char(const lh_str_view_t *self);
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_char_t
 lh_str_view_get_char_from_begin(const lh_str_view_t *self, lh_uoffset_t offset);
 
@@ -559,7 +529,6 @@ lh_str_view_get_char_from_begin(const lh_str_view_t *self, lh_uoffset_t offset);
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_char_t
 lh_str_view_get_char_from_end(const lh_str_view_t *self, lh_uoffset_t offset);
 
@@ -577,7 +546,6 @@ lh_str_view_get_char_from_end(const lh_str_view_t *self, lh_uoffset_t offset);
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_char_t
 lh_str_view_get_char_by_offset(const lh_str_view_t *self, lh_soffset_t offset);
 
@@ -591,7 +559,6 @@ lh_str_view_get_char_by_offset(const lh_str_view_t *self, lh_soffset_t offset);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_view_clear(lh_str_view_t *self);
 
@@ -606,7 +573,6 @@ lh_str_view_clear(lh_str_view_t *self);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_view_assign(lh_str_view_t *self, const lh_str_view_t *other);
 
@@ -619,7 +585,6 @@ lh_str_view_assign(lh_str_view_t *self, const lh_str_view_t *other);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_view_swap(lh_str_view_t *self, lh_str_view_t *other);
 
@@ -635,7 +600,6 @@ lh_str_view_swap(lh_str_view_t *self, lh_str_view_t *other);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_str_view_swap_and_clear(lh_str_view_t *self, lh_str_view_t *other);
 

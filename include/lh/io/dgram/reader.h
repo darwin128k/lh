@@ -10,7 +10,6 @@
 #ifndef LH_IO_DGRAM_READER_H
 #define LH_IO_DGRAM_READER_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/io/dgram/reader/cb.h>
 #include <lh/io/dgram/reader/fields.h>
@@ -29,20 +28,16 @@ typedef struct lh_io_dgram_reader
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_dgram_reader_assign(lh_io_dgram_reader_t *self, const lh_io_dgram_reader_t *other);
 
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_dgram_reader_set(lh_io_dgram_reader_t *self, lh_io_dgram_reader_recv_cb recv_cb,
                        lh_ptr context);
 
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_dgram_reader_set_recv_cb(lh_io_dgram_reader_t *self, lh_io_dgram_reader_recv_cb recv_cb);
 
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_dgram_reader_set_context(lh_io_dgram_reader_t *self, lh_ptr context);
 
@@ -53,20 +48,16 @@ lh_io_dgram_reader_set_context(lh_io_dgram_reader_t *self, lh_ptr context);
  * @param recv_cb Recv callback (may be ::lh_null to leave receiving disabled).
  * @param context Context passed to @p recv_cb on every call.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_dgram_reader_init(lh_io_dgram_reader_t *self, lh_io_dgram_reader_recv_cb recv_cb,
                         lh_ptr context);
 
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_dgram_reader_deinit(lh_io_dgram_reader_t *self);
 
-LH_ATTRIBUTE_SYMBOL
 lh_io_dgram_reader_recv_cb
 lh_io_dgram_reader_get_recv_cb(const lh_io_dgram_reader_t *self);
 
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_io_dgram_reader_get_context(const lh_io_dgram_reader_t *self);
 
@@ -83,7 +74,6 @@ lh_io_dgram_reader_get_context(const lh_io_dgram_reader_t *self);
  * @return Bytes actually received (`0` is an empty datagram), or negative
  *         on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_io_dgram_reader_recv(lh_io_dgram_reader_t *self, lh_ptr buf, lh_usize_t size,
                         lh_net_ip4_socket_addr_t *addr);

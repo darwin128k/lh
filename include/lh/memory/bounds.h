@@ -54,7 +54,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_get_begin(const lh_memory_bounds_t *self);
 
@@ -66,7 +65,6 @@ lh_memory_bounds_get_begin(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_get_data(const lh_memory_bounds_t *self);
 
@@ -78,7 +76,6 @@ lh_memory_bounds_get_data(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_get_end(const lh_memory_bounds_t *self);
 
@@ -96,7 +93,6 @@ lh_memory_bounds_get_end(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_memory_view_slice_flags_t
 lh_memory_bounds_get_flags(const lh_memory_bounds_t *self);
 
@@ -107,7 +103,6 @@ lh_memory_bounds_get_flags(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_is_uninitialized(const lh_memory_bounds_t *self);
 
@@ -118,7 +113,6 @@ lh_memory_bounds_is_uninitialized(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_is_initialized(const lh_memory_bounds_t *self);
 
@@ -135,7 +129,6 @@ lh_memory_bounds_is_initialized(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_memory_view_slice_direction_t
 lh_memory_bounds_get_direction(const lh_memory_bounds_t *self);
 
@@ -146,7 +139,6 @@ lh_memory_bounds_get_direction(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_is_forward(const lh_memory_bounds_t *self);
 
@@ -157,7 +149,6 @@ lh_memory_bounds_is_forward(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_is_backward(const lh_memory_bounds_t *self);
 
@@ -168,7 +159,6 @@ lh_memory_bounds_is_backward(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_is_valid(const lh_memory_bounds_t *self);
 
@@ -184,7 +174,6 @@ lh_memory_bounds_is_valid(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_get_begin_v(const lh_memory_bounds_t *self);
 
@@ -198,7 +187,6 @@ lh_memory_bounds_get_begin_v(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_get_end_v(const lh_memory_bounds_t *self);
 
@@ -215,7 +203,6 @@ lh_memory_bounds_get_end_v(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_memory_bounds_get_size(const lh_memory_bounds_t *self);
 
@@ -233,7 +220,6 @@ lh_memory_bounds_get_size(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is invalid and not uninitialized.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_is_empty(const lh_memory_bounds_t *self);
 
@@ -251,7 +237,6 @@ lh_memory_bounds_is_empty(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_is_valid_offset(const lh_memory_bounds_t *self, lh_uoffset_t offset);
 
@@ -269,7 +254,6 @@ lh_memory_bounds_is_valid_offset(const lh_memory_bounds_t *self, lh_uoffset_t of
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p ptr is outside @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uoffset_t
 lh_memory_bounds_get_offset_from_begin(const lh_memory_bounds_t *self, const lh_ptr ptr);
 
@@ -290,7 +274,6 @@ lh_memory_bounds_get_offset_from_begin(const lh_memory_bounds_t *self, const lh_
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p ptr is outside @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uoffset_t
 lh_memory_bounds_get_offset_from_end(const lh_memory_bounds_t *self, const lh_ptr ptr);
 
@@ -305,7 +288,6 @@ lh_memory_bounds_get_offset_from_end(const lh_memory_bounds_t *self, const lh_pt
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_contains_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr);
 
@@ -321,7 +303,6 @@ lh_memory_bounds_contains_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_contains_of(const lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
 
@@ -333,7 +314,6 @@ lh_memory_bounds_contains_of(const lh_memory_bounds_t *self, const lh_ptr begin,
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_contains_range(const lh_memory_bounds_t *self, const lh_ptr begin,
                                 const lh_ptr end);
@@ -352,7 +332,6 @@ lh_memory_bounds_contains_range(const lh_memory_bounds_t *self, const lh_ptr beg
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_contains(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
@@ -364,7 +343,6 @@ lh_memory_bounds_contains(const lh_memory_bounds_t *self, const lh_memory_bounds
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_contains_v(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
@@ -384,7 +362,6 @@ lh_memory_bounds_contains_v(const lh_memory_bounds_t *self, const lh_memory_boun
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_get_ptr_from_begin(const lh_memory_bounds_t *self, lh_uoffset_t offset);
 
@@ -405,7 +382,6 @@ lh_memory_bounds_get_ptr_from_begin(const lh_memory_bounds_t *self, lh_uoffset_t
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_get_ptr_from_end(const lh_memory_bounds_t *self, lh_uoffset_t offset);
 
@@ -419,7 +395,6 @@ lh_memory_bounds_get_ptr_from_end(const lh_memory_bounds_t *self, lh_uoffset_t o
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_get_first_ptr(const lh_memory_bounds_t *self);
 
@@ -435,7 +410,6 @@ lh_memory_bounds_get_first_ptr(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p self is empty.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_get_last_ptr(const lh_memory_bounds_t *self);
 
@@ -457,7 +431,6 @@ lh_memory_bounds_get_last_ptr(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_get_ptr(const lh_memory_bounds_t *self, lh_soffset_t offset);
 
@@ -475,7 +448,6 @@ lh_memory_bounds_get_ptr(const lh_memory_bounds_t *self, lh_soffset_t offset);
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_byte_t
 lh_memory_bounds_get_value_from_begin(const lh_memory_bounds_t *self, lh_uoffset_t offset);
 
@@ -493,7 +465,6 @@ lh_memory_bounds_get_value_from_begin(const lh_memory_bounds_t *self, lh_uoffset
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_byte_t
 lh_memory_bounds_get_value_from_end(const lh_memory_bounds_t *self, lh_uoffset_t offset);
 
@@ -511,7 +482,6 @@ lh_memory_bounds_get_value_from_end(const lh_memory_bounds_t *self, lh_uoffset_t
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_byte_t
 lh_memory_bounds_get_value(const lh_memory_bounds_t *self, lh_soffset_t offset);
 
@@ -526,7 +496,6 @@ lh_memory_bounds_get_value(const lh_memory_bounds_t *self, lh_soffset_t offset);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_byte_t
 lh_memory_bounds_get_first_value(const lh_memory_bounds_t *self);
 
@@ -541,7 +510,6 @@ lh_memory_bounds_get_first_value(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_byte_t
 lh_memory_bounds_get_last_value(const lh_memory_bounds_t *self);
 
@@ -559,7 +527,6 @@ lh_memory_bounds_get_last_value(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_set_value(const lh_memory_bounds_t *self, lh_uoffset_t offset, lh_byte_t value);
 
@@ -582,7 +549,6 @@ lh_memory_bounds_set_value(const lh_memory_bounds_t *self, lh_uoffset_t offset, 
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p ptr is outside @p self or the target offset is out of range.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uoffset_t
 lh_memory_bounds_get_offset_from_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr,
                                      lh_soffset_t offset);
@@ -602,7 +568,6 @@ lh_memory_bounds_get_offset_from_ptr(const lh_memory_bounds_t *self, const lh_pt
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_bounds_seek_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr, lh_soffset_t offset);
 
@@ -614,7 +579,6 @@ lh_memory_bounds_seek_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr, lh_s
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_bounds_next_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr);
 
@@ -626,7 +590,6 @@ lh_memory_bounds_next_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_bounds_prev_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr);
 
@@ -640,7 +603,6 @@ lh_memory_bounds_prev_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr);
  * @throw ::lh_runtime_error_code_out_of_range
  *        The seek result is outside @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_byte_t
 lh_memory_bounds_seek_value(const lh_memory_bounds_t *self, const lh_ptr ptr);
 
@@ -654,7 +616,6 @@ lh_memory_bounds_seek_value(const lh_memory_bounds_t *self, const lh_ptr ptr);
  * @throw ::lh_runtime_error_code_out_of_range
  *        There is no next byte inside @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_byte_t
 lh_memory_bounds_next_value(const lh_memory_bounds_t *self, const lh_ptr ptr);
 
@@ -668,7 +629,6 @@ lh_memory_bounds_next_value(const lh_memory_bounds_t *self, const lh_ptr ptr);
  * @throw ::lh_runtime_error_code_out_of_range
  *        There is no previous byte inside @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_byte_t
 lh_memory_bounds_prev_value(const lh_memory_bounds_t *self, const lh_ptr ptr);
 
@@ -682,7 +642,6 @@ lh_memory_bounds_prev_value(const lh_memory_bounds_t *self, const lh_ptr ptr);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_overlaps_of(const lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
 
@@ -694,7 +653,6 @@ lh_memory_bounds_overlaps_of(const lh_memory_bounds_t *self, const lh_ptr begin,
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_overlaps_range(const lh_memory_bounds_t *self, const lh_ptr begin,
                                 const lh_ptr end);
@@ -707,7 +665,6 @@ lh_memory_bounds_overlaps_range(const lh_memory_bounds_t *self, const lh_ptr beg
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_overlaps(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
@@ -719,7 +676,6 @@ lh_memory_bounds_overlaps(const lh_memory_bounds_t *self, const lh_memory_bounds
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_overlaps_v(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
@@ -734,7 +690,6 @@ lh_memory_bounds_overlaps_v(const lh_memory_bounds_t *self, const lh_memory_boun
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_is_multiple_of(const lh_memory_bounds_t *self, lh_usize_t alignment);
 
@@ -746,7 +701,6 @@ lh_memory_bounds_is_multiple_of(const lh_memory_bounds_t *self, lh_usize_t align
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_is_begin_aligned(const lh_memory_bounds_t *self, lh_usize_t align);
 
@@ -758,7 +712,6 @@ lh_memory_bounds_is_begin_aligned(const lh_memory_bounds_t *self, lh_usize_t ali
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_is_aligned(const lh_memory_bounds_t *self, lh_usize_t align);
 
@@ -768,7 +721,6 @@ lh_memory_bounds_is_aligned(const lh_memory_bounds_t *self, lh_usize_t align);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_equals_of(const lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
 
@@ -778,7 +730,6 @@ lh_memory_bounds_equals_of(const lh_memory_bounds_t *self, const lh_ptr begin, c
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_equals_range(const lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
 
@@ -788,7 +739,6 @@ lh_memory_bounds_equals_range(const lh_memory_bounds_t *self, const lh_ptr begin
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_memory_bounds_equals(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
@@ -810,7 +760,6 @@ lh_memory_bounds_equals(const lh_memory_bounds_t *self, const lh_memory_bounds_t
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_copy_range(lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
 
@@ -828,7 +777,6 @@ lh_memory_bounds_copy_range(lh_memory_bounds_t *self, const lh_ptr begin, const 
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_copy(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
@@ -847,7 +795,6 @@ lh_memory_bounds_copy(lh_memory_bounds_t *self, const lh_memory_bounds_t *other)
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_move_range(lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
 
@@ -865,7 +812,6 @@ lh_memory_bounds_move_range(lh_memory_bounds_t *self, const lh_ptr begin, const 
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_move(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
@@ -881,7 +827,6 @@ lh_memory_bounds_move(lh_memory_bounds_t *self, const lh_memory_bounds_t *other)
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_fill(lh_memory_bounds_t *self, lh_byte_t value);
 
@@ -899,7 +844,6 @@ lh_memory_bounds_fill(lh_memory_bounds_t *self, lh_byte_t value);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_fill_pattern_range(lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
 
@@ -918,7 +862,6 @@ lh_memory_bounds_fill_pattern_range(lh_memory_bounds_t *self, const lh_ptr begin
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_fill_pattern(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
@@ -935,7 +878,6 @@ lh_memory_bounds_fill_pattern(lh_memory_bounds_t *self, const lh_memory_bounds_t
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_find_range(const lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
 
@@ -953,7 +895,6 @@ lh_memory_bounds_find_range(const lh_memory_bounds_t *self, const lh_ptr begin, 
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_find(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
@@ -970,7 +911,6 @@ lh_memory_bounds_find(const lh_memory_bounds_t *self, const lh_memory_bounds_t *
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_rfind_range(const lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end);
 
@@ -988,7 +928,6 @@ lh_memory_bounds_rfind_range(const lh_memory_bounds_t *self, const lh_ptr begin,
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_rfind(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
@@ -1008,7 +947,6 @@ lh_memory_bounds_rfind(const lh_memory_bounds_t *self, const lh_memory_bounds_t 
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_compare_range(const lh_memory_bounds_t *self, const lh_ptr begin,
                                const lh_ptr end);
@@ -1028,7 +966,6 @@ lh_memory_bounds_compare_range(const lh_memory_bounds_t *self, const lh_ptr begi
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_compare(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
@@ -1048,7 +985,6 @@ lh_memory_bounds_compare(const lh_memory_bounds_t *self, const lh_memory_bounds_
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_rcompare_range(const lh_memory_bounds_t *self, const lh_ptr begin,
                                 const lh_ptr end);
@@ -1068,7 +1004,6 @@ lh_memory_bounds_rcompare_range(const lh_memory_bounds_t *self, const lh_ptr beg
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_bounds_rcompare(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
@@ -1082,7 +1017,6 @@ lh_memory_bounds_rcompare(const lh_memory_bounds_t *self, const lh_memory_bounds
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_clear(lh_memory_bounds_t *self);
 
@@ -1098,7 +1032,6 @@ lh_memory_bounds_clear(lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_assign(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
@@ -1113,7 +1046,6 @@ lh_memory_bounds_assign(lh_memory_bounds_t *self, const lh_memory_bounds_t *othe
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_assign_v(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
@@ -1132,7 +1064,6 @@ lh_memory_bounds_assign_v(lh_memory_bounds_t *self, const lh_memory_bounds_t *ot
  *
  * @warning Unsafe — no range validation. Caller assumes full responsibility.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_set(lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end);
 
@@ -1148,7 +1079,6 @@ lh_memory_bounds_set(lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end);
  * @throw ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not a valid half-open range.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_set_v(lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end);
 
@@ -1164,7 +1094,6 @@ lh_memory_bounds_set_v(lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end);
  *
  * @warning Unsafe — no range validation. Caller assumes full responsibility.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_t
 lh_memory_bounds_make(lh_ptr begin, lh_ptr end);
 
@@ -1178,7 +1107,6 @@ lh_memory_bounds_make(lh_ptr begin, lh_ptr end);
  * @throw ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not a valid half-open range.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_t
 lh_memory_bounds_make_v(lh_ptr begin, lh_ptr end);
 
@@ -1197,7 +1125,6 @@ lh_memory_bounds_make_v(lh_ptr begin, lh_ptr end);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p size is zero or the computed bounds are not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_t
 lh_memory_bounds_make_by_size(lh_ptr begin, lh_usize_t size);
 
@@ -1208,7 +1135,6 @@ lh_memory_bounds_make_by_size(lh_ptr begin, lh_usize_t size);
  *
  * @see lh_memory_bounds_empty_initializer
  */
-LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_t lh_memory_bounds_make_empty(lh_void);
 
 /**
@@ -1228,7 +1154,6 @@ lh_memory_bounds_t lh_memory_bounds_make_empty(lh_void);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p size is zero or the computed bounds are not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_set_by_size(lh_memory_bounds_t *self, lh_ptr begin, lh_usize_t size);
 
@@ -1240,7 +1165,6 @@ lh_memory_bounds_set_by_size(lh_memory_bounds_t *self, lh_ptr begin, lh_usize_t 
  * @throw ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not a valid half-open range.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_init(lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end);
 
@@ -1254,7 +1178,6 @@ lh_memory_bounds_init(lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p size is zero or the computed bounds are not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_init_by_size(lh_memory_bounds_t *self, lh_ptr begin, lh_usize_t size);
 
@@ -1264,7 +1187,6 @@ lh_memory_bounds_init_by_size(lh_memory_bounds_t *self, lh_ptr begin, lh_usize_t
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_init_empty(lh_memory_bounds_t *self);
 
@@ -1276,7 +1198,6 @@ lh_memory_bounds_init_empty(lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_init_by_other(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
@@ -1294,7 +1215,6 @@ lh_memory_bounds_init_by_other(lh_memory_bounds_t *self, const lh_memory_bounds_
  *
  * @warning Unsafe — no range validation. Caller assumes full responsibility.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_swap(lh_memory_bounds_t *self, lh_memory_bounds_t *other);
 
@@ -1309,7 +1229,6 @@ lh_memory_bounds_swap(lh_memory_bounds_t *self, lh_memory_bounds_t *other);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_swap_v(lh_memory_bounds_t *self, lh_memory_bounds_t *other);
 
@@ -1328,7 +1247,6 @@ lh_memory_bounds_swap_v(lh_memory_bounds_t *self, lh_memory_bounds_t *other);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p other is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_memory_bounds_swap_and_clear(lh_memory_bounds_t *self, lh_memory_bounds_t *other);
 
@@ -1348,7 +1266,6 @@ lh_memory_bounds_swap_and_clear(lh_memory_bounds_t *self, lh_memory_bounds_t *ot
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is neither uninitialized nor valid half-open bounds.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_slice_t
 lh_memory_bounds_make_slice(const lh_memory_bounds_t *self);
 
@@ -1371,7 +1288,6 @@ lh_memory_bounds_make_slice(const lh_memory_bounds_t *self);
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source range size.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_t
 lh_memory_bounds_take_first(lh_ptr begin, lh_ptr end, lh_usize_t n);
 
@@ -1391,7 +1307,6 @@ lh_memory_bounds_take_first(lh_ptr begin, lh_ptr end, lh_usize_t n);
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source range size.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_t
 lh_memory_bounds_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n);
 
@@ -1411,7 +1326,6 @@ lh_memory_bounds_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n);
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p size is greater than the source bounds size.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_t
 lh_memory_bounds_make_from_begin(const lh_memory_bounds_t *self, lh_usize_t size);
 
@@ -1431,7 +1345,6 @@ lh_memory_bounds_make_from_begin(const lh_memory_bounds_t *self, lh_usize_t size
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p size is greater than the source bounds size.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_t
 lh_memory_bounds_make_from_end(const lh_memory_bounds_t *self, lh_usize_t size);
 
@@ -1450,7 +1363,6 @@ lh_memory_bounds_make_from_end(const lh_memory_bounds_t *self, lh_usize_t size);
  * @throw ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not valid bounds.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_t
 lh_memory_bounds_make_between(const lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end);
 
@@ -1471,7 +1383,6 @@ lh_memory_bounds_make_between(const lh_memory_bounds_t *self, lh_ptr begin, lh_p
  * @throw ::lh_runtime_error_code_out_of_range
  *        <tt>[offset, offset + size)</tt> is outside @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_t
 lh_memory_bounds_make_from_offset(const lh_memory_bounds_t *self, lh_uoffset_t offset,
                                   lh_usize_t size);
@@ -1492,7 +1403,6 @@ lh_memory_bounds_make_from_offset(const lh_memory_bounds_t *self, lh_uoffset_t o
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source bounds size.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_t
 lh_memory_bounds_drop_first(const lh_memory_bounds_t *self, lh_usize_t n);
 
@@ -1512,7 +1422,6 @@ lh_memory_bounds_drop_first(const lh_memory_bounds_t *self, lh_usize_t n);
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source bounds size.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_t
 lh_memory_bounds_drop_last(const lh_memory_bounds_t *self, lh_usize_t n);
 
@@ -1533,7 +1442,6 @@ lh_memory_bounds_drop_last(const lh_memory_bounds_t *self, lh_usize_t n);
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p left + @p right is greater than the source bounds size.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_memory_bounds_t
 lh_memory_bounds_trim(const lh_memory_bounds_t *self, lh_usize_t left, lh_usize_t right);
 

@@ -12,7 +12,6 @@
 #ifndef LH_DATE_YEAR_H
 #define LH_DATE_YEAR_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/limits.h>
@@ -76,7 +75,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param self Year value (by value, not a pointer).
  * @return ::lh_bool_true if February has 29 days in @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_date_year_is_leap(lh_date_year_t self);
 
@@ -85,7 +83,6 @@ lh_date_year_is_leap(lh_date_year_t self);
  *
  * @param self Year value (by value, not a pointer).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_u16_t
 lh_date_year_days(lh_date_year_t self);
 
@@ -97,7 +94,6 @@ lh_date_year_days(lh_date_year_t self);
  *
  * @return Whole radix overflows (`total / radix` beyond the interval). `0` if it fit.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_date_year_add(lh_date_year_t *self, lh_uint_t value);
 
@@ -109,7 +105,6 @@ lh_date_year_add(lh_date_year_t *self, lh_uint_t value);
  *
  * @return Whole radix units borrowed. `0` if it fit.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_date_year_sub(lh_date_year_t *self, lh_uint_t value);
 

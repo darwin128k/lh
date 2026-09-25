@@ -20,7 +20,6 @@
 #ifndef LH_FS_PATH_H
 #define LH_FS_PATH_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
@@ -47,35 +46,30 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Empty, relative path (no root, no segments). Does not touch the OS.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_fs_path_init(lh_fs_path_t *self);
 
 /**
  * @brief Release everything owned by @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_fs_path_deinit(lh_fs_path_t *self);
 
 /**
  * @brief Reset @p self to empty (no root, no segments). Keeps allocations.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_fs_path_clear(lh_fs_path_t *self);
 
 /**
  * @brief Copy @p other into @p self (root and segments).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_fs_path_assign(lh_fs_path_t *self, const lh_fs_path_t *other);
 
 /**
  * @brief What (if anything) @p self is rooted at.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_fs_path_root_kind_t
 lh_fs_path_get_root_kind(const lh_fs_path_t *self);
 
@@ -83,7 +77,6 @@ lh_fs_path_get_root_kind(const lh_fs_path_t *self);
  * @brief Drive letter of @p self; meaningful only when the root kind is
  *        ::lh_fs_path_root_kind_drive.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_char_t
 lh_fs_path_get_root_drive(const lh_fs_path_t *self);
 
@@ -93,14 +86,12 @@ lh_fs_path_get_root_drive(const lh_fs_path_t *self);
  *        style's call (::lh_fs_path_set only looks for one in
  *        ::lh_fs_path_style_windows).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_fs_path_is_drive(lh_str_view_t part);
 
 /**
  * @brief Number of segments in @p self.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_fs_path_get_segment_count(const lh_fs_path_t *self);
 
@@ -113,14 +104,12 @@ lh_fs_path_get_segment_count(const lh_fs_path_t *self);
  * @throw ::lh_runtime_error_code_out_of_range
  *        @p index is not below ::lh_fs_path_get_segment_count.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_view_t
 lh_fs_path_get_segment(const lh_fs_path_t *self, lh_uindex_t index);
 
 /**
  * @brief True when @p self has neither a root nor any segments.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_fs_path_is_empty(const lh_fs_path_t *self);
 
@@ -128,7 +117,6 @@ lh_fs_path_is_empty(const lh_fs_path_t *self);
  * @brief True when @p self is rooted (POSIX `/` or a drive), as opposed to
  *        relative.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_fs_path_is_absolute(const lh_fs_path_t *self);
 
@@ -136,7 +124,6 @@ lh_fs_path_is_absolute(const lh_fs_path_t *self);
  * @brief True when @p self is exactly a root (`/` or a drive) with no
  *        segments — nothing to drop before hitting bedrock.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_fs_path_is_root(const lh_fs_path_t *self);
 
@@ -148,7 +135,6 @@ lh_fs_path_is_root(const lh_fs_path_t *self);
  * dependency on any platform's actual "hidden" bit (see `lh/fs/attr.h`
  * for that). ::lh_bool_false for an empty path or one with no segments.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_fs_path_is_hidden(const lh_fs_path_t *self);
 
@@ -162,7 +148,6 @@ lh_fs_path_is_hidden(const lh_fs_path_t *self);
  * ::lh_fs_path_root_kind_drive. Repeated and trailing separators produce no
  * empty segments.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_fs_path_set(lh_fs_path_t *self, lh_str_view_t text, lh_fs_path_style_t style);
 
@@ -178,7 +163,6 @@ lh_fs_path_set(lh_fs_path_t *self, lh_str_view_t text, lh_fs_path_style_t style)
  * ordinary ::lh_str_t; get the `const char *` for an OS call with
  * ::lh_str_get_data(@p out).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_fs_path_to_str(const lh_fs_path_t *self, lh_fs_path_style_t style, lh_str_t *out);
 
@@ -192,7 +176,6 @@ lh_fs_path_to_str(const lh_fs_path_t *self, lh_fs_path_style_t style, lh_str_t *
  * Equivalent to init + ::lh_fs_path_to_str + ::lh_str_get_data, collapsed
  * for the common "one OS call" case.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_cptr
 lh_fs_path_to_cstr(const lh_fs_path_t *self, lh_fs_path_style_t style, lh_str_t *scratch);
 
@@ -205,7 +188,6 @@ lh_fs_path_to_cstr(const lh_fs_path_t *self, lh_fs_path_style_t style, lh_str_t 
  *
  * @return ::lh_bool_false (and clears @p self) when @p name has no segments.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_fs_path_join(lh_fs_path_t *self, const lh_fs_path_t *dir, const lh_fs_path_t *name);
 

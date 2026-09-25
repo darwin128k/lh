@@ -13,7 +13,6 @@
 #ifndef LH_MEMORY_RAW_H
 #define LH_MEMORY_RAW_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 
@@ -30,7 +29,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @return Pointer one past the last byte written (i.e. @c dst + n).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_raw_copy(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, const lh_ptr src_end);
 
@@ -45,7 +43,6 @@ lh_memory_raw_copy(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, const lh_
  *
  * @return Pointer one past the last byte of the destination range.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_raw_copy_rev(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, const lh_ptr src_end);
 
@@ -60,7 +57,6 @@ lh_memory_raw_copy_rev(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, const
  *
  * @return @p dst.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_raw_rcopy(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, const lh_ptr src_end);
 
@@ -75,7 +71,6 @@ lh_memory_raw_rcopy(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, const lh
  *
  * @return Pointer one past the last byte written in the destination range.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_raw_move(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, const lh_ptr src_end);
 
@@ -88,7 +83,6 @@ lh_memory_raw_move(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, const lh_
  *
  * @return Pointer one past the last byte written (i.e. @p dst_end).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_raw_set(lh_ptr dst, const lh_ptr dst_end, lh_uchar_t val);
 
@@ -104,7 +98,6 @@ lh_memory_raw_set(lh_ptr dst, const lh_ptr dst_end, lh_uchar_t val);
  * @return Pointer to the first differing byte in @p lhs,
  *         or ::lh_null if all compared bytes match.
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_raw_compare(const lh_ptr lhs, const lh_ptr lhs_end, const lh_ptr rhs,
                       const lh_ptr rhs_end);
@@ -121,7 +114,6 @@ lh_memory_raw_compare(const lh_ptr lhs, const lh_ptr lhs_end, const lh_ptr rhs,
  * @return Pointer into @p lhs to the differing byte in that suffix window,
  *         or ::lh_null if equal.
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_raw_rcompare(const lh_ptr lhs, const lh_ptr lhs_end, const lh_ptr rhs,
                        const lh_ptr rhs_end);
@@ -137,7 +129,6 @@ lh_memory_raw_rcompare(const lh_ptr lhs, const lh_ptr lhs_end, const lh_ptr rhs,
  *
  * @return Pointer to the start of the first match, or ::lh_null if none.
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_raw_find(const lh_ptr lhs, const lh_ptr lhs_end, const lh_ptr rhs, const lh_ptr rhs_end);
 
@@ -152,7 +143,6 @@ lh_memory_raw_find(const lh_ptr lhs, const lh_ptr lhs_end, const lh_ptr rhs, con
  *
  * @return Pointer to the start of the last matching occurrence, or ::lh_null if none.
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_ptr
 lh_memory_raw_rfind(const lh_ptr lhs, const lh_ptr lhs_end, const lh_ptr rhs, const lh_ptr rhs_end);
 
@@ -169,7 +159,6 @@ lh_memory_raw_rfind(const lh_ptr lhs, const lh_ptr lhs_end, const lh_ptr rhs, co
  *
  * @return Pointer one past the last byte written, or ::lh_null when nothing is written.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_memory_raw_set_pattern(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, const lh_ptr src_end);
 

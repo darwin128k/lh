@@ -16,7 +16,6 @@
 #ifndef LH_NET_SOCKET_ADDR_H
 #define LH_NET_SOCKET_ADDR_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/net/socket/addr/ip4.h>
@@ -66,7 +65,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return Constructed ::lh_net_socket_addr_t with
  *         ::lh_net_socket_addr_family_ip4.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_net_socket_addr_t
 lh_net_socket_addr_make_ip4(const lh_net_ip4_socket_addr_t *addr);
 
@@ -75,7 +73,6 @@ lh_net_socket_addr_make_ip4(const lh_net_ip4_socket_addr_t *addr);
  * @param self Address to read from.
  * @return One of the `lh_net_socket_addr_family_*` constants.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_net_socket_addr_family_t
 lh_net_socket_addr_get_family(const lh_net_socket_addr_t *self);
 
@@ -86,7 +83,6 @@ lh_net_socket_addr_get_family(const lh_net_socket_addr_t *self);
  *             ::lh_net_socket_addr_family_ip4 (checked at runtime).
  * @return The wrapped IPv4 socket address.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_net_ip4_socket_addr_t
 lh_net_socket_addr_get_ip4(const lh_net_socket_addr_t *self);
 
@@ -99,7 +95,6 @@ lh_net_socket_addr_get_ip4(const lh_net_socket_addr_t *self);
  *
  * @return Characters written, or 0 if @p str_size was too small.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_net_socket_addr_format(const lh_net_socket_addr_t *self, lh_str_ptr str, lh_usize_t str_size);
 
@@ -111,7 +106,6 @@ lh_net_socket_addr_format(const lh_net_socket_addr_t *self, lh_str_ptr str, lh_u
  * @return ::lh_bool_true if both have the same family and equal address,
  *         ::lh_bool_false otherwise (including a family mismatch).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_net_socket_addr_equals(const lh_net_socket_addr_t *self, const lh_net_socket_addr_t *other);
 

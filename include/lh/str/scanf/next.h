@@ -14,7 +14,6 @@
 #ifndef LH_STR_SCANF_NEXT_H
 #define LH_STR_SCANF_NEXT_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
@@ -38,7 +37,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return ::lh_bool_true if a token was produced (including invalid),
  *         ::lh_bool_false if `*pos` is already at the NUL (nothing left).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_str_ptr_scanf_next(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out);
 

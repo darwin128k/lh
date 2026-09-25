@@ -6,7 +6,6 @@
 #ifndef LH_STR_FORMAT_BYTES_H
 #define LH_STR_FORMAT_BYTES_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
@@ -44,7 +43,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return Characters written (`2 * data_size`), or 0 if @p str_size was too
  *         small (or @p data_size was 0).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_ptr_format_bytes_hex(const lh_ptr data, lh_usize_t data_size, lh_bool_t uppercase,
                             lh_str_ptr str, lh_usize_t str_size);
@@ -66,7 +64,6 @@ lh_str_ptr_format_bytes_hex(const lh_ptr data, lh_usize_t data_size, lh_bool_t u
  * @return Characters written, or 0 if @p str_size was too small (or
  *         @p data_size was 0).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_ptr_format_bytes_hex_dump(const lh_ptr data, lh_usize_t data_size, lh_bool_t uppercase,
                                  lh_str_ptr str, lh_usize_t str_size);

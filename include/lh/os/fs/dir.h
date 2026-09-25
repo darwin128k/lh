@@ -18,7 +18,6 @@
 #ifndef LH_OS_FS_DIR_H
 #define LH_OS_FS_DIR_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -52,7 +51,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @param self Directory object to initialize.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_os_fs_dir_init(lh_os_fs_dir_t *self);
 
@@ -64,7 +62,6 @@ lh_os_fs_dir_init(lh_os_fs_dir_t *self);
  * @param path Directory path. Empty is an error.
  * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_fs_dir_open(lh_os_fs_dir_t *self, const lh_fs_path_t *path);
 
@@ -75,7 +72,6 @@ lh_os_fs_dir_open(lh_os_fs_dir_t *self, const lh_fs_path_t *path);
  *
  * @param self Directory object to close.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_os_fs_dir_close(lh_os_fs_dir_t *self);
 
@@ -85,7 +81,6 @@ lh_os_fs_dir_close(lh_os_fs_dir_t *self);
  * @return Current ::lh_os_system_fs_dir_handle_t
  *         (::LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID if not open).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_os_system_fs_dir_handle_t
 lh_os_fs_dir_get_handle(const lh_os_fs_dir_t *self);
 
@@ -93,7 +88,6 @@ lh_os_fs_dir_get_handle(const lh_os_fs_dir_t *self);
  * @brief True when @p self currently holds an open iterator.
  * @param self Directory to test.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_fs_dir_is_valid(const lh_os_fs_dir_t *self);
 
@@ -112,7 +106,6 @@ lh_os_fs_dir_is_valid(const lh_os_fs_dir_t *self);
  * @return Name length excluding NUL, `0` when there are no more entries,
  *         or a negative value on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_view_t *name, lh_os_fs_dir_entry_kind_t *kind);
 

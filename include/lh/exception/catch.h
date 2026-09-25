@@ -50,7 +50,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param self Catch frame (not null).
  * @return Pointer to @p self->exception.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_exception_t *
 lh_exception_catch_get_exception(lh_exception_catch_t *self);
 
@@ -59,7 +58,6 @@ lh_exception_catch_get_exception(lh_exception_catch_t *self);
  * @param self Catch frame (not null).
  * @return Pointer to @p self->exception.
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_exception_t *
 lh_exception_catch_get_exception_as_const(const lh_exception_catch_t *self);
 
@@ -69,7 +67,6 @@ lh_exception_catch_get_exception_as_const(const lh_exception_catch_t *self);
  * @param self Catch frame (not null).
  * @return Pointer to the embedded ::lh_error_t.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_error_t *
 lh_exception_catch_get_error(lh_exception_catch_t *self);
 
@@ -78,7 +75,6 @@ lh_exception_catch_get_error(lh_exception_catch_t *self);
  * @param self Catch frame (not null).
  * @return Pointer to the embedded ::lh_error_t.
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_error_t *
 lh_exception_catch_get_error_as_const(const lh_exception_catch_t *self);
 
@@ -88,7 +84,6 @@ lh_exception_catch_get_error_as_const(const lh_exception_catch_t *self);
  * @param self Catch frame (not null).
  * @return Code stored in the caught exception.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_error_code_t
 lh_exception_catch_get_code(const lh_exception_catch_t *self);
 
@@ -98,7 +93,6 @@ lh_exception_catch_get_code(const lh_exception_catch_t *self);
  * @param self Catch frame (not null).
  * @return Description stored in the caught exception (empty view when there is no description).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_view_t
 lh_exception_catch_get_desc(const lh_exception_catch_t *self);
 
@@ -109,7 +103,6 @@ lh_exception_catch_get_desc(const lh_exception_catch_t *self);
  * @param fallback Description returned when the caught exception has no description.
  * @return Stored description when non-empty, otherwise @p fallback.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_view_t
 lh_exception_catch_get_desc_or(const lh_exception_catch_t *self, lh_str_view_t fallback);
 
@@ -120,7 +113,6 @@ lh_exception_catch_get_desc_or(const lh_exception_catch_t *self, lh_str_view_t f
  * @param code Error code to compare with.
  * @return ::lh_bool_true when the caught exception carries @p code.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_catch_has_code(const lh_exception_catch_t *self, lh_error_code_t code);
 
@@ -130,7 +122,6 @@ lh_exception_catch_has_code(const lh_exception_catch_t *self, lh_error_code_t co
  * @param self Catch frame (not null).
  * @return ::lh_bool_true when the caught exception stores ::lh_error_code_ok.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_catch_is_ok(const lh_exception_catch_t *self);
 
@@ -140,7 +131,6 @@ lh_exception_catch_is_ok(const lh_exception_catch_t *self);
  * @param self Catch frame (not null).
  * @return ::lh_bool_true when the caught exception does not store ::lh_error_code_ok.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_catch_is_failure(const lh_exception_catch_t *self);
 
@@ -150,7 +140,6 @@ lh_exception_catch_is_failure(const lh_exception_catch_t *self);
  * @param self Catch frame (not null).
  * @return ::lh_bool_true when the caught exception stores a non-empty description view.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_catch_has_desc(const lh_exception_catch_t *self);
 
@@ -160,7 +149,6 @@ lh_exception_catch_has_desc(const lh_exception_catch_t *self);
  * @param self Catch frame (not null).
  * @return ::lh_bool_true when the caught exception stores ::lh_error_code_ok and no description.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_catch_is_empty(const lh_exception_catch_t *self);
 
@@ -174,7 +162,6 @@ lh_exception_catch_is_empty(const lh_exception_catch_t *self);
  * @param other Catch frame to compare with (not null).
  * @return ::lh_bool_true when both frames carry equal exceptions.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_catch_equals(const lh_exception_catch_t *self, const lh_exception_catch_t *other);
 
@@ -187,7 +174,6 @@ lh_exception_catch_equals(const lh_exception_catch_t *self, const lh_exception_c
  * @param other Catch frame to compare with (not null).
  * @return ::lh_bool_true when both frames carry the same code.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_catch_has_same_code(const lh_exception_catch_t *self,
                                  const lh_exception_catch_t *other);
@@ -201,7 +187,6 @@ lh_exception_catch_has_same_code(const lh_exception_catch_t *self,
  * @param other Catch frame to compare with (not null).
  * @return ::lh_bool_true when both frames carry different codes.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_exception_catch_has_diff_code(const lh_exception_catch_t *self,
                                  const lh_exception_catch_t *other);

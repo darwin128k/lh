@@ -17,7 +17,6 @@
 #ifndef LH_STR_PARSE_TEXT_H
 #define LH_STR_PARSE_TEXT_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
@@ -43,7 +42,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @return Characters consumed from @p str, or 0 on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, va_list args);
 
@@ -53,7 +51,6 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
  * @return Characters consumed from @p str, or 0 on failure
  *         (see ::lh_str_ptr_parse_text_v).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_ptr_parse_text(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, ...);
 

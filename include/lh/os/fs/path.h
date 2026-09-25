@@ -12,7 +12,6 @@
 #ifndef LH_OS_FS_PATH_H
 #define LH_OS_FS_PATH_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/fs/path.h>
@@ -34,7 +33,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return The native text, or ::lh_null for an empty @p path (reason in
  *         ::lh_os_last_error).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_cptr
 lh_os_fs_path_to_cstr(const lh_fs_path_t *path, lh_str_t *scratch);
 

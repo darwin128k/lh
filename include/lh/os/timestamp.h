@@ -21,7 +21,6 @@
 #ifndef LH_OS_TIMESTAMP_H
 #define LH_OS_TIMESTAMP_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -46,7 +45,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param out Receives the current time on success; untouched on failure.
  * @return ::lh_bool_true on success, ::lh_bool_false on failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_timestamp_now(lh_timestamp_t *out);
 

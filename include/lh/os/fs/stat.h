@@ -13,7 +13,6 @@
 #ifndef LH_OS_FS_STAT_H
 #define LH_OS_FS_STAT_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -39,7 +38,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * empty path) or ::lh_os_system_last_error (the native call failed) — see
  * `lh/os.h` / `lh/os/system.h`.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_fs_stat(const lh_fs_path_t *path, lh_fs_stat_t *out);
 
@@ -48,7 +46,6 @@ lh_os_fs_stat(const lh_fs_path_t *path, lh_fs_stat_t *out);
  *
  * Delegates to ::lh_os_fs_stat.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_fs_mtime(const lh_fs_path_t *path, lh_fs_time_t *out);
 
@@ -60,7 +57,6 @@ lh_os_fs_mtime(const lh_fs_path_t *path, lh_fs_time_t *out);
  * @return ::lh_bool_true if @p path could be stat'd, ::lh_bool_false if the
  *         stat itself failed (see ::lh_os_fs_stat for where the reason is).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_fs_is_readable(const lh_fs_path_t *path, lh_bool_t *out);
 
@@ -72,7 +68,6 @@ lh_os_fs_is_readable(const lh_fs_path_t *path, lh_bool_t *out);
  * @return ::lh_bool_true if @p path could be stat'd, ::lh_bool_false if the
  *         stat itself failed (see ::lh_os_fs_stat for where the reason is).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_fs_is_writable(const lh_fs_path_t *path, lh_bool_t *out);
 
@@ -84,7 +79,6 @@ lh_os_fs_is_writable(const lh_fs_path_t *path, lh_bool_t *out);
  * @return ::lh_bool_true if @p path could be stat'd, ::lh_bool_false if the
  *         stat itself failed (see ::lh_os_fs_stat for where the reason is).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_fs_is_executable(const lh_fs_path_t *path, lh_bool_t *out);
 

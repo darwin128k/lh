@@ -40,7 +40,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @param self Vector to inspect.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_memory_typed_allocated_t *
 lh_vector_get_typed(lh_vector_t *self);
 
@@ -48,7 +47,6 @@ lh_vector_get_typed(lh_vector_t *self);
  * @brief `const` counterpart to ::lh_vector_get_typed.
  * @param self Vector to inspect.
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_memory_typed_allocated_t *
 lh_vector_get_typed_as_const(const lh_vector_t *self);
 
@@ -56,7 +54,6 @@ lh_vector_get_typed_as_const(const lh_vector_t *self);
  * @brief Return the number of elements the current allocation can hold.
  * @param self Vector to inspect.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_vector_get_capacity(const lh_vector_t *self);
 
@@ -64,7 +61,6 @@ lh_vector_get_capacity(const lh_vector_t *self);
  * @brief Return the number of elements currently in use.
  * @param self Vector to inspect.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_vector_get_size(const lh_vector_t *self);
 
@@ -72,7 +68,6 @@ lh_vector_get_size(const lh_vector_t *self);
  * @brief Return the size in bytes of one element.
  * @param self Vector to inspect.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_vector_get_type_size(const lh_vector_t *self);
 
@@ -80,7 +75,6 @@ lh_vector_get_type_size(const lh_vector_t *self);
  * @brief Return a pointer to the first element.
  * @param self Vector to inspect.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_vector_get_begin(const lh_vector_t *self);
 
@@ -88,7 +82,6 @@ lh_vector_get_begin(const lh_vector_t *self);
  * @brief Alias for ::lh_vector_get_begin.
  * @param self Vector to inspect.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_vector_get_data(const lh_vector_t *self);
 
@@ -100,7 +93,6 @@ lh_vector_get_data(const lh_vector_t *self);
  *
  * @param self Vector to inspect.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_vector_get_end(const lh_vector_t *self);
 
@@ -108,7 +100,6 @@ lh_vector_get_end(const lh_vector_t *self);
  * @brief True when @p self has no elements in use.
  * @param self Vector to inspect.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_vector_is_empty(const lh_vector_t *self);
 
@@ -120,7 +111,6 @@ lh_vector_is_empty(const lh_vector_t *self);
  *
  * @param self Vector to clear.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_vector_clear(lh_vector_t *self);
 
@@ -132,7 +122,6 @@ lh_vector_clear(lh_vector_t *self);
  * @param self      Vector to initialize.
  * @param type_size Size of one element in bytes.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_vector_init(lh_vector_t *self, lh_usize_t type_size);
 
@@ -143,7 +132,6 @@ lh_vector_init(lh_vector_t *self, lh_usize_t type_size);
  *
  * @param self Vector to deinitialize.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_vector_deinit(lh_vector_t *self);
 
@@ -159,7 +147,6 @@ lh_vector_deinit(lh_vector_t *self);
  * @param self         Vector to grow.
  * @param min_capacity Minimum number of elements the vector must be able to hold.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_vector_reserve(lh_vector_t *self, lh_usize_t min_capacity);
 
@@ -179,7 +166,6 @@ lh_vector_reserve(lh_vector_t *self, lh_usize_t min_capacity);
  * @param min_capacity Minimum capacity that must be reached.
  * @return Capacity to reserve: @p capacity itself, or the grown capacity.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_vector_get_grown_capacity(lh_usize_t capacity, lh_usize_t min_capacity);
 
@@ -200,7 +186,6 @@ lh_vector_get_grown_capacity(lh_usize_t capacity, lh_usize_t min_capacity);
  *               into the new slots.
  * @param count  Number of elements to insert.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_vector_insert_of(lh_vector_t *self, lh_uindex_t index, const lh_ptr values, lh_usize_t count);
 
@@ -218,7 +203,6 @@ lh_vector_insert_of(lh_vector_t *self, lh_uindex_t index, const lh_ptr values, l
  *         the call). Meaningful even when @p count is `0`: the position
  *         the (empty) batch would have started at.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uindex_t
 lh_vector_push_back_of(lh_vector_t *self, const lh_ptr values, lh_usize_t count);
 
@@ -232,7 +216,6 @@ lh_vector_push_back_of(lh_vector_t *self, const lh_ptr values, lh_usize_t count)
  *              its bytes are copied into the new slot.
  * @return Index @p value was stored at (::lh_vector_get_size before the call).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uindex_t
 lh_vector_push_back(lh_vector_t *self, const lh_ptr value);
 
@@ -245,7 +228,6 @@ lh_vector_push_back(lh_vector_t *self, const lh_ptr value);
  * @param self  Vector to inspect.
  * @param index Index to validate.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_vector_is_valid_index(const lh_vector_t *self, lh_uindex_t index);
 
@@ -256,7 +238,6 @@ lh_vector_is_valid_index(const lh_vector_t *self, lh_uindex_t index);
  * @param index Element index; must be < ::lh_vector_get_size.
  * @return Pointer to the element's bytes.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_vector_get_ptr(const lh_vector_t *self, lh_uindex_t index);
 
@@ -267,7 +248,6 @@ lh_vector_get_ptr(const lh_vector_t *self, lh_uindex_t index);
  * @param dst  Optional destination for the removed element's bytes, or
  *             ::lh_null to discard it.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_vector_pop_back(lh_vector_t *self, lh_ptr dst);
 
@@ -281,7 +261,6 @@ lh_vector_pop_back(lh_vector_t *self, lh_ptr dst);
  * @param value Pointer to a value of the vector's element type (not null);
  *              its bytes are copied into the new slot.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_vector_insert(lh_vector_t *self, lh_uindex_t index, const lh_ptr value);
 
@@ -294,7 +273,6 @@ lh_vector_insert(lh_vector_t *self, lh_uindex_t index, const lh_ptr value);
  * @param self Vector to resize.
  * @param n    New size in elements.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_vector_resize(lh_vector_t *self, lh_usize_t n);
 
@@ -306,7 +284,6 @@ lh_vector_resize(lh_vector_t *self, lh_usize_t n);
  * @param self  Destination vector.
  * @param other Source vector.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_vector_assign(lh_vector_t *self, const lh_vector_t *other);
 
@@ -318,7 +295,6 @@ lh_vector_assign(lh_vector_t *self, const lh_vector_t *other);
  * @param dst   Optional destination for the removed element's bytes, or
  *              ::lh_null to discard it.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_vector_erase(lh_vector_t *self, lh_uindex_t index, lh_ptr dst);
 

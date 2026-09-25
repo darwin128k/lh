@@ -13,7 +13,6 @@
 #ifndef LH_TIME_MINUTE_H
 #define LH_TIME_MINUTE_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
@@ -50,7 +49,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * For a large count that may overflow into hours, use ::lh_time_minute_set.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_time_minute_init(lh_time_minute_t *self, lh_time_minute_t value);
 
@@ -65,7 +63,6 @@ lh_time_minute_init(lh_time_minute_t *self, lh_time_minute_t value);
  *
  * @return Whole hours of overflow (`value / radix`). `0` if it fit.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_minute_set(lh_time_minute_t *self, lh_uint_t value);
 
@@ -77,7 +74,6 @@ lh_time_minute_set(lh_time_minute_t *self, lh_uint_t value);
  *
  * @return Whole hours of overflow. `0` if the sum stayed in range.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_minute_add(lh_time_minute_t *self, lh_uint_t value);
 
@@ -89,7 +85,6 @@ lh_time_minute_add(lh_time_minute_t *self, lh_uint_t value);
  *
  * @return Whole hours borrowed. `0` if the difference stayed in range.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_minute_sub(lh_time_minute_t *self, lh_uint_t value);
 
@@ -99,7 +94,6 @@ lh_time_minute_sub(lh_time_minute_t *self, lh_uint_t value);
  * @param self Minute to read (not null).
  * @return Stored minute (`0`–::LH_TIME_MINUTE_MAX).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_time_minute_t
 lh_time_minute_get(const lh_time_minute_t *self);
 
@@ -109,7 +103,6 @@ lh_time_minute_get(const lh_time_minute_t *self);
  * @param self  Left (not null).
  * @param other Right (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_time_minute_equals(const lh_time_minute_t *self, const lh_time_minute_t *other);
 
@@ -119,7 +112,6 @@ lh_time_minute_equals(const lh_time_minute_t *self, const lh_time_minute_t *othe
  * @param self    Value under test (not null).
  * @param minimum Floor (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_time_minute_is_at_least(const lh_time_minute_t *self, const lh_time_minute_t *minimum);
 
@@ -129,7 +121,6 @@ lh_time_minute_is_at_least(const lh_time_minute_t *self, const lh_time_minute_t 
  * @param self  Value under test (not null).
  * @param other Bound (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_time_minute_is_less(const lh_time_minute_t *self, const lh_time_minute_t *other);
 
@@ -139,7 +130,6 @@ lh_time_minute_is_less(const lh_time_minute_t *self, const lh_time_minute_t *oth
  * @param self  Value under test (not null).
  * @param other Bound (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_time_minute_is_greater(const lh_time_minute_t *self, const lh_time_minute_t *other);
 

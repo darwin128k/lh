@@ -9,7 +9,6 @@
 #ifndef LH_OS_SYSTEM_NET_H
 #define LH_OS_SYSTEM_NET_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -24,14 +23,12 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Prepare the native socket stack for use in this process.
  * @return ::lh_bool_true on success, ::lh_bool_false if the native call failed.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_system_net_init(void);
 
 /**
  * @brief Undo one successful ::lh_os_system_net_init.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_os_system_net_deinit(void);
 

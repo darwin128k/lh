@@ -12,7 +12,6 @@
 #ifndef LH_OS_SYSTEM_FS_PATH_H
 #define LH_OS_SYSTEM_FS_PATH_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/fs/path/style.h>
@@ -27,7 +26,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief ::lh_fs_path_style_windows on Windows, ::lh_fs_path_style_posix
  *        elsewhere.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_fs_path_style_t
 lh_os_system_fs_path_style_native(void);
 

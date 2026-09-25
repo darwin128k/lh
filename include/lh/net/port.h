@@ -8,7 +8,6 @@
 #ifndef LH_NET_PORT_H
 #define LH_NET_PORT_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/limits.h>
@@ -50,7 +49,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return ::lh_bool_true if all of @p str_size was consumed as a valid port
  *         number, ::lh_bool_false otherwise.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_net_port_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_port_t *out);
 

@@ -9,7 +9,6 @@
 #ifndef LH_DATE_MONTH_H
 #define LH_DATE_MONTH_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/date/month/index.h>
 #include <lh/numeric/fixed/types.h>
@@ -51,7 +50,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param month Calendar month (::LH_DATE_MONTH_MIN–::LH_DATE_MONTH_MAX).
  * @return `month - ::LH_DATE_MONTH_MIN`.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_date_month_index_t
 lh_date_month_to_index(lh_date_month_t month);
 
@@ -61,7 +59,6 @@ lh_date_month_to_index(lh_date_month_t month);
  * @param index Month index (::LH_DATE_MONTH_INDEX_JANUARY–::LH_DATE_MONTH_INDEX_MAX).
  * @return `index + ::LH_DATE_MONTH_MIN`.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_date_month_t
 lh_date_month_from_index(lh_date_month_index_t index);
 
@@ -77,7 +74,6 @@ lh_date_month_from_index(lh_date_month_index_t index);
  *
  * @return Whole years of overflow. `0` if it fit (or the month was invalid).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_date_month_add(lh_date_month_t *self, lh_uint_t value);
 
@@ -92,7 +88,6 @@ lh_date_month_add(lh_date_month_t *self, lh_uint_t value);
  *
  * @return Whole years borrowed. `0` if it fit (or the month was invalid).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_date_month_sub(lh_date_month_t *self, lh_uint_t value);
 

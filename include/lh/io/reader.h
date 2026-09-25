@@ -13,7 +13,6 @@
 #ifndef LH_IO_READER_H
 #define LH_IO_READER_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/io/reader/cb.h>
 #include <lh/io/reader/fields.h>
@@ -40,7 +39,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param self  Destination reader.
  * @param other Source reader.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_reader_assign(lh_io_reader_t *self, const lh_io_reader_t *other);
 
@@ -51,21 +49,18 @@ lh_io_reader_assign(lh_io_reader_t *self, const lh_io_reader_t *other);
  * @param read_cb New read callback.
  * @param context New context.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_reader_set(lh_io_reader_t *self, lh_io_reader_read_cb read_cb, lh_ptr context);
 
 /**
  * @brief Write only the read callback.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_reader_set_read_cb(lh_io_reader_t *self, lh_io_reader_read_cb read_cb);
 
 /**
  * @brief Write only the context.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_reader_set_context(lh_io_reader_t *self, lh_ptr context);
 
@@ -78,7 +73,6 @@ lh_io_reader_set_context(lh_io_reader_t *self, lh_ptr context);
  * @param read_cb Read callback (may be ::lh_null to leave reading disabled).
  * @param context Context passed to @p read_cb on every call.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_reader_init(lh_io_reader_t *self, lh_io_reader_read_cb read_cb, lh_ptr context);
 
@@ -86,7 +80,6 @@ lh_io_reader_init(lh_io_reader_t *self, lh_io_reader_read_cb read_cb, lh_ptr con
  * @brief Reset a reader to empty state (callback and context both ::lh_null).
  * @param self Reader object to reset.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_io_reader_deinit(lh_io_reader_t *self);
 
@@ -97,7 +90,6 @@ lh_io_reader_deinit(lh_io_reader_t *self);
  * @param self Reader object to read from.
  * @return Current read callback (may be ::lh_null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_io_reader_read_cb
 lh_io_reader_get_read_cb(const lh_io_reader_t *self);
 
@@ -106,7 +98,6 @@ lh_io_reader_get_read_cb(const lh_io_reader_t *self);
  * @param self Reader object to read from.
  * @return Current context (may be ::lh_null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ptr
 lh_io_reader_get_context(const lh_io_reader_t *self);
 
@@ -124,7 +115,6 @@ lh_io_reader_get_context(const lh_io_reader_t *self);
  * @return Bytes actually read (`0` at end of stream), or a negative value
  *         if the underlying callback reports a failure.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_ssize_t
 lh_io_reader_read(lh_io_reader_t *self, lh_ptr buf, lh_usize_t size);
 

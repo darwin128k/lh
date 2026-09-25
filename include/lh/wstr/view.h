@@ -19,7 +19,6 @@
 #ifndef LH_WSTR_VIEW_H
 #define LH_WSTR_VIEW_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/memory/view.h>
@@ -59,7 +58,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p size is zero or the computed view is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_wstr_view_init_by_size(lh_wstr_view_t *self, lh_wstr_cptr data, lh_usize_t size);
 
@@ -77,7 +75,6 @@ lh_wstr_view_init_by_size(lh_wstr_view_t *self, lh_wstr_cptr data, lh_usize_t si
  * @throw ::lh_runtime_error_code_invalid_argument
  *        @p data is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_wstr_view_init(lh_wstr_view_t *self, lh_wstr_cptr data);
 
@@ -89,7 +86,6 @@ lh_wstr_view_init(lh_wstr_view_t *self, lh_wstr_cptr data);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_wstr_view_init_empty(lh_wstr_view_t *self);
 
@@ -102,7 +98,6 @@ lh_wstr_view_init_empty(lh_wstr_view_t *self);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_void
 lh_wstr_view_init_by_other(lh_wstr_view_t *self, const lh_wstr_view_t *other);
 
@@ -116,7 +111,6 @@ lh_wstr_view_init_by_other(lh_wstr_view_t *self, const lh_wstr_view_t *other);
  * @param data NUL-terminated wide string, or ::lh_null.
  * @return Constructed view (does not own @p data).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_view_t
 lh_wstr_view_make(lh_wstr_cptr data);
 
@@ -133,7 +127,6 @@ lh_wstr_view_make(lh_wstr_cptr data);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_cptr
 lh_wstr_view_get_begin(const lh_wstr_view_t *self);
 
@@ -150,7 +143,6 @@ lh_wstr_view_get_begin(const lh_wstr_view_t *self);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_cptr
 lh_wstr_view_get_end(const lh_wstr_view_t *self);
 
@@ -162,7 +154,6 @@ lh_wstr_view_get_end(const lh_wstr_view_t *self);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_cptr
 lh_wstr_view_get_data(const lh_wstr_view_t *self);
 
@@ -180,7 +171,6 @@ lh_wstr_view_get_data(const lh_wstr_view_t *self);
  * @throw ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_wstr_view_get_size(const lh_wstr_view_t *self);
 
@@ -196,7 +186,6 @@ lh_wstr_view_get_size(const lh_wstr_view_t *self);
  * @throw ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_wstr_view_is_empty(const lh_wstr_view_t *self);
 

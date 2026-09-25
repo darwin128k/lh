@@ -20,7 +20,6 @@
 #ifndef LH_STR_FORMAT_TEXT_H
 #define LH_STR_FORMAT_TEXT_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
@@ -45,7 +44,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @return Characters written, or 0 on failure (see above).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, va_list args);
 
@@ -59,7 +57,6 @@ lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, v
  *
  * @return Characters written, or 0 on failure (see ::lh_str_ptr_format_text_v).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_ptr_format_text(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, ...);
 
@@ -69,14 +66,12 @@ lh_str_ptr_format_text(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, ...
  * Does not write. On a malformed mask returns ::LH_USIZE_T_MAX.
  * A valid empty mask returns 0.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_ptr_format_text_size_v(lh_str_cptr fmt, va_list args);
 
 /**
  * @brief Variadic wrapper for ::lh_str_ptr_format_text_size_v.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_str_ptr_format_text_size(lh_str_cptr fmt, ...);
 

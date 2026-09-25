@@ -11,7 +11,6 @@
 #ifndef LH_UTIL_WSTR_PTR_H
 #define LH_UTIL_WSTR_PTR_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
 #include <lh/bool.h>
@@ -161,7 +160,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  *       A byte-step search such as ::lh_memory_find (@c step 1)
  *       can match inside a code unit (e.g. UTF-16 LE ASCII high byte).
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_find_char(const lh_wstr_ptr str, lh_usize_t size, lh_wchar_t val);
 
@@ -178,7 +176,6 @@ lh_wstr_ptr_find_char(const lh_wstr_ptr str, lh_usize_t size, lh_wchar_t val);
  *
  * @see lh_wstr_ptr_find_char
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_rfind_char(const lh_wstr_ptr str, lh_usize_t size, lh_wchar_t val);
 
@@ -192,7 +189,6 @@ lh_wstr_ptr_rfind_char(const lh_wstr_ptr str, lh_usize_t size, lh_wchar_t val);
  *
  * @return Pointer to the first matching wide character, or ::lh_null if none found.
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_find_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
                           lh_usize_t chars_size);
@@ -207,7 +203,6 @@ lh_wstr_ptr_find_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_w
  *
  * @return Pointer to the last matching wide character, or ::lh_null if none found.
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_rfind_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
                            lh_usize_t chars_size);
@@ -222,7 +217,6 @@ lh_wstr_ptr_rfind_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_
  *
  * @return Pointer to the first non-matching wide character, or ::lh_null if none found.
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_find_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
                               lh_usize_t chars_size);
@@ -237,7 +231,6 @@ lh_wstr_ptr_find_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const 
  *
  * @return Pointer to the last non-matching wide character, or ::lh_null if none found.
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_rfind_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
                                lh_usize_t chars_size);
@@ -254,7 +247,6 @@ lh_wstr_ptr_rfind_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const
  *
  * @see lh_wstr_ptr_find_char
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_find_of_null_terminator_by_size(const lh_wstr_ptr str, lh_usize_t size);
 
@@ -274,7 +266,6 @@ lh_wstr_ptr_find_of_null_terminator_by_size(const lh_wstr_ptr str, lh_usize_t si
  * @see lh_wstr_ptr_find_of_null_terminator_by_size
  * @see lh_memory_scan_step
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_find_of_null_terminator(const lh_wstr_ptr str);
 
@@ -298,7 +289,6 @@ lh_wstr_ptr_find_of_null_terminator(const lh_wstr_ptr str);
  * @see lh_memory_scan_step
  * @see lh_runtime_error_code_no_null_terminator
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_wstr_ptr_len(const lh_wstr_ptr str);
 
@@ -316,7 +306,6 @@ lh_wstr_ptr_len(const lh_wstr_ptr str);
  *
  * @see lh_memory_copy
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_copy(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src, lh_usize_t src_size);
 
@@ -333,7 +322,6 @@ lh_wstr_ptr_copy(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src, lh
  *
  * @see lh_memory_move
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_move(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src, lh_usize_t src_size);
 
@@ -349,7 +337,6 @@ lh_wstr_ptr_move(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src, lh
  *
  * @see lh_memory_set_pattern
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_set_pattern(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                         lh_usize_t src_size);
@@ -369,7 +356,6 @@ lh_wstr_ptr_set_pattern(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr 
  *
  * @see lh_wstr_ptr_set_pattern
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_set(lh_wstr_ptr str, lh_usize_t str_size, lh_wchar_t ch);
 
@@ -387,7 +373,6 @@ lh_wstr_ptr_set(lh_wstr_ptr str, lh_usize_t str_size, lh_wchar_t ch);
  *
  * @see lh_wchar_to_lower
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t size);
 
@@ -402,7 +387,6 @@ lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t size);
  *
  * @see lh_wchar_to_upper
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t size);
 
@@ -428,7 +412,6 @@ lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t size);
  * @see lh_wstr_ptr_compare
  * @see lh_wchar_fold_case
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_compare_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size,
                                    const lh_wstr_ptr src, lh_usize_t src_size);
@@ -454,7 +437,6 @@ lh_wstr_ptr_compare_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size,
  * @see lh_wstr_ptr_rcompare
  * @see lh_wchar_fold_case
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_rcompare_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size,
                                     const lh_wstr_ptr src, lh_usize_t src_size);
@@ -477,7 +459,6 @@ lh_wstr_ptr_rcompare_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size,
  * @see lh_wstr_ptr_find
  * @see lh_wchar_fold_case
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_find_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                                 lh_usize_t src_size);
@@ -499,7 +480,6 @@ lh_wstr_ptr_find_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size, cons
  * @see lh_wstr_ptr_rfind
  * @see lh_wchar_fold_case
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_rfind_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                                  lh_usize_t src_size);
@@ -525,7 +505,6 @@ lh_wstr_ptr_rfind_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size, con
  * @see lh_memory_find_step
  * @see lh_wstr_ptr_find_by_ignore_case
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_find(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                  lh_usize_t src_size, lh_bool_t ignore_case);
@@ -550,7 +529,6 @@ lh_wstr_ptr_find(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr s
  * @see lh_memory_rfind_step
  * @see lh_wstr_ptr_rfind_by_ignore_case
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_rfind(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                   lh_usize_t src_size, lh_bool_t ignore_case);
@@ -576,7 +554,6 @@ lh_wstr_ptr_rfind(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr 
  * @see lh_memory_compare
  * @see lh_wstr_ptr_compare_by_ignore_case
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_compare(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                     lh_usize_t src_size, lh_bool_t ignore_case);
@@ -601,7 +578,6 @@ lh_wstr_ptr_compare(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_pt
  * @see lh_memory_rcompare
  * @see lh_wstr_ptr_rcompare_by_ignore_case
  */
-LH_ATTRIBUTE_SYMBOL
 const lh_wstr_ptr
 lh_wstr_ptr_rcompare(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                      lh_usize_t src_size, lh_bool_t ignore_case);
@@ -618,7 +594,6 @@ lh_wstr_ptr_rcompare(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_p
  * @return Zero-based index of the first match,
  *         or ::LH_WSTR_PTR_INVALID if not found.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_wstr_ptr_index_of_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                              lh_usize_t src_size, lh_bool_t ignore_case);
@@ -635,7 +610,6 @@ lh_wstr_ptr_index_of_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const l
  * @return Zero-based index of the first match,
  *         or ::LH_WSTR_PTR_INVALID if not found.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_wstr_ptr_index_of(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case);
 
@@ -657,7 +631,6 @@ lh_wstr_ptr_index_of(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ign
  * @see lh_wstr_ptr_find_by_ignore_case
  * @see lh_wchar_fold_case
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_wstr_ptr_contains(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case);
 
@@ -675,7 +648,6 @@ lh_wstr_ptr_contains(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ign
  * @see lh_wstr_ptr_find
  * @see lh_wstr_ptr_contains
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_wstr_ptr_contains_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                              lh_usize_t src_size, lh_bool_t ignore_case);
@@ -700,7 +672,6 @@ lh_wstr_ptr_contains_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const l
  * @see lh_wstr_ptr_compare_by_ignore_case
  * @see lh_wchar_fold_case
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_wstr_ptr_equals(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case);
 
@@ -721,7 +692,6 @@ lh_wstr_ptr_equals(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignor
  * @see lh_wstr_ptr_equals
  * @see lh_wstr_ptr_compare
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_wstr_ptr_equals_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                            lh_usize_t src_size, lh_bool_t ignore_case);
@@ -749,7 +719,6 @@ lh_wstr_ptr_equals_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_
  * @see lh_wstr_ptr_compare
  * @see lh_wchar_fold_case
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_wstr_ptr_starts_with(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case);
 
@@ -769,7 +738,6 @@ lh_wstr_ptr_starts_with(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t 
  * @see lh_wstr_ptr_compare
  * @see lh_wstr_ptr_starts_with
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_wstr_ptr_starts_with_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                                 lh_usize_t src_size, lh_bool_t ignore_case);
@@ -795,7 +763,6 @@ lh_wstr_ptr_starts_with_by_size(const lh_wstr_ptr str, lh_usize_t str_size, cons
  * @see lh_wstr_ptr_rcompare_by_ignore_case
  * @see lh_wchar_fold_case
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_wstr_ptr_ends_with(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case);
 
@@ -815,7 +782,6 @@ lh_wstr_ptr_ends_with(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ig
  * @see lh_wstr_ptr_rcompare
  * @see lh_wstr_ptr_ends_with
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_wstr_ptr_ends_with_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                               lh_usize_t src_size, lh_bool_t ignore_case);
@@ -831,7 +797,6 @@ lh_wstr_ptr_ends_with_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const 
  *
  * @see lh_wstr_ptr_find_char
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_wstr_ptr_contains_char(const lh_wstr_ptr chars, lh_usize_t chars_size, lh_wchar_t ch);
 
@@ -845,7 +810,6 @@ lh_wstr_ptr_contains_char(const lh_wstr_ptr chars, lh_usize_t chars_size, lh_wch
  *
  * @see lh_wstr_ptr_clear
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_erase(lh_wstr_ptr str, lh_usize_t index);
 
@@ -856,7 +820,6 @@ lh_wstr_ptr_erase(lh_wstr_ptr str, lh_usize_t index);
  *
  * @return @p str.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_clear(lh_wstr_ptr str);
 
@@ -869,7 +832,6 @@ lh_wstr_ptr_clear(lh_wstr_ptr str);
  *
  * @see lh_wstr_ptr_ltrim_custom
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_ltrim(lh_wstr_ptr str);
 
@@ -882,7 +844,6 @@ lh_wstr_ptr_ltrim(lh_wstr_ptr str);
  *
  * @see lh_wstr_ptr_rtrim_custom
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_rtrim(lh_wstr_ptr str);
 
@@ -895,7 +856,6 @@ lh_wstr_ptr_rtrim(lh_wstr_ptr str);
  *
  * @see lh_wstr_ptr_trim_custom
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_trim(lh_wstr_ptr str);
 
@@ -911,7 +871,6 @@ lh_wstr_ptr_trim(lh_wstr_ptr str);
  *
  * @see lh_wstr_ptr_ltrim_set
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_ltrim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr whitespace_chars,
                          lh_usize_t whitespace_size);
@@ -928,7 +887,6 @@ lh_wstr_ptr_ltrim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr
  *
  * @see lh_wstr_ptr_rtrim_set
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_rtrim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr whitespace_chars,
                          lh_usize_t whitespace_size);
@@ -945,7 +903,6 @@ lh_wstr_ptr_rtrim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr
  *
  * @see lh_wstr_ptr_trim_set
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_trim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr whitespace_chars,
                         lh_usize_t whitespace_size);
@@ -961,7 +918,6 @@ lh_wstr_ptr_trim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr 
  *
  * @see lh_wstr_ptr_ltrim_set
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_ltrim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
                       lh_usize_t whitespace_size);
@@ -977,7 +933,6 @@ lh_wstr_ptr_ltrim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
  *
  * @see lh_wstr_ptr_rtrim_set
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_rtrim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
                       lh_usize_t whitespace_size);
@@ -993,7 +948,6 @@ lh_wstr_ptr_rtrim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
  *
  * @see lh_wstr_ptr_trim_set
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_trim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
                      lh_usize_t whitespace_size);
@@ -1008,7 +962,6 @@ lh_wstr_ptr_trim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
  *
  * @see lh_wstr_ptr_ltrim_custom
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_ltrim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars);
 
@@ -1022,7 +975,6 @@ lh_wstr_ptr_ltrim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars);
  *
  * @see lh_wstr_ptr_rtrim_custom
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_rtrim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars);
 
@@ -1036,7 +988,6 @@ lh_wstr_ptr_rtrim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars);
  *
  * @see lh_wstr_ptr_trim_custom
  */
-LH_ATTRIBUTE_SYMBOL
 lh_wstr_ptr
 lh_wstr_ptr_trim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars);
 

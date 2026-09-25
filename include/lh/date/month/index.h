@@ -9,7 +9,6 @@
 #ifndef LH_DATE_MONTH_INDEX_H
 #define LH_DATE_MONTH_INDEX_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/numeric/types.h>
@@ -63,7 +62,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @return Whole years of overflow. `0` if it fit.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_date_month_index_add(lh_date_month_index_t *self, lh_uint_t value);
 
@@ -75,7 +73,6 @@ lh_date_month_index_add(lh_date_month_index_t *self, lh_uint_t value);
  *
  * @return Whole years borrowed. `0` if it fit.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_date_month_index_sub(lh_date_month_index_t *self, lh_uint_t value);
 

@@ -9,7 +9,6 @@
 #ifndef LH_ERROR_H
 #define LH_ERROR_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/error/code.h>
@@ -36,7 +35,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param code New error code.
  * @param desc New description view (empty view = no description).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_error_set(lh_error_t *self, lh_error_code_t code, lh_str_view_t desc);
 
@@ -46,7 +44,6 @@ lh_error_set(lh_error_t *self, lh_error_code_t code, lh_str_view_t desc);
  * @param self Error object to modify.
  * @param code New error code.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_error_set_code(lh_error_t *self, lh_error_code_t code);
 
@@ -56,7 +53,6 @@ lh_error_set_code(lh_error_t *self, lh_error_code_t code);
  * @param self Error object to modify.
  * @param desc New description view (empty view = no description).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_error_set_desc(lh_error_t *self, lh_str_view_t desc);
 
@@ -67,7 +63,6 @@ lh_error_set_desc(lh_error_t *self, lh_str_view_t desc);
  * @param self Error object to read from.
  * @return Current ::lh_error_code_t value.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_error_code_t
 lh_error_get_code(const lh_error_t *self);
 
@@ -76,7 +71,6 @@ lh_error_get_code(const lh_error_t *self);
  * @param self Error object to read from.
  * @return Current @c desc (empty view when there is no description).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_view_t
 lh_error_get_desc(const lh_error_t *self);
 
@@ -87,7 +81,6 @@ lh_error_get_desc(const lh_error_t *self);
  * @param fallback Description returned when @p self has no description.
  * @return Stored description when non-empty, otherwise @p fallback.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_str_view_t
 lh_error_get_desc_or(const lh_error_t *self, lh_str_view_t fallback);
 
@@ -98,7 +91,6 @@ lh_error_get_desc_or(const lh_error_t *self, lh_str_view_t fallback);
  * @param code Error code to compare with.
  * @return ::lh_bool_true when @p self carries @p code, otherwise ::lh_bool_false.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_error_has_code(const lh_error_t *self, lh_error_code_t code);
 
@@ -108,7 +100,6 @@ lh_error_has_code(const lh_error_t *self, lh_error_code_t code);
  * @param self Error object to read from.
  * @return ::lh_bool_true when @p self stores ::lh_error_code_ok.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_error_is_ok(const lh_error_t *self);
 
@@ -118,7 +109,6 @@ lh_error_is_ok(const lh_error_t *self);
  * @param self Error object to read from.
  * @return ::lh_bool_true when @p self does not store ::lh_error_code_ok.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_error_is_failure(const lh_error_t *self);
 
@@ -131,7 +121,6 @@ lh_error_is_failure(const lh_error_t *self);
  * @param self Error object to read from.
  * @return ::lh_bool_true when @p self stores a non-empty description view.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_error_has_desc(const lh_error_t *self);
 
@@ -141,7 +130,6 @@ lh_error_has_desc(const lh_error_t *self);
  * @param self Error object to read from.
  * @return ::lh_bool_true when @p self stores ::lh_error_code_ok and no description.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_error_is_empty(const lh_error_t *self);
 
@@ -155,7 +143,6 @@ lh_error_is_empty(const lh_error_t *self);
  * @param other Error object to compare with.
  * @return ::lh_bool_true when both objects store the same code and description span.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_error_equals(const lh_error_t *self, const lh_error_t *other);
 
@@ -168,7 +155,6 @@ lh_error_equals(const lh_error_t *self, const lh_error_t *other);
  * @param other Error object to compare with.
  * @return ::lh_bool_true when both objects store the same code.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_error_has_same_code(const lh_error_t *self, const lh_error_t *other);
 
@@ -181,7 +167,6 @@ lh_error_has_same_code(const lh_error_t *self, const lh_error_t *other);
  * @param other Error object to compare with.
  * @return ::lh_bool_true when both objects store different codes.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_error_has_diff_code(const lh_error_t *self, const lh_error_t *other);
 
@@ -192,7 +177,6 @@ lh_error_has_diff_code(const lh_error_t *self, const lh_error_t *other);
  * @param self  Destination error object.
  * @param other Source error object to copy from.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_error_assign(lh_error_t *self, const lh_error_t *other);
 
@@ -203,7 +187,6 @@ lh_error_assign(lh_error_t *self, const lh_error_t *other);
  *
  * @param self Error object to clear.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_error_clear(lh_error_t *self);
 
@@ -216,7 +199,6 @@ lh_error_clear(lh_error_t *self);
  * @param code Initial error code.
  * @param desc Initial description view (empty view = no description).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_error_init(lh_error_t *self, lh_error_code_t code, lh_str_view_t desc);
 
@@ -225,7 +207,6 @@ lh_error_init(lh_error_t *self, lh_error_code_t code, lh_str_view_t desc);
  * @param self  Error object to initialize.
  * @param other Source error to copy from.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_error_init_by_other(lh_error_t *self, const lh_error_t *other);
 
@@ -236,7 +217,6 @@ lh_error_init_by_other(lh_error_t *self, const lh_error_t *other);
  *
  * @param self Error object to initialize.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_error_init_by_empty(lh_error_t *self);
 
@@ -246,7 +226,6 @@ lh_error_init_by_empty(lh_error_t *self);
  * @param self Error object to read and reset.
  * @return Code value before clearing.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_error_code_t
 lh_error_get_code_and_clear(lh_error_t *self);
 
@@ -259,7 +238,6 @@ lh_error_get_code_and_clear(lh_error_t *self);
  * @param desc Description view (empty view = no description).
  * @return Constructed ::lh_error_t value.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_error_t
 lh_error_make(lh_error_code_t code, lh_str_view_t desc);
 
@@ -269,7 +247,6 @@ lh_error_make(lh_error_code_t code, lh_str_view_t desc);
  * @param code Error code (::lh_error_code_t).
  * @return Constructed ::lh_error_t value.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_error_t
 lh_error_make_by_code(lh_error_code_t code);
 

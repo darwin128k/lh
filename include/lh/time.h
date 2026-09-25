@@ -12,7 +12,6 @@
 #ifndef LH_TIME_H
 #define LH_TIME_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
@@ -65,7 +64,6 @@ typedef struct lh_time lh_time_t;
  * @param self  Destination (not null).
  * @param other Source (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_time_assign(lh_time_t *self, const lh_time_t *other);
 
@@ -77,7 +75,6 @@ lh_time_assign(lh_time_t *self, const lh_time_t *other);
  * @param minute Minute (`0`–::LH_TIME_MINUTE_MAX).
  * @param second Second (`0`–::LH_TIME_SECOND_MAX).
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_time_set(lh_time_t *self, lh_time_hour_t hour, lh_time_minute_t minute, lh_time_second_t second);
 
@@ -87,7 +84,6 @@ lh_time_set(lh_time_t *self, lh_time_hour_t hour, lh_time_minute_t minute, lh_ti
  * @param self Time to modify (not null).
  * @param hour New hour.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_time_set_hour(lh_time_t *self, lh_time_hour_t hour);
 
@@ -97,7 +93,6 @@ lh_time_set_hour(lh_time_t *self, lh_time_hour_t hour);
  * @param self   Time to modify (not null).
  * @param minute New minute.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_time_set_minute(lh_time_t *self, lh_time_minute_t minute);
 
@@ -107,7 +102,6 @@ lh_time_set_minute(lh_time_t *self, lh_time_minute_t minute);
  * @param self   Time to modify (not null).
  * @param second New second.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_time_set_second(lh_time_t *self, lh_time_second_t second);
 
@@ -119,7 +113,6 @@ lh_time_set_second(lh_time_t *self, lh_time_second_t second);
  *
  * @return Whole days of overflow. `0` if the hour stayed in range.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_add_hour(lh_time_t *self, lh_uint_t value);
 
@@ -131,7 +124,6 @@ lh_time_add_hour(lh_time_t *self, lh_uint_t value);
  *
  * @return Whole days borrowed. `0` if the hour stayed in range.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_sub_hour(lh_time_t *self, lh_uint_t value);
 
@@ -144,7 +136,6 @@ lh_time_sub_hour(lh_time_t *self, lh_uint_t value);
  *
  * @return Whole days of overflow from the hour carry.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_add_minute(lh_time_t *self, lh_uint_t value);
 
@@ -157,7 +148,6 @@ lh_time_add_minute(lh_time_t *self, lh_uint_t value);
  *
  * @return Whole days borrowed from the hour carry.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_sub_minute(lh_time_t *self, lh_uint_t value);
 
@@ -170,7 +160,6 @@ lh_time_sub_minute(lh_time_t *self, lh_uint_t value);
  *
  * @return Whole days of overflow from the minute/hour carry.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_add_second(lh_time_t *self, lh_uint_t value);
 
@@ -183,7 +172,6 @@ lh_time_add_second(lh_time_t *self, lh_uint_t value);
  *
  * @return Whole days borrowed from the minute/hour carry.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_sub_second(lh_time_t *self, lh_uint_t value);
 
@@ -197,7 +185,6 @@ lh_time_sub_second(lh_time_t *self, lh_uint_t value);
  *
  * @return Sum of whole days of overflow from the three steps.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_add_custom(lh_time_t *self, lh_uint_t hour, lh_uint_t minute, lh_uint_t second);
 
@@ -214,7 +201,6 @@ lh_time_add_custom(lh_time_t *self, lh_uint_t hour, lh_uint_t minute, lh_uint_t 
  *
  * @return Sum of whole days borrowed from the three steps.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_sub_custom(lh_time_t *self, lh_uint_t hour, lh_uint_t minute, lh_uint_t second);
 
@@ -227,7 +213,6 @@ lh_time_sub_custom(lh_time_t *self, lh_uint_t hour, lh_uint_t minute, lh_uint_t 
  *
  * @return Same as ::lh_time_add_custom.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_add(lh_time_t *self, const lh_time_t *other);
 
@@ -239,7 +224,6 @@ lh_time_add(lh_time_t *self, const lh_time_t *other);
  *
  * @return Same as ::lh_time_sub_custom.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_sub(lh_time_t *self, const lh_time_t *other);
 
@@ -249,7 +233,6 @@ lh_time_sub(lh_time_t *self, const lh_time_t *other);
  * @param self Time to read (not null).
  * @return Stored hour (`0`–::LH_TIME_HOUR_MAX when valid).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_time_hour_t
 lh_time_get_hour(const lh_time_t *self);
 
@@ -259,7 +242,6 @@ lh_time_get_hour(const lh_time_t *self);
  * @param self Time to read (not null).
  * @return Stored minute (`0`–::LH_TIME_MINUTE_MAX when valid).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_time_minute_t
 lh_time_get_minute(const lh_time_t *self);
 
@@ -269,7 +251,6 @@ lh_time_get_minute(const lh_time_t *self);
  * @param self Time to read (not null).
  * @return Stored second (`0`–::LH_TIME_SECOND_MAX when valid).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_time_second_t
 lh_time_get_second(const lh_time_t *self);
 
@@ -282,7 +263,6 @@ lh_time_get_second(const lh_time_t *self);
  * @param self Time to read (not null).
  * @return Seconds since midnight.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_uint_t
 lh_time_seconds_of_day(const lh_time_t *self);
 
@@ -293,7 +273,6 @@ lh_time_seconds_of_day(const lh_time_t *self);
  * @param seconds Seconds since midnight (`0`–`86399`).
  * @return Time of day.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_time_t
 lh_time_from_seconds_of_day(lh_uint_t seconds);
 
@@ -303,7 +282,6 @@ lh_time_from_seconds_of_day(lh_uint_t seconds);
  * @param self  Left (not null).
  * @param other Right (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_time_equals(const lh_time_t *self, const lh_time_t *other);
 
@@ -315,7 +293,6 @@ lh_time_equals(const lh_time_t *self, const lh_time_t *other);
  * @param self    Value under test (not null).
  * @param minimum Floor (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_time_is_at_least(const lh_time_t *self, const lh_time_t *minimum);
 
@@ -327,7 +304,6 @@ lh_time_is_at_least(const lh_time_t *self, const lh_time_t *minimum);
  * @param self  Value under test (not null).
  * @param other Bound (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_time_is_less(const lh_time_t *self, const lh_time_t *other);
 
@@ -339,7 +315,6 @@ lh_time_is_less(const lh_time_t *self, const lh_time_t *other);
  * @param self  Value under test (not null).
  * @param other Bound (not null).
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_time_is_greater(const lh_time_t *self, const lh_time_t *other);
 
@@ -355,7 +330,6 @@ lh_time_is_greater(const lh_time_t *self, const lh_time_t *other);
  *
  * @return ::lh_bool_true if all of @p str_size was consumed as a valid time.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_time_parse(lh_str_cptr str, lh_usize_t str_size, lh_time_t *out);
 
@@ -371,7 +345,6 @@ lh_time_parse(lh_str_cptr str, lh_usize_t str_size, lh_time_t *out);
  *
  * @return Characters written (`8`), or 0 if @p str_size was too small.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_usize_t
 lh_time_format(const lh_time_t *self, lh_str_ptr str, lh_usize_t str_size);
 

@@ -11,7 +11,6 @@
 #ifndef LH_OS_NET_H
 #define LH_OS_NET_H
 
-#include <lh/attribute/symbol.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -31,7 +30,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return ::lh_bool_true on success, ::lh_bool_false if the OS backend
  *         failed to initialize.
  */
-LH_ATTRIBUTE_SYMBOL
 lh_bool_t
 lh_os_net_init(void);
 
@@ -41,7 +39,6 @@ lh_os_net_init(void);
  * Call once after every ::lh_os_net_socket_t has been closed. Safe to call
  * on every platform.
  */
-LH_ATTRIBUTE_SYMBOL
 void
 lh_os_net_deinit(void);
 
