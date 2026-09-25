@@ -174,6 +174,12 @@ lh_str_format(lh_str_t *self, lh_str_cptr fmt, ...)
 }
 
 lh_void
+lh_str_reserve(lh_str_t *self, lh_usize_t count)
+{
+    lh_vector_reserve(self, lh_math_add_one(count));
+}
+
+lh_void
 lh_str_clear(lh_str_t *self)
 {
     lh_vector_clear(self);
@@ -197,6 +203,13 @@ lh_str_view_t
 lh_str_as_view(const lh_str_t *self)
 {
     lh_str_view_t view;
-    lh_str_init_by_size(&view, lh_str_get_data(self), lh_str_get_size(self));
+
+    /* A sized view rejects size 0; an empty string is the empty view. */
+    if (lh_str_is_empty(self))
+    {
+        lh_str_view_init_empty(lh_addr_of(view));
+        return view;
+    }
+    lh_str_init_by_size(lh_addr_of(view), lh_str_get_data(self), lh_str_get_size(self));
     return view;
 }

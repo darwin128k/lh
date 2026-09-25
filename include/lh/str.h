@@ -178,6 +178,21 @@ lh_usize_t
 lh_str_format(lh_str_t *self, lh_str_cptr fmt, ...);
 
 /**
+ * @brief Make room for at least @p count characters (plus the terminator)
+ *        without reallocating along the way.
+ *
+ * No-op when @p self already has the room. Size and contents are
+ * unchanged. Use it before a known number of appends so the buffer grows
+ * once instead of step by step.
+ *
+ * @param self  String to grow.
+ * @param count Characters @p self must be able to hold, excluding the NUL.
+ */
+LH_ATTRIBUTE_SYMBOL
+lh_void
+lh_str_reserve(lh_str_t *self, lh_usize_t count);
+
+/**
  * @brief Empty @p self without releasing its buffer.
  * @param self String to clear.
  */
