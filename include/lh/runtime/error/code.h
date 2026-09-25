@@ -22,7 +22,7 @@
  * @brief Runtime error code for user- or library-requested interruption.
  *
  * Used for paths that stop normal control flow with a generic interrupt kind
- * (e.g. ::lh_runtime_throw_by_desc pairs this code with a message).
+ * (e.g. ::lh_runtime_error_make pairs this code with a message).
  */
 #define lh_runtime_error_code_interrupt 0x01
 

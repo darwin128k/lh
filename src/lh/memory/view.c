@@ -4,7 +4,6 @@
 #include <lh/attribute/static.h>
 #include <lh/util/swap.h>
 #include <lh/util/interval.h>
-#include <lh/runtime/throw.h>
 #include <lh/optional/ref.h>
 #include <lh/memory/raw.h>
 #include <lh/assert.h>

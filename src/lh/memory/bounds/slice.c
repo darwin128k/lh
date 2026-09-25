@@ -5,7 +5,6 @@
 #include <lh/attribute/static.h>
 #include <lh/util/swap.h>
 #include <lh/optional/ref.h>
-#include <lh/runtime/try.h>
 #include <lh/cast/const.h>
 #include <lh/memory/raw.h>
 #include <lh/assert.h>

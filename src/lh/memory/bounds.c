@@ -3,7 +3,6 @@
 #include <lh/attribute/static.h>
 #include <lh/util/swap.h>
 #include <lh/util/interval.h>
-#include <lh/runtime/throw.h>
 #include <lh/optional/ref.h>
 #include <lh/util/return.h>
 #include <lh/memory/raw.h>
@@ -86,14 +85,16 @@ lh_memory_bounds_is_valid(const lh_memory_bounds_t *self)
 lh_ptr
 lh_memory_bounds_get_begin_v(const lh_memory_bounds_t *self)
 {
-    lh_assert_runtime_ref(lh_memory_bounds_is_valid(self));
+    lh_assert_runtime_ifn(lh_memory_bounds_is_valid(self),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
     return lh_memory_bounds_get_begin(self);
 }
 
 lh_ptr
 lh_memory_bounds_get_end_v(const lh_memory_bounds_t *self)
 {
-    lh_assert_runtime_ref(lh_memory_bounds_is_valid(self));
+    lh_assert_runtime_ifn(lh_memory_bounds_is_valid(self),
+                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
     return lh_memory_bounds_get_end(self);
 }
 

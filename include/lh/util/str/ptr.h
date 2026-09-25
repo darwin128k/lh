@@ -259,7 +259,7 @@ lh_str_ptr_find_of_null_terminator(const lh_str_ptr str);
  * @return Number of characters before the terminator.
  *
  * @note If no NUL is found within the scan bound used by ::lh_str_ptr_find_of_null_terminator,
- *       ::lh_runtime_check_if_not calls ::lh_runtime_throw_with_code with
+ *       a failed check terminates (::lh_runtime_terminate) with
  *       ::lh_runtime_error_code_no_null_terminator.
  *
  * @see lh_str_ptr_find_of_null_terminator

@@ -1,8 +1,6 @@
 #include <benchmark/benchmark.h>
 
 #include <lh/error.h>
-#include <lh/exception/origin.h>
-#include <lh/exception/origin/initializer.h>
 #include <lh/runtime/error.h>
 #include <lh/str/view.h>
 #include <lh/str/view/initializer.h>
@@ -178,17 +176,6 @@ BM_error_make_empty(benchmark::State &state)
     }
 }
 BENCHMARK(BM_error_make_empty);
-
-static void
-BM_exception_origin_now(benchmark::State &state)
-{
-    for (auto _ : state)
-    {
-        lh_exception_origin_t origin = lh_exception_origin_initializer_now();
-        benchmark::DoNotOptimize(origin);
-    }
-}
-BENCHMARK(BM_exception_origin_now);
 
 static void
 BM_raw_ptr_origin_store(benchmark::State &state)

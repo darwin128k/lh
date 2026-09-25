@@ -7,8 +7,9 @@
  * All functions delegate to the corresponding ::lh_error_* counterparts.
  *
  * The runtime-namespaced type exists to document intent: an
- * ::lh_runtime_error_t is produced and consumed by the runtime throw / assert
- * layer, not by general-purpose code that works with ::lh_error_t directly.
+ * ::lh_runtime_error_t names what a failed runtime check / assert means
+ * (see `lh/runtime/assert.h`); general-purpose code works with ::lh_error_t
+ * directly.
  */
 
 #ifndef LH_RUNTIME_ERROR_H

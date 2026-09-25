@@ -58,7 +58,6 @@ set(LH_LIB_INCLUDE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 # Core library translation units.
 set(LH_LIB_SOURCES
-        ${LH_LIB_SRC_PATH}/runtime/exception/catch/stack.c
         ${LH_LIB_SRC_PATH}/runtime/allocator.c
         ${LH_LIB_SRC_PATH}/runtime/terminate.c
 
@@ -81,9 +80,6 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/memory.c
         ${LH_LIB_SRC_PATH}/vector.c
 
-        ${LH_LIB_SRC_PATH}/exception/origin.c
-        ${LH_LIB_SRC_PATH}/exception/catch.c
-        ${LH_LIB_SRC_PATH}/exception.c
         ${LH_LIB_SRC_PATH}/version.c
         ${LH_LIB_SRC_PATH}/date.c
         ${LH_LIB_SRC_PATH}/date/year.c

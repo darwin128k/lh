@@ -1,7 +1,6 @@
 #include <lh/memory/view/slice.h>
 #include <lh/attribute/static.h>
 #include <lh/util/return.h>
-#include <lh/runtime/throw.h>
 #include <lh/optional/ref.h>
 #include <lh/util/interval.h>
 #include <lh/util/swap.h>

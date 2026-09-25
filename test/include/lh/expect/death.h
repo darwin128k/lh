@@ -27,9 +27,8 @@
 #if GTEST_HAS_DEATH_TEST && LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB
 
 /**
- * A failed check unwinds via lh_runtime_throw; with no catch frame this calls
- * lh_runtime_terminate(). With the default stdlib-backed handler that is abort(); the child
- * process exits and EXPECT_DEATH matches stderr with ".*".
+ * A failed check calls lh_runtime_terminate(). With the default stdlib-backed handler
+ * that is abort(); the child process exits and EXPECT_DEATH matches stderr with ".*".
  */
 
 /**

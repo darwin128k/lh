@@ -1,6 +1,7 @@
 /**
  * @file assert.h
- * @brief Runtime checks that raise an ::lh_runtime_error_t on failure.
+ * @brief Runtime checks: a failed one ends the program through
+ *        ::lh_runtime_terminate.
  *
  * Two families, split by what a failure means:
  *   - `lh_runtime_check_*` — the environment failed (allocation, a missing
@@ -10,20 +11,29 @@
  *     ::LH_RUNTIME_ASSERT_ENABLED is 1 — by default in builds without
  *     `NDEBUG`, i.e. not in Release, the same rule as C's `assert`.
  *
- * A disabled assertion does not evaluate its condition or its initializer,
- * so they must have no side effects.
+ * An enabled assertion fails in one of two ways:
+ *   - by default it calls ::lh_runtime_terminate (the host's handler,
+ *     `abort()` unless replaced);
+ *   - with ::LH_RUNTIME_ASSERT_TRAP it stops the process on the spot
+ *     (::lh_compiler_trap) — no error object, no call, so the checked
+ *     functions stay cheap enough to keep in a Release build.
  *
- * The second argument to all these macros is an @p initializer — any expression
- * that produces an ::lh_runtime_error_t value, e.g.
- * ::lh_runtime_error_make or a compound literal.
- * The value is stored in a local variable before its address is taken, so
- * rvalue results from function calls are fully supported.
+ * A disabled assertion does not evaluate its condition or its initializer,
+ * and a trapping one does not evaluate its initializer, so neither may have
+ * side effects.
+ *
+ * The second argument to all these macros is an @p initializer — an
+ * ::lh_runtime_error_t naming what went wrong (e.g. ::lh_runtime_error_make_by_code).
+ * It documents the check at the call site; it is not evaluated — nothing is
+ * thrown, so there is no error object to build.
  */
 
 #ifndef LH_RUNTIME_ASSERT_H
 #define LH_RUNTIME_ASSERT_H
 
-#include <lh/runtime/raise.h>
+#include <lh/compiler/trap.h>
+#include <lh/runtime/error.h>
+#include <lh/runtime/terminate.h>
 
 /**
  * @def LH_RUNTIME_ASSERT_ENABLED
@@ -43,11 +53,26 @@
 #    endif
 #endif
 
+/**
+ * @def LH_RUNTIME_ASSERT_TRAP
+ * @brief `1` to make a failed contract assertion stop the process on the
+ *        spot (::lh_compiler_trap) instead of raising an error; `0`
+ *        (default) to raise it.
+ *
+ * Only matters while ::LH_RUNTIME_ASSERT_ENABLED is `1` — e.g. a Release
+ * build with `-DLH_RUNTIME_ASSERT_ENABLED=1 -DLH_RUNTIME_ASSERT_TRAP=1`
+ * keeps the checks at a fraction of their raising cost. Always-on
+ * `lh_runtime_check_*` are not affected: they always raise.
+ */
+#ifndef LH_RUNTIME_ASSERT_TRAP
+#    define LH_RUNTIME_ASSERT_TRAP 0
+#endif
+
 /* ── always-on checks ──────────────────────────────────────────────────── */
 
 /**
  * @def lh_runtime_check_if(expr, initializer)
- * @brief Throw if @p expr is *true* — in every build.
+ * @brief Terminate if @p expr is *true* — in every build.
  *
  * For failures of the environment rather than of the caller (allocation
  * failed, allocator not configured). Contract violations use
@@ -58,16 +83,16 @@
 #define lh_runtime_check_if(expr, initializer)                                                     \
     do                                                                                             \
     {                                                                                              \
+        (void)sizeof(initializer);                                                                 \
         if (expr)                                                                                  \
         {                                                                                          \
-            lh_runtime_error_t _err = (initializer);                                               \
-            lh_runtime_raise(lh_addr_of(_err));                                                    \
+            lh_runtime_terminate();                                                                \
         }                                                                                          \
     } while (0)
 
 /**
  * @def lh_runtime_check_ifn(expr, initializer)
- * @brief Throw if @p expr is *false* — in every build. Inverse of
+ * @brief Terminate if @p expr is *false* — in every build. Inverse of
  *        ::lh_runtime_check_if.
  */
 #define lh_runtime_check_ifn(expr, initializer) lh_runtime_check_if(!(expr), initializer)
@@ -76,9 +101,9 @@
 
 /**
  * @def lh_runtime_assert_if(expr, initializer)
- * @brief Throw if @p expr is *true* — only while ::LH_RUNTIME_ASSERT_ENABLED.
+ * @brief Terminate if @p expr is *true* — only while ::LH_RUNTIME_ASSERT_ENABLED.
  *
- * @param expr        Condition; if true, throws.
+ * @param expr        Condition; if true, terminates.
  * @param initializer An ::lh_runtime_error_t value — any expression
  *                    (function call, compound literal, or variable).
  *
@@ -90,7 +115,19 @@
  *
  * @see lh_runtime_assert_ifn
  */
-#if LH_RUNTIME_ASSERT_ENABLED
+#if LH_RUNTIME_ASSERT_ENABLED && LH_RUNTIME_ASSERT_TRAP
+/* The initializer only names the error, which a trap does not report: keep
+   it "used" through sizeof without building it. */
+#    define lh_runtime_assert_if(expr, initializer)                                                \
+        do                                                                                         \
+        {                                                                                          \
+            (void)sizeof(initializer);                                                             \
+            if (expr)                                                                              \
+            {                                                                                      \
+                lh_compiler_trap();                                                                \
+            }                                                                                      \
+        } while (0)
+#elif LH_RUNTIME_ASSERT_ENABLED
 #    define lh_runtime_assert_if(expr, initializer) lh_runtime_check_if(expr, initializer)
 #else
 /* sizeof keeps the operands "used" (no unused-variable warnings) without
@@ -129,7 +166,7 @@
  * @endcode
  *
  * @see lh_runtime_assert_if
- * @see lh_runtime_raise
+ * @see lh_runtime_terminate
  */
 #define lh_runtime_assert(expr, initializer) lh_runtime_assert_ifn(expr, initializer)
 
