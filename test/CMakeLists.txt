@@ -116,17 +116,6 @@ target_link_libraries(${PROJECT_NAME}
         PRIVATE ${LH_CORE_TARGET} gtest
 )
 
-# Windows: put the shared library next to the test executable so the loader finds it (avoids
-# 0xC0000135 STATUS_DLL_NOT_FOUND when running lh_test.exe from the IDE or arbitrary cwd).
-if (WIN32)
-    add_custom_command(
-            TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_FILE:${LH_CORE_TARGET}>
-            $<TARGET_FILE_DIR:${PROJECT_NAME}>
-    )
-endif ()
-
 # Register the executable in CTest (enable_testing() is in the root CMakeLists.txt).
 add_test(
         NAME ${PROJECT_NAME}

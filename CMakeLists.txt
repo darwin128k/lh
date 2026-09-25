@@ -24,7 +24,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # ---------------------------------------------------------------------------
 # Build options
 # ---------------------------------------------------------------------------
-option(LH_BUILD_SHARED "Build as shared library" ON)
 option(LH_BUILD_DOCS "Build documentation" ON)
 option(LH_BUILD_TESTS "Build tests" ON)
 option(LH_BUILD_BENCH "Build microbenchmarks (requires the bench/lib/benchmark submodule)" OFF)
@@ -186,13 +185,9 @@ if (LH_LIBRARY_OPTION_OS)
 endif ()
 
 
-# Build either shared or static target from the same source list.
-if (LH_BUILD_SHARED)
-    add_library(${PROJECT_NAME} SHARED ${LH_LIB_SOURCES})
-    set_target_properties(${PROJECT_NAME} PROPERTIES DEFINE_SYMBOL LH_EXPORTS)
-else ()
-    add_library(${PROJECT_NAME} STATIC ${LH_LIB_SOURCES})
-endif ()
+# lh is a static library only: it is linked into its host, never loaded as a
+# DLL / shared object.
+add_library(${PROJECT_NAME} STATIC ${LH_LIB_SOURCES})
 
 # Expose generated and public include directories to consumers.
 target_include_directories(

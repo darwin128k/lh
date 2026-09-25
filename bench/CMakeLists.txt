@@ -79,12 +79,3 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${LH_CORE_TARGET} benchmark::bench
 
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON)
 
-# Windows: put the shared library next to the bench executable so the loader finds it.
-if (WIN32)
-    add_custom_command(
-            TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_FILE:${LH_CORE_TARGET}>
-            $<TARGET_FILE_DIR:${PROJECT_NAME}>
-    )
-endif ()

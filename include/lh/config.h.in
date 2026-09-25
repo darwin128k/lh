@@ -78,14 +78,6 @@
 #define LH_COMPILE_HOST "@LH_COMPILE_HOST@"
 
 /**
- * @def LH_LIBRARY_OPTION_SHARED_BUILD
- * @brief Indicates whether the library is built as a shared object.
- *
- * Value is `1` for shared builds and `0` for static/object builds.
- */
-#define LH_LIBRARY_OPTION_SHARED_BUILD @ValShared@
-
-/**
  * @def LH_LIBRARY_OPTION_THREAD_LOCAL
  * @brief Use `thread_local` / `__thread`
  *        for internal state (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).

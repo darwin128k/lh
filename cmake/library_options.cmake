@@ -10,13 +10,6 @@
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# LH_LIBRARY_OPTION_SHARED_BUILD
-#
-# Written to include/lh/config.h (0 or 1) from LH_BUILD_SHARED in
-# CMakeLists.txt. Dependents inherit the same config via PUBLIC include path.
-# -----------------------------------------------------------------------------
-
-# -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_THREAD_LOCAL
 #
 # Controls whether LH_ATTRIBUTE_THREAD_LOCAL expands to real thread-local
