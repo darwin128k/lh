@@ -19,6 +19,8 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/exception/origin.h>
 #include <lh/runtime/error.h>
+#include <lh/size.h>
+#include <lh/str/ptr.h>
 
 /**
  * @struct lh_exception
@@ -52,6 +54,58 @@ lh_exception_get_code(const lh_exception_t *self);
  */
 const lh_exception_origin_t *
 lh_exception_get_origin(const lh_exception_t *self);
+
+/* ── text ────────────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Write @p self as the report the default check handler prints.
+ *
+ * One line per part the exception carries — lines whose data the report
+ * level dropped are left out:
+ * @code{.unparsed}
+ * lh: runtime check failed: error <code>[, <message>]
+ *   condition: <condition>
+ *   at <file>:<line>[ in <function>]
+ * @endcode
+ * Every line ends in `\n`. Needs no C library, so a host can route the
+ * report anywhere — a server log, a UART, a debugger — from its own handler
+ * (::lh_runtime_check_set).
+ *
+ * All-or-nothing, like ::lh_str_ptr_format_text: when @p str_size cannot
+ * hold the whole report nothing is written and 0 is returned. No NUL
+ * terminator is written; ::lh_exception_format_size gives the exact size.
+ *
+ * Example usage:
+ * @code{.c}
+ * static void
+ * host_handler(const lh_exception_t *exception)
+ * {
+ *     char text[512];
+ *     lh_usize_t n = lh_exception_format(exception, text, sizeof(text) - 1);
+ *     text[n] = '\0';
+ *     server_log(text);
+ * }
+ * @endcode
+ *
+ * @param self     Exception to describe.
+ * @param str      Destination buffer.
+ * @param str_size Capacity of @p str in characters.
+ * @return Characters written, or 0 if @p str_size was too small.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p str is ::lh_null.
+ */
+lh_usize_t
+lh_exception_format(const lh_exception_t *self, lh_str_ptr str, lh_usize_t str_size);
+
+/**
+ * @brief Characters ::lh_exception_format writes for @p self (no terminator).
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+lh_usize_t
+lh_exception_format_size(const lh_exception_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

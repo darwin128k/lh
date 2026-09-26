@@ -51,4 +51,66 @@ TEST(exception, empty_message_and_no_site)
     EXPECT_EQ(lh_exception_get_origin(&exception), nullptr);
 }
 
+std::string
+format_of(const lh_exception_t *exception)
+{
+    char text[512];
+    const lh_usize_t n = lh_exception_format(exception, text, sizeof(text));
+    EXPECT_EQ(n, lh_exception_format_size(exception));
+    return std::string(text, n);
+}
+
+TEST(exception_format, full_report)
+{
+    static const lh_exception_origin_t origin = {"file.c", "fn", "x > 0",
+                                                 lh_str_view_empty_initializer(), 42u};
+    const lh_exception_t exception = lh_exception_initializer(
+        lh_runtime_error_initializer(lh_runtime_error_code_invalid_argument,
+                                     lh_str_view_initializer_lit("x must be positive")),
+        &origin);
+
+    EXPECT_EQ(format_of(&exception), "lh: runtime check failed: error 9, x must be positive\n"
+                                     "  condition: x > 0\n"
+                                     "  at file.c:42 in fn\n");
+}
+
+TEST(exception_format, code_only_without_origin)
+{
+    const lh_exception_t exception =
+        lh_exception_initializer(lh_runtime_error_initializer(lh_runtime_error_code_overflow,
+                                                              lh_str_view_empty_initializer()),
+                                 nullptr);
+
+    EXPECT_EQ(format_of(&exception), "lh: runtime check failed: error 13\n");
+}
+
+TEST(exception_format, location_level_has_no_condition_or_function)
+{
+    static const lh_exception_origin_t origin = {"a/b.c", nullptr, nullptr,
+                                                 lh_str_view_empty_initializer(), 7u};
+    const lh_exception_t exception =
+        lh_exception_initializer(lh_runtime_error_initializer(lh_runtime_error_code_null_pointer,
+                                                              lh_str_view_empty_initializer()),
+                                 &origin);
+
+    EXPECT_EQ(format_of(&exception), "lh: runtime check failed: error 2\n  at a/b.c:7\n");
+}
+
+TEST(exception_format, too_small_writes_nothing)
+{
+    static const lh_exception_origin_t origin = {"file.c", "fn", "x > 0",
+                                                 lh_str_view_empty_initializer(), 42u};
+    const lh_exception_t exception = lh_exception_initializer(
+        lh_runtime_error_initializer(lh_runtime_error_code_invalid_argument,
+                                     lh_str_view_empty_initializer()),
+        &origin);
+    const lh_usize_t size = lh_exception_format_size(&exception);
+    char text[512];
+    text[0] = '#';
+
+    EXPECT_EQ(lh_exception_format(&exception, text, size - 1), 0u);
+    EXPECT_EQ(text[0], '#');
+    EXPECT_EQ(lh_exception_format(&exception, text, size), size);
+}
+
 } // namespace

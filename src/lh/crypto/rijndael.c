@@ -193,18 +193,6 @@ lh_crypto_rijndael_mix_columns(lh_uchar_t *state, lh_usize_t nb, lh_bool_t inver
     }
 }
 
-static void
-lh_crypto_rijndael_add_round_key(lh_uchar_t *state, const lh_uchar_t *round_key,
-                                 lh_usize_t block_size)
-{
-    lh_usize_t i;
-
-    for (i = 0; i < block_size; ++i)
-    {
-        state[i] = lh_cast_static(lh_uchar_t, (state[i] ^ round_key[i]));
-    }
-}
-
 static lh_u32_t
 lh_crypto_rijndael_sub_word(lh_u32_t w)
 {
@@ -260,51 +248,65 @@ lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, const lh_uchar_t *key,
     }
 }
 
+/* self->block_size is 16, 24 or 32 (lh_crypto_rijndael_init checks it).
+   Saying so lets the compiler bound every block-sized xor/copy below: once
+   lh_memory_std_xor has a large-size tier, LTO otherwise warns that
+   block_size bytes may overflow the 32-byte state/chain buffers. */
+static lh_usize_t
+lh_crypto_rijndael_get_block_size(const lh_crypto_rijndael_t *self)
+{
+    const lh_usize_t block_size = self->block_size;
+
+    if (lh_math_gt(block_size, LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX))
+    {
+        lh_compiler_unreachable();
+    }
+    return block_size;
+}
+
 static void
 lh_crypto_rijndael_cipher(const lh_crypto_rijndael_t *self, const lh_uchar_t *in, lh_uchar_t *out,
                           lh_bool_t decrypt)
 {
+    const lh_usize_t block_size = lh_crypto_rijndael_get_block_size(self);
     lh_uchar_t state[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX];
-    lh_usize_t nb = self->block_size / 4U;
+    lh_usize_t nb = block_size / 4U;
     lh_usize_t nr = self->round_count;
     lh_usize_t round;
 
-    lh_memory_std_copy(state, in, self->block_size);
+    lh_memory_std_copy(state, in, block_size);
 
     if (!decrypt)
     {
-        lh_crypto_rijndael_add_round_key(state, self->expanded_key, self->block_size);
+        lh_memory_std_xor(state, state, self->expanded_key, block_size);
         for (round = 1; round < nr; ++round)
         {
-            lh_crypto_rijndael_sub_bytes(state, self->block_size, lh_bool_false);
+            lh_crypto_rijndael_sub_bytes(state, block_size, lh_bool_false);
             lh_crypto_rijndael_shift_rows(state, nb, lh_bool_false);
             lh_crypto_rijndael_mix_columns(state, nb, lh_bool_false);
-            lh_crypto_rijndael_add_round_key(state, self->expanded_key + round * self->block_size,
-                                             self->block_size);
+            lh_memory_std_xor(state, state, self->expanded_key + round * block_size, block_size);
         }
-        lh_crypto_rijndael_sub_bytes(state, self->block_size, lh_bool_false);
+        lh_crypto_rijndael_sub_bytes(state, block_size, lh_bool_false);
         lh_crypto_rijndael_shift_rows(state, nb, lh_bool_false);
-        lh_crypto_rijndael_add_round_key(state, self->expanded_key + nr * self->block_size,
-                                         self->block_size);
+        lh_memory_std_xor(state, state, self->expanded_key + nr * block_size, block_size);
     }
     else
     {
-        lh_crypto_rijndael_add_round_key(state, self->expanded_key + nr * self->block_size,
-                                         self->block_size);
+        lh_memory_std_xor(state, state, self->expanded_key + nr * block_size, block_size);
         for (round = nr; round > 1U; --round)
         {
             lh_crypto_rijndael_shift_rows(state, nb, lh_bool_true);
-            lh_crypto_rijndael_sub_bytes(state, self->block_size, lh_bool_true);
-            lh_crypto_rijndael_add_round_key(
-                state, self->expanded_key + (round - 1U) * self->block_size, self->block_size);
+            lh_crypto_rijndael_sub_bytes(state, block_size, lh_bool_true);
+            lh_memory_std_xor(state, state, self->expanded_key + (round - 1U) * block_size,
+                              block_size);
             lh_crypto_rijndael_mix_columns(state, nb, lh_bool_true);
         }
         lh_crypto_rijndael_shift_rows(state, nb, lh_bool_true);
-        lh_crypto_rijndael_sub_bytes(state, self->block_size, lh_bool_true);
-        lh_crypto_rijndael_add_round_key(state, self->expanded_key, self->block_size);
+        lh_crypto_rijndael_sub_bytes(state, block_size, lh_bool_true);
+        lh_memory_std_xor(state, state, self->expanded_key, block_size);
     }
 
-    lh_memory_std_copy(out, state, self->block_size);
+    lh_memory_std_copy(out, state, block_size);
 }
 
 lh_bool_t
@@ -351,22 +353,6 @@ lh_crypto_rijndael_init(lh_crypto_rijndael_t *self, const lh_ptr key, lh_usize_t
     }
 
     return lh_bool_true;
-}
-
-/* self->block_size is 16, 24 or 32 (lh_crypto_rijndael_init checks it).
-   Saying so lets the compiler bound the block-sized xor/copy below: once
-   lh_memory_std_xor has a large-size tier, LTO otherwise warns that copying
-   block_size bytes into chain may overflow it. */
-static lh_usize_t
-lh_crypto_rijndael_get_block_size(const lh_crypto_rijndael_t *self)
-{
-    const lh_usize_t block_size = self->block_size;
-
-    if (lh_math_gt(block_size, LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX))
-    {
-        lh_compiler_unreachable();
-    }
-    return block_size;
 }
 
 lh_bool_t

@@ -10,35 +10,31 @@
 #include <lh/util/ptr.h>
 
 #if (LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB == LH_LIBRARY_OPTION_ON)
-#    include <lh/str/view.h>
-#    include <lh/util/type.h>
+#    include <lh/util/math.h>
 
 #    include <stdio.h>
+
+/* Room for a report with a long source path; a longer one falls back to the
+   code alone rather than being cut. */
+#    define LH_RUNTIME_CHECK_REPORT_TEXT_MAX 1024U
 
 LH_ATTRIBUTE_STATIC
 void
 lh_runtime_check_fail_default(const lh_exception_t *exception)
 {
-    const lh_runtime_error_t *error = lh_exception_get_error(exception);
-    const lh_exception_origin_t *origin = lh_exception_get_origin(exception);
-    const lh_str_view_t desc = lh_runtime_error_get_desc(error);
+    lh_char_t text[LH_RUNTIME_CHECK_REPORT_TEXT_MAX];
+    const lh_usize_t n =
+        lh_exception_format(exception, text, LH_RUNTIME_CHECK_REPORT_TEXT_MAX - 1U);
 
-    (void)fprintf(stderr, "lh: runtime check failed: error %d", lh_runtime_error_get_code(error));
-    if (!lh_str_view_is_empty(&desc))
+    if (lh_math_is_zero(n))
     {
-        (void)fprintf(stderr, ", %.*s", lh_type_cast(int, lh_str_view_get_size(&desc)),
-                      lh_str_view_get_data(&desc));
+        (void)fprintf(stderr, "lh: runtime check failed: error %d\n",
+                      lh_exception_get_code(exception));
     }
-    (void)fputc('\n', stderr);
-    if (lh_ptr_is_set(origin) && lh_ptr_is_set(origin->condition))
+    else
     {
-        (void)fprintf(stderr, "  condition: %s\n", origin->condition);
-    }
-    if (lh_ptr_is_set(origin) && lh_ptr_is_set(origin->file))
-    {
-        (void)fprintf(stderr, "  at %s:%u%s%s\n", origin->file, origin->line,
-                      lh_ptr_is_set(origin->function) ? " in " : "",
-                      lh_ptr_is_set(origin->function) ? origin->function : "");
+        text[n] = '\0';
+        (void)fputs(text, stderr);
     }
     (void)fflush(stderr);
 }
