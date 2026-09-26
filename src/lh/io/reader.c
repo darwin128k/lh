@@ -60,8 +60,7 @@ lh_ssize_t
 lh_io_reader_read(lh_io_reader_t *self, lh_ptr buf, lh_usize_t size)
 {
     lh_io_reader_read_cb read_cb = lh_io_reader_get_read_cb(self);
-    lh_assert_runtime_ifn(read_cb,
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+    lh_assert_runtime_ifn(read_cb, lh_runtime_error_code_invalid_argument);
 
     return read_cb(lh_io_reader_get_context(self), buf, size);
 }

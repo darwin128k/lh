@@ -173,8 +173,7 @@ void
 lh_wstr_truncate(lh_wstr_t *self, lh_usize_t n)
 {
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_if(n > lh_wstr_get_size(self),
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    lh_assert_runtime_if(n > lh_wstr_get_size(self), lh_runtime_error_code_invalid_range);
     lh_vector_resize(self, n);
     lh_wstr_terminate(self);
 }

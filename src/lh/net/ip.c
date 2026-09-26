@@ -39,8 +39,7 @@ lh_u8_t
 lh_net_ip4_get_octet(const lh_net_ip4_t *self, lh_usize_t index)
 {
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_if(index >= LH_NET_IP4_OCTET_COUNT,
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+    lh_assert_runtime_if(index >= LH_NET_IP4_OCTET_COUNT, lh_runtime_error_code_out_of_range);
     return self->octets[index];
 }
 
@@ -48,8 +47,7 @@ void
 lh_net_ip4_set_octet(lh_net_ip4_t *self, lh_usize_t index, lh_u8_t value)
 {
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_if(index >= LH_NET_IP4_OCTET_COUNT,
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+    lh_assert_runtime_if(index >= LH_NET_IP4_OCTET_COUNT, lh_runtime_error_code_out_of_range);
     self->octets[index] = value;
 }
 

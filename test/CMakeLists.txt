@@ -36,6 +36,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/werror.cpp
         ${LH_TEST_SRC_PATH}/lh/runtime/error.cpp
         ${LH_TEST_SRC_PATH}/lh/runtime/check.cpp
+        ${LH_TEST_SRC_PATH}/lh/exception.cpp
         ${LH_TEST_SRC_PATH}/lh/version.cpp
         ${LH_TEST_SRC_PATH}/lh/date.cpp
         ${LH_TEST_SRC_PATH}/lh/time.cpp

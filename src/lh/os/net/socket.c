@@ -77,8 +77,7 @@ lh_os_net_socket_accept(lh_os_net_socket_t *self, lh_os_net_socket_t *client,
 {
     lh_os_system_net_socket_handle_t handle;
 
-    lh_assert_runtime_if(lh_os_net_socket_is_valid(client),
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+    lh_assert_runtime_if(lh_os_net_socket_is_valid(client), lh_runtime_error_code_invalid_argument);
 
     handle = lh_os_system_net_socket_accept(lh_os_net_socket_get_handle(self), peer);
     if (lh_math_eq(handle, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))

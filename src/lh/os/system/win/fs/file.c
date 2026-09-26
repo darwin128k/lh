@@ -64,7 +64,7 @@ lh_os_system_fs_file_open(lh_str_cptr path, lh_fs_file_mode_t mode)
     lh_assert_runtime_ref(path);
     lh_assert_runtime_if(!lh_fs_file_mode_is_readable(mode) &&
                              !lh_fs_file_mode_is_writable(mode),
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+                         lh_runtime_error_code_invalid_argument);
 
     native = CreateFileA(path, lh_os_system_fs_file_access(mode), FILE_SHARE_READ, lh_null,
                          lh_os_system_fs_file_disposition(mode), FILE_ATTRIBUTE_NORMAL, lh_null);

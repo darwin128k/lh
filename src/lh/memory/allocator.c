@@ -85,12 +85,10 @@ lh_ptr
 lh_memory_allocator_alloc(lh_memory_allocator_t *self, lh_usize_t size)
 {
     lh_memory_allocator_alloc_cb alloc_cb = lh_memory_allocator_get_alloc_cb(self);
-    lh_runtime_check_ifn(alloc_cb, lh_runtime_error_make_by_code(
-                                        lh_runtime_error_code_allocator_function_not_initialized));
+    lh_runtime_check_ifn(alloc_cb, lh_runtime_error_code_allocator_function_not_initialized);
 
     lh_ptr ptr = alloc_cb(size);
-    lh_runtime_check_ifn(
-        ptr, lh_runtime_error_make_by_code(lh_runtime_error_code_memory_not_allocated));
+    lh_runtime_check_ifn(ptr, lh_runtime_error_code_memory_not_allocated);
 
 #if (LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED == LH_LIBRARY_OPTION_ON)
     lh_memory_set(ptr, size, 0);
@@ -105,9 +103,7 @@ lh_memory_allocator_dealloc(lh_memory_allocator_t *self, lh_ptr ptr)
     lh_return_ifn(ptr);
 
     lh_memory_allocator_dealloc_cb dealloc_cb = lh_memory_allocator_get_dealloc_cb(self);
-    lh_runtime_check_ifn(
-        dealloc_cb,
-        lh_runtime_error_make_by_code(lh_runtime_error_code_deallocator_function_not_initialized));
+    lh_runtime_check_ifn(dealloc_cb, lh_runtime_error_code_deallocator_function_not_initialized);
 
     dealloc_cb(ptr);
 }
@@ -130,8 +126,7 @@ lh_memory_allocator_realloc(lh_memory_allocator_t *self, lh_ptr old_ptr, lh_usiz
     {
         /* Native realloc may extend the block in place — no copy at all. */
         lh_ptr grown = realloc_cb(old_ptr, new_size);
-        lh_runtime_check_ifn(
-            grown, lh_runtime_error_make_by_code(lh_runtime_error_code_memory_not_allocated));
+        lh_runtime_check_ifn(grown, lh_runtime_error_code_memory_not_allocated);
 #if (LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED == LH_LIBRARY_OPTION_ON)
         /* Same promise as lh_memory_allocator_alloc: new bytes read as zero. */
         if (lh_math_gt(new_size, old_size))

@@ -52,7 +52,7 @@ lh_os_system_net_socket_open(lh_os_system_net_socket_type_t type)
 
     lh_assert_runtime_if(lh_math_ne(type, lh_os_system_net_socket_type_tcp) &&
                              lh_math_ne(type, lh_os_system_net_socket_type_udp),
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+                         lh_runtime_error_code_invalid_argument);
 
     native = lh_math_eq(type, lh_os_system_net_socket_type_tcp) ? socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
                                                                 : socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -97,8 +97,7 @@ lh_os_system_net_socket_bind(lh_os_system_net_socket_handle_t handle, const lh_n
 lh_bool_t
 lh_os_system_net_socket_listen(lh_os_system_net_socket_handle_t handle, lh_int_t backlog)
 {
-    lh_assert_runtime_if(lh_math_is_negative(backlog),
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+    lh_assert_runtime_if(lh_math_is_negative(backlog), lh_runtime_error_code_invalid_argument);
     return lh_os_system_net_socket_ok(listen(lh_os_system_net_socket_native(handle), backlog));
 }
 

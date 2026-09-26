@@ -68,8 +68,7 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_uchar_t
 lh_char_to_digit(lh_char_t ch)
 {
-    lh_assert_runtime_if(!lh_char_is_digit(ch),
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+    lh_assert_runtime_if(!lh_char_is_digit(ch), lh_runtime_error_code_invalid_argument);
     return lh_cast_static(lh_uchar_t, (lh_char_ord(ch) - lh_char_ord('0')));
 }
 
@@ -83,8 +82,7 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_char_t
 lh_char_from_digit(lh_uchar_t digit)
 {
-    lh_assert_runtime_if(digit > 9U,
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+    lh_assert_runtime_if(digit > 9U, lh_runtime_error_code_invalid_argument);
     return lh_char_ord_to(lh_char_t, lh_char_ord('0') + digit);
 }
 
@@ -107,8 +105,7 @@ lh_bool_t
 lh_char_digit_accumulate(lh_uint_t *value, lh_uchar_t digit)
 {
     lh_assert_runtime_ref(value);
-    lh_assert_runtime_if(digit > 9U,
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+    lh_assert_runtime_if(digit > 9U, lh_runtime_error_code_invalid_argument);
 
     if (*value > (lh_numeric_limit_max(lh_uint_t) - digit) / LH_CHAR_DIGIT_RADIX)
     {

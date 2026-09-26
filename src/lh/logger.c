@@ -77,8 +77,7 @@ lh_logger_emit_cb
 lh_logger_get_emit_cb(const lh_logger_t *self, lh_logger_level_t level)
 {
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_if(level > lh_logger_level_debug,
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+    lh_assert_runtime_if(level > lh_logger_level_debug, lh_runtime_error_code_invalid_argument);
 
     switch (level)
     {
@@ -117,8 +116,7 @@ lh_logger_log_v(lh_logger_t *self, lh_logger_level_t level, lh_str_cptr fmt, va_
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(fmt);
-    lh_assert_runtime_if(level > lh_logger_level_debug,
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+    lh_assert_runtime_if(level > lh_logger_level_debug, lh_runtime_error_code_invalid_argument);
 
     if (lh_bit_disjoint(self->flags, lh_bit_mask(level)))
     {

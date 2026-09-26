@@ -1,5 +1,6 @@
 #include <lh/str/format/sint.h>
 #include <lh/assert.h>
+#include <lh/bool.h>
 #include <lh/cast/static.h>
 #include <lh/str/format/uint.h>
 #include <lh/util/math.h>

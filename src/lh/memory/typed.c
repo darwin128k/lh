@@ -101,7 +101,7 @@ lh_uoffset_t
 lh_memory_typed_get_offset_from_index(const lh_memory_typed_t *self, lh_uindex_t index)
 {
     lh_assert_runtime_ifn(lh_memory_typed_is_valid_index(self, index),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+                          lh_runtime_error_code_out_of_range);
 
     const lh_usize_t type_size = lh_memory_typed_get_type_size(self);
     return lh_math_mul(index, type_size);
@@ -119,7 +119,7 @@ lh_uindex_t
 lh_memory_typed_get_last_index(const lh_memory_typed_t *self)
 {
     lh_assert_runtime_ifn(lh_memory_typed_is_valid_index(self, 0),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+                          lh_runtime_error_code_out_of_range);
 
     return lh_math_sub_one(lh_memory_typed_get_size(self));
 }
@@ -128,7 +128,7 @@ lh_uindex_t
 lh_memory_typed_get_index_from_end(const lh_memory_typed_t *self, lh_uindex_t index)
 {
     lh_assert_runtime_ifn(lh_memory_typed_is_valid_index(self, index),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+                          lh_runtime_error_code_out_of_range);
 
     const lh_uindex_t last_index = lh_memory_typed_get_last_index(self);
     return lh_math_sub(last_index, index);
@@ -173,11 +173,11 @@ lh_memory_typed_get_index_from_offset(const lh_memory_typed_t *self, lh_uoffset_
     const lh_usize_t type_size = lh_memory_typed_get_type_size(self);
     lh_assert_runtime(
         lh_math_is_zero(lh_math_mod(offset, type_size)),
-        lh_runtime_error_make_by_code(lh_runtime_error_code_size_not_multiple_of_type_size));
+        lh_runtime_error_code_size_not_multiple_of_type_size);
 
     const lh_uindex_t index = lh_math_div(offset, type_size);
     lh_assert_runtime_ifn(lh_memory_typed_is_valid_index(self, index),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+                          lh_runtime_error_code_out_of_range);
     return index;
 }
 
@@ -240,8 +240,7 @@ lh_memory_typed_assign(lh_memory_typed_t *self, const lh_memory_typed_t *other)
 lh_void
 lh_memory_typed_assign_v(lh_memory_typed_t *self, const lh_memory_typed_t *other)
 {
-    lh_assert_runtime_ifn(lh_memory_typed_is_valid(other),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid(other), lh_runtime_error_code_invalid_range);
     lh_memory_typed_assign(self, other);
 }
 
@@ -271,10 +270,8 @@ lh_memory_typed_swap(lh_memory_typed_t *self, lh_memory_typed_t *other)
 lh_void
 lh_memory_typed_swap_v(lh_memory_typed_t *self, lh_memory_typed_t *other)
 {
-    lh_assert_runtime_ifn(lh_memory_typed_is_valid(self),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
-    lh_assert_runtime_ifn(lh_memory_typed_is_valid(other),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid(self), lh_runtime_error_code_invalid_range);
+    lh_assert_runtime_ifn(lh_memory_typed_is_valid(other), lh_runtime_error_code_invalid_range);
     lh_memory_typed_swap(self, other);
 }
 
@@ -289,7 +286,7 @@ lh_memory_bounds_t
 lh_memory_typed_get_range_bounds(const lh_memory_typed_t *self, lh_uindex_t index, lh_usize_t count)
 {
     lh_assert_runtime_ifn(lh_math_le(lh_math_add(index, count), lh_memory_typed_get_size(self)),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+                          lh_runtime_error_code_out_of_range);
 
     lh_ptr begin = lh_memory_typed_get_ptr_from_begin(self, index);
     return lh_memory_bounds_make_by_size(begin,

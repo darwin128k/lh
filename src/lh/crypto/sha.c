@@ -321,7 +321,7 @@ lh_crypto_sha_init(lh_crypto_sha_t *self, lh_crypto_sha_kind_t kind)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_if(lh_crypto_sha_digest_size(kind) == 0,
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+                         lh_runtime_error_code_invalid_argument);
 
     self->kind = kind;
     self->finished = lh_bool_false;
@@ -395,8 +395,7 @@ lh_crypto_sha_update(lh_crypto_sha_t *self, const lh_ptr data, lh_usize_t size)
     lh_usize_t remaining;
 
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_if(self->finished,
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+    lh_assert_runtime_if(self->finished, lh_runtime_error_code_invalid_argument);
     if (size == 0)
     {
         return;
@@ -450,8 +449,7 @@ lh_crypto_sha_finish(lh_crypto_sha_t *self, lh_ptr out, lh_usize_t out_size)
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(out);
-    lh_assert_runtime_if(self->finished,
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+    lh_assert_runtime_if(self->finished, lh_runtime_error_code_invalid_argument);
 
     digest_size = lh_crypto_sha_digest_size(self->kind);
     if (digest_size > out_size)

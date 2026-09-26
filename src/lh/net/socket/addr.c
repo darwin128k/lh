@@ -28,7 +28,7 @@ lh_net_socket_addr_get_ip4(const lh_net_socket_addr_t *self)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_if(self->family != lh_net_socket_addr_family_ip4,
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+                         lh_runtime_error_code_invalid_argument);
     return self->as.ip4;
 }
 

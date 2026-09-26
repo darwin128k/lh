@@ -6,17 +6,19 @@
 #ifndef LH_RUNTIME_CHECK_FAIL_FN_H
 #define LH_RUNTIME_CHECK_FAIL_FN_H
 
-#include <lh/runtime/check/site.h>
+#include <lh/exception.h>
 
 /**
  * @typedef lh_runtime_check_fail_fn
- * @brief Function type `void(const lh_runtime_check_site_t *)` called when
- *        a runtime check fails.
+ * @brief Function type `void(const lh_exception_t *)` called when a runtime
+ *        check fails.
  *
- * @p site is ::lh_null when checks report nothing
- * (::LH_RUNTIME_CHECK_REPORT_NONE). The handler may log, reset the board,
- * or stop; if it returns, ::lh_runtime_terminate runs next.
+ * @p exception holds the error (code at every report level, message unless
+ * ::LH_RUNTIME_CHECK_REPORT_NONE) and the site (::lh_null at
+ * ::LH_RUNTIME_CHECK_REPORT_NONE); it lives only for the call, so copy what
+ * you keep. The handler may log, reset the board, or
+ * stop; if it returns, ::lh_runtime_terminate runs next.
  */
-typedef void(lh_runtime_check_fail_fn)(const lh_runtime_check_site_t *site);
+typedef void(lh_runtime_check_fail_fn)(const lh_exception_t *exception);
 
 #endif /* LH_RUNTIME_CHECK_FAIL_FN_H */

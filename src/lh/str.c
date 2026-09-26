@@ -218,8 +218,7 @@ lh_void
 lh_str_truncate(lh_str_t *self, lh_usize_t n)
 {
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_if(n > lh_str_get_size(self),
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    lh_assert_runtime_if(n > lh_str_get_size(self), lh_runtime_error_code_invalid_range);
     lh_vector_resize(self, n);
     lh_str_terminate(self);
 }

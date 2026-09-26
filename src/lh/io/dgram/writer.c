@@ -64,8 +64,7 @@ lh_io_dgram_writer_send(lh_io_dgram_writer_t *self, const lh_ptr buf, lh_usize_t
                         const lh_net_ip4_socket_addr_t *addr)
 {
     lh_io_dgram_writer_send_cb send_cb = lh_io_dgram_writer_get_send_cb(self);
-    lh_assert_runtime_ifn(send_cb,
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+    lh_assert_runtime_ifn(send_cb, lh_runtime_error_code_invalid_argument);
 
     return send_cb(lh_io_dgram_writer_get_context(self), buf, size, addr);
 }

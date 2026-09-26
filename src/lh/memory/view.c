@@ -84,24 +84,21 @@ lh_memory_view_is_valid(const lh_memory_view_t *self)
 const lh_ptr
 lh_memory_view_get_begin_v(const lh_memory_view_t *self)
 {
-    lh_assert_runtime_ifn(lh_memory_view_is_valid(self),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    lh_assert_runtime_ifn(lh_memory_view_is_valid(self), lh_runtime_error_code_invalid_range);
     return lh_memory_view_get_begin(self);
 }
 
 const lh_ptr
 lh_memory_view_get_end_v(const lh_memory_view_t *self)
 {
-    lh_assert_runtime_ifn(lh_memory_view_is_valid(self),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    lh_assert_runtime_ifn(lh_memory_view_is_valid(self), lh_runtime_error_code_invalid_range);
     return lh_memory_view_get_end(self);
 }
 
 lh_usize_t
 lh_memory_view_get_size(const lh_memory_view_t *self)
 {
-    lh_assert_runtime_ifn(lh_memory_view_is_valid(self),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    lh_assert_runtime_ifn(lh_memory_view_is_valid(self), lh_runtime_error_code_invalid_range);
     return lh_interval_ropen_get_size(lh_ptr_to_uaddr(self->first),
                                       lh_ptr_to_uaddr(self->second));
 }
@@ -124,7 +121,7 @@ lh_memory_view_get_offset_from_begin(const lh_memory_view_t *self, const lh_ptr 
 {
     lh_uoffset_t offset = lh_ptr_udiff(ptr, lh_memory_view_get_begin(self));
     lh_assert_runtime_ifn(lh_memory_view_is_valid_offset(self, offset),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+                          lh_runtime_error_code_out_of_range);
     return offset;
 }
 
@@ -132,7 +129,7 @@ lh_uoffset_t
 lh_memory_view_get_offset_from_end(const lh_memory_view_t *self, const lh_ptr ptr)
 {
     lh_assert_runtime_ifn(lh_memory_view_contains_ptr(self, ptr),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+                          lh_runtime_error_code_out_of_range);
     return lh_math_sub_one(lh_ptr_udiff(lh_memory_view_get_end(self), ptr));
 }
 
@@ -176,8 +173,7 @@ lh_memory_view_contains(const lh_memory_view_t *self, const lh_memory_view_t *ot
 lh_bool_t
 lh_memory_view_contains_v(const lh_memory_view_t *self, const lh_memory_view_t *other)
 {
-    lh_assert_runtime_ifn(lh_memory_view_is_valid(other),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    lh_assert_runtime_ifn(lh_memory_view_is_valid(other), lh_runtime_error_code_invalid_range);
     return lh_memory_view_contains(self, other);
 }
 
@@ -185,7 +181,7 @@ const lh_ptr
 lh_memory_view_get_ptr_from_begin(const lh_memory_view_t *self, lh_uoffset_t offset)
 {
     lh_assert_runtime_ifn(lh_memory_view_is_valid_offset(self, offset),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+                          lh_runtime_error_code_out_of_range);
     return lh_ptr_add_by_offset_unsafe(const lh_void, lh_memory_view_get_begin(self), offset);
 }
 
@@ -193,7 +189,7 @@ const lh_ptr
 lh_memory_view_get_ptr_from_end(const lh_memory_view_t *self, lh_uoffset_t offset)
 {
     lh_assert_runtime_ifn(lh_memory_view_is_valid_offset(self, offset),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+                          lh_runtime_error_code_out_of_range);
     return lh_ptr_add_by_offset_unsafe(
         const lh_void, lh_memory_view_get_end(self),
         lh_math_neg(lh_type_cast(lh_soffset_t, lh_math_add_one(offset))));
@@ -299,7 +295,7 @@ lh_memory_view_get_offset_from_ptr(const lh_memory_view_t *self, const lh_ptr pt
     lh_runtime_error_code_t code;
 
     code = lh_memory_view_find_offset_from_ptr(self, ptr, offset, lh_addr_of(result));
-    lh_assert_runtime_if(lh_math_ne(code, lh_runtime_error_code_ok), lh_runtime_error_make_by_code(code));
+    lh_assert_runtime_if(lh_math_ne(code, lh_runtime_error_code_ok), code);
     return result;
 }
 
@@ -331,8 +327,7 @@ lh_byte_t
 lh_memory_view_seek_value(const lh_memory_view_t *self, const lh_ptr ptr)
 {
     const lh_ptr seek_ptr = lh_memory_view_seek_ptr(self, ptr, 0);
-    lh_assert_runtime_ifn(lh_ptr_is_set(seek_ptr),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_null_dereference));
+    lh_assert_runtime_ifn(lh_ptr_is_set(seek_ptr), lh_runtime_error_code_null_dereference);
     return lh_ptr_deref(lh_ptr_cast(const lh_byte_t, seek_ptr));
 }
 
@@ -340,8 +335,7 @@ lh_byte_t
 lh_memory_view_next_value(const lh_memory_view_t *self, const lh_ptr ptr)
 {
     const lh_ptr next_ptr = lh_memory_view_next_ptr(self, ptr);
-    lh_assert_runtime_ifn(lh_ptr_is_set(next_ptr),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_null_dereference));
+    lh_assert_runtime_ifn(lh_ptr_is_set(next_ptr), lh_runtime_error_code_null_dereference);
     return lh_ptr_deref(lh_ptr_cast(const lh_byte_t, next_ptr));
 }
 
@@ -349,8 +343,7 @@ lh_byte_t
 lh_memory_view_prev_value(const lh_memory_view_t *self, const lh_ptr ptr)
 {
     const lh_ptr prev_ptr = lh_memory_view_prev_ptr(self, ptr);
-    lh_assert_runtime_ifn(lh_ptr_is_set(prev_ptr),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_null_dereference));
+    lh_assert_runtime_ifn(lh_ptr_is_set(prev_ptr), lh_runtime_error_code_null_dereference);
     return lh_ptr_deref(lh_ptr_cast(const lh_byte_t, prev_ptr));
 }
 
@@ -385,16 +378,14 @@ lh_memory_view_overlaps(const lh_memory_view_t *self, const lh_memory_view_t *ot
 lh_bool_t
 lh_memory_view_overlaps_v(const lh_memory_view_t *self, const lh_memory_view_t *other)
 {
-    lh_assert_runtime_ifn(lh_memory_view_is_valid(other),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    lh_assert_runtime_ifn(lh_memory_view_is_valid(other), lh_runtime_error_code_invalid_range);
     return lh_memory_view_overlaps(self, other);
 }
 
 lh_bool_t
 lh_memory_view_is_multiple_of(const lh_memory_view_t *self, lh_usize_t alignment)
 {
-    lh_assert_runtime_if(lh_math_is_zero(alignment),
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_division_by_zero));
+    lh_assert_runtime_if(lh_math_is_zero(alignment), lh_runtime_error_code_division_by_zero);
     const lh_usize_t size = lh_memory_view_get_size(self);
     return lh_math_is_zero(lh_math_mod(size, alignment));
 }
@@ -403,8 +394,7 @@ lh_bool_t
 lh_memory_view_is_begin_aligned(const lh_memory_view_t *self, lh_usize_t align)
 {
     const lh_ptr begin = lh_memory_view_get_begin_v(self);
-    lh_assert_runtime_ifn(lh_math_is_power_of_two(align),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_not_power_of_two));
+    lh_assert_runtime_ifn(lh_math_is_power_of_two(align), lh_runtime_error_code_not_power_of_two);
     return lh_ptr_is_aligned(begin, align);
 }
 
@@ -570,16 +560,14 @@ LH_ATTRIBUTE_STATIC
 lh_void
 lh_memory_view_swap_v_other(lh_memory_view_t *self, lh_memory_view_t *other)
 {
-    lh_assert_runtime_ifn(lh_memory_view_is_valid(other),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    lh_assert_runtime_ifn(lh_memory_view_is_valid(other), lh_runtime_error_code_invalid_range);
     lh_memory_view_swap(self, other);
 }
 
 lh_void
 lh_memory_view_swap_v(lh_memory_view_t *self, lh_memory_view_t *other)
 {
-    lh_assert_runtime_ifn(lh_memory_view_is_valid(self),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    lh_assert_runtime_ifn(lh_memory_view_is_valid(self), lh_runtime_error_code_invalid_range);
     lh_memory_view_swap_v_other(self, other);
 }
 
@@ -604,8 +592,7 @@ lh_memory_view_clear(lh_memory_view_t *self)
 lh_void
 lh_memory_view_assign_v(lh_memory_view_t *self, const lh_memory_view_t *other)
 {
-    lh_assert_runtime_ifn(lh_memory_view_is_valid(other),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    lh_assert_runtime_ifn(lh_memory_view_is_valid(other), lh_runtime_error_code_invalid_range);
     lh_memory_view_assign(self, other);
 }
 
@@ -628,17 +615,15 @@ lh_memory_view_make_v(const lh_ptr begin, const lh_ptr end)
 {
     const lh_memory_view_t view = lh_memory_view_make(begin, end);
     lh_assert_runtime_ifn(lh_memory_view_is_valid(lh_addr_of(view)),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+                          lh_runtime_error_code_invalid_range);
     return view;
 }
 
 lh_memory_view_t
 lh_memory_view_make_by_size(const lh_ptr begin, lh_usize_t size)
 {
-    lh_assert_runtime_ifn(lh_ptr_is_set(begin),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
-    lh_assert_runtime_if(lh_math_is_zero(size),
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    lh_assert_runtime_ifn(lh_ptr_is_set(begin), lh_runtime_error_code_invalid_argument);
+    lh_assert_runtime_if(lh_math_is_zero(size), lh_runtime_error_code_invalid_range);
 
     return lh_memory_view_make_v(begin, lh_ptr_add_by_offset_unsafe(const lh_void, begin, size));
 }
@@ -653,10 +638,8 @@ lh_memory_view_make_empty(lh_void)
 lh_void
 lh_memory_view_set_by_size(lh_memory_view_t *self, const lh_ptr begin, lh_usize_t size)
 {
-    lh_assert_runtime_ifn(lh_ptr_is_set(begin),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
-    lh_assert_runtime_if(lh_math_is_zero(size),
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_range));
+    lh_assert_runtime_ifn(lh_ptr_is_set(begin), lh_runtime_error_code_invalid_argument);
+    lh_assert_runtime_if(lh_math_is_zero(size), lh_runtime_error_code_invalid_range);
 
     const lh_ptr end = lh_ptr_add_by_offset_unsafe(const lh_void, begin, size);
     lh_memory_view_set(self, begin, end);
@@ -712,8 +695,7 @@ lh_memory_view_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t n)
     const lh_memory_view_t base = lh_memory_view_make_v(begin, end);
     const lh_usize_t total = lh_memory_view_get_size(lh_addr_of(base));
 
-    lh_assert_runtime_ifn(lh_math_le(n, total),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+    lh_assert_runtime_ifn(lh_math_le(n, total), lh_runtime_error_code_out_of_range);
     return lh_memory_view_make_by_size(begin, n);
 }
 
@@ -727,8 +709,7 @@ lh_memory_view_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t n)
 
     const lh_memory_view_t base = lh_memory_view_make_v(begin, end);
     const lh_usize_t total = lh_memory_view_get_size(lh_addr_of(base));
-    lh_assert_runtime_ifn(lh_math_le(n, total),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+    lh_assert_runtime_ifn(lh_math_le(n, total), lh_runtime_error_code_out_of_range);
 
     const lh_ptr data = lh_ptr_sub_by_offset_unsafe(const lh_void, end, n);
     return lh_memory_view_make_by_size(data, n);
@@ -752,7 +733,7 @@ lh_memory_view_t
 lh_memory_view_make_between(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end)
 {
     lh_assert_runtime_ifn(lh_memory_view_contains_range(self, begin, end),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+                          lh_runtime_error_code_out_of_range);
     return lh_memory_view_make_v(begin, end);
 }
 
@@ -760,8 +741,7 @@ lh_memory_view_t
 lh_memory_view_make_from_offset(const lh_memory_view_t *self, lh_uoffset_t offset, lh_usize_t size)
 {
     const lh_usize_t total = lh_memory_view_get_size(self);
-    lh_assert_runtime_ifn(lh_math_le(offset, total),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+    lh_assert_runtime_ifn(lh_math_le(offset, total), lh_runtime_error_code_out_of_range);
 
     if (lh_math_is_zero(size))
     {
@@ -769,7 +749,7 @@ lh_memory_view_make_from_offset(const lh_memory_view_t *self, lh_uoffset_t offse
     }
 
     lh_assert_runtime_ifn(lh_math_le(size, lh_math_sub(total, offset)),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+                          lh_runtime_error_code_out_of_range);
 
     return lh_memory_view_make_by_size(lh_memory_view_get_ptr_from_begin(self, offset), size);
 }
@@ -778,8 +758,7 @@ lh_memory_view_t
 lh_memory_view_drop_first(const lh_memory_view_t *self, lh_usize_t n)
 {
     const lh_usize_t total = lh_memory_view_get_size(self);
-    lh_assert_runtime_ifn(lh_math_le(n, total),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+    lh_assert_runtime_ifn(lh_math_le(n, total), lh_runtime_error_code_out_of_range);
     return lh_memory_view_make_from_offset(self, n, lh_math_sub(total, n));
 }
 
@@ -787,8 +766,7 @@ lh_memory_view_t
 lh_memory_view_drop_last(const lh_memory_view_t *self, lh_usize_t n)
 {
     const lh_usize_t total = lh_memory_view_get_size(self);
-    lh_assert_runtime_ifn(lh_math_le(n, total),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+    lh_assert_runtime_ifn(lh_math_le(n, total), lh_runtime_error_code_out_of_range);
     return lh_memory_view_make_from_begin(self, lh_math_sub(total, n));
 }
 
@@ -796,12 +774,10 @@ lh_memory_view_t
 lh_memory_view_trim(const lh_memory_view_t *self, lh_usize_t left, lh_usize_t right)
 {
     const lh_usize_t total = lh_memory_view_get_size(self);
-    lh_assert_runtime_ifn(lh_math_le(left, total),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+    lh_assert_runtime_ifn(lh_math_le(left, total), lh_runtime_error_code_out_of_range);
 
     const lh_usize_t rest = lh_math_sub(total, left);
-    lh_assert_runtime_ifn(lh_math_le(right, rest),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+    lh_assert_runtime_ifn(lh_math_le(right, rest), lh_runtime_error_code_out_of_range);
 
     return lh_memory_view_make_from_offset(self, left, lh_math_sub(rest, right));
 }

@@ -179,7 +179,7 @@ lh_fs_path_get_segment(const lh_fs_path_t *self, lh_uindex_t index)
         }
         seen = lh_math_add_one(seen);
     }
-    lh_assert_runtime_if(lh_bool_true, lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+    lh_assert_runtime_if(lh_bool_true, lh_runtime_error_code_out_of_range);
     return lh_str_view_make(lh_null);
 }
 
@@ -306,7 +306,7 @@ lh_fs_path_set(lh_fs_path_t *self, lh_str_view_t text, lh_fs_path_style_t style)
     lh_bool_t had_delim;
 
     lh_assert_runtime_if(lh_math_ne(style, lh_fs_path_style_posix) && lh_math_ne(style, lh_fs_path_style_windows),
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+                         lh_runtime_error_code_invalid_argument);
     lh_fs_path_clear(self);
     if (lh_str_view_is_empty(lh_addr_of(text)))
     {

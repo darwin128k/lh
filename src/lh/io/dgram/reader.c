@@ -64,8 +64,7 @@ lh_io_dgram_reader_recv(lh_io_dgram_reader_t *self, lh_ptr buf, lh_usize_t size,
                         lh_net_ip4_socket_addr_t *addr)
 {
     lh_io_dgram_reader_recv_cb recv_cb = lh_io_dgram_reader_get_recv_cb(self);
-    lh_assert_runtime_ifn(recv_cb,
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+    lh_assert_runtime_ifn(recv_cb, lh_runtime_error_code_invalid_argument);
 
     return recv_cb(lh_io_dgram_reader_get_context(self), buf, size, addr);
 }

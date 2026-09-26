@@ -109,8 +109,7 @@ lh_void
 lh_vector_insert_of(lh_vector_t *self, lh_uindex_t index, const lh_ptr values, lh_usize_t count)
 {
     const lh_usize_t size = lh_vector_get_size(self);
-    lh_assert_runtime_ifn(index <= size,
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+    lh_assert_runtime_ifn(index <= size, lh_runtime_error_code_out_of_range);
     lh_return_if(lh_math_is_zero(count));
 
     const lh_usize_t new_size = lh_math_add(size, count);
@@ -186,7 +185,7 @@ lh_vector_get_ptr(const lh_vector_t *self, lh_uindex_t index)
      * redundant, since lh_vector_is_valid_index (a plain field compare against self->size)
      * already guarantees index < size <= capacity. Compute the pointer directly instead. */
     lh_assert_runtime_ifn(lh_vector_is_valid_index(self, index),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+                          lh_runtime_error_code_out_of_range);
     return lh_ptr_add_by_offset_unsafe(lh_void, lh_vector_get_begin(self),
                                        lh_math_mul(index, lh_vector_get_type_size(self)));
 }
@@ -194,8 +193,7 @@ lh_vector_get_ptr(const lh_vector_t *self, lh_uindex_t index)
 lh_void
 lh_vector_pop_back(lh_vector_t *self, lh_ptr dst)
 {
-    lh_assert_runtime_if(lh_vector_is_empty(self),
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+    lh_assert_runtime_if(lh_vector_is_empty(self), lh_runtime_error_code_out_of_range);
 
     const lh_usize_t last_index = lh_math_sub_one(lh_vector_get_size(self));
     if (lh_ptr_is_set(dst))
@@ -215,7 +213,7 @@ lh_void
 lh_vector_erase(lh_vector_t *self, lh_uindex_t index, lh_ptr dst)
 {
     lh_assert_runtime_ifn(lh_vector_is_valid_index(self, index),
-                          lh_runtime_error_make_by_code(lh_runtime_error_code_out_of_range));
+                          lh_runtime_error_code_out_of_range);
 
     if (lh_ptr_is_set(dst))
     {
@@ -253,7 +251,7 @@ lh_vector_assign(lh_vector_t *self, const lh_vector_t *other)
         return;
     }
     lh_assert_runtime_if(lh_vector_get_type_size(self) != lh_vector_get_type_size(other),
-                         lh_runtime_error_make_by_code(lh_runtime_error_code_invalid_argument));
+                         lh_runtime_error_code_invalid_argument);
     lh_vector_clear(self);
     lh_vector_push_back_of(self, lh_vector_get_data(other), lh_vector_get_size(other));
 }

@@ -5,13 +5,14 @@
  *
  * A failed `lh_runtime_check_*` / `lh_runtime_assert_*` (see
  * `lh/runtime/assert.h`) calls ::lh_runtime_check_fail with the static
- * ::lh_runtime_check_site_t of that check. The failure handler is the
+ * ::lh_runtime_check_site_t of that check and its error code; that builds
+ * an ::lh_exception_t and hands it to the failure handler. The handler is the
  * host's to choose — print to a console, log to a server, blink an LED,
  * reset the board — installed with ::lh_runtime_check_set, the same way
  * ::lh_runtime_terminate_set installs the terminate handler. Nothing is
  * thrown and nothing unwinds.
  *
- * The default handler writes the site to `stderr` when the library may use
+ * The default handler writes the exception to `stderr` when the library may use
  * the C library (::LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB) and does
  * nothing otherwise.
  */
@@ -22,6 +23,7 @@
 #include <lh/attribute/noreturn.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/library/fallback.h>
+#include <lh/exception.h>
 #include <lh/runtime/check/fail/cb.h>
 #include <lh/runtime/check/report.h>
 #include <lh/runtime/check/site.h>
@@ -42,15 +44,16 @@ void
 lh_runtime_check_set(lh_runtime_check_fail_cb fn);
 
 /**
- * @brief Report a failed check at @p site to the handler, then
- *        ::lh_runtime_terminate. Does not return.
+ * @brief Build the ::lh_exception_t of a check failed with @p code at
+ *        @p site, report it to the handler, then ::lh_runtime_terminate.
+ *        Does not return.
  *
  * Called by the check macros; @p site is ::lh_null at
- * ::LH_RUNTIME_CHECK_REPORT_NONE.
+ * ::LH_RUNTIME_CHECK_REPORT_NONE (the exception then has the code only).
  */
 LH_ATTRIBUTE_NORETURN
 void
-lh_runtime_check_fail(const lh_runtime_check_site_t *site);
+lh_runtime_check_fail(const lh_runtime_check_site_t *site, lh_runtime_error_code_t code);
 
 LH_COMPILER_EXTERN_C_END
 
