@@ -11,11 +11,9 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#ifndef IO_REPARSE_TAG_SYMLINK
-#    define IO_REPARSE_TAG_SYMLINK 0xA000000CUL
-#endif
 
 #include "../filetime.h"
+#include "kind.h"
 
 #define LH_OS_SYSTEM_FS_WIN_ATTR_READONLY 0x00000001UL
 #define LH_OS_SYSTEM_FS_WIN_ATTR_HIDDEN 0x00000002UL
@@ -93,25 +91,8 @@ lh_os_system_fs_attr_from_win_attrs(lh_os_system_fs_win_attrs_t attrs)
     return attr;
 }
 
-LH_ATTRIBUTE_STATIC
-lh_fs_kind_t
-lh_os_system_fs_kind_from_win_attrs(lh_os_system_fs_win_attrs_t attrs, lh_bool_t is_symlink)
-{
-    if (is_symlink)
-    {
-        return lh_fs_kind_symlink;
-    }
-    if (!lh_math_is_zero(lh_bit_and(attrs, LH_OS_SYSTEM_FS_WIN_ATTR_DIRECTORY)))
-    {
-        return lh_fs_kind_dir;
-    }
-    return lh_fs_kind_file;
-}
-
-/*
- * A reparse point is not necessarily a symlink (junctions, dedup, cloud
- * placeholders are too); only the find data carries the reparse tag.
- */
+/* Only the find data carries the reparse tag (see kind.h), so a reparse
+   point costs one FindFirstFile; anything else is decided from attrs. */
 LH_ATTRIBUTE_STATIC
 lh_bool_t
 lh_os_system_fs_is_symlink(lh_str_cptr path, lh_os_system_fs_win_attrs_t attrs, lh_bool_t *out)
@@ -131,7 +112,7 @@ lh_os_system_fs_is_symlink(lh_str_cptr path, lh_os_system_fs_win_attrs_t attrs, 
         return lh_bool_false;
     }
     (void)FindClose(find);
-    *out = lh_cast_static(lh_bool_t, lh_math_eq(data.dwReserved0, IO_REPARSE_TAG_SYMLINK));
+    *out = lh_os_system_fs_is_symlink_tag(lh_cast_static(DWORD, attrs), data.dwReserved0);
     return lh_bool_true;
 }
 
@@ -156,7 +137,7 @@ lh_os_system_fs_stat(lh_str_cptr path, lh_fs_stat_t *out)
         return lh_bool_false;
     }
     lh_fs_stat_set(
-        out, lh_os_system_fs_kind_from_win_attrs(attrs, is_symlink),
+        out, lh_os_system_fs_kind_from_attrs(lh_cast_static(DWORD, attrs), is_symlink),
         lh_os_system_fs_perm_from_win_attrs(attrs),
         lh_cast_static(lh_fs_size_t, lh_bit_make_u64(lh_cast_static(lh_u32_t, info.nFileSizeHigh),
                                                      lh_cast_static(lh_u32_t, info.nFileSizeLow))),

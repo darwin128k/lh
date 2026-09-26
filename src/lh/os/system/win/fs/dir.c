@@ -19,9 +19,8 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#ifndef IO_REPARSE_TAG_SYMLINK
-#    define IO_REPARSE_TAG_SYMLINK 0xA000000CUL
-#endif
+
+#include "kind.h"
 
 struct lh_os_system_fs_dir_state
 {
@@ -36,22 +35,6 @@ lh_os_system_fs_dir_state(lh_os_system_fs_dir_handle_t handle)
 {
     lh_assert_runtime_ref(handle);
     return lh_ptr_cast(struct lh_os_system_fs_dir_state, handle);
-}
-
-LH_ATTRIBUTE_STATIC
-lh_fs_kind_t
-lh_os_system_fs_dir_kind(const WIN32_FIND_DATAA *data)
-{
-    if (!lh_math_is_zero(lh_bit_and(data->dwFileAttributes, FILE_ATTRIBUTE_REPARSE_POINT)) &&
-        lh_math_eq(data->dwReserved0, IO_REPARSE_TAG_SYMLINK))
-    {
-        return lh_fs_kind_symlink;
-    }
-    if (!lh_math_is_zero(lh_bit_and(data->dwFileAttributes, FILE_ATTRIBUTE_DIRECTORY)))
-    {
-        return lh_fs_kind_dir;
-    }
-    return lh_fs_kind_file;
 }
 
 lh_os_system_fs_dir_handle_t
@@ -125,7 +108,9 @@ lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, lh_str_cptr *name,
     }
     state->ready = lh_bool_false;
     lh_ptr_deref(name) = state->data.cFileName;
-    lh_ptr_deref(kind) = lh_os_system_fs_dir_kind(lh_addr_of(state->data));
+    lh_ptr_deref(kind) = lh_os_system_fs_kind_from_attrs(
+        state->data.dwFileAttributes,
+        lh_os_system_fs_is_symlink_tag(state->data.dwFileAttributes, state->data.dwReserved0));
     return lh_cast_static(lh_ssize_t, lh_str_ptr_len(state->data.cFileName));
 }
 
