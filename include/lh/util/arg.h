@@ -25,6 +25,24 @@
 #define lh_arg_concat(a, b) lh_arg_concat_x(a, b)
 
 /**
+ * @def lh_arg_expand(x)
+ * @brief Rescan @p x once more.
+ *
+ * MSVC's traditional preprocessor (the default without `/Zc:preprocessor`)
+ * passes a forwarded `__VA_ARGS__` on to the next macro as a *single*
+ * argument. Wrapping that next call in ::lh_arg_expand makes it split the
+ * list the way every other compiler does. A no-op elsewhere.
+ *
+ * Example usage:
+ * @code{.c}
+ * #define pick(...) lh_arg_expand(lh_arg_concat(pick_, lh_arg_get_count(__VA_ARGS__))(__VA_ARGS__))
+ * @endcode
+ *
+ * @param x Tokens to rescan.
+ */
+#define lh_arg_expand(x) x
+
+/**
  * @def lh_arg_get_count_impl(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, N, ...)
  * @brief Implementation helper for ::lh_arg_get_count.
  */
@@ -37,6 +55,7 @@
  * Expands to the number of supplied arguments.
  * Empty argument lists are not supported.
  */
-#define lh_arg_get_count(...) lh_arg_get_count_impl(__VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+#define lh_arg_get_count(...)                                                                      \
+    lh_arg_expand(lh_arg_get_count_impl(__VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1))
 
 #endif /* LH_UTIL_ARG_H */

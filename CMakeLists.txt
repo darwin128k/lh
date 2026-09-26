@@ -200,17 +200,6 @@ if (LH_LIBRARY_OPTION_OS AND LH_OS_SYSTEM_LINK_LIBS)
     target_link_libraries(${PROJECT_NAME} PUBLIC ${LH_OS_SYSTEM_LINK_LIBS})
 endif ()
 
-# Tests (after ${PROJECT_NAME} exists for target_link_libraries).
-if (LH_BUILD_TESTS)
-    enable_testing()
-    add_subdirectory(test)
-endif ()
-
-# Benchmarks (after ${PROJECT_NAME} exists for target_link_libraries).
-if (LH_BUILD_BENCH)
-    add_subdirectory(bench)
-endif ()
-
 # Strong release optimizations for the core library (optional; Release only).
 if (LH_ENABLE_RELEASE_MAX_OPT)
     if (MSVC)
@@ -229,6 +218,10 @@ if (LH_ENABLE_RELEASE_MAX_OPT)
         )
     endif ()
 
+    # Decided before test/ and bench/ are added: a static library built with
+    # IPO holds compiler IR, not machine code, and its consumers have to link
+    # with IPO too to read it (clang only loads its LTO plugin under -flto;
+    # GCC's driver loads its own either way).
     include(CheckIPOSupported)
     check_ipo_supported(RESULT LH_IPO_SUPPORTED LANGUAGES C)
     if (LH_IPO_SUPPORTED)
@@ -236,4 +229,15 @@ if (LH_ENABLE_RELEASE_MAX_OPT)
     else ()
         message(STATUS "IPO/LTO not supported for current C toolchain; continuing without IPO.")
     endif ()
+endif ()
+
+# Tests (after ${PROJECT_NAME} exists for target_link_libraries).
+if (LH_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(test)
+endif ()
+
+# Benchmarks (after ${PROJECT_NAME} exists for target_link_libraries).
+if (LH_BUILD_BENCH)
+    add_subdirectory(bench)
 endif ()

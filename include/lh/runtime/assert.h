@@ -86,7 +86,7 @@
  * @brief The ::lh_runtime_error_code_t of a check's `code [, message]` argument.
  */
 #define lh_runtime_check_code(...)                                                                 \
-    lh_arg_concat(lh_runtime_check_code_, lh_arg_get_count(__VA_ARGS__))(__VA_ARGS__)
+    lh_arg_expand(lh_arg_concat(lh_runtime_check_code_, lh_arg_get_count(__VA_ARGS__))(__VA_ARGS__))
 
 #define lh_runtime_check_desc_1(code) lh_str_view_empty_initializer()
 #define lh_runtime_check_desc_2(code, message) lh_str_view_initializer_lit(message)
@@ -98,7 +98,7 @@
  *        must be a string literal.
  */
 #define lh_runtime_check_desc(...)                                                                 \
-    lh_arg_concat(lh_runtime_check_desc_, lh_arg_get_count(__VA_ARGS__))(__VA_ARGS__)
+    lh_arg_expand(lh_arg_concat(lh_runtime_check_desc_, lh_arg_get_count(__VA_ARGS__))(__VA_ARGS__))
 
 /* ── failure reporting ─────────────────────────────────────────────────── */
 

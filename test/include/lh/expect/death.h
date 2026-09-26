@@ -35,7 +35,9 @@
  * LH_EXPECT_DEATH(stmt): @p stmt breaks a contract (lh_runtime_assert_* /
  * lh_assert_runtime_*). Those checks are compiled out without
  * LH_RUNTIME_ASSERT_ENABLED (Release), and running a contract violation with
- * no check is undefined behaviour — so there @p stmt is not run at all.
+ * no check is undefined behaviour — so there @p stmt is not run at all. It is
+ * still compiled (behind `if (false)`): the test body keeps being checked, and
+ * the locals it uses do not turn into "unused variable" warnings (MSVC C4101).
  */
 #    if LH_RUNTIME_ASSERT_ENABLED
 #        define LH_EXPECT_DEATH(stmt) EXPECT_DEATH((stmt), ".*")
@@ -43,6 +45,10 @@
 #        define LH_EXPECT_DEATH(stmt)                                                              \
             do                                                                                     \
             {                                                                                      \
+                if (false)                                                                         \
+                {                                                                                  \
+                    (void)(stmt);                                                                  \
+                }                                                                                  \
             } while (0)
 #    endif
 

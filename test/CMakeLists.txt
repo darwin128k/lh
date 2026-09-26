@@ -112,6 +112,16 @@ endif ()
 # Build the test executable.
 add_executable(${PROJECT_NAME} ${LH_TEST_SOURCES})
 
+# The core library is built with IPO (LH_IPO_SUPPORTED, root CMakeLists.txt):
+# its archive holds IR, so this executable must be linked with IPO as well.
+if (LH_IPO_SUPPORTED)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT LH_TEST_IPO_SUPPORTED LANGUAGES CXX)
+    if (LH_TEST_IPO_SUPPORTED)
+        set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+    endif ()
+endif ()
+
 target_include_directories(${PROJECT_NAME} PRIVATE "${LH_TEST_INCLUDE_PATH}")
 
 # Link library under test and GoogleTest.

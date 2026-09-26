@@ -29,8 +29,12 @@ test_check_handler_prints(const lh_exception_t *exception)
     lh_str_view_t desc = lh_runtime_error_get_desc(lh_exception_get_error(exception));
     const bool has_desc = !lh_str_view_is_empty(&desc);
 
-    std::fprintf(stderr, "custom handler saw error %d line %u message %.*s\n",
-                 lh_exception_get_code(exception), origin != nullptr ? origin->line : 0u,
+    /* "known"/"none" rather than the number: the death-test regexes below must
+       work with googletest's simple regex (Windows, no [0-9]) and POSIX ERE
+       (Linux, no \d) alike. */
+    std::fprintf(stderr, "custom handler saw error %d line %s message %.*s\n",
+                 lh_exception_get_code(exception),
+                 origin != nullptr && origin->line != 0u ? "known" : "none",
                  has_desc ? static_cast<int>(lh_str_view_get_size(&desc)) : 4,
                  has_desc ? lh_str_view_get_data(&desc) : "none");
     std::fflush(stderr);
@@ -98,7 +102,7 @@ TEST(runtime_check_death, default_handler_reports_error_condition_and_file)
 {
     EXPECT_DEATH(fail_two_plus_two(), "runtime check failed: error 9, math still works");
     EXPECT_DEATH(fail_two_plus_two(), "condition: 2 \\+ 2 == 4");
-    EXPECT_DEATH(fail_two_plus_two(), "check\\.cpp:\\d+ in fail_two_plus_two");
+    EXPECT_DEATH(fail_two_plus_two(), "check\\.cpp:.* in fail_two_plus_two");
 }
 #    endif
 
@@ -107,14 +111,11 @@ TEST(runtime_check_death, default_handler_reports_error_condition_and_file)
 TEST(runtime_check_death, custom_handler_gets_the_code_then_terminates)
 {
 #    if (LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT == LH_RUNTIME_CHECK_REPORT_NONE)
-    EXPECT_DEATH(fail_with_code_only(), "custom handler saw error 6 line 0 message none");
-    EXPECT_DEATH(fail_with_message(), "custom handler saw error 13 line 0 message none");
-#    elif (LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT == LH_RUNTIME_CHECK_REPORT_LOCATION)
-    EXPECT_DEATH(fail_with_code_only(), "custom handler saw error 6 line \\d\\d message none");
-    EXPECT_DEATH(fail_with_message(), "custom handler saw error 13 line \\d\\d message too big");
+    EXPECT_DEATH(fail_with_code_only(), "custom handler saw error 6 line none message none");
+    EXPECT_DEATH(fail_with_message(), "custom handler saw error 13 line none message none");
 #    else
-    EXPECT_DEATH(fail_with_code_only(), "custom handler saw error 6 line \\d\\d message none");
-    EXPECT_DEATH(fail_with_message(), "custom handler saw error 13 line \\d\\d message too big");
+    EXPECT_DEATH(fail_with_code_only(), "custom handler saw error 6 line known message none");
+    EXPECT_DEATH(fail_with_message(), "custom handler saw error 13 line known message too big");
 #    endif
 }
 

@@ -75,6 +75,16 @@ endif()
 
 add_executable(${PROJECT_NAME} ${LH_BENCH_SOURCES})
 
+# The core library is built with IPO (LH_IPO_SUPPORTED, root CMakeLists.txt):
+# its archive holds IR, so this executable must be linked with IPO as well.
+if (LH_IPO_SUPPORTED)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT LH_BENCH_IPO_SUPPORTED LANGUAGES CXX)
+    if (LH_BENCH_IPO_SUPPORTED)
+        set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+    endif ()
+endif ()
+
 target_link_libraries(${PROJECT_NAME} PRIVATE ${LH_CORE_TARGET} benchmark::benchmark_main)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON)
