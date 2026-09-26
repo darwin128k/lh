@@ -2111,22 +2111,106 @@ lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n)
     return end;
 }
 
+/* The byte loop behind lh_memory_std_xor. At -O3 GCC turns it into a 16-byte
+ * movdqu/pxor loop (checked via -S), so SSE2 needs no hand-written tier of its
+ * own. dst may equal lhs or rhs: each byte is read before it is written. */
+LH_ATTRIBUTE_FORCE_INLINE
+void
+lh_memory_std_xor_bytes(lh_uchar_t *dst, const lh_uchar_t *lhs, const lh_uchar_t *rhs, lh_usize_t n)
+{
+    lh_usize_t i;
+
+    for (i = 0U; lh_math_lt(i, n); i = lh_math_add_one(i))
+    {
+        dst[i] = lh_cast_static(lh_uchar_t, lh_math_bit_xor(lhs[i], rhs[i]));
+    }
+}
+
+#if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+
+/* AVX2 tier: two 32-byte registers per iteration, then one, then the byte loop.
+ * Measured on this project's GCC/MinGW Zen2 target against the SSE2 loop above:
+ * slower up to 64 bytes (0.8x-0.9x), 1.16x at 256 bytes, ~1.8x-2x from 1KB to
+ * 16KB, ~1.2x-1.5x once memory-bound — hence LH_MEMORY_STD_SIMD_XOR_THRESHOLD.
+ * dst may equal lhs or rhs: each block is fully loaded before it is stored. */
+LH_MEMORY_STD_SIMD_TARGET("avx2")
+static void
+lh_memory_std_xor_avx2(lh_uchar_t *dst, const lh_uchar_t *lhs, const lh_uchar_t *rhs, lh_usize_t n)
+{
+    lh_usize_t i = 0U;
+
+    for (; lh_math_le(lh_math_add(i, 64U), n); i = lh_math_add(i, 64U))
+    {
+        const __m256i l0 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, lhs + i));
+        const __m256i l1 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, lhs + i + 32U));
+        const __m256i r0 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, rhs + i));
+        const __m256i r1 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, rhs + i + 32U));
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + i), _mm256_xor_si256(l0, r0));
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + i + 32U), _mm256_xor_si256(l1, r1));
+    }
+    if (lh_math_le(lh_math_add(i, 32U), n))
+    {
+        const __m256i l0 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, lhs + i));
+        const __m256i r0 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, rhs + i));
+        _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst + i), _mm256_xor_si256(l0, r0));
+        i = lh_math_add(i, 32U);
+    }
+    lh_memory_std_xor_bytes(dst + i, lhs + i, rhs + i, lh_math_sub(n, i));
+}
+
+/* Resolve m_simd_kind the same way the copy/set dispatchers do, for a first
+ * std call that happens to be a large xor. */
+static void
+lh_memory_std_xor_resolve_kind(void)
+{
+    if (lh_cpu_simd_has_avx2())
+    {
+        m_simd_kind = LH_MEMORY_STD_KIND_AVX2;
+    }
+    else
+#    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+        if (lh_cpu_simd_has_sse2())
+    {
+        m_simd_kind = LH_MEMORY_STD_KIND_SSE2;
+    }
+    else
+#    endif
+    {
+        m_simd_kind = LH_MEMORY_STD_KIND_SCALAR;
+    }
+}
+
+#    define LH_MEMORY_STD_SIMD_XOR_THRESHOLD                                                       \
+        (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_SIMD_XOR_THRESHOLD))
+
+#endif /* LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
+
 lh_ptr
 lh_memory_std_xor(lh_ptr dst, const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     lh_uchar_t *d = lh_ptr_cast(lh_uchar_t, dst);
     const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs);
     const lh_uchar_t *r = lh_ptr_ccast(lh_uchar_t, rhs);
-    lh_usize_t i;
 
     lh_assert_runtime_ref(dst);
     lh_assert_runtime_ref(lhs);
     lh_assert_runtime_ref(rhs);
 
-    for (i = 0U; lh_math_lt(i, n); i = lh_math_add_one(i))
+#if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+    if (lh_math_ge(n, LH_MEMORY_STD_SIMD_XOR_THRESHOLD))
     {
-        d[i] = lh_cast_static(lh_uchar_t, lh_math_bit_xor(l[i], r[i]));
+        if (lh_math_is_zero(m_simd_kind))
+        {
+            lh_memory_std_xor_resolve_kind();
+        }
+        if (m_simd_kind == LH_MEMORY_STD_KIND_AVX2)
+        {
+            lh_memory_std_xor_avx2(d, l, r, n);
+            return lh_ptr_add_unsafe(lh_void, dst, n);
+        }
     }
+#endif
+    lh_memory_std_xor_bytes(d, l, r, n);
     return lh_ptr_add_unsafe(lh_void, dst, n);
 }
 

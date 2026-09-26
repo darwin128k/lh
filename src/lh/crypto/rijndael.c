@@ -1,12 +1,14 @@
 #include <lh/crypto/rijndael.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
+#include <lh/compiler/unreachable.h>
 #include <lh/memory/std.h>
 #include <lh/null.h>
 #include <lh/runtime/error.h>
 #include <lh/util/addr.h>
 #include <lh/util/bit/endian.h>
 #include <lh/util/bit/rotate.h>
+#include <lh/util/math.h>
 #include <lh/util/ptr.h>
 
 static const lh_uchar_t m_sbox[256] = {
@@ -351,9 +353,26 @@ lh_crypto_rijndael_init(lh_crypto_rijndael_t *self, const lh_ptr key, lh_usize_t
     return lh_bool_true;
 }
 
+/* self->block_size is 16, 24 or 32 (lh_crypto_rijndael_init checks it).
+   Saying so lets the compiler bound the block-sized xor/copy below: once
+   lh_memory_std_xor has a large-size tier, LTO otherwise warns that copying
+   block_size bytes into chain may overflow it. */
+static lh_usize_t
+lh_crypto_rijndael_get_block_size(const lh_crypto_rijndael_t *self)
+{
+    const lh_usize_t block_size = self->block_size;
+
+    if (lh_math_gt(block_size, LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX))
+    {
+        lh_compiler_unreachable();
+    }
+    return block_size;
+}
+
 lh_bool_t
 lh_crypto_rijndael_encrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh_ptr out)
 {
+    lh_usize_t block_size;
     const lh_uchar_t *in_bytes;
     lh_uchar_t *out_bytes;
     lh_uchar_t block[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX];
@@ -362,6 +381,7 @@ lh_crypto_rijndael_encrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh
     lh_assert_runtime_ref(in);
     lh_assert_runtime_ref(out);
 
+    block_size = lh_crypto_rijndael_get_block_size(self);
     in_bytes = lh_ptr_rcast(const lh_uchar_t, in);
     out_bytes = lh_ptr_rcast(lh_uchar_t, out);
 
@@ -373,22 +393,23 @@ lh_crypto_rijndael_encrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh
 
     if (self->mode == lh_crypto_rijndael_mode_cbc)
     {
-        lh_memory_std_xor(block, in_bytes, self->chain, self->block_size);
+        lh_memory_std_xor(block, in_bytes, self->chain, block_size);
         lh_crypto_rijndael_cipher(self, block, out_bytes, lh_bool_false);
-        lh_memory_std_copy(self->chain, out_bytes, self->block_size);
+        lh_memory_std_copy(self->chain, out_bytes, block_size);
         return lh_bool_true;
     }
 
     /* CFB: encrypt chain, xor with plaintext, chain <- ciphertext */
     lh_crypto_rijndael_cipher(self, self->chain, block, lh_bool_false);
-    lh_memory_std_xor(out_bytes, in_bytes, block, self->block_size);
-    lh_memory_std_copy(self->chain, out_bytes, self->block_size);
+    lh_memory_std_xor(out_bytes, in_bytes, block, block_size);
+    lh_memory_std_copy(self->chain, out_bytes, block_size);
     return lh_bool_true;
 }
 
 lh_bool_t
 lh_crypto_rijndael_decrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh_ptr out)
 {
+    lh_usize_t block_size;
     const lh_uchar_t *in_bytes;
     lh_uchar_t *out_bytes;
     lh_uchar_t block[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX];
@@ -398,6 +419,7 @@ lh_crypto_rijndael_decrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh
     lh_assert_runtime_ref(in);
     lh_assert_runtime_ref(out);
 
+    block_size = lh_crypto_rijndael_get_block_size(self);
     in_bytes = lh_ptr_rcast(const lh_uchar_t, in);
     out_bytes = lh_ptr_rcast(lh_uchar_t, out);
 
@@ -409,17 +431,17 @@ lh_crypto_rijndael_decrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh
 
     if (self->mode == lh_crypto_rijndael_mode_cbc)
     {
-        lh_memory_std_copy(saved, in_bytes, self->block_size);
+        lh_memory_std_copy(saved, in_bytes, block_size);
         lh_crypto_rijndael_cipher(self, in_bytes, block, lh_bool_true);
-        lh_memory_std_xor(out_bytes, block, self->chain, self->block_size);
-        lh_memory_std_copy(self->chain, saved, self->block_size);
+        lh_memory_std_xor(out_bytes, block, self->chain, block_size);
+        lh_memory_std_copy(self->chain, saved, block_size);
         return lh_bool_true;
     }
 
     /* CFB decrypt: encrypt chain, xor with ciphertext, chain <- ciphertext */
-    lh_memory_std_copy(saved, in_bytes, self->block_size);
+    lh_memory_std_copy(saved, in_bytes, block_size);
     lh_crypto_rijndael_cipher(self, self->chain, block, lh_bool_false);
-    lh_memory_std_xor(out_bytes, in_bytes, block, self->block_size);
-    lh_memory_std_copy(self->chain, saved, self->block_size);
+    lh_memory_std_xor(out_bytes, in_bytes, block, block_size);
+    lh_memory_std_copy(self->chain, saved, block_size);
     return lh_bool_true;
 }

@@ -116,6 +116,7 @@ function(lh_generate_config)
 
     set(ValMemoryStdSimdMinThreshold "${LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD}")
     set(ValMemoryStdSimdSetThreshold "${LH_LIBRARY_OPTION_MEMORY_STD_SIMD_SET_THRESHOLD}")
+    set(ValMemoryStdSimdXorThreshold "${LH_LIBRARY_OPTION_MEMORY_STD_SIMD_XOR_THRESHOLD}")
     set(ValMemoryStdSimdDirectDispatchThreshold "${LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD}")
     set(ValMemoryStdSimdStreamThreshold "${LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD}")
     set(ValMemoryStdGccRepMovsbThreshold "${LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD}")

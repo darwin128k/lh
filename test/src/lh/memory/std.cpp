@@ -4,6 +4,7 @@
 #include <lh/memory/std.h>
 #include <lh/null.h>
 
+#include <algorithm>
 #include <vector>
 
 namespace
@@ -927,6 +928,40 @@ TEST(memory_std_xor_death, null_operand)
 {
     lh_uchar_t dst[1] = {};
     LH_EXPECT_DEATH(lh_memory_std_xor(dst, lh_null, dst, 1));
+}
+
+TEST(memory_std_xor, exact_bytes_across_simd_sizes_and_misalignment)
+{
+    std::vector<lh_uchar_t> lhs(4200 + 3), rhs(4200 + 3), dst(4200 + 3), inplace(4200 + 3);
+    for (size_t i = 0; i < lhs.size(); ++i)
+    {
+        lhs[i] = static_cast<lh_uchar_t>(i * 7 + 1);
+        rhs[i] = static_cast<lh_uchar_t>(i * 13 + 5);
+    }
+    const size_t sizes[] = {0,   1,   15,  31,  32,  33,   63,   64,   65,
+                            127, 255, 256, 257, 300, 1023, 1024, 4097, 4200};
+    for (size_t off = 0; off < 3; ++off)
+    {
+        for (size_t n : sizes)
+        {
+            std::fill(dst.begin(), dst.end(), 0xEE);
+            lh_ptr end = lh_memory_std_xor(dst.data() + off, lhs.data() + off, rhs.data() + off, n);
+            ASSERT_EQ(end, static_cast<lh_ptr>(dst.data() + off + n)) << "n = " << n;
+            for (size_t i = 0; i < n; ++i)
+            {
+                ASSERT_EQ(dst[off + i], static_cast<lh_uchar_t>(lhs[off + i] ^ rhs[off + i]))
+                    << "n = " << n << ", off = " << off << ", i = " << i;
+            }
+            ASSERT_EQ(dst[off + n], 0xEE) << "wrote past the end, n = " << n;
+
+            inplace = lhs;
+            lh_memory_std_xor(inplace.data() + off, inplace.data() + off, rhs.data() + off, n);
+            for (size_t i = 0; i < n; ++i)
+            {
+                ASSERT_EQ(inplace[off + i], dst[off + i]) << "in place, n = " << n << ", i = " << i;
+            }
+        }
+    }
 }
 
 } // namespace

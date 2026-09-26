@@ -125,19 +125,28 @@ lh_fs_path_get_root_drive(const lh_fs_path_t *self)
 lh_usize_t
 lh_fs_path_get_segment_count(const lh_fs_path_t *self)
 {
-    lh_str_view_t rest;
-    lh_str_view_t field;
-    lh_usize_t pos;
+    const lh_str_view_t rest = lh_fs_path_get_rest(self);
+    const lh_char_t *data;
+    lh_usize_t size;
     lh_usize_t count;
-    lh_bool_t had_delim;
+    lh_usize_t i;
 
-    rest = lh_fs_path_get_rest(self);
-    pos = 0U;
-    count = 0U;
-    while (lh_str_view_split_next_of(lh_addr_of(rest), m_fs_path_posix_seps, 1U, lh_addr_of(pos),
-                                     lh_addr_of(field), lh_addr_of(had_delim)))
+    /* Normalized text (see Layout above): segments joined by a single '/',
+       none empty, no trailing '/' — so there is one more segment than there
+       are separators, and no need to split. */
+    if (lh_str_view_is_empty(lh_addr_of(rest)))
     {
-        count = lh_math_add_one(count);
+        return 0U;
+    }
+    data = lh_str_view_get_data(lh_addr_of(rest));
+    size = lh_str_view_get_size(lh_addr_of(rest));
+    count = 1U;
+    for (i = 0U; lh_math_lt(i, size); i = lh_math_add_one(i))
+    {
+        if (lh_math_eq(data[i], lh_char_map_slash))
+        {
+            count = lh_math_add_one(count);
+        }
     }
     return count;
 }

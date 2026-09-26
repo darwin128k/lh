@@ -279,6 +279,18 @@
 #define LH_LIBRARY_OPTION_MEMORY_STD_SIMD_SET_THRESHOLD @ValMemoryStdSimdSetThreshold@
 
 /**
+ * @def LH_LIBRARY_OPTION_MEMORY_STD_SIMD_XOR_THRESHOLD
+ * @brief ::lh_memory_std_xor: below this size (bytes), keep the plain byte loop
+ *        instead of the AVX2 tier.
+ *
+ * GCC already vectorizes the byte loop with SSE2; the AVX2 tier only wins once
+ * its wider setup and the runtime CPU check are amortized (~256 bytes).
+ *
+ * @note The value must be greater than zero.
+ */
+#define LH_LIBRARY_OPTION_MEMORY_STD_SIMD_XOR_THRESHOLD @ValMemoryStdSimdXorThreshold@
+
+/**
  * @def LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD
  * @brief ::lh_memory_std_copy / ::lh_memory_std_copy_rev / ::lh_memory_std_rcopy,
  *        x86-64 only: below this size (bytes), call the SSE2 tier directly instead

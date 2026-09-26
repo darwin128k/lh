@@ -265,6 +265,9 @@ set(LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD "16" CACHE STRING
 set(LH_LIBRARY_OPTION_MEMORY_STD_SIMD_SET_THRESHOLD "32" CACHE STRING
         "lh_memory_std_set: below this size (bytes), skip SIMD and use the plain scalar path. Lower than the copy-side threshold above: a fill has only one memory stream to drive (no read side), so the indirect dispatch call pays for itself sooner. Must be a positive decimal integer.")
 
+set(LH_LIBRARY_OPTION_MEMORY_STD_SIMD_XOR_THRESHOLD "256" CACHE STRING
+        "lh_memory_std_xor: below this size (bytes), keep the plain byte loop (GCC already vectorizes it with SSE2) instead of the AVX2 tier — below ~256 bytes the wider setup and the runtime check do not pay for themselves. Must be a positive decimal integer.")
+
 set(LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD "256" CACHE STRING
         "lh_memory_std_copy/copy_rev/rcopy, x86-64 only: below this size (bytes), call the SSE2 tier directly (SSE2 needs no runtime check on x86-64) instead of going through the indirect, AVX2-capable dispatch — avoids paying for an indirect call before it is worth it. Must be a positive decimal integer, and should stay at or above LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD.")
 
