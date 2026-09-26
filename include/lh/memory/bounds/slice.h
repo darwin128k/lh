@@ -33,6 +33,7 @@
 #include <lh/memory/view/slice/flags.h>
 #include <lh/memory/view/slice/direction.h>
 #include <lh/memory/bounds/slice/fields.h>
+#include <lh/memory/view/slice.h>
 
 /**
  * @struct lh_memory_bounds_slice
@@ -1528,6 +1529,32 @@ lh_memory_bounds_slice_swap_v(lh_memory_bounds_slice_t *self, lh_memory_bounds_s
 lh_void
 lh_memory_bounds_slice_swap_and_clear(lh_memory_bounds_slice_t *self,
                                       lh_memory_bounds_slice_t *other);
+
+/* ── view ────────────────────────────────────────────────────────────────── */
+
+/**
+ * @brief A read-only view slice of the memory @p self describes.
+ *
+ * The safe direction of the two: it only drops write access, so any
+ * function that reads through a ::lh_memory_view_slice_t can be handed a
+ * ::lh_memory_bounds_slice_t. Nothing is copied — the view slice points at the
+ * same memory (both ends inclusive, as in the source), and is valid as long as that memory is.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_uchar_t buf[16];
+ * lh_memory_bounds_slice_t b = lh_memory_bounds_slice_make_by_size(buf, sizeof(buf));
+ * lh_memory_view_slice_t v = lh_memory_bounds_slice_as_view(&b);
+ * @endcode
+ *
+ * @param self Source.
+ * @return View slice with the same first and last pointers as @p self.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+lh_memory_view_slice_t
+lh_memory_bounds_slice_as_view(const lh_memory_bounds_slice_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

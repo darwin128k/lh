@@ -33,6 +33,7 @@
 #define LH_MEMORY_BOUNDS_H
 
 #include <lh/memory/bounds/slice.h>
+#include <lh/memory/view.h>
 
 /**
  * @brief Non-owning mutable half-open byte bounds.
@@ -1444,6 +1445,32 @@ lh_memory_bounds_drop_last(const lh_memory_bounds_t *self, lh_usize_t n);
  */
 lh_memory_bounds_t
 lh_memory_bounds_trim(const lh_memory_bounds_t *self, lh_usize_t left, lh_usize_t right);
+
+/* ── view ────────────────────────────────────────────────────────────────── */
+
+/**
+ * @brief A read-only view of the memory @p self describes.
+ *
+ * The safe direction of the two: it only drops write access, so any
+ * function that reads through a ::lh_memory_view_t can be handed a
+ * ::lh_memory_bounds_t. Nothing is copied — the view points at the
+ * same memory, and is valid as long as that memory is.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_uchar_t buf[16];
+ * lh_memory_bounds_t b = lh_memory_bounds_make_by_size(buf, sizeof(buf));
+ * lh_memory_view_t v = lh_memory_bounds_as_view(&b);
+ * @endcode
+ *
+ * @param self Source.
+ * @return View with the same first and last pointers as @p self.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+lh_memory_view_t
+lh_memory_bounds_as_view(const lh_memory_bounds_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

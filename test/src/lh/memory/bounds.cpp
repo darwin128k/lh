@@ -374,4 +374,31 @@ TEST(memory_bounds_next_value, rejects_end_boundary_death)
 
 #endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
+TEST(memory_bounds_as_view, same_memory_read_only)
+{
+    lh_uchar_t buf[16] = {7};
+    lh_memory_bounds_t b = lh_memory_bounds_make_by_size(buf, sizeof(buf));
+    lh_memory_view_t v = lh_memory_bounds_as_view(&b);
+
+    EXPECT_EQ(lh_memory_view_get_begin(&v), static_cast<const void *>(buf));
+    EXPECT_EQ(lh_memory_view_get_end(&v), static_cast<const void *>(buf + 16));
+    EXPECT_EQ(lh_memory_view_get_size(&v), 16u);
+    EXPECT_EQ(lh_memory_view_get_value_from_begin(&v, 0), 7);
+}
+
+TEST(memory_bounds_as_view, empty_stays_empty)
+{
+    lh_memory_bounds_t b = lh_memory_bounds_make_empty();
+    lh_memory_view_t v = lh_memory_bounds_as_view(&b);
+
+    EXPECT_TRUE(lh_memory_view_is_empty(&v));
+}
+
+#if LH_TEST_EXPECT_DEATH_ENABLED
+TEST(memory_bounds_as_view_death, null_self)
+{
+    LH_EXPECT_DEATH((void)lh_memory_bounds_as_view(nullptr));
+}
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
+
 } // namespace

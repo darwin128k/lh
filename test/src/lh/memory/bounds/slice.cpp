@@ -1398,4 +1398,16 @@ TEST(memory_bounds_slice_swap, rejects_null_other_death)
 
 #endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
+TEST(memory_bounds_slice_as_view, same_inclusive_ends)
+{
+    lh_uchar_t buf[8] = {1, 2, 3, 4, 5, 6, 7, 8};
+    lh_memory_bounds_slice_t b = lh_memory_bounds_slice_make_by_size(buf, sizeof(buf));
+    lh_memory_view_slice_t v = lh_memory_bounds_slice_as_view(&b);
+
+    EXPECT_EQ(lh_memory_view_slice_get_begin(&v), static_cast<const void *>(buf));
+    EXPECT_EQ(lh_memory_view_slice_get_end(&v), static_cast<const void *>(buf + 7));
+    EXPECT_EQ(lh_memory_view_slice_get_size(&v), 8u);
+    EXPECT_EQ(lh_memory_view_slice_get_last_value(&v), 8);
+}
+
 } // namespace
