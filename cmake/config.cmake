@@ -77,8 +77,6 @@ function(lh_generate_config)
     set(ValAllocatorDefaultRealloc "${LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC}")
     set(ValAllocatorDefaultInclude "${LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE}")
 
-    set(ValCatchStackMax "${LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX}")
-
     set(ValVectorInitialCapacity "${LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY}")
     set(ValVectorGrowthFactor "${LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR}")
 

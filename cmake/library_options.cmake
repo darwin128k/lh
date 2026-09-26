@@ -4,7 +4,7 @@
 # Values are written to include/lh/config.h via config.h.in (cmake/config.cmake).
 # Non-CMake: copy include/lh/config.h.in to config.h and substitute @...@ tokens.
 # library_option_fallback.h reads config.h for the effective values.
-# Numeric LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX: CACHE STRING here.
+# Numeric and token options are CACHE STRING here; on/off ones are option().
 #
 # C symbols: lh/library_option.h (LH_LIBRARY_OPTION_ON / OFF).
 # -----------------------------------------------------------------------------
@@ -86,6 +86,30 @@ set(LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT "FULL" CACHE STRING
 set_property(CACHE LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT PROPERTY STRINGS NONE LOCATION FULL)
 
 # -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_LTO
+#
+# Link-time optimization of the library in Release builds. lh is a static
+# library, so this decides what its archive holds — and so which hosts can
+# link it:
+#
+#   OFF — plain machine code: links into any host built with a compatible
+#         compiler, with or without LTO. The choice for handing out a
+#         prebuilt archive.
+#   ON  — compiler IR only: the fastest library build, but the host must link
+#         with LTO using the same compiler (for MSVC, the same toolset
+#         version — link.exe then switches to /LTCG by itself).
+#   FAT — IR plus machine code: a host linking with LTO optimizes across into
+#         lh, a host without LTO links the machine code. GCC, and Clang 17+
+#         on ELF targets; where the toolchain has no fat objects (MSVC, older
+#         Clang, Clang on Windows) it falls back to ON with a status message.
+#
+# Build-only: nothing in lh/config.h depends on it.
+# -----------------------------------------------------------------------------
+set(LH_LIBRARY_OPTION_LTO "FAT" CACHE STRING
+        "Release LTO of the static library: OFF, ON or FAT.")
+set_property(CACHE LH_LIBRARY_OPTION_LTO PROPERTY STRINGS OFF ON FAT)
+
+# -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB
 #
 # Initial default for runtime allocator callbacks in lh/runtime/allocator.c.
@@ -139,18 +163,6 @@ unset(_LH_DEFAULT_REALLOC)
 option(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED
         "Zero-initialize allocated memory in lh_memory_allocator_alloc."
         ON)
-
-# -----------------------------------------------------------------------------
-# LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX
-#
-# Maximum active catch frames for lh_runtime_exception_catch_stack_* (array size
-# in runtime/exception/catch/stack.c). Must be a positive decimal integer.
-#
-# CMake: -DLH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX=64 or ccmake.
-# Manual build: set in include/lh/config.h or -D on the compiler command line.
-# -----------------------------------------------------------------------------
-set(LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX "16" CACHE STRING
-        "Maximum depth of lh runtime exception catch stack (must be > 0).")
 
 # -----------------------------------------------------------------------------
 # LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY

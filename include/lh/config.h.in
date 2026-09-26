@@ -9,8 +9,7 @@
  * **Manual build (no CMake):** copy this file to `config.h` and substitute every
  * CMake-style placeholder (at-sign delimited identifiers) with decimal integers:
  * version macros from the root `VERSION` file; library options use `0` or `1`
- * except `LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX` (must be > 0),
- * `LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY` (must be > 0), and
+ * except `LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY` (must be > 0),
  * `LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR` (must be > 1),
  * `LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK` (must be > 0), and the
  * `LH_LIBRARY_OPTION_MEMORY_STD_*` tuning thresholds below (must be > 0); the
@@ -160,17 +159,6 @@
  *        (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
  */
 #define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED @ValAllocatorInitAllocated@
-
-/**
- * @def LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX
- * @brief Maximum depth of nested runtime exception catch frames.
- *
- * Controls internal catch-stack capacity 
- * used by the runtime exception subsystem. 
- * 
- * @note The value must be greater than zero.
- */
-#define LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX @ValCatchStackMax@
 
 /**
  * @def LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY

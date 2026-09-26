@@ -32,7 +32,7 @@ option(LH_BUILD_BENCH "Build microbenchmarks (requires the bench/lib/benchmark s
 # Release optimization options
 # ---------------------------------------------------------------------------
 option(LH_ENABLE_RELEASE_MAX_OPT
-        "Apply aggressive optimizations and try LTO for the lh library in Release only"
+        "Apply aggressive optimizations for the lh library in Release only (LTO: LH_LIBRARY_OPTION_LTO)"
         ON)
 
 # ---------------------------------------------------------------------------
@@ -203,11 +203,9 @@ endif ()
 # Strong release optimizations for the core library (optional; Release only).
 if (LH_ENABLE_RELEASE_MAX_OPT)
     if (MSVC)
+        # /GL and /LTCG come from LH_LIBRARY_OPTION_LTO below, not from here.
         target_compile_options(${PROJECT_NAME} PRIVATE
-                $<$<CONFIG:Release>:/O2 /GL /Oi /Ot /Gy>
-        )
-        target_link_options(${PROJECT_NAME} PRIVATE
-                $<$<CONFIG:Release>:/LTCG>
+                $<$<CONFIG:Release>:/O2 /Oi /Ot /Gy>
         )
     else ()
         target_compile_options(${PROJECT_NAME} PRIVATE
@@ -217,17 +215,43 @@ if (LH_ENABLE_RELEASE_MAX_OPT)
                 $<$<CONFIG:Release>:-Wl,--gc-sections>
         )
     endif ()
+endif ()
 
-    # Decided before test/ and bench/ are added: a static library built with
-    # IPO holds compiler IR, not machine code, and its consumers have to link
-    # with IPO too to read it (clang only loads its LTO plugin under -flto;
-    # GCC's driver loads its own either way).
+# Link-time optimization (LH_LIBRARY_OPTION_LTO, cmake/library_options.cmake).
+# Decided before test/ and bench/ are added: when the archive holds compiler
+# IR, its consumers link with IPO too (clang only loads its LTO plugin under
+# -flto; GCC's driver loads its own either way).
+if (NOT LH_LIBRARY_OPTION_LTO MATCHES "^(OFF|ON|FAT)$")
+    message(FATAL_ERROR "LH_LIBRARY_OPTION_LTO must be OFF, ON or FAT (got '${LH_LIBRARY_OPTION_LTO}')")
+endif ()
+set(LH_IPO_SUPPORTED FALSE)
+if (NOT LH_LIBRARY_OPTION_LTO STREQUAL "OFF")
     include(CheckIPOSupported)
     check_ipo_supported(RESULT LH_IPO_SUPPORTED LANGUAGES C)
     if (LH_IPO_SUPPORTED)
         set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
     else ()
-        message(STATUS "IPO/LTO not supported for current C toolchain; continuing without IPO.")
+        message(STATUS "LH_LIBRARY_OPTION_LTO=${LH_LIBRARY_OPTION_LTO}: the C toolchain has no LTO; building without it.")
+    endif ()
+endif ()
+if (LH_IPO_SUPPORTED AND LH_LIBRARY_OPTION_LTO STREQUAL "FAT")
+    set(LH_LTO_FAT FALSE)
+    if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+        set(LH_LTO_FAT TRUE)
+    elseif (CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT WIN32 AND NOT APPLE
+            AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 17)
+        include(CheckCCompilerFlag)
+        check_c_compiler_flag(-ffat-lto-objects LH_C_HAS_FAT_LTO_OBJECTS)
+        set(LH_LTO_FAT ${LH_C_HAS_FAT_LTO_OBJECTS})
+    endif ()
+    if (LH_LTO_FAT)
+        # After CMake's own IPO flags (GCC gets -fno-fat-lto-objects from them),
+        # so this one wins.
+        target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:Release>:-ffat-lto-objects>)
+        message(STATUS "LH_LIBRARY_OPTION_LTO=FAT: archive holds IR plus machine code.")
+    else ()
+        message(STATUS "LH_LIBRARY_OPTION_LTO=FAT: no fat LTO objects on ${CMAKE_C_COMPILER_ID} "
+                "${CMAKE_C_COMPILER_VERSION}; using ON (IR only, hosts must link with LTO).")
     endif ()
 endif ()
 

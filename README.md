@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/Compatible%20with-Windows%20Vista-1B6FDE?style=for-the-badge&logo=windows&logoColor=white" alt="Compatible with Windows Vista"/>
 </p>
 
-A lightweight C utility library (headers + a small shared/static library) with portable numeric and character types, compiler portability macros, safe cast helpers, **structured errors** (`lh_error_t`), and an optional **setjmp/longjmp-style runtime exception path** built on that error model.
+A lightweight C utility library (headers + a small static library) with portable numeric and character types, compiler portability macros, safe cast helpers, **structured errors** (`lh_error_t`), and **runtime checks** that report a failure as an `lh_exception_t` (error plus the check's origin) to a host-installed handler — no setjmp/longjmp, no unwinding.
 
 ## Features
 
@@ -59,8 +59,8 @@ Convenience scripts are available for common platform builds:
 ./scripts/build-linux.sh --config Release --run-tests
 ```
 
-The script accepts options for static/shared builds, docs/tests, target, build
-directory, compiler selection, clean builds, and parallelism. See
+The script accepts options for docs/tests, target, build directory, compiler
+selection, clean builds, and parallelism. See
 [scripts/README.md](scripts/README.md) for the quick command list.
 
 Legacy Windows builds that must work from `cmd.exe` can use the batch wrappers:
@@ -74,18 +74,21 @@ Details are in [scripts/README.md](scripts/README.md).
 
 ### Options
 
-| CMake option     | Default | Description                          |
-|------------------|---------|--------------------------------------|
-| `LH_BUILD_SHARED` | `ON`   | Build as a shared library            |
-| `LH_BUILD_DOCS`   | `ON`   | Generate Doxygen documentation       |
-| `LH_BUILD_TESTS`  | `ON`   | Build GoogleTest targets             |
-| `LH_BUILD_BENCH`  | `OFF`  | Build Google Benchmark microbenchmarks (`bench/lib/benchmark` submodule) |
-| `LH_DOCS_GRAPHS`  | `ON`   | Include Graphviz dependency graphs   |
+| CMake option | Default | Description |
+|---|---|---|
+| `LH_BUILD_DOCS` | `ON` | Generate Doxygen documentation |
+| `LH_BUILD_TESTS` | `ON` | Build GoogleTest targets |
+| `LH_BUILD_BENCH` | `OFF` | Build Google Benchmark microbenchmarks (`bench/lib/benchmark` submodule) |
+| `LH_DOCS_GRAPHS` | `ON` | Include Graphviz dependency graphs |
+| `LH_ENABLE_RELEASE_MAX_OPT` | `ON` | Aggressive Release optimizations for the library (`-O3`, section GC; `/O2 /Oi /Ot /Gy` on MSVC) |
+| `LH_LIBRARY_OPTION_LTO` | `FAT` | Release LTO of the static library: `OFF` (machine code, links anywhere), `ON` (IR only, host must link with LTO and the same compiler), `FAT` (IR + machine code, links with or without LTO; falls back to `ON` on MSVC / Clang < 17) |
 
-Example — static library without docs:
+lh is built as a static library only.
+
+Example — without docs, as plain machine code any host can link:
 
 ```sh
-cmake -S . -B build -DLH_BUILD_SHARED=OFF -DLH_BUILD_DOCS=OFF
+cmake -S . -B build -DLH_BUILD_DOCS=OFF -DLH_LIBRARY_OPTION_LTO=OFF
 cmake --build build
 ```
 
@@ -98,15 +101,24 @@ Manual (no-CMake) builds set the same names directly in `config.h` or via `-D`.
 | Option | Default | Description |
 |---|---|---|
 | `LH_LIBRARY_OPTION_THREAD_LOCAL` | `ON` | `LH_ATTRIBUTE_THREAD_LOCAL` uses real TLS in library sources |
-| `LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB` | `ON` | Default `lh_runtime_terminate` handler is `abort()`; `OFF` leaves it unset |
-| `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB` | `ON` | Seed the runtime allocator with the default pair below at startup; `OFF` leaves it null until `lh_memory_allocator_set()` is called |
+| `LH_LIBRARY_OPTION_OS` | `ON` | Compile the OS layer (files, directories, sockets, clock); `OFF` for freestanding / bare-metal builds |
+| `LH_LIBRARY_OPTION_OS_WERROR` | `ON` on Windows, else `OFF` | OS last-error slot uses `lh_werror_t` / `FormatMessageW` instead of `lh_error_t` / `FormatMessageA` |
+| `LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB` | `ON` | Default `lh_runtime_terminate` handler is `abort()` and the default check handler prints to `stderr`; `OFF` leaves both to the host |
+| `LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT` | `FULL` | What a failed runtime check reports (`lh_exception_origin_t`): `NONE` (error code only), `LOCATION` (+ file, line, message), `FULL` (+ function and condition text) |
+| `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB` | `ON` | Seed the runtime allocator with the default functions below at startup; `OFF` leaves it null until `lh_memory_allocator_set()` is called |
 | `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC` | `malloc` | Function bound as the runtime allocator's `alloc_cb` (e.g. `pvPortMalloc`) |
 | `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC` | `free` | Function bound as the runtime allocator's `dealloc_cb` (e.g. `vPortFree`) |
-| `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE` | `<stdlib.h>` | Header declaring the two functions above |
+| `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC` | `realloc` with `malloc`/`free`, else `lh_null` | Function bound as the runtime allocator's optional `realloc_cb` |
+| `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE` | `<stdlib.h>` | Header declaring the functions above |
 | `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED` | `ON` | Zero-initialize memory returned by `lh_memory_allocator_alloc` |
-| `LH_LIBRARY_OPTION_RUNTIME_EXCEPTION_CATCH_STACK_MAX` | `16` | Maximum depth of nested runtime exception catch frames (must be `> 0`) |
+| `LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY` | `1` | Capacity `lh_vector_t` grows to from empty on its first insertion (must be `> 0`) |
+| `LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR` | `2` | Factor by which `lh_vector_t` capacity grows when full (must be `> 1`) |
+| `LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE` | `ON` | `lh_str_ptr_to_lower`/`_to_upper` use a dense 256-entry table (faster, +~400 B) instead of a binary search |
+| `LH_LIBRARY_OPTION_WSTR_CASE_MAP_USE_TABLE` | `ON` | `lh_wstr_ptr_to_lower`/`_to_upper` use a two-level BMP table instead of a binary search |
+| `LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK` | `16` | Block size of the branchless scan in `lh_memory_std_compare` / `lh_memory_find_step` (must be `> 0`) |
 | `LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD` | `16` | Below this size (bytes), `lh_memory_std_copy`/`copy_rev`/`rcopy` skip SIMD entirely and use the scalar/tiny-copy path |
 | `LH_LIBRARY_OPTION_MEMORY_STD_SIMD_SET_THRESHOLD` | `32` | Below this size (bytes), `lh_memory_std_set` skips SIMD |
+| `LH_LIBRARY_OPTION_MEMORY_STD_SIMD_XOR_THRESHOLD` | `256` | Below this size (bytes), `lh_memory_std_xor` keeps the byte loop (auto-vectorized to SSE2) instead of the AVX2 tier |
 | `LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD` | `256` | x86-64 only: below this size (bytes), call the SSE2 tier directly instead of going through the indirect, AVX2-capable dispatch |
 | `LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD` | `2097152` | At/above this size (bytes, 2 MiB), `copy`/`set` switch to non-temporal streaming stores |
 | `LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD` | `512` | GCC/Clang x86 only: below this size, prefer SIMD over `REP MOVSB` in the (normally unused) no-SIMD fallback path |
@@ -220,8 +232,13 @@ options above.
 
 ## Safety conventions
 
-Most public APIs in this library perform runtime validation and raise an error
-on invalid input. However, a small number of functions are intentionally
+Most public APIs in this library validate their arguments: a broken contract
+(null pointer, out-of-range offset, invalid range) is reported as an
+`lh_exception_t` to the check handler and ends the program
+(`lh_runtime_terminate`). These contract checks are compiled in while
+`LH_RUNTIME_ASSERT_ENABLED` is `1` — by default in builds without `NDEBUG` —
+and compiled out in Release. Expected failures (a missing file, a closed
+socket) are returned as results instead. A small number of functions are intentionally
 **unsafe** — they skip range validation to let callers who have already
 verified invariants avoid redundant checks. These functions are explicitly
 marked with a `@warning` tag in their documentation.
@@ -235,7 +252,8 @@ Current unsafe functions:
 | `lh_memory_bounds_slice_make` | range check on `[begin, end]` |
 | `lh_memory_bounds_slice_swap` | range check on both operands |
 
-Null-pointer checks are still enforced even in unsafe functions.
+Null-pointer checks are still enforced in unsafe functions whenever contract
+checks are compiled in.
 
 **When calling an unsafe function the caller assumes full responsibility** for
 the validity of the range. Passing a backward or otherwise invalid range
