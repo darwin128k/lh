@@ -111,6 +111,14 @@
 #define LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB @ValRtStdlib@
 
 /**
+ * @def LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT
+ * @brief What a failed runtime check hands to its handler:
+ *        `0` nothing, `1` file + line, `2` also function + condition
+ *        (::LH_RUNTIME_CHECK_REPORT_NONE / _LOCATION / _FULL).
+ */
+#define LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT @ValRtCheckReport@
+
+/**
  * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB
  * @brief Default runtime allocator uses `malloc`/`free`
  *        from the C library (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).

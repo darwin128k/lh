@@ -51,7 +51,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param self View to read.
  * @return Stored begin pointer.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 const lh_ptr
@@ -62,7 +62,7 @@ lh_memory_view_get_begin(const lh_memory_view_t *self);
  * @param self View to read.
  * @return Stored begin pointer.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 const lh_ptr
@@ -73,7 +73,7 @@ lh_memory_view_get_data(const lh_memory_view_t *self);
  * @param self View to read.
  * @return Stored exclusive end pointer.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 const lh_ptr
@@ -91,7 +91,7 @@ lh_memory_view_get_end(const lh_memory_view_t *self);
  * @param self View to inspect.
  * @return Direction value from ::lh_memory_view_slice_direction_t.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_memory_view_slice_direction_t
@@ -106,7 +106,7 @@ lh_memory_view_get_direction(const lh_memory_view_t *self);
  * @param self View to inspect.
  * @return Bit pattern from ::lh_memory_view_slice_flags_t.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_memory_view_slice_flags_t
@@ -116,7 +116,7 @@ lh_memory_view_get_flags(const lh_memory_view_t *self);
  * @brief True if neither endpoint is initialized.
  * @param self View to inspect.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_bool_t
@@ -126,7 +126,7 @@ lh_memory_view_is_uninitialized(const lh_memory_view_t *self);
  * @brief True if both endpoints are initialized.
  * @param self View to inspect.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_bool_t
@@ -136,7 +136,7 @@ lh_memory_view_is_initialized(const lh_memory_view_t *self);
  * @brief True if @p self is initialized and ordered @c first &lt; @c second.
  * @param self View to inspect.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_bool_t
@@ -146,7 +146,7 @@ lh_memory_view_is_forward(const lh_memory_view_t *self);
  * @brief True if @p self is initialized and not forward.
  * @param self View to inspect.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_bool_t
@@ -156,7 +156,7 @@ lh_memory_view_is_backward(const lh_memory_view_t *self);
  * @brief True if @p self is initialized and forward ordered.
  * @param self View to inspect.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_bool_t
@@ -169,9 +169,9 @@ lh_memory_view_is_valid(const lh_memory_view_t *self);
  * @param self Valid view to read.
  * @return Stored begin pointer.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 const lh_ptr
@@ -182,9 +182,9 @@ lh_memory_view_get_begin_v(const lh_memory_view_t *self);
  * @param self Valid view to read.
  * @return Stored exclusive end pointer.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 const lh_ptr
@@ -198,9 +198,9 @@ lh_memory_view_get_end_v(const lh_memory_view_t *self);
  * @param self Valid view to read.
  * @return Number of bytes covered by the half-open interval.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_usize_t
@@ -215,9 +215,9 @@ lh_memory_view_get_size(const lh_memory_view_t *self);
  *
  * @param self View to inspect.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is invalid and not uninitialized.
  */
 lh_bool_t
@@ -232,9 +232,9 @@ lh_memory_view_is_empty(const lh_memory_view_t *self);
  * @param self   Valid view to inspect.
  * @param offset Byte offset from @c first.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -247,11 +247,11 @@ lh_memory_view_is_valid_offset(const lh_memory_view_t *self, lh_uoffset_t offset
  * @param ptr  Pointer whose offset is requested.
  * @return Byte offset from @c first to @p ptr.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p ptr is outside @p self.
  */
 lh_uoffset_t
@@ -267,11 +267,11 @@ lh_memory_view_get_offset_from_begin(const lh_memory_view_t *self, const lh_ptr 
  * @param ptr  Pointer whose reverse offset is requested.
  * @return Byte offset from the last byte back to @p ptr.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p ptr is outside @p self.
  */
 lh_uoffset_t
@@ -283,9 +283,9 @@ lh_memory_view_get_offset_from_end(const lh_memory_view_t *self, const lh_ptr pt
  * @param self Valid view to inspect.
  * @param ptr  Pointer to test.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -298,9 +298,9 @@ lh_memory_view_contains_ptr(const lh_memory_view_t *self, const lh_ptr ptr);
  * @param begin Inner range begin pointer.
  * @param end   Inner range exclusive end pointer.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -309,9 +309,9 @@ lh_memory_view_contains_of(const lh_memory_view_t *self, const lh_ptr begin, con
 /**
  * @brief Alias for ::lh_memory_view_contains_of.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -326,9 +326,9 @@ lh_memory_view_contains_range(const lh_memory_view_t *self, const lh_ptr begin, 
  * @param self  Valid outer view.
  * @param other Inner view to test.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -337,9 +337,9 @@ lh_memory_view_contains(const lh_memory_view_t *self, const lh_memory_view_t *ot
 /**
  * @brief True if valid @p other lies completely inside @p self.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_bool_t
@@ -354,11 +354,11 @@ lh_memory_view_contains_v(const lh_memory_view_t *self, const lh_memory_view_t *
  * @param offset Byte offset from the begin endpoint.
  * @return Pointer to the requested byte.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
 const lh_ptr
@@ -374,11 +374,11 @@ lh_memory_view_get_ptr_from_begin(const lh_memory_view_t *self, lh_uoffset_t off
  * @param offset Byte offset from the last byte.
  * @return Pointer to the requested byte.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
 const lh_ptr
@@ -389,9 +389,9 @@ lh_memory_view_get_ptr_from_end(const lh_memory_view_t *self, lh_uoffset_t offse
  * @param self Valid view to index.
  * @return Pointer to @c first.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 const lh_ptr
@@ -402,11 +402,11 @@ lh_memory_view_get_first_ptr(const lh_memory_view_t *self);
  * @param self Valid non-empty view to index.
  * @return Pointer to @c second - 1.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p self is empty.
  */
 const lh_ptr
@@ -423,11 +423,11 @@ lh_memory_view_get_last_ptr(const lh_memory_view_t *self);
  * @param offset Signed byte offset.
  * @return Pointer to the requested byte.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
 const lh_ptr
@@ -440,11 +440,11 @@ lh_memory_view_get_ptr(const lh_memory_view_t *self, lh_soffset_t offset);
  * @param offset Byte offset from the begin endpoint.
  * @return Byte stored at the requested address.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
 lh_byte_t
@@ -457,11 +457,11 @@ lh_memory_view_get_value_from_begin(const lh_memory_view_t *self, lh_uoffset_t o
  * @param offset Byte offset from the last byte.
  * @return Byte stored at the requested address.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
 lh_byte_t
@@ -474,11 +474,11 @@ lh_memory_view_get_value_from_end(const lh_memory_view_t *self, lh_uoffset_t off
  * @param offset Signed byte offset.
  * @return Byte stored at the requested address.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
 lh_byte_t
@@ -490,9 +490,9 @@ lh_memory_view_get_value(const lh_memory_view_t *self, lh_soffset_t offset);
  * @param self Valid view to read.
  * @return Byte at @c first.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_byte_t
@@ -504,9 +504,9 @@ lh_memory_view_get_first_value(const lh_memory_view_t *self);
  * @param self Valid view to read.
  * @return Byte at @c second - 1.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_byte_t
@@ -524,11 +524,11 @@ lh_memory_view_get_last_value(const lh_memory_view_t *self);
  * @param offset Signed byte offset.
  * @return Target byte offset from @c first.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p ptr is outside @p self or the target offset is out of range.
  */
 lh_uoffset_t
@@ -545,9 +545,9 @@ lh_memory_view_get_offset_from_ptr(const lh_memory_view_t *self, const lh_ptr pt
  * @param offset Signed byte offset.
  * @return Target pointer, or ::lh_null when the seek crosses bounds.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 const lh_ptr
@@ -556,9 +556,9 @@ lh_memory_view_seek_ptr(const lh_memory_view_t *self, const lh_ptr ptr, lh_soffs
 /**
  * @brief Return the byte pointer after @p ptr.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 const lh_ptr
@@ -567,9 +567,9 @@ lh_memory_view_next_ptr(const lh_memory_view_t *self, const lh_ptr ptr);
 /**
  * @brief Return the byte pointer before @p ptr.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 const lh_ptr
@@ -578,11 +578,11 @@ lh_memory_view_prev_ptr(const lh_memory_view_t *self, const lh_ptr ptr);
 /**
  * @brief Seek to @p ptr and read the byte there.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        The seek result is outside @p self.
  */
 lh_byte_t
@@ -591,11 +591,11 @@ lh_memory_view_seek_value(const lh_memory_view_t *self, const lh_ptr ptr);
 /**
  * @brief Read the byte after @p ptr.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        There is no next byte inside @p self.
  */
 lh_byte_t
@@ -604,11 +604,11 @@ lh_memory_view_next_value(const lh_memory_view_t *self, const lh_ptr ptr);
 /**
  * @brief Read the byte before @p ptr.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        There is no previous byte inside @p self.
  */
 lh_byte_t
@@ -619,9 +619,9 @@ lh_memory_view_prev_value(const lh_memory_view_t *self, const lh_ptr ptr);
 /**
  * @brief True if half-open range <tt>[begin, end)</tt> overlaps @p self.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -630,9 +630,9 @@ lh_memory_view_overlaps_of(const lh_memory_view_t *self, const lh_ptr begin, con
 /**
  * @brief Alias for ::lh_memory_view_overlaps_of.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -641,9 +641,9 @@ lh_memory_view_overlaps_range(const lh_memory_view_t *self, const lh_ptr begin, 
 /**
  * @brief True if @p other overlaps @p self.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -652,9 +652,9 @@ lh_memory_view_overlaps(const lh_memory_view_t *self, const lh_memory_view_t *ot
 /**
  * @brief True if valid @p other overlaps @p self.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_bool_t
@@ -666,9 +666,9 @@ lh_memory_view_overlaps_v(const lh_memory_view_t *self, const lh_memory_view_t *
  * @param self      Valid view to inspect.
  * @param alignment Non-zero divisor for the view size.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -677,9 +677,9 @@ lh_memory_view_is_multiple_of(const lh_memory_view_t *self, lh_usize_t alignment
 /**
  * @brief True if @c first is aligned to @p align.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -688,9 +688,9 @@ lh_memory_view_is_begin_aligned(const lh_memory_view_t *self, lh_usize_t align);
 /**
  * @brief True if both endpoints are aligned to @p align.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -699,7 +699,7 @@ lh_memory_view_is_aligned(const lh_memory_view_t *self, lh_usize_t align);
 /**
  * @brief True if @p self stores exactly @p begin and @p end.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_bool_t
@@ -708,7 +708,7 @@ lh_memory_view_equals_of(const lh_memory_view_t *self, const lh_ptr begin, const
 /**
  * @brief Alias for ::lh_memory_view_equals_of.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_bool_t
@@ -717,7 +717,7 @@ lh_memory_view_equals_range(const lh_memory_view_t *self, const lh_ptr begin, co
 /**
  * @brief True if @p self and @p other store the same endpoints.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  */
 lh_bool_t
@@ -733,9 +733,9 @@ lh_memory_view_equals(const lh_memory_view_t *self, const lh_memory_view_t *othe
  * @param end   Needle range exclusive end pointer.
  * @return Pointer to the first match, or ::lh_null when no match exists.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 const lh_ptr
@@ -750,9 +750,9 @@ lh_memory_view_find_range(const lh_memory_view_t *self, const lh_ptr begin, cons
  * @param other Valid view used as the needle.
  * @return Pointer to the first match, or ::lh_null when no match exists.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 const lh_ptr
@@ -766,9 +766,9 @@ lh_memory_view_find(const lh_memory_view_t *self, const lh_memory_view_t *other)
  * @param end   Needle range exclusive end pointer.
  * @return Pointer to the last match, or ::lh_null when no match exists.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 const lh_ptr
@@ -783,9 +783,9 @@ lh_memory_view_rfind_range(const lh_memory_view_t *self, const lh_ptr begin, con
  * @param other Valid view used as the needle.
  * @return Pointer to the last match, or ::lh_null when no match exists.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 const lh_ptr
@@ -802,9 +802,9 @@ lh_memory_view_rfind(const lh_memory_view_t *self, const lh_memory_view_t *other
  * @return Pointer to the first differing byte in @p self, or ::lh_null when
  *         the compared bytes are equal.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 const lh_ptr
@@ -820,9 +820,9 @@ lh_memory_view_compare_range(const lh_memory_view_t *self, const lh_ptr begin, c
  * @return Pointer to the first differing byte in @p self, or ::lh_null when
  *         the compared bytes are equal.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 const lh_ptr
@@ -839,9 +839,9 @@ lh_memory_view_compare(const lh_memory_view_t *self, const lh_memory_view_t *oth
  * @return Pointer to the differing byte in @p self, or ::lh_null when the
  *         compared suffixes are equal.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 const lh_ptr
@@ -857,9 +857,9 @@ lh_memory_view_rcompare_range(const lh_memory_view_t *self, const lh_ptr begin, 
  * @return Pointer to the differing byte in @p self, or ::lh_null when the
  *         compared suffixes are equal.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 const lh_ptr
@@ -872,7 +872,7 @@ lh_memory_view_rcompare(const lh_memory_view_t *self, const lh_memory_view_t *ot
  *
  * @param self View to clear.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_void
@@ -887,7 +887,7 @@ lh_memory_view_clear(lh_memory_view_t *self);
  * @param self  View to update.
  * @param other View to copy from.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  */
 lh_void
@@ -899,9 +899,9 @@ lh_memory_view_assign(lh_memory_view_t *self, const lh_memory_view_t *other);
  * @param self  View to update.
  * @param other Valid view to copy from.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p other is not valid.
  */
 lh_void
@@ -913,7 +913,7 @@ lh_memory_view_assign_v(lh_memory_view_t *self, const lh_memory_view_t *other);
  * @param self  First view.
  * @param other Second view.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  */
 lh_void
@@ -925,9 +925,9 @@ lh_memory_view_swap(lh_memory_view_t *self, lh_memory_view_t *other);
  * @param self  Valid view to swap.
  * @param other Valid view to swap with.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_void
@@ -942,7 +942,7 @@ lh_memory_view_swap_v(lh_memory_view_t *self, lh_memory_view_t *other);
  * @param self  View to clear and receive @p other's contents.
  * @param other View whose contents are moved into @p self.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  */
 lh_void
@@ -958,7 +958,7 @@ lh_memory_view_swap_and_clear(lh_memory_view_t *self, lh_memory_view_t *other);
  * @param begin New @c first endpoint.
  * @param end   New @c second endpoint.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  *
  * @warning Unsafe — no range validation. Caller assumes full responsibility.
@@ -973,9 +973,9 @@ lh_memory_view_set(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end)
  * @param begin New @c first endpoint.
  * @param end   New exclusive @c second endpoint.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not a valid half-open range.
  */
 lh_void
@@ -1003,7 +1003,7 @@ lh_memory_view_make(const lh_ptr begin, const lh_ptr end);
  * @param end   New exclusive @c second endpoint.
  * @return Constructed valid view value.
  *
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not a valid half-open range.
  */
 lh_memory_view_t
@@ -1019,9 +1019,9 @@ lh_memory_view_make_v(const lh_ptr begin, const lh_ptr end);
  * @param size  Number of bytes in the half-open view.
  * @return Constructed valid view value.
  *
- * @throw ::lh_runtime_error_code_invalid_argument
+ * @fails ::lh_runtime_error_code_invalid_argument
  *        @p begin is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p size is zero or the computed view is not valid.
  */
 lh_memory_view_t
@@ -1046,11 +1046,11 @@ lh_memory_view_t lh_memory_view_make_empty(lh_void);
  * @param begin New @c first endpoint.
  * @param size  Number of bytes in the half-open view.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_argument
+ * @fails ::lh_runtime_error_code_invalid_argument
  *        @p begin is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p size is zero or the computed view is not valid.
  */
 lh_void
@@ -1059,9 +1059,9 @@ lh_memory_view_set_by_size(lh_memory_view_t *self, const lh_ptr begin, lh_usize_
 /**
  * @brief Initialize @p self with valid @p begin and @p end endpoints.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not a valid half-open range.
  */
 lh_void
@@ -1070,11 +1070,11 @@ lh_memory_view_init(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end
 /**
  * @brief Initialize @p self as a half-open range starting at @p begin.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_argument
+ * @fails ::lh_runtime_error_code_invalid_argument
  *        @p begin is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p size is zero or the computed view is not valid.
  */
 lh_void
@@ -1083,7 +1083,7 @@ lh_memory_view_init_by_size(lh_memory_view_t *self, const lh_ptr begin, lh_usize
 /**
  * @brief Initialize @p self with the empty view initializer.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_void
@@ -1092,9 +1092,9 @@ lh_memory_view_init_empty(lh_memory_view_t *self);
 /**
  * @brief Initialize @p self by copying endpoints from valid @p other.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p other is not valid.
  */
 lh_void
@@ -1111,9 +1111,9 @@ lh_memory_view_init_by_other(lh_memory_view_t *self, const lh_memory_view_t *oth
  * @param self View to copy as a closed slice.
  * @return Converted slice value.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is neither uninitialized nor valid half-open view.
  */
 lh_memory_view_slice_t
@@ -1132,9 +1132,9 @@ lh_memory_view_make_slice(const lh_memory_view_t *self);
  * @param n     Number of bytes to keep from the beginning.
  * @return View <tt>[begin, begin + n)</tt>, or an empty view when @p n is zero.
  *
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not a valid view.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source range size.
  */
 lh_memory_view_t
@@ -1151,9 +1151,9 @@ lh_memory_view_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t n);
  * @param n     Number of bytes to keep from the end.
  * @return View <tt>[end - n, end)</tt>, or an empty view when @p n is zero.
  *
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not a valid view.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source range size.
  */
 lh_memory_view_t
@@ -1168,11 +1168,11 @@ lh_memory_view_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t n);
  * @param size Number of bytes to keep from the beginning.
  * @return View taken from the beginning of @p self.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p size is greater than the source view size.
  */
 lh_memory_view_t
@@ -1187,11 +1187,11 @@ lh_memory_view_make_from_begin(const lh_memory_view_t *self, lh_usize_t size);
  * @param size Number of bytes to keep from the end.
  * @return View taken from the end of @p self.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p size is greater than the source view size.
  */
 lh_memory_view_t
@@ -1205,11 +1205,11 @@ lh_memory_view_make_from_end(const lh_memory_view_t *self, lh_usize_t size);
  * @param end   Inner range exclusive end pointer.
  * @return Constructed valid inner view.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        <tt>[begin, end)</tt> is not contained by @p self.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not a valid view.
  */
 lh_memory_view_t
@@ -1225,11 +1225,11 @@ lh_memory_view_make_between(const lh_memory_view_t *self, const lh_ptr begin, co
  * @param size   Number of bytes in the returned view.
  * @return Constructed sub-view, or an empty view when @p size is zero.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        <tt>[offset, offset + size)</tt> is outside @p self.
  */
 lh_memory_view_t
@@ -1244,11 +1244,11 @@ lh_memory_view_make_from_offset(const lh_memory_view_t *self, lh_uoffset_t offse
  * @param n    Number of bytes to remove from the beginning.
  * @return Source view without the first @p n bytes.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source view size.
  */
 lh_memory_view_t
@@ -1263,11 +1263,11 @@ lh_memory_view_drop_first(const lh_memory_view_t *self, lh_usize_t n);
  * @param n    Number of bytes to remove from the end.
  * @return Source view without the last @p n bytes.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source view size.
  */
 lh_memory_view_t
@@ -1283,11 +1283,11 @@ lh_memory_view_drop_last(const lh_memory_view_t *self, lh_usize_t n);
  * @param right Number of bytes to remove from the end.
  * @return Trimmed source view.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p left + @p right is greater than the source view size.
  */
 lh_memory_view_t

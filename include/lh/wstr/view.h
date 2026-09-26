@@ -51,11 +51,11 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param data Pointer to the first wide character.
  * @param size Number of ::lh_wchar_t elements in the view.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_argument
+ * @fails ::lh_runtime_error_code_invalid_argument
  *        @p data is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p size is zero or the computed view is not valid.
  */
 lh_void
@@ -70,9 +70,9 @@ lh_wstr_view_init_by_size(lh_wstr_view_t *self, lh_wstr_cptr data, lh_usize_t si
  * @param self View to initialize.
  * @param data NUL-terminated wide string to view.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_argument
+ * @fails ::lh_runtime_error_code_invalid_argument
  *        @p data is ::lh_null.
  */
 lh_void
@@ -83,7 +83,7 @@ lh_wstr_view_init(lh_wstr_view_t *self, lh_wstr_cptr data);
  *
  * @param self View to initialize.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_void
@@ -95,7 +95,7 @@ lh_wstr_view_init_empty(lh_wstr_view_t *self);
  * @param self  View to initialize.
  * @param other Source view to copy from.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  */
 lh_void
@@ -122,9 +122,9 @@ lh_wstr_view_make(lh_wstr_cptr data);
  * @param self Valid view to read.
  * @return Begin pointer cast to ::lh_wstr_cptr.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_wstr_cptr
@@ -138,9 +138,9 @@ lh_wstr_view_get_begin(const lh_wstr_view_t *self);
  * @param self Valid view to read.
  * @return End pointer cast to ::lh_wstr_cptr.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_wstr_cptr
@@ -151,7 +151,7 @@ lh_wstr_view_get_end(const lh_wstr_view_t *self);
  * @param self View to read.
  * @return @c first cast to ::lh_wstr_cptr.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_wstr_cptr
@@ -166,9 +166,9 @@ lh_wstr_view_get_data(const lh_wstr_view_t *self);
  * @param self Valid view to read.
  * @return Number of ::lh_wchar_t elements covered by the half-open interval.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_usize_t
@@ -183,7 +183,7 @@ lh_wstr_view_get_size(const lh_wstr_view_t *self);
  *
  * @param self View to inspect.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_bool_t

@@ -51,7 +51,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param self Bounds to read.
  * @return Stored begin pointer.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_ptr
@@ -62,7 +62,7 @@ lh_memory_bounds_get_begin(const lh_memory_bounds_t *self);
  * @param self Bounds to read.
  * @return Stored begin pointer.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_ptr
@@ -73,7 +73,7 @@ lh_memory_bounds_get_data(const lh_memory_bounds_t *self);
  * @param self Bounds to read.
  * @return Stored exclusive end pointer.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_ptr
@@ -90,7 +90,7 @@ lh_memory_bounds_get_end(const lh_memory_bounds_t *self);
  * @param self Bounds to inspect.
  * @return Bit pattern from ::lh_memory_view_slice_flags_t.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_memory_view_slice_flags_t
@@ -100,7 +100,7 @@ lh_memory_bounds_get_flags(const lh_memory_bounds_t *self);
  * @brief True if neither endpoint is initialized.
  * @param self Bounds to inspect.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_bool_t
@@ -110,7 +110,7 @@ lh_memory_bounds_is_uninitialized(const lh_memory_bounds_t *self);
  * @brief True if both endpoints are initialized.
  * @param self Bounds to inspect.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_bool_t
@@ -126,7 +126,7 @@ lh_memory_bounds_is_initialized(const lh_memory_bounds_t *self);
  * @param self Bounds to inspect.
  * @return Direction value from ::lh_memory_view_slice_direction_t.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_memory_view_slice_direction_t
@@ -136,7 +136,7 @@ lh_memory_bounds_get_direction(const lh_memory_bounds_t *self);
  * @brief True if @p self is initialized and ordered @c first &lt; @c second.
  * @param self Bounds to inspect.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_bool_t
@@ -146,7 +146,7 @@ lh_memory_bounds_is_forward(const lh_memory_bounds_t *self);
  * @brief True if @p self is initialized and not forward.
  * @param self Bounds to inspect.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_bool_t
@@ -156,7 +156,7 @@ lh_memory_bounds_is_backward(const lh_memory_bounds_t *self);
  * @brief True if @p self is initialized and forward ordered.
  * @param self Bounds to inspect.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_bool_t
@@ -169,9 +169,9 @@ lh_memory_bounds_is_valid(const lh_memory_bounds_t *self);
  * @param self Valid bounds to read.
  * @return Stored begin pointer.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_ptr
@@ -182,9 +182,9 @@ lh_memory_bounds_get_begin_v(const lh_memory_bounds_t *self);
  * @param self Valid bounds to read.
  * @return Stored exclusive end pointer.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_ptr
@@ -198,9 +198,9 @@ lh_memory_bounds_get_end_v(const lh_memory_bounds_t *self);
  * @param self Valid bounds to read.
  * @return Number of bytes covered by the half-open interval.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_usize_t
@@ -215,9 +215,9 @@ lh_memory_bounds_get_size(const lh_memory_bounds_t *self);
  *
  * @param self Bounds to inspect.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is invalid and not uninitialized.
  */
 lh_bool_t
@@ -232,9 +232,9 @@ lh_memory_bounds_is_empty(const lh_memory_bounds_t *self);
  * @param self   Valid bounds to inspect.
  * @param offset Byte offset from @c first.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -247,11 +247,11 @@ lh_memory_bounds_is_valid_offset(const lh_memory_bounds_t *self, lh_uoffset_t of
  * @param ptr  Pointer whose offset is requested.
  * @return Byte offset from @c first to @p ptr.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p ptr is outside @p self.
  */
 lh_uoffset_t
@@ -267,11 +267,11 @@ lh_memory_bounds_get_offset_from_begin(const lh_memory_bounds_t *self, const lh_
  * @param ptr  Pointer whose reverse offset is requested.
  * @return Byte offset from the last byte back to @p ptr.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p ptr is outside @p self.
  */
 lh_uoffset_t
@@ -283,9 +283,9 @@ lh_memory_bounds_get_offset_from_end(const lh_memory_bounds_t *self, const lh_pt
  * @param self Valid bounds to inspect.
  * @param ptr  Pointer to test.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -298,9 +298,9 @@ lh_memory_bounds_contains_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr);
  * @param begin Inner range begin pointer.
  * @param end   Inner range exclusive end pointer.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -309,9 +309,9 @@ lh_memory_bounds_contains_of(const lh_memory_bounds_t *self, const lh_ptr begin,
 /**
  * @brief Alias for ::lh_memory_bounds_contains_of.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -327,9 +327,9 @@ lh_memory_bounds_contains_range(const lh_memory_bounds_t *self, const lh_ptr beg
  * @param self  Valid outer bounds.
  * @param other Inner bounds to test.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -338,9 +338,9 @@ lh_memory_bounds_contains(const lh_memory_bounds_t *self, const lh_memory_bounds
 /**
  * @brief True if valid @p other lies completely inside @p self.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_bool_t
@@ -355,11 +355,11 @@ lh_memory_bounds_contains_v(const lh_memory_bounds_t *self, const lh_memory_boun
  * @param offset Byte offset from the begin endpoint.
  * @return Pointer to the requested byte.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
 lh_ptr
@@ -375,11 +375,11 @@ lh_memory_bounds_get_ptr_from_begin(const lh_memory_bounds_t *self, lh_uoffset_t
  * @param offset Byte offset from the last byte.
  * @return Pointer to the requested byte.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
 lh_ptr
@@ -390,9 +390,9 @@ lh_memory_bounds_get_ptr_from_end(const lh_memory_bounds_t *self, lh_uoffset_t o
  * @param self Valid bounds to index.
  * @return Pointer to @c first.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_ptr
@@ -403,11 +403,11 @@ lh_memory_bounds_get_first_ptr(const lh_memory_bounds_t *self);
  * @param self Valid non-empty bounds to index.
  * @return Pointer to @c second - 1.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p self is empty.
  */
 lh_ptr
@@ -424,11 +424,11 @@ lh_memory_bounds_get_last_ptr(const lh_memory_bounds_t *self);
  * @param offset Signed byte offset.
  * @return Pointer to the requested byte.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
 lh_ptr
@@ -441,11 +441,11 @@ lh_memory_bounds_get_ptr(const lh_memory_bounds_t *self, lh_soffset_t offset);
  * @param offset Byte offset from the begin endpoint.
  * @return Byte stored at the requested address.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
 lh_byte_t
@@ -458,11 +458,11 @@ lh_memory_bounds_get_value_from_begin(const lh_memory_bounds_t *self, lh_uoffset
  * @param offset Byte offset from the last byte.
  * @return Byte stored at the requested address.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
 lh_byte_t
@@ -475,11 +475,11 @@ lh_memory_bounds_get_value_from_end(const lh_memory_bounds_t *self, lh_uoffset_t
  * @param offset Signed byte offset.
  * @return Byte stored at the requested address.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
 lh_byte_t
@@ -491,9 +491,9 @@ lh_memory_bounds_get_value(const lh_memory_bounds_t *self, lh_soffset_t offset);
  * @param self Valid bounds to read.
  * @return Byte at @c first.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_byte_t
@@ -505,9 +505,9 @@ lh_memory_bounds_get_first_value(const lh_memory_bounds_t *self);
  * @param self Valid bounds to read.
  * @return Byte at @c second - 1.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_byte_t
@@ -520,11 +520,11 @@ lh_memory_bounds_get_last_value(const lh_memory_bounds_t *self);
  * @param offset Byte offset from the begin endpoint.
  * @param value  Byte value to write.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
 lh_void
@@ -542,11 +542,11 @@ lh_memory_bounds_set_value(const lh_memory_bounds_t *self, lh_uoffset_t offset, 
  * @param offset Signed byte offset.
  * @return Target byte offset from @c first.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p ptr is outside @p self or the target offset is out of range.
  */
 lh_uoffset_t
@@ -563,9 +563,9 @@ lh_memory_bounds_get_offset_from_ptr(const lh_memory_bounds_t *self, const lh_pt
  * @param offset Signed byte offset.
  * @return Target pointer, or ::lh_null when the seek crosses bounds.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 const lh_ptr
@@ -574,9 +574,9 @@ lh_memory_bounds_seek_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr, lh_s
 /**
  * @brief Return the byte pointer after @p ptr.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 const lh_ptr
@@ -585,9 +585,9 @@ lh_memory_bounds_next_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr);
 /**
  * @brief Return the byte pointer before @p ptr.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 const lh_ptr
@@ -596,11 +596,11 @@ lh_memory_bounds_prev_ptr(const lh_memory_bounds_t *self, const lh_ptr ptr);
 /**
  * @brief Seek to @p ptr and read the byte there.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        The seek result is outside @p self.
  */
 lh_byte_t
@@ -609,11 +609,11 @@ lh_memory_bounds_seek_value(const lh_memory_bounds_t *self, const lh_ptr ptr);
 /**
  * @brief Read the byte after @p ptr.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        There is no next byte inside @p self.
  */
 lh_byte_t
@@ -622,11 +622,11 @@ lh_memory_bounds_next_value(const lh_memory_bounds_t *self, const lh_ptr ptr);
 /**
  * @brief Read the byte before @p ptr.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        There is no previous byte inside @p self.
  */
 lh_byte_t
@@ -637,9 +637,9 @@ lh_memory_bounds_prev_value(const lh_memory_bounds_t *self, const lh_ptr ptr);
 /**
  * @brief True if half-open range <tt>[begin, end)</tt> overlaps @p self.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -648,9 +648,9 @@ lh_memory_bounds_overlaps_of(const lh_memory_bounds_t *self, const lh_ptr begin,
 /**
  * @brief Alias for ::lh_memory_bounds_overlaps_of.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -660,9 +660,9 @@ lh_memory_bounds_overlaps_range(const lh_memory_bounds_t *self, const lh_ptr beg
 /**
  * @brief True if @p other overlaps @p self.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -671,9 +671,9 @@ lh_memory_bounds_overlaps(const lh_memory_bounds_t *self, const lh_memory_bounds
 /**
  * @brief True if valid @p other overlaps @p self.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_bool_t
@@ -685,9 +685,9 @@ lh_memory_bounds_overlaps_v(const lh_memory_bounds_t *self, const lh_memory_boun
  * @param self      Valid bounds to inspect.
  * @param alignment Non-zero divisor for the bounds size.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -696,9 +696,9 @@ lh_memory_bounds_is_multiple_of(const lh_memory_bounds_t *self, lh_usize_t align
 /**
  * @brief True if @c first is aligned to @p align.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -707,9 +707,9 @@ lh_memory_bounds_is_begin_aligned(const lh_memory_bounds_t *self, lh_usize_t ali
 /**
  * @brief True if both endpoints are aligned to @p align.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -718,7 +718,7 @@ lh_memory_bounds_is_aligned(const lh_memory_bounds_t *self, lh_usize_t align);
 /**
  * @brief True if @p self stores exactly @p begin and @p end.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_bool_t
@@ -727,7 +727,7 @@ lh_memory_bounds_equals_of(const lh_memory_bounds_t *self, const lh_ptr begin, c
 /**
  * @brief Alias for ::lh_memory_bounds_equals_of.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_bool_t
@@ -736,7 +736,7 @@ lh_memory_bounds_equals_range(const lh_memory_bounds_t *self, const lh_ptr begin
 /**
  * @brief True if @p self and @p other store the same endpoints.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  */
 lh_bool_t
@@ -755,9 +755,9 @@ lh_memory_bounds_equals(const lh_memory_bounds_t *self, const lh_memory_bounds_t
  * @param end   Source range exclusive end pointer.
  * @return Pointer one past the last byte written.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_ptr
@@ -772,9 +772,9 @@ lh_memory_bounds_copy_range(lh_memory_bounds_t *self, const lh_ptr begin, const 
  * @param other Valid source bounds.
  * @return Pointer one past the last byte written.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_ptr
@@ -790,9 +790,9 @@ lh_memory_bounds_copy(lh_memory_bounds_t *self, const lh_memory_bounds_t *other)
  * @param end   Source range exclusive end pointer.
  * @return Pointer one past the last byte written.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_ptr
@@ -807,9 +807,9 @@ lh_memory_bounds_move_range(lh_memory_bounds_t *self, const lh_ptr begin, const 
  * @param other Valid source bounds.
  * @return Pointer one past the last byte written.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_ptr
@@ -822,9 +822,9 @@ lh_memory_bounds_move(lh_memory_bounds_t *self, const lh_memory_bounds_t *other)
  * @param value Byte value to write.
  * @return Pointer one past the last byte written.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_ptr
@@ -839,9 +839,9 @@ lh_memory_bounds_fill(lh_memory_bounds_t *self, lh_byte_t value);
  * @return Pointer one past the last byte written, or ::lh_null when nothing is
  *         written by the raw operation.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_ptr
@@ -857,9 +857,9 @@ lh_memory_bounds_fill_pattern_range(lh_memory_bounds_t *self, const lh_ptr begin
  * @return Pointer one past the last byte written, or ::lh_null when nothing is
  *         written by the raw operation.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_ptr
@@ -873,9 +873,9 @@ lh_memory_bounds_fill_pattern(lh_memory_bounds_t *self, const lh_memory_bounds_t
  * @param end   Needle range exclusive end pointer.
  * @return Pointer to the first match, or ::lh_null when no match exists.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_ptr
@@ -890,9 +890,9 @@ lh_memory_bounds_find_range(const lh_memory_bounds_t *self, const lh_ptr begin, 
  * @param other Valid bounds used as the needle.
  * @return Pointer to the first match, or ::lh_null when no match exists.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_ptr
@@ -906,9 +906,9 @@ lh_memory_bounds_find(const lh_memory_bounds_t *self, const lh_memory_bounds_t *
  * @param end   Needle range exclusive end pointer.
  * @return Pointer to the last match, or ::lh_null when no match exists.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_ptr
@@ -923,9 +923,9 @@ lh_memory_bounds_rfind_range(const lh_memory_bounds_t *self, const lh_ptr begin,
  * @param other Valid bounds used as the needle.
  * @return Pointer to the last match, or ::lh_null when no match exists.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_ptr
@@ -942,9 +942,9 @@ lh_memory_bounds_rfind(const lh_memory_bounds_t *self, const lh_memory_bounds_t 
  * @return Pointer to the first differing byte in @p self, or ::lh_null when the
  *         compared bytes are equal.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_ptr
@@ -961,9 +961,9 @@ lh_memory_bounds_compare_range(const lh_memory_bounds_t *self, const lh_ptr begi
  * @return Pointer to the first differing byte in @p self, or ::lh_null when the
  *         compared bytes are equal.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_ptr
@@ -980,9 +980,9 @@ lh_memory_bounds_compare(const lh_memory_bounds_t *self, const lh_memory_bounds_
  * @return Pointer to the differing byte in @p self, or ::lh_null when the
  *         compared suffixes are equal.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_ptr
@@ -999,9 +999,9 @@ lh_memory_bounds_rcompare_range(const lh_memory_bounds_t *self, const lh_ptr beg
  * @return Pointer to the differing byte in @p self, or ::lh_null when the
  *         compared suffixes are equal.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_ptr
@@ -1014,7 +1014,7 @@ lh_memory_bounds_rcompare(const lh_memory_bounds_t *self, const lh_memory_bounds
  *
  * @param self Bounds to clear.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_void
@@ -1029,7 +1029,7 @@ lh_memory_bounds_clear(lh_memory_bounds_t *self);
  * @param self  Bounds to update.
  * @param other Bounds to copy from.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  */
 lh_void
@@ -1041,9 +1041,9 @@ lh_memory_bounds_assign(lh_memory_bounds_t *self, const lh_memory_bounds_t *othe
  * @param self  Bounds to update.
  * @param other Valid bounds to copy from.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p other is not valid.
  */
 lh_void
@@ -1059,7 +1059,7 @@ lh_memory_bounds_assign_v(lh_memory_bounds_t *self, const lh_memory_bounds_t *ot
  * @param begin New @c first endpoint.
  * @param end   New @c second endpoint.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  *
  * @warning Unsafe — no range validation. Caller assumes full responsibility.
@@ -1074,9 +1074,9 @@ lh_memory_bounds_set(lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end);
  * @param begin New @c first endpoint.
  * @param end   New exclusive @c second endpoint.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not a valid half-open range.
  */
 lh_void
@@ -1104,7 +1104,7 @@ lh_memory_bounds_make(lh_ptr begin, lh_ptr end);
  * @param end   New exclusive @c second endpoint.
  * @return Constructed valid bounds value.
  *
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not a valid half-open range.
  */
 lh_memory_bounds_t
@@ -1120,9 +1120,9 @@ lh_memory_bounds_make_v(lh_ptr begin, lh_ptr end);
  * @param size  Number of bytes in the half-open bounds.
  * @return Constructed valid bounds value.
  *
- * @throw ::lh_runtime_error_code_invalid_argument
+ * @fails ::lh_runtime_error_code_invalid_argument
  *        @p begin is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p size is zero or the computed bounds are not valid.
  */
 lh_memory_bounds_t
@@ -1147,11 +1147,11 @@ lh_memory_bounds_t lh_memory_bounds_make_empty(lh_void);
  * @param begin New @c first endpoint.
  * @param size  Number of bytes in the half-open bounds.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_argument
+ * @fails ::lh_runtime_error_code_invalid_argument
  *        @p begin is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p size is zero or the computed bounds are not valid.
  */
 lh_void
@@ -1160,9 +1160,9 @@ lh_memory_bounds_set_by_size(lh_memory_bounds_t *self, lh_ptr begin, lh_usize_t 
 /**
  * @brief Initialize @p self with valid @p begin and @p end endpoints.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not a valid half-open range.
  */
 lh_void
@@ -1171,11 +1171,11 @@ lh_memory_bounds_init(lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end);
 /**
  * @brief Initialize @p self as a half-open range starting at @p begin.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_argument
+ * @fails ::lh_runtime_error_code_invalid_argument
  *        @p begin is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p size is zero or the computed bounds are not valid.
  */
 lh_void
@@ -1184,7 +1184,7 @@ lh_memory_bounds_init_by_size(lh_memory_bounds_t *self, lh_ptr begin, lh_usize_t
 /**
  * @brief Initialize @p self with the empty bounds initializer.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_void
@@ -1193,9 +1193,9 @@ lh_memory_bounds_init_empty(lh_memory_bounds_t *self);
 /**
  * @brief Initialize @p self by copying endpoints from valid @p other.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p other is not valid.
  */
 lh_void
@@ -1210,7 +1210,7 @@ lh_memory_bounds_init_by_other(lh_memory_bounds_t *self, const lh_memory_bounds_
  * @param self  Bounds to swap.
  * @param other Bounds to swap with.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  *
  * @warning Unsafe — no range validation. Caller assumes full responsibility.
@@ -1224,9 +1224,9 @@ lh_memory_bounds_swap(lh_memory_bounds_t *self, lh_memory_bounds_t *other);
  * @param self  Valid bounds to swap.
  * @param other Valid bounds to swap with.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_void
@@ -1242,9 +1242,9 @@ lh_memory_bounds_swap_v(lh_memory_bounds_t *self, lh_memory_bounds_t *other);
  * @param self  Bounds to clear and replace.
  * @param other Valid bounds to swap with.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p other is not valid.
  */
 lh_void
@@ -1261,9 +1261,9 @@ lh_memory_bounds_swap_and_clear(lh_memory_bounds_t *self, lh_memory_bounds_t *ot
  * @param self Bounds to copy as a closed slice.
  * @return Converted slice value.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is neither uninitialized nor valid half-open bounds.
  */
 lh_memory_bounds_slice_t
@@ -1283,9 +1283,9 @@ lh_memory_bounds_make_slice(const lh_memory_bounds_t *self);
  * @return Bounds <tt>[begin, begin + n)</tt>, or empty bounds when @p n is
  *         zero.
  *
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not valid bounds.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source range size.
  */
 lh_memory_bounds_t
@@ -1302,9 +1302,9 @@ lh_memory_bounds_take_first(lh_ptr begin, lh_ptr end, lh_usize_t n);
  * @param n     Number of bytes to keep from the end.
  * @return Bounds <tt>[end - n, end)</tt>, or empty bounds when @p n is zero.
  *
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not valid bounds.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source range size.
  */
 lh_memory_bounds_t
@@ -1319,11 +1319,11 @@ lh_memory_bounds_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n);
  * @param size Number of bytes to keep from the beginning.
  * @return Bounds taken from the beginning of @p self.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p size is greater than the source bounds size.
  */
 lh_memory_bounds_t
@@ -1338,11 +1338,11 @@ lh_memory_bounds_make_from_begin(const lh_memory_bounds_t *self, lh_usize_t size
  * @param size Number of bytes to keep from the end.
  * @return Bounds taken from the end of @p self.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p size is greater than the source bounds size.
  */
 lh_memory_bounds_t
@@ -1356,11 +1356,11 @@ lh_memory_bounds_make_from_end(const lh_memory_bounds_t *self, lh_usize_t size);
  * @param end   Inner range exclusive end pointer.
  * @return Constructed valid inner bounds.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        <tt>[begin, end)</tt> is not contained by @p self.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not valid bounds.
  */
 lh_memory_bounds_t
@@ -1376,11 +1376,11 @@ lh_memory_bounds_make_between(const lh_memory_bounds_t *self, lh_ptr begin, lh_p
  * @param size   Number of bytes in the returned bounds.
  * @return Constructed sub-bounds, or empty bounds when @p size is zero.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        <tt>[offset, offset + size)</tt> is outside @p self.
  */
 lh_memory_bounds_t
@@ -1396,11 +1396,11 @@ lh_memory_bounds_make_from_offset(const lh_memory_bounds_t *self, lh_uoffset_t o
  * @param n    Number of bytes to remove from the beginning.
  * @return Source bounds without the first @p n bytes.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source bounds size.
  */
 lh_memory_bounds_t
@@ -1415,11 +1415,11 @@ lh_memory_bounds_drop_first(const lh_memory_bounds_t *self, lh_usize_t n);
  * @param n    Number of bytes to remove from the end.
  * @return Source bounds without the last @p n bytes.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source bounds size.
  */
 lh_memory_bounds_t
@@ -1435,11 +1435,11 @@ lh_memory_bounds_drop_last(const lh_memory_bounds_t *self, lh_usize_t n);
  * @param right Number of bytes to remove from the end.
  * @return Trimmed source bounds.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p left + @p right is greater than the source bounds size.
  */
 lh_memory_bounds_t

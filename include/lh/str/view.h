@@ -58,11 +58,11 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param data Pointer to the first character.
  * @param size Number of ::lh_char_t elements in the view.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_argument
+ * @fails ::lh_runtime_error_code_invalid_argument
  *        @p data is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p size is zero or the computed view is not valid.
  */
 lh_void
@@ -76,9 +76,9 @@ lh_str_init_by_size(lh_str_view_t *self, lh_str_cptr data, lh_usize_t size);
  * @param self View to initialize.
  * @param data NUL-terminated string to view.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_argument
+ * @fails ::lh_runtime_error_code_invalid_argument
  *        @p data is ::lh_null.
  */
 lh_void
@@ -89,7 +89,7 @@ lh_str_view_init(lh_str_view_t *self, lh_str_cptr data);
  *
  * @param self View to initialize.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_void
@@ -101,7 +101,7 @@ lh_str_view_init_empty(lh_str_view_t *self);
  * @param self  View to initialize.
  * @param other Source view to copy from.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  */
 lh_void
@@ -128,9 +128,9 @@ lh_str_view_make(lh_str_cptr data);
  * @param self Valid view to read.
  * @return Begin pointer cast to ::lh_str_cptr.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_str_cptr
@@ -144,9 +144,9 @@ lh_str_view_get_begin(const lh_str_view_t *self);
  * @param self Valid view to read.
  * @return End pointer cast to ::lh_str_cptr.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_str_cptr
@@ -157,7 +157,7 @@ lh_str_view_get_end(const lh_str_view_t *self);
  * @param self View to read.
  * @return @c first cast to ::lh_str_cptr.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_str_cptr
@@ -171,9 +171,9 @@ lh_str_view_get_data(const lh_str_view_t *self);
  * @param self Valid view to read.
  * @return Number of ::lh_char_t elements covered by the half-open interval.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_usize_t
@@ -186,7 +186,7 @@ lh_str_view_get_size(const lh_str_view_t *self);
  *
  * @param self View to inspect.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_bool_t
@@ -201,9 +201,9 @@ lh_str_view_is_empty(const lh_str_view_t *self);
  * @param ch   Character to find.
  * @return Zero-based offset of the first match, or ::LH_STR_VIEW_INVALID if absent.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_usize_t
@@ -216,9 +216,9 @@ lh_str_view_find_char(const lh_str_view_t *self, lh_char_t ch);
  * @param ch   Character to find.
  * @return Zero-based offset of the last match, or ::LH_STR_VIEW_INVALID if absent.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_usize_t
@@ -230,9 +230,9 @@ lh_str_view_rfind_char(const lh_str_view_t *self, lh_char_t ch);
  * @param self Valid view to inspect.
  * @param ch   Character to look for.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -246,9 +246,9 @@ lh_str_view_contains_char(const lh_str_view_t *self, lh_char_t ch);
  * @param ignore_case ::lh_bool_false for exact bytes, ::lh_bool_true for case-folded match.
  * @return Zero-based offset of the first match, or ::LH_STR_VIEW_INVALID if absent.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_usize_t
@@ -262,9 +262,9 @@ lh_str_view_find(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_
  * @param ignore_case ::lh_bool_false for exact bytes, ::lh_bool_true for case-folded match.
  * @return Zero-based offset of the last match, or ::LH_STR_VIEW_INVALID if absent.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_usize_t
@@ -277,9 +277,9 @@ lh_str_view_rfind(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool
  * @param other       Needle view.
  * @param ignore_case ::lh_bool_false for exact bytes, ::lh_bool_true for case-folded match.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_bool_t
@@ -292,9 +292,9 @@ lh_str_view_contains(const lh_str_view_t *self, const lh_str_view_t *other, lh_b
  * @param chars Valid view used as the character set.
  * @return Zero-based offset of the first match, or ::LH_STR_VIEW_INVALID if absent.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p chars is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p chars is not valid.
  */
 lh_usize_t
@@ -307,9 +307,9 @@ lh_str_view_find_of(const lh_str_view_t *self, const lh_str_view_t *chars);
  * @param chars Valid view used as the character set.
  * @return Zero-based offset of the last match, or ::LH_STR_VIEW_INVALID if absent.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p chars is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p chars is not valid.
  */
 lh_usize_t
@@ -323,9 +323,9 @@ lh_str_view_rfind_of(const lh_str_view_t *self, const lh_str_view_t *chars);
  * @return Zero-based offset of the first non-matching character,
  *         or ::LH_STR_VIEW_INVALID if absent.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p chars is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p chars is not valid.
  */
 lh_usize_t
@@ -338,9 +338,9 @@ lh_str_view_find_not_of(const lh_str_view_t *self, const lh_str_view_t *chars);
  * @param chars Valid view used as the character set.
  * @return Zero-based offset of the last non-matching character, or ::LH_STR_VIEW_INVALID if absent.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p chars is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p chars is not valid.
  */
 lh_usize_t
@@ -357,9 +357,9 @@ lh_str_view_rfind_not_of(const lh_str_view_t *self, const lh_str_view_t *chars);
  * @return Pointer to the first differing character in @p self,
  *         or ::lh_null if the compared prefixes match.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_str_cptr
@@ -374,9 +374,9 @@ lh_str_view_compare(const lh_str_view_t *self, const lh_str_view_t *other, lh_bo
  * @return Pointer into @p self at the first suffix mismatch,
  *         or ::lh_null if the suffix window matches.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_str_cptr
@@ -391,9 +391,9 @@ lh_str_view_rcompare(const lh_str_view_t *self, const lh_str_view_t *other, lh_b
  * @param other       Second view.
  * @param ignore_case ::lh_bool_false for exact bytes, ::lh_bool_true for case-folded match.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_bool_t
@@ -409,9 +409,9 @@ lh_str_view_equals(const lh_str_view_t *self, const lh_str_view_t *other, lh_boo
  * @param other       Expected prefix.
  * @param ignore_case ::lh_bool_false for exact bytes, ::lh_bool_true for case-folded match.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_bool_t
@@ -428,9 +428,9 @@ lh_str_view_starts_with(const lh_str_view_t *self, const lh_str_view_t *other,
  * @param other       Expected suffix.
  * @param ignore_case ::lh_bool_false for exact bytes, ::lh_bool_true for case-folded match.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
 lh_bool_t
@@ -447,9 +447,9 @@ lh_str_view_ends_with(const lh_str_view_t *self, const lh_str_view_t *other, lh_
  * @param self Valid view to scan.
  * @return Zero-based offset of the first NUL, or ::LH_USIZE_T_MAX if absent.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_usize_t
@@ -460,9 +460,9 @@ lh_str_view_find_null_terminator(const lh_str_view_t *self);
  *
  * @param self Valid view to inspect.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_bool_t
@@ -476,9 +476,9 @@ lh_str_view_is_null_terminated(const lh_str_view_t *self);
  * @param self Valid view to read.
  * @return Character at @c first.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_char_t
@@ -490,9 +490,9 @@ lh_str_view_get_first_char(const lh_str_view_t *self);
  * @param self Valid view to read.
  * @return Character at @c second - 1.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
 lh_char_t
@@ -505,11 +505,11 @@ lh_str_view_get_last_char(const lh_str_view_t *self);
  * @param offset Character offset from the begin endpoint.
  * @return Character at the requested position.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
 lh_char_t
@@ -522,11 +522,11 @@ lh_str_view_get_char_from_begin(const lh_str_view_t *self, lh_uoffset_t offset);
  * @param offset Character offset from the last character.
  * @return Character at the requested position.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
 lh_char_t
@@ -539,11 +539,11 @@ lh_str_view_get_char_from_end(const lh_str_view_t *self, lh_uoffset_t offset);
  * @param offset Signed character offset.
  * @return Character at the requested position.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p offset is outside @p self.
  */
 lh_char_t
@@ -556,7 +556,7 @@ lh_str_view_get_char_by_offset(const lh_str_view_t *self, lh_soffset_t offset);
  *
  * @param self View to clear.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_void
@@ -568,9 +568,9 @@ lh_str_view_clear(lh_str_view_t *self);
  * @param self  View to update.
  * @param other Source view to copy from.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p other is not valid.
  */
 lh_void
@@ -582,7 +582,7 @@ lh_str_view_assign(lh_str_view_t *self, const lh_str_view_t *other);
  * @param self  First view.
  * @param other Second view.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  */
 lh_void
@@ -597,7 +597,7 @@ lh_str_view_swap(lh_str_view_t *self, lh_str_view_t *other);
  * @param self  View to clear and receive @p other's contents.
  * @param other View whose contents are moved into @p self.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
  */
 lh_void

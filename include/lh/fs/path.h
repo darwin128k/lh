@@ -101,7 +101,7 @@ lh_fs_path_get_segment_count(const lh_fs_path_t *self);
  *
  * Valid until @p self is next modified or deinitialized.
  *
- * @throw ::lh_runtime_error_code_out_of_range
+ * @fails ::lh_runtime_error_code_out_of_range
  *        @p index is not below ::lh_fs_path_get_segment_count.
  */
 lh_str_view_t

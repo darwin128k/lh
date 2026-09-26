@@ -1,7 +1,7 @@
 /**
  * @file assert.h
- * @brief Runtime checks: a failed one ends the program through
- *        ::lh_runtime_terminate.
+ * @brief Runtime checks: a failed one reports its site
+ *        (::lh_runtime_check_fail) and ends the program.
  *
  * Two families, split by what a failure means:
  *   - `lh_runtime_check_*` — the environment failed (allocation, a missing
@@ -12,8 +12,9 @@
  *     `NDEBUG`, i.e. not in Release, the same rule as C's `assert`.
  *
  * An enabled assertion fails in one of two ways:
- *   - by default it calls ::lh_runtime_terminate (the host's handler,
- *     `abort()` unless replaced);
+ *   - by default it reports its site to the host's handler
+ *     (::lh_runtime_check_fail, `lh/runtime/check.h`) and then calls
+ *     ::lh_runtime_terminate;
  *   - with ::LH_RUNTIME_ASSERT_TRAP it stops the process on the spot
  *     (::lh_compiler_trap) — no error object, no call, so the checked
  *     functions stay cheap enough to keep in a Release build.
@@ -33,7 +34,8 @@
 
 #include <lh/compiler/trap.h>
 #include <lh/runtime/error.h>
-#include <lh/runtime/terminate.h>
+#include <lh/null.h>
+#include <lh/runtime/check.h>
 
 /**
  * @def LH_RUNTIME_ASSERT_ENABLED
@@ -68,6 +70,34 @@
 #    define LH_RUNTIME_ASSERT_TRAP 0
 #endif
 
+/* ── failure reporting ─────────────────────────────────────────────────── */
+
+/**
+ * @def lh_runtime_check_fail_here(expr)
+ * @brief Hand this check's static ::lh_runtime_check_site_t (filled per
+ *        ::LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT) to ::lh_runtime_check_fail.
+ */
+#if (LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT == LH_RUNTIME_CHECK_REPORT_FULL)
+#    define lh_runtime_check_fail_here(expr)                                                       \
+        do                                                                                         \
+        {                                                                                          \
+            static const lh_runtime_check_site_t _lh_check_site = {__FILE__, __func__, #expr,      \
+                                                                   __LINE__};                      \
+            lh_runtime_check_fail(&_lh_check_site);                                                \
+        } while (0)
+#elif (LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT == LH_RUNTIME_CHECK_REPORT_LOCATION)
+#    define lh_runtime_check_fail_here(expr)                                                       \
+        do                                                                                         \
+        {                                                                                          \
+            static const lh_runtime_check_site_t _lh_check_site = {                                \
+                __FILE__, (lh_str_cptr)lh_null, (lh_str_cptr)lh_null, __LINE__};                   \
+            lh_runtime_check_fail(&_lh_check_site);                                                \
+        } while (0)
+#else
+#    define lh_runtime_check_fail_here(expr)                                                       \
+        lh_runtime_check_fail((const lh_runtime_check_site_t *)lh_null)
+#endif
+
 /* ── always-on checks ──────────────────────────────────────────────────── */
 
 /**
@@ -86,7 +116,7 @@
         (void)sizeof(initializer);                                                                 \
         if (expr)                                                                                  \
         {                                                                                          \
-            lh_runtime_terminate();                                                                \
+            lh_runtime_check_fail_here(expr);                                                      \
         }                                                                                          \
     } while (0)
 
@@ -185,7 +215,8 @@
  * @see lh_runtime_error_code_null_pointer
  */
 #define lh_runtime_assert_ref(expr)                                                                \
-    lh_runtime_assert(expr, lh_runtime_error_make(lh_runtime_error_code_null_pointer,              \
-                                                  lh_str_view_lit("invalid reference to null pointer")))
+    lh_runtime_assert(expr,                                                                        \
+                      lh_runtime_error_make(lh_runtime_error_code_null_pointer,                    \
+                                            lh_str_view_lit("invalid reference to null pointer")))
 
 #endif /* LH_RUNTIME_ASSERT_H */

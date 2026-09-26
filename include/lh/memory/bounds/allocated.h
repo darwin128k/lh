@@ -37,7 +37,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param self Allocated bounds to inspect.
  * @return Size in bytes of the owned block, or @c 0.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
 lh_usize_t
@@ -48,9 +48,9 @@ lh_memory_bounds_allocated_get_size(const lh_memory_bounds_allocated_t *self);
  *
  * @param self Allocated bounds to clear.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_deallocator_function_not_initialized
+ * @fails ::lh_runtime_error_code_deallocator_function_not_initialized
  *        The runtime deallocation callback is not initialized.
  */
 lh_void
@@ -67,13 +67,13 @@ lh_memory_bounds_allocated_clear(lh_memory_bounds_allocated_t *self);
  * @param self Allocated bounds to resize.
  * @param size Requested block size in bytes.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @throw ::lh_runtime_error_code_memory_not_allocated
+ * @fails ::lh_runtime_error_code_memory_not_allocated
  *        Growing or newly allocating the block failed.
- * @throw ::lh_runtime_error_code_allocator_function_not_initialized
+ * @fails ::lh_runtime_error_code_allocator_function_not_initialized
  *        The runtime allocation callback is not initialized.
- * @throw ::lh_runtime_error_code_deallocator_function_not_initialized
+ * @fails ::lh_runtime_error_code_deallocator_function_not_initialized
  *        The runtime deallocation callback is not initialized.
  */
 lh_void
@@ -89,11 +89,11 @@ lh_memory_bounds_allocated_resize(lh_memory_bounds_allocated_t *self, lh_usize_t
  * @param self  Allocated bounds to clear and replace.
  * @param other Valid allocated bounds to take ownership from.
  *
- * @throw ::lh_runtime_error_code_null_pointer
+ * @fails ::lh_runtime_error_code_null_pointer
  *        @p self or @p other is ::lh_null.
- * @throw ::lh_runtime_error_code_invalid_range
+ * @fails ::lh_runtime_error_code_invalid_range
  *        @p other is not valid.
- * @throw ::lh_runtime_error_code_deallocator_function_not_initialized
+ * @fails ::lh_runtime_error_code_deallocator_function_not_initialized
  *        The runtime deallocation callback is not initialized.
  */
 lh_void

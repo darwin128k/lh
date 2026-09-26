@@ -73,6 +73,19 @@ option(LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB
         ON)
 
 # -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT
+#
+# What a failed runtime check hands to its handler (lh/runtime/check.h):
+#
+#   NONE     — nothing (lh_null): no strings stored, smallest flash.
+#   LOCATION — file and line.
+#   FULL     — file, line, enclosing function and the failing condition text.
+# -----------------------------------------------------------------------------
+set(LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT "FULL" CACHE STRING
+        "Failed runtime check report: NONE, LOCATION or FULL.")
+set_property(CACHE LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT PROPERTY STRINGS NONE LOCATION FULL)
+
+# -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB
 #
 # Initial default for runtime allocator callbacks in lh/runtime/allocator.c.

@@ -54,6 +54,13 @@ CALL_GRAPH             = @DOXYGEN_HAVE_DOT@
 CALLER_GRAPH           = @DOXYGEN_HAVE_DOT@
 
 #---------------------------------------------------------------------------
+# Custom commands
+#---------------------------------------------------------------------------
+# @fails <code> <condition>: a runtime check that ends the program (via the
+# host's lh_runtime_check handler, then lh_runtime_terminate) when violated.
+ALIASES                = "fails=@par Fails (runtime check):^^"
+
+#---------------------------------------------------------------------------
 # Warnings
 #---------------------------------------------------------------------------
 QUIET                  = NO
