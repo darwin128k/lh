@@ -123,6 +123,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/wstr/list.c
 
         ${LH_LIB_SRC_PATH}/fs/path.c
+        ${LH_LIB_SRC_PATH}/fs/path/style.c
         ${LH_LIB_SRC_PATH}/fs/stat.c
 
         ${LH_LIB_SRC_PATH}/logger.c

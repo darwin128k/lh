@@ -48,12 +48,32 @@ lh_str_ptr_format_bytes_hex(const lh_ptr data, lh_usize_t data_size, lh_bool_t u
                             lh_str_ptr str, lh_usize_t str_size);
 
 /**
+ * @brief Characters ::lh_str_ptr_format_bytes_hex_dump writes for
+ *        @p data_size bytes — the capacity its destination needs.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_usize_t size = lh_str_ptr_format_bytes_hex_dump_size(data_size);
+ * lh_str_ptr str = alloc(size);
+ * lh_str_ptr_format_bytes_hex_dump(data, data_size, lh_bool_false, str, size);
+ * @endcode
+ *
+ * @param data_size Number of bytes to dump.
+ *
+ * @return Size of the dump in characters (no terminator), or 0 if
+ *         @p data_size is 0 or the dump would not fit in ::lh_usize_t.
+ */
+lh_usize_t
+lh_str_ptr_format_bytes_hex_dump_size(lh_usize_t data_size);
+
+/**
  * @brief Format @p data as a classic hex dump — offset, then grouped bytes.
  *
  * Each line is `hhhhhhhh: xx xx ... xx\\n` with a
  * ::LH_STR_FORMAT_BYTES_HEX_DUMP_OFFSET_DIGITS-digit offset and up to
  * ::LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH bytes. All-or-nothing: nothing is
- * written if @p str_size cannot hold the full dump.
+ * written if @p str_size cannot hold the full dump
+ * (::lh_str_ptr_format_bytes_hex_dump_size).
  *
  * @param data      Byte span to format. Ignored when @p data_size is 0.
  * @param data_size Number of bytes in @p data.

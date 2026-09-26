@@ -2111,6 +2111,25 @@ lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n)
     return end;
 }
 
+lh_ptr
+lh_memory_std_xor(lh_ptr dst, const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
+{
+    lh_uchar_t *d = lh_ptr_cast(lh_uchar_t, dst);
+    const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs);
+    const lh_uchar_t *r = lh_ptr_ccast(lh_uchar_t, rhs);
+    lh_usize_t i;
+
+    lh_assert_runtime_ref(dst);
+    lh_assert_runtime_ref(lhs);
+    lh_assert_runtime_ref(rhs);
+
+    for (i = 0U; lh_math_lt(i, n); i = lh_math_add_one(i))
+    {
+        d[i] = lh_cast_static(lh_uchar_t, lh_math_bit_xor(l[i], r[i]));
+    }
+    return lh_ptr_add_unsafe(lh_void, dst, n);
+}
+
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
 static const lh_ptr

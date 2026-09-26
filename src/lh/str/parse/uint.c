@@ -4,6 +4,7 @@
 #include <lh/char/digit.h>
 #include <lh/str/split/next.h>
 #include <lh/util/addr.h>
+#include <lh/util/math.h>
 
 lh_bool_t
 lh_str_ptr_parse_uint_digits(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out)
@@ -53,6 +54,23 @@ lh_str_ptr_parse_uint(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_ui
     }
 
     return lh_str_ptr_parse_uint_digits(str, str_size, max, out);
+}
+
+lh_usize_t
+lh_str_ptr_parse_uint_prefix(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out)
+{
+    lh_usize_t n = 0U;
+
+    lh_assert_runtime_ref(str);
+    while (lh_math_lt(n, str_size) && lh_char_is_digit(str[n]))
+    {
+        n = lh_math_add_one(n);
+    }
+    if (lh_math_is_zero(n) || !lh_str_ptr_parse_uint(str, n, max, out))
+    {
+        return 0U;
+    }
+    return n;
 }
 
 lh_bool_t

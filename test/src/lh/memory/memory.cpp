@@ -349,4 +349,17 @@ TEST(memory_rfind_death, null_rhs)
 
 #endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
+TEST(memory_xor, uses_the_smallest_of_three_sizes)
+{
+    lh_uchar_t dst[8] = {};
+    const lh_uchar_t lhs[] = {1, 2, 3};
+    const lh_uchar_t rhs[] = {1, 1, 1, 1, 1};
+    lh_ptr end = lh_memory_xor(dst, 8, lhs, 3, rhs, 5);
+    EXPECT_EQ(end, static_cast<lh_ptr>(dst + 3));
+    EXPECT_EQ(dst[0], 0);
+    EXPECT_EQ(dst[1], 3);
+    EXPECT_EQ(dst[2], 2);
+    EXPECT_EQ(dst[3], 0);
+}
+
 } // namespace

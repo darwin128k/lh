@@ -45,6 +45,14 @@ lh_memory_set(lh_ptr dst, lh_usize_t size, lh_uchar_t val)
     return lh_memory_std_set(dst, val, size);
 }
 
+lh_ptr
+lh_memory_xor(lh_ptr dst, lh_usize_t dst_size, const lh_ptr lhs, lh_usize_t lhs_size,
+              const lh_ptr rhs, lh_usize_t rhs_size)
+{
+    const lh_usize_t n = lh_math_min(dst_size, lh_math_min(lhs_size, rhs_size));
+    return lh_memory_std_xor(dst, lhs, rhs, n);
+}
+
 const lh_ptr
 lh_memory_compare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size)
 {

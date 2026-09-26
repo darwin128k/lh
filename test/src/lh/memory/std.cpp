@@ -891,4 +891,42 @@ TEST(memory_std_rcompare_death, both_null_zero_bytes)
 
 #endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
+TEST(memory_std_xor, combines_into_third_buffer_and_returns_end)
+{
+    const lh_uchar_t lhs[] = {0x0F, 0xF0, 0xAA, 0x00};
+    const lh_uchar_t rhs[] = {0xFF, 0xFF, 0x55, 0x00};
+    lh_uchar_t dst[4] = {};
+    lh_ptr end = lh_memory_std_xor(dst, lhs, rhs, 4);
+    EXPECT_EQ(end, static_cast<lh_ptr>(dst + 4));
+    EXPECT_EQ(dst[0], 0xF0);
+    EXPECT_EQ(dst[1], 0x0F);
+    EXPECT_EQ(dst[2], 0xFF);
+    EXPECT_EQ(dst[3], 0x00);
+}
+
+TEST(memory_std_xor, in_place_twice_restores)
+{
+    lh_uchar_t data[] = {1, 2, 3, 4, 5};
+    const lh_uchar_t key[] = {0x5A, 0xA5, 0x3C, 0xC3, 0xFF};
+    lh_memory_std_xor(data, data, key, 5);
+    EXPECT_EQ(data[0], 1 ^ 0x5A);
+    lh_memory_std_xor(data, key, data, 5);
+    EXPECT_EQ(data[0], 1);
+    EXPECT_EQ(data[4], 5);
+}
+
+TEST(memory_std_xor, zero_bytes_writes_nothing)
+{
+    lh_uchar_t dst[1] = {7};
+    const lh_uchar_t src[1] = {1};
+    EXPECT_EQ(lh_memory_std_xor(dst, src, src, 0), static_cast<lh_ptr>(dst));
+    EXPECT_EQ(dst[0], 7);
+}
+
+TEST(memory_std_xor_death, null_operand)
+{
+    lh_uchar_t dst[1] = {};
+    LH_EXPECT_DEATH(lh_memory_std_xor(dst, lh_null, dst, 1));
+}
+
 } // namespace

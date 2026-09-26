@@ -102,10 +102,7 @@ lh_wstr_list_get(const lh_wstr_list_t *self, lh_uindex_t index)
         return lh_wstr_view_make(lh_null); /* views reject size 0 */
     }
     chars = lh_wstr_as_view(lh_wstr_list_get_chars_as_const(self));
-    /* Memory views count bytes; spans count wide characters. */
-    return lh_memory_view_make_from_offset(lh_addr_of(chars),
-                                           lh_math_mul(span.offset, lh_cast_static(lh_usize_t, LH_WCHAR_T_SIZE)),
-                                           lh_math_mul(span.size, lh_cast_static(lh_usize_t, LH_WCHAR_T_SIZE)));
+    return lh_wstr_view_make_from_offset(lh_addr_of(chars), span.offset, span.size);
 }
 
 lh_wstr_cptr

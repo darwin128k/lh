@@ -70,4 +70,37 @@ TEST(str_ptr_parse_uint, accepts_full_uint_range_with_max_as_type_limit)
     EXPECT_EQ(value, 4294967295U);
 }
 
+TEST(str_ptr_parse_uint_prefix, stops_at_first_non_digit)
+{
+    lh_uint_t value = 0;
+    EXPECT_EQ(lh_str_ptr_parse_uint_prefix("8080/tcp", 8, 65535U, &value), 4u);
+    EXPECT_EQ(value, 8080u);
+}
+
+TEST(str_ptr_parse_uint_prefix, whole_buffer_and_size_limit)
+{
+    lh_uint_t value = 0;
+    EXPECT_EQ(lh_str_ptr_parse_uint_prefix("123", 3, LH_UINT_T_MAX, &value), 3u);
+    EXPECT_EQ(value, 123u);
+    EXPECT_EQ(lh_str_ptr_parse_uint_prefix("12345", 2, LH_UINT_T_MAX, &value), 2u);
+    EXPECT_EQ(value, 12u);
+}
+
+TEST(str_ptr_parse_uint_prefix, failures_return_zero_and_keep_out)
+{
+    lh_uint_t value = 77;
+    EXPECT_EQ(lh_str_ptr_parse_uint_prefix("x1", 2, LH_UINT_T_MAX, &value), 0u);
+    EXPECT_EQ(lh_str_ptr_parse_uint_prefix("", 0, LH_UINT_T_MAX, &value), 0u);
+    EXPECT_EQ(lh_str_ptr_parse_uint_prefix("007", 3, LH_UINT_T_MAX, &value), 0u);
+    EXPECT_EQ(lh_str_ptr_parse_uint_prefix("300;", 4, 255U, &value), 0u);
+    EXPECT_EQ(value, 77u);
+}
+
+TEST(str_ptr_parse_uint_prefix, single_zero_is_fine)
+{
+    lh_uint_t value = 77;
+    EXPECT_EQ(lh_str_ptr_parse_uint_prefix("0x", 2, LH_UINT_T_MAX, &value), 1u);
+    EXPECT_EQ(value, 0u);
+}
+
 } // namespace

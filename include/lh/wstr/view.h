@@ -114,6 +114,56 @@ lh_wstr_view_init_by_other(lh_wstr_view_t *self, const lh_wstr_view_t *other);
 lh_wstr_view_t
 lh_wstr_view_make(lh_wstr_cptr data);
 
+/**
+ * @brief Sub-view of @p size wide characters starting at @p offset.
+ *
+ * If @p size is zero, the returned view is empty.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_wstr_view_t v = lh_wstr_view_lit(L"key=value");
+ * lh_wstr_view_t key = lh_wstr_view_make_from_offset(&v, 0, 3); // "key"
+ * @endcode
+ *
+ * @param self   Source view.
+ * @param offset Offset from the source beginning, in wide characters.
+ * @param size   Number of wide characters in the returned view.
+ * @return Constructed sub-view (shares the source text).
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @fails ::lh_runtime_error_code_out_of_range
+ *        <tt>[offset, offset + size)</tt> is outside @p self.
+ */
+lh_wstr_view_t
+lh_wstr_view_make_from_offset(const lh_wstr_view_t *self, lh_uoffset_t offset, lh_usize_t size);
+
+/**
+ * @brief The wide characters of @p self from @p offset to its end.
+ *
+ * Empty when @p offset equals the size of @p self — including an empty
+ * @p self with @p offset 0.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_wstr_view_t v = lh_wstr_view_lit(L"key=value");
+ * lh_wstr_view_t value = lh_wstr_view_make_tail(&v, 4); // "value"
+ * @endcode
+ *
+ * @param self   Source view.
+ * @param offset Where the tail starts, in wide characters; at most the size of @p self.
+ * @return Constructed tail view (shares the source text).
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @fails ::lh_runtime_error_code_out_of_range
+ *        @p offset is greater than the size of @p self.
+ */
+lh_wstr_view_t
+lh_wstr_view_make_tail(const lh_wstr_view_t *self, lh_uoffset_t offset);
+
 /* -- getters --------------------------------------------------------------- */
 
 /**

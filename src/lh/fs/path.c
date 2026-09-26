@@ -5,7 +5,6 @@
 #include <lh/char/dot.h>
 #include <lh/char/letter.h>
 #include <lh/char/map.h>
-#include <lh/char/slash.h>
 #include <lh/memory/view.h>
 #include <lh/null.h>
 #include <lh/runtime/error.h>
@@ -60,22 +59,6 @@ lh_fs_path_set_root_kind(lh_fs_path_t *self, lh_fs_path_root_kind_t kind)
     self->root_kind = kind;
 }
 
-/* `view` from `offset` to its end; the empty view when nothing is left
-   (views reject size 0). */
-LH_ATTRIBUTE_STATIC
-lh_str_view_t
-lh_fs_path_view_tail(const lh_str_view_t *view, lh_usize_t offset)
-{
-    lh_usize_t size;
-
-    size = lh_str_view_is_empty(view) ? 0U : lh_str_view_get_size(view);
-    if (!lh_math_lt(offset, size))
-    {
-        return lh_str_view_make(lh_null);
-    }
-    return lh_memory_view_make_from_offset(view, offset, lh_math_sub(size, offset));
-}
-
 /* The segments part of `text`, root prefix dropped. */
 LH_ATTRIBUTE_STATIC
 lh_str_view_t
@@ -84,7 +67,8 @@ lh_fs_path_get_rest(const lh_fs_path_t *self)
     lh_str_view_t text;
 
     text = lh_str_as_view(lh_fs_path_get_text(self));
-    return lh_fs_path_view_tail(lh_addr_of(text), lh_fs_path_root_len(lh_fs_path_get_root_kind(self)));
+    return lh_str_view_make_tail(lh_addr_of(text),
+                                 lh_fs_path_root_len(lh_fs_path_get_root_kind(self)));
 }
 
 void
@@ -218,8 +202,9 @@ lh_fs_path_is_hidden(const lh_fs_path_t *self)
         return lh_bool_false;
     }
     slash = lh_str_view_rfind_char(lh_addr_of(rest), lh_char_map_slash);
-    last = lh_math_eq(slash, LH_STR_VIEW_INVALID) ? rest
-                                                   : lh_fs_path_view_tail(lh_addr_of(rest), lh_math_add_one(slash));
+    last = lh_math_eq(slash, LH_STR_VIEW_INVALID)
+               ? rest
+               : lh_str_view_make_tail(lh_addr_of(rest), lh_math_add_one(slash));
     if (!lh_char_is_dot(lh_str_view_get_first_char(lh_addr_of(last))))
     {
         return lh_bool_false;
@@ -234,24 +219,6 @@ lh_fs_path_is_hidden(const lh_fs_path_t *self)
         return lh_bool_false;
     }
     return lh_bool_true;
-}
-
-LH_ATTRIBUTE_STATIC
-lh_bool_t
-lh_fs_path_is_sep(lh_char_t ch, lh_fs_path_style_t style)
-{
-    if (lh_char_is_slash(ch))
-    {
-        return lh_bool_true;
-    }
-    return lh_cast_static(lh_bool_t, lh_math_eq(style, lh_fs_path_style_windows) && lh_char_is_backslash(ch));
-}
-
-LH_ATTRIBUTE_STATIC
-lh_char_t
-lh_fs_path_sep(lh_fs_path_style_t style)
-{
-    return lh_math_eq(style, lh_fs_path_style_windows) ? lh_char_map_backslash : lh_char_map_slash;
 }
 
 lh_bool_t
@@ -278,7 +245,7 @@ lh_fs_path_take_root(lh_fs_path_t *self, const lh_str_view_t *text, lh_fs_path_s
 
     out = lh_fs_path_get_text_mut(self);
     if (lh_math_eq(style, lh_fs_path_style_windows) && lh_math_ge(lh_str_view_get_size(text), 2U) &&
-        lh_fs_path_is_drive(lh_memory_view_make_from_offset(text, 0U, 2U)))
+        lh_fs_path_is_drive(lh_str_view_make_from_offset(text, 0U, 2U)))
     {
         lh_fs_path_set_root_kind(self, lh_fs_path_root_kind_drive);
         lh_str_push_back(out, lh_str_view_get_first_char(text));
@@ -286,7 +253,7 @@ lh_fs_path_take_root(lh_fs_path_t *self, const lh_str_view_t *text, lh_fs_path_s
         lh_str_push_back(out, lh_char_map_slash);
         return 2U; /* a separator after "C:" is skipped with the others */
     }
-    if (lh_fs_path_is_sep(lh_str_view_get_first_char(text), style))
+    if (lh_fs_path_style_is_sep(style, lh_str_view_get_first_char(text)))
     {
         lh_fs_path_set_root_kind(self, lh_fs_path_root_kind_posix);
         lh_str_push_back(out, lh_char_map_slash);
@@ -315,7 +282,8 @@ lh_fs_path_set(lh_fs_path_t *self, lh_str_view_t text, lh_fs_path_style_t style)
     out = lh_fs_path_get_text_mut(self);
     /* Normalizing never grows the text by more than the "C:" -> "C:/" slash. */
     lh_str_reserve(out, lh_math_add_one(lh_str_view_get_size(lh_addr_of(text))));
-    rest = lh_fs_path_view_tail(lh_addr_of(text), lh_fs_path_take_root(self, lh_addr_of(text), style));
+    rest = lh_str_view_make_tail(lh_addr_of(text),
+                                 lh_fs_path_take_root(self, lh_addr_of(text), style));
     root_len = lh_str_get_size(out);
 
     pos = 0U;
@@ -362,7 +330,7 @@ lh_fs_path_to_str(const lh_fs_path_t *self, lh_fs_path_style_t style, lh_str_t *
         lh_str_append_view(out, field);
         if (had_delim)
         {
-            lh_str_push_back(out, lh_fs_path_sep(style));
+            lh_str_push_back(out, lh_fs_path_style_get_sep(style));
         }
     }
 }

@@ -25,6 +25,7 @@
 #include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
+#include <lh/util/bit/half.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -174,8 +175,8 @@ void
 lh_bit_pack_be64(lh_u64_t value, lh_uchar_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_bit_pack_be32(lh_cast_static(lh_u32_t, (value >> 32)), out);
-    lh_bit_pack_be32(lh_cast_static(lh_u32_t, value), out + 4);
+    lh_bit_pack_be32(lh_bit_get_high_u32(value), out);
+    lh_bit_pack_be32(lh_bit_get_low_u32(value), out + 4);
 }
 
 /**
@@ -191,7 +192,7 @@ lh_u64_t
 lh_bit_unpack_be64(const lh_uchar_t *in)
 {
     lh_assert_runtime_ref(in);
-    return (lh_cast_static(lh_u64_t, lh_bit_unpack_be32(in)) << 32) | lh_bit_unpack_be32(in + 4);
+    return lh_bit_make_u64(lh_bit_unpack_be32(in), lh_bit_unpack_be32(in + 4));
 }
 
 /**
@@ -206,8 +207,8 @@ void
 lh_bit_pack_le64(lh_u64_t value, lh_uchar_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_bit_pack_le32(lh_cast_static(lh_u32_t, value), out);
-    lh_bit_pack_le32(lh_cast_static(lh_u32_t, (value >> 32)), out + 4);
+    lh_bit_pack_le32(lh_bit_get_low_u32(value), out);
+    lh_bit_pack_le32(lh_bit_get_high_u32(value), out + 4);
 }
 
 /**
@@ -223,7 +224,7 @@ lh_u64_t
 lh_bit_unpack_le64(const lh_uchar_t *in)
 {
     lh_assert_runtime_ref(in);
-    return lh_cast_static(lh_u64_t, lh_bit_unpack_le32(in)) | (lh_cast_static(lh_u64_t, lh_bit_unpack_le32(in + 4)) << 32);
+    return lh_bit_make_u64(lh_bit_unpack_le32(in + 4), lh_bit_unpack_le32(in));
 }
 
 LH_COMPILER_EXTERN_C_END

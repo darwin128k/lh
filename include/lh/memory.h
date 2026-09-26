@@ -97,6 +97,23 @@ lh_ptr
 lh_memory_set(lh_ptr dst, lh_usize_t size, lh_uchar_t val);
 
 /**
+ * @brief XOR the first @c min(dst_size, lhs_size, rhs_size) bytes
+ *        of @p lhs and @p rhs into @p dst (see ::lh_memory_std_xor).
+ *
+ * @param dst       Destination buffer; may be @p lhs or @p rhs.
+ * @param dst_size  Size of @p dst in bytes (upper bound on @c n).
+ * @param lhs       First operand.
+ * @param lhs_size  Size of @p lhs in bytes (upper bound on @c n).
+ * @param rhs       Second operand.
+ * @param rhs_size  Size of @p rhs in bytes (upper bound on @c n).
+ *
+ * @return Pointer one past the last byte written (i.e. @c dst + n).
+ */
+lh_ptr
+lh_memory_xor(lh_ptr dst, lh_usize_t dst_size, const lh_ptr lhs, lh_usize_t lhs_size,
+              const lh_ptr rhs, lh_usize_t rhs_size);
+
+/**
  * @brief Compare the first @c min(lhs_size, rhs_size) bytes
  *        of @p lhs and @p rhs forward (see ::lh_memory_std_compare).
  *

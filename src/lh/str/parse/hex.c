@@ -2,6 +2,7 @@
 #include <lh/assert.h>
 #include <lh/char/xdigit.h>
 #include <lh/util/addr.h>
+#include <lh/util/math.h>
 
 lh_bool_t
 lh_str_ptr_parse_hex(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out)
@@ -37,4 +38,21 @@ lh_str_ptr_parse_hex(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uin
 
     *out = value;
     return lh_bool_true;
+}
+
+lh_usize_t
+lh_str_ptr_parse_hex_prefix(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out)
+{
+    lh_usize_t n = 0U;
+
+    lh_assert_runtime_ref(str);
+    while (lh_math_lt(n, str_size) && lh_char_is_xdigit(str[n]))
+    {
+        n = lh_math_add_one(n);
+    }
+    if (lh_math_is_zero(n) || !lh_str_ptr_parse_hex(str, n, max, out))
+    {
+        return 0U;
+    }
+    return n;
 }

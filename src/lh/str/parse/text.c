@@ -2,8 +2,6 @@
 #include <lh/assert.h>
 #include <lh/bool.h>
 #include <lh/cast/static.h>
-#include <lh/char/digit.h>
-#include <lh/char/xdigit.h>
 #include <lh/memory/std.h>
 #include <lh/null.h>
 #include <lh/numeric/limits.h>
@@ -12,6 +10,7 @@
 #include <lh/str/parse/uint.h>
 #include <lh/str/scanf/next.h>
 #include <lh/util/addr.h>
+#include <lh/util/math.h>
 #include <lh/util/str/ptr.h>
 
 static lh_usize_t
@@ -24,66 +23,6 @@ lh_str_ptr_parse_text_limit(lh_usize_t remaining, const lh_str_scanf_spec_t *spe
         limit = spec->width;
     }
     return limit;
-}
-
-static lh_bool_t
-lh_str_ptr_parse_text_uint_run(lh_str_cptr str, lh_usize_t str_size, lh_usize_t *in_pos,
-                               lh_usize_t limit, lh_uint_t max, lh_uint_t *value)
-{
-    lh_usize_t start = *in_pos;
-    lh_usize_t n = 0;
-
-    if (limit == 0U || start >= str_size)
-    {
-        return lh_bool_false;
-    }
-
-    while (n < limit && (start + n) < str_size && lh_char_is_digit(str[start + n]))
-    {
-        n++;
-    }
-
-    if (n == 0U)
-    {
-        return lh_bool_false;
-    }
-    if (!lh_str_ptr_parse_uint(str + start, n, max, value))
-    {
-        return lh_bool_false;
-    }
-
-    *in_pos = start + n;
-    return lh_bool_true;
-}
-
-static lh_bool_t
-lh_str_ptr_parse_text_hex_run(lh_str_cptr str, lh_usize_t str_size, lh_usize_t *in_pos,
-                              lh_usize_t limit, lh_uint_t *value)
-{
-    lh_usize_t start = *in_pos;
-    lh_usize_t n = 0;
-
-    if (limit == 0U || start >= str_size)
-    {
-        return lh_bool_false;
-    }
-
-    while (n < limit && (start + n) < str_size && lh_char_is_xdigit(str[start + n]))
-    {
-        n++;
-    }
-
-    if (n == 0U)
-    {
-        return lh_bool_false;
-    }
-    if (!lh_str_ptr_parse_hex(str + start, n, LH_UINT_T_MAX, value))
-    {
-        return lh_bool_false;
-    }
-
-    *in_pos = start + n;
-    return lh_bool_true;
 }
 
 lh_usize_t
@@ -100,6 +39,7 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
     {
         lh_usize_t remaining;
         lh_usize_t limit;
+        lh_usize_t consumed;
 
         if (spec.kind == lh_str_scanf_spec_kind_invalid)
         {
@@ -194,11 +134,13 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
             lh_uint_t value;
 
             lh_assert_runtime_ref(out);
-            if (!lh_str_ptr_parse_text_uint_run(str, str_size, lh_addr_of(in_pos), limit,
-                                                LH_UINT_T_MAX, lh_addr_of(value)))
+            consumed =
+                lh_str_ptr_parse_uint_prefix(str + in_pos, limit, LH_UINT_T_MAX, lh_addr_of(value));
+            if (lh_math_is_zero(consumed))
             {
                 return 0;
             }
+            in_pos = lh_math_add(in_pos, consumed);
             *out = value;
             break;
         }
@@ -222,11 +164,13 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
                 digit_limit = limit - 1U;
             }
             max = is_negative ? (0U - lh_cast_static(lh_uint_t, LH_SINT_T_MIN)) : lh_cast_static(lh_uint_t, LH_SINT_T_MAX);
-            if (!lh_str_ptr_parse_text_uint_run(str, str_size, lh_addr_of(in_pos), digit_limit, max,
-                                                lh_addr_of(magnitude)))
+            consumed =
+                lh_str_ptr_parse_uint_prefix(str + in_pos, digit_limit, max, lh_addr_of(magnitude));
+            if (lh_math_is_zero(consumed))
             {
                 return 0;
             }
+            in_pos = lh_math_add(in_pos, consumed);
             if (is_negative)
             {
                 *out = (magnitude == (0U - lh_cast_static(lh_uint_t, LH_SINT_T_MIN))) ? LH_SINT_T_MIN
@@ -244,11 +188,13 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
             lh_uint_t value;
 
             lh_assert_runtime_ref(out);
-            if (!lh_str_ptr_parse_text_hex_run(str, str_size, lh_addr_of(in_pos), limit,
-                                               lh_addr_of(value)))
+            consumed =
+                lh_str_ptr_parse_hex_prefix(str + in_pos, limit, LH_UINT_T_MAX, lh_addr_of(value));
+            if (lh_math_is_zero(consumed))
             {
                 return 0;
             }
+            in_pos = lh_math_add(in_pos, consumed);
             *out = value;
             break;
         }

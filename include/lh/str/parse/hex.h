@@ -36,6 +36,34 @@ LH_COMPILER_EXTERN_C_BEGIN
 lh_bool_t
 lh_str_ptr_parse_hex(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
 
+/**
+ * @brief Parse the hexadecimal integer at the start of @p str and report
+ *        how many characters it took.
+ *
+ * Takes the leading run of hex digits (at most @p str_size) and parses it
+ * like ::lh_str_ptr_parse_hex. What follows the digits is left alone.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_uint_t value;
+ * lh_usize_t n = lh_str_ptr_parse_hex_prefix("ff;", 3, LH_UINT_T_MAX, &value);
+ * // n == 2, value == 255
+ * @endcode
+ *
+ * @param str      Buffer to parse (not required to be NUL-terminated).
+ * @param str_size Number of characters available in @p str.
+ * @param max      Largest value considered valid (inclusive).
+ * @param out      Receives the parsed value on success; untouched on failure.
+ *
+ * @return Characters consumed, or 0 if @p str does not start with a hex
+ *         digit or the value exceeds @p max.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p str or @p out is ::lh_null.
+ */
+lh_usize_t
+lh_str_ptr_parse_hex_prefix(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_STR_PARSE_HEX_H */

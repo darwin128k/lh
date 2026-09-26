@@ -305,17 +305,6 @@ lh_crypto_rijndael_cipher(const lh_crypto_rijndael_t *self, const lh_uchar_t *in
     lh_memory_std_copy(out, state, self->block_size);
 }
 
-static void
-lh_crypto_rijndael_xor(lh_uchar_t *dst, const lh_uchar_t *a, const lh_uchar_t *b, lh_usize_t n)
-{
-    lh_usize_t i;
-
-    for (i = 0; i < n; ++i)
-    {
-        dst[i] = lh_cast_static(lh_uchar_t, (a[i] ^ b[i]));
-    }
-}
-
 lh_bool_t
 lh_crypto_rijndael_init(lh_crypto_rijndael_t *self, const lh_ptr key, lh_usize_t key_size,
                         const lh_ptr chain, lh_usize_t chain_size, lh_usize_t block_size,
@@ -384,7 +373,7 @@ lh_crypto_rijndael_encrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh
 
     if (self->mode == lh_crypto_rijndael_mode_cbc)
     {
-        lh_crypto_rijndael_xor(block, in_bytes, self->chain, self->block_size);
+        lh_memory_std_xor(block, in_bytes, self->chain, self->block_size);
         lh_crypto_rijndael_cipher(self, block, out_bytes, lh_bool_false);
         lh_memory_std_copy(self->chain, out_bytes, self->block_size);
         return lh_bool_true;
@@ -392,7 +381,7 @@ lh_crypto_rijndael_encrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh
 
     /* CFB: encrypt chain, xor with plaintext, chain <- ciphertext */
     lh_crypto_rijndael_cipher(self, self->chain, block, lh_bool_false);
-    lh_crypto_rijndael_xor(out_bytes, in_bytes, block, self->block_size);
+    lh_memory_std_xor(out_bytes, in_bytes, block, self->block_size);
     lh_memory_std_copy(self->chain, out_bytes, self->block_size);
     return lh_bool_true;
 }
@@ -422,7 +411,7 @@ lh_crypto_rijndael_decrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh
     {
         lh_memory_std_copy(saved, in_bytes, self->block_size);
         lh_crypto_rijndael_cipher(self, in_bytes, block, lh_bool_true);
-        lh_crypto_rijndael_xor(out_bytes, block, self->chain, self->block_size);
+        lh_memory_std_xor(out_bytes, block, self->chain, self->block_size);
         lh_memory_std_copy(self->chain, saved, self->block_size);
         return lh_bool_true;
     }
@@ -430,7 +419,7 @@ lh_crypto_rijndael_decrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh
     /* CFB decrypt: encrypt chain, xor with ciphertext, chain <- ciphertext */
     lh_memory_std_copy(saved, in_bytes, self->block_size);
     lh_crypto_rijndael_cipher(self, self->chain, block, lh_bool_false);
-    lh_crypto_rijndael_xor(out_bytes, in_bytes, block, self->block_size);
+    lh_memory_std_xor(out_bytes, in_bytes, block, self->block_size);
     lh_memory_std_copy(self->chain, saved, self->block_size);
     return lh_bool_true;
 }

@@ -53,6 +53,35 @@ lh_bool_t
 lh_str_ptr_parse_uint(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
 
 /**
+ * @brief Parse the unsigned decimal integer at the start of @p str and
+ *        report how many characters it took.
+ *
+ * Takes the leading run of digits (at most @p str_size) and parses it like
+ * ::lh_str_ptr_parse_uint — so a zero-padded run such as `007` fails. What
+ * follows the digits is left alone, as with `strtoul`'s end pointer.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_uint_t port;
+ * lh_usize_t n = lh_str_ptr_parse_uint_prefix("8080/tcp", 8, 65535U, &port);
+ * // n == 4, port == 8080
+ * @endcode
+ *
+ * @param str      Buffer to parse (not required to be NUL-terminated).
+ * @param str_size Number of characters available in @p str.
+ * @param max      Largest value considered valid (inclusive).
+ * @param out      Receives the parsed value on success; untouched on failure.
+ *
+ * @return Characters consumed, or 0 if @p str does not start with a digit,
+ *         the run is zero-padded, or its value exceeds @p max.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p str or @p out is ::lh_null.
+ */
+lh_usize_t
+lh_str_ptr_parse_uint_prefix(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
+
+/**
  * @brief Next @p delim-separated field, parsed as a padded unsigned integer.
  *
  * ::lh_str_ptr_split_next then ::lh_str_ptr_parse_uint_digits. Date and time

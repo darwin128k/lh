@@ -104,7 +104,7 @@ lh_str_list_get(const lh_str_list_t *self, lh_uindex_t index)
         return lh_str_view_make(lh_null); /* views reject size 0 */
     }
     chars = lh_str_as_view(lh_str_list_get_chars_as_const(self));
-    return lh_memory_view_make_from_offset(lh_addr_of(chars), span.offset, span.size);
+    return lh_str_view_make_from_offset(lh_addr_of(chars), span.offset, span.size);
 }
 
 lh_str_cptr

@@ -6,6 +6,7 @@
 #include <lh/os/system/error/capture.h>
 #include <lh/util/addr.h>
 #include <lh/util/bit.h>
+#include <lh/util/bit/half.h>
 #include <lh/util/math.h>
 
 #define WIN32_LEAN_AND_MEAN
@@ -14,8 +15,7 @@
 #    define IO_REPARSE_TAG_SYMLINK 0xA000000CUL
 #endif
 
-#define LH_OS_SYSTEM_FS_FILETIME_UNIX_EPOCH 116444736000000000ULL
-#define LH_OS_SYSTEM_FS_FILETIME_HZ 10000000ULL
+#include "../filetime.h"
 
 #define LH_OS_SYSTEM_FS_WIN_ATTR_READONLY 0x00000001UL
 #define LH_OS_SYSTEM_FS_WIN_ATTR_HIDDEN 0x00000002UL
@@ -27,12 +27,12 @@
 #define LH_OS_SYSTEM_FS_WIN_ATTR_ENCRYPTED 0x00004000UL
 
 /*
- * Pure decoders for Windows' on-disk bit formats (FILE_ATTRIBUTE_* flags,
- * FILETIME's 100ns-ticks-since-1601). Built on portable lh_u32_t/lh_u64_t,
- * not DWORD/FILETIME/ULARGE_INTEGER, and on our own mirrors of the
- * FILE_ATTRIBUTE_* numeric values (stable, documented Win32 ABI constants,
- * unchanged for decades) instead of <windows.h>'s. The native structs are
- * unpacked once, in lh_os_system_fs_stat below.
+ * Pure decoders for Windows' FILE_ATTRIBUTE_* flags (FILETIME is read by
+ * ../filetime.h, shared with the clock). Built on portable lh_u32_t, not
+ * DWORD, and on our own mirrors of the FILE_ATTRIBUTE_* numeric values
+ * (stable, documented Win32 ABI constants, unchanged for decades) instead
+ * of <windows.h>'s. The native structs are unpacked once, in
+ * lh_os_system_fs_stat below.
  */
 
 /**
@@ -40,34 +40,6 @@
  *        decoded into ::lh_fs_perm_t/::lh_fs_attr_t/::lh_fs_kind_t.
  */
 typedef lh_u32_t lh_os_system_fs_win_attrs_t;
-
-LH_ATTRIBUTE_STATIC
-lh_fs_time_t
-lh_os_system_fs_time_from_filetime_ticks(lh_u64_t ticks)
-{
-    if (lh_math_lt(ticks, LH_OS_SYSTEM_FS_FILETIME_UNIX_EPOCH))
-    {
-        return 0;
-    }
-    return lh_cast_static(
-        lh_fs_time_t,
-        lh_math_div(lh_math_sub(ticks, LH_OS_SYSTEM_FS_FILETIME_UNIX_EPOCH), LH_OS_SYSTEM_FS_FILETIME_HZ));
-}
-
-LH_ATTRIBUTE_STATIC
-lh_u64_t
-lh_os_system_fs_u64_from_win_parts(lh_u32_t high, lh_u32_t low)
-{
-    return lh_bit_or(lh_bit_shl(lh_cast_static(lh_u64_t, high), 32), lh_cast_static(lh_u64_t, low));
-}
-
-LH_ATTRIBUTE_STATIC
-lh_fs_time_t
-lh_os_system_fs_time_from_filetime(const FILETIME *time)
-{
-    return lh_os_system_fs_time_from_filetime_ticks(lh_os_system_fs_u64_from_win_parts(
-        lh_cast_static(lh_u32_t, time->dwHighDateTime), lh_cast_static(lh_u32_t, time->dwLowDateTime)));
-}
 
 LH_ATTRIBUTE_STATIC
 lh_fs_perm_t
@@ -183,14 +155,14 @@ lh_os_system_fs_stat(lh_str_cptr path, lh_fs_stat_t *out)
     {
         return lh_bool_false;
     }
-    lh_fs_stat_set(out, lh_os_system_fs_kind_from_win_attrs(attrs, is_symlink),
-                   lh_os_system_fs_perm_from_win_attrs(attrs),
-                   lh_cast_static(lh_fs_size_t,
-                                  lh_os_system_fs_u64_from_win_parts(lh_cast_static(lh_u32_t, info.nFileSizeHigh),
-                                                                     lh_cast_static(lh_u32_t, info.nFileSizeLow))),
-                   lh_os_system_fs_time_from_filetime(lh_addr_of(info.ftLastAccessTime)),
-                   lh_os_system_fs_time_from_filetime(lh_addr_of(info.ftLastWriteTime)),
-                   lh_os_system_fs_time_from_filetime(lh_addr_of(info.ftCreationTime)),
-                   lh_os_system_fs_attr_from_win_attrs(attrs));
+    lh_fs_stat_set(
+        out, lh_os_system_fs_kind_from_win_attrs(attrs, is_symlink),
+        lh_os_system_fs_perm_from_win_attrs(attrs),
+        lh_cast_static(lh_fs_size_t, lh_bit_make_u64(lh_cast_static(lh_u32_t, info.nFileSizeHigh),
+                                                     lh_cast_static(lh_u32_t, info.nFileSizeLow))),
+        lh_os_system_timestamp_from_filetime(lh_addr_of(info.ftLastAccessTime)),
+        lh_os_system_timestamp_from_filetime(lh_addr_of(info.ftLastWriteTime)),
+        lh_os_system_timestamp_from_filetime(lh_addr_of(info.ftCreationTime)),
+        lh_os_system_fs_attr_from_win_attrs(attrs));
     return lh_bool_true;
 }

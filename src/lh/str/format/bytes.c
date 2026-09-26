@@ -1,34 +1,36 @@
 #include <lh/str/format/bytes.h>
 #include <lh/assert.h>
+#include <lh/attribute/static.h>
 #include <lh/cast/static.h>
 #include <lh/char/xdigit.h>
 #include <lh/size.h>
+#include <lh/util/math.h>
 #include <lh/util/ptr.h>
 
-static lh_usize_t
-lh_str_ptr_format_bytes_hex_dump_needed(lh_usize_t data_size)
+/* One dump line for @p count bytes: "hhhhhhhh: " + "xx " * count + "\n". */
+LH_ATTRIBUTE_STATIC
+lh_usize_t
+lh_str_ptr_format_bytes_hex_dump_line_size(lh_usize_t count)
 {
-    lh_usize_t lines;
-    lh_usize_t last;
-    lh_usize_t per_full;
+    return lh_math_add(lh_math_add(LH_STR_FORMAT_BYTES_HEX_DUMP_OFFSET_DIGITS, 2U),
+                       lh_math_add_one(lh_math_mul(count, 3U)));
+}
 
-    if (data_size == 0)
-    {
-        return 0;
-    }
+lh_usize_t
+lh_str_ptr_format_bytes_hex_dump_size(lh_usize_t data_size)
+{
+    const lh_usize_t full_lines = lh_math_div(data_size, LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH);
+    const lh_usize_t last = lh_math_mod(data_size, LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH);
+    const lh_usize_t full_size =
+        lh_str_ptr_format_bytes_hex_dump_line_size(LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH);
 
-    lines =
-        (data_size + LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH - 1U) / LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH;
-    last = data_size % LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH;
-    if (last == 0)
+    if (lh_math_gt(full_lines, lh_math_div(lh_math_sub(LH_USIZE_T_MAX, full_size), full_size)))
     {
-        last = LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH;
+        return 0U;
     }
-    /* "hhhhhhhh: " + "xx " * count + "\n" */
-    per_full = LH_STR_FORMAT_BYTES_HEX_DUMP_OFFSET_DIGITS + 2U +
-               LH_STR_FORMAT_BYTES_HEX_DUMP_WIDTH * 3U + 1U;
-    return (lines - 1U) * per_full +
-           (LH_STR_FORMAT_BYTES_HEX_DUMP_OFFSET_DIGITS + 2U + last * 3U + 1U);
+    return lh_math_add(lh_math_mul(full_lines, full_size),
+                       lh_math_is_zero(last) ? 0U
+                                             : lh_str_ptr_format_bytes_hex_dump_line_size(last));
 }
 
 lh_usize_t
@@ -81,7 +83,7 @@ lh_str_ptr_format_bytes_hex_dump(const lh_ptr data, lh_usize_t data_size, lh_boo
     }
     lh_assert_runtime_ref(data);
 
-    needed = lh_str_ptr_format_bytes_hex_dump_needed(data_size);
+    needed = lh_str_ptr_format_bytes_hex_dump_size(data_size);
     if (needed == 0 || needed > str_size)
     {
         return 0;

@@ -131,6 +131,32 @@ lh_ptr
 lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n);
 
 /**
+ * @brief Write the byte-wise XOR of @p lhs and @p rhs into @p dst,
+ *        @p n bytes.
+ *
+ * @p dst may be the same buffer as @p lhs or @p rhs (in-place XOR);
+ * any other overlap is not supported.
+ *
+ * @param dst Destination buffer.
+ * @param lhs First operand.
+ * @param rhs Second operand.
+ * @param n Number of bytes to combine.
+ *
+ * @return Pointer one past the last byte written.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_uchar_t block[16];
+ * lh_memory_std_xor(block, block, key, 16); // block ^= key
+ * @endcode
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p dst, @p lhs or @p rhs is ::lh_null.
+ */
+lh_ptr
+lh_memory_std_xor(lh_ptr dst, const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
+
+/**
  * @brief Compare @p n bytes at @p lhs and @p rhs from the start toward higher addresses.
  *
  * @param lhs First buffer.
