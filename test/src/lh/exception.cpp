@@ -24,19 +24,19 @@ desc_of(const lh_exception_t *exception)
 
 TEST(exception, getters_read_error_and_site)
 {
-    static const lh_runtime_check_site_t site = {"file.c", "fn", "x > 0",
+    static const lh_exception_origin_t origin = {"file.c", "fn", "x > 0",
                                                  lh_str_view_empty_initializer(), 42u};
     const lh_exception_t exception = lh_exception_initializer(
         lh_runtime_error_initializer(lh_runtime_error_code_invalid_argument,
                                      lh_str_view_initializer_lit("x must be positive")),
-        &site);
+        &origin);
 
     EXPECT_EQ(lh_exception_get_code(&exception), lh_runtime_error_code_invalid_argument);
     EXPECT_EQ(lh_runtime_error_get_code(lh_exception_get_error(&exception)),
               lh_runtime_error_code_invalid_argument);
     EXPECT_EQ(desc_of(&exception), "x must be positive");
-    EXPECT_EQ(lh_exception_get_site(&exception), &site);
-    EXPECT_EQ(lh_exception_get_site(&exception)->line, 42u);
+    EXPECT_EQ(lh_exception_get_origin(&exception), &origin);
+    EXPECT_EQ(lh_exception_get_origin(&exception)->line, 42u);
 }
 
 TEST(exception, empty_message_and_no_site)
@@ -48,7 +48,7 @@ TEST(exception, empty_message_and_no_site)
 
     EXPECT_EQ(lh_exception_get_code(&exception), lh_runtime_error_code_overflow);
     EXPECT_EQ(desc_of(&exception), "");
-    EXPECT_EQ(lh_exception_get_site(&exception), nullptr);
+    EXPECT_EQ(lh_exception_get_origin(&exception), nullptr);
 }
 
 } // namespace

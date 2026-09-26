@@ -15,9 +15,9 @@ lh_exception_get_code(const lh_exception_t *self)
     return lh_runtime_error_get_code(lh_exception_get_error(self));
 }
 
-const lh_runtime_check_site_t *
-lh_exception_get_site(const lh_exception_t *self)
+const lh_exception_origin_t *
+lh_exception_get_origin(const lh_exception_t *self)
 {
     lh_assert_runtime_ref(self);
-    return self->site;
+    return self->origin;
 }

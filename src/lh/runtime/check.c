@@ -20,7 +20,7 @@ void
 lh_runtime_check_fail_default(const lh_exception_t *exception)
 {
     const lh_runtime_error_t *error = lh_exception_get_error(exception);
-    const lh_runtime_check_site_t *site = lh_exception_get_site(exception);
+    const lh_exception_origin_t *origin = lh_exception_get_origin(exception);
     const lh_str_view_t desc = lh_runtime_error_get_desc(error);
 
     (void)fprintf(stderr, "lh: runtime check failed: error %d", lh_runtime_error_get_code(error));
@@ -30,15 +30,15 @@ lh_runtime_check_fail_default(const lh_exception_t *exception)
                       lh_str_view_get_data(&desc));
     }
     (void)fputc('\n', stderr);
-    if (lh_ptr_is_set(site) && lh_ptr_is_set(site->condition))
+    if (lh_ptr_is_set(origin) && lh_ptr_is_set(origin->condition))
     {
-        (void)fprintf(stderr, "  condition: %s\n", site->condition);
+        (void)fprintf(stderr, "  condition: %s\n", origin->condition);
     }
-    if (lh_ptr_is_set(site) && lh_ptr_is_set(site->file))
+    if (lh_ptr_is_set(origin) && lh_ptr_is_set(origin->file))
     {
-        (void)fprintf(stderr, "  at %s:%u%s%s\n", site->file, site->line,
-                      lh_ptr_is_set(site->function) ? " in " : "",
-                      lh_ptr_is_set(site->function) ? site->function : "");
+        (void)fprintf(stderr, "  at %s:%u%s%s\n", origin->file, origin->line,
+                      lh_ptr_is_set(origin->function) ? " in " : "",
+                      lh_ptr_is_set(origin->function) ? origin->function : "");
     }
     (void)fflush(stderr);
 }
@@ -67,12 +67,12 @@ lh_runtime_check_set(lh_runtime_check_fail_cb fn)
 }
 
 void
-lh_runtime_check_fail(const lh_runtime_check_site_t *site, lh_runtime_error_code_t code)
+lh_runtime_check_fail(const lh_exception_origin_t *origin, lh_runtime_error_code_t code)
 {
     const lh_exception_t exception = lh_exception_initializer(
         lh_runtime_error_initializer(code,
-                                     lh_ptr_is_set(site) ? site->message : lh_str_view_empty()),
-        site);
+                                     lh_ptr_is_set(origin) ? origin->message : lh_str_view_empty()),
+        origin);
 
     m_runtime_check_fail(lh_addr_of(exception));
     lh_runtime_terminate();

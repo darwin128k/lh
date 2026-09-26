@@ -10,25 +10,25 @@
  * the program terminates.
  *
  * The error carries the code and, when the check gives one, the message;
- * the site is the check's `static const` location.
+ * the origin is the check's `static const` location.
  */
 
 #ifndef LH_EXCEPTION_H
 #define LH_EXCEPTION_H
 
 #include <lh/compiler/extern/c.h>
-#include <lh/runtime/check/site.h>
+#include <lh/exception/origin.h>
 #include <lh/runtime/error.h>
 
 /**
  * @struct lh_exception
  * @typedef lh_exception_t
- * @brief Error of a failed runtime check plus its site.
+ * @brief Error of a failed runtime check plus its origin.
  */
 typedef struct lh_exception
 {
     lh_runtime_error_t error;            /**< Code and message (empty when none is given). */
-    const lh_runtime_check_site_t *site; /**< Where the check sits; ::lh_null at REPORT_NONE. */
+    const lh_exception_origin_t *origin; /**< Where the check sits; ::lh_null at REPORT_NONE. */
 } lh_exception_t;                        /**< Typedef for struct ::lh_exception. */
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -48,10 +48,10 @@ lh_exception_get_code(const lh_exception_t *self);
 
 /**
  * @brief Where the failed check sits, or ::lh_null when checks report no
- *        site (::LH_RUNTIME_CHECK_REPORT_NONE).
+ *        origin (::LH_RUNTIME_CHECK_REPORT_NONE).
  */
-const lh_runtime_check_site_t *
-lh_exception_get_site(const lh_exception_t *self);
+const lh_exception_origin_t *
+lh_exception_get_origin(const lh_exception_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

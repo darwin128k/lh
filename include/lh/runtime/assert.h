@@ -18,8 +18,8 @@
  * lh_runtime_assert(ptr != lh_null, lh_runtime_error_code_null_pointer, "no buffer");
  * @endcode
  *
- * Nothing is built at the check: the site and message are one `static const`
- * ::lh_runtime_check_site_t per check, and the failing branch passes its
+ * Nothing is built at the check: the origin and message are one `static const`
+ * ::lh_exception_origin_t per check, and the failing branch passes its
  * address and the code to ::lh_runtime_check_fail, which fills the
  * ::lh_exception_t the handler gets.
  *
@@ -104,7 +104,7 @@
 
 /**
  * @def lh_runtime_check_fail_here(expr, ...)
- * @brief Hand this check's static ::lh_runtime_check_site_t (filled per
+ * @brief Hand this check's static ::lh_exception_origin_t (filled per
  *        ::LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT, message included) and its
  *        error code to ::lh_runtime_check_fail, which builds the
  *        ::lh_exception_t.
@@ -116,22 +116,22 @@
 #    define lh_runtime_check_fail_here(expr, ...)                                                  \
         do                                                                                         \
         {                                                                                          \
-            static const lh_runtime_check_site_t _lh_check_site = {                                \
+            static const lh_exception_origin_t _lh_exception_origin = {                            \
                 __FILE__, __func__, #expr, lh_runtime_check_desc(__VA_ARGS__), __LINE__};          \
-            lh_runtime_check_fail(&_lh_check_site, lh_runtime_check_code(__VA_ARGS__));            \
+            lh_runtime_check_fail(&_lh_exception_origin, lh_runtime_check_code(__VA_ARGS__));      \
         } while (0)
 #elif (LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT == LH_RUNTIME_CHECK_REPORT_LOCATION)
 #    define lh_runtime_check_fail_here(expr, ...)                                                  \
         do                                                                                         \
         {                                                                                          \
-            static const lh_runtime_check_site_t _lh_check_site = {                                \
+            static const lh_exception_origin_t _lh_exception_origin = {                            \
                 __FILE__, (lh_str_cptr)lh_null, (lh_str_cptr)lh_null,                              \
                 lh_runtime_check_desc(__VA_ARGS__), __LINE__};                                     \
-            lh_runtime_check_fail(&_lh_check_site, lh_runtime_check_code(__VA_ARGS__));            \
+            lh_runtime_check_fail(&_lh_exception_origin, lh_runtime_check_code(__VA_ARGS__));      \
         } while (0)
 #else
 #    define lh_runtime_check_fail_here(expr, ...)                                                  \
-        lh_runtime_check_fail((const lh_runtime_check_site_t *)lh_null,                            \
+        lh_runtime_check_fail((const lh_exception_origin_t *)lh_null,                              \
                               lh_runtime_check_code(__VA_ARGS__))
 #endif
 
