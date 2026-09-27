@@ -60,6 +60,10 @@
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 && (LH_COMPILER_ARCH == LH_COMPILER_ARCH_64)
 #    define LH_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD                                           \
         (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD))
+/* lh_memory_std_copy's band below it goes straight to copy_sse2_small (n < 512). */
+#    if LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD > 512
+#        error "LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD must be <= 512"
+#    endif
 #endif
 
 /* lh_memory_std_copy's plain while(n--) *d++ = *s++; loop (still used as-is under
@@ -477,9 +481,16 @@ lh_memory_std_copy128_store_sse2(lh_uchar_t *dst, const lh_uchar_t *src)
     _mm_store_si128(lh_ptr_rcast(__m128i, dst + 112), v7);
 }
 
+/* The n < 512 half of lh_memory_std_copy_sse2, split out so the dispatcher's
+ * 16-255 band gets it inline. GCC used to do that on its own (partial inlining of
+ * copy_sse2's head into lh_memory_std_copy), but under LTO it stops, and the band
+ * then pays a full call: four pushes plus the xmm6/xmm7 spill the Win64 ABI
+ * requires. Measured 1.6x-1.8x slower copy at 64-128 bytes on both the SSE2-only
+ * and the Zen2 bench machines. Precondition: n < 512. */
+LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
-static void
-lh_memory_std_copy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+void
+lh_memory_std_copy_sse2_small(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 {
     /* CRT-style overlapping vector stores: two (or four) unaligned 16-byte moves
      * cover any length in [16, 63] with no loop, no alignment prologue, no scalar
@@ -514,8 +525,7 @@ lh_memory_std_copy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 
     /* Unaligned 64-byte loop + one overlapping last block. Aligned 128-byte
      * movdqa still wins for bigger in-cache copies on SSE2-only targets, but
-     * only after the setup cost is amortized — keep that path for n >= 512. */
-    if (n < 512U)
+     * only after the setup cost is amortized — that path is copy_sse2's, n >= 512. */
     {
         lh_uchar_t *dst_end = dst + n;
         const lh_uchar_t *src_end = src + n;
@@ -532,6 +542,16 @@ lh_memory_std_copy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
         {
             lh_memory_std_copy64_storeu(dst_end - 64, src_end - 64);
         }
+    }
+}
+
+LH_MEMORY_STD_SIMD_TARGET("sse2")
+static void
+lh_memory_std_copy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+{
+    if (n < 512U)
+    {
+        lh_memory_std_copy_sse2_small(dst, src, n);
         return;
     }
 
@@ -1036,7 +1056,7 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
          * this CPU two ymm overlapping 64-byte copies lost to four xmm). */
         else if (n < LH_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD)
         {
-            lh_memory_std_copy_sse2(d, s, n);
+            lh_memory_std_copy_sse2_small(d, s, n);
         }
 #    endif
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
