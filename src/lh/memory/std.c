@@ -385,8 +385,12 @@ lh_memory_std_set_bytes(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 #endif
 }
 
-LH_ATTRIBUTE_FORCE_INLINE
-const lh_ptr
+/* Deliberately not LH_ATTRIBUTE_FORCE_INLINE, unlike the other *_bytes kernels.
+ * Forcing it helps the SSE2 tier under LTO (i7-3770K: find 244 -> 182 ns) but
+ * bloats compare_avx2's tail and stops lh_memory_find_step inlining the compare
+ * dispatch: find measured 16-30% slower on the Zen2 bench target. Same for
+ * rcompare_bytes below. */
+static const lh_ptr
 lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs);
@@ -415,8 +419,7 @@ lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
     return lh_null;
 }
 
-LH_ATTRIBUTE_FORCE_INLINE
-const lh_ptr
+static const lh_ptr
 lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs) + (n - 1U);
