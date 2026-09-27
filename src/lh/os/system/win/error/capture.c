@@ -2,11 +2,9 @@
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/null.h>
+#include <lh/os/system/win/kernel32.h>
 #include <lh/util/str/ptr.h>
 #include <lh/util/wstr/ptr.h>
-
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 
 lh_os_system_error_code_t
 lh_os_system_error_get_native_code(void)
@@ -17,17 +15,19 @@ lh_os_system_error_get_native_code(void)
 lh_os_error_desc_ptr
 lh_os_system_error_format(lh_os_system_error_code_t code, lh_os_error_desc_ptr dest, lh_usize_t dest_size)
 {
-    DWORD n;
+    lh_os_system_win_dword_t n;
 
     lh_assert_runtime_ref(dest);
 #if LH_LIBRARY_OPTION_OS_WERROR
-    n = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, lh_null,
-                       lh_cast_static(DWORD, code), 0UL, dest, lh_cast_static(DWORD, dest_size),
-                       lh_null);
+    n = FormatMessageW(LH_OS_SYSTEM_WIN_FORMAT_MESSAGE_FROM_SYSTEM |
+                           LH_OS_SYSTEM_WIN_FORMAT_MESSAGE_IGNORE_INSERTS,
+                       lh_null, lh_cast_static(lh_os_system_win_dword_t, code), 0UL, dest,
+                       lh_cast_static(lh_os_system_win_dword_t, dest_size), lh_null);
 #else
-    n = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, lh_null,
-                       lh_cast_static(DWORD, code), 0UL, dest, lh_cast_static(DWORD, dest_size),
-                       lh_null);
+    n = FormatMessageA(LH_OS_SYSTEM_WIN_FORMAT_MESSAGE_FROM_SYSTEM |
+                           LH_OS_SYSTEM_WIN_FORMAT_MESSAGE_IGNORE_INSERTS,
+                       lh_null, lh_cast_static(lh_os_system_win_dword_t, code), 0UL, dest,
+                       lh_cast_static(lh_os_system_win_dword_t, dest_size), lh_null);
 #endif
     if (n == 0UL)
     {

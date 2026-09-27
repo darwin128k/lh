@@ -8,6 +8,8 @@
 #include <lh/os.h>
 #include <lh/os/error/code.h>
 #include <lh/os/system/error/capture.h>
+#include <lh/os/system/win/fs/kind.h>
+#include <lh/os/system/win/kernel32.h>
 #include <lh/runtime/allocator.h>
 #include <lh/str.h>
 #include <lh/str/view.h>
@@ -17,15 +19,10 @@
 #include <lh/util/ptr.h>
 #include <lh/util/str/ptr.h>
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
-#include "kind.h"
-
 struct lh_os_system_fs_dir_state
 {
-    HANDLE find;
-    WIN32_FIND_DATAA data;
+    lh_os_system_win_handle_t find;
+    lh_os_system_win_find_data_t data;
     lh_bool_t ready; /* data holds an entry not yet reported (FindFirstFile's). */
 };
 
@@ -65,7 +62,7 @@ lh_os_system_fs_dir_open(lh_str_cptr path)
 
     state->find = FindFirstFileA(lh_str_get_data(lh_addr_of(pattern)), lh_addr_of(state->data));
     lh_str_deinit(lh_addr_of(pattern));
-    if (lh_math_eq(state->find, INVALID_HANDLE_VALUE))
+    if (lh_math_eq(state->find, LH_OS_SYSTEM_WIN_INVALID_HANDLE))
     {
         lh_os_system_error_capture();
         lh_runtime_allocator_free(state);
@@ -98,7 +95,7 @@ lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, lh_str_cptr *name,
     {
         if (!FindNextFileA(state->find, lh_addr_of(state->data)))
         {
-            if (lh_math_eq(GetLastError(), ERROR_NO_MORE_FILES))
+            if (lh_math_eq(GetLastError(), LH_OS_SYSTEM_WIN_ERROR_NO_MORE_FILES))
             {
                 return 0;
             }
@@ -117,5 +114,5 @@ lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, lh_str_cptr *name,
 lh_usize_t
 lh_os_system_fs_dir_name_max(void)
 {
-    return lh_cast_static(lh_usize_t, lh_math_sub(MAX_PATH, 1));
+    return lh_cast_static(lh_usize_t, lh_math_sub(LH_OS_SYSTEM_WIN_MAX_PATH, 1));
 }

@@ -13,7 +13,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "../../net/socket/addr.h"
+#include <lh/os/system/net/socket/addr.h>
 
 LH_ATTRIBUTE_STATIC
 int

@@ -66,7 +66,6 @@ set(LH_BENCH_SOURCES
         ${LH_BENCH_SRC_PATH}/lh/memory/typed.cpp
         ${LH_BENCH_SRC_PATH}/lh/memory/typed/allocated.cpp
         ${LH_BENCH_SRC_PATH}/lh/memory/view.cpp
-        ${LH_BENCH_SRC_PATH}/lh/vector.cpp
 )
 
 if (LH_LIBRARY_OPTION_OS)

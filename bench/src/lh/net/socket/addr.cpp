@@ -49,6 +49,8 @@ BM_net_ip4_socket_addr_equals(benchmark::State &state)
     lh_net_ip4_socket_addr_t b = lh_net_ip4_socket_addr_make(&ip, 27016);
     for (auto _ : state)
     {
+        benchmark::DoNotOptimize(a);
+        benchmark::DoNotOptimize(b);
         benchmark::DoNotOptimize(lh_net_ip4_socket_addr_equals(&a, &b));
     }
 }

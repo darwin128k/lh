@@ -16,6 +16,7 @@ BM_str_format_bytes_hex_32(benchmark::State &state)
         benchmark::DoNotOptimize(data);
         benchmark::DoNotOptimize(
             lh_str_ptr_format_bytes_hex(data, 32, 0, out, sizeof(out)));
+        benchmark::DoNotOptimize(out);
     }
 }
 BENCHMARK(BM_str_format_bytes_hex_32);

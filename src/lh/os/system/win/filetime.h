@@ -4,7 +4,7 @@
  *
  * Shared by `win/timestamp.c` (the clock) and `win/fs/stat.c` (file times)
  * so both read a `FILETIME` the same way. Not installed, not part of the
- * API. The includer must already have `<windows.h>` in scope.
+ * API.
  */
 
 #ifndef LH_SRC_OS_SYSTEM_WIN_FILETIME_H
@@ -13,6 +13,7 @@
 #include <lh/attribute/static.h>
 #include <lh/cast/static.h>
 #include <lh/numeric/fixed/types.h>
+#include <lh/os/system/win/kernel32.h>
 #include <lh/timestamp.h>
 #include <lh/util/bit/half.h>
 #include <lh/util/math.h>
@@ -30,7 +31,7 @@
    (below 2^63 ticks) fits the signed arithmetic. */
 LH_ATTRIBUTE_STATIC
 lh_timestamp_t
-lh_os_system_timestamp_from_filetime(const FILETIME *time)
+lh_os_system_timestamp_from_filetime(const lh_os_system_win_filetime_t *time)
 {
     const lh_u64_t ticks = lh_bit_make_u64(lh_cast_static(lh_u32_t, time->dwHighDateTime),
                                            lh_cast_static(lh_u32_t, time->dwLowDateTime));

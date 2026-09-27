@@ -9,9 +9,13 @@ BM_memory_bounds_init_by_size(benchmark::State &state)
 {
     std::vector<unsigned char> buf(4096);
     lh_memory_bounds_t b;
+    unsigned char *data = buf.data();
+    lh_usize_t size = buf.size();
     for (auto _ : state)
     {
-        lh_memory_bounds_init_by_size(&b, buf.data(), buf.size());
+        benchmark::DoNotOptimize(data);
+        benchmark::DoNotOptimize(size);
+        lh_memory_bounds_init_by_size(&b, data, size);
         benchmark::DoNotOptimize(b);
     }
 }
@@ -24,6 +28,7 @@ BM_memory_bounds_get_size(benchmark::State &state)
     lh_memory_bounds_t b = lh_memory_bounds_make_by_size(buf.data(), buf.size());
     for (auto _ : state)
     {
+        benchmark::DoNotOptimize(b);
         benchmark::DoNotOptimize(lh_memory_bounds_get_size(&b));
     }
 }
@@ -34,9 +39,12 @@ BM_memory_bounds_get_ptr_from_begin(benchmark::State &state)
 {
     std::vector<unsigned char> buf(4096);
     lh_memory_bounds_t b = lh_memory_bounds_make_by_size(buf.data(), buf.size());
+    lh_usize_t index = 2048;
     for (auto _ : state)
     {
-        benchmark::DoNotOptimize(lh_memory_bounds_get_ptr_from_begin(&b, 2048));
+        benchmark::DoNotOptimize(b);
+        benchmark::DoNotOptimize(index);
+        benchmark::DoNotOptimize(lh_memory_bounds_get_ptr_from_begin(&b, index));
     }
 }
 BENCHMARK(BM_memory_bounds_get_ptr_from_begin);
@@ -48,6 +56,7 @@ BM_memory_bounds_is_valid(benchmark::State &state)
     lh_memory_bounds_t b = lh_memory_bounds_make_by_size(buf.data(), buf.size());
     for (auto _ : state)
     {
+        benchmark::DoNotOptimize(b);
         benchmark::DoNotOptimize(lh_memory_bounds_is_valid(&b));
     }
 }

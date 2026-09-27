@@ -3,15 +3,15 @@
  * @brief Backend-private: ::lh_net_ip4_socket_addr_t <-> `struct sockaddr_in`.
  *
  * Shared by `win/net/socket.c` and `posix/net/socket.c` — `sockaddr_in` has
- * the same layout contract on both. Not installed, not part of the API.
- * The includer must already have the native socket headers
- * (`<winsock2.h>` or `<netinet/in.h>`) in scope.
+ * the same member names on both (Windows' is our own mirror, win/ws2_32.h;
+ * POSIX's comes from `<netinet/in.h>`). Not installed, not part of the API.
  */
 
 #ifndef LH_SRC_OS_SYSTEM_NET_SOCKET_ADDR_H
 #define LH_SRC_OS_SYSTEM_NET_SOCKET_ADDR_H
 
 #include <lh/attribute/static.h>
+#include <lh/compiler/os.h>
 #include <lh/memory.h>
 #include <lh/net/ip.h>
 #include <lh/net/socket/addr/ip4.h>
@@ -20,9 +20,19 @@
 #include <lh/util/bit/endian.h>
 #include <lh/util/ptr.h>
 
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+#    include <lh/os/system/win/ws2_32.h>
+typedef lh_os_system_win_sockaddr_in_t lh_os_system_net_socket_native_addr_t;
+#    define LH_OS_SYSTEM_NET_SOCKET_NATIVE_AF_INET LH_OS_SYSTEM_WIN_AF_INET
+#else
+#    include <netinet/in.h>
+typedef struct sockaddr_in lh_os_system_net_socket_native_addr_t;
+#    define LH_OS_SYSTEM_NET_SOCKET_NATIVE_AF_INET AF_INET
+#endif
+
 LH_ATTRIBUTE_STATIC
 void
-lh_os_system_net_socket_native_addr_from_ip4(struct sockaddr_in *native_addr,
+lh_os_system_net_socket_native_addr_from_ip4(lh_os_system_net_socket_native_addr_t *native_addr,
                                              const lh_net_ip4_socket_addr_t *addr)
 {
     lh_net_ip4_t ip;
@@ -33,7 +43,7 @@ lh_os_system_net_socket_native_addr_from_ip4(struct sockaddr_in *native_addr,
     port = lh_net_ip4_socket_addr_get_port(addr);
 
     lh_memory_set(lh_addr_of(*native_addr), sizeof(*native_addr), 0);
-    native_addr->sin_family = AF_INET;
+    native_addr->sin_family = LH_OS_SYSTEM_NET_SOCKET_NATIVE_AF_INET;
 
     /* sin_addr is always network byte order in memory, byte for byte the same
      * order as the dotted-quad octets — writing the raw bytes avoids
@@ -52,7 +62,7 @@ lh_os_system_net_socket_native_addr_from_ip4(struct sockaddr_in *native_addr,
 LH_ATTRIBUTE_STATIC
 void
 lh_os_system_net_socket_ip4_from_native_addr(lh_net_ip4_socket_addr_t *addr,
-                                             const struct sockaddr_in *native_addr)
+                                             const lh_os_system_net_socket_native_addr_t *native_addr)
 {
     const lh_uchar_t *addr_bytes;
     lh_net_ip4_t ip;

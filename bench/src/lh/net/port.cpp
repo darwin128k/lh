@@ -5,10 +5,11 @@
 static void
 BM_net_port_parse(benchmark::State &state)
 {
-    const char text[] = "27015";
+    char text[] = "27015";
     lh_net_port_t out;
     for (auto _ : state)
     {
+        benchmark::DoNotOptimize(text);
         benchmark::DoNotOptimize(lh_net_port_parse(text, sizeof(text) - 1, &out));
     }
 }

@@ -11,6 +11,7 @@ BM_memory_view_get_size(benchmark::State &state)
     lh_memory_view_t v = lh_memory_view_make_by_size(buf.data(), buf.size());
     for (auto _ : state)
     {
+        benchmark::DoNotOptimize(v);
         benchmark::DoNotOptimize(lh_memory_view_get_size(&v));
     }
 }
@@ -21,9 +22,12 @@ BM_memory_view_get_ptr_from_begin(benchmark::State &state)
 {
     std::vector<unsigned char> buf(4096);
     lh_memory_view_t v = lh_memory_view_make_by_size(buf.data(), buf.size());
+    lh_usize_t index = 2048;
     for (auto _ : state)
     {
-        benchmark::DoNotOptimize(lh_memory_view_get_ptr_from_begin(&v, 2048));
+        benchmark::DoNotOptimize(v);
+        benchmark::DoNotOptimize(index);
+        benchmark::DoNotOptimize(lh_memory_view_get_ptr_from_begin(&v, index));
     }
 }
 BENCHMARK(BM_memory_view_get_ptr_from_begin);

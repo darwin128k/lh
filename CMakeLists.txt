@@ -193,6 +193,9 @@ target_include_directories(
         ${PROJECT_NAME}
         PUBLIC
         ${LH_LIB_INCLUDE_PATH}
+        # Library-private headers under src/lh/, included as <lh/...>.
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
 # Kernel backend's system libraries (chosen with LH_OS_SYSTEM_BACKEND above).
@@ -233,6 +236,21 @@ if (NOT LH_LIBRARY_OPTION_LTO STREQUAL "OFF")
     else ()
         message(STATUS "LH_LIBRARY_OPTION_LTO=${LH_LIBRARY_OPTION_LTO}: the C toolchain has no LTO; building without it.")
     endif ()
+endif ()
+# memory/std.c stays out of LTO: its SIMD kernels are tuned against per-TU
+# codegen, where GCC inlines the small-size tiers (copy_sse2, set_sse2) into
+# their dispatchers. Under LTO the whole-program inliner stops doing that, and
+# the dispatch statics gain a .refptr load on MinGW: measured 1.3x-1.8x slower
+# copy/set at 64-256 bytes. Its entry points are too large to inline into
+# callers anyway, so nothing is lost by keeping it native.
+if (LH_IPO_SUPPORTED)
+    if (MSVC)
+        set(LH_NO_LTO_FLAG /GL-)
+    else ()
+        set(LH_NO_LTO_FLAG -fno-lto)
+    endif ()
+    set_source_files_properties(${LH_LIB_SRC_PATH}/memory/std.c PROPERTIES
+            COMPILE_OPTIONS $<$<CONFIG:Release>:${LH_NO_LTO_FLAG}>)
 endif ()
 if (LH_IPO_SUPPORTED AND LH_LIBRARY_OPTION_LTO STREQUAL "FAT")
     set(LH_LTO_FAT FALSE)

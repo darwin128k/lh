@@ -13,6 +13,7 @@ BM_memory_typed_get_size(benchmark::State &state)
         lh_memory_typed_initializer(buf.data(), buf.data() + buf.size(), sizeof(int));
     for (auto _ : state)
     {
+        benchmark::DoNotOptimize(t);
         benchmark::DoNotOptimize(lh_memory_typed_get_size(&t));
     }
 }
@@ -24,9 +25,12 @@ BM_memory_typed_get_ptr_from_begin(benchmark::State &state)
     std::vector<int> buf(1024);
     lh_memory_typed_t t =
         lh_memory_typed_initializer(buf.data(), buf.data() + buf.size(), sizeof(int));
+    lh_usize_t index = 512;
     for (auto _ : state)
     {
-        benchmark::DoNotOptimize(lh_memory_typed_get_ptr_from_begin(&t, 512));
+        benchmark::DoNotOptimize(t);
+        benchmark::DoNotOptimize(index);
+        benchmark::DoNotOptimize(lh_memory_typed_get_ptr_from_begin(&t, index));
     }
 }
 BENCHMARK(BM_memory_typed_get_ptr_from_begin);
@@ -37,9 +41,12 @@ BM_memory_typed_is_valid_index(benchmark::State &state)
     std::vector<int> buf(1024);
     lh_memory_typed_t t =
         lh_memory_typed_initializer(buf.data(), buf.data() + buf.size(), sizeof(int));
+    lh_usize_t index = 512;
     for (auto _ : state)
     {
-        benchmark::DoNotOptimize(lh_memory_typed_is_valid_index(&t, 512));
+        benchmark::DoNotOptimize(t);
+        benchmark::DoNotOptimize(index);
+        benchmark::DoNotOptimize(lh_memory_typed_is_valid_index(&t, index));
     }
 }
 BENCHMARK(BM_memory_typed_is_valid_index);

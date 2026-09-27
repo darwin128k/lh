@@ -35,6 +35,7 @@ BM_time_add_second(benchmark::State &state)
     for (auto _ : state)
     {
         lh_time_t cur = time;
+        benchmark::DoNotOptimize(cur);
         benchmark::DoNotOptimize(lh_time_add_second(lh_addr_of(cur), 1U));
         benchmark::DoNotOptimize(cur);
     }
