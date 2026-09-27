@@ -42,7 +42,9 @@ BENCHMARK(BM_memory_std_copy)
     ->Arg(65536)
     ->Arg(262144)
     ->Arg(1024 * 1024)
+    ->Arg(2 * 1024 * 1024)
     ->Arg(4 * 1024 * 1024)
+    ->Arg(8 * 1024 * 1024)
     ->Arg(16 * 1024 * 1024);
 
 static void
@@ -93,7 +95,9 @@ BENCHMARK(BM_crt_memcpy)
     ->Arg(65536)
     ->Arg(262144)
     ->Arg(1024 * 1024)
+    ->Arg(2 * 1024 * 1024)
     ->Arg(4 * 1024 * 1024)
+    ->Arg(8 * 1024 * 1024)
     ->Arg(16 * 1024 * 1024);
 
 static void
@@ -118,7 +122,9 @@ BENCHMARK(BM_memory_std_set)
     ->Arg(65536)
     ->Arg(262144)
     ->Arg(1024 * 1024)
+    ->Arg(2 * 1024 * 1024)
     ->Arg(4 * 1024 * 1024)
+    ->Arg(8 * 1024 * 1024)
     ->Arg(16 * 1024 * 1024);
 
 // Comparison baseline: the platform CRT's own memset, interleaved with the run above so
@@ -145,7 +151,9 @@ BENCHMARK(BM_crt_memset)
     ->Arg(65536)
     ->Arg(262144)
     ->Arg(1024 * 1024)
+    ->Arg(2 * 1024 * 1024)
     ->Arg(4 * 1024 * 1024)
+    ->Arg(8 * 1024 * 1024)
     ->Arg(16 * 1024 * 1024);
 
 static void

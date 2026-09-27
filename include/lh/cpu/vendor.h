@@ -5,11 +5,8 @@
  * Unlike ::lh_cpu_simd_has_sse2 and friends (lh/cpu/simd.h), this is not about
  * whether a feature is *usable* — it is a straight identity question, read once from
  * CPUID leaf 0's vendor string ("GenuineIntel" / "AuthenticAMD", packed into
- * EBX:EDX:ECX in that order). Not currently used anywhere in this library — some
- * microarchitectural trade-offs (e.g. REP MOVSB's throughput relative to a hand-
- * written SIMD loop) turned out to vary by vendor, but by the time this was added,
- * this project's own SIMD tiers had already closed that particular gap on their own.
- * Kept as a general-purpose primitive for whoever needs it next.
+ * EBX:EDX:ECX in that order). Used by ::lh_cpu_cache_get_l3_size (lh/cpu/cache.h),
+ * since Intel and AMD describe their caches through different CPUID leaves.
  */
 
 #ifndef LH_CPU_VENDOR_H

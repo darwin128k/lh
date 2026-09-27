@@ -7,6 +7,7 @@
 #include <lh/compiler/arch.h>
 #include <lh/compiler/arch/family.h>
 #include <lh/config.h>
+#include <lh/cpu/cache.h>
 #include <lh/cpu/simd.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/util/bit.h>
@@ -616,7 +617,7 @@ lh_memory_std_copy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 }
 
 /* Non-temporal SSE2 twin of lh_memory_std_copy_avx2_stream below — same RFO/cache-
- * pollution reason, same 2MB crossover (LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD), but
+ * pollution reason, same crossover (lh_memory_std_is_stream_size), but
  * for CPUs that have SSE2 and not AVX2. Without this tier the multi-MB copies on an
  * SSE2-only machine stay on regular _mm_storeu_si128 and keep losing to the platform
  * CRT's memcpy (the gap the 4-wide unroll in lh_memory_std_copy_sse2 closed for mid
@@ -845,7 +846,7 @@ lh_memory_std_copy_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
     }
 }
 
-/* Non-temporal ("streaming") store tier for copies past LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD
+/* Non-temporal ("streaming") store tier for copies past lh_memory_std_is_stream_size
  * — past the point where lh_memory_std_copy_avx2 above starts losing to the platform CRT's own
  * memcpy on this project's Zen2 benchmark target (regular stores measured ~1.7x-2.2x slower than
  * the CRT at 4-16MB, despite winning by a wide margin at every smaller size already covered by
@@ -966,13 +967,54 @@ static unsigned char m_copy_rev_kind;
 #    define LH_MEMORY_STD_SIMD_COPY_THRESHOLD                                                      \
         (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD))
 
-/* Above this, the non-temporal stream tier (lh_memory_std_copy_avx2_stream, or
- * lh_memory_std_copy_sse2_stream when AVX2 isn't available) takes over from the plain
- * SIMD copy above — see those functions' own doc comments for why; the crossover was
- * measured on this project's own Zen2 benchmark target somewhere between 1MB (the
- * plain AVX2 tier still wins there) and 4MB (it loses clearly). */
-#    define LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD                                               \
+/* Where the non-temporal stream tiers (lh_memory_std_{copy,set}_{avx2,sse2}_stream)
+ * take over from the plain SIMD ones: once the bytes the operation pulls through
+ * the cache (n for a fill, 2n for a copy: source plus destination) reach this
+ * CPU's L3 size, and never below the CMake floor
+ * (LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD, also the fallback when the
+ * L3 size is unknown). NT stores skip the cache, which only pays once the data no
+ * longer fits in it. With the fixed 2MB threshold used before, a 4MB fill on an
+ * 8MB-L3 CPU bypassed a cache it fitted in — measured 3.5x-5x slower than the
+ * MSVC CRT's memset on Zen2 (Ryzen 7 5700U) and 1.7x on an i7-3770K, while NT
+ * stores still won 2.3x-2.6x at 16MB. A 4MB copy (8MB through the cache) keeps
+ * streaming, which is where the copy tier's own measurements put it. */
+#    define LH_MEMORY_STD_STREAM_FLOOR                                                             \
         (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD))
+#    define LH_MEMORY_STD_STREAM_COPY_TRAFFIC 2U /* bytes through the cache per byte copied */
+#    define LH_MEMORY_STD_STREAM_SET_TRAFFIC 1U  /* ... per byte filled */
+
+/* This CPU's L3 size, or the floor when unknown or smaller. Resolved on first
+ * use; 0 = not yet. */
+static lh_usize_t m_stream_cache_size;
+
+static lh_usize_t
+lh_memory_std_stream_cache_size_resolve(void)
+{
+    const lh_usize_t l3 = lh_cpu_cache_get_l3_size();
+
+    m_stream_cache_size = l3 > LH_MEMORY_STD_STREAM_FLOOR ? l3 : LH_MEMORY_STD_STREAM_FLOOR;
+    return m_stream_cache_size;
+}
+
+/* The floor check first keeps every copy/set below it off the shared state. */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
+lh_memory_std_is_stream_size(lh_usize_t n, lh_usize_t traffic)
+{
+    lh_usize_t cache_size;
+
+    if (n < LH_MEMORY_STD_STREAM_FLOOR)
+    {
+        return lh_bool_false;
+    }
+    cache_size = m_stream_cache_size;
+    if (cache_size == 0U)
+    {
+        cache_size = lh_memory_std_stream_cache_size_resolve();
+    }
+    /* n >= cache_size / traffic, without n * traffic overflowing. */
+    return lh_cast_static(lh_bool_t, n >= cache_size / traffic);
+}
 
 static void
 lh_memory_std_copy_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
@@ -1002,7 +1044,7 @@ lh_memory_std_copy_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usiz
 
     /* Honour the stream threshold on this first call too — otherwise a first-ever
      * multi-MB copy would resolve the pointers and then run the plain SIMD tier. */
-    if (n >= LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD && m_copy_stream_impl != lh_null)
+    if (lh_memory_std_is_stream_size(n, LH_MEMORY_STD_STREAM_COPY_TRAFFIC) && m_copy_stream_impl != lh_null)
     {
         m_copy_stream_impl(dst, src, n);
     }
@@ -1035,7 +1077,7 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
         lh_uchar_t *d = lh_ptr_cast(lh_uchar_t, dst);
         const lh_uchar_t *s = lh_ptr_ccast(lh_uchar_t, src);
 
-        if (n >= LH_MEMORY_STD_SIMD_COPY_STREAM_THRESHOLD)
+        if (lh_memory_std_is_stream_size(n, LH_MEMORY_STD_STREAM_COPY_TRAFFIC))
         {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
             if (m_simd_kind == LH_MEMORY_STD_KIND_AVX2)
@@ -2030,11 +2072,6 @@ lh_memory_std_set_simd_dispatch(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n);
 static lh_memory_std_set_simd_fn m_set_simd_impl = lh_memory_std_set_simd_dispatch;
 static lh_memory_std_set_simd_fn m_set_stream_impl = lh_null;
 
-/* Same crossover as the copy stream tier — past this, RFO on every destination line
- * dominates, and NT stores win. */
-#    define LH_MEMORY_STD_SIMD_SET_STREAM_THRESHOLD                                                \
-        (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD))
-
 static void
 lh_memory_std_set_simd_dispatch(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 {
@@ -2061,7 +2098,7 @@ lh_memory_std_set_simd_dispatch(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
         m_simd_kind = LH_MEMORY_STD_KIND_SCALAR;
     }
 
-    if (n >= LH_MEMORY_STD_SIMD_SET_STREAM_THRESHOLD && m_set_stream_impl != lh_null)
+    if (lh_memory_std_is_stream_size(n, LH_MEMORY_STD_STREAM_SET_TRAFFIC) && m_set_stream_impl != lh_null)
     {
         m_set_stream_impl(dst, val, n);
     }
@@ -2090,7 +2127,7 @@ lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n)
     {
         lh_uchar_t *d = lh_ptr_cast(lh_uchar_t, dst);
 
-        if (n >= LH_MEMORY_STD_SIMD_SET_STREAM_THRESHOLD)
+        if (lh_memory_std_is_stream_size(n, LH_MEMORY_STD_STREAM_SET_TRAFFIC))
         {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
             if (m_simd_kind == LH_MEMORY_STD_KIND_AVX2)
