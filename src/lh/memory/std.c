@@ -385,7 +385,8 @@ lh_memory_std_set_bytes(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 #endif
 }
 
-static const lh_ptr
+LH_ATTRIBUTE_FORCE_INLINE
+const lh_ptr
 lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs);
@@ -414,7 +415,8 @@ lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
     return lh_null;
 }
 
-static const lh_ptr
+LH_ATTRIBUTE_FORCE_INLINE
+const lh_ptr
 lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs) + (n - 1U);
@@ -1728,8 +1730,13 @@ lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 
+/* Force-inlined into lh_memory_std_set's SSE2 branch (its only direct caller;
+ * m_set_simd_impl still gets an out-of-line copy). GCC inlined it there on its
+ * own until LTO, which stops doing so: measured ~1.2x slower set at 64-256 bytes
+ * on the SSE2-only bench machine. Same story as lh_memory_std_copy_sse2_small. */
+LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
-static void
+void
 lh_memory_std_set_sse2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 {
     const __m128i v = _mm_set1_epi8(lh_cast_static(char, val));
