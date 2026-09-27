@@ -158,12 +158,23 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
         return lh_null;
     }
 
-    for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), rhs_size); off = lh_math_add(off, step))
+    /* General needle: test its first byte in place and pay for the full
+     * lh_memory_compare call (itself a call into lh_memory_std_compare's dispatch)
+     * only where that byte matches — on ordinary text that skips nearly every
+     * candidate. No block pre-scan here, unlike the single-byte path: with
+     * lh_memory_scan, lhs_size is the address-space bound, and a block read could
+     * run past the real buffer where the needle's first byte never occurs; cand[0]
+     * is a byte the full compare would read anyway. */
     {
-        const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
-        if (!lh_memory_compare(cand, lh_memory_size_rest(lhs_size, off), rhs, rhs_size))
+        const lh_uchar_t first = *lh_ptr_cast(const lh_uchar_t, rhs);
+
+        for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), rhs_size); off = lh_math_add(off, step))
         {
-            return cand;
+            const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
+            if (*cand == first && !lh_memory_compare(cand, lh_memory_size_rest(lhs_size, off), rhs, rhs_size))
+            {
+                return cand;
+            }
         }
     }
     return lh_null;
@@ -246,18 +257,23 @@ lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh
         return lh_null;
     }
 
-    for (;;)
+    /* Same first-byte filter as lh_memory_find_step's general path. */
     {
-        const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
-        if (!lh_memory_compare(cand, lhs_size - off, rhs, rhs_size))
+        const lh_uchar_t first = *lh_ptr_cast(const lh_uchar_t, rhs);
+
+        for (;;)
         {
-            return cand;
+            const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
+            if (*cand == first && !lh_memory_compare(cand, lhs_size - off, rhs, rhs_size))
+            {
+                return cand;
+            }
+            if (off < step)
+            {
+                break;
+            }
+            off -= step;
         }
-        if (off < step)
-        {
-            break;
-        }
-        off -= step;
     }
     return lh_null;
 }

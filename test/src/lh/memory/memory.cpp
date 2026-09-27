@@ -179,6 +179,61 @@ TEST(memory_find, not_found_returns_null)
     EXPECT_TRUE(lh_null_eq(p));
 }
 
+/* The general (multi-byte needle) path filters candidates on the needle's first
+ * byte before the full compare: first-byte hits that are not matches must not
+ * end the search, and the earliest real match must win. */
+TEST(memory_find, first_byte_repeats_before_match)
+{
+    const lh_uchar_t hay[] = {'a', 'a', 'a', 'a', 'b'};
+    const lh_uchar_t needle[] = {'a', 'b'};
+    const lh_ptr p = lh_memory_find(hay, 5, needle, 2);
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, static_cast<const lh_ptr>(&hay[3]));
+}
+
+TEST(memory_find, first_byte_hits_without_match_returns_null)
+{
+    const lh_uchar_t hay[] = {'a', 'x', 'a', 'y', 'a', 'z'};
+    const lh_uchar_t needle[] = {'a', 'q'};
+    const lh_ptr p = lh_memory_find(hay, 6, needle, 2);
+    EXPECT_TRUE(lh_null_eq(p));
+}
+
+TEST(memory_find, match_ends_at_haystack_end)
+{
+    const lh_uchar_t hay[] = {'x', 'a', 'b', 'a', 'b', 'c'};
+    const lh_uchar_t needle[] = {'a', 'b', 'c'};
+    const lh_ptr p = lh_memory_find(hay, 6, needle, 3);
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, static_cast<const lh_ptr>(&hay[3]));
+}
+
+TEST(memory_find, needle_cut_by_haystack_end_returns_null)
+{
+    const lh_uchar_t hay[] = {'x', 'a', 'b'};
+    const lh_uchar_t needle[] = {'a', 'b', 'c'};
+    const lh_ptr p = lh_memory_find(hay, 3, needle, 3);
+    EXPECT_TRUE(lh_null_eq(p));
+}
+
+TEST(memory_find_step, wide_needle_on_grid)
+{
+    /* Two-unit needle on a 2-byte grid (rhs_size != step: general path). */
+    const lh_uchar_t hay[] = {'x', 0, 'a', 0, 'a', 0, 'b', 0};
+    const lh_uchar_t needle[] = {'a', 0, 'b', 0};
+    const lh_ptr p = lh_memory_find_step(hay, 8, needle, 4, 2);
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, static_cast<const lh_ptr>(&hay[4]));
+}
+
+TEST(memory_find_step, wide_needle_off_grid_is_skipped)
+{
+    const lh_uchar_t hay[] = {'x', 'a', 0, 'b', 0, 'z'};
+    const lh_uchar_t needle[] = {'a', 0, 'b', 0};
+    EXPECT_EQ(lh_memory_find_step(hay, 6, needle, 4, 1), static_cast<const lh_ptr>(&hay[1]));
+    EXPECT_TRUE(lh_null_eq(lh_memory_find_step(hay, 6, needle, 4, 2)));
+}
+
 TEST(memory_find_step, step_one_matches_memory_find)
 {
     const lh_uchar_t hay[] = {'x', 'a', 'b', 'c'};
@@ -287,6 +342,23 @@ TEST(memory_rfind, finds_last_occurrence)
     const lh_ptr p = lh_memory_rfind(hay, 5, needle, 2);
     ASSERT_TRUE(lh_null_ne(p));
     EXPECT_EQ(p, static_cast<const lh_ptr>(&hay[2]));
+}
+
+TEST(memory_rfind, first_byte_repeats_after_match)
+{
+    const lh_uchar_t hay[] = {'a', 'b', 'a', 'a', 'a'};
+    const lh_uchar_t needle[] = {'a', 'b'};
+    const lh_ptr p = lh_memory_rfind(hay, 5, needle, 2);
+    ASSERT_TRUE(lh_null_ne(p));
+    EXPECT_EQ(p, static_cast<const lh_ptr>(&hay[0]));
+}
+
+TEST(memory_rfind, first_byte_hits_without_match_returns_null)
+{
+    const lh_uchar_t hay[] = {'a', 'x', 'a', 'y', 'a'};
+    const lh_uchar_t needle[] = {'a', 'q'};
+    const lh_ptr p = lh_memory_rfind(hay, 5, needle, 2);
+    EXPECT_TRUE(lh_null_eq(p));
 }
 
 TEST(memory_rfind, not_found_returns_null)
