@@ -185,6 +185,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/net.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/net/socket.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/shared.c
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/str.c
     )
 endif ()
 

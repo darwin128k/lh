@@ -8,6 +8,7 @@
 #include <lh/attribute/static.h>
 #include <lh/null.h>
 #include <lh/os/system/error/capture.h>
+#include <lh/os/system/str.h>
 #include <lh/util/addr.h>
 #include <lh/util/math.h>
 #include <lh/util/ptr.h>
@@ -155,6 +156,5 @@ lh_os_system_shared_get_path(lh_os_system_shared_handle_t handle, lh_str_t *out)
         lh_os_system_error_capture();
         return lh_bool_false;
     }
-    lh_str_assign_view(out, lh_str_view_make(name));
-    return lh_bool_true;
+    return lh_os_system_str_to_utf8(name, lh_os_str_ptr_len(name), out);
 }

@@ -302,6 +302,23 @@ Two last-error slots, never mixed (see `lh/os/system/error/code.h`):
 Native codes stay native. To ask what a native code *means* the same way on
 every OS, use `lh/os/system/error/kind.h`.
 
+### Text is UTF-8
+
+Every path lh takes and every path, name or message it hands back is UTF-8,
+on every OS. On Windows the backend talks to the kernel only through the
+`...W` functions and converts UTF-8 ⇄ UTF-16 at that boundary; the `...A`
+functions are never used, because they read the ANSI code page (cp1251,
+cp1252, …) rather than UTF-8. So `Папка-日本/модуль.dll` loads the same on a
+Russian, an English or a Japanese Windows, and `lh_os_module_get_path_as_const`
+returns it byte for byte. With `LH_LIBRARY_OPTION_OS_WERROR` on, native error
+messages are UTF-16 instead (that option's purpose).
+
+The kernel's own text has a type, `lh_os_str_t` (`lh/os/str.h`): UTF-16
+(`lh_wstr_t`) on Windows, UTF-8 (`lh_str_t`) on POSIX. The one place text
+crosses between the two is `lh_os_system_str_from_utf8` /
+`lh_os_system_str_to_utf8` (`lh/os/system/str.h`) — a conversion on Windows,
+a copy on POSIX.
+
 ---
 
 ## 9. Writing a module

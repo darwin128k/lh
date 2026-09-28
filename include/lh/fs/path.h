@@ -15,6 +15,10 @@
  * segment allocates nothing. The root is still its own field — a segment is
  * never asked "are you secretly the root". A name, not a disk probe:
  * exists / is-file / stat are not here.
+ *
+ * The text is UTF-8 on every OS. The Windows backend converts it to UTF-16
+ * for the kernel (`...W` calls) and converts what the kernel returns back,
+ * so a path outside the ANSI code page works the same as any other.
  */
 
 #ifndef LH_FS_PATH_H

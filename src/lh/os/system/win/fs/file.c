@@ -5,6 +5,7 @@
 #include <lh/cast/static.h>
 #include <lh/null.h>
 #include <lh/os/system/error/capture.h>
+#include <lh/os/system/str.h>
 #include <lh/os/system/win/kernel32.h>
 #include <lh/runtime/error.h>
 #include <lh/util/addr.h>
@@ -63,9 +64,19 @@ lh_os_system_fs_file_open(lh_str_cptr path, lh_fs_file_mode_t mode)
                              !lh_fs_file_mode_is_writable(mode),
                          lh_runtime_error_code_invalid_argument);
 
-    const lh_os_system_win_handle_t native = CreateFileA(
-        path, lh_os_system_fs_file_access(mode), LH_OS_SYSTEM_WIN_FILE_SHARE_READ, lh_null,
-        lh_os_system_fs_file_disposition(mode), LH_OS_SYSTEM_WIN_FILE_ATTRIBUTE_NORMAL, lh_null);
+    lh_os_str_t os_path;
+
+    lh_os_str_init(lh_addr_of(os_path));
+    if (!lh_os_system_str_from_utf8(lh_addr_of(os_path), path))
+    {
+        lh_os_str_deinit(lh_addr_of(os_path));
+        return LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID;
+    }
+    const lh_os_system_win_handle_t native = CreateFileW(
+        lh_os_str_get_data(lh_addr_of(os_path)), lh_os_system_fs_file_access(mode),
+        LH_OS_SYSTEM_WIN_FILE_SHARE_READ, lh_null, lh_os_system_fs_file_disposition(mode),
+        LH_OS_SYSTEM_WIN_FILE_ATTRIBUTE_NORMAL, lh_null);
+    lh_os_str_deinit(lh_addr_of(os_path));
     if (lh_math_eq(native, LH_OS_SYSTEM_WIN_INVALID_HANDLE))
     {
         lh_os_system_error_capture();
