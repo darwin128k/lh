@@ -2,6 +2,8 @@
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/null.h>
+#include <lh/os/alloc.h>
+#include <lh/runtime/allocator.h>
 #include <lh/runtime/error.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -93,6 +95,25 @@ lh_os_loader_deinit(lh_os_loader_t *self)
 {
     lh_os_loader_unload(self);
     lh_str_deinit(lh_os_loader_get_entry_mut(self));
+}
+
+lh_os_loader_t *
+lh_os_loader_create(lh_os_module_t *owner, lh_str_cptr entry)
+{
+    lh_os_loader_t *const self = lh_ptr_cast(lh_os_loader_t, lh_os_alloc(sizeof(*self)));
+
+    if (lh_null_ne(self))
+    {
+        lh_os_loader_init(self, owner, entry);
+    }
+    return self;
+}
+
+void
+lh_os_loader_destroy(lh_os_loader_t *self)
+{
+    lh_os_loader_deinit(self);
+    lh_runtime_allocator_free(self);
 }
 
 /* ── load ────────────────────────────────────────────────────────────────── */

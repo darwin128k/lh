@@ -194,13 +194,12 @@ lh_os_module_grant_loader(lh_os_module_t *self, lh_str_cptr entry)
         lh_os_set_last_error_lit(lh_os_error_code_already_open, "loader already granted");
         return lh_null;
     }
-    lh_os_loader_t *const loader = lh_ptr_cast(lh_os_loader_t, lh_os_alloc(sizeof(*loader)));
-    if (lh_null_eq(loader))
+    lh_os_loader_t *const loader = lh_os_loader_create(self, entry);
+
+    if (lh_null_ne(loader))
     {
-        return lh_null;
+        lh_os_module_set_loader(self, loader);
     }
-    lh_os_loader_init(loader, self, entry);
-    lh_os_module_set_loader(self, loader);
     return loader;
 }
 
@@ -215,8 +214,7 @@ lh_os_module_revoke_loader(lh_os_module_t *self)
     {
         return;
     }
-    lh_os_loader_deinit(loader);
-    lh_runtime_allocator_free(loader);
+    lh_os_loader_destroy(loader);
     lh_os_module_set_loader(self, lh_null);
 }
 

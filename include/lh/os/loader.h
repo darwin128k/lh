@@ -57,7 +57,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief No children yet. Each child's owner is this loader, so @p owner
  *        is each child's parent (::lh_os_module_get_parent).
  *
- * Normally called by ::lh_os_module_grant_loader, not directly.
+ * Normally reached through ::lh_os_loader_create (which ::lh_os_module_grant_loader
+ * calls); call it directly only for a loader in memory of your own.
  *
  * @param owner Module holding this privilege.
  * @param entry Name a child exports its ::lh_os_module_ops_t under. Copied.
@@ -70,6 +71,23 @@ lh_os_loader_init(lh_os_loader_t *self, lh_os_module_t *owner, lh_str_cptr entry
  */
 void
 lh_os_loader_deinit(lh_os_loader_t *self);
+
+/**
+ * @brief A new loader on the heap: ::lh_os_loader_init'ed memory from the
+ *        runtime allocator. What ::lh_os_module_grant_loader uses.
+ *
+ * @return The loader, or ::lh_null (::lh_os_error_code_out_of_memory in
+ *         ::lh_os_last_error).
+ */
+lh_os_loader_t *
+lh_os_loader_create(lh_os_module_t *owner, lh_str_cptr entry);
+
+/**
+ * @brief ::lh_os_loader_deinit (every child unloaded), then free the memory.
+ *        Only for a loader from ::lh_os_loader_create.
+ */
+void
+lh_os_loader_destroy(lh_os_loader_t *self);
 
 /**
  * @brief Close every child, last loaded first. The loader stays usable.
