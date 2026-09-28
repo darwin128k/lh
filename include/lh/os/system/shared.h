@@ -40,7 +40,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return View over a static literal; its size is known without a scan.
  */
 lh_str_view_t
-lh_os_system_shared_ext(void);
+lh_os_system_shared_get_ext(void);
 
 /**
  * @brief Open the shared image at @p path.
@@ -67,7 +67,7 @@ lh_os_system_shared_close(lh_os_system_shared_handle_t handle);
  * @param name   Exported symbol name.
  */
 lh_ptr
-lh_os_system_shared_sym(lh_os_system_shared_handle_t handle, lh_str_cptr name);
+lh_os_system_shared_get_sym(lh_os_system_shared_handle_t handle, lh_str_cptr name);
 
 /**
  * @brief Handle of the program itself (the executable, not a library).
@@ -80,7 +80,7 @@ lh_os_system_shared_sym(lh_os_system_shared_handle_t handle, lh_str_cptr name);
  * @return Handle, or ::LH_OS_SYSTEM_SHARED_HANDLE_INVALID on failure.
  */
 lh_os_system_shared_handle_t
-lh_os_system_shared_main(lh_bool_t *owned);
+lh_os_system_shared_get_executable(lh_bool_t *owned);
 
 /**
  * @brief Handle of the already-loaded image that contains @p addr.
@@ -95,7 +95,7 @@ lh_os_system_shared_main(lh_bool_t *owned);
  * @return Handle, or ::LH_OS_SYSTEM_SHARED_HANDLE_INVALID on failure.
  */
 lh_os_system_shared_handle_t
-lh_os_system_shared_of_addr(lh_ptr addr, lh_bool_t *owned);
+lh_os_system_shared_get_by_addr(lh_ptr addr, lh_bool_t *owned);
 
 /**
  * @brief Native path of @p handle into @p out (replacing its contents).
@@ -109,7 +109,7 @@ lh_os_system_shared_of_addr(lh_ptr addr, lh_bool_t *owned);
  *         or an over-long path, ::lh_os_system_last_error otherwise).
  */
 lh_bool_t
-lh_os_system_shared_path(lh_os_system_shared_handle_t handle, lh_str_t *out);
+lh_os_system_shared_get_path(lh_os_system_shared_handle_t handle, lh_str_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

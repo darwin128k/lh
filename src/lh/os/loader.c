@@ -1,19 +1,11 @@
 #include <lh/os/loader.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
-#include <lh/cast/static.h>
-#include <lh/fs/path/style.h>
 #include <lh/null.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
-#include <lh/os/fs/dir.h>
-#include <lh/os/system.h>
-#include <lh/os/system/error/kind.h>
-#include <lh/os/system/shared.h>
 #include <lh/runtime/allocator.h>
-#include <lh/str/view.h>
 #include <lh/util/addr.h>
-#include <lh/util/math.h>
 #include <lh/util/ptr.h>
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
@@ -144,106 +136,6 @@ lh_os_loader_load(lh_os_loader_t *self, const lh_fs_path_t *path)
     }
     lh_vector_push_back(lh_os_loader_get_modules(self), lh_addr_of(child));
     return child;
-}
-
-/* A regular entry whose name ends with the platform suffix (`ext`). */
-LH_ATTRIBUTE_STATIC
-lh_bool_t
-lh_os_loader_is_image(lh_os_fs_dir_entry_kind_t kind, const lh_str_view_t *name, const lh_str_view_t *ext)
-{
-    if (lh_math_eq(kind, lh_os_fs_dir_entry_kind_dir) || lh_math_eq(kind, lh_os_fs_dir_entry_kind_symlink))
-    {
-        return lh_bool_false;
-    }
-    return lh_str_view_ends_with(name, ext, lh_bool_true);
-}
-
-/* Called right after lh_os_fs_dir_open failed: true when the OS said there
-   is no directory there (missing, or not a directory) — a scan of nothing.
-   The caller clears the native slot before opening: our own checks (out of
-   memory) never touch it, so a stale "not found" from an earlier call must
-   not pass for this one. */
-LH_ATTRIBUTE_STATIC
-lh_bool_t
-lh_os_loader_is_absent_dir(void)
-{
-    lh_os_system_error_code_t code;
-
-    code = lh_os_system_get_last_error_code();
-    return lh_cast_static(lh_bool_t,
-                          lh_os_system_error_code_is_not_found(code) || lh_os_system_error_code_is_not_dir(code));
-}
-
-lh_bool_t
-lh_os_loader_load_dir(lh_os_loader_t *self, const lh_fs_path_t *dir, const lh_fs_path_t *skip)
-{
-    lh_os_fs_dir_t listing;
-    lh_fs_path_t name;
-    lh_fs_path_t full;
-    lh_str_view_t ext;
-    lh_str_view_t entry;
-    lh_os_fs_dir_entry_kind_t kind;
-    lh_ssize_t n;
-
-    if (lh_fs_path_is_empty(dir))
-    {
-        lh_os_set_last_error(lh_os_error_make(lh_os_error_code_path_empty, lh_os_error_desc_lit("path is empty")));
-        return lh_bool_false;
-    }
-    lh_os_fs_dir_init(lh_addr_of(listing));
-    lh_os_system_error_clear(lh_os_system_last_error());
-    if (!lh_os_fs_dir_open(lh_addr_of(listing), dir))
-    {
-        return lh_os_loader_is_absent_dir();
-    }
-
-    ext = lh_os_system_shared_ext();
-    lh_fs_path_init(lh_addr_of(name));
-    lh_fs_path_init(lh_addr_of(full));
-    for (;;)
-    {
-        n = lh_os_fs_dir_read(lh_addr_of(listing), lh_addr_of(entry), lh_addr_of(kind));
-        if (!lh_math_gt(n, 0))
-        {
-            break;
-        }
-        if (!lh_os_loader_is_image(kind, lh_addr_of(entry), lh_addr_of(ext)))
-        {
-            continue;
-        }
-        lh_fs_path_set(lh_addr_of(name), entry, lh_fs_path_style_posix);
-        if (!lh_fs_path_join(lh_addr_of(full), dir, lh_addr_of(name)) ||
-            (lh_null_ne(skip) && lh_fs_path_equals(lh_addr_of(full), skip, lh_bool_false)))
-        {
-            continue;
-        }
-        lh_os_loader_load(self, lh_addr_of(full));
-    }
-    lh_os_fs_dir_close(lh_addr_of(listing));
-    lh_fs_path_deinit(lh_addr_of(name));
-    lh_fs_path_deinit(lh_addr_of(full));
-    /* 0 is the end of the listing, a negative count a failed read. */
-    return lh_cast_static(lh_bool_t, lh_math_is_zero(n));
-}
-
-lh_bool_t
-lh_os_loader_load_beside(lh_os_loader_t *self, const lh_fs_path_t *image, const lh_fs_path_t *subdir)
-{
-    lh_fs_path_t dir;
-    lh_bool_t ok;
-
-    if (lh_fs_path_is_empty(image))
-    {
-        lh_os_set_last_error(lh_os_error_make(lh_os_error_code_path_empty, lh_os_error_desc_lit("path is empty")));
-        return lh_bool_false;
-    }
-    /* `image` is non-empty, so parent can only fail on a bare root: nothing beside it. */
-    lh_fs_path_init(lh_addr_of(dir));
-    ok = lh_cast_static(lh_bool_t, !lh_fs_path_parent(lh_addr_of(dir), image) ||
-                                       (lh_fs_path_join(lh_addr_of(dir), lh_addr_of(dir), subdir) &&
-                                        lh_os_loader_load_dir(self, lh_addr_of(dir), image)));
-    lh_fs_path_deinit(lh_addr_of(dir));
-    return ok;
 }
 
 /* ── children ────────────────────────────────────────────────────────────── */

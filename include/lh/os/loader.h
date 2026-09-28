@@ -14,10 +14,10 @@
  * ::lh_os_loader_load or ::lh_os_loader_get stays valid until the child is
  * unloaded.
  *
- * Directory scan is one level, shared images only (the platform suffix).
- * Subdirectories and symbolic links are skipped. A missing directory, or a
- * path that is not a directory, succeeds with nothing loaded. One rejected
- * child does not fail the scan.
+ * Which paths to load — a list, a directory scan, a config file — is the
+ * caller's policy, not the loader's: it takes one path at a time. The
+ * pieces for building such a policy are elsewhere (::lh_os_fs_dir_t,
+ * ::lh_os_system_shared_get_ext, `lh/os/system/error/kind.h`).
  *
  * Requires ::LH_LIBRARY_OPTION_OS.
  */
@@ -96,24 +96,6 @@ lh_os_loader_get_entry(const lh_os_loader_t *self);
  */
 lh_os_module_t *
 lh_os_loader_load(lh_os_loader_t *self, const lh_fs_path_t *path);
-
-/**
- * @brief Load every shared image in @p dir (one level).
- *
- * Skips the image at @p skip when it is not ::lh_null (the file whose
- * sibling directory is being scanned). Empty @p dir is an error.
- */
-lh_bool_t
-lh_os_loader_load_dir(lh_os_loader_t *self, const lh_fs_path_t *dir, const lh_fs_path_t *skip);
-
-/**
- * @brief Load shared images from @p subdir beside @p image.
- *
- * @p image is the file, not the directory. @p subdir is a relative name
- * (`modules`). The image file itself is skipped.
- */
-lh_bool_t
-lh_os_loader_load_beside(lh_os_loader_t *self, const lh_fs_path_t *image, const lh_fs_path_t *subdir);
 
 /**
  * @brief Number of children currently loaded.

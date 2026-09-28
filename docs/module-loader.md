@@ -108,7 +108,7 @@ image second. The methods live *inside* the image, so they must never run
 after it is unmapped.
 
 ```
- image:      empty ──open/bind/bind_main──► loaded ──close──► empty
+ image:      empty ──open/bind/bind_executable──► loaded ──close──► empty
  lifecycle:  stopped ──start (true)──► started ──stop──► stopped
                      └─start (false)──► stopped   (stop is NOT called)
 ```
@@ -118,7 +118,7 @@ after it is unmapped.
 | `init`           | —         | Empty module. No OS call.                                   |
 | `open(path)`     | image     | Load a library from a path. Owns the handle.                |
 | `bind(addr)`     | image     | Take the already-loaded image containing `addr`.            |
-| `bind_main`      | image     | Take the program itself.                                    |
+| `bind_executable`      | image     | Take the program itself.                                    |
 | `start`          | lifecycle | Run `ops->start`. Second call is a no-op.                   |
 | `stop`           | lifecycle | Unload children, then run `ops->stop`. Safe if not started. |
 | `close`          | both      | `stop`, then release the image, then forget `ops`.          |
@@ -140,13 +140,14 @@ and takes the loader privilege:
 lh_os_module_t root;
 
 lh_os_module_init(&root);
-lh_os_module_bind_main(&root);
+lh_os_module_bind_executable(&root);
 lh_os_module_set_ops(&root, &root_ops);      /* optional */
 lh_os_module_set_data(&root, &app_state);    /* optional */
 lh_os_module_start(&root);
 
 lh_os_loader_t *loader = lh_os_module_grant_loader(&root, "lh_module");
-lh_os_loader_load_dir(loader, &modules_dir, NULL);
+for (each path the program decided to load)      /* its policy, see §5.3 */
+    lh_os_loader_load(loader, &path);
 ```
 
 `grant_loader` allocates the loader and stores it in the module. A module can
@@ -175,35 +176,23 @@ Notes:
   one is revoked automatically (its children unloaded, the loader freed).
 - A failed child leaves no trace in `loader->modules`.
 
-### 5.3 A directory — `lh_os_loader_load_dir(loader, dir, skip)`
+### 5.3 Which paths — the caller's policy
 
-```
- 1. dir is empty                   ── error (lh_os_error_code_path_empty)
- 2. clear the native error slot
- 3. open the directory             ── OS says "not found" or "not a directory":
-                                      success, nothing loaded
-                                   ── any other failure: error
- 4. for every entry:
-      skip  sub-directories and symbolic links
-      skip  names without the platform suffix (".dll" / ".so", case-insensitive)
-      skip  the file equal to `skip` (if given)
-      lh_os_loader_load(entry)     ── a rejected child does not stop the scan
- 5. a failed directory read        ── error; otherwise success
-```
+The loader takes **one path at a time**. Where the paths come from — a list
+in a config file, a directory scan, a fixed set compiled in — is not the
+loader's business: every program does it differently, and lh does not guess.
 
-There is no `stat` before `open`: the missing-directory case is recognised
-from the OS error itself (`lh_os_system_error_code_is_not_found` /
-`_is_not_dir`), so there is no window between checking and opening. Step 2
-matters: our own checks (e.g. out of memory) never write the native slot, so
-a stale "not found" from an earlier call must not be mistaken for this one.
+lh gives the pieces to build such a policy portably:
 
-Scan order is whatever the OS lists; do not rely on it.
-
-### 5.4 Beside an image — `lh_os_loader_load_beside(loader, image, subdir)`
-
-`load_dir(parent_of(image) / subdir, skip = image)`. For example, a module at
-`/app/mods/holder.so` with `subdir = "inner"` loads `/app/mods/inner/*.so`.
-The image file itself is skipped so a module never loads itself.
+| Need                                   | Use                                              |
+|----------------------------------------|--------------------------------------------------|
+| Where the program itself lives          | `lh_os_module_get_path_as_const(&root)`          |
+| The directory of a file                 | `lh_fs_path_parent`                              |
+| Build a path                            | `lh_fs_path_join`                                |
+| List a directory                        | `lh_os_fs_dir_t` (`open` / `read` / `close`)      |
+| The shared-library suffix of this OS    | `lh_os_system_shared_get_ext` (`.dll` / `.so`)    |
+| "The directory does not exist"          | `lh_os_system_error_code_is_not_found` / `_is_not_dir` on the native error after a failed open |
+| Skip a module's own file                | `lh_fs_path_equals`                              |
 
 ---
 
@@ -294,7 +283,7 @@ Result: `stop:b; stop:holder; stop:a;` then the root.
 |-------------------------|-------------------------------|------------------------------|
 | `open(path)`            | owned (`FreeLibrary`)          | owned (`dlclose`)             |
 | `bind(addr)`            | not owned (no refcount taken) | owned (`dlopen RTLD_NOLOAD`) |
-| `bind_main`             | not owned                     | owned (`dlopen(NULL)`)        |
+| `bind_executable`             | not owned                     | owned (`dlopen(NULL)`)        |
 
 `close` releases the handle only when it is owned; otherwise it simply
 forgets it.
@@ -327,14 +316,12 @@ static lh_bool_t start(lh_os_module_t *self)
 
     lh_os_module_set_data(self, my_state_new(parent));
 
-    /* Optional: this module loads its own children. */
+    /* Optional: this module loads its own children. Which ones is its
+       own policy (§5.3); the loader only takes paths. */
     lh_os_loader_t *loader = lh_os_module_grant_loader(self, "lh_module");
     if (loader) {
-        lh_fs_path_t sub;
-        lh_fs_path_init(&sub);
-        lh_fs_path_set(&sub, lh_str_view_make("plugins"), lh_fs_path_style_posix);
-        lh_os_loader_load_beside(loader, lh_os_module_get_path_as_const(self), &sub);
-        lh_fs_path_deinit(&sub);
+        for (each path this module decided to load)
+            lh_os_loader_load(loader, &path);
     }
     return lh_bool_true;                 /* false = refuse to be loaded */
 }

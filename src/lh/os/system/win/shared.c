@@ -14,7 +14,7 @@
 #define LH_OS_SYSTEM_WIN_SHARED_PATH_MAX 32768U
 
 lh_str_view_t
-lh_os_system_shared_ext(void)
+lh_os_system_shared_get_ext(void)
 {
     return lh_str_view_lit(".dll");
 }
@@ -46,7 +46,7 @@ lh_os_system_shared_close(lh_os_system_shared_handle_t handle)
 }
 
 lh_ptr
-lh_os_system_shared_sym(lh_os_system_shared_handle_t handle, lh_str_cptr name)
+lh_os_system_shared_get_sym(lh_os_system_shared_handle_t handle, lh_str_cptr name)
 {
     lh_ptr sym;
 
@@ -60,7 +60,7 @@ lh_os_system_shared_sym(lh_os_system_shared_handle_t handle, lh_str_cptr name)
 }
 
 lh_os_system_shared_handle_t
-lh_os_system_shared_main(lh_bool_t *owned)
+lh_os_system_shared_get_executable(lh_bool_t *owned)
 {
     lh_os_system_win_handle_t native;
 
@@ -76,7 +76,7 @@ lh_os_system_shared_main(lh_bool_t *owned)
 }
 
 lh_os_system_shared_handle_t
-lh_os_system_shared_of_addr(lh_ptr addr, lh_bool_t *owned)
+lh_os_system_shared_get_by_addr(lh_ptr addr, lh_bool_t *owned)
 {
     lh_os_system_win_handle_t native;
 
@@ -94,7 +94,7 @@ lh_os_system_shared_of_addr(lh_ptr addr, lh_bool_t *owned)
 }
 
 lh_bool_t
-lh_os_system_shared_path(lh_os_system_shared_handle_t handle, lh_str_t *out)
+lh_os_system_shared_get_path(lh_os_system_shared_handle_t handle, lh_str_t *out)
 {
     lh_os_system_win_dword_t cap;
     lh_os_system_win_dword_t n;

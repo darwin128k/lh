@@ -17,13 +17,13 @@
 #include <link.h>
 
 lh_str_view_t
-lh_os_system_shared_ext(void)
+lh_os_system_shared_get_ext(void)
 {
     return lh_str_view_lit(".so");
 }
 
 /* Name of the image behind `map`. dladdr on its own dynamic section also
-   names the main program, whose l_name is empty. */
+   names the executable, whose l_name is empty. */
 LH_ATTRIBUTE_STATIC
 lh_str_cptr
 lh_os_system_shared_map_name(const struct link_map *map)
@@ -41,28 +41,28 @@ lh_os_system_shared_map_name(const struct link_map *map)
     return info.dli_fname;
 }
 
-/* True when `base` is where the main program is mapped. dladdr may name it
+/* True when `base` is where the executable is mapped. dladdr may name it
    by argv[0], which dlopen(RTLD_NOLOAD) does not find; only dlopen(NULL) does. */
 LH_ATTRIBUTE_STATIC
 lh_bool_t
-lh_os_system_shared_is_main(lh_ptr base)
+lh_os_system_shared_is_executable(lh_ptr base)
 {
     lh_os_system_shared_handle_t program;
     lh_bool_t owned;
     struct link_map *map;
     Dl_info info;
-    lh_bool_t is_main;
+    lh_bool_t is_executable;
 
-    program = lh_os_system_shared_main(lh_addr_of(owned));
+    program = lh_os_system_shared_get_executable(lh_addr_of(owned));
     if (lh_null_eq(program))
     {
         return lh_bool_false;
     }
     map = lh_null;
-    is_main = lh_math_is_zero(dlinfo(program, RTLD_DI_LINKMAP, lh_addr_of(map))) && lh_null_ne(map) &&
+    is_executable = lh_math_is_zero(dlinfo(program, RTLD_DI_LINKMAP, lh_addr_of(map))) && lh_null_ne(map) &&
               lh_math_ne(dladdr(map->l_ld, lh_addr_of(info)), 0) && lh_math_eq(info.dli_fbase, base);
     lh_os_system_shared_close(program);
-    return is_main;
+    return is_executable;
 }
 
 lh_os_system_shared_handle_t
@@ -91,7 +91,7 @@ lh_os_system_shared_close(lh_os_system_shared_handle_t handle)
 }
 
 lh_ptr
-lh_os_system_shared_sym(lh_os_system_shared_handle_t handle, lh_str_cptr name)
+lh_os_system_shared_get_sym(lh_os_system_shared_handle_t handle, lh_str_cptr name)
 {
     lh_ptr sym;
 
@@ -105,7 +105,7 @@ lh_os_system_shared_sym(lh_os_system_shared_handle_t handle, lh_str_cptr name)
 }
 
 lh_os_system_shared_handle_t
-lh_os_system_shared_main(lh_bool_t *owned)
+lh_os_system_shared_get_executable(lh_bool_t *owned)
 {
     lh_os_system_shared_handle_t handle;
 
@@ -121,7 +121,7 @@ lh_os_system_shared_main(lh_bool_t *owned)
 }
 
 lh_os_system_shared_handle_t
-lh_os_system_shared_of_addr(lh_ptr addr, lh_bool_t *owned)
+lh_os_system_shared_get_by_addr(lh_ptr addr, lh_bool_t *owned)
 {
     Dl_info info;
     lh_str_cptr name;
@@ -134,7 +134,7 @@ lh_os_system_shared_of_addr(lh_ptr addr, lh_bool_t *owned)
         lh_os_system_error_capture();
         return LH_OS_SYSTEM_SHARED_HANDLE_INVALID;
     }
-    name = lh_os_system_shared_is_main(info.dli_fbase) || lh_str_ptr_is_empty(info.dli_fname) ? lh_null : info.dli_fname;
+    name = lh_os_system_shared_is_executable(info.dli_fbase) || lh_str_ptr_is_empty(info.dli_fname) ? lh_null : info.dli_fname;
     handle = dlopen(name, RTLD_NOW | RTLD_NOLOAD);
     if (lh_null_eq(handle))
     {
@@ -146,7 +146,7 @@ lh_os_system_shared_of_addr(lh_ptr addr, lh_bool_t *owned)
 }
 
 lh_bool_t
-lh_os_system_shared_path(lh_os_system_shared_handle_t handle, lh_str_t *out)
+lh_os_system_shared_get_path(lh_os_system_shared_handle_t handle, lh_str_t *out)
 {
     struct link_map *map;
     lh_str_cptr name;

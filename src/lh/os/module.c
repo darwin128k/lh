@@ -298,7 +298,7 @@ lh_os_module_adopt(lh_os_module_t *self, lh_os_system_shared_handle_t handle, lh
         return lh_bool_false;
     }
     lh_str_init(lh_addr_of(text));
-    ok = lh_os_system_shared_path(handle, lh_addr_of(text));
+    ok = lh_os_system_shared_get_path(handle, lh_addr_of(text));
     if (ok)
     {
         lh_fs_path_set(lh_os_module_get_path(self), lh_str_as_view(lh_addr_of(text)),
@@ -323,12 +323,12 @@ lh_os_module_bind(lh_os_module_t *self, lh_ptr addr)
     {
         return lh_bool_false;
     }
-    handle = lh_os_system_shared_of_addr(addr, lh_addr_of(owned));
+    handle = lh_os_system_shared_get_by_addr(addr, lh_addr_of(owned));
     return lh_os_module_adopt(self, handle, owned);
 }
 
 lh_bool_t
-lh_os_module_bind_main(lh_os_module_t *self)
+lh_os_module_bind_executable(lh_os_module_t *self)
 {
     lh_os_system_shared_handle_t handle;
     lh_bool_t owned;
@@ -337,7 +337,7 @@ lh_os_module_bind_main(lh_os_module_t *self)
     {
         return lh_bool_false;
     }
-    handle = lh_os_system_shared_main(lh_addr_of(owned));
+    handle = lh_os_system_shared_get_executable(lh_addr_of(owned));
     return lh_os_module_adopt(self, handle, owned);
 }
 
@@ -369,7 +369,7 @@ lh_os_module_get_sym(const lh_os_module_t *self, lh_str_cptr name)
         lh_os_set_last_error(lh_os_error_make(lh_os_error_code_not_open, lh_os_error_desc_lit("not loaded")));
         return lh_null;
     }
-    return lh_os_system_shared_sym(lh_os_module_get_handle(self), name);
+    return lh_os_system_shared_get_sym(lh_os_module_get_handle(self), name);
 }
 
 lh_bool_t

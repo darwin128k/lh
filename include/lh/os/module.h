@@ -17,7 +17,7 @@
  * must never run after it is unmapped.
  *
  * ::lh_os_module_open owns the handle. ::lh_os_module_bind uses
- * ::lh_os_system_shared_of_addr: Windows does not own a `FreeLibrary`
+ * ::lh_os_system_shared_get_by_addr: Windows does not own a `FreeLibrary`
  * reference, POSIX does (`dlclose` on close).
  *
  * On failure the reason is in ::lh_os_last_error (our own checks, e.g. an
@@ -198,7 +198,7 @@ lh_os_module_bind(lh_os_module_t *self, lh_ptr addr);
  * Same as ::lh_os_module_bind, without needing an address inside it.
  */
 lh_bool_t
-lh_os_module_bind_main(lh_os_module_t *self);
+lh_os_module_bind_executable(lh_os_module_t *self);
 
 /**
  * @brief ::lh_os_module_stop, then drop the image. The stored path is kept.
