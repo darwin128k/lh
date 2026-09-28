@@ -11,6 +11,24 @@
 
 #define LH_MEMORY_SCAN_BLOCK (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK))
 
+/* The block scans in lh_memory_find_step read whole blocks, past the needle when
+ * it sits early in one. With lh_memory_scan / lh_memory_scan_step the haystack
+ * length is the address-space bound, so the real buffer may end anywhere after
+ * the needle; an unaligned block could then run into the next, unmapped page and
+ * fault. Blocks are therefore read only at block-aligned addresses: a page is a
+ * multiple of the block size, so an aligned block never leaves the page holding
+ * the needle (the rule glibc's strlen/memchr follow). That needs a power-of-two
+ * block no larger than the smallest page size. */
+#if (LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK & (LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK - 1)) != 0 ||  \
+    LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK > 4096
+#    error "LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK must be a power of two no larger than 4096"
+#endif
+
+/* True while @p off still has @p base + @p off short of a block boundary. */
+#define lh_memory_scan_is_unaligned(base, off)                                                     \
+    ((lh_ptr_to_uaddr(lh_ptr_add_by_offset_unsafe(const lh_uchar_t, (base), (off))) &              \
+      (LH_MEMORY_SCAN_BLOCK - 1U)) != 0U)
+
 lh_ptr
 lh_memory_copy(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size)
 {
@@ -95,7 +113,23 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
         if (step == 1)
         {
             /* Offset walk, not an end pointer: lhs_size may be the remaining address
-             * space from lh_memory_scan, and base+lhs_size would wrap. */
+             * space from lh_memory_scan, and base+lhs_size would wrap. Byte by byte up
+             * to the first aligned block (see lh_memory_scan_is_unaligned) — only when
+             * a block can follow at all, so tiny haystacks (a 2-byte separator set in
+             * lh_str_ptr_find_of_chars) keep their plain loop. */
+            if (lh_math_ge(lh_memory_size_rest(lhs_size, off), LH_MEMORY_SCAN_BLOCK))
+            {
+                for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), 1) &&
+                       lh_memory_scan_is_unaligned(base, off);
+                     off = lh_math_add(off, 1))
+                {
+                    const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
+                    if (*cand == needle)
+                    {
+                        return cand;
+                    }
+                }
+            }
             while (lh_math_ge(lh_memory_size_rest(lhs_size, off), LH_MEMORY_SCAN_BLOCK))
             {
                 const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
@@ -136,6 +170,22 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
 
         if ((LH_MEMORY_SCAN_BLOCK % step) == 0)
         {
+            /* Unit by unit up to the first aligned block (see
+             * lh_memory_scan_is_unaligned). A haystack that is not step-aligned never
+             * reaches one and is scanned unit by unit throughout. */
+            if (lh_math_ge(lh_memory_size_rest(lhs_size, off), LH_MEMORY_SCAN_BLOCK))
+            {
+                for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), rhs_size) &&
+                       lh_memory_scan_is_unaligned(base, off);
+                     off = lh_math_add(off, step))
+                {
+                    const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
+                    if (lh_memory_bytes_eq(cand, needle, rhs_size))
+                    {
+                        return cand;
+                    }
+                }
+            }
             while (lh_math_ge(lh_memory_size_rest(lhs_size, off), LH_MEMORY_SCAN_BLOCK))
             {
                 const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);

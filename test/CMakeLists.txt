@@ -51,6 +51,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/memory/allocator.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/std.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/memory.cpp
+        ${LH_TEST_SRC_PATH}/lh/memory/scan_page.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/raw.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/bounds.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/typed.cpp
