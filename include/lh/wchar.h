@@ -2,8 +2,11 @@
  * @file wchar.h
  * @brief Portable wide-character type alias and limit macros.
  *
- * Wraps the standard @c <wchar.h> and exposes ::lh_wchar_t together
- * with ::LH_WCHAR_T_MIN, ::LH_WCHAR_T_MAX, and ::LH_WCHAR_T_SIZE.
+ * Exposes ::lh_wchar_t together with ::LH_WCHAR_T_MIN, ::LH_WCHAR_T_MAX, and
+ * ::LH_WCHAR_T_SIZE. In C it takes @c wchar_t from @c <stddef.h> and the limits
+ * from @c <stdint.h> rather than @c <wchar.h>: those two are freestanding headers
+ * (C99 4p6), present on bare-metal targets that have no C library at all, while
+ * @c <wchar.h> is not.
  *
  * The limit and size macros default to the platform @c WCHAR_MIN / @c WCHAR_MAX
  * and @c sizeof(::lh_wchar_t) but may be overridden by defining them
@@ -18,7 +21,8 @@
 #ifdef LH_COMPILER_CXX
 #    include <cwchar>
 #else
-#    include <wchar.h>
+#    include <stddef.h> /* wchar_t */
+#    include <stdint.h> /* WCHAR_MIN, WCHAR_MAX */
 #endif
 
 /**
