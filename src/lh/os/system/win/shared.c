@@ -68,14 +68,12 @@ lh_os_system_shared_get_sym(lh_os_system_shared_handle_t handle, lh_str_cptr nam
 }
 
 lh_os_system_shared_handle_t
-lh_os_system_shared_get_executable(lh_bool_t *owned)
+lh_os_system_shared_get_executable(void)
 {
     lh_os_system_win_handle_t native = lh_null;
 
-    lh_ptr_deref(owned) = lh_bool_false;
-    if (lh_math_is_zero(
-            GetModuleHandleExW(LH_OS_SYSTEM_WIN_GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                               lh_null, lh_addr_of(native))))
+    /* No UNCHANGED_REFCOUNT: the handle holds a reference, closed like any other. */
+    if (lh_math_is_zero(GetModuleHandleExW(0UL, lh_null, lh_addr_of(native))))
     {
         lh_os_system_error_capture();
         return LH_OS_SYSTEM_SHARED_HANDLE_INVALID;
@@ -84,16 +82,13 @@ lh_os_system_shared_get_executable(lh_bool_t *owned)
 }
 
 lh_os_system_shared_handle_t
-lh_os_system_shared_get_by_addr(lh_ptr addr, lh_bool_t *owned)
+lh_os_system_shared_get_by_addr(lh_ptr addr)
 {
     lh_os_system_win_handle_t native = lh_null;
 
     lh_assert_runtime_ref(addr);
-    lh_ptr_deref(owned) = lh_bool_false;
-    if (lh_math_is_zero(
-            GetModuleHandleExW(LH_OS_SYSTEM_WIN_GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                                   LH_OS_SYSTEM_WIN_GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                               addr, lh_addr_of(native))))
+    if (lh_math_is_zero(GetModuleHandleExW(LH_OS_SYSTEM_WIN_GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                                           addr, lh_addr_of(native))))
     {
         lh_os_system_error_capture();
         return LH_OS_SYSTEM_SHARED_HANDLE_INVALID;

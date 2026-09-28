@@ -48,12 +48,10 @@ LH_ATTRIBUTE_STATIC
 lh_bool_t
 lh_os_system_shared_is_executable(lh_ptr base)
 {
-    lh_bool_t owned;
     struct link_map *map = lh_null;
     Dl_info info;
 
-    const lh_os_system_shared_handle_t program =
-        lh_os_system_shared_get_executable(lh_addr_of(owned));
+    const lh_os_system_shared_handle_t program = lh_os_system_shared_get_executable();
     if (lh_null_eq(program))
     {
         return lh_bool_false;
@@ -101,26 +99,22 @@ lh_os_system_shared_get_sym(lh_os_system_shared_handle_t handle, lh_str_cptr nam
 }
 
 lh_os_system_shared_handle_t
-lh_os_system_shared_get_executable(lh_bool_t *owned)
+lh_os_system_shared_get_executable(void)
 {
-    lh_ptr_deref(owned) = lh_bool_false;
     const lh_os_system_shared_handle_t handle = dlopen(lh_null, RTLD_NOW);
     if (lh_null_eq(handle))
     {
         lh_os_system_error_capture();
-        return LH_OS_SYSTEM_SHARED_HANDLE_INVALID;
     }
-    lh_ptr_deref(owned) = lh_bool_true;
     return handle;
 }
 
 lh_os_system_shared_handle_t
-lh_os_system_shared_get_by_addr(lh_ptr addr, lh_bool_t *owned)
+lh_os_system_shared_get_by_addr(lh_ptr addr)
 {
     Dl_info info;
 
     lh_assert_runtime_ref(addr);
-    lh_ptr_deref(owned) = lh_bool_false;
     if (lh_math_is_zero(dladdr(addr, lh_addr_of(info))))
     {
         lh_os_system_error_capture();
@@ -135,9 +129,7 @@ lh_os_system_shared_get_by_addr(lh_ptr addr, lh_bool_t *owned)
     if (lh_null_eq(handle))
     {
         lh_os_system_error_capture();
-        return LH_OS_SYSTEM_SHARED_HANDLE_INVALID;
     }
-    lh_ptr_deref(owned) = lh_bool_true;
     return handle;
 }
 

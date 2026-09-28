@@ -165,6 +165,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/fs/dir.c
             ${LH_LIB_SRC_PATH}/os/net.c
             ${LH_LIB_SRC_PATH}/os/net/socket.c
+            ${LH_LIB_SRC_PATH}/os/shared.c
             ${LH_LIB_SRC_PATH}/os/module.c
             ${LH_LIB_SRC_PATH}/os/loader.c
     )

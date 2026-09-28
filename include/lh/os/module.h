@@ -16,9 +16,10 @@
  * ::lh_os_module_close stops first: the methods live inside the image and
  * must never run after it is unmapped.
  *
- * ::lh_os_module_open owns the handle. ::lh_os_module_bind uses
- * ::lh_os_system_shared_get_by_addr: Windows does not own a `FreeLibrary`
- * reference, POSIX does (`dlclose` on close).
+ * The image is an ::lh_os_shared_t (::lh_os_module_get_image_as_const):
+ * opening it, holding its one OS reference and giving that back is its job.
+ * The image functions here (open, bind, get_sym, …) hand over to it and add
+ * only what the lifecycle needs — close stops first.
  *
  * On failure the reason is in ::lh_os_last_error (our own checks, e.g. an
  * empty path or an already-open slot) or ::lh_os_system_last_error (the
@@ -37,6 +38,7 @@
 #include <lh/list/node.h>
 #include <lh/os/module/fields.h>
 #include <lh/os/module/ops.h>
+#include <lh/os/shared.h>
 #include <lh/os/system/shared/handle.h>
 #include <lh/ptr.h>
 #include <lh/str/ptr.h>
@@ -53,8 +55,8 @@ struct lh_os_loader;
  */
 typedef struct lh_os_module
 {
-    lh_os_module_fields(lh_fs_path_t, lh_os_system_shared_handle_t, lh_bool_t,
-                        const lh_os_module_ops_t *, lh_ptr, struct lh_os_loader *, lh_list_node_t);
+    lh_os_module_fields(lh_os_shared_t, lh_bool_t, const lh_os_module_ops_t *, lh_ptr,
+                        struct lh_os_loader *, lh_list_node_t);
 } lh_os_module_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -102,10 +104,14 @@ lh_os_module_destroy(lh_os_module_t *self);
 /* ── accessors ───────────────────────────────────────────────────────────── */
 
 /**
- * @brief Stored path of @p self.
- *
- * Read-only: the path is written only by ::lh_os_module_open and
- * ::lh_os_module_bind, so it always names the image behind the handle.
+ * @brief The module's image. Read-only: the module opens and closes it,
+ *        so the image never changes under a started module.
+ */
+const lh_os_shared_t *
+lh_os_module_get_image_as_const(const lh_os_module_t *self);
+
+/**
+ * @brief Path of the module's image (::lh_os_shared_get_path_as_const).
  */
 const lh_fs_path_t *
 lh_os_module_get_path_as_const(const lh_os_module_t *self);
@@ -226,7 +232,7 @@ lh_os_module_grant_loader(lh_os_module_t *self, lh_str_cptr entry);
 /* ── image ───────────────────────────────────────────────────────────────── */
 
 /**
- * @brief Open @p path into an empty module. Owns the handle.
+ * @brief Open @p path into an empty module (::lh_os_shared_open).
  *
  * A module that already holds an image fails with
  * ::lh_os_error_code_already_open. Empty @p path is an error.
@@ -257,8 +263,8 @@ lh_os_module_bind_executable(lh_os_module_t *self);
  * The method table is dropped too (it normally lives in the image); a root
  * module that is reopened gets it again with ::lh_os_module_set_ops.
  *
- * An unowned handle (Windows ::lh_os_module_bind) is forgotten without
- * `FreeLibrary`. Safe on an already-closed module.
+ * The image gives back its one OS reference (::lh_os_shared_close). Safe
+ * on an already-closed module.
  *
  * @return ::lh_bool_false if the OS close failed. The handle is dropped
  *         either way.

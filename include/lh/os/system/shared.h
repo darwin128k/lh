@@ -2,14 +2,20 @@
  * @file shared.h
  * @brief Kernel shared-image primitives: open, close, symbol, path.
  *
- * The only place that talks to `LoadLibraryA` / `GetProcAddress` /
+ * The only place that talks to `LoadLibraryW` / `GetProcAddress` /
  * `FreeLibrary` (Windows) or `dlopen` / `dlsym` / `dlclose` (POSIX).
+ *
+ * Every handle these functions hand out holds exactly one OS reference to
+ * the image (the OS counts them per process, for everyone), and
+ * ::lh_os_system_shared_close gives exactly that one back. A caller never
+ * releases a reference it did not take, so an image someone else also
+ * loaded stays loaded for them.
  * Every function has one contract on every platform; the backend is picked
  * by CMake (`src/lh/os/system/win` or `src/lh/os/system/posix`), not by
  * `#if` at the call site.
  *
  * Takes native text, not ::lh_fs_path_t — rendering a path is the caller's
- * job (see ::lh_os_module_open). Holds no state: a handle in, a result out.
+ * job (see ::lh_os_shared_open). Holds no state: a handle in, a result out.
  *
  * On failure the native reason is in ::lh_os_system_last_error.
  *
@@ -52,7 +58,7 @@ lh_os_system_shared_handle_t
 lh_os_system_shared_open(lh_str_cptr path);
 
 /**
- * @brief Release @p handle. The caller owns the reference being released.
+ * @brief Give back the one reference @p handle holds.
  *
  * @param handle Open handle; the caller has already checked it.
  * @return ::lh_bool_true if the OS reported success.
@@ -72,30 +78,27 @@ lh_os_system_shared_get_sym(lh_os_system_shared_handle_t handle, lh_str_cptr nam
 /**
  * @brief Handle of the program itself (the executable, not a library).
  *
- * Windows: `GetModuleHandleEx(NULL)`, no `FreeLibrary` reference. POSIX:
- * `dlopen(NULL)`, a reference that must be closed.
+ * Windows: `GetModuleHandleEx(NULL)`; POSIX: `dlopen(NULL)`. Takes a
+ * reference like any other handle here; the executable itself can never
+ * be unloaded, but the count stays balanced.
  *
- * @param owned Receives ::lh_bool_true when the caller must
- *              ::lh_os_system_shared_close the result.
- * @return Handle, or ::LH_OS_SYSTEM_SHARED_HANDLE_INVALID on failure.
+ * @return Handle (close it), or ::LH_OS_SYSTEM_SHARED_HANDLE_INVALID on failure.
  */
 lh_os_system_shared_handle_t
-lh_os_system_shared_get_executable(lh_bool_t *owned);
+lh_os_system_shared_get_executable(void);
 
 /**
  * @brief Handle of the already-loaded image that contains @p addr.
  *
- * Windows does not take a `FreeLibrary` reference
- * (`GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT`). POSIX `dlopen`
- * (`RTLD_NOLOAD`) does, and that reference must be closed.
+ * Windows: `GetModuleHandleEx(FROM_ADDRESS)`; POSIX: `dlopen(RTLD_NOLOAD)`.
+ * Both take a reference, so the image stays loaded while the handle is
+ * held even if whoever loaded it lets go.
  *
- * @param addr  An address inside the loaded image.
- * @param owned Receives ::lh_bool_true when the caller must
- *              ::lh_os_system_shared_close the result.
- * @return Handle, or ::LH_OS_SYSTEM_SHARED_HANDLE_INVALID on failure.
+ * @param addr An address inside the loaded image.
+ * @return Handle (close it), or ::LH_OS_SYSTEM_SHARED_HANDLE_INVALID on failure.
  */
 lh_os_system_shared_handle_t
-lh_os_system_shared_get_by_addr(lh_ptr addr, lh_bool_t *owned);
+lh_os_system_shared_get_by_addr(lh_ptr addr);
 
 /**
  * @brief Native path of @p handle into @p out (replacing its contents).

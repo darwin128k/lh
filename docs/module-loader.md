@@ -31,9 +31,7 @@ This is the same split as a kernel module: the module brings its own
 
 | Field     | Meaning                                                                 |
 |-----------|-------------------------------------------------------------------------|
-| `path`    | Path of the image. Written only by `open` / `bind`.                      |
-| `handle`  | OS handle of the image (`HMODULE` / `dlopen` handle), null when closed. |
-| `owned`   | Whether `close` must release the handle (see §7).                        |
+| `image`   | The open shared image, an `lh_os_shared_t` (path + handle; see §7).     |
 | `started` | Whether `start` succeeded and `stop` is still due.                       |
 | `ops`     | The module's own methods (`lh_os_module_ops_t *`).                       |
 | `data`    | The module's private state. The module owns it.                          |
@@ -250,8 +248,8 @@ One child can also go on its own, in O(1), leaving its siblings in place:
 
 ```
  1. stop(m)                         (§6.1: children, then ops->stop)
- 2. release the image if owned      (FreeLibrary / dlclose)
- 3. handle = null, ops = null
+ 2. lh_os_shared_close(&m->image)   (gives back its one OS reference: FreeLibrary / dlclose)
+ 3. ops = null
 ```
 
 ### 6.4 The whole sequence for the tree in §3
@@ -276,7 +274,7 @@ root.stop
      a.deinit → a.close → a.stop → ops->stop(a)          ─► "stop:a"
       → release a's image
  └─ ops->stop(root)
- → root's handle dropped (not released on Windows, see §7)
+ → root's image gives back its reference (§7)
 ```
 
 Result: `stop:b; stop:holder; stop:a;` then the root.
@@ -295,16 +293,36 @@ Result: `stop:b; stop:holder; stop:a;` then the root.
 
 ---
 
-## 7. Handle ownership (`owned`)
+## 7. The image and the OS reference count (`lh_os_shared_t`)
 
-| How the image was taken | Windows                       | POSIX                        |
-|-------------------------|-------------------------------|------------------------------|
-| `open(path)`            | owned (`FreeLibrary`)          | owned (`dlclose`)             |
-| `bind(addr)`            | not owned (no refcount taken) | owned (`dlopen RTLD_NOLOAD`) |
-| `bind_executable`             | not owned                     | owned (`dlopen(NULL)`)        |
+Each role in lh answers for its own part:
 
-`close` releases the handle only when it is owned; otherwise it simply
-forgets it.
+| Who                        | Answers for                                                     |
+|----------------------------|-----------------------------------------------------------------|
+| `lh_os_system_shared_*`    | one kernel call; holds nothing                                  |
+| `lh_os_shared_t`           | the open image: path + handle, and its one OS reference         |
+| `lh_os_module_t`           | the lifecycle on top of an image: `ops`, `start`/`stop`, `data`, tree |
+| `lh_os_loader_t`           | a module's children                                             |
+
+The OS counts references to each loaded image, per process and for
+everyone; the image is unloaded when the count reaches zero. Every
+`lh_os_shared_t` that is open holds **exactly one** of them, however it was
+taken, and `lh_os_shared_close` gives back exactly that one:
+
+| How the image was taken | Windows                              | POSIX                   |
+|-------------------------|--------------------------------------|-------------------------|
+| `open(path)`            | `LoadLibraryW`                       | `dlopen`                |
+| `bind(addr)`            | `GetModuleHandleEx(FROM_ADDRESS)`    | `dlopen(RTLD_NOLOAD)`   |
+| `bind_executable`       | `GetModuleHandleEx(NULL)`            | `dlopen(NULL)`          |
+| `close`                 | `FreeLibrary`                        | `dlclose`               |
+
+So lh never gives back a reference it did not take. If the host (or anyone)
+also loaded the same library, each side balances its own references: lh
+closing its handle leaves the library loaded for them, and them unloading
+theirs leaves it loaded while lh still holds it.
+
+`lh_os_shared_t` is usable on its own, without a module, for a library that
+is not a plugin: open it, `lh_os_shared_get_sym`, call, close.
 
 ---
 

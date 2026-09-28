@@ -159,7 +159,6 @@ FindClose(lh_os_system_win_handle_t hFindFile);
 /* Shared images. `lpModuleName` is a path for LoadLibrary and an address
    inside an image for GetModuleHandleEx FROM_ADDRESS — one pointer either way. */
 
-#define LH_OS_SYSTEM_WIN_GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT 0x00000002UL
 #define LH_OS_SYSTEM_WIN_GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS 0x00000004UL
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
