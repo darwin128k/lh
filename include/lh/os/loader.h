@@ -10,9 +10,10 @@
  *
  * A child is an image that exports an ::lh_os_module_ops_t under the
  * loader's `entry` name. An image without it is not a module and is
- * rejected. Each child is allocated on its own, so a pointer from
- * ::lh_os_loader_load or ::lh_os_loader_get stays valid until the child is
- * unloaded.
+ * rejected. Children are linked through their own node (::lh_list_t) and
+ * each is allocated on its own, so a pointer from ::lh_os_loader_load or a
+ * walk stays valid until that child is unloaded. Loading or unloading
+ * other children never moves it.
  *
  * Which paths to load — a list, a directory scan, a config file — is the
  * caller's policy, not the loader's: it takes one path at a time. The
@@ -30,12 +31,12 @@
 #include <lh/config.h>
 #include <lh/fs/path.h>
 #include <lh/index.h>
+#include <lh/list.h>
 #include <lh/os/loader/fields.h>
 #include <lh/os/module.h>
 #include <lh/size.h>
 #include <lh/str.h>
 #include <lh/str/ptr.h>
-#include <lh/vector.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/loader.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
@@ -47,7 +48,7 @@
  */
 typedef struct lh_os_loader
 {
-    lh_os_loader_fields(lh_vector_t, lh_os_module_t *, lh_str_t);
+    lh_os_loader_fields(lh_list_t, lh_os_module_t *, lh_str_t);
 } lh_os_loader_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -98,16 +99,47 @@ lh_os_module_t *
 lh_os_loader_load(lh_os_loader_t *self, const lh_fs_path_t *path);
 
 /**
- * @brief Number of children currently loaded.
+ * @brief Unload one child of @p self in O(1): close it (its own children
+ *        first), then free it. The other children are untouched.
+ *
+ * @param child A module this loader loaded (its owner is @p self).
+ */
+void
+lh_os_loader_unload_child(lh_os_loader_t *self, lh_os_module_t *child);
+
+/**
+ * @brief Number of children currently loaded. O(n).
  */
 lh_usize_t
 lh_os_loader_get_loaded(const lh_os_loader_t *self);
 
 /**
- * @brief Child at @p index (load order), or ::lh_null if out of range.
+ * @brief First child in load order, or ::lh_null if there is none.
+ *
+ * With ::lh_os_loader_get_next:
+ * @code{.c}
+ * for (lh_os_module_t *m = lh_os_loader_get_first(loader); m; m = lh_os_loader_get_next(loader, m))
+ * @endcode
+ * To unload while walking, take the next child before unloading the current one.
  */
 lh_os_module_t *
-lh_os_loader_get(const lh_os_loader_t *self, lh_uindex_t index);
+lh_os_loader_get_first(const lh_os_loader_t *self);
+
+/**
+ * @brief Child loaded after @p child, or ::lh_null if @p child is the last.
+ */
+lh_os_module_t *
+lh_os_loader_get_next(const lh_os_loader_t *self, lh_os_module_t *child);
+
+/**
+ * @brief Child number @p index in load order (0 is the first loaded), or
+ *        ::lh_null if there are not that many.
+ *
+ * O(@p index), see ::lh_list_get_at. To visit every child, walk with
+ * ::lh_os_loader_get_first / ::lh_os_loader_get_next instead.
+ */
+lh_os_module_t *
+lh_os_loader_get_at(const lh_os_loader_t *self, lh_uindex_t index);
 
 LH_COMPILER_EXTERN_C_END
 

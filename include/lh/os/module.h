@@ -34,6 +34,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/fs/path.h>
+#include <lh/list/node.h>
 #include <lh/os/module/fields.h>
 #include <lh/os/module/ops.h>
 #include <lh/os/system/shared/handle.h>
@@ -52,8 +53,8 @@ struct lh_os_loader;
  */
 typedef struct lh_os_module
 {
-    lh_os_module_fields(lh_fs_path_t, lh_os_system_shared_handle_t, lh_bool_t, const lh_os_module_ops_t *, lh_ptr,
-                        struct lh_os_loader *);
+    lh_os_module_fields(lh_fs_path_t, lh_os_system_shared_handle_t, lh_bool_t,
+                        const lh_os_module_ops_t *, lh_ptr, struct lh_os_loader *, lh_list_node_t);
 } lh_os_module_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -69,9 +70,34 @@ lh_os_module_init(lh_os_module_t *self);
 
 /**
  * @brief ::lh_os_module_close, then release the stored path.
+ *
+ * Only for a module nobody holds: a root, or one the caller initialized
+ * itself. A child a loader loaded is the loader's to free
+ * (::lh_os_loader_unload_child / ::lh_os_loader_unload); deinitializing it
+ * directly is a checked error.
  */
 void
 lh_os_module_deinit(lh_os_module_t *self);
+
+/**
+ * @brief A new empty module on the heap: ::lh_os_module_init'ed memory from
+ *        the runtime allocator.
+ *
+ * For modules that must not move and outlive a scope — a loader's
+ * children. Release with ::lh_os_module_destroy, never plain `free`.
+ *
+ * @return The module, or ::lh_null (::lh_os_error_code_out_of_memory in
+ *         ::lh_os_last_error).
+ */
+lh_os_module_t *
+lh_os_module_create(void);
+
+/**
+ * @brief ::lh_os_module_deinit, then free the memory. Only for a module from
+ *        ::lh_os_module_create; same "nobody holds it" rule as deinit.
+ */
+void
+lh_os_module_destroy(lh_os_module_t *self);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
 
@@ -143,6 +169,31 @@ lh_os_module_get_owner(const lh_os_module_t *self);
  */
 void
 lh_os_module_set_owner(lh_os_module_t *self, struct lh_os_loader *owner);
+
+/**
+ * @brief The link of @p self among its owner's children.
+ *
+ * For ::lh_os_loader_t, which strings its children through it; a module
+ * never touches its own link.
+ */
+lh_list_node_t *
+lh_os_module_get_node(lh_os_module_t *self);
+
+/**
+ * @brief The module whose link is @p node, or ::lh_null if @p node is
+ *        ::lh_null. The reverse of ::lh_os_module_get_node.
+ *
+ * For code that keeps modules in its own ::lh_list_t — a loader of its
+ * own, say — and walks them:
+ * @code{.c}
+ * for (lh_list_node_t *n = lh_list_get_first(&mine); n; n = lh_list_get_next(&mine, n))
+ * {
+ *     lh_os_module_t *m = lh_os_module_get_by_node(n);
+ * }
+ * @endcode
+ */
+lh_os_module_t *
+lh_os_module_get_by_node(lh_list_node_t *node);
 
 /**
  * @brief The module whose loader holds @p self, or ::lh_null for a root.

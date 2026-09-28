@@ -60,6 +60,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/memory/bounds/allocated.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/view/slice.cpp
         ${LH_TEST_SRC_PATH}/lh/vector.cpp
+        ${LH_TEST_SRC_PATH}/lh/list.cpp
         ${LH_TEST_SRC_PATH}/lh/str.cpp
         ${LH_TEST_SRC_PATH}/lh/str/list.cpp
         ${LH_TEST_SRC_PATH}/lh/wstr.cpp

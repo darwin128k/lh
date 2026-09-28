@@ -2,6 +2,7 @@
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/cast/static.h>
+#include <lh/list.h>
 #include <lh/null.h>
 #include <lh/os.h>
 #include <lh/os/alloc.h>
@@ -122,6 +123,19 @@ lh_os_module_set_owner(lh_os_module_t *self, lh_os_loader_t *owner)
     self->owner = owner;
 }
 
+lh_list_node_t *
+lh_os_module_get_node(lh_os_module_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->node);
+}
+
+lh_os_module_t *
+lh_os_module_get_by_node(lh_list_node_t *node)
+{
+    return lh_list_entry(lh_os_module_t, node, node);
+}
+
 lh_os_module_t *
 lh_os_module_get_parent(const lh_os_module_t *self)
 {
@@ -157,13 +171,37 @@ lh_os_module_init(lh_os_module_t *self)
     lh_os_module_set_data(self, lh_null);
     lh_os_module_set_owner(self, lh_null);
     lh_os_module_set_loader(self, lh_null);
+    lh_list_node_init(lh_os_module_get_node(self));
 }
 
 void
 lh_os_module_deinit(lh_os_module_t *self)
 {
+    /* A child still in its owner's list would leave the list pointing at freed memory. */
+    lh_assert_runtime_if(
+        lh_list_node_is_linked(lh_os_module_get_node(self)), lh_runtime_error_code_invalid_argument,
+        "module is still held by its loader: unload it with lh_os_loader_unload_child");
     lh_os_module_close(self);
     lh_fs_path_deinit(lh_os_module_get_path(self));
+}
+
+lh_os_module_t *
+lh_os_module_create(void)
+{
+    lh_os_module_t *const self = lh_ptr_cast(lh_os_module_t, lh_os_alloc(sizeof(*self)));
+
+    if (lh_null_ne(self))
+    {
+        lh_os_module_init(self);
+    }
+    return self;
+}
+
+void
+lh_os_module_destroy(lh_os_module_t *self)
+{
+    lh_os_module_deinit(self);
+    lh_runtime_allocator_free(self);
 }
 
 /* ── privilege ───────────────────────────────────────────────────────────── */

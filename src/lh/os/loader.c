@@ -2,15 +2,14 @@
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/null.h>
-#include <lh/os/alloc.h>
-#include <lh/runtime/allocator.h>
+#include <lh/runtime/error.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
 
 LH_ATTRIBUTE_STATIC
-lh_vector_t *
+lh_list_t *
 lh_os_loader_get_modules(lh_os_loader_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -18,7 +17,7 @@ lh_os_loader_get_modules(lh_os_loader_t *self)
 }
 
 LH_ATTRIBUTE_STATIC
-const lh_vector_t *
+const lh_list_t *
 lh_os_loader_get_modules_as_const(const lh_os_loader_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -62,7 +61,7 @@ void
 lh_os_loader_init(lh_os_loader_t *self, lh_os_module_t *owner, lh_str_cptr entry)
 {
     lh_assert_runtime_ref(entry);
-    lh_vector_init(lh_os_loader_get_modules(self), sizeof(lh_os_module_t *));
+    lh_list_init(lh_os_loader_get_modules(self));
     lh_os_loader_set_owner(self, owner);
     lh_str_init_by_view(lh_os_loader_get_entry_mut(self), lh_str_view_make(entry));
 }
@@ -70,22 +69,29 @@ lh_os_loader_init(lh_os_loader_t *self, lh_os_module_t *owner, lh_str_cptr entry
 void
 lh_os_loader_unload(lh_os_loader_t *self)
 {
-    lh_vector_t *const modules = lh_os_loader_get_modules(self);
-    lh_os_module_t *child;
+    lh_list_t *const modules = lh_os_loader_get_modules(self);
 
-    while (!lh_vector_is_empty(modules))
+    /* Last loaded first: a later child may depend on an earlier one. */
+    for (lh_os_module_t *child = lh_os_module_get_by_node(lh_list_pop_back(modules));
+         lh_ptr_is_set(child); child = lh_os_module_get_by_node(lh_list_pop_back(modules)))
     {
-        lh_vector_pop_back(modules, lh_addr_of(child));
-        lh_os_module_deinit(child);
-        lh_runtime_allocator_free(child);
+        lh_os_module_destroy(child);
     }
+}
+
+void
+lh_os_loader_unload_child(lh_os_loader_t *self, lh_os_module_t *child)
+{
+    lh_assert_runtime_if(lh_ptr_ne(lh_os_module_get_owner(child), self),
+                         lh_runtime_error_code_invalid_argument);
+    lh_list_node_unlink(lh_os_module_get_node(child));
+    lh_os_module_destroy(child);
 }
 
 void
 lh_os_loader_deinit(lh_os_loader_t *self)
 {
     lh_os_loader_unload(self);
-    lh_vector_deinit(lh_os_loader_get_modules(self));
     lh_str_deinit(lh_os_loader_get_entry_mut(self));
 }
 
@@ -115,20 +121,18 @@ lh_os_loader_bring_up(lh_os_loader_t *self, lh_os_module_t *child, const lh_fs_p
 lh_os_module_t *
 lh_os_loader_load(lh_os_loader_t *self, const lh_fs_path_t *path)
 {
-    lh_os_module_t *const child = lh_ptr_cast(lh_os_module_t, lh_os_alloc(sizeof(*child)));
+    lh_os_module_t *const child = lh_os_module_create();
 
     if (lh_null_eq(child))
     {
         return lh_null;
     }
-    lh_os_module_init(child);
     if (!lh_os_loader_bring_up(self, child, path))
     {
-        lh_os_module_deinit(child);
-        lh_runtime_allocator_free(child);
+        lh_os_module_destroy(child);
         return lh_null;
     }
-    lh_vector_push_back(lh_os_loader_get_modules(self), lh_addr_of(child));
+    lh_list_push_back(lh_os_loader_get_modules(self), lh_os_module_get_node(child));
     return child;
 }
 
@@ -137,17 +141,24 @@ lh_os_loader_load(lh_os_loader_t *self, const lh_fs_path_t *path)
 lh_usize_t
 lh_os_loader_get_loaded(const lh_os_loader_t *self)
 {
-    return lh_vector_get_size(lh_os_loader_get_modules_as_const(self));
+    return lh_list_get_size(lh_os_loader_get_modules_as_const(self));
 }
 
 lh_os_module_t *
-lh_os_loader_get(const lh_os_loader_t *self, lh_uindex_t index)
+lh_os_loader_get_first(const lh_os_loader_t *self)
 {
-    const lh_vector_t *const modules = lh_os_loader_get_modules_as_const(self);
+    return lh_os_module_get_by_node(lh_list_get_first(lh_os_loader_get_modules_as_const(self)));
+}
 
-    if (!lh_vector_is_valid_index(modules, index))
-    {
-        return lh_null;
-    }
-    return lh_ptr_deref(lh_ptr_cast(lh_os_module_t *, lh_vector_get_ptr(modules, index)));
+lh_os_module_t *
+lh_os_loader_get_next(const lh_os_loader_t *self, lh_os_module_t *child)
+{
+    return lh_os_module_get_by_node(
+        lh_list_get_next(lh_os_loader_get_modules_as_const(self), lh_os_module_get_node(child)));
+}
+
+lh_os_module_t *
+lh_os_loader_get_at(const lh_os_loader_t *self, lh_uindex_t index)
+{
+    return lh_os_module_get_by_node(lh_list_get_at(lh_os_loader_get_modules_as_const(self), index));
 }

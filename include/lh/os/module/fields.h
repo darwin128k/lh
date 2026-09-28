@@ -11,7 +11,7 @@
 #define LH_OS_MODULE_FIELDS_H
 
 /**
- * @def lh_os_module_fields(path_type, handle_type, flag_type, ops_type, data_type, loader_type)
+ * @def lh_os_module_fields(path_type, handle_type, flag_type, ops_type, data_type, loader_type, node_type)
  * @brief Image, lifecycle, state, and place in the tree.
  *
  * @param path_type   Type of `path` (::lh_fs_path_t).
@@ -24,8 +24,11 @@
  * @param loader_type Type of `owner`, the loader holding this module (null
  *                    for a root), and of `loader`, the privilege to load
  *                    children (`struct lh_os_loader *`).
+ * @param node_type   Type of `node`, the link among the owner's children
+ *                    (::lh_list_node_t). Unlinked for a root.
  */
-#define lh_os_module_fields(path_type, handle_type, flag_type, ops_type, data_type, loader_type)   \
+#define lh_os_module_fields(path_type, handle_type, flag_type, ops_type, data_type, loader_type,   \
+                            node_type)                                                             \
     path_type path;                                                                                \
     handle_type handle;                                                                            \
     flag_type owned;                                                                               \
@@ -33,6 +36,7 @@
     ops_type ops;                                                                                  \
     data_type data;                                                                                \
     loader_type owner;                                                                             \
-    loader_type loader
+    loader_type loader;                                                                            \
+    node_type node
 
 #endif /* LH_OS_MODULE_FIELDS_H */

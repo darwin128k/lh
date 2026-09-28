@@ -39,6 +39,7 @@ This is the same split as a kernel module: the module brings its own
 | `data`    | The module's private state. The module owns it.                          |
 | `owner`   | The loader holding this module. Null for a root.                         |
 | `loader`  | The privilege to load children. Null for a leaf.                         |
+| `node`    | The link among the owner's children (`lh_list_node_t`). Unlinked for a root. |
 
 Access goes through getters and setters; nothing outside `module.c` touches
 the fields. The parent module is **not stored** — it is derived:
@@ -63,16 +64,27 @@ Either member may be null — that step is then a no-op.
 
 | Field     | Meaning                                                                    |
 |-----------|----------------------------------------------------------------------------|
-| `modules` | One `lh_os_module_t *` per child, in load order.                            |
+| `modules` | The children in load order: an intrusive list (`lh_list_t`, `lh/list.h`) linked through each child's `node`. |
 | `owner`   | The module holding this privilege.                                         |
 | `entry`   | The symbol name a child exports its `lh_os_module_ops_t` under (a copy).   |
 
 The loader has **no callbacks of its own**. It does not know what a child
 does; it only knows how to bring one up and down.
 
-Every child is allocated separately, so a pointer returned by
-`lh_os_loader_load` or `lh_os_loader_get` stays valid until that child is
-unloaded — loading more children never moves existing ones.
+Every child is allocated separately and linked through its own node, so a
+pointer returned by `lh_os_loader_load` or met while walking stays valid
+until that child is unloaded — loading or unloading other children never
+moves it. Children are walked in load order:
+
+```c
+for (lh_os_module_t *m = lh_os_loader_get_first(loader); m; m = lh_os_loader_get_next(loader, m))
+```
+
+A loader of your own can keep modules the same way: allocate them with
+`lh_os_module_create`, link them through `lh_os_module_get_node` into your
+own `lh_list_t`, get a module back from a link with
+`lh_os_module_get_by_node`, and after unlinking release it with
+`lh_os_module_destroy`.
 
 ### "Owner" means the same thing everywhere
 
@@ -123,6 +135,8 @@ after it is unmapped.
 | `stop`           | lifecycle | Unload children, then run `ops->stop`. Safe if not started. |
 | `close`          | both      | `stop`, then release the image, then forget `ops`.          |
 | `deinit`         | both      | `close`, then free the stored path.                         |
+| `create`         | —         | A new `init`'ed module on the heap (runtime allocator).     |
+| `destroy`        | both      | `deinit`, then free a module from `create`.                  |
 
 `close` forgets `ops` because the table normally lives in the image that was
 just released; keeping the pointer would leave it dangling.
@@ -220,13 +234,17 @@ gone.
 
 ```
  while there are children:
-     take the LAST one
+     pop the LAST one off the list
      lh_os_module_deinit(child)   → close → stop → (its own children first) → release image
      free it
 ```
 
 Children are unloaded in **reverse load order**: the last loaded goes first.
 A later module may depend on an earlier one, never the other way round.
+
+One child can also go on its own, in O(1), leaving its siblings in place:
+`lh_os_loader_unload_child(loader, child)` unlinks it and does the same
+`deinit` + free. Whether the others can live without it is the caller's call.
 
 ### 6.3 One module, full — `lh_os_module_close(m)`
 
