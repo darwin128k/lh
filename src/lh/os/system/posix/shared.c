@@ -11,6 +11,7 @@
 #include <lh/util/addr.h>
 #include <lh/util/math.h>
 #include <lh/util/ptr.h>
+#include <lh/util/str/ptr/empty.h>
 
 #include <dlfcn.h>
 #include <link.h>
@@ -21,14 +22,6 @@ lh_os_system_shared_ext(void)
     return lh_str_view_lit(".so");
 }
 
-/* NULL for an unnamed image: the main program's link_map name is "". */
-LH_ATTRIBUTE_STATIC
-lh_str_cptr
-lh_os_system_shared_name_or_null(lh_str_cptr name)
-{
-    return lh_null_eq(name) || lh_math_eq(lh_ptr_deref(name), '\0') ? lh_null : name;
-}
-
 /* Name of the image behind `map`. dladdr on its own dynamic section also
    names the main program, whose l_name is empty. */
 LH_ATTRIBUTE_STATIC
@@ -37,15 +30,15 @@ lh_os_system_shared_map_name(const struct link_map *map)
 {
     Dl_info info;
 
-    if (lh_null_ne(lh_os_system_shared_name_or_null(map->l_name)))
+    if (!lh_str_ptr_is_empty(map->l_name))
     {
         return map->l_name;
     }
-    if (lh_math_is_zero(dladdr(map->l_ld, lh_addr_of(info))))
+    if (lh_math_is_zero(dladdr(map->l_ld, lh_addr_of(info))) || lh_str_ptr_is_empty(info.dli_fname))
     {
         return lh_null;
     }
-    return lh_os_system_shared_name_or_null(info.dli_fname);
+    return info.dli_fname;
 }
 
 /* True when `base` is where the main program is mapped. dladdr may name it
@@ -54,20 +47,21 @@ LH_ATTRIBUTE_STATIC
 lh_bool_t
 lh_os_system_shared_is_main(lh_ptr base)
 {
-    lh_os_system_shared_handle_t self;
+    lh_os_system_shared_handle_t program;
+    lh_bool_t owned;
     struct link_map *map;
     Dl_info info;
     lh_bool_t is_main;
 
-    self = dlopen(lh_null, RTLD_NOW);
-    if (lh_null_eq(self))
+    program = lh_os_system_shared_main(lh_addr_of(owned));
+    if (lh_null_eq(program))
     {
         return lh_bool_false;
     }
     map = lh_null;
-    is_main = lh_math_is_zero(dlinfo(self, RTLD_DI_LINKMAP, lh_addr_of(map))) && lh_null_ne(map) &&
+    is_main = lh_math_is_zero(dlinfo(program, RTLD_DI_LINKMAP, lh_addr_of(map))) && lh_null_ne(map) &&
               lh_math_ne(dladdr(map->l_ld, lh_addr_of(info)), 0) && lh_math_eq(info.dli_fbase, base);
-    dlclose(self);
+    lh_os_system_shared_close(program);
     return is_main;
 }
 
@@ -111,6 +105,22 @@ lh_os_system_shared_sym(lh_os_system_shared_handle_t handle, lh_str_cptr name)
 }
 
 lh_os_system_shared_handle_t
+lh_os_system_shared_main(lh_bool_t *owned)
+{
+    lh_os_system_shared_handle_t handle;
+
+    lh_ptr_deref(owned) = lh_bool_false;
+    handle = dlopen(lh_null, RTLD_NOW);
+    if (lh_null_eq(handle))
+    {
+        lh_os_system_error_capture();
+        return LH_OS_SYSTEM_SHARED_HANDLE_INVALID;
+    }
+    lh_ptr_deref(owned) = lh_bool_true;
+    return handle;
+}
+
+lh_os_system_shared_handle_t
 lh_os_system_shared_of_addr(lh_ptr addr, lh_bool_t *owned)
 {
     Dl_info info;
@@ -124,7 +134,7 @@ lh_os_system_shared_of_addr(lh_ptr addr, lh_bool_t *owned)
         lh_os_system_error_capture();
         return LH_OS_SYSTEM_SHARED_HANDLE_INVALID;
     }
-    name = lh_os_system_shared_is_main(info.dli_fbase) ? lh_null : lh_os_system_shared_name_or_null(info.dli_fname);
+    name = lh_os_system_shared_is_main(info.dli_fbase) || lh_str_ptr_is_empty(info.dli_fname) ? lh_null : info.dli_fname;
     handle = dlopen(name, RTLD_NOW | RTLD_NOLOAD);
     if (lh_null_eq(handle))
     {

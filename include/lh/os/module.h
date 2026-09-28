@@ -4,7 +4,8 @@
  *
  * The module is the main object. It carries its lifecycle
  * (::lh_os_module_ops_t: start / stop), its private state (`data`), and
- * where it sits in the tree (`parent`). Loading other modules is a
+ * who holds it (`owner`: the loader that loaded it, null for a root).
+ * Loading other modules is a
  * privilege a module may be granted (::lh_os_module_grant_loader), not
  * something every module is.
  *
@@ -52,7 +53,7 @@ struct lh_os_loader;
 typedef struct lh_os_module
 {
     lh_os_module_fields(lh_fs_path_t, lh_os_system_shared_handle_t, lh_bool_t, const lh_os_module_ops_t *, lh_ptr,
-                        struct lh_os_module *, struct lh_os_loader *);
+                        struct lh_os_loader *);
 } lh_os_module_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -60,7 +61,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /* ── init / deinit ───────────────────────────────────────────────────────── */
 
 /**
- * @brief Empty module: no image, no methods, no parent, no loader. Does not
+ * @brief Empty module: no image, no methods, no owner, no loader. Does not
  *        touch the OS.
  */
 void
@@ -130,16 +131,26 @@ void
 lh_os_module_set_data(lh_os_module_t *self, lh_ptr data);
 
 /**
- * @brief The module whose loader loaded @p self, or ::lh_null for a root.
+ * @brief The loader holding @p self, or ::lh_null for a root.
+ *
+ * The owner loaded the module and is the one that unloads and frees it.
+ */
+struct lh_os_loader *
+lh_os_module_get_owner(const lh_os_module_t *self);
+
+/**
+ * @brief Record which loader holds @p self. Set by ::lh_os_loader_load.
+ */
+void
+lh_os_module_set_owner(lh_os_module_t *self, struct lh_os_loader *owner);
+
+/**
+ * @brief The module whose loader holds @p self, or ::lh_null for a root.
+ *
+ * Not stored: it is the owner's own owner (::lh_os_loader_get_owner).
  */
 lh_os_module_t *
 lh_os_module_get_parent(const lh_os_module_t *self);
-
-/**
- * @brief Record who loaded @p self. Set by ::lh_os_loader_load.
- */
-void
-lh_os_module_set_parent(lh_os_module_t *self, lh_os_module_t *parent);
 
 /**
  * @brief The loader privilege of @p self, or ::lh_null for a leaf.
@@ -180,6 +191,14 @@ lh_os_module_open(lh_os_module_t *self, const lh_fs_path_t *path);
  */
 lh_bool_t
 lh_os_module_bind(lh_os_module_t *self, lh_ptr addr);
+
+/**
+ * @brief Bind the program itself (the executable) as a root module.
+ *
+ * Same as ::lh_os_module_bind, without needing an address inside it.
+ */
+lh_bool_t
+lh_os_module_bind_main(lh_os_module_t *self);
 
 /**
  * @brief ::lh_os_module_stop, then drop the image. The stored path is kept.

@@ -103,14 +103,14 @@ lh_os_loader_deinit(lh_os_loader_t *self)
 /* ── load ────────────────────────────────────────────────────────────────── */
 
 /* Open, take the method table the image exports under `entry`, start. The
-   parent is known before start runs, so start may already reach it. */
+   owner is set before start runs, so start may already reach its parent. */
 LH_ATTRIBUTE_STATIC
 lh_bool_t
 lh_os_loader_bring_up(lh_os_loader_t *self, lh_os_module_t *child, const lh_fs_path_t *path)
 {
     const lh_os_module_ops_t *ops;
 
-    lh_os_module_set_parent(child, lh_os_loader_get_owner(self));
+    lh_os_module_set_owner(child, self);
     if (!lh_os_module_open(child, path))
     {
         return lh_bool_false;

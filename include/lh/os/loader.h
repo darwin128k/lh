@@ -53,7 +53,8 @@ typedef struct lh_os_loader
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief No children yet. @p owner becomes each child's parent.
+ * @brief No children yet. Each child's owner is this loader, so @p owner
+ *        is each child's parent (::lh_os_module_get_parent).
  *
  * Normally called by ::lh_os_module_grant_loader, not directly.
  *

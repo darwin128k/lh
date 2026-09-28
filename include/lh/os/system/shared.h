@@ -70,6 +70,19 @@ lh_ptr
 lh_os_system_shared_sym(lh_os_system_shared_handle_t handle, lh_str_cptr name);
 
 /**
+ * @brief Handle of the program itself (the executable, not a library).
+ *
+ * Windows: `GetModuleHandleEx(NULL)`, no `FreeLibrary` reference. POSIX:
+ * `dlopen(NULL)`, a reference that must be closed.
+ *
+ * @param owned Receives ::lh_bool_true when the caller must
+ *              ::lh_os_system_shared_close the result.
+ * @return Handle, or ::LH_OS_SYSTEM_SHARED_HANDLE_INVALID on failure.
+ */
+lh_os_system_shared_handle_t
+lh_os_system_shared_main(lh_bool_t *owned);
+
+/**
  * @brief Handle of the already-loaded image that contains @p addr.
  *
  * Windows does not take a `FreeLibrary` reference

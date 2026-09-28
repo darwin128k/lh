@@ -107,18 +107,27 @@ lh_os_module_set_data(lh_os_module_t *self, lh_ptr data)
     self->data = data;
 }
 
-lh_os_module_t *
-lh_os_module_get_parent(const lh_os_module_t *self)
+lh_os_loader_t *
+lh_os_module_get_owner(const lh_os_module_t *self)
 {
     lh_assert_runtime_ref(self);
-    return self->parent;
+    return self->owner;
 }
 
 void
-lh_os_module_set_parent(lh_os_module_t *self, lh_os_module_t *parent)
+lh_os_module_set_owner(lh_os_module_t *self, lh_os_loader_t *owner)
 {
     lh_assert_runtime_ref(self);
-    self->parent = parent;
+    self->owner = owner;
+}
+
+lh_os_module_t *
+lh_os_module_get_parent(const lh_os_module_t *self)
+{
+    lh_os_loader_t *owner;
+
+    owner = lh_os_module_get_owner(self);
+    return lh_null_eq(owner) ? lh_null : lh_os_loader_get_owner(owner);
 }
 
 lh_os_loader_t *
@@ -146,7 +155,7 @@ lh_os_module_init(lh_os_module_t *self)
     lh_os_module_set_started(self, lh_bool_false);
     lh_os_module_set_ops(self, lh_null);
     lh_os_module_set_data(self, lh_null);
-    lh_os_module_set_parent(self, lh_null);
+    lh_os_module_set_owner(self, lh_null);
     lh_os_module_set_loader(self, lh_null);
 }
 
@@ -275,19 +284,15 @@ lh_os_module_open(lh_os_module_t *self, const lh_fs_path_t *path)
     return lh_bool_true;
 }
 
+/* Keep an already-loaded image the OS just handed out: its path comes from
+   the OS too. On failure the reference, if ours, is given back. */
+LH_ATTRIBUTE_STATIC
 lh_bool_t
-lh_os_module_bind(lh_os_module_t *self, lh_ptr addr)
+lh_os_module_adopt(lh_os_module_t *self, lh_os_system_shared_handle_t handle, lh_bool_t owned)
 {
-    lh_os_system_shared_handle_t handle;
-    lh_bool_t owned;
     lh_str_t text;
     lh_bool_t ok;
 
-    if (!lh_os_module_is_free(self))
-    {
-        return lh_bool_false;
-    }
-    handle = lh_os_system_shared_of_addr(addr, lh_addr_of(owned));
     if (lh_null_eq(handle))
     {
         return lh_bool_false;
@@ -306,6 +311,34 @@ lh_os_module_bind(lh_os_module_t *self, lh_ptr addr)
     }
     lh_str_deinit(lh_addr_of(text));
     return ok;
+}
+
+lh_bool_t
+lh_os_module_bind(lh_os_module_t *self, lh_ptr addr)
+{
+    lh_os_system_shared_handle_t handle;
+    lh_bool_t owned;
+
+    if (!lh_os_module_is_free(self))
+    {
+        return lh_bool_false;
+    }
+    handle = lh_os_system_shared_of_addr(addr, lh_addr_of(owned));
+    return lh_os_module_adopt(self, handle, owned);
+}
+
+lh_bool_t
+lh_os_module_bind_main(lh_os_module_t *self)
+{
+    lh_os_system_shared_handle_t handle;
+    lh_bool_t owned;
+
+    if (!lh_os_module_is_free(self))
+    {
+        return lh_bool_false;
+    }
+    handle = lh_os_system_shared_main(lh_addr_of(owned));
+    return lh_os_module_adopt(self, handle, owned);
 }
 
 lh_bool_t

@@ -60,6 +60,22 @@ lh_os_system_shared_sym(lh_os_system_shared_handle_t handle, lh_str_cptr name)
 }
 
 lh_os_system_shared_handle_t
+lh_os_system_shared_main(lh_bool_t *owned)
+{
+    lh_os_system_win_handle_t native;
+
+    lh_ptr_deref(owned) = lh_bool_false;
+    native = lh_null;
+    if (lh_math_is_zero(GetModuleHandleExA(LH_OS_SYSTEM_WIN_GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, lh_null,
+                                           lh_addr_of(native))))
+    {
+        lh_os_system_error_capture();
+        return LH_OS_SYSTEM_SHARED_HANDLE_INVALID;
+    }
+    return native;
+}
+
+lh_os_system_shared_handle_t
 lh_os_system_shared_of_addr(lh_ptr addr, lh_bool_t *owned)
 {
     lh_os_system_win_handle_t native;
