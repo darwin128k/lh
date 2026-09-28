@@ -215,6 +215,14 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
      * lh_memory_scan, lhs_size is the address-space bound, and a block read could
      * run past the real buffer where the needle's first byte never occurs; cand[0]
      * is a byte the full compare would read anyway. */
+    /* Byte grid with a real haystack length: the vectorized first/last-byte search.
+     * Not for lh_memory_scan, whose lhs_size is the address-space bound (it would
+     * read up to 16 bytes past the match) — that keeps the scalar filter below. */
+    if (step == 1U && lhs_size != lh_memory_scan_bound(lhs))
+    {
+        return lh_memory_std_find(lhs, lhs_size, rhs, rhs_size);
+    }
+
     {
         const lh_uchar_t first = *lh_ptr_cast(const lh_uchar_t, rhs);
 

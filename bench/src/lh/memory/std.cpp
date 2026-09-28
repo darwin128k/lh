@@ -1,7 +1,9 @@
 #include <benchmark/benchmark.h>
 
+#include <lh/memory.h>
 #include <lh/memory/std.h>
 
+#include <algorithm>
 #include <cstring>
 #include <vector>
 
@@ -225,3 +227,47 @@ BM_memory_std_rcompare_mismatch_at_end(benchmark::State &state)
     state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
 }
 BENCHMARK(BM_memory_std_rcompare_mismatch_at_end)->Arg(4096);
+
+// Substring search over English-like text, 8-byte needle at the very end: the
+// whole haystack is scanned. Letters repeat often enough that the needle's first
+// byte alone would pass about every 20th position.
+static void
+BM_memory_std_find(benchmark::State &state)
+{
+    const lh_usize_t n = static_cast<lh_usize_t>(state.range(0));
+    const char words[] = "the quick brown fox jumps over the lazy dog ";
+    std::vector<unsigned char> hay(n);
+    for (lh_usize_t i = 0; i < n; ++i)
+    {
+        hay[i] = static_cast<unsigned char>(words[i % (sizeof(words) - 1)]);
+    }
+    const unsigned char needle[] = {'l', 'a', 'z', 'y', '_', 'c', 'a', 't'};
+    std::copy(needle, needle + sizeof(needle), hay.end() - sizeof(needle));
+    for (auto _ : state)
+    {
+        benchmark::DoNotOptimize(lh_memory_std_find(hay.data(), n, needle, sizeof(needle)));
+    }
+    state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
+}
+BENCHMARK(BM_memory_std_find)->Arg(64)->Arg(1024)->Arg(65536);
+
+// The pre-SIMD equivalent through the public find: same data, same needle.
+static void
+BM_memory_find_substring(benchmark::State &state)
+{
+    const lh_usize_t n = static_cast<lh_usize_t>(state.range(0));
+    const char words[] = "the quick brown fox jumps over the lazy dog ";
+    std::vector<unsigned char> hay(n);
+    for (lh_usize_t i = 0; i < n; ++i)
+    {
+        hay[i] = static_cast<unsigned char>(words[i % (sizeof(words) - 1)]);
+    }
+    const unsigned char needle[] = {'l', 'a', 'z', 'y', '_', 'c', 'a', 't'};
+    std::copy(needle, needle + sizeof(needle), hay.end() - sizeof(needle));
+    for (auto _ : state)
+    {
+        benchmark::DoNotOptimize(lh_memory_find(hay.data(), n, needle, sizeof(needle)));
+    }
+    state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
+}
+BENCHMARK(BM_memory_find_substring)->Arg(64)->Arg(1024)->Arg(65536);

@@ -9,6 +9,7 @@
 #include <lh/config.h>
 #include <lh/cpu/cache.h>
 #include <lh/cpu/simd.h>
+#include <lh/null.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/util/bit.h>
 #include <lh/util/bit/bswap.h>
@@ -2846,3 +2847,113 @@ lh_memory_std_rcompare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 }
 
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
+
+/* lh_memory_std_find: substring search with the first/last-byte filter that
+ * .NET's IndexOf, Go's strings.Index and Rust's memchr::memmem use. A candidate
+ * position i passes only when hay[i] is the needle's first byte and
+ * hay[i + m - 1] its last; the middle is compared only for those. Random text
+ * rarely matches both ends, so almost every position costs one vector compare
+ * shared with 15 others. Reads stay inside [hay, hay + n): the vector loop stops
+ * while the last-byte load still ends inside the haystack, and the scalar tail
+ * takes the rest. Needs m >= 2 and n >= m (checked by lh_memory_std_find). */
+
+/* Middle bytes of a first/last-byte hit at @p cand (m >= 2). */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
+lh_memory_std_find_is_match(const lh_uchar_t *cand, const lh_uchar_t *needle, lh_usize_t m)
+{
+    return lh_cast_static(lh_bool_t,
+                          m <= 2U || lh_null_eq(lh_memory_std_compare(cand + 1, needle + 1, m - 2U)));
+}
+
+static const lh_ptr
+lh_memory_std_find_scalar(const lh_uchar_t *hay, lh_usize_t n, const lh_uchar_t *needle, lh_usize_t m,
+                          lh_usize_t off)
+{
+    const lh_uchar_t first = needle[0];
+    const lh_uchar_t last = needle[m - 1U];
+    const lh_usize_t max_start = n - m;
+
+    for (; off <= max_start; ++off)
+    {
+        if (hay[off] == first && hay[off + m - 1U] == last &&
+            lh_memory_std_find_is_match(hay + off, needle, m))
+        {
+            return hay + off;
+        }
+    }
+    return lh_null;
+}
+
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+
+LH_MEMORY_STD_SIMD_TARGET("sse2")
+static const lh_ptr
+lh_memory_std_find_sse2(const lh_uchar_t *hay, lh_usize_t n, const lh_uchar_t *needle, lh_usize_t m)
+{
+    const __m128i first = _mm_set1_epi8(lh_cast_static(char, needle[0]));
+    const __m128i last = _mm_set1_epi8(lh_cast_static(char, needle[m - 1U]));
+    lh_usize_t off = 0U;
+
+    /* The block at off tests candidates off..off+15; its last-byte load covers
+     * off+m-1 .. off+m+14, inside the haystack while n - off >= m + 15. */
+    while (n - off >= m + 15U)
+    {
+        const __m128i a = _mm_loadu_si128(lh_ptr_rcast(const __m128i, hay + off));
+        const __m128i b = _mm_loadu_si128(lh_ptr_rcast(const __m128i, hay + off + m - 1U));
+        lh_u32_t mask = lh_cast_static(
+            lh_u32_t, _mm_movemask_epi8(_mm_and_si128(_mm_cmpeq_epi8(a, first), _mm_cmpeq_epi8(b, last))));
+
+        while (mask != 0U)
+        {
+            const lh_usize_t i = off + lh_bit_scan_forward_u32(mask);
+            if (lh_memory_std_find_is_match(hay + i, needle, m))
+            {
+                return hay + i;
+            }
+            mask &= mask - 1U;
+        }
+        off += 16U;
+    }
+    return lh_memory_std_find_scalar(hay, n, needle, m, off);
+}
+
+#endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
+
+const lh_ptr
+lh_memory_std_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size)
+{
+    const lh_uchar_t *hay;
+    const lh_uchar_t *needle;
+
+    lh_assert_runtime_ref(lhs);
+    lh_assert_runtime_ref(rhs);
+
+    if (rhs_size == 0U || lhs_size < rhs_size)
+    {
+        return lh_null;
+    }
+    hay = lh_ptr_ccast(lh_uchar_t, lhs);
+    needle = lh_ptr_ccast(lh_uchar_t, rhs);
+    if (rhs_size == 1U)
+    {
+        return lh_memory_std_find_scalar(hay, lhs_size, needle, 1U, 0U);
+    }
+
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+    /* Constant true on x86-64; on 32-bit x86 a real CPUID check, cached. */
+    {
+        static unsigned char s_has_sse2; /* 0 = unknown, 1 = yes, 2 = no */
+
+        if (s_has_sse2 == 0U)
+        {
+            s_has_sse2 = lh_cpu_simd_has_sse2() ? 1U : 2U;
+        }
+        if (s_has_sse2 == 1U)
+        {
+            return lh_memory_std_find_sse2(hay, lhs_size, needle, rhs_size);
+        }
+    }
+#endif
+    return lh_memory_std_find_scalar(hay, lhs_size, needle, rhs_size, 0U);
+}

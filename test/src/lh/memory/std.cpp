@@ -965,3 +965,101 @@ TEST(memory_std_xor, exact_bytes_across_simd_sizes_and_misalignment)
 }
 
 } // namespace
+
+namespace
+{
+
+const lh_uchar_t *
+reference_find(const lh_uchar_t *hay, lh_usize_t n, const lh_uchar_t *needle, lh_usize_t m)
+{
+    if (m == 0 || m > n)
+    {
+        return nullptr;
+    }
+    for (lh_usize_t i = 0; i + m <= n; ++i)
+    {
+        if (std::equal(needle, needle + m, hay + i))
+        {
+            return hay + i;
+        }
+    }
+    return nullptr;
+}
+
+// Every haystack length 0..100, needle length 1..40, the needle planted at every
+// position (block boundaries and the very end included), over a small alphabet so
+// first/last-byte hits without a full match are common.
+TEST(memory_std_find, matches_reference_everywhere)
+{
+    std::vector<lh_uchar_t> hay;
+    std::vector<lh_uchar_t> needle;
+    unsigned seed = 12345U;
+    auto next = [&seed]() {
+        seed = seed * 1103515245U + 12345U;
+        return static_cast<lh_uchar_t>('a' + ((seed >> 16) % 3U));
+    };
+
+    for (lh_usize_t n = 0; n <= 100; ++n)
+    {
+        for (lh_usize_t m = 1; m <= 40 && m <= n + 1; ++m)
+        {
+            needle.resize(m);
+            for (auto &c : needle)
+            {
+                c = next();
+            }
+            for (lh_usize_t at = 0; at + m <= n || at == 0; ++at)
+            {
+                hay.resize(n);
+                for (auto &c : hay)
+                {
+                    c = next();
+                }
+                if (at + m <= n)
+                {
+                    std::copy(needle.begin(), needle.end(), hay.begin() + static_cast<std::ptrdiff_t>(at));
+                }
+                const lh_uchar_t *h = hay.empty() ? needle.data() : hay.data();
+                const lh_uchar_t *want = reference_find(h, n, needle.data(), m);
+                const lh_ptr got = lh_memory_std_find(h, n, needle.data(), m);
+                ASSERT_EQ(got, static_cast<const lh_ptr>(want)) << "n=" << n << " m=" << m << " at=" << at;
+                if (at + m > n)
+                {
+                    break;
+                }
+            }
+        }
+    }
+}
+
+TEST(memory_std_find, first_and_last_match_but_middle_differs)
+{
+    // Every 17 bytes: "a..b" shaped decoys that pass the first/last filter.
+    std::vector<lh_uchar_t> hay(200, 'x');
+    for (std::size_t i = 0; i + 4 <= 150; i += 17)
+    {
+        hay[i] = 'a';
+        hay[i + 1] = 'y';
+        hay[i + 2] = 'y';
+        hay[i + 3] = 'b';
+    }
+    const lh_uchar_t needle[] = {'a', 'z', 'z', 'b'};
+    EXPECT_TRUE(lh_null_eq(lh_memory_std_find(hay.data(), hay.size(), needle, 4)));
+
+    hay[190] = 'a';
+    hay[191] = 'z';
+    hay[192] = 'z';
+    hay[193] = 'b';
+    EXPECT_EQ(lh_memory_std_find(hay.data(), hay.size(), needle, 4), static_cast<const lh_ptr>(&hay[190]));
+}
+
+TEST(memory_std_find, empty_or_oversized_needle_is_null)
+{
+    const lh_uchar_t hay[] = {'a', 'b', 'c'};
+    const lh_uchar_t needle[] = {'a', 'b', 'c', 'd'};
+    EXPECT_TRUE(lh_null_eq(lh_memory_std_find(hay, 3, needle, 0)));
+    EXPECT_TRUE(lh_null_eq(lh_memory_std_find(hay, 3, needle, 4)));
+    EXPECT_EQ(lh_memory_std_find(hay, 3, needle, 3), static_cast<const lh_ptr>(hay));
+}
+
+} // namespace
