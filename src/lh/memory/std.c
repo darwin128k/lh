@@ -16,6 +16,14 @@
 #include <lh/util/memory.h>
 #include <lh/util/ptr.h>
 
+/* LH_LIBRARY_OPTION_MEMORY_STD_BACKEND=LIBC (cmake/library_options.cmake):
+ * lh_memory_std_copy / move / rcopy / set become thin wrappers over the C
+ * library, and their own tiers below are compiled out. compare, rcompare, xor
+ * and copy_rev have no libc equivalent and keep their own code either way. */
+#if LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC
+#    include <string.h>
+#endif
+
 /* Real SIMD, runtime-dispatched, for both GCC/Clang and MSVC: whether a tier's
  * intrinsics + its runtime CPU-feature check are even compilable by this toolchain
  * for this target is decided once, at CMake configure time, by a compile-only probe
@@ -439,6 +447,21 @@ lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 }
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+
+/* 0 = not yet resolved. Shared by copy/set/rcopy/compare so the first std call
+ * on this thread-of-control pays CPUID once, and later calls of any of them
+ * can take a predicted direct jump instead of an indirect function pointer —
+ * that pointer was the 64-255 tax when DIRECT_DISPATCH_THRESHOLD forced SSE2. */
+#    define LH_MEMORY_STD_KIND_AVX2 1U
+#    define LH_MEMORY_STD_KIND_SSE2 2U
+#    define LH_MEMORY_STD_KIND_SCALAR 3U
+#    define LH_MEMORY_STD_KIND_SSSE3 4U
+static unsigned char m_simd_kind;
+static unsigned char m_copy_rev_kind;
+
+#endif
+
+#if (LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2) && !LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC
 
 /* Both are measured crossovers, not correctness facts — see
  * cmake/library_options.cmake for the full rationale and how to override them. */
@@ -947,17 +970,6 @@ static lh_memory_std_copy_simd_fn m_copy_simd_impl = lh_memory_std_copy_simd_dis
  * only implementations of this tier). */
 static lh_memory_std_copy_simd_fn m_copy_stream_impl = lh_null;
 
-/* 0 = not yet resolved. Shared by copy/set/rcopy/compare so the first std call
- * on this thread-of-control pays CPUID once, and later calls of any of them
- * can take a predicted direct jump instead of an indirect function pointer —
- * that pointer was the 64-255 tax when DIRECT_DISPATCH_THRESHOLD forced SSE2. */
-#    define LH_MEMORY_STD_KIND_AVX2 1U
-#    define LH_MEMORY_STD_KIND_SSE2 2U
-#    define LH_MEMORY_STD_KIND_SCALAR 3U
-#    define LH_MEMORY_STD_KIND_SSSE3 4U
-static unsigned char m_simd_kind;
-static unsigned char m_copy_rev_kind;
-
 /* Below this, the overlapping-word tiny ladder (lh_memory_std_copy_tiny) handles the
  * copy — small enough that an indirect SIMD call cannot pay for itself, and on MSVC
  * the plain scalar byte loop is catastrophically bad (see the Release
@@ -1064,7 +1076,9 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 
     lh_ptr end = lh_ptr_add_unsafe(lh_void, dst, n);
 
-#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+#if LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC
+    (void)memcpy(dst, src, n);
+#elif LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
     /* See lh_memory_std_copy_simd_dispatch's doc comment above for why this tier —
      * not REP MOVSB — is the default whenever SIMD is compilable, for both GCC/Clang
      * and MSVC. Under MSVC, __movsb (below) was originally used unconditionally because
@@ -1499,7 +1513,7 @@ lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n)
     return end;
 }
 
-#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+#if (LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2) && !LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC
 
 /* lh_memory_std_rcopy's own SIMD tier: a plain reverse (decrementing
  * pointer) loop turned out not to get the same auto-vectorization treatment GCC gives
@@ -1713,7 +1727,11 @@ lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
     lh_assert_runtime_ref(dst);
     lh_assert_runtime_ref(src);
 
-#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+#if LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC
+    /* rcopy is memmove's backward half: for dst above an overlapping src (its
+     * documented use) and for disjoint ranges the result is the same. */
+    (void)memmove(dst, src, n);
+#elif LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
     if (n >= LH_MEMORY_STD_SIMD_RCOPY_THRESHOLD)
     {
         lh_uchar_t *d = lh_ptr_cast(lh_uchar_t, dst);
@@ -1755,6 +1773,13 @@ lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 lh_ptr
 lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 {
+#if LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC
+    lh_assert_runtime_ref(dst);
+    lh_assert_runtime_ref(src);
+
+    (void)memmove(dst, src, n);
+    return lh_ptr_add_by_offset(lh_void, dst, n);
+#else
     const lh_ptr src_end = lh_ptr_add_by_offset(lh_void, src, n);
     if (lh_ptr_is_backward_copy(dst, src, src_end))
     {
@@ -1762,9 +1787,10 @@ lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n)
         return lh_ptr_add_by_offset(lh_void, dst, n);
     }
     return lh_memory_std_copy(dst, src, n);
+#endif
 }
 
-#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+#if (LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2) && !LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC
 
 /* lh_memory_std_set's own SIMD tier, same shape as lh_memory_std_copy's above — added
  * for the same reason: measured against the platform CRT's own memset on this
@@ -2122,7 +2148,9 @@ lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n)
     lh_assert_runtime_ref(dst);
 
     lh_ptr end = lh_ptr_add_unsafe(lh_void, dst, n);
-#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
+#if LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC
+    (void)memset(dst, val, n);
+#elif LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
     if (n >= LH_MEMORY_STD_SIMD_SET_THRESHOLD)
     {
         lh_uchar_t *d = lh_ptr_cast(lh_uchar_t, dst);

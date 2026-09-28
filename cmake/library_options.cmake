@@ -110,6 +110,31 @@ set(LH_LIBRARY_OPTION_LTO "FAT" CACHE STRING
 set_property(CACHE LH_LIBRARY_OPTION_LTO PROPERTY STRINGS OFF ON FAT)
 
 # -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_MEMORY_STD_BACKEND
+#
+# What moves the bytes in lh_memory_std_copy / move / rcopy / set:
+#
+#   OWN  — this library's own tiers (src/lh/memory/std.c): runtime-dispatched
+#          SSE2/AVX2, L3-sized non-temporal stores. No libc call.
+#   LIBC — the C library's memcpy / memmove / memset, wrapped to keep lh's
+#          contract (null checks, dst + n return). Compiles the own tiers out.
+#   AUTO — (default) LIBC where the platform's C library was measured faster,
+#          OWN where it was not:
+#            MSVC x64 -> LIBC: vcruntime beat lh 1.3x-2.4x on copy 128B-8KB
+#                              (Ryzen 7 5700U), on par above.
+#            MSVC x86 -> OWN:  vcruntime's x86 memcpy/memset lost 1.2x-3x.
+#            MinGW    -> OWN:  it links the old msvcrt.dll, slower than lh.
+#            other    -> LIBC: glibc beat lh 1.3x-1.5x on copy/set 128B-4KB
+#                              (Xeon X5690); libSystem is tuned per CPU too.
+#
+# compare / rcompare / xor / copy_rev have no libc equivalent (compare returns
+# the mismatch position, not a sign) and always use lh's own code.
+# -----------------------------------------------------------------------------
+set(LH_LIBRARY_OPTION_MEMORY_STD_BACKEND "AUTO" CACHE STRING
+        "lh_memory_std_copy/move/rcopy/set backend: AUTO, OWN or LIBC.")
+set_property(CACHE LH_LIBRARY_OPTION_MEMORY_STD_BACKEND PROPERTY STRINGS AUTO OWN LIBC)
+
+# -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB
 #
 # Initial default for runtime allocator callbacks in lh/runtime/allocator.c.
@@ -284,7 +309,7 @@ set(LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD "256" CACHE STRI
         "lh_memory_std_copy/copy_rev/rcopy, x86-64 only: below this size (bytes), call the SSE2 tier directly (SSE2 needs no runtime check on x86-64) instead of going through the indirect, AVX2-capable dispatch — avoids paying for an indirect call before it is worth it. Must be a positive decimal integer, and should stay at or above LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD.")
 
 set(LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD "2097152" CACHE STRING
-        "lh_memory_std_copy/set: at and above this size (bytes, default 2MiB), switch to the non-temporal (streaming-store) tier — regular stores pull each destination cache line in before overwriting it, wasted bandwidth once the copy/fill is far larger than cache and unlikely to be re-read soon. Must be a positive decimal integer.")
+        "lh_memory_std_copy/set: floor (bytes, default 2MiB) for switching to the non-temporal (streaming-store) tier; the actual switch happens once the bytes pulled through the cache (n for set, 2n for copy) reach the CPU's L3 size, and this floor is also the fallback when the L3 size is unknown — regular stores pull each destination cache line in before overwriting it, wasted bandwidth once the copy/fill is far larger than cache and unlikely to be re-read soon. Must be a positive decimal integer.")
 
 set(LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD "512" CACHE STRING
         "lh_memory_std_copy under GCC/Clang, x86 only: below this size (bytes), prefer the SIMD tier over REP MOVSB in the (normally unused) fallback path taken when SIMD intrinsics did not compile at all — REP MOVSB's fixed microcode setup cost is not worth paying for small copies. Must be a positive decimal integer.")

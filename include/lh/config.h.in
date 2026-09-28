@@ -294,13 +294,26 @@
 #define LH_LIBRARY_OPTION_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD @ValMemoryStdSimdDirectDispatchThreshold@
 
 /**
+ * @def LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC
+ * @brief 1 when ::lh_memory_std_copy / move / rcopy / set wrap the C library's
+ *        memcpy / memmove / memset, 0 when they use lh's own tiers.
+ *
+ * Resolved from the LH_LIBRARY_OPTION_MEMORY_STD_BACKEND CMake option (AUTO, OWN
+ * or LIBC; see cmake/library_options.cmake for what AUTO picks and why).
+ */
+#define LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC @ValMemoryStdBackendLibc@
+
+/**
  * @def LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD
- * @brief ::lh_memory_std_copy / ::lh_memory_std_set: at and above this size (bytes),
- *        switch to the non-temporal (streaming-store) tier.
+ * @brief ::lh_memory_std_copy / ::lh_memory_std_set: floor (bytes) for the
+ *        non-temporal (streaming-store) tier.
  *
  * Regular stores pull each destination cache line in before overwriting it (read-
- * for-ownership) — wasted memory bandwidth once the copy/fill is far larger than
- * cache and unlikely to be re-read soon. Default is 2MiB (2097152).
+ * for-ownership) — wasted memory bandwidth once the copy/fill no longer fits in
+ * cache. The tier switches on once the bytes the operation pulls through the cache
+ * (n for a fill, 2n for a copy) reach the CPU's L3 size (::lh_cpu_cache_get_l3_size),
+ * never below this floor; the floor is also the threshold when the L3 size is
+ * unknown. Default is 2MiB (2097152). Unused with the LIBC backend.
  *
  * @note The value must be greater than zero.
  */
