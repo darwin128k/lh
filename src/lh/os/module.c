@@ -4,6 +4,7 @@
 #include <lh/cast/static.h>
 #include <lh/null.h>
 #include <lh/os.h>
+#include <lh/os/alloc.h>
 #include <lh/os/error/code.h>
 #include <lh/os/fs/path.h>
 #include <lh/os/loader.h>
@@ -178,10 +179,9 @@ lh_os_module_grant_loader(lh_os_module_t *self, lh_str_cptr entry)
         lh_os_set_last_error(lh_os_error_make(lh_os_error_code_already_open, lh_os_error_desc_lit("loader already granted")));
         return lh_null;
     }
-    loader = lh_ptr_cast(lh_os_loader_t, lh_runtime_allocator_alloc(sizeof(*loader)));
+    loader = lh_ptr_cast(lh_os_loader_t, lh_os_alloc(sizeof(*loader)));
     if (lh_null_eq(loader))
     {
-        lh_os_set_last_error(lh_os_error_make(lh_os_error_code_out_of_memory, lh_os_error_desc_lit("out of memory")));
         return lh_null;
     }
     lh_os_loader_init(loader, self, entry);

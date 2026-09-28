@@ -370,8 +370,7 @@ lh_fs_path_join(lh_fs_path_t *self, const lh_fs_path_t *dir, const lh_fs_path_t 
     aliased = lh_cast_static(lh_bool_t, lh_math_eq(self, name));
     if (aliased)
     {
-        lh_str_init(lh_addr_of(copy));
-        lh_str_append_view(lh_addr_of(copy), rest);
+        lh_str_init_by_view(lh_addr_of(copy), rest);
         rest = lh_str_as_view(lh_addr_of(copy));
     }
     lh_fs_path_assign(self, dir);

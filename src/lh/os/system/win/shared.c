@@ -2,6 +2,7 @@
 #include <lh/assert.h>
 #include <lh/null.h>
 #include <lh/os.h>
+#include <lh/os/alloc.h>
 #include <lh/os/error/code.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/win/kernel32.h>
@@ -103,10 +104,9 @@ lh_os_system_shared_get_path(lh_os_system_shared_handle_t handle, lh_str_t *out)
     /* GetModuleFileName reports truncation as n == cap: grow and retry. */
     for (cap = 256U; lh_math_le(cap, LH_OS_SYSTEM_WIN_SHARED_PATH_MAX); cap = lh_math_mul(cap, 2U))
     {
-        buf = lh_ptr_cast(lh_char_t, lh_runtime_allocator_alloc(cap));
+        buf = lh_ptr_cast(lh_char_t, lh_os_alloc(cap));
         if (lh_null_eq(buf))
         {
-            lh_os_set_last_error(lh_os_error_make(lh_os_error_code_out_of_memory, lh_os_error_desc_lit("out of memory")));
             return lh_bool_false;
         }
         n = GetModuleFileNameA(handle, buf, cap);

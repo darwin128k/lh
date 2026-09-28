@@ -5,8 +5,7 @@
 #include <lh/cast/static.h>
 #include <lh/char/slash.h>
 #include <lh/null.h>
-#include <lh/os.h>
-#include <lh/os/error/code.h>
+#include <lh/os/alloc.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/win/fs/kind.h>
 #include <lh/os/system/win/kernel32.h>
@@ -42,17 +41,15 @@ lh_os_system_fs_dir_open(lh_str_cptr path)
     lh_str_t pattern;
 
     lh_assert_runtime_ref(path);
-    state = lh_ptr_cast(struct lh_os_system_fs_dir_state, lh_runtime_allocator_alloc(sizeof(*state)));
+    state = lh_ptr_cast(struct lh_os_system_fs_dir_state, lh_os_alloc(sizeof(*state)));
     if (lh_null_eq(state))
     {
-        lh_os_set_last_error(lh_os_error_make(lh_os_error_code_out_of_memory, lh_os_error_desc_lit("out of memory")));
         return LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID;
     }
 
     /* FindFirstFile lists a pattern, not a directory: "<path>\*". */
     view = lh_str_view_make(path);
-    lh_str_init(lh_addr_of(pattern));
-    lh_str_append_view(lh_addr_of(pattern), view);
+    lh_str_init_by_view(lh_addr_of(pattern), view);
     if (!lh_str_view_is_empty(lh_addr_of(view)) && !lh_char_is_slash(lh_str_view_get_last_char(lh_addr_of(view))) &&
         !lh_char_is_backslash(lh_str_view_get_last_char(lh_addr_of(view))))
     {

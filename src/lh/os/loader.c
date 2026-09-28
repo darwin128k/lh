@@ -2,8 +2,7 @@
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/null.h>
-#include <lh/os.h>
-#include <lh/os/error/code.h>
+#include <lh/os/alloc.h>
 #include <lh/runtime/allocator.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -65,8 +64,7 @@ lh_os_loader_init(lh_os_loader_t *self, lh_os_module_t *owner, lh_str_cptr entry
     lh_assert_runtime_ref(entry);
     lh_vector_init(lh_os_loader_get_modules(self), sizeof(lh_os_module_t *));
     lh_os_loader_set_owner(self, owner);
-    lh_str_init(lh_os_loader_get_entry_mut(self));
-    lh_str_append_view(lh_os_loader_get_entry_mut(self), lh_str_view_make(entry));
+    lh_str_init_by_view(lh_os_loader_get_entry_mut(self), lh_str_view_make(entry));
 }
 
 void
@@ -121,10 +119,9 @@ lh_os_loader_load(lh_os_loader_t *self, const lh_fs_path_t *path)
 {
     lh_os_module_t *child;
 
-    child = lh_ptr_cast(lh_os_module_t, lh_runtime_allocator_alloc(sizeof(*child)));
+    child = lh_ptr_cast(lh_os_module_t, lh_os_alloc(sizeof(*child)));
     if (lh_null_eq(child))
     {
-        lh_os_set_last_error(lh_os_error_make(lh_os_error_code_out_of_memory, lh_os_error_desc_lit("out of memory")));
         return lh_null;
     }
     lh_os_module_init(child);
