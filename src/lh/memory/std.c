@@ -76,6 +76,28 @@
 #    endif
 #endif
 
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+/* SSE2 usable at run time, for the helpers outside the m_simd_kind dispatch
+ * (lh_memory_std_move's small path, lh_memory_std_find): constant on x86-64,
+ * where SSE2 is baseline, one cached CPUID check on 32-bit x86. */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
+lh_memory_std_has_sse2(void)
+{
+#    if LH_COMPILER_ARCH == LH_COMPILER_ARCH_64
+    return lh_bool_true;
+#    else
+    static unsigned char s_has_sse2; /* 0 = unknown, 1 = yes, 2 = no */
+
+    if (s_has_sse2 == 0U)
+    {
+        s_has_sse2 = lh_cpu_simd_has_sse2() ? 1U : 2U;
+    }
+    return lh_cast_static(lh_bool_t, s_has_sse2 == 1U);
+#    endif
+}
+#endif
+
 /* lh_memory_std_copy's plain while(n--) *d++ = *s++; loop (still used as-is under
  * every other compiler) measured ~9x slower under MSVC /O2 /Oi /Ot than under GCC on
  * the same data — checked directly with dumpbin /DISASM: MSVC emits it as a literal
@@ -1771,6 +1793,106 @@ lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
     return dst;
 }
 
+/* lh_memory_std_move's small path, glibc memmove's trick: load every source
+ * byte, then store, so any overlap is safe and no direction has to be picked.
+ * Below 16 bytes lh_memory_std_copy_tiny already works that way; this covers
+ * 16-128 bytes with at most eight SSE registers. x86-64, and MSVC on 32-bit x86
+ * (runtime SSE2 check): GCC cannot force-inline a target("sse2") function into
+ * a caller without it on 32-bit. A one-byte shift right (the rcopy direction)
+ * was 1.4x-1.9x slower than the same shift left at 16-128 bytes before this. */
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 && LH_MEMORY_STD_HAVE_COPY_TINY &&                            \
+    !LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC &&                                                  \
+    ((LH_COMPILER_ARCH == LH_COMPILER_ARCH_64) || (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC))
+#    define LH_MEMORY_STD_HAVE_MOVE_SMALL 1
+
+/* 16 <= n <= 128. */
+LH_ATTRIBUTE_FORCE_INLINE
+LH_MEMORY_STD_SIMD_TARGET("sse2")
+void
+lh_memory_std_move_small_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+{
+    if (n <= 32U)
+    {
+        const __m128i a = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src));
+        const __m128i b = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + n - 16U));
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst), a);
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + n - 16U), b);
+        return;
+    }
+
+    if (n <= 64U)
+    {
+        const __m128i a = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src));
+        const __m128i b = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 16));
+        const __m128i c = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + n - 32U));
+        const __m128i d = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + n - 16U));
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst), a);
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 16), b);
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + n - 32U), c);
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + n - 16U), d);
+        return;
+    }
+
+    {
+        const __m128i a = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src));
+        const __m128i b = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 16));
+        const __m128i c = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 32));
+        const __m128i d = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 48));
+        const __m128i e = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + n - 64U));
+        const __m128i f = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + n - 48U));
+        const __m128i g = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + n - 32U));
+        const __m128i h = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + n - 16U));
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst), a);
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 16), b);
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 32), c);
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 48), d);
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + n - 64U), e);
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + n - 48U), f);
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + n - 32U), g);
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + n - 16U), h);
+    }
+}
+#else
+#    define LH_MEMORY_STD_HAVE_MOVE_SMALL 0
+#endif
+
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 && !LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC
+/* Forward move of an overlapping range (dst below src, inside it). 16-byte
+ * blocks from the front are safe — each store lands below every source byte
+ * still to be read — but the copy tiers' overlapping last block is not: it
+ * reads a tail that earlier stores already overwrote, so lh_memory_std_move
+ * corrupted such moves from 65 bytes up. The last 16 bytes are loaded before
+ * the first store instead, as glibc's memmove does. n > 16. */
+LH_MEMORY_STD_SIMD_TARGET("sse2")
+static void
+lh_memory_std_move_forward_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+{
+    const __m128i tail = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + n - 16U));
+    lh_usize_t i = 0U;
+
+    /* Four blocks per step, all loaded before any is stored: the stores still
+     * land below every source byte a later step reads. */
+    while (n - i > 64U)
+    {
+        const __m128i a = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + i));
+        const __m128i b = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + i + 16U));
+        const __m128i c = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + i + 32U));
+        const __m128i d = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + i + 48U));
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + i), a);
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + i + 16U), b);
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + i + 32U), c);
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + i + 48U), d);
+        i += 64U;
+    }
+    while (n - i > 16U)
+    {
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + i), _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + i)));
+        i += 16U;
+    }
+    _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + n - 16U), tail);
+}
+#endif
+
 lh_ptr
 lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 {
@@ -1781,10 +1903,43 @@ lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n)
     (void)memmove(dst, src, n);
     return lh_ptr_add_by_offset(lh_void, dst, n);
 #else
+    lh_assert_runtime_ref(dst);
+    lh_assert_runtime_ref(src);
+
+#    if LH_MEMORY_STD_HAVE_MOVE_SMALL
+    if (n < 16U)
+    {
+        lh_memory_std_copy_tiny(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+        return lh_ptr_add_by_offset(lh_void, dst, n);
+    }
+    if (n <= 128U && lh_memory_std_has_sse2())
+    {
+        lh_memory_std_move_small_sse2(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+        return lh_ptr_add_by_offset(lh_void, dst, n);
+    }
+#    endif
+
     const lh_ptr src_end = lh_ptr_add_by_offset(lh_void, src, n);
     if (lh_ptr_is_backward_copy(dst, src, src_end))
     {
         lh_memory_std_rcopy(dst, src, n);
+        return lh_ptr_add_by_offset(lh_void, dst, n);
+    }
+
+    /* Forward, and dst inside [src - n, src): overlapping, so not the copy tiers
+     * (see lh_memory_std_move_forward_sse2). lh_memory_std_copy_bytes walks
+     * forward and reads its tail before writing it, so it is safe too. */
+    if (lh_ptr_to_uaddr(dst) < lh_ptr_to_uaddr(src) &&
+        lh_ptr_to_uaddr(src) - lh_ptr_to_uaddr(dst) < n)
+    {
+#    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+        if (n > 16U && lh_memory_std_has_sse2())
+        {
+            lh_memory_std_move_forward_sse2(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+            return lh_ptr_add_by_offset(lh_void, dst, n);
+        }
+#    endif
+        lh_memory_std_copy_bytes(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
         return lh_ptr_add_by_offset(lh_void, dst, n);
     }
     return lh_memory_std_copy(dst, src, n);
@@ -2941,18 +3096,9 @@ lh_memory_std_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_u
     }
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
-    /* Constant true on x86-64; on 32-bit x86 a real CPUID check, cached. */
+    if (lh_memory_std_has_sse2())
     {
-        static unsigned char s_has_sse2; /* 0 = unknown, 1 = yes, 2 = no */
-
-        if (s_has_sse2 == 0U)
-        {
-            s_has_sse2 = lh_cpu_simd_has_sse2() ? 1U : 2U;
-        }
-        if (s_has_sse2 == 1U)
-        {
-            return lh_memory_std_find_sse2(hay, lhs_size, needle, rhs_size);
-        }
+        return lh_memory_std_find_sse2(hay, lhs_size, needle, rhs_size);
     }
 #endif
     return lh_memory_std_find_scalar(hay, lhs_size, needle, rhs_size, 0U);

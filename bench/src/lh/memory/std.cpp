@@ -289,3 +289,21 @@ BM_memory_set_pattern(benchmark::State &state)
     state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
 }
 BENCHMARK(BM_memory_set_pattern)->ArgsProduct({{64, 4096}, {2, 4, 8}});
+
+// Overlapping move by one byte: range(1) = 0 shifts right (dst = src + 1, the
+// backward-copy case), 1 shifts left (dst = src - 1, forward).
+static void
+BM_memory_std_move(benchmark::State &state)
+{
+    const lh_usize_t n = static_cast<lh_usize_t>(state.range(0));
+    std::vector<unsigned char> buf(n + 1, 0x5A);
+    unsigned char *src = state.range(1) == 0 ? buf.data() : buf.data() + 1;
+    unsigned char *dst = state.range(1) == 0 ? buf.data() + 1 : buf.data();
+    for (auto _ : state)
+    {
+        benchmark::DoNotOptimize(lh_memory_std_move(dst, src, n));
+        benchmark::DoNotOptimize(buf.data());
+    }
+    state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
+}
+BENCHMARK(BM_memory_std_move)->ArgsProduct({{8, 16, 32, 64, 128, 256, 4096}, {0, 1}});

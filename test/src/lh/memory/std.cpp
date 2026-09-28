@@ -5,6 +5,7 @@
 #include <lh/null.h>
 
 #include <algorithm>
+#include <cstring>
 #include <vector>
 
 namespace
@@ -1060,6 +1061,68 @@ TEST(memory_std_find, empty_or_oversized_needle_is_null)
     EXPECT_TRUE(lh_null_eq(lh_memory_std_find(hay, 3, needle, 0)));
     EXPECT_TRUE(lh_null_eq(lh_memory_std_find(hay, 3, needle, 4)));
     EXPECT_EQ(lh_memory_std_find(hay, 3, needle, 3), static_cast<const lh_ptr>(hay));
+}
+
+} // namespace
+
+namespace
+{
+
+// Every size 0..200 (the small-path edges 15/16, 32/33, 64/65, 128/129 and the
+// large paths) at every shift -40..40 inside one buffer: overlap both ways and
+// disjoint ranges, against std::memmove on an identical copy.
+TEST(memory_std_move, matches_memmove_for_every_size_and_shift)
+{
+    const std::size_t pad = 48;
+    for (std::size_t n = 0; n <= 200; ++n)
+    {
+        for (int shift = -40; shift <= 40; ++shift)
+        {
+            std::vector<lh_uchar_t> got(n + 2 * pad);
+            for (std::size_t i = 0; i < got.size(); ++i)
+            {
+                got[i] = static_cast<lh_uchar_t>(i * 7 + 3);
+            }
+            std::vector<lh_uchar_t> want = got;
+
+            lh_uchar_t *src = got.data() + pad;
+            lh_uchar_t *dst = src + shift;
+            const lh_ptr end = lh_memory_std_move(dst, src, n);
+            std::memmove(want.data() + pad + shift, want.data() + pad, n);
+
+            ASSERT_EQ(end, static_cast<lh_ptr>(dst + n)) << "n=" << n << " shift=" << shift;
+            ASSERT_EQ(got, want) << "n=" << n << " shift=" << shift;
+        }
+    }
+}
+
+// Larger sizes through every copy/rcopy tier (SIMD, aligned paths, prefetch),
+// at shifts that overlap by almost all of the range, part of it, and not at all.
+TEST(memory_std_move, matches_memmove_for_large_sizes)
+{
+    const std::size_t pad = 256;
+    const std::size_t sizes[] = {129, 255, 256, 257, 511, 512, 513, 1000, 4096, 5000};
+    const int shifts[] = {-200, -100, -40, -17, -16, -7, -1, 1, 7, 16, 17, 40, 100, 200};
+    for (std::size_t n : sizes)
+    {
+        for (int shift : shifts)
+        {
+            std::vector<lh_uchar_t> got(n + 2 * pad);
+            for (std::size_t i = 0; i < got.size(); ++i)
+            {
+                got[i] = static_cast<lh_uchar_t>(i * 13 + 5);
+            }
+            std::vector<lh_uchar_t> want = got;
+
+            lh_uchar_t *src = got.data() + pad;
+            lh_uchar_t *dst = src + shift;
+            const lh_ptr end = lh_memory_std_move(dst, src, n);
+            std::memmove(want.data() + pad + shift, want.data() + pad, n);
+
+            ASSERT_EQ(end, static_cast<lh_ptr>(dst + n)) << "n=" << n << " shift=" << shift;
+            ASSERT_EQ(got, want) << "n=" << n << " shift=" << shift;
+        }
+    }
 }
 
 } // namespace
