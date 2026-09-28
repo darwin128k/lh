@@ -50,6 +50,12 @@
 #define lh_os_error_code_not_open 0x05
 
 /**
+ * @def lh_os_error_code_already_open
+ * @brief The call requires an empty slot, but a handle is already held.
+ */
+#define lh_os_error_code_already_open 0x06
+
+/**
  * @typedef lh_os_error_code_t
  * @brief Same representation as ::lh_error_code_t for OS-layer last-error codes.
  */

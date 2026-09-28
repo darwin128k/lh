@@ -161,7 +161,8 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/fs/dir.c
             ${LH_LIB_SRC_PATH}/os/net.c
             ${LH_LIB_SRC_PATH}/os/net/socket.c
-            # rest of os is being rebuilt from scratch, one piece at a time.
+            ${LH_LIB_SRC_PATH}/os/module.c
+            ${LH_LIB_SRC_PATH}/os/loader.c
     )
     # Kernel backend: the only sources that call Win32 / POSIX directly.
     # Each backend also names the system libraries it links against.
@@ -170,10 +171,11 @@ if (LH_LIBRARY_OPTION_OS)
         set(LH_OS_SYSTEM_LINK_LIBS ws2_32)
     else ()
         set(LH_OS_SYSTEM_BACKEND posix)
-        set(LH_OS_SYSTEM_LINK_LIBS)
+        set(LH_OS_SYSTEM_LINK_LIBS ${CMAKE_DL_LIBS})
     endif ()
     list(APPEND LH_LIB_SOURCES
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/error/capture.c
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/error/kind.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/timestamp.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/path.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/file.c
@@ -181,6 +183,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/stat.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/net.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/net/socket.c
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/shared.c
     )
 endif ()
 

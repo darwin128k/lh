@@ -29,7 +29,10 @@
 
 #define LH_OS_SYSTEM_WIN_MAXDWORD 0xFFFFFFFFUL
 
+#define LH_OS_SYSTEM_WIN_ERROR_FILE_NOT_FOUND 2UL
+#define LH_OS_SYSTEM_WIN_ERROR_PATH_NOT_FOUND 3UL
 #define LH_OS_SYSTEM_WIN_ERROR_NO_MORE_FILES 18UL
+#define LH_OS_SYSTEM_WIN_ERROR_DIRECTORY 267UL
 
 /* CreateFile: dwDesiredAccess, dwShareMode, dwCreationDisposition. */
 #define LH_OS_SYSTEM_WIN_GENERIC_READ 0x80000000UL
@@ -135,5 +138,28 @@ FindNextFileA(lh_os_system_win_handle_t hFindFile, lh_os_system_win_find_data_t 
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 FindClose(lh_os_system_win_handle_t hFindFile);
+
+/* Shared images. `lpModuleName` is a path for LoadLibrary and an address
+   inside an image for GetModuleHandleEx FROM_ADDRESS — one pointer either way. */
+
+#define LH_OS_SYSTEM_WIN_GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT 0x00000002UL
+#define LH_OS_SYSTEM_WIN_GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS 0x00000004UL
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
+LoadLibraryA(lh_str_cptr lpLibFileName);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+FreeLibrary(lh_os_system_win_handle_t hLibModule);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_ptr LH_OS_SYSTEM_WIN_CALL
+GetProcAddress(lh_os_system_win_handle_t hModule, lh_str_cptr lpProcName);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+GetModuleHandleExA(lh_os_system_win_dword_t dwFlags, const lh_ptr lpModuleName,
+                   lh_os_system_win_handle_t *phModule);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_dword_t LH_OS_SYSTEM_WIN_CALL
+GetModuleFileNameA(lh_os_system_win_handle_t hModule, lh_str_ptr lpFilename,
+                   lh_os_system_win_dword_t nSize);
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_KERNEL32_H */

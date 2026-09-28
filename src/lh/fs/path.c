@@ -386,3 +386,39 @@ lh_fs_path_join(lh_fs_path_t *self, const lh_fs_path_t *dir, const lh_fs_path_t 
     }
     return lh_bool_true;
 }
+
+lh_bool_t
+lh_fs_path_equals(const lh_fs_path_t *self, const lh_fs_path_t *other, lh_bool_t ignore_case)
+{
+    lh_str_view_t a;
+    lh_str_view_t b;
+
+    if (lh_math_ne(lh_fs_path_get_root_kind(self), lh_fs_path_get_root_kind(other)))
+    {
+        return lh_bool_false;
+    }
+    a = lh_str_as_view(lh_fs_path_get_text(self));
+    b = lh_str_as_view(lh_fs_path_get_text(other));
+    return lh_str_view_equals(lh_addr_of(a), lh_addr_of(b), ignore_case);
+}
+
+lh_bool_t
+lh_fs_path_parent(lh_fs_path_t *self, const lh_fs_path_t *path)
+{
+    lh_str_view_t rest;
+    lh_usize_t slash;
+    lh_usize_t root;
+
+    rest = lh_fs_path_get_rest(path);
+    if (lh_str_view_is_empty(lh_addr_of(rest)))
+    {
+        return lh_bool_false;
+    }
+    slash = lh_str_view_rfind_char(lh_addr_of(rest), lh_char_map_slash);
+    root = lh_fs_path_root_len(lh_fs_path_get_root_kind(path));
+    lh_fs_path_assign(self, path);
+    /* One segment: keep only the root prefix ("" for a relative path). */
+    lh_str_truncate(lh_fs_path_get_text_mut(self),
+                    lh_math_eq(slash, LH_STR_VIEW_INVALID) ? root : lh_math_add(root, slash));
+    return lh_bool_true;
+}

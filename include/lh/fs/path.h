@@ -191,6 +191,28 @@ lh_fs_path_to_cstr(const lh_fs_path_t *self, lh_fs_path_style_t style, lh_str_t 
 lh_bool_t
 lh_fs_path_join(lh_fs_path_t *self, const lh_fs_path_t *dir, const lh_fs_path_t *name);
 
+/**
+ * @brief True when @p self and @p other are the same path.
+ *
+ * Same root and the same normalized text. No OS call. @p ignore_case folds
+ * the text the same way ::lh_str_view_equals does; the path does not know
+ * which platforms treat names as case-insensitive.
+ */
+lh_bool_t
+lh_fs_path_equals(const lh_fs_path_t *self, const lh_fs_path_t *other, lh_bool_t ignore_case);
+
+/**
+ * @brief Drop @p path's last segment into @p self.
+ *
+ * @p self may alias @p path. A relative path of one segment becomes empty.
+ * An absolute path of one segment becomes its root. A path that is already
+ * empty or a root is left untouched.
+ *
+ * @return ::lh_bool_false when @p path has no segment to drop.
+ */
+lh_bool_t
+lh_fs_path_parent(lh_fs_path_t *self, const lh_fs_path_t *path);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_FS_PATH_H */
