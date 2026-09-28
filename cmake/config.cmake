@@ -118,18 +118,9 @@ function(lh_generate_config)
     endif ()
     set(_lh_std_backend "${LH_LIBRARY_OPTION_MEMORY_STD_BACKEND}")
     if (_lh_std_backend STREQUAL "AUTO")
-        # See cmake/library_options.cmake for the measurements behind each case.
-        if (MSVC)
-            if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-                set(_lh_std_backend LIBC)
-            else ()
-                set(_lh_std_backend OWN)
-            endif ()
-        elseif (WIN32)
-            set(_lh_std_backend OWN)
-        else ()
-            set(_lh_std_backend LIBC)
-        endif ()
+        # OWN until LIBC is measured through lh's callers on each platform — see
+        # cmake/library_options.cmake.
+        set(_lh_std_backend OWN)
     endif ()
     message(STATUS "LH_LIBRARY_OPTION_MEMORY_STD_BACKEND=${LH_LIBRARY_OPTION_MEMORY_STD_BACKEND}: "
             "copy/move/rcopy/set use ${_lh_std_backend}.")

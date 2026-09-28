@@ -118,14 +118,15 @@ set_property(CACHE LH_LIBRARY_OPTION_LTO PROPERTY STRINGS OFF ON FAT)
 #          SSE2/AVX2, L3-sized non-temporal stores. No libc call.
 #   LIBC — the C library's memcpy / memmove / memset, wrapped to keep lh's
 #          contract (null checks, dst + n return). Compiles the own tiers out.
-#   AUTO — (default) LIBC where the platform's C library was measured faster,
-#          OWN where it was not:
-#            MSVC x64 -> LIBC: vcruntime beat lh 1.3x-2.4x on copy 128B-8KB
-#                              (Ryzen 7 5700U), on par above.
-#            MSVC x86 -> OWN:  vcruntime's x86 memcpy/memset lost 1.2x-3x.
-#            MinGW    -> OWN:  it links the old msvcrt.dll, slower than lh.
-#            other    -> LIBC: glibc beat lh 1.3x-1.5x on copy/set 128B-4KB
-#                              (Xeon X5690); libSystem is tuned per CPU too.
+#   AUTO — (default) currently OWN everywhere. A per-platform pick is pending
+#          measurements through lh's own callers, not just raw memcpy:
+#            MSVC x64: raw vcruntime memcpy beat lh 1.3x-2.4x at 128B-8KB on
+#              a Ryzen 7 5700U, yet LIBC made lh slower on an i7-3770K
+#              (copy 64-256B 1.4x-2x, vector_push_back 1.6x-1.9x).
+#            MSVC x86: vcruntime's x86 memcpy/memset lost 1.2x-3x -> OWN.
+#            MinGW:    links the old msvcrt.dll, slower than lh -> OWN.
+#            Linux:    raw glibc memcpy/memset beat lh 1.3x-1.5x at 128B-4KB
+#              on a Xeon X5690; LIBC through lh not measured yet.
 #
 # compare / rcompare / xor / copy_rev have no libc equivalent (compare returns
 # the mismatch position, not a sign) and always use lh's own code.
