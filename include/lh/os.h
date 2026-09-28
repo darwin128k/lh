@@ -49,6 +49,23 @@ void
 lh_os_set_last_error(lh_os_error_t error);
 
 /**
+ * @def lh_os_set_last_error_lit(code, text)
+ * @brief Store @p code with the literal @p text as the last OS-layer error.
+ *
+ * Shorthand for ::lh_os_set_last_error of ::lh_os_error_make with
+ * ::lh_os_error_desc_lit — the form every one of our own checks uses.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_os_set_last_error_lit(lh_os_error_code_not_open, "not loaded");
+ * @endcode
+ *
+ * @param code An ::lh_os_error_code_t (`lh/os/error/code.h`).
+ * @param text A string literal.
+ */
+#define lh_os_set_last_error_lit(code, text) lh_os_set_last_error(lh_os_error_make(code, lh_os_error_desc_lit(text)))
+
+/**
  * @brief Last error on this thread, as ::lh_os_error_t.
  */
 lh_os_error_t

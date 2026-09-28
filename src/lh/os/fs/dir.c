@@ -73,8 +73,7 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_view_t *name, lh_os_fs_dir_entry_
     lh_assert_runtime_ref(name);
     if (!lh_os_fs_dir_is_valid(self))
     {
-        lh_os_set_last_error(
-            lh_os_error_make(lh_os_error_code_not_open, lh_os_error_desc_lit("directory is not open")));
+        lh_os_set_last_error_lit(lh_os_error_code_not_open, "directory is not open");
         return -1;
     }
 
@@ -95,8 +94,7 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_view_t *name, lh_os_fs_dir_entry_
        and the next read moves on. */
     if (lh_math_gt(lh_cast_static(lh_usize_t, n), lh_os_system_fs_dir_name_max()))
     {
-        lh_os_set_last_error(
-            lh_os_error_make(lh_os_error_code_name_too_long, lh_os_error_desc_lit("name is too long")));
+        lh_os_set_last_error_lit(lh_os_error_code_name_too_long, "name is too long");
         return -1;
     }
     lh_ptr_deref(name) = lh_str_view_make(entry);

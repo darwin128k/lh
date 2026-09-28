@@ -176,7 +176,7 @@ lh_os_module_grant_loader(lh_os_module_t *self, lh_str_cptr entry)
 
     if (lh_null_ne(lh_os_module_get_loader(self)))
     {
-        lh_os_set_last_error(lh_os_error_make(lh_os_error_code_already_open, lh_os_error_desc_lit("loader already granted")));
+        lh_os_set_last_error_lit(lh_os_error_code_already_open, "loader already granted");
         return lh_null;
     }
     loader = lh_ptr_cast(lh_os_loader_t, lh_os_alloc(sizeof(*loader)));
@@ -255,7 +255,7 @@ lh_os_module_is_free(const lh_os_module_t *self)
 {
     if (lh_os_module_is_loaded(self))
     {
-        lh_os_set_last_error(lh_os_error_make(lh_os_error_code_already_open, lh_os_error_desc_lit("already loaded")));
+        lh_os_set_last_error_lit(lh_os_error_code_already_open, "already loaded");
         return lh_bool_false;
     }
     return lh_bool_true;
@@ -366,7 +366,7 @@ lh_os_module_get_sym(const lh_os_module_t *self, lh_str_cptr name)
 {
     if (!lh_os_module_is_loaded(self))
     {
-        lh_os_set_last_error(lh_os_error_make(lh_os_error_code_not_open, lh_os_error_desc_lit("not loaded")));
+        lh_os_set_last_error_lit(lh_os_error_code_not_open, "not loaded");
         return lh_null;
     }
     return lh_os_system_shared_get_sym(lh_os_module_get_handle(self), name);
