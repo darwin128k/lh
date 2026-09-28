@@ -5,6 +5,7 @@
 #include <lh/os.h>
 #include <lh/os/error/code.h>
 #include <lh/os/fs/path.h>
+#include <lh/os/result.h>
 #include <lh/os/system/fs/dir.h>
 #include <lh/str.h>
 #include <lh/str/view.h>
@@ -73,7 +74,7 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_view_t *name, lh_os_fs_dir_entry_
     if (!lh_os_fs_dir_is_valid(self))
     {
         lh_os_set_last_error_lit(lh_os_error_code_not_open, "directory is not open");
-        return -1;
+        return LH_OS_RESULT_INVALID;
     }
 
     do
@@ -94,7 +95,7 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_view_t *name, lh_os_fs_dir_entry_
     if (lh_math_gt(lh_cast_static(lh_usize_t, n), lh_os_system_fs_dir_name_max()))
     {
         lh_os_set_last_error_lit(lh_os_error_code_name_too_long, "name is too long");
-        return -1;
+        return LH_OS_RESULT_INVALID;
     }
     lh_ptr_deref(name) = lh_str_view_make(entry);
     if (lh_null_ne(kind))

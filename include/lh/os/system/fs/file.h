@@ -22,6 +22,7 @@
 
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
+#include <lh/os/result.h>
 #include <lh/os/system/fs/file/handle.h>
 #include <lh/fs/file/mode.h>
 #include <lh/ptr.h>
@@ -63,7 +64,7 @@ lh_os_system_fs_file_close(lh_os_system_fs_file_handle_t handle);
  * @param handle Open handle with read access.
  * @param buf    Destination buffer.
  * @param size   Maximum bytes to read into @p buf.
- * @return Bytes actually read (`0` at end of file), or a negative value on
+ * @return Bytes actually read (`0` at end of file), or ::LH_OS_RESULT_INVALID on
  *         failure.
  */
 lh_ssize_t
@@ -78,7 +79,7 @@ lh_os_system_fs_file_read(lh_os_system_fs_file_handle_t handle, lh_ptr buf, lh_u
  * @param handle Open handle with write access.
  * @param buf    Source buffer.
  * @param size   Number of bytes from @p buf to write.
- * @return Bytes actually written, or a negative value on failure.
+ * @return Bytes actually written, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
 lh_os_system_fs_file_write(lh_os_system_fs_file_handle_t handle, const lh_ptr buf, lh_usize_t size);

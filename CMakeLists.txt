@@ -155,6 +155,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system.c
             ${LH_LIB_SRC_PATH}/os/system/error.c
             ${LH_LIB_SRC_PATH}/os/system/error/capture.c
+            ${LH_LIB_SRC_PATH}/os/system/str.c
             ${LH_LIB_SRC_PATH}/os/timestamp.c
             ${LH_LIB_SRC_PATH}/os/fs/path.c
             ${LH_LIB_SRC_PATH}/os/fs/stat.c

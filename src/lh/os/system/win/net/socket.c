@@ -4,6 +4,7 @@
 #include <lh/cast/static.h>
 #include <lh/memory.h>
 #include <lh/numeric/limits.h>
+#include <lh/os/result.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/net/socket/addr.h>
 #include <lh/os/system/win/ws2_32.h>
@@ -33,7 +34,7 @@ lh_os_system_net_socket_result(int result)
     if (lh_math_eq(result, LH_OS_SYSTEM_WIN_SOCKET_ERROR))
     {
         lh_os_system_error_capture();
-        return lh_cast_static(lh_ssize_t, -1);
+        return LH_OS_RESULT_INVALID;
     }
     return lh_cast_static(lh_ssize_t, result);
 }

@@ -23,6 +23,7 @@
 #include <lh/config.h>
 #include <lh/fs/path.h>
 #include <lh/os/fs/dir/entry/kind.h>
+#include <lh/os/result.h>
 #include <lh/os/system/fs/dir/handle.h>
 #include <lh/size.h>
 #include <lh/str/view.h>
@@ -104,7 +105,7 @@ lh_os_fs_dir_is_valid(const lh_os_fs_dir_t *self);
  * @param kind Receives ::lh_os_fs_dir_entry_kind_file / `_dir` / `_symlink`
  *             / `_other`. May be ::lh_null.
  * @return Name length excluding NUL, `0` when there are no more entries,
- *         or a negative value on failure.
+ *         or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
 lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_view_t *name, lh_os_fs_dir_entry_kind_t *kind);

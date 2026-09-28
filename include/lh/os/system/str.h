@@ -53,6 +53,31 @@ lh_os_system_str_from_utf8(lh_os_str_t *out, lh_str_cptr text);
 lh_bool_t
 lh_os_system_str_to_utf8(lh_os_str_cptr text, lh_usize_t count, lh_str_t *out);
 
+/**
+ * @brief Initialize @p self as NUL-terminated UTF-8 @p text in OS text.
+ *
+ * @p self is initialized either way — empty on failure — so one
+ * ::lh_os_str_deinit afterwards is always right:
+ * @code{.c}
+ * lh_os_str_t os_path;
+ * const lh_bool_t ok = lh_os_system_str_init_by_utf8(&os_path, path);
+ * // ... use lh_os_str_get_data(&os_path) only if ok ...
+ * lh_os_str_deinit(&os_path);
+ * @endcode
+ *
+ * @return As ::lh_os_system_str_from_utf8.
+ */
+lh_bool_t
+lh_os_system_str_init_by_utf8(lh_os_str_t *self, lh_str_cptr text);
+
+/**
+ * @brief NUL-terminated OS text @p text as UTF-8, replacing @p out.
+ *
+ * ::lh_os_system_str_to_utf8 with the length counted up to the NUL.
+ */
+lh_bool_t
+lh_os_system_str_ptr_to_utf8(lh_os_str_cptr text, lh_str_t *out);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_SYSTEM_STR_H */

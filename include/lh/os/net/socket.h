@@ -28,6 +28,7 @@
 #include <lh/io/writer.h>
 #include <lh/net/socket/addr/ip4.h>
 #include <lh/numeric/types.h>
+#include <lh/os/result.h>
 #include <lh/os/system/net/socket/handle.h>
 #include <lh/os/system/net/socket/type.h>
 #include <lh/ptr.h>
@@ -186,7 +187,7 @@ lh_os_net_socket_set_reuse_addr(lh_os_net_socket_t *self, lh_bool_t enabled);
  * @param context An ::lh_os_net_socket_t* (passed as the writer's context).
  * @param buf     Source buffer.
  * @param size    Number of bytes from @p buf to send.
- * @return Bytes actually sent, or a negative value on failure.
+ * @return Bytes actually sent, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
 lh_os_net_socket_send(lh_ptr context, const lh_ptr buf, lh_usize_t size);
@@ -198,7 +199,7 @@ lh_os_net_socket_send(lh_ptr context, const lh_ptr buf, lh_usize_t size);
  * @param buf     Destination buffer.
  * @param size    Maximum bytes to read into @p buf.
  * @return Bytes actually received (`0` if the peer closed the connection),
- *         or a negative value on failure.
+ *         or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
 lh_os_net_socket_recv(lh_ptr context, lh_ptr buf, lh_usize_t size);
@@ -212,7 +213,7 @@ lh_os_net_socket_recv(lh_ptr context, lh_ptr buf, lh_usize_t size);
  * @param buf     Source buffer (the whole datagram).
  * @param size    Number of bytes from @p buf to send.
  * @param addr    Destination IPv4 address.
- * @return Bytes actually sent, or a negative value on failure.
+ * @return Bytes actually sent, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
 lh_os_net_socket_sendto(lh_ptr context, const lh_ptr buf, lh_usize_t size,
@@ -228,7 +229,7 @@ lh_os_net_socket_sendto(lh_ptr context, const lh_ptr buf, lh_usize_t size,
  * @param buf     Destination buffer.
  * @param size    Maximum bytes to copy into @p buf.
  * @param addr    Receives the sender's IPv4 address.
- * @return Bytes actually received, or a negative value on failure.
+ * @return Bytes actually received, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
 lh_os_net_socket_recvfrom(lh_ptr context, lh_ptr buf, lh_usize_t size,

@@ -123,10 +123,9 @@ lh_os_system_fs_stat(lh_str_cptr path, lh_fs_stat_t *out)
     lh_assert_runtime_ref(path);
     lh_assert_runtime_ref(out);
     lh_os_str_t os_path;
-
-    lh_os_str_init(lh_addr_of(os_path));
-    const lh_bool_t ok = lh_os_system_str_from_utf8(lh_addr_of(os_path), path) &&
+    const lh_bool_t ok = lh_os_system_str_init_by_utf8(lh_addr_of(os_path), path) &&
                          lh_os_system_fs_stat_wide(lh_os_str_get_data(lh_addr_of(os_path)), out);
+
     lh_os_str_deinit(lh_addr_of(os_path));
     return ok;
 }

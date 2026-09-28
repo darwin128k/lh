@@ -156,5 +156,5 @@ lh_os_system_shared_get_path(lh_os_system_shared_handle_t handle, lh_str_t *out)
         lh_os_system_error_capture();
         return lh_bool_false;
     }
-    return lh_os_system_str_to_utf8(name, lh_os_str_ptr_len(name), out);
+    return lh_os_system_str_ptr_to_utf8(name, out);
 }

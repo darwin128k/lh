@@ -3,6 +3,7 @@
 #include <lh/attribute/static.h>
 #include <lh/cast/static.h>
 #include <lh/null.h>
+#include <lh/os/result.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/util/math.h>
 #include <lh/util/ptr.h>
@@ -82,7 +83,7 @@ lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, lh_str_cptr *name,
         if (lh_math_ne(errno, 0))
         {
             lh_os_system_error_capture();
-            return -1;
+            return LH_OS_RESULT_INVALID;
         }
         return 0;
     }

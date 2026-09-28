@@ -27,18 +27,18 @@ lh_os_system_shared_open(lh_str_cptr path)
 {
     lh_assert_runtime_ref(path);
     lh_os_str_t os_path;
+    const lh_bool_t ok = lh_os_system_str_init_by_utf8(lh_addr_of(os_path), path);
+    const lh_os_system_win_handle_t native =
+        ok ? LoadLibraryW(lh_os_str_get_data(lh_addr_of(os_path))) : lh_null;
 
-    lh_os_str_init(lh_addr_of(os_path));
-    if (!lh_os_system_str_from_utf8(lh_addr_of(os_path), path))
-    {
-        lh_os_str_deinit(lh_addr_of(os_path));
-        return LH_OS_SYSTEM_SHARED_HANDLE_INVALID;
-    }
-    const lh_os_system_win_handle_t native = LoadLibraryW(lh_os_str_get_data(lh_addr_of(os_path)));
     lh_os_str_deinit(lh_addr_of(os_path));
     if (lh_null_eq(native))
     {
-        lh_os_system_error_capture();
+        /* A failed conversion already set its own error. */
+        if (ok)
+        {
+            lh_os_system_error_capture();
+        }
         return LH_OS_SYSTEM_SHARED_HANDLE_INVALID;
     }
     return native;

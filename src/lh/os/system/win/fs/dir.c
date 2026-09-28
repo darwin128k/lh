@@ -6,6 +6,7 @@
 #include <lh/char/slash.h>
 #include <lh/null.h>
 #include <lh/os/alloc.h>
+#include <lh/os/result.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
 #include <lh/os/system/win/fs/kind.h>
@@ -35,7 +36,8 @@ lh_os_system_fs_dir_state(lh_os_system_fs_dir_handle_t handle)
     return lh_ptr_cast(struct lh_os_system_fs_dir_state, handle);
 }
 
-/* FindFirstFile lists a pattern, not a directory: "<path>\*", as OS text. */
+/* FindFirstFile lists a pattern, not a directory: "<path>\*", as OS text.
+   Initializes `out` either way. */
 LH_ATTRIBUTE_STATIC
 lh_bool_t
 lh_os_system_fs_dir_pattern(lh_str_cptr path, lh_os_str_t *out)
@@ -50,7 +52,7 @@ lh_os_system_fs_dir_pattern(lh_str_cptr path, lh_os_str_t *out)
         lh_str_push_back(lh_addr_of(pattern), lh_char_map_backslash);
     }
     lh_str_push_back(lh_addr_of(pattern), '*');
-    const lh_bool_t ok = lh_os_system_str_from_utf8(out, lh_str_get_data(lh_addr_of(pattern)));
+    const lh_bool_t ok = lh_os_system_str_init_by_utf8(out, lh_str_get_data(lh_addr_of(pattern)));
     lh_str_deinit(lh_addr_of(pattern));
     return ok;
 }
@@ -61,7 +63,6 @@ lh_os_system_fs_dir_open(lh_str_cptr path)
     lh_os_str_t pattern;
 
     lh_assert_runtime_ref(path);
-    lh_os_str_init(lh_addr_of(pattern));
     struct lh_os_system_fs_dir_state *const state =
         lh_os_system_fs_dir_pattern(path, lh_addr_of(pattern))
             ? lh_ptr_cast(struct lh_os_system_fs_dir_state, lh_os_alloc(sizeof(*state)))
@@ -110,14 +111,13 @@ lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, lh_str_cptr *name,
                 return 0;
             }
             lh_os_system_error_capture();
-            return -1;
+            return LH_OS_RESULT_INVALID;
         }
     }
     state->ready = lh_bool_false;
-    if (!lh_os_system_str_to_utf8(state->data.cFileName, lh_os_str_ptr_len(state->data.cFileName),
-                                  lh_addr_of(state->name)))
+    if (!lh_os_system_str_ptr_to_utf8(state->data.cFileName, lh_addr_of(state->name)))
     {
-        return -1;
+        return LH_OS_RESULT_INVALID;
     }
     lh_ptr_deref(name) = lh_str_get_data(lh_addr_of(state->name));
     lh_ptr_deref(kind) = lh_os_system_fs_kind_from_attrs(

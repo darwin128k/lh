@@ -24,6 +24,7 @@
 #include <lh/io/stream.h>
 #include <lh/io/writer.h>
 #include <lh/os/fs/file/fields.h>
+#include <lh/os/result.h>
 #include <lh/os/system/fs/file/handle.h>
 #include <lh/fs/file/mode.h>
 #include <lh/ptr.h>
@@ -139,7 +140,7 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_fs_file_m
  * @param context An ::lh_os_fs_file_t* (passed as the reader's context).
  * @param buf     Destination buffer.
  * @param size    Maximum bytes to read into @p buf.
- * @return Bytes actually read (`0` at end of file), or a negative value on
+ * @return Bytes actually read (`0` at end of file), or ::LH_OS_RESULT_INVALID on
  *         failure.
  */
 lh_ssize_t
@@ -151,7 +152,7 @@ lh_os_fs_file_read(lh_ptr context, lh_ptr buf, lh_usize_t size);
  * @param context An ::lh_os_fs_file_t* (passed as the writer's context).
  * @param buf     Source buffer.
  * @param size    Number of bytes from @p buf to write.
- * @return Bytes actually written, or a negative value on failure.
+ * @return Bytes actually written, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
 lh_os_fs_file_write(lh_ptr context, const lh_ptr buf, lh_usize_t size);
