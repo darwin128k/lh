@@ -354,16 +354,25 @@ lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usiz
     lh_uchar_t *d = lh_ptr_cast(lh_uchar_t, dst);
     const lh_uchar_t *s = lh_ptr_cast(const lh_uchar_t, src);
 
-    lh_uchar_t *cur = d;
-    for (lh_usize_t i = 0; i < dst_size; i += src_size)
+    if (src_size == 1)
     {
-        lh_usize_t remaining = dst_size - i;
-        lh_usize_t copy_size = (remaining < src_size) ? remaining : src_size;
-
-        lh_memory_std_copy(d + i, s, copy_size);
-
-        cur = d + i + copy_size;
+        return lh_memory_std_set(d, *s, dst_size);
     }
 
-    return cur;
+    /* Doubling, as PHP's str_repeat does: write the pattern once, then copy the
+     * filled prefix onto what follows, twice as much each time — about log2 of
+     * dst_size / src_size copies instead of one per repeat (a wide-char fill of
+     * 4KB was 2048 calls). The filled length stays a multiple of src_size until
+     * the last, partial chunk, so every copy keeps the period; source and
+     * destination never overlap. */
+    lh_usize_t filled = lh_math_min(src_size, dst_size);
+    lh_memory_std_copy(d, s, filled);
+    while (filled < dst_size)
+    {
+        const lh_usize_t chunk = lh_math_min(filled, dst_size - filled);
+        lh_memory_std_copy(d + filled, d, chunk);
+        filled += chunk;
+    }
+
+    return d + dst_size;
 }

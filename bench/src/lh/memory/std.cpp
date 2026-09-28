@@ -271,3 +271,21 @@ BM_memory_find_substring(benchmark::State &state)
     state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
 }
 BENCHMARK(BM_memory_find_substring)->Arg(64)->Arg(1024)->Arg(65536);
+
+// Pattern fill: range(0) bytes of destination, range(1)-byte pattern (2 = a wide
+// character, as lh_wstr_ptr fills it).
+static void
+BM_memory_set_pattern(benchmark::State &state)
+{
+    const lh_usize_t n = static_cast<lh_usize_t>(state.range(0));
+    const lh_usize_t m = static_cast<lh_usize_t>(state.range(1));
+    std::vector<unsigned char> dst(n);
+    const unsigned char pat[8] = {1, 2, 3, 4, 5, 6, 7, 8};
+    for (auto _ : state)
+    {
+        benchmark::DoNotOptimize(lh_memory_set_pattern(dst.data(), n, pat, m));
+        benchmark::DoNotOptimize(dst.data());
+    }
+    state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
+}
+BENCHMARK(BM_memory_set_pattern)->ArgsProduct({{64, 4096}, {2, 4, 8}});

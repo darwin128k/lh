@@ -101,6 +101,36 @@ TEST(memory_set_pattern, repeats_pattern)
     }
 }
 
+TEST(memory_set_pattern, matches_reference_for_every_size)
+{
+    // Pattern sizes 1..9 into destinations 1..100: every doubling step and every
+    // partial last chunk, checked byte by byte, with the guard byte after dst
+    // untouched.
+    for (lh_usize_t m = 1; m <= 9; ++m)
+    {
+        lh_uchar_t pat[9];
+        for (lh_usize_t i = 0; i < m; ++i)
+        {
+            pat[i] = static_cast<lh_uchar_t>(0x40 + i);
+        }
+        for (lh_usize_t n = 1; n <= 100; ++n)
+        {
+            lh_uchar_t dst[101];
+            for (auto &c : dst)
+            {
+                c = 0xEE;
+            }
+            const lh_ptr end = lh_memory_set_pattern(dst, n, pat, m);
+            ASSERT_EQ(end, static_cast<lh_ptr>(dst + n)) << "m=" << m << " n=" << n;
+            for (lh_usize_t i = 0; i < n; ++i)
+            {
+                ASSERT_EQ(dst[i], pat[i % m]) << "m=" << m << " n=" << n << " i=" << i;
+            }
+            ASSERT_EQ(dst[n], 0xEE) << "m=" << m << " n=" << n;
+        }
+    }
+}
+
 TEST(memory_set_pattern, returns_null_when_dst_size_zero)
 {
     lh_uchar_t dst[1] = {1};
