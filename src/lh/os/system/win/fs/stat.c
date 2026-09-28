@@ -16,9 +16,8 @@ LH_ATTRIBUTE_STATIC
 lh_fs_perm_t
 lh_os_system_fs_perm_from_win_attrs(lh_os_system_win_dword_t attrs)
 {
-    lh_fs_perm_t perm;
+    lh_fs_perm_t perm = lh_bit_or(lh_bit_or(lh_fs_perm_irusr, lh_fs_perm_irgrp), lh_fs_perm_iroth);
 
-    perm = lh_bit_or(lh_bit_or(lh_fs_perm_irusr, lh_fs_perm_irgrp), lh_fs_perm_iroth);
     if (lh_math_is_zero(lh_bit_and(attrs, LH_OS_SYSTEM_WIN_FILE_ATTRIBUTE_READONLY)))
     {
         perm = lh_bit_or(perm, lh_bit_or(lh_bit_or(lh_fs_perm_iwusr, lh_fs_perm_iwgrp), lh_fs_perm_iwoth));
@@ -34,9 +33,8 @@ LH_ATTRIBUTE_STATIC
 lh_fs_attr_t
 lh_os_system_fs_attr_from_win_attrs(lh_os_system_win_dword_t attrs)
 {
-    lh_fs_attr_t attr;
+    lh_fs_attr_t attr = 0U;
 
-    attr = 0U;
     if (!lh_math_is_zero(lh_bit_and(attrs, LH_OS_SYSTEM_WIN_FILE_ATTRIBUTE_HIDDEN)))
     {
         attr = lh_bit_or(attr, lh_fs_attr_hidden);
@@ -71,14 +69,13 @@ lh_bool_t
 lh_os_system_fs_is_symlink(lh_str_cptr path, lh_os_system_win_dword_t attrs, lh_bool_t *out)
 {
     lh_os_system_win_find_data_t data;
-    lh_os_system_win_handle_t find;
 
     if (lh_math_is_zero(lh_bit_and(attrs, LH_OS_SYSTEM_WIN_FILE_ATTRIBUTE_REPARSE_POINT)))
     {
         *out = lh_bool_false;
         return lh_bool_true;
     }
-    find = FindFirstFileA(path, lh_addr_of(data));
+    const lh_os_system_win_handle_t find = FindFirstFileA(path, lh_addr_of(data));
     if (lh_math_eq(find, LH_OS_SYSTEM_WIN_INVALID_HANDLE))
     {
         lh_os_system_error_capture();
@@ -93,7 +90,6 @@ lh_bool_t
 lh_os_system_fs_stat(lh_str_cptr path, lh_fs_stat_t *out)
 {
     lh_os_system_win_file_attribute_data_t info;
-    lh_os_system_win_dword_t attrs;
     lh_bool_t is_symlink;
 
     lh_assert_runtime_ref(path);
@@ -104,7 +100,7 @@ lh_os_system_fs_stat(lh_str_cptr path, lh_fs_stat_t *out)
         lh_os_system_error_capture();
         return lh_bool_false;
     }
-    attrs = info.dwFileAttributes;
+    const lh_os_system_win_dword_t attrs = info.dwFileAttributes;
     if (!lh_os_system_fs_is_symlink(path, attrs, lh_addr_of(is_symlink)))
     {
         return lh_bool_false;

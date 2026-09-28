@@ -47,20 +47,19 @@ LH_ATTRIBUTE_STATIC
 lh_bool_t
 lh_os_system_shared_is_executable(lh_ptr base)
 {
-    lh_os_system_shared_handle_t program;
     lh_bool_t owned;
-    struct link_map *map;
+    struct link_map *map = lh_null;
     Dl_info info;
-    lh_bool_t is_executable;
 
-    program = lh_os_system_shared_get_executable(lh_addr_of(owned));
+    const lh_os_system_shared_handle_t program =
+        lh_os_system_shared_get_executable(lh_addr_of(owned));
     if (lh_null_eq(program))
     {
         return lh_bool_false;
     }
-    map = lh_null;
-    is_executable = lh_math_is_zero(dlinfo(program, RTLD_DI_LINKMAP, lh_addr_of(map))) && lh_null_ne(map) &&
-              lh_math_ne(dladdr(map->l_ld, lh_addr_of(info)), 0) && lh_math_eq(info.dli_fbase, base);
+    const lh_bool_t is_executable =
+        lh_math_is_zero(dlinfo(program, RTLD_DI_LINKMAP, lh_addr_of(map))) && lh_null_ne(map) &&
+        lh_math_ne(dladdr(map->l_ld, lh_addr_of(info)), 0) && lh_math_eq(info.dli_fbase, base);
     lh_os_system_shared_close(program);
     return is_executable;
 }
@@ -68,10 +67,8 @@ lh_os_system_shared_is_executable(lh_ptr base)
 lh_os_system_shared_handle_t
 lh_os_system_shared_open(lh_str_cptr path)
 {
-    lh_os_system_shared_handle_t handle;
-
     lh_assert_runtime_ref(path);
-    handle = dlopen(path, RTLD_NOW);
+    const lh_os_system_shared_handle_t handle = dlopen(path, RTLD_NOW);
     if (lh_null_eq(handle))
     {
         lh_os_system_error_capture();
@@ -93,10 +90,8 @@ lh_os_system_shared_close(lh_os_system_shared_handle_t handle)
 lh_ptr
 lh_os_system_shared_get_sym(lh_os_system_shared_handle_t handle, lh_str_cptr name)
 {
-    lh_ptr sym;
-
     lh_assert_runtime_ref(name);
-    sym = dlsym(handle, name);
+    lh_ptr const sym = dlsym(handle, name);
     if (lh_null_eq(sym))
     {
         lh_os_system_error_capture();
@@ -107,10 +102,8 @@ lh_os_system_shared_get_sym(lh_os_system_shared_handle_t handle, lh_str_cptr nam
 lh_os_system_shared_handle_t
 lh_os_system_shared_get_executable(lh_bool_t *owned)
 {
-    lh_os_system_shared_handle_t handle;
-
     lh_ptr_deref(owned) = lh_bool_false;
-    handle = dlopen(lh_null, RTLD_NOW);
+    const lh_os_system_shared_handle_t handle = dlopen(lh_null, RTLD_NOW);
     if (lh_null_eq(handle))
     {
         lh_os_system_error_capture();
@@ -124,8 +117,6 @@ lh_os_system_shared_handle_t
 lh_os_system_shared_get_by_addr(lh_ptr addr, lh_bool_t *owned)
 {
     Dl_info info;
-    lh_str_cptr name;
-    lh_os_system_shared_handle_t handle;
 
     lh_assert_runtime_ref(addr);
     lh_ptr_deref(owned) = lh_bool_false;
@@ -134,8 +125,12 @@ lh_os_system_shared_get_by_addr(lh_ptr addr, lh_bool_t *owned)
         lh_os_system_error_capture();
         return LH_OS_SYSTEM_SHARED_HANDLE_INVALID;
     }
-    name = lh_os_system_shared_is_executable(info.dli_fbase) || lh_str_ptr_is_empty(info.dli_fname) ? lh_null : info.dli_fname;
-    handle = dlopen(name, RTLD_NOW | RTLD_NOLOAD);
+    /* The executable is found only as dlopen(NULL), never by its name. */
+    lh_str_cptr const name =
+        lh_os_system_shared_is_executable(info.dli_fbase) || lh_str_ptr_is_empty(info.dli_fname)
+            ? lh_null
+            : info.dli_fname;
+    const lh_os_system_shared_handle_t handle = dlopen(name, RTLD_NOW | RTLD_NOLOAD);
     if (lh_null_eq(handle))
     {
         lh_os_system_error_capture();
@@ -148,11 +143,9 @@ lh_os_system_shared_get_by_addr(lh_ptr addr, lh_bool_t *owned)
 lh_bool_t
 lh_os_system_shared_get_path(lh_os_system_shared_handle_t handle, lh_str_t *out)
 {
-    struct link_map *map;
-    lh_str_cptr name;
+    struct link_map *map = lh_null;
+    lh_str_cptr name = lh_null;
 
-    map = lh_null;
-    name = lh_null;
     if (lh_math_is_zero(dlinfo(handle, RTLD_DI_LINKMAP, lh_addr_of(map))) && lh_null_ne(map))
     {
         name = lh_os_system_shared_map_name(map);

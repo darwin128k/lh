@@ -53,10 +53,8 @@ lh_os_system_fs_dir_kind(unsigned char type)
 lh_os_system_fs_dir_handle_t
 lh_os_system_fs_dir_open(lh_str_cptr path)
 {
-    DIR *native;
-
     lh_assert_runtime_ref(path);
-    native = opendir(path);
+    DIR *const native = opendir(path);
     if (lh_null_eq(native))
     {
         lh_os_system_error_capture();
@@ -74,13 +72,11 @@ lh_os_system_fs_dir_close(lh_os_system_fs_dir_handle_t handle)
 lh_ssize_t
 lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, lh_str_cptr *name, lh_fs_kind_t *kind)
 {
-    struct dirent *entry;
-
     lh_assert_runtime_ref(name);
     lh_assert_runtime_ref(kind);
 
     errno = 0;
-    entry = readdir(lh_os_system_fs_dir_native(handle));
+    const struct dirent *entry = readdir(lh_os_system_fs_dir_native(handle));
     if (lh_null_eq(entry))
     {
         if (lh_math_ne(errno, 0))

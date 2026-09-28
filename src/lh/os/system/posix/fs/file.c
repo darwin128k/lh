@@ -34,16 +34,14 @@ lh_os_system_fs_file_flags(lh_fs_file_mode_t mode)
 lh_os_system_fs_file_handle_t
 lh_os_system_fs_file_open(lh_str_cptr path, lh_fs_file_mode_t mode)
 {
-    int native;
-
     lh_assert_runtime_ref(path);
     lh_assert_runtime_if(!lh_fs_file_mode_is_readable(mode) &&
                              !lh_fs_file_mode_is_writable(mode),
                          lh_runtime_error_code_invalid_argument);
 
-    native = lh_math_eq(mode, lh_fs_file_mode_read)
-                 ? open(path, lh_os_system_fs_file_flags(mode))
-                 : open(path, lh_os_system_fs_file_flags(mode), 0644);
+    const int native = lh_math_eq(mode, lh_fs_file_mode_read)
+                           ? open(path, lh_os_system_fs_file_flags(mode))
+                           : open(path, lh_os_system_fs_file_flags(mode), 0644);
     if (lh_math_is_negative(native))
     {
         lh_os_system_error_capture();
@@ -61,9 +59,8 @@ lh_os_system_fs_file_close(lh_os_system_fs_file_handle_t handle)
 lh_ssize_t
 lh_os_system_fs_file_read(lh_os_system_fs_file_handle_t handle, lh_ptr buf, lh_usize_t size)
 {
-    lh_ssize_t result;
-
-    result = lh_cast_static(lh_ssize_t, read(lh_os_system_fs_file_native(handle), buf, lh_cast_static(size_t, size)));
+    const lh_ssize_t result = lh_cast_static(
+        lh_ssize_t, read(lh_os_system_fs_file_native(handle), buf, lh_cast_static(size_t, size)));
     if (lh_math_is_negative(result))
     {
         lh_os_system_error_capture();
@@ -74,9 +71,8 @@ lh_os_system_fs_file_read(lh_os_system_fs_file_handle_t handle, lh_ptr buf, lh_u
 lh_ssize_t
 lh_os_system_fs_file_write(lh_os_system_fs_file_handle_t handle, const lh_ptr buf, lh_usize_t size)
 {
-    lh_ssize_t result;
-
-    result = lh_cast_static(lh_ssize_t, write(lh_os_system_fs_file_native(handle), buf, lh_cast_static(size_t, size)));
+    const lh_ssize_t result = lh_cast_static(
+        lh_ssize_t, write(lh_os_system_fs_file_native(handle), buf, lh_cast_static(size_t, size)));
     if (lh_math_is_negative(result))
     {
         lh_os_system_error_capture();

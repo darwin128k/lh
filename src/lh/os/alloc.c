@@ -7,9 +7,8 @@
 lh_ptr
 lh_os_alloc(lh_usize_t size)
 {
-    lh_ptr block;
+    lh_ptr const block = lh_runtime_allocator_alloc(size);
 
-    block = lh_runtime_allocator_alloc(size);
     if (lh_null_eq(block))
     {
         lh_os_set_last_error_lit(lh_os_error_code_out_of_memory, "out of memory");

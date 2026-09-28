@@ -15,16 +15,16 @@ lh_os_system_error_get_native_code(void)
 lh_os_error_desc_ptr
 lh_os_system_error_format(lh_os_system_error_code_t code, lh_os_error_desc_ptr dest, lh_usize_t dest_size)
 {
-    lh_os_system_win_dword_t n;
-
     lh_assert_runtime_ref(dest);
 #if LH_LIBRARY_OPTION_OS_WERROR
-    n = FormatMessageW(LH_OS_SYSTEM_WIN_FORMAT_MESSAGE_FROM_SYSTEM |
+    const lh_os_system_win_dword_t n =
+        FormatMessageW(LH_OS_SYSTEM_WIN_FORMAT_MESSAGE_FROM_SYSTEM |
                            LH_OS_SYSTEM_WIN_FORMAT_MESSAGE_IGNORE_INSERTS,
                        lh_null, lh_cast_static(lh_os_system_win_dword_t, code), 0UL, dest,
                        lh_cast_static(lh_os_system_win_dword_t, dest_size), lh_null);
 #else
-    n = FormatMessageA(LH_OS_SYSTEM_WIN_FORMAT_MESSAGE_FROM_SYSTEM |
+    const lh_os_system_win_dword_t n =
+        FormatMessageA(LH_OS_SYSTEM_WIN_FORMAT_MESSAGE_FROM_SYSTEM |
                            LH_OS_SYSTEM_WIN_FORMAT_MESSAGE_IGNORE_INSERTS,
                        lh_null, lh_cast_static(lh_os_system_win_dword_t, code), 0UL, dest,
                        lh_cast_static(lh_os_system_win_dword_t, dest_size), lh_null);

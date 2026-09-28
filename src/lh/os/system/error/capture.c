@@ -13,15 +13,13 @@ lh_char_t m_os_system_error_buffer[LH_OS_SYSTEM_ERROR_BUFFER_SIZE];
 void
 lh_os_system_error_capture(void)
 {
-    lh_os_system_error_code_t code;
-    lh_os_error_desc_t desc;
+    const lh_os_system_error_code_t code = lh_os_system_error_get_native_code();
 
-    code = lh_os_system_error_get_native_code();
     (void)lh_os_system_error_format(code, m_os_system_error_buffer, LH_OS_SYSTEM_ERROR_BUFFER_SIZE);
 #if LH_LIBRARY_OPTION_OS_WERROR
-    desc = lh_wstr_view_make(m_os_system_error_buffer);
+    const lh_os_error_desc_t desc = lh_wstr_view_make(m_os_system_error_buffer);
 #else
-    desc = lh_str_view_make(m_os_system_error_buffer);
+    const lh_os_error_desc_t desc = lh_str_view_make(m_os_system_error_buffer);
 #endif
     lh_os_system_set_last_error(lh_os_system_error_make(code, desc));
 }

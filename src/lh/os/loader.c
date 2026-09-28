@@ -70,10 +70,9 @@ lh_os_loader_init(lh_os_loader_t *self, lh_os_module_t *owner, lh_str_cptr entry
 void
 lh_os_loader_unload(lh_os_loader_t *self)
 {
-    lh_vector_t *modules;
+    lh_vector_t *const modules = lh_os_loader_get_modules(self);
     lh_os_module_t *child;
 
-    modules = lh_os_loader_get_modules(self);
     while (!lh_vector_is_empty(modules))
     {
         lh_vector_pop_back(modules, lh_addr_of(child));
@@ -98,14 +97,13 @@ LH_ATTRIBUTE_STATIC
 lh_bool_t
 lh_os_loader_bring_up(lh_os_loader_t *self, lh_os_module_t *child, const lh_fs_path_t *path)
 {
-    const lh_os_module_ops_t *ops;
-
     lh_os_module_set_owner(child, self);
     if (!lh_os_module_open(child, path))
     {
         return lh_bool_false;
     }
-    ops = lh_ptr_cast(const lh_os_module_ops_t, lh_os_module_get_sym(child, lh_os_loader_get_entry(self)));
+    const lh_os_module_ops_t *const ops = lh_ptr_cast(
+        const lh_os_module_ops_t, lh_os_module_get_sym(child, lh_os_loader_get_entry(self)));
     if (lh_null_eq(ops))
     {
         return lh_bool_false; /* not a module: a plain shared library */
@@ -117,9 +115,8 @@ lh_os_loader_bring_up(lh_os_loader_t *self, lh_os_module_t *child, const lh_fs_p
 lh_os_module_t *
 lh_os_loader_load(lh_os_loader_t *self, const lh_fs_path_t *path)
 {
-    lh_os_module_t *child;
+    lh_os_module_t *const child = lh_ptr_cast(lh_os_module_t, lh_os_alloc(sizeof(*child)));
 
-    child = lh_ptr_cast(lh_os_module_t, lh_os_alloc(sizeof(*child)));
     if (lh_null_eq(child))
     {
         return lh_null;
@@ -146,9 +143,8 @@ lh_os_loader_get_loaded(const lh_os_loader_t *self)
 lh_os_module_t *
 lh_os_loader_get(const lh_os_loader_t *self, lh_uindex_t index)
 {
-    const lh_vector_t *modules;
+    const lh_vector_t *const modules = lh_os_loader_get_modules_as_const(self);
 
-    modules = lh_os_loader_get_modules_as_const(self);
     if (!lh_vector_is_valid_index(modules, index))
     {
         return lh_null;

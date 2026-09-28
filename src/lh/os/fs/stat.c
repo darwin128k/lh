@@ -12,11 +12,9 @@ lh_bool_t
 lh_os_fs_stat(const lh_fs_path_t *path, lh_fs_stat_t *out)
 {
     lh_str_t buf;
-    lh_str_cptr cstr;
-    lh_bool_t ok;
+    lh_str_cptr const cstr = lh_os_fs_path_to_cstr(path, lh_addr_of(buf));
+    const lh_bool_t ok = lh_null_ne(cstr) && lh_os_system_fs_stat(cstr, out);
 
-    cstr = lh_os_fs_path_to_cstr(path, lh_addr_of(buf));
-    ok = lh_null_ne(cstr) && lh_os_system_fs_stat(cstr, out);
     lh_str_deinit(lh_addr_of(buf));
     if (ok && lh_fs_path_is_hidden(path))
     {

@@ -17,10 +17,8 @@ lh_os_net_socket_init(lh_os_net_socket_t *self)
 lh_bool_t
 lh_os_net_socket_open(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t type)
 {
-    lh_os_system_net_socket_handle_t handle;
-
     lh_assert_runtime_ref(self);
-    handle = lh_os_system_net_socket_open(type);
+    const lh_os_system_net_socket_handle_t handle = lh_os_system_net_socket_open(type);
     if (lh_math_eq(handle, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
     {
         return lh_bool_false;
@@ -75,11 +73,10 @@ lh_bool_t
 lh_os_net_socket_accept(lh_os_net_socket_t *self, lh_os_net_socket_t *client,
                         lh_net_ip4_socket_addr_t *peer)
 {
-    lh_os_system_net_socket_handle_t handle;
-
     lh_assert_runtime_if(lh_os_net_socket_is_valid(client), lh_runtime_error_code_invalid_argument);
 
-    handle = lh_os_system_net_socket_accept(lh_os_net_socket_get_handle(self), peer);
+    const lh_os_system_net_socket_handle_t handle =
+        lh_os_system_net_socket_accept(lh_os_net_socket_get_handle(self), peer);
     if (lh_math_eq(handle, LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID))
     {
         return lh_bool_false;
@@ -153,11 +150,9 @@ lh_os_net_socket_get_writer(lh_os_net_socket_t *self)
 lh_io_stream_t
 lh_os_net_socket_get_stream(lh_os_net_socket_t *self)
 {
-    lh_io_reader_t reader;
-    lh_io_writer_t writer;
+    const lh_io_reader_t reader = lh_os_net_socket_get_reader(self);
+    const lh_io_writer_t writer = lh_os_net_socket_get_writer(self);
 
-    reader = lh_os_net_socket_get_reader(self);
-    writer = lh_os_net_socket_get_writer(self);
     return lh_io_stream_make(lh_addr_of(reader), lh_addr_of(writer));
 }
 
@@ -184,10 +179,8 @@ lh_os_net_socket_get_dgram_writer(lh_os_net_socket_t *self)
 lh_io_dgram_t
 lh_os_net_socket_get_dgram(lh_os_net_socket_t *self)
 {
-    lh_io_dgram_reader_t reader;
-    lh_io_dgram_writer_t writer;
+    const lh_io_dgram_reader_t reader = lh_os_net_socket_get_dgram_reader(self);
+    const lh_io_dgram_writer_t writer = lh_os_net_socket_get_dgram_writer(self);
 
-    reader = lh_os_net_socket_get_dgram_reader(self);
-    writer = lh_os_net_socket_get_dgram_writer(self);
     return lh_io_dgram_make(lh_addr_of(reader), lh_addr_of(writer));
 }

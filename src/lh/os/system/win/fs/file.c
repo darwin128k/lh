@@ -58,15 +58,14 @@ lh_os_system_fs_file_disposition(lh_fs_file_mode_t mode)
 lh_os_system_fs_file_handle_t
 lh_os_system_fs_file_open(lh_str_cptr path, lh_fs_file_mode_t mode)
 {
-    lh_os_system_win_handle_t native;
-
     lh_assert_runtime_ref(path);
     lh_assert_runtime_if(!lh_fs_file_mode_is_readable(mode) &&
                              !lh_fs_file_mode_is_writable(mode),
                          lh_runtime_error_code_invalid_argument);
 
-    native = CreateFileA(path, lh_os_system_fs_file_access(mode), LH_OS_SYSTEM_WIN_FILE_SHARE_READ, lh_null,
-                         lh_os_system_fs_file_disposition(mode), LH_OS_SYSTEM_WIN_FILE_ATTRIBUTE_NORMAL, lh_null);
+    const lh_os_system_win_handle_t native = CreateFileA(
+        path, lh_os_system_fs_file_access(mode), LH_OS_SYSTEM_WIN_FILE_SHARE_READ, lh_null,
+        lh_os_system_fs_file_disposition(mode), LH_OS_SYSTEM_WIN_FILE_ATTRIBUTE_NORMAL, lh_null);
     if (lh_math_eq(native, LH_OS_SYSTEM_WIN_INVALID_HANDLE))
     {
         lh_os_system_error_capture();

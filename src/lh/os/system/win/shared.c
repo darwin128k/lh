@@ -23,10 +23,8 @@ lh_os_system_shared_get_ext(void)
 lh_os_system_shared_handle_t
 lh_os_system_shared_open(lh_str_cptr path)
 {
-    lh_os_system_win_handle_t native;
-
     lh_assert_runtime_ref(path);
-    native = LoadLibraryA(path);
+    const lh_os_system_win_handle_t native = LoadLibraryA(path);
     if (lh_null_eq(native))
     {
         lh_os_system_error_capture();
@@ -49,10 +47,8 @@ lh_os_system_shared_close(lh_os_system_shared_handle_t handle)
 lh_ptr
 lh_os_system_shared_get_sym(lh_os_system_shared_handle_t handle, lh_str_cptr name)
 {
-    lh_ptr sym;
-
     lh_assert_runtime_ref(name);
-    sym = GetProcAddress(handle, name);
+    lh_ptr const sym = GetProcAddress(handle, name);
     if (lh_null_eq(sym))
     {
         lh_os_system_error_capture();
@@ -63,10 +59,9 @@ lh_os_system_shared_get_sym(lh_os_system_shared_handle_t handle, lh_str_cptr nam
 lh_os_system_shared_handle_t
 lh_os_system_shared_get_executable(lh_bool_t *owned)
 {
-    lh_os_system_win_handle_t native;
+    lh_os_system_win_handle_t native = lh_null;
 
     lh_ptr_deref(owned) = lh_bool_false;
-    native = lh_null;
     if (lh_math_is_zero(GetModuleHandleExA(LH_OS_SYSTEM_WIN_GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, lh_null,
                                            lh_addr_of(native))))
     {
@@ -79,11 +74,10 @@ lh_os_system_shared_get_executable(lh_bool_t *owned)
 lh_os_system_shared_handle_t
 lh_os_system_shared_get_by_addr(lh_ptr addr, lh_bool_t *owned)
 {
-    lh_os_system_win_handle_t native;
+    lh_os_system_win_handle_t native = lh_null;
 
     lh_assert_runtime_ref(addr);
     lh_ptr_deref(owned) = lh_bool_false;
-    native = lh_null;
     if (lh_math_is_zero(GetModuleHandleExA(LH_OS_SYSTEM_WIN_GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                                                LH_OS_SYSTEM_WIN_GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                                            addr, lh_addr_of(native))))
@@ -98,18 +92,16 @@ lh_bool_t
 lh_os_system_shared_get_path(lh_os_system_shared_handle_t handle, lh_str_t *out)
 {
     lh_os_system_win_dword_t cap;
-    lh_os_system_win_dword_t n;
-    lh_str_ptr buf;
 
     /* GetModuleFileName reports truncation as n == cap: grow and retry. */
     for (cap = 256U; lh_math_le(cap, LH_OS_SYSTEM_WIN_SHARED_PATH_MAX); cap = lh_math_mul(cap, 2U))
     {
-        buf = lh_ptr_cast(lh_char_t, lh_os_alloc(cap));
+        lh_str_ptr const buf = lh_ptr_cast(lh_char_t, lh_os_alloc(cap));
         if (lh_null_eq(buf))
         {
             return lh_bool_false;
         }
-        n = GetModuleFileNameA(handle, buf, cap);
+        const lh_os_system_win_dword_t n = GetModuleFileNameA(handle, buf, cap);
         if (lh_math_is_zero(n))
         {
             lh_os_system_error_capture();

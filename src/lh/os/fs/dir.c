@@ -24,12 +24,11 @@ lh_bool_t
 lh_os_fs_dir_open(lh_os_fs_dir_t *self, const lh_fs_path_t *path)
 {
     lh_str_t buf;
-    lh_str_cptr cstr;
-    lh_os_system_fs_dir_handle_t handle;
 
     lh_assert_runtime_ref(self);
-    cstr = lh_os_fs_path_to_cstr(path, lh_addr_of(buf));
-    handle = lh_null_eq(cstr) ? LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID : lh_os_system_fs_dir_open(cstr);
+    lh_str_cptr const cstr = lh_os_fs_path_to_cstr(path, lh_addr_of(buf));
+    const lh_os_system_fs_dir_handle_t handle =
+        lh_null_eq(cstr) ? LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID : lh_os_system_fs_dir_open(cstr);
     lh_str_deinit(lh_addr_of(buf));
     if (lh_null_eq(handle))
     {

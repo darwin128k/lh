@@ -48,14 +48,13 @@ lh_os_system_net_socket_ok(int result)
 lh_os_system_net_socket_handle_t
 lh_os_system_net_socket_open(lh_os_system_net_socket_type_t type)
 {
-    int native;
-
     lh_assert_runtime_if(lh_math_ne(type, lh_os_system_net_socket_type_tcp) &&
                              lh_math_ne(type, lh_os_system_net_socket_type_udp),
                          lh_runtime_error_code_invalid_argument);
 
-    native = lh_math_eq(type, lh_os_system_net_socket_type_tcp) ? socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
-                                                                : socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    const int native = lh_math_eq(type, lh_os_system_net_socket_type_tcp)
+                           ? socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
+                           : socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (lh_math_is_negative(native))
     {
         lh_os_system_error_capture();
@@ -105,14 +104,13 @@ lh_os_system_net_socket_handle_t
 lh_os_system_net_socket_accept(lh_os_system_net_socket_handle_t handle, lh_net_ip4_socket_addr_t *peer)
 {
     struct sockaddr_in native_addr;
-    socklen_t addr_len;
-    int native;
+    socklen_t addr_len = sizeof(native_addr);
 
     lh_assert_runtime_ref(peer);
-    addr_len = sizeof(native_addr);
     lh_memory_set(lh_addr_of(native_addr), sizeof(native_addr), 0);
-    native = accept(lh_os_system_net_socket_native(handle), lh_ptr_rcast(struct sockaddr, lh_addr_of(native_addr)),
-                    lh_addr_of(addr_len));
+    const int native =
+        accept(lh_os_system_net_socket_native(handle),
+               lh_ptr_rcast(struct sockaddr, lh_addr_of(native_addr)), lh_addr_of(addr_len));
     if (lh_math_is_negative(native))
     {
         lh_os_system_error_capture();
@@ -126,10 +124,9 @@ lh_bool_t
 lh_os_system_net_socket_get_local_addr(lh_os_system_net_socket_handle_t handle, lh_net_ip4_socket_addr_t *out)
 {
     struct sockaddr_in native_addr;
-    socklen_t addr_len;
+    socklen_t addr_len = sizeof(native_addr);
 
     lh_assert_runtime_ref(out);
-    addr_len = sizeof(native_addr);
     lh_memory_set(lh_addr_of(native_addr), sizeof(native_addr), 0);
     if (!lh_os_system_net_socket_ok(getsockname(lh_os_system_net_socket_native(handle),
                                                 lh_ptr_rcast(struct sockaddr, lh_addr_of(native_addr)),
@@ -144,9 +141,8 @@ lh_os_system_net_socket_get_local_addr(lh_os_system_net_socket_handle_t handle, 
 lh_bool_t
 lh_os_system_net_socket_set_reuse_addr(lh_os_system_net_socket_handle_t handle, lh_bool_t enabled)
 {
-    int value;
+    const int value = enabled ? 1 : 0;
 
-    value = enabled ? 1 : 0;
     return lh_os_system_net_socket_ok(
         setsockopt(lh_os_system_net_socket_native(handle), SOL_SOCKET, SO_REUSEADDR, lh_addr_of(value), sizeof(value)));
 }
@@ -183,15 +179,14 @@ lh_os_system_net_socket_recvfrom(lh_os_system_net_socket_handle_t handle, lh_ptr
                                  lh_net_ip4_socket_addr_t *addr)
 {
     struct sockaddr_in native_addr;
-    socklen_t addr_len;
-    lh_ssize_t result;
+    socklen_t addr_len = sizeof(native_addr);
 
     lh_assert_runtime_ref(addr);
-    addr_len = sizeof(native_addr);
     lh_memory_set(lh_addr_of(native_addr), sizeof(native_addr), 0);
-    result = lh_os_system_net_socket_result(lh_cast_static(
-        lh_ssize_t, recvfrom(lh_os_system_net_socket_native(handle), buf, lh_cast_static(size_t, size), 0,
-                             lh_ptr_rcast(struct sockaddr, lh_addr_of(native_addr)), lh_addr_of(addr_len))));
+    const lh_ssize_t result = lh_os_system_net_socket_result(lh_cast_static(
+        lh_ssize_t,
+        recvfrom(lh_os_system_net_socket_native(handle), buf, lh_cast_static(size_t, size), 0,
+                 lh_ptr_rcast(struct sockaddr, lh_addr_of(native_addr)), lh_addr_of(addr_len))));
     if (!lh_math_is_negative(result))
     {
         lh_os_system_net_socket_ip4_from_native_addr(addr, lh_addr_of(native_addr));

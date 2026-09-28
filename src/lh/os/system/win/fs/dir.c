@@ -36,19 +36,18 @@ lh_os_system_fs_dir_state(lh_os_system_fs_dir_handle_t handle)
 lh_os_system_fs_dir_handle_t
 lh_os_system_fs_dir_open(lh_str_cptr path)
 {
-    struct lh_os_system_fs_dir_state *state;
-    lh_str_view_t view;
     lh_str_t pattern;
 
     lh_assert_runtime_ref(path);
-    state = lh_ptr_cast(struct lh_os_system_fs_dir_state, lh_os_alloc(sizeof(*state)));
+    struct lh_os_system_fs_dir_state *const state =
+        lh_ptr_cast(struct lh_os_system_fs_dir_state, lh_os_alloc(sizeof(*state)));
     if (lh_null_eq(state))
     {
         return LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID;
     }
 
     /* FindFirstFile lists a pattern, not a directory: "<path>\*". */
-    view = lh_str_view_make(path);
+    const lh_str_view_t view = lh_str_view_make(path);
     lh_str_init_by_view(lh_addr_of(pattern), view);
     if (!lh_str_view_is_empty(lh_addr_of(view)) && !lh_char_is_slash(lh_str_view_get_last_char(lh_addr_of(view))) &&
         !lh_char_is_backslash(lh_str_view_get_last_char(lh_addr_of(view))))
@@ -72,9 +71,8 @@ lh_os_system_fs_dir_open(lh_str_cptr path)
 void
 lh_os_system_fs_dir_close(lh_os_system_fs_dir_handle_t handle)
 {
-    struct lh_os_system_fs_dir_state *state;
+    struct lh_os_system_fs_dir_state *const state = lh_os_system_fs_dir_state(handle);
 
-    state = lh_os_system_fs_dir_state(handle);
     (void)FindClose(state->find);
     lh_runtime_allocator_free(state);
 }
@@ -82,11 +80,9 @@ lh_os_system_fs_dir_close(lh_os_system_fs_dir_handle_t handle)
 lh_ssize_t
 lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, lh_str_cptr *name, lh_fs_kind_t *kind)
 {
-    struct lh_os_system_fs_dir_state *state;
-
     lh_assert_runtime_ref(name);
     lh_assert_runtime_ref(kind);
-    state = lh_os_system_fs_dir_state(handle);
+    struct lh_os_system_fs_dir_state *const state = lh_os_system_fs_dir_state(handle);
 
     if (!state->ready)
     {

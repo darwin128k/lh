@@ -9,10 +9,8 @@
 lh_bool_t
 lh_os_system_timestamp_now(lh_timestamp_t *out)
 {
-    time_t now;
-
     lh_assert_runtime_ref(out);
-    now = time(lh_null);
+    const time_t now = time(lh_null);
     if (now == lh_cast_static(time_t, -1))
     {
         lh_os_system_error_capture();
