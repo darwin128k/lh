@@ -1842,14 +1842,15 @@ lh_memory_std_set_sse2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
             lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, lh_cast_static(lh_uaddr_t, 16));
             lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
-            if (head > n)
-            {
-                head = n;
-            }
-
+            /* The misaligned head (< 16 bytes) goes out as one unaligned vector
+             * store, not lh_memory_std_set_bytes: n >= 512, so it stays inside the
+             * buffer, and the aligned loop rewrites the overlap with the same value.
+             * Under MSVC x86 the scalar head compiled to an __allmul call (set_bytes'
+             * 64-bit broadcast) plus rep movsd, a fixed startup cost paid on nearly
+             * every call there, since 32-bit malloc only aligns to 8. */
             if (head != 0U)
             {
-                lh_memory_std_set_bytes(dst, val, head);
+                _mm_storeu_si128(lh_ptr_rcast(__m128i, dst), v);
                 dst += head;
                 n -= head;
             }
@@ -1978,14 +1979,15 @@ lh_memory_std_set_avx2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
             lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, lh_cast_static(lh_uaddr_t, 32));
             lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
-            if (head > n)
-            {
-                head = n;
-            }
-
+            /* The misaligned head (< 32 bytes) goes out as one unaligned vector
+             * store, not lh_memory_std_set_bytes: n >= 512, so it stays inside the
+             * buffer, and the aligned loop rewrites the overlap with the same value.
+             * Under MSVC x86 the scalar head compiled to an __allmul call (set_bytes'
+             * 64-bit broadcast) plus rep movsd, a fixed startup cost paid on nearly
+             * every call there, since 32-bit malloc only aligns to 8. */
             if (head != 0U)
             {
-                lh_memory_std_set_bytes(dst, val, head);
+                _mm256_storeu_si256(lh_ptr_rcast(__m256i, dst), v);
                 dst += head;
                 n -= head;
             }
