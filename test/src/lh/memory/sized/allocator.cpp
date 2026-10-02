@@ -15,7 +15,7 @@
 namespace
 {
 
-/* The inner allocator: records what the sized allocator asks of it. */
+/* The allocator's state: records what the sized functions ask of its callbacks. */
 struct recording_heap
 {
     int allocs;
@@ -57,12 +57,10 @@ protected:
     SetUp() override
     {
         heap = recording_heap();
-        inner = lh_memory_allocator_initializer_with_context(recording_alloc, recording_dealloc, lh_null, &heap);
-        lh_memory_sized_allocator_init(&sized, &inner);
+        sized = lh_memory_allocator_initializer_with_context(recording_alloc, recording_dealloc, lh_null, &heap);
     }
 
     recording_heap heap;
-    lh_memory_allocator_t inner;
     lh_memory_sized_allocator_t sized;
 };
 
@@ -74,7 +72,7 @@ TEST_F(SizedAllocator, remembers_the_size)
     lh_memory_sized_allocator_dealloc(&sized, p);
 }
 
-TEST_F(SizedAllocator, asks_inner_for_size_plus_header_and_returns_data_past_it)
+TEST_F(SizedAllocator, asks_callbacks_for_size_plus_header_and_returns_data_past_it)
 {
     lh_ptr p = lh_memory_sized_allocator_alloc(&sized, 40);
     EXPECT_EQ(heap.allocs, 1);
@@ -84,12 +82,12 @@ TEST_F(SizedAllocator, asks_inner_for_size_plus_header_and_returns_data_past_it)
 
     lh_memory_sized_allocator_dealloc(&sized, p);
     EXPECT_EQ(heap.deallocs, 1);
-    EXPECT_EQ(heap.last_dealloc_block, heap.last_alloc_block); // inner gets back its own block
+    EXPECT_EQ(heap.last_dealloc_block, heap.last_alloc_block); // the callback gets back its own block
 }
 
-TEST_F(SizedAllocator, keeps_inner_alignment)
+TEST_F(SizedAllocator, keeps_the_callbacks_alignment)
 {
-    // The header is a multiple of 16, so data is as aligned as inner's block.
+    // The header is a multiple of 16, so data is as aligned as the callback's block.
     for (lh_usize_t n : {1u, 7u, 16u, 33u})
     {
         lh_ptr p = lh_memory_sized_allocator_alloc(&sized, n);
@@ -130,7 +128,7 @@ TEST_F(SizedAllocator, realloc_needs_no_old_size_and_keeps_the_data)
     EXPECT_EQ(std::memcmp(p, "ab", 2), 0);
 
     lh_memory_sized_allocator_dealloc(&sized, p);
-    EXPECT_EQ(heap.allocs, heap.deallocs); // every block inner handed out came back
+    EXPECT_EQ(heap.allocs, heap.deallocs); // every block the callbacks handed out came back
 }
 
 TEST_F(SizedAllocator, realloc_null_allocates_and_zero_frees)
@@ -150,10 +148,7 @@ TEST_F(SizedAllocator, overflowing_size_fails)
 
 TEST(SizedAllocatorDeath, null_arguments)
 {
-    lh_memory_allocator_t inner = lh_memory_allocator_empty_initializer();
-    lh_memory_sized_allocator_t sized;
-    LH_EXPECT_DEATH(lh_memory_sized_allocator_init(nullptr, &inner));
-    LH_EXPECT_DEATH(lh_memory_sized_allocator_init(&sized, nullptr));
+    LH_EXPECT_DEATH(lh_memory_sized_allocator_alloc(nullptr, 8));
     LH_EXPECT_DEATH(lh_memory_sized_allocator_get_size(lh_null));
 }
 
