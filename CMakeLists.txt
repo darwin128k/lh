@@ -194,28 +194,6 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/str.c
     )
 
-    # lh::geom ↔ native converters (Win32 RECT / X11 quartet / NSRect, plus
-    # the corresponding pixel/color conversions). Always compiled because
-    # each backend declares the file even if its OS source list above is
-    # empty on a given platform.
-    if (WIN32)
-        list(APPEND LH_LIB_SOURCES
-                ${LH_LIB_SRC_PATH}/os/system/win/geom.c
-        )
-    elseif (UNIX AND NOT APPLE)
-        list(APPEND LH_LIB_SOURCES
-                ${LH_LIB_SRC_PATH}/os/system/posix/geom.c
-        )
-    elseif (APPLE)
-        list(APPEND LH_LIB_SOURCES
-                ${LH_LIB_SRC_PATH}/os/system/macos/geom.m
-        )
-        set_source_files_properties(
-                ${LH_LIB_SRC_PATH}/os/system/macos/geom.m
-                PROPERTIES LANGUAGE OBJC
-        )
-    endif ()
-
     # Native window backend: Win32 (user32.dll) on Windows, Xlib (libX11)
     # on Linux. Cocoa/AppKit for macOS lands under macos/window.c when the
     # backend is added. Each backend is opt-in: when libX11 is missing on
@@ -261,7 +239,6 @@ if (LH_LIBRARY_OPTION_OS)
         endif ()
     endif ()
 endif ()
-
 
 # lh is a static library only: it is linked into its host, never loaded as a
 # DLL / shared object.

@@ -19,11 +19,9 @@
  */
 
 #include <lh/cast/static.h>
-#include <lh/color.h>
 #include <lh/null.h>
 #include <lh/numeric/types.h>
 #include <lh/os/system/window.h>
-#include <lh/os/system/posix/geom.h>
 #include <lh/os/system/posix/x11.h>
 #include <lh/util/math.h>
 #include <lh/util/ptr.h>
@@ -31,11 +29,9 @@
 
 #include <stddef.h>
 
-/* Project orange (#FF7A18) — same fill colour the Win32 / Cocoa backends
-   paint with, so cross-platform screenshots of an empty `pa` window look
-   identical. `lh_color_t` is OS-portable; converted to Xlib's 24-bit
-   pixel via `lh_os_system_posix_color_to_lh` at the API boundary. */
-static const lh_color_t lh_os_system_posix_brush_color = { 0xFF, 0x7A, 0x18, 0xFF };
+/* Background fill, project orange (#FF7A18), as a native Xlib pixel: 24-bit
+   `0xRRGGBB` on a TrueColor visual (no alpha in core Xlib). */
+#define LH_OS_SYSTEM_POSIX_BRUSH_PIXEL 0xFF7A18UL
 
 /* ── Process-wide X11 connection (lazy, single-threaded) ────────────────── */
 
@@ -113,7 +109,7 @@ lh_os_system_window_open(const lh_ptr title, lh_int_t width, lh_int_t height)
        `Expose` (paint) and `KeyPress`/`ButtonPress` (input) to be
        delivered. `StructureNotifyMask` covers resize / close. */
     lh_os_system_posix_xset_window_attributes_t attrs;
-    attrs.background_pixel = lh_os_system_posix_color_to_lh(lh_os_system_posix_brush_color);
+    attrs.background_pixel = LH_OS_SYSTEM_POSIX_BRUSH_PIXEL;
     attrs.event_mask = LH_OS_SYSTEM_POSIX_EXPOSURE_MASK
         | LH_OS_SYSTEM_POSIX_KEY_PRESS_MASK | LH_OS_SYSTEM_POSIX_KEY_RELEASE_MASK
         | LH_OS_SYSTEM_POSIX_BUTTON_PRESS_MASK | LH_OS_SYSTEM_POSIX_BUTTON_RELEASE_MASK

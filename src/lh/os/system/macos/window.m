@@ -27,21 +27,19 @@
 #import <AppKit/AppKit.h>
 
 #include <lh/cast/static.h>
-#include <lh/color.h>
 #include <lh/null.h>
 #include <lh/numeric/types.h>
 #include <lh/os/system/window.h>
-#include <lh/os/system/macos/geom.h>
 #include <lh/util/math.h>
 #include <lh/util/ptr.h>
 #include <lh/wstr.h>
 
 #include <stddef.h>
 
-/* Project orange (#FF7A18) — same fill colour the Win32 / Xlib backends
-   paint with. `lh_color_t` is OS-portable; converted to `NSColor` via
-   `lh_os_system_macos_color_from_lh` at the API boundary. */
-static const lh_color_t lh_os_system_macos_brush_color = { 0xFF, 0x7A, 0x18, 0xFF };
+/* Background fill, project orange (#FF7A18), as native Cocoa channels (0..1). */
+#define LH_OS_SYSTEM_MACOS_BRUSH_RED ((CGFloat)0xFF / 255.0)
+#define LH_OS_SYSTEM_MACOS_BRUSH_GREEN ((CGFloat)0x7A / 255.0)
+#define LH_OS_SYSTEM_MACOS_BRUSH_BLUE ((CGFloat)0x18 / 255.0)
 
 /* ── Process-wide state ─────────────────────────────────────────────────── */
 
@@ -132,7 +130,10 @@ lh_os_system_window_open(const lh_ptr title, lh_int_t width, lh_int_t height)
         }
     }
 
-    [window setBackgroundColor:lh_os_system_macos_color_from_lh(lh_os_system_macos_brush_color)];
+    [window setBackgroundColor:[NSColor colorWithCalibratedRed:LH_OS_SYSTEM_MACOS_BRUSH_RED
+                                                         green:LH_OS_SYSTEM_MACOS_BRUSH_GREEN
+                                                          blue:LH_OS_SYSTEM_MACOS_BRUSH_BLUE
+                                                         alpha:1.0]];
 
     [window setDelegate:lh_os_system_macos_get_delegate()];
 

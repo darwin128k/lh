@@ -16,12 +16,10 @@
  */
 
 #include <lh/cast/static.h>
-#include <lh/color.h>
 #include <lh/null.h>
 #include <lh/numeric/types.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/window.h>
-#include <lh/os/system/win/geom.h>
 #include <lh/os/system/win/types.h>
 #include <lh/os/system/win/user32.h>
 #include <lh/util/addr.h>
@@ -33,10 +31,9 @@
 
 #include <stddef.h>
 
-/* Project orange (#FF7A18) — the only color we paint with. `lh_color_t` is
-   OS-portable; converted to Win32's `COLORREF` at the API boundary via
-   `lh_os_system_win_color_to_lh`. Same orange across all three backends. */
-static const lh_color_t lh_os_system_win_brush_color = { 0xFF, 0x7A, 0x18, 0xFF };
+/* Background fill, project orange (#FF7A18), as a native Win32 `COLORREF`
+   (`0x00BBGGRR`). */
+#define LH_OS_SYSTEM_WIN_BRUSH_COLOR LH_OS_SYSTEM_WIN_RGB(0xFF, 0x7A, 0x18)
 
 /* Window class name — wide string literal; stored as `LPCWSTR` in
    `WNDCLASSEXW::lpszClassName`. Stable identifier for the OS dispatch. */
@@ -218,8 +215,7 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_dwor
     case LH_OS_SYSTEM_WIN_WM_PAINT: {
         lh_os_system_win_paintstruct_t ps;
         lh_os_system_win_hdc_t dc = BeginPaint(hwnd, lh_addr_of(ps));
-        lh_os_system_win_hbrush_t brush = CreateSolidBrush(
-            lh_os_system_win_color_to_lh(lh_os_system_win_brush_color));
+        lh_os_system_win_hbrush_t brush = CreateSolidBrush(LH_OS_SYSTEM_WIN_BRUSH_COLOR);
         (void)FillRect(dc, lh_addr_of(ps.rcPaint), brush);
         (void)DeleteObject((lh_ptr)brush);
         (void)EndPaint(hwnd, lh_addr_of(ps));

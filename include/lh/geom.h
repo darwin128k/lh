@@ -7,11 +7,10 @@
  * (empty / contains-point / intersects / equal), and combine (offset,
  * inset, intersection).
  *
- * Every OS window backend (and the `pa` scene graph that builds on top)
- * uses these types for positions, sizes and rectangles, then converts to
- * the platform native type at the boundary
- * (`RECT` / `XExposeEvent::rcPaint` / `NSRect`) via the small helpers in
- * `src/lh/os/system/{win,posix,macos}/geom.h`.
+ * Plain lh value types for layers above the OS (the `pa` scene graph and
+ * the like). The `lh/os/system` backends do not use them: each backend
+ * works in its own native types, and any mapping between the two belongs
+ * to the lh layer that needs it, not to the backend.
  *
  * No floating point: `lh_coord_t` is signed `int`, matching the screen
  * coordinates every OS exposes (LONG / int / CGFloat-rounded). When
@@ -26,6 +25,9 @@
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/geom/point/fields.h>
+#include <lh/geom/rect/fields.h>
+#include <lh/geom/size/fields.h>
 #include <lh/numeric/types.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -34,10 +36,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @typedef lh_coord_t
  * @brief Signed 2D coordinate / extent, OS-portable.
  *
- * Same width as `lh_int_t`. The Win32 backend stores 32-bit LONG in here;
- * the X11 backend stores `int`; the Cocoa backend truncates `CGFloat`.
- * Range on LP64/ILP32 builds is therefore `INT_MIN..INT_MAX`, plenty for
- * any realistic window or surface dimension.
+ * Same width as `lh_int_t`: `INT_MIN..INT_MAX` on every LP64/ILP32/LLP64
+ * target, plenty for any realistic window or surface dimension.
  */
 typedef lh_int_t lh_coord_t;
 
@@ -49,8 +49,7 @@ typedef lh_int_t lh_coord_t;
  */
 struct lh_point
 {
-    lh_coord_t x;
-    lh_coord_t y;
+    lh_point_fields(lh_coord_t);
 };
 typedef struct lh_point lh_point_t;
 
@@ -64,8 +63,7 @@ typedef struct lh_point lh_point_t;
  */
 struct lh_size
 {
-    lh_coord_t width;
-    lh_coord_t height;
+    lh_size_fields(lh_coord_t);
 };
 typedef struct lh_size lh_size_t;
 
@@ -73,15 +71,13 @@ typedef struct lh_size lh_size_t;
  * @struct lh_rect
  * @typedef lh_rect_t
  * @brief An axis-aligned rectangle: an `origin` (top-left corner) plus a
- *        `size`. Both fields are inclusive at the origin corner and
- *        inclusive at the bottom-right pixel of `size` — so `width = 10`
- *        covers columns `[origin.x, origin.x + 9]`, matching every OS
- *        paint convention.
+ *        `size`, half-open — `width = 10` covers columns
+ *        `[origin.x, origin.x + 10)`, i.e. `origin.x` through
+ *        `origin.x + 9`.
  */
 struct lh_rect
 {
-    lh_point_t origin;
-    lh_size_t size;
+    lh_rect_fields(lh_point_t, lh_size_t);
 };
 typedef struct lh_rect lh_rect_t;
 

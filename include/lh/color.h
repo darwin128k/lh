@@ -3,16 +3,11 @@
  * @brief OS-portable 8-bit RGBA color.
  *
  * A single value type `lh_color_t` with four `lh_uchar_t` channels
- * (red, green, blue, alpha). The alpha is "straight" (not premultiplied)
- * to match the convention every OS native paint API uses on input
- * (`COLORREF` ignores alpha entirely; `NSColor` separates color from
- * alpha but takes both as 0..1 floats; Xlib's `XSetForeground` takes a
- * 24-bit pixel).
+ * (red, green, blue, alpha), straight (not premultiplied) alpha.
  *
- * `lh_color_t` is OS-portable. Each backend converts to its native type at
- * the boundary: Win32 `COLORREF` (`0x00BBGGRR`), X11 `unsigned long`
- * pixel (24-bit RGB), Cocoa `NSColor *`. The conversion helpers live in
- * `src/lh/os/system/{win,posix,macos}/geom.h`.
+ * A plain lh value type for layers above the OS. The `lh/os/system`
+ * backends do not use it: each works in its own native color type, and
+ * any mapping between the two belongs to the lh layer that needs it.
  *
  * Requires nothing from `lh/os`. Safe in STM/embedded.
  */
@@ -21,6 +16,7 @@
 #define LH_COLOR_H
 
 #include <lh/char.h>
+#include <lh/color/fields.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/types.h>
 
@@ -33,10 +29,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 struct lh_color
 {
-    lh_uchar_t r;
-    lh_uchar_t g;
-    lh_uchar_t b;
-    lh_uchar_t a;
+    lh_color_fields(lh_uchar_t);
 };
 typedef struct lh_color lh_color_t;
 

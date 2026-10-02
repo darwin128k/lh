@@ -79,11 +79,13 @@ typedef lh_ssize_t lh_os_system_win_lparam_t;
 typedef lh_ulong_t lh_os_system_win_lresult_t;
 
 /* `WNDPROC` — `LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM)`.
-   `LH_OS_SYSTEM_WIN_CALL` is `__stdcall` (the calling convention
-   user32.dll dispatches with on every Windows target, not just x86). */
-typedef lh_os_system_win_lresult_t (*lh_os_system_win_wndproc_t)(                               \
-    lh_os_system_win_hwnd_t, lh_os_system_win_dword_t,                                          \
-    lh_os_system_win_wparam_t, lh_os_system_win_lparam_t);
+   `CALLBACK` is `__stdcall` (::LH_OS_SYSTEM_WIN_CALL): user32.dll calls the
+   procedure that way. It only matters on 32-bit x86, where the callee pops
+   its arguments - a pointer type without it mismatches the window procedure
+   and, cast through, would unbalance the stack on every message. */
+typedef lh_os_system_win_lresult_t(LH_OS_SYSTEM_WIN_CALL *lh_os_system_win_wndproc_t)(
+    lh_os_system_win_hwnd_t, lh_os_system_win_dword_t, lh_os_system_win_wparam_t,
+    lh_os_system_win_lparam_t);
 
 /* `RECT` (left, top, right, bottom). Defined before `PAINTSTRUCT` because
    `PAINTSTRUCT`'s fields X-macro takes `lh_os_system_win_rect_t` as a type
