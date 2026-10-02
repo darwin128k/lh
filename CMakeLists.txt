@@ -182,6 +182,18 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/net.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/net/socket.c
     )
+
+    # Native window backend (Win32 today; Xlib / Cocoa when added under
+    # ${LH_OS_SYSTEM_BACKEND}/window.c for the matching platform).
+    if (LH_LIBRARY_OPTION_OS_WINDOW)
+        list(APPEND LH_LIB_SOURCES
+                ${LH_LIB_SRC_PATH}/os/window.c
+                ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/window.c
+        )
+        if (WIN32)
+            list(APPEND LH_OS_SYSTEM_LINK_LIBS user32)
+        endif ()
+    endif ()
 endif ()
 
 

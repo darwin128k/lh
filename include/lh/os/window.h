@@ -1,0 +1,132 @@
+/**
+ * @file window.h
+ * @brief A native OS window — the application's window handle.
+ *
+ * One struct holding the bit-pattern window handle
+ * (::lh_os_system_window_handle_t). The handle is opaque to the caller;
+ * the actual Win32 / Xlib / Cocoa dispatch lives under
+ * `lh/os/system/window.h` and is picked by CMake at configure time.
+ *
+ * Deliberately narrow: only the lifetime / show / pump operations needed
+ * to drive a paint loop. Drawing primitives, input queues, and dirty
+ * regions are layered above this header by `pa` (or whatever consumes
+ * lh); they don't belong here.
+ *
+ * On failure the native reason is in ::lh_os_system_last_error.
+ *
+ * Requires ::LH_LIBRARY_OPTION_OS_WINDOW (itself requires ::LH_LIBRARY_OPTION_OS).
+ */
+
+#ifndef LH_OS_WINDOW_H
+#define LH_OS_WINDOW_H
+
+#include <lh/bool.h>
+#include <lh/compiler/extern/c.h>
+#include <lh/config.h>
+#include <lh/numeric/types.h>
+
+#include <lh/os/system/window.h>
+#include <lh/os/system/window/handle.h>
+
+#if !LH_LIBRARY_OPTION_OS
+#    error "lh/os/window.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
+#endif
+
+#if !LH_LIBRARY_OPTION_OS_WINDOW
+#    error "lh/os/window.h requires LH_LIBRARY_OPTION_OS_WINDOW (CMake: -DLH_LIBRARY_OPTION_OS_WINDOW=ON)"
+#endif
+
+/**
+ * @struct lh_os_window
+ * @typedef lh_os_window_t
+ * @brief A single native window.
+ */
+struct lh_os_window
+{
+    lh_os_system_window_handle_t handle;
+};
+typedef struct lh_os_window lh_os_window_t;
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/* ── construct / lifetime ────────────────────────────────────────────────── */
+
+/**
+ * @brief Set @p self to the empty (not-yet-open) state.
+ *
+ * Pure value initialization — does not touch the OS. Call this (or
+ * ::lh_os_window_open directly) before any other operation.
+ *
+ * @param self Window object to initialize.
+ */
+void
+lh_os_window_init(lh_os_window_t *self);
+
+/**
+ * @brief Open @p self as a new top-level native window.
+ *
+ * @param self   Window object to open; must be in the empty state
+ *               (::lh_os_window_init or freshly ::lh_os_window_close'd).
+ * @param title  View into the title bytes (UTF-16LE on Windows, UTF-8 on
+ *               POSIX-like systems). Must outlive this call.
+ * @param width  Initial client-area width, in pixels. Must be > 0.
+ * @param height Initial client-area height, in pixels. Must be > 0.
+ * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
+ */
+lh_bool_t
+lh_os_window_open(lh_os_window_t *self, const lh_ptr title, lh_int_t width, lh_int_t height);
+
+/**
+ * @brief Close @p self's handle (if open) and return it to the empty state.
+ *
+ * Safe to call on an already-empty window.
+ *
+ * @param self Window object to close.
+ */
+void
+lh_os_window_close(lh_os_window_t *self);
+
+/* ── accessors ───────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Return the raw window handle stored in @p self.
+ *
+ * @param self Window to read from.
+ * @return Current ::lh_os_system_window_handle_t
+ *         (::LH_OS_SYSTEM_WINDOW_HANDLE_INVALID if not open).
+ */
+lh_os_system_window_handle_t
+lh_os_window_get_handle(const lh_os_window_t *self);
+
+/**
+ * @brief Test whether @p self currently holds an open window.
+ *
+ * @param self Window to test.
+ * @return ::lh_bool_true if open, ::lh_bool_false otherwise.
+ */
+lh_bool_t
+lh_os_window_is_valid(const lh_os_window_t *self);
+
+/* ── operations ──────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Make @p self visible.
+ *
+ * @param self Open window.
+ */
+void
+lh_os_window_show(lh_os_window_t *self);
+
+/**
+ * @brief Pull and dispatch one pending OS message, or return immediately
+ *        if none are ready.
+ *
+ * @return ::lh_bool_true if a quit was requested by the OS, ::lh_bool_false
+ *         otherwise (kept running, or no event ready).
+ */
+lh_bool_t
+lh_os_window_pump_messages(void);
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_OS_WINDOW_H */

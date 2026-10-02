@@ -39,6 +39,36 @@ option(LH_LIBRARY_OPTION_OS
         ON)
 
 # -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_OS_WINDOW
+#
+# Native window surface: src/lh/os/system/{win}/ window.c + headers in
+# include/lh/os/window.h and include/lh/os/system/window.h.
+#
+#   ON  — compile and link the window backend (links user32 on Windows,
+#              Cocoa through Cocoa on macOS, Xlib on Linux). Default ON when
+#              LH_LIBRARY_OPTION_OS is ON; OFF otherwise (a freestanding build
+#              cannot own a window).
+#   OFF — no window backend, no user32 / Cocoa / Xlib link.
+#
+# Currently Windows-only; Linux/Xlib and macOS/Cocoa backends are added
+# when an `lh/os/system/{posix,macos}/window.c` shows up under `add_subdirectory`.
+#
+# Requires LH_LIBRARY_OPTION_OS to be ON (windows are an OS concept).
+# -----------------------------------------------------------------------------
+if (LH_LIBRARY_OPTION_OS)
+    set(_LH_OS_WINDOW_DEFAULT ON)
+else ()
+    set(_LH_OS_WINDOW_DEFAULT OFF)
+endif ()
+option(LH_LIBRARY_OPTION_OS_WINDOW
+        "Compile the native window backend (user32 on Windows, Xlib on Linux, Cocoa on macOS). Requires LH_LIBRARY_OPTION_OS=ON."
+        ${_LH_OS_WINDOW_DEFAULT})
+unset(_LH_OS_WINDOW_DEFAULT)
+if (LH_LIBRARY_OPTION_OS_WINDOW AND NOT LH_LIBRARY_OPTION_OS)
+    message(FATAL_ERROR "LH_LIBRARY_OPTION_OS_WINDOW=ON requires LH_LIBRARY_OPTION_OS=ON")
+endif ()
+
+# -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_OS_WERROR
 #
 # Encoding of the OS last-error slot (include/lh/os.h, src/lh/os.c).

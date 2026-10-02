@@ -101,6 +101,18 @@
  */
 #define LH_LIBRARY_OPTION_OS_WERROR @ValOsWerror@
 
+/**
+ * @def LH_LIBRARY_OPTION_OS_WINDOW
+ * @brief Compile the native window backend under `lh/os` (Win32 / Xlib /
+ *        Cocoa) (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
+ *
+ * ON pulls in `user32` on Windows, `Xlib` on Linux, `Cocoa` on macOS.
+ * Requires ::LH_LIBRARY_OPTION_OS to be ON — a window is an OS concept.
+ * Headers involved: `lh/os/window.h`, `lh/os/system/window.h`. Source:
+ * `src/lh/os/system/win/window.c` (and POSIX/macOS counterparts when added).
+ */
+#define LH_LIBRARY_OPTION_OS_WINDOW @ValOsWindow@
+
 
 /**
  * @def LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB
