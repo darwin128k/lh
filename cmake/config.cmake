@@ -88,8 +88,8 @@ function(lh_generate_config)
     endif ()
     set(ValAllocatorDefaultInclude "${LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE}")
 
-    set(ValVectorInitialCapacity "${LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY}")
-    set(ValVectorGrowthFactor "${LH_LIBRARY_OPTION_VECTOR_GROWTH_FACTOR}")
+    set(ValArrayInitialCapacity "${LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY}")
+    set(ValArrayGrowthFactor "${LH_LIBRARY_OPTION_ARRAY_GROWTH_FACTOR}")
 
     set(ValAlgorithmCompareBlock "${LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK}")
 

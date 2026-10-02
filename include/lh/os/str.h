@@ -11,7 +11,7 @@
  * ::lh_os_str_t names that text so code that crosses into the kernel does
  * not hardcode wide vs. narrow — same idea as ::lh_os_error_desc_t
  * (`lh/os/error/desc.h`). The two representations share one API shape
- * (both are an ::lh_vector_t of characters), so the `lh_os_str_*` names map
+ * (both are an ::lh_array_t of characters), so the `lh_os_str_*` names map
  * one to one onto `lh_wstr_*` / `lh_str_*`.
  *
  * Converting to and from UTF-8 is the kernel backend's job:

@@ -35,7 +35,7 @@ lh_wstr_list_get_chars_as_const(const lh_wstr_list_t *self)
 }
 
 LH_ATTRIBUTE_STATIC
-lh_vector_t *
+lh_array_t *
 lh_wstr_list_get_spans(lh_wstr_list_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -43,7 +43,7 @@ lh_wstr_list_get_spans(lh_wstr_list_t *self)
 }
 
 LH_ATTRIBUTE_STATIC
-const lh_vector_t *
+const lh_array_t *
 lh_wstr_list_get_spans_as_const(const lh_wstr_list_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -55,40 +55,40 @@ lh_wstr_list_span_t
 lh_wstr_list_get_span(const lh_wstr_list_t *self, lh_uindex_t index)
 {
     return lh_ptr_deref(
-        lh_ptr_cast(const lh_wstr_list_span_t, lh_vector_get_ptr(lh_wstr_list_get_spans_as_const(self), index)));
+        lh_ptr_cast(const lh_wstr_list_span_t, lh_array_get_ptr(lh_wstr_list_get_spans_as_const(self), index)));
 }
 
 void
 lh_wstr_list_init(lh_wstr_list_t *self)
 {
     lh_wstr_init(lh_wstr_list_get_chars(self));
-    lh_vector_init(lh_wstr_list_get_spans(self), sizeof(lh_wstr_list_span_t));
+    lh_array_init(lh_wstr_list_get_spans(self), sizeof(lh_wstr_list_span_t));
 }
 
 void
 lh_wstr_list_deinit(lh_wstr_list_t *self)
 {
     lh_wstr_deinit(lh_wstr_list_get_chars(self));
-    lh_vector_deinit(lh_wstr_list_get_spans(self));
+    lh_array_deinit(lh_wstr_list_get_spans(self));
 }
 
 void
 lh_wstr_list_clear(lh_wstr_list_t *self)
 {
     lh_wstr_clear(lh_wstr_list_get_chars(self));
-    lh_vector_clear(lh_wstr_list_get_spans(self));
+    lh_array_clear(lh_wstr_list_get_spans(self));
 }
 
 lh_bool_t
 lh_wstr_list_is_empty(const lh_wstr_list_t *self)
 {
-    return lh_vector_is_empty(lh_wstr_list_get_spans_as_const(self));
+    return lh_array_is_empty(lh_wstr_list_get_spans_as_const(self));
 }
 
 lh_usize_t
 lh_wstr_list_get_size(const lh_wstr_list_t *self)
 {
-    return lh_vector_get_size(lh_wstr_list_get_spans_as_const(self));
+    return lh_array_get_size(lh_wstr_list_get_spans_as_const(self));
 }
 
 lh_wstr_view_t
@@ -130,7 +130,7 @@ lh_wstr_list_push_back(lh_wstr_list_t *self, lh_wstr_view_t text)
     span.size = lh_wstr_view_is_empty(lh_addr_of(text)) ? 0U : lh_wstr_view_get_size(lh_addr_of(text));
     lh_wstr_append_view(chars, text);
     lh_wstr_push_back(chars, lh_cast_static(lh_wchar_t, 0));
-    return lh_vector_push_back(lh_wstr_list_get_spans(self), lh_addr_of(span));
+    return lh_array_push_back(lh_wstr_list_get_spans(self), lh_addr_of(span));
 }
 
 lh_uindex_t
@@ -147,7 +147,7 @@ lh_wstr_list_assign(lh_wstr_list_t *self, const lh_wstr_list_t *other)
         return;
     }
     lh_wstr_assign(lh_wstr_list_get_chars(self), lh_wstr_list_get_chars_as_const(other));
-    lh_vector_assign(lh_wstr_list_get_spans(self), lh_wstr_list_get_spans_as_const(other));
+    lh_array_assign(lh_wstr_list_get_spans(self), lh_wstr_list_get_spans_as_const(other));
 }
 
 void
@@ -166,7 +166,7 @@ lh_wstr_list_append(lh_wstr_list_t *self, const lh_wstr_list_t *other)
     {
         span = lh_wstr_list_get_span(other, i);
         span.offset = lh_math_add(span.offset, base);
-        lh_vector_push_back(lh_wstr_list_get_spans(self), lh_addr_of(span));
+        lh_array_push_back(lh_wstr_list_get_spans(self), lh_addr_of(span));
     }
 }
 

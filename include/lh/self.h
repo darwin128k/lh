@@ -10,7 +10,7 @@
  * pointer".
  *
  * Only for such abstract callbacks. A concrete API that knows its struct
- * takes a typed pointer to it instead (`lh_vector_t *self`, ...).
+ * takes a typed pointer to it instead (`lh_array_t *self`, ...).
  */
 
 #ifndef LH_SELF_H

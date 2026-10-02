@@ -2,7 +2,7 @@
  * @file str.h
  * @brief Owning, growable, NUL-terminated string (::lh_str_t).
  *
- * ::lh_str_t is a direct typedef of ::lh_vector_t with an ::lh_char_t
+ * ::lh_str_t is a direct typedef of ::lh_array_t with an ::lh_char_t
  * element (`type_size == sizeof(lh_char_t)`) — the owning, growable
  * counterpart to the non-owning ::lh_str_view_t.
  *
@@ -12,16 +12,16 @@
  * past ::lh_str_get_size set to `'\0'`, so ::lh_str_get_data can be handed
  * straight to libc / printf-style APIs without a separate termination step.
  * The terminator does not count toward ::lh_str_get_size, matching
- * ::lh_vector_get_size semantics. A string that has never grown owns no
+ * ::lh_array_get_size semantics. A string that has never grown owns no
  * buffer (::lh_str_init allocates nothing); ::lh_str_get_data then returns a
  * static empty string.
  *
- * Because the type is layout-compatible with ::lh_vector_t, all
- * ::lh_vector functions accept an ::lh_str_t pointer without a cast —
+ * Because the type is layout-compatible with ::lh_array_t, all
+ * ::lh_array functions accept an ::lh_str_t pointer without a cast —
  * but reach for those only when you don't need the NUL-termination
  * guarantee, since they don't maintain it.
  *
- * @see lh_vector_t
+ * @see lh_array_t
  * @see lh_str_view_t
  */
 
@@ -29,7 +29,7 @@
 #define LH_STR_H
 
 #include <lh/compiler/extern/c.h>
-#include <lh/vector.h>
+#include <lh/array.h>
 #include <lh/str/ptr.h>
 #include <lh/str/view.h>
 #include <lh/char.h>
@@ -42,11 +42,11 @@
  * @struct lh_str
  * @brief Owning, growable, NUL-terminated string.
  *
- * A direct typedef of ::lh_vector_t; element type is ::lh_char_t
+ * A direct typedef of ::lh_array_t; element type is ::lh_char_t
  * (`type_size == sizeof(lh_char_t)`).
  * Public typedef: ::lh_str_t.
  */
-typedef lh_vector_t lh_str_t;
+typedef lh_array_t lh_str_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

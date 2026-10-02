@@ -17,7 +17,7 @@
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
-#include <lh/vector.h>
+#include <lh/array.h>
 #include <lh/wchar.h>
 #include <lh/wstr/ptr.h>
 #include <lh/wstr/view.h>
@@ -26,11 +26,11 @@
  * @struct lh_wstr
  * @brief Owning, growable, NUL-terminated wide string.
  *
- * A direct typedef of ::lh_vector_t; element type is ::lh_wchar_t
+ * A direct typedef of ::lh_array_t; element type is ::lh_wchar_t
  * (`type_size == sizeof(lh_wchar_t)`).
  * Public typedef: ::lh_wstr_t.
  */
-typedef lh_vector_t lh_wstr_t;
+typedef lh_array_t lh_wstr_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

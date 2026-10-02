@@ -26,7 +26,7 @@
 #include <lh/wstr.h>
 #include <lh/wstr/ptr.h>
 #include <lh/wstr/view.h>
-#include <lh/vector.h>
+#include <lh/array.h>
 
 /**
  * @struct lh_wstr_list
@@ -35,7 +35,7 @@
  */
 struct lh_wstr_list
 {
-    lh_str_list_fields(lh_wstr_t, lh_vector_t);
+    lh_str_list_fields(lh_wstr_t, lh_array_t);
 };
 typedef struct lh_wstr_list lh_wstr_list_t;
 

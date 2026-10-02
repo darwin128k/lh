@@ -16,7 +16,7 @@
  * buffer may move when it grows.
  *
  * @param chars_type Type of the shared buffer (::lh_str_t / ::lh_wstr_t).
- * @param spans_type Type of the per-element table (::lh_vector_t).
+ * @param spans_type Type of the per-element table (::lh_array_t).
  */
 #define lh_str_list_fields(chars_type, spans_type)                                                 \
     chars_type chars;                                                                              \

@@ -24,7 +24,7 @@
 #include <lh/str/list/fields.h>
 #include <lh/str/ptr.h>
 #include <lh/str/view.h>
-#include <lh/vector.h>
+#include <lh/array.h>
 
 /**
  * @struct lh_str_list
@@ -33,7 +33,7 @@
  */
 struct lh_str_list
 {
-    lh_str_list_fields(lh_str_t, lh_vector_t);
+    lh_str_list_fields(lh_str_t, lh_array_t);
 };
 typedef struct lh_str_list lh_str_list_t;
 
