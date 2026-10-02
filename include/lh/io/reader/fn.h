@@ -2,11 +2,11 @@
  * @file fn.h
  * @brief Callable signature for stream read routines.
  *
- * Unlike ::lh_memory_allocator_alloc_fn (which is global/stateless, like
- * `malloc`), a reader needs to know *which* stream it is reading — there
- * can be many at once (one per connection, one per open file, ...) — so
- * @p context carries that identity as part of the callback's own signature
- * rather than as a separate object the callback closes over.
+ * A reader needs to know *which* stream it is reading — there can be many
+ * at once (one per connection, one per open file, ...) — so @p context
+ * carries that identity as part of the callback's own signature rather than
+ * as a separate object the callback closes over. The allocator callbacks
+ * (::lh_memory_allocator_alloc_fn) take their context the same way.
  *
  * @see lh_io_writer_write_fn
  */

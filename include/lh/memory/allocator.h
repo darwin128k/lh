@@ -8,6 +8,11 @@
  * in place. Changing alloc or dealloc drops realloc (it would no longer
  * match the heap); set it again with ::lh_memory_allocator_set_realloc_cb.
  *
+ * Every callback also receives the allocator's context
+ * (::lh_memory_allocator_set_context): the state of a stateful allocator — a
+ * pool over a static buffer on a heap-less target, an arena, a per-module
+ * sandbox. Several such allocators can then exist at once.
+ *
  * The API provides init/set/get helpers plus allocation/deallocation
  * calls that validate callback availability via runtime checks.
  */
@@ -29,13 +34,14 @@
  * - `alloc_cb` allocates a block of requested size
  * - `dealloc_cb` releases a previously allocated block
  * - `realloc_cb` resizes a block, possibly in place (optional, may be null)
+ * - `context` is passed as the first argument to all three
  *
  * The concrete fields are expanded by ::lh_memory_allocator_fields.
  */
 struct lh_memory_allocator
 {
     lh_memory_allocator_fields(lh_memory_allocator_alloc_fn, lh_memory_allocator_dealloc_fn,
-                               lh_memory_allocator_realloc_fn);
+                               lh_memory_allocator_realloc_fn, lh_ptr);
 };
 typedef struct lh_memory_allocator lh_memory_allocator_t;
 
@@ -165,6 +171,21 @@ lh_memory_allocator_set_realloc_cb(lh_memory_allocator_t *self, lh_memory_alloca
  */
 lh_memory_allocator_realloc_cb
 lh_memory_allocator_get_realloc_cb(const lh_memory_allocator_t *self);
+
+/**
+ * @brief Set the context handed to every callback (::lh_null for none).
+ *
+ * Callbacks and context are set independently; ::lh_memory_allocator_init and
+ * ::lh_memory_allocator_deinit reset it to ::lh_null.
+ */
+lh_void
+lh_memory_allocator_set_context(lh_memory_allocator_t *self, lh_ptr context);
+
+/**
+ * @brief Current callback context, or ::lh_null.
+ */
+lh_ptr
+lh_memory_allocator_get_context(const lh_memory_allocator_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

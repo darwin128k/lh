@@ -21,36 +21,41 @@ int g_test_dealloc_calls = 0;
 LH_COMPILER_EXTERN_C_BEGIN
 
 lh_ptr
-test_alloc_malloc(lh_usize_t size)
+test_alloc_malloc(lh_ptr context, lh_usize_t size)
 {
+    LH_ATTRIBUTE_UNUSED(context);
     ++g_test_alloc_calls;
     g_test_alloc_last_size = size;
     return lh_cast_static(lh_ptr, std::malloc(lh_cast_static(std::size_t, size)));
 }
 
 lh_void
-test_dealloc_free(lh_ptr ptr)
+test_dealloc_free(lh_ptr context, lh_ptr ptr)
 {
+    LH_ATTRIBUTE_UNUSED(context);
     ++g_test_dealloc_calls;
     std::free(ptr);
 }
 
 lh_void
-test_dealloc_alt(lh_ptr ptr)
+test_dealloc_alt(lh_ptr context, lh_ptr ptr)
 {
+    LH_ATTRIBUTE_UNUSED(context);
     std::free(ptr);
 }
 
 lh_ptr
-test_alloc_other(lh_usize_t size)
+test_alloc_other(lh_ptr context, lh_usize_t size)
 {
+    LH_ATTRIBUTE_UNUSED(context);
     LH_ATTRIBUTE_UNUSED(size);
     return lh_cast_static(lh_ptr, std::malloc(1));
 }
 
 lh_ptr
-test_alloc_always_null(lh_usize_t size)
+test_alloc_always_null(lh_ptr context, lh_usize_t size)
 {
+    LH_ATTRIBUTE_UNUSED(context);
     LH_ATTRIBUTE_UNUSED(size);
     return nullptr;
 }
@@ -58,21 +63,118 @@ test_alloc_always_null(lh_usize_t size)
 int g_test_realloc_calls = 0;
 
 lh_ptr
-test_realloc(lh_ptr ptr, lh_usize_t size)
+test_realloc(lh_ptr context, lh_ptr ptr, lh_usize_t old_size, lh_usize_t size)
 {
+    LH_ATTRIBUTE_UNUSED(context);
+    LH_ATTRIBUTE_UNUSED(old_size);
     ++g_test_realloc_calls;
     return std::realloc(ptr, lh_cast_static(std::size_t, size));
 }
 
 lh_ptr
-test_realloc_always_null(lh_ptr ptr, lh_usize_t size)
+test_realloc_always_null(lh_ptr context, lh_ptr ptr, lh_usize_t old_size, lh_usize_t size)
 {
+    LH_ATTRIBUTE_UNUSED(context);
+    LH_ATTRIBUTE_UNUSED(old_size);
     LH_ATTRIBUTE_UNUSED(ptr);
     LH_ATTRIBUTE_UNUSED(size);
     return nullptr;
 }
 
+/* A stateful allocator: everything it does is recorded in its context. */
+struct test_counting_heap
+{
+    int allocs;
+    int deallocs;
+    int reallocs;
+    lh_usize_t last_old_size;
+    lh_usize_t last_new_size;
+};
+
+lh_ptr
+test_heap_alloc(lh_ptr context, lh_usize_t size)
+{
+    ++lh_cast_static(test_counting_heap *, context)->allocs;
+    return std::malloc(lh_cast_static(std::size_t, size));
+}
+
+lh_void
+test_heap_dealloc(lh_ptr context, lh_ptr ptr)
+{
+    ++lh_cast_static(test_counting_heap *, context)->deallocs;
+    std::free(ptr);
+}
+
+lh_ptr
+test_heap_realloc(lh_ptr context, lh_ptr ptr, lh_usize_t old_size, lh_usize_t new_size)
+{
+    test_counting_heap *heap = lh_cast_static(test_counting_heap *, context);
+    ++heap->reallocs;
+    heap->last_old_size = old_size;
+    heap->last_new_size = new_size;
+    return std::realloc(ptr, lh_cast_static(std::size_t, new_size));
+}
+
 LH_COMPILER_EXTERN_C_END
+
+TEST(memory_allocator_context, reaches_every_callback)
+{
+    test_counting_heap heap = {};
+    lh_memory_allocator_t a = lh_memory_allocator_empty_initializer();
+    lh_memory_allocator_set(&a, test_heap_alloc, test_heap_dealloc);
+    lh_memory_allocator_set_realloc_cb(&a, test_heap_realloc);
+    lh_memory_allocator_set_context(&a, &heap);
+    EXPECT_EQ(lh_memory_allocator_get_context(&a), static_cast<lh_ptr>(&heap));
+
+    lh_ptr p = lh_memory_allocator_alloc(&a, 16);
+    ASSERT_NE(p, nullptr);
+    p = lh_memory_allocator_realloc(&a, p, 16, 64);
+    ASSERT_NE(p, nullptr);
+    lh_memory_allocator_dealloc(&a, p);
+
+    EXPECT_EQ(heap.allocs, 1);
+    EXPECT_EQ(heap.reallocs, 1);
+    EXPECT_EQ(heap.deallocs, 1);
+    EXPECT_EQ(heap.last_old_size, 16u); // realloc learns the block's current size
+    EXPECT_EQ(heap.last_new_size, 64u);
+}
+
+TEST(memory_allocator_context, two_allocators_keep_separate_state)
+{
+    test_counting_heap first = {};
+    test_counting_heap second = {};
+    lh_memory_allocator_t a =
+        lh_memory_allocator_initializer_with_context(test_heap_alloc, test_heap_dealloc, lh_null, &first);
+    lh_memory_allocator_t b =
+        lh_memory_allocator_initializer_with_context(test_heap_alloc, test_heap_dealloc, lh_null, &second);
+
+    lh_memory_allocator_dealloc(&a, lh_memory_allocator_alloc(&a, 8));
+    lh_memory_allocator_dealloc(&a, lh_memory_allocator_alloc(&a, 8));
+    lh_memory_allocator_dealloc(&b, lh_memory_allocator_alloc(&b, 8));
+
+    EXPECT_EQ(first.allocs, 2);
+    EXPECT_EQ(first.deallocs, 2);
+    EXPECT_EQ(second.allocs, 1);
+    EXPECT_EQ(second.deallocs, 1);
+}
+
+TEST(memory_allocator_context, assign_copies_it_init_and_deinit_clear_it)
+{
+    test_counting_heap heap = {};
+    lh_memory_allocator_t a =
+        lh_memory_allocator_initializer_with_context(test_heap_alloc, test_heap_dealloc, lh_null, &heap);
+    lh_memory_allocator_t b = lh_memory_allocator_empty_initializer();
+    EXPECT_EQ(lh_memory_allocator_get_context(&b), nullptr);
+
+    lh_memory_allocator_assign(&b, &a);
+    EXPECT_EQ(lh_memory_allocator_get_context(&b), static_cast<lh_ptr>(&heap));
+
+    lh_memory_allocator_init(&b, test_heap_alloc, test_heap_dealloc);
+    EXPECT_EQ(lh_memory_allocator_get_context(&b), nullptr);
+
+    lh_memory_allocator_deinit(&a);
+    EXPECT_EQ(lh_memory_allocator_get_context(&a), nullptr);
+}
 
 TEST(memory_allocator_set_alloc_cb, keeps_dealloc)
 {

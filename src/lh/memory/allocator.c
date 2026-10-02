@@ -45,6 +45,21 @@ lh_memory_allocator_assign(lh_memory_allocator_t *self, const lh_memory_allocato
     lh_memory_allocator_set(self, lh_memory_allocator_get_alloc_cb(other),
                             lh_memory_allocator_get_dealloc_cb(other));
     lh_memory_allocator_set_realloc_cb(self, lh_memory_allocator_get_realloc_cb(other));
+    lh_memory_allocator_set_context(self, lh_memory_allocator_get_context(other));
+}
+
+lh_void
+lh_memory_allocator_set_context(lh_memory_allocator_t *self, lh_ptr context)
+{
+    lh_assert_runtime_ref(self);
+    self->context = context;
+}
+
+lh_ptr
+lh_memory_allocator_get_context(const lh_memory_allocator_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->context;
 }
 
 lh_void
@@ -52,12 +67,14 @@ lh_memory_allocator_init(lh_memory_allocator_t *self, lh_memory_allocator_alloc_
                          lh_memory_allocator_dealloc_cb dealloc_cb)
 {
     lh_memory_allocator_set(self, alloc_cb, dealloc_cb);
+    lh_memory_allocator_set_context(self, lh_null);
 }
 
 lh_void
 lh_memory_allocator_deinit(lh_memory_allocator_t *self)
 {
     lh_memory_allocator_set(self, lh_null, lh_null);
+    lh_memory_allocator_set_context(self, lh_null);
 }
 
 lh_memory_allocator_alloc_cb
@@ -87,7 +104,7 @@ lh_memory_allocator_alloc(lh_memory_allocator_t *self, lh_usize_t size)
     lh_memory_allocator_alloc_cb alloc_cb = lh_memory_allocator_get_alloc_cb(self);
     lh_runtime_check_ifn(alloc_cb, lh_runtime_error_code_allocator_function_not_initialized);
 
-    lh_ptr ptr = alloc_cb(size);
+    lh_ptr ptr = alloc_cb(lh_memory_allocator_get_context(self), size);
     lh_runtime_check_ifn(ptr, lh_runtime_error_code_memory_not_allocated);
 
 #if (LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED == LH_LIBRARY_OPTION_ON)
@@ -105,7 +122,7 @@ lh_memory_allocator_dealloc(lh_memory_allocator_t *self, lh_ptr ptr)
     lh_memory_allocator_dealloc_cb dealloc_cb = lh_memory_allocator_get_dealloc_cb(self);
     lh_runtime_check_ifn(dealloc_cb, lh_runtime_error_code_deallocator_function_not_initialized);
 
-    dealloc_cb(ptr);
+    dealloc_cb(lh_memory_allocator_get_context(self), ptr);
 }
 
 lh_ptr
@@ -125,7 +142,7 @@ lh_memory_allocator_realloc(lh_memory_allocator_t *self, lh_ptr old_ptr, lh_usiz
     if (lh_ptr_is_set(realloc_cb))
     {
         /* Native realloc may extend the block in place — no copy at all. */
-        lh_ptr grown = realloc_cb(old_ptr, new_size);
+        lh_ptr grown = realloc_cb(lh_memory_allocator_get_context(self), old_ptr, old_size, new_size);
         lh_runtime_check_ifn(grown, lh_runtime_error_code_memory_not_allocated);
 #if (LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED == LH_LIBRARY_OPTION_ON)
         /* Same promise as lh_memory_allocator_alloc: new bytes read as zero. */

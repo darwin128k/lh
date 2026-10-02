@@ -159,6 +159,13 @@
 #define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC @ValAllocatorDefaultRealloc@
 
 /**
+ * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_HAS_REALLOC
+ * @brief 1 when ::LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC names a
+ *        function, 0 when it is ::lh_null (set by CMake from that option).
+ */
+#define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_HAS_REALLOC @ValAllocatorDefaultHasRealloc@
+
+/**
  * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE
  * @brief Header declaring ::LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC
  *        and ::LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC (default `<stdlib.h>`).

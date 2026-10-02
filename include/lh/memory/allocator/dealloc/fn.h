@@ -3,8 +3,9 @@
  * @brief Callable signature for allocator deallocation routines.
  *
  * Defines the function type used by allocators to release memory previously
- * returned to the caller. The function accepts the pointer to release and
- * returns nothing.
+ * returned to the caller. The function accepts the allocator's context (see
+ * ::lh_memory_allocator_alloc_fn) and the pointer to release, and returns
+ * nothing.
  *
  * @see lh_memory_allocator_alloc_fn
  */
@@ -16,10 +17,10 @@
 
 /**
  * @typedef lh_memory_allocator_dealloc_fn
- * @brief Function type `lh_void (lh_ptr)` for allocator deallocation.
+ * @brief Function type `lh_void (lh_ptr, lh_ptr)` for allocator deallocation.
  *
  * Not a pointer type by itself; use pointer wrappers where needed.
  */
-typedef lh_void(lh_memory_allocator_dealloc_fn)(lh_ptr ptr);
+typedef lh_void(lh_memory_allocator_dealloc_fn)(lh_ptr context, lh_ptr ptr);
 
 #endif /* LH_MEMORY_ALLOCATOR_DEALLOC_FN_H */

@@ -3,9 +3,15 @@
  * @brief Callable signature for allocator reallocation routines.
  *
  * Same contract as C `realloc`: grow or shrink the block at @p ptr to
- * @p size bytes, possibly in place, keeping its leading contents; return
+ * @p new_size bytes, possibly in place, keeping its leading contents; return
  * the (possibly moved) block, or null on failure with @p ptr untouched.
  * Must belong to the same heap as the allocator's alloc/dealloc pair.
+ *
+ * Takes the allocator's context (see ::lh_memory_allocator_alloc_fn) and,
+ * unlike C `realloc`, the block's current size @p old_size: an allocator
+ * that keeps no per-block size (a bump arena over a static buffer, say)
+ * needs it to copy or to extend its last block in place. A `realloc`
+ * wrapper ignores both.
  *
  * @see lh_memory_allocator_alloc_fn
  */
@@ -18,11 +24,12 @@
 
 /**
  * @typedef lh_memory_allocator_realloc_fn
- * @brief Function type `lh_ptr(lh_ptr, lh_usize_t)` for allocator
- *        reallocation.
+ * @brief Function type `lh_ptr(lh_ptr, lh_ptr, lh_usize_t, lh_usize_t)` for
+ *        allocator reallocation.
  *
  * Not a pointer type by itself; use pointer wrappers where needed.
  */
-typedef lh_ptr(lh_memory_allocator_realloc_fn)(lh_ptr ptr, lh_usize_t size);
+typedef lh_ptr(lh_memory_allocator_realloc_fn)(lh_ptr context, lh_ptr ptr, lh_usize_t old_size,
+                                               lh_usize_t new_size);
 
 #endif /* LH_MEMORY_ALLOCATOR_REALLOC_FN_H */

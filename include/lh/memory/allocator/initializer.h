@@ -15,7 +15,7 @@
 /**
  * @def lh_memory_allocator_initializer(malloc_fn, dealloc_fn)
  * @brief Produces a brace-enclosed initializer for ::lh_memory_allocator_t
- *        with no native realloc (`realloc_cb` null).
+ *        with no native realloc (`realloc_cb` null) and no context.
  *
  * Expands to ::lh_initializer with each argument passed through ::lh_ptr_rcast
  * to `lh_memory_allocator_alloc_fn *` and `lh_memory_allocator_dealloc_fn *`
@@ -29,12 +29,19 @@
  * the same macro also accepts function designators and existing callback pointers.
  * **C** uses a C-style cast to the function-pointer type.
  *
+ * The cast also accepts a function of the wrong signature without a
+ * diagnostic: pass only functions of type ::lh_memory_allocator_alloc_fn /
+ * ::lh_memory_allocator_dealloc_fn (they take the context first) — not
+ * `malloc` / `free` themselves.
+ *
  * @param malloc_fn  Value for @c alloc_cb (e.g. a function name, compatible pointer, or ::lh_null).
  * @param dealloc_fn Value for @c dealloc_cb (same).
  *
  * Example usage:
  * @code{.c}
- * static lh_memory_allocator_t alloc = lh_memory_allocator_initializer(malloc, free);
+ * static lh_ptr my_alloc(lh_ptr context, lh_usize_t size) { (void)context; return malloc(size); }
+ * static lh_void my_free(lh_ptr context, lh_ptr ptr) { (void)context; free(ptr); }
+ * static lh_memory_allocator_t alloc = lh_memory_allocator_initializer(my_alloc, my_free);
  * @endcode
  *
  * @see lh_initializer
@@ -51,12 +58,21 @@
  * @brief ::lh_memory_allocator_initializer plus a native reallocation callback.
  *
  * @p realloc_fn must belong to the same heap as @p malloc_fn / @p dealloc_fn
- * (e.g. `malloc`, `free`, `realloc`), or be ::lh_null.
+ * (wrappers of `malloc`, `free`, `realloc`, say), or be ::lh_null. The
+ * context is ::lh_null; see ::lh_memory_allocator_initializer_with_context.
  */
 #define lh_memory_allocator_initializer_with_realloc(malloc_fn, dealloc_fn, realloc_fn)            \
+    lh_memory_allocator_initializer_with_context(malloc_fn, dealloc_fn, realloc_fn, lh_null)
+
+/**
+ * @def lh_memory_allocator_initializer_with_context(malloc_fn, dealloc_fn, realloc_fn, context)
+ * @brief ::lh_memory_allocator_initializer_with_realloc plus the context every
+ *        callback receives (a static pool's state, for instance).
+ */
+#define lh_memory_allocator_initializer_with_context(malloc_fn, dealloc_fn, realloc_fn, context)   \
     lh_initializer(lh_ptr_rcast(lh_memory_allocator_alloc_fn, malloc_fn),                          \
                    lh_ptr_rcast(lh_memory_allocator_dealloc_fn, dealloc_fn),                       \
-                   lh_ptr_rcast(lh_memory_allocator_realloc_fn, realloc_fn))
+                   lh_ptr_rcast(lh_memory_allocator_realloc_fn, realloc_fn), (context))
 
 /**
  * @def lh_memory_allocator_empty_initializer()

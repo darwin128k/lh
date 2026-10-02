@@ -80,6 +80,12 @@ function(lh_generate_config)
     set(ValAllocatorDefaultAlloc "${LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC}")
     set(ValAllocatorDefaultDealloc "${LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC}")
     set(ValAllocatorDefaultRealloc "${LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC}")
+    if (LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC STREQUAL "lh_null" OR
+            LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC STREQUAL "")
+        set(ValAllocatorDefaultHasRealloc 0)
+    else ()
+        set(ValAllocatorDefaultHasRealloc 1)
+    endif ()
     set(ValAllocatorDefaultInclude "${LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE}")
 
     set(ValVectorInitialCapacity "${LH_LIBRARY_OPTION_VECTOR_INITIAL_CAPACITY}")
