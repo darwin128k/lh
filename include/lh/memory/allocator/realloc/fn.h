@@ -20,16 +20,17 @@
 #define LH_MEMORY_ALLOCATOR_REALLOC_FN_H
 
 #include <lh/ptr.h>
+#include <lh/self.h>
 #include <lh/size.h>
 
 /**
  * @typedef lh_memory_allocator_realloc_fn
- * @brief Function type `lh_ptr(lh_ptr, lh_ptr, lh_usize_t, lh_usize_t)` for
+ * @brief Function type `lh_ptr(lh_self_ptr, lh_ptr, lh_usize_t, lh_usize_t)` for
  *        allocator reallocation.
  *
  * Not a pointer type by itself; use pointer wrappers where needed.
  */
-typedef lh_ptr(lh_memory_allocator_realloc_fn)(lh_ptr self, lh_ptr ptr, lh_usize_t old_size,
+typedef lh_ptr(lh_memory_allocator_realloc_fn)(lh_self_ptr self, lh_ptr ptr, lh_usize_t old_size,
                                                lh_usize_t new_size);
 
 #endif /* LH_MEMORY_ALLOCATOR_REALLOC_FN_H */

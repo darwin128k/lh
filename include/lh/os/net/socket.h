@@ -32,6 +32,7 @@
 #include <lh/os/system/net/socket/handle.h>
 #include <lh/os/system/net/socket/type.h>
 #include <lh/ptr.h>
+#include <lh/self.h>
 #include <lh/size.h>
 
 #if !LH_LIBRARY_OPTION_OS
@@ -190,7 +191,7 @@ lh_os_net_socket_set_reuse_addr(lh_os_net_socket_t *self, lh_bool_t enabled);
  * @return Bytes actually sent, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
-lh_os_net_socket_send(lh_ptr self, const lh_ptr buf, lh_usize_t size);
+lh_os_net_socket_send(lh_self_ptr self, const lh_ptr buf, lh_usize_t size);
 
 /**
  * @brief ::lh_io_reader_read_fn backed by @p context's socket.
@@ -202,7 +203,7 @@ lh_os_net_socket_send(lh_ptr self, const lh_ptr buf, lh_usize_t size);
  *         or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
-lh_os_net_socket_recv(lh_ptr self, lh_ptr buf, lh_usize_t size);
+lh_os_net_socket_recv(lh_self_ptr self, lh_ptr buf, lh_usize_t size);
 
 /**
  * @brief ::lh_io_dgram_writer_send_fn backed by @p context's socket (`sendto`).
@@ -216,7 +217,7 @@ lh_os_net_socket_recv(lh_ptr self, lh_ptr buf, lh_usize_t size);
  * @return Bytes actually sent, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
-lh_os_net_socket_sendto(lh_ptr self, const lh_ptr buf, lh_usize_t size,
+lh_os_net_socket_sendto(lh_self_ptr self, const lh_ptr buf, lh_usize_t size,
                         const lh_net_ip4_socket_addr_t *addr);
 
 /**
@@ -232,7 +233,7 @@ lh_os_net_socket_sendto(lh_ptr self, const lh_ptr buf, lh_usize_t size,
  * @return Bytes actually received, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
-lh_os_net_socket_recvfrom(lh_ptr self, lh_ptr buf, lh_usize_t size,
+lh_os_net_socket_recvfrom(lh_self_ptr self, lh_ptr buf, lh_usize_t size,
                           lh_net_ip4_socket_addr_t *addr);
 
 /* ── lh_io adapters ──────────────────────────────────────────────────────── */

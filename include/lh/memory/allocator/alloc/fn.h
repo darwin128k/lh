@@ -17,14 +17,15 @@
 #define LH_MEMORY_ALLOCATOR_ALLOC_FN_H
 
 #include <lh/ptr.h>
+#include <lh/self.h>
 #include <lh/size.h>
 
 /**
  * @typedef lh_memory_allocator_alloc_fn
- * @brief Function type `lh_ptr(lh_ptr, lh_usize_t)` for allocator allocation.
+ * @brief Function type `lh_ptr(lh_self_ptr, lh_usize_t)` for allocator allocation.
  *
  * Not a pointer type by itself; use pointer wrappers where needed.
  */
-typedef lh_ptr(lh_memory_allocator_alloc_fn)(lh_ptr self, lh_usize_t size);
+typedef lh_ptr(lh_memory_allocator_alloc_fn)(lh_self_ptr self, lh_usize_t size);
 
 #endif /* LH_MEMORY_ALLOCATOR_ALLOC_FN_H */

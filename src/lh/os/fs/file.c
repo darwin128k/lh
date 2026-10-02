@@ -4,6 +4,7 @@
 #include <lh/null.h>
 #include <lh/os/fs/path.h>
 #include <lh/os/system/fs/file.h>
+#include <lh/self.h>
 #include <lh/str.h>
 #include <lh/util/addr.h>
 #include <lh/util/math.h>
@@ -122,14 +123,14 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_fs_file_m
 }
 
 lh_ssize_t
-lh_os_fs_file_read(lh_ptr self, lh_ptr buf, lh_usize_t size)
+lh_os_fs_file_read(lh_self_ptr self, lh_ptr buf, lh_usize_t size)
 {
     return lh_os_system_fs_file_read(
         lh_ptr_deref(lh_os_fs_file_get_handle_as_const(lh_ptr_cast(lh_os_fs_file_t, self))), buf, size);
 }
 
 lh_ssize_t
-lh_os_fs_file_write(lh_ptr self, const lh_ptr buf, lh_usize_t size)
+lh_os_fs_file_write(lh_self_ptr self, const lh_ptr buf, lh_usize_t size)
 {
     return lh_os_system_fs_file_write(
         lh_ptr_deref(lh_os_fs_file_get_handle_as_const(lh_ptr_cast(lh_os_fs_file_t, self))), buf, size);

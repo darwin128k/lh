@@ -4,6 +4,7 @@
 #include <string>
 
 #include <lh/logger.h>
+#include <lh/self.h>
 #include <lh/str/format/text.h>
 
 namespace
@@ -17,7 +18,7 @@ struct MemorySink
 };
 
 lh_ssize_t
-MemorySinkEmit(lh_ptr self, lh_logger_level_t level, lh_str_cptr fmt, va_list args)
+MemorySinkEmit(lh_self_ptr self, lh_logger_level_t level, lh_str_cptr fmt, va_list args)
 {
     MemorySink *sink = static_cast<MemorySink *>(self);
     char buf[128];

@@ -15,6 +15,7 @@
 
 #include <lh/logger/level.h>
 #include <lh/ptr.h>
+#include <lh/self.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
 
@@ -34,7 +35,7 @@
  * @return Characters actually emitted, or a negative value if the sink
  *         failed. 0 is a successful no-op from the callback's point of view.
  */
-typedef lh_ssize_t(lh_logger_emit_fn)(lh_ptr self, lh_logger_level_t level, lh_str_cptr fmt,
+typedef lh_ssize_t(lh_logger_emit_fn)(lh_self_ptr self, lh_logger_level_t level, lh_str_cptr fmt,
                                       va_list args);
 
 #endif /* LH_LOGGER_EMIT_FN_H */

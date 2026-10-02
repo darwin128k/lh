@@ -14,6 +14,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/memory/allocator.h>
 #include <lh/runtime/allocator.h>
+#include <lh/self.h>
 
 #include <cstdlib>
 
@@ -30,7 +31,7 @@ alloc_count()
 LH_COMPILER_EXTERN_C_BEGIN
 
 inline lh_ptr
-counting_alloc(lh_ptr self, lh_usize_t size)
+counting_alloc(lh_self_ptr self, lh_usize_t size)
 {
     (void)self;
     ++alloc_count();
@@ -38,7 +39,7 @@ counting_alloc(lh_ptr self, lh_usize_t size)
 }
 
 inline lh_void
-counting_dealloc(lh_ptr self, lh_ptr ptr)
+counting_dealloc(lh_self_ptr self, lh_ptr ptr)
 {
     (void)self;
     std::free(ptr);

@@ -4,6 +4,7 @@
 #include <string>
 
 #include <lh/io/stream.h>
+#include <lh/self.h>
 
 namespace
 {
@@ -16,7 +17,7 @@ struct LoopbackBuffer
 };
 
 lh_ssize_t
-LoopbackRead(lh_ptr self, lh_ptr buf, lh_usize_t size)
+LoopbackRead(lh_self_ptr self, lh_ptr buf, lh_usize_t size)
 {
     LoopbackBuffer *lb = static_cast<LoopbackBuffer *>(self);
     lh_usize_t available = lb->write_pos - lb->read_pos;
@@ -27,7 +28,7 @@ LoopbackRead(lh_ptr self, lh_ptr buf, lh_usize_t size)
 }
 
 lh_ssize_t
-LoopbackWrite(lh_ptr self, const lh_ptr buf, lh_usize_t size)
+LoopbackWrite(lh_self_ptr self, const lh_ptr buf, lh_usize_t size)
 {
     LoopbackBuffer *lb = static_cast<LoopbackBuffer *>(self);
     std::memcpy(lb->data + lb->write_pos, buf, size);

@@ -4,6 +4,7 @@
 #include <string>
 
 #include <lh/io/reader.h>
+#include <lh/self.h>
 
 namespace
 {
@@ -16,7 +17,7 @@ struct MemorySource
 };
 
 lh_ssize_t
-MemorySourceRead(lh_ptr self, lh_ptr buf, lh_usize_t size)
+MemorySourceRead(lh_self_ptr self, lh_ptr buf, lh_usize_t size)
 {
     MemorySource *src = static_cast<MemorySource *>(self);
     lh_usize_t remaining = src->size - src->pos;

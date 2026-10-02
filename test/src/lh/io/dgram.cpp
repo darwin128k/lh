@@ -6,6 +6,7 @@
 #include <lh/io/dgram.h>
 #include <lh/net/ip.h>
 #include <lh/net/socket/addr/ip4.h>
+#include <lh/self.h>
 
 namespace
 {
@@ -18,7 +19,7 @@ struct PacketBox
 };
 
 lh_ssize_t
-PacketBoxRecv(lh_ptr self, lh_ptr buf, lh_usize_t size, lh_net_ip4_socket_addr_t *addr)
+PacketBoxRecv(lh_self_ptr self, lh_ptr buf, lh_usize_t size, lh_net_ip4_socket_addr_t *addr)
 {
     PacketBox *box = static_cast<PacketBox *>(self);
     lh_usize_t to_copy = size < box->size ? size : box->size;
@@ -28,7 +29,7 @@ PacketBoxRecv(lh_ptr self, lh_ptr buf, lh_usize_t size, lh_net_ip4_socket_addr_t
 }
 
 lh_ssize_t
-PacketBoxSend(lh_ptr self, const lh_ptr buf, lh_usize_t size, const lh_net_ip4_socket_addr_t *addr)
+PacketBoxSend(lh_self_ptr self, const lh_ptr buf, lh_usize_t size, const lh_net_ip4_socket_addr_t *addr)
 {
     PacketBox *box = static_cast<PacketBox *>(self);
     std::memcpy(box->data, buf, size);

@@ -28,6 +28,7 @@
 #include <lh/os/system/fs/file/handle.h>
 #include <lh/fs/file/mode.h>
 #include <lh/ptr.h>
+#include <lh/self.h>
 #include <lh/size.h>
 
 #if !LH_LIBRARY_OPTION_OS
@@ -145,7 +146,7 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_fs_file_m
  *         failure.
  */
 lh_ssize_t
-lh_os_fs_file_read(lh_ptr self, lh_ptr buf, lh_usize_t size);
+lh_os_fs_file_read(lh_self_ptr self, lh_ptr buf, lh_usize_t size);
 
 /**
  * @brief ::lh_io_writer_write_fn backed by @p context's file.
@@ -156,7 +157,7 @@ lh_os_fs_file_read(lh_ptr self, lh_ptr buf, lh_usize_t size);
  * @return Bytes actually written, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
-lh_os_fs_file_write(lh_ptr self, const lh_ptr buf, lh_usize_t size);
+lh_os_fs_file_write(lh_self_ptr self, const lh_ptr buf, lh_usize_t size);
 
 /* ── lh_io adapters ──────────────────────────────────────────────────────── */
 

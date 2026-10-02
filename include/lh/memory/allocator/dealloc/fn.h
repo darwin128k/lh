@@ -14,13 +14,14 @@
 #define LH_MEMORY_ALLOCATOR_DEALLOC_FN_H
 
 #include <lh/ptr.h>
+#include <lh/self.h>
 
 /**
  * @typedef lh_memory_allocator_dealloc_fn
- * @brief Function type `lh_void (lh_ptr, lh_ptr)` for allocator deallocation.
+ * @brief Function type `lh_void (lh_self_ptr, lh_ptr)` for allocator deallocation.
  *
  * Not a pointer type by itself; use pointer wrappers where needed.
  */
-typedef lh_void(lh_memory_allocator_dealloc_fn)(lh_ptr self, lh_ptr ptr);
+typedef lh_void(lh_memory_allocator_dealloc_fn)(lh_self_ptr self, lh_ptr ptr);
 
 #endif /* LH_MEMORY_ALLOCATOR_DEALLOC_FN_H */

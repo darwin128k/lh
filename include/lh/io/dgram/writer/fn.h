@@ -14,6 +14,7 @@
 
 #include <lh/net/socket/addr/ip4.h>
 #include <lh/ptr.h>
+#include <lh/self.h>
 #include <lh/size.h>
 
 /**
@@ -27,7 +28,7 @@
  *
  * @return Bytes actually sent, or a negative value on failure.
  */
-typedef lh_ssize_t(lh_io_dgram_writer_send_fn)(lh_ptr self, const lh_ptr buf, lh_usize_t size,
+typedef lh_ssize_t(lh_io_dgram_writer_send_fn)(lh_self_ptr self, const lh_ptr buf, lh_usize_t size,
                                                const lh_net_ip4_socket_addr_t *addr);
 
 #endif /* LH_IO_DGRAM_WRITER_FN_H */

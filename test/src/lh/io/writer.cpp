@@ -4,6 +4,7 @@
 #include <string>
 
 #include <lh/io/writer.h>
+#include <lh/self.h>
 
 namespace
 {
@@ -15,7 +16,7 @@ struct MemorySink
 };
 
 lh_ssize_t
-MemorySinkWrite(lh_ptr self, const lh_ptr buf, lh_usize_t size)
+MemorySinkWrite(lh_self_ptr self, const lh_ptr buf, lh_usize_t size)
 {
     MemorySink *sink = static_cast<MemorySink *>(self);
     std::memcpy(sink->data + sink->size, buf, size);

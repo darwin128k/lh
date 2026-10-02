@@ -16,11 +16,12 @@
 #define LH_IO_READER_FN_H
 
 #include <lh/ptr.h>
+#include <lh/self.h>
 #include <lh/size.h>
 
 /**
  * @typedef lh_io_reader_read_fn
- * @brief Function type `lh_ssize_t(lh_ptr, lh_ptr, lh_usize_t)` for reading
+ * @brief Function type `lh_ssize_t(lh_self_ptr, lh_ptr, lh_usize_t)` for reading
  *        from a stream.
  *
  * @param self    Identifies which stream to read (whatever the concrete
@@ -31,6 +32,6 @@
  * @return Number of bytes actually read (`0` at end of stream), or a
  *         negative value if the read failed.
  */
-typedef lh_ssize_t(lh_io_reader_read_fn)(lh_ptr self, lh_ptr buf, lh_usize_t size);
+typedef lh_ssize_t(lh_io_reader_read_fn)(lh_self_ptr self, lh_ptr buf, lh_usize_t size);
 
 #endif /* LH_IO_READER_FN_H */
