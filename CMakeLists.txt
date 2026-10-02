@@ -183,8 +183,9 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/net/socket.c
     )
 
-    # Native window backend (Win32 today; Xlib / Cocoa when added under
-    # ${LH_OS_SYSTEM_BACKEND}/window.c for the matching platform).
+    # Native window backend: Win32 (user32.dll) on Windows, Xlib (libX11)
+    # on Linux. Cocoa/AppKit for macOS lands under macos/window.c when the
+    # backend is added.
     if (LH_LIBRARY_OPTION_OS_WINDOW)
         list(APPEND LH_LIB_SOURCES
                 ${LH_LIB_SRC_PATH}/os/window.c
@@ -192,6 +193,8 @@ if (LH_LIBRARY_OPTION_OS)
         )
         if (WIN32)
             list(APPEND LH_OS_SYSTEM_LINK_LIBS user32)
+        elseif (UNIX AND NOT APPLE)
+            list(APPEND LH_OS_SYSTEM_LINK_LIBS X11)
         endif ()
     endif ()
 endif ()
