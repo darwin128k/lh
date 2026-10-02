@@ -1,6 +1,19 @@
 #include <lh/quat.h>
 #include <lh/float/sin_cos.h>
-#include <lh/float/sqrt.h>
+#include <lh/vec4.h>
+
+/* Componentwise, a quaternion is a 4-vector: dot, length and lerp are vec4's. */
+static lh_vec4_t
+lh_quat_as_vec4(lh_quat_t q)
+{
+    return lh_vec4_make(q.x, q.y, q.z, q.w);
+}
+
+static lh_quat_t
+lh_quat_from_vec4(lh_vec4_t v)
+{
+    return lh_quat_make(v.x, v.y, v.z, v.w);
+}
 
 lh_quat_t
 lh_quat_make(lh_float_t x, lh_float_t y, lh_float_t z, lh_float_t w)
@@ -46,19 +59,13 @@ lh_quat_conjugate(lh_quat_t q)
 lh_float_t
 lh_quat_dot(lh_quat_t a, lh_quat_t b)
 {
-    return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+    return lh_vec4_dot(lh_quat_as_vec4(a), lh_quat_as_vec4(b));
 }
 
 lh_quat_t
 lh_quat_normalize(lh_quat_t q)
 {
-    const lh_float_t length = lh_float_sqrt(lh_quat_dot(q, q));
-    if (length == 0.0f)
-    {
-        return q;
-    }
-    const lh_float_t inv = 1.0f / length;
-    return lh_quat_make(q.x * inv, q.y * inv, q.z * inv, q.w * inv);
+    return lh_quat_from_vec4(lh_vec4_normalize(lh_quat_as_vec4(q)));
 }
 
 lh_vec3_t
@@ -74,10 +81,10 @@ lh_quat_rotate(lh_quat_t q, lh_vec3_t v)
 lh_quat_t
 lh_quat_nlerp(lh_quat_t a, lh_quat_t b, lh_float_t t)
 {
+    lh_vec4_t to = lh_quat_as_vec4(b);
     if (lh_quat_dot(a, b) < 0.0f)
     {
-        b = lh_quat_make(-b.x, -b.y, -b.z, -b.w);
+        to = lh_vec4_neg(to);
     }
-    return lh_quat_normalize(lh_quat_make(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t,
-                                          a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t));
+    return lh_quat_from_vec4(lh_vec4_normalize(lh_vec4_lerp(lh_quat_as_vec4(a), to, t)));
 }

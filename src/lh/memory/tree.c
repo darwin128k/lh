@@ -19,17 +19,23 @@
 #define lh_memory_tree_header_of_sibling(node)                                                     \
     lh_list_entry(lh_memory_tree_header_t, sibling, (node))
 
+/* Bytes the sized allocator is asked for: the tree header plus @p size, failing on overflow. */
+static lh_usize_t
+lh_memory_tree_block_size(lh_usize_t size)
+{
+    lh_runtime_check_if(lh_math_gt(size, lh_math_sub(LH_USIZE_T_MAX, LH_MEMORY_TREE_HEADER_SIZE)),
+                        lh_runtime_error_code_overflow);
+    return lh_math_add(size, LH_MEMORY_TREE_HEADER_SIZE);
+}
+
 /* A new block under @p parent (null for a root): shared by alloc and alloc_child. */
 static lh_ptr
 lh_memory_tree_new(lh_memory_sized_allocator_t *allocator, lh_memory_tree_header_t *parent,
                    lh_usize_t size)
 {
-    lh_runtime_check_if(lh_math_gt(size, lh_math_sub(LH_USIZE_T_MAX, LH_MEMORY_TREE_HEADER_SIZE)),
-                        lh_runtime_error_code_overflow);
-
-    lh_memory_tree_header_t *header = lh_ptr_rcast(
-        lh_memory_tree_header_t,
-        lh_memory_sized_allocator_alloc(allocator, lh_math_add(size, LH_MEMORY_TREE_HEADER_SIZE)));
+    lh_memory_tree_header_t *header =
+        lh_ptr_rcast(lh_memory_tree_header_t,
+                     lh_memory_sized_allocator_alloc(allocator, lh_memory_tree_block_size(size)));
     header->allocator = allocator;
     header->parent = parent;
     header->destructor = lh_null;
@@ -99,9 +105,7 @@ lh_ptr
 lh_memory_tree_realloc(lh_ptr ptr, lh_usize_t new_size)
 {
     lh_assert_runtime_ref(ptr);
-    lh_runtime_check_if(
-        lh_math_gt(new_size, lh_math_sub(LH_USIZE_T_MAX, LH_MEMORY_TREE_HEADER_SIZE)),
-        lh_runtime_error_code_overflow);
+    const lh_usize_t block_size = lh_memory_tree_block_size(new_size);
 
     /* The links point at the header's current address, from both sides: take
      * the block out of its parent's list and its children out of its own list
@@ -115,10 +119,8 @@ lh_memory_tree_realloc(lh_ptr ptr, lh_usize_t new_size)
     lh_list_splice_back(lh_addr_of(children), lh_addr_of(header->children));
     lh_list_node_unlink(lh_addr_of(header->sibling));
 
-    header = lh_ptr_rcast(
-        lh_memory_tree_header_t,
-        lh_memory_sized_allocator_realloc(header->allocator, header,
-                                          lh_math_add(new_size, LH_MEMORY_TREE_HEADER_SIZE)));
+    header = lh_ptr_rcast(lh_memory_tree_header_t,
+                          lh_memory_sized_allocator_realloc(header->allocator, header, block_size));
 
     lh_list_node_init(lh_addr_of(header->sibling));
     if (lh_ptr_is_set(prev))
