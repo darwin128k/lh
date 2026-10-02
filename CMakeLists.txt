@@ -87,6 +87,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/list/node.c
 
         ${LH_LIB_SRC_PATH}/geom.c
+        ${LH_LIB_SRC_PATH}/vec2.c
+        ${LH_LIB_SRC_PATH}/vec3.c
+        ${LH_LIB_SRC_PATH}/vec4.c
 
         ${LH_LIB_SRC_PATH}/version.c
         ${LH_LIB_SRC_PATH}/date.c
@@ -258,6 +261,19 @@ target_include_directories(
 # Kernel backend's system libraries (chosen with LH_OS_SYSTEM_BACKEND above).
 if (LH_LIBRARY_OPTION_OS AND LH_OS_SYSTEM_LINK_LIBS)
     target_link_libraries(${PROJECT_NAME} PUBLIC ${LH_OS_SYSTEM_LINK_LIBS})
+endif ()
+
+# Vector math takes square roots through __builtin_sqrtf (src/lh/float/sqrt.h).
+# Without -fno-math-errno GCC/Clang keep a call to libm's sqrtf next to the
+# CPU instruction, only to set errno on negative input: a dependency a
+# freestanding build cannot satisfy, for a value lh never reads.
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+    set_source_files_properties(
+            ${LH_LIB_SRC_PATH}/vec2.c
+            ${LH_LIB_SRC_PATH}/vec3.c
+            ${LH_LIB_SRC_PATH}/vec4.c
+            PROPERTIES COMPILE_OPTIONS -fno-math-errno
+    )
 endif ()
 
 # Strong release optimizations for the core library (optional; Release only).
