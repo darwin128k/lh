@@ -1,0 +1,118 @@
+#include <gtest/gtest.h>
+
+#include <lh/mat4.h>
+
+#include <cstddef>
+
+namespace
+{
+
+const lh_float_t k_pi = 3.14159265f;
+const lh_float_t k_eps = 1e-5f;
+
+void
+expect_vec3_near(lh_vec3_t v, lh_float_t x, lh_float_t y, lh_float_t z)
+{
+    EXPECT_NEAR(v.x, x, k_eps);
+    EXPECT_NEAR(v.y, y, k_eps);
+    EXPECT_NEAR(v.z, z, k_eps);
+}
+
+TEST(mat4, layout_is_sixteen_floats_column_major)
+{
+    EXPECT_EQ(sizeof(lh_mat4_t), 16 * sizeof(float));
+    const lh_mat4_t m = lh_mat4_from_translation(lh_vec3_make(7, 8, 9));
+    // OpenGL's layout: the translation sits in elements 12, 13, 14.
+    const float *f = &m.columns[0].x;
+    EXPECT_FLOAT_EQ(f[12], 7.0f);
+    EXPECT_FLOAT_EQ(f[13], 8.0f);
+    EXPECT_FLOAT_EQ(f[14], 9.0f);
+    EXPECT_FLOAT_EQ(f[15], 1.0f);
+}
+
+TEST(mat4, translation_moves_points_not_directions)
+{
+    const lh_mat4_t t = lh_mat4_from_translation(lh_vec3_make(1, 2, 3));
+    expect_vec3_near(lh_mat4_transform_point(t, lh_vec3_make(10, 20, 30)), 11, 22, 33);
+    expect_vec3_near(lh_mat4_transform_dir(t, lh_vec3_make(10, 20, 30)), 10, 20, 30);
+}
+
+TEST(mat4, scale)
+{
+    const lh_mat4_t s = lh_mat4_from_scale(lh_vec3_make(2, 3, -1));
+    expect_vec3_near(lh_mat4_transform_point(s, lh_vec3_make(1, 1, 1)), 2, 3, -1);
+}
+
+TEST(mat4, from_quat_matches_quat_rotate)
+{
+    const lh_quat_t q =
+        lh_quat_from_axis_angle(lh_vec3_normalize(lh_vec3_make(-1, 2, 0.5f)), 1.3f);
+    const lh_mat4_t m = lh_mat4_from_quat(q);
+    const lh_vec3_t v = lh_vec3_make(0.4f, -2, 5);
+    const lh_vec3_t expected = lh_quat_rotate(q, v);
+    expect_vec3_near(lh_mat4_transform_dir(m, v), expected.x, expected.y, expected.z);
+}
+
+TEST(mat4, mul_applies_right_operand_first)
+{
+    // Scale, then rotate a quarter turn about z, then move.
+    const lh_mat4_t s = lh_mat4_from_scale(lh_vec3_make(2, 2, 2));
+    const lh_mat4_t r =
+        lh_mat4_from_quat(lh_quat_from_axis_angle(lh_vec3_make(0, 0, 1), k_pi / 2));
+    const lh_mat4_t t = lh_mat4_from_translation(lh_vec3_make(10, 0, 0));
+    const lh_mat4_t trs = lh_mat4_mul(t, lh_mat4_mul(r, s));
+    // (1,0,0) -> (2,0,0) -> (0,2,0) -> (10,2,0)
+    expect_vec3_near(lh_mat4_transform_point(trs, lh_vec3_make(1, 0, 0)), 10, 2, 0);
+}
+
+TEST(mat4, identity_is_neutral)
+{
+    const lh_mat4_t m = lh_mat4_from_translation(lh_vec3_make(1, 2, 3));
+    EXPECT_TRUE(lh_mat4_near(lh_mat4_mul(m, lh_mat4_identity()), m, 0.0f));
+    EXPECT_TRUE(lh_mat4_near(lh_mat4_mul(lh_mat4_identity(), m), m, 0.0f));
+}
+
+TEST(mat4, transpose)
+{
+    const lh_mat4_t m =
+        lh_mat4_from_columns(lh_vec4_make(1, 2, 3, 4), lh_vec4_make(5, 6, 7, 8),
+                             lh_vec4_make(9, 10, 11, 12), lh_vec4_make(13, 14, 15, 16));
+    const lh_mat4_t t = lh_mat4_transpose(m);
+    EXPECT_FLOAT_EQ(t.columns[0].y, 5.0f);
+    EXPECT_FLOAT_EQ(t.columns[3].x, 4.0f);
+    EXPECT_FLOAT_EQ(t.columns[2].w, 15.0f);
+    EXPECT_TRUE(lh_mat4_near(lh_mat4_transpose(t), m, 0.0f));
+}
+
+TEST(mat4, inverse_of_a_general_matrix)
+{
+    // Full rank, no special structure, so every cofactor term matters.
+    const lh_mat4_t m =
+        lh_mat4_from_columns(lh_vec4_make(2, 1, 0, 1), lh_vec4_make(-1, 3, 2, 0),
+                             lh_vec4_make(0, 1, 4, -2), lh_vec4_make(1, 0, 1, 3));
+    lh_mat4_t inv;
+    ASSERT_TRUE(lh_mat4_inverse(m, &inv));
+    EXPECT_TRUE(lh_mat4_near(lh_mat4_mul(m, inv), lh_mat4_identity(), k_eps));
+    EXPECT_TRUE(lh_mat4_near(lh_mat4_mul(inv, m), lh_mat4_identity(), k_eps));
+}
+
+TEST(mat4, inverse_undoes_a_transform)
+{
+    const lh_mat4_t m = lh_mat4_mul(
+        lh_mat4_from_translation(lh_vec3_make(5, -3, 2)),
+        lh_mat4_from_quat(lh_quat_from_axis_angle(lh_vec3_make(0, 1, 0), 0.9f)));
+    lh_mat4_t inv;
+    ASSERT_TRUE(lh_mat4_inverse(m, &inv));
+    const lh_vec3_t p = lh_vec3_make(1, 2, 3);
+    expect_vec3_near(lh_mat4_transform_point(inv, lh_mat4_transform_point(m, p)), 1, 2, 3);
+}
+
+TEST(mat4, singular_matrix_has_no_inverse)
+{
+    const lh_mat4_t flat = lh_mat4_from_scale(lh_vec3_make(1, 0, 1));
+    lh_mat4_t out = lh_mat4_identity();
+    EXPECT_FALSE(lh_mat4_inverse(flat, &out));
+    EXPECT_TRUE(lh_mat4_near(out, lh_mat4_identity(), 0.0f)); // untouched
+}
+
+} // namespace

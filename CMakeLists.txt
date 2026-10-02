@@ -91,6 +91,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/vec2.c
         ${LH_LIB_SRC_PATH}/vec3.c
         ${LH_LIB_SRC_PATH}/vec4.c
+        ${LH_LIB_SRC_PATH}/quat.c
+        ${LH_LIB_SRC_PATH}/mat4.c
 
         ${LH_LIB_SRC_PATH}/version.c
         ${LH_LIB_SRC_PATH}/date.c
@@ -264,7 +266,7 @@ if (LH_LIBRARY_OPTION_OS AND LH_OS_SYSTEM_LINK_LIBS)
     target_link_libraries(${PROJECT_NAME} PUBLIC ${LH_OS_SYSTEM_LINK_LIBS})
 endif ()
 
-# Vector math takes square roots through __builtin_sqrtf (src/lh/float/sqrt.h).
+# Vector and quaternion math take square roots through __builtin_sqrtf (src/lh/float/sqrt.h).
 # Without -fno-math-errno GCC/Clang keep a call to libm's sqrtf next to the
 # CPU instruction, only to set errno on negative input: a dependency a
 # freestanding build cannot satisfy, for a value lh never reads.
@@ -273,6 +275,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
             ${LH_LIB_SRC_PATH}/vec2.c
             ${LH_LIB_SRC_PATH}/vec3.c
             ${LH_LIB_SRC_PATH}/vec4.c
+            ${LH_LIB_SRC_PATH}/quat.c
             PROPERTIES COMPILE_OPTIONS -fno-math-errno
     )
 endif ()
