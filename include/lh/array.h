@@ -2,7 +2,7 @@
  * @file array.h
  * @brief Growable, heap-owning typed array (::lh_array_t).
  *
- * A array owns a typed, heap-allocated block (::lh_memory_typed_allocated_t)
+ * An array owns a typed, heap-allocated block (::lh_memory_typed_allocated_t)
  * whose bounds always describe the full allocated @c capacity, plus a
  * @c size field tracking how many of those slots are actually in use
  * (@c size <= capacity). Growing @c size past the current capacity
@@ -14,19 +14,25 @@
 #ifndef LH_ARRAY_H
 #define LH_ARRAY_H
 
+#include <lh/array/cb.h>
+#include <lh/array/fields.h>
+#include <lh/index.h>
 #include <lh/memory/typed/allocated.h>
 
 /**
+ * @def LH_ARRAY_INVALID
+ * @brief What ::lh_array_index_of returns when the value is not found.
+ */
+#define LH_ARRAY_INVALID LH_UINDEX_T_MAX
+
+/**
  * @struct lh_array
- * @brief Typed, growable array backed by a heap-allocated block.
- *
- * @c typed.bounds always spans the full allocated capacity; @c size is the
- * number of elements actually in use, from the start of that capacity.
+ * @brief Typed, growable array backed by a heap-allocated block. Fields via
+ *        ::lh_array_fields.
  */
 struct lh_array
 {
-    lh_memory_typed_allocated_t typed; /**< Owns the block; bounds == capacity. */
-    lh_usize_t size;                   /**< Elements in use; size <= capacity. */
+    lh_array_fields(lh_memory_typed_allocated_t, lh_usize_t);
 };
 typedef struct lh_array lh_array_t;
 
@@ -161,7 +167,7 @@ lh_array_reserve(lh_array_t *self, lh_usize_t min_capacity);
  *
  * This is a pure query — it performs no allocation. Callers can use it to
  * predict or replicate the exact capacity a future insertion would grow to,
- * without mutating a array.
+ * without mutating an array.
  *
  * @param capacity     Current capacity.
  * @param min_capacity Minimum capacity that must be reached.
@@ -298,6 +304,124 @@ lh_array_assign(lh_array_t *self, const lh_array_t *other);
  */
 lh_void
 lh_array_erase(lh_array_t *self, lh_uindex_t index, lh_ptr dst);
+
+/**
+ * @brief Remove @p count elements starting at @p index, shifting later
+ *        elements left by @p count.
+ *
+ * Capacity is kept. ::lh_array_erase is the single-element case.
+ *
+ * @param self  Array to remove from.
+ * @param index First position to remove; `index + count` must be
+ *              <= ::lh_array_get_size.
+ * @param count Number of elements to remove.
+ */
+lh_void
+lh_array_erase_of(lh_array_t *self, lh_uindex_t index, lh_usize_t count);
+
+/**
+ * @brief Copy every element of @p other, in order, to the end of @p self.
+ *
+ * @p other is left untouched and may be @p self (the array is doubled). Both
+ * must have the same element size.
+ *
+ * @param self  Array to append to.
+ * @param other Array to copy from.
+ */
+lh_void
+lh_array_append(lh_array_t *self, const lh_array_t *other);
+
+/**
+ * @brief Move every element of @p other, in order, to the end of @p self,
+ *        leaving @p other empty.
+ *
+ * When @p self is empty, it simply takes over @p other's block: nothing is
+ * copied and @p other ends up with no allocation. Otherwise the elements are
+ * appended as by ::lh_array_append and @p other is cleared (keeping its
+ * capacity). No-op when @p self is @p other. Both must have the same element
+ * size.
+ *
+ * @param self  Array to move into.
+ * @param other Array to drain.
+ */
+lh_void
+lh_array_merge(lh_array_t *self, lh_array_t *other);
+
+/**
+ * @brief Index of the first element whose bytes equal @p value's.
+ *
+ * @param self  Array to search.
+ * @param value Pointer to a value of the array's element type (not null).
+ * @return Index of the match, or ::LH_ARRAY_INVALID when there is none.
+ */
+lh_uindex_t
+lh_array_index_of(const lh_array_t *self, const lh_ptr value);
+
+/**
+ * @brief True when some element's bytes equal @p value's.
+ *
+ * @param self  Array to search.
+ * @param value Pointer to a value of the array's element type (not null).
+ */
+lh_bool_t
+lh_array_contains(const lh_array_t *self, const lh_ptr value);
+
+/**
+ * @brief Set every element in use to a copy of @p value.
+ *
+ * Usually follows ::lh_array_resize, whose new slots are uninitialized.
+ *
+ * @param self  Array to fill.
+ * @param value Pointer to a value of the array's element type (not null).
+ */
+lh_void
+lh_array_fill(lh_array_t *self, const lh_ptr value);
+
+/**
+ * @brief Reverse the order of the elements in place.
+ * @param self Array to reverse.
+ */
+lh_void
+lh_array_reverse(lh_array_t *self);
+
+/**
+ * @brief Sort the elements by @p cmp: stable, O(n log n).
+ *
+ * Bottom-up merge sort; allocates a temporary block of ::lh_array_get_size
+ * elements through the runtime allocator (none for fewer than 2 elements).
+ *
+ * @param self    Array to sort.
+ * @param cmp     Order of two elements.
+ * @param context Passed to every @p cmp call.
+ */
+lh_void
+lh_array_sort(lh_array_t *self, lh_array_cmp_cb cmp, lh_ptr context);
+
+/**
+ * @brief Remove every element that @p cmp finds equal to the one kept before
+ *        it, keeping the first of each run.
+ *
+ * After ::lh_array_sort with the same @p cmp, this leaves each distinct value
+ * once. O(n); capacity is kept.
+ *
+ * @param self    Array to deduplicate.
+ * @param cmp     Order of two elements; only `0` (equal) matters here.
+ * @param context Passed to every @p cmp call.
+ */
+lh_void
+lh_array_unique(lh_array_t *self, lh_array_cmp_cb cmp, lh_ptr context);
+
+/**
+ * @brief Keep only the elements for which @p pred returns true, in order.
+ *
+ * O(n); capacity is kept.
+ *
+ * @param self    Array to filter.
+ * @param pred    Called once per element, front to back.
+ * @param context Passed to every @p pred call.
+ */
+lh_void
+lh_array_filter(lh_array_t *self, lh_array_pred_cb pred, lh_ptr context);
 
 LH_COMPILER_EXTERN_C_END
 
