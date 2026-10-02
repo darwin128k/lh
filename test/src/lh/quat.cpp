@@ -25,6 +25,16 @@ TEST(quat, layout_is_xyzw)
     EXPECT_EQ(offsetof(lh_quat_t, w), 3 * sizeof(float));
 }
 
+TEST(quat, to_and_from_vec4_keep_the_numbers)
+{
+    const lh_vec4_t v = lh_quat_to_vec4(lh_quat_make(1, 2, 3, 4));
+    EXPECT_FLOAT_EQ(v.x, 1.0f);
+    EXPECT_FLOAT_EQ(v.w, 4.0f);
+    const lh_quat_t q = lh_quat_from_vec4(v);
+    EXPECT_FLOAT_EQ(q.y, 2.0f);
+    EXPECT_FLOAT_EQ(q.z, 3.0f);
+}
+
 TEST(quat, identity_rotates_nothing)
 {
     expect_vec3_near(lh_quat_rotate(lh_quat_identity(), lh_vec3_make(1, 2, 3)), 1, 2, 3);

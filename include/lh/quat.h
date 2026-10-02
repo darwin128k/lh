@@ -23,6 +23,7 @@
 #include <lh/float.h>
 #include <lh/quat/fields.h>
 #include <lh/vec3.h>
+#include <lh/vec4.h>
 
 /**
  * @struct lh_quat
@@ -41,6 +42,21 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_quat_t
 lh_quat_make(lh_float_t x, lh_float_t y, lh_float_t z, lh_float_t w);
+
+/**
+ * @brief The same 4 numbers as a ::lh_vec4_t (`x, y, z, w`).
+ *
+ * For code that treats a quaternion as plain data: a shader uniform, a
+ * vertex attribute, a keyframe array of 4-float tuples.
+ */
+lh_vec4_t
+lh_quat_to_vec4(lh_quat_t q);
+
+/**
+ * @brief The quaternion with @p v's 4 numbers; see ::lh_quat_to_vec4.
+ */
+lh_quat_t
+lh_quat_from_vec4(lh_vec4_t v);
 
 /**
  * @brief No rotation: `(0, 0, 0, 1)`.
