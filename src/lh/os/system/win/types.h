@@ -23,6 +23,9 @@
 /** @brief `DWORD`. */
 typedef lh_ulong_t lh_os_system_win_dword_t;
 
+/** @brief `UINT`. */
+typedef lh_uint_t lh_os_system_win_uint_t;
+
 /** @brief `WORD`. */
 typedef lh_ushort_t lh_os_system_win_word_t;
 

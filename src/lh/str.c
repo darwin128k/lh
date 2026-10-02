@@ -40,6 +40,13 @@ lh_str_init(lh_str_t *self)
 }
 
 lh_void
+lh_str_init_by_view(lh_str_t *self, lh_str_view_t view)
+{
+    lh_str_init(self);
+    lh_str_append_view(self, view);
+}
+
+lh_void
 lh_str_deinit(lh_str_t *self)
 {
     lh_vector_deinit(self);

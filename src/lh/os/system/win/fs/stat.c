@@ -4,6 +4,7 @@
 #include <lh/cast/static.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/os/system/error/capture.h>
+#include <lh/os/system/str.h>
 #include <lh/os/system/win/filetime.h>
 #include <lh/os/system/win/fs/kind.h>
 #include <lh/os/system/win/kernel32.h>
@@ -16,9 +17,8 @@ LH_ATTRIBUTE_STATIC
 lh_fs_perm_t
 lh_os_system_fs_perm_from_win_attrs(lh_os_system_win_dword_t attrs)
 {
-    lh_fs_perm_t perm;
+    lh_fs_perm_t perm = lh_bit_or(lh_bit_or(lh_fs_perm_irusr, lh_fs_perm_irgrp), lh_fs_perm_iroth);
 
-    perm = lh_bit_or(lh_bit_or(lh_fs_perm_irusr, lh_fs_perm_irgrp), lh_fs_perm_iroth);
     if (lh_math_is_zero(lh_bit_and(attrs, LH_OS_SYSTEM_WIN_FILE_ATTRIBUTE_READONLY)))
     {
         perm = lh_bit_or(perm, lh_bit_or(lh_bit_or(lh_fs_perm_iwusr, lh_fs_perm_iwgrp), lh_fs_perm_iwoth));
@@ -34,9 +34,8 @@ LH_ATTRIBUTE_STATIC
 lh_fs_attr_t
 lh_os_system_fs_attr_from_win_attrs(lh_os_system_win_dword_t attrs)
 {
-    lh_fs_attr_t attr;
+    lh_fs_attr_t attr = 0U;
 
-    attr = 0U;
     if (!lh_math_is_zero(lh_bit_and(attrs, LH_OS_SYSTEM_WIN_FILE_ATTRIBUTE_HIDDEN)))
     {
         attr = lh_bit_or(attr, lh_fs_attr_hidden);
@@ -68,17 +67,16 @@ lh_os_system_fs_attr_from_win_attrs(lh_os_system_win_dword_t attrs)
    point costs one FindFirstFile; anything else is decided from attrs. */
 LH_ATTRIBUTE_STATIC
 lh_bool_t
-lh_os_system_fs_is_symlink(lh_str_cptr path, lh_os_system_win_dword_t attrs, lh_bool_t *out)
+lh_os_system_fs_is_symlink(lh_wstr_cptr path, lh_os_system_win_dword_t attrs, lh_bool_t *out)
 {
     lh_os_system_win_find_data_t data;
-    lh_os_system_win_handle_t find;
 
     if (lh_math_is_zero(lh_bit_and(attrs, LH_OS_SYSTEM_WIN_FILE_ATTRIBUTE_REPARSE_POINT)))
     {
         *out = lh_bool_false;
         return lh_bool_true;
     }
-    find = FindFirstFileA(path, lh_addr_of(data));
+    const lh_os_system_win_handle_t find = FindFirstFileW(path, lh_addr_of(data));
     if (lh_math_eq(find, LH_OS_SYSTEM_WIN_INVALID_HANDLE))
     {
         lh_os_system_error_capture();
@@ -89,22 +87,20 @@ lh_os_system_fs_is_symlink(lh_str_cptr path, lh_os_system_win_dword_t attrs, lh_
     return lh_bool_true;
 }
 
+/* lh_os_system_fs_stat with the path already in UTF-16. */
+LH_ATTRIBUTE_STATIC
 lh_bool_t
-lh_os_system_fs_stat(lh_str_cptr path, lh_fs_stat_t *out)
+lh_os_system_fs_stat_wide(lh_wstr_cptr path, lh_fs_stat_t *out)
 {
     lh_os_system_win_file_attribute_data_t info;
-    lh_os_system_win_dword_t attrs;
     lh_bool_t is_symlink;
 
-    lh_assert_runtime_ref(path);
-    lh_assert_runtime_ref(out);
-
-    if (!GetFileAttributesExA(path, lh_os_system_win_get_file_ex_info_standard, lh_addr_of(info)))
+    if (!GetFileAttributesExW(path, lh_os_system_win_get_file_ex_info_standard, lh_addr_of(info)))
     {
         lh_os_system_error_capture();
         return lh_bool_false;
     }
-    attrs = info.dwFileAttributes;
+    const lh_os_system_win_dword_t attrs = info.dwFileAttributes;
     if (!lh_os_system_fs_is_symlink(path, attrs, lh_addr_of(is_symlink)))
     {
         return lh_bool_false;
@@ -119,4 +115,17 @@ lh_os_system_fs_stat(lh_str_cptr path, lh_fs_stat_t *out)
         lh_os_system_timestamp_from_filetime(lh_addr_of(info.ftCreationTime)),
         lh_os_system_fs_attr_from_win_attrs(attrs));
     return lh_bool_true;
+}
+
+lh_bool_t
+lh_os_system_fs_stat(lh_str_cptr path, lh_fs_stat_t *out)
+{
+    lh_assert_runtime_ref(path);
+    lh_assert_runtime_ref(out);
+    lh_os_str_t os_path;
+    const lh_bool_t ok = lh_os_system_str_init_by_utf8(lh_addr_of(os_path), path) &&
+                         lh_os_system_fs_stat_wide(lh_os_str_get_data(lh_addr_of(os_path)), out);
+
+    lh_os_str_deinit(lh_addr_of(os_path));
+    return ok;
 }

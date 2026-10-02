@@ -10,12 +10,12 @@
 
 /**
  * @def lh_os_system_win_find_data_fields(dword_type, filetime_type, char_type)
- * @brief `WIN32_FIND_DATAA`. `dwReserved0` holds the reparse tag when
+ * @brief `WIN32_FIND_DATAW`. `dwReserved0` holds the reparse tag when
  *        `dwFileAttributes` has `FILE_ATTRIBUTE_REPARSE_POINT`.
  *
  * @param dword_type    ::lh_os_system_win_dword_t.
  * @param filetime_type ::lh_os_system_win_filetime_t.
- * @param char_type     Narrow character type (::lh_char_t).
+ * @param char_type     UTF-16 code unit (::lh_wchar_t).
  */
 #define lh_os_system_win_find_data_fields(dword_type, filetime_type, char_type)                    \
     dword_type dwFileAttributes;                                                                   \

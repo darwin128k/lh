@@ -22,6 +22,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/fs/kind.h>
+#include <lh/os/result.h>
 #include <lh/os/system/fs/dir/handle.h>
 #include <lh/size.h>
 #include <lh/str/ptr.h>
@@ -57,7 +58,7 @@ lh_os_system_fs_dir_close(lh_os_system_fs_dir_handle_t handle);
  *               next read or close on @p handle.
  * @param kind   Receives the entry kind (file / dir / symlink / other).
  * @return Length of @p name (`> 0`) for an entry, `0` when the listing is
- *         exhausted, or a negative value on failure.
+ *         exhausted, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
 lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, lh_str_cptr *name, lh_fs_kind_t *kind);

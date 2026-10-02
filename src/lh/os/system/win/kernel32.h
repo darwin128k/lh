@@ -29,7 +29,14 @@
 
 #define LH_OS_SYSTEM_WIN_MAXDWORD 0xFFFFFFFFUL
 
+#define LH_OS_SYSTEM_WIN_ERROR_FILE_NOT_FOUND 2UL
+#define LH_OS_SYSTEM_WIN_ERROR_PATH_NOT_FOUND 3UL
 #define LH_OS_SYSTEM_WIN_ERROR_NO_MORE_FILES 18UL
+#define LH_OS_SYSTEM_WIN_ERROR_DIRECTORY 267UL
+
+/* MultiByteToWideChar / WideCharToMultiByte. */
+#define LH_OS_SYSTEM_WIN_CP_UTF8 65001U
+#define LH_OS_SYSTEM_WIN_MB_ERR_INVALID_CHARS 0x00000008UL
 
 /* CreateFile: dwDesiredAccess, dwShareMode, dwCreationDisposition. */
 #define LH_OS_SYSTEM_WIN_GENERIC_READ 0x80000000UL
@@ -63,10 +70,11 @@ typedef struct lh_os_system_win_filetime
     lh_os_system_win_filetime_fields(lh_os_system_win_dword_t);
 } lh_os_system_win_filetime_t;
 
-/** @brief `WIN32_FIND_DATAA`. */
+/** @brief `WIN32_FIND_DATAW`. */
 typedef struct lh_os_system_win_find_data
 {
-    lh_os_system_win_find_data_fields(lh_os_system_win_dword_t, lh_os_system_win_filetime_t, lh_char_t);
+    lh_os_system_win_find_data_fields(lh_os_system_win_dword_t, lh_os_system_win_filetime_t,
+                                      lh_wchar_t);
 } lh_os_system_win_find_data_t;
 
 /** @brief `WIN32_FILE_ATTRIBUTE_DATA`. */
@@ -81,6 +89,21 @@ typedef enum lh_os_system_win_get_file_ex_info_level
     lh_os_system_win_get_file_ex_info_standard = 0
 } lh_os_system_win_get_file_ex_info_level_t;
 
+/* Text. Every path and name crosses the kernel boundary as UTF-16 (`...W`
+   functions); lh itself speaks UTF-8. The `...A` functions are not used:
+   they take the ANSI code page, not UTF-8. See lh/os/str.h. */
+
+LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
+MultiByteToWideChar(lh_os_system_win_uint_t CodePage, lh_os_system_win_dword_t dwFlags,
+                    lh_str_cptr lpMultiByteStr, lh_int_t cbMultiByte, lh_wstr_ptr lpWideCharStr,
+                    lh_int_t cchWideChar);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
+WideCharToMultiByte(lh_os_system_win_uint_t CodePage, lh_os_system_win_dword_t dwFlags,
+                    lh_wstr_cptr lpWideCharStr, lh_int_t cchWideChar, lh_str_ptr lpMultiByteStr,
+                    lh_int_t cbMultiByte, lh_str_cptr lpDefaultChar,
+                    lh_os_system_win_bool_t *lpUsedDefaultChar);
+
 /* Time. */
 
 LH_OS_SYSTEM_WIN_IMPORT void LH_OS_SYSTEM_WIN_CALL
@@ -93,11 +116,6 @@ LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_dword_t LH_OS_SYSTEM_WIN_CALL
 GetLastError(void);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_dword_t LH_OS_SYSTEM_WIN_CALL
-FormatMessageA(lh_os_system_win_dword_t dwFlags, const lh_ptr lpSource, lh_os_system_win_dword_t dwMessageId,
-               lh_os_system_win_dword_t dwLanguageId, lh_str_ptr lpBuffer, lh_os_system_win_dword_t nSize,
-               lh_ptr Arguments);
-
-LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_dword_t LH_OS_SYSTEM_WIN_CALL
 FormatMessageW(lh_os_system_win_dword_t dwFlags, const lh_ptr lpSource, lh_os_system_win_dword_t dwMessageId,
                lh_os_system_win_dword_t dwLanguageId, lh_wstr_ptr lpBuffer, lh_os_system_win_dword_t nSize,
                lh_ptr Arguments);
@@ -106,8 +124,9 @@ FormatMessageW(lh_os_system_win_dword_t dwFlags, const lh_ptr lpSource, lh_os_sy
    they are plain pointers rather than mirrored structs. */
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
-CreateFileA(lh_str_cptr lpFileName, lh_os_system_win_dword_t dwDesiredAccess, lh_os_system_win_dword_t dwShareMode,
-            lh_ptr lpSecurityAttributes, lh_os_system_win_dword_t dwCreationDisposition,
+CreateFileW(lh_wstr_cptr lpFileName, lh_os_system_win_dword_t dwDesiredAccess,
+            lh_os_system_win_dword_t dwShareMode, lh_ptr lpSecurityAttributes,
+            lh_os_system_win_dword_t dwCreationDisposition,
             lh_os_system_win_dword_t dwFlagsAndAttributes, lh_os_system_win_handle_t hTemplateFile);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
@@ -122,18 +141,41 @@ WriteFile(lh_os_system_win_handle_t hFile, const lh_ptr lpBuffer, lh_os_system_w
           lh_os_system_win_dword_t *lpNumberOfBytesWritten, lh_ptr lpOverlapped);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
-GetFileAttributesExA(lh_str_cptr lpFileName, lh_os_system_win_get_file_ex_info_level_t fInfoLevelId,
+GetFileAttributesExW(lh_wstr_cptr lpFileName,
+                     lh_os_system_win_get_file_ex_info_level_t fInfoLevelId,
                      lh_ptr lpFileInformation);
 
 /* Directories. */
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
-FindFirstFileA(lh_str_cptr lpFileName, lh_os_system_win_find_data_t *lpFindFileData);
+FindFirstFileW(lh_wstr_cptr lpFileName, lh_os_system_win_find_data_t *lpFindFileData);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
-FindNextFileA(lh_os_system_win_handle_t hFindFile, lh_os_system_win_find_data_t *lpFindFileData);
+FindNextFileW(lh_os_system_win_handle_t hFindFile, lh_os_system_win_find_data_t *lpFindFileData);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 FindClose(lh_os_system_win_handle_t hFindFile);
+
+/* Shared images. `lpModuleName` is a path for LoadLibrary and an address
+   inside an image for GetModuleHandleEx FROM_ADDRESS — one pointer either way. */
+
+#define LH_OS_SYSTEM_WIN_GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS 0x00000004UL
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
+LoadLibraryW(lh_wstr_cptr lpLibFileName);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+FreeLibrary(lh_os_system_win_handle_t hLibModule);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_ptr LH_OS_SYSTEM_WIN_CALL
+GetProcAddress(lh_os_system_win_handle_t hModule, lh_str_cptr lpProcName);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+GetModuleHandleExW(lh_os_system_win_dword_t dwFlags, const lh_ptr lpModuleName,
+                   lh_os_system_win_handle_t *phModule);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_dword_t LH_OS_SYSTEM_WIN_CALL
+GetModuleFileNameW(lh_os_system_win_handle_t hModule, lh_wstr_ptr lpFilename,
+                   lh_os_system_win_dword_t nSize);
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_KERNEL32_H */

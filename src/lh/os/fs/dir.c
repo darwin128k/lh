@@ -5,6 +5,7 @@
 #include <lh/os.h>
 #include <lh/os/error/code.h>
 #include <lh/os/fs/path.h>
+#include <lh/os/result.h>
 #include <lh/os/system/fs/dir.h>
 #include <lh/str.h>
 #include <lh/str/view.h>
@@ -24,12 +25,11 @@ lh_bool_t
 lh_os_fs_dir_open(lh_os_fs_dir_t *self, const lh_fs_path_t *path)
 {
     lh_str_t buf;
-    lh_str_cptr cstr;
-    lh_os_system_fs_dir_handle_t handle;
 
     lh_assert_runtime_ref(self);
-    cstr = lh_os_fs_path_to_cstr(path, lh_addr_of(buf));
-    handle = lh_null_eq(cstr) ? LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID : lh_os_system_fs_dir_open(cstr);
+    lh_str_cptr const cstr = lh_os_fs_path_to_cstr(path, lh_addr_of(buf));
+    const lh_os_system_fs_dir_handle_t handle =
+        lh_null_eq(cstr) ? LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID : lh_os_system_fs_dir_open(cstr);
     lh_str_deinit(lh_addr_of(buf));
     if (lh_null_eq(handle))
     {
@@ -73,9 +73,8 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_view_t *name, lh_os_fs_dir_entry_
     lh_assert_runtime_ref(name);
     if (!lh_os_fs_dir_is_valid(self))
     {
-        lh_os_set_last_error(
-            lh_os_error_make(lh_os_error_code_not_open, lh_os_error_desc_lit("directory is not open")));
-        return -1;
+        lh_os_set_last_error_lit(lh_os_error_code_not_open, "directory is not open");
+        return LH_OS_RESULT_INVALID;
     }
 
     do
@@ -95,9 +94,8 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_view_t *name, lh_os_fs_dir_entry_
        and the next read moves on. */
     if (lh_math_gt(lh_cast_static(lh_usize_t, n), lh_os_system_fs_dir_name_max()))
     {
-        lh_os_set_last_error(
-            lh_os_error_make(lh_os_error_code_name_too_long, lh_os_error_desc_lit("name is too long")));
-        return -1;
+        lh_os_set_last_error_lit(lh_os_error_code_name_too_long, "name is too long");
+        return LH_OS_RESULT_INVALID;
     }
     lh_ptr_deref(name) = lh_str_view_make(entry);
     if (lh_null_ne(kind))

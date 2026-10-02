@@ -61,6 +61,16 @@ lh_void
 lh_str_init(lh_str_t *self);
 
 /**
+ * @brief Initialize @p self as a copy of @p view.
+ *
+ * Same as ::lh_str_init followed by ::lh_str_append_view.
+ * @param self String to initialize.
+ * @param view Text to copy; may be empty.
+ */
+lh_void
+lh_str_init_by_view(lh_str_t *self, lh_str_view_t view);
+
+/**
  * @brief Free the buffer owned by @p self and reset it to empty.
  * @param self String to deinitialize.
  */

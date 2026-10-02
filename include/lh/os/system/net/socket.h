@@ -27,6 +27,7 @@
 #include <lh/config.h>
 #include <lh/net/socket/addr/ip4.h>
 #include <lh/numeric/types.h>
+#include <lh/os/result.h>
 #include <lh/os/system/net/socket/handle.h>
 #include <lh/os/system/net/socket/type.h>
 #include <lh/ptr.h>
@@ -109,7 +110,7 @@ lh_os_system_net_socket_set_reuse_addr(lh_os_system_net_socket_handle_t handle, 
  * One native call; may send fewer bytes than asked (also when @p size
  * exceeds what the native call accepts at once).
  *
- * @return Bytes actually sent, or a negative value on failure.
+ * @return Bytes actually sent, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
 lh_os_system_net_socket_send(lh_os_system_net_socket_handle_t handle, const lh_ptr buf, lh_usize_t size);
@@ -120,7 +121,7 @@ lh_os_system_net_socket_send(lh_os_system_net_socket_handle_t handle, const lh_p
  * One native call; may receive fewer bytes than asked.
  *
  * @return Bytes actually received (`0` if the peer closed the connection),
- *         or a negative value on failure.
+ *         or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
 lh_os_system_net_socket_recv(lh_os_system_net_socket_handle_t handle, lh_ptr buf, lh_usize_t size);
@@ -132,7 +133,7 @@ lh_os_system_net_socket_recv(lh_os_system_net_socket_handle_t handle, lh_ptr buf
  * datagram oversized for UDP — the native call then fails instead of
  * sending a truncated one.
  *
- * @return Bytes actually sent, or a negative value on failure.
+ * @return Bytes actually sent, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
 lh_os_system_net_socket_sendto(lh_os_system_net_socket_handle_t handle, const lh_ptr buf, lh_usize_t size,
@@ -144,7 +145,7 @@ lh_os_system_net_socket_sendto(lh_os_system_net_socket_handle_t handle, const lh
  * `0` is an empty datagram, not end-of-stream. @p addr is written only on
  * success.
  *
- * @return Bytes actually received, or a negative value on failure.
+ * @return Bytes actually received, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
 lh_os_system_net_socket_recvfrom(lh_os_system_net_socket_handle_t handle, lh_ptr buf, lh_usize_t size,

@@ -37,9 +37,8 @@ LH_ATTRIBUTE_STATIC
 lh_fs_kind_t
 lh_os_system_fs_kind_from_unix_mode(lh_os_system_fs_unix_mode_t mode)
 {
-    lh_u32_t fmt;
+    const lh_u32_t fmt = lh_bit_and(mode, LH_OS_SYSTEM_FS_UNIX_S_IFMT);
 
-    fmt = lh_bit_and(mode, LH_OS_SYSTEM_FS_UNIX_S_IFMT);
     if (lh_math_eq(fmt, LH_OS_SYSTEM_FS_UNIX_S_IFLNK))
     {
         return lh_fs_kind_symlink;
@@ -59,7 +58,6 @@ lh_bool_t
 lh_os_system_fs_stat(lh_str_cptr path, lh_fs_stat_t *out)
 {
     struct stat info;
-    lh_os_system_fs_unix_mode_t mode_bits;
 
     lh_assert_runtime_ref(path);
     lh_assert_runtime_ref(out);
@@ -71,11 +69,11 @@ lh_os_system_fs_stat(lh_str_cptr path, lh_fs_stat_t *out)
     }
     if (lh_math_is_negative(info.st_size))
     {
-        lh_os_set_last_error(
-            lh_os_error_make(lh_os_error_code_negative_size, lh_os_error_desc_lit("file size is negative")));
+        lh_os_set_last_error_lit(lh_os_error_code_negative_size, "file size is negative");
         return lh_bool_false;
     }
-    mode_bits = lh_cast_static(lh_os_system_fs_unix_mode_t, info.st_mode);
+    const lh_os_system_fs_unix_mode_t mode_bits =
+        lh_cast_static(lh_os_system_fs_unix_mode_t, info.st_mode);
     lh_fs_stat_set(out, lh_os_system_fs_kind_from_unix_mode(mode_bits),
                    lh_cast_static(lh_fs_perm_t, lh_bit_and(mode_bits, LH_OS_SYSTEM_FS_PERM_UNIX_MASK)),
                    lh_cast_static(lh_fs_size_t, info.st_size), lh_cast_static(lh_fs_time_t, info.st_atime),

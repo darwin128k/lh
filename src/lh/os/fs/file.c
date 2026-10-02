@@ -99,11 +99,9 @@ lh_bool_t
 lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_fs_file_mode_t mode)
 {
     lh_str_t buf;
-    lh_str_cptr cstr;
-    lh_os_system_fs_file_handle_t handle;
 
     lh_assert_runtime_ref(self);
-    cstr = lh_os_fs_path_to_cstr(path, lh_addr_of(buf));
+    lh_str_cptr const cstr = lh_os_fs_path_to_cstr(path, lh_addr_of(buf));
     if (lh_null_eq(cstr))
     {
         lh_str_deinit(lh_addr_of(buf));
@@ -111,7 +109,7 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_fs_file_m
     }
     lh_os_fs_file_close(self);
 
-    handle = lh_os_system_fs_file_open(cstr, mode);
+    const lh_os_system_fs_file_handle_t handle = lh_os_system_fs_file_open(cstr, mode);
     lh_str_deinit(lh_addr_of(buf));
     if (lh_math_eq(handle, LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID))
     {
@@ -160,10 +158,8 @@ lh_os_fs_file_get_writer(lh_os_fs_file_t *self)
 lh_io_stream_t
 lh_os_fs_file_get_stream(lh_os_fs_file_t *self)
 {
-    lh_io_reader_t reader;
-    lh_io_writer_t writer;
+    const lh_io_reader_t reader = lh_os_fs_file_get_reader(self);
+    const lh_io_writer_t writer = lh_os_fs_file_get_writer(self);
 
-    reader = lh_os_fs_file_get_reader(self);
-    writer = lh_os_fs_file_get_writer(self);
     return lh_io_stream_make(lh_addr_of(reader), lh_addr_of(writer));
 }
