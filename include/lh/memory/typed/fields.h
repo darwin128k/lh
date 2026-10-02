@@ -18,9 +18,10 @@
  *
  * Example usage — creates a typed wrapper around lh_memory_bounds_t:
  * @code{.c}
- * typedef struct lh_memory_typed {
+ * struct lh_memory_typed {
  *     lh_memory_typed_fields(lh_memory_bounds_t);
- * } lh_memory_typed_t;
+ * };
+ * typedef struct lh_memory_typed lh_memory_typed_t;
  * @endcode
  *
  * The resulting struct has:
@@ -34,14 +35,16 @@
  *
  * Example usage — creates a typed wrapper around a custom bounds type:
  * @code{.c}
- * typedef struct my_bounds {
+ * struct my_bounds {
  *     void *begin;
  *     void *end;
- * } my_bounds_t;
+ * };
+ * typedef struct my_bounds my_bounds_t;
  *
- * typedef struct my_typed {
+ * struct my_typed {
  *     lh_memory_typed_fields(my_bounds_t);
- * } my_typed_t;
+ * };
+ * typedef struct my_typed my_typed_t;
  * @endcode
  */
 #define lh_memory_typed_fields(bounds_type)                                                        \

@@ -21,10 +21,11 @@
  *
  * The concrete fields are expanded by ::lh_io_writer_fields.
  */
-typedef struct lh_io_writer
+struct lh_io_writer
 {
     lh_io_writer_fields(lh_io_writer_write_fn);
-} lh_io_writer_t;
+};
+typedef struct lh_io_writer lh_io_writer_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

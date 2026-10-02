@@ -114,10 +114,11 @@
  *
  * The concrete fields are expanded by ::lh_logger_fields.
  */
-typedef struct lh_logger
+struct lh_logger
 {
     lh_logger_fields(lh_logger_emit_fn);
-} lh_logger_t;
+};
+typedef struct lh_logger lh_logger_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

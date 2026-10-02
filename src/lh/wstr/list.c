@@ -11,11 +11,12 @@
 
 /* Where one element sits in the shared buffer; its NUL follows at
    offset + size. */
-typedef struct lh_wstr_list_span
+struct lh_wstr_list_span
 {
     lh_usize_t offset;
     lh_usize_t size;
-} lh_wstr_list_span_t;
+};
+typedef struct lh_wstr_list_span lh_wstr_list_span_t;
 
 LH_ATTRIBUTE_STATIC
 lh_wstr_t *

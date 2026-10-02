@@ -21,10 +21,11 @@
  * @struct lh_io_dgram_reader
  * @brief A recv callback paired with the context it needs.
  */
-typedef struct lh_io_dgram_reader
+struct lh_io_dgram_reader
 {
     lh_io_dgram_reader_fields(lh_io_dgram_reader_recv_fn);
-} lh_io_dgram_reader_t;
+};
+typedef struct lh_io_dgram_reader lh_io_dgram_reader_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

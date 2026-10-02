@@ -20,9 +20,10 @@
  *
  * Example usage:
  * @code{.c}
- * typedef struct lh_runtime_error {
+ * struct lh_runtime_error {
  *     lh_runtime_error_fields(lh_runtime_error_code_t, lh_str_view_t);
- * } lh_runtime_error_t;
+ * };
+ * typedef struct lh_runtime_error lh_runtime_error_t;
  * @endcode
  *
  * @see lh_error_fields

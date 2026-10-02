@@ -40,10 +40,11 @@
  * @struct lh_fs_path
  * @brief Normalized text plus root kind. Fields via ::lh_fs_path_fields.
  */
-typedef struct lh_fs_path
+struct lh_fs_path
 {
     lh_fs_path_fields(lh_str_t, lh_fs_path_root_kind_t);
-} lh_fs_path_t;
+};
+typedef struct lh_fs_path lh_fs_path_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

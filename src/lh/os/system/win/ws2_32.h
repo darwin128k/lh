@@ -41,28 +41,32 @@ typedef lh_usize_t lh_os_system_win_socket_t;
 #define LH_OS_SYSTEM_WIN_SO_REUSEADDR 0x0004
 
 /** @brief `WSADATA`. */
-typedef struct lh_os_system_win_wsadata
+struct lh_os_system_win_wsadata
 {
     lh_os_system_win_wsadata_fields(lh_os_system_win_word_t, lh_ushort_t, lh_char_t);
-} lh_os_system_win_wsadata_t;
+};
+typedef struct lh_os_system_win_wsadata lh_os_system_win_wsadata_t;
 
 /** @brief `IN_ADDR`. */
-typedef struct lh_os_system_win_in_addr
+struct lh_os_system_win_in_addr
 {
     lh_os_system_win_in_addr_fields(lh_ulong_t);
-} lh_os_system_win_in_addr_t;
+};
+typedef struct lh_os_system_win_in_addr lh_os_system_win_in_addr_t;
 
 /** @brief `SOCKADDR`. */
-typedef struct lh_os_system_win_sockaddr
+struct lh_os_system_win_sockaddr
 {
     lh_os_system_win_sockaddr_fields(lh_ushort_t, lh_char_t);
-} lh_os_system_win_sockaddr_t;
+};
+typedef struct lh_os_system_win_sockaddr lh_os_system_win_sockaddr_t;
 
 /** @brief `SOCKADDR_IN`. */
-typedef struct lh_os_system_win_sockaddr_in
+struct lh_os_system_win_sockaddr_in
 {
     lh_os_system_win_sockaddr_in_fields(lh_ushort_t, lh_ushort_t, lh_os_system_win_in_addr_t, lh_char_t);
-} lh_os_system_win_sockaddr_in_t;
+};
+typedef struct lh_os_system_win_sockaddr_in lh_os_system_win_sockaddr_in_t;
 
 /* Library setup. */
 

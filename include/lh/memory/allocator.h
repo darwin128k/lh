@@ -32,11 +32,12 @@
  *
  * The concrete fields are expanded by ::lh_memory_allocator_fields.
  */
-typedef struct lh_memory_allocator
+struct lh_memory_allocator
 {
     lh_memory_allocator_fields(lh_memory_allocator_alloc_fn, lh_memory_allocator_dealloc_fn,
                                lh_memory_allocator_realloc_fn);
-} lh_memory_allocator_t;
+};
+typedef struct lh_memory_allocator lh_memory_allocator_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

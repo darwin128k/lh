@@ -18,9 +18,10 @@
  *
  * Example usage:
  * @code{.c}
- * typedef struct {
+ * struct int_float_pair {
  *     lh_pair_fields(int, float);
- * } int_float_pair;
+ * };
+ * typedef struct int_float_pair int_float_pair;
  *
  * int_float_pair p;
  * p.first = 1;

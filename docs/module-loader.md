@@ -46,10 +46,11 @@ the fields. The parent module is **not stored** — it is derived:
 ### Methods — `lh_os_module_ops_t`
 
 ```c
-typedef struct lh_os_module_ops {
+struct lh_os_module_ops {
     lh_bool_t (*start)(lh_os_module_t *self); /* false = refuse */
     void      (*stop)(lh_os_module_t *self);
-} lh_os_module_ops_t;
+};
+typedef struct lh_os_module_ops lh_os_module_ops_t;
 ```
 
 A child image **exports one object** of this type under a name the loader

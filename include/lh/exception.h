@@ -27,11 +27,12 @@
  * @typedef lh_exception_t
  * @brief Error of a failed runtime check plus its origin.
  */
-typedef struct lh_exception
+struct lh_exception
 {
     lh_runtime_error_t error;            /**< Code and message (empty when none is given). */
     const lh_exception_origin_t *origin; /**< Where the check sits; ::lh_null at REPORT_NONE. */
-} lh_exception_t;                        /**< Typedef for struct ::lh_exception. */
+};                        /**< Typedef for struct ::lh_exception. */
+typedef struct lh_exception lh_exception_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

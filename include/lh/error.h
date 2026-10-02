@@ -19,10 +19,11 @@
  * @struct lh_error
  * @brief Error code and optional human-readable description.
  */
-typedef struct lh_error
+struct lh_error
 {
     lh_error_fields(lh_error_code_t, lh_str_view_t);
-} lh_error_t; /**< Typedef for struct ::lh_error. */
+}; /**< Typedef for struct ::lh_error. */
+typedef struct lh_error lh_error_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

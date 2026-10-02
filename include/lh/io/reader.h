@@ -25,10 +25,11 @@
  *
  * The concrete fields are expanded by ::lh_io_reader_fields.
  */
-typedef struct lh_io_reader
+struct lh_io_reader
 {
     lh_io_reader_fields(lh_io_reader_read_fn);
-} lh_io_reader_t;
+};
+typedef struct lh_io_reader lh_io_reader_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

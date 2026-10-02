@@ -53,11 +53,12 @@ struct lh_os_loader;
  * @struct lh_os_module
  * @brief Image, lifecycle, state, place in the tree. Fields via ::lh_os_module_fields.
  */
-typedef struct lh_os_module
+struct lh_os_module
 {
     lh_os_module_fields(lh_os_shared_t, lh_bool_t, const lh_os_module_ops_t *, lh_ptr,
                         struct lh_os_loader *, lh_list_node_t);
-} lh_os_module_t;
+};
+typedef struct lh_os_module lh_os_module_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

@@ -61,7 +61,7 @@ typedef lh_os_system_posix_xid_t lh_os_system_atom_t;
    (`data[5]`) for the largest variant (ClientMessage.data.l). Wrong-by-ABI
    for the unused variants, but the union tag makes that impossible to
    observe: every read is gated by `v == XXXX_Event`. */
-typedef struct lh_os_system_posix_xevent
+struct lh_os_system_posix_xevent
 {
     lh_int_t type;
     union {
@@ -90,16 +90,18 @@ typedef struct lh_os_system_posix_xevent
             lh_ulong_t data[5];
         } client;
     } as;
-} lh_os_system_posix_xevent_t;
+};
+typedef struct lh_os_system_posix_xevent lh_os_system_posix_xevent_t;
 
 /* `XSetWindowAttributes` — passed to `XCreateWindow` with a valuemask
    describing which fields are set. We only ever set `background_pixel` and
    `event_mask`. */
-typedef struct lh_os_system_posix_xset_window_attributes
+struct lh_os_system_posix_xset_window_attributes
 {
     lh_ulong_t background_pixel;
     lh_ulong_t event_mask;
-} lh_os_system_posix_xset_window_attributes_t;
+};
+typedef struct lh_os_system_posix_xset_window_attributes lh_os_system_posix_xset_window_attributes_t;
 
 /* ── Constants we actually use ──────────────────────────────────────────── */
 

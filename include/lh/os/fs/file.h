@@ -38,10 +38,11 @@
  * @struct lh_os_fs_file
  * @brief Path plus handle. Fields via ::lh_os_fs_file_fields.
  */
-typedef struct lh_os_fs_file
+struct lh_os_fs_file
 {
     lh_os_fs_file_fields(lh_fs_path_t, lh_os_system_fs_file_handle_t, lh_fs_file_mode_t);
-} lh_os_fs_file_t;
+};
+typedef struct lh_os_fs_file lh_os_fs_file_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

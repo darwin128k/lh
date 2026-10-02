@@ -18,9 +18,10 @@
  *
  * Example usage:
  * @code{.c}
- * typedef struct lh_error {
+ * struct lh_error {
  *     lh_error_fields(lh_error_code_t, lh_str_view_t);
- * } lh_error_t;
+ * };
+ * typedef struct lh_error lh_error_t;
  * @endcode
  *
  * @see lh_error_t

@@ -46,10 +46,11 @@
  * @struct lh_os_loader
  * @brief Children, owner, entry name. Fields via ::lh_os_loader_fields.
  */
-typedef struct lh_os_loader
+struct lh_os_loader
 {
     lh_os_loader_fields(lh_list_t, lh_os_module_t *, lh_str_t);
-} lh_os_loader_t;
+};
+typedef struct lh_os_loader lh_os_loader_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

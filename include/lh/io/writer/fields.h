@@ -20,9 +20,10 @@
  *
  * Example usage:
  * @code{.c}
- * typedef struct lh_io_writer {
+ * struct lh_io_writer {
  *     lh_io_writer_fields(lh_io_writer_write_fn);
- * } lh_io_writer_t;
+ * };
+ * typedef struct lh_io_writer lh_io_writer_t;
  * @endcode
  *
  * @see lh_io_writer_t

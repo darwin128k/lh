@@ -31,10 +31,11 @@
  * @brief Shared character buffer plus per-element spans. Fields via
  *        ::lh_str_list_fields.
  */
-typedef struct lh_str_list
+struct lh_str_list
 {
     lh_str_list_fields(lh_str_t, lh_vector_t);
-} lh_str_list_t;
+};
+typedef struct lh_str_list lh_str_list_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

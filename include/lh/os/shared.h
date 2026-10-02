@@ -40,10 +40,11 @@
  * @struct lh_os_shared
  * @brief Path plus handle. Fields via ::lh_os_shared_fields.
  */
-typedef struct lh_os_shared
+struct lh_os_shared
 {
     lh_os_shared_fields(lh_fs_path_t, lh_os_system_shared_handle_t);
-} lh_os_shared_t;
+};
+typedef struct lh_os_shared lh_os_shared_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

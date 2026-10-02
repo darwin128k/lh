@@ -21,10 +21,11 @@
  * @struct lh_io_dgram_writer
  * @brief A send callback paired with the context it needs.
  */
-typedef struct lh_io_dgram_writer
+struct lh_io_dgram_writer
 {
     lh_io_dgram_writer_fields(lh_io_dgram_writer_send_fn);
-} lh_io_dgram_writer_t;
+};
+typedef struct lh_io_dgram_writer lh_io_dgram_writer_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

@@ -23,11 +23,12 @@
  * @c typed.bounds always spans the full allocated capacity; @c size is the
  * number of elements actually in use, from the start of that capacity.
  */
-typedef struct lh_vector
+struct lh_vector
 {
     lh_memory_typed_allocated_t typed; /**< Owns the block; bounds == capacity. */
     lh_usize_t size;                   /**< Elements in use; size <= capacity. */
-} lh_vector_t;
+};
+typedef struct lh_vector lh_vector_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

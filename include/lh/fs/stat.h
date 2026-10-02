@@ -27,10 +27,11 @@
  * @brief One filesystem object's Unix-shaped state. Fields via
  *        ::lh_fs_stat_fields.
  */
-typedef struct lh_fs_stat
+struct lh_fs_stat
 {
     lh_fs_stat_fields(lh_fs_kind_t, lh_fs_perm_t, lh_fs_size_t, lh_fs_time_t, lh_fs_attr_t);
-} lh_fs_stat_t;
+};
+typedef struct lh_fs_stat lh_fs_stat_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

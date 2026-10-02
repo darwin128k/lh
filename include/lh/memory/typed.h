@@ -5,10 +5,11 @@
 #include <lh/memory/bounds.h>
 #include <lh/index.h>
 
-typedef struct lh_memory_typed
+struct lh_memory_typed
 {
     lh_memory_typed_fields(lh_memory_bounds_t);
-} lh_memory_typed_t;
+};
+typedef struct lh_memory_typed lh_memory_typed_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

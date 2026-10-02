@@ -22,9 +22,10 @@
  *
  * Example usage:
  * @code{.c}
- * typedef struct lh_net_socket_addr {
+ * struct lh_net_socket_addr {
  *     lh_net_socket_addr_fields(lh_net_ip4_t);
- * } lh_net_socket_addr_t;
+ * };
+ * typedef struct lh_net_socket_addr lh_net_socket_addr_t;
  * @endcode
  */
 #define lh_net_socket_addr_fields(ip_type)                                                         \

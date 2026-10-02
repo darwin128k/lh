@@ -91,31 +91,35 @@ typedef lh_os_system_win_lresult_t(LH_OS_SYSTEM_WIN_CALL *lh_os_system_win_wndpr
    `PAINTSTRUCT`'s fields X-macro takes `lh_os_system_win_rect_t` as a type
    parameter — forward-reference would leave it as implicit `int` and break
    the layout. */
-typedef struct lh_os_system_win_rect
+struct lh_os_system_win_rect
 {
     lh_os_system_win_rect_fields(lh_int_t);
-} lh_os_system_win_rect_t;
+};
+typedef struct lh_os_system_win_rect lh_os_system_win_rect_t;
 
 /* `MSG` payload, brought in via the X-macro in msg/fields.h. */
-typedef struct lh_os_system_win_msg
+struct lh_os_system_win_msg
 {
     lh_os_system_win_msg_fields(lh_os_system_win_hwnd_t, lh_os_system_win_dword_t,
                                 lh_os_system_win_wparam_t, lh_os_system_win_lparam_t);
-} lh_os_system_win_msg_t;
+};
+typedef struct lh_os_system_win_msg lh_os_system_win_msg_t;
 
 /* `PAINTSTRUCT`. */
-typedef struct lh_os_system_win_paintstruct
+struct lh_os_system_win_paintstruct
 {
     lh_os_system_win_paintstruct_fields(lh_os_system_win_hdc_t, lh_bool_t, lh_os_system_win_rect_t,
                                         lh_os_system_win_dword_t);
-} lh_os_system_win_paintstruct_t;
+};
+typedef struct lh_os_system_win_paintstruct lh_os_system_win_paintstruct_t;
 
 /* `WNDCLASSEXW`. */
-typedef struct lh_os_system_win_wndclassexw
+struct lh_os_system_win_wndclassexw
 {
     lh_os_system_win_wndclassexw_fields(lh_os_system_win_dword_t, lh_int_t,
                                         lh_os_system_win_wndproc_t);
-} lh_os_system_win_wndclassexw_t;
+};
+typedef struct lh_os_system_win_wndclassexw lh_os_system_win_wndclassexw_t;
 
 /* Window class styles we set. */
 #define LH_OS_SYSTEM_WIN_CS_HREDRAW 0x0002

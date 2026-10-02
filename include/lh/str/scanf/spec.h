@@ -22,7 +22,7 @@
  * @typedef lh_str_scanf_spec_t
  * @brief One literal run or conversion from a format mask.
  */
-typedef struct lh_str_scanf_spec
+struct lh_str_scanf_spec
 {
     lh_str_scanf_spec_kind_t kind;
     lh_bool_t zero_pad;
@@ -33,6 +33,7 @@ typedef struct lh_str_scanf_spec
     lh_uint_t precision;
     lh_str_cptr literal;
     lh_usize_t literal_size;
-} lh_str_scanf_spec_t;
+};
+typedef struct lh_str_scanf_spec lh_str_scanf_spec_t;
 
 #endif /* LH_STR_SCANF_SPEC_H */

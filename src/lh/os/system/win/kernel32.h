@@ -65,29 +65,33 @@
 #define LH_OS_SYSTEM_WIN_FORMAT_MESSAGE_FROM_SYSTEM 0x00001000UL
 
 /** @brief `FILETIME`. */
-typedef struct lh_os_system_win_filetime
+struct lh_os_system_win_filetime
 {
     lh_os_system_win_filetime_fields(lh_os_system_win_dword_t);
-} lh_os_system_win_filetime_t;
+};
+typedef struct lh_os_system_win_filetime lh_os_system_win_filetime_t;
 
 /** @brief `WIN32_FIND_DATAW`. */
-typedef struct lh_os_system_win_find_data
+struct lh_os_system_win_find_data
 {
     lh_os_system_win_find_data_fields(lh_os_system_win_dword_t, lh_os_system_win_filetime_t,
                                       lh_wchar_t);
-} lh_os_system_win_find_data_t;
+};
+typedef struct lh_os_system_win_find_data lh_os_system_win_find_data_t;
 
 /** @brief `WIN32_FILE_ATTRIBUTE_DATA`. */
-typedef struct lh_os_system_win_file_attribute_data
+struct lh_os_system_win_file_attribute_data
 {
     lh_os_system_win_file_attribute_data_fields(lh_os_system_win_dword_t, lh_os_system_win_filetime_t);
-} lh_os_system_win_file_attribute_data_t;
+};
+typedef struct lh_os_system_win_file_attribute_data lh_os_system_win_file_attribute_data_t;
 
 /** @brief `GET_FILEEX_INFO_LEVELS`. */
-typedef enum lh_os_system_win_get_file_ex_info_level
+enum lh_os_system_win_get_file_ex_info_level
 {
     lh_os_system_win_get_file_ex_info_standard = 0
-} lh_os_system_win_get_file_ex_info_level_t;
+};
+typedef enum lh_os_system_win_get_file_ex_info_level lh_os_system_win_get_file_ex_info_level_t;
 
 /* Text. Every path and name crosses the kernel boundary as UTF-16 (`...W`
    functions); lh itself speaks UTF-8. The `...A` functions are not used:

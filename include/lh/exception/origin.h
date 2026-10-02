@@ -24,13 +24,14 @@
  * @brief Location, message and (at the full level) text of the runtime
  *        check an exception comes from.
  */
-typedef struct lh_exception_origin
+struct lh_exception_origin
 {
     lh_str_cptr file;      /**< Source file (`__FILE__`); LOCATION and FULL. */
     lh_str_cptr function;  /**< Enclosing function (`__func__`); FULL only. */
     lh_str_cptr condition; /**< Text of the condition that held; FULL only. */
     lh_str_view_t message; /**< Message given at the check, or empty; LOCATION and FULL. */
     lh_uint_t line;        /**< Source line (`__LINE__`); LOCATION and FULL. */
-} lh_exception_origin_t;
+};
+typedef struct lh_exception_origin lh_exception_origin_t;
 
 #endif /* LH_EXCEPTION_ORIGIN_H */

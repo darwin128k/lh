@@ -27,10 +27,11 @@
  *
  * Binary-compatible with ::lh_error_t.
  */
-typedef struct lh_runtime_error
+struct lh_runtime_error
 {
     lh_runtime_error_fields(lh_runtime_error_code_t, lh_str_view_t);
-} lh_runtime_error_t; /**< Typedef for struct ::lh_runtime_error. */
+}; /**< Typedef for struct ::lh_runtime_error. */
+typedef struct lh_runtime_error lh_runtime_error_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

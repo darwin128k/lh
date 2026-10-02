@@ -27,10 +27,11 @@
  * @struct lh_werror
  * Binary-compatible with ::lh_error_t; description field is a wide view.
  */
-typedef struct lh_werror
+struct lh_werror
 {
     lh_error_fields(lh_error_code_t, lh_wstr_view_t);
-} lh_werror_t; /**< Typedef for struct ::lh_werror. */
+}; /**< Typedef for struct ::lh_werror. */
+typedef struct lh_werror lh_werror_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

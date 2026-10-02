@@ -44,10 +44,11 @@
  * Endpoints describe <tt>[first, second]</tt> in address space when both are
  * non-null and ordered. Public typedef: ::lh_memory_view_slice_t.
  */
-typedef struct lh_memory_view_slice
+struct lh_memory_view_slice
 {
     lh_memory_view_slice_fields(lh_void);
-} lh_memory_view_slice_t; /**< Typedef for struct ::lh_memory_view_slice. */
+}; /**< Typedef for struct ::lh_memory_view_slice. */
+typedef struct lh_memory_view_slice lh_memory_view_slice_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

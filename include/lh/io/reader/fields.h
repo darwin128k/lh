@@ -20,9 +20,10 @@
  *
  * Example usage:
  * @code{.c}
- * typedef struct lh_io_reader {
+ * struct lh_io_reader {
  *     lh_io_reader_fields(lh_io_reader_read_fn);
- * } lh_io_reader_t;
+ * };
+ * typedef struct lh_io_reader lh_io_reader_t;
  * @endcode
  *
  * @see lh_io_reader_t

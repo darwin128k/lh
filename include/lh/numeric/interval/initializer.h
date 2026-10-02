@@ -30,8 +30,10 @@
  *
  * Example usage:
  * @code{.c}
- * typedef struct { lh_interval_bounds_fields(unsigned int); } uint_bounds_t;
- * typedef struct { lh_interval_fields(uint_bounds_t); } uint_interval_t;
+ * struct uint_bounds { lh_interval_bounds_fields(unsigned int); };
+ * typedef struct uint_bounds uint_bounds_t;
+ * struct uint_interval { lh_interval_fields(uint_bounds_t); };
+ * typedef struct uint_interval uint_interval_t;
  *
  * uint_interval_t i = lh_initializer_of_struct(
  *     uint_interval_t,
@@ -55,8 +57,10 @@
  *
  * Example usage:
  * @code{.c}
- * typedef struct { lh_interval_bounds_fields(int); } int_bounds_t;
- * typedef struct { lh_interval_fields(int_bounds_t); } int_interval_t;
+ * struct int_bounds { lh_interval_bounds_fields(int); };
+ * typedef struct int_bounds int_bounds_t;
+ * struct int_interval { lh_interval_fields(int_bounds_t); };
+ * typedef struct int_interval int_interval_t;
  *
  * int_interval_t i = lh_initializer_of_struct(
  *     int_interval_t,

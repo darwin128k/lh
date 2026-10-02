@@ -293,11 +293,12 @@ TEST(interval_negative_ranges, div_overflow_negative_values)
 namespace
 {
 
-typedef struct
+struct test_kv
 {
     unsigned int from;
     unsigned int to;
-} test_kv_t;
+};
+typedef struct test_kv test_kv_t;
 
 // Simple sorted table for testing: indices 0-4 contain data
 static const test_kv_t test_table[] = {

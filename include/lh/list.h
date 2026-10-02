@@ -43,10 +43,11 @@
  * @struct lh_list
  * @brief The head node. Fields via ::lh_list_fields.
  */
-typedef struct lh_list
+struct lh_list
 {
     lh_list_fields(lh_list_node_t);
-} lh_list_t;
+};
+typedef struct lh_list lh_list_t;
 
 /**
  * @def lh_list_entry(T, member, node)

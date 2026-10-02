@@ -26,10 +26,11 @@
  * @struct lh_os_error
  * @brief OS-layer error code plus a description in ::lh_os_error_desc_t.
  */
-typedef struct lh_os_error
+struct lh_os_error
 {
     lh_error_fields(lh_error_code_t, lh_os_error_desc_t);
-} lh_os_error_t;
+};
+typedef struct lh_os_error lh_os_error_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

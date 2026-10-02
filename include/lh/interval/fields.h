@@ -23,13 +23,15 @@
  *
  * Example usage:
  * @code{.c}
- * typedef struct {
+ * struct float_bounds {
  *     lh_interval_bounds_fields(float);
- * } float_bounds;
+ * };
+ * typedef struct float_bounds float_bounds;
  *
- * typedef struct {
+ * struct float_interval {
  *     lh_interval_fields(float_bounds);
- * } float_interval;
+ * };
+ * typedef struct float_interval float_interval;
  *
  * float_interval i;
  * i.bounds.first = 0.0f;

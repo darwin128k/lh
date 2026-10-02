@@ -25,10 +25,11 @@
  * @struct lh_list_node
  * @brief `next` and `prev`. Fields via ::lh_list_node_fields.
  */
-typedef struct lh_list_node
+struct lh_list_node
 {
     lh_list_node_fields(struct lh_list_node *);
-} lh_list_node_t;
+};
+typedef struct lh_list_node lh_list_node_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
