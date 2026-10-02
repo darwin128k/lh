@@ -17,9 +17,9 @@ struct MemorySource
 };
 
 lh_ssize_t
-MemorySourceRead(lh_ptr context, lh_ptr buf, lh_usize_t size)
+MemorySourceRead(lh_ptr self, lh_ptr buf, lh_usize_t size)
 {
-    MemorySource *src = static_cast<MemorySource *>(context);
+    MemorySource *src = static_cast<MemorySource *>(self);
     const lh_usize_t remaining = src->size - src->pos;
     const lh_usize_t to_copy = size < remaining ? size : remaining;
     std::memcpy(buf, src->data + src->pos, to_copy);
@@ -35,9 +35,9 @@ struct MemorySink
 };
 
 lh_ssize_t
-MemorySinkWrite(lh_ptr context, const lh_ptr buf, lh_usize_t size)
+MemorySinkWrite(lh_ptr self, const lh_ptr buf, lh_usize_t size)
 {
-    MemorySink *sink = static_cast<MemorySink *>(context);
+    MemorySink *sink = static_cast<MemorySink *>(self);
     const lh_usize_t remaining = sink->capacity - sink->pos;
     const lh_usize_t to_copy = size < remaining ? size : remaining;
     std::memcpy(sink->data + sink->pos, buf, to_copy);

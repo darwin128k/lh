@@ -7,7 +7,7 @@
  * the (possibly moved) block, or null on failure with @p ptr untouched.
  * Must belong to the same heap as the allocator's alloc/dealloc pair.
  *
- * Takes the allocator's context (see ::lh_memory_allocator_alloc_fn) and,
+ * Takes the allocator's state @p self (see ::lh_memory_allocator_alloc_fn) and,
  * unlike C `realloc`, the block's current size @p old_size: an allocator
  * that keeps no per-block size (a bump arena over a static buffer, say)
  * needs it to copy or to extend its last block in place. A `realloc`
@@ -29,7 +29,7 @@
  *
  * Not a pointer type by itself; use pointer wrappers where needed.
  */
-typedef lh_ptr(lh_memory_allocator_realloc_fn)(lh_ptr context, lh_ptr ptr, lh_usize_t old_size,
+typedef lh_ptr(lh_memory_allocator_realloc_fn)(lh_ptr self, lh_ptr ptr, lh_usize_t old_size,
                                                lh_usize_t new_size);
 
 #endif /* LH_MEMORY_ALLOCATOR_REALLOC_FN_H */

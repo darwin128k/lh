@@ -12,24 +12,24 @@
    callback types: calling a function through a pointer of another type is
    undefined behavior. */
 static lh_ptr
-lh_runtime_allocator_default_alloc(lh_ptr context, lh_usize_t size)
+lh_runtime_allocator_default_alloc(lh_ptr self, lh_usize_t size)
 {
-    (void)context;
+    (void)self;
     return LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_ALLOC(size);
 }
 
 static lh_void
-lh_runtime_allocator_default_dealloc(lh_ptr context, lh_ptr ptr)
+lh_runtime_allocator_default_dealloc(lh_ptr self, lh_ptr ptr)
 {
-    (void)context;
+    (void)self;
     LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_DEALLOC(ptr);
 }
 
 #    if LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_HAS_REALLOC
 static lh_ptr
-lh_runtime_allocator_default_realloc(lh_ptr context, lh_ptr ptr, lh_usize_t old_size, lh_usize_t new_size)
+lh_runtime_allocator_default_realloc(lh_ptr self, lh_ptr ptr, lh_usize_t old_size, lh_usize_t new_size)
 {
-    (void)context;
+    (void)self;
     (void)old_size;
     return LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_REALLOC(ptr, new_size);
 }

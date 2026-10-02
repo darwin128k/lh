@@ -138,25 +138,25 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_fs_file_m
 /**
  * @brief ::lh_io_reader_read_fn backed by @p context's file.
  *
- * @param context An ::lh_os_fs_file_t* (passed as the reader's context).
+ * @param self An ::lh_os_fs_file_t* (passed as the reader's context).
  * @param buf     Destination buffer.
  * @param size    Maximum bytes to read into @p buf.
  * @return Bytes actually read (`0` at end of file), or ::LH_OS_RESULT_INVALID on
  *         failure.
  */
 lh_ssize_t
-lh_os_fs_file_read(lh_ptr context, lh_ptr buf, lh_usize_t size);
+lh_os_fs_file_read(lh_ptr self, lh_ptr buf, lh_usize_t size);
 
 /**
  * @brief ::lh_io_writer_write_fn backed by @p context's file.
  *
- * @param context An ::lh_os_fs_file_t* (passed as the writer's context).
+ * @param self An ::lh_os_fs_file_t* (passed as the writer's context).
  * @param buf     Source buffer.
  * @param size    Number of bytes from @p buf to write.
  * @return Bytes actually written, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
-lh_os_fs_file_write(lh_ptr context, const lh_ptr buf, lh_usize_t size);
+lh_os_fs_file_write(lh_ptr self, const lh_ptr buf, lh_usize_t size);
 
 /* ── lh_io adapters ──────────────────────────────────────────────────────── */
 

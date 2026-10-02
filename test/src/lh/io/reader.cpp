@@ -16,9 +16,9 @@ struct MemorySource
 };
 
 lh_ssize_t
-MemorySourceRead(lh_ptr context, lh_ptr buf, lh_usize_t size)
+MemorySourceRead(lh_ptr self, lh_ptr buf, lh_usize_t size)
 {
-    MemorySource *src = static_cast<MemorySource *>(context);
+    MemorySource *src = static_cast<MemorySource *>(self);
     lh_usize_t remaining = src->size - src->pos;
     lh_usize_t to_copy = size < remaining ? size : remaining;
     std::memcpy(buf, src->data + src->pos, to_copy);

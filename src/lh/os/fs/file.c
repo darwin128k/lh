@@ -122,17 +122,17 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_fs_file_m
 }
 
 lh_ssize_t
-lh_os_fs_file_read(lh_ptr context, lh_ptr buf, lh_usize_t size)
+lh_os_fs_file_read(lh_ptr self, lh_ptr buf, lh_usize_t size)
 {
     return lh_os_system_fs_file_read(
-        lh_ptr_deref(lh_os_fs_file_get_handle_as_const(lh_ptr_cast(lh_os_fs_file_t, context))), buf, size);
+        lh_ptr_deref(lh_os_fs_file_get_handle_as_const(lh_ptr_cast(lh_os_fs_file_t, self))), buf, size);
 }
 
 lh_ssize_t
-lh_os_fs_file_write(lh_ptr context, const lh_ptr buf, lh_usize_t size)
+lh_os_fs_file_write(lh_ptr self, const lh_ptr buf, lh_usize_t size)
 {
     return lh_os_system_fs_file_write(
-        lh_ptr_deref(lh_os_fs_file_get_handle_as_const(lh_ptr_cast(lh_os_fs_file_t, context))), buf, size);
+        lh_ptr_deref(lh_os_fs_file_get_handle_as_const(lh_ptr_cast(lh_os_fs_file_t, self))), buf, size);
 }
 
 lh_io_reader_t

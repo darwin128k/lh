@@ -16,9 +16,9 @@ struct LoopbackBuffer
 };
 
 lh_ssize_t
-LoopbackRead(lh_ptr context, lh_ptr buf, lh_usize_t size)
+LoopbackRead(lh_ptr self, lh_ptr buf, lh_usize_t size)
 {
-    LoopbackBuffer *lb = static_cast<LoopbackBuffer *>(context);
+    LoopbackBuffer *lb = static_cast<LoopbackBuffer *>(self);
     lh_usize_t available = lb->write_pos - lb->read_pos;
     lh_usize_t to_copy = size < available ? size : available;
     std::memcpy(buf, lb->data + lb->read_pos, to_copy);
@@ -27,9 +27,9 @@ LoopbackRead(lh_ptr context, lh_ptr buf, lh_usize_t size)
 }
 
 lh_ssize_t
-LoopbackWrite(lh_ptr context, const lh_ptr buf, lh_usize_t size)
+LoopbackWrite(lh_ptr self, const lh_ptr buf, lh_usize_t size)
 {
-    LoopbackBuffer *lb = static_cast<LoopbackBuffer *>(context);
+    LoopbackBuffer *lb = static_cast<LoopbackBuffer *>(self);
     std::memcpy(lb->data + lb->write_pos, buf, size);
     lb->write_pos += size;
     return static_cast<lh_ssize_t>(size);

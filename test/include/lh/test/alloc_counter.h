@@ -30,17 +30,17 @@ alloc_count()
 LH_COMPILER_EXTERN_C_BEGIN
 
 inline lh_ptr
-counting_alloc(lh_ptr context, lh_usize_t size)
+counting_alloc(lh_ptr self, lh_usize_t size)
 {
-    (void)context;
+    (void)self;
     ++alloc_count();
     return std::malloc(static_cast<std::size_t>(size));
 }
 
 inline lh_void
-counting_dealloc(lh_ptr context, lh_ptr ptr)
+counting_dealloc(lh_ptr self, lh_ptr ptr)
 {
-    (void)context;
+    (void)self;
     std::free(ptr);
 }
 

@@ -3,10 +3,10 @@
  * @brief Callable signature for allocator allocation routines.
  *
  * Defines the function type used by allocators to obtain memory.
- * The function accepts the allocator's context and a size request and returns
- * a pointer to allocated memory, or null on failure.
+ * The function accepts the allocator's state @p self and a size request and
+ * returns a pointer to allocated memory, or null on failure.
  *
- * @p context is the allocator's own state (::lh_memory_allocator_get_context):
+ * @p self is the allocator's own state (::lh_memory_allocator_get_context):
  * a pool or arena over a static buffer, a per-module sandbox, ... A stateless
  * allocator such as a `malloc` wrapper ignores it.
  *
@@ -25,6 +25,6 @@
  *
  * Not a pointer type by itself; use pointer wrappers where needed.
  */
-typedef lh_ptr(lh_memory_allocator_alloc_fn)(lh_ptr context, lh_usize_t size);
+typedef lh_ptr(lh_memory_allocator_alloc_fn)(lh_ptr self, lh_usize_t size);
 
 #endif /* LH_MEMORY_ALLOCATOR_ALLOC_FN_H */

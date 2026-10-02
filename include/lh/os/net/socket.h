@@ -184,39 +184,39 @@ lh_os_net_socket_set_reuse_addr(lh_os_net_socket_t *self, lh_bool_t enabled);
 /**
  * @brief ::lh_io_writer_write_fn backed by @p context's socket.
  *
- * @param context An ::lh_os_net_socket_t* (passed as the writer's context).
+ * @param self An ::lh_os_net_socket_t* (passed as the writer's context).
  * @param buf     Source buffer.
  * @param size    Number of bytes from @p buf to send.
  * @return Bytes actually sent, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
-lh_os_net_socket_send(lh_ptr context, const lh_ptr buf, lh_usize_t size);
+lh_os_net_socket_send(lh_ptr self, const lh_ptr buf, lh_usize_t size);
 
 /**
  * @brief ::lh_io_reader_read_fn backed by @p context's socket.
  *
- * @param context An ::lh_os_net_socket_t* (passed as the reader's context).
+ * @param self An ::lh_os_net_socket_t* (passed as the reader's context).
  * @param buf     Destination buffer.
  * @param size    Maximum bytes to read into @p buf.
  * @return Bytes actually received (`0` if the peer closed the connection),
  *         or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
-lh_os_net_socket_recv(lh_ptr context, lh_ptr buf, lh_usize_t size);
+lh_os_net_socket_recv(lh_ptr self, lh_ptr buf, lh_usize_t size);
 
 /**
  * @brief ::lh_io_dgram_writer_send_fn backed by @p context's socket (`sendto`).
  *
  * Each call is one datagram to @p addr. Not a stream write.
  *
- * @param context An ::lh_os_net_socket_t* (passed as the writer's context).
+ * @param self An ::lh_os_net_socket_t* (passed as the writer's context).
  * @param buf     Source buffer (the whole datagram).
  * @param size    Number of bytes from @p buf to send.
  * @param addr    Destination IPv4 address.
  * @return Bytes actually sent, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
-lh_os_net_socket_sendto(lh_ptr context, const lh_ptr buf, lh_usize_t size,
+lh_os_net_socket_sendto(lh_ptr self, const lh_ptr buf, lh_usize_t size,
                         const lh_net_ip4_socket_addr_t *addr);
 
 /**
@@ -225,14 +225,14 @@ lh_os_net_socket_sendto(lh_ptr context, const lh_ptr buf, lh_usize_t size,
  * Each call is one datagram; @p addr receives the sender. `0` is an empty
  * datagram, not end-of-stream.
  *
- * @param context An ::lh_os_net_socket_t* (passed as the reader's context).
+ * @param self An ::lh_os_net_socket_t* (passed as the reader's context).
  * @param buf     Destination buffer.
  * @param size    Maximum bytes to copy into @p buf.
  * @param addr    Receives the sender's IPv4 address.
  * @return Bytes actually received, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
-lh_os_net_socket_recvfrom(lh_ptr context, lh_ptr buf, lh_usize_t size,
+lh_os_net_socket_recvfrom(lh_ptr self, lh_ptr buf, lh_usize_t size,
                           lh_net_ip4_socket_addr_t *addr);
 
 /* ── lh_io adapters ──────────────────────────────────────────────────────── */

@@ -20,14 +20,14 @@
  * @typedef lh_io_dgram_writer_send_fn
  * @brief Function type for sending one datagram.
  *
- * @param context Identifies which datagram sink to write.
+ * @param self    Identifies which datagram sink to write.
  * @param buf     Source buffer (the whole datagram).
  * @param size    Number of bytes from @p buf to send.
  * @param addr    Destination IPv4 address.
  *
  * @return Bytes actually sent, or a negative value on failure.
  */
-typedef lh_ssize_t(lh_io_dgram_writer_send_fn)(lh_ptr context, const lh_ptr buf, lh_usize_t size,
+typedef lh_ssize_t(lh_io_dgram_writer_send_fn)(lh_ptr self, const lh_ptr buf, lh_usize_t size,
                                                const lh_net_ip4_socket_addr_t *addr);
 
 #endif /* LH_IO_DGRAM_WRITER_FN_H */

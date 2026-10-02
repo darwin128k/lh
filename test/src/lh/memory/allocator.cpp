@@ -21,41 +21,41 @@ int g_test_dealloc_calls = 0;
 LH_COMPILER_EXTERN_C_BEGIN
 
 lh_ptr
-test_alloc_malloc(lh_ptr context, lh_usize_t size)
+test_alloc_malloc(lh_ptr self, lh_usize_t size)
 {
-    LH_ATTRIBUTE_UNUSED(context);
+    LH_ATTRIBUTE_UNUSED(self);
     ++g_test_alloc_calls;
     g_test_alloc_last_size = size;
     return lh_cast_static(lh_ptr, std::malloc(lh_cast_static(std::size_t, size)));
 }
 
 lh_void
-test_dealloc_free(lh_ptr context, lh_ptr ptr)
+test_dealloc_free(lh_ptr self, lh_ptr ptr)
 {
-    LH_ATTRIBUTE_UNUSED(context);
+    LH_ATTRIBUTE_UNUSED(self);
     ++g_test_dealloc_calls;
     std::free(ptr);
 }
 
 lh_void
-test_dealloc_alt(lh_ptr context, lh_ptr ptr)
+test_dealloc_alt(lh_ptr self, lh_ptr ptr)
 {
-    LH_ATTRIBUTE_UNUSED(context);
+    LH_ATTRIBUTE_UNUSED(self);
     std::free(ptr);
 }
 
 lh_ptr
-test_alloc_other(lh_ptr context, lh_usize_t size)
+test_alloc_other(lh_ptr self, lh_usize_t size)
 {
-    LH_ATTRIBUTE_UNUSED(context);
+    LH_ATTRIBUTE_UNUSED(self);
     LH_ATTRIBUTE_UNUSED(size);
     return lh_cast_static(lh_ptr, std::malloc(1));
 }
 
 lh_ptr
-test_alloc_always_null(lh_ptr context, lh_usize_t size)
+test_alloc_always_null(lh_ptr self, lh_usize_t size)
 {
-    LH_ATTRIBUTE_UNUSED(context);
+    LH_ATTRIBUTE_UNUSED(self);
     LH_ATTRIBUTE_UNUSED(size);
     return nullptr;
 }
@@ -63,18 +63,18 @@ test_alloc_always_null(lh_ptr context, lh_usize_t size)
 int g_test_realloc_calls = 0;
 
 lh_ptr
-test_realloc(lh_ptr context, lh_ptr ptr, lh_usize_t old_size, lh_usize_t size)
+test_realloc(lh_ptr self, lh_ptr ptr, lh_usize_t old_size, lh_usize_t size)
 {
-    LH_ATTRIBUTE_UNUSED(context);
+    LH_ATTRIBUTE_UNUSED(self);
     LH_ATTRIBUTE_UNUSED(old_size);
     ++g_test_realloc_calls;
     return std::realloc(ptr, lh_cast_static(std::size_t, size));
 }
 
 lh_ptr
-test_realloc_always_null(lh_ptr context, lh_ptr ptr, lh_usize_t old_size, lh_usize_t size)
+test_realloc_always_null(lh_ptr self, lh_ptr ptr, lh_usize_t old_size, lh_usize_t size)
 {
-    LH_ATTRIBUTE_UNUSED(context);
+    LH_ATTRIBUTE_UNUSED(self);
     LH_ATTRIBUTE_UNUSED(old_size);
     LH_ATTRIBUTE_UNUSED(ptr);
     LH_ATTRIBUTE_UNUSED(size);
@@ -92,23 +92,23 @@ struct test_counting_heap
 };
 
 lh_ptr
-test_heap_alloc(lh_ptr context, lh_usize_t size)
+test_heap_alloc(lh_ptr self, lh_usize_t size)
 {
-    ++lh_cast_static(test_counting_heap *, context)->allocs;
+    ++lh_cast_static(test_counting_heap *, self)->allocs;
     return std::malloc(lh_cast_static(std::size_t, size));
 }
 
 lh_void
-test_heap_dealloc(lh_ptr context, lh_ptr ptr)
+test_heap_dealloc(lh_ptr self, lh_ptr ptr)
 {
-    ++lh_cast_static(test_counting_heap *, context)->deallocs;
+    ++lh_cast_static(test_counting_heap *, self)->deallocs;
     std::free(ptr);
 }
 
 lh_ptr
-test_heap_realloc(lh_ptr context, lh_ptr ptr, lh_usize_t old_size, lh_usize_t new_size)
+test_heap_realloc(lh_ptr self, lh_ptr ptr, lh_usize_t old_size, lh_usize_t new_size)
 {
-    test_counting_heap *heap = lh_cast_static(test_counting_heap *, context);
+    test_counting_heap *heap = lh_cast_static(test_counting_heap *, self);
     ++heap->reallocs;
     heap->last_old_size = old_size;
     heap->last_new_size = new_size;

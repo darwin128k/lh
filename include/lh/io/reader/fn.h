@@ -3,10 +3,11 @@
  * @brief Callable signature for stream read routines.
  *
  * A reader needs to know *which* stream it is reading — there can be many
- * at once (one per connection, one per open file, ...) — so @p context
+ * at once (one per connection, one per open file, ...) — so @p self
  * carries that identity as part of the callback's own signature rather than
- * as a separate object the callback closes over. The allocator callbacks
- * (::lh_memory_allocator_alloc_fn) take their context the same way.
+ * as a separate object the callback closes over: the callback is a method,
+ * @p self the object it runs on. The allocator callbacks
+ * (::lh_memory_allocator_alloc_fn) take their @p self the same way.
  *
  * @see lh_io_writer_write_fn
  */
@@ -22,7 +23,7 @@
  * @brief Function type `lh_ssize_t(lh_ptr, lh_ptr, lh_usize_t)` for reading
  *        from a stream.
  *
- * @param context Identifies which stream to read (whatever the concrete
+ * @param self    Identifies which stream to read (whatever the concrete
  *                reader needs — a socket handle, a `FILE *`, ...).
  * @param buf     Destination buffer.
  * @param size    Maximum number of bytes to read into @p buf.
@@ -30,6 +31,6 @@
  * @return Number of bytes actually read (`0` at end of stream), or a
  *         negative value if the read failed.
  */
-typedef lh_ssize_t(lh_io_reader_read_fn)(lh_ptr context, lh_ptr buf, lh_usize_t size);
+typedef lh_ssize_t(lh_io_reader_read_fn)(lh_ptr self, lh_ptr buf, lh_usize_t size);
 
 #endif /* LH_IO_READER_FN_H */

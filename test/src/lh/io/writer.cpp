@@ -15,9 +15,9 @@ struct MemorySink
 };
 
 lh_ssize_t
-MemorySinkWrite(lh_ptr context, const lh_ptr buf, lh_usize_t size)
+MemorySinkWrite(lh_ptr self, const lh_ptr buf, lh_usize_t size)
 {
-    MemorySink *sink = static_cast<MemorySink *>(context);
+    MemorySink *sink = static_cast<MemorySink *>(self);
     std::memcpy(sink->data + sink->size, buf, size);
     sink->size += size;
     return static_cast<lh_ssize_t>(size);

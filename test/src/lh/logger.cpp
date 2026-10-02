@@ -17,9 +17,9 @@ struct MemorySink
 };
 
 lh_ssize_t
-MemorySinkEmit(lh_ptr context, lh_logger_level_t level, lh_str_cptr fmt, va_list args)
+MemorySinkEmit(lh_ptr self, lh_logger_level_t level, lh_str_cptr fmt, va_list args)
 {
-    MemorySink *sink = static_cast<MemorySink *>(context);
+    MemorySink *sink = static_cast<MemorySink *>(self);
     char buf[128];
     lh_usize_t written = lh_str_ptr_format_text_v(buf, sizeof(buf), fmt, args);
 

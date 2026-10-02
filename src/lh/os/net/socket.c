@@ -98,32 +98,32 @@ lh_os_net_socket_set_reuse_addr(lh_os_net_socket_t *self, lh_bool_t enabled)
 }
 
 lh_ssize_t
-lh_os_net_socket_send(lh_ptr context, const lh_ptr buf, lh_usize_t size)
+lh_os_net_socket_send(lh_ptr self, const lh_ptr buf, lh_usize_t size)
 {
-    return lh_os_system_net_socket_send(lh_os_net_socket_get_handle(lh_ptr_cast(lh_os_net_socket_t, context)), buf,
+    return lh_os_system_net_socket_send(lh_os_net_socket_get_handle(lh_ptr_cast(lh_os_net_socket_t, self)), buf,
                                         size);
 }
 
 lh_ssize_t
-lh_os_net_socket_recv(lh_ptr context, lh_ptr buf, lh_usize_t size)
+lh_os_net_socket_recv(lh_ptr self, lh_ptr buf, lh_usize_t size)
 {
-    return lh_os_system_net_socket_recv(lh_os_net_socket_get_handle(lh_ptr_cast(lh_os_net_socket_t, context)), buf,
+    return lh_os_system_net_socket_recv(lh_os_net_socket_get_handle(lh_ptr_cast(lh_os_net_socket_t, self)), buf,
                                         size);
 }
 
 lh_ssize_t
-lh_os_net_socket_sendto(lh_ptr context, const lh_ptr buf, lh_usize_t size,
+lh_os_net_socket_sendto(lh_ptr self, const lh_ptr buf, lh_usize_t size,
                         const lh_net_ip4_socket_addr_t *addr)
 {
-    return lh_os_system_net_socket_sendto(lh_os_net_socket_get_handle(lh_ptr_cast(lh_os_net_socket_t, context)),
+    return lh_os_system_net_socket_sendto(lh_os_net_socket_get_handle(lh_ptr_cast(lh_os_net_socket_t, self)),
                                           buf, size, addr);
 }
 
 lh_ssize_t
-lh_os_net_socket_recvfrom(lh_ptr context, lh_ptr buf, lh_usize_t size,
+lh_os_net_socket_recvfrom(lh_ptr self, lh_ptr buf, lh_usize_t size,
                           lh_net_ip4_socket_addr_t *addr)
 {
-    return lh_os_system_net_socket_recvfrom(lh_os_net_socket_get_handle(lh_ptr_cast(lh_os_net_socket_t, context)),
+    return lh_os_system_net_socket_recvfrom(lh_os_net_socket_get_handle(lh_ptr_cast(lh_os_net_socket_t, self)),
                                             buf, size, addr);
 }
 
