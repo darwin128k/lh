@@ -64,6 +64,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/vec2.cpp
         ${LH_TEST_SRC_PATH}/lh/vec3.cpp
         ${LH_TEST_SRC_PATH}/lh/vec4.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/geom.cpp
         ${LH_TEST_SRC_PATH}/lh/list.cpp
         ${LH_TEST_SRC_PATH}/lh/str.cpp
         ${LH_TEST_SRC_PATH}/lh/str/list.cpp

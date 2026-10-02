@@ -86,7 +86,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/list.c
         ${LH_LIB_SRC_PATH}/list/node.c
 
-        ${LH_LIB_SRC_PATH}/geom.c
+        ${LH_LIB_SRC_PATH}/color.c
+        ${LH_LIB_SRC_PATH}/ui/geom.c
         ${LH_LIB_SRC_PATH}/vec2.c
         ${LH_LIB_SRC_PATH}/vec3.c
         ${LH_LIB_SRC_PATH}/vec4.c
