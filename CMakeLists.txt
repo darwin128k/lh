@@ -85,6 +85,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/list.c
         ${LH_LIB_SRC_PATH}/list/node.c
 
+        ${LH_LIB_SRC_PATH}/geom.c
+
         ${LH_LIB_SRC_PATH}/version.c
         ${LH_LIB_SRC_PATH}/date.c
         ${LH_LIB_SRC_PATH}/date/year.c
@@ -192,19 +194,46 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/str.c
     )
 
+    # lh::geom ↔ native converters (Win32 RECT / X11 quartet / NSRect, plus
+    # the corresponding pixel/color conversions). Always compiled because
+    # each backend declares the file even if its OS source list above is
+    # empty on a given platform.
+    if (WIN32)
+        list(APPEND LH_LIB_SOURCES
+                ${LH_LIB_SRC_PATH}/os/system/win/geom.c
+        )
+    elseif (UNIX AND NOT APPLE)
+        list(APPEND LH_LIB_SOURCES
+                ${LH_LIB_SRC_PATH}/os/system/posix/geom.c
+        )
+    elseif (APPLE)
+        list(APPEND LH_LIB_SOURCES
+                ${LH_LIB_SRC_PATH}/os/system/macos/geom.m
+        )
+        set_source_files_properties(
+                ${LH_LIB_SRC_PATH}/os/system/macos/geom.m
+                PROPERTIES LANGUAGE OBJC
+        )
+    endif ()
+
     # Native window backend: Win32 (user32.dll) on Windows, Xlib (libX11)
     # on Linux. Cocoa/AppKit for macOS lands under macos/window.c when the
-    # backend is added.
+    # backend is added. Each backend is opt-in: when libX11 is missing on
+    # Linux (e.g., a CI runner without `libx11-dev` installed), the X11
+    # backend is skipped so the rest of the library still builds and links.
     if (LH_LIBRARY_OPTION_OS_WINDOW)
         list(APPEND LH_LIB_SOURCES
                 ${LH_LIB_SRC_PATH}/os/window.c
-                ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/window.c
         )
         if (WIN32)
+            list(APPEND LH_LIB_SOURCES
+                    ${LH_LIB_SRC_PATH}/os/system/win/window.c
+            )
             list(APPEND LH_OS_SYSTEM_LINK_LIBS user32)
-        elseif (UNIX AND NOT APPLE)
-            list(APPEND LH_OS_SYSTEM_LINK_LIBS X11)
         elseif (APPLE)
+            list(APPEND LH_LIB_SOURCES
+                    ${LH_LIB_SRC_PATH}/os/system/macos/window.m
+            )
             list(APPEND LH_OS_SYSTEM_LINK_LIBS "-framework AppKit")
             list(APPEND LH_OS_SYSTEM_LINK_LIBS "-framework Foundation")
             # The Cocoa backend file uses Objective-C syntax; tell CMake to
@@ -213,6 +242,22 @@ if (LH_LIBRARY_OPTION_OS)
                     ${LH_LIB_SRC_PATH}/os/system/macos/window.m
                     PROPERTIES LANGUAGE OBJC
             )
+        elseif (UNIX AND NOT APPLE)
+            # Linux: detect libX11 at configure time. `find_library` is a
+            # no-op (and prints nothing) when the library is on the standard
+            # search path; on a `libx11-dev`-less CI it skips the X11
+            # backend entirely instead of failing the link step.
+            find_library(LH_X11_LIBRARY NAMES X11)
+            if (LH_X11_LIBRARY)
+                list(APPEND LH_LIB_SOURCES
+                        ${LH_LIB_SRC_PATH}/os/system/posix/window.c
+                )
+                list(APPEND LH_OS_SYSTEM_LINK_LIBS ${LH_X11_LIBRARY})
+            else ()
+                message(STATUS
+                        "lh: libX11 not found; X11 window backend disabled"
+                        " (install libx11-dev to enable)")
+            endif ()
         endif ()
     endif ()
 endif ()
