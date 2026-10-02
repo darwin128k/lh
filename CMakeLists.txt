@@ -195,6 +195,15 @@ if (LH_LIBRARY_OPTION_OS)
             list(APPEND LH_OS_SYSTEM_LINK_LIBS user32)
         elseif (UNIX AND NOT APPLE)
             list(APPEND LH_OS_SYSTEM_LINK_LIBS X11)
+        elseif (APPLE)
+            list(APPEND LH_OS_SYSTEM_LINK_LIBS "-framework AppKit")
+            list(APPEND LH_OS_SYSTEM_LINK_LIBS "-framework Foundation")
+            # The Cocoa backend file uses Objective-C syntax; tell CMake to
+            # compile it with the OBJC language, not C.
+            set_source_files_properties(
+                    ${LH_LIB_SRC_PATH}/os/system/macos/window.m
+                    PROPERTIES LANGUAGE OBJC
+            )
         endif ()
     endif ()
 endif ()
