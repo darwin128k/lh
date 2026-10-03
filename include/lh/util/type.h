@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file type.h
  * @brief Generic type inspection and casting utilities.
  *

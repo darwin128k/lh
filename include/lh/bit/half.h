@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file half.h
  * @brief Join a 64-bit word from two 32-bit halves, and split it back.
  *

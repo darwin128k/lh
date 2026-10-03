@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file fields.h
  * @brief Member fields of ::lh_math_mat4_t.
  */

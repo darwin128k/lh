@@ -1,4 +1,4 @@
-﻿/* RTLD_NOLOAD, RTLD_DI_LINKMAP, dladdr and dlinfo are GNU extensions. */
+/* RTLD_NOLOAD, RTLD_DI_LINKMAP, dladdr and dlinfo are GNU extensions. */
 #if !defined(_GNU_SOURCE)
 #    define _GNU_SOURCE
 #endif

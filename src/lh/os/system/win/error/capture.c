@@ -1,4 +1,4 @@
-﻿#include <lh/os/system/error/capture.h>
+#include <lh/os/system/error/capture.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/char/map.h>

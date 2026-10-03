@@ -1,4 +1,4 @@
-﻿#include <lh/wstr/list.h>
+#include <lh/wstr/list.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/cast/static.h>

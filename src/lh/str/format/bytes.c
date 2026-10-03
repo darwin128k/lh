@@ -1,4 +1,4 @@
-﻿#include <lh/str/format/bytes.h>
+#include <lh/str/format/bytes.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/cast/static.h>

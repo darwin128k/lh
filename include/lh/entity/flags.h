@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file flags.h
  * @brief Bitmask of how an ::lh_entity_t behaves (::lh_entity_add_flags).
  */

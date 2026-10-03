@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file 3d.h
  * @brief A 2D entity extended into space: a model, a camera, a light.
  *

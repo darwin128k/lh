@@ -1,4 +1,4 @@
-﻿#include <lh/logger.h>
+#include <lh/logger.h>
 #include <lh/assert.h>
 #include <lh/null.h>
 #include <lh/runtime/error.h>

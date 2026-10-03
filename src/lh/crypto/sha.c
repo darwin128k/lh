@@ -1,4 +1,4 @@
-﻿#include <lh/crypto/sha.h>
+#include <lh/crypto/sha.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/memory/std.h>

@@ -1,4 +1,4 @@
-﻿#include <lh/ui/canvas.h>
+#include <lh/ui/canvas.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/runtime/error/code.h>

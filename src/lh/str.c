@@ -1,4 +1,4 @@
-﻿#include <lh/str.h>
+#include <lh/str.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/null.h>

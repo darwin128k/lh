@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file window.c
  * @brief Win32 backend for `lh/os/system/window.h` — XP-clean.
  *

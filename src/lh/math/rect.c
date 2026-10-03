@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file rect.c
  * @brief Implementation of `lh/math/rect.h`.
  *

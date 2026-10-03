@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file point.c
  * @brief Implementation of `lh/math/point.h`.
  */

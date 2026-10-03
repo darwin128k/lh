@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file event.h
  * @brief An event sent to an entity (::lh_entity_send_event).
  */

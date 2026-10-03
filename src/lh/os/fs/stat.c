@@ -1,4 +1,4 @@
-﻿#include <lh/os/fs/stat.h>
+#include <lh/os/fs/stat.h>
 #include <lh/assert.h>
 #include <lh/null.h>
 #include <lh/os/fs/path.h>

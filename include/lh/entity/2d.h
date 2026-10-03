@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file 2d.h
  * @brief An entity with a place in the plane: position, angle and scale
  *        relative to its parent. The spatial core of lh's entities.

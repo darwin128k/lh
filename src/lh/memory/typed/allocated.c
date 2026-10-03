@@ -1,4 +1,4 @@
-﻿#include <lh/memory/typed/allocated.h>
+#include <lh/memory/typed/allocated.h>
 #include <lh/math.h>
 
 lh_void

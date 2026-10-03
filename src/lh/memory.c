@@ -1,4 +1,4 @@
-﻿#include <lh/memory.h>
+#include <lh/memory.h>
 #include <lh/cast/static.h>
 #include <lh/memory/std.h>
 #include <lh/assert.h>

@@ -1,4 +1,4 @@
-﻿#include <lh/str/parse/hex.h>
+#include <lh/str/parse/hex.h>
 #include <lh/assert.h>
 #include <lh/char/xdigit.h>
 #include <lh/util/addr.h>

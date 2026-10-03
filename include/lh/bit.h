@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file bit.h
  * @brief Bitwise helpers under the `lh_bit_*` name.
  *

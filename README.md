@@ -1,4 +1,4 @@
-﻿# Light Helper
+# Light Helper
 
 <p align="center">
   <img src="docs/assets/logo.png" alt="lh — Light Helper" height="256"/>

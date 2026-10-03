@@ -1,4 +1,4 @@
-﻿#include <gtest/gtest.h>
+#include <gtest/gtest.h>
 
 #include <lh/util/wchar.h>
 #include <lh/util/wstr/ptr.h>

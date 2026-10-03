@@ -1,4 +1,4 @@
-﻿#include <lh/memory/allocator.h>
+#include <lh/memory/allocator.h>
 #include <lh/memory.h>
 #include <lh/math.h>
 #include <lh/util/ptr.h>

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file addr.h
  * @brief Backend-private: ::lh_net_ip4_socket_addr_t <-> `struct sockaddr_in`.
  *

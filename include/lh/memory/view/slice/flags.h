@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file flags.h
  * @brief Flags for tracking memory view slice initialization state.
  */

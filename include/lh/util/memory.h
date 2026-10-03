@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file memory.h
  * @brief Memory-span helpers for sized search and sentinel scan.
  *

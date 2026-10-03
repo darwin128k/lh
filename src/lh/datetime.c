@@ -1,4 +1,4 @@
-﻿#include <lh/datetime.h>
+#include <lh/datetime.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/memory/std.h>

@@ -1,4 +1,4 @@
-﻿#include <lh/os/system/error/kind.h>
+#include <lh/os/system/error/kind.h>
 #include <lh/cast/static.h>
 #include <lh/os/system/win/kernel32.h>
 #include <lh/math.h>

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file entity_window.c
  * @brief Example: an entity screen shown in a native window.
  *

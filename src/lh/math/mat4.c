@@ -1,4 +1,4 @@
-﻿#include <lh/assert/runtime.h>
+#include <lh/assert/runtime.h>
 #include <lh/math/mat4.h>
 
 lh_math_mat4_t

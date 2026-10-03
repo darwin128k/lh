@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file screen.h
  * @brief The root of what is shown on one display, redrawn only where it
  *        changed.

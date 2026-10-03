@@ -1,4 +1,4 @@
-﻿#include <lh/memory/tree.h>
+#include <lh/memory/tree.h>
 #include <lh/assert.h>
 #include <lh/memory/tree/header.h>
 #include <lh/null.h>

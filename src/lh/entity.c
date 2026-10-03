@@ -1,4 +1,4 @@
-﻿#include <lh/entity.h>
+#include <lh/entity.h>
 #include <lh/assert.h>
 #include <lh/cast/const.h>
 #include <lh/entity/handler.h>

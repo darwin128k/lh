@@ -1,4 +1,4 @@
-﻿#include <lh/os/fs/file.h>
+#include <lh/os/fs/file.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/null.h>

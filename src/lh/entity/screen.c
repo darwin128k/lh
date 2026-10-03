@@ -1,4 +1,4 @@
-﻿#include <lh/entity/screen.h>
+#include <lh/entity/screen.h>
 #include <lh/assert.h>
 #include <lh/float/round.h>
 #include <lh/null.h>

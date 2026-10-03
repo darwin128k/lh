@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file scan.h
  * @brief Locate the lowest/highest set bit in an 8/16/32/64-bit word.
  *

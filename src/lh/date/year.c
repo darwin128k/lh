@@ -1,4 +1,4 @@
-﻿#include <lh/date/year.h>
+#include <lh/date/year.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/util/interval/wrap.h>

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file endian.h
  * @brief Pack/unpack an integer to/from big-endian or little-endian bytes.
  *

@@ -1,4 +1,4 @@
-﻿#include <lh/date.h>
+#include <lh/date.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/numeric/types.h>

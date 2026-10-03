@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file size.c
  * @brief Implementation of `lh/math/size.h`.
  */

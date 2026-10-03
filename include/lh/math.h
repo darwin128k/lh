@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file math.h
  * @brief Math primitives: arithmetic, comparison, and bitwise macros, plus
  *        integer 2D geometry types (point, size, rectangle).

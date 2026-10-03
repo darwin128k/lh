@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file perm.h
  * @brief Unix permission bits on a filesystem object (::lh_fs_perm_t).
  *

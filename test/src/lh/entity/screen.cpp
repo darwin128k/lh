@@ -1,4 +1,4 @@
-﻿#include <gtest/gtest.h>
+#include <gtest/gtest.h>
 
 #include <lh/entity/screen.h>
 #include <lh/memory/allocator/initializer.h>

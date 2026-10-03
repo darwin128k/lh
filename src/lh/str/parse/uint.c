@@ -1,4 +1,4 @@
-﻿#include <lh/str/parse/uint.h>
+#include <lh/str/parse/uint.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/char/digit.h>

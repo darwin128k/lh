@@ -1,4 +1,4 @@
-﻿#include <lh/memory/typed.h>
+#include <lh/memory/typed.h>
 #include <lh/memory/typed/initializer.h>
 #include <lh/util/return.h>
 #include <lh/math.h>

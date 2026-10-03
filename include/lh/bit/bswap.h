@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file bswap.h
  * @brief Reverse the bytes of a 16/32/64-bit integer in register.
  *

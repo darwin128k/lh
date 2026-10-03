@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file kind.h
  * @brief Backend-private: ::lh_fs_kind_t of a Win32 file from its
  *        `FILE_ATTRIBUTE_*` flags and reparse tag.

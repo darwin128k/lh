@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file mode.h
  * @brief Which access ::lh_os_system_fs_file_open requests from the OS.
  *

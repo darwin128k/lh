@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file flags.h
  * @brief Bitmask of which ::lh_logger_level_t values a logger will emit.
  *

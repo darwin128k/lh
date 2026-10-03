@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file mat4.h
  * @brief 4x4 float matrix: affine and projective transforms of 3D points.
  *

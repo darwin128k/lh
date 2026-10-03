@@ -1,4 +1,4 @@
-﻿#include <lh/array.h>
+#include <lh/array.h>
 #include <lh/memory.h>
 #include <lh/memory/std.h>
 #include <lh/math.h>

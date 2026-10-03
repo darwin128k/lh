@@ -1,4 +1,4 @@
-﻿#include <lh/str/view.h>
+#include <lh/str/view.h>
 #include <lh/assert.h>
 #include <lh/null.h>
 #include <lh/util/addr.h>

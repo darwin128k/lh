@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file window.c
  * @brief Application-level wrapper around `lh/os/system/window.h`.
  *

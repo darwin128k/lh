@@ -1,4 +1,4 @@
-﻿#include <lh/memory/sized/allocator.h>
+#include <lh/memory/sized/allocator.h>
 #include <lh/assert.h>
 #include <lh/null.h>
 #include <lh/numeric/limits.h>

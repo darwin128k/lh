@@ -1,4 +1,4 @@
-﻿#include <lh/cpu/simd.h>
+#include <lh/cpu/simd.h>
 
 #include <lh/cast/static.h>
 #include <lh/compiler/arch.h>

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file vec3.h
  * @brief 3-component float vector: `x, y, z`.
  *

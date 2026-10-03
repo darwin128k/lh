@@ -1,4 +1,4 @@
-﻿#include <lh/str/parse/text.h>
+#include <lh/str/parse/text.h>
 #include <lh/assert.h>
 #include <lh/bool.h>
 #include <lh/cast/static.h>

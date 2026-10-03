@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file filetime.h
  * @brief Backend-private: Win32 `FILETIME` -> ::lh_timestamp_t.
  *

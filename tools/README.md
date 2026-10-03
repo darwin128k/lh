@@ -1,4 +1,4 @@
-﻿# Tools
+# Tools
 
 Scripts for code generation and analysis. These tools are used during development to generate source code from external data (Unicode tables) and analyze header dependencies.
 

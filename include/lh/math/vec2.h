@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file vec2.h
  * @brief 2-component float vector: `x, y`.
  *

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file interval.h
  * @brief Interval predicates and arithmetic bound-check helpers.
  *

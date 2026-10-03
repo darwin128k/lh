@@ -1,4 +1,4 @@
-﻿#include <lh/crypto/rijndael.h>
+#include <lh/crypto/rijndael.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/unreachable.h>

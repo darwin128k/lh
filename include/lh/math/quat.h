@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file quat.h
  * @brief Rotation quaternion: `x, y, z` (vector part), `w` (scalar part).
  *

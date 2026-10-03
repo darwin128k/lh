@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file attr.h
  * @brief Extra filesystem flags that Unix `st_mode` does not carry.
  *

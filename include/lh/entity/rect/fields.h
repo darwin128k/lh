@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file fields.h
  * @brief Member fields ::lh_entity_rect_t adds to a 2D entity.
  */

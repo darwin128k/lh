@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file window.c
  * @brief POSIX/Linux X11 backend for `lh/os/system/window.h`.
  *

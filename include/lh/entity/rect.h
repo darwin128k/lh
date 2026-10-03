@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file rect.h
  * @brief A rectangular entity: the 2D element (panel, button, label, ...).
  *

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file vec4.h
  * @brief 4-component float vector: `x, y, z, w`.
  *

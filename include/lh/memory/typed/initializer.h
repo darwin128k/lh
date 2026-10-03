@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file initializer.h
  * @brief Brace-enclosed initializer macros for ::lh_memory_typed_t.
  */

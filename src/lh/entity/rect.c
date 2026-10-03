@@ -1,4 +1,4 @@
-﻿#include <lh/entity/rect.h>
+#include <lh/entity/rect.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/entity/screen.h>

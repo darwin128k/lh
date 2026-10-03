@@ -1,4 +1,4 @@
-﻿#include <lh/os/system/net/socket.h>
+#include <lh/os/system/net/socket.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/cast/static.h>

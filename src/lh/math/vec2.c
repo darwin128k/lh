@@ -1,4 +1,4 @@
-﻿#include <lh/assert/runtime.h>
+#include <lh/assert/runtime.h>
 #include <lh/math/vec2.h>
 #include <lh/cast/static.h>
 #include <lh/float/sqrt.h>

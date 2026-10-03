@@ -1,4 +1,4 @@
-﻿#include <lh/time/second.h>
+#include <lh/time/second.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/util/interval/wrap.h>

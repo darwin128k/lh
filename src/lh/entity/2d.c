@@ -1,4 +1,4 @@
-﻿#include <lh/entity/2d.h>
+#include <lh/entity/2d.h>
 #include <lh/entity/screen.h>
 #include <lh/assert.h>
 #include <lh/cast/const.h>

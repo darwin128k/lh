@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file wchar.h
  * @brief Wide-character utilities: ordinal casts and Unicode case (fold + simple map).
  *

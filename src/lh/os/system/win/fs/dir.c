@@ -1,4 +1,4 @@
-﻿#include <lh/os/system/fs/dir.h>
+#include <lh/os/system/fs/dir.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/bool.h>

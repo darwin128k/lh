@@ -1,4 +1,4 @@
-﻿#include <lh/os/system/fs/file.h>
+#include <lh/os/system/fs/file.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/cast/reinterpret.h>

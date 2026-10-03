@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file rotate.h
  * @brief Rotate the bits of a 32/64-bit word left or right.
  *
