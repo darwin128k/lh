@@ -14,6 +14,10 @@
  *
  * Layout is 4 consecutive ::lh_float_t in `x, y, z, w` order (GLM's and
  * most engines' storage order). All functions take and return by value.
+ *
+ * Fields are not part of the public API: read and mutate them through the
+ * `lh_math_quat_get_*` / `lh_math_quat_set_*` accessors. The struct is
+ * defined here only so it can be embedded by value.
  */
 
 #ifndef LH_MATH_QUAT_H
@@ -24,16 +28,18 @@
 #include <lh/math/quat/fields.h>
 #include <lh/math/vec3.h>
 #include <lh/math/vec4.h>
+#include <lh/void.h>
 
 /**
- * @struct lh_quat
+ * @struct lh_math_quat
+ * @typedef lh_math_quat_t
  * @brief Rotation quaternion. Fields via ::lh_math_quat_fields.
  */
-struct lh_quat
+struct lh_math_quat
 {
     lh_math_quat_fields(lh_float_t);
 };
-typedef struct lh_quat lh_math_quat_t;
+typedef struct lh_math_quat lh_math_quat_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -42,6 +48,56 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_math_quat_t
 lh_math_quat_make(lh_float_t x, lh_float_t y, lh_float_t z, lh_float_t w);
+
+/* ── Accessors ───────────────────────────────────────────────────────────── */
+
+/**
+ * @brief X component (vector part) of @p self.
+ */
+lh_float_t
+lh_math_quat_get_x(const lh_math_quat_t *self);
+
+/**
+ * @brief Y component (vector part) of @p self.
+ */
+lh_float_t
+lh_math_quat_get_y(const lh_math_quat_t *self);
+
+/**
+ * @brief Z component (vector part) of @p self.
+ */
+lh_float_t
+lh_math_quat_get_z(const lh_math_quat_t *self);
+
+/**
+ * @brief W component (scalar part) of @p self.
+ */
+lh_float_t
+lh_math_quat_get_w(const lh_math_quat_t *self);
+
+/**
+ * @brief Set the X component of @p self.
+ */
+lh_void
+lh_math_quat_set_x(lh_math_quat_t *self, lh_float_t x);
+
+/**
+ * @brief Set the Y component of @p self.
+ */
+lh_void
+lh_math_quat_set_y(lh_math_quat_t *self, lh_float_t y);
+
+/**
+ * @brief Set the Z component of @p self.
+ */
+lh_void
+lh_math_quat_set_z(lh_math_quat_t *self, lh_float_t z);
+
+/**
+ * @brief Set the W component of @p self.
+ */
+lh_void
+lh_math_quat_set_w(lh_math_quat_t *self, lh_float_t w);
 
 /**
  * @brief The same 4 numbers as a ::lh_math_vec4_t (`x, y, z, w`).

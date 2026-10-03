@@ -4,14 +4,21 @@
  *
  * `x` is horizontal, `y` is vertical (top-left origin, like every OS window
  * coordinate system).
+ *
+ * Fields are not part of the public API: read and mutate them through the
+ * `lh_math_point_get_*` / `lh_math_point_set_*` accessors. The struct is
+ * defined here only so it can be embedded by value (e.g. as
+ * `lh_math_rect_t::origin`).
  */
 
 #ifndef LH_MATH_POINT_H
 #define LH_MATH_POINT_H
 
+#include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/math/coord.h>
 #include <lh/math/point/fields.h>
+#include <lh/void.h>
 
 /**
  * @struct lh_math_point
@@ -26,11 +33,61 @@ typedef struct lh_math_point lh_math_point_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/* ── Constructors ────────────────────────────────────────────────────────── */
+
 /**
  * @brief Make a `::lh_math_point_t` from explicit coordinates.
  */
 lh_math_point_t
 lh_math_point_make(lh_math_coord_t x, lh_math_coord_t y);
+
+/**
+ * @brief The origin: `(0, 0)`.
+ */
+lh_math_point_t
+lh_math_point_zero(void);
+
+/* ── Accessors ───────────────────────────────────────────────────────────── */
+
+/**
+ * @brief X coordinate of @p self.
+ */
+lh_math_coord_t
+lh_math_point_get_x(const lh_math_point_t *self);
+
+/**
+ * @brief Y coordinate of @p self.
+ */
+lh_math_coord_t
+lh_math_point_get_y(const lh_math_point_t *self);
+
+/**
+ * @brief Set the X coordinate of @p self.
+ */
+lh_void
+lh_math_point_set_x(lh_math_point_t *self, lh_math_coord_t x);
+
+/**
+ * @brief Set the Y coordinate of @p self.
+ */
+lh_void
+lh_math_point_set_y(lh_math_point_t *self, lh_math_coord_t y);
+
+/* ── Queries ────────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Element-wise equality.
+ */
+lh_bool_t
+lh_math_point_eq(const lh_math_point_t *a, const lh_math_point_t *b);
+
+/* ── Set ops ────────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Translate @p self by `(@p dx, @p dy)`.
+ */
+lh_math_point_t
+lh_math_point_offset(const lh_math_point_t *self, lh_math_coord_t dx, lh_math_coord_t dy);
 
 LH_COMPILER_EXTERN_C_END
 

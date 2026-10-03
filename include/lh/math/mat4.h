@@ -13,6 +13,10 @@
  *
  * Like the vectors, nothing here knows about handedness or which axis is
  * up.
+ *
+ * Fields are not part of the public API: read and mutate them through the
+ * `lh_math_mat4_get_column` / `lh_math_mat4_set_column` accessors. The
+ * struct is defined here only so the columns can be embedded by value.
  */
 
 #ifndef LH_MATH_MAT4_H
@@ -24,18 +28,34 @@
 #include <lh/math/quat.h>
 #include <lh/math/vec3.h>
 #include <lh/math/vec4.h>
+#include <lh/void.h>
 
 /**
- * @struct lh_mat4
+ * @struct lh_math_mat4
+ * @typedef lh_math_mat4_t
  * @brief 4x4 float matrix. Fields via ::lh_math_mat4_fields.
  */
-struct lh_mat4
+struct lh_math_mat4
 {
     lh_math_mat4_fields(lh_math_vec4_t);
 };
-typedef struct lh_mat4 lh_math_mat4_t;
+typedef struct lh_math_mat4 lh_math_mat4_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/* ── Accessors ───────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Column @p index (`0..3`) of @p self.
+ */
+lh_math_vec4_t
+lh_math_mat4_get_column(const lh_math_mat4_t *self, unsigned index);
+
+/**
+ * @brief Replace column @p index (`0..3`) of @p self with @p column.
+ */
+lh_void
+lh_math_mat4_set_column(lh_math_mat4_t *self, unsigned index, lh_math_vec4_t column);
 
 /**
  * @brief The identity: transforms every vector to itself.

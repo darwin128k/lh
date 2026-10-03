@@ -9,6 +9,10 @@
  *
  * Layout is 3 consecutive ::lh_float_t (`x, y, z`), the same as a C
  * `float[3]`, e.g. GoldSrc's `vec3_t`.
+ *
+ * Fields are not part of the public API: read and mutate them through the
+ * `lh_math_vec3_get_*` / `lh_math_vec3_set_*` accessors. The struct is
+ * defined here only so it can be embedded by value.
  */
 
 #ifndef LH_MATH_VEC3_H
@@ -18,16 +22,18 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/float.h>
 #include <lh/math/vec3/fields.h>
+#include <lh/void.h>
 
 /**
- * @struct lh_vec3
+ * @struct lh_math_vec3
+ * @typedef lh_math_vec3_t
  * @brief 3-component float vector.
  */
-struct lh_vec3
+struct lh_math_vec3
 {
     lh_math_vec3_fields(lh_float_t);
 };
-typedef struct lh_vec3 lh_math_vec3_t;
+typedef struct lh_math_vec3 lh_math_vec3_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -36,6 +42,44 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_math_vec3_t
 lh_math_vec3_make(lh_float_t x, lh_float_t y, lh_float_t z);
+
+/* ── Accessors ───────────────────────────────────────────────────────────── */
+
+/**
+ * @brief X component of @p self.
+ */
+lh_float_t
+lh_math_vec3_get_x(const lh_math_vec3_t *self);
+
+/**
+ * @brief Y component of @p self.
+ */
+lh_float_t
+lh_math_vec3_get_y(const lh_math_vec3_t *self);
+
+/**
+ * @brief Z component of @p self.
+ */
+lh_float_t
+lh_math_vec3_get_z(const lh_math_vec3_t *self);
+
+/**
+ * @brief Set the X component of @p self.
+ */
+lh_void
+lh_math_vec3_set_x(lh_math_vec3_t *self, lh_float_t x);
+
+/**
+ * @brief Set the Y component of @p self.
+ */
+lh_void
+lh_math_vec3_set_y(lh_math_vec3_t *self, lh_float_t y);
+
+/**
+ * @brief Set the Z component of @p self.
+ */
+lh_void
+lh_math_vec3_set_z(lh_math_vec3_t *self, lh_float_t z);
 
 /**
  * @brief Component-wise sum @p a + @p b.

@@ -9,6 +9,10 @@
  *
  * Layout is 4 consecutive ::lh_float_t (`x, y, z, w`), the same as a C
  * `float[4]`.
+ *
+ * Fields are not part of the public API: read and mutate them through the
+ * `lh_math_vec4_get_*` / `lh_math_vec4_set_*` accessors. The struct is
+ * defined here only so it can be embedded by value.
  */
 
 #ifndef LH_MATH_VEC4_H
@@ -18,16 +22,18 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/float.h>
 #include <lh/math/vec4/fields.h>
+#include <lh/void.h>
 
 /**
- * @struct lh_vec4
+ * @struct lh_math_vec4
+ * @typedef lh_math_vec4_t
  * @brief 4-component float vector.
  */
-struct lh_vec4
+struct lh_math_vec4
 {
     lh_math_vec4_fields(lh_float_t);
 };
-typedef struct lh_vec4 lh_math_vec4_t;
+typedef struct lh_math_vec4 lh_math_vec4_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -36,6 +42,56 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_math_vec4_t
 lh_math_vec4_make(lh_float_t x, lh_float_t y, lh_float_t z, lh_float_t w);
+
+/* ── Accessors ───────────────────────────────────────────────────────────── */
+
+/**
+ * @brief X component of @p self.
+ */
+lh_float_t
+lh_math_vec4_get_x(const lh_math_vec4_t *self);
+
+/**
+ * @brief Y component of @p self.
+ */
+lh_float_t
+lh_math_vec4_get_y(const lh_math_vec4_t *self);
+
+/**
+ * @brief Z component of @p self.
+ */
+lh_float_t
+lh_math_vec4_get_z(const lh_math_vec4_t *self);
+
+/**
+ * @brief W component of @p self.
+ */
+lh_float_t
+lh_math_vec4_get_w(const lh_math_vec4_t *self);
+
+/**
+ * @brief Set the X component of @p self.
+ */
+lh_void
+lh_math_vec4_set_x(lh_math_vec4_t *self, lh_float_t x);
+
+/**
+ * @brief Set the Y component of @p self.
+ */
+lh_void
+lh_math_vec4_set_y(lh_math_vec4_t *self, lh_float_t y);
+
+/**
+ * @brief Set the Z component of @p self.
+ */
+lh_void
+lh_math_vec4_set_z(lh_math_vec4_t *self, lh_float_t z);
+
+/**
+ * @brief Set the W component of @p self.
+ */
+lh_void
+lh_math_vec4_set_w(lh_math_vec4_t *self, lh_float_t w);
 
 /**
  * @brief Component-wise sum @p a + @p b.

@@ -10,6 +10,10 @@
  * ::lh_math_rect_is_empty, ::lh_math_rect_intersection, and
  * ::lh_math_rect_width / ::lh_math_rect_height all share that definition, so
  * an "empty" output is canonical regardless of which operation produced it.
+ *
+ * Fields are not part of the public API: read and mutate them through the
+ * `lh_math_rect_get_*` / `lh_math_rect_set_*` accessors. The struct is
+ * defined here only so `origin` and `size` can be embedded by value.
  */
 
 #ifndef LH_MATH_RECT_H
@@ -21,6 +25,7 @@
 #include <lh/math/point.h>
 #include <lh/math/rect/fields.h>
 #include <lh/math/size.h>
+#include <lh/void.h>
 
 /**
  * @struct lh_math_rect
@@ -58,7 +63,63 @@ lh_math_rect_from_min_max(lh_math_coord_t x_min, lh_math_coord_t y_min,
 lh_math_rect_t
 lh_math_rect_zero(void);
 
-/* ── Accessors ──────────────────────────────────────────────────────────── */
+/* ── Accessors ───────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Top-left corner of @p self as a ::lh_math_point_t.
+ */
+lh_math_point_t
+lh_math_rect_get_origin(const lh_math_rect_t *self);
+
+/**
+ * @brief Size of @p self as a ::lh_math_size_t.
+ */
+lh_math_size_t
+lh_math_rect_get_size(const lh_math_rect_t *self);
+
+/**
+ * @brief Top-left corner of @p self as a ::lh_math_point_t. Handles @c NULL.
+ */
+lh_math_point_t
+lh_math_rect_origin(const lh_math_rect_t *self);
+
+/**
+ * @brief X coordinate of the origin of @p self.
+ */
+lh_math_coord_t
+lh_math_rect_get_x(const lh_math_rect_t *self);
+
+/**
+ * @brief Y coordinate of the origin of @p self.
+ */
+lh_math_coord_t
+lh_math_rect_get_y(const lh_math_rect_t *self);
+
+/**
+ * @brief Width component of the size of @p self. Zero for empty rectangles.
+ */
+lh_math_coord_t
+lh_math_rect_get_size_width(const lh_math_rect_t *self);
+
+/**
+ * @brief Height component of the size of @p self. Zero for empty rectangles.
+ */
+lh_math_coord_t
+lh_math_rect_get_size_height(const lh_math_rect_t *self);
+
+/**
+ * @brief Replace the origin of @p self with @p origin.
+ */
+lh_void
+lh_math_rect_set_origin(lh_math_rect_t *self, lh_math_point_t origin);
+
+/**
+ * @brief Replace the size of @p self with @p size.
+ */
+lh_void
+lh_math_rect_set_size(lh_math_rect_t *self, lh_math_size_t size);
+
+/* ── Queries ────────────────────────────────────────────────────────────── */
 
 /**
  * @brief Width of @p self as a ::lh_math_coord_t. Zero for empty rectangles.
@@ -71,14 +132,6 @@ lh_math_rect_width(const lh_math_rect_t *self);
  */
 lh_math_coord_t
 lh_math_rect_height(const lh_math_rect_t *self);
-
-/**
- * @brief Top-left corner as a ::lh_math_point_t.
- */
-lh_math_point_t
-lh_math_rect_origin(const lh_math_rect_t *self);
-
-/* ── Queries ────────────────────────────────────────────────────────────── */
 
 /**
  * @brief Test whether @p self is "empty" (zero or negative extent).

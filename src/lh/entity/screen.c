@@ -23,7 +23,7 @@ lh_entity_screen_invalidate_area(lh_entity_screen_t *self, lh_math_rect_t area)
     lh_assert_runtime_ref(self);
     const lh_math_vec2_t size = lh_entity_rect_get_size(lh_ptr_rcast(const lh_entity_rect_t, self));
     const lh_math_rect_t screen =
-        lh_math_rect_make(0, 0, lh_float_ceil_to_int(size.x), lh_float_ceil_to_int(size.y));
+        lh_math_rect_make(0, 0, lh_float_ceil_to_int(lh_math_vec2_get_x(lh_addr_of(size))), lh_float_ceil_to_int(lh_math_vec2_get_y(lh_addr_of(size))));
     lh_math_rect_t dirty = lh_math_rect_intersection(lh_addr_of(screen), lh_addr_of(area));
     if (lh_math_rect_is_empty(lh_addr_of(dirty)))
     {

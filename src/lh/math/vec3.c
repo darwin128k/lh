@@ -1,4 +1,5 @@
-﻿#include <lh/math/vec3.h>
+﻿#include <lh/assert/runtime.h>
+#include <lh/math/vec3.h>
 #include <lh/cast/static.h>
 #include <lh/float/sqrt.h>
 
@@ -6,40 +7,92 @@ lh_math_vec3_t
 lh_math_vec3_make(lh_float_t x, lh_float_t y, lh_float_t z)
 {
     lh_math_vec3_t v;
-    v.x = x;
-    v.y = y;
-    v.z = z;
+    lh_math_vec3_set_x(lh_addr_of(v), x);
+    lh_math_vec3_set_y(lh_addr_of(v), y);
+    lh_math_vec3_set_z(lh_addr_of(v), z);
     return v;
+}
+
+lh_float_t
+lh_math_vec3_get_x(const lh_math_vec3_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->x;
+}
+
+lh_float_t
+lh_math_vec3_get_y(const lh_math_vec3_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->y;
+}
+
+lh_float_t
+lh_math_vec3_get_z(const lh_math_vec3_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->z;
+}
+
+lh_void
+lh_math_vec3_set_x(lh_math_vec3_t *self, lh_float_t x)
+{
+    lh_assert_runtime_ref(self);
+    self->x = x;
+}
+
+lh_void
+lh_math_vec3_set_y(lh_math_vec3_t *self, lh_float_t y)
+{
+    lh_assert_runtime_ref(self);
+    self->y = y;
+}
+
+lh_void
+lh_math_vec3_set_z(lh_math_vec3_t *self, lh_float_t z)
+{
+    lh_assert_runtime_ref(self);
+    self->z = z;
 }
 
 lh_math_vec3_t
 lh_math_vec3_add(lh_math_vec3_t a, lh_math_vec3_t b)
 {
-    return lh_math_vec3_make(a.x + b.x, a.y + b.y, a.z + b.z);
+    return lh_math_vec3_make(lh_math_vec3_get_x(lh_addr_of(a)) + lh_math_vec3_get_x(lh_addr_of(b)),
+                             lh_math_vec3_get_y(lh_addr_of(a)) + lh_math_vec3_get_y(lh_addr_of(b)),
+                             lh_math_vec3_get_z(lh_addr_of(a)) + lh_math_vec3_get_z(lh_addr_of(b)));
 }
 
 lh_math_vec3_t
 lh_math_vec3_sub(lh_math_vec3_t a, lh_math_vec3_t b)
 {
-    return lh_math_vec3_make(a.x - b.x, a.y - b.y, a.z - b.z);
+    return lh_math_vec3_make(lh_math_vec3_get_x(lh_addr_of(a)) - lh_math_vec3_get_x(lh_addr_of(b)),
+                             lh_math_vec3_get_y(lh_addr_of(a)) - lh_math_vec3_get_y(lh_addr_of(b)),
+                             lh_math_vec3_get_z(lh_addr_of(a)) - lh_math_vec3_get_z(lh_addr_of(b)));
 }
 
 lh_math_vec3_t
 lh_math_vec3_scale(lh_math_vec3_t v, lh_float_t s)
 {
-    return lh_math_vec3_make(v.x * s, v.y * s, v.z * s);
+    return lh_math_vec3_make(lh_math_vec3_get_x(lh_addr_of(v)) * s,
+                             lh_math_vec3_get_y(lh_addr_of(v)) * s,
+                             lh_math_vec3_get_z(lh_addr_of(v)) * s);
 }
 
 lh_math_vec3_t
 lh_math_vec3_neg(lh_math_vec3_t v)
 {
-    return lh_math_vec3_make(-v.x, -v.y, -v.z);
+    return lh_math_vec3_make(-lh_math_vec3_get_x(lh_addr_of(v)),
+                             -lh_math_vec3_get_y(lh_addr_of(v)),
+                             -lh_math_vec3_get_z(lh_addr_of(v)));
 }
 
 lh_float_t
 lh_math_vec3_dot(lh_math_vec3_t a, lh_math_vec3_t b)
 {
-    return a.x * b.x + a.y * b.y + a.z * b.z;
+    return lh_math_vec3_get_x(lh_addr_of(a)) * lh_math_vec3_get_x(lh_addr_of(b))
+         + lh_math_vec3_get_y(lh_addr_of(a)) * lh_math_vec3_get_y(lh_addr_of(b))
+         + lh_math_vec3_get_z(lh_addr_of(a)) * lh_math_vec3_get_z(lh_addr_of(b));
 }
 
 lh_float_t
@@ -68,20 +121,33 @@ lh_math_vec3_normalize(lh_math_vec3_t v)
 lh_math_vec3_t
 lh_math_vec3_lerp(lh_math_vec3_t a, lh_math_vec3_t b, lh_float_t t)
 {
-    return lh_math_vec3_make(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t);
+    return lh_math_vec3_make(lh_math_vec3_get_x(lh_addr_of(a))
+                                 + (lh_math_vec3_get_x(lh_addr_of(b)) - lh_math_vec3_get_x(lh_addr_of(a))) * t,
+                             lh_math_vec3_get_y(lh_addr_of(a))
+                                 + (lh_math_vec3_get_y(lh_addr_of(b)) - lh_math_vec3_get_y(lh_addr_of(a))) * t,
+                             lh_math_vec3_get_z(lh_addr_of(a))
+                                 + (lh_math_vec3_get_z(lh_addr_of(b)) - lh_math_vec3_get_z(lh_addr_of(a))) * t);
 }
 
 lh_bool_t
 lh_math_vec3_near(lh_math_vec3_t a, lh_math_vec3_t b, lh_float_t eps)
 {
     const lh_math_vec3_t d = lh_math_vec3_sub(a, b);
-    return lh_cast_static(lh_bool_t, (d.x <= eps && -d.x <= eps) &&
-                       (d.y <= eps && -d.y <= eps) &&
-                       (d.z <= eps && -d.z <= eps));
+    const lh_float_t dx = lh_math_vec3_get_x(lh_addr_of(d));
+    const lh_float_t dy = lh_math_vec3_get_y(lh_addr_of(d));
+    const lh_float_t dz = lh_math_vec3_get_z(lh_addr_of(d));
+    return lh_cast_static(lh_bool_t, (dx <= eps && -dx <= eps)
+                                   && (dy <= eps && -dy <= eps)
+                                   && (dz <= eps && -dz <= eps));
 }
 
 lh_math_vec3_t
 lh_math_vec3_cross(lh_math_vec3_t a, lh_math_vec3_t b)
 {
-    return lh_math_vec3_make(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
+    return lh_math_vec3_make(lh_math_vec3_get_y(lh_addr_of(a)) * lh_math_vec3_get_z(lh_addr_of(b))
+                                 - lh_math_vec3_get_z(lh_addr_of(a)) * lh_math_vec3_get_y(lh_addr_of(b)),
+                             lh_math_vec3_get_z(lh_addr_of(a)) * lh_math_vec3_get_x(lh_addr_of(b))
+                                 - lh_math_vec3_get_x(lh_addr_of(a)) * lh_math_vec3_get_z(lh_addr_of(b)),
+                             lh_math_vec3_get_x(lh_addr_of(a)) * lh_math_vec3_get_y(lh_addr_of(b))
+                                 - lh_math_vec3_get_y(lh_addr_of(a)) * lh_math_vec3_get_x(lh_addr_of(b)));
 }

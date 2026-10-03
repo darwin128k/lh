@@ -46,7 +46,7 @@ lh_entity_3d_get_position(const lh_entity_3d_t *self)
 {
     lh_assert_runtime_ref(self);
     const lh_math_vec2_t xy = lh_entity_2d_get_position(lh_entity_3d_as_const_2d(self));
-    return lh_math_vec3_make(xy.x, xy.y, self->z);
+    return lh_math_vec3_make(lh_math_vec2_get_x(lh_addr_of(xy)), lh_math_vec2_get_y(lh_addr_of(xy)), self->z);
 }
 
 lh_void
@@ -54,7 +54,7 @@ lh_entity_3d_set_position(lh_entity_3d_t *self, lh_math_vec3_t position)
 {
     lh_assert_runtime_ref(self);
     lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
-    lh_entity_2d_set_position(lh_entity_3d_as_2d(self), lh_math_vec2_make(position.x, position.y));
+    lh_entity_2d_set_position(lh_entity_3d_as_2d(self), lh_math_vec2_make(lh_math_vec3_get_x(lh_addr_of(position)), lh_math_vec3_get_y(lh_addr_of(position))));
     self->z = position.z;
     lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
 }
@@ -80,7 +80,7 @@ lh_entity_3d_get_scale(const lh_entity_3d_t *self)
 {
     lh_assert_runtime_ref(self);
     const lh_math_vec2_t xy = lh_entity_2d_get_scale(lh_entity_3d_as_const_2d(self));
-    return lh_math_vec3_make(xy.x, xy.y, self->scale_z);
+    return lh_math_vec3_make(lh_math_vec2_get_x(lh_addr_of(xy)), lh_math_vec2_get_y(lh_addr_of(xy)), self->scale_z);
 }
 
 lh_void
@@ -88,7 +88,7 @@ lh_entity_3d_set_scale(lh_entity_3d_t *self, lh_math_vec3_t scale)
 {
     lh_assert_runtime_ref(self);
     lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
-    lh_entity_2d_set_scale(lh_entity_3d_as_2d(self), lh_math_vec2_make(scale.x, scale.y));
+    lh_entity_2d_set_scale(lh_entity_3d_as_2d(self), lh_math_vec2_make(lh_math_vec3_get_x(lh_addr_of(scale)), lh_math_vec3_get_y(lh_addr_of(scale))));
     self->scale_z = scale.z;
     lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
 }

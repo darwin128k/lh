@@ -1,27 +1,90 @@
-﻿#include <lh/math/quat.h>
+﻿#include <lh/assert/runtime.h>
+#include <lh/math/quat.h>
 #include <lh/float/sin_cos.h>
 
 lh_math_quat_t
 lh_math_quat_make(lh_float_t x, lh_float_t y, lh_float_t z, lh_float_t w)
 {
     lh_math_quat_t q;
-    q.x = x;
-    q.y = y;
-    q.z = z;
-    q.w = w;
+    lh_math_quat_set_x(lh_addr_of(q), x);
+    lh_math_quat_set_y(lh_addr_of(q), y);
+    lh_math_quat_set_z(lh_addr_of(q), z);
+    lh_math_quat_set_w(lh_addr_of(q), w);
     return q;
+}
+
+lh_float_t
+lh_math_quat_get_x(const lh_math_quat_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->x;
+}
+
+lh_float_t
+lh_math_quat_get_y(const lh_math_quat_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->y;
+}
+
+lh_float_t
+lh_math_quat_get_z(const lh_math_quat_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->z;
+}
+
+lh_float_t
+lh_math_quat_get_w(const lh_math_quat_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->w;
+}
+
+lh_void
+lh_math_quat_set_x(lh_math_quat_t *self, lh_float_t x)
+{
+    lh_assert_runtime_ref(self);
+    self->x = x;
+}
+
+lh_void
+lh_math_quat_set_y(lh_math_quat_t *self, lh_float_t y)
+{
+    lh_assert_runtime_ref(self);
+    self->y = y;
+}
+
+lh_void
+lh_math_quat_set_z(lh_math_quat_t *self, lh_float_t z)
+{
+    lh_assert_runtime_ref(self);
+    self->z = z;
+}
+
+lh_void
+lh_math_quat_set_w(lh_math_quat_t *self, lh_float_t w)
+{
+    lh_assert_runtime_ref(self);
+    self->w = w;
 }
 
 lh_math_vec4_t
 lh_math_quat_to_vec4(lh_math_quat_t q)
 {
-    return lh_math_vec4_make(q.x, q.y, q.z, q.w);
+    return lh_math_vec4_make(lh_math_quat_get_x(lh_addr_of(q)),
+                             lh_math_quat_get_y(lh_addr_of(q)),
+                             lh_math_quat_get_z(lh_addr_of(q)),
+                             lh_math_quat_get_w(lh_addr_of(q)));
 }
 
 lh_math_quat_t
 lh_math_quat_from_vec4(lh_math_vec4_t v)
 {
-    return lh_math_quat_make(v.x, v.y, v.z, v.w);
+    return lh_math_quat_make(lh_math_vec4_get_x(lh_addr_of(v)),
+                             lh_math_vec4_get_y(lh_addr_of(v)),
+                             lh_math_vec4_get_z(lh_addr_of(v)),
+                             lh_math_vec4_get_w(lh_addr_of(v)));
 }
 
 lh_math_quat_t
@@ -35,23 +98,37 @@ lh_math_quat_from_axis_angle(lh_math_vec3_t axis, lh_float_t angle)
 {
     lh_float_t s;
     lh_float_t c;
-    lh_float_sin_cos(angle * 0.5f, &s, &c);
-    return lh_math_quat_make(axis.x * s, axis.y * s, axis.z * s, c);
+    lh_float_sin_cos(angle * 0.5f, lh_addr_of(s), lh_addr_of(c));
+    return lh_math_quat_make(lh_math_vec3_get_x(lh_addr_of(axis)) * s,
+                             lh_math_vec3_get_y(lh_addr_of(axis)) * s,
+                             lh_math_vec3_get_z(lh_addr_of(axis)) * s,
+                             c);
 }
 
 lh_math_quat_t
 lh_math_quat_mul(lh_math_quat_t a, lh_math_quat_t b)
 {
-    return lh_math_quat_make(a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
-                        a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
-                        a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w,
-                        a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z);
+    const lh_float_t ax = lh_math_quat_get_x(lh_addr_of(a));
+    const lh_float_t ay = lh_math_quat_get_y(lh_addr_of(a));
+    const lh_float_t az = lh_math_quat_get_z(lh_addr_of(a));
+    const lh_float_t aw = lh_math_quat_get_w(lh_addr_of(a));
+    const lh_float_t bx = lh_math_quat_get_x(lh_addr_of(b));
+    const lh_float_t by = lh_math_quat_get_y(lh_addr_of(b));
+    const lh_float_t bz = lh_math_quat_get_z(lh_addr_of(b));
+    const lh_float_t bw = lh_math_quat_get_w(lh_addr_of(b));
+    return lh_math_quat_make(aw * bx + ax * bw + ay * bz - az * by,
+                             aw * by - ax * bz + ay * bw + az * bx,
+                             aw * bz + ax * by - ay * bx + az * bw,
+                             aw * bw - ax * bx - ay * by - az * bz);
 }
 
 lh_math_quat_t
 lh_math_quat_conjugate(lh_math_quat_t q)
 {
-    return lh_math_quat_make(-q.x, -q.y, -q.z, q.w);
+    return lh_math_quat_make(-lh_math_quat_get_x(lh_addr_of(q)),
+                             -lh_math_quat_get_y(lh_addr_of(q)),
+                             -lh_math_quat_get_z(lh_addr_of(q)),
+                             lh_math_quat_get_w(lh_addr_of(q)));
 }
 
 lh_float_t
@@ -71,9 +148,12 @@ lh_math_quat_rotate(lh_math_quat_t q, lh_math_vec3_t v)
 {
     /* v + w * t + u x t, with u = (x, y, z) and t = 2 (u x v): the expanded
      * q v q* without forming the intermediate quaternions. */
-    const lh_math_vec3_t u = lh_math_vec3_make(q.x, q.y, q.z);
+    const lh_math_vec3_t u = lh_math_vec3_make(lh_math_quat_get_x(lh_addr_of(q)),
+                                               lh_math_quat_get_y(lh_addr_of(q)),
+                                               lh_math_quat_get_z(lh_addr_of(q)));
     const lh_math_vec3_t t = lh_math_vec3_scale(lh_math_vec3_cross(u, v), 2.0f);
-    return lh_math_vec3_add(lh_math_vec3_add(v, lh_math_vec3_scale(t, q.w)), lh_math_vec3_cross(u, t));
+    return lh_math_vec3_add(lh_math_vec3_add(v, lh_math_vec3_scale(t, lh_math_quat_get_w(lh_addr_of(q)))),
+                           lh_math_vec3_cross(u, t));
 }
 
 lh_math_quat_t

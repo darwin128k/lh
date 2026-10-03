@@ -9,6 +9,10 @@
  *
  * Layout is 2 consecutive ::lh_float_t (`x, y`), the same as a C
  * `float[2]`.
+ *
+ * Fields are not part of the public API: read and mutate them through the
+ * `lh_math_vec2_get_*` / `lh_math_vec2_set_*` accessors. The struct is
+ * defined here only so it can be embedded by value.
  */
 
 #ifndef LH_MATH_VEC2_H
@@ -18,16 +22,18 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/float.h>
 #include <lh/math/vec2/fields.h>
+#include <lh/void.h>
 
 /**
- * @struct lh_vec2
+ * @struct lh_math_vec2
+ * @typedef lh_math_vec2_t
  * @brief 2-component float vector.
  */
-struct lh_vec2
+struct lh_math_vec2
 {
     lh_math_vec2_fields(lh_float_t);
 };
-typedef struct lh_vec2 lh_math_vec2_t;
+typedef struct lh_math_vec2 lh_math_vec2_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -36,6 +42,34 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_math_vec2_t
 lh_math_vec2_make(lh_float_t x, lh_float_t y);
+
+/* ── Accessors ───────────────────────────────────────────────────────────── */
+
+/**
+ * @brief X component of @p self.
+ */
+lh_float_t
+lh_math_vec2_get_x(const lh_math_vec2_t *self);
+
+/**
+ * @brief Y component of @p self.
+ */
+lh_float_t
+lh_math_vec2_get_y(const lh_math_vec2_t *self);
+
+/**
+ * @brief Set the X component of @p self.
+ */
+lh_void
+lh_math_vec2_set_x(lh_math_vec2_t *self, lh_float_t x);
+
+/**
+ * @brief Set the Y component of @p self.
+ */
+lh_void
+lh_math_vec2_set_y(lh_math_vec2_t *self, lh_float_t y);
+
+/* ── Operations ─────────────────────────────────────────────────────────── */
 
 /**
  * @brief Component-wise sum @p a + @p b.

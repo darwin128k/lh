@@ -17,7 +17,7 @@
 static lh_bool_t
 lh_entity_rect_has_local_point(lh_math_vec2_t size, lh_math_vec3_t local)
 {
-    return local.x >= 0.0f && local.x < size.x && local.y >= 0.0f && local.y < size.y;
+    return lh_math_vec3_get_x(lh_addr_of(local)) >= 0.0f && lh_math_vec3_get_x(lh_addr_of(local)) < lh_math_vec2_get_x(lh_addr_of(size)) && lh_math_vec3_get_y(lh_addr_of(local)) >= 0.0f && lh_math_vec3_get_y(lh_addr_of(local)) < lh_math_vec2_get_y(lh_addr_of(size));
 }
 
 /* Fill @p self's area on @p canvas with its color. A pixel belongs to the
@@ -28,21 +28,23 @@ lh_entity_rect_draw(const lh_entity_rect_t *self, lh_ui_canvas_t *canvas)
 {
     const lh_ui_color_t color = lh_entity_rect_get_color(self);
     const lh_math_vec2_t size = lh_entity_rect_get_size(self);
-    if (color.a == 0U || size.x <= 0.0f || size.y <= 0.0f)
+    if (color.a == 0U || lh_math_vec2_get_x(lh_addr_of(size)) <= 0.0f || lh_math_vec2_get_y(lh_addr_of(size)) <= 0.0f)
     {
         return;
     }
 
     const lh_math_mat4_t world = lh_entity_2d_get_world_matrix(lh_entity_rect_as_const_2d(self));
-    if (world.columns[0].y == 0.0f && world.columns[1].x == 0.0f)
+    const lh_math_vec4_t world_col_0 = lh_math_mat4_get_column(lh_addr_of(world), 0);
+    const lh_math_vec4_t world_col_1 = lh_math_mat4_get_column(lh_addr_of(world), 1);
+    if (lh_math_vec4_get_y(lh_addr_of(world_col_0)) == 0.0f && lh_math_vec4_get_x(lh_addr_of(world_col_1)) == 0.0f)
     {
         /* Not rotated: the covered pixels form a rectangle themselves. */
         const lh_math_vec3_t a = lh_math_mat4_transform_point(world, lh_math_vec3_make(0.0f, 0.0f, 0.0f));
-        const lh_math_vec3_t b = lh_math_mat4_transform_point(world, lh_math_vec3_make(size.x, size.y, 0.0f));
-        const lh_int_t x0 = lh_float_ceil_to_int(lh_math_min(a.x, b.x) - 0.5f);
-        const lh_int_t y0 = lh_float_ceil_to_int(lh_math_min(a.y, b.y) - 0.5f);
-        const lh_int_t x1 = lh_float_ceil_to_int(lh_math_max(a.x, b.x) - 0.5f);
-        const lh_int_t y1 = lh_float_ceil_to_int(lh_math_max(a.y, b.y) - 0.5f);
+        const lh_math_vec3_t b = lh_math_mat4_transform_point(world, lh_math_vec3_make(lh_math_vec2_get_x(lh_addr_of(size)), lh_math_vec2_get_y(lh_addr_of(size)), 0.0f));
+        const lh_int_t x0 = lh_float_ceil_to_int(lh_math_min(lh_math_vec3_get_x(lh_addr_of(a)), lh_math_vec3_get_x(lh_addr_of(b))) - 0.5f);
+        const lh_int_t y0 = lh_float_ceil_to_int(lh_math_min(lh_math_vec3_get_y(lh_addr_of(a)), lh_math_vec3_get_y(lh_addr_of(b))) - 0.5f);
+        const lh_int_t x1 = lh_float_ceil_to_int(lh_math_max(lh_math_vec3_get_x(lh_addr_of(a)), lh_math_vec3_get_x(lh_addr_of(b))) - 0.5f);
+        const lh_int_t y1 = lh_float_ceil_to_int(lh_math_max(lh_math_vec3_get_y(lh_addr_of(a)), lh_math_vec3_get_y(lh_addr_of(b))) - 0.5f);
         lh_ui_canvas_fill_rect(canvas, lh_math_rect_make(x0, y0, x1 - x0, y1 - y0), color);
         return;
     }
@@ -56,9 +58,9 @@ lh_entity_rect_draw(const lh_entity_rect_t *self, lh_ui_canvas_t *canvas)
     const lh_math_rect_t clip = lh_ui_canvas_get_clip(canvas);
     const lh_math_rect_t bounds = lh_entity_rect_get_screen_bounds(self);
     const lh_math_rect_t area = lh_math_rect_intersection(lh_addr_of(clip), lh_addr_of(bounds));
-    for (lh_int_t y = area.origin.y; y < area.origin.y + area.size.height; ++y)
+    for (lh_int_t y = lh_math_rect_get_y(lh_addr_of(area)); y < lh_math_rect_get_y(lh_addr_of(area)) + lh_math_rect_get_size_height(lh_addr_of(area)); ++y)
     {
-        for (lh_int_t x = area.origin.x; x < area.origin.x + area.size.width; ++x)
+        for (lh_int_t x = lh_math_rect_get_x(lh_addr_of(area)); x < lh_math_rect_get_x(lh_addr_of(area)) + lh_math_rect_get_size_width(lh_addr_of(area)); ++x)
         {
             const lh_math_vec3_t center = lh_math_vec3_make(lh_cast_static(lh_float_t, x) + 0.5f,
                                                   lh_cast_static(lh_float_t, y) + 0.5f, 0.0f);
@@ -126,7 +128,7 @@ lh_math_rect_t
 lh_entity_rect_get_screen_bounds(const lh_entity_rect_t *self)
 {
     const lh_math_vec2_t size = lh_entity_rect_get_size(self);
-    if (size.x <= 0.0f || size.y <= 0.0f)
+    if (lh_math_vec2_get_x(lh_addr_of(size)) <= 0.0f || lh_math_vec2_get_y(lh_addr_of(size)) <= 0.0f)
     {
         return lh_math_rect_zero();
     }
@@ -134,21 +136,21 @@ lh_entity_rect_get_screen_bounds(const lh_entity_rect_t *self)
     const lh_math_mat4_t world = lh_entity_2d_get_world_matrix(lh_entity_rect_as_const_2d(self));
     const lh_math_vec3_t corners[4] = {
         lh_math_mat4_transform_point(world, lh_math_vec3_make(0.0f, 0.0f, 0.0f)),
-        lh_math_mat4_transform_point(world, lh_math_vec3_make(size.x, 0.0f, 0.0f)),
-        lh_math_mat4_transform_point(world, lh_math_vec3_make(0.0f, size.y, 0.0f)),
-        lh_math_mat4_transform_point(world, lh_math_vec3_make(size.x, size.y, 0.0f)),
+        lh_math_mat4_transform_point(world, lh_math_vec3_make(lh_math_vec2_get_x(lh_addr_of(size)), 0.0f, 0.0f)),
+        lh_math_mat4_transform_point(world, lh_math_vec3_make(0.0f, lh_math_vec2_get_y(lh_addr_of(size)), 0.0f)),
+        lh_math_mat4_transform_point(world, lh_math_vec3_make(lh_math_vec2_get_x(lh_addr_of(size)), lh_math_vec2_get_y(lh_addr_of(size)), 0.0f)),
     };
     lh_math_vec3_t min = corners[0];
     lh_math_vec3_t max = corners[0];
     for (lh_int_t i = 1; i < 4; ++i)
     {
-        min.x = lh_math_min(min.x, corners[i].x);
-        min.y = lh_math_min(min.y, corners[i].y);
-        max.x = lh_math_max(max.x, corners[i].x);
-        max.y = lh_math_max(max.y, corners[i].y);
+        lh_math_vec3_set_x(&min, lh_math_min(lh_math_vec3_get_x(lh_addr_of(min)), lh_math_vec3_get_x(lh_addr_of(corners)[i])));
+        lh_math_vec3_set_y(&min, lh_math_min(lh_math_vec3_get_y(lh_addr_of(min)), lh_math_vec3_get_y(lh_addr_of(corners)[i])));
+        lh_math_vec3_set_x(&max, lh_math_max(lh_math_vec3_get_x(lh_addr_of(max)), lh_math_vec3_get_x(lh_addr_of(corners)[i])));
+        lh_math_vec3_set_y(&max, lh_math_max(lh_math_vec3_get_y(lh_addr_of(max)), lh_math_vec3_get_y(lh_addr_of(corners)[i])));
     }
-    return lh_math_rect_from_min_max(lh_float_floor_to_int(min.x), lh_float_floor_to_int(min.y),
-                                   lh_float_ceil_to_int(max.x), lh_float_ceil_to_int(max.y));
+    return lh_math_rect_from_min_max(lh_float_floor_to_int(lh_math_vec3_get_x(lh_addr_of(min))), lh_float_floor_to_int(lh_math_vec3_get_y(lh_addr_of(min))),
+                                   lh_float_ceil_to_int(lh_math_vec3_get_x(lh_addr_of(max))), lh_float_ceil_to_int(lh_math_vec3_get_y(lh_addr_of(max))));
 }
 
 lh_bool_t
@@ -161,7 +163,7 @@ lh_entity_rect_contains(const lh_entity_rect_t *self, lh_math_vec2_t point)
         return lh_bool_false; /* scaled to nothing: covers no area */
     }
 
-    const lh_math_vec3_t local = lh_math_mat4_transform_point(to_local, lh_math_vec3_make(point.x, point.y, 0.0f));
+    const lh_math_vec3_t local = lh_math_mat4_transform_point(to_local, lh_math_vec3_make(lh_math_vec2_get_x(lh_addr_of(point)), lh_math_vec2_get_y(lh_addr_of(point)), 0.0f));
     return lh_entity_rect_has_local_point(lh_entity_rect_get_size(self), local);
 }
 

@@ -1,13 +1,14 @@
-﻿#include <lh/math/mat4.h>
+﻿#include <lh/assert/runtime.h>
+#include <lh/math/mat4.h>
 
 lh_math_mat4_t
 lh_math_mat4_from_columns(lh_math_vec4_t c0, lh_math_vec4_t c1, lh_math_vec4_t c2, lh_math_vec4_t c3)
 {
     lh_math_mat4_t m;
-    m.columns[0] = c0;
-    m.columns[1] = c1;
-    m.columns[2] = c2;
-    m.columns[3] = c3;
+    lh_math_mat4_set_column(lh_addr_of(m), 0, c0);
+    lh_math_mat4_set_column(lh_addr_of(m), 1, c1);
+    lh_math_mat4_set_column(lh_addr_of(m), 2, c2);
+    lh_math_mat4_set_column(lh_addr_of(m), 3, c3);
     return m;
 }
 
@@ -17,11 +18,30 @@ lh_math_mat4_identity(void)
     return lh_math_mat4_from_scale(lh_math_vec3_make(1.0f, 1.0f, 1.0f));
 }
 
+/* ── Accessors ───────────────────────────────────────────────────────────── */
+
+lh_math_vec4_t
+lh_math_mat4_get_column(const lh_math_mat4_t *self, unsigned index)
+{
+    lh_assert_runtime_ref(self);
+    return self->columns[index];
+}
+
+lh_void
+lh_math_mat4_set_column(lh_math_mat4_t *self, unsigned index, lh_math_vec4_t column)
+{
+    lh_assert_runtime_ref(self);
+    self->columns[index] = column;
+}
+
 lh_math_mat4_t
 lh_math_mat4_from_translation(lh_math_vec3_t offset)
 {
     lh_math_mat4_t m = lh_math_mat4_identity();
-    m.columns[3] = lh_math_vec4_make(offset.x, offset.y, offset.z, 1.0f);
+    lh_math_mat4_set_column(lh_addr_of(m), 3, lh_math_vec4_make(lh_math_vec3_get_x(lh_addr_of(offset)),
+                                                       lh_math_vec3_get_y(lh_addr_of(offset)),
+                                                       lh_math_vec3_get_z(lh_addr_of(offset)),
+                                                       1.0f));
     return m;
 }
 
@@ -29,22 +49,24 @@ lh_math_mat4_t
 lh_math_mat4_from_scale(lh_math_vec3_t factors)
 {
     return lh_math_mat4_from_columns(
-        lh_math_vec4_make(factors.x, 0.0f, 0.0f, 0.0f), lh_math_vec4_make(0.0f, factors.y, 0.0f, 0.0f),
-        lh_math_vec4_make(0.0f, 0.0f, factors.z, 0.0f), lh_math_vec4_make(0.0f, 0.0f, 0.0f, 1.0f));
+        lh_math_vec4_make(lh_math_vec3_get_x(lh_addr_of(factors)), 0.0f, 0.0f, 0.0f),
+        lh_math_vec4_make(0.0f, lh_math_vec3_get_y(lh_addr_of(factors)), 0.0f, 0.0f),
+        lh_math_vec4_make(0.0f, 0.0f, lh_math_vec3_get_z(lh_addr_of(factors)), 0.0f),
+        lh_math_vec4_make(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
 lh_math_mat4_t
 lh_math_mat4_from_quat(lh_math_quat_t q)
 {
-    const lh_float_t xx = q.x * q.x;
-    const lh_float_t yy = q.y * q.y;
-    const lh_float_t zz = q.z * q.z;
-    const lh_float_t xy = q.x * q.y;
-    const lh_float_t xz = q.x * q.z;
-    const lh_float_t yz = q.y * q.z;
-    const lh_float_t wx = q.w * q.x;
-    const lh_float_t wy = q.w * q.y;
-    const lh_float_t wz = q.w * q.z;
+    const lh_float_t xx = lh_math_quat_get_x(lh_addr_of(q)) * lh_math_quat_get_x(lh_addr_of(q));
+    const lh_float_t yy = lh_math_quat_get_y(lh_addr_of(q)) * lh_math_quat_get_y(lh_addr_of(q));
+    const lh_float_t zz = lh_math_quat_get_z(lh_addr_of(q)) * lh_math_quat_get_z(lh_addr_of(q));
+    const lh_float_t xy = lh_math_quat_get_x(lh_addr_of(q)) * lh_math_quat_get_y(lh_addr_of(q));
+    const lh_float_t xz = lh_math_quat_get_x(lh_addr_of(q)) * lh_math_quat_get_z(lh_addr_of(q));
+    const lh_float_t yz = lh_math_quat_get_y(lh_addr_of(q)) * lh_math_quat_get_z(lh_addr_of(q));
+    const lh_float_t wx = lh_math_quat_get_w(lh_addr_of(q)) * lh_math_quat_get_x(lh_addr_of(q));
+    const lh_float_t wy = lh_math_quat_get_w(lh_addr_of(q)) * lh_math_quat_get_y(lh_addr_of(q));
+    const lh_float_t wz = lh_math_quat_get_w(lh_addr_of(q)) * lh_math_quat_get_z(lh_addr_of(q));
 
     /* Column c is where the rotation takes axis c. */
     return lh_math_mat4_from_columns(
@@ -58,10 +80,12 @@ lh_math_vec4_t
 lh_math_mat4_mul_vec4(lh_math_mat4_t m, lh_math_vec4_t v)
 {
     /* A sum of the columns, weighted by v's components. */
-    const lh_math_vec4_t xy =
-        lh_math_vec4_add(lh_math_vec4_scale(m.columns[0], v.x), lh_math_vec4_scale(m.columns[1], v.y));
-    const lh_math_vec4_t zw =
-        lh_math_vec4_add(lh_math_vec4_scale(m.columns[2], v.z), lh_math_vec4_scale(m.columns[3], v.w));
+    const lh_math_vec4_t xy = lh_math_vec4_add(
+        lh_math_vec4_scale(lh_math_mat4_get_column(lh_addr_of(m), 0), lh_math_vec4_get_x(lh_addr_of(v))),
+        lh_math_vec4_scale(lh_math_mat4_get_column(lh_addr_of(m), 1), lh_math_vec4_get_y(lh_addr_of(v))));
+    const lh_math_vec4_t zw = lh_math_vec4_add(
+        lh_math_vec4_scale(lh_math_mat4_get_column(lh_addr_of(m), 2), lh_math_vec4_get_z(lh_addr_of(v))),
+        lh_math_vec4_scale(lh_math_mat4_get_column(lh_addr_of(m), 3), lh_math_vec4_get_w(lh_addr_of(v))));
     return lh_math_vec4_add(xy, zw);
 }
 
@@ -69,48 +93,72 @@ lh_math_mat4_t
 lh_math_mat4_mul(lh_math_mat4_t a, lh_math_mat4_t b)
 {
     /* Column c of the product is a applied to column c of b. */
-    return lh_math_mat4_from_columns(
-        lh_math_mat4_mul_vec4(a, b.columns[0]), lh_math_mat4_mul_vec4(a, b.columns[1]),
-        lh_math_mat4_mul_vec4(a, b.columns[2]), lh_math_mat4_mul_vec4(a, b.columns[3]));
+    return lh_math_mat4_from_columns(lh_math_mat4_mul_vec4(a, lh_math_mat4_get_column(lh_addr_of(b), 0)),
+                                     lh_math_mat4_mul_vec4(a, lh_math_mat4_get_column(lh_addr_of(b), 1)),
+                                     lh_math_mat4_mul_vec4(a, lh_math_mat4_get_column(lh_addr_of(b), 2)),
+                                     lh_math_mat4_mul_vec4(a, lh_math_mat4_get_column(lh_addr_of(b), 3)));
 }
 
 lh_math_vec3_t
 lh_math_mat4_transform_point(lh_math_mat4_t m, lh_math_vec3_t p)
 {
-    const lh_math_vec4_t r = lh_math_mat4_mul_vec4(m, lh_math_vec4_make(p.x, p.y, p.z, 1.0f));
-    return lh_math_vec3_make(r.x, r.y, r.z);
+    const lh_math_vec4_t r = lh_math_mat4_mul_vec4(
+        m, lh_math_vec4_make(lh_math_vec3_get_x(lh_addr_of(p)),
+                             lh_math_vec3_get_y(lh_addr_of(p)),
+                             lh_math_vec3_get_z(lh_addr_of(p)),
+                             1.0f));
+    return lh_math_vec3_make(lh_math_vec4_get_x(lh_addr_of(r)),
+                             lh_math_vec4_get_y(lh_addr_of(r)),
+                             lh_math_vec4_get_z(lh_addr_of(r)));
 }
 
 lh_math_vec3_t
 lh_math_mat4_transform_dir(lh_math_mat4_t m, lh_math_vec3_t d)
 {
-    const lh_math_vec4_t r = lh_math_mat4_mul_vec4(m, lh_math_vec4_make(d.x, d.y, d.z, 0.0f));
-    return lh_math_vec3_make(r.x, r.y, r.z);
+    const lh_math_vec4_t r = lh_math_mat4_mul_vec4(
+        m, lh_math_vec4_make(lh_math_vec3_get_x(lh_addr_of(d)),
+                             lh_math_vec3_get_y(lh_addr_of(d)),
+                             lh_math_vec3_get_z(lh_addr_of(d)),
+                             0.0f));
+    return lh_math_vec3_make(lh_math_vec4_get_x(lh_addr_of(r)),
+                             lh_math_vec4_get_y(lh_addr_of(r)),
+                             lh_math_vec4_get_z(lh_addr_of(r)));
 }
 
 lh_math_mat4_t
 lh_math_mat4_transpose(lh_math_mat4_t m)
 {
-    const lh_math_vec4_t *c = m.columns;
+    const lh_math_vec4_t c0 = lh_math_mat4_get_column(lh_addr_of(m), 0);
+    const lh_math_vec4_t c1 = lh_math_mat4_get_column(lh_addr_of(m), 1);
+    const lh_math_vec4_t c2 = lh_math_mat4_get_column(lh_addr_of(m), 2);
+    const lh_math_vec4_t c3 = lh_math_mat4_get_column(lh_addr_of(m), 3);
     return lh_math_mat4_from_columns(
-        lh_math_vec4_make(c[0].x, c[1].x, c[2].x, c[3].x), lh_math_vec4_make(c[0].y, c[1].y, c[2].y, c[3].y),
-        lh_math_vec4_make(c[0].z, c[1].z, c[2].z, c[3].z), lh_math_vec4_make(c[0].w, c[1].w, c[2].w, c[3].w));
+        lh_math_vec4_make(lh_math_vec4_get_x(lh_addr_of(c0)), lh_math_vec4_get_x(lh_addr_of(c1)),
+                          lh_math_vec4_get_x(lh_addr_of(c2)), lh_math_vec4_get_x(lh_addr_of(c3))),
+        lh_math_vec4_make(lh_math_vec4_get_y(lh_addr_of(c0)), lh_math_vec4_get_y(lh_addr_of(c1)),
+                          lh_math_vec4_get_y(lh_addr_of(c2)), lh_math_vec4_get_y(lh_addr_of(c3))),
+        lh_math_vec4_make(lh_math_vec4_get_z(lh_addr_of(c0)), lh_math_vec4_get_z(lh_addr_of(c1)),
+                          lh_math_vec4_get_z(lh_addr_of(c2)), lh_math_vec4_get_z(lh_addr_of(c3))),
+        lh_math_vec4_make(lh_math_vec4_get_w(lh_addr_of(c0)), lh_math_vec4_get_w(lh_addr_of(c1)),
+                          lh_math_vec4_get_w(lh_addr_of(c2)), lh_math_vec4_get_w(lh_addr_of(c3))));
 }
 
 lh_bool_t
 lh_math_mat4_inverse(lh_math_mat4_t m, lh_math_mat4_t *out)
 {
+    lh_assert_runtime_ref(out);
     /* Cofactors over the adjugate (as in Mesa's gluInvertMatrix). Written
      * for one storage order, it holds for the other too: the inverse of the
      * transpose is the transpose of the inverse. */
     lh_float_t a[16]; /* column * 4 + row */
     lh_float_t inv[16];
-    for (lh_int_t c = 0; c < 4; ++c)
+    for (unsigned c = 0; c < 4; ++c)
     {
-        a[c * 4 + 0] = m.columns[c].x;
-        a[c * 4 + 1] = m.columns[c].y;
-        a[c * 4 + 2] = m.columns[c].z;
-        a[c * 4 + 3] = m.columns[c].w;
+        const lh_math_vec4_t col = lh_math_mat4_get_column(lh_addr_of(m), c);
+        a[c * 4 + 0] = lh_math_vec4_get_x(lh_addr_of(col));
+        a[c * 4 + 1] = lh_math_vec4_get_y(lh_addr_of(col));
+        a[c * 4 + 2] = lh_math_vec4_get_z(lh_addr_of(col));
+        a[c * 4 + 3] = lh_math_vec4_get_w(lh_addr_of(col));
     }
 
     inv[0] = a[5] * a[10] * a[15] - a[5] * a[11] * a[14] - a[9] * a[6] * a[15] +
@@ -153,10 +201,13 @@ lh_math_mat4_inverse(lh_math_mat4_t m, lh_math_mat4_t *out)
     }
 
     const lh_float_t inv_det = 1.0f / det;
-    for (lh_int_t c = 0; c < 4; ++c)
+    for (unsigned c = 0; c < 4; ++c)
     {
-        out->columns[c] = lh_math_vec4_make(inv[c * 4 + 0] * inv_det, inv[c * 4 + 1] * inv_det,
-                                       inv[c * 4 + 2] * inv_det, inv[c * 4 + 3] * inv_det);
+        lh_math_mat4_set_column(out, c,
+                                lh_math_vec4_make(inv[c * 4 + 0] * inv_det,
+                                                  inv[c * 4 + 1] * inv_det,
+                                                  inv[c * 4 + 2] * inv_det,
+                                                  inv[c * 4 + 3] * inv_det));
     }
     return lh_bool_true;
 }
@@ -164,9 +215,9 @@ lh_math_mat4_inverse(lh_math_mat4_t m, lh_math_mat4_t *out)
 lh_bool_t
 lh_math_mat4_near(lh_math_mat4_t a, lh_math_mat4_t b, lh_float_t eps)
 {
-    for (lh_int_t c = 0; c < 4; ++c)
+    for (unsigned c = 0; c < 4; ++c)
     {
-        if (!lh_math_vec4_near(a.columns[c], b.columns[c], eps))
+        if (!lh_math_vec4_near(lh_math_mat4_get_column(lh_addr_of(a), c), lh_math_mat4_get_column(lh_addr_of(b), c), eps))
         {
             return lh_bool_false;
         }

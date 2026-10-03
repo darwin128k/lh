@@ -1,4 +1,4 @@
-#include <lh/ui/canvas.h>
+﻿#include <lh/ui/canvas.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/runtime/error/code.h>
@@ -93,10 +93,10 @@ lh_ui_canvas_fill_rect(lh_ui_canvas_t *self, lh_math_rect_t rect, lh_ui_color_t 
         return;
     }
 
-    for (lh_math_coord_t y = area.origin.y; y < area.origin.y + area.size.height; ++y)
+    for (lh_math_coord_t y = lh_math_rect_get_y(lh_addr_of(area)); y < lh_math_rect_get_y(lh_addr_of(area)) + lh_math_rect_get_size_height(lh_addr_of(area)); ++y)
     {
         lh_ui_color_t *row = self->pixels + y * self->stride;
-        for (lh_math_coord_t x = area.origin.x; x < area.origin.x + area.size.width; ++x)
+        for (lh_math_coord_t x = lh_math_rect_get_x(lh_addr_of(area)); x < lh_math_rect_get_x(lh_addr_of(area)) + lh_math_rect_get_size_width(lh_addr_of(area)); ++x)
         {
             row[x] = color.a == 255U ? color : lh_ui_canvas_blend(row[x], color);
         }
