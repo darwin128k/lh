@@ -20,7 +20,7 @@ lh_math_size_make(lh_math_coord_t width, lh_math_coord_t height)
 }
 
 lh_math_size_t
-lh_math_size_zero(void)
+lh_math_size_make_empty(void)
 {
     return lh_math_size_make(0, 0);
 }

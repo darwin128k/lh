@@ -21,7 +21,7 @@ lh_math_point_make(lh_math_coord_t x, lh_math_coord_t y)
 }
 
 lh_math_point_t
-lh_math_point_zero(void)
+lh_math_point_make_empty(void)
 {
     return lh_math_point_make(0, 0);
 }

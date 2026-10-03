@@ -37,8 +37,10 @@
 #include <lh/math/coord.h>
 #include <lh/math/mat4.h>
 #include <lh/math/point.h>
+#include <lh/math/point3.h>
 #include <lh/math/quat.h>
 #include <lh/math/rect.h>
+#include <lh/math/rect3.h>
 #include <lh/math/size.h>
 #include <lh/math/vec2.h>
 #include <lh/math/vec3.h>

@@ -36,7 +36,7 @@ lh_math_rect_from_min_max(lh_math_coord_t x_min, lh_math_coord_t y_min,
 }
 
 lh_math_rect_t
-lh_math_rect_zero(void)
+lh_math_rect_make_empty(void)
 {
     return lh_math_rect_make(0, 0, 0, 0);
 }
@@ -215,7 +215,7 @@ lh_math_rect_intersection(const lh_math_rect_t *a, const lh_math_rect_t *b)
     lh_assert_runtime_ref(b);
     if (!lh_math_rect_intersects(a, b))
     {
-        return lh_math_rect_zero();
+        return lh_math_rect_make_empty();
     }
     lh_math_coord_t x1 = lh_math_max(lh_math_rect_get_x(a), lh_math_rect_get_x(b));
     lh_math_coord_t y1 = lh_math_max(lh_math_rect_get_y(a), lh_math_rect_get_y(b));

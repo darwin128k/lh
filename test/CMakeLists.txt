@@ -76,6 +76,8 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/color.cpp
         ${LH_TEST_SRC_PATH}/lh/math.cpp
         ${LH_TEST_SRC_PATH}/lh/math/rect.cpp
+        ${LH_TEST_SRC_PATH}/lh/math/point3.cpp
+        ${LH_TEST_SRC_PATH}/lh/math/rect3.cpp
         ${LH_TEST_SRC_PATH}/lh/list.cpp
         ${LH_TEST_SRC_PATH}/lh/str.cpp
         ${LH_TEST_SRC_PATH}/lh/str/list.cpp

@@ -45,7 +45,7 @@ lh_math_point_make(lh_math_coord_t x, lh_math_coord_t y);
  * @brief The origin: `(0, 0)`.
  */
 lh_math_point_t
-lh_math_point_zero(void);
+lh_math_point_make_empty(void);
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 

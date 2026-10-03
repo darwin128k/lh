@@ -61,7 +61,7 @@ lh_math_rect_from_min_max(lh_math_coord_t x_min, lh_math_coord_t y_min,
  *        ::lh_math_rect_is_empty returns ::lh_bool_true for this value.
  */
 lh_math_rect_t
-lh_math_rect_zero(void);
+lh_math_rect_make_empty(void);
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
@@ -161,7 +161,7 @@ lh_math_rect_eq(const lh_math_rect_t *a, const lh_math_rect_t *b);
 /* ── Set ops ────────────────────────────────────────────────────────────── */
 
 /**
- * @brief Intersection of @p a and @p b. Returns ::lh_math_rect_zero if they do
+ * @brief Intersection of @p a and @p b. Returns ::lh_math_rect_make_empty if they do
  *        not overlap.
  */
 lh_math_rect_t

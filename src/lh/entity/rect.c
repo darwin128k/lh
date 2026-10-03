@@ -130,7 +130,7 @@ lh_entity_rect_get_screen_bounds(const lh_entity_rect_t *self)
     const lh_math_vec2_t size = lh_entity_rect_get_size(self);
     if (lh_math_vec2_get_x(lh_addr_of(size)) <= 0.0f || lh_math_vec2_get_y(lh_addr_of(size)) <= 0.0f)
     {
-        return lh_math_rect_zero();
+        return lh_math_rect_make_empty();
     }
 
     const lh_math_mat4_t world = lh_entity_2d_get_world_matrix(lh_entity_rect_as_const_2d(self));

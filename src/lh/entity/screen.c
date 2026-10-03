@@ -112,7 +112,7 @@ lh_entity_screen_render(lh_entity_screen_t *self, lh_ui_canvas_t *canvas)
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(canvas);
 
-    lh_math_rect_t drawn = lh_math_rect_zero();
+    lh_math_rect_t drawn = lh_math_rect_make_empty();
     for (lh_usize_t i = 0; i < lh_entity_screen_get_dirty_count(self); ++i)
     {
         const lh_math_rect_t area = lh_entity_screen_get_dirty_area(self, i);
