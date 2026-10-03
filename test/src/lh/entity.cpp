@@ -166,6 +166,34 @@ TEST_F(Entity, tree_links)
     EXPECT_EQ(lh_entity_get_class(a), &lh_entity_base_class);
 }
 
+TEST_F(Entity, cast_root_and_foreach_child)
+{
+    lh_entity_t *w = lh_entity_create(&widget_class, root);
+    lh_entity_t *b = lh_entity_create(&button_class, w);
+    lh_entity_t *plain = lh_entity_create(&lh_entity_base_class, w);
+
+    EXPECT_EQ(lh_entity_cast(b, &widget_class), b);  // a button is a widget
+    EXPECT_EQ(lh_entity_cast(b, &button_class), b);
+    EXPECT_EQ(lh_entity_cast(w, &button_class), nullptr); // a widget is not a button
+    EXPECT_EQ(lh_entity_cast(plain, &widget_class), nullptr);
+
+    EXPECT_EQ(lh_entity_get_root(b), root);
+    EXPECT_EQ(lh_entity_get_root(root), root);
+
+    std::string order;
+    lh_entity_foreach_child(child, w)
+    {
+        order += child == b ? "b" : child == plain ? "p" : "?";
+    }
+    EXPECT_EQ(order, "bp");
+    lh_entity_foreach_child(child, plain)
+    {
+        (void)child;
+        order += "x"; // no children: never runs
+    }
+    EXPECT_EQ(order, "bp");
+}
+
 TEST_F(Entity, constructors_base_first_destructors_derived_first)
 {
     lh_entity_t *b = lh_entity_create(&button_class, root);

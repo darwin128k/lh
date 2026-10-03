@@ -5,6 +5,7 @@
 #include <lh/runtime/error/code.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+#include <lh/util/return.h>
 
 static lh_void
 lh_entity_screen_construct(lh_entity_t *self)
@@ -67,6 +68,14 @@ lh_entity_screen_get_dirty_area(const lh_entity_screen_t *self, lh_usize_t index
     return self->dirty[index];
 }
 
+/* @p entity as a rectangle that cuts its children to itself, or null. */
+static const lh_entity_rect_t *
+lh_entity_screen_get_clipping_rect(const lh_entity_t *entity)
+{
+    lh_return_if(lh_entity_has_flags(entity, lh_entity_flags_overflow_visible), lh_null);
+    return lh_entity_cast(entity, lh_addr_of(lh_entity_rect_class));
+}
+
 /* Draw @p entity and its children onto @p canvas within @p clip. */
 static lh_void
 lh_entity_screen_draw(lh_entity_t *entity, lh_ui_canvas_t *canvas, lh_ui_rect_t clip)
@@ -80,11 +89,10 @@ lh_entity_screen_draw(lh_entity_t *entity, lh_ui_canvas_t *canvas, lh_ui_rect_t 
     lh_entity_notify(entity, LH_ENTITY_EVENT_DRAW, canvas);
 
     lh_ui_rect_t child_clip = clip;
-    if (lh_entity_is_instance_of(entity, lh_addr_of(lh_entity_rect_class)) &&
-        !lh_entity_has_flags(entity, lh_entity_flags_overflow_visible))
+    const lh_entity_rect_t *const clipping = lh_entity_screen_get_clipping_rect(entity);
+    if (lh_ptr_is_set(clipping))
     {
-        const lh_ui_rect_t bounds =
-            lh_entity_rect_get_screen_bounds(lh_ptr_rcast(const lh_entity_rect_t, entity));
+        const lh_ui_rect_t bounds = lh_entity_rect_get_screen_bounds(clipping);
         child_clip = lh_ui_rect_intersection(lh_addr_of(clip), lh_addr_of(bounds));
         if (lh_ui_rect_is_empty(lh_addr_of(child_clip)))
         {
@@ -92,8 +100,7 @@ lh_entity_screen_draw(lh_entity_t *entity, lh_ui_canvas_t *canvas, lh_ui_rect_t 
         }
     }
 
-    for (lh_entity_t *child = lh_entity_get_first_child(entity); lh_ptr_is_set(child);
-         child = lh_entity_get_next_sibling(child))
+    lh_entity_foreach_child(child, entity)
     {
         lh_entity_screen_draw(child, canvas, child_clip);
     }
@@ -121,17 +128,13 @@ lh_entity_screen_render(lh_entity_screen_t *self, lh_ui_canvas_t *canvas)
 static lh_void
 lh_entity_screen_invalidate_tree(lh_entity_screen_t *screen, lh_entity_t *entity)
 {
-    if (lh_entity_is_instance_of(entity, lh_addr_of(lh_entity_rect_class)))
+    const lh_entity_rect_t *const rect = lh_entity_cast(entity, lh_addr_of(lh_entity_rect_class));
+    if (lh_ptr_is_set(rect))
     {
-        lh_entity_screen_invalidate_area(
-            screen, lh_entity_rect_get_screen_bounds(lh_ptr_rcast(const lh_entity_rect_t, entity)));
-        if (!lh_entity_has_flags(entity, lh_entity_flags_overflow_visible))
-        {
-            return;
-        }
+        lh_entity_screen_invalidate_area(screen, lh_entity_rect_get_screen_bounds(rect));
     }
-    for (lh_entity_t *child = lh_entity_get_first_child(entity); lh_ptr_is_set(child);
-         child = lh_entity_get_next_sibling(child))
+    lh_return_if(lh_ptr_is_set(lh_entity_screen_get_clipping_rect(entity)));
+    lh_entity_foreach_child(child, entity)
     {
         lh_entity_screen_invalidate_tree(screen, child);
     }
@@ -140,15 +143,10 @@ lh_entity_screen_invalidate_tree(lh_entity_screen_t *screen, lh_entity_t *entity
 lh_void
 lh_entity_invalidate(lh_entity_t *self)
 {
-    lh_assert_runtime_ref(self);
-    lh_entity_t *root = self;
-    for (lh_entity_t *parent = lh_entity_get_parent(root); lh_ptr_is_set(parent);
-         parent = lh_entity_get_parent(parent))
+    lh_entity_screen_t *const screen =
+        lh_entity_cast(lh_entity_get_root(self), lh_addr_of(lh_entity_screen_class));
+    if (lh_ptr_is_set(screen))
     {
-        root = parent;
-    }
-    if (lh_entity_is_instance_of(root, lh_addr_of(lh_entity_screen_class)))
-    {
-        lh_entity_screen_invalidate_tree(lh_ptr_rcast(lh_entity_screen_t, root), self);
+        lh_entity_screen_invalidate_tree(screen, self);
     }
 }

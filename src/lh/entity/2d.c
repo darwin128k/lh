@@ -103,10 +103,11 @@ lh_entity_2d_get_world_matrix(const lh_entity_2d_t *self)
     for (const lh_entity_t *ancestor = lh_entity_get_parent(lh_ptr_rcast(const lh_entity_t, self));
          lh_ptr_is_set(ancestor); ancestor = lh_entity_get_parent(ancestor))
     {
-        if (lh_entity_is_instance_of(ancestor, lh_addr_of(lh_entity_2d_class)))
+        const lh_entity_2d_t *const spatial =
+            lh_entity_cast(ancestor, lh_addr_of(lh_entity_2d_class));
+        if (lh_ptr_is_set(spatial))
         {
-            world = lh_mat4_mul(
-                lh_entity_2d_get_local_matrix(lh_ptr_rcast(const lh_entity_2d_t, ancestor)), world);
+            world = lh_mat4_mul(lh_entity_2d_get_local_matrix(spatial), world);
         }
     }
     return world;

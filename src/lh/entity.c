@@ -153,6 +153,26 @@ lh_entity_is_instance_of(const lh_entity_t *self, const lh_entity_class_t *entit
     return lh_bool_false;
 }
 
+lh_ptr
+lh_entity_cast(const lh_entity_t *self, const lh_entity_class_t *entity_class)
+{
+    return lh_entity_is_instance_of(self, entity_class) ? lh_cast_const(lh_entity_t *, self)
+                                                        : lh_null;
+}
+
+lh_entity_t *
+lh_entity_get_root(const lh_entity_t *self)
+{
+    lh_assert_runtime_ref(self);
+    lh_entity_t *root = lh_cast_const(lh_entity_t *, self);
+    for (lh_entity_t *parent = lh_entity_get_parent(root); lh_ptr_is_set(parent);
+         parent = lh_entity_get_parent(parent))
+    {
+        root = parent;
+    }
+    return root;
+}
+
 lh_entity_t *
 lh_entity_get_parent(const lh_entity_t *self)
 {
@@ -241,8 +261,11 @@ lh_entity_remove_handler(lh_entity_t *self, lh_entity_handler_cb handler, lh_ptr
     return lh_bool_false;
 }
 
-lh_bool_t
-lh_entity_send_event(lh_entity_t *self, lh_uint_t code, lh_ptr param)
+/* Shared by send_event and notify: deliver to @p self, then, with @p bubble,
+ * to each ancestor while the receiver lets the event bubble and no one stopped
+ * it. */
+static lh_bool_t
+lh_entity_dispatch(lh_entity_t *self, lh_uint_t code, lh_ptr param, lh_bool_t bubble)
 {
     lh_assert_runtime_ref(self);
 
@@ -256,7 +279,8 @@ lh_entity_send_event(lh_entity_t *self, lh_uint_t code, lh_ptr param)
          receiver = lh_entity_get_parent(receiver))
     {
         lh_entity_deliver(receiver, lh_addr_of(event));
-        if (event.stopped || !lh_entity_has_flags(receiver, lh_entity_flags_event_bubble))
+        if (!bubble || event.stopped ||
+            !lh_entity_has_flags(receiver, lh_entity_flags_event_bubble))
         {
             break;
         }
@@ -265,15 +289,13 @@ lh_entity_send_event(lh_entity_t *self, lh_uint_t code, lh_ptr param)
 }
 
 lh_bool_t
+lh_entity_send_event(lh_entity_t *self, lh_uint_t code, lh_ptr param)
+{
+    return lh_entity_dispatch(self, code, param, lh_bool_true);
+}
+
+lh_bool_t
 lh_entity_notify(lh_entity_t *self, lh_uint_t code, lh_ptr param)
 {
-    lh_assert_runtime_ref(self);
-
-    lh_entity_event_t event;
-    event.code = code;
-    event.target = self;
-    event.param = param;
-    event.stopped = lh_bool_false;
-    lh_entity_deliver(self, lh_addr_of(event));
-    return event.stopped;
+    return lh_entity_dispatch(self, code, param, lh_bool_false);
 }

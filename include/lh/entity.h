@@ -97,6 +97,20 @@ lh_bool_t
 lh_entity_is_instance_of(const lh_entity_t *self, const lh_entity_class_t *entity_class);
 
 /**
+ * @brief @p self as an instance of @p entity_class, or ::lh_null when it is
+ *        not one (::lh_entity_is_instance_of).
+ *
+ * The checked way down a class hierarchy: assign the result to a pointer to
+ * the class's instance struct and test it.
+ * @code{.c}
+ * const lh_entity_rect_t *rect = lh_entity_cast(entity, &lh_entity_rect_class);
+ * if (rect) { ... }
+ * @endcode
+ */
+lh_ptr
+lh_entity_cast(const lh_entity_t *self, const lh_entity_class_t *entity_class);
+
+/**
  * @brief The entity that contains @p self, or ::lh_null for a root.
  */
 lh_entity_t *
@@ -123,6 +137,24 @@ lh_entity_get_first_child(const lh_entity_t *self);
  */
 lh_entity_t *
 lh_entity_get_next_sibling(const lh_entity_t *self);
+
+/**
+ * @def lh_entity_foreach_child(child, parent)
+ * @brief Loop over @p parent's children, oldest first, with each in turn in
+ *        the new `lh_entity_t *` variable @p child.
+ *
+ * The body must not delete or move @p child.
+ */
+#define lh_entity_foreach_child(child, parent)                                                     \
+    for (lh_entity_t *child = lh_entity_get_first_child(parent); lh_ptr_is_set(child);             \
+         child = lh_entity_get_next_sibling(child))
+
+/**
+ * @brief The top of @p self's tree: the ancestor with no parent, or @p self
+ *        when it has none (a screen, a scene).
+ */
+lh_entity_t *
+lh_entity_get_root(const lh_entity_t *self);
 
 /**
  * @brief Set the `lh_entity_flags_*` bits of @p flags on @p self.

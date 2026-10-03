@@ -12,6 +12,14 @@
 #define lh_entity_rect_as_entity(self) lh_ptr_rcast(lh_entity_t, (self))
 #define lh_entity_rect_as_const_2d(self) lh_ptr_rcast(const lh_entity_2d_t, (self))
 
+/* True when @p local, a point in the rectangle's own space, is inside its
+ * `[0, width) x [0, height)`. */
+static lh_bool_t
+lh_entity_rect_has_local_point(lh_vec2_t size, lh_vec3_t local)
+{
+    return local.x >= 0.0f && local.x < size.x && local.y >= 0.0f && local.y < size.y;
+}
+
 /* Fill @p self's area on @p canvas with its color. A pixel belongs to the
  * rectangle when its center does, so neighbors share no pixel and leave no
  * gap. */
@@ -55,7 +63,7 @@ lh_entity_rect_draw(const lh_entity_rect_t *self, lh_ui_canvas_t *canvas)
             const lh_vec3_t center = lh_vec3_make(lh_cast_static(lh_float_t, x) + 0.5f,
                                                   lh_cast_static(lh_float_t, y) + 0.5f, 0.0f);
             const lh_vec3_t local = lh_mat4_transform_point(to_local, center);
-            if (local.x >= 0.0f && local.x < size.x && local.y >= 0.0f && local.y < size.y)
+            if (lh_entity_rect_has_local_point(size, local))
             {
                 lh_ui_canvas_blend_pixel(canvas, x, y, color);
             }
@@ -154,8 +162,7 @@ lh_entity_rect_contains(const lh_entity_rect_t *self, lh_vec2_t point)
     }
 
     const lh_vec3_t local = lh_mat4_transform_point(to_local, lh_vec3_make(point.x, point.y, 0.0f));
-    const lh_vec2_t size = lh_entity_rect_get_size(self);
-    return local.x >= 0.0f && local.x < size.x && local.y >= 0.0f && local.y < size.y;
+    return lh_entity_rect_has_local_point(lh_entity_rect_get_size(self), local);
 }
 
 lh_entity_t *
@@ -166,18 +173,17 @@ lh_entity_rect_find_at(lh_entity_t *root, lh_vec2_t point)
         return lh_null;
     }
 
-    const lh_bool_t is_rect = lh_entity_is_instance_of(root, lh_addr_of(lh_entity_rect_class));
-    const lh_bool_t inside =
-        is_rect && lh_entity_rect_contains(lh_ptr_rcast(const lh_entity_rect_t, root), point);
+    const lh_entity_rect_t *const rect = lh_entity_cast(root, lh_addr_of(lh_entity_rect_class));
+    const lh_bool_t inside = lh_ptr_is_set(rect) && lh_entity_rect_contains(rect, point);
 
     /* Children first, the youngest hit winning; the entity itself only when
      * no child is hit: that is the drawing order read backwards. A rectangle
      * that cuts its children hides those outside it. */
     lh_entity_t *hit = lh_null;
-    if (!is_rect || inside || lh_entity_has_flags(root, lh_entity_flags_overflow_visible))
+    if (lh_ptr_is_null(rect) || inside ||
+        lh_entity_has_flags(root, lh_entity_flags_overflow_visible))
     {
-        for (lh_entity_t *child = lh_entity_get_first_child(root); lh_ptr_is_set(child);
-             child = lh_entity_get_next_sibling(child))
+        lh_entity_foreach_child(child, root)
         {
             lh_entity_t *const child_hit = lh_entity_rect_find_at(child, point);
             if (lh_ptr_is_set(child_hit))
