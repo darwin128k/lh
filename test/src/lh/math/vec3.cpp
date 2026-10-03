@@ -1,6 +1,8 @@
 ﻿#include <gtest/gtest.h>
 
+#include <lh/math/vec2.h>
 #include <lh/math/vec3.h>
+#include <lh/util/addr.h>
 
 #include <cstddef>
 
@@ -105,6 +107,40 @@ TEST(vec3, near)
     EXPECT_TRUE(lh_math_vec3_near(a, lh_math_vec3_make(1.0005f, 1.9995f, 3.0f), 0.001f));
     EXPECT_FALSE(lh_math_vec3_near(a, lh_math_vec3_make(1.0f, 2.0f, 3.01f), 0.001f));
     EXPECT_FALSE(lh_math_vec3_near(a, lh_math_vec3_make(0.99f, 2.0f, 3.0f), 0.001f));
+}
+
+/* ── conversions ────────────────────────────────────────────────────────── */
+
+TEST(vec3, vec2_to_vec3_adds_z)
+{
+    const lh_math_vec2_t a = lh_math_vec2_make(3.5f, -7.25f);
+    expect_vec3(lh_math_vec2_to_vec3(a, 42.0f), 3.5f, -7.25f, 42.0f);
+    expect_vec3(lh_math_vec2_to_vec3(a, -1.0f), 3.5f, -7.25f, -1.0f);
+}
+
+TEST(vec3, vec2_to_vec3_z0_is_the_plane_of_a_2d_entity)
+{
+    const lh_math_vec2_t a = lh_math_vec2_make(3.5f, -7.25f);
+    expect_vec3(lh_math_vec2_to_vec3_z0(a), 3.5f, -7.25f, 0.0f);
+    // Equal to the explicit form it replaces.
+    expect_vec3(lh_math_vec2_to_vec3_z0(a),
+                lh_math_vec2_get_x(lh_addr_of(a)), lh_math_vec2_get_y(lh_addr_of(a)), 0.0f);
+}
+
+TEST(vec3, vec3_to_vec2_drops_z)
+{
+    const lh_math_vec3_t a = lh_math_vec3_make(3.5f, -7.25f, 99.0f);
+    const lh_math_vec2_t b = lh_math_vec3_to_vec2(a);
+    EXPECT_FLOAT_EQ(b.x, 3.5f);
+    EXPECT_FLOAT_EQ(b.y, -7.25f);
+}
+
+TEST(vec3, vec2_round_trip_through_vec3_keeps_xy)
+{
+    const lh_math_vec2_t a = lh_math_vec2_make(3.5f, -7.25f);
+    const lh_math_vec2_t b = lh_math_vec3_to_vec2(lh_math_vec2_to_vec3_z0(a));
+    EXPECT_FLOAT_EQ(b.x, a.x);
+    EXPECT_FLOAT_EQ(b.y, a.y);
 }
 
 } // namespace

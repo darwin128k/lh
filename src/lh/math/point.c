@@ -5,6 +5,8 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/bool.h>
+#include <lh/cast/static.h>
+#include <lh/float/round.h>
 #include <lh/math/point.h>
 #include <lh/null.h>
 #include <lh/math.h>
@@ -54,6 +56,27 @@ lh_math_point_set_y(lh_math_point_t *self, lh_math_coord_t y)
 {
     lh_assert_runtime_ref(self);
     self->y = y;
+}
+
+/* ── Queries ────────────────────────────────────────────────────────────── */
+
+/* ── Conversions ─────────────────────────────────────────────────────────── */
+
+lh_math_vec2_t
+lh_math_point_to_vec2(lh_math_point_t self)
+{
+    return lh_math_vec2_make(lh_cast_static(lh_float_t, lh_math_point_get_x(lh_addr_of(self))),
+                             lh_cast_static(lh_float_t, lh_math_point_get_y(lh_addr_of(self))));
+}
+
+lh_math_point_t
+lh_math_vec2_to_point(lh_math_vec2_t v)
+{
+    /* `ceil(x - 0.5f)`: round to nearest, halves toward the lower pixel, the
+     * same rule lh_entity_rect_draw uses to pick covered pixels. */
+    return lh_math_point_make(
+        lh_cast_static(lh_math_coord_t, lh_float_ceil_to_int(lh_math_vec2_get_x(lh_addr_of(v)) - 0.5f)),
+        lh_cast_static(lh_math_coord_t, lh_float_ceil_to_int(lh_math_vec2_get_y(lh_addr_of(v)) - 0.5f)));
 }
 
 /* ── Queries ────────────────────────────────────────────────────────────── */

@@ -10,7 +10,7 @@
 #include <lh/util/ptr.h>
 
 #define lh_entity_rect_as_entity(self) lh_ptr_rcast(lh_entity_t, (self))
-#define lh_entity_rect_as_const_2d(self) lh_ptr_rcast(const lh_entity_2d_t, (self))
+#define lh_entity_rect_as_2d_const(self) lh_ptr_rcast(const lh_entity_2d_t, (self))
 
 /* True when @p local, a point in the rectangle's own space, is inside its
  * `[0, width) x [0, height)`. */
@@ -33,14 +33,14 @@ lh_entity_rect_draw(const lh_entity_rect_t *self, lh_ui_canvas_t *canvas)
         return;
     }
 
-    const lh_math_mat4_t world = lh_entity_2d_get_world_matrix(lh_entity_rect_as_const_2d(self));
+    const lh_math_mat4_t world = lh_entity_2d_get_world_matrix(lh_entity_rect_as_2d_const(self));
     const lh_math_vec4_t world_col_0 = lh_math_mat4_get_column(lh_addr_of(world), 0);
     const lh_math_vec4_t world_col_1 = lh_math_mat4_get_column(lh_addr_of(world), 1);
     if (lh_math_vec4_get_y(lh_addr_of(world_col_0)) == 0.0f && lh_math_vec4_get_x(lh_addr_of(world_col_1)) == 0.0f)
     {
         /* Not rotated: the covered pixels form a rectangle themselves. */
         const lh_math_vec3_t a = lh_math_mat4_transform_point(world, lh_math_vec3_make(0.0f, 0.0f, 0.0f));
-        const lh_math_vec3_t b = lh_math_mat4_transform_point(world, lh_math_vec3_make(lh_math_vec2_get_x(lh_addr_of(size)), lh_math_vec2_get_y(lh_addr_of(size)), 0.0f));
+        const lh_math_vec3_t b = lh_math_mat4_transform_point(world, lh_math_vec2_to_vec3_z0(size));
         const lh_int_t x0 = lh_float_ceil_to_int(lh_math_min(lh_math_vec3_get_x(lh_addr_of(a)), lh_math_vec3_get_x(lh_addr_of(b))) - 0.5f);
         const lh_int_t y0 = lh_float_ceil_to_int(lh_math_min(lh_math_vec3_get_y(lh_addr_of(a)), lh_math_vec3_get_y(lh_addr_of(b))) - 0.5f);
         const lh_int_t x1 = lh_float_ceil_to_int(lh_math_max(lh_math_vec3_get_x(lh_addr_of(a)), lh_math_vec3_get_x(lh_addr_of(b))) - 0.5f);
@@ -133,12 +133,14 @@ lh_entity_rect_get_screen_bounds(const lh_entity_rect_t *self)
         return lh_math_rect_make_empty();
     }
 
-    const lh_math_mat4_t world = lh_entity_2d_get_world_matrix(lh_entity_rect_as_const_2d(self));
+    const lh_math_mat4_t world = lh_entity_2d_get_world_matrix(lh_entity_rect_as_2d_const(self));
+    const lh_float_t w = lh_math_vec2_get_x(lh_addr_of(size));
+    const lh_float_t h = lh_math_vec2_get_y(lh_addr_of(size));
     const lh_math_vec3_t corners[4] = {
         lh_math_mat4_transform_point(world, lh_math_vec3_make(0.0f, 0.0f, 0.0f)),
-        lh_math_mat4_transform_point(world, lh_math_vec3_make(lh_math_vec2_get_x(lh_addr_of(size)), 0.0f, 0.0f)),
-        lh_math_mat4_transform_point(world, lh_math_vec3_make(0.0f, lh_math_vec2_get_y(lh_addr_of(size)), 0.0f)),
-        lh_math_mat4_transform_point(world, lh_math_vec3_make(lh_math_vec2_get_x(lh_addr_of(size)), lh_math_vec2_get_y(lh_addr_of(size)), 0.0f)),
+        lh_math_mat4_transform_point(world, lh_math_vec3_make(w, 0.0f, 0.0f)),
+        lh_math_mat4_transform_point(world, lh_math_vec3_make(0.0f, h, 0.0f)),
+        lh_math_mat4_transform_point(world, lh_math_vec3_make(w, h, 0.0f)),
     };
     lh_math_vec3_t min = corners[0];
     lh_math_vec3_t max = corners[0];
@@ -157,13 +159,13 @@ lh_bool_t
 lh_entity_rect_contains(const lh_entity_rect_t *self, lh_math_vec2_t point)
 {
     lh_math_mat4_t to_local;
-    if (!lh_math_mat4_inverse(lh_entity_2d_get_world_matrix(lh_entity_rect_as_const_2d(self)),
+    if (!lh_math_mat4_inverse(lh_entity_2d_get_world_matrix(lh_entity_rect_as_2d_const(self)),
                          lh_addr_of(to_local)))
     {
         return lh_bool_false; /* scaled to nothing: covers no area */
     }
 
-    const lh_math_vec3_t local = lh_math_mat4_transform_point(to_local, lh_math_vec3_make(lh_math_vec2_get_x(lh_addr_of(point)), lh_math_vec2_get_y(lh_addr_of(point)), 0.0f));
+    const lh_math_vec3_t local = lh_math_mat4_transform_point(to_local, lh_math_vec2_to_vec3_z0(point));
     return lh_entity_rect_has_local_point(lh_entity_rect_get_size(self), local);
 }
 

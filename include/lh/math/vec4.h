@@ -21,6 +21,7 @@
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/float.h>
+#include <lh/math/vec3.h>
 #include <lh/math/vec4/fields.h>
 #include <lh/void.h>
 
@@ -92,6 +93,30 @@ lh_math_vec4_set_z(lh_math_vec4_t *self, lh_float_t z);
  */
 lh_void
 lh_math_vec4_set_w(lh_math_vec4_t *self, lh_float_t w);
+
+/* ── Conversions ─────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Widen @p v to homogeneous space with `w = @p w`.
+ *
+ * @param v Vector to widen.
+ * @param w Homogeneous component; `1.0f` for a point, `0.0f` for a direction.
+ * @return `(v.x, v.y, v.z, w)`.
+ */
+lh_math_vec4_t
+lh_math_vec3_to_vec4(lh_math_vec3_t v, lh_float_t w);
+
+/**
+ * @brief Narrow @p v from homogeneous space, dropping `w`.
+ *
+ * Assumes a point, not a direction: for a projective transform the result
+ * must be divided by `w` first.
+ *
+ * @param v Vector to narrow.
+ * @return `(v.x, v.y, v.z)`.
+ */
+lh_math_vec3_t
+lh_math_vec4_to_vec3(lh_math_vec4_t v);
 
 /**
  * @brief Component-wise sum @p a + @p b.

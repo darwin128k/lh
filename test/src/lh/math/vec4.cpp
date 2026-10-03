@@ -54,4 +54,37 @@ TEST(vec4, lerp_and_near)
     EXPECT_FALSE(lh_math_vec4_near(m, lh_math_vec4_make(2.0f, 4.0f, -2.0f, 1.1f), 0.01f));
 }
 
+/* ── conversions ────────────────────────────────────────────────────────── */
+
+TEST(vec4, vec3_to_vec4_sets_w)
+{
+    const lh_math_vec3_t a = lh_math_vec3_make(1.0f, 2.0f, 3.0f);
+    lh_math_vec4_t r = lh_math_vec3_to_vec4(a, 1.0f);
+    EXPECT_FLOAT_EQ(r.x, 1.0f);
+    EXPECT_FLOAT_EQ(r.y, 2.0f);
+    EXPECT_FLOAT_EQ(r.z, 3.0f);
+    EXPECT_FLOAT_EQ(r.w, 1.0f);
+    // w = 0 is the direction form used by mat4_transform_dir.
+    r = lh_math_vec3_to_vec4(a, 0.0f);
+    EXPECT_FLOAT_EQ(r.w, 0.0f);
+}
+
+TEST(vec4, vec4_to_vec3_drops_w)
+{
+    const lh_math_vec4_t a = lh_math_vec4_make(1.0f, 2.0f, 3.0f, 99.0f);
+    const lh_math_vec3_t b = lh_math_vec4_to_vec3(a);
+    EXPECT_FLOAT_EQ(b.x, 1.0f);
+    EXPECT_FLOAT_EQ(b.y, 2.0f);
+    EXPECT_FLOAT_EQ(b.z, 3.0f);
+}
+
+TEST(vec4, vec3_round_trip_keeps_xyz)
+{
+    const lh_math_vec3_t a = lh_math_vec3_make(1.5f, -2.25f, 3.125f);
+    const lh_math_vec3_t b = lh_math_vec4_to_vec3(lh_math_vec3_to_vec4(a, 7.0f));
+    EXPECT_FLOAT_EQ(b.x, a.x);
+    EXPECT_FLOAT_EQ(b.y, a.y);
+    EXPECT_FLOAT_EQ(b.z, a.z);
+}
+
 } // namespace

@@ -29,8 +29,8 @@ lh_entity_2d_event(lh_entity_t *self, lh_entity_event_t *event)
         lh_math_quat_from_axis_angle(lh_math_vec3_make(0.0f, 0.0f, 1.0f), lh_entity_2d_get_angle(entity)));
 
     *lh_ptr_rcast(lh_math_mat4_t, lh_entity_event_get_param(event)) =
-        lh_math_mat4_mul(lh_math_mat4_from_translation(lh_math_vec3_make(lh_math_vec2_get_x(lh_addr_of(position)), lh_math_vec2_get_y(lh_addr_of(position)), 0.0f)),
-                    lh_math_mat4_mul(rotate, lh_math_mat4_from_scale(lh_math_vec3_make(lh_math_vec2_get_x(lh_addr_of(scale)), lh_math_vec2_get_y(lh_addr_of(scale)), 1.0f))));
+        lh_math_mat4_mul(lh_math_mat4_from_translation(lh_math_vec2_to_vec3_z0(position)),
+                    lh_math_mat4_mul(rotate, lh_math_mat4_from_scale(lh_math_vec2_to_vec3(scale, 1.0f))));
     lh_entity_event_stop(event);
 }
 

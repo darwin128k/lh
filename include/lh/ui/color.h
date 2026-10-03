@@ -15,7 +15,7 @@
 #ifndef LH_UI_COLOR_H
 #define LH_UI_COLOR_H
 
-#include <lh/char.h>
+#include <lh/byte.h>
 #include <lh/ui/color/fields.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/types.h>
@@ -37,7 +37,7 @@ typedef struct lh_ui_color lh_ui_color_t;
  * @brief Build a `::lh_ui_color_t` from explicit 0..255 channel values.
  */
 lh_ui_color_t
-lh_ui_color_make(lh_uchar_t r, lh_uchar_t g, lh_uchar_t b, lh_uchar_t a);
+lh_ui_color_make(lh_byte_t r, lh_byte_t g, lh_byte_t b, lh_byte_t a);
 
 /**
  * @brief Build a `::lh_ui_color_t` from a packed `0xAARRGGBB` `lh_uint_t`.

@@ -11,10 +11,10 @@ lh_ui_canvas_blend(lh_ui_color_t dst, lh_ui_color_t color)
 {
     const lh_uint_t a = color.a;
     const lh_uint_t keep = 255U - a;
-    return lh_ui_color_make(lh_cast_static(lh_uchar_t, (color.r * a + dst.r * keep + 127U) / 255U),
-                            lh_cast_static(lh_uchar_t, (color.g * a + dst.g * keep + 127U) / 255U),
-                            lh_cast_static(lh_uchar_t, (color.b * a + dst.b * keep + 127U) / 255U),
-                            lh_cast_static(lh_uchar_t, a + (dst.a * keep + 127U) / 255U));
+    return lh_ui_color_make(lh_cast_static(lh_byte_t, (color.r * a + dst.r * keep + 127U) / 255U),
+                            lh_cast_static(lh_byte_t, (color.g * a + dst.g * keep + 127U) / 255U),
+                            lh_cast_static(lh_byte_t, (color.b * a + dst.b * keep + 127U) / 255U),
+                            lh_cast_static(lh_byte_t, a + (dst.a * keep + 127U) / 255U));
 }
 
 lh_void

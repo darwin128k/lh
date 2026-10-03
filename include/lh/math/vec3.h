@@ -21,6 +21,7 @@
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/float.h>
+#include <lh/math/vec2.h>
 #include <lh/math/vec3/fields.h>
 #include <lh/void.h>
 
@@ -80,6 +81,39 @@ lh_math_vec3_set_y(lh_math_vec3_t *self, lh_float_t y);
  */
 lh_void
 lh_math_vec3_set_z(lh_math_vec3_t *self, lh_float_t z);
+
+/* ── Conversions ─────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Widen @p v to the plane `z = @p z`.
+ *
+ * @param v Vector to widen.
+ * @param z Depth to add.
+ * @return `(v.x, v.y, z)`.
+ */
+lh_math_vec3_t
+lh_math_vec2_to_vec3(lh_math_vec2_t v, lh_float_t z);
+
+/**
+ * @brief Widen @p v to the plane `z = 0`.
+ *
+ * The natural widening for a 2D entity: a 2D entity is a 3D one that stays
+ * in the `z = 0` plane.
+ *
+ * @param v Vector to widen.
+ * @return `(v.x, v.y, 0)`.
+ */
+lh_math_vec3_t
+lh_math_vec2_to_vec3_z0(lh_math_vec2_t v);
+
+/**
+ * @brief Narrow @p v to the plane, dropping `z`.
+ *
+ * @param v Vector to narrow.
+ * @return `(v.x, v.y)`.
+ */
+lh_math_vec2_t
+lh_math_vec3_to_vec2(lh_math_vec3_t v);
 
 /**
  * @brief Component-wise sum @p a + @p b.

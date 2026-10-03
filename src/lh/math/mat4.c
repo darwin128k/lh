@@ -102,27 +102,15 @@ lh_math_mat4_mul(lh_math_mat4_t a, lh_math_mat4_t b)
 lh_math_vec3_t
 lh_math_mat4_transform_point(lh_math_mat4_t m, lh_math_vec3_t p)
 {
-    const lh_math_vec4_t r = lh_math_mat4_mul_vec4(
-        m, lh_math_vec4_make(lh_math_vec3_get_x(lh_addr_of(p)),
-                             lh_math_vec3_get_y(lh_addr_of(p)),
-                             lh_math_vec3_get_z(lh_addr_of(p)),
-                             1.0f));
-    return lh_math_vec3_make(lh_math_vec4_get_x(lh_addr_of(r)),
-                             lh_math_vec4_get_y(lh_addr_of(r)),
-                             lh_math_vec4_get_z(lh_addr_of(r)));
+    const lh_math_vec4_t r = lh_math_mat4_mul_vec4(m, lh_math_vec3_to_vec4(p, 1.0f));
+    return lh_math_vec4_to_vec3(r);
 }
 
 lh_math_vec3_t
 lh_math_mat4_transform_dir(lh_math_mat4_t m, lh_math_vec3_t d)
 {
-    const lh_math_vec4_t r = lh_math_mat4_mul_vec4(
-        m, lh_math_vec4_make(lh_math_vec3_get_x(lh_addr_of(d)),
-                             lh_math_vec3_get_y(lh_addr_of(d)),
-                             lh_math_vec3_get_z(lh_addr_of(d)),
-                             0.0f));
-    return lh_math_vec3_make(lh_math_vec4_get_x(lh_addr_of(r)),
-                             lh_math_vec4_get_y(lh_addr_of(r)),
-                             lh_math_vec4_get_z(lh_addr_of(r)));
+    const lh_math_vec4_t r = lh_math_mat4_mul_vec4(m, lh_math_vec3_to_vec4(d, 0.0f));
+    return lh_math_vec4_to_vec3(r);
 }
 
 lh_math_mat4_t

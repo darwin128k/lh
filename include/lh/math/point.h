@@ -18,6 +18,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/math/coord.h>
 #include <lh/math/point/fields.h>
+#include <lh/math/vec2.h>
 #include <lh/void.h>
 
 /**
@@ -72,6 +73,34 @@ lh_math_point_set_x(lh_math_point_t *self, lh_math_coord_t x);
  */
 lh_void
 lh_math_point_set_y(lh_math_point_t *self, lh_math_coord_t y);
+
+/* ── Conversions ─────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Widen @p self to continuous coordinates.
+ *
+ * Exact: a pixel coordinate is already an integer, so no value is lost.
+ *
+ * @param self Point to widen.
+ * @return `(self.x, self.y)`.
+ */
+lh_math_vec2_t
+lh_math_point_to_vec2(lh_math_point_t self);
+
+/**
+ * @brief Narrow @p v to the pixel it lands on.
+ *
+ * Rounds to the nearest integer, halves toward the lower pixel: `3.4` gives
+ * pixel `3`, `3.6` gives `4`, and exactly `3.5` gives `3`. That is the same
+ * rule the rasterizer uses to pick the pixels a rectangle covers
+ * (`ceil(x - 0.5f)` in ::lh_entity_rect_draw), so a position narrowed here
+ * lands on the pixel that drawing at that position would touch.
+ *
+ * @param v Continuous position.
+ * @return The pixel containing @p v.
+ */
+lh_math_point_t
+lh_math_vec2_to_point(lh_math_vec2_t v);
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
 

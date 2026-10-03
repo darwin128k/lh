@@ -70,6 +70,22 @@ lh_math_vec4_set_w(lh_math_vec4_t *self, lh_float_t w)
     self->w = w;
 }
 
+/* ── Conversions ─────────────────────────────────────────────────────────── */
+
+lh_math_vec4_t
+lh_math_vec3_to_vec4(lh_math_vec3_t v, lh_float_t w)
+{
+    return lh_math_vec4_make(lh_math_vec3_get_x(lh_addr_of(v)), lh_math_vec3_get_y(lh_addr_of(v)),
+                             lh_math_vec3_get_z(lh_addr_of(v)), w);
+}
+
+lh_math_vec3_t
+lh_math_vec4_to_vec3(lh_math_vec4_t v)
+{
+    return lh_math_vec3_make(lh_math_vec4_get_x(lh_addr_of(v)), lh_math_vec4_get_y(lh_addr_of(v)),
+                             lh_math_vec4_get_z(lh_addr_of(v)));
+}
+
 lh_math_vec4_t
 lh_math_vec4_add(lh_math_vec4_t a, lh_math_vec4_t b)
 {

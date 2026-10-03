@@ -22,6 +22,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/math/coord.h>
 #include <lh/math/point.h>
+#include <lh/math/vec3.h>
 #include <lh/void.h>
 
 /**
@@ -89,6 +90,32 @@ lh_math_point3_set_y(lh_math_point3_t *self, lh_math_coord_t y);
  */
 lh_void
 lh_math_point3_set_z(lh_math_point3_t *self, lh_math_coord_t z);
+
+/* ── Conversions ─────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Widen @p self to continuous coordinates.
+ *
+ * Exact: grid coordinates are already integers, so no value is lost.
+ *
+ * @param self Point to widen.
+ * @return `(self.x, self.y, self.z)`.
+ */
+lh_math_vec3_t
+lh_math_point3_to_vec3(lh_math_point3_t self);
+
+/**
+ * @brief Narrow @p v to the grid cell it lands in.
+ *
+ * Rounds to the nearest integer by the same rule as ::lh_math_vec2_to_point,
+ * so a grid point narrowed from a transformed position lands on the cell that
+ * snapping would select.
+ *
+ * @param v Continuous position.
+ * @return The grid point containing @p v.
+ */
+lh_math_point3_t
+lh_math_vec3_to_point3(lh_math_vec3_t v);
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
 

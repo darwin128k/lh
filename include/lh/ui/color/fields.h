@@ -10,7 +10,7 @@
  * @def lh_ui_color_fields(channel_type)
  * @brief Red, green, blue and alpha channels.
  *
- * @param channel_type Type of each channel (::lh_uchar_t).
+ * @param channel_type Type of each channel (::lh_byte_t).
  */
 #define lh_ui_color_fields(channel_type)                                                           \
     channel_type r;                                                                                \

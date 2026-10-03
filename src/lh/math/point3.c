@@ -5,6 +5,8 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/bool.h>
+#include <lh/cast/static.h>
+#include <lh/float/round.h>
 #include <lh/math/point3.h>
 #include <lh/math.h>
 
@@ -68,6 +70,25 @@ lh_math_point3_set_z(lh_math_point3_t *self, lh_math_coord_t z)
 {
     lh_assert_runtime_ref(self);
     self->z = z;
+}
+
+/* ── Conversions ─────────────────────────────────────────────────────────── */
+
+lh_math_vec3_t
+lh_math_point3_to_vec3(lh_math_point3_t self)
+{
+    return lh_math_vec3_make(lh_cast_static(lh_float_t, lh_math_point3_get_x(lh_addr_of(self))),
+                             lh_cast_static(lh_float_t, lh_math_point3_get_y(lh_addr_of(self))),
+                             lh_cast_static(lh_float_t, lh_math_point3_get_z(lh_addr_of(self))));
+}
+
+lh_math_point3_t
+lh_math_vec3_to_point3(lh_math_vec3_t v)
+{
+    return lh_math_point3_make(
+        lh_cast_static(lh_math_coord_t, lh_float_ceil_to_int(lh_math_vec3_get_x(lh_addr_of(v)) - 0.5f)),
+        lh_cast_static(lh_math_coord_t, lh_float_ceil_to_int(lh_math_vec3_get_y(lh_addr_of(v)) - 0.5f)),
+        lh_cast_static(lh_math_coord_t, lh_float_ceil_to_int(lh_math_vec3_get_z(lh_addr_of(v)) - 0.5f)));
 }
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
