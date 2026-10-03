@@ -1,4 +1,4 @@
-#include <gtest/gtest.h>
+﻿#include <gtest/gtest.h>
 
 #include <lh/entity/screen.h>
 #include <lh/memory/allocator/initializer.h>
@@ -35,7 +35,7 @@ screen_test_dealloc(lh_self_ptr, lh_ptr ptr)
 }
 
 lh_entity_t *g_pointer_current;
-lh_vec2_t g_pointer_at;
+lh_math_vec2_t g_pointer_at;
 
 lh_void
 screen_test_pointer_handler(lh_entity_event_t *event, lh_ptr)
@@ -45,7 +45,7 @@ screen_test_pointer_handler(lh_entity_event_t *event, lh_ptr)
         return; // e.g. DELETE at teardown, which has no position
     }
     g_pointer_current = lh_entity_event_get_current(event);
-    g_pointer_at = *static_cast<const lh_vec2_t *>(lh_entity_event_get_param(event));
+    g_pointer_at = *static_cast<const lh_math_vec2_t *>(lh_entity_event_get_param(event));
 }
 
 LH_COMPILER_EXTERN_C_END
@@ -67,7 +67,7 @@ class Screen : public ::testing::Test
         screen = reinterpret_cast<lh_entity_screen_t *>(
             lh_entity_create_root(&lh_entity_screen_class, &sized));
         lh_entity_rect_set_size(reinterpret_cast<lh_entity_rect_t *>(screen),
-                                lh_vec2_make(k_width, k_height));
+                                lh_math_vec2_make(k_width, k_height));
         pixels.assign(k_width * k_height, lh_ui_color_make(1, 2, 3, 4));
         lh_ui_canvas_init(&canvas, pixels.data(), k_width, k_height, k_width);
     }
@@ -90,8 +90,8 @@ class Screen : public ::testing::Test
     {
         lh_entity_rect_t *r =
             reinterpret_cast<lh_entity_rect_t *>(lh_entity_create(&lh_entity_rect_class, parent));
-        lh_entity_2d_set_position(reinterpret_cast<lh_entity_2d_t *>(r), lh_vec2_make(x, y));
-        lh_entity_rect_set_size(r, lh_vec2_make(w, h));
+        lh_entity_2d_set_position(reinterpret_cast<lh_entity_2d_t *>(r), lh_math_vec2_make(x, y));
+        lh_entity_rect_set_size(r, lh_math_vec2_make(w, h));
         lh_entity_rect_set_color(r, color);
         return r;
     }
@@ -142,7 +142,7 @@ TEST_F(Screen, only_dirty_areas_are_redrawn)
     render();
     pixels[10 * k_width + 10] = k_green; // a mark far from any change
 
-    lh_entity_2d_set_position(reinterpret_cast<lh_entity_2d_t *>(r), lh_vec2_make(4, 0));
+    lh_entity_2d_set_position(reinterpret_cast<lh_entity_2d_t *>(r), lh_math_vec2_make(4, 0));
     ASSERT_GE(lh_entity_screen_get_dirty_count(screen), 1u);
     const lh_math_rect_t drawn = render();
 
@@ -163,7 +163,7 @@ TEST_F(Screen, children_are_cut_to_the_parent_unless_overflow_visible)
     EXPECT_TRUE(same(at(7, 4), k_black)); // cut
 
     // A child outside its parent cannot be clicked either.
-    EXPECT_EQ(lh_entity_rect_find_at(root(), lh_vec2_make(7.5f, 4.5f)), root());
+    EXPECT_EQ(lh_entity_rect_find_at(root(), lh_math_vec2_make(7.5f, 4.5f)), root());
 
     lh_entity_add_flags(panel_entity, lh_entity_flags_overflow_visible);
     lh_entity_screen_invalidate_area(screen, lh_math_rect_make(0, 0, k_width, k_height));
@@ -182,7 +182,7 @@ TEST_F(Screen, hidden_entities_are_not_drawn_or_hit)
     lh_entity_invalidate(e);
     render();
     EXPECT_TRUE(same(at(1, 1), k_black));
-    EXPECT_EQ(lh_entity_rect_find_at(root(), lh_vec2_make(1, 1)), root());
+    EXPECT_EQ(lh_entity_rect_find_at(root(), lh_math_vec2_make(1, 1)), root());
 }
 
 TEST_F(Screen, deleting_redraws_what_was_under)
@@ -242,19 +242,19 @@ TEST_F(Screen, pointer_goes_to_the_rect_on_top_and_bubbles)
     // Not bubbling: the button gets it, the panel's handler does not run.
     g_pointer_current = nullptr;
     EXPECT_EQ(
-        lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_DOWN, lh_vec2_make(3, 3)),
+        lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_DOWN, lh_math_vec2_make(3, 3)),
         button_entity);
     EXPECT_EQ(g_pointer_current, nullptr);
 
     // Bubbling: the panel sees the button's click with its position.
     lh_entity_add_flags(button_entity, lh_entity_flags_event_bubble);
-    lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_DOWN, lh_vec2_make(3.5f, 4));
+    lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_DOWN, lh_math_vec2_make(3.5f, 4));
     EXPECT_EQ(g_pointer_current, panel_entity);
     EXPECT_FLOAT_EQ(g_pointer_at.x, 3.5f);
     EXPECT_FLOAT_EQ(g_pointer_at.y, 4.0f);
 
     EXPECT_EQ(
-        lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_UP, lh_vec2_make(12, 1)),
+        lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_UP, lh_math_vec2_make(12, 1)),
         root()); // only the screen itself is there
 }
 

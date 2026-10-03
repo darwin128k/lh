@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file entity_window.c
  * @brief Example: an entity screen shown in a native window.
  *
@@ -38,8 +38,8 @@ example_rect(lh_entity_t *parent, lh_float_t x, lh_float_t y, lh_float_t w, lh_f
 {
     lh_entity_rect_t *rect = lh_entity_cast(lh_entity_create(&lh_entity_rect_class, parent),
                                             &lh_entity_rect_class);
-    lh_entity_2d_set_position((lh_entity_2d_t *)rect, lh_vec2_make(x, y));
-    lh_entity_rect_set_size(rect, lh_vec2_make(w, h));
+    lh_entity_2d_set_position((lh_entity_2d_t *)rect, lh_math_vec2_make(x, y));
+    lh_entity_rect_set_size(rect, lh_math_vec2_make(w, h));
     lh_entity_rect_set_color(rect, color);
     return rect;
 }
@@ -83,11 +83,11 @@ example_on_window(lh_self_ptr self, lh_os_system_window_handle_t window,
         break;
     case lh_os_system_window_event_pointer_down:
         lh_entity_screen_send_pointer(example->screen, LH_ENTITY_EVENT_POINTER_DOWN,
-                                      lh_vec2_make(x, y));
+                                      lh_math_vec2_make(x, y));
         break;
     case lh_os_system_window_event_pointer_up:
         lh_entity_screen_send_pointer(example->screen, LH_ENTITY_EVENT_POINTER_UP,
-                                      lh_vec2_make(x, y));
+                                      lh_math_vec2_make(x, y));
         break;
     case lh_os_system_window_event_close:
         example->quit = lh_bool_true;
@@ -102,7 +102,7 @@ example_build(struct example *example)
 {
     lh_entity_t *root = (lh_entity_t *)example->screen;
     lh_entity_rect_set_size((lh_entity_rect_t *)example->screen,
-                            lh_vec2_make(EXAMPLE_WIDTH, EXAMPLE_HEIGHT));
+                            lh_math_vec2_make(EXAMPLE_WIDTH, EXAMPLE_HEIGHT));
     lh_entity_rect_set_color((lh_entity_rect_t *)example->screen,
                              lh_ui_color_make(24, 26, 32, 255));
 

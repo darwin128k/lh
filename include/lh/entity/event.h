@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file event.h
  * @brief An event sent to an entity (::lh_entity_send_event).
  */
@@ -25,7 +25,7 @@ struct lh_entity;
 /**
  * @def LH_ENTITY_EVENT_GET_LOCAL_MATRIX
  * @brief Asks a spatial entity for the matrix from its own space into its
- *        parent's; `param` is the ::lh_mat4_t to fill. The most derived
+ *        parent's; `param` is the ::lh_math_mat4_t to fill. The most derived
  *        spatial class answers and stops the event, so a 3D entity answers
  *        with its full 3D transform and its 2D base stays out.
  */
@@ -42,7 +42,7 @@ struct lh_entity;
 /**
  * @def LH_ENTITY_EVENT_POINTER_DOWN
  * @brief A pointer button was pressed over the entity
- *        (::lh_entity_screen_send_pointer); `param` is the `const lh_vec2_t *`
+ *        (::lh_entity_screen_send_pointer); `param` is the `const lh_math_vec2_t *`
  *        screen position. Bubbles with ::lh_entity_flags_event_bubble.
  */
 #define LH_ENTITY_EVENT_POINTER_DOWN 4U

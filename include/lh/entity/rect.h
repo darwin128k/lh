@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file rect.h
  * @brief A rectangular entity: the 2D element (panel, button, label, ...).
  *
@@ -27,7 +27,7 @@
 #include <lh/entity/rect/fields.h>
 #include <lh/math/rect.h>
 #include <lh/ui/color.h>
-#include <lh/vec2.h>
+#include <lh/math/vec2.h>
 
 /**
  * @struct lh_entity_rect
@@ -37,8 +37,8 @@
 struct lh_entity_rect
 {
     lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
-    lh_entity_2d_fields(lh_vec2_t, lh_float_t);
-    lh_entity_rect_fields(lh_vec2_t, lh_ui_color_t);
+    lh_entity_2d_fields(lh_math_vec2_t, lh_float_t);
+    lh_entity_rect_fields(lh_math_vec2_t, lh_ui_color_t);
 };
 typedef struct lh_entity_rect lh_entity_rect_t;
 
@@ -56,14 +56,14 @@ extern const lh_entity_class_t lh_entity_rect_class;
 /**
  * @brief Width (`x`) and height (`y`) in the rectangle's own space.
  */
-lh_vec2_t
+lh_math_vec2_t
 lh_entity_rect_get_size(const lh_entity_rect_t *self);
 
 /**
  * @brief Set the width (`x`) and height (`y`) in the rectangle's own space.
  */
 lh_void
-lh_entity_rect_set_size(lh_entity_rect_t *self, lh_vec2_t size);
+lh_entity_rect_set_size(lh_entity_rect_t *self, lh_math_vec2_t size);
 
 /**
  * @brief The color the rectangle is filled with.
@@ -94,7 +94,7 @@ lh_entity_rect_get_screen_bounds(const lh_entity_rect_t *self);
  * seen at an angle is tested by its projection along the local z axis.
  */
 lh_bool_t
-lh_entity_rect_contains(const lh_entity_rect_t *self, lh_vec2_t point);
+lh_entity_rect_contains(const lh_entity_rect_t *self, lh_math_vec2_t point);
 
 /**
  * @brief The rectangle on top at the world point @p point within the tree of
@@ -106,7 +106,7 @@ lh_entity_rect_contains(const lh_entity_rect_t *self, lh_vec2_t point);
  * (their children can still be hit) but never returned.
  */
 lh_entity_t *
-lh_entity_rect_find_at(lh_entity_t *root, lh_vec2_t point);
+lh_entity_rect_find_at(lh_entity_t *root, lh_math_vec2_t point);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -65,11 +65,11 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/memory/bounds/allocated.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/view/slice.cpp
         ${LH_TEST_SRC_PATH}/lh/array.cpp
-        ${LH_TEST_SRC_PATH}/lh/vec2.cpp
-        ${LH_TEST_SRC_PATH}/lh/vec3.cpp
-        ${LH_TEST_SRC_PATH}/lh/vec4.cpp
-        ${LH_TEST_SRC_PATH}/lh/quat.cpp
-        ${LH_TEST_SRC_PATH}/lh/mat4.cpp
+        ${LH_TEST_SRC_PATH}/lh/math/vec2.cpp
+        ${LH_TEST_SRC_PATH}/lh/math/vec3.cpp
+        ${LH_TEST_SRC_PATH}/lh/math/vec4.cpp
+        ${LH_TEST_SRC_PATH}/lh/math/quat.cpp
+        ${LH_TEST_SRC_PATH}/lh/math/mat4.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/canvas.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/color.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/canvas.cpp

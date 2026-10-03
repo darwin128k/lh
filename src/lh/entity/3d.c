@@ -1,4 +1,4 @@
-#include <lh/entity/3d.h>
+﻿#include <lh/entity/3d.h>
 #include <lh/entity/screen.h>
 #include <lh/assert.h>
 #include <lh/null.h>
@@ -13,7 +13,7 @@ lh_entity_3d_construct(lh_entity_t *self)
 {
     /* The 2D constructor already set the x and y scale; z is zeroed. */
     lh_entity_3d_t *const entity = lh_ptr_rcast(lh_entity_3d_t, self);
-    entity->rotation = lh_quat_identity();
+    entity->rotation = lh_math_quat_identity();
     entity->scale_z = 1.0f;
 }
 
@@ -26,14 +26,14 @@ lh_entity_3d_event(lh_entity_t *self, lh_entity_event_t *event)
     }
 
     const lh_entity_3d_t *const entity = lh_ptr_rcast(const lh_entity_3d_t, self);
-    const lh_mat4_t plane_rotate = lh_mat4_from_quat(lh_quat_from_axis_angle(
-        lh_vec3_make(0.0f, 0.0f, 1.0f), lh_entity_2d_get_angle(lh_entity_3d_as_const_2d(entity))));
-    const lh_mat4_t rotate =
-        lh_mat4_mul(lh_mat4_from_quat(lh_entity_3d_get_rotation(entity)), plane_rotate);
+    const lh_math_mat4_t plane_rotate = lh_math_mat4_from_quat(lh_math_quat_from_axis_angle(
+        lh_math_vec3_make(0.0f, 0.0f, 1.0f), lh_entity_2d_get_angle(lh_entity_3d_as_const_2d(entity))));
+    const lh_math_mat4_t rotate =
+        lh_math_mat4_mul(lh_math_mat4_from_quat(lh_entity_3d_get_rotation(entity)), plane_rotate);
 
-    *lh_ptr_rcast(lh_mat4_t, lh_entity_event_get_param(event)) =
-        lh_mat4_mul(lh_mat4_from_translation(lh_entity_3d_get_position(entity)),
-                    lh_mat4_mul(rotate, lh_mat4_from_scale(lh_entity_3d_get_scale(entity))));
+    *lh_ptr_rcast(lh_math_mat4_t, lh_entity_event_get_param(event)) =
+        lh_math_mat4_mul(lh_math_mat4_from_translation(lh_entity_3d_get_position(entity)),
+                    lh_math_mat4_mul(rotate, lh_math_mat4_from_scale(lh_entity_3d_get_scale(entity))));
     lh_entity_event_stop(event); /* the 2D answer below would drop z and rotation */
 }
 
@@ -41,25 +41,25 @@ const lh_entity_class_t lh_entity_3d_class =
     lh_entity_class_initializer(&lh_entity_2d_class, sizeof(lh_entity_3d_t), lh_entity_3d_construct,
                                 lh_null, lh_entity_3d_event);
 
-lh_vec3_t
+lh_math_vec3_t
 lh_entity_3d_get_position(const lh_entity_3d_t *self)
 {
     lh_assert_runtime_ref(self);
-    const lh_vec2_t xy = lh_entity_2d_get_position(lh_entity_3d_as_const_2d(self));
-    return lh_vec3_make(xy.x, xy.y, self->z);
+    const lh_math_vec2_t xy = lh_entity_2d_get_position(lh_entity_3d_as_const_2d(self));
+    return lh_math_vec3_make(xy.x, xy.y, self->z);
 }
 
 lh_void
-lh_entity_3d_set_position(lh_entity_3d_t *self, lh_vec3_t position)
+lh_entity_3d_set_position(lh_entity_3d_t *self, lh_math_vec3_t position)
 {
     lh_assert_runtime_ref(self);
     lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
-    lh_entity_2d_set_position(lh_entity_3d_as_2d(self), lh_vec2_make(position.x, position.y));
+    lh_entity_2d_set_position(lh_entity_3d_as_2d(self), lh_math_vec2_make(position.x, position.y));
     self->z = position.z;
     lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
 }
 
-lh_quat_t
+lh_math_quat_t
 lh_entity_3d_get_rotation(const lh_entity_3d_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -67,7 +67,7 @@ lh_entity_3d_get_rotation(const lh_entity_3d_t *self)
 }
 
 lh_void
-lh_entity_3d_set_rotation(lh_entity_3d_t *self, lh_quat_t rotation)
+lh_entity_3d_set_rotation(lh_entity_3d_t *self, lh_math_quat_t rotation)
 {
     lh_assert_runtime_ref(self);
     lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
@@ -75,20 +75,20 @@ lh_entity_3d_set_rotation(lh_entity_3d_t *self, lh_quat_t rotation)
     lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
 }
 
-lh_vec3_t
+lh_math_vec3_t
 lh_entity_3d_get_scale(const lh_entity_3d_t *self)
 {
     lh_assert_runtime_ref(self);
-    const lh_vec2_t xy = lh_entity_2d_get_scale(lh_entity_3d_as_const_2d(self));
-    return lh_vec3_make(xy.x, xy.y, self->scale_z);
+    const lh_math_vec2_t xy = lh_entity_2d_get_scale(lh_entity_3d_as_const_2d(self));
+    return lh_math_vec3_make(xy.x, xy.y, self->scale_z);
 }
 
 lh_void
-lh_entity_3d_set_scale(lh_entity_3d_t *self, lh_vec3_t scale)
+lh_entity_3d_set_scale(lh_entity_3d_t *self, lh_math_vec3_t scale)
 {
     lh_assert_runtime_ref(self);
     lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
-    lh_entity_2d_set_scale(lh_entity_3d_as_2d(self), lh_vec2_make(scale.x, scale.y));
+    lh_entity_2d_set_scale(lh_entity_3d_as_2d(self), lh_math_vec2_make(scale.x, scale.y));
     self->scale_z = scale.z;
     lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
 }

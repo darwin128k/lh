@@ -97,11 +97,11 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/ui/canvas.c
         ${LH_LIB_SRC_PATH}/ui/color.c
         ${LH_LIB_SRC_PATH}/math.c
-        ${LH_LIB_SRC_PATH}/vec2.c
-        ${LH_LIB_SRC_PATH}/vec3.c
-        ${LH_LIB_SRC_PATH}/vec4.c
-        ${LH_LIB_SRC_PATH}/quat.c
-        ${LH_LIB_SRC_PATH}/mat4.c
+        ${LH_LIB_SRC_PATH}/math/vec2.c
+        ${LH_LIB_SRC_PATH}/math/vec3.c
+        ${LH_LIB_SRC_PATH}/math/vec4.c
+        ${LH_LIB_SRC_PATH}/math/quat.c
+        ${LH_LIB_SRC_PATH}/math/mat4.c
 
         ${LH_LIB_SRC_PATH}/version.c
         ${LH_LIB_SRC_PATH}/date.c
@@ -283,9 +283,9 @@ endif ()
 # freestanding build cannot satisfy, for a value lh never reads.
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     set_source_files_properties(
-            ${LH_LIB_SRC_PATH}/vec2.c
-            ${LH_LIB_SRC_PATH}/vec3.c
-            ${LH_LIB_SRC_PATH}/vec4.c
+            ${LH_LIB_SRC_PATH}/math/vec2.c
+            ${LH_LIB_SRC_PATH}/math/vec3.c
+            ${LH_LIB_SRC_PATH}/math/vec4.c
             PROPERTIES COMPILE_OPTIONS -fno-math-errno
     )
 endif ()

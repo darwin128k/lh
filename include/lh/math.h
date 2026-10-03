@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file math.h
  * @brief Math primitives: arithmetic, comparison, and bitwise macros, plus
  *        integer 2D geometry types (point, size, rectangle).
@@ -15,7 +15,7 @@
  *   (offset, inset, intersection, union). Three small value types in
  *   whole pixels: `lh_math_point_t`, `lh_math_size_t`, `lh_math_rect_t`.
  *   These are screen / window coordinates, not floating-point math:
- *   positions, directions and sub-pixel work elsewhere use ::lh_vec2_t
+ *   positions, directions and sub-pixel work elsewhere use ::lh_math_vec2_t
  *   (float). The `lh/os/system` backends do not use these types either:
  *   each backend works in its own native types, and any mapping between
  *   the two belongs to the lh layer that needs it.
@@ -35,9 +35,14 @@
 #define LH_MATH_H
 
 #include <lh/math/coord.h>
+#include <lh/math/mat4.h>
 #include <lh/math/point.h>
+#include <lh/math/quat.h>
 #include <lh/math/rect.h>
 #include <lh/math/size.h>
+#include <lh/math/vec2.h>
+#include <lh/math/vec3.h>
+#include <lh/math/vec4.h>
 
 /* ── arithmetic ────────────────────────────────────────────────────────── */
 

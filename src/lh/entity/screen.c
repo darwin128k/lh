@@ -1,4 +1,4 @@
-#include <lh/entity/screen.h>
+﻿#include <lh/entity/screen.h>
 #include <lh/assert.h>
 #include <lh/float/round.h>
 #include <lh/null.h>
@@ -21,7 +21,7 @@ lh_void
 lh_entity_screen_invalidate_area(lh_entity_screen_t *self, lh_math_rect_t area)
 {
     lh_assert_runtime_ref(self);
-    const lh_vec2_t size = lh_entity_rect_get_size(lh_ptr_rcast(const lh_entity_rect_t, self));
+    const lh_math_vec2_t size = lh_entity_rect_get_size(lh_ptr_rcast(const lh_entity_rect_t, self));
     const lh_math_rect_t screen =
         lh_math_rect_make(0, 0, lh_float_ceil_to_int(size.x), lh_float_ceil_to_int(size.y));
     lh_math_rect_t dirty = lh_math_rect_intersection(lh_addr_of(screen), lh_addr_of(area));
@@ -152,7 +152,7 @@ lh_entity_invalidate(lh_entity_t *self)
 }
 
 lh_entity_t *
-lh_entity_screen_send_pointer(lh_entity_screen_t *self, lh_uint_t code, lh_vec2_t point)
+lh_entity_screen_send_pointer(lh_entity_screen_t *self, lh_uint_t code, lh_math_vec2_t point)
 {
     lh_assert_runtime_ref(self);
     lh_entity_t *const target = lh_entity_rect_find_at(lh_ptr_rcast(lh_entity_t, self), point);

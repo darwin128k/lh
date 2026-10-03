@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file fields.h
  * @brief Member fields ::lh_entity_3d_t adds to a 2D entity.
  */
@@ -13,7 +13,7 @@
  *        ::lh_entity_2d_fields.
  *
  * @param scalar_type Type of `z` and `scale_z` (::lh_float_t).
- * @param quat_type   Type of `rotation` (::lh_quat_t).
+ * @param quat_type   Type of `rotation` (::lh_math_quat_t).
  */
 #define lh_entity_3d_fields(scalar_type, quat_type)                                                \
     scalar_type z;                                                                                 \

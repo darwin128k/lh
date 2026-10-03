@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file screen.h
  * @brief The root of what is shown on one display, redrawn only where it
  *        changed.
@@ -35,8 +35,8 @@
 struct lh_entity_screen
 {
     lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
-    lh_entity_2d_fields(lh_vec2_t, lh_float_t);
-    lh_entity_rect_fields(lh_vec2_t, lh_ui_color_t);
+    lh_entity_2d_fields(lh_math_vec2_t, lh_float_t);
+    lh_entity_rect_fields(lh_math_vec2_t, lh_ui_color_t);
     lh_entity_screen_fields(lh_math_rect_t, lh_usize_t);
 };
 typedef struct lh_entity_screen lh_entity_screen_t;
@@ -108,7 +108,7 @@ lh_entity_invalidate(lh_entity_t *self);
  * @return The entity that received it, or ::lh_null when nothing is there.
  */
 lh_entity_t *
-lh_entity_screen_send_pointer(lh_entity_screen_t *self, lh_uint_t code, lh_vec2_t point);
+lh_entity_screen_send_pointer(lh_entity_screen_t *self, lh_uint_t code, lh_math_vec2_t point);
 
 LH_COMPILER_EXTERN_C_END
 
