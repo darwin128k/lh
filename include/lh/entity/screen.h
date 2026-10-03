@@ -23,7 +23,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/entity/rect.h>
 #include <lh/entity/screen/fields.h>
-#include <lh/math.h>
+#include <lh/math/rect.h>
 #include <lh/size.h>
 #include <lh/ui/canvas.h>
 

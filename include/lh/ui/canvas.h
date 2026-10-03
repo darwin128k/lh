@@ -18,7 +18,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/ui/canvas/fields.h>
 #include <lh/ui/color.h>
-#include <lh/math.h>
+#include <lh/math/rect.h>
 #include <lh/void.h>
 
 /**

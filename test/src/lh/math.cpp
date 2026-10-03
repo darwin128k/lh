@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <lh/math.h>
+#include <lh/math/rect.h>
 
 namespace
 {

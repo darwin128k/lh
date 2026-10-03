@@ -25,7 +25,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/entity/2d.h>
 #include <lh/entity/rect/fields.h>
-#include <lh/math.h>
+#include <lh/math/rect.h>
 #include <lh/ui/color.h>
 #include <lh/vec2.h>
 
