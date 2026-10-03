@@ -4,13 +4,16 @@
 #include <lh/null.h>
 #include <lh/runtime/error/code.h>
 #include <lh/util/addr.h>
+#include <lh/util/numeric.h>
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 static lh_void
 lh_entity_screen_construct(lh_entity_t *self)
 {
-    lh_entity_rect_set_color(lh_ptr_rcast(lh_entity_rect_t, self), lh_ui_color_make(0, 0, 0, 255));
+    /* Opaque black until a caller paints a background. */
+    lh_entity_rect_set_color(lh_ptr_rcast(lh_entity_rect_t, self),
+                             lh_ui_color_make(0, 0, 0, lh_numeric_limit_umax(lh_byte_t)));
 }
 
 const lh_entity_class_t lh_entity_screen_class =

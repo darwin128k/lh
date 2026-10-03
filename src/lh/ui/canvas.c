@@ -3,6 +3,7 @@
 #include <lh/cast/static.h>
 #include <lh/runtime/error/code.h>
 #include <lh/util/addr.h>
+#include <lh/util/numeric.h>
 
 /* @p color over @p dst, straight alpha: each channel moves from dst toward the
  * color by alpha / the channel maximum, and the result is at least as opaque

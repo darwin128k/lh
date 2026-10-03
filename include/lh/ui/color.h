@@ -3,7 +3,10 @@
  * @brief OS-portable 8-bit RGBA color.
  *
  * A single value type `lh_ui_color_t` with four `lh_byte_t` channels
- * (red, green, blue, alpha), straight (not premultiplied) alpha.
+ * (red, green, blue, alpha), straight (not premultiplied) alpha. Every
+ * channel spans the full byte range, `lh_numeric_limit_umin(lh_byte_t)` to
+ * `lh_numeric_limit_umax(lh_byte_t)`, so an alpha of the maximum is fully
+ * opaque and the minimum is fully transparent.
  *
  * Part of the UI layer, next to ::lh_math_point_t. The `lh/os/system`
  * backends do not use it: each works in its own native color type, and
@@ -25,7 +28,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @struct lh_ui_color
  * @typedef lh_ui_color_t
- * @brief 8-bit RGBA color, straight alpha. Range per channel: `0..255`.
+ * @brief 8-bit RGBA color, straight alpha. One channel per ::lh_byte_t.
  */
 struct lh_ui_color
 {
