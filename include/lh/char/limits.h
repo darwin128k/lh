@@ -26,12 +26,8 @@
 #ifndef LH_CHAR_LIMITS_H
 #define LH_CHAR_LIMITS_H
 
-#include <lh/char.h>
 #include <lh/char/interval/types.h>
-#include <lh/interval/flags.h>
 #include <lh/numeric/interval/initializer.h>
-#include <lh/util/numeric.h>
-#include <lh/util/type.h>
 
 /* ── unsigned interval ─────────────────────────────────────────────────── */
 
