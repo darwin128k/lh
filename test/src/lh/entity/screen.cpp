@@ -34,6 +34,20 @@ screen_test_dealloc(lh_self_ptr, lh_ptr ptr)
     std::free(ptr);
 }
 
+lh_entity_t *g_pointer_current;
+lh_vec2_t g_pointer_at;
+
+lh_void
+screen_test_pointer_handler(lh_entity_event_t *event, lh_ptr)
+{
+    if (lh_entity_event_get_code(event) != LH_ENTITY_EVENT_POINTER_DOWN)
+    {
+        return; // e.g. DELETE at teardown, which has no position
+    }
+    g_pointer_current = lh_entity_event_get_current(event);
+    g_pointer_at = *static_cast<const lh_vec2_t *>(lh_entity_event_get_param(event));
+}
+
 LH_COMPILER_EXTERN_C_END
 
 bool
@@ -215,6 +229,33 @@ TEST_F(Screen, many_small_changes_merge_into_one_area)
               static_cast<lh_usize_t>(LH_ENTITY_SCREEN_DIRTY_MAX));
     render();
     EXPECT_EQ(lh_entity_screen_get_dirty_count(screen), 0u);
+}
+
+TEST_F(Screen, pointer_goes_to_the_rect_on_top_and_bubbles)
+{
+    lh_entity_rect_t *panel = make_rect(root(), 0, 0, 10, 10, k_black);
+    lh_entity_rect_t *button = make_rect(reinterpret_cast<lh_entity_t *>(panel), 2, 2, 3, 3, k_red);
+    lh_entity_t *panel_entity = reinterpret_cast<lh_entity_t *>(panel);
+    lh_entity_t *button_entity = reinterpret_cast<lh_entity_t *>(button);
+    lh_entity_add_handler(panel_entity, screen_test_pointer_handler, lh_null);
+
+    // Not bubbling: the button gets it, the panel's handler does not run.
+    g_pointer_current = nullptr;
+    EXPECT_EQ(
+        lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_DOWN, lh_vec2_make(3, 3)),
+        button_entity);
+    EXPECT_EQ(g_pointer_current, nullptr);
+
+    // Bubbling: the panel sees the button's click with its position.
+    lh_entity_add_flags(button_entity, lh_entity_flags_event_bubble);
+    lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_DOWN, lh_vec2_make(3.5f, 4));
+    EXPECT_EQ(g_pointer_current, panel_entity);
+    EXPECT_FLOAT_EQ(g_pointer_at.x, 3.5f);
+    EXPECT_FLOAT_EQ(g_pointer_at.y, 4.0f);
+
+    EXPECT_EQ(
+        lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_UP, lh_vec2_make(12, 1)),
+        root()); // only the screen itself is there
 }
 
 } // namespace

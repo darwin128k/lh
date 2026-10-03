@@ -27,6 +27,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 option(LH_BUILD_DOCS "Build documentation" ON)
 option(LH_BUILD_TESTS "Build tests" ON)
 option(LH_BUILD_BENCH "Build microbenchmarks (requires the bench/lib/benchmark submodule)" OFF)
+option(LH_BUILD_EXAMPLES "Build the example programs" OFF)
 
 # ---------------------------------------------------------------------------
 # Release optimization options
@@ -217,12 +218,14 @@ if (LH_LIBRARY_OPTION_OS)
     if (LH_LIBRARY_OPTION_OS_WINDOW)
         list(APPEND LH_LIB_SOURCES
                 ${LH_LIB_SRC_PATH}/os/window.c
+                ${LH_LIB_SRC_PATH}/os/system/window/event.c
+                ${LH_LIB_SRC_PATH}/os/system/window/handler.c
         )
         if (WIN32)
             list(APPEND LH_LIB_SOURCES
                     ${LH_LIB_SRC_PATH}/os/system/win/window.c
             )
-            list(APPEND LH_OS_SYSTEM_LINK_LIBS user32)
+            list(APPEND LH_OS_SYSTEM_LINK_LIBS user32 gdi32)
         elseif (APPLE)
             list(APPEND LH_LIB_SOURCES
                     ${LH_LIB_SRC_PATH}/os/system/macos/window.m
@@ -351,4 +354,8 @@ endif ()
 # Benchmarks (after ${PROJECT_NAME} exists for target_link_libraries).
 if (LH_BUILD_BENCH)
     add_subdirectory(bench)
+endif ()
+
+if (LH_BUILD_EXAMPLES)
+    add_subdirectory(example)
 endif ()

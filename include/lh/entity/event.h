@@ -40,6 +40,27 @@ struct lh_entity;
 #define LH_ENTITY_EVENT_DRAW 3U
 
 /**
+ * @def LH_ENTITY_EVENT_POINTER_DOWN
+ * @brief A pointer button was pressed over the entity
+ *        (::lh_entity_screen_send_pointer); `param` is the `const lh_vec2_t *`
+ *        screen position. Bubbles with ::lh_entity_flags_event_bubble.
+ */
+#define LH_ENTITY_EVENT_POINTER_DOWN 4U
+
+/**
+ * @def LH_ENTITY_EVENT_POINTER_UP
+ * @brief A pointer button was released over the entity; as
+ *        ::LH_ENTITY_EVENT_POINTER_DOWN.
+ */
+#define LH_ENTITY_EVENT_POINTER_UP 5U
+
+/**
+ * @def LH_ENTITY_EVENT_POINTER_MOVE
+ * @brief The pointer moved over the entity; as ::LH_ENTITY_EVENT_POINTER_DOWN.
+ */
+#define LH_ENTITY_EVENT_POINTER_MOVE 6U
+
+/**
  * @def LH_ENTITY_EVENT_USER
  * @brief First code free for the application's own events.
  */

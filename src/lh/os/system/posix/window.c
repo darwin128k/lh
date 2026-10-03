@@ -230,3 +230,26 @@ lh_os_system_window_pump_messages(void)
     }
     return lh_bool_false;
 }
+lh_bool_t
+lh_os_system_window_present(lh_os_system_window_handle_t self, const lh_ptr pixels,
+                            lh_int_t stride, lh_int_t x, lh_int_t y, lh_int_t width,
+                            lh_int_t height)
+{
+    /* Not yet on X11: needs XCreateImage / XPutImage with the visual's pixel
+       layout. Reports that nothing was shown. */
+    (void)self;
+    (void)pixels;
+    (void)stride;
+    (void)x;
+    (void)y;
+    (void)width;
+    (void)height;
+    return lh_bool_false;
+}
+
+void
+lh_os_system_window_wait_messages(void)
+{
+    /* Not yet (X11: XPeekEvent would block until one): returns at once, so a
+       wait-then-pump loop still works, only without sleeping. */
+}

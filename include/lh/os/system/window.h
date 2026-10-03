@@ -37,6 +37,8 @@
 #include <lh/size.h>
 
 #include <lh/os/system/window/handle.h>
+#include <lh/os/system/window/handler/cb.h>
+#include <lh/self.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/system/window.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
@@ -107,6 +109,46 @@ lh_os_system_window_show(lh_os_system_window_handle_t self);
  */
 lh_bool_t
 lh_os_system_window_pump_messages(void);
+
+/**
+ * @brief Sleep until a message arrives for any window of this thread, so a
+ *        loop that only redraws on events uses no CPU while idle.
+ *
+ * Follow it with ::lh_os_system_window_pump_messages. Win32 `WaitMessage`;
+ * on X11 and Cocoa it returns at once for now.
+ */
+void
+lh_os_system_window_wait_messages(void);
+
+/**
+ * @brief Report the events of every window to @p handler with @p self
+ *        (::lh_null for none), from within ::lh_os_system_window_pump_messages.
+ *
+ * One handler for the process, which tells windows apart by handle. A close
+ * request is reported and still makes the pump return true.
+ */
+void
+lh_os_system_window_set_handler(lh_os_system_window_handler_cb handler, lh_self_ptr self);
+
+/**
+ * @brief Show part of an image in @p self's client area.
+ *
+ * Copies the `width` x `height` pixels at (@p x, @p y) of the image to the
+ * same place in the client area. The image is 8-bit RGBA (bytes r, g, b, a
+ * per pixel, the layout of ::lh_ui_color_t), @p stride pixels from one row
+ * to the next, starting at @p pixels; alpha is ignored. The backend converts
+ * to the display's format.
+ *
+ * Implemented by the Win32 backend; the X11 and Cocoa backends return false
+ * for now.
+ *
+ * @return False when nothing could be shown (invalid window, empty area,
+ *         backend without support, or the OS refused).
+ */
+lh_bool_t
+lh_os_system_window_present(lh_os_system_window_handle_t self, const lh_ptr pixels,
+                            lh_int_t stride, lh_int_t x, lh_int_t y, lh_int_t width,
+                            lh_int_t height);
 
 LH_COMPILER_EXTERN_C_END
 

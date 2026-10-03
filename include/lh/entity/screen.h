@@ -99,6 +99,17 @@ lh_entity_screen_render(lh_entity_screen_t *self, lh_ui_canvas_t *canvas);
 lh_void
 lh_entity_invalidate(lh_entity_t *self);
 
+/**
+ * @brief Deliver a pointer event at the screen position @p point to the
+ *        rectangle on top there (::lh_entity_rect_find_at).
+ *
+ * @param code  ::LH_ENTITY_EVENT_POINTER_DOWN, `_UP` or `_MOVE`.
+ * @param point Position on the screen, e.g. the mouse in window pixels.
+ * @return The entity that received it, or ::lh_null when nothing is there.
+ */
+lh_entity_t *
+lh_entity_screen_send_pointer(lh_entity_screen_t *self, lh_uint_t code, lh_vec2_t point);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_ENTITY_SCREEN_H */

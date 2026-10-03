@@ -48,24 +48,8 @@ typedef lh_os_system_win_handle_t lh_os_system_win_hinstance_t;
 /* `HDC` — device context handle. */
 typedef lh_ptr lh_os_system_win_hdc_t;
 
-/* `HBRUSH` — brush handle (returned by `CreateSolidBrush`, used by
-   `FillRect`, freed with `DeleteObject`). */
-typedef lh_ptr lh_os_system_win_hbrush_t;
-
 /* `HCURSOR` — cursor handle (returned by `LoadCursorW`). */
 typedef lh_ptr lh_os_system_win_hcursor_t;
-
-/* `COLORREF` — 32-bit RGB, `0x00bbggrr`. Passed to `CreateSolidBrush`. */
-typedef lh_os_system_win_dword_t lh_os_system_win_colorref_t;
-
-/* `RGB(r, g, b)` macro for `COLORREF`. `lh_cast_static` widens each
-   `lh_uchar_t` to `dword` without sign warnings; `lh_bit_or` keeps the
-   outer pack under the lh macro layer. */
-#define LH_OS_SYSTEM_WIN_RGB(r, g, b)                                                            \
-    (lh_cast_static(lh_os_system_win_colorref_t,                                                \
-                    lh_bit_or(lh_bit_or(lh_bit_shl(lh_cast_static(lh_os_system_win_dword_t, (r)), 0),    \
-                                        lh_bit_shl(lh_cast_static(lh_os_system_win_dword_t, (g)), 8)), \
-                              lh_bit_shl(lh_cast_static(lh_os_system_win_dword_t, (b)), 16))))
 
 /* `MAKEINTRESOURCE(id)` from Win32: convert a `#IDWORD` into a void* by
    rounding-tripping through the pointer-sized integer. The standard Win32
@@ -73,10 +57,12 @@ typedef lh_os_system_win_dword_t lh_os_system_win_colorref_t;
 #define LH_OS_SYSTEM_WIN_MAKEINTRESOURCE(id)                                                     \
     (lh_cast_reinterpret(lh_ptr, lh_cast_static(lh_usize_t, lh_cast_static(lh_os_system_win_word_t, (id)))))
 
-/* `WPARAM` / `LPARAM`: pointer-sized (LLP64). */
-typedef lh_ulong_t lh_os_system_win_wparam_t;
+/* `WPARAM` / `LPARAM` / `LRESULT`: pointer-sized (`UINT_PTR` / `LONG_PTR`),
+   so 64-bit on Win64. Not `lh_ulong_t`: `long` stays 32-bit on LLP64, which
+   would shrink `MSG` below the 48 bytes `PeekMessageW` writes on x64. */
+typedef lh_usize_t lh_os_system_win_wparam_t;
 typedef lh_ssize_t lh_os_system_win_lparam_t;
-typedef lh_ulong_t lh_os_system_win_lresult_t;
+typedef lh_ssize_t lh_os_system_win_lresult_t;
 
 /* `WNDPROC` — `LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM)`.
    `CALLBACK` is `__stdcall` (::LH_OS_SYSTEM_WIN_CALL): user32.dll calls the
@@ -108,8 +94,8 @@ typedef struct lh_os_system_win_msg lh_os_system_win_msg_t;
 /* `PAINTSTRUCT`. */
 struct lh_os_system_win_paintstruct
 {
-    lh_os_system_win_paintstruct_fields(lh_os_system_win_hdc_t, lh_bool_t, lh_os_system_win_rect_t,
-                                        lh_os_system_win_dword_t);
+    lh_os_system_win_paintstruct_fields(lh_os_system_win_hdc_t, lh_os_system_win_bool_t,
+                                        lh_os_system_win_rect_t, lh_uchar_t);
 };
 typedef struct lh_os_system_win_paintstruct lh_os_system_win_paintstruct_t;
 
@@ -152,6 +138,9 @@ typedef struct lh_os_system_win_wndclassexw lh_os_system_win_wndclassexw_t;
 #define LH_OS_SYSTEM_WIN_WM_KEYDOWN 0x0100
 #define LH_OS_SYSTEM_WIN_WM_KEYUP 0x0101
 #define LH_OS_SYSTEM_WIN_WM_LBUTTONDOWN 0x0201
+#define LH_OS_SYSTEM_WIN_WM_LBUTTONUP 0x0202
+#define LH_OS_SYSTEM_WIN_WM_RBUTTONUP 0x0205
+#define LH_OS_SYSTEM_WIN_WM_MBUTTONUP 0x0208
 #define LH_OS_SYSTEM_WIN_WM_RBUTTONDOWN 0x0204
 #define LH_OS_SYSTEM_WIN_WM_MBUTTONDOWN 0x0207
 #define LH_OS_SYSTEM_WIN_WM_MOUSEMOVE 0x0200
@@ -176,7 +165,7 @@ typedef struct lh_os_system_win_wndclassexw lh_os_system_win_wndclassexw_t;
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_word_t LH_OS_SYSTEM_WIN_CALL
 RegisterClassExW(const lh_os_system_win_wndclassexw_t *lpwcx);
 
-LH_OS_SYSTEM_WIN_IMPORT lh_bool_t LH_OS_SYSTEM_WIN_CALL
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 UnregisterClassW(lh_wstr_cptr lpClassName, lh_os_system_win_hinstance_t hInstance);
 
 /* Window lifetime. */
@@ -189,12 +178,12 @@ CreateWindowExW(lh_os_system_win_dword_t dwExStyle,
                 lh_os_system_win_hwnd_t hWndParent, lh_ptr hMenu,
                 lh_os_system_win_hinstance_t hInstance, lh_ptr lpParam);
 
-LH_OS_SYSTEM_WIN_IMPORT lh_bool_t LH_OS_SYSTEM_WIN_CALL
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 DestroyWindow(lh_os_system_win_hwnd_t hWnd);
 
 /* Show / update. */
 
-LH_OS_SYSTEM_WIN_IMPORT lh_bool_t LH_OS_SYSTEM_WIN_CALL
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 ShowWindow(lh_os_system_win_hwnd_t hWnd, lh_int_t nCmdShow);
 
 /* Default proc. */
@@ -205,16 +194,16 @@ DefWindowProcW(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_dword_t Msg,
 
 /* Message loop. */
 
-LH_OS_SYSTEM_WIN_IMPORT lh_bool_t LH_OS_SYSTEM_WIN_CALL
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 GetMessageW(lh_os_system_win_msg_t *lpMsg, lh_os_system_win_hwnd_t hWnd,
             lh_os_system_win_dword_t wMsgFilterMin, lh_os_system_win_dword_t wMsgFilterMax);
 
-LH_OS_SYSTEM_WIN_IMPORT lh_bool_t LH_OS_SYSTEM_WIN_CALL
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 PeekMessageW(lh_os_system_win_msg_t *lpMsg, lh_os_system_win_hwnd_t hWnd,
              lh_os_system_win_dword_t wMsgFilterMin, lh_os_system_win_dword_t wMsgFilterMax,
              lh_os_system_win_dword_t wRemoveMsg);
 
-LH_OS_SYSTEM_WIN_IMPORT lh_bool_t LH_OS_SYSTEM_WIN_CALL
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 TranslateMessage(const lh_os_system_win_msg_t *lpMsg);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
@@ -223,24 +212,24 @@ DispatchMessageW(const lh_os_system_win_msg_t *lpMsg);
 LH_OS_SYSTEM_WIN_IMPORT void LH_OS_SYSTEM_WIN_CALL
 PostQuitMessage(lh_int_t nExitCode);
 
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+WaitMessage(void);
+
 /* Painting. */
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_hdc_t LH_OS_SYSTEM_WIN_CALL
 BeginPaint(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_paintstruct_t *lpPaint);
 
-LH_OS_SYSTEM_WIN_IMPORT lh_bool_t LH_OS_SYSTEM_WIN_CALL
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 EndPaint(lh_os_system_win_hwnd_t hWnd, const lh_os_system_win_paintstruct_t *lpPaint);
 
+/* Device context of the client area, for drawing outside `WM_PAINT`. */
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_hdc_t LH_OS_SYSTEM_WIN_CALL
+GetDC(lh_os_system_win_hwnd_t hWnd);
+
 LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
-FillRect(lh_os_system_win_hdc_t hDC, const lh_os_system_win_rect_t *lprc, lh_os_system_win_hbrush_t hbr);
-
-/* Custom brush. */
-
-LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_hbrush_t LH_OS_SYSTEM_WIN_CALL
-CreateSolidBrush(lh_os_system_win_colorref_t color);
-
-LH_OS_SYSTEM_WIN_IMPORT lh_bool_t LH_OS_SYSTEM_WIN_CALL
-DeleteObject(lh_ptr hObject);
+ReleaseDC(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_hdc_t hDC);
 
 /* `LoadCursorW` (for the arrow cursor on the class). */
 

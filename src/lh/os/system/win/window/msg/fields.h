@@ -20,8 +20,8 @@
     dword_type  message;                                                                          \
     wparam_type wParam;                                                                           \
     lparam_type lParam;                                                                           \
+    dword_type  time;                                                                             \
     dword_type  pt_x;                                                                             \
-    dword_type  pt_y;                                                                             \
-    dword_type  time
+    dword_type  pt_y
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_WINDOW_MSG_FIELDS_H */

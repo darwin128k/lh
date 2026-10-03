@@ -205,3 +205,26 @@ lh_os_system_window_pump_messages(void)
 
     return lh_os_system_macos_should_quit;
 }
+lh_bool_t
+lh_os_system_window_present(lh_os_system_window_handle_t self, const lh_ptr pixels,
+                            lh_int_t stride, lh_int_t x, lh_int_t y, lh_int_t width,
+                            lh_int_t height)
+{
+    /* Not yet on Cocoa: needs a CGImage drawn from the view's drawRect.
+       Reports that nothing was shown. */
+    (void)self;
+    (void)pixels;
+    (void)stride;
+    (void)x;
+    (void)y;
+    (void)width;
+    (void)height;
+    return lh_bool_false;
+}
+
+void
+lh_os_system_window_wait_messages(void)
+{
+    /* Not yet (Cocoa: nextEventMatchingMask with distantFuture would block until one): returns at once, so a
+       wait-then-pump loop still works, only without sleeping. */
+}

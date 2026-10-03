@@ -81,3 +81,23 @@ lh_os_window_pump_messages(void)
 {
     return lh_os_system_window_pump_messages();
 }
+
+void
+lh_os_window_wait_messages(void)
+{
+    lh_os_system_window_wait_messages();
+}
+
+void
+lh_os_window_set_handler(lh_os_system_window_handler_cb handler, lh_self_ptr self)
+{
+    lh_os_system_window_set_handler(handler, self);
+}
+
+lh_bool_t
+lh_os_window_present(lh_os_window_t *self, const lh_ptr pixels, lh_int_t stride, lh_int_t x,
+                     lh_int_t y, lh_int_t width, lh_int_t height)
+{
+    return lh_os_system_window_present(lh_os_window_get_handle(self), pixels, stride, x, y, width,
+                                       height);
+}

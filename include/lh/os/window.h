@@ -127,6 +127,27 @@ lh_os_window_show(lh_os_window_t *self);
 lh_bool_t
 lh_os_window_pump_messages(void);
 
+/**
+ * @brief Sleep until a message arrives; see ::lh_os_system_window_wait_messages.
+ */
+void
+lh_os_window_wait_messages(void);
+
+/**
+ * @brief Report every window's events to @p handler with @p self; see
+ *        ::lh_os_system_window_set_handler.
+ */
+void
+lh_os_window_set_handler(lh_os_system_window_handler_cb handler, lh_self_ptr self);
+
+/**
+ * @brief Show part of an RGBA image in @p self; see
+ *        ::lh_os_system_window_present.
+ */
+lh_bool_t
+lh_os_window_present(lh_os_window_t *self, const lh_ptr pixels, lh_int_t stride, lh_int_t x,
+                     lh_int_t y, lh_int_t width, lh_int_t height);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_WINDOW_H */

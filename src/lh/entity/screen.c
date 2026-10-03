@@ -150,3 +150,15 @@ lh_entity_invalidate(lh_entity_t *self)
         lh_entity_screen_invalidate_tree(screen, self);
     }
 }
+
+lh_entity_t *
+lh_entity_screen_send_pointer(lh_entity_screen_t *self, lh_uint_t code, lh_vec2_t point)
+{
+    lh_assert_runtime_ref(self);
+    lh_entity_t *const target = lh_entity_rect_find_at(lh_ptr_rcast(lh_entity_t, self), point);
+    if (lh_ptr_is_set(target))
+    {
+        lh_entity_send_event(target, code, lh_addr_of(point));
+    }
+    return target;
+}
