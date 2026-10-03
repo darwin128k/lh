@@ -52,6 +52,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/memory/sized/allocator.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/tree.cpp
         ${LH_TEST_SRC_PATH}/lh/entity.cpp
+        ${LH_TEST_SRC_PATH}/lh/entity/spatial.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/std.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/memory.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/scan_page.cpp

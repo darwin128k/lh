@@ -130,6 +130,19 @@ lh_entity_get_class(const lh_entity_t *self)
     return self->entity_class;
 }
 
+lh_bool_t
+lh_entity_is_instance_of(const lh_entity_t *self, const lh_entity_class_t *entity_class)
+{
+    for (const lh_entity_class_t *c = lh_entity_get_class(self); lh_ptr_is_set(c); c = c->base)
+    {
+        if (c == entity_class)
+        {
+            return lh_bool_true;
+        }
+    }
+    return lh_bool_false;
+}
+
 lh_entity_t *
 lh_entity_get_parent(const lh_entity_t *self)
 {

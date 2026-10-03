@@ -23,6 +23,15 @@ struct lh_entity;
 #define LH_ENTITY_EVENT_DELETE 1U
 
 /**
+ * @def LH_ENTITY_EVENT_GET_LOCAL_MATRIX
+ * @brief Asks a spatial entity for the matrix from its own space into its
+ *        parent's; `param` is the ::lh_mat4_t to fill. The most derived
+ *        spatial class answers and stops the event, so a 3D entity answers
+ *        with its full 3D transform and its 2D base stays out.
+ */
+#define LH_ENTITY_EVENT_GET_LOCAL_MATRIX 2U
+
+/**
  * @def LH_ENTITY_EVENT_USER
  * @brief First code free for the application's own events.
  */

@@ -75,6 +75,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/memory/tree.c
         ${LH_LIB_SRC_PATH}/entity.c
         ${LH_LIB_SRC_PATH}/entity/event.c
+        ${LH_LIB_SRC_PATH}/entity/2d.c
+        ${LH_LIB_SRC_PATH}/entity/3d.c
+        ${LH_LIB_SRC_PATH}/entity/rect.c
         ${LH_LIB_SRC_PATH}/memory/bounds/slice.c
         ${LH_LIB_SRC_PATH}/memory/bounds/allocated.c
         ${LH_LIB_SRC_PATH}/memory/view/slice.c

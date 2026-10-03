@@ -95,6 +95,13 @@ const lh_entity_class_t *
 lh_entity_get_class(const lh_entity_t *self);
 
 /**
+ * @brief True when @p self's class is @p entity_class or derives from it,
+ *        i.e. @p self may be used as an instance of @p entity_class.
+ */
+lh_bool_t
+lh_entity_is_instance_of(const lh_entity_t *self, const lh_entity_class_t *entity_class);
+
+/**
  * @brief The entity that contains @p self, or ::lh_null for a root.
  */
 lh_entity_t *
