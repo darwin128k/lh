@@ -1,3 +1,4 @@
+#include <lh/char/limits.h>
 #include <lh/util/char.h>
 #include <lh/util/interval.h>
 #include <lh/uchar.h>

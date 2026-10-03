@@ -1,21 +1,23 @@
 /**
  * @file limits.h
- * @brief Compile-time numeric limit constants for all built-in integer types.
+ * @brief Compile-time numeric limit constants for non-character integer types.
  *
- * Declares a `static const` full-range closed interval for the built-in integer
- * type aliases, including plain (`lh_char_t`, `lh_short_t`, `lh_int_t`,
- * `lh_long_t`, `lh_llong_t`) and explicit signed/unsigned variants, and provides
- * convenience macros (::LH_UCHAR_T_MIN, ::LH_UINT_T_MAX, ::LH_SINT_T_SIZE, …)
+ * Declares a `static const` full-range closed interval for the non-character
+ * built-in integer type aliases (`::lh_short_t`, `::lh_int_t`, `::lh_long_t`,
+ * `::lh_llong_t` and their explicit signed/unsigned variants) and provides
+ * convenience macros (::LH_USHORT_T_MIN, ::LH_UINT_T_MAX, ::LH_SINT_T_SIZE, …)
  * for minimum and maximum representable values and for size in bytes.
  *
  * For each numeric interval type, `bounds` is declared with
  * ::lh_interval_bounds_fields (members `first` / `second`). The `*_T_MIN` /
  * `*_T_MAX` macros for those types expand to `…INTERVAL.bounds.first` and
  * `…INTERVAL.bounds.second` respectively (minimum at `first`, maximum at
- * `second`). ::lh_char_t limits use ::lh_numeric_limit_min / ::lh_numeric_limit_max
- * instead, because `char` signedness is implementation-defined.
+ * `second`).
  *
  * @note All intervals are initialized with ::lh_interval_flags_closed.
+ *
+ * @note Character types (::lh_char_t, ::lh_uchar_t, ::lh_schar_t) and their
+ *       limits/intervals are in <lh/char/limits.h> and <lh/char/interval/...>.
  */
 
 #ifndef LH_NUMERIC_LIMITS_H
@@ -23,18 +25,10 @@
 
 #include <lh/numeric/interval/initializer.h>
 #include <lh/numeric/interval/types.h>
+#include <lh/numeric/types.h>
+#include <lh/util/type.h>
 
 /* ── unsigned intervals ─────────────────────────────────────────────────── */
-
-/**
- * @var LH_UCHAR_T_INTERVAL
- * @brief Full-range closed interval for ::lh_byte_t.
- *
- * Covers the complete value range of ::lh_byte_t with closed bounds.
- * Initialized via ::lh_numeric_interval_initializer_unsigned.
- */
-static const lh_uchar_interval_t LH_UCHAR_T_INTERVAL =
-    lh_numeric_interval_initializer_unsigned(lh_uchar_t, lh_interval_flags_closed);
 
 /**
  * @var LH_USHORT_T_INTERVAL
@@ -77,16 +71,6 @@ static const lh_ullong_interval_t LH_ULLONG_T_INTERVAL =
     lh_numeric_interval_initializer_unsigned(lh_ullong_t, lh_interval_flags_closed);
 
 /* ── signed intervals ───────────────────────────────────────────────────── */
-
-/**
- * @var LH_SCHAR_T_INTERVAL
- * @brief Full-range closed interval for ::lh_schar_t.
- *
- * Covers the complete value range of ::lh_schar_t with closed bounds.
- * Initialized via ::lh_numeric_interval_initializer_signed.
- */
-static const lh_schar_interval_t LH_SCHAR_T_INTERVAL =
-    lh_numeric_interval_initializer_signed(lh_schar_t, lh_interval_flags_closed);
 
 /**
  * @var LH_SSHORT_T_INTERVAL
@@ -158,24 +142,6 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
 
 /* ── sizes ──────────────────────────────────────────────────────────────── */
 
-#ifndef LH_CHAR_T_SIZE
-/**
- * @def LH_CHAR_T_SIZE
- * @brief Size of ::lh_char_t in bytes.
- */
-#    define LH_CHAR_T_SIZE lh_type_size(lh_char_t)
-#endif /* LH_CHAR_T_SIZE */
-
-#ifndef LH_UCHAR_T_SIZE
-/**
- * @def LH_UCHAR_T_SIZE
- * @brief Size of ::lh_byte_t in bytes.
- *
- * Expands to `lh_type_size(lh_byte_t)`.
- */
-#    define LH_UCHAR_T_SIZE lh_type_size(lh_byte_t)
-#endif /* LH_UCHAR_T_SIZE */
-
 #ifndef LH_USHORT_T_SIZE
 /**
  * @def LH_USHORT_T_SIZE
@@ -215,16 +181,6 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
  */
 #    define LH_ULLONG_T_SIZE lh_type_size(lh_ullong_t)
 #endif /* LH_ULLONG_T_SIZE */
-
-#ifndef LH_SCHAR_T_SIZE
-/**
- * @def LH_SCHAR_T_SIZE
- * @brief Size of ::lh_schar_t in bytes.
- *
- * Expands to `lh_type_size(lh_schar_t)`.
- */
-#    define LH_SCHAR_T_SIZE lh_type_size(lh_schar_t)
-#endif /* LH_SCHAR_T_SIZE */
 
 #ifndef LH_SHORT_T_SIZE
 /**
@@ -299,46 +255,6 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
 #endif /* LH_LLONG_T_SIZE */
 
 /* ── unsigned limits ────────────────────────────────────────────────────── */
-
-#ifndef LH_CHAR_T_MIN
-/**
- * @def LH_CHAR_T_MIN
- * @brief Minimum value of ::lh_char_t (auto signedness).
- *
- * Expands to `lh_numeric_limit_min(lh_char_t)`.
- */
-#    define LH_CHAR_T_MIN lh_numeric_limit_min(lh_char_t)
-#endif /* LH_CHAR_T_MIN */
-
-#ifndef LH_CHAR_T_MAX
-/**
- * @def LH_CHAR_T_MAX
- * @brief Maximum value of ::lh_char_t (auto signedness).
- *
- * Expands to `lh_numeric_limit_max(lh_char_t)`.
- */
-#    define LH_CHAR_T_MAX lh_numeric_limit_max(lh_char_t)
-#endif /* LH_CHAR_T_MAX */
-
-#ifndef LH_UCHAR_T_MIN
-/**
- * @def LH_UCHAR_T_MIN
- * @brief Minimum value of ::lh_byte_t (0).
- *
- * Expands to `LH_UCHAR_T_INTERVAL.bounds.first`.
- */
-#    define LH_UCHAR_T_MIN LH_UCHAR_T_INTERVAL.bounds.first
-#endif /* LH_UCHAR_T_MIN */
-
-#ifndef LH_UCHAR_T_MAX
-/**
- * @def LH_UCHAR_T_MAX
- * @brief Maximum value of ::lh_byte_t.
- *
- * Expands to `LH_UCHAR_T_INTERVAL.bounds.second`.
- */
-#    define LH_UCHAR_T_MAX LH_UCHAR_T_INTERVAL.bounds.second
-#endif /* LH_UCHAR_T_MAX */
 
 #ifndef LH_USHORT_T_MIN
 /**
@@ -421,26 +337,6 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
 #endif /* LH_ULLONG_T_MAX */
 
 /* ── signed limits ──────────────────────────────────────────────────────── */
-
-#ifndef LH_SCHAR_T_MIN
-/**
- * @def LH_SCHAR_T_MIN
- * @brief Minimum value of ::lh_schar_t.
- *
- * Expands to `LH_SCHAR_T_INTERVAL.bounds.first`.
- */
-#    define LH_SCHAR_T_MIN LH_SCHAR_T_INTERVAL.bounds.first
-#endif /* LH_SCHAR_T_MIN */
-
-#ifndef LH_SCHAR_T_MAX
-/**
- * @def LH_SCHAR_T_MAX
- * @brief Maximum value of ::lh_schar_t.
- *
- * Expands to `LH_SCHAR_T_INTERVAL.bounds.second`.
- */
-#    define LH_SCHAR_T_MAX LH_SCHAR_T_INTERVAL.bounds.second
-#endif /* LH_SCHAR_T_MAX */
 
 #ifndef LH_SHORT_T_MIN
 /**

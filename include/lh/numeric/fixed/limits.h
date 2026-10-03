@@ -11,6 +11,7 @@
 #ifndef LH_NUMERIC_FIXED_LIMITS_H
 #define LH_NUMERIC_FIXED_LIMITS_H
 
+#include <lh/char/limits.h>
 #include <lh/numeric/limits.h>
 
 /* ── unsigned (Nx) ───────────────────────────────────────────────────────── */

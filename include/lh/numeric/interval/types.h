@@ -1,43 +1,26 @@
 /**
  * @file types.h
- * @brief Interval types for all standard numeric types.
+ * @brief Interval types for non-character numeric types.
  *
- * Provides a complete set of interval structures covering all integer
- * types defined in @ref char.h and @ref types.h.
+ * Provides interval structures for the integer types defined in
+ * @ref numeric/types.h (`::lh_short_t`, `::lh_int_t`, `::lh_long_t`,
+ * `::lh_llong_t` and their explicit signed/unsigned variants).
  *
  * Each struct holds a @c bounds member (endpoint values in @c first / @c second)
  * and a @c flags member (boundary openness), declared via ::lh_interval_fields.
  * The bounds struct types are defined in `bounds/types.h` (numeric interval).
  *
- * Types are organized in two groups:
- *   - **unsigned** — @c u-prefixed types (::lh_byte_t … ::lh_ullong_t)
- *   - **signed** — @c s-prefixed types (::lh_schar_t … ::lh_sllong_t)
+ * @note Character intervals (for ::lh_uchar_t, ::lh_schar_t) live in
+ *       <lh/char/interval/types.h>.
  */
 
-#ifndef LH_NUMERIC_INTERVAL_H
-#define LH_NUMERIC_INTERVAL_H
+#ifndef LH_NUMERIC_INTERVAL_TYPES_H
+#define LH_NUMERIC_INTERVAL_TYPES_H
 
 #include <lh/interval/fields.h>
 #include <lh/numeric/interval/bounds/types.h>
 
 /* ── unsigned ──────────────────────────────────────────────────────────── */
-
-/**
- * @struct lh_uchar_interval
- * @brief Interval with 8-bit unsigned endpoints.
- *
- * Stores a numeric interval of ::lh_byte_t values along with
- * boundary flags indicating whether each endpoint is open or closed.
- *
- * @see lh_uchar_interval_bounds
- * @see lh_interval_flags_t
- * @see lh_interval_fields
- */
-struct lh_uchar_interval
-{
-    /** @c bounds — struct ::lh_uchar_interval_bounds. */
-    lh_interval_fields(struct lh_uchar_interval_bounds);
-};
 
 /**
  * @struct lh_ushort_interval
@@ -81,7 +64,8 @@ struct lh_uint_interval
  * boundary flags.
  * Width is architecture-dependent (32 or 64 bits).
  *
- * @note Prefer ::lh_uint_interval or ::lh_ullong_interval when a fixed-width type is required.
+ * @note Prefer ::lh_uint_interval or ::lh_ullong_interval when a fixed-width
+ *       type is required.
  *
  * @see lh_ulong_interval_bounds
  * @see lh_interval_flags_t
@@ -111,23 +95,6 @@ struct lh_ullong_interval
 };
 
 /* ── signed (explicit) ─────────────────────────────────────────────────── */
-
-/**
- * @struct lh_schar_interval
- * @brief Interval with 8-bit signed endpoints.
- *
- * Stores a numeric interval of ::lh_schar_t values along with
- * boundary flags indicating whether each endpoint is open or closed.
- *
- * @see lh_schar_interval_bounds
- * @see lh_interval_flags_t
- * @see lh_interval_fields
- */
-struct lh_schar_interval
-{
-    /** @c bounds — struct ::lh_schar_interval_bounds. */
-    lh_interval_fields(struct lh_schar_interval_bounds);
-};
 
 /**
  * @struct lh_sshort_interval
@@ -171,7 +138,8 @@ struct lh_sint_interval
  * boundary flags.
  * Width is architecture-dependent (32 or 64 bits).
  *
- * @note Prefer ::lh_sint_interval or ::lh_sllong_interval when a fixed-width type is required.
+ * @note Prefer ::lh_sint_interval or ::lh_sllong_interval when a fixed-width
+ *       type is required.
  *
  * @see lh_slong_interval_bounds
  * @see lh_interval_flags_t
@@ -202,10 +170,6 @@ struct lh_sllong_interval
 
 /* ── typedefs ──────────────────────────────────────────────────────────── */
 
-/** @typedef lh_uchar_interval_t
- *  @brief Convenience alias for struct ::lh_uchar_interval. */
-typedef struct lh_uchar_interval lh_uchar_interval_t;
-
 /** @typedef lh_ushort_interval_t
  *  @brief Convenience alias for struct ::lh_ushort_interval. */
 typedef struct lh_ushort_interval lh_ushort_interval_t;
@@ -221,10 +185,6 @@ typedef struct lh_ulong_interval lh_ulong_interval_t;
 /** @typedef lh_ullong_interval_t
  *  @brief Convenience alias for struct ::lh_ullong_interval. */
 typedef struct lh_ullong_interval lh_ullong_interval_t;
-
-/** @typedef lh_schar_interval_t
- *  @brief Convenience alias for struct ::lh_schar_interval. */
-typedef struct lh_schar_interval lh_schar_interval_t;
 
 /** @typedef lh_sshort_interval_t
  *  @brief Convenience alias for struct ::lh_sshort_interval. */
@@ -242,4 +202,4 @@ typedef struct lh_slong_interval lh_slong_interval_t;
  *  @brief Convenience alias for struct ::lh_sllong_interval. */
 typedef struct lh_sllong_interval lh_sllong_interval_t;
 
-#endif /* LH_NUMERIC_INTERVAL_H */
+#endif /* LH_NUMERIC_INTERVAL_TYPES_H */

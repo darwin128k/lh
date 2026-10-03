@@ -1,9 +1,10 @@
 /**
  * @file types.h
- * @brief Interval bounds struct types for all standard numeric types.
+ * @brief Interval bounds struct types for non-character numeric types.
  *
- * Provides a complete set of interval bounds structures covering all integer
- * types defined in @ref char.h and @ref types.h.
+ * Provides interval bounds structures for the integer types defined in
+ * @ref numeric/types.h (`::lh_short_t`, `::lh_int_t`, `::lh_long_t`,
+ * `::lh_llong_t` and their explicit signed/unsigned variants).
  *
  * Each struct stores a homogeneous pair of boundary values (members @c first
  * and @c second) via ::lh_interval_bounds_fields; for intervals read them as
@@ -12,36 +13,17 @@
  * These structs are intended to be used as the @c bounds
  * member inside full interval structs built with ::lh_interval_fields.
  *
- * Types are organized in two groups:
- *   - **unsigned** — @c u-prefixed types (::lh_byte_t … ::lh_ullong_t)
- *   - **signed** — @c s-prefixed types (::lh_schar_t … ::lh_sllong_t)
+ * @note Character bounds (for ::lh_uchar_t, ::lh_schar_t) live in
+ *       <lh/char/interval/bounds/types.h>.
  */
 
-#ifndef LH_NUMERIC_INTERVAL_BOUNDS_H
-#define LH_NUMERIC_INTERVAL_BOUNDS_H
+#ifndef LH_NUMERIC_INTERVAL_BOUNDS_TYPES_H
+#define LH_NUMERIC_INTERVAL_BOUNDS_TYPES_H
 
-#include <lh/char.h>
 #include <lh/interval/bounds/fields.h>
 #include <lh/numeric/types.h>
 
 /* ── unsigned ──────────────────────────────────────────────────────────── */
-
-/**
- * @struct lh_uchar_interval_bounds
- * @brief Interval bounds with 8-bit unsigned endpoints.
- *
- * Both @c first and @c second are ::lh_byte_t values (unsigned char,
- * range 0..255).
- * Suitable for byte-range or color-channel intervals.
- *
- * @see lh_byte_t
- * @see lh_interval_bounds_fields
- */
-struct lh_uchar_interval_bounds
-{
-    /** Endpoints of type ::lh_byte_t (`first`, `second`). */
-    lh_interval_bounds_fields(lh_byte_t);
-};
 
 /**
  * @struct lh_ushort_interval_bounds
@@ -114,23 +96,6 @@ struct lh_ullong_interval_bounds
 /* ── signed (explicit) ─────────────────────────────────────────────────── */
 
 /**
- * @struct lh_schar_interval_bounds
- * @brief Interval bounds with 8-bit signed endpoints.
- *
- * Both @c first and @c second are ::lh_schar_t values (signed char,
- * range -128..+127).
- * Suitable for small signed delta or offset ranges.
- *
- * @see lh_schar_t
- * @see lh_interval_bounds_fields
- */
-struct lh_schar_interval_bounds
-{
-    /** Endpoints of type ::lh_schar_t (`first`, `second`). */
-    lh_interval_bounds_fields(lh_schar_t);
-};
-
-/**
  * @struct lh_sshort_interval_bounds
  * @brief Interval bounds with 16-bit signed endpoints.
  *
@@ -199,10 +164,6 @@ struct lh_sllong_interval_bounds
 
 /* ── typedefs ──────────────────────────────────────────────────────────── */
 
-/** @typedef lh_uchar_interval_bounds_t
- *  @brief Convenience alias for struct ::lh_uchar_interval_bounds. */
-typedef struct lh_uchar_interval_bounds lh_uchar_interval_bounds_t;
-
 /** @typedef lh_ushort_interval_bounds_t
  *  @brief Convenience alias for struct ::lh_ushort_interval_bounds. */
 typedef struct lh_ushort_interval_bounds lh_ushort_interval_bounds_t;
@@ -218,10 +179,6 @@ typedef struct lh_ulong_interval_bounds lh_ulong_interval_bounds_t;
 /** @typedef lh_ullong_interval_bounds_t
  *  @brief Convenience alias for struct ::lh_ullong_interval_bounds. */
 typedef struct lh_ullong_interval_bounds lh_ullong_interval_bounds_t;
-
-/** @typedef lh_schar_interval_bounds_t
- *  @brief Convenience alias for struct ::lh_schar_interval_bounds. */
-typedef struct lh_schar_interval_bounds lh_schar_interval_bounds_t;
 
 /** @typedef lh_sshort_interval_bounds_t
  *  @brief Convenience alias for struct ::lh_sshort_interval_bounds. */
@@ -239,4 +196,4 @@ typedef struct lh_slong_interval_bounds lh_slong_interval_bounds_t;
  *  @brief Convenience alias for struct ::lh_sllong_interval_bounds. */
 typedef struct lh_sllong_interval_bounds lh_sllong_interval_bounds_t;
 
-#endif /* LH_NUMERIC_INTERVAL_BOUNDS_H */
+#endif /* LH_NUMERIC_INTERVAL_BOUNDS_TYPES_H */

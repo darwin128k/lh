@@ -1,6 +1,7 @@
 #include <lh/str/split/next.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
+#include <lh/char/limits.h>
 #include <lh/memory.h>
 #include <lh/null.h>
 #include <lh/numeric/limits.h>
