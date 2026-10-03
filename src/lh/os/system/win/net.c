@@ -1,8 +1,8 @@
-#include <lh/os/system/net.h>
+﻿#include <lh/os/system/net.h>
 #include <lh/cast/static.h>
 #include <lh/os/system/win/ws2_32.h>
 #include <lh/util/addr.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 lh_bool_t
 lh_os_system_net_init(void)

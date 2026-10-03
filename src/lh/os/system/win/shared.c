@@ -1,4 +1,4 @@
-#include <lh/os/system/shared.h>
+﻿#include <lh/os/system/shared.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/null.h>
@@ -10,7 +10,7 @@
 #include <lh/os/system/win/kernel32.h>
 #include <lh/runtime/allocator.h>
 #include <lh/util/addr.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/ptr.h>
 
 /* The longest path Windows accepts, in UTF-16 units, NUL included. */

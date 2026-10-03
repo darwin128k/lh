@@ -1,7 +1,7 @@
-#include <lh/array.h>
+﻿#include <lh/array.h>
 #include <lh/memory.h>
 #include <lh/memory/std.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/return.h>
 #include <lh/util/ptr.h>
 #include <lh/config.h>

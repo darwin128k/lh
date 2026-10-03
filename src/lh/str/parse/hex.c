@@ -1,8 +1,8 @@
-#include <lh/str/parse/hex.h>
+﻿#include <lh/str/parse/hex.h>
 #include <lh/assert.h>
 #include <lh/char/xdigit.h>
 #include <lh/util/addr.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 lh_bool_t
 lh_str_ptr_parse_hex(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out)

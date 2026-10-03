@@ -1,10 +1,10 @@
-#include <lh/datetime.h>
+﻿#include <lh/datetime.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/memory/std.h>
 #include <lh/str/split/next.h>
 #include <lh/util/addr.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 void
 lh_datetime_set_date(lh_datetime_t *self, const lh_date_t *date)

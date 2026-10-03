@@ -2,7 +2,7 @@
 #include <lh/assert.h>
 #include <lh/null.h>
 #include <lh/util/addr.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/str/ptr.h>
 
 lh_void

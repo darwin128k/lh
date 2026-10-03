@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file filetime.h
  * @brief Backend-private: Win32 `FILETIME` -> ::lh_timestamp_t.
  *
@@ -16,7 +16,7 @@
 #include <lh/os/system/win/kernel32.h>
 #include <lh/timestamp.h>
 #include <lh/util/bit/half.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/math/floor.h>
 
 /* 100-ns intervals between the FILETIME epoch (1601-01-01) and the Unix

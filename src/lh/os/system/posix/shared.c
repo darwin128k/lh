@@ -1,4 +1,4 @@
-/* RTLD_NOLOAD, RTLD_DI_LINKMAP, dladdr and dlinfo are GNU extensions. */
+﻿/* RTLD_NOLOAD, RTLD_DI_LINKMAP, dladdr and dlinfo are GNU extensions. */
 #if !defined(_GNU_SOURCE)
 #    define _GNU_SOURCE
 #endif
@@ -10,7 +10,7 @@
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
 #include <lh/util/addr.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/ptr.h>
 #include <lh/util/str/ptr/empty.h>
 

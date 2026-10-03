@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file window.c
  * @brief Win32 backend for `lh/os/system/window.h` — XP-clean.
  *
@@ -26,7 +26,7 @@
 #include <lh/os/system/win/types.h>
 #include <lh/os/system/win/user32.h>
 #include <lh/util/addr.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/runtime/allocator.h>
 #include <lh/util/ptr.h>
 #include <lh/wchar.h>

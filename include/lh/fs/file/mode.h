@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file mode.h
  * @brief Which access ::lh_os_system_fs_file_open requests from the OS.
  *
@@ -16,7 +16,7 @@
 #include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 /**
  * @typedef lh_fs_file_mode_t

@@ -1,10 +1,10 @@
-#include <lh/os/system/error.h>
+﻿#include <lh/os/system/error.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/memory/view.h>
 #include <lh/os/system/error/initializer.h>
 #include <lh/util/addr.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 void
 lh_os_system_error_set_code(lh_os_system_error_t *self, lh_os_system_error_code_t code)

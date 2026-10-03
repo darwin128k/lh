@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file interval.h
  * @brief Interval predicates and arithmetic bound-check helpers.
  *
@@ -12,7 +12,7 @@
 #ifndef LH_UTIL_INTERVAL_H
 #define LH_UTIL_INTERVAL_H
 
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/bool.h>
 
 /**

@@ -1,8 +1,8 @@
-#include <lh/time/second.h>
+﻿#include <lh/time/second.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/util/interval/wrap.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 lh_uint_t
 lh_time_second_set(lh_time_second_t *self, lh_uint_t value)

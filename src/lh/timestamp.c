@@ -1,11 +1,11 @@
-#include <lh/timestamp.h>
+﻿#include <lh/timestamp.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/date.h>
 #include <lh/datetime.h>
 #include <lh/time.h>
 #include <lh/util/addr.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/math/floor.h>
 
 lh_s64_t

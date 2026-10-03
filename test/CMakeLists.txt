@@ -75,6 +75,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/canvas.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/color.cpp
         ${LH_TEST_SRC_PATH}/lh/math.cpp
+        ${LH_TEST_SRC_PATH}/lh/math/rect.cpp
         ${LH_TEST_SRC_PATH}/lh/list.cpp
         ${LH_TEST_SRC_PATH}/lh/str.cpp
         ${LH_TEST_SRC_PATH}/lh/str/list.cpp
@@ -87,7 +88,6 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/util/bit/scan.cpp
         ${LH_TEST_SRC_PATH}/lh/util/bit/half.cpp
         ${LH_TEST_SRC_PATH}/lh/util/interval.cpp
-        ${LH_TEST_SRC_PATH}/lh/util/math.cpp
         ${LH_TEST_SRC_PATH}/lh/util/memory.cpp
         ${LH_TEST_SRC_PATH}/lh/str/view.cpp
         ${LH_TEST_SRC_PATH}/lh/fs/path.cpp

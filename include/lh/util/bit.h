@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file bit.h
  * @brief Bitwise helpers under the `lh_bit_*` name.
  *
@@ -19,7 +19,7 @@
 #ifndef LH_UTIL_BIT_H
 #define LH_UTIL_BIT_H
 
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 /**
  * @def lh_bit_mask(n)

@@ -1,8 +1,8 @@
-#include <lh/date/year.h>
+﻿#include <lh/date/year.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/util/interval/wrap.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 lh_bool_t
 lh_date_year_is_leap(lh_date_year_t self)

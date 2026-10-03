@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file perm.h
  * @brief Unix permission bits on a filesystem object (::lh_fs_perm_t).
  *
@@ -16,7 +16,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/util/bit.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 /**
  * @typedef lh_fs_perm_t

@@ -1,9 +1,9 @@
-#include <lh/util/str/ptr.h>
+﻿#include <lh/util/str/ptr.h>
 #include <lh/char/map.h>
 #include <lh/memory.h>
 #include <lh/optional/ref.h>
 #include <lh/util/char.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/return.h>
 #include <lh/util/addr.h>
 #include <lh/assert.h>

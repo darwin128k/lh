@@ -1,7 +1,7 @@
-#include <lh/os/system/error/kind.h>
+﻿#include <lh/os/system/error/kind.h>
 #include <lh/cast/static.h>
 #include <lh/os/system/win/kernel32.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 lh_bool_t
 lh_os_system_error_code_is_not_found(lh_os_system_error_code_t code)

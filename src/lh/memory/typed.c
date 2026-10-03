@@ -1,7 +1,7 @@
-#include <lh/memory/typed.h>
+﻿#include <lh/memory/typed.h>
 #include <lh/memory/typed/initializer.h>
 #include <lh/util/return.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/type.h>
 #include <lh/util/ptr.h>
 #include <lh/util/swap.h>

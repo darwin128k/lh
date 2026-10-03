@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file kind.h
  * @brief Backend-private: ::lh_fs_kind_t of a Win32 file from its
  *        `FILE_ATTRIBUTE_*` flags and reparse tag.
@@ -16,7 +16,7 @@
 #include <lh/fs/kind.h>
 #include <lh/os/system/win/kernel32.h>
 #include <lh/util/bit.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 /* A reparse point is not necessarily a symlink (junctions, dedup, cloud
    placeholders are reparse points too): only its tag says so. The tag is in

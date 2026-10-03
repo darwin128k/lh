@@ -1,6 +1,6 @@
-#include <lh/os/system/error/kind.h>
+﻿#include <lh/os/system/error/kind.h>
 #include <lh/cast/static.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 #include <errno.h>
 

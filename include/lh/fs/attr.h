@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file attr.h
  * @brief Extra filesystem flags that Unix `st_mode` does not carry.
  *
@@ -19,7 +19,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/util/bit.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 /**
  * @typedef lh_fs_attr_t

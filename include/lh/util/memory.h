@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file memory.h
  * @brief Memory-span helpers for sized search and sentinel scan.
  *
@@ -19,7 +19,7 @@
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/ptr.h>
 
 /**

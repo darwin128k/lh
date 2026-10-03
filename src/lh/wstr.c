@@ -1,9 +1,9 @@
-#include <lh/wstr.h>
+﻿#include <lh/wstr.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/null.h>
 #include <lh/util/addr.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/ptr.h>
 
 /* What an empty string with no buffer of its own reads as. */

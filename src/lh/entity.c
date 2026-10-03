@@ -1,4 +1,4 @@
-#include <lh/entity.h>
+﻿#include <lh/entity.h>
 #include <lh/assert.h>
 #include <lh/cast/const.h>
 #include <lh/entity/handler.h>
@@ -8,7 +8,7 @@
 #include <lh/runtime/error/code.h>
 #include <lh/util/addr.h>
 #include <lh/util/bit.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
 

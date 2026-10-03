@@ -1,10 +1,10 @@
-#include <lh/memory/sized/allocator.h>
+﻿#include <lh/memory/sized/allocator.h>
 #include <lh/assert.h>
 #include <lh/null.h>
 #include <lh/numeric/limits.h>
 #include <lh/runtime/assert.h>
 #include <lh/runtime/error/code.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file half.h
  * @brief Join a 64-bit word from two 32-bit halves, and split it back.
  *
@@ -20,7 +20,7 @@
 #include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

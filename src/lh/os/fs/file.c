@@ -1,4 +1,4 @@
-#include <lh/os/fs/file.h>
+﻿#include <lh/os/fs/file.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/null.h>
@@ -7,7 +7,7 @@
 #include <lh/self.h>
 #include <lh/str.h>
 #include <lh/util/addr.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/ptr.h>
 
 lh_fs_path_t *

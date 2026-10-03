@@ -1,4 +1,4 @@
-#include <lh/entity/rect.h>
+﻿#include <lh/entity/rect.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/entity/screen.h>
@@ -6,7 +6,7 @@
 #include <lh/null.h>
 #include <lh/ui/canvas.h>
 #include <lh/util/addr.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/ptr.h>
 
 #define lh_entity_rect_as_entity(self) lh_ptr_rcast(lh_entity_t, (self))

@@ -1,8 +1,8 @@
-#include <lh/time/hour.h>
+﻿#include <lh/time/hour.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/util/interval/wrap.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 lh_uint_t
 lh_time_hour_set(lh_time_hour_t *self, lh_uint_t value)

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file math.c
  * @brief Implementation of `lh/math.h` (point, size, rect).
  *
@@ -13,7 +13,7 @@
 #include <lh/math.h>
 #include <lh/null.h>
 #include <lh/numeric/types.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 /* ── point / size ────────────────────────────────────────────────────────── */
 

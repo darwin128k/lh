@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file initializer.h
  * @brief Brace-enclosed initializer macros for ::lh_memory_typed_t.
  */
@@ -7,7 +7,7 @@
 #define LH_MEMORY_TYPED_INITIALIZER_H
 
 #include <lh/memory/bounds/initializer.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/ptr.h>
 
 /**

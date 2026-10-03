@@ -1,8 +1,8 @@
-#include <lh/fs/path/style.h>
+﻿#include <lh/fs/path/style.h>
 #include <lh/cast/static.h>
 #include <lh/char/map.h>
 #include <lh/char/slash.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 lh_bool_t
 lh_fs_path_style_is_sep(lh_fs_path_style_t style, lh_char_t ch)

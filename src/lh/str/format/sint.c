@@ -1,9 +1,9 @@
-#include <lh/str/format/sint.h>
+﻿#include <lh/str/format/sint.h>
 #include <lh/assert.h>
 #include <lh/bool.h>
 #include <lh/cast/static.h>
 #include <lh/str/format/uint.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 lh_usize_t
 lh_str_ptr_format_sint(lh_sint_t value, lh_str_ptr str, lh_usize_t str_size)

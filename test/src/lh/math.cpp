@@ -1,49 +1,140 @@
-#include <gtest/gtest.h>
+﻿#include <gtest/gtest.h>
+#include <lh/math.h>
+#include <lh/util/math/floor.h>
 
-#include <lh/math/rect.h>
+/* ── floor_div / floor_mod ─────────────────────────────────────────────── */
 
-namespace
+TEST(math_floor_div, rounds_toward_negative_infinity)
 {
-
-TEST(math_rect, contains_is_half_open)
-{
-    const lh_math_rect_t r = lh_math_rect_make(10, 20, 5, 3);
-    EXPECT_TRUE(lh_math_rect_contains_point(&r, lh_math_point_make(10, 20)));
-    EXPECT_TRUE(lh_math_rect_contains_point(&r, lh_math_point_make(14, 22)));
-    EXPECT_FALSE(lh_math_rect_contains_point(&r, lh_math_point_make(15, 20)));
-    EXPECT_FALSE(lh_math_rect_contains_point(&r, lh_math_point_make(10, 23)));
+    EXPECT_EQ(lh_math_floor_div(7, 2), 3);
+    EXPECT_EQ(lh_math_floor_div(-7, 2), -4);
+    EXPECT_EQ(lh_math_floor_div(-6, 2), -3);
+    EXPECT_EQ(lh_math_floor_div(6, 2), 3);
 }
 
-TEST(math_rect, intersection_and_union)
+TEST(math_floor_mod, always_has_sign_of_divisor)
 {
-    const lh_math_rect_t a = lh_math_rect_make(0, 0, 10, 10);
-    const lh_math_rect_t b = lh_math_rect_make(5, 5, 10, 10);
-    const lh_math_rect_t i = lh_math_rect_intersection(&a, &b);
-    const lh_math_rect_t expected_i = lh_math_rect_make(5, 5, 5, 5);
-    EXPECT_TRUE(lh_math_rect_eq(&i, &expected_i));
-    EXPECT_TRUE(lh_math_rect_intersects(&a, &b));
-
-    const lh_math_rect_t u = lh_math_rect_union(&a, &b);
-    const lh_math_rect_t expected_u = lh_math_rect_make(0, 0, 15, 15);
-    EXPECT_TRUE(lh_math_rect_eq(&u, &expected_u));
-
-    const lh_math_rect_t far = lh_math_rect_make(100, 100, 1, 1);
-    EXPECT_FALSE(lh_math_rect_intersects(&a, &far));
-    const lh_math_rect_t none = lh_math_rect_intersection(&a, &far);
-    EXPECT_TRUE(lh_math_rect_is_empty(&none));
+    EXPECT_EQ(lh_math_floor_mod(7, 2), 1);
+    EXPECT_EQ(lh_math_floor_mod(-7, 2), 1);
+    EXPECT_EQ(lh_math_floor_mod(-6, 2), 0);
 }
 
-TEST(math_rect, offset_and_inset)
-{
-    const lh_math_rect_t r = lh_math_rect_make(0, 0, 10, 8);
-    const lh_math_rect_t moved = lh_math_rect_offset(&r, 3, -2);
-    EXPECT_EQ(moved.origin.x, 3);
-    EXPECT_EQ(moved.origin.y, -2);
-    EXPECT_EQ(lh_math_rect_width(&moved), 10);
+/* ── add_over_max_exclusive ─────────────────────────────────────────────── */
 
-    const lh_math_rect_t inner = lh_math_rect_inset(&r, 1, 2);
-    const lh_math_rect_t expected = lh_math_rect_make(1, 2, 8, 4);
-    EXPECT_TRUE(lh_math_rect_eq(&inner, &expected));
+TEST(math_add_over_max_exclusive, unsigned_no_overflow)
+{
+    EXPECT_FALSE(lh_math_add_over_max_exclusive(2u, 1u, 5u)); // 3 < 5
+    EXPECT_FALSE(lh_math_add_over_max_exclusive(4u, 1u, 5u)); // 5 == 5, exclusive: ok
+    EXPECT_FALSE(lh_math_add_over_max_exclusive(0u, 0u, 5u)); // b=0: guard false
 }
 
-} // namespace
+TEST(math_add_over_max_exclusive, unsigned_overflow)
+{
+    EXPECT_TRUE(lh_math_add_over_max_exclusive(5u, 1u, 5u)); // 6 > 5
+    EXPECT_TRUE(lh_math_add_over_max_exclusive(3u, 3u, 5u)); // 6 > 5
+}
+
+TEST(math_add_over_max_exclusive, unsigned_b_exceeds_max)
+{
+    EXPECT_TRUE(lh_math_add_over_max_exclusive(0u, 3u, 2u)); // b > max: 3 > 2
+    EXPECT_TRUE(lh_math_add_over_max_exclusive(1u, 3u, 2u)); // b > max: 4 > 2
+    EXPECT_TRUE(lh_math_add_over_max_exclusive(0u, 1u, 0u)); // b > max=0: 1 > 0
+}
+
+TEST(math_add_over_max_exclusive, signed_negative_range_no_overflow)
+{
+    EXPECT_FALSE(lh_math_add_over_max_exclusive(-7, 1, -2)); // -6 < -2
+    EXPECT_FALSE(lh_math_add_over_max_exclusive(-3, 1, -2)); // -2 == -2, exclusive: ok
+}
+
+TEST(math_add_over_max_exclusive, signed_negative_range_overflow)
+{
+    EXPECT_TRUE(lh_math_add_over_max_exclusive(-3, 2, -2)); // -1 > -2
+    EXPECT_TRUE(lh_math_add_over_max_exclusive(-2, 1, -2)); // -1 > -2
+}
+
+/* ── add_over_max_inclusive ─────────────────────────────────────────────── */
+
+TEST(math_add_over_max_inclusive, unsigned_no_overflow)
+{
+    EXPECT_FALSE(lh_math_add_over_max_inclusive(2u, 1u, 5u)); // 3 < 5
+    EXPECT_FALSE(lh_math_add_over_max_inclusive(3u, 1u, 5u)); // 4 < 5
+}
+
+TEST(math_add_over_max_inclusive, unsigned_at_boundary)
+{
+    EXPECT_TRUE(lh_math_add_over_max_inclusive(4u, 1u, 5u)); // 5 >= 5, inclusive: overflow
+    EXPECT_TRUE(lh_math_add_over_max_inclusive(5u, 0u, 5u)); // b=0: a >= max
+}
+
+TEST(math_add_over_max_inclusive, unsigned_overflow)
+{
+    EXPECT_TRUE(lh_math_add_over_max_inclusive(5u, 1u, 5u)); // 6 >= 5
+}
+
+TEST(math_add_over_max_inclusive, unsigned_b_exceeds_max)
+{
+    EXPECT_TRUE(lh_math_add_over_max_inclusive(0u, 3u, 2u)); // b > max: 3 >= 2
+    EXPECT_TRUE(lh_math_add_over_max_inclusive(1u, 3u, 2u)); // b > max: 4 >= 2
+    EXPECT_TRUE(lh_math_add_over_max_inclusive(0u, 1u, 0u)); // b > max=0: 1 >= 0
+}
+
+TEST(math_add_over_max_inclusive, signed_negative_range_no_overflow)
+{
+    EXPECT_FALSE(lh_math_add_over_max_inclusive(-7, 1, -2)); // -6 < -2
+    EXPECT_FALSE(lh_math_add_over_max_inclusive(-4, 1, -2)); // -3 < -2
+}
+
+TEST(math_add_over_max_inclusive, signed_negative_range_overflow)
+{
+    EXPECT_TRUE(lh_math_add_over_max_inclusive(-3, 1, -2)); // -2 >= -2, inclusive
+    EXPECT_TRUE(lh_math_add_over_max_inclusive(-3, 2, -2)); // -1 >= -2
+}
+
+/* ── add_below_min_exclusive ────────────────────────────────────────────── */
+
+TEST(math_add_below_min_exclusive, signed_no_underflow)
+{
+    EXPECT_FALSE(lh_math_add_below_min_exclusive(-7, -2, -10)); // -9 > -10
+    EXPECT_FALSE(lh_math_add_below_min_exclusive(-9, -1, -10)); // -10 == -10, exclusive: ok
+    EXPECT_FALSE(lh_math_add_below_min_exclusive(-7, 1, -10));  // b>0: guard false
+}
+
+TEST(math_add_below_min_exclusive, signed_underflow)
+{
+    EXPECT_TRUE(lh_math_add_below_min_exclusive(-9, -2, -10));  // -11 < -10
+    EXPECT_TRUE(lh_math_add_below_min_exclusive(-10, -1, -10)); // -11 < -10
+}
+
+TEST(math_add_below_min_exclusive, signed_positive_range)
+{
+    EXPECT_FALSE(lh_math_add_below_min_exclusive(5, -2, 3)); // 3 == 3, exclusive: ok
+    EXPECT_TRUE(lh_math_add_below_min_exclusive(5, -3, 3));  // 2 < 3
+}
+
+/* ── add_below_min_inclusive ────────────────────────────────────────────── */
+
+TEST(math_add_below_min_inclusive, signed_no_underflow)
+{
+    EXPECT_FALSE(lh_math_add_below_min_inclusive(-7, -2, -10)); // -9 > -10
+    EXPECT_FALSE(lh_math_add_below_min_inclusive(-7, 1, -10));  // b>0: guard false
+}
+
+TEST(math_add_below_min_inclusive, signed_at_boundary)
+{
+    EXPECT_TRUE(lh_math_add_below_min_inclusive(-9, -1, -10));  // -10 <= -10, inclusive
+    EXPECT_TRUE(lh_math_add_below_min_inclusive(-10, 0, -10));  // b=0: a <= min
+}
+
+TEST(math_add_below_min_inclusive, signed_underflow)
+{
+    EXPECT_TRUE(lh_math_add_below_min_inclusive(-9, -2, -10));  // -11 < -10
+    EXPECT_TRUE(lh_math_add_below_min_inclusive(-10, -1, -10)); // -11 < -10
+}
+
+TEST(math_add_below_min_inclusive, signed_positive_range)
+{
+    EXPECT_FALSE(lh_math_add_below_min_inclusive(5, -1, 3)); // 4 > 3
+    EXPECT_TRUE(lh_math_add_below_min_inclusive(5, -2, 3));  // 3 <= 3, inclusive
+    EXPECT_TRUE(lh_math_add_below_min_inclusive(5, -3, 3));  // 2 < 3
+}

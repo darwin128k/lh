@@ -1,4 +1,4 @@
-#include <lh/str/parse/text.h>
+﻿#include <lh/str/parse/text.h>
 #include <lh/assert.h>
 #include <lh/bool.h>
 #include <lh/cast/static.h>
@@ -10,7 +10,7 @@
 #include <lh/str/parse/uint.h>
 #include <lh/str/scanf/next.h>
 #include <lh/util/addr.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/str/ptr.h>
 
 static lh_usize_t

@@ -1,4 +1,4 @@
-#include <lh/fs/path.h>
+﻿#include <lh/fs/path.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/cast/static.h>
@@ -11,7 +11,7 @@
 #include <lh/str.h>
 #include <lh/str/split/next.h>
 #include <lh/util/addr.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 /*
  * Layout: `text` is the whole path, normalized, with `/` as the only

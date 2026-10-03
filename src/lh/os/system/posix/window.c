@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file window.c
  * @brief POSIX/Linux X11 backend for `lh/os/system/window.h`.
  *
@@ -23,7 +23,7 @@
 #include <lh/numeric/types.h>
 #include <lh/os/system/window.h>
 #include <lh/os/system/posix/x11.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/ptr.h>
 #include <lh/wstr.h>
 

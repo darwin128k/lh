@@ -10,7 +10,7 @@
 #include <lh/util/ptr.h>
 
 #if (LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB == LH_LIBRARY_OPTION_ON)
-#    include <lh/util/math.h>
+#    include <lh/math.h>
 
 #    include <stdio.h>
 

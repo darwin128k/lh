@@ -1,10 +1,10 @@
-#include <lh/memory.h>
+﻿#include <lh/memory.h>
 #include <lh/cast/static.h>
 #include <lh/memory/std.h>
 #include <lh/assert.h>
 #include <lh/bool.h>
 #include <lh/config.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/memory.h>
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>

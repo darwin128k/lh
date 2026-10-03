@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file window.c
  * @brief Application-level wrapper around `lh/os/system/window.h`.
  *
@@ -13,7 +13,7 @@
 #include <lh/null.h>
 #include <lh/numeric/types.h>
 #include <lh/os/window.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 void
 lh_os_window_init(lh_os_window_t *self)

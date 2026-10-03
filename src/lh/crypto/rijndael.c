@@ -1,4 +1,4 @@
-#include <lh/crypto/rijndael.h>
+﻿#include <lh/crypto/rijndael.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/unreachable.h>
@@ -8,7 +8,7 @@
 #include <lh/util/addr.h>
 #include <lh/util/bit/endian.h>
 #include <lh/util/bit/rotate.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 #include <lh/util/ptr.h>
 
 static const lh_uchar_t m_sbox[256] = {

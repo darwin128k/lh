@@ -1,4 +1,4 @@
-#include <lh/os/system/fs/stat.h>
+﻿#include <lh/os/system/fs/stat.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/cast/static.h>
@@ -11,7 +11,7 @@
 #include <lh/util/addr.h>
 #include <lh/util/bit.h>
 #include <lh/util/bit/half.h>
-#include <lh/util/math.h>
+#include <lh/math.h>
 
 LH_ATTRIBUTE_STATIC
 lh_fs_perm_t
