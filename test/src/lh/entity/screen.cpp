@@ -151,7 +151,7 @@ TEST_F(Screen, children_are_cut_to_the_parent_unless_overflow_visible)
     // A child outside its parent cannot be clicked either.
     EXPECT_EQ(lh_entity_rect_find_at(root(), lh_vec2_make(7.5f, 4.5f)), root());
 
-    lh_entity_add_flags(panel_entity, LH_ENTITY_FLAG_OVERFLOW_VISIBLE);
+    lh_entity_add_flags(panel_entity, lh_entity_flags_overflow_visible);
     lh_entity_screen_invalidate_area(screen, lh_ui_rect_make(0, 0, k_width, k_height));
     render();
     EXPECT_TRUE(same(at(7, 4), k_red));
@@ -164,7 +164,7 @@ TEST_F(Screen, hidden_entities_are_not_drawn_or_hit)
     render();
     ASSERT_TRUE(same(at(1, 1), k_red));
 
-    lh_entity_add_flags(e, LH_ENTITY_FLAG_HIDDEN);
+    lh_entity_add_flags(e, lh_entity_flags_hidden);
     lh_entity_invalidate(e);
     render();
     EXPECT_TRUE(same(at(1, 1), k_black));

@@ -18,7 +18,7 @@
  *
  * Events (::lh_entity_send_event) reach the entity's classes (derived first),
  * then its handlers in the order they were added; with
- * ::LH_ENTITY_FLAG_EVENT_BUBBLE they continue to the parent, and so on up,
+ * ::lh_entity_flags_event_bubble they continue to the parent, and so on up,
  * until a receiver calls ::lh_entity_event_stop.
  */
 
@@ -31,38 +31,11 @@
 #include <lh/entity/class.h>
 #include <lh/entity/event.h>
 #include <lh/entity/fields.h>
+#include <lh/entity/flags.h>
 #include <lh/list.h>
 #include <lh/memory/sized/allocator.h>
 #include <lh/numeric/types.h>
 #include <lh/ptr.h>
-#include <lh/util/math.h>
-
-/**
- * @def LH_ENTITY_FLAG_EVENT_BUBBLE
- * @brief Events reaching this entity continue to its parent afterwards.
- */
-#define LH_ENTITY_FLAG_EVENT_BUBBLE lh_math_bit_mask(0)
-
-/**
- * @def LH_ENTITY_FLAG_HIDDEN
- * @brief Neither this entity nor its children are drawn or hit by the
- *        pointer (::lh_entity_rect_find_at).
- */
-#define LH_ENTITY_FLAG_HIDDEN lh_math_bit_mask(1)
-
-/**
- * @def LH_ENTITY_FLAG_OVERFLOW_VISIBLE
- * @brief Children of this rectangle are drawn and hit outside it too; by
- *        default they are cut to it.
- */
-#define LH_ENTITY_FLAG_OVERFLOW_VISIBLE lh_math_bit_mask(2)
-
-/**
- * @def LH_ENTITY_FLAG_USER
- * @brief First flag bit free for the application; the bits below it and the
- *        top bit are lh's.
- */
-#define LH_ENTITY_FLAG_USER lh_math_bit_mask(16)
 
 /**
  * @struct lh_entity
@@ -70,7 +43,7 @@
  */
 struct lh_entity
 {
-    lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_uint_t);
+    lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
 };
 typedef struct lh_entity lh_entity_t;
 
@@ -152,22 +125,22 @@ lh_entity_t *
 lh_entity_get_next_sibling(const lh_entity_t *self);
 
 /**
- * @brief Set the `LH_ENTITY_FLAG_*` bits of @p flags on @p self.
+ * @brief Set the `lh_entity_flags_*` bits of @p flags on @p self.
  */
 lh_void
-lh_entity_add_flags(lh_entity_t *self, lh_uint_t flags);
+lh_entity_add_flags(lh_entity_t *self, lh_entity_flags_t flags);
 
 /**
- * @brief Clear the `LH_ENTITY_FLAG_*` bits of @p flags on @p self.
+ * @brief Clear the `lh_entity_flags_*` bits of @p flags on @p self.
  */
 lh_void
-lh_entity_clear_flags(lh_entity_t *self, lh_uint_t flags);
+lh_entity_clear_flags(lh_entity_t *self, lh_entity_flags_t flags);
 
 /**
  * @brief True when every bit of @p flags is set on @p self.
  */
 lh_bool_t
-lh_entity_has_flags(const lh_entity_t *self, lh_uint_t flags);
+lh_entity_has_flags(const lh_entity_t *self, lh_entity_flags_t flags);
 
 /**
  * @brief Call @p handler with @p user_data for every event reaching @p self,
@@ -193,7 +166,7 @@ lh_entity_remove_handler(lh_entity_t *self, lh_entity_handler_cb handler, lh_ptr
  * @brief Send the event @p code with @p param to @p self.
  *
  * Returns once every receiver ran: @p self's classes and handlers, then,
- * while each receiver has ::LH_ENTITY_FLAG_EVENT_BUBBLE and no one called
+ * while each receiver has ::lh_entity_flags_event_bubble and no one called
  * ::lh_entity_event_stop, its parent's.
  *
  * @return True when a receiver stopped the event.

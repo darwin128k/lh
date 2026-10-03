@@ -18,12 +18,12 @@
  * - `sibling`: this entity's node in the parent's `children`.
  * - `children`: the child entities, oldest first.
  * - `handlers`: the handlers added with ::lh_entity_add_handler, in order.
- * - `flags`: `LH_ENTITY_FLAG_*` bits.
+ * - `flags`: `lh_entity_flags_*` bits.
  *
  * @param class_type Type `entity_class` points to (::lh_entity_class_t).
  * @param node_type  Type of `sibling` (::lh_list_node_t).
  * @param list_type  Type of `children` and `handlers` (::lh_list_t).
- * @param flags_type Type of `flags` (::lh_uint_t).
+ * @param flags_type Type of `flags` (::lh_entity_flags_t).
  */
 #define lh_entity_fields(class_type, node_type, list_type, flags_type)                             \
     const class_type *entity_class;                                                                \

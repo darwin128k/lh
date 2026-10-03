@@ -161,7 +161,7 @@ lh_entity_rect_contains(const lh_entity_rect_t *self, lh_vec2_t point)
 lh_entity_t *
 lh_entity_rect_find_at(lh_entity_t *root, lh_vec2_t point)
 {
-    if (lh_entity_has_flags(root, LH_ENTITY_FLAG_HIDDEN))
+    if (lh_entity_has_flags(root, lh_entity_flags_hidden))
     {
         return lh_null;
     }
@@ -174,7 +174,7 @@ lh_entity_rect_find_at(lh_entity_t *root, lh_vec2_t point)
      * no child is hit: that is the drawing order read backwards. A rectangle
      * that cuts its children hides those outside it. */
     lh_entity_t *hit = lh_null;
-    if (!is_rect || inside || lh_entity_has_flags(root, LH_ENTITY_FLAG_OVERFLOW_VISIBLE))
+    if (!is_rect || inside || lh_entity_has_flags(root, lh_entity_flags_overflow_visible))
     {
         for (lh_entity_t *child = lh_entity_get_first_child(root); lh_ptr_is_set(child);
              child = lh_entity_get_next_sibling(child))

@@ -8,7 +8,7 @@
  * @code{.c}
  * struct my_button
  * {
- *     lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_uint_t);
+ *     lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
  *     lh_int_t clicks;
  * };
  *

@@ -31,7 +31,7 @@
  */
 struct lh_entity_2d
 {
-    lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_uint_t);
+    lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
     lh_entity_2d_fields(lh_vec2_t, lh_float_t);
 };
 typedef struct lh_entity_2d lh_entity_2d_t;

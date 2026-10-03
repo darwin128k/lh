@@ -24,13 +24,13 @@ struct entity_test_heap
 /* A class two levels deep: base -> widget -> button. */
 struct widget
 {
-    lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_uint_t);
+    lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
     int widget_value;
 };
 
 struct button
 {
-    lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_uint_t);
+    lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
     int widget_value; /* widget's field, same place */
     int clicks;
 };
@@ -216,13 +216,13 @@ TEST_F(Entity, bubbling_only_with_the_flag)
     EXPECT_EQ(g_log, "B");
 
     g_log.clear();
-    lh_entity_add_flags(b, LH_ENTITY_FLAG_EVENT_BUBBLE);
-    EXPECT_TRUE(lh_entity_has_flags(b, LH_ENTITY_FLAG_EVENT_BUBBLE));
+    lh_entity_add_flags(b, lh_entity_flags_event_bubble);
+    EXPECT_TRUE(lh_entity_has_flags(b, lh_entity_flags_event_bubble));
     lh_entity_send_event(b, LH_ENTITY_EVENT_USER, lh_null);
     EXPECT_EQ(g_log, "BP");
 
     g_log.clear();
-    lh_entity_clear_flags(b, LH_ENTITY_FLAG_EVENT_BUBBLE);
+    lh_entity_clear_flags(b, lh_entity_flags_event_bubble);
     lh_entity_send_event(b, LH_ENTITY_EVENT_USER, lh_null);
     EXPECT_EQ(g_log, "B");
 }
@@ -247,7 +247,7 @@ TEST_F(Entity, bubbled_event_knows_target_and_current)
 {
     lh_entity_t *panel = lh_entity_create(&lh_entity_base_class, root);
     lh_entity_t *b = lh_entity_create(&lh_entity_base_class, panel);
-    lh_entity_add_flags(b, LH_ENTITY_FLAG_EVENT_BUBBLE);
+    lh_entity_add_flags(b, lh_entity_flags_event_bubble);
     lh_entity_add_handler(panel, recording_handler, lh_null);
     int param = 5;
 
@@ -261,7 +261,7 @@ TEST_F(Entity, stop_ends_handlers_and_bubbling)
 {
     lh_entity_t *panel = lh_entity_create(&lh_entity_base_class, root);
     lh_entity_t *b = lh_entity_create(&lh_entity_base_class, panel);
-    lh_entity_add_flags(b, LH_ENTITY_FLAG_EVENT_BUBBLE);
+    lh_entity_add_flags(b, lh_entity_flags_event_bubble);
     lh_entity_add_handler(panel, log_handler, const_cast<char *>("P"));
     lh_entity_add_handler(b, stopping_handler, lh_null);
     lh_entity_add_handler(b, log_handler, const_cast<char *>("X"));

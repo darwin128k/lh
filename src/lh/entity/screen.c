@@ -71,7 +71,7 @@ lh_entity_screen_get_dirty_area(const lh_entity_screen_t *self, lh_usize_t index
 static lh_void
 lh_entity_screen_draw(lh_entity_t *entity, lh_ui_canvas_t *canvas, lh_ui_rect_t clip)
 {
-    if (lh_entity_has_flags(entity, LH_ENTITY_FLAG_HIDDEN))
+    if (lh_entity_has_flags(entity, lh_entity_flags_hidden))
     {
         return;
     }
@@ -81,7 +81,7 @@ lh_entity_screen_draw(lh_entity_t *entity, lh_ui_canvas_t *canvas, lh_ui_rect_t 
 
     lh_ui_rect_t child_clip = clip;
     if (lh_entity_is_instance_of(entity, lh_addr_of(lh_entity_rect_class)) &&
-        !lh_entity_has_flags(entity, LH_ENTITY_FLAG_OVERFLOW_VISIBLE))
+        !lh_entity_has_flags(entity, lh_entity_flags_overflow_visible))
     {
         const lh_ui_rect_t bounds =
             lh_entity_rect_get_screen_bounds(lh_ptr_rcast(const lh_entity_rect_t, entity));
@@ -125,7 +125,7 @@ lh_entity_screen_invalidate_tree(lh_entity_screen_t *screen, lh_entity_t *entity
     {
         lh_entity_screen_invalidate_area(
             screen, lh_entity_rect_get_screen_bounds(lh_ptr_rcast(const lh_entity_rect_t, entity)));
-        if (!lh_entity_has_flags(entity, LH_ENTITY_FLAG_OVERFLOW_VISIBLE))
+        if (!lh_entity_has_flags(entity, lh_entity_flags_overflow_visible))
         {
             return;
         }

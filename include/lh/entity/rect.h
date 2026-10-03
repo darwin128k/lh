@@ -10,7 +10,7 @@
  *
  * Children are positioned relative to the parent's top-left corner and are
  * cut to the parent when drawn and hit, unless it has
- * ::LH_ENTITY_FLAG_OVERFLOW_VISIBLE. The cut follows the parent's screen
+ * ::lh_entity_flags_overflow_visible. The cut follows the parent's screen
  * bounds (::lh_entity_rect_get_screen_bounds): exact for an unrotated
  * parent, its bounding box for a rotated one.
  *
@@ -36,7 +36,7 @@
  */
 struct lh_entity_rect
 {
-    lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_uint_t);
+    lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
     lh_entity_2d_fields(lh_vec2_t, lh_float_t);
     lh_entity_rect_fields(lh_vec2_t, lh_ui_color_t);
 };

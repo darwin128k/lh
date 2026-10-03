@@ -26,7 +26,7 @@
  */
 struct lh_entity_3d
 {
-    lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_uint_t);
+    lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
     lh_entity_2d_fields(lh_vec2_t, lh_float_t);
     lh_entity_3d_fields(lh_float_t, lh_quat_t);
 };
