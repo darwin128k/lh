@@ -1,4 +1,4 @@
-#include <lh/memory/std.h>
+﻿#include <lh/memory/std.h>
 #include <lh/assert.h>
 #include <lh/attribute/force_inline.h>
 #include <lh/bool.h>
@@ -11,9 +11,9 @@
 #include <lh/cpu/simd.h>
 #include <lh/null.h>
 #include <lh/numeric/fixed/types.h>
-#include <lh/util/bit.h>
-#include <lh/util/bit/bswap.h>
-#include <lh/util/bit/scan.h>
+#include <lh/bit.h>
+#include <lh/bit/bswap.h>
+#include <lh/bit/scan.h>
 #include <lh/util/memory.h>
 #include <lh/util/ptr.h>
 

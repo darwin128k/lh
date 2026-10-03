@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
+﻿#include <gtest/gtest.h>
 
-#include <lh/util/bit/rotate.h>
+#include <lh/bit/rotate.h>
 
 namespace
 {

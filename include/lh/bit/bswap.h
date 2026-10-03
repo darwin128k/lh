@@ -1,8 +1,8 @@
-/**
+﻿/**
  * @file bswap.h
  * @brief Reverse the bytes of a 16/32/64-bit integer in register.
  *
- * Distinct from `lh/util/bit/endian.h`: pack/unpack writes a value into a
+ * Distinct from `lh/bit/endian.h`: pack/unpack writes a value into a
  * byte buffer in a chosen order, while a bswap rearranges the bytes of the
  * integer itself. SHA and Rijndael (and `lh/memory/std.c`'s reverse-copy
  * path) need the in-register form.
@@ -16,8 +16,8 @@
  * cross-TU call would cost more than the operation itself.
  */
 
-#ifndef LH_UTIL_BIT_BSWAP_H
-#define LH_UTIL_BIT_BSWAP_H
+#ifndef LH_BIT_BSWAP_H
+#define LH_BIT_BSWAP_H
 
 #include <lh/attribute/force_inline.h>
 #include <lh/cast/static.h>
@@ -91,4 +91,4 @@ lh_bit_bswap_u64(lh_u64_t x)
 
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_UTIL_BIT_BSWAP_H */
+#endif /* LH_BIT_BSWAP_H */

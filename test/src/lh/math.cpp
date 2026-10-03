@@ -1,6 +1,6 @@
 ﻿#include <gtest/gtest.h>
 #include <lh/math.h>
-#include <lh/util/math/floor.h>
+#include <lh/math/floor.h>
 
 /* ── floor_div / floor_mod ─────────────────────────────────────────────── */
 

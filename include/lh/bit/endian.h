@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file endian.h
  * @brief Pack/unpack an integer to/from big-endian or little-endian bytes.
  *
@@ -6,7 +6,7 @@
  * to hand a 16-bit field to a wire format (a socket address's port today; any
  * future length-prefixed or fixed-header protocol tomorrow) is exactly the
  * kind of small, easy-to-subtly-reimplement primitive this library prefers to
- * name once — see `lh/util/bit/scan.h` for the same reasoning applied to
+ * name once — see `lh/bit/scan.h` for the same reasoning applied to
  * bit-scan.
  *
  * Named `pack`/`unpack` for the wire-byte conversion itself
@@ -17,15 +17,15 @@
  * cross-TU call would cost more than.
  */
 
-#ifndef LH_UTIL_BIT_ENDIAN_H
-#define LH_UTIL_BIT_ENDIAN_H
+#ifndef LH_BIT_ENDIAN_H
+#define LH_BIT_ENDIAN_H
 
 #include <lh/assert.h>
 #include <lh/attribute/force_inline.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
-#include <lh/util/bit/half.h>
+#include <lh/bit/half.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -229,4 +229,4 @@ lh_bit_unpack_le64(const lh_uchar_t *in)
 
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_UTIL_BIT_ENDIAN_H */
+#endif /* LH_BIT_ENDIAN_H */

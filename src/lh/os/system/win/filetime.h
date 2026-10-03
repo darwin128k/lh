@@ -15,9 +15,9 @@
 #include <lh/numeric/fixed/types.h>
 #include <lh/os/system/win/kernel32.h>
 #include <lh/timestamp.h>
-#include <lh/util/bit/half.h>
+#include <lh/bit/half.h>
 #include <lh/math.h>
-#include <lh/util/math/floor.h>
+#include <lh/math/floor.h>
 
 /* 100-ns intervals between the FILETIME epoch (1601-01-01) and the Unix
    epoch (1970-01-01) - a fixed, well-known constant. */

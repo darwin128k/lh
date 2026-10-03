@@ -1,11 +1,11 @@
-#include <lh/crypto/sha.h>
+﻿#include <lh/crypto/sha.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/memory/std.h>
 #include <lh/runtime/error.h>
 #include <lh/util/addr.h>
-#include <lh/util/bit/endian.h>
-#include <lh/util/bit/rotate.h>
+#include <lh/bit/endian.h>
+#include <lh/bit/rotate.h>
 #include <lh/util/ptr.h>
 
 #define LH_CRYPTO_SHA_BLOCK_SIZE_32 64U

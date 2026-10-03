@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
+﻿#include <gtest/gtest.h>
 
-#include <lh/util/bit/half.h>
+#include <lh/bit/half.h>
 
 namespace
 {

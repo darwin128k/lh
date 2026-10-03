@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file flags.h
  * @brief Bitmask of which ::lh_logger_level_t values a logger will emit.
  *
@@ -12,7 +12,7 @@
 
 #include <lh/byte.h>
 #include <lh/logger/level.h>
-#include <lh/util/bit.h>
+#include <lh/bit.h>
 
 /**
  * @def lh_logger_level_flags_none

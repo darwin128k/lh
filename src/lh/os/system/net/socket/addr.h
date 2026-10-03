@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file addr.h
  * @brief Backend-private: ::lh_net_ip4_socket_addr_t <-> `struct sockaddr_in`.
  *
@@ -17,7 +17,7 @@
 #include <lh/net/socket/addr/ip4.h>
 #include <lh/numeric/types.h>
 #include <lh/util/addr.h>
-#include <lh/util/bit/endian.h>
+#include <lh/bit/endian.h>
 #include <lh/util/ptr.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS

@@ -6,15 +6,15 @@
  * a low 32-bit half (Win32 `FILETIME`, `LARGE_INTEGER` parts, big/little
  * endian packing). Writing `((lh_u64_t)high << 32) | low` by hand at every
  * such place is the kind of small primitive this library names once — see
- * `lh/util/bit/rotate.h` for the same reasoning.
+ * `lh/bit/rotate.h` for the same reasoning.
  *
  * Every function here is ::LH_ATTRIBUTE_FORCE_INLINE: each is one or two
  * machine instructions, and a real cross-TU call would cost more than the
  * operation itself.
  */
 
-#ifndef LH_UTIL_BIT_HALF_H
-#define LH_UTIL_BIT_HALF_H
+#ifndef LH_BIT_HALF_H
+#define LH_BIT_HALF_H
 
 #include <lh/attribute/force_inline.h>
 #include <lh/cast/static.h>
@@ -74,4 +74,4 @@ lh_bit_get_low_u32(lh_u64_t x)
 
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_UTIL_BIT_HALF_H */
+#endif /* LH_BIT_HALF_H */

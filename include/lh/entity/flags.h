@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file flags.h
  * @brief Bitmask of how an ::lh_entity_t behaves (::lh_entity_add_flags).
  */
@@ -7,7 +7,7 @@
 #define LH_ENTITY_FLAGS_H
 
 #include <lh/numeric/types.h>
-#include <lh/util/bit.h>
+#include <lh/bit.h>
 
 /**
  * @def lh_entity_flags_none

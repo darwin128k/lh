@@ -15,7 +15,7 @@
 #include <lh/str.h>
 #include <lh/str/view.h>
 #include <lh/util/addr.h>
-#include <lh/util/bit.h>
+#include <lh/bit.h>
 #include <lh/math.h>
 #include <lh/util/ptr.h>
 #include <lh/util/wstr/ptr.h>

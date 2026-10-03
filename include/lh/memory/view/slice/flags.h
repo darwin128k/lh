@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file flags.h
  * @brief Flags for tracking memory view slice initialization state.
  */
@@ -7,7 +7,7 @@
 #define LH_MEMORY_VIEW_SLICE_FLAGS_H
 
 #include <lh/byte.h>
-#include <lh/util/bit.h>
+#include <lh/bit.h>
 
 #define lh_memory_view_slice_flags_uninitialized 0
 #define lh_memory_view_slice_flags_initialized_begin lh_bit_mask(0)

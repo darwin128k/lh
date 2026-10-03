@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file type.h
  * @brief Generic type inspection and casting utilities.
  *
@@ -12,7 +12,7 @@
 
 #include <lh/cast/static.h>
 #include <lh/config.h>
-#include <lh/util/bit.h>
+#include <lh/bit.h>
 
 /**
  * @def lh_type_size(T)

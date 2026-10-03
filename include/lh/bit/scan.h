@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file scan.h
  * @brief Locate the lowest/highest set bit in an 8/16/32/64-bit word.
  *
@@ -21,8 +21,8 @@
  * adjustment is needed on the result either.
  */
 
-#ifndef LH_UTIL_BIT_SCAN_H
-#define LH_UTIL_BIT_SCAN_H
+#ifndef LH_BIT_SCAN_H
+#define LH_BIT_SCAN_H
 
 #include <lh/attribute/force_inline.h>
 #include <lh/cast/static.h>
@@ -222,4 +222,4 @@ lh_bit_scan_reverse_u64(lh_u64_t x)
 
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_UTIL_BIT_SCAN_H */
+#endif /* LH_BIT_SCAN_H */

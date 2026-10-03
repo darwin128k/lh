@@ -2,7 +2,7 @@
  * @file floor.h
  * @brief Floor division and modulo on ::lh_s64_t.
  *
- * ::lh_math_div / ::lh_math_mod (`lh/util/math.h`) are plain wrappers around
+ * ::lh_math_div / ::lh_math_mod (`lh/math.h`) are plain wrappers around
  * `/` and `%`, which truncate toward zero - the wrong rounding for anything
  * indexed by whole units relative to an origin that can go negative (day
  * offsets before an epoch, seconds-of-day for a negative timestamp, etc).
@@ -14,8 +14,8 @@
  * (or duplicating) the same truncate-then-adjust logic.
  */
 
-#ifndef LH_UTIL_MATH_FLOOR_H
-#define LH_UTIL_MATH_FLOOR_H
+#ifndef LH_MATH_FLOOR_H
+#define LH_MATH_FLOOR_H
 
 #include <lh/attribute/force_inline.h>
 #include <lh/compiler/extern/c.h>
@@ -59,4 +59,4 @@ lh_math_floor_mod(lh_s64_t a, lh_s64_t b)
 
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_UTIL_MATH_FLOOR_H */
+#endif /* LH_MATH_FLOOR_H */

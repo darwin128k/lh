@@ -10,14 +10,14 @@
  * and low-level protocols or hardware registers.
  *
  * Each macro here is exactly the corresponding `lh_math_bit_*` macro from
- * `lh/util/math.h` (same expansion, same evaluation and undefined-behavior rules).
+ * `lh/math.h` (same expansion, same evaluation and undefined-behavior rules).
  *
  * Include this header when you prefer the `lh_bit_*` prefix;
- * you still pull in `lh/util/math.h` transitively.
+ * you still pull in `lh/math.h` transitively.
  */
 
-#ifndef LH_UTIL_BIT_H
-#define LH_UTIL_BIT_H
+#ifndef LH_BIT_H
+#define LH_BIT_H
 
 #include <lh/math.h>
 
@@ -160,4 +160,4 @@
  */
 #define lh_bit_shr(a, n) lh_math_bit_shr(a, n)
 
-#endif /* LH_UTIL_BIT_H */
+#endif /* LH_BIT_H */

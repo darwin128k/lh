@@ -15,7 +15,7 @@
 #include <lh/cast/static.h>
 #include <lh/fs/kind.h>
 #include <lh/os/system/win/kernel32.h>
-#include <lh/util/bit.h>
+#include <lh/bit.h>
 #include <lh/math.h>
 
 /* A reparse point is not necessarily a symlink (junctions, dedup, cloud

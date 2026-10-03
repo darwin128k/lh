@@ -82,11 +82,11 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/wstr.cpp
         ${LH_TEST_SRC_PATH}/lh/wstr/list.cpp
         ${LH_TEST_SRC_PATH}/lh/util/swap.cpp
-        ${LH_TEST_SRC_PATH}/lh/util/bit/endian.cpp
-        ${LH_TEST_SRC_PATH}/lh/util/bit/bswap.cpp
-        ${LH_TEST_SRC_PATH}/lh/util/bit/rotate.cpp
-        ${LH_TEST_SRC_PATH}/lh/util/bit/scan.cpp
-        ${LH_TEST_SRC_PATH}/lh/util/bit/half.cpp
+        ${LH_TEST_SRC_PATH}/lh/bit/endian.cpp
+        ${LH_TEST_SRC_PATH}/lh/bit/bswap.cpp
+        ${LH_TEST_SRC_PATH}/lh/bit/rotate.cpp
+        ${LH_TEST_SRC_PATH}/lh/bit/scan.cpp
+        ${LH_TEST_SRC_PATH}/lh/bit/half.cpp
         ${LH_TEST_SRC_PATH}/lh/util/interval.cpp
         ${LH_TEST_SRC_PATH}/lh/util/memory.cpp
         ${LH_TEST_SRC_PATH}/lh/str/view.cpp

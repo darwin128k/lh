@@ -15,7 +15,7 @@
 #include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
-#include <lh/util/bit.h>
+#include <lh/bit.h>
 #include <lh/math.h>
 
 /**

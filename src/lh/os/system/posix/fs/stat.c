@@ -7,7 +7,7 @@
 #include <lh/os/error/code.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/util/addr.h>
-#include <lh/util/bit.h>
+#include <lh/bit.h>
 #include <lh/math.h>
 
 #include <sys/stat.h>

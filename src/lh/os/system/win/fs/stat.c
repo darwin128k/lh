@@ -9,8 +9,8 @@
 #include <lh/os/system/win/fs/kind.h>
 #include <lh/os/system/win/kernel32.h>
 #include <lh/util/addr.h>
-#include <lh/util/bit.h>
-#include <lh/util/bit/half.h>
+#include <lh/bit.h>
+#include <lh/bit/half.h>
 #include <lh/math.h>
 
 LH_ATTRIBUTE_STATIC

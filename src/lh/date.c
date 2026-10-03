@@ -6,7 +6,7 @@
 #include <lh/str/parse/uint.h>
 #include <lh/util/addr.h>
 #include <lh/math.h>
-#include <lh/util/math/floor.h>
+#include <lh/math/floor.h>
 
 #define LH_DATE_EPOCH_YEAR 1970U
 

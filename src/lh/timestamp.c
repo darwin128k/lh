@@ -6,7 +6,7 @@
 #include <lh/time.h>
 #include <lh/util/addr.h>
 #include <lh/math.h>
-#include <lh/util/math/floor.h>
+#include <lh/math/floor.h>
 
 lh_s64_t
 lh_timestamp_floor_div(lh_s64_t a, lh_s64_t b)

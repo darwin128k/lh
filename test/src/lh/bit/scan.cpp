@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
+﻿#include <gtest/gtest.h>
 
-#include <lh/util/bit/scan.h>
+#include <lh/bit/scan.h>
 
 namespace
 {

@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
+﻿#include <gtest/gtest.h>
 
-#include <lh/util/bit/endian.h>
+#include <lh/bit/endian.h>
 
 namespace
 {

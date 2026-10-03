@@ -1,4 +1,4 @@
-#include <lh/cpu/simd.h>
+﻿#include <lh/cpu/simd.h>
 
 #include <lh/cast/static.h>
 #include <lh/compiler/arch.h>
@@ -7,7 +7,7 @@
 #include <lh/compiler/type.h>
 #include <lh/config.h>
 #include <lh/numeric/fixed/types.h>
-#include <lh/util/bit.h>
+#include <lh/bit.h>
 
 #if (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC) &&                                                 \
     (LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_SSSE3 ||                      \

@@ -7,7 +7,7 @@
 #include <lh/null.h>
 #include <lh/runtime/error/code.h>
 #include <lh/util/addr.h>
-#include <lh/util/bit.h>
+#include <lh/bit.h>
 #include <lh/math.h>
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>

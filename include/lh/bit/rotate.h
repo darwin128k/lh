@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file rotate.h
  * @brief Rotate the bits of a 32/64-bit word left or right.
  *
@@ -7,7 +7,7 @@
  * is a right rotate by @p r. SHA and Rijndael are built out of these;
  * writing `(x << r) | (x >> (width - r))` by hand at every round is the
  * kind of small, easy-to-get-wrong primitive this library prefers to name
- * once — see `lh/util/bit/scan.h` and `lh/util/bit/endian.h` for the same
+ * once — see `lh/bit/scan.h` and `lh/bit/endian.h` for the same
  * reasoning applied to bit-scan and endian pack.
  *
  * The shift count is taken modulo the word width, so a rotate by 0 or by
@@ -19,8 +19,8 @@
  * the operation itself.
  */
 
-#ifndef LH_UTIL_BIT_ROTATE_H
-#define LH_UTIL_BIT_ROTATE_H
+#ifndef LH_BIT_ROTATE_H
+#define LH_BIT_ROTATE_H
 
 #include <lh/attribute/force_inline.h>
 #include <lh/cast/static.h>
@@ -117,4 +117,4 @@ lh_bit_rotate_right_u64(lh_u64_t x, lh_usize_t r)
 
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_UTIL_BIT_ROTATE_H */
+#endif /* LH_BIT_ROTATE_H */

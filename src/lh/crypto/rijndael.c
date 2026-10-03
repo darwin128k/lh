@@ -6,8 +6,8 @@
 #include <lh/null.h>
 #include <lh/runtime/error.h>
 #include <lh/util/addr.h>
-#include <lh/util/bit/endian.h>
-#include <lh/util/bit/rotate.h>
+#include <lh/bit/endian.h>
+#include <lh/bit/rotate.h>
 #include <lh/math.h>
 #include <lh/util/ptr.h>
 
