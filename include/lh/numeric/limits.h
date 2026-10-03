@@ -34,7 +34,7 @@
  * Initialized via ::lh_numeric_interval_initializer_unsigned.
  */
 static const lh_uchar_interval_t LH_UCHAR_T_INTERVAL =
-    lh_numeric_interval_initializer_unsigned(lh_byte_t, lh_interval_flags_closed);
+    lh_numeric_interval_initializer_unsigned(lh_uchar_t, lh_interval_flags_closed);
 
 /**
  * @var LH_USHORT_T_INTERVAL

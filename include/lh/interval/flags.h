@@ -10,8 +10,6 @@
 #ifndef LH_INTERVAL_FLAGS_H
 #define LH_INTERVAL_FLAGS_H
 
-#include <lh/byte.h>
-
 /**
  * @def lh_interval_flags_closed
  * @brief Both boundaries are included → [a, b]
@@ -50,6 +48,6 @@
  *
  * Usually an alias for lh_byte_t (typically uint8_t or unsigned char).
  */
-typedef lh_byte_t lh_interval_flags_t;
+typedef unsigned char lh_interval_flags_t;
 
 #endif /* LH_INTERVAL_FLAGS_H */
