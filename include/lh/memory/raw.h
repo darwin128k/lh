@@ -84,7 +84,7 @@ lh_memory_raw_move(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, const lh_
  * @return Pointer one past the last byte written (i.e. @p dst_end).
  */
 lh_ptr
-lh_memory_raw_set(lh_ptr dst, const lh_ptr dst_end, lh_uchar_t val);
+lh_memory_raw_set(lh_ptr dst, const lh_ptr dst_end, lh_byte_t val);
 
 /**
  * @brief Compare the first @c min(lhs_end - lhs, rhs_end - rhs) bytes

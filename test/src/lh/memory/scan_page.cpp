@@ -83,7 +83,7 @@ TEST(memory_scan_page, byte_scan_stops_before_guard_page)
         }
         s[len - 1] = 0;
 
-        const lh_uchar_t nul = 0;
+        const lh_byte_t nul = 0;
         EXPECT_EQ(lh_memory_scan(s, &nul, 1), static_cast<const lh_ptr>(s + len - 1)) << len;
     }
 }
@@ -93,7 +93,7 @@ TEST(memory_scan_page, wide_scan_stops_before_guard_page)
     GuardedPage page;
     ASSERT_TRUE(page.ok());
 
-    const lh_uchar_t nul2[2] = {0, 0};
+    const lh_byte_t nul2[2] = {0, 0};
     for (std::size_t units = 1; units <= 20; ++units)
     {
         unsigned char *s = page.tail(2 * units);

@@ -12,7 +12,7 @@ namespace
 static std::string
 digest_hex(lh_crypto_sha_kind_t kind, const char *text)
 {
-    lh_uchar_t digest[LH_CRYPTO_SHA_DIGEST_SIZE_MAX];
+    lh_byte_t digest[LH_CRYPTO_SHA_DIGEST_SIZE_MAX];
     lh_char_t hex[LH_CRYPTO_SHA_DIGEST_SIZE_MAX * 2U];
     lh_usize_t n = lh_crypto_sha_hash(kind, const_cast<char *>(text),
                                       static_cast<lh_usize_t>(std::string(text).size()), digest,
@@ -70,8 +70,8 @@ TEST(crypto_sha, sha512_abc)
 TEST(crypto_sha, incremental_matches_oneshot)
 {
     const char *text = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
-    lh_uchar_t a[32];
-    lh_uchar_t b[32];
+    lh_byte_t a[32];
+    lh_byte_t b[32];
     lh_crypto_sha_t hasher;
 
     ASSERT_EQ(lh_crypto_sha_hash(lh_crypto_sha_kind_256, const_cast<char *>(text), 56, a, sizeof(a)),

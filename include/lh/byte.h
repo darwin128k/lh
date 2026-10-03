@@ -1,9 +1,13 @@
 /**
  * @file byte.h
- * @brief Portable and self-documenting byte type definition.
+ * @brief The 8-bit unsigned byte type: ::lh_byte_t.
  *
- * Provides typedef for the 8-bit unsigned integer type
- * with explicit signedness, using the `lh_` prefix for consistent naming.
+ * The semantic "one byte" name, layered on the numeric base: ::lh_byte_t is
+ * the ::lh_u8_t alias from <lh/numeric/fixed/types.h>, which is in turn the
+ * base 8-bit type from <lh/char.h>. Use this name for raw bytes and binary
+ * data — buffers, memory, packed fields, hash blocks, color channels,
+ * addresses; use ::lh_char_t for text and ::lh_schar_t for a character with
+ * explicit signedness.
  */
 
 #ifndef LH_BYTE_H
@@ -18,7 +22,7 @@
  * Always unsigned, range: 0 to 255.
  * Suitable for raw bytes, binary data, and unsigned 8-bit arithmetic.
  *
- * Alias for: `unsigned char`
+ * Alias for: ::lh_u8_t (`unsigned char`).
  */
 typedef lh_u8_t lh_byte_t;
 

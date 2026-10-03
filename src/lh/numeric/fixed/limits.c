@@ -8,8 +8,8 @@
  * the underlying lh_* types match the widths assumed by lh_u8_t … lh_s64_t.
  */
 
-lh_assert_static(lh_numeric_limit_umin(lh_uchar_t) == 0, "lh_uchar_t minimum must be 0");
-lh_assert_static(lh_numeric_limit_umax(lh_uchar_t) == 255, "lh_uchar_t must be 8-bit unsigned");
+lh_assert_static(lh_numeric_limit_umin(lh_byte_t) == 0, "lh_byte_t minimum must be 0");
+lh_assert_static(lh_numeric_limit_umax(lh_byte_t) == 255, "lh_byte_t must be 8-bit unsigned");
 lh_assert_static(lh_numeric_limit_umin(lh_ushort_t) == 0, "lh_ushort_t minimum must be 0");
 lh_assert_static(lh_numeric_limit_umax(lh_ushort_t) == 65535,
                  "lh_ushort_t must be 16-bit unsigned");

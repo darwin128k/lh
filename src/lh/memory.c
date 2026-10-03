@@ -26,7 +26,7 @@
 
 /* True while @p off still has @p base + @p off short of a block boundary. */
 #define lh_memory_scan_is_unaligned(base, off)                                                     \
-    ((lh_ptr_to_uaddr(lh_ptr_add_by_offset_unsafe(const lh_uchar_t, (base), (off))) &              \
+    ((lh_ptr_to_uaddr(lh_ptr_add_by_offset_unsafe(const lh_byte_t, (base), (off))) &              \
       (LH_MEMORY_SCAN_BLOCK - 1U)) != 0U)
 
 lh_ptr
@@ -58,7 +58,7 @@ lh_memory_move(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src
 }
 
 lh_ptr
-lh_memory_set(lh_ptr dst, lh_usize_t size, lh_uchar_t val)
+lh_memory_set(lh_ptr dst, lh_usize_t size, lh_byte_t val)
 {
     return lh_memory_std_set(dst, val, size);
 }
@@ -99,7 +99,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
     lh_return_ifn(rhs_size, lh_null);
     lh_return_ifn(step, lh_null);
 
-    const lh_uchar_t *base = lh_ptr_cast(const lh_uchar_t, lhs);
+    const lh_byte_t *base = lh_ptr_cast(const lh_byte_t, lhs);
     lh_usize_t off = 0;
 
     if (rhs_size == 1)
@@ -108,7 +108,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
          * bottom out here with rhs_size 1) — read it once and compare directly instead of
          * paying a lh_memory_compare call (itself calling into lh_memory_std_compare) at
          * every one of up to lhs_size candidate positions. */
-        const lh_uchar_t needle = *lh_ptr_cast(const lh_uchar_t, rhs);
+        const lh_byte_t needle = *lh_ptr_cast(const lh_byte_t, rhs);
 
         if (step == 1)
         {
@@ -123,7 +123,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
                        lh_memory_scan_is_unaligned(base, off);
                      off = lh_math_add(off, 1))
                 {
-                    const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
+                    const lh_byte_t *cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
                     if (*cand == needle)
                     {
                         return cand;
@@ -132,7 +132,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
             }
             while (lh_math_ge(lh_memory_size_rest(lhs_size, off), LH_MEMORY_SCAN_BLOCK))
             {
-                const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
+                const lh_byte_t *cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
                 if (lh_memory_bytes_any_eq(cand, LH_MEMORY_SCAN_BLOCK, needle))
                 {
                     break;
@@ -141,7 +141,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
             }
             for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), 1); off = lh_math_add(off, 1))
             {
-                const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
+                const lh_byte_t *cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
                 if (*cand == needle)
                 {
                     return cand;
@@ -152,7 +152,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
 
         for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), 1); off = lh_math_add(off, step))
         {
-            const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
+            const lh_byte_t *cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
             if (*cand == needle)
             {
                 return cand;
@@ -166,7 +166,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
         /* Fixed-size unit grid (lh_wstr_ptr_find_char, wide NUL scan): compare the
          * unit in-place. When the block size is a multiple of step, reuse the
          * branchless block walk so wchar search hits the same fast path as bytes. */
-        const lh_uchar_t *needle = lh_ptr_cast(const lh_uchar_t, rhs);
+        const lh_byte_t *needle = lh_ptr_cast(const lh_byte_t, rhs);
 
         if ((LH_MEMORY_SCAN_BLOCK % step) == 0)
         {
@@ -179,7 +179,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
                        lh_memory_scan_is_unaligned(base, off);
                      off = lh_math_add(off, step))
                 {
-                    const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
+                    const lh_byte_t *cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
                     if (lh_memory_bytes_eq(cand, needle, rhs_size))
                     {
                         return cand;
@@ -188,7 +188,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
             }
             while (lh_math_ge(lh_memory_size_rest(lhs_size, off), LH_MEMORY_SCAN_BLOCK))
             {
-                const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
+                const lh_byte_t *cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
                 if (lh_memory_bytes_any_eq_step(cand, LH_MEMORY_SCAN_BLOCK, needle, rhs_size, step))
                 {
                     break;
@@ -199,7 +199,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
 
         for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), rhs_size); off = lh_math_add(off, step))
         {
-            const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
+            const lh_byte_t *cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
             if (lh_memory_bytes_eq(cand, needle, rhs_size))
             {
                 return cand;
@@ -224,11 +224,11 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
     }
 
     {
-        const lh_uchar_t first = *lh_ptr_cast(const lh_uchar_t, rhs);
+        const lh_byte_t first = *lh_ptr_cast(const lh_byte_t, rhs);
 
         for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), rhs_size); off = lh_math_add(off, step))
         {
-            const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
+            const lh_byte_t *cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
             if (*cand == first && !lh_memory_compare(cand, lh_memory_size_rest(lhs_size, off), rhs, rhs_size))
             {
                 return cand;
@@ -267,7 +267,7 @@ lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh
     lh_return_ifn(rhs_size, lh_null);
     lh_return_ifn(step, lh_null);
 
-    const lh_uchar_t *base = lh_ptr_cast(const lh_uchar_t, lhs);
+    const lh_byte_t *base = lh_ptr_cast(const lh_byte_t, lhs);
     if (lhs_size < rhs_size)
     {
         return lh_null;
@@ -279,10 +279,10 @@ lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh
     if (rhs_size == 1)
     {
         /* See the matching fast path in lh_memory_find_step. */
-        const lh_uchar_t needle = *lh_ptr_cast(const lh_uchar_t, rhs);
+        const lh_byte_t needle = *lh_ptr_cast(const lh_byte_t, rhs);
         for (;;)
         {
-            const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
+            const lh_byte_t *cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
             if (*cand == needle)
             {
                 return cand;
@@ -298,10 +298,10 @@ lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh
 
     if (rhs_size == step)
     {
-        const lh_uchar_t *needle = lh_ptr_cast(const lh_uchar_t, rhs);
+        const lh_byte_t *needle = lh_ptr_cast(const lh_byte_t, rhs);
         for (;;)
         {
-            const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
+            const lh_byte_t *cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
             if (lh_memory_bytes_eq(cand, needle, rhs_size))
             {
                 return cand;
@@ -317,11 +317,11 @@ lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh
 
     /* Same first-byte filter as lh_memory_find_step's general path. */
     {
-        const lh_uchar_t first = *lh_ptr_cast(const lh_uchar_t, rhs);
+        const lh_byte_t first = *lh_ptr_cast(const lh_byte_t, rhs);
 
         for (;;)
         {
-            const lh_uchar_t *cand = lh_ptr_add_by_offset_unsafe(const lh_uchar_t, base, off);
+            const lh_byte_t *cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
             if (*cand == first && !lh_memory_compare(cand, lhs_size - off, rhs, rhs_size))
             {
                 return cand;
@@ -351,8 +351,8 @@ lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usiz
     lh_return_ifn(dst_size, lh_null);
     lh_return_ifn(src_size, lh_null);
 
-    lh_uchar_t *d = lh_ptr_cast(lh_uchar_t, dst);
-    const lh_uchar_t *s = lh_ptr_cast(const lh_uchar_t, src);
+    lh_byte_t *d = lh_ptr_cast(lh_byte_t, dst);
+    const lh_byte_t *s = lh_ptr_cast(const lh_byte_t, src);
 
     if (src_size == 1)
     {

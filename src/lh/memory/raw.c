@@ -40,7 +40,7 @@ lh_memory_raw_move(lh_ptr dst, const lh_ptr dst_end, const lh_ptr src, const lh_
 }
 
 lh_ptr
-lh_memory_raw_set(lh_ptr dst, const lh_ptr dst_end, lh_uchar_t value)
+lh_memory_raw_set(lh_ptr dst, const lh_ptr dst_end, lh_byte_t value)
 {
     return lh_memory_set(dst, lh_memory_raw_get_size(dst, dst_end), value);
 }

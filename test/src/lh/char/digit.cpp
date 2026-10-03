@@ -73,7 +73,7 @@ TEST(char_digit_extract, is_inverse_of_accumulate)
 
 TEST(char_digit, roundtrips)
 {
-    for (lh_uchar_t d = 0; d <= 9; d++)
+    for (lh_byte_t d = 0; d <= 9; d++)
     {
         EXPECT_EQ(lh_char_to_digit(lh_char_from_digit(d)), d);
     }

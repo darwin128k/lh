@@ -63,7 +63,7 @@ TEST(char_xdigit_accumulate, rejects_overflow)
 
 TEST(char_xdigit, roundtrips)
 {
-    for (lh_uchar_t d = 0; d <= 15; d++)
+    for (lh_byte_t d = 0; d <= 15; d++)
     {
         EXPECT_EQ(lh_char_to_xdigit(lh_char_from_xdigit(d, lh_bool_false)), d);
         EXPECT_EQ(lh_char_to_xdigit(lh_char_from_xdigit(d, lh_bool_true)), d);

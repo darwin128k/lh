@@ -81,7 +81,7 @@ lh_os_system_win_window_register_class(void)
     wc.lpszMenuName = lh_null;
     /* `lh_addr_of` keeps this a typed pointer to the wide string; the
        `lh_ptr_rcast` widens it to `lh_ptr` (same memory layout). */
-    wc.lpszClassName = lh_ptr_rcast(lh_uchar_t, lh_addr_of(lh_os_system_win_window_class_name));
+    wc.lpszClassName = lh_ptr_rcast(lh_byte_t, lh_addr_of(lh_os_system_win_window_class_name));
     wc.hIconSm = lh_null;
 
     if (RegisterClassExW(&wc) == 0)
@@ -220,15 +220,15 @@ lh_os_system_window_present(lh_os_system_window_handle_t self, const lh_ptr pixe
        and blue swapped, top row first (hence the negative height below). */
     const lh_usize_t row_bytes = lh_cast_static(lh_usize_t, width) * 4U;
     const lh_usize_t stride_bytes = lh_cast_static(lh_usize_t, stride) * 4U;
-    lh_uchar_t *const bgrx = lh_ptr_rcast(
-        lh_uchar_t, lh_runtime_allocator_alloc(row_bytes * lh_cast_static(lh_usize_t, height)));
-    const lh_uchar_t *src_row = lh_ptr_rcast(const lh_uchar_t, pixels) +
+    lh_byte_t *const bgrx = lh_ptr_rcast(
+        lh_byte_t, lh_runtime_allocator_alloc(row_bytes * lh_cast_static(lh_usize_t, height)));
+    const lh_byte_t *src_row = lh_ptr_rcast(const lh_byte_t, pixels) +
                                 lh_cast_static(lh_usize_t, y) * stride_bytes +
                                 lh_cast_static(lh_usize_t, x) * 4U;
-    lh_uchar_t *dst = bgrx;
+    lh_byte_t *dst = bgrx;
     for (lh_int_t row = 0; row < height; ++row, src_row += stride_bytes)
     {
-        const lh_uchar_t *src = src_row;
+        const lh_byte_t *src = src_row;
         for (lh_int_t column = 0; column < width; ++column, src += 4, dst += 4)
         {
             dst[0] = src[2];

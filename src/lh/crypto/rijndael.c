@@ -11,7 +11,7 @@
 #include <lh/math.h>
 #include <lh/util/ptr.h>
 
-static const lh_uchar_t m_sbox[256] = {
+static const lh_byte_t m_sbox[256] = {
     0x63U, 0x7CU, 0x77U, 0x7BU, 0xF2U, 0x6BU, 0x6FU, 0xC5U, 0x30U, 0x01U, 0x67U, 0x2BU, 0xFEU,
     0xD7U, 0xABU, 0x76U, 0xCAU, 0x82U, 0xC9U, 0x7DU, 0xFAU, 0x59U, 0x47U, 0xF0U, 0xADU, 0xD4U,
     0xA2U, 0xAFU, 0x9CU, 0xA4U, 0x72U, 0xC0U, 0xB7U, 0xFDU, 0x93U, 0x26U, 0x36U, 0x3FU, 0xF7U,
@@ -33,7 +33,7 @@ static const lh_uchar_t m_sbox[256] = {
     0x87U, 0xE9U, 0xCEU, 0x55U, 0x28U, 0xDFU, 0x8CU, 0xA1U, 0x89U, 0x0DU, 0xBFU, 0xE6U, 0x42U,
     0x68U, 0x41U, 0x99U, 0x2DU, 0x0FU, 0xB0U, 0x54U, 0xBBU, 0x16U};
 
-static const lh_uchar_t m_inv_sbox[256] = {
+static const lh_byte_t m_inv_sbox[256] = {
     0x52U, 0x09U, 0x6AU, 0xD5U, 0x30U, 0x36U, 0xA5U, 0x38U, 0xBFU, 0x40U, 0xA3U, 0x9EU, 0x81U,
     0xF3U, 0xD7U, 0xFBU, 0x7CU, 0xE3U, 0x39U, 0x82U, 0x9BU, 0x2FU, 0xFFU, 0x87U, 0x34U, 0x8EU,
     0x43U, 0x44U, 0xC4U, 0xDEU, 0xE9U, 0xCBU, 0x54U, 0x7BU, 0x94U, 0x32U, 0xA6U, 0xC2U, 0x23U,
@@ -61,26 +61,26 @@ lh_crypto_rijndael_size_ok(lh_usize_t n)
     return (n == 16U || n == 24U || n == 32U) ? lh_bool_true : lh_bool_false;
 }
 
-static lh_uchar_t
-lh_crypto_rijndael_xtime(lh_uchar_t x)
+static lh_byte_t
+lh_crypto_rijndael_xtime(lh_byte_t x)
 {
-    return lh_cast_static(lh_uchar_t, ((x << 1) ^ ((x & 0x80U) ? 0x1BU : 0U)));
+    return lh_cast_static(lh_byte_t, ((x << 1) ^ ((x & 0x80U) ? 0x1BU : 0U)));
 }
 
-static lh_uchar_t
-lh_crypto_rijndael_gf_mul(lh_uchar_t a, lh_uchar_t b)
+static lh_byte_t
+lh_crypto_rijndael_gf_mul(lh_byte_t a, lh_byte_t b)
 {
-    lh_uchar_t p = 0;
+    lh_byte_t p = 0;
     lh_usize_t i;
 
     for (i = 0; i < 8U; ++i)
     {
         if (b & 1U)
         {
-            p = lh_cast_static(lh_uchar_t, (p ^ a));
+            p = lh_cast_static(lh_byte_t, (p ^ a));
         }
         a = lh_crypto_rijndael_xtime(a);
-        b = lh_cast_static(lh_uchar_t, (b >> 1));
+        b = lh_cast_static(lh_byte_t, (b >> 1));
     }
     return p;
 }
@@ -103,10 +103,10 @@ lh_crypto_rijndael_shift_offsets(lh_usize_t nb, lh_usize_t *c1, lh_usize_t *c2, 
 }
 
 static void
-lh_crypto_rijndael_shift_row(lh_uchar_t *state, lh_usize_t nb, lh_usize_t row, lh_usize_t shift,
+lh_crypto_rijndael_shift_row(lh_byte_t *state, lh_usize_t nb, lh_usize_t row, lh_usize_t shift,
                              lh_bool_t inverse)
 {
-    lh_uchar_t tmp[8];
+    lh_byte_t tmp[8];
     lh_usize_t i;
     lh_usize_t n = nb;
 
@@ -122,7 +122,7 @@ lh_crypto_rijndael_shift_row(lh_uchar_t *state, lh_usize_t nb, lh_usize_t row, l
 }
 
 static void
-lh_crypto_rijndael_shift_rows(lh_uchar_t *state, lh_usize_t nb, lh_bool_t inverse)
+lh_crypto_rijndael_shift_rows(lh_byte_t *state, lh_usize_t nb, lh_bool_t inverse)
 {
     lh_usize_t c1;
     lh_usize_t c2;
@@ -135,9 +135,9 @@ lh_crypto_rijndael_shift_rows(lh_uchar_t *state, lh_usize_t nb, lh_bool_t invers
 }
 
 static void
-lh_crypto_rijndael_sub_bytes(lh_uchar_t *state, lh_usize_t block_size, lh_bool_t inverse)
+lh_crypto_rijndael_sub_bytes(lh_byte_t *state, lh_usize_t block_size, lh_bool_t inverse)
 {
-    const lh_uchar_t *box = inverse ? m_inv_sbox : m_sbox;
+    const lh_byte_t *box = inverse ? m_inv_sbox : m_sbox;
     lh_usize_t i;
 
     for (i = 0; i < block_size; ++i)
@@ -147,48 +147,48 @@ lh_crypto_rijndael_sub_bytes(lh_uchar_t *state, lh_usize_t block_size, lh_bool_t
 }
 
 static void
-lh_crypto_rijndael_mix_columns(lh_uchar_t *state, lh_usize_t nb, lh_bool_t inverse)
+lh_crypto_rijndael_mix_columns(lh_byte_t *state, lh_usize_t nb, lh_bool_t inverse)
 {
     lh_usize_t c;
 
     for (c = 0; c < nb; ++c)
     {
-        lh_uchar_t *col = state + c * 4U;
-        lh_uchar_t a0 = col[0];
-        lh_uchar_t a1 = col[1];
-        lh_uchar_t a2 = col[2];
-        lh_uchar_t a3 = col[3];
+        lh_byte_t *col = state + c * 4U;
+        lh_byte_t a0 = col[0];
+        lh_byte_t a1 = col[1];
+        lh_byte_t a2 = col[2];
+        lh_byte_t a3 = col[3];
 
         if (inverse)
         {
-            col[0] = lh_cast_static(lh_uchar_t, (lh_crypto_rijndael_gf_mul(a0, 0x0EU) ^
+            col[0] = lh_cast_static(lh_byte_t, (lh_crypto_rijndael_gf_mul(a0, 0x0EU) ^
                                   lh_crypto_rijndael_gf_mul(a1, 0x0BU) ^
                                   lh_crypto_rijndael_gf_mul(a2, 0x0DU) ^
                                   lh_crypto_rijndael_gf_mul(a3, 0x09U)));
-            col[1] = lh_cast_static(lh_uchar_t, (lh_crypto_rijndael_gf_mul(a0, 0x09U) ^
+            col[1] = lh_cast_static(lh_byte_t, (lh_crypto_rijndael_gf_mul(a0, 0x09U) ^
                                   lh_crypto_rijndael_gf_mul(a1, 0x0EU) ^
                                   lh_crypto_rijndael_gf_mul(a2, 0x0BU) ^
                                   lh_crypto_rijndael_gf_mul(a3, 0x0DU)));
-            col[2] = lh_cast_static(lh_uchar_t, (lh_crypto_rijndael_gf_mul(a0, 0x0DU) ^
+            col[2] = lh_cast_static(lh_byte_t, (lh_crypto_rijndael_gf_mul(a0, 0x0DU) ^
                                   lh_crypto_rijndael_gf_mul(a1, 0x09U) ^
                                   lh_crypto_rijndael_gf_mul(a2, 0x0EU) ^
                                   lh_crypto_rijndael_gf_mul(a3, 0x0BU)));
-            col[3] = lh_cast_static(lh_uchar_t, (lh_crypto_rijndael_gf_mul(a0, 0x0BU) ^
+            col[3] = lh_cast_static(lh_byte_t, (lh_crypto_rijndael_gf_mul(a0, 0x0BU) ^
                                   lh_crypto_rijndael_gf_mul(a1, 0x0DU) ^
                                   lh_crypto_rijndael_gf_mul(a2, 0x09U) ^
                                   lh_crypto_rijndael_gf_mul(a3, 0x0EU)));
         }
         else
         {
-            lh_uchar_t t = lh_cast_static(lh_uchar_t, (a0 ^ a1 ^ a2 ^ a3));
+            lh_byte_t t = lh_cast_static(lh_byte_t, (a0 ^ a1 ^ a2 ^ a3));
             col[0] = lh_cast_static(
-                lh_uchar_t, a0 ^ t ^ lh_crypto_rijndael_xtime(lh_cast_static(lh_uchar_t, a0 ^ a1)));
+                lh_byte_t, a0 ^ t ^ lh_crypto_rijndael_xtime(lh_cast_static(lh_byte_t, a0 ^ a1)));
             col[1] = lh_cast_static(
-                lh_uchar_t, a1 ^ t ^ lh_crypto_rijndael_xtime(lh_cast_static(lh_uchar_t, a1 ^ a2)));
+                lh_byte_t, a1 ^ t ^ lh_crypto_rijndael_xtime(lh_cast_static(lh_byte_t, a1 ^ a2)));
             col[2] = lh_cast_static(
-                lh_uchar_t, a2 ^ t ^ lh_crypto_rijndael_xtime(lh_cast_static(lh_uchar_t, a2 ^ a3)));
+                lh_byte_t, a2 ^ t ^ lh_crypto_rijndael_xtime(lh_cast_static(lh_byte_t, a2 ^ a3)));
             col[3] = lh_cast_static(
-                lh_uchar_t, a3 ^ t ^ lh_crypto_rijndael_xtime(lh_cast_static(lh_uchar_t, a3 ^ a0)));
+                lh_byte_t, a3 ^ t ^ lh_crypto_rijndael_xtime(lh_cast_static(lh_byte_t, a3 ^ a0)));
         }
     }
 }
@@ -208,7 +208,7 @@ lh_crypto_rijndael_rot_word(lh_u32_t w)
 }
 
 static void
-lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, const lh_uchar_t *key,
+lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, const lh_byte_t *key,
                               lh_usize_t key_size)
 {
     lh_usize_t nk = key_size / 4U;
@@ -232,7 +232,7 @@ lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, const lh_uchar_t *key,
         {
             temp = lh_crypto_rijndael_sub_word(lh_crypto_rijndael_rot_word(temp)) ^ rcon;
             rcon = lh_cast_static(lh_u32_t, lh_crypto_rijndael_xtime(
-                                               lh_cast_static(lh_uchar_t, rcon >> 24)))
+                                               lh_cast_static(lh_byte_t, rcon >> 24)))
                    << 24;
         }
         else if (nk > 6U && (i % nk) == 4U)
@@ -265,11 +265,11 @@ lh_crypto_rijndael_get_block_size(const lh_crypto_rijndael_t *self)
 }
 
 static void
-lh_crypto_rijndael_cipher(const lh_crypto_rijndael_t *self, const lh_uchar_t *in, lh_uchar_t *out,
+lh_crypto_rijndael_cipher(const lh_crypto_rijndael_t *self, const lh_byte_t *in, lh_byte_t *out,
                           lh_bool_t decrypt)
 {
     const lh_usize_t block_size = lh_crypto_rijndael_get_block_size(self);
-    lh_uchar_t state[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX];
+    lh_byte_t state[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX];
     lh_usize_t nb = block_size / 4U;
     lh_usize_t nr = self->round_count;
     lh_usize_t round;
@@ -345,11 +345,11 @@ lh_crypto_rijndael_init(lh_crypto_rijndael_t *self, const lh_ptr key, lh_usize_t
     self->round_count = nr;
     lh_memory_std_set(self->expanded_key, 0, LH_CRYPTO_RIJNDAEL_EXPANDED_KEY_SIZE_MAX);
     lh_memory_std_set(self->chain, 0, LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX);
-    lh_crypto_rijndael_expand_key(self, lh_ptr_rcast(const lh_uchar_t, key), key_size);
+    lh_crypto_rijndael_expand_key(self, lh_ptr_rcast(const lh_byte_t, key), key_size);
 
     if (mode != lh_crypto_rijndael_mode_ecb)
     {
-        lh_memory_std_copy(self->chain, lh_ptr_rcast(const lh_uchar_t, chain), block_size);
+        lh_memory_std_copy(self->chain, lh_ptr_rcast(const lh_byte_t, chain), block_size);
     }
 
     return lh_bool_true;
@@ -359,17 +359,17 @@ lh_bool_t
 lh_crypto_rijndael_encrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh_ptr out)
 {
     lh_usize_t block_size;
-    const lh_uchar_t *in_bytes;
-    lh_uchar_t *out_bytes;
-    lh_uchar_t block[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX];
+    const lh_byte_t *in_bytes;
+    lh_byte_t *out_bytes;
+    lh_byte_t block[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX];
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(in);
     lh_assert_runtime_ref(out);
 
     block_size = lh_crypto_rijndael_get_block_size(self);
-    in_bytes = lh_ptr_rcast(const lh_uchar_t, in);
-    out_bytes = lh_ptr_rcast(lh_uchar_t, out);
+    in_bytes = lh_ptr_rcast(const lh_byte_t, in);
+    out_bytes = lh_ptr_rcast(lh_byte_t, out);
 
     if (self->mode == lh_crypto_rijndael_mode_ecb)
     {
@@ -396,18 +396,18 @@ lh_bool_t
 lh_crypto_rijndael_decrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh_ptr out)
 {
     lh_usize_t block_size;
-    const lh_uchar_t *in_bytes;
-    lh_uchar_t *out_bytes;
-    lh_uchar_t block[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX];
-    lh_uchar_t saved[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX];
+    const lh_byte_t *in_bytes;
+    lh_byte_t *out_bytes;
+    lh_byte_t block[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX];
+    lh_byte_t saved[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX];
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(in);
     lh_assert_runtime_ref(out);
 
     block_size = lh_crypto_rijndael_get_block_size(self);
-    in_bytes = lh_ptr_rcast(const lh_uchar_t, in);
-    out_bytes = lh_ptr_rcast(lh_uchar_t, out);
+    in_bytes = lh_ptr_rcast(const lh_byte_t, in);
+    out_bytes = lh_ptr_rcast(lh_byte_t, out);
 
     if (self->mode == lh_crypto_rijndael_mode_ecb)
     {

@@ -22,21 +22,21 @@ TEST(util_memory_scan_bound, remaining_address_space)
 
 TEST(util_memory_bytes_eq, equal_prefix)
 {
-    const lh_uchar_t a[] = {1, 2, 3};
-    const lh_uchar_t b[] = {1, 2, 9};
+    const lh_byte_t a[] = {1, 2, 3};
+    const lh_byte_t b[] = {1, 2, 9};
     EXPECT_TRUE(lh_memory_bytes_eq(a, b, 2));
     EXPECT_FALSE(lh_memory_bytes_eq(a, b, 3));
 }
 
 TEST(util_memory_bytes_eq, zero_length)
 {
-    const lh_uchar_t a[] = {1};
+    const lh_byte_t a[] = {1};
     EXPECT_TRUE(lh_memory_bytes_eq(a, a, 0));
 }
 
 TEST(util_memory_bytes_any_eq, finds_value_in_block)
 {
-    const lh_uchar_t a[] = {1, 2, 3, 4};
+    const lh_byte_t a[] = {1, 2, 3, 4};
     EXPECT_TRUE(lh_memory_bytes_any_eq(a, 4, 3));
     EXPECT_FALSE(lh_memory_bytes_any_eq(a, 4, 9));
     EXPECT_FALSE(lh_memory_bytes_any_eq(a, 0, 1));
@@ -44,16 +44,16 @@ TEST(util_memory_bytes_any_eq, finds_value_in_block)
 
 TEST(util_memory_bytes_any_eq_step, matches_on_grid_only)
 {
-    const lh_uchar_t hay[] = {'x', 'a', 'b', 'c'};
-    const lh_uchar_t needle[] = {'a', 'b'};
+    const lh_byte_t hay[] = {'x', 'a', 'b', 'c'};
+    const lh_byte_t needle[] = {'a', 'b'};
     EXPECT_FALSE(lh_memory_bytes_any_eq_step(hay, 4, needle, 2, 2));
     EXPECT_TRUE(lh_memory_bytes_any_eq_step(hay + 1, 2, needle, 2, 2));
 }
 
 TEST(util_memory_bytes_any_ne, detects_mismatch)
 {
-    const lh_uchar_t a[] = {1, 2, 3};
-    const lh_uchar_t b[] = {1, 2, 9};
+    const lh_byte_t a[] = {1, 2, 3};
+    const lh_byte_t b[] = {1, 2, 9};
     EXPECT_FALSE(lh_memory_bytes_any_ne(a, a, 3));
     EXPECT_TRUE(lh_memory_bytes_any_ne(a, b, 3));
     EXPECT_FALSE(lh_memory_bytes_any_ne(a, b, 2));

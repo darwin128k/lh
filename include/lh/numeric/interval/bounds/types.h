@@ -13,7 +13,7 @@
  * member inside full interval structs built with ::lh_interval_fields.
  *
  * Types are organized in two groups:
- *   - **unsigned** — @c u-prefixed types (::lh_uchar_t … ::lh_ullong_t)
+ *   - **unsigned** — @c u-prefixed types (::lh_byte_t … ::lh_ullong_t)
  *   - **signed** — @c s-prefixed types (::lh_schar_t … ::lh_sllong_t)
  */
 
@@ -30,17 +30,17 @@
  * @struct lh_uchar_interval_bounds
  * @brief Interval bounds with 8-bit unsigned endpoints.
  *
- * Both @c first and @c second are ::lh_uchar_t values (unsigned char,
+ * Both @c first and @c second are ::lh_byte_t values (unsigned char,
  * range 0..255).
  * Suitable for byte-range or color-channel intervals.
  *
- * @see lh_uchar_t
+ * @see lh_byte_t
  * @see lh_interval_bounds_fields
  */
 struct lh_uchar_interval_bounds
 {
-    /** Endpoints of type ::lh_uchar_t (`first`, `second`). */
-    lh_interval_bounds_fields(lh_uchar_t);
+    /** Endpoints of type ::lh_byte_t (`first`, `second`). */
+    lh_interval_bounds_fields(lh_byte_t);
 };
 
 /**

@@ -10,7 +10,7 @@
  * The bounds struct types are defined in `bounds/types.h` (numeric interval).
  *
  * Types are organized in two groups:
- *   - **unsigned** — @c u-prefixed types (::lh_uchar_t … ::lh_ullong_t)
+ *   - **unsigned** — @c u-prefixed types (::lh_byte_t … ::lh_ullong_t)
  *   - **signed** — @c s-prefixed types (::lh_schar_t … ::lh_sllong_t)
  */
 
@@ -26,7 +26,7 @@
  * @struct lh_uchar_interval
  * @brief Interval with 8-bit unsigned endpoints.
  *
- * Stores a numeric interval of ::lh_uchar_t values along with
+ * Stores a numeric interval of ::lh_byte_t values along with
  * boundary flags indicating whether each endpoint is open or closed.
  *
  * @see lh_uchar_interval_bounds

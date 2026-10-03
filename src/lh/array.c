@@ -343,13 +343,13 @@ lh_array_reverse(lh_array_t *self)
     lh_return_if(size < 2U);
 
     const lh_usize_t type_size = lh_array_get_type_size(self);
-    lh_uchar_t *lo = lh_ptr_cast(lh_uchar_t, lh_array_get_begin(self));
-    lh_uchar_t *hi = lo + lh_math_mul(lh_math_sub_one(size), type_size);
+    lh_byte_t *lo = lh_ptr_cast(lh_byte_t, lh_array_get_begin(self));
+    lh_byte_t *hi = lo + lh_math_mul(lh_math_sub_one(size), type_size);
     for (; lo < hi; hi -= type_size)
     {
         for (lh_usize_t i = 0; i < type_size; ++i, ++lo)
         {
-            const lh_uchar_t byte = *lo;
+            const lh_byte_t byte = *lo;
             *lo = hi[i];
             hi[i] = byte;
         }
@@ -369,9 +369,9 @@ lh_array_sort(lh_array_t *self, lh_array_cmp_cb cmp, lh_ptr context)
     lh_memory_typed_allocated_resize(lh_addr_of(scratch), size);
 
     /* Bottom-up merge sort, ping-ponging runs between the array and scratch. */
-    lh_uchar_t *const data = lh_ptr_cast(lh_uchar_t, lh_array_get_begin(self));
-    lh_uchar_t *src = data;
-    lh_uchar_t *dst = lh_ptr_cast(lh_uchar_t, lh_memory_typed_get_begin(lh_addr_of(scratch)));
+    lh_byte_t *const data = lh_ptr_cast(lh_byte_t, lh_array_get_begin(self));
+    lh_byte_t *src = data;
+    lh_byte_t *dst = lh_ptr_cast(lh_byte_t, lh_memory_typed_get_begin(lh_addr_of(scratch)));
 
     for (lh_usize_t run = 1U; run < size; run = lh_math_mul(run, 2U))
     {
@@ -394,7 +394,7 @@ lh_array_sort(lh_array_t *self, lh_array_cmp_cb cmp, lh_ptr context)
             }
         }
 
-        lh_uchar_t *const swap = src;
+        lh_byte_t *const swap = src;
         src = dst;
         dst = swap;
     }
@@ -414,13 +414,13 @@ lh_array_unique(lh_array_t *self, lh_array_cmp_cb cmp, lh_ptr context)
     lh_return_if(size < 2U);
 
     const lh_usize_t type_size = lh_array_get_type_size(self);
-    lh_uchar_t *const data = lh_ptr_cast(lh_uchar_t, lh_array_get_begin(self));
+    lh_byte_t *const data = lh_ptr_cast(lh_byte_t, lh_array_get_begin(self));
     lh_usize_t kept = 1U;
 
     for (lh_uindex_t i = 1U; i < size; ++i)
     {
-        lh_uchar_t *const value = data + lh_math_mul(i, type_size);
-        lh_uchar_t *const last = data + lh_math_mul(lh_math_sub_one(kept), type_size);
+        lh_byte_t *const value = data + lh_math_mul(i, type_size);
+        lh_byte_t *const last = data + lh_math_mul(lh_math_sub_one(kept), type_size);
         if (cmp(last, value, context) == 0)
         {
             continue;
@@ -441,12 +441,12 @@ lh_array_filter(lh_array_t *self, lh_array_pred_cb pred, lh_ptr context)
     lh_assert_runtime_ref(pred);
     const lh_usize_t size = lh_array_get_size(self);
     const lh_usize_t type_size = lh_array_get_type_size(self);
-    lh_uchar_t *const data = lh_ptr_cast(lh_uchar_t, lh_array_get_begin(self));
+    lh_byte_t *const data = lh_ptr_cast(lh_byte_t, lh_array_get_begin(self));
     lh_usize_t kept = 0U;
 
     for (lh_uindex_t i = 0U; i < size; ++i)
     {
-        lh_uchar_t *const value = data + lh_math_mul(i, type_size);
+        lh_byte_t *const value = data + lh_math_mul(i, type_size);
         if (!pred(value, context))
         {
             continue;

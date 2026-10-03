@@ -84,7 +84,7 @@ lh_crypto_sha_block_size(lh_crypto_sha_kind_t kind)
 }
 
 static void
-lh_crypto_sha_process_1(lh_crypto_sha_t *self, const lh_uchar_t *block)
+lh_crypto_sha_process_1(lh_crypto_sha_t *self, const lh_byte_t *block)
 {
     lh_u32_t w[80];
     lh_u32_t a;
@@ -152,7 +152,7 @@ lh_crypto_sha_process_1(lh_crypto_sha_t *self, const lh_uchar_t *block)
 }
 
 static void
-lh_crypto_sha_process_256(lh_crypto_sha_t *self, const lh_uchar_t *block)
+lh_crypto_sha_process_256(lh_crypto_sha_t *self, const lh_byte_t *block)
 {
     lh_u32_t w[64];
     lh_u32_t a;
@@ -219,7 +219,7 @@ lh_crypto_sha_process_256(lh_crypto_sha_t *self, const lh_uchar_t *block)
 }
 
 static void
-lh_crypto_sha_process_512(lh_crypto_sha_t *self, const lh_uchar_t *block)
+lh_crypto_sha_process_512(lh_crypto_sha_t *self, const lh_byte_t *block)
 {
     lh_u64_t w[80];
     lh_u64_t a;
@@ -286,7 +286,7 @@ lh_crypto_sha_process_512(lh_crypto_sha_t *self, const lh_uchar_t *block)
 }
 
 static void
-lh_crypto_sha_process(lh_crypto_sha_t *self, const lh_uchar_t *block)
+lh_crypto_sha_process(lh_crypto_sha_t *self, const lh_byte_t *block)
 {
     if (self->kind == lh_crypto_sha_kind_1)
     {
@@ -390,7 +390,7 @@ lh_crypto_sha_init(lh_crypto_sha_t *self, lh_crypto_sha_kind_t kind)
 void
 lh_crypto_sha_update(lh_crypto_sha_t *self, const lh_ptr data, lh_usize_t size)
 {
-    const lh_uchar_t *bytes;
+    const lh_byte_t *bytes;
     lh_usize_t block_size;
     lh_usize_t remaining;
 
@@ -402,7 +402,7 @@ lh_crypto_sha_update(lh_crypto_sha_t *self, const lh_ptr data, lh_usize_t size)
     }
     lh_assert_runtime_ref(data);
 
-    bytes = lh_ptr_rcast(const lh_uchar_t, data);
+    bytes = lh_ptr_rcast(const lh_byte_t, data);
     block_size = lh_crypto_sha_block_size(self->kind);
     remaining = size;
 
@@ -445,7 +445,7 @@ lh_crypto_sha_finish(lh_crypto_sha_t *self, lh_ptr out, lh_usize_t out_size)
     lh_usize_t block_size;
     lh_usize_t length_size;
     lh_usize_t i;
-    lh_uchar_t *out_bytes;
+    lh_byte_t *out_bytes;
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(out);
@@ -482,7 +482,7 @@ lh_crypto_sha_finish(lh_crypto_sha_t *self, lh_ptr out, lh_usize_t out_size)
     lh_crypto_sha_process(self, self->block);
     self->finished = lh_bool_true;
 
-    out_bytes = lh_ptr_rcast(lh_uchar_t, out);
+    out_bytes = lh_ptr_rcast(lh_byte_t, out);
     if (lh_crypto_sha_kind_is_wide(self->kind))
     {
         lh_usize_t words = digest_size / 8U;

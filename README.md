@@ -10,7 +10,7 @@ A lightweight C utility library (headers + a small static library) with portable
 
 ## Features
 
-- **Portable types** — fixed-width integers (`lh_uint_t`, `lh_sllong_t`, …), explicit `lh_uchar_t` / `lh_schar_t`, `lh_bool_t`, `lh_void` / `lh_void_ptr`
+- **Portable types** — fixed-width integers (`lh_uint_t`, `lh_sllong_t`, …), explicit `lh_byte_t` / `lh_schar_t`, `lh_bool_t`, `lh_void` / `lh_void_ptr`
 - **Compiler layer** — detection (Clang / GCC / MSVC), version, target OS, C++ vs C, `extern "C"` via `LH_COMPILER(EXTERN_C_BEGIN|END)`, attributes (`LH_ATTRIBUTE(SYMBOL)`, …), **subsystem detection macros** (`lh/compiler/os/subsys.h`) for Windows-specific visibility attributes
 - **Casts** — `lh_cast_static`, `lh_cast_reinterpret` (C++-style in C++, C casts in C)
 - **Pointers** — `lh_ptr`, `lh_void_ptr`, `lh_ptr_of`, `lh_cptr_of`, `lh_str_ptr` / `lh_str_cptr` (`lh/ptr.h`, `lh/void/ptr.h`, `lh/util/ptr.h`, `lh/str/ptr.h`)
@@ -179,7 +179,7 @@ String-related headers live under **`lh/str/`** (not `lh/string/`). Generic init
 ```c
 lh_uint_t   counter = 0;    /* 32-bit unsigned */
 lh_sllong_t offset  = -1;   /* 64-bit signed   */
-lh_uchar_t  byte    = 0xFF; /* 8-bit unsigned  */
+lh_byte_t   byte    = 0xFF; /* 8-bit unsigned  */
 ```
 
 ### Version struct

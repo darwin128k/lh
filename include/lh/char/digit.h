@@ -65,11 +65,11 @@ lh_char_is_digit(lh_char_t ch)
  * @return Value in `[0, 9]`.
  */
 LH_ATTRIBUTE_FORCE_INLINE
-lh_uchar_t
+lh_byte_t
 lh_char_to_digit(lh_char_t ch)
 {
     lh_assert_runtime_if(!lh_char_is_digit(ch), lh_runtime_error_code_invalid_argument);
-    return lh_cast_static(lh_uchar_t, (lh_char_ord(ch) - lh_char_ord('0')));
+    return lh_cast_static(lh_byte_t, (lh_char_ord(ch) - lh_char_ord('0')));
 }
 
 /**
@@ -80,7 +80,7 @@ lh_char_to_digit(lh_char_t ch)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_char_t
-lh_char_from_digit(lh_uchar_t digit)
+lh_char_from_digit(lh_byte_t digit)
 {
     lh_assert_runtime_if(digit > 9U, lh_runtime_error_code_invalid_argument);
     return lh_char_ord_to(lh_char_t, lh_char_ord('0') + digit);
@@ -102,7 +102,7 @@ lh_char_from_digit(lh_uchar_t digit)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
-lh_char_digit_accumulate(lh_uint_t *value, lh_uchar_t digit)
+lh_char_digit_accumulate(lh_uint_t *value, lh_byte_t digit)
 {
     lh_assert_runtime_ref(value);
     lh_assert_runtime_if(digit > 9U, lh_runtime_error_code_invalid_argument);
@@ -134,14 +134,14 @@ lh_char_digit_accumulate(lh_uint_t *value, lh_uchar_t digit)
  *         radixes with letter digits, like hex).
  */
 LH_ATTRIBUTE_FORCE_INLINE
-lh_uchar_t
+lh_byte_t
 lh_char_digit_extract(lh_uint_t *value, lh_uint_t radix)
 {
-    lh_uchar_t digit;
+    lh_byte_t digit;
 
     lh_assert_runtime_ref(value);
 
-    digit = lh_cast_static(lh_uchar_t, (*value % radix));
+    digit = lh_cast_static(lh_byte_t, (*value % radix));
     *value /= radix;
     return digit;
 }

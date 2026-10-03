@@ -3,7 +3,10 @@
  * @brief Portable and self-documenting character type definitions.
  *
  * Provides typedefs for plain and explicitly signed character types,
- * using the `lh_` prefix for consistent naming.
+ * using the `lh_` prefix for consistent naming. These are the base types the
+ * rest of the numeric stack is built on: <lh/numeric/fixed/types.h> aliases
+ * them by bit width, and <lh/byte.h> names the unsigned 8-bit one
+ * ::lh_byte_t.
  */
 
 #ifndef LH_CHAR_H

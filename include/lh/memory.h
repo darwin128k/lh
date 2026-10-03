@@ -94,7 +94,7 @@ lh_memory_move(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src
  * @return Pointer one past the last byte written.
  */
 lh_ptr
-lh_memory_set(lh_ptr dst, lh_usize_t size, lh_uchar_t val);
+lh_memory_set(lh_ptr dst, lh_usize_t size, lh_byte_t val);
 
 /**
  * @brief XOR the first @c min(dst_size, lhs_size, rhs_size) bytes

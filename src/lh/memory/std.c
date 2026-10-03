@@ -153,7 +153,7 @@ lh_memory_std_has_sse2(void)
  * Precondition: n < 16. */
 LH_ATTRIBUTE_FORCE_INLINE
 void
-lh_memory_std_copy_tiny(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_copy_tiny(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     if (n >= 8U)
     {
@@ -194,7 +194,7 @@ lh_memory_std_copy_tiny(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 
 LH_ATTRIBUTE_FORCE_INLINE
 void
-lh_memory_std_copy_bytes(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_copy_bytes(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
 #if LH_MEMORY_STD_HAVE_COPY_TINY
     if (n < 16U)
@@ -225,7 +225,7 @@ lh_memory_std_copy_bytes(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
  * in-place reverse is defined. Precondition: n < 16. */
 LH_ATTRIBUTE_FORCE_INLINE
 void
-lh_memory_std_copy_rev_tiny(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_copy_rev_tiny(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     if (n >= 8U)
     {
@@ -263,12 +263,12 @@ lh_memory_std_copy_rev_tiny(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n
 
 LH_ATTRIBUTE_FORCE_INLINE
 void
-lh_memory_std_copy_rev_bytes(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_copy_rev_bytes(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
 #if LH_COMPILER_ARCH_FAMILY_IS_X86
     if (n >= 8U)
     {
-        lh_uchar_t *d_end = dst + n;
+        lh_byte_t *d_end = dst + n;
 
         do
         {
@@ -298,7 +298,7 @@ lh_memory_std_copy_rev_bytes(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t 
  * (dst inside the source span). Precondition: n < 16. */
 LH_ATTRIBUTE_FORCE_INLINE
 void
-lh_memory_std_rcopy_tiny(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_rcopy_tiny(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     if (n >= 8U)
     {
@@ -336,13 +336,13 @@ lh_memory_std_rcopy_tiny(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 
 LH_ATTRIBUTE_FORCE_INLINE
 void
-lh_memory_std_rcopy_bytes(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_rcopy_bytes(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
 #if LH_COMPILER_ARCH_FAMILY_IS_X86
     if (n >= 8U)
     {
-        lh_uchar_t *d = dst + n;
-        const lh_uchar_t *s = src + n;
+        lh_byte_t *d = dst + n;
+        const lh_byte_t *s = src + n;
 
         do
         {
@@ -369,7 +369,7 @@ lh_memory_std_rcopy_bytes(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 
 LH_ATTRIBUTE_FORCE_INLINE
 void
-lh_memory_std_set_bytes(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
+lh_memory_std_set_bytes(lh_byte_t *dst, lh_byte_t val, lh_usize_t n)
 {
 #if LH_COMPILER_ARCH_FAMILY_IS_X86
     if (n >= 8U)
@@ -425,8 +425,8 @@ lh_memory_std_set_bytes(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 static const lh_ptr
 lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
-    const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs);
-    const lh_uchar_t *r = lh_ptr_ccast(lh_uchar_t, rhs);
+    const lh_byte_t *l = lh_ptr_ccast(lh_byte_t, lhs);
+    const lh_byte_t *r = lh_ptr_ccast(lh_byte_t, rhs);
 
     while (n >= LH_MEMORY_STD_SCAN_BLOCK)
     {
@@ -454,8 +454,8 @@ lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 static const lh_ptr
 lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
-    const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs) + (n - 1U);
-    const lh_uchar_t *r = lh_ptr_ccast(lh_uchar_t, rhs) + (n - 1U);
+    const lh_byte_t *l = lh_ptr_ccast(lh_byte_t, lhs) + (n - 1U);
+    const lh_byte_t *r = lh_ptr_ccast(lh_byte_t, rhs) + (n - 1U);
 
     while (n--)
     {
@@ -498,7 +498,7 @@ static unsigned char m_copy_rev_kind;
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 void
-lh_memory_std_copy64_storeu(lh_uchar_t *dst, const lh_uchar_t *src)
+lh_memory_std_copy64_storeu(lh_byte_t *dst, const lh_byte_t *src)
 {
     const __m128i v0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 0));
     const __m128i v1 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 16));
@@ -513,7 +513,7 @@ lh_memory_std_copy64_storeu(lh_uchar_t *dst, const lh_uchar_t *src)
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 void
-lh_memory_std_copy128_store_sse2(lh_uchar_t *dst, const lh_uchar_t *src)
+lh_memory_std_copy128_store_sse2(lh_byte_t *dst, const lh_byte_t *src)
 {
     const __m128i v0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 0));
     const __m128i v1 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 16));
@@ -542,7 +542,7 @@ lh_memory_std_copy128_store_sse2(lh_uchar_t *dst, const lh_uchar_t *src)
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 void
-lh_memory_std_copy_sse2_small(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_copy_sse2_small(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     /* CRT-style overlapping vector stores: two (or four) unaligned 16-byte moves
      * cover any length in [16, 63] with no loop, no alignment prologue, no scalar
@@ -579,8 +579,8 @@ lh_memory_std_copy_sse2_small(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t
      * movdqa still wins for bigger in-cache copies on SSE2-only targets, but
      * only after the setup cost is amortized — that path is copy_sse2's, n >= 512. */
     {
-        lh_uchar_t *dst_end = dst + n;
-        const lh_uchar_t *src_end = src + n;
+        lh_byte_t *dst_end = dst + n;
+        const lh_byte_t *src_end = src + n;
 
         while (n >= 64U)
         {
@@ -599,7 +599,7 @@ lh_memory_std_copy_sse2_small(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 static void
-lh_memory_std_copy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_copy_sse2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     if (n < 512U)
     {
@@ -608,10 +608,10 @@ lh_memory_std_copy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
     }
 
     {
-        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, lh_cast_static(lh_uaddr_t, 16));
+        lh_byte_t *aligned_dst = lh_ptr_align_up(lh_byte_t, dst, lh_cast_static(lh_uaddr_t, 16));
         lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
-        lh_uchar_t *dst_end = dst + n;
-        const lh_uchar_t *src_end = src + n;
+        lh_byte_t *dst_end = dst + n;
+        const lh_byte_t *src_end = src + n;
 
         if (head > n)
         {
@@ -672,11 +672,11 @@ lh_memory_std_copy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
  * _mm_sfence() fences the weakly-ordered NT stores before the scalar tail runs. */
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 static void
-lh_memory_std_copy_sse2_stream(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_copy_sse2_stream(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
-    lh_uchar_t *dst_end = dst + n;
-    const lh_uchar_t *src_end = src + n;
-    lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, lh_cast_static(lh_uaddr_t, 16));
+    lh_byte_t *dst_end = dst + n;
+    const lh_byte_t *src_end = src + n;
+    lh_byte_t *aligned_dst = lh_ptr_align_up(lh_byte_t, dst, lh_cast_static(lh_uaddr_t, 16));
     lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
     if (head > n)
@@ -745,7 +745,7 @@ lh_memory_std_copy_sse2_stream(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("avx2")
 void
-lh_memory_std_copy128_storeu(lh_uchar_t *dst, const lh_uchar_t *src)
+lh_memory_std_copy128_storeu(lh_byte_t *dst, const lh_byte_t *src)
 {
     const __m256i v0 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 0));
     const __m256i v1 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 32));
@@ -760,7 +760,7 @@ lh_memory_std_copy128_storeu(lh_uchar_t *dst, const lh_uchar_t *src)
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("avx2")
 void
-lh_memory_std_copy256_store(lh_uchar_t *dst, const lh_uchar_t *src)
+lh_memory_std_copy256_store(lh_byte_t *dst, const lh_byte_t *src)
 {
     const __m256i v0 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 0));
     const __m256i v1 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 32));
@@ -782,7 +782,7 @@ lh_memory_std_copy256_store(lh_uchar_t *dst, const lh_uchar_t *src)
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
 static void
-lh_memory_std_copy_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_copy_avx2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     /* 16-31: overlapping XMM. Compiled under target("avx2") so GCC/Clang emit
      * VEX-encoded vmovdqu, not a legacy-SSE mix. */
@@ -824,12 +824,12 @@ lh_memory_std_copy_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
     }
 
     {
-        lh_uchar_t *dst_end = dst + n;
-        const lh_uchar_t *src_end = src + n;
+        lh_byte_t *dst_end = dst + n;
+        const lh_byte_t *src_end = src + n;
 
         if (n >= 512U)
         {
-            lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, lh_cast_static(lh_uaddr_t, 32));
+            lh_byte_t *aligned_dst = lh_ptr_align_up(lh_byte_t, dst, lh_cast_static(lh_uaddr_t, 32));
             lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
             if (head > n)
@@ -907,11 +907,11 @@ lh_memory_std_copy_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
  * by _mm_sfence() before the tail below runs. */
 LH_MEMORY_STD_SIMD_TARGET("avx2")
 static void
-lh_memory_std_copy_avx2_stream(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_copy_avx2_stream(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
-    lh_uchar_t *dst_end = dst + n;
-    const lh_uchar_t *src_end = src + n;
-    lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, lh_cast_static(lh_uaddr_t, 32));
+    lh_byte_t *dst_end = dst + n;
+    const lh_byte_t *src_end = src + n;
+    lh_byte_t *aligned_dst = lh_ptr_align_up(lh_byte_t, dst, lh_cast_static(lh_uaddr_t, 32));
     lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
     if (head > n)
@@ -973,15 +973,15 @@ lh_memory_std_copy_avx2_stream(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_
 #    endif /* LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
 static void
-lh_memory_std_copy_simd_scalar(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_copy_simd_scalar(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     lh_memory_std_copy_bytes(dst, src, n);
 }
 
-typedef void (*lh_memory_std_copy_simd_fn)(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n);
+typedef void (*lh_memory_std_copy_simd_fn)(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n);
 
 static void
-lh_memory_std_copy_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n);
+lh_memory_std_copy_simd_dispatch(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n);
 
 /* Rewrites itself to the resolved implementation on the first real call, same
  * one-time-detection shape as m_compare_impl below. */
@@ -1052,7 +1052,7 @@ lh_memory_std_is_stream_size(lh_usize_t n, lh_usize_t traffic)
 }
 
 static void
-lh_memory_std_copy_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_copy_simd_dispatch(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
     if (lh_cpu_simd_has_avx2())
@@ -1111,8 +1111,8 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
      * too whenever the intrinsics compiled in. */
     if (n >= LH_MEMORY_STD_SIMD_COPY_THRESHOLD)
     {
-        lh_uchar_t *d = lh_ptr_cast(lh_uchar_t, dst);
-        const lh_uchar_t *s = lh_ptr_ccast(lh_uchar_t, src);
+        lh_byte_t *d = lh_ptr_cast(lh_byte_t, dst);
+        const lh_byte_t *s = lh_ptr_ccast(lh_byte_t, src);
 
         if (lh_memory_std_is_stream_size(n, LH_MEMORY_STD_STREAM_COPY_TRAFFIC))
         {
@@ -1166,20 +1166,20 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
     }
     else
     {
-        lh_memory_std_copy_bytes(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+        lh_memory_std_copy_bytes(lh_ptr_cast(lh_byte_t, dst), lh_ptr_ccast(lh_byte_t, src), n);
     }
 #elif LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB
     /* Fallback for an MSVC x86 build where SIMD intrinsics turned out not to be
      * compilable at all (see cmake/check_simd.cmake) — the SIMD branch above wins
      * whenever it is available. __movsb's declared signature is unsigned char* /
-     * const unsigned char* (fixed by <intrin.h>); lh_uchar_t is a plain typedef of
+     * const unsigned char* (fixed by <intrin.h>); lh_byte_t is a plain typedef of
      * unsigned char (lh/char.h), so this cast is the same reinterpretation either way. */
-    __movsb(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+    __movsb(lh_ptr_cast(lh_byte_t, dst), lh_ptr_ccast(lh_byte_t, src), n);
 #elif LH_MEMORY_STD_HAVE_GCC_REP_MOVSB
     if (n >= LH_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD)
     {
-        lh_uchar_t *d = lh_ptr_cast(lh_uchar_t, dst);
-        const lh_uchar_t *s = lh_ptr_ccast(lh_uchar_t, src);
+        lh_byte_t *d = lh_ptr_cast(lh_byte_t, dst);
+        const lh_byte_t *s = lh_ptr_ccast(lh_byte_t, src);
 
         /* No GCC/Clang builtin for REP MOVSB (unlike MSVC's __movsb) — inline asm is
          * the only way to ask for this instruction specifically. The three registers
@@ -1194,10 +1194,10 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
     }
     else
     {
-        lh_memory_std_copy_bytes(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+        lh_memory_std_copy_bytes(lh_ptr_cast(lh_byte_t, dst), lh_ptr_ccast(lh_byte_t, src), n);
     }
 #else
-    lh_memory_std_copy_bytes(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+    lh_memory_std_copy_bytes(lh_ptr_cast(lh_byte_t, dst), lh_ptr_ccast(lh_byte_t, src), n);
 #endif
 
     return end;
@@ -1223,9 +1223,9 @@ LH_MEMORY_STD_SIMD_TARGET("sse2") static __m128i lh_memory_std_reverse_epi8_sse2
  * store it at the descending destination cursor. */
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 static void
-lh_memory_std_copy_rev_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_copy_rev_sse2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
-    lh_uchar_t *d_end = dst + n;
+    lh_byte_t *d_end = dst + n;
 
     if (n < 32U)
     {
@@ -1285,9 +1285,9 @@ LH_MEMORY_STD_SIMD_TARGET("ssse3") static __m128i lh_memory_std_reverse_epi8_sss
  * differs. See that function's own comments for the block/chunk-order reasoning. */
 LH_MEMORY_STD_SIMD_TARGET("ssse3")
 static void
-lh_memory_std_copy_rev_ssse3(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_copy_rev_ssse3(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
-    lh_uchar_t *d_end = dst + n;
+    lh_byte_t *d_end = dst + n;
 
     if (n < 32U)
     {
@@ -1334,7 +1334,7 @@ lh_memory_std_copy_rev_ssse3(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t 
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
 static void
-lh_memory_std_copy_rev_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_copy_rev_avx2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     const __m256i lane_rev = _mm256_setr_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,
                                               15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
@@ -1359,7 +1359,7 @@ lh_memory_std_copy_rev_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n
     }
 
     {
-        lh_uchar_t *d_end = dst + n;
+        lh_byte_t *d_end = dst + n;
 
         while (n >= 256U)
         {
@@ -1430,16 +1430,16 @@ lh_memory_std_copy_rev_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n
 #    endif /* LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
 static void
-lh_memory_std_copy_rev_simd_scalar(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_copy_rev_simd_scalar(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     lh_memory_std_copy_rev_bytes(dst, src, n);
 }
 
-typedef void (*lh_memory_std_copy_rev_simd_fn)(lh_uchar_t *dst, const lh_uchar_t *src,
+typedef void (*lh_memory_std_copy_rev_simd_fn)(lh_byte_t *dst, const lh_byte_t *src,
                                                lh_usize_t n);
 
 static void
-lh_memory_std_copy_rev_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n);
+lh_memory_std_copy_rev_simd_dispatch(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n);
 
 static lh_memory_std_copy_rev_simd_fn m_copy_rev_simd_impl = lh_memory_std_copy_rev_simd_dispatch;
 
@@ -1447,7 +1447,7 @@ static lh_memory_std_copy_rev_simd_fn m_copy_rev_simd_impl = lh_memory_std_copy_
         (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD))
 
 static void
-lh_memory_std_copy_rev_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_copy_rev_simd_dispatch(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
     if (lh_cpu_simd_has_avx2())
@@ -1494,8 +1494,8 @@ lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
     if (n >= LH_MEMORY_STD_SIMD_COPY_REV_THRESHOLD)
     {
-        lh_uchar_t *d = lh_ptr_cast(lh_uchar_t, dst);
-        const lh_uchar_t *s = lh_ptr_ccast(lh_uchar_t, src);
+        lh_byte_t *d = lh_ptr_cast(lh_byte_t, dst);
+        const lh_byte_t *s = lh_ptr_ccast(lh_byte_t, src);
 
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
         if (m_copy_rev_kind == LH_MEMORY_STD_KIND_AVX2)
@@ -1551,7 +1551,7 @@ lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 static void
-lh_memory_std_rcopy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_rcopy_sse2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     if (n < 64U)
     {
@@ -1582,8 +1582,8 @@ lh_memory_std_rcopy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
     }
 
     {
-        lh_uchar_t *d = dst + n;
-        const lh_uchar_t *s = src + n;
+        lh_byte_t *d = dst + n;
+        const lh_byte_t *s = src + n;
 
         while (n >= 128U)
         {
@@ -1634,7 +1634,7 @@ lh_memory_std_rcopy_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 /* See lh_memory_std_compare_avx2 for why the tail falls back to scalar, not SSE2. */
 LH_MEMORY_STD_SIMD_TARGET("avx2")
 static void
-lh_memory_std_rcopy_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_rcopy_avx2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     if (n < 64U)
     {
@@ -1652,8 +1652,8 @@ lh_memory_std_rcopy_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
     }
 
     {
-        lh_uchar_t *d = dst + n;
-        const lh_uchar_t *s = src + n;
+        lh_byte_t *d = dst + n;
+        const lh_byte_t *s = src + n;
 
         while (n >= 256U)
         {
@@ -1700,20 +1700,20 @@ lh_memory_std_rcopy_avx2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
 #    endif /* LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
 static void
-lh_memory_std_rcopy_simd_scalar(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_rcopy_simd_scalar(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     lh_memory_std_rcopy_bytes(dst, src, n);
 }
 
-typedef void (*lh_memory_std_rcopy_simd_fn)(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n);
+typedef void (*lh_memory_std_rcopy_simd_fn)(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n);
 
 static void
-lh_memory_std_rcopy_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n);
+lh_memory_std_rcopy_simd_dispatch(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n);
 
 static lh_memory_std_rcopy_simd_fn m_rcopy_simd_impl = lh_memory_std_rcopy_simd_dispatch;
 
 static void
-lh_memory_std_rcopy_simd_dispatch(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_rcopy_simd_dispatch(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
     if (lh_cpu_simd_has_avx2())
@@ -1757,8 +1757,8 @@ lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 #elif LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
     if (n >= LH_MEMORY_STD_SIMD_RCOPY_THRESHOLD)
     {
-        lh_uchar_t *d = lh_ptr_cast(lh_uchar_t, dst);
-        const lh_uchar_t *s = lh_ptr_ccast(lh_uchar_t, src);
+        lh_byte_t *d = lh_ptr_cast(lh_byte_t, dst);
+        const lh_byte_t *s = lh_ptr_ccast(lh_byte_t, src);
 
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
         if (m_simd_kind == LH_MEMORY_STD_KIND_AVX2)
@@ -1809,7 +1809,7 @@ lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 void
-lh_memory_std_move_small_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_move_small_sse2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     if (n <= 32U)
     {
@@ -1865,7 +1865,7 @@ lh_memory_std_move_small_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t
  * the first store instead, as glibc's memmove does. n > 16. */
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 static void
-lh_memory_std_move_forward_sse2(lh_uchar_t *dst, const lh_uchar_t *src, lh_usize_t n)
+lh_memory_std_move_forward_sse2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     const __m128i tail = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + n - 16U));
     lh_usize_t i = 0U;
@@ -1909,12 +1909,12 @@ lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 #    if LH_MEMORY_STD_HAVE_MOVE_SMALL
     if (n < 16U)
     {
-        lh_memory_std_copy_tiny(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+        lh_memory_std_copy_tiny(lh_ptr_cast(lh_byte_t, dst), lh_ptr_ccast(lh_byte_t, src), n);
         return lh_ptr_add_by_offset(lh_void, dst, n);
     }
     if (n <= 128U && lh_memory_std_has_sse2())
     {
-        lh_memory_std_move_small_sse2(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+        lh_memory_std_move_small_sse2(lh_ptr_cast(lh_byte_t, dst), lh_ptr_ccast(lh_byte_t, src), n);
         return lh_ptr_add_by_offset(lh_void, dst, n);
     }
 #    endif
@@ -1935,11 +1935,11 @@ lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
         if (n > 16U && lh_memory_std_has_sse2())
         {
-            lh_memory_std_move_forward_sse2(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+            lh_memory_std_move_forward_sse2(lh_ptr_cast(lh_byte_t, dst), lh_ptr_ccast(lh_byte_t, src), n);
             return lh_ptr_add_by_offset(lh_void, dst, n);
         }
 #    endif
-        lh_memory_std_copy_bytes(lh_ptr_cast(lh_uchar_t, dst), lh_ptr_ccast(lh_uchar_t, src), n);
+        lh_memory_std_copy_bytes(lh_ptr_cast(lh_byte_t, dst), lh_ptr_ccast(lh_byte_t, src), n);
         return lh_ptr_add_by_offset(lh_void, dst, n);
     }
     return lh_memory_std_copy(dst, src, n);
@@ -1964,7 +1964,7 @@ lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 void
-lh_memory_std_set_sse2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
+lh_memory_std_set_sse2(lh_byte_t *dst, lh_byte_t val, lh_usize_t n)
 {
     const __m128i v = _mm_set1_epi8(lh_cast_static(char, val));
 
@@ -1991,11 +1991,11 @@ lh_memory_std_set_sse2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
     }
 
     {
-        lh_uchar_t *dst_end = dst + n;
+        lh_byte_t *dst_end = dst + n;
 
         if (n >= 512U)
         {
-            lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, lh_cast_static(lh_uaddr_t, 16));
+            lh_byte_t *aligned_dst = lh_ptr_align_up(lh_byte_t, dst, lh_cast_static(lh_uaddr_t, 16));
             lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
             /* The misaligned head (< 16 bytes) goes out as one unaligned vector
@@ -2049,12 +2049,12 @@ lh_memory_std_set_sse2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
  * destination line (Release MSVC bench: 16MB set was ~2x behind CRT). */
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 static void
-lh_memory_std_set_sse2_stream(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
+lh_memory_std_set_sse2_stream(lh_byte_t *dst, lh_byte_t val, lh_usize_t n)
 {
     const __m128i v = _mm_set1_epi8(lh_cast_static(char, val));
 
     {
-        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, lh_cast_static(lh_uaddr_t, 16));
+        lh_byte_t *aligned_dst = lh_ptr_align_up(lh_byte_t, dst, lh_cast_static(lh_uaddr_t, 16));
         lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
         if (head > n)
@@ -2099,7 +2099,7 @@ lh_memory_std_set_sse2_stream(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 /* See lh_memory_std_compare_avx2 for why the tail falls back to scalar, not SSE2. */
 LH_MEMORY_STD_SIMD_TARGET("avx2")
 static void
-lh_memory_std_set_avx2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
+lh_memory_std_set_avx2(lh_byte_t *dst, lh_byte_t val, lh_usize_t n)
 {
     const __m256i v = _mm256_set1_epi8(lh_cast_static(char, val));
 
@@ -2128,11 +2128,11 @@ lh_memory_std_set_avx2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
     }
 
     {
-        lh_uchar_t *dst_end = dst + n;
+        lh_byte_t *dst_end = dst + n;
 
         if (n >= 512U)
         {
-            lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, lh_cast_static(lh_uaddr_t, 32));
+            lh_byte_t *aligned_dst = lh_ptr_align_up(lh_byte_t, dst, lh_cast_static(lh_uaddr_t, 32));
             lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
             /* The misaligned head (< 32 bytes) goes out as one unaligned vector
@@ -2197,12 +2197,12 @@ lh_memory_std_set_avx2(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
 static void
-lh_memory_std_set_avx2_stream(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
+lh_memory_std_set_avx2_stream(lh_byte_t *dst, lh_byte_t val, lh_usize_t n)
 {
     const __m256i v = _mm256_set1_epi8(lh_cast_static(char, val));
 
     {
-        lh_uchar_t *aligned_dst = lh_ptr_align_up(lh_uchar_t, dst, lh_cast_static(lh_uaddr_t, 32));
+        lh_byte_t *aligned_dst = lh_ptr_align_up(lh_byte_t, dst, lh_cast_static(lh_uaddr_t, 32));
         lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
         if (head > n)
@@ -2243,21 +2243,21 @@ lh_memory_std_set_avx2_stream(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 #    endif /* LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
 static void
-lh_memory_std_set_simd_scalar(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
+lh_memory_std_set_simd_scalar(lh_byte_t *dst, lh_byte_t val, lh_usize_t n)
 {
     lh_memory_std_set_bytes(dst, val, n);
 }
 
-typedef void (*lh_memory_std_set_simd_fn)(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n);
+typedef void (*lh_memory_std_set_simd_fn)(lh_byte_t *dst, lh_byte_t val, lh_usize_t n);
 
 static void
-lh_memory_std_set_simd_dispatch(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n);
+lh_memory_std_set_simd_dispatch(lh_byte_t *dst, lh_byte_t val, lh_usize_t n);
 
 static lh_memory_std_set_simd_fn m_set_simd_impl = lh_memory_std_set_simd_dispatch;
 static lh_memory_std_set_simd_fn m_set_stream_impl = lh_null;
 
 static void
-lh_memory_std_set_simd_dispatch(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
+lh_memory_std_set_simd_dispatch(lh_byte_t *dst, lh_byte_t val, lh_usize_t n)
 {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
     if (lh_cpu_simd_has_avx2())
@@ -2301,7 +2301,7 @@ lh_memory_std_set_simd_dispatch(lh_uchar_t *dst, lh_uchar_t val, lh_usize_t n)
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
 lh_ptr
-lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n)
+lh_memory_std_set(lh_ptr dst, lh_byte_t val, lh_usize_t n)
 {
     lh_assert_runtime_ref(dst);
 
@@ -2311,7 +2311,7 @@ lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n)
 #elif LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
     if (n >= LH_MEMORY_STD_SIMD_SET_THRESHOLD)
     {
-        lh_uchar_t *d = lh_ptr_cast(lh_uchar_t, dst);
+        lh_byte_t *d = lh_ptr_cast(lh_byte_t, dst);
 
         if (lh_memory_std_is_stream_size(n, LH_MEMORY_STD_STREAM_SET_TRAFFIC))
         {
@@ -2369,13 +2369,13 @@ lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n)
  * own. dst may equal lhs or rhs: each byte is read before it is written. */
 LH_ATTRIBUTE_FORCE_INLINE
 void
-lh_memory_std_xor_bytes(lh_uchar_t *dst, const lh_uchar_t *lhs, const lh_uchar_t *rhs, lh_usize_t n)
+lh_memory_std_xor_bytes(lh_byte_t *dst, const lh_byte_t *lhs, const lh_byte_t *rhs, lh_usize_t n)
 {
     lh_usize_t i;
 
     for (i = 0U; lh_math_lt(i, n); i = lh_math_add_one(i))
     {
-        dst[i] = lh_cast_static(lh_uchar_t, lh_math_bit_xor(lhs[i], rhs[i]));
+        dst[i] = lh_cast_static(lh_byte_t, lh_math_bit_xor(lhs[i], rhs[i]));
     }
 }
 
@@ -2388,7 +2388,7 @@ lh_memory_std_xor_bytes(lh_uchar_t *dst, const lh_uchar_t *lhs, const lh_uchar_t
  * dst may equal lhs or rhs: each block is fully loaded before it is stored. */
 LH_MEMORY_STD_SIMD_TARGET("avx2")
 static void
-lh_memory_std_xor_avx2(lh_uchar_t *dst, const lh_uchar_t *lhs, const lh_uchar_t *rhs, lh_usize_t n)
+lh_memory_std_xor_avx2(lh_byte_t *dst, const lh_byte_t *lhs, const lh_byte_t *rhs, lh_usize_t n)
 {
     lh_usize_t i = 0U;
 
@@ -2441,9 +2441,9 @@ lh_memory_std_xor_resolve_kind(void)
 lh_ptr
 lh_memory_std_xor(lh_ptr dst, const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
-    lh_uchar_t *d = lh_ptr_cast(lh_uchar_t, dst);
-    const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs);
-    const lh_uchar_t *r = lh_ptr_ccast(lh_uchar_t, rhs);
+    lh_byte_t *d = lh_ptr_cast(lh_byte_t, dst);
+    const lh_byte_t *l = lh_ptr_ccast(lh_byte_t, lhs);
+    const lh_byte_t *r = lh_ptr_ccast(lh_byte_t, rhs);
 
     lh_assert_runtime_ref(dst);
     lh_assert_runtime_ref(lhs);
@@ -2489,8 +2489,8 @@ LH_MEMORY_STD_SIMD_TARGET("sse2")
 static const lh_ptr
 lh_memory_std_compare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
-    const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs);
-    const lh_uchar_t *r = lh_ptr_ccast(lh_uchar_t, rhs);
+    const lh_byte_t *l = lh_ptr_ccast(lh_byte_t, lhs);
+    const lh_byte_t *r = lh_ptr_ccast(lh_byte_t, rhs);
 
     /* 2-wide unroll on the equal-path hot loop — same ILP idea as the copy tiers;
      * early-exit still fires on the first mismatched register. */
@@ -2537,11 +2537,11 @@ lh_memory_std_compare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
     if (n != 0U)
     {
-        const lh_uchar_t *const l0 = lh_ptr_ccast(lh_uchar_t, lhs);
+        const lh_byte_t *const l0 = lh_ptr_ccast(lh_byte_t, lhs);
         if (lh_cast_static(lh_usize_t, ((l + n) - l0)) >= 16U)
         {
-            const lh_uchar_t *lt = l + n - 16U;
-            const lh_uchar_t *rt = r + n - 16U;
+            const lh_byte_t *lt = l + n - 16U;
+            const lh_byte_t *rt = r + n - 16U;
             const __m128i va = _mm_loadu_si128(lh_ptr_rcast(const __m128i, lt));
             const __m128i vb = _mm_loadu_si128(lh_ptr_rcast(const __m128i, rt));
             const lh_u32_t eq_mask =
@@ -2571,8 +2571,8 @@ LH_MEMORY_STD_SIMD_TARGET("avx2")
 static const lh_ptr
 lh_memory_std_compare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
-    const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs);
-    const lh_uchar_t *r = lh_ptr_ccast(lh_uchar_t, rhs);
+    const lh_byte_t *l = lh_ptr_ccast(lh_byte_t, lhs);
+    const lh_byte_t *r = lh_ptr_ccast(lh_byte_t, rhs);
 
     while (n >= 128U)
     {
@@ -2663,11 +2663,11 @@ lh_memory_std_compare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
     if (n != 0U)
     {
-        const lh_uchar_t *const l0 = lh_ptr_ccast(lh_uchar_t, lhs);
+        const lh_byte_t *const l0 = lh_ptr_ccast(lh_byte_t, lhs);
         if (lh_cast_static(lh_usize_t, ((l + n) - l0)) >= 32U)
         {
-            const lh_uchar_t *lt = l + n - 32U;
-            const lh_uchar_t *rt = r + n - 32U;
+            const lh_byte_t *lt = l + n - 32U;
+            const lh_byte_t *rt = r + n - 32U;
             const __m256i va = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, lt));
             const __m256i vb = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, rt));
             const lh_u32_t eq_mask =
@@ -2782,15 +2782,15 @@ LH_MEMORY_STD_SIMD_TARGET("sse2")
 static const lh_ptr
 lh_memory_std_rcompare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
-    const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs) + (n - 1U);
-    const lh_uchar_t *r = lh_ptr_ccast(lh_uchar_t, rhs) + (n - 1U);
+    const lh_byte_t *l = lh_ptr_ccast(lh_byte_t, lhs) + (n - 1U);
+    const lh_byte_t *r = lh_ptr_ccast(lh_byte_t, rhs) + (n - 1U);
 
     while (n >= 32U)
     {
-        const lh_uchar_t *lb1 = l - 15;
-        const lh_uchar_t *rb1 = r - 15;
-        const lh_uchar_t *lb0 = l - 31;
-        const lh_uchar_t *rb0 = r - 31;
+        const lh_byte_t *lb1 = l - 15;
+        const lh_byte_t *rb1 = r - 15;
+        const lh_byte_t *lb0 = l - 31;
+        const lh_byte_t *rb0 = r - 31;
 
         const __m128i va1 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, lb1));
         const __m128i vb1 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, rb1));
@@ -2817,8 +2817,8 @@ lh_memory_std_rcompare_sse2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
     while (n >= 16U)
     {
-        const lh_uchar_t *lb = l - 15;
-        const lh_uchar_t *rb = r - 15;
+        const lh_byte_t *lb = l - 15;
+        const lh_byte_t *rb = r - 15;
 
         const __m128i va = _mm_loadu_si128(lh_ptr_rcast(const __m128i, lb));
         const __m128i vb = _mm_loadu_si128(lh_ptr_rcast(const __m128i, rb));
@@ -2854,15 +2854,15 @@ static const lh_ptr
 lh_memory_std_rcompare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
     const lh_usize_t orig = n;
-    const lh_uchar_t *l = lh_ptr_ccast(lh_uchar_t, lhs) + (n - 1U);
-    const lh_uchar_t *r = lh_ptr_ccast(lh_uchar_t, rhs) + (n - 1U);
+    const lh_byte_t *l = lh_ptr_ccast(lh_byte_t, lhs) + (n - 1U);
+    const lh_byte_t *r = lh_ptr_ccast(lh_byte_t, rhs) + (n - 1U);
 
     while (n >= 64U)
     {
-        const lh_uchar_t *lb1 = l - 31;
-        const lh_uchar_t *rb1 = r - 31;
-        const lh_uchar_t *lb0 = l - 63;
-        const lh_uchar_t *rb0 = r - 63;
+        const lh_byte_t *lb1 = l - 31;
+        const lh_byte_t *rb1 = r - 31;
+        const lh_byte_t *lb0 = l - 63;
+        const lh_byte_t *rb0 = r - 63;
 
         const __m256i va1 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, lb1));
         const __m256i vb1 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, rb1));
@@ -2890,8 +2890,8 @@ lh_memory_std_rcompare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
     while (n >= 32U)
     {
-        const lh_uchar_t *lb = l - 31;
-        const lh_uchar_t *rb = r - 31;
+        const lh_byte_t *lb = l - 31;
+        const lh_byte_t *rb = r - 31;
 
         const __m256i va = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, lb));
         const __m256i vb = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, rb));
@@ -2910,8 +2910,8 @@ lh_memory_std_rcompare_avx2(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
     if (n != 0U && orig >= 32U)
     {
-        const lh_uchar_t *lt = lh_ptr_ccast(lh_uchar_t, lhs);
-        const lh_uchar_t *rt = lh_ptr_ccast(lh_uchar_t, rhs);
+        const lh_byte_t *lt = lh_ptr_ccast(lh_byte_t, lhs);
+        const lh_byte_t *rt = lh_ptr_ccast(lh_byte_t, rhs);
         const __m256i va = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, lt));
         const __m256i vb = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, rt));
         const lh_u32_t eq_mask =
@@ -3015,18 +3015,18 @@ lh_memory_std_rcompare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 /* Middle bytes of a first/last-byte hit at @p cand (m >= 2). */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
-lh_memory_std_find_is_match(const lh_uchar_t *cand, const lh_uchar_t *needle, lh_usize_t m)
+lh_memory_std_find_is_match(const lh_byte_t *cand, const lh_byte_t *needle, lh_usize_t m)
 {
     return lh_cast_static(lh_bool_t,
                           m <= 2U || lh_null_eq(lh_memory_std_compare(cand + 1, needle + 1, m - 2U)));
 }
 
 static const lh_ptr
-lh_memory_std_find_scalar(const lh_uchar_t *hay, lh_usize_t n, const lh_uchar_t *needle, lh_usize_t m,
+lh_memory_std_find_scalar(const lh_byte_t *hay, lh_usize_t n, const lh_byte_t *needle, lh_usize_t m,
                           lh_usize_t off)
 {
-    const lh_uchar_t first = needle[0];
-    const lh_uchar_t last = needle[m - 1U];
+    const lh_byte_t first = needle[0];
+    const lh_byte_t last = needle[m - 1U];
     const lh_usize_t max_start = n - m;
 
     for (; off <= max_start; ++off)
@@ -3044,7 +3044,7 @@ lh_memory_std_find_scalar(const lh_uchar_t *hay, lh_usize_t n, const lh_uchar_t 
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 static const lh_ptr
-lh_memory_std_find_sse2(const lh_uchar_t *hay, lh_usize_t n, const lh_uchar_t *needle, lh_usize_t m)
+lh_memory_std_find_sse2(const lh_byte_t *hay, lh_usize_t n, const lh_byte_t *needle, lh_usize_t m)
 {
     const __m128i first = _mm_set1_epi8(lh_cast_static(char, needle[0]));
     const __m128i last = _mm_set1_epi8(lh_cast_static(char, needle[m - 1U]));
@@ -3078,8 +3078,8 @@ lh_memory_std_find_sse2(const lh_uchar_t *hay, lh_usize_t n, const lh_uchar_t *n
 const lh_ptr
 lh_memory_std_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size)
 {
-    const lh_uchar_t *hay;
-    const lh_uchar_t *needle;
+    const lh_byte_t *hay;
+    const lh_byte_t *needle;
 
     lh_assert_runtime_ref(lhs);
     lh_assert_runtime_ref(rhs);
@@ -3088,8 +3088,8 @@ lh_memory_std_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_u
     {
         return lh_null;
     }
-    hay = lh_ptr_ccast(lh_uchar_t, lhs);
-    needle = lh_ptr_ccast(lh_uchar_t, rhs);
+    hay = lh_ptr_ccast(lh_byte_t, lhs);
+    needle = lh_ptr_ccast(lh_byte_t, rhs);
     if (rhs_size == 1U)
     {
         return lh_memory_std_find_scalar(hay, lhs_size, needle, 1U, 0U);

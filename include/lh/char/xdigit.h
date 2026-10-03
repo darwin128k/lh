@@ -59,7 +59,7 @@ lh_char_is_xdigit(lh_char_t ch)
  * @return Value in `[0, 15]`.
  */
 LH_ATTRIBUTE_FORCE_INLINE
-lh_uchar_t
+lh_byte_t
 lh_char_to_xdigit(lh_char_t ch)
 {
     lh_assert_runtime_if(!lh_char_is_xdigit(ch), lh_runtime_error_code_invalid_argument);
@@ -69,9 +69,9 @@ lh_char_to_xdigit(lh_char_t ch)
     }
     if (lh_char_is_lower(ch))
     {
-        return lh_cast_static(lh_uchar_t, (lh_char_ord(ch) - lh_char_ord('a') + 10));
+        return lh_cast_static(lh_byte_t, (lh_char_ord(ch) - lh_char_ord('a') + 10));
     }
-    return lh_cast_static(lh_uchar_t, (lh_char_ord(ch) - lh_char_ord('A') + 10));
+    return lh_cast_static(lh_byte_t, (lh_char_ord(ch) - lh_char_ord('A') + 10));
 }
 
 /**
@@ -83,7 +83,7 @@ lh_char_to_xdigit(lh_char_t ch)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_char_t
-lh_char_from_xdigit(lh_uchar_t digit, lh_bool_t uppercase)
+lh_char_from_xdigit(lh_byte_t digit, lh_bool_t uppercase)
 {
     lh_assert_runtime_if(digit > 15U, lh_runtime_error_code_invalid_argument);
     if (digit < 10U)
@@ -106,7 +106,7 @@ lh_char_from_xdigit(lh_uchar_t digit, lh_bool_t uppercase)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
-lh_char_xdigit_accumulate(lh_uint_t *value, lh_uchar_t digit)
+lh_char_xdigit_accumulate(lh_uint_t *value, lh_byte_t digit)
 {
     lh_assert_runtime_ref(value);
     lh_assert_runtime_if(digit > 15U, lh_runtime_error_code_invalid_argument);

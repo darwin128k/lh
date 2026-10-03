@@ -86,7 +86,7 @@
  *
  * Example usage:
  * @code{.c}
- * lh_ptr_rcast(lh_uchar_t, &x)   // → (lh_uchar_t *)(&x)
+ * lh_ptr_rcast(lh_byte_t, &x)   // → (lh_byte_t *)(&x)
  * @endcode
  */
 #define lh_ptr_rcast(T, ptr) lh_cast_reinterpret(T *, ptr)
@@ -554,8 +554,8 @@
  * @code{.c}
  * lh_wchar_t buf[16];
  * lh_wchar_t *base = &buf[0];
- * unsigned char *p = lh_ptr_rcast(lh_uchar_t, base) + 3;
- * unsigned char *q = lh_ptr_align_up_grid(lh_uchar_t, p, base, (lh_uaddr_t)sizeof(lh_wchar_t));
+ * unsigned char *p = lh_ptr_rcast(lh_byte_t, base) + 3;
+ * unsigned char *q = lh_ptr_align_up_grid(lh_byte_t, p, base, (lh_uaddr_t)sizeof(lh_wchar_t));
  * @endcode
  */
 #define lh_ptr_align_up_grid(T, ptr, origin, grid)                                                 \
@@ -580,8 +580,8 @@
  * @code{.c}
  * lh_wchar_t buf[16];
  * lh_wchar_t *base = &buf[0];
- * unsigned char *p = lh_ptr_rcast(lh_uchar_t, base) + 11;
- * unsigned char *q = lh_ptr_align_down_grid(lh_uchar_t, p, base, (lh_uaddr_t)sizeof(lh_wchar_t));
+ * unsigned char *p = lh_ptr_rcast(lh_byte_t, base) + 11;
+ * unsigned char *q = lh_ptr_align_down_grid(lh_byte_t, p, base, (lh_uaddr_t)sizeof(lh_wchar_t));
  * @endcode
  */
 #define lh_ptr_align_down_grid(T, ptr, origin, grid)                                               \

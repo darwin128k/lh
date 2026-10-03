@@ -176,7 +176,7 @@ typedef lh_sshort_t lh_saddr_t;
  * @typedef lh_uaddr_t
  * @brief Unsigned 8-bit address storage (`LH_COMPILER_ARCH == 8`, manual).
  */
-typedef lh_uchar_t lh_uaddr_t;
+typedef lh_byte_t lh_uaddr_t;
 
 #    ifndef LH_SADDR_T_MIN
 /**

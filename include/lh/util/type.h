@@ -40,7 +40,7 @@
  * @param T Any complete type.
  *
  * @code{.c}
- * lh_type_bits(lh_uchar_t);   // → 8
+ * lh_type_bits(lh_byte_t);   // → 8
  * lh_type_bits(lh_uint_t);    // → 32
  * @endcode
  */
@@ -96,13 +96,13 @@
  *
  * For signed types expands to -1.
  * For unsigned types the value wraps to the maximum representable value (e.g. 255 for
- * `lh_uchar_t`).
+ * `lh_byte_t`).
  *
  * @param T Any numeric type.
  *
  * @code{.c}
  * lh_type_neg_one_v(lh_sint_t);    // → (lh_sint_t)(-1)  →  -1
- * lh_type_neg_one_v(lh_uchar_t);   // → (lh_uchar_t)(-1) → 255
+ * lh_type_neg_one_v(lh_byte_t);   // → (lh_byte_t)(-1) → 255
  * @endcode
  */
 #define lh_type_neg_one_v(T) lh_type_cast(T, -1)
@@ -122,7 +122,7 @@
  *
  * @code{.c}
  * lh_type_is_signed(lh_sint_t);    // → 1
- * lh_type_is_signed(lh_uchar_t);   // → 0
+ * lh_type_is_signed(lh_byte_t);   // → 0
  * @endcode
  */
 #define lh_type_is_signed(T) lh_math_gt(lh_type_zero_v(T), lh_type_neg_one_v(T))
@@ -140,7 +140,7 @@
  * @param T Any numeric type.
  *
  * @code{.c}
- * lh_type_is_unsigned(lh_uchar_t);   // → 1
+ * lh_type_is_unsigned(lh_byte_t);   // → 1
  * lh_type_is_unsigned(lh_sint_t);    // → 0
  * @endcode
  */
@@ -156,7 +156,7 @@
  * @param T Any complete numeric type.
  *
  * @code{.c}
- * lh_type_msb_pos(lh_uchar_t);   // → 7
+ * lh_type_msb_pos(lh_byte_t);   // → 7
  * lh_type_msb_pos(lh_uint_t);    // → 31
  * lh_type_msb_pos(lh_ullong_t);  // → 63
  * @endcode
@@ -174,7 +174,7 @@
  * @param T Any complete numeric type.
  *
  * @code{.c}
- * lh_type_msb(lh_uchar_t);    // → 0x80       (128u)
+ * lh_type_msb(lh_byte_t);    // → 0x80       (128u)
  * lh_type_msb(lh_uint_t);     // → 0x80000000 (2147483648u)
  * lh_type_msb(lh_sint_t);     // → 0x80000000 (INT_MIN, -2147483648)
  * @endcode

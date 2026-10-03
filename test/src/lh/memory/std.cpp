@@ -13,8 +13,8 @@ namespace
 
 TEST(memory_std_copy, copies_bytes_and_returns_end)
 {
-    lh_uchar_t dst[8] = {};
-    const lh_uchar_t src[] = {1, 2, 3, 4};
+    lh_byte_t dst[8] = {};
+    const lh_byte_t src[] = {1, 2, 3, 4};
     lh_ptr end = lh_memory_std_copy(dst, src, 4);
     EXPECT_EQ(end, static_cast<lh_ptr>(dst + 4));
     EXPECT_EQ(dst[0], 1);
@@ -25,8 +25,8 @@ TEST(memory_std_copy, copies_bytes_and_returns_end)
 
 TEST(memory_std_copy, zero_bytes)
 {
-    lh_uchar_t dst[1] = {42};
-    const lh_uchar_t src[1] = {99};
+    lh_byte_t dst[1] = {42};
+    const lh_byte_t src[1] = {99};
     lh_ptr end = lh_memory_std_copy(dst, src, 0);
     EXPECT_EQ(end, static_cast<lh_ptr>(dst));
     EXPECT_EQ(dst[0], 42);
@@ -43,11 +43,11 @@ TEST(memory_std_copy, zero_bytes)
 TEST(memory_std_copy, copies_bytes_above_rep_movsb_threshold)
 {
     const lh_usize_t n = 1024;
-    std::vector<lh_uchar_t> src(n);
-    std::vector<lh_uchar_t> dst(n, 0);
+    std::vector<lh_byte_t> src(n);
+    std::vector<lh_byte_t> dst(n, 0);
     for (lh_usize_t i = 0; i < n; ++i)
     {
-        src[i] = static_cast<lh_uchar_t>(i);
+        src[i] = static_cast<lh_byte_t>(i);
     }
 
     lh_ptr end = lh_memory_std_copy(dst.data(), src.data(), n);
@@ -80,11 +80,11 @@ TEST(memory_std_copy, exact_bytes_across_every_tail_remainder)
     for (lh_usize_t extra = 0; extra <= 200; ++extra)
     {
         const lh_usize_t n = base + extra;
-        std::vector<lh_uchar_t> src(n);
-        std::vector<lh_uchar_t> dst(n + guard, 0xEE);
+        std::vector<lh_byte_t> src(n);
+        std::vector<lh_byte_t> dst(n + guard, 0xEE);
         for (lh_usize_t i = 0; i < n; ++i)
         {
-            src[i] = static_cast<lh_uchar_t>((i * 37U + 11U) & 0xFFU);
+            src[i] = static_cast<lh_byte_t>((i * 37U + 11U) & 0xFFU);
         }
 
         lh_ptr end = lh_memory_std_copy(dst.data(), src.data(), n);
@@ -117,13 +117,13 @@ TEST(memory_std_copy, exact_bytes_with_misaligned_src_and_dst)
     {
         for (lh_usize_t src_off : offsets)
         {
-            std::vector<lh_uchar_t> src_buf(n + 32);
-            std::vector<lh_uchar_t> dst_buf(n + 32, 0xEE);
-            lh_uchar_t *src = src_buf.data() + src_off;
-            lh_uchar_t *dst = dst_buf.data() + dst_off;
+            std::vector<lh_byte_t> src_buf(n + 32);
+            std::vector<lh_byte_t> dst_buf(n + 32, 0xEE);
+            lh_byte_t *src = src_buf.data() + src_off;
+            lh_byte_t *dst = dst_buf.data() + dst_off;
             for (lh_usize_t i = 0; i < n; ++i)
             {
-                src[i] = static_cast<lh_uchar_t>((i * 37U + 11U) & 0xFFU);
+                src[i] = static_cast<lh_byte_t>((i * 37U + 11U) & 0xFFU);
             }
 
             lh_memory_std_copy(dst, src, n);
@@ -158,13 +158,13 @@ TEST(memory_std_copy, streaming_tier_bytes_and_alignment_head)
         {
             for (lh_usize_t src_off : offsets)
             {
-                std::vector<lh_uchar_t> src_buf(size + 64);
-                std::vector<lh_uchar_t> dst_buf(size + 64, 0xEE);
-                lh_uchar_t *src = src_buf.data() + src_off;
-                lh_uchar_t *dst = dst_buf.data() + dst_off;
+                std::vector<lh_byte_t> src_buf(size + 64);
+                std::vector<lh_byte_t> dst_buf(size + 64, 0xEE);
+                lh_byte_t *src = src_buf.data() + src_off;
+                lh_byte_t *dst = dst_buf.data() + dst_off;
                 for (lh_usize_t i = 0; i < size; ++i)
                 {
-                    src[i] = static_cast<lh_uchar_t>((i * 2654435761U) & 0xFFU);
+                    src[i] = static_cast<lh_byte_t>((i * 2654435761U) & 0xFFU);
                 }
 
                 lh_memory_std_copy(dst, src, size);
@@ -181,8 +181,8 @@ TEST(memory_std_copy, streaming_tier_bytes_and_alignment_head)
 
 TEST(memory_std_copy_rev, reverses_order_in_destination)
 {
-    lh_uchar_t src[] = {1, 2, 3, 4};
-    lh_uchar_t dst[4] = {};
+    lh_byte_t src[] = {1, 2, 3, 4};
+    lh_byte_t dst[4] = {};
     lh_ptr end = lh_memory_std_copy_rev(dst, src, 4);
     EXPECT_EQ(end, static_cast<lh_ptr>(dst + 4));
     EXPECT_EQ(dst[0], 4);
@@ -203,11 +203,11 @@ TEST(memory_std_copy_rev, exact_bytes_across_every_tail_remainder)
 {
     for (lh_usize_t n = 0; n <= 600; ++n)
     {
-        std::vector<lh_uchar_t> src(n == 0 ? 1 : n);
-        std::vector<lh_uchar_t> dst(n == 0 ? 1 : n, 0xEE);
+        std::vector<lh_byte_t> src(n == 0 ? 1 : n);
+        std::vector<lh_byte_t> dst(n == 0 ? 1 : n, 0xEE);
         for (lh_usize_t i = 0; i < n; ++i)
         {
-            src[i] = static_cast<lh_uchar_t>((i * 131U + 7U) & 0xFFU);
+            src[i] = static_cast<lh_byte_t>((i * 131U + 7U) & 0xFFU);
         }
 
         lh_memory_std_copy_rev(dst.data(), src.data(), n);
@@ -235,13 +235,13 @@ TEST(memory_std_copy_rev, exact_bytes_with_misaligned_src_and_dst)
     {
         for (lh_usize_t src_off : offsets)
         {
-            std::vector<lh_uchar_t> src_buf(n + 32);
-            std::vector<lh_uchar_t> dst_buf(n + 32, 0xEE);
-            lh_uchar_t *src = src_buf.data() + src_off;
-            lh_uchar_t *dst = dst_buf.data() + dst_off;
+            std::vector<lh_byte_t> src_buf(n + 32);
+            std::vector<lh_byte_t> dst_buf(n + 32, 0xEE);
+            lh_byte_t *src = src_buf.data() + src_off;
+            lh_byte_t *dst = dst_buf.data() + dst_off;
             for (lh_usize_t i = 0; i < n; ++i)
             {
-                src[i] = static_cast<lh_uchar_t>((i * 37U + 11U) & 0xFFU);
+                src[i] = static_cast<lh_byte_t>((i * 37U + 11U) & 0xFFU);
             }
 
             lh_memory_std_copy_rev(dst, src, n);
@@ -257,7 +257,7 @@ TEST(memory_std_copy_rev, exact_bytes_with_misaligned_src_and_dst)
 
 TEST(memory_std_rcopy, overlapping_backward_copy)
 {
-    lh_uchar_t v[] = {1, 2, 3, 4, 5};
+    lh_byte_t v[] = {1, 2, 3, 4, 5};
     lh_ptr r = lh_memory_std_rcopy(v + 1, v, 4);
     EXPECT_EQ(r, static_cast<lh_ptr>(v + 1));
     EXPECT_EQ(v[0], 1);
@@ -285,11 +285,11 @@ TEST(memory_std_rcopy, exact_bytes_across_every_tail_remainder)
         // data() is permitted to be null, which lh_memory_std_rcopy's own null-pointer
         // assertion (checked regardless of n — see the memory_std_rcopy_death tests
         // below) would reject even though a zero-byte rcopy is otherwise a no-op.
-        std::vector<lh_uchar_t> src(n + guard);
-        std::vector<lh_uchar_t> dst(n + guard, 0xEE);
+        std::vector<lh_byte_t> src(n + guard);
+        std::vector<lh_byte_t> dst(n + guard, 0xEE);
         for (lh_usize_t i = 0; i < n; ++i)
         {
-            src[i] = static_cast<lh_uchar_t>((i * 37U + 11U) & 0xFFU);
+            src[i] = static_cast<lh_byte_t>((i * 37U + 11U) & 0xFFU);
         }
 
         lh_memory_std_rcopy(dst.data(), src.data(), n);
@@ -307,7 +307,7 @@ TEST(memory_std_rcopy, exact_bytes_across_every_tail_remainder)
 
 TEST(memory_std_move, forward_overlap_matches_memmove_example)
 {
-    lh_uchar_t buf[] = {1, 2, 3, 4, 5, 6, 7, 8};
+    lh_byte_t buf[] = {1, 2, 3, 4, 5, 6, 7, 8};
     lh_ptr end = lh_memory_std_move(buf + 2, buf, 6);
     EXPECT_EQ(end, static_cast<lh_ptr>(buf + 8));
     EXPECT_EQ(buf[0], 1);
@@ -322,8 +322,8 @@ TEST(memory_std_move, forward_overlap_matches_memmove_example)
 
 TEST(memory_std_move, non_overlapping_acts_like_copy)
 {
-    lh_uchar_t dst[4] = {};
-    const lh_uchar_t src[] = {9, 8, 7, 6};
+    lh_byte_t dst[4] = {};
+    const lh_byte_t src[] = {9, 8, 7, 6};
     lh_ptr end = lh_memory_std_move(dst, src, 4);
     EXPECT_EQ(end, static_cast<lh_ptr>(dst + 4));
     EXPECT_EQ(dst[0], 9);
@@ -332,7 +332,7 @@ TEST(memory_std_move, non_overlapping_acts_like_copy)
 
 TEST(memory_std_move, backward_overlap_uses_reverse_path)
 {
-    lh_uchar_t buf[] = {1, 2, 3, 4, 5};
+    lh_byte_t buf[] = {1, 2, 3, 4, 5};
     lh_ptr end = lh_memory_std_move(buf + 1, buf, 4);
     EXPECT_EQ(end, static_cast<lh_ptr>(buf + 5));
     EXPECT_EQ(buf[0], 1);
@@ -344,7 +344,7 @@ TEST(memory_std_move, backward_overlap_uses_reverse_path)
 
 TEST(memory_std_set, fills_range)
 {
-    lh_uchar_t block[16];
+    lh_byte_t block[16];
     lh_ptr end = lh_memory_std_set(block, 0xAB, 16);
     EXPECT_EQ(end, static_cast<lh_ptr>(block + 16));
     for (lh_usize_t i = 0; i < 16; ++i)
@@ -365,7 +365,7 @@ TEST(memory_std_set, fills_every_byte_across_every_tail_remainder)
 
     for (lh_usize_t n = 0; n <= 200; ++n)
     {
-        std::vector<lh_uchar_t> dst(n + guard, 0xEE);
+        std::vector<lh_byte_t> dst(n + guard, 0xEE);
 
         lh_ptr end = lh_memory_std_set(dst.data(), 0x77, n);
 
@@ -383,20 +383,20 @@ TEST(memory_std_set, fills_every_byte_across_every_tail_remainder)
 
 TEST(memory_std_compare, equal_returns_null)
 {
-    const lh_uchar_t a[] = {1, 2, 3};
-    const lh_uchar_t b[] = {1, 2, 3};
+    const lh_byte_t a[] = {1, 2, 3};
+    const lh_byte_t b[] = {1, 2, 3};
     const lh_ptr d = lh_memory_std_compare(a, b, 3);
     EXPECT_TRUE(lh_null_eq(d));
 }
 
 TEST(memory_std_compare, returns_first_mismatch_in_lhs)
 {
-    const lh_uchar_t a[] = {1, 2, 9, 4};
-    const lh_uchar_t b[] = {1, 2, 3, 4};
+    const lh_byte_t a[] = {1, 2, 9, 4};
+    const lh_byte_t b[] = {1, 2, 3, 4};
     const lh_ptr d = lh_memory_std_compare(a, b, 4);
     ASSERT_TRUE(lh_null_ne(d));
     EXPECT_EQ(d, static_cast<const lh_ptr>(&a[2]));
-    EXPECT_EQ(*static_cast<const lh_uchar_t *>(d), 9);
+    EXPECT_EQ(*static_cast<const lh_byte_t *>(d), 9);
 }
 
 /*
@@ -409,11 +409,11 @@ TEST(memory_std_compare, returns_first_mismatch_in_lhs)
 
 TEST(memory_std_compare, equal_across_multiple_blocks)
 {
-    std::vector<lh_uchar_t> a(40);
-    std::vector<lh_uchar_t> b(40);
+    std::vector<lh_byte_t> a(40);
+    std::vector<lh_byte_t> b(40);
     for (lh_usize_t i = 0; i < a.size(); ++i)
     {
-        a[i] = b[i] = static_cast<lh_uchar_t>(i);
+        a[i] = b[i] = static_cast<lh_byte_t>(i);
     }
     const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
     EXPECT_TRUE(lh_null_eq(d));
@@ -421,16 +421,16 @@ TEST(memory_std_compare, equal_across_multiple_blocks)
 
 TEST(memory_std_compare, equal_at_exact_block_boundary)
 {
-    std::vector<lh_uchar_t> a(16, 0x7A);
-    std::vector<lh_uchar_t> b(16, 0x7A);
+    std::vector<lh_byte_t> a(16, 0x7A);
+    std::vector<lh_byte_t> b(16, 0x7A);
     const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
     EXPECT_TRUE(lh_null_eq(d));
 }
 
 TEST(memory_std_compare, mismatch_at_first_byte_of_first_block)
 {
-    std::vector<lh_uchar_t> a(16, 0);
-    std::vector<lh_uchar_t> b(16, 0);
+    std::vector<lh_byte_t> a(16, 0);
+    std::vector<lh_byte_t> b(16, 0);
     a[0] = 9;
     const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
     ASSERT_TRUE(lh_null_ne(d));
@@ -439,8 +439,8 @@ TEST(memory_std_compare, mismatch_at_first_byte_of_first_block)
 
 TEST(memory_std_compare, mismatch_at_last_byte_of_first_block)
 {
-    std::vector<lh_uchar_t> a(16, 0);
-    std::vector<lh_uchar_t> b(16, 0);
+    std::vector<lh_byte_t> a(16, 0);
+    std::vector<lh_byte_t> b(16, 0);
     a[15] = 9;
     const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
     ASSERT_TRUE(lh_null_ne(d));
@@ -449,8 +449,8 @@ TEST(memory_std_compare, mismatch_at_last_byte_of_first_block)
 
 TEST(memory_std_compare, mismatch_at_first_byte_of_second_block)
 {
-    std::vector<lh_uchar_t> a(32, 0);
-    std::vector<lh_uchar_t> b(32, 0);
+    std::vector<lh_byte_t> a(32, 0);
+    std::vector<lh_byte_t> b(32, 0);
     a[16] = 9;
     const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
     ASSERT_TRUE(lh_null_ne(d));
@@ -459,8 +459,8 @@ TEST(memory_std_compare, mismatch_at_first_byte_of_second_block)
 
 TEST(memory_std_compare, mismatch_in_tail_after_full_blocks)
 {
-    std::vector<lh_uchar_t> a(20, 0);
-    std::vector<lh_uchar_t> b(20, 0);
+    std::vector<lh_byte_t> a(20, 0);
+    std::vector<lh_byte_t> b(20, 0);
     a[17] = 9;
     const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
     ASSERT_TRUE(lh_null_ne(d));
@@ -483,11 +483,11 @@ TEST(memory_std_compare, mismatch_in_tail_after_full_blocks)
 
 TEST(memory_std_compare, equal_across_multiple_avx2_chunks)
 {
-    std::vector<lh_uchar_t> a(96);
-    std::vector<lh_uchar_t> b(96);
+    std::vector<lh_byte_t> a(96);
+    std::vector<lh_byte_t> b(96);
     for (lh_usize_t i = 0; i < a.size(); ++i)
     {
-        a[i] = b[i] = static_cast<lh_uchar_t>(i * 7);
+        a[i] = b[i] = static_cast<lh_byte_t>(i * 7);
     }
     const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
     EXPECT_TRUE(lh_null_eq(d));
@@ -495,8 +495,8 @@ TEST(memory_std_compare, equal_across_multiple_avx2_chunks)
 
 TEST(memory_std_compare, mismatch_at_first_lane_of_first_avx2_chunk)
 {
-    std::vector<lh_uchar_t> a(96, 0);
-    std::vector<lh_uchar_t> b(96, 0);
+    std::vector<lh_byte_t> a(96, 0);
+    std::vector<lh_byte_t> b(96, 0);
     a[0] = 9;
     const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
     ASSERT_TRUE(lh_null_ne(d));
@@ -505,8 +505,8 @@ TEST(memory_std_compare, mismatch_at_first_lane_of_first_avx2_chunk)
 
 TEST(memory_std_compare, mismatch_at_last_lane_of_first_avx2_chunk)
 {
-    std::vector<lh_uchar_t> a(96, 0);
-    std::vector<lh_uchar_t> b(96, 0);
+    std::vector<lh_byte_t> a(96, 0);
+    std::vector<lh_byte_t> b(96, 0);
     a[31] = 9;
     const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
     ASSERT_TRUE(lh_null_ne(d));
@@ -515,8 +515,8 @@ TEST(memory_std_compare, mismatch_at_last_lane_of_first_avx2_chunk)
 
 TEST(memory_std_compare, mismatch_in_middle_avx2_chunk)
 {
-    std::vector<lh_uchar_t> a(96, 0);
-    std::vector<lh_uchar_t> b(96, 0);
+    std::vector<lh_byte_t> a(96, 0);
+    std::vector<lh_byte_t> b(96, 0);
     a[50] = 9; // chunk 1 (bytes 32..63): first two chunks must compare equal first
     const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
     ASSERT_TRUE(lh_null_ne(d));
@@ -525,8 +525,8 @@ TEST(memory_std_compare, mismatch_in_middle_avx2_chunk)
 
 TEST(memory_std_compare, mismatch_in_scalar_tail_after_avx2_chunks)
 {
-    std::vector<lh_uchar_t> a(100, 0); // 96 = 3 AVX2 chunks, 4-byte scalar tail
-    std::vector<lh_uchar_t> b(100, 0);
+    std::vector<lh_byte_t> a(100, 0); // 96 = 3 AVX2 chunks, 4-byte scalar tail
+    std::vector<lh_byte_t> b(100, 0);
     a[98] = 9;
     const lh_ptr d = lh_memory_std_compare(a.data(), b.data(), a.size());
     ASSERT_TRUE(lh_null_ne(d));
@@ -535,20 +535,20 @@ TEST(memory_std_compare, mismatch_in_scalar_tail_after_avx2_chunks)
 
 TEST(memory_std_rcompare, equal_returns_null)
 {
-    const lh_uchar_t a[] = {1, 2, 3};
-    const lh_uchar_t b[] = {1, 2, 3};
+    const lh_byte_t a[] = {1, 2, 3};
+    const lh_byte_t b[] = {1, 2, 3};
     const lh_ptr d = lh_memory_std_rcompare(a, b, 3);
     EXPECT_TRUE(lh_null_eq(d));
 }
 
 TEST(memory_std_rcompare, returns_tail_mismatch_first)
 {
-    const lh_uchar_t a[] = {1, 2, 3, 9};
-    const lh_uchar_t b[] = {1, 2, 3, 4};
+    const lh_byte_t a[] = {1, 2, 3, 9};
+    const lh_byte_t b[] = {1, 2, 3, 4};
     const lh_ptr d = lh_memory_std_rcompare(a, b, 4);
     ASSERT_TRUE(lh_null_ne(d));
     EXPECT_EQ(d, static_cast<const lh_ptr>(&a[3]));
-    EXPECT_EQ(*static_cast<const lh_uchar_t *>(d), 9);
+    EXPECT_EQ(*static_cast<const lh_byte_t *>(d), 9);
 }
 
 /*
@@ -565,11 +565,11 @@ TEST(memory_std_rcompare, returns_tail_mismatch_first)
 
 TEST(memory_std_rcompare, equal_across_multiple_blocks)
 {
-    std::vector<lh_uchar_t> a(40);
-    std::vector<lh_uchar_t> b(40);
+    std::vector<lh_byte_t> a(40);
+    std::vector<lh_byte_t> b(40);
     for (lh_usize_t i = 0; i < a.size(); ++i)
     {
-        a[i] = b[i] = static_cast<lh_uchar_t>(i);
+        a[i] = b[i] = static_cast<lh_byte_t>(i);
     }
     const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
     EXPECT_TRUE(lh_null_eq(d));
@@ -577,16 +577,16 @@ TEST(memory_std_rcompare, equal_across_multiple_blocks)
 
 TEST(memory_std_rcompare, equal_at_exact_block_boundary)
 {
-    std::vector<lh_uchar_t> a(16, 0x7A);
-    std::vector<lh_uchar_t> b(16, 0x7A);
+    std::vector<lh_byte_t> a(16, 0x7A);
+    std::vector<lh_byte_t> b(16, 0x7A);
     const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
     EXPECT_TRUE(lh_null_eq(d));
 }
 
 TEST(memory_std_rcompare, mismatch_at_last_byte_of_block)
 {
-    std::vector<lh_uchar_t> a(16, 0);
-    std::vector<lh_uchar_t> b(16, 0);
+    std::vector<lh_byte_t> a(16, 0);
+    std::vector<lh_byte_t> b(16, 0);
     a[15] = 9; // highest offset in the (only) block: found via the highest-set-bit scan
     const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
     ASSERT_TRUE(lh_null_ne(d));
@@ -595,8 +595,8 @@ TEST(memory_std_rcompare, mismatch_at_last_byte_of_block)
 
 TEST(memory_std_rcompare, mismatch_at_first_byte_of_block)
 {
-    std::vector<lh_uchar_t> a(16, 0);
-    std::vector<lh_uchar_t> b(16, 0);
+    std::vector<lh_byte_t> a(16, 0);
+    std::vector<lh_byte_t> b(16, 0);
     a[0] = 9; // lowest offset in the (only) block
     const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
     ASSERT_TRUE(lh_null_ne(d));
@@ -605,8 +605,8 @@ TEST(memory_std_rcompare, mismatch_at_first_byte_of_block)
 
 TEST(memory_std_rcompare, mismatch_in_second_scanned_block)
 {
-    std::vector<lh_uchar_t> a(32, 0);
-    std::vector<lh_uchar_t> b(32, 0);
+    std::vector<lh_byte_t> a(32, 0);
+    std::vector<lh_byte_t> b(32, 0);
     a[0] = 9; // block [16..31] (scanned first, nearest the end) must compare equal first
     const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
     ASSERT_TRUE(lh_null_ne(d));
@@ -615,8 +615,8 @@ TEST(memory_std_rcompare, mismatch_in_second_scanned_block)
 
 TEST(memory_std_rcompare, mismatch_in_scalar_tail_after_full_blocks)
 {
-    std::vector<lh_uchar_t> a(20, 0); // one full 16-byte block (scanned first) + 4-byte tail
-    std::vector<lh_uchar_t> b(20, 0);
+    std::vector<lh_byte_t> a(20, 0); // one full 16-byte block (scanned first) + 4-byte tail
+    std::vector<lh_byte_t> b(20, 0);
     a[2] = 9; // tail sits at the *start* of the range for a reverse scan
     const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
     ASSERT_TRUE(lh_null_ne(d));
@@ -625,11 +625,11 @@ TEST(memory_std_rcompare, mismatch_in_scalar_tail_after_full_blocks)
 
 TEST(memory_std_rcompare, equal_across_multiple_avx2_chunks)
 {
-    std::vector<lh_uchar_t> a(96);
-    std::vector<lh_uchar_t> b(96);
+    std::vector<lh_byte_t> a(96);
+    std::vector<lh_byte_t> b(96);
     for (lh_usize_t i = 0; i < a.size(); ++i)
     {
-        a[i] = b[i] = static_cast<lh_uchar_t>(i * 7);
+        a[i] = b[i] = static_cast<lh_byte_t>(i * 7);
     }
     const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
     EXPECT_TRUE(lh_null_eq(d));
@@ -637,8 +637,8 @@ TEST(memory_std_rcompare, equal_across_multiple_avx2_chunks)
 
 TEST(memory_std_rcompare, mismatch_at_last_lane_of_first_scanned_chunk)
 {
-    std::vector<lh_uchar_t> a(96, 0);
-    std::vector<lh_uchar_t> b(96, 0);
+    std::vector<lh_byte_t> a(96, 0);
+    std::vector<lh_byte_t> b(96, 0);
     a[95] = 9; // very end of the range: highest lane of the chunk scanned first ([64..95])
     const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
     ASSERT_TRUE(lh_null_ne(d));
@@ -647,8 +647,8 @@ TEST(memory_std_rcompare, mismatch_at_last_lane_of_first_scanned_chunk)
 
 TEST(memory_std_rcompare, mismatch_at_first_lane_of_first_scanned_chunk)
 {
-    std::vector<lh_uchar_t> a(96, 0);
-    std::vector<lh_uchar_t> b(96, 0);
+    std::vector<lh_byte_t> a(96, 0);
+    std::vector<lh_byte_t> b(96, 0);
     a[64] = 9; // lowest offset of the chunk scanned first ([64..95])
     const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
     ASSERT_TRUE(lh_null_ne(d));
@@ -657,8 +657,8 @@ TEST(memory_std_rcompare, mismatch_at_first_lane_of_first_scanned_chunk)
 
 TEST(memory_std_rcompare, mismatch_in_middle_avx2_chunk)
 {
-    std::vector<lh_uchar_t> a(96, 0);
-    std::vector<lh_uchar_t> b(96, 0);
+    std::vector<lh_byte_t> a(96, 0);
+    std::vector<lh_byte_t> b(96, 0);
     a[50] = 9; // chunk [64..95] (scanned first) must compare equal first
     const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
     ASSERT_TRUE(lh_null_ne(d));
@@ -667,8 +667,8 @@ TEST(memory_std_rcompare, mismatch_in_middle_avx2_chunk)
 
 TEST(memory_std_rcompare, mismatch_in_scalar_tail_after_avx2_chunks)
 {
-    std::vector<lh_uchar_t> a(100, 0); // 96 = 3 AVX2 chunks (scanned first), 4-byte tail
-    std::vector<lh_uchar_t> b(100, 0);
+    std::vector<lh_byte_t> a(100, 0); // 96 = 3 AVX2 chunks (scanned first), 4-byte tail
+    std::vector<lh_byte_t> b(100, 0);
     a[1] = 9; // tail sits at the *start* of the range for a reverse scan
     const lh_ptr d = lh_memory_std_rcompare(a.data(), b.data(), a.size());
     ASSERT_TRUE(lh_null_ne(d));
@@ -679,13 +679,13 @@ TEST(memory_std_rcompare, mismatch_in_scalar_tail_after_avx2_chunks)
 
 TEST(memory_std_copy_death, null_dst)
 {
-    lh_uchar_t src[] = {1};
+    lh_byte_t src[] = {1};
     LH_EXPECT_DEATH(lh_memory_std_copy(lh_null, src, 1));
 }
 
 TEST(memory_std_copy_death, null_src)
 {
-    lh_uchar_t dst[1] = {};
+    lh_byte_t dst[1] = {};
     LH_EXPECT_DEATH(lh_memory_std_copy(dst, lh_null, 1));
 }
 
@@ -696,13 +696,13 @@ TEST(memory_std_copy_death, both_null)
 
 TEST(memory_std_copy_death, null_dst_zero_bytes)
 {
-    lh_uchar_t src[] = {1};
+    lh_byte_t src[] = {1};
     LH_EXPECT_DEATH(lh_memory_std_copy(lh_null, src, 0));
 }
 
 TEST(memory_std_copy_death, null_src_zero_bytes)
 {
-    lh_uchar_t dst[1] = {};
+    lh_byte_t dst[1] = {};
     LH_EXPECT_DEATH(lh_memory_std_copy(dst, lh_null, 0));
 }
 
@@ -713,13 +713,13 @@ TEST(memory_std_copy_death, both_null_zero_bytes)
 
 TEST(memory_std_copy_rev_death, null_dst)
 {
-    lh_uchar_t src[] = {1};
+    lh_byte_t src[] = {1};
     LH_EXPECT_DEATH(lh_memory_std_copy_rev(lh_null, src, 1));
 }
 
 TEST(memory_std_copy_rev_death, null_src)
 {
-    lh_uchar_t dst[1] = {};
+    lh_byte_t dst[1] = {};
     LH_EXPECT_DEATH(lh_memory_std_copy_rev(dst, lh_null, 1));
 }
 
@@ -730,13 +730,13 @@ TEST(memory_std_copy_rev_death, both_null)
 
 TEST(memory_std_copy_rev_death, null_dst_zero_bytes)
 {
-    lh_uchar_t src[] = {1};
+    lh_byte_t src[] = {1};
     LH_EXPECT_DEATH(lh_memory_std_copy_rev(lh_null, src, 0));
 }
 
 TEST(memory_std_copy_rev_death, null_src_zero_bytes)
 {
-    lh_uchar_t dst[1] = {};
+    lh_byte_t dst[1] = {};
     LH_EXPECT_DEATH(lh_memory_std_copy_rev(dst, lh_null, 0));
 }
 
@@ -747,13 +747,13 @@ TEST(memory_std_copy_rev_death, both_null_zero_bytes)
 
 TEST(memory_std_rcopy_death, null_dst)
 {
-    lh_uchar_t src[] = {1};
+    lh_byte_t src[] = {1};
     LH_EXPECT_DEATH(lh_memory_std_rcopy(lh_null, src, 1));
 }
 
 TEST(memory_std_rcopy_death, null_src)
 {
-    lh_uchar_t dst[1] = {};
+    lh_byte_t dst[1] = {};
     LH_EXPECT_DEATH(lh_memory_std_rcopy(dst, lh_null, 1));
 }
 
@@ -764,13 +764,13 @@ TEST(memory_std_rcopy_death, both_null)
 
 TEST(memory_std_rcopy_death, null_dst_zero_bytes)
 {
-    lh_uchar_t src[] = {1};
+    lh_byte_t src[] = {1};
     LH_EXPECT_DEATH(lh_memory_std_rcopy(lh_null, src, 0));
 }
 
 TEST(memory_std_rcopy_death, null_src_zero_bytes)
 {
-    lh_uchar_t dst[1] = {};
+    lh_byte_t dst[1] = {};
     LH_EXPECT_DEATH(lh_memory_std_rcopy(dst, lh_null, 0));
 }
 
@@ -781,13 +781,13 @@ TEST(memory_std_rcopy_death, both_null_zero_bytes)
 
 TEST(memory_std_move_death, null_dst)
 {
-    lh_uchar_t src[] = {1};
+    lh_byte_t src[] = {1};
     LH_EXPECT_DEATH(lh_memory_std_move(lh_null, src, 1));
 }
 
 TEST(memory_std_move_death, null_src)
 {
-    lh_uchar_t dst[1] = {};
+    lh_byte_t dst[1] = {};
     LH_EXPECT_DEATH(lh_memory_std_move(dst, lh_null, 1));
 }
 
@@ -798,13 +798,13 @@ TEST(memory_std_move_death, both_null)
 
 TEST(memory_std_move_death, null_dst_zero_bytes)
 {
-    lh_uchar_t src[] = {1};
+    lh_byte_t src[] = {1};
     LH_EXPECT_DEATH(lh_memory_std_move(lh_null, src, 0));
 }
 
 TEST(memory_std_move_death, null_src_zero_bytes)
 {
-    lh_uchar_t dst[1] = {};
+    lh_byte_t dst[1] = {};
     LH_EXPECT_DEATH(lh_memory_std_move(dst, lh_null, 0));
 }
 
@@ -825,13 +825,13 @@ TEST(memory_std_set_death, null_dst_zero_bytes)
 
 TEST(memory_std_compare_death, null_lhs)
 {
-    lh_uchar_t b[] = {1};
+    lh_byte_t b[] = {1};
     LH_EXPECT_DEATH(lh_memory_std_compare(lh_null, b, 1));
 }
 
 TEST(memory_std_compare_death, null_rhs)
 {
-    lh_uchar_t a[] = {1};
+    lh_byte_t a[] = {1};
     LH_EXPECT_DEATH(lh_memory_std_compare(a, lh_null, 1));
 }
 
@@ -842,13 +842,13 @@ TEST(memory_std_compare_death, both_null)
 
 TEST(memory_std_compare_death, null_lhs_zero_bytes)
 {
-    lh_uchar_t b[] = {1};
+    lh_byte_t b[] = {1};
     LH_EXPECT_DEATH(lh_memory_std_compare(lh_null, b, 0));
 }
 
 TEST(memory_std_compare_death, null_rhs_zero_bytes)
 {
-    lh_uchar_t a[] = {1};
+    lh_byte_t a[] = {1};
     LH_EXPECT_DEATH(lh_memory_std_compare(a, lh_null, 0));
 }
 
@@ -859,13 +859,13 @@ TEST(memory_std_compare_death, both_null_zero_bytes)
 
 TEST(memory_std_rcompare_death, null_lhs)
 {
-    lh_uchar_t b[] = {1};
+    lh_byte_t b[] = {1};
     LH_EXPECT_DEATH(lh_memory_std_rcompare(lh_null, b, 1));
 }
 
 TEST(memory_std_rcompare_death, null_rhs)
 {
-    lh_uchar_t a[] = {1};
+    lh_byte_t a[] = {1};
     LH_EXPECT_DEATH(lh_memory_std_rcompare(a, lh_null, 1));
 }
 
@@ -876,13 +876,13 @@ TEST(memory_std_rcompare_death, both_null)
 
 TEST(memory_std_rcompare_death, null_lhs_zero_bytes)
 {
-    lh_uchar_t b[] = {1};
+    lh_byte_t b[] = {1};
     LH_EXPECT_DEATH(lh_memory_std_rcompare(lh_null, b, 0));
 }
 
 TEST(memory_std_rcompare_death, null_rhs_zero_bytes)
 {
-    lh_uchar_t a[] = {1};
+    lh_byte_t a[] = {1};
     LH_EXPECT_DEATH(lh_memory_std_rcompare(a, lh_null, 0));
 }
 
@@ -895,9 +895,9 @@ TEST(memory_std_rcompare_death, both_null_zero_bytes)
 
 TEST(memory_std_xor, combines_into_third_buffer_and_returns_end)
 {
-    const lh_uchar_t lhs[] = {0x0F, 0xF0, 0xAA, 0x00};
-    const lh_uchar_t rhs[] = {0xFF, 0xFF, 0x55, 0x00};
-    lh_uchar_t dst[4] = {};
+    const lh_byte_t lhs[] = {0x0F, 0xF0, 0xAA, 0x00};
+    const lh_byte_t rhs[] = {0xFF, 0xFF, 0x55, 0x00};
+    lh_byte_t dst[4] = {};
     lh_ptr end = lh_memory_std_xor(dst, lhs, rhs, 4);
     EXPECT_EQ(end, static_cast<lh_ptr>(dst + 4));
     EXPECT_EQ(dst[0], 0xF0);
@@ -908,8 +908,8 @@ TEST(memory_std_xor, combines_into_third_buffer_and_returns_end)
 
 TEST(memory_std_xor, in_place_twice_restores)
 {
-    lh_uchar_t data[] = {1, 2, 3, 4, 5};
-    const lh_uchar_t key[] = {0x5A, 0xA5, 0x3C, 0xC3, 0xFF};
+    lh_byte_t data[] = {1, 2, 3, 4, 5};
+    const lh_byte_t key[] = {0x5A, 0xA5, 0x3C, 0xC3, 0xFF};
     lh_memory_std_xor(data, data, key, 5);
     EXPECT_EQ(data[0], 1 ^ 0x5A);
     lh_memory_std_xor(data, key, data, 5);
@@ -919,25 +919,25 @@ TEST(memory_std_xor, in_place_twice_restores)
 
 TEST(memory_std_xor, zero_bytes_writes_nothing)
 {
-    lh_uchar_t dst[1] = {7};
-    const lh_uchar_t src[1] = {1};
+    lh_byte_t dst[1] = {7};
+    const lh_byte_t src[1] = {1};
     EXPECT_EQ(lh_memory_std_xor(dst, src, src, 0), static_cast<lh_ptr>(dst));
     EXPECT_EQ(dst[0], 7);
 }
 
 TEST(memory_std_xor_death, null_operand)
 {
-    lh_uchar_t dst[1] = {};
+    lh_byte_t dst[1] = {};
     LH_EXPECT_DEATH(lh_memory_std_xor(dst, lh_null, dst, 1));
 }
 
 TEST(memory_std_xor, exact_bytes_across_simd_sizes_and_misalignment)
 {
-    std::vector<lh_uchar_t> lhs(4200 + 3), rhs(4200 + 3), dst(4200 + 3), inplace(4200 + 3);
+    std::vector<lh_byte_t> lhs(4200 + 3), rhs(4200 + 3), dst(4200 + 3), inplace(4200 + 3);
     for (size_t i = 0; i < lhs.size(); ++i)
     {
-        lhs[i] = static_cast<lh_uchar_t>(i * 7 + 1);
-        rhs[i] = static_cast<lh_uchar_t>(i * 13 + 5);
+        lhs[i] = static_cast<lh_byte_t>(i * 7 + 1);
+        rhs[i] = static_cast<lh_byte_t>(i * 13 + 5);
     }
     const size_t sizes[] = {0,   1,   15,  31,  32,  33,   63,   64,   65,
                             127, 255, 256, 257, 300, 1023, 1024, 4097, 4200};
@@ -950,7 +950,7 @@ TEST(memory_std_xor, exact_bytes_across_simd_sizes_and_misalignment)
             ASSERT_EQ(end, static_cast<lh_ptr>(dst.data() + off + n)) << "n = " << n;
             for (size_t i = 0; i < n; ++i)
             {
-                ASSERT_EQ(dst[off + i], static_cast<lh_uchar_t>(lhs[off + i] ^ rhs[off + i]))
+                ASSERT_EQ(dst[off + i], static_cast<lh_byte_t>(lhs[off + i] ^ rhs[off + i]))
                     << "n = " << n << ", off = " << off << ", i = " << i;
             }
             ASSERT_EQ(dst[off + n], 0xEE) << "wrote past the end, n = " << n;
@@ -970,8 +970,8 @@ TEST(memory_std_xor, exact_bytes_across_simd_sizes_and_misalignment)
 namespace
 {
 
-const lh_uchar_t *
-reference_find(const lh_uchar_t *hay, lh_usize_t n, const lh_uchar_t *needle, lh_usize_t m)
+const lh_byte_t *
+reference_find(const lh_byte_t *hay, lh_usize_t n, const lh_byte_t *needle, lh_usize_t m)
 {
     if (m == 0 || m > n)
     {
@@ -992,12 +992,12 @@ reference_find(const lh_uchar_t *hay, lh_usize_t n, const lh_uchar_t *needle, lh
 // first/last-byte hits without a full match are common.
 TEST(memory_std_find, matches_reference_everywhere)
 {
-    std::vector<lh_uchar_t> hay;
-    std::vector<lh_uchar_t> needle;
+    std::vector<lh_byte_t> hay;
+    std::vector<lh_byte_t> needle;
     unsigned seed = 12345U;
     auto next = [&seed]() {
         seed = seed * 1103515245U + 12345U;
-        return static_cast<lh_uchar_t>('a' + ((seed >> 16) % 3U));
+        return static_cast<lh_byte_t>('a' + ((seed >> 16) % 3U));
     };
 
     for (lh_usize_t n = 0; n <= 100; ++n)
@@ -1020,8 +1020,8 @@ TEST(memory_std_find, matches_reference_everywhere)
                 {
                     std::copy(needle.begin(), needle.end(), hay.begin() + static_cast<std::ptrdiff_t>(at));
                 }
-                const lh_uchar_t *h = hay.empty() ? needle.data() : hay.data();
-                const lh_uchar_t *want = reference_find(h, n, needle.data(), m);
+                const lh_byte_t *h = hay.empty() ? needle.data() : hay.data();
+                const lh_byte_t *want = reference_find(h, n, needle.data(), m);
                 const lh_ptr got = lh_memory_std_find(h, n, needle.data(), m);
                 ASSERT_EQ(got, static_cast<const lh_ptr>(want)) << "n=" << n << " m=" << m << " at=" << at;
                 if (at + m > n)
@@ -1036,7 +1036,7 @@ TEST(memory_std_find, matches_reference_everywhere)
 TEST(memory_std_find, first_and_last_match_but_middle_differs)
 {
     // Every 17 bytes: "a..b" shaped decoys that pass the first/last filter.
-    std::vector<lh_uchar_t> hay(200, 'x');
+    std::vector<lh_byte_t> hay(200, 'x');
     for (std::size_t i = 0; i + 4 <= 150; i += 17)
     {
         hay[i] = 'a';
@@ -1044,7 +1044,7 @@ TEST(memory_std_find, first_and_last_match_but_middle_differs)
         hay[i + 2] = 'y';
         hay[i + 3] = 'b';
     }
-    const lh_uchar_t needle[] = {'a', 'z', 'z', 'b'};
+    const lh_byte_t needle[] = {'a', 'z', 'z', 'b'};
     EXPECT_TRUE(lh_null_eq(lh_memory_std_find(hay.data(), hay.size(), needle, 4)));
 
     hay[190] = 'a';
@@ -1056,8 +1056,8 @@ TEST(memory_std_find, first_and_last_match_but_middle_differs)
 
 TEST(memory_std_find, empty_or_oversized_needle_is_null)
 {
-    const lh_uchar_t hay[] = {'a', 'b', 'c'};
-    const lh_uchar_t needle[] = {'a', 'b', 'c', 'd'};
+    const lh_byte_t hay[] = {'a', 'b', 'c'};
+    const lh_byte_t needle[] = {'a', 'b', 'c', 'd'};
     EXPECT_TRUE(lh_null_eq(lh_memory_std_find(hay, 3, needle, 0)));
     EXPECT_TRUE(lh_null_eq(lh_memory_std_find(hay, 3, needle, 4)));
     EXPECT_EQ(lh_memory_std_find(hay, 3, needle, 3), static_cast<const lh_ptr>(hay));
@@ -1078,15 +1078,15 @@ TEST(memory_std_move, matches_memmove_for_every_size_and_shift)
     {
         for (int shift = -40; shift <= 40; ++shift)
         {
-            std::vector<lh_uchar_t> got(n + 2 * pad);
+            std::vector<lh_byte_t> got(n + 2 * pad);
             for (std::size_t i = 0; i < got.size(); ++i)
             {
-                got[i] = static_cast<lh_uchar_t>(i * 7 + 3);
+                got[i] = static_cast<lh_byte_t>(i * 7 + 3);
             }
-            std::vector<lh_uchar_t> want = got;
+            std::vector<lh_byte_t> want = got;
 
-            lh_uchar_t *src = got.data() + pad;
-            lh_uchar_t *dst = src + shift;
+            lh_byte_t *src = got.data() + pad;
+            lh_byte_t *dst = src + shift;
             const lh_ptr end = lh_memory_std_move(dst, src, n);
             std::memmove(want.data() + pad + shift, want.data() + pad, n);
 
@@ -1107,15 +1107,15 @@ TEST(memory_std_move, matches_memmove_for_large_sizes)
     {
         for (int shift : shifts)
         {
-            std::vector<lh_uchar_t> got(n + 2 * pad);
+            std::vector<lh_byte_t> got(n + 2 * pad);
             for (std::size_t i = 0; i < got.size(); ++i)
             {
-                got[i] = static_cast<lh_uchar_t>(i * 13 + 5);
+                got[i] = static_cast<lh_byte_t>(i * 13 + 5);
             }
-            std::vector<lh_uchar_t> want = got;
+            std::vector<lh_byte_t> want = got;
 
-            lh_uchar_t *src = got.data() + pad;
-            lh_uchar_t *dst = src + shift;
+            lh_byte_t *src = got.data() + pad;
+            lh_byte_t *dst = src + shift;
             const lh_ptr end = lh_memory_std_move(dst, src, n);
             std::memmove(want.data() + pad + shift, want.data() + pad, n);
 

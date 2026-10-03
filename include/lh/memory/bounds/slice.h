@@ -1543,7 +1543,7 @@ lh_memory_bounds_slice_swap_and_clear(lh_memory_bounds_slice_t *self,
  *
  * Example usage:
  * @code{.c}
- * lh_uchar_t buf[16];
+ * lh_byte_t buf[16];
  * lh_memory_bounds_slice_t b = lh_memory_bounds_slice_make_by_size(buf, sizeof(buf));
  * lh_memory_view_slice_t v = lh_memory_bounds_slice_as_view(&b);
  * @endcode

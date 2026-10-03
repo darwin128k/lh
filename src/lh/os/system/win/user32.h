@@ -95,7 +95,7 @@ typedef struct lh_os_system_win_msg lh_os_system_win_msg_t;
 struct lh_os_system_win_paintstruct
 {
     lh_os_system_win_paintstruct_fields(lh_os_system_win_hdc_t, lh_os_system_win_bool_t,
-                                        lh_os_system_win_rect_t, lh_uchar_t);
+                                        lh_os_system_win_rect_t, lh_byte_t);
 };
 typedef struct lh_os_system_win_paintstruct lh_os_system_win_paintstruct_t;
 

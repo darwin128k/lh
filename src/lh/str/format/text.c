@@ -111,7 +111,7 @@ lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt
                 }
                 lh_memory_std_copy(str + out_pos, content, content_len);
                 out_pos += content_len;
-                lh_memory_std_set(str + out_pos, lh_cast_static(lh_uchar_t, ' '), pad_len);
+                lh_memory_std_set(str + out_pos, lh_cast_static(lh_byte_t, ' '), pad_len);
                 out_pos += pad_len;
             }
             else if (spec.zero_pad && has_sign)
@@ -121,7 +121,7 @@ lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt
                     return 0;
                 }
                 str[out_pos++] = content[0];
-                lh_memory_std_set(str + out_pos, lh_cast_static(lh_uchar_t, '0'), pad_len);
+                lh_memory_std_set(str + out_pos, lh_cast_static(lh_byte_t, '0'), pad_len);
                 out_pos += pad_len;
                 lh_memory_std_copy(str + out_pos, content + 1, content_len - 1U);
                 out_pos += content_len - 1U;
@@ -133,7 +133,7 @@ lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt
                 {
                     return 0;
                 }
-                lh_memory_std_set(str + out_pos, lh_cast_static(lh_uchar_t, pad_char), pad_len);
+                lh_memory_std_set(str + out_pos, lh_cast_static(lh_byte_t, pad_char), pad_len);
                 out_pos += pad_len;
                 lh_memory_std_copy(str + out_pos, content, content_len);
                 out_pos += content_len;

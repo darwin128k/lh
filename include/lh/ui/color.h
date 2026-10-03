@@ -2,7 +2,7 @@
  * @file color.h
  * @brief OS-portable 8-bit RGBA color.
  *
- * A single value type `lh_ui_color_t` with four `lh_uchar_t` channels
+ * A single value type `lh_ui_color_t` with four `lh_byte_t` channels
  * (red, green, blue, alpha), straight (not premultiplied) alpha.
  *
  * Part of the UI layer, next to ::lh_math_point_t. The `lh/os/system`
@@ -29,7 +29,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 struct lh_ui_color
 {
-    lh_ui_color_fields(lh_uchar_t);
+    lh_ui_color_fields(lh_byte_t);
 };
 typedef struct lh_ui_color lh_ui_color_t;
 

@@ -35,8 +35,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * Example usage:
  * @code{.c}
- * lh_uchar_t buf[8];
- * lh_uchar_t src[4] = {1, 2, 3, 4};
+ * lh_byte_t buf[8];
+ * lh_byte_t src[4] = {1, 2, 3, 4};
  * lh_ptr end = lh_memory_std_copy(buf, src, 4);
  * // buf[0..3] == {1,2,3,4}; end == buf + 4
  * @endcode
@@ -58,8 +58,8 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n);
  *
  * Example usage:
  * @code{.c}
- * lh_uchar_t src[4] = {1, 2, 3, 4};
- * lh_uchar_t dst[4];
+ * lh_byte_t src[4] = {1, 2, 3, 4};
+ * lh_byte_t dst[4];
  * lh_memory_std_copy_rev(dst, src, 4);
  * // dst == {4, 3, 2, 1}
  * @endcode
@@ -81,7 +81,7 @@ lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n);
  *
  * Example usage:
  * @code{.c}
- * lh_uchar_t v[5] = {1, 2, 3, 4, 5};
+ * lh_byte_t v[5] = {1, 2, 3, 4, 5};
  * lh_memory_std_rcopy(v + 1, v, 4);
  * // v == {1, 1, 2, 3, 4}
  * @endcode
@@ -103,7 +103,7 @@ lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n);
  *
  * Example usage:
  * @code{.c}
- * lh_uchar_t buf[8] = {1, 2, 3, 4, 5, 6, 7, 8};
+ * lh_byte_t buf[8] = {1, 2, 3, 4, 5, 6, 7, 8};
  * lh_memory_std_move(buf + 2, buf, 6);
  * // buf == {1, 2, 1, 2, 3, 4, 5, 6}
  * @endcode
@@ -122,13 +122,13 @@ lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n);
  *
  * Example usage:
  * @code{.c}
- * lh_uchar_t block[16];
+ * lh_byte_t block[16];
  * lh_ptr end = lh_memory_std_set(block, 0, 16);
  * // all bytes in block are 0; end == block + 16
  * @endcode
  */
 lh_ptr
-lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n);
+lh_memory_std_set(lh_ptr dst, lh_byte_t val, lh_usize_t n);
 
 /**
  * @brief Write the byte-wise XOR of @p lhs and @p rhs into @p dst,
@@ -146,7 +146,7 @@ lh_memory_std_set(lh_ptr dst, lh_uchar_t val, lh_usize_t n);
  *
  * Example usage:
  * @code{.c}
- * lh_uchar_t block[16];
+ * lh_byte_t block[16];
  * lh_memory_std_xor(block, block, key, 16); // block ^= key
  * @endcode
  *
@@ -168,8 +168,8 @@ lh_memory_std_xor(lh_ptr dst, const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
  *
  * Example usage:
  * @code{.c}
- * const lh_uchar_t a[] = {1, 2, 9, 4};
- * const lh_uchar_t b[] = {1, 2, 3, 4};
+ * const lh_byte_t a[] = {1, 2, 9, 4};
+ * const lh_byte_t b[] = {1, 2, 3, 4};
  * const lh_ptr diff = lh_memory_std_compare(a, b, 4);
  * // diff points to a[2] (value 9)
  * @endcode
@@ -189,8 +189,8 @@ lh_memory_std_compare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
  *
  * Example usage:
  * @code{.c}
- * const lh_uchar_t a[] = {1, 2, 3, 9};
- * const lh_uchar_t b[] = {1, 2, 3, 4};
+ * const lh_byte_t a[] = {1, 2, 3, 9};
+ * const lh_byte_t b[] = {1, 2, 3, 4};
  * const lh_ptr diff = lh_memory_std_rcompare(a, b, 4);
  * // diff points to a[3] (last byte differs first when comparing from the end)
  * @endcode

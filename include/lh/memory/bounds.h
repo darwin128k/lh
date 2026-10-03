@@ -1458,7 +1458,7 @@ lh_memory_bounds_trim(const lh_memory_bounds_t *self, lh_usize_t left, lh_usize_
  *
  * Example usage:
  * @code{.c}
- * lh_uchar_t buf[16];
+ * lh_byte_t buf[16];
  * lh_memory_bounds_t b = lh_memory_bounds_make_by_size(buf, sizeof(buf));
  * lh_memory_view_t v = lh_memory_bounds_as_view(&b);
  * @endcode

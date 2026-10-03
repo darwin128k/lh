@@ -77,8 +77,8 @@ TEST_F(SizedAllocator, asks_callbacks_for_size_plus_header_and_returns_data_past
     lh_ptr p = lh_memory_sized_allocator_alloc(&sized, 40);
     EXPECT_EQ(heap.allocs, 1);
     EXPECT_EQ(heap.last_alloc_size, 40u + LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE);
-    EXPECT_EQ(static_cast<lh_uchar_t *>(p),
-              static_cast<lh_uchar_t *>(heap.last_alloc_block) + LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE);
+    EXPECT_EQ(static_cast<lh_byte_t *>(p),
+              static_cast<lh_byte_t *>(heap.last_alloc_block) + LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE);
 
     lh_memory_sized_allocator_dealloc(&sized, p);
     EXPECT_EQ(heap.deallocs, 1);
