@@ -31,7 +31,7 @@ typedef lh_void(lh_entity_destructor_fn)(struct lh_entity *self);
 
 /**
  * @typedef lh_entity_event_fn
- * @brief A class's own reaction to an event reaching one of its entities.
+ * @brief A class's own handler invoked when an event reaches one of its entities.
  *
  * Runs derived class first, then each base, before the entity's handlers;
  * ::lh_entity_event_stop ends the chain.
