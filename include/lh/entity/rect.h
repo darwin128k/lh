@@ -25,8 +25,8 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/entity/2d.h>
 #include <lh/entity/rect/fields.h>
+#include <lh/math.h>
 #include <lh/ui/color.h>
-#include <lh/ui/geom.h>
 #include <lh/vec2.h>
 
 /**
@@ -82,7 +82,7 @@ lh_entity_rect_set_color(lh_entity_rect_t *self, lh_ui_color_t color);
  *        of its corners, rounded outward. Depth is ignored (seen straight
  *        along z).
  */
-lh_ui_rect_t
+lh_math_rect_t
 lh_entity_rect_get_screen_bounds(const lh_entity_rect_t *self);
 
 /**

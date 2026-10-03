@@ -18,23 +18,23 @@ const lh_entity_class_t lh_entity_screen_class =
                                 lh_entity_screen_construct, lh_null, lh_null);
 
 lh_void
-lh_entity_screen_invalidate_area(lh_entity_screen_t *self, lh_ui_rect_t area)
+lh_entity_screen_invalidate_area(lh_entity_screen_t *self, lh_math_rect_t area)
 {
     lh_assert_runtime_ref(self);
     const lh_vec2_t size = lh_entity_rect_get_size(lh_ptr_rcast(const lh_entity_rect_t, self));
-    const lh_ui_rect_t screen =
-        lh_ui_rect_make(0, 0, lh_float_ceil_to_int(size.x), lh_float_ceil_to_int(size.y));
-    lh_ui_rect_t dirty = lh_ui_rect_intersection(lh_addr_of(screen), lh_addr_of(area));
-    if (lh_ui_rect_is_empty(lh_addr_of(dirty)))
+    const lh_math_rect_t screen =
+        lh_math_rect_make(0, 0, lh_float_ceil_to_int(size.x), lh_float_ceil_to_int(size.y));
+    lh_math_rect_t dirty = lh_math_rect_intersection(lh_addr_of(screen), lh_addr_of(area));
+    if (lh_math_rect_is_empty(lh_addr_of(dirty)))
     {
         return;
     }
 
     for (lh_usize_t i = 0; i < self->dirty_count; ++i)
     {
-        if (lh_ui_rect_intersects(lh_addr_of(self->dirty[i]), lh_addr_of(dirty)))
+        if (lh_math_rect_intersects(lh_addr_of(self->dirty[i]), lh_addr_of(dirty)))
         {
-            self->dirty[i] = lh_ui_rect_union(lh_addr_of(self->dirty[i]), lh_addr_of(dirty));
+            self->dirty[i] = lh_math_rect_union(lh_addr_of(self->dirty[i]), lh_addr_of(dirty));
             return;
         }
     }
@@ -44,9 +44,9 @@ lh_entity_screen_invalidate_area(lh_entity_screen_t *self, lh_ui_rect_t area)
         for (lh_usize_t i = 1; i < self->dirty_count; ++i)
         {
             self->dirty[0] =
-                lh_ui_rect_union(lh_addr_of(self->dirty[0]), lh_addr_of(self->dirty[i]));
+                lh_math_rect_union(lh_addr_of(self->dirty[0]), lh_addr_of(self->dirty[i]));
         }
-        self->dirty[0] = lh_ui_rect_union(lh_addr_of(self->dirty[0]), lh_addr_of(dirty));
+        self->dirty[0] = lh_math_rect_union(lh_addr_of(self->dirty[0]), lh_addr_of(dirty));
         self->dirty_count = 1;
         return;
     }
@@ -60,7 +60,7 @@ lh_entity_screen_get_dirty_count(const lh_entity_screen_t *self)
     return self->dirty_count;
 }
 
-lh_ui_rect_t
+lh_math_rect_t
 lh_entity_screen_get_dirty_area(const lh_entity_screen_t *self, lh_usize_t index)
 {
     lh_assert_runtime_ifn(index < lh_entity_screen_get_dirty_count(self),
@@ -78,7 +78,7 @@ lh_entity_screen_get_clipping_rect(const lh_entity_t *entity)
 
 /* Draw @p entity and its children onto @p canvas within @p clip. */
 static lh_void
-lh_entity_screen_draw(lh_entity_t *entity, lh_ui_canvas_t *canvas, lh_ui_rect_t clip)
+lh_entity_screen_draw(lh_entity_t *entity, lh_ui_canvas_t *canvas, lh_math_rect_t clip)
 {
     if (lh_entity_has_flags(entity, lh_entity_flags_hidden))
     {
@@ -88,13 +88,13 @@ lh_entity_screen_draw(lh_entity_t *entity, lh_ui_canvas_t *canvas, lh_ui_rect_t 
     lh_ui_canvas_set_clip(canvas, clip);
     lh_entity_notify(entity, LH_ENTITY_EVENT_DRAW, canvas);
 
-    lh_ui_rect_t child_clip = clip;
+    lh_math_rect_t child_clip = clip;
     const lh_entity_rect_t *const clipping = lh_entity_screen_get_clipping_rect(entity);
     if (lh_ptr_is_set(clipping))
     {
-        const lh_ui_rect_t bounds = lh_entity_rect_get_screen_bounds(clipping);
-        child_clip = lh_ui_rect_intersection(lh_addr_of(clip), lh_addr_of(bounds));
-        if (lh_ui_rect_is_empty(lh_addr_of(child_clip)))
+        const lh_math_rect_t bounds = lh_entity_rect_get_screen_bounds(clipping);
+        child_clip = lh_math_rect_intersection(lh_addr_of(clip), lh_addr_of(bounds));
+        if (lh_math_rect_is_empty(lh_addr_of(child_clip)))
         {
             return;
         }
@@ -106,18 +106,18 @@ lh_entity_screen_draw(lh_entity_t *entity, lh_ui_canvas_t *canvas, lh_ui_rect_t 
     }
 }
 
-lh_ui_rect_t
+lh_math_rect_t
 lh_entity_screen_render(lh_entity_screen_t *self, lh_ui_canvas_t *canvas)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(canvas);
 
-    lh_ui_rect_t drawn = lh_ui_rect_zero();
+    lh_math_rect_t drawn = lh_math_rect_zero();
     for (lh_usize_t i = 0; i < lh_entity_screen_get_dirty_count(self); ++i)
     {
-        const lh_ui_rect_t area = lh_entity_screen_get_dirty_area(self, i);
+        const lh_math_rect_t area = lh_entity_screen_get_dirty_area(self, i);
         lh_entity_screen_draw(lh_ptr_rcast(lh_entity_t, self), canvas, area);
-        drawn = lh_ui_rect_union(lh_addr_of(drawn), lh_addr_of(area));
+        drawn = lh_math_rect_union(lh_addr_of(drawn), lh_addr_of(area));
     }
     self->dirty_count = 0;
     return drawn;

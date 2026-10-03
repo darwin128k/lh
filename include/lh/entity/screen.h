@@ -23,9 +23,9 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/entity/rect.h>
 #include <lh/entity/screen/fields.h>
+#include <lh/math.h>
 #include <lh/size.h>
 #include <lh/ui/canvas.h>
-#include <lh/ui/geom.h>
 
 /**
  * @struct lh_entity_screen
@@ -37,7 +37,7 @@ struct lh_entity_screen
     lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
     lh_entity_2d_fields(lh_vec2_t, lh_float_t);
     lh_entity_rect_fields(lh_vec2_t, lh_ui_color_t);
-    lh_entity_screen_fields(lh_ui_rect_t, lh_usize_t);
+    lh_entity_screen_fields(lh_math_rect_t, lh_usize_t);
 };
 typedef struct lh_entity_screen lh_entity_screen_t;
 
@@ -59,7 +59,7 @@ extern const lh_entity_class_t lh_entity_screen_class;
  * all merge into their bounding box.
  */
 lh_void
-lh_entity_screen_invalidate_area(lh_entity_screen_t *self, lh_ui_rect_t area);
+lh_entity_screen_invalidate_area(lh_entity_screen_t *self, lh_math_rect_t area);
 
 /**
  * @brief How many areas wait to be redrawn.
@@ -71,7 +71,7 @@ lh_entity_screen_get_dirty_count(const lh_entity_screen_t *self);
  * @brief The area at @p index (< ::lh_entity_screen_get_dirty_count) that
  *        waits to be redrawn.
  */
-lh_ui_rect_t
+lh_math_rect_t
 lh_entity_screen_get_dirty_area(const lh_entity_screen_t *self, lh_usize_t index);
 
 /**
@@ -85,7 +85,7 @@ lh_entity_screen_get_dirty_area(const lh_entity_screen_t *self, lh_usize_t index
  * @return The bounding box of what was redrawn (empty when nothing was):
  *         the part of @p canvas to copy to the display.
  */
-lh_ui_rect_t
+lh_math_rect_t
 lh_entity_screen_render(lh_entity_screen_t *self, lh_ui_canvas_t *canvas);
 
 /**

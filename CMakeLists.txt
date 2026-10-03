@@ -96,7 +96,7 @@ set(LH_LIB_SOURCES
 
         ${LH_LIB_SRC_PATH}/ui/canvas.c
         ${LH_LIB_SRC_PATH}/ui/color.c
-        ${LH_LIB_SRC_PATH}/ui/geom.c
+        ${LH_LIB_SRC_PATH}/math.c
         ${LH_LIB_SRC_PATH}/vec2.c
         ${LH_LIB_SRC_PATH}/vec3.c
         ${LH_LIB_SRC_PATH}/vec4.c

@@ -76,7 +76,7 @@ example_on_window(lh_self_ptr self, lh_os_system_window_handle_t window,
     case lh_os_system_window_event_paint:
         lh_entity_screen_invalidate_area(
             example->screen,
-            lh_ui_rect_make(lh_os_system_window_event_get_x(event),
+            lh_math_rect_make(lh_os_system_window_event_get_x(event),
                             lh_os_system_window_event_get_y(event),
                             lh_os_system_window_event_get_width(event),
                             lh_os_system_window_event_get_height(event)));
@@ -158,8 +158,8 @@ main(int argc, char **argv)
 
     while (!example.quit && frames_left != 0)
     {
-        const lh_ui_rect_t drawn = lh_entity_screen_render(example.screen, &canvas);
-        if (!lh_ui_rect_is_empty(&drawn))
+        const lh_math_rect_t drawn = lh_entity_screen_render(example.screen, &canvas);
+        if (!lh_math_rect_is_empty(&drawn))
         {
             lh_os_window_present(&example.window, example.pixels, EXAMPLE_WIDTH, drawn.origin.x,
                                  drawn.origin.y, drawn.size.width, drawn.size.height);

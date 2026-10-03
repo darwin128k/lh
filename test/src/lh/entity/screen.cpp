@@ -102,7 +102,7 @@ class Screen : public ::testing::Test
         return lh_ui_canvas_get_pixel(&canvas, x, y);
     }
 
-    lh_ui_rect_t
+    lh_math_rect_t
     render()
     {
         return lh_entity_screen_render(screen, &canvas);
@@ -117,7 +117,7 @@ class Screen : public ::testing::Test
 TEST_F(Screen, first_render_fills_the_whole_display)
 {
     ASSERT_EQ(lh_entity_screen_get_dirty_count(screen), 1u);
-    const lh_ui_rect_t drawn = render();
+    const lh_math_rect_t drawn = render();
     EXPECT_EQ(drawn.size.width, k_width);
     EXPECT_EQ(drawn.size.height, k_height);
     EXPECT_TRUE(same(at(0, 0), k_black));
@@ -144,7 +144,7 @@ TEST_F(Screen, only_dirty_areas_are_redrawn)
 
     lh_entity_2d_set_position(reinterpret_cast<lh_entity_2d_t *>(r), lh_vec2_make(4, 0));
     ASSERT_GE(lh_entity_screen_get_dirty_count(screen), 1u);
-    const lh_ui_rect_t drawn = render();
+    const lh_math_rect_t drawn = render();
 
     EXPECT_TRUE(same(at(0, 0), k_black));   // where it was: background again
     EXPECT_TRUE(same(at(4, 0), k_red));     // where it is now
@@ -166,7 +166,7 @@ TEST_F(Screen, children_are_cut_to_the_parent_unless_overflow_visible)
     EXPECT_EQ(lh_entity_rect_find_at(root(), lh_vec2_make(7.5f, 4.5f)), root());
 
     lh_entity_add_flags(panel_entity, lh_entity_flags_overflow_visible);
-    lh_entity_screen_invalidate_area(screen, lh_ui_rect_make(0, 0, k_width, k_height));
+    lh_entity_screen_invalidate_area(screen, lh_math_rect_make(0, 0, k_width, k_height));
     render();
     EXPECT_TRUE(same(at(7, 4), k_red));
 }
@@ -223,7 +223,7 @@ TEST_F(Screen, many_small_changes_merge_into_one_area)
     for (int i = 0; i < LH_ENTITY_SCREEN_DIRTY_MAX + 3; ++i)
     {
         lh_entity_screen_invalidate_area(screen,
-                                         lh_ui_rect_make(i % k_width, (i * 3) % k_height, 1, 1));
+                                         lh_math_rect_make(i % k_width, (i * 3) % k_height, 1, 1));
     }
     EXPECT_LE(lh_entity_screen_get_dirty_count(screen),
               static_cast<lh_usize_t>(LH_ENTITY_SCREEN_DIRTY_MAX));

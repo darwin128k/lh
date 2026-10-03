@@ -18,8 +18,8 @@ lh_ui_canvas_blend(lh_ui_color_t dst, lh_ui_color_t color)
 }
 
 lh_void
-lh_ui_canvas_init(lh_ui_canvas_t *self, lh_ui_color_t *pixels, lh_ui_coord_t width,
-                  lh_ui_coord_t height, lh_ui_coord_t stride)
+lh_ui_canvas_init(lh_ui_canvas_t *self, lh_ui_color_t *pixels, lh_math_coord_t width,
+                  lh_math_coord_t height, lh_math_coord_t stride)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(pixels);
@@ -29,24 +29,24 @@ lh_ui_canvas_init(lh_ui_canvas_t *self, lh_ui_color_t *pixels, lh_ui_coord_t wid
     self->width = width;
     self->height = height;
     self->stride = stride;
-    self->clip = lh_ui_rect_make(0, 0, width, height);
+    self->clip = lh_math_rect_make(0, 0, width, height);
 }
 
-lh_ui_coord_t
+lh_math_coord_t
 lh_ui_canvas_get_width(const lh_ui_canvas_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->width;
 }
 
-lh_ui_coord_t
+lh_math_coord_t
 lh_ui_canvas_get_height(const lh_ui_canvas_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->height;
 }
 
-lh_ui_rect_t
+lh_math_rect_t
 lh_ui_canvas_get_clip(const lh_ui_canvas_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -54,15 +54,15 @@ lh_ui_canvas_get_clip(const lh_ui_canvas_t *self)
 }
 
 lh_void
-lh_ui_canvas_set_clip(lh_ui_canvas_t *self, lh_ui_rect_t clip)
+lh_ui_canvas_set_clip(lh_ui_canvas_t *self, lh_math_rect_t clip)
 {
-    const lh_ui_rect_t image =
-        lh_ui_rect_make(0, 0, lh_ui_canvas_get_width(self), lh_ui_canvas_get_height(self));
-    self->clip = lh_ui_rect_intersection(lh_addr_of(image), lh_addr_of(clip));
+    const lh_math_rect_t image =
+        lh_math_rect_make(0, 0, lh_ui_canvas_get_width(self), lh_ui_canvas_get_height(self));
+    self->clip = lh_math_rect_intersection(lh_addr_of(image), lh_addr_of(clip));
 }
 
 lh_ui_color_t
-lh_ui_canvas_get_pixel(const lh_ui_canvas_t *self, lh_ui_coord_t x, lh_ui_coord_t y)
+lh_ui_canvas_get_pixel(const lh_ui_canvas_t *self, lh_math_coord_t x, lh_math_coord_t y)
 {
     lh_assert_runtime_ifn(x >= 0 && y >= 0 && x < lh_ui_canvas_get_width(self) &&
                               y < lh_ui_canvas_get_height(self),
@@ -71,11 +71,11 @@ lh_ui_canvas_get_pixel(const lh_ui_canvas_t *self, lh_ui_coord_t x, lh_ui_coord_
 }
 
 lh_void
-lh_ui_canvas_blend_pixel(lh_ui_canvas_t *self, lh_ui_coord_t x, lh_ui_coord_t y,
+lh_ui_canvas_blend_pixel(lh_ui_canvas_t *self, lh_math_coord_t x, lh_math_coord_t y,
                          lh_ui_color_t color)
 {
-    const lh_ui_rect_t clip = lh_ui_canvas_get_clip(self);
-    if (!lh_ui_rect_contains_point(lh_addr_of(clip), lh_ui_point_make(x, y)))
+    const lh_math_rect_t clip = lh_ui_canvas_get_clip(self);
+    if (!lh_math_rect_contains_point(lh_addr_of(clip), lh_math_point_make(x, y)))
     {
         return;
     }
@@ -84,19 +84,19 @@ lh_ui_canvas_blend_pixel(lh_ui_canvas_t *self, lh_ui_coord_t x, lh_ui_coord_t y,
 }
 
 lh_void
-lh_ui_canvas_fill_rect(lh_ui_canvas_t *self, lh_ui_rect_t rect, lh_ui_color_t color)
+lh_ui_canvas_fill_rect(lh_ui_canvas_t *self, lh_math_rect_t rect, lh_ui_color_t color)
 {
-    const lh_ui_rect_t clip = lh_ui_canvas_get_clip(self);
-    const lh_ui_rect_t area = lh_ui_rect_intersection(lh_addr_of(clip), lh_addr_of(rect));
-    if (lh_ui_rect_is_empty(lh_addr_of(area)) || color.a == 0U)
+    const lh_math_rect_t clip = lh_ui_canvas_get_clip(self);
+    const lh_math_rect_t area = lh_math_rect_intersection(lh_addr_of(clip), lh_addr_of(rect));
+    if (lh_math_rect_is_empty(lh_addr_of(area)) || color.a == 0U)
     {
         return;
     }
 
-    for (lh_ui_coord_t y = area.origin.y; y < area.origin.y + area.size.height; ++y)
+    for (lh_math_coord_t y = area.origin.y; y < area.origin.y + area.size.height; ++y)
     {
         lh_ui_color_t *row = self->pixels + y * self->stride;
-        for (lh_ui_coord_t x = area.origin.x; x < area.origin.x + area.size.width; ++x)
+        for (lh_math_coord_t x = area.origin.x; x < area.origin.x + area.size.width; ++x)
         {
             row[x] = color.a == 255U ? color : lh_ui_canvas_blend(row[x], color);
         }

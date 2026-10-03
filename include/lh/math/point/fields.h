@@ -1,0 +1,19 @@
+/**
+ * @file fields.h
+ * @brief Member fields of ::lh_math_point_t.
+ */
+
+#ifndef LH_MATH_POINT_FIELDS_H
+#define LH_MATH_POINT_FIELDS_H
+
+/**
+ * @def lh_math_point_fields(coord_type)
+ * @brief Horizontal and vertical coordinate.
+ *
+ * @param coord_type  Type of `x` and `y` (::lh_math_coord_t).
+ */
+#define lh_math_point_fields(coord_type)                                                            \
+    coord_type x;                                                                                   \
+    coord_type y
+
+#endif /* LH_MATH_POINT_FIELDS_H */

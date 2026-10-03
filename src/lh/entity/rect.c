@@ -43,7 +43,7 @@ lh_entity_rect_draw(const lh_entity_rect_t *self, lh_ui_canvas_t *canvas)
         const lh_int_t y0 = lh_float_ceil_to_int(lh_math_min(a.y, b.y) - 0.5f);
         const lh_int_t x1 = lh_float_ceil_to_int(lh_math_max(a.x, b.x) - 0.5f);
         const lh_int_t y1 = lh_float_ceil_to_int(lh_math_max(a.y, b.y) - 0.5f);
-        lh_ui_canvas_fill_rect(canvas, lh_ui_rect_make(x0, y0, x1 - x0, y1 - y0), color);
+        lh_ui_canvas_fill_rect(canvas, lh_math_rect_make(x0, y0, x1 - x0, y1 - y0), color);
         return;
     }
 
@@ -53,9 +53,9 @@ lh_entity_rect_draw(const lh_entity_rect_t *self, lh_ui_canvas_t *canvas)
     {
         return;
     }
-    const lh_ui_rect_t clip = lh_ui_canvas_get_clip(canvas);
-    const lh_ui_rect_t bounds = lh_entity_rect_get_screen_bounds(self);
-    const lh_ui_rect_t area = lh_ui_rect_intersection(lh_addr_of(clip), lh_addr_of(bounds));
+    const lh_math_rect_t clip = lh_ui_canvas_get_clip(canvas);
+    const lh_math_rect_t bounds = lh_entity_rect_get_screen_bounds(self);
+    const lh_math_rect_t area = lh_math_rect_intersection(lh_addr_of(clip), lh_addr_of(bounds));
     for (lh_int_t y = area.origin.y; y < area.origin.y + area.size.height; ++y)
     {
         for (lh_int_t x = area.origin.x; x < area.origin.x + area.size.width; ++x)
@@ -122,13 +122,13 @@ lh_entity_rect_set_color(lh_entity_rect_t *self, lh_ui_color_t color)
     lh_entity_invalidate(lh_entity_rect_as_entity(self)); /* same area, new pixels */
 }
 
-lh_ui_rect_t
+lh_math_rect_t
 lh_entity_rect_get_screen_bounds(const lh_entity_rect_t *self)
 {
     const lh_vec2_t size = lh_entity_rect_get_size(self);
     if (size.x <= 0.0f || size.y <= 0.0f)
     {
-        return lh_ui_rect_zero();
+        return lh_math_rect_zero();
     }
 
     const lh_mat4_t world = lh_entity_2d_get_world_matrix(lh_entity_rect_as_const_2d(self));
@@ -147,7 +147,7 @@ lh_entity_rect_get_screen_bounds(const lh_entity_rect_t *self)
         max.x = lh_math_max(max.x, corners[i].x);
         max.y = lh_math_max(max.y, corners[i].y);
     }
-    return lh_ui_rect_from_min_max(lh_float_floor_to_int(min.x), lh_float_floor_to_int(min.y),
+    return lh_math_rect_from_min_max(lh_float_floor_to_int(min.x), lh_float_floor_to_int(min.y),
                                    lh_float_ceil_to_int(max.x), lh_float_ceil_to_int(max.y));
 }
 

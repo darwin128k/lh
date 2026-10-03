@@ -5,7 +5,7 @@
  * A single value type `lh_ui_color_t` with four `lh_uchar_t` channels
  * (red, green, blue, alpha), straight (not premultiplied) alpha.
  *
- * Part of the UI layer, next to ::lh_ui_point_t. The `lh/os/system`
+ * Part of the UI layer, next to ::lh_math_point_t. The `lh/os/system`
  * backends do not use it: each works in its own native color type, and
  * any mapping between the two belongs to the lh layer that needs it.
  *

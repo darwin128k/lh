@@ -18,7 +18,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/ui/canvas/fields.h>
 #include <lh/ui/color.h>
-#include <lh/ui/geom.h>
+#include <lh/math.h>
 #include <lh/void.h>
 
 /**
@@ -27,7 +27,7 @@
  */
 struct lh_ui_canvas
 {
-    lh_ui_canvas_fields(lh_ui_color_t, lh_ui_coord_t, lh_ui_rect_t);
+    lh_ui_canvas_fields(lh_ui_color_t, lh_math_coord_t, lh_math_rect_t);
 };
 typedef struct lh_ui_canvas lh_ui_canvas_t;
 
@@ -38,45 +38,45 @@ LH_COMPILER_EXTERN_C_BEGIN
  *        pixels apart. The clip starts as the whole image.
  */
 lh_void
-lh_ui_canvas_init(lh_ui_canvas_t *self, lh_ui_color_t *pixels, lh_ui_coord_t width,
-                  lh_ui_coord_t height, lh_ui_coord_t stride);
+lh_ui_canvas_init(lh_ui_canvas_t *self, lh_ui_color_t *pixels, lh_math_coord_t width,
+                  lh_math_coord_t height, lh_math_coord_t stride);
 
 /**
  * @brief Image width in pixels.
  */
-lh_ui_coord_t
+lh_math_coord_t
 lh_ui_canvas_get_width(const lh_ui_canvas_t *self);
 
 /**
  * @brief Image height in pixels.
  */
-lh_ui_coord_t
+lh_math_coord_t
 lh_ui_canvas_get_height(const lh_ui_canvas_t *self);
 
 /**
  * @brief Where drawing is currently allowed.
  */
-lh_ui_rect_t
+lh_math_rect_t
 lh_ui_canvas_get_clip(const lh_ui_canvas_t *self);
 
 /**
  * @brief Allow drawing only inside @p clip (cut to the image).
  */
 lh_void
-lh_ui_canvas_set_clip(lh_ui_canvas_t *self, lh_ui_rect_t clip);
+lh_ui_canvas_set_clip(lh_ui_canvas_t *self, lh_math_rect_t clip);
 
 /**
  * @brief The pixel at (@p x, @p y), which must be inside the image.
  */
 lh_ui_color_t
-lh_ui_canvas_get_pixel(const lh_ui_canvas_t *self, lh_ui_coord_t x, lh_ui_coord_t y);
+lh_ui_canvas_get_pixel(const lh_ui_canvas_t *self, lh_math_coord_t x, lh_math_coord_t y);
 
 /**
  * @brief Draw @p color over the pixel at (@p x, @p y), blended by its alpha;
  *        nothing outside the clip.
  */
 lh_void
-lh_ui_canvas_blend_pixel(lh_ui_canvas_t *self, lh_ui_coord_t x, lh_ui_coord_t y,
+lh_ui_canvas_blend_pixel(lh_ui_canvas_t *self, lh_math_coord_t x, lh_math_coord_t y,
                          lh_ui_color_t color);
 
 /**
@@ -84,7 +84,7 @@ lh_ui_canvas_blend_pixel(lh_ui_canvas_t *self, lh_ui_coord_t x, lh_ui_coord_t y,
  *        nothing outside the clip.
  */
 lh_void
-lh_ui_canvas_fill_rect(lh_ui_canvas_t *self, lh_ui_rect_t rect, lh_ui_color_t color);
+lh_ui_canvas_fill_rect(lh_ui_canvas_t *self, lh_math_rect_t rect, lh_ui_color_t color);
 
 LH_COMPILER_EXTERN_C_END
 

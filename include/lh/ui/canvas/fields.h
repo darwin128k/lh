@@ -16,8 +16,8 @@
  * - `clip`: drawing outside it is discarded; always inside the image.
  *
  * @param pixel_type Type of one pixel (::lh_ui_color_t).
- * @param coord_type Type of `width`, `height` and `stride` (::lh_ui_coord_t).
- * @param rect_type  Type of `clip` (::lh_ui_rect_t).
+ * @param coord_type Type of `width`, `height` and `stride` (::lh_math_coord_t).
+ * @param rect_type  Type of `clip` (::lh_math_rect_t).
  */
 #define lh_ui_canvas_fields(pixel_type, coord_type, rect_type)                                     \
     pixel_type *pixels;                                                                            \
