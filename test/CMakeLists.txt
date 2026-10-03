@@ -53,6 +53,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/memory/tree.cpp
         ${LH_TEST_SRC_PATH}/lh/entity.cpp
         ${LH_TEST_SRC_PATH}/lh/entity/spatial.cpp
+        ${LH_TEST_SRC_PATH}/lh/entity/screen.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/std.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/memory.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/scan_page.cpp
@@ -69,7 +70,9 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/vec4.cpp
         ${LH_TEST_SRC_PATH}/lh/quat.cpp
         ${LH_TEST_SRC_PATH}/lh/mat4.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/canvas.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/color.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/canvas.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/color.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/geom.cpp
         ${LH_TEST_SRC_PATH}/lh/list.cpp

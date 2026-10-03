@@ -1,4 +1,5 @@
 #include <lh/entity/2d.h>
+#include <lh/entity/screen.h>
 #include <lh/assert.h>
 #include <lh/cast/const.h>
 #include <lh/null.h>
@@ -48,7 +49,9 @@ lh_void
 lh_entity_2d_set_position(lh_entity_2d_t *self, lh_vec2_t position)
 {
     lh_assert_runtime_ref(self);
+    lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self)); /* where it was */
     self->position = position;
+    lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self)); /* where it is now */
 }
 
 lh_float_t
@@ -62,7 +65,9 @@ lh_void
 lh_entity_2d_set_angle(lh_entity_2d_t *self, lh_float_t angle)
 {
     lh_assert_runtime_ref(self);
+    lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self)); /* where it was */
     self->angle = angle;
+    lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self)); /* where it is now */
 }
 
 lh_vec2_t
@@ -76,7 +81,9 @@ lh_void
 lh_entity_2d_set_scale(lh_entity_2d_t *self, lh_vec2_t scale)
 {
     lh_assert_runtime_ref(self);
+    lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self)); /* where it was */
     self->scale = scale;
+    lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self)); /* where it is now */
 }
 
 lh_mat4_t
@@ -84,8 +91,8 @@ lh_entity_2d_get_local_matrix(const lh_entity_2d_t *self)
 {
     /* Asked as an event so the most derived spatial class answers. */
     lh_mat4_t local = lh_mat4_identity();
-    lh_entity_send_event(lh_cast_const(lh_entity_t *, lh_ptr_rcast(const lh_entity_t, self)),
-                         LH_ENTITY_EVENT_GET_LOCAL_MATRIX, lh_addr_of(local));
+    lh_entity_notify(lh_cast_const(lh_entity_t *, lh_ptr_rcast(const lh_entity_t, self)),
+                     LH_ENTITY_EVENT_GET_LOCAL_MATRIX, lh_addr_of(local));
     return local;
 }
 

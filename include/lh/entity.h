@@ -35,12 +35,34 @@
 #include <lh/memory/sized/allocator.h>
 #include <lh/numeric/types.h>
 #include <lh/ptr.h>
+#include <lh/util/math.h>
 
 /**
  * @def LH_ENTITY_FLAG_EVENT_BUBBLE
  * @brief Events reaching this entity continue to its parent afterwards.
  */
-#define LH_ENTITY_FLAG_EVENT_BUBBLE (1U << 0)
+#define LH_ENTITY_FLAG_EVENT_BUBBLE lh_math_bit_mask(0)
+
+/**
+ * @def LH_ENTITY_FLAG_HIDDEN
+ * @brief Neither this entity nor its children are drawn or hit by the
+ *        pointer (::lh_entity_rect_find_at).
+ */
+#define LH_ENTITY_FLAG_HIDDEN lh_math_bit_mask(1)
+
+/**
+ * @def LH_ENTITY_FLAG_OVERFLOW_VISIBLE
+ * @brief Children of this rectangle are drawn and hit outside it too; by
+ *        default they are cut to it.
+ */
+#define LH_ENTITY_FLAG_OVERFLOW_VISIBLE lh_math_bit_mask(2)
+
+/**
+ * @def LH_ENTITY_FLAG_USER
+ * @brief First flag bit free for the application; the bits below it and the
+ *        top bit are lh's.
+ */
+#define LH_ENTITY_FLAG_USER lh_math_bit_mask(16)
 
 /**
  * @struct lh_entity
@@ -81,9 +103,9 @@ lh_entity_create(const lh_entity_class_t *entity_class, lh_entity_t *parent);
 /**
  * @brief Delete @p self with all its children (::lh_null is ignored).
  *
- * @p self receives ::LH_ENTITY_EVENT_DELETE, then its classes' destructors
- * run (derived first), then its children are deleted the same way, oldest
- * first, then its memory is freed.
+ * @p self receives ::LH_ENTITY_EVENT_DELETE while still in its tree, then
+ * its classes' destructors run (derived first), then its children are
+ * deleted the same way, oldest first, then its memory is freed.
  */
 lh_void
 lh_entity_delete(lh_entity_t *self);
@@ -178,6 +200,17 @@ lh_entity_remove_handler(lh_entity_t *self, lh_entity_handler_cb handler, lh_ptr
  */
 lh_bool_t
 lh_entity_send_event(lh_entity_t *self, lh_uint_t code, lh_ptr param);
+
+/**
+ * @brief Send the event @p code with @p param to @p self alone: its classes
+ *        and handlers, never its ancestors (whatever the bubble flag).
+ *
+ * For events about one entity only, such as ::LH_ENTITY_EVENT_DRAW.
+ *
+ * @return True when a receiver stopped the event.
+ */
+lh_bool_t
+lh_entity_notify(lh_entity_t *self, lh_uint_t code, lh_ptr param);
 
 LH_COMPILER_EXTERN_C_END
 

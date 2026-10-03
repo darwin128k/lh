@@ -32,6 +32,14 @@ struct lh_entity;
 #define LH_ENTITY_EVENT_GET_LOCAL_MATRIX 2U
 
 /**
+ * @def LH_ENTITY_EVENT_DRAW
+ * @brief Sent (never bubbled) to each visible entity as a screen is drawn,
+ *        before its children; `param` is the ::lh_ui_canvas_t, already clipped
+ *        to where the entity may draw.
+ */
+#define LH_ENTITY_EVENT_DRAW 3U
+
+/**
  * @def LH_ENTITY_EVENT_USER
  * @brief First code free for the application's own events.
  */

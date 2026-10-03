@@ -1,4 +1,5 @@
 #include <lh/entity/3d.h>
+#include <lh/entity/screen.h>
 #include <lh/assert.h>
 #include <lh/null.h>
 #include <lh/util/ptr.h>
@@ -52,8 +53,10 @@ lh_void
 lh_entity_3d_set_position(lh_entity_3d_t *self, lh_vec3_t position)
 {
     lh_assert_runtime_ref(self);
+    lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
     lh_entity_2d_set_position(lh_entity_3d_as_2d(self), lh_vec2_make(position.x, position.y));
     self->z = position.z;
+    lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
 }
 
 lh_quat_t
@@ -67,7 +70,9 @@ lh_void
 lh_entity_3d_set_rotation(lh_entity_3d_t *self, lh_quat_t rotation)
 {
     lh_assert_runtime_ref(self);
+    lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
     self->rotation = rotation;
+    lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
 }
 
 lh_vec3_t
@@ -82,6 +87,8 @@ lh_void
 lh_entity_3d_set_scale(lh_entity_3d_t *self, lh_vec3_t scale)
 {
     lh_assert_runtime_ref(self);
+    lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
     lh_entity_2d_set_scale(lh_entity_3d_as_2d(self), lh_vec2_make(scale.x, scale.y));
     self->scale_z = scale.z;
+    lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
 }

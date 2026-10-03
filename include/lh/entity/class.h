@@ -41,9 +41,7 @@ typedef struct lh_entity_class lh_entity_class_t;
  * @brief Brace initializer for a `static const` ::lh_entity_class_t.
  */
 #define lh_entity_class_initializer(base, size, constructor, destructor, event)                    \
-    {                                                                                              \
-        (base), (size), (constructor), (destructor), (event)                                       \
-    }
+    {(base), (size), (constructor), (destructor), (event)}
 
 LH_COMPILER_EXTERN_C_BEGIN
 

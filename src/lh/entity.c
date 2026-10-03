@@ -7,15 +7,20 @@
 #include <lh/null.h>
 #include <lh/runtime/error/code.h>
 #include <lh/util/addr.h>
+#include <lh/util/math.h>
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 const lh_entity_class_t lh_entity_base_class =
     lh_entity_class_initializer(lh_null, sizeof(lh_entity_t), lh_null, lh_null, lh_null);
 
+/* lh's own bit (the top one, above LH_ENTITY_FLAG_USER's range): DELETE was
+ * already delivered by lh_entity_delete, while the entity was in its tree. */
+#define LH_ENTITY_FLAG_DELETE_SENT lh_math_bit_mask(31)
+
 /* Deliver @p event to @p self: its classes, derived first, then its handlers. */
 static lh_void
-lh_entity_notify(lh_entity_t *self, lh_entity_event_t *event)
+lh_entity_deliver(lh_entity_t *self, lh_entity_event_t *event)
 {
     event->current = self;
 
@@ -45,12 +50,10 @@ lh_entity_destruct(lh_ptr ptr)
 {
     lh_entity_t *const self = lh_ptr_rcast(lh_entity_t, ptr);
 
-    lh_entity_event_t event;
-    event.code = LH_ENTITY_EVENT_DELETE;
-    event.target = self;
-    event.param = lh_null;
-    event.stopped = lh_bool_false;
-    lh_entity_notify(self, lh_addr_of(event));
+    if (!lh_entity_has_flags(self, LH_ENTITY_FLAG_DELETE_SENT))
+    {
+        lh_entity_notify(self, LH_ENTITY_EVENT_DELETE, lh_null);
+    }
 
     for (const lh_entity_class_t *entity_class = self->entity_class; lh_ptr_is_set(entity_class);
          entity_class = entity_class->base)
@@ -120,6 +123,12 @@ lh_entity_create(const lh_entity_class_t *entity_class, lh_entity_t *parent)
 lh_void
 lh_entity_delete(lh_entity_t *self)
 {
+    lh_return_ifn(self);
+    /* Sent here, not by the tree's destructor: by then @p self is already cut
+     * from its parent, and receivers (a screen invalidating the area the
+     * entity covered) need to see where it was. */
+    lh_entity_notify(self, LH_ENTITY_EVENT_DELETE, lh_null);
+    lh_entity_add_flags(self, LH_ENTITY_FLAG_DELETE_SENT);
     lh_memory_tree_free(self);
 }
 
@@ -181,21 +190,21 @@ lh_void
 lh_entity_add_flags(lh_entity_t *self, lh_uint_t flags)
 {
     lh_assert_runtime_ref(self);
-    self->flags |= flags;
+    lh_math_bit_set(self->flags, flags);
 }
 
 lh_void
 lh_entity_clear_flags(lh_entity_t *self, lh_uint_t flags)
 {
     lh_assert_runtime_ref(self);
-    self->flags &= ~flags;
+    self->flags = lh_math_bit_and(self->flags, lh_math_bit_not(flags));
 }
 
 lh_bool_t
 lh_entity_has_flags(const lh_entity_t *self, lh_uint_t flags)
 {
     lh_assert_runtime_ref(self);
-    return (self->flags & flags) == flags;
+    return lh_math_eq(lh_math_bit_and(self->flags, flags), flags);
 }
 
 lh_void
@@ -245,11 +254,25 @@ lh_entity_send_event(lh_entity_t *self, lh_uint_t code, lh_ptr param)
     for (lh_entity_t *receiver = self; lh_ptr_is_set(receiver);
          receiver = lh_entity_get_parent(receiver))
     {
-        lh_entity_notify(receiver, lh_addr_of(event));
+        lh_entity_deliver(receiver, lh_addr_of(event));
         if (event.stopped || !lh_entity_has_flags(receiver, LH_ENTITY_FLAG_EVENT_BUBBLE))
         {
             break;
         }
     }
+    return event.stopped;
+}
+
+lh_bool_t
+lh_entity_notify(lh_entity_t *self, lh_uint_t code, lh_ptr param)
+{
+    lh_assert_runtime_ref(self);
+
+    lh_entity_event_t event;
+    event.code = code;
+    event.target = self;
+    event.param = param;
+    event.stopped = lh_bool_false;
+    lh_entity_deliver(self, lh_addr_of(event));
     return event.stopped;
 }
