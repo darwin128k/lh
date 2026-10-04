@@ -1,31 +1,23 @@
 #include <lh/cpu/simd.h>
 
+#include <lh/bit.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/arch.h>
 #include <lh/compiler/arch/family.h>
 #include <lh/compiler/cpu.h>
 #include <lh/compiler/type.h>
 #include <lh/config.h>
+#include <lh/cpu/id.h>
 #include <lh/numeric/fixed/types.h>
-#include <lh/bit.h>
 
 #if (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC) &&                                                 \
     (LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_SSSE3 ||                      \
      LH_LIBRARY_OPTION_SIMD_HAVE_AVX2)
 #    include <intrin.h>
 
-/* CPUID leaves (the __cpuid/__cpuidex "function_id" argument) used below. */
-#    define LH_CPU_SIMD_CPUID_LEAF_MAX_FUNCTION 0      /* EAX: highest supported basic leaf */
+/* CPUID leaves used below. The registers themselves come from ::lh_cpu_id. */
 #    define LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO 1      /* processor feature bits */
 #    define LH_CPU_SIMD_CPUID_LEAF_EXTENDED_FEATURES 7 /* AVX2 and newer feature bits */
-
-/* __cpuid/__cpuidex's own fixed signature: void __cpuid(int cpuInfo[4], ...) —
- * always exactly one int per register, filled in this order: EAX, EBX, ECX, EDX. */
-#    define LH_CPU_SIMD_CPUID_REGISTER_COUNT 4
-#    define LH_CPU_SIMD_CPUID_EAX 0
-#    define LH_CPU_SIMD_CPUID_EBX 1
-#    define LH_CPU_SIMD_CPUID_ECX 2
-#    define LH_CPU_SIMD_CPUID_EDX 3
 
 /* Feature bit positions within the registers above. */
 #    define LH_CPU_SIMD_CPUID_EDX_SSE2_BIT 26                  /* leaf 1, EDX */
@@ -58,9 +50,12 @@ lh_cpu_simd_has_sse2(void)
 #    elif LH_COMPILER_TYPE_IS_GCC_LIKE
     return lh_cast_static(lh_bool_t, !!lh_compiler_cpu_has_feature("sse2"));
 #    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
-    lh_s32_t info[LH_CPU_SIMD_CPUID_REGISTER_COUNT];
-    __cpuid(info, LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO);
-    return lh_cast_static(lh_bool_t, !lh_bit_disjoint(info[LH_CPU_SIMD_CPUID_EDX],
+    lh_u32_t regs[LH_CPU_ID_REGISTER_COUNT];
+    if (!lh_cpu_id(LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO, 0U, regs))
+    {
+        return lh_bool_false;
+    }
+    return lh_cast_static(lh_bool_t, !lh_bit_disjoint(regs[LH_CPU_ID_EDX],
                                                       lh_bit_mask(LH_CPU_SIMD_CPUID_EDX_SSE2_BIT)));
 #    else
     return lh_bool_false;
@@ -79,10 +74,13 @@ lh_cpu_simd_has_ssse3(void)
 #    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
     /* Unlike AVX2, no XCR0/XGETBV check needed: SSSE3 uses the same XMM state SSE2
      * already does, which every OS running on x86-64 has enabled from the start. */
-    lh_s32_t info[LH_CPU_SIMD_CPUID_REGISTER_COUNT];
-    __cpuid(info, LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO);
+    lh_u32_t regs[LH_CPU_ID_REGISTER_COUNT];
+    if (!lh_cpu_id(LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO, 0U, regs))
+    {
+        return lh_bool_false;
+    }
     return lh_cast_static(lh_bool_t,
-                          !lh_bit_disjoint(info[LH_CPU_SIMD_CPUID_ECX],
+                          !lh_bit_disjoint(regs[LH_CPU_ID_ECX],
                                            lh_bit_mask(LH_CPU_SIMD_CPUID_ECX_SSSE3_BIT)));
 #    else
     return lh_bool_false;
@@ -103,20 +101,13 @@ lh_cpu_simd_has_avx2(void)
 #    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
     /* Same check as __builtin_cpu_supports above, hand-rolled: MSVC has no
      * equivalent builtin. */
-    lh_s32_t info[LH_CPU_SIMD_CPUID_REGISTER_COUNT];
+    lh_u32_t regs[LH_CPU_ID_REGISTER_COUNT];
 
-    __cpuid(info, LH_CPU_SIMD_CPUID_LEAF_MAX_FUNCTION);
-    if (info[LH_CPU_SIMD_CPUID_EAX] < LH_CPU_SIMD_CPUID_LEAF_EXTENDED_FEATURES)
+    if (!lh_cpu_id(LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO, 0U, regs) ||
+        lh_bit_disjoint(regs[LH_CPU_ID_ECX], lh_bit_mask(LH_CPU_SIMD_CPUID_ECX_OSXSAVE_BIT)) ||
+        lh_bit_disjoint(regs[LH_CPU_ID_ECX], lh_bit_mask(LH_CPU_SIMD_CPUID_ECX_AVX_BIT)))
     {
-        return lh_bool_false; /* CPUID leaf 7 (structured extended features) not available */
-    }
-
-    __cpuid(info, LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO);
-    if (lh_bit_disjoint(info[LH_CPU_SIMD_CPUID_ECX],
-                        lh_bit_mask(LH_CPU_SIMD_CPUID_ECX_OSXSAVE_BIT)) ||
-        lh_bit_disjoint(info[LH_CPU_SIMD_CPUID_ECX], lh_bit_mask(LH_CPU_SIMD_CPUID_ECX_AVX_BIT)))
-    {
-        return lh_bool_false; /* no OSXSAVE, or no AVX */
+        return lh_bool_false; /* no feature leaf, no OSXSAVE, or no AVX */
     }
 
     {
@@ -129,9 +120,12 @@ lh_cpu_simd_has_avx2(void)
         }
     }
 
-    __cpuidex(info, LH_CPU_SIMD_CPUID_LEAF_EXTENDED_FEATURES, 0);
+    if (!lh_cpu_id(LH_CPU_SIMD_CPUID_LEAF_EXTENDED_FEATURES, 0U, regs))
+    {
+        return lh_bool_false; /* CPUID leaf 7 (structured extended features) not available */
+    }
     return lh_cast_static(
-        lh_bool_t, !lh_bit_disjoint(info[LH_CPU_SIMD_CPUID_EBX],
+        lh_bool_t, !lh_bit_disjoint(regs[LH_CPU_ID_EBX],
                                     lh_bit_mask(LH_CPU_SIMD_CPUID_EXTENDED_FEATURES_EBX_AVX2_BIT)));
 #    else
     return lh_bool_false;

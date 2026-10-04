@@ -46,6 +46,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/datetime.cpp
         ${LH_TEST_SRC_PATH}/lh/timestamp.cpp
         ${LH_TEST_SRC_PATH}/lh/cpu/cache.cpp
+        ${LH_TEST_SRC_PATH}/lh/cpu/id.cpp
         ${LH_TEST_SRC_PATH}/lh/cpu/simd.cpp
         ${LH_TEST_SRC_PATH}/lh/cpu/vendor.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/allocator.cpp
