@@ -42,6 +42,12 @@ LH_COMPILER_EXTERN_C_BEGIN
 extern const lh_ui_font_t lh_ui_font_basic;
 
 /**
+ * @brief Roboto Regular at 16 pixels, glyphs 32..126, 4 bits per pixel.
+ *        Baked from the TTF; the file is not opened at runtime.
+ */
+extern const lh_ui_font_t lh_ui_font_roboto;
+
+/**
  * @brief Point @p self at glyph memory. The bytes are not copied.
  *
  * @p glyphs must cover `count * row_bytes * glyph_height` bytes, with
