@@ -1,5 +1,7 @@
 #include <lh/entity/field.h>
 #include <lh/assert.h>
+#include <lh/byte.h>
+#include <lh/cast/static.h>
 #include <lh/entity/key.h>
 #include <lh/entity/screen.h>
 #include <lh/null.h>
@@ -16,55 +18,122 @@ lh_entity_field_construct(lh_entity_t *self)
     field->lines = 1;
 }
 
+lh_bool_t
+lh_entity_field_continues(lh_char_t ch)
+{
+    return (lh_cast_static(lh_byte_t, ch) & 0xC0U) == 0x80U ? lh_bool_true : lh_bool_false;
+}
+
+lh_int_t
+lh_entity_field_before(const lh_char_t *text, lh_int_t cursor)
+{
+    if (cursor <= 0)
+    {
+        return 0;
+    }
+    cursor -= 1;
+    while (cursor > 0 && lh_entity_field_continues(text[cursor]))
+    {
+        cursor -= 1;
+    }
+    return cursor;
+}
+
+lh_int_t
+lh_entity_field_after(const lh_char_t *text, lh_int_t cursor, lh_int_t length)
+{
+    if (cursor >= length)
+    {
+        return length;
+    }
+    cursor += 1;
+    while (cursor < length && lh_entity_field_continues(text[cursor]))
+    {
+        cursor += 1;
+    }
+    return cursor;
+}
+
+lh_int_t
+lh_entity_field_utf8(lh_uint_t code, lh_char_t *out)
+{
+    if (code < 0x80U)
+    {
+        out[0] = lh_cast_static(lh_char_t, code);
+        return 1;
+    }
+    if (code < 0x800U)
+    {
+        out[0] = lh_cast_static(lh_char_t, 0xC0U | (code >> 6));
+        out[1] = lh_cast_static(lh_char_t, 0x80U | (code & 0x3FU));
+        return 2;
+    }
+    if (code < 0x10000U)
+    {
+        out[0] = lh_cast_static(lh_char_t, 0xE0U | (code >> 12));
+        out[1] = lh_cast_static(lh_char_t, 0x80U | ((code >> 6) & 0x3FU));
+        out[2] = lh_cast_static(lh_char_t, 0x80U | (code & 0x3FU));
+        return 3;
+    }
+    if (code > 0x10FFFFU)
+    {
+        return 0;
+    }
+    out[0] = lh_cast_static(lh_char_t, 0xF0U | (code >> 18));
+    out[1] = lh_cast_static(lh_char_t, 0x80U | ((code >> 12) & 0x3FU));
+    out[2] = lh_cast_static(lh_char_t, 0x80U | ((code >> 6) & 0x3FU));
+    out[3] = lh_cast_static(lh_char_t, 0x80U | (code & 0x3FU));
+    return 4;
+}
+
 lh_void
 lh_entity_field_insert(lh_entity_field_t *self, lh_uint_t code)
 {
+    lh_char_t bytes[4];
+    lh_int_t n;
     lh_int_t i;
+    lh_int_t from;
     if (lh_ptr_is_null(self->text) || self->capacity < 2)
     {
         return;
     }
     if (code == LH_ENTITY_KEY_LEFT)
     {
-        if (self->cursor > 0)
-        {
-            self->cursor -= 1;
-        }
+        self->cursor = lh_entity_field_before(self->text, self->cursor);
         return;
     }
     if (code == LH_ENTITY_KEY_RIGHT)
     {
-        if (self->cursor < self->length)
-        {
-            self->cursor += 1;
-        }
+        self->cursor = lh_entity_field_after(self->text, self->cursor, self->length);
         return;
     }
     if (code == LH_ENTITY_KEY_BACKSPACE)
     {
-        if (self->cursor <= 0)
+        from = lh_entity_field_before(self->text, self->cursor);
+        if (from == self->cursor)
         {
             return;
         }
-        for (i = self->cursor - 1; i < self->length; ++i)
+        for (i = self->cursor; i <= self->length; ++i)
         {
-            self->text[i] = self->text[i + 1];
+            self->text[from + (i - self->cursor)] = self->text[i];
         }
-        self->cursor -= 1;
-        self->length -= 1;
+        self->length -= self->cursor - from;
+        self->cursor = from;
         return;
     }
     if (code == LH_ENTITY_KEY_DELETE)
     {
-        if (self->cursor >= self->length)
+        from = lh_entity_field_after(self->text, self->cursor, self->length);
+        if (from == self->cursor)
         {
             return;
         }
-        for (i = self->cursor; i < self->length; ++i)
+        for (i = from; i <= self->length; ++i)
         {
-            self->text[i] = self->text[i + 1];
+            self->text[self->cursor + (i - from)] = self->text[i];
         }
-        self->length -= 1;
+        self->length -= from - self->cursor;
         return;
     }
     if (code == LH_ENTITY_KEY_ENTER)
@@ -75,22 +144,25 @@ lh_entity_field_insert(lh_entity_field_t *self, lh_uint_t code)
         }
         code = (lh_uint_t)'\n';
     }
-    if (code < 32U || code > 126U)
+    if (code < 32U && code != (lh_uint_t)'\n')
     {
         return;
     }
-    if (self->length + 1 >= self->capacity)
+    n = lh_entity_field_utf8(code, bytes);
+    if (n <= 0 || self->length + n >= self->capacity)
     {
         return;
     }
-    for (i = self->length; i > self->cursor; --i)
+    for (i = self->length; i >= self->cursor; --i)
     {
-        self->text[i] = self->text[i - 1];
+        self->text[i + n] = self->text[i];
     }
-    self->text[self->cursor] = (lh_char_t)code;
-    self->cursor += 1;
-    self->length += 1;
-    self->text[self->length] = 0;
+    for (i = 0; i < n; ++i)
+    {
+        self->text[self->cursor + i] = bytes[i];
+    }
+    self->cursor += n;
+    self->length += n;
 }
 
 lh_void

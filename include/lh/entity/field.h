@@ -6,6 +6,8 @@
  * of 1 ignores enter. More than 1 stores a new line. Keys arrive as
  * ::LH_ENTITY_EVENT_KEY while the field is the screen focus, which a press
  * on the field takes. The caret is a one-pixel bar in the text color.
+ * A key code at or above 32 is a Unicode code point, stored as UTF-8.
+ * Backspace, delete and the arrows move by one code point.
  */
 
 #ifndef LH_ENTITY_FIELD_H
