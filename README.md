@@ -272,7 +272,7 @@ Nothing has to be registered, and the library does not have to be edited.
 [docs/scene.md](docs/scene.md) is the guide. It shows how to place a ready
 button or effect, and how to write either from scratch. The same page lists
 the widgets that share one value, one switch, or one page, and the flex
-layout a parent uses to place its children.
+container that places its children.
 
 ## Version
 

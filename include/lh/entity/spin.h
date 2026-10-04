@@ -3,7 +3,8 @@
  * @brief A value with a minus side and a plus side.
  *
  * The record starts with ::lh_entity_range_t. The sides are buttons and the
- * number between them is a label. The box itself is one rounded bar: the
+ * number between them is a label, and those three sit in a flex container
+ * that fills the bar. The box itself is one rounded bar: the
  * radius is half the short side, the same cap a track uses. A press steps
  * by ::lh_entity_spin_get_step, and holding a side keeps stepping, the same
  * repeat a button uses. A change sends ::LH_ENTITY_EVENT_CLICKED.
@@ -15,6 +16,7 @@
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/entity/button.h>
+#include <lh/entity/flex.h>
 #include <lh/entity/label.h>
 #include <lh/entity/range.h>
 #include <lh/numeric/types.h>
@@ -27,6 +29,7 @@
 struct lh_entity_spin
 {
     lh_entity_range_t range;
+    lh_entity_flex_t *bar;
     const lh_ui_font_t *font;
     lh_int_t step;
     lh_entity_button_t *minus;

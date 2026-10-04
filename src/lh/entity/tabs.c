@@ -108,8 +108,7 @@ lh_entity_tabs_construct(lh_entity_t *self)
     lh_entity_tabs_t *const tabs = lh_ptr_rcast(lh_entity_tabs_t, self);
     tabs->font = lh_ui_font_get_default();
     lh_entity_add_flags(self, lh_entity_flags_own_background);
-    lh_entity_flex_set_on(self, lh_bool_true);
-    lh_entity_flex_set_align(self, LH_ENTITY_FLEX_STRETCH);
+    lh_entity_flex_set_align(lh_ptr_rcast(lh_entity_flex_t, self), LH_ENTITY_FLEX_STRETCH);
 }
 
 lh_void
@@ -125,7 +124,7 @@ lh_entity_tabs_on_event(lh_entity_t *self, lh_entity_event_t *event)
 }
 
 const lh_entity_class_t lh_entity_tabs_class =
-    lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_tabs_t),
+    lh_entity_class_initializer(lh_addr_of(lh_entity_flex_class), sizeof(lh_entity_tabs_t),
                                 lh_entity_tabs_construct, lh_null, lh_entity_tabs_on_event);
 
 lh_void

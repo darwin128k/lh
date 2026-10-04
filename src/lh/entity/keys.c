@@ -65,18 +65,17 @@ lh_entity_keys_construct(lh_entity_t *self)
 {
     lh_entity_keys_t *const keys = lh_ptr_rcast(lh_entity_keys_t, self);
     lh_entity_add_flags(self, lh_entity_flags_own_background);
-    lh_entity_flex_set_on(self, lh_bool_true);
-    lh_entity_flex_set_direction(self, LH_ENTITY_FLEX_COLUMN);
-    lh_entity_flex_set_gap(self, 4);
     keys->font = lh_ui_font_get_default();
     keys->key_width = 26;
     keys->key_height = 26;
     keys->gap = 4;
     keys->radius = 6;
+    lh_entity_flex_set_direction(lh_ptr_rcast(lh_entity_flex_t, self), LH_ENTITY_FLEX_COLUMN);
+    lh_entity_flex_set_gap(lh_ptr_rcast(lh_entity_flex_t, self), keys->gap);
 }
 
 const lh_entity_class_t lh_entity_keys_class =
-    lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_keys_t),
+    lh_entity_class_initializer(lh_addr_of(lh_entity_flex_class), sizeof(lh_entity_keys_t),
                                 lh_entity_keys_construct, lh_null, lh_null);
 
 lh_void
@@ -99,7 +98,7 @@ lh_entity_keys_set_gap(lh_entity_keys_t *self, lh_int_t gap)
 {
     lh_assert_runtime_ref(self);
     self->gap = gap < 0 ? 0 : gap;
-    lh_entity_flex_set_gap(lh_ptr_rcast(lh_entity_t, self), self->gap);
+    lh_entity_flex_set_gap(lh_ptr_rcast(lh_entity_flex_t, self), self->gap);
 }
 
 lh_void
@@ -121,11 +120,10 @@ lh_entity_keys_break(lh_entity_keys_t *self)
 {
     lh_entity_t *row;
     lh_assert_runtime_ref(self);
-    row = lh_entity_create(lh_addr_of(lh_entity_2d_class), lh_ptr_rcast(lh_entity_t, self));
-    lh_entity_flex_set_on(row, lh_bool_true);
-    lh_entity_flex_set_justify(row, LH_ENTITY_FLEX_CENTER);
-    lh_entity_flex_set_align(row, LH_ENTITY_FLEX_CENTER);
-    lh_entity_flex_set_gap(row, self->gap);
+    row = lh_entity_create(lh_addr_of(lh_entity_flex_class), lh_ptr_rcast(lh_entity_t, self));
+    lh_entity_flex_set_justify(lh_ptr_rcast(lh_entity_flex_t, row), LH_ENTITY_FLEX_CENTER);
+    lh_entity_flex_set_align(lh_ptr_rcast(lh_entity_flex_t, row), LH_ENTITY_FLEX_CENTER);
+    lh_entity_flex_set_gap(lh_ptr_rcast(lh_entity_flex_t, row), self->gap);
     self->row = row;
 }
 

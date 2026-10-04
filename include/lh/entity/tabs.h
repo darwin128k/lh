@@ -14,7 +14,7 @@
 
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/entity/2d.h>
+#include <lh/entity/flex.h>
 #include <lh/numeric/types.h>
 #include <lh/ui/font.h>
 #include <lh/ui/style.h>
@@ -25,8 +25,7 @@
  */
 struct lh_entity_tabs
 {
-    lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
-    lh_entity_2d_fields(lh_math_vec2_t, lh_float_t, const lh_ui_style_t *, const lh_ui_effect_t *);
+    lh_entity_flex_t flex;
     const lh_ui_font_t *font;
     const lh_ui_style_t *tab_style;
     lh_ui_style_t on_title;
@@ -38,7 +37,7 @@ typedef struct lh_entity_tabs lh_entity_tabs_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Class of ::lh_entity_tabs_t, derived from ::lh_entity_2d_class.
+ * @brief Class of ::lh_entity_tabs_t, derived from ::lh_entity_flex_class.
  */
 extern const lh_entity_class_t lh_entity_tabs_class;
 

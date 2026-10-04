@@ -17,7 +17,7 @@
 #include <lh/byte.h>
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/entity/2d.h>
+#include <lh/entity/flex.h>
 #include <lh/numeric/types.h>
 #include <lh/ui/font.h>
 #include <lh/ui/style.h>
@@ -36,8 +36,7 @@ struct lh_entity_button;
  */
 struct lh_entity_list
 {
-    lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
-    lh_entity_2d_fields(lh_math_vec2_t, lh_float_t, const lh_ui_style_t *, const lh_ui_effect_t *);
+    lh_entity_flex_t flex;
     const lh_char_t *items[LH_ENTITY_LIST_LIMIT];
     struct lh_entity_button *rows[LH_ENTITY_LIST_LIMIT];
     lh_byte_t marks[LH_ENTITY_LIST_LIMIT];
@@ -54,7 +53,7 @@ typedef struct lh_entity_list lh_entity_list_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Class of ::lh_entity_list_t, derived from ::lh_entity_2d_class.
+ * @brief Class of ::lh_entity_list_t, derived from ::lh_entity_flex_class.
  *
  * A new list is ::LH_ENTITY_GROUP_ONE, draws with ::lh_ui_font_get_default, and
  * gives each button 22 pixels of height.

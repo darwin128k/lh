@@ -9,7 +9,7 @@ the headers, define the class, and create instances with
 `lh_entity_create`. Nothing is registered.
 
 Headers for what ships: `lh/entity.h`, `lh/entity/2d.h`, `lh/entity/screen.h`,
-`lh/entity/label.h`, `lh/entity/button.h`, `lh/entity/circle.h`,
+`lh/entity/label.h`, `lh/entity/button.h`, `lh/entity/circle.h`, `lh/entity/container.h`, `lh/entity/flex.h`,
 `lh/ui/style.h`, `lh/ui/theme.h`, `lh/ui/effect.h`, `lh/ui/shadow.h`,
 `lh/ui/blur.h`, `lh/ui/glass.h`.
 
@@ -99,6 +99,8 @@ The same shape covers the other kinds that ship:
 |---|---|---|
 | `lh_entity_screen_class` | `lh/entity/screen.h` | The root. Create it with `lh_entity_create_root`. |
 | `lh_entity_2d_class` | `lh/entity/2d.h` | A plain box. A parent, or a hit area. |
+| `lh_entity_container_class` | `lh/entity/container.h` | That box, used to hold children. It does not place them. |
+| `lh_entity_flex_class` | `lh/entity/flex.h` | The container, plus the layout that places its children. |
 | `lh_entity_label_class` | `lh/entity/label.h` | One line of text, aligned on both axes. The string and the font are not copied. |
 | `lh_entity_button_class` | `lh/entity/button.h` | The click above. |
 | `lh_entity_circle_class` | `lh/entity/circle.h` | A disc inscribed in the box. The edge is covered per pixel. |
@@ -322,14 +324,21 @@ work area, which is the place a program asks for at startup.
 
 ## 7. Flex
 
-`lh_entity_flex_set_on` makes any entity lay out its direct children the way
-CSS `display: flex` does. The container's size is the flex line. A child with
-a size keeps it. A child with size 0 on an axis, or a flex container you never
-sized, is `auto` on that axis: it hugs its children, and `align-items: stretch`
-may give it the line's cross size.
+A container (`lh_entity_container_t`) is a box that holds children and leaves
+them where they are. A flex container (`lh_entity_flex_t`) is that container
+plus the layout: it places its direct children the way CSS flex does. Create
+one with `lh_entity_flex_class`. A widget that lays its own children out
+derives from that class and starts with `lh_entity_flex_t`.
+
+The container's size is the flex line. A child with a size keeps it. A child
+with size 0 on an axis, or a flex container you never sized, is `auto` on
+that axis: it hugs its children, and `align-items: stretch` may give it the
+line's cross size. Grow, shrink, basis, align-self and order are records on
+the flex container, one per child.
 
 ```c
-lh_entity_flex_set_on(row, lh_bool_true);
+lh_entity_flex_t *row =
+    lh_ptr_rcast(lh_entity_flex_t, lh_entity_create(&lh_entity_flex_class, parent));
 lh_entity_flex_set_justify(row, LH_ENTITY_FLEX_SPACE_BETWEEN);
 lh_entity_flex_set_align(row, LH_ENTITY_FLEX_CENTER);
 lh_entity_flex_set_gap(row, 8);

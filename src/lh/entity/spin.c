@@ -91,6 +91,27 @@ lh_entity_spin_on_side(lh_entity_event_t *event, lh_ptr user)
     }
 }
 
+lh_void
+lh_entity_spin_seat(lh_entity_spin_t *self)
+{
+    lh_entity_2d_t *const box = lh_ptr_rcast(lh_entity_2d_t, self);
+    lh_entity_2d_t *bar;
+    const lh_math_vec2_t size = lh_entity_2d_get_size(box);
+    lh_math_vec2_t have;
+    if (lh_ptr_is_null(self->bar))
+    {
+        return;
+    }
+    bar = lh_ptr_rcast(lh_entity_2d_t, self->bar);
+    have = lh_entity_2d_get_size(bar);
+    if (lh_math_vec2_get_x(lh_addr_of(size)) != lh_math_vec2_get_x(lh_addr_of(have)) ||
+        lh_math_vec2_get_y(lh_addr_of(size)) != lh_math_vec2_get_y(lh_addr_of(have)))
+    {
+        lh_entity_2d_set_size(bar, size);
+    }
+    lh_entity_flex_layout(lh_ptr_rcast(lh_entity_t, self->bar));
+}
+
 lh_entity_button_t *
 lh_entity_spin_side(lh_entity_t *parent, lh_entity_spin_t *spin, const lh_char_t *caption)
 {
@@ -115,16 +136,18 @@ lh_entity_spin_construct(lh_entity_t *self)
     spin->font = lh_ui_font_get_default();
     spin->step = 1;
     lh_entity_add_flags(self, lh_entity_flags_own_background);
-    lh_entity_flex_set_on(self, lh_bool_true);
-    lh_entity_flex_set_align(self, LH_ENTITY_FLEX_STRETCH);
-    spin->minus = lh_entity_spin_side(self, spin, "-");
-    host = lh_entity_create(lh_addr_of(lh_entity_2d_class), self);
+    spin->bar = lh_ptr_rcast(lh_entity_flex_t,
+                             lh_entity_create(lh_addr_of(lh_entity_flex_class), self));
+    lh_entity_add_flags(lh_ptr_rcast(lh_entity_t, spin->bar), lh_entity_flags_own_background);
+    lh_entity_flex_set_align(spin->bar, LH_ENTITY_FLEX_STRETCH);
+    spin->minus = lh_entity_spin_side(lh_ptr_rcast(lh_entity_t, spin->bar), spin, "-");
+    host = lh_entity_create(lh_addr_of(lh_entity_2d_class), lh_ptr_rcast(lh_entity_t, spin->bar));
     lh_entity_add_flags(host, lh_entity_flags_own_background);
     lh_entity_flex_item_set_grow(host, 1);
     lh_entity_flex_item_set_basis(host, 0);
     spin->value = lh_ptr_rcast(lh_entity_label_t, lh_entity_create(&lh_entity_label_class, host));
     lh_entity_add_flags(lh_ptr_rcast(lh_entity_t, spin->value), lh_entity_flags_own_background);
-    spin->plus = lh_entity_spin_side(self, spin, "+");
+    spin->plus = lh_entity_spin_side(lh_ptr_rcast(lh_entity_t, spin->bar), spin, "+");
     lh_entity_spin_show(spin);
 }
 
@@ -159,6 +182,7 @@ lh_entity_spin_on_event(lh_entity_t *self, lh_entity_event_t *event)
     {
         return;
     }
+    lh_entity_spin_seat(spin);
     lh_entity_spin_paint(spin, lh_ptr_rcast(lh_ui_canvas_t, lh_entity_event_get_param(event)));
     lh_entity_spin_dress(self, lh_entity_2d_get_style(box), spin->font);
     lh_entity_spin_show(spin);

@@ -99,6 +99,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/entity/pages.c
         ${LH_LIB_SRC_PATH}/entity/tabs.c
         ${LH_LIB_SRC_PATH}/entity/sheets.c
+        ${LH_LIB_SRC_PATH}/entity/container.c
         ${LH_LIB_SRC_PATH}/entity/flex.c
         ${LH_LIB_SRC_PATH}/memory/bounds/slice.c
         ${LH_LIB_SRC_PATH}/memory/bounds/allocated.c

@@ -17,7 +17,7 @@
 #define LH_ENTITY_KEYS_H
 
 #include <lh/compiler/extern/c.h>
-#include <lh/entity/2d.h>
+#include <lh/entity/flex.h>
 #include <lh/entity/button.h>
 #include <lh/ui/font.h>
 #include <lh/ui/style.h>
@@ -28,8 +28,7 @@
  */
 struct lh_entity_keys
 {
-    lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
-    lh_entity_2d_fields(lh_math_vec2_t, lh_float_t, const lh_ui_style_t *, const lh_ui_effect_t *);
+    lh_entity_flex_t flex;
     const lh_ui_font_t *font;
     const lh_ui_style_t *pressed;
     lh_entity_t *row;
@@ -43,7 +42,7 @@ typedef struct lh_entity_keys lh_entity_keys_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Class of ::lh_entity_keys_t, derived from ::lh_entity_2d_class.
+ * @brief Class of ::lh_entity_keys_t, derived from ::lh_entity_flex_class.
  *
  * A new keyboard lays rows in a column, keys 26 by 26 with a gap of 4
  * and a corner of 6, and uses ::lh_ui_font_get_default. Set the style,

@@ -3,34 +3,8 @@
 #include <lh/entity.h>
 #include <lh/entity/event.h>
 #include <lh/null.h>
-#include <lh/runtime/allocator.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
-
-struct lh_entity_flex_node
-{
-    struct lh_entity_flex_node *next;
-    lh_entity_t *entity;
-    lh_int_t direction;
-    lh_int_t wrap;
-    lh_int_t justify;
-    lh_int_t align_items;
-    lh_int_t align_content;
-    lh_int_t row_gap;
-    lh_int_t column_gap;
-    lh_int_t pad_top;
-    lh_int_t pad_right;
-    lh_int_t pad_bottom;
-    lh_int_t pad_left;
-    lh_bool_t on;
-    lh_bool_t hug_width;
-    lh_bool_t hug_height;
-    lh_int_t grow;
-    lh_int_t shrink;
-    lh_int_t basis;
-    lh_int_t align_self;
-    lh_int_t order;
-};
 
 struct lh_entity_flex_item
 {
@@ -57,7 +31,6 @@ struct lh_entity_flex_line
     lh_int_t pos;
 };
 
-static struct lh_entity_flex_node *lh_entity_flex_nodes;
 static lh_int_t lh_entity_flex_placing;
 
 lh_int_t
@@ -86,83 +59,121 @@ lh_entity_flex_horizontal(lh_int_t direction)
                                                                                       : lh_bool_false;
 }
 
-struct lh_entity_flex_node *
-lh_entity_flex_find(const lh_entity_t *entity)
+lh_void
+lh_entity_flex_on_item_delete(lh_entity_event_t *event, lh_ptr user)
 {
-    struct lh_entity_flex_node *node;
-    for (node = lh_entity_flex_nodes; lh_ptr_is_set(node); node = node->next)
+    lh_entity_flex_t *const flex = lh_ptr_rcast(lh_entity_flex_t, user);
+    lh_entity_t *const child = lh_entity_event_get_target(event);
+    lh_int_t i;
+    if (lh_entity_event_get_code(event) != LH_ENTITY_EVENT_DELETE || lh_ptr_is_null(flex))
     {
-        if (node->entity == entity)
+        return;
+    }
+    for (i = 0; i < flex->item_count; ++i)
+    {
+        if (flex->item[i].entity == child)
         {
-            return node;
+            flex->item_count -= 1;
+            flex->item[i] = flex->item[flex->item_count];
+            return;
+        }
+    }
+}
+
+const struct lh_entity_flex_spec *
+lh_entity_flex_spec_at(const lh_entity_flex_t *self, const lh_entity_t *child)
+{
+    lh_int_t i;
+    for (i = 0; i < self->item_count; ++i)
+    {
+        if (self->item[i].entity == child)
+        {
+            return lh_addr_of(self->item[i]);
         }
     }
     return lh_null;
 }
 
-lh_void
-lh_entity_flex_on_delete(lh_entity_event_t *event, lh_ptr user)
+struct lh_entity_flex_spec *
+lh_entity_flex_spec(lh_entity_flex_t *self, lh_entity_t *child, lh_bool_t make)
 {
-    struct lh_entity_flex_node *const node = lh_ptr_rcast(struct lh_entity_flex_node, user);
-    struct lh_entity_flex_node **link;
-    if (lh_entity_event_get_code(event) != LH_ENTITY_EVENT_DELETE || lh_ptr_is_null(node))
+    struct lh_entity_flex_spec *spec;
+    lh_int_t i;
+    for (i = 0; i < self->item_count; ++i)
     {
-        return;
-    }
-    link = lh_addr_of(lh_entity_flex_nodes);
-    while (lh_ptr_is_set(*link))
-    {
-        if (*link == node)
+        if (self->item[i].entity == child)
         {
-            *link = node->next;
-            break;
+            return lh_addr_of(self->item[i]);
         }
-        link = lh_addr_of((*link)->next);
     }
-    lh_runtime_allocator_free(node);
-}
-
-struct lh_entity_flex_node *
-lh_entity_flex_node(lh_entity_t *entity)
-{
-    struct lh_entity_flex_node *node;
-    lh_assert_runtime_ref(entity);
-    node = lh_entity_flex_find(entity);
-    if (lh_ptr_is_set(node))
-    {
-        return node;
-    }
-    node = lh_ptr_rcast(struct lh_entity_flex_node,
-                        lh_runtime_allocator_alloc(sizeof(struct lh_entity_flex_node)));
-    if (lh_ptr_is_null(node))
+    if (make == lh_bool_false || self->item_count >= LH_ENTITY_FLEX_LIMIT)
     {
         return lh_null;
     }
-    node->next = lh_entity_flex_nodes;
-    node->entity = entity;
-    node->direction = LH_ENTITY_FLEX_ROW;
-    node->wrap = LH_ENTITY_FLEX_NOWRAP;
-    node->justify = LH_ENTITY_FLEX_START;
-    node->align_items = LH_ENTITY_FLEX_STRETCH;
-    node->align_content = LH_ENTITY_FLEX_STRETCH;
-    node->row_gap = 0;
-    node->column_gap = 0;
-    node->pad_top = 0;
-    node->pad_right = 0;
-    node->pad_bottom = 0;
-    node->pad_left = 0;
-    node->on = lh_bool_false;
-    node->hug_width = lh_bool_true;
-    node->hug_height = lh_bool_true;
-    node->grow = 0;
-    node->shrink = 1;
-    node->basis = -1;
-    node->align_self = LH_ENTITY_FLEX_AUTO;
-    node->order = 0;
-    lh_entity_flex_nodes = node;
-    lh_entity_add_handler(entity, lh_entity_flex_on_delete, node);
-    return node;
+    spec = lh_addr_of(self->item[self->item_count]);
+    self->item_count += 1;
+    spec->entity = child;
+    spec->grow = 0;
+    spec->shrink = 1;
+    spec->basis = -1;
+    spec->align = LH_ENTITY_FLEX_AUTO;
+    spec->order = 0;
+    lh_entity_add_handler(child, lh_entity_flex_on_item_delete, self);
+    return spec;
 }
+
+struct lh_entity_flex_spec *
+lh_entity_flex_item_record(lh_entity_t *child, lh_bool_t make)
+{
+    lh_entity_t *parent;
+    lh_entity_flex_t *flex;
+    lh_assert_runtime_ref(child);
+    parent = lh_entity_get_parent(child);
+    if (lh_ptr_is_null(parent))
+    {
+        return lh_null;
+    }
+    flex = lh_entity_cast(parent, lh_addr_of(lh_entity_flex_class));
+    if (lh_ptr_is_null(flex))
+    {
+        return lh_null;
+    }
+    return lh_entity_flex_spec(flex, child, make);
+}
+
+const struct lh_entity_flex_spec *
+lh_entity_flex_item_record_of(const lh_entity_t *child)
+{
+    const lh_entity_t *const parent = lh_entity_get_parent(child);
+    const lh_entity_flex_t *flex;
+    if (lh_ptr_is_null(parent))
+    {
+        return lh_null;
+    }
+    flex = lh_entity_cast(parent, lh_addr_of(lh_entity_flex_class));
+    if (lh_ptr_is_null(flex))
+    {
+        return lh_null;
+    }
+    return lh_entity_flex_spec_at(flex, child);
+}
+
+lh_void
+lh_entity_flex_construct(lh_entity_t *self)
+{
+    lh_entity_flex_t *const flex = lh_ptr_rcast(lh_entity_flex_t, self);
+    flex->direction = LH_ENTITY_FLEX_ROW;
+    flex->wrap = LH_ENTITY_FLEX_NOWRAP;
+    flex->justify = LH_ENTITY_FLEX_START;
+    flex->align_items = LH_ENTITY_FLEX_STRETCH;
+    flex->align_content = LH_ENTITY_FLEX_STRETCH;
+    flex->hug_width = lh_bool_true;
+    flex->hug_height = lh_bool_true;
+}
+
+const lh_entity_class_t lh_entity_flex_class =
+    lh_entity_class_initializer(lh_addr_of(lh_entity_container_class), sizeof(lh_entity_flex_t),
+                                lh_entity_flex_construct, lh_null, lh_null);
 
 lh_int_t
 lh_entity_flex_clamp_gap(lh_int_t gap)
@@ -173,19 +184,19 @@ lh_entity_flex_clamp_gap(lh_int_t gap)
 lh_void
 lh_entity_flex_note_size(const lh_entity_2d_t *self)
 {
-    struct lh_entity_flex_node *node;
+    lh_entity_flex_t *flex;
     lh_assert_runtime_ref(self);
     if (lh_entity_flex_placing > 0)
     {
         return;
     }
-    node = lh_entity_flex_find(lh_ptr_rcast(const lh_entity_t, self));
-    if (lh_ptr_is_null(node))
+    flex = lh_entity_cast(lh_ptr_rcast(const lh_entity_t, self), lh_addr_of(lh_entity_flex_class));
+    if (lh_ptr_is_null(flex))
     {
         return;
     }
-    node->hug_width = lh_entity_flex_span(self, lh_bool_true) <= 0 ? lh_bool_true : lh_bool_false;
-    node->hug_height = lh_entity_flex_span(self, lh_bool_false) <= 0 ? lh_bool_true : lh_bool_false;
+    flex->hug_width = lh_entity_flex_span(self, lh_bool_true) <= 0 ? lh_bool_true : lh_bool_false;
+    flex->hug_height = lh_entity_flex_span(self, lh_bool_false) <= 0 ? lh_bool_true : lh_bool_false;
 }
 
 lh_void
@@ -210,7 +221,7 @@ lh_int_t
 lh_entity_flex_child_span(lh_entity_t *child, lh_bool_t horizontal, lh_int_t basis);
 
 lh_int_t
-lh_entity_flex_content(const struct lh_entity_flex_node *node, lh_bool_t horizontal)
+lh_entity_flex_content(const lh_entity_flex_t *node, lh_bool_t horizontal)
 {
     const lh_bool_t row = lh_entity_flex_horizontal(node->direction);
     const lh_bool_t main = horizontal == row ? lh_bool_true : lh_bool_false;
@@ -218,10 +229,10 @@ lh_entity_flex_content(const struct lh_entity_flex_node *node, lh_bool_t horizon
     lh_int_t sum = 0;
     lh_int_t max_cross = 0;
     lh_int_t count = 0;
-    lh_entity_foreach_child(child, node->entity)
+    lh_entity_foreach_child(child, lh_ptr_rcast(const lh_entity_t, node))
     {
         lh_entity_2d_t *box;
-        struct lh_entity_flex_node *item;
+        const struct lh_entity_flex_spec *spec;
         lh_int_t span;
         if (lh_entity_has_flags(child, lh_entity_flags_hidden))
         {
@@ -232,10 +243,10 @@ lh_entity_flex_content(const struct lh_entity_flex_node *node, lh_bool_t horizon
         {
             continue;
         }
-        item = lh_entity_flex_find(child);
+        spec = lh_entity_flex_spec_at(node, child);
         if (main != lh_bool_false)
         {
-            const lh_int_t basis = lh_ptr_is_set(item) ? item->basis : -1;
+            const lh_int_t basis = lh_ptr_is_set(spec) ? spec->basis : -1;
             span = lh_entity_flex_child_span(child, horizontal, basis);
             if (count > 0)
             {
@@ -264,7 +275,7 @@ lh_int_t
 lh_entity_flex_child_span(lh_entity_t *child, lh_bool_t horizontal, lh_int_t basis)
 {
     const lh_entity_2d_t *const box = lh_entity_cast(child, lh_addr_of(lh_entity_2d_class));
-    struct lh_entity_flex_node *node;
+    lh_entity_flex_t *flex;
     lh_int_t span;
     if (basis >= 0)
     {
@@ -274,29 +285,30 @@ lh_entity_flex_child_span(lh_entity_t *child, lh_bool_t horizontal, lh_int_t bas
     {
         return 0;
     }
-    node = lh_entity_flex_find(child);
+    flex = lh_entity_cast(child, lh_addr_of(lh_entity_flex_class));
     span = lh_entity_flex_span(box, horizontal);
-    if (lh_ptr_is_set(node) && node->on)
+    if (lh_ptr_is_set(flex))
     {
-        const lh_bool_t hug = horizontal != lh_bool_false ? node->hug_width : node->hug_height;
+        const lh_bool_t hug = horizontal != lh_bool_false ? flex->hug_width : flex->hug_height;
         if (hug != lh_bool_false || span <= 0)
         {
-            return lh_entity_flex_content(node, horizontal);
+            return lh_entity_flex_content(flex, horizontal);
         }
     }
     return span;
 }
 
 lh_int_t
-lh_entity_flex_gather(struct lh_entity_flex_node *node, struct lh_entity_flex_item *items)
+lh_entity_flex_gather(lh_entity_flex_t *node, struct lh_entity_flex_item *items)
 {
     const lh_bool_t row = lh_entity_flex_horizontal(node->direction);
     lh_int_t count = 0;
     lh_int_t index = 0;
-    lh_entity_foreach_child(child, node->entity)
+    lh_entity_foreach_child(child, lh_ptr_rcast(lh_entity_t, node))
     {
         struct lh_entity_flex_item *item;
-        struct lh_entity_flex_node *props;
+        const struct lh_entity_flex_spec *spec;
+        lh_entity_flex_t *child_flex;
         const lh_entity_2d_t *box;
         if (count >= LH_ENTITY_FLEX_LIMIT)
         {
@@ -311,23 +323,24 @@ lh_entity_flex_gather(struct lh_entity_flex_node *node, struct lh_entity_flex_it
         {
             continue;
         }
-        props = lh_entity_flex_find(child);
+        spec = lh_entity_flex_spec_at(node, child);
         item = lh_addr_of(items[count]);
         item->entity = child;
-        item->grow = lh_ptr_is_set(props) ? props->grow : 0;
-        item->shrink = lh_ptr_is_set(props) ? props->shrink : 1;
-        item->order = lh_ptr_is_set(props) ? props->order : 0;
-        item->align = lh_ptr_is_set(props) ? props->align_self : LH_ENTITY_FLEX_AUTO;
+        item->grow = lh_ptr_is_set(spec) ? spec->grow : 0;
+        item->shrink = lh_ptr_is_set(spec) ? spec->shrink : 1;
+        item->order = lh_ptr_is_set(spec) ? spec->order : 0;
+        item->align = lh_ptr_is_set(spec) ? spec->align : LH_ENTITY_FLEX_AUTO;
         item->index = index;
         item->line = 0;
         item->main_pos = 0;
         item->cross_pos = 0;
-        item->base = lh_entity_flex_child_span(child, row, lh_ptr_is_set(props) ? props->basis : -1);
+        item->base = lh_entity_flex_child_span(child, row, lh_ptr_is_set(spec) ? spec->basis : -1);
         item->cross = lh_entity_flex_child_span(child, row != lh_bool_false ? lh_bool_false : lh_bool_true, -1);
         item->cross_auto = lh_bool_false;
-        if (lh_ptr_is_set(props) && props->on)
+        child_flex = lh_entity_cast(child, lh_addr_of(lh_entity_flex_class));
+        if (lh_ptr_is_set(child_flex))
         {
-            const lh_bool_t hug = row != lh_bool_false ? props->hug_height : props->hug_width;
+            const lh_bool_t hug = row != lh_bool_false ? child_flex->hug_height : child_flex->hug_width;
             if (hug != lh_bool_false)
             {
                 item->cross_auto = lh_bool_true;
@@ -546,282 +559,207 @@ lh_entity_flex_write(lh_entity_t *entity, lh_int_t x, lh_int_t y, lh_int_t width
 }
 
 lh_void
-lh_entity_flex_set_on(lh_entity_t *self, lh_bool_t on)
+lh_entity_flex_set_direction(lh_entity_flex_t *self, lh_int_t direction)
 {
-    struct lh_entity_flex_node *node;
     lh_assert_runtime_ref(self);
-    node = lh_entity_flex_node(self);
-    if (lh_ptr_is_null(node))
-    {
-        return;
-    }
-    node->on = on != lh_bool_false ? lh_bool_true : lh_bool_false;
-    if (lh_ptr_is_set(lh_entity_cast(self, lh_addr_of(lh_entity_2d_class))))
-    {
-        lh_entity_flex_note_size(lh_entity_cast(self, lh_addr_of(lh_entity_2d_class)));
-    }
-}
-
-lh_bool_t
-lh_entity_flex_get_on(const lh_entity_t *self)
-{
-    const struct lh_entity_flex_node *node;
-    lh_assert_runtime_ref(self);
-    node = lh_entity_flex_find(self);
-    return lh_ptr_is_set(node) && node->on != lh_bool_false ? lh_bool_true : lh_bool_false;
-}
-
-lh_void
-lh_entity_flex_set_direction(lh_entity_t *self, lh_int_t direction)
-{
-    struct lh_entity_flex_node *const node = lh_entity_flex_node(self);
-    lh_assert_runtime_ref(self);
-    if (lh_ptr_is_null(node))
-    {
-        return;
-    }
     if (direction < LH_ENTITY_FLEX_ROW || direction > LH_ENTITY_FLEX_COLUMN_REVERSE)
     {
         direction = LH_ENTITY_FLEX_ROW;
     }
-    node->direction = direction;
+    self->direction = direction;
 }
 
 lh_int_t
-lh_entity_flex_get_direction(const lh_entity_t *self)
+lh_entity_flex_get_direction(const lh_entity_flex_t *self)
 {
-    const struct lh_entity_flex_node *node;
     lh_assert_runtime_ref(self);
-    node = lh_entity_flex_find(self);
-    return lh_ptr_is_set(node) ? node->direction : LH_ENTITY_FLEX_ROW;
+    return self->direction;
 }
 
 lh_void
-lh_entity_flex_set_wrap(lh_entity_t *self, lh_int_t wrap)
+lh_entity_flex_set_wrap(lh_entity_flex_t *self, lh_int_t wrap)
 {
-    struct lh_entity_flex_node *const node = lh_entity_flex_node(self);
     lh_assert_runtime_ref(self);
-    if (lh_ptr_is_null(node))
-    {
-        return;
-    }
     if (wrap < LH_ENTITY_FLEX_NOWRAP || wrap > LH_ENTITY_FLEX_WRAP_REVERSE)
     {
         wrap = LH_ENTITY_FLEX_NOWRAP;
     }
-    node->wrap = wrap;
+    self->wrap = wrap;
 }
 
 lh_int_t
-lh_entity_flex_get_wrap(const lh_entity_t *self)
+lh_entity_flex_get_wrap(const lh_entity_flex_t *self)
 {
-    const struct lh_entity_flex_node *node;
     lh_assert_runtime_ref(self);
-    node = lh_entity_flex_find(self);
-    return lh_ptr_is_set(node) ? node->wrap : LH_ENTITY_FLEX_NOWRAP;
+    return self->wrap;
 }
 
 lh_void
-lh_entity_flex_set_justify(lh_entity_t *self, lh_int_t justify)
+lh_entity_flex_set_justify(lh_entity_flex_t *self, lh_int_t justify)
 {
-    struct lh_entity_flex_node *const node = lh_entity_flex_node(self);
     lh_assert_runtime_ref(self);
-    if (lh_ptr_is_null(node))
-    {
-        return;
-    }
     if (justify < LH_ENTITY_FLEX_START || justify > LH_ENTITY_FLEX_SPACE_EVENLY)
     {
         justify = LH_ENTITY_FLEX_START;
     }
-    node->justify = justify;
+    self->justify = justify;
 }
 
 lh_int_t
-lh_entity_flex_get_justify(const lh_entity_t *self)
+lh_entity_flex_get_justify(const lh_entity_flex_t *self)
 {
-    const struct lh_entity_flex_node *node;
     lh_assert_runtime_ref(self);
-    node = lh_entity_flex_find(self);
-    return lh_ptr_is_set(node) ? node->justify : LH_ENTITY_FLEX_START;
+    return self->justify;
 }
 
 lh_void
-lh_entity_flex_set_align(lh_entity_t *self, lh_int_t align)
+lh_entity_flex_set_align(lh_entity_flex_t *self, lh_int_t align)
 {
-    struct lh_entity_flex_node *const node = lh_entity_flex_node(self);
     lh_assert_runtime_ref(self);
-    if (lh_ptr_is_null(node))
-    {
-        return;
-    }
     if (align != LH_ENTITY_FLEX_START && align != LH_ENTITY_FLEX_END && align != LH_ENTITY_FLEX_CENTER &&
         align != LH_ENTITY_FLEX_STRETCH)
     {
         align = LH_ENTITY_FLEX_STRETCH;
     }
-    node->align_items = align;
+    self->align_items = align;
 }
 
 lh_int_t
-lh_entity_flex_get_align(const lh_entity_t *self)
+lh_entity_flex_get_align(const lh_entity_flex_t *self)
 {
-    const struct lh_entity_flex_node *node;
     lh_assert_runtime_ref(self);
-    node = lh_entity_flex_find(self);
-    return lh_ptr_is_set(node) ? node->align_items : LH_ENTITY_FLEX_STRETCH;
+    return self->align_items;
 }
 
 lh_void
-lh_entity_flex_set_content(lh_entity_t *self, lh_int_t align)
+lh_entity_flex_set_content(lh_entity_flex_t *self, lh_int_t align)
 {
-    struct lh_entity_flex_node *const node = lh_entity_flex_node(self);
     lh_assert_runtime_ref(self);
-    if (lh_ptr_is_null(node))
-    {
-        return;
-    }
     if (align < LH_ENTITY_FLEX_START || align > LH_ENTITY_FLEX_STRETCH || align == LH_ENTITY_FLEX_AUTO)
     {
         align = LH_ENTITY_FLEX_STRETCH;
     }
-    node->align_content = align;
+    self->align_content = align;
 }
 
 lh_int_t
-lh_entity_flex_get_content(const lh_entity_t *self)
+lh_entity_flex_get_content(const lh_entity_flex_t *self)
 {
-    const struct lh_entity_flex_node *node;
     lh_assert_runtime_ref(self);
-    node = lh_entity_flex_find(self);
-    return lh_ptr_is_set(node) ? node->align_content : LH_ENTITY_FLEX_STRETCH;
+    return self->align_content;
 }
 
 lh_void
-lh_entity_flex_set_gap(lh_entity_t *self, lh_int_t gap)
+lh_entity_flex_set_gap(lh_entity_flex_t *self, lh_int_t gap)
 {
     lh_entity_flex_set_gaps(self, gap, gap);
 }
 
 lh_void
-lh_entity_flex_set_gaps(lh_entity_t *self, lh_int_t row_gap, lh_int_t column_gap)
+lh_entity_flex_set_gaps(lh_entity_flex_t *self, lh_int_t row_gap, lh_int_t column_gap)
 {
-    struct lh_entity_flex_node *const node = lh_entity_flex_node(self);
     lh_assert_runtime_ref(self);
-    if (lh_ptr_is_null(node))
-    {
-        return;
-    }
-    node->row_gap = lh_entity_flex_clamp_gap(row_gap);
-    node->column_gap = lh_entity_flex_clamp_gap(column_gap);
+    self->row_gap = lh_entity_flex_clamp_gap(row_gap);
+    self->column_gap = lh_entity_flex_clamp_gap(column_gap);
 }
 
 lh_int_t
-lh_entity_flex_get_row_gap(const lh_entity_t *self)
+lh_entity_flex_get_row_gap(const lh_entity_flex_t *self)
 {
-    const struct lh_entity_flex_node *node;
     lh_assert_runtime_ref(self);
-    node = lh_entity_flex_find(self);
-    return lh_ptr_is_set(node) ? node->row_gap : 0;
+    return self->row_gap;
 }
 
 lh_int_t
-lh_entity_flex_get_column_gap(const lh_entity_t *self)
+lh_entity_flex_get_column_gap(const lh_entity_flex_t *self)
 {
-    const struct lh_entity_flex_node *node;
     lh_assert_runtime_ref(self);
-    node = lh_entity_flex_find(self);
-    return lh_ptr_is_set(node) ? node->column_gap : 0;
+    return self->column_gap;
 }
 
 lh_void
-lh_entity_flex_set_pad(lh_entity_t *self, lh_int_t pad)
+lh_entity_flex_set_pad(lh_entity_flex_t *self, lh_int_t pad)
 {
     lh_entity_flex_set_padding(self, pad, pad, pad, pad);
 }
 
 lh_void
-lh_entity_flex_set_padding(lh_entity_t *self, lh_int_t top, lh_int_t right, lh_int_t bottom,
+lh_entity_flex_set_padding(lh_entity_flex_t *self, lh_int_t top, lh_int_t right, lh_int_t bottom,
                            lh_int_t left)
 {
-    struct lh_entity_flex_node *const node = lh_entity_flex_node(self);
     lh_assert_runtime_ref(self);
-    if (lh_ptr_is_null(node))
-    {
-        return;
-    }
-    node->pad_top = lh_entity_flex_clamp_gap(top);
-    node->pad_right = lh_entity_flex_clamp_gap(right);
-    node->pad_bottom = lh_entity_flex_clamp_gap(bottom);
-    node->pad_left = lh_entity_flex_clamp_gap(left);
+    self->pad_top = lh_entity_flex_clamp_gap(top);
+    self->pad_right = lh_entity_flex_clamp_gap(right);
+    self->pad_bottom = lh_entity_flex_clamp_gap(bottom);
+    self->pad_left = lh_entity_flex_clamp_gap(left);
 }
 
 lh_void
 lh_entity_flex_item_set_grow(lh_entity_t *self, lh_int_t grow)
 {
-    struct lh_entity_flex_node *const node = lh_entity_flex_node(self);
+    struct lh_entity_flex_spec *const spec = lh_entity_flex_item_record(self, lh_bool_true);
     lh_assert_runtime_ref(self);
-    if (lh_ptr_is_set(node))
+    if (lh_ptr_is_set(spec))
     {
-        node->grow = grow < 0 ? 0 : grow;
+        spec->grow = grow < 0 ? 0 : grow;
     }
 }
 
 lh_int_t
 lh_entity_flex_item_get_grow(const lh_entity_t *self)
 {
-    const struct lh_entity_flex_node *node;
+    const struct lh_entity_flex_spec *spec;
     lh_assert_runtime_ref(self);
-    node = lh_entity_flex_find(self);
-    return lh_ptr_is_set(node) ? node->grow : 0;
+    spec = lh_entity_flex_item_record_of(self);
+    return lh_ptr_is_set(spec) ? spec->grow : 0;
 }
 
 lh_void
 lh_entity_flex_item_set_shrink(lh_entity_t *self, lh_int_t shrink)
 {
-    struct lh_entity_flex_node *const node = lh_entity_flex_node(self);
+    struct lh_entity_flex_spec *const spec = lh_entity_flex_item_record(self, lh_bool_true);
     lh_assert_runtime_ref(self);
-    if (lh_ptr_is_set(node))
+    if (lh_ptr_is_set(spec))
     {
-        node->shrink = shrink < 0 ? 0 : shrink;
+        spec->shrink = shrink < 0 ? 0 : shrink;
     }
 }
 
 lh_int_t
 lh_entity_flex_item_get_shrink(const lh_entity_t *self)
 {
-    const struct lh_entity_flex_node *node;
+    const struct lh_entity_flex_spec *spec;
     lh_assert_runtime_ref(self);
-    node = lh_entity_flex_find(self);
-    return lh_ptr_is_set(node) ? node->shrink : 1;
+    spec = lh_entity_flex_item_record_of(self);
+    return lh_ptr_is_set(spec) ? spec->shrink : 1;
 }
 
 lh_void
 lh_entity_flex_item_set_basis(lh_entity_t *self, lh_int_t basis)
 {
-    struct lh_entity_flex_node *const node = lh_entity_flex_node(self);
+    struct lh_entity_flex_spec *const spec = lh_entity_flex_item_record(self, lh_bool_true);
     lh_assert_runtime_ref(self);
-    if (lh_ptr_is_set(node))
+    if (lh_ptr_is_set(spec))
     {
-        node->basis = basis < 0 ? -1 : basis;
+        spec->basis = basis < 0 ? -1 : basis;
     }
 }
 
 lh_int_t
 lh_entity_flex_item_get_basis(const lh_entity_t *self)
 {
-    const struct lh_entity_flex_node *node;
+    const struct lh_entity_flex_spec *spec;
     lh_assert_runtime_ref(self);
-    node = lh_entity_flex_find(self);
-    return lh_ptr_is_set(node) ? node->basis : -1;
+    spec = lh_entity_flex_item_record_of(self);
+    return lh_ptr_is_set(spec) ? spec->basis : -1;
 }
 
 lh_void
 lh_entity_flex_item_set_align(lh_entity_t *self, lh_int_t align)
 {
-    struct lh_entity_flex_node *const node = lh_entity_flex_node(self);
+    struct lh_entity_flex_spec *const spec = lh_entity_flex_item_record(self, lh_bool_true);
     lh_assert_runtime_ref(self);
-    if (lh_ptr_is_null(node))
+    if (lh_ptr_is_null(spec))
     {
         return;
     }
@@ -830,49 +768,49 @@ lh_entity_flex_item_set_align(lh_entity_t *self, lh_int_t align)
     {
         align = LH_ENTITY_FLEX_AUTO;
     }
-    node->align_self = align;
+    spec->align = align;
 }
 
 lh_int_t
 lh_entity_flex_item_get_align(const lh_entity_t *self)
 {
-    const struct lh_entity_flex_node *node;
+    const struct lh_entity_flex_spec *spec;
     lh_assert_runtime_ref(self);
-    node = lh_entity_flex_find(self);
-    return lh_ptr_is_set(node) ? node->align_self : LH_ENTITY_FLEX_AUTO;
+    spec = lh_entity_flex_item_record_of(self);
+    return lh_ptr_is_set(spec) ? spec->align : LH_ENTITY_FLEX_AUTO;
 }
 
 lh_void
 lh_entity_flex_item_set_order(lh_entity_t *self, lh_int_t order)
 {
-    struct lh_entity_flex_node *const node = lh_entity_flex_node(self);
+    struct lh_entity_flex_spec *const spec = lh_entity_flex_item_record(self, lh_bool_true);
     lh_assert_runtime_ref(self);
-    if (lh_ptr_is_set(node))
+    if (lh_ptr_is_set(spec))
     {
-        node->order = order;
+        spec->order = order;
     }
 }
 
 lh_int_t
 lh_entity_flex_item_get_order(const lh_entity_t *self)
 {
-    const struct lh_entity_flex_node *node;
+    const struct lh_entity_flex_spec *spec;
     lh_assert_runtime_ref(self);
-    node = lh_entity_flex_find(self);
-    return lh_ptr_is_set(node) ? node->order : 0;
+    spec = lh_entity_flex_item_record_of(self);
+    return lh_ptr_is_set(spec) ? spec->order : 0;
 }
 
 lh_void
 lh_entity_flex_layout(lh_entity_t *self)
 {
-    struct lh_entity_flex_node *node;
+    lh_entity_flex_t *node;
     struct lh_entity_flex_item items[LH_ENTITY_FLEX_LIMIT];
     struct lh_entity_flex_line lines[LH_ENTITY_FLEX_LIMIT];
     lh_int_t weight[LH_ENTITY_FLEX_LIMIT];
     lh_int_t share[LH_ENTITY_FLEX_LIMIT];
     const lh_entity_2d_t *box;
     lh_entity_t *parent;
-    struct lh_entity_flex_node *parent_node;
+    lh_entity_flex_t *parent_node;
     lh_bool_t row;
     lh_bool_t parent_flex;
     lh_int_t count;
@@ -885,8 +823,8 @@ lh_entity_flex_layout(lh_entity_t *self)
     lh_int_t cross_gap;
     lh_int_t i;
     lh_assert_runtime_ref(self);
-    node = lh_entity_flex_find(self);
-    if (lh_ptr_is_null(node) || node->on == lh_bool_false)
+    node = lh_entity_cast(self, lh_addr_of(lh_entity_flex_class));
+    if (lh_ptr_is_null(node))
     {
         return;
     }
@@ -898,9 +836,12 @@ lh_entity_flex_layout(lh_entity_t *self)
     lh_entity_flex_placing += 1;
     row = lh_entity_flex_horizontal(node->direction);
     parent = lh_entity_get_parent(self);
-    parent_node = lh_ptr_is_set(parent) ? lh_entity_flex_find(parent) : lh_null;
-    parent_flex = lh_ptr_is_set(parent_node) && parent_node->on != lh_bool_false ? lh_bool_true
-                                                                                 : lh_bool_false;
+    parent_node = lh_null;
+    if (lh_ptr_is_set(parent))
+    {
+        parent_node = lh_entity_cast(parent, lh_addr_of(lh_entity_flex_class));
+    }
+    parent_flex = lh_ptr_is_set(parent_node) ? lh_bool_true : lh_bool_false;
     width = lh_entity_flex_span(box, lh_bool_true);
     height = lh_entity_flex_span(box, lh_bool_false);
     if (node->hug_width != lh_bool_false && parent_flex == lh_bool_false)
