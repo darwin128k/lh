@@ -86,6 +86,13 @@ lh_bool_t
 lh_entity_list_is_on(const lh_entity_list_t *self, lh_int_t index);
 
 /**
+ * @brief Select row @p index. ::LH_ENTITY_GROUP_ONE turns the other rows off.
+ *        ::LH_ENTITY_GROUP_MANY toggles that row.
+ */
+lh_void
+lh_entity_list_set_on(lh_entity_list_t *self, lh_int_t index);
+
+/**
  * @brief ::LH_ENTITY_GROUP_ONE or ::LH_ENTITY_GROUP_MANY.
  */
 lh_void

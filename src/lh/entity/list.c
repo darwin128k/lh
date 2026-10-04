@@ -97,9 +97,10 @@ lh_entity_list_dress(lh_entity_list_t *self)
 }
 
 lh_void
-lh_entity_list_pick(lh_entity_list_t *self, lh_int_t index)
+lh_entity_list_set_on(lh_entity_list_t *self, lh_int_t index)
 {
     lh_int_t i;
+    lh_assert_runtime_ref(self);
     if (index < 0 || index >= self->count)
     {
         return;
@@ -133,7 +134,7 @@ lh_entity_list_on_row(lh_entity_event_t *event, lh_ptr user)
     {
         if (target == lh_ptr_rcast(lh_entity_t, list->rows[i]))
         {
-            lh_entity_list_pick(list, i);
+            lh_entity_list_set_on(list, i);
             lh_entity_send_event(lh_ptr_rcast(lh_entity_t, list), LH_ENTITY_EVENT_CLICKED,
                                  lh_entity_event_get_param(event));
             return;

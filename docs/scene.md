@@ -307,7 +307,7 @@ picks another).
 | Check, switch, toggle | `lh/entity/option.h` | One boolean. Three classes. |
 | One-or-many group | `lh/entity/group.h` | Parent of those options. |
 | List | `lh/entity/list.h` | The group's one-or-many mode. Each row is a button. `set_radius` rounds the box. |
-| Combo box, dropdown | `lh/entity/combo.h` | A list that opens under the box. |
+| Combo box, dropdown | `lh/entity/combo.h` | A list that opens under the box. The first row starts selected. The open list paints above later siblings. |
 | Tabs | `lh/entity/tabs.h` | A bar of buttons. `set_radius` rounds it. The active one is a plain fill. |
 | Pages | `lh/entity/pages.h` | One child visible at a time. |
 | Sheets | `lh/entity/sheets.h` | A tab bar over a stack of pages. |

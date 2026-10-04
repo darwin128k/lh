@@ -2,10 +2,11 @@
  * @file combo.h
  * @brief A closed list that opens under itself.
  *
- * The rows live on a child ::lh_entity_list_t, so the list's mode is the
- * combo's mode: one row, or several. The closed box draws the first
- * selected row. A press opens or closes the list. The strings are not
- * copied. The open list is a child, so a parent that clips will clip it.
+ * The rows live on a ::lh_entity_list_t, so the list's mode is the combo's
+ * mode: one row, or several. The first row is selected when none is. The
+ * closed box draws that row. A press opens or closes the list. While open,
+ * the list is the last child of the combo's parent, so it paints above what
+ * was added after the combo. The strings are not copied.
  */
 
 #ifndef LH_ENTITY_COMBO_H

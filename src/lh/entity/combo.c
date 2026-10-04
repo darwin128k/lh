@@ -9,6 +9,9 @@
 #include <lh/util/ptr.h>
 
 lh_void
+lh_entity_combo_open(lh_entity_combo_t *self, lh_bool_t open);
+
+lh_void
 lh_entity_combo_on_list(lh_entity_event_t *event, lh_ptr user)
 {
     lh_entity_combo_t *const combo = lh_ptr_rcast(lh_entity_combo_t, user);
@@ -17,7 +20,7 @@ lh_entity_combo_on_list(lh_entity_event_t *event, lh_ptr user)
     {
         return;
     }
-    lh_entity_add_flags(lh_ptr_rcast(lh_entity_t, combo->list), lh_entity_flags_hidden);
+    lh_entity_combo_open(combo, lh_bool_false);
     lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, combo));
 }
 
@@ -34,18 +37,61 @@ lh_entity_combo_construct(lh_entity_t *self)
 }
 
 lh_void
+lh_entity_combo_destruct(lh_entity_t *self)
+{
+    lh_entity_combo_t *const combo = lh_ptr_rcast(lh_entity_combo_t, self);
+    lh_entity_t *const list = lh_ptr_rcast(lh_entity_t, combo->list);
+    if (lh_ptr_is_set(list) && lh_entity_get_parent(list) != self)
+    {
+        lh_entity_set_parent(list, self);
+    }
+}
+
+lh_void
 lh_entity_combo_place(lh_entity_combo_t *self)
 {
-    const lh_math_vec2_t size = lh_entity_2d_get_size(lh_ptr_rcast(const lh_entity_2d_t, self));
+    lh_entity_t *const list = lh_ptr_rcast(lh_entity_t, self->list);
+    const lh_entity_2d_t *const box = lh_ptr_rcast(const lh_entity_2d_t, self);
+    const lh_math_vec2_t size = lh_entity_2d_get_size(box);
+    const lh_math_vec2_t at = lh_entity_2d_get_position(box);
     const lh_int_t rows = lh_entity_list_get_count(self->list);
     const lh_int_t height = rows * lh_entity_list_get_row(self->list);
+    lh_float_t x = 0.0f;
+    lh_float_t y = lh_math_vec2_get_y(lh_addr_of(size));
     lh_entity_list_set_font(self->list, self->font);
-    lh_entity_2d_set_style(lh_ptr_rcast(lh_entity_2d_t, self->list),
-                           lh_entity_2d_get_style(lh_ptr_rcast(const lh_entity_2d_t, self)));
-    lh_entity_2d_set_position(lh_ptr_rcast(lh_entity_2d_t, self->list),
-                              lh_math_vec2_make(0.0f, lh_math_vec2_get_y(lh_addr_of(size))));
-    lh_entity_2d_set_size(lh_ptr_rcast(lh_entity_2d_t, self->list),
+    lh_entity_2d_set_style(lh_ptr_rcast(lh_entity_2d_t, list), lh_entity_2d_get_style(box));
+    if (lh_entity_get_parent(list) == lh_entity_get_parent(lh_ptr_rcast(lh_entity_t, self)))
+    {
+        x = lh_math_vec2_get_x(lh_addr_of(at));
+        y += lh_math_vec2_get_y(lh_addr_of(at));
+    }
+    lh_entity_2d_set_position(lh_ptr_rcast(lh_entity_2d_t, list), lh_math_vec2_make(x, y));
+    lh_entity_2d_set_size(lh_ptr_rcast(lh_entity_2d_t, list),
                           lh_math_vec2_make(lh_math_vec2_get_x(lh_addr_of(size)), (lh_float_t)height));
+}
+
+lh_void
+lh_entity_combo_open(lh_entity_combo_t *self, lh_bool_t open)
+{
+    lh_entity_t *const list = lh_ptr_rcast(lh_entity_t, self->list);
+    lh_entity_t *const host = lh_entity_get_parent(lh_ptr_rcast(lh_entity_t, self));
+    if (open)
+    {
+        if (lh_ptr_is_set(host))
+        {
+            lh_entity_set_parent(list, host);
+        }
+        lh_entity_combo_place(self);
+        lh_entity_clear_flags(list, lh_entity_flags_hidden);
+    }
+    else
+    {
+        lh_entity_invalidate(list);
+        lh_entity_add_flags(list, lh_entity_flags_hidden);
+        lh_entity_set_parent(list, lh_ptr_rcast(lh_entity_t, self));
+        return;
+    }
+    lh_entity_invalidate(list);
 }
 
 lh_void
@@ -65,15 +111,8 @@ lh_entity_combo_on_event(lh_entity_t *self, lh_entity_event_t *event)
         {
             return;
         }
-        if (lh_entity_has_flags(lh_ptr_rcast(lh_entity_t, combo->list), lh_entity_flags_hidden))
-        {
-            lh_entity_combo_place(combo);
-            lh_entity_clear_flags(lh_ptr_rcast(lh_entity_t, combo->list), lh_entity_flags_hidden);
-        }
-        else
-        {
-            lh_entity_add_flags(lh_ptr_rcast(lh_entity_t, combo->list), lh_entity_flags_hidden);
-        }
+        lh_entity_combo_open(combo, lh_entity_has_flags(lh_ptr_rcast(lh_entity_t, combo->list),
+                                                      lh_entity_flags_hidden));
         lh_entity_invalidate(self);
         return;
     }
@@ -112,7 +151,8 @@ lh_entity_combo_on_event(lh_entity_t *self, lh_entity_event_t *event)
 
 const lh_entity_class_t lh_entity_combo_class =
     lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_combo_t),
-                                lh_entity_combo_construct, lh_null, lh_entity_combo_on_event);
+                                lh_entity_combo_construct, lh_entity_combo_destruct,
+                                lh_entity_combo_on_event);
 
 lh_entity_list_t *
 lh_entity_combo_get_list(lh_entity_combo_t *self)
@@ -124,10 +164,17 @@ lh_entity_combo_get_list(lh_entity_combo_t *self)
 lh_void
 lh_entity_combo_set_item(lh_entity_combo_t *self, lh_int_t index, const lh_char_t *text)
 {
+    lh_int_t before;
     lh_assert_runtime_ref(self);
-    if (lh_ptr_is_set(self->list))
+    if (lh_ptr_is_null(self->list))
     {
-        lh_entity_list_set_item(self->list, index, text);
-        lh_entity_list_set_font(self->list, self->font);
+        return;
+    }
+    before = lh_entity_list_get_count(self->list);
+    lh_entity_list_set_item(self->list, index, text);
+    lh_entity_list_set_font(self->list, self->font);
+    if (before == 0 && lh_entity_list_get_count(self->list) > 0)
+    {
+        lh_entity_list_set_on(self->list, 0);
     }
 }
