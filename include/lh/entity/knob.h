@@ -41,6 +41,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 extern const lh_entity_class_t lh_entity_knob_class;
 
+lh_entity_range_value_decls(lh_entity_knob, lh_entity_knob_t);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_ENTITY_KNOB_H */

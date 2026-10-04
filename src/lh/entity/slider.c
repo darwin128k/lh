@@ -24,9 +24,10 @@ lh_entity_slider_paint(const lh_entity_slider_t *self, lh_ui_canvas_t *canvas)
     {
         return;
     }
-    track = lh_entity_range_track(lh_addr_of(bounds), 4);
+    track = lh_entity_range_track(lh_addr_of(bounds), lh_entity_range_get_thickness(
+                                                          lh_addr_of(self->range)));
     cap = lh_entity_range_cap(lh_addr_of(track));
-    filled = lh_entity_range_to_pos(lh_addr_of(self->range), height > width ? height : width);
+    filled = lh_entity_range_to_local_pos(lh_addr_of(self->range));
     lh_ui_canvas_fill_round(canvas, track, cap, lh_ui_style_get_bg_color(style));
     if (filled > 0)
     {
@@ -73,7 +74,7 @@ lh_entity_slider_seat(lh_entity_slider_t *self)
         lh_entity_2d_set_size(thumb, lh_math_vec2_make(across, across));
     }
     painted = lh_entity_slider_cap(thumb);
-    filled = lh_entity_range_to_pos(lh_addr_of(self->range), length);
+    filled = lh_entity_range_to_local_pos(lh_addr_of(self->range));
     if (filled < painted)
     {
         at = painted;
@@ -174,3 +175,6 @@ lh_entity_slider_on_event(lh_entity_t *self, lh_entity_event_t *event)
 const lh_entity_class_t lh_entity_slider_class =
     lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_slider_t),
                                 lh_entity_slider_construct, lh_null, lh_entity_slider_on_event);
+
+
+lh_entity_range_value_defs(lh_entity_slider, lh_entity_slider_t)

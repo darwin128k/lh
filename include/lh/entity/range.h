@@ -41,6 +41,15 @@ typedef lh_entity_range_t lh_entity_progress_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
+ * @def LH_ENTITY_RANGE_THICKNESS
+ * @brief Bar thickness a new range starts with, in pixels.
+ *
+ * The default, not a constant in the paint path: ::lh_entity_range_set_thickness
+ * changes it, and every bar that draws itself reads it from the range.
+ */
+#define LH_ENTITY_RANGE_THICKNESS 4
+
+/**
  * @brief Class of a progress bar, derived from ::lh_entity_2d_class.
  *
  * A new bar runs from 0 to 100 and sits at 0.
@@ -48,10 +57,19 @@ LH_COMPILER_EXTERN_C_BEGIN
 extern const lh_entity_class_t lh_entity_progress_class;
 
 /**
- * @brief A new range: 0 to 100, value 0.
+ * @brief A new range: 0 to 100, start 0, value 0, default bar thickness.
  */
 lh_void
 lh_entity_range_reset(lh_entity_range_t *self);
+
+/**
+ * @brief Hold @p value inside [@p minimum, @p maximum].
+ *
+ * Public because a caller holding two ranges and building a third out of them
+ * needs the same rule the range itself uses.
+ */
+lh_int_t
+lh_entity_range_clamp(lh_int_t value, lh_int_t minimum, lh_int_t maximum);
 
 /**
  * @brief Lower end of @p self.
@@ -66,10 +84,41 @@ lh_int_t
 lh_entity_range_get_maximum(const lh_entity_range_t *self);
 
 /**
+ * @brief The value a reset returns @p self to.
+ */
+lh_int_t
+lh_entity_range_get_start(const lh_entity_range_t *self);
+
+/**
  * @brief Current value of @p self, already inside the ends.
  */
 lh_int_t
 lh_entity_range_get_value(const lh_entity_range_t *self);
+
+/**
+ * @brief How far @p self is along its own ends, 0 to 100.
+ *
+ * 0 at the minimum, 100 at the maximum, and the fraction in between. An extent
+ * of no width is 0, because there is nothing to be a fraction of.
+ */
+lh_int_t
+lh_entity_range_to_percent(const lh_entity_range_t *self);
+
+/**
+ * @brief How thick the bar that shows @p self is, in pixels.
+ */
+lh_int_t
+lh_entity_range_get_thickness(const lh_entity_range_t *self);
+
+/**
+ * @brief How far the value of @p self travels along its own track, in pixels.
+ *
+ * The long side of the box, because a bar runs along it. Zero when there is no
+ * box yet. This is the span every position mapping in this header defaults to,
+ * so a widget never has to measure itself.
+ */
+lh_int_t
+lh_entity_range_usable(const lh_entity_range_t *self);
 
 /**
  * @brief Set the ends. The value is pulled back inside them. An upper end
@@ -79,15 +128,45 @@ lh_void
 lh_entity_range_set_ends(lh_entity_range_t *self, lh_int_t minimum, lh_int_t maximum);
 
 /**
+ * @brief Set the value a reset returns to. The current value is pulled back
+ *        inside the ends.
+ */
+lh_void
+lh_entity_range_set_start(lh_entity_range_t *self, lh_int_t start);
+
+/**
  * @brief Set the value, pulled back inside the ends.
  */
 lh_void
 lh_entity_range_set_value(lh_entity_range_t *self, lh_int_t value);
 
 /**
+ * @brief Put the value back to the start. What a reset means to a caller.
+ */
+lh_void
+lh_entity_range_to_start(lh_entity_range_t *self);
+
+/**
+ * @brief Set the value from a percentage, 0 to 100, with the ends taken out
+ *        of it. A percentage outside 0 to 100 is the nearer end.
+ */
+lh_void
+lh_entity_range_set_from_percent(lh_entity_range_t *self, lh_int_t percent);
+
+/**
+ * @brief Set the bar thickness. A negative thickness becomes 0, and one past
+ *        the short side is kept by the bar that draws it.
+ */
+lh_void
+lh_entity_range_set_thickness(lh_entity_range_t *self, lh_int_t thickness);
+
+/**
  * @brief Set the value from a position @p pos along a length @p span.
  *
- * @p pos of 0 is the minimum. @p pos of @p span is the maximum.
+ * @p pos of 0 is the minimum. @p pos of @p span is the maximum. For a bar that
+ * moves over its own track see ::lh_entity_range_set_from_local_pos; the
+ * explicit span is for a caller whose span is not its own size, such as a
+ * scrollbar moving over its content.
  */
 lh_void
 lh_entity_range_set_from_pos(lh_entity_range_t *self, lh_int_t pos, lh_int_t span);
@@ -97,6 +176,19 @@ lh_entity_range_set_from_pos(lh_entity_range_t *self, lh_int_t pos, lh_int_t spa
  */
 lh_int_t
 lh_entity_range_to_pos(const lh_entity_range_t *self, lh_int_t span);
+
+/**
+ * @brief Set the value from a position along @p self's own track, with the
+ *        length taken from ::lh_entity_range_usable.
+ */
+lh_void
+lh_entity_range_set_from_local_pos(lh_entity_range_t *self, lh_int_t pos);
+
+/**
+ * @brief How far along @p self's own track the value sits, in pixels.
+ */
+lh_int_t
+lh_entity_range_to_local_pos(const lh_entity_range_t *self);
 
 /**
  * @brief Half the shorter side of @p bounds, or 0 when that side is under 2.
@@ -134,6 +226,95 @@ lh_entity_range_fill(const lh_math_rect_t *track, lh_int_t filled);
  */
 lh_void
 lh_entity_range_paint(const lh_entity_range_t *self, lh_ui_canvas_t *canvas);
+
+/**
+ * @def lh_entity_range_value_decls(prefix, type)
+ * @brief The value API of a widget that starts with an ::lh_entity_range_t.
+ *
+ * A trackbar, a knob, a spin box and a scrollbar are all a range with their
+ * own pointer handling, so they all answer the same questions the same way. A
+ * widget that declares this and defines ::lh_entity_range_value_defs is
+ * guaranteed to be interchangeable with the others at the value level, which
+ * is the point: a caller holding one never has to know which of them it has,
+ * and never has to reach into `.range` to find out.
+ *
+ * The bodies are one line each and forward to the range, so the behaviour is
+ * in one place. Declared out of line rather than inline, because the library
+ * keeps its functions public.
+ *
+ * @param prefix Name of the widget's functions, e.g. `lh_entity_slider`.
+ * @param type   The widget's type, e.g. `lh_entity_slider_t`.
+ */
+#define lh_entity_range_value_decls(prefix, type)                                                   \
+    lh_int_t prefix##_get_minimum(const type *self);                                                \
+    lh_int_t prefix##_get_maximum(const type *self);                                                \
+    lh_int_t prefix##_get_start(const type *self);                                                  \
+    lh_int_t prefix##_get_value(const type *self);                                                  \
+    lh_int_t prefix##_to_percent(const type *self);                                                 \
+    lh_int_t prefix##_get_thickness(const type *self);                                             \
+    lh_void prefix##_set_ends(type *self, lh_int_t minimum, lh_int_t maximum);                     \
+    lh_void prefix##_set_start(type *self, lh_int_t start);                                        \
+    lh_void prefix##_set_value(type *self, lh_int_t value);                                        \
+    lh_void prefix##_set_from_percent(type *self, lh_int_t percent);                               \
+    lh_void prefix##_set_thickness(type *self, lh_int_t thickness);                                \
+    lh_void prefix##_reset(type *self)
+
+/**
+ * @def lh_entity_range_value_defs(prefix, type)
+ * @brief Bodies for ::lh_entity_range_value_decls, in the widget's own source.
+ *
+ * @param prefix Name of the widget's functions.
+ * @param type   The widget's type.
+ */
+#define lh_entity_range_value_defs(prefix, type)                                                   \
+    lh_int_t prefix##_get_minimum(const type *self)                                                \
+    {                                                                                              \
+        return lh_entity_range_get_minimum(lh_addr_of(self->range));                                \
+    }                                                                                              \
+    lh_int_t prefix##_get_maximum(const type *self)                                                \
+    {                                                                                              \
+        return lh_entity_range_get_maximum(lh_addr_of(self->range));                                \
+    }                                                                                              \
+    lh_int_t prefix##_get_start(const type *self)                                                  \
+    {                                                                                              \
+        return lh_entity_range_get_start(lh_addr_of(self->range));                                  \
+    }                                                                                              \
+    lh_int_t prefix##_get_value(const type *self)                                                  \
+    {                                                                                              \
+        return lh_entity_range_get_value(lh_addr_of(self->range));                                  \
+    }                                                                                              \
+    lh_int_t prefix##_to_percent(const type *self)                                                 \
+    {                                                                                              \
+        return lh_entity_range_to_percent(lh_addr_of(self->range));                                \
+    }                                                                                              \
+    lh_int_t prefix##_get_thickness(const type *self)                                             \
+    {                                                                                              \
+        return lh_entity_range_get_thickness(lh_addr_of(self->range));                              \
+    }                                                                                              \
+    lh_void prefix##_set_ends(type *self, lh_int_t minimum, lh_int_t maximum)                     \
+    {                                                                                              \
+        lh_entity_range_set_ends(lh_addr_of(self->range), minimum, maximum);                       \
+    }                                                                                              \
+    lh_void prefix##_set_start(type *self, lh_int_t start)                                        \
+    {                                                                                              \
+        lh_entity_range_set_start(lh_addr_of(self->range), start);                                  \
+    }                                                                                              \
+    lh_void prefix##_set_value(type *self, lh_int_t value)                                        \
+    {                                                                                              \
+        lh_entity_range_set_value(lh_addr_of(self->range), value);                                  \
+    }                                                                                              \
+    lh_void prefix##_set_from_percent(type *self, lh_int_t percent)                               \
+    {                                                                                              \
+        lh_entity_range_set_from_percent(lh_addr_of(self->range), percent);                         \
+    }                                                                                              \
+    lh_void prefix##_set_thickness(type *self, lh_int_t thickness)                                \
+    {                                                                                              \
+        lh_entity_range_set_thickness(lh_addr_of(self->range), thickness);                          \
+    }                                                                                              \
+    lh_void prefix##_reset(type *self)                                                            \
+    {                                                                                              \
+        lh_entity_range_to_start(lh_addr_of(self->range));                                          \
+    }
 
 LH_COMPILER_EXTERN_C_END
 

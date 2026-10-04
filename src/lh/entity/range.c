@@ -1,5 +1,6 @@
 #include <lh/entity/range.h>
 #include <lh/assert.h>
+#include <lh/cast/static.h>
 #include <lh/entity.h>
 #include <lh/entity/screen.h>
 #include <lh/null.h>
@@ -14,7 +15,9 @@ lh_entity_range_reset(lh_entity_range_t *self)
 {
     self->minimum = 0;
     self->maximum = 100;
+    self->start = 0;
     self->value = 0;
+    self->thickness = LH_ENTITY_RANGE_THICKNESS;
 }
 
 lh_int_t
@@ -74,6 +77,66 @@ lh_entity_range_get_value(const lh_entity_range_t *self)
     return self->value;
 }
 
+lh_int_t
+lh_entity_range_get_start(const lh_entity_range_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->start;
+}
+
+lh_int_t
+lh_entity_range_to_percent(const lh_entity_range_t *self)
+{
+    lh_sllong_t ends;
+    lh_sllong_t part;
+    lh_sllong_t percent;
+    lh_assert_runtime_ref(self);
+    ends = self->maximum - self->minimum;
+    if (ends <= 0)
+    {
+        return 0;
+    }
+    part = self->value - self->minimum;
+    /* Rounded to nearest, so the middle of the ends is exactly 50 and not 49. */
+    percent = (part * 200L + ends) / (ends * 2L);
+    if (percent <= 0L)
+    {
+        return 0;
+    }
+    if (percent >= 100L)
+    {
+        return 100;
+    }
+    return (lh_int_t)percent;
+}
+
+lh_int_t
+lh_entity_range_get_thickness(const lh_entity_range_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->thickness;
+}
+
+lh_int_t
+lh_entity_range_usable(const lh_entity_range_t *self)
+{
+    const lh_math_vec2_t size = lh_entity_2d_get_size(lh_ptr_rcast(const lh_entity_2d_t, self));
+    lh_int_t width;
+    lh_int_t height;
+    lh_assert_runtime_ref(self);
+    width = lh_cast_static(lh_int_t, lh_math_vec2_get_x(lh_addr_of(size)));
+    height = lh_cast_static(lh_int_t, lh_math_vec2_get_y(lh_addr_of(size)));
+    if (width < 0)
+    {
+        width = 0;
+    }
+    if (height < 0)
+    {
+        height = 0;
+    }
+    return width > height ? width : height;
+}
+
 lh_void
 lh_entity_range_set_ends(lh_entity_range_t *self, lh_int_t minimum, lh_int_t maximum)
 {
@@ -84,8 +147,30 @@ lh_entity_range_set_ends(lh_entity_range_t *self, lh_int_t minimum, lh_int_t max
     }
     self->minimum = minimum;
     self->maximum = maximum;
+    self->start = lh_entity_range_clamp(self->start, minimum, maximum);
     self->value = lh_entity_range_clamp(self->value, minimum, maximum);
     lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
+}
+
+lh_void
+lh_entity_range_set_start(lh_entity_range_t *self, lh_int_t start)
+{
+    lh_int_t next;
+    lh_assert_runtime_ref(self);
+    next = lh_entity_range_clamp(start, self->minimum, self->maximum);
+    self->start = next;
+    if (self->value != next)
+    {
+        self->value = next;
+        lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
+    }
+}
+
+lh_void
+lh_entity_range_to_start(lh_entity_range_t *self)
+{
+    lh_assert_runtime_ref(self);
+    lh_entity_range_set_value(self, self->start);
 }
 
 lh_void
@@ -135,6 +220,51 @@ lh_entity_range_to_pos(const lh_entity_range_t *self, lh_int_t span)
     }
     return (lh_int_t)(((lh_sllong_t)(self->value - self->minimum) * (lh_sllong_t)span) /
                       (lh_sllong_t)ends);
+}
+
+lh_void
+lh_entity_range_set_from_percent(lh_entity_range_t *self, lh_int_t percent)
+{
+    lh_int_t ends;
+    lh_int_t clamped;
+    lh_sllong_t wide;
+    lh_assert_runtime_ref(self);
+    ends = self->maximum - self->minimum;
+    if (ends <= 0)
+    {
+        return;
+    }
+    clamped = percent < 0 ? 0 : (percent > 100 ? 100 : percent);
+    wide = (lh_sllong_t)ends * (lh_sllong_t)clamped;
+    lh_entity_range_set_value(self, self->minimum + (lh_int_t)((wide + 50L) / 100L));
+}
+
+lh_void
+lh_entity_range_set_thickness(lh_entity_range_t *self, lh_int_t thickness)
+{
+    lh_int_t next;
+    lh_assert_runtime_ref(self);
+    next = thickness < 0 ? 0 : thickness;
+    if (self->thickness == next)
+    {
+        return;
+    }
+    self->thickness = next;
+    lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
+}
+
+lh_void
+lh_entity_range_set_from_local_pos(lh_entity_range_t *self, lh_int_t pos)
+{
+    lh_assert_runtime_ref(self);
+    lh_entity_range_set_from_pos(self, pos, lh_entity_range_usable(self));
+}
+
+lh_int_t
+lh_entity_range_to_local_pos(const lh_entity_range_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_entity_range_to_pos(self, lh_entity_range_usable(self));
 }
 
 lh_int_t
@@ -231,7 +361,7 @@ lh_entity_range_paint(const lh_entity_range_t *self, lh_ui_canvas_t *canvas)
         return;
     }
     bounds = lh_entity_2d_get_screen_bounds(lh_ptr_rcast(const lh_entity_2d_t, self));
-    track = lh_entity_range_track(lh_addr_of(bounds), 4);
+    track = lh_entity_range_track(lh_addr_of(bounds), self->thickness);
     cap = lh_entity_range_cap(lh_addr_of(track));
     length = lh_math_rect_get_size_height(lh_addr_of(track)) >
                      lh_math_rect_get_size_width(lh_addr_of(track))

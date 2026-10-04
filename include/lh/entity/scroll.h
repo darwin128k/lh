@@ -65,6 +65,8 @@ lh_entity_scroll_get_thumb(const lh_entity_scroll_t *self);
 lh_void
 lh_entity_scroll_set_thumb(lh_entity_scroll_t *self, const lh_ui_style_t *style);
 
+lh_entity_range_value_decls(lh_entity_scroll, lh_entity_scroll_t);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_ENTITY_SCROLL_H */

@@ -163,3 +163,6 @@ lh_entity_scroll_set_thumb(lh_entity_scroll_t *self, const lh_ui_style_t *style)
     self->thumb = style;
     lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
 }
+
+
+lh_entity_range_value_defs(lh_entity_scroll, lh_entity_scroll_t)

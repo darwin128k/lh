@@ -72,6 +72,8 @@ lh_entity_spin_get_font(const lh_entity_spin_t *self);
 lh_void
 lh_entity_spin_set_font(lh_entity_spin_t *self, const lh_ui_font_t *font);
 
+lh_entity_range_value_decls(lh_entity_spin, lh_entity_spin_t);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_ENTITY_SPIN_H */

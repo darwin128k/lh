@@ -38,6 +38,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 extern const lh_entity_class_t lh_entity_slider_class;
 
+lh_entity_range_value_decls(lh_entity_slider, lh_entity_slider_t);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_ENTITY_SLIDER_H */

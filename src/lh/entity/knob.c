@@ -72,8 +72,8 @@ lh_entity_knob_fit(lh_entity_knob_t *self)
 lh_float_t
 lh_entity_knob_value(const lh_entity_knob_t *self)
 {
-    return lh_cast_static(lh_float_t, lh_entity_range_to_pos(lh_addr_of(self->range), 1000)) /
-           1000.0f;
+    return lh_cast_static(lh_float_t, lh_entity_range_to_percent(lh_addr_of(self->range))) /
+           100.0f;
 }
 
 lh_void
@@ -135,8 +135,8 @@ lh_entity_knob_apply(lh_entity_knob_t *self, const lh_math_vec2_t *point)
         atan2f(lh_math_vec2_get_y(point) - cy, lh_math_vec2_get_x(point) - cx);
     const lh_float_t turns = lh_entity_knob_turns(angle);
     const lh_int_t before = lh_entity_range_get_value(lh_addr_of(self->range));
-    lh_entity_range_set_from_pos(lh_addr_of(self->range),
-                                 lh_cast_static(lh_int_t, turns * 1000.0f), 1000);
+    lh_entity_range_set_from_percent(lh_addr_of(self->range),
+                                     lh_cast_static(lh_int_t, turns * 100.0f));
     if (lh_entity_range_get_value(lh_addr_of(self->range)) != before)
     {
         lh_entity_send_event(lh_ptr_rcast(lh_entity_t, self), LH_ENTITY_EVENT_CLICKED, lh_null);
@@ -259,3 +259,6 @@ lh_entity_knob_on_event(lh_entity_t *self, lh_entity_event_t *event)
 const lh_entity_class_t lh_entity_knob_class =
     lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_knob_t),
                                 lh_entity_knob_construct, lh_null, lh_entity_knob_on_event);
+
+
+lh_entity_range_value_defs(lh_entity_knob, lh_entity_knob_t)

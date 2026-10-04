@@ -222,3 +222,6 @@ lh_entity_spin_set_font(lh_entity_spin_t *self, const lh_ui_font_t *font)
                          lh_entity_2d_get_style(lh_ptr_rcast(const lh_entity_2d_t, self)), font);
     lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
 }
+
+
+lh_entity_range_value_defs(lh_entity_spin, lh_entity_spin_t)
