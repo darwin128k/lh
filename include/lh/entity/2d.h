@@ -151,13 +151,12 @@ lh_math_rect_t
 lh_entity_2d_get_screen_bounds(const lh_entity_2d_t *self);
 
 /**
- * @brief True when the world point @p point (`z = 0`, e.g. a mouse
- *        position) falls inside @p self's box.
+ * @brief True when the view ray through @p point meets @p self's box.
  *
- * The point is taken into the entity's own space and tested against
- * `[0, width) x [0, height)`. Depth there is ignored, so a box seen at an
- * angle is tested by its projection along the local z axis. No box contains
- * nothing.
+ * The view is orthographic and looks along -z, so the ray is the screen
+ * point at every depth. It is tested where it crosses the entity's local
+ * `z = 0` plane, against `[0, width) x [0, height)`. A box edge-on to the
+ * view contains nothing, and an entity with no box contains nothing.
  */
 lh_bool_t
 lh_entity_2d_contains(const lh_entity_2d_t *self, lh_math_vec2_t point);
@@ -166,8 +165,9 @@ lh_entity_2d_contains(const lh_entity_2d_t *self, lh_math_vec2_t point);
  * @brief The entity on top at the world point @p point within the tree of
  *        @p root (including @p root), or ::lh_null if there is none.
  *
- * "On top" means what is drawn last: a child over its parent, a younger
- * sibling over an older one. Hidden entities, and children cut away by a
+ * The closer surface wins: a larger world z is nearer the view. At equal
+ * depth the draw order wins, so a child is over its parent and a younger
+ * sibling is over an older one. Hidden entities, and children cut away by a
  * parent's box, are not hit. An entity with no box is searched through (its
  * children can still be hit) but never returned.
  */
@@ -178,9 +178,10 @@ lh_entity_2d_find_at(lh_entity_t *root, lh_math_vec2_t point);
  * @brief Paint @p self's box into @p canvas with its background style.
  *
  * Nothing when @p self has no style, the style background is transparent,
- * or there is no box. Stays inside the canvas clip. An axis-aligned box is
- * one rectangle fill; a
- * rotated one tests each pixel center of its bounds.
+ * or there is no box. Stays inside the canvas clip. A box parallel to the
+ * screen and axis-aligned is one fill at a constant depth. Any other box
+ * tests each pixel center of its bounds against the local `z = 0` plane and
+ * writes that pixel at the depth of the hit. A larger depth is closer.
  *
  * The screen calls this before ::LH_ENTITY_EVENT_DRAW, so whatever the
  * entity paints in that event lies on top of the background.

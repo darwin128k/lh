@@ -36,7 +36,8 @@ struct lh_entity;
  * @brief Sent (never bubbled) to each visible entity as a screen is drawn,
  *        after its background (::lh_entity_2d_draw_background) and before its
  *        children; `param` is the ::lh_ui_canvas_t, already clipped to where
- *        the entity may draw. Paint here to draw on top of the style.
+ *        the entity may draw, with its depth left at the background's so this
+ *        paint covers that same surface. Paint here to draw on top of the style.
  */
 #define LH_ENTITY_EVENT_DRAW 3U
 

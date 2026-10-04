@@ -12,8 +12,12 @@
  * blinking cursor costs a few pixels, not the whole display. That is what
  * keeps the engine fast on a microcontroller as well as on a PC.
  *
- * Drawing is flat: the screen is seen straight along z, so 3D entities in
- * the tree are drawn by their x and y only. Perspective comes with cameras.
+ * The view is orthographic and looks along -z, so a larger world z is
+ * closer. When the canvas has a depth plane, each dirty area is cleared to
+ * the farthest depth and a nearer surface covers a farther one; equal depth
+ * keeps the paint order. The screen is itself a surface at its z (0 by
+ * default), so a descendant with a smaller z is behind the background.
+ * Perspective comes with cameras.
  */
 
 #ifndef LH_ENTITY_SCREEN_H
@@ -75,12 +79,14 @@ lh_entity_screen_get_dirty_area(const lh_entity_screen_t *self, lh_usize_t index
 /**
  * @brief Redraw every dirty area onto @p canvas, then forget them.
  *
- * In each area, every visible entity is drawn in order (a parent before its
- * children, older siblings before younger ones): its background
+ * In each area the depth plane, when there is one, is cleared to the
+ * farthest depth, then every visible entity is drawn in order (a parent
+ * before its children, older siblings before younger ones): its background
  * (::lh_entity_2d_draw_background), then ::LH_ENTITY_EVENT_DRAW, clipped to
- * the area and to its parents' boxes unless they let it overflow. An entity
- * whose box misses the area is skipped, and so are the children that box
- * cuts.
+ * the area and to its parents' boxes unless they let it overflow. A nearer
+ * surface (larger z) covers a farther one; equal z keeps that order. An
+ * entity whose box misses the area is skipped, and so are the children that
+ * box cuts.
  *
  * @return The bounding box of what was redrawn (empty when nothing was):
  *         the part of @p canvas to copy to the display.

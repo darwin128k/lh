@@ -143,6 +143,7 @@ lh_entity_screen_render(lh_entity_screen_t *self, lh_ui_canvas_t *canvas)
     for (lh_usize_t i = 0; i < lh_entity_screen_get_dirty_count(self); ++i)
     {
         const lh_math_rect_t area = lh_entity_screen_get_dirty_area(self, i);
+        lh_ui_canvas_clear_depth(canvas, area);
         lh_entity_screen_draw(lh_ptr_rcast(lh_entity_t, self), canvas, area);
         drawn = lh_math_rect_union(lh_addr_of(drawn), lh_addr_of(area));
     }

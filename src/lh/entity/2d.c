@@ -213,6 +213,82 @@ lh_entity_2d_get_screen_bounds(const lh_entity_2d_t *self)
                                      lh_float_ceil_to_int(lh_math_vec3_get_y(lh_addr_of(max))));
 }
 
+/* Inverse of the local x/y axes in the screen plane, plus the world z of a
+ * point on the local z = 0 plane. The view ray at (sx, sy) is that screen
+ * point at every depth. */
+typedef struct lh_entity_2d_plane
+{
+    lh_float_t inv00;
+    lh_float_t inv01;
+    lh_float_t inv10;
+    lh_float_t inv11;
+    lh_float_t origin_x;
+    lh_float_t origin_y;
+    lh_float_t z_x;
+    lh_float_t z_y;
+    lh_float_t z_origin;
+    lh_bool_t ok;
+} lh_entity_2d_plane_t;
+
+static lh_entity_2d_plane_t
+lh_entity_2d_plane_from_world(const lh_math_mat4_t *world)
+{
+    const lh_math_vec4_t column0 = lh_math_mat4_get_column(world, 0);
+    const lh_math_vec4_t column1 = lh_math_mat4_get_column(world, 1);
+    const lh_math_vec4_t origin = lh_math_mat4_get_column(world, 3);
+    const lh_float_t m00 = lh_math_vec4_get_x(lh_addr_of(column0));
+    const lh_float_t m10 = lh_math_vec4_get_y(lh_addr_of(column0));
+    const lh_float_t m01 = lh_math_vec4_get_x(lh_addr_of(column1));
+    const lh_float_t m11 = lh_math_vec4_get_y(lh_addr_of(column1));
+    const lh_float_t det = m00 * m11 - m01 * m10;
+
+    lh_entity_2d_plane_t plane;
+    plane.origin_x = lh_math_vec4_get_x(lh_addr_of(origin));
+    plane.origin_y = lh_math_vec4_get_y(lh_addr_of(origin));
+    plane.z_x = lh_math_vec4_get_z(lh_addr_of(column0));
+    plane.z_y = lh_math_vec4_get_z(lh_addr_of(column1));
+    plane.z_origin = lh_math_vec4_get_z(lh_addr_of(origin));
+    /* Edge-on to the view: the plane covers no area. */
+    if (det > -1.0e-8f && det < 1.0e-8f)
+    {
+        plane.inv00 = 0.0f;
+        plane.inv01 = 0.0f;
+        plane.inv10 = 0.0f;
+        plane.inv11 = 0.0f;
+        plane.ok = lh_bool_false;
+        return plane;
+    }
+    const lh_float_t inv_det = 1.0f / det;
+    plane.inv00 = m11 * inv_det;
+    plane.inv01 = -m01 * inv_det;
+    plane.inv10 = -m10 * inv_det;
+    plane.inv11 = m00 * inv_det;
+    plane.ok = lh_bool_true;
+    return plane;
+}
+
+/* True when the view ray at (sx, sy) crosses the box. Writes the world z. */
+static lh_bool_t
+lh_entity_2d_plane_hit(const lh_entity_2d_plane_t *plane, lh_math_vec2_t size, lh_float_t sx,
+                       lh_float_t sy, lh_float_t *z_out)
+{
+    if (!plane->ok)
+    {
+        return lh_bool_false;
+    }
+    const lh_float_t dx = sx - plane->origin_x;
+    const lh_float_t dy = sy - plane->origin_y;
+    const lh_math_vec3_t local = lh_math_vec3_make(plane->inv00 * dx + plane->inv01 * dy,
+                                                   plane->inv10 * dx + plane->inv11 * dy, 0.0f);
+    if (!lh_entity_2d_has_local_point(size, local))
+    {
+        return lh_bool_false;
+    }
+    *z_out = plane->z_x * lh_math_vec3_get_x(lh_addr_of(local)) +
+             plane->z_y * lh_math_vec3_get_y(lh_addr_of(local)) + plane->z_origin;
+    return lh_bool_true;
+}
+
 lh_bool_t
 lh_entity_2d_contains(const lh_entity_2d_t *self, lh_math_vec2_t point)
 {
@@ -222,50 +298,72 @@ lh_entity_2d_contains(const lh_entity_2d_t *self, lh_math_vec2_t point)
         return lh_bool_false;
     }
 
-    lh_math_mat4_t to_local;
-    if (!lh_math_mat4_inverse(lh_entity_2d_get_world_matrix(self), lh_addr_of(to_local)))
+    const lh_math_mat4_t world = lh_entity_2d_get_world_matrix(self);
+    const lh_entity_2d_plane_t plane = lh_entity_2d_plane_from_world(lh_addr_of(world));
+    lh_float_t z = 0.0f;
+    return lh_entity_2d_plane_hit(lh_addr_of(plane), lh_entity_2d_get_size(self),
+                                  lh_math_vec2_get_x(lh_addr_of(point)),
+                                  lh_math_vec2_get_y(lh_addr_of(point)), lh_addr_of(z));
+}
+
+/* A hit and how close it is. A larger z is closer. */
+typedef struct lh_entity_2d_pick
+{
+    lh_entity_t *entity;
+    lh_float_t z;
+} lh_entity_2d_pick_t;
+
+static lh_entity_2d_pick_t
+lh_entity_2d_pick(lh_entity_t *node, lh_math_vec2_t point)
+{
+    const lh_entity_2d_pick_t none = {lh_null, 0.0f};
+    if (lh_entity_has_flags(node, lh_entity_flags_hidden))
     {
-        return lh_bool_false; /* scaled to nothing: covers no area */
+        return none;
     }
 
-    const lh_math_vec3_t local =
-        lh_math_mat4_transform_point(to_local, lh_math_vec2_to_vec3_z0(point));
-    return lh_entity_2d_has_local_point(lh_entity_2d_get_size(self), local);
+    const lh_entity_2d_t *const entity = lh_entity_cast(node, lh_addr_of(lh_entity_2d_class));
+    const lh_bool_t has_box = lh_ptr_is_set(entity) && lh_entity_2d_has_box(entity);
+    lh_float_t z = 0.0f;
+    lh_bool_t inside = lh_bool_false;
+    if (has_box)
+    {
+        const lh_math_mat4_t world = lh_entity_2d_get_world_matrix(entity);
+        const lh_entity_2d_plane_t plane = lh_entity_2d_plane_from_world(lh_addr_of(world));
+        inside = lh_entity_2d_plane_hit(lh_addr_of(plane), lh_entity_2d_get_size(entity),
+                                        lh_math_vec2_get_x(lh_addr_of(point)),
+                                        lh_math_vec2_get_y(lh_addr_of(point)), lh_addr_of(z));
+    }
+
+    /* Children that the box cuts away are not searched. No box does not
+     * hide children. Among hits, a larger z wins; equal z keeps the later
+     * one, which is the younger sibling and, against the parent, the child. */
+    lh_entity_2d_pick_t best = none;
+    if (!has_box || inside || lh_entity_has_flags(node, lh_entity_flags_overflow_visible))
+    {
+        lh_entity_foreach_child(child, node)
+        {
+            const lh_entity_2d_pick_t child_pick = lh_entity_2d_pick(child, point);
+            if (lh_ptr_is_set(child_pick.entity) &&
+                (lh_ptr_is_null(best.entity) || child_pick.z >= best.z))
+            {
+                best = child_pick;
+            }
+        }
+    }
+    /* Strictly closer than the best child, so an equal child stays on top. */
+    if (inside && (lh_ptr_is_null(best.entity) || z > best.z))
+    {
+        best.entity = node;
+        best.z = z;
+    }
+    return best;
 }
 
 lh_entity_t *
 lh_entity_2d_find_at(lh_entity_t *root, lh_math_vec2_t point)
 {
-    if (lh_entity_has_flags(root, lh_entity_flags_hidden))
-    {
-        return lh_null;
-    }
-
-    const lh_entity_2d_t *const entity = lh_entity_cast(root, lh_addr_of(lh_entity_2d_class));
-    const lh_bool_t has_box = lh_ptr_is_set(entity) && lh_entity_2d_has_box(entity);
-    const lh_bool_t inside = has_box && lh_entity_2d_contains(entity, point);
-
-    /* Children first, the youngest hit winning; the entity itself only when
-     * no child is hit: that is the drawing order read backwards. A box that
-     * cuts its children hides those outside it. No box is not a hit and does
-     * not hide children. */
-    lh_entity_t *hit = lh_null;
-    if (!has_box || inside || lh_entity_has_flags(root, lh_entity_flags_overflow_visible))
-    {
-        lh_entity_foreach_child(child, root)
-        {
-            lh_entity_t *const child_hit = lh_entity_2d_find_at(child, point);
-            if (lh_ptr_is_set(child_hit))
-            {
-                hit = child_hit;
-            }
-        }
-    }
-    if (lh_ptr_is_set(hit))
-    {
-        return hit;
-    }
-    return inside ? root : lh_null;
+    return lh_entity_2d_pick(root, point).entity;
 }
 
 lh_void
@@ -291,11 +389,14 @@ lh_entity_2d_draw_background(const lh_entity_2d_t *self, lh_ui_canvas_t *canvas)
     const lh_math_mat4_t world = lh_entity_2d_get_world_matrix(self);
     const lh_math_vec4_t world_col_0 = lh_math_mat4_get_column(lh_addr_of(world), 0);
     const lh_math_vec4_t world_col_1 = lh_math_mat4_get_column(lh_addr_of(world), 1);
+    const lh_math_vec4_t world_origin = lh_math_mat4_get_column(lh_addr_of(world), 3);
     if (lh_math_vec4_get_y(lh_addr_of(world_col_0)) == 0.0f &&
-        lh_math_vec4_get_x(lh_addr_of(world_col_1)) == 0.0f)
+        lh_math_vec4_get_z(lh_addr_of(world_col_0)) == 0.0f &&
+        lh_math_vec4_get_x(lh_addr_of(world_col_1)) == 0.0f &&
+        lh_math_vec4_get_z(lh_addr_of(world_col_1)) == 0.0f)
     {
-        /* Not rotated: the covered pixels are themselves a rectangle, so
-         * this is one clipped fill, not a test per pixel. */
+        /* Parallel to the screen and not rotated in it: the covered pixels
+         * are themselves a rectangle, all at one depth. */
         const lh_math_vec3_t a =
             lh_math_mat4_transform_point(world, lh_math_vec3_make(0.0f, 0.0f, 0.0f));
         const lh_math_vec3_t b = lh_math_mat4_transform_point(world, lh_math_vec2_to_vec3_z0(size));
@@ -307,15 +408,15 @@ lh_entity_2d_draw_background(const lh_entity_2d_t *self, lh_ui_canvas_t *canvas)
             lh_math_max(lh_math_vec3_get_x(lh_addr_of(a)), lh_math_vec3_get_x(lh_addr_of(b))) - 0.5f);
         const lh_int_t y1 = lh_float_ceil_to_int(
             lh_math_max(lh_math_vec3_get_y(lh_addr_of(a)), lh_math_vec3_get_y(lh_addr_of(b))) - 0.5f);
+        lh_ui_canvas_set_draw_z(canvas, lh_math_vec4_get_z(lh_addr_of(world_origin)));
         lh_ui_canvas_fill_rect(canvas, lh_math_rect_make(x0, y0, x1 - x0, y1 - y0), color);
         return;
     }
 
-    /* Rotated: test each pixel center of the bounds in the entity's space.
-     * A pixel belongs to the box when its center does, so neighbors share
-     * no pixel and leave no gap. */
-    lh_math_mat4_t to_local;
-    if (!lh_math_mat4_inverse(world, lh_addr_of(to_local)))
+    /* Tilted or rotated in the plane: a pixel belongs to the box when its
+     * center's view ray crosses the box, so neighbors share no pixel. */
+    const lh_entity_2d_plane_t plane = lh_entity_2d_plane_from_world(lh_addr_of(world));
+    if (!plane.ok)
     {
         return;
     }
@@ -330,11 +431,12 @@ lh_entity_2d_draw_background(const lh_entity_2d_t *self, lh_ui_canvas_t *canvas)
     {
         for (lh_math_coord_t x = x0; x < x1; ++x)
         {
-            const lh_math_vec3_t center = lh_math_vec3_make(lh_cast_static(lh_float_t, x) + 0.5f,
-                                                            lh_cast_static(lh_float_t, y) + 0.5f, 0.0f);
-            const lh_math_vec3_t local = lh_math_mat4_transform_point(to_local, center);
-            if (lh_entity_2d_has_local_point(size, local))
+            lh_float_t z = 0.0f;
+            if (lh_entity_2d_plane_hit(lh_addr_of(plane), size,
+                                       lh_cast_static(lh_float_t, x) + 0.5f,
+                                       lh_cast_static(lh_float_t, y) + 0.5f, lh_addr_of(z)))
             {
+                lh_ui_canvas_set_draw_z(canvas, z);
                 lh_ui_canvas_blend_pixel(canvas, x, y, color);
             }
         }

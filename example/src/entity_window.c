@@ -147,8 +147,11 @@ main(int argc, char **argv)
 
     example.pixels = lh_runtime_allocator_alloc(sizeof(lh_ui_color_t) * EXAMPLE_WIDTH *
                                                 EXAMPLE_HEIGHT);
+    lh_float_t *depth =
+        lh_runtime_allocator_alloc(sizeof(lh_float_t) * EXAMPLE_WIDTH * EXAMPLE_HEIGHT);
     lh_ui_canvas_t canvas;
     lh_ui_canvas_init(&canvas, example.pixels, EXAMPLE_WIDTH, EXAMPLE_HEIGHT, EXAMPLE_WIDTH);
+    lh_ui_canvas_set_depth(&canvas, depth);
 
 #ifdef _WIN32
     static const wchar_t title[] = L"lh entities";
@@ -158,6 +161,8 @@ main(int argc, char **argv)
     lh_os_window_init(&example.window);
     if (!lh_os_window_open(&example.window, (lh_ptr)title, EXAMPLE_WIDTH, EXAMPLE_HEIGHT))
     {
+        lh_runtime_allocator_free(depth);
+        lh_runtime_allocator_free(example.pixels);
         return 1;
     }
     lh_os_window_set_handler(example_on_window, &example);
@@ -188,6 +193,7 @@ main(int argc, char **argv)
     lh_os_window_set_handler(lh_null, lh_null);
     lh_os_window_close(&example.window);
     lh_entity_delete((lh_entity_t *)example.screen);
+    lh_runtime_allocator_free(depth);
     lh_runtime_allocator_free(example.pixels);
     return 0;
 }

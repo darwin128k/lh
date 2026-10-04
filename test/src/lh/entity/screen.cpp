@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <lh/entity/3d.h>
 #include <lh/entity/screen.h>
 #include <lh/memory/allocator/initializer.h>
 #include <lh/null.h>
@@ -70,7 +71,9 @@ class Screen : public ::testing::Test
         lh_entity_2d_set_size(reinterpret_cast<lh_entity_2d_t *>(screen),
                               lh_math_vec2_make(k_width, k_height));
         pixels.assign(k_width * k_height, lh_ui_color_make(1, 2, 3, 4));
+        depth.assign(k_width * k_height, 0.0f);
         lh_ui_canvas_init(&canvas, pixels.data(), k_width, k_height, k_width);
+        lh_ui_canvas_set_depth(&canvas, depth.data());
     }
 
     void
@@ -99,6 +102,20 @@ class Screen : public ::testing::Test
         return box;
     }
 
+    lh_entity_t *
+    make_layer(lh_float_t x, lh_float_t y, lh_float_t z, lh_float_t w, lh_float_t h,
+               lh_ui_color_t color)
+    {
+        lh_ui_style_t *style = &styles[style_count++];
+        lh_ui_style_set_bg_color(style, color);
+        lh_entity_3d_t *box =
+            reinterpret_cast<lh_entity_3d_t *>(lh_entity_create(&lh_entity_3d_class, root()));
+        lh_entity_3d_set_position(box, lh_math_vec3_make(x, y, z));
+        lh_entity_2d_set_size(reinterpret_cast<lh_entity_2d_t *>(box), lh_math_vec2_make(w, h));
+        lh_entity_2d_set_style(reinterpret_cast<lh_entity_2d_t *>(box), style);
+        return reinterpret_cast<lh_entity_t *>(box);
+    }
+
     lh_ui_color_t
     at(int x, int y)
     {
@@ -114,6 +131,7 @@ class Screen : public ::testing::Test
     lh_memory_sized_allocator_t sized;
     lh_entity_screen_t *screen;
     std::vector<lh_ui_color_t> pixels;
+    std::vector<lh_float_t> depth;
     lh_ui_canvas_t canvas;
     lh_ui_style_t styles[8];
     int style_count = 0;
@@ -261,6 +279,40 @@ TEST_F(Screen, pointer_goes_to_the_rect_on_top_and_bubbles)
     EXPECT_EQ(
         lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_UP, lh_math_vec2_make(12, 1)),
         root()); // only the screen itself is there
+}
+
+TEST_F(Screen, nearer_surface_covers_a_farther_one)
+{
+    // Older and closer. The younger one is on the screen plane.
+    lh_entity_t *near = make_layer(2, 2, 1, 4, 4, k_red);
+    lh_entity_t *level = make_layer(2, 2, 0, 4, 4, k_green);
+    render();
+    EXPECT_TRUE(same(at(3, 3), k_red));
+    EXPECT_EQ(lh_entity_2d_find_at(root(), lh_math_vec2_make(3.5f, 3.5f)), near);
+
+    // Behind the screen's own surface the background stays in front.
+    lh_entity_delete(near);
+    lh_entity_delete(level);
+    make_layer(2, 2, -1, 4, 4, k_green);
+    render();
+    EXPECT_TRUE(same(at(3, 3), k_black));
+    EXPECT_EQ(lh_entity_2d_find_at(root(), lh_math_vec2_make(3.5f, 3.5f)), root());
+}
+
+TEST_F(Screen, tilted_plane_is_covered_only_where_it_is_farther)
+{
+    // Turned 45 degrees about x: world z equals the screen y, so the top of
+    // the plane is closer than a flat box sitting at z = 1.
+    lh_entity_3d_t *plane = reinterpret_cast<lh_entity_3d_t *>(make_layer(0, 0, 0, 8, 8, k_red));
+    lh_entity_3d_set_rotation(
+        plane, lh_math_quat_from_axis_angle(lh_math_vec3_make(1, 0, 0), k_pi / 4));
+    lh_entity_t *flat = make_layer(0, 0, 1, 8, 8, k_green);
+    render();
+    EXPECT_TRUE(same(at(1, 0), k_green)); // plane z = 0.5, behind the flat box
+    EXPECT_TRUE(same(at(1, 1), k_red));   // plane z = 1.5, in front of it
+    EXPECT_EQ(lh_entity_2d_find_at(root(), lh_math_vec2_make(1.5f, 0.5f)), flat);
+    EXPECT_EQ(lh_entity_2d_find_at(root(), lh_math_vec2_make(1.5f, 1.5f)),
+              reinterpret_cast<lh_entity_t *>(plane));
 }
 
 } // namespace

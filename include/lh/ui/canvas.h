@@ -10,12 +10,18 @@
  * Every drawing call stays inside the clip rectangle, which is how entities
  * are kept inside their parents and how only the changed parts of a screen
  * are redrawn.
+ *
+ * When a depth plane is set, a fragment is kept only when its
+ * ::lh_ui_canvas_set_draw_z is closer than or equal to the value already
+ * there. Closer means a larger z: the view looks along -z. Equal z keeps
+ * the order of the calls, so a flat interface stacks as before.
  */
 
 #ifndef LH_UI_CANVAS_H
 #define LH_UI_CANVAS_H
 
 #include <lh/compiler/extern/c.h>
+#include <lh/float.h>
 #include <lh/ui/canvas/fields.h>
 #include <lh/ui/color.h>
 #include <lh/math/rect.h>
@@ -27,7 +33,7 @@
  */
 struct lh_ui_canvas
 {
-    lh_ui_canvas_fields(lh_ui_color_t, lh_math_coord_t, lh_math_rect_t);
+    lh_ui_canvas_fields(lh_ui_color_t, lh_math_coord_t, lh_math_rect_t, lh_float_t);
 };
 typedef struct lh_ui_canvas lh_ui_canvas_t;
 
@@ -64,6 +70,28 @@ lh_ui_canvas_get_clip(const lh_ui_canvas_t *self);
  */
 lh_void
 lh_ui_canvas_set_clip(lh_ui_canvas_t *self, lh_math_rect_t clip);
+
+/**
+ * @brief Depth samples in the same layout as the pixels, or ::lh_null to
+ *        ignore depth. Not owned: it must stay valid and hold `stride *
+ *        height` samples.
+ */
+lh_void
+lh_ui_canvas_set_depth(lh_ui_canvas_t *self, lh_float_t *depth);
+
+/**
+ * @brief Depth of the next ::lh_ui_canvas_fill_rect or
+ *        ::lh_ui_canvas_blend_pixel. Ignored when no depth plane is set.
+ */
+lh_void
+lh_ui_canvas_set_draw_z(lh_ui_canvas_t *self, lh_float_t z);
+
+/**
+ * @brief Write the farthest depth into @p area (cut to the image), so the
+ *        next fragments in that area all pass. No depth plane: nothing.
+ */
+lh_void
+lh_ui_canvas_clear_depth(lh_ui_canvas_t *self, lh_math_rect_t area);
 
 /**
  * @brief The pixel at (@p x, @p y), which must be inside the image.
