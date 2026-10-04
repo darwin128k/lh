@@ -2,7 +2,8 @@
  * @file keys.h
  * @brief An on-screen keyboard made of buttons.
  *
- * A key is a ::lh_entity_button_t with a label for its caption.
+ * A key is a ::lh_entity_button_t with a label for its caption. The box
+ * is rounded by 6 pixels.
  * ::lh_entity_keys_add appends one to the current row and returns that
  * button, so a layout can resize a key. ::lh_entity_keys_break starts the
  * next row. The caption is copied. A click sends @p code to the screen
@@ -35,6 +36,7 @@ struct lh_entity_keys
     lh_int_t key_width;
     lh_int_t key_height;
     lh_int_t gap;
+    lh_int_t radius;
 };
 typedef struct lh_entity_keys lh_entity_keys_t;
 
@@ -43,9 +45,9 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Class of ::lh_entity_keys_t, derived from ::lh_entity_2d_class.
  *
- * A new keyboard lays rows in a column, keys 26 by 26 with a gap of 4,
- * and uses ::lh_ui_font_get_default. Set the style, the font and the key
- * size before ::lh_entity_keys_add.
+ * A new keyboard lays rows in a column, keys 26 by 26 with a gap of 4
+ * and a corner of 6, and uses ::lh_ui_font_get_default. Set the style,
+ * the font, the key size and the corner before ::lh_entity_keys_add.
  */
 extern const lh_entity_class_t lh_entity_keys_class;
 
@@ -67,6 +69,12 @@ lh_entity_keys_set_key_size(lh_entity_keys_t *self, lh_int_t width, lh_int_t hei
  */
 lh_void
 lh_entity_keys_set_gap(lh_entity_keys_t *self, lh_int_t gap);
+
+/**
+ * @brief Corner radius, in pixels, of a key added afterwards. 0 is square.
+ */
+lh_void
+lh_entity_keys_set_radius(lh_entity_keys_t *self, lh_int_t radius);
 
 /**
  * @brief Style a key uses while it is down. ::lh_null keeps the ordinary

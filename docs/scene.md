@@ -300,7 +300,7 @@ picks another).
 | Combo box, dropdown | `lh/entity/combo.h` | A list that opens under the box. |
 | Tabs, pages | `lh/entity/tabs.h`, `lh/entity/pages.h` | An exclusive group of toggles, and one visible child. |
 | Text field | `lh/entity/field.h` | One buffer. `set_lines(1)` is a single line. |
-| On-screen keyboard | `lh/entity/keys.h` | Rows of buttons. `add` takes a caption and a code; `break` starts the next row. |
+| On-screen keyboard | `lh/entity/keys.h` | Rows of buttons, corners rounded by 6 pixels. `add` takes a caption and a code; `break` starts the next row. |
 | Picture | `lh/entity/image.h` | A child of a button: icon, words, or both. |
 | Hold | `lh/entity/button.h` | `lh_entity_button_set_repeat`. |
 

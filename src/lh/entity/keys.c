@@ -72,6 +72,7 @@ lh_entity_keys_construct(lh_entity_t *self)
     keys->key_width = 26;
     keys->key_height = 26;
     keys->gap = 4;
+    keys->radius = 6;
 }
 
 const lh_entity_class_t lh_entity_keys_class =
@@ -99,6 +100,13 @@ lh_entity_keys_set_gap(lh_entity_keys_t *self, lh_int_t gap)
     lh_assert_runtime_ref(self);
     self->gap = gap < 0 ? 0 : gap;
     lh_entity_flex_set_gap(lh_ptr_rcast(lh_entity_t, self), self->gap);
+}
+
+lh_void
+lh_entity_keys_set_radius(lh_entity_keys_t *self, lh_int_t radius)
+{
+    lh_assert_runtime_ref(self);
+    self->radius = radius < 0 ? 0 : radius;
 }
 
 lh_void
@@ -144,8 +152,9 @@ lh_entity_keys_add(lh_entity_keys_t *self, const lh_char_t *text, lh_uint_t code
     lh_entity_flex_set_justify(button, LH_ENTITY_FLEX_CENTER);
     lh_entity_flex_set_align(button, LH_ENTITY_FLEX_CENTER);
     lh_entity_button_set_pressed_style(lh_ptr_rcast(lh_entity_button_t, button), self->pressed);
+    lh_entity_button_set_radius(lh_ptr_rcast(lh_entity_button_t, button), self->radius);
     label = lh_entity_create(&lh_entity_label_class, button);
-    lh_entity_add_flags(label, lh_entity_flags_event_bubble);
+    lh_entity_add_flags(label, lh_entity_flags_event_bubble | lh_entity_flags_own_background);
     lh_entity_2d_set_style(lh_ptr_rcast(lh_entity_2d_t, label), style);
     lh_entity_label_set_font(lh_ptr_rcast(lh_entity_label_t, label), self->font);
     stored = lh_entity_keys_copy(button, text);

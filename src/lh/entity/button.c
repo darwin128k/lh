@@ -2,8 +2,31 @@
 #include <lh/assert.h>
 #include <lh/entity/screen.h>
 #include <lh/null.h>
+#include <lh/ui/canvas.h>
+#include <lh/ui/style.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+
+lh_void
+lh_entity_button_paint(const lh_entity_button_t *self, lh_ui_canvas_t *canvas)
+{
+    const lh_entity_2d_t *const box = lh_ptr_rcast(const lh_entity_2d_t, self);
+    const lh_ui_style_t *const style = lh_entity_2d_get_style(box);
+    const lh_math_mat4_t world = lh_entity_2d_get_world_matrix(box);
+    const lh_math_vec4_t origin = lh_math_mat4_get_column(lh_addr_of(world), 3);
+    lh_ui_color_t color;
+    if (self->radius <= 0 || lh_ptr_is_null(style))
+    {
+        return;
+    }
+    color = lh_ui_style_get_bg_color(style);
+    if (color.a == 0U)
+    {
+        return;
+    }
+    lh_ui_canvas_set_draw_z(canvas, lh_math_vec4_get_z(lh_addr_of(origin)));
+    lh_ui_canvas_fill_round(canvas, lh_entity_2d_get_screen_bounds(box), self->radius, color);
+}
 
 lh_void
 lh_entity_button_show_pressed(lh_entity_button_t *self, lh_bool_t down)
@@ -33,6 +56,12 @@ lh_entity_button_on_event(lh_entity_t *self, lh_entity_event_t *event)
     const lh_uint_t code = lh_entity_event_get_code(event);
     lh_entity_screen_t *screen;
 
+    if (code == LH_ENTITY_EVENT_DRAW && button->radius > 0)
+    {
+        lh_entity_button_paint(button,
+                               lh_ptr_rcast(lh_ui_canvas_t, lh_entity_event_get_param(event)));
+        return;
+    }
     if (code == LH_ENTITY_EVENT_DELETE)
     {
         screen = lh_entity_cast(lh_entity_get_root(self), lh_addr_of(lh_entity_screen_class));
@@ -105,4 +134,36 @@ lh_entity_button_set_repeat(lh_entity_button_t *self, lh_bool_t repeat)
 {
     lh_assert_runtime_ref(self);
     self->repeat = repeat;
+}
+
+lh_int_t
+lh_entity_button_get_radius(const lh_entity_button_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->radius;
+}
+
+lh_void
+lh_entity_button_set_radius(lh_entity_button_t *self, lh_int_t radius)
+{
+    lh_entity_t *const entity = lh_ptr_rcast(lh_entity_t, self);
+    lh_assert_runtime_ref(self);
+    if (radius < 0)
+    {
+        radius = 0;
+    }
+    if (self->radius == radius)
+    {
+        return;
+    }
+    self->radius = radius;
+    if (radius > 0)
+    {
+        lh_entity_add_flags(entity, lh_entity_flags_own_background);
+    }
+    else
+    {
+        lh_entity_clear_flags(entity, lh_entity_flags_own_background);
+    }
+    lh_entity_invalidate(entity);
 }

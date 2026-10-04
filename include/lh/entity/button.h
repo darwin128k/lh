@@ -9,7 +9,9 @@
  * over the same button sends ::LH_ENTITY_EVENT_CLICKED to it. While it is
  * down, and a pressed style was given, that style paints the box instead.
  * ::lh_entity_button_set_repeat makes a hold: the click is sent when the
- * press starts and again on each tick while it is held.
+ * press starts and again on each tick while it is held. A corner radius
+ * of 0 keeps the square style fill. A larger radius paints a rounded box
+ * in that same color.
  * docs/scene.md shows how to use this class and how to write another.
  */
 
@@ -32,6 +34,7 @@ struct lh_entity_button
     const lh_ui_style_t *rest_style;
     lh_bool_t pressed;
     lh_bool_t repeat;
+    lh_int_t radius;
 };
 typedef struct lh_entity_button lh_entity_button_t;
 
@@ -73,6 +76,19 @@ lh_entity_button_get_repeat(const lh_entity_button_t *self);
  */
 lh_void
 lh_entity_button_set_repeat(lh_entity_button_t *self, lh_bool_t repeat);
+
+/**
+ * @brief Corner radius of @p self, in pixels. 0 is a square.
+ */
+lh_int_t
+lh_entity_button_get_radius(const lh_entity_button_t *self);
+
+/**
+ * @brief Round the box of @p self by @p radius pixels. 0 keeps the square
+ *        style fill. The color stays the style's background.
+ */
+lh_void
+lh_entity_button_set_radius(lh_entity_button_t *self, lh_int_t radius);
 
 LH_COMPILER_EXTERN_C_END
 
