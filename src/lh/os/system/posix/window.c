@@ -306,6 +306,13 @@ lh_os_system_window_set_chrome(lh_os_system_window_handle_t self, lh_uint_t capt
     (void)border;
 }
 
+void
+lh_os_system_window_set_caption_font(lh_os_system_window_handle_t self, const lh_ptr font)
+{
+    (void)self;
+    (void)font;
+}
+
 lh_int_t
 lh_os_system_posix_window_span(lh_os_system_window_handle_t self, lh_bool_t outer,
                                lh_bool_t horizontal)

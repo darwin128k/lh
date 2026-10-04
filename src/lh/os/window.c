@@ -10,6 +10,7 @@
  */
 
 #include <lh/bool.h>
+#include <lh/cast/const.h>
 #include <lh/null.h>
 #include <lh/numeric/types.h>
 #include <lh/os/window.h>
@@ -147,6 +148,12 @@ lh_os_window_set_chrome(lh_os_window_t *self, lh_ui_color_t caption, lh_ui_color
                                    lh_ui_color_to_argb(caption) & 0x00FFFFFFU,
                                    lh_ui_color_to_argb(text) & 0x00FFFFFFU,
                                    lh_ui_color_to_argb(border) & 0x00FFFFFFU);
+}
+
+void
+lh_os_window_set_caption_font(lh_os_window_t *self, const lh_ui_font_t *font)
+{
+    lh_os_system_window_set_caption_font(lh_os_window_get_handle(self), lh_cast_const(lh_ptr, font));
 }
 
 lh_int_t

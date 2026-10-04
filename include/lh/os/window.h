@@ -25,6 +25,7 @@
 #include <lh/config.h>
 #include <lh/numeric/types.h>
 #include <lh/ui/color.h>
+#include <lh/ui/font.h>
 
 #include <lh/os/system/window.h>
 #include <lh/os/system/window/handle.h>
@@ -203,6 +204,14 @@ lh_os_window_get_dark(const lh_os_window_t *self);
 void
 lh_os_window_set_chrome(lh_os_window_t *self, lh_ui_color_t caption, lh_ui_color_t text,
                         lh_ui_color_t border);
+
+/**
+ * @brief Draw the client caption's title with @p font.
+ *
+ * @p font is not owned. ::lh_null keeps the system font.
+ */
+void
+lh_os_window_set_caption_font(lh_os_window_t *self, const lh_ui_font_t *font);
 
 /**
  * @brief Outer width of @p self; see ::lh_os_system_window_get_width.

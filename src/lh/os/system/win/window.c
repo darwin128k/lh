@@ -38,6 +38,10 @@
 #include <lh/util/addr.h>
 #include <lh/math.h>
 #include <lh/runtime/allocator.h>
+#include <lh/ui/canvas.h>
+#include <lh/ui/color.h>
+#include <lh/ui/font.h>
+#include <lh/float/round.h>
 #include <lh/util/ptr.h>
 #include <lh/wchar.h>
 #include <lh/wstr.h>
@@ -60,12 +64,18 @@ static const wchar_t lh_os_system_win_window_class_name[] = L"lh_pa_window";
 #define LH_OS_SYSTEM_WIN_WINDOW_CLIENT_FRAME L"lh.os.frame"
 #define LH_OS_SYSTEM_WIN_WINDOW_CAPTION_COLOR L"lh.os.caption"
 #define LH_OS_SYSTEM_WIN_WINDOW_TEXT_COLOR L"lh.os.text"
+#define LH_OS_SYSTEM_WIN_WINDOW_CAPTION_FONT L"lh.os.font"
 #define LH_OS_SYSTEM_WIN_WINDOW_CAPTION_HEIGHT 32
 #define LH_OS_SYSTEM_WIN_WINDOW_BORDER 8
 #define LH_OS_SYSTEM_WIN_WINDOW_BUTTON_WIDTH 46
 
 void
 lh_os_system_win_window_paint_caption(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_hdc_t dc);
+
+lh_bool_t
+lh_os_system_win_window_paint_title(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_hdc_t dc,
+                                    lh_int_t window_width, lh_os_system_win_dword_t caption,
+                                    lh_os_system_win_dword_t text);
 
 lh_os_system_win_lresult_t
 lh_os_system_win_window_hit_test(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_lparam_t lparam);
@@ -214,6 +224,7 @@ lh_os_system_window_close(lh_os_system_window_handle_t self)
     (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CLIENT_FRAME);
     (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CAPTION_COLOR);
     (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_TEXT_COLOR);
+    (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CAPTION_FONT);
     (void)DestroyWindow(hwnd);
     lh_os_system_win_window_unregister_class();
 }
@@ -572,6 +583,112 @@ lh_os_system_win_window_paint_mark(lh_os_system_win_hdc_t dc, lh_int_t kind, lh_
     (void)LineTo(dc, x0, y1);
 }
 
+lh_ui_color_t
+lh_os_system_win_window_color(lh_os_system_win_dword_t colorref)
+{
+    return lh_ui_color_make(lh_cast_static(lh_byte_t, colorref & 0xFFU),
+                            lh_cast_static(lh_byte_t, (colorref >> 8) & 0xFFU),
+                            lh_cast_static(lh_byte_t, (colorref >> 16) & 0xFFU), 0xFFU);
+}
+
+lh_bool_t
+lh_os_system_win_window_paint_title(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_hdc_t dc,
+                                    lh_int_t window_width, lh_os_system_win_dword_t caption,
+                                    lh_os_system_win_dword_t text)
+{
+    const lh_ui_font_t *const font = lh_cast_reinterpret(
+        const lh_ui_font_t *, GetPropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CAPTION_FONT));
+    lh_wchar_t wide[128];
+    lh_char_t title[128];
+    lh_int_t count;
+    lh_int_t index;
+    lh_math_vec2_t measured;
+    lh_int_t width;
+    lh_int_t height;
+    lh_int_t room;
+    lh_int_t top;
+    lh_ui_color_t *pixels;
+    lh_byte_t *bgrx;
+    lh_ui_canvas_t canvas;
+    lh_os_system_win_bitmapinfoheader_t info;
+    lh_usize_t pixel_count;
+
+    if (lh_ptr_is_null(font))
+    {
+        return lh_bool_false;
+    }
+    count = GetWindowTextW(hwnd, wide, 128);
+    if (count <= 0)
+    {
+        return lh_bool_true;
+    }
+    for (index = 0; index < count; ++index)
+    {
+        if (wide[index] > 255)
+        {
+            return lh_bool_false;
+        }
+        title[index] = lh_cast_static(lh_char_t, wide[index]);
+    }
+    title[count] = '\0';
+
+    measured = lh_ui_font_measure(font, title);
+    width = lh_float_ceil_to_int(lh_math_vec2_get_x(lh_addr_of(measured)));
+    height = lh_ui_font_get_glyph_height(font);
+    room = window_width - 12 - 3 * LH_OS_SYSTEM_WIN_WINDOW_BUTTON_WIDTH;
+    if (width > room)
+    {
+        width = room;
+    }
+    if (width <= 0 || height <= 0)
+    {
+        return lh_bool_true;
+    }
+    top = (LH_OS_SYSTEM_WIN_WINDOW_CAPTION_HEIGHT - height) / 2;
+    if (top < 0)
+    {
+        top = 0;
+    }
+
+    pixel_count = lh_cast_static(lh_usize_t, width) * lh_cast_static(lh_usize_t, height);
+    pixels = lh_ptr_rcast(lh_ui_color_t, lh_runtime_allocator_alloc(pixel_count * sizeof(lh_ui_color_t)));
+    bgrx = lh_ptr_rcast(lh_byte_t, lh_runtime_allocator_alloc(pixel_count * 4U));
+    if (lh_ptr_is_null(pixels) || lh_ptr_is_null(bgrx))
+    {
+        lh_runtime_allocator_free(pixels);
+        lh_runtime_allocator_free(bgrx);
+        return lh_bool_false;
+    }
+    for (index = 0; index < lh_cast_static(lh_int_t, pixel_count); ++index)
+    {
+        pixels[index] = lh_os_system_win_window_color(caption);
+    }
+    lh_ui_canvas_init(lh_addr_of(canvas), pixels, width, height, width);
+    lh_ui_font_draw(font, lh_addr_of(canvas), 0, 0, title, lh_os_system_win_window_color(text));
+    for (index = 0; index < lh_cast_static(lh_int_t, pixel_count); ++index)
+    {
+        const lh_uint_t argb = lh_ui_color_to_argb(pixels[index]);
+        bgrx[index * 4 + 0] = lh_cast_static(lh_byte_t, argb);
+        bgrx[index * 4 + 1] = lh_cast_static(lh_byte_t, argb >> 8);
+        bgrx[index * 4 + 2] = lh_cast_static(lh_byte_t, argb >> 16);
+        bgrx[index * 4 + 3] = 0;
+    }
+    lh_memory_std_set(lh_addr_of(info), 0, sizeof info);
+    info.biSize = lh_cast_static(lh_os_system_win_dword_t, sizeof info);
+    info.biWidth = width;
+    info.biHeight = -height;
+    info.biPlanes = 1;
+    info.biBitCount = 32;
+    info.biCompression = LH_OS_SYSTEM_WIN_BI_RGB;
+    (void)SetDIBitsToDevice(dc, 12, top, lh_cast_static(lh_os_system_win_dword_t, width),
+                            lh_cast_static(lh_os_system_win_dword_t, height), 0, 0, 0,
+                            lh_cast_static(lh_os_system_win_uint_t, height), bgrx, lh_addr_of(info),
+                            LH_OS_SYSTEM_WIN_DIB_RGB_COLORS);
+    lh_runtime_allocator_free(pixels);
+    lh_runtime_allocator_free(bgrx);
+    return lh_bool_true;
+}
+
 void
 lh_os_system_win_window_paint_caption(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_hdc_t dc)
 {
@@ -598,17 +715,20 @@ lh_os_system_win_window_paint_caption(lh_os_system_win_hwnd_t hwnd, lh_os_system
         (void)DeleteObject(brush);
     }
 
-    const lh_os_system_win_handle_t font = GetStockObject(LH_OS_SYSTEM_WIN_DEFAULT_GUI_FONT);
-    const lh_os_system_win_handle_t old_font = SelectObject(dc, font);
-    (void)SetBkMode(dc, LH_OS_SYSTEM_WIN_TRANSPARENT);
-    (void)SetTextColor(dc, text);
-    lh_wchar_t title[128];
-    const lh_int_t count = GetWindowTextW(hwnd, title, 128);
-    if (count > 0)
+    if (!lh_os_system_win_window_paint_title(hwnd, dc, client.right - client.left, caption, text))
     {
-        (void)TextOutW(dc, 12, 8, title, count);
+        const lh_os_system_win_handle_t font = GetStockObject(LH_OS_SYSTEM_WIN_DEFAULT_GUI_FONT);
+        const lh_os_system_win_handle_t old_font = SelectObject(dc, font);
+        (void)SetBkMode(dc, LH_OS_SYSTEM_WIN_TRANSPARENT);
+        (void)SetTextColor(dc, text);
+        lh_wchar_t title[128];
+        const lh_int_t count = GetWindowTextW(hwnd, title, 128);
+        if (count > 0)
+        {
+            (void)TextOutW(dc, 12, 8, title, count);
+        }
+        (void)SelectObject(dc, old_font);
     }
-    (void)SelectObject(dc, old_font);
 
     const lh_os_system_win_handle_t pen =
         CreatePen(LH_OS_SYSTEM_WIN_PS_SOLID, 1, text);
@@ -874,6 +994,25 @@ lh_os_system_window_set_chrome(lh_os_system_window_handle_t self, lh_uint_t capt
     (void)SetPropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_TEXT_COLOR,
                    lh_cast_reinterpret(lh_os_system_win_handle_t,
                                        lh_cast_static(lh_usize_t, text_bgr) + 1U));
+}
+
+void
+lh_os_system_window_set_caption_font(lh_os_system_window_handle_t self, const lh_ptr font)
+{
+    lh_os_system_win_hwnd_t hwnd;
+
+    if (!lh_os_system_window_is_valid(self))
+    {
+        return;
+    }
+    hwnd = lh_os_system_win_window_native(self);
+    if (lh_ptr_is_null(font))
+    {
+        (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CAPTION_FONT);
+        return;
+    }
+    (void)SetPropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CAPTION_FONT,
+                   lh_cast_reinterpret(lh_os_system_win_handle_t, font));
 }
 
 /* The window handle as the public API stores it. */

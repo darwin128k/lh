@@ -217,6 +217,15 @@ lh_os_system_window_set_chrome(lh_os_system_window_handle_t self, lh_uint_t capt
                                lh_uint_t text, lh_uint_t border);
 
 /**
+ * @brief Draw the client caption's title with @p font.
+ *
+ * @p font is not copied. ::lh_null keeps the system font. Only the client
+ * frame uses it; the system frame keeps the font the OS picked.
+ */
+void
+lh_os_system_window_set_caption_font(lh_os_system_window_handle_t self, const lh_ptr font);
+
+/**
  * @brief Outer width of @p self, in pixels, including the frame.
  *
  * Zero when @p self is not a live window.
