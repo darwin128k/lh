@@ -4,6 +4,7 @@
 #include <lh/entity/screen.h>
 #include <lh/null.h>
 #include <lh/numeric/types.h>
+#include <lh/ui/canvas.h>
 #include <lh/ui/style.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -180,7 +181,7 @@ lh_entity_range_paint(const lh_entity_range_t *self, lh_ui_canvas_t *canvas)
             track = lh_math_rect_make(x, y + (height - thick) / 2, width, thick);
         }
         filled = lh_entity_range_to_pos(self, length);
-        lh_ui_canvas_fill_rect(canvas, track, lh_ui_style_get_bg_color(style));
+        lh_ui_canvas_fill_round(canvas, track, thick / 2, lh_ui_style_get_bg_color(style));
         if (filled <= 0)
         {
             return;
@@ -197,6 +198,6 @@ lh_entity_range_paint(const lh_entity_range_t *self, lh_ui_canvas_t *canvas)
                                       lh_math_rect_get_y(lh_addr_of(track)), filled,
                                       lh_math_rect_get_size_height(lh_addr_of(track)));
         }
-        lh_ui_canvas_fill_rect(canvas, track, lh_ui_style_get_text_color(style));
+        lh_ui_canvas_fill_round(canvas, track, thick / 2, lh_ui_style_get_text_color(style));
     }
 }

@@ -56,13 +56,14 @@ lh_entity_slider_paint(const lh_entity_slider_t *self, lh_ui_canvas_t *canvas)
     if (vertical != 0)
     {
         const lh_int_t track_x = x + (width - thick) / 2;
-        lh_ui_canvas_fill_rect(canvas, lh_math_rect_make(track_x, y, thick, height),
-                               lh_ui_style_get_bg_color(style));
+        const lh_int_t cap = thick / 2;
+        lh_ui_canvas_fill_round(canvas, lh_math_rect_make(track_x, y, thick, height), cap,
+                                lh_ui_style_get_bg_color(style));
         if (filled > 0)
         {
-            lh_ui_canvas_fill_rect(canvas,
-                                   lh_math_rect_make(track_x, y + height - filled, thick, filled),
-                                   lh_ui_style_get_text_color(style));
+            lh_ui_canvas_fill_round(canvas,
+                                    lh_math_rect_make(track_x, y + height - filled, thick, filled),
+                                    cap, lh_ui_style_get_text_color(style));
         }
         lh_ui_canvas_fill_disc(canvas, x + width / 2, y + height - at, radius,
                               lh_ui_style_get_text_color(style));
@@ -70,12 +71,13 @@ lh_entity_slider_paint(const lh_entity_slider_t *self, lh_ui_canvas_t *canvas)
     else
     {
         const lh_int_t track_y = y + (height - thick) / 2;
-        lh_ui_canvas_fill_rect(canvas, lh_math_rect_make(x, track_y, width, thick),
-                               lh_ui_style_get_bg_color(style));
+        const lh_int_t cap = thick / 2;
+        lh_ui_canvas_fill_round(canvas, lh_math_rect_make(x, track_y, width, thick), cap,
+                                lh_ui_style_get_bg_color(style));
         if (filled > 0)
         {
-            lh_ui_canvas_fill_rect(canvas, lh_math_rect_make(x, track_y, filled, thick),
-                                   lh_ui_style_get_text_color(style));
+            lh_ui_canvas_fill_round(canvas, lh_math_rect_make(x, track_y, filled, thick), cap,
+                                    lh_ui_style_get_text_color(style));
         }
         lh_ui_canvas_fill_disc(canvas, x + at, y + height / 2, radius,
                               lh_ui_style_get_text_color(style));

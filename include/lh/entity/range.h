@@ -99,7 +99,8 @@ lh_entity_range_to_pos(const lh_entity_range_t *self, lh_int_t span);
 /**
  * @brief Paint the track and the filled part of @p self into @p canvas.
  *
- * The long side of the box is the track. A taller box fills upward.
+ * The long side of the box is the track. Both ends are rounded to half
+ * the thickness. A taller box fills upward.
  */
 lh_void
 lh_entity_range_paint(const lh_entity_range_t *self, lh_ui_canvas_t *canvas);

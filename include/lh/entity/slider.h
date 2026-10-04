@@ -3,8 +3,9 @@
  * @brief A trackbar: the progress bar, plus a drag that sets the value.
  *
  * The record starts with ::lh_entity_range_t, so the range functions take
- * it. A drag along the long side of the box moves the value. Each change
- * sends ::LH_ENTITY_EVENT_CLICKED.
+ * it. The track ends are rounded to half the thickness. A drag along the
+ * long side of the box moves the value. Each change sends
+ * ::LH_ENTITY_EVENT_CLICKED.
  */
 
 #ifndef LH_ENTITY_SLIDER_H
