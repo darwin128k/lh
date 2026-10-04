@@ -8,6 +8,37 @@
 
 #include <math.h>
 
+/* The ring runs from the lower left, through the top, to the lower right.
+   Screen y grows downward, so the angle grows clockwise. */
+lh_float_t
+lh_entity_knob_angle(lh_float_t turns)
+{
+    const lh_float_t pi = 3.14159265f;
+    return (0.75f + turns * 1.5f) * pi;
+}
+
+lh_float_t
+lh_entity_knob_turns(lh_float_t angle)
+{
+    const lh_float_t pi = 3.14159265f;
+    const lh_float_t start = lh_entity_knob_angle(0.0f);
+    const lh_float_t sweep = lh_entity_knob_angle(1.0f) - start;
+    const lh_float_t gap = (2.0f * pi - sweep) * 0.5f;
+    if (angle < start)
+    {
+        angle += 2.0f * pi;
+    }
+    if (angle <= start + sweep)
+    {
+        return (angle - start) / sweep;
+    }
+    if (angle > start + sweep + gap)
+    {
+        return 0.0f;
+    }
+    return 1.0f;
+}
+
 lh_void
 lh_entity_knob_apply(lh_entity_knob_t *self, const lh_math_vec2_t *point)
 {
@@ -21,18 +52,8 @@ lh_entity_knob_apply(lh_entity_knob_t *self, const lh_math_vec2_t *point)
         (lh_float_t)lh_math_rect_get_size_height(lh_addr_of(bounds)) * 0.5f;
     const lh_float_t angle =
         atan2f(lh_math_vec2_get_y(point) - cy, lh_math_vec2_get_x(point) - cx);
-    /* Screen y grows downward. Sweep from the lower left, through the top,
-       to the lower right: about 0.75 of a turn. */
-    lh_float_t turns = (angle + 3.14159265f) / (2.0f * 3.14159265f);
+    const lh_float_t turns = lh_entity_knob_turns(angle);
     const lh_int_t before = lh_entity_range_get_value(lh_addr_of(self->range));
-    if (turns < 0.0f)
-    {
-        turns = 0.0f;
-    }
-    if (turns > 1.0f)
-    {
-        turns = 1.0f;
-    }
     lh_entity_range_set_from_pos(lh_addr_of(self->range), (lh_int_t)(turns * 1000.0f), 1000);
     if (lh_entity_range_get_value(lh_addr_of(self->range)) != before)
     {
@@ -53,7 +74,6 @@ lh_entity_knob_point(lh_int_t cx, lh_int_t cy, lh_int_t orbit, lh_float_t angle,
 lh_void
 lh_entity_knob_paint(const lh_entity_knob_t *self, lh_ui_canvas_t *canvas)
 {
-    const lh_float_t pi = 3.14159265f;
     const lh_ui_style_t *const style =
         lh_entity_2d_get_style(lh_ptr_rcast(const lh_entity_2d_t, self));
     const lh_math_rect_t bounds =
@@ -68,8 +88,7 @@ lh_entity_knob_paint(const lh_entity_knob_t *self, lh_ui_canvas_t *canvas)
     const lh_float_t turns =
         radius <= 0 ? 0.0f
                     : (lh_float_t)lh_entity_range_to_pos(lh_addr_of(self->range), 1000) / 1000.0f;
-    const lh_float_t start = 0.75f * pi;
-    const lh_float_t sweep = 1.5f * pi;
+    const lh_float_t start = lh_entity_knob_angle(0.0f);
     lh_int_t thumb;
     lh_int_t half;
     lh_int_t orbit;
@@ -98,19 +117,20 @@ lh_entity_knob_paint(const lh_entity_knob_t *self, lh_ui_canvas_t *canvas)
     }
     mark = lh_ui_style_get_text_color(style);
     track = lh_ui_style_get_bg_color(style);
-    lh_ui_canvas_fill_arc(canvas, cx, cy, orbit + half, orbit - half, start, start + sweep, track);
+    lh_ui_canvas_fill_arc(canvas, cx, cy, orbit + half, orbit - half, start,
+                          lh_entity_knob_angle(1.0f), track);
     lh_entity_knob_point(cx, cy, orbit, start, lh_addr_of(x), lh_addr_of(y));
     lh_ui_canvas_fill_disc(canvas, x, y, half, track);
-    lh_entity_knob_point(cx, cy, orbit, start + sweep, lh_addr_of(x), lh_addr_of(y));
+    lh_entity_knob_point(cx, cy, orbit, lh_entity_knob_angle(1.0f), lh_addr_of(x), lh_addr_of(y));
     lh_ui_canvas_fill_disc(canvas, x, y, half, track);
     if (turns > 0.0f)
     {
         lh_ui_canvas_fill_arc(canvas, cx, cy, orbit + half, orbit - half, start,
-                              start + turns * sweep, mark);
+                              lh_entity_knob_angle(turns), mark);
         lh_entity_knob_point(cx, cy, orbit, start, lh_addr_of(x), lh_addr_of(y));
         lh_ui_canvas_fill_disc(canvas, x, y, half, mark);
     }
-    lh_entity_knob_point(cx, cy, orbit, start + turns * sweep, lh_addr_of(x), lh_addr_of(y));
+    lh_entity_knob_point(cx, cy, orbit, lh_entity_knob_angle(turns), lh_addr_of(x), lh_addr_of(y));
     lh_ui_canvas_fill_disc(canvas, x, y, thumb, mark);
 }
 

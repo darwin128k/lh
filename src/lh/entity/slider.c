@@ -20,26 +20,30 @@ lh_entity_slider_paint(const lh_entity_slider_t *self, lh_ui_canvas_t *canvas)
     const lh_int_t vertical = height > width;
     const lh_int_t length = vertical != 0 ? height : width;
     const lh_int_t cross = vertical != 0 ? width : height;
-    lh_int_t thick = 4;
+    lh_int_t grip = 4;
     lh_int_t radius = cross / 2;
     lh_int_t filled;
     lh_int_t at;
+    lh_math_rect_t track;
+    lh_int_t cap;
     if (lh_ptr_is_null(style) || width <= 0 || height <= 0)
     {
         return;
     }
-    if (thick > cross)
+    if (grip > cross)
     {
-        thick = cross;
+        grip = cross;
     }
     if (radius > 7)
     {
         radius = 7;
     }
-    if (radius < thick)
+    if (radius < grip)
     {
-        radius = thick;
+        radius = grip;
     }
+    track = lh_entity_range_track(lh_addr_of(bounds), 4);
+    cap = lh_entity_range_cap(lh_addr_of(track));
     filled = lh_entity_range_to_pos(lh_addr_of(self->range), length);
     if (filled < radius)
     {
@@ -53,35 +57,20 @@ lh_entity_slider_paint(const lh_entity_slider_t *self, lh_ui_canvas_t *canvas)
     {
         at = filled;
     }
+    lh_ui_canvas_fill_round(canvas, track, cap, lh_ui_style_get_bg_color(style));
+    if (filled > 0)
+    {
+        lh_ui_canvas_fill_round(canvas, lh_entity_range_fill(lh_addr_of(track), filled), cap,
+                                lh_ui_style_get_text_color(style));
+    }
     if (vertical != 0)
     {
-        const lh_int_t track_x = x + (width - thick) / 2;
-        const lh_int_t cap = thick / 2;
-        lh_ui_canvas_fill_round(canvas, lh_math_rect_make(track_x, y, thick, height), cap,
-                                lh_ui_style_get_bg_color(style));
-        if (filled > 0)
-        {
-            lh_ui_canvas_fill_round(canvas,
-                                    lh_math_rect_make(track_x, y + height - filled, thick, filled),
-                                    cap, lh_ui_style_get_text_color(style));
-        }
         lh_ui_canvas_fill_disc(canvas, x + width / 2, y + height - at, radius,
                               lh_ui_style_get_text_color(style));
+        return;
     }
-    else
-    {
-        const lh_int_t track_y = y + (height - thick) / 2;
-        const lh_int_t cap = thick / 2;
-        lh_ui_canvas_fill_round(canvas, lh_math_rect_make(x, track_y, width, thick), cap,
-                                lh_ui_style_get_bg_color(style));
-        if (filled > 0)
-        {
-            lh_ui_canvas_fill_round(canvas, lh_math_rect_make(x, track_y, filled, thick), cap,
-                                    lh_ui_style_get_text_color(style));
-        }
-        lh_ui_canvas_fill_disc(canvas, x + at, y + height / 2, radius,
-                              lh_ui_style_get_text_color(style));
-    }
+    lh_ui_canvas_fill_disc(canvas, x + at, y + height / 2, radius,
+                          lh_ui_style_get_text_color(style));
 }
 
 lh_void

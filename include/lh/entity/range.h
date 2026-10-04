@@ -5,7 +5,9 @@
  * The progress bar is this class. A trackbar, a knob, a spin box and a
  * scrollbar are the same fields with their own pointer handling, so a
  * pointer to any of them is also an ::lh_entity_range_t. The track is the
- * style background. The filled part is the style text color.
+ * style background and the filled part is the text color. Both sit where
+ * ::lh_entity_range_track places a bar, and the ends use
+ * ::lh_entity_range_cap.
  */
 
 #ifndef LH_ENTITY_RANGE_H
@@ -95,6 +97,34 @@ lh_entity_range_set_from_pos(lh_entity_range_t *self, lh_int_t pos, lh_int_t spa
  */
 lh_int_t
 lh_entity_range_to_pos(const lh_entity_range_t *self, lh_int_t span);
+
+/**
+ * @brief Half the shorter side of @p bounds, or 0 when that side is under 2.
+ *
+ * That is the radius that turns a bar into a capsule. The progress bar,
+ * the trackbar, the scrollbar and the switch all use it.
+ */
+lh_int_t
+lh_entity_range_cap(const lh_math_rect_t *bounds);
+
+/**
+ * @brief A bar of thickness @p thick centered on the short side of @p bounds.
+ *
+ * The long side stays the length of @p bounds. A negative thickness
+ * becomes 0. A thickness past the short side becomes that side. The ends
+ * of this bar are ::lh_entity_range_cap.
+ */
+lh_math_rect_t
+lh_entity_range_track(const lh_math_rect_t *bounds, lh_int_t thick);
+
+/**
+ * @brief The filled part of @p track, @p filled pixels along its long side.
+ *
+ * A wide bar fills from the left. A tall bar fills upward from the bottom.
+ * @p filled is pulled into the length of @p track.
+ */
+lh_math_rect_t
+lh_entity_range_fill(const lh_math_rect_t *track, lh_int_t filled);
 
 /**
  * @brief Paint the track and the filled part of @p self into @p canvas.

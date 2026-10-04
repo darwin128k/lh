@@ -1,6 +1,7 @@
 #include <lh/entity/option.h>
 #include <lh/assert.h>
 #include <lh/entity/group.h>
+#include <lh/entity/range.h>
 #include <lh/entity/screen.h>
 #include <lh/null.h>
 #include <lh/ui/canvas.h>
@@ -106,7 +107,7 @@ lh_entity_option_paint(const lh_entity_option_t *self, lh_ui_canvas_t *canvas)
     }
     if (self->kind == LH_ENTITY_OPTION_SWITCH)
     {
-        const lh_int_t radius = height / 2;
+        const lh_int_t radius = lh_entity_range_cap(lh_addr_of(bounds));
         const lh_ui_color_t track = self->on ? mark : fill;
         const lh_ui_color_t thumb = self->on ? fill : mark;
         lh_int_t thumb_radius;
