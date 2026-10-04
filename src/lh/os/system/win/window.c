@@ -67,7 +67,14 @@ static const wchar_t lh_os_system_win_window_class_name[] = L"lh_pa_window";
 #define LH_OS_SYSTEM_WIN_WINDOW_CAPTION_FONT L"lh.os.font"
 #define LH_OS_SYSTEM_WIN_WINDOW_CAPTION_HEIGHT 32
 #define LH_OS_SYSTEM_WIN_WINDOW_BORDER 8
-#define LH_OS_SYSTEM_WIN_WINDOW_BUTTON_WIDTH 46
+/* Three circles on the left of the client caption, macOS order: close,
+   minimize, zoom. */
+#define LH_OS_SYSTEM_WIN_WINDOW_LIGHT_SIZE 12
+#define LH_OS_SYSTEM_WIN_WINDOW_LIGHT_GAP 8
+#define LH_OS_SYSTEM_WIN_WINDOW_LIGHT_MARGIN 14
+#define LH_OS_SYSTEM_WIN_WINDOW_LIGHT_CLOSE 0x00575FFFU
+#define LH_OS_SYSTEM_WIN_WINDOW_LIGHT_MINIMIZE 0x002EBCFEU
+#define LH_OS_SYSTEM_WIN_WINDOW_LIGHT_ZOOM 0x0040C828U
 
 void
 lh_os_system_win_window_paint_caption(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_hdc_t dc);
@@ -98,9 +105,14 @@ lh_os_system_win_dword_t
 lh_os_system_win_window_color_prop(lh_os_system_win_hwnd_t hwnd, lh_wstr_cptr name,
                                    lh_os_system_win_dword_t fallback);
 
+lh_int_t
+lh_os_system_win_window_light_x(lh_int_t kind);
+
+lh_int_t
+lh_os_system_win_window_title_x(void);
+
 void
-lh_os_system_win_window_paint_mark(lh_os_system_win_hdc_t dc, lh_int_t kind, lh_int_t left,
-                                   lh_int_t top);
+lh_os_system_win_window_paint_light(lh_os_system_win_hdc_t dc, lh_int_t kind);
 
 /* `WndProc` — must have external linkage for `WNDCLASSEXW::lpfnWndProc`. */
 static lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
@@ -553,34 +565,44 @@ lh_os_system_win_window_color_prop(lh_os_system_win_hwnd_t hwnd, lh_wstr_cptr na
     return lh_cast_static(lh_os_system_win_dword_t, lh_cast_reinterpret(lh_usize_t, stored) - 1U);
 }
 
-void
-lh_os_system_win_window_paint_mark(lh_os_system_win_hdc_t dc, lh_int_t kind, lh_int_t left,
-                                   lh_int_t top)
+lh_int_t
+lh_os_system_win_window_light_x(lh_int_t kind)
 {
-    const lh_int_t x0 = left + 16;
-    const lh_int_t x1 = left + 30;
-    const lh_int_t y0 = top + 10;
-    const lh_int_t y1 = top + 22;
-    const lh_int_t mid = top + (LH_OS_SYSTEM_WIN_WINDOW_CAPTION_HEIGHT / 2);
-    if (kind == 0)
+    return LH_OS_SYSTEM_WIN_WINDOW_LIGHT_MARGIN + LH_OS_SYSTEM_WIN_WINDOW_LIGHT_SIZE / 2 +
+           kind * (LH_OS_SYSTEM_WIN_WINDOW_LIGHT_SIZE + LH_OS_SYSTEM_WIN_WINDOW_LIGHT_GAP);
+}
+
+lh_int_t
+lh_os_system_win_window_title_x(void)
+{
+    return lh_os_system_win_window_light_x(2) + LH_OS_SYSTEM_WIN_WINDOW_LIGHT_SIZE / 2 +
+           LH_OS_SYSTEM_WIN_WINDOW_LIGHT_GAP + 8;
+}
+
+void
+lh_os_system_win_window_paint_light(lh_os_system_win_hdc_t dc, lh_int_t kind)
+{
+    const lh_os_system_win_dword_t color =
+        kind == 0 ? LH_OS_SYSTEM_WIN_WINDOW_LIGHT_CLOSE
+                  : (kind == 1 ? LH_OS_SYSTEM_WIN_WINDOW_LIGHT_MINIMIZE
+                               : LH_OS_SYSTEM_WIN_WINDOW_LIGHT_ZOOM);
+    const lh_int_t cx = lh_os_system_win_window_light_x(kind);
+    const lh_int_t cy = LH_OS_SYSTEM_WIN_WINDOW_CAPTION_HEIGHT / 2;
+    const lh_int_t radius = LH_OS_SYSTEM_WIN_WINDOW_LIGHT_SIZE / 2;
+    const lh_os_system_win_handle_t brush = CreateSolidBrush(color);
+    lh_os_system_win_handle_t old_brush;
+    lh_os_system_win_handle_t old_pen;
+
+    if (lh_null_eq(brush))
     {
-        (void)MoveToEx(dc, x0, mid, lh_null);
-        (void)LineTo(dc, x1, mid);
         return;
     }
-    if (kind == 1)
-    {
-        (void)MoveToEx(dc, x0, y0, lh_null);
-        (void)LineTo(dc, x1, y0);
-        (void)LineTo(dc, x1, y1);
-        (void)LineTo(dc, x0, y1);
-        (void)LineTo(dc, x0, y0);
-        return;
-    }
-    (void)MoveToEx(dc, x0, y0, lh_null);
-    (void)LineTo(dc, x1, y1);
-    (void)MoveToEx(dc, x1, y0, lh_null);
-    (void)LineTo(dc, x0, y1);
+    old_brush = SelectObject(dc, brush);
+    old_pen = SelectObject(dc, GetStockObject(LH_OS_SYSTEM_WIN_NULL_PEN));
+    (void)Ellipse(dc, cx - radius, cy - radius, cx + radius, cy + radius);
+    (void)SelectObject(dc, old_pen);
+    (void)SelectObject(dc, old_brush);
+    (void)DeleteObject(brush);
 }
 
 lh_ui_color_t
@@ -635,7 +657,7 @@ lh_os_system_win_window_paint_title(lh_os_system_win_hwnd_t hwnd, lh_os_system_w
     measured = lh_ui_font_measure(font, title);
     width = lh_float_ceil_to_int(lh_math_vec2_get_x(lh_addr_of(measured)));
     height = lh_ui_font_get_glyph_height(font);
-    room = window_width - 12 - 3 * LH_OS_SYSTEM_WIN_WINDOW_BUTTON_WIDTH;
+    room = window_width - lh_os_system_win_window_title_x() - 12;
     if (width > room)
     {
         width = room;
@@ -680,7 +702,8 @@ lh_os_system_win_window_paint_title(lh_os_system_win_hwnd_t hwnd, lh_os_system_w
     info.biPlanes = 1;
     info.biBitCount = 32;
     info.biCompression = LH_OS_SYSTEM_WIN_BI_RGB;
-    (void)SetDIBitsToDevice(dc, 12, top, lh_cast_static(lh_os_system_win_dword_t, width),
+    (void)SetDIBitsToDevice(dc, lh_os_system_win_window_title_x(), top,
+                            lh_cast_static(lh_os_system_win_dword_t, width),
                             lh_cast_static(lh_os_system_win_dword_t, height), 0, 0, 0,
                             lh_cast_static(lh_os_system_win_uint_t, height), bgrx, lh_addr_of(info),
                             LH_OS_SYSTEM_WIN_DIB_RGB_COLORS);
@@ -725,27 +748,16 @@ lh_os_system_win_window_paint_caption(lh_os_system_win_hwnd_t hwnd, lh_os_system
         const lh_int_t count = GetWindowTextW(hwnd, title, 128);
         if (count > 0)
         {
-            (void)TextOutW(dc, 12, 8, title, count);
+            (void)TextOutW(dc, lh_os_system_win_window_title_x(), 8, title, count);
         }
         (void)SelectObject(dc, old_font);
     }
 
-    const lh_os_system_win_handle_t pen =
-        CreatePen(LH_OS_SYSTEM_WIN_PS_SOLID, 1, text);
-    if (lh_null_eq(pen))
-    {
-        return;
-    }
-    const lh_os_system_win_handle_t old_pen = SelectObject(dc, pen);
-    const lh_int_t width = client.right - client.left;
     lh_int_t kind;
     for (kind = 0; kind < 3; ++kind)
     {
-        const lh_int_t left = width - (3 - kind) * LH_OS_SYSTEM_WIN_WINDOW_BUTTON_WIDTH;
-        lh_os_system_win_window_paint_mark(dc, kind, left, 0);
+        lh_os_system_win_window_paint_light(dc, kind);
     }
-    (void)SelectObject(dc, old_pen);
-    (void)DeleteObject(pen);
 }
 
 lh_os_system_win_lresult_t
@@ -791,23 +803,33 @@ lh_os_system_win_window_hit_test(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_
     {
         return LH_OS_SYSTEM_WIN_HTBOTTOM;
     }
-    /* Caption buttons sit on the right edge. They win over the resize border. */
+    /* Close, minimize, zoom: three circles on the left, under the top edge. */
     if (point.y < LH_OS_SYSTEM_WIN_WINDOW_CAPTION_HEIGHT)
     {
-        const lh_int_t button = LH_OS_SYSTEM_WIN_WINDOW_BUTTON_WIDTH;
-        if (point.x >= width - button)
+        const lh_int_t cy = LH_OS_SYSTEM_WIN_WINDOW_CAPTION_HEIGHT / 2;
+        const lh_int_t reach = LH_OS_SYSTEM_WIN_WINDOW_LIGHT_SIZE / 2 + 2;
+        lh_int_t kind;
+        for (kind = 0; kind < 3; ++kind)
         {
-            return LH_OS_SYSTEM_WIN_HTCLOSE;
+            const lh_int_t dx = point.x - lh_os_system_win_window_light_x(kind);
+            const lh_int_t dy = point.y - cy;
+            if (dx * dx + dy * dy <= reach * reach)
+            {
+                if (kind == 0)
+                {
+                    return LH_OS_SYSTEM_WIN_HTCLOSE;
+                }
+                if (kind == 1)
+                {
+                    return LH_OS_SYSTEM_WIN_HTMINBUTTON;
+                }
+                return LH_OS_SYSTEM_WIN_HTMAXBUTTON;
+            }
         }
-        if (point.x >= width - button * 2)
+        if (!left && !right)
         {
-            return LH_OS_SYSTEM_WIN_HTMAXBUTTON;
+            return LH_OS_SYSTEM_WIN_HTCAPTION;
         }
-        if (point.x >= width - button * 3)
-        {
-            return LH_OS_SYSTEM_WIN_HTMINBUTTON;
-        }
-        return LH_OS_SYSTEM_WIN_HTCAPTION;
     }
     if (left)
     {
