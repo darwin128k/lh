@@ -40,6 +40,7 @@
 #include <lh/os/system/win/user32.h>
 #include <lh/util/addr.h>
 #include <lh/math.h>
+#include <lh/ui/canvas.h>
 #include <lh/ui/shadow.h>
 #include <lh/runtime/allocator.h>
 #include <lh/util/ptr.h>
@@ -366,45 +367,21 @@ lh_os_system_win_window_compose_shadow(lh_byte_t *dst, lh_int_t full_w, lh_int_t
             lh_int_t sr = 0;
             lh_int_t sg = 0;
             lh_int_t sb = 0;
-            lh_bool_t covered = lh_bool_false;
-            if (sx >= 0 && sy >= 0 && sx < card_w && sy < card_h && sx < stride &&
-                (margin <= 0 || radius <= 0 || (sx >= radius && sx < card_w - radius) ||
-                 (sy >= radius && sy < card_h - radius)))
-            {
-                covered = lh_bool_true;
-            }
-            if (covered)
+            const lh_int_t cover = lh_ui_canvas_round_coverage(x, y, margin, margin, margin + card_w,
+                                                              margin + card_h, radius);
+            if (cover > 0 && sx >= 0 && sy >= 0 && sx < card_w && sy < card_h && sx < stride)
             {
                 const lh_byte_t *pixel =
                     src + ((lh_usize_t)sy * (lh_usize_t)stride + (lh_usize_t)sx) * 4U;
-                card_a = pixel[3];
+                card_a = pixel[3] * cover / 255;
                 sr = pixel[0];
                 sg = pixel[1];
                 sb = pixel[2];
             }
-            else if (margin > 0)
+            if (card_a < 255 && margin > 0 && lh_ptr_is_set(shadow))
             {
-                const lh_int_t card_dist = lh_ui_shadow_distance(
-                    x, y, margin, margin, margin + card_w, margin + card_h, radius);
-                if (card_dist <= 0 && sx >= 0 && sy >= 0 && sx < card_w && sy < card_h &&
-                    sx < stride)
-                {
-                    const lh_byte_t *pixel =
-                        src + ((lh_usize_t)sy * (lh_usize_t)stride + (lh_usize_t)sx) * 4U;
-                    card_a = pixel[3];
-                    if (card_dist == 0 && card_a > 0)
-                    {
-                        card_a /= 2;
-                    }
-                    sr = pixel[0];
-                    sg = pixel[1];
-                    sb = pixel[2];
-                }
-                if (card_a < 255 && lh_ptr_is_set(shadow))
-                {
-                    shadow_a = lh_ui_shadow_alpha(shadow, x, y, margin, margin, margin + card_w,
-                                                  margin + card_h, radius);
-                }
+                shadow_a = lh_ui_shadow_alpha(shadow, x, y, margin, margin, margin + card_w,
+                                              margin + card_h, radius);
             }
             if (card_a > 0 || shadow_a > 0)
             {

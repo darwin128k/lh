@@ -33,6 +33,7 @@ lh_entity_range_clamp(lh_int_t value, lh_int_t minimum, lh_int_t maximum)
 lh_void
 lh_entity_progress_construct(lh_entity_t *self)
 {
+    lh_entity_add_flags(self, lh_entity_flags_own_background);
     lh_entity_range_reset(lh_ptr_rcast(lh_entity_range_t, self));
 }
 
@@ -153,25 +154,49 @@ lh_entity_range_paint(const lh_entity_range_t *self, lh_ui_canvas_t *canvas)
     bounds = lh_entity_2d_get_screen_bounds(lh_ptr_rcast(const lh_entity_2d_t, self));
     vertical = lh_math_rect_get_size_height(lh_addr_of(bounds)) >
                lh_math_rect_get_size_width(lh_addr_of(bounds));
-    length = vertical != 0 ? lh_math_rect_get_size_height(lh_addr_of(bounds))
-                           : lh_math_rect_get_size_width(lh_addr_of(bounds));
-    filled = lh_entity_range_to_pos(self, length);
-    lh_ui_canvas_fill_rect(canvas, bounds, lh_ui_style_get_bg_color(style));
-    if (filled <= 0)
     {
-        return;
+        const lh_int_t x = lh_math_rect_get_x(lh_addr_of(bounds));
+        const lh_int_t y = lh_math_rect_get_y(lh_addr_of(bounds));
+        const lh_int_t width = lh_math_rect_get_size_width(lh_addr_of(bounds));
+        const lh_int_t height = lh_math_rect_get_size_height(lh_addr_of(bounds));
+        lh_int_t thick = 4;
+        lh_math_rect_t track;
+        if (vertical != 0)
+        {
+            if (thick > width)
+            {
+                thick = width;
+            }
+            length = height;
+            track = lh_math_rect_make(x + (width - thick) / 2, y, thick, height);
+        }
+        else
+        {
+            if (thick > height)
+            {
+                thick = height;
+            }
+            length = width;
+            track = lh_math_rect_make(x, y + (height - thick) / 2, width, thick);
+        }
+        filled = lh_entity_range_to_pos(self, length);
+        lh_ui_canvas_fill_rect(canvas, track, lh_ui_style_get_bg_color(style));
+        if (filled <= 0)
+        {
+            return;
+        }
+        if (vertical != 0)
+        {
+            track = lh_math_rect_make(lh_math_rect_get_x(lh_addr_of(track)),
+                                      lh_math_rect_get_y(lh_addr_of(track)) + length - filled,
+                                      lh_math_rect_get_size_width(lh_addr_of(track)), filled);
+        }
+        else
+        {
+            track = lh_math_rect_make(lh_math_rect_get_x(lh_addr_of(track)),
+                                      lh_math_rect_get_y(lh_addr_of(track)), filled,
+                                      lh_math_rect_get_size_height(lh_addr_of(track)));
+        }
+        lh_ui_canvas_fill_rect(canvas, track, lh_ui_style_get_text_color(style));
     }
-    if (vertical != 0)
-    {
-        const lh_int_t top = lh_math_rect_get_y(lh_addr_of(bounds)) + length - filled;
-        bounds = lh_math_rect_make(lh_math_rect_get_x(lh_addr_of(bounds)), top,
-                                   lh_math_rect_get_size_width(lh_addr_of(bounds)), filled);
-    }
-    else
-    {
-        bounds = lh_math_rect_make(lh_math_rect_get_x(lh_addr_of(bounds)),
-                                   lh_math_rect_get_y(lh_addr_of(bounds)), filled,
-                                   lh_math_rect_get_size_height(lh_addr_of(bounds)));
-    }
-    lh_ui_canvas_fill_rect(canvas, bounds, lh_ui_style_get_text_color(style));
 }

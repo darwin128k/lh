@@ -350,3 +350,17 @@ set(LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER "4096" CACHE STRING
 
 set(LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE "256" CACHE STRING
         "lh_memory_std_copy_sse2: how many bytes ahead of the current read position to prefetch. Optimal distance is cache-latency-dependent and can vary by microarchitecture. Must be a positive decimal integer.")
+
+# -----------------------------------------------------------------------------
+# LH_LIBRARY_OPTION_UI_COVER
+#
+# Width of the anti-aliased rim on discs and rounded boxes
+# (lh_ui_canvas_disc_coverage / lh_ui_canvas_round_coverage), in 1/256 of a
+# pixel. 0 is a hard edge. 256 is one pixel, centered on the outline.
+# A larger value softens the edge further. Must be a decimal integer >= 0.
+#
+# CMake: -DLH_LIBRARY_OPTION_UI_COVER=512 or ccmake.
+# Manual build: set in include/lh/config.h or -D on the compiler command line.
+# -----------------------------------------------------------------------------
+set(LH_LIBRARY_OPTION_UI_COVER "256" CACHE STRING
+        "Anti-aliased rim width in 1/256 of a pixel. 0 is a hard edge, 256 is one pixel. Must be >= 0.")

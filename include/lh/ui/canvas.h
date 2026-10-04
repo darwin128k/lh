@@ -114,6 +114,42 @@ lh_ui_canvas_blend_pixel(lh_ui_canvas_t *self, lh_math_coord_t x, lh_math_coord_
 lh_void
 lh_ui_canvas_fill_rect(lh_ui_canvas_t *self, lh_math_rect_t rect, lh_ui_color_t color);
 
+/**
+ * @brief How much of the pixel (@p x, @p y) a disc covers, 0..255.
+ *
+ * The center is the point (@p cx, @p cy) and the radius is in pixels. The
+ * fade width is ::LH_LIBRARY_OPTION_UI_COVER (256 is one pixel, 0 is a hard
+ * edge) and is computed here, so the edge looks the same on Windows XP and
+ * on a framebuffer with no OS drawing at all.
+ */
+lh_byte_t
+lh_ui_canvas_disc_coverage(lh_int_t x, lh_int_t y, lh_int_t cx, lh_int_t cy, lh_int_t radius);
+
+/**
+ * @brief How much of the pixel (@p x, @p y) a rounded box covers, 0..255.
+ *
+ * The box is half-open, [@p left, @p right) by [@p top, @p bottom).
+ * @p radius 0 is that rectangle with a hard edge, because an axis-aligned
+ * edge that sits on a pixel boundary has no partial pixel.
+ */
+lh_byte_t
+lh_ui_canvas_round_coverage(lh_int_t x, lh_int_t y, lh_int_t left, lh_int_t top, lh_int_t right,
+                            lh_int_t bottom, lh_int_t radius);
+
+/**
+ * @brief Fill a disc. The rim is ::lh_ui_canvas_disc_coverage.
+ */
+lh_void
+lh_ui_canvas_fill_disc(lh_ui_canvas_t *self, lh_int_t cx, lh_int_t cy, lh_int_t radius,
+                       lh_ui_color_t color);
+
+/**
+ * @brief Fill a rounded box. The rim is ::lh_ui_canvas_round_coverage.
+ */
+lh_void
+lh_ui_canvas_fill_round(lh_ui_canvas_t *self, lh_math_rect_t rect, lh_int_t radius,
+                        lh_ui_color_t color);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_CANVAS_H */

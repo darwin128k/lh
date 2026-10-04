@@ -150,6 +150,8 @@ function(lh_generate_config)
     set(ValMemoryStdPrefetchTrigger "${LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER}")
     set(ValMemoryStdPrefetchDistance "${LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE}")
 
+    set(ValUiCover "${LH_LIBRARY_OPTION_UI_COVER}")
+
     set(_in "${CMAKE_CURRENT_SOURCE_DIR}/include/lh/config.h.in")
     set(_out "${CMAKE_CURRENT_SOURCE_DIR}/include/lh/config.h")
     configure_file("${_in}" "${_out}" @ONLY)

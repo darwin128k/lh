@@ -47,15 +47,17 @@ lh_entity_scroll_paint(const lh_entity_scroll_t *self, lh_ui_canvas_t *canvas)
     origin = lh_entity_range_to_pos(lh_addr_of(self->range), travel);
     if (vertical != 0)
     {
-        bounds = lh_math_rect_make(lh_math_rect_get_x(lh_addr_of(bounds)),
+        const lh_int_t inset = lh_math_rect_get_size_width(lh_addr_of(bounds)) > 6 ? 2 : 0;
+        bounds = lh_math_rect_make(lh_math_rect_get_x(lh_addr_of(bounds)) + inset,
                                    lh_math_rect_get_y(lh_addr_of(bounds)) + origin,
-                                   lh_math_rect_get_size_width(lh_addr_of(bounds)), thumb);
+                                   lh_math_rect_get_size_width(lh_addr_of(bounds)) - inset * 2, thumb);
     }
     else
     {
+        const lh_int_t inset = lh_math_rect_get_size_height(lh_addr_of(bounds)) > 6 ? 2 : 0;
         bounds = lh_math_rect_make(lh_math_rect_get_x(lh_addr_of(bounds)) + origin,
-                                   lh_math_rect_get_y(lh_addr_of(bounds)), thumb,
-                                   lh_math_rect_get_size_height(lh_addr_of(bounds)));
+                                   lh_math_rect_get_y(lh_addr_of(bounds)) + inset, thumb,
+                                   lh_math_rect_get_size_height(lh_addr_of(bounds)) - inset * 2);
     }
     color = lh_ptr_is_set(self->thumb) ? lh_ui_style_get_bg_color(self->thumb)
                                        : lh_ui_style_get_text_color(style);

@@ -2,6 +2,8 @@
 #include <lh/assert.h>
 #include <lh/bool.h>
 #include <lh/cast/static.h>
+#include <lh/config.h>
+#include <lh/numeric/types.h>
 #include <lh/runtime/error/code.h>
 #include <lh/util/addr.h>
 #include <lh/util/numeric.h>
@@ -180,6 +182,194 @@ lh_ui_canvas_fill_rect(lh_ui_canvas_t *self, lh_math_rect_t rect, lh_ui_color_t 
                 continue;
             }
             row[x] = color.a == 255U ? color : lh_ui_canvas_blend(row[x], color);
+        }
+    }
+}
+
+lh_int_t
+lh_ui_canvas_isqrt(lh_sllong_t value)
+{
+    lh_sllong_t root;
+    lh_sllong_t next;
+    if (value <= 0)
+    {
+        return 0;
+    }
+    root = value;
+    next = (root + 1) / 2;
+    while (next < root)
+    {
+        root = next;
+        next = (root + value / root) / 2;
+    }
+    return (lh_int_t)root;
+}
+
+lh_byte_t
+lh_ui_canvas_coverage_from(lh_int_t signed_dist)
+{
+    const lh_int_t span = LH_LIBRARY_OPTION_UI_COVER;
+    lh_int_t half;
+    lh_int_t cover;
+    if (span <= 0)
+    {
+        return signed_dist <= 0 ? 255 : 0;
+    }
+    half = span / 2;
+    if (signed_dist <= -half)
+    {
+        return 255;
+    }
+    if (signed_dist >= half)
+    {
+        return 0;
+    }
+    cover = (lh_int_t)(((lh_sllong_t)(half - signed_dist) * 255) / span);
+    if (cover >= 255)
+    {
+        return 255;
+    }
+    if (cover <= 0)
+    {
+        return 0;
+    }
+    return (lh_byte_t)cover;
+}
+
+lh_byte_t
+lh_ui_canvas_disc_coverage(lh_int_t x, lh_int_t y, lh_int_t cx, lh_int_t cy, lh_int_t radius)
+{
+    const lh_sllong_t dx = ((lh_sllong_t)x - cx) * 256 + 128;
+    const lh_sllong_t dy = ((lh_sllong_t)y - cy) * 256 + 128;
+    lh_int_t dist;
+    if (radius <= 0)
+    {
+        return 0;
+    }
+    dist = lh_ui_canvas_isqrt(dx * dx + dy * dy);
+    return lh_ui_canvas_coverage_from(dist - radius * 256);
+}
+
+lh_byte_t
+lh_ui_canvas_round_coverage(lh_int_t x, lh_int_t y, lh_int_t left, lh_int_t top, lh_int_t right,
+                            lh_int_t bottom, lh_int_t radius)
+{
+    const lh_int_t width = right - left;
+    const lh_int_t height = bottom - top;
+    lh_int_t rad = radius;
+    lh_int_t sx;
+    lh_int_t sy;
+    lh_int_t dx;
+    lh_int_t dy;
+    lh_int_t ox;
+    lh_int_t oy;
+    lh_int_t inside;
+    lh_int_t dist;
+    if (width <= 0 || height <= 0)
+    {
+        return 0;
+    }
+    if (x < left - 1 || y < top - 1 || x >= right + 1 || y >= bottom + 1)
+    {
+        return 0;
+    }
+    if (rad < 0)
+    {
+        rad = 0;
+    }
+    if (rad > width / 2)
+    {
+        rad = width / 2;
+    }
+    if (rad > height / 2)
+    {
+        rad = height / 2;
+    }
+    if (rad == 0)
+    {
+        if (x >= left && y >= top && x < right && y < bottom)
+        {
+            return 255;
+        }
+        return 0;
+    }
+    if (x >= left + rad + 1 && x < right - rad - 1 && y >= top + rad + 1 && y < bottom - rad - 1)
+    {
+        return 255;
+    }
+    sx = (x - left) * 256 + 128;
+    sy = (y - top) * 256 + 128;
+    dx = sx >= width * 128 ? sx - width * 128 : width * 128 - sx;
+    dy = sy >= height * 128 ? sy - height * 128 : height * 128 - sy;
+    dx -= width * 128 - rad * 256;
+    dy -= height * 128 - rad * 256;
+    ox = dx > 0 ? dx : 0;
+    oy = dy > 0 ? dy : 0;
+    inside = dx > dy ? dx : dy;
+    if (inside > 0)
+    {
+        inside = 0;
+    }
+    dist = lh_ui_canvas_isqrt((lh_sllong_t)ox * ox + (lh_sllong_t)oy * oy);
+    return lh_ui_canvas_coverage_from(dist + inside - rad * 256);
+}
+
+lh_void
+lh_ui_canvas_blend_coverage(lh_ui_canvas_t *self, lh_int_t x, lh_int_t y, lh_ui_color_t color,
+                            lh_byte_t coverage)
+{
+    const lh_uint_t argb = lh_ui_color_to_argb(color);
+    const lh_uint_t alpha = ((argb >> 24) * coverage) / 255U;
+    if (alpha == 0U)
+    {
+        return;
+    }
+    lh_ui_canvas_blend_pixel(self, x, y, lh_ui_color_from_argb((argb & 0x00FFFFFFU) | (alpha << 24)));
+}
+
+lh_void
+lh_ui_canvas_fill_disc(lh_ui_canvas_t *self, lh_int_t cx, lh_int_t cy, lh_int_t radius,
+                       lh_ui_color_t color)
+{
+    lh_int_t y;
+    lh_assert_runtime_ref(self);
+    if (radius <= 0 || color.a == 0U)
+    {
+        return;
+    }
+    for (y = cy - radius - 1; y <= cy + radius + 1; ++y)
+    {
+        lh_int_t x;
+        for (x = cx - radius - 1; x <= cx + radius + 1; ++x)
+        {
+            lh_ui_canvas_blend_coverage(self, x, y, color,
+                                        lh_ui_canvas_disc_coverage(x, y, cx, cy, radius));
+        }
+    }
+}
+
+lh_void
+lh_ui_canvas_fill_round(lh_ui_canvas_t *self, lh_math_rect_t rect, lh_int_t radius,
+                        lh_ui_color_t color)
+{
+    const lh_int_t left = lh_math_rect_get_x(lh_addr_of(rect));
+    const lh_int_t top = lh_math_rect_get_y(lh_addr_of(rect));
+    const lh_int_t right = left + lh_math_rect_get_size_width(lh_addr_of(rect));
+    const lh_int_t bottom = top + lh_math_rect_get_size_height(lh_addr_of(rect));
+    lh_int_t y;
+    lh_assert_runtime_ref(self);
+    if (color.a == 0U || right <= left || bottom <= top)
+    {
+        return;
+    }
+    for (y = top - 1; y <= bottom; ++y)
+    {
+        lh_int_t x;
+        for (x = left - 1; x <= right; ++x)
+        {
+            lh_ui_canvas_blend_coverage(
+                self, x, y, color,
+                lh_ui_canvas_round_coverage(x, y, left, top, right, bottom, radius));
         }
     }
 }

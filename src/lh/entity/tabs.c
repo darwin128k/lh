@@ -79,6 +79,7 @@ lh_entity_tabs_add(lh_entity_tabs_t *self, const lh_char_t *title)
     lh_entity_2d_set_size(lh_ptr_rcast(lh_entity_2d_t, toggle), lh_math_vec2_make(72.0f, 26.0f));
     label = (lh_entity_label_t *)lh_entity_create(&lh_entity_label_class, toggle);
     lh_entity_add_flags((lh_entity_t *)label, lh_entity_flags_event_bubble);
+    lh_entity_add_flags((lh_entity_t *)label, lh_entity_flags_own_background);
     lh_entity_label_set_font(label, self->font);
     lh_entity_label_set_text(label, title);
     lh_entity_2d_set_style(lh_ptr_rcast(lh_entity_2d_t, label), self->tab_style);

@@ -1,6 +1,7 @@
 #include <lh/entity/knob.h>
 #include <lh/entity.h>
 #include <lh/null.h>
+#include <lh/ui/canvas.h>
 #include <lh/ui/style.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -56,26 +57,13 @@ lh_entity_knob_paint(const lh_entity_knob_t *self, lh_ui_canvas_t *canvas)
     const lh_float_t turns =
         radius <= 0 ? 0.0f : (lh_float_t)lh_entity_range_to_pos(lh_addr_of(self->range), 1000) / 1000.0f;
     const lh_float_t angle = (0.75f + turns * 1.5f) * 3.14159265f;
-    lh_int_t y;
     lh_ui_color_t needle;
     if (lh_ptr_is_null(style) || radius <= 0)
     {
         return;
     }
     needle = lh_ui_style_get_text_color(style);
-    for (y = top; y < top + height; ++y)
-    {
-        lh_int_t x;
-        for (x = left; x < left + width; ++x)
-        {
-            const lh_int_t dx = x - cx;
-            const lh_int_t dy = y - cy;
-            if (dx * dx + dy * dy <= radius * radius)
-            {
-                lh_ui_canvas_blend_pixel(canvas, x, y, lh_ui_style_get_bg_color(style));
-            }
-        }
-    }
+    lh_ui_canvas_fill_disc(canvas, cx, cy, radius, lh_ui_style_get_bg_color(style));
     {
         lh_int_t step;
         for (step = radius / 5; step < radius; ++step)
