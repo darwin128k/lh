@@ -3,8 +3,9 @@
  * @brief A dial. The same value as a trackbar, turned by the pointer.
  *
  * Create it with ::lh_entity_knob_class. The record starts with an
- * ::lh_entity_range_t. The disc is the style background and the needle is
- * the text color. A change sends ::LH_ENTITY_EVENT_CLICKED.
+ * ::lh_entity_range_t. The track is a rounded ring in the style background.
+ * The swept part of that ring, and a round handle, are the text color.
+ * A change sends ::LH_ENTITY_EVENT_CLICKED.
  */
 
 #ifndef LH_ENTITY_KNOB_H

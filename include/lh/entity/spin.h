@@ -2,16 +2,19 @@
  * @file spin.h
  * @brief A value with a minus side and a plus side.
  *
- * The record starts with ::lh_entity_range_t. A press on the left third
- * steps down, a press on the right third steps up, by
- * ::lh_entity_spin_get_step. The number is drawn in the middle with the
- * text color. A change sends ::LH_ENTITY_EVENT_CLICKED.
+ * The record starts with ::lh_entity_range_t. The sides are buttons and the
+ * number between them is a label. A press steps by ::lh_entity_spin_get_step,
+ * and holding a side keeps stepping, the same repeat a button uses. A change
+ * sends ::LH_ENTITY_EVENT_CLICKED.
  */
 
 #ifndef LH_ENTITY_SPIN_H
 #define LH_ENTITY_SPIN_H
 
+#include <lh/char.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/entity/button.h>
+#include <lh/entity/label.h>
 #include <lh/entity/range.h>
 #include <lh/numeric/types.h>
 #include <lh/ui/font.h>
@@ -25,6 +28,10 @@ struct lh_entity_spin
     lh_entity_range_t range;
     const lh_ui_font_t *font;
     lh_int_t step;
+    lh_entity_button_t *minus;
+    lh_entity_button_t *plus;
+    lh_entity_label_t *value;
+    lh_char_t digits[16];
 };
 typedef struct lh_entity_spin lh_entity_spin_t;
 

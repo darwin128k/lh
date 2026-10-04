@@ -8,6 +8,8 @@
 #include <lh/util/addr.h>
 #include <lh/util/numeric.h>
 
+#include <math.h>
+
 /* @p color over @p dst, straight alpha: each channel moves from dst toward the
  * color by alpha / the channel maximum, and the result is at least as opaque
  * as either. */
@@ -370,6 +372,59 @@ lh_ui_canvas_fill_round(lh_ui_canvas_t *self, lh_math_rect_t rect, lh_int_t radi
             lh_ui_canvas_blend_coverage(
                 self, x, y, color,
                 lh_ui_canvas_round_coverage(x, y, left, top, right, bottom, radius));
+        }
+    }
+}
+
+lh_void
+lh_ui_canvas_fill_arc(lh_ui_canvas_t *self, lh_int_t cx, lh_int_t cy, lh_int_t outer,
+                      lh_int_t inner, lh_float_t start, lh_float_t end, lh_ui_color_t color)
+{
+    const lh_float_t turn = 6.2831853f;
+    lh_int_t y;
+    lh_assert_runtime_ref(self);
+    if (color.a == 0U || outer <= 0 || inner >= outer || end == start)
+    {
+        return;
+    }
+    if (inner < 0)
+    {
+        inner = 0;
+    }
+    if (end < start)
+    {
+        end += turn;
+    }
+    if (end > start + turn)
+    {
+        end = start + turn;
+    }
+    for (y = cy - outer - 1; y <= cy + outer + 1; ++y)
+    {
+        lh_int_t x;
+        for (x = cx - outer - 1; x <= cx + outer + 1; ++x)
+        {
+            const lh_int_t dx = x - cx;
+            const lh_int_t dy = y - cy;
+            const lh_byte_t outside = lh_ui_canvas_disc_coverage(x, y, cx, cy, outer);
+            const lh_byte_t hole = lh_ui_canvas_disc_coverage(x, y, cx, cy, inner);
+            lh_float_t angle;
+            lh_int_t cover;
+            if (outside <= hole || (dx == 0 && dy == 0))
+            {
+                continue;
+            }
+            angle = atan2f((lh_float_t)dy, (lh_float_t)dx);
+            if (angle < start)
+            {
+                angle += turn;
+            }
+            if (angle < start || angle > end)
+            {
+                continue;
+            }
+            cover = (lh_int_t)outside - (lh_int_t)hole;
+            lh_ui_canvas_blend_coverage(self, x, y, color, lh_cast_static(lh_byte_t, cover));
         }
     }
 }

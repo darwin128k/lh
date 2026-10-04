@@ -290,8 +290,8 @@ picks another).
 |---|---|---|
 | Progress bar | `lh/entity/range.h` | The value every ranged widget starts with. |
 | Trackbar | `lh/entity/slider.h` | That value, plus a drag. |
-| Knob | `lh/entity/knob.h` | The same value, turned by the pointer. |
-| Spin box | `lh/entity/spin.h` | The same value, stepped by the sides. |
+| Knob | `lh/entity/knob.h` | The same value, turned by the pointer. A rounded ring and handle. |
+| Spin box | `lh/entity/spin.h` | The same value. The sides are buttons; holding one keeps stepping. |
 | Scrollbar | `lh/entity/scroll.h` | The same value. The thumb style and the box size are the customization. |
 | Scrollable page | `lh/entity/view.h` | A clip. The scrollbar's value is the offset. |
 | Check, switch, toggle | `lh/entity/option.h` | One boolean. Three classes. |

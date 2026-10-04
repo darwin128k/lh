@@ -150,6 +150,17 @@ lh_void
 lh_ui_canvas_fill_round(lh_ui_canvas_t *self, lh_math_rect_t rect, lh_int_t radius,
                         lh_ui_color_t color);
 
+/**
+ * @brief Fill the ring between @p inner and @p outer, from @p start to @p end.
+ *
+ * Angles are radians with y growing downward, the same sense as `atan2`.
+ * The fill runs as the angle grows and stops after one full turn. Both rims
+ * are ::lh_ui_canvas_disc_coverage.
+ */
+lh_void
+lh_ui_canvas_fill_arc(lh_ui_canvas_t *self, lh_int_t cx, lh_int_t cy, lh_int_t outer,
+                      lh_int_t inner, lh_float_t start, lh_float_t end, lh_ui_color_t color);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_CANVAS_H */

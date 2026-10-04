@@ -41,8 +41,19 @@ lh_entity_knob_apply(lh_entity_knob_t *self, const lh_math_vec2_t *point)
 }
 
 lh_void
+lh_entity_knob_point(lh_int_t cx, lh_int_t cy, lh_int_t orbit, lh_float_t angle, lh_int_t *x,
+                     lh_int_t *y)
+{
+    const lh_float_t across = cosf(angle) * (lh_float_t)orbit;
+    const lh_float_t down = sinf(angle) * (lh_float_t)orbit;
+    *x = cx + (lh_int_t)(across >= 0.0f ? across + 0.5f : across - 0.5f);
+    *y = cy + (lh_int_t)(down >= 0.0f ? down + 0.5f : down - 0.5f);
+}
+
+lh_void
 lh_entity_knob_paint(const lh_entity_knob_t *self, lh_ui_canvas_t *canvas)
 {
+    const lh_float_t pi = 3.14159265f;
     const lh_ui_style_t *const style =
         lh_entity_2d_get_style(lh_ptr_rcast(const lh_entity_2d_t, self));
     const lh_math_rect_t bounds =
@@ -55,24 +66,52 @@ lh_entity_knob_paint(const lh_entity_knob_t *self, lh_ui_canvas_t *canvas)
     const lh_int_t cx = left + width / 2;
     const lh_int_t cy = top + height / 2;
     const lh_float_t turns =
-        radius <= 0 ? 0.0f : (lh_float_t)lh_entity_range_to_pos(lh_addr_of(self->range), 1000) / 1000.0f;
-    const lh_float_t angle = (0.75f + turns * 1.5f) * 3.14159265f;
-    lh_ui_color_t needle;
-    if (lh_ptr_is_null(style) || radius <= 0)
+        radius <= 0 ? 0.0f
+                    : (lh_float_t)lh_entity_range_to_pos(lh_addr_of(self->range), 1000) / 1000.0f;
+    const lh_float_t start = 0.75f * pi;
+    const lh_float_t sweep = 1.5f * pi;
+    lh_int_t thumb;
+    lh_int_t half;
+    lh_int_t orbit;
+    lh_int_t x;
+    lh_int_t y;
+    lh_ui_color_t mark;
+    lh_ui_color_t track;
+    if (lh_ptr_is_null(style) || radius <= 4)
     {
         return;
     }
-    needle = lh_ui_style_get_text_color(style);
-    lh_ui_canvas_fill_disc(canvas, cx, cy, radius, lh_ui_style_get_bg_color(style));
+    thumb = radius / 6;
+    if (thumb < 4)
     {
-        lh_int_t step;
-        for (step = radius / 5; step < radius; ++step)
-        {
-            const lh_int_t x = cx + (lh_int_t)(cosf(angle) * (lh_float_t)step);
-            const lh_int_t y_at = cy + (lh_int_t)(sinf(angle) * (lh_float_t)step);
-            lh_ui_canvas_blend_pixel(canvas, x, y_at, needle);
-        }
+        thumb = 4;
     }
+    half = thumb / 2;
+    if (half < 2)
+    {
+        half = 2;
+    }
+    orbit = radius - thumb - 1;
+    if (orbit <= half)
+    {
+        return;
+    }
+    mark = lh_ui_style_get_text_color(style);
+    track = lh_ui_style_get_bg_color(style);
+    lh_ui_canvas_fill_arc(canvas, cx, cy, orbit + half, orbit - half, start, start + sweep, track);
+    lh_entity_knob_point(cx, cy, orbit, start, lh_addr_of(x), lh_addr_of(y));
+    lh_ui_canvas_fill_disc(canvas, x, y, half, track);
+    lh_entity_knob_point(cx, cy, orbit, start + sweep, lh_addr_of(x), lh_addr_of(y));
+    lh_ui_canvas_fill_disc(canvas, x, y, half, track);
+    if (turns > 0.0f)
+    {
+        lh_ui_canvas_fill_arc(canvas, cx, cy, orbit + half, orbit - half, start,
+                              start + turns * sweep, mark);
+        lh_entity_knob_point(cx, cy, orbit, start, lh_addr_of(x), lh_addr_of(y));
+        lh_ui_canvas_fill_disc(canvas, x, y, half, mark);
+    }
+    lh_entity_knob_point(cx, cy, orbit, start + turns * sweep, lh_addr_of(x), lh_addr_of(y));
+    lh_ui_canvas_fill_disc(canvas, x, y, thumb, mark);
 }
 
 lh_void
