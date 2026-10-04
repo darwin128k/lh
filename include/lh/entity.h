@@ -7,9 +7,10 @@
  * its label. What an entity is and does comes from its class
  * (::lh_entity_class_t); classes derive from one another by embedding fields.
  *
- * This core knows nothing about space. 2D entities (a rectangle relative to
- * the parent) and 3D ones (position, rotation, scale) are classes on top of
- * it, so the tree, events and lifetime work the same in both.
+ * This core knows nothing about space or paint. A 2D entity
+ * (::lh_entity_2d_t) adds a place, a box and a style and is what gets
+ * drawn; a 3D one extends that place into space. The tree, events and
+ * lifetime work the same for all of them.
  *
  * Lifetime: every entity is a block of an ownership tree (`lh/memory/tree.h`),
  * a child of its parent entity. Deleting an entity deletes its children;
@@ -103,8 +104,8 @@ lh_entity_is_instance_of(const lh_entity_t *self, const lh_entity_class_t *entit
  * The checked way down a class hierarchy: assign the result to a pointer to
  * the class's instance struct and test it.
  * @code{.c}
- * const lh_entity_rect_t *rect = lh_entity_cast(entity, &lh_entity_rect_class);
- * if (rect) { ... }
+ * const lh_entity_2d_t *box = lh_entity_cast(entity, &lh_entity_2d_class);
+ * if (box) { ... }
  * @endcode
  */
 lh_ptr

@@ -1,29 +1,43 @@
 /**
  * @file 2d.h
- * @brief An entity with a place in the plane: position, angle and scale
- *        relative to its parent. The spatial core of lh's entities.
+ * @brief An entity with a place, a box and a style: the object that is
+ *        drawn (LVGL's `lv_obj`).
  *
- * 2D elements build on it (::lh_entity_rect_t adds a size), and so does 3D
- * (::lh_entity_3d_t adds depth, a tilt out of the plane and a z scale): a 2D
- * entity is a 3D one that stays in the `z = 0` plane. All of them compose
- * through 4x4 matrices, so one tree can mix them, e.g. a UI panel inside a
- * 3D scene.
+ * Position, angle and scale are relative to the parent. The box is
+ * `[0, width) x [0, height)` in the entity's own space, from its position
+ * (the top-left corner, `y` growing downward). A style
+ * (::lh_ui_style_t) is how that box is painted; the entity only points at
+ * one. A new entity has size 0 and no style, so it only places its children
+ * until given a size and a style.
  *
- * The world transform of an entity is its parent's world transform times its
- * own (::lh_entity_2d_get_world_matrix): moving a parent moves its children
- * with it. Ancestors that are not spatial (plain containers) count as no
- * transform at all.
+ * Children are positioned relative to the parent's top-left and are cut to
+ * the parent's box when that box has a positive size, unless the parent has
+ * ::lh_entity_flags_overflow_visible. An entity with no box does not cut: a
+ * transform, or a 3D node, is not a clip.
+ *
+ * The world transform is the parent's world transform times this entity's
+ * own (::lh_entity_2d_get_world_matrix). Ancestors that are not spatial
+ * count as no transform. ::lh_entity_3d_t extends the same place into
+ * space, so one tree can mix them.
+ *
+ * Changing the place, the size or which style it points at marks the covered
+ * screen area for redrawing (::lh_entity_invalidate), as does deleting the
+ * entity.
  */
 
 #ifndef LH_ENTITY_2D_H
 #define LH_ENTITY_2D_H
 
+#include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/entity.h>
 #include <lh/entity/2d/fields.h>
 #include <lh/float.h>
 #include <lh/math/mat4.h>
+#include <lh/math/rect.h>
 #include <lh/math/vec2.h>
+#include <lh/ui/canvas.h>
+#include <lh/ui/style.h>
 
 /**
  * @struct lh_entity_2d
@@ -32,7 +46,7 @@
 struct lh_entity_2d
 {
     lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
-    lh_entity_2d_fields(lh_math_vec2_t, lh_float_t);
+    lh_entity_2d_fields(lh_math_vec2_t, lh_float_t, const lh_ui_style_t *);
 };
 typedef struct lh_entity_2d lh_entity_2d_t;
 
@@ -41,7 +55,8 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Class of ::lh_entity_2d_t, derived from ::lh_entity_base_class.
  *
- * A new instance sits at its parent's origin: position 0, angle 0, scale 1.
+ * A new instance sits at its parent's origin: position 0, angle 0, scale 1,
+ * size 0, no style.
  */
 extern const lh_entity_class_t lh_entity_2d_class;
 
@@ -83,11 +98,39 @@ lh_void
 lh_entity_2d_set_scale(lh_entity_2d_t *self, lh_math_vec2_t scale);
 
 /**
+ * @brief Width (`x`) and height (`y`) of the box in the entity's own space.
+ */
+lh_math_vec2_t
+lh_entity_2d_get_size(const lh_entity_2d_t *self);
+
+/**
+ * @brief Set the width (`x`) and height (`y`) of the box. Zero or less is
+ *        no box.
+ */
+lh_void
+lh_entity_2d_set_size(lh_entity_2d_t *self, lh_math_vec2_t size);
+
+/**
+ * @brief The style @p self is painted with, or ::lh_null when it has none.
+ */
+const lh_ui_style_t *
+lh_entity_2d_get_style(const lh_entity_2d_t *self);
+
+/**
+ * @brief Point @p self at @p style (::lh_null paints nothing).
+ *
+ * @p style is not copied and not owned: it must outlive the entities that
+ * point at it. The colors stay in the style.
+ */
+lh_void
+lh_entity_2d_set_style(lh_entity_2d_t *self, const lh_ui_style_t *style);
+
+/**
  * @brief From @p self's own space into its parent's.
  *
- * For a plain 2D entity: scale, then rotate by the angle, then move. A class
- * derived from it with more to its place (::lh_entity_3d_t) answers with its
- * own matrix (::LH_ENTITY_EVENT_GET_LOCAL_MATRIX).
+ * Scale, then rotate by the angle, then move. A class derived from it with
+ * more to its place (::lh_entity_3d_t) answers with its own matrix
+ * (::LH_ENTITY_EVENT_GET_LOCAL_MATRIX).
  */
 lh_math_mat4_t
 lh_entity_2d_get_local_matrix(const lh_entity_2d_t *self);
@@ -98,6 +141,52 @@ lh_entity_2d_get_local_matrix(const lh_entity_2d_t *self);
  */
 lh_math_mat4_t
 lh_entity_2d_get_world_matrix(const lh_entity_2d_t *self);
+
+/**
+ * @brief The whole pixels the box touches on screen: the bounding box of
+ *        its corners, rounded outward. Empty when there is no box. Depth
+ *        is ignored (seen straight along z).
+ */
+lh_math_rect_t
+lh_entity_2d_get_screen_bounds(const lh_entity_2d_t *self);
+
+/**
+ * @brief True when the world point @p point (`z = 0`, e.g. a mouse
+ *        position) falls inside @p self's box.
+ *
+ * The point is taken into the entity's own space and tested against
+ * `[0, width) x [0, height)`. Depth there is ignored, so a box seen at an
+ * angle is tested by its projection along the local z axis. No box contains
+ * nothing.
+ */
+lh_bool_t
+lh_entity_2d_contains(const lh_entity_2d_t *self, lh_math_vec2_t point);
+
+/**
+ * @brief The entity on top at the world point @p point within the tree of
+ *        @p root (including @p root), or ::lh_null if there is none.
+ *
+ * "On top" means what is drawn last: a child over its parent, a younger
+ * sibling over an older one. Hidden entities, and children cut away by a
+ * parent's box, are not hit. An entity with no box is searched through (its
+ * children can still be hit) but never returned.
+ */
+lh_entity_t *
+lh_entity_2d_find_at(lh_entity_t *root, lh_math_vec2_t point);
+
+/**
+ * @brief Paint @p self's box into @p canvas with its background style.
+ *
+ * Nothing when @p self has no style, the style background is transparent,
+ * or there is no box. Stays inside the canvas clip. An axis-aligned box is
+ * one rectangle fill; a
+ * rotated one tests each pixel center of its bounds.
+ *
+ * The screen calls this before ::LH_ENTITY_EVENT_DRAW, so whatever the
+ * entity paints in that event lies on top of the background.
+ */
+lh_void
+lh_entity_2d_draw_background(const lh_entity_2d_t *self, lh_ui_canvas_t *canvas);
 
 LH_COMPILER_EXTERN_C_END
 

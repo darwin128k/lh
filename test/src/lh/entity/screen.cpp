@@ -62,12 +62,13 @@ class Screen : public ::testing::Test
     void
     SetUp() override
     {
+        style_count = 0;
         sized = lh_memory_allocator_initializer_with_context(screen_test_alloc, screen_test_dealloc,
                                                              lh_null, lh_null);
         screen = reinterpret_cast<lh_entity_screen_t *>(
             lh_entity_create_root(&lh_entity_screen_class, &sized));
-        lh_entity_rect_set_size(reinterpret_cast<lh_entity_rect_t *>(screen),
-                                lh_math_vec2_make(k_width, k_height));
+        lh_entity_2d_set_size(reinterpret_cast<lh_entity_2d_t *>(screen),
+                              lh_math_vec2_make(k_width, k_height));
         pixels.assign(k_width * k_height, lh_ui_color_make(1, 2, 3, 4));
         lh_ui_canvas_init(&canvas, pixels.data(), k_width, k_height, k_width);
     }
@@ -84,16 +85,18 @@ class Screen : public ::testing::Test
         return reinterpret_cast<lh_entity_t *>(screen);
     }
 
-    lh_entity_rect_t *
-    make_rect(lh_entity_t *parent, lh_float_t x, lh_float_t y, lh_float_t w, lh_float_t h,
-              lh_ui_color_t color)
+    lh_entity_2d_t *
+    make_box(lh_entity_t *parent, lh_float_t x, lh_float_t y, lh_float_t w, lh_float_t h,
+             lh_ui_color_t color)
     {
-        lh_entity_rect_t *r =
-            reinterpret_cast<lh_entity_rect_t *>(lh_entity_create(&lh_entity_rect_class, parent));
-        lh_entity_2d_set_position(reinterpret_cast<lh_entity_2d_t *>(r), lh_math_vec2_make(x, y));
-        lh_entity_rect_set_size(r, lh_math_vec2_make(w, h));
-        lh_entity_rect_set_color(r, color);
-        return r;
+        lh_ui_style_t *style = &styles[style_count++];
+        lh_ui_style_set_bg_color(style, color);
+        lh_entity_2d_t *box =
+            reinterpret_cast<lh_entity_2d_t *>(lh_entity_create(&lh_entity_2d_class, parent));
+        lh_entity_2d_set_position(box, lh_math_vec2_make(x, y));
+        lh_entity_2d_set_size(box, lh_math_vec2_make(w, h));
+        lh_entity_2d_set_style(box, style);
+        return box;
     }
 
     lh_ui_color_t
@@ -112,6 +115,8 @@ class Screen : public ::testing::Test
     lh_entity_screen_t *screen;
     std::vector<lh_ui_color_t> pixels;
     lh_ui_canvas_t canvas;
+    lh_ui_style_t styles[8];
+    int style_count = 0;
 };
 
 TEST_F(Screen, first_render_fills_the_whole_display)
@@ -127,7 +132,7 @@ TEST_F(Screen, first_render_fills_the_whole_display)
 
 TEST_F(Screen, rect_covers_the_pixels_whose_centers_it_contains)
 {
-    make_rect(root(), 2, 1, 3, 2, k_red);
+    make_box(root(), 2, 1, 3, 2, k_red);
     render();
     EXPECT_TRUE(same(at(2, 1), k_red));
     EXPECT_TRUE(same(at(4, 2), k_red));
@@ -138,7 +143,7 @@ TEST_F(Screen, rect_covers_the_pixels_whose_centers_it_contains)
 
 TEST_F(Screen, only_dirty_areas_are_redrawn)
 {
-    lh_entity_rect_t *r = make_rect(root(), 0, 0, 2, 2, k_red);
+    lh_entity_2d_t *r = make_box(root(), 0, 0, 2, 2, k_red);
     render();
     pixels[10 * k_width + 10] = k_green; // a mark far from any change
 
@@ -155,15 +160,15 @@ TEST_F(Screen, only_dirty_areas_are_redrawn)
 
 TEST_F(Screen, children_are_cut_to_the_parent_unless_overflow_visible)
 {
-    lh_entity_rect_t *panel = make_rect(root(), 2, 2, 4, 4, k_black);
+    lh_entity_2d_t *panel = make_box(root(), 2, 2, 4, 4, k_black);
     lh_entity_t *panel_entity = reinterpret_cast<lh_entity_t *>(panel);
-    make_rect(panel_entity, 2, 2, 6, 1, k_red); // reaches past the panel's right edge (x 4..10)
+    make_box(panel_entity, 2, 2, 6, 1, k_red); // reaches past the panel's right edge (x 4..10)
     render();
     EXPECT_TRUE(same(at(5, 4), k_red));
     EXPECT_TRUE(same(at(7, 4), k_black)); // cut
 
     // A child outside its parent cannot be clicked either.
-    EXPECT_EQ(lh_entity_rect_find_at(root(), lh_math_vec2_make(7.5f, 4.5f)), root());
+    EXPECT_EQ(lh_entity_2d_find_at(root(), lh_math_vec2_make(7.5f, 4.5f)), root());
 
     lh_entity_add_flags(panel_entity, lh_entity_flags_overflow_visible);
     lh_entity_screen_invalidate_area(screen, lh_math_rect_make(0, 0, k_width, k_height));
@@ -173,7 +178,7 @@ TEST_F(Screen, children_are_cut_to_the_parent_unless_overflow_visible)
 
 TEST_F(Screen, hidden_entities_are_not_drawn_or_hit)
 {
-    lh_entity_rect_t *r = make_rect(root(), 0, 0, 3, 3, k_red);
+    lh_entity_2d_t *r = make_box(root(), 0, 0, 3, 3, k_red);
     lh_entity_t *e = reinterpret_cast<lh_entity_t *>(r);
     render();
     ASSERT_TRUE(same(at(1, 1), k_red));
@@ -182,12 +187,12 @@ TEST_F(Screen, hidden_entities_are_not_drawn_or_hit)
     lh_entity_invalidate(e);
     render();
     EXPECT_TRUE(same(at(1, 1), k_black));
-    EXPECT_EQ(lh_entity_rect_find_at(root(), lh_math_vec2_make(1, 1)), root());
+    EXPECT_EQ(lh_entity_2d_find_at(root(), lh_math_vec2_make(1, 1)), root());
 }
 
 TEST_F(Screen, deleting_redraws_what_was_under)
 {
-    lh_entity_rect_t *r = make_rect(root(), 5, 5, 2, 2, k_red);
+    lh_entity_2d_t *r = make_box(root(), 5, 5, 2, 2, k_red);
     render();
     ASSERT_TRUE(same(at(5, 5), k_red));
 
@@ -200,7 +205,7 @@ TEST_F(Screen, deleting_redraws_what_was_under)
 TEST_F(Screen, rotated_rect_is_drawn_rotated)
 {
     // A 4x4 square turned 45 degrees about its corner at (8,2): a diamond.
-    lh_entity_rect_t *r = make_rect(root(), 8, 2, 4, 4, k_red);
+    lh_entity_2d_t *r = make_box(root(), 8, 2, 4, 4, k_red);
     lh_entity_2d_set_angle(reinterpret_cast<lh_entity_2d_t *>(r), k_pi / 4);
     render();
     EXPECT_TRUE(same(at(7, 4), k_red));    // inside the diamond, left of the corner
@@ -210,8 +215,8 @@ TEST_F(Screen, rotated_rect_is_drawn_rotated)
 
 TEST_F(Screen, younger_siblings_draw_over_older_ones)
 {
-    make_rect(root(), 0, 0, 4, 4, k_red);
-    make_rect(root(), 2, 2, 4, 4, k_green);
+    make_box(root(), 0, 0, 4, 4, k_red);
+    make_box(root(), 2, 2, 4, 4, k_green);
     render();
     EXPECT_TRUE(same(at(1, 1), k_red));
     EXPECT_TRUE(same(at(3, 3), k_green));
@@ -233,8 +238,8 @@ TEST_F(Screen, many_small_changes_merge_into_one_area)
 
 TEST_F(Screen, pointer_goes_to_the_rect_on_top_and_bubbles)
 {
-    lh_entity_rect_t *panel = make_rect(root(), 0, 0, 10, 10, k_black);
-    lh_entity_rect_t *button = make_rect(reinterpret_cast<lh_entity_t *>(panel), 2, 2, 3, 3, k_red);
+    lh_entity_2d_t *panel = make_box(root(), 0, 0, 10, 10, k_black);
+    lh_entity_2d_t *button = make_box(reinterpret_cast<lh_entity_t *>(panel), 2, 2, 3, 3, k_red);
     lh_entity_t *panel_entity = reinterpret_cast<lh_entity_t *>(panel);
     lh_entity_t *button_entity = reinterpret_cast<lh_entity_t *>(button);
     lh_entity_add_handler(panel_entity, screen_test_pointer_handler, lh_null);

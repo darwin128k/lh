@@ -78,7 +78,6 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/entity/event.c
         ${LH_LIB_SRC_PATH}/entity/2d.c
         ${LH_LIB_SRC_PATH}/entity/3d.c
-        ${LH_LIB_SRC_PATH}/entity/rect.c
         ${LH_LIB_SRC_PATH}/entity/screen.c
         ${LH_LIB_SRC_PATH}/memory/bounds/slice.c
         ${LH_LIB_SRC_PATH}/memory/bounds/allocated.c
@@ -96,6 +95,7 @@ set(LH_LIB_SOURCES
 
         ${LH_LIB_SRC_PATH}/ui/canvas.c
         ${LH_LIB_SRC_PATH}/ui/color.c
+        ${LH_LIB_SRC_PATH}/ui/style.c
         ${LH_LIB_SRC_PATH}/math/point.c
         ${LH_LIB_SRC_PATH}/math/point3.c
         ${LH_LIB_SRC_PATH}/math/size.c

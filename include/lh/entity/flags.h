@@ -24,14 +24,14 @@
 /**
  * @def lh_entity_flags_hidden
  * @brief Neither this entity nor its children are drawn or hit by the
- *        pointer (::lh_entity_rect_find_at).
+ *        pointer (::lh_entity_2d_find_at).
  */
 #define lh_entity_flags_hidden lh_bit_mask(1)
 
 /**
  * @def lh_entity_flags_overflow_visible
- * @brief Children of this rectangle are drawn and hit outside it too; by
- *        default they are cut to it.
+ * @brief Children of this entity are drawn and hit outside its box too; by
+ *        default a box cuts them to itself.
  */
 #define lh_entity_flags_overflow_visible lh_bit_mask(2)
 

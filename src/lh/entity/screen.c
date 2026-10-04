@@ -4,27 +4,27 @@
 #include <lh/null.h>
 #include <lh/runtime/error/code.h>
 #include <lh/util/addr.h>
-#include <lh/util/numeric.h>
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
+
+/* Shared default: opaque black. A screen points at it until given another. */
+static const lh_ui_style_t lh_entity_screen_background = {{0, 0, 0, 255}};
 
 static lh_void
 lh_entity_screen_construct(lh_entity_t *self)
 {
-    /* Opaque black until a caller paints a background. */
-    lh_entity_rect_set_color(lh_ptr_rcast(lh_entity_rect_t, self),
-                             lh_ui_color_make(0, 0, 0, lh_numeric_limit_umax(lh_byte_t)));
+    lh_entity_2d_set_style(lh_ptr_rcast(lh_entity_2d_t, self), lh_addr_of(lh_entity_screen_background));
 }
 
 const lh_entity_class_t lh_entity_screen_class =
-    lh_entity_class_initializer(&lh_entity_rect_class, sizeof(lh_entity_screen_t),
+    lh_entity_class_initializer(&lh_entity_2d_class, sizeof(lh_entity_screen_t),
                                 lh_entity_screen_construct, lh_null, lh_null);
 
 lh_void
 lh_entity_screen_invalidate_area(lh_entity_screen_t *self, lh_math_rect_t area)
 {
     lh_assert_runtime_ref(self);
-    const lh_math_vec2_t size = lh_entity_rect_get_size(lh_ptr_rcast(const lh_entity_rect_t, self));
+    const lh_math_vec2_t size = lh_entity_2d_get_size(lh_ptr_rcast(const lh_entity_2d_t, self));
     const lh_math_rect_t screen =
         lh_math_rect_make(0, 0, lh_float_ceil_to_int(lh_math_vec2_get_x(lh_addr_of(size))), lh_float_ceil_to_int(lh_math_vec2_get_y(lh_addr_of(size))));
     lh_math_rect_t dirty = lh_math_rect_intersection(lh_addr_of(screen), lh_addr_of(area));
@@ -71,15 +71,25 @@ lh_entity_screen_get_dirty_area(const lh_entity_screen_t *self, lh_usize_t index
     return self->dirty[index];
 }
 
-/* @p entity as a rectangle that cuts its children to itself, or null. */
-static const lh_entity_rect_t *
-lh_entity_screen_get_clipping_rect(const lh_entity_t *entity)
+/* @p entity when its box cuts children to itself, or null. No box (size is
+ * not positive) is only a transform: it does not cut. */
+static const lh_entity_2d_t *
+lh_entity_screen_clip_box(const lh_entity_t *entity)
 {
     lh_return_if(lh_entity_has_flags(entity, lh_entity_flags_overflow_visible), lh_null);
-    return lh_entity_cast(entity, lh_addr_of(lh_entity_rect_class));
+    const lh_entity_2d_t *const spatial = lh_entity_cast(entity, lh_addr_of(lh_entity_2d_class));
+    lh_return_ifn(spatial, lh_null);
+    const lh_math_vec2_t size = lh_entity_2d_get_size(spatial);
+    lh_return_if(lh_math_vec2_get_x(lh_addr_of(size)) <= 0.0f ||
+                     lh_math_vec2_get_y(lh_addr_of(size)) <= 0.0f,
+                 lh_null);
+    return spatial;
 }
 
-/* Draw @p entity and its children onto @p canvas within @p clip. */
+/* Draw @p entity and its children onto @p canvas within @p clip.
+ * Background first (the style), then DRAW for anything on top of it, then
+ * children. A box that misses @p clip is skipped with the children it cuts:
+ * that is the partial redraw, the same walk LVGL does over a dirty area. */
 static lh_void
 lh_entity_screen_draw(lh_entity_t *entity, lh_ui_canvas_t *canvas, lh_math_rect_t clip)
 {
@@ -88,14 +98,28 @@ lh_entity_screen_draw(lh_entity_t *entity, lh_ui_canvas_t *canvas, lh_math_rect_
         return;
     }
 
+    const lh_entity_2d_t *const clip_box = lh_entity_screen_clip_box(entity);
+    lh_math_rect_t bounds = lh_math_rect_make_empty();
+    if (lh_ptr_is_set(clip_box))
+    {
+        bounds = lh_entity_2d_get_screen_bounds(clip_box);
+        if (!lh_math_rect_intersects(lh_addr_of(clip), lh_addr_of(bounds)))
+        {
+            return;
+        }
+    }
+
     lh_ui_canvas_set_clip(canvas, clip);
+    const lh_entity_2d_t *const spatial = lh_entity_cast(entity, lh_addr_of(lh_entity_2d_class));
+    if (lh_ptr_is_set(spatial))
+    {
+        lh_entity_2d_draw_background(spatial, canvas);
+    }
     lh_entity_notify(entity, LH_ENTITY_EVENT_DRAW, canvas);
 
     lh_math_rect_t child_clip = clip;
-    const lh_entity_rect_t *const clipping = lh_entity_screen_get_clipping_rect(entity);
-    if (lh_ptr_is_set(clipping))
+    if (lh_ptr_is_set(clip_box))
     {
-        const lh_math_rect_t bounds = lh_entity_rect_get_screen_bounds(clipping);
         child_clip = lh_math_rect_intersection(lh_addr_of(clip), lh_addr_of(bounds));
         if (lh_math_rect_is_empty(lh_addr_of(child_clip)))
         {
@@ -126,17 +150,21 @@ lh_entity_screen_render(lh_entity_screen_t *self, lh_ui_canvas_t *canvas)
     return drawn;
 }
 
-/* Mark what @p entity and its descendants cover. A rectangle that cuts its
+/* Mark what @p entity and its descendants cover. A box that cuts its
  * children covers them too, so the walk stops there. */
 static lh_void
 lh_entity_screen_invalidate_tree(lh_entity_screen_t *screen, lh_entity_t *entity)
 {
-    const lh_entity_rect_t *const rect = lh_entity_cast(entity, lh_addr_of(lh_entity_rect_class));
-    if (lh_ptr_is_set(rect))
+    const lh_entity_2d_t *const spatial = lh_entity_cast(entity, lh_addr_of(lh_entity_2d_class));
+    if (lh_ptr_is_set(spatial))
     {
-        lh_entity_screen_invalidate_area(screen, lh_entity_rect_get_screen_bounds(rect));
+        const lh_math_vec2_t size = lh_entity_2d_get_size(spatial);
+        if (lh_math_vec2_get_x(lh_addr_of(size)) > 0.0f && lh_math_vec2_get_y(lh_addr_of(size)) > 0.0f)
+        {
+            lh_entity_screen_invalidate_area(screen, lh_entity_2d_get_screen_bounds(spatial));
+        }
     }
-    lh_return_if(lh_ptr_is_set(lh_entity_screen_get_clipping_rect(entity)));
+    lh_return_if(lh_ptr_is_set(lh_entity_screen_clip_box(entity)));
     lh_entity_foreach_child(child, entity)
     {
         lh_entity_screen_invalidate_tree(screen, child);
@@ -158,7 +186,7 @@ lh_entity_t *
 lh_entity_screen_send_pointer(lh_entity_screen_t *self, lh_uint_t code, lh_math_vec2_t point)
 {
     lh_assert_runtime_ref(self);
-    lh_entity_t *const target = lh_entity_rect_find_at(lh_ptr_rcast(lh_entity_t, self), point);
+    lh_entity_t *const target = lh_entity_2d_find_at(lh_ptr_rcast(lh_entity_t, self), point);
     if (lh_ptr_is_set(target))
     {
         lh_entity_send_event(target, code, lh_addr_of(point));

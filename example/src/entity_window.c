@@ -21,8 +21,12 @@
 #define EXAMPLE_WIDTH 640
 #define EXAMPLE_HEIGHT 400
 
-static const lh_ui_color_t example_button_off = {70, 90, 160, 255};
-static const lh_ui_color_t example_button_on = {255, 122, 24, 255};
+static lh_ui_style_t example_style_screen;
+static lh_ui_style_t example_style_panel;
+static lh_ui_style_t example_style_button_off;
+static lh_ui_style_t example_style_button_on;
+static lh_ui_style_t example_style_cut;
+static lh_ui_style_t example_style_square;
 
 struct example
 {
@@ -32,16 +36,16 @@ struct example
     lh_bool_t quit;
 };
 
-static lh_entity_rect_t *
-example_rect(lh_entity_t *parent, lh_float_t x, lh_float_t y, lh_float_t w, lh_float_t h,
-             lh_ui_color_t color)
+static lh_entity_2d_t *
+example_box(lh_entity_t *parent, lh_float_t x, lh_float_t y, lh_float_t w, lh_float_t h,
+            const lh_ui_style_t *style)
 {
-    lh_entity_rect_t *rect = lh_entity_cast(lh_entity_create(&lh_entity_rect_class, parent),
-                                            &lh_entity_rect_class);
-    lh_entity_2d_set_position((lh_entity_2d_t *)rect, lh_math_vec2_make(x, y));
-    lh_entity_rect_set_size(rect, lh_math_vec2_make(w, h));
-    lh_entity_rect_set_color(rect, color);
-    return rect;
+    lh_entity_2d_t *box = lh_entity_cast(lh_entity_create(&lh_entity_2d_class, parent),
+                                         &lh_entity_2d_class);
+    lh_entity_2d_set_position(box, lh_math_vec2_make(x, y));
+    lh_entity_2d_set_size(box, lh_math_vec2_make(w, h));
+    lh_entity_2d_set_style(box, style);
+    return box;
 }
 
 /* A button: toggles between its two colors on every press. */
@@ -53,11 +57,10 @@ example_on_button(lh_entity_event_t *event, lh_ptr user_data)
     {
         return;
     }
-    lh_entity_rect_t *button = lh_entity_cast(lh_entity_event_get_current(event),
-                                              &lh_entity_rect_class);
-    const lh_ui_color_t color = lh_entity_rect_get_color(button);
-    lh_entity_rect_set_color(button, color.r == example_button_on.r ? example_button_off
-                                                                     : example_button_on);
+    lh_entity_2d_t *button = lh_entity_cast(lh_entity_event_get_current(event), &lh_entity_2d_class);
+    const lh_ui_style_t *style = lh_entity_2d_get_style(button);
+    lh_entity_2d_set_style(button, style == &example_style_button_on ? &example_style_button_off
+                                                                      : &example_style_button_on);
 }
 
 /* Window events: lost pixels are marked for redrawing, the mouse goes to the
@@ -100,26 +103,30 @@ example_on_window(lh_self_ptr self, lh_os_system_window_handle_t window,
 static lh_void
 example_build(struct example *example)
 {
-    lh_entity_t *root = (lh_entity_t *)example->screen;
-    lh_entity_rect_set_size((lh_entity_rect_t *)example->screen,
-                            lh_math_vec2_make(EXAMPLE_WIDTH, EXAMPLE_HEIGHT));
-    lh_entity_rect_set_color((lh_entity_rect_t *)example->screen,
-                             lh_ui_color_make(24, 26, 32, 255));
+    lh_ui_style_set_bg_color(&example_style_screen, lh_ui_color_make(24, 26, 32, 255));
+    lh_ui_style_set_bg_color(&example_style_panel, lh_ui_color_make(40, 44, 56, 255));
+    lh_ui_style_set_bg_color(&example_style_button_off, lh_ui_color_make(70, 90, 160, 255));
+    lh_ui_style_set_bg_color(&example_style_button_on, lh_ui_color_make(255, 122, 24, 255));
+    lh_ui_style_set_bg_color(&example_style_cut, lh_ui_color_make(90, 160, 90, 255));
+    lh_ui_style_set_bg_color(&example_style_square, lh_ui_color_make(200, 60, 80, 255));
 
-    lh_entity_rect_t *panel =
-        example_rect(root, 40, 40, 360, 300, lh_ui_color_make(40, 44, 56, 255));
+    lh_entity_t *root = (lh_entity_t *)example->screen;
+    lh_entity_2d_set_size((lh_entity_2d_t *)example->screen,
+                          lh_math_vec2_make(EXAMPLE_WIDTH, EXAMPLE_HEIGHT));
+    lh_entity_2d_set_style((lh_entity_2d_t *)example->screen, &example_style_screen);
+
+    lh_entity_2d_t *panel = example_box(root, 40, 40, 360, 300, &example_style_panel);
     for (int i = 0; i < 3; ++i)
     {
-        lh_entity_rect_t *button = example_rect((lh_entity_t *)panel, 30, 30 + 80.0f * i, 300, 60,
-                                                example_button_off);
+        lh_entity_2d_t *button =
+            example_box((lh_entity_t *)panel, 30, 30 + 80.0f * i, 300, 60, &example_style_button_off);
         lh_entity_add_handler((lh_entity_t *)button, example_on_button, lh_null);
     }
     /* Reaches past the panel's bottom edge: cut to the panel. */
-    example_rect((lh_entity_t *)panel, 30, 270, 300, 60, lh_ui_color_make(90, 160, 90, 255));
+    example_box((lh_entity_t *)panel, 30, 270, 300, 60, &example_style_cut);
 
-    lh_entity_rect_t *square =
-        example_rect(root, 520, 120, 80, 80, lh_ui_color_make(200, 60, 80, 255));
-    lh_entity_2d_set_angle((lh_entity_2d_t *)square, 0.5f);
+    lh_entity_2d_t *square = example_box(root, 520, 120, 80, 80, &example_style_square);
+    lh_entity_2d_set_angle(square, 0.5f);
 }
 
 int
