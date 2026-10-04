@@ -9,53 +9,6 @@
 #include <lh/util/ptr.h>
 
 lh_void
-lh_entity_option_line(lh_ui_canvas_t *canvas, lh_int_t x0, lh_int_t y0, lh_int_t x1, lh_int_t y1,
-                      lh_ui_color_t color)
-{
-    const lh_int_t sx = x0 < x1 ? 1 : -1;
-    const lh_int_t sy = y0 < y1 ? 1 : -1;
-    lh_int_t dx = x0 < x1 ? x1 - x0 : x0 - x1;
-    lh_int_t dy = y0 < y1 ? y0 - y1 : y1 - y0;
-    lh_int_t err = dx + dy;
-    for (;;)
-    {
-        lh_int_t next;
-        lh_ui_canvas_blend_pixel(canvas, x0, y0, color);
-        if (x0 == x1 && y0 == y1)
-        {
-            break;
-        }
-        next = err * 2;
-        if (next >= dy)
-        {
-            err += dy;
-            x0 += sx;
-        }
-        if (next <= dx)
-        {
-            err += dx;
-            y0 += sy;
-        }
-    }
-}
-
-lh_void
-lh_entity_option_check(lh_ui_canvas_t *canvas, lh_int_t x, lh_int_t y, lh_int_t width,
-                       lh_int_t height, lh_ui_color_t color)
-{
-    const lh_int_t x0 = x + width / 4;
-    const lh_int_t y0 = y + height / 2;
-    const lh_int_t x1 = x + width / 2 - 1;
-    const lh_int_t y1 = y + height - height / 4;
-    const lh_int_t x2 = x + width - width / 4;
-    const lh_int_t y2 = y + height / 4;
-    lh_entity_option_line(canvas, x0, y0, x1, y1, color);
-    lh_entity_option_line(canvas, x0, y0 + 1, x1, y1 + 1, color);
-    lh_entity_option_line(canvas, x1, y1, x2, y2, color);
-    lh_entity_option_line(canvas, x1, y1 + 1, x2, y2 + 1, color);
-}
-
-lh_void
 lh_entity_option_quiet(lh_entity_option_t *self, lh_bool_t on)
 {
     if (self->on == on)
@@ -176,11 +129,6 @@ lh_entity_option_paint(const lh_entity_option_t *self, lh_ui_canvas_t *canvas)
     {
         lh_ui_canvas_fill_round(canvas, lh_math_rect_make(x + 1, y + 1, width - 2, height - 2), 3,
                                 fill);
-        return;
-    }
-    if (self->on)
-    {
-        lh_entity_option_check(canvas, x, y, width, height, fill);
     }
 }
 
