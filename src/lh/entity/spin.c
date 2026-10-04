@@ -224,4 +224,9 @@ lh_entity_spin_set_font(lh_entity_spin_t *self, const lh_ui_font_t *font)
 }
 
 
-lh_entity_range_value_defs(lh_entity_spin, lh_entity_spin_t)
+lh_entity_range_t *
+lh_entity_spin_get_range(lh_entity_spin_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->range);
+}

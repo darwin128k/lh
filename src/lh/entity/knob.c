@@ -1,4 +1,5 @@
 #include <lh/entity/knob.h>
+#include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/entity.h>
 #include <lh/entity/circle.h>
@@ -261,4 +262,9 @@ const lh_entity_class_t lh_entity_knob_class =
                                 lh_entity_knob_construct, lh_null, lh_entity_knob_on_event);
 
 
-lh_entity_range_value_defs(lh_entity_knob, lh_entity_knob_t)
+lh_entity_range_t *
+lh_entity_knob_get_range(lh_entity_knob_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->range);
+}

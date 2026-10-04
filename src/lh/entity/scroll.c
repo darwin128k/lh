@@ -165,4 +165,9 @@ lh_entity_scroll_set_thumb(lh_entity_scroll_t *self, const lh_ui_style_t *style)
 }
 
 
-lh_entity_range_value_defs(lh_entity_scroll, lh_entity_scroll_t)
+lh_entity_range_t *
+lh_entity_scroll_get_range(lh_entity_scroll_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->range);
+}

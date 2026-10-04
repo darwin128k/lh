@@ -38,7 +38,16 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 extern const lh_entity_class_t lh_entity_slider_class;
 
-lh_entity_range_value_decls(lh_entity_slider, lh_entity_slider_t);
+/**
+ * @brief The value record of @p self: ends, start, current value, thickness
+ *        and the travel it has. The API is ::lh_entity_range_t's, not this
+ *        widget's, and this is how a caller reaches it.
+ *
+ * The range is a member by value, so this hands back @p self's own record:
+ * writing through it changes the widget, and nothing is allocated.
+ */
+lh_entity_range_t *
+lh_entity_slider_get_range(lh_entity_slider_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

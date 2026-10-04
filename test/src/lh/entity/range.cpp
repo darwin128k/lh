@@ -275,10 +275,10 @@ TEST_F(Range, the_filled_part_is_clipped_to_the_track)
     EXPECT_EQ(lh_math_rect_get_size_height(&filled), 30);
 }
 
-// The ladder: a trackbar, a knob, a spin box and a scrollbar are all a range.
-// These four are the same question asked four times, and they are answered the
-// same way, so a caller holding any of them writes the same line.
-TEST_F(Range, every_ranged_widget_answers_the_same_questions)
+// The ladder: a trackbar, a knob, a spin box and a scrollbar are all a range,
+// so they all answer the same questions through the same API. One getter per
+// widget, and past that there is nothing widget-specific about a value.
+TEST_F(Range, every_ranged_widget_hands_back_the_same_range)
 {
     lh_entity_slider_t *slider = reinterpret_cast<lh_entity_slider_t *>(
         lh_entity_create(&lh_entity_slider_class, root()));
@@ -293,50 +293,62 @@ TEST_F(Range, every_ranged_widget_answers_the_same_questions)
     lh_entity_2d_set_size(reinterpret_cast<lh_entity_2d_t *>(spin), lh_math_vec2_make(120, 24));
     lh_entity_2d_set_size(reinterpret_cast<lh_entity_2d_t *>(scroll), lh_math_vec2_make(10, 200));
 
-    lh_entity_slider_set_ends(slider, 0, 200);
-    lh_entity_knob_set_ends(knob, 0, 200);
-    lh_entity_spin_set_ends(spin, 0, 200);
-    lh_entity_scroll_set_ends(scroll, 0, 200);
+    lh_entity_range_t *ranges[4] = {lh_entity_slider_get_range(slider),
+                                    lh_entity_knob_get_range(knob),
+                                    lh_entity_spin_get_range(spin),
+                                    lh_entity_scroll_get_range(scroll)};
 
-    EXPECT_EQ(lh_entity_slider_get_minimum(slider), 0);
-    EXPECT_EQ(lh_entity_knob_get_minimum(knob), 0);
-    EXPECT_EQ(lh_entity_spin_get_minimum(spin), 0);
-    EXPECT_EQ(lh_entity_scroll_get_minimum(scroll), 0);
-    EXPECT_EQ(lh_entity_slider_get_maximum(slider), 200);
-    EXPECT_EQ(lh_entity_knob_get_maximum(knob), 200);
-    EXPECT_EQ(lh_entity_spin_get_maximum(spin), 200);
-    EXPECT_EQ(lh_entity_scroll_get_maximum(scroll), 200);
+    for (lh_int_t i = 0; i < 4; ++i)
+    {
+        lh_entity_range_t *bar = ranges[i];
+        ASSERT_TRUE(bar != nullptr);
+        // A brand new one is the same everywhere.
+        EXPECT_EQ(lh_entity_range_get_minimum(bar), 0);
+        EXPECT_EQ(lh_entity_range_get_maximum(bar), 100);
+        EXPECT_EQ(lh_entity_range_get_start(bar), 0);
+        EXPECT_EQ(lh_entity_range_get_value(bar), 0);
+        EXPECT_EQ(lh_entity_range_get_thickness(bar), LH_ENTITY_RANGE_THICKNESS);
 
-    lh_entity_slider_set_value(slider, 50);
-    lh_entity_knob_set_value(knob, 50);
-    lh_entity_spin_set_value(spin, 50);
-    lh_entity_scroll_set_value(scroll, 50);
+        // The four questions, asked the same way.
+        lh_entity_range_set_ends(bar, 0, 200);
+        lh_entity_range_set_start(bar, 20);
+        EXPECT_EQ(lh_entity_range_get_start(bar), 20);
+        lh_entity_range_set_value(bar, 50);
+        EXPECT_EQ(lh_entity_range_get_value(bar), 50);
+        EXPECT_EQ(lh_entity_range_to_percent(bar), 25);
 
-    EXPECT_EQ(lh_entity_slider_get_value(slider), 50);
-    EXPECT_EQ(lh_entity_knob_get_value(knob), 50);
-    EXPECT_EQ(lh_entity_spin_get_value(spin), 50);
-    EXPECT_EQ(lh_entity_scroll_get_value(scroll), 50);
+        lh_entity_range_set_from_percent(bar, 75);
+        EXPECT_EQ(lh_entity_range_get_value(bar), 150);
+        lh_entity_range_set_thickness(bar, 6);
+        EXPECT_EQ(lh_entity_range_get_thickness(bar), 6);
 
-    // The same four, asked as a percentage: this is the question a caller
-    // mirrors one widget with another.
-    EXPECT_EQ(lh_entity_slider_to_percent(slider), 25);
-    EXPECT_EQ(lh_entity_knob_to_percent(knob), 25);
-    EXPECT_EQ(lh_entity_spin_to_percent(spin), 25);
-    EXPECT_EQ(lh_entity_scroll_to_percent(scroll), 25);
+        lh_entity_range_to_start(bar);
+        EXPECT_EQ(lh_entity_range_get_value(bar), 20);
+    }
+}
 
-    lh_entity_slider_set_from_percent(slider, 75);
-    EXPECT_EQ(lh_entity_slider_get_value(slider), 150);
+TEST_F(Range, the_range_a_widget_hands_back_is_the_widgets_own_record)
+{
+    lh_entity_slider_t *slider = reinterpret_cast<lh_entity_slider_t *>(
+        lh_entity_create(&lh_entity_slider_class, root()));
+    lh_entity_2d_set_size(reinterpret_cast<lh_entity_2d_t *>(slider), lh_math_vec2_make(200, 10));
+    lh_entity_range_t *first = lh_entity_slider_get_range(slider);
+    lh_entity_range_t *again = lh_entity_slider_get_range(slider);
 
-    lh_entity_slider_set_start(slider, 10);
-    EXPECT_EQ(lh_entity_slider_get_start(slider), 10);
-    EXPECT_EQ(lh_entity_slider_get_value(slider), 10); // setting the start moves here
-    lh_entity_slider_set_value(slider, 90);
-    lh_entity_slider_reset(slider);
-    EXPECT_EQ(lh_entity_slider_get_value(slider), 10);
+    EXPECT_EQ(first, again);                 // the same record, not a copy
+    EXPECT_EQ(lh_addr_of(slider->range), first); // and it is the member, by name
+    lh_entity_range_set_value(first, 42);
+    EXPECT_EQ(lh_entity_range_get_value(again), 42); // so a write is seen
+}
 
-    lh_entity_scroll_set_thickness(scroll, 6);
-    EXPECT_EQ(lh_entity_scroll_get_thickness(scroll), 6);
-    EXPECT_EQ(lh_entity_slider_get_thickness(slider), LH_ENTITY_RANGE_THICKNESS);
+TEST_F(Range, a_progress_bar_needs_no_getter_because_it_is_a_range)
+{
+    // The one widget that is a range outright, so the caller already holds the
+    // whole API with nothing to ask for.
+    lh_entity_range_t *bar = make_bar(100.0f, 10.0f);
+    EXPECT_EQ(lh_addr_of(bar), lh_addr_of(bar));
+    lh_entity_range_set_value(bar, 33);
+    EXPECT_EQ(lh_entity_range_get_value(bar), 33);
 }
 
 } // namespace

@@ -72,7 +72,17 @@ lh_entity_spin_get_font(const lh_entity_spin_t *self);
 lh_void
 lh_entity_spin_set_font(lh_entity_spin_t *self, const lh_ui_font_t *font);
 
-lh_entity_range_value_decls(lh_entity_spin, lh_entity_spin_t);
+/**
+ * @brief The value record of @p self: ends, start, current value, thickness
+ *        and the travel it has. The API is ::lh_entity_range_t's, not this
+ *        widget's, and this is how a caller reaches it. @p step is this
+ *        widget's own, and is not part of it.
+ *
+ * The range is a member by value, so this hands back @p self's own record:
+ * writing through it changes the widget, and nothing is allocated.
+ */
+lh_entity_range_t *
+lh_entity_spin_get_range(lh_entity_spin_t *self);
 
 LH_COMPILER_EXTERN_C_END
 
