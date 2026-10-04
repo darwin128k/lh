@@ -7,10 +7,10 @@
  * the actual Win32 / Xlib / Cocoa dispatch lives under
  * `lh/os/system/window.h` and is picked by CMake at configure time.
  *
- * Deliberately narrow: only the lifetime / show / pump operations needed
- * to drive a paint loop. Drawing primitives, input queues, and dirty
- * regions are layered above this header by `pa` (or whatever consumes
- * lh); they don't belong here.
+ * Deliberately narrow: lifetime, show, pump, and the frame itself
+ * (corner radius, dark caption, caption colors). Pixel drawing, input
+ * queues, and dirty regions are layered above this header; they don't
+ * belong here.
  *
  * On failure the native reason is in ::lh_os_system_last_error.
  *
@@ -24,6 +24,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/numeric/types.h>
+#include <lh/ui/color.h>
 
 #include <lh/os/system/window.h>
 #include <lh/os/system/window/handle.h>
@@ -147,6 +148,85 @@ lh_os_window_set_handler(lh_os_system_window_handler_cb handler, lh_self_ptr sel
 lh_bool_t
 lh_os_window_present(lh_os_window_t *self, const lh_ptr pixels, lh_int_t stride, lh_int_t x,
                      lh_int_t y, lh_int_t width, lh_int_t height);
+
+/* See ::LH_OS_SYSTEM_WINDOW_FRAME_SYSTEM and ::LH_OS_SYSTEM_WINDOW_FRAME_CLIENT. */
+#define LH_OS_WINDOW_FRAME_SYSTEM LH_OS_SYSTEM_WINDOW_FRAME_SYSTEM
+#define LH_OS_WINDOW_FRAME_CLIENT LH_OS_SYSTEM_WINDOW_FRAME_CLIENT
+
+/**
+ * @brief Choose the caption of @p self; see ::lh_os_system_window_set_frame.
+ *
+ * The default is the OS caption. The client caption is optional.
+ */
+void
+lh_os_window_set_frame(lh_os_window_t *self, lh_int_t frame);
+
+/**
+ * @brief ::LH_OS_WINDOW_FRAME_SYSTEM or ::LH_OS_WINDOW_FRAME_CLIENT.
+ */
+lh_int_t
+lh_os_window_get_frame(const lh_os_window_t *self);
+
+/**
+ * @brief Remember a corner radius for @p self; see
+ *        ::lh_os_system_window_set_corner_radius.
+ */
+void
+lh_os_window_set_corner_radius(lh_os_window_t *self, lh_int_t radius);
+
+/**
+ * @brief Corner radius last set on @p self, or zero when none was set.
+ */
+lh_int_t
+lh_os_window_get_corner_radius(const lh_os_window_t *self);
+
+/**
+ * @brief Ask for a dark caption on @p self; see
+ *        ::lh_os_system_window_set_dark.
+ */
+void
+lh_os_window_set_dark(lh_os_window_t *self, lh_bool_t dark);
+
+/**
+ * @brief True when ::lh_os_window_set_dark last asked for a dark caption.
+ */
+lh_bool_t
+lh_os_window_get_dark(const lh_os_window_t *self);
+
+/**
+ * @brief Color the caption, its text, and the border of @p self.
+ *
+ * Channels are the red, green, and blue of ::lh_ui_color_t; alpha is
+ * ignored. Where the system cannot color the frame, the call changes
+ * nothing.
+ */
+void
+lh_os_window_set_chrome(lh_os_window_t *self, lh_ui_color_t caption, lh_ui_color_t text,
+                        lh_ui_color_t border);
+
+/**
+ * @brief Outer width of @p self; see ::lh_os_system_window_get_width.
+ */
+lh_int_t
+lh_os_window_get_width(const lh_os_window_t *self);
+
+/**
+ * @brief Outer height of @p self; see ::lh_os_system_window_get_height.
+ */
+lh_int_t
+lh_os_window_get_height(const lh_os_window_t *self);
+
+/**
+ * @brief Canvas width of @p self; see ::lh_os_system_window_get_client_width.
+ */
+lh_int_t
+lh_os_window_get_client_width(const lh_os_window_t *self);
+
+/**
+ * @brief Canvas height of @p self; see ::lh_os_system_window_get_client_height.
+ */
+lh_int_t
+lh_os_window_get_client_height(const lh_os_window_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

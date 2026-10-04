@@ -212,4 +212,22 @@ XSetWMProtocols(lh_os_system_posix_display_p display,
                 lh_os_system_window_xid_t window,
                 lh_os_system_atom_t *protocols, int count);
 
+int
+XGetGeometry(lh_os_system_posix_display_p display, lh_os_system_drawable_xid_t drawable,
+             lh_os_system_window_xid_t *root, lh_int_t *x, lh_int_t *y, lh_uint_t *width,
+             lh_uint_t *height, lh_uint_t *border_width, lh_uint_t *depth);
+
+/* Real functions in libX11 (the same names are macros in `<X11/Xlib.h>`). */
+int
+XDefaultScreen(lh_os_system_posix_display_p display);
+
+int
+XScreenCount(lh_os_system_posix_display_p display);
+
+int
+XDisplayWidth(lh_os_system_posix_display_p display, int screen);
+
+int
+XDisplayHeight(lh_os_system_posix_display_p display, int screen);
+
 #endif /* LH_SRC_OS_SYSTEM_POSIX_X11_H */

@@ -39,4 +39,49 @@ SetDIBitsToDevice(lh_os_system_win_hdc_t hdc, lh_int_t xDest, lh_int_t yDest,
                   const lh_os_system_win_bitmapinfoheader_t *lpbmi,
                   lh_os_system_win_uint_t ColorUse);
 
+/* Rounded rectangle. Right and bottom are exclusive, as in `CreateRectRgn`.
+   The ellipse width and height are the corner diameters. */
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
+CreateRoundRectRgn(lh_int_t x1, lh_int_t y1, lh_int_t x2, lh_int_t y2, lh_int_t w, lh_int_t h);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+DeleteObject(lh_os_system_win_handle_t hObject);
+
+/* `GetStockObject`: the default UI font. Do not delete what it returns. */
+#define LH_OS_SYSTEM_WIN_DEFAULT_GUI_FONT 17
+
+/* `SetBkMode`. */
+#define LH_OS_SYSTEM_WIN_TRANSPARENT 1
+
+/* `CreatePen` style. */
+#define LH_OS_SYSTEM_WIN_PS_SOLID 0
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
+GetStockObject(lh_int_t i);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
+SelectObject(lh_os_system_win_hdc_t hdc, lh_os_system_win_handle_t h);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
+CreateSolidBrush(lh_os_system_win_dword_t color);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
+CreatePen(lh_int_t iStyle, lh_int_t cWidth, lh_os_system_win_dword_t color);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+MoveToEx(lh_os_system_win_hdc_t hdc, lh_int_t x, lh_int_t y, lh_os_system_win_point_t *lppt);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+LineTo(lh_os_system_win_hdc_t hdc, lh_int_t x, lh_int_t y);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
+SetBkMode(lh_os_system_win_hdc_t hdc, lh_int_t mode);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_dword_t LH_OS_SYSTEM_WIN_CALL
+SetTextColor(lh_os_system_win_hdc_t hdc, lh_os_system_win_dword_t color);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+TextOutW(lh_os_system_win_hdc_t hdc, lh_int_t x, lh_int_t y, lh_wstr_cptr lpString, lh_int_t c);
+
 #endif /* LH_SRC_OS_SYSTEM_WIN_GDI32_H */

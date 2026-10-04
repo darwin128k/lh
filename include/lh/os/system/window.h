@@ -150,6 +150,106 @@ lh_os_system_window_present(lh_os_system_window_handle_t self, const lh_ptr pixe
                             lh_int_t stride, lh_int_t x, lh_int_t y, lh_int_t width,
                             lh_int_t height);
 
+/* Which caption the window shows. System is the default: the OS draws it.
+   Client hides that caption and the window paints its own. Client uses GDI
+   and window styles from Windows 95, so it does not need a newer desktop. */
+#define LH_OS_SYSTEM_WINDOW_FRAME_SYSTEM 0
+#define LH_OS_SYSTEM_WINDOW_FRAME_CLIENT 1
+
+/**
+ * @brief Choose the caption of @p self.
+ *
+ * ::LH_OS_SYSTEM_WINDOW_FRAME_SYSTEM restores the OS caption.
+ * ::LH_OS_SYSTEM_WINDOW_FRAME_CLIENT removes it and keeps the window that
+ * way across resize, minimize, and maximize. The corner radius and chrome
+ * colors already stored on the window are what the client caption uses.
+ */
+void
+lh_os_system_window_set_frame(lh_os_system_window_handle_t self, lh_int_t frame);
+
+/**
+ * @brief ::LH_OS_SYSTEM_WINDOW_FRAME_SYSTEM or ::LH_OS_SYSTEM_WINDOW_FRAME_CLIENT.
+ */
+lh_int_t
+lh_os_system_window_get_frame(lh_os_system_window_handle_t self);
+
+/**
+ * @brief Remember a corner radius of @p radius pixels for @p self.
+ *
+ * Zero is square. The shape is applied while the frame is
+ * ::LH_OS_SYSTEM_WINDOW_FRAME_CLIENT. A maximized or minimized window stays
+ * square until it is restored. The system frame keeps the value and does
+ * not clip itself.
+ */
+void
+lh_os_system_window_set_corner_radius(lh_os_system_window_handle_t self, lh_int_t radius);
+
+/**
+ * @brief Corner radius last set on @p self, or zero when none was set.
+ */
+lh_int_t
+lh_os_system_window_get_corner_radius(lh_os_system_window_handle_t self);
+
+/**
+ * @brief Ask the system for a dark caption on @p self.
+ *
+ * Where the system has no dark caption, the call changes nothing. On
+ * Windows the program must declare Windows 10 in its manifest, or the
+ * system keeps the light caption.
+ */
+void
+lh_os_system_window_set_dark(lh_os_system_window_handle_t self, lh_bool_t dark);
+
+/**
+ * @brief True when ::lh_os_system_window_set_dark last asked for a dark caption.
+ */
+lh_bool_t
+lh_os_system_window_get_dark(lh_os_system_window_handle_t self);
+
+/**
+ * @brief Color the caption, its text, and the border of @p self.
+ *
+ * Each value is packed `0x00RRGGBB`. The client frame paints these
+ * colors. The system frame asks the OS, which may keep its own.
+ */
+void
+lh_os_system_window_set_chrome(lh_os_system_window_handle_t self, lh_uint_t caption,
+                               lh_uint_t text, lh_uint_t border);
+
+/**
+ * @brief Outer width of @p self, in pixels, including the frame.
+ *
+ * Zero when @p self is not a live window.
+ */
+lh_int_t
+lh_os_system_window_get_width(lh_os_system_window_handle_t self);
+
+/**
+ * @brief Outer height of @p self, in pixels, including the frame.
+ *
+ * Zero when @p self is not a live window.
+ */
+lh_int_t
+lh_os_system_window_get_height(lh_os_system_window_handle_t self);
+
+/**
+ * @brief Width of the area @p self's caller paints, in pixels.
+ *
+ * This is the canvas. The caption, whether the system's or the one lh
+ * paints for the client frame, is outside it. Zero when @p self is not
+ * a live window.
+ */
+lh_int_t
+lh_os_system_window_get_client_width(lh_os_system_window_handle_t self);
+
+/**
+ * @brief Height of the area @p self's caller paints, in pixels.
+ *
+ * See ::lh_os_system_window_get_client_width.
+ */
+lh_int_t
+lh_os_system_window_get_client_height(lh_os_system_window_handle_t self);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_SYSTEM_WINDOW_H */

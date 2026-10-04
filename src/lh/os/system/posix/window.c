@@ -253,3 +253,116 @@ lh_os_system_window_wait_messages(void)
     /* Not yet (X11: XPeekEvent would block until one): returns at once, so a
        wait-then-pump loop still works, only without sleeping. */
 }
+
+void
+lh_os_system_window_set_frame(lh_os_system_window_handle_t self, lh_int_t frame)
+{
+    (void)self;
+    (void)frame;
+}
+
+lh_int_t
+lh_os_system_window_get_frame(lh_os_system_window_handle_t self)
+{
+    (void)self;
+    return LH_OS_SYSTEM_WINDOW_FRAME_SYSTEM;
+}
+
+void
+lh_os_system_window_set_corner_radius(lh_os_system_window_handle_t self, lh_int_t radius)
+{
+    (void)self;
+    (void)radius;
+}
+
+lh_int_t
+lh_os_system_window_get_corner_radius(lh_os_system_window_handle_t self)
+{
+    (void)self;
+    return 0;
+}
+
+void
+lh_os_system_window_set_dark(lh_os_system_window_handle_t self, lh_bool_t dark)
+{
+    (void)self;
+    (void)dark;
+}
+
+lh_bool_t
+lh_os_system_window_get_dark(lh_os_system_window_handle_t self)
+{
+    (void)self;
+    return lh_bool_false;
+}
+
+void
+lh_os_system_window_set_chrome(lh_os_system_window_handle_t self, lh_uint_t caption, lh_uint_t text,
+                               lh_uint_t border)
+{
+    (void)self;
+    (void)caption;
+    (void)text;
+    (void)border;
+}
+
+lh_int_t
+lh_os_system_posix_window_span(lh_os_system_window_handle_t self, lh_bool_t outer,
+                               lh_bool_t horizontal)
+{
+    lh_os_system_window_xid_t root = LH_OS_SYSTEM_POSIX_XID_NONE;
+    lh_int_t origin_x = 0;
+    lh_int_t origin_y = 0;
+    lh_uint_t width = 0;
+    lh_uint_t height = 0;
+    lh_uint_t border = 0;
+    lh_uint_t depth = 0;
+    lh_os_system_window_xid_t xid;
+
+    if (!lh_os_system_window_is_valid(self) || lh_null_eq(lh_os_system_posix_display))
+    {
+        return 0;
+    }
+    xid = lh_cast_static(lh_os_system_window_xid_t,
+                         lh_cast_static(lh_ulong_t, lh_cast_static(lh_ssize_t, self)));
+    if (XGetGeometry(lh_os_system_posix_display, xid, lh_addr_of(root), lh_addr_of(origin_x),
+                     lh_addr_of(origin_y), lh_addr_of(width), lh_addr_of(height), lh_addr_of(border),
+                     lh_addr_of(depth)) == 0)
+    {
+        return 0;
+    }
+    if (outer != lh_bool_false)
+    {
+        width += border * 2U;
+        height += border * 2U;
+    }
+    if (horizontal != lh_bool_false)
+    {
+        return lh_cast_static(lh_int_t, width);
+    }
+    return lh_cast_static(lh_int_t, height);
+}
+
+lh_int_t
+lh_os_system_window_get_width(lh_os_system_window_handle_t self)
+{
+    return lh_os_system_posix_window_span(self, lh_bool_true, lh_bool_true);
+}
+
+lh_int_t
+lh_os_system_window_get_height(lh_os_system_window_handle_t self)
+{
+    return lh_os_system_posix_window_span(self, lh_bool_true, lh_bool_false);
+}
+
+lh_int_t
+lh_os_system_window_get_client_width(lh_os_system_window_handle_t self)
+{
+    return lh_os_system_posix_window_span(self, lh_bool_false, lh_bool_true);
+}
+
+lh_int_t
+lh_os_system_window_get_client_height(lh_os_system_window_handle_t self)
+{
+    return lh_os_system_posix_window_span(self, lh_bool_false, lh_bool_false);
+}

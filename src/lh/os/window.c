@@ -13,6 +13,7 @@
 #include <lh/null.h>
 #include <lh/numeric/types.h>
 #include <lh/os/window.h>
+#include <lh/ui/color.h>
 #include <lh/math.h>
 
 void
@@ -100,4 +101,74 @@ lh_os_window_present(lh_os_window_t *self, const lh_ptr pixels, lh_int_t stride,
 {
     return lh_os_system_window_present(lh_os_window_get_handle(self), pixels, stride, x, y, width,
                                        height);
+}
+
+void
+lh_os_window_set_frame(lh_os_window_t *self, lh_int_t frame)
+{
+    lh_os_system_window_set_frame(lh_os_window_get_handle(self), frame);
+}
+
+lh_int_t
+lh_os_window_get_frame(const lh_os_window_t *self)
+{
+    return lh_os_system_window_get_frame(lh_os_window_get_handle(self));
+}
+
+void
+lh_os_window_set_corner_radius(lh_os_window_t *self, lh_int_t radius)
+{
+    lh_os_system_window_set_corner_radius(lh_os_window_get_handle(self), radius);
+}
+
+lh_int_t
+lh_os_window_get_corner_radius(const lh_os_window_t *self)
+{
+    return lh_os_system_window_get_corner_radius(lh_os_window_get_handle(self));
+}
+
+void
+lh_os_window_set_dark(lh_os_window_t *self, lh_bool_t dark)
+{
+    lh_os_system_window_set_dark(lh_os_window_get_handle(self), dark);
+}
+
+lh_bool_t
+lh_os_window_get_dark(const lh_os_window_t *self)
+{
+    return lh_os_system_window_get_dark(lh_os_window_get_handle(self));
+}
+
+void
+lh_os_window_set_chrome(lh_os_window_t *self, lh_ui_color_t caption, lh_ui_color_t text,
+                        lh_ui_color_t border)
+{
+    lh_os_system_window_set_chrome(lh_os_window_get_handle(self),
+                                   lh_ui_color_to_argb(caption) & 0x00FFFFFFU,
+                                   lh_ui_color_to_argb(text) & 0x00FFFFFFU,
+                                   lh_ui_color_to_argb(border) & 0x00FFFFFFU);
+}
+
+lh_int_t
+lh_os_window_get_width(const lh_os_window_t *self)
+{
+    return lh_os_system_window_get_width(lh_os_window_get_handle(self));
+}
+
+lh_int_t
+lh_os_window_get_height(const lh_os_window_t *self)
+{
+    return lh_os_system_window_get_height(lh_os_window_get_handle(self));
+}
+
+lh_int_t
+lh_os_window_get_client_width(const lh_os_window_t *self)
+{
+    return lh_os_system_window_get_client_width(lh_os_window_get_handle(self));
+}
+
+lh_int_t
+lh_os_window_get_client_height(const lh_os_window_t *self)
+{
+    return lh_os_system_window_get_client_height(lh_os_window_get_handle(self));
 }

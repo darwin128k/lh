@@ -223,12 +223,14 @@ if (LH_LIBRARY_OPTION_OS)
     if (LH_LIBRARY_OPTION_OS_WINDOW)
         list(APPEND LH_LIB_SOURCES
                 ${LH_LIB_SRC_PATH}/os/window.c
+                ${LH_LIB_SRC_PATH}/os/monitor.c
                 ${LH_LIB_SRC_PATH}/os/system/window/event.c
                 ${LH_LIB_SRC_PATH}/os/system/window/handler.c
         )
         if (WIN32)
             list(APPEND LH_LIB_SOURCES
                     ${LH_LIB_SRC_PATH}/os/system/win/window.c
+                    ${LH_LIB_SRC_PATH}/os/system/win/monitor.c
             )
             list(APPEND LH_OS_SYSTEM_LINK_LIBS user32 gdi32)
         elseif (APPLE)
@@ -252,6 +254,7 @@ if (LH_LIBRARY_OPTION_OS)
             if (LH_X11_LIBRARY)
                 list(APPEND LH_LIB_SOURCES
                         ${LH_LIB_SRC_PATH}/os/system/posix/window.c
+                        ${LH_LIB_SRC_PATH}/os/system/posix/monitor.c
                 )
                 list(APPEND LH_OS_SYSTEM_LINK_LIBS ${LH_X11_LIBRARY})
             else ()

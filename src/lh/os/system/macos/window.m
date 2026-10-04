@@ -29,6 +29,7 @@
 #include <lh/cast/static.h>
 #include <lh/null.h>
 #include <lh/numeric/types.h>
+#include <lh/os/system/monitor.h>
 #include <lh/os/system/window.h>
 #include <lh/math.h>
 #include <lh/util/ptr.h>
@@ -227,4 +228,118 @@ lh_os_system_window_wait_messages(void)
 {
     /* Not yet (Cocoa: nextEventMatchingMask with distantFuture would block until one): returns at once, so a
        wait-then-pump loop still works, only without sleeping. */
+}
+
+void
+lh_os_system_window_set_frame(lh_os_system_window_handle_t self, lh_int_t frame)
+{
+    (void)self;
+    (void)frame;
+}
+
+lh_int_t
+lh_os_system_window_get_frame(lh_os_system_window_handle_t self)
+{
+    (void)self;
+    return LH_OS_SYSTEM_WINDOW_FRAME_SYSTEM;
+}
+
+void
+lh_os_system_window_set_corner_radius(lh_os_system_window_handle_t self, lh_int_t radius)
+{
+    (void)self;
+    (void)radius;
+}
+
+lh_int_t
+lh_os_system_window_get_corner_radius(lh_os_system_window_handle_t self)
+{
+    (void)self;
+    return 0;
+}
+
+void
+lh_os_system_window_set_dark(lh_os_system_window_handle_t self, lh_bool_t dark)
+{
+    (void)self;
+    (void)dark;
+}
+
+lh_bool_t
+lh_os_system_window_get_dark(lh_os_system_window_handle_t self)
+{
+    (void)self;
+    return lh_bool_false;
+}
+
+void
+lh_os_system_window_set_chrome(lh_os_system_window_handle_t self, lh_uint_t caption, lh_uint_t text,
+                               lh_uint_t border)
+{
+    (void)self;
+    (void)caption;
+    (void)text;
+    (void)border;
+}
+
+lh_int_t
+lh_os_system_window_get_width(lh_os_system_window_handle_t self)
+{
+    (void)self;
+    return 0;
+}
+
+lh_int_t
+lh_os_system_window_get_height(lh_os_system_window_handle_t self)
+{
+    (void)self;
+    return 0;
+}
+
+lh_int_t
+lh_os_system_window_get_client_width(lh_os_system_window_handle_t self)
+{
+    (void)self;
+    return 0;
+}
+
+lh_int_t
+lh_os_system_window_get_client_height(lh_os_system_window_handle_t self)
+{
+    (void)self;
+    return 0;
+}
+
+lh_int_t
+lh_os_system_monitor_get_count(void)
+{
+    return 0;
+}
+
+lh_int_t
+lh_os_system_monitor_get_width(lh_int_t index)
+{
+    (void)index;
+    return 0;
+}
+
+lh_int_t
+lh_os_system_monitor_get_height(lh_int_t index)
+{
+    (void)index;
+    return 0;
+}
+
+lh_int_t
+lh_os_system_monitor_get_work_width(lh_int_t index)
+{
+    (void)index;
+    return 0;
+}
+
+lh_int_t
+lh_os_system_monitor_get_work_height(lh_int_t index)
+{
+    (void)index;
+    return 0;
 }
