@@ -311,7 +311,7 @@ picks another).
 | Tabs | `lh/entity/tabs.h` | A bar of buttons. `set_radius` rounds it. The active one is a plain fill. |
 | Pages | `lh/entity/pages.h` | One child visible at a time. |
 | Sheets | `lh/entity/sheets.h` | A tab bar over a stack of pages. |
-| Text field | `lh/entity/field.h` | One buffer. `set_lines(1)` is a single line, and its caret is centered in the box. The box is rounded. |
+| Text field | `lh/entity/field.h` | One buffer. `set_lines(1)` is a single line, and its caret is centered in the box. `set_radius` rounds the box. |
 | On-screen keyboard | `lh/entity/keys.h` | Rows of buttons, corners rounded by 6 pixels. `add` takes a caption and a code; `break` starts the next row. |
 | Picture | `lh/entity/image.h` | A child of a button: icon, words, or both. |
 | Hold | `lh/entity/button.h` | The same button. `set_repeat` answers `LH_ENTITY_EVENT_TICK` with another click. |

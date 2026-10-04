@@ -2,8 +2,8 @@
  * @file field.h
  * @brief One line of text, or several, that the keyboard can edit.
  *
- * The bytes live in a buffer the caller owns. The box is one rounded bar:
- * the radius is half the short side. ::lh_entity_field_set_lines of 1 ignores
+ * The bytes live in a buffer the caller owns. The box stays square until
+ * ::lh_entity_field_set_radius. ::lh_entity_field_set_lines of 1 ignores
  * enter. More than 1 stores a new line. Keys arrive as
  * ::LH_ENTITY_EVENT_KEY while the field is the screen focus, which a press
  * on the field takes. The caret is a one-pixel bar in the text color.
@@ -35,6 +35,7 @@ struct lh_entity_field
     lh_int_t length;
     lh_int_t cursor;
     lh_int_t lines;
+    lh_int_t radius;
 };
 typedef struct lh_entity_field lh_entity_field_t;
 
@@ -78,6 +79,19 @@ lh_entity_field_set_lines(lh_entity_field_t *self, lh_int_t lines);
  */
 lh_void
 lh_entity_field_set_font(lh_entity_field_t *self, const lh_ui_font_t *font);
+
+/**
+ * @brief Corner radius of @p self, in pixels. 0 is a square.
+ */
+lh_int_t
+lh_entity_field_get_radius(const lh_entity_field_t *self);
+
+/**
+ * @brief Round the box of @p self by @p radius pixels. 0 keeps the square.
+ *        The text starts that far in from the left.
+ */
+lh_void
+lh_entity_field_set_radius(lh_entity_field_t *self, lh_int_t radius);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -3,7 +3,6 @@
 #include <lh/byte.h>
 #include <lh/cast/static.h>
 #include <lh/entity/key.h>
-#include <lh/entity/range.h>
 #include <lh/entity/screen.h>
 #include <lh/null.h>
 #include <lh/ui/canvas.h>
@@ -212,7 +211,7 @@ lh_entity_field_on_event(lh_entity_t *self, lh_entity_event_t *event)
             lh_entity_2d_get_screen_bounds(lh_ptr_rcast(const lh_entity_2d_t, self));
         const lh_int_t x = lh_math_rect_get_x(lh_addr_of(area));
         const lh_int_t y = lh_math_rect_get_y(lh_addr_of(area));
-        const lh_int_t pad = lh_entity_range_cap(lh_addr_of(area));
+        const lh_int_t pad = field->radius;
         const lh_int_t cell = lh_ui_font_get_glyph_height(field->font);
         const lh_int_t height = lh_math_rect_get_size_height(lh_addr_of(area));
         const lh_int_t pen_y = field->lines <= 1 && height > cell ? y + (height - cell) / 2 : y;
@@ -312,5 +311,28 @@ lh_entity_field_set_font(lh_entity_field_t *self, const lh_ui_font_t *font)
 {
     lh_assert_runtime_ref(self);
     self->font = font;
+    lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
+}
+
+lh_int_t
+lh_entity_field_get_radius(const lh_entity_field_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->radius;
+}
+
+lh_void
+lh_entity_field_set_radius(lh_entity_field_t *self, lh_int_t radius)
+{
+    lh_assert_runtime_ref(self);
+    if (radius < 0)
+    {
+        radius = 0;
+    }
+    if (self->radius == radius)
+    {
+        return;
+    }
+    self->radius = radius;
     lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
 }
