@@ -1,8 +1,12 @@
 #include <lh/ui/font.h>
 #include <lh/assert.h>
+#include <lh/bool.h>
 #include <lh/assert/static.h>
 #include <lh/cast/static.h>
+#include <lh/memory/view/initializer.h>
 #include <lh/null.h>
+#include <lh/runtime/error/code.h>
+#include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 
 /* One glyph is `glyph_height` bytes. Bit 0x80 of a byte is the leftmost
@@ -107,7 +111,66 @@ static const lh_byte_t lh_ui_font_basic_glyphs[] = {
 
 lh_assert_static(sizeof lh_ui_font_basic_glyphs == 95U * 8U, "basic font is ASCII 32..126");
 
-const lh_ui_font_t lh_ui_font_basic = {8, 8, 32, 95, lh_ui_font_basic_glyphs};
+const lh_ui_font_t lh_ui_font_basic = {
+    lh_memory_view_initializer(lh_ui_font_basic_glyphs,
+                               lh_ui_font_basic_glyphs + sizeof lh_ui_font_basic_glyphs),
+    lh_memory_view_empty_initializer(),
+    8, 8, 1, 1, 32, 95};
+
+lh_int_t
+lh_ui_font_row_bytes(lh_int_t glyph_width, lh_int_t bpp)
+{
+    return (glyph_width * bpp + 7) / 8;
+}
+
+lh_bool_t
+lh_ui_font_bpp_ok(lh_int_t bpp)
+{
+    return bpp == 1 || bpp == 2 || bpp == 4 || bpp == 8;
+}
+
+lh_void
+lh_ui_font_init(lh_ui_font_t *self, const lh_memory_view_t *glyphs, const lh_memory_view_t *advances,
+                lh_int_t glyph_width, lh_int_t glyph_height, lh_int_t bpp, lh_int_t first,
+                lh_int_t count)
+{
+    const lh_int_t row_bytes = lh_ui_font_row_bytes(glyph_width, bpp);
+    const lh_usize_t bytes = lh_cast_static(lh_usize_t, count) * lh_cast_static(lh_usize_t, row_bytes) *
+                             lh_cast_static(lh_usize_t, glyph_height);
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(glyphs);
+    lh_assert_runtime_if(glyph_width <= 0 || glyph_height <= 0 || count <= 0 || !lh_ui_font_bpp_ok(bpp),
+                         lh_runtime_error_code_invalid_argument);
+    lh_assert_runtime_if(lh_memory_view_get_size(glyphs) < bytes, lh_runtime_error_code_invalid_argument);
+    lh_memory_view_init_by_other(lh_addr_of(self->glyphs), glyphs);
+    if (lh_ptr_is_set(advances))
+    {
+        lh_assert_runtime_if(lh_memory_view_get_size(advances) < lh_cast_static(lh_usize_t, count),
+                             lh_runtime_error_code_invalid_argument);
+        lh_memory_view_init_by_other(lh_addr_of(self->advances), advances);
+    }
+    else
+    {
+        lh_memory_view_init_empty(lh_addr_of(self->advances));
+    }
+    self->glyph_width = glyph_width;
+    self->glyph_height = glyph_height;
+    self->row_bytes = row_bytes;
+    self->bpp = bpp;
+    self->first = first;
+    self->count = count;
+}
+
+lh_memory_view_t
+lh_ui_font_get_glyphs(const lh_ui_font_t *self)
+{
+    lh_memory_view_t glyphs;
+
+    lh_assert_runtime_ref(self);
+    lh_memory_view_init_by_other(lh_addr_of(glyphs), lh_addr_of(self->glyphs));
+    return glyphs;
+}
 
 lh_int_t
 lh_ui_font_get_glyph_width(const lh_ui_font_t *self)
@@ -123,15 +186,46 @@ lh_ui_font_get_glyph_height(const lh_ui_font_t *self)
     return self->glyph_height;
 }
 
+lh_int_t
+lh_ui_font_index(const lh_ui_font_t *self, lh_char_t ch)
+{
+    return lh_cast_static(lh_int_t, lh_cast_static(lh_byte_t, ch)) - self->first;
+}
+
 const lh_byte_t *
 lh_ui_font_glyph(const lh_ui_font_t *self, lh_char_t ch)
 {
-    const lh_int_t index = lh_cast_static(lh_int_t, ch) - self->first;
+    const lh_int_t index = lh_ui_font_index(self, ch);
+    const lh_byte_t *bytes;
+    lh_usize_t offset;
+
     if (index < 0 || index >= self->count)
     {
         return lh_null;
     }
-    return self->glyphs + index * self->glyph_height;
+    offset = lh_cast_static(lh_usize_t, index) * lh_cast_static(lh_usize_t, self->row_bytes) *
+             lh_cast_static(lh_usize_t, self->glyph_height);
+    if (offset + lh_cast_static(lh_usize_t, self->row_bytes) * lh_cast_static(lh_usize_t, self->glyph_height) >
+        lh_memory_view_get_size(lh_addr_of(self->glyphs)))
+    {
+        return lh_null;
+    }
+    bytes = lh_ptr_rcast(const lh_byte_t, lh_memory_view_get_data(lh_addr_of(self->glyphs)));
+    return bytes + offset;
+}
+
+lh_int_t
+lh_ui_font_advance(const lh_ui_font_t *self, lh_char_t ch)
+{
+    const lh_int_t index = lh_ui_font_index(self, ch);
+    const lh_byte_t *advances;
+
+    if (lh_memory_view_is_uninitialized(lh_addr_of(self->advances)) || index < 0 || index >= self->count)
+    {
+        return self->glyph_width;
+    }
+    advances = lh_ptr_rcast(const lh_byte_t, lh_memory_view_get_data(lh_addr_of(self->advances)));
+    return advances[index];
 }
 
 lh_math_vec2_t
@@ -159,7 +253,7 @@ lh_ui_font_measure(const lh_ui_font_t *self, const lh_char_t *text)
         }
         else
         {
-            line += self->glyph_width;
+            line += lh_ui_font_advance(self, *cursor);
         }
     }
     if (line > widest)
@@ -195,18 +289,32 @@ lh_ui_font_draw(const lh_ui_font_t *self, lh_ui_canvas_t *canvas, lh_int_t x, lh
         glyph = lh_ui_font_glyph(self, *cursor);
         if (lh_ptr_is_set(glyph))
         {
+            const lh_int_t levels = (1 << self->bpp) - 1;
+            const lh_int_t mask = levels;
             for (lh_int_t row = 0; row < self->glyph_height; ++row)
             {
-                const lh_byte_t bits = glyph[row];
+                const lh_byte_t *const bits = glyph + row * self->row_bytes;
                 for (lh_int_t column = 0; column < self->glyph_width; ++column)
                 {
-                    if ((bits & lh_cast_static(lh_byte_t, 0x80U >> column)) != 0U)
+                    const lh_int_t bit = column * self->bpp;
+                    const lh_int_t value =
+                        (bits[bit / 8] >> (8 - self->bpp - (bit % 8))) & mask;
+                    lh_ui_color_t ink = color;
+                    if (value == 0)
                     {
-                        lh_ui_canvas_blend_pixel(canvas, pen_x + column, pen_y + row, color);
+                        continue;
                     }
+                    if (value < levels)
+                    {
+                        const lh_uint_t argb = lh_ui_color_to_argb(color);
+                        const lh_uint_t alpha = ((argb >> 24) * lh_cast_static(lh_uint_t, value)) /
+                                                lh_cast_static(lh_uint_t, levels);
+                        ink = lh_ui_color_from_argb((argb & 0x00FFFFFFU) | (alpha << 24));
+                    }
+                    lh_ui_canvas_blend_pixel(canvas, pen_x + column, pen_y + row, ink);
                 }
             }
         }
-        pen_x += self->glyph_width;
+        pen_x += lh_ui_font_advance(self, *cursor);
     }
 }

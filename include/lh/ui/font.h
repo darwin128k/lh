@@ -1,11 +1,13 @@
 /**
  * @file font.h
- * @brief A bitmap font the canvas can draw. No operating-system font.
+ * @brief A bitmap font the canvas can draw. The bytes come from memory.
  *
- * The same glyphs are used on a window, in a browser canvas, and on a
- * small display: the font only names which pixels are ink. ::lh_ui_font_basic
- * covers ASCII 32..126 at 8 by 8 pixels. A label points at a font the way
- * an entity points at a style; it does not own it.
+ * A font does not open a file and does not ask the operating system for
+ * glyphs. It wraps a ::lh_memory_view_t the caller already holds: a static
+ * table, a buffer, or bytes embedded in the program. The same view is what
+ * a window, a browser canvas, and a small display draw from. ::lh_ui_font_basic
+ * is that wrapper over the built-in 8 by 8 ASCII table. A label points at
+ * a font the way an entity points at a style; it does not own it.
  */
 
 #ifndef LH_UI_FONT_H
@@ -14,30 +16,50 @@
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/math/vec2.h>
+#include <lh/memory/view.h>
 #include <lh/numeric/types.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/color.h>
+#include <lh/ui/font/fields.h>
+#include <lh/void.h>
 
 /**
  * @struct lh_ui_font
- * @brief A fixed set of bitmap glyphs. Fields stay inside the font module.
+ * @brief Fields via ::lh_ui_font_fields. Bitmaps are packed like LVGL's
+ *        font converter: 1, 2, 4 or 8 bits per pixel, high bit first.
  */
 struct lh_ui_font
 {
-    lh_int_t glyph_width;
-    lh_int_t glyph_height;
-    lh_int_t first;
-    lh_int_t count;
-    const lh_byte_t *glyphs;
+    lh_ui_font_fields(lh_memory_view_t, lh_int_t);
 };
 typedef struct lh_ui_font lh_ui_font_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Built-in 8 by 8 ASCII font, glyphs 32..126.
+ * @brief Built-in 8 by 8 ASCII font, glyphs 32..126, wrapping its own table.
  */
 extern const lh_ui_font_t lh_ui_font_basic;
+
+/**
+ * @brief Point @p self at glyph memory. The bytes are not copied.
+ *
+ * @p glyphs must cover `count * row_bytes * glyph_height` bytes, with
+ * `row_bytes = (glyph_width * bpp + 7) / 8`. @p bpp is 1, 2, 4 or 8.
+ * @p advances is one byte per glyph, or ::lh_null when every glyph
+ * advances by @p glyph_width. @p first is the character code of the
+ * first glyph.
+ */
+lh_void
+lh_ui_font_init(lh_ui_font_t *self, const lh_memory_view_t *glyphs, const lh_memory_view_t *advances,
+                lh_int_t glyph_width, lh_int_t glyph_height, lh_int_t bpp, lh_int_t first,
+                lh_int_t count);
+
+/**
+ * @brief The glyph memory @p self wraps.
+ */
+lh_memory_view_t
+lh_ui_font_get_glyphs(const lh_ui_font_t *self);
 
 /**
  * @brief Width of one glyph, in pixels.
