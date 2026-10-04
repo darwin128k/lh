@@ -63,6 +63,14 @@ struct lh_entity;
 #define LH_ENTITY_EVENT_POINTER_MOVE 6U
 
 /**
+ * @def LH_ENTITY_EVENT_CLICKED
+ * @brief A button was pressed and released over itself. `param` is the
+ *        `const lh_math_vec2_t *` screen position of the release. Sent to
+ *        the button; it bubbles only when the button asks events to.
+ */
+#define LH_ENTITY_EVENT_CLICKED 7U
+
+/**
  * @def LH_ENTITY_EVENT_USER
  * @brief First code free for the application's own events.
  */

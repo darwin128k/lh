@@ -183,14 +183,37 @@ lh_entity_invalidate(lh_entity_t *self)
     }
 }
 
+lh_void
+lh_entity_screen_clear_pressed(lh_entity_screen_t *self, lh_entity_t *entity)
+{
+    lh_assert_runtime_ref(self);
+    if (self->pressed == entity)
+    {
+        self->pressed = lh_null;
+    }
+}
+
 lh_entity_t *
 lh_entity_screen_send_pointer(lh_entity_screen_t *self, lh_uint_t code, lh_math_vec2_t point)
 {
     lh_assert_runtime_ref(self);
     lh_entity_t *const target = lh_entity_2d_find_at(lh_ptr_rcast(lh_entity_t, self), point);
+    lh_entity_t *const held = self->pressed;
+    if (code == LH_ENTITY_EVENT_POINTER_UP)
+    {
+        self->pressed = lh_null;
+        if (lh_ptr_is_set(held) && held != target)
+        {
+            lh_entity_send_event(held, code, lh_addr_of(point));
+        }
+    }
     if (lh_ptr_is_set(target))
     {
         lh_entity_send_event(target, code, lh_addr_of(point));
+    }
+    if (code == LH_ENTITY_EVENT_POINTER_DOWN)
+    {
+        self->pressed = target;
     }
     return target;
 }

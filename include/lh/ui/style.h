@@ -44,6 +44,19 @@ lh_ui_style_get_bg_color(const lh_ui_style_t *self);
 lh_void
 lh_ui_style_set_bg_color(lh_ui_style_t *self, lh_ui_color_t bg_color);
 
+/**
+ * @brief Color of glyphs drawn over the background (alpha 0: no glyphs).
+ */
+lh_ui_color_t
+lh_ui_style_get_text_color(const lh_ui_style_t *self);
+
+/**
+ * @brief Set the glyph color. Like ::lh_ui_style_set_bg_color, this does
+ *        not redraw by itself.
+ */
+lh_void
+lh_ui_style_set_text_color(lh_ui_style_t *self, lh_ui_color_t text_color);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_STYLE_H */

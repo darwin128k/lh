@@ -8,8 +8,9 @@
 
 /**
  * @def lh_ui_style_fields(color_type)
- * @brief How an entity is painted. `bg_color` is the background, alpha
- *        included: zero alpha is not painted.
+ * @brief How an entity is painted. `bg_color` is the background and
+ *        `text_color` is the glyphs a label draws on it. Zero alpha is
+ *        not painted.
  *
  * The rasterizer reads these fields directly. There is no style list and no
  * property search on the draw path: this is already the resolved description
@@ -19,6 +20,7 @@
  * @param color_type Type of `bg_color` (::lh_ui_color_t).
  */
 #define lh_ui_style_fields(color_type)                                                             \
-    color_type bg_color
+    color_type bg_color;                                                                           \
+    color_type text_color
 
 #endif /* LH_UI_STYLE_FIELDS_H */

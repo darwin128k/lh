@@ -16,15 +16,21 @@
 #endif /* LH_ENTITY_SCREEN_DIRTY_MAX */
 
 /**
- * @def lh_entity_screen_fields(area_type, count_type)
+ * @def lh_entity_screen_fields(area_type, count_type, entity_type)
  * @brief The screen areas waiting to be redrawn: `dirty[0 .. dirty_count)`.
  *        Expanded after ::lh_entity_2d_fields.
  *
- * @param area_type  Type of one area (::lh_math_rect_t).
- * @param count_type Type of `dirty_count` (::lh_usize_t).
+ * `pressed` is the entity that received the last pointer press, so the
+ * release still reaches it when the pointer has left it. Null when no
+ * press is held.
+ *
+ * @param area_type   Type of one area (::lh_math_rect_t).
+ * @param count_type  Type of `dirty_count` (::lh_usize_t).
+ * @param entity_type Type of `pressed` (`lh_entity_t *`).
  */
-#define lh_entity_screen_fields(area_type, count_type)                                             \
+#define lh_entity_screen_fields(area_type, count_type, entity_type)                                \
     area_type dirty[LH_ENTITY_SCREEN_DIRTY_MAX];                                                   \
-    count_type dirty_count
+    count_type dirty_count;                                                                        \
+    entity_type pressed
 
 #endif /* LH_ENTITY_SCREEN_FIELDS_H */
