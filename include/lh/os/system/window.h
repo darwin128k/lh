@@ -151,8 +151,9 @@ lh_os_system_window_present(lh_os_system_window_handle_t self, const lh_ptr pixe
                             lh_int_t height);
 
 /* Which caption the window shows. System is the default: the OS draws it.
-   Client hides that caption and the window paints its own. Client uses GDI
-   and window styles from Windows 95, so it does not need a newer desktop. */
+   Client hides that caption so the caller paints the whole client, including
+   where the caption was. The corner radius, when one is set, clips that
+   window. Client uses window styles from Windows 95. */
 #define LH_OS_SYSTEM_WINDOW_FRAME_SYSTEM 0
 #define LH_OS_SYSTEM_WINDOW_FRAME_CLIENT 1
 
@@ -161,8 +162,8 @@ lh_os_system_window_present(lh_os_system_window_handle_t self, const lh_ptr pixe
  *
  * ::LH_OS_SYSTEM_WINDOW_FRAME_SYSTEM restores the OS caption.
  * ::LH_OS_SYSTEM_WINDOW_FRAME_CLIENT removes it and keeps the window that
- * way across resize, minimize, and maximize. The corner radius and chrome
- * colors already stored on the window are what the client caption uses.
+ * way across resize, minimize, and maximize. The caller paints that area.
+ * A stored corner radius clips the window.
  */
 void
 lh_os_system_window_set_frame(lh_os_system_window_handle_t self, lh_int_t frame);
@@ -209,21 +210,36 @@ lh_os_system_window_get_dark(lh_os_system_window_handle_t self);
 /**
  * @brief Color the caption, its text, and the border of @p self.
  *
- * Each value is packed `0x00RRGGBB`. The client frame paints these
- * colors. The system frame asks the OS, which may keep its own.
+ * Each value is packed `0x00RRGGBB`. The system frame asks the OS, which
+ * may keep its own. The client frame does not paint a caption.
  */
 void
 lh_os_system_window_set_chrome(lh_os_system_window_handle_t self, lh_uint_t caption,
                                lh_uint_t text, lh_uint_t border);
 
 /**
- * @brief Draw the client caption's title with @p font.
- *
- * @p font is not copied. ::lh_null keeps the system font. Only the client
- * frame uses it; the system frame keeps the font the OS picked.
+ * @brief Ask the OS to close @p self.
  */
 void
-lh_os_system_window_set_caption_font(lh_os_system_window_handle_t self, const lh_ptr font);
+lh_os_system_window_close_frame(lh_os_system_window_handle_t self);
+
+/**
+ * @brief Ask the OS to minimize @p self.
+ */
+void
+lh_os_system_window_minimize(lh_os_system_window_handle_t self);
+
+/**
+ * @brief Maximize @p self, or restore it when it is already maximized.
+ */
+void
+lh_os_system_window_zoom(lh_os_system_window_handle_t self);
+
+/**
+ * @brief Let the OS drag @p self from the current pointer position.
+ */
+void
+lh_os_system_window_begin_move(lh_os_system_window_handle_t self);
 
 /**
  * @brief Outer width of @p self, in pixels, including the frame.
@@ -244,9 +260,9 @@ lh_os_system_window_get_height(lh_os_system_window_handle_t self);
 /**
  * @brief Width of the area @p self's caller paints, in pixels.
  *
- * This is the canvas. The caption, whether the system's or the one lh
- * paints for the client frame, is outside it. Zero when @p self is not
- * a live window.
+ * This is the canvas. With the system frame the OS caption is outside it.
+ * With the client frame the caption is gone and this is the whole client,
+ * so the caller can paint that strip. Zero when @p self is not a live window.
  */
 lh_int_t
 lh_os_system_window_get_client_width(lh_os_system_window_handle_t self);

@@ -25,7 +25,6 @@
 #include <lh/config.h>
 #include <lh/numeric/types.h>
 #include <lh/ui/color.h>
-#include <lh/ui/font.h>
 
 #include <lh/os/system/window.h>
 #include <lh/os/system/window/handle.h>
@@ -157,7 +156,8 @@ lh_os_window_present(lh_os_window_t *self, const lh_ptr pixels, lh_int_t stride,
 /**
  * @brief Choose the caption of @p self; see ::lh_os_system_window_set_frame.
  *
- * The default is the OS caption. The client caption is optional.
+ * The default is the OS caption. The client frame removes it so the caller
+ * can paint that area. lh does not draw a caption.
  */
 void
 lh_os_window_set_frame(lh_os_window_t *self, lh_int_t frame);
@@ -206,12 +206,28 @@ lh_os_window_set_chrome(lh_os_window_t *self, lh_ui_color_t caption, lh_ui_color
                         lh_ui_color_t border);
 
 /**
- * @brief Draw the client caption's title with @p font.
- *
- * @p font is not owned. ::lh_null keeps the system font.
+ * @brief Ask the OS to close @p self; see ::lh_os_system_window_close_frame.
  */
 void
-lh_os_window_set_caption_font(lh_os_window_t *self, const lh_ui_font_t *font);
+lh_os_window_request_close(lh_os_window_t *self);
+
+/**
+ * @brief Minimize @p self; see ::lh_os_system_window_minimize.
+ */
+void
+lh_os_window_minimize(lh_os_window_t *self);
+
+/**
+ * @brief Maximize or restore @p self; see ::lh_os_system_window_zoom.
+ */
+void
+lh_os_window_zoom(lh_os_window_t *self);
+
+/**
+ * @brief Drag @p self; see ::lh_os_system_window_begin_move.
+ */
+void
+lh_os_window_begin_move(lh_os_window_t *self);
 
 /**
  * @brief Outer width of @p self; see ::lh_os_system_window_get_width.

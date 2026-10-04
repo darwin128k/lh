@@ -15,8 +15,8 @@
  * `WM_SIZE`. All work as documented since Win95 / NT4.
  *
  * The window opens with the system caption. A caller can switch it to a
- * client caption: the system caption style comes off, and lh paints the
- * bar. That mode stays on through resize, minimize, and maximize. The
+ * client frame: the system caption comes off and the caller paints that
+ * area. That mode stays on through resize, minimize, and maximize. The
  * rounded shape is a GDI region, so it works where dwmapi is absent.
  * Dark caption and caption colors still ask dwmapi for the system frame,
  * opened by name, and do nothing when that DLL is not there.
@@ -38,12 +38,7 @@
 #include <lh/util/addr.h>
 #include <lh/math.h>
 #include <lh/runtime/allocator.h>
-#include <lh/ui/canvas.h>
-#include <lh/ui/color.h>
-#include <lh/ui/font.h>
-#include <lh/float/round.h>
 #include <lh/util/ptr.h>
-#include <lh/wchar.h>
 #include <lh/wstr.h>
 #include <lh/wstr/ptr.h>
 
@@ -62,27 +57,7 @@ static const wchar_t lh_os_system_win_window_class_name[] = L"lh_pa_window";
 #define LH_OS_SYSTEM_WIN_WINDOW_CORNER_GUARD L"lh.os.corner.guard"
 /* Set while the client caption is on. Absent means the system caption. */
 #define LH_OS_SYSTEM_WIN_WINDOW_CLIENT_FRAME L"lh.os.frame"
-#define LH_OS_SYSTEM_WIN_WINDOW_CAPTION_COLOR L"lh.os.caption"
-#define LH_OS_SYSTEM_WIN_WINDOW_TEXT_COLOR L"lh.os.text"
-#define LH_OS_SYSTEM_WIN_WINDOW_CAPTION_FONT L"lh.os.font"
-#define LH_OS_SYSTEM_WIN_WINDOW_CAPTION_HEIGHT 32
 #define LH_OS_SYSTEM_WIN_WINDOW_BORDER 8
-/* Three circles on the left of the client caption, macOS order: close,
-   minimize, zoom. */
-#define LH_OS_SYSTEM_WIN_WINDOW_LIGHT_SIZE 12
-#define LH_OS_SYSTEM_WIN_WINDOW_LIGHT_GAP 8
-#define LH_OS_SYSTEM_WIN_WINDOW_LIGHT_MARGIN 14
-#define LH_OS_SYSTEM_WIN_WINDOW_LIGHT_CLOSE 0x00575FFFU
-#define LH_OS_SYSTEM_WIN_WINDOW_LIGHT_MINIMIZE 0x002EBCFEU
-#define LH_OS_SYSTEM_WIN_WINDOW_LIGHT_ZOOM 0x0040C828U
-
-void
-lh_os_system_win_window_paint_caption(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_hdc_t dc);
-
-lh_bool_t
-lh_os_system_win_window_paint_title(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_hdc_t dc,
-                                    lh_int_t window_width, lh_os_system_win_dword_t caption,
-                                    lh_os_system_win_dword_t text);
 
 lh_os_system_win_lresult_t
 lh_os_system_win_window_hit_test(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_lparam_t lparam);
@@ -97,22 +72,6 @@ lh_os_system_win_window_apply_region(lh_os_system_win_hwnd_t hwnd);
 void
 lh_os_system_win_window_limit_maximized(lh_os_system_win_hwnd_t hwnd,
                                         lh_os_system_win_lparam_t lparam);
-
-lh_int_t
-lh_os_system_win_window_content_top(lh_os_system_win_hwnd_t hwnd);
-
-lh_os_system_win_dword_t
-lh_os_system_win_window_color_prop(lh_os_system_win_hwnd_t hwnd, lh_wstr_cptr name,
-                                   lh_os_system_win_dword_t fallback);
-
-lh_int_t
-lh_os_system_win_window_light_x(lh_int_t kind);
-
-lh_int_t
-lh_os_system_win_window_title_x(void);
-
-void
-lh_os_system_win_window_paint_light(lh_os_system_win_hdc_t dc, lh_int_t kind);
 
 /* `WndProc` — must have external linkage for `WNDCLASSEXW::lpfnWndProc`. */
 static lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
@@ -234,9 +193,6 @@ lh_os_system_window_close(lh_os_system_window_handle_t self)
     (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_DARK_PROPERTY);
     (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CORNER_GUARD);
     (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CLIENT_FRAME);
-    (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CAPTION_COLOR);
-    (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_TEXT_COLOR);
-    (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CAPTION_FONT);
     (void)DestroyWindow(hwnd);
     lh_os_system_win_window_unregister_class();
 }
@@ -295,16 +251,6 @@ lh_os_system_window_wait_messages(void)
 }
 
 lh_int_t
-lh_os_system_win_window_content_top(lh_os_system_win_hwnd_t hwnd)
-{
-    if (lh_null_eq(hwnd) || lh_null_eq(GetPropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CLIENT_FRAME)))
-    {
-        return 0;
-    }
-    return LH_OS_SYSTEM_WIN_WINDOW_CAPTION_HEIGHT;
-}
-
-lh_int_t
 lh_os_system_window_get_width(lh_os_system_window_handle_t self)
 {
     lh_os_system_win_rect_t bounds;
@@ -356,23 +302,16 @@ lh_int_t
 lh_os_system_window_get_client_height(lh_os_system_window_handle_t self)
 {
     lh_os_system_win_rect_t client;
-    lh_int_t height;
 
     if (!lh_os_system_window_is_valid(self))
     {
         return 0;
     }
-    const lh_os_system_win_hwnd_t hwnd = lh_os_system_win_window_native(self);
-    if (GetClientRect(hwnd, lh_addr_of(client)) == 0)
+    if (GetClientRect(lh_os_system_win_window_native(self), lh_addr_of(client)) == 0)
     {
         return 0;
     }
-    height = client.bottom - client.top - lh_os_system_win_window_content_top(hwnd);
-    if (height < 0)
-    {
-        return 0;
-    }
-    return height;
+    return client.bottom - client.top;
 }
 
 lh_bool_t
@@ -421,12 +360,10 @@ lh_os_system_window_present(lh_os_system_window_handle_t self, const lh_ptr pixe
     lh_bool_t shown = lh_bool_false;
     if (lh_ptr_is_set(dc))
     {
-        shown = SetDIBitsToDevice(dc, x, y + lh_os_system_win_window_content_top(hwnd),
-                                  lh_cast_static(lh_os_system_win_dword_t, width),
+        shown = SetDIBitsToDevice(dc, x, y, lh_cast_static(lh_os_system_win_dword_t, width),
                                   lh_cast_static(lh_os_system_win_dword_t, height), 0, 0, 0,
                                   lh_cast_static(lh_os_system_win_uint_t, height), bgrx,
                                   lh_addr_of(info), LH_OS_SYSTEM_WIN_DIB_RGB_COLORS) != 0;
-        lh_os_system_win_window_paint_caption(hwnd, dc);
         (void)ReleaseDC(hwnd, dc);
     }
     lh_runtime_allocator_free(bgrx);
@@ -553,213 +490,6 @@ lh_os_system_win_window_limit_maximized(lh_os_system_win_hwnd_t hwnd,
     limits->max_size.y = info.work.bottom - info.work.top;
 }
 
-lh_os_system_win_dword_t
-lh_os_system_win_window_color_prop(lh_os_system_win_hwnd_t hwnd, lh_wstr_cptr name,
-                                   lh_os_system_win_dword_t fallback)
-{
-    const lh_os_system_win_handle_t stored = GetPropW(hwnd, name);
-    if (lh_null_eq(stored))
-    {
-        return fallback;
-    }
-    return lh_cast_static(lh_os_system_win_dword_t, lh_cast_reinterpret(lh_usize_t, stored) - 1U);
-}
-
-lh_int_t
-lh_os_system_win_window_light_x(lh_int_t kind)
-{
-    return LH_OS_SYSTEM_WIN_WINDOW_LIGHT_MARGIN + LH_OS_SYSTEM_WIN_WINDOW_LIGHT_SIZE / 2 +
-           kind * (LH_OS_SYSTEM_WIN_WINDOW_LIGHT_SIZE + LH_OS_SYSTEM_WIN_WINDOW_LIGHT_GAP);
-}
-
-lh_int_t
-lh_os_system_win_window_title_x(void)
-{
-    return lh_os_system_win_window_light_x(2) + LH_OS_SYSTEM_WIN_WINDOW_LIGHT_SIZE / 2 +
-           LH_OS_SYSTEM_WIN_WINDOW_LIGHT_GAP + 8;
-}
-
-void
-lh_os_system_win_window_paint_light(lh_os_system_win_hdc_t dc, lh_int_t kind)
-{
-    const lh_os_system_win_dword_t color =
-        kind == 0 ? LH_OS_SYSTEM_WIN_WINDOW_LIGHT_CLOSE
-                  : (kind == 1 ? LH_OS_SYSTEM_WIN_WINDOW_LIGHT_MINIMIZE
-                               : LH_OS_SYSTEM_WIN_WINDOW_LIGHT_ZOOM);
-    const lh_int_t cx = lh_os_system_win_window_light_x(kind);
-    const lh_int_t cy = LH_OS_SYSTEM_WIN_WINDOW_CAPTION_HEIGHT / 2;
-    const lh_int_t radius = LH_OS_SYSTEM_WIN_WINDOW_LIGHT_SIZE / 2;
-    const lh_os_system_win_handle_t brush = CreateSolidBrush(color);
-    lh_os_system_win_handle_t old_brush;
-    lh_os_system_win_handle_t old_pen;
-
-    if (lh_null_eq(brush))
-    {
-        return;
-    }
-    old_brush = SelectObject(dc, brush);
-    old_pen = SelectObject(dc, GetStockObject(LH_OS_SYSTEM_WIN_NULL_PEN));
-    (void)Ellipse(dc, cx - radius, cy - radius, cx + radius, cy + radius);
-    (void)SelectObject(dc, old_pen);
-    (void)SelectObject(dc, old_brush);
-    (void)DeleteObject(brush);
-}
-
-lh_ui_color_t
-lh_os_system_win_window_color(lh_os_system_win_dword_t colorref)
-{
-    return lh_ui_color_make(lh_cast_static(lh_byte_t, colorref & 0xFFU),
-                            lh_cast_static(lh_byte_t, (colorref >> 8) & 0xFFU),
-                            lh_cast_static(lh_byte_t, (colorref >> 16) & 0xFFU), 0xFFU);
-}
-
-lh_bool_t
-lh_os_system_win_window_paint_title(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_hdc_t dc,
-                                    lh_int_t window_width, lh_os_system_win_dword_t caption,
-                                    lh_os_system_win_dword_t text)
-{
-    const lh_ui_font_t *const font = lh_cast_reinterpret(
-        const lh_ui_font_t *, GetPropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CAPTION_FONT));
-    lh_wchar_t wide[128];
-    lh_char_t title[128];
-    lh_int_t count;
-    lh_int_t index;
-    lh_math_vec2_t measured;
-    lh_int_t width;
-    lh_int_t height;
-    lh_int_t room;
-    lh_int_t top;
-    lh_ui_color_t *pixels;
-    lh_byte_t *bgrx;
-    lh_ui_canvas_t canvas;
-    lh_os_system_win_bitmapinfoheader_t info;
-    lh_usize_t pixel_count;
-
-    if (lh_ptr_is_null(font))
-    {
-        return lh_bool_false;
-    }
-    count = GetWindowTextW(hwnd, wide, 128);
-    if (count <= 0)
-    {
-        return lh_bool_true;
-    }
-    for (index = 0; index < count; ++index)
-    {
-        if (wide[index] > 255)
-        {
-            return lh_bool_false;
-        }
-        title[index] = lh_cast_static(lh_char_t, wide[index]);
-    }
-    title[count] = '\0';
-
-    measured = lh_ui_font_measure(font, title);
-    width = lh_float_ceil_to_int(lh_math_vec2_get_x(lh_addr_of(measured)));
-    height = lh_ui_font_get_glyph_height(font);
-    room = window_width - lh_os_system_win_window_title_x() - 12;
-    if (width > room)
-    {
-        width = room;
-    }
-    if (width <= 0 || height <= 0)
-    {
-        return lh_bool_true;
-    }
-    top = (LH_OS_SYSTEM_WIN_WINDOW_CAPTION_HEIGHT - height) / 2;
-    if (top < 0)
-    {
-        top = 0;
-    }
-
-    pixel_count = lh_cast_static(lh_usize_t, width) * lh_cast_static(lh_usize_t, height);
-    pixels = lh_ptr_rcast(lh_ui_color_t, lh_runtime_allocator_alloc(pixel_count * sizeof(lh_ui_color_t)));
-    bgrx = lh_ptr_rcast(lh_byte_t, lh_runtime_allocator_alloc(pixel_count * 4U));
-    if (lh_ptr_is_null(pixels) || lh_ptr_is_null(bgrx))
-    {
-        lh_runtime_allocator_free(pixels);
-        lh_runtime_allocator_free(bgrx);
-        return lh_bool_false;
-    }
-    for (index = 0; index < lh_cast_static(lh_int_t, pixel_count); ++index)
-    {
-        pixels[index] = lh_os_system_win_window_color(caption);
-    }
-    lh_ui_canvas_init(lh_addr_of(canvas), pixels, width, height, width);
-    lh_ui_font_draw(font, lh_addr_of(canvas), 0, 0, title, lh_os_system_win_window_color(text));
-    for (index = 0; index < lh_cast_static(lh_int_t, pixel_count); ++index)
-    {
-        const lh_uint_t argb = lh_ui_color_to_argb(pixels[index]);
-        bgrx[index * 4 + 0] = lh_cast_static(lh_byte_t, argb);
-        bgrx[index * 4 + 1] = lh_cast_static(lh_byte_t, argb >> 8);
-        bgrx[index * 4 + 2] = lh_cast_static(lh_byte_t, argb >> 16);
-        bgrx[index * 4 + 3] = 0;
-    }
-    lh_memory_std_set(lh_addr_of(info), 0, sizeof info);
-    info.biSize = lh_cast_static(lh_os_system_win_dword_t, sizeof info);
-    info.biWidth = width;
-    info.biHeight = -height;
-    info.biPlanes = 1;
-    info.biBitCount = 32;
-    info.biCompression = LH_OS_SYSTEM_WIN_BI_RGB;
-    (void)SetDIBitsToDevice(dc, lh_os_system_win_window_title_x(), top,
-                            lh_cast_static(lh_os_system_win_dword_t, width),
-                            lh_cast_static(lh_os_system_win_dword_t, height), 0, 0, 0,
-                            lh_cast_static(lh_os_system_win_uint_t, height), bgrx, lh_addr_of(info),
-                            LH_OS_SYSTEM_WIN_DIB_RGB_COLORS);
-    lh_runtime_allocator_free(pixels);
-    lh_runtime_allocator_free(bgrx);
-    return lh_bool_true;
-}
-
-void
-lh_os_system_win_window_paint_caption(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_hdc_t dc)
-{
-    if (lh_null_eq(GetPropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CLIENT_FRAME)) || lh_null_eq(dc))
-    {
-        return;
-    }
-
-    lh_os_system_win_rect_t client;
-    if (GetClientRect(hwnd, lh_addr_of(client)) == 0)
-    {
-        return;
-    }
-    const lh_os_system_win_dword_t caption = lh_os_system_win_window_color_prop(
-        hwnd, LH_OS_SYSTEM_WIN_WINDOW_CAPTION_COLOR, 0x001F1B1CU);
-    const lh_os_system_win_dword_t text =
-        lh_os_system_win_window_color_prop(hwnd, LH_OS_SYSTEM_WIN_WINDOW_TEXT_COLOR, 0x00E5E1E6U);
-    lh_os_system_win_rect_t bar = client;
-    bar.bottom = LH_OS_SYSTEM_WIN_WINDOW_CAPTION_HEIGHT;
-    const lh_os_system_win_handle_t brush = CreateSolidBrush(caption);
-    if (!lh_null_eq(brush))
-    {
-        (void)FillRect(dc, lh_addr_of(bar), brush);
-        (void)DeleteObject(brush);
-    }
-
-    if (!lh_os_system_win_window_paint_title(hwnd, dc, client.right - client.left, caption, text))
-    {
-        const lh_os_system_win_handle_t font = GetStockObject(LH_OS_SYSTEM_WIN_DEFAULT_GUI_FONT);
-        const lh_os_system_win_handle_t old_font = SelectObject(dc, font);
-        (void)SetBkMode(dc, LH_OS_SYSTEM_WIN_TRANSPARENT);
-        (void)SetTextColor(dc, text);
-        lh_wchar_t title[128];
-        const lh_int_t count = GetWindowTextW(hwnd, title, 128);
-        if (count > 0)
-        {
-            (void)TextOutW(dc, lh_os_system_win_window_title_x(), 8, title, count);
-        }
-        (void)SelectObject(dc, old_font);
-    }
-
-    lh_int_t kind;
-    for (kind = 0; kind < 3; ++kind)
-    {
-        lh_os_system_win_window_paint_light(dc, kind);
-    }
-}
-
 lh_os_system_win_lresult_t
 lh_os_system_win_window_hit_test(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_lparam_t lparam)
 {
@@ -802,34 +532,6 @@ lh_os_system_win_window_hit_test(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_
     if (bottom)
     {
         return LH_OS_SYSTEM_WIN_HTBOTTOM;
-    }
-    /* Close, minimize, zoom: three circles on the left, under the top edge. */
-    if (point.y < LH_OS_SYSTEM_WIN_WINDOW_CAPTION_HEIGHT)
-    {
-        const lh_int_t cy = LH_OS_SYSTEM_WIN_WINDOW_CAPTION_HEIGHT / 2;
-        const lh_int_t reach = LH_OS_SYSTEM_WIN_WINDOW_LIGHT_SIZE / 2 + 2;
-        lh_int_t kind;
-        for (kind = 0; kind < 3; ++kind)
-        {
-            const lh_int_t dx = point.x - lh_os_system_win_window_light_x(kind);
-            const lh_int_t dy = point.y - cy;
-            if (dx * dx + dy * dy <= reach * reach)
-            {
-                if (kind == 0)
-                {
-                    return LH_OS_SYSTEM_WIN_HTCLOSE;
-                }
-                if (kind == 1)
-                {
-                    return LH_OS_SYSTEM_WIN_HTMINBUTTON;
-                }
-                return LH_OS_SYSTEM_WIN_HTMAXBUTTON;
-            }
-        }
-        if (!left && !right)
-        {
-            return LH_OS_SYSTEM_WIN_HTCAPTION;
-        }
     }
     if (left)
     {
@@ -1010,16 +712,30 @@ lh_os_system_window_set_chrome(lh_os_system_window_handle_t self, lh_uint_t capt
                                              lh_addr_of(caption_bgr), size);
     (void)lh_os_system_win_dwm_set_attribute(hwnd, LH_OS_SYSTEM_WIN_DWMWA_TEXT_COLOR,
                                              lh_addr_of(text_bgr), size);
-    (void)SetPropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CAPTION_COLOR,
-                   lh_cast_reinterpret(lh_os_system_win_handle_t,
-                                       lh_cast_static(lh_usize_t, caption_bgr) + 1U));
-    (void)SetPropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_TEXT_COLOR,
-                   lh_cast_reinterpret(lh_os_system_win_handle_t,
-                                       lh_cast_static(lh_usize_t, text_bgr) + 1U));
 }
 
 void
-lh_os_system_window_set_caption_font(lh_os_system_window_handle_t self, const lh_ptr font)
+lh_os_system_window_close_frame(lh_os_system_window_handle_t self)
+{
+    if (!lh_os_system_window_is_valid(self))
+    {
+        return;
+    }
+    (void)PostMessageW(lh_os_system_win_window_native(self), LH_OS_SYSTEM_WIN_WM_CLOSE, 0, 0);
+}
+
+void
+lh_os_system_window_minimize(lh_os_system_window_handle_t self)
+{
+    if (!lh_os_system_window_is_valid(self))
+    {
+        return;
+    }
+    (void)ShowWindow(lh_os_system_win_window_native(self), LH_OS_SYSTEM_WIN_SW_MINIMIZE);
+}
+
+void
+lh_os_system_window_zoom(lh_os_system_window_handle_t self)
 {
     lh_os_system_win_hwnd_t hwnd;
 
@@ -1028,13 +744,22 @@ lh_os_system_window_set_caption_font(lh_os_system_window_handle_t self, const lh
         return;
     }
     hwnd = lh_os_system_win_window_native(self);
-    if (lh_ptr_is_null(font))
+    (void)ShowWindow(hwnd, IsZoomed(hwnd) != 0 ? LH_OS_SYSTEM_WIN_SW_RESTORE
+                                               : LH_OS_SYSTEM_WIN_SW_MAXIMIZE);
+}
+
+void
+lh_os_system_window_begin_move(lh_os_system_window_handle_t self)
+{
+    lh_os_system_win_hwnd_t hwnd;
+
+    if (!lh_os_system_window_is_valid(self))
     {
-        (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CAPTION_FONT);
         return;
     }
-    (void)SetPropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CAPTION_FONT,
-                   lh_cast_reinterpret(lh_os_system_win_handle_t, font));
+    hwnd = lh_os_system_win_window_native(self);
+    (void)ReleaseCapture();
+    (void)SendMessageW(hwnd, LH_OS_SYSTEM_WIN_WM_NCLBUTTONDOWN, LH_OS_SYSTEM_WIN_HTCAPTION, 0);
 }
 
 /* The window handle as the public API stores it. */
@@ -1051,9 +776,8 @@ lh_os_system_win_window_emit_pointer(lh_os_system_win_hwnd_t hwnd, lh_uint_t typ
                                      lh_os_system_win_lparam_t lparam, lh_int_t button)
 {
     const lh_int_t x = lh_cast_static(lh_sshort_t, lh_cast_static(lh_ushort_t, lparam & 0xFFFF));
-    const lh_int_t top = lh_os_system_win_window_content_top(hwnd);
     const lh_int_t y =
-        lh_cast_static(lh_sshort_t, lh_cast_static(lh_ushort_t, (lparam >> 16) & 0xFFFF)) - top;
+        lh_cast_static(lh_sshort_t, lh_cast_static(lh_ushort_t, (lparam >> 16) & 0xFFFF));
     if (y < 0)
     {
         return;

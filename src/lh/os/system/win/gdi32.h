@@ -48,10 +48,8 @@ CreateRoundRectRgn(lh_int_t x1, lh_int_t y1, lh_int_t x2, lh_int_t y2, lh_int_t 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 DeleteObject(lh_os_system_win_handle_t hObject);
 
-/* `GetStockObject`: the default UI font, and a pen that draws nothing.
-   Do not delete what either returns. */
+/* `GetStockObject`: the default UI font. Do not delete what it returns. */
 #define LH_OS_SYSTEM_WIN_DEFAULT_GUI_FONT 17
-#define LH_OS_SYSTEM_WIN_NULL_PEN 8
 
 /* `SetBkMode`. */
 #define LH_OS_SYSTEM_WIN_TRANSPARENT 1
@@ -76,12 +74,6 @@ MoveToEx(lh_os_system_win_hdc_t hdc, lh_int_t x, lh_int_t y, lh_os_system_win_po
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 LineTo(lh_os_system_win_hdc_t hdc, lh_int_t x, lh_int_t y);
-
-/* Filled ellipse inscribed in the rectangle. Right and bottom are the far
-   edges. */
-LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
-Ellipse(lh_os_system_win_hdc_t hdc, lh_int_t left, lh_int_t top, lh_int_t right,
-        lh_int_t bottom);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
 SetBkMode(lh_os_system_win_hdc_t hdc, lh_int_t mode);

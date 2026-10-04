@@ -36,6 +36,13 @@
 #define lh_entity_flags_overflow_visible lh_bit_mask(2)
 
 /**
+ * @def lh_entity_flags_own_background
+ * @brief The entity paints its own background from ::LH_ENTITY_EVENT_DRAW.
+ *        The rectangular style fill is skipped.
+ */
+#define lh_entity_flags_own_background lh_bit_mask(3)
+
+/**
  * @def lh_entity_flags_user
  * @brief First bit free for the application; the bits below it and the top
  *        bit are lh's.

@@ -111,7 +111,7 @@ lh_entity_screen_draw(lh_entity_t *entity, lh_ui_canvas_t *canvas, lh_math_rect_
 
     lh_ui_canvas_set_clip(canvas, clip);
     const lh_entity_2d_t *const spatial = lh_entity_cast(entity, lh_addr_of(lh_entity_2d_class));
-    if (lh_ptr_is_set(spatial))
+    if (lh_ptr_is_set(spatial) && !lh_entity_has_flags(entity, lh_entity_flags_own_background))
     {
         lh_entity_2d_draw_background(spatial, canvas);
     }

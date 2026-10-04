@@ -283,10 +283,27 @@ lh_os_system_window_set_chrome(lh_os_system_window_handle_t self, lh_uint_t capt
 }
 
 void
-lh_os_system_window_set_caption_font(lh_os_system_window_handle_t self, const lh_ptr font)
+lh_os_system_window_close_frame(lh_os_system_window_handle_t self)
 {
     (void)self;
-    (void)font;
+}
+
+void
+lh_os_system_window_minimize(lh_os_system_window_handle_t self)
+{
+    (void)self;
+}
+
+void
+lh_os_system_window_zoom(lh_os_system_window_handle_t self)
+{
+    (void)self;
+}
+
+void
+lh_os_system_window_begin_move(lh_os_system_window_handle_t self)
+{
+    (void)self;
 }
 
 lh_int_t

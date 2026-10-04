@@ -301,6 +301,13 @@ LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 PostMessageW(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_dword_t Msg,
              lh_os_system_win_wparam_t wParam, lh_os_system_win_lparam_t lParam);
 
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
+SendMessageW(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_dword_t Msg,
+             lh_os_system_win_wparam_t wParam, lh_os_system_win_lparam_t lParam);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+ReleaseCapture(void);
+
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 WaitMessage(void);
 
