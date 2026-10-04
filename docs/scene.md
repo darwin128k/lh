@@ -85,6 +85,11 @@ lh_entity_add_handler(button, on_button, lh_null);
 their colors with `lh_ui_style_set_bg_color` and
 `lh_ui_style_set_text_color`. Alpha 0 paints nothing.
 
+`lh_entity_button_set_repeat` is that same button, not another class. The
+host forwards the window timer with `lh_entity_screen_send_tick`. The screen
+delivers `LH_ENTITY_EVENT_TICK` to whatever is holding the pointer, and a
+repeating button answers with another click.
+
 The same shape covers the other kinds that ship:
 
 | Class | Header | What you get |
@@ -302,7 +307,7 @@ picks another).
 | Text field | `lh/entity/field.h` | One buffer. `set_lines(1)` is a single line. |
 | On-screen keyboard | `lh/entity/keys.h` | Rows of buttons, corners rounded by 6 pixels. `add` takes a caption and a code; `break` starts the next row. |
 | Picture | `lh/entity/image.h` | A child of a button: icon, words, or both. |
-| Hold | `lh/entity/button.h` | `lh_entity_button_set_repeat`. |
+| Hold | `lh/entity/button.h` | The same button. `set_repeat` answers `LH_ENTITY_EVENT_TICK` with another click. |
 
 A window opens where the OS puts it. `lh_os_window_set_place` with
 `LH_OS_WINDOW_PLACE_CENTER` puts it in the middle of the primary monitor's

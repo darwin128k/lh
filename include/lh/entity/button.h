@@ -9,7 +9,9 @@
  * over the same button sends ::LH_ENTITY_EVENT_CLICKED to it. While it is
  * down, and a pressed style was given, that style paints the box instead.
  * ::lh_entity_button_set_repeat makes a hold: the click is sent when the
- * press starts and again on each tick while it is held. A corner radius
+ * press starts, and again each time ::LH_ENTITY_EVENT_TICK arrives while
+ * the button is still down. That tick is the window timer, forwarded to
+ * whoever holds the pointer. A corner radius
  * of 0 keeps the square style fill. A larger radius paints a rounded box
  * in that same color.
  * docs/scene.md shows how to use this class and how to write another.
@@ -71,8 +73,8 @@ lh_bool_t
 lh_entity_button_get_repeat(const lh_entity_button_t *self);
 
 /**
- * @brief Send ::LH_ENTITY_EVENT_CLICKED on the press, and again while it
- *        is held, each time the window tick reaches the screen.
+ * @brief Send ::LH_ENTITY_EVENT_CLICKED on the press, and again on each
+ *        ::LH_ENTITY_EVENT_TICK while the button stays down.
  */
 lh_void
 lh_entity_button_set_repeat(lh_entity_button_t *self, lh_bool_t repeat);

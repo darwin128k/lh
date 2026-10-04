@@ -136,6 +136,15 @@ lh_void
 lh_entity_screen_send_key(lh_entity_screen_t *self, lh_uint_t code);
 
 /**
+ * @brief Deliver ::LH_ENTITY_EVENT_TICK to the entity holding the pointer.
+ *
+ * The host forwards the window timer here. Nothing is sent when no pointer
+ * is held. A repeating button turns that tick into another click.
+ */
+lh_void
+lh_entity_screen_send_tick(lh_entity_screen_t *self);
+
+/**
  * @brief Forget a held press on @p entity.
  *
  * A button calls this as it is deleted, so the screen does not release a

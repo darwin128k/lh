@@ -81,6 +81,11 @@ lh_entity_button_on_event(lh_entity_t *self, lh_entity_event_t *event)
         }
         return;
     }
+    if (code == LH_ENTITY_EVENT_TICK && button->repeat && button->pressed)
+    {
+        lh_entity_send_event(self, LH_ENTITY_EVENT_CLICKED, lh_null);
+        return;
+    }
     if (code == LH_ENTITY_EVENT_POINTER_UP && button->pressed)
     {
         const lh_math_vec2_t *const point =

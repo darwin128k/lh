@@ -287,3 +287,13 @@ lh_entity_screen_send_key(lh_entity_screen_t *self, lh_uint_t code)
         lh_entity_send_event(self->focus, LH_ENTITY_EVENT_KEY, lh_addr_of(code));
     }
 }
+
+lh_void
+lh_entity_screen_send_tick(lh_entity_screen_t *self)
+{
+    lh_assert_runtime_ref(self);
+    if (lh_ptr_is_set(self->pressed))
+    {
+        lh_entity_send_event(self->pressed, LH_ENTITY_EVENT_TICK, lh_null);
+    }
+}

@@ -79,6 +79,15 @@ struct lh_entity;
 #define LH_ENTITY_EVENT_KEY 8U
 
 /**
+ * @def LH_ENTITY_EVENT_TICK
+ * @brief The window timer fired while a pointer is held
+ *        (::lh_entity_screen_send_tick). Delivered to the entity that
+ *        holds the pointer, and it bubbles the same way a pointer event does.
+ *        A repeating button answers with another ::LH_ENTITY_EVENT_CLICKED.
+ */
+#define LH_ENTITY_EVENT_TICK 9U
+
+/**
  * @def LH_ENTITY_EVENT_USER
  * @brief First code free for the application's own events.
  */
