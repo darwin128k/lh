@@ -2,8 +2,10 @@
  * @file option.h
  * @brief A check, a switch, or a toggle. One record, three classes.
  *
- * All three flip a boolean and send ::LH_ENTITY_EVENT_CLICKED. The box is
- * the style background and the mark is the text color. Inside a
+ * All three flip a boolean and send ::LH_ENTITY_EVENT_CLICKED. The mark is
+ * the text color and the box is the style background. A check keeps a
+ * rounded frame; when it is on, a smaller rounded square sits inside.
+ * Inside a
  * ::lh_entity_group_t the group's mode decides whether the siblings turn
  * off. The words, when they are wanted, are a label placed beside it.
  */

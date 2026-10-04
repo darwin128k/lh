@@ -124,11 +124,30 @@ lh_entity_option_paint(const lh_entity_option_t *self, lh_ui_canvas_t *canvas)
                               thumb_radius, thumb);
         return;
     }
-    lh_ui_canvas_fill_round(canvas, bounds, 4, mark);
-    if (!self->on && width > 2 && height > 2)
     {
-        lh_ui_canvas_fill_round(canvas, lh_math_rect_make(x + 1, y + 1, width - 2, height - 2), 3,
-                                fill);
+        const lh_int_t frame = width > 14 && height > 14 ? 2 : 1;
+        lh_int_t inset;
+        lh_ui_canvas_fill_round(canvas, bounds, 4, mark);
+        if (width > frame * 2 && height > frame * 2)
+        {
+            lh_ui_canvas_fill_round(canvas,
+                                    lh_math_rect_make(x + frame, y + frame, width - frame * 2,
+                                                      height - frame * 2),
+                                    3, fill);
+        }
+        if (!self->on)
+        {
+            return;
+        }
+        inset = frame + (width > 16 && height > 16 ? 3 : 2);
+        if (width <= inset * 2 || height <= inset * 2)
+        {
+            return;
+        }
+        lh_ui_canvas_fill_round(canvas,
+                                lh_math_rect_make(x + inset, y + inset, width - inset * 2,
+                                                  height - inset * 2),
+                                2, mark);
     }
 }
 
