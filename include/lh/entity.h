@@ -17,6 +17,9 @@
  * memory an entity allocates under itself with ::lh_memory_tree_alloc_child
  * goes with it too.
  *
+ * A kind of entity the library does not ship is a class in the caller's
+ * program. docs/scene.md shows that, and how to use the ones that ship.
+ *
  * Events (::lh_entity_send_event) reach the entity's classes (derived first),
  * then its handlers in the order they were added; with
  * ::lh_entity_flags_event_bubble they continue to the parent, and so on up,

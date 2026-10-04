@@ -71,6 +71,14 @@ struct lh_entity;
 #define LH_ENTITY_EVENT_CLICKED 7U
 
 /**
+ * @def LH_ENTITY_EVENT_KEY
+ * @brief A key was pressed. `param` is the `const lh_uint_t *` code: a
+ *        character, or one of the `LH_ENTITY_KEY_*` values. Delivered to
+ *        the screen's focus (::lh_entity_screen_send_key).
+ */
+#define LH_ENTITY_EVENT_KEY 8U
+
+/**
  * @def LH_ENTITY_EVENT_USER
  * @brief First code free for the application's own events.
  */

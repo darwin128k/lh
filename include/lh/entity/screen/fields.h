@@ -22,15 +22,17 @@
  *
  * `pressed` is the entity that received the last pointer press, so the
  * release still reaches it when the pointer has left it. Null when no
- * press is held.
+ * press is held. `focus` is the entity that receives keys. Null when
+ * none.
  *
  * @param area_type   Type of one area (::lh_math_rect_t).
  * @param count_type  Type of `dirty_count` (::lh_usize_t).
- * @param entity_type Type of `pressed` (`lh_entity_t *`).
+ * @param entity_type Type of `pressed` and `focus` (`lh_entity_t *`).
  */
 #define lh_entity_screen_fields(area_type, count_type, entity_type)                                \
     area_type dirty[LH_ENTITY_SCREEN_DIRTY_MAX];                                                   \
     count_type dirty_count;                                                                        \
-    entity_type pressed
+    entity_type pressed;                                                                           \
+    entity_type focus
 
 #endif /* LH_ENTITY_SCREEN_FIELDS_H */

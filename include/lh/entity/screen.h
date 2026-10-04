@@ -38,7 +38,7 @@
 struct lh_entity_screen
 {
     lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
-    lh_entity_2d_fields(lh_math_vec2_t, lh_float_t, const lh_ui_style_t *);
+    lh_entity_2d_fields(lh_math_vec2_t, lh_float_t, const lh_ui_style_t *, const lh_ui_effect_t *);
     lh_entity_screen_fields(lh_math_rect_t, lh_usize_t, lh_entity_t *);
 };
 typedef struct lh_entity_screen lh_entity_screen_t;
@@ -117,6 +117,25 @@ lh_entity_t *
 lh_entity_screen_send_pointer(lh_entity_screen_t *self, lh_uint_t code, lh_math_vec2_t point);
 
 /**
+ * @brief The entity that receives keys, or ::lh_null.
+ */
+lh_entity_t *
+lh_entity_screen_get_focus(const lh_entity_screen_t *self);
+
+/**
+ * @brief Keys from the window and from an on-screen keyboard go to @p entity.
+ *        ::lh_null clears the focus.
+ */
+lh_void
+lh_entity_screen_set_focus(lh_entity_screen_t *self, lh_entity_t *entity);
+
+/**
+ * @brief Deliver ::LH_ENTITY_EVENT_KEY with @p code to the focus.
+ */
+lh_void
+lh_entity_screen_send_key(lh_entity_screen_t *self, lh_uint_t code);
+
+/**
  * @brief Forget a held press on @p entity.
  *
  * A button calls this as it is deleted, so the screen does not release a
@@ -124,6 +143,12 @@ lh_entity_screen_send_pointer(lh_entity_screen_t *self, lh_uint_t code, lh_math_
  */
 lh_void
 lh_entity_screen_clear_pressed(lh_entity_screen_t *self, lh_entity_t *entity);
+
+/**
+ * @brief The entity that is holding the pointer, or ::lh_null.
+ */
+lh_entity_t *
+lh_entity_screen_get_pressed(const lh_entity_screen_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

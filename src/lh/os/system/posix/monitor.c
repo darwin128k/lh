@@ -78,3 +78,31 @@ lh_os_system_monitor_get_work_height(lh_int_t index)
 {
     return lh_os_system_monitor_get_height(index);
 }
+
+lh_int_t
+lh_os_system_monitor_get_x(lh_int_t index)
+{
+    (void)index;
+    return 0;
+}
+
+lh_int_t
+lh_os_system_monitor_get_y(lh_int_t index)
+{
+    (void)index;
+    return 0;
+}
+
+lh_int_t
+lh_os_system_monitor_get_work_x(lh_int_t index)
+{
+    (void)index;
+    return 0;
+}
+
+lh_int_t
+lh_os_system_monitor_get_work_y(lh_int_t index)
+{
+    (void)index;
+    return 0;
+}

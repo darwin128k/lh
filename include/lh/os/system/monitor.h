@@ -65,6 +65,30 @@ lh_os_system_monitor_get_work_width(lh_int_t index);
 lh_int_t
 lh_os_system_monitor_get_work_height(lh_int_t index);
 
+/**
+ * @brief Left edge of monitor @p index, in desktop pixels.
+ */
+lh_int_t
+lh_os_system_monitor_get_x(lh_int_t index);
+
+/**
+ * @brief Top edge of monitor @p index, in desktop pixels.
+ */
+lh_int_t
+lh_os_system_monitor_get_y(lh_int_t index);
+
+/**
+ * @brief Left edge of the work area on monitor @p index.
+ */
+lh_int_t
+lh_os_system_monitor_get_work_x(lh_int_t index);
+
+/**
+ * @brief Top edge of the work area on monitor @p index.
+ */
+lh_int_t
+lh_os_system_monitor_get_work_y(lh_int_t index);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_SYSTEM_MONITOR_H */

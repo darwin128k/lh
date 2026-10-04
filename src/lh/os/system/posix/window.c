@@ -331,17 +331,17 @@ lh_os_system_window_begin_move(lh_os_system_window_handle_t self)
 }
 
 void
-lh_os_system_window_set_shadow(lh_os_system_window_handle_t self, lh_int_t spread)
+lh_os_system_window_set_shadow(lh_os_system_window_handle_t self, const struct lh_ui_shadow *shadow)
 {
     (void)self;
-    (void)spread;
+    (void)shadow;
 }
 
-lh_int_t
+const struct lh_ui_shadow *
 lh_os_system_window_get_shadow(lh_os_system_window_handle_t self)
 {
     (void)self;
-    return 0;
+    return lh_null;
 }
 
 lh_int_t
@@ -403,4 +403,19 @@ lh_int_t
 lh_os_system_window_get_client_height(lh_os_system_window_handle_t self)
 {
     return lh_os_system_posix_window_span(self, lh_bool_false, lh_bool_false);
+}
+
+void
+lh_os_system_window_set_origin(lh_os_system_window_handle_t self, lh_int_t x, lh_int_t y)
+{
+    (void)self;
+    (void)x;
+    (void)y;
+}
+
+void
+lh_os_system_window_set_tick(lh_os_system_window_handle_t self, lh_int_t milliseconds)
+{
+    (void)self;
+    (void)milliseconds;
 }

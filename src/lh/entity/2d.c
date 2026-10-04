@@ -1,4 +1,5 @@
 #include <lh/entity/2d.h>
+#include <lh/entity/flex.h>
 #include <lh/assert.h>
 #include <lh/cast/const.h>
 #include <lh/cast/static.h>
@@ -132,6 +133,7 @@ lh_entity_2d_set_size(lh_entity_2d_t *self, lh_math_vec2_t size)
     lh_assert_runtime_ref(self);
     lh_entity_invalidate(lh_entity_2d_as_entity(self));
     self->size = size;
+    lh_entity_flex_note_size(self);
     lh_entity_invalidate(lh_entity_2d_as_entity(self));
 }
 
@@ -148,6 +150,22 @@ lh_entity_2d_set_style(lh_entity_2d_t *self, const lh_ui_style_t *style)
     lh_assert_runtime_ref(self);
     self->style = style;
     lh_entity_invalidate(lh_entity_2d_as_entity(self)); /* same area, new pixels */
+}
+
+const lh_ui_effect_t *
+lh_entity_2d_get_effect(const lh_entity_2d_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->effect;
+}
+
+lh_void
+lh_entity_2d_set_effect(lh_entity_2d_t *self, const lh_ui_effect_t *effect)
+{
+    lh_assert_runtime_ref(self);
+    lh_entity_invalidate(lh_entity_2d_as_entity(self));
+    self->effect = effect;
+    lh_entity_invalidate(lh_entity_2d_as_entity(self));
 }
 
 lh_math_mat4_t

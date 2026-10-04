@@ -8,6 +8,9 @@
  * press on the words reaches the button. A press followed by a release
  * over the same button sends ::LH_ENTITY_EVENT_CLICKED to it. While it is
  * down, and a pressed style was given, that style paints the box instead.
+ * ::lh_entity_button_set_repeat makes a hold: the click is sent when the
+ * press starts and again on each tick while it is held.
+ * docs/scene.md shows how to use this class and how to write another.
  */
 
 #ifndef LH_ENTITY_BUTTON_H
@@ -24,10 +27,11 @@
 struct lh_entity_button
 {
     lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
-    lh_entity_2d_fields(lh_math_vec2_t, lh_float_t, const lh_ui_style_t *);
+    lh_entity_2d_fields(lh_math_vec2_t, lh_float_t, const lh_ui_style_t *, const lh_ui_effect_t *);
     const lh_ui_style_t *pressed_style;
     const lh_ui_style_t *rest_style;
     lh_bool_t pressed;
+    lh_bool_t repeat;
 };
 typedef struct lh_entity_button lh_entity_button_t;
 
@@ -56,6 +60,19 @@ lh_entity_button_get_pressed_style(const lh_entity_button_t *self);
  */
 lh_void
 lh_entity_button_set_pressed_style(lh_entity_button_t *self, const lh_ui_style_t *style);
+
+/**
+ * @brief True when a held press repeats ::LH_ENTITY_EVENT_CLICKED.
+ */
+lh_bool_t
+lh_entity_button_get_repeat(const lh_entity_button_t *self);
+
+/**
+ * @brief Send ::LH_ENTITY_EVENT_CLICKED on the press, and again while it
+ *        is held, each time the window tick reaches the screen.
+ */
+lh_void
+lh_entity_button_set_repeat(lh_entity_button_t *self, lh_bool_t repeat);
 
 LH_COMPILER_EXTERN_C_END
 

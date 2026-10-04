@@ -49,6 +49,19 @@
 #define lh_os_system_window_event_pointer_up 6U
 
 /**
+ * @def lh_os_system_window_event_key
+ * @brief A key was pressed. `button` is the code: a character, or one of
+ *        the `LH_ENTITY_KEY_*` values.
+ */
+#define lh_os_system_window_event_key 7U
+
+/**
+ * @def lh_os_system_window_event_tick
+ * @brief A timer asked for by ::lh_os_system_window_set_tick fired.
+ */
+#define lh_os_system_window_event_tick 8U
+
+/**
  * @struct lh_os_system_window_event
  * @brief Fields via ::lh_os_system_window_event_fields.
  */

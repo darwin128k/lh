@@ -191,23 +191,26 @@ lh_os_system_window_set_corner_radius(lh_os_system_window_handle_t self, lh_int_
 lh_int_t
 lh_os_system_window_get_corner_radius(lh_os_system_window_handle_t self);
 
-/**
- * @brief Draw a soft shadow of @p spread pixels around @p self.
- *
- * Zero removes it. The shadow lies outside the canvas, so the caller's
- * pixels stay the card and the window grows by @p spread on every side.
- * A client frame keeps its corner radius; the outline is the window's own
- * alpha, so the shadow can follow a custom shape. A maximized or minimized
- * window drops the shadow until it is restored. Where the system has no
- * such shadow, the call changes nothing.
- */
-void
-lh_os_system_window_set_shadow(lh_os_system_window_handle_t self, lh_int_t spread);
+struct lh_ui_shadow;
 
 /**
- * @brief Shadow spread last set on @p self, or zero when none was set.
+ * @brief Draw @p shadow around @p self.
+ *
+ * Null removes it. @p shadow is not copied and not owned. The shadow lies
+ * outside the canvas, so the caller's pixels stay the card and the window
+ * grows to fit the shadow. Call again after changing its spread or offset
+ * so the padding matches. A client frame keeps its corner radius. A
+ * maximized or minimized window drops the shadow until it is restored.
+ * Where the system has no such shadow, the call changes nothing.
  */
-lh_int_t
+void
+lh_os_system_window_set_shadow(lh_os_system_window_handle_t self,
+                               const struct lh_ui_shadow *shadow);
+
+/**
+ * @brief Shadow last set on @p self, or null when none was set.
+ */
+const struct lh_ui_shadow *
 lh_os_system_window_get_shadow(lh_os_system_window_handle_t self);
 
 /**
@@ -294,6 +297,21 @@ lh_os_system_window_get_client_width(lh_os_system_window_handle_t self);
  */
 lh_int_t
 lh_os_system_window_get_client_height(lh_os_system_window_handle_t self);
+
+/**
+ * @brief Move @p self so its outer top-left is (@p x, @p y) on the desktop.
+ */
+void
+lh_os_system_window_set_origin(lh_os_system_window_handle_t self, lh_int_t x, lh_int_t y);
+
+/**
+ * @brief Ask for a timer every @p milliseconds. Zero stops it.
+ *
+ * Each firing is ::lh_os_system_window_event_tick. Windows XP has the timer.
+ * The other backends ignore it.
+ */
+void
+lh_os_system_window_set_tick(lh_os_system_window_handle_t self, lh_int_t milliseconds);
 
 LH_COMPILER_EXTERN_C_END
 

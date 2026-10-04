@@ -181,17 +181,19 @@ lh_os_window_set_corner_radius(lh_os_window_t *self, lh_int_t radius);
 lh_int_t
 lh_os_window_get_corner_radius(const lh_os_window_t *self);
 
+struct lh_ui_shadow;
+
 /**
- * @brief Draw a soft shadow around @p self; see
+ * @brief Draw @p shadow around @p self; see
  *        ::lh_os_system_window_set_shadow.
  */
 void
-lh_os_window_set_shadow(lh_os_window_t *self, lh_int_t spread);
+lh_os_window_set_shadow(lh_os_window_t *self, const struct lh_ui_shadow *shadow);
 
 /**
- * @brief Shadow spread last set on @p self, in pixels.
+ * @brief Shadow last set on @p self, or null.
  */
-lh_int_t
+const struct lh_ui_shadow *
 lh_os_window_get_shadow(const lh_os_window_t *self);
 
 /**
@@ -265,6 +267,31 @@ lh_os_window_get_client_width(const lh_os_window_t *self);
  */
 lh_int_t
 lh_os_window_get_client_height(const lh_os_window_t *self);
+
+/**
+ * @def LH_OS_WINDOW_PLACE_DEFAULT
+ * @brief Leave the window where the OS put it.
+ */
+#define LH_OS_WINDOW_PLACE_DEFAULT 0
+
+/**
+ * @def LH_OS_WINDOW_PLACE_CENTER
+ * @brief Center the window on the primary monitor's work area.
+ */
+#define LH_OS_WINDOW_PLACE_CENTER 1
+
+/**
+ * @brief Place @p self. ::LH_OS_WINDOW_PLACE_CENTER uses the primary
+ *        monitor. The other value leaves the window where it is.
+ */
+void
+lh_os_window_set_place(lh_os_window_t *self, lh_int_t place);
+
+/**
+ * @brief Start or stop a timer; see ::lh_os_system_window_set_tick.
+ */
+void
+lh_os_window_set_tick(lh_os_window_t *self, lh_int_t milliseconds);
 
 LH_COMPILER_EXTERN_C_END
 

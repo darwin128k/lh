@@ -18,6 +18,7 @@
 struct lh_os_system_win_monitor_set
 {
     lh_int_t count;
+    lh_int_t primary;
     lh_os_system_win_rect_t bounds[LH_OS_SYSTEM_WIN_MONITOR_LIMIT];
     lh_os_system_win_rect_t work[LH_OS_SYSTEM_WIN_MONITOR_LIMIT];
 };
@@ -40,6 +41,10 @@ lh_os_system_win_monitor_visit(lh_os_system_win_handle_t monitor, lh_os_system_w
     {
         set->bounds[set->count] = info.monitor;
         set->work[set->count] = info.work;
+        if ((info.flags & 1U) != 0U)
+        {
+            set->primary = set->count;
+        }
     }
     else if (!lh_null_eq(bounds))
     {
@@ -57,9 +62,21 @@ lh_os_system_win_monitor_visit(lh_os_system_win_handle_t monitor, lh_os_system_w
 void
 lh_os_system_win_monitor_collect(struct lh_os_system_win_monitor_set *set)
 {
+    lh_os_system_win_rect_t swap;
     set->count = 0;
+    set->primary = 0;
     (void)EnumDisplayMonitors(lh_null, lh_null, lh_os_system_win_monitor_visit,
                               lh_cast_static(lh_os_system_win_lparam_t, (lh_ptr)set));
+    if (set->primary <= 0 || set->primary >= set->count)
+    {
+        return;
+    }
+    swap = set->bounds[0];
+    set->bounds[0] = set->bounds[set->primary];
+    set->bounds[set->primary] = swap;
+    swap = set->work[0];
+    set->work[0] = set->work[set->primary];
+    set->work[set->primary] = swap;
 }
 
 lh_int_t
@@ -112,4 +129,47 @@ lh_int_t
 lh_os_system_monitor_get_work_height(lh_int_t index)
 {
     return lh_os_system_monitor_edge(index, lh_bool_true, lh_bool_false);
+}
+
+lh_int_t
+lh_os_system_monitor_corner(lh_int_t index, lh_bool_t work, lh_bool_t horizontal)
+{
+    struct lh_os_system_win_monitor_set set;
+    const lh_os_system_win_rect_t *rect;
+
+    lh_os_system_win_monitor_collect(lh_addr_of(set));
+    if (index < 0 || index >= set.count)
+    {
+        return 0;
+    }
+    rect = work != lh_bool_false ? lh_addr_of(set.work[index]) : lh_addr_of(set.bounds[index]);
+    if (horizontal != lh_bool_false)
+    {
+        return rect->left;
+    }
+    return rect->top;
+}
+
+lh_int_t
+lh_os_system_monitor_get_x(lh_int_t index)
+{
+    return lh_os_system_monitor_corner(index, lh_bool_false, lh_bool_true);
+}
+
+lh_int_t
+lh_os_system_monitor_get_y(lh_int_t index)
+{
+    return lh_os_system_monitor_corner(index, lh_bool_false, lh_bool_false);
+}
+
+lh_int_t
+lh_os_system_monitor_get_work_x(lh_int_t index)
+{
+    return lh_os_system_monitor_corner(index, lh_bool_true, lh_bool_true);
+}
+
+lh_int_t
+lh_os_system_monitor_get_work_y(lh_int_t index)
+{
+    return lh_os_system_monitor_corner(index, lh_bool_true, lh_bool_false);
 }

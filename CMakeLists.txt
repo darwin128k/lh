@@ -83,6 +83,22 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/entity/label.c
         ${LH_LIB_SRC_PATH}/entity/button.c
         ${LH_LIB_SRC_PATH}/entity/circle.c
+        ${LH_LIB_SRC_PATH}/entity/range.c
+        ${LH_LIB_SRC_PATH}/entity/slider.c
+        ${LH_LIB_SRC_PATH}/entity/knob.c
+        ${LH_LIB_SRC_PATH}/entity/spin.c
+        ${LH_LIB_SRC_PATH}/entity/scroll.c
+        ${LH_LIB_SRC_PATH}/entity/group.c
+        ${LH_LIB_SRC_PATH}/entity/option.c
+        ${LH_LIB_SRC_PATH}/entity/list.c
+        ${LH_LIB_SRC_PATH}/entity/combo.c
+        ${LH_LIB_SRC_PATH}/entity/field.c
+        ${LH_LIB_SRC_PATH}/entity/keys.c
+        ${LH_LIB_SRC_PATH}/entity/image.c
+        ${LH_LIB_SRC_PATH}/entity/view.c
+        ${LH_LIB_SRC_PATH}/entity/pages.c
+        ${LH_LIB_SRC_PATH}/entity/tabs.c
+        ${LH_LIB_SRC_PATH}/entity/flex.c
         ${LH_LIB_SRC_PATH}/memory/bounds/slice.c
         ${LH_LIB_SRC_PATH}/memory/bounds/allocated.c
         ${LH_LIB_SRC_PATH}/memory/view/slice.c
@@ -100,6 +116,10 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/ui/canvas.c
         ${LH_LIB_SRC_PATH}/ui/color.c
         ${LH_LIB_SRC_PATH}/ui/style.c
+        ${LH_LIB_SRC_PATH}/ui/effect.c
+        ${LH_LIB_SRC_PATH}/ui/shadow.c
+        ${LH_LIB_SRC_PATH}/ui/blur.c
+        ${LH_LIB_SRC_PATH}/ui/glass.c
         ${LH_LIB_SRC_PATH}/ui/theme.c
         ${LH_LIB_SRC_PATH}/ui/font.c
         ${LH_LIB_SRC_PATH}/ui/roboto.c

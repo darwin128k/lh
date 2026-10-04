@@ -260,6 +260,18 @@ the validity of the range. Passing a backward or otherwise invalid range
 produces a logically inconsistent slice and may cause failures in any
 subsequent operation that requires a valid slice.
 
+## Scene
+
+A screen, a plain box, a label, a button and a circle ship with the library,
+plus a style and three paint effects: shadow, blur and glass. A widget or an
+effect the library does not have is a class written in the caller's program.
+Nothing has to be registered, and the library does not have to be edited.
+
+[docs/scene.md](docs/scene.md) is the guide. It shows how to place a ready
+button or effect, and how to write either from scratch. The same page lists
+the widgets that share one value, one switch, or one page, and the flex
+layout a parent uses to place its children.
+
 ## Version
 
 Current version: **0.3.0** — history and release notes in [CHANGELOG](CHANGELOG.md).

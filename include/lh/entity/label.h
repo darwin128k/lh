@@ -24,7 +24,7 @@
 struct lh_entity_label
 {
     lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
-    lh_entity_2d_fields(lh_math_vec2_t, lh_float_t, const lh_ui_style_t *);
+    lh_entity_2d_fields(lh_math_vec2_t, lh_float_t, const lh_ui_style_t *, const lh_ui_effect_t *);
     const lh_ui_font_t *font;
     const lh_char_t *text;
 };

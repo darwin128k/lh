@@ -1,5 +1,7 @@
 #include <lh/entity/screen.h>
+#include <lh/entity/flex.h>
 #include <lh/assert.h>
+#include <lh/ui/effect.h>
 #include <lh/float/round.h>
 #include <lh/null.h>
 #include <lh/runtime/error/code.h>
@@ -111,9 +113,20 @@ lh_entity_screen_draw(lh_entity_t *entity, lh_ui_canvas_t *canvas, lh_math_rect_
 
     lh_ui_canvas_set_clip(canvas, clip);
     const lh_entity_2d_t *const spatial = lh_entity_cast(entity, lh_addr_of(lh_entity_2d_class));
-    if (lh_ptr_is_set(spatial) && !lh_entity_has_flags(entity, lh_entity_flags_own_background))
+    if (lh_ptr_is_set(spatial))
     {
-        lh_entity_2d_draw_background(spatial, canvas);
+        const lh_ui_effect_t *const effect = lh_entity_2d_get_effect(spatial);
+        if (lh_ptr_is_set(effect))
+        {
+            const lh_math_mat4_t world = lh_entity_2d_get_world_matrix(spatial);
+            const lh_math_vec4_t origin = lh_math_mat4_get_column(lh_addr_of(world), 3);
+            lh_ui_canvas_set_draw_z(canvas, lh_math_vec4_get_z(lh_addr_of(origin)));
+            lh_ui_effect_draw(effect, canvas, lh_entity_2d_get_screen_bounds(spatial), 0);
+        }
+        if (!lh_entity_has_flags(entity, lh_entity_flags_own_background))
+        {
+            lh_entity_2d_draw_background(spatial, canvas);
+        }
     }
     lh_entity_notify(entity, LH_ENTITY_EVENT_DRAW, canvas);
 
@@ -140,6 +153,7 @@ lh_entity_screen_render(lh_entity_screen_t *self, lh_ui_canvas_t *canvas)
     lh_assert_runtime_ref(canvas);
 
     lh_math_rect_t drawn = lh_math_rect_make_empty();
+    lh_entity_flex_layout_tree(lh_ptr_rcast(lh_entity_t, self));
     for (lh_usize_t i = 0; i < lh_entity_screen_get_dirty_count(self); ++i)
     {
         const lh_math_rect_t area = lh_entity_screen_get_dirty_area(self, i);
@@ -162,7 +176,17 @@ lh_entity_screen_invalidate_tree(lh_entity_screen_t *screen, lh_entity_t *entity
         const lh_math_vec2_t size = lh_entity_2d_get_size(spatial);
         if (lh_math_vec2_get_x(lh_addr_of(size)) > 0.0f && lh_math_vec2_get_y(lh_addr_of(size)) > 0.0f)
         {
-            lh_entity_screen_invalidate_area(screen, lh_entity_2d_get_screen_bounds(spatial));
+            lh_math_rect_t bounds = lh_entity_2d_get_screen_bounds(spatial);
+            const lh_int_t pad = lh_ui_effect_outset(lh_entity_2d_get_effect(spatial));
+            if (pad > 0)
+            {
+                const lh_int_t x = lh_math_rect_get_x(lh_addr_of(bounds)) - pad;
+                const lh_int_t y = lh_math_rect_get_y(lh_addr_of(bounds)) - pad;
+                const lh_int_t width = lh_math_rect_get_size_width(lh_addr_of(bounds)) + pad * 2;
+                const lh_int_t height = lh_math_rect_get_size_height(lh_addr_of(bounds)) + pad * 2;
+                bounds = lh_math_rect_make(x, y, width, height);
+            }
+            lh_entity_screen_invalidate_area(screen, bounds);
         }
     }
     lh_return_if(lh_ptr_is_set(lh_entity_screen_clip_box(entity)));
@@ -194,6 +218,13 @@ lh_entity_screen_clear_pressed(lh_entity_screen_t *self, lh_entity_t *entity)
 }
 
 lh_entity_t *
+lh_entity_screen_get_pressed(const lh_entity_screen_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->pressed;
+}
+
+lh_entity_t *
 lh_entity_screen_send_pointer(lh_entity_screen_t *self, lh_uint_t code, lh_math_vec2_t point)
 {
     lh_assert_runtime_ref(self);
@@ -207,6 +238,11 @@ lh_entity_screen_send_pointer(lh_entity_screen_t *self, lh_uint_t code, lh_math_
             lh_entity_send_event(held, code, lh_addr_of(point));
         }
     }
+    else if (code == LH_ENTITY_EVENT_POINTER_MOVE && lh_ptr_is_set(held))
+    {
+        lh_entity_send_event(held, code, lh_addr_of(point));
+        return held;
+    }
     if (lh_ptr_is_set(target))
     {
         lh_entity_send_event(target, code, lh_addr_of(point));
@@ -216,4 +252,38 @@ lh_entity_screen_send_pointer(lh_entity_screen_t *self, lh_uint_t code, lh_math_
         self->pressed = target;
     }
     return target;
+}
+
+lh_entity_t *
+lh_entity_screen_get_focus(const lh_entity_screen_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->focus;
+}
+
+lh_void
+lh_entity_screen_set_focus(lh_entity_screen_t *self, lh_entity_t *entity)
+{
+    lh_entity_t *previous;
+    lh_assert_runtime_ref(self);
+    previous = self->focus;
+    self->focus = entity;
+    if (lh_ptr_is_set(previous))
+    {
+        lh_entity_invalidate(previous);
+    }
+    if (lh_ptr_is_set(entity))
+    {
+        lh_entity_invalidate(entity);
+    }
+}
+
+lh_void
+lh_entity_screen_send_key(lh_entity_screen_t *self, lh_uint_t code)
+{
+    lh_assert_runtime_ref(self);
+    if (lh_ptr_is_set(self->focus))
+    {
+        lh_entity_send_event(self->focus, LH_ENTITY_EVENT_KEY, lh_addr_of(code));
+    }
 }

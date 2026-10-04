@@ -214,6 +214,8 @@ typedef struct lh_os_system_win_wndclassexw lh_os_system_win_wndclassexw_t;
 #define LH_OS_SYSTEM_WIN_WM_NCLBUTTONUP 0x00A2
 #define LH_OS_SYSTEM_WIN_WM_KEYDOWN 0x0100
 #define LH_OS_SYSTEM_WIN_WM_KEYUP 0x0101
+#define LH_OS_SYSTEM_WIN_WM_CHAR 0x0102
+#define LH_OS_SYSTEM_WIN_WM_TIMER 0x0113
 #define LH_OS_SYSTEM_WIN_WM_LBUTTONDOWN 0x0201
 #define LH_OS_SYSTEM_WIN_WM_LBUTTONUP 0x0202
 #define LH_OS_SYSTEM_WIN_WM_RBUTTONUP 0x0205
@@ -434,6 +436,13 @@ GetWindowTextW(lh_os_system_win_hwnd_t hWnd, lh_wstr_ptr lpString, lh_int_t nMax
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 SetWindowPos(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_hwnd_t hWndInsertAfter, lh_int_t X,
              lh_int_t Y, lh_int_t cx, lh_int_t cy, lh_os_system_win_uint_t uFlags);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_uint_t LH_OS_SYSTEM_WIN_CALL
+SetTimer(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_uint_t nIDEvent,
+         lh_os_system_win_uint_t uElapse, lh_ptr lpTimerFunc);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+KillTimer(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_uint_t uIDEvent);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_long_t LH_OS_SYSTEM_WIN_CALL
 GetWindowLongW(lh_os_system_win_hwnd_t hWnd, lh_int_t nIndex);

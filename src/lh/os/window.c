@@ -13,6 +13,8 @@
 #include <lh/null.h>
 #include <lh/numeric/types.h>
 #include <lh/os/window.h>
+#include <lh/os/monitor.h>
+#include <lh/ui/shadow.h>
 #include <lh/ui/color.h>
 #include <lh/math.h>
 
@@ -128,12 +130,12 @@ lh_os_window_get_corner_radius(const lh_os_window_t *self)
 }
 
 void
-lh_os_window_set_shadow(lh_os_window_t *self, lh_int_t spread)
+lh_os_window_set_shadow(lh_os_window_t *self, const lh_ui_shadow_t *shadow)
 {
-    lh_os_system_window_set_shadow(lh_os_window_get_handle(self), spread);
+    lh_os_system_window_set_shadow(lh_os_window_get_handle(self), shadow);
 }
 
-lh_int_t
+const lh_ui_shadow_t *
 lh_os_window_get_shadow(const lh_os_window_t *self)
 {
     return lh_os_system_window_get_shadow(lh_os_window_get_handle(self));
@@ -207,4 +209,32 @@ lh_int_t
 lh_os_window_get_client_height(const lh_os_window_t *self)
 {
     return lh_os_system_window_get_client_height(lh_os_window_get_handle(self));
+}
+
+void
+lh_os_window_set_place(lh_os_window_t *self, lh_int_t place)
+{
+    lh_int_t width;
+    lh_int_t height;
+    lh_int_t x;
+    lh_int_t y;
+    if (lh_null_eq(self) || place != LH_OS_WINDOW_PLACE_CENTER || lh_os_monitor_get_count() < 1)
+    {
+        return;
+    }
+    width = lh_os_window_get_width(self);
+    height = lh_os_window_get_height(self);
+    x = lh_os_monitor_get_work_x(0) + (lh_os_monitor_get_work_width(0) - width) / 2;
+    y = lh_os_monitor_get_work_y(0) + (lh_os_monitor_get_work_height(0) - height) / 2;
+    lh_os_system_window_set_origin(lh_os_window_get_handle(self), x, y);
+}
+
+void
+lh_os_window_set_tick(lh_os_window_t *self, lh_int_t milliseconds)
+{
+    if (lh_null_eq(self))
+    {
+        return;
+    }
+    lh_os_system_window_set_tick(lh_os_window_get_handle(self), milliseconds);
 }

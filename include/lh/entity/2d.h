@@ -37,6 +37,7 @@
 #include <lh/math/rect.h>
 #include <lh/math/vec2.h>
 #include <lh/ui/canvas.h>
+#include <lh/ui/effect.h>
 #include <lh/ui/style.h>
 
 /**
@@ -46,7 +47,7 @@
 struct lh_entity_2d
 {
     lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
-    lh_entity_2d_fields(lh_math_vec2_t, lh_float_t, const lh_ui_style_t *);
+    lh_entity_2d_fields(lh_math_vec2_t, lh_float_t, const lh_ui_style_t *, const lh_ui_effect_t *);
 };
 typedef struct lh_entity_2d lh_entity_2d_t;
 
@@ -124,6 +125,21 @@ lh_entity_2d_get_style(const lh_entity_2d_t *self);
  */
 lh_void
 lh_entity_2d_set_style(lh_entity_2d_t *self, const lh_ui_style_t *style);
+
+/**
+ * @brief The effect drawn before @p self's fill, or ::lh_null.
+ */
+const lh_ui_effect_t *
+lh_entity_2d_get_effect(const lh_entity_2d_t *self);
+
+/**
+ * @brief Point @p self at @p effect (::lh_null draws none).
+ *
+ * @p effect is not copied and not owned. It is painted before the fill, so
+ * a shadow sits under the box and glass blurs what is already there.
+ */
+lh_void
+lh_entity_2d_set_effect(lh_entity_2d_t *self, const lh_ui_effect_t *effect);
 
 /**
  * @brief From @p self's own space into its parent's.
