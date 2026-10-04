@@ -100,6 +100,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/ui/canvas.c
         ${LH_LIB_SRC_PATH}/ui/color.c
         ${LH_LIB_SRC_PATH}/ui/style.c
+        ${LH_LIB_SRC_PATH}/ui/theme.c
         ${LH_LIB_SRC_PATH}/ui/font.c
         ${LH_LIB_SRC_PATH}/ui/roboto.c
         ${LH_LIB_SRC_PATH}/math/point.c
