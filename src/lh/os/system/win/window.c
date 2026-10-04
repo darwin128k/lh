@@ -18,8 +18,10 @@
  * client frame: the system caption comes off and the caller paints that
  * area. That mode stays on through resize, minimize, and maximize. The
  * rounded shape is a GDI region, so it works where dwmapi is absent.
- * Dark caption and caption colors still ask dwmapi for the system frame,
- * opened by name, and do nothing when that DLL is not there.
+ * A shadow replaces that region with per-pixel alpha: the region would
+ * clip the shadow off. Dark caption and caption colors still ask dwmapi
+ * for the system frame, opened by name, and do nothing when that DLL is
+ * not there.
  */
 
 #include <lh/cast/reinterpret.h>
@@ -52,6 +54,13 @@ static const wchar_t lh_os_system_win_window_class_name[] = L"lh_pa_window";
    "square" differ) and whether a dark caption was asked for. */
 #define LH_OS_SYSTEM_WIN_WINDOW_CORNER_PROPERTY L"lh.os.corner"
 #define LH_OS_SYSTEM_WIN_WINDOW_DARK_PROPERTY L"lh.os.dark"
+/* Requested shadow spread, and the padding currently added to the window. */
+#define LH_OS_SYSTEM_WIN_WINDOW_SHADOW L"lh.os.shadow"
+#define LH_OS_SYSTEM_WIN_WINDOW_SHADOW_PAD L"lh.os.shadow.pad"
+/* Set while the layered bitmap is being shown, so that call cannot re-enter. */
+#define LH_OS_SYSTEM_WIN_WINDOW_SHADOW_GUARD L"lh.os.shadow.guard"
+/* Peak alpha of the shadow. The falloff is quadratic out to the padding. */
+#define LH_OS_SYSTEM_WIN_WINDOW_SHADOW_PEAK 80
 /* Set while the corner region is being applied, so the size message that
    follows does not apply it again. */
 #define LH_OS_SYSTEM_WIN_WINDOW_CORNER_GUARD L"lh.os.corner.guard"
@@ -193,6 +202,9 @@ lh_os_system_window_close(lh_os_system_window_handle_t self)
     (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_DARK_PROPERTY);
     (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CORNER_GUARD);
     (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CLIENT_FRAME);
+    (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_SHADOW);
+    (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_SHADOW_PAD);
+    (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_SHADOW_GUARD);
     (void)DestroyWindow(hwnd);
     lh_os_system_win_window_unregister_class();
 }
@@ -250,6 +262,314 @@ lh_os_system_window_wait_messages(void)
     (void)WaitMessage();
 }
 
+/* A property stored as value + 1, so a missing property reads as zero. */
+lh_int_t
+lh_os_system_win_window_stored(lh_os_system_win_hwnd_t hwnd, lh_wstr_cptr name)
+{
+    const lh_os_system_win_handle_t stored = GetPropW(hwnd, name);
+    if (lh_null_eq(stored))
+    {
+        return 0;
+    }
+    return lh_cast_static(lh_int_t, lh_cast_reinterpret(lh_usize_t, stored) - 1U);
+}
+
+void
+lh_os_system_win_window_store(lh_os_system_win_hwnd_t hwnd, lh_wstr_cptr name, lh_int_t value)
+{
+    if (value <= 0)
+    {
+        (void)RemovePropW(hwnd, name);
+        return;
+    }
+    (void)SetPropW(hwnd, name,
+                   lh_cast_reinterpret(lh_os_system_win_handle_t,
+                                       lh_cast_static(lh_usize_t, value + 1)));
+}
+
+/* Spread the caller asked for, including while the window is maximized. */
+lh_int_t
+lh_os_system_win_window_shadow_spread(lh_os_system_win_hwnd_t hwnd)
+{
+    if (lh_null_eq(hwnd))
+    {
+        return 0;
+    }
+    return lh_os_system_win_window_stored(hwnd, LH_OS_SYSTEM_WIN_WINDOW_SHADOW);
+}
+
+/* Padding currently inside the window rect. Zero while maximized, because
+   that rect is the work area and does not include the shadow. */
+lh_int_t
+lh_os_system_win_window_shadow_margin(lh_os_system_win_hwnd_t hwnd)
+{
+    if (lh_null_eq(hwnd) || IsZoomed(hwnd) != 0 || IsIconic(hwnd) != 0)
+    {
+        return 0;
+    }
+    return lh_os_system_win_window_stored(hwnd, LH_OS_SYSTEM_WIN_WINDOW_SHADOW_PAD);
+}
+
+lh_int_t
+lh_os_system_win_window_isqrt(lh_int_t value)
+{
+    lh_int_t root;
+    lh_int_t next;
+    if (value <= 0)
+    {
+        return 0;
+    }
+    root = value;
+    next = (root + 1) / 2;
+    while (next < root)
+    {
+        root = next;
+        next = (root + value / root) / 2;
+    }
+    return root;
+}
+
+/* Signed distance to a rounded rectangle. Negative is inside. Right and
+   bottom are exclusive. */
+lh_int_t
+lh_os_system_win_window_round_distance(lh_int_t px, lh_int_t py, lh_int_t left, lh_int_t top,
+                                       lh_int_t right, lh_int_t bottom, lh_int_t radius)
+{
+    const lh_int_t cx = left + (right - left) / 2;
+    const lh_int_t cy = top + (bottom - top) / 2;
+    lh_int_t hx = (right - left) / 2 - radius;
+    lh_int_t hy = (bottom - top) / 2 - radius;
+    lh_int_t dx;
+    lh_int_t dy;
+    lh_int_t ox;
+    lh_int_t oy;
+    lh_int_t inside;
+    if (hx < 0)
+    {
+        hx = 0;
+    }
+    if (hy < 0)
+    {
+        hy = 0;
+    }
+    dx = px >= cx ? px - cx : cx - px;
+    dy = py >= cy ? py - cy : cy - py;
+    dx -= hx;
+    dy -= hy;
+    ox = dx > 0 ? dx : 0;
+    oy = dy > 0 ? dy : 0;
+    inside = dx > dy ? dx : dy;
+    if (inside > 0)
+    {
+        inside = 0;
+    }
+    return lh_os_system_win_window_isqrt(ox * ox + oy * oy) + inside - radius;
+}
+
+lh_int_t
+lh_os_system_win_window_shadow_alpha(lh_int_t dist, lh_int_t falloff)
+{
+    lh_int_t remain;
+    if (dist >= falloff)
+    {
+        return 0;
+    }
+    if (dist <= 0)
+    {
+        return LH_OS_SYSTEM_WIN_WINDOW_SHADOW_PEAK;
+    }
+    remain = falloff - dist;
+    return LH_OS_SYSTEM_WIN_WINDOW_SHADOW_PEAK * remain * remain / (falloff * falloff);
+}
+
+/* Writes a premultiplied top-down bitmap: the card, then a black shadow
+   shifted down by a fifth of @p margin. @p src is the card, origin at its
+   top left, @p stride pixels per row. */
+void
+lh_os_system_win_window_compose_shadow(lh_byte_t *dst, lh_int_t full_w, lh_int_t full_h,
+                                       const lh_byte_t *src, lh_int_t stride, lh_int_t margin,
+                                       lh_int_t radius)
+{
+    const lh_int_t card_w = full_w - margin * 2;
+    const lh_int_t card_h = full_h - margin * 2;
+    lh_int_t offset;
+    lh_int_t falloff;
+    lh_int_t y;
+    if (card_w <= 0 || card_h <= 0 || stride <= 0 || lh_ptr_is_null(src))
+    {
+        return;
+    }
+    if (radius > card_w / 2)
+    {
+        radius = card_w / 2;
+    }
+    if (radius > card_h / 2)
+    {
+        radius = card_h / 2;
+    }
+    offset = margin / 5;
+    falloff = margin - offset;
+    if (falloff < 1)
+    {
+        falloff = 1;
+    }
+    for (y = 0; y < full_h; ++y)
+    {
+        lh_byte_t *const row = dst + (lh_usize_t)y * (lh_usize_t)full_w * 4U;
+        lh_int_t x;
+        for (x = 0; x < full_w; ++x)
+        {
+            const lh_int_t sx = x - margin;
+            const lh_int_t sy = y - margin;
+            lh_int_t card_a = 0;
+            lh_int_t shadow_a = 0;
+            lh_int_t sr = 0;
+            lh_int_t sg = 0;
+            lh_int_t sb = 0;
+            lh_bool_t covered = lh_bool_false;
+            if (sx >= 0 && sy >= 0 && sx < card_w && sy < card_h && sx < stride &&
+                (margin <= 0 || radius <= 0 || (sx >= radius && sx < card_w - radius) ||
+                 (sy >= radius && sy < card_h - radius)))
+            {
+                covered = lh_bool_true;
+            }
+            if (covered)
+            {
+                const lh_byte_t *pixel =
+                    src + ((lh_usize_t)sy * (lh_usize_t)stride + (lh_usize_t)sx) * 4U;
+                card_a = pixel[3];
+                sr = pixel[0];
+                sg = pixel[1];
+                sb = pixel[2];
+            }
+            else if (margin > 0)
+            {
+                const lh_int_t card_dist = lh_os_system_win_window_round_distance(
+                    x, y, margin, margin, margin + card_w, margin + card_h, radius);
+                if (card_dist <= 0 && sx >= 0 && sy >= 0 && sx < card_w && sy < card_h &&
+                    sx < stride)
+                {
+                    const lh_byte_t *pixel =
+                        src + ((lh_usize_t)sy * (lh_usize_t)stride + (lh_usize_t)sx) * 4U;
+                    card_a = pixel[3];
+                    if (card_dist == 0 && card_a > 0)
+                    {
+                        card_a /= 2;
+                    }
+                    sr = pixel[0];
+                    sg = pixel[1];
+                    sb = pixel[2];
+                }
+                if (card_a < 255)
+                {
+                    const lh_int_t shadow_dist = lh_os_system_win_window_round_distance(
+                        x, y, margin, margin + offset, margin + card_w, margin + card_h + offset,
+                        radius);
+                    shadow_a = lh_os_system_win_window_shadow_alpha(shadow_dist, falloff);
+                }
+            }
+            if (card_a > 0 || shadow_a > 0)
+            {
+                const lh_int_t inv = 255 - card_a;
+                lh_byte_t *const pixel = row + (lh_usize_t)x * 4U;
+                pixel[0] = lh_cast_static(lh_byte_t, sb * card_a / 255);
+                pixel[1] = lh_cast_static(lh_byte_t, sg * card_a / 255);
+                pixel[2] = lh_cast_static(lh_byte_t, sr * card_a / 255);
+                pixel[3] = lh_cast_static(lh_byte_t, card_a + shadow_a * inv / 255);
+            }
+        }
+    }
+}
+
+lh_bool_t
+lh_os_system_win_window_present_shadow(lh_os_system_win_hwnd_t hwnd, const lh_ptr pixels,
+                                       lh_int_t stride)
+{
+    lh_os_system_win_rect_t client;
+    lh_os_system_win_bitmapinfoheader_t info;
+    lh_os_system_win_size_t size;
+    lh_os_system_win_point_t origin;
+    lh_os_system_win_blend_t blend;
+    lh_os_system_win_hdc_t mem;
+    lh_os_system_win_handle_t dib;
+    lh_os_system_win_handle_t previous;
+    lh_ptr bits;
+    lh_int_t full_w;
+    lh_int_t full_h;
+    lh_int_t margin;
+    lh_int_t radius;
+    lh_bool_t shown;
+    if (!lh_null_eq(GetPropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_SHADOW_GUARD)))
+    {
+        return lh_bool_true;
+    }
+    if (GetClientRect(hwnd, lh_addr_of(client)) == 0)
+    {
+        return lh_bool_false;
+    }
+    full_w = client.right - client.left;
+    full_h = client.bottom - client.top;
+    if (full_w <= 0 || full_h <= 0)
+    {
+        return lh_bool_false;
+    }
+    margin = lh_os_system_win_window_shadow_margin(hwnd);
+    radius = 0;
+    if (margin > 0)
+    {
+        radius = lh_os_system_win_window_stored(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CORNER_PROPERTY);
+    }
+    mem = CreateCompatibleDC(lh_null);
+    if (lh_ptr_is_null(mem))
+    {
+        return lh_bool_false;
+    }
+    lh_memory_std_set(lh_addr_of(info), 0, sizeof info);
+    info.biSize = lh_cast_static(lh_os_system_win_dword_t, sizeof info);
+    info.biWidth = full_w;
+    info.biHeight = -full_h;
+    info.biPlanes = 1;
+    info.biBitCount = 32;
+    info.biCompression = LH_OS_SYSTEM_WIN_BI_RGB;
+    bits = lh_null;
+    dib = CreateDIBSection(mem, lh_addr_of(info), LH_OS_SYSTEM_WIN_DIB_RGB_COLORS, lh_addr_of(bits),
+                           lh_null, 0);
+    shown = lh_bool_false;
+    if (!lh_null_eq(dib) && lh_ptr_is_set(bits))
+    {
+        lh_memory_std_set(bits, 0, (lh_usize_t)full_w * (lh_usize_t)full_h * 4U);
+        lh_os_system_win_window_compose_shadow(lh_ptr_rcast(lh_byte_t, bits), full_w, full_h,
+                                               lh_ptr_rcast(const lh_byte_t, pixels), stride,
+                                               margin, radius);
+        previous = SelectObject(mem, dib);
+        size.cx = full_w;
+        size.cy = full_h;
+        origin.x = 0;
+        origin.y = 0;
+        blend.BlendOp = lh_cast_static(lh_byte_t, LH_OS_SYSTEM_WIN_AC_SRC_OVER);
+        blend.BlendFlags = 0;
+        blend.SourceConstantAlpha = lh_cast_static(lh_byte_t, 255);
+        blend.AlphaFormat = lh_cast_static(lh_byte_t, LH_OS_SYSTEM_WIN_AC_SRC_ALPHA);
+        (void)SetPropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_SHADOW_GUARD,
+                       lh_cast_reinterpret(lh_os_system_win_handle_t,
+                                           lh_cast_static(lh_usize_t, 1)));
+        shown = UpdateLayeredWindow(hwnd, lh_null, lh_null, lh_addr_of(size), mem,
+                                    lh_addr_of(origin), 0, lh_addr_of(blend),
+                                    LH_OS_SYSTEM_WIN_ULW_ALPHA) != 0;
+        (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_SHADOW_GUARD);
+        if (!lh_null_eq(previous))
+        {
+            (void)SelectObject(mem, previous);
+        }
+    }
+    if (!lh_null_eq(dib))
+    {
+        (void)DeleteObject(dib);
+    }
+    (void)DeleteDC(mem);
+    return shown;
+}
+
 lh_int_t
 lh_os_system_window_get_width(lh_os_system_window_handle_t self)
 {
@@ -295,7 +615,16 @@ lh_os_system_window_get_client_width(lh_os_system_window_handle_t self)
     {
         return 0;
     }
-    return client.right - client.left;
+    {
+        const lh_int_t span = client.right - client.left;
+        const lh_int_t margin =
+            lh_os_system_win_window_shadow_margin(lh_os_system_win_window_native(self));
+        if (margin > 0 && span > margin * 2)
+        {
+            return span - margin * 2;
+        }
+        return span;
+    }
 }
 
 lh_int_t
@@ -311,7 +640,16 @@ lh_os_system_window_get_client_height(lh_os_system_window_handle_t self)
     {
         return 0;
     }
-    return client.bottom - client.top;
+    {
+        const lh_int_t span = client.bottom - client.top;
+        const lh_int_t margin =
+            lh_os_system_win_window_shadow_margin(lh_os_system_win_window_native(self));
+        if (margin > 0 && span > margin * 2)
+        {
+            return span - margin * 2;
+        }
+        return span;
+    }
 }
 
 lh_bool_t
@@ -322,6 +660,15 @@ lh_os_system_window_present(lh_os_system_window_handle_t self, const lh_ptr pixe
         height <= 0 || x < 0 || y < 0 || stride < x + width)
     {
         return lh_bool_false;
+    }
+
+    {
+        const lh_os_system_win_hwnd_t hwnd = lh_os_system_win_window_native(self);
+        if (lh_os_system_win_window_shadow_spread(hwnd) > 0 &&
+            !lh_null_eq(GetPropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CLIENT_FRAME)))
+        {
+            return lh_os_system_win_window_present_shadow(hwnd, pixels, stride);
+        }
     }
 
     /* A DIB's 32-bit pixels are b, g, r, unused: copy the area over with red
@@ -443,7 +790,8 @@ lh_os_system_win_window_apply_region(lh_os_system_win_hwnd_t hwnd)
         radius = lh_cast_static(lh_int_t, lh_cast_reinterpret(lh_usize_t, stored) - 1U);
     }
     const lh_bool_t fitted = IsZoomed(hwnd) != 0 || IsIconic(hwnd) != 0;
-    if (radius <= 0 || fitted)
+    /* A region clips the shadow off, so the alpha bitmap is the outline. */
+    if (radius <= 0 || fitted || lh_os_system_win_window_shadow_spread(hwnd) > 0)
     {
         (void)SetWindowRgn(hwnd, lh_null, lh_bool_true);
     }
@@ -466,6 +814,75 @@ lh_os_system_win_window_apply_region(lh_os_system_win_hwnd_t hwnd)
         }
     }
     (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CORNER_GUARD);
+}
+
+/* Grows the window by the shadow padding and marks it layered, or puts both
+   back when the shadow is off. The padding is stored before the resize so
+   the size message reports the card, not the padding. */
+void
+lh_os_system_win_window_place_shadow(lh_os_system_win_hwnd_t hwnd)
+{
+    const lh_bool_t client = !lh_null_eq(GetPropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CLIENT_FRAME));
+    const lh_bool_t fitted = IsZoomed(hwnd) != 0 || IsIconic(hwnd) != 0;
+    const lh_int_t spread = lh_os_system_win_window_shadow_spread(hwnd);
+    const lh_int_t have = lh_os_system_win_window_stored(hwnd, LH_OS_SYSTEM_WIN_WINDOW_SHADOW_PAD);
+    const lh_int_t want = client && !fitted ? spread : 0;
+    const lh_long_t layered = lh_cast_static(lh_long_t, LH_OS_SYSTEM_WIN_WS_EX_LAYERED);
+    lh_long_t extra = GetWindowLongW(hwnd, LH_OS_SYSTEM_WIN_GWL_EXSTYLE);
+    const lh_long_t previous = extra;
+    if (spread <= 0 && have <= 0 && (extra & layered) == 0)
+    {
+        if (client)
+        {
+            lh_os_system_win_window_apply_region(hwnd);
+        }
+        else
+        {
+            (void)SetWindowRgn(hwnd, lh_null, lh_bool_true);
+        }
+        return;
+    }
+    if (client && spread > 0)
+    {
+        extra |= layered;
+    }
+    else
+    {
+        extra &= ~layered;
+    }
+    (void)SetWindowLongW(hwnd, LH_OS_SYSTEM_WIN_GWL_EXSTYLE, extra);
+    if (want != have && !fitted)
+    {
+        lh_os_system_win_rect_t bounds;
+        if (GetWindowRect(hwnd, lh_addr_of(bounds)) != 0)
+        {
+            const lh_int_t delta = want - have;
+            lh_os_system_win_window_store(hwnd, LH_OS_SYSTEM_WIN_WINDOW_SHADOW_PAD, want);
+            if (SetWindowPos(hwnd, lh_null, bounds.left - delta, bounds.top - delta,
+                             (bounds.right - bounds.left) + delta * 2,
+                             (bounds.bottom - bounds.top) + delta * 2,
+                             LH_OS_SYSTEM_WIN_SWP_NOZORDER | LH_OS_SYSTEM_WIN_SWP_NOACTIVATE |
+                                 LH_OS_SYSTEM_WIN_SWP_FRAMECHANGED) == 0)
+            {
+                lh_os_system_win_window_store(hwnd, LH_OS_SYSTEM_WIN_WINDOW_SHADOW_PAD, have);
+            }
+        }
+    }
+    else if (extra != previous)
+    {
+        (void)SetWindowPos(hwnd, lh_null, 0, 0, 0, 0,
+                           LH_OS_SYSTEM_WIN_SWP_NOMOVE | LH_OS_SYSTEM_WIN_SWP_NOSIZE |
+                               LH_OS_SYSTEM_WIN_SWP_NOZORDER | LH_OS_SYSTEM_WIN_SWP_NOACTIVATE |
+                               LH_OS_SYSTEM_WIN_SWP_FRAMECHANGED);
+    }
+    if (client)
+    {
+        lh_os_system_win_window_apply_region(hwnd);
+    }
+    else
+    {
+        (void)SetWindowRgn(hwnd, lh_null, lh_bool_true);
+    }
 }
 
 void
@@ -502,13 +919,30 @@ lh_os_system_win_window_hit_test(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_
         return LH_OS_SYSTEM_WIN_HTCLIENT;
     }
 
-    const lh_int_t width = client.right - client.left;
-    const lh_int_t height = client.bottom - client.top;
+    lh_int_t width = client.right - client.left;
+    lh_int_t height = client.bottom - client.top;
+    const lh_int_t margin = lh_os_system_win_window_shadow_margin(hwnd);
     const lh_int_t border = LH_OS_SYSTEM_WIN_WINDOW_BORDER;
-    const lh_bool_t left = point.x < border;
-    const lh_bool_t right = point.x >= width - border;
-    const lh_bool_t top = point.y < border;
-    const lh_bool_t bottom = point.y >= height - border;
+    lh_bool_t left;
+    lh_bool_t right;
+    lh_bool_t top;
+    lh_bool_t bottom;
+    if (margin > 0)
+    {
+        if (point.x < margin || point.y < margin || point.x >= width - margin ||
+            point.y >= height - margin)
+        {
+            return LH_OS_SYSTEM_WIN_HTTRANSPARENT;
+        }
+        point.x -= margin;
+        point.y -= margin;
+        width -= margin * 2;
+        height -= margin * 2;
+    }
+    left = point.x < border;
+    right = point.x >= width - border;
+    top = point.y < border;
+    bottom = point.y >= height - border;
     if (top && left)
     {
         return LH_OS_SYSTEM_WIN_HTTOPLEFT;
@@ -586,14 +1020,7 @@ lh_os_system_window_set_frame(lh_os_system_window_handle_t self, lh_int_t frame)
         lh_os_system_win_window_use_style(hwnd, LH_OS_SYSTEM_WIN_WS_FRAME_SYSTEM, lh_bool_false);
     }
     (void)RemovePropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CORNER_GUARD);
-    if (client)
-    {
-        lh_os_system_win_window_apply_region(hwnd);
-    }
-    else
-    {
-        (void)SetWindowRgn(hwnd, lh_null, lh_bool_true);
-    }
+    lh_os_system_win_window_place_shadow(hwnd);
 }
 
 lh_int_t
@@ -644,6 +1071,37 @@ lh_os_system_window_get_corner_radius(lh_os_system_window_handle_t self)
         return 0;
     }
     return lh_cast_static(lh_int_t, lh_cast_reinterpret(lh_usize_t, stored) - 1U);
+}
+
+void
+lh_os_system_window_set_shadow(lh_os_system_window_handle_t self, lh_int_t spread)
+{
+    lh_os_system_win_hwnd_t hwnd;
+    if (!lh_os_system_window_is_valid(self))
+    {
+        return;
+    }
+    if (spread < 0)
+    {
+        spread = 0;
+    }
+    hwnd = lh_os_system_win_window_native(self);
+    if (lh_os_system_win_window_shadow_spread(hwnd) == spread)
+    {
+        return;
+    }
+    lh_os_system_win_window_store(hwnd, LH_OS_SYSTEM_WIN_WINDOW_SHADOW, spread);
+    lh_os_system_win_window_place_shadow(hwnd);
+}
+
+lh_int_t
+lh_os_system_window_get_shadow(lh_os_system_window_handle_t self)
+{
+    if (!lh_os_system_window_is_valid(self))
+    {
+        return 0;
+    }
+    return lh_os_system_win_window_shadow_spread(lh_os_system_win_window_native(self));
 }
 
 void
@@ -775,13 +1233,25 @@ static void
 lh_os_system_win_window_emit_pointer(lh_os_system_win_hwnd_t hwnd, lh_uint_t type,
                                      lh_os_system_win_lparam_t lparam, lh_int_t button)
 {
-    const lh_int_t x = lh_cast_static(lh_sshort_t, lh_cast_static(lh_ushort_t, lparam & 0xFFFF));
-    const lh_int_t y =
-        lh_cast_static(lh_sshort_t, lh_cast_static(lh_ushort_t, (lparam >> 16) & 0xFFFF));
-    if (y < 0)
+    lh_int_t x = lh_cast_static(lh_sshort_t, lh_cast_static(lh_ushort_t, lparam & 0xFFFF));
+    lh_int_t y = lh_cast_static(lh_sshort_t, lh_cast_static(lh_ushort_t, (lparam >> 16) & 0xFFFF));
+    lh_os_system_win_rect_t client;
+    lh_int_t margin;
+    lh_int_t width;
+    lh_int_t height;
+    if (GetClientRect(hwnd, lh_addr_of(client)) == 0)
     {
         return;
     }
+    margin = lh_os_system_win_window_shadow_margin(hwnd);
+    width = client.right - client.left;
+    height = client.bottom - client.top;
+    if (x < margin || y < margin || x >= width - margin || y >= height - margin)
+    {
+        return;
+    }
+    x -= margin;
+    y -= margin;
     lh_os_system_window_emit(lh_os_system_win_window_handle_of(hwnd), type, x, y, 0, 0, button);
 }
 
@@ -873,6 +1343,10 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_dwor
         return DefWindowProcW(hwnd, msg, wparam, lparam);
     case LH_OS_SYSTEM_WIN_WM_SIZE:
     {
+        if (!lh_null_eq(GetPropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_SHADOW_GUARD)))
+        {
+            return 0;
+        }
         lh_os_system_window_emit(
             lh_os_system_win_window_handle_of(hwnd), lh_os_system_window_event_resize, 0, 0,
             lh_os_system_window_get_client_width(lh_os_system_win_window_handle_of(hwnd)),

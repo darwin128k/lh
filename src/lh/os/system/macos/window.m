@@ -306,6 +306,20 @@ lh_os_system_window_begin_move(lh_os_system_window_handle_t self)
     (void)self;
 }
 
+void
+lh_os_system_window_set_shadow(lh_os_system_window_handle_t self, lh_int_t spread)
+{
+    (void)self;
+    (void)spread;
+}
+
+lh_int_t
+lh_os_system_window_get_shadow(lh_os_system_window_handle_t self)
+{
+    (void)self;
+    return 0;
+}
+
 lh_int_t
 lh_os_system_window_get_width(lh_os_system_window_handle_t self)
 {

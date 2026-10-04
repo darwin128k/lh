@@ -128,6 +128,18 @@ lh_os_window_get_corner_radius(const lh_os_window_t *self)
 }
 
 void
+lh_os_window_set_shadow(lh_os_window_t *self, lh_int_t spread)
+{
+    lh_os_system_window_set_shadow(lh_os_window_get_handle(self), spread);
+}
+
+lh_int_t
+lh_os_window_get_shadow(const lh_os_window_t *self)
+{
+    return lh_os_system_window_get_shadow(lh_os_window_get_handle(self));
+}
+
+void
 lh_os_window_set_dark(lh_os_window_t *self, lh_bool_t dark)
 {
     lh_os_system_window_set_dark(lh_os_window_get_handle(self), dark);

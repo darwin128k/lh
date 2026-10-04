@@ -180,7 +180,7 @@ lh_os_system_window_get_frame(lh_os_system_window_handle_t self);
  * Zero is square. The shape is applied while the frame is
  * ::LH_OS_SYSTEM_WINDOW_FRAME_CLIENT. A maximized or minimized window stays
  * square until it is restored. The system frame keeps the value and does
- * not clip itself.
+ * not clip itself. A shadow uses the same radius for its outline.
  */
 void
 lh_os_system_window_set_corner_radius(lh_os_system_window_handle_t self, lh_int_t radius);
@@ -190,6 +190,25 @@ lh_os_system_window_set_corner_radius(lh_os_system_window_handle_t self, lh_int_
  */
 lh_int_t
 lh_os_system_window_get_corner_radius(lh_os_system_window_handle_t self);
+
+/**
+ * @brief Draw a soft shadow of @p spread pixels around @p self.
+ *
+ * Zero removes it. The shadow lies outside the canvas, so the caller's
+ * pixels stay the card and the window grows by @p spread on every side.
+ * A client frame keeps its corner radius; the outline is the window's own
+ * alpha, so the shadow can follow a custom shape. A maximized or minimized
+ * window drops the shadow until it is restored. Where the system has no
+ * such shadow, the call changes nothing.
+ */
+void
+lh_os_system_window_set_shadow(lh_os_system_window_handle_t self, lh_int_t spread);
+
+/**
+ * @brief Shadow spread last set on @p self, or zero when none was set.
+ */
+lh_int_t
+lh_os_system_window_get_shadow(lh_os_system_window_handle_t self);
 
 /**
  * @brief Ask the system for a dark caption on @p self.
@@ -262,7 +281,8 @@ lh_os_system_window_get_height(lh_os_system_window_handle_t self);
  *
  * This is the canvas. With the system frame the OS caption is outside it.
  * With the client frame the caption is gone and this is the whole client,
- * so the caller can paint that strip. Zero when @p self is not a live window.
+ * so the caller can paint that strip. A shadow drawn around the window is
+ * not part of this canvas. Zero when @p self is not a live window.
  */
 lh_int_t
 lh_os_system_window_get_client_width(lh_os_system_window_handle_t self);

@@ -84,4 +84,17 @@ SetTextColor(lh_os_system_win_hdc_t hdc, lh_os_system_win_dword_t color);
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 TextOutW(lh_os_system_win_hdc_t hdc, lh_int_t x, lh_int_t y, lh_wstr_cptr lpString, lh_int_t c);
 
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_hdc_t LH_OS_SYSTEM_WIN_CALL
+CreateCompatibleDC(lh_os_system_win_hdc_t hdc);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+DeleteDC(lh_os_system_win_hdc_t hdc);
+
+/* A 32-bit top-down DIB when `biHeight` is negative. `ppvBits` receives the
+   pixels. Present since Windows 95. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
+CreateDIBSection(lh_os_system_win_hdc_t hdc, const lh_os_system_win_bitmapinfoheader_t *pbmi,
+                 lh_os_system_win_uint_t usage, lh_ptr *ppvBits, lh_os_system_win_handle_t hSection,
+                 lh_os_system_win_dword_t offset);
+
 #endif /* LH_SRC_OS_SYSTEM_WIN_GDI32_H */

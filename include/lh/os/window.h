@@ -182,6 +182,19 @@ lh_int_t
 lh_os_window_get_corner_radius(const lh_os_window_t *self);
 
 /**
+ * @brief Draw a soft shadow around @p self; see
+ *        ::lh_os_system_window_set_shadow.
+ */
+void
+lh_os_window_set_shadow(lh_os_window_t *self, lh_int_t spread);
+
+/**
+ * @brief Shadow spread last set on @p self, in pixels.
+ */
+lh_int_t
+lh_os_window_get_shadow(const lh_os_window_t *self);
+
+/**
  * @brief Ask for a dark caption on @p self; see
  *        ::lh_os_system_window_set_dark.
  */

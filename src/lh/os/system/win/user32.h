@@ -13,6 +13,7 @@
 #ifndef LH_SRC_OS_SYSTEM_WIN_USER32_H
 #define LH_SRC_OS_SYSTEM_WIN_USER32_H
 
+#include <lh/byte.h>
 #include <lh/cast/static.h>
 #include <lh/numeric/types.h>
 #include <lh/os/system/win/types.h>
@@ -90,6 +91,24 @@ struct lh_os_system_win_point
     lh_int_t y;
 };
 typedef struct lh_os_system_win_point lh_os_system_win_point_t;
+
+/* `SIZE`. */
+struct lh_os_system_win_size
+{
+    lh_int_t cx;
+    lh_int_t cy;
+};
+typedef struct lh_os_system_win_size lh_os_system_win_size_t;
+
+/* `BLENDFUNCTION`. Four bytes, in the order UpdateLayeredWindow reads. */
+struct lh_os_system_win_blend
+{
+    lh_byte_t BlendOp;
+    lh_byte_t BlendFlags;
+    lh_byte_t SourceConstantAlpha;
+    lh_byte_t AlphaFormat;
+};
+typedef struct lh_os_system_win_blend lh_os_system_win_blend_t;
 
 /* `MINMAXINFO`. The maximized position and size are what a client-frame
    window uses so maximize stops at the work area. */
@@ -207,6 +226,11 @@ typedef struct lh_os_system_win_wndclassexw lh_os_system_win_wndclassexw_t;
 /* `CreateWindowExW` extended styles. */
 #define LH_OS_SYSTEM_WIN_WS_EX_CLIENTEDGE 0x00000200
 #define LH_OS_SYSTEM_WIN_WS_EX_APPWINDOW 0x00040000
+/* Per-pixel alpha. Present since Windows 2000, so XP has it. */
+#define LH_OS_SYSTEM_WIN_WS_EX_LAYERED 0x00080000
+#define LH_OS_SYSTEM_WIN_ULW_ALPHA 0x00000002
+#define LH_OS_SYSTEM_WIN_AC_SRC_OVER 0
+#define LH_OS_SYSTEM_WIN_AC_SRC_ALPHA 1
 
 /* `CW_USEDEFAULT` lets the OS pick the position/size. */
 #define LH_OS_SYSTEM_WIN_CW_USEDEFAULT (lh_cast_static(lh_int_t, 0x80000000))
@@ -233,6 +257,8 @@ typedef struct lh_os_system_win_wndclassexw lh_os_system_win_wndclassexw_t;
 #define LH_OS_SYSTEM_WIN_HTBOTTOMLEFT 16
 #define LH_OS_SYSTEM_WIN_HTBOTTOMRIGHT 17
 #define LH_OS_SYSTEM_WIN_HTCLOSE 20
+/* A hit in this spot falls through to whatever is behind the window. */
+#define LH_OS_SYSTEM_WIN_HTTRANSPARENT (-1)
 
 /* `SetWindowPos` flags. `FRAMECHANGED` applies a new client area. */
 #define LH_OS_SYSTEM_WIN_SWP_NOSIZE 0x0001
@@ -326,6 +352,15 @@ GetDC(lh_os_system_win_hwnd_t hWnd);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
 ReleaseDC(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_hdc_t hDC);
+
+/* Puts a premultiplied 32-bit bitmap on a layered window. `pptDst` null
+   keeps the current position. Present since Windows 2000. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+UpdateLayeredWindow(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_hdc_t hdcDst,
+                    lh_os_system_win_point_t *pptDst, lh_os_system_win_size_t *psize,
+                    lh_os_system_win_hdc_t hdcSrc, lh_os_system_win_point_t *pptSrc,
+                    lh_os_system_win_dword_t crKey, lh_os_system_win_blend_t *pblend,
+                    lh_os_system_win_dword_t dwFlags);
 
 /* `LoadCursorW` (for the arrow cursor on the class). */
 
