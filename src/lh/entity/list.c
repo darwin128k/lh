@@ -12,7 +12,7 @@ lh_void
 lh_entity_list_construct(lh_entity_t *self)
 {
     lh_entity_list_t *const list = lh_ptr_rcast(lh_entity_list_t, self);
-    list->font = lh_addr_of(lh_ui_font_basic);
+    list->font = lh_ui_font_get_default();
     list->mode = LH_ENTITY_GROUP_ONE;
     list->row = 22;
 }

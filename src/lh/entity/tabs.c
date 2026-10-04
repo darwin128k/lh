@@ -32,7 +32,7 @@ lh_void
 lh_entity_tabs_construct(lh_entity_t *self)
 {
     lh_entity_tabs_t *const tabs = lh_ptr_rcast(lh_entity_tabs_t, self);
-    tabs->font = lh_addr_of(lh_ui_font_basic);
+    tabs->font = lh_ui_font_get_default();
     tabs->bar = (lh_entity_group_t *)lh_entity_create(&lh_entity_group_class, self);
     tabs->pages = (lh_entity_pages_t *)lh_entity_create(&lh_entity_pages_class, self);
     lh_entity_group_set_mode(tabs->bar, LH_ENTITY_GROUP_ONE);

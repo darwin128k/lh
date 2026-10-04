@@ -13,7 +13,7 @@ const lh_char_t *const lh_entity_keys_row[4] = {"1234567890", "qwertyuiop", "asd
 lh_void
 lh_entity_keys_construct(lh_entity_t *self)
 {
-    lh_ptr_rcast(lh_entity_keys_t, self)->font = lh_addr_of(lh_ui_font_basic);
+    lh_ptr_rcast(lh_entity_keys_t, self)->font = lh_ui_font_get_default();
 }
 
 lh_int_t
@@ -113,12 +113,20 @@ lh_entity_keys_on_event(lh_entity_t *self, lh_entity_event_t *event)
         for (col = 0; col < n; ++col)
         {
             lh_char_t label[2];
+            lh_math_vec2_t measured;
+            lh_int_t glyph_width;
+            lh_int_t glyph_height;
             label[0] = line[col] == '\b' ? '<' : line[col];
             label[1] = 0;
+            measured = lh_ui_font_measure(keys->font, label);
+            glyph_width = (lh_int_t)lh_math_vec2_get_x(lh_addr_of(measured));
+            glyph_height = (lh_int_t)lh_math_vec2_get_y(lh_addr_of(measured));
             lh_ui_font_draw(keys->font, canvas,
-                            lh_math_rect_get_x(lh_addr_of(bounds)) + col * cell_w + 2,
-                            lh_math_rect_get_y(lh_addr_of(bounds)) + row * cell_h + 2, label,
-                            lh_ui_style_get_text_color(style));
+                            lh_math_rect_get_x(lh_addr_of(bounds)) + col * cell_w +
+                                (cell_w - glyph_width) / 2,
+                            lh_math_rect_get_y(lh_addr_of(bounds)) + row * cell_h +
+                                (cell_h - glyph_height) / 2,
+                            label, lh_ui_style_get_text_color(style));
         }
     }
 }

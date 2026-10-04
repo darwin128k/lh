@@ -33,7 +33,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Class of ::lh_entity_spin_t, derived from ::lh_entity_2d_class.
  *
- * A new spin box steps by 1 and uses ::lh_ui_font_basic.
+ * A new spin box steps by 1 and uses ::lh_ui_font_get_default.
  */
 extern const lh_entity_class_t lh_entity_spin_class;
 

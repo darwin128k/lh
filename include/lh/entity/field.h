@@ -39,7 +39,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Class of ::lh_entity_field_t, derived from ::lh_entity_2d_class.
  *
- * A new field is one line and uses ::lh_ui_font_basic. It has no buffer
+ * A new field is one line and uses ::lh_ui_font_get_default. It has no buffer
  * until ::lh_entity_field_set_buffer.
  */
 extern const lh_entity_class_t lh_entity_field_class;

@@ -282,7 +282,9 @@ the box.
 ## 6. Widgets that ship
 
 The ready ones share a few records, so a new control is usually one of
-these with a different paint:
+these with a different paint. Text starts in `lh_ui_font_get_default`,
+the font named by `LH_LIBRARY_OPTION_UI_FONT` (Roboto, unless the build
+picks another).
 
 | What you want | Header | Shared with |
 |---|---|---|

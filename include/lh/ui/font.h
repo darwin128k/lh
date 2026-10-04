@@ -5,9 +5,11 @@
  * A font does not open a file and does not ask the operating system for
  * glyphs. It wraps a ::lh_memory_view_t the caller already holds: a static
  * table, a buffer, or bytes embedded in the program. The same view is what
- * a window, a browser canvas, and a small display draw from. ::lh_ui_font_basic
- * is that wrapper over the built-in 8 by 8 ASCII table. A label points at
- * a font the way an entity points at a style; it does not own it.
+ * a window, a browser canvas, and a small display draw from. A new label
+ * and the other text widgets start with ::lh_ui_font_get_default, which is
+ * ::LH_LIBRARY_OPTION_UI_FONT (::lh_ui_font_roboto unless the build names
+ * another). A label points at a font the way an entity points at a style;
+ * it does not own it.
  */
 
 #ifndef LH_UI_FONT_H
@@ -37,15 +39,18 @@ typedef struct lh_ui_font lh_ui_font_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Built-in 8 by 8 ASCII font, glyphs 32..126, wrapping its own table.
- */
-extern const lh_ui_font_t lh_ui_font_basic;
-
-/**
  * @brief Roboto Regular at 16 pixels, glyphs 32..126, 4 bits per pixel.
  *        Baked from the TTF; the file is not opened at runtime.
+ *        This is ::LH_LIBRARY_OPTION_UI_FONT unless the build names another.
  */
 extern const lh_ui_font_t lh_ui_font_roboto;
+
+/**
+ * @brief The font a new label, field, list, spin box, keyboard, and tab
+ *        title start with: ::LH_LIBRARY_OPTION_UI_FONT.
+ */
+const lh_ui_font_t *
+lh_ui_font_get_default(void);
 
 /**
  * @brief Point @p self at glyph memory. The bytes are not copied.

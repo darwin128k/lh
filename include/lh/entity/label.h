@@ -35,7 +35,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Class of ::lh_entity_label_t, derived from ::lh_entity_2d_class.
  *
- * A new label uses ::lh_ui_font_basic and has no text, so its box is empty
+ * A new label uses ::lh_ui_font_get_default and has no text, so its box is empty
  * until ::lh_entity_label_set_text.
  */
 extern const lh_entity_class_t lh_entity_label_class;

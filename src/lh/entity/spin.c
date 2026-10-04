@@ -13,7 +13,7 @@ lh_entity_spin_construct(lh_entity_t *self)
 {
     lh_entity_spin_t *const spin = lh_ptr_rcast(lh_entity_spin_t, self);
     lh_entity_range_reset(lh_addr_of(spin->range));
-    spin->font = lh_addr_of(lh_ui_font_basic);
+    spin->font = lh_ui_font_get_default();
     spin->step = 1;
 }
 

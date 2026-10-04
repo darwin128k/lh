@@ -47,7 +47,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Class of ::lh_entity_list_t, derived from ::lh_entity_2d_class.
  *
- * A new list is ::LH_ENTITY_GROUP_ONE, draws with ::lh_ui_font_basic, and
+ * A new list is ::LH_ENTITY_GROUP_ONE, draws with ::lh_ui_font_get_default, and
  * gives each row 22 pixels.
  */
 extern const lh_entity_class_t lh_entity_list_class;

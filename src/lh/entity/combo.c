@@ -25,7 +25,7 @@ lh_void
 lh_entity_combo_construct(lh_entity_t *self)
 {
     lh_entity_combo_t *const combo = lh_ptr_rcast(lh_entity_combo_t, self);
-    combo->font = lh_addr_of(lh_ui_font_basic);
+    combo->font = lh_ui_font_get_default();
     combo->list =
         (lh_entity_list_t *)lh_entity_create(&lh_entity_list_class, self);
     lh_entity_add_flags(lh_ptr_rcast(lh_entity_t, combo->list), lh_entity_flags_hidden);

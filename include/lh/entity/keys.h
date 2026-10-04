@@ -31,7 +31,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Class of ::lh_entity_keys_t, derived from ::lh_entity_2d_class.
  *
- * A new keyboard uses ::lh_ui_font_basic.
+ * A new keyboard uses ::lh_ui_font_get_default.
  */
 extern const lh_entity_class_t lh_entity_keys_class;
 

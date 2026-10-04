@@ -12,7 +12,7 @@ lh_void
 lh_entity_field_construct(lh_entity_t *self)
 {
     lh_entity_field_t *const field = lh_ptr_rcast(lh_entity_field_t, self);
-    field->font = lh_addr_of(lh_ui_font_basic);
+    field->font = lh_ui_font_get_default();
     field->lines = 1;
 }
 

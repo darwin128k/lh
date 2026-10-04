@@ -17,7 +17,7 @@ lh_entity_label_fit(lh_entity_label_t *self)
 lh_void
 lh_entity_label_construct(lh_entity_t *self)
 {
-    lh_ptr_rcast(lh_entity_label_t, self)->font = lh_addr_of(lh_ui_font_basic);
+    lh_ptr_rcast(lh_entity_label_t, self)->font = lh_ui_font_get_default();
 }
 
 lh_void

@@ -364,3 +364,16 @@ set(LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE "256" CACHE STRING
 # -----------------------------------------------------------------------------
 set(LH_LIBRARY_OPTION_UI_COVER "256" CACHE STRING
         "Anti-aliased rim width in 1/256 of a pixel. 0 is a hard edge, 256 is one pixel. Must be >= 0.")
+
+# -----------------------------------------------------------------------------
+# LH_LIBRARY_OPTION_UI_FONT
+#
+# C token naming the const lh_ui_font_t a new label, field, list, spin box,
+# keyboard, and tab title start with. Not a string. The named object must be
+# declared in lh/ui/font.h. Default is the built-in Roboto.
+#
+# CMake: -DLH_LIBRARY_OPTION_UI_FONT=lh_ui_font_roboto
+# Manual build: set in include/lh/config.h or -D on the compiler command line.
+# -----------------------------------------------------------------------------
+set(LH_LIBRARY_OPTION_UI_FONT "lh_ui_font_roboto" CACHE STRING
+        "const lh_ui_font_t new text widgets start with. A C token, default lh_ui_font_roboto.")
