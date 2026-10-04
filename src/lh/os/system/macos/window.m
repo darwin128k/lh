@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file window.m
  * @brief macOS Cocoa backend for `lh/os/system/window.h`.
  *

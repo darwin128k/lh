@@ -4,9 +4,10 @@
  *
  * The record starts with ::lh_entity_range_t. The page is how much of the
  * whole the thumb stands for, in the same units as the value. The box is
- * the thickness and the length: a taller box is vertical. The track is the
- * style background. The thumb is ::lh_entity_scroll_set_thumb, or the text
- * color when that is null. A drag sends ::LH_ENTITY_EVENT_CLICKED.
+ * the thickness and the length: a taller box is vertical. The track and the
+ * thumb are rounded to half their thickness. The track is the style
+ * background. The thumb is ::lh_entity_scroll_set_thumb, or the text color
+ * when that is null. A drag sends ::LH_ENTITY_EVENT_CLICKED.
  */
 
 #ifndef LH_ENTITY_SCROLL_H

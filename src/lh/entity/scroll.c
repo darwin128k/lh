@@ -3,6 +3,7 @@
 #include <lh/entity.h>
 #include <lh/entity/screen.h>
 #include <lh/null.h>
+#include <lh/ui/canvas.h>
 #include <lh/ui/style.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -28,7 +29,12 @@ lh_entity_scroll_paint(const lh_entity_scroll_t *self, lh_ui_canvas_t *canvas)
                lh_math_rect_get_size_width(lh_addr_of(bounds));
     length = vertical != 0 ? lh_math_rect_get_size_height(lh_addr_of(bounds))
                            : lh_math_rect_get_size_width(lh_addr_of(bounds));
-    lh_ui_canvas_fill_rect(canvas, bounds, lh_ui_style_get_bg_color(style));
+    {
+        const lh_int_t cross = vertical != 0 ? lh_math_rect_get_size_width(lh_addr_of(bounds))
+                                             : lh_math_rect_get_size_height(lh_addr_of(bounds));
+        lh_ui_canvas_fill_round(canvas, bounds, cross > 1 ? cross / 2 : 0,
+                                lh_ui_style_get_bg_color(style));
+    }
     thumb = length / 4;
     if (self->page > 0 && self->range.maximum > self->range.minimum)
     {
@@ -61,7 +67,12 @@ lh_entity_scroll_paint(const lh_entity_scroll_t *self, lh_ui_canvas_t *canvas)
     }
     color = lh_ptr_is_set(self->thumb) ? lh_ui_style_get_bg_color(self->thumb)
                                        : lh_ui_style_get_text_color(style);
-    lh_ui_canvas_fill_rect(canvas, bounds, color);
+    {
+        const lh_int_t thumb_width = lh_math_rect_get_size_width(lh_addr_of(bounds));
+        const lh_int_t thumb_height = lh_math_rect_get_size_height(lh_addr_of(bounds));
+        const lh_int_t cross = thumb_width < thumb_height ? thumb_width : thumb_height;
+        lh_ui_canvas_fill_round(canvas, bounds, cross > 1 ? cross / 2 : 0, color);
+    }
 }
 
 lh_void
@@ -94,6 +105,7 @@ lh_void
 lh_entity_scroll_construct(lh_entity_t *self)
 {
     lh_entity_scroll_t *const scroll = lh_ptr_rcast(lh_entity_scroll_t, self);
+    lh_entity_add_flags(self, lh_entity_flags_own_background);
     lh_entity_range_reset(lh_addr_of(scroll->range));
     scroll->page = 10;
 }
