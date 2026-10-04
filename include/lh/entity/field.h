@@ -2,10 +2,12 @@
  * @file field.h
  * @brief One line of text, or several, that the keyboard can edit.
  *
- * The bytes live in a buffer the caller owns. ::lh_entity_field_set_lines
- * of 1 ignores enter. More than 1 stores a new line. Keys arrive as
+ * The bytes live in a buffer the caller owns. The box is one rounded bar:
+ * the radius is half the short side. ::lh_entity_field_set_lines of 1 ignores
+ * enter. More than 1 stores a new line. Keys arrive as
  * ::LH_ENTITY_EVENT_KEY while the field is the screen focus, which a press
  * on the field takes. The caret is a one-pixel bar in the text color.
+ * On one line it sits in the vertical center of the box.
  * A key code at or above 32 is a Unicode code point, stored as UTF-8.
  * Backspace, delete and the arrows move by one code point.
  */

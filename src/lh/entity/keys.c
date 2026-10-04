@@ -76,7 +76,7 @@ lh_entity_keys_construct(lh_entity_t *self)
 }
 
 const lh_entity_class_t lh_entity_keys_class =
-    lh_entity_class_initializer(&lh_entity_2d_class, sizeof(lh_entity_keys_t),
+    lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_keys_t),
                                 lh_entity_keys_construct, lh_null, lh_null);
 
 lh_void
@@ -121,7 +121,7 @@ lh_entity_keys_break(lh_entity_keys_t *self)
 {
     lh_entity_t *row;
     lh_assert_runtime_ref(self);
-    row = lh_entity_create(&lh_entity_2d_class, lh_ptr_rcast(lh_entity_t, self));
+    row = lh_entity_create(lh_addr_of(lh_entity_2d_class), lh_ptr_rcast(lh_entity_t, self));
     lh_entity_flex_set_on(row, lh_bool_true);
     lh_entity_flex_set_justify(row, LH_ENTITY_FLEX_CENTER);
     lh_entity_flex_set_align(row, LH_ENTITY_FLEX_CENTER);
@@ -148,9 +148,6 @@ lh_entity_keys_add(lh_entity_keys_t *self, const lh_char_t *text, lh_uint_t code
     lh_entity_2d_set_size(lh_ptr_rcast(lh_entity_2d_t, button),
                           lh_math_vec2_make((lh_float_t)self->key_width,
                                             (lh_float_t)self->key_height));
-    lh_entity_flex_set_on(button, lh_bool_true);
-    lh_entity_flex_set_justify(button, LH_ENTITY_FLEX_CENTER);
-    lh_entity_flex_set_align(button, LH_ENTITY_FLEX_CENTER);
     lh_entity_button_set_pressed_style(lh_ptr_rcast(lh_entity_button_t, button), self->pressed);
     lh_entity_button_set_radius(lh_ptr_rcast(lh_entity_button_t, button), self->radius);
     label = lh_entity_create(&lh_entity_label_class, button);

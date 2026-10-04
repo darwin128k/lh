@@ -123,7 +123,7 @@ lh_ui_canvas_fill_rect(lh_ui_canvas_t *self, lh_math_rect_t rect, lh_ui_color_t 
  * on a framebuffer with no OS drawing at all.
  */
 lh_byte_t
-lh_ui_canvas_disc_coverage(lh_int_t x, lh_int_t y, lh_int_t cx, lh_int_t cy, lh_int_t radius);
+lh_ui_canvas_disc_coverage(lh_int_t x, lh_int_t y, lh_float_t cx, lh_float_t cy, lh_int_t radius);
 
 /**
  * @brief How much of the pixel (@p x, @p y) a rounded box covers, 0..255.
@@ -140,7 +140,7 @@ lh_ui_canvas_round_coverage(lh_int_t x, lh_int_t y, lh_int_t left, lh_int_t top,
  * @brief Fill a disc. The rim is ::lh_ui_canvas_disc_coverage.
  */
 lh_void
-lh_ui_canvas_fill_disc(lh_ui_canvas_t *self, lh_int_t cx, lh_int_t cy, lh_int_t radius,
+lh_ui_canvas_fill_disc(lh_ui_canvas_t *self, lh_float_t cx, lh_float_t cy, lh_int_t radius,
                        lh_ui_color_t color);
 
 /**

@@ -4,6 +4,7 @@
 #include <lh/entity/screen.h>
 #include <lh/null.h>
 #include <lh/str/format/sint.h>
+#include <lh/ui/canvas.h>
 #include <lh/ui/style.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -96,11 +97,9 @@ lh_entity_spin_side(lh_entity_t *parent, lh_entity_spin_t *spin, const lh_char_t
     lh_entity_t *const button = lh_entity_create(&lh_entity_button_class, parent);
     lh_entity_t *const label = lh_entity_create(&lh_entity_label_class, button);
     lh_entity_button_set_repeat(lh_ptr_rcast(lh_entity_button_t, button), lh_bool_true);
+    lh_entity_add_flags(button, lh_entity_flags_own_background);
     lh_entity_flex_item_set_grow(button, 1);
     lh_entity_flex_item_set_basis(button, 0);
-    lh_entity_flex_set_on(button, lh_bool_true);
-    lh_entity_flex_set_justify(button, LH_ENTITY_FLEX_CENTER);
-    lh_entity_flex_set_align(button, LH_ENTITY_FLEX_CENTER);
     lh_entity_add_flags(label, lh_entity_flags_event_bubble | lh_entity_flags_own_background);
     lh_entity_label_set_text(lh_ptr_rcast(lh_entity_label_t, label), caption);
     lh_entity_add_handler(button, lh_entity_spin_on_side, spin);
@@ -115,19 +114,40 @@ lh_entity_spin_construct(lh_entity_t *self)
     lh_entity_range_reset(lh_addr_of(spin->range));
     spin->font = lh_ui_font_get_default();
     spin->step = 1;
+    lh_entity_add_flags(self, lh_entity_flags_own_background);
     lh_entity_flex_set_on(self, lh_bool_true);
     lh_entity_flex_set_align(self, LH_ENTITY_FLEX_STRETCH);
     spin->minus = lh_entity_spin_side(self, spin, "-");
-    host = lh_entity_create(&lh_entity_2d_class, self);
+    host = lh_entity_create(lh_addr_of(lh_entity_2d_class), self);
+    lh_entity_add_flags(host, lh_entity_flags_own_background);
     lh_entity_flex_item_set_grow(host, 1);
     lh_entity_flex_item_set_basis(host, 0);
-    lh_entity_flex_set_on(host, lh_bool_true);
-    lh_entity_flex_set_justify(host, LH_ENTITY_FLEX_CENTER);
-    lh_entity_flex_set_align(host, LH_ENTITY_FLEX_CENTER);
     spin->value = lh_ptr_rcast(lh_entity_label_t, lh_entity_create(&lh_entity_label_class, host));
     lh_entity_add_flags(lh_ptr_rcast(lh_entity_t, spin->value), lh_entity_flags_own_background);
     spin->plus = lh_entity_spin_side(self, spin, "+");
     lh_entity_spin_show(spin);
+}
+
+lh_void
+lh_entity_spin_paint(const lh_entity_spin_t *self, lh_ui_canvas_t *canvas)
+{
+    const lh_entity_2d_t *const box = lh_ptr_rcast(const lh_entity_2d_t, self);
+    const lh_ui_style_t *const style = lh_entity_2d_get_style(box);
+    const lh_math_rect_t bounds = lh_entity_2d_get_screen_bounds(box);
+    const lh_math_mat4_t world = lh_entity_2d_get_world_matrix(box);
+    const lh_math_vec4_t origin = lh_math_mat4_get_column(lh_addr_of(world), 3);
+    lh_ui_color_t color;
+    if (lh_ptr_is_null(style))
+    {
+        return;
+    }
+    color = lh_ui_style_get_bg_color(style);
+    if (color.a == 0U)
+    {
+        return;
+    }
+    lh_ui_canvas_set_draw_z(canvas, lh_math_vec4_get_z(lh_addr_of(origin)));
+    lh_ui_canvas_fill_round(canvas, bounds, lh_entity_range_cap(lh_addr_of(bounds)), color);
 }
 
 lh_void
@@ -139,12 +159,13 @@ lh_entity_spin_on_event(lh_entity_t *self, lh_entity_event_t *event)
     {
         return;
     }
+    lh_entity_spin_paint(spin, lh_ptr_rcast(lh_ui_canvas_t, lh_entity_event_get_param(event)));
     lh_entity_spin_dress(self, lh_entity_2d_get_style(box), spin->font);
     lh_entity_spin_show(spin);
 }
 
 const lh_entity_class_t lh_entity_spin_class =
-    lh_entity_class_initializer(&lh_entity_2d_class, sizeof(lh_entity_spin_t),
+    lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_spin_t),
                                 lh_entity_spin_construct, lh_null, lh_entity_spin_on_event);
 
 lh_int_t

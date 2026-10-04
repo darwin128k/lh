@@ -37,6 +37,7 @@
 #include <lh/math/coord.h>
 #include <lh/math/mat4.h>
 #include <lh/math/point.h>
+#include <lh/math/pi.h>
 #include <lh/math/point3.h>
 #include <lh/math/quat.h>
 #include <lh/math/rect.h>

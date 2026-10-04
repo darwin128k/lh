@@ -22,7 +22,10 @@ how big the object is and which function answers its events. A derived class
 names its base and starts with the base's fields, so a pointer to the
 derived object is also a pointer to the base.
 
-A 2D entity adds a place, a box, a style and an effect:
+A 2D entity adds a place, a box, a style and an effect. Paint asks for the
+whole area with `lh_entity_2d_get_screen_bounds`: an integer rectangle of
+`lh_math_coord_t`. A side of it, when a formula needs one number, comes off
+that rectangle.
 
 | Piece | What it is | Who owns it |
 |---|---|---|
@@ -96,7 +99,7 @@ The same shape covers the other kinds that ship:
 |---|---|---|
 | `lh_entity_screen_class` | `lh/entity/screen.h` | The root. Create it with `lh_entity_create_root`. |
 | `lh_entity_2d_class` | `lh/entity/2d.h` | A plain box. A parent, or a hit area. |
-| `lh_entity_label_class` | `lh/entity/label.h` | One line of text. The string and the font are not copied. |
+| `lh_entity_label_class` | `lh/entity/label.h` | One line of text, aligned on both axes. The string and the font are not copied. |
 | `lh_entity_button_class` | `lh/entity/button.h` | The click above. |
 | `lh_entity_circle_class` | `lh/entity/circle.h` | A disc inscribed in the box. The edge is covered per pixel. |
 
@@ -256,7 +259,7 @@ my_pad_on_event(lh_entity_t *self, lh_entity_event_t *event)
 }
 
 const lh_entity_class_t my_pad_class = lh_entity_class_initializer(
-    &lh_entity_2d_class, sizeof(struct my_pad), lh_null, lh_null, my_pad_on_event);
+    lh_addr_of(lh_entity_2d_class), sizeof(struct my_pad), lh_null, lh_null, my_pad_on_event);
 ```
 
 Create it like any other entity:
@@ -294,17 +297,19 @@ picks another).
 | What you want | Header | Shared with |
 |---|---|---|
 | Progress bar | `lh/entity/range.h` | The value every ranged widget starts with. The track ends are rounded. |
-| Trackbar | `lh/entity/slider.h` | That value, plus a drag. The same rounded track. |
-| Knob | `lh/entity/knob.h` | The same value, turned by the pointer. The handle follows that point on the ring. |
-| Spin box | `lh/entity/spin.h` | The same value. The sides are buttons; holding one keeps stepping. |
+| Trackbar | `lh/entity/slider.h` | That value, plus a drag. The thumb is a circle as tall as the short side. |
+| Knob | `lh/entity/knob.h` | The same value, turned by the pointer. The handle is a circle inside the ring. The ring is twice as thick, so its round end is that circle. |
+| Spin box | `lh/entity/spin.h` | The same value. The sides are buttons; holding one keeps stepping. The box is one rounded bar. |
 | Scrollbar | `lh/entity/scroll.h` | The same value. The thumb style and the box size are the customization. |
 | Scrollable page | `lh/entity/view.h` | A clip. The scrollbar's value is the offset. |
 | Check, switch, toggle | `lh/entity/option.h` | One boolean. Three classes. |
 | One-or-many group | `lh/entity/group.h` | Parent of those options. |
-| List | `lh/entity/list.h` | The group's one-or-many mode, on rows. |
+| List | `lh/entity/list.h` | The group's one-or-many mode. Each row is a button. `set_radius` rounds the box. |
 | Combo box, dropdown | `lh/entity/combo.h` | A list that opens under the box. |
-| Tabs, pages | `lh/entity/tabs.h`, `lh/entity/pages.h` | An exclusive group of toggles, and one visible child. |
-| Text field | `lh/entity/field.h` | One buffer. `set_lines(1)` is a single line. |
+| Tabs | `lh/entity/tabs.h` | A bar of buttons. `set_radius` rounds it. The active one is a plain fill. |
+| Pages | `lh/entity/pages.h` | One child visible at a time. |
+| Sheets | `lh/entity/sheets.h` | A tab bar over a stack of pages. |
+| Text field | `lh/entity/field.h` | One buffer. `set_lines(1)` is a single line, and its caret is centered in the box. The box is rounded. |
 | On-screen keyboard | `lh/entity/keys.h` | Rows of buttons, corners rounded by 6 pixels. `add` takes a caption and a code; `break` starts the next row. |
 | Picture | `lh/entity/image.h` | A child of a button: icon, words, or both. |
 | Hold | `lh/entity/button.h` | The same button. `set_repeat` answers `LH_ENTITY_EVENT_TICK` with another click. |

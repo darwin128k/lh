@@ -111,7 +111,7 @@ lh_entity_combo_on_event(lh_entity_t *self, lh_entity_event_t *event)
 }
 
 const lh_entity_class_t lh_entity_combo_class =
-    lh_entity_class_initializer(&lh_entity_2d_class, sizeof(lh_entity_combo_t),
+    lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_combo_t),
                                 lh_entity_combo_construct, lh_null, lh_entity_combo_on_event);
 
 lh_entity_list_t *

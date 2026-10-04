@@ -161,6 +161,82 @@ lh_ui_font_measure(const lh_ui_font_t *self, const lh_char_t *text)
                              lh_cast_static(lh_float_t, lines * self->glyph_height));
 }
 
+lh_math_rect_t
+lh_ui_font_ink(const lh_ui_font_t *self, const lh_char_t *text)
+{
+    lh_int_t pen_x = 0;
+    lh_int_t pen_y = 0;
+    lh_int_t left = 0;
+    lh_int_t top = 0;
+    lh_int_t right = 0;
+    lh_int_t bottom = 0;
+    lh_bool_t any = lh_bool_false;
+    const lh_int_t levels = (1 << self->bpp) - 1;
+
+    lh_assert_runtime_ref(self);
+    if (lh_ptr_is_null(text) || text[0] == '\0' || levels <= 0)
+    {
+        return lh_math_rect_make_empty();
+    }
+    for (const lh_char_t *cursor = text; *cursor != '\0'; ++cursor)
+    {
+        const lh_byte_t *glyph;
+        lh_int_t row;
+        if (*cursor == '\n')
+        {
+            pen_x = 0;
+            pen_y += self->glyph_height;
+            continue;
+        }
+        glyph = lh_ui_font_glyph(self, *cursor);
+        if (lh_ptr_is_set(glyph))
+        {
+            for (row = 0; row < self->glyph_height; ++row)
+            {
+                const lh_byte_t *const bits = glyph + row * self->row_bytes;
+                lh_int_t column;
+                for (column = 0; column < self->glyph_width; ++column)
+                {
+                    const lh_int_t bit = column * self->bpp;
+                    const lh_int_t value =
+                        (bits[bit / 8] >> (8 - self->bpp - (bit % 8))) & levels;
+                    lh_int_t x;
+                    lh_int_t y;
+                    if (value == 0)
+                    {
+                        continue;
+                    }
+                    x = pen_x + column;
+                    y = pen_y + row;
+                    if (any == lh_bool_false || x < left)
+                    {
+                        left = x;
+                    }
+                    if (any == lh_bool_false || y < top)
+                    {
+                        top = y;
+                    }
+                    if (any == lh_bool_false || x >= right)
+                    {
+                        right = x + 1;
+                    }
+                    if (any == lh_bool_false || y >= bottom)
+                    {
+                        bottom = y + 1;
+                    }
+                    any = lh_bool_true;
+                }
+            }
+        }
+        pen_x += lh_ui_font_advance(self, *cursor);
+    }
+    if (any == lh_bool_false)
+    {
+        return lh_math_rect_make_empty();
+    }
+    return lh_math_rect_make(left, top, right - left, bottom - top);
+}
+
 lh_void
 lh_ui_font_draw(const lh_ui_font_t *self, lh_ui_canvas_t *canvas, lh_int_t x, lh_int_t y,
                 const lh_char_t *text, lh_ui_color_t color)

@@ -71,11 +71,11 @@ lh_entity_scroll_apply(lh_entity_scroll_t *self, const lh_math_vec2_t *point)
 {
     const lh_math_rect_t bounds =
         lh_entity_2d_get_screen_bounds(lh_ptr_rcast(const lh_entity_2d_t, self));
-    const lh_math_vec2_t size = lh_entity_2d_get_size(lh_ptr_rcast(const lh_entity_2d_t, self));
     const lh_int_t before = lh_entity_range_get_value(lh_addr_of(self->range));
     lh_int_t pos;
     lh_int_t span;
-    if (lh_math_vec2_get_y(lh_addr_of(size)) > lh_math_vec2_get_x(lh_addr_of(size)))
+    if (lh_math_rect_get_size_height(lh_addr_of(bounds)) >
+        lh_math_rect_get_size_width(lh_addr_of(bounds)))
     {
         pos = (lh_int_t)lh_math_vec2_get_y(point) - lh_math_rect_get_y(lh_addr_of(bounds));
         span = lh_math_rect_get_size_height(lh_addr_of(bounds));
@@ -131,7 +131,7 @@ lh_entity_scroll_on_event(lh_entity_t *self, lh_entity_event_t *event)
 }
 
 const lh_entity_class_t lh_entity_scroll_class =
-    lh_entity_class_initializer(&lh_entity_2d_class, sizeof(lh_entity_scroll_t),
+    lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_scroll_t),
                                 lh_entity_scroll_construct, lh_null, lh_entity_scroll_on_event);
 
 lh_int_t

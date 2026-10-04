@@ -2,7 +2,7 @@
  * @file pages.h
  * @brief One child visible at a time. The others are hidden.
  *
- * Tabs are this plus a row of toggles. The page entities are the children,
+ * The page entities are the children,
  * in order. ::lh_entity_pages_set_index shows one and hides the rest.
  */
 

@@ -3,9 +3,10 @@
  * @brief A value with a minus side and a plus side.
  *
  * The record starts with ::lh_entity_range_t. The sides are buttons and the
- * number between them is a label. A press steps by ::lh_entity_spin_get_step,
- * and holding a side keeps stepping, the same repeat a button uses. A change
- * sends ::LH_ENTITY_EVENT_CLICKED.
+ * number between them is a label. The box itself is one rounded bar: the
+ * radius is half the short side, the same cap a track uses. A press steps
+ * by ::lh_entity_spin_get_step, and holding a side keeps stepping, the same
+ * repeat a button uses. A change sends ::LH_ENTITY_EVENT_CLICKED.
  */
 
 #ifndef LH_ENTITY_SPIN_H

@@ -162,6 +162,9 @@ lh_entity_2d_get_world_matrix(const lh_entity_2d_t *self);
  * @brief The whole pixels the box touches on screen: the bounding box of
  *        its corners, rounded outward. Empty when there is no box. Depth
  *        is ignored (seen straight along z).
+ *
+ * The result is an integer rectangle (::lh_math_coord_t). A caller that
+ * wants one side takes it from this value.
  */
 lh_math_rect_t
 lh_entity_2d_get_screen_bounds(const lh_entity_2d_t *self);

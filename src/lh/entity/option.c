@@ -1,5 +1,7 @@
 #include <lh/entity/option.h>
 #include <lh/assert.h>
+#include <lh/cast/static.h>
+#include <lh/entity/circle.h>
 #include <lh/entity/group.h>
 #include <lh/entity/range.h>
 #include <lh/entity/screen.h>
@@ -65,10 +67,61 @@ lh_entity_check_construct(lh_entity_t *self)
     lh_entity_option_construct(self, LH_ENTITY_OPTION_CHECK);
 }
 
+lh_int_t
+lh_entity_option_cap(const lh_entity_2d_t *box)
+{
+    const lh_math_vec2_t size = lh_entity_2d_get_size(box);
+    const lh_math_rect_t bounds =
+        lh_math_rect_make(0, 0, lh_cast_static(lh_int_t, lh_math_vec2_get_x(lh_addr_of(size))),
+                          lh_cast_static(lh_int_t, lh_math_vec2_get_y(lh_addr_of(size))));
+    return lh_entity_range_cap(lh_addr_of(bounds));
+}
+
+lh_void
+lh_entity_switch_seat(lh_entity_option_t *self)
+{
+    const lh_entity_2d_t *const box = lh_ptr_rcast(const lh_entity_2d_t, self);
+    const lh_ui_style_t *const style = lh_entity_2d_get_style(box);
+    lh_entity_2d_t *const thumb = lh_ptr_rcast(lh_entity_2d_t, self->thumb);
+    const lh_math_vec2_t size = lh_entity_2d_get_size(box);
+    const lh_int_t width = lh_cast_static(lh_int_t, lh_math_vec2_get_x(lh_addr_of(size)));
+    const lh_int_t track = lh_entity_option_cap(box);
+    const lh_int_t radius = track * 2 / 3;
+    lh_ui_color_t color;
+    lh_int_t painted;
+    lh_math_vec2_t place;
+    lh_math_vec2_t have;
+    if (lh_ptr_is_null(thumb) || lh_ptr_is_null(style) || radius <= 0)
+    {
+        return;
+    }
+    color = self->on ? lh_ui_style_get_bg_color(style) : lh_ui_style_get_text_color(style);
+    lh_ui_style_set_bg_color(lh_addr_of(self->thumb_style), color);
+    if (lh_entity_option_cap(thumb) != radius)
+    {
+        const lh_float_t across = lh_cast_static(lh_float_t, radius + radius);
+        lh_entity_2d_set_size(thumb, lh_math_vec2_make(across, across));
+    }
+    painted = lh_entity_option_cap(thumb);
+    place = lh_math_vec2_make(lh_cast_static(lh_float_t, (self->on ? width - track : track) - painted),
+                              lh_cast_static(lh_float_t, track - painted));
+    have = lh_entity_2d_get_position(thumb);
+    if (lh_math_vec2_get_x(lh_addr_of(have)) != lh_math_vec2_get_x(lh_addr_of(place)) ||
+        lh_math_vec2_get_y(lh_addr_of(have)) != lh_math_vec2_get_y(lh_addr_of(place)))
+    {
+        lh_entity_2d_set_position(thumb, place);
+    }
+}
+
 lh_void
 lh_entity_switch_construct(lh_entity_t *self)
 {
+    lh_entity_option_t *const option = lh_ptr_rcast(lh_entity_option_t, self);
     lh_entity_option_construct(self, LH_ENTITY_OPTION_SWITCH);
+    option->thumb =
+        lh_ptr_rcast(lh_entity_circle_t, lh_entity_create(&lh_entity_circle_class, self));
+    lh_entity_add_flags(lh_ptr_rcast(lh_entity_t, option->thumb), lh_entity_flags_event_bubble);
+    lh_entity_2d_set_style(lh_ptr_rcast(lh_entity_2d_t, option->thumb), lh_addr_of(option->thumb_style));
 }
 
 lh_void
@@ -109,20 +162,11 @@ lh_entity_option_paint(const lh_entity_option_t *self, lh_ui_canvas_t *canvas)
     {
         const lh_int_t radius = lh_entity_range_cap(lh_addr_of(bounds));
         const lh_ui_color_t track = self->on ? mark : fill;
-        const lh_ui_color_t thumb = self->on ? fill : mark;
-        lh_int_t thumb_radius;
         if (radius < 1)
         {
             return;
         }
         lh_ui_canvas_fill_round(canvas, bounds, radius, track);
-        thumb_radius = radius - 2;
-        if (thumb_radius < 1)
-        {
-            thumb_radius = 1;
-        }
-        lh_ui_canvas_fill_disc(canvas, self->on ? x + width - radius : x + radius, y + radius,
-                              thumb_radius, thumb);
         return;
     }
     {
@@ -159,6 +203,10 @@ lh_entity_option_on_event(lh_entity_t *self, lh_entity_event_t *event)
     const lh_uint_t code = lh_entity_event_get_code(event);
     if (code == LH_ENTITY_EVENT_DRAW)
     {
+        if (option->kind == LH_ENTITY_OPTION_SWITCH)
+        {
+            lh_entity_switch_seat(option);
+        }
         lh_entity_option_paint(option, lh_ptr_rcast(lh_ui_canvas_t, lh_entity_event_get_param(event)));
         return;
     }
@@ -180,15 +228,15 @@ lh_entity_option_on_event(lh_entity_t *self, lh_entity_event_t *event)
 }
 
 const lh_entity_class_t lh_entity_check_class =
-    lh_entity_class_initializer(&lh_entity_2d_class, sizeof(lh_entity_option_t),
+    lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_option_t),
                                 lh_entity_check_construct, lh_null, lh_entity_option_on_event);
 
 const lh_entity_class_t lh_entity_switch_class =
-    lh_entity_class_initializer(&lh_entity_2d_class, sizeof(lh_entity_option_t),
+    lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_option_t),
                                 lh_entity_switch_construct, lh_null, lh_entity_option_on_event);
 
 const lh_entity_class_t lh_entity_toggle_class =
-    lh_entity_class_initializer(&lh_entity_2d_class, sizeof(lh_entity_option_t),
+    lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_option_t),
                                 lh_entity_toggle_construct, lh_null, lh_entity_option_on_event);
 
 lh_bool_t

@@ -1,5 +1,6 @@
 #include <lh/entity/circle.h>
 #include <lh/assert.h>
+#include <lh/cast/static.h>
 #include <lh/entity/screen.h>
 #include <lh/null.h>
 #include <lh/ui/canvas.h>
@@ -13,17 +14,14 @@ lh_entity_circle_paint(lh_entity_circle_t *self, lh_ui_canvas_t *canvas)
     const lh_ui_style_t *const style = lh_entity_2d_get_style(box);
     lh_ui_color_t color;
     lh_math_mat4_t world;
-    lh_math_vec4_t origin;
-    lh_math_rect_t bounds;
-    lh_int_t left;
-    lh_int_t top;
-    lh_int_t width;
-    lh_int_t height;
-    lh_int_t radius;
-    lh_int_t cx;
-    lh_int_t cy;
+    lh_math_vec4_t column;
+    const lh_math_vec2_t size = lh_entity_2d_get_size(box);
+    const lh_float_t width = lh_math_vec2_get_x(lh_addr_of(size));
+    const lh_float_t height = lh_math_vec2_get_y(lh_addr_of(size));
+    const lh_int_t across = lh_cast_static(lh_int_t, width < height ? width : height);
+    const lh_int_t radius = across / 2;
 
-    if (lh_ptr_is_null(style) || lh_ptr_is_null(canvas))
+    if (lh_ptr_is_null(style) || lh_ptr_is_null(canvas) || radius <= 0)
     {
         return;
     }
@@ -34,22 +32,10 @@ lh_entity_circle_paint(lh_entity_circle_t *self, lh_ui_canvas_t *canvas)
     }
 
     world = lh_entity_2d_get_world_matrix(lh_ptr_rcast(const lh_entity_2d_t, self));
-    origin = lh_math_mat4_get_column(lh_addr_of(world), 3);
-    bounds = lh_entity_2d_get_screen_bounds(lh_ptr_rcast(const lh_entity_2d_t, self));
-    left = lh_math_rect_get_x(lh_addr_of(bounds));
-    top = lh_math_rect_get_y(lh_addr_of(bounds));
-    width = lh_math_rect_get_size_width(lh_addr_of(bounds));
-    height = lh_math_rect_get_size_height(lh_addr_of(bounds));
-    radius = width < height ? width : height;
-    radius /= 2;
-    if (radius <= 0)
-    {
-        return;
-    }
-    cx = left + width / 2;
-    cy = top + height / 2;
-    lh_ui_canvas_set_draw_z(canvas, lh_math_vec4_get_z(lh_addr_of(origin)));
-    lh_ui_canvas_fill_disc(canvas, cx, cy, radius, color);
+    column = lh_math_mat4_get_column(lh_addr_of(world), 3);
+    lh_ui_canvas_set_draw_z(canvas, lh_math_vec4_get_z(lh_addr_of(column)));
+    lh_ui_canvas_fill_disc(canvas, lh_math_vec4_get_x(lh_addr_of(column)) + width * 0.5f,
+                           lh_math_vec4_get_y(lh_addr_of(column)) + height * 0.5f, radius, color);
 }
 
 lh_void
@@ -101,7 +87,7 @@ lh_entity_circle_on_event(lh_entity_t *self, lh_entity_event_t *event)
 }
 
 const lh_entity_class_t lh_entity_circle_class =
-    lh_entity_class_initializer(&lh_entity_2d_class, sizeof(lh_entity_circle_t),
+    lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_circle_t),
                                 lh_entity_circle_construct, lh_null, lh_entity_circle_on_event);
 
 lh_bool_t

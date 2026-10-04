@@ -107,7 +107,7 @@ lh_entity_is_instance_of(const lh_entity_t *self, const lh_entity_class_t *entit
  * The checked way down a class hierarchy: assign the result to a pointer to
  * the class's instance struct and test it.
  * @code{.c}
- * const lh_entity_2d_t *box = lh_entity_cast(entity, &lh_entity_2d_class);
+ * const lh_entity_2d_t *box = lh_entity_cast(entity, lh_addr_of(lh_entity_2d_class));
  * if (box) { ... }
  * @endcode
  */

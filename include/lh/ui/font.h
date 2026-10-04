@@ -17,6 +17,7 @@
 
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/math/rect.h>
 #include <lh/math/vec2.h>
 #include <lh/memory/view.h>
 #include <lh/numeric/types.h>
@@ -90,6 +91,14 @@ lh_ui_font_get_glyph_height(const lh_ui_font_t *self);
  */
 lh_math_vec2_t
 lh_ui_font_measure(const lh_ui_font_t *self, const lh_char_t *text);
+
+/**
+ * @brief Tight pixels of @p text, relative to the point ::lh_ui_font_draw
+ *        uses. The origin is the top-left of the ink, so it can sit inside
+ *        the cell. A null or blank string is an empty rectangle.
+ */
+lh_math_rect_t
+lh_ui_font_ink(const lh_ui_font_t *self, const lh_char_t *text);
 
 /**
  * @brief Draw @p text at (@p x, @p y) in @p color. Stays inside the canvas

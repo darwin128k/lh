@@ -2,6 +2,7 @@
 #include <lh/entity/screen.h>
 #include <lh/assert.h>
 #include <lh/null.h>
+#include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 
 /* The 2D part of @p self, through which x, y and their scale are kept. */
@@ -38,7 +39,7 @@ lh_entity_3d_event(lh_entity_t *self, lh_entity_event_t *event)
 }
 
 const lh_entity_class_t lh_entity_3d_class =
-    lh_entity_class_initializer(&lh_entity_2d_class, sizeof(lh_entity_3d_t), lh_entity_3d_construct,
+    lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_3d_t), lh_entity_3d_construct,
                                 lh_null, lh_entity_3d_event);
 
 lh_math_vec3_t

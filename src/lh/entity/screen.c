@@ -19,7 +19,7 @@ lh_entity_screen_construct(lh_entity_t *self)
 }
 
 const lh_entity_class_t lh_entity_screen_class =
-    lh_entity_class_initializer(&lh_entity_2d_class, sizeof(lh_entity_screen_t),
+    lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_screen_t),
                                 lh_entity_screen_construct, lh_null, lh_null);
 
 lh_void

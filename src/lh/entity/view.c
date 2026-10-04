@@ -1,10 +1,11 @@
 #include <lh/entity/view.h>
 #include <lh/assert.h>
 #include <lh/null.h>
+#include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 
 const lh_entity_class_t lh_entity_view_class =
-    lh_entity_class_initializer(&lh_entity_2d_class, sizeof(lh_entity_view_t), lh_null, lh_null,
+    lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_view_t), lh_null, lh_null,
                                 lh_null);
 
 lh_void

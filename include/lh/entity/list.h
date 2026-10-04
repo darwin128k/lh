@@ -1,22 +1,28 @@
 /**
  * @file list.h
- * @brief A column of rows. One row, or several, can be selected.
+ * @brief A column of buttons. One row, or several, can be selected.
  *
- * The strings are not copied and not owned, the same way a label keeps its
- * text. ::LH_ENTITY_GROUP_ONE keeps a single row. ::LH_ENTITY_GROUP_MANY
- * keeps a mark on each. A press sends ::LH_ENTITY_EVENT_CLICKED. At most
- * ::LH_ENTITY_LIST_LIMIT rows are kept.
+ * Each row is a ::lh_entity_button_t, and its words are a label. The button
+ * centers that label. The box stays square until
+ * ::lh_entity_list_set_radius. The strings are not copied and not owned. A marked row
+ * uses the list's mark style. ::LH_ENTITY_GROUP_ONE keeps a single row.
+ * ::LH_ENTITY_GROUP_MANY keeps a mark on each. A press sends
+ * ::LH_ENTITY_EVENT_CLICKED. At most ::LH_ENTITY_LIST_LIMIT rows are kept.
  */
 
 #ifndef LH_ENTITY_LIST_H
 #define LH_ENTITY_LIST_H
 
 #include <lh/bool.h>
+#include <lh/byte.h>
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/entity/2d.h>
 #include <lh/numeric/types.h>
 #include <lh/ui/font.h>
+#include <lh/ui/style.h>
+
+struct lh_entity_button;
 
 /**
  * @def LH_ENTITY_LIST_LIMIT
@@ -26,19 +32,22 @@
 
 /**
  * @struct lh_entity_list
- * @brief Rows of text and which of them are on.
+ * @brief Buttons and which of them are on.
  */
 struct lh_entity_list
 {
     lh_entity_fields(lh_entity_class_t, lh_list_node_t, lh_list_t, lh_entity_flags_t);
     lh_entity_2d_fields(lh_math_vec2_t, lh_float_t, const lh_ui_style_t *, const lh_ui_effect_t *);
     const lh_char_t *items[LH_ENTITY_LIST_LIMIT];
+    struct lh_entity_button *rows[LH_ENTITY_LIST_LIMIT];
     lh_byte_t marks[LH_ENTITY_LIST_LIMIT];
+    lh_ui_style_t marked;
     const lh_ui_font_t *font;
     lh_int_t count;
     lh_int_t mode;
     lh_int_t origin;
     lh_int_t row;
+    lh_int_t radius;
 };
 typedef struct lh_entity_list lh_entity_list_t;
 
@@ -48,7 +57,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Class of ::lh_entity_list_t, derived from ::lh_entity_2d_class.
  *
  * A new list is ::LH_ENTITY_GROUP_ONE, draws with ::lh_ui_font_get_default, and
- * gives each row 22 pixels.
+ * gives each button 22 pixels of height.
  */
 extern const lh_entity_class_t lh_entity_list_class;
 
@@ -100,6 +109,18 @@ lh_entity_list_set_font(lh_entity_list_t *self, const lh_ui_font_t *font);
  */
 lh_int_t
 lh_entity_list_get_row(const lh_entity_list_t *self);
+
+/**
+ * @brief Corner radius of @p self, in pixels. 0 is a square.
+ */
+lh_int_t
+lh_entity_list_get_radius(const lh_entity_list_t *self);
+
+/**
+ * @brief Round the box of @p self by @p radius pixels. 0 keeps the square.
+ */
+lh_void
+lh_entity_list_set_radius(lh_entity_list_t *self, lh_int_t radius);
 
 LH_COMPILER_EXTERN_C_END
 

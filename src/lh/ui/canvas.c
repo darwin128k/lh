@@ -3,6 +3,7 @@
 #include <lh/bool.h>
 #include <lh/cast/static.h>
 #include <lh/config.h>
+#include <lh/float/round.h>
 #include <lh/numeric/types.h>
 #include <lh/runtime/error/code.h>
 #include <lh/util/addr.h>
@@ -239,16 +240,16 @@ lh_ui_canvas_coverage_from(lh_int_t signed_dist)
 }
 
 lh_byte_t
-lh_ui_canvas_disc_coverage(lh_int_t x, lh_int_t y, lh_int_t cx, lh_int_t cy, lh_int_t radius)
+lh_ui_canvas_disc_coverage(lh_int_t x, lh_int_t y, lh_float_t cx, lh_float_t cy, lh_int_t radius)
 {
-    const lh_sllong_t dx = ((lh_sllong_t)x - cx) * 256 + 128;
-    const lh_sllong_t dy = ((lh_sllong_t)y - cy) * 256 + 128;
+    const lh_float_t dx = (lh_cast_static(lh_float_t, x) + 0.5f - cx) * 256.0f;
+    const lh_float_t dy = (lh_cast_static(lh_float_t, y) + 0.5f - cy) * 256.0f;
     lh_int_t dist;
     if (radius <= 0)
     {
         return 0;
     }
-    dist = lh_ui_canvas_isqrt(dx * dx + dy * dy);
+    dist = lh_ui_canvas_isqrt(lh_cast_static(lh_sllong_t, dx * dx + dy * dy));
     return lh_ui_canvas_coverage_from(dist - radius * 256);
 }
 
@@ -330,19 +331,21 @@ lh_ui_canvas_blend_coverage(lh_ui_canvas_t *self, lh_int_t x, lh_int_t y, lh_ui_
 }
 
 lh_void
-lh_ui_canvas_fill_disc(lh_ui_canvas_t *self, lh_int_t cx, lh_int_t cy, lh_int_t radius,
+lh_ui_canvas_fill_disc(lh_ui_canvas_t *self, lh_float_t cx, lh_float_t cy, lh_int_t radius,
                        lh_ui_color_t color)
 {
+    const lh_float_t reach = lh_cast_static(lh_float_t, radius);
     lh_int_t y;
     lh_assert_runtime_ref(self);
     if (radius <= 0 || color.a == 0U)
     {
         return;
     }
-    for (y = cy - radius - 1; y <= cy + radius + 1; ++y)
+    for (y = lh_float_floor_to_int(cy - reach) - 1; y <= lh_float_ceil_to_int(cy + reach) + 1; ++y)
     {
         lh_int_t x;
-        for (x = cx - radius - 1; x <= cx + radius + 1; ++x)
+        for (x = lh_float_floor_to_int(cx - reach) - 1; x <= lh_float_ceil_to_int(cx + reach) + 1;
+             ++x)
         {
             lh_ui_canvas_blend_coverage(self, x, y, color,
                                         lh_ui_canvas_disc_coverage(x, y, cx, cy, radius));
@@ -414,7 +417,8 @@ lh_ui_canvas_fill_arc(lh_ui_canvas_t *self, lh_int_t cx, lh_int_t cy, lh_int_t o
             {
                 continue;
             }
-            angle = atan2f((lh_float_t)dy, (lh_float_t)dx);
+            angle = atan2f(lh_cast_static(lh_float_t, dy) + 0.5f,
+                           lh_cast_static(lh_float_t, dx) + 0.5f);
             if (angle < start)
             {
                 angle += turn;

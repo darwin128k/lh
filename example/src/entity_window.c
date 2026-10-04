@@ -14,6 +14,7 @@
 #include <lh/entity/screen.h>
 #include <lh/os/window.h>
 #include <lh/runtime/allocator.h>
+#include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 
 #include <stdlib.h>
@@ -41,8 +42,8 @@ static lh_entity_2d_t *
 example_box(lh_entity_t *parent, lh_float_t x, lh_float_t y, lh_float_t w, lh_float_t h,
             const lh_ui_style_t *style)
 {
-    lh_entity_2d_t *box = lh_entity_cast(lh_entity_create(&lh_entity_2d_class, parent),
-                                         &lh_entity_2d_class);
+    lh_entity_2d_t *box = lh_entity_cast(lh_entity_create(lh_addr_of(lh_entity_2d_class), parent),
+                                         lh_addr_of(lh_entity_2d_class));
     lh_entity_2d_set_position(box, lh_math_vec2_make(x, y));
     lh_entity_2d_set_size(box, lh_math_vec2_make(w, h));
     lh_entity_2d_set_style(box, style);
@@ -58,7 +59,7 @@ example_on_button(lh_entity_event_t *event, lh_ptr user_data)
     {
         return;
     }
-    lh_entity_2d_t *button = lh_entity_cast(lh_entity_event_get_current(event), &lh_entity_2d_class);
+    lh_entity_2d_t *button = lh_entity_cast(lh_entity_event_get_current(event), lh_addr_of(lh_entity_2d_class));
     const lh_ui_style_t *style = lh_entity_2d_get_style(button);
     lh_entity_2d_set_style(button, style == &example_style_button_on ? &example_style_button_off
                                                                       : &example_style_button_on);

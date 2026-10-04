@@ -3,8 +3,10 @@
 #include <lh/byte.h>
 #include <lh/cast/static.h>
 #include <lh/entity/key.h>
+#include <lh/entity/range.h>
 #include <lh/entity/screen.h>
 #include <lh/null.h>
+#include <lh/ui/canvas.h>
 #include <lh/ui/font.h>
 #include <lh/ui/style.h>
 #include <lh/util/addr.h>
@@ -16,6 +18,7 @@ lh_entity_field_construct(lh_entity_t *self)
     lh_entity_field_t *const field = lh_ptr_rcast(lh_entity_field_t, self);
     field->font = lh_ui_font_get_default();
     field->lines = 1;
+    lh_entity_add_flags(self, lh_entity_flags_own_background);
 }
 
 lh_bool_t
@@ -204,44 +207,51 @@ lh_entity_field_on_event(lh_entity_t *self, lh_entity_event_t *event)
     {
         return;
     }
-    bounds = lh_entity_2d_get_screen_bounds(lh_ptr_rcast(const lh_entity_2d_t, self));
-    lh_ui_canvas_fill_rect(canvas, bounds, lh_ui_style_get_bg_color(style));
-    if (lh_ptr_is_set(field->text))
     {
-        lh_ui_font_draw(field->font, canvas, lh_math_rect_get_x(lh_addr_of(bounds)) + 4,
-                        lh_math_rect_get_y(lh_addr_of(bounds)) + 4, field->text,
-                        lh_ui_style_get_text_color(style));
-    }
-    screen = lh_entity_cast(lh_entity_get_root(self), lh_addr_of(lh_entity_screen_class));
-    if (lh_ptr_is_set(screen) && lh_entity_screen_get_focus(screen) == self &&
-        lh_ptr_is_set(field->text))
-    {
-        lh_char_t mark[128];
-        lh_int_t n = field->cursor;
-        lh_int_t i;
-        lh_math_vec2_t measured;
-        if (n > 127)
+        const lh_math_rect_t area =
+            lh_entity_2d_get_screen_bounds(lh_ptr_rcast(const lh_entity_2d_t, self));
+        const lh_int_t x = lh_math_rect_get_x(lh_addr_of(area));
+        const lh_int_t y = lh_math_rect_get_y(lh_addr_of(area));
+        const lh_int_t pad = lh_entity_range_cap(lh_addr_of(area));
+        const lh_int_t cell = lh_ui_font_get_glyph_height(field->font);
+        const lh_int_t height = lh_math_rect_get_size_height(lh_addr_of(area));
+        const lh_int_t pen_y = field->lines <= 1 && height > cell ? y + (height - cell) / 2 : y;
+        bounds = area;
+        lh_ui_canvas_fill_round(canvas, bounds, pad, lh_ui_style_get_bg_color(style));
+        if (lh_ptr_is_set(field->text))
         {
-            n = 127;
+            lh_ui_font_draw(field->font, canvas, x + pad, pen_y, field->text,
+                            lh_ui_style_get_text_color(style));
         }
-        for (i = 0; i < n; ++i)
+        screen = lh_entity_cast(lh_entity_get_root(self), lh_addr_of(lh_entity_screen_class));
+        if (lh_ptr_is_set(screen) && lh_entity_screen_get_focus(screen) == self &&
+            lh_ptr_is_set(field->text))
         {
-            mark[i] = field->text[i] == '\n' ? ' ' : field->text[i];
+            lh_char_t mark[128];
+            lh_int_t n = field->cursor;
+            lh_int_t i;
+            lh_math_vec2_t measured;
+            if (n > 127)
+            {
+                n = 127;
+            }
+            for (i = 0; i < n; ++i)
+            {
+                mark[i] = field->text[i] == '\n' ? ' ' : field->text[i];
+            }
+            mark[n] = 0;
+            measured = lh_ui_font_measure(field->font, mark);
+            lh_ui_canvas_fill_rect(
+                canvas,
+                lh_math_rect_make(x + pad + (lh_int_t)lh_math_vec2_get_x(lh_addr_of(measured)),
+                                  pen_y, 1, cell),
+                lh_ui_style_get_text_color(style));
         }
-        mark[n] = 0;
-        measured = lh_ui_font_measure(field->font, mark);
-        lh_ui_canvas_fill_rect(
-            canvas,
-            lh_math_rect_make(lh_math_rect_get_x(lh_addr_of(bounds)) + 4 +
-                                  (lh_int_t)lh_math_vec2_get_x(lh_addr_of(measured)),
-                              lh_math_rect_get_y(lh_addr_of(bounds)) + 4, 1,
-                              lh_ui_font_get_glyph_height(field->font)),
-            lh_ui_style_get_text_color(style));
     }
 }
 
 const lh_entity_class_t lh_entity_field_class =
-    lh_entity_class_initializer(&lh_entity_2d_class, sizeof(lh_entity_field_t),
+    lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_field_t),
                                 lh_entity_field_construct, lh_null, lh_entity_field_on_event);
 
 lh_void

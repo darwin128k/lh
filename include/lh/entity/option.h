@@ -17,6 +17,9 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/entity/2d.h>
 #include <lh/numeric/types.h>
+#include <lh/ui/style.h>
+
+struct lh_entity_circle;
 
 /**
  * @def LH_ENTITY_OPTION_CHECK
@@ -26,7 +29,8 @@
 
 /**
  * @def LH_ENTITY_OPTION_SWITCH
- * @brief A track with a thumb.
+ * @brief A track with a circle. The rim around that circle is half the
+ *        circle, so it stays inside the track.
  */
 #define LH_ENTITY_OPTION_SWITCH 1
 
@@ -46,6 +50,8 @@ struct lh_entity_option
     lh_entity_2d_fields(lh_math_vec2_t, lh_float_t, const lh_ui_style_t *, const lh_ui_effect_t *);
     lh_int_t kind;
     lh_bool_t on;
+    struct lh_entity_circle *thumb;
+    lh_ui_style_t thumb_style;
 };
 typedef struct lh_entity_option lh_entity_option_t;
 
