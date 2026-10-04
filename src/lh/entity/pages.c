@@ -21,7 +21,7 @@ lh_entity_pages_set_index(lh_entity_pages_t *self, lh_int_t index)
     lh_int_t i = 0;
     lh_assert_runtime_ref(self);
     self->index = index < 0 ? 0 : index;
-    lh_entity_foreach_child(child, (lh_entity_t *)self)
+    lh_entity_foreach_child(child, lh_ptr_rcast(lh_entity_t, self))
     {
         if (i == self->index)
         {

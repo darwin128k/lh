@@ -74,10 +74,10 @@ on_button(lh_entity_event_t *event, lh_ptr user)
 }
 
 lh_entity_t *button = lh_entity_create(&lh_entity_button_class, screen);
-lh_entity_2d_set_position((lh_entity_2d_t *)button, lh_math_vec2_make(32.0f, 32.0f));
-lh_entity_2d_set_size((lh_entity_2d_t *)button, lh_math_vec2_make(148.0f, 40.0f));
-lh_entity_2d_set_style((lh_entity_2d_t *)button, &button_style);
-lh_entity_button_set_pressed_style((lh_entity_button_t *)button, &pressed_style);
+lh_entity_2d_set_position(lh_ptr_rcast(lh_entity_2d_t, button), lh_math_vec2_make(32.0f, 32.0f));
+lh_entity_2d_set_size(lh_ptr_rcast(lh_entity_2d_t, button), lh_math_vec2_make(148.0f, 40.0f));
+lh_entity_2d_set_style(lh_ptr_rcast(lh_entity_2d_t, button), &button_style);
+lh_entity_button_set_pressed_style(lh_ptr_rcast(lh_entity_button_t, button), &pressed_style);
 lh_entity_add_handler(button, on_button, lh_null);
 ```
 
@@ -119,7 +119,7 @@ lh_ui_shadow_set_color(&shadow, lh_ui_color_make(0, 0, 0, 80));
 lh_ui_shadow_set_spread(&shadow, 16);          /* fade distance, pixels */
 lh_ui_shadow_set_offset(&shadow, 0, 5);        /* positive y moves it down */
 lh_ui_shadow_set_sides(&shadow, LH_UI_SHADOW_SIDE_BOTTOM);
-lh_entity_2d_set_effect((lh_entity_2d_t *)button, lh_ui_shadow_effect(&shadow));
+lh_entity_2d_set_effect(lh_ptr_rcast(lh_entity_2d_t, button), lh_ui_shadow_effect(&shadow));
 ```
 
 `spread` of 0 paints nothing. `LH_UI_SHADOW_SIDE_LEFT`, `_RIGHT`, `_TOP` and
@@ -162,7 +162,7 @@ void
 my_tint_draw(const lh_ui_effect_t *self, lh_ui_canvas_t *canvas, lh_math_rect_t box,
              lh_int_t corner)
 {
-    const struct my_tint *const tint = (const struct my_tint *)self;
+    const struct my_tint *const tint = lh_ptr_rcast(const struct my_tint, self);
     (void)corner;
     lh_ui_canvas_fill_rect(canvas, box, tint->color);
 }
@@ -179,7 +179,7 @@ const lh_ui_effect_class_t my_tint_class = {my_tint_draw, my_tint_outset};
 void
 my_tint_init(struct my_tint *self, lh_ui_color_t color)
 {
-    lh_ui_effect_init((lh_ui_effect_t *)self, &my_tint_class);
+    lh_ui_effect_init(lh_ptr_rcast(lh_ui_effect_t, self), &my_tint_class);
     self->color = color;
 }
 ```
@@ -189,7 +189,7 @@ Attach it the same way as a shadow:
 ```c
 struct my_tint tint;
 my_tint_init(&tint, lh_ui_color_make(255, 255, 255, 40));
-lh_entity_2d_set_effect(box, (const lh_ui_effect_t *)&tint);
+lh_entity_2d_set_effect(box, lh_ptr_rcast(const lh_ui_effect_t, &tint));
 ```
 
 If the paint extends past the box, `outset` returns that margin. The screen
@@ -228,7 +228,7 @@ struct my_pad
 void
 my_pad_on_event(lh_entity_t *self, lh_entity_event_t *event)
 {
-    struct my_pad *const pad = (struct my_pad *)self;
+    struct my_pad *const pad = lh_ptr_rcast(struct my_pad, self);
     const lh_uint_t code = lh_entity_event_get_code(event);
 
     if (code == LH_ENTITY_EVENT_POINTER_DOWN)
@@ -239,10 +239,10 @@ my_pad_on_event(lh_entity_t *self, lh_entity_event_t *event)
     if (code == LH_ENTITY_EVENT_POINTER_UP && pad->down)
     {
         const lh_math_vec2_t *const point =
-            (const lh_math_vec2_t *)lh_entity_event_get_param(event);
+            lh_ptr_rcast(const lh_math_vec2_t, lh_entity_event_get_param(event));
         pad->down = lh_bool_false;
         if (point != lh_null &&
-            lh_entity_2d_contains((const lh_entity_2d_t *)self, *point))
+            lh_entity_2d_contains(lh_ptr_rcast(const lh_entity_2d_t, self), *point))
         {
             lh_entity_send_event(self, LH_ENTITY_EVENT_CLICKED,
                                  lh_entity_event_get_param(event));
@@ -258,8 +258,8 @@ Create it like any other entity:
 
 ```c
 lh_entity_t *pad = lh_entity_create(&my_pad_class, screen);
-lh_entity_2d_set_size((lh_entity_2d_t *)pad, lh_math_vec2_make(80.0f, 32.0f));
-lh_entity_2d_set_style((lh_entity_2d_t *)pad, &pad_style);
+lh_entity_2d_set_size(lh_ptr_rcast(lh_entity_2d_t, pad), lh_math_vec2_make(80.0f, 32.0f));
+lh_entity_2d_set_style(lh_ptr_rcast(lh_entity_2d_t, pad), &pad_style);
 lh_entity_add_handler(pad, on_button, lh_null);
 ```
 

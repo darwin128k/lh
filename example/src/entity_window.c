@@ -14,6 +14,7 @@
 #include <lh/entity/screen.h>
 #include <lh/os/window.h>
 #include <lh/runtime/allocator.h>
+#include <lh/util/ptr.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -110,20 +111,20 @@ example_build(struct example *example)
     lh_ui_style_set_bg_color(&example_style_cut, lh_ui_color_make(90, 160, 90, 255));
     lh_ui_style_set_bg_color(&example_style_square, lh_ui_color_make(200, 60, 80, 255));
 
-    lh_entity_t *root = (lh_entity_t *)example->screen;
-    lh_entity_2d_set_size((lh_entity_2d_t *)example->screen,
+    lh_entity_t *root = lh_ptr_rcast(lh_entity_t, example->screen);
+    lh_entity_2d_set_size(lh_ptr_rcast(lh_entity_2d_t, example->screen),
                           lh_math_vec2_make(EXAMPLE_WIDTH, EXAMPLE_HEIGHT));
-    lh_entity_2d_set_style((lh_entity_2d_t *)example->screen, &example_style_screen);
+    lh_entity_2d_set_style(lh_ptr_rcast(lh_entity_2d_t, example->screen), &example_style_screen);
 
     lh_entity_2d_t *panel = example_box(root, 40, 40, 360, 300, &example_style_panel);
     for (int i = 0; i < 3; ++i)
     {
         lh_entity_2d_t *button =
-            example_box((lh_entity_t *)panel, 30, 30 + 80.0f * i, 300, 60, &example_style_button_off);
-        lh_entity_add_handler((lh_entity_t *)button, example_on_button, lh_null);
+            example_box(lh_ptr_rcast(lh_entity_t, panel), 30, 30 + 80.0f * i, 300, 60, &example_style_button_off);
+        lh_entity_add_handler(lh_ptr_rcast(lh_entity_t, button), example_on_button, lh_null);
     }
     /* Reaches past the panel's bottom edge: cut to the panel. */
-    example_box((lh_entity_t *)panel, 30, 270, 300, 60, &example_style_cut);
+    example_box(lh_ptr_rcast(lh_entity_t, panel), 30, 270, 300, 60, &example_style_cut);
 
     lh_entity_2d_t *square = example_box(root, 520, 120, 80, 80, &example_style_square);
     lh_entity_2d_set_angle(square, 0.5f);
@@ -192,7 +193,7 @@ main(int argc, char **argv)
 
     lh_os_window_set_handler(lh_null, lh_null);
     lh_os_window_close(&example.window);
-    lh_entity_delete((lh_entity_t *)example.screen);
+    lh_entity_delete(lh_ptr_rcast(lh_entity_t, example.screen));
     lh_runtime_allocator_free(depth);
     lh_runtime_allocator_free(example.pixels);
     return 0;

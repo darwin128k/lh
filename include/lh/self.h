@@ -30,7 +30,7 @@
  * static lh_ssize_t
  * my_read(lh_self_ptr self, lh_ptr buf, lh_usize_t size)
  * {
- *     struct my_stream *stream = (struct my_stream *)self;
+ *     struct my_stream *stream = lh_ptr_rcast(struct my_stream, self);
  *     ...
  * }
  * @endcode

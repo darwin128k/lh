@@ -143,7 +143,7 @@ lh_os_system_window_open(const lh_ptr title, lh_int_t width, lh_int_t height)
        first iteration. The `pa` smoke test passes ASCII so this works. */
     if (!lh_null_eq(title))
     {
-        (void)XStoreName(lh_os_system_posix_display, window, (const char *)title);
+        (void)XStoreName(lh_os_system_posix_display, window, lh_ptr_rcast(const char, title));
     }
 
     /* Store the XID as a bit pattern — same trick the Win32 backend uses
