@@ -18,7 +18,7 @@
  * @param effect_type `const lh_ui_effect_t *`.
  */
 #define lh_ui_effect_fields(class_type, effect_type)                                               \
-    class_type class;                                                                              \
+    class_type class_ptr;                                                                          \
     effect_type next
 
 #endif /* LH_UI_EFFECT_FIELDS_H */

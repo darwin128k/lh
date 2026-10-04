@@ -317,6 +317,97 @@ lh_ui_canvas_round_coverage(lh_int_t x, lh_int_t y, lh_int_t left, lh_int_t top,
     return lh_ui_canvas_coverage_from(dist + inside - rad * 256);
 }
 
+lh_byte_t
+lh_ui_canvas_ring_coverage(lh_int_t x, lh_int_t y, lh_float_t cx, lh_float_t cy, lh_int_t outer,
+                           lh_int_t inner)
+{
+    const lh_byte_t outside = lh_ui_canvas_disc_coverage(x, y, cx, cy, outer);
+    const lh_byte_t filled = lh_ui_canvas_disc_coverage(x, y, cx, cy, inner);
+    const lh_byte_t hole = filled == 0U ? 255U : (lh_byte_t)(255U - filled);
+    return outside < hole ? outside : hole;
+}
+
+lh_byte_t
+lh_ui_canvas_box_stroke_coverage(lh_int_t x, lh_int_t y, lh_int_t left, lh_int_t top, lh_int_t right,
+                                 lh_int_t bottom, lh_int_t radius, lh_int_t width)
+{
+    lh_byte_t outside;
+    lh_byte_t hole;
+    lh_int_t rad;
+    if (width <= 0 || right - left <= 0 || bottom - top <= 0)
+    {
+        return 0;
+    }
+    rad = radius < 0 ? 0 : radius;
+    outside = lh_ui_canvas_round_coverage(x, y, left, top, right, bottom, rad);
+    if (outside == 0U)
+    {
+        return 0;
+    }
+    /* The border is inside the box it outlines, so the hole is the box inset
+     * by the width and its radius reduced by the same amount. A radius of 0 is
+     * a square border, and there the edges are hard: an integer bound on a
+     * half-integer grid never lands inside the one pixel ramp. */
+    rad -= width;
+    if (rad < 0)
+    {
+        rad = 0;
+    }
+    hole = lh_ui_canvas_round_coverage(x, y, left + width, top + width, right - width, bottom - width,
+                                       rad);
+    if (hole == 0U)
+    {
+        return outside;
+    }
+    return outside < (lh_byte_t)(255U - hole) ? outside : (lh_byte_t)(255U - hole);
+}
+
+lh_byte_t
+lh_ui_canvas_line_coverage(lh_int_t x, lh_int_t y, lh_int_t x0, lh_int_t y0, lh_int_t x1,
+                           lh_int_t y1, lh_int_t width)
+{
+    const lh_float_t ax = lh_cast_static(lh_float_t, x0);
+    const lh_float_t ay = lh_cast_static(lh_float_t, y0);
+    const lh_float_t px = lh_cast_static(lh_float_t, x) + 0.5f;
+    const lh_float_t py = lh_cast_static(lh_float_t, y) + 0.5f;
+    const lh_float_t dx = lh_cast_static(lh_float_t, x1) - ax;
+    const lh_float_t dy = lh_cast_static(lh_float_t, y1) - ay;
+    const lh_float_t len = dx * dx + dy * dy;
+    lh_float_t t;
+    lh_float_t ex;
+    lh_float_t ey;
+    lh_float_t dist;
+    if (width <= 0)
+    {
+        return 0;
+    }
+    if (len <= 0.0f)
+    {
+        t = 0.0f;
+    }
+    else
+    {
+        t = ((px - ax) * dx + (py - ay) * dy) / len;
+        if (t < 0.0f)
+        {
+            t = 0.0f;
+        }
+        if (t > 1.0f)
+        {
+            t = 1.0f;
+        }
+    }
+    ex = px - (ax + t * dx);
+    ey = py - (ay + t * dy);
+    dist = sqrtf(ex * ex + ey * ey);
+    /* The distance to the nearest edge of the band, in 1/256 px, negative
+     * inside: the same sense as the disc and round coverage. A pixel whose
+     * center sits a full half pixel inside the band is 255, because that is
+     * where the one pixel ramp ends. */
+    return lh_ui_canvas_coverage_from(
+        lh_cast_static(lh_int_t, (dist - lh_cast_static(lh_float_t, width) * 0.5f) * 256.0f));
+}
+
 lh_void
 lh_ui_canvas_blend_coverage(lh_ui_canvas_t *self, lh_int_t x, lh_int_t y, lh_ui_color_t color,
                             lh_byte_t coverage)
@@ -429,6 +520,136 @@ lh_ui_canvas_fill_arc(lh_ui_canvas_t *self, lh_int_t cx, lh_int_t cy, lh_int_t o
             }
             cover = (lh_int_t)outside - (lh_int_t)hole;
             lh_ui_canvas_blend_coverage(self, x, y, color, lh_cast_static(lh_byte_t, cover));
+        }
+    }
+}
+
+lh_void
+lh_ui_canvas_fill_ring(lh_ui_canvas_t *self, lh_float_t cx, lh_float_t cy, lh_int_t outer,
+                       lh_int_t inner, lh_ui_color_t color)
+{
+    lh_int_t y;
+    lh_assert_runtime_ref(self);
+    if (color.a == 0U || outer <= 0 || inner >= outer)
+    {
+        return;
+    }
+    if (inner < 0)
+    {
+        inner = 0;
+    }
+    for (y = lh_float_floor_to_int(cy) - outer - 1; y <= lh_float_ceil_to_int(cy) + outer + 1; ++y)
+    {
+        lh_int_t x;
+        for (x = lh_float_floor_to_int(cx) - outer - 1; x <= lh_float_ceil_to_int(cx) + outer + 1;
+             ++x)
+        {
+            lh_ui_canvas_blend_coverage(self, x, y, color,
+                                        lh_ui_canvas_ring_coverage(x, y, cx, cy, outer, inner));
+        }
+    }
+}
+
+lh_void
+lh_ui_canvas_stroke_rect(lh_ui_canvas_t *self, lh_math_rect_t rect, lh_int_t width,
+                         lh_ui_color_t color)
+{
+    const lh_int_t left = lh_math_rect_get_x(lh_addr_of(rect));
+    const lh_int_t top = lh_math_rect_get_y(lh_addr_of(rect));
+    const lh_int_t right = left + lh_math_rect_get_size_width(lh_addr_of(rect));
+    const lh_int_t bottom = top + lh_math_rect_get_size_height(lh_addr_of(rect));
+    lh_int_t y;
+    lh_assert_runtime_ref(self);
+    if (color.a == 0U || width <= 0 || right <= left || bottom <= top)
+    {
+        return;
+    }
+    for (y = top - 1; y <= bottom; ++y)
+    {
+        lh_int_t x;
+        for (x = left - 1; x <= right; ++x)
+        {
+            lh_ui_canvas_blend_coverage(
+                self, x, y, color,
+                lh_ui_canvas_box_stroke_coverage(x, y, left, top, right, bottom, 0, width));
+        }
+    }
+}
+
+lh_void
+lh_ui_canvas_stroke_round(lh_ui_canvas_t *self, lh_math_rect_t rect, lh_int_t radius, lh_int_t width,
+                          lh_ui_color_t color)
+{
+    const lh_int_t left = lh_math_rect_get_x(lh_addr_of(rect));
+    const lh_int_t top = lh_math_rect_get_y(lh_addr_of(rect));
+    const lh_int_t right = left + lh_math_rect_get_size_width(lh_addr_of(rect));
+    const lh_int_t bottom = top + lh_math_rect_get_size_height(lh_addr_of(rect));
+    lh_int_t y;
+    lh_assert_runtime_ref(self);
+    if (color.a == 0U || width <= 0 || right <= left || bottom <= top)
+    {
+        return;
+    }
+    for (y = top - 1; y <= bottom; ++y)
+    {
+        lh_int_t x;
+        for (x = left - 1; x <= right; ++x)
+        {
+            lh_ui_canvas_blend_coverage(
+                self, x, y, color,
+                lh_ui_canvas_box_stroke_coverage(x, y, left, top, right, bottom, radius, width));
+        }
+    }
+}
+
+lh_void
+lh_ui_canvas_stroke_disc(lh_ui_canvas_t *self, lh_float_t cx, lh_float_t cy, lh_int_t radius,
+                         lh_int_t width, lh_ui_color_t color)
+{
+    /* The width is centred on the radius, so a disc of 10 with a 2 wide
+       outline is a ring from 9 to 11. */
+    lh_int_t y;
+    lh_assert_runtime_ref(self);
+    if (color.a == 0U || width <= 0 || radius <= 0)
+    {
+        return;
+    }
+    for (y = lh_float_floor_to_int(cy) - radius - width - 1;
+         y <= lh_float_ceil_to_int(cy) + radius + width + 1; ++y)
+    {
+        lh_int_t x;
+        for (x = lh_float_floor_to_int(cx) - radius - width - 1;
+             x <= lh_float_ceil_to_int(cx) + radius + width + 1; ++x)
+        {
+            lh_ui_canvas_blend_coverage(
+                self, x, y, color,
+                lh_ui_canvas_ring_coverage(x, y, cx, cy, radius + (width + 1) / 2,
+                                           radius - width / 2));
+        }
+    }
+}
+
+lh_void
+lh_ui_canvas_stroke_line(lh_ui_canvas_t *self, lh_int_t x0, lh_int_t y0, lh_int_t x1, lh_int_t y1,
+                         lh_int_t width, lh_ui_color_t color)
+{
+    const lh_int_t left = (x0 < x1 ? x0 : x1) - width - 1;
+    const lh_int_t right = (x0 < x1 ? x1 : x0) + width + 1;
+    const lh_int_t top = (y0 < y1 ? y0 : y1) - width - 1;
+    const lh_int_t bottom = (y0 < y1 ? y1 : y0) + width + 1;
+    lh_int_t y;
+    lh_assert_runtime_ref(self);
+    if (color.a == 0U || width <= 0)
+    {
+        return;
+    }
+    for (y = top; y <= bottom; ++y)
+    {
+        lh_int_t x;
+        for (x = left; x <= right; ++x)
+        {
+            lh_ui_canvas_blend_coverage(
+                self, x, y, color, lh_ui_canvas_line_coverage(x, y, x0, y0, x1, y1, width));
         }
     }
 }

@@ -137,6 +137,40 @@ lh_ui_canvas_round_coverage(lh_int_t x, lh_int_t y, lh_int_t left, lh_int_t top,
                             lh_int_t bottom, lh_int_t radius);
 
 /**
+ * @brief How much of the pixel (@p x, @p y) the ring between @p inner and
+ *        @p outer covers, 0..255.
+ *
+ * The darker of the two rims wins, so the ring is solid where it is between
+ * them and fades on both edges. An @p inner of 0 or less is a full disc.
+ */
+lh_byte_t
+lh_ui_canvas_ring_coverage(lh_int_t x, lh_int_t y, lh_float_t cx, lh_float_t cy, lh_int_t outer,
+                           lh_int_t inner);
+
+/**
+ * @brief How much of the pixel (@p x, @p y) a border of @p width covers, 0..255.
+ *
+ * The border is inside the box it outlines, so the box does not grow: a border
+ * of 2 on a 10x10 box is the ring between a 6x6 hole and the 10x10 edge. A
+ * @p radius of 0 is a square border, and the corner radius shrinks by the
+ * width so the outline keeps its thickness all the way round.
+ */
+lh_byte_t
+lh_ui_canvas_box_stroke_coverage(lh_int_t x, lh_int_t y, lh_int_t left, lh_int_t top, lh_int_t right,
+                                 lh_int_t bottom, lh_int_t radius, lh_int_t width);
+
+/**
+ * @brief How much of the pixel (@p x, @p y) a line covers, 0..255.
+ *
+ * The line runs from (@p x0, @p y0) to (@p x1, @p y1) and is @p width wide,
+ * centred on the segment and square at the ends. Endpoints in the same place
+ * are a disc of that width.
+ */
+lh_byte_t
+lh_ui_canvas_line_coverage(lh_int_t x, lh_int_t y, lh_int_t x0, lh_int_t y0, lh_int_t x1,
+                           lh_int_t y1, lh_int_t width);
+
+/**
  * @brief Fill a disc. The rim is ::lh_ui_canvas_disc_coverage.
  */
 lh_void
@@ -160,6 +194,59 @@ lh_ui_canvas_fill_round(lh_ui_canvas_t *self, lh_math_rect_t rect, lh_int_t radi
 lh_void
 lh_ui_canvas_fill_arc(lh_ui_canvas_t *self, lh_int_t cx, lh_int_t cy, lh_int_t outer,
                       lh_int_t inner, lh_float_t start, lh_float_t end, lh_ui_color_t color);
+
+/**
+ * @brief Fill the ring between @p inner and @p outer, all the way round.
+ *
+ * ::lh_ui_canvas_fill_arc for the case where the sweep does not matter, which
+ * is also the cheapest way to draw a disc with a hole in it: the inner radius
+ * is subtracted, not painted over.
+ */
+lh_void
+lh_ui_canvas_fill_ring(lh_ui_canvas_t *self, lh_float_t cx, lh_float_t cy, lh_int_t outer,
+                       lh_int_t inner, lh_ui_color_t color);
+
+/**
+ * @brief Outline a box with @p width pixels of @p color, inside the box.
+ *
+ * The box does not grow, so lay out for the outer size and let the outline
+ * eat into the fill. Square corners.
+ */
+lh_void
+lh_ui_canvas_stroke_rect(lh_ui_canvas_t *self, lh_math_rect_t rect, lh_int_t width,
+                         lh_ui_color_t color);
+
+/**
+ * @brief Outline a box with @p width pixels of @p color, rounded by @p radius.
+ *
+ * As ::lh_ui_canvas_stroke_rect, and the corner radius shrinks by @p width so
+ * the outline keeps the same thickness all the way round.
+ */
+lh_void
+lh_ui_canvas_stroke_round(lh_ui_canvas_t *self, lh_math_rect_t rect, lh_int_t radius, lh_int_t width,
+                          lh_ui_color_t color);
+
+/**
+ * @brief Outline a disc of @p radius with @p width pixels of @p color.
+ *
+ * The width is centred on the radius, so a disc of 10 with a 2 wide outline is
+ * the ring from 9 to 11 and covers 22 pixels across. This is the whole of "a
+ * circle with a border": one call, and the hole is not painted twice.
+ */
+lh_void
+lh_ui_canvas_stroke_disc(lh_ui_canvas_t *self, lh_float_t cx, lh_float_t cy, lh_int_t radius,
+                         lh_int_t width, lh_ui_color_t color);
+
+/**
+ * @brief Draw a line of @p width pixels of @p color from (@p x0, @p y0) to
+ *        (@p x1, @p y1).
+ *
+ * The width is centred on the segment and the ends are flat. Endpoints in the
+ * same place are a disc of that width.
+ */
+lh_void
+lh_ui_canvas_stroke_line(lh_ui_canvas_t *self, lh_int_t x0, lh_int_t y0, lh_int_t x1, lh_int_t y1,
+                         lh_int_t width, lh_ui_color_t color);
 
 LH_COMPILER_EXTERN_C_END
 

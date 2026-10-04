@@ -398,8 +398,14 @@ lh_entity_2d_draw_background(const lh_entity_2d_t *self, lh_ui_canvas_t *canvas)
         return;
     }
     const lh_ui_color_t color = lh_ui_style_get_bg_color(style);
+    const lh_ui_color_t border = lh_ui_style_get_border_color(style);
+    const lh_int_t border_width = lh_ui_style_get_border_width(style);
+    const lh_int_t radius = lh_ui_style_get_radius(style);
     const lh_math_vec2_t size = lh_entity_2d_get_size(self);
-    if (color.a == 0U)
+    const lh_bool_t border_on = border_width > 0 && border.a != 0U;
+    /* A transparent background is not an empty style: an outline on its own is
+     * a shape. Only both being absent means there is nothing to draw. */
+    if (color.a == 0U && !border_on)
     {
         return;
     }
@@ -427,12 +433,31 @@ lh_entity_2d_draw_background(const lh_entity_2d_t *self, lh_ui_canvas_t *canvas)
         const lh_int_t y1 = lh_float_ceil_to_int(
             lh_math_max(lh_math_vec3_get_y(lh_addr_of(a)), lh_math_vec3_get_y(lh_addr_of(b))) - 0.5f);
         lh_ui_canvas_set_draw_z(canvas, lh_math_vec4_get_z(lh_addr_of(world_origin)));
-        lh_ui_canvas_fill_rect(canvas, lh_math_rect_make(x0, y0, x1 - x0, y1 - y0), color);
+        const lh_math_rect_t box = lh_math_rect_make(x0, y0, x1 - x0, y1 - y0);
+        if (color.a != 0U)
+        {
+            if (radius > 0)
+            {
+                lh_ui_canvas_fill_round(canvas, box, radius, color);
+            }
+            else
+            {
+                lh_ui_canvas_fill_rect(canvas, box, color);
+            }
+        }
+        if (border_on)
+        {
+            lh_ui_canvas_stroke_round(canvas, box, radius, border_width, border);
+        }
         return;
     }
 
     /* Tilted or rotated in the plane: a pixel belongs to the box when its
-     * center's view ray crosses the box, so neighbors share no pixel. */
+     * center's view ray crosses the box, so neighbors share no pixel. That test
+     * answers "inside or not" and nothing else, so the corner radius and the
+     * outline do not survive a rotation — same limitation as the missing
+     * anti-aliasing here. Both need the pixel's position in the box's own
+     * space, which needs an inverse this math layer does not have. */
     const lh_entity_2d_plane_t plane = lh_entity_2d_plane_from_world(lh_addr_of(world));
     if (!plane.ok)
     {
@@ -450,9 +475,10 @@ lh_entity_2d_draw_background(const lh_entity_2d_t *self, lh_ui_canvas_t *canvas)
         for (lh_math_coord_t x = x0; x < x1; ++x)
         {
             lh_float_t z = 0.0f;
-            if (lh_entity_2d_plane_hit(lh_addr_of(plane), size,
-                                       lh_cast_static(lh_float_t, x) + 0.5f,
-                                       lh_cast_static(lh_float_t, y) + 0.5f, lh_addr_of(z)))
+            if (color.a != 0U && lh_entity_2d_plane_hit(lh_addr_of(plane), size,
+                                                       lh_cast_static(lh_float_t, x) + 0.5f,
+                                                       lh_cast_static(lh_float_t, y) + 0.5f,
+                                                       lh_addr_of(z)))
             {
                 lh_ui_canvas_set_draw_z(canvas, z);
                 lh_ui_canvas_blend_pixel(canvas, x, y, color);

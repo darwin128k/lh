@@ -36,37 +36,45 @@ lh_ui_theme_on_color(lh_ui_color_t color)
 }
 
 lh_void
-lh_ui_theme_paint(lh_ui_style_t *style, lh_uint_t background, lh_uint_t text)
+lh_ui_theme_paint(lh_ui_style_t *style, lh_uint_t background, lh_uint_t text, lh_uint_t border)
 {
     lh_ui_style_set_bg_color(style, lh_ui_color_from_argb(background));
     lh_ui_style_set_text_color(style, lh_ui_color_from_argb(text));
+    /* The border color travels with every style so a caller that wants an
+       outline only has to set a width, but the width stays 0: a theme must not
+       restyle what it did not ask to restyle. */
+    lh_ui_style_set_border_color(style, lh_ui_color_from_argb(border));
+    lh_ui_style_set_border_width(style, 0);
 }
 
 lh_void
 lh_ui_theme_init(lh_ui_theme_t *self, lh_ui_color_t primary, lh_bool_t dark)
 {
     const lh_uint_t text = dark != lh_bool_false ? LH_UI_THEME_DARK_TEXT : LH_UI_THEME_LIGHT_TEXT;
+    const lh_uint_t border =
+        dark != lh_bool_false ? LH_UI_THEME_DARK_BORDER : LH_UI_THEME_LIGHT_BORDER;
 
     lh_assert_runtime_ref(self);
     self->dark = dark != lh_bool_false ? lh_bool_true : lh_bool_false;
     self->primary = primary;
+    self->border = lh_ui_color_from_argb(border);
     if (dark != lh_bool_false)
     {
-        lh_ui_theme_paint(&self->surface, LH_UI_THEME_DARK_SURFACE, text);
-        lh_ui_theme_paint(&self->button, LH_UI_THEME_DARK_BUTTON, text);
-        lh_ui_theme_paint(&self->button_pressed, LH_UI_THEME_DARK_BUTTON_DOWN, text);
-        self->border = lh_ui_color_from_argb(LH_UI_THEME_DARK_BORDER);
+        lh_ui_theme_paint(&self->surface, LH_UI_THEME_DARK_SURFACE, text, border);
+        lh_ui_theme_paint(&self->button, LH_UI_THEME_DARK_BUTTON, text, border);
+        lh_ui_theme_paint(&self->button_pressed, LH_UI_THEME_DARK_BUTTON_DOWN, text, border);
     }
     else
     {
-        lh_ui_theme_paint(&self->surface, LH_UI_THEME_LIGHT_SURFACE, text);
-        lh_ui_theme_paint(&self->button, LH_UI_THEME_LIGHT_BUTTON, text);
-        lh_ui_theme_paint(&self->button_pressed, LH_UI_THEME_LIGHT_BUTTON_DOWN, text);
-        self->border = lh_ui_color_from_argb(LH_UI_THEME_LIGHT_BORDER);
+        lh_ui_theme_paint(&self->surface, LH_UI_THEME_LIGHT_SURFACE, text, border);
+        lh_ui_theme_paint(&self->button, LH_UI_THEME_LIGHT_BUTTON, text, border);
+        lh_ui_theme_paint(&self->button_pressed, LH_UI_THEME_LIGHT_BUTTON_DOWN, text, border);
     }
-    lh_ui_theme_paint(&self->text, 0x00000000U, text);
+    lh_ui_theme_paint(&self->text, 0x00000000U, text, border);
     lh_ui_style_set_bg_color(&self->primary_style, primary);
     lh_ui_style_set_text_color(&self->primary_style, lh_ui_theme_on_color(primary));
+    lh_ui_style_set_border_color(&self->primary_style, self->border);
+    lh_ui_style_set_border_width(&self->primary_style, 0);
 }
 
 lh_bool_t

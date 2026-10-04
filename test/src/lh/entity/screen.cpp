@@ -93,6 +93,7 @@ class Screen : public ::testing::Test
              lh_ui_color_t color)
     {
         lh_ui_style_t *style = &styles[style_count++];
+        lh_ui_style_init(style);
         lh_ui_style_set_bg_color(style, color);
         lh_entity_2d_t *box =
             reinterpret_cast<lh_entity_2d_t *>(lh_entity_create(&lh_entity_2d_class, parent));
@@ -107,6 +108,7 @@ class Screen : public ::testing::Test
                lh_ui_color_t color)
     {
         lh_ui_style_t *style = &styles[style_count++];
+        lh_ui_style_init(style);
         lh_ui_style_set_bg_color(style, color);
         lh_entity_3d_t *box =
             reinterpret_cast<lh_entity_3d_t *>(lh_entity_create(&lh_entity_3d_class, root()));

@@ -4,10 +4,10 @@
 #include <lh/util/ptr.h>
 
 lh_void
-lh_ui_effect_init(lh_ui_effect_t *self, const lh_ui_effect_class_t *class)
+lh_ui_effect_init(lh_ui_effect_t *self, const lh_ui_effect_class_t *effect_class)
 {
     lh_assert_runtime_ref(self);
-    self->class = class;
+    self->class_ptr = effect_class;
     self->next = lh_null;
 }
 
@@ -33,9 +33,9 @@ lh_ui_effect_draw(const lh_ui_effect_t *self, lh_ui_canvas_t *canvas, lh_math_re
     lh_assert_runtime_ref(canvas);
     while (lh_ptr_is_set(effect))
     {
-        if (lh_ptr_is_set(effect->class) && lh_ptr_is_set(effect->class->draw))
+        if (lh_ptr_is_set(effect->class_ptr) && lh_ptr_is_set(effect->class_ptr->draw))
         {
-            effect->class->draw(effect, canvas, box, corner);
+            effect->class_ptr->draw(effect, canvas, box, corner);
         }
         effect = effect->next;
     }
@@ -48,9 +48,9 @@ lh_ui_effect_outset(const lh_ui_effect_t *self)
     lh_int_t farthest = 0;
     while (lh_ptr_is_set(effect))
     {
-        if (lh_ptr_is_set(effect->class) && lh_ptr_is_set(effect->class->outset))
+        if (lh_ptr_is_set(effect->class_ptr) && lh_ptr_is_set(effect->class_ptr->outset))
         {
-            const lh_int_t outset = effect->class->outset(effect);
+            const lh_int_t outset = effect->class_ptr->outset(effect);
             if (outset > farthest)
             {
                 farthest = outset;

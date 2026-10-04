@@ -59,10 +59,14 @@ typedef struct lh_ui_effect lh_ui_effect_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Point @p self at @p class and clear its chain.
+ * @brief Point @p self at @p effect_class and clear its chain.
+ *
+ * The field and the parameter are spelled @c class_ptr and @c effect_class
+ * because a member called `class` is legal C and not legal C++, and this
+ * header is included from the C++ test suite.
  */
 lh_void
-lh_ui_effect_init(lh_ui_effect_t *self, const lh_ui_effect_class_t *class);
+lh_ui_effect_init(lh_ui_effect_t *self, const lh_ui_effect_class_t *effect_class);
 
 /**
  * @brief The effect drawn after @p self, or ::lh_null.
