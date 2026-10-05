@@ -5,6 +5,7 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/bool.h>
+#include <lh/util/return.h>
 #include <lh/cast/static.h>
 #include <lh/config.h>
 #if LH_LIBRARY_OPTION_MATH_FPU
@@ -101,10 +102,7 @@ lh_math_vec3_to_point3(lh_math_vec3_t v)
 lh_bool_t
 lh_math_point3_eq(const lh_math_point3_t *a, const lh_math_point3_t *b)
 {
-    if (a == b)
-    {
-        return lh_bool_true;
-    }
+    lh_return_if(a == b, lh_bool_true);
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
     return lh_math_eq(lh_math_point3_get_x(a), lh_math_point3_get_x(b))

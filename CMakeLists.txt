@@ -90,9 +90,12 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/list/node.c
 
         ${LH_LIB_SRC_PATH}/math/point.c
+        ${LH_LIB_SRC_PATH}/math/point/scalar.c
         ${LH_LIB_SRC_PATH}/math/point3.c
         ${LH_LIB_SRC_PATH}/math/size.c
+        ${LH_LIB_SRC_PATH}/math/size/scalar.c
         ${LH_LIB_SRC_PATH}/math/rect.c
+        ${LH_LIB_SRC_PATH}/math/rect/scalar.c
         ${LH_LIB_SRC_PATH}/math/rect3.c
 
         ${LH_LIB_SRC_PATH}/version.c

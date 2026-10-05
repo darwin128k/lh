@@ -14,9 +14,11 @@
  *   (empty / contains-point / intersects / equal), and combine
  *   (offset, inset, intersection, union). Three small value types in
  *   whole pixels: `lh_math_point_t`, `lh_math_size_t`, `lh_math_rect_t`.
- *   These are screen / window coordinates, not floating-point math:
- *   positions, directions and sub-pixel work elsewhere use ::lh_math_vec2_t
- *   (float). The `lh/os/system` backends do not use these types either:
+ *   These are screen / window coordinates. `lh_math_point_scalar_t` is the
+ *   same point with ::lh_math_scalar_t components; it narrows to
+ *   `lh_math_point_t` by cast. `lh_math_rect_scalar_t` is the same rectangle:
+ *   a scalar point plus a scalar size, narrowed to `lh_math_rect_t` by
+ *   cast. The `lh/os/system` backends do not use these types either:
  *   each backend works in its own native types, and any mapping between
  *   the two belongs to the lh layer that needs it.
  *
@@ -27,8 +29,10 @@
  * Requires nothing from `lh/os`. Safe in STM/embedded.
  *
  * The type-specific headers (`<lh/math/coord.h>`, `<lh/math/point.h>`,
- * `<lh/math/size.h>`, `<lh/math/rect.h>`) declare one thing each — include
- * this file when you need several.
+ * `<lh/math/point/scalar.h>`, `<lh/math/size.h>`,
+ * `<lh/math/size/scalar.h>`, `<lh/math/rect.h>`,
+ * `<lh/math/rect/scalar.h>`)
+ * declare one thing each — include this file when you need several.
  */
 
 #ifndef LH_MATH_H
@@ -47,11 +51,14 @@
 #endif
 
 #include <lh/math/point.h>
+#include <lh/math/point/scalar.h>
 #include <lh/math/point3.h>
 #include <lh/math/rect.h>
+#include <lh/math/rect/scalar.h>
 #include <lh/math/rect3.h>
 #include <lh/math/scalar.h>
 #include <lh/math/size.h>
+#include <lh/math/size/scalar.h>
 
 /* ── arithmetic ────────────────────────────────────────────────────────── */
 

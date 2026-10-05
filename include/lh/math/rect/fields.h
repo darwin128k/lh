@@ -10,8 +10,8 @@
  * @def lh_math_rect_fields(point_type, size_type)
  * @brief Top-left corner and extent.
  *
- * @param point_type  Type of `origin` (::lh_math_point_t).
- * @param size_type   Type of `size` (::lh_math_size_t).
+ * @param point_type  Type of `origin`.
+ * @param size_type   Type of `size`.
  */
 #define lh_math_rect_fields(point_type, size_type)                                                  \
     point_type origin;                                                                              \

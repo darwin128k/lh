@@ -16,6 +16,19 @@ TEST(math_scalar, follows_the_fpu_option)
 #endif
 }
 
+TEST(math_scalar, literal_follows_the_fpu_option)
+{
+    using literal = decltype(lh_math_scalar(3));
+    EXPECT_TRUE((std::is_same<literal, lh_math_scalar_t>::value));
+#if LH_LIBRARY_OPTION_MATH_FPU
+    EXPECT_FLOAT_EQ(lh_math_scalar(3.9), 3.9f);
+    EXPECT_FLOAT_EQ(lh_math_scalar(-2), -2.f);
+#else
+    EXPECT_EQ(lh_math_scalar(3.9), 3);
+    EXPECT_EQ(lh_math_scalar(-2), -2);
+#endif
+}
+
 /* ── floor_div / floor_mod ─────────────────────────────────────────────── */
 
 TEST(math_floor_div, rounds_toward_negative_infinity)

@@ -5,6 +5,7 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/bool.h>
+#include <lh/util/return.h>
 #include <lh/math/size.h>
 #include <lh/math.h>
 
@@ -60,10 +61,7 @@ lh_math_size_set_height(lh_math_size_t *self, lh_math_coord_t height)
 lh_bool_t
 lh_math_size_eq(const lh_math_size_t *a, const lh_math_size_t *b)
 {
-    if (a == b)
-    {
-        return lh_bool_true;
-    }
+    lh_return_if(a == b, lh_bool_true);
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
     return lh_math_eq(lh_math_size_get_width(a), lh_math_size_get_width(b))

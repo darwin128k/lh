@@ -10,7 +10,7 @@
  * @def lh_math_size_fields(coord_type)
  * @brief Width and height.
  *
- * @param coord_type  Type of `width` and `height` (::lh_math_coord_t).
+ * @param coord_type  Type of `width` and `height`.
  */
 #define lh_math_size_fields(coord_type)                                                             \
     coord_type width;                                                                               \

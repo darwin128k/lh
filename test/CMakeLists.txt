@@ -65,6 +65,8 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/array.cpp
         ${LH_TEST_SRC_PATH}/lh/math.cpp
         ${LH_TEST_SRC_PATH}/lh/math/rect.cpp
+        ${LH_TEST_SRC_PATH}/lh/math/rect/scalar.cpp
+        ${LH_TEST_SRC_PATH}/lh/math/point/scalar.cpp
         ${LH_TEST_SRC_PATH}/lh/math/point3.cpp
         ${LH_TEST_SRC_PATH}/lh/math/rect3.cpp
         ${LH_TEST_SRC_PATH}/lh/list.cpp

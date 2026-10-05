@@ -10,7 +10,7 @@
  * @def lh_math_point_fields(coord_type)
  * @brief Horizontal and vertical coordinate.
  *
- * @param coord_type  Type of `x` and `y` (::lh_math_coord_t).
+ * @param coord_type  Type of `x` and `y`.
  */
 #define lh_math_point_fields(coord_type)                                                            \
     coord_type x;                                                                                   \

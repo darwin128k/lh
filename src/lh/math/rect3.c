@@ -9,6 +9,7 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/bool.h>
+#include <lh/util/return.h>
 #include <lh/math/rect3.h>
 #include <lh/math.h>
 
@@ -123,10 +124,7 @@ lh_math_rect3_is_empty(const lh_math_rect3_t *self)
 lh_bool_t
 lh_math_rect3_eq(const lh_math_rect3_t *a, const lh_math_rect3_t *b)
 {
-    if (a == b)
-    {
-        return lh_bool_true;
-    }
+    lh_return_if(a == b, lh_bool_true);
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
     return lh_math_eq(lh_math_rect3_get_x(a), lh_math_rect3_get_x(b))
