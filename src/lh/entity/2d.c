@@ -7,6 +7,7 @@
 #include <lh/float/round.h>
 #include <lh/null.h>
 #include <lh/math.h>
+#include <lh/math/box.h>
 #include <lh/math/quat.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -37,7 +38,8 @@ static lh_void
 lh_entity_2d_construct(lh_entity_t *self)
 {
     /* The memory is zeroed: position, angle, size and the style pointer
-     * (none) are already 0. */
+     * (none) are already 0, and so is the world matrix flag, which is a zero
+     * saying there is no world matrix yet. */
     lh_entity_2d_set_scale(lh_ptr_rcast(lh_entity_2d_t, self), lh_math_vec2_make(1.0f, 1.0f));
 }
 
@@ -181,7 +183,14 @@ lh_entity_2d_get_local_matrix(const lh_entity_2d_t *self)
 lh_math_mat4_t
 lh_entity_2d_get_world_matrix(const lh_entity_2d_t *self)
 {
-    lh_math_mat4_t world = lh_entity_2d_get_local_matrix(self);
+    lh_entity_2d_t *const cache = lh_cast_const(lh_entity_2d_t *, self);
+    lh_math_mat4_t world;
+    lh_assert_runtime_ref(self);
+    if (self->world_valid != lh_bool_false)
+    {
+        return self->world;
+    }
+    world = lh_entity_2d_get_local_matrix(self);
     for (const lh_entity_t *ancestor = lh_entity_get_parent(lh_ptr_rcast(const lh_entity_t, self));
          lh_ptr_is_set(ancestor); ancestor = lh_entity_get_parent(ancestor))
     {
@@ -191,6 +200,12 @@ lh_entity_2d_get_world_matrix(const lh_entity_2d_t *self)
             world = lh_math_mat4_mul(lh_entity_2d_get_local_matrix(spatial), world);
         }
     }
+    /* Kept, because the same matrix is asked for again by the bounds, by the
+       pick, by the background and by the clip of the very same entity in the
+       very same frame, and because the walk that drops it is the same one that
+       marks the screen dirty. */
+    cache->world = world;
+    cache->world_valid = lh_bool_true;
     return world;
 }
 
@@ -285,26 +300,41 @@ lh_entity_2d_plane_from_world(const lh_math_mat4_t *world)
     return plane;
 }
 
+/* The point of the view ray at (sx, sy) in the box's own space, and the world
+   z there. False only when the plane is edge-on, which leaves no local space
+   to speak of; a ray that misses the box is still a point, and how far it
+   lies from the box is what the caller needs to know. */
+static lh_bool_t
+lh_entity_2d_plane_local(const lh_entity_2d_plane_t *plane, lh_float_t sx, lh_float_t sy,
+                         lh_math_vec2_t *local_out, lh_float_t *z_out)
+{
+    const lh_float_t dx = sx - plane->origin_x;
+    const lh_float_t dy = sy - plane->origin_y;
+    const lh_math_vec2_t local =
+        lh_math_vec2_make(plane->inv00 * dx + plane->inv01 * dy, plane->inv10 * dx + plane->inv11 * dy);
+    if (local_out != lh_null)
+    {
+        *local_out = local;
+    }
+    if (z_out != lh_null)
+    {
+        *z_out = plane->z_x * lh_math_vec2_get_x(lh_addr_of(local)) +
+                 plane->z_y * lh_math_vec2_get_y(lh_addr_of(local)) + plane->z_origin;
+    }
+    return plane->ok;
+}
+
 /* True when the view ray at (sx, sy) crosses the box. Writes the world z. */
 static lh_bool_t
 lh_entity_2d_plane_hit(const lh_entity_2d_plane_t *plane, lh_math_vec2_t size, lh_float_t sx,
                        lh_float_t sy, lh_float_t *z_out)
 {
-    if (!plane->ok)
+    lh_math_vec2_t local;
+    if (!lh_entity_2d_plane_local(plane, sx, sy, lh_addr_of(local), z_out))
     {
         return lh_bool_false;
     }
-    const lh_float_t dx = sx - plane->origin_x;
-    const lh_float_t dy = sy - plane->origin_y;
-    const lh_math_vec3_t local = lh_math_vec3_make(plane->inv00 * dx + plane->inv01 * dy,
-                                                   plane->inv10 * dx + plane->inv11 * dy, 0.0f);
-    if (!lh_entity_2d_has_local_point(size, local))
-    {
-        return lh_bool_false;
-    }
-    *z_out = plane->z_x * lh_math_vec3_get_x(lh_addr_of(local)) +
-             plane->z_y * lh_math_vec3_get_y(lh_addr_of(local)) + plane->z_origin;
-    return lh_bool_true;
+    return lh_entity_2d_has_local_point(size, lh_math_vec2_to_vec3_z0(local));
 }
 
 lh_bool_t
@@ -452,17 +482,29 @@ lh_entity_2d_draw_background(const lh_entity_2d_t *self, lh_ui_canvas_t *canvas)
         return;
     }
 
-    /* Tilted or rotated in the plane: a pixel belongs to the box when its
-     * center's view ray crosses the box, so neighbors share no pixel. That test
-     * answers "inside or not" and nothing else, so the corner radius and the
-     * outline do not survive a rotation — same limitation as the missing
-     * anti-aliasing here. Both need the pixel's position in the box's own
-     * space, which needs an inverse this math layer does not have. */
+    /* Tilted or rotated in the plane. The box is measured in its own space,
+       where the rim is a rounded rectangle a distance away, and the distance
+       is brought back to the screen's units. That is what lets a turned edge
+       land between the pixels instead of on one of them: a pixel is covered
+       as far as the shape reaches into it, the corner radius rounds the same
+       rim, and the outline is the band around it. The pick still asks whether
+       the centre is in, so a pixel the shape barely reaches is painted but
+       not picked, which is the same rule the untilted path follows. */
     const lh_entity_2d_plane_t plane = lh_entity_2d_plane_from_world(lh_addr_of(world));
     if (!plane.ok)
     {
         return;
     }
+    /* What one unit of the box is worth on screen, as the length of the image
+       of its two axes. The mean of the two is exact for a box scaled evenly
+       and off by the ratio between them on one that is not, which is the
+       price of answering with one number for a shape with two directions. */
+    const lh_float_t unit =
+        (lh_math_vec2_length(lh_math_vec2_make(lh_math_vec4_get_x(lh_addr_of(world_col_0)),
+                                               lh_math_vec4_get_y(lh_addr_of(world_col_0)))) +
+         lh_math_vec2_length(lh_math_vec2_make(lh_math_vec4_get_x(lh_addr_of(world_col_1)),
+                                               lh_math_vec4_get_y(lh_addr_of(world_col_1))))) *
+        0.5f;
     const lh_math_rect_t clip = lh_ui_canvas_get_clip(canvas);
     const lh_math_rect_t bounds = lh_entity_2d_get_screen_bounds(self);
     const lh_math_rect_t area = lh_math_rect_intersection(lh_addr_of(clip), lh_addr_of(bounds));
@@ -474,14 +516,35 @@ lh_entity_2d_draw_background(const lh_entity_2d_t *self, lh_ui_canvas_t *canvas)
     {
         for (lh_math_coord_t x = x0; x < x1; ++x)
         {
+            lh_math_vec2_t local;
             lh_float_t z = 0.0f;
-            if (color.a != 0U && lh_entity_2d_plane_hit(lh_addr_of(plane), size,
-                                                       lh_cast_static(lh_float_t, x) + 0.5f,
-                                                       lh_cast_static(lh_float_t, y) + 0.5f,
-                                                       lh_addr_of(z)))
+            lh_float_t dist;
+            if (!lh_entity_2d_plane_local(lh_addr_of(plane), lh_cast_static(lh_float_t, x) + 0.5f,
+                                          lh_cast_static(lh_float_t, y) + 0.5f, lh_addr_of(local),
+                                          lh_addr_of(z)))
             {
-                lh_ui_canvas_set_draw_z(canvas, z);
-                lh_ui_canvas_blend_pixel(canvas, x, y, color);
+                continue;
+            }
+            dist = lh_math_box_distance(local, size, radius) * unit;
+            if (color.a == 0U && !border_on)
+            {
+                continue;
+            }
+            lh_ui_canvas_set_draw_z(canvas, z);
+            if (color.a != 0U)
+            {
+                /* The one pixel ramp the coverage machinery works in, in the
+                   same 1/256 px the disc and the outline measure in. */
+                lh_ui_canvas_blend_coverage(canvas, x, y, color,
+                                            lh_ui_canvas_coverage_from(
+                                                lh_cast_static(lh_int_t, dist * 256.0f)));
+            }
+            if (border_on)
+            {
+                const lh_float_t band = lh_math_abs(dist) - lh_cast_static(lh_float_t, border_width) * 0.5f;
+                lh_ui_canvas_blend_coverage(
+                    canvas, x, y, border,
+                    lh_ui_canvas_coverage_from(lh_cast_static(lh_int_t, band * 256.0f)));
             }
         }
     }

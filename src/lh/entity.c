@@ -2,6 +2,7 @@
 #include <lh/assert.h>
 #include <lh/cast/const.h>
 #include <lh/entity/handler.h>
+#include <lh/entity/screen.h>
 #include <lh/memory.h>
 #include <lh/memory/tree.h>
 #include <lh/null.h>
@@ -183,12 +184,18 @@ lh_entity_get_parent(const lh_entity_t *self)
 lh_void
 lh_entity_set_parent(lh_entity_t *self, lh_entity_t *parent)
 {
+    /* A new parent is a new chain of ancestors, so every world matrix under
+       this one is a different number and the area it used to cover is still on
+       screen. Both ends of the move are the same two invalidations a transform
+       change makes. */
+    lh_entity_invalidate(self); /* where it was */
     lh_memory_tree_set_parent(self, parent); /* refuses a cycle */
     lh_list_node_unlink(lh_addr_of(self->sibling));
     if (lh_ptr_is_set(parent))
     {
         lh_list_push_back(lh_addr_of(parent->children), lh_addr_of(self->sibling));
     }
+    lh_entity_invalidate(self); /* where it is now */
 }
 
 lh_entity_t *

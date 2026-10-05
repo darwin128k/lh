@@ -249,9 +249,67 @@ TEST_F(Screen, rotated_rect_is_drawn_rotated)
     lh_entity_2d_t *r = make_box(root(), 8, 2, 4, 4, k_red);
     lh_entity_2d_set_angle(reinterpret_cast<lh_entity_2d_t *>(r), k_pi / 4);
     render();
-    EXPECT_TRUE(same(at(7, 4), k_red));    // inside the diamond, left of the corner
-    EXPECT_TRUE(same(at(8, 6), k_red));    // further down, below the middle
+    EXPECT_TRUE(same(at(7, 4), k_red));    // well inside, left of the corner
+    EXPECT_TRUE(same(at(8, 5), k_red));    // the middle of the diamond
     EXPECT_TRUE(same(at(10, 2), k_black)); // where the unrotated square would be
+}
+
+TEST_F(Screen, rotated_rect_has_an_antialiased_edge)
+{
+    // The same diamond. A turned edge crosses pixels instead of running along
+    // their boundaries, so a pixel it passes through is partly covered: not
+    // the colour, and not nothing. Before the edge was measured the answer was
+    // one or the other, which is what made a turned widget look chewed.
+    lh_entity_2d_t *r = make_box(root(), 8, 2, 4, 4, k_red);
+    lh_entity_2d_set_angle(r, k_pi / 4);
+    render();
+    EXPECT_GT(at(7, 2).r, 0);   // the top vertex
+    EXPECT_LT(at(7, 2).r, 255);
+    EXPECT_GT(at(5, 4).r, 0);   // the left vertex
+    EXPECT_LT(at(5, 4).r, 255);
+}
+
+TEST_F(Screen, rotated_rect_keeps_its_corner_radius)
+{
+    // A square turned 45 degrees whose radius is half its side, so the shape is
+    // a disc and its corners are nowhere. The radius is a property of the box,
+    // not of the screen it lands on, so it survives the turn: the pixel at the
+    // corner the unturned square would have reaches nothing, while a square
+    // corner fills half of it.
+    lh_ui_style_t *style = &styles[style_count++];
+    lh_ui_style_init(style);
+    lh_ui_style_set_bg_color(style, k_red);
+    lh_ui_style_set_radius(style, 4);
+    lh_entity_2d_t *r = lh_ptr_rcast(lh_entity_2d_t, lh_entity_create(&lh_entity_2d_class, root()));
+    lh_entity_2d_set_position(r, lh_math_vec2_make(8, 2));
+    lh_entity_2d_set_size(r, lh_math_vec2_make(8, 8));
+    lh_entity_2d_set_style(r, style);
+    lh_entity_2d_set_angle(r, k_pi / 4);
+    render();
+    EXPECT_TRUE(same(at(8, 2), k_black)); // the corner the disc does not reach
+    EXPECT_TRUE(same(at(8, 6), k_red));  // and the middle, which it does
+}
+
+TEST_F(Screen, rotated_rect_keeps_its_outline)
+{
+    // An outline is a band around the same rim, so it turns with the box. It
+    // used to be dropped outright on a turned box, which left a shape that
+    // declared a border and drew none.
+    lh_ui_style_t *style = &styles[style_count++];
+    lh_ui_style_init(style);
+    lh_ui_style_set_bg_color(style, k_red);
+    lh_ui_style_set_border_color(style, k_green);
+    lh_ui_style_set_border_width(style, 1);
+    lh_entity_2d_t *r = lh_ptr_rcast(lh_entity_2d_t, lh_entity_create(&lh_entity_2d_class, root()));
+    lh_entity_2d_set_position(r, lh_math_vec2_make(8, 2));
+    lh_entity_2d_set_size(r, lh_math_vec2_make(6, 6));
+    lh_entity_2d_set_style(r, style);
+    lh_entity_2d_set_angle(r, k_pi / 4);
+    render();
+    // On the rim, the outline is over the fill, so green wins; with the border
+    // dropped the same pixel is the plain red of the fill underneath.
+    EXPECT_GT(at(4, 5).g, at(4, 5).r);
+    EXPECT_TRUE(same(at(8, 6), k_red)); // the middle is still the fill
 }
 
 TEST_F(Screen, younger_siblings_draw_over_older_ones)

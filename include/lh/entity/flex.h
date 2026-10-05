@@ -145,6 +145,20 @@ struct lh_entity_flex_spec
 /**
  * @struct lh_entity_flex
  * @brief A ::lh_entity_container_t that places its children.
+ *
+ * `content_width` and `content_height` are what ::lh_entity_flex_content last
+ * measured, and the tag beside each of them is the layout pass that measured
+ * it, zero being no pass at all. They exist because measuring a hugging
+ * child means measuring its own children, so without them a container nested
+ * `n` deep is walked once by every level above it, on top of the walk that
+ * level makes for itself. The tag is what makes the reuse sound: layout
+ * places a container's children only after every measurement that can reach it has
+ * run, because ::lh_entity_flex_layout_tree visits parents first. So the
+ * sizes a measurement reads are the ones the pass started with, for the whole
+ * pass, and a stale entry is one whose tag is not the current pass. Each
+ * axis is tagged apart, because a pass that measured one axis has no
+ * measurement of the other to hand back. Both entries belong to a layout
+ * pass and to nothing else, so a measurement taken outside one is not kept.
  */
 struct lh_entity_flex
 {
@@ -162,6 +176,10 @@ struct lh_entity_flex
     lh_int_t pad_left;
     lh_bool_t hug_width;
     lh_bool_t hug_height;
+    lh_int_t content_width;
+    lh_int_t content_height;
+    lh_int_t content_width_tag;
+    lh_int_t content_height_tag;
     lh_int_t item_count;
     struct lh_entity_flex_spec item[LH_ENTITY_FLEX_LIMIT];
 };
@@ -185,6 +203,13 @@ lh_entity_flex_set_direction(lh_entity_flex_t *self, lh_int_t direction);
 
 lh_int_t
 lh_entity_flex_get_direction(const lh_entity_flex_t *self);
+
+/**
+ * @brief Whether a ::LH_ENTITY_FLEX_DIRECTION lays its children out along the
+ *        x axis. The two reversed directions do; the two column ones do not.
+ */
+lh_bool_t
+lh_entity_flex_horizontal(lh_int_t direction);
 
 /**
  * @brief ::LH_ENTITY_FLEX_NOWRAP, ::LH_ENTITY_FLEX_WRAP or
@@ -306,6 +331,45 @@ lh_entity_flex_item_get_order(const lh_entity_t *self);
  */
 lh_void
 lh_entity_flex_layout(lh_entity_t *self);
+
+/**
+ * @brief The box of @p box along @p horizontal, rounded to whole pixels.
+ */
+lh_int_t
+lh_entity_flex_span(const lh_entity_2d_t *box, lh_bool_t horizontal);
+
+/**
+ * @brief What @p self records about @p child, or null when the child was
+ *        never given a record, which is what a child with no flex property
+ *        set looks like. A record is made by the first
+ *        ::lh_entity_flex_item_set_* call on the child.
+ */
+const struct lh_entity_flex_spec *
+lh_entity_flex_spec_at(const lh_entity_flex_t *self, const lh_entity_t *child);
+
+/**
+ * @brief How much room @p node's children take along @p horizontal, its own
+ *        padding included. A child with a basis takes that basis, a child
+ *        that hugs that axis, or that has no size to offer, is measured by
+ *        its own content, and the rest contribute their size.
+ *
+ * The answer is kept on @p node for the rest of the layout pass it was
+ * measured in, and re-measured in the next one. Outside a layout there is no
+ * pass to keep it for, so it is measured every time. Within a pass it is the
+ * same for every caller, which is what makes keeping it safe to read; see
+ * ::lh_entity_flex_t for why.
+ */
+lh_int_t
+lh_entity_flex_content(const lh_entity_flex_t *node, lh_bool_t horizontal);
+
+/**
+ * @brief What @p child takes along @p horizontal as an item of its parent.
+ *        A non-negative @p basis wins, a hugging or unsized flex child is
+ *        measured by ::lh_entity_flex_content, and anything else answers its
+ *        own size.
+ */
+lh_int_t
+lh_entity_flex_child_span(lh_entity_t *child, lh_bool_t horizontal, lh_int_t basis);
 
 /**
  * @brief Lay out @p root and every flex container under it, parents first.

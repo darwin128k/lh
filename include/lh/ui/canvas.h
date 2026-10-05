@@ -115,6 +115,32 @@ lh_void
 lh_ui_canvas_fill_rect(lh_ui_canvas_t *self, lh_math_rect_t rect, lh_ui_color_t color);
 
 /**
+ * @brief How much of a pixel a rim covers, 0..255, from how far the pixel is
+ *        from it. The number every other coverage here is built on, and the
+ *        only one a shape that is not axis-aligned on screen can use.
+ *
+ * @p signed_dist is a distance in 1/256 of a pixel, negative inside the shape
+ * and positive outside, in the sense of ::lh_math_box_distance. A pixel whose
+ * middle is a half pixel inside is fully covered, one a half pixel outside is
+ * not covered at all, and the width of the ramp between them is
+ * ::LH_LIBRARY_OPTION_UI_COVER, so an edge looks the same here as it does in
+ * ::lh_ui_canvas_disc_coverage. A span of 0 asks for the hard edge.
+ */
+lh_byte_t
+lh_ui_canvas_coverage_from(lh_int_t signed_dist);
+
+/**
+ * @brief Blend @p color over the pixel (@p x, @p y) as far as @p coverage
+ *        reaches, and not at all when it is 0.
+ *
+ * Goes through the clip and the depth of ::lh_ui_canvas_blend_pixel, so a
+ * covered edge is subject to the same two as a whole one.
+ */
+lh_void
+lh_ui_canvas_blend_coverage(lh_ui_canvas_t *self, lh_int_t x, lh_int_t y, lh_ui_color_t color,
+                            lh_byte_t coverage);
+
+/**
  * @brief How much of the pixel (@p x, @p y) a disc covers, 0..255.
  *
  * The center is the point (@p cx, @p cy) and the radius is in pixels. The

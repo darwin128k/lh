@@ -1,27 +1,9 @@
 #include <lh/ui/shadow.h>
 #include <lh/assert.h>
+#include <lh/math/isqrt.h>
 #include <lh/null.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
-
-lh_int_t
-lh_ui_shadow_isqrt(lh_int_t value)
-{
-    lh_int_t root;
-    lh_int_t next;
-    if (value <= 0)
-    {
-        return 0;
-    }
-    root = value;
-    next = (root + 1) / 2;
-    while (next < root)
-    {
-        root = next;
-        next = (root + value / root) / 2;
-    }
-    return root;
-}
 
 lh_int_t
 lh_ui_shadow_distance(lh_int_t x, lh_int_t y, lh_int_t left, lh_int_t top, lh_int_t right,
@@ -55,7 +37,9 @@ lh_ui_shadow_distance(lh_int_t x, lh_int_t y, lh_int_t left, lh_int_t top, lh_in
     {
         inside = 0;
     }
-    return lh_ui_shadow_isqrt(ox * ox + oy * oy) + inside - corner;
+    return lh_math_isqrt(lh_cast_static(lh_sllong_t, ox) * ox +
+                         lh_cast_static(lh_sllong_t, oy) * oy) +
+           inside - corner;
 }
 
 /* True when (@p x, @p y) lies off an edge that @p sides casts. */

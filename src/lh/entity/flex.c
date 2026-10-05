@@ -1,5 +1,6 @@
 #include <lh/entity/flex.h>
 #include <lh/assert.h>
+#include <lh/cast/const.h>
 #include <lh/entity.h>
 #include <lh/entity/event.h>
 #include <lh/null.h>
@@ -32,6 +33,40 @@ struct lh_entity_flex_line
 };
 
 static lh_int_t lh_entity_flex_placing;
+
+/* layout lays one container out at a time and layout_tree walks the tree one
+   container at a time, so neither of them alone is the span a measurement may
+   be kept over. A pass is the walk: layout_tree is entered once for the whole
+   tree and lays each container out under it, and a pass that stopped at each
+   container would throw away every measurement the container above had just
+   made. */
+static lh_int_t lh_entity_flex_walking;
+
+/* Which layout pass the content sizes on a container were measured in. Grows
+   on its own, so it is the only thing a measurement has to carry to be told
+   whether it still counts; see lh_entity_flex_t. It starts at one because a
+   container nobody has measured carries a tag of zero, and a live pass must
+   never be the number a container is born with. */
+static lh_int_t lh_entity_flex_pass = 1;
+
+/* Begin a pass, unless one is already running. Called at the head of both
+   entry points, so whichever comes first opens the pass and the other joins
+   it. */
+static lh_void
+lh_entity_flex_pass_begin(lh_void)
+{
+    if (lh_entity_flex_placing == 0 && lh_entity_flex_walking == 0)
+    {
+        lh_entity_flex_pass += 1;
+    }
+}
+
+/* Whether a pass is running, which is what decides if a measurement is kept. */
+static lh_bool_t
+lh_entity_flex_passing(lh_void)
+{
+    return lh_entity_flex_placing != 0 || lh_entity_flex_walking != 0 ? lh_bool_true : lh_bool_false;
+}
 
 lh_int_t
 lh_entity_flex_px(lh_float_t value)
@@ -218,17 +253,25 @@ lh_entity_flex_sort(struct lh_entity_flex_item *items, lh_int_t count)
 }
 
 lh_int_t
-lh_entity_flex_child_span(lh_entity_t *child, lh_bool_t horizontal, lh_int_t basis);
-
-lh_int_t
 lh_entity_flex_content(const lh_entity_flex_t *node, lh_bool_t horizontal)
 {
+    lh_entity_flex_t *const cache = lh_cast_const(lh_entity_flex_t *, node);
+    const lh_bool_t laying_out = lh_entity_flex_passing();
     const lh_bool_t row = lh_entity_flex_horizontal(node->direction);
     const lh_bool_t main = horizontal == row ? lh_bool_true : lh_bool_false;
     const lh_int_t gap = row != lh_bool_false ? node->column_gap : node->row_gap;
+    lh_int_t *const value = horizontal != lh_bool_false ? lh_addr_of(cache->content_width)
+                                                        : lh_addr_of(cache->content_height);
+    lh_int_t *const tag = horizontal != lh_bool_false ? lh_addr_of(cache->content_width_tag)
+                                                       : lh_addr_of(cache->content_height_tag);
     lh_int_t sum = 0;
     lh_int_t max_cross = 0;
     lh_int_t count = 0;
+    lh_int_t total;
+    if (laying_out != lh_bool_false && *tag == lh_entity_flex_pass)
+    {
+        return *value;
+    }
     lh_entity_foreach_child(child, lh_ptr_rcast(const lh_entity_t, node))
     {
         lh_entity_2d_t *box;
@@ -266,9 +309,21 @@ lh_entity_flex_content(const lh_entity_flex_t *node, lh_bool_t horizontal)
     }
     if (horizontal != lh_bool_false)
     {
-        return node->pad_left + node->pad_right + (main != lh_bool_false ? sum : max_cross);
+        total = node->pad_left + node->pad_right + (main != lh_bool_false ? sum : max_cross);
     }
-    return node->pad_top + node->pad_bottom + (main != lh_bool_false ? sum : max_cross);
+    else
+    {
+        total = node->pad_top + node->pad_bottom + (main != lh_bool_false ? sum : max_cross);
+    }
+    /* Kept only under a layout. Asked outside one there is no pass to belong
+       to, so the answer is measured again next time rather than trusted from a
+       layout that has since gone. */
+    if (laying_out != lh_bool_false)
+    {
+        *value = total;
+        *tag = lh_entity_flex_pass;
+    }
+    return total;
 }
 
 lh_int_t
@@ -833,6 +888,7 @@ lh_entity_flex_layout(lh_entity_t *self)
     {
         return;
     }
+    lh_entity_flex_pass_begin();
     lh_entity_flex_placing += 1;
     row = lh_entity_flex_horizontal(node->direction);
     parent = lh_entity_get_parent(self);
@@ -1019,9 +1075,16 @@ lh_entity_flex_layout_tree(lh_entity_t *root)
     {
         return;
     }
+    /* One pass over the whole walk. Closing it here rather than in
+       lh_entity_flex_layout is what lets a measurement made while laying the
+       root out still be the answer for the descendants the walk reaches
+       afterwards. */
+    lh_entity_flex_pass_begin();
+    lh_entity_flex_walking += 1;
     lh_entity_flex_layout(root);
     lh_entity_foreach_child(child, root)
     {
         lh_entity_flex_layout_tree(child);
     }
+    lh_entity_flex_walking -= 1;
 }

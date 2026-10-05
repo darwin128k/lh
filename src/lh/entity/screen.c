@@ -165,16 +165,25 @@ lh_entity_screen_render(lh_entity_screen_t *self, lh_ui_canvas_t *canvas)
     return drawn;
 }
 
-/* Mark what @p entity and its descendants cover. A box that cuts its
- * children covers them too, so the walk stops there. */
+/* Mark what @p entity and its descendants cover, and drop the world matrices
+ * under it, which is what the change that got here made stale. A box that cuts
+ * its children covers them too, so the walk stops there. @p screen may be
+ * ::lh_null: a tree not under one has nothing to mark, and its matrices still
+ * have to go all the way down. */
 static lh_void
 lh_entity_screen_invalidate_tree(lh_entity_screen_t *screen, lh_entity_t *entity)
 {
-    const lh_entity_2d_t *const spatial = lh_entity_cast(entity, lh_addr_of(lh_entity_2d_class));
+    lh_entity_2d_t *const spatial = lh_entity_cast(entity, lh_addr_of(lh_entity_2d_class));
     if (lh_ptr_is_set(spatial))
     {
         const lh_math_vec2_t size = lh_entity_2d_get_size(spatial);
-        if (lh_math_vec2_get_x(lh_addr_of(size)) > 0.0f && lh_math_vec2_get_y(lh_addr_of(size)) > 0.0f)
+        /* This walk is also what drops the world matrices. Something under
+           this node moved, so every chain of ancestors below it is a different
+           one, and the bounds measured right after are what put this node's
+           back. It costs nothing: the walk was already being made. */
+        spatial->world_valid = lh_bool_false;
+        if (lh_ptr_is_set(screen) && lh_math_vec2_get_x(lh_addr_of(size)) > 0.0f &&
+            lh_math_vec2_get_y(lh_addr_of(size)) > 0.0f)
         {
             lh_math_rect_t bounds = lh_entity_2d_get_screen_bounds(spatial);
             const lh_int_t pad = lh_ui_effect_outset(lh_entity_2d_get_effect(spatial));
@@ -189,7 +198,7 @@ lh_entity_screen_invalidate_tree(lh_entity_screen_t *screen, lh_entity_t *entity
             lh_entity_screen_invalidate_area(screen, bounds);
         }
     }
-    lh_return_if(lh_ptr_is_set(lh_entity_screen_clip_box(entity)));
+    lh_return_if(lh_ptr_is_set(screen) && lh_ptr_is_set(lh_entity_screen_clip_box(entity)));
     lh_entity_foreach_child(child, entity)
     {
         lh_entity_screen_invalidate_tree(screen, child);
@@ -201,10 +210,11 @@ lh_entity_invalidate(lh_entity_t *self)
 {
     lh_entity_screen_t *const screen =
         lh_entity_cast(lh_entity_get_root(self), lh_addr_of(lh_entity_screen_class));
-    if (lh_ptr_is_set(screen))
-    {
-        lh_entity_screen_invalidate_tree(screen, self);
-    }
+    /* Always, screen or not. The world matrices under this node are stale
+       whatever stands above them, and dropping them is what this walk is for;
+       only the marking needs a screen to mark on. A tree that is not under one
+       has no pixels, and it still has matrices. */
+    lh_entity_screen_invalidate_tree(screen, self);
 }
 
 lh_void
@@ -227,9 +237,21 @@ lh_entity_screen_get_pressed(const lh_entity_screen_t *self)
 lh_entity_t *
 lh_entity_screen_send_pointer(lh_entity_screen_t *self, lh_uint_t code, lh_math_vec2_t point)
 {
+    lh_entity_t *target;
+    lh_entity_t *held;
     lh_assert_runtime_ref(self);
-    lh_entity_t *const target = lh_entity_2d_find_at(lh_ptr_rcast(lh_entity_t, self), point);
-    lh_entity_t *const held = self->pressed;
+    held = self->pressed;
+    /* A move while a pointer is held belongs to whatever is holding it, and the
+       hit test is not how that is worked out: the screen already knows, and
+       asking the tree would walk the whole scene per move only to throw the
+       answer away. This is the mouse moving and the most frequent pointer event
+       there is. */
+    if (code == LH_ENTITY_EVENT_POINTER_MOVE && lh_ptr_is_set(held))
+    {
+        lh_entity_send_event(held, code, lh_addr_of(point));
+        return held;
+    }
+    target = lh_entity_2d_find_at(lh_ptr_rcast(lh_entity_t, self), point);
     if (code == LH_ENTITY_EVENT_POINTER_UP)
     {
         self->pressed = lh_null;
@@ -237,11 +259,6 @@ lh_entity_screen_send_pointer(lh_entity_screen_t *self, lh_uint_t code, lh_math_
         {
             lh_entity_send_event(held, code, lh_addr_of(point));
         }
-    }
-    else if (code == LH_ENTITY_EVENT_POINTER_MOVE && lh_ptr_is_set(held))
-    {
-        lh_entity_send_event(held, code, lh_addr_of(point));
-        return held;
     }
     if (lh_ptr_is_set(target))
     {

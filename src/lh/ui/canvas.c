@@ -4,6 +4,7 @@
 #include <lh/cast/static.h>
 #include <lh/config.h>
 #include <lh/float/round.h>
+#include <lh/math/isqrt.h>
 #include <lh/numeric/types.h>
 #include <lh/runtime/error/code.h>
 #include <lh/util/addr.h>
@@ -189,25 +190,6 @@ lh_ui_canvas_fill_rect(lh_ui_canvas_t *self, lh_math_rect_t rect, lh_ui_color_t 
     }
 }
 
-lh_int_t
-lh_ui_canvas_isqrt(lh_sllong_t value)
-{
-    lh_sllong_t root;
-    lh_sllong_t next;
-    if (value <= 0)
-    {
-        return 0;
-    }
-    root = value;
-    next = (root + 1) / 2;
-    while (next < root)
-    {
-        root = next;
-        next = (root + value / root) / 2;
-    }
-    return (lh_int_t)root;
-}
-
 lh_byte_t
 lh_ui_canvas_coverage_from(lh_int_t signed_dist)
 {
@@ -244,13 +226,29 @@ lh_ui_canvas_disc_coverage(lh_int_t x, lh_int_t y, lh_float_t cx, lh_float_t cy,
 {
     const lh_float_t dx = (lh_cast_static(lh_float_t, x) + 0.5f - cx) * 256.0f;
     const lh_float_t dy = (lh_cast_static(lh_float_t, y) + 0.5f - cy) * 256.0f;
-    lh_int_t dist;
+    const lh_sllong_t half = LH_LIBRARY_OPTION_UI_COVER / 2;
+    const lh_sllong_t rim = lh_cast_static(lh_sllong_t, radius) * 256;
+    lh_sllong_t squared;
     if (radius <= 0)
     {
         return 0;
     }
-    dist = lh_ui_canvas_isqrt(lh_cast_static(lh_sllong_t, dx * dx + dy * dy));
-    return lh_ui_canvas_coverage_from(dist - radius * 256);
+    squared = lh_cast_static(lh_sllong_t, dx * dx + dy * dy);
+    /* The fade is LH_LIBRARY_OPTION_UI_COVER wide, so a pixel whose squared
+       distance is past the rim by half of that is certainly out, and one that
+       far inside it is certainly in. Both are settled on the square, which
+       costs a multiply, and only the pixels actually standing on the rim need
+       the root. A disc is overwhelmingly pixels of one of those two kinds, and
+       the root is what used to be paid for every one of them. */
+    if (squared >= (rim + half) * (rim + half))
+    {
+        return 0;
+    }
+    if (squared <= (rim - half) * (rim - half))
+    {
+        return 255;
+    }
+    return lh_ui_canvas_coverage_from(lh_math_isqrt(squared) - radius * 256);
 }
 
 lh_byte_t
@@ -268,6 +266,8 @@ lh_ui_canvas_round_coverage(lh_int_t x, lh_int_t y, lh_int_t left, lh_int_t top,
     lh_int_t oy;
     lh_int_t inside;
     lh_int_t dist;
+    lh_sllong_t squared;
+    lh_sllong_t reach;
     if (width <= 0 || height <= 0)
     {
         return 0;
@@ -313,7 +313,17 @@ lh_ui_canvas_round_coverage(lh_int_t x, lh_int_t y, lh_int_t left, lh_int_t top,
     {
         inside = 0;
     }
-    dist = lh_ui_canvas_isqrt((lh_sllong_t)ox * ox + (lh_sllong_t)oy * oy);
+    /* The corner of a rounded box is mostly pixels outside the arc, and they are
+       settled on the square: the root is only for the pixels on the rim. The
+       `inside` term is never positive, so a root past the rim plus half the
+       fade settles the answer the same way the root would. */
+    squared = lh_cast_static(lh_sllong_t, ox) * ox + lh_cast_static(lh_sllong_t, oy) * oy;
+    reach = lh_cast_static(lh_sllong_t, rad) * 256 + LH_LIBRARY_OPTION_UI_COVER / 2;
+    if (squared >= reach * reach)
+    {
+        return 0;
+    }
+    dist = lh_math_isqrt(squared);
     return lh_ui_canvas_coverage_from(dist + inside - rad * 256);
 }
 

@@ -53,6 +53,7 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/memory/sized/allocator.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/tree.cpp
         ${LH_TEST_SRC_PATH}/lh/entity.cpp
+        ${LH_TEST_SRC_PATH}/lh/entity/flex.cpp
         ${LH_TEST_SRC_PATH}/lh/entity/group.cpp
         ${LH_TEST_SRC_PATH}/lh/entity/range.cpp
         ${LH_TEST_SRC_PATH}/lh/entity/scroll.cpp
@@ -70,6 +71,8 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/memory/bounds/allocated.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/view/slice.cpp
         ${LH_TEST_SRC_PATH}/lh/array.cpp
+        ${LH_TEST_SRC_PATH}/lh/math/isqrt.cpp
+        ${LH_TEST_SRC_PATH}/lh/math/box.cpp
         ${LH_TEST_SRC_PATH}/lh/math/vec2.cpp
         ${LH_TEST_SRC_PATH}/lh/math/vec3.cpp
         ${LH_TEST_SRC_PATH}/lh/math/vec4.cpp

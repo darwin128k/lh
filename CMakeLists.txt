@@ -130,6 +130,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/math/size.c
         ${LH_LIB_SRC_PATH}/math/rect.c
         ${LH_LIB_SRC_PATH}/math/rect3.c
+        ${LH_LIB_SRC_PATH}/math/box.c
+        ${LH_LIB_SRC_PATH}/math/isqrt.c
         ${LH_LIB_SRC_PATH}/math/vec2.c
         ${LH_LIB_SRC_PATH}/math/vec3.c
         ${LH_LIB_SRC_PATH}/math/vec4.c
@@ -313,12 +315,15 @@ if (LH_LIBRARY_OPTION_OS AND LH_OS_SYSTEM_LINK_LIBS)
     target_link_libraries(${PROJECT_NAME} PUBLIC ${LH_OS_SYSTEM_LINK_LIBS})
 endif ()
 
-# Vector math takes square roots through __builtin_sqrtf (src/lh/float/sqrt.h).
-# Without -fno-math-errno GCC/Clang keep a call to libm's sqrtf next to the
-# CPU instruction, only to set errno on negative input: a dependency a
-# freestanding build cannot satisfy, for a value lh never reads.
+# Vector math, the exact integer root and the box distance take square roots
+# through __builtin_sqrtf (src/lh/float/sqrt.h). Without -fno-math-errno GCC/Clang keep a
+# call to libm's sqrtf next to the CPU instruction, only to set errno on
+# negative input: a dependency a freestanding build cannot satisfy, for a value
+# lh never reads.
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     set_source_files_properties(
+            ${LH_LIB_SRC_PATH}/math/box.c
+            ${LH_LIB_SRC_PATH}/math/isqrt.c
             ${LH_LIB_SRC_PATH}/math/vec2.c
             ${LH_LIB_SRC_PATH}/math/vec3.c
             ${LH_LIB_SRC_PATH}/math/vec4.c

@@ -99,8 +99,7 @@ lh_entity_screen_render(lh_entity_screen_t *self, lh_ui_canvas_t *canvas);
  *        redrawing.
  *
  * Does nothing when @p self is not under a screen. Call it before and after
- * changes the setters do not cover, such as hiding @p self or moving it to
- * another parent.
+ * changes the setters do not cover, such as hiding @p self.
  */
 lh_void
 lh_entity_invalidate(lh_entity_t *self);

@@ -126,9 +126,14 @@
  *
  * Returns @p a if non-negative, otherwise returns negated @p a.
  *
+ * The whole conditional is parenthesised, so `lh_math_abs(a) - b` is that
+ * subtraction and not a conditional that drops it: the conditional operator
+ * binds looser than `-`, and without the brackets the result of
+ * `lh_math_abs(x) - y` came out as `x` negated with `y` never subtracted.
+ *
  * @see lh_math_neg(), lh_math_is_negative()
  */
-#define lh_math_abs(a) lh_math_is_negative(a) ? lh_math_neg(a) : (a)
+#define lh_math_abs(a) (lh_math_is_negative(a) ? lh_math_neg(a) : (a))
 
 /* ── increment / decrement ─────────────────────────────────────────────── */
 

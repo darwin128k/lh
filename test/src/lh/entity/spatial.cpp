@@ -194,6 +194,56 @@ TEST_F(Spatial, rect_scaled_to_nothing_contains_no_point)
     EXPECT_FALSE(lh_entity_2d_contains(r, lh_math_vec2_make(0, 0)));
 }
 
+TEST_F(Spatial, a_world_matrix_asked_twice_around_a_move_is_the_second_answer)
+{
+    // A world matrix is kept, so the order matters: asked, then something
+    // moved, then asked again. The second answer is the one that has to be a
+    // different number, and it is the one a stale copy gets wrong.
+    lh_entity_2d_t *parent = make_2d(root);
+    lh_entity_2d_t *child = make_2d(as_entity(parent));
+    lh_entity_2d_set_position(child, lh_math_vec2_make(10, 0));
+
+    expect_vec3_near(
+        lh_math_mat4_transform_point(lh_entity_2d_get_world_matrix(child), lh_math_vec3_make(0, 0, 0)),
+        10, 0, 0);
+
+    lh_entity_2d_set_position(parent, lh_math_vec2_make(100, 50));
+    expect_vec3_near(
+        lh_math_mat4_transform_point(lh_entity_2d_get_world_matrix(child), lh_math_vec3_make(0, 0, 0)),
+        110, 50, 0);
+
+    // The same for a turn, and for one three levels up, which is the walk the
+    // cache is there to avoid repeating.
+    lh_entity_2d_t *middle = make_2d(root);
+    lh_entity_2d_t *inner = make_2d(as_entity(middle));
+    (void)lh_entity_2d_get_world_matrix(inner);
+    lh_entity_2d_set_position(middle, lh_math_vec2_make(0, 40));
+    expect_vec3_near(
+        lh_math_mat4_transform_point(lh_entity_2d_get_world_matrix(inner), lh_math_vec3_make(0, 0, 0)),
+        0, 40, 0);
+    lh_entity_2d_set_angle(parent, k_pi / 2);
+    expect_vec3_near(
+        lh_math_mat4_transform_point(lh_entity_2d_get_world_matrix(child), lh_math_vec3_make(0, 0, 0)),
+        100, 60, 0);
+}
+
+TEST_F(Spatial, an_entity_moved_to_another_parent_is_where_that_parent_puts_it)
+{
+    lh_entity_2d_t *left = make_box(root, 0, 0, 100, 100);
+    lh_entity_2d_t *right = make_box(root, 200, 0, 100, 100);
+    lh_entity_2d_t *child = make_box(as_entity(left), 5, 5, 10, 10);
+    (void)lh_entity_2d_get_world_matrix(child); // a copy of the old answer is held
+
+    lh_entity_set_parent(as_entity(child), as_entity(right));
+
+    // A new parent is a new chain of ancestors, so the copy that was taken
+    // before the move is worth nothing afterwards.
+    expect_vec3_near(
+        lh_math_mat4_transform_point(lh_entity_2d_get_world_matrix(child), lh_math_vec3_make(0, 0, 0)),
+        205, 5, 0);
+    EXPECT_EQ(lh_entity_get_parent(as_entity(child)), as_entity(right));
+}
+
 TEST_F(Spatial, find_at_returns_what_is_on_top)
 {
     lh_entity_2d_t *window = make_box(root, 0, 0, 100, 100);
