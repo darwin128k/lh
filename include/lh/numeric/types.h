@@ -2,6 +2,8 @@
  * @file types.h
  * @brief Portable integer type definitions with explicit signedness.
  *
+ * Floating point is ::lh_float_t in `lh/numeric/float.h`. There is no `double`.
+ *
  * Provides typedefs for unsigned and signed integer types with clear,
  * self-documenting names using the `lh_` prefix.
  *

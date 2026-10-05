@@ -88,6 +88,18 @@ option(LH_LIBRARY_OPTION_OS_WERROR
 unset(_LH_OS_WERROR_DEFAULT)
 
 # -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_MATH_FPU
+#
+# Underlying type of lh_math_scalar_t (include/lh/math/scalar.h).
+#
+#   ON  — lh_float_t. The scalar uses the FPU.
+#   OFF — lh_int_t. The scalar stays in integer arithmetic.
+# -----------------------------------------------------------------------------
+option(LH_LIBRARY_OPTION_MATH_FPU
+        "lh_math_scalar_t is lh_float_t (ON) or lh_int_t (OFF)."
+        OFF)
+
+# -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB
 #
 # Default handler for lh_runtime_terminate() (lh/runtime_terminate.c).

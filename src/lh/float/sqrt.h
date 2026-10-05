@@ -15,7 +15,7 @@
 
 #include <lh/attribute/static.h>
 #include <lh/compiler/type.h>
-#include <lh/float.h>
+#include <lh/numeric/float.h>
 
 #if !LH_COMPILER_TYPE_IS_GCC_LIKE
 #    include <math.h>

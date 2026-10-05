@@ -24,7 +24,7 @@
 #define LH_MATH_QUAT_H
 
 #include <lh/compiler/extern/c.h>
-#include <lh/float.h>
+#include <lh/numeric/float.h>
 #include <lh/math/quat/fields.h>
 #include <lh/math/vec3.h>
 #include <lh/math/vec4.h>

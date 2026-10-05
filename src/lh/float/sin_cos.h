@@ -21,7 +21,7 @@
 
 #include <lh/attribute/static.h>
 #include <lh/cast/static.h>
-#include <lh/float.h>
+#include <lh/numeric/float.h>
 #include <lh/numeric/types.h>
 #include <lh/void.h>
 

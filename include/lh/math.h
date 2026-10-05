@@ -42,6 +42,7 @@
 #include <lh/math/quat.h>
 #include <lh/math/rect.h>
 #include <lh/math/rect3.h>
+#include <lh/math/scalar.h>
 #include <lh/math/size.h>
 #include <lh/math/vec2.h>
 #include <lh/math/vec3.h>

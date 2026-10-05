@@ -106,6 +106,15 @@
 #define LH_LIBRARY_OPTION_OS_WERROR @ValOsWerror@
 
 /**
+ * @def LH_LIBRARY_OPTION_MATH_FPU
+ * @brief ::lh_math_scalar_t uses ::lh_float_t (::LH_LIBRARY_OPTION_OFF /
+ *        ::LH_LIBRARY_OPTION_ON).
+ *
+ * OFF: the scalar is ::lh_int_t. ON: the scalar is ::lh_float_t.
+ */
+#define LH_LIBRARY_OPTION_MATH_FPU @ValMathFpu@
+
+/**
  * @def LH_LIBRARY_OPTION_OS_WINDOW
  * @brief Compile the native window backend under `lh/os` (Win32 / Xlib /
  *        Cocoa) (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).

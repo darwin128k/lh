@@ -6,7 +6,7 @@
 #ifndef LH_MATH_PI_H
 #define LH_MATH_PI_H
 
-#include <lh/float.h>
+#include <lh/numeric/float.h>
 
 /**
  * @def LH_MATH_PI

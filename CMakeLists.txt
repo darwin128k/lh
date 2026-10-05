@@ -75,32 +75,6 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/memory/allocator.c
         ${LH_LIB_SRC_PATH}/memory/sized/allocator.c
         ${LH_LIB_SRC_PATH}/memory/tree.c
-        ${LH_LIB_SRC_PATH}/entity.c
-        ${LH_LIB_SRC_PATH}/entity/event.c
-        ${LH_LIB_SRC_PATH}/entity/2d.c
-        ${LH_LIB_SRC_PATH}/entity/3d.c
-        ${LH_LIB_SRC_PATH}/entity/screen.c
-        ${LH_LIB_SRC_PATH}/entity/label.c
-        ${LH_LIB_SRC_PATH}/entity/button.c
-        ${LH_LIB_SRC_PATH}/entity/circle.c
-        ${LH_LIB_SRC_PATH}/entity/range.c
-        ${LH_LIB_SRC_PATH}/entity/slider.c
-        ${LH_LIB_SRC_PATH}/entity/knob.c
-        ${LH_LIB_SRC_PATH}/entity/spin.c
-        ${LH_LIB_SRC_PATH}/entity/scroll.c
-        ${LH_LIB_SRC_PATH}/entity/group.c
-        ${LH_LIB_SRC_PATH}/entity/option.c
-        ${LH_LIB_SRC_PATH}/entity/list.c
-        ${LH_LIB_SRC_PATH}/entity/combo.c
-        ${LH_LIB_SRC_PATH}/entity/field.c
-        ${LH_LIB_SRC_PATH}/entity/keys.c
-        ${LH_LIB_SRC_PATH}/entity/image.c
-        ${LH_LIB_SRC_PATH}/entity/view.c
-        ${LH_LIB_SRC_PATH}/entity/pages.c
-        ${LH_LIB_SRC_PATH}/entity/tabs.c
-        ${LH_LIB_SRC_PATH}/entity/sheets.c
-        ${LH_LIB_SRC_PATH}/entity/container.c
-        ${LH_LIB_SRC_PATH}/entity/flex.c
         ${LH_LIB_SRC_PATH}/memory/bounds/slice.c
         ${LH_LIB_SRC_PATH}/memory/bounds/allocated.c
         ${LH_LIB_SRC_PATH}/memory/view/slice.c
@@ -115,23 +89,11 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/list.c
         ${LH_LIB_SRC_PATH}/list/node.c
 
-        ${LH_LIB_SRC_PATH}/ui/canvas.c
-        ${LH_LIB_SRC_PATH}/ui/color.c
-        ${LH_LIB_SRC_PATH}/ui/style.c
-        ${LH_LIB_SRC_PATH}/ui/effect.c
-        ${LH_LIB_SRC_PATH}/ui/shadow.c
-        ${LH_LIB_SRC_PATH}/ui/blur.c
-        ${LH_LIB_SRC_PATH}/ui/glass.c
-        ${LH_LIB_SRC_PATH}/ui/theme.c
-        ${LH_LIB_SRC_PATH}/ui/font.c
-        ${LH_LIB_SRC_PATH}/ui/roboto.c
         ${LH_LIB_SRC_PATH}/math/point.c
         ${LH_LIB_SRC_PATH}/math/point3.c
         ${LH_LIB_SRC_PATH}/math/size.c
         ${LH_LIB_SRC_PATH}/math/rect.c
         ${LH_LIB_SRC_PATH}/math/rect3.c
-        ${LH_LIB_SRC_PATH}/math/box.c
-        ${LH_LIB_SRC_PATH}/math/isqrt.c
         ${LH_LIB_SRC_PATH}/math/vec2.c
         ${LH_LIB_SRC_PATH}/math/vec3.c
         ${LH_LIB_SRC_PATH}/math/vec4.c
@@ -244,56 +206,6 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/shared.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/str.c
     )
-
-    # Native window backend: Win32 (user32.dll) on Windows, Xlib (libX11)
-    # on Linux. Cocoa/AppKit for macOS lands under macos/window.c when the
-    # backend is added. Each backend is opt-in: when libX11 is missing on
-    # Linux (e.g., a CI runner without `libx11-dev` installed), the X11
-    # backend is skipped so the rest of the library still builds and links.
-    if (LH_LIBRARY_OPTION_OS_WINDOW)
-        list(APPEND LH_LIB_SOURCES
-                ${LH_LIB_SRC_PATH}/os/window.c
-                ${LH_LIB_SRC_PATH}/os/monitor.c
-                ${LH_LIB_SRC_PATH}/os/system/window/event.c
-                ${LH_LIB_SRC_PATH}/os/system/window/handler.c
-        )
-        if (WIN32)
-            list(APPEND LH_LIB_SOURCES
-                    ${LH_LIB_SRC_PATH}/os/system/win/window.c
-                    ${LH_LIB_SRC_PATH}/os/system/win/monitor.c
-            )
-            list(APPEND LH_OS_SYSTEM_LINK_LIBS user32 gdi32)
-        elseif (APPLE)
-            list(APPEND LH_LIB_SOURCES
-                    ${LH_LIB_SRC_PATH}/os/system/macos/window.m
-            )
-            list(APPEND LH_OS_SYSTEM_LINK_LIBS "-framework AppKit")
-            list(APPEND LH_OS_SYSTEM_LINK_LIBS "-framework Foundation")
-            # The Cocoa backend file uses Objective-C syntax; tell CMake to
-            # compile it with the OBJC language, not C.
-            set_source_files_properties(
-                    ${LH_LIB_SRC_PATH}/os/system/macos/window.m
-                    PROPERTIES LANGUAGE OBJC
-            )
-        elseif (UNIX AND NOT APPLE)
-            # Linux: detect libX11 at configure time. `find_library` is a
-            # no-op (and prints nothing) when the library is on the standard
-            # search path; on a `libx11-dev`-less CI it skips the X11
-            # backend entirely instead of failing the link step.
-            find_library(LH_X11_LIBRARY NAMES X11)
-            if (LH_X11_LIBRARY)
-                list(APPEND LH_LIB_SOURCES
-                        ${LH_LIB_SRC_PATH}/os/system/posix/window.c
-                        ${LH_LIB_SRC_PATH}/os/system/posix/monitor.c
-                )
-                list(APPEND LH_OS_SYSTEM_LINK_LIBS ${LH_X11_LIBRARY})
-            else ()
-                message(STATUS
-                        "lh: libX11 not found; X11 window backend disabled"
-                        " (install libx11-dev to enable)")
-            endif ()
-        endif ()
-    endif ()
 endif ()
 
 # lh is a static library only: it is linked into its host, never loaded as a
@@ -322,8 +234,6 @@ endif ()
 # lh never reads.
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     set_source_files_properties(
-            ${LH_LIB_SRC_PATH}/math/box.c
-            ${LH_LIB_SRC_PATH}/math/isqrt.c
             ${LH_LIB_SRC_PATH}/math/vec2.c
             ${LH_LIB_SRC_PATH}/math/vec3.c
             ${LH_LIB_SRC_PATH}/math/vec4.c

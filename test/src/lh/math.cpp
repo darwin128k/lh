@@ -1,6 +1,20 @@
 #include <gtest/gtest.h>
+#include <type_traits>
+
+#include <lh/config.h>
+#include <lh/numeric/float.h>
 #include <lh/math.h>
 #include <lh/math/floor.h>
+#include <lh/numeric/types.h>
+
+TEST(math_scalar, follows_the_fpu_option)
+{
+#if LH_LIBRARY_OPTION_MATH_FPU
+    EXPECT_TRUE((std::is_same<lh_math_scalar_t, lh_float_t>::value));
+#else
+    EXPECT_TRUE((std::is_same<lh_math_scalar_t, lh_int_t>::value));
+#endif
+}
 
 /* ── floor_div / floor_mod ─────────────────────────────────────────────── */
 
