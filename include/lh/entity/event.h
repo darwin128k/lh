@@ -10,9 +10,6 @@
 
 #include <lh/compiler/extern/c.h>
 #include <lh/entity/event/fields.h>
-#include <lh/ui/brush.h>
-#include <lh/ui/canvas.h>
-#include <lh/ui/pen.h>
 
 /**
  * @enum lh_entity_event_code
@@ -26,11 +23,11 @@ typedef enum lh_entity_event_code
 /**
  * @struct lh_entity_event
  * @typedef lh_entity_event_t
- * @brief A draw call: the code, the canvas, the brush and the pen.
+ * @brief A draw call: the code.
  */
 struct lh_entity_event
 {
-    lh_entity_event_fields(lh_entity_event_code_t, lh_ui_canvas_t, const lh_ui_brush_t, const lh_ui_pen_t);
+    lh_entity_event_fields(lh_entity_event_code_t);
 };
 typedef struct lh_entity_event lh_entity_event_t;
 
@@ -41,24 +38,6 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_entity_event_code_t
 lh_entity_event_get_code(const lh_entity_event_t *self);
-
-/**
- * @brief Canvas of a draw event.
- */
-lh_ui_canvas_t *
-lh_entity_event_get_canvas(const lh_entity_event_t *self);
-
-/**
- * @brief Brush of a draw event.
- */
-const lh_ui_brush_t *
-lh_entity_event_get_brush(const lh_entity_event_t *self);
-
-/**
- * @brief Pen of a draw event.
- */
-const lh_ui_pen_t *
-lh_entity_event_get_pen(const lh_entity_event_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

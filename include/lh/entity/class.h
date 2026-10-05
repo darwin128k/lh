@@ -31,7 +31,7 @@ typedef struct lh_entity_class lh_entity_class_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Class of ::lh_entity_t. Its event fills and strokes the rectangle.
+ * @brief Class of ::lh_entity_t.
  *
  * It has no base class.
  */

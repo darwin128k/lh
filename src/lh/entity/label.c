@@ -58,9 +58,8 @@ lh_entity_label_set_text(lh_entity_label_t *self, const lh_char_t *text)
 }
 
 lh_void
-lh_entity_label_draw(const lh_entity_label_t *self, lh_ui_canvas_t *canvas, const lh_ui_brush_t *brush,
-                     const lh_ui_pen_t *pen)
+lh_entity_label_draw(const lh_entity_label_t *self)
 {
     lh_assert_runtime_ref(self);
-    lh_entity_draw(lh_addr_of(self->entity), canvas, brush, pen);
+    lh_entity_draw(lh_addr_of(self->entity));
 }

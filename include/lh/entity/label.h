@@ -4,9 +4,7 @@
  *
  * The label is the entity plus a string. The string is not copied and not
  * owned: it must outlive the label. Its class is ::lh_entity_label_class.
- * That class calls the base class, which paints the rectangle, and then
- * would paint the text. The canvas has no glyphs, so the characters are
- * not painted.
+ * That class calls the base class. The characters are not painted.
  */
 
 #ifndef LH_ENTITY_LABEL_H
@@ -76,8 +74,7 @@ lh_entity_label_set_text(lh_entity_label_t *self, const lh_char_t *text);
  * The text is not painted.
  */
 lh_void
-lh_entity_label_draw(const lh_entity_label_t *self, lh_ui_canvas_t *canvas, const lh_ui_brush_t *brush,
-                     const lh_ui_pen_t *pen);
+lh_entity_label_draw(const lh_entity_label_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

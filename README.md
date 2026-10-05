@@ -125,8 +125,6 @@ Manual (no-CMake) builds set the same names directly in `config.h` or via `-D`.
 | `LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD` | `512` | GCC/Clang x86 only: below this size, prefer SIMD over `REP MOVSB` in the (normally unused) no-SIMD fallback path |
 | `LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER` | `4096` | Minimum remaining bytes before `lh_memory_std_copy` issues a prefetch |
 | `LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE` | `256` | How many bytes ahead of the read position to prefetch |
-| `LH_LIBRARY_OPTION_UI_COVER` | `256` | Anti-aliased rim of a disc or rounded box, in 1/256 of a pixel. `0` is a hard edge, `256` is one pixel, a larger value is a softer edge |
-| `LH_LIBRARY_OPTION_UI_FONT` | `lh_ui_font_roboto` | `const lh_ui_font_t` a new label, field, list, spin box, keyboard, and tab title start with. A C token declared in `lh/ui/font.h` |
 
 Every `MEMORY_STD_*` value above is a measured crossover point (this project's own x86-64 GCC/MinGW and MSVC targets), not a correctness fact — retuning for a different microarchitecture is always safe to try. See the option comments in `cmake/library_options.cmake` for the full rationale.
 

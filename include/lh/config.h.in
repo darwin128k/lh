@@ -12,12 +12,8 @@
  * except `LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY` (must be > 0),
  * `LH_LIBRARY_OPTION_ARRAY_GROWTH_FACTOR` (must be > 1),
  * `LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK` (must be > 0), and the
- * `LH_LIBRARY_OPTION_MEMORY_STD_*` tuning thresholds below (must be > 0), and
- * `LH_LIBRARY_OPTION_UI_COVER` (the anti-aliased rim, in 1/256 of a pixel,
- * must be >= 0; 0 is a hard edge and 256 is one pixel); 
- * `LH_LIBRARY_OPTION_UI_FONT` is a C token naming a `const lh_ui_font_t`
- * (default `lh_ui_font_roboto`); the
- * `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_*` options take raw
+ * `LH_LIBRARY_OPTION_MEMORY_STD_*` tuning thresholds below (must be > 0).
+ * The `LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_*` options take raw
  * C tokens instead (e.g. `malloc`, `free`, `<stdlib.h>`).
  * `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` / `_SSSE3` / `_AVX2` are toolchain capability probes
  * (see `cmake/check_simd.cmake`) — for a manual build, `0` is always a safe
@@ -383,29 +379,6 @@
  * @note The value must be greater than zero.
  */
 #define LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE @ValMemoryStdPrefetchDistance@
-
-/**
- * @def LH_LIBRARY_OPTION_UI_COVER
- * @brief Width of the anti-aliased rim on a disc or a rounded box, in 1/256
- *        of a pixel (::lh_ui_canvas_disc_coverage, ::lh_ui_canvas_round_coverage).
- *
- * 0 is a hard edge. 256 is one pixel, centered on the outline. A larger value
- * softens the edge further. The same number is used on every target: the
- * canvas computes it, the operating system does not.
- *
- * @note The value must be zero or greater.
- */
-#define LH_LIBRARY_OPTION_UI_COVER @ValUiCover@
-
-/**
- * @def LH_LIBRARY_OPTION_UI_FONT
- * @brief The ::lh_ui_font_t a new label, field, list, spin box, keyboard, and
- *        tab title start with.
- *
- * A C token, not a string. The default is ::lh_ui_font_roboto. The named
- * object must be a `const lh_ui_font_t` declared in `lh/ui/font.h`.
- */
-#define LH_LIBRARY_OPTION_UI_FONT @ValUiFont@
 
 #endif /* LH_CONFIG_H */
 

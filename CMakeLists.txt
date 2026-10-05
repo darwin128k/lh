@@ -98,15 +98,6 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/math/rect/scalar.c
         ${LH_LIB_SRC_PATH}/math/rect3.c
 
-        ${LH_LIB_SRC_PATH}/ui/color.c
-        ${LH_LIB_SRC_PATH}/ui/font.c
-        ${LH_LIB_SRC_PATH}/ui/roboto.c
-        ${LH_LIB_SRC_PATH}/ui/gradient.c
-        ${LH_LIB_SRC_PATH}/ui/paint.c
-        ${LH_LIB_SRC_PATH}/ui/brush.c
-        ${LH_LIB_SRC_PATH}/ui/pen.c
-        ${LH_LIB_SRC_PATH}/ui/style.c
-        ${LH_LIB_SRC_PATH}/ui/canvas.c
         ${LH_LIB_SRC_PATH}/entity.c
         ${LH_LIB_SRC_PATH}/entity/class.c
         ${LH_LIB_SRC_PATH}/entity/event.c

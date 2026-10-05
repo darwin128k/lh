@@ -1,12 +1,9 @@
 /**
  * @file entity.h
- * @brief One drawn object: ::lh_entity_t, the ::lh_math_rect_t it covers.
+ * @brief One object: ::lh_entity_t, the ::lh_math_rect_t it covers.
  *
- * The rectangle is the one ::lh_ui_canvas_fill_rect and
- * ::lh_ui_canvas_stroke_rect already take. The class pointer names the
- * kind: the event function lives on that class, once. ::lh_entity_draw
- * sends ::lh_entity_event_draw to it. Brush and pen arrive with the call.
- * The canvas does not keep this entity.
+ * The class pointer names the kind: the event function lives on that class,
+ * once. ::lh_entity_draw sends ::lh_entity_event_draw to it.
  */
 
 #ifndef LH_ENTITY_H
@@ -18,9 +15,6 @@
 #include <lh/entity/face/cb.h>
 #include <lh/entity/fields.h>
 #include <lh/math/rect.h>
-#include <lh/ui/brush.h>
-#include <lh/ui/canvas.h>
-#include <lh/ui/pen.h>
 #include <lh/void.h>
 
 /**
@@ -67,20 +61,16 @@ lh_void
 lh_entity_set_class(lh_entity_t *self, const lh_entity_class_t *class_p);
 
 /**
- * @brief Event of ::lh_entity_class. Fills the rectangle with the event
- *        brush and outlines it with the event pen.
+ * @brief Event of ::lh_entity_class.
  */
 lh_void
 lh_entity_face_rect(const struct lh_entity *self, const lh_entity_event_t *event);
 
 /**
  * @brief Send ::lh_entity_event_draw to the class of @p self.
- *
- * The class event paints. This call does not.
  */
 lh_void
-lh_entity_draw(const lh_entity_t *self, lh_ui_canvas_t *canvas, const lh_ui_brush_t *brush,
-               const lh_ui_pen_t *pen);
+lh_entity_draw(const lh_entity_t *self);
 
 LH_COMPILER_EXTERN_C_END
 
