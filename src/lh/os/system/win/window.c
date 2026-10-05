@@ -1217,15 +1217,21 @@ lh_os_system_win_window_handle_of(lh_os_system_win_hwnd_t hwnd)
 /* The point an event reports, for a client point @p x, @p y: the shadow margin
    around the client area is not part of what the application draws, so a point
    in it is not an event at all. False when the point is outside or in that
-   margin. */
+   margin.
+
+   A point that is @p held is a pointer the window has the capture for, and it
+   is pulled to the edge of the client area instead of refused. A drag that
+   leaves the window is still that drag, and dropping its moves would stop it at
+   the window's border and lose the release that ends it. */
 static lh_bool_t
 lh_os_system_win_window_event_point(lh_os_system_win_hwnd_t hwnd, lh_int_t x, lh_int_t y,
-                                    lh_int_t *out_x, lh_int_t *out_y)
+                                    lh_bool_t held, lh_int_t *out_x, lh_int_t *out_y)
 {
     lh_os_system_win_rect_t client;
     lh_int_t margin;
     lh_int_t width;
     lh_int_t height;
+    lh_int_t far;
     if (GetClientRect(hwnd, lh_addr_of(client)) == 0)
     {
         return lh_bool_false;
@@ -1235,7 +1241,14 @@ lh_os_system_win_window_event_point(lh_os_system_win_hwnd_t hwnd, lh_int_t x, lh
     height = client.bottom - client.top;
     if (x < margin || y < margin || x >= width - margin || y >= height - margin)
     {
-        return lh_bool_false;
+        if (held == lh_bool_false)
+        {
+            return lh_bool_false;
+        }
+        far = width - margin - 1;
+        x = x < margin ? margin : (x > far ? far : x);
+        far = height - margin - 1;
+        y = y < margin ? margin : (y > far ? far : y);
     }
     *out_x = x - margin;
     *out_y = y - margin;
@@ -1243,19 +1256,33 @@ lh_os_system_win_window_event_point(lh_os_system_win_hwnd_t hwnd, lh_int_t x, lh
 }
 
 /* Report a pointer message: the client coordinates are the signed low and
-   high words of @p lparam (negative left of or above the client area). */
+   high words of @p lparam (negative left of or above the client area). While
+   the window holds the capture the point is held too, so a drag reports the
+   whole way out of the window and its release is heard. */
 static void
 lh_os_system_win_window_emit_pointer(lh_os_system_win_hwnd_t hwnd, lh_uint_t type,
                                      lh_os_system_win_lparam_t lparam, lh_int_t button)
 {
     lh_int_t x = lh_cast_static(lh_sshort_t, lh_cast_static(lh_ushort_t, lparam & 0xFFFF));
     lh_int_t y = lh_cast_static(lh_sshort_t, lh_cast_static(lh_ushort_t, (lparam >> 16) & 0xFFFF));
-    if (lh_os_system_win_window_event_point(hwnd, x, y, lh_addr_of(x), lh_addr_of(y)) ==
+    const lh_bool_t held = GetCapture() == hwnd ? lh_bool_true : lh_bool_false;
+    if (lh_os_system_win_window_event_point(hwnd, x, y, held, lh_addr_of(x), lh_addr_of(y)) ==
         lh_bool_false)
     {
         return;
     }
     lh_os_system_window_emit(lh_os_system_win_window_handle_of(hwnd), type, x, y, 0, 0, button, 0);
+}
+
+/* Report a lost hold. A press the window took the capture for ends with a
+   pointer_up of its own, so a cancel is only ever what something outside the
+   window did, and there is no point to report: nowhere on screen did that
+   press end. */
+static void
+lh_os_system_win_window_emit_cancel(lh_os_system_win_hwnd_t hwnd)
+{
+    lh_os_system_window_emit(lh_os_system_win_window_handle_of(hwnd),
+                             lh_os_system_window_event_pointer_cancel, 0, 0, 0, 0, 0, 0);
 }
 
 /* Report a wheel message. Unlike a pointer message its point is on the screen,
@@ -1272,8 +1299,8 @@ lh_os_system_win_window_emit_wheel(lh_os_system_win_hwnd_t hwnd, lh_uint_t type,
     at.x = lh_cast_static(lh_sshort_t, lh_cast_static(lh_ushort_t, lparam & 0xFFFF));
     at.y = lh_cast_static(lh_sshort_t, lh_cast_static(lh_ushort_t, (lparam >> 16) & 0xFFFF));
     (void)ScreenToClient(hwnd, lh_addr_of(at));
-    if (lh_os_system_win_window_event_point(hwnd, at.x, at.y, lh_addr_of(x), lh_addr_of(y)) ==
-        lh_bool_false)
+    if (lh_os_system_win_window_event_point(hwnd, at.x, at.y, lh_bool_false, lh_addr_of(x),
+                                           lh_addr_of(y)) == lh_bool_false)
     {
         return;
     }
@@ -1388,25 +1415,45 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_dwor
                                              0);
         return 0;
     case LH_OS_SYSTEM_WIN_WM_LBUTTONDOWN:
+        /* The capture is what makes the release arrive at all: without it a
+           release outside the window is not delivered to this window, and a
+           press that began here would never be heard of ending. */
+        (void)SetCapture(hwnd);
         lh_os_system_win_window_emit_pointer(hwnd, lh_os_system_window_event_pointer_down, lparam,
                                              0);
         return 0;
     case LH_OS_SYSTEM_WIN_WM_LBUTTONUP:
+        /* The release is reported before the capture is let go. Letting it go
+           first would report the capture change, and a capture changed is a
+           lost hold: the hold would end before the release that ends it, and
+           the entity holding the pointer would never hear where it was let
+           go. */
         lh_os_system_win_window_emit_pointer(hwnd, lh_os_system_window_event_pointer_up, lparam, 0);
+        (void)ReleaseCapture();
+        return 0;
+    case LH_OS_SYSTEM_WIN_WM_CAPTURECHANGED:
+        /* Something took the capture, or let it go, and the press this window
+           was holding is over. The scene decides whether that costs anything:
+           a cancel with no hold behind it is nothing. */
+        lh_os_system_win_window_emit_cancel(hwnd);
         return 0;
     case LH_OS_SYSTEM_WIN_WM_RBUTTONDOWN:
+        (void)SetCapture(hwnd);
         lh_os_system_win_window_emit_pointer(hwnd, lh_os_system_window_event_pointer_down, lparam,
                                              1);
         return 0;
     case LH_OS_SYSTEM_WIN_WM_RBUTTONUP:
         lh_os_system_win_window_emit_pointer(hwnd, lh_os_system_window_event_pointer_up, lparam, 1);
+        (void)ReleaseCapture();
         return 0;
     case LH_OS_SYSTEM_WIN_WM_MBUTTONDOWN:
+        (void)SetCapture(hwnd);
         lh_os_system_win_window_emit_pointer(hwnd, lh_os_system_window_event_pointer_down, lparam,
                                              2);
         return 0;
     case LH_OS_SYSTEM_WIN_WM_MBUTTONUP:
         lh_os_system_win_window_emit_pointer(hwnd, lh_os_system_window_event_pointer_up, lparam, 2);
+        (void)ReleaseCapture();
         return 0;
     case LH_OS_SYSTEM_WIN_WM_MOUSEWHEEL:
         lh_os_system_win_window_emit_wheel(hwnd, lh_os_system_window_event_wheel, wparam, lparam);

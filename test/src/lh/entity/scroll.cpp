@@ -405,6 +405,36 @@ TEST_F(Scroll, a_press_on_the_track_leaves_the_move_after_it_alone)
     EXPECT_EQ(lh_entity_range_get_value(range), 200);
 }
 
+TEST_F(Scroll, a_hold_that_was_taken_away_lets_the_thumb_go)
+{
+    lh_entity_scroll_t *bar = make_bar(12, 200);
+    lh_entity_t *const entity = reinterpret_cast<lh_entity_t *>(bar);
+    lh_entity_range_t *range = lh_entity_scroll_get_range(bar);
+    lh_entity_range_set_ends(range, 0, 300);
+    lh_entity_scroll_set_page(bar, 100);
+
+    // Take hold of the thumb, which is the first 50 down the track, and drag it
+    // to where the middle of the bar would put it.
+    lh_math_vec2_t on_thumb = lh_math_vec2_make(6, 25);
+    lh_entity_send_event(entity, LH_ENTITY_EVENT_POINTER_DOWN, &on_thumb);
+    lh_math_vec2_t dragged = lh_math_vec2_make(6, 100);
+    lh_entity_send_event(entity, LH_ENTITY_EVENT_POINTER_MOVE, &dragged);
+    ASSERT_EQ(lh_entity_range_get_value(range), 150);
+
+    // The hold is taken away rather than let go: the thumb is let go where the
+    // drag had got to, and nothing moves it after that. A bar still being
+    // dragged with no pointer under it is the one thing a cancel has to stop,
+    // and the value is left alone because a hold that was taken away never
+    // reached anywhere else.
+    lh_entity_send_event(entity, LH_ENTITY_EVENT_POINTER_CANCEL, lh_null);
+    lh_math_vec2_t after = lh_math_vec2_make(6, 180);
+    lh_entity_send_event(entity, LH_ENTITY_EVENT_POINTER_MOVE, &after);
+    EXPECT_EQ(lh_entity_range_get_value(range), 150);
+    // And a release after it is not a second ending of the same hold.
+    lh_entity_send_event(entity, LH_ENTITY_EVENT_POINTER_UP, &after);
+    EXPECT_EQ(lh_entity_range_get_value(range), 150);
+}
+
 TEST_F(Scroll, a_page_is_the_page_and_stops_at_the_ends)
 {
     lh_entity_scroll_t *bar = make_bar(12, 200);

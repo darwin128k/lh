@@ -104,6 +104,24 @@ struct lh_entity;
 #define LH_ENTITY_EVENT_WHEEL 10U
 
 /**
+ * @def LH_ENTITY_EVENT_POINTER_CANCEL
+ * @brief A held pointer was taken away rather than let go
+ *        (::lh_entity_screen_cancel_pointer). `param` is ::lh_null: there is
+ *        no place a hold like that ended.
+ *
+ * The half of ::LH_ENTITY_EVENT_POINTER_UP that says "and meant it". A press
+ * that is let go ends where the pointer is; a press that is taken away ends
+ * nowhere, and an entity that heard only the one would be left holding a press
+ * that has already ended — a scrollbar still dragging, a button still pressed,
+ * a repeating button still repeating with no button under it.
+ *
+ * It travels to the entity holding the pointer, the same one
+ * ::LH_ENTITY_EVENT_POINTER_UP travels to, and an entity that treats it as a
+ * release without treating it as a click is behaving correctly.
+ */
+#define LH_ENTITY_EVENT_POINTER_CANCEL 11U
+
+/**
  * @def LH_ENTITY_EVENT_USER
  * @brief First code free for the application's own events.
  */

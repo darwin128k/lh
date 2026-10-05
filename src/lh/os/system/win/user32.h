@@ -223,6 +223,7 @@ typedef struct lh_os_system_win_wndclassexw lh_os_system_win_wndclassexw_t;
 #define LH_OS_SYSTEM_WIN_WM_RBUTTONDOWN 0x0204
 #define LH_OS_SYSTEM_WIN_WM_MBUTTONDOWN 0x0207
 #define LH_OS_SYSTEM_WIN_WM_MOUSEMOVE 0x0200
+#define LH_OS_SYSTEM_WIN_WM_CAPTURECHANGED 0x0215
 #define LH_OS_SYSTEM_WIN_WM_MOUSEWHEEL 0x020A
 #define LH_OS_SYSTEM_WIN_WM_MOUSEHWHEEL 0x022E
 
@@ -344,6 +345,12 @@ SendMessageW(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_dword_t Msg,
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 ReleaseCapture(void);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_hwnd_t LH_OS_SYSTEM_WIN_CALL
+SetCapture(lh_os_system_win_hwnd_t hWnd);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_hwnd_t LH_OS_SYSTEM_WIN_CALL
+GetCapture(void);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 WaitMessage(void);

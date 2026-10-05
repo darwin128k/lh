@@ -83,6 +83,23 @@
 #define lh_os_system_window_event_wheel_horizontal 10U
 
 /**
+ * @def lh_os_system_window_event_pointer_cancel
+ * @brief A held pointer was taken away without being released: the window lost
+ *        the capture, or the platform took the button back.
+ *
+ * The missing half of ::lh_os_system_window_event_pointer_up. A button that is
+ * let go and a button that is taken away look the same to a caller that only
+ * hears about the one, and a caller that never hears about either is left
+ * holding a press that has already ended. This is the difference, and it
+ * carries no point: there is nowhere on screen a hold like that ended.
+ *
+ * A window that takes the capture on a press reports
+ * ::lh_os_system_window_event_pointer_up and never this one, so a caller only
+ * sees a cancel when something outside the window did it.
+ */
+#define lh_os_system_window_event_pointer_cancel 11U
+
+/**
  * @def LH_OS_SYSTEM_WHEEL_NOTCH
  * @brief What one notch of a wheel is worth, in the units a platform reports.
  *

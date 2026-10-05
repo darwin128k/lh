@@ -263,8 +263,11 @@ lh_entity_scroll_on_event(lh_entity_t *self, lh_entity_event_t *event)
                                                     lh_entity_event_get_param(event)));
         return;
     }
-    if (code == LH_ENTITY_EVENT_POINTER_UP)
+    if (code == LH_ENTITY_EVENT_POINTER_UP || code == LH_ENTITY_EVENT_POINTER_CANCEL)
     {
+        /* Both of them mean the same thing to a bar: the pointer is not holding
+           the thumb any more. A cancel leaves the value where the drag had got
+           to, because a hold that was taken away never reached anywhere else. */
         scroll->dragging = lh_bool_false;
     }
 }

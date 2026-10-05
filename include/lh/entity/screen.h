@@ -163,6 +163,23 @@ lh_void
 lh_entity_screen_send_tick(lh_entity_screen_t *self);
 
 /**
+ * @brief Tell the entity holding the pointer that the hold is over and was not
+ *        a release, and let go of it.
+ *
+ * The host calls this when the window lost the pointer it had captured, which
+ * is the one way a press can end without the pointer ever coming up: something
+ * outside the window took the capture, or the platform took the button back.
+ * The entity gets ::LH_ENTITY_EVENT_POINTER_CANCEL, which is the difference
+ * between a press that ended and a press that was taken away.
+ *
+ * Nothing is sent when no pointer is held, so a window that reports every
+ * capture change it sees can call this without having to know which of them
+ * were its own.
+ */
+lh_void
+lh_entity_screen_cancel_pointer(lh_entity_screen_t *self);
+
+/**
  * @brief Forget a held press on @p entity.
  *
  * A button calls this as it is deleted, so the screen does not release a

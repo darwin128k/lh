@@ -71,10 +71,13 @@ lh_entity_circle_on_event(lh_entity_t *self, lh_entity_event_t *event)
         circle->pressed = lh_bool_true;
         return;
     }
-    if (code == LH_ENTITY_EVENT_POINTER_UP && circle->pressed)
+    if ((code == LH_ENTITY_EVENT_POINTER_UP || code == LH_ENTITY_EVENT_POINTER_CANCEL) &&
+        circle->pressed)
     {
         const lh_math_vec2_t *const point =
             lh_ptr_rcast(const lh_math_vec2_t, lh_entity_event_get_param(event));
+        /* A cancel has no point, which reads as not inside, so a press that was
+           taken away is let go without becoming a click. */
         const lh_bool_t inside =
             lh_ptr_is_set(point) &&
             lh_entity_2d_contains(lh_ptr_rcast(const lh_entity_2d_t, self), *point);

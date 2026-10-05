@@ -38,6 +38,11 @@ screen_test_dealloc(lh_self_ptr, lh_ptr ptr)
 lh_entity_t *g_pointer_current;
 lh_math_vec2_t g_pointer_at;
 
+/* Every event of a press, in the order the screen delivered it, so a test can
+   read the whole of one press rather than a single event of it. */
+lh_uint_t g_held_codes[8];
+lh_int_t g_held_count = 0;
+
 lh_void
 screen_test_pointer_handler(lh_entity_event_t *event, lh_ptr)
 {
@@ -47,6 +52,22 @@ screen_test_pointer_handler(lh_entity_event_t *event, lh_ptr)
     }
     g_pointer_current = lh_entity_event_get_current(event);
     g_pointer_at = *static_cast<const lh_math_vec2_t *>(lh_entity_event_get_param(event));
+}
+
+lh_void
+screen_test_hold_handler(lh_entity_event_t *event, lh_ptr)
+{
+    const lh_uint_t code = lh_entity_event_get_code(event);
+    if (code != LH_ENTITY_EVENT_POINTER_DOWN && code != LH_ENTITY_EVENT_POINTER_MOVE &&
+        code != LH_ENTITY_EVENT_POINTER_UP && code != LH_ENTITY_EVENT_POINTER_CANCEL)
+    {
+        return; // DRAW, DELETE and the rest are not part of a press
+    }
+    if (g_held_count < 8)
+    {
+        g_held_codes[g_held_count] = code;
+        g_held_count += 1;
+    }
 }
 
 LH_COMPILER_EXTERN_C_END
@@ -315,6 +336,87 @@ TEST_F(Screen, tilted_plane_is_covered_only_where_it_is_farther)
     EXPECT_EQ(lh_entity_2d_find_at(root(), lh_math_vec2_make(1.5f, 0.5f)), flat);
     EXPECT_EQ(lh_entity_2d_find_at(root(), lh_math_vec2_make(1.5f, 1.5f)),
               reinterpret_cast<lh_entity_t *>(plane));
+}
+
+/* A press is one event or several, and which it was is the whole question. These
+   read the screen's answer as a sequence, so a test can say "a press, a move
+   and a release" or "a press and a cancel" and mean it. */
+
+TEST_F(Screen, a_press_ends_at_a_release_and_nothing_else)
+{
+    lh_entity_t *box = reinterpret_cast<lh_entity_t *>(make_box(root(), 0, 0, 4, 4, k_red));
+    lh_entity_add_handler(box, screen_test_hold_handler, lh_null);
+    g_held_count = 0;
+
+    lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_DOWN, lh_math_vec2_make(1, 1));
+    EXPECT_EQ(lh_entity_screen_get_pressed(screen), box);
+    lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_UP, lh_math_vec2_make(1, 1));
+
+    ASSERT_EQ(g_held_count, 2);
+    EXPECT_EQ(g_held_codes[0], LH_ENTITY_EVENT_POINTER_DOWN);
+    EXPECT_EQ(g_held_codes[1], LH_ENTITY_EVENT_POINTER_UP);
+    EXPECT_EQ(lh_entity_screen_get_pressed(screen), nullptr);
+}
+
+TEST_F(Screen, a_move_is_a_drag_while_the_pointer_is_held_and_a_hover_otherwise)
+{
+    lh_entity_t *box = reinterpret_cast<lh_entity_t *>(make_box(root(), 0, 0, 4, 4, k_red));
+    lh_entity_add_handler(box, screen_test_hold_handler, lh_null);
+    g_held_count = 0;
+
+    // Nothing held: a move belongs to whatever is under the pointer, and this
+    // one is not under the box.
+    lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_MOVE, lh_math_vec2_make(9, 9));
+    EXPECT_EQ(g_held_count, 0);
+
+    // Held: the same move at the same place belongs to what is holding it, or a
+    // drag would end the moment the pointer left the thing being dragged.
+    lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_DOWN, lh_math_vec2_make(1, 1));
+    EXPECT_EQ(lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_MOVE,
+                                            lh_math_vec2_make(9, 9)),
+              box);
+    ASSERT_EQ(g_held_count, 2);
+    EXPECT_EQ(g_held_codes[1], LH_ENTITY_EVENT_POINTER_MOVE);
+}
+
+TEST_F(Screen, a_held_pointer_is_told_the_hold_was_taken_away)
+{
+    lh_entity_t *box = reinterpret_cast<lh_entity_t *>(make_box(root(), 0, 0, 4, 4, k_red));
+    lh_entity_add_handler(box, screen_test_hold_handler, lh_null);
+    g_held_count = 0;
+
+    lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_DOWN, lh_math_vec2_make(1, 1));
+    lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_MOVE, lh_math_vec2_make(3, 3));
+    lh_entity_screen_cancel_pointer(screen);
+
+    // A press, a move, and a cancel that is not a release: the entity is told
+    // the hold is over, and told apart from a release, and is not left holding
+    // a press that has already ended.
+    ASSERT_EQ(g_held_count, 3);
+    EXPECT_EQ(g_held_codes[0], LH_ENTITY_EVENT_POINTER_DOWN);
+    EXPECT_EQ(g_held_codes[1], LH_ENTITY_EVENT_POINTER_MOVE);
+    EXPECT_EQ(g_held_codes[2], LH_ENTITY_EVENT_POINTER_CANCEL);
+    EXPECT_EQ(lh_entity_screen_get_pressed(screen), nullptr);
+}
+
+TEST_F(Screen, a_cancel_that_has_nothing_behind_it_is_nothing)
+{
+    lh_entity_t *box = reinterpret_cast<lh_entity_t *>(make_box(root(), 0, 0, 4, 4, k_red));
+    lh_entity_add_handler(box, screen_test_hold_handler, lh_null);
+    g_held_count = 0;
+
+    // A window cannot tell which capture changes were its own releasing, so it
+    // reports all of them and the screen decides.
+    lh_entity_screen_cancel_pointer(screen);
+    EXPECT_EQ(g_held_count, 0);
+
+    // The same after a press that was released properly: the release already
+    // ended it, and the capture change that follows it has nothing left to end.
+    lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_DOWN, lh_math_vec2_make(1, 1));
+    lh_entity_screen_send_pointer(screen, LH_ENTITY_EVENT_POINTER_UP, lh_math_vec2_make(1, 1));
+    g_held_count = 0;
+    lh_entity_screen_cancel_pointer(screen);
+    EXPECT_EQ(g_held_count, 0);
 }
 
 } // namespace

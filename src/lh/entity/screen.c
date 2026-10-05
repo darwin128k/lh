@@ -316,3 +316,17 @@ lh_entity_screen_send_tick(lh_entity_screen_t *self)
         lh_entity_send_event(self->pressed, LH_ENTITY_EVENT_TICK, lh_null);
     }
 }
+
+lh_void
+lh_entity_screen_cancel_pointer(lh_entity_screen_t *self)
+{
+    lh_entity_t *const held = self->pressed;
+    lh_assert_runtime_ref(self);
+    /* Cleared before it is sent, so an entity that asks the screen who is
+       holding the pointer while it handles the cancel is told the truth. */
+    self->pressed = lh_null;
+    if (lh_ptr_is_set(held))
+    {
+        lh_entity_send_event(held, LH_ENTITY_EVENT_POINTER_CANCEL, lh_null);
+    }
+}
