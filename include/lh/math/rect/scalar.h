@@ -128,13 +128,13 @@ lh_math_rect_to_rect_scalar(lh_math_rect_t self);
  * @brief Width of @p self. Zero when @p self is empty.
  */
 lh_math_scalar_t
-lh_math_rect_scalar_width(const lh_math_rect_scalar_t *self);
+lh_math_rect_scalar_get_width(const lh_math_rect_scalar_t *self);
 
 /**
  * @brief Height of @p self. Zero when @p self is empty.
  */
 lh_math_scalar_t
-lh_math_rect_scalar_height(const lh_math_rect_scalar_t *self);
+lh_math_rect_scalar_get_height(const lh_math_rect_scalar_t *self);
 
 /**
  * @brief Test whether @p self is empty (zero or negative extent).

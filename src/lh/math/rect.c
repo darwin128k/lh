@@ -5,7 +5,7 @@
  * All ops are `lh_math_coord_t` arithmetic — no allocations, no state. Empty
  * rectangles are represented as `size.width <= 0 || size.height <= 0`:
  * ::lh_math_rect_is_empty, ::lh_math_rect_intersection, and
- * ::lh_math_rect_width / ::lh_math_rect_height all share that definition, so
+ * ::lh_math_rect_get_width / ::lh_math_rect_get_height all share that definition, so
  * an "empty" output is canonical regardless of which operation produced it.
  */
 
@@ -13,6 +13,7 @@
 #include <lh/bool.h>
 #include <lh/math/rect.h>
 #include <lh/math.h>
+#include <lh/util/return.h>
 
 /* ── Constructors ────────────────────────────────────────────────────────── */
 
@@ -102,7 +103,7 @@ lh_math_rect_set_size(lh_math_rect_t *self, lh_math_size_t size)
 /* ── Queries ────────────────────────────────────────────────────────────── */
 
 lh_math_coord_t
-lh_math_rect_width(const lh_math_rect_t *self)
+lh_math_rect_get_width(const lh_math_rect_t *self)
 {
     lh_assert_runtime_ref(self);
     if (lh_math_rect_is_empty(self))
@@ -113,7 +114,7 @@ lh_math_rect_width(const lh_math_rect_t *self)
 }
 
 lh_math_coord_t
-lh_math_rect_height(const lh_math_rect_t *self)
+lh_math_rect_get_height(const lh_math_rect_t *self)
 {
     lh_assert_runtime_ref(self);
     if (lh_math_rect_is_empty(self))
@@ -121,13 +122,6 @@ lh_math_rect_height(const lh_math_rect_t *self)
         return 0;
     }
     return lh_math_rect_get_size_height(self);
-}
-
-lh_math_point_t
-lh_math_rect_origin(const lh_math_rect_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_math_rect_get_origin(self);
 }
 
 lh_bool_t
@@ -196,10 +190,7 @@ lh_math_rect_intersects(const lh_math_rect_t *a, const lh_math_rect_t *b)
 lh_bool_t
 lh_math_rect_eq(const lh_math_rect_t *a, const lh_math_rect_t *b)
 {
-    if (a == b)
-    {
-        return lh_bool_true;
-    }
+    lh_return_if(a == b, lh_bool_true);
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
     return lh_math_eq(lh_math_rect_get_x(a), lh_math_rect_get_x(b))

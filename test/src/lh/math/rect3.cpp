@@ -53,9 +53,9 @@ TEST(math_rect3, zero_is_empty)
 {
     const lh_math_rect3_t b = lh_math_rect3_make_empty();
     EXPECT_TRUE(lh_math_rect3_is_empty(lh_addr_of(b)));
-    EXPECT_EQ(lh_math_rect3_width(lh_addr_of(b)), 0);
-    EXPECT_EQ(lh_math_rect3_height(lh_addr_of(b)), 0);
-    EXPECT_EQ(lh_math_rect3_z_depth(lh_addr_of(b)), 0);
+    EXPECT_EQ(lh_math_rect3_get_width(lh_addr_of(b)), 0);
+    EXPECT_EQ(lh_math_rect3_get_height(lh_addr_of(b)), 0);
+    EXPECT_EQ(lh_math_rect3_get_z_depth(lh_addr_of(b)), 0);
 }
 
 TEST(math_rect3, is_empty_when_any_extent_zero_or_negative)

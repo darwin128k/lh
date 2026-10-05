@@ -16,7 +16,8 @@
  *
  * Empty boxes are represented as `size.width <= 0 || size.height <= 0 ||
  * z_depth <= 0`: ::lh_math_rect3_is_empty, ::lh_math_rect3_intersection, and
- * ::lh_math_rect3_width / _height / _z_depth all share that definition.
+ * ::lh_math_rect3_get_width / ::lh_math_rect3_get_height share that definition.
+ * ::lh_math_rect3_get_z_depth returns the stored depth.
  *
  * Fields are not part of the public API: read and mutate them through the
  * `lh_math_rect3_get_*` / `lh_math_rect3_set_*` accessors.
@@ -83,16 +84,16 @@ lh_math_coord_t
 lh_math_rect3_get_z(const lh_math_rect3_t *self);
 
 /**
- * @brief Width component of the size of @p self. Zero for empty boxes.
+ * @brief Width component of the size of @p self.
  */
 lh_math_coord_t
-lh_math_rect3_get_width(const lh_math_rect3_t *self);
+lh_math_rect3_get_size_width(const lh_math_rect3_t *self);
 
 /**
- * @brief Height component of the size of @p self. Zero for empty boxes.
+ * @brief Height component of the size of @p self.
  */
 lh_math_coord_t
-lh_math_rect3_get_height(const lh_math_rect3_t *self);
+lh_math_rect3_get_size_height(const lh_math_rect3_t *self);
 
 /**
  * @brief Depth component of @p self. Zero for empty boxes.
@@ -115,22 +116,16 @@ lh_math_rect3_set_z_depth(lh_math_rect3_t *self, lh_math_coord_t z_depth);
 /* ── Queries ────────────────────────────────────────────────────────────── */
 
 /**
- * @brief Width of @p self as a ::lh_math_coord_t. Zero for empty boxes.
+ * @brief Width of @p self. Zero for empty boxes.
  */
 lh_math_coord_t
-lh_math_rect3_width(const lh_math_rect3_t *self);
+lh_math_rect3_get_width(const lh_math_rect3_t *self);
 
 /**
- * @brief Height of @p self as a ::lh_math_coord_t. Zero for empty boxes.
+ * @brief Height of @p self. Zero for empty boxes.
  */
 lh_math_coord_t
-lh_math_rect3_height(const lh_math_rect3_t *self);
-
-/**
- * @brief Depth of @p self as a ::lh_math_coord_t. Zero for empty boxes.
- */
-lh_math_coord_t
-lh_math_rect3_z_depth(const lh_math_rect3_t *self);
+lh_math_rect3_get_height(const lh_math_rect3_t *self);
 
 /**
  * @brief Test whether @p self is "empty" (any extent zero or negative).

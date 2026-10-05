@@ -31,15 +31,15 @@ TEST(math_rect_scalar, zero_size_is_empty)
 {
     const lh_math_rect_scalar_t r = lh_math_rect_scalar_make_empty();
     EXPECT_TRUE(lh_math_rect_scalar_is_empty(lh_addr_of(r)));
-    EXPECT_EQ(lh_math_rect_scalar_width(lh_addr_of(r)), 0);
-    EXPECT_EQ(lh_math_rect_scalar_height(lh_addr_of(r)), 0);
+    EXPECT_EQ(lh_math_rect_scalar_get_width(lh_addr_of(r)), 0);
+    EXPECT_EQ(lh_math_rect_scalar_get_height(lh_addr_of(r)), 0);
 }
 
 TEST(math_rect_scalar, negative_extent_is_empty)
 {
     const lh_math_rect_scalar_t r = lh_math_rect_scalar_make(1, 1, -4, 8);
     EXPECT_TRUE(lh_math_rect_scalar_is_empty(lh_addr_of(r)));
-    EXPECT_EQ(lh_math_rect_scalar_width(lh_addr_of(r)), 0);
+    EXPECT_EQ(lh_math_rect_scalar_get_width(lh_addr_of(r)), 0);
 }
 
 TEST(math_rect_scalar, roundtrip_through_the_screen_rect)

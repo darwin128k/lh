@@ -56,14 +56,14 @@ lh_math_rect3_get_z(const lh_math_rect3_t *self)
 }
 
 lh_math_coord_t
-lh_math_rect3_get_width(const lh_math_rect3_t *self)
+lh_math_rect3_get_size_width(const lh_math_rect3_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_math_rect_get_size_width(lh_addr_of(self->rect));
 }
 
 lh_math_coord_t
-lh_math_rect3_get_height(const lh_math_rect3_t *self)
+lh_math_rect3_get_size_height(const lh_math_rect3_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_math_rect_get_size_height(lh_addr_of(self->rect));
@@ -93,24 +93,17 @@ lh_math_rect3_set_z_depth(lh_math_rect3_t *self, lh_math_coord_t z_depth)
 /* ── Queries ────────────────────────────────────────────────────────────── */
 
 lh_math_coord_t
-lh_math_rect3_width(const lh_math_rect3_t *self)
+lh_math_rect3_get_width(const lh_math_rect3_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_math_rect_width(lh_addr_of(self->rect));
+    return lh_math_rect_get_width(lh_addr_of(self->rect));
 }
 
 lh_math_coord_t
-lh_math_rect3_height(const lh_math_rect3_t *self)
+lh_math_rect3_get_height(const lh_math_rect3_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_math_rect_height(lh_addr_of(self->rect));
-}
-
-lh_math_coord_t
-lh_math_rect3_z_depth(const lh_math_rect3_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_math_rect3_get_z_depth(self);
+    return lh_math_rect_get_height(lh_addr_of(self->rect));
 }
 
 lh_bool_t
@@ -130,8 +123,8 @@ lh_math_rect3_eq(const lh_math_rect3_t *a, const lh_math_rect3_t *b)
     return lh_math_eq(lh_math_rect3_get_x(a), lh_math_rect3_get_x(b))
         && lh_math_eq(lh_math_rect3_get_y(a), lh_math_rect3_get_y(b))
         && lh_math_eq(lh_math_rect3_get_z(a), lh_math_rect3_get_z(b))
-        && lh_math_eq(lh_math_rect3_get_width(a), lh_math_rect3_get_width(b))
-        && lh_math_eq(lh_math_rect3_get_height(a), lh_math_rect3_get_height(b))
+        && lh_math_eq(lh_math_rect3_get_size_width(a), lh_math_rect3_get_size_width(b))
+        && lh_math_eq(lh_math_rect3_get_size_height(a), lh_math_rect3_get_size_height(b))
         && lh_math_eq(lh_math_rect3_get_z_depth(a), lh_math_rect3_get_z_depth(b));
 }
 
@@ -171,7 +164,7 @@ lh_math_rect3_offset(const lh_math_rect3_t *self, lh_math_coord_t dx,
     return lh_math_rect3_make(lh_math_rect3_get_x(self) + dx,
                              lh_math_rect3_get_y(self) + dy,
                              lh_math_rect3_get_z(self) + dz,
-                             lh_math_rect3_get_width(self),
-                             lh_math_rect3_get_height(self),
+                             lh_math_rect3_get_size_width(self),
+                             lh_math_rect3_get_size_height(self),
                              lh_math_rect3_get_z_depth(self));
 }

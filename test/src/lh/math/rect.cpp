@@ -37,9 +37,9 @@ TEST(math_rect, offset_and_inset)
 {
     const lh_math_rect_t r = lh_math_rect_make(0, 0, 10, 8);
     const lh_math_rect_t moved = lh_math_rect_offset(&r, 3, -2);
-    EXPECT_EQ(moved.origin.x, 3);
-    EXPECT_EQ(moved.origin.y, -2);
-    EXPECT_EQ(lh_math_rect_width(&moved), 10);
+    EXPECT_EQ(lh_math_rect_get_x(&moved), 3);
+    EXPECT_EQ(lh_math_rect_get_y(&moved), -2);
+    EXPECT_EQ(lh_math_rect_get_width(&moved), 10);
 
     const lh_math_rect_t inner = lh_math_rect_inset(&r, 1, 2);
     const lh_math_rect_t expected = lh_math_rect_make(1, 2, 8, 4);

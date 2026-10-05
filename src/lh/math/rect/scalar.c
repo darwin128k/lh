@@ -120,7 +120,7 @@ lh_math_rect_to_rect_scalar(lh_math_rect_t self)
 /* ── Queries ────────────────────────────────────────────────────────────── */
 
 lh_math_scalar_t
-lh_math_rect_scalar_width(const lh_math_rect_scalar_t *self)
+lh_math_rect_scalar_get_width(const lh_math_rect_scalar_t *self)
 {
     lh_assert_runtime_ref(self);
     lh_return_if(lh_math_rect_scalar_is_empty(self), 0);
@@ -128,7 +128,7 @@ lh_math_rect_scalar_width(const lh_math_rect_scalar_t *self)
 }
 
 lh_math_scalar_t
-lh_math_rect_scalar_height(const lh_math_rect_scalar_t *self)
+lh_math_rect_scalar_get_height(const lh_math_rect_scalar_t *self)
 {
     lh_assert_runtime_ref(self);
     lh_return_if(lh_math_rect_scalar_is_empty(self), 0);

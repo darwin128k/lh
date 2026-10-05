@@ -8,7 +8,7 @@
  *
  * Empty rectangles are represented as `size.width <= 0 || size.height <= 0`:
  * ::lh_math_rect_is_empty, ::lh_math_rect_intersection, and
- * ::lh_math_rect_width / ::lh_math_rect_height all share that definition, so
+ * ::lh_math_rect_get_width / ::lh_math_rect_get_height all share that definition, so
  * an "empty" output is canonical regardless of which operation produced it.
  *
  * Fields are not part of the public API: read and mutate them through the
@@ -78,12 +78,6 @@ lh_math_size_t
 lh_math_rect_get_size(const lh_math_rect_t *self);
 
 /**
- * @brief Top-left corner of @p self as a ::lh_math_point_t. Handles @c NULL.
- */
-lh_math_point_t
-lh_math_rect_origin(const lh_math_rect_t *self);
-
-/**
  * @brief X coordinate of the origin of @p self.
  */
 lh_math_coord_t
@@ -96,13 +90,13 @@ lh_math_coord_t
 lh_math_rect_get_y(const lh_math_rect_t *self);
 
 /**
- * @brief Width component of the size of @p self. Zero for empty rectangles.
+ * @brief Stored width of @p self. A negative value is empty.
  */
 lh_math_coord_t
 lh_math_rect_get_size_width(const lh_math_rect_t *self);
 
 /**
- * @brief Height component of the size of @p self. Zero for empty rectangles.
+ * @brief Stored height of @p self. A negative value is empty.
  */
 lh_math_coord_t
 lh_math_rect_get_size_height(const lh_math_rect_t *self);
@@ -125,13 +119,13 @@ lh_math_rect_set_size(lh_math_rect_t *self, lh_math_size_t size);
  * @brief Width of @p self as a ::lh_math_coord_t. Zero for empty rectangles.
  */
 lh_math_coord_t
-lh_math_rect_width(const lh_math_rect_t *self);
+lh_math_rect_get_width(const lh_math_rect_t *self);
 
 /**
  * @brief Height of @p self as a ::lh_math_coord_t. Zero for empty rectangles.
  */
 lh_math_coord_t
-lh_math_rect_height(const lh_math_rect_t *self);
+lh_math_rect_get_height(const lh_math_rect_t *self);
 
 /**
  * @brief Test whether @p self is "empty" (zero or negative extent).
