@@ -46,12 +46,23 @@ class Range : public ::testing::Test
             lh_entity_create_root(&lh_entity_screen_class, &sized));
         lh_entity_2d_set_size(reinterpret_cast<lh_entity_2d_t *>(screen),
                               lh_math_vec2_make(200, 200));
+        pixels.assign(200 * 200, lh_ui_color_make(0, 0, 0, 255));
+        lh_ui_canvas_init(&canvas, pixels.data(), 200, 200, 200);
     }
 
     void
     TearDown() override
     {
         lh_entity_delete(root());
+    }
+
+    /* A canvas and a render, so that a test can start from a screen with
+       nothing waiting to be redrawn. */
+    void
+    settle()
+    {
+        lh_entity_screen_render(screen, &canvas);
+        ASSERT_EQ(lh_entity_screen_get_dirty_count(screen), 0u);
     }
 
     lh_entity_t *
@@ -73,6 +84,8 @@ class Range : public ::testing::Test
 
     lh_memory_allocator_t sized;
     lh_entity_screen_t *screen = nullptr;
+    lh_ui_canvas_t canvas;
+    std::vector<lh_ui_color_t> pixels;
 };
 
 TEST_F(Range, a_new_bar_runs_zero_to_hundred_at_zero)
@@ -349,6 +362,157 @@ TEST_F(Range, a_progress_bar_needs_no_getter_because_it_is_a_range)
     EXPECT_EQ(lh_addr_of(bar), lh_addr_of(bar));
     lh_entity_range_set_value(bar, 33);
     EXPECT_EQ(lh_entity_range_get_value(bar), 33);
+}
+
+TEST_F(Range, a_new_bar_leaves_the_way_it_runs_undecided)
+{
+    lh_entity_range_t *tall = make_bar(10.0f, 200.0f);
+    lh_entity_range_t *wide = make_bar(200.0f, 10.0f);
+    lh_entity_range_t *square = make_bar(40.0f, 40.0f);
+
+    EXPECT_EQ(lh_entity_range_get_axis(tall), LH_ENTITY_RANGE_AXIS_AUTO);
+    EXPECT_EQ(lh_entity_range_get_axis(wide), LH_ENTITY_RANGE_AXIS_AUTO);
+    // Undecided is answered by the box, and a square box has nothing to
+    // prefer, so it reads the way a progress bar does.
+    EXPECT_EQ(lh_entity_range_is_vertical(tall), lh_bool_true);
+    EXPECT_EQ(lh_entity_range_is_vertical(wide), lh_bool_false);
+    EXPECT_EQ(lh_entity_range_is_vertical(square), lh_bool_false);
+}
+
+TEST_F(Range, an_axis_wins_over_the_shape_of_the_box)
+{
+    lh_entity_range_t *wide = make_bar(200.0f, 10.0f);
+    lh_entity_range_t *tall = make_bar(10.0f, 200.0f);
+
+    lh_entity_range_set_axis(wide, LH_ENTITY_RANGE_AXIS_VERTICAL);
+    lh_entity_range_set_axis(tall, LH_ENTITY_RANGE_AXIS_HORIZONTAL);
+    EXPECT_EQ(lh_entity_range_is_vertical(wide), lh_bool_true);
+    EXPECT_EQ(lh_entity_range_is_vertical(tall), lh_bool_false);
+    // And the travel is the side the axis names, not the long one.
+    EXPECT_EQ(lh_entity_range_usable(wide), 10);
+    EXPECT_EQ(lh_entity_range_usable(tall), 10);
+}
+
+TEST_F(Range, the_undecided_travel_is_the_long_side)
+{
+    lh_entity_range_t *bar = make_bar(200.0f, 10.0f);
+
+    EXPECT_EQ(lh_entity_range_usable(bar), 200);
+    lh_entity_range_set_axis(bar, LH_ENTITY_RANGE_AXIS_HORIZONTAL);
+    EXPECT_EQ(lh_entity_range_usable(bar), 200);
+    lh_entity_range_set_axis(bar, LH_ENTITY_RANGE_AXIS_VERTICAL);
+    EXPECT_EQ(lh_entity_range_usable(bar), 10);
+    lh_entity_range_set_axis(bar, LH_ENTITY_RANGE_AXIS_AUTO);
+    EXPECT_EQ(lh_entity_range_usable(bar), 200);
+}
+
+TEST_F(Range, an_axis_that_is_none_of_the_three_is_the_undecided_one)
+{
+    lh_entity_range_t *bar = make_bar(10.0f, 200.0f);
+    lh_entity_range_set_axis(bar, LH_ENTITY_RANGE_AXIS_HORIZONTAL);
+
+    lh_entity_range_set_axis(bar, 99);
+    EXPECT_EQ(lh_entity_range_get_axis(bar), LH_ENTITY_RANGE_AXIS_AUTO);
+    EXPECT_EQ(lh_entity_range_is_vertical(bar), lh_bool_true); // back to the box
+    lh_entity_range_set_axis(bar, -1);
+    EXPECT_EQ(lh_entity_range_get_axis(bar), LH_ENTITY_RANGE_AXIS_AUTO);
+}
+
+TEST_F(Range, a_value_is_the_same_number_however_the_bar_is_turned)
+{
+    // The axis is where the number lives, not what it is: a bar on its side and
+    // a bar upright agree about 40 out of 0 to 100, and each puts it on its own
+    // track.
+    lh_entity_range_t *wide = make_bar(200.0f, 10.0f);
+    lh_entity_range_t *tall = make_bar(10.0f, 200.0f);
+    lh_entity_range_set_axis(tall, LH_ENTITY_RANGE_AXIS_VERTICAL);
+    lh_entity_range_set_ends(wide, 0, 100);
+    lh_entity_range_set_ends(tall, 0, 100);
+    lh_entity_range_set_value(wide, 40);
+    lh_entity_range_set_value(tall, 40);
+
+    EXPECT_EQ(lh_entity_range_to_percent(wide), lh_entity_range_to_percent(tall));
+    EXPECT_EQ(lh_entity_range_to_local_pos(wide), 80);
+    EXPECT_EQ(lh_entity_range_to_local_pos(tall), 80);
+}
+
+TEST_F(Range, a_value_is_a_value_is_a_value)
+{
+    lh_entity_range_t *first = make_bar(100.0f, 10.0f);
+    lh_entity_range_t *second = make_bar(100.0f, 10.0f);
+    lh_entity_range_set_value(first, 42);
+
+    EXPECT_EQ(lh_entity_range_get_value(second), 0);
+    lh_entity_range_set_value(second, 42);
+    EXPECT_EQ(lh_entity_range_get_value(first), lh_entity_range_get_value(second));
+}
+
+TEST_F(Range, ends_that_do_not_move_leave_the_screen_alone)
+{
+    // A linked view re-states its bars' ends on every draw, so an end that did
+    // not move must not mark a redraw: that is the difference between a window
+    // that settles and one that repaints itself for ever. The screen starts
+    // clean, so a new dirty area is a new dirty area and not a merge.
+    lh_entity_range_t *bar = make_bar(100.0f, 10.0f);
+    lh_entity_range_set_ends(bar, 0, 200);
+    lh_entity_range_set_value(bar, 50);
+    settle();
+
+    lh_entity_range_set_ends(bar, 0, 200);
+    EXPECT_EQ(lh_entity_screen_get_dirty_count(screen), 0u);
+
+    lh_entity_range_set_ends(bar, 0, 201);
+    EXPECT_EQ(lh_entity_screen_get_dirty_count(screen), 1u);
+}
+
+TEST_F(Range, the_value_a_shrunken_extent_pulls_back_counts_as_a_change)
+{
+    lh_entity_range_t *bar = make_bar(100.0f, 10.0f);
+    lh_entity_range_set_ends(bar, 0, 200);
+    lh_entity_range_set_value(bar, 150);
+    settle();
+
+    // The ends stay put and the value cannot, so this is a change and says so.
+    lh_entity_range_set_ends(bar, 0, 100);
+    EXPECT_EQ(lh_entity_range_get_value(bar), 100);
+    EXPECT_EQ(lh_entity_screen_get_dirty_count(screen), 1u);
+}
+
+TEST_F(Range, a_position_says_what_it_is_worth_before_it_is_written)
+{
+    lh_entity_range_t *bar = make_bar(100.0f, 10.0f);
+    lh_entity_range_set_ends(bar, 0, 300);
+
+    // The other half of lh_entity_range_to_pos: what a pointer's place along a
+    // track would be worth, asked and not yet taken.
+    EXPECT_EQ(lh_entity_range_to_value(bar, 0, 150), 0);
+    EXPECT_EQ(lh_entity_range_to_value(bar, 75, 150), 150);
+    EXPECT_EQ(lh_entity_range_to_value(bar, 150, 150), 300);
+    EXPECT_EQ(lh_entity_range_get_value(bar), 0);
+
+    // What it answers is what writing it gives, at every position there is.
+    for (lh_int_t pos = 0; pos <= 150; ++pos)
+    {
+        const lh_int_t worth = lh_entity_range_to_value(bar, pos, 150);
+        lh_entity_range_set_value(bar, 0);
+        lh_entity_range_set_from_pos(bar, pos, 150);
+        EXPECT_EQ(lh_entity_range_get_value(bar), worth);
+    }
+
+    // Past either end is that end, and a span of nothing is a value standing
+    // where it stands: there is no position that would have meant anything.
+    EXPECT_EQ(lh_entity_range_to_value(bar, 900, 150), 300);
+    EXPECT_EQ(lh_entity_range_to_value(bar, -900, 150), 0);
+    lh_entity_range_set_value(bar, 42);
+    EXPECT_EQ(lh_entity_range_to_value(bar, 75, 0), 42);
+    EXPECT_EQ(lh_entity_range_to_value(bar, 75, -5), 42);
+
+    // And the minimum is not assumed to be zero: a bar that runs below it
+    // answers from where it starts.
+    lh_entity_range_set_ends(bar, -100, 100);
+    EXPECT_EQ(lh_entity_range_to_value(bar, 0, 200), -100);
+    EXPECT_EQ(lh_entity_range_to_value(bar, 100, 200), 0);
+    EXPECT_EQ(lh_entity_range_to_value(bar, 200, 200), 100);
 }
 
 } // namespace

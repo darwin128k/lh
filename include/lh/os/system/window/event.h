@@ -62,6 +62,38 @@
 #define lh_os_system_window_event_tick 8U
 
 /**
+ * @def lh_os_system_window_event_wheel
+ * @brief The wheel turned over `x, y`.
+ *
+ * ::lh_os_system_window_event_get_delta says how far, in
+ * ::LH_OS_SYSTEM_WHEEL_NOTCH units. It is a separate event from the pointer
+ * because a wheel has no button and no position of its own: it belongs to
+ * whatever is under the pointer, which is what `x, y` is for.
+ */
+#define lh_os_system_window_event_wheel 9U
+
+/**
+ * @def lh_os_system_window_event_wheel_horizontal
+ * @brief The wheel was tilted over `x, y`, the other way round from
+ *        ::lh_os_system_window_event_wheel.
+ *
+ * A platform with one wheel that does both reports this one or that one, and a
+ * caller that wants to scroll sideways has to be able to tell which it got.
+ */
+#define lh_os_system_window_event_wheel_horizontal 10U
+
+/**
+ * @def LH_OS_SYSTEM_WHEEL_NOTCH
+ * @brief What one notch of a wheel is worth, in the units a platform reports.
+ *
+ * A wheel does not report pixels, it reports notches, and this is the size of
+ * one of them. Windows sends 120 for a notch and a smaller number for the
+ * fine movement a touchpad sends, which is why it is named here rather than
+ * left to the reader: a caller that wants pixels divides by this.
+ */
+#define LH_OS_SYSTEM_WHEEL_NOTCH 120
+
+/**
  * @struct lh_os_system_window_event
  * @brief Fields via ::lh_os_system_window_event_fields.
  */
@@ -108,6 +140,17 @@ lh_os_system_window_event_get_height(const lh_os_system_window_event_t *self);
  */
 lh_int_t
 lh_os_system_window_event_get_button(const lh_os_system_window_event_t *self);
+
+/**
+ * @brief How far the wheel turned: 0 for every event but
+ *        ::lh_os_system_window_event_wheel, and in
+ *        ::LH_OS_SYSTEM_WHEEL_NOTCH units when it is one.
+ *
+ * Positive is away from the user, so a positive delta scrolls back the way a
+ * document does under a wheel pushed forward.
+ */
+lh_int_t
+lh_os_system_window_event_get_delta(const lh_os_system_window_event_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -42,3 +42,10 @@ lh_os_system_window_event_get_button(const lh_os_system_window_event_t *self)
     lh_assert_runtime_ref(self);
     return self->button;
 }
+
+lh_int_t
+lh_os_system_window_event_get_delta(const lh_os_system_window_event_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->delta;
+}

@@ -117,6 +117,24 @@ lh_entity_t *
 lh_entity_screen_send_pointer(lh_entity_screen_t *self, lh_uint_t code, lh_math_vec2_t point);
 
 /**
+ * @brief Deliver a wheel at the screen position @p point, moving @p delta
+ *        pixels along each axis, to the first entity that takes it.
+ *
+ * The search starts at the entity on top of @p point and walks up its parents
+ * until one stops the event (::lh_entity_event_stop), so the wheel scrolls the
+ * nearest thing that can scroll rather than whatever happens to be under the
+ * pointer. The bubble flag is not consulted: a wheel is not about a target, it
+ * is about a place, and a control in the way must not swallow it.
+ *
+ * @param point Position on the screen, e.g. the wheel over the window in pixels.
+ * @param delta Change of an offset, not a position: positive is forward along
+ *              that axis.
+ * @return The entity that took it, or ::lh_null when none did.
+ */
+lh_entity_t *
+lh_entity_screen_send_wheel(lh_entity_screen_t *self, lh_math_vec2_t point, lh_math_vec2_t delta);
+
+/**
  * @brief The entity that receives keys, or ::lh_null.
  */
 lh_entity_t *

@@ -224,6 +224,15 @@ typedef struct lh_os_system_win_wndclassexw lh_os_system_win_wndclassexw_t;
 #define LH_OS_SYSTEM_WIN_WM_MBUTTONDOWN 0x0207
 #define LH_OS_SYSTEM_WIN_WM_MOUSEMOVE 0x0200
 #define LH_OS_SYSTEM_WIN_WM_MOUSEWHEEL 0x020A
+#define LH_OS_SYSTEM_WIN_WM_MOUSEHWHEEL 0x022E
+
+/* The wheel's movement is the signed high word of `wParam`, a multiple of
+   `WHEEL_DELTA` (120) for a whole notch and a smaller number for the fine
+   movement a touchpad sends. */
+#define LH_OS_SYSTEM_WIN_WHEEL_DELTA(wparam)                                                       \
+    (lh_cast_static(lh_int_t, lh_cast_static(lh_sshort_t,                                           \
+                                             lh_cast_static(lh_ushort_t,                              \
+                                                            ((wparam) & 0xFFFF0000U) >> 16))))
 
 /* `CreateWindowExW` extended styles. */
 #define LH_OS_SYSTEM_WIN_WS_EX_CLIENTEDGE 0x00000200

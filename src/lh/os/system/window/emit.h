@@ -16,6 +16,7 @@
  */
 void
 lh_os_system_window_emit(lh_os_system_window_handle_t window, lh_uint_t type, lh_int_t x,
-                         lh_int_t y, lh_int_t width, lh_int_t height, lh_int_t button);
+                         lh_int_t y, lh_int_t width, lh_int_t height, lh_int_t button,
+                         lh_int_t delta);
 
 #endif /* LH_SRC_OS_SYSTEM_WINDOW_EMIT_H */

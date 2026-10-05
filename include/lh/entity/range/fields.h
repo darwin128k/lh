@@ -9,21 +9,23 @@
 /**
  * @def lh_entity_range_fields(int_type)
  * @brief Inclusive `minimum` and `maximum`, the `start` value a reset returns
- *        to, the `value` kept inside them, and the `thickness` of the bar that
- *        shows it. A trackbar, a progress bar, a knob, a spin box and a
- *        scrollbar all start with this.
+ *        to, the `value` kept inside them, the `thickness` of the bar that
+ *        shows it, and the `axis` it runs along. A trackbar, a progress bar,
+ *        a knob, a spin box and a scrollbar all start with this.
  *
  * Every number a ranged widget draws or drags with lives here, so nothing in
  * it is written down twice: the thickness is a field rather than a constant in
- * the paint path, and the travel is derived from the entity's own size.
+ * the paint path, and the travel is derived from the entity's own size along
+ * the axis.
  *
- * @param int_type Type of the five numbers (::lh_int_t).
+ * @param int_type Type of the six numbers (::lh_int_t).
  */
 #define lh_entity_range_fields(int_type)                                                           \
     int_type minimum;                                                                              \
     int_type maximum;                                                                              \
     int_type start;                                                                                \
     int_type value;                                                                                \
-    int_type thickness
+    int_type thickness;                                                                            \
+    int_type axis
 
 #endif /* LH_ENTITY_RANGE_FIELDS_H */

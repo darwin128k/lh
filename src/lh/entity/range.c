@@ -14,10 +14,11 @@ lh_void
 lh_entity_range_reset(lh_entity_range_t *self)
 {
     self->minimum = 0;
-    self->maximum = 100;
+    self->maximum = LH_ENTITY_RANGE_SPAN;
     self->start = 0;
     self->value = 0;
     self->thickness = LH_ENTITY_RANGE_THICKNESS;
+    self->axis = LH_ENTITY_RANGE_AXIS_AUTO;
 }
 
 lh_int_t
@@ -97,15 +98,16 @@ lh_entity_range_to_percent(const lh_entity_range_t *self)
         return 0;
     }
     part = self->value - self->minimum;
-    /* Rounded to nearest, so the middle of the ends is exactly 50 and not 49. */
-    percent = (part * 200L + ends) / (ends * 2L);
+    /* Doubled on both sides and rounded, so the middle of the ends is exactly
+       50 and not 49, and the rounding needs no fraction of its own. */
+    percent = (part * 2L * LH_ENTITY_RANGE_PERCENT + ends) / (ends * 2L);
     if (percent <= 0L)
     {
         return 0;
     }
-    if (percent >= 100L)
+    if (percent >= LH_ENTITY_RANGE_PERCENT)
     {
-        return 100;
+        return LH_ENTITY_RANGE_PERCENT;
     }
     return (lh_int_t)percent;
 }
@@ -115,6 +117,49 @@ lh_entity_range_get_thickness(const lh_entity_range_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->thickness;
+}
+
+lh_int_t
+lh_entity_range_get_axis(const lh_entity_range_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->axis;
+}
+
+lh_void
+lh_entity_range_set_axis(lh_entity_range_t *self, lh_int_t axis)
+{
+    lh_int_t next;
+    lh_assert_runtime_ref(self);
+    next = (axis == LH_ENTITY_RANGE_AXIS_HORIZONTAL || axis == LH_ENTITY_RANGE_AXIS_VERTICAL)
+               ? axis
+               : LH_ENTITY_RANGE_AXIS_AUTO;
+    if (self->axis == next)
+    {
+        return;
+    }
+    self->axis = next;
+    lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
+}
+
+lh_bool_t
+lh_entity_range_is_vertical(const lh_entity_range_t *self)
+{
+    const lh_math_vec2_t size = lh_entity_2d_get_size(lh_ptr_rcast(const lh_entity_2d_t, self));
+    lh_int_t width;
+    lh_int_t height;
+    lh_assert_runtime_ref(self);
+    if (self->axis == LH_ENTITY_RANGE_AXIS_HORIZONTAL)
+    {
+        return lh_bool_false;
+    }
+    if (self->axis == LH_ENTITY_RANGE_AXIS_VERTICAL)
+    {
+        return lh_bool_true;
+    }
+    width = lh_cast_static(lh_int_t, lh_math_vec2_get_x(lh_addr_of(size)));
+    height = lh_cast_static(lh_int_t, lh_math_vec2_get_y(lh_addr_of(size)));
+    return height > width ? lh_bool_true : lh_bool_false;
 }
 
 lh_int_t
@@ -134,21 +179,40 @@ lh_entity_range_usable(const lh_entity_range_t *self)
     {
         height = 0;
     }
+    if (lh_entity_range_is_vertical(self))
+    {
+        return height;
+    }
+    if (self->axis == LH_ENTITY_RANGE_AXIS_HORIZONTAL)
+    {
+        return width;
+    }
     return width > height ? width : height;
 }
 
 lh_void
 lh_entity_range_set_ends(lh_entity_range_t *self, lh_int_t minimum, lh_int_t maximum)
 {
+    lh_int_t start;
+    lh_int_t value;
     lh_assert_runtime_ref(self);
     if (maximum < minimum)
     {
         maximum = minimum;
     }
+    start = lh_entity_range_clamp(self->start, minimum, maximum);
+    value = lh_entity_range_clamp(self->value, minimum, maximum);
+    /* Ends that do not move do not dirty anything, so a bar whose ends are
+       re-stated on every draw does not repaint itself forever. */
+    if (self->minimum == minimum && self->maximum == maximum && self->start == start &&
+        self->value == value)
+    {
+        return;
+    }
     self->minimum = minimum;
     self->maximum = maximum;
-    self->start = lh_entity_range_clamp(self->start, minimum, maximum);
-    self->value = lh_entity_range_clamp(self->value, minimum, maximum);
+    self->start = start;
+    self->value = value;
     lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
 }
 
@@ -190,11 +254,19 @@ lh_entity_range_set_value(lh_entity_range_t *self, lh_int_t value)
 lh_void
 lh_entity_range_set_from_pos(lh_entity_range_t *self, lh_int_t pos, lh_int_t span)
 {
+    lh_assert_runtime_ref(self);
+    lh_entity_range_set_value(self, lh_entity_range_to_value(self, pos, span));
+}
+
+lh_int_t
+lh_entity_range_to_value(const lh_entity_range_t *self, lh_int_t pos, lh_int_t span)
+{
+    lh_int_t ends;
     lh_sllong_t wide;
     lh_assert_runtime_ref(self);
     if (span <= 0)
     {
-        return;
+        return self->value;
     }
     if (pos < 0)
     {
@@ -204,8 +276,9 @@ lh_entity_range_set_from_pos(lh_entity_range_t *self, lh_int_t pos, lh_int_t spa
     {
         pos = span;
     }
-    wide = (lh_sllong_t)(self->maximum - self->minimum) * (lh_sllong_t)pos;
-    lh_entity_range_set_value(self, self->minimum + (lh_int_t)(wide / (lh_sllong_t)span));
+    ends = self->maximum - self->minimum;
+    wide = (lh_sllong_t)ends * (lh_sllong_t)pos;
+    return self->minimum + (lh_int_t)(wide / (lh_sllong_t)span);
 }
 
 lh_int_t
@@ -234,9 +307,15 @@ lh_entity_range_set_from_percent(lh_entity_range_t *self, lh_int_t percent)
     {
         return;
     }
-    clamped = percent < 0 ? 0 : (percent > 100 ? 100 : percent);
+    clamped = percent < 0 ? 0
+                         : (percent > LH_ENTITY_RANGE_PERCENT ? LH_ENTITY_RANGE_PERCENT : percent);
     wide = (lh_sllong_t)ends * (lh_sllong_t)clamped;
-    lh_entity_range_set_value(self, self->minimum + (lh_int_t)((wide + 50L) / 100L));
+    /* Half the scale added before the division, which is the same rounding to
+       nearest that lh_entity_range_to_percent rounds with, and the two agree
+       on every value the scale can name. */
+    lh_entity_range_set_value(self, self->minimum +
+                                        (lh_int_t)((wide + LH_ENTITY_RANGE_PERCENT / 2L) /
+                                                   (lh_sllong_t)LH_ENTITY_RANGE_PERCENT));
 }
 
 lh_void

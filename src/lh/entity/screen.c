@@ -255,6 +255,25 @@ lh_entity_screen_send_pointer(lh_entity_screen_t *self, lh_uint_t code, lh_math_
 }
 
 lh_entity_t *
+lh_entity_screen_send_wheel(lh_entity_screen_t *self, lh_math_vec2_t point, lh_math_vec2_t delta)
+{
+    lh_entity_t *entity;
+    lh_assert_runtime_ref(self);
+    entity = lh_entity_2d_find_at(lh_ptr_rcast(lh_entity_t, self), point);
+    /* Notify and not send: the walk up is the loop, and a receiver that lets
+       the wheel past must not have it delivered twice by the bubble flag. */
+    while (lh_ptr_is_set(entity))
+    {
+        if (lh_entity_notify(entity, LH_ENTITY_EVENT_WHEEL, lh_addr_of(delta)) != lh_bool_false)
+        {
+            return entity;
+        }
+        entity = lh_entity_get_parent(entity);
+    }
+    return lh_null;
+}
+
+lh_entity_t *
 lh_entity_screen_get_focus(const lh_entity_screen_t *self)
 {
     lh_assert_runtime_ref(self);

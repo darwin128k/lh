@@ -301,7 +301,7 @@ lh_void
 lh_entity_list_set_mode(lh_entity_list_t *self, lh_int_t mode)
 {
     lh_assert_runtime_ref(self);
-    self->mode = mode == LH_ENTITY_GROUP_MANY ? LH_ENTITY_GROUP_MANY : LH_ENTITY_GROUP_ONE;
+    self->mode = lh_entity_group_normalize_mode(mode);
 }
 
 lh_void

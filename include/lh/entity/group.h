@@ -57,9 +57,34 @@ lh_entity_group_get_mode(const lh_entity_group_t *self);
 
 /**
  * @brief Set whether one child or several may stay on.
+ *
+ * An upper value that is neither is read as ::LH_ENTITY_GROUP_MANY, and so is
+ * any other number, so the mode is always one of the two. A list of rows asks
+ * the same question and comes through ::lh_entity_group_normalize_mode.
  */
 lh_void
 lh_entity_group_set_mode(lh_entity_group_t *self, lh_int_t mode);
+
+/**
+ * @brief @p mode as ::LH_ENTITY_GROUP_MANY or ::LH_ENTITY_GROUP_ONE.
+ *
+ * Public because a set of selectable things that is not made of child entities
+ * — the rows of a list — has the same two values, and it must fold them the
+ * same way rather than write the rule out again.
+ */
+lh_int_t
+lh_entity_group_normalize_mode(lh_int_t mode);
+
+/**
+ * @brief Turn @p member on, and in ::LH_ENTITY_GROUP_ONE the other options off.
+ *
+ * This is the whole of what single mode means, and it lives here rather than in
+ * each kind of option: a parent that answers it walks its own children once and
+ * knows nothing about which kinds exist. The member does not walk the tree or
+ * name its siblings' classes; it says which one it is and asks.
+ */
+lh_void
+lh_entity_group_select(lh_entity_group_t *self, lh_entity_t *member);
 
 LH_COMPILER_EXTERN_C_END
 

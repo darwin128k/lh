@@ -58,17 +58,30 @@ typedef struct lh_entity_option lh_entity_option_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief A checkbox (::LH_ENTITY_OPTION_CHECK).
+ * @brief Class of ::lh_entity_option_t, the base of all three kinds.
+ *
+ * It has no instance of its own: it is what makes a check, a switch and a
+ * toggle one kind of thing to a parent that has to decide between them. Before
+ * this class each kind answered to nothing in common, so a parent asking "is
+ * this child one of mine" had to try all three classes in turn.
+ */
+extern const lh_entity_class_t lh_entity_option_class;
+
+/**
+ * @brief A checkbox (::LH_ENTITY_OPTION_CHECK), derived from
+ *        ::lh_entity_option_class.
  */
 extern const lh_entity_class_t lh_entity_check_class;
 
 /**
- * @brief A switch (::LH_ENTITY_OPTION_SWITCH).
+ * @brief A switch (::LH_ENTITY_OPTION_SWITCH), derived from
+ *        ::lh_entity_option_class.
  */
 extern const lh_entity_class_t lh_entity_switch_class;
 
 /**
- * @brief A toggle button (::LH_ENTITY_OPTION_TOGGLE).
+ * @brief A toggle button (::LH_ENTITY_OPTION_TOGGLE), derived from
+ *        ::lh_entity_option_class.
  */
 extern const lh_entity_class_t lh_entity_toggle_class;
 
@@ -83,6 +96,16 @@ lh_entity_option_is_on(const lh_entity_option_t *self);
  */
 lh_void
 lh_entity_option_set_on(lh_entity_option_t *self, lh_bool_t on);
+
+/**
+ * @brief Set the flag and redraw, without asking the group anything.
+ *
+ * This is what a group calls on the members it is turning off. Through
+ * ::lh_entity_option_set_on each of them would ask the group in turn, and
+ * turning the first one off would take the rest with it.
+ */
+lh_void
+lh_entity_option_set_on_raw(lh_entity_option_t *self, lh_bool_t on);
 
 LH_COMPILER_EXTERN_C_END
 

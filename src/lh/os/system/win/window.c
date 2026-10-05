@@ -1214,6 +1214,34 @@ lh_os_system_win_window_handle_of(lh_os_system_win_hwnd_t hwnd)
     return lh_cast_static(lh_os_system_window_handle_t, lh_cast_static(lh_ssize_t, (lh_ptr)hwnd));
 }
 
+/* The point an event reports, for a client point @p x, @p y: the shadow margin
+   around the client area is not part of what the application draws, so a point
+   in it is not an event at all. False when the point is outside or in that
+   margin. */
+static lh_bool_t
+lh_os_system_win_window_event_point(lh_os_system_win_hwnd_t hwnd, lh_int_t x, lh_int_t y,
+                                    lh_int_t *out_x, lh_int_t *out_y)
+{
+    lh_os_system_win_rect_t client;
+    lh_int_t margin;
+    lh_int_t width;
+    lh_int_t height;
+    if (GetClientRect(hwnd, lh_addr_of(client)) == 0)
+    {
+        return lh_bool_false;
+    }
+    margin = lh_os_system_win_window_shadow_margin(hwnd);
+    width = client.right - client.left;
+    height = client.bottom - client.top;
+    if (x < margin || y < margin || x >= width - margin || y >= height - margin)
+    {
+        return lh_bool_false;
+    }
+    *out_x = x - margin;
+    *out_y = y - margin;
+    return lh_bool_true;
+}
+
 /* Report a pointer message: the client coordinates are the signed low and
    high words of @p lparam (negative left of or above the client area). */
 static void
@@ -1222,24 +1250,35 @@ lh_os_system_win_window_emit_pointer(lh_os_system_win_hwnd_t hwnd, lh_uint_t typ
 {
     lh_int_t x = lh_cast_static(lh_sshort_t, lh_cast_static(lh_ushort_t, lparam & 0xFFFF));
     lh_int_t y = lh_cast_static(lh_sshort_t, lh_cast_static(lh_ushort_t, (lparam >> 16) & 0xFFFF));
-    lh_os_system_win_rect_t client;
-    lh_int_t margin;
-    lh_int_t width;
-    lh_int_t height;
-    if (GetClientRect(hwnd, lh_addr_of(client)) == 0)
+    if (lh_os_system_win_window_event_point(hwnd, x, y, lh_addr_of(x), lh_addr_of(y)) ==
+        lh_bool_false)
     {
         return;
     }
-    margin = lh_os_system_win_window_shadow_margin(hwnd);
-    width = client.right - client.left;
-    height = client.bottom - client.top;
-    if (x < margin || y < margin || x >= width - margin || y >= height - margin)
+    lh_os_system_window_emit(lh_os_system_win_window_handle_of(hwnd), type, x, y, 0, 0, button, 0);
+}
+
+/* Report a wheel message. Unlike a pointer message its point is on the screen,
+   so it comes back into the client area first, and its movement is the wheel's
+   own rather than a button. */
+static void
+lh_os_system_win_window_emit_wheel(lh_os_system_win_hwnd_t hwnd, lh_uint_t type,
+                                   lh_os_system_win_wparam_t wparam,
+                                   lh_os_system_win_lparam_t lparam)
+{
+    lh_os_system_win_point_t at;
+    lh_int_t x;
+    lh_int_t y;
+    at.x = lh_cast_static(lh_sshort_t, lh_cast_static(lh_ushort_t, lparam & 0xFFFF));
+    at.y = lh_cast_static(lh_sshort_t, lh_cast_static(lh_ushort_t, (lparam >> 16) & 0xFFFF));
+    (void)ScreenToClient(hwnd, lh_addr_of(at));
+    if (lh_os_system_win_window_event_point(hwnd, at.x, at.y, lh_addr_of(x), lh_addr_of(y)) ==
+        lh_bool_false)
     {
         return;
     }
-    x -= margin;
-    y -= margin;
-    lh_os_system_window_emit(lh_os_system_win_window_handle_of(hwnd), type, x, y, 0, 0, button);
+    lh_os_system_window_emit(lh_os_system_win_window_handle_of(hwnd), type, x, y, 0, 0, 0,
+                             LH_OS_SYSTEM_WIN_WHEEL_DELTA(wparam));
 }
 
 static lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
@@ -1257,7 +1296,7 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_dwor
         lh_os_system_window_emit(lh_os_system_win_window_handle_of(hwnd),
                                  lh_os_system_window_event_paint, ps.rcPaint.left, ps.rcPaint.top,
                                  ps.rcPaint.right - ps.rcPaint.left,
-                                 ps.rcPaint.bottom - ps.rcPaint.top, 0);
+                                 ps.rcPaint.bottom - ps.rcPaint.top, 0, 0);
         (void)EndPaint(hwnd, lh_addr_of(ps));
         return 0;
     }
@@ -1337,7 +1376,7 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_dwor
         lh_os_system_window_emit(
             lh_os_system_win_window_handle_of(hwnd), lh_os_system_window_event_resize, 0, 0,
             lh_os_system_window_get_client_width(lh_os_system_win_window_handle_of(hwnd)),
-            lh_os_system_window_get_client_height(lh_os_system_win_window_handle_of(hwnd)), 0);
+            lh_os_system_window_get_client_height(lh_os_system_win_window_handle_of(hwnd)), 0, 0);
         if (lh_null_eq(GetPropW(hwnd, LH_OS_SYSTEM_WIN_WINDOW_CORNER_GUARD)))
         {
             lh_os_system_win_window_apply_region(hwnd);
@@ -1369,6 +1408,13 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_dwor
     case LH_OS_SYSTEM_WIN_WM_MBUTTONUP:
         lh_os_system_win_window_emit_pointer(hwnd, lh_os_system_window_event_pointer_up, lparam, 2);
         return 0;
+    case LH_OS_SYSTEM_WIN_WM_MOUSEWHEEL:
+        lh_os_system_win_window_emit_wheel(hwnd, lh_os_system_window_event_wheel, wparam, lparam);
+        return 0;
+    case LH_OS_SYSTEM_WIN_WM_MOUSEHWHEEL:
+        lh_os_system_win_window_emit_wheel(hwnd, lh_os_system_window_event_wheel_horizontal, wparam,
+                                           lparam);
+        return 0;
     case LH_OS_SYSTEM_WIN_WM_KEYDOWN:
     case LH_OS_SYSTEM_WIN_WM_CHAR:
     {
@@ -1376,17 +1422,17 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_dwor
         if (key >= 0)
         {
             lh_os_system_window_emit(lh_os_system_win_window_handle_of(hwnd),
-                                     lh_os_system_window_event_key, 0, 0, 0, 0, key);
+                                     lh_os_system_window_event_key, 0, 0, 0, 0, key, 0);
         }
         return 0;
     }
     case LH_OS_SYSTEM_WIN_WM_TIMER:
         lh_os_system_window_emit(lh_os_system_win_window_handle_of(hwnd),
-                                 lh_os_system_window_event_tick, 0, 0, 0, 0, 0);
+                                 lh_os_system_window_event_tick, 0, 0, 0, 0, 0, 0);
         return 0;
     case LH_OS_SYSTEM_WIN_WM_CLOSE:
         lh_os_system_window_emit(lh_os_system_win_window_handle_of(hwnd),
-                                 lh_os_system_window_event_close, 0, 0, 0, 0, 0);
+                                 lh_os_system_window_event_close, 0, 0, 0, 0, 0, 0);
         PostQuitMessage(0);
         return 0;
     case LH_OS_SYSTEM_WIN_WM_DESTROY:

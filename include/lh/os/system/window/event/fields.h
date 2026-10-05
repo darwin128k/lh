@@ -15,6 +15,8 @@
  *   client-area pixels.
  * - `width`, `height`: new client size (resize) or paint area size.
  * - `button`: 0 left, 1 right, 2 middle (pointer down / up).
+ * - `delta`: how far the wheel turned (::lh_os_system_window_event_wheel), 0 for
+ *   everything else.
  *
  * @param type_type Type of `type` (::lh_uint_t).
  * @param int_type  Type of the other fields (::lh_int_t).
@@ -25,6 +27,7 @@
     int_type y;                                                                                    \
     int_type width;                                                                                \
     int_type height;                                                                               \
-    int_type button
+    int_type button;                                                                               \
+    int_type delta
 
 #endif /* LH_OS_SYSTEM_WINDOW_EVENT_FIELDS_H */

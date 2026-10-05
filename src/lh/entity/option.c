@@ -12,7 +12,7 @@
 #include <lh/util/ptr.h>
 
 lh_void
-lh_entity_option_quiet(lh_entity_option_t *self, lh_bool_t on)
+lh_entity_option_set_on_raw(lh_entity_option_t *self, lh_bool_t on)
 {
     if (self->on == on)
     {
@@ -20,37 +20,6 @@ lh_entity_option_quiet(lh_entity_option_t *self, lh_bool_t on)
     }
     self->on = on;
     lh_entity_invalidate(lh_ptr_rcast(lh_entity_t, self));
-}
-
-lh_void
-lh_entity_option_alone(lh_entity_option_t *self)
-{
-    lh_entity_t *const parent = lh_entity_get_parent(lh_ptr_rcast(lh_entity_t, self));
-    const lh_entity_group_t *group;
-    if (lh_ptr_is_null(parent))
-    {
-        return;
-    }
-    group = lh_entity_cast(parent, lh_addr_of(lh_entity_group_class));
-    if (lh_ptr_is_null(group) || group->mode != LH_ENTITY_GROUP_ONE)
-    {
-        return;
-    }
-    lh_entity_foreach_child(child, parent)
-    {
-        lh_entity_option_t *const other =
-            lh_entity_cast(child, lh_addr_of(lh_entity_check_class));
-        lh_entity_option_t *const as_switch =
-            lh_entity_cast(child, lh_addr_of(lh_entity_switch_class));
-        lh_entity_option_t *const as_toggle =
-            lh_entity_cast(child, lh_addr_of(lh_entity_toggle_class));
-        lh_entity_option_t *const option =
-            lh_ptr_is_set(other) ? other : (lh_ptr_is_set(as_switch) ? as_switch : as_toggle);
-        if (lh_ptr_is_set(option) && option != self)
-        {
-            lh_entity_option_quiet(option, lh_bool_false);
-        }
-    }
 }
 
 lh_void
@@ -227,16 +196,20 @@ lh_entity_option_on_event(lh_entity_t *self, lh_entity_event_t *event)
     lh_entity_send_event(self, LH_ENTITY_EVENT_CLICKED, lh_entity_event_get_param(event));
 }
 
-const lh_entity_class_t lh_entity_check_class =
+const lh_entity_class_t lh_entity_option_class =
     lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_option_t),
+                                lh_null, lh_null, lh_null);
+
+const lh_entity_class_t lh_entity_check_class =
+    lh_entity_class_initializer(lh_addr_of(lh_entity_option_class), sizeof(lh_entity_option_t),
                                 lh_entity_check_construct, lh_null, lh_entity_option_on_event);
 
 const lh_entity_class_t lh_entity_switch_class =
-    lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_option_t),
+    lh_entity_class_initializer(lh_addr_of(lh_entity_option_class), sizeof(lh_entity_option_t),
                                 lh_entity_switch_construct, lh_null, lh_entity_option_on_event);
 
 const lh_entity_class_t lh_entity_toggle_class =
-    lh_entity_class_initializer(lh_addr_of(lh_entity_2d_class), sizeof(lh_entity_option_t),
+    lh_entity_class_initializer(lh_addr_of(lh_entity_option_class), sizeof(lh_entity_option_t),
                                 lh_entity_toggle_construct, lh_null, lh_entity_option_on_event);
 
 lh_bool_t
@@ -249,10 +222,19 @@ lh_entity_option_is_on(const lh_entity_option_t *self)
 lh_void
 lh_entity_option_set_on(lh_entity_option_t *self, lh_bool_t on)
 {
+    lh_entity_t *const parent = lh_entity_get_parent(lh_ptr_rcast(lh_entity_t, self));
+    lh_entity_group_t *group;
     lh_assert_runtime_ref(self);
-    lh_entity_option_quiet(self, on);
-    if (on)
+    lh_entity_option_set_on_raw(self, on);
+    if (!on || lh_ptr_is_null(parent))
     {
-        lh_entity_option_alone(self);
+        return;
+    }
+    /* One question, asked once, to whoever is above: is this a group, and does
+       it want only one of us on? The walk is not here. */
+    group = lh_entity_cast(parent, lh_addr_of(lh_entity_group_class));
+    if (lh_ptr_is_set(group))
+    {
+        lh_entity_group_select(group, lh_ptr_rcast(lh_entity_t, self));
     }
 }

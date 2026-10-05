@@ -88,6 +88,22 @@ struct lh_entity;
 #define LH_ENTITY_EVENT_TICK 9U
 
 /**
+ * @def LH_ENTITY_EVENT_WHEEL
+ * @brief The wheel moved over the screen by that much. `param` is the
+ *        `const lh_math_vec2_t *` movement, in pixels, along each axis: a
+ *        change of an offset rather than a position, so positive is forward
+ *        along that axis and back is negative. Delivered by
+ *        ::lh_entity_screen_send_wheel.
+ *
+ * A wheel has no target: it belongs to whatever is under the pointer, and to
+ * the first of that entity's ancestors that takes it. So it does not travel by
+ * ::lh_entity_flags_event_bubble the way a pointer event does, and a receiver
+ * that uses it says so with ::lh_entity_event_stop. A view with nothing to
+ * scroll along an axis leaves it alone and the search goes on up.
+ */
+#define LH_ENTITY_EVENT_WHEEL 10U
+
+/**
  * @def LH_ENTITY_EVENT_USER
  * @brief First code free for the application's own events.
  */
