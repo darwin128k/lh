@@ -16,9 +16,12 @@
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/config.h>
 #include <lh/math/coord.h>
 #include <lh/math/point/fields.h>
-#include <lh/math/vec2.h>
+#if LH_LIBRARY_OPTION_MATH_FPU
+#    include <lh/math/vec2.h>
+#endif
 #include <lh/void.h>
 
 /**
@@ -76,6 +79,7 @@ lh_math_point_set_y(lh_math_point_t *self, lh_math_coord_t y);
 
 /* ── Conversions ─────────────────────────────────────────────────────────── */
 
+#if LH_LIBRARY_OPTION_MATH_FPU
 /**
  * @brief Widen @p self to continuous coordinates.
  *
@@ -101,6 +105,7 @@ lh_math_point_to_vec2(lh_math_point_t self);
  */
 lh_math_point_t
 lh_math_vec2_to_point(lh_math_vec2_t v);
+#endif
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
 

@@ -6,7 +6,10 @@
 #include <lh/assert/runtime.h>
 #include <lh/bool.h>
 #include <lh/cast/static.h>
-#include <lh/float/round.h>
+#include <lh/config.h>
+#if LH_LIBRARY_OPTION_MATH_FPU
+#    include <lh/float/round.h>
+#endif
 #include <lh/math/point3.h>
 #include <lh/math.h>
 
@@ -74,6 +77,7 @@ lh_math_point3_set_z(lh_math_point3_t *self, lh_math_coord_t z)
 
 /* ── Conversions ─────────────────────────────────────────────────────────── */
 
+#if LH_LIBRARY_OPTION_MATH_FPU
 lh_math_vec3_t
 lh_math_point3_to_vec3(lh_math_point3_t self)
 {
@@ -90,6 +94,7 @@ lh_math_vec3_to_point3(lh_math_vec3_t v)
         lh_cast_static(lh_math_coord_t, lh_float_ceil_to_int(lh_math_vec3_get_y(lh_addr_of(v)) - 0.5f)),
         lh_cast_static(lh_math_coord_t, lh_float_ceil_to_int(lh_math_vec3_get_z(lh_addr_of(v)) - 0.5f)));
 }
+#endif
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
 

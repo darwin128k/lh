@@ -6,7 +6,10 @@
 #include <lh/assert/runtime.h>
 #include <lh/bool.h>
 #include <lh/cast/static.h>
-#include <lh/float/round.h>
+#include <lh/config.h>
+#if LH_LIBRARY_OPTION_MATH_FPU
+#    include <lh/float/round.h>
+#endif
 #include <lh/math/point.h>
 #include <lh/null.h>
 #include <lh/math.h>
@@ -62,6 +65,7 @@ lh_math_point_set_y(lh_math_point_t *self, lh_math_coord_t y)
 
 /* ── Conversions ─────────────────────────────────────────────────────────── */
 
+#if LH_LIBRARY_OPTION_MATH_FPU
 lh_math_vec2_t
 lh_math_point_to_vec2(lh_math_point_t self)
 {
@@ -78,6 +82,7 @@ lh_math_vec2_to_point(lh_math_vec2_t v)
         lh_cast_static(lh_math_coord_t, lh_float_ceil_to_int(lh_math_vec2_get_x(lh_addr_of(v)) - 0.5f)),
         lh_cast_static(lh_math_coord_t, lh_float_ceil_to_int(lh_math_vec2_get_y(lh_addr_of(v)) - 0.5f)));
 }
+#endif
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
 

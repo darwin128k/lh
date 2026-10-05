@@ -35,18 +35,23 @@
 #define LH_MATH_H
 
 #include <lh/math/coord.h>
-#include <lh/math/mat4.h>
+#include <lh/config.h>
+
+#if LH_LIBRARY_OPTION_MATH_FPU
+#    include <lh/math/mat4.h>
+#    include <lh/math/pi.h>
+#    include <lh/math/quat.h>
+#    include <lh/math/vec2.h>
+#    include <lh/math/vec3.h>
+#    include <lh/math/vec4.h>
+#endif
+
 #include <lh/math/point.h>
-#include <lh/math/pi.h>
 #include <lh/math/point3.h>
-#include <lh/math/quat.h>
 #include <lh/math/rect.h>
 #include <lh/math/rect3.h>
 #include <lh/math/scalar.h>
 #include <lh/math/size.h>
-#include <lh/math/vec2.h>
-#include <lh/math/vec3.h>
-#include <lh/math/vec4.h>
 
 /* ── arithmetic ────────────────────────────────────────────────────────── */
 

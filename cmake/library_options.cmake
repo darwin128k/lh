@@ -90,13 +90,15 @@ unset(_LH_OS_WERROR_DEFAULT)
 # -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_MATH_FPU
 #
-# Underlying type of lh_math_scalar_t (include/lh/math/scalar.h).
+# Underlying type of lh_math_scalar_t (include/lh/math/scalar.h), and whether
+# the float math sources are compiled.
 #
-#   ON  — lh_float_t. The scalar uses the FPU.
-#   OFF — lh_int_t. The scalar stays in integer arithmetic.
+#   ON  — lh_math_scalar_t is lh_float_t. vec2/vec3/vec4, quat and mat4 are
+#         part of the library.
+#   OFF — lh_math_scalar_t is lh_int_t. Those sources are left out.
 # -----------------------------------------------------------------------------
 option(LH_LIBRARY_OPTION_MATH_FPU
-        "lh_math_scalar_t is lh_float_t (ON) or lh_int_t (OFF)."
+        "Compile float math and make lh_math_scalar_t lh_float_t. OFF keeps the scalar as lh_int_t and omits vec/quat/mat4."
         OFF)
 
 # -----------------------------------------------------------------------------

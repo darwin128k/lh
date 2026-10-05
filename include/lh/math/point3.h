@@ -20,9 +20,12 @@
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/config.h>
 #include <lh/math/coord.h>
 #include <lh/math/point.h>
-#include <lh/math/vec3.h>
+#if LH_LIBRARY_OPTION_MATH_FPU
+#    include <lh/math/vec3.h>
+#endif
 #include <lh/void.h>
 
 /**
@@ -93,6 +96,7 @@ lh_math_point3_set_z(lh_math_point3_t *self, lh_math_coord_t z);
 
 /* ── Conversions ─────────────────────────────────────────────────────────── */
 
+#if LH_LIBRARY_OPTION_MATH_FPU
 /**
  * @brief Widen @p self to continuous coordinates.
  *
@@ -116,6 +120,7 @@ lh_math_point3_to_vec3(lh_math_point3_t self);
  */
 lh_math_point3_t
 lh_math_vec3_to_point3(lh_math_vec3_t v);
+#endif
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
 

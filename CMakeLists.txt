@@ -94,11 +94,6 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/math/size.c
         ${LH_LIB_SRC_PATH}/math/rect.c
         ${LH_LIB_SRC_PATH}/math/rect3.c
-        ${LH_LIB_SRC_PATH}/math/vec2.c
-        ${LH_LIB_SRC_PATH}/math/vec3.c
-        ${LH_LIB_SRC_PATH}/math/vec4.c
-        ${LH_LIB_SRC_PATH}/math/quat.c
-        ${LH_LIB_SRC_PATH}/math/mat4.c
 
         ${LH_LIB_SRC_PATH}/version.c
         ${LH_LIB_SRC_PATH}/date.c
@@ -208,6 +203,29 @@ if (LH_LIBRARY_OPTION_OS)
     )
 endif ()
 
+# Float math (vec, quat, mat4) is the FPU. OFF leaves it out of the library.
+if (LH_LIBRARY_OPTION_MATH_FPU)
+    list(APPEND LH_LIB_SOURCES
+            ${LH_LIB_SRC_PATH}/math/vec2.c
+            ${LH_LIB_SRC_PATH}/math/vec3.c
+            ${LH_LIB_SRC_PATH}/math/vec4.c
+            ${LH_LIB_SRC_PATH}/math/quat.c
+            ${LH_LIB_SRC_PATH}/math/mat4.c
+    )
+    # Square roots go through __builtin_sqrtf (src/lh/float/sqrt.h). Without
+    # -fno-math-errno GCC/Clang keep a call to libm's sqrtf next to the CPU
+    # instruction, only to set errno on negative input: a dependency a
+    # freestanding build cannot satisfy, for a value lh never reads.
+    if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+        set_source_files_properties(
+                ${LH_LIB_SRC_PATH}/math/vec2.c
+                ${LH_LIB_SRC_PATH}/math/vec3.c
+                ${LH_LIB_SRC_PATH}/math/vec4.c
+                PROPERTIES COMPILE_OPTIONS -fno-math-errno
+        )
+    endif ()
+endif ()
+
 # lh is a static library only: it is linked into its host, never loaded as a
 # DLL / shared object.
 add_library(${PROJECT_NAME} STATIC ${LH_LIB_SOURCES})
@@ -225,20 +243,6 @@ target_include_directories(
 # Kernel backend's system libraries (chosen with LH_OS_SYSTEM_BACKEND above).
 if (LH_LIBRARY_OPTION_OS AND LH_OS_SYSTEM_LINK_LIBS)
     target_link_libraries(${PROJECT_NAME} PUBLIC ${LH_OS_SYSTEM_LINK_LIBS})
-endif ()
-
-# Vector math, the exact integer root and the box distance take square roots
-# through __builtin_sqrtf (src/lh/float/sqrt.h). Without -fno-math-errno GCC/Clang keep a
-# call to libm's sqrtf next to the CPU instruction, only to set errno on
-# negative input: a dependency a freestanding build cannot satisfy, for a value
-# lh never reads.
-if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-    set_source_files_properties(
-            ${LH_LIB_SRC_PATH}/math/vec2.c
-            ${LH_LIB_SRC_PATH}/math/vec3.c
-            ${LH_LIB_SRC_PATH}/math/vec4.c
-            PROPERTIES COMPILE_OPTIONS -fno-math-errno
-    )
 endif ()
 
 # Strong release optimizations for the core library (optional; Release only).

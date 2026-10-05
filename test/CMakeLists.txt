@@ -63,16 +63,10 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/memory/bounds/allocated.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/view/slice.cpp
         ${LH_TEST_SRC_PATH}/lh/array.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/vec2.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/vec3.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/vec4.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/quat.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/mat4.cpp
         ${LH_TEST_SRC_PATH}/lh/math.cpp
         ${LH_TEST_SRC_PATH}/lh/math/rect.cpp
         ${LH_TEST_SRC_PATH}/lh/math/point3.cpp
         ${LH_TEST_SRC_PATH}/lh/math/rect3.cpp
-        ${LH_TEST_SRC_PATH}/lh/math/convert.cpp
         ${LH_TEST_SRC_PATH}/lh/list.cpp
         ${LH_TEST_SRC_PATH}/lh/str.cpp
         ${LH_TEST_SRC_PATH}/lh/str/list.cpp
@@ -121,6 +115,17 @@ set(LH_TEST_SOURCES
 if (LH_LIBRARY_OPTION_OS)
     list(APPEND LH_TEST_SOURCES
             # os is being rebuilt from scratch, one piece at a time.
+    )
+endif ()
+
+if (LH_LIBRARY_OPTION_MATH_FPU)
+    list(APPEND LH_TEST_SOURCES
+            ${LH_TEST_SRC_PATH}/lh/math/vec2.cpp
+            ${LH_TEST_SRC_PATH}/lh/math/vec3.cpp
+            ${LH_TEST_SRC_PATH}/lh/math/vec4.cpp
+            ${LH_TEST_SRC_PATH}/lh/math/quat.cpp
+            ${LH_TEST_SRC_PATH}/lh/math/mat4.cpp
+            ${LH_TEST_SRC_PATH}/lh/math/convert.cpp
     )
 endif ()
 
