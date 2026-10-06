@@ -9,14 +9,16 @@
 #include <lh/bool.h>
 #include <lh/list.h>
 #include <lh/list/node.h>
+#include <lh/os/window/on/close/cb.h>
+#include <lh/ptr.h>
 
 /**
  * @def lh_os_window_fields(handle_type, app_type, window_type)
- * @brief Native handle, owning app or parent, children, and list link.
+ * @brief Native handle, app or parent, children, close notify, and link.
  *
- * Top-level windows sit in the app's window list (`app` set, `parent` null).
- * Modal children sit in a parent's `children` list (`parent` set, `app` null).
- * Neither owns the child's memory.
+ * Top-level windows are added from outside into the app list (`app` set).
+ * Index 0 there is the main window. Modal children sit in a parent's
+ * `children` list. Memory is not owned — only the links.
  *
  * @param handle_type Type of `handle` (::lh_os_system_window_handle_t).
  * @param app_type    Type of the owning app pointer (::lh_os_app_t).
@@ -28,6 +30,9 @@
     window_type *parent;                                                                            \
     lh_list_t children;                                                                             \
     lh_list_node_t link;                                                                            \
-    lh_bool_t modal
+    lh_bool_t modal;                                                                                \
+    lh_bool_t closing;                                                                              \
+    lh_os_window_on_close_cb on_close;                                                              \
+    lh_ptr on_close_context
 
 #endif /* LH_OS_WINDOW_FIELDS_H */

@@ -1,6 +1,6 @@
 /**
  * @file app.c
- * @brief Portable ::lh_os_app_t — top-level windows and the message pump.
+ * @brief Portable ::lh_os_app_t — windows, logical timers, message pump.
  */
 
 #include <lh/assert/runtime.h>
@@ -8,7 +8,9 @@
 #include <lh/list.h>
 #include <lh/null.h>
 #include <lh/os/app.h>
+#include <lh/os/tick.h>
 #include <lh/os/window.h>
+#include <lh/timer.h>
 #include <lh/util/addr.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
@@ -20,6 +22,7 @@ lh_os_app_init(lh_os_app_t *self)
 {
     lh_assert_runtime_ref(self);
     lh_list_init(lh_addr_of(self->windows));
+    lh_timer_group_init(lh_addr_of(self->timers));
     self->quit = lh_bool_false;
 }
 
@@ -38,7 +41,21 @@ lh_os_app_deinit(lh_os_app_t *self)
         }
         lh_os_window_close(window);
     }
+    lh_timer_group_deinit(lh_addr_of(self->timers));
     self->quit = lh_bool_false;
+}
+
+lh_os_window_t *
+lh_os_app_get_window(const lh_os_app_t *self)
+{
+    return lh_os_app_get_first_window(self);
+}
+
+lh_timer_group_t *
+lh_os_app_get_timers(lh_os_app_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->timers);
 }
 
 lh_bool_t
@@ -81,7 +98,15 @@ lh_os_app_run(lh_os_app_t *self)
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     while (!self->quit && !lh_list_is_empty(lh_addr_of(self->windows)))
     {
-        if (!lh_os_system_window_pump())
+        lh_tick_t now;
+        lh_tick_t wait;
+        lh_os_system_window_pump_result_t result;
+
+        now = lh_os_tick_ms();
+        lh_timer_group_handler(lh_addr_of(self->timers), now);
+        wait = lh_timer_group_until_next(lh_addr_of(self->timers), lh_os_tick_ms());
+        result = lh_os_system_window_pump_wait(wait);
+        if (result == lh_os_system_window_pump_quit)
         {
             self->quit = lh_bool_true;
             break;

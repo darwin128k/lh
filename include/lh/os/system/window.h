@@ -17,6 +17,7 @@
 #include <lh/config.h>
 #include <lh/os/system/window/handle.h>
 #include <lh/ptr.h>
+#include <lh/timer/tick.h>
 #include <lh/void.h>
 
 #if !LH_LIBRARY_OPTION_OS_WINDOW
@@ -55,12 +56,24 @@ lh_void
 lh_os_system_window_close(lh_os_system_window_handle_t handle);
 
 /**
- * @brief Pull and dispatch one OS message.
- *
- * @return ::lh_bool_false when a quit was posted, ::lh_bool_true otherwise.
+ * @enum lh_os_system_window_pump_result
+ * @brief Outcome of ::lh_os_system_window_pump_wait.
  */
-lh_bool_t
-lh_os_system_window_pump(void);
+typedef enum lh_os_system_window_pump_result
+{
+    lh_os_system_window_pump_quit = 0,
+    lh_os_system_window_pump_message = 1,
+    lh_os_system_window_pump_timeout = 2
+} lh_os_system_window_pump_result_t;
+
+/**
+ * @brief Wait up to @p timeout_ms for input, then dispatch pending messages.
+ *
+ * @p timeout_ms of ::LH_TICK_T_MAX waits forever. Returns
+ * ::lh_os_system_window_pump_quit when a quit was posted.
+ */
+lh_os_system_window_pump_result_t
+lh_os_system_window_pump_wait(lh_tick_t timeout_ms);
 
 /**
  * @brief Wake a blocking pump with a quit message.

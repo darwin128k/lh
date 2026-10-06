@@ -116,6 +116,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/time/hour.c
         ${LH_LIB_SRC_PATH}/datetime.c
         ${LH_LIB_SRC_PATH}/timestamp.c
+        ${LH_LIB_SRC_PATH}/timer.c
         ${LH_LIB_SRC_PATH}/error.c
         ${LH_LIB_SRC_PATH}/werror.c
         ${LH_LIB_SRC_PATH}/runtime/error.c
@@ -178,6 +179,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/error/capture.c
             ${LH_LIB_SRC_PATH}/os/system/str.c
             ${LH_LIB_SRC_PATH}/os/timestamp.c
+            ${LH_LIB_SRC_PATH}/os/tick.c
             ${LH_LIB_SRC_PATH}/os/fs/path.c
             ${LH_LIB_SRC_PATH}/os/fs/stat.c
             ${LH_LIB_SRC_PATH}/os/fs/file.c

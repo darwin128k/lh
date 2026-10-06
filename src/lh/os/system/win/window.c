@@ -9,6 +9,7 @@
 #include <lh/null.h>
 #include <lh/os/system/window.h>
 #include <lh/os/window.h>
+#include <lh/timer/tick.h>
 #include <lh/util/ptr.h>
 
 #ifndef WIN32_LEAN_AND_MEAN
@@ -159,19 +160,33 @@ lh_os_system_window_close(lh_os_system_window_handle_t handle)
     DestroyWindow(hwnd);
 }
 
-lh_bool_t
-lh_os_system_window_pump(void)
+lh_os_system_window_pump_result_t
+lh_os_system_window_pump_wait(lh_tick_t timeout_ms)
 {
     MSG msg;
-    const BOOL result = GetMessageA(&msg, lh_null, 0, 0);
+    DWORD wait;
+    DWORD result;
+    lh_bool_t saw_message;
 
-    if (result <= 0)
+    wait = (timeout_ms == LH_TICK_T_MAX) ? INFINITE : lh_cast_static(DWORD, timeout_ms);
+    result = MsgWaitForMultipleObjects(0, lh_null, FALSE, wait, QS_ALLINPUT);
+    if (result == WAIT_TIMEOUT)
     {
-        return lh_bool_false;
+        return lh_os_system_window_pump_timeout;
     }
-    TranslateMessage(&msg);
-    DispatchMessageA(&msg);
-    return lh_bool_true;
+
+    saw_message = lh_bool_false;
+    while (PeekMessageA(&msg, lh_null, 0, 0, PM_REMOVE))
+    {
+        if (msg.message == WM_QUIT)
+        {
+            return lh_os_system_window_pump_quit;
+        }
+        TranslateMessage(&msg);
+        DispatchMessageA(&msg);
+        saw_message = lh_bool_true;
+    }
+    return saw_message ? lh_os_system_window_pump_message : lh_os_system_window_pump_timeout;
 }
 
 lh_void

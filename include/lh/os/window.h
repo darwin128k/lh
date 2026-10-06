@@ -2,9 +2,10 @@
  * @file window.h
  * @brief A native OS window — ::lh_os_window_t.
  *
- * Top-level windows are linked into an ::lh_os_app_t. A window may own modal
- * children (linked into `children`); those disable their parent until closed.
- * The app / parent does not own window memory — only the links.
+ * Top-level windows are opened into an ::lh_os_app_t from outside; the first
+ * linked window is main (index 0). A window may own modal children. Set
+ * ::lh_os_window_set_on_close to learn when the native window dies — including
+ * when the user closes it (reason ::lh_os_window_close_reason_os).
  *
  * The message pump lives on ::lh_os_app_run, not on the window.
  *
@@ -19,7 +20,10 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/system/window/handle.h>
+#include <lh/os/window/close/reason.h>
 #include <lh/os/window/fields.h>
+#include <lh/os/window/on/close/cb.h>
+#include <lh/ptr.h>
 #include <lh/void.h>
 
 #if !LH_LIBRARY_OPTION_OS
@@ -56,7 +60,8 @@ lh_os_window_init(lh_os_window_t *self);
 /**
  * @brief Open @p self as a top-level window under @p app and show it.
  *
- * Links @p self into @p app. Fails when already open or already linked.
+ * Links @p self at the end of @p app's list. The first window opened is main
+ * (index 0). Fails when already open or already linked.
  */
 lh_bool_t
 lh_os_window_open(struct lh_os_app *app, lh_os_window_t *self, const lh_char_t *title, int width,
@@ -108,6 +113,15 @@ lh_os_window_t *
 lh_os_window_get_next_child(const lh_os_window_t *self, const lh_os_window_t *child);
 
 /**
+ * @brief Notify @p on_close when the native window is destroyed.
+ *
+ * @p context is passed through. ::lh_null clears the slot. Fires for both
+ * ::lh_os_window_close_reason_api and ::lh_os_window_close_reason_os.
+ */
+lh_void
+lh_os_window_set_on_close(lh_os_window_t *self, lh_os_window_on_close_cb on_close, lh_ptr context);
+
+/**
  * @brief Close children, then destroy the native window and unlink @p self.
  */
 lh_void
@@ -122,7 +136,8 @@ lh_os_window_deinit(lh_os_window_t *self);
 /**
  * @brief Called from the native backend when the OS destroys the window.
  *
- * Clears the handle, re-enables a modal parent, and unlinks from app or parent.
+ * Invokes the on-close callback, clears the handle, re-enables a modal parent,
+ * and unlinks from app or parent.
  */
 lh_void
 lh_os_window_on_native_destroy(lh_os_window_t *self);

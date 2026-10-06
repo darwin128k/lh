@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/cast/static.h>
 #include <lh/compiler/os.h>
 #include <lh/list.h>
 #include <lh/list/node.h>
@@ -12,6 +13,7 @@
 #include <lh/os/window.h>
 #include <lh/runtime/error/code.h>
 #include <lh/util/addr.h>
+#include <lh/util/ptr.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
 #    include <lh/os/system/window.h>
@@ -39,6 +41,9 @@ lh_os_window_init(lh_os_window_t *self)
     lh_list_init(lh_addr_of(self->children));
     lh_list_node_init(lh_addr_of(self->link));
     self->modal = lh_bool_false;
+    self->closing = lh_bool_false;
+    self->on_close = lh_null;
+    self->on_close_context = lh_null;
 }
 
 lh_bool_t
@@ -61,6 +66,7 @@ lh_os_window_open(lh_os_app_t *app, lh_os_window_t *self, const lh_char_t *title
     self->app = app;
     self->parent = lh_null;
     self->modal = lh_bool_false;
+    /* First open becomes main (index 0); later opens append. */
     lh_list_push_back(lh_addr_of(app->windows), lh_addr_of(self->link));
     return lh_bool_true;
 #else
@@ -84,8 +90,7 @@ lh_os_window_open_modal(lh_os_window_t *parent, lh_os_window_t *self, const lh_c
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     lh_assert_runtime_ifn(lh_os_system_window_is_valid(parent->handle),
                           lh_runtime_error_code_invalid_argument);
-    self->handle =
-        lh_os_system_window_open(title, width, height, self, parent->handle);
+    self->handle = lh_os_system_window_open(title, width, height, self, parent->handle);
     if (!lh_os_system_window_is_valid(self->handle))
     {
         return lh_bool_false;
@@ -152,6 +157,14 @@ lh_os_window_get_next_child(const lh_os_window_t *self, const lh_os_window_t *ch
 }
 
 lh_void
+lh_os_window_set_on_close(lh_os_window_t *self, lh_os_window_on_close_cb on_close, lh_ptr context)
+{
+    lh_assert_runtime_ref(self);
+    self->on_close = on_close;
+    self->on_close_context = context;
+}
+
+lh_void
 lh_os_window_close(lh_os_window_t *self)
 {
     lh_os_window_t *child;
@@ -169,6 +182,7 @@ lh_os_window_close(lh_os_window_t *self)
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     if (lh_os_system_window_is_valid(self->handle))
     {
+        self->closing = lh_bool_true;
         lh_os_system_window_close(self->handle);
     }
 #endif
@@ -183,6 +197,8 @@ lh_os_window_deinit(lh_os_window_t *self)
 {
     lh_assert_runtime_ref(self);
     lh_os_window_close(self);
+    self->on_close = lh_null;
+    self->on_close_context = lh_null;
 }
 
 lh_void
@@ -191,11 +207,22 @@ lh_os_window_on_native_destroy(lh_os_window_t *self)
     lh_os_app_t *app;
     lh_os_window_t *parent;
     lh_bool_t modal;
+    lh_bool_t was_main;
+    lh_os_window_close_reason_t reason;
+    lh_os_window_on_close_cb on_close;
+    lh_ptr on_close_context;
 
     lh_assert_runtime_ref(self);
     app = self->app;
     parent = self->parent;
     modal = self->modal;
+    was_main = lh_bool_false;
+    if (lh_null_ne(app))
+    {
+        was_main = lh_cast_static(lh_bool_t, self == lh_os_app_get_window(app));
+    }
+    reason = self->closing ? lh_os_window_close_reason_api : lh_os_window_close_reason_os;
+    self->closing = lh_bool_false;
     self->handle = LH_OS_SYSTEM_WINDOW_HANDLE_INVALID;
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     if (modal && lh_null_ne(parent) && lh_os_system_window_is_valid(parent->handle))
@@ -206,9 +233,18 @@ lh_os_window_on_native_destroy(lh_os_window_t *self)
     (void)modal;
     (void)parent;
 #endif
-    lh_os_window_unlink(self);
-    if (lh_null_ne(app) && lh_list_is_empty(lh_addr_of(app->windows)))
+    on_close = self->on_close;
+    on_close_context = self->on_close_context;
+    if (lh_null_ne(lh_ptr_rcast(lh_void, on_close)))
     {
-        lh_os_app_quit(app);
+        on_close(self, reason, on_close_context);
+    }
+    lh_os_window_unlink(self);
+    if (lh_null_ne(app))
+    {
+        if (was_main || lh_list_is_empty(lh_addr_of(app->windows)))
+        {
+            lh_os_app_quit(app);
+        }
     }
 }
