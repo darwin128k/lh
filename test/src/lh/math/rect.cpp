@@ -14,6 +14,41 @@ TEST(math_rect, contains_is_half_open)
     EXPECT_FALSE(lh_math_rect_contains_point(&r, lh_math_point_make(10, 23)));
 }
 
+TEST(math_rect, make_origin_size_matches_make_fields)
+{
+    const lh_math_point_t origin = lh_math_point_make(10, 20);
+    const lh_math_size_t size = lh_math_size_make(5, 3);
+    const lh_math_rect_t from_parts = lh_math_rect_make_origin_size(origin, size);
+    const lh_math_rect_t from_fields = lh_math_rect_make(10, 20, 5, 3);
+    EXPECT_TRUE(lh_math_rect_eq(&from_parts, &from_fields));
+}
+
+TEST(math_rect, far_and_from_extent)
+{
+    const lh_math_rect_t r = lh_math_rect_make(10, 20, 5, 3);
+    const lh_math_point_t far = lh_math_rect_far(&r);
+    EXPECT_EQ(lh_math_point_get_x(&far), 15);
+    EXPECT_EQ(lh_math_point_get_y(&far), 23);
+
+    const lh_math_point_t min = lh_math_point_make(10, 20);
+    const lh_math_rect_t from_extent = lh_math_rect_from_extent(&min, &far);
+    EXPECT_TRUE(lh_math_rect_eq(&from_extent, &r));
+
+    const lh_math_point_t inverted = lh_math_point_make(0, 0);
+    const lh_math_rect_t empty = lh_math_rect_from_extent(&far, &inverted);
+    EXPECT_TRUE(lh_math_rect_is_empty(&empty));
+}
+
+TEST(math_rect, init_origin_size_fills_self)
+{
+    lh_math_rect_t r;
+    lh_math_rect_init_origin_size(&r, lh_math_point_make(1, 2), lh_math_size_make(3, 4));
+    EXPECT_EQ(lh_math_point_get_x(lh_math_rect_get_origin_as_const(&r)), 1);
+    EXPECT_EQ(lh_math_point_get_y(lh_math_rect_get_origin_as_const(&r)), 2);
+    EXPECT_EQ(lh_math_size_get_width(lh_math_rect_get_size_as_const(&r)), 3);
+    EXPECT_EQ(lh_math_size_get_height(lh_math_rect_get_size_as_const(&r)), 4);
+}
+
 TEST(math_rect, intersection_and_union)
 {
     const lh_math_rect_t a = lh_math_rect_make(0, 0, 10, 10);
@@ -37,9 +72,9 @@ TEST(math_rect, offset_and_inset)
 {
     const lh_math_rect_t r = lh_math_rect_make(0, 0, 10, 8);
     const lh_math_rect_t moved = lh_math_rect_offset(&r, 3, -2);
-    EXPECT_EQ(lh_math_rect_get_x(&moved), 3);
-    EXPECT_EQ(lh_math_rect_get_y(&moved), -2);
-    EXPECT_EQ(lh_math_rect_get_width(&moved), 10);
+    EXPECT_EQ(lh_math_point_get_x(lh_math_rect_get_origin_as_const(&moved)), 3);
+    EXPECT_EQ(lh_math_point_get_y(lh_math_rect_get_origin_as_const(&moved)), -2);
+    EXPECT_EQ(lh_math_size_get_width(lh_math_rect_get_size_as_const(&moved)), 10);
 
     const lh_math_rect_t inner = lh_math_rect_inset(&r, 1, 2);
     const lh_math_rect_t expected = lh_math_rect_make(1, 2, 8, 4);

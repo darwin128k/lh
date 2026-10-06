@@ -9,6 +9,7 @@
 #include <lh/cast/static.h>
 #include <lh/math.h>
 #include <lh/math/fpoint.h>
+#include <lh/math/fsize.h>
 
 /* ── Constructors ────────────────────────────────────────────────────────── */
 
@@ -85,4 +86,65 @@ lh_math_fpoint_eq(const lh_math_fpoint_t *a, const lh_math_fpoint_t *b)
     lh_assert_runtime_ref(b);
     return lh_math_eq(lh_math_fpoint_get_x(a), lh_math_fpoint_get_x(b))
         && lh_math_eq(lh_math_fpoint_get_y(a), lh_math_fpoint_get_y(b));
+}
+
+lh_math_fpoint_t
+lh_math_fpoint_min(const lh_math_fpoint_t *a, const lh_math_fpoint_t *b)
+{
+    lh_assert_runtime_ref(a);
+    lh_assert_runtime_ref(b);
+    return lh_math_fpoint_make(lh_math_min(lh_math_fpoint_get_x(a), lh_math_fpoint_get_x(b)),
+                               lh_math_min(lh_math_fpoint_get_y(a), lh_math_fpoint_get_y(b)));
+}
+
+lh_math_fpoint_t
+lh_math_fpoint_max(const lh_math_fpoint_t *a, const lh_math_fpoint_t *b)
+{
+    lh_assert_runtime_ref(a);
+    lh_assert_runtime_ref(b);
+    return lh_math_fpoint_make(lh_math_max(lh_math_fpoint_get_x(a), lh_math_fpoint_get_x(b)),
+                               lh_math_max(lh_math_fpoint_get_y(a), lh_math_fpoint_get_y(b)));
+}
+
+lh_bool_t
+lh_math_fpoint_in_extent(const lh_math_fpoint_t *self, const lh_math_fpoint_t *min,
+                         const lh_math_fpoint_t *max)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(min);
+    lh_assert_runtime_ref(max);
+    if (lh_math_lt(lh_math_fpoint_get_x(self), lh_math_fpoint_get_x(min)))
+    {
+        return lh_bool_false;
+    }
+    if (lh_math_lt(lh_math_fpoint_get_y(self), lh_math_fpoint_get_y(min)))
+    {
+        return lh_bool_false;
+    }
+    if (lh_math_ge(lh_math_fpoint_get_x(self), lh_math_fpoint_get_x(max)))
+    {
+        return lh_bool_false;
+    }
+    if (lh_math_ge(lh_math_fpoint_get_y(self), lh_math_fpoint_get_y(max)))
+    {
+        return lh_bool_false;
+    }
+    return lh_bool_true;
+}
+
+/* ── Set ops ────────────────────────────────────────────────────────────── */
+
+lh_math_fpoint_t
+lh_math_fpoint_offset(const lh_math_fpoint_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy)
+{
+    lh_assert_runtime_ref(self);
+    return lh_math_fpoint_make(lh_math_fpoint_get_x(self) + dx, lh_math_fpoint_get_y(self) + dy);
+}
+
+lh_math_fpoint_t
+lh_math_fpoint_offset_size(const lh_math_fpoint_t *self, const lh_math_fsize_t *size)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(size);
+    return lh_math_fpoint_offset(self, lh_math_fsize_get_width(size), lh_math_fsize_get_height(size));
 }

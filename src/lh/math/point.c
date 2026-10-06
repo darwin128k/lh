@@ -12,6 +12,7 @@
 #    include <lh/float/round.h>
 #endif
 #include <lh/math/point.h>
+#include <lh/math/size.h>
 #include <lh/null.h>
 #include <lh/math.h>
 
@@ -97,6 +98,50 @@ lh_math_point_eq(const lh_math_point_t *a, const lh_math_point_t *b)
         && lh_math_eq(lh_math_point_get_y(a), lh_math_point_get_y(b));
 }
 
+lh_math_point_t
+lh_math_point_min(const lh_math_point_t *a, const lh_math_point_t *b)
+{
+    lh_assert_runtime_ref(a);
+    lh_assert_runtime_ref(b);
+    return lh_math_point_make(lh_math_min(lh_math_point_get_x(a), lh_math_point_get_x(b)),
+                              lh_math_min(lh_math_point_get_y(a), lh_math_point_get_y(b)));
+}
+
+lh_math_point_t
+lh_math_point_max(const lh_math_point_t *a, const lh_math_point_t *b)
+{
+    lh_assert_runtime_ref(a);
+    lh_assert_runtime_ref(b);
+    return lh_math_point_make(lh_math_max(lh_math_point_get_x(a), lh_math_point_get_x(b)),
+                              lh_math_max(lh_math_point_get_y(a), lh_math_point_get_y(b)));
+}
+
+lh_bool_t
+lh_math_point_in_extent(const lh_math_point_t *self, const lh_math_point_t *min,
+                        const lh_math_point_t *max)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(min);
+    lh_assert_runtime_ref(max);
+    if (lh_math_lt(lh_math_point_get_x(self), lh_math_point_get_x(min)))
+    {
+        return lh_bool_false;
+    }
+    if (lh_math_lt(lh_math_point_get_y(self), lh_math_point_get_y(min)))
+    {
+        return lh_bool_false;
+    }
+    if (lh_math_ge(lh_math_point_get_x(self), lh_math_point_get_x(max)))
+    {
+        return lh_bool_false;
+    }
+    if (lh_math_ge(lh_math_point_get_y(self), lh_math_point_get_y(max)))
+    {
+        return lh_bool_false;
+    }
+    return lh_bool_true;
+}
+
 /* ── Set ops ────────────────────────────────────────────────────────────── */
 
 lh_math_point_t
@@ -105,4 +150,12 @@ lh_math_point_offset(const lh_math_point_t *self, lh_math_scalar_t dx, lh_math_s
     lh_assert_runtime_ref(self);
     return lh_math_point_make(lh_math_point_get_x(self) + dx,
                              lh_math_point_get_y(self) + dy);
+}
+
+lh_math_point_t
+lh_math_point_offset_size(const lh_math_point_t *self, const lh_math_size_t *size)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(size);
+    return lh_math_point_offset(self, lh_math_size_get_width(size), lh_math_size_get_height(size));
 }

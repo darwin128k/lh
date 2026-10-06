@@ -2,8 +2,9 @@
  * @file size.h
  * @brief A 2D size: ::lh_math_size_t with ::lh_math_scalar_t `width`, `height`.
  *
- * Negative extents are valid bit patterns but interpreted as "empty" by
- * ::lh_math_rect_is_empty — used to represent "nothing" without a sentinel.
+ * Negative extents are valid bit patterns but ::lh_math_size_is_empty treats
+ * zero or negative extent as empty — used to represent "nothing" without a
+ * sentinel (shared with ::lh_math_rect_is_empty).
  *
  * Fields are not part of the public API: read and mutate them through the
  * `lh_math_size_get_*` / `lh_math_size_set_*` accessors. The struct is
@@ -17,6 +18,7 @@
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/math/scalar.h>
+#include <lh/math/point.h>
 #include <lh/math/size/fields.h>
 #include <lh/void.h>
 
@@ -42,10 +44,16 @@ lh_math_size_t
 lh_math_size_make(lh_math_scalar_t width, lh_math_scalar_t height);
 
 /**
- * @brief The empty size: `(0, 0)`. ::lh_math_rect_is_empty treats this as empty.
+ * @brief The empty size: `(0, 0)`. ::lh_math_size_is_empty returns true for this.
  */
 lh_math_size_t
 lh_math_size_make_empty(void);
+
+/**
+ * @brief Size spanning from @p min (inclusive) to @p max (exclusive).
+ */
+lh_math_size_t
+lh_math_size_from_extent(const lh_math_point_t *min, const lh_math_point_t *max);
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
@@ -80,6 +88,21 @@ lh_math_size_set_height(lh_math_size_t *self, lh_math_scalar_t height);
  */
 lh_bool_t
 lh_math_size_eq(const lh_math_size_t *a, const lh_math_size_t *b);
+
+/**
+ * @brief Test whether @p self is empty (zero or negative extent).
+ */
+lh_bool_t
+lh_math_size_is_empty(const lh_math_size_t *self);
+
+/* ── Set ops ────────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Inset @p self by `(@p dx, @p dy)` on each side (positive shrinks,
+ *        negative grows): width `-= 2 * dx`, height `-= 2 * dy`.
+ */
+lh_math_size_t
+lh_math_size_inset(const lh_math_size_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy);
 
 LH_COMPILER_EXTERN_C_END
 

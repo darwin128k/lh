@@ -21,6 +21,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/math/size.h>
 #include <lh/math/size/fields.h>
+#include <lh/math/fpoint.h>
 #include <lh/math/fscalar.h>
 #include <lh/void.h>
 
@@ -50,6 +51,12 @@ lh_math_fsize_make(lh_math_fscalar_t width, lh_math_fscalar_t height);
  */
 lh_math_fsize_t
 lh_math_fsize_make_empty(void);
+
+/**
+ * @brief Size spanning from @p min (inclusive) to @p max (exclusive).
+ */
+lh_math_fsize_t
+lh_math_fsize_from_extent(const lh_math_fpoint_t *min, const lh_math_fpoint_t *max);
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
@@ -102,6 +109,21 @@ lh_math_size_to_fsize(lh_math_size_t self);
  */
 lh_bool_t
 lh_math_fsize_eq(const lh_math_fsize_t *a, const lh_math_fsize_t *b);
+
+/**
+ * @brief Test whether @p self is empty (zero or negative extent).
+ */
+lh_bool_t
+lh_math_fsize_is_empty(const lh_math_fsize_t *self);
+
+/* ── Set ops ────────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Inset @p self by `(@p dx, @p dy)` on each side (positive shrinks,
+ *        negative grows).
+ */
+lh_math_fsize_t
+lh_math_fsize_inset(const lh_math_fsize_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy);
 
 LH_COMPILER_EXTERN_C_END
 

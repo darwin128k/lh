@@ -24,6 +24,8 @@
 #include <lh/math/fscalar.h>
 #include <lh/void.h>
 
+struct lh_math_fsize;
+
 /**
  * @struct lh_math_fpoint
  * @typedef lh_math_fpoint_t
@@ -102,6 +104,39 @@ lh_math_point_to_fpoint(lh_math_point_t self);
  */
 lh_bool_t
 lh_math_fpoint_eq(const lh_math_fpoint_t *a, const lh_math_fpoint_t *b);
+
+/**
+ * @brief Element-wise minimum of @p a and @p b.
+ */
+lh_math_fpoint_t
+lh_math_fpoint_min(const lh_math_fpoint_t *a, const lh_math_fpoint_t *b);
+
+/**
+ * @brief Element-wise maximum of @p a and @p b.
+ */
+lh_math_fpoint_t
+lh_math_fpoint_max(const lh_math_fpoint_t *a, const lh_math_fpoint_t *b);
+
+/**
+ * @brief Test whether @p self lies in the half-open extent `[@p min, @p max)`.
+ */
+lh_bool_t
+lh_math_fpoint_in_extent(const lh_math_fpoint_t *self, const lh_math_fpoint_t *min,
+                         const lh_math_fpoint_t *max);
+
+/* ── Set ops ────────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Translate @p self by `(@p dx, @p dy)`.
+ */
+lh_math_fpoint_t
+lh_math_fpoint_offset(const lh_math_fpoint_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy);
+
+/**
+ * @brief Exclusive far corner: @p self offset by @p size (`x + width`, `y + height`).
+ */
+lh_math_fpoint_t
+lh_math_fpoint_offset_size(const lh_math_fpoint_t *self, const struct lh_math_fsize *size);
 
 LH_COMPILER_EXTERN_C_END
 

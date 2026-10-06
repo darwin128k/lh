@@ -6,14 +6,14 @@
  * `width = 10` covers columns `[origin.x, origin.x + 10)`, i.e. `origin.x`
  * through `origin.x + 9`.
  *
- * Empty rectangles are represented as `size.width <= 0 || size.height <= 0`:
- * ::lh_math_rect_is_empty, ::lh_math_rect_intersection, and
- * ::lh_math_rect_get_width / ::lh_math_rect_get_height all share that definition, so
- * an "empty" output is canonical regardless of which operation produced it.
+ * Empty rectangles follow ::lh_math_size_is_empty on the embedded size:
+ * ::lh_math_rect_is_empty and ::lh_math_rect_intersection share that
+ * definition, so an "empty" output is canonical regardless of which
+ * operation produced it.
  *
- * Fields are not part of the public API: read and mutate them through the
- * `lh_math_rect_get_*` / `lh_math_rect_set_*` accessors. The struct is
- * defined here only so `origin` and `size` can be embedded by value.
+ * Accessors return pointers to the embedded `origin` and `size`; scalar
+ * components live on ::lh_math_point_t / ::lh_math_size_t. The struct is
+ * defined here only so those members can be embedded by value.
  */
 
 #ifndef LH_MATH_RECT_H
@@ -49,7 +49,22 @@ lh_math_rect_t
 lh_math_rect_make(lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t width, lh_math_scalar_t height);
 
 /**
- * @brief Make a `::lh_math_rect_t` from min/max corners (Win32-style:
+ * @brief Make a `::lh_math_rect_t` from @p origin and @p size.
+ */
+lh_math_rect_t
+lh_math_rect_make_origin_size(lh_math_point_t origin, lh_math_size_t size);
+
+/**
+ * @brief Make a `::lh_math_rect_t` from exclusive extent corners.
+ *
+ * @p max is exclusive (`origin + size`). Empty size yields
+ * ::lh_math_rect_make_empty.
+ */
+lh_math_rect_t
+lh_math_rect_from_extent(const lh_math_point_t *min, const lh_math_point_t *max);
+
+/**
+ * @brief Make a `::lh_math_rect_t` from min/max scalars (Win32-style:
  *        left, top, right, bottom — right/bottom are exclusive).
  */
 lh_math_rect_t
@@ -63,43 +78,44 @@ lh_math_rect_from_min_max(lh_math_scalar_t x_min, lh_math_scalar_t y_min,
 lh_math_rect_t
 lh_math_rect_make_empty(void);
 
+/**
+ * @brief Fill @p self from origin coordinates and extents.
+ */
+lh_void
+lh_math_rect_init(lh_math_rect_t *self, lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t width,
+                  lh_math_scalar_t height);
+
+/**
+ * @brief Fill @p self from @p origin and @p size.
+ */
+lh_void
+lh_math_rect_init_origin_size(lh_math_rect_t *self, lh_math_point_t origin, lh_math_size_t size);
+
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
 /**
- * @brief Top-left corner of @p self as a ::lh_math_point_t.
+ * @brief Pointer to the top-left corner of @p self.
  */
-lh_math_point_t
-lh_math_rect_get_origin(const lh_math_rect_t *self);
+lh_math_point_t *
+lh_math_rect_get_origin(lh_math_rect_t *self);
 
 /**
- * @brief Size of @p self as a ::lh_math_size_t.
+ * @brief Const pointer to the top-left corner of @p self.
  */
-lh_math_size_t
-lh_math_rect_get_size(const lh_math_rect_t *self);
+const lh_math_point_t *
+lh_math_rect_get_origin_as_const(const lh_math_rect_t *self);
 
 /**
- * @brief X coordinate of the origin of @p self.
+ * @brief Pointer to the size of @p self.
  */
-lh_math_scalar_t
-lh_math_rect_get_x(const lh_math_rect_t *self);
+lh_math_size_t *
+lh_math_rect_get_size(lh_math_rect_t *self);
 
 /**
- * @brief Y coordinate of the origin of @p self.
+ * @brief Const pointer to the size of @p self.
  */
-lh_math_scalar_t
-lh_math_rect_get_y(const lh_math_rect_t *self);
-
-/**
- * @brief Stored width of @p self. A negative value is empty.
- */
-lh_math_scalar_t
-lh_math_rect_get_size_width(const lh_math_rect_t *self);
-
-/**
- * @brief Stored height of @p self. A negative value is empty.
- */
-lh_math_scalar_t
-lh_math_rect_get_size_height(const lh_math_rect_t *self);
+const lh_math_size_t *
+lh_math_rect_get_size_as_const(const lh_math_rect_t *self);
 
 /**
  * @brief Replace the origin of @p self with @p origin.
@@ -113,22 +129,16 @@ lh_math_rect_set_origin(lh_math_rect_t *self, lh_math_point_t origin);
 lh_void
 lh_math_rect_set_size(lh_math_rect_t *self, lh_math_size_t size);
 
+/**
+ * @brief Exclusive far corner: origin offset by size.
+ */
+lh_math_point_t
+lh_math_rect_far(const lh_math_rect_t *self);
+
 /* ── Queries ────────────────────────────────────────────────────────────── */
 
 /**
- * @brief Width of @p self as a ::lh_math_scalar_t. Zero for empty rectangles.
- */
-lh_math_scalar_t
-lh_math_rect_get_width(const lh_math_rect_t *self);
-
-/**
- * @brief Height of @p self as a ::lh_math_scalar_t. Zero for empty rectangles.
- */
-lh_math_scalar_t
-lh_math_rect_get_height(const lh_math_rect_t *self);
-
-/**
- * @brief Test whether @p self is "empty" (zero or negative extent).
+ * @brief Test whether @p self is empty (::lh_math_size_is_empty on its size).
  */
 lh_bool_t
 lh_math_rect_is_empty(const lh_math_rect_t *self);

@@ -64,6 +64,8 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/memory/view/slice.cpp
         ${LH_TEST_SRC_PATH}/lh/array.cpp
         ${LH_TEST_SRC_PATH}/lh/math.cpp
+        ${LH_TEST_SRC_PATH}/lh/math/point.cpp
+        ${LH_TEST_SRC_PATH}/lh/math/size.cpp
         ${LH_TEST_SRC_PATH}/lh/math/rect.cpp
         ${LH_TEST_SRC_PATH}/lh/numeric/parse/bytes.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/color.cpp
@@ -130,6 +132,7 @@ endif ()
 if (LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_TEST_SOURCES
             ${LH_TEST_SRC_PATH}/lh/math/fpoint.cpp
+            ${LH_TEST_SRC_PATH}/lh/math/fsize.cpp
             ${LH_TEST_SRC_PATH}/lh/math/frect.cpp
             ${LH_TEST_SRC_PATH}/lh/math/vec2.cpp
             ${LH_TEST_SRC_PATH}/lh/math/vec3.cpp

@@ -24,6 +24,8 @@
 #endif
 #include <lh/void.h>
 
+struct lh_math_size;
+
 /**
  * @struct lh_math_point
  * @typedef lh_math_point_t
@@ -115,6 +117,25 @@ lh_math_vec2_to_point(lh_math_vec2_t v);
 lh_bool_t
 lh_math_point_eq(const lh_math_point_t *a, const lh_math_point_t *b);
 
+/**
+ * @brief Element-wise minimum of @p a and @p b.
+ */
+lh_math_point_t
+lh_math_point_min(const lh_math_point_t *a, const lh_math_point_t *b);
+
+/**
+ * @brief Element-wise maximum of @p a and @p b.
+ */
+lh_math_point_t
+lh_math_point_max(const lh_math_point_t *a, const lh_math_point_t *b);
+
+/**
+ * @brief Test whether @p self lies in the half-open extent `[@p min, @p max)`.
+ */
+lh_bool_t
+lh_math_point_in_extent(const lh_math_point_t *self, const lh_math_point_t *min,
+                        const lh_math_point_t *max);
+
 /* ── Set ops ────────────────────────────────────────────────────────────── */
 
 /**
@@ -122,6 +143,12 @@ lh_math_point_eq(const lh_math_point_t *a, const lh_math_point_t *b);
  */
 lh_math_point_t
 lh_math_point_offset(const lh_math_point_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy);
+
+/**
+ * @brief Exclusive far corner: @p self offset by @p size (`x + width`, `y + height`).
+ */
+lh_math_point_t
+lh_math_point_offset_size(const lh_math_point_t *self, const struct lh_math_size *size);
 
 LH_COMPILER_EXTERN_C_END
 
