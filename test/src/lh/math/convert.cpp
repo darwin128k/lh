@@ -50,7 +50,7 @@ TEST(convert_point_vec2, point_round_trip_is_lossless)
 
 /* ── the float → pixel boundary agrees with the rasterizer ──────────────── */
 
-/* lh_entity_2d_draw_background picks the pixels an entity covers with `ceil(x - 0.5f)`.
+/* Pixel coverage typically uses `ceil(x - 0.5f)`.
  * A vec2_to_point at the same position must land on the same pixel, or a
  * picked point and a drawn rect would disagree. */
 TEST(convert_float_pixel, agrees_with_the_pixel_the_rasterizer_covers)

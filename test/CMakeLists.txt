@@ -65,11 +65,11 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/array.cpp
         ${LH_TEST_SRC_PATH}/lh/math.cpp
         ${LH_TEST_SRC_PATH}/lh/math/rect.cpp
-        ${LH_TEST_SRC_PATH}/lh/entity.cpp
-        ${LH_TEST_SRC_PATH}/lh/entity/label.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/color.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/point.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/rect.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/entity.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/entity/label.cpp
 
         ${LH_TEST_SRC_PATH}/lh/list.cpp
         ${LH_TEST_SRC_PATH}/lh/str.cpp

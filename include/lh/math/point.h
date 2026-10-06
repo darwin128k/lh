@@ -97,7 +97,7 @@ lh_math_point_to_vec2(lh_math_point_t self);
  * Rounds to the nearest integer, halves toward the lower pixel: `3.4` gives
  * pixel `3`, `3.6` gives `4`, and exactly `3.5` gives `3`. That is the same
  * rule the rasterizer uses to pick the pixels an entity covers
- * (`ceil(x - 0.5f)` in ::lh_entity_2d_draw_background), so a position narrowed here
+ * (`ceil(x - 0.5f)` as a typical pixel coverage rule), so a position narrowed here
  * lands on the pixel that drawing at that position would touch.
  *
  * @param v Continuous position.

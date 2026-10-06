@@ -78,7 +78,7 @@ lh_math_point_t
 lh_math_vec2_to_point(lh_math_vec2_t v)
 {
     /* `ceil(x - 0.5f)`: round to nearest, halves toward the lower pixel, the
-     * same rule lh_entity_2d_draw_background uses to pick covered pixels. */
+     * same rule a pixel-coverage rasterizer typically uses. */
     return lh_math_point_make(
         lh_cast_static(lh_math_scalar_t, lh_float_ceil_to_int(lh_math_vec2_get_x(lh_addr_of(v)) - 0.5f)),
         lh_cast_static(lh_math_scalar_t, lh_float_ceil_to_int(lh_math_vec2_get_y(lh_addr_of(v)) - 0.5f)));
