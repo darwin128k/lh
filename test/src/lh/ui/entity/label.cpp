@@ -11,15 +11,26 @@
 
 namespace
 {
-lh_void
-count_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *color)
+/* Counts only the fill the base class owes: this rect in this color. Other
+ * fill_rect calls (e.g. a label painting its text later) are not counted. */
+struct base_fill_probe
 {
-    (void)rect;
-    (void)color;
-    ++*lh_ptr_rcast(int, context);
+    lh_ui_rect_t rect;
+    lh_ui_color_t color;
+    int matches;
+};
+
+lh_void
+probe_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *color)
+{
+    base_fill_probe *probe = lh_ptr_rcast(base_fill_probe, context);
+    if (lh_ui_rect_eq(rect, lh_addr_of(probe->rect)) && lh_ui_color_equals(color, lh_addr_of(probe->color)))
+    {
+        ++probe->matches;
+    }
 }
 
-const lh_ui_canvas_backend_t g_count_backend = {nullptr, nullptr, nullptr, count_fill_rect};
+const lh_ui_canvas_backend_t g_probe_backend = {nullptr, nullptr, nullptr, probe_fill_rect};
 } // namespace
 
 TEST(entity_label, init_keeps_the_rect_and_the_text_pointer)
@@ -71,7 +82,7 @@ TEST(entity_label, draw_keeps_the_base_class_fill)
     lh_ui_paint_t paint;
     lh_ui_style_t style;
     lh_ui_canvas_t canvas;
-    int fills = 0;
+    base_fill_probe probe{};
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 4, 4);
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
@@ -80,9 +91,11 @@ TEST(entity_label, draw_keeps_the_base_class_fill)
     lh_ui_style_set_fill(lh_addr_of(style), lh_addr_of(paint));
     lh_ui_entity_label_init(lh_addr_of(label), rect, "x");
     lh_ui_entity_set_style(lh_ui_entity_label_as_entity(lh_addr_of(label)), lh_addr_of(style));
-    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_count_backend), lh_addr_of(fills));
+    probe.rect = rect;
+    probe.color = color;
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_probe_backend), lh_addr_of(probe));
 
     lh_ui_entity_draw(lh_ui_entity_label_as_entity(lh_addr_of(label)), lh_addr_of(canvas));
 
-    EXPECT_EQ(fills, 1);
+    EXPECT_EQ(probe.matches, 1);
 }
