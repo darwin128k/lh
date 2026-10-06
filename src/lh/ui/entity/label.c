@@ -29,32 +29,11 @@ lh_ui_entity_label_init(lh_ui_entity_label_t *self, lh_ui_rect_t rect, const lh_
     lh_ui_entity_set_class(lh_addr_of(self->entity), lh_addr_of(lh_ui_entity_label_class));
 }
 
-lh_ui_rect_t
-lh_ui_entity_label_get_rect(const lh_ui_entity_label_t *self)
+lh_ui_entity_t *
+lh_ui_entity_label_as_entity(lh_ui_entity_label_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_ui_entity_get_rect(lh_addr_of(self->entity));
-}
-
-lh_void
-lh_ui_entity_label_set_rect(lh_ui_entity_label_t *self, lh_ui_rect_t rect)
-{
-    lh_assert_runtime_ref(self);
-    lh_ui_entity_set_rect(lh_addr_of(self->entity), rect);
-}
-
-const lh_ui_style_t *
-lh_ui_entity_label_get_style(const lh_ui_entity_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_ui_entity_get_style(lh_addr_of(self->entity));
-}
-
-lh_void
-lh_ui_entity_label_set_style(lh_ui_entity_label_t *self, const lh_ui_style_t *style)
-{
-    lh_assert_runtime_ref(self);
-    lh_ui_entity_set_style(lh_addr_of(self->entity), style);
+    return lh_addr_of(self->entity);
 }
 
 const lh_char_t *
@@ -69,11 +48,4 @@ lh_ui_entity_label_set_text(lh_ui_entity_label_t *self, const lh_char_t *text)
 {
     lh_assert_runtime_ref(self);
     self->text = text;
-}
-
-lh_void
-lh_ui_entity_label_draw(const lh_ui_entity_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    lh_ui_entity_draw(lh_addr_of(self->entity));
 }

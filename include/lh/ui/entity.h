@@ -1,12 +1,13 @@
 /**
  * @file entity.h
- * @brief One object: ::lh_ui_entity_t, the ::lh_ui_rect_t it covers and a
- *        pointer to its ::lh_ui_style_t.
+ * @brief One object in a UI tree: ::lh_ui_entity_t.
  *
- * The class pointer names the kind: the event function lives on that class,
- * once. ::lh_ui_entity_draw sends ::lh_ui_entity_event_draw to it. The style
- * is not owned: it must outlive the entity, and several entities may share
- * one.
+ * An entity covers a ::lh_ui_rect_t, may share a ::lh_ui_style_t, and points
+ * at a class whose event function is shared by every instance of that kind.
+ * Larger widgets are built by linking children (composition), not by copying
+ * getters onto every specialized type. ::lh_ui_entity_draw sends
+ * ::lh_ui_entity_event_draw to the class, then draws each child. The style and
+ * the children are not owned: they must outlive the links.
  */
 
 #ifndef LH_UI_ENTITY_H
@@ -24,8 +25,7 @@
 /**
  * @struct lh_ui_entity
  * @typedef lh_ui_entity_t
- * @brief An object, the rectangle it covers, a style pointer, and the class
- *        it belongs to.
+ * @brief A tree node: rectangle, style pointer, class, children, and link.
  */
 struct lh_ui_entity
 {
@@ -36,7 +36,7 @@ typedef struct lh_ui_entity lh_ui_entity_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Fill @p self so it covers @p rect with no style.
+ * @brief Fill @p self so it covers @p rect with no style and no children.
  */
 lh_void
 lh_ui_entity_init(lh_ui_entity_t *self, lh_ui_rect_t rect);
@@ -80,13 +80,42 @@ lh_void
 lh_ui_entity_set_class(lh_ui_entity_t *self, const lh_ui_entity_class_t *);
 
 /**
+ * @brief Append @p child to the children of @p self.
+ *
+ * Neither owns the other. @p child must not already be in a tree.
+ */
+lh_void
+lh_ui_entity_add_child(lh_ui_entity_t *self, lh_ui_entity_t *child);
+
+/**
+ * @brief Unlink @p child from the children of @p self.
+ *
+ * Does not free @p child.
+ */
+lh_void
+lh_ui_entity_remove_child(lh_ui_entity_t *self, lh_ui_entity_t *child);
+
+/**
+ * @brief First child of @p self, or ::lh_null when it has none.
+ */
+lh_ui_entity_t *
+lh_ui_entity_get_first_child(const lh_ui_entity_t *self);
+
+/**
+ * @brief Child after @p child under @p self, or ::lh_null when @p child is last.
+ */
+lh_ui_entity_t *
+lh_ui_entity_get_next_child(const lh_ui_entity_t *self, const lh_ui_entity_t *child);
+
+/**
  * @brief Event of ::lh_ui_entity_class.
  */
 lh_void
 lh_ui_entity_face_rect(const struct lh_ui_entity *self, const lh_ui_entity_event_t *event);
 
 /**
- * @brief Send ::lh_ui_entity_event_draw to the class of @p self.
+ * @brief Send ::lh_ui_entity_event_draw to the class of @p self, then draw
+ *        each child in order.
  */
 lh_void
 lh_ui_entity_draw(const lh_ui_entity_t *self);
