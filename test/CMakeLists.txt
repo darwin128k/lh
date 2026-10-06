@@ -45,6 +45,8 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/time/hour.cpp
         ${LH_TEST_SRC_PATH}/lh/datetime.cpp
         ${LH_TEST_SRC_PATH}/lh/timestamp.cpp
+        ${LH_TEST_SRC_PATH}/lh/timer.cpp
+        ${LH_TEST_SRC_PATH}/lh/timer/tick.cpp
         ${LH_TEST_SRC_PATH}/lh/cpu/cache.cpp
         ${LH_TEST_SRC_PATH}/lh/cpu/id.cpp
         ${LH_TEST_SRC_PATH}/lh/cpu/simd.cpp
@@ -127,6 +129,12 @@ set(LH_TEST_SOURCES
 if (LH_LIBRARY_OPTION_OS)
     list(APPEND LH_TEST_SOURCES
             # os is being rebuilt from scratch, one piece at a time.
+    )
+endif ()
+
+if (LH_LIBRARY_OPTION_OS_WINDOW)
+    list(APPEND LH_TEST_SOURCES
+            ${LH_TEST_SRC_PATH}/lh/os/window.cpp
     )
 endif ()
 

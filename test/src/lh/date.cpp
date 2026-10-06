@@ -141,4 +141,23 @@ TEST(date_year_days, leap_and_common)
     EXPECT_EQ(lh_date_year_days(1900), 365);
 }
 
+TEST(date_scalar_compare, year_month_day_index)
+{
+    EXPECT_EQ(lh_date_year_equals(2026, 2026), lh_bool_true);
+    EXPECT_EQ(lh_date_year_is_less(2025, 2026), lh_bool_true);
+    EXPECT_EQ(lh_date_year_is_greater(2026, 2025), lh_bool_true);
+
+    EXPECT_EQ(lh_date_month_equals(9, 9), lh_bool_true);
+    EXPECT_EQ(lh_date_month_is_less(8, 9), lh_bool_true);
+    EXPECT_EQ(lh_date_month_is_at_least(9, 9), lh_bool_true);
+
+    EXPECT_EQ(lh_date_day_equals(16, 16), lh_bool_true);
+    EXPECT_EQ(lh_date_day_is_less(15, 16), lh_bool_true);
+    EXPECT_EQ(lh_date_day_is_greater(16, 15), lh_bool_true);
+
+    EXPECT_EQ(lh_date_month_index_equals(0, 0), lh_bool_true);
+    EXPECT_EQ(lh_date_month_index_is_less(0, 11), lh_bool_true);
+    EXPECT_EQ(lh_date_month_index_is_greater(11, 0), lh_bool_true);
+}
+
 } // namespace

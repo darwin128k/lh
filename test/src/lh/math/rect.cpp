@@ -115,4 +115,21 @@ TEST(math_rect, offset_and_inset)
     EXPECT_TRUE(lh_math_rect_eq(&inner, &expected));
 }
 
+TEST(math_rect, compare_suite_origin_then_size)
+{
+    lh_math_rect_t a;
+    lh_math_rect_t b;
+    lh_math_rect_t c;
+
+    lh_math_rect_init(lh_addr_of(a), 0, 0, 10, 10);
+    lh_math_rect_init(lh_addr_of(b), 0, 0, 10, 11);
+    lh_math_rect_init(lh_addr_of(c), 1, 0, 1, 1);
+
+    EXPECT_EQ(lh_math_rect_equals(lh_addr_of(a), lh_addr_of(a)), lh_bool_true);
+    EXPECT_EQ(lh_math_rect_is_less(lh_addr_of(a), lh_addr_of(b)), lh_bool_true);
+    EXPECT_EQ(lh_math_rect_is_less(lh_addr_of(a), lh_addr_of(c)), lh_bool_true);
+    EXPECT_EQ(lh_math_rect_is_greater(lh_addr_of(c), lh_addr_of(a)), lh_bool_true);
+    EXPECT_EQ(lh_math_rect_is_at_least(lh_addr_of(b), lh_addr_of(a)), lh_bool_true);
+}
+
 } // namespace

@@ -46,4 +46,21 @@ TEST(math_size, inset_shrinks_both_sides)
     EXPECT_EQ(lh_math_size_get_height(lh_addr_of(inner)), 4);
 }
 
+TEST(math_size, compare_suite_is_lexicographic)
+{
+    lh_math_size_t a;
+    lh_math_size_t b;
+    lh_math_size_t c;
+
+    lh_math_size_init(lh_addr_of(a), 2, 9);
+    lh_math_size_init(lh_addr_of(b), 2, 10);
+    lh_math_size_init(lh_addr_of(c), 3, 1);
+
+    EXPECT_EQ(lh_math_size_equals(lh_addr_of(a), lh_addr_of(a)), lh_bool_true);
+    EXPECT_EQ(lh_math_size_is_less(lh_addr_of(a), lh_addr_of(b)), lh_bool_true);
+    EXPECT_EQ(lh_math_size_is_less(lh_addr_of(a), lh_addr_of(c)), lh_bool_true);
+    EXPECT_EQ(lh_math_size_is_greater(lh_addr_of(c), lh_addr_of(a)), lh_bool_true);
+    EXPECT_EQ(lh_math_size_is_at_least(lh_addr_of(b), lh_addr_of(a)), lh_bool_true);
+}
+
 } // namespace

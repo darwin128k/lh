@@ -2,6 +2,7 @@
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/math.h>
+#include <lh/math.h>
 
 lh_date_month_index_t
 lh_date_month_to_index(lh_date_month_t month)
@@ -47,4 +48,28 @@ lh_date_month_sub(lh_date_month_t *self, lh_uint_t value)
     years = lh_date_month_index_sub(&index, value);
     *self = lh_date_month_from_index(index);
     return years;
+}
+
+lh_bool_t
+lh_date_month_equals(lh_date_month_t self, lh_date_month_t other)
+{
+    return lh_cast_static(lh_bool_t, lh_math_eq(self, other));
+}
+
+lh_bool_t
+lh_date_month_is_at_least(lh_date_month_t self, lh_date_month_t minimum)
+{
+    return lh_cast_static(lh_bool_t, lh_math_ge(self, minimum));
+}
+
+lh_bool_t
+lh_date_month_is_less(lh_date_month_t self, lh_date_month_t other)
+{
+    return lh_cast_static(lh_bool_t, lh_math_lt(self, other));
+}
+
+lh_bool_t
+lh_date_month_is_greater(lh_date_month_t self, lh_date_month_t other)
+{
+    return lh_date_month_is_less(other, self);
 }

@@ -90,4 +90,16 @@ TEST(ui_color, over_transparent_keeps_dst)
     EXPECT_EQ(lh_ui_color_get_a(lh_addr_of(out)), 255);
 }
 
+TEST(ui_color, equals_compares_channels)
+{
+    lh_ui_color_t a;
+    lh_ui_color_t b;
+
+    lh_ui_color_init(lh_addr_of(a), 1, 2, 3, 4);
+    lh_ui_color_init(lh_addr_of(b), 1, 2, 3, 4);
+    EXPECT_EQ(lh_ui_color_equals(lh_addr_of(a), lh_addr_of(b)), lh_bool_true);
+    lh_ui_color_set_a(lh_addr_of(b), 5);
+    EXPECT_EQ(lh_ui_color_equals(lh_addr_of(a), lh_addr_of(b)), lh_bool_false);
+}
+
 } // namespace

@@ -115,6 +115,23 @@ TEST(version_equals, mismatch_rejected)
     EXPECT_EQ(lh_version_equals(&a, &b), lh_bool_false);
 }
 
+TEST(version_is_less, lower_is_strict)
+{
+    const lh_version_t older = lh_version_initializer(1, 2, 3);
+    const lh_version_t newer = lh_version_initializer(1, 2, 4);
+    EXPECT_EQ(lh_version_is_less(&older, &newer), lh_bool_true);
+    EXPECT_EQ(lh_version_is_less(&newer, &older), lh_bool_false);
+    EXPECT_EQ(lh_version_is_less(&older, &older), lh_bool_false);
+}
+
+TEST(version_is_greater, mirror_of_is_less)
+{
+    const lh_version_t older = lh_version_initializer(1, 2, 3);
+    const lh_version_t newer = lh_version_initializer(1, 2, 4);
+    EXPECT_EQ(lh_version_is_greater(&newer, &older), lh_bool_true);
+    EXPECT_EQ(lh_version_is_greater(&older, &newer), lh_bool_false);
+}
+
 TEST(version_is_compatible, stable_same_major_at_least)
 {
     const lh_version_t have = lh_version_initializer(1, 4, 0);

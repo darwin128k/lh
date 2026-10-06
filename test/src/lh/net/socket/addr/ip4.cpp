@@ -135,4 +135,20 @@ TEST(net_ip4_socket_addr_equals, compares_ip_and_port)
     EXPECT_FALSE(lh_net_ip4_socket_addr_equals(&a, &b));
 }
 
+TEST(net_ip4_socket_addr_compare, ip_then_port)
+{
+    lh_net_ip4_socket_addr_t a{};
+    lh_net_ip4_socket_addr_t b{};
+    lh_net_ip4_socket_addr_t c{};
+
+    ASSERT_TRUE(lh_net_ip4_socket_addr_parse("1.2.3.4:80", 10, &a));
+    ASSERT_TRUE(lh_net_ip4_socket_addr_parse("1.2.3.4:81", 10, &b));
+    ASSERT_TRUE(lh_net_ip4_socket_addr_parse("1.2.3.5:1", 9, &c));
+
+    EXPECT_EQ(lh_net_ip4_socket_addr_is_less(&a, &b), lh_bool_true);
+    EXPECT_EQ(lh_net_ip4_socket_addr_is_less(&a, &c), lh_bool_true);
+    EXPECT_EQ(lh_net_ip4_socket_addr_is_greater(&c, &a), lh_bool_true);
+    EXPECT_EQ(lh_net_ip4_socket_addr_is_at_least(&b, &a), lh_bool_true);
+}
+
 } // namespace

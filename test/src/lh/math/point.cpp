@@ -36,6 +36,25 @@ TEST(math_point, offset_size_is_far_corner)
     EXPECT_EQ(lh_math_point_get_y(lh_addr_of(far)), 23);
 }
 
+TEST(math_point, compare_suite_is_lexicographic)
+{
+    lh_math_point_t a;
+    lh_math_point_t b;
+    lh_math_point_t c;
+
+    lh_math_point_init(lh_addr_of(a), 1, 8);
+    lh_math_point_init(lh_addr_of(b), 1, 9);
+    lh_math_point_init(lh_addr_of(c), 2, 0);
+
+    EXPECT_EQ(lh_math_point_equals(lh_addr_of(a), lh_addr_of(a)), lh_bool_true);
+    EXPECT_EQ(lh_math_point_equals(lh_addr_of(a), lh_addr_of(b)), lh_bool_false);
+    EXPECT_EQ(lh_math_point_is_less(lh_addr_of(a), lh_addr_of(b)), lh_bool_true);
+    EXPECT_EQ(lh_math_point_is_less(lh_addr_of(a), lh_addr_of(c)), lh_bool_true);
+    EXPECT_EQ(lh_math_point_is_greater(lh_addr_of(c), lh_addr_of(a)), lh_bool_true);
+    EXPECT_EQ(lh_math_point_is_at_least(lh_addr_of(b), lh_addr_of(a)), lh_bool_true);
+    EXPECT_EQ(lh_math_point_is_at_least(lh_addr_of(a), lh_addr_of(b)), lh_bool_false);
+}
+
 TEST(math_point, in_extent_is_half_open)
 {
     lh_math_point_t min;

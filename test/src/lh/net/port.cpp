@@ -40,6 +40,15 @@ TEST(net_port_parse, rejects_empty_input)
     EXPECT_FALSE(lh_net_port_parse("", 0, &port));
 }
 
+TEST(net_port_compare, suite)
+{
+    EXPECT_EQ(lh_net_port_equals(80, 80), lh_bool_true);
+    EXPECT_EQ(lh_net_port_equals(80, 81), lh_bool_false);
+    EXPECT_EQ(lh_net_port_is_at_least(81, 80), lh_bool_true);
+    EXPECT_EQ(lh_net_port_is_less(80, 81), lh_bool_true);
+    EXPECT_EQ(lh_net_port_is_greater(81, 80), lh_bool_true);
+}
+
 TEST(net_port_parse, rejects_non_digit)
 {
     lh_net_port_t port = 0;
