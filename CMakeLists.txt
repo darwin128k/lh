@@ -95,6 +95,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/math/rect.c
 
         ${LH_LIB_SRC_PATH}/ui/color.c
+        ${LH_LIB_SRC_PATH}/ui/paint.c
         ${LH_LIB_SRC_PATH}/ui/style.c
         ${LH_LIB_SRC_PATH}/ui/entity.c
         ${LH_LIB_SRC_PATH}/ui/entity/class.c

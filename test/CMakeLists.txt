@@ -67,6 +67,9 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/math/rect.cpp
         ${LH_TEST_SRC_PATH}/lh/numeric/parse/bytes.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/color.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/paint.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/brush.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/pen.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/style.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/point.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/rect.cpp
