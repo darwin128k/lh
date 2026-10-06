@@ -1,9 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/math/point.h>
-#include <lh/math/point3.h>
 #include <lh/math/vec2.h>
-#include <lh/math/vec3.h>
 #include <lh/util/addr.h>
 
 namespace
@@ -48,33 +46,6 @@ TEST(convert_point_vec2, point_round_trip_is_lossless)
     const lh_math_point_t back = lh_math_vec2_to_point(lh_math_point_to_vec2(p));
     EXPECT_EQ(x_of(back), 12);
     EXPECT_EQ(y_of(back), -34);
-}
-
-/* ── point3 ↔ vec3 ──────────────────────────────────────────────────────── */
-
-TEST(convert_point3_vec3, point3_to_vec3_is_exact)
-{
-    const lh_math_vec3_t v = lh_math_point3_to_vec3(lh_math_point3_make(3, -7, 11));
-    EXPECT_FLOAT_EQ(v.x, 3.0f);
-    EXPECT_FLOAT_EQ(v.y, -7.0f);
-    EXPECT_FLOAT_EQ(v.z, 11.0f);
-}
-
-TEST(convert_point3_vec3, vec3_to_point3_rounds_to_nearest)
-{
-    const lh_math_point3_t p = lh_math_vec3_to_point3(lh_math_vec3_make(3.4f, 3.6f, -3.5f));
-    EXPECT_EQ(lh_math_point3_get_x(lh_addr_of(p)), 3);
-    EXPECT_EQ(lh_math_point3_get_y(lh_addr_of(p)), 4);
-    EXPECT_EQ(lh_math_point3_get_z(lh_addr_of(p)), -4); // tie toward the lower cell
-}
-
-TEST(convert_point3_vec3, point3_round_trip_is_lossless)
-{
-    const lh_math_point3_t p = lh_math_point3_make(12, -34, 56);
-    const lh_math_point3_t back = lh_math_vec3_to_point3(lh_math_point3_to_vec3(p));
-    EXPECT_EQ(lh_math_point3_get_x(lh_addr_of(back)), 12);
-    EXPECT_EQ(lh_math_point3_get_y(lh_addr_of(back)), -34);
-    EXPECT_EQ(lh_math_point3_get_z(lh_addr_of(back)), 56);
 }
 
 /* ── the float → pixel boundary agrees with the rasterizer ──────────────── */

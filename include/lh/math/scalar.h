@@ -3,7 +3,7 @@
  * @brief Discrete 2D component: ::lh_math_scalar_t (`int`).
  *
  * The scalar of screen / window geometry (::lh_math_point_t,
- * ::lh_math_size_t, ::lh_math_rect_t, and ::lh_math_point3_t).
+ * ::lh_math_size_t, ::lh_math_rect_t).
  * Always signed `int` — math does not read ::LH_LIBRARY_OPTION_MATH_FPU here.
  * UI may alias this type through <lh/ui/scalar.h> when FPU is OFF.
  */

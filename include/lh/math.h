@@ -31,10 +31,8 @@
 #include <lh/config.h>
 
 #include <lh/math/point.h>
-#include <lh/math/point3.h>
 #include <lh/math/size.h>
 #include <lh/math/rect.h>
-#include <lh/math/rect3.h>
 #if LH_LIBRARY_OPTION_MATH_FPU
 #    include <lh/math/fscalar.h>
 #    include <lh/math/fpoint.h>
