@@ -29,18 +29,6 @@ typedef struct lh_ui_paint lh_ui_paint_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief The empty paint: no color (::lh_null).
- */
-lh_ui_paint_t
-lh_ui_paint_make_empty(void);
-
-/**
- * @brief Make a paint that points at @p color. @p color is not copied.
- */
-lh_ui_paint_t
-lh_ui_paint_make(const lh_ui_color_t *color);
-
-/**
  * @brief Fill @p self with the empty paint.
  */
 lh_void

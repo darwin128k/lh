@@ -19,12 +19,10 @@
 
 typedef lh_math_frect_t lh_ui_rect_t;
 
-#    define lh_ui_rect_make lh_math_frect_make
-#    define lh_ui_rect_make_origin_size lh_math_frect_make_origin_size
 #    define lh_ui_rect_from_extent lh_math_frect_from_extent
-#    define lh_ui_rect_make_empty lh_math_frect_make_empty
 #    define lh_ui_rect_init lh_math_frect_init
 #    define lh_ui_rect_init_origin_size lh_math_frect_init_origin_size
+#    define lh_ui_rect_init_empty lh_math_frect_init_empty
 #    define lh_ui_rect_get_origin lh_math_frect_get_origin
 #    define lh_ui_rect_get_origin_as_const lh_math_frect_get_origin_as_const
 #    define lh_ui_rect_get_size lh_math_frect_get_size
@@ -51,12 +49,10 @@ typedef lh_math_frect_t lh_ui_rect_t;
 
 typedef lh_math_rect_t lh_ui_rect_t;
 
-#    define lh_ui_rect_make lh_math_rect_make
-#    define lh_ui_rect_make_origin_size lh_math_rect_make_origin_size
 #    define lh_ui_rect_from_extent lh_math_rect_from_extent
-#    define lh_ui_rect_make_empty lh_math_rect_make_empty
 #    define lh_ui_rect_init lh_math_rect_init
 #    define lh_ui_rect_init_origin_size lh_math_rect_init_origin_size
+#    define lh_ui_rect_init_empty lh_math_rect_init_empty
 #    define lh_ui_rect_get_origin lh_math_rect_get_origin
 #    define lh_ui_rect_get_origin_as_const lh_math_rect_get_origin_as_const
 #    define lh_ui_rect_get_size lh_math_rect_get_size

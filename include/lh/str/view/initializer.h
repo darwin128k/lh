@@ -74,7 +74,6 @@
  * @endcode
  *
  * @see lh_str_view_initializer_lit
- * @see lh_str_view_make
  */
 #define lh_str_view_lit(s) lh_initializer_of(lh_str_view_t, lh_str_view_initializer_lit, s)
 

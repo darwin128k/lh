@@ -116,25 +116,15 @@ lh_werror_init_by_empty(lh_werror_t *self)
     lh_error_init_by_empty(lh_ptr_cast(lh_error_t, self));
 }
 
+void
+lh_werror_init_by_code(lh_werror_t *self, lh_error_code_t code)
+{
+    lh_error_init_by_code(lh_ptr_cast(lh_error_t, self), code);
+}
+
 lh_error_code_t
 lh_werror_get_code_and_clear(lh_werror_t *self)
 {
     return lh_error_get_code_and_clear(lh_ptr_cast(lh_error_t, self));
 }
 
-lh_werror_t
-lh_werror_make(lh_error_code_t code, lh_wstr_view_t desc)
-{
-    lh_werror_t self;
-    lh_werror_init(lh_addr_of(self), code, desc);
-    return self;
-}
-
-lh_werror_t
-lh_werror_make_by_code(lh_error_code_t code)
-{
-    lh_werror_t self;
-    lh_werror_init_by_empty(lh_addr_of(self));
-    lh_werror_set_code(lh_addr_of(self), code);
-    return self;
-}

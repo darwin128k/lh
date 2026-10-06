@@ -40,10 +40,17 @@ typedef struct lh_math_vec4 lh_math_vec4_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Vector with the given components.
+ * @brief Fill @p self with the given components.
  */
-lh_math_vec4_t
-lh_math_vec4_make(lh_math_fscalar_t x, lh_math_fscalar_t y, lh_math_fscalar_t z, lh_math_fscalar_t w);
+lh_void
+lh_math_vec4_init(lh_math_vec4_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y, lh_math_fscalar_t z,
+                  lh_math_fscalar_t w);
+
+/**
+ * @brief Fill @p self with zero components.
+ */
+lh_void
+lh_math_vec4_init_empty(lh_math_vec4_t *self);
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 

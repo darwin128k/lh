@@ -6,7 +6,9 @@
 
 TEST(entity_label, make_keeps_the_rect_and_the_text_pointer)
 {
-    const lh_ui_rect_t rect = lh_ui_rect_make(1, 2, 3, 4);
+    lh_ui_rect_t rect;
+
+    lh_ui_rect_init(lh_addr_of(rect), 1, 2, 3, 4);
     const lh_char_t *text = "Hi";
     lh_ui_entity_label_t label;
     lh_ui_entity_label_init(lh_addr_of(label), rect, text);
@@ -20,7 +22,9 @@ TEST(entity_label, make_keeps_the_rect_and_the_text_pointer)
 TEST(entity_label, set_text_replaces_the_pointer)
 {
     lh_ui_entity_label_t label;
-    lh_ui_entity_label_init(lh_addr_of(label), lh_ui_rect_make(0, 0, 1, 1), "one");
+    lh_ui_rect_t rect;
+    lh_ui_rect_init(lh_addr_of(rect), 0, 0, 1, 1);
+    lh_ui_entity_label_init(lh_addr_of(label), rect, "one");
     const lh_char_t *text = "two";
 
     lh_ui_entity_label_set_text(lh_addr_of(label), text);

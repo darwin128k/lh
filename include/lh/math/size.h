@@ -35,19 +35,19 @@ typedef struct lh_math_size lh_math_size_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Constructors ────────────────────────────────────────────────────────── */
+/* ── init ────────────────────────────────────────────────────────────────── */
 
 /**
- * @brief Make a `::lh_math_size_t` from explicit extents.
+ * @brief Fill @p self from explicit extents.
  */
-lh_math_size_t
-lh_math_size_make(lh_math_scalar_t width, lh_math_scalar_t height);
+lh_void
+lh_math_size_init(lh_math_size_t *self, lh_math_scalar_t width, lh_math_scalar_t height);
 
 /**
- * @brief The empty size: `(0, 0)`. ::lh_math_size_is_empty returns true for this.
+ * @brief Fill @p self with the empty size `(0, 0)`.
  */
-lh_math_size_t
-lh_math_size_make_empty(void);
+lh_void
+lh_math_size_init_empty(lh_math_size_t *self);
 
 /**
  * @brief Size spanning from @p min (inclusive) to @p max (exclusive).

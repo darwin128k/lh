@@ -34,12 +34,6 @@ typedef struct lh_ui_gradient lh_ui_gradient_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Empty gradient: zero stops.
- */
-lh_ui_gradient_t
-lh_ui_gradient_make_empty(void);
-
-/**
  * @brief Clear @p self to zero stops.
  */
 lh_void

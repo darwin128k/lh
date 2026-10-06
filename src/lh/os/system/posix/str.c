@@ -8,7 +8,7 @@ lh_os_system_str_from_utf8(lh_os_str_t *out, lh_str_cptr text)
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(text);
-    lh_str_assign_view(out, lh_str_view_make(text));
+    lh_str_assign_view(out, ({ lh_str_view_t _lh_tmp; lh_str_view_init(lh_addr_of(_lh_tmp), text); _lh_tmp; }));
     return lh_bool_true;
 }
 

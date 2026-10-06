@@ -160,24 +160,16 @@ void
 lh_os_system_error_init_by_empty(lh_os_system_error_t *self);
 
 /**
+ * @brief Initialize @p self with @p code and an empty description.
+ */
+void
+lh_os_system_error_init_by_code(lh_os_system_error_t *self, lh_os_system_error_code_t code);
+
+/**
  * @brief Return the error code, then clear @p self.
  */
 lh_os_system_error_code_t
 lh_os_system_error_get_code_and_clear(lh_os_system_error_t *self);
-
-/* ── make ────────────────────────────────────────────────────────────────── */
-
-/**
- * @brief Construct an ::lh_os_system_error_t with @p code and @p desc.
- */
-lh_os_system_error_t
-lh_os_system_error_make(lh_os_system_error_code_t code, lh_os_error_desc_t desc);
-
-/**
- * @brief Construct an ::lh_os_system_error_t with @p code and no description.
- */
-lh_os_system_error_t
-lh_os_system_error_make_by_code(lh_os_system_error_code_t code);
 
 LH_COMPILER_EXTERN_C_END
 

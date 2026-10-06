@@ -18,8 +18,8 @@
 
 typedef lh_math_fpoint_t lh_ui_point_t;
 
-#    define lh_ui_point_make lh_math_fpoint_make
-#    define lh_ui_point_make_empty lh_math_fpoint_make_empty
+#    define lh_ui_point_init lh_math_fpoint_init
+#    define lh_ui_point_init_empty lh_math_fpoint_init_empty
 #    define lh_ui_point_get_x lh_math_fpoint_get_x
 #    define lh_ui_point_get_y lh_math_fpoint_get_y
 #    define lh_ui_point_set_x lh_math_fpoint_set_x
@@ -37,8 +37,8 @@ typedef lh_math_fpoint_t lh_ui_point_t;
 
 typedef lh_math_point_t lh_ui_point_t;
 
-#    define lh_ui_point_make lh_math_point_make
-#    define lh_ui_point_make_empty lh_math_point_make_empty
+#    define lh_ui_point_init lh_math_point_init
+#    define lh_ui_point_init_empty lh_math_point_init_empty
 #    define lh_ui_point_get_x lh_math_point_get_x
 #    define lh_ui_point_get_y lh_math_point_get_y
 #    define lh_ui_point_set_x lh_math_point_set_x

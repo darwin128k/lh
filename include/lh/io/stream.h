@@ -37,14 +37,14 @@ LH_COMPILER_EXTERN_C_BEGIN
 /* ── construct / set ─────────────────────────────────────────────────────── */
 
 /**
- * @brief Construct an ::lh_io_stream_t from a reader and a writer.
+ * @brief Initialize @p self from a reader and a writer.
  *
+ * @param self   Stream to initialize.
  * @param reader Read half.
  * @param writer Write half.
- * @return Constructed ::lh_io_stream_t value.
  */
-lh_io_stream_t
-lh_io_stream_make(const lh_io_reader_t *reader, const lh_io_writer_t *writer);
+void
+lh_io_stream_init(lh_io_stream_t *self, const lh_io_reader_t *reader, const lh_io_writer_t *writer);
 
 /**
  * @brief Replace both halves of @p self.

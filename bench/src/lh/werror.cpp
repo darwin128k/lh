@@ -50,7 +50,8 @@ BM_werror_make_lit(benchmark::State &state)
 {
     for (auto _ : state)
     {
-        lh_werror_t err = lh_werror_make(1, lh_wstr_view_lit(k_desc));
+        lh_werror_t err;
+        lh_werror_init(lh_addr_of(err), 1, lh_wstr_view_lit(k_desc));
         benchmark::DoNotOptimize(err);
     }
 }
@@ -61,7 +62,9 @@ BM_werror_make_by_code(benchmark::State &state)
 {
     for (auto _ : state)
     {
-        lh_werror_t err = lh_werror_make_by_code(1);
+        lh_werror_t err;
+
+        lh_werror_init_by_code(lh_addr_of(err), 1);
         benchmark::DoNotOptimize(err);
     }
 }
@@ -75,7 +78,9 @@ BM_werror_make_from_ptr_size(benchmark::State &state)
         lh_wstr_view_t desc;
         lh_wstr_view_init_by_size(lh_addr_of(desc), lh_wstr_ptr_get_begin(k_desc),
                                   lh_wstr_ptr_get_size(k_desc));
-        lh_werror_t err = lh_werror_make(1, desc);
+        lh_werror_t err;
+
+        lh_werror_init(lh_addr_of(err), 1, desc);
         benchmark::DoNotOptimize(err);
     }
 }
@@ -90,7 +95,9 @@ BM_werror_make_from_ptr_len(benchmark::State &state)
         lh_wstr_view_t desc;
         lh_wstr_view_init_by_size(lh_addr_of(desc), text,
                                   lh_wstr_ptr_len(const_cast<lh_wstr_ptr>(text)));
-        lh_werror_t err = lh_werror_make(1, desc);
+        lh_werror_t err;
+
+        lh_werror_init(lh_addr_of(err), 1, desc);
         benchmark::DoNotOptimize(err);
     }
 }
@@ -150,7 +157,8 @@ BM_werror_make_empty(benchmark::State &state)
 {
     for (auto _ : state)
     {
-        lh_werror_t err = lh_werror_make(1, lh_wstr_view_empty());
+        lh_werror_t err;
+        lh_werror_init(lh_addr_of(err), 1, lh_wstr_view_empty());
         benchmark::DoNotOptimize(err);
     }
 }

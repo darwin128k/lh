@@ -59,7 +59,8 @@ BM_error_make_lit(benchmark::State &state)
 {
     for (auto _ : state)
     {
-        lh_error_t err = lh_error_make(1, lh_str_view_lit(k_desc));
+        lh_error_t err;
+        lh_error_init(lh_addr_of(err), 1, lh_str_view_lit(k_desc));
         benchmark::DoNotOptimize(err);
     }
 }
@@ -70,7 +71,9 @@ BM_error_make_by_code(benchmark::State &state)
 {
     for (auto _ : state)
     {
-        lh_error_t err = lh_error_make_by_code(1);
+        lh_error_t err;
+
+        lh_error_init_by_code(lh_addr_of(err), 1);
         benchmark::DoNotOptimize(err);
     }
 }
@@ -84,7 +87,9 @@ BM_error_make_from_ptr_size(benchmark::State &state)
         lh_str_view_t desc;
         lh_str_init_by_size(lh_addr_of(desc), lh_str_ptr_get_begin(k_desc),
                             lh_str_ptr_get_size(k_desc));
-        lh_error_t err = lh_error_make(1, desc);
+        lh_error_t err;
+
+        lh_error_init(lh_addr_of(err), 1, desc);
         benchmark::DoNotOptimize(err);
     }
 }
@@ -98,7 +103,9 @@ BM_error_make_from_ptr_len(benchmark::State &state)
     {
         lh_str_view_t desc;
         lh_str_init_by_size(lh_addr_of(desc), text, lh_str_ptr_len(const_cast<lh_str_ptr>(text)));
-        lh_error_t err = lh_error_make(1, desc);
+        lh_error_t err;
+
+        lh_error_init(lh_addr_of(err), 1, desc);
         benchmark::DoNotOptimize(err);
     }
 }
@@ -109,9 +116,9 @@ BM_runtime_error_make_lit(benchmark::State &state)
 {
     for (auto _ : state)
     {
-        lh_runtime_error_t err =
-            lh_runtime_error_make(lh_runtime_error_code_null_pointer,
-                                  lh_str_view_lit("invalid reference to null pointer"));
+        lh_runtime_error_t err;
+        lh_runtime_error_init(lh_addr_of(err), lh_runtime_error_code_null_pointer,
+                              lh_str_view_lit("invalid reference to null pointer"));
         benchmark::DoNotOptimize(err);
     }
 }
@@ -171,7 +178,8 @@ BM_error_make_empty(benchmark::State &state)
 {
     for (auto _ : state)
     {
-        lh_error_t err = lh_error_make(1, lh_str_view_empty());
+        lh_error_t err;
+        lh_error_init(lh_addr_of(err), 1, lh_str_view_empty());
         benchmark::DoNotOptimize(err);
     }
 }

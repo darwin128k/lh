@@ -206,28 +206,34 @@ TEST(werror_has_desc, returns_false_for_null_desc)
 
 TEST(werror_has_desc, empty_view_is_no_description)
 {
-    const lh_werror_t err = lh_werror_make_by_code(1);
+    lh_werror_t err;
+
+    lh_werror_init_by_code(lh_addr_of(err), 1);
     EXPECT_FALSE(lh_werror_has_desc(&err));
     EXPECT_TRUE(lh_werror_is_failure(&err));
 }
 
 TEST(werror_make, constructs_with_code_and_desc)
 {
-    const lh_werror_t err = lh_werror_make(1, lh_wstr_view_lit(L"msg"));
+    lh_werror_t err;
+    lh_werror_init(lh_addr_of(err), 1, lh_wstr_view_lit(L"msg"));
     EXPECT_EQ(lh_werror_get_code(&err), 1);
     expect_desc_eq(lh_werror_get_desc(&err), L"msg");
 }
 
 TEST(werror_make, constructs_with_empty_desc)
 {
-    const lh_werror_t err = lh_werror_make(1, lh_wstr_view_empty());
+    lh_werror_t err;
+    lh_werror_init(lh_addr_of(err), 1, lh_wstr_view_empty());
     EXPECT_EQ(lh_werror_get_code(&err), 1);
     EXPECT_EQ(desc_wstr(lh_werror_get_desc(&err)), nullptr);
 }
 
 TEST(werror_make_by_code, constructs_with_empty_desc)
 {
-    const lh_werror_t err = lh_werror_make_by_code(7);
+    lh_werror_t err;
+
+    lh_werror_init_by_code(lh_addr_of(err), 7);
     EXPECT_EQ(lh_werror_get_code(&err), 7);
     EXPECT_EQ(desc_wstr(lh_werror_get_desc(&err)), nullptr);
 }
@@ -236,7 +242,8 @@ TEST(werror_init, matches_make)
 {
     lh_werror_t a{};
     lh_werror_init(&a, 8, lh_wstr_view_lit(L"eight"));
-    const lh_werror_t b = lh_werror_make(8, lh_wstr_view_lit(L"eight"));
+    lh_werror_t b;
+    lh_werror_init(lh_addr_of(b), 8, lh_wstr_view_lit(L"eight"));
     EXPECT_EQ(lh_werror_get_code(&a), lh_werror_get_code(&b));
     EXPECT_STREQ(desc_wstr(lh_werror_get_desc(&a)), desc_wstr(lh_werror_get_desc(&b)));
 }

@@ -15,12 +15,6 @@
 typedef lh_ui_paint_t lh_ui_brush_t;
 
 /**
- * @def lh_ui_brush_make_empty
- * @brief The empty brush. Same as ::lh_ui_paint_make_empty.
- */
-#define lh_ui_brush_make_empty lh_ui_paint_make_empty
-
-/**
  * @def lh_ui_brush_init
  * @brief Fill @p self with the empty brush. Same as ::lh_ui_paint_init.
  */

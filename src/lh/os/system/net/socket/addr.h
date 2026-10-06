@@ -69,9 +69,9 @@ lh_os_system_net_socket_ip4_from_native_addr(lh_net_ip4_socket_addr_t *addr,
     lh_net_port_t port;
 
     addr_bytes = lh_ptr_ccast(lh_byte_t, lh_addr_of(native_addr->sin_addr));
-    ip = lh_net_ip4_make(addr_bytes[0], addr_bytes[1], addr_bytes[2], addr_bytes[3]);
+    lh_net_ip4_init(lh_addr_of(ip), addr_bytes[0], addr_bytes[1], addr_bytes[2], addr_bytes[3]);
     port = lh_bit_unpack_be16(lh_ptr_ccast(lh_byte_t, lh_addr_of(native_addr->sin_port)));
-    *addr = lh_net_ip4_socket_addr_make(lh_addr_of(ip), port);
+    lh_net_ip4_socket_addr_init(addr, lh_addr_of(ip), port);
 }
 
 #endif /* LH_SRC_OS_SYSTEM_NET_SOCKET_ADDR_H */

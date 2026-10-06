@@ -1,5 +1,8 @@
 #include <lh/memory/view/slice.h>
+#include <lh/memory/view/slice/initializer.h>
+#include <lh/initializer.h>
 #include <lh/attribute/static.h>
+#include <lh/util/addr.h>
 #include <lh/util/return.h>
 #include <lh/optional/ref.h>
 #include <lh/util/interval.h>
@@ -608,41 +611,47 @@ lh_memory_view_slice_assign_v(lh_memory_view_slice_t *self, const lh_memory_view
 lh_void
 lh_memory_view_slice_set_v(lh_memory_view_slice_t *self, const lh_ptr begin, const lh_ptr end)
 {
-    const lh_memory_view_slice_t s = lh_memory_view_slice_make_v(begin, end);
+    lh_memory_view_slice_t s;
+
+    lh_memory_view_slice_init(lh_addr_of(s), begin, end);
     lh_memory_view_slice_assign(self, lh_addr_of(s));
 }
 
+LH_ATTRIBUTE_STATIC
 lh_memory_view_slice_t
-lh_memory_view_slice_make(const lh_ptr begin, const lh_ptr end)
+lh_memory_view_slice_return_unsafe(const lh_ptr begin, const lh_ptr end)
 {
-    const lh_memory_view_slice_t slice = lh_memory_view_slice_initializer(begin, end);
-    return slice;
+    return lh_initializer_of(lh_memory_view_slice_t, lh_memory_view_slice_initializer, begin, end);
 }
 
+LH_ATTRIBUTE_STATIC
 lh_memory_view_slice_t
-lh_memory_view_slice_make_v(const lh_ptr begin, const lh_ptr end)
+lh_memory_view_slice_return_init_v(const lh_ptr begin, const lh_ptr end)
 {
-    const lh_memory_view_slice_t slice = lh_memory_view_slice_make(begin, end);
+    lh_memory_view_slice_t slice;
+
+    lh_memory_view_slice_init(lh_addr_of(slice), begin, end);
     lh_assert_runtime_ifn(lh_memory_view_slice_is_valid(lh_addr_of(slice)),
                           lh_runtime_error_code_invalid_range);
     return slice;
 }
 
+LH_ATTRIBUTE_STATIC
 lh_memory_view_slice_t
-lh_memory_view_slice_make_by_size(const lh_ptr begin, lh_usize_t size)
+lh_memory_view_slice_return_init_by_size(const lh_ptr begin, lh_usize_t size)
 {
     lh_assert_runtime_ifn(lh_ptr_is_set(begin), lh_runtime_error_code_invalid_argument);
     lh_assert_runtime_if(lh_math_is_zero(size), lh_runtime_error_code_invalid_range);
 
-    return lh_memory_view_slice_make_v(
+    return lh_memory_view_slice_return_init_v(
         begin, lh_ptr_add_by_offset_unsafe(const lh_void, begin, lh_math_sub_one(size)));
 }
 
+LH_ATTRIBUTE_STATIC
 lh_memory_view_slice_t
-lh_memory_view_slice_make_empty(lh_void)
+lh_memory_view_slice_return_empty(void)
 {
-    const lh_memory_view_slice_t slice = lh_memory_view_slice_initializer_empty();
-    return slice;
+    return lh_initializer_of(lh_memory_view_slice_t, lh_memory_view_slice_initializer_empty);
 }
 
 lh_void
@@ -688,14 +697,21 @@ lh_memory_view_slice_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t
 {
     if (lh_math_is_zero(n))
     {
-        return lh_memory_view_slice_make_empty();
+        lh_memory_view_slice_t _lh_tmp;
+    lh_memory_view_slice_init_empty(lh_addr_of(_lh_tmp));
+    return _lh_tmp;
     }
 
-    const lh_memory_view_slice_t base = lh_memory_view_slice_make_v(begin, end);
+    lh_memory_view_slice_t base;
+
+
+    lh_memory_view_slice_init(lh_addr_of(base), begin, end);
     const lh_usize_t total = lh_memory_view_slice_get_size(lh_addr_of(base));
 
     lh_assert_runtime_ifn(lh_math_le(n, total), lh_runtime_error_code_out_of_range);
-    return lh_memory_view_slice_make_by_size(begin, n);
+    lh_memory_view_slice_t _lh_tmp;
+    lh_memory_view_slice_init_by_size(lh_addr_of(_lh_tmp), begin, n);
+    return _lh_tmp;
 }
 
 lh_memory_view_slice_t
@@ -703,42 +719,51 @@ lh_memory_view_slice_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t 
 {
     if (lh_math_is_zero(n))
     {
-        return lh_memory_view_slice_make_empty();
+        lh_memory_view_slice_t _lh_tmp;
+    lh_memory_view_slice_init_empty(lh_addr_of(_lh_tmp));
+    return _lh_tmp;
     }
 
-    const lh_memory_view_slice_t base = lh_memory_view_slice_make_v(begin, end);
+    lh_memory_view_slice_t base;
+
+
+    lh_memory_view_slice_init(lh_addr_of(base), begin, end);
     const lh_usize_t total = lh_memory_view_slice_get_size(lh_addr_of(base));
     lh_assert_runtime_ifn(lh_math_le(n, total), lh_runtime_error_code_out_of_range);
 
     const lh_ptr data = lh_ptr_sub_by_offset_unsafe(const lh_void, end, lh_math_sub_one(n));
-    return lh_memory_view_slice_make_by_size(data, n);
+    lh_memory_view_slice_t _lh_tmp;
+    lh_memory_view_slice_init_by_size(lh_addr_of(_lh_tmp), data, n);
+    return _lh_tmp;
 }
 
 lh_memory_view_slice_t
-lh_memory_view_slice_make_from_begin(const lh_memory_view_slice_t *self, lh_usize_t size)
+lh_memory_view_slice_from_begin(const lh_memory_view_slice_t *self, lh_usize_t size)
 {
     return lh_memory_view_slice_take_first(lh_memory_view_slice_get_begin(self),
                                            lh_memory_view_slice_get_end(self), size);
 }
 
 lh_memory_view_slice_t
-lh_memory_view_slice_make_from_end(const lh_memory_view_slice_t *self, lh_usize_t size)
+lh_memory_view_slice_from_end(const lh_memory_view_slice_t *self, lh_usize_t size)
 {
     return lh_memory_view_slice_take_last(lh_memory_view_slice_get_begin(self),
                                           lh_memory_view_slice_get_end(self), size);
 }
 
 lh_memory_view_slice_t
-lh_memory_view_slice_make_between(const lh_memory_view_slice_t *self, const lh_ptr begin,
+lh_memory_view_slice_between(const lh_memory_view_slice_t *self, const lh_ptr begin,
                                   const lh_ptr end)
 {
     lh_assert_runtime_ifn(lh_memory_view_slice_contains_range(self, begin, end),
                           lh_runtime_error_code_out_of_range);
-    return lh_memory_view_slice_make_v(begin, end);
+    lh_memory_view_slice_t _lh_tmp;
+    lh_memory_view_slice_init(lh_addr_of(_lh_tmp), begin, end);
+    return _lh_tmp;
 }
 
 lh_memory_view_slice_t
-lh_memory_view_slice_make_from_offset(const lh_memory_view_slice_t *self, lh_uoffset_t offset,
+lh_memory_view_slice_from_offset(const lh_memory_view_slice_t *self, lh_uoffset_t offset,
                                       lh_usize_t size)
 {
     const lh_usize_t total = lh_memory_view_slice_get_size(self);
@@ -746,14 +771,18 @@ lh_memory_view_slice_make_from_offset(const lh_memory_view_slice_t *self, lh_uof
 
     if (lh_math_is_zero(size))
     {
-        return lh_memory_view_slice_make_empty();
+        lh_memory_view_slice_t _lh_tmp;
+    lh_memory_view_slice_init_empty(lh_addr_of(_lh_tmp));
+    return _lh_tmp;
     }
 
     lh_assert_runtime_ifn(lh_math_le(size, lh_math_sub(total, offset)),
                           lh_runtime_error_code_out_of_range);
 
-    return lh_memory_view_slice_make_by_size(lh_memory_view_slice_get_ptr_from_begin(self, offset),
-                                             size);
+    lh_memory_view_slice_t slice;
+    lh_memory_view_slice_init_by_size(
+        lh_addr_of(slice), lh_memory_view_slice_get_ptr_from_begin(self, offset), size);
+    return slice;
 }
 
 lh_memory_view_slice_t
@@ -761,7 +790,7 @@ lh_memory_view_slice_drop_first(const lh_memory_view_slice_t *self, lh_usize_t n
 {
     const lh_usize_t total = lh_memory_view_slice_get_size(self);
     lh_assert_runtime_ifn(lh_math_le(n, total), lh_runtime_error_code_out_of_range);
-    return lh_memory_view_slice_make_from_offset(self, n, lh_math_sub(total, n));
+    return lh_memory_view_slice_from_offset(self, n, lh_math_sub(total, n));
 }
 
 lh_memory_view_slice_t
@@ -769,7 +798,7 @@ lh_memory_view_slice_drop_last(const lh_memory_view_slice_t *self, lh_usize_t n)
 {
     const lh_usize_t total = lh_memory_view_slice_get_size(self);
     lh_assert_runtime_ifn(lh_math_le(n, total), lh_runtime_error_code_out_of_range);
-    return lh_memory_view_slice_make_from_begin(self, lh_math_sub(total, n));
+    return lh_memory_view_slice_from_begin(self, lh_math_sub(total, n));
 }
 
 lh_memory_view_slice_t
@@ -781,13 +810,15 @@ lh_memory_view_slice_trim(const lh_memory_view_slice_t *self, lh_usize_t left, l
     const lh_usize_t rest = lh_math_sub(total, left);
     lh_assert_runtime_ifn(lh_math_le(right, rest), lh_runtime_error_code_out_of_range);
 
-    return lh_memory_view_slice_make_from_offset(self, left, lh_math_sub(rest, right));
+    return lh_memory_view_slice_from_offset(self, left, lh_math_sub(rest, right));
 }
 
 lh_void
 lh_memory_view_slice_set_by_size(lh_memory_view_slice_t *self, const lh_ptr begin, lh_usize_t size)
 {
-    const lh_memory_view_slice_t s = lh_memory_view_slice_make_by_size(begin, size);
+    lh_memory_view_slice_t s;
+
+    lh_memory_view_slice_init_by_size(lh_addr_of(s), begin, size);
     lh_memory_view_slice_assign(self, lh_addr_of(s));
 }
 

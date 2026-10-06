@@ -1,5 +1,6 @@
 #include <lh/error.h>
 #include <lh/error/initializer.h>
+#include <lh/str/view/initializer.h>
 #include <lh/util/addr.h>
 #include <lh/assert.h>
 
@@ -79,29 +80,18 @@ lh_error_init_by_empty(lh_error_t *self)
     lh_error_clear(self);
 }
 
+void
+lh_error_init_by_code(lh_error_t *self, lh_error_code_t code)
+{
+    lh_error_init(self, code, lh_str_view_empty());
+}
+
 lh_error_code_t
 lh_error_get_code_and_clear(lh_error_t *self)
 {
     const lh_error_code_t code = lh_error_get_code(self);
     lh_error_clear(self);
     return code;
-}
-
-lh_error_t
-lh_error_make(lh_error_code_t code, lh_str_view_t desc)
-{
-    lh_error_t self;
-    lh_error_init(lh_addr_of(self), code, desc);
-    return self;
-}
-
-lh_error_t
-lh_error_make_by_code(lh_error_code_t code)
-{
-    lh_error_t self;
-    lh_error_init_by_empty(lh_addr_of(self));
-    lh_error_set_code(lh_addr_of(self), code);
-    return self;
 }
 
 lh_bool_t

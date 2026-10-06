@@ -574,8 +574,8 @@ TEST(str_view_equals_death, null_self)
 TEST(str_view_make_from_offset, middle_part)
 {
     const lh_str_view_t v = lh_str_view_lit("key=value");
-    const lh_str_view_t key = lh_str_view_make_from_offset(&v, 0, 3);
-    const lh_str_view_t mid = lh_str_view_make_from_offset(&v, 3, 1);
+    const lh_str_view_t key = lh_str_view_from_offset(&v, 0, 3);
+    const lh_str_view_t mid = lh_str_view_from_offset(&v, 3, 1);
 
     EXPECT_EQ(lh_str_view_get_size(&key), 3u);
     EXPECT_EQ(lh_str_view_get_data(&key), lh_str_view_get_data(&v));
@@ -585,7 +585,7 @@ TEST(str_view_make_from_offset, middle_part)
 TEST(str_view_make_tail, from_offset_to_end)
 {
     const lh_str_view_t v = lh_str_view_lit("key=value");
-    const lh_str_view_t value = lh_str_view_make_tail(&v, 4);
+    const lh_str_view_t value = lh_str_view_tail(&v, 4);
 
     EXPECT_EQ(lh_str_view_get_size(&value), 5u);
     EXPECT_EQ(lh_str_view_get_first_char(&value), 'v');
@@ -595,9 +595,11 @@ TEST(str_view_make_tail, from_offset_to_end)
 TEST(str_view_make_tail, at_size_and_on_empty_is_empty)
 {
     const lh_str_view_t v = lh_str_view_lit("abc");
-    const lh_str_view_t empty = lh_str_view_make(nullptr);
-    const lh_str_view_t at_end = lh_str_view_make_tail(&v, 3);
-    const lh_str_view_t of_empty = lh_str_view_make_tail(&empty, 0);
+    lh_str_view_t empty;
+
+    lh_str_view_init(lh_addr_of(empty), nullptr);
+    const lh_str_view_t at_end = lh_str_view_tail(&v, 3);
+    const lh_str_view_t of_empty = lh_str_view_tail(&empty, 0);
 
     EXPECT_TRUE(lh_str_view_is_empty(&at_end));
     EXPECT_TRUE(lh_str_view_is_empty(&of_empty));
@@ -607,7 +609,7 @@ TEST(str_view_make_tail, at_size_and_on_empty_is_empty)
 TEST(str_view_make_tail_death, offset_past_end)
 {
     const lh_str_view_t v = lh_str_view_lit("abc");
-    LH_EXPECT_DEATH(lh_str_view_make_tail(&v, 4));
+    LH_EXPECT_DEATH(lh_str_view_tail(&v, 4));
 }
 #endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 

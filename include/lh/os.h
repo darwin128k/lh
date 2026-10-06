@@ -23,7 +23,9 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/error/code.h>
+#include <lh/initializer.h>
 #include <lh/os/error.h>
+#include <lh/os/error/initializer.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
@@ -52,7 +54,7 @@ lh_os_set_last_error(lh_os_error_t error);
  * @def lh_os_set_last_error_lit(code, text)
  * @brief Store @p code with the literal @p text as the last OS-layer error.
  *
- * Shorthand for ::lh_os_set_last_error of ::lh_os_error_make with
+ * Shorthand for ::lh_os_set_last_error of ::lh_os_error_initializer with
  * ::lh_os_error_desc_lit — the form every one of our own checks uses.
  *
  * Example usage:
@@ -63,7 +65,9 @@ lh_os_set_last_error(lh_os_error_t error);
  * @param code An ::lh_os_error_code_t (`lh/os/error/code.h`).
  * @param text A string literal.
  */
-#define lh_os_set_last_error_lit(code, text) lh_os_set_last_error(lh_os_error_make(code, lh_os_error_desc_lit(text)))
+#define lh_os_set_last_error_lit(code, text)                                                       \
+    lh_os_set_last_error(lh_initializer_of(lh_os_error_t, lh_os_error_initializer, code,             \
+                                           lh_os_error_desc_lit(text)))
 
 /**
  * @brief Last error on this thread, as ::lh_os_error_t.

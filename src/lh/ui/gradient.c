@@ -14,15 +14,6 @@
 
 /* ── Stop ────────────────────────────────────────────────────────────────── */
 
-lh_ui_gradient_stop_t
-lh_ui_gradient_stop_make(lh_ui_color_t color, lh_byte_t frac)
-{
-    lh_ui_gradient_stop_t stop;
-    lh_ui_gradient_stop_set_color(lh_addr_of(stop), color);
-    lh_ui_gradient_stop_set_frac(lh_addr_of(stop), frac);
-    return stop;
-}
-
 const lh_ui_color_t *
 lh_ui_gradient_stop_get_color_as_const(const lh_ui_gradient_stop_t *self)
 {
@@ -58,15 +49,14 @@ lh_ui_gradient_stop_set_frac(lh_ui_gradient_stop_t *self, lh_byte_t frac)
     self->frac = frac;
 }
 
-/* ── Gradient ────────────────────────────────────────────────────────────── */
-
-lh_ui_gradient_t
-lh_ui_gradient_make_empty(void)
+lh_void
+lh_ui_gradient_stop_init(lh_ui_gradient_stop_t *self, lh_ui_color_t color, lh_byte_t frac)
 {
-    lh_ui_gradient_t gradient;
-    lh_ui_gradient_init(lh_addr_of(gradient));
-    return gradient;
+    lh_ui_gradient_stop_set_color(self, color);
+    lh_ui_gradient_stop_set_frac(self, frac);
 }
+
+/* ── Gradient ────────────────────────────────────────────────────────────── */
 
 lh_void
 lh_ui_gradient_init(lh_ui_gradient_t *self)
@@ -104,7 +94,7 @@ lh_ui_gradient_init_stops(lh_ui_gradient_t *self, const lh_ui_color_t *colors, c
         {
             frac = fracs[i];
         }
-        self->stops[i] = lh_ui_gradient_stop_make(colors[i], frac);
+        lh_ui_gradient_stop_init(lh_addr_of(self->stops[i]), colors[i], frac);
     }
 }
 

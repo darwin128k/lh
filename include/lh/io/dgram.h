@@ -34,8 +34,12 @@ typedef struct lh_io_dgram lh_io_dgram_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-lh_io_dgram_t
-lh_io_dgram_make(const lh_io_dgram_reader_t *reader, const lh_io_dgram_writer_t *writer);
+/**
+ * @brief Initialize @p self from a datagram reader and writer.
+ */
+void
+lh_io_dgram_init(lh_io_dgram_t *self, const lh_io_dgram_reader_t *reader,
+                 const lh_io_dgram_writer_t *writer);
 
 void
 lh_io_dgram_set(lh_io_dgram_t *self, const lh_io_dgram_reader_t *reader,

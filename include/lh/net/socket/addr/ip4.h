@@ -48,17 +48,14 @@ typedef struct lh_net_ip4_socket_addr lh_net_ip4_socket_addr_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── construct / set ─────────────────────────────────────────────────────── */
+/* ── init / set ──────────────────────────────────────────────────────────── */
 
 /**
- * @brief Construct an ::lh_net_ip4_socket_addr_t from an IP and a port.
- *
- * @param ip   IP address.
- * @param port Port number.
- * @return Constructed ::lh_net_ip4_socket_addr_t value.
+ * @brief Fill @p self from @p ip and @p port.
  */
-lh_net_ip4_socket_addr_t
-lh_net_ip4_socket_addr_make(const lh_net_ip4_t *ip, lh_net_port_t port);
+void
+lh_net_ip4_socket_addr_init(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *ip,
+                             lh_net_port_t port);
 
 /**
  * @brief Replace both the IP and the port of @p self.

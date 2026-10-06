@@ -9,8 +9,12 @@ namespace
 
 TEST(net_ip4_socket_addr_make, roundtrip_via_getters)
 {
-    lh_net_ip4_t ip = lh_net_ip4_make(192, 168, 0, 1);
-    lh_net_ip4_socket_addr_t addr = lh_net_ip4_socket_addr_make(&ip, 27015);
+    lh_net_ip4_t ip;
+
+    lh_net_ip4_init(lh_addr_of(ip), 192, 168, 0, 1);
+    lh_net_ip4_socket_addr_t addr;
+
+    lh_net_ip4_socket_addr_init(lh_addr_of(addr), &ip, 27015);
 
     lh_net_ip4_t got_ip = lh_net_ip4_socket_addr_get_ip(&addr);
     EXPECT_TRUE(lh_net_ip4_equals(&got_ip, &ip));
@@ -19,8 +23,12 @@ TEST(net_ip4_socket_addr_make, roundtrip_via_getters)
 
 TEST(net_ip4_socket_addr_set_port, replaces_only_port)
 {
-    lh_net_ip4_t ip = lh_net_ip4_make(1, 2, 3, 4);
-    lh_net_ip4_socket_addr_t addr = lh_net_ip4_socket_addr_make(&ip, 80);
+    lh_net_ip4_t ip;
+
+    lh_net_ip4_init(lh_addr_of(ip), 1, 2, 3, 4);
+    lh_net_ip4_socket_addr_t addr;
+
+    lh_net_ip4_socket_addr_init(lh_addr_of(addr), &ip, 80);
     lh_net_ip4_socket_addr_set_port(&addr, 443);
 
     lh_net_ip4_t got_ip = lh_net_ip4_socket_addr_get_ip(&addr);
@@ -30,10 +38,17 @@ TEST(net_ip4_socket_addr_set_port, replaces_only_port)
 
 TEST(net_ip4_socket_addr_set_ip, replaces_only_ip)
 {
-    lh_net_ip4_t ip = lh_net_ip4_make(1, 2, 3, 4);
-    lh_net_ip4_socket_addr_t addr = lh_net_ip4_socket_addr_make(&ip, 80);
+    lh_net_ip4_t ip;
 
-    lh_net_ip4_t new_ip = lh_net_ip4_make(5, 6, 7, 8);
+    lh_net_ip4_init(lh_addr_of(ip), 1, 2, 3, 4);
+    lh_net_ip4_socket_addr_t addr;
+
+    lh_net_ip4_socket_addr_init(lh_addr_of(addr), &ip, 80);
+
+    lh_net_ip4_t new_ip;
+
+
+    lh_net_ip4_init(lh_addr_of(new_ip), 5, 6, 7, 8);
     lh_net_ip4_socket_addr_set_ip(&addr, &new_ip);
 
     lh_net_ip4_t got_ip = lh_net_ip4_socket_addr_get_ip(&addr);
@@ -43,8 +58,12 @@ TEST(net_ip4_socket_addr_set_ip, replaces_only_ip)
 
 TEST(net_ip4_socket_addr_assign, copies_ip_and_port)
 {
-    lh_net_ip4_t ip = lh_net_ip4_make(9, 9, 9, 9);
-    lh_net_ip4_socket_addr_t src = lh_net_ip4_socket_addr_make(&ip, 1234);
+    lh_net_ip4_t ip;
+
+    lh_net_ip4_init(lh_addr_of(ip), 9, 9, 9, 9);
+    lh_net_ip4_socket_addr_t src;
+
+    lh_net_ip4_socket_addr_init(lh_addr_of(src), &ip, 1234);
     lh_net_ip4_socket_addr_t dst{};
     lh_net_ip4_socket_addr_assign(&dst, &src);
     EXPECT_TRUE(lh_net_ip4_socket_addr_equals(&dst, &src));

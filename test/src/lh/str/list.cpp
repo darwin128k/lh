@@ -52,9 +52,9 @@ TEST_F(str_list, starts_empty_without_allocating)
 
 TEST_F(str_list, push_back_returns_indices_and_keeps_empty_elements)
 {
-    EXPECT_EQ(lh_str_list_push_back(&list, lh_str_view_make("one")), 0u);
-    EXPECT_EQ(lh_str_list_push_back(&list, lh_str_view_make("")), 1u);
-    EXPECT_EQ(lh_str_list_push_back(&list, lh_str_view_make("three")), 2u);
+    EXPECT_EQ(lh_str_list_push_back(&list, lh_str_view_lit("one")), 0u);
+    EXPECT_EQ(lh_str_list_push_back(&list, lh_str_view_lit("")), 1u);
+    EXPECT_EQ(lh_str_list_push_back(&list, lh_str_view_lit("three")), 2u);
 
     ASSERT_EQ(lh_str_list_get_size(&list), 3u);
     EXPECT_EQ(as_string(lh_str_list_get(&list, 0)), "one");
@@ -64,9 +64,9 @@ TEST_F(str_list, push_back_returns_indices_and_keeps_empty_elements)
 
 TEST_F(str_list, get_data_is_nul_terminated_per_element)
 {
-    lh_str_list_push_back(&list, lh_str_view_make("alpha"));
-    lh_str_list_push_back(&list, lh_str_view_make(""));
-    lh_str_list_push_back(&list, lh_str_view_make("beta"));
+    lh_str_list_push_back(&list, lh_str_view_lit("alpha"));
+    lh_str_list_push_back(&list, lh_str_view_lit(""));
+    lh_str_list_push_back(&list, lh_str_view_lit("beta"));
 
     EXPECT_STREQ(lh_str_list_get_data(&list, 0), "alpha");
     EXPECT_STREQ(lh_str_list_get_data(&list, 1), "");
@@ -90,10 +90,10 @@ TEST_F(str_list, growth_keeps_earlier_elements)
 {
     int i;
 
-    lh_str_list_push_back(&list, lh_str_view_make("first"));
+    lh_str_list_push_back(&list, lh_str_view_lit("first"));
     for (i = 0; i < 1000; ++i)
     {
-        lh_str_list_push_back(&list, lh_str_view_make("grow"));
+        lh_str_list_push_back(&list, lh_str_view_lit("grow"));
     }
     ASSERT_EQ(lh_str_list_get_size(&list), 1001u);
     EXPECT_STREQ(lh_str_list_get_data(&list, 0), "first");
@@ -102,12 +102,12 @@ TEST_F(str_list, growth_keeps_earlier_elements)
 
 TEST_F(str_list, clear_keeps_buffers_for_reuse)
 {
-    lh_str_list_split_of(&list, lh_str_view_make("a/b/c/d"), "/", 1);
+    lh_str_list_split_of(&list, lh_str_view_lit("a/b/c/d"), "/", 1);
     lh_str_list_clear(&list);
     EXPECT_TRUE(lh_str_list_is_empty(&list));
 
     lh_test::alloc_counter counter;
-    lh_str_list_split_of(&list, lh_str_view_make("w/x/y/z"), "/", 1);
+    lh_str_list_split_of(&list, lh_str_view_lit("w/x/y/z"), "/", 1);
     EXPECT_EQ(counter.count(), 0);
     EXPECT_EQ(as_string(lh_str_list_get(&list, 3)), "z");
 }
@@ -116,9 +116,9 @@ TEST_F(str_list, join_glues_with_separator)
 {
     lh_str_t out;
 
-    lh_str_list_push_back(&list, lh_str_view_make("one"));
-    lh_str_list_push_back(&list, lh_str_view_make(""));
-    lh_str_list_push_back(&list, lh_str_view_make("three"));
+    lh_str_list_push_back(&list, lh_str_view_lit("one"));
+    lh_str_list_push_back(&list, lh_str_view_lit(""));
+    lh_str_list_push_back(&list, lh_str_view_lit("three"));
     lh_str_init(&out);
     lh_str_list_join(&list, &out, ',');
     EXPECT_STREQ(lh_str_get_data(&out), "one,,three");
@@ -129,10 +129,10 @@ TEST_F(str_list, assign_copies_every_element)
 {
     lh_str_list_t copy;
 
-    lh_str_list_push_back(&list, lh_str_view_make("x"));
-    lh_str_list_push_back(&list, lh_str_view_make("yy"));
+    lh_str_list_push_back(&list, lh_str_view_lit("x"));
+    lh_str_list_push_back(&list, lh_str_view_lit("yy"));
     lh_str_list_init(&copy);
-    lh_str_list_push_back(&copy, lh_str_view_make("old"));
+    lh_str_list_push_back(&copy, lh_str_view_lit("old"));
     lh_str_list_assign(&copy, &list);
     ASSERT_EQ(lh_str_list_get_size(&copy), 2u);
     EXPECT_STREQ(lh_str_list_get_data(&copy, 1), "yy");
@@ -145,10 +145,10 @@ TEST_F(str_list, append_other_and_self)
 {
     lh_str_list_t other;
 
-    lh_str_list_push_back(&list, lh_str_view_make("a"));
+    lh_str_list_push_back(&list, lh_str_view_lit("a"));
     lh_str_list_init(&other);
-    lh_str_list_push_back(&other, lh_str_view_make("b"));
-    lh_str_list_push_back(&other, lh_str_view_make("c"));
+    lh_str_list_push_back(&other, lh_str_view_lit("b"));
+    lh_str_list_push_back(&other, lh_str_view_lit("c"));
     lh_str_list_append(&list, &other);
     ASSERT_EQ(lh_str_list_get_size(&list), 3u);
     EXPECT_STREQ(lh_str_list_get_data(&list, 2), "c");
@@ -164,7 +164,7 @@ TEST_F(str_list, split_of_skips_empty_pieces)
 {
     static const lh_char_t seps[] = {'/', '\\'};
 
-    lh_str_list_split_of(&list, lh_str_view_make("//C:\\Users/x\\\\"), seps, 2);
+    lh_str_list_split_of(&list, lh_str_view_lit("//C:\\Users/x\\\\"), seps, 2);
     ASSERT_EQ(lh_str_list_get_size(&list), 3u);
     EXPECT_EQ(as_string(lh_str_list_get(&list, 0)), "C:");
     EXPECT_EQ(as_string(lh_str_list_get(&list, 1)), "Users");
@@ -174,7 +174,7 @@ TEST_F(str_list, split_of_skips_empty_pieces)
 #if LH_TEST_EXPECT_DEATH_ENABLED
 TEST_F(str_list, get_out_of_range_dies)
 {
-    lh_str_list_push_back(&list, lh_str_view_make("only"));
+    lh_str_list_push_back(&list, lh_str_view_lit("only"));
     LH_EXPECT_DEATH((void)lh_str_list_get(&list, 1));
     LH_EXPECT_DEATH((void)lh_str_list_get_data(&list, 1));
 }

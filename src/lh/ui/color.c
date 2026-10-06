@@ -12,23 +12,6 @@
 
 /* ── Constructors ────────────────────────────────────────────────────────── */
 
-lh_ui_color_t
-lh_ui_color_make(lh_ui_color_channel_t r, lh_ui_color_channel_t g, lh_ui_color_channel_t b,
-                 lh_ui_color_channel_t a)
-{
-    lh_ui_color_t c;
-    lh_ui_color_init(lh_addr_of(c), r, g, b, a);
-    return c;
-}
-
-lh_ui_color_t
-lh_ui_color_make_hex(lh_uint_t hex)
-{
-    lh_ui_color_t c;
-    lh_ui_color_init_hex(lh_addr_of(c), hex);
-    return c;
-}
-
 lh_void
 lh_ui_color_init(lh_ui_color_t *self, lh_ui_color_channel_t r, lh_ui_color_channel_t g,
                  lh_ui_color_channel_t b, lh_ui_color_channel_t a)

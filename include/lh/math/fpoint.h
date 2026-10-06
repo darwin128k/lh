@@ -39,19 +39,18 @@ typedef struct lh_math_fpoint lh_math_fpoint_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Constructors ────────────────────────────────────────────────────────── */
+/**
+ * @brief Fill @p self from components.
+ */
+lh_void
+lh_math_fpoint_init(lh_math_fpoint_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y);
 
 /**
- * @brief Make a `::lh_math_fpoint_t` from explicit components.
+ * @brief Fill @p self with zero components.
  */
-lh_math_fpoint_t
-lh_math_fpoint_make(lh_math_fscalar_t x, lh_math_fscalar_t y);
+lh_void
+lh_math_fpoint_init_empty(lh_math_fpoint_t *self);
 
-/**
- * @brief The origin: `(0, 0)`.
- */
-lh_math_fpoint_t
-lh_math_fpoint_make_empty(void);
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 

@@ -216,6 +216,18 @@ void
 lh_runtime_error_init_by_empty(lh_runtime_error_t *self);
 
 /**
+ * @brief Initialize @p self with @p code and an empty description.
+ */
+void
+lh_runtime_error_init_by_code(lh_runtime_error_t *self, lh_runtime_error_code_t code);
+
+/**
+ * @brief Initialize @p self with @p desc and ::lh_runtime_error_code_interrupt.
+ */
+void
+lh_runtime_error_init_by_desc(lh_runtime_error_t *self, lh_str_view_t desc);
+
+/**
  * @brief Return the error code, then clear @p self.
  *
  * @param self Error object to read and reset.
@@ -223,64 +235,6 @@ lh_runtime_error_init_by_empty(lh_runtime_error_t *self);
  */
 lh_runtime_error_code_t
 lh_runtime_error_get_code_and_clear(lh_runtime_error_t *self);
-
-/* ── make ────────────────────────────────────────────────────────────────── */
-
-/**
- * @brief Construct an ::lh_runtime_error_t with @p code and @p desc.
- *
- * @param code Error code (::lh_runtime_error_code_t).
- * @param desc Description string (may be @c lh_null).
- * @return Constructed ::lh_runtime_error_t value.
- *
- * Example usage:
- * @code{.c}
- * lh_runtime_assert(ptr, lh_runtime_error_make(lh_runtime_error_code_null_pointer,
- *                                              lh_str_view_lit("bad ptr")));
- * @endcode
- *
- * @see lh_runtime_error_make_by_code
- */
-lh_runtime_error_t
-lh_runtime_error_make(lh_runtime_error_code_t code, lh_str_view_t desc);
-
-/**
- * @brief Construct an ::lh_runtime_error_t with @p code and no description.
- *
- * @param code Error code (::lh_runtime_error_code_t).
- * @return Constructed ::lh_runtime_error_t value.
- *
- * Example usage:
- * @code{.c}
- * lh_runtime_assert(ptr, lh_runtime_error_make_by_code(lh_runtime_error_code_null_pointer));
- * @endcode
- *
- * @see lh_runtime_error_make
- * @see lh_runtime_error_make_by_desc
- */
-lh_runtime_error_t
-lh_runtime_error_make_by_code(lh_runtime_error_code_t code);
-
-/**
- * @brief Construct an ::lh_runtime_error_t with @p desc and ::lh_runtime_error_code_interrupt.
- *
- * Convenience constructor for the common case where a human-readable message
- * is the only meaningful information at the throw site.
- * The error code is fixed to ::lh_runtime_error_code_interrupt.
- *
- * @param desc Description string (must not be null).
- * @return Constructed ::lh_runtime_error_t value.
- *
- * Example usage:
- * @code{.c}
- * lh_runtime_assert(ok, lh_runtime_error_make_by_desc(lh_str_view_lit("operation failed")));
- * @endcode
- *
- * @see lh_runtime_error_make
- * @see lh_runtime_error_make_by_code
- */
-lh_runtime_error_t
-lh_runtime_error_make_by_desc(lh_str_view_t desc);
 
 LH_COMPILER_EXTERN_C_END
 

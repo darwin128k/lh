@@ -81,7 +81,6 @@
  * @endcode
  *
  * @see lh_wstr_view_initializer_lit
- * @see lh_wstr_view_make
  */
 #define lh_wstr_view_lit(s) lh_initializer_of(lh_wstr_view_t, lh_wstr_view_initializer_lit, s)
 

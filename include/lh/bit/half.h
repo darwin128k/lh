@@ -42,8 +42,7 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_u64_t
 lh_bit_make_u64(lh_u32_t high, lh_u32_t low)
 {
-    return lh_math_bit_or(lh_math_bit_shl(lh_cast_static(lh_u64_t, high), 32),
-                          lh_cast_static(lh_u64_t, low));
+    return lh_cast_static(lh_u64_t, high) << 32 | low;
 }
 
 /**

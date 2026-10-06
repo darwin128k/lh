@@ -1084,61 +1084,6 @@ lh_void
 lh_memory_bounds_set_v(lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end);
 
 /**
- * @brief Build bounds from @p begin and @p end without range validation.
- *
- * The caller is responsible for ensuring the resulting bounds is meaningful.
- * No range check is performed on @p begin or @p end.
- *
- * @param begin New @c first endpoint.
- * @param end   New @c second endpoint.
- * @return Constructed bounds value (may be invalid or uninitialized).
- *
- * @warning Unsafe — no range validation. Caller assumes full responsibility.
- */
-lh_memory_bounds_t
-lh_memory_bounds_make(lh_ptr begin, lh_ptr end);
-
-/**
- * @brief Build and validate bounds from @p begin and @p end.
- *
- * @param begin New @c first endpoint.
- * @param end   New exclusive @c second endpoint.
- * @return Constructed valid bounds value.
- *
- * @fails ::lh_runtime_error_code_invalid_range
- *        <tt>[begin, end)</tt> is not a valid half-open range.
- */
-lh_memory_bounds_t
-lh_memory_bounds_make_v(lh_ptr begin, lh_ptr end);
-
-/**
- * @brief Build valid half-open bounds starting at @p begin with @p size bytes.
- *
- * The returned endpoints are <tt>[begin, begin + size)</tt>. @p size must be
- * non-zero.
- *
- * @param begin New @c first endpoint.
- * @param size  Number of bytes in the half-open bounds.
- * @return Constructed valid bounds value.
- *
- * @fails ::lh_runtime_error_code_invalid_argument
- *        @p begin is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p size is zero or the computed bounds are not valid.
- */
-lh_memory_bounds_t
-lh_memory_bounds_make_by_size(lh_ptr begin, lh_usize_t size);
-
-/**
- * @brief Return bounds with both endpoints null.
- *
- * @return Uninitialized empty bounds value.
- *
- * @see lh_memory_bounds_empty_initializer
- */
-lh_memory_bounds_t lh_memory_bounds_make_empty(lh_void);
-
-/**
  * @brief Store a half-open range starting at @p begin with @p size bytes.
  *
  * The resulting endpoints are <tt>[begin, begin + size)</tt>. @p size must be
@@ -1268,7 +1213,7 @@ lh_memory_bounds_swap_and_clear(lh_memory_bounds_t *self, lh_memory_bounds_t *ot
  *        @p self is neither uninitialized nor valid half-open bounds.
  */
 lh_memory_bounds_slice_t
-lh_memory_bounds_make_slice(const lh_memory_bounds_t *self);
+lh_memory_bounds_to_slice(const lh_memory_bounds_t *self);
 
 /* -- sub-range construction -------------------------------------------------- */
 
@@ -1328,7 +1273,7 @@ lh_memory_bounds_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n);
  *        @p size is greater than the source bounds size.
  */
 lh_memory_bounds_t
-lh_memory_bounds_make_from_begin(const lh_memory_bounds_t *self, lh_usize_t size);
+lh_memory_bounds_from_begin(const lh_memory_bounds_t *self, lh_usize_t size);
 
 /**
  * @brief Build bounds containing the last @p size bytes of @p self.
@@ -1347,7 +1292,7 @@ lh_memory_bounds_make_from_begin(const lh_memory_bounds_t *self, lh_usize_t size
  *        @p size is greater than the source bounds size.
  */
 lh_memory_bounds_t
-lh_memory_bounds_make_from_end(const lh_memory_bounds_t *self, lh_usize_t size);
+lh_memory_bounds_from_end(const lh_memory_bounds_t *self, lh_usize_t size);
 
 /**
  * @brief Build sub-bounds between @p begin and @p end inside @p self.
@@ -1365,7 +1310,7 @@ lh_memory_bounds_make_from_end(const lh_memory_bounds_t *self, lh_usize_t size);
  *        <tt>[begin, end)</tt> is not valid bounds.
  */
 lh_memory_bounds_t
-lh_memory_bounds_make_between(const lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end);
+lh_memory_bounds_between(const lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end);
 
 /**
  * @brief Build sub-bounds starting at @p offset with @p size bytes.
@@ -1385,7 +1330,7 @@ lh_memory_bounds_make_between(const lh_memory_bounds_t *self, lh_ptr begin, lh_p
  *        <tt>[offset, offset + size)</tt> is outside @p self.
  */
 lh_memory_bounds_t
-lh_memory_bounds_make_from_offset(const lh_memory_bounds_t *self, lh_uoffset_t offset,
+lh_memory_bounds_from_offset(const lh_memory_bounds_t *self, lh_uoffset_t offset,
                                   lh_usize_t size);
 
 /**
@@ -1459,8 +1404,9 @@ lh_memory_bounds_trim(const lh_memory_bounds_t *self, lh_usize_t left, lh_usize_
  * Example usage:
  * @code{.c}
  * lh_byte_t buf[16];
- * lh_memory_bounds_t b = lh_memory_bounds_make_by_size(buf, sizeof(buf));
- * lh_memory_view_t v = lh_memory_bounds_as_view(&b);
+ * lh_memory_bounds_t b;
+ * lh_memory_bounds_init_by_size(lh_addr_of(b), buf, sizeof(buf));
+ * lh_memory_view_t v = lh_memory_bounds_as_view(lh_addr_of(b));
  * @endcode
  *
  * @param self Source.

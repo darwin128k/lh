@@ -1173,60 +1173,12 @@ lh_void
 lh_memory_bounds_slice_set_v(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr end);
 
 /**
- * @brief Build a slice from @p begin and @p end without range validation.
- *
- * The caller is responsible for ensuring the resulting slice is meaningful.
- * No range check is performed on @p begin or @p end.
- *
- * @param begin New @c first endpoint.
- * @param end   New @c second endpoint.
- * @return Constructed slice value (may be invalid or uninitialized).
- *
- * @warning Unsafe — no range validation. Caller assumes full responsibility.
- */
-lh_memory_bounds_slice_t
-lh_memory_bounds_slice_make(lh_ptr begin, lh_ptr end);
-
-/**
- * @brief Build and validate a slice from @p begin and @p end.
- *
- * @param begin New @c first endpoint.
- * @param end   New @c second endpoint.
- * @return Constructed valid slice value.
- *
- * @fails ::lh_runtime_error_code_invalid_range
- *        <tt>[begin, end]</tt> is not a valid slice.
- */
-lh_memory_bounds_slice_t
-lh_memory_bounds_slice_make_v(lh_ptr begin, lh_ptr end);
-
-/**
- * @brief Build a valid closed slice starting at @p begin with @p size bytes.
- *
- * The returned endpoints are <tt>[begin, begin + size - 1]</tt>. @p size must
- * be non-zero.
- *
- * @param begin New @c first endpoint.
- * @param size  Number of bytes in the closed slice.
- * @return Constructed valid slice value.
- *
- * @fails ::lh_runtime_error_code_invalid_argument
- *        @p begin is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p size is zero or the computed slice is not valid.
- */
-lh_memory_bounds_slice_t
-lh_memory_bounds_slice_make_by_size(lh_ptr begin, lh_usize_t size);
-
-/**
  * @brief Return a slice with both endpoints null.
  *
  * @return Uninitialized empty slice value.
  *
  * @see lh_memory_bounds_slice_initializer_empty
  */
-lh_memory_bounds_slice_t lh_memory_bounds_slice_make_empty(lh_void);
-
 /**
  * @brief Build a slice containing the first @p n bytes of a valid closed range.
  *
@@ -1283,7 +1235,7 @@ lh_memory_bounds_slice_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n);
  *        @p size is greater than the source slice size.
  */
 lh_memory_bounds_slice_t
-lh_memory_bounds_slice_make_from_begin(const lh_memory_bounds_slice_t *self, lh_usize_t size);
+lh_memory_bounds_slice_from_begin(const lh_memory_bounds_slice_t *self, lh_usize_t size);
 
 /**
  * @brief Build a slice containing the last @p size bytes of @p self.
@@ -1302,7 +1254,7 @@ lh_memory_bounds_slice_make_from_begin(const lh_memory_bounds_slice_t *self, lh_
  *        @p size is greater than the source slice size.
  */
 lh_memory_bounds_slice_t
-lh_memory_bounds_slice_make_from_end(const lh_memory_bounds_slice_t *self, lh_usize_t size);
+lh_memory_bounds_slice_from_end(const lh_memory_bounds_slice_t *self, lh_usize_t size);
 
 /**
  * @brief Build a sub-slice between @p begin and @p end inside @p self.
@@ -1320,7 +1272,7 @@ lh_memory_bounds_slice_make_from_end(const lh_memory_bounds_slice_t *self, lh_us
  *        <tt>[begin, end]</tt> is not a valid slice.
  */
 lh_memory_bounds_slice_t
-lh_memory_bounds_slice_make_between(const lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr end);
+lh_memory_bounds_slice_between(const lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr end);
 
 /**
  * @brief Build a sub-slice starting at @p offset with @p size bytes.
@@ -1340,7 +1292,7 @@ lh_memory_bounds_slice_make_between(const lh_memory_bounds_slice_t *self, lh_ptr
  *        <tt>[offset, offset + size)</tt> is outside @p self.
  */
 lh_memory_bounds_slice_t
-lh_memory_bounds_slice_make_from_offset(const lh_memory_bounds_slice_t *self, lh_uoffset_t offset,
+lh_memory_bounds_slice_from_offset(const lh_memory_bounds_slice_t *self, lh_uoffset_t offset,
                                         lh_usize_t size);
 
 /**
@@ -1544,8 +1496,9 @@ lh_memory_bounds_slice_swap_and_clear(lh_memory_bounds_slice_t *self,
  * Example usage:
  * @code{.c}
  * lh_byte_t buf[16];
- * lh_memory_bounds_slice_t b = lh_memory_bounds_slice_make_by_size(buf, sizeof(buf));
- * lh_memory_view_slice_t v = lh_memory_bounds_slice_as_view(&b);
+ * lh_memory_bounds_slice_t b;
+ * lh_memory_bounds_slice_init_by_size(lh_addr_of(b), buf, sizeof(buf));
+ * lh_memory_view_slice_t v = lh_memory_bounds_slice_as_view(lh_addr_of(b));
  * @endcode
  *
  * @param self Source.

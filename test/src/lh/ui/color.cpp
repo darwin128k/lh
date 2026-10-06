@@ -8,7 +8,9 @@ namespace
 
 TEST(ui_color, make_holds_channels)
 {
-    const lh_ui_color_t c = lh_ui_color_make(1, 2, 3, 4);
+    lh_ui_color_t c;
+
+    lh_ui_color_init(lh_addr_of(c), 1, 2, 3, 4);
     EXPECT_EQ(lh_ui_color_get_r(lh_addr_of(c)), 1);
     EXPECT_EQ(lh_ui_color_get_g(lh_addr_of(c)), 2);
     EXPECT_EQ(lh_ui_color_get_b(lh_addr_of(c)), 3);
@@ -17,7 +19,9 @@ TEST(ui_color, make_holds_channels)
 
 TEST(ui_color, make_hex_is_rrggbbaa)
 {
-    const lh_ui_color_t c = lh_ui_color_make_hex(0x11558880u);
+    lh_ui_color_t c;
+
+    lh_ui_color_init_hex(lh_addr_of(c), 0x11558880u);
     EXPECT_EQ(lh_ui_color_get_r(lh_addr_of(c)), 0x11);
     EXPECT_EQ(lh_ui_color_get_g(lh_addr_of(c)), 0x55);
     EXPECT_EQ(lh_ui_color_get_b(lh_addr_of(c)), 0x88);

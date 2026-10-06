@@ -39,19 +39,19 @@ typedef struct lh_math_point lh_math_point_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Constructors ────────────────────────────────────────────────────────── */
+/* ── init ────────────────────────────────────────────────────────────────── */
 
 /**
- * @brief Make a `::lh_math_point_t` from explicit coordinates.
+ * @brief Fill @p self from explicit coordinates.
  */
-lh_math_point_t
-lh_math_point_make(lh_math_scalar_t x, lh_math_scalar_t y);
+lh_void
+lh_math_point_init(lh_math_point_t *self, lh_math_scalar_t x, lh_math_scalar_t y);
 
 /**
- * @brief The origin: `(0, 0)`.
+ * @brief Fill @p self with the origin `(0, 0)`.
  */
-lh_math_point_t
-lh_math_point_make_empty(void);
+lh_void
+lh_math_point_init_empty(lh_math_point_t *self);
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 

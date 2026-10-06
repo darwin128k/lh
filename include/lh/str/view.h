@@ -109,19 +109,6 @@ lh_void
 lh_str_view_init_by_other(lh_str_view_t *self, const lh_str_view_t *other);
 
 /**
- * @brief Construct a view over a NUL-terminated C string @p data.
- *
- * ::lh_null or an empty string become ::lh_str_view_empty_initializer.
- * Otherwise the view covers the characters before the terminator
- * (same length as ::lh_str_ptr_len).
- *
- * @param data NUL-terminated string, or ::lh_null.
- * @return Constructed view (does not own @p data).
- */
-lh_str_view_t
-lh_str_view_make(lh_str_cptr data);
-
-/**
  * @brief Sub-view of @p size characters starting at @p offset.
  *
  * If @p size is zero, the returned view is empty.
@@ -129,7 +116,7 @@ lh_str_view_make(lh_str_cptr data);
  * Example usage:
  * @code{.c}
  * lh_str_view_t v = lh_str_view_lit("key=value");
- * lh_str_view_t key = lh_str_view_make_from_offset(&v, 0, 3); // "key"
+ * lh_str_view_t key = lh_str_view_from_offset(&v, 0, 3); // "key"
  * @endcode
  *
  * @param self   Source view.
@@ -145,7 +132,7 @@ lh_str_view_make(lh_str_cptr data);
  *        <tt>[offset, offset + size)</tt> is outside @p self.
  */
 lh_str_view_t
-lh_str_view_make_from_offset(const lh_str_view_t *self, lh_uoffset_t offset, lh_usize_t size);
+lh_str_view_from_offset(const lh_str_view_t *self, lh_uoffset_t offset, lh_usize_t size);
 
 /**
  * @brief The characters of @p self from @p offset to its end.
@@ -156,7 +143,7 @@ lh_str_view_make_from_offset(const lh_str_view_t *self, lh_uoffset_t offset, lh_
  * Example usage:
  * @code{.c}
  * lh_str_view_t v = lh_str_view_lit("key=value");
- * lh_str_view_t value = lh_str_view_make_tail(&v, 4); // "value"
+ * lh_str_view_t value = lh_str_view_tail(&v, 4); // "value"
  * @endcode
  *
  * @param self   Source view.
@@ -169,7 +156,7 @@ lh_str_view_make_from_offset(const lh_str_view_t *self, lh_uoffset_t offset, lh_
  *        @p offset is greater than the size of @p self.
  */
 lh_str_view_t
-lh_str_view_make_tail(const lh_str_view_t *self, lh_uoffset_t offset);
+lh_str_view_tail(const lh_str_view_t *self, lh_uoffset_t offset);
 
 /* -- getters --------------------------------------------------------------- */
 

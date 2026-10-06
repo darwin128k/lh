@@ -27,12 +27,6 @@ typedef struct lh_ui_style lh_ui_style_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief The empty style: no paint recipe yet.
- */
-lh_ui_style_t
-lh_ui_style_make_empty(void);
-
-/**
  * @brief Fill @p self with the empty style.
  */
 lh_void

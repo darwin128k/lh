@@ -118,31 +118,21 @@ lh_runtime_error_init_by_empty(lh_runtime_error_t *self)
     lh_error_init_by_empty(lh_ptr_cast(lh_error_t, self));
 }
 
+void
+lh_runtime_error_init_by_code(lh_runtime_error_t *self, lh_runtime_error_code_t code)
+{
+    lh_error_init_by_code(lh_ptr_cast(lh_error_t, self), code);
+}
+
+void
+lh_runtime_error_init_by_desc(lh_runtime_error_t *self, lh_str_view_t desc)
+{
+    lh_runtime_error_init(self, lh_runtime_error_code_interrupt, desc);
+}
+
 lh_runtime_error_code_t
 lh_runtime_error_get_code_and_clear(lh_runtime_error_t *self)
 {
     return lh_error_get_code_and_clear(lh_ptr_cast(lh_error_t, self));
 }
 
-lh_runtime_error_t
-lh_runtime_error_make(lh_runtime_error_code_t code, lh_str_view_t desc)
-{
-    lh_runtime_error_t self;
-    lh_runtime_error_init(lh_addr_of(self), code, desc);
-    return self;
-}
-
-lh_runtime_error_t
-lh_runtime_error_make_by_code(lh_runtime_error_code_t code)
-{
-    lh_runtime_error_t self;
-    lh_runtime_error_init_by_empty(lh_addr_of(self));
-    lh_runtime_error_set_code(lh_addr_of(self), code);
-    return self;
-}
-
-lh_runtime_error_t
-lh_runtime_error_make_by_desc(lh_str_view_t desc)
-{
-    return lh_runtime_error_make(lh_runtime_error_code_interrupt, desc);
-}

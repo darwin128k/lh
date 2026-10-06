@@ -13,7 +13,9 @@ TEST(ui_brush, is_the_same_type_as_paint)
 
 TEST(ui_brush, make_empty_and_init_are_usable)
 {
-    const lh_ui_brush_t a = lh_ui_brush_make_empty();
+    lh_ui_brush_t a;
+
+    lh_ui_paint_init(lh_addr_of(a));
     lh_ui_brush_t b;
     lh_ui_brush_init(lh_addr_of(b));
     (void)a;

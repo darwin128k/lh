@@ -45,10 +45,11 @@ typedef struct lh_math_quat lh_math_quat_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Quaternion with the given components.
+ * @brief Fill @p self with the given components.
  */
-lh_math_quat_t
-lh_math_quat_make(lh_math_fscalar_t x, lh_math_fscalar_t y, lh_math_fscalar_t z, lh_math_fscalar_t w);
+lh_void
+lh_math_quat_init(lh_math_quat_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y, lh_math_fscalar_t z,
+                  lh_math_fscalar_t w);
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 

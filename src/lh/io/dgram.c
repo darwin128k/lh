@@ -3,12 +3,11 @@
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 
-lh_io_dgram_t
-lh_io_dgram_make(const lh_io_dgram_reader_t *reader, const lh_io_dgram_writer_t *writer)
+void
+lh_io_dgram_init(lh_io_dgram_t *self, const lh_io_dgram_reader_t *reader,
+                 const lh_io_dgram_writer_t *writer)
 {
-    lh_io_dgram_t result;
-    lh_io_dgram_set(lh_addr_of(result), reader, writer);
-    return result;
+    lh_io_dgram_set(self, reader, writer);
 }
 
 void

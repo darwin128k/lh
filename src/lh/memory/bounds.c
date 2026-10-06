@@ -2,6 +2,8 @@
 #include <lh/util/addr.h>
 #include <lh/attribute/static.h>
 #include <lh/memory/bounds/initializer.h>
+#include <lh/memory/bounds/slice/initializer.h>
+#include <lh/initializer.h>
 #include <lh/memory/view.h>
 #include <lh/memory/raw.h>
 #include <lh/cast/const.h>
@@ -540,43 +542,39 @@ lh_memory_bounds_set_v(lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end)
     lh_memory_view_set_v(s, begin, end);
 }
 
-lh_memory_bounds_t
-lh_memory_bounds_make(lh_ptr begin, lh_ptr end)
-{
-    const lh_memory_bounds_t bounds = lh_memory_bounds_initializer(begin, end);
-    return bounds;
-}
-
-/* The memory bounds over the memory a view describes: same layout,
-   pointers made mutable again. Lets the by-value constructors below reuse
-   lh_memory_view's instead of repeating their checks. */
 LH_ATTRIBUTE_STATIC
 lh_memory_bounds_t
-lh_memory_bounds_make_of_view(const lh_memory_view_t *view)
+lh_memory_bounds_return_of_view(const lh_memory_view_t *view)
 {
-    return lh_memory_bounds_make(lh_cast_const(lh_ptr, lh_memory_view_get_begin(view)),
-                                 lh_cast_const(lh_ptr, lh_memory_view_get_end(view)));
+    return lh_initializer_of(
+        lh_memory_bounds_t, lh_memory_bounds_initializer,
+        lh_cast_const(lh_ptr, lh_memory_view_get_begin(view)),
+        lh_cast_const(lh_ptr, lh_memory_view_get_end(view)));
 }
 
+LH_ATTRIBUTE_STATIC
 lh_memory_bounds_t
-lh_memory_bounds_make_v(lh_ptr begin, lh_ptr end)
+lh_memory_bounds_return_v(lh_ptr begin, lh_ptr end)
 {
-    const lh_memory_view_t view = lh_memory_view_make_v(begin, end);
-    return lh_memory_bounds_make_of_view(lh_addr_of(view));
+    lh_memory_view_t view;
+    lh_memory_view_init(lh_addr_of(view), begin, end);
+    return lh_memory_bounds_return_of_view(lh_addr_of(view));
 }
 
+LH_ATTRIBUTE_STATIC
 lh_memory_bounds_t
-lh_memory_bounds_make_by_size(lh_ptr begin, lh_usize_t size)
+lh_memory_bounds_return_by_size(lh_ptr begin, lh_usize_t size)
 {
-    const lh_memory_view_t view = lh_memory_view_make_by_size(begin, size);
-    return lh_memory_bounds_make_of_view(lh_addr_of(view));
+    lh_memory_view_t view;
+    lh_memory_view_init_by_size(lh_addr_of(view), begin, size);
+    return lh_memory_bounds_return_of_view(lh_addr_of(view));
 }
 
+LH_ATTRIBUTE_STATIC
 lh_memory_bounds_t
-lh_memory_bounds_make_empty(lh_void)
+lh_memory_bounds_return_empty(void)
 {
-    const lh_memory_bounds_t bounds = lh_memory_bounds_empty_initializer();
-    return bounds;
+    return lh_initializer_of(lh_memory_bounds_t, lh_memory_bounds_empty_initializer);
 }
 
 lh_void
@@ -647,11 +645,12 @@ lh_memory_bounds_init_by_other(lh_memory_bounds_t *self, const lh_memory_bounds_
 }
 
 lh_memory_bounds_slice_t
-lh_memory_bounds_make_slice(const lh_memory_bounds_t *self)
+lh_memory_bounds_to_slice(const lh_memory_bounds_t *self)
 {
     const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
-    const lh_memory_view_slice_t slice = lh_memory_view_make_slice(s);
-    return lh_memory_bounds_slice_make(
+    const lh_memory_view_slice_t slice = lh_memory_view_to_slice(s);
+    return lh_initializer_of(
+        lh_memory_bounds_slice_t, lh_memory_bounds_slice_initializer,
         lh_cast_const(lh_ptr, lh_memory_view_slice_get_begin(lh_addr_of(slice))),
         lh_cast_const(lh_ptr, lh_memory_view_slice_get_end(lh_addr_of(slice))));
 }
@@ -660,47 +659,47 @@ lh_memory_bounds_t
 lh_memory_bounds_take_first(lh_ptr begin, lh_ptr end, lh_usize_t n)
 {
     const lh_memory_view_t view = lh_memory_view_take_first(begin, end, n);
-    return lh_memory_bounds_make_of_view(lh_addr_of(view));
+    return lh_memory_bounds_return_of_view(lh_addr_of(view));
 }
 
 lh_memory_bounds_t
 lh_memory_bounds_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n)
 {
     const lh_memory_view_t view = lh_memory_view_take_last(begin, end, n);
-    return lh_memory_bounds_make_of_view(lh_addr_of(view));
+    return lh_memory_bounds_return_of_view(lh_addr_of(view));
 }
 
 lh_memory_bounds_t
-lh_memory_bounds_make_from_begin(const lh_memory_bounds_t *self, lh_usize_t size)
+lh_memory_bounds_from_begin(const lh_memory_bounds_t *self, lh_usize_t size)
 {
     const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
-    const lh_memory_view_t view = lh_memory_view_make_from_begin(s, size);
-    return lh_memory_bounds_make_of_view(lh_addr_of(view));
+    const lh_memory_view_t view = lh_memory_view_from_begin(s, size);
+    return lh_memory_bounds_return_of_view(lh_addr_of(view));
 }
 
 lh_memory_bounds_t
-lh_memory_bounds_make_from_end(const lh_memory_bounds_t *self, lh_usize_t size)
+lh_memory_bounds_from_end(const lh_memory_bounds_t *self, lh_usize_t size)
 {
     const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
-    const lh_memory_view_t view = lh_memory_view_make_from_end(s, size);
-    return lh_memory_bounds_make_of_view(lh_addr_of(view));
+    const lh_memory_view_t view = lh_memory_view_from_end(s, size);
+    return lh_memory_bounds_return_of_view(lh_addr_of(view));
 }
 
 lh_memory_bounds_t
-lh_memory_bounds_make_between(const lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end)
+lh_memory_bounds_between(const lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end)
 {
     const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
-    const lh_memory_view_t view = lh_memory_view_make_between(s, begin, end);
-    return lh_memory_bounds_make_of_view(lh_addr_of(view));
+    const lh_memory_view_t view = lh_memory_view_between(s, begin, end);
+    return lh_memory_bounds_return_of_view(lh_addr_of(view));
 }
 
 lh_memory_bounds_t
-lh_memory_bounds_make_from_offset(const lh_memory_bounds_t *self, lh_uoffset_t offset,
+lh_memory_bounds_from_offset(const lh_memory_bounds_t *self, lh_uoffset_t offset,
                                   lh_usize_t size)
 {
     const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
-    const lh_memory_view_t view = lh_memory_view_make_from_offset(s, offset, size);
-    return lh_memory_bounds_make_of_view(lh_addr_of(view));
+    const lh_memory_view_t view = lh_memory_view_from_offset(s, offset, size);
+    return lh_memory_bounds_return_of_view(lh_addr_of(view));
 }
 
 lh_memory_bounds_t
@@ -708,7 +707,7 @@ lh_memory_bounds_drop_first(const lh_memory_bounds_t *self, lh_usize_t n)
 {
     const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
     const lh_memory_view_t view = lh_memory_view_drop_first(s, n);
-    return lh_memory_bounds_make_of_view(lh_addr_of(view));
+    return lh_memory_bounds_return_of_view(lh_addr_of(view));
 }
 
 lh_memory_bounds_t
@@ -716,7 +715,7 @@ lh_memory_bounds_drop_last(const lh_memory_bounds_t *self, lh_usize_t n)
 {
     const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
     const lh_memory_view_t view = lh_memory_view_drop_last(s, n);
-    return lh_memory_bounds_make_of_view(lh_addr_of(view));
+    return lh_memory_bounds_return_of_view(lh_addr_of(view));
 }
 
 lh_memory_bounds_t
@@ -724,11 +723,11 @@ lh_memory_bounds_trim(const lh_memory_bounds_t *self, lh_usize_t left, lh_usize_
 {
     const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
     const lh_memory_view_t view = lh_memory_view_trim(s, left, right);
-    return lh_memory_bounds_make_of_view(lh_addr_of(view));
+    return lh_memory_bounds_return_of_view(lh_addr_of(view));
 }
 
 lh_memory_view_t
 lh_memory_bounds_as_view(const lh_memory_bounds_t *self)
 {
-    return lh_memory_view_make(lh_memory_bounds_get_begin(self), lh_memory_bounds_get_end(self));
+    return ({ lh_memory_view_t _v; lh_memory_view_init(lh_addr_of(_v), lh_memory_bounds_get_begin(self), lh_memory_bounds_get_end(self)); _v; });
 }

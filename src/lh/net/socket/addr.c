@@ -4,16 +4,13 @@
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 
-lh_net_socket_addr_t
-lh_net_socket_addr_make_ip4(const lh_net_ip4_socket_addr_t *addr)
+void
+lh_net_socket_addr_init_ip4(lh_net_socket_addr_t *self, const lh_net_ip4_socket_addr_t *addr)
 {
-    lh_net_socket_addr_t result;
-
+    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(addr);
-
-    result.family = lh_net_socket_addr_family_ip4;
-    result.as.ip4 = lh_ptr_deref(addr);
-    return result;
+    self->family = lh_net_socket_addr_family_ip4;
+    self->as.ip4 = lh_ptr_deref(addr);
 }
 
 lh_net_socket_addr_family_t

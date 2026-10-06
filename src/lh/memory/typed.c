@@ -7,6 +7,17 @@
 #include <lh/util/swap.h>
 #include <lh/cast/const.h>
 #include <lh/assert.h>
+#include <lh/attribute/static.h>
+#include <lh/util/addr.h>
+
+LH_ATTRIBUTE_STATIC
+lh_memory_bounds_t
+lh_memory_typed_return_bounds_by_size(lh_ptr begin, lh_usize_t size)
+{
+    lh_memory_bounds_t bounds;
+    lh_memory_bounds_init_by_size(lh_addr_of(bounds), begin, size);
+    return bounds;
+}
 
 lh_memory_bounds_t *
 lh_memory_typed_get_bounds(lh_memory_typed_t *self)
@@ -279,7 +290,7 @@ lh_memory_bounds_t
 lh_memory_typed_get_value_bounds(const lh_memory_typed_t *self, lh_uindex_t index)
 {
     lh_ptr begin = lh_memory_typed_get_ptr_from_begin(self, index);
-    return lh_memory_bounds_make_by_size(begin, lh_memory_typed_get_type_size(self));
+    return lh_memory_typed_return_bounds_by_size(begin, lh_memory_typed_get_type_size(self));
 }
 
 lh_memory_bounds_t
@@ -289,15 +300,15 @@ lh_memory_typed_get_range_bounds(const lh_memory_typed_t *self, lh_uindex_t inde
                           lh_runtime_error_code_out_of_range);
 
     lh_ptr begin = lh_memory_typed_get_ptr_from_begin(self, index);
-    return lh_memory_bounds_make_by_size(begin,
-                                         lh_math_mul(count, lh_memory_typed_get_type_size(self)));
+    return lh_memory_typed_return_bounds_by_size(
+        begin, lh_math_mul(count, lh_memory_typed_get_type_size(self)));
 }
 
 lh_void
 lh_memory_typed_set_value(lh_memory_typed_t *self, lh_uindex_t index, const lh_ptr value)
 {
     lh_memory_bounds_t value_bounds = lh_memory_typed_get_value_bounds(self, index);
-    const lh_memory_bounds_t source = lh_memory_bounds_make_by_size(
+    const lh_memory_bounds_t source = lh_memory_typed_return_bounds_by_size(
         lh_cast_const(lh_ptr, value), lh_memory_typed_get_type_size(self));
     lh_memory_bounds_copy(lh_addr_of(value_bounds), lh_addr_of(source));
 }
@@ -307,7 +318,7 @@ lh_memory_typed_get_value_into(const lh_memory_typed_t *self, lh_uindex_t index,
 {
     const lh_memory_bounds_t value_bounds = lh_memory_typed_get_value_bounds(self, index);
     lh_memory_bounds_t destination =
-        lh_memory_bounds_make_by_size(dst, lh_memory_typed_get_type_size(self));
+        lh_memory_typed_return_bounds_by_size(dst, lh_memory_typed_get_type_size(self));
     lh_memory_bounds_copy(lh_addr_of(destination), lh_addr_of(value_bounds));
 }
 
@@ -336,7 +347,7 @@ lh_memory_typed_set_values(lh_memory_typed_t *self, lh_uindex_t index, const lh_
     lh_return_if(lh_math_is_zero(count));
 
     lh_memory_bounds_t dest = lh_memory_typed_get_range_bounds(self, index, count);
-    const lh_memory_bounds_t source = lh_memory_bounds_make_by_size(
+    const lh_memory_bounds_t source = lh_memory_typed_return_bounds_by_size(
         lh_cast_const(lh_ptr, values), lh_math_mul(count, lh_memory_typed_get_type_size(self)));
     lh_memory_bounds_copy(lh_addr_of(dest), lh_addr_of(source));
 }

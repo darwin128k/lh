@@ -30,36 +30,24 @@ lh_str_view_init_by_other(lh_str_view_t *self, const lh_str_view_t *other)
 }
 
 lh_str_view_t
-lh_str_view_make(lh_str_cptr data)
+lh_str_view_from_offset(const lh_str_view_t *self, lh_uoffset_t offset, lh_usize_t size)
 {
-    lh_str_view_t self;
-
-    if (lh_null_eq(data) || data[0] == '\0')
-    {
-        lh_str_view_init_empty(lh_addr_of(self));
-        return self;
-    }
-    lh_str_view_init(lh_addr_of(self), data);
-    return self;
+    return lh_memory_view_from_offset(self, offset, size);
 }
 
 lh_str_view_t
-lh_str_view_make_from_offset(const lh_str_view_t *self, lh_uoffset_t offset, lh_usize_t size)
-{
-    return lh_memory_view_make_from_offset(self, offset, size);
-}
-
-lh_str_view_t
-lh_str_view_make_tail(const lh_str_view_t *self, lh_uoffset_t offset)
+lh_str_view_tail(const lh_str_view_t *self, lh_uoffset_t offset)
 {
     const lh_usize_t size = lh_str_view_is_empty(self) ? 0U : lh_str_view_get_size(self);
 
     lh_assert_runtime_if(lh_math_gt(offset, size), lh_runtime_error_code_out_of_range);
     if (lh_math_eq(offset, size))
     {
-        return lh_str_view_make(lh_null); /* views reject size 0 */
+        lh_str_view_t _lh_tmp;
+    lh_str_view_init(lh_addr_of(_lh_tmp), lh_null);
+    return _lh_tmp; /* views reject size 0 */
     }
-    return lh_str_view_make_from_offset(self, offset, lh_math_sub(size, offset));
+    return lh_str_view_from_offset(self, offset, lh_math_sub(size, offset));
 }
 
 lh_str_cptr

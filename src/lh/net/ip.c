@@ -9,12 +9,10 @@
 #include <lh/str/split/next.h>
 #include <lh/util/addr.h>
 
-lh_net_ip4_t
-lh_net_ip4_make(lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet2, lh_u8_t octet3)
+void
+lh_net_ip4_init(lh_net_ip4_t *self, lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet2, lh_u8_t octet3)
 {
-    lh_net_ip4_t result;
-    lh_net_ip4_set(lh_addr_of(result), octet0, octet1, octet2, octet3);
-    return result;
+    lh_net_ip4_set(self, octet0, octet1, octet2, octet3);
 }
 
 void

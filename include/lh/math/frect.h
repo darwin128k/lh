@@ -44,31 +44,13 @@ LH_COMPILER_EXTERN_C_BEGIN
 /* ── Constructors ────────────────────────────────────────────────────────── */
 
 /**
- * @brief Make a `::lh_math_frect_t` from origin coordinates and extents.
- */
-lh_math_frect_t
-lh_math_frect_make(lh_math_fscalar_t x, lh_math_fscalar_t y, lh_math_fscalar_t width, lh_math_fscalar_t height);
-
-/**
- * @brief Make a `::lh_math_frect_t` from @p origin and @p size.
- */
-lh_math_frect_t
-lh_math_frect_make_origin_size(lh_math_fpoint_t origin, lh_math_fsize_t size);
-
-/**
  * @brief Make a `::lh_math_frect_t` from exclusive extent corners.
  *
  * @p max is exclusive (`origin + size`). Empty size yields
- * ::lh_math_frect_make_empty.
+ * ::lh_math_rect_init_empty.
  */
 lh_math_frect_t
 lh_math_frect_from_extent(const lh_math_fpoint_t *min, const lh_math_fpoint_t *max);
-
-/**
- * @brief The empty rectangle: origin `(0, 0)`, size `(0, 0)`.
- */
-lh_math_frect_t
-lh_math_frect_make_empty(void);
 
 /**
  * @brief Fill @p self from origin coordinates and extents.
@@ -82,6 +64,12 @@ lh_math_frect_init(lh_math_frect_t *self, lh_math_fscalar_t x, lh_math_fscalar_t
  */
 lh_void
 lh_math_frect_init_origin_size(lh_math_frect_t *self, lh_math_fpoint_t origin, lh_math_fsize_t size);
+
+/**
+ * @brief Fill @p self with the empty rectangle sentinel `(0, 0)` size.
+ */
+lh_void
+lh_math_frect_init_empty(lh_math_frect_t *self);
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
@@ -197,7 +185,7 @@ lh_math_frect_eq(const lh_math_frect_t *a, const lh_math_frect_t *b);
 /* ── Set ops ────────────────────────────────────────────────────────────── */
 
 /**
- * @brief Intersection of @p a and @p b. Returns ::lh_math_frect_make_empty if they
+ * @brief Intersection of @p a and @p b. Returns ::lh_math_rect_init_empty if they
  *        do not overlap.
  */
 lh_math_frect_t

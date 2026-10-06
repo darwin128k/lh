@@ -122,8 +122,8 @@ TEST(str_append_view, appends_view_and_skips_empty)
     lh_str_append_view(&s, empty);
     EXPECT_TRUE(lh_str_is_empty(&s));
 
-    lh_str_append_view(&s, lh_str_view_make("ab"));
-    lh_str_append_view(&s, lh_str_view_make("cd"));
+    lh_str_append_view(&s, lh_str_view_lit("ab"));
+    lh_str_append_view(&s, lh_str_view_lit("cd"));
     EXPECT_EQ(std::strcmp(lh_str_get_data(&s), "abcd"), 0);
 
     lh_str_deinit(&s);
@@ -162,7 +162,7 @@ TEST(str_assign, replaces_contents)
     lh_str_assign(&a, &a);
     EXPECT_EQ(std::strcmp(lh_str_get_data(&a), "src"), 0);
 
-    lh_str_assign_view(&b, lh_str_view_make("view"));
+    lh_str_assign_view(&b, lh_str_view_lit("view"));
     EXPECT_EQ(std::strcmp(lh_str_get_data(&b), "view"), 0);
 
     lh_str_deinit(&a);
@@ -175,13 +175,13 @@ TEST(str_join, glues_views_with_sep)
     lh_str_view_t parts[3];
 
     lh_str_init(&s);
-    parts[0] = lh_str_view_make("a");
-    parts[1] = lh_str_view_make("b");
-    parts[2] = lh_str_view_make("c");
+    parts[0] = lh_str_view_lit("a");
+    parts[1] = lh_str_view_lit("b");
+    parts[2] = lh_str_view_lit("c");
     lh_str_join(&s, parts, 3, '/');
     EXPECT_EQ(std::strcmp(lh_str_get_data(&s), "a/b/c"), 0);
 
-    parts[1] = lh_str_view_make("");
+    parts[1] = lh_str_view_lit("");
     lh_str_join(&s, parts, 3, '/');
     EXPECT_EQ(std::strcmp(lh_str_get_data(&s), "a//c"), 0);
 

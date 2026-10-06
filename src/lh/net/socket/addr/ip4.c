@@ -7,12 +7,11 @@
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 
-lh_net_ip4_socket_addr_t
-lh_net_ip4_socket_addr_make(const lh_net_ip4_t *ip, lh_net_port_t port)
+void
+lh_net_ip4_socket_addr_init(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *ip,
+                            lh_net_port_t port)
 {
-    lh_net_ip4_socket_addr_t result;
-    lh_net_ip4_socket_addr_set(lh_addr_of(result), ip, port);
-    return result;
+    lh_net_ip4_socket_addr_set(self, ip, port);
 }
 
 void

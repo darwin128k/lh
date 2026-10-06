@@ -82,31 +82,22 @@ lh_os_system_error_init_by_empty(lh_os_system_error_t *self)
     lh_os_system_error_clear(self);
 }
 
+void
+lh_os_system_error_init_by_code(lh_os_system_error_t *self, lh_os_system_error_code_t code)
+{
+#if LH_LIBRARY_OPTION_OS_WERROR
+    lh_os_system_error_init(self, code, lh_wstr_view_empty());
+#else
+    lh_os_system_error_init(self, code, lh_str_view_empty());
+#endif
+}
+
 lh_os_system_error_code_t
 lh_os_system_error_get_code_and_clear(lh_os_system_error_t *self)
 {
     const lh_os_system_error_code_t code = lh_os_system_error_get_code(self);
     lh_os_system_error_clear(self);
     return code;
-}
-
-lh_os_system_error_t
-lh_os_system_error_make(lh_os_system_error_code_t code, lh_os_error_desc_t desc)
-{
-    lh_os_system_error_t self;
-
-    lh_os_system_error_init(lh_addr_of(self), code, desc);
-    return self;
-}
-
-lh_os_system_error_t
-lh_os_system_error_make_by_code(lh_os_system_error_code_t code)
-{
-    lh_os_system_error_t self;
-
-    lh_os_system_error_init_by_empty(lh_addr_of(self));
-    lh_os_system_error_set_code(lh_addr_of(self), code);
-    return self;
 }
 
 lh_bool_t

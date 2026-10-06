@@ -59,14 +59,10 @@ typedef struct lh_net_socket_addr lh_net_socket_addr_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Wrap an ::lh_net_ip4_socket_addr_t as an ::lh_net_socket_addr_t.
- *
- * @param addr Address to wrap.
- * @return Constructed ::lh_net_socket_addr_t with
- *         ::lh_net_socket_addr_family_ip4.
+ * @brief Initialize @p self as an IPv4 socket address wrapper.
  */
-lh_net_socket_addr_t
-lh_net_socket_addr_make_ip4(const lh_net_ip4_socket_addr_t *addr);
+void
+lh_net_socket_addr_init_ip4(lh_net_socket_addr_t *self, const lh_net_ip4_socket_addr_t *addr);
 
 /**
  * @brief Return which concrete address @p self holds.

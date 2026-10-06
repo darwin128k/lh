@@ -31,19 +31,6 @@ LH_COMPILER_EXTERN_C_BEGIN
 /* ── Constructors ────────────────────────────────────────────────────────── */
 
 /**
- * @brief Make a `::lh_ui_color_t` from channels in `0..255`.
- */
-lh_ui_color_t
-lh_ui_color_make(lh_ui_color_channel_t r, lh_ui_color_channel_t g, lh_ui_color_channel_t b,
-                 lh_ui_color_channel_t a);
-
-/**
- * @brief Make a `::lh_ui_color_t` from @p hex as `0xRRGGBBAA`.
- */
-lh_ui_color_t
-lh_ui_color_make_hex(lh_uint_t hex);
-
-/**
  * @brief Fill @p self from channels in `0..255`.
  */
 lh_void

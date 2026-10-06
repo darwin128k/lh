@@ -39,9 +39,9 @@ protected:
 
 TEST_F(wstr_list, elements_are_wide_characters_not_bytes)
 {
-    lh_wstr_list_push_back(&list, lh_wstr_view_make(L"alpha"));
-    lh_wstr_list_push_back(&list, lh_wstr_view_make(L""));
-    lh_wstr_list_push_back(&list, lh_wstr_view_make(L"\x0436\x0443\x043a"));
+    lh_wstr_list_push_back(&list, lh_wstr_view_lit(L"alpha"));
+    lh_wstr_list_push_back(&list, lh_wstr_view_lit(L""));
+    lh_wstr_list_push_back(&list, lh_wstr_view_lit(L"\x0436\x0443\x043a"));
 
     ASSERT_EQ(lh_wstr_list_get_size(&list), 3u);
     EXPECT_EQ(as_wstring(lh_wstr_list_get(&list, 0)), L"alpha");
@@ -56,8 +56,8 @@ TEST_F(wstr_list, join_assign_append_self)
     lh_wstr_list_t copy;
     lh_wstr_t out;
 
-    lh_wstr_list_push_back(&list, lh_wstr_view_make(L"a"));
-    lh_wstr_list_push_back(&list, lh_wstr_view_make(L"bc"));
+    lh_wstr_list_push_back(&list, lh_wstr_view_lit(L"a"));
+    lh_wstr_list_push_back(&list, lh_wstr_view_lit(L"bc"));
     lh_wstr_init(&out);
     lh_wstr_list_join(&list, &out, L'|');
     EXPECT_EQ(std::wcscmp(lh_wstr_get_data(&out), L"a|bc"), 0);

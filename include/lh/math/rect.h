@@ -40,43 +40,23 @@ typedef struct lh_math_rect lh_math_rect_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Constructors ────────────────────────────────────────────────────────── */
+/* ── init / from ─────────────────────────────────────────────────────────── */
 
 /**
- * @brief Make a `::lh_math_rect_t` from origin coordinates and extents.
- */
-lh_math_rect_t
-lh_math_rect_make(lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t width, lh_math_scalar_t height);
-
-/**
- * @brief Make a `::lh_math_rect_t` from @p origin and @p size.
- */
-lh_math_rect_t
-lh_math_rect_make_origin_size(lh_math_point_t origin, lh_math_size_t size);
-
-/**
- * @brief Make a `::lh_math_rect_t` from exclusive extent corners.
+ * @brief Build a `::lh_math_rect_t` from exclusive extent corners.
  *
- * @p max is exclusive (`origin + size`). Empty size yields
- * ::lh_math_rect_make_empty.
+ * @p max is exclusive (`origin + size`). Empty size yields an empty rectangle.
  */
 lh_math_rect_t
 lh_math_rect_from_extent(const lh_math_point_t *min, const lh_math_point_t *max);
 
 /**
- * @brief Make a `::lh_math_rect_t` from min/max scalars (Win32-style:
+ * @brief Build a `::lh_math_rect_t` from min/max scalars (Win32-style:
  *        left, top, right, bottom — right/bottom are exclusive).
  */
 lh_math_rect_t
 lh_math_rect_from_min_max(lh_math_scalar_t x_min, lh_math_scalar_t y_min,
                           lh_math_scalar_t x_max, lh_math_scalar_t y_max);
-
-/**
- * @brief The "no rectangle" sentinel: origin `(0, 0)`, size `(0, 0)`.
- *        ::lh_math_rect_is_empty returns ::lh_bool_true for this value.
- */
-lh_math_rect_t
-lh_math_rect_make_empty(void);
 
 /**
  * @brief Fill @p self from origin coordinates and extents.
@@ -90,6 +70,12 @@ lh_math_rect_init(lh_math_rect_t *self, lh_math_scalar_t x, lh_math_scalar_t y, 
  */
 lh_void
 lh_math_rect_init_origin_size(lh_math_rect_t *self, lh_math_point_t origin, lh_math_size_t size);
+
+/**
+ * @brief Fill @p self with the empty rectangle sentinel `(0, 0)` size.
+ */
+lh_void
+lh_math_rect_init_empty(lh_math_rect_t *self);
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
@@ -189,7 +175,7 @@ lh_math_rect_eq(const lh_math_rect_t *a, const lh_math_rect_t *b);
 /* ── Set ops ────────────────────────────────────────────────────────────── */
 
 /**
- * @brief Intersection of @p a and @p b. Returns ::lh_math_rect_make_empty if they do
+ * @brief Intersection of @p a and @p b. Returns ::lh_math_rect_init_empty if they do
  *        not overlap.
  */
 lh_math_rect_t

@@ -154,7 +154,9 @@ lh_os_net_socket_get_stream(lh_os_net_socket_t *self)
     const lh_io_reader_t reader = lh_os_net_socket_get_reader(self);
     const lh_io_writer_t writer = lh_os_net_socket_get_writer(self);
 
-    return lh_io_stream_make(lh_addr_of(reader), lh_addr_of(writer));
+    lh_io_stream_t stream;
+    lh_io_stream_init(lh_addr_of(stream), lh_addr_of(reader), lh_addr_of(writer));
+    return stream;
 }
 
 lh_io_dgram_reader_t
@@ -183,5 +185,7 @@ lh_os_net_socket_get_dgram(lh_os_net_socket_t *self)
     const lh_io_dgram_reader_t reader = lh_os_net_socket_get_dgram_reader(self);
     const lh_io_dgram_writer_t writer = lh_os_net_socket_get_dgram_writer(self);
 
-    return lh_io_dgram_make(lh_addr_of(reader), lh_addr_of(writer));
+    lh_io_dgram_t dgram;
+    lh_io_dgram_init(lh_addr_of(dgram), lh_addr_of(reader), lh_addr_of(writer));
+    return dgram;
 }

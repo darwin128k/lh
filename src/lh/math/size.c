@@ -9,21 +9,19 @@
 #include <lh/math/size.h>
 #include <lh/math.h>
 
-/* ── Constructors ────────────────────────────────────────────────────────── */
+/* ── init ────────────────────────────────────────────────────────────────── */
 
-lh_math_size_t
-lh_math_size_make(lh_math_scalar_t width, lh_math_scalar_t height)
+lh_void
+lh_math_size_init(lh_math_size_t *self, lh_math_scalar_t width, lh_math_scalar_t height)
 {
-    lh_math_size_t s;
-    lh_math_size_set_width(lh_addr_of(s), width);
-    lh_math_size_set_height(lh_addr_of(s), height);
-    return s;
+    lh_math_size_set_width(self, width);
+    lh_math_size_set_height(self, height);
 }
 
-lh_math_size_t
-lh_math_size_make_empty(void)
+lh_void
+lh_math_size_init_empty(lh_math_size_t *self)
 {
-    return lh_math_size_make(0, 0);
+    lh_math_size_init(self, 0, 0);
 }
 
 lh_math_size_t
@@ -31,8 +29,10 @@ lh_math_size_from_extent(const lh_math_point_t *min, const lh_math_point_t *max)
 {
     lh_assert_runtime_ref(min);
     lh_assert_runtime_ref(max);
-    return lh_math_size_make(lh_math_point_get_x(max) - lh_math_point_get_x(min),
-                             lh_math_point_get_y(max) - lh_math_point_get_y(min));
+    lh_math_size_t s;
+    lh_math_size_init(lh_addr_of(s), lh_math_point_get_x(max) - lh_math_point_get_x(min),
+                      lh_math_point_get_y(max) - lh_math_point_get_y(min));
+    return s;
 }
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
@@ -90,6 +90,8 @@ lh_math_size_t
 lh_math_size_inset(const lh_math_size_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy)
 {
     lh_assert_runtime_ref(self);
-    return lh_math_size_make(lh_math_size_get_width(self) - dx - dx,
-                             lh_math_size_get_height(self) - dy - dy);
+    lh_math_size_t s;
+    lh_math_size_init(lh_addr_of(s), lh_math_size_get_width(self) - dx - dx,
+                      lh_math_size_get_height(self) - dy - dy);
+    return s;
 }

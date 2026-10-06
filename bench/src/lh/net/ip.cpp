@@ -17,7 +17,9 @@ BENCHMARK(BM_net_ip4_parse);
 static void
 BM_net_ip4_format(benchmark::State &state)
 {
-    lh_net_ip4_t addr = lh_net_ip4_make(192, 168, 0, 1);
+    lh_net_ip4_t addr;
+
+    lh_net_ip4_init(lh_addr_of(addr), 192, 168, 0, 1);
     char buf[LH_NET_IP4_TEXT_MAX];
     for (auto _ : state)
     {
@@ -29,8 +31,12 @@ BENCHMARK(BM_net_ip4_format);
 static void
 BM_net_ip4_equals(benchmark::State &state)
 {
-    lh_net_ip4_t a = lh_net_ip4_make(192, 168, 0, 1);
-    lh_net_ip4_t b = lh_net_ip4_make(192, 168, 0, 2);
+    lh_net_ip4_t a;
+
+    lh_net_ip4_init(lh_addr_of(a), 192, 168, 0, 1);
+    lh_net_ip4_t b;
+
+    lh_net_ip4_init(lh_addr_of(b), 192, 168, 0, 2);
     for (auto _ : state)
     {
         benchmark::DoNotOptimize(lh_net_ip4_equals(&a, &b));

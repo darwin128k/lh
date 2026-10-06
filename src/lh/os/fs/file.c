@@ -162,5 +162,7 @@ lh_os_fs_file_get_stream(lh_os_fs_file_t *self)
     const lh_io_reader_t reader = lh_os_fs_file_get_reader(self);
     const lh_io_writer_t writer = lh_os_fs_file_get_writer(self);
 
-    return lh_io_stream_make(lh_addr_of(reader), lh_addr_of(writer));
+    lh_io_stream_t stream;
+    lh_io_stream_init(lh_addr_of(stream), lh_addr_of(reader), lh_addr_of(writer));
+    return stream;
 }

@@ -38,19 +38,18 @@ typedef struct lh_math_fsize lh_math_fsize_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Constructors ────────────────────────────────────────────────────────── */
+/**
+ * @brief Fill @p self from components.
+ */
+lh_void
+lh_math_fsize_init(lh_math_fsize_t *self, lh_math_fscalar_t width, lh_math_fscalar_t height);
 
 /**
- * @brief Make a `::lh_math_fsize_t` from explicit extents.
+ * @brief Fill @p self with zero components.
  */
-lh_math_fsize_t
-lh_math_fsize_make(lh_math_fscalar_t width, lh_math_fscalar_t height);
+lh_void
+lh_math_fsize_init_empty(lh_math_fsize_t *self);
 
-/**
- * @brief The empty size: `(0, 0)`.
- */
-lh_math_fsize_t
-lh_math_fsize_make_empty(void);
 
 /**
  * @brief Size spanning from @p min (inclusive) to @p max (exclusive).

@@ -210,23 +210,25 @@ TEST(runtime_error_get_code_and_clear, returns_previous_then_ok)
 
 TEST(runtime_error_make, constructs_with_code_and_desc)
 {
-    const lh_runtime_error_t err =
-        lh_runtime_error_make(lh_runtime_error_code_interrupt, lh_str_view_lit("msg"));
+    lh_runtime_error_t err;
+    lh_runtime_error_init(lh_addr_of(err), lh_runtime_error_code_interrupt, lh_str_view_lit("msg"));
     EXPECT_EQ(lh_runtime_error_get_code(&err), lh_runtime_error_code_interrupt);
     EXPECT_STREQ(desc_cstr(lh_runtime_error_get_desc(&err)), "msg");
 }
 
 TEST(runtime_error_make_by_code, constructs_with_null_desc)
 {
-    const lh_runtime_error_t err =
-        lh_runtime_error_make_by_code(lh_runtime_error_code_null_pointer);
+    lh_runtime_error_t err;
+
+    lh_runtime_error_init_by_code(lh_addr_of(err), lh_runtime_error_code_null_pointer);
     EXPECT_EQ(lh_runtime_error_get_code(&err), lh_runtime_error_code_null_pointer);
     EXPECT_EQ(desc_cstr(lh_runtime_error_get_desc(&err)), nullptr);
 }
 
 TEST(runtime_error_make_by_desc, constructs_with_interrupt_code)
 {
-    const lh_runtime_error_t err = lh_runtime_error_make_by_desc(lh_str_view_lit("operation failed"));
+    lh_runtime_error_t err;
+    lh_runtime_error_init_by_desc(lh_addr_of(err), lh_str_view_lit("operation failed"));
     EXPECT_EQ(lh_runtime_error_get_code(&err), lh_runtime_error_code_interrupt);
     EXPECT_STREQ(desc_cstr(lh_runtime_error_get_desc(&err)), "operation failed");
 }
@@ -235,7 +237,8 @@ TEST(runtime_error_init, matches_make)
 {
     lh_runtime_error_t a{};
     lh_runtime_error_init(&a, lh_runtime_error_code_interrupt, lh_str_view_lit("eight"));
-    const lh_runtime_error_t b = lh_runtime_error_make(lh_runtime_error_code_interrupt, lh_str_view_lit("eight"));
+    lh_runtime_error_t b;
+    lh_runtime_error_init(lh_addr_of(b), lh_runtime_error_code_interrupt, lh_str_view_lit("eight"));
     EXPECT_EQ(lh_runtime_error_get_code(&a), lh_runtime_error_get_code(&b));
     EXPECT_STREQ(desc_cstr(lh_runtime_error_get_desc(&a)), desc_cstr(lh_runtime_error_get_desc(&b)));
 }

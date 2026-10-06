@@ -41,8 +41,12 @@ PacketBoxSend(lh_self_ptr self, const lh_ptr buf, lh_usize_t size, const lh_net_
 lh_net_ip4_socket_addr_t
 LoopbackAddr(lh_net_port_t port)
 {
-    lh_net_ip4_t ip = lh_net_ip4_make(127, 0, 0, 1);
-    return lh_net_ip4_socket_addr_make(&ip, port);
+    lh_net_ip4_t ip;
+
+    lh_net_ip4_init(lh_addr_of(ip), 127, 0, 0, 1);
+    lh_net_ip4_socket_addr_t _lh_tmp;
+    lh_net_ip4_socket_addr_init(lh_addr_of(_lh_tmp), &ip, port);
+    return _lh_tmp;
 }
 
 TEST(io_dgram_make, roundtrip_via_getters)
@@ -53,7 +57,10 @@ TEST(io_dgram_make, roundtrip_via_getters)
     lh_io_dgram_reader_init(&reader, &PacketBoxRecv, &box);
     lh_io_dgram_writer_init(&writer, &PacketBoxSend, &box);
 
-    lh_io_dgram_t dgram = lh_io_dgram_make(&reader, &writer);
+    lh_io_dgram_t dgram;
+
+
+    lh_io_dgram_init(lh_addr_of(dgram), &reader, &writer);
 
     lh_io_dgram_reader_t got_reader = lh_io_dgram_get_reader(&dgram);
     lh_io_dgram_writer_t got_writer = lh_io_dgram_get_writer(&dgram);
@@ -69,7 +76,10 @@ TEST(io_dgram_send_recv, roundtrips_packet_and_address)
     lh_io_dgram_reader_init(&reader, &PacketBoxRecv, &box);
     lh_io_dgram_writer_init(&writer, &PacketBoxSend, &box);
 
-    lh_io_dgram_t dgram = lh_io_dgram_make(&reader, &writer);
+    lh_io_dgram_t dgram;
+
+
+    lh_io_dgram_init(lh_addr_of(dgram), &reader, &writer);
     lh_net_ip4_socket_addr_t dest = LoopbackAddr(27015);
 
     lh_ssize_t written = lh_io_dgram_send(&dgram, "ping", 4, &dest);

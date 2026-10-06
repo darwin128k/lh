@@ -44,7 +44,10 @@ TEST(io_stream_make, roundtrip_via_getters)
     lh_io_reader_init(&reader, &LoopbackRead, &lb);
     lh_io_writer_init(&writer, &LoopbackWrite, &lb);
 
-    lh_io_stream_t stream = lh_io_stream_make(&reader, &writer);
+    lh_io_stream_t stream;
+
+
+    lh_io_stream_init(lh_addr_of(stream), &reader, &writer);
 
     lh_io_reader_t got_reader = lh_io_stream_get_reader(&stream);
     lh_io_writer_t got_writer = lh_io_stream_get_writer(&stream);
@@ -60,7 +63,10 @@ TEST(io_stream_write_read, roundtrips_through_the_same_stream)
     lh_io_reader_init(&reader, &LoopbackRead, &lb);
     lh_io_writer_init(&writer, &LoopbackWrite, &lb);
 
-    lh_io_stream_t stream = lh_io_stream_make(&reader, &writer);
+    lh_io_stream_t stream;
+
+
+    lh_io_stream_init(lh_addr_of(stream), &reader, &writer);
 
     lh_ssize_t written = lh_io_stream_write(&stream, "ping", 4);
     ASSERT_EQ(written, 4);
@@ -78,7 +84,9 @@ TEST(io_stream_set_reader, replaces_only_reader)
     lh_io_writer_t writer{};
     lh_io_reader_init(&reader, &LoopbackRead, &lb);
     lh_io_writer_init(&writer, &LoopbackWrite, &lb);
-    lh_io_stream_t stream = lh_io_stream_make(&reader, &writer);
+    lh_io_stream_t stream;
+
+    lh_io_stream_init(lh_addr_of(stream), &reader, &writer);
 
     lh_io_reader_t new_reader{};
     lh_io_reader_deinit(&new_reader);
@@ -98,7 +106,9 @@ TEST(io_stream_assign, copies_both_halves)
     lh_io_writer_t writer{};
     lh_io_reader_init(&reader, &LoopbackRead, &lb);
     lh_io_writer_init(&writer, &LoopbackWrite, &lb);
-    lh_io_stream_t a = lh_io_stream_make(&reader, &writer);
+    lh_io_stream_t a;
+
+    lh_io_stream_init(lh_addr_of(a), &reader, &writer);
     lh_io_stream_t b{};
     lh_io_stream_assign(&b, &a);
 

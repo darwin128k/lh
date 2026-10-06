@@ -587,7 +587,8 @@ TEST(memory_bounds_slice_make_v, returns_valid_slice)
 {
     unsigned char buf[4];
 
-    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_make_v(p(buf + 1), p(buf + 3));
+    lh_memory_bounds_slice_t s;
+    lh_memory_bounds_slice_init(lh_addr_of(s), p(buf + 1), p(buf + 3));
 
     EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, p(buf + 1), p(buf + 3)));
 }
@@ -596,14 +597,17 @@ TEST(memory_bounds_slice_make_by_size, stores_closed_span)
 {
     unsigned char buf[4];
 
-    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_make_by_size(p(buf), 4);
+    lh_memory_bounds_slice_t s;
+    lh_memory_bounds_slice_init_by_size(lh_addr_of(s), p(buf), 4);
 
     EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, p(buf), p(buf + 3)));
 }
 
 TEST(memory_bounds_slice_make_empty, returns_empty_initializer)
 {
-    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_make_empty();
+    lh_memory_bounds_slice_t s;
+
+    lh_memory_bounds_slice_init_empty(lh_addr_of(s));
 
     EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, lh_null, lh_null));
 }
@@ -649,7 +653,7 @@ TEST(memory_bounds_slice_make_from_begin, returns_prefix_from_slice)
     unsigned char buf[6];
     lh_memory_bounds_slice_t base = slice(p(buf + 1), p(buf + 5));
 
-    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_make_from_begin(&base, 3);
+    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_from_begin(&base, 3);
 
     EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, p(buf + 1), p(buf + 3)));
 }
@@ -659,7 +663,7 @@ TEST(memory_bounds_slice_make_from_begin, returns_empty_for_zero_size)
     unsigned char buf[6];
     lh_memory_bounds_slice_t base = slice(p(buf + 1), p(buf + 5));
 
-    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_make_from_begin(&base, 0);
+    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_from_begin(&base, 0);
 
     EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, lh_null, lh_null));
 }
@@ -669,7 +673,7 @@ TEST(memory_bounds_slice_make_from_end, returns_suffix_from_slice)
     unsigned char buf[6];
     lh_memory_bounds_slice_t base = slice(p(buf + 1), p(buf + 5));
 
-    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_make_from_end(&base, 2);
+    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_from_end(&base, 2);
 
     EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, p(buf + 4), p(buf + 5)));
 }
@@ -679,7 +683,7 @@ TEST(memory_bounds_slice_make_from_end, returns_empty_for_zero_size)
     unsigned char buf[6];
     lh_memory_bounds_slice_t base = slice(p(buf + 1), p(buf + 5));
 
-    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_make_from_end(&base, 0);
+    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_from_end(&base, 0);
 
     EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, lh_null, lh_null));
 }
@@ -689,7 +693,7 @@ TEST(memory_bounds_slice_make_between, returns_inner_range)
     unsigned char buf[6];
     lh_memory_bounds_slice_t base = slice(p(buf + 1), p(buf + 5));
 
-    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_make_between(&base, p(buf + 2), p(buf + 4));
+    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_between(&base, p(buf + 2), p(buf + 4));
 
     EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, p(buf + 2), p(buf + 4)));
 }
@@ -699,7 +703,7 @@ TEST(memory_bounds_slice_make_from_offset, returns_middle_range)
     unsigned char buf[8];
     lh_memory_bounds_slice_t base = slice(p(buf + 1), p(buf + 6));
 
-    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_make_from_offset(&base, 2, 3);
+    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_from_offset(&base, 2, 3);
 
     EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, p(buf + 3), p(buf + 5)));
 }
@@ -709,7 +713,7 @@ TEST(memory_bounds_slice_make_from_offset, returns_empty_for_zero_size)
     unsigned char buf[8];
     lh_memory_bounds_slice_t base = slice(p(buf + 1), p(buf + 6));
 
-    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_make_from_offset(&base, 6, 0);
+    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_from_offset(&base, 6, 0);
 
     EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, lh_null, lh_null));
 }
@@ -954,7 +958,8 @@ TEST(memory_bounds_slice_make, returns_slice_without_validation)
 {
     unsigned char buf[4];
 
-    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_make(p(buf + 1), p(buf + 3));
+    lh_memory_bounds_slice_t s;
+    lh_memory_bounds_slice_init(lh_addr_of(s), p(buf + 1), p(buf + 3));
 
     EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, p(buf + 1), p(buf + 3)));
     EXPECT_TRUE(lh_memory_bounds_slice_is_valid(&s));
@@ -964,7 +969,8 @@ TEST(memory_bounds_slice_make, accepts_backward_range)
 {
     unsigned char buf[4];
 
-    lh_memory_bounds_slice_t s = lh_memory_bounds_slice_make(p(buf + 3), p(buf + 1));
+    lh_memory_bounds_slice_t s;
+    lh_memory_bounds_slice_init(lh_addr_of(s), p(buf + 3), p(buf + 1));
 
     EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, p(buf + 3), p(buf + 1)));
     EXPECT_FALSE(lh_memory_bounds_slice_is_valid(&s));
@@ -1144,19 +1150,19 @@ TEST(memory_bounds_slice_make_v, rejects_invalid_range_death)
 {
     unsigned char buf[4];
 
-    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_make_v(p(buf + 3), p(buf + 1)));
+    LH_EXPECT_DEATH(({ lh_memory_bounds_slice_t _v; lh_memory_bounds_slice_init(lh_addr_of(_v), p(buf + 3), p(buf + 1)); (void)_v; }));
 }
 
 TEST(memory_bounds_slice_make_by_size, rejects_null_begin_death)
 {
-    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_make_by_size(lh_null, 1));
+    LH_EXPECT_DEATH(({ lh_memory_bounds_slice_t _v; lh_memory_bounds_slice_init_by_size(lh_addr_of(_v), lh_null, 1); (void)_v; }));
 }
 
 TEST(memory_bounds_slice_make_by_size, rejects_zero_size_death)
 {
     unsigned char buf[1];
 
-    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_make_by_size(p(buf), 0));
+    LH_EXPECT_DEATH(({ lh_memory_bounds_slice_t _v; lh_memory_bounds_slice_init_by_size(lh_addr_of(_v), p(buf), 0); (void)_v; }));
 }
 
 TEST(memory_bounds_slice_take_first, rejects_too_large_count_death)
@@ -1178,7 +1184,7 @@ TEST(memory_bounds_slice_make_from_begin, rejects_too_large_size_death)
     unsigned char buf[4];
     lh_memory_bounds_slice_t base = slice(p(buf), p(buf + 2));
 
-    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_make_from_begin(&base, 4));
+    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_from_begin(&base, 4));
 }
 
 TEST(memory_bounds_slice_make_from_end, rejects_too_large_size_death)
@@ -1186,7 +1192,7 @@ TEST(memory_bounds_slice_make_from_end, rejects_too_large_size_death)
     unsigned char buf[4];
     lh_memory_bounds_slice_t base = slice(p(buf), p(buf + 2));
 
-    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_make_from_end(&base, 4));
+    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_from_end(&base, 4));
 }
 
 TEST(memory_bounds_slice_make_between, rejects_range_outside_self_death)
@@ -1194,7 +1200,7 @@ TEST(memory_bounds_slice_make_between, rejects_range_outside_self_death)
     unsigned char buf[6];
     lh_memory_bounds_slice_t base = slice(p(buf + 1), p(buf + 4));
 
-    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_make_between(&base, p(buf), p(buf + 3)));
+    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_between(&base, p(buf), p(buf + 3)));
 }
 
 TEST(memory_bounds_slice_make_from_offset, rejects_offset_outside_self_death)
@@ -1202,7 +1208,7 @@ TEST(memory_bounds_slice_make_from_offset, rejects_offset_outside_self_death)
     unsigned char buf[4];
     lh_memory_bounds_slice_t base = slice(p(buf), p(buf + 2));
 
-    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_make_from_offset(&base, 4, 1));
+    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_from_offset(&base, 4, 1));
 }
 
 TEST(memory_bounds_slice_make_from_offset, rejects_size_outside_self_death)
@@ -1210,7 +1216,7 @@ TEST(memory_bounds_slice_make_from_offset, rejects_size_outside_self_death)
     unsigned char buf[4];
     lh_memory_bounds_slice_t base = slice(p(buf), p(buf + 2));
 
-    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_make_from_offset(&base, 2, 2));
+    LH_EXPECT_DEATH((void)lh_memory_bounds_slice_from_offset(&base, 2, 2));
 }
 
 TEST(memory_bounds_slice_drop_first, rejects_too_large_count_death)
@@ -1401,7 +1407,8 @@ TEST(memory_bounds_slice_swap, rejects_null_other_death)
 TEST(memory_bounds_slice_as_view, same_inclusive_ends)
 {
     lh_byte_t buf[8] = {1, 2, 3, 4, 5, 6, 7, 8};
-    lh_memory_bounds_slice_t b = lh_memory_bounds_slice_make_by_size(buf, sizeof(buf));
+    lh_memory_bounds_slice_t b;
+    lh_memory_bounds_slice_init_by_size(lh_addr_of(b), buf, sizeof(buf));
     lh_memory_view_slice_t v = lh_memory_bounds_slice_as_view(&b);
 
     EXPECT_EQ(lh_memory_view_slice_get_begin(&v), static_cast<const void *>(buf));

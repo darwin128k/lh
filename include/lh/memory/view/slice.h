@@ -1031,61 +1031,6 @@ lh_void
 lh_memory_view_slice_set_v(lh_memory_view_slice_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
- * @brief Build a slice from @p begin and @p end without range validation.
- *
- * The caller is responsible for ensuring the resulting slice is meaningful.
- * No range check is performed on @p begin or @p end.
- *
- * @param begin New @c first endpoint.
- * @param end   New @c second endpoint.
- * @return Constructed slice value (may be invalid or uninitialized).
- *
- * @warning Unsafe — no range validation. Caller assumes full responsibility.
- */
-lh_memory_view_slice_t
-lh_memory_view_slice_make(const lh_ptr begin, const lh_ptr end);
-
-/**
- * @brief Build and validate a slice from @p begin and @p end.
- *
- * @param begin New @c first endpoint.
- * @param end   New @c second endpoint.
- * @return Constructed valid slice value.
- *
- * @fails ::lh_runtime_error_code_invalid_range
- *        <tt>[begin, end]</tt> is not a valid slice.
- */
-lh_memory_view_slice_t
-lh_memory_view_slice_make_v(const lh_ptr begin, const lh_ptr end);
-
-/**
- * @brief Build a valid closed slice starting at @p begin with @p size bytes.
- *
- * The returned endpoints are <tt>[begin, begin + size - 1]</tt>. @p size must
- * be non-zero.
- *
- * @param begin New @c first endpoint.
- * @param size  Number of bytes in the closed slice.
- * @return Constructed valid slice value.
- *
- * @fails ::lh_runtime_error_code_invalid_argument
- *        @p begin is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p size is zero or the computed slice is not valid.
- */
-lh_memory_view_slice_t
-lh_memory_view_slice_make_by_size(const lh_ptr begin, lh_usize_t size);
-
-/**
- * @brief Return a slice with both endpoints null.
- *
- * @return Uninitialized empty slice value.
- *
- * @see lh_memory_view_slice_initializer_empty
- */
-lh_memory_view_slice_t lh_memory_view_slice_make_empty(lh_void);
-
-/**
  * @brief Swap @p self and @p other without range validation.
  *
  * The caller is responsible for ensuring both slices are meaningful.
@@ -1191,7 +1136,7 @@ lh_memory_view_slice_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t 
  *        @p size is greater than the source slice size.
  */
 lh_memory_view_slice_t
-lh_memory_view_slice_make_from_begin(const lh_memory_view_slice_t *self, lh_usize_t size);
+lh_memory_view_slice_from_begin(const lh_memory_view_slice_t *self, lh_usize_t size);
 
 /**
  * @brief Build a slice containing the last @p size bytes of @p self.
@@ -1210,7 +1155,7 @@ lh_memory_view_slice_make_from_begin(const lh_memory_view_slice_t *self, lh_usiz
  *        @p size is greater than the source slice size.
  */
 lh_memory_view_slice_t
-lh_memory_view_slice_make_from_end(const lh_memory_view_slice_t *self, lh_usize_t size);
+lh_memory_view_slice_from_end(const lh_memory_view_slice_t *self, lh_usize_t size);
 
 /**
  * @brief Build a sub-slice between @p begin and @p end inside @p self.
@@ -1228,7 +1173,7 @@ lh_memory_view_slice_make_from_end(const lh_memory_view_slice_t *self, lh_usize_
  *        <tt>[begin, end]</tt> is not a valid slice.
  */
 lh_memory_view_slice_t
-lh_memory_view_slice_make_between(const lh_memory_view_slice_t *self, const lh_ptr begin,
+lh_memory_view_slice_between(const lh_memory_view_slice_t *self, const lh_ptr begin,
                                   const lh_ptr end);
 
 /**
@@ -1249,7 +1194,7 @@ lh_memory_view_slice_make_between(const lh_memory_view_slice_t *self, const lh_p
  *        <tt>[offset, offset + size)</tt> is outside @p self.
  */
 lh_memory_view_slice_t
-lh_memory_view_slice_make_from_offset(const lh_memory_view_slice_t *self, lh_uoffset_t offset,
+lh_memory_view_slice_from_offset(const lh_memory_view_slice_t *self, lh_uoffset_t offset,
                                       lh_usize_t size);
 
 /**

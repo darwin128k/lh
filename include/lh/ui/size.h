@@ -18,8 +18,6 @@
 
 typedef lh_math_fsize_t lh_ui_size_t;
 
-#    define lh_ui_size_make lh_math_fsize_make
-#    define lh_ui_size_make_empty lh_math_fsize_make_empty
 #    define lh_ui_size_from_extent lh_math_fsize_from_extent
 #    define lh_ui_size_get_width lh_math_fsize_get_width
 #    define lh_ui_size_get_height lh_math_fsize_get_height
@@ -35,8 +33,6 @@ typedef lh_math_fsize_t lh_ui_size_t;
 
 typedef lh_math_size_t lh_ui_size_t;
 
-#    define lh_ui_size_make lh_math_size_make
-#    define lh_ui_size_make_empty lh_math_size_make_empty
 #    define lh_ui_size_from_extent lh_math_size_from_extent
 #    define lh_ui_size_get_width lh_math_size_get_width
 #    define lh_ui_size_get_height lh_math_size_get_height

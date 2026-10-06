@@ -230,6 +230,12 @@ void
 lh_werror_init_by_empty(lh_werror_t *self);
 
 /**
+ * @brief Initialize @p self with @p code and an empty description.
+ */
+void
+lh_werror_init_by_code(lh_werror_t *self, lh_error_code_t code);
+
+/**
  * @brief Return the error code, then clear @p self (::lh_werror_clear).
  *
  * @param self Wide error object to read and reset.
@@ -237,27 +243,6 @@ lh_werror_init_by_empty(lh_werror_t *self);
  */
 lh_error_code_t
 lh_werror_get_code_and_clear(lh_werror_t *self);
-
-/* ── make ────────────────────────────────────────────────────────────────── */
-
-/**
- * @brief Construct an ::lh_werror_t with @p code and @p desc.
- *
- * @param code Error code (::lh_error_code_t).
- * @param desc Description view (empty view = no description).
- * @return Constructed ::lh_werror_t value.
- */
-lh_werror_t
-lh_werror_make(lh_error_code_t code, lh_wstr_view_t desc);
-
-/**
- * @brief Construct an ::lh_werror_t with @p code and no description.
- *
- * @param code Error code (::lh_error_code_t).
- * @return Constructed ::lh_werror_t value.
- */
-lh_werror_t
-lh_werror_make_by_code(lh_error_code_t code);
 
 LH_COMPILER_EXTERN_C_END
 

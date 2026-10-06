@@ -8,22 +8,6 @@
 #include <lh/ui/paint.h>
 #include <lh/util/addr.h>
 
-lh_ui_paint_t
-lh_ui_paint_make_empty(void)
-{
-    lh_ui_paint_t paint;
-    lh_ui_paint_init(lh_addr_of(paint));
-    return paint;
-}
-
-lh_ui_paint_t
-lh_ui_paint_make(const lh_ui_color_t *color)
-{
-    lh_ui_paint_t paint;
-    lh_ui_paint_init_color(lh_addr_of(paint), color);
-    return paint;
-}
-
 lh_void
 lh_ui_paint_init(lh_ui_paint_t *self)
 {

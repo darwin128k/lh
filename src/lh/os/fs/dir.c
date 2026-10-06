@@ -84,7 +84,7 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_view_t *name, lh_os_fs_dir_entry_
         {
             if (lh_math_is_zero(n))
             {
-                lh_ptr_deref(name) = lh_str_view_make(lh_null);
+                lh_ptr_deref(name) = lh_str_view_empty();
             }
             return n;
         }
@@ -97,7 +97,7 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_view_t *name, lh_os_fs_dir_entry_
         lh_os_set_last_error_lit(lh_os_error_code_name_too_long, "name is too long");
         return LH_OS_RESULT_INVALID;
     }
-    lh_ptr_deref(name) = lh_str_view_make(entry);
+    lh_ptr_deref(name) = ({ lh_str_view_t _lh_tmp; lh_str_view_init(lh_addr_of(_lh_tmp), entry); _lh_tmp; });
     if (lh_null_ne(kind))
     {
         lh_ptr_deref(kind) = entry_kind;

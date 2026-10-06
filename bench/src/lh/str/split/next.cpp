@@ -53,7 +53,9 @@ BENCHMARK(BM_str_ptr_split_next_of_sep);
 static void
 BM_str_view_split_next_of_sep(benchmark::State &state)
 {
-    const lh_str_view_t text = lh_str_view_make(k_path);
+    lh_str_view_t text;
+
+    lh_str_view_init(lh_addr_of(text), k_path);
     for (auto _ : state)
     {
         lh_usize_t pos = 0;

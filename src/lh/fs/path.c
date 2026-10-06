@@ -67,7 +67,7 @@ lh_fs_path_get_rest(const lh_fs_path_t *self)
     lh_str_view_t text;
 
     text = lh_str_as_view(lh_fs_path_get_text(self));
-    return lh_str_view_make_tail(lh_addr_of(text),
+    return lh_str_view_tail(lh_addr_of(text),
                                  lh_fs_path_root_len(lh_fs_path_get_root_kind(self)));
 }
 
@@ -173,7 +173,9 @@ lh_fs_path_get_segment(const lh_fs_path_t *self, lh_uindex_t index)
         seen = lh_math_add_one(seen);
     }
     lh_assert_runtime_if(lh_bool_true, lh_runtime_error_code_out_of_range);
-    return lh_str_view_make(lh_null);
+    lh_str_view_t _lh_tmp;
+    lh_str_view_init(lh_addr_of(_lh_tmp), lh_null);
+    return _lh_tmp;
 }
 
 lh_bool_t
@@ -213,7 +215,7 @@ lh_fs_path_is_hidden(const lh_fs_path_t *self)
     slash = lh_str_view_rfind_char(lh_addr_of(rest), lh_char_map_slash);
     last = lh_math_eq(slash, LH_STR_VIEW_INVALID)
                ? rest
-               : lh_str_view_make_tail(lh_addr_of(rest), lh_math_add_one(slash));
+               : lh_str_view_tail(lh_addr_of(rest), lh_math_add_one(slash));
     if (!lh_char_is_dot(lh_str_view_get_first_char(lh_addr_of(last))))
     {
         return lh_bool_false;
@@ -254,7 +256,7 @@ lh_fs_path_take_root(lh_fs_path_t *self, const lh_str_view_t *text, lh_fs_path_s
 
     out = lh_fs_path_get_text_mut(self);
     if (lh_math_eq(style, lh_fs_path_style_windows) && lh_math_ge(lh_str_view_get_size(text), 2U) &&
-        lh_fs_path_is_drive(lh_str_view_make_from_offset(text, 0U, 2U)))
+        lh_fs_path_is_drive(lh_str_view_from_offset(text, 0U, 2U)))
     {
         lh_fs_path_set_root_kind(self, lh_fs_path_root_kind_drive);
         lh_str_push_back(out, lh_str_view_get_first_char(text));
@@ -291,7 +293,7 @@ lh_fs_path_set(lh_fs_path_t *self, lh_str_view_t text, lh_fs_path_style_t style)
     out = lh_fs_path_get_text_mut(self);
     /* Normalizing never grows the text by more than the "C:" -> "C:/" slash. */
     lh_str_reserve(out, lh_math_add_one(lh_str_view_get_size(lh_addr_of(text))));
-    rest = lh_str_view_make_tail(lh_addr_of(text),
+    rest = lh_str_view_tail(lh_addr_of(text),
                                  lh_fs_path_take_root(self, lh_addr_of(text), style));
     root_len = lh_str_get_size(out);
 

@@ -982,61 +982,6 @@ lh_void
 lh_memory_view_set_v(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
- * @brief Build a view from @p begin and @p end without range validation.
- *
- * The caller is responsible for ensuring the resulting view is meaningful.
- * No range check is performed on @p begin or @p end.
- *
- * @param begin New @c first endpoint.
- * @param end   New @c second endpoint.
- * @return Constructed view value (may be invalid or uninitialized).
- *
- * @warning Unsafe — no range validation. Caller assumes full responsibility.
- */
-lh_memory_view_t
-lh_memory_view_make(const lh_ptr begin, const lh_ptr end);
-
-/**
- * @brief Build and validate a view from @p begin and @p end.
- *
- * @param begin New @c first endpoint.
- * @param end   New exclusive @c second endpoint.
- * @return Constructed valid view value.
- *
- * @fails ::lh_runtime_error_code_invalid_range
- *        <tt>[begin, end)</tt> is not a valid half-open range.
- */
-lh_memory_view_t
-lh_memory_view_make_v(const lh_ptr begin, const lh_ptr end);
-
-/**
- * @brief Build valid half-open view starting at @p begin with @p size bytes.
- *
- * The returned endpoints are <tt>[begin, begin + size)</tt>. @p size must be
- * non-zero.
- *
- * @param begin New @c first endpoint.
- * @param size  Number of bytes in the half-open view.
- * @return Constructed valid view value.
- *
- * @fails ::lh_runtime_error_code_invalid_argument
- *        @p begin is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p size is zero or the computed view is not valid.
- */
-lh_memory_view_t
-lh_memory_view_make_by_size(const lh_ptr begin, lh_usize_t size);
-
-/**
- * @brief Return a view with both endpoints null.
- *
- * @return Uninitialized empty view value.
- *
- * @see lh_memory_view_empty_initializer
- */
-lh_memory_view_t lh_memory_view_make_empty(lh_void);
-
-/**
  * @brief Store a half-open range starting at @p begin with @p size bytes.
  *
  * The resulting endpoints are <tt>[begin, begin + size)</tt>. @p size must be
@@ -1117,7 +1062,7 @@ lh_memory_view_init_by_other(lh_memory_view_t *self, const lh_memory_view_t *oth
  *        @p self is neither uninitialized nor valid half-open view.
  */
 lh_memory_view_slice_t
-lh_memory_view_make_slice(const lh_memory_view_t *self);
+lh_memory_view_to_slice(const lh_memory_view_t *self);
 
 /* -- sub-range construction -------------------------------------------------- */
 
@@ -1176,7 +1121,7 @@ lh_memory_view_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t n);
  *        @p size is greater than the source view size.
  */
 lh_memory_view_t
-lh_memory_view_make_from_begin(const lh_memory_view_t *self, lh_usize_t size);
+lh_memory_view_from_begin(const lh_memory_view_t *self, lh_usize_t size);
 
 /**
  * @brief Build a view containing the last @p size bytes of @p self.
@@ -1195,7 +1140,7 @@ lh_memory_view_make_from_begin(const lh_memory_view_t *self, lh_usize_t size);
  *        @p size is greater than the source view size.
  */
 lh_memory_view_t
-lh_memory_view_make_from_end(const lh_memory_view_t *self, lh_usize_t size);
+lh_memory_view_from_end(const lh_memory_view_t *self, lh_usize_t size);
 
 /**
  * @brief Build a sub-view between @p begin and @p end inside @p self.
@@ -1213,7 +1158,7 @@ lh_memory_view_make_from_end(const lh_memory_view_t *self, lh_usize_t size);
  *        <tt>[begin, end)</tt> is not a valid view.
  */
 lh_memory_view_t
-lh_memory_view_make_between(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
+lh_memory_view_between(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
 
 /**
  * @brief Build a sub-view starting at @p offset with @p size bytes.
@@ -1233,7 +1178,7 @@ lh_memory_view_make_between(const lh_memory_view_t *self, const lh_ptr begin, co
  *        <tt>[offset, offset + size)</tt> is outside @p self.
  */
 lh_memory_view_t
-lh_memory_view_make_from_offset(const lh_memory_view_t *self, lh_uoffset_t offset, lh_usize_t size);
+lh_memory_view_from_offset(const lh_memory_view_t *self, lh_uoffset_t offset, lh_usize_t size);
 
 /**
  * @brief Build a view with @p n bytes removed from the beginning.

@@ -15,7 +15,7 @@ lh_math_mat4_from_columns(lh_math_vec4_t c0, lh_math_vec4_t c1, lh_math_vec4_t c
 lh_math_mat4_t
 lh_math_mat4_identity(void)
 {
-    return lh_math_mat4_from_scale(lh_math_vec3_make(1.0f, 1.0f, 1.0f));
+    return lh_math_mat4_from_scale(({ lh_math_vec3_t _v; lh_math_vec3_init(lh_addr_of(_v), 1.0f, 1.0f, 1.0f); _v; }));
 }
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
@@ -38,10 +38,10 @@ lh_math_mat4_t
 lh_math_mat4_from_translation(lh_math_vec3_t offset)
 {
     lh_math_mat4_t m = lh_math_mat4_identity();
-    lh_math_mat4_set_column(lh_addr_of(m), 3, lh_math_vec4_make(lh_math_vec3_get_x(lh_addr_of(offset)),
+    lh_math_mat4_set_column(lh_addr_of(m), 3, ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), lh_math_vec3_get_x(lh_addr_of(offset)),
                                                        lh_math_vec3_get_y(lh_addr_of(offset)),
                                                        lh_math_vec3_get_z(lh_addr_of(offset)),
-                                                       1.0f));
+                                                       1.0f); _v; }));
     return m;
 }
 
@@ -49,10 +49,10 @@ lh_math_mat4_t
 lh_math_mat4_from_scale(lh_math_vec3_t factors)
 {
     return lh_math_mat4_from_columns(
-        lh_math_vec4_make(lh_math_vec3_get_x(lh_addr_of(factors)), 0.0f, 0.0f, 0.0f),
-        lh_math_vec4_make(0.0f, lh_math_vec3_get_y(lh_addr_of(factors)), 0.0f, 0.0f),
-        lh_math_vec4_make(0.0f, 0.0f, lh_math_vec3_get_z(lh_addr_of(factors)), 0.0f),
-        lh_math_vec4_make(0.0f, 0.0f, 0.0f, 1.0f));
+        ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), lh_math_vec3_get_x(lh_addr_of(factors)), 0.0f, 0.0f, 0.0f); _v; }),
+        ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), 0.0f, lh_math_vec3_get_y(lh_addr_of(factors)), 0.0f, 0.0f); _v; }),
+        ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), 0.0f, 0.0f, lh_math_vec3_get_z(lh_addr_of(factors)), 0.0f); _v; }),
+        ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), 0.0f, 0.0f, 0.0f, 1.0f); _v; }));
 }
 
 lh_math_mat4_t
@@ -70,10 +70,10 @@ lh_math_mat4_from_quat(lh_math_quat_t q)
 
     /* Column c is where the rotation takes axis c. */
     return lh_math_mat4_from_columns(
-        lh_math_vec4_make(1.0f - 2.0f * (yy + zz), 2.0f * (xy + wz), 2.0f * (xz - wy), 0.0f),
-        lh_math_vec4_make(2.0f * (xy - wz), 1.0f - 2.0f * (xx + zz), 2.0f * (yz + wx), 0.0f),
-        lh_math_vec4_make(2.0f * (xz + wy), 2.0f * (yz - wx), 1.0f - 2.0f * (xx + yy), 0.0f),
-        lh_math_vec4_make(0.0f, 0.0f, 0.0f, 1.0f));
+        ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), 1.0f - 2.0f * (yy + zz), 2.0f * (xy + wz), 2.0f * (xz - wy), 0.0f); _v; }),
+        ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), 2.0f * (xy - wz), 1.0f - 2.0f * (xx + zz), 2.0f * (yz + wx), 0.0f); _v; }),
+        ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), 2.0f * (xz + wy), 2.0f * (yz - wx), 1.0f - 2.0f * (xx + yy), 0.0f); _v; }),
+        ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), 0.0f, 0.0f, 0.0f, 1.0f); _v; }));
 }
 
 lh_math_vec4_t
@@ -121,14 +121,14 @@ lh_math_mat4_transpose(lh_math_mat4_t m)
     const lh_math_vec4_t c2 = lh_math_mat4_get_column(lh_addr_of(m), 2);
     const lh_math_vec4_t c3 = lh_math_mat4_get_column(lh_addr_of(m), 3);
     return lh_math_mat4_from_columns(
-        lh_math_vec4_make(lh_math_vec4_get_x(lh_addr_of(c0)), lh_math_vec4_get_x(lh_addr_of(c1)),
-                          lh_math_vec4_get_x(lh_addr_of(c2)), lh_math_vec4_get_x(lh_addr_of(c3))),
-        lh_math_vec4_make(lh_math_vec4_get_y(lh_addr_of(c0)), lh_math_vec4_get_y(lh_addr_of(c1)),
-                          lh_math_vec4_get_y(lh_addr_of(c2)), lh_math_vec4_get_y(lh_addr_of(c3))),
-        lh_math_vec4_make(lh_math_vec4_get_z(lh_addr_of(c0)), lh_math_vec4_get_z(lh_addr_of(c1)),
-                          lh_math_vec4_get_z(lh_addr_of(c2)), lh_math_vec4_get_z(lh_addr_of(c3))),
-        lh_math_vec4_make(lh_math_vec4_get_w(lh_addr_of(c0)), lh_math_vec4_get_w(lh_addr_of(c1)),
-                          lh_math_vec4_get_w(lh_addr_of(c2)), lh_math_vec4_get_w(lh_addr_of(c3))));
+        ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), lh_math_vec4_get_x(lh_addr_of(c0)), lh_math_vec4_get_x(lh_addr_of(c1)),
+                          lh_math_vec4_get_x(lh_addr_of(c2)), lh_math_vec4_get_x(lh_addr_of(c3))); _v; }),
+        ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), lh_math_vec4_get_y(lh_addr_of(c0)), lh_math_vec4_get_y(lh_addr_of(c1)),
+                          lh_math_vec4_get_y(lh_addr_of(c2)), lh_math_vec4_get_y(lh_addr_of(c3))); _v; }),
+        ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), lh_math_vec4_get_z(lh_addr_of(c0)), lh_math_vec4_get_z(lh_addr_of(c1)),
+                          lh_math_vec4_get_z(lh_addr_of(c2)), lh_math_vec4_get_z(lh_addr_of(c3))); _v; }),
+        ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), lh_math_vec4_get_w(lh_addr_of(c0)), lh_math_vec4_get_w(lh_addr_of(c1)),
+                          lh_math_vec4_get_w(lh_addr_of(c2)), lh_math_vec4_get_w(lh_addr_of(c3))); _v; }));
 }
 
 lh_bool_t
@@ -192,10 +192,10 @@ lh_math_mat4_inverse(lh_math_mat4_t m, lh_math_mat4_t *out)
     for (unsigned c = 0; c < 4; ++c)
     {
         lh_math_mat4_set_column(out, c,
-                                lh_math_vec4_make(inv[c * 4 + 0] * inv_det,
+                                ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), inv[c * 4 + 0] * inv_det,
                                                   inv[c * 4 + 1] * inv_det,
                                                   inv[c * 4 + 2] * inv_det,
-                                                  inv[c * 4 + 3] * inv_det));
+                                                  inv[c * 4 + 3] * inv_det); _v; }));
     }
     return lh_bool_true;
 }

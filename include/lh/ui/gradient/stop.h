@@ -26,10 +26,10 @@ typedef struct lh_ui_gradient_stop lh_ui_gradient_stop_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Make a stop from @p color at position @p frac (`0..255`).
+ * @brief Fill @p self from @p color at position @p frac (`0..255`).
  */
-lh_ui_gradient_stop_t
-lh_ui_gradient_stop_make(lh_ui_color_t color, lh_byte_t frac);
+lh_void
+lh_ui_gradient_stop_init(lh_ui_gradient_stop_t *self, lh_ui_color_t color, lh_byte_t frac);
 
 /**
  * @brief Color of @p self.

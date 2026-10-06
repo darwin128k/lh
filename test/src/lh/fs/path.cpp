@@ -11,7 +11,7 @@ segment_count(const char *text, lh_fs_path_style_t style)
 {
     lh_fs_path_t path;
     lh_fs_path_init(&path);
-    lh_fs_path_set(&path, lh_str_view_make(text), style);
+    lh_fs_path_set(&path, ({ lh_str_view_t _lh_tmp; lh_str_view_init(lh_addr_of(_lh_tmp), text); _lh_tmp; }), style);
     const lh_usize_t count = lh_fs_path_get_segment_count(&path);
     lh_fs_path_deinit(&path);
     return count;
@@ -49,7 +49,7 @@ TEST(fs_path_get_segment_count, matches_get_segment)
 {
     lh_fs_path_t path;
     lh_fs_path_init(&path);
-    lh_fs_path_set(&path, lh_str_view_make("/x/yy/zzz"), lh_fs_path_style_posix);
+    lh_fs_path_set(&path, lh_str_view_lit("/x/yy/zzz"), lh_fs_path_style_posix);
     ASSERT_EQ(lh_fs_path_get_segment_count(&path), 3u);
     const lh_str_view_t last = lh_fs_path_get_segment(&path, 2);
     EXPECT_EQ(lh_str_view_get_size(&last), 3u);
@@ -63,9 +63,9 @@ TEST(fs_path_get_segment_count, after_join)
     lh_fs_path_init(&name);
     lh_fs_path_init(&root);
     lh_fs_path_init(&out);
-    lh_fs_path_set(&dir, lh_str_view_make("/a/b"), lh_fs_path_style_posix);
-    lh_fs_path_set(&name, lh_str_view_make("c/d"), lh_fs_path_style_posix);
-    lh_fs_path_set(&root, lh_str_view_make("/"), lh_fs_path_style_posix);
+    lh_fs_path_set(&dir, lh_str_view_lit("/a/b"), lh_fs_path_style_posix);
+    lh_fs_path_set(&name, lh_str_view_lit("c/d"), lh_fs_path_style_posix);
+    lh_fs_path_set(&root, lh_str_view_lit("/"), lh_fs_path_style_posix);
 
     ASSERT_TRUE(lh_fs_path_join(&out, &dir, &name));
     EXPECT_EQ(lh_fs_path_get_segment_count(&out), 4u);
@@ -85,15 +85,15 @@ TEST(fs_path_equals, same_root_and_text)
 
     lh_fs_path_init(&a);
     lh_fs_path_init(&b);
-    lh_fs_path_set(&a, lh_str_view_make("C:\\Foo\\bar"), lh_fs_path_style_windows);
-    lh_fs_path_set(&b, lh_str_view_make("C:/Foo/bar"), lh_fs_path_style_windows);
+    lh_fs_path_set(&a, lh_str_view_lit("C:\\Foo\\bar"), lh_fs_path_style_windows);
+    lh_fs_path_set(&b, lh_str_view_lit("C:/Foo/bar"), lh_fs_path_style_windows);
     EXPECT_TRUE(lh_fs_path_equals(&a, &b, lh_bool_false));
 
-    lh_fs_path_set(&b, lh_str_view_make("c:/foo/bar"), lh_fs_path_style_windows);
+    lh_fs_path_set(&b, lh_str_view_lit("c:/foo/bar"), lh_fs_path_style_windows);
     EXPECT_FALSE(lh_fs_path_equals(&a, &b, lh_bool_false));
     EXPECT_TRUE(lh_fs_path_equals(&a, &b, lh_bool_true));
 
-    lh_fs_path_set(&b, lh_str_view_make("/Foo/bar"), lh_fs_path_style_posix);
+    lh_fs_path_set(&b, lh_str_view_lit("/Foo/bar"), lh_fs_path_style_posix);
     EXPECT_FALSE(lh_fs_path_equals(&a, &b, lh_bool_true));
 
     lh_fs_path_deinit(&b);
@@ -108,7 +108,7 @@ TEST(fs_path_parent, drops_the_last_segment)
     lh_fs_path_init(&path);
     lh_str_init(&text);
 
-    lh_fs_path_set(&path, lh_str_view_make("C:\\a\\b\\c.txt"), lh_fs_path_style_windows);
+    lh_fs_path_set(&path, lh_str_view_lit("C:\\a\\b\\c.txt"), lh_fs_path_style_windows);
     ASSERT_TRUE(lh_fs_path_parent(&path, &path));
     lh_fs_path_to_str(&path, lh_fs_path_style_posix, &text);
     EXPECT_STREQ(lh_str_get_data(&text), "C:/a/b");
@@ -122,7 +122,7 @@ TEST(fs_path_parent, drops_the_last_segment)
     EXPECT_FALSE(lh_fs_path_parent(&path, &path));
     EXPECT_TRUE(lh_fs_path_is_root(&path));
 
-    lh_fs_path_set(&path, lh_str_view_make("a"), lh_fs_path_style_posix);
+    lh_fs_path_set(&path, lh_str_view_lit("a"), lh_fs_path_style_posix);
     ASSERT_TRUE(lh_fs_path_parent(&path, &path));
     EXPECT_TRUE(lh_fs_path_is_empty(&path));
 

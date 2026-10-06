@@ -77,19 +77,13 @@ typedef struct lh_net_ip4 lh_net_ip4_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── construct / set ─────────────────────────────────────────────────────── */
+/* ── init / set ────────────────────────────────────────────────────────────── */
 
 /**
- * @brief Construct an ::lh_net_ip4_t from four octets.
- *
- * @param octet0 First octet (`192` in `192.168.0.1`).
- * @param octet1 Second octet.
- * @param octet2 Third octet.
- * @param octet3 Fourth octet.
- * @return Constructed ::lh_net_ip4_t value.
+ * @brief Fill @p self from four octets.
  */
-lh_net_ip4_t
-lh_net_ip4_make(lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet2, lh_u8_t octet3);
+void
+lh_net_ip4_init(lh_net_ip4_t *self, lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet2, lh_u8_t octet3);
 
 /**
  * @brief Replace all four octets of @p self.

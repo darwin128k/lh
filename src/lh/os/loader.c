@@ -65,7 +65,7 @@ lh_os_loader_init(lh_os_loader_t *self, lh_os_module_t *owner, lh_str_cptr entry
     lh_assert_runtime_ref(entry);
     lh_list_init(lh_os_loader_get_modules(self));
     lh_os_loader_set_owner(self, owner);
-    lh_str_init_by_view(lh_os_loader_get_entry_mut(self), lh_str_view_make(entry));
+    lh_str_init_by_view(lh_os_loader_get_entry_mut(self), ({ lh_str_view_t _lh_tmp; lh_str_view_init(lh_addr_of(_lh_tmp), entry); _lh_tmp; }));
 }
 
 void

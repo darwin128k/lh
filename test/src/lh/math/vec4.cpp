@@ -15,8 +15,12 @@ TEST(vec4, layout_is_four_consecutive_floats)
 
 TEST(vec4, arithmetic)
 {
-    const lh_math_vec4_t a = lh_math_vec4_make(1.0f, 2.0f, 3.0f, 4.0f);
-    const lh_math_vec4_t b = lh_math_vec4_make(0.5f, -1.0f, 2.0f, 0.0f);
+    lh_math_vec4_t a;
+
+    lh_math_vec4_init(lh_addr_of(a), 1.0f, 2.0f, 3.0f, 4.0f);
+    lh_math_vec4_t b;
+
+    lh_math_vec4_init(lh_addr_of(b), 0.5f, -1.0f, 2.0f, 0.0f);
     lh_math_vec4_t r = lh_math_vec4_add(a, b);
     EXPECT_FLOAT_EQ(r.x, 1.5f);
     EXPECT_FLOAT_EQ(r.y, 1.0f);
@@ -34,31 +38,39 @@ TEST(vec4, arithmetic)
 
 TEST(vec4, dot_length_normalize)
 {
-    const lh_math_vec4_t v = lh_math_vec4_make(1.0f, 1.0f, 1.0f, 1.0f);
-    EXPECT_FLOAT_EQ(lh_math_vec4_dot(v, lh_math_vec4_make(1.0f, 2.0f, 3.0f, 4.0f)), 10.0f);
+    lh_math_vec4_t v;
+
+    lh_math_vec4_init(lh_addr_of(v), 1.0f, 1.0f, 1.0f, 1.0f);
+    EXPECT_FLOAT_EQ(lh_math_vec4_dot(v, ([&]() { lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), 1.0f, 2.0f, 3.0f, 4.0f); return _v; })()), 10.0f);
     EXPECT_FLOAT_EQ(lh_math_vec4_length_sq(v), 4.0f);
     EXPECT_FLOAT_EQ(lh_math_vec4_length(v), 2.0f);
     const lh_math_vec4_t n = lh_math_vec4_normalize(v);
     EXPECT_FLOAT_EQ(n.x, 0.5f);
     EXPECT_FLOAT_EQ(n.w, 0.5f);
-    const lh_math_vec4_t zero = lh_math_vec4_normalize(lh_math_vec4_make(0, 0, 0, 0));
+    const lh_math_vec4_t zero = lh_math_vec4_normalize(([&]() { lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), 0, 0, 0, 0); return _v; })());
     EXPECT_FLOAT_EQ(zero.w, 0.0f);
 }
 
 TEST(vec4, lerp_and_near)
 {
-    const lh_math_vec4_t a = lh_math_vec4_make(0.0f, 0.0f, 0.0f, 1.0f);
-    const lh_math_vec4_t b = lh_math_vec4_make(4.0f, 8.0f, -4.0f, 1.0f);
+    lh_math_vec4_t a;
+
+    lh_math_vec4_init(lh_addr_of(a), 0.0f, 0.0f, 0.0f, 1.0f);
+    lh_math_vec4_t b;
+
+    lh_math_vec4_init(lh_addr_of(b), 4.0f, 8.0f, -4.0f, 1.0f);
     const lh_math_vec4_t m = lh_math_vec4_lerp(a, b, 0.5f);
-    EXPECT_TRUE(lh_math_vec4_near(m, lh_math_vec4_make(2.0f, 4.0f, -2.0f, 1.0f), 0.0f));
-    EXPECT_FALSE(lh_math_vec4_near(m, lh_math_vec4_make(2.0f, 4.0f, -2.0f, 1.1f), 0.01f));
+    EXPECT_TRUE(lh_math_vec4_near(m, ([&]() { lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), 2.0f, 4.0f, -2.0f, 1.0f); return _v; })(), 0.0f));
+    EXPECT_FALSE(lh_math_vec4_near(m, ([&]() { lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), 2.0f, 4.0f, -2.0f, 1.1f); return _v; })(), 0.01f));
 }
 
 /* ── conversions ────────────────────────────────────────────────────────── */
 
 TEST(vec4, vec3_to_vec4_sets_w)
 {
-    const lh_math_vec3_t a = lh_math_vec3_make(1.0f, 2.0f, 3.0f);
+    lh_math_vec3_t a;
+
+    lh_math_vec3_init(lh_addr_of(a), 1.0f, 2.0f, 3.0f);
     lh_math_vec4_t r = lh_math_vec3_to_vec4(a, 1.0f);
     EXPECT_FLOAT_EQ(r.x, 1.0f);
     EXPECT_FLOAT_EQ(r.y, 2.0f);
@@ -71,7 +83,9 @@ TEST(vec4, vec3_to_vec4_sets_w)
 
 TEST(vec4, vec4_to_vec3_drops_w)
 {
-    const lh_math_vec4_t a = lh_math_vec4_make(1.0f, 2.0f, 3.0f, 99.0f);
+    lh_math_vec4_t a;
+
+    lh_math_vec4_init(lh_addr_of(a), 1.0f, 2.0f, 3.0f, 99.0f);
     const lh_math_vec3_t b = lh_math_vec4_to_vec3(a);
     EXPECT_FLOAT_EQ(b.x, 1.0f);
     EXPECT_FLOAT_EQ(b.y, 2.0f);
@@ -80,7 +94,9 @@ TEST(vec4, vec4_to_vec3_drops_w)
 
 TEST(vec4, vec3_round_trip_keeps_xyz)
 {
-    const lh_math_vec3_t a = lh_math_vec3_make(1.5f, -2.25f, 3.125f);
+    lh_math_vec3_t a;
+
+    lh_math_vec3_init(lh_addr_of(a), 1.5f, -2.25f, 3.125f);
     const lh_math_vec3_t b = lh_math_vec4_to_vec3(lh_math_vec3_to_vec4(a, 7.0f));
     EXPECT_FLOAT_EQ(b.x, a.x);
     EXPECT_FLOAT_EQ(b.y, a.y);

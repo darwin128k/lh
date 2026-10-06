@@ -13,7 +13,9 @@ TEST(ui_pen, is_the_same_type_as_paint)
 
 TEST(ui_pen, make_empty_and_init_are_usable)
 {
-    const lh_ui_pen_t a = lh_ui_pen_make_empty();
+    lh_ui_pen_t a;
+
+    lh_ui_paint_init(lh_addr_of(a));
     lh_ui_pen_t b;
     lh_ui_pen_init(lh_addr_of(b));
     (void)a;

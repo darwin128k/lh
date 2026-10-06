@@ -9,7 +9,9 @@ namespace
 
 TEST(net_ip4_make, roundtrip_via_get_octet)
 {
-    lh_net_ip4_t addr = lh_net_ip4_make(192, 168, 0, 1);
+    lh_net_ip4_t addr;
+
+    lh_net_ip4_init(lh_addr_of(addr), 192, 168, 0, 1);
     EXPECT_EQ(lh_net_ip4_get_octet(&addr, LH_NET_IP4_OCTET_INDEX_0), 192);
     EXPECT_EQ(lh_net_ip4_get_octet(&addr, LH_NET_IP4_OCTET_INDEX_1), 168);
     EXPECT_EQ(lh_net_ip4_get_octet(&addr, LH_NET_IP4_OCTET_INDEX_2), 0);
@@ -18,7 +20,9 @@ TEST(net_ip4_make, roundtrip_via_get_octet)
 
 TEST(net_ip4_set_octet, replaces_single_octet)
 {
-    lh_net_ip4_t addr = lh_net_ip4_make(1, 2, 3, 4);
+    lh_net_ip4_t addr;
+
+    lh_net_ip4_init(lh_addr_of(addr), 1, 2, 3, 4);
     lh_net_ip4_set_octet(&addr, LH_NET_IP4_OCTET_INDEX_2, 99);
     EXPECT_EQ(lh_net_ip4_get_octet(&addr, LH_NET_IP4_OCTET_INDEX_0), 1);
     EXPECT_EQ(lh_net_ip4_get_octet(&addr, LH_NET_IP4_OCTET_INDEX_2), 99);
@@ -26,8 +30,12 @@ TEST(net_ip4_set_octet, replaces_single_octet)
 
 TEST(net_ip4_assign, copies_all_octets)
 {
-    lh_net_ip4_t src = lh_net_ip4_make(10, 20, 30, 40);
-    lh_net_ip4_t dst = lh_net_ip4_make(0, 0, 0, 0);
+    lh_net_ip4_t src;
+
+    lh_net_ip4_init(lh_addr_of(src), 10, 20, 30, 40);
+    lh_net_ip4_t dst;
+
+    lh_net_ip4_init(lh_addr_of(dst), 0, 0, 0, 0);
     lh_net_ip4_assign(&dst, &src);
     EXPECT_TRUE(lh_net_ip4_equals(&dst, &src));
 }
@@ -117,19 +125,33 @@ TEST(net_ip4_equals, compares_octets)
 
 TEST(net_ip4_is_loopback, matches_127_net)
 {
-    lh_net_ip4_t loop = lh_net_ip4_make(127, 0, 0, 1);
-    lh_net_ip4_t public_addr = lh_net_ip4_make(8, 8, 8, 8);
+    lh_net_ip4_t loop;
+
+    lh_net_ip4_init(lh_addr_of(loop), 127, 0, 0, 1);
+    lh_net_ip4_t public_addr;
+
+    lh_net_ip4_init(lh_addr_of(public_addr), 8, 8, 8, 8);
     EXPECT_TRUE(lh_net_ip4_is_loopback(&loop));
     EXPECT_FALSE(lh_net_ip4_is_loopback(&public_addr));
 }
 
 TEST(net_ip4_is_private, matches_rfc1918)
 {
-    lh_net_ip4_t ten = lh_net_ip4_make(10, 1, 2, 3);
-    lh_net_ip4_t one_seventy_two = lh_net_ip4_make(172, 16, 0, 1);
-    lh_net_ip4_t one_ninety_two = lh_net_ip4_make(192, 168, 1, 1);
-    lh_net_ip4_t public_addr = lh_net_ip4_make(8, 8, 8, 8);
-    lh_net_ip4_t loop = lh_net_ip4_make(127, 0, 0, 1);
+    lh_net_ip4_t ten;
+
+    lh_net_ip4_init(lh_addr_of(ten), 10, 1, 2, 3);
+    lh_net_ip4_t one_seventy_two;
+
+    lh_net_ip4_init(lh_addr_of(one_seventy_two), 172, 16, 0, 1);
+    lh_net_ip4_t one_ninety_two;
+
+    lh_net_ip4_init(lh_addr_of(one_ninety_two), 192, 168, 1, 1);
+    lh_net_ip4_t public_addr;
+
+    lh_net_ip4_init(lh_addr_of(public_addr), 8, 8, 8, 8);
+    lh_net_ip4_t loop;
+
+    lh_net_ip4_init(lh_addr_of(loop), 127, 0, 0, 1);
 
     EXPECT_TRUE(lh_net_ip4_is_private(&ten));
     EXPECT_TRUE(lh_net_ip4_is_private(&one_seventy_two));
