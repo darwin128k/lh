@@ -9,7 +9,8 @@
  * **Manual build (no CMake):** copy this file to `config.h` and substitute every
  * CMake-style placeholder (at-sign delimited identifiers) with decimal integers:
  * version macros from the root `VERSION` file; library options use `0` or `1`
- * except `LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY` (must be > 0),
+ * except `LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS` (must be >= 1),
+ * `LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY` (must be > 0),
  * `LH_LIBRARY_OPTION_ARRAY_GROWTH_FACTOR` (must be > 1),
  * `LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK` (must be > 0), and the
  * `LH_LIBRARY_OPTION_MEMORY_STD_*` tuning thresholds below (must be > 0).
@@ -187,6 +188,18 @@
  *        (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
  */
 #define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED @ValAllocatorInitAllocated@
+
+/**
+ * @def LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS
+ * @brief Fixed capacity of ::lh_ui_gradient_t color stops.
+ *
+ * Default `2` (same as LVGL `LV_GRADIENT_MAX_STOPS`). Raise to allow more
+ * stops; each extra stop grows the descriptor by one
+ * ::lh_ui_gradient_stop_t.
+ *
+ * @note The value must be at least 1.
+ */
+#define LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS @ValUiGradientMaxStops@
 
 /**
  * @def LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY

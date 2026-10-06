@@ -93,6 +93,13 @@ function(lh_generate_config)
     endif ()
     set(ValAllocatorDefaultInclude "${LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE}")
 
+    if (NOT LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS MATCHES "^[0-9]+$" OR
+            LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS LESS 1)
+        message(FATAL_ERROR "LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS must be an integer >= 1 "
+                "(got '${LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS}')")
+    endif ()
+    set(ValUiGradientMaxStops "${LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS}")
+
     set(ValArrayInitialCapacity "${LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY}")
     set(ValArrayGrowthFactor "${LH_LIBRARY_OPTION_ARRAY_GROWTH_FACTOR}")
 

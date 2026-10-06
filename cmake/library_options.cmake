@@ -235,6 +235,19 @@ option(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED
         ON)
 
 # -----------------------------------------------------------------------------
+# LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS
+#
+# Fixed capacity of lh_ui_gradient_t::stops. Same role as LVGL's
+# LV_GRADIENT_MAX_STOPS: raise it to allow more color stops; each extra stop
+# grows the descriptor by one lh_ui_gradient_stop_t.
+#
+# CMake: -DLH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS=8 or ccmake.
+# Manual build: set in include/lh/config.h or -D on the compiler command line.
+# -----------------------------------------------------------------------------
+set(LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS "2" CACHE STRING
+        "Max color stops in lh_ui_gradient_t (must be >= 1; default 2 like LVGL).")
+
+# -----------------------------------------------------------------------------
 # LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY
 #
 # Capacity lh_array_t grows to from empty on its first push_back/insert

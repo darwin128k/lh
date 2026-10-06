@@ -4,7 +4,7 @@
  *
  * ::lh_ui_brush_t and ::lh_ui_pen_t are aliases of this type. The color is
  * not owned: it must outlive the paint, and several paints may share one.
- * Gradients are not here yet.
+ * Stop maps live on ::lh_ui_gradient_t; paint does not point at them yet.
  */
 
 #ifndef LH_UI_PAINT_H
