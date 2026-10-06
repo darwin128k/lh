@@ -12,6 +12,8 @@
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/list/node.h>
+#include <lh/numeric/fixed/types.h>
 #include <lh/timer/cb.h>
 #include <lh/timer/fields.h>
 #include <lh/timer/group.h>
@@ -44,14 +46,43 @@ lh_void
 lh_timer_deinit(lh_timer_t *self);
 
 /**
+ * @brief Intrusive list link of @p self in its group.
+ *
+ * For ::lh_timer_group_t; a timer never walks the group through this.
+ */
+lh_list_node_t *
+lh_timer_get_node(lh_timer_t *self);
+
+/**
+ * @brief Const intrusive list link of @p self in its group.
+ */
+const lh_list_node_t *
+lh_timer_get_node_as_const(const lh_timer_t *self);
+
+/**
+ * @brief The timer whose link is @p node, or ::lh_null if @p node is
+ *        ::lh_null. The reverse of ::lh_timer_get_node.
+ */
+lh_timer_t *
+lh_timer_get_by_node(lh_list_node_t *node);
+
+/**
+ * @brief Const timer whose link is @p node, or ::lh_null if @p node is
+ *        ::lh_null. The reverse of ::lh_timer_get_node_as_const.
+ */
+const lh_timer_t *
+lh_timer_get_by_node_as_const(const lh_list_node_t *node);
+
+/**
  * @brief Arm @p self on @p group.
  *
  * @p period must be > 0. @p now is the current tick (first fire after
- * @p period). Replaces a previous start. @p cb must be non-null.
+ * @p period). Linked ahead of lower-priority timers (stable among equals).
+ * Replaces a previous start. @p cb must be non-null.
  */
 lh_void
 lh_timer_start(lh_timer_group_t *group, lh_timer_t *self, lh_tick_t period, lh_bool_t repeat,
-               lh_timer_cb cb, lh_ptr context, lh_tick_t now);
+               lh_u8_t priority, lh_timer_cb cb, lh_ptr context, lh_tick_t now);
 
 /**
  * @brief Unlink @p self from its group. No-op when not running.
@@ -64,6 +95,18 @@ lh_timer_stop(lh_timer_t *self);
  */
 lh_bool_t
 lh_timer_is_running(const lh_timer_t *self);
+
+/**
+ * @brief Current priority (higher runs earlier when due).
+ */
+lh_u8_t
+lh_timer_get_priority(const lh_timer_t *self);
+
+/**
+ * @brief Set priority; re-links in @p group when running.
+ */
+lh_void
+lh_timer_set_priority(lh_timer_group_t *group, lh_timer_t *self, lh_u8_t priority);
 
 /**
  * @brief Pause due checks without unlinking. No-op when not running.

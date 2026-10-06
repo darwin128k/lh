@@ -267,6 +267,26 @@ TEST(list_sort, empty_and_single)
     EXPECT_EQ(values_forward(&list), (std::vector<int>{1}));
 }
 
+TEST(list_insert_sorted, stable_by_key)
+{
+    lh_list_t list;
+    Keyed items[] = {{2, 0, {}}, {1, 1, {}}, {2, 2, {}}, {0, 3, {}}, {1, 4, {}}};
+
+    lh_list_init(&list);
+    for (Keyed &k : items)
+    {
+        lh_list_node_init(&k.node);
+        lh_list_insert_sorted(&list, &k.node, by_key, nullptr);
+    }
+
+    std::vector<std::pair<int, int>> got;
+    for (lh_list_node_t *n = lh_list_get_first(&list); n; n = lh_list_get_next(&list, n))
+    {
+        got.emplace_back(lh_list_entry(Keyed, node, n)->key, lh_list_entry(Keyed, node, n)->order);
+    }
+    EXPECT_EQ(got, (std::vector<std::pair<int, int>>{{0, 3}, {1, 1}, {1, 4}, {2, 0}, {2, 2}}));
+}
+
 TEST(list_sort, matches_stable_sort_for_many_sizes)
 {
     unsigned seed = 12345u;

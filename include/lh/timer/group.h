@@ -3,13 +3,15 @@
  * @brief A set of logical timers: ::lh_timer_group_t.
  *
  * OS-independent, LVGL-style: the host calls ::lh_timer_group_handler with
- * the current ::lh_tick_t (e.g. from ::lh_os_tick_ms). No threads.
+ * the current ::lh_tick_t (e.g. from ::lh_os_tick_ms). Due timers run higher
+ * priority first. No threads.
  */
 
 #ifndef LH_TIMER_GROUP_H
 #define LH_TIMER_GROUP_H
 
 #include <lh/compiler/extern/c.h>
+#include <lh/list.h>
 #include <lh/timer/group/fields.h>
 #include <lh/timer/tick.h>
 #include <lh/void.h>
@@ -38,6 +40,18 @@ lh_timer_group_init(lh_timer_group_t *self);
  */
 lh_void
 lh_timer_group_deinit(lh_timer_group_t *self);
+
+/**
+ * @brief Intrusive list of running timers. Owns no timer memory.
+ */
+lh_list_t *
+lh_timer_group_get_timers(lh_timer_group_t *self);
+
+/**
+ * @brief Const intrusive list of running timers. Owns no timer memory.
+ */
+const lh_list_t *
+lh_timer_group_get_timers_as_const(const lh_timer_group_t *self);
 
 /**
  * @brief Fire every due timer for @p now.

@@ -13,13 +13,13 @@ struct lh_list_node;
 
 /**
  * @typedef lh_list_cmp_fn
- * @brief Order two elements for ::lh_list_sort.
+ * @brief Order two elements for ::lh_list_sort / ::lh_list_insert_sorted.
  *
  * @param a       An element.
  * @param b       Another element.
- * @param context What the caller passed to ::lh_list_sort.
+ * @param context What the caller passed to the list API.
  * @return Negative if @p a goes first, positive if @p b does, `0` if they
- *         are equal (their current order is then kept: the sort is stable).
+ *         are equal (their current order is then kept: the ops are stable).
  */
 typedef lh_int_t(lh_list_cmp_fn)(const struct lh_list_node *a, const struct lh_list_node *b,
                                  lh_ptr context);

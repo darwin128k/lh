@@ -149,6 +149,19 @@ void
 lh_list_push_back(lh_list_t *self, lh_list_node_t *node);
 
 /**
+ * @brief Insert unlinked @p node keeping @p self ordered by @p cmp.
+ *
+ * Same order as ::lh_list_sort: negative means @p node goes before an
+ * existing element. Equal keys stay stable — @p node is placed after them.
+ * O(n).
+ *
+ * @param cmp     Order of two elements.
+ * @param context Passed to every @p cmp call.
+ */
+void
+lh_list_insert_sorted(lh_list_t *self, lh_list_node_t *node, lh_list_cmp_cb cmp, lh_ptr context);
+
+/**
  * @brief Move every element of @p other, in order, to the end of @p self.
  *
  * O(1): the two rings are joined, no element is visited. @p other ends up

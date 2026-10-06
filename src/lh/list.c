@@ -128,6 +128,23 @@ lh_list_push_back(lh_list_t *self, lh_list_node_t *node)
     lh_list_node_insert_before(node, lh_list_get_head(self));
 }
 
+void
+lh_list_insert_sorted(lh_list_t *self, lh_list_node_t *node, lh_list_cmp_cb cmp, lh_ptr context)
+{
+    lh_list_node_t *pos;
+
+    lh_assert_runtime_ref(cmp);
+    for (pos = lh_list_get_first(self); lh_ptr_is_set(pos); pos = lh_list_get_next(self, pos))
+    {
+        if (lh_math_lt(cmp(node, pos, context), 0))
+        {
+            lh_list_node_insert_before(node, pos);
+            return;
+        }
+    }
+    lh_list_push_back(self, node);
+}
+
 lh_list_node_t *
 lh_list_pop_front(lh_list_t *self)
 {
