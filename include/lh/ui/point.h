@@ -18,47 +18,38 @@
 
 typedef lh_math_fpoint_t lh_ui_point_t;
 
-#    define lh_ui_point_init lh_math_fpoint_init
-#    define lh_ui_point_init_empty lh_math_fpoint_init_empty
-#    define lh_ui_point_get_x lh_math_fpoint_get_x
-#    define lh_ui_point_get_y lh_math_fpoint_get_y
-#    define lh_ui_point_set_x lh_math_fpoint_set_x
-#    define lh_ui_point_set_y lh_math_fpoint_set_y
+/** @brief Name of the float math function @p name for ::lh_ui_point_t. */
+#    define LH_UI_POINT_FN(name) lh_math_fpoint_##name
 #    define lh_ui_point_to_point lh_math_fpoint_to_point
 #    define lh_ui_point_from_point lh_math_point_to_fpoint
-#    define lh_ui_point_eq lh_math_fpoint_eq
-#    define lh_ui_point_equals lh_math_fpoint_equals
-#    define lh_ui_point_is_at_least lh_math_fpoint_is_at_least
-#    define lh_ui_point_is_less lh_math_fpoint_is_less
-#    define lh_ui_point_is_greater lh_math_fpoint_is_greater
-#    define lh_ui_point_min lh_math_fpoint_min
-#    define lh_ui_point_max lh_math_fpoint_max
-#    define lh_ui_point_in_extent lh_math_fpoint_in_extent
-#    define lh_ui_point_offset lh_math_fpoint_offset
-#    define lh_ui_point_offset_size lh_math_fpoint_offset_size
 #else
 #    include <lh/math/point.h>
 
 typedef lh_math_point_t lh_ui_point_t;
 
-#    define lh_ui_point_init lh_math_point_init
-#    define lh_ui_point_init_empty lh_math_point_init_empty
-#    define lh_ui_point_get_x lh_math_point_get_x
-#    define lh_ui_point_get_y lh_math_point_get_y
-#    define lh_ui_point_set_x lh_math_point_set_x
-#    define lh_ui_point_set_y lh_math_point_set_y
+/** @brief Name of the integer math function @p name for ::lh_ui_point_t. */
+#    define LH_UI_POINT_FN(name) lh_math_point_##name
 #    define lh_ui_point_to_point(self) (self)
 #    define lh_ui_point_from_point(self) (self)
-#    define lh_ui_point_eq lh_math_point_eq
-#    define lh_ui_point_equals lh_math_point_equals
-#    define lh_ui_point_is_at_least lh_math_point_is_at_least
-#    define lh_ui_point_is_less lh_math_point_is_less
-#    define lh_ui_point_is_greater lh_math_point_is_greater
-#    define lh_ui_point_min lh_math_point_min
-#    define lh_ui_point_max lh_math_point_max
-#    define lh_ui_point_in_extent lh_math_point_in_extent
-#    define lh_ui_point_offset lh_math_point_offset
-#    define lh_ui_point_offset_size lh_math_point_offset_size
 #endif
+
+/* One list for both paths: a math function missing on either side fails to
+ * compile on that side instead of silently drifting. */
+#define lh_ui_point_init LH_UI_POINT_FN(init)
+#define lh_ui_point_init_empty LH_UI_POINT_FN(init_empty)
+#define lh_ui_point_get_x LH_UI_POINT_FN(get_x)
+#define lh_ui_point_get_y LH_UI_POINT_FN(get_y)
+#define lh_ui_point_set_x LH_UI_POINT_FN(set_x)
+#define lh_ui_point_set_y LH_UI_POINT_FN(set_y)
+#define lh_ui_point_eq LH_UI_POINT_FN(eq)
+#define lh_ui_point_equals LH_UI_POINT_FN(equals)
+#define lh_ui_point_is_at_least LH_UI_POINT_FN(is_at_least)
+#define lh_ui_point_is_less LH_UI_POINT_FN(is_less)
+#define lh_ui_point_is_greater LH_UI_POINT_FN(is_greater)
+#define lh_ui_point_min LH_UI_POINT_FN(min)
+#define lh_ui_point_max LH_UI_POINT_FN(max)
+#define lh_ui_point_in_extent LH_UI_POINT_FN(in_extent)
+#define lh_ui_point_offset LH_UI_POINT_FN(offset)
+#define lh_ui_point_offset_size LH_UI_POINT_FN(offset_size)
 
 #endif /* LH_UI_POINT_H */

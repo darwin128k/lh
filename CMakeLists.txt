@@ -94,18 +94,6 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/math/size.c
         ${LH_LIB_SRC_PATH}/math/rect.c
 
-        ${LH_LIB_SRC_PATH}/ui/color.c
-        ${LH_LIB_SRC_PATH}/ui/paint.c
-        ${LH_LIB_SRC_PATH}/ui/gradient.c
-        ${LH_LIB_SRC_PATH}/ui/style.c
-        ${LH_LIB_SRC_PATH}/ui/canvas.c
-        ${LH_LIB_SRC_PATH}/ui/pen.c
-        ${LH_LIB_SRC_PATH}/ui/entity.c
-        ${LH_LIB_SRC_PATH}/ui/entity/class.c
-        ${LH_LIB_SRC_PATH}/ui/entity/event.c
-        ${LH_LIB_SRC_PATH}/ui/entity/label.c
-
-
         ${LH_LIB_SRC_PATH}/version.c
         ${LH_LIB_SRC_PATH}/date.c
         ${LH_LIB_SRC_PATH}/date/year.c
@@ -225,6 +213,22 @@ if (LH_LIBRARY_OPTION_OS)
             list(APPEND LH_OS_SYSTEM_LINK_LIBS user32 gdi32)
         endif ()
     endif ()
+endif ()
+
+# UI model (color, paint, style, canvas, entity tree). OFF leaves it out.
+if (LH_LIBRARY_OPTION_UI)
+    list(APPEND LH_LIB_SOURCES
+            ${LH_LIB_SRC_PATH}/ui/color.c
+            ${LH_LIB_SRC_PATH}/ui/paint.c
+            ${LH_LIB_SRC_PATH}/ui/gradient.c
+            ${LH_LIB_SRC_PATH}/ui/style.c
+            ${LH_LIB_SRC_PATH}/ui/canvas.c
+            ${LH_LIB_SRC_PATH}/ui/pen.c
+            ${LH_LIB_SRC_PATH}/ui/entity.c
+            ${LH_LIB_SRC_PATH}/ui/entity/class.c
+            ${LH_LIB_SRC_PATH}/ui/entity/event.c
+            ${LH_LIB_SRC_PATH}/ui/entity/label.c
+    )
 endif ()
 
 # Float math (vec, quat, mat4) is the FPU. OFF leaves it out of the library.

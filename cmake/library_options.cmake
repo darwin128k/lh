@@ -235,6 +235,21 @@ option(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED
         ON)
 
 # -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_UI
+#
+# UI model under include/lh/ui and src/lh/ui: color, paint, pen, style,
+# gradient, canvas (backend table), and the entity tree.
+#
+#   ON  — compile the UI sources (default).
+#   OFF — leave them out; lh/ui.h and friends refuse to compile.
+#
+# Needs no OS: a canvas backend is supplied by the host (GDI, GL, STM32 ...).
+# -----------------------------------------------------------------------------
+option(LH_LIBRARY_OPTION_UI
+        "Compile the lh UI model (color, paint, style, canvas, entity tree)."
+        ON)
+
+# -----------------------------------------------------------------------------
 # LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS
 #
 # Fixed capacity of lh_ui_gradient_t::stops. Same role as LVGL's

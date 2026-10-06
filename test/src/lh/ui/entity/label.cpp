@@ -4,7 +4,7 @@
 #include <lh/ui/rect.h>
 #include <lh/util/addr.h>
 
-TEST(entity_label, make_keeps_the_rect_and_the_text_pointer)
+TEST(entity_label, init_keeps_the_rect_and_the_text_pointer)
 {
     lh_ui_rect_t rect;
 

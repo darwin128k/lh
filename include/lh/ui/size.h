@@ -18,39 +18,34 @@
 
 typedef lh_math_fsize_t lh_ui_size_t;
 
-#    define lh_ui_size_from_extent lh_math_fsize_from_extent
-#    define lh_ui_size_get_width lh_math_fsize_get_width
-#    define lh_ui_size_get_height lh_math_fsize_get_height
-#    define lh_ui_size_set_width lh_math_fsize_set_width
-#    define lh_ui_size_set_height lh_math_fsize_set_height
+/** @brief Name of the float math function @p name for ::lh_ui_size_t. */
+#    define LH_UI_SIZE_FN(name) lh_math_fsize_##name
 #    define lh_ui_size_to_size lh_math_fsize_to_size
 #    define lh_ui_size_from_size lh_math_size_to_fsize
-#    define lh_ui_size_eq lh_math_fsize_eq
-#    define lh_ui_size_equals lh_math_fsize_equals
-#    define lh_ui_size_is_at_least lh_math_fsize_is_at_least
-#    define lh_ui_size_is_less lh_math_fsize_is_less
-#    define lh_ui_size_is_greater lh_math_fsize_is_greater
-#    define lh_ui_size_is_empty lh_math_fsize_is_empty
-#    define lh_ui_size_inset lh_math_fsize_inset
 #else
 #    include <lh/math/size.h>
 
 typedef lh_math_size_t lh_ui_size_t;
 
-#    define lh_ui_size_from_extent lh_math_size_from_extent
-#    define lh_ui_size_get_width lh_math_size_get_width
-#    define lh_ui_size_get_height lh_math_size_get_height
-#    define lh_ui_size_set_width lh_math_size_set_width
-#    define lh_ui_size_set_height lh_math_size_set_height
+/** @brief Name of the integer math function @p name for ::lh_ui_size_t. */
+#    define LH_UI_SIZE_FN(name) lh_math_size_##name
 #    define lh_ui_size_to_size(self) (self)
 #    define lh_ui_size_from_size(self) (self)
-#    define lh_ui_size_eq lh_math_size_eq
-#    define lh_ui_size_equals lh_math_size_equals
-#    define lh_ui_size_is_at_least lh_math_size_is_at_least
-#    define lh_ui_size_is_less lh_math_size_is_less
-#    define lh_ui_size_is_greater lh_math_size_is_greater
-#    define lh_ui_size_is_empty lh_math_size_is_empty
-#    define lh_ui_size_inset lh_math_size_inset
 #endif
+
+/* One list for both paths: a math function missing on either side fails to
+ * compile on that side instead of silently drifting. */
+#define lh_ui_size_from_extent LH_UI_SIZE_FN(from_extent)
+#define lh_ui_size_get_width LH_UI_SIZE_FN(get_width)
+#define lh_ui_size_get_height LH_UI_SIZE_FN(get_height)
+#define lh_ui_size_set_width LH_UI_SIZE_FN(set_width)
+#define lh_ui_size_set_height LH_UI_SIZE_FN(set_height)
+#define lh_ui_size_eq LH_UI_SIZE_FN(eq)
+#define lh_ui_size_equals LH_UI_SIZE_FN(equals)
+#define lh_ui_size_is_at_least LH_UI_SIZE_FN(is_at_least)
+#define lh_ui_size_is_less LH_UI_SIZE_FN(is_less)
+#define lh_ui_size_is_greater LH_UI_SIZE_FN(is_greater)
+#define lh_ui_size_is_empty LH_UI_SIZE_FN(is_empty)
+#define lh_ui_size_inset LH_UI_SIZE_FN(inset)
 
 #endif /* LH_UI_SIZE_H */

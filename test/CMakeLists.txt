@@ -70,16 +70,6 @@ set(LH_TEST_SOURCES
         ${LH_TEST_SRC_PATH}/lh/math/size.cpp
         ${LH_TEST_SRC_PATH}/lh/math/rect.cpp
         ${LH_TEST_SRC_PATH}/lh/numeric/parse/bytes.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/color.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/paint.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/gradient.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/brush.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/pen.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/style.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/point.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/rect.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/entity.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/entity/label.cpp
 
         ${LH_TEST_SRC_PATH}/lh/list.cpp
         ${LH_TEST_SRC_PATH}/lh/str.cpp
@@ -135,6 +125,22 @@ endif ()
 if (LH_LIBRARY_OPTION_OS_WINDOW)
     list(APPEND LH_TEST_SOURCES
             ${LH_TEST_SRC_PATH}/lh/os/window.cpp
+    )
+endif ()
+
+if (LH_LIBRARY_OPTION_UI)
+    list(APPEND LH_TEST_SOURCES
+            ${LH_TEST_SRC_PATH}/lh/ui/color.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/paint.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/gradient.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/brush.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/pen.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/style.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/point.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/rect.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/canvas.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/entity.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/entity/label.cpp
     )
 endif ()
 

@@ -1,11 +1,15 @@
 #include <gtest/gtest.h>
 
 #include <lh/bool.h>
+#include <lh/expect/death.h>
 #include <lh/null.h>
+#include <lh/ui/canvas.h>
+#include <lh/ui/color.h>
 #include <lh/ui/entity.h>
 #include <lh/ui/entity/event.h>
 #include <lh/ui/point.h>
 #include <lh/ui/rect.h>
+#include <lh/ui/paint.h>
 #include <lh/ui/style.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -45,9 +49,45 @@ const lh_ui_entity_class_t g_record_class = {record_draw,
                                             lh_ptr_rcast(const lh_ui_entity_class_t, lh_null)};
 const lh_ui_entity_class_t g_click_class = {record_click,
                                            lh_ptr_rcast(const lh_ui_entity_class_t, lh_null)};
+struct fill_log
+{
+    int count;
+    lh_ui_rect_t rect;
+    lh_ui_color_t color;
+};
+
+lh_void
+log_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *color)
+{
+    fill_log *log = lh_ptr_rcast(fill_log, context);
+    ++log->count;
+    log->rect = *rect;
+    log->color = *color;
+}
+
+const lh_ui_canvas_backend_t g_fill_log_backend = {nullptr, nullptr, nullptr, log_fill_rect};
+
+int g_walk_n;
+
+lh_bool_t
+count_until_two(const struct lh_ui_entity *entity, lh_ptr context)
+{
+    (void)entity;
+    (void)context;
+    ++g_walk_n;
+    return g_walk_n < 2 ? lh_bool_true : lh_bool_false;
+}
+
+lh_bool_t
+count_all(const struct lh_ui_entity *entity, lh_ptr context)
+{
+    (void)entity;
+    ++*lh_ptr_rcast(int, context);
+    return lh_bool_true;
+}
 } // namespace
 
-TEST(entity, make_keeps_the_rect)
+TEST(entity, init_keeps_the_rect)
 {
     lh_ui_rect_t rect;
 
@@ -264,3 +304,121 @@ TEST(entity, click_sends_event_to_hit)
     EXPECT_EQ(lh_ui_point_get_x(lh_addr_of(g_click_point)), 12);
     EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(g_click_point)), 14);
 }
+
+TEST(entity, add_child_sets_parent_and_remove_clears_it)
+{
+    lh_ui_rect_t rect;
+    lh_ui_entity_t parent;
+    lh_ui_entity_t child;
+
+    lh_ui_rect_init(lh_addr_of(rect), 0, 0, 1, 1);
+    lh_ui_entity_init(lh_addr_of(parent), rect);
+    lh_ui_entity_init(lh_addr_of(child), rect);
+    EXPECT_TRUE(lh_null_eq(lh_ui_entity_get_parent(lh_addr_of(child))));
+    lh_ui_entity_add_child(lh_addr_of(parent), lh_addr_of(child));
+    EXPECT_EQ(lh_ui_entity_get_parent(lh_addr_of(child)), lh_addr_of(parent));
+    lh_ui_entity_remove_child(lh_addr_of(parent), lh_addr_of(child));
+    EXPECT_TRUE(lh_null_eq(lh_ui_entity_get_parent(lh_addr_of(child))));
+
+    /* Free again: it can join another parent. */
+    lh_ui_entity_add_child(lh_addr_of(parent), lh_addr_of(child));
+    EXPECT_EQ(lh_ui_entity_get_first_child(lh_addr_of(parent)), lh_addr_of(child));
+}
+
+TEST(entity, walk_visits_every_node_and_can_stop)
+{
+    lh_ui_rect_t rect;
+    lh_ui_entity_t root;
+    lh_ui_entity_t a;
+    lh_ui_entity_t b;
+    int n;
+
+    lh_ui_rect_init(lh_addr_of(rect), 0, 0, 1, 1);
+    lh_ui_entity_init(lh_addr_of(root), rect);
+    lh_ui_entity_init(lh_addr_of(a), rect);
+    lh_ui_entity_init(lh_addr_of(b), rect);
+    lh_ui_entity_add_child(lh_addr_of(root), lh_addr_of(a));
+    lh_ui_entity_add_child(lh_addr_of(a), lh_addr_of(b));
+
+    n = 0;
+    EXPECT_EQ(lh_ui_entity_walk(lh_addr_of(root), count_all, lh_addr_of(n)), lh_bool_true);
+    EXPECT_EQ(n, 3);
+
+    g_walk_n = 0;
+    EXPECT_EQ(lh_ui_entity_walk(lh_addr_of(root), count_until_two, nullptr), lh_bool_false);
+    EXPECT_EQ(g_walk_n, 2);
+}
+
+TEST(entity, base_class_fills_the_style_color_on_the_canvas)
+{
+    lh_ui_rect_t rect;
+    lh_ui_color_t color;
+    lh_ui_paint_t paint;
+    lh_ui_style_t style;
+    lh_ui_entity_t entity;
+    lh_ui_canvas_t canvas;
+    fill_log log{};
+
+    lh_ui_rect_init(lh_addr_of(rect), 5, 6, 7, 8);
+    lh_ui_color_init(lh_addr_of(color), 9, 10, 11, 255);
+    lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(color));
+    lh_ui_style_init(lh_addr_of(style));
+    lh_ui_style_set_fill(lh_addr_of(style), lh_addr_of(paint));
+    lh_ui_entity_init(lh_addr_of(entity), rect);
+    lh_ui_entity_set_style(lh_addr_of(entity), lh_addr_of(style));
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_fill_log_backend), lh_addr_of(log));
+
+    EXPECT_TRUE(lh_ui_color_equals(lh_ui_entity_get_fill_color(lh_addr_of(entity)), lh_addr_of(color)));
+    lh_ui_entity_draw(lh_addr_of(entity), lh_addr_of(canvas));
+
+    EXPECT_EQ(log.count, 1);
+    EXPECT_EQ(lh_ui_rect_eq(lh_addr_of(log.rect), lh_addr_of(rect)), lh_bool_true);
+    EXPECT_TRUE(lh_ui_color_equals(lh_addr_of(log.color), lh_addr_of(color)));
+}
+
+TEST(entity, base_class_without_style_paints_nothing)
+{
+    lh_ui_rect_t rect;
+    lh_ui_entity_t entity;
+    lh_ui_canvas_t canvas;
+    fill_log log{};
+
+    lh_ui_rect_init(lh_addr_of(rect), 0, 0, 1, 1);
+    lh_ui_entity_init(lh_addr_of(entity), rect);
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_fill_log_backend), lh_addr_of(log));
+    EXPECT_TRUE(lh_null_eq(lh_ui_entity_get_fill_color(lh_addr_of(entity))));
+    lh_ui_entity_draw(lh_addr_of(entity), lh_addr_of(canvas));
+    EXPECT_EQ(log.count, 0);
+}
+
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
+TEST(entity_death, add_ancestor_as_child_is_a_cycle)
+{
+    lh_ui_rect_t rect;
+    lh_ui_entity_t root;
+    lh_ui_entity_t child;
+
+    lh_ui_rect_init(lh_addr_of(rect), 0, 0, 1, 1);
+    lh_ui_entity_init(lh_addr_of(root), rect);
+    lh_ui_entity_init(lh_addr_of(child), rect);
+    lh_ui_entity_add_child(lh_addr_of(root), lh_addr_of(child));
+    LH_EXPECT_DEATH(lh_ui_entity_add_child(lh_addr_of(child), lh_addr_of(root)));
+}
+
+TEST(entity_death, remove_someone_elses_child)
+{
+    lh_ui_rect_t rect;
+    lh_ui_entity_t a;
+    lh_ui_entity_t b;
+    lh_ui_entity_t child;
+
+    lh_ui_rect_init(lh_addr_of(rect), 0, 0, 1, 1);
+    lh_ui_entity_init(lh_addr_of(a), rect);
+    lh_ui_entity_init(lh_addr_of(b), rect);
+    lh_ui_entity_init(lh_addr_of(child), rect);
+    lh_ui_entity_add_child(lh_addr_of(a), lh_addr_of(child));
+    LH_EXPECT_DEATH(lh_ui_entity_remove_child(lh_addr_of(b), lh_addr_of(child)));
+}
+
+#endif

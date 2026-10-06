@@ -33,7 +33,10 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Class of ::lh_ui_entity_t.
  *
- * It has no base class.
+ * It has no base class. On ::lh_ui_entity_event_draw it fills the entity rect
+ * with ::lh_ui_entity_get_fill_color on the event canvas, when both exist.
+ * Other events are ignored. Derived classes call it through
+ * ::lh_ui_entity_class_event_base to keep that fill.
  */
 extern const lh_ui_entity_class_t lh_ui_entity_class;
 

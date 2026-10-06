@@ -190,6 +190,16 @@
 #define LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED @ValAllocatorInitAllocated@
 
 /**
+ * @def LH_LIBRARY_OPTION_UI
+ * @brief Compile the UI model under `lh/ui` (::LH_LIBRARY_OPTION_OFF /
+ *        ::LH_LIBRARY_OPTION_ON).
+ *
+ * Color, paint, pen, style, gradient, canvas and the entity tree. Needs no
+ * OS. Headers: `lh/ui.h` and `lh/ui/...`.
+ */
+#define LH_LIBRARY_OPTION_UI @ValUi@
+
+/**
  * @def LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS
  * @brief Fixed capacity of ::lh_ui_gradient_t color stops.
  *

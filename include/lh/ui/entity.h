@@ -193,17 +193,12 @@ lh_ui_entity_click(lh_ui_entity_t *self, lh_ui_point_t point);
 /* ── Draw ────────────────────────────────────────────────────────────────── */
 
 /**
- * @brief Event of ::lh_ui_entity_class.
- */
-lh_void
-lh_ui_entity_face_rect(const struct lh_ui_entity *self, const lh_ui_entity_event_t *event);
-
-/**
  * @brief Send ::lh_ui_entity_event_draw with @p canvas to @p self, then to
  *        each subtree in child order. Hidden @p self returns without drawing.
  *
- * @p canvas may be ::lh_null: the events are still sent, nothing is painted
- * by the base class.
+ * The base class (::lh_ui_entity_class) fills the rect with
+ * ::lh_ui_entity_get_fill_color. @p canvas may be ::lh_null: the events are
+ * still sent, nothing is painted by the base class.
  */
 lh_void
 lh_ui_entity_draw(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas);

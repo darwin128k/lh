@@ -10,7 +10,6 @@
 #include <lh/null.h>
 #include <lh/runtime/error/code.h>
 #include <lh/ui/entity.h>
-#include <lh/ui/paint.h>
 #include <lh/ui/point.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -76,7 +75,6 @@ const lh_ui_color_t *
 lh_ui_entity_get_fill_color(const lh_ui_entity_t *self)
 {
     const lh_ui_style_t *style;
-    const lh_ui_paint_t *fill;
 
     lh_assert_runtime_ref(self);
     style = self->style;
@@ -84,12 +82,7 @@ lh_ui_entity_get_fill_color(const lh_ui_entity_t *self)
     {
         return lh_null;
     }
-    fill = lh_ui_style_get_fill(style);
-    if (lh_null_eq(fill))
-    {
-        return lh_null;
-    }
-    return lh_ui_paint_get_color(fill);
+    return lh_ui_style_get_fill_color(style);
 }
 
 const lh_ui_entity_class_t *
@@ -149,8 +142,7 @@ lh_ui_entity_remove_child(lh_ui_entity_t *self, lh_ui_entity_t *child)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(child);
-    lh_assert_runtime_ifn(lh_list_contains(lh_addr_of(self->children), lh_addr_of(child->link)),
-                          lh_runtime_error_code_invalid_argument);
+    lh_assert_runtime_ifn(child->parent == self, lh_runtime_error_code_invalid_argument);
     lh_list_node_unlink(lh_addr_of(child->link));
     child->parent = lh_null;
 }
@@ -257,14 +249,6 @@ lh_ui_entity_click(lh_ui_entity_t *self, lh_ui_point_t point)
     lh_ui_entity_event_init(lh_addr_of(event), lh_ui_entity_event_click, lh_addr_of(point));
     klass->event(hit, lh_addr_of(event));
     return hit;
-}
-
-lh_void
-lh_ui_entity_face_rect(const struct lh_ui_entity *self, const lh_ui_entity_event_t *event)
-{
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(event);
-    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_draw);
 }
 
 lh_void
