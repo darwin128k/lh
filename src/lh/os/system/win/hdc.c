@@ -17,7 +17,6 @@ lh_os_system_hdc_fill_rect(lh_ptr hdc, int left, int top, int right, int bottom,
 {
     lh_os_system_win_hdc_t dc;
     lh_os_system_win_rect_t area;
-    lh_os_system_win_handle_t brush;
 
     lh_return_if(lh_null_eq(hdc));
     dc = lh_cast_reinterpret(lh_os_system_win_hdc_t, hdc);
@@ -25,29 +24,34 @@ lh_os_system_hdc_fill_rect(lh_ptr hdc, int left, int top, int right, int bottom,
     area.top = top;
     area.right = right;
     area.bottom = bottom;
-    brush = CreateSolidBrush(LH_OS_SYSTEM_WIN_RGB(r, g, b));
-    lh_return_if(lh_null_eq(brush));
-    FillRect(dc, lh_addr_of(area), brush);
-    DeleteObject(brush);
+    /* SetDCBrushColor + stock DC_BRUSH: no CreateSolidBrush / DeleteObject.
+       Present since Windows 95. */
+    (void)SetDCBrushColor(dc, LH_OS_SYSTEM_WIN_RGB(r, g, b));
+    FillRect(dc, lh_addr_of(area), GetStockObject(LH_OS_SYSTEM_WIN_DC_BRUSH));
+}
+
+lh_ptr
+lh_os_system_hdc_region_create(lh_void)
+{
+    return CreateRectRgn(0, 0, 0, 0);
 }
 
 lh_void
-lh_os_system_hdc_set_clip(lh_ptr hdc, int left, int top, int right, int bottom)
+lh_os_system_hdc_region_destroy(lh_ptr region)
+{
+    lh_return_if(lh_null_eq(region));
+    DeleteObject(region);
+}
+
+lh_void
+lh_os_system_hdc_set_clip(lh_ptr hdc, lh_ptr region, int left, int top, int right, int bottom)
 {
     lh_os_system_win_hdc_t dc;
-    lh_os_system_win_rect_t area;
-    lh_os_system_win_handle_t region;
 
-    lh_return_if(lh_null_eq(hdc));
+    lh_return_if(lh_null_eq(hdc) || lh_null_eq(region));
     dc = lh_cast_reinterpret(lh_os_system_win_hdc_t, hdc);
-    area.left = left;
-    area.top = top;
-    area.right = right;
-    area.bottom = bottom;
-    region = CreateRectRgnIndirect(lh_addr_of(area));
-    lh_return_if(lh_null_eq(region));
+    lh_return_if(SetRectRgn(region, left, top, right, bottom) == 0);
     SelectClipRgn(dc, region);
-    DeleteObject(region);
 }
 
 lh_void

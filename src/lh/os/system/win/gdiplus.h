@@ -86,6 +86,7 @@ typedef enum lh_os_system_win_gp_pixel_offset_mode lh_os_system_win_gp_pixel_off
 /** @brief `SmoothingMode`. GDI+ 1.0. */
 enum lh_os_system_win_gp_smoothing_mode
 {
+    lh_os_system_win_gp_smoothing_mode_none = 3,
     lh_os_system_win_gp_smoothing_mode_anti_alias = 4
 };
 typedef enum lh_os_system_win_gp_smoothing_mode lh_os_system_win_gp_smoothing_mode_t;
@@ -170,6 +171,22 @@ LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_gp_status_t LH_OS_SYSTEM_WIN_GDIPAPI
 GdipSetSmoothingMode(lh_os_system_win_gp_graphics_t *graphics,
                      lh_os_system_win_gp_smoothing_mode_t mode);
 
+/** @brief `CombineMode`. GDI+ 1.0. */
+enum lh_os_system_win_gp_combine_mode
+{
+    lh_os_system_win_gp_combine_mode_replace = 0
+};
+typedef enum lh_os_system_win_gp_combine_mode lh_os_system_win_gp_combine_mode_t;
+
+/* Clip the Graphics (HDC SelectClipRgn after GdipCreateFromHDC is not enough).
+   GDI+ 1.0 / Windows XP. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_gp_status_t LH_OS_SYSTEM_WIN_GDIPAPI
+GdipSetClipRectI(lh_os_system_win_gp_graphics_t *graphics, lh_int_t x, lh_int_t y, lh_int_t width,
+                 lh_int_t height, lh_os_system_win_gp_combine_mode_t combine_mode);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_gp_status_t LH_OS_SYSTEM_WIN_GDIPAPI
+GdipResetClip(lh_os_system_win_gp_graphics_t *graphics);
+
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_gp_status_t LH_OS_SYSTEM_WIN_GDIPAPI
 GdipCreateBitmapFromScan0(lh_int_t width, lh_int_t height, lh_int_t stride,
                           lh_os_system_win_gdiplus_pixel_format_t format, lh_byte_t *scan0,
@@ -198,6 +215,10 @@ GdipCreatePath(lh_os_system_win_gp_fill_mode_t fill_mode, lh_os_system_win_gp_pa
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_gp_status_t LH_OS_SYSTEM_WIN_GDIPAPI
 GdipDeletePath(lh_os_system_win_gp_path_t *path);
 
+/* Clear figures from a path for reuse. GDI+ 1.0 / Windows XP. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_gp_status_t LH_OS_SYSTEM_WIN_GDIPAPI
+GdipResetPath(lh_os_system_win_gp_path_t *path);
+
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_gp_status_t LH_OS_SYSTEM_WIN_GDIPAPI
 GdipAddPathArc(lh_os_system_win_gp_path_t *path, lh_os_system_win_gdiplus_real_t x,
                lh_os_system_win_gdiplus_real_t y, lh_os_system_win_gdiplus_real_t width,
@@ -209,6 +230,11 @@ GdipClosePathFigure(lh_os_system_win_gp_path_t *path);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_gp_status_t LH_OS_SYSTEM_WIN_GDIPAPI
 GdipCreateSolidFill(lh_os_system_win_gdiplus_argb_t color, lh_os_system_win_gp_solid_fill_t **brush);
+
+/* Change the color of an existing solid fill. GDI+ 1.0 / Windows XP. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_gp_status_t LH_OS_SYSTEM_WIN_GDIPAPI
+GdipSetSolidFillColor(lh_os_system_win_gp_solid_fill_t *brush,
+                      lh_os_system_win_gdiplus_argb_t color);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_gp_status_t LH_OS_SYSTEM_WIN_GDIPAPI
 GdipDeleteBrush(lh_os_system_win_gp_brush_t *brush);

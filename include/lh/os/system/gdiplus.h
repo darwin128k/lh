@@ -3,9 +3,8 @@
  * @brief GDI+ process lifetime, frame draw state, and primitives.
  *
  * Win32 lives in `src/lh/os/system/win/gdiplus.c`. A frame (::lh_os_system_gdiplus_frame_t)
- * holds the Graphics (and a reusable mask bitmap) for one canvas begin/end —
- * not one call. Round rect still takes an HDC (rare); masks must go through a
- * frame.
+ * holds the Graphics, a reusable mask bitmap, path, and solid fill for one
+ * canvas begin/end — not one call.
  *
  * Requires ::LH_LIBRARY_OPTION_OS_WINDOW.
  */
@@ -53,7 +52,7 @@ lh_bool_t
 lh_os_system_gdiplus_is_ready(lh_void);
 
 /**
- * @brief Open a frame on @p hdc: Graphics for the DC and an empty mask bitmap.
+ * @brief Open a frame on @p hdc: Graphics, path, solid fill, and empty mask bitmap.
  *
  * Pair with ::lh_os_system_gdiplus_frame_end. ::lh_null on failure.
  */
@@ -61,7 +60,8 @@ lh_os_system_gdiplus_frame_t
 lh_os_system_gdiplus_frame_begin(lh_ptr hdc);
 
 /**
- * @brief Destroy the Graphics and bitmap of @p frame. No-op on ::lh_null.
+ * @brief Destroy the Graphics, path, solid fill, and bitmap of @p frame.
+ *        No-op on ::lh_null.
  */
 lh_void
 lh_os_system_gdiplus_frame_end(lh_os_system_gdiplus_frame_t frame);
@@ -78,14 +78,32 @@ lh_os_system_gdiplus_frame_fill_mask(lh_os_system_gdiplus_frame_t frame, int x, 
                                      lh_byte_t r, lh_byte_t g, lh_byte_t b, lh_byte_t a);
 
 /**
- * @brief Anti-aliased rounded fill of [left,right) × [top,bottom) on @p hdc.
+ * @brief Anti-aliased rounded fill of [left,right) × [top,bottom) through @p frame.
  *
- * @p radius is the corner radius in pixels. Nothing on failure. Rare path:
- * builds its own Graphics for the call (masks must not).
+ * Reuses the frame path and solid fill. Temporarily sets PixelOffsetMode half
+ * and SmoothingMode anti-alias, then restores PixelOffsetMode none (and
+ * SmoothingMode none) so mask draws stay aligned. Nothing on failure.
  */
 lh_void
-lh_os_system_gdiplus_fill_round_rect(lh_ptr hdc, int left, int top, int right, int bottom,
-                                     int radius, lh_byte_t r, lh_byte_t g, lh_byte_t b, lh_byte_t a);
+lh_os_system_gdiplus_frame_fill_round_rect(lh_os_system_gdiplus_frame_t frame, int left, int top,
+                                           int right, int bottom, int radius, lh_byte_t r,
+                                           lh_byte_t g, lh_byte_t b, lh_byte_t a);
+
+/**
+ * @brief Match the frame Graphics clip to [left,right) × [top,bottom).
+ *
+ * Needed because `SelectClipRgn` on the HDC after `GdipCreateFromHDC` does not
+ * update an existing Graphics clip.
+ */
+lh_void
+lh_os_system_gdiplus_frame_set_clip(lh_os_system_gdiplus_frame_t frame, int left, int top, int right,
+                                    int bottom);
+
+/**
+ * @brief Clear the frame Graphics clip (no clipping).
+ */
+lh_void
+lh_os_system_gdiplus_frame_clear_clip(lh_os_system_gdiplus_frame_t frame);
 
 LH_COMPILER_EXTERN_C_END
 

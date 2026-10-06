@@ -72,6 +72,14 @@ SelectObject(lh_os_system_win_hdc_t hdc, lh_os_system_win_handle_t h);
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
 CreateSolidBrush(lh_os_system_win_dword_t color);
 
+/* Stock brush that follows `SetDCBrushColor`. Present since Windows 95. */
+#define LH_OS_SYSTEM_WIN_DC_BRUSH 18
+
+/* Set the color of the DC_BRUSH stock object. Present since Windows 95
+   (`SetDCBrushColor` / Win95+; documented with the stock DC brush). */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_dword_t LH_OS_SYSTEM_WIN_CALL
+SetDCBrushColor(lh_os_system_win_hdc_t hdc, lh_os_system_win_dword_t color);
+
 LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
 FillRect(lh_os_system_win_hdc_t hdc, const lh_os_system_win_rect_t *lprc,
          lh_os_system_win_handle_t hbr);
@@ -81,6 +89,11 @@ CreateRectRgn(lh_int_t x1, lh_int_t y1, lh_int_t x2, lh_int_t y2);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
 CreateRectRgnIndirect(const lh_os_system_win_rect_t *lprect);
+
+/* Change the rectangle of an existing region. Present since Windows 95. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+SetRectRgn(lh_os_system_win_handle_t hrgn, lh_int_t left, lh_int_t top, lh_int_t right,
+           lh_int_t bottom);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
 SelectClipRgn(lh_os_system_win_hdc_t hdc, lh_os_system_win_handle_t hrgn);

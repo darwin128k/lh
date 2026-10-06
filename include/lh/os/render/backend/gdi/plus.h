@@ -3,8 +3,8 @@
  * @brief GDI+ part of the GDI canvas backend.
  *
  * Round fills and mask fills. Native calls live in ::lh_os_system_gdiplus_*;
- * this header wraps ::lh_ui_color_t / ::lh_ui_mask_t. Mask drawing needs a
- * frame opened for the canvas begin/end (not one Graphics per glyph).
+ * this header wraps ::lh_ui_color_t / ::lh_ui_mask_t. Both need a frame opened
+ * for the canvas begin/end (not one Graphics / path / solid per call).
  */
 
 #ifndef LH_OS_RENDER_BACKEND_GDI_PLUS_H
@@ -63,13 +63,25 @@ lh_os_render_backend_gdi_plus_fill_mask(lh_os_system_gdiplus_frame_t frame, cons
                                         const lh_ui_mask_t *mask, const lh_ui_color_t *color);
 
 /**
- * @brief Anti-aliased rounded fill of @p rect on @p hdc; nothing on failure.
- *
- * @p hdc is the opaque draw target from ::lh_ui_surface_get_draw_target.
+ * @brief Anti-aliased rounded fill of @p rect through @p frame; nothing on failure.
  */
 lh_void
-lh_os_render_backend_gdi_plus_fill_round_rect(lh_ptr hdc, const lh_ui_rect_t *rect,
-                                              lh_ui_scalar_t radius, const lh_ui_color_t *color);
+lh_os_render_backend_gdi_plus_fill_round_rect(lh_os_system_gdiplus_frame_t frame,
+                                              const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+                                              const lh_ui_color_t *color);
+
+/**
+ * @brief Match the frame Graphics clip to @p left/top/right/bottom.
+ */
+lh_void
+lh_os_render_backend_gdi_plus_set_clip(lh_os_system_gdiplus_frame_t frame, int left, int top,
+                                       int right, int bottom);
+
+/**
+ * @brief Clear the frame Graphics clip.
+ */
+lh_void
+lh_os_render_backend_gdi_plus_clear_clip(lh_os_system_gdiplus_frame_t frame);
 
 LH_COMPILER_EXTERN_C_END
 

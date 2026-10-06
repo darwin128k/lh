@@ -22,6 +22,8 @@ static int lh_os_system_gdiplus_users;
 struct lh_os_system_gdiplus_frame
 {
     lh_os_system_win_gp_graphics_t *graphics;
+    lh_os_system_win_gp_path_t *path;
+    lh_os_system_win_gp_solid_fill_t *solid;
     lh_os_system_win_gp_bitmap_t *bitmap;
     int bitmap_width;
     int bitmap_height;
@@ -68,6 +70,8 @@ lh_os_system_gdiplus_frame_begin(lh_ptr hdc)
     lh_os_system_gdiplus_frame_body_t *frame;
     lh_os_system_win_hdc_t dc;
     lh_os_system_win_gp_graphics_t *graphics = lh_null;
+    lh_os_system_win_gp_path_t *path = lh_null;
+    lh_os_system_win_gp_solid_fill_t *solid = lh_null;
 
     lh_return_if(lh_null_eq(hdc), lh_null);
     frame = lh_ptr_rcast(lh_os_system_gdiplus_frame_body_t, lh_os_alloc(sizeof(*frame)));
@@ -80,7 +84,23 @@ lh_os_system_gdiplus_frame_begin(lh_ptr hdc)
     }
     GdipSetPixelOffsetMode(graphics, lh_os_system_win_gp_pixel_offset_mode_none);
     GdipSetCompositingMode(graphics, lh_os_system_win_gp_compositing_mode_source_over);
+    if (GdipCreatePath(lh_os_system_win_gp_fill_mode_alternate, lh_addr_of(path)) !=
+        lh_os_system_win_gp_ok)
+    {
+        GdipDeleteGraphics(graphics);
+        lh_runtime_allocator_free(frame);
+        return lh_null;
+    }
+    if (GdipCreateSolidFill(0, lh_addr_of(solid)) != lh_os_system_win_gp_ok)
+    {
+        GdipDeletePath(path);
+        GdipDeleteGraphics(graphics);
+        lh_runtime_allocator_free(frame);
+        return lh_null;
+    }
     frame->graphics = graphics;
+    frame->path = path;
+    frame->solid = solid;
     frame->bitmap = lh_null;
     frame->bitmap_width = 0;
     frame->bitmap_height = 0;
@@ -97,6 +117,14 @@ lh_os_system_gdiplus_frame_end(lh_os_system_gdiplus_frame_t handle)
     if (lh_null_ne(frame->bitmap))
     {
         GdipDisposeImage(lh_ptr_rcast(lh_os_system_win_gp_image_t, frame->bitmap));
+    }
+    if (lh_null_ne(frame->solid))
+    {
+        GdipDeleteBrush(lh_ptr_rcast(lh_os_system_win_gp_brush_t, frame->solid));
+    }
+    if (lh_null_ne(frame->path))
+    {
+        GdipDeletePath(frame->path);
     }
     if (lh_null_ne(frame->graphics))
     {
@@ -181,13 +209,11 @@ lh_os_system_gdiplus_frame_fill_mask(lh_os_system_gdiplus_frame_t handle, int x,
 }
 
 lh_void
-lh_os_system_gdiplus_fill_round_rect(lh_ptr hdc, int left, int top, int right, int bottom,
-                                     int radius, lh_byte_t r, lh_byte_t g, lh_byte_t b, lh_byte_t a)
+lh_os_system_gdiplus_frame_fill_round_rect(lh_os_system_gdiplus_frame_t handle, int left, int top,
+                                           int right, int bottom, int radius, lh_byte_t r,
+                                           lh_byte_t g, lh_byte_t b, lh_byte_t a)
 {
-    lh_os_system_win_hdc_t dc;
-    lh_os_system_win_gp_graphics_t *graphics = lh_null;
-    lh_os_system_win_gp_path_t *path = lh_null;
-    lh_os_system_win_gp_solid_fill_t *brush = lh_null;
+    lh_os_system_gdiplus_frame_body_t *frame;
     const lh_os_system_win_gdiplus_real_t d = lh_cast_static(lh_os_system_win_gdiplus_real_t, radius) * 2.0f;
     const lh_os_system_win_gdiplus_real_t x0 = lh_cast_static(lh_os_system_win_gdiplus_real_t, left);
     const lh_os_system_win_gdiplus_real_t y0 = lh_cast_static(lh_os_system_win_gdiplus_real_t, top);
@@ -199,27 +225,46 @@ lh_os_system_gdiplus_fill_round_rect(lh_ptr hdc, int left, int top, int right, i
         (lh_cast_static(lh_os_system_win_gdiplus_argb_t, g) << 8) |
         lh_cast_static(lh_os_system_win_gdiplus_argb_t, b);
 
-    lh_return_if(lh_null_eq(hdc));
-    dc = lh_cast_reinterpret(lh_os_system_win_hdc_t, hdc);
-    lh_return_if(GdipCreateFromHDC(dc, lh_addr_of(graphics)) != lh_os_system_win_gp_ok);
-    GdipSetSmoothingMode(graphics, lh_os_system_win_gp_smoothing_mode_anti_alias);
-    GdipSetPixelOffsetMode(graphics, lh_os_system_win_gp_pixel_offset_mode_half);
-    if (GdipCreatePath(lh_os_system_win_gp_fill_mode_alternate, lh_addr_of(path)) !=
-        lh_os_system_win_gp_ok)
-    {
-        GdipDeleteGraphics(graphics);
-        return;
-    }
-    GdipAddPathArc(path, x0, y0, d, d, 180.0f, 90.0f);
-    GdipAddPathArc(path, x1, y0, d, d, 270.0f, 90.0f);
-    GdipAddPathArc(path, x1, y1, d, d, 0.0f, 90.0f);
-    GdipAddPathArc(path, x0, y1, d, d, 90.0f, 90.0f);
-    GdipClosePathFigure(path);
-    if (GdipCreateSolidFill(argb, lh_addr_of(brush)) == lh_os_system_win_gp_ok)
-    {
-        GdipFillPath(graphics, lh_ptr_rcast(lh_os_system_win_gp_brush_t, brush), path);
-        GdipDeleteBrush(lh_ptr_rcast(lh_os_system_win_gp_brush_t, brush));
-    }
-    GdipDeletePath(path);
-    GdipDeleteGraphics(graphics);
+    lh_return_if(lh_null_eq(handle));
+    frame = lh_ptr_rcast(lh_os_system_gdiplus_frame_body_t, handle);
+    lh_return_if(lh_null_eq(frame->graphics) || lh_null_eq(frame->path) || lh_null_eq(frame->solid));
+
+    GdipSetSmoothingMode(frame->graphics, lh_os_system_win_gp_smoothing_mode_anti_alias);
+    GdipSetPixelOffsetMode(frame->graphics, lh_os_system_win_gp_pixel_offset_mode_half);
+    GdipResetPath(frame->path);
+    GdipAddPathArc(frame->path, x0, y0, d, d, 180.0f, 90.0f);
+    GdipAddPathArc(frame->path, x1, y0, d, d, 270.0f, 90.0f);
+    GdipAddPathArc(frame->path, x1, y1, d, d, 0.0f, 90.0f);
+    GdipAddPathArc(frame->path, x0, y1, d, d, 90.0f, 90.0f);
+    GdipClosePathFigure(frame->path);
+    GdipSetSolidFillColor(frame->solid, argb);
+    GdipFillPath(frame->graphics, lh_ptr_rcast(lh_os_system_win_gp_brush_t, frame->solid),
+                 frame->path);
+    /* Restore frame defaults so subsequent mask draws stay pixel-aligned. */
+    GdipSetPixelOffsetMode(frame->graphics, lh_os_system_win_gp_pixel_offset_mode_none);
+    GdipSetSmoothingMode(frame->graphics, lh_os_system_win_gp_smoothing_mode_none);
+}
+
+lh_void
+lh_os_system_gdiplus_frame_set_clip(lh_os_system_gdiplus_frame_t handle, int left, int top, int right,
+                                    int bottom)
+{
+    lh_os_system_gdiplus_frame_body_t *frame;
+
+    lh_return_if(lh_null_eq(handle));
+    frame = lh_ptr_rcast(lh_os_system_gdiplus_frame_body_t, handle);
+    lh_return_if(lh_null_eq(frame->graphics));
+    GdipSetClipRectI(frame->graphics, left, top, right - left, bottom - top,
+                     lh_os_system_win_gp_combine_mode_replace);
+}
+
+lh_void
+lh_os_system_gdiplus_frame_clear_clip(lh_os_system_gdiplus_frame_t handle)
+{
+    lh_os_system_gdiplus_frame_body_t *frame;
+
+    lh_return_if(lh_null_eq(handle));
+    frame = lh_ptr_rcast(lh_os_system_gdiplus_frame_body_t, handle);
+    lh_return_if(lh_null_eq(frame->graphics));
+    GdipResetClip(frame->graphics);
 }

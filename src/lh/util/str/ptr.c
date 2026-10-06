@@ -135,7 +135,12 @@ lh_str_ptr_find_of_null_terminator(const lh_str_ptr str)
 lh_usize_t
 lh_str_ptr_len(const lh_str_ptr str)
 {
-    const lh_str_ptr ptr = lh_str_ptr_find_of_null_terminator(str);
+    const lh_str_ptr ptr;
+
+    /* A null pointer is the empty string (length 0). "No terminator" only
+       applies when a non-null buffer is scanned and none is found. */
+    lh_return_if(lh_null_eq(str), 0);
+    ptr = lh_str_ptr_find_of_null_terminator(str);
     lh_assert_runtime_ifn(lh_ptr_is_set(ptr), lh_runtime_error_code_no_null_terminator);
     return lh_ptr_udiff(ptr, str);
 }

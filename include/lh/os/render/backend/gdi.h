@@ -47,7 +47,7 @@
 struct lh_os_render_backend_gdi_context
 {
     lh_os_render_backend_gdi_fields(lh_os_system_window_handle_t, lh_ptr, lh_ui_surface_t,
-                                    lh_os_system_gdiplus_frame_t, lh_u32_t);
+                                    lh_os_system_gdiplus_frame_t, lh_ptr, lh_u32_t, lh_u64_t);
 };
 typedef struct lh_os_render_backend_gdi_context lh_os_render_backend_gdi_context_t;
 
@@ -146,9 +146,41 @@ lh_u32_t
 lh_os_render_backend_gdi_context_get_mask_calls(const lh_os_render_backend_gdi_context_t *self);
 
 /**
+ * @brief `fill_rect` calls since the last ::lh_os_render_backend_gdi_begin.
+ */
+lh_u32_t
+lh_os_render_backend_gdi_context_get_rect_calls(const lh_os_render_backend_gdi_context_t *self);
+
+/**
+ * @brief `fill_round_rect` calls since the last ::lh_os_render_backend_gdi_begin.
+ */
+lh_u32_t
+lh_os_render_backend_gdi_context_get_round_calls(const lh_os_render_backend_gdi_context_t *self);
+
+/**
+ * @brief `set_clip` calls since the last ::lh_os_render_backend_gdi_begin.
+ */
+lh_u32_t
+lh_os_render_backend_gdi_context_get_clip_calls(const lh_os_render_backend_gdi_context_t *self);
+
+/**
+ * @brief Microseconds since ::lh_os_render_backend_gdi_begin for the current frame.
+ */
+lh_u64_t
+lh_os_render_backend_gdi_context_get_frame_us(const lh_os_render_backend_gdi_context_t *self);
+
+/**
  * @brief GDI backend table for ::lh_ui_canvas_t (context: this GDI context).
+ *
+ * Rounded fills go through GDI+ (::lh_os_render_backend_gdi_fill_round_rect).
  */
 extern const lh_ui_canvas_backend_t lh_os_render_backend_gdi;
+
+/**
+ * @brief Same GDI table as ::lh_os_render_backend_gdi, but `fill_round_rect`
+ *        is ::lh_null — the canvas falls back to ::lh_ui_canvas_fill_round_rect_by_rects.
+ */
+extern const lh_ui_canvas_backend_t lh_os_render_backend_gdi_soft;
 
 LH_COMPILER_EXTERN_C_END
 

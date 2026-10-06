@@ -52,17 +52,31 @@ lh_os_render_backend_gdi_plus_fill_mask(lh_os_system_gdiplus_frame_t frame, cons
 }
 
 lh_void
-lh_os_render_backend_gdi_plus_fill_round_rect(lh_ptr hdc, const lh_ui_rect_t *rect,
-                                              lh_ui_scalar_t radius, const lh_ui_color_t *color)
+lh_os_render_backend_gdi_plus_fill_round_rect(lh_os_system_gdiplus_frame_t frame,
+                                              const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+                                              const lh_ui_color_t *color)
 {
     const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
     const lh_ui_point_t corner = lh_ui_rect_far(rect);
 
-    lh_os_system_gdiplus_fill_round_rect(
-        hdc, lh_cast_static(int, lh_ui_point_get_x(origin)),
+    lh_os_system_gdiplus_frame_fill_round_rect(
+        frame, lh_cast_static(int, lh_ui_point_get_x(origin)),
         lh_cast_static(int, lh_ui_point_get_y(origin)),
         lh_cast_static(int, lh_ui_point_get_x(lh_addr_of(corner))),
         lh_cast_static(int, lh_ui_point_get_y(lh_addr_of(corner))), lh_cast_static(int, radius),
         lh_ui_color_get_r(color), lh_ui_color_get_g(color), lh_ui_color_get_b(color),
         lh_ui_color_get_a(color));
+}
+
+lh_void
+lh_os_render_backend_gdi_plus_set_clip(lh_os_system_gdiplus_frame_t frame, int left, int top,
+                                       int right, int bottom)
+{
+    lh_os_system_gdiplus_frame_set_clip(frame, left, top, right, bottom);
+}
+
+lh_void
+lh_os_render_backend_gdi_plus_clear_clip(lh_os_system_gdiplus_frame_t frame)
+{
+    lh_os_system_gdiplus_frame_clear_clip(frame);
 }

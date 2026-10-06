@@ -10,6 +10,7 @@
 #include <lh/os/render/backend/gdi/plus.h>
 #include <lh/os/system/hdc.h>
 #include <lh/os/system/window.h>
+#include <lh/os/tick.h>
 #include <lh/ui/color.h>
 #include <lh/ui/point.h>
 #include <lh/ui/rect.h>
@@ -59,6 +60,10 @@ lh_os_render_backend_gdi_begin(lh_ptr context)
         gdi->frame = lh_null;
     }
     gdi->mask_calls = 0U;
+    gdi->rect_calls = 0U;
+    gdi->round_calls = 0U;
+    gdi->clip_calls = 0U;
+    gdi->frame_start_us = lh_os_tick_us();
     draw_hdc = lh_os_render_backend_gdi_context_get_draw_hdc(gdi);
     lh_return_if(lh_null_eq(draw_hdc) || !lh_os_render_backend_gdi_plus_is_ready());
     gdi->frame = lh_os_render_backend_gdi_plus_frame_begin(draw_hdc);
@@ -102,6 +107,7 @@ lh_os_render_backend_gdi_fill_rect(lh_ptr context, const lh_ui_rect_t *rect,
     const lh_ui_point_t corner = lh_ui_rect_far(rect);
 
     lh_return_if(lh_null_eq(hdc));
+    ++gdi->rect_calls;
     lh_os_render_backend_gdi_fill_area(
         hdc, lh_cast_static(int, lh_ui_point_get_x(origin)),
         lh_cast_static(int, lh_ui_point_get_y(origin)),
@@ -114,15 +120,14 @@ lh_os_render_backend_gdi_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rec
                                          lh_ui_scalar_t radius, const lh_ui_color_t *color)
 {
     lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
-    lh_ptr hdc = lh_os_render_backend_gdi_context_get_draw_hdc(gdi);
 
-    lh_return_if(lh_null_eq(hdc));
-    if (!lh_os_render_backend_gdi_plus_is_ready())
+    ++gdi->round_calls;
+    if (lh_null_eq(gdi->frame) || !lh_os_render_backend_gdi_plus_is_ready())
     {
         lh_os_render_backend_gdi_fill_rect(context, rect, color);
         return;
     }
-    lh_os_render_backend_gdi_plus_fill_round_rect(hdc, rect, radius, color);
+    lh_os_render_backend_gdi_plus_fill_round_rect(gdi->frame, rect, radius, color);
 }
 
 lh_void
@@ -134,17 +139,32 @@ lh_os_render_backend_gdi_set_clip(lh_ptr context, const lh_ui_rect_t *clip)
     lh_ui_point_t corner;
 
     lh_return_if(lh_null_eq(hdc));
+    ++gdi->clip_calls;
     if (clip == lh_null)
     {
         lh_os_system_hdc_clear_clip(hdc);
+        if (lh_null_ne(gdi->frame))
+        {
+            lh_os_render_backend_gdi_plus_clear_clip(gdi->frame);
+        }
         return;
     }
+    lh_return_if(lh_null_eq(gdi->clip_region));
     origin = lh_ui_rect_get_origin_as_const(clip);
     corner = lh_ui_rect_far(clip);
-    lh_os_system_hdc_set_clip(hdc, lh_cast_static(int, lh_ui_point_get_x(origin)),
+    lh_os_system_hdc_set_clip(hdc, gdi->clip_region,
+                              lh_cast_static(int, lh_ui_point_get_x(origin)),
                               lh_cast_static(int, lh_ui_point_get_y(origin)),
                               lh_cast_static(int, lh_ui_point_get_x(lh_addr_of(corner))),
                               lh_cast_static(int, lh_ui_point_get_y(lh_addr_of(corner))));
+    if (lh_null_ne(gdi->frame))
+    {
+        lh_os_render_backend_gdi_plus_set_clip(
+            gdi->frame, lh_cast_static(int, lh_ui_point_get_x(origin)),
+            lh_cast_static(int, lh_ui_point_get_y(origin)),
+            lh_cast_static(int, lh_ui_point_get_x(lh_addr_of(corner))),
+            lh_cast_static(int, lh_ui_point_get_y(lh_addr_of(corner))));
+    }
 }
 
 lh_void
@@ -165,12 +185,51 @@ lh_os_render_backend_gdi_context_get_mask_calls(const lh_os_render_backend_gdi_c
     return self->mask_calls;
 }
 
+lh_u32_t
+lh_os_render_backend_gdi_context_get_rect_calls(const lh_os_render_backend_gdi_context_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->rect_calls;
+}
+
+lh_u32_t
+lh_os_render_backend_gdi_context_get_round_calls(const lh_os_render_backend_gdi_context_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->round_calls;
+}
+
+lh_u32_t
+lh_os_render_backend_gdi_context_get_clip_calls(const lh_os_render_backend_gdi_context_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->clip_calls;
+}
+
+lh_u64_t
+lh_os_render_backend_gdi_context_get_frame_us(const lh_os_render_backend_gdi_context_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_os_tick_us() - self->frame_start_us;
+}
+
 const lh_ui_canvas_backend_t lh_os_render_backend_gdi = {
     lh_os_render_backend_gdi_begin,
     lh_os_render_backend_gdi_end,
     lh_os_render_backend_gdi_clear,
     lh_os_render_backend_gdi_fill_rect,
     lh_os_render_backend_gdi_fill_round_rect,
+    lh_os_render_backend_gdi_set_clip,
+    lh_os_render_backend_gdi_fill_mask,
+};
+
+/* Same slots; null round → canvas AA via fill_round_rect_by_rects. */
+const lh_ui_canvas_backend_t lh_os_render_backend_gdi_soft = {
+    lh_os_render_backend_gdi_begin,
+    lh_os_render_backend_gdi_end,
+    lh_os_render_backend_gdi_clear,
+    lh_os_render_backend_gdi_fill_rect,
+    lh_null,
     lh_os_render_backend_gdi_set_clip,
     lh_os_render_backend_gdi_fill_mask,
 };
@@ -183,7 +242,12 @@ lh_os_render_backend_gdi_context_init(lh_os_render_backend_gdi_context_t *self)
     self->hdc = lh_null;
     lh_ui_surface_init(lh_addr_of(self->surface));
     self->frame = lh_null;
+    self->clip_region = lh_os_system_hdc_region_create();
     self->mask_calls = 0U;
+    self->rect_calls = 0U;
+    self->round_calls = 0U;
+    self->clip_calls = 0U;
+    self->frame_start_us = 0;
     (void)lh_os_render_backend_gdi_plus_acquire();
 }
 
@@ -197,9 +261,15 @@ lh_os_render_backend_gdi_context_deinit(lh_os_render_backend_gdi_context_t *self
         self->frame = lh_null;
     }
     lh_ui_surface_deinit(lh_addr_of(self->surface));
+    lh_os_system_hdc_region_destroy(self->clip_region);
     self->hwnd = LH_OS_SYSTEM_WINDOW_HANDLE_INVALID;
     self->hdc = lh_null;
+    self->clip_region = lh_null;
     self->mask_calls = 0U;
+    self->rect_calls = 0U;
+    self->round_calls = 0U;
+    self->clip_calls = 0U;
+    self->frame_start_us = 0;
     lh_os_render_backend_gdi_plus_release();
 }
 

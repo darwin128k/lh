@@ -15,6 +15,7 @@
 #include <lh/cast/reinterpret.h>
 #include <lh/cast/static.h>
 #include <lh/char.h>
+#include <lh/numeric/fixed/types.h>
 #include <lh/os/system/win/kernel32/file_attribute_data/fields.h>
 #include <lh/os/system/win/kernel32/filetime/fields.h>
 #include <lh/os/system/win/kernel32/find_data/fields.h>
@@ -192,5 +193,26 @@ GetModuleHandleA(lh_str_cptr lpModuleName);
    app pump. (`GetTickCount64` is Vista+ — do not call it.) */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_dword_t LH_OS_SYSTEM_WIN_CALL
 GetTickCount(lh_void);
+
+/**
+ * @brief `LARGE_INTEGER`: QPC counter / frequency. Present since Windows XP
+ *        (and NT 3.1 for the type). QuadPart is ::lh_s64_t.
+ */
+typedef union lh_os_system_win_large_integer
+{
+    struct
+    {
+        lh_os_system_win_dword_t LowPart;
+        lh_long_t HighPart;
+    } u;
+    lh_s64_t QuadPart;
+} lh_os_system_win_large_integer_t;
+
+/* High-resolution tick. Present since Windows XP (NT 3.5+). */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+QueryPerformanceCounter(lh_os_system_win_large_integer_t *lpPerformanceCount);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+QueryPerformanceFrequency(lh_os_system_win_large_integer_t *lpFrequency);
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_KERNEL32_H */

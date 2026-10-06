@@ -25,16 +25,35 @@ LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @brief Fill [left,right) × [top,bottom) on @p hdc with opaque RGB.
+ *
+ * Uses the DC brush color (no per-call brush allocation).
  */
 lh_void
 lh_os_system_hdc_fill_rect(lh_ptr hdc, int left, int top, int right, int bottom, lh_byte_t r,
                            lh_byte_t g, lh_byte_t b);
 
 /**
- * @brief Restrict drawing on @p hdc to [left,right) × [top,bottom).
+ * @brief Create an empty rectangular clip region for reuse across frames.
+ *
+ * Pair with ::lh_os_system_hdc_region_destroy. ::lh_null on failure.
+ */
+lh_ptr
+lh_os_system_hdc_region_create(lh_void);
+
+/**
+ * @brief Destroy @p region from ::lh_os_system_hdc_region_create. No-op on ::lh_null.
  */
 lh_void
-lh_os_system_hdc_set_clip(lh_ptr hdc, int left, int top, int right, int bottom);
+lh_os_system_hdc_region_destroy(lh_ptr region);
+
+/**
+ * @brief Restrict drawing on @p hdc to [left,right) × [top,bottom) via @p region.
+ *
+ * @p region is updated in place (::lh_os_system_hdc_region_create) — no allocate
+ * per call.
+ */
+lh_void
+lh_os_system_hdc_set_clip(lh_ptr hdc, lh_ptr region, int left, int top, int right, int bottom);
 
 /**
  * @brief Remove the clip region of @p hdc.
