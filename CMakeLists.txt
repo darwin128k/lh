@@ -210,6 +210,16 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/shared.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/str.c
     )
+    if (LH_LIBRARY_OPTION_OS_WINDOW)
+        list(APPEND LH_LIB_SOURCES
+                ${LH_LIB_SRC_PATH}/os/app.c
+                ${LH_LIB_SRC_PATH}/os/window.c
+        )
+        if (WIN32)
+            list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/window.c)
+            list(APPEND LH_OS_SYSTEM_LINK_LIBS user32 gdi32)
+        endif ()
+    endif ()
 endif ()
 
 # Float math (vec, quat, mat4) is the FPU. OFF leaves it out of the library.
