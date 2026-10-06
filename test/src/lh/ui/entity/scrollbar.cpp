@@ -310,6 +310,35 @@ TEST(entity_scrollbar, page_toward_without_a_click)
     EXPECT_EQ(f.scroll_y(), 100);
 }
 
+TEST(entity_scrollbar, contains_thumb_and_set_scroll_at)
+{
+    bar_fixture f(400);
+    lh_ui_point_t on_thumb;
+    lh_ui_point_t off_thumb;
+    lh_ui_point_t at_mid;
+
+    lh_ui_point_init(lh_addr_of(on_thumb), 105, 10);
+    lh_ui_point_init(lh_addr_of(off_thumb), 105, 180);
+    EXPECT_EQ(lh_ui_entity_scrollbar_contains_thumb(lh_addr_of(f.bar), on_thumb), lh_bool_true);
+    EXPECT_EQ(lh_ui_entity_scrollbar_contains_thumb(lh_addr_of(f.bar), off_thumb), lh_bool_false);
+
+    EXPECT_EQ(lh_ui_entity_scrollbar_get_thumb_start_at(lh_addr_of(f.bar), on_thumb), lh_ui_scalar(10));
+
+    /* Thumb start at y 75 → scroll 150 (track 200, thumb 50, max 300). */
+    lh_ui_point_init(lh_addr_of(at_mid), 105, 75);
+    lh_ui_entity_scrollbar_set_scroll_at(lh_addr_of(f.bar), at_mid);
+    EXPECT_EQ(f.scroll_y(), 150);
+    EXPECT_TRUE(rect_is(thumb_of(f), rect_of(100, 75, 10, 50)));
+}
+
+TEST(entity_scrollbar, as_scrollbar_matches_the_class)
+{
+    bar_fixture f(400);
+
+    EXPECT_EQ(lh_ui_entity_as_scrollbar(f.bar_entity()), lh_addr_of(f.bar));
+    EXPECT_TRUE(lh_null_eq(lh_ui_entity_as_scrollbar(f.box_entity())));
+}
+
 TEST(entity_scrollbar, is_visible_follows_the_mode)
 {
     bar_fixture f(80);

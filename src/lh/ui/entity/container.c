@@ -5,6 +5,8 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/math.h>
+#include <lh/null.h>
+#include <lh/ui/entity/class.h>
 #include <lh/ui/entity/container.h>
 #include <lh/ui/entity/transform.h>
 #include <lh/ui/rect.h>
@@ -57,6 +59,29 @@ lh_ui_entity_container_as_entity(lh_ui_entity_container_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->entity);
+}
+
+lh_ui_entity_container_t *
+lh_ui_entity_as_container(lh_ui_entity_t *entity)
+{
+    lh_return_if(lh_null_eq(entity), lh_null);
+    lh_return_if(!lh_ui_entity_class_is(lh_ui_entity_get_class(entity),
+                                        lh_addr_of(lh_ui_entity_container_class)),
+                 lh_null);
+    return lh_ptr_rcast(lh_ui_entity_container_t, entity);
+}
+
+lh_ui_entity_container_t *
+lh_ui_entity_find_container(lh_ui_entity_t *entity)
+{
+    lh_ui_entity_container_t *container;
+
+    for (; lh_null_ne(entity); entity = lh_ui_entity_get_parent(entity))
+    {
+        container = lh_ui_entity_as_container(entity);
+        lh_return_if(lh_null_ne(container), container);
+    }
+    return lh_null;
 }
 
 lh_ui_size_t

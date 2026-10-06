@@ -9,15 +9,13 @@
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
 
-#    ifndef WIN32_LEAN_AND_MEAN
-#        define WIN32_LEAN_AND_MEAN
-#    endif
-#    include <windows.h>
+#    include <lh/os/system/win/kernel32.h>
 
 lh_tick_t
 lh_os_tick_ms(void)
 {
-    return lh_cast_static(lh_tick_t, GetTickCount64());
+    /* `GetTickCount` — Windows 95+. (`GetTickCount64` is Vista+.) */
+    return lh_cast_static(lh_tick_t, GetTickCount());
 }
 
 #elif defined(CLOCK_MONOTONIC)
@@ -37,15 +35,10 @@ lh_os_tick_ms(void)
 
 #else
 
-#    include <lh/null.h>
-#    include <lh/numeric/types.h>
-#    include <time.h>
-
 lh_tick_t
 lh_os_tick_ms(void)
 {
-    /* Fallback: coarse wall clock in ms (wraps like lh_tick_t). */
-    return lh_cast_static(lh_tick_t, (lh_ullong_t)time(lh_null) * 1000ull);
+    return 0;
 }
 
 #endif

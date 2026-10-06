@@ -5,6 +5,7 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/null.h>
+#include <lh/ui/entity/class.h>
 #include <lh/ui/entity/scrollbar.h>
 #include <lh/ui/range.h>
 #include <lh/ui/size.h>
@@ -72,6 +73,23 @@ lh_ui_entity_scrollbar_as_entity(lh_ui_entity_scrollbar_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->entity);
+}
+
+lh_ui_entity_scrollbar_t *
+lh_ui_entity_as_scrollbar(lh_ui_entity_t *entity)
+{
+    lh_return_if(lh_null_eq(entity), lh_null);
+    lh_return_if(!lh_ui_entity_class_is(lh_ui_entity_get_class(entity),
+                                        lh_addr_of(lh_ui_entity_scrollbar_class)),
+                 lh_null);
+    return lh_ptr_rcast(lh_ui_entity_scrollbar_t, entity);
+}
+
+lh_ui_entity_container_t *
+lh_ui_entity_scrollbar_get_container(const lh_ui_entity_scrollbar_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->container;
 }
 
 lh_ui_axis_t
@@ -186,6 +204,32 @@ lh_ui_entity_scrollbar_get_thumb_start(const lh_ui_entity_scrollbar_t *self)
                                     lh_ui_entity_scrollbar_get_scroll_max(self));
 }
 
+lh_ui_scalar_t
+lh_ui_entity_scrollbar_get_thumb_start_at(const lh_ui_entity_scrollbar_t *self, lh_ui_point_t point)
+{
+    const lh_ui_point_t *origin;
+
+    lh_assert_runtime_ref(self);
+    origin = lh_ui_rect_get_origin_as_const(lh_addr_of(self->entity.rect));
+    return lh_ui_point_get_along(lh_addr_of(point), self->axis) -
+           lh_ui_point_get_along(origin, self->axis);
+}
+
+lh_void
+lh_ui_entity_scrollbar_set_thumb_start(lh_ui_entity_scrollbar_t *self, lh_ui_scalar_t start)
+{
+    lh_ui_scalar_t offset;
+    lh_ui_point_t scroll;
+
+    lh_assert_runtime_ref(self);
+    offset = lh_ui_range_offset_from_window_start(lh_ui_entity_scrollbar_get_track_length(self),
+                                                  lh_ui_entity_scrollbar_get_thumb_length(self), start,
+                                                  lh_ui_entity_scrollbar_get_scroll_max(self));
+    scroll = lh_ui_entity_container_get_scroll(self->container);
+    lh_ui_point_set_along(lh_addr_of(scroll), self->axis, offset);
+    lh_ui_entity_container_set_scroll(self->container, scroll);
+}
+
 lh_ui_rect_t
 lh_ui_entity_scrollbar_get_thumb_rect(const lh_ui_entity_scrollbar_t *self)
 {
@@ -208,6 +252,21 @@ lh_ui_entity_scrollbar_draw_thumb(const lh_ui_entity_scrollbar_t *self, lh_ui_ca
     lh_return_if(lh_null_eq(color));
     thumb = lh_ui_entity_scrollbar_get_thumb_rect(self);
     lh_ui_canvas_fill_round_rect(canvas, lh_addr_of(thumb), lh_ui_style_get_radius(self->thumb_style), color);
+}
+
+lh_bool_t
+lh_ui_entity_scrollbar_contains_thumb(const lh_ui_entity_scrollbar_t *self, lh_ui_point_t point)
+{
+    const lh_ui_rect_t thumb = lh_ui_entity_scrollbar_get_thumb_rect(self);
+
+    lh_assert_runtime_ref(self);
+    return lh_ui_rect_contains_point(lh_addr_of(thumb), point);
+}
+
+lh_void
+lh_ui_entity_scrollbar_set_scroll_at(lh_ui_entity_scrollbar_t *self, lh_ui_point_t point)
+{
+    lh_ui_entity_scrollbar_set_thumb_start(self, lh_ui_entity_scrollbar_get_thumb_start_at(self, point));
 }
 
 /* ── Paging ──────────────────────────────────────────────────────────────── */
@@ -234,4 +293,24 @@ lh_ui_entity_scrollbar_page_toward(const lh_ui_entity_scrollbar_t *self, lh_ui_p
                            lh_ui_scalar(0));
     lh_ui_entity_container_scroll_by(self->container, lh_ui_point_get_x(lh_addr_of(delta)),
                                      lh_ui_point_get_y(lh_addr_of(delta)));
+}
+
+lh_void
+lh_ui_entity_scrollbar_add_scroll_damage(const lh_ui_entity_scrollbar_t *self, lh_ui_canvas_t *canvas,
+                                         const lh_ui_rect_t *thumb_before)
+{
+    lh_ui_entity_container_t *box;
+    lh_ui_rect_t thumb_after;
+
+    lh_return_if(lh_null_eq(self) || lh_null_eq(canvas));
+    box = lh_ui_entity_scrollbar_get_container(self);
+    lh_return_if(lh_null_eq(box));
+    lh_ui_entity_add_damage(lh_ui_entity_container_as_entity(box), canvas);
+    if (lh_null_ne(thumb_before))
+    {
+        lh_ui_canvas_add_damage(canvas, thumb_before);
+    }
+    thumb_after = lh_ui_entity_scrollbar_get_thumb_rect(self);
+    lh_ui_canvas_add_damage(canvas, lh_addr_of(thumb_after));
+    lh_ui_entity_add_damage(lh_ptr_rcast(const lh_ui_entity_t, self), canvas);
 }

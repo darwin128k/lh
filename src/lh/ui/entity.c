@@ -9,6 +9,7 @@
 #include <lh/list/node.h>
 #include <lh/null.h>
 #include <lh/runtime/error/code.h>
+#include <lh/ui/canvas.h>
 #include <lh/ui/entity.h>
 #include <lh/ui/point.h>
 #include <lh/util/addr.h>
@@ -384,7 +385,21 @@ lh_ui_entity_draw_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
 lh_void
 lh_ui_entity_draw(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
 {
+    lh_ui_rect_t rect;
+
     lh_return_if(!lh_ui_entity_is_shown(self));
+    rect = lh_ui_entity_get_rect(self);
+    lh_return_if(!lh_ui_canvas_shows_rect(canvas, lh_addr_of(rect)));
     lh_ui_entity_send(self, lh_ui_entity_event_draw, canvas);
     lh_ui_entity_draw_children(self, canvas);
+}
+
+lh_void
+lh_ui_entity_add_damage(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
+{
+    lh_ui_rect_t rect;
+
+    lh_return_if(lh_null_eq(self) || lh_null_eq(canvas));
+    rect = lh_ui_entity_get_rect(self);
+    lh_ui_canvas_add_damage(canvas, lh_addr_of(rect));
 }

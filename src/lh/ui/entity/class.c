@@ -33,6 +33,17 @@ lh_ui_entity_class_event(const struct lh_ui_entity *self, const lh_ui_entity_eve
 
 const lh_ui_entity_class_t lh_ui_entity_class = {lh_ui_entity_class_event, lh_null};
 
+lh_bool_t
+lh_ui_entity_class_is(const lh_ui_entity_class_t *kind, const lh_ui_entity_class_t *base)
+{
+    lh_return_if(lh_null_eq(base), lh_bool_false);
+    for (; lh_null_ne(kind); kind = kind->base)
+    {
+        lh_return_if(kind == base, lh_bool_true);
+    }
+    return lh_bool_false;
+}
+
 lh_void
 lh_ui_entity_class_event_base(const lh_ui_entity_class_t *class, const struct lh_ui_entity *self,
                               const lh_ui_entity_event_t *event)

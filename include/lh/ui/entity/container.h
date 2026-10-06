@@ -73,6 +73,20 @@ lh_ui_entity_t *
 lh_ui_entity_container_as_entity(lh_ui_entity_container_t *self);
 
 /**
+ * @brief @p entity as a container when its class is
+ *        ::lh_ui_entity_container_class or extends it (e.g. a label), else
+ *        ::lh_null. The entity must be the first field of the container.
+ */
+lh_ui_entity_container_t *
+lh_ui_entity_as_container(lh_ui_entity_t *entity);
+
+/**
+ * @brief Nearest container on @p entity or an ancestor, or ::lh_null.
+ */
+lh_ui_entity_container_t *
+lh_ui_entity_find_container(lh_ui_entity_t *entity);
+
+/**
  * @brief Size of the viewport: the size of the rect of @p self.
  */
 lh_ui_size_t

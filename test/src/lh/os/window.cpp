@@ -190,4 +190,41 @@ TEST(os_window, on_native_click_fires_callback)
     lh_os_window_deinit(lh_addr_of(window));
 }
 
+TEST(os_window, on_native_press_move_release_and_wheel_fire_callbacks)
+{
+    lh_os_window_t window{};
+    ClickLog press{};
+    ClickLog move{};
+    ClickLog release{};
+    int wheel_delta = 0;
+
+    lh_os_window_init(lh_addr_of(window));
+    lh_os_window_set_on_press(lh_addr_of(window), on_click, lh_addr_of(press));
+    lh_os_window_set_on_move(lh_addr_of(window), on_click, lh_addr_of(move));
+    lh_os_window_set_on_release(lh_addr_of(window), on_click, lh_addr_of(release));
+    lh_os_window_set_on_wheel(
+        lh_addr_of(window),
+        [](lh_os_window_t *, int /*x*/, int /*y*/, int delta, lh_ptr context) {
+            *static_cast<int *>(context) = delta;
+        },
+        lh_addr_of(wheel_delta));
+
+    lh_os_window_on_native_press(lh_addr_of(window), 1, 2);
+    lh_os_window_on_native_move(lh_addr_of(window), 3, 4);
+    lh_os_window_on_native_release(lh_addr_of(window), 5, 6);
+    lh_os_window_on_native_wheel(lh_addr_of(window), 7, 8, -2);
+
+    EXPECT_EQ(press.count, 1);
+    EXPECT_EQ(press.x, 1);
+    EXPECT_EQ(press.y, 2);
+    EXPECT_EQ(move.count, 1);
+    EXPECT_EQ(move.x, 3);
+    EXPECT_EQ(move.y, 4);
+    EXPECT_EQ(release.count, 1);
+    EXPECT_EQ(release.x, 5);
+    EXPECT_EQ(release.y, 6);
+    EXPECT_EQ(wheel_delta, -2);
+    lh_os_window_deinit(lh_addr_of(window));
+}
+
 } // namespace

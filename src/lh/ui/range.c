@@ -26,3 +26,15 @@ lh_ui_range_window_start(lh_ui_scalar_t track, lh_ui_scalar_t length, lh_ui_scal
     lh_return_if(max <= lh_ui_scalar(0), lh_ui_scalar(0));
     return (track - length) * offset / max;
 }
+
+lh_ui_scalar_t
+lh_ui_range_offset_from_window_start(lh_ui_scalar_t track, lh_ui_scalar_t length,
+                                     lh_ui_scalar_t start, lh_ui_scalar_t max)
+{
+    lh_ui_scalar_t travel;
+
+    travel = track - length;
+    lh_return_if(travel <= lh_ui_scalar(0) || max <= lh_ui_scalar(0), lh_ui_scalar(0));
+    start = lh_math_clamp(start, lh_ui_scalar(0), travel);
+    return start * max / travel;
+}

@@ -346,6 +346,15 @@ lh_ui_entity_draw_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas);
 lh_void
 lh_ui_entity_draw(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas);
 
+/**
+ * @brief Union the rect of @p self into the damage of @p canvas.
+ *
+ * Nothing when @p self or @p canvas is ::lh_null. The one place an entity
+ * marks itself dirty on a canvas.
+ */
+lh_void
+lh_ui_entity_add_damage(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_ENTITY_H */

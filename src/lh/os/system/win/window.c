@@ -6,86 +6,127 @@
 #include <lh/assert/runtime.h>
 #include <lh/cast/reinterpret.h>
 #include <lh/cast/static.h>
+#include <lh/memory.h>
 #include <lh/null.h>
+#include <lh/os/system/win/kernel32.h>
+#include <lh/os/system/win/user32.h>
 #include <lh/os/system/window.h>
 #include <lh/os/window.h>
 #include <lh/timer/tick.h>
+#include <lh/util/addr.h>
 #include <lh/util/ptr.h>
-
-#ifndef WIN32_LEAN_AND_MEAN
-#    define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
+#include <lh/util/return.h>
 
 #define LH_OS_SYSTEM_WIN_WINDOW_CLASS_NAME "lh_os_window"
 
-static LRESULT CALLBACK
-lh_os_system_win_window_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+static lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
+lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint_t msg,
+                             lh_os_system_win_wparam_t wparam, lh_os_system_win_lparam_t lparam);
 
-static ATOM
-lh_os_system_win_window_register_class(HINSTANCE instance)
+static lh_os_system_win_atom_t
+lh_os_system_win_window_register_class(lh_os_system_win_hinstance_t instance)
 {
-    WNDCLASSEXA wc;
-    static ATOM atom;
+    lh_os_system_win_wndclassexa_t wc;
+    static lh_os_system_win_atom_t atom;
 
     if (atom != 0)
     {
         return atom;
     }
 
-    ZeroMemory(&wc, sizeof(wc));
+    lh_memory_set(lh_addr_of(wc), sizeof(wc), 0);
     wc.cbSize = sizeof(wc);
-    wc.style = CS_HREDRAW | CS_VREDRAW;
+    wc.style = LH_OS_SYSTEM_WIN_CS_HREDRAW | LH_OS_SYSTEM_WIN_CS_VREDRAW;
     wc.lpfnWndProc = lh_os_system_win_window_proc;
     wc.hInstance = instance;
-    wc.hCursor = LoadCursorA(lh_null, IDC_ARROW);
-    wc.hbrBackground = lh_cast_reinterpret(HBRUSH, (lh_uaddr_t)(COLOR_WINDOW + 1));
+    wc.hCursor = LoadCursorA(lh_null, LH_OS_SYSTEM_WIN_IDC_ARROW);
+    /* No class brush: the app paints the whole client; erase would flash. */
+    wc.hbrBackground = lh_null;
     wc.lpszClassName = LH_OS_SYSTEM_WIN_WINDOW_CLASS_NAME;
-    atom = RegisterClassExA(&wc);
+    atom = RegisterClassExA(lh_addr_of(wc));
     return atom;
 }
 
-static LRESULT CALLBACK
-lh_os_system_win_window_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+static lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
+lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint_t msg,
+                             lh_os_system_win_wparam_t wparam, lh_os_system_win_lparam_t lparam)
 {
     lh_os_window_t *window;
 
-    if (msg == WM_NCCREATE)
+    if (msg == LH_OS_SYSTEM_WIN_WM_NCCREATE)
     {
-        const CREATESTRUCTA *cs = lh_ptr_rcast(const CREATESTRUCTA, (lh_ptr)lparam);
+        const lh_os_system_win_createstructa_t *cs =
+            lh_ptr_rcast(const lh_os_system_win_createstructa_t, (lh_ptr)lparam);
         window = lh_ptr_rcast(lh_os_window_t, cs->lpCreateParams);
-        SetWindowLongPtrA(hwnd, GWLP_USERDATA, (LONG_PTR)window);
+        SetWindowLongPtrA(hwnd, LH_OS_SYSTEM_WIN_GWLP_USERDATA, (lh_os_system_win_lparam_t)window);
         if (lh_null_ne(window))
         {
             window->handle = lh_cast_reinterpret(lh_os_system_window_handle_t, hwnd);
         }
     }
 
-    window = lh_cast_reinterpret(lh_os_window_t *, (lh_ptr)GetWindowLongPtrA(hwnd, GWLP_USERDATA));
+    window = lh_cast_reinterpret(lh_os_window_t *,
+                                 (lh_ptr)GetWindowLongPtrA(hwnd, LH_OS_SYSTEM_WIN_GWLP_USERDATA));
 
     switch (msg)
     {
-    case WM_PAINT:
+    case LH_OS_SYSTEM_WIN_WM_ERASEBKGND:
+        /* Client is fully redrawn in WM_PAINT; skip the system fill. */
+        return 1;
+    case LH_OS_SYSTEM_WIN_WM_PAINT:
     {
-        PAINTSTRUCT ps;
-        HDC hdc;
+        lh_os_system_win_paintstruct_t ps;
+        lh_os_system_win_hdc_t hdc;
 
-        hdc = BeginPaint(hwnd, &ps);
+        hdc = BeginPaint(hwnd, lh_addr_of(ps));
         if (lh_null_ne(window))
         {
-            lh_os_window_on_native_paint(window, lh_cast_reinterpret(lh_ptr, hdc));
+            lh_os_window_on_native_paint(window, lh_cast_reinterpret(lh_ptr, hdc), ps.rcPaint.left,
+                                         ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom);
         }
-        EndPaint(hwnd, &ps);
+        EndPaint(hwnd, lh_addr_of(ps));
         return 0;
     }
-    case WM_LBUTTONUP:
+    case LH_OS_SYSTEM_WIN_WM_LBUTTONDOWN:
         if (lh_null_ne(window))
         {
-            lh_os_window_on_native_click(window, (int)(short)LOWORD(lparam),
-                                        (int)(short)HIWORD(lparam));
+            SetCapture(hwnd);
+            lh_os_window_on_native_press(window, (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_LOWORD(lparam),
+                                         (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_HIWORD(lparam));
         }
         return 0;
-    case WM_DESTROY:
+    case LH_OS_SYSTEM_WIN_WM_MOUSEMOVE:
+        if (lh_null_ne(window))
+        {
+            lh_os_window_on_native_move(window, (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_LOWORD(lparam),
+                                        (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_HIWORD(lparam));
+        }
+        return 0;
+    case LH_OS_SYSTEM_WIN_WM_LBUTTONUP:
+        if (lh_null_ne(window))
+        {
+            if (GetCapture() == hwnd)
+            {
+                ReleaseCapture();
+            }
+            lh_os_window_on_native_release(window, (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_LOWORD(lparam),
+                                           (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_HIWORD(lparam));
+        }
+        return 0;
+    case LH_OS_SYSTEM_WIN_WM_MOUSEWHEEL:
+        if (lh_null_ne(window))
+        {
+            lh_os_system_win_point_t cursor;
+            int delta;
+
+            cursor.x = (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_LOWORD(lparam);
+            cursor.y = (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_HIWORD(lparam);
+            ScreenToClient(hwnd, lh_addr_of(cursor));
+            delta = (int)LH_OS_SYSTEM_WIN_GET_WHEEL_DELTA_WPARAM(wparam) / LH_OS_SYSTEM_WIN_WHEEL_DELTA;
+            lh_os_window_on_native_wheel(window, cursor.x, cursor.y, delta);
+        }
+        return 0;
+    case LH_OS_SYSTEM_WIN_WM_DESTROY:
         if (lh_null_ne(window))
         {
             lh_os_window_on_native_destroy(window);
@@ -102,11 +143,11 @@ lh_os_system_window_handle_t
 lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr user,
                          lh_os_system_window_handle_t owner)
 {
-    HINSTANCE instance;
-    HWND hwnd;
-    HWND owner_hwnd;
-    RECT rect;
-    DWORD style;
+    lh_os_system_win_hinstance_t instance;
+    lh_os_system_win_hwnd_t hwnd;
+    lh_os_system_win_hwnd_t owner_hwnd;
+    lh_os_system_win_rect_t rect;
+    lh_os_system_win_dword_t style;
 
     lh_assert_runtime_ref(title);
     if (width <= 0 || height <= 0)
@@ -120,23 +161,24 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
         return LH_OS_SYSTEM_WINDOW_HANDLE_INVALID;
     }
 
-    owner_hwnd = lh_null_eq(owner) ? lh_null : lh_cast_reinterpret(HWND, owner);
-    style = WS_OVERLAPPEDWINDOW;
+    owner_hwnd = lh_null_eq(owner) ? lh_null : lh_cast_reinterpret(lh_os_system_win_hwnd_t, owner);
+    style = LH_OS_SYSTEM_WIN_WS_OVERLAPPEDWINDOW;
     rect.left = 0;
     rect.top = 0;
     rect.right = width;
     rect.bottom = height;
-    AdjustWindowRect(&rect, style, FALSE);
+    AdjustWindowRect(lh_addr_of(rect), style, LH_OS_SYSTEM_WIN_FALSE);
 
-    hwnd = CreateWindowExA(0, LH_OS_SYSTEM_WIN_WINDOW_CLASS_NAME, title, style, CW_USEDEFAULT,
-                           CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top, owner_hwnd,
-                           lh_null, instance, user);
+    hwnd = CreateWindowExA(0, LH_OS_SYSTEM_WIN_WINDOW_CLASS_NAME, title, style,
+                           LH_OS_SYSTEM_WIN_CW_USEDEFAULT, LH_OS_SYSTEM_WIN_CW_USEDEFAULT,
+                           rect.right - rect.left, rect.bottom - rect.top, owner_hwnd, lh_null,
+                           instance, user);
     if (hwnd == lh_null)
     {
         return LH_OS_SYSTEM_WINDOW_HANDLE_INVALID;
     }
 
-    ShowWindow(hwnd, SW_SHOW);
+    ShowWindow(hwnd, LH_OS_SYSTEM_WIN_SW_SHOW);
     UpdateWindow(hwnd);
     return lh_cast_reinterpret(lh_os_system_window_handle_t, hwnd);
 }
@@ -150,53 +192,55 @@ lh_os_system_window_is_valid(lh_os_system_window_handle_t handle)
 lh_void
 lh_os_system_window_set_enabled(lh_os_system_window_handle_t handle, lh_bool_t enabled)
 {
-    HWND hwnd;
+    lh_os_system_win_hwnd_t hwnd;
 
     if (lh_null_eq(handle))
     {
         return;
     }
-    hwnd = lh_cast_reinterpret(HWND, handle);
-    EnableWindow(hwnd, enabled ? TRUE : FALSE);
+    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    EnableWindow(hwnd, enabled ? LH_OS_SYSTEM_WIN_TRUE : LH_OS_SYSTEM_WIN_FALSE);
 }
 
 lh_void
 lh_os_system_window_close(lh_os_system_window_handle_t handle)
 {
-    HWND hwnd;
+    lh_os_system_win_hwnd_t hwnd;
 
     if (lh_null_eq(handle))
     {
         return;
     }
-    hwnd = lh_cast_reinterpret(HWND, handle);
+    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
     DestroyWindow(hwnd);
 }
 
 lh_os_system_window_pump_result_t
 lh_os_system_window_pump_wait(lh_tick_t timeout_ms)
 {
-    MSG msg;
-    DWORD wait;
-    DWORD result;
+    lh_os_system_win_msg_t msg;
+    lh_os_system_win_dword_t wait;
+    lh_os_system_win_dword_t result;
     lh_bool_t saw_message;
 
-    wait = (timeout_ms == LH_TICK_T_MAX) ? INFINITE : lh_cast_static(DWORD, timeout_ms);
-    result = MsgWaitForMultipleObjects(0, lh_null, FALSE, wait, QS_ALLINPUT);
-    if (result == WAIT_TIMEOUT)
+    wait = (timeout_ms == LH_TICK_T_MAX) ? LH_OS_SYSTEM_WIN_INFINITE
+                                         : lh_cast_static(lh_os_system_win_dword_t, timeout_ms);
+    result = MsgWaitForMultipleObjects(0, lh_null, LH_OS_SYSTEM_WIN_FALSE, wait,
+                                       LH_OS_SYSTEM_WIN_QS_ALLINPUT);
+    if (result == LH_OS_SYSTEM_WIN_WAIT_TIMEOUT)
     {
         return lh_os_system_window_pump_timeout;
     }
 
     saw_message = lh_bool_false;
-    while (PeekMessageA(&msg, lh_null, 0, 0, PM_REMOVE))
+    while (PeekMessageA(lh_addr_of(msg), lh_null, 0, 0, LH_OS_SYSTEM_WIN_PM_REMOVE))
     {
-        if (msg.message == WM_QUIT)
+        if (msg.message == LH_OS_SYSTEM_WIN_WM_QUIT)
         {
             return lh_os_system_window_pump_quit;
         }
-        TranslateMessage(&msg);
-        DispatchMessageA(&msg);
+        TranslateMessage(lh_addr_of(msg));
+        DispatchMessageA(lh_addr_of(msg));
         saw_message = lh_bool_true;
     }
     return saw_message ? lh_os_system_window_pump_message : lh_os_system_window_pump_timeout;
@@ -211,12 +255,45 @@ lh_os_system_window_post_quit(void)
 lh_void
 lh_os_system_window_invalidate(lh_os_system_window_handle_t handle)
 {
-    HWND hwnd;
+    lh_os_system_win_hwnd_t hwnd;
 
     if (lh_null_eq(handle))
     {
         return;
     }
-    hwnd = lh_cast_reinterpret(HWND, handle);
-    InvalidateRect(hwnd, lh_null, TRUE);
+    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    InvalidateRect(hwnd, lh_null, LH_OS_SYSTEM_WIN_FALSE);
+}
+
+lh_void
+lh_os_system_window_invalidate_rect(lh_os_system_window_handle_t handle, int left, int top, int right,
+                                    int bottom)
+{
+    lh_os_system_win_hwnd_t hwnd;
+    lh_os_system_win_rect_t area;
+
+    if (lh_null_eq(handle))
+    {
+        return;
+    }
+    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    area.left = left;
+    area.top = top;
+    area.right = right;
+    area.bottom = bottom;
+    InvalidateRect(hwnd, lh_addr_of(area), LH_OS_SYSTEM_WIN_FALSE);
+}
+
+lh_bool_t
+lh_os_system_window_get_client_size(lh_os_system_window_handle_t handle, int *width, int *height)
+{
+    lh_os_system_win_hwnd_t hwnd;
+    lh_os_system_win_rect_t client;
+
+    lh_return_if(lh_null_eq(handle) || lh_null_eq(width) || lh_null_eq(height), lh_bool_false);
+    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    lh_return_if(GetClientRect(hwnd, lh_addr_of(client)) == 0, lh_bool_false);
+    *width = client.right - client.left;
+    *height = client.bottom - client.top;
+    return lh_bool_true;
 }

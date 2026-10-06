@@ -5,7 +5,7 @@
  * Geometry (::lh_ui_scalar_t, ::lh_ui_point_t, ::lh_ui_size_t,
  * ::lh_ui_rect_t), corner radius, color, paint / brush / pen, gradient, style, the canvas
  * a tree draws on, alpha masks, bitmap fonts and text, and the entity tree
- * with container (scrolling), label and scrollbar.
+ * with container (scrolling), label and scrollbar, and ::lh_ui_view_t.
  *
  * Requires ::LH_LIBRARY_OPTION_UI.
  */
@@ -40,5 +40,9 @@
 #include <lh/ui/size.h>
 #include <lh/ui/style.h>
 #include <lh/ui/text.h>
+#include <lh/ui/view.h>
+#if LH_LIBRARY_OPTION_OS && LH_LIBRARY_OPTION_OS_WINDOW
+#    include <lh/ui/surface.h>
+#endif
 
 #endif /* LH_UI_H */

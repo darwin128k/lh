@@ -20,6 +20,7 @@
 #include <lh/os/system/win/kernel32/find_data/fields.h>
 #include <lh/os/system/win/types.h>
 #include <lh/str/ptr.h>
+#include <lh/void.h>
 #include <lh/wchar.h>
 #include <lh/wstr/ptr.h>
 
@@ -181,5 +182,15 @@ GetModuleHandleExW(lh_os_system_win_dword_t dwFlags, const lh_ptr lpModuleName,
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_dword_t LH_OS_SYSTEM_WIN_CALL
 GetModuleFileNameW(lh_os_system_win_handle_t hModule, lh_wstr_ptr lpFilename,
                    lh_os_system_win_dword_t nSize);
+
+/* Module handle by ANSI name. Present since Windows 95. Used only for the
+   window class `hInstance` (null → this EXE); paths still go through `...W`. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
+GetModuleHandleA(lh_str_cptr lpModuleName);
+
+/* Millisecond tick. Present since Windows 95. Wraps ~49.7 days; fine for the
+   app pump. (`GetTickCount64` is Vista+ — do not call it.) */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_dword_t LH_OS_SYSTEM_WIN_CALL
+GetTickCount(lh_void);
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_KERNEL32_H */

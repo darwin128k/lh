@@ -21,6 +21,13 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 # Keep all targets position-independent (shared is automatic, static becomes reusable in shared link scenarios).
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# Windows target floor: XP (5.1). Handwritten Win32 decls in lh/os/system/win
+# are the real fence; this stops SDK headers that still get pulled elsewhere
+# from exposing Vista+ APIs by default.
+if (WIN32)
+    add_compile_definitions(WINVER=0x0501 _WIN32_WINNT=0x0501)
+endif ()
+
 # ---------------------------------------------------------------------------
 # Build options
 # ---------------------------------------------------------------------------
@@ -210,7 +217,12 @@ if (LH_LIBRARY_OPTION_OS)
         )
         if (WIN32)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/window.c)
-            list(APPEND LH_OS_SYSTEM_LINK_LIBS user32 gdi32)
+            list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/surface.c)
+            list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/hdc.c)
+            list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/gdiplus.c)
+            list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/render/backend/gdi.c)
+            list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/render/backend/gdi/plus.c)
+            list(APPEND LH_OS_SYSTEM_LINK_LIBS user32 gdi32 gdiplus)
         endif ()
     endif ()
 endif ()
@@ -236,11 +248,15 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/entity/container.c
             ${LH_LIB_SRC_PATH}/ui/entity/label.c
             ${LH_LIB_SRC_PATH}/ui/entity/scrollbar.c
+            ${LH_LIB_SRC_PATH}/ui/view.c
             ${LH_LIB_SRC_PATH}/ui/mask.c
             ${LH_LIB_SRC_PATH}/ui/font.c
             ${LH_LIB_SRC_PATH}/ui/text.c
             ${LH_LIB_SRC_PATH}/ui/canvas/mask.c
     )
+    if (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/surface.c)
+    endif ()
     if (LH_LIBRARY_OPTION_UI_FONT_ROBOTO)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/font/roboto.c)
     endif ()

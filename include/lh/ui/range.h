@@ -32,6 +32,16 @@ lh_ui_scalar_t
 lh_ui_range_window_start(lh_ui_scalar_t track, lh_ui_scalar_t length, lh_ui_scalar_t offset,
                          lh_ui_scalar_t max);
 
+/**
+ * @brief Offset from a window start: the inverse of
+ *        ::lh_ui_range_window_start. @p start is clamped to
+ *        `0 .. track - length`. Returns `0` when there is no travel
+ *        (`track <= length` or @p max is not positive).
+ */
+lh_ui_scalar_t
+lh_ui_range_offset_from_window_start(lh_ui_scalar_t track, lh_ui_scalar_t length,
+                                     lh_ui_scalar_t start, lh_ui_scalar_t max);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_RANGE_H */

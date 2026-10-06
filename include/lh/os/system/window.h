@@ -87,6 +87,22 @@ lh_os_system_window_post_quit(void);
 lh_void
 lh_os_system_window_invalidate(lh_os_system_window_handle_t handle);
 
+/**
+ * @brief Mark a client rectangle of @p handle dirty (`left`/`top`/`right`/`bottom`,
+ *        right and bottom exclusive).
+ */
+lh_void
+lh_os_system_window_invalidate_rect(lh_os_system_window_handle_t handle, int left, int top, int right,
+                                    int bottom);
+
+/**
+ * @brief Client size of @p handle into @p width and @p height.
+ *
+ * @return True when the size was read.
+ */
+lh_bool_t
+lh_os_system_window_get_client_size(lh_os_system_window_handle_t handle, int *width, int *height);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_SYSTEM_WINDOW_H */

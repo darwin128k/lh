@@ -9,6 +9,7 @@
 #ifndef LH_UI_ENTITY_CLASS_H
 #define LH_UI_ENTITY_CLASS_H
 
+#include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/ui/entity/class/fields.h>
 #include <lh/ui/entity/event.h>
@@ -49,6 +50,12 @@ extern const lh_ui_entity_class_t lh_ui_entity_class;
  */
 lh_void
 lh_ui_entity_class_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *event);
+
+/**
+ * @brief True when @p kind is @p base or extends it through `base` links.
+ */
+lh_bool_t
+lh_ui_entity_class_is(const lh_ui_entity_class_t *kind, const lh_ui_entity_class_t *base);
 
 /**
  * @brief Fill the rect of @p self with its style fill color and radius on

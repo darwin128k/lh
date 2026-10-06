@@ -15,6 +15,7 @@
 #include <lh/os/system/win/types.h>
 #include <lh/os/system/win/user32.h>
 #include <lh/ptr.h>
+#include <lh/wstr/ptr.h>
 
 /* `BITMAPINFOHEADER`. A 32-bit `BI_RGB` bitmap has no color table, so this
    header alone is what `SetDIBitsToDevice` reads as its `BITMAPINFO`. */
@@ -63,8 +64,26 @@ GetStockObject(lh_int_t i);
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
 SelectObject(lh_os_system_win_hdc_t hdc, lh_os_system_win_handle_t h);
 
+/* `COLORREF` pack: 0x00BBGGRR. */
+#define LH_OS_SYSTEM_WIN_RGB(r, g, b)                                                              \
+    ((lh_os_system_win_dword_t)(r) | ((lh_os_system_win_dword_t)(g) << 8) |                         \
+     ((lh_os_system_win_dword_t)(b) << 16))
+
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
 CreateSolidBrush(lh_os_system_win_dword_t color);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
+FillRect(lh_os_system_win_hdc_t hdc, const lh_os_system_win_rect_t *lprc,
+         lh_os_system_win_handle_t hbr);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
+CreateRectRgn(lh_int_t x1, lh_int_t y1, lh_int_t x2, lh_int_t y2);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
+CreateRectRgnIndirect(const lh_os_system_win_rect_t *lprect);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
+SelectClipRgn(lh_os_system_win_hdc_t hdc, lh_os_system_win_handle_t hrgn);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
 CreatePen(lh_int_t iStyle, lh_int_t cWidth, lh_os_system_win_dword_t color);
@@ -96,5 +115,12 @@ LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
 CreateDIBSection(lh_os_system_win_hdc_t hdc, const lh_os_system_win_bitmapinfoheader_t *pbmi,
                  lh_os_system_win_uint_t usage, lh_ptr *ppvBits, lh_os_system_win_handle_t hSection,
                  lh_os_system_win_dword_t offset);
+
+/* `BitBlt` raster op: copy source to destination. */
+#define LH_OS_SYSTEM_WIN_SRCCOPY 0x00CC0020UL
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+BitBlt(lh_os_system_win_hdc_t hdc, lh_int_t x, lh_int_t y, lh_int_t cx, lh_int_t cy,
+       lh_os_system_win_hdc_t hdcSrc, lh_int_t x1, lh_int_t y1, lh_os_system_win_dword_t rop);
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_GDI32_H */

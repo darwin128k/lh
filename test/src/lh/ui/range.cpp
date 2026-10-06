@@ -33,3 +33,22 @@ TEST(ui_range, window_start_moves_from_zero_to_the_track_end)
     EXPECT_EQ(lh_ui_range_window_start(lh_ui_scalar(200), lh_ui_scalar(200), lh_ui_scalar(0), lh_ui_scalar(0)),
               lh_ui_scalar(0));
 }
+
+TEST(ui_range, offset_from_window_start_is_the_inverse)
+{
+    EXPECT_EQ(lh_ui_range_offset_from_window_start(lh_ui_scalar(200), lh_ui_scalar(50), lh_ui_scalar(0),
+                                                   lh_ui_scalar(300)),
+              lh_ui_scalar(0));
+    EXPECT_EQ(lh_ui_range_offset_from_window_start(lh_ui_scalar(200), lh_ui_scalar(50), lh_ui_scalar(75),
+                                                   lh_ui_scalar(300)),
+              lh_ui_scalar(150));
+    EXPECT_EQ(lh_ui_range_offset_from_window_start(lh_ui_scalar(200), lh_ui_scalar(50), lh_ui_scalar(150),
+                                                   lh_ui_scalar(300)),
+              lh_ui_scalar(300));
+    EXPECT_EQ(lh_ui_range_offset_from_window_start(lh_ui_scalar(200), lh_ui_scalar(50), lh_ui_scalar(200),
+                                                   lh_ui_scalar(300)),
+              lh_ui_scalar(300));
+    EXPECT_EQ(lh_ui_range_offset_from_window_start(lh_ui_scalar(200), lh_ui_scalar(200), lh_ui_scalar(0),
+                                                   lh_ui_scalar(0)),
+              lh_ui_scalar(0));
+}

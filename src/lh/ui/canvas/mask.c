@@ -37,7 +37,11 @@ lh_ui_canvas_fill_target_mask(struct lh_ui_canvas *self, const lh_ui_mask_t *mas
                               const lh_ui_color_t *color)
 {
     lh_ui_point_t origin;
+    lh_ui_rect_t cut;
 
+    cut = lh_ui_canvas_state_cut(lh_addr_of(self->state), target);
+    lh_return_if(lh_ui_rect_is_empty(lh_addr_of(cut)));
+    lh_ui_canvas_add_damage(self, lh_addr_of(cut));
     lh_ui_point_init(lh_addr_of(origin), lh_ui_canvas_round_left(target), lh_ui_canvas_round_top(target));
     if (lh_ui_canvas_can_fill_mask(self, target))
     {

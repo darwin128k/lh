@@ -43,8 +43,20 @@ lh_os_window_init(lh_os_window_t *self)
     self->modal = lh_bool_false;
     self->closing = lh_bool_false;
     self->paint_dc = lh_null;
+    self->paint_left = 0;
+    self->paint_top = 0;
+    self->paint_right = 0;
+    self->paint_bottom = 0;
     self->on_paint = lh_null;
     self->on_paint_context = lh_null;
+    self->on_press = lh_null;
+    self->on_press_context = lh_null;
+    self->on_move = lh_null;
+    self->on_move_context = lh_null;
+    self->on_release = lh_null;
+    self->on_release_context = lh_null;
+    self->on_wheel = lh_null;
+    self->on_wheel_context = lh_null;
     self->on_click = lh_null;
     self->on_click_context = lh_null;
     self->on_close = lh_null;
@@ -178,6 +190,39 @@ lh_os_window_set_on_paint(lh_os_window_t *self, lh_os_window_on_paint_cb on_pain
 }
 
 lh_void
+lh_os_window_set_on_press(lh_os_window_t *self, lh_os_window_on_press_cb on_press, lh_ptr context)
+{
+    lh_assert_runtime_ref(self);
+    self->on_press = on_press;
+    self->on_press_context = context;
+}
+
+lh_void
+lh_os_window_set_on_move(lh_os_window_t *self, lh_os_window_on_move_cb on_move, lh_ptr context)
+{
+    lh_assert_runtime_ref(self);
+    self->on_move = on_move;
+    self->on_move_context = context;
+}
+
+lh_void
+lh_os_window_set_on_release(lh_os_window_t *self, lh_os_window_on_release_cb on_release,
+                            lh_ptr context)
+{
+    lh_assert_runtime_ref(self);
+    self->on_release = on_release;
+    self->on_release_context = context;
+}
+
+lh_void
+lh_os_window_set_on_wheel(lh_os_window_t *self, lh_os_window_on_wheel_cb on_wheel, lh_ptr context)
+{
+    lh_assert_runtime_ref(self);
+    self->on_wheel = on_wheel;
+    self->on_wheel_context = context;
+}
+
+lh_void
 lh_os_window_set_on_click(lh_os_window_t *self, lh_os_window_on_click_cb on_click, lh_ptr context)
 {
     lh_assert_runtime_ref(self);
@@ -193,6 +238,20 @@ lh_os_window_get_paint_dc(const lh_os_window_t *self)
 }
 
 lh_void
+lh_os_window_get_paint_rect(const lh_os_window_t *self, int *left, int *top, int *right, int *bottom)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(left);
+    lh_assert_runtime_ref(top);
+    lh_assert_runtime_ref(right);
+    lh_assert_runtime_ref(bottom);
+    *left = self->paint_left;
+    *top = self->paint_top;
+    *right = self->paint_right;
+    *bottom = self->paint_bottom;
+}
+
+lh_void
 lh_os_window_invalidate(lh_os_window_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -203,6 +262,23 @@ lh_os_window_invalidate(lh_os_window_t *self)
     }
 #else
     (void)self;
+#endif
+}
+
+lh_void
+lh_os_window_invalidate_rect(lh_os_window_t *self, int left, int top, int right, int bottom)
+{
+    lh_assert_runtime_ref(self);
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+    if (lh_os_system_window_is_valid(self->handle))
+    {
+        lh_os_system_window_invalidate_rect(self->handle, left, top, right, bottom);
+    }
+#else
+    (void)left;
+    (void)top;
+    (void)right;
+    (void)bottom;
 #endif
 }
 
@@ -244,13 +320,18 @@ lh_os_window_deinit(lh_os_window_t *self)
 }
 
 lh_void
-lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc)
+lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc, int left, int top, int right,
+                             int bottom)
 {
     lh_os_window_on_paint_cb on_paint;
     lh_ptr on_paint_context;
 
     lh_assert_runtime_ref(self);
     self->paint_dc = paint_dc;
+    self->paint_left = left;
+    self->paint_top = top;
+    self->paint_right = right;
+    self->paint_bottom = bottom;
     on_paint = self->on_paint;
     on_paint_context = self->on_paint_context;
     if (lh_null_ne(lh_ptr_rcast(lh_void, on_paint)))
@@ -258,6 +339,70 @@ lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc)
         on_paint(self, on_paint_context);
     }
     self->paint_dc = lh_null;
+    self->paint_left = 0;
+    self->paint_top = 0;
+    self->paint_right = 0;
+    self->paint_bottom = 0;
+}
+
+lh_void
+lh_os_window_on_native_press(lh_os_window_t *self, int x, int y)
+{
+    lh_os_window_on_press_cb on_press;
+    lh_ptr on_press_context;
+
+    lh_assert_runtime_ref(self);
+    on_press = self->on_press;
+    on_press_context = self->on_press_context;
+    if (lh_null_ne(lh_ptr_rcast(lh_void, on_press)))
+    {
+        on_press(self, x, y, on_press_context);
+    }
+}
+
+lh_void
+lh_os_window_on_native_move(lh_os_window_t *self, int x, int y)
+{
+    lh_os_window_on_move_cb on_move;
+    lh_ptr on_move_context;
+
+    lh_assert_runtime_ref(self);
+    on_move = self->on_move;
+    on_move_context = self->on_move_context;
+    if (lh_null_ne(lh_ptr_rcast(lh_void, on_move)))
+    {
+        on_move(self, x, y, on_move_context);
+    }
+}
+
+lh_void
+lh_os_window_on_native_release(lh_os_window_t *self, int x, int y)
+{
+    lh_os_window_on_release_cb on_release;
+    lh_ptr on_release_context;
+
+    lh_assert_runtime_ref(self);
+    on_release = self->on_release;
+    on_release_context = self->on_release_context;
+    if (lh_null_ne(lh_ptr_rcast(lh_void, on_release)))
+    {
+        on_release(self, x, y, on_release_context);
+    }
+}
+
+lh_void
+lh_os_window_on_native_wheel(lh_os_window_t *self, int x, int y, int delta)
+{
+    lh_os_window_on_wheel_cb on_wheel;
+    lh_ptr on_wheel_context;
+
+    lh_assert_runtime_ref(self);
+    on_wheel = self->on_wheel;
+    on_wheel_context = self->on_wheel_context;
+    if (lh_null_ne(lh_ptr_rcast(lh_void, on_wheel)))
+    {
+        on_wheel(self, x, y, delta, on_wheel_context);
+    }
 }
 
 lh_void

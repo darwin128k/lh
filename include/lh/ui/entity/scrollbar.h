@@ -107,6 +107,19 @@ lh_ui_entity_t *
 lh_ui_entity_scrollbar_as_entity(lh_ui_entity_scrollbar_t *self);
 
 /**
+ * @brief @p entity as a scrollbar when its class is
+ *        ::lh_ui_entity_scrollbar_class, else ::lh_null.
+ */
+lh_ui_entity_scrollbar_t *
+lh_ui_entity_as_scrollbar(lh_ui_entity_t *entity);
+
+/**
+ * @brief Container @p self drives. Not owned.
+ */
+lh_ui_entity_container_t *
+lh_ui_entity_scrollbar_get_container(const lh_ui_entity_scrollbar_t *self);
+
+/**
  * @brief The axis @p self shows and drives.
  */
 lh_ui_axis_t
@@ -198,6 +211,21 @@ lh_ui_scalar_t
 lh_ui_entity_scrollbar_get_thumb_start(const lh_ui_entity_scrollbar_t *self);
 
 /**
+ * @brief Track-axis coordinate of @p point past the track origin: where the
+ *        thumb start would sit if dragged to @p point (same space as the track
+ *        rect).
+ */
+lh_ui_scalar_t
+lh_ui_entity_scrollbar_get_thumb_start_at(const lh_ui_entity_scrollbar_t *self, lh_ui_point_t point);
+
+/**
+ * @brief Scroll so the thumb starts at @p start past the track origin
+ *        (::lh_ui_range_offset_from_window_start).
+ */
+lh_void
+lh_ui_entity_scrollbar_set_thumb_start(lh_ui_entity_scrollbar_t *self, lh_ui_scalar_t start);
+
+/**
  * @brief The thumb, in the space of the track rect: start and length on the
  *        axis, the whole track across it.
  */
@@ -210,6 +238,20 @@ lh_ui_entity_scrollbar_get_thumb_rect(const lh_ui_entity_scrollbar_t *self);
  */
 lh_void
 lh_ui_entity_scrollbar_draw_thumb(const lh_ui_entity_scrollbar_t *self, lh_ui_canvas_t *canvas);
+
+/**
+ * @brief True when @p point (same space as the track rect) is inside the thumb.
+ */
+lh_bool_t
+lh_ui_entity_scrollbar_contains_thumb(const lh_ui_entity_scrollbar_t *self, lh_ui_point_t point);
+
+/**
+ * @brief Scroll so the thumb start sits under @p point on the track axis:
+ *        ::lh_ui_entity_scrollbar_set_thumb_start of
+ *        ::lh_ui_entity_scrollbar_get_thumb_start_at.
+ */
+lh_void
+lh_ui_entity_scrollbar_set_scroll_at(lh_ui_entity_scrollbar_t *self, lh_ui_point_t point);
 
 /* ── Paging ──────────────────────────────────────────────────────────────── */
 
@@ -225,6 +267,19 @@ lh_ui_entity_scrollbar_get_page_toward(const lh_ui_entity_scrollbar_t *self, lh_
  */
 lh_void
 lh_ui_entity_scrollbar_page_toward(const lh_ui_entity_scrollbar_t *self, lh_ui_point_t point);
+
+/**
+ * @brief Union scroll damage into @p canvas: the container viewport, the thumb
+ *        where it was (@p thumb_before) and where it is now, and the track.
+ *
+ * This is the one place "harm from scrolling" is recorded — was ∪ became for
+ * the thumb, plus the content that shifted and the track that holds it.
+ * ::lh_null @p thumb_before skips the old thumb (first paint of a move).
+ * Nothing without a canvas or a container on @p self.
+ */
+lh_void
+lh_ui_entity_scrollbar_add_scroll_damage(const lh_ui_entity_scrollbar_t *self, lh_ui_canvas_t *canvas,
+                                         const lh_ui_rect_t *thumb_before);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -24,7 +24,11 @@
 #include <lh/os/window/fields.h>
 #include <lh/os/window/on/click/cb.h>
 #include <lh/os/window/on/close/cb.h>
+#include <lh/os/window/on/move/cb.h>
 #include <lh/os/window/on/paint/cb.h>
+#include <lh/os/window/on/press/cb.h>
+#include <lh/os/window/on/release/cb.h>
+#include <lh/os/window/on/wheel/cb.h>
 #include <lh/ptr.h>
 #include <lh/void.h>
 
@@ -133,9 +137,47 @@ lh_void
 lh_os_window_set_on_paint(lh_os_window_t *self, lh_os_window_on_paint_cb on_paint, lh_ptr context);
 
 /**
- * @brief Notify @p on_click on a primary-button release in client coordinates.
+ * @brief Notify @p on_press on a primary-button press in client coordinates.
  *
  * @p context is passed through. ::lh_null clears the slot.
+ */
+lh_void
+lh_os_window_set_on_press(lh_os_window_t *self, lh_os_window_on_press_cb on_press, lh_ptr context);
+
+/**
+ * @brief Notify @p on_move on pointer move in client coordinates.
+ *
+ * @p context is passed through. ::lh_null clears the slot.
+ */
+lh_void
+lh_os_window_set_on_move(lh_os_window_t *self, lh_os_window_on_move_cb on_move, lh_ptr context);
+
+/**
+ * @brief Notify @p on_release on a primary-button release in client coordinates.
+ *
+ * @p context is passed through. ::lh_null clears the slot. Click synthesis
+ * (press then release without a drag) is the caller's job — the Win32
+ * backend does not also fire ::lh_os_window_set_on_click.
+ */
+lh_void
+lh_os_window_set_on_release(lh_os_window_t *self, lh_os_window_on_release_cb on_release,
+                            lh_ptr context);
+
+/**
+ * @brief Notify @p on_wheel on a mouse-wheel tick in client coordinates.
+ *
+ * @p context is passed through. ::lh_null clears the slot. @p delta is
+ * notches (positive = away from the user).
+ */
+lh_void
+lh_os_window_set_on_wheel(lh_os_window_t *self, lh_os_window_on_wheel_cb on_wheel, lh_ptr context);
+
+/**
+ * @brief Notify @p on_click on a primary-button click in client coordinates.
+ *
+ * Kept for callers that still wire a click; the Win32 backend does not fire
+ * it (use press/release and synthesize above). @p context is passed through.
+ * ::lh_null clears the slot.
  */
 lh_void
 lh_os_window_set_on_click(lh_os_window_t *self, lh_os_window_on_click_cb on_click, lh_ptr context);
@@ -150,10 +192,24 @@ lh_ptr
 lh_os_window_get_paint_dc(const lh_os_window_t *self);
 
 /**
- * @brief Ask the OS to redraw @p self (posts a paint).
+ * @brief Client paint rectangle for the current paint cycle (right/bottom
+ *        exclusive), or zeros outside a paint.
+ */
+lh_void
+lh_os_window_get_paint_rect(const lh_os_window_t *self, int *left, int *top, int *right, int *bottom);
+
+/**
+ * @brief Ask the OS to redraw @p self (posts a paint of the whole client).
  */
 lh_void
 lh_os_window_invalidate(lh_os_window_t *self);
+
+/**
+ * @brief Ask the OS to redraw a client rectangle of @p self (right/bottom
+ *        exclusive).
+ */
+lh_void
+lh_os_window_invalidate_rect(lh_os_window_t *self, int left, int top, int right, int bottom);
 
 /**
  * @brief Close children, then destroy the native window and unlink @p self.
@@ -177,15 +233,50 @@ lh_void
 lh_os_window_on_native_destroy(lh_os_window_t *self);
 
 /**
- * @brief Called from the native backend inside a paint cycle with @p paint_dc set.
+ * @brief Called from the native backend inside a paint cycle with @p paint_dc
+ *        and the update rectangle set.
  */
 lh_void
-lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc);
+lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc, int left, int top, int right,
+                             int bottom);
+
+/**
+ * @brief Called from the native backend on a primary-button press.
+ *
+ * @p x and @p y are client-area coordinates.
+ */
+lh_void
+lh_os_window_on_native_press(lh_os_window_t *self, int x, int y);
+
+/**
+ * @brief Called from the native backend on pointer move.
+ *
+ * @p x and @p y are client-area coordinates.
+ */
+lh_void
+lh_os_window_on_native_move(lh_os_window_t *self, int x, int y);
+
+/**
+ * @brief Called from the native backend on a primary-button release.
+ *
+ * @p x and @p y are client-area coordinates.
+ */
+lh_void
+lh_os_window_on_native_release(lh_os_window_t *self, int x, int y);
+
+/**
+ * @brief Called from the native backend on a mouse-wheel tick.
+ *
+ * @p x and @p y are client-area coordinates. @p delta is notches.
+ */
+lh_void
+lh_os_window_on_native_wheel(lh_os_window_t *self, int x, int y, int delta);
 
 /**
  * @brief Called from the native backend on a primary-button click.
  *
- * @p x and @p y are client-area coordinates.
+ * @p x and @p y are client-area coordinates. Kept for tests and callers that
+ * fire a click without going through press/release.
  */
 lh_void
 lh_os_window_on_native_click(lh_os_window_t *self, int x, int y);

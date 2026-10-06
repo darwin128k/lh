@@ -26,16 +26,18 @@
 #include <lh/ui/point.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/scalar.h>
+#include <lh/ui/size.h>
 #include <lh/void.h>
 
 /**
  * @struct lh_ui_canvas
  * @typedef lh_ui_canvas_t
- * @brief Active draw target: backend, context, offset / clip stack.
+ * @brief Active draw target: backend, context, offset / clip stack, damage.
  */
 struct lh_ui_canvas
 {
-    lh_ui_canvas_fields(lh_ui_canvas_backend_t, lh_ptr, lh_ui_canvas_state_t, lh_u8_t);
+    lh_ui_canvas_fields(lh_ui_canvas_backend_t, lh_ptr, lh_ui_canvas_state_t, lh_u8_t, lh_ui_size_t,
+                        lh_ui_rect_t, lh_bool_t);
 };
 typedef struct lh_ui_canvas lh_ui_canvas_t;
 
@@ -80,6 +82,44 @@ lh_ui_canvas_set_context(lh_ui_canvas_t *self, lh_ptr context);
  */
 lh_ptr
 lh_ui_canvas_get_context(const lh_ui_canvas_t *self);
+
+/**
+ * @brief Target size of @p self (for `clear` damage). Zero until set.
+ */
+lh_void
+lh_ui_canvas_set_size(lh_ui_canvas_t *self, lh_ui_size_t size);
+
+/**
+ * @brief Target size of @p self.
+ */
+lh_ui_size_t
+lh_ui_canvas_get_size(const lh_ui_canvas_t *self);
+
+/**
+ * @brief Union @p rect (target space) into the accumulated damage of @p self.
+ *
+ * Empty @p rect is ignored. The one place damage is recorded.
+ */
+lh_void
+lh_ui_canvas_add_damage(lh_ui_canvas_t *self, const lh_ui_rect_t *rect);
+
+/**
+ * @brief Drop the accumulated damage of @p self.
+ */
+lh_void
+lh_ui_canvas_reset_damage(lh_ui_canvas_t *self);
+
+/**
+ * @brief True when @p self has accumulated damage.
+ */
+lh_bool_t
+lh_ui_canvas_has_damage(const lh_ui_canvas_t *self);
+
+/**
+ * @brief Accumulated damage of @p self, or ::lh_null when none.
+ */
+const lh_ui_rect_t *
+lh_ui_canvas_get_damage(const lh_ui_canvas_t *self);
 
 /**
  * @brief Save the offset and clip of @p self, then move and cut later draws.

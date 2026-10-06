@@ -10,6 +10,7 @@
 #include <lh/ui/canvas.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/radius.h>
+#include <lh/ui/size.h>
 #include <lh/util/addr.h>
 #include <lh/util/return.h>
 
@@ -28,6 +29,9 @@ lh_ui_canvas_init(lh_ui_canvas_t *self, const lh_ui_canvas_backend_t *backend, l
     self->context = context;
     lh_ui_canvas_state_init(lh_addr_of(self->state));
     self->depth = 0U;
+    lh_ui_size_init(lh_addr_of(self->size), lh_ui_scalar(0), lh_ui_scalar(0));
+    lh_ui_rect_init_empty(lh_addr_of(self->damage));
+    self->has_damage = lh_bool_false;
 }
 
 lh_void
@@ -64,6 +68,57 @@ lh_ui_canvas_get_context(const lh_ui_canvas_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->context;
+}
+
+lh_void
+lh_ui_canvas_set_size(lh_ui_canvas_t *self, lh_ui_size_t size)
+{
+    lh_assert_runtime_ref(self);
+    self->size = size;
+}
+
+lh_ui_size_t
+lh_ui_canvas_get_size(const lh_ui_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->size;
+}
+
+lh_void
+lh_ui_canvas_add_damage(lh_ui_canvas_t *self, const lh_ui_rect_t *rect)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(rect);
+    lh_return_if(lh_ui_rect_is_empty(rect));
+    if (!self->has_damage)
+    {
+        self->damage = *rect;
+        self->has_damage = lh_bool_true;
+        return;
+    }
+    self->damage = lh_ui_rect_union(lh_addr_of(self->damage), rect);
+}
+
+lh_void
+lh_ui_canvas_reset_damage(lh_ui_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    lh_ui_rect_init_empty(lh_addr_of(self->damage));
+    self->has_damage = lh_bool_false;
+}
+
+lh_bool_t
+lh_ui_canvas_has_damage(const lh_ui_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->has_damage;
+}
+
+const lh_ui_rect_t *
+lh_ui_canvas_get_damage(const lh_ui_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->has_damage ? lh_addr_of(self->damage) : lh_null;
 }
 
 /* ── Offset and clip ─────────────────────────────────────────────────────── */
@@ -165,10 +220,16 @@ lh_ui_canvas_end(lh_ui_canvas_t *self)
 lh_void
 lh_ui_canvas_clear(lh_ui_canvas_t *self, const lh_ui_color_t *color)
 {
+    lh_ui_rect_t area;
+
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(color);
     lh_return_if(lh_null_eq(self->backend) || lh_null_eq(self->backend->clear));
     self->backend->clear(self->context, color);
+    lh_ui_rect_init(lh_addr_of(area), lh_ui_scalar(0), lh_ui_scalar(0),
+                    lh_ui_size_get_width(lh_addr_of(self->size)),
+                    lh_ui_size_get_height(lh_addr_of(self->size)));
+    lh_ui_canvas_add_damage(self, lh_addr_of(area));
 }
 
 /* ── Fills ───────────────────────────────────────────────────────────────── */
@@ -177,10 +238,19 @@ lh_void
 lh_ui_canvas_fill_target_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *target, const lh_ui_color_t *color)
 {
     lh_ui_rect_t cut;
+
     lh_return_if(lh_null_eq(self->backend) || lh_null_eq(self->backend->fill_rect));
-    cut = lh_ui_canvas_is_cutting(self) ? lh_ui_canvas_state_cut(lh_addr_of(self->state), target) : *target;
+    cut = lh_ui_canvas_state_cut(lh_addr_of(self->state), target);
     lh_return_if(lh_ui_rect_is_empty(lh_addr_of(cut)));
-    self->backend->fill_rect(self->context, lh_addr_of(cut), color);
+    lh_ui_canvas_add_damage(self, lh_addr_of(cut));
+    if (lh_ui_canvas_is_cutting(self))
+    {
+        self->backend->fill_rect(self->context, lh_addr_of(cut), color);
+    }
+    else
+    {
+        self->backend->fill_rect(self->context, target, color);
+    }
 }
 
 lh_bool_t
@@ -223,18 +293,22 @@ lh_void
 lh_ui_canvas_fill_target_round_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *target, lh_ui_scalar_t radius,
                                     const lh_ui_color_t *color)
 {
+    lh_ui_rect_t cut;
+
     if (radius <= lh_ui_scalar(0))
     {
         lh_ui_canvas_fill_target_rect(self, target, color);
+        return;
     }
-    else if (lh_ui_canvas_can_fill_round(self, target))
+    cut = lh_ui_canvas_state_cut(lh_addr_of(self->state), target);
+    lh_return_if(lh_ui_rect_is_empty(lh_addr_of(cut)));
+    if (lh_ui_canvas_can_fill_round(self, target))
     {
+        lh_ui_canvas_add_damage(self, lh_addr_of(cut));
         self->backend->fill_round_rect(self->context, target, radius, color);
+        return;
     }
-    else
-    {
-        lh_ui_canvas_fill_round_rect_by_rects(self, target, radius, color);
-    }
+    lh_ui_canvas_fill_round_rect_by_rects(self, target, radius, color);
 }
 
 lh_void
