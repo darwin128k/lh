@@ -16,6 +16,7 @@
 #include <lh/void.h>
 
 struct lh_ui_entity;
+struct lh_ui_canvas;
 
 /**
  * @struct lh_ui_entity_class
@@ -34,11 +35,28 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Class of ::lh_ui_entity_t.
  *
  * It has no base class. On ::lh_ui_entity_event_draw it fills the entity rect
- * with ::lh_ui_entity_get_fill_color on the event canvas, when both exist.
+ * with ::lh_ui_entity_get_fill_color on the event canvas, when both exist,
+ * through ::lh_ui_canvas_fill_round_rect with the style radius.
  * Other events are ignored. Derived classes call it through
  * ::lh_ui_entity_class_event_base to keep that fill.
  */
 extern const lh_ui_entity_class_t lh_ui_entity_class;
+
+/**
+ * @brief Event function of ::lh_ui_entity_class: on
+ *        ::lh_ui_entity_event_draw, ::lh_ui_entity_class_fill; other events are
+ *        ignored.
+ */
+lh_void
+lh_ui_entity_class_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *event);
+
+/**
+ * @brief Fill the rect of @p self with its style fill color and radius on
+ *        @p canvas. Nothing when @p canvas is ::lh_null or there is no solid
+ *        fill.
+ */
+lh_void
+lh_ui_entity_class_fill(const struct lh_ui_entity *self, struct lh_ui_canvas *canvas);
 
 /**
  * @brief Call the event function of the class @p class extends.

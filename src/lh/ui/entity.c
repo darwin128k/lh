@@ -15,21 +15,6 @@
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
-static lh_bool_t
-lh_ui_entity_is_ancestor(const lh_ui_entity_t *ancestor, const lh_ui_entity_t *self)
-{
-    const lh_ui_entity_t *walk;
-
-    for (walk = self; lh_null_ne(walk); walk = walk->parent)
-    {
-        if (walk == ancestor)
-        {
-            return lh_bool_true;
-        }
-    }
-    return lh_bool_false;
-}
-
 lh_void
 lh_ui_entity_init(lh_ui_entity_t *self, lh_ui_rect_t rect)
 {
@@ -122,6 +107,18 @@ lh_ui_entity_get_parent(const lh_ui_entity_t *self)
     return self->parent;
 }
 
+lh_bool_t
+lh_ui_entity_is_ancestor(const lh_ui_entity_t *ancestor, const lh_ui_entity_t *self)
+{
+    const lh_ui_entity_t *walk = self;
+
+    while (lh_null_ne(walk) && walk != ancestor)
+    {
+        walk = walk->parent;
+    }
+    return lh_null_ne(walk) ? lh_bool_true : lh_bool_false;
+}
+
 lh_void
 lh_ui_entity_add_child(lh_ui_entity_t *self, lh_ui_entity_t *child)
 {
@@ -182,95 +179,212 @@ lh_ui_entity_get_prev_child(const lh_ui_entity_t *self, const lh_ui_entity_t *ch
 lh_bool_t
 lh_ui_entity_walk(const lh_ui_entity_t *self, lh_ui_entity_visit_cb visit, lh_ptr context)
 {
-    lh_ui_entity_t *child;
-
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(visit);
-    if (!visit(self, context))
+    lh_return_if(!visit(self, context), lh_bool_false);
+    return lh_ui_entity_walk_children(self, visit, context);
+}
+
+lh_bool_t
+lh_ui_entity_walk_children(const lh_ui_entity_t *self, lh_ui_entity_visit_cb visit, lh_ptr context)
+{
+    lh_ui_entity_t *child;
+    lh_bool_t all = lh_bool_true;
+
+    lh_assert_runtime_ref(self);
+    for (child = lh_ui_entity_get_first_child(self); all && lh_null_ne(child);
+         child = lh_ui_entity_get_next_child(self, child))
     {
-        return lh_bool_false;
+        all = lh_ui_entity_walk(child, visit, context);
     }
+    return all;
+}
+
+/* ── Class queries ───────────────────────────────────────────────────────── */
+
+lh_void
+lh_ui_entity_send(const lh_ui_entity_t *self, lh_ui_entity_event_code_t code, lh_ptr context)
+{
+    lh_ui_entity_event_t event;
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(self->class);
+    lh_ui_entity_event_init(lh_addr_of(event), code, context);
+    self->class->event(self, lh_addr_of(event));
+}
+
+lh_bool_t
+lh_ui_entity_is_shown(const lh_ui_entity_t *self)
+{
+    lh_bool_t visible = lh_bool_true;
+
+    lh_assert_runtime_ref(self);
+    lh_return_if(self->hidden, lh_bool_false);
+    lh_ui_entity_send(self, lh_ui_entity_event_visible, lh_addr_of(visible));
+    return visible;
+}
+
+lh_void
+lh_ui_entity_ask_children(const lh_ui_entity_t *self, lh_ui_entity_transform_t *transform)
+{
+    lh_ui_entity_transform_init(transform);
+    lh_ui_entity_send(self, lh_ui_entity_event_children, transform);
+}
+
+lh_bool_t
+lh_ui_entity_get_children_transform(const lh_ui_entity_t *self, lh_ui_point_t *offset)
+{
+    lh_ui_entity_transform_t transform;
+
+    lh_assert_runtime_ref(offset);
+    lh_ui_entity_ask_children(self, lh_addr_of(transform));
+    *offset = lh_ui_entity_transform_get_offset(lh_addr_of(transform));
+    return lh_ui_entity_transform_is_clip(lh_addr_of(transform));
+}
+
+/* ── Geometry ────────────────────────────────────────────────────────────── */
+
+lh_ui_rect_t
+lh_ui_entity_extend_bounds(const lh_ui_entity_t *self, lh_ui_rect_t bounds)
+{
+    lh_assert_runtime_ref(self);
+    lh_return_if(self->hidden, bounds);
+    return lh_ui_rect_union(lh_addr_of(bounds), lh_addr_of(self->rect));
+}
+
+lh_ui_rect_t
+lh_ui_entity_get_children_bounds(const lh_ui_entity_t *self)
+{
+    const lh_ui_entity_t *child;
+    lh_ui_rect_t bounds;
+
+    lh_assert_runtime_ref(self);
+    lh_ui_rect_init_empty(lh_addr_of(bounds));
     for (child = lh_ui_entity_get_first_child(self); lh_null_ne(child);
          child = lh_ui_entity_get_next_child(self, child))
     {
-        if (!lh_ui_entity_walk(child, visit, context))
-        {
-            return lh_bool_false;
-        }
+        bounds = lh_ui_entity_extend_bounds(child, bounds);
     }
-    return lh_bool_true;
+    return bounds;
+}
+
+lh_ui_rect_t
+lh_ui_entity_get_content_bounds(const lh_ui_entity_t *self)
+{
+    lh_ui_rect_t bounds = lh_ui_entity_get_children_bounds(self);
+
+    lh_ui_entity_send(self, lh_ui_entity_event_measure, lh_addr_of(bounds));
+    return bounds;
+}
+
+lh_ui_point_t
+lh_ui_entity_to_children_space(const lh_ui_entity_t *self, lh_ui_point_t point)
+{
+    lh_ui_point_t offset;
+
+    (void)lh_ui_entity_get_children_transform(self, lh_addr_of(offset));
+    return lh_ui_point_offset(lh_addr_of(point), -lh_ui_point_get_x(lh_addr_of(offset)),
+                              -lh_ui_point_get_y(lh_addr_of(offset)));
+}
+
+/* ── Hit test ────────────────────────────────────────────────────────────── */
+
+lh_bool_t
+lh_ui_entity_is_hit(const lh_ui_entity_t *self, lh_ui_point_t point)
+{
+    lh_assert_runtime_ref(self);
+    lh_return_if(!lh_ui_rect_contains_point(lh_addr_of(self->rect), point), lh_bool_false);
+    return lh_ui_entity_is_shown(self);
+}
+
+lh_ui_entity_t *
+lh_ui_entity_find_child_at(const lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_point_t *local)
+{
+    lh_ui_entity_t *child;
+    lh_ui_entity_t *hit = lh_null;
+
+    lh_assert_runtime_ref(self);
+    lh_return_if(lh_null_eq(lh_ui_entity_get_last_child(self)), lh_null);
+    point = lh_ui_entity_to_children_space(self, point);
+    for (child = lh_ui_entity_get_last_child(self); lh_null_eq(hit) && lh_null_ne(child);
+         child = lh_ui_entity_get_prev_child(self, child))
+    {
+        hit = lh_ui_entity_find_at_local(child, point, local);
+    }
+    return hit;
+}
+
+lh_ui_entity_t *
+lh_ui_entity_find_at_local(lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_point_t *local)
+{
+    lh_ui_entity_t *hit;
+
+    lh_assert_runtime_ref(local);
+    lh_return_if(!lh_ui_entity_is_hit(self, point), lh_null);
+    hit = lh_ui_entity_find_child_at(self, point, local);
+    lh_return_if(lh_null_ne(hit), hit);
+    *local = point;
+    return self;
 }
 
 lh_ui_entity_t *
 lh_ui_entity_find_at(lh_ui_entity_t *self, lh_ui_point_t point)
 {
-    lh_ui_entity_t *child;
-    lh_ui_entity_t *hit;
-    lh_ui_rect_t rect;
+    lh_ui_point_t local;
 
-    lh_assert_runtime_ref(self);
-    if (self->hidden)
-    {
-        return lh_null;
-    }
-    rect = lh_ui_entity_get_rect(self);
-    if (!lh_ui_rect_contains_point(lh_addr_of(rect), point))
-    {
-        return lh_null;
-    }
-    for (child = lh_ui_entity_get_last_child(self); lh_null_ne(child);
-         child = lh_ui_entity_get_prev_child(self, child))
-    {
-        hit = lh_ui_entity_find_at(child, point);
-        if (lh_null_ne(hit))
-        {
-            return hit;
-        }
-    }
-    return self;
+    return lh_ui_entity_find_at_local(self, point, lh_addr_of(local));
 }
 
 lh_ui_entity_t *
 lh_ui_entity_click(lh_ui_entity_t *self, lh_ui_point_t point)
 {
     lh_ui_entity_t *hit;
-    const lh_ui_entity_class_t *klass;
-    lh_ui_entity_event_t event;
+    lh_ui_point_t local;
 
-    lh_assert_runtime_ref(self);
-    hit = lh_ui_entity_find_at(self, point);
-    if (lh_null_eq(hit))
-    {
-        return lh_null;
-    }
-    klass = lh_ui_entity_get_class(hit);
-    lh_assert_runtime_ref(klass);
-    lh_assert_runtime_ref(klass->event);
-    lh_ui_entity_event_init(lh_addr_of(event), lh_ui_entity_event_click, lh_addr_of(point));
-    klass->event(hit, lh_addr_of(event));
+    hit = lh_ui_entity_find_at_local(self, point, lh_addr_of(local));
+    lh_return_if(lh_null_eq(hit), lh_null);
+    lh_ui_entity_send(hit, lh_ui_entity_event_click, lh_addr_of(local));
     return hit;
 }
 
-lh_void
-lh_ui_entity_draw(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
-{
-    lh_ui_entity_event_t event;
-    const lh_ui_entity_class_t *klass;
-    lh_ui_entity_t *child;
+/* ── Draw ────────────────────────────────────────────────────────────────── */
 
-    lh_assert_runtime_ref(self);
-    if (self->hidden)
-    {
-        return;
-    }
-    klass = lh_ui_entity_get_class(self);
-    lh_assert_runtime_ref(klass);
-    lh_assert_runtime_ref(klass->event);
-    lh_ui_entity_event_init(lh_addr_of(event), lh_ui_entity_event_draw, canvas);
-    klass->event(self, lh_addr_of(event));
+lh_bool_t
+lh_ui_entity_push_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
+{
+    lh_ui_entity_transform_t transform;
+    lh_ui_rect_t rect;
+
+    lh_return_if(lh_null_eq(canvas), lh_bool_false);
+    lh_ui_entity_ask_children(self, lh_addr_of(transform));
+    lh_return_if(lh_ui_entity_transform_is_identity(lh_addr_of(transform)), lh_bool_false);
+    rect = self->rect;
+    lh_ui_canvas_push(canvas, lh_ui_entity_transform_get_offset(lh_addr_of(transform)),
+                      lh_ui_entity_transform_is_clip(lh_addr_of(transform)) ? lh_addr_of(rect) : lh_null);
+    return lh_bool_true;
+}
+
+lh_void
+lh_ui_entity_draw_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
+{
+    lh_ui_entity_t *child;
+    lh_bool_t pushed;
+
+    lh_return_if(lh_null_eq(lh_ui_entity_get_first_child(self)));
+    pushed = lh_ui_entity_push_children(self, canvas);
     for (child = lh_ui_entity_get_first_child(self); lh_null_ne(child);
          child = lh_ui_entity_get_next_child(self, child))
     {
         lh_ui_entity_draw(child, canvas);
     }
+    lh_return_if(!pushed);
+    lh_ui_canvas_pop(canvas);
+}
+
+lh_void
+lh_ui_entity_draw(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
+{
+    lh_return_if(!lh_ui_entity_is_shown(self));
+    lh_ui_entity_send(self, lh_ui_entity_event_draw, canvas);
+    lh_ui_entity_draw_children(self, canvas);
 }

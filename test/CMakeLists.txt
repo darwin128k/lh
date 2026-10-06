@@ -130,6 +130,7 @@ endif ()
 
 if (LH_LIBRARY_OPTION_UI)
     list(APPEND LH_TEST_SOURCES
+            ${LH_TEST_SRC_PATH}/lh/ui/axis.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/color.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/paint.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/gradient.cpp
@@ -138,9 +139,13 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_TEST_SRC_PATH}/lh/ui/style.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/point.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/rect.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/radius.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/range.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/canvas.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/entity.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/entity/container.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/entity/label.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/entity/scrollbar.cpp
     )
 endif ()
 

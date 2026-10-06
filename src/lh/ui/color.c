@@ -28,11 +28,14 @@ lh_ui_color_init(lh_ui_color_t *self, lh_ui_color_channel_t r, lh_ui_color_chann
 lh_void
 lh_ui_color_init_hex(lh_ui_color_t *self, lh_u32_t hex)
 {
-    const lh_u32_t mask = LH_BYTE_T_MAX;
-    lh_ui_color_init(self, lh_cast_static(lh_ui_color_channel_t, (hex >> 24) & mask),
-                     lh_cast_static(lh_ui_color_channel_t, (hex >> 16) & mask),
-                     lh_cast_static(lh_ui_color_channel_t, (hex >> 8) & mask),
-                     lh_cast_static(lh_ui_color_channel_t, hex & mask));
+    lh_ui_color_init(self, lh_ui_color_hex_channel(hex, 24), lh_ui_color_hex_channel(hex, 16),
+                     lh_ui_color_hex_channel(hex, 8), lh_ui_color_hex_channel(hex, 0));
+}
+
+lh_ui_color_channel_t
+lh_ui_color_hex_channel(lh_u32_t hex, lh_u32_t shift)
+{
+    return lh_cast_static(lh_ui_color_channel_t, (hex >> shift) & lh_cast_static(lh_u32_t, LH_BYTE_T_MAX));
 }
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
@@ -104,43 +107,61 @@ lh_ui_color_equals(const lh_ui_color_t *self, const lh_ui_color_t *other)
 
 /* ── Blend ───────────────────────────────────────────────────────────────── */
 
-/*
- * One channel of "over" in straight alpha, everything scaled by 255:
- * (src * a * 255 + dst * dst_a * (255 - a)) / out_a255, rounded.
- * Largest numerator is 2 * 255^3, which fits in 32 bits.
- */
-static lh_ui_color_channel_t
-lh_ui_color_over_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t src_w, lh_u32_t dst_w,
-                         lh_u32_t out_a255)
+lh_u32_t
+lh_ui_color_over_src_weight(const lh_ui_color_t *color)
 {
-    return lh_cast_static(lh_ui_color_channel_t, (src * src_w + dst * dst_w + out_a255 / 2U) / out_a255);
+    lh_assert_runtime_ref(color);
+    return lh_cast_static(lh_u32_t, color->a) * LH_BYTE_T_MAX;
+}
+
+lh_u32_t
+lh_ui_color_over_dst_weight(const lh_ui_color_t *dst, const lh_ui_color_t *color)
+{
+    lh_assert_runtime_ref(dst);
+    lh_assert_runtime_ref(color);
+    return lh_cast_static(lh_u32_t, dst->a) * (LH_BYTE_T_MAX - color->a);
+}
+
+lh_ui_color_channel_t
+lh_ui_color_blend_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t src_w, lh_u32_t dst_w)
+{
+    const lh_u32_t total = src_w + dst_w;
+    return lh_cast_static(lh_ui_color_channel_t, (src * src_w + dst * dst_w + total / 2U) / total);
+}
+
+lh_ui_color_t
+lh_ui_color_blend(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_u32_t src_w, lh_u32_t dst_w)
+{
+    lh_ui_color_t out;
+    lh_ui_color_init(lh_addr_of(out), lh_ui_color_blend_channel(color->r, dst->r, src_w, dst_w),
+                     lh_ui_color_blend_channel(color->g, dst->g, src_w, dst_w),
+                     lh_ui_color_blend_channel(color->b, dst->b, src_w, dst_w),
+                     lh_ui_color_weight_to_alpha(src_w + dst_w));
+    return out;
+}
+
+lh_ui_color_channel_t
+lh_ui_color_weight_to_alpha(lh_u32_t weight)
+{
+    return lh_cast_static(lh_ui_color_channel_t, (weight + LH_BYTE_T_MAX / 2U) / LH_BYTE_T_MAX);
 }
 
 lh_ui_color_t
 lh_ui_color_over(const lh_ui_color_t *dst, const lh_ui_color_t *color)
 {
-    const lh_u32_t max = LH_BYTE_T_MAX;
-    lh_u32_t src_w;
-    lh_u32_t dst_w;
-    lh_u32_t out_a255;
+    const lh_u32_t src_w = lh_ui_color_over_src_weight(color);
+    const lh_u32_t dst_w = lh_ui_color_over_dst_weight(dst, color);
+    lh_ui_color_t clear;
+    lh_ui_color_init(lh_addr_of(clear), 0, 0, 0, 0);
+    return src_w + dst_w == 0U ? clear : lh_ui_color_blend(dst, color, src_w, dst_w);
+}
+
+lh_ui_color_t
+lh_ui_color_with_coverage(const lh_ui_color_t *color, lh_byte_t coverage)
+{
     lh_ui_color_t out;
-
-    lh_assert_runtime_ref(dst);
     lh_assert_runtime_ref(color);
-
-    /* Weights already carry the extra factor of 255 shared with out_a255. */
-    src_w = lh_cast_static(lh_u32_t, color->a) * max;
-    dst_w = lh_cast_static(lh_u32_t, dst->a) * (max - color->a);
-    out_a255 = src_w + dst_w;
-    if (out_a255 == 0U)
-    {
-        lh_ui_color_init(lh_addr_of(out), 0, 0, 0, 0);
-        return out;
-    }
-    lh_ui_color_init(lh_addr_of(out),
-                     lh_ui_color_over_channel(color->r, dst->r, src_w, dst_w, out_a255),
-                     lh_ui_color_over_channel(color->g, dst->g, src_w, dst_w, out_a255),
-                     lh_ui_color_over_channel(color->b, dst->b, src_w, dst_w, out_a255),
-                     lh_cast_static(lh_ui_color_channel_t, (out_a255 + max / 2U) / max));
+    out = *color;
+    out.a = lh_cast_static(lh_ui_color_channel_t, (color->a * coverage + LH_BYTE_T_MAX / 2U) / LH_BYTE_T_MAX);
     return out;
 }

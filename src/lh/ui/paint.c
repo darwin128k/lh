@@ -9,6 +9,7 @@
 #include <lh/ui/paint.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+#include <lh/util/return.h>
 
 lh_void
 lh_ui_paint_init(lh_ui_paint_t *self)
@@ -27,6 +28,14 @@ lh_ui_paint_init_color(lh_ui_paint_t *self, const lh_ui_color_t *color)
         self->kind = lh_ui_paint_kind_solid;
         self->color = lh_ptr_deref(color);
     }
+}
+
+lh_void
+lh_ui_paint_init_copy(lh_ui_paint_t *self, const lh_ui_paint_t *other)
+{
+    lh_ui_paint_init(self);
+    lh_return_if(lh_null_eq(other));
+    *self = *other;
 }
 
 lh_ui_paint_kind_t

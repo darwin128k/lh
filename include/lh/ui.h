@@ -3,8 +3,9 @@
  * @brief UI model: every public `lh/ui` header in one include.
  *
  * Geometry (::lh_ui_scalar_t, ::lh_ui_point_t, ::lh_ui_size_t,
- * ::lh_ui_rect_t), color, paint / brush / pen, gradient, style, the canvas
- * a tree draws on, and the entity tree with its label.
+ * ::lh_ui_rect_t), corner radius, color, paint / brush / pen, gradient, style, the canvas
+ * a tree draws on, alpha masks, bitmap fonts and text, and the entity tree
+ * with container (scrolling), label and scrollbar.
  *
  * Requires ::LH_LIBRARY_OPTION_UI.
  */
@@ -18,18 +19,26 @@
 #    error "lh/ui.h requires LH_LIBRARY_OPTION_UI (CMake: -DLH_LIBRARY_OPTION_UI=ON)"
 #endif
 
+#include <lh/ui/axis.h>
 #include <lh/ui/brush.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/color.h>
 #include <lh/ui/entity.h>
+#include <lh/ui/entity/container.h>
 #include <lh/ui/entity/label.h>
+#include <lh/ui/entity/scrollbar.h>
+#include <lh/ui/font.h>
 #include <lh/ui/gradient.h>
+#include <lh/ui/mask.h>
 #include <lh/ui/paint.h>
 #include <lh/ui/pen.h>
 #include <lh/ui/point.h>
+#include <lh/ui/radius.h>
+#include <lh/ui/range.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/scalar.h>
 #include <lh/ui/size.h>
 #include <lh/ui/style.h>
+#include <lh/ui/text.h>
 
 #endif /* LH_UI_H */

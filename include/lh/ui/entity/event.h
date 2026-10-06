@@ -8,13 +8,16 @@
 #ifndef LH_UI_ENTITY_EVENT_H
 #define LH_UI_ENTITY_EVENT_H
 
+#include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 #include <lh/ui/entity/event/fields.h>
 #include <lh/ui/point.h>
+#include <lh/ui/rect.h>
 #include <lh/void.h>
 
 struct lh_ui_canvas;
+struct lh_ui_entity_transform;
 
 /**
  * @enum lh_ui_entity_event_code
@@ -22,8 +25,17 @@ struct lh_ui_canvas;
  */
 typedef enum lh_ui_entity_event_code
 {
-    lh_ui_entity_event_draw = 0, /**< Draw on the canvas in the context. */
-    lh_ui_entity_event_click = 1 /**< Primary click; context is ::lh_ui_point_t *. */
+    lh_ui_entity_event_draw = 0,    /**< Draw on the canvas in the context. */
+    lh_ui_entity_event_click = 1,   /**< Primary click; context is ::lh_ui_point_t *. */
+    lh_ui_entity_event_children = 2, /**< How are the children placed? Context is the
+                                          ::lh_ui_entity_transform_t * to fill, preset
+                                          to no offset, no clip. */
+    lh_ui_entity_event_visible = 3,  /**< Is the entity shown? Context is an
+                                          ::lh_bool_t * preset to true; a class may
+                                          set it to false. */
+    lh_ui_entity_event_measure = 4   /**< What does the content cover? Context is
+                                          the ::lh_ui_rect_t * bounds, preset to the
+                                          children bounds; a class may grow it. */
 } lh_ui_entity_event_code_t;
 
 /**
@@ -70,6 +82,27 @@ lh_ui_entity_event_get_canvas(const lh_ui_entity_event_t *self);
  */
 lh_ui_point_t
 lh_ui_entity_event_get_point(const lh_ui_entity_event_t *self);
+
+/**
+ * @brief Answer a children event fills. @p self must be
+ *        ::lh_ui_entity_event_children.
+ */
+struct lh_ui_entity_transform *
+lh_ui_entity_event_get_transform(const lh_ui_entity_event_t *self);
+
+/**
+ * @brief Answer a visible event fills. @p self must be
+ *        ::lh_ui_entity_event_visible.
+ */
+lh_bool_t *
+lh_ui_entity_event_get_visible(const lh_ui_entity_event_t *self);
+
+/**
+ * @brief Content bounds a measure event fills. @p self must be
+ *        ::lh_ui_entity_event_measure.
+ */
+lh_ui_rect_t *
+lh_ui_entity_event_get_bounds(const lh_ui_entity_event_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -7,16 +7,17 @@
 #define LH_UI_ENTITY_LABEL_FIELDS_H
 
 /**
- * @def lh_ui_entity_label_fields(entity_type, char_type)
- * @brief The entity this label is, then the text it shows.
+ * @def lh_ui_entity_label_fields(container_type, char_type)
+ * @brief The container this label is, then the text it shows.
  *
- * The text is not copied.
+ * The text is not copied. The container is first so an
+ * ::lh_ui_entity_t * into the label still reaches the embedded entity.
  *
- * @param entity_type Type of the embedded entity.
- * @param char_type   Type of one character of the text.
+ * @param container_type Type of the embedded container.
+ * @param char_type      Type of one character of the text.
  */
-#define lh_ui_entity_label_fields(entity_type, char_type)                                               \
-    entity_type entity;                                                                             \
+#define lh_ui_entity_label_fields(container_type, char_type)                                        \
+    container_type container;                                                                       \
     const char_type *text
 
 #endif /* LH_UI_ENTITY_LABEL_FIELDS_H */

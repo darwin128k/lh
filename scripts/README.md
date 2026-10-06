@@ -57,7 +57,18 @@ python scripts/image.py --cf ARGB8888 -o icon.c icon.png
 ```
 
 `image.py` reads PNG with the standard library. `font.py` needs Pillow
-(`pip install pillow`) to rasterize the TTF.
+(`pip install pillow`) to rasterize the TTF. It writes an `lh_ui_font_t`
+plus its public `<name>_bits` / `<name>_advances` arrays; `--header` also
+writes a header declaring them, `--notice` adds a licence line. The built-in
+Roboto (`src/lh/ui/font/roboto.c`, `include/lh/ui/font/roboto.h`) is made
+with:
+
+```sh
+python scripts/font.py --font fonts/Roboto-Regular.ttf --size 16 --bpp 4 --range 32-126 \
+    --name lh_ui_font_roboto \
+    --notice "Roboto is Copyright 2011 Google Inc. and licensed under the Apache License 2.0." \
+    --header include/lh/ui/font/roboto.h --include lh/ui/font/roboto.h -o src/lh/ui/font/roboto.c
+```
 
 ## Linux
 

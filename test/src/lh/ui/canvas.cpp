@@ -1,8 +1,14 @@
 #include <gtest/gtest.h>
 
+#include <lh/test/ui/draw_log.h>
+#include <lh/test/ui/fill_probe.h>
+
+#include <lh/config.h>
+#include <lh/expect/death.h>
 #include <lh/null.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/color.h>
+#include <lh/ui/radius.h>
 #include <lh/ui/rect.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -45,7 +51,8 @@ log_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *col
     ++lh_ptr_rcast(call_log, context)->fill_rect;
 }
 
-const lh_ui_canvas_backend_t g_log_backend = {log_begin, log_end, log_clear, log_fill_rect};
+const lh_ui_canvas_backend_t g_log_backend = {log_begin, log_end, log_clear, log_fill_rect, nullptr,
+                                              nullptr,   nullptr};
 
 TEST(ui_canvas, dispatches_every_call_with_the_context)
 {
@@ -92,5 +99,294 @@ TEST(ui_canvas, null_backend_and_null_slots_are_no_ops)
     lh_ui_canvas_begin(lh_addr_of(canvas));
     lh_ui_canvas_end(lh_addr_of(canvas));
 }
+
+/* A 16x16 alpha target: records every fill_rect pixel and how often it was hit. */
+struct alpha_target
+{
+    int alpha[16][16];
+    int writes[16][16];
+};
+
+lh_void
+target_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *color)
+{
+    alpha_target *target = lh_ptr_rcast(alpha_target, context);
+    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
+    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
+    const int x0 = static_cast<int>(lh_ui_point_get_x(origin));
+    const int y0 = static_cast<int>(lh_ui_point_get_y(origin));
+    const int w = static_cast<int>(lh_ui_size_get_width(size));
+    const int h = static_cast<int>(lh_ui_size_get_height(size));
+    for (int y = y0; y < y0 + h; ++y)
+    {
+        for (int x = x0; x < x0 + w; ++x)
+        {
+            target->alpha[y][x] = lh_ui_color_get_a(color);
+            ++target->writes[y][x];
+        }
+    }
+}
+
+const lh_ui_canvas_backend_t g_target_backend = {nullptr, nullptr, nullptr, target_fill_rect, nullptr,
+                                                   nullptr, nullptr};
+
+TEST(ui_canvas, round_rect_slot_gets_the_clamped_radius)
+{
+    lh_test::fill_probe probe;
+    lh_ui_canvas_t canvas;
+    lh_ui_rect_t rect;
+    lh_ui_color_t color;
+
+    lh_ui_rect_init(lh_addr_of(rect), 0, 0, 10, 6);
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_test::fill_probe_init(lh_addr_of(probe), lh_addr_of(canvas), lh_test::fill_probe_round_backend(),
+                             rect, color);
+
+    lh_ui_canvas_fill_round_rect(lh_addr_of(canvas), lh_addr_of(rect), lh_ui_scalar(100),
+                                 lh_addr_of(color));
+
+    EXPECT_EQ(probe.round_matches, 1);
+    EXPECT_EQ(probe.matches, 0);
+    EXPECT_EQ(probe.radius, lh_ui_scalar(3));
+}
+
+TEST(ui_canvas, round_rect_with_zero_radius_is_a_plain_fill)
+{
+    lh_test::fill_probe probe;
+    lh_ui_canvas_t canvas;
+    lh_ui_rect_t rect;
+    lh_ui_color_t color;
+
+    lh_ui_rect_init(lh_addr_of(rect), 0, 0, 10, 6);
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_test::fill_probe_init(lh_addr_of(probe), lh_addr_of(canvas), lh_test::fill_probe_round_backend(),
+                             rect, color);
+
+    lh_ui_canvas_fill_round_rect(lh_addr_of(canvas), lh_addr_of(rect), lh_ui_scalar(0), lh_addr_of(color));
+
+    EXPECT_EQ(probe.matches, 1);
+    EXPECT_EQ(probe.round_matches, 0);
+}
+
+TEST(ui_canvas, round_rect_fallback_is_anti_aliased_and_draws_each_pixel_once)
+{
+    alpha_target target{};
+    lh_ui_canvas_t canvas;
+    lh_ui_rect_t rect;
+    lh_ui_color_t color;
+
+    lh_ui_rect_init(lh_addr_of(rect), 2, 3, 11, 9);
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_target_backend), lh_addr_of(target));
+
+    lh_ui_canvas_fill_round_rect(lh_addr_of(canvas), lh_addr_of(rect), LH_UI_RADIUS_CIRCLE,
+                                 lh_addr_of(color));
+
+    const lh_ui_scalar_t radius = lh_ui_radius_clamp(lh_addr_of(rect), LH_UI_RADIUS_CIRCLE);
+    int partial = 0;
+    for (int y = 0; y < 16; ++y)
+    {
+        for (int x = 0; x < 16; ++x)
+        {
+            const int cover = lh_ui_radius_coverage(lh_addr_of(rect), radius, x, y);
+            EXPECT_LE(target.writes[y][x], 1) << x << "," << y;
+            EXPECT_EQ(target.alpha[y][x], cover) << x << "," << y;
+            partial += cover > 0 && cover < 255 ? 1 : 0;
+        }
+    }
+    EXPECT_GT(partial, 0);
+}
+
+/* ── Offset and clip ─────────────────────────────────────────────────────── */
+
+using lh_test::draw_log;
+using lh_test::rect_is;
+using lh_test::rect_of;
+
+lh_ui_point_t
+point_of(int x, int y)
+{
+    lh_ui_point_t point;
+    lh_ui_point_init(lh_addr_of(point), x, y);
+    return point;
+}
+
+TEST(ui_canvas, push_moves_every_primitive_and_pop_restores)
+{
+    draw_log log;
+    lh_ui_canvas_t canvas;
+    lh_ui_color_t color;
+    const lh_ui_rect_t rect = rect_of(1, 1, 2, 2);
+
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), true, false);
+
+    lh_ui_canvas_push(lh_addr_of(canvas), point_of(5, 7), nullptr);
+    lh_ui_canvas_push(lh_addr_of(canvas), point_of(1, 1), nullptr);
+    const lh_ui_point_t offset = lh_ui_canvas_get_offset(lh_addr_of(canvas));
+    EXPECT_EQ(lh_ui_point_get_x(lh_addr_of(offset)), lh_ui_scalar(6));
+    EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(offset)), lh_ui_scalar(8));
+    EXPECT_TRUE(lh_null_eq(lh_ui_canvas_get_clip(lh_addr_of(canvas))));
+    lh_ui_canvas_fill_rect(lh_addr_of(canvas), lh_addr_of(rect), lh_addr_of(color));
+    lh_ui_canvas_fill_round_rect(lh_addr_of(canvas), lh_addr_of(rect), lh_ui_scalar(1), lh_addr_of(color));
+    lh_ui_canvas_pop(lh_addr_of(canvas));
+    lh_ui_canvas_pop(lh_addr_of(canvas));
+    lh_ui_canvas_fill_rect(lh_addr_of(canvas), lh_addr_of(rect), lh_addr_of(color));
+
+    ASSERT_EQ(log.fill_count, 2);
+    ASSERT_EQ(log.round_count, 1);
+    EXPECT_TRUE(rect_is(log.fills[0], rect_of(7, 9, 2, 2)));
+    EXPECT_TRUE(rect_is(log.round_fills[0], rect_of(7, 9, 2, 2)));
+    EXPECT_TRUE(rect_is(log.fills[1], rect));
+}
+
+TEST(ui_canvas, push_clip_is_moved_by_the_old_offset_and_intersected)
+{
+    draw_log log;
+    lh_ui_canvas_t canvas;
+    const lh_ui_rect_t outer = rect_of(0, 0, 20, 20);
+    const lh_ui_rect_t inner = rect_of(5, 5, 30, 30);
+
+    lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, false);
+
+    lh_ui_canvas_push(lh_addr_of(canvas), point_of(10, 0), lh_addr_of(outer));
+    ASSERT_TRUE(lh_null_ne(lh_ui_canvas_get_clip(lh_addr_of(canvas))));
+    EXPECT_TRUE(rect_is(*lh_ui_canvas_get_clip(lh_addr_of(canvas)), outer));
+
+    /* inner lands at (15, 5) after the offset 10 pushed before it. */
+    lh_ui_canvas_push(lh_addr_of(canvas), point_of(0, 0), lh_addr_of(inner));
+    EXPECT_TRUE(rect_is(*lh_ui_canvas_get_clip(lh_addr_of(canvas)), rect_of(15, 5, 5, 15)));
+
+    lh_ui_canvas_pop(lh_addr_of(canvas));
+    EXPECT_TRUE(rect_is(*lh_ui_canvas_get_clip(lh_addr_of(canvas)), outer));
+    lh_ui_canvas_pop(lh_addr_of(canvas));
+    EXPECT_TRUE(lh_null_eq(lh_ui_canvas_get_clip(lh_addr_of(canvas))));
+}
+
+TEST(ui_canvas, without_set_clip_the_canvas_cuts_fill_rect)
+{
+    draw_log log;
+    lh_ui_canvas_t canvas;
+    lh_ui_color_t color;
+    const lh_ui_rect_t clip = rect_of(0, 0, 10, 10);
+    const lh_ui_rect_t half_out = rect_of(5, 5, 10, 10);
+    const lh_ui_rect_t all_out = rect_of(20, 20, 4, 4);
+
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, false);
+
+    lh_ui_canvas_push(lh_addr_of(canvas), point_of(0, 0), lh_addr_of(clip));
+    lh_ui_canvas_fill_rect(lh_addr_of(canvas), lh_addr_of(half_out), lh_addr_of(color));
+    lh_ui_canvas_fill_rect(lh_addr_of(canvas), lh_addr_of(all_out), lh_addr_of(color));
+    lh_ui_canvas_pop(lh_addr_of(canvas));
+
+    ASSERT_EQ(log.fill_count, 1);
+    EXPECT_TRUE(rect_is(log.fills[0], rect_of(5, 5, 5, 5)));
+}
+
+TEST(ui_canvas, set_clip_slot_gets_each_change_and_primitives_arrive_uncut)
+{
+    draw_log log;
+    lh_ui_canvas_t canvas;
+    lh_ui_color_t color;
+    const lh_ui_rect_t clip = rect_of(0, 0, 10, 10);
+    const lh_ui_rect_t half_out = rect_of(5, 5, 10, 10);
+
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), true, true);
+
+    lh_ui_canvas_push(lh_addr_of(canvas), point_of(0, 0), lh_addr_of(clip));
+    EXPECT_EQ(log.clip_count, 1);
+    EXPECT_TRUE(rect_is(log.clip, clip));
+
+    /* A push without a clip rect keeps the clip: no new call. */
+    lh_ui_canvas_push(lh_addr_of(canvas), point_of(3, 0), nullptr);
+    EXPECT_EQ(log.clip_count, 1);
+    lh_ui_canvas_fill_rect(lh_addr_of(canvas), lh_addr_of(half_out), lh_addr_of(color));
+    lh_ui_canvas_fill_round_rect(lh_addr_of(canvas), lh_addr_of(half_out), lh_ui_scalar(2), lh_addr_of(color));
+    lh_ui_canvas_pop(lh_addr_of(canvas));
+    EXPECT_EQ(log.unclip_count, 0);
+
+    lh_ui_canvas_pop(lh_addr_of(canvas));
+    EXPECT_EQ(log.unclip_count, 1);
+
+    ASSERT_EQ(log.fill_count, 1);
+    ASSERT_EQ(log.round_count, 1);
+    EXPECT_TRUE(rect_is(log.fills[0], rect_of(8, 5, 10, 10)));
+    EXPECT_TRUE(rect_is(log.round_fills[0], rect_of(8, 5, 10, 10)));
+}
+
+TEST(ui_canvas, round_rect_inside_the_clip_still_reaches_the_slot)
+{
+    draw_log log;
+    lh_ui_canvas_t canvas;
+    lh_ui_color_t color;
+    const lh_ui_rect_t clip = rect_of(0, 0, 20, 20);
+    const lh_ui_rect_t inside = rect_of(2, 2, 10, 10);
+
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), true, false);
+
+    lh_ui_canvas_push(lh_addr_of(canvas), point_of(0, 0), lh_addr_of(clip));
+    lh_ui_canvas_fill_round_rect(lh_addr_of(canvas), lh_addr_of(inside), lh_ui_scalar(3), lh_addr_of(color));
+    lh_ui_canvas_pop(lh_addr_of(canvas));
+
+    EXPECT_EQ(log.round_count, 1);
+    EXPECT_EQ(log.fill_count, 0);
+}
+
+TEST(ui_canvas, round_rect_across_the_clip_goes_through_the_cut_fallback)
+{
+    alpha_target target{};
+    lh_ui_canvas_t canvas;
+    lh_ui_color_t color;
+    /* Slot present but no set_clip: the canvas must cut, so it falls back. */
+    const lh_ui_canvas_backend_t backend = {nullptr, nullptr, nullptr, target_fill_rect,
+                                            lh_test::draw_log_fill_round_rect, nullptr, nullptr};
+    const lh_ui_rect_t clip = rect_of(0, 0, 8, 16);
+    const lh_ui_rect_t rect = rect_of(2, 3, 11, 9);
+
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(backend), lh_addr_of(target));
+
+    lh_ui_canvas_push(lh_addr_of(canvas), point_of(0, 0), lh_addr_of(clip));
+    lh_ui_canvas_fill_round_rect(lh_addr_of(canvas), lh_addr_of(rect), LH_UI_RADIUS_CIRCLE, lh_addr_of(color));
+    lh_ui_canvas_pop(lh_addr_of(canvas));
+
+    const lh_ui_scalar_t radius = lh_ui_radius_clamp(lh_addr_of(rect), LH_UI_RADIUS_CIRCLE);
+    for (int y = 0; y < 16; ++y)
+    {
+        for (int x = 0; x < 16; ++x)
+        {
+            const int cover = x < 8 ? lh_ui_radius_coverage(lh_addr_of(rect), radius, x, y) : 0;
+            EXPECT_LE(target.writes[y][x], 1) << x << "," << y;
+            EXPECT_EQ(target.alpha[y][x], cover) << x << "," << y;
+        }
+    }
+}
+
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
+TEST(ui_canvas_death, push_past_the_depth)
+{
+    lh_ui_canvas_t canvas;
+
+    lh_ui_canvas_init(lh_addr_of(canvas), nullptr, nullptr);
+    for (int i = 0; i < LH_LIBRARY_OPTION_UI_CANVAS_DEPTH; ++i)
+    {
+        lh_ui_canvas_push(lh_addr_of(canvas), point_of(0, 0), nullptr);
+    }
+    LH_EXPECT_DEATH(lh_ui_canvas_push(lh_addr_of(canvas), point_of(0, 0), nullptr));
+}
+
+TEST(ui_canvas_death, pop_with_nothing_pushed)
+{
+    lh_ui_canvas_t canvas;
+
+    lh_ui_canvas_init(lh_addr_of(canvas), nullptr, nullptr);
+    LH_EXPECT_DEATH(lh_ui_canvas_pop(lh_addr_of(canvas)));
+}
+
+#endif
 
 } // namespace

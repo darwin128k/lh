@@ -56,6 +56,11 @@ function(lh_generate_config)
     else ()
         set(ValUi 0)
     endif ()
+    if (LH_LIBRARY_OPTION_UI AND LH_LIBRARY_OPTION_UI_FONT_ROBOTO)
+        set(ValUiFontRoboto 1)
+    else ()
+        set(ValUiFontRoboto 0)
+    endif ()
     if (LH_LIBRARY_OPTION_MATH_FPU)
         set(ValMathFpu 1)
     else ()
@@ -105,6 +110,14 @@ function(lh_generate_config)
                 "(got '${LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS}')")
     endif ()
     set(ValUiGradientMaxStops "${LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS}")
+
+    if (NOT LH_LIBRARY_OPTION_UI_CANVAS_DEPTH MATCHES "^[0-9]+$" OR
+            LH_LIBRARY_OPTION_UI_CANVAS_DEPTH LESS 1 OR
+            LH_LIBRARY_OPTION_UI_CANVAS_DEPTH GREATER 255)
+        message(FATAL_ERROR "LH_LIBRARY_OPTION_UI_CANVAS_DEPTH must be an integer in 1..255 "
+                "(got '${LH_LIBRARY_OPTION_UI_CANVAS_DEPTH}')")
+    endif ()
+    set(ValUiCanvasDepth "${LH_LIBRARY_OPTION_UI_CANVAS_DEPTH}")
 
     set(ValArrayInitialCapacity "${LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY}")
     set(ValArrayGrowthFactor "${LH_LIBRARY_OPTION_ARRAY_GROWTH_FACTOR}")

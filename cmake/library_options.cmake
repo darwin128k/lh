@@ -263,6 +263,31 @@ set(LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS "2" CACHE STRING
         "Max color stops in lh_ui_gradient_t (must be 1..255; default 2 like LVGL).")
 
 # -----------------------------------------------------------------------------
+# LH_LIBRARY_OPTION_UI_FONT_ROBOTO
+#
+# Bake Roboto Regular 16 px (codes 32..126, 4 bits per pixel, about 15 KB of
+# const data) into the library as lh_ui_font_roboto; a new style starts with
+# it. OFF leaves it out (a small STM32 image); styles then start with no font
+# and text is not drawn until one is set. Needs LH_LIBRARY_OPTION_UI.
+# -----------------------------------------------------------------------------
+option(LH_LIBRARY_OPTION_UI_FONT_ROBOTO
+        "Bake the Roboto 16 px font into lh/ui as the default style font."
+        ON)
+
+# -----------------------------------------------------------------------------
+# LH_LIBRARY_OPTION_UI_CANVAS_DEPTH
+#
+# Fixed depth of the lh_ui_canvas_t state stack (offset + clip) that
+# lh_ui_canvas_push / lh_ui_canvas_pop save and restore. One level per nested
+# scrolling container; pushing past it fails an lh_assert_runtime check.
+#
+# CMake: -DLH_LIBRARY_OPTION_UI_CANVAS_DEPTH=16 or ccmake.
+# Manual build: set in include/lh/config.h or -D on the compiler command line.
+# -----------------------------------------------------------------------------
+set(LH_LIBRARY_OPTION_UI_CANVAS_DEPTH "8" CACHE STRING
+        "Max nested lh_ui_canvas_push levels (must be 1..255; default 8).")
+
+# -----------------------------------------------------------------------------
 # LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY
 #
 # Capacity lh_array_t grows to from empty on its first push_back/insert

@@ -35,6 +35,8 @@ typedef lh_math_size_t lh_ui_size_t;
 
 /* One list for both paths: a math function missing on either side fails to
  * compile on that side instead of silently drifting. */
+#define lh_ui_size_init LH_UI_SIZE_FN(init)
+#define lh_ui_size_init_empty LH_UI_SIZE_FN(init_empty)
 #define lh_ui_size_from_extent LH_UI_SIZE_FN(from_extent)
 #define lh_ui_size_get_width LH_UI_SIZE_FN(get_width)
 #define lh_ui_size_get_height LH_UI_SIZE_FN(get_height)

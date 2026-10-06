@@ -46,3 +46,15 @@ TEST(ui_style, set_fill_null_clears)
     EXPECT_TRUE(lh_ui_paint_is_empty(lh_ui_style_get_fill(lh_addr_of(style))));
     EXPECT_TRUE(lh_null_eq(lh_ui_style_get_fill_color(lh_addr_of(style))));
 }
+
+TEST(ui_style, radius_starts_square_and_keeps_the_value)
+{
+    lh_ui_style_t style;
+
+    lh_ui_style_init(lh_addr_of(style));
+    EXPECT_EQ(lh_ui_style_get_radius(lh_addr_of(style)), lh_ui_scalar(0));
+    lh_ui_style_set_radius(lh_addr_of(style), lh_ui_scalar(6));
+    EXPECT_EQ(lh_ui_style_get_radius(lh_addr_of(style)), lh_ui_scalar(6));
+    lh_ui_style_set_radius(lh_addr_of(style), LH_UI_RADIUS_CIRCLE);
+    EXPECT_EQ(lh_ui_style_get_radius(lh_addr_of(style)), LH_UI_RADIUS_CIRCLE);
+}

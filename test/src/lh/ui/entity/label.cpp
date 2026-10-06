@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <lh/test/ui/fill_probe.h>
+
 #include <lh/ui/canvas.h>
 #include <lh/ui/color.h>
 #include <lh/ui/entity/label.h>
@@ -8,30 +10,6 @@
 #include <lh/ui/style.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
-
-namespace
-{
-/* Counts only the fill the base class owes: this rect in this color. Other
- * fill_rect calls (e.g. a label painting its text later) are not counted. */
-struct base_fill_probe
-{
-    lh_ui_rect_t rect;
-    lh_ui_color_t color;
-    int matches;
-};
-
-lh_void
-probe_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *color)
-{
-    base_fill_probe *probe = lh_ptr_rcast(base_fill_probe, context);
-    if (lh_ui_rect_eq(rect, lh_addr_of(probe->rect)) && lh_ui_color_equals(color, lh_addr_of(probe->color)))
-    {
-        ++probe->matches;
-    }
-}
-
-const lh_ui_canvas_backend_t g_probe_backend = {nullptr, nullptr, nullptr, probe_fill_rect};
-} // namespace
 
 TEST(entity_label, init_keeps_the_rect_and_the_text_pointer)
 {
@@ -47,6 +25,9 @@ TEST(entity_label, init_keeps_the_rect_and_the_text_pointer)
     EXPECT_EQ(lh_ui_rect_eq(lh_addr_of(rect), lh_addr_of(stored)), lh_bool_true);
     EXPECT_EQ(lh_ui_entity_label_get_text(lh_addr_of(label)), text);
     EXPECT_EQ(lh_ui_entity_get_class(entity), lh_addr_of(lh_ui_entity_label_class));
+    EXPECT_EQ(lh_ui_entity_label_as_container(lh_addr_of(label)), lh_addr_of(label.container));
+    EXPECT_EQ(lh_ui_entity_container_as_entity(lh_ui_entity_label_as_container(lh_addr_of(label))),
+              entity);
 }
 
 TEST(entity_label, set_text_replaces_the_pointer)
@@ -82,7 +63,7 @@ TEST(entity_label, draw_keeps_the_base_class_fill)
     lh_ui_paint_t paint;
     lh_ui_style_t style;
     lh_ui_canvas_t canvas;
-    base_fill_probe probe{};
+    lh_test::fill_probe probe;
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 4, 4);
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
@@ -91,9 +72,8 @@ TEST(entity_label, draw_keeps_the_base_class_fill)
     lh_ui_style_set_fill(lh_addr_of(style), lh_addr_of(paint));
     lh_ui_entity_label_init(lh_addr_of(label), rect, "x");
     lh_ui_entity_set_style(lh_ui_entity_label_as_entity(lh_addr_of(label)), lh_addr_of(style));
-    probe.rect = rect;
-    probe.color = color;
-    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_probe_backend), lh_addr_of(probe));
+    lh_test::fill_probe_init(lh_addr_of(probe), lh_addr_of(canvas), lh_test::fill_probe_backend(), rect,
+                             color);
 
     lh_ui_entity_draw(lh_ui_entity_label_as_entity(lh_addr_of(label)), lh_addr_of(canvas));
 

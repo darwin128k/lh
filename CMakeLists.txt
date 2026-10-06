@@ -218,17 +218,32 @@ endif ()
 # UI model (color, paint, style, canvas, entity tree). OFF leaves it out.
 if (LH_LIBRARY_OPTION_UI)
     list(APPEND LH_LIB_SOURCES
+            ${LH_LIB_SRC_PATH}/ui/axis.c
             ${LH_LIB_SRC_PATH}/ui/color.c
             ${LH_LIB_SRC_PATH}/ui/paint.c
             ${LH_LIB_SRC_PATH}/ui/gradient.c
             ${LH_LIB_SRC_PATH}/ui/style.c
+            ${LH_LIB_SRC_PATH}/ui/radius.c
+            ${LH_LIB_SRC_PATH}/ui/range.c
             ${LH_LIB_SRC_PATH}/ui/canvas.c
+            ${LH_LIB_SRC_PATH}/ui/canvas/state.c
+            ${LH_LIB_SRC_PATH}/ui/canvas/round.c
             ${LH_LIB_SRC_PATH}/ui/pen.c
             ${LH_LIB_SRC_PATH}/ui/entity.c
             ${LH_LIB_SRC_PATH}/ui/entity/class.c
             ${LH_LIB_SRC_PATH}/ui/entity/event.c
+            ${LH_LIB_SRC_PATH}/ui/entity/transform.c
+            ${LH_LIB_SRC_PATH}/ui/entity/container.c
             ${LH_LIB_SRC_PATH}/ui/entity/label.c
+            ${LH_LIB_SRC_PATH}/ui/entity/scrollbar.c
+            ${LH_LIB_SRC_PATH}/ui/mask.c
+            ${LH_LIB_SRC_PATH}/ui/font.c
+            ${LH_LIB_SRC_PATH}/ui/text.c
+            ${LH_LIB_SRC_PATH}/ui/canvas/mask.c
     )
+    if (LH_LIBRARY_OPTION_UI_FONT_ROBOTO)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/font/roboto.c)
+    endif ()
 endif ()
 
 # Float math (vec, quat, mat4) is the FPU. OFF leaves it out of the library.

@@ -8,6 +8,7 @@
 #include <lh/runtime/error/code.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/entity/event.h>
+#include <lh/ui/entity/transform.h>
 #include <lh/ui/point.h>
 #include <lh/util/ptr.h>
 
@@ -51,4 +52,40 @@ lh_ui_entity_event_get_point(const lh_ui_entity_event_t *self)
     point = lh_ptr_rcast(const lh_ui_point_t, self->context);
     lh_assert_runtime_ref(point);
     return *point;
+}
+
+struct lh_ui_entity_transform *
+lh_ui_entity_event_get_transform(const lh_ui_entity_event_t *self)
+{
+    lh_ui_entity_transform_t *transform;
+
+    lh_assert_runtime_ifn(lh_ui_entity_event_get_code(self) == lh_ui_entity_event_children,
+                          lh_runtime_error_code_invalid_argument);
+    transform = lh_ptr_rcast(lh_ui_entity_transform_t, self->context);
+    lh_assert_runtime_ref(transform);
+    return transform;
+}
+
+lh_bool_t *
+lh_ui_entity_event_get_visible(const lh_ui_entity_event_t *self)
+{
+    lh_bool_t *visible;
+
+    lh_assert_runtime_ifn(lh_ui_entity_event_get_code(self) == lh_ui_entity_event_visible,
+                          lh_runtime_error_code_invalid_argument);
+    visible = lh_ptr_rcast(lh_bool_t, self->context);
+    lh_assert_runtime_ref(visible);
+    return visible;
+}
+
+lh_ui_rect_t *
+lh_ui_entity_event_get_bounds(const lh_ui_entity_event_t *self)
+{
+    lh_ui_rect_t *bounds;
+
+    lh_assert_runtime_ifn(lh_ui_entity_event_get_code(self) == lh_ui_entity_event_measure,
+                          lh_runtime_error_code_invalid_argument);
+    bounds = lh_ptr_rcast(lh_ui_rect_t, self->context);
+    lh_assert_runtime_ref(bounds);
+    return bounds;
 }

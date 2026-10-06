@@ -45,6 +45,12 @@ lh_void
 lh_ui_paint_init_color(lh_ui_paint_t *self, const lh_ui_color_t *color);
 
 /**
+ * @brief Fill @p self with a copy of @p other; ::lh_null gives the empty paint.
+ */
+lh_void
+lh_ui_paint_init_copy(lh_ui_paint_t *self, const lh_ui_paint_t *other);
+
+/**
  * @brief What @p self holds.
  */
 lh_ui_paint_kind_t
