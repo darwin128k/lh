@@ -4,7 +4,7 @@
  *
  * The scalar of float math: ::lh_math_vec2_t / ::lh_math_vec3_t /
  * ::lh_math_vec4_t, ::lh_math_quat_t, ::lh_math_mat4_t, and the float
- * 2D geometry (::lh_math_point_t, …). Always ::lh_float_t — math
+ * 2D geometry (::lh_math_fpoint_t, …). Always ::lh_float_t — math
  * does not read ::LH_LIBRARY_OPTION_MATH_FPU here; that option only decides
  * whether these sources are built and what UI aliases through
  * <lh/ui/scalar.h>.

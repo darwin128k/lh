@@ -3,7 +3,7 @@
  * @brief Cost of cutting a float down to an int.
  *
  * The cut is the cast to ::lh_int_t: truncation toward zero, the same
- * conversion ::lh_ui_point_to_ipoint uses when the scalar is
+ * conversion ::lh_ui_point_to_point uses when the scalar is
  * ::lh_float_t. Not part of lh_test. Build and run it on its own.
  */
 

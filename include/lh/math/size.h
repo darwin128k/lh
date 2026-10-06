@@ -1,17 +1,14 @@
 /**
  * @file size.h
- * @brief A 2D size whose components are ::lh_math_scalar_t.
+ * @brief A 2D size: ::lh_math_size_t with ::lh_math_iscalar_t `width`, `height`.
  *
- * Same shape as ::lh_math_isize_t (`width`, `height`), with continuous extents.
- * The screen size stays ::lh_math_isize_t.
- * ::lh_math_size_to_isize narrows by cast (truncates toward zero).
- * ::lh_math_isize_to_size widens the other way.
- *
- * Built only when ::LH_LIBRARY_OPTION_MATH_FPU is ON. UI picks this type or
- * the integer ::lh_math_isize_t through <lh/ui/size.h>.
+ * Negative extents are valid bit patterns but interpreted as "empty" by
+ * ::lh_math_rect_is_empty — used to represent "nothing" without a sentinel.
  *
  * Fields are not part of the public API: read and mutate them through the
- * accessors. The struct is defined here only so it can be embedded by value.
+ * `lh_math_size_get_*` / `lh_math_size_set_*` accessors. The struct is
+ * defined here only so it can be embedded by value (e.g. as
+ * `lh_math_rect_t::size`).
  */
 
 #ifndef LH_MATH_SIZE_H
@@ -19,19 +16,18 @@
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/math/isize.h>
-#include <lh/math/isize/fields.h>
-#include <lh/math/scalar.h>
+#include <lh/math/iscalar.h>
+#include <lh/math/size/fields.h>
 #include <lh/void.h>
 
 /**
  * @struct lh_math_size
  * @typedef lh_math_size_t
- * @brief A 2D size of ::lh_math_scalar_t components.
+ * @brief A 2D size: positive `width` and `height`.
  */
 struct lh_math_size
 {
-    lh_math_isize_fields(lh_math_scalar_t);
+    lh_math_size_fields(lh_math_iscalar_t);
 };
 typedef struct lh_math_size lh_math_size_t;
 
@@ -43,10 +39,10 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Make a `::lh_math_size_t` from explicit extents.
  */
 lh_math_size_t
-lh_math_size_make(lh_math_scalar_t width, lh_math_scalar_t height);
+lh_math_size_make(lh_math_iscalar_t width, lh_math_iscalar_t height);
 
 /**
- * @brief The empty size: `(0, 0)`.
+ * @brief The empty size: `(0, 0)`. ::lh_math_rect_is_empty treats this as empty.
  */
 lh_math_size_t
 lh_math_size_make_empty(void);
@@ -56,44 +52,26 @@ lh_math_size_make_empty(void);
 /**
  * @brief Width of @p self.
  */
-lh_math_scalar_t
+lh_math_iscalar_t
 lh_math_size_get_width(const lh_math_size_t *self);
 
 /**
  * @brief Height of @p self.
  */
-lh_math_scalar_t
+lh_math_iscalar_t
 lh_math_size_get_height(const lh_math_size_t *self);
 
 /**
  * @brief Set the width of @p self.
  */
 lh_void
-lh_math_size_set_width(lh_math_size_t *self, lh_math_scalar_t width);
+lh_math_size_set_width(lh_math_size_t *self, lh_math_iscalar_t width);
 
 /**
  * @brief Set the height of @p self.
  */
 lh_void
-lh_math_size_set_height(lh_math_size_t *self, lh_math_scalar_t height);
-
-/* ── Conversions ─────────────────────────────────────────────────────────── */
-
-/**
- * @brief Narrow @p self to a screen size.
- *
- * Casts each component to ::lh_math_iscalar_t (truncates toward zero).
- */
-lh_math_isize_t
-lh_math_size_to_isize(lh_math_size_t self);
-
-/**
- * @brief Widen @p self to a continuous size.
- *
- * Casts each ::lh_math_iscalar_t to ::lh_math_scalar_t.
- */
-lh_math_size_t
-lh_math_isize_to_size(lh_math_isize_t self);
+lh_math_size_set_height(lh_math_size_t *self, lh_math_iscalar_t height);
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
 

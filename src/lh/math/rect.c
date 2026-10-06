@@ -1,23 +1,38 @@
 /**
  * @file rect.c
  * @brief Implementation of lh/math/rect.h.
+ *
+ * All ops are `lh_math_iscalar_t` arithmetic — no allocations, no state. Empty
+ * rectangles are represented as `size.width <= 0 || size.height <= 0`:
+ * ::lh_math_rect_is_empty, ::lh_math_rect_intersection, and
+ * ::lh_math_rect_get_width / ::lh_math_rect_get_height all share that definition, so
+ * an "empty" output is canonical regardless of which operation produced it.
  */
 
 #include <lh/assert/runtime.h>
 #include <lh/bool.h>
-#include <lh/math.h>
 #include <lh/math/rect.h>
+#include <lh/math.h>
 #include <lh/util/return.h>
 
 /* ── Constructors ────────────────────────────────────────────────────────── */
 
 lh_math_rect_t
-lh_math_rect_make(lh_math_scalar_t x, lh_math_scalar_t y,
-                         lh_math_scalar_t width, lh_math_scalar_t height)
+lh_math_rect_make(lh_math_iscalar_t x, lh_math_iscalar_t y, lh_math_iscalar_t width, lh_math_iscalar_t height)
 {
     lh_math_rect_t r;
     lh_math_rect_set_origin(lh_addr_of(r), lh_math_point_make(x, y));
     lh_math_rect_set_size(lh_addr_of(r), lh_math_size_make(width, height));
+    return r;
+}
+
+lh_math_rect_t
+lh_math_rect_from_min_max(lh_math_iscalar_t x_min, lh_math_iscalar_t y_min,
+                          lh_math_iscalar_t x_max, lh_math_iscalar_t y_max)
+{
+    lh_math_rect_t r;
+    lh_math_rect_set_origin(lh_addr_of(r), lh_math_point_make(x_min, y_min));
+    lh_math_rect_set_size(lh_addr_of(r), lh_math_size_make(x_max - x_min, y_max - y_min));
     return r;
 }
 
@@ -43,40 +58,32 @@ lh_math_rect_get_size(const lh_math_rect_t *self)
     return self->size;
 }
 
-lh_math_scalar_t
+lh_math_iscalar_t
 lh_math_rect_get_x(const lh_math_rect_t *self)
 {
-    lh_math_point_t origin;
     lh_assert_runtime_ref(self);
-    origin = lh_math_rect_get_origin(self);
-    return lh_math_point_get_x(lh_addr_of(origin));
+    return lh_math_point_get_x(lh_addr_of(self->origin));
 }
 
-lh_math_scalar_t
+lh_math_iscalar_t
 lh_math_rect_get_y(const lh_math_rect_t *self)
 {
-    lh_math_point_t origin;
     lh_assert_runtime_ref(self);
-    origin = lh_math_rect_get_origin(self);
-    return lh_math_point_get_y(lh_addr_of(origin));
+    return lh_math_point_get_y(lh_addr_of(self->origin));
 }
 
-lh_math_scalar_t
+lh_math_iscalar_t
 lh_math_rect_get_size_width(const lh_math_rect_t *self)
 {
-    lh_math_size_t size;
     lh_assert_runtime_ref(self);
-    size = lh_math_rect_get_size(self);
-    return lh_math_size_get_width(lh_addr_of(size));
+    return lh_math_size_get_width(lh_addr_of(self->size));
 }
 
-lh_math_scalar_t
+lh_math_iscalar_t
 lh_math_rect_get_size_height(const lh_math_rect_t *self)
 {
-    lh_math_size_t size;
     lh_assert_runtime_ref(self);
-    size = lh_math_rect_get_size(self);
-    return lh_math_size_get_height(lh_addr_of(size));
+    return lh_math_size_get_height(lh_addr_of(self->size));
 }
 
 lh_void
@@ -93,45 +100,27 @@ lh_math_rect_set_size(lh_math_rect_t *self, lh_math_size_t size)
     self->size = size;
 }
 
-/* ── Conversions ─────────────────────────────────────────────────────────── */
-
-lh_math_irect_t
-lh_math_rect_to_irect(lh_math_rect_t self)
-{
-    lh_math_irect_t r;
-    lh_math_irect_set_origin(lh_addr_of(r),
-                            lh_math_point_to_ipoint(lh_math_rect_get_origin(lh_addr_of(self))));
-    lh_math_irect_set_size(lh_addr_of(r),
-                          lh_math_size_to_isize(lh_math_rect_get_size(lh_addr_of(self))));
-    return r;
-}
-
-lh_math_rect_t
-lh_math_irect_to_rect(lh_math_irect_t self)
-{
-    lh_math_rect_t r;
-    lh_math_rect_set_origin(lh_addr_of(r),
-                                   lh_math_ipoint_to_point(lh_math_irect_get_origin(lh_addr_of(self))));
-    lh_math_rect_set_size(lh_addr_of(r),
-                                 lh_math_isize_to_size(lh_math_irect_get_size(lh_addr_of(self))));
-    return r;
-}
-
 /* ── Queries ────────────────────────────────────────────────────────────── */
 
-lh_math_scalar_t
+lh_math_iscalar_t
 lh_math_rect_get_width(const lh_math_rect_t *self)
 {
     lh_assert_runtime_ref(self);
-    lh_return_if(lh_math_rect_is_empty(self), 0);
+    if (lh_math_rect_is_empty(self))
+    {
+        return 0;
+    }
     return lh_math_rect_get_size_width(self);
 }
 
-lh_math_scalar_t
+lh_math_iscalar_t
 lh_math_rect_get_height(const lh_math_rect_t *self)
 {
     lh_assert_runtime_ref(self);
-    lh_return_if(lh_math_rect_is_empty(self), 0);
+    if (lh_math_rect_is_empty(self))
+    {
+        return 0;
+    }
     return lh_math_rect_get_size_height(self);
 }
 
@@ -139,24 +128,134 @@ lh_bool_t
 lh_math_rect_is_empty(const lh_math_rect_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_math_le(lh_math_rect_get_size_width(self), 0)
-        || lh_math_le(lh_math_rect_get_size_height(self), 0);
+    return (lh_math_rect_get_size_width(self) <= 0)
+        || (lh_math_rect_get_size_height(self) <= 0);
+}
+
+lh_bool_t
+lh_math_rect_contains_point(const lh_math_rect_t *self, lh_math_point_t point)
+{
+    lh_assert_runtime_ref(self);
+    if (lh_math_rect_is_empty(self))
+    {
+        return lh_bool_false;
+    }
+    if (lh_math_point_get_x(lh_addr_of(point)) < lh_math_rect_get_x(self))
+    {
+        return lh_bool_false;
+    }
+    if (lh_math_point_get_y(lh_addr_of(point)) < lh_math_rect_get_y(self))
+    {
+        return lh_bool_false;
+    }
+    if (lh_math_point_get_x(lh_addr_of(point)) >= lh_math_rect_get_x(self) + lh_math_rect_get_size_width(self))
+    {
+        return lh_bool_false;
+    }
+    if (lh_math_point_get_y(lh_addr_of(point)) >= lh_math_rect_get_y(self) + lh_math_rect_get_size_height(self))
+    {
+        return lh_bool_false;
+    }
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_math_rect_intersects(const lh_math_rect_t *a, const lh_math_rect_t *b)
+{
+    lh_assert_runtime_ref(a);
+    lh_assert_runtime_ref(b);
+    if (lh_math_rect_is_empty(a) || lh_math_rect_is_empty(b))
+    {
+        return lh_bool_false;
+    }
+    if (lh_math_rect_get_x(a) + lh_math_rect_get_size_width(a) <= lh_math_rect_get_x(b))
+    {
+        return lh_bool_false;
+    }
+    if (lh_math_rect_get_y(a) + lh_math_rect_get_size_height(a) <= lh_math_rect_get_y(b))
+    {
+        return lh_bool_false;
+    }
+    if (lh_math_rect_get_x(b) + lh_math_rect_get_size_width(b) <= lh_math_rect_get_x(a))
+    {
+        return lh_bool_false;
+    }
+    if (lh_math_rect_get_y(b) + lh_math_rect_get_size_height(b) <= lh_math_rect_get_y(a))
+    {
+        return lh_bool_false;
+    }
+    return lh_bool_true;
 }
 
 lh_bool_t
 lh_math_rect_eq(const lh_math_rect_t *a, const lh_math_rect_t *b)
 {
-    lh_math_point_t origin_a;
-    lh_math_point_t origin_b;
-    lh_math_size_t size_a;
-    lh_math_size_t size_b;
     lh_return_if(a == b, lh_bool_true);
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
-    origin_a = lh_math_rect_get_origin(a);
-    origin_b = lh_math_rect_get_origin(b);
-    size_a = lh_math_rect_get_size(a);
-    size_b = lh_math_rect_get_size(b);
-    return lh_math_point_eq(lh_addr_of(origin_a), lh_addr_of(origin_b))
-        && lh_math_size_eq(lh_addr_of(size_a), lh_addr_of(size_b));
+    return lh_math_eq(lh_math_rect_get_x(a), lh_math_rect_get_x(b))
+        && lh_math_eq(lh_math_rect_get_y(a), lh_math_rect_get_y(b))
+        && lh_math_eq(lh_math_rect_get_size_width(a), lh_math_rect_get_size_width(b))
+        && lh_math_eq(lh_math_rect_get_size_height(a), lh_math_rect_get_size_height(b));
+}
+
+lh_math_rect_t
+lh_math_rect_intersection(const lh_math_rect_t *a, const lh_math_rect_t *b)
+{
+    lh_assert_runtime_ref(a);
+    lh_assert_runtime_ref(b);
+    if (!lh_math_rect_intersects(a, b))
+    {
+        return lh_math_rect_make_empty();
+    }
+    lh_math_iscalar_t x1 = lh_math_max(lh_math_rect_get_x(a), lh_math_rect_get_x(b));
+    lh_math_iscalar_t y1 = lh_math_max(lh_math_rect_get_y(a), lh_math_rect_get_y(b));
+    lh_math_iscalar_t x2 = lh_math_min(lh_math_rect_get_x(a) + lh_math_rect_get_size_width(a),
+                                     lh_math_rect_get_x(b) + lh_math_rect_get_size_width(b));
+    lh_math_iscalar_t y2 = lh_math_min(lh_math_rect_get_y(a) + lh_math_rect_get_size_height(a),
+                                     lh_math_rect_get_y(b) + lh_math_rect_get_size_height(b));
+    return lh_math_rect_make(x1, y1, x2 - x1, y2 - y1);
+}
+
+lh_math_rect_t
+lh_math_rect_union(const lh_math_rect_t *a, const lh_math_rect_t *b)
+{
+    lh_assert_runtime_ref(a);
+    lh_assert_runtime_ref(b);
+    if (lh_math_rect_is_empty(a))
+    {
+        return *b;
+    }
+    if (lh_math_rect_is_empty(b))
+    {
+        return *a;
+    }
+    lh_math_iscalar_t x1 = lh_math_min(lh_math_rect_get_x(a), lh_math_rect_get_x(b));
+    lh_math_iscalar_t y1 = lh_math_min(lh_math_rect_get_y(a), lh_math_rect_get_y(b));
+    lh_math_iscalar_t x2 = lh_math_max(lh_math_rect_get_x(a) + lh_math_rect_get_size_width(a),
+                                     lh_math_rect_get_x(b) + lh_math_rect_get_size_width(b));
+    lh_math_iscalar_t y2 = lh_math_max(lh_math_rect_get_y(a) + lh_math_rect_get_size_height(a),
+                                     lh_math_rect_get_y(b) + lh_math_rect_get_size_height(b));
+    return lh_math_rect_make(x1, y1, x2 - x1, y2 - y1);
+}
+
+lh_math_rect_t
+lh_math_rect_offset(const lh_math_rect_t *self, lh_math_iscalar_t dx, lh_math_iscalar_t dy)
+{
+    lh_assert_runtime_ref(self);
+    return lh_math_rect_make(lh_math_rect_get_x(self) + dx,
+                             lh_math_rect_get_y(self) + dy,
+                             lh_math_rect_get_size_width(self),
+                             lh_math_rect_get_size_height(self));
+}
+
+lh_math_rect_t
+lh_math_rect_inset(const lh_math_rect_t *self, lh_math_iscalar_t dx, lh_math_iscalar_t dy)
+{
+    lh_assert_runtime_ref(self);
+    lh_math_iscalar_t x = lh_math_rect_get_x(self) + dx;
+    lh_math_iscalar_t y = lh_math_rect_get_y(self) + dy;
+    lh_math_iscalar_t w = lh_math_rect_get_size_width(self) - dx - dx;
+    lh_math_iscalar_t h = lh_math_rect_get_size_height(self) - dy - dy;
+    return lh_math_rect_make(x, y, w, h);
 }

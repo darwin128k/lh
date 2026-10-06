@@ -40,19 +40,19 @@ extern const lh_entity_class_t lh_entity_label_class;
  * @p text is not copied. ::lh_null shows nothing.
  */
 lh_void
-lh_entity_label_init(lh_entity_label_t *self, lh_math_irect_t rect, const lh_char_t *text);
+lh_entity_label_init(lh_entity_label_t *self, lh_math_rect_t rect, const lh_char_t *text);
 
 /**
  * @brief Rectangle @p self covers.
  */
-lh_math_irect_t
+lh_math_rect_t
 lh_entity_label_get_rect(const lh_entity_label_t *self);
 
 /**
  * @brief Replace the rectangle @p self covers with @p rect.
  */
 lh_void
-lh_entity_label_set_rect(lh_entity_label_t *self, lh_math_irect_t rect);
+lh_entity_label_set_rect(lh_entity_label_t *self, lh_math_rect_t rect);
 
 /**
  * @brief The string @p self shows, or ::lh_null when it has none.

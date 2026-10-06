@@ -89,11 +89,11 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/list.c
         ${LH_LIB_SRC_PATH}/list/node.c
 
-        ${LH_LIB_SRC_PATH}/math/ipoint.c
-        ${LH_LIB_SRC_PATH}/math/ipoint3.c
-        ${LH_LIB_SRC_PATH}/math/isize.c
-        ${LH_LIB_SRC_PATH}/math/irect.c
-        ${LH_LIB_SRC_PATH}/math/irect3.c
+        ${LH_LIB_SRC_PATH}/math/point.c
+        ${LH_LIB_SRC_PATH}/math/point3.c
+        ${LH_LIB_SRC_PATH}/math/size.c
+        ${LH_LIB_SRC_PATH}/math/rect.c
+        ${LH_LIB_SRC_PATH}/math/rect3.c
 
         ${LH_LIB_SRC_PATH}/ui/color.c
 
@@ -214,9 +214,9 @@ endif ()
 # Float math (vec, quat, mat4) is the FPU. OFF leaves it out of the library.
 if (LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_LIB_SOURCES
-            ${LH_LIB_SRC_PATH}/math/point.c
-            ${LH_LIB_SRC_PATH}/math/size.c
-            ${LH_LIB_SRC_PATH}/math/rect.c
+            ${LH_LIB_SRC_PATH}/math/fpoint.c
+            ${LH_LIB_SRC_PATH}/math/fsize.c
+            ${LH_LIB_SRC_PATH}/math/frect.c
             ${LH_LIB_SRC_PATH}/math/vec2.c
             ${LH_LIB_SRC_PATH}/math/vec3.c
             ${LH_LIB_SRC_PATH}/math/vec4.c

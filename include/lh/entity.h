@@ -1,6 +1,6 @@
 /**
  * @file entity.h
- * @brief One object: ::lh_entity_t, the ::lh_math_irect_t it covers.
+ * @brief One object: ::lh_entity_t, the ::lh_math_rect_t it covers.
  *
  * The class pointer names the kind: the event function lives on that class,
  * once. ::lh_entity_draw sends ::lh_entity_event_draw to it.
@@ -14,7 +14,7 @@
 #include <lh/entity/event.h>
 #include <lh/entity/face/cb.h>
 #include <lh/entity/fields.h>
-#include <lh/math/irect.h>
+#include <lh/math/rect.h>
 #include <lh/void.h>
 
 /**
@@ -24,7 +24,7 @@
  */
 struct lh_entity
 {
-    lh_entity_fields(lh_math_irect_t, lh_entity_class_t);
+    lh_entity_fields(lh_math_rect_t, lh_entity_class_t);
 };
 typedef struct lh_entity lh_entity_t;
 
@@ -34,19 +34,19 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Fill @p self so it covers @p rect.
  */
 lh_void
-lh_entity_init(lh_entity_t *self, lh_math_irect_t rect);
+lh_entity_init(lh_entity_t *self, lh_math_rect_t rect);
 
 /**
  * @brief Rectangle @p self covers.
  */
-lh_math_irect_t
+lh_math_rect_t
 lh_entity_get_rect(const lh_entity_t *self);
 
 /**
  * @brief Replace the rectangle @p self covers with @p rect.
  */
 lh_void
-lh_entity_set_rect(lh_entity_t *self, lh_math_irect_t rect);
+lh_entity_set_rect(lh_entity_t *self, lh_math_rect_t rect);
 
 /**
  * @brief Class of @p self.

@@ -2,7 +2,7 @@
 #include <type_traits>
 
 #include <lh/config.h>
-#include <lh/math/ipoint.h>
+#include <lh/math/point.h>
 #include <lh/ui/point.h>
 #include <lh/ui/scalar.h>
 #include <lh/util/addr.h>
@@ -51,20 +51,20 @@ TEST(ui_point, eq)
 
 TEST(ui_point, roundtrip_through_the_screen_point)
 {
-    const lh_math_ipoint_t pixel = lh_math_ipoint_make(-8, 15);
-    const lh_ui_point_t p = lh_ui_ipoint_to_point(pixel);
-    const lh_math_ipoint_t back = lh_ui_point_to_ipoint(p);
-    EXPECT_EQ(lh_math_ipoint_get_x(lh_addr_of(back)), -8);
-    EXPECT_EQ(lh_math_ipoint_get_y(lh_addr_of(back)), 15);
+    const lh_math_point_t pixel = lh_math_point_make(-8, 15);
+    const lh_ui_point_t p = lh_ui_point_from_point(pixel);
+    const lh_math_point_t back = lh_ui_point_to_point(p);
+    EXPECT_EQ(lh_math_point_get_x(lh_addr_of(back)), -8);
+    EXPECT_EQ(lh_math_point_get_y(lh_addr_of(back)), 15);
 }
 
 #if LH_LIBRARY_OPTION_MATH_FPU
-TEST(ui_point, to_ipoint_truncates_toward_zero)
+TEST(ui_point, to_point_truncates_toward_zero)
 {
     const lh_ui_point_t p = lh_ui_point_make(3.9f, -3.9f);
-    const lh_math_ipoint_t pixel = lh_ui_point_to_ipoint(p);
-    EXPECT_EQ(lh_math_ipoint_get_x(lh_addr_of(pixel)), 3);
-    EXPECT_EQ(lh_math_ipoint_get_y(lh_addr_of(pixel)), -3);
+    const lh_math_point_t pixel = lh_ui_point_to_point(p);
+    EXPECT_EQ(lh_math_point_get_x(lh_addr_of(pixel)), 3);
+    EXPECT_EQ(lh_math_point_get_y(lh_addr_of(pixel)), -3);
 }
 #endif
 

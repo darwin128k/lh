@@ -21,7 +21,7 @@ lh_entity_label_event(const struct lh_entity *self, const lh_entity_event_t *eve
 const lh_entity_class_t lh_entity_label_class = {lh_entity_label_event, lh_addr_of(lh_entity_class)};
 
 lh_void
-lh_entity_label_init(lh_entity_label_t *self, lh_math_irect_t rect, const lh_char_t *text)
+lh_entity_label_init(lh_entity_label_t *self, lh_math_rect_t rect, const lh_char_t *text)
 {
     lh_assert_runtime_ref(self);
     lh_entity_init(lh_addr_of(self->entity), rect);
@@ -29,7 +29,7 @@ lh_entity_label_init(lh_entity_label_t *self, lh_math_irect_t rect, const lh_cha
     lh_entity_set_class(lh_addr_of(self->entity), lh_addr_of(lh_entity_label_class));
 }
 
-lh_math_irect_t
+lh_math_rect_t
 lh_entity_label_get_rect(const lh_entity_label_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -37,7 +37,7 @@ lh_entity_label_get_rect(const lh_entity_label_t *self)
 }
 
 lh_void
-lh_entity_label_set_rect(lh_entity_label_t *self, lh_math_irect_t rect)
+lh_entity_label_set_rect(lh_entity_label_t *self, lh_math_rect_t rect)
 {
     lh_assert_runtime_ref(self);
     lh_entity_set_rect(lh_addr_of(self->entity), rect);

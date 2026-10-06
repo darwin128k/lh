@@ -9,18 +9,18 @@
  *   parenthesized expression-level wrappers for common operations.
  *   See the "arithmetic", "comparison / selection" and "bitwise" sections
  *   below.
- * - **Integer 2D geometry** (`ipoint`, `isize`, `irect`): screen / window
+ * - **Integer 2D geometry** (`point`, `size`, `rect`): screen / window
  *   value types on ::lh_math_iscalar_t (`int`) — construct, query
  *   (empty / contains-point / intersects / equal), and combine
  *   (offset, inset, intersection, union).
- * - **Float geometry / 3D** (`point`, `size`, `rect`, `vec` / `quat` /
+ * - **Float geometry / 3D** (`fpoint`, `fsize`, `frect`, `vec` / `quat` /
  *   `mat4`) use ::lh_math_scalar_t (`float`) and are built when
  *   ::LH_LIBRARY_OPTION_MATH_FPU is ON. UI picks which scalar (and which
  *   geometry) through <lh/ui/scalar.h> and friends.
  *
  * Requires nothing from `lh/os`. Safe in STM/embedded.
  *
- * The type-specific headers (`<lh/math/iscalar.h>`, `<lh/math/ipoint.h>`,
+ * The type-specific headers (`<lh/math/iscalar.h>`, `<lh/math/point.h>`,
  * …) declare one thing each — include this file when you need several.
  */
 
@@ -30,16 +30,16 @@
 #include <lh/math/iscalar.h>
 #include <lh/config.h>
 
-#include <lh/math/ipoint.h>
-#include <lh/math/ipoint3.h>
-#include <lh/math/isize.h>
-#include <lh/math/irect.h>
-#include <lh/math/irect3.h>
+#include <lh/math/point.h>
+#include <lh/math/point3.h>
+#include <lh/math/size.h>
+#include <lh/math/rect.h>
+#include <lh/math/rect3.h>
 #if LH_LIBRARY_OPTION_MATH_FPU
 #    include <lh/math/scalar.h>
-#    include <lh/math/point.h>
-#    include <lh/math/size.h>
-#    include <lh/math/rect.h>
+#    include <lh/math/fpoint.h>
+#    include <lh/math/fsize.h>
+#    include <lh/math/frect.h>
 #    include <lh/math/mat4.h>
 #    include <lh/math/pi.h>
 #    include <lh/math/quat.h>
@@ -47,6 +47,7 @@
 #    include <lh/math/vec3.h>
 #    include <lh/math/vec4.h>
 #endif
+
 
 /* ── arithmetic ────────────────────────────────────────────────────────── */
 
