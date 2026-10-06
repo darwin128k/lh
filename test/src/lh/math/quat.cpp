@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/math/quat.h>
+#include <lh/util/addr.h>
 
 #include <cmath>
 #include <cstddef>

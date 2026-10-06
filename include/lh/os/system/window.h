@@ -81,6 +81,12 @@ lh_os_system_window_pump_wait(lh_tick_t timeout_ms);
 lh_void
 lh_os_system_window_post_quit(void);
 
+/**
+ * @brief Mark @p handle dirty so the OS will send a paint.
+ */
+lh_void
+lh_os_system_window_invalidate(lh_os_system_window_handle_t handle);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_SYSTEM_WINDOW_H */

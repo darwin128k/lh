@@ -68,7 +68,13 @@ lh_os_system_win_window_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
     case WM_PAINT:
     {
         PAINTSTRUCT ps;
-        BeginPaint(hwnd, &ps);
+        HDC hdc;
+
+        hdc = BeginPaint(hwnd, &ps);
+        if (lh_null_ne(window))
+        {
+            lh_os_window_on_native_paint(window, lh_cast_reinterpret(lh_ptr, hdc));
+        }
         EndPaint(hwnd, &ps);
         return 0;
     }
@@ -193,4 +199,17 @@ lh_void
 lh_os_system_window_post_quit(void)
 {
     PostQuitMessage(0);
+}
+
+lh_void
+lh_os_system_window_invalidate(lh_os_system_window_handle_t handle)
+{
+    HWND hwnd;
+
+    if (lh_null_eq(handle))
+    {
+        return;
+    }
+    hwnd = lh_cast_reinterpret(HWND, handle);
+    InvalidateRect(hwnd, lh_null, TRUE);
 }

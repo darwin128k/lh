@@ -23,6 +23,7 @@
 #include <lh/os/window/close/reason.h>
 #include <lh/os/window/fields.h>
 #include <lh/os/window/on/close/cb.h>
+#include <lh/os/window/on/paint/cb.h>
 #include <lh/ptr.h>
 #include <lh/void.h>
 
@@ -122,6 +123,30 @@ lh_void
 lh_os_window_set_on_close(lh_os_window_t *self, lh_os_window_on_close_cb on_close, lh_ptr context);
 
 /**
+ * @brief Notify @p on_paint when the native window needs a redraw.
+ *
+ * @p context is passed through. ::lh_null clears the slot. While the
+ * callback runs, ::lh_os_window_get_paint_dc returns the platform paint DC.
+ */
+lh_void
+lh_os_window_set_on_paint(lh_os_window_t *self, lh_os_window_on_paint_cb on_paint, lh_ptr context);
+
+/**
+ * @brief Platform paint DC for the current ::lh_os_window_on_paint_fn, or
+ *        ::lh_null outside a paint cycle.
+ *
+ * On Win32 this is an `HDC` from `BeginPaint`.
+ */
+lh_ptr
+lh_os_window_get_paint_dc(const lh_os_window_t *self);
+
+/**
+ * @brief Ask the OS to redraw @p self (posts a paint).
+ */
+lh_void
+lh_os_window_invalidate(lh_os_window_t *self);
+
+/**
  * @brief Close children, then destroy the native window and unlink @p self.
  */
 lh_void
@@ -141,6 +166,12 @@ lh_os_window_deinit(lh_os_window_t *self);
  */
 lh_void
 lh_os_window_on_native_destroy(lh_os_window_t *self);
+
+/**
+ * @brief Called from the native backend inside a paint cycle with @p paint_dc set.
+ */
+lh_void
+lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc);
 
 LH_COMPILER_EXTERN_C_END
 

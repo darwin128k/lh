@@ -42,6 +42,9 @@ lh_os_window_init(lh_os_window_t *self)
     lh_list_node_init(lh_addr_of(self->link));
     self->modal = lh_bool_false;
     self->closing = lh_bool_false;
+    self->paint_dc = lh_null;
+    self->on_paint = lh_null;
+    self->on_paint_context = lh_null;
     self->on_close = lh_null;
     self->on_close_context = lh_null;
 }
@@ -165,6 +168,35 @@ lh_os_window_set_on_close(lh_os_window_t *self, lh_os_window_on_close_cb on_clos
 }
 
 lh_void
+lh_os_window_set_on_paint(lh_os_window_t *self, lh_os_window_on_paint_cb on_paint, lh_ptr context)
+{
+    lh_assert_runtime_ref(self);
+    self->on_paint = on_paint;
+    self->on_paint_context = context;
+}
+
+lh_ptr
+lh_os_window_get_paint_dc(const lh_os_window_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->paint_dc;
+}
+
+lh_void
+lh_os_window_invalidate(lh_os_window_t *self)
+{
+    lh_assert_runtime_ref(self);
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+    if (lh_os_system_window_is_valid(self->handle))
+    {
+        lh_os_system_window_invalidate(self->handle);
+    }
+#else
+    (void)self;
+#endif
+}
+
+lh_void
 lh_os_window_close(lh_os_window_t *self)
 {
     lh_os_window_t *child;
@@ -199,6 +231,23 @@ lh_os_window_deinit(lh_os_window_t *self)
     lh_os_window_close(self);
     self->on_close = lh_null;
     self->on_close_context = lh_null;
+}
+
+lh_void
+lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc)
+{
+    lh_os_window_on_paint_cb on_paint;
+    lh_ptr on_paint_context;
+
+    lh_assert_runtime_ref(self);
+    self->paint_dc = paint_dc;
+    on_paint = self->on_paint;
+    on_paint_context = self->on_paint_context;
+    if (lh_null_ne(lh_ptr_rcast(lh_void, on_paint)))
+    {
+        on_paint(self, on_paint_context);
+    }
+    self->paint_dc = lh_null;
 }
 
 lh_void

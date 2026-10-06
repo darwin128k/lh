@@ -10,15 +10,18 @@
 #include <lh/list.h>
 #include <lh/list/node.h>
 #include <lh/os/window/on/close/cb.h>
+#include <lh/os/window/on/paint/cb.h>
 #include <lh/ptr.h>
 
 /**
  * @def lh_os_window_fields(handle_type, app_type, window_type)
- * @brief Native handle, app or parent, children, close notify, and link.
+ * @brief Native handle, app or parent, children, paint/close notify, and link.
  *
  * Top-level windows are added from outside into the app list (`app` set).
  * Index 0 there is the main window. Modal children sit in a parent's
  * `children` list. Memory is not owned — only the links.
+ *
+ * `paint_dc` is set only for the duration of ::lh_os_window_on_paint_fn.
  *
  * @param handle_type Type of `handle` (::lh_os_system_window_handle_t).
  * @param app_type    Type of the owning app pointer (::lh_os_app_t).
@@ -32,6 +35,9 @@
     lh_list_node_t link;                                                                            \
     lh_bool_t modal;                                                                                \
     lh_bool_t closing;                                                                              \
+    lh_ptr paint_dc;                                                                                \
+    lh_os_window_on_paint_cb on_paint;                                                              \
+    lh_ptr on_paint_context;                                                                        \
     lh_os_window_on_close_cb on_close;                                                              \
     lh_ptr on_close_context
 

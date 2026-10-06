@@ -6,16 +6,15 @@
 #ifndef LH_UI_STYLE_FIELDS_H
 #define LH_UI_STYLE_FIELDS_H
 
-#include <lh/byte.h>
+#include <lh/ui/paint.h>
 
 /**
  * @def lh_ui_style_fields()
- * @brief Paint recipe for one entity. Contents are not settled yet.
+ * @brief Paint recipe for one entity.
  *
- * `_reserved` keeps the struct non-empty in C; it is not part of the public
- * API and will go away when real fields arrive.
+ * `fill` is not owned and may be shared; ::lh_null means no fill.
  */
 #define lh_ui_style_fields()                                                                        \
-    lh_byte_t _reserved
+    const lh_ui_paint_t *fill
 
 #endif /* LH_UI_STYLE_FIELDS_H */

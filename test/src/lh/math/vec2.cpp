@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/math/vec2.h>
+#include <lh/util/addr.h>
 
 #include <cstddef>
 
