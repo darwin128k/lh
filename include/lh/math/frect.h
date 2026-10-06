@@ -1,6 +1,6 @@
 /**
  * @file frect.h
- * @brief An axis-aligned rectangle whose components are ::lh_math_scalar_t.
+ * @brief An axis-aligned rectangle whose components are ::lh_math_fscalar_t.
  *
  * Same shape as ::lh_math_rect_t: a ::lh_math_fpoint_t origin plus a
  * ::lh_math_fsize_t, half-open. The screen rectangle stays
@@ -32,7 +32,7 @@
 /**
  * @struct lh_math_frect
  * @typedef lh_math_frect_t
- * @brief An axis-aligned rectangle of ::lh_math_scalar_t components.
+ * @brief An axis-aligned rectangle of ::lh_math_fscalar_t components.
  */
 struct lh_math_frect
 {
@@ -48,7 +48,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Make a `::lh_math_frect_t` from origin and extents.
  */
 lh_math_frect_t
-lh_math_frect_make(lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t width, lh_math_scalar_t height);
+lh_math_frect_make(lh_math_fscalar_t x, lh_math_fscalar_t y, lh_math_fscalar_t width, lh_math_fscalar_t height);
 
 /**
  * @brief The empty rectangle: origin `(0, 0)`, size `(0, 0)`.
@@ -73,25 +73,25 @@ lh_math_frect_get_size(const lh_math_frect_t *self);
 /**
  * @brief X coordinate of the origin of @p self.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_frect_get_x(const lh_math_frect_t *self);
 
 /**
  * @brief Y coordinate of the origin of @p self.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_frect_get_y(const lh_math_frect_t *self);
 
 /**
  * @brief Width component of the size of @p self.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_frect_get_size_width(const lh_math_frect_t *self);
 
 /**
  * @brief Height component of the size of @p self.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_frect_get_size_height(const lh_math_frect_t *self);
 
 /**
@@ -127,13 +127,13 @@ lh_math_rect_to_frect(lh_math_rect_t self);
 /**
  * @brief Width of @p self. Zero when @p self is empty.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_frect_get_width(const lh_math_frect_t *self);
 
 /**
  * @brief Height of @p self. Zero when @p self is empty.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_frect_get_height(const lh_math_frect_t *self);
 
 /**

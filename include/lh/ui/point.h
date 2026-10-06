@@ -2,8 +2,8 @@
  * @file point.h
  * @brief UI point: aliases math integer or float point by FPU option.
  *
- * OFF → ::lh_math_point_t (::lh_math_iscalar_t).
- * ON  → ::lh_math_fpoint_t (::lh_math_scalar_t).
+ * OFF → ::lh_math_point_t (::lh_math_scalar_t).
+ * ON  → ::lh_math_fpoint_t (::lh_math_fscalar_t).
  * All `lh_ui_point_*` names forward to the chosen math API.
  */
 

@@ -7,7 +7,7 @@
  * value and never fail; nothing here knows about coordinate systems (which
  * axis is up, handedness) — those are a matter of the code using it.
  *
- * Layout is 4 consecutive ::lh_math_scalar_t (`x, y, z, w`), the same as a C
+ * Layout is 4 consecutive ::lh_math_fscalar_t (`x, y, z, w`), the same as a C
  * `float[4]`.
  *
  * Fields are not part of the public API: read and mutate them through the
@@ -21,7 +21,7 @@
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/float.h>
-#include <lh/math/scalar.h>
+#include <lh/math/fscalar.h>
 #include <lh/math/vec3.h>
 #include <lh/math/vec4/fields.h>
 #include <lh/void.h>
@@ -33,7 +33,7 @@
  */
 struct lh_math_vec4
 {
-    lh_math_vec4_fields(lh_math_scalar_t);
+    lh_math_vec4_fields(lh_math_fscalar_t);
 };
 typedef struct lh_math_vec4 lh_math_vec4_t;
 
@@ -43,57 +43,57 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Vector with the given components.
  */
 lh_math_vec4_t
-lh_math_vec4_make(lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t z, lh_math_scalar_t w);
+lh_math_vec4_make(lh_math_fscalar_t x, lh_math_fscalar_t y, lh_math_fscalar_t z, lh_math_fscalar_t w);
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
 /**
  * @brief X component of @p self.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_vec4_get_x(const lh_math_vec4_t *self);
 
 /**
  * @brief Y component of @p self.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_vec4_get_y(const lh_math_vec4_t *self);
 
 /**
  * @brief Z component of @p self.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_vec4_get_z(const lh_math_vec4_t *self);
 
 /**
  * @brief W component of @p self.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_vec4_get_w(const lh_math_vec4_t *self);
 
 /**
  * @brief Set the X component of @p self.
  */
 lh_void
-lh_math_vec4_set_x(lh_math_vec4_t *self, lh_math_scalar_t x);
+lh_math_vec4_set_x(lh_math_vec4_t *self, lh_math_fscalar_t x);
 
 /**
  * @brief Set the Y component of @p self.
  */
 lh_void
-lh_math_vec4_set_y(lh_math_vec4_t *self, lh_math_scalar_t y);
+lh_math_vec4_set_y(lh_math_vec4_t *self, lh_math_fscalar_t y);
 
 /**
  * @brief Set the Z component of @p self.
  */
 lh_void
-lh_math_vec4_set_z(lh_math_vec4_t *self, lh_math_scalar_t z);
+lh_math_vec4_set_z(lh_math_vec4_t *self, lh_math_fscalar_t z);
 
 /**
  * @brief Set the W component of @p self.
  */
 lh_void
-lh_math_vec4_set_w(lh_math_vec4_t *self, lh_math_scalar_t w);
+lh_math_vec4_set_w(lh_math_vec4_t *self, lh_math_fscalar_t w);
 
 /* ── Conversions ─────────────────────────────────────────────────────────── */
 
@@ -105,7 +105,7 @@ lh_math_vec4_set_w(lh_math_vec4_t *self, lh_math_scalar_t w);
  * @return `(v.x, v.y, v.z, w)`.
  */
 lh_math_vec4_t
-lh_math_vec3_to_vec4(lh_math_vec3_t v, lh_math_scalar_t w);
+lh_math_vec3_to_vec4(lh_math_vec3_t v, lh_math_fscalar_t w);
 
 /**
  * @brief Narrow @p v from homogeneous space, dropping `w`.
@@ -135,7 +135,7 @@ lh_math_vec4_sub(lh_math_vec4_t a, lh_math_vec4_t b);
  * @brief @p v with every component multiplied by @p s.
  */
 lh_math_vec4_t
-lh_math_vec4_scale(lh_math_vec4_t v, lh_math_scalar_t s);
+lh_math_vec4_scale(lh_math_vec4_t v, lh_math_fscalar_t s);
 
 /**
  * @brief @p v with every component negated.
@@ -149,7 +149,7 @@ lh_math_vec4_neg(lh_math_vec4_t v);
  * `|a| |b| cos(angle)`: 0 for perpendicular vectors, positive when they point
  * the same way.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_vec4_dot(lh_math_vec4_t a, lh_math_vec4_t b);
 
 /**
@@ -158,13 +158,13 @@ lh_math_vec4_dot(lh_math_vec4_t a, lh_math_vec4_t b);
  * Cheaper than ::lh_math_vec4_length (no square root) and enough for comparing
  * lengths.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_vec4_length_sq(lh_math_vec4_t v);
 
 /**
  * @brief Euclidean length.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_vec4_length(lh_math_vec4_t v);
 
 /**
@@ -182,7 +182,7 @@ lh_math_vec4_normalize(lh_math_vec4_t v);
  * @p t is not clamped: values outside `[0, 1]` extrapolate along the line.
  */
 lh_math_vec4_t
-lh_math_vec4_lerp(lh_math_vec4_t a, lh_math_vec4_t b, lh_math_scalar_t t);
+lh_math_vec4_lerp(lh_math_vec4_t a, lh_math_vec4_t b, lh_math_fscalar_t t);
 
 /**
  * @brief Whether every component of @p a and @p b differs by at most @p eps.
@@ -191,7 +191,7 @@ lh_math_vec4_lerp(lh_math_vec4_t a, lh_math_vec4_t b, lh_math_scalar_t t);
  * suited to the magnitudes involved.
  */
 lh_bool_t
-lh_math_vec4_near(lh_math_vec4_t a, lh_math_vec4_t b, lh_math_scalar_t eps);
+lh_math_vec4_near(lh_math_vec4_t a, lh_math_vec4_t b, lh_math_fscalar_t eps);
 
 LH_COMPILER_EXTERN_C_END
 

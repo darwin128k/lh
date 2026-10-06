@@ -12,8 +12,8 @@
 /* ── Constructors ────────────────────────────────────────────────────────── */
 
 lh_math_frect_t
-lh_math_frect_make(lh_math_scalar_t x, lh_math_scalar_t y,
-                         lh_math_scalar_t width, lh_math_scalar_t height)
+lh_math_frect_make(lh_math_fscalar_t x, lh_math_fscalar_t y,
+                         lh_math_fscalar_t width, lh_math_fscalar_t height)
 {
     lh_math_frect_t r;
     lh_math_frect_set_origin(lh_addr_of(r), lh_math_fpoint_make(x, y));
@@ -43,7 +43,7 @@ lh_math_frect_get_size(const lh_math_frect_t *self)
     return self->size;
 }
 
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_frect_get_x(const lh_math_frect_t *self)
 {
     lh_math_fpoint_t origin;
@@ -52,7 +52,7 @@ lh_math_frect_get_x(const lh_math_frect_t *self)
     return lh_math_fpoint_get_x(lh_addr_of(origin));
 }
 
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_frect_get_y(const lh_math_frect_t *self)
 {
     lh_math_fpoint_t origin;
@@ -61,7 +61,7 @@ lh_math_frect_get_y(const lh_math_frect_t *self)
     return lh_math_fpoint_get_y(lh_addr_of(origin));
 }
 
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_frect_get_size_width(const lh_math_frect_t *self)
 {
     lh_math_fsize_t size;
@@ -70,7 +70,7 @@ lh_math_frect_get_size_width(const lh_math_frect_t *self)
     return lh_math_fsize_get_width(lh_addr_of(size));
 }
 
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_frect_get_size_height(const lh_math_frect_t *self)
 {
     lh_math_fsize_t size;
@@ -119,7 +119,7 @@ lh_math_rect_to_frect(lh_math_rect_t self)
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
 
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_frect_get_width(const lh_math_frect_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -127,7 +127,7 @@ lh_math_frect_get_width(const lh_math_frect_t *self)
     return lh_math_frect_get_size_width(self);
 }
 
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_frect_get_height(const lh_math_frect_t *self)
 {
     lh_assert_runtime_ref(self);

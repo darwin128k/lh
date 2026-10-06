@@ -7,7 +7,7 @@
  * value and never fail; nothing here knows about coordinate systems (which
  * axis is up, handedness) — those are a matter of the code using it.
  *
- * Layout is 2 consecutive ::lh_math_scalar_t (`x, y`), the same as a C
+ * Layout is 2 consecutive ::lh_math_fscalar_t (`x, y`), the same as a C
  * `float[2]`.
  *
  * Fields are not part of the public API: read and mutate them through the
@@ -21,7 +21,7 @@
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/float.h>
-#include <lh/math/scalar.h>
+#include <lh/math/fscalar.h>
 #include <lh/math/vec2/fields.h>
 #include <lh/void.h>
 
@@ -32,7 +32,7 @@
  */
 struct lh_math_vec2
 {
-    lh_math_vec2_fields(lh_math_scalar_t);
+    lh_math_vec2_fields(lh_math_fscalar_t);
 };
 typedef struct lh_math_vec2 lh_math_vec2_t;
 
@@ -42,33 +42,33 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Vector with the given components.
  */
 lh_math_vec2_t
-lh_math_vec2_make(lh_math_scalar_t x, lh_math_scalar_t y);
+lh_math_vec2_make(lh_math_fscalar_t x, lh_math_fscalar_t y);
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
 /**
  * @brief X component of @p self.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_vec2_get_x(const lh_math_vec2_t *self);
 
 /**
  * @brief Y component of @p self.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_vec2_get_y(const lh_math_vec2_t *self);
 
 /**
  * @brief Set the X component of @p self.
  */
 lh_void
-lh_math_vec2_set_x(lh_math_vec2_t *self, lh_math_scalar_t x);
+lh_math_vec2_set_x(lh_math_vec2_t *self, lh_math_fscalar_t x);
 
 /**
  * @brief Set the Y component of @p self.
  */
 lh_void
-lh_math_vec2_set_y(lh_math_vec2_t *self, lh_math_scalar_t y);
+lh_math_vec2_set_y(lh_math_vec2_t *self, lh_math_fscalar_t y);
 
 /* ── Operations ─────────────────────────────────────────────────────────── */
 
@@ -88,7 +88,7 @@ lh_math_vec2_sub(lh_math_vec2_t a, lh_math_vec2_t b);
  * @brief @p v with every component multiplied by @p s.
  */
 lh_math_vec2_t
-lh_math_vec2_scale(lh_math_vec2_t v, lh_math_scalar_t s);
+lh_math_vec2_scale(lh_math_vec2_t v, lh_math_fscalar_t s);
 
 /**
  * @brief @p v with every component negated.
@@ -102,7 +102,7 @@ lh_math_vec2_neg(lh_math_vec2_t v);
  * `|a| |b| cos(angle)`: 0 for perpendicular vectors, positive when they point
  * the same way.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_vec2_dot(lh_math_vec2_t a, lh_math_vec2_t b);
 
 /**
@@ -111,13 +111,13 @@ lh_math_vec2_dot(lh_math_vec2_t a, lh_math_vec2_t b);
  * Cheaper than ::lh_math_vec2_length (no square root) and enough for comparing
  * lengths.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_vec2_length_sq(lh_math_vec2_t v);
 
 /**
  * @brief Euclidean length.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_vec2_length(lh_math_vec2_t v);
 
 /**
@@ -135,7 +135,7 @@ lh_math_vec2_normalize(lh_math_vec2_t v);
  * @p t is not clamped: values outside `[0, 1]` extrapolate along the line.
  */
 lh_math_vec2_t
-lh_math_vec2_lerp(lh_math_vec2_t a, lh_math_vec2_t b, lh_math_scalar_t t);
+lh_math_vec2_lerp(lh_math_vec2_t a, lh_math_vec2_t b, lh_math_fscalar_t t);
 
 /**
  * @brief Whether every component of @p a and @p b differs by at most @p eps.
@@ -144,7 +144,7 @@ lh_math_vec2_lerp(lh_math_vec2_t a, lh_math_vec2_t b, lh_math_scalar_t t);
  * suited to the magnitudes involved.
  */
 lh_bool_t
-lh_math_vec2_near(lh_math_vec2_t a, lh_math_vec2_t b, lh_math_scalar_t eps);
+lh_math_vec2_near(lh_math_vec2_t a, lh_math_vec2_t b, lh_math_fscalar_t eps);
 
 LH_COMPILER_EXTERN_C_END
 

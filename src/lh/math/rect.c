@@ -2,7 +2,7 @@
  * @file rect.c
  * @brief Implementation of lh/math/rect.h.
  *
- * All ops are `lh_math_iscalar_t` arithmetic — no allocations, no state. Empty
+ * All ops are `lh_math_scalar_t` arithmetic — no allocations, no state. Empty
  * rectangles are represented as `size.width <= 0 || size.height <= 0`:
  * ::lh_math_rect_is_empty, ::lh_math_rect_intersection, and
  * ::lh_math_rect_get_width / ::lh_math_rect_get_height all share that definition, so
@@ -18,7 +18,7 @@
 /* ── Constructors ────────────────────────────────────────────────────────── */
 
 lh_math_rect_t
-lh_math_rect_make(lh_math_iscalar_t x, lh_math_iscalar_t y, lh_math_iscalar_t width, lh_math_iscalar_t height)
+lh_math_rect_make(lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t width, lh_math_scalar_t height)
 {
     lh_math_rect_t r;
     lh_math_rect_set_origin(lh_addr_of(r), lh_math_point_make(x, y));
@@ -27,8 +27,8 @@ lh_math_rect_make(lh_math_iscalar_t x, lh_math_iscalar_t y, lh_math_iscalar_t wi
 }
 
 lh_math_rect_t
-lh_math_rect_from_min_max(lh_math_iscalar_t x_min, lh_math_iscalar_t y_min,
-                          lh_math_iscalar_t x_max, lh_math_iscalar_t y_max)
+lh_math_rect_from_min_max(lh_math_scalar_t x_min, lh_math_scalar_t y_min,
+                          lh_math_scalar_t x_max, lh_math_scalar_t y_max)
 {
     lh_math_rect_t r;
     lh_math_rect_set_origin(lh_addr_of(r), lh_math_point_make(x_min, y_min));
@@ -58,28 +58,28 @@ lh_math_rect_get_size(const lh_math_rect_t *self)
     return self->size;
 }
 
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect_get_x(const lh_math_rect_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_math_point_get_x(lh_addr_of(self->origin));
 }
 
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect_get_y(const lh_math_rect_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_math_point_get_y(lh_addr_of(self->origin));
 }
 
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect_get_size_width(const lh_math_rect_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_math_size_get_width(lh_addr_of(self->size));
 }
 
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect_get_size_height(const lh_math_rect_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -102,7 +102,7 @@ lh_math_rect_set_size(lh_math_rect_t *self, lh_math_size_t size)
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
 
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect_get_width(const lh_math_rect_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -113,7 +113,7 @@ lh_math_rect_get_width(const lh_math_rect_t *self)
     return lh_math_rect_get_size_width(self);
 }
 
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect_get_height(const lh_math_rect_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -208,11 +208,11 @@ lh_math_rect_intersection(const lh_math_rect_t *a, const lh_math_rect_t *b)
     {
         return lh_math_rect_make_empty();
     }
-    lh_math_iscalar_t x1 = lh_math_max(lh_math_rect_get_x(a), lh_math_rect_get_x(b));
-    lh_math_iscalar_t y1 = lh_math_max(lh_math_rect_get_y(a), lh_math_rect_get_y(b));
-    lh_math_iscalar_t x2 = lh_math_min(lh_math_rect_get_x(a) + lh_math_rect_get_size_width(a),
+    lh_math_scalar_t x1 = lh_math_max(lh_math_rect_get_x(a), lh_math_rect_get_x(b));
+    lh_math_scalar_t y1 = lh_math_max(lh_math_rect_get_y(a), lh_math_rect_get_y(b));
+    lh_math_scalar_t x2 = lh_math_min(lh_math_rect_get_x(a) + lh_math_rect_get_size_width(a),
                                      lh_math_rect_get_x(b) + lh_math_rect_get_size_width(b));
-    lh_math_iscalar_t y2 = lh_math_min(lh_math_rect_get_y(a) + lh_math_rect_get_size_height(a),
+    lh_math_scalar_t y2 = lh_math_min(lh_math_rect_get_y(a) + lh_math_rect_get_size_height(a),
                                      lh_math_rect_get_y(b) + lh_math_rect_get_size_height(b));
     return lh_math_rect_make(x1, y1, x2 - x1, y2 - y1);
 }
@@ -230,17 +230,17 @@ lh_math_rect_union(const lh_math_rect_t *a, const lh_math_rect_t *b)
     {
         return *a;
     }
-    lh_math_iscalar_t x1 = lh_math_min(lh_math_rect_get_x(a), lh_math_rect_get_x(b));
-    lh_math_iscalar_t y1 = lh_math_min(lh_math_rect_get_y(a), lh_math_rect_get_y(b));
-    lh_math_iscalar_t x2 = lh_math_max(lh_math_rect_get_x(a) + lh_math_rect_get_size_width(a),
+    lh_math_scalar_t x1 = lh_math_min(lh_math_rect_get_x(a), lh_math_rect_get_x(b));
+    lh_math_scalar_t y1 = lh_math_min(lh_math_rect_get_y(a), lh_math_rect_get_y(b));
+    lh_math_scalar_t x2 = lh_math_max(lh_math_rect_get_x(a) + lh_math_rect_get_size_width(a),
                                      lh_math_rect_get_x(b) + lh_math_rect_get_size_width(b));
-    lh_math_iscalar_t y2 = lh_math_max(lh_math_rect_get_y(a) + lh_math_rect_get_size_height(a),
+    lh_math_scalar_t y2 = lh_math_max(lh_math_rect_get_y(a) + lh_math_rect_get_size_height(a),
                                      lh_math_rect_get_y(b) + lh_math_rect_get_size_height(b));
     return lh_math_rect_make(x1, y1, x2 - x1, y2 - y1);
 }
 
 lh_math_rect_t
-lh_math_rect_offset(const lh_math_rect_t *self, lh_math_iscalar_t dx, lh_math_iscalar_t dy)
+lh_math_rect_offset(const lh_math_rect_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy)
 {
     lh_assert_runtime_ref(self);
     return lh_math_rect_make(lh_math_rect_get_x(self) + dx,
@@ -250,12 +250,12 @@ lh_math_rect_offset(const lh_math_rect_t *self, lh_math_iscalar_t dx, lh_math_is
 }
 
 lh_math_rect_t
-lh_math_rect_inset(const lh_math_rect_t *self, lh_math_iscalar_t dx, lh_math_iscalar_t dy)
+lh_math_rect_inset(const lh_math_rect_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy)
 {
     lh_assert_runtime_ref(self);
-    lh_math_iscalar_t x = lh_math_rect_get_x(self) + dx;
-    lh_math_iscalar_t y = lh_math_rect_get_y(self) + dy;
-    lh_math_iscalar_t w = lh_math_rect_get_size_width(self) - dx - dx;
-    lh_math_iscalar_t h = lh_math_rect_get_size_height(self) - dy - dy;
+    lh_math_scalar_t x = lh_math_rect_get_x(self) + dx;
+    lh_math_scalar_t y = lh_math_rect_get_y(self) + dy;
+    lh_math_scalar_t w = lh_math_rect_get_size_width(self) - dx - dx;
+    lh_math_scalar_t h = lh_math_rect_get_size_height(self) - dy - dy;
     return lh_math_rect_make(x, y, w, h);
 }

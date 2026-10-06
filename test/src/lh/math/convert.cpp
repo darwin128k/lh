@@ -9,13 +9,13 @@
 namespace
 {
 
-lh_math_iscalar_t
+lh_math_scalar_t
 x_of(lh_math_point_t p)
 {
     return lh_math_point_get_x(lh_addr_of(p));
 }
 
-lh_math_iscalar_t
+lh_math_scalar_t
 y_of(lh_math_point_t p)
 {
     return lh_math_point_get_y(lh_addr_of(p));

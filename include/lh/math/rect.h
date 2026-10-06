@@ -21,7 +21,7 @@
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/math/iscalar.h>
+#include <lh/math/scalar.h>
 #include <lh/math/point.h>
 #include <lh/math/rect/fields.h>
 #include <lh/math/size.h>
@@ -46,15 +46,15 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Make a `::lh_math_rect_t` from origin coordinates and extents.
  */
 lh_math_rect_t
-lh_math_rect_make(lh_math_iscalar_t x, lh_math_iscalar_t y, lh_math_iscalar_t width, lh_math_iscalar_t height);
+lh_math_rect_make(lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t width, lh_math_scalar_t height);
 
 /**
  * @brief Make a `::lh_math_rect_t` from min/max corners (Win32-style:
  *        left, top, right, bottom — right/bottom are exclusive).
  */
 lh_math_rect_t
-lh_math_rect_from_min_max(lh_math_iscalar_t x_min, lh_math_iscalar_t y_min,
-                          lh_math_iscalar_t x_max, lh_math_iscalar_t y_max);
+lh_math_rect_from_min_max(lh_math_scalar_t x_min, lh_math_scalar_t y_min,
+                          lh_math_scalar_t x_max, lh_math_scalar_t y_max);
 
 /**
  * @brief The "no rectangle" sentinel: origin `(0, 0)`, size `(0, 0)`.
@@ -80,25 +80,25 @@ lh_math_rect_get_size(const lh_math_rect_t *self);
 /**
  * @brief X coordinate of the origin of @p self.
  */
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect_get_x(const lh_math_rect_t *self);
 
 /**
  * @brief Y coordinate of the origin of @p self.
  */
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect_get_y(const lh_math_rect_t *self);
 
 /**
  * @brief Stored width of @p self. A negative value is empty.
  */
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect_get_size_width(const lh_math_rect_t *self);
 
 /**
  * @brief Stored height of @p self. A negative value is empty.
  */
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect_get_size_height(const lh_math_rect_t *self);
 
 /**
@@ -116,15 +116,15 @@ lh_math_rect_set_size(lh_math_rect_t *self, lh_math_size_t size);
 /* ── Queries ────────────────────────────────────────────────────────────── */
 
 /**
- * @brief Width of @p self as a ::lh_math_iscalar_t. Zero for empty rectangles.
+ * @brief Width of @p self as a ::lh_math_scalar_t. Zero for empty rectangles.
  */
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect_get_width(const lh_math_rect_t *self);
 
 /**
- * @brief Height of @p self as a ::lh_math_iscalar_t. Zero for empty rectangles.
+ * @brief Height of @p self as a ::lh_math_scalar_t. Zero for empty rectangles.
  */
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect_get_height(const lh_math_rect_t *self);
 
 /**
@@ -172,14 +172,14 @@ lh_math_rect_union(const lh_math_rect_t *a, const lh_math_rect_t *b);
  * @brief Translate @p self by `(@p dx, @p dy)`.
  */
 lh_math_rect_t
-lh_math_rect_offset(const lh_math_rect_t *self, lh_math_iscalar_t dx, lh_math_iscalar_t dy);
+lh_math_rect_offset(const lh_math_rect_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy);
 
 /**
  * @brief Inset @p self by `(@p dx, @p dy)` on each side (positive shrinks,
  *        negative grows).
  */
 lh_math_rect_t
-lh_math_rect_inset(const lh_math_rect_t *self, lh_math_iscalar_t dx, lh_math_iscalar_t dy);
+lh_math_rect_inset(const lh_math_rect_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy);
 
 LH_COMPILER_EXTERN_C_END
 

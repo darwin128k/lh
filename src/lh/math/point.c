@@ -18,7 +18,7 @@
 /* ── Constructors ────────────────────────────────────────────────────────── */
 
 lh_math_point_t
-lh_math_point_make(lh_math_iscalar_t x, lh_math_iscalar_t y)
+lh_math_point_make(lh_math_scalar_t x, lh_math_scalar_t y)
 {
     lh_math_point_t p;
     lh_math_point_set_x(lh_addr_of(p), x);
@@ -34,14 +34,14 @@ lh_math_point_make_empty(void)
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_point_get_x(const lh_math_point_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->x;
 }
 
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_point_get_y(const lh_math_point_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -49,14 +49,14 @@ lh_math_point_get_y(const lh_math_point_t *self)
 }
 
 lh_void
-lh_math_point_set_x(lh_math_point_t *self, lh_math_iscalar_t x)
+lh_math_point_set_x(lh_math_point_t *self, lh_math_scalar_t x)
 {
     lh_assert_runtime_ref(self);
     self->x = x;
 }
 
 lh_void
-lh_math_point_set_y(lh_math_point_t *self, lh_math_iscalar_t y)
+lh_math_point_set_y(lh_math_point_t *self, lh_math_scalar_t y)
 {
     lh_assert_runtime_ref(self);
     self->y = y;
@@ -80,8 +80,8 @@ lh_math_vec2_to_point(lh_math_vec2_t v)
     /* `ceil(x - 0.5f)`: round to nearest, halves toward the lower pixel, the
      * same rule lh_entity_2d_draw_background uses to pick covered pixels. */
     return lh_math_point_make(
-        lh_cast_static(lh_math_iscalar_t, lh_float_ceil_to_int(lh_math_vec2_get_x(lh_addr_of(v)) - 0.5f)),
-        lh_cast_static(lh_math_iscalar_t, lh_float_ceil_to_int(lh_math_vec2_get_y(lh_addr_of(v)) - 0.5f)));
+        lh_cast_static(lh_math_scalar_t, lh_float_ceil_to_int(lh_math_vec2_get_x(lh_addr_of(v)) - 0.5f)),
+        lh_cast_static(lh_math_scalar_t, lh_float_ceil_to_int(lh_math_vec2_get_y(lh_addr_of(v)) - 0.5f)));
 }
 #endif
 
@@ -100,7 +100,7 @@ lh_math_point_eq(const lh_math_point_t *a, const lh_math_point_t *b)
 /* ── Set ops ────────────────────────────────────────────────────────────── */
 
 lh_math_point_t
-lh_math_point_offset(const lh_math_point_t *self, lh_math_iscalar_t dx, lh_math_iscalar_t dy)
+lh_math_point_offset(const lh_math_point_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy)
 {
     lh_assert_runtime_ref(self);
     return lh_math_point_make(lh_math_point_get_x(self) + dx,

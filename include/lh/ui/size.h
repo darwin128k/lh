@@ -2,8 +2,8 @@
  * @file size.h
  * @brief UI size: aliases math integer or float size by FPU option.
  *
- * OFF → ::lh_math_size_t (::lh_math_iscalar_t).
- * ON  → ::lh_math_fsize_t (::lh_math_scalar_t).
+ * OFF → ::lh_math_size_t (::lh_math_scalar_t).
+ * ON  → ::lh_math_fsize_t (::lh_math_fscalar_t).
  * All `lh_ui_size_*` names forward to the chosen math API.
  */
 

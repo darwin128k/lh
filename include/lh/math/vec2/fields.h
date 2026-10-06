@@ -10,7 +10,7 @@
  * @def lh_math_vec2_fields(component_type)
  * @brief The 2 components, `x, y`, in that order.
  *
- * @param component_type Type of each component (::lh_math_scalar_t).
+ * @param component_type Type of each component (::lh_math_fscalar_t).
  */
 #define lh_math_vec2_fields(component_type)                                                             \
     component_type x;                                                                              \

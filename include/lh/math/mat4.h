@@ -7,7 +7,7 @@
  * that scales, then rotates, then moves is `mul(T, mul(R, S))`.
  *
  * Column-major layout: four ::lh_math_vec4_t columns, i.e. 16 consecutive
- * ::lh_math_scalar_t column by column. That is what OpenGL / GLM / Vulkan take as
+ * ::lh_math_fscalar_t column by column. That is what OpenGL / GLM / Vulkan take as
  * is; Direct3D's row-vector convention reads the same bytes as the
  * transpose, which is the same transform written its way.
  *
@@ -140,7 +140,7 @@ lh_math_mat4_inverse(lh_math_mat4_t m, lh_math_mat4_t *out);
  * @brief Whether every element of @p a and @p b differs by at most @p eps.
  */
 lh_bool_t
-lh_math_mat4_near(lh_math_mat4_t a, lh_math_mat4_t b, lh_math_scalar_t eps);
+lh_math_mat4_near(lh_math_mat4_t a, lh_math_mat4_t b, lh_math_fscalar_t eps);
 
 LH_COMPILER_EXTERN_C_END
 

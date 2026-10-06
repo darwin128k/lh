@@ -1,6 +1,6 @@
 /**
  * @file fpoint.h
- * @brief A 2D point whose components are ::lh_math_scalar_t.
+ * @brief A 2D point whose components are ::lh_math_fscalar_t.
  *
  * Same shape as ::lh_math_point_t (`x`, `y`), with continuous coordinates.
  * The screen point stays ::lh_math_point_t.
@@ -21,17 +21,17 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/math/point.h>
 #include <lh/math/point/fields.h>
-#include <lh/math/scalar.h>
+#include <lh/math/fscalar.h>
 #include <lh/void.h>
 
 /**
  * @struct lh_math_fpoint
  * @typedef lh_math_fpoint_t
- * @brief A 2D point of ::lh_math_scalar_t components.
+ * @brief A 2D point of ::lh_math_fscalar_t components.
  */
 struct lh_math_fpoint
 {
-    lh_math_point_fields(lh_math_scalar_t);
+    lh_math_point_fields(lh_math_fscalar_t);
 };
 typedef struct lh_math_fpoint lh_math_fpoint_t;
 
@@ -43,7 +43,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Make a `::lh_math_fpoint_t` from explicit components.
  */
 lh_math_fpoint_t
-lh_math_fpoint_make(lh_math_scalar_t x, lh_math_scalar_t y);
+lh_math_fpoint_make(lh_math_fscalar_t x, lh_math_fscalar_t y);
 
 /**
  * @brief The origin: `(0, 0)`.
@@ -56,33 +56,33 @@ lh_math_fpoint_make_empty(void);
 /**
  * @brief X component of @p self.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_fpoint_get_x(const lh_math_fpoint_t *self);
 
 /**
  * @brief Y component of @p self.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_fpoint_get_y(const lh_math_fpoint_t *self);
 
 /**
  * @brief Set the X component of @p self.
  */
 lh_void
-lh_math_fpoint_set_x(lh_math_fpoint_t *self, lh_math_scalar_t x);
+lh_math_fpoint_set_x(lh_math_fpoint_t *self, lh_math_fscalar_t x);
 
 /**
  * @brief Set the Y component of @p self.
  */
 lh_void
-lh_math_fpoint_set_y(lh_math_fpoint_t *self, lh_math_scalar_t y);
+lh_math_fpoint_set_y(lh_math_fpoint_t *self, lh_math_fscalar_t y);
 
 /* ── Conversions ─────────────────────────────────────────────────────────── */
 
 /**
  * @brief Narrow @p self to a screen point.
  *
- * Casts each component to ::lh_math_iscalar_t (truncates toward zero).
+ * Casts each component to ::lh_math_scalar_t (truncates toward zero).
  */
 lh_math_point_t
 lh_math_fpoint_to_point(lh_math_fpoint_t self);
@@ -90,7 +90,7 @@ lh_math_fpoint_to_point(lh_math_fpoint_t self);
 /**
  * @brief Widen @p self to a continuous point.
  *
- * Casts each ::lh_math_iscalar_t to ::lh_math_scalar_t.
+ * Casts each ::lh_math_scalar_t to ::lh_math_fscalar_t.
  */
 lh_math_fpoint_t
 lh_math_point_to_fpoint(lh_math_point_t self);

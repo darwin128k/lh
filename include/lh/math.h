@@ -10,24 +10,24 @@
  *   See the "arithmetic", "comparison / selection" and "bitwise" sections
  *   below.
  * - **Integer 2D geometry** (`point`, `size`, `rect`): screen / window
- *   value types on ::lh_math_iscalar_t (`int`) — construct, query
+ *   value types on ::lh_math_scalar_t (`int`) — construct, query
  *   (empty / contains-point / intersects / equal), and combine
  *   (offset, inset, intersection, union).
  * - **Float geometry / 3D** (`fpoint`, `fsize`, `frect`, `vec` / `quat` /
- *   `mat4`) use ::lh_math_scalar_t (`float`) and are built when
+ *   `mat4`) use ::lh_math_fscalar_t (`float`) and are built when
  *   ::LH_LIBRARY_OPTION_MATH_FPU is ON. UI picks which scalar (and which
  *   geometry) through <lh/ui/scalar.h> and friends.
  *
  * Requires nothing from `lh/os`. Safe in STM/embedded.
  *
- * The type-specific headers (`<lh/math/iscalar.h>`, `<lh/math/point.h>`,
+ * The type-specific headers (`<lh/math/scalar.h>`, `<lh/math/point.h>`,
  * …) declare one thing each — include this file when you need several.
  */
 
 #ifndef LH_MATH_H
 #define LH_MATH_H
 
-#include <lh/math/iscalar.h>
+#include <lh/math/scalar.h>
 #include <lh/config.h>
 
 #include <lh/math/point.h>
@@ -36,7 +36,7 @@
 #include <lh/math/rect.h>
 #include <lh/math/rect3.h>
 #if LH_LIBRARY_OPTION_MATH_FPU
-#    include <lh/math/scalar.h>
+#    include <lh/math/fscalar.h>
 #    include <lh/math/fpoint.h>
 #    include <lh/math/fsize.h>
 #    include <lh/math/frect.h>

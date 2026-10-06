@@ -13,7 +13,7 @@
 /* ── Constructors ────────────────────────────────────────────────────────── */
 
 lh_math_fpoint_t
-lh_math_fpoint_make(lh_math_scalar_t x, lh_math_scalar_t y)
+lh_math_fpoint_make(lh_math_fscalar_t x, lh_math_fscalar_t y)
 {
     lh_math_fpoint_t p;
     lh_math_fpoint_set_x(lh_addr_of(p), x);
@@ -29,14 +29,14 @@ lh_math_fpoint_make_empty(void)
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_fpoint_get_x(const lh_math_fpoint_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->x;
 }
 
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_fpoint_get_y(const lh_math_fpoint_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -44,14 +44,14 @@ lh_math_fpoint_get_y(const lh_math_fpoint_t *self)
 }
 
 lh_void
-lh_math_fpoint_set_x(lh_math_fpoint_t *self, lh_math_scalar_t x)
+lh_math_fpoint_set_x(lh_math_fpoint_t *self, lh_math_fscalar_t x)
 {
     lh_assert_runtime_ref(self);
     self->x = x;
 }
 
 lh_void
-lh_math_fpoint_set_y(lh_math_fpoint_t *self, lh_math_scalar_t y)
+lh_math_fpoint_set_y(lh_math_fpoint_t *self, lh_math_fscalar_t y)
 {
     lh_assert_runtime_ref(self);
     self->y = y;
@@ -63,16 +63,16 @@ lh_math_point_t
 lh_math_fpoint_to_point(lh_math_fpoint_t self)
 {
     return lh_math_point_make(
-        lh_cast_static(lh_math_iscalar_t, lh_math_fpoint_get_x(lh_addr_of(self))),
-        lh_cast_static(lh_math_iscalar_t, lh_math_fpoint_get_y(lh_addr_of(self))));
+        lh_cast_static(lh_math_scalar_t, lh_math_fpoint_get_x(lh_addr_of(self))),
+        lh_cast_static(lh_math_scalar_t, lh_math_fpoint_get_y(lh_addr_of(self))));
 }
 
 lh_math_fpoint_t
 lh_math_point_to_fpoint(lh_math_point_t self)
 {
     return lh_math_fpoint_make(
-        lh_cast_static(lh_math_scalar_t, lh_math_point_get_x(lh_addr_of(self))),
-        lh_cast_static(lh_math_scalar_t, lh_math_point_get_y(lh_addr_of(self))));
+        lh_cast_static(lh_math_fscalar_t, lh_math_point_get_x(lh_addr_of(self))),
+        lh_cast_static(lh_math_fscalar_t, lh_math_point_get_y(lh_addr_of(self))));
 }
 
 /* ── Queries ────────────────────────────────────────────────────────────── */

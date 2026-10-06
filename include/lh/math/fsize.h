@@ -1,6 +1,6 @@
 /**
  * @file fsize.h
- * @brief A 2D size whose components are ::lh_math_scalar_t.
+ * @brief A 2D size whose components are ::lh_math_fscalar_t.
  *
  * Same shape as ::lh_math_size_t (`width`, `height`), with continuous extents.
  * The screen size stays ::lh_math_size_t.
@@ -21,17 +21,17 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/math/size.h>
 #include <lh/math/size/fields.h>
-#include <lh/math/scalar.h>
+#include <lh/math/fscalar.h>
 #include <lh/void.h>
 
 /**
  * @struct lh_math_fsize
  * @typedef lh_math_fsize_t
- * @brief A 2D size of ::lh_math_scalar_t components.
+ * @brief A 2D size of ::lh_math_fscalar_t components.
  */
 struct lh_math_fsize
 {
-    lh_math_size_fields(lh_math_scalar_t);
+    lh_math_size_fields(lh_math_fscalar_t);
 };
 typedef struct lh_math_fsize lh_math_fsize_t;
 
@@ -43,7 +43,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Make a `::lh_math_fsize_t` from explicit extents.
  */
 lh_math_fsize_t
-lh_math_fsize_make(lh_math_scalar_t width, lh_math_scalar_t height);
+lh_math_fsize_make(lh_math_fscalar_t width, lh_math_fscalar_t height);
 
 /**
  * @brief The empty size: `(0, 0)`.
@@ -56,33 +56,33 @@ lh_math_fsize_make_empty(void);
 /**
  * @brief Width of @p self.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_fsize_get_width(const lh_math_fsize_t *self);
 
 /**
  * @brief Height of @p self.
  */
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_fsize_get_height(const lh_math_fsize_t *self);
 
 /**
  * @brief Set the width of @p self.
  */
 lh_void
-lh_math_fsize_set_width(lh_math_fsize_t *self, lh_math_scalar_t width);
+lh_math_fsize_set_width(lh_math_fsize_t *self, lh_math_fscalar_t width);
 
 /**
  * @brief Set the height of @p self.
  */
 lh_void
-lh_math_fsize_set_height(lh_math_fsize_t *self, lh_math_scalar_t height);
+lh_math_fsize_set_height(lh_math_fsize_t *self, lh_math_fscalar_t height);
 
 /* ── Conversions ─────────────────────────────────────────────────────────── */
 
 /**
  * @brief Narrow @p self to a screen size.
  *
- * Casts each component to ::lh_math_iscalar_t (truncates toward zero).
+ * Casts each component to ::lh_math_scalar_t (truncates toward zero).
  */
 lh_math_size_t
 lh_math_fsize_to_size(lh_math_fsize_t self);
@@ -90,7 +90,7 @@ lh_math_fsize_to_size(lh_math_fsize_t self);
 /**
  * @brief Widen @p self to a continuous size.
  *
- * Casts each ::lh_math_iscalar_t to ::lh_math_scalar_t.
+ * Casts each ::lh_math_scalar_t to ::lh_math_fscalar_t.
  */
 lh_math_fsize_t
 lh_math_size_to_fsize(lh_math_size_t self);

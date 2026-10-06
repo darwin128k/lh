@@ -1,6 +1,6 @@
 /**
  * @file point.h
- * @brief A 2D point: ::lh_math_point_t with ::lh_math_iscalar_t `x, y`.
+ * @brief A 2D point: ::lh_math_point_t with ::lh_math_scalar_t `x, y`.
  *
  * `x` is horizontal, `y` is vertical (top-left origin, like every OS window
  * coordinate system).
@@ -17,7 +17,7 @@
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/math/iscalar.h>
+#include <lh/math/scalar.h>
 #include <lh/math/point/fields.h>
 #if LH_LIBRARY_OPTION_MATH_FPU
 #    include <lh/math/vec2.h>
@@ -31,7 +31,7 @@
  */
 struct lh_math_point
 {
-    lh_math_point_fields(lh_math_iscalar_t);
+    lh_math_point_fields(lh_math_scalar_t);
 };
 typedef struct lh_math_point lh_math_point_t;
 
@@ -43,7 +43,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Make a `::lh_math_point_t` from explicit coordinates.
  */
 lh_math_point_t
-lh_math_point_make(lh_math_iscalar_t x, lh_math_iscalar_t y);
+lh_math_point_make(lh_math_scalar_t x, lh_math_scalar_t y);
 
 /**
  * @brief The origin: `(0, 0)`.
@@ -56,26 +56,26 @@ lh_math_point_make_empty(void);
 /**
  * @brief X coordinate of @p self.
  */
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_point_get_x(const lh_math_point_t *self);
 
 /**
  * @brief Y coordinate of @p self.
  */
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_point_get_y(const lh_math_point_t *self);
 
 /**
  * @brief Set the X coordinate of @p self.
  */
 lh_void
-lh_math_point_set_x(lh_math_point_t *self, lh_math_iscalar_t x);
+lh_math_point_set_x(lh_math_point_t *self, lh_math_scalar_t x);
 
 /**
  * @brief Set the Y coordinate of @p self.
  */
 lh_void
-lh_math_point_set_y(lh_math_point_t *self, lh_math_iscalar_t y);
+lh_math_point_set_y(lh_math_point_t *self, lh_math_scalar_t y);
 
 /* ── Conversions ─────────────────────────────────────────────────────────── */
 
@@ -121,7 +121,7 @@ lh_math_point_eq(const lh_math_point_t *a, const lh_math_point_t *b);
  * @brief Translate @p self by `(@p dx, @p dy)`.
  */
 lh_math_point_t
-lh_math_point_offset(const lh_math_point_t *self, lh_math_iscalar_t dx, lh_math_iscalar_t dy);
+lh_math_point_offset(const lh_math_point_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy);
 
 LH_COMPILER_EXTERN_C_END
 

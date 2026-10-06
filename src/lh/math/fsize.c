@@ -13,7 +13,7 @@
 /* ── Constructors ────────────────────────────────────────────────────────── */
 
 lh_math_fsize_t
-lh_math_fsize_make(lh_math_scalar_t width, lh_math_scalar_t height)
+lh_math_fsize_make(lh_math_fscalar_t width, lh_math_fscalar_t height)
 {
     lh_math_fsize_t s;
     lh_math_fsize_set_width(lh_addr_of(s), width);
@@ -29,14 +29,14 @@ lh_math_fsize_make_empty(void)
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_fsize_get_width(const lh_math_fsize_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->width;
 }
 
-lh_math_scalar_t
+lh_math_fscalar_t
 lh_math_fsize_get_height(const lh_math_fsize_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -44,14 +44,14 @@ lh_math_fsize_get_height(const lh_math_fsize_t *self)
 }
 
 lh_void
-lh_math_fsize_set_width(lh_math_fsize_t *self, lh_math_scalar_t width)
+lh_math_fsize_set_width(lh_math_fsize_t *self, lh_math_fscalar_t width)
 {
     lh_assert_runtime_ref(self);
     self->width = width;
 }
 
 lh_void
-lh_math_fsize_set_height(lh_math_fsize_t *self, lh_math_scalar_t height)
+lh_math_fsize_set_height(lh_math_fsize_t *self, lh_math_fscalar_t height)
 {
     lh_assert_runtime_ref(self);
     self->height = height;
@@ -63,16 +63,16 @@ lh_math_size_t
 lh_math_fsize_to_size(lh_math_fsize_t self)
 {
     return lh_math_size_make(
-        lh_cast_static(lh_math_iscalar_t, lh_math_fsize_get_width(lh_addr_of(self))),
-        lh_cast_static(lh_math_iscalar_t, lh_math_fsize_get_height(lh_addr_of(self))));
+        lh_cast_static(lh_math_scalar_t, lh_math_fsize_get_width(lh_addr_of(self))),
+        lh_cast_static(lh_math_scalar_t, lh_math_fsize_get_height(lh_addr_of(self))));
 }
 
 lh_math_fsize_t
 lh_math_size_to_fsize(lh_math_size_t self)
 {
     return lh_math_fsize_make(
-        lh_cast_static(lh_math_scalar_t, lh_math_size_get_width(lh_addr_of(self))),
-        lh_cast_static(lh_math_scalar_t, lh_math_size_get_height(lh_addr_of(self))));
+        lh_cast_static(lh_math_fscalar_t, lh_math_size_get_width(lh_addr_of(self))),
+        lh_cast_static(lh_math_fscalar_t, lh_math_size_get_height(lh_addr_of(self))));
 }
 
 /* ── Queries ────────────────────────────────────────────────────────────── */

@@ -1,6 +1,6 @@
 /**
  * @file point3.h
- * @brief A 3D point: ::lh_math_point3_t with ::lh_math_iscalar_t `x, y, z`.
+ * @brief A 3D point: ::lh_math_point3_t with ::lh_math_scalar_t `x, y, z`.
  *
  * `x, y` live in `::lh_math_point_t point` — the 2D point is the core, this
  * just adds a `z` field. All 2D fields and functions are inherited: read `x, y`
@@ -21,7 +21,7 @@
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/math/iscalar.h>
+#include <lh/math/scalar.h>
 #include <lh/math/point.h>
 #if LH_LIBRARY_OPTION_MATH_FPU
 #    include <lh/math/vec3.h>
@@ -36,7 +36,7 @@
 struct lh_math_point3
 {
     lh_math_point_t point;
-    lh_math_iscalar_t z;
+    lh_math_scalar_t z;
 };
 typedef struct lh_math_point3 lh_math_point3_t;
 
@@ -48,7 +48,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Make a `::lh_math_point3_t` from explicit coordinates.
  */
 lh_math_point3_t
-lh_math_point3_make(lh_math_iscalar_t x, lh_math_iscalar_t y, lh_math_iscalar_t z);
+lh_math_point3_make(lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t z);
 
 /**
  * @brief The origin: `(0, 0, 0)`.
@@ -61,38 +61,38 @@ lh_math_point3_make_empty(void);
 /**
  * @brief X coordinate of @p self (delegates to the inner ::lh_math_point_t).
  */
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_point3_get_x(const lh_math_point3_t *self);
 
 /**
  * @brief Y coordinate of @p self (delegates to the inner ::lh_math_point_t).
  */
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_point3_get_y(const lh_math_point3_t *self);
 
 /**
  * @brief Z coordinate of @p self.
  */
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_point3_get_z(const lh_math_point3_t *self);
 
 /**
  * @brief Set the X coordinate of @p self (delegates to the inner ::lh_math_point_t).
  */
 lh_void
-lh_math_point3_set_x(lh_math_point3_t *self, lh_math_iscalar_t x);
+lh_math_point3_set_x(lh_math_point3_t *self, lh_math_scalar_t x);
 
 /**
  * @brief Set the Y coordinate of @p self (delegates to the inner ::lh_math_point_t).
  */
 lh_void
-lh_math_point3_set_y(lh_math_point3_t *self, lh_math_iscalar_t y);
+lh_math_point3_set_y(lh_math_point3_t *self, lh_math_scalar_t y);
 
 /**
  * @brief Set the Z coordinate of @p self.
  */
 lh_void
-lh_math_point3_set_z(lh_math_point3_t *self, lh_math_iscalar_t z);
+lh_math_point3_set_z(lh_math_point3_t *self, lh_math_scalar_t z);
 
 /* ── Conversions ─────────────────────────────────────────────────────────── */
 
@@ -136,8 +136,8 @@ lh_math_point3_eq(const lh_math_point3_t *a, const lh_math_point3_t *b);
  * @brief Translate @p self by `(@p dx, @p dy, @p dz)`.
  */
 lh_math_point3_t
-lh_math_point3_offset(const lh_math_point3_t *self, lh_math_iscalar_t dx,
-                     lh_math_iscalar_t dy, lh_math_iscalar_t dz);
+lh_math_point3_offset(const lh_math_point3_t *self, lh_math_scalar_t dx,
+                     lh_math_scalar_t dy, lh_math_scalar_t dz);
 
 LH_COMPILER_EXTERN_C_END
 

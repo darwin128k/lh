@@ -16,8 +16,8 @@
 /* ── Constructors ────────────────────────────────────────────────────────── */
 
 lh_math_rect3_t
-lh_math_rect3_make(lh_math_iscalar_t x, lh_math_iscalar_t y, lh_math_iscalar_t z,
-                  lh_math_iscalar_t width, lh_math_iscalar_t height, lh_math_iscalar_t z_depth)
+lh_math_rect3_make(lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t z,
+                  lh_math_scalar_t width, lh_math_scalar_t height, lh_math_scalar_t z_depth)
 {
     lh_math_rect3_t b;
     b.rect = lh_math_rect_make(x, y, width, height);
@@ -34,42 +34,42 @@ lh_math_rect3_make_empty(void)
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect3_get_x(const lh_math_rect3_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_math_rect_get_x(lh_addr_of(self->rect));
 }
 
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect3_get_y(const lh_math_rect3_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_math_rect_get_y(lh_addr_of(self->rect));
 }
 
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect3_get_z(const lh_math_rect3_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->z;
 }
 
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect3_get_size_width(const lh_math_rect3_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_math_rect_get_size_width(lh_addr_of(self->rect));
 }
 
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect3_get_size_height(const lh_math_rect3_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_math_rect_get_size_height(lh_addr_of(self->rect));
 }
 
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect3_get_z_depth(const lh_math_rect3_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -77,14 +77,14 @@ lh_math_rect3_get_z_depth(const lh_math_rect3_t *self)
 }
 
 lh_void
-lh_math_rect3_set_z(lh_math_rect3_t *self, lh_math_iscalar_t z)
+lh_math_rect3_set_z(lh_math_rect3_t *self, lh_math_scalar_t z)
 {
     lh_assert_runtime_ref(self);
     self->z = z;
 }
 
 lh_void
-lh_math_rect3_set_z_depth(lh_math_rect3_t *self, lh_math_iscalar_t z_depth)
+lh_math_rect3_set_z_depth(lh_math_rect3_t *self, lh_math_scalar_t z_depth)
 {
     lh_assert_runtime_ref(self);
     self->z_depth = z_depth;
@@ -92,14 +92,14 @@ lh_math_rect3_set_z_depth(lh_math_rect3_t *self, lh_math_iscalar_t z_depth)
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
 
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect3_get_width(const lh_math_rect3_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_math_rect_get_width(lh_addr_of(self->rect));
 }
 
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_rect3_get_height(const lh_math_rect3_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -141,8 +141,8 @@ lh_math_rect3_intersection(const lh_math_rect3_t *a, const lh_math_rect3_t *b)
     }
     const lh_math_rect_t i2d = lh_math_rect_intersection(lh_addr_of(a->rect), lh_addr_of(b->rect));
     /* Z interval: overlap of [a.z, a.z + a.z_depth) and [b.z, b.z + b.z_depth). */
-    const lh_math_iscalar_t z1 = lh_math_max(lh_math_rect3_get_z(a), lh_math_rect3_get_z(b));
-    const lh_math_iscalar_t z2 = lh_math_min(lh_math_rect3_get_z(a) + lh_math_rect3_get_z_depth(a),
+    const lh_math_scalar_t z1 = lh_math_max(lh_math_rect3_get_z(a), lh_math_rect3_get_z(b));
+    const lh_math_scalar_t z2 = lh_math_min(lh_math_rect3_get_z(a) + lh_math_rect3_get_z_depth(a),
                                           lh_math_rect3_get_z(b) + lh_math_rect3_get_z_depth(b));
     if (z2 <= z1)
     {
@@ -157,8 +157,8 @@ lh_math_rect3_intersection(const lh_math_rect3_t *a, const lh_math_rect3_t *b)
 }
 
 lh_math_rect3_t
-lh_math_rect3_offset(const lh_math_rect3_t *self, lh_math_iscalar_t dx,
-                     lh_math_iscalar_t dy, lh_math_iscalar_t dz)
+lh_math_rect3_offset(const lh_math_rect3_t *self, lh_math_scalar_t dx,
+                     lh_math_scalar_t dy, lh_math_scalar_t dz)
 {
     lh_assert_runtime_ref(self);
     return lh_math_rect3_make(lh_math_rect3_get_x(self) + dx,

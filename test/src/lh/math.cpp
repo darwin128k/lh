@@ -5,35 +5,35 @@
 #include <lh/numeric/float.h>
 #include <lh/math.h>
 #include <lh/math/floor.h>
-#include <lh/math/iscalar.h>
+#include <lh/math/scalar.h>
 #include <lh/numeric/types.h>
 #include <lh/ui/scalar.h>
 #if LH_LIBRARY_OPTION_MATH_FPU
-#    include <lh/math/scalar.h>
+#    include <lh/math/fscalar.h>
 #endif
 
-TEST(math_iscalar, is_int)
+TEST(math_scalar, is_int)
 {
-    EXPECT_TRUE((std::is_same<lh_math_iscalar_t, lh_int_t>::value));
-    EXPECT_EQ(lh_math_iscalar(3.9), 3);
-    EXPECT_EQ(lh_math_iscalar(-2), -2);
+    EXPECT_TRUE((std::is_same<lh_math_scalar_t, lh_int_t>::value));
+    EXPECT_EQ(lh_math_scalar(3.9), 3);
+    EXPECT_EQ(lh_math_scalar(-2), -2);
 }
 
 #if LH_LIBRARY_OPTION_MATH_FPU
-TEST(math_scalar, is_float)
+TEST(math_fscalar, is_float)
 {
-    EXPECT_TRUE((std::is_same<lh_math_scalar_t, lh_float_t>::value));
-    EXPECT_FLOAT_EQ(lh_math_scalar(3.9), 3.9f);
-    EXPECT_FLOAT_EQ(lh_math_scalar(-2), -2.f);
+    EXPECT_TRUE((std::is_same<lh_math_fscalar_t, lh_float_t>::value));
+    EXPECT_FLOAT_EQ(lh_math_fscalar(3.9), 3.9f);
+    EXPECT_FLOAT_EQ(lh_math_fscalar(-2), -2.f);
 }
 #endif
 
-TEST(ui_scalar, aliases_iscalar_or_scalar)
+TEST(ui_scalar, aliases_scalar_or_fscalar)
 {
 #if LH_LIBRARY_OPTION_MATH_FPU
-    EXPECT_TRUE((std::is_same<lh_ui_scalar_t, lh_math_scalar_t>::value));
+    EXPECT_TRUE((std::is_same<lh_ui_scalar_t, lh_math_fscalar_t>::value));
 #else
-    EXPECT_TRUE((std::is_same<lh_ui_scalar_t, lh_math_iscalar_t>::value));
+    EXPECT_TRUE((std::is_same<lh_ui_scalar_t, lh_math_scalar_t>::value));
 #endif
 }
 

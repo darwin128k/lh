@@ -1,6 +1,6 @@
 /**
  * @file size.h
- * @brief A 2D size: ::lh_math_size_t with ::lh_math_iscalar_t `width`, `height`.
+ * @brief A 2D size: ::lh_math_size_t with ::lh_math_scalar_t `width`, `height`.
  *
  * Negative extents are valid bit patterns but interpreted as "empty" by
  * ::lh_math_rect_is_empty — used to represent "nothing" without a sentinel.
@@ -16,7 +16,7 @@
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/math/iscalar.h>
+#include <lh/math/scalar.h>
 #include <lh/math/size/fields.h>
 #include <lh/void.h>
 
@@ -27,7 +27,7 @@
  */
 struct lh_math_size
 {
-    lh_math_size_fields(lh_math_iscalar_t);
+    lh_math_size_fields(lh_math_scalar_t);
 };
 typedef struct lh_math_size lh_math_size_t;
 
@@ -39,7 +39,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Make a `::lh_math_size_t` from explicit extents.
  */
 lh_math_size_t
-lh_math_size_make(lh_math_iscalar_t width, lh_math_iscalar_t height);
+lh_math_size_make(lh_math_scalar_t width, lh_math_scalar_t height);
 
 /**
  * @brief The empty size: `(0, 0)`. ::lh_math_rect_is_empty treats this as empty.
@@ -52,26 +52,26 @@ lh_math_size_make_empty(void);
 /**
  * @brief Width of @p self.
  */
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_size_get_width(const lh_math_size_t *self);
 
 /**
  * @brief Height of @p self.
  */
-lh_math_iscalar_t
+lh_math_scalar_t
 lh_math_size_get_height(const lh_math_size_t *self);
 
 /**
  * @brief Set the width of @p self.
  */
 lh_void
-lh_math_size_set_width(lh_math_size_t *self, lh_math_iscalar_t width);
+lh_math_size_set_width(lh_math_size_t *self, lh_math_scalar_t width);
 
 /**
  * @brief Set the height of @p self.
  */
 lh_void
-lh_math_size_set_height(lh_math_size_t *self, lh_math_iscalar_t height);
+lh_math_size_set_height(lh_math_size_t *self, lh_math_scalar_t height);
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
 

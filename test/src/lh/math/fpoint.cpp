@@ -3,7 +3,7 @@
 
 #include <lh/math/fpoint.h>
 #include <lh/math/point.h>
-#include <lh/math/scalar.h>
+#include <lh/math/fscalar.h>
 #include <lh/util/addr.h>
 
 namespace
@@ -13,7 +13,7 @@ TEST(math_fpoint, components_are_the_scalar)
 {
     const lh_math_fpoint_t p = lh_math_fpoint_make(1, 2);
     using component = decltype(lh_math_fpoint_get_x(lh_addr_of(p)));
-    EXPECT_TRUE((std::is_same<component, lh_math_scalar_t>::value));
+    EXPECT_TRUE((std::is_same<component, lh_math_fscalar_t>::value));
 }
 
 TEST(math_fpoint, holds_x_y)

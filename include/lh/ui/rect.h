@@ -2,8 +2,8 @@
  * @file rect.h
  * @brief UI rect: aliases math integer or float rect by FPU option.
  *
- * OFF → ::lh_math_rect_t (::lh_math_iscalar_t).
- * ON  → ::lh_math_frect_t (::lh_math_scalar_t).
+ * OFF → ::lh_math_rect_t (::lh_math_scalar_t).
+ * ON  → ::lh_math_frect_t (::lh_math_fscalar_t).
  * All `lh_ui_rect_*` names forward to the chosen math API.
  */
 

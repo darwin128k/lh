@@ -3,7 +3,7 @@
 
 #include <lh/math/frect.h>
 #include <lh/math/rect.h>
-#include <lh/math/scalar.h>
+#include <lh/math/fscalar.h>
 #include <lh/util/addr.h>
 
 namespace
@@ -13,7 +13,7 @@ TEST(math_frect, components_are_the_scalar)
 {
     const lh_math_frect_t r = lh_math_frect_make(1, 2, 3, 4);
     using component = decltype(lh_math_frect_get_x(lh_addr_of(r)));
-    EXPECT_TRUE((std::is_same<component, lh_math_scalar_t>::value));
+    EXPECT_TRUE((std::is_same<component, lh_math_fscalar_t>::value));
 }
 
 TEST(math_frect, holds_origin_and_size)

@@ -93,12 +93,12 @@ unset(_LH_OS_WERROR_DEFAULT)
 # Whether float (scalar) math sources are compiled, and what UI aliases.
 #
 #   ON  — build fpoint/fsize/frect, vec2/vec3/vec4, quat, mat4 on
-#         lh_math_scalar_t. UI scalar / geometry alias those types.
+#         lh_math_fscalar_t. UI scalar / geometry alias those types.
 #   OFF — those sources are left out. UI scalar / geometry alias
-#         lh_math_iscalar_t and lh_math_point_t / size / rect.
+#         lh_math_scalar_t and lh_math_point_t / size / rect.
 # -----------------------------------------------------------------------------
 option(LH_LIBRARY_OPTION_MATH_FPU
-        "Compile float math (fpoint/fsize/frect, vec/quat/mat4). UI aliases scalar when ON, iscalar when OFF."
+        "Compile float math (fpoint/fsize/frect, vec/quat/mat4). UI aliases fscalar when ON, scalar when OFF."
         OFF)
 
 # -----------------------------------------------------------------------------
