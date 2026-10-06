@@ -153,6 +153,27 @@ lh_bool_t
 lh_net_ip4_socket_addr_equals(const lh_net_ip4_socket_addr_t *self,
                               const lh_net_ip4_socket_addr_t *other);
 
+/**
+ * @brief Lexicographic order: IP first (::lh_net_ip4_is_at_least), then port.
+ */
+lh_bool_t
+lh_net_ip4_socket_addr_is_at_least(const lh_net_ip4_socket_addr_t *self,
+                                   const lh_net_ip4_socket_addr_t *minimum);
+
+/**
+ * @brief True if @p self is strictly less than @p other (IP then port).
+ */
+lh_bool_t
+lh_net_ip4_socket_addr_is_less(const lh_net_ip4_socket_addr_t *self,
+                               const lh_net_ip4_socket_addr_t *other);
+
+/**
+ * @brief True if @p self is strictly greater than @p other (IP then port).
+ */
+lh_bool_t
+lh_net_ip4_socket_addr_is_greater(const lh_net_ip4_socket_addr_t *self,
+                                  const lh_net_ip4_socket_addr_t *other);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_NET_SOCKET_ADDR_IP4_H */

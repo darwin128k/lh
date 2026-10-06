@@ -171,6 +171,28 @@ lh_bool_t
 lh_version_equals(const lh_version_t *self, const lh_version_t *other);
 
 /**
+ * @brief True if @p self is strictly earlier than @p other.
+ *
+ * Same field order as ::lh_version_is_at_least.
+ *
+ * @param self  Version under test (not null).
+ * @param other Bound (not null).
+ */
+lh_bool_t
+lh_version_is_less(const lh_version_t *self, const lh_version_t *other);
+
+/**
+ * @brief True if @p self is strictly later than @p other.
+ *
+ * Same field order as ::lh_version_is_at_least.
+ *
+ * @param self  Version under test (not null).
+ * @param other Bound (not null).
+ */
+lh_bool_t
+lh_version_is_greater(const lh_version_t *self, const lh_version_t *other);
+
+/**
  * @brief SemVer compatibility: can @p self satisfy a requirement of @p required.
  *
  * Major must match. Then:

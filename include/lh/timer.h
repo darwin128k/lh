@@ -14,6 +14,8 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/list/node.h>
 #include <lh/numeric/fixed/types.h>
+#include <lh/numeric/types.h>
+#include <lh/ptr.h>
 #include <lh/timer/cb.h>
 #include <lh/timer/fields.h>
 #include <lh/timer/group.h>
@@ -107,6 +109,38 @@ lh_timer_get_priority(const lh_timer_t *self);
  */
 lh_void
 lh_timer_set_priority(lh_timer_group_t *group, lh_timer_t *self, lh_u8_t priority);
+
+/**
+ * @brief True if @p self and @p other have the same priority.
+ */
+lh_bool_t
+lh_timer_priority_equals(const lh_timer_t *self, const lh_timer_t *other);
+
+/**
+ * @brief True if @p self's priority is not less than @p minimum's.
+ */
+lh_bool_t
+lh_timer_priority_is_at_least(const lh_timer_t *self, const lh_timer_t *minimum);
+
+/**
+ * @brief True if @p self's priority is strictly less than @p other's.
+ */
+lh_bool_t
+lh_timer_priority_is_less(const lh_timer_t *self, const lh_timer_t *other);
+
+/**
+ * @brief True if @p self's priority is strictly greater than @p other's.
+ */
+lh_bool_t
+lh_timer_priority_is_greater(const lh_timer_t *self, const lh_timer_t *other);
+
+/**
+ * @brief ::lh_list_cmp_cb: higher priority first; equals stay stable.
+ *
+ * @p context is unused.
+ */
+lh_int_t
+lh_timer_cmp_priority(const lh_list_node_t *a, const lh_list_node_t *b, lh_ptr context);
 
 /**
  * @brief Pause due checks without unlinking. No-op when not running.

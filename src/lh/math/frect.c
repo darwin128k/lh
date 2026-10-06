@@ -5,6 +5,7 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/bool.h>
+#include <lh/cast/static.h>
 #include <lh/math.h>
 #include <lh/math/frect.h>
 #include <lh/util/ptr.h>
@@ -210,6 +211,46 @@ lh_math_frect_eq(const lh_math_frect_t *a, const lh_math_frect_t *b)
     lh_assert_runtime_ref(b);
     return lh_math_fpoint_eq(lh_math_frect_get_origin_as_const(a), lh_math_frect_get_origin_as_const(b))
         && lh_math_fsize_eq(lh_math_frect_get_size_as_const(a), lh_math_frect_get_size_as_const(b));
+}
+
+lh_bool_t
+lh_math_frect_equals(const lh_math_frect_t *self, const lh_math_frect_t *other)
+{
+    return lh_math_frect_eq(self, other);
+}
+
+lh_bool_t
+lh_math_frect_is_at_least(const lh_math_frect_t *self, const lh_math_frect_t *minimum)
+{
+    const lh_math_fpoint_t *self_origin;
+    const lh_math_fpoint_t *minimum_origin;
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(minimum);
+    self_origin = lh_math_frect_get_origin_as_const(self);
+    minimum_origin = lh_math_frect_get_origin_as_const(minimum);
+    if (!lh_math_fpoint_is_at_least(self_origin, minimum_origin))
+    {
+        return lh_bool_false;
+    }
+    if (lh_math_fpoint_is_greater(self_origin, minimum_origin))
+    {
+        return lh_bool_true;
+    }
+    return lh_math_fsize_is_at_least(lh_math_frect_get_size_as_const(self),
+                                     lh_math_frect_get_size_as_const(minimum));
+}
+
+lh_bool_t
+lh_math_frect_is_less(const lh_math_frect_t *self, const lh_math_frect_t *other)
+{
+    return lh_cast_static(lh_bool_t, !lh_math_frect_is_at_least(self, other));
+}
+
+lh_bool_t
+lh_math_frect_is_greater(const lh_math_frect_t *self, const lh_math_frect_t *other)
+{
+    return lh_math_frect_is_less(other, self);
 }
 
 /* ── Set ops ────────────────────────────────────────────────────────────── */

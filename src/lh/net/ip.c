@@ -178,3 +178,37 @@ lh_net_ip4_equals(const lh_net_ip4_t *self, const lh_net_ip4_t *other)
                ? lh_bool_true
                : lh_bool_false;
 }
+
+lh_bool_t
+lh_net_ip4_is_at_least(const lh_net_ip4_t *self, const lh_net_ip4_t *minimum)
+{
+    lh_usize_t octet_index;
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(minimum);
+
+    for (octet_index = 0; octet_index < LH_NET_IP4_OCTET_COUNT; octet_index++)
+    {
+        const lh_u8_t self_octet = lh_net_ip4_get_octet(self, octet_index);
+        const lh_u8_t minimum_octet = lh_net_ip4_get_octet(minimum, octet_index);
+
+        if (self_octet != minimum_octet)
+        {
+            return self_octet > minimum_octet ? lh_bool_true : lh_bool_false;
+        }
+    }
+
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_net_ip4_is_less(const lh_net_ip4_t *self, const lh_net_ip4_t *other)
+{
+    return lh_cast_static(lh_bool_t, !lh_net_ip4_is_at_least(self, other));
+}
+
+lh_bool_t
+lh_net_ip4_is_greater(const lh_net_ip4_t *self, const lh_net_ip4_t *other)
+{
+    return lh_net_ip4_is_less(other, self);
+}

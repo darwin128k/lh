@@ -118,3 +118,12 @@ lh_math_vec2_near(lh_math_vec2_t a, lh_math_vec2_t b, lh_float_t eps)
     const lh_float_t dy = lh_math_vec2_get_y(lh_addr_of(d));
     return lh_cast_static(lh_bool_t, (dx <= eps && -dx <= eps) && (dy <= eps && -dy <= eps));
 }
+
+lh_bool_t
+lh_math_vec2_equals(lh_math_vec2_t self, lh_math_vec2_t other)
+{
+    return lh_cast_static(lh_bool_t, lh_math_eq(lh_math_vec2_get_x(lh_addr_of(self)),
+                                               lh_math_vec2_get_x(lh_addr_of(other))) &&
+                                         lh_math_eq(lh_math_vec2_get_y(lh_addr_of(self)),
+                                                    lh_math_vec2_get_y(lh_addr_of(other))));
+}

@@ -95,6 +95,45 @@ lh_math_fsize_eq(const lh_math_fsize_t *a, const lh_math_fsize_t *b)
 }
 
 lh_bool_t
+lh_math_fsize_equals(const lh_math_fsize_t *self, const lh_math_fsize_t *other)
+{
+    return lh_math_fsize_eq(self, other);
+}
+
+lh_bool_t
+lh_math_fsize_is_at_least(const lh_math_fsize_t *self, const lh_math_fsize_t *minimum)
+{
+    lh_math_fscalar_t self_width;
+    lh_math_fscalar_t minimum_width;
+    lh_math_fscalar_t self_height;
+    lh_math_fscalar_t minimum_height;
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(minimum);
+    self_width = lh_math_fsize_get_width(self);
+    minimum_width = lh_math_fsize_get_width(minimum);
+    if (lh_math_ne(self_width, minimum_width))
+    {
+        return lh_cast_static(lh_bool_t, lh_math_gt(self_width, minimum_width));
+    }
+    self_height = lh_math_fsize_get_height(self);
+    minimum_height = lh_math_fsize_get_height(minimum);
+    return lh_cast_static(lh_bool_t, lh_math_ge(self_height, minimum_height));
+}
+
+lh_bool_t
+lh_math_fsize_is_less(const lh_math_fsize_t *self, const lh_math_fsize_t *other)
+{
+    return lh_cast_static(lh_bool_t, !lh_math_fsize_is_at_least(self, other));
+}
+
+lh_bool_t
+lh_math_fsize_is_greater(const lh_math_fsize_t *self, const lh_math_fsize_t *other)
+{
+    return lh_math_fsize_is_less(other, self);
+}
+
+lh_bool_t
 lh_math_fsize_is_empty(const lh_math_fsize_t *self)
 {
     lh_assert_runtime_ref(self);

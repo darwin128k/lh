@@ -52,3 +52,27 @@ lh_date_year_sub(lh_date_year_t *self, lh_uint_t value)
     *self = lh_cast_static(lh_date_year_t, cur);
     return overflow;
 }
+
+lh_bool_t
+lh_date_year_equals(lh_date_year_t self, lh_date_year_t other)
+{
+    return lh_cast_static(lh_bool_t, lh_math_eq(self, other));
+}
+
+lh_bool_t
+lh_date_year_is_at_least(lh_date_year_t self, lh_date_year_t minimum)
+{
+    return lh_cast_static(lh_bool_t, lh_math_ge(self, minimum));
+}
+
+lh_bool_t
+lh_date_year_is_less(lh_date_year_t self, lh_date_year_t other)
+{
+    return lh_cast_static(lh_bool_t, lh_math_lt(self, other));
+}
+
+lh_bool_t
+lh_date_year_is_greater(lh_date_year_t self, lh_date_year_t other)
+{
+    return lh_date_year_is_less(other, self);
+}

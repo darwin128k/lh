@@ -27,6 +27,10 @@ typedef lh_math_fpoint_t lh_ui_point_t;
 #    define lh_ui_point_to_point lh_math_fpoint_to_point
 #    define lh_ui_point_from_point lh_math_point_to_fpoint
 #    define lh_ui_point_eq lh_math_fpoint_eq
+#    define lh_ui_point_equals lh_math_fpoint_equals
+#    define lh_ui_point_is_at_least lh_math_fpoint_is_at_least
+#    define lh_ui_point_is_less lh_math_fpoint_is_less
+#    define lh_ui_point_is_greater lh_math_fpoint_is_greater
 #    define lh_ui_point_min lh_math_fpoint_min
 #    define lh_ui_point_max lh_math_fpoint_max
 #    define lh_ui_point_in_extent lh_math_fpoint_in_extent
@@ -46,6 +50,10 @@ typedef lh_math_point_t lh_ui_point_t;
 #    define lh_ui_point_to_point(self) (self)
 #    define lh_ui_point_from_point(self) (self)
 #    define lh_ui_point_eq lh_math_point_eq
+#    define lh_ui_point_equals lh_math_point_equals
+#    define lh_ui_point_is_at_least lh_math_point_is_at_least
+#    define lh_ui_point_is_less lh_math_point_is_less
+#    define lh_ui_point_is_greater lh_math_point_is_greater
 #    define lh_ui_point_min lh_math_point_min
 #    define lh_ui_point_max lh_math_point_max
 #    define lh_ui_point_in_extent lh_math_point_in_extent

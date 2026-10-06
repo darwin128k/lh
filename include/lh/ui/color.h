@@ -9,6 +9,7 @@
 #ifndef LH_UI_COLOR_H
 #define LH_UI_COLOR_H
 
+#include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/types.h>
 #include <lh/ui/color/channels.h>
@@ -92,6 +93,12 @@ lh_ui_color_set_b(lh_ui_color_t *self, lh_ui_color_channel_t b);
  */
 lh_void
 lh_ui_color_set_a(lh_ui_color_t *self, lh_ui_color_channel_t a);
+
+/**
+ * @brief True if @p self and @p other have the same RGBA channels.
+ */
+lh_bool_t
+lh_ui_color_equals(const lh_ui_color_t *self, const lh_ui_color_t *other);
 
 /* ── Blend ───────────────────────────────────────────────────────────────── */
 

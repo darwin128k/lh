@@ -175,7 +175,44 @@ lh_net_ip4_socket_addr_equals(const lh_net_ip4_socket_addr_t *self,
     {
         return lh_bool_false;
     }
-    return lh_net_ip4_socket_addr_get_port(self) == lh_net_ip4_socket_addr_get_port(other)
-               ? lh_bool_true
-               : lh_bool_false;
+    return lh_net_port_equals(lh_net_ip4_socket_addr_get_port(self),
+                              lh_net_ip4_socket_addr_get_port(other));
+}
+
+lh_bool_t
+lh_net_ip4_socket_addr_is_at_least(const lh_net_ip4_socket_addr_t *self,
+                                   const lh_net_ip4_socket_addr_t *minimum)
+{
+    lh_net_ip4_t self_ip;
+    lh_net_ip4_t minimum_ip;
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(minimum);
+
+    self_ip = lh_net_ip4_socket_addr_get_ip(self);
+    minimum_ip = lh_net_ip4_socket_addr_get_ip(minimum);
+    if (!lh_net_ip4_is_at_least(lh_addr_of(self_ip), lh_addr_of(minimum_ip)))
+    {
+        return lh_bool_false;
+    }
+    if (lh_net_ip4_is_greater(lh_addr_of(self_ip), lh_addr_of(minimum_ip)))
+    {
+        return lh_bool_true;
+    }
+    return lh_net_port_is_at_least(lh_net_ip4_socket_addr_get_port(self),
+                                   lh_net_ip4_socket_addr_get_port(minimum));
+}
+
+lh_bool_t
+lh_net_ip4_socket_addr_is_less(const lh_net_ip4_socket_addr_t *self,
+                               const lh_net_ip4_socket_addr_t *other)
+{
+    return lh_cast_static(lh_bool_t, !lh_net_ip4_socket_addr_is_at_least(self, other));
+}
+
+lh_bool_t
+lh_net_ip4_socket_addr_is_greater(const lh_net_ip4_socket_addr_t *self,
+                                  const lh_net_ip4_socket_addr_t *other)
+{
+    return lh_net_ip4_socket_addr_is_less(other, self);
 }

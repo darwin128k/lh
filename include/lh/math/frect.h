@@ -182,6 +182,36 @@ lh_math_frect_intersects(const lh_math_frect_t *a, const lh_math_frect_t *b);
 lh_bool_t
 lh_math_frect_eq(const lh_math_frect_t *a, const lh_math_frect_t *b);
 
+/**
+ * @brief True if @p self and @p other have the same origin and size.
+ */
+lh_bool_t
+lh_math_frect_equals(const lh_math_frect_t *self, const lh_math_frect_t *other);
+
+/**
+ * @brief True if @p self is not lexicographically earlier than @p minimum.
+ *
+ * Order: origin (::lh_math_fpoint_is_at_least), then size (::lh_math_fsize_is_at_least).
+ */
+lh_bool_t
+lh_math_frect_is_at_least(const lh_math_frect_t *self, const lh_math_frect_t *minimum);
+
+/**
+ * @brief True if @p self is strictly lexicographically earlier than @p other.
+ *
+ * Same field order as ::lh_math_frect_is_at_least.
+ */
+lh_bool_t
+lh_math_frect_is_less(const lh_math_frect_t *self, const lh_math_frect_t *other);
+
+/**
+ * @brief True if @p self is strictly lexicographically later than @p other.
+ *
+ * Same field order as ::lh_math_frect_is_at_least.
+ */
+lh_bool_t
+lh_math_frect_is_greater(const lh_math_frect_t *self, const lh_math_frect_t *other);
+
 /* ── Set ops ────────────────────────────────────────────────────────────── */
 
 /**

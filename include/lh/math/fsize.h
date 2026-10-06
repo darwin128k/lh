@@ -110,6 +110,36 @@ lh_bool_t
 lh_math_fsize_eq(const lh_math_fsize_t *a, const lh_math_fsize_t *b);
 
 /**
+ * @brief True if @p self and @p other have the same `width` and `height`.
+ */
+lh_bool_t
+lh_math_fsize_equals(const lh_math_fsize_t *self, const lh_math_fsize_t *other);
+
+/**
+ * @brief True if @p self is not lexicographically earlier than @p minimum.
+ *
+ * Order: `width`, then `height`.
+ */
+lh_bool_t
+lh_math_fsize_is_at_least(const lh_math_fsize_t *self, const lh_math_fsize_t *minimum);
+
+/**
+ * @brief True if @p self is strictly lexicographically earlier than @p other.
+ *
+ * Same field order as ::lh_math_fsize_is_at_least.
+ */
+lh_bool_t
+lh_math_fsize_is_less(const lh_math_fsize_t *self, const lh_math_fsize_t *other);
+
+/**
+ * @brief True if @p self is strictly lexicographically later than @p other.
+ *
+ * Same field order as ::lh_math_fsize_is_at_least.
+ */
+lh_bool_t
+lh_math_fsize_is_greater(const lh_math_fsize_t *self, const lh_math_fsize_t *other);
+
+/**
  * @brief Test whether @p self is empty (zero or negative extent).
  */
 lh_bool_t

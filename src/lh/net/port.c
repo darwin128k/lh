@@ -1,6 +1,7 @@
 #include <lh/net/port.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
+#include <lh/math.h>
 #include <lh/str/parse/uint.h>
 #include <lh/util/addr.h>
 
@@ -18,4 +19,28 @@ lh_net_port_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_port_t *out)
 
     *out = lh_cast_static(lh_net_port_t, value);
     return lh_bool_true;
+}
+
+lh_bool_t
+lh_net_port_equals(lh_net_port_t self, lh_net_port_t other)
+{
+    return lh_cast_static(lh_bool_t, lh_math_eq(self, other));
+}
+
+lh_bool_t
+lh_net_port_is_at_least(lh_net_port_t self, lh_net_port_t minimum)
+{
+    return lh_cast_static(lh_bool_t, lh_math_ge(self, minimum));
+}
+
+lh_bool_t
+lh_net_port_is_less(lh_net_port_t self, lh_net_port_t other)
+{
+    return lh_cast_static(lh_bool_t, lh_math_lt(self, other));
+}
+
+lh_bool_t
+lh_net_port_is_greater(lh_net_port_t self, lh_net_port_t other)
+{
+    return lh_net_port_is_less(other, self);
 }

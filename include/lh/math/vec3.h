@@ -197,6 +197,12 @@ lh_bool_t
 lh_math_vec3_near(lh_math_vec3_t a, lh_math_vec3_t b, lh_math_fscalar_t eps);
 
 /**
+ * @brief Exact component-wise equality (bit-identical floats).
+ */
+lh_bool_t
+lh_math_vec3_equals(lh_math_vec3_t self, lh_math_vec3_t other);
+
+/**
  * @brief Cross product @p a × @p b: perpendicular to both, of length
  *        `|a| |b| sin(angle)`.
  *

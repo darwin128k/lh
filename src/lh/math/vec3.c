@@ -167,6 +167,17 @@ lh_math_vec3_near(lh_math_vec3_t a, lh_math_vec3_t b, lh_float_t eps)
                                    && (dz <= eps && -dz <= eps));
 }
 
+lh_bool_t
+lh_math_vec3_equals(lh_math_vec3_t self, lh_math_vec3_t other)
+{
+    return lh_cast_static(lh_bool_t, lh_math_eq(lh_math_vec3_get_x(lh_addr_of(self)),
+                                               lh_math_vec3_get_x(lh_addr_of(other))) &&
+                                         lh_math_eq(lh_math_vec3_get_y(lh_addr_of(self)),
+                                                    lh_math_vec3_get_y(lh_addr_of(other))) &&
+                                         lh_math_eq(lh_math_vec3_get_z(lh_addr_of(self)),
+                                                    lh_math_vec3_get_z(lh_addr_of(other))));
+}
+
 lh_math_vec3_t
 lh_math_vec3_cross(lh_math_vec3_t a, lh_math_vec3_t b)
 {

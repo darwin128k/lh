@@ -186,3 +186,16 @@ lh_math_vec4_near(lh_math_vec4_t a, lh_math_vec4_t b, lh_float_t eps)
                                    && (dz <= eps && -dz <= eps)
                                    && (dw <= eps && -dw <= eps));
 }
+
+lh_bool_t
+lh_math_vec4_equals(lh_math_vec4_t self, lh_math_vec4_t other)
+{
+    return lh_cast_static(lh_bool_t, lh_math_eq(lh_math_vec4_get_x(lh_addr_of(self)),
+                                               lh_math_vec4_get_x(lh_addr_of(other))) &&
+                                         lh_math_eq(lh_math_vec4_get_y(lh_addr_of(self)),
+                                                    lh_math_vec4_get_y(lh_addr_of(other))) &&
+                                         lh_math_eq(lh_math_vec4_get_z(lh_addr_of(self)),
+                                                    lh_math_vec4_get_z(lh_addr_of(other))) &&
+                                         lh_math_eq(lh_math_vec4_get_w(lh_addr_of(self)),
+                                                    lh_math_vec4_get_w(lh_addr_of(other))));
+}

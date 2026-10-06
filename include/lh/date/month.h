@@ -9,6 +9,7 @@
 #ifndef LH_DATE_MONTH_H
 #define LH_DATE_MONTH_H
 
+#include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/date/month/index.h>
 #include <lh/numeric/fixed/types.h>
@@ -90,6 +91,30 @@ lh_date_month_add(lh_date_month_t *self, lh_uint_t value);
  */
 lh_uint_t
 lh_date_month_sub(lh_date_month_t *self, lh_uint_t value);
+
+/**
+ * @brief True if @p self and @p other are the same month value.
+ */
+lh_bool_t
+lh_date_month_equals(lh_date_month_t self, lh_date_month_t other);
+
+/**
+ * @brief True if @p self is not less than @p minimum (unsigned order).
+ */
+lh_bool_t
+lh_date_month_is_at_least(lh_date_month_t self, lh_date_month_t minimum);
+
+/**
+ * @brief True if @p self is strictly less than @p other (unsigned order).
+ */
+lh_bool_t
+lh_date_month_is_less(lh_date_month_t self, lh_date_month_t other);
+
+/**
+ * @brief True if @p self is strictly greater than @p other (unsigned order).
+ */
+lh_bool_t
+lh_date_month_is_greater(lh_date_month_t self, lh_date_month_t other);
 
 LH_COMPILER_EXTERN_C_END
 

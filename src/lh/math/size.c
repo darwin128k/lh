@@ -5,6 +5,7 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/bool.h>
+#include <lh/cast/static.h>
 #include <lh/util/return.h>
 #include <lh/math/size.h>
 #include <lh/math.h>
@@ -75,6 +76,45 @@ lh_math_size_eq(const lh_math_size_t *a, const lh_math_size_t *b)
     lh_assert_runtime_ref(b);
     return lh_math_eq(lh_math_size_get_width(a), lh_math_size_get_width(b))
         && lh_math_eq(lh_math_size_get_height(a), lh_math_size_get_height(b));
+}
+
+lh_bool_t
+lh_math_size_equals(const lh_math_size_t *self, const lh_math_size_t *other)
+{
+    return lh_math_size_eq(self, other);
+}
+
+lh_bool_t
+lh_math_size_is_at_least(const lh_math_size_t *self, const lh_math_size_t *minimum)
+{
+    lh_math_scalar_t self_width;
+    lh_math_scalar_t minimum_width;
+    lh_math_scalar_t self_height;
+    lh_math_scalar_t minimum_height;
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(minimum);
+    self_width = lh_math_size_get_width(self);
+    minimum_width = lh_math_size_get_width(minimum);
+    if (lh_math_ne(self_width, minimum_width))
+    {
+        return lh_cast_static(lh_bool_t, lh_math_gt(self_width, minimum_width));
+    }
+    self_height = lh_math_size_get_height(self);
+    minimum_height = lh_math_size_get_height(minimum);
+    return lh_cast_static(lh_bool_t, lh_math_ge(self_height, minimum_height));
+}
+
+lh_bool_t
+lh_math_size_is_less(const lh_math_size_t *self, const lh_math_size_t *other)
+{
+    return lh_cast_static(lh_bool_t, !lh_math_size_is_at_least(self, other));
+}
+
+lh_bool_t
+lh_math_size_is_greater(const lh_math_size_t *self, const lh_math_size_t *other)
+{
+    return lh_math_size_is_less(other, self);
 }
 
 lh_bool_t

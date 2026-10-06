@@ -108,6 +108,30 @@ lh_date_year_add(lh_date_year_t *self, lh_uint_t value);
 lh_uint_t
 lh_date_year_sub(lh_date_year_t *self, lh_uint_t value);
 
+/**
+ * @brief True if @p self and @p other are the same year value.
+ */
+lh_bool_t
+lh_date_year_equals(lh_date_year_t self, lh_date_year_t other);
+
+/**
+ * @brief True if @p self is not less than @p minimum (unsigned order).
+ */
+lh_bool_t
+lh_date_year_is_at_least(lh_date_year_t self, lh_date_year_t minimum);
+
+/**
+ * @brief True if @p self is strictly less than @p other (unsigned order).
+ */
+lh_bool_t
+lh_date_year_is_less(lh_date_year_t self, lh_date_year_t other);
+
+/**
+ * @brief True if @p self is strictly greater than @p other (unsigned order).
+ */
+lh_bool_t
+lh_date_year_is_greater(lh_date_year_t self, lh_date_year_t other);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_DATE_YEAR_H */

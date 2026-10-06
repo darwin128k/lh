@@ -99,6 +99,18 @@ lh_version_equals(const lh_version_t *self, const lh_version_t *other)
 }
 
 lh_bool_t
+lh_version_is_less(const lh_version_t *self, const lh_version_t *other)
+{
+    return lh_cast_static(lh_bool_t, !lh_version_is_at_least(self, other));
+}
+
+lh_bool_t
+lh_version_is_greater(const lh_version_t *self, const lh_version_t *other)
+{
+    return lh_version_is_less(other, self);
+}
+
+lh_bool_t
 lh_version_is_compatible(const lh_version_t *self, const lh_version_t *required)
 {
     lh_version_major_t self_major = lh_version_get_major(self);

@@ -52,6 +52,30 @@ LH_COMPILER_EXTERN_C_BEGIN
 lh_bool_t
 lh_net_port_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_port_t *out);
 
+/**
+ * @brief True if @p self and @p other are the same port value.
+ */
+lh_bool_t
+lh_net_port_equals(lh_net_port_t self, lh_net_port_t other);
+
+/**
+ * @brief True if @p self is not less than @p minimum (unsigned order).
+ */
+lh_bool_t
+lh_net_port_is_at_least(lh_net_port_t self, lh_net_port_t minimum);
+
+/**
+ * @brief True if @p self is strictly less than @p other (unsigned order).
+ */
+lh_bool_t
+lh_net_port_is_less(lh_net_port_t self, lh_net_port_t other);
+
+/**
+ * @brief True if @p self is strictly greater than @p other (unsigned order).
+ */
+lh_bool_t
+lh_net_port_is_greater(lh_net_port_t self, lh_net_port_t other);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_NET_PORT_H */

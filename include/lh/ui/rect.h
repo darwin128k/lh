@@ -40,6 +40,10 @@ typedef lh_math_frect_t lh_ui_rect_t;
 #    define lh_ui_rect_contains_point lh_math_frect_contains_point
 #    define lh_ui_rect_intersects lh_math_frect_intersects
 #    define lh_ui_rect_eq lh_math_frect_eq
+#    define lh_ui_rect_equals lh_math_frect_equals
+#    define lh_ui_rect_is_at_least lh_math_frect_is_at_least
+#    define lh_ui_rect_is_less lh_math_frect_is_less
+#    define lh_ui_rect_is_greater lh_math_frect_is_greater
 #    define lh_ui_rect_intersection lh_math_frect_intersection
 #    define lh_ui_rect_union lh_math_frect_union
 #    define lh_ui_rect_offset lh_math_frect_offset
@@ -70,6 +74,10 @@ typedef lh_math_rect_t lh_ui_rect_t;
 #    define lh_ui_rect_contains_point lh_math_rect_contains_point
 #    define lh_ui_rect_intersects lh_math_rect_intersects
 #    define lh_ui_rect_eq lh_math_rect_eq
+#    define lh_ui_rect_equals lh_math_rect_equals
+#    define lh_ui_rect_is_at_least lh_math_rect_is_at_least
+#    define lh_ui_rect_is_less lh_math_rect_is_less
+#    define lh_ui_rect_is_greater lh_math_rect_is_greater
 #    define lh_ui_rect_intersection lh_math_rect_intersection
 #    define lh_ui_rect_union lh_math_rect_union
 #    define lh_ui_rect_offset lh_math_rect_offset

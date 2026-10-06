@@ -200,6 +200,12 @@ lh_math_vec4_lerp(lh_math_vec4_t a, lh_math_vec4_t b, lh_math_fscalar_t t);
 lh_bool_t
 lh_math_vec4_near(lh_math_vec4_t a, lh_math_vec4_t b, lh_math_fscalar_t eps);
 
+/**
+ * @brief Exact component-wise equality (bit-identical floats).
+ */
+lh_bool_t
+lh_math_vec4_equals(lh_math_vec4_t self, lh_math_vec4_t other);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_MATH_VEC4_H */

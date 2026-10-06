@@ -9,6 +9,7 @@
 #ifndef LH_DATE_DAY_H
 #define LH_DATE_DAY_H
 
+#include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/date/month.h>
 #include <lh/date/year.h>
@@ -69,6 +70,30 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_date_day_t
 lh_date_days_in_month(lh_date_year_t year, lh_date_month_t month);
+
+/**
+ * @brief True if @p self and @p other are the same day value.
+ */
+lh_bool_t
+lh_date_day_equals(lh_date_day_t self, lh_date_day_t other);
+
+/**
+ * @brief True if @p self is not less than @p minimum (unsigned order).
+ */
+lh_bool_t
+lh_date_day_is_at_least(lh_date_day_t self, lh_date_day_t minimum);
+
+/**
+ * @brief True if @p self is strictly less than @p other (unsigned order).
+ */
+lh_bool_t
+lh_date_day_is_less(lh_date_day_t self, lh_date_day_t other);
+
+/**
+ * @brief True if @p self is strictly greater than @p other (unsigned order).
+ */
+lh_bool_t
+lh_date_day_is_greater(lh_date_day_t self, lh_date_day_t other);
 
 LH_COMPILER_EXTERN_C_END
 

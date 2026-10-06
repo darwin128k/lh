@@ -192,6 +192,39 @@ lh_net_ip4_format(const lh_net_ip4_t *self, lh_str_ptr str, lh_usize_t str_size)
 lh_bool_t
 lh_net_ip4_equals(const lh_net_ip4_t *self, const lh_net_ip4_t *other);
 
+/**
+ * @brief True if @p self is not less than @p minimum.
+ *
+ * Order: octet 0, then 1, then 2, then 3 (network / dotted-decimal order).
+ *
+ * @param self    Address under test (not null).
+ * @param minimum Floor (not null).
+ */
+lh_bool_t
+lh_net_ip4_is_at_least(const lh_net_ip4_t *self, const lh_net_ip4_t *minimum);
+
+/**
+ * @brief True if @p self is strictly earlier than @p other.
+ *
+ * Same field order as ::lh_net_ip4_is_at_least.
+ *
+ * @param self  Address under test (not null).
+ * @param other Bound (not null).
+ */
+lh_bool_t
+lh_net_ip4_is_less(const lh_net_ip4_t *self, const lh_net_ip4_t *other);
+
+/**
+ * @brief True if @p self is strictly later than @p other.
+ *
+ * Same field order as ::lh_net_ip4_is_at_least.
+ *
+ * @param self  Address under test (not null).
+ * @param other Bound (not null).
+ */
+lh_bool_t
+lh_net_ip4_is_greater(const lh_net_ip4_t *self, const lh_net_ip4_t *other);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_NET_IP_H */

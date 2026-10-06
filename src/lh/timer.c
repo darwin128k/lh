@@ -4,40 +4,16 @@
  */
 
 #include <lh/assert/runtime.h>
-#include <lh/attribute/static.h>
 #include <lh/cast/static.h>
 #include <lh/list.h>
 #include <lh/list/node.h>
+#include <lh/math.h>
 #include <lh/null.h>
 #include <lh/numeric/types.h>
 #include <lh/runtime/error/code.h>
 #include <lh/timer.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
-
-/**
- * @brief Higher priority first; equals keep relative order.
- */
-LH_ATTRIBUTE_STATIC
-lh_int_t
-lh_timer_cmp_priority(const lh_list_node_t *a, const lh_list_node_t *b, lh_ptr context)
-{
-    const lh_timer_t *left;
-    const lh_timer_t *right;
-
-    (void)context;
-    left = lh_timer_get_by_node_as_const(a);
-    right = lh_timer_get_by_node_as_const(b);
-    if (left->priority > right->priority)
-    {
-        return -1;
-    }
-    if (left->priority < right->priority)
-    {
-        return 1;
-    }
-    return 0;
-}
 
 lh_list_t *
 lh_timer_group_get_timers(lh_timer_group_t *self)
@@ -256,6 +232,51 @@ lh_timer_set_priority(lh_timer_group_t *group, lh_timer_t *self, lh_u8_t priorit
     {
         lh_list_insert_sorted(timers, node, lh_timer_cmp_priority, lh_null);
     }
+}
+
+lh_bool_t
+lh_timer_priority_equals(const lh_timer_t *self, const lh_timer_t *other)
+{
+    return lh_cast_static(lh_bool_t, lh_math_eq(lh_timer_get_priority(self), lh_timer_get_priority(other)));
+}
+
+lh_bool_t
+lh_timer_priority_is_at_least(const lh_timer_t *self, const lh_timer_t *minimum)
+{
+    return lh_cast_static(lh_bool_t,
+                          lh_math_ge(lh_timer_get_priority(self), lh_timer_get_priority(minimum)));
+}
+
+lh_bool_t
+lh_timer_priority_is_less(const lh_timer_t *self, const lh_timer_t *other)
+{
+    return lh_cast_static(lh_bool_t, !lh_timer_priority_is_at_least(self, other));
+}
+
+lh_bool_t
+lh_timer_priority_is_greater(const lh_timer_t *self, const lh_timer_t *other)
+{
+    return lh_timer_priority_is_less(other, self);
+}
+
+lh_int_t
+lh_timer_cmp_priority(const lh_list_node_t *a, const lh_list_node_t *b, lh_ptr context)
+{
+    const lh_timer_t *left;
+    const lh_timer_t *right;
+
+    (void)context;
+    left = lh_timer_get_by_node_as_const(a);
+    right = lh_timer_get_by_node_as_const(b);
+    if (lh_timer_priority_is_greater(left, right))
+    {
+        return -1;
+    }
+    if (lh_timer_priority_is_less(left, right))
+    {
+        return 1;
+    }
+    return 0;
 }
 
 lh_void

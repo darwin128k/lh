@@ -105,6 +105,36 @@ lh_bool_t
 lh_math_fpoint_eq(const lh_math_fpoint_t *a, const lh_math_fpoint_t *b);
 
 /**
+ * @brief True if @p self and @p other have the same `x` and `y`.
+ */
+lh_bool_t
+lh_math_fpoint_equals(const lh_math_fpoint_t *self, const lh_math_fpoint_t *other);
+
+/**
+ * @brief True if @p self is not lexicographically earlier than @p minimum.
+ *
+ * Order: `x`, then `y`.
+ */
+lh_bool_t
+lh_math_fpoint_is_at_least(const lh_math_fpoint_t *self, const lh_math_fpoint_t *minimum);
+
+/**
+ * @brief True if @p self is strictly lexicographically earlier than @p other.
+ *
+ * Same field order as ::lh_math_fpoint_is_at_least.
+ */
+lh_bool_t
+lh_math_fpoint_is_less(const lh_math_fpoint_t *self, const lh_math_fpoint_t *other);
+
+/**
+ * @brief True if @p self is strictly lexicographically later than @p other.
+ *
+ * Same field order as ::lh_math_fpoint_is_at_least.
+ */
+lh_bool_t
+lh_math_fpoint_is_greater(const lh_math_fpoint_t *self, const lh_math_fpoint_t *other);
+
+/**
  * @brief Element-wise minimum of @p a and @p b.
  */
 lh_math_fpoint_t

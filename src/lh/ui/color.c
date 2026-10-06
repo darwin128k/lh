@@ -4,8 +4,10 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/bool.h>
 #include <lh/byte/limits.h>
 #include <lh/cast/static.h>
+#include <lh/math.h>
 #include <lh/numeric/parse/bytes.h>
 #include <lh/ui/color.h>
 #include <lh/util/addr.h>
@@ -86,6 +88,17 @@ lh_ui_color_set_a(lh_ui_color_t *self, lh_ui_color_channel_t a)
 {
     lh_assert_runtime_ref(self);
     self->a = a;
+}
+
+lh_bool_t
+lh_ui_color_equals(const lh_ui_color_t *self, const lh_ui_color_t *other)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(other);
+    return lh_cast_static(lh_bool_t, lh_math_eq(lh_ui_color_get_r(self), lh_ui_color_get_r(other)) &&
+                                     lh_math_eq(lh_ui_color_get_g(self), lh_ui_color_get_g(other)) &&
+                                     lh_math_eq(lh_ui_color_get_b(self), lh_ui_color_get_b(other)) &&
+                                     lh_math_eq(lh_ui_color_get_a(self), lh_ui_color_get_a(other)));
 }
 
 /* ── Blend ───────────────────────────────────────────────────────────────── */
