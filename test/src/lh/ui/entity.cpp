@@ -67,6 +67,52 @@ log_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *col
 
 const lh_ui_canvas_backend_t g_fill_log_backend = {nullptr, nullptr, nullptr, log_fill_rect};
 
+/* Derived classes over lh_ui_entity_class: one skips the base, one calls it. */
+lh_void
+skip_base_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *event)
+{
+    (void)self;
+    (void)event;
+}
+
+extern const lh_ui_entity_class_t g_call_base_class;
+
+/* Name the own class, as label.c does: lh_ui_entity_get_class(self) would be
+ * the most-derived class and recurse in a deeper chain. */
+lh_void
+call_base_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *event)
+{
+    lh_ui_entity_class_event_base(lh_addr_of(g_call_base_class), self, event);
+}
+
+const lh_ui_entity_class_t g_skip_base_class = {skip_base_event, lh_addr_of(lh_ui_entity_class)};
+const lh_ui_entity_class_t g_call_base_class = {call_base_event, lh_addr_of(lh_ui_entity_class)};
+
+/* Draw one entity of @p klass with a solid style fill; return the fill count. */
+int
+fills_for_class(const lh_ui_entity_class_t *klass)
+{
+    lh_ui_rect_t rect;
+    lh_ui_color_t color;
+    lh_ui_paint_t paint;
+    lh_ui_style_t style;
+    lh_ui_entity_t entity;
+    lh_ui_canvas_t canvas;
+    fill_log log{};
+
+    lh_ui_rect_init(lh_addr_of(rect), 0, 0, 4, 4);
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(color));
+    lh_ui_style_init(lh_addr_of(style));
+    lh_ui_style_set_fill(lh_addr_of(style), lh_addr_of(paint));
+    lh_ui_entity_init(lh_addr_of(entity), rect);
+    lh_ui_entity_set_style(lh_addr_of(entity), lh_addr_of(style));
+    lh_ui_entity_set_class(lh_addr_of(entity), klass);
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_fill_log_backend), lh_addr_of(log));
+    lh_ui_entity_draw(lh_addr_of(entity), lh_addr_of(canvas));
+    return log.count;
+}
+
 int g_walk_n;
 
 lh_bool_t
@@ -389,6 +435,14 @@ TEST(entity, base_class_without_style_paints_nothing)
     EXPECT_TRUE(lh_null_eq(lh_ui_entity_get_fill_color(lh_addr_of(entity))));
     lh_ui_entity_draw(lh_addr_of(entity), lh_addr_of(canvas));
     EXPECT_EQ(log.count, 0);
+}
+
+/* Contract: the fill belongs to the base class. A derived class keeps it only
+ * by calling lh_ui_entity_class_event_base; skipping that drops it on purpose. */
+TEST(entity, derived_class_keeps_fill_only_through_the_base)
+{
+    EXPECT_EQ(fills_for_class(lh_addr_of(g_call_base_class)), 1);
+    EXPECT_EQ(fills_for_class(lh_addr_of(g_skip_base_class)), 0);
 }
 
 #if LH_TEST_EXPECT_DEATH_ENABLED
