@@ -141,6 +141,9 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_TEST_SRC_PATH}/lh/ui/rect.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/radius.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/range.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/mask.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/font.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/text.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/canvas.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/entity.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/entity/container.cpp

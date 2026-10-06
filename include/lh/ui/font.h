@@ -2,12 +2,12 @@
  * @file font.h
  * @brief A bitmap font kept in memory: ::lh_ui_font_t.
  *
- * Only data and small queries. Glyphs are a dense run of equal cells from
- * code `first`, each an ::lh_ui_mask_t already placed on the baseline, with
- * one advance byte each: the pen moves by the advance, a line is `height`
- * tall. Codes outside the run have no glyph and advance `0`. The bytes are
- * not owned; `scripts/font.py` bakes them from a TTF. Measuring and drawing
- * text is `lh/ui/text.h`.
+ * Only data and small queries. Glyphs are a dense run of ::lh_ui_mask_t from
+ * code `first`, each cropped to its own ink, with one advance byte and one
+ * top (mask top relative to the baseline; up is negative) each. A glyph with
+ * no ink is a zero-size mask. Codes outside the run have no glyph and
+ * advance `0`. The bytes and tables are not owned; `scripts/font.py` bakes
+ * them from a TTF. Measuring and drawing text is `lh/ui/text.h`.
  */
 
 #ifndef LH_UI_FONT_H
@@ -24,11 +24,11 @@
 /**
  * @struct lh_ui_font
  * @typedef lh_ui_font_t
- * @brief Glyph cells and advances over bytes the caller owns.
+ * @brief Glyph masks, advances and tops over bytes the caller owns.
  */
 struct lh_ui_font
 {
-    lh_ui_font_fields(lh_byte_t, lh_s32_t, lh_u32_t);
+    lh_ui_font_fields(lh_byte_t, lh_ui_mask_t, lh_s32_t, lh_u32_t);
 };
 typedef struct lh_ui_font lh_ui_font_t;
 
@@ -43,22 +43,23 @@ const lh_ui_font_t *
 lh_ui_font_get_default(lh_void);
 
 /**
- * @brief Fill @p self over @p bits and @p advances: @p count glyphs from code
- *        @p first, cells of @p cell_width x @p height at @p bpp, rows of
- *        @p row_bytes. The bytes are not copied.
+ * @brief Fill @p self over @p glyphs, @p advances and @p tops: @p count
+ *        glyphs from code @p first, line @p line_height with @p ascent.
+ *        The tables are not copied. A glyph without ink is a zero-size mask.
  */
 lh_void
-lh_ui_font_init(lh_ui_font_t *self, const lh_byte_t *bits, const lh_byte_t *advances, lh_s32_t cell_width,
-                lh_s32_t height, lh_s32_t row_bytes, lh_byte_t bpp, lh_byte_t first, lh_u32_t count);
+lh_ui_font_init(lh_ui_font_t *self, const lh_ui_mask_t *glyphs, const lh_byte_t *advances,
+                const lh_s32_t *tops, lh_s32_t line_height, lh_s32_t ascent, lh_byte_t first,
+                lh_u32_t count);
 
 /**
- * @brief Width of one cell, in pixels (the widest glyph).
+ * @brief Ascent of @p self: baseline from the top of the line, in pixels.
  */
 lh_s32_t
-lh_ui_font_get_cell_width(const lh_ui_font_t *self);
+lh_ui_font_get_ascent(const lh_ui_font_t *self);
 
 /**
- * @brief Height of one cell, in pixels: the line height.
+ * @brief Height of one line, in pixels (`ascent + descent`).
  */
 lh_s32_t
 lh_ui_font_get_line_height(const lh_ui_font_t *self);
@@ -88,21 +89,24 @@ lh_u32_t
 lh_ui_font_get_index(const lh_ui_font_t *self, lh_u32_t code);
 
 /**
- * @brief Bytes of one cell: `height * row_bytes`.
- */
-lh_u32_t
-lh_ui_font_get_cell_bytes(const lh_ui_font_t *self);
-
-/**
  * @brief How far the pen moves after @p code; `0` when there is no glyph.
  */
 lh_s32_t
 lh_ui_font_get_advance(const lh_ui_font_t *self, lh_u32_t code);
 
 /**
- * @brief Fill @p mask with the cell of @p code.
+ * @brief Top of the mask of @p code relative to the baseline (up is negative);
+ *        `0` when there is no glyph.
+ */
+lh_s32_t
+lh_ui_font_get_top(const lh_ui_font_t *self, lh_u32_t code);
+
+/**
+ * @brief Fill @p mask with the glyph of @p code.
  *
  * @return ::lh_bool_false (and @p mask untouched) when there is no glyph.
+ *         A code in the run with no ink still returns true: @p mask is then
+ *         zero-size.
  */
 lh_bool_t
 lh_ui_font_get_glyph(const lh_ui_font_t *self, lh_u32_t code, lh_ui_mask_t *mask);

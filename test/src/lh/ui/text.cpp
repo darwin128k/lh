@@ -84,8 +84,8 @@ TEST(ui_text, draw_places_each_glyph_at_the_pen)
 
     ASSERT_EQ(log.mask_count, 3);
     EXPECT_TRUE(rect_is(log.masks[0], rect_of(10, 20, 2, 2)));
-    EXPECT_TRUE(rect_is(log.masks[1], rect_of(13, 20, 2, 2)));
-    EXPECT_TRUE(rect_is(log.masks[2], rect_of(10, 22, 2, 2)));
+    EXPECT_TRUE(rect_is(log.masks[1], rect_of(13, 20, 1, 1)));
+    EXPECT_TRUE(rect_is(log.masks[2], rect_of(10, 22, 1, 1)));
 }
 
 TEST(ui_text, draw_code_returns_the_advance)

@@ -132,10 +132,16 @@ lh_ui_text_draw_code(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, lh_u32_t 
                      const lh_ui_color_t *color)
 {
     lh_ui_mask_t glyph;
+    lh_ui_point_t at;
 
     if (lh_ui_font_get_glyph(font, code, lh_addr_of(glyph)))
     {
-        lh_ui_canvas_fill_mask(canvas, lh_addr_of(glyph), origin, color);
+        /* origin is the line top-left; baseline is ascent down; mask top is relative to it. */
+        lh_ui_point_init(lh_addr_of(at), lh_ui_point_get_x(lh_addr_of(origin)),
+                         lh_ui_point_get_y(lh_addr_of(origin)) +
+                             lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_ascent(font)) +
+                             lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_top(font, code)));
+        lh_ui_canvas_fill_mask(canvas, lh_addr_of(glyph), at, color);
     }
     return lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance(font, code));
 }

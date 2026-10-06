@@ -4,7 +4,6 @@
  */
 
 #include <lh/assert/runtime.h>
-#include <lh/cast/static.h>
 #include <lh/config.h>
 #include <lh/null.h>
 #include <lh/runtime/error/code.h>
@@ -27,36 +26,38 @@ lh_ui_font_get_default(lh_void)
 }
 
 lh_void
-lh_ui_font_init(lh_ui_font_t *self, const lh_byte_t *bits, const lh_byte_t *advances, lh_s32_t cell_width,
-                lh_s32_t height, lh_s32_t row_bytes, lh_byte_t bpp, lh_byte_t first, lh_u32_t count)
+lh_ui_font_init(lh_ui_font_t *self, const lh_ui_mask_t *glyphs, const lh_byte_t *advances,
+                const lh_s32_t *tops, lh_s32_t line_height, lh_s32_t ascent, lh_byte_t first,
+                lh_u32_t count)
 {
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(bits);
+    lh_assert_runtime_ref(glyphs);
     lh_assert_runtime_ref(advances);
-    lh_assert_runtime_ifn(lh_ui_mask_is_bpp(bpp) && count > 0U && first + count <= 256U,
+    lh_assert_runtime_ref(tops);
+    lh_assert_runtime_ifn(count > 0U && first + count <= 256U && line_height >= 0 && ascent >= 0 &&
+                              ascent <= line_height,
                           lh_runtime_error_code_invalid_argument);
-    self->bits = bits;
+    self->glyphs = glyphs;
     self->advances = advances;
-    self->cell_width = cell_width;
-    self->height = height;
-    self->row_bytes = row_bytes;
-    self->bpp = bpp;
+    self->tops = tops;
+    self->line_height = line_height;
+    self->ascent = ascent;
     self->first = first;
     self->count = count;
 }
 
 lh_s32_t
-lh_ui_font_get_cell_width(const lh_ui_font_t *self)
+lh_ui_font_get_ascent(const lh_ui_font_t *self)
 {
     lh_assert_runtime_ref(self);
-    return self->cell_width;
+    return self->ascent;
 }
 
 lh_s32_t
 lh_ui_font_get_line_height(const lh_ui_font_t *self)
 {
     lh_assert_runtime_ref(self);
-    return self->height;
+    return self->line_height;
 }
 
 lh_u32_t
@@ -88,13 +89,6 @@ lh_ui_font_get_index(const lh_ui_font_t *self, lh_u32_t code)
     return code - lh_ui_font_get_first(self);
 }
 
-lh_u32_t
-lh_ui_font_get_cell_bytes(const lh_ui_font_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_cast_static(lh_u32_t, self->height) * lh_cast_static(lh_u32_t, self->row_bytes);
-}
-
 lh_s32_t
 lh_ui_font_get_advance(const lh_ui_font_t *self, lh_u32_t code)
 {
@@ -102,11 +96,18 @@ lh_ui_font_get_advance(const lh_ui_font_t *self, lh_u32_t code)
     return self->advances[lh_ui_font_get_index(self, code)];
 }
 
+lh_s32_t
+lh_ui_font_get_top(const lh_ui_font_t *self, lh_u32_t code)
+{
+    lh_return_if(!lh_ui_font_has_code(self, code), 0);
+    return self->tops[lh_ui_font_get_index(self, code)];
+}
+
 lh_bool_t
 lh_ui_font_get_glyph(const lh_ui_font_t *self, lh_u32_t code, lh_ui_mask_t *mask)
 {
     lh_return_if(!lh_ui_font_has_code(self, code), lh_bool_false);
-    lh_ui_mask_init(mask, self->bits + lh_ui_font_get_index(self, code) * lh_ui_font_get_cell_bytes(self),
-                    self->cell_width, self->height, self->row_bytes, self->bpp);
+    lh_assert_runtime_ref(mask);
+    *mask = self->glyphs[lh_ui_font_get_index(self, code)];
     return lh_bool_true;
 }
