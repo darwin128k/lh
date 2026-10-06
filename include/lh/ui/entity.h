@@ -74,10 +74,10 @@ const lh_ui_entity_class_t *
 lh_ui_entity_get_class(const lh_ui_entity_t *self);
 
 /**
- * @brief Point @p self at @p class_p. The class is not copied.
+ * @brief Point @p self at @p class. The class is not copied.
  */
 lh_void
-lh_ui_entity_set_class(lh_ui_entity_t *self, const lh_ui_entity_class_t *class_p);
+lh_ui_entity_set_class(lh_ui_entity_t *self, const lh_ui_entity_class_t *);
 
 /**
  * @brief Event of ::lh_ui_entity_class.

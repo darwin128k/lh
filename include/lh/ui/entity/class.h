@@ -38,13 +38,13 @@ LH_COMPILER_EXTERN_C_BEGIN
 extern const lh_ui_entity_class_t lh_ui_entity_class;
 
 /**
- * @brief Call the event function of the class @p class_p extends.
+ * @brief Call the event function of the class @p class extends.
  *
  * Returns without calling when that class has no base.
  */
 lh_void
-lh_ui_entity_class_event_base(const lh_ui_entity_class_t *class_p, const struct lh_ui_entity *self,
-                           const lh_ui_entity_event_t *event);
+lh_ui_entity_class_event_base(const lh_ui_entity_class_t *, const struct lh_ui_entity *self,
+                              const lh_ui_entity_event_t *event);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -12,14 +12,14 @@
 const lh_ui_entity_class_t lh_ui_entity_class = {lh_ui_entity_face_rect, lh_null};
 
 lh_void
-lh_ui_entity_class_event_base(const lh_ui_entity_class_t *class_p, const struct lh_ui_entity *self,
-                           const lh_ui_entity_event_t *event)
+lh_ui_entity_class_event_base(const lh_ui_entity_class_t *class, const struct lh_ui_entity *self,
+                              const lh_ui_entity_event_t *event)
 {
     const lh_ui_entity_class_t *base;
-    lh_assert_runtime_ref(class_p);
+    lh_assert_runtime_ref(class);
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(event);
-    base = class_p->base;
+    base = class->base;
     lh_return_if(base == lh_null);
     lh_assert_runtime_ref(base->event);
     base->event(self, event);

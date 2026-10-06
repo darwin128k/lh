@@ -15,7 +15,7 @@ lh_ui_entity_init(lh_ui_entity_t *self, lh_ui_rect_t rect)
     lh_assert_runtime_ref(self);
     self->rect = rect;
     self->style = lh_null;
-    self->class_p = lh_addr_of(lh_ui_entity_class);
+    self->class = lh_addr_of(lh_ui_entity_class);
 }
 
 lh_ui_rect_t
@@ -50,16 +50,16 @@ const lh_ui_entity_class_t *
 lh_ui_entity_get_class(const lh_ui_entity_t *self)
 {
     lh_assert_runtime_ref(self);
-    return self->class_p;
+    return self->class;
 }
 
 lh_void
-lh_ui_entity_set_class(lh_ui_entity_t *self, const lh_ui_entity_class_t *class_p)
+lh_ui_entity_set_class(lh_ui_entity_t *self, const lh_ui_entity_class_t *class)
 {
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(class_p);
-    lh_assert_runtime_ref(class_p->event);
-    self->class_p = class_p;
+    lh_assert_runtime_ref(class);
+    lh_assert_runtime_ref(class->event);
+    self->class = class;
 }
 
 lh_void
@@ -74,11 +74,11 @@ lh_void
 lh_ui_entity_draw(const lh_ui_entity_t *self)
 {
     lh_ui_entity_event_t event;
-    const lh_ui_entity_class_t *class_p;
+    const lh_ui_entity_class_t *class;
     lh_assert_runtime_ref(self);
-    class_p = lh_ui_entity_get_class(self);
-    lh_assert_runtime_ref(class_p);
-    lh_assert_runtime_ref(class_p->event);
+    class = lh_ui_entity_get_class(self);
+    lh_assert_runtime_ref(class);
+    lh_assert_runtime_ref(class->event);
     event.code = lh_ui_entity_event_draw;
-    class_p->event(self, lh_addr_of(event));
+    class->event(self, lh_addr_of(event));
 }
