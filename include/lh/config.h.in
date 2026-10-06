@@ -103,7 +103,7 @@
 
 /**
  * @def LH_LIBRARY_OPTION_MATH_FPU
- * @brief ::lh_math_scalar_t uses ::lh_float_t (::LH_LIBRARY_OPTION_OFF /
+ * @brief UI aliases ::lh_math_scalar_t when ON (::LH_LIBRARY_OPTION_OFF /
  *        ::LH_LIBRARY_OPTION_ON).
  *
  * OFF: the scalar is ::lh_int_t. ON: the scalar is ::lh_float_t.

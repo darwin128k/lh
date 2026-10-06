@@ -1,19 +1,21 @@
 /**
  * @file rect.h
- * @brief An axis-aligned rectangle: ::lh_math_rect_t of an `origin` (top-left)
- *        plus a `size`, half-open.
+ * @brief An axis-aligned rectangle whose components are ::lh_math_scalar_t.
  *
- * `width = 10` covers columns `[origin.x, origin.x + 10)`, i.e. `origin.x`
- * through `origin.x + 9`.
+ * Same shape as ::lh_math_irect_t: a ::lh_math_point_t origin plus a
+ * ::lh_math_size_t, half-open. The screen rectangle stays
+ * ::lh_math_irect_t. ::lh_math_rect_to_irect narrows by cast (toward
+ * zero). ::lh_math_irect_to_rect widens the other way.
  *
- * Empty rectangles are represented as `size.width <= 0 || size.height <= 0`:
- * ::lh_math_rect_is_empty, ::lh_math_rect_intersection, and
- * ::lh_math_rect_get_width / ::lh_math_rect_get_height all share that definition, so
- * an "empty" output is canonical regardless of which operation produced it.
+ * Empty rectangles are `size.width <= 0` or `size.height <= 0`, the same
+ * rule as ::lh_math_irect_is_empty.
+ *
+ * Built only when ::LH_LIBRARY_OPTION_MATH_FPU is ON. UI picks this type or
+ * the integer ::lh_math_irect_t through <lh/ui/rect.h>.
  *
  * Fields are not part of the public API: read and mutate them through the
- * `lh_math_rect_get_*` / `lh_math_rect_set_*` accessors. The struct is
- * defined here only so `origin` and `size` can be embedded by value.
+ * accessors. The struct is defined here only so `origin` and `size` can be
+ * embedded by value.
  */
 
 #ifndef LH_MATH_RECT_H
@@ -21,20 +23,20 @@
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/math/coord.h>
+#include <lh/math/irect.h>
+#include <lh/math/irect/fields.h>
 #include <lh/math/point.h>
-#include <lh/math/rect/fields.h>
 #include <lh/math/size.h>
 #include <lh/void.h>
 
 /**
  * @struct lh_math_rect
  * @typedef lh_math_rect_t
- * @brief An axis-aligned rectangle: `origin` plus `size`, half-open.
+ * @brief An axis-aligned rectangle of ::lh_math_scalar_t components.
  */
 struct lh_math_rect
 {
-    lh_math_rect_fields(lh_math_point_t, lh_math_size_t);
+    lh_math_irect_fields(lh_math_point_t, lh_math_size_t);
 };
 typedef struct lh_math_rect lh_math_rect_t;
 
@@ -43,22 +45,13 @@ LH_COMPILER_EXTERN_C_BEGIN
 /* ── Constructors ────────────────────────────────────────────────────────── */
 
 /**
- * @brief Make a `::lh_math_rect_t` from origin coordinates and extents.
+ * @brief Make a `::lh_math_rect_t` from origin and extents.
  */
 lh_math_rect_t
-lh_math_rect_make(lh_math_coord_t x, lh_math_coord_t y, lh_math_coord_t width, lh_math_coord_t height);
+lh_math_rect_make(lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t width, lh_math_scalar_t height);
 
 /**
- * @brief Make a `::lh_math_rect_t` from min/max corners (Win32-style:
- *        left, top, right, bottom — right/bottom are exclusive).
- */
-lh_math_rect_t
-lh_math_rect_from_min_max(lh_math_coord_t x_min, lh_math_coord_t y_min,
-                          lh_math_coord_t x_max, lh_math_coord_t y_max);
-
-/**
- * @brief The "no rectangle" sentinel: origin `(0, 0)`, size `(0, 0)`.
- *        ::lh_math_rect_is_empty returns ::lh_bool_true for this value.
+ * @brief The empty rectangle: origin `(0, 0)`, size `(0, 0)`.
  */
 lh_math_rect_t
 lh_math_rect_make_empty(void);
@@ -66,13 +59,13 @@ lh_math_rect_make_empty(void);
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
 /**
- * @brief Top-left corner of @p self as a ::lh_math_point_t.
+ * @brief Top-left corner of @p self.
  */
 lh_math_point_t
 lh_math_rect_get_origin(const lh_math_rect_t *self);
 
 /**
- * @brief Size of @p self as a ::lh_math_size_t.
+ * @brief Size of @p self.
  */
 lh_math_size_t
 lh_math_rect_get_size(const lh_math_rect_t *self);
@@ -80,25 +73,25 @@ lh_math_rect_get_size(const lh_math_rect_t *self);
 /**
  * @brief X coordinate of the origin of @p self.
  */
-lh_math_coord_t
+lh_math_scalar_t
 lh_math_rect_get_x(const lh_math_rect_t *self);
 
 /**
  * @brief Y coordinate of the origin of @p self.
  */
-lh_math_coord_t
+lh_math_scalar_t
 lh_math_rect_get_y(const lh_math_rect_t *self);
 
 /**
- * @brief Stored width of @p self. A negative value is empty.
+ * @brief Width component of the size of @p self.
  */
-lh_math_coord_t
+lh_math_scalar_t
 lh_math_rect_get_size_width(const lh_math_rect_t *self);
 
 /**
- * @brief Stored height of @p self. A negative value is empty.
+ * @brief Height component of the size of @p self.
  */
-lh_math_coord_t
+lh_math_scalar_t
 lh_math_rect_get_size_height(const lh_math_rect_t *self);
 
 /**
@@ -113,73 +106,47 @@ lh_math_rect_set_origin(lh_math_rect_t *self, lh_math_point_t origin);
 lh_void
 lh_math_rect_set_size(lh_math_rect_t *self, lh_math_size_t size);
 
+/* ── Conversions ─────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Narrow @p self to a screen rectangle.
+ *
+ * Casts the origin and the size (truncates toward zero).
+ */
+lh_math_irect_t
+lh_math_rect_to_irect(lh_math_rect_t self);
+
+/**
+ * @brief Widen @p self to a continuous rectangle.
+ */
+lh_math_rect_t
+lh_math_irect_to_rect(lh_math_irect_t self);
+
 /* ── Queries ────────────────────────────────────────────────────────────── */
 
 /**
- * @brief Width of @p self as a ::lh_math_coord_t. Zero for empty rectangles.
+ * @brief Width of @p self. Zero when @p self is empty.
  */
-lh_math_coord_t
+lh_math_scalar_t
 lh_math_rect_get_width(const lh_math_rect_t *self);
 
 /**
- * @brief Height of @p self as a ::lh_math_coord_t. Zero for empty rectangles.
+ * @brief Height of @p self. Zero when @p self is empty.
  */
-lh_math_coord_t
+lh_math_scalar_t
 lh_math_rect_get_height(const lh_math_rect_t *self);
 
 /**
- * @brief Test whether @p self is "empty" (zero or negative extent).
+ * @brief Test whether @p self is empty (zero or negative extent).
  */
 lh_bool_t
 lh_math_rect_is_empty(const lh_math_rect_t *self);
-
-/**
- * @brief Test whether @p self covers @p point (inclusive at top/left,
- *        exclusive at bottom/right).
- */
-lh_bool_t
-lh_math_rect_contains_point(const lh_math_rect_t *self, lh_math_point_t point);
-
-/**
- * @brief Test whether two rectangles share any non-empty area.
- */
-lh_bool_t
-lh_math_rect_intersects(const lh_math_rect_t *a, const lh_math_rect_t *b);
 
 /**
  * @brief Element-wise equality.
  */
 lh_bool_t
 lh_math_rect_eq(const lh_math_rect_t *a, const lh_math_rect_t *b);
-
-/* ── Set ops ────────────────────────────────────────────────────────────── */
-
-/**
- * @brief Intersection of @p a and @p b. Returns ::lh_math_rect_make_empty if they do
- *        not overlap.
- */
-lh_math_rect_t
-lh_math_rect_intersection(const lh_math_rect_t *a, const lh_math_rect_t *b);
-
-/**
- * @brief Union of @p a and @p b: the smallest rectangle containing both.
- *        Empty @p a or @p b returns the other.
- */
-lh_math_rect_t
-lh_math_rect_union(const lh_math_rect_t *a, const lh_math_rect_t *b);
-
-/**
- * @brief Translate @p self by `(@p dx, @p dy)`.
- */
-lh_math_rect_t
-lh_math_rect_offset(const lh_math_rect_t *self, lh_math_coord_t dx, lh_math_coord_t dy);
-
-/**
- * @brief Inset @p self by `(@p dx, @p dy)` on each side (positive shrinks,
- *        negative grows).
- */
-lh_math_rect_t
-lh_math_rect_inset(const lh_math_rect_t *self, lh_math_coord_t dx, lh_math_coord_t dy);
 
 LH_COMPILER_EXTERN_C_END
 

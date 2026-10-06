@@ -11,7 +11,8 @@
 /**
  * @def LH_MATH_PI
  * @brief π. One full turn is twice this. Single precision, same as
- *        ::lh_float_t, so a radian stays off the software `double` path.
+ *        ::lh_float_t / ::lh_math_scalar_t, so a radian stays off the
+ *        software `double` path.
  */
 #define LH_MATH_PI 3.14159265f
 

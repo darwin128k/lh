@@ -1,0 +1,86 @@
+/**
+ * @file isize.h
+ * @brief A 2D size: ::lh_math_isize_t with ::lh_math_iscalar_t `width`, `height`.
+ *
+ * Negative extents are valid bit patterns but interpreted as "empty" by
+ * ::lh_math_irect_is_empty — used to represent "nothing" without a sentinel.
+ *
+ * Fields are not part of the public API: read and mutate them through the
+ * `lh_math_isize_get_*` / `lh_math_isize_set_*` accessors. The struct is
+ * defined here only so it can be embedded by value (e.g. as
+ * `lh_math_irect_t::size`).
+ */
+
+#ifndef LH_MATH_ISIZE_H
+#define LH_MATH_ISIZE_H
+
+#include <lh/bool.h>
+#include <lh/compiler/extern/c.h>
+#include <lh/math/iscalar.h>
+#include <lh/math/isize/fields.h>
+#include <lh/void.h>
+
+/**
+ * @struct lh_math_isize
+ * @typedef lh_math_isize_t
+ * @brief A 2D size: positive `width` and `height`.
+ */
+struct lh_math_isize
+{
+    lh_math_isize_fields(lh_math_iscalar_t);
+};
+typedef struct lh_math_isize lh_math_isize_t;
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/* ── Constructors ────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Make a `::lh_math_isize_t` from explicit extents.
+ */
+lh_math_isize_t
+lh_math_isize_make(lh_math_iscalar_t width, lh_math_iscalar_t height);
+
+/**
+ * @brief The empty size: `(0, 0)`. ::lh_math_irect_is_empty treats this as empty.
+ */
+lh_math_isize_t
+lh_math_isize_make_empty(void);
+
+/* ── Accessors ───────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Width of @p self.
+ */
+lh_math_iscalar_t
+lh_math_isize_get_width(const lh_math_isize_t *self);
+
+/**
+ * @brief Height of @p self.
+ */
+lh_math_iscalar_t
+lh_math_isize_get_height(const lh_math_isize_t *self);
+
+/**
+ * @brief Set the width of @p self.
+ */
+lh_void
+lh_math_isize_set_width(lh_math_isize_t *self, lh_math_iscalar_t width);
+
+/**
+ * @brief Set the height of @p self.
+ */
+lh_void
+lh_math_isize_set_height(lh_math_isize_t *self, lh_math_iscalar_t height);
+
+/* ── Queries ────────────────────────────────────────────────────────────── */
+
+/**
+ * @brief Element-wise equality.
+ */
+lh_bool_t
+lh_math_isize_eq(const lh_math_isize_t *a, const lh_math_isize_t *b);
+
+LH_COMPILER_EXTERN_C_END
+
+#endif /* LH_MATH_ISIZE_H */

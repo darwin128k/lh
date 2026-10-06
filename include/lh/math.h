@@ -9,39 +9,37 @@
  *   parenthesized expression-level wrappers for common operations.
  *   See the "arithmetic", "comparison / selection" and "bitwise" sections
  *   below.
- * - **Integer 2D geometry types** (`point`, `size`, `rect`): the value
- *   types and operations a 2D layer needs — construct, query
+ * - **Integer 2D geometry** (`ipoint`, `isize`, `irect`): screen / window
+ *   value types on ::lh_math_iscalar_t (`int`) — construct, query
  *   (empty / contains-point / intersects / equal), and combine
- *   (offset, inset, intersection, union). Three small value types in
- *   whole pixels: `lh_math_point_t`, `lh_math_size_t`, `lh_math_rect_t`.
- *   These are screen / window coordinates. `lh_math_point_scalar_t` is the
- *   same point with ::lh_math_scalar_t components; it narrows to
- *   `lh_math_point_t` by cast. `lh_math_rect_scalar_t` is the same rectangle:
- *   a scalar point plus a scalar size, narrowed to `lh_math_rect_t` by
- *   cast. The `lh/os/system` backends do not use these types either:
- *   each backend works in its own native types, and any mapping between
- *   the two belongs to the lh layer that needs it.
- *
- * ::lh_math_coord_t is a signed `int`, which is 32-bit on every
- * supported target — the same width as Win32's `LONG` in `POINT` / `RECT`
- * (32-bit on Win64 too) and wide enough for any realistic surface.
+ *   (offset, inset, intersection, union).
+ * - **Float geometry / 3D** (`point`, `size`, `rect`, `vec` / `quat` /
+ *   `mat4`) use ::lh_math_scalar_t (`float`) and are built when
+ *   ::LH_LIBRARY_OPTION_MATH_FPU is ON. UI picks which scalar (and which
+ *   geometry) through <lh/ui/scalar.h> and friends.
  *
  * Requires nothing from `lh/os`. Safe in STM/embedded.
  *
- * The type-specific headers (`<lh/math/coord.h>`, `<lh/math/point.h>`,
- * `<lh/math/point/scalar.h>`, `<lh/math/size.h>`,
- * `<lh/math/size/scalar.h>`, `<lh/math/rect.h>`,
- * `<lh/math/rect/scalar.h>`)
- * declare one thing each — include this file when you need several.
+ * The type-specific headers (`<lh/math/iscalar.h>`, `<lh/math/ipoint.h>`,
+ * …) declare one thing each — include this file when you need several.
  */
 
 #ifndef LH_MATH_H
 #define LH_MATH_H
 
-#include <lh/math/coord.h>
+#include <lh/math/iscalar.h>
 #include <lh/config.h>
 
+#include <lh/math/ipoint.h>
+#include <lh/math/ipoint3.h>
+#include <lh/math/isize.h>
+#include <lh/math/irect.h>
+#include <lh/math/irect3.h>
 #if LH_LIBRARY_OPTION_MATH_FPU
+#    include <lh/math/scalar.h>
+#    include <lh/math/point.h>
+#    include <lh/math/size.h>
+#    include <lh/math/rect.h>
 #    include <lh/math/mat4.h>
 #    include <lh/math/pi.h>
 #    include <lh/math/quat.h>
@@ -49,16 +47,6 @@
 #    include <lh/math/vec3.h>
 #    include <lh/math/vec4.h>
 #endif
-
-#include <lh/math/point.h>
-#include <lh/math/point/scalar.h>
-#include <lh/math/point3.h>
-#include <lh/math/rect.h>
-#include <lh/math/rect/scalar.h>
-#include <lh/math/rect3.h>
-#include <lh/math/scalar.h>
-#include <lh/math/size.h>
-#include <lh/math/size/scalar.h>
 
 /* ── arithmetic ────────────────────────────────────────────────────────── */
 

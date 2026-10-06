@@ -10,7 +10,7 @@
  * @def lh_math_vec3_fields(component_type)
  * @brief The 3 components, `x, y, z`, in that order.
  *
- * @param component_type Type of each component (::lh_float_t).
+ * @param component_type Type of each component (::lh_math_scalar_t).
  */
 #define lh_math_vec3_fields(component_type)                                                             \
     component_type x;                                                                              \

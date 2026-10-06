@@ -10,7 +10,7 @@
  * @def lh_math_quat_fields(component_type)
  * @brief The vector part `x, y, z`, then the scalar part `w`.
  *
- * @param component_type Type of each component (::lh_float_t).
+ * @param component_type Type of each component (::lh_math_scalar_t).
  */
 #define lh_math_quat_fields(component_type)                                                             \
     component_type x;                                                                              \

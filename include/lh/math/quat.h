@@ -12,7 +12,7 @@
  * (counterclockwise looking from the axis' tip toward the origin) and the
  * left-hand rule in a left-handed one; nothing here picks either.
  *
- * Layout is 4 consecutive ::lh_float_t in `x, y, z, w` order (GLM's and
+ * Layout is 4 consecutive ::lh_math_scalar_t in `x, y, z, w` order (GLM's and
  * most engines' storage order). All functions take and return by value.
  *
  * Fields are not part of the public API: read and mutate them through the
@@ -25,6 +25,7 @@
 
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/float.h>
+#include <lh/math/scalar.h>
 #include <lh/math/quat/fields.h>
 #include <lh/math/vec3.h>
 #include <lh/math/vec4.h>
@@ -37,7 +38,7 @@
  */
 struct lh_math_quat
 {
-    lh_math_quat_fields(lh_float_t);
+    lh_math_quat_fields(lh_math_scalar_t);
 };
 typedef struct lh_math_quat lh_math_quat_t;
 
@@ -47,57 +48,57 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Quaternion with the given components.
  */
 lh_math_quat_t
-lh_math_quat_make(lh_float_t x, lh_float_t y, lh_float_t z, lh_float_t w);
+lh_math_quat_make(lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t z, lh_math_scalar_t w);
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
 /**
  * @brief X component (vector part) of @p self.
  */
-lh_float_t
+lh_math_scalar_t
 lh_math_quat_get_x(const lh_math_quat_t *self);
 
 /**
  * @brief Y component (vector part) of @p self.
  */
-lh_float_t
+lh_math_scalar_t
 lh_math_quat_get_y(const lh_math_quat_t *self);
 
 /**
  * @brief Z component (vector part) of @p self.
  */
-lh_float_t
+lh_math_scalar_t
 lh_math_quat_get_z(const lh_math_quat_t *self);
 
 /**
  * @brief W component (scalar part) of @p self.
  */
-lh_float_t
+lh_math_scalar_t
 lh_math_quat_get_w(const lh_math_quat_t *self);
 
 /**
  * @brief Set the X component of @p self.
  */
 lh_void
-lh_math_quat_set_x(lh_math_quat_t *self, lh_float_t x);
+lh_math_quat_set_x(lh_math_quat_t *self, lh_math_scalar_t x);
 
 /**
  * @brief Set the Y component of @p self.
  */
 lh_void
-lh_math_quat_set_y(lh_math_quat_t *self, lh_float_t y);
+lh_math_quat_set_y(lh_math_quat_t *self, lh_math_scalar_t y);
 
 /**
  * @brief Set the Z component of @p self.
  */
 lh_void
-lh_math_quat_set_z(lh_math_quat_t *self, lh_float_t z);
+lh_math_quat_set_z(lh_math_quat_t *self, lh_math_scalar_t z);
 
 /**
  * @brief Set the W component of @p self.
  */
 lh_void
-lh_math_quat_set_w(lh_math_quat_t *self, lh_float_t w);
+lh_math_quat_set_w(lh_math_quat_t *self, lh_math_scalar_t w);
 
 /**
  * @brief The same 4 numbers as a ::lh_math_vec4_t (`x, y, z, w`).
@@ -127,7 +128,7 @@ lh_math_quat_identity(void);
  * @param angle Angle in radians.
  */
 lh_math_quat_t
-lh_math_quat_from_axis_angle(lh_math_vec3_t axis, lh_float_t angle);
+lh_math_quat_from_axis_angle(lh_math_vec3_t axis, lh_math_scalar_t angle);
 
 /**
  * @brief Product @p a * @p b: the rotation @p b followed by @p a.
@@ -149,7 +150,7 @@ lh_math_quat_conjugate(lh_math_quat_t q);
  * @brief 4D dot product. For unit quaternions, `|dot|` near 1 means nearly
  *        the same rotation.
  */
-lh_float_t
+lh_math_scalar_t
 lh_math_quat_dot(lh_math_quat_t a, lh_math_quat_t b);
 
 /**
@@ -178,7 +179,7 @@ lh_math_quat_rotate(lh_math_quat_t q, lh_math_vec3_t v);
  * animation frames.
  */
 lh_math_quat_t
-lh_math_quat_nlerp(lh_math_quat_t a, lh_math_quat_t b, lh_float_t t);
+lh_math_quat_nlerp(lh_math_quat_t a, lh_math_quat_t b, lh_math_scalar_t t);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -90,15 +90,15 @@ unset(_LH_OS_WERROR_DEFAULT)
 # -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_MATH_FPU
 #
-# Underlying type of lh_math_scalar_t (include/lh/math/scalar.h), and whether
-# the float math sources are compiled.
+# Whether float (scalar) math sources are compiled, and what UI aliases.
 #
-#   ON  — lh_math_scalar_t is lh_float_t. vec2/vec3/vec4, quat and mat4 are
-#         part of the library.
-#   OFF — lh_math_scalar_t is lh_int_t. Those sources are left out.
+#   ON  — build point/size/rect, vec2/vec3/vec4, quat, mat4 on
+#         lh_math_scalar_t. UI scalar / geometry alias those types.
+#   OFF — those sources are left out. UI scalar / geometry alias
+#         lh_math_iscalar_t and lh_math_ipoint_t / isize / irect.
 # -----------------------------------------------------------------------------
 option(LH_LIBRARY_OPTION_MATH_FPU
-        "Compile float math and make lh_math_scalar_t lh_float_t. OFF keeps the scalar as lh_int_t and omits vec/quat/mat4."
+        "Compile float math (point/size/rect, vec/quat/mat4). UI aliases scalar when ON, iscalar when OFF."
         OFF)
 
 # -----------------------------------------------------------------------------

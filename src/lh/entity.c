@@ -9,14 +9,14 @@
 #include <lh/util/return.h>
 
 lh_void
-lh_entity_init(lh_entity_t *self, lh_math_rect_t rect)
+lh_entity_init(lh_entity_t *self, lh_math_irect_t rect)
 {
     lh_assert_runtime_ref(self);
     self->rect = rect;
     self->class_p = lh_addr_of(lh_entity_class);
 }
 
-lh_math_rect_t
+lh_math_irect_t
 lh_entity_get_rect(const lh_entity_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -24,7 +24,7 @@ lh_entity_get_rect(const lh_entity_t *self)
 }
 
 lh_void
-lh_entity_set_rect(lh_entity_t *self, lh_math_rect_t rect)
+lh_entity_set_rect(lh_entity_t *self, lh_math_irect_t rect)
 {
     lh_assert_runtime_ref(self);
     self->rect = rect;
