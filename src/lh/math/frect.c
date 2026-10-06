@@ -115,6 +115,46 @@ lh_math_frect_far(const lh_math_frect_t *self)
                                       lh_math_frect_get_size_as_const(self));
 }
 
+lh_math_fpoint_t
+lh_math_frect_origin_min(const lh_math_frect_t *a, const lh_math_frect_t *b)
+{
+    lh_assert_runtime_ref(a);
+    lh_assert_runtime_ref(b);
+    return lh_math_fpoint_min(lh_math_frect_get_origin_as_const(a), lh_math_frect_get_origin_as_const(b));
+}
+
+lh_math_fpoint_t
+lh_math_frect_origin_max(const lh_math_frect_t *a, const lh_math_frect_t *b)
+{
+    lh_assert_runtime_ref(a);
+    lh_assert_runtime_ref(b);
+    return lh_math_fpoint_max(lh_math_frect_get_origin_as_const(a), lh_math_frect_get_origin_as_const(b));
+}
+
+lh_math_fpoint_t
+lh_math_frect_far_min(const lh_math_frect_t *a, const lh_math_frect_t *b)
+{
+    lh_math_fpoint_t far_a;
+    lh_math_fpoint_t far_b;
+    lh_assert_runtime_ref(a);
+    lh_assert_runtime_ref(b);
+    far_a = lh_math_frect_far(a);
+    far_b = lh_math_frect_far(b);
+    return lh_math_fpoint_min(lh_addr_of(far_a), lh_addr_of(far_b));
+}
+
+lh_math_fpoint_t
+lh_math_frect_far_max(const lh_math_frect_t *a, const lh_math_frect_t *b)
+{
+    lh_math_fpoint_t far_a;
+    lh_math_fpoint_t far_b;
+    lh_assert_runtime_ref(a);
+    lh_assert_runtime_ref(b);
+    far_a = lh_math_frect_far(a);
+    far_b = lh_math_frect_far(b);
+    return lh_math_fpoint_max(lh_addr_of(far_a), lh_addr_of(far_b));
+}
+
 /* ── Conversions ─────────────────────────────────────────────────────────── */
 
 lh_math_rect_t
@@ -169,23 +209,11 @@ lh_math_frect_contains_point(const lh_math_frect_t *self, lh_math_fpoint_t point
 lh_bool_t
 lh_math_frect_intersects(const lh_math_frect_t *a, const lh_math_frect_t *b)
 {
-    lh_math_fpoint_t origin;
-    lh_math_fpoint_t far_a;
-    lh_math_fpoint_t far_b;
-    lh_math_fpoint_t far;
-    lh_math_fsize_t size;
+    lh_math_frect_t overlap;
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
-    if (lh_math_frect_is_empty(a) || lh_math_frect_is_empty(b))
-    {
-        return lh_bool_false;
-    }
-    origin = lh_math_fpoint_max(lh_math_frect_get_origin_as_const(a), lh_math_frect_get_origin_as_const(b));
-    far_a = lh_math_frect_far(a);
-    far_b = lh_math_frect_far(b);
-    far = lh_math_fpoint_min(lh_addr_of(far_a), lh_addr_of(far_b));
-    size = lh_math_fsize_from_extent(lh_addr_of(origin), lh_addr_of(far));
-    return !lh_math_fsize_is_empty(lh_addr_of(size));
+    overlap = lh_math_frect_intersection(a, b);
+    return !lh_math_frect_is_empty(lh_addr_of(overlap));
 }
 
 lh_bool_t
@@ -204,8 +232,6 @@ lh_math_frect_t
 lh_math_frect_intersection(const lh_math_frect_t *a, const lh_math_frect_t *b)
 {
     lh_math_fpoint_t origin;
-    lh_math_fpoint_t far_a;
-    lh_math_fpoint_t far_b;
     lh_math_fpoint_t far;
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
@@ -213,10 +239,8 @@ lh_math_frect_intersection(const lh_math_frect_t *a, const lh_math_frect_t *b)
     {
         return lh_math_frect_make_empty();
     }
-    origin = lh_math_fpoint_max(lh_math_frect_get_origin_as_const(a), lh_math_frect_get_origin_as_const(b));
-    far_a = lh_math_frect_far(a);
-    far_b = lh_math_frect_far(b);
-    far = lh_math_fpoint_min(lh_addr_of(far_a), lh_addr_of(far_b));
+    origin = lh_math_frect_origin_max(a, b);
+    far = lh_math_frect_far_min(a, b);
     return lh_math_frect_from_extent(lh_addr_of(origin), lh_addr_of(far));
 }
 
@@ -224,8 +248,6 @@ lh_math_frect_t
 lh_math_frect_union(const lh_math_frect_t *a, const lh_math_frect_t *b)
 {
     lh_math_fpoint_t origin;
-    lh_math_fpoint_t far_a;
-    lh_math_fpoint_t far_b;
     lh_math_fpoint_t far;
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
@@ -237,10 +259,8 @@ lh_math_frect_union(const lh_math_frect_t *a, const lh_math_frect_t *b)
     {
         return lh_ptr_deref(a);
     }
-    origin = lh_math_fpoint_min(lh_math_frect_get_origin_as_const(a), lh_math_frect_get_origin_as_const(b));
-    far_a = lh_math_frect_far(a);
-    far_b = lh_math_frect_far(b);
-    far = lh_math_fpoint_max(lh_addr_of(far_a), lh_addr_of(far_b));
+    origin = lh_math_frect_origin_min(a, b);
+    far = lh_math_frect_far_max(a, b);
     return lh_math_frect_from_extent(lh_addr_of(origin), lh_addr_of(far));
 }
 

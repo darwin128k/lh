@@ -135,6 +135,30 @@ lh_math_rect_set_size(lh_math_rect_t *self, lh_math_size_t size);
 lh_math_point_t
 lh_math_rect_far(const lh_math_rect_t *self);
 
+/**
+ * @brief Element-wise minimum of the origins of @p a and @p b.
+ */
+lh_math_point_t
+lh_math_rect_origin_min(const lh_math_rect_t *a, const lh_math_rect_t *b);
+
+/**
+ * @brief Element-wise maximum of the origins of @p a and @p b.
+ */
+lh_math_point_t
+lh_math_rect_origin_max(const lh_math_rect_t *a, const lh_math_rect_t *b);
+
+/**
+ * @brief Element-wise minimum of the exclusive far corners of @p a and @p b.
+ */
+lh_math_point_t
+lh_math_rect_far_min(const lh_math_rect_t *a, const lh_math_rect_t *b);
+
+/**
+ * @brief Element-wise maximum of the exclusive far corners of @p a and @p b.
+ */
+lh_math_point_t
+lh_math_rect_far_max(const lh_math_rect_t *a, const lh_math_rect_t *b);
+
 /* ── Queries ────────────────────────────────────────────────────────────── */
 
 /**

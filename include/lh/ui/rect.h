@@ -32,6 +32,10 @@ typedef lh_math_frect_t lh_ui_rect_t;
 #    define lh_ui_rect_set_origin lh_math_frect_set_origin
 #    define lh_ui_rect_set_size lh_math_frect_set_size
 #    define lh_ui_rect_far lh_math_frect_far
+#    define lh_ui_rect_origin_min lh_math_frect_origin_min
+#    define lh_ui_rect_origin_max lh_math_frect_origin_max
+#    define lh_ui_rect_far_min lh_math_frect_far_min
+#    define lh_ui_rect_far_max lh_math_frect_far_max
 #    define lh_ui_rect_to_rect lh_math_frect_to_rect
 #    define lh_ui_rect_from_rect lh_math_rect_to_frect
 #    define lh_ui_rect_is_empty lh_math_frect_is_empty
@@ -60,6 +64,10 @@ typedef lh_math_rect_t lh_ui_rect_t;
 #    define lh_ui_rect_set_origin lh_math_rect_set_origin
 #    define lh_ui_rect_set_size lh_math_rect_set_size
 #    define lh_ui_rect_far lh_math_rect_far
+#    define lh_ui_rect_origin_min lh_math_rect_origin_min
+#    define lh_ui_rect_origin_max lh_math_rect_origin_max
+#    define lh_ui_rect_far_min lh_math_rect_far_min
+#    define lh_ui_rect_far_max lh_math_rect_far_max
 #    define lh_ui_rect_to_rect(self) (self)
 #    define lh_ui_rect_from_rect(self) (self)
 #    define lh_ui_rect_is_empty lh_math_rect_is_empty

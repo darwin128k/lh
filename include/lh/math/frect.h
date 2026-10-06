@@ -127,6 +127,30 @@ lh_math_frect_set_size(lh_math_frect_t *self, lh_math_fsize_t size);
 lh_math_fpoint_t
 lh_math_frect_far(const lh_math_frect_t *self);
 
+/**
+ * @brief Element-wise minimum of the origins of @p a and @p b.
+ */
+lh_math_fpoint_t
+lh_math_frect_origin_min(const lh_math_frect_t *a, const lh_math_frect_t *b);
+
+/**
+ * @brief Element-wise maximum of the origins of @p a and @p b.
+ */
+lh_math_fpoint_t
+lh_math_frect_origin_max(const lh_math_frect_t *a, const lh_math_frect_t *b);
+
+/**
+ * @brief Element-wise minimum of the exclusive far corners of @p a and @p b.
+ */
+lh_math_fpoint_t
+lh_math_frect_far_min(const lh_math_frect_t *a, const lh_math_frect_t *b);
+
+/**
+ * @brief Element-wise maximum of the exclusive far corners of @p a and @p b.
+ */
+lh_math_fpoint_t
+lh_math_frect_far_max(const lh_math_frect_t *a, const lh_math_frect_t *b);
+
 /* ── Conversions ─────────────────────────────────────────────────────────── */
 
 /**
