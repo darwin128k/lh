@@ -37,7 +37,7 @@ extern const lh_ui_entity_class_t lh_ui_entity_label_class;
 /**
  * @brief Fill @p self so it covers @p rect and shows @p text.
  *
- * @p text is not copied. ::lh_null shows nothing.
+ * @p text is not copied. ::lh_null shows nothing. Style starts as ::lh_null.
  */
 lh_void
 lh_ui_entity_label_init(lh_ui_entity_label_t *self, lh_ui_rect_t rect, const lh_char_t *text);
@@ -53,6 +53,20 @@ lh_ui_entity_label_get_rect(const lh_ui_entity_label_t *self);
  */
 lh_void
 lh_ui_entity_label_set_rect(lh_ui_entity_label_t *self, lh_ui_rect_t rect);
+
+/**
+ * @brief Style of @p self, or ::lh_null when it has none.
+ */
+const lh_ui_style_t *
+lh_ui_entity_label_get_style(const lh_ui_entity_label_t *self);
+
+/**
+ * @brief Point @p self at @p style. The style is not copied.
+ *
+ * ::lh_null clears the style.
+ */
+lh_void
+lh_ui_entity_label_set_style(lh_ui_entity_label_t *self, const lh_ui_style_t *style);
 
 /**
  * @brief The string @p self shows, or ::lh_null when it has none.

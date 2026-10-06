@@ -43,6 +43,20 @@ lh_ui_entity_label_set_rect(lh_ui_entity_label_t *self, lh_ui_rect_t rect)
     lh_ui_entity_set_rect(lh_addr_of(self->entity), rect);
 }
 
+const lh_ui_style_t *
+lh_ui_entity_label_get_style(const lh_ui_entity_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_ui_entity_get_style(lh_addr_of(self->entity));
+}
+
+lh_void
+lh_ui_entity_label_set_style(lh_ui_entity_label_t *self, const lh_ui_style_t *style)
+{
+    lh_assert_runtime_ref(self);
+    lh_ui_entity_set_style(lh_addr_of(self->entity), style);
+}
+
 const lh_char_t *
 lh_ui_entity_label_get_text(const lh_ui_entity_label_t *self)
 {

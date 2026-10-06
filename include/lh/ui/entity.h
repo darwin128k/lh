@@ -1,9 +1,12 @@
 /**
  * @file entity.h
- * @brief One object: ::lh_ui_entity_t, the ::lh_ui_rect_t it covers.
+ * @brief One object: ::lh_ui_entity_t, the ::lh_ui_rect_t it covers and a
+ *        pointer to its ::lh_ui_style_t.
  *
  * The class pointer names the kind: the event function lives on that class,
- * once. ::lh_ui_entity_draw sends ::lh_ui_entity_event_draw to it.
+ * once. ::lh_ui_entity_draw sends ::lh_ui_entity_event_draw to it. The style
+ * is not owned: it must outlive the entity, and several entities may share
+ * one.
  */
 
 #ifndef LH_UI_ENTITY_H
@@ -15,23 +18,25 @@
 #include <lh/ui/entity/face/cb.h>
 #include <lh/ui/entity/fields.h>
 #include <lh/ui/rect.h>
+#include <lh/ui/style.h>
 #include <lh/void.h>
 
 /**
  * @struct lh_ui_entity
  * @typedef lh_ui_entity_t
- * @brief An object, the rectangle it covers, and the class it belongs to.
+ * @brief An object, the rectangle it covers, a style pointer, and the class
+ *        it belongs to.
  */
 struct lh_ui_entity
 {
-    lh_ui_entity_fields(lh_ui_rect_t, lh_ui_entity_class_t);
+    lh_ui_entity_fields(lh_ui_rect_t, lh_ui_style_t, lh_ui_entity_class_t);
 };
 typedef struct lh_ui_entity lh_ui_entity_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Fill @p self so it covers @p rect.
+ * @brief Fill @p self so it covers @p rect with no style.
  */
 lh_void
 lh_ui_entity_init(lh_ui_entity_t *self, lh_ui_rect_t rect);
@@ -47,6 +52,20 @@ lh_ui_entity_get_rect(const lh_ui_entity_t *self);
  */
 lh_void
 lh_ui_entity_set_rect(lh_ui_entity_t *self, lh_ui_rect_t rect);
+
+/**
+ * @brief Style of @p self, or ::lh_null when it has none.
+ */
+const lh_ui_style_t *
+lh_ui_entity_get_style(const lh_ui_entity_t *self);
+
+/**
+ * @brief Point @p self at @p style. The style is not copied.
+ *
+ * ::lh_null clears the style.
+ */
+lh_void
+lh_ui_entity_set_style(lh_ui_entity_t *self, const lh_ui_style_t *style);
 
 /**
  * @brief Class of @p self.

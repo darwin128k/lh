@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/null.h>
 #include <lh/ui/entity.h>
 #include <lh/util/addr.h>
 #include <lh/util/return.h>
@@ -13,6 +14,7 @@ lh_ui_entity_init(lh_ui_entity_t *self, lh_ui_rect_t rect)
 {
     lh_assert_runtime_ref(self);
     self->rect = rect;
+    self->style = lh_null;
     self->class_p = lh_addr_of(lh_ui_entity_class);
 }
 
@@ -28,6 +30,20 @@ lh_ui_entity_set_rect(lh_ui_entity_t *self, lh_ui_rect_t rect)
 {
     lh_assert_runtime_ref(self);
     self->rect = rect;
+}
+
+const lh_ui_style_t *
+lh_ui_entity_get_style(const lh_ui_entity_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->style;
+}
+
+lh_void
+lh_ui_entity_set_style(lh_ui_entity_t *self, const lh_ui_style_t *style)
+{
+    lh_assert_runtime_ref(self);
+    self->style = style;
 }
 
 const lh_ui_entity_class_t *
