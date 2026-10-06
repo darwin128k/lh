@@ -9,13 +9,14 @@
 #include <lh/bool.h>
 #include <lh/list.h>
 #include <lh/list/node.h>
+#include <lh/os/window/on/click/cb.h>
 #include <lh/os/window/on/close/cb.h>
 #include <lh/os/window/on/paint/cb.h>
 #include <lh/ptr.h>
 
 /**
  * @def lh_os_window_fields(handle_type, app_type, window_type)
- * @brief Native handle, app or parent, children, paint/close notify, and link.
+ * @brief Native handle, app or parent, children, paint/click/close notify, and link.
  *
  * Top-level windows are added from outside into the app list (`app` set).
  * Index 0 there is the main window. Modal children sit in a parent's
@@ -38,6 +39,8 @@
     lh_ptr paint_dc;                                                                                \
     lh_os_window_on_paint_cb on_paint;                                                              \
     lh_ptr on_paint_context;                                                                        \
+    lh_os_window_on_click_cb on_click;                                                              \
+    lh_ptr on_click_context;                                                                        \
     lh_os_window_on_close_cb on_close;                                                              \
     lh_ptr on_close_context
 

@@ -98,6 +98,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/ui/paint.c
         ${LH_LIB_SRC_PATH}/ui/gradient.c
         ${LH_LIB_SRC_PATH}/ui/style.c
+        ${LH_LIB_SRC_PATH}/ui/canvas.c
+        ${LH_LIB_SRC_PATH}/ui/pen.c
         ${LH_LIB_SRC_PATH}/ui/entity.c
         ${LH_LIB_SRC_PATH}/ui/entity/class.c
         ${LH_LIB_SRC_PATH}/ui/entity/event.c

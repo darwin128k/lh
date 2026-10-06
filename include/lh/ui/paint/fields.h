@@ -7,12 +7,14 @@
 #define LH_UI_PAINT_FIELDS_H
 
 /**
- * @def lh_ui_paint_fields(color_type)
- * @brief The solid color of the paint. Not owned; may be shared.
+ * @def lh_ui_paint_fields(kind_type, color_type)
+ * @brief What the paint holds, and its solid color. The color is a copy.
  *
- * @param color_type Type of the color pointed at.
+ * @param kind_type  Type of the paint kind.
+ * @param color_type Type of the solid color.
  */
-#define lh_ui_paint_fields(color_type)                                                              \
-    const color_type *color
+#define lh_ui_paint_fields(kind_type, color_type)                                                   \
+    kind_type kind;                                                                                 \
+    color_type color
 
 #endif /* LH_UI_PAINT_FIELDS_H */

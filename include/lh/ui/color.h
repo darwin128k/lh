@@ -11,7 +11,7 @@
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/numeric/types.h>
+#include <lh/numeric/fixed/types.h>
 #include <lh/ui/color/channels.h>
 #include <lh/ui/color/fields.h>
 #include <lh/void.h>
@@ -40,9 +40,12 @@ lh_ui_color_init(lh_ui_color_t *self, lh_ui_color_channel_t r, lh_ui_color_chann
 
 /**
  * @brief Fill @p self from @p hex as `0xRRGGBBAA`.
+ *
+ * @p hex is 32 bits wide on every target, so the alpha byte is never lost to
+ * a 16-bit `unsigned int`.
  */
 lh_void
-lh_ui_color_init_hex(lh_ui_color_t *self, lh_uint_t hex);
+lh_ui_color_init_hex(lh_ui_color_t *self, lh_u32_t hex);
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
@@ -103,7 +106,11 @@ lh_ui_color_equals(const lh_ui_color_t *self, const lh_ui_color_t *other);
 /* ── Blend ───────────────────────────────────────────────────────────────── */
 
 /**
- * @brief Paint @p color over @p dst. Straight alpha.
+ * @brief Paint @p color over @p dst (Porter-Duff "over"). Straight alpha.
+ *
+ * Both colors and the result are straight (not premultiplied). @p dst may be
+ * translucent: the result alpha is `a + dst_a * (1 - a)` and each channel is
+ * divided back by it. Two fully transparent inputs give `0, 0, 0, 0`.
  */
 lh_ui_color_t
 lh_ui_color_over(const lh_ui_color_t *dst, const lh_ui_color_t *color);

@@ -9,7 +9,7 @@
  * **Manual build (no CMake):** copy this file to `config.h` and substitute every
  * CMake-style placeholder (at-sign delimited identifiers) with decimal integers:
  * version macros from the root `VERSION` file; library options use `0` or `1`
- * except `LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS` (must be >= 1),
+ * except `LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS` (must be 1..255),
  * `LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY` (must be > 0),
  * `LH_LIBRARY_OPTION_ARRAY_GROWTH_FACTOR` (must be > 1),
  * `LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK` (must be > 0), and the
@@ -197,7 +197,7 @@
  * stops; each extra stop grows the descriptor by one
  * ::lh_ui_gradient_stop_t.
  *
- * @note The value must be at least 1.
+ * @note The value must be in `1..255`: the stop count is one byte.
  */
 #define LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS @ValUiGradientMaxStops@
 

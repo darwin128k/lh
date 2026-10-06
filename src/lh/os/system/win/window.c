@@ -78,6 +78,13 @@ lh_os_system_win_window_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
         EndPaint(hwnd, &ps);
         return 0;
     }
+    case WM_LBUTTONUP:
+        if (lh_null_ne(window))
+        {
+            lh_os_window_on_native_click(window, (int)(short)LOWORD(lparam),
+                                        (int)(short)HIWORD(lparam));
+        }
+        return 0;
     case WM_DESTROY:
         if (lh_null_ne(window))
         {

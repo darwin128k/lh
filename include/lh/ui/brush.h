@@ -1,6 +1,9 @@
 /**
  * @file brush.h
- * @brief Fill: ::lh_ui_brush_t — the same type as ::lh_ui_paint_t (a color).
+ * @brief Fill: ::lh_ui_brush_t — the same type as ::lh_ui_paint_t.
+ *
+ * A fill needs nothing beyond the paint, so the brush stays an alias. An
+ * outline needs a width and is its own type, ::lh_ui_pen_t.
  */
 
 #ifndef LH_UI_BRUSH_H

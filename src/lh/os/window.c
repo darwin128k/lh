@@ -45,6 +45,8 @@ lh_os_window_init(lh_os_window_t *self)
     self->paint_dc = lh_null;
     self->on_paint = lh_null;
     self->on_paint_context = lh_null;
+    self->on_click = lh_null;
+    self->on_click_context = lh_null;
     self->on_close = lh_null;
     self->on_close_context = lh_null;
 }
@@ -175,6 +177,14 @@ lh_os_window_set_on_paint(lh_os_window_t *self, lh_os_window_on_paint_cb on_pain
     self->on_paint_context = context;
 }
 
+lh_void
+lh_os_window_set_on_click(lh_os_window_t *self, lh_os_window_on_click_cb on_click, lh_ptr context)
+{
+    lh_assert_runtime_ref(self);
+    self->on_click = on_click;
+    self->on_click_context = context;
+}
+
 lh_ptr
 lh_os_window_get_paint_dc(const lh_os_window_t *self)
 {
@@ -248,6 +258,21 @@ lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc)
         on_paint(self, on_paint_context);
     }
     self->paint_dc = lh_null;
+}
+
+lh_void
+lh_os_window_on_native_click(lh_os_window_t *self, int x, int y)
+{
+    lh_os_window_on_click_cb on_click;
+    lh_ptr on_click_context;
+
+    lh_assert_runtime_ref(self);
+    on_click = self->on_click;
+    on_click_context = self->on_click_context;
+    if (lh_null_ne(lh_ptr_rcast(lh_void, on_click)))
+    {
+        on_click(self, x, y, on_click_context);
+    }
 }
 
 lh_void

@@ -22,6 +22,7 @@
 #include <lh/os/system/window/handle.h>
 #include <lh/os/window/close/reason.h>
 #include <lh/os/window/fields.h>
+#include <lh/os/window/on/click/cb.h>
 #include <lh/os/window/on/close/cb.h>
 #include <lh/os/window/on/paint/cb.h>
 #include <lh/ptr.h>
@@ -132,6 +133,14 @@ lh_void
 lh_os_window_set_on_paint(lh_os_window_t *self, lh_os_window_on_paint_cb on_paint, lh_ptr context);
 
 /**
+ * @brief Notify @p on_click on a primary-button release in client coordinates.
+ *
+ * @p context is passed through. ::lh_null clears the slot.
+ */
+lh_void
+lh_os_window_set_on_click(lh_os_window_t *self, lh_os_window_on_click_cb on_click, lh_ptr context);
+
+/**
  * @brief Platform paint DC for the current ::lh_os_window_on_paint_fn, or
  *        ::lh_null outside a paint cycle.
  *
@@ -172,6 +181,14 @@ lh_os_window_on_native_destroy(lh_os_window_t *self);
  */
 lh_void
 lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc);
+
+/**
+ * @brief Called from the native backend on a primary-button click.
+ *
+ * @p x and @p y are client-area coordinates.
+ */
+lh_void
+lh_os_window_on_native_click(lh_os_window_t *self, int x, int y);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -5,8 +5,11 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/byte.h>
+#include <lh/byte/limits.h>
+#include <lh/cast/static.h>
 #include <lh/config.h>
 #include <lh/null.h>
+#include <lh/runtime/error/code.h>
 #include <lh/ui/gradient.h>
 #include <lh/ui/gradient/stop/count.h>
 #include <lh/util/addr.h>
@@ -52,6 +55,7 @@ lh_ui_gradient_stop_set_frac(lh_ui_gradient_stop_t *self, lh_byte_t frac)
 lh_void
 lh_ui_gradient_stop_init(lh_ui_gradient_stop_t *self, lh_ui_color_t color, lh_byte_t frac)
 {
+    lh_assert_runtime_ref(self);
     lh_ui_gradient_stop_set_color(self, color);
     lh_ui_gradient_stop_set_frac(self, frac);
 }
@@ -87,7 +91,7 @@ lh_ui_gradient_init_stops(lh_ui_gradient_t *self, const lh_ui_color_t *colors, c
             }
             else
             {
-                frac = (lh_byte_t)((i * 255U) / (num_stops - 1U));
+                frac = lh_cast_static(lh_byte_t, (i * LH_BYTE_T_MAX) / (num_stops - 1U));
             }
         }
         else

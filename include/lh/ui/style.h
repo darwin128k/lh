@@ -2,14 +2,16 @@
  * @file style.h
  * @brief How an entity is painted: ::lh_ui_style_t.
  *
- * Holds a fill paint (::lh_ui_paint_t pointer, not owned). Outline, font,
- * and the rest come later.
+ * Holds a fill ::lh_ui_paint_t by value. Entities point at a style, so one
+ * style is shared by every entity that looks the same. Outline, font, and the
+ * rest come later.
  */
 
 #ifndef LH_UI_STYLE_H
 #define LH_UI_STYLE_H
 
 #include <lh/compiler/extern/c.h>
+#include <lh/ui/color.h>
 #include <lh/ui/paint.h>
 #include <lh/ui/style/fields.h>
 #include <lh/void.h>
@@ -21,31 +23,37 @@
  */
 struct lh_ui_style
 {
-    lh_ui_style_fields();
+    lh_ui_style_fields(lh_ui_paint_t);
 };
 typedef struct lh_ui_style lh_ui_style_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Fill @p self with no fill paint.
+ * @brief Fill @p self with the empty fill paint.
  */
 lh_void
 lh_ui_style_init(lh_ui_style_t *self);
 
 /**
- * @brief Fill paint of @p self, or ::lh_null when none.
+ * @brief Fill paint of @p self. Never ::lh_null; may be empty.
  */
 const lh_ui_paint_t *
 lh_ui_style_get_fill(const lh_ui_style_t *self);
 
 /**
- * @brief Point @p self at @p fill. The paint is not copied.
+ * @brief Replace the fill of @p self with a copy of @p fill.
  *
- * ::lh_null clears the fill.
+ * ::lh_null clears the fill to the empty paint.
  */
 lh_void
 lh_ui_style_set_fill(lh_ui_style_t *self, const lh_ui_paint_t *fill);
+
+/**
+ * @brief Solid fill color of @p self, or ::lh_null when the fill is not solid.
+ */
+const lh_ui_color_t *
+lh_ui_style_get_fill_color(const lh_ui_style_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

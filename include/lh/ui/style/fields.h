@@ -6,15 +6,16 @@
 #ifndef LH_UI_STYLE_FIELDS_H
 #define LH_UI_STYLE_FIELDS_H
 
-#include <lh/ui/paint.h>
-
 /**
- * @def lh_ui_style_fields()
+ * @def lh_ui_style_fields(paint_type)
  * @brief Paint recipe for one entity.
  *
- * `fill` is not owned and may be shared; ::lh_null means no fill.
+ * `fill` is held by value; the empty paint means no fill. The style itself
+ * is what several entities share.
+ *
+ * @param paint_type Type of the fill paint.
  */
-#define lh_ui_style_fields()                                                                        \
-    const lh_ui_paint_t *fill
+#define lh_ui_style_fields(paint_type)                                                              \
+    paint_type fill
 
 #endif /* LH_UI_STYLE_FIELDS_H */

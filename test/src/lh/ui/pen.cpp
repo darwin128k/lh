@@ -4,20 +4,26 @@
 #include <lh/ui/pen.h>
 #include <lh/util/addr.h>
 
-#include <type_traits>
-
-TEST(ui_pen, is_the_same_type_as_paint)
+TEST(ui_pen, init_starts_empty_with_width_one)
 {
-    EXPECT_TRUE((std::is_same<lh_ui_pen_t, lh_ui_paint_t>::value));
+    lh_ui_pen_t pen;
+
+    lh_ui_pen_init(lh_addr_of(pen));
+    EXPECT_TRUE(lh_ui_paint_is_empty(lh_ui_pen_get_paint(lh_addr_of(pen))));
+    EXPECT_EQ(lh_ui_pen_get_width(lh_addr_of(pen)), 1);
 }
 
-TEST(ui_pen, make_empty_and_init_are_usable)
+TEST(ui_pen, set_paint_and_width)
 {
-    lh_ui_pen_t a;
+    lh_ui_color_t color;
+    lh_ui_paint_t paint;
+    lh_ui_pen_t pen;
 
-    lh_ui_paint_init(lh_addr_of(a));
-    lh_ui_pen_t b;
-    lh_ui_pen_init(lh_addr_of(b));
-    (void)a;
-    (void)b;
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 4);
+    lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(color));
+    lh_ui_pen_init(lh_addr_of(pen));
+    lh_ui_pen_set_paint(lh_addr_of(pen), lh_addr_of(paint));
+    lh_ui_pen_set_width(lh_addr_of(pen), 3);
+    EXPECT_FALSE(lh_ui_paint_is_empty(lh_ui_pen_get_paint(lh_addr_of(pen))));
+    EXPECT_EQ(lh_ui_pen_get_width(lh_addr_of(pen)), 3);
 }

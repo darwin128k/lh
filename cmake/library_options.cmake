@@ -245,7 +245,7 @@ option(LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED
 # Manual build: set in include/lh/config.h or -D on the compiler command line.
 # -----------------------------------------------------------------------------
 set(LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS "2" CACHE STRING
-        "Max color stops in lh_ui_gradient_t (must be >= 1; default 2 like LVGL).")
+        "Max color stops in lh_ui_gradient_t (must be 1..255; default 2 like LVGL).")
 
 # -----------------------------------------------------------------------------
 # LH_LIBRARY_OPTION_ARRAY_INITIAL_CAPACITY

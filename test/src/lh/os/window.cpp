@@ -29,6 +29,28 @@ on_close(lh_os_window_t * /*self*/, lh_os_window_close_reason_t reason, lh_ptr c
     log->reason = reason;
 }
 
+struct ClickLog
+{
+    int count;
+    int x;
+    int y;
+};
+
+lh_void
+on_click(lh_os_window_t * /*self*/, int x, int y, lh_ptr context)
+{
+    auto *log = static_cast<ClickLog *>(context);
+
+    if (log == nullptr)
+    {
+        ADD_FAILURE() << "null click log";
+        return;
+    }
+    log->count++;
+    log->x = x;
+    log->y = y;
+}
+
 TEST(os_window, top_level_open_close_api)
 {
     lh_os_app_t app{};
@@ -152,6 +174,20 @@ TEST(os_window, close_parent_closes_modal_child)
     lh_os_window_deinit(lh_addr_of(child));
     lh_os_window_deinit(lh_addr_of(parent));
     lh_os_app_deinit(lh_addr_of(app));
+}
+
+TEST(os_window, on_native_click_fires_callback)
+{
+    lh_os_window_t window{};
+    ClickLog log{};
+
+    lh_os_window_init(lh_addr_of(window));
+    lh_os_window_set_on_click(lh_addr_of(window), on_click, lh_addr_of(log));
+    lh_os_window_on_native_click(lh_addr_of(window), 12, 34);
+    EXPECT_EQ(log.count, 1);
+    EXPECT_EQ(log.x, 12);
+    EXPECT_EQ(log.y, 34);
+    lh_os_window_deinit(lh_addr_of(window));
 }
 
 } // namespace
