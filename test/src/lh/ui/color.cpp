@@ -15,6 +15,15 @@ TEST(ui_color, make_holds_channels)
     EXPECT_EQ(lh_ui_color_get_a(lh_addr_of(c)), 4);
 }
 
+TEST(ui_color, make_hex_is_rrggbbaa)
+{
+    const lh_ui_color_t c = lh_ui_color_make_hex(0x11558880u);
+    EXPECT_EQ(lh_ui_color_get_r(lh_addr_of(c)), 0x11);
+    EXPECT_EQ(lh_ui_color_get_g(lh_addr_of(c)), 0x55);
+    EXPECT_EQ(lh_ui_color_get_b(lh_addr_of(c)), 0x88);
+    EXPECT_EQ(lh_ui_color_get_a(lh_addr_of(c)), 0x80);
+}
+
 TEST(ui_color, init_holds_channels)
 {
     lh_ui_color_t c;
@@ -23,6 +32,16 @@ TEST(ui_color, init_holds_channels)
     EXPECT_EQ(lh_ui_color_get_g(lh_addr_of(c)), 2);
     EXPECT_EQ(lh_ui_color_get_b(lh_addr_of(c)), 3);
     EXPECT_EQ(lh_ui_color_get_a(lh_addr_of(c)), 4);
+}
+
+TEST(ui_color, init_hex_is_rrggbbaa)
+{
+    lh_ui_color_t c;
+    lh_ui_color_init_hex(lh_addr_of(c), 0xAABBCCFFU);
+    EXPECT_EQ(lh_ui_color_get_r(lh_addr_of(c)), 0xAA);
+    EXPECT_EQ(lh_ui_color_get_g(lh_addr_of(c)), 0xBB);
+    EXPECT_EQ(lh_ui_color_get_b(lh_addr_of(c)), 0xCC);
+    EXPECT_EQ(lh_ui_color_get_a(lh_addr_of(c)), 0xFF);
 }
 
 TEST(ui_color, setters)

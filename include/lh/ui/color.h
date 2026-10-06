@@ -9,20 +9,20 @@
 #ifndef LH_UI_COLOR_H
 #define LH_UI_COLOR_H
 
-#include <lh/byte.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/types.h>
+#include <lh/ui/color/channels.h>
 #include <lh/ui/color/fields.h>
 #include <lh/void.h>
 
 /**
  * @struct lh_ui_color
  * @typedef lh_ui_color_t
- * @brief 8-bit RGBA. Alpha at the top of the byte is opaque.
+ * @brief 8-bit RGBA. Alpha at the top of the channel is opaque.
  */
 struct lh_ui_color
 {
-    lh_ui_color_fields(lh_byte_t);
+    lh_ui_color_fields(lh_ui_color_channel_t);
 };
 typedef struct lh_ui_color lh_ui_color_t;
 
@@ -34,63 +34,77 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Make a `::lh_ui_color_t` from channels in `0..255`.
  */
 lh_ui_color_t
-lh_ui_color_make(lh_byte_t r, lh_byte_t g, lh_byte_t b, lh_byte_t a);
+lh_ui_color_make(lh_ui_color_channel_t r, lh_ui_color_channel_t g, lh_ui_color_channel_t b,
+                 lh_ui_color_channel_t a);
+
+/**
+ * @brief Make a `::lh_ui_color_t` from @p hex as `0xRRGGBBAA`.
+ */
+lh_ui_color_t
+lh_ui_color_make_hex(lh_uint_t hex);
 
 /**
  * @brief Fill @p self from channels in `0..255`.
  */
 lh_void
-lh_ui_color_init(lh_ui_color_t *self, lh_byte_t r, lh_byte_t g, lh_byte_t b, lh_byte_t a);
+lh_ui_color_init(lh_ui_color_t *self, lh_ui_color_channel_t r, lh_ui_color_channel_t g,
+                 lh_ui_color_channel_t b, lh_ui_color_channel_t a);
+
+/**
+ * @brief Fill @p self from @p hex as `0xRRGGBBAA`.
+ */
+lh_void
+lh_ui_color_init_hex(lh_ui_color_t *self, lh_uint_t hex);
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
 /**
  * @brief Red of @p self.
  */
-lh_byte_t
+lh_ui_color_channel_t
 lh_ui_color_get_r(const lh_ui_color_t *self);
 
 /**
  * @brief Green of @p self.
  */
-lh_byte_t
+lh_ui_color_channel_t
 lh_ui_color_get_g(const lh_ui_color_t *self);
 
 /**
  * @brief Blue of @p self.
  */
-lh_byte_t
+lh_ui_color_channel_t
 lh_ui_color_get_b(const lh_ui_color_t *self);
 
 /**
  * @brief Alpha of @p self.
  */
-lh_byte_t
+lh_ui_color_channel_t
 lh_ui_color_get_a(const lh_ui_color_t *self);
 
 /**
  * @brief Set the red channel of @p self.
  */
 lh_void
-lh_ui_color_set_r(lh_ui_color_t *self, lh_byte_t r);
+lh_ui_color_set_r(lh_ui_color_t *self, lh_ui_color_channel_t r);
 
 /**
  * @brief Set the green channel of @p self.
  */
 lh_void
-lh_ui_color_set_g(lh_ui_color_t *self, lh_byte_t g);
+lh_ui_color_set_g(lh_ui_color_t *self, lh_ui_color_channel_t g);
 
 /**
  * @brief Set the blue channel of @p self.
  */
 lh_void
-lh_ui_color_set_b(lh_ui_color_t *self, lh_byte_t b);
+lh_ui_color_set_b(lh_ui_color_t *self, lh_ui_color_channel_t b);
 
 /**
  * @brief Set the alpha channel of @p self.
  */
 lh_void
-lh_ui_color_set_a(lh_ui_color_t *self, lh_byte_t a);
+lh_ui_color_set_a(lh_ui_color_t *self, lh_ui_color_channel_t a);
 
 /* ── Blend ───────────────────────────────────────────────────────────────── */
 
