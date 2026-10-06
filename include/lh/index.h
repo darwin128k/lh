@@ -1,44 +1,16 @@
 /**
  * @file index.h
  * @brief Element index aliases ::lh_sindex_t / ::lh_uindex_t.
+ *
+ * Limits (::LH_SINDEX_T_MIN, ::LH_SINDEX_T_MAX, ::LH_SINDEX_T_SIZE,
+ * ::LH_UINDEX_T_MIN, ::LH_UINDEX_T_MAX, ::LH_UINDEX_T_SIZE,
+ * ::LH_INDEX_T_SIZE) live in <lh/index/limits.h>.
  */
 
 #ifndef LH_INDEX_H
 #define LH_INDEX_H
 
 #include <lh/size.h>
-
-#ifndef LH_SINDEX_T_MIN
-/**
- * @def LH_SINDEX_T_MIN
- * @brief Minimum value of ::lh_sindex_t (alias of ::lh_ssize_t lower bound).
- */
-#    define LH_SINDEX_T_MIN LH_SSIZE_T_MIN
-#endif /* LH_SINDEX_T_MIN */
-
-#ifndef LH_SINDEX_T_MAX
-/**
- * @def LH_SINDEX_T_MAX
- * @brief Maximum value of ::lh_sindex_t (alias of ::lh_ssize_t upper bound).
- */
-#    define LH_SINDEX_T_MAX LH_SSIZE_T_MAX
-#endif /* LH_SINDEX_T_MAX */
-
-#ifndef LH_UINDEX_T_MIN
-/**
- * @def LH_UINDEX_T_MIN
- * @brief Minimum value of ::lh_uindex_t (alias of ::lh_usize_t lower bound).
- */
-#    define LH_UINDEX_T_MIN LH_USIZE_T_MIN
-#endif /* LH_UINDEX_T_MIN */
-
-#ifndef LH_UINDEX_T_MAX
-/**
- * @def LH_UINDEX_T_MAX
- * @brief Maximum value of ::lh_uindex_t (alias of ::lh_usize_t upper bound).
- */
-#    define LH_UINDEX_T_MAX LH_USIZE_T_MAX
-#endif /* LH_UINDEX_T_MAX */
 
 /**
  * @typedef lh_sindex_t

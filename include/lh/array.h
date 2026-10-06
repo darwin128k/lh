@@ -17,6 +17,7 @@
 #include <lh/array/cb.h>
 #include <lh/array/fields.h>
 #include <lh/index.h>
+#include <lh/index/limits.h>
 #include <lh/memory/typed/allocated.h>
 
 /**

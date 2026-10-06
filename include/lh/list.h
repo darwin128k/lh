@@ -25,6 +25,7 @@
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/index.h>
+#include <lh/index/limits.h>
 #include <lh/list/cb.h>
 #include <lh/list/fields.h>
 #include <lh/list/node.h>

@@ -25,6 +25,7 @@
 #include <lh/str/view/initializer.h>
 #include <lh/char.h>
 #include <lh/size.h>
+#include <lh/size/limits.h>
 #include <lh/offset.h>
 #include <lh/bool.h>
 

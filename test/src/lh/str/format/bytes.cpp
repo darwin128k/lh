@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include <lh/size/limits.h>
 #include <lh/str/format/bytes.h>
 
 namespace

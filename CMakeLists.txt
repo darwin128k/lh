@@ -98,10 +98,13 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/math/rect/scalar.c
         ${LH_LIB_SRC_PATH}/math/rect3.c
 
+        ${LH_LIB_SRC_PATH}/ui/color.c
+
         ${LH_LIB_SRC_PATH}/entity.c
         ${LH_LIB_SRC_PATH}/entity/class.c
         ${LH_LIB_SRC_PATH}/entity/event.c
         ${LH_LIB_SRC_PATH}/entity/label.c
+
 
         ${LH_LIB_SRC_PATH}/version.c
         ${LH_LIB_SRC_PATH}/date.c

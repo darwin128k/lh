@@ -13,6 +13,7 @@
 
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
+#include <lh/size/limits.h>
 #include <lh/bool.h>
 #include <lh/wstr/ptr.h>
 #include <lh/util/array/ptr.h>

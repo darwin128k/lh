@@ -22,6 +22,7 @@
 
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
+#include <lh/size/limits.h>
 #include <lh/str/ptr.h>
 
 #include <stdarg.h>

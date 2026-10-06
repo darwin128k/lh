@@ -15,6 +15,7 @@
 #include <lh/compiler/arch.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/numeric/fixed/limits.h>
+#include <lh/util/type.h>
 
 #if LH_COMPILER_ARCH == LH_COMPILER_ARCH_64
 
@@ -205,5 +206,33 @@ typedef lh_schar_t lh_saddr_t;
 #    error "LH_COMPILER_ARCH must be 8, 16, 32, or 64 for lh/addr.h"
 
 #endif
+
+#ifndef LH_ADDR_T_SIZE
+/**
+ * @def LH_ADDR_T_SIZE
+ * @brief Size in bytes of ::lh_uaddr_t and ::lh_saddr_t.
+ */
+#    define LH_ADDR_T_SIZE lh_type_size(lh_uaddr_t)
+#endif /* LH_ADDR_T_SIZE */
+
+#ifndef LH_UADDR_T_SIZE
+/**
+ * @def LH_UADDR_T_SIZE
+ * @brief Size of ::lh_uaddr_t in bytes.
+ *
+ * Expands to ::LH_ADDR_T_SIZE.
+ */
+#    define LH_UADDR_T_SIZE LH_ADDR_T_SIZE
+#endif /* LH_UADDR_T_SIZE */
+
+#ifndef LH_SADDR_T_SIZE
+/**
+ * @def LH_SADDR_T_SIZE
+ * @brief Size of ::lh_saddr_t in bytes.
+ *
+ * Expands to ::LH_ADDR_T_SIZE.
+ */
+#    define LH_SADDR_T_SIZE LH_ADDR_T_SIZE
+#endif /* LH_SADDR_T_SIZE */
 
 #endif /* LH_ADDR_H */

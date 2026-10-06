@@ -6,6 +6,7 @@
 #include <lh/util/swap.h>
 #include <lh/memory/raw.h>
 #include <lh/assert.h>
+#include <lh/offset/limits.h>
 
 const lh_ptr
 lh_memory_view_slice_get_begin(const lh_memory_view_slice_t *self)

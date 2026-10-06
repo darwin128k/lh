@@ -12,6 +12,7 @@
 
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
+#include <lh/size/limits.h>
 #include <lh/bool.h>
 #include <lh/null.h>
 #include <lh/str/ptr.h>
