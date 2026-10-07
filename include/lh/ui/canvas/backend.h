@@ -13,6 +13,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 #include <lh/ui/canvas/backend/fields.h>
+#include <lh/ui/canvas/clip.h>
 #include <lh/ui/color.h>
 #include <lh/ui/mask.h>
 #include <lh/ui/point.h>
@@ -61,13 +62,15 @@ typedef lh_bool_t(lh_ui_canvas_fill_round_rect_fn)(lh_ptr context, const lh_ui_r
 
 /**
  * @typedef lh_ui_canvas_set_clip_fn
- * @brief Cut every later primitive to @p clip, in target space.
+ * @brief Cut every later primitive to @p clip, in target space: its rect,
+ *        and the rounded cuts on it (::lh_ui_canvas_clip_coverage).
  *
- * ::lh_null removes the cut. An empty @p clip cuts everything away. The
+ * ::lh_null removes the cut. An empty clip rect cuts everything away. The
  * canvas calls it from ::lh_ui_canvas_push and ::lh_ui_canvas_pop whenever
- * the clip changes; primitives then arrive uncut.
+ * the clip changes; primitives then arrive uncut. The rounds @p clip points
+ * at belong to the canvas and stay valid until the next call.
  */
-typedef lh_void(lh_ui_canvas_set_clip_fn)(lh_ptr context, const lh_ui_rect_t *clip);
+typedef lh_void(lh_ui_canvas_set_clip_fn)(lh_ptr context, const lh_ui_canvas_clip_t *clip);
 
 /**
  * @typedef lh_ui_canvas_fill_mask_fn

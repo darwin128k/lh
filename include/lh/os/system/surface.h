@@ -1,6 +1,6 @@
 /**
  * @file surface.h
- * @brief Kernel off-screen surface: create, size, draw target, present.
+ * @brief Kernel off-screen surface: create, size, pixels, present.
  *
  * The only place that talks to `CreateCompatibleDC` / `CreateDIBSection` /
  * `BitBlt` / `DeleteDC` (Windows). One contract on every platform; the
@@ -51,13 +51,6 @@ lh_os_system_surface_get_width(lh_os_system_surface_handle_t handle);
  */
 int
 lh_os_system_surface_get_height(lh_os_system_surface_handle_t handle);
-
-/**
- * @brief Platform draw target for @p handle (Win32: memory `HDC`), or
- *        ::lh_null when invalid.
- */
-lh_ptr
-lh_os_system_surface_get_draw_target(lh_os_system_surface_handle_t handle);
 
 /**
  * @brief The pixels of @p handle: `height` top-down rows of `width` 32-bit

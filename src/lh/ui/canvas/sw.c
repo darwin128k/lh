@@ -31,6 +31,7 @@ lh_ui_canvas_sw_set_pixmap(lh_ui_canvas_sw_t *self, const lh_ui_pixmap_t *pixmap
     lh_assert_runtime_ref(pixmap);
     self->pixmap = *pixmap;
     self->limit = lh_ui_pixmap_get_bounds(pixmap);
+    lh_ui_canvas_clip_init_empty(lh_addr_of(self->clip));
 }
 
 const lh_ui_pixmap_t *
@@ -45,6 +46,13 @@ lh_ui_canvas_sw_get_limit(const lh_ui_canvas_sw_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->limit;
+}
+
+lh_bool_t
+lh_ui_canvas_sw_is_rounded(const lh_ui_canvas_sw_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_ui_canvas_clip_get_round_count(lh_addr_of(self->clip)) > 0U ? lh_bool_true : lh_bool_false;
 }
 
 lh_ui_canvas_sw_t *
@@ -82,13 +90,66 @@ lh_ui_canvas_sw_cut_y1(const lh_ui_canvas_sw_t *self, lh_s32_t y)
     return lh_math_min(y, lh_ui_canvas_round_bottom(lh_addr_of(self->limit)));
 }
 
-/* ── Rows ────────────────────────────────────────────────────────────────── */
+/* ── Pixels and rows ─────────────────────────────────────────────────────── */
+
+lh_void
+lh_ui_canvas_sw_clip_pixel(lh_ui_canvas_sw_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color)
+{
+    const lh_byte_t kept = lh_ui_canvas_clip_coverage(lh_addr_of(self->clip), x, y);
+    const lh_ui_color_t edge = lh_ui_color_with_coverage(color, kept);
+
+    lh_return_if(kept == 0U);
+    lh_ui_pixmap_blend_pixel(lh_addr_of(self->pixmap), x, y, kept == 255U ? color : lh_addr_of(edge));
+}
+
+lh_void
+lh_ui_canvas_sw_clip_pixels(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                            const lh_ui_color_t *color)
+{
+    for (; x0 < x1; ++x0)
+    {
+        lh_ui_canvas_sw_clip_pixel(self, x0, y, color);
+    }
+}
+
+lh_void
+lh_ui_canvas_sw_cover_pixel(lh_ui_canvas_sw_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color,
+                            lh_byte_t coverage)
+{
+    const lh_ui_color_t edge = lh_ui_color_with_coverage(color, coverage);
+
+    lh_return_if(coverage == 0U);
+    if (lh_ui_canvas_sw_is_rounded(self))
+    {
+        lh_ui_canvas_sw_clip_pixel(self, x, y, coverage == 255U ? color : lh_addr_of(edge));
+        return;
+    }
+    lh_ui_pixmap_cover_pixel(lh_addr_of(self->pixmap), x, y, color, coverage);
+}
 
 lh_void
 lh_ui_canvas_sw_fill_span(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
 {
-    lh_ui_pixmap_fill_span(lh_addr_of(self->pixmap), lh_ui_canvas_sw_cut_x0(self, x0),
-                           lh_ui_canvas_sw_cut_x1(self, x1), y, color);
+    lh_s32_t mid0;
+    lh_s32_t mid1;
+
+    x0 = lh_ui_canvas_sw_cut_x0(self, x0);
+    x1 = lh_ui_canvas_sw_cut_x1(self, x1);
+    lh_ui_canvas_clip_split_row(lh_addr_of(self->clip), x0, lh_math_max(x0, x1), y, lh_addr_of(mid0),
+                                lh_addr_of(mid1));
+    lh_ui_canvas_sw_clip_pixels(self, x0, mid0, y, color);
+    lh_ui_pixmap_fill_span(lh_addr_of(self->pixmap), mid0, mid1, y, color);
+    lh_ui_canvas_sw_clip_pixels(self, mid1, x1, y, color);
+}
+
+lh_void
+lh_ui_canvas_sw_fill_rows(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t y0, lh_s32_t x1, lh_s32_t y1,
+                          const lh_ui_color_t *color)
+{
+    for (; y0 < y1; ++y0)
+    {
+        lh_ui_canvas_sw_fill_span(self, x0, x1, y0, color);
+    }
 }
 
 lh_void
@@ -100,47 +161,21 @@ lh_ui_canvas_sw_cover_span(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh
     x1 = lh_ui_canvas_sw_cut_x1(self, x1);
     for (x = lh_ui_canvas_sw_cut_x0(self, x0); x < x1; ++x)
     {
-        lh_ui_pixmap_cover_pixel(lh_addr_of(self->pixmap), x, y, color, lh_ui_radius_coverage(rect, radius, x, y));
+        lh_ui_canvas_sw_cover_pixel(self, x, y, color, lh_ui_radius_coverage(rect, radius, x, y));
     }
-}
-
-lh_bool_t
-lh_ui_canvas_sw_is_corner_row(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y)
-{
-    const lh_s32_t top = lh_ui_canvas_round_top(rect);
-    const lh_s32_t bottom = lh_ui_canvas_round_bottom(rect);
-    const lh_s32_t zone = lh_ui_scalar_ceil_s32(radius);
-
-    return y < lh_ui_canvas_round_near_end(top, bottom, zone) ||
-                   y >= lh_ui_canvas_round_far_start(top, bottom, zone)
-               ? lh_bool_true
-               : lh_bool_false;
-}
-
-lh_void
-lh_ui_canvas_sw_corner_row(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y,
-                           const lh_ui_color_t *color)
-{
-    const lh_s32_t left = lh_ui_canvas_round_left(rect);
-    const lh_s32_t right = lh_ui_canvas_round_right(rect);
-    const lh_s32_t near_end = lh_ui_canvas_round_near_end(left, right, lh_ui_scalar_ceil_s32(radius));
-    const lh_s32_t far_start = lh_ui_canvas_round_far_start(left, right, lh_ui_scalar_ceil_s32(radius));
-
-    lh_ui_canvas_sw_cover_span(self, rect, radius, left, near_end, y, color);
-    lh_ui_canvas_sw_fill_span(self, near_end, far_start, y, color);
-    lh_ui_canvas_sw_cover_span(self, rect, radius, far_start, right, y, color);
 }
 
 lh_void
 lh_ui_canvas_sw_round_row(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y,
                           const lh_ui_color_t *color)
 {
-    if (lh_ui_canvas_sw_is_corner_row(rect, radius, y))
-    {
-        lh_ui_canvas_sw_corner_row(self, rect, radius, y, color);
-        return;
-    }
-    lh_ui_canvas_sw_fill_span(self, lh_ui_canvas_round_left(rect), lh_ui_canvas_round_right(rect), y, color);
+    lh_s32_t full0;
+    lh_s32_t full1;
+
+    lh_ui_canvas_round_full_span(rect, radius, y, lh_addr_of(full0), lh_addr_of(full1));
+    lh_ui_canvas_sw_cover_span(self, rect, radius, lh_ui_canvas_round_left(rect), full0, y, color);
+    lh_ui_canvas_sw_fill_span(self, full0, full1, y, color);
+    lh_ui_canvas_sw_cover_span(self, rect, radius, full1, lh_ui_canvas_round_right(rect), y, color);
 }
 
 lh_void
@@ -152,8 +187,7 @@ lh_ui_canvas_sw_mask_row(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_s
 
     for (x = lh_ui_canvas_sw_cut_x0(self, x0); x < x1; ++x)
     {
-        lh_ui_pixmap_cover_pixel(lh_addr_of(self->pixmap), x, y, color,
-                                 lh_ui_mask_get_coverage(mask, x - x0, y - y0));
+        lh_ui_canvas_sw_cover_pixel(self, x, y, color, lh_ui_mask_get_coverage(mask, x - x0, y - y0));
     }
 }
 
@@ -169,11 +203,17 @@ lh_void
 lh_ui_canvas_sw_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *color)
 {
     lh_ui_canvas_sw_t *self = lh_ui_canvas_sw_from(context);
+    const lh_s32_t x0 = lh_ui_canvas_sw_cut_x0(self, lh_ui_canvas_round_left(rect));
+    const lh_s32_t y0 = lh_ui_canvas_sw_cut_y0(self, lh_ui_canvas_round_top(rect));
+    const lh_s32_t x1 = lh_ui_canvas_sw_cut_x1(self, lh_ui_canvas_round_right(rect));
+    const lh_s32_t y1 = lh_ui_canvas_sw_cut_y1(self, lh_ui_canvas_round_bottom(rect));
 
-    lh_ui_pixmap_fill_box(lh_addr_of(self->pixmap), lh_ui_canvas_sw_cut_x0(self, lh_ui_canvas_round_left(rect)),
-                          lh_ui_canvas_sw_cut_y0(self, lh_ui_canvas_round_top(rect)),
-                          lh_ui_canvas_sw_cut_x1(self, lh_ui_canvas_round_right(rect)),
-                          lh_ui_canvas_sw_cut_y1(self, lh_ui_canvas_round_bottom(rect)), color);
+    if (lh_ui_canvas_sw_is_rounded(self))
+    {
+        lh_ui_canvas_sw_fill_rows(self, x0, y0, x1, y1, color);
+        return;
+    }
+    lh_ui_pixmap_fill_box(lh_addr_of(self->pixmap), x0, y0, x1, y1, color);
 }
 
 lh_bool_t
@@ -192,12 +232,16 @@ lh_ui_canvas_sw_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_
 }
 
 lh_void
-lh_ui_canvas_sw_set_clip(lh_ptr context, const lh_ui_rect_t *clip)
+lh_ui_canvas_sw_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip)
 {
     lh_ui_canvas_sw_t *self = lh_ui_canvas_sw_from(context);
     const lh_ui_rect_t bounds = lh_ui_pixmap_get_bounds(lh_addr_of(self->pixmap));
 
-    self->limit = lh_null_eq(clip) ? bounds : lh_ui_rect_intersection(lh_addr_of(bounds), clip);
+    lh_ui_canvas_clip_init_empty(lh_addr_of(self->clip));
+    self->limit = bounds;
+    lh_return_if(lh_null_eq(clip));
+    self->clip = *clip;
+    self->limit = lh_ui_rect_intersection(lh_addr_of(bounds), lh_ui_canvas_clip_get_rect(clip));
 }
 
 lh_bool_t

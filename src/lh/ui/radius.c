@@ -57,6 +57,12 @@ lh_ui_radius_cover_from_distance(lh_s64_t r, lh_s64_t d)
 }
 
 lh_byte_t
+lh_ui_radius_scale(lh_byte_t a, lh_byte_t b)
+{
+    return lh_cast_static(lh_byte_t, (lh_cast_static(lh_u32_t, a) * b + 127U) / 255U);
+}
+
+lh_byte_t
 lh_ui_radius_cover_from_square(lh_s64_t r, lh_s64_t d2)
 {
     const lh_s64_t inner = r - LH_UI_RADIUS_SUBPIXEL / 2;

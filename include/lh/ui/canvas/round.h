@@ -61,6 +61,28 @@ lh_s32_t
 lh_ui_canvas_round_far_start(lh_s32_t a, lh_s32_t b, lh_s32_t zone);
 
 /**
+ * @brief True when row @p y of @p rect crosses a corner of @p radius (top or
+ *        bottom band): its ends need coverage.
+ */
+lh_bool_t
+lh_ui_canvas_round_is_corner_row(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y);
+
+/**
+ * @brief True when row @p y lies between the top and bottom pixel rows of @p rect.
+ */
+lh_bool_t
+lh_ui_canvas_round_has_row(const lh_ui_rect_t *rect, lh_s32_t y);
+
+/**
+ * @brief The pixels `*x0 .. *x1 - 1` of row @p y wholly inside the rounded
+ *        @p rect: the whole row in the straight middle, between the corner
+ *        zones in a corner band, none outside the rect's rows. Every pixel in
+ *        it has ::lh_ui_radius_coverage `255`.
+ */
+lh_void
+lh_ui_canvas_round_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y, lh_s32_t *x0, lh_s32_t *x1);
+
+/**
  * @brief Fill the pixel box (@p x, @p y, @p w, @p h); an empty box sends nothing.
  */
 lh_void

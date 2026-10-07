@@ -20,6 +20,7 @@
 #include <lh/numeric/fixed/types.h>
 #include <lh/ptr.h>
 #include <lh/ui/canvas/backend.h>
+#include <lh/ui/canvas/clip.h>
 #include <lh/ui/canvas/fields.h>
 #include <lh/ui/canvas/state.h>
 #include <lh/ui/color.h>
@@ -37,7 +38,7 @@
 struct lh_ui_canvas
 {
     lh_ui_canvas_fields(lh_ui_canvas_backend_t, lh_ptr, lh_ui_canvas_state_t, lh_u8_t, lh_ui_size_t,
-                        lh_ui_rect_t, lh_bool_t);
+                        lh_ui_rect_t, lh_bool_t, lh_ui_canvas_clip_round_t);
 };
 typedef struct lh_ui_canvas lh_ui_canvas_t;
 
@@ -137,6 +138,37 @@ lh_void
 lh_ui_canvas_push(lh_ui_canvas_t *self, lh_ui_point_t offset_delta, const lh_ui_rect_t *clip_rect);
 
 /**
+ * @brief ::lh_ui_canvas_push that also cuts later draws to @p clip_rect with
+ *        rounded corners of @p radius (clamped to it, ::lh_ui_radius_clamp),
+ *        on top of every rounded cut already pushed.
+ *
+ * Radius `0` or a ::lh_null @p clip_rect is a plain ::lh_ui_canvas_push.
+ */
+lh_void
+lh_ui_canvas_push_round(lh_ui_canvas_t *self, lh_ui_point_t offset_delta, const lh_ui_rect_t *clip_rect,
+                        lh_ui_scalar_t radius);
+
+/**
+ * @brief Add the rounded cut @p clip_rect (pre-offset space) with @p radius to
+ *        the current state; nothing for ::lh_null or radius `<= 0`.
+ */
+lh_void
+lh_ui_canvas_add_round(lh_ui_canvas_t *self, const lh_ui_rect_t *clip_rect, lh_ui_scalar_t radius);
+
+/**
+ * @brief The current clip of @p self as @p out (rect and active rounds), or
+ *        ::lh_null when nothing is cut.
+ */
+const lh_ui_canvas_clip_t *
+lh_ui_canvas_describe_clip(const lh_ui_canvas_t *self, lh_ui_canvas_clip_t *out);
+
+/**
+ * @brief How many rounded cuts are active.
+ */
+lh_u32_t
+lh_ui_canvas_get_round_count(const lh_ui_canvas_t *self);
+
+/**
  * @brief Restore the offset and clip saved by the matching ::lh_ui_canvas_push.
  *
  * Popping with nothing pushed fails a runtime assertion.
@@ -205,6 +237,57 @@ lh_ui_canvas_end(lh_ui_canvas_t *self);
  */
 lh_void
 lh_ui_canvas_clear(lh_ui_canvas_t *self, const lh_ui_color_t *color);
+
+/**
+ * @brief Send the one-row box `x0 .. x1 - 1` of row @p y to the backend
+ *        `fill_rect` as is (no offset, no cut); nothing when empty.
+ */
+lh_void
+lh_ui_canvas_send_box(lh_ui_canvas_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
+
+/**
+ * @brief Send pixel (@p x, @p y) with @p color at its @p clip coverage
+ *        (::lh_ui_canvas_clip_coverage); nothing where it is `0`.
+ */
+lh_void
+lh_ui_canvas_send_clip_pixel(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x, lh_s32_t y,
+                             const lh_ui_color_t *color);
+
+/**
+ * @brief ::lh_ui_canvas_send_clip_pixel for `x0 .. x1 - 1` of row @p y.
+ */
+lh_void
+lh_ui_canvas_send_clip_pixels(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x0, lh_s32_t x1,
+                              lh_s32_t y, const lh_ui_color_t *color);
+
+/**
+ * @brief Row @p y of `x0 .. x1 - 1` under the rounded cuts of @p clip: the
+ *        middle as one box, the ends per pixel (::lh_ui_canvas_clip_split_row).
+ */
+lh_void
+lh_ui_canvas_send_clip_row(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x0, lh_s32_t x1,
+                           lh_s32_t y, const lh_ui_color_t *color);
+
+/**
+ * @brief ::lh_ui_canvas_send_clip_row for every row of @p cut (already cut to
+ *        the clip rect, target space).
+ */
+lh_void
+lh_ui_canvas_send_clip_rows(lh_ui_canvas_t *self, const lh_ui_rect_t *cut, const lh_ui_color_t *color);
+
+/**
+ * @brief Send @p cut (cut to the clip rect) when the canvas cuts itself: one
+ *        `fill_rect`, or rows under the rounded cuts when there are any.
+ */
+lh_void
+lh_ui_canvas_send_cut(lh_ui_canvas_t *self, const lh_ui_rect_t *cut, const lh_ui_color_t *color);
+
+/**
+ * @brief True when a slot may draw @p target whole: the backend clips, or
+ *        @p target lies inside a plain (unrounded) clip rect.
+ */
+lh_bool_t
+lh_ui_canvas_can_send_whole(const lh_ui_canvas_t *self, const lh_ui_rect_t *target);
 
 /**
  * @brief Fill a rect already in target space: cut to the clip when the canvas

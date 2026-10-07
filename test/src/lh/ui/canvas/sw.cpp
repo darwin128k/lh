@@ -2,14 +2,19 @@
 
 #include <lh/null.h>
 #include <lh/ui/canvas.h>
+#include <lh/ui/canvas/clip.h>
 #include <lh/ui/canvas/mask.h>
 #include <lh/ui/canvas/sw.h>
 #include <lh/ui/color.h>
+#include <lh/ui/entity.h>
+#include <lh/ui/entity/container.h>
 #include <lh/ui/mask.h>
+#include <lh/ui/paint.h>
 #include <lh/ui/pixmap.h>
 #include <lh/ui/point.h>
 #include <lh/ui/radius.h>
 #include <lh/ui/rect.h>
+#include <lh/ui/style.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 
@@ -337,4 +342,209 @@ TEST(ui_canvas_sw, rgb565_round_rect_and_mask_match_the_canvas_fallback)
         }
     }
     EXPECT_EQ(sw.at(11, 11) >> 16, 0u); /* 16-bit words */
+}
+
+/* ── Rounded clip ────────────────────────────────────────────────────────── */
+
+namespace
+{
+
+void
+push_round_clip(sw_fixture &f, int x, int y, int w, int h, int radius)
+{
+    lh_ui_rect_t clip;
+    lh_ui_point_t zero;
+    lh_ui_rect_init(lh_addr_of(clip), x, y, w, h);
+    lh_ui_point_init(lh_addr_of(zero), 0, 0);
+    lh_ui_canvas_push_round(lh_addr_of(f.canvas), zero, lh_addr_of(clip), lh_ui_scalar(radius));
+}
+
+/* Draw every primitive kind on @p f under its current clip. */
+void
+draw_everything(sw_fixture &f)
+{
+    const lh_ui_color_t opaque = color_of(200, 100, 50, 255);
+    const lh_ui_color_t half = color_of(10, 220, 90, 140);
+    const lh_ui_rect_t all = rect_of(0, 0, side, side);
+    const lh_ui_rect_t round = rect_of(2, 1, 19, 20);
+    const lh_ui_mask_t mask = glyph();
+    lh_ui_point_t at;
+
+    lh_ui_point_init(lh_addr_of(at), 1, 2);
+    lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(all), lh_addr_of(opaque));
+    lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(all), lh_addr_of(half));
+    lh_ui_canvas_fill_round_rect(lh_addr_of(f.canvas), lh_addr_of(round), lh_ui_scalar(6), lh_addr_of(half));
+    lh_ui_canvas_fill_mask(lh_addr_of(f.canvas), lh_addr_of(mask), at, lh_addr_of(opaque));
+}
+
+} // namespace
+
+TEST(ui_canvas_clip, coverage_is_the_product_of_the_rounds)
+{
+    lh_ui_canvas_clip_round_t rounds[2];
+    lh_ui_canvas_clip_t clip;
+    const lh_ui_rect_t a = rect_of(0, 0, 20, 20);
+    const lh_ui_rect_t b = rect_of(2, 2, 20, 20);
+
+    lh_ui_canvas_clip_round_init(rounds + 0, &a, lh_ui_scalar(8));
+    lh_ui_canvas_clip_round_init(rounds + 1, &b, lh_ui_scalar(8));
+    lh_ui_canvas_clip_init(lh_addr_of(clip), &a, rounds, 2U);
+    for (int y = 0; y < 22; ++y)
+    {
+        for (int x = 0; x < 22; ++x)
+        {
+            const lh_byte_t want = lh_ui_radius_scale(lh_ui_radius_coverage(&a, lh_ui_scalar(8), x, y),
+                                                      lh_ui_radius_coverage(&b, lh_ui_scalar(8), x, y));
+            ASSERT_EQ(lh_ui_canvas_clip_coverage(lh_addr_of(clip), x, y), want) << x << "," << y;
+        }
+    }
+}
+
+/* The middle a row is split into must be wholly inside: coverage 255. */
+TEST(ui_canvas_clip, split_row_middle_is_fully_covered)
+{
+    lh_ui_canvas_clip_round_t rounds[2];
+    lh_ui_canvas_clip_t clip;
+    const lh_ui_rect_t a = rect_of(1, 0, 20, 21);
+    const lh_ui_rect_t b = rect_of(4, 3, 17, 15);
+
+    lh_ui_canvas_clip_round_init(rounds + 0, &a, lh_ui_scalar(9));
+    lh_ui_canvas_clip_round_init(rounds + 1, &b, LH_UI_RADIUS_CIRCLE);
+    lh_ui_canvas_clip_init(lh_addr_of(clip), &b, rounds, 2U);
+    for (int y = -1; y < 23; ++y)
+    {
+        lh_s32_t mid0;
+        lh_s32_t mid1;
+        lh_ui_canvas_clip_split_row(lh_addr_of(clip), -2, 24, y, &mid0, &mid1);
+        ASSERT_LE(-2, mid0);
+        ASSERT_LE(mid0, mid1);
+        ASSERT_LE(mid1, 24);
+        for (int x = mid0; x < mid1; ++x)
+        {
+            ASSERT_EQ(lh_ui_canvas_clip_coverage(lh_addr_of(clip), x, y), 255) << x << "," << y;
+        }
+    }
+}
+
+TEST(ui_canvas_sw, rounded_clip_alpha_is_the_clip_coverage)
+{
+    sw_fixture f;
+    const lh_ui_color_t c = color_of(10, 20, 30, 255);
+    const lh_ui_rect_t all = rect_of(0, 0, side, side);
+    const lh_ui_rect_t clip = rect_of(3, 2, 18, 16);
+    const lh_ui_scalar_t radius = lh_ui_radius_clamp(&clip, lh_ui_scalar(7));
+
+    push_round_clip(f, 3, 2, 18, 16, 7);
+    lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(all), lh_addr_of(c));
+    lh_ui_canvas_pop(lh_addr_of(f.canvas));
+
+    for (int y = 0; y < side; ++y)
+    {
+        for (int x = 0; x < side; ++x)
+        {
+            const int cover = lh_ui_radius_coverage(&clip, radius, x, y);
+            if (cover == 0)
+            {
+                EXPECT_EQ(f.at(x, y), sentinel) << x << "," << y;
+                continue;
+            }
+            EXPECT_EQ(f.alpha_at(x, y), cover) << x << "," << y;
+        }
+    }
+}
+
+TEST(ui_canvas_sw, rounded_clip_matches_the_canvas_fallback_for_every_primitive)
+{
+    const lh_ui_pixmap_format_t formats[] = {lh_ui_pixmap_format_argb8888, lh_ui_pixmap_format_rgb565};
+    for (lh_ui_pixmap_format_t format : formats)
+    {
+        sw_fixture sw(lh_addr_of(lh_ui_canvas_backend_sw), format);
+        sw_fixture fallback(&g_rect_only, format);
+
+        push_round_clip(sw, 2, 1, 20, 21, 8);
+        push_round_clip(fallback, 2, 1, 20, 21, 8);
+        draw_everything(sw);
+        draw_everything(fallback);
+
+        for (int y = 0; y < side; ++y)
+        {
+            for (int x = 0; x < side; ++x)
+            {
+                ASSERT_EQ(sw.at(x, y), fallback.at(x, y)) << format << " " << x << "," << y;
+            }
+        }
+    }
+}
+
+TEST(ui_canvas_sw, nested_rounded_clips_match_the_canvas_fallback)
+{
+    sw_fixture sw;
+    sw_fixture fallback(&g_rect_only);
+
+    push_round_clip(sw, 0, 0, 20, 20, 9);
+    push_round_clip(fallback, 0, 0, 20, 20, 9);
+    push_round_clip(sw, 4, 3, 19, 18, 6);
+    push_round_clip(fallback, 4, 3, 19, 18, 6);
+    draw_everything(sw);
+    draw_everything(fallback);
+
+    expect_same_pixels(sw, fallback);
+    /* Inside the inner clip, but in the bottom-right corner of the outer one: cut. */
+    EXPECT_EQ(sw.at(19, 19), sentinel);
+}
+
+TEST(ui_canvas_sw, pop_drops_the_rounded_cut)
+{
+    sw_fixture f;
+    const lh_ui_color_t c = color_of(1, 2, 3, 255);
+    const lh_ui_rect_t corner = rect_of(3, 2, 1, 1);
+
+    push_round_clip(f, 3, 2, 18, 16, 7);
+    EXPECT_EQ(lh_ui_canvas_get_round_count(lh_addr_of(f.canvas)), 1U);
+    lh_ui_canvas_pop(lh_addr_of(f.canvas));
+    EXPECT_EQ(lh_ui_canvas_get_round_count(lh_addr_of(f.canvas)), 0U);
+    EXPECT_FALSE(lh_ui_canvas_sw_is_rounded(lh_addr_of(f.sw)));
+
+    lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(corner), lh_addr_of(c));
+    EXPECT_EQ(f.at(3, 2), 0xff010203u);
+}
+
+TEST(ui_canvas_sw, radius_zero_push_is_a_plain_rect_clip)
+{
+    sw_fixture f;
+
+    push_round_clip(f, 3, 2, 18, 16, 0);
+    EXPECT_EQ(lh_ui_canvas_get_round_count(lh_addr_of(f.canvas)), 0U);
+    EXPECT_FALSE(lh_ui_canvas_sw_is_rounded(lh_addr_of(f.sw)));
+    lh_ui_canvas_pop(lh_addr_of(f.canvas));
+}
+
+/* A container with a corner radius cuts its children along the same corner. */
+TEST(ui_canvas_sw, container_cuts_its_children_along_its_corners)
+{
+    sw_fixture f;
+    lh_ui_color_t c = color_of(9, 9, 9, 255);
+    lh_ui_paint_t paint;
+    lh_ui_style_t box_style;
+    lh_ui_style_t child_style;
+    lh_ui_entity_container_t box;
+    lh_ui_entity_t child;
+    const lh_ui_rect_t box_rect = rect_of(2, 2, 20, 20);
+
+    lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(c));
+    lh_ui_style_init(lh_addr_of(box_style));
+    lh_ui_style_set_radius(lh_addr_of(box_style), lh_ui_scalar(8));
+    lh_ui_style_init(lh_addr_of(child_style));
+    lh_ui_style_set_fill(lh_addr_of(child_style), lh_addr_of(paint));
+    lh_ui_entity_container_init(lh_addr_of(box), box_rect);
+    lh_ui_entity_set_style(lh_ui_entity_container_as_entity(lh_addr_of(box)), lh_addr_of(box_style));
+    lh_ui_entity_init(lh_addr_of(child), rect_of(0, 0, side, side));
+    lh_ui_entity_set_style(lh_addr_of(child), lh_addr_of(child_style));
+    lh_ui_entity_add_child(lh_ui_entity_container_as_entity(lh_addr_of(box)), lh_addr_of(child));
+
+    lh_ui_entity_draw(lh_ui_entity_container_as_entity(lh_addr_of(box)), lh_addr_of(f.canvas));
+
+    EXPECT_EQ(f.at(2, 2), sentinel);     /* the cut corner */
+    EXPECT_EQ(f.at(12, 2), 0xff090909u); /* the straight top edge */
+    EXPECT_EQ(f.alpha_at(3, 5), lh_ui_radius_coverage(&box_rect, lh_ui_scalar(8), 3, 5));
 }

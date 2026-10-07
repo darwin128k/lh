@@ -27,9 +27,7 @@ lh_bool_t
 lh_ui_canvas_can_fill_mask(const struct lh_ui_canvas *self, const lh_ui_rect_t *target)
 {
     lh_return_if(lh_null_eq(self->backend) || lh_null_eq(self->backend->fill_mask), lh_bool_false);
-    return !lh_ui_canvas_is_cutting(self) || lh_ui_canvas_state_contains(lh_addr_of(self->state), target)
-               ? lh_bool_true
-               : lh_bool_false;
+    return lh_ui_canvas_can_send_whole(self, target);
 }
 
 lh_bool_t

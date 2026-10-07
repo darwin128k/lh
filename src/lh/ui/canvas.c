@@ -131,12 +131,30 @@ lh_ui_canvas_is_cutting(const lh_ui_canvas_t *self)
     return lh_null_eq(self->backend) || lh_null_eq(self->backend->set_clip) ? lh_bool_true : lh_bool_false;
 }
 
+const lh_ui_canvas_clip_t *
+lh_ui_canvas_describe_clip(const lh_ui_canvas_t *self, lh_ui_canvas_clip_t *out)
+{
+    lh_assert_runtime_ref(self);
+    lh_return_if(!self->state.clipped, lh_null);
+    lh_ui_canvas_clip_init(out, lh_addr_of(self->state.clip), self->rounds, self->state.round_count);
+    return out;
+}
+
+lh_u32_t
+lh_ui_canvas_get_round_count(const lh_ui_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->state.round_count;
+}
+
 lh_void
 lh_ui_canvas_send_clip(lh_ui_canvas_t *self)
 {
+    lh_ui_canvas_clip_t clip;
+
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(self->backend) || lh_null_eq(self->backend->set_clip));
-    self->backend->set_clip(self->context, lh_ui_canvas_state_get_clip(lh_addr_of(self->state)));
+    self->backend->set_clip(self->context, lh_ui_canvas_describe_clip(self, lh_addr_of(clip)));
 }
 
 lh_void
@@ -166,12 +184,31 @@ lh_ui_canvas_clip_to(lh_ui_canvas_t *self, const lh_ui_rect_t *clip_rect)
 }
 
 lh_void
-lh_ui_canvas_push(lh_ui_canvas_t *self, lh_ui_point_t offset_delta, const lh_ui_rect_t *clip_rect)
+lh_ui_canvas_add_round(lh_ui_canvas_t *self, const lh_ui_rect_t *clip_rect, lh_ui_scalar_t radius)
+{
+    lh_ui_rect_t target;
+
+    lh_return_if(lh_null_eq(clip_rect) || radius <= lh_ui_scalar(0));
+    target = lh_ui_canvas_state_to_target(lh_addr_of(self->state), clip_rect);
+    lh_ui_canvas_clip_round_init(self->rounds + self->state.round_count, lh_addr_of(target), radius);
+    ++self->state.round_count;
+}
+
+lh_void
+lh_ui_canvas_push_round(lh_ui_canvas_t *self, lh_ui_point_t offset_delta, const lh_ui_rect_t *clip_rect,
+                        lh_ui_scalar_t radius)
 {
     lh_ui_canvas_save(self);
+    lh_ui_canvas_add_round(self, clip_rect, radius);
     lh_ui_canvas_clip_to(self, clip_rect);
     lh_ui_canvas_state_move(lh_addr_of(self->state), offset_delta);
     lh_ui_canvas_sync_clip(self, lh_addr_of(self->saved[self->depth - 1U]));
+}
+
+lh_void
+lh_ui_canvas_push(lh_ui_canvas_t *self, lh_ui_point_t offset_delta, const lh_ui_rect_t *clip_rect)
+{
+    lh_ui_canvas_push_round(self, offset_delta, clip_rect, lh_ui_scalar(0));
 }
 
 lh_void
@@ -235,6 +272,76 @@ lh_ui_canvas_clear(lh_ui_canvas_t *self, const lh_ui_color_t *color)
 /* ── Fills ───────────────────────────────────────────────────────────────── */
 
 lh_void
+lh_ui_canvas_send_box(lh_ui_canvas_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
+{
+    lh_ui_rect_t box;
+
+    lh_return_if(x1 <= x0);
+    lh_ui_rect_init(lh_addr_of(box), x0, y, x1 - x0, 1);
+    self->backend->fill_rect(self->context, lh_addr_of(box), color);
+}
+
+lh_void
+lh_ui_canvas_send_clip_pixel(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x, lh_s32_t y,
+                             const lh_ui_color_t *color)
+{
+    const lh_byte_t kept = lh_ui_canvas_clip_coverage(clip, x, y);
+    const lh_ui_color_t edge = lh_ui_color_with_coverage(color, kept);
+
+    lh_return_if(kept == 0U);
+    lh_ui_canvas_send_box(self, x, x + 1, y, kept == 255U ? color : lh_addr_of(edge));
+}
+
+lh_void
+lh_ui_canvas_send_clip_pixels(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x0, lh_s32_t x1,
+                              lh_s32_t y, const lh_ui_color_t *color)
+{
+    for (; x0 < x1; ++x0)
+    {
+        lh_ui_canvas_send_clip_pixel(self, clip, x0, y, color);
+    }
+}
+
+lh_void
+lh_ui_canvas_send_clip_row(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x0, lh_s32_t x1,
+                           lh_s32_t y, const lh_ui_color_t *color)
+{
+    lh_s32_t mid0;
+    lh_s32_t mid1;
+
+    lh_ui_canvas_clip_split_row(clip, x0, x1, y, lh_addr_of(mid0), lh_addr_of(mid1));
+    lh_ui_canvas_send_clip_pixels(self, clip, x0, mid0, y, color);
+    lh_ui_canvas_send_box(self, mid0, mid1, y, color);
+    lh_ui_canvas_send_clip_pixels(self, clip, mid1, x1, y, color);
+}
+
+lh_void
+lh_ui_canvas_send_clip_rows(lh_ui_canvas_t *self, const lh_ui_rect_t *cut, const lh_ui_color_t *color)
+{
+    lh_ui_canvas_clip_t clip;
+    const lh_s32_t y1 = lh_ui_canvas_round_bottom(cut);
+    lh_s32_t y;
+
+    (void)lh_ui_canvas_describe_clip(self, lh_addr_of(clip));
+    for (y = lh_ui_canvas_round_top(cut); y < y1; ++y)
+    {
+        lh_ui_canvas_send_clip_row(self, lh_addr_of(clip), lh_ui_canvas_round_left(cut),
+                                   lh_ui_canvas_round_right(cut), y, color);
+    }
+}
+
+lh_void
+lh_ui_canvas_send_cut(lh_ui_canvas_t *self, const lh_ui_rect_t *cut, const lh_ui_color_t *color)
+{
+    if (self->state.round_count == 0U)
+    {
+        self->backend->fill_rect(self->context, cut, color);
+        return;
+    }
+    lh_ui_canvas_send_clip_rows(self, cut, color);
+}
+
+lh_void
 lh_ui_canvas_fill_target_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *target, const lh_ui_color_t *color)
 {
     lh_ui_rect_t cut;
@@ -245,12 +352,10 @@ lh_ui_canvas_fill_target_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *target, 
     lh_ui_canvas_add_damage(self, lh_addr_of(cut));
     if (lh_ui_canvas_is_cutting(self))
     {
-        self->backend->fill_rect(self->context, lh_addr_of(cut), color);
+        lh_ui_canvas_send_cut(self, lh_addr_of(cut), color);
+        return;
     }
-    else
-    {
-        self->backend->fill_rect(self->context, target, color);
-    }
+    self->backend->fill_rect(self->context, target, color);
 }
 
 lh_bool_t
@@ -281,12 +386,19 @@ lh_ui_canvas_fill_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_
 }
 
 lh_bool_t
+lh_ui_canvas_can_send_whole(const lh_ui_canvas_t *self, const lh_ui_rect_t *target)
+{
+    lh_return_if(!lh_ui_canvas_is_cutting(self), lh_bool_true);
+    return self->state.round_count == 0U && lh_ui_canvas_state_contains(lh_addr_of(self->state), target)
+               ? lh_bool_true
+               : lh_bool_false;
+}
+
+lh_bool_t
 lh_ui_canvas_can_fill_round(const lh_ui_canvas_t *self, const lh_ui_rect_t *target)
 {
     lh_return_if(lh_null_eq(self->backend) || lh_null_eq(self->backend->fill_round_rect), lh_bool_false);
-    return !lh_ui_canvas_is_cutting(self) || lh_ui_canvas_state_contains(lh_addr_of(self->state), target)
-               ? lh_bool_true
-               : lh_bool_false;
+    return lh_ui_canvas_can_send_whole(self, target);
 }
 
 lh_bool_t

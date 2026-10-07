@@ -12,6 +12,7 @@
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/numeric/fixed/types.h>
 #include <lh/ui/canvas/state/fields.h>
 #include <lh/ui/point.h>
 #include <lh/ui/rect.h>
@@ -24,7 +25,7 @@
  */
 struct lh_ui_canvas_state
 {
-    lh_ui_canvas_state_fields(lh_ui_point_t, lh_ui_rect_t, lh_bool_t);
+    lh_ui_canvas_state_fields(lh_ui_point_t, lh_ui_rect_t, lh_bool_t, lh_u8_t);
 };
 typedef struct lh_ui_canvas_state lh_ui_canvas_state_t;
 
@@ -43,7 +44,8 @@ const lh_ui_rect_t *
 lh_ui_canvas_state_get_clip(const lh_ui_canvas_state_t *self);
 
 /**
- * @brief True when @p a and @p b cut the same way (both off, or same rect).
+ * @brief True when @p a and @p b cut the same way (both off, or same rect
+ *        and the same number of rounded cuts).
  */
 lh_bool_t
 lh_ui_canvas_state_has_same_clip(const lh_ui_canvas_state_t *a, const lh_ui_canvas_state_t *b);

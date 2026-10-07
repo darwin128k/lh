@@ -15,13 +15,14 @@ lh_assert_static(LH_LIBRARY_OPTION_UI_CANVAS_DEPTH >= 1 && LH_LIBRARY_OPTION_UI_
 
 /**
  * @def lh_ui_canvas_fields(backend_type, context_type, state_type, depth_type, size_type, rect_type,
- *                          bool_type)
+ *                          bool_type, round_type)
  * @brief Backend table (not owned), the context passed into every call, the
  *        current offset / clip, the states saved by push, the target size, and
  *        the accumulated damage rectangle.
  *
  * Capacity of `saved` is ::LH_LIBRARY_OPTION_UI_CANVAS_DEPTH; `depth` is how
- * many are in use. `size` is the whole target (for `clear` damage). `damage`
+ * many are in use. `rounds` holds the rounded cuts of the pushed clips, in
+ * push order; the current state says how many are active. `size` is the whole target (for `clear` damage). `damage`
  * unions every primitive rect already cut to the clip; empty when
  * `has_damage` is false.
  *
@@ -32,9 +33,10 @@ lh_assert_static(LH_LIBRARY_OPTION_UI_CANVAS_DEPTH >= 1 && LH_LIBRARY_OPTION_UI_
  * @param size_type    Type of the target size.
  * @param rect_type    Type of the damage rect.
  * @param bool_type    Type of the damage flag.
+ * @param round_type   ::lh_ui_canvas_clip_round_t.
  */
 #define lh_ui_canvas_fields(backend_type, context_type, state_type, depth_type, size_type,          \
-                            rect_type, bool_type)                                                   \
+                            rect_type, bool_type, round_type)                                       \
     const backend_type *backend;                                                                    \
     context_type context;                                                                           \
     state_type state;                                                                               \
@@ -42,6 +44,7 @@ lh_assert_static(LH_LIBRARY_OPTION_UI_CANVAS_DEPTH >= 1 && LH_LIBRARY_OPTION_UI_
     depth_type depth;                                                                               \
     size_type size;                                                                                 \
     rect_type damage;                                                                               \
-    bool_type has_damage
+    bool_type has_damage;                                                                           \
+    round_type rounds[LH_LIBRARY_OPTION_UI_CANVAS_DEPTH]
 
 #endif /* LH_UI_CANVAS_FIELDS_H */

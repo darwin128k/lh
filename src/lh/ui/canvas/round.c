@@ -48,6 +48,37 @@ lh_ui_canvas_round_far_start(lh_s32_t a, lh_s32_t b, lh_s32_t zone)
     return lh_math_max(b - zone, lh_ui_canvas_round_near_end(a, b, zone));
 }
 
+lh_bool_t
+lh_ui_canvas_round_is_corner_row(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y)
+{
+    const lh_s32_t top = lh_ui_canvas_round_top(rect);
+    const lh_s32_t bottom = lh_ui_canvas_round_bottom(rect);
+    const lh_s32_t zone = lh_ui_scalar_ceil_s32(radius);
+
+    return y < lh_ui_canvas_round_near_end(top, bottom, zone) || y >= lh_ui_canvas_round_far_start(top, bottom, zone)
+               ? lh_bool_true
+               : lh_bool_false;
+}
+
+lh_bool_t
+lh_ui_canvas_round_has_row(const lh_ui_rect_t *rect, lh_s32_t y)
+{
+    return y >= lh_ui_canvas_round_top(rect) && y < lh_ui_canvas_round_bottom(rect) ? lh_bool_true : lh_bool_false;
+}
+
+lh_void
+lh_ui_canvas_round_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y, lh_s32_t *x0, lh_s32_t *x1)
+{
+    const lh_s32_t left = lh_ui_canvas_round_left(rect);
+    const lh_s32_t right = lh_ui_canvas_round_right(rect);
+    const lh_s32_t zone = lh_ui_canvas_round_has_row(rect, y) && lh_ui_canvas_round_is_corner_row(rect, radius, y)
+                              ? lh_ui_scalar_ceil_s32(radius)
+                              : 0;
+
+    *x0 = lh_ui_canvas_round_near_end(left, right, zone);
+    *x1 = lh_ui_canvas_round_has_row(rect, y) ? lh_ui_canvas_round_far_start(left, right, zone) : *x0;
+}
+
 lh_void
 lh_ui_canvas_fill_pixels(struct lh_ui_canvas *self, lh_s32_t x, lh_s32_t y, lh_s32_t w, lh_s32_t h,
                          const lh_ui_color_t *color)

@@ -81,13 +81,6 @@ lh_bool_t
 lh_ui_surface_set_size(lh_ui_surface_t *self, lh_ui_size_t size);
 
 /**
- * @brief Platform draw target for @p self (Win32 memory DC as ::lh_ptr), or
- *        ::lh_null when invalid.
- */
-lh_ptr
-lh_ui_surface_get_draw_target(const lh_ui_surface_t *self);
-
-/**
  * @brief Set @p pixmap over the pixels of @p self (::lh_os_system_surface_get_pixels):
  *        ARGB8888, rows `width * 4` bytes apart. False, @p pixmap left alone, when @p self is empty.
  */

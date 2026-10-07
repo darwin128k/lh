@@ -88,6 +88,13 @@ const lh_ui_color_t *
 lh_ui_entity_get_fill_color(const lh_ui_entity_t *self);
 
 /**
+ * @brief Corner radius of the style of @p self (unclamped), `0` without one.
+ *        Its fill and, when it clips its children, their clip use it.
+ */
+lh_ui_scalar_t
+lh_ui_entity_get_radius(const lh_ui_entity_t *self);
+
+/**
  * @brief Class of @p self.
  */
 const lh_ui_entity_class_t *
@@ -366,7 +373,9 @@ lh_ui_entity_click(lh_ui_entity_t *self, lh_ui_point_t point);
 
 /**
  * @brief Push the children transform of @p self on @p canvas, when it does
- *        anything: its offset, and the rect of @p self as clip when asked.
+ *        anything: its offset, and the rect of @p self as clip when asked —
+ *        rounded by ::lh_ui_entity_get_radius (::lh_ui_canvas_push_round), so
+ *        children are cut along the same corners the fill has.
  *
  * @return ::lh_bool_true when something was pushed (the caller pops it);
  *         never with a ::lh_null @p canvas.

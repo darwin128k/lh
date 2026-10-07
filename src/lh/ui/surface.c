@@ -66,13 +66,6 @@ lh_ui_surface_set_size(lh_ui_surface_t *self, lh_ui_size_t size)
     return lh_ui_surface_is_valid(self);
 }
 
-lh_ptr
-lh_ui_surface_get_draw_target(const lh_ui_surface_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_os_system_surface_get_draw_target(self->handle);
-}
-
 lh_bool_t
 lh_ui_surface_get_pixmap(const lh_ui_surface_t *self, lh_ui_pixmap_t *pixmap)
 {

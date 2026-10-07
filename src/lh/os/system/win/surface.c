@@ -118,16 +118,6 @@ lh_os_system_surface_get_height(lh_os_system_surface_handle_t handle)
 }
 
 lh_ptr
-lh_os_system_surface_get_draw_target(lh_os_system_surface_handle_t handle)
-{
-    const lh_os_system_win_surface_t *surface;
-
-    lh_return_if(lh_null_eq(handle), lh_null);
-    surface = lh_ptr_rcast(const lh_os_system_win_surface_t, handle);
-    return surface->dc;
-}
-
-lh_ptr
 lh_os_system_surface_get_pixels(lh_os_system_surface_handle_t handle)
 {
     const lh_os_system_win_surface_t *surface;

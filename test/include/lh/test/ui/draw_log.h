@@ -37,6 +37,7 @@ struct draw_log
     int round_count;
 
     lh_ui_rect_t clip; /* last set_clip rect, when not null */
+    lh_u32_t clip_rounds; /* rounded cuts of the last set_clip */
     int clip_count;    /* set_clip calls with a rect */
     int unclip_count;  /* set_clip calls with null */
 
@@ -72,7 +73,7 @@ draw_log_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_
 }
 
 inline lh_void
-draw_log_set_clip(lh_ptr context, const lh_ui_rect_t *clip)
+draw_log_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip)
 {
     draw_log *log = lh_ptr_rcast(draw_log, context);
     if (clip == nullptr)
@@ -80,7 +81,8 @@ draw_log_set_clip(lh_ptr context, const lh_ui_rect_t *clip)
         ++log->unclip_count;
         return;
     }
-    log->clip = *clip;
+    log->clip = *lh_ui_canvas_clip_get_rect(clip);
+    log->clip_rounds = lh_ui_canvas_clip_get_round_count(clip);
     ++log->clip_count;
 }
 

@@ -71,6 +71,13 @@ lh_byte_t
 lh_ui_radius_cover_from_distance(lh_s64_t r, lh_s64_t d);
 
 /**
+ * @brief Two coverages `0..255` combined: `a * b / 255`, rounded (what two
+ *        stacked masks let through).
+ */
+lh_byte_t
+lh_ui_radius_scale(lh_byte_t a, lh_byte_t b);
+
+/**
  * @brief ::lh_ui_radius_cover_from_distance for the squared distance @p d2:
  *        `255` / `0` without a square root when the pixel lies wholly inside
  *        / outside the one-pixel ramp (the same answer), the root otherwise.

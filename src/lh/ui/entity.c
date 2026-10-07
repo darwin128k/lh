@@ -71,6 +71,13 @@ lh_ui_entity_get_fill_color(const lh_ui_entity_t *self)
     return lh_ui_style_get_fill_color(style);
 }
 
+lh_ui_scalar_t
+lh_ui_entity_get_radius(const lh_ui_entity_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_null_eq(self->style) ? lh_ui_scalar(0) : lh_ui_style_get_radius(self->style);
+}
+
 const lh_ui_entity_class_t *
 lh_ui_entity_get_class(const lh_ui_entity_t *self)
 {
@@ -420,8 +427,9 @@ lh_ui_entity_push_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
     lh_ui_entity_ask_children(self, lh_addr_of(transform));
     lh_return_if(lh_ui_entity_transform_is_identity(lh_addr_of(transform)), lh_bool_false);
     rect = self->rect;
-    lh_ui_canvas_push(canvas, lh_ui_entity_transform_get_offset(lh_addr_of(transform)),
-                      lh_ui_entity_transform_is_clip(lh_addr_of(transform)) ? lh_addr_of(rect) : lh_null);
+    lh_ui_canvas_push_round(canvas, lh_ui_entity_transform_get_offset(lh_addr_of(transform)),
+                            lh_ui_entity_transform_is_clip(lh_addr_of(transform)) ? lh_addr_of(rect) : lh_null,
+                            lh_ui_entity_get_radius(self));
     return lh_bool_true;
 }
 

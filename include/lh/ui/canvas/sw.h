@@ -10,9 +10,12 @@
  * microcontroller it is the frame buffer.
  *
  * It has a `set_clip` slot, so the canvas sends primitives uncut and this
- * backend cuts each row to its limit (pixmap ∩ clip). `fill_round_rect` and
- * `fill_mask` always draw, so the canvas fallback is never taken.
- * `begin` / `end` are ::lh_null: whoever owns the pixels shows them.
+ * backend cuts each row: to its limit (pixmap ∩ clip rect), then to the
+ * rounded cuts of the clip (::lh_ui_canvas_clip_split_row — the middle as a
+ * span, the ends at ::lh_ui_canvas_clip_coverage). Coverage is applied in
+ * the same order as the canvas fallback, so both give the same pixels.
+ * `fill_round_rect` and `fill_mask` always draw. `begin` / `end` are
+ * ::lh_null: whoever owns the pixels shows them.
  *
  * The context passed to the canvas is an ::lh_ui_canvas_sw_t.
  */
@@ -21,10 +24,12 @@
 #define LH_UI_CANVAS_SW_H
 
 #include <lh/bool.h>
+#include <lh/byte.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/ptr.h>
 #include <lh/ui/canvas.h>
+#include <lh/ui/canvas/clip.h>
 #include <lh/ui/canvas/sw/fields.h>
 #include <lh/ui/color.h>
 #include <lh/ui/mask.h>
@@ -41,7 +46,7 @@
  */
 struct lh_ui_canvas_sw
 {
-    lh_ui_canvas_sw_fields(lh_ui_pixmap_t, lh_ui_rect_t);
+    lh_ui_canvas_sw_fields(lh_ui_pixmap_t, lh_ui_rect_t, lh_ui_canvas_clip_t);
 };
 typedef struct lh_ui_canvas_sw lh_ui_canvas_sw_t;
 
@@ -69,10 +74,16 @@ const lh_ui_pixmap_t *
 lh_ui_canvas_sw_get_pixmap(const lh_ui_canvas_sw_t *self);
 
 /**
- * @brief The rect every write is cut to: pixmap bounds ∩ clip.
+ * @brief The rect every write is cut to: pixmap bounds ∩ clip rect.
  */
 lh_ui_rect_t
 lh_ui_canvas_sw_get_limit(const lh_ui_canvas_sw_t *self);
+
+/**
+ * @brief True when the clip of @p self has rounded cuts.
+ */
+lh_bool_t
+lh_ui_canvas_sw_is_rounded(const lh_ui_canvas_sw_t *self);
 
 /**
  * @brief @p context of a backend call as the software context; asserts it is
@@ -107,14 +118,44 @@ lh_ui_canvas_sw_cut_y0(const lh_ui_canvas_sw_t *self, lh_s32_t y);
 lh_s32_t
 lh_ui_canvas_sw_cut_y1(const lh_ui_canvas_sw_t *self, lh_s32_t y);
 
-/* ── Rows ────────────────────────────────────────────────────────────────── */
+/* ── Pixels and rows ─────────────────────────────────────────────────────── */
 
 /**
- * @brief ::lh_ui_pixmap_fill_span of `x0 .. x1 - 1` on row @p y, cut to the
- *        limit across (the row itself is the caller's to cut).
+ * @brief Blend @p color over pixel (@p x, @p y) at its clip coverage
+ *        (::lh_ui_canvas_clip_coverage); nothing where it is `0`.
+ */
+lh_void
+lh_ui_canvas_sw_clip_pixel(lh_ui_canvas_sw_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color);
+
+/**
+ * @brief ::lh_ui_canvas_sw_clip_pixel for `x0 .. x1 - 1` of row @p y.
+ */
+lh_void
+lh_ui_canvas_sw_clip_pixels(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                            const lh_ui_color_t *color);
+
+/**
+ * @brief A shape edge pixel: @p color at @p coverage, then the clip coverage
+ *        on top when the clip is rounded. Nothing at coverage `0`.
+ */
+lh_void
+lh_ui_canvas_sw_cover_pixel(lh_ui_canvas_sw_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color,
+                            lh_byte_t coverage);
+
+/**
+ * @brief Paint `x0 .. x1 - 1` of row @p y, cut to the limit across (the row
+ *        itself is the caller's to cut): one ::lh_ui_pixmap_fill_span, or
+ *        under rounded cuts its middle as a span and its ends per pixel.
  */
 lh_void
 lh_ui_canvas_sw_fill_span(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
+
+/**
+ * @brief ::lh_ui_canvas_sw_fill_span on rows `y0 .. y1 - 1`.
+ */
+lh_void
+lh_ui_canvas_sw_fill_rows(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t y0, lh_s32_t x1, lh_s32_t y1,
+                          const lh_ui_color_t *color);
 
 /**
  * @brief Pixels `x0 .. x1 - 1` of row @p y at their coverage of the rounded
@@ -125,24 +166,10 @@ lh_ui_canvas_sw_cover_span(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh
                            lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
 
 /**
- * @brief True when row @p y of @p rect crosses a corner of @p radius (top or
- *        bottom band): its ends need coverage.
- */
-lh_bool_t
-lh_ui_canvas_sw_is_corner_row(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y);
-
-/**
- * @brief Row @p y of a corner band of the rounded @p rect: both corner spans
- *        at their coverage, one span between them.
- */
-lh_void
-lh_ui_canvas_sw_corner_row(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y,
-                           const lh_ui_color_t *color);
-
-/**
- * @brief Row @p y of the rounded @p rect: one span in the straight middle;
- *        in a corner band both corner spans with coverage and the span between.
- *        The same pixels as ::lh_ui_canvas_fill_round_rect_by_rects.
+ * @brief Row @p y of the rounded @p rect: the span wholly inside it
+ *        (::lh_ui_canvas_round_full_span) painted, the corner pixels either
+ *        side at their coverage. The same pixels as
+ *        ::lh_ui_canvas_fill_round_rect_by_rects.
  */
 lh_void
 lh_ui_canvas_sw_round_row(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y,
@@ -167,7 +194,7 @@ lh_ui_canvas_sw_clear(lh_ptr context, const lh_ui_color_t *color);
 
 /**
  * @brief Backend `fill_rect`: @p rect (whole pixels it touches) cut to the
- *        limit; stored when opaque, blended otherwise.
+ *        limit; one box without rounded cuts, rows under them.
  */
 lh_void
 lh_ui_canvas_sw_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *color);
@@ -181,11 +208,11 @@ lh_ui_canvas_sw_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_
                                 const lh_ui_color_t *color);
 
 /**
- * @brief Backend `set_clip`: the limit becomes pixmap bounds ∩ @p clip, or the
- *        bounds for ::lh_null.
+ * @brief Backend `set_clip`: the limit becomes pixmap bounds ∩ the clip rect
+ *        and the rounded cuts are kept; ::lh_null clears both.
  */
 lh_void
-lh_ui_canvas_sw_set_clip(lh_ptr context, const lh_ui_rect_t *clip);
+lh_ui_canvas_sw_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip);
 
 /**
  * @brief Backend `fill_mask`: ::lh_ui_canvas_sw_mask_row for each row of

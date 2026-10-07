@@ -7,20 +7,23 @@
 #define LH_UI_CANVAS_STATE_FIELDS_H
 
 /**
- * @def lh_ui_canvas_state_fields(point_type, rect_type, bool_type)
+ * @def lh_ui_canvas_state_fields(point_type, rect_type, bool_type, count_type)
  * @brief Where drawing lands and what it is cut to.
  *
  * `offset` is added to every primitive before the backend sees it. `clip` is
  * in target (screen) space, offset already applied; it means something only
- * when `clipped` is true.
+ * when `clipped` is true. `round_count` is how many rounded cuts (kept by the
+ * canvas, one per push at most) are active at this level.
  *
  * @param point_type Type of the offset.
  * @param rect_type  Type of the clip rectangle.
  * @param bool_type  Type of the clip flag.
+ * @param count_type Type of the round count.
  */
-#define lh_ui_canvas_state_fields(point_type, rect_type, bool_type)                                 \
+#define lh_ui_canvas_state_fields(point_type, rect_type, bool_type, count_type)                     \
     point_type offset;                                                                              \
     rect_type clip;                                                                                 \
-    bool_type clipped
+    bool_type clipped;                                                                              \
+    count_type round_count
 
 #endif /* LH_UI_CANVAS_STATE_FIELDS_H */

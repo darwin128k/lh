@@ -218,11 +218,8 @@ if (LH_LIBRARY_OPTION_OS)
         if (WIN32)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/window.c)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/surface.c)
-            list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/hdc.c)
-            list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/gdiplus.c)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/render/backend/gdi.c)
-            list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/render/backend/gdi/plus.c)
-            list(APPEND LH_OS_SYSTEM_LINK_LIBS user32 gdi32 gdiplus)
+            list(APPEND LH_OS_SYSTEM_LINK_LIBS user32 gdi32)
         endif ()
     endif ()
 endif ()
@@ -240,6 +237,7 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/canvas.c
             ${LH_LIB_SRC_PATH}/ui/canvas/state.c
             ${LH_LIB_SRC_PATH}/ui/canvas/round.c
+            ${LH_LIB_SRC_PATH}/ui/canvas/clip.c
             ${LH_LIB_SRC_PATH}/ui/pen.c
             ${LH_LIB_SRC_PATH}/ui/entity.c
             ${LH_LIB_SRC_PATH}/ui/entity/class.c

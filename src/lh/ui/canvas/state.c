@@ -16,6 +16,7 @@ lh_ui_canvas_state_init(lh_ui_canvas_state_t *self)
     lh_ui_point_init(lh_addr_of(self->offset), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_ui_rect_init_empty(lh_addr_of(self->clip));
     self->clipped = lh_bool_false;
+    self->round_count = 0U;
 }
 
 const lh_ui_rect_t *
@@ -28,7 +29,7 @@ lh_ui_canvas_state_get_clip(const lh_ui_canvas_state_t *self)
 lh_bool_t
 lh_ui_canvas_state_has_same_clip(const lh_ui_canvas_state_t *a, const lh_ui_canvas_state_t *b)
 {
-    lh_return_if(a->clipped != b->clipped, lh_bool_false);
+    lh_return_if(a->clipped != b->clipped || a->round_count != b->round_count, lh_bool_false);
     return !a->clipped || lh_ui_rect_eq(lh_addr_of(a->clip), lh_addr_of(b->clip)) ? lh_bool_true : lh_bool_false;
 }
 
