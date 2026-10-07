@@ -152,6 +152,28 @@ TEST(ui_color, over_an_opaque_dst_matches_the_general_formula)
     }
 }
 
+TEST(ui_color, rgb565_packs_the_top_bits_and_widens_back)
+{
+    lh_ui_color_t c;
+    lh_ui_color_t back;
+
+    lh_ui_color_init(lh_addr_of(c), 0xFF, 0x80, 0x07, 0x10);
+    EXPECT_EQ(lh_ui_color_get_rgb565(lh_addr_of(c)), (0x1Fu << 11) | (0x20u << 5) | 0x00u);
+    lh_ui_color_init_rgb565(lh_addr_of(back), 0xFFFFu);
+    EXPECT_EQ(lh_ui_color_get_r(lh_addr_of(back)), 255);
+    EXPECT_EQ(lh_ui_color_get_g(lh_addr_of(back)), 255);
+    EXPECT_EQ(lh_ui_color_get_b(lh_addr_of(back)), 255);
+    EXPECT_EQ(lh_ui_color_get_a(lh_addr_of(back)), 255);
+    lh_ui_color_init_rgb565(lh_addr_of(back), 0u);
+    EXPECT_EQ(lh_ui_color_get_r(lh_addr_of(back)), 0);
+    /* Every 565 word survives unpack + pack. */
+    for (lh_u32_t w = 0; w <= 0xFFFFu; ++w)
+    {
+        lh_ui_color_init_rgb565(lh_addr_of(back), w);
+        ASSERT_EQ(lh_ui_color_get_rgb565(lh_addr_of(back)), w);
+    }
+}
+
 TEST(ui_color, equals_compares_channels)
 {
     lh_ui_color_t a;

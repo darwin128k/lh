@@ -77,11 +77,11 @@ lh_bool_t
 lh_ui_surface_get_pixmap(const lh_ui_surface_t *self, lh_ui_pixmap_t *pixmap)
 {
     const lh_s32_t width = lh_cast_static(lh_s32_t, lh_ui_size_get_width(lh_addr_of(self->size)));
-    lh_u32_t *pixels = lh_ptr_rcast(lh_u32_t, lh_os_system_surface_get_pixels(self->handle));
+    lh_byte_t *bits = lh_ptr_rcast(lh_byte_t, lh_os_system_surface_get_pixels(self->handle));
 
-    lh_return_if(lh_null_eq(pixels), lh_bool_false);
-    lh_ui_pixmap_init(pixmap, pixels, width,
-                      lh_cast_static(lh_s32_t, lh_ui_size_get_height(lh_addr_of(self->size))), width);
+    lh_return_if(lh_null_eq(bits), lh_bool_false);
+    lh_ui_pixmap_init(pixmap, bits, width, lh_cast_static(lh_s32_t, lh_ui_size_get_height(lh_addr_of(self->size))),
+                      width * 4, lh_ui_pixmap_format_argb8888);
     return lh_bool_true;
 }
 

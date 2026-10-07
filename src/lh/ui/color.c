@@ -53,6 +53,29 @@ lh_ui_color_get_argb(const lh_ui_color_t *self)
            (lh_cast_static(lh_u32_t, self->g) << 8) | lh_cast_static(lh_u32_t, self->b);
 }
 
+lh_ui_color_channel_t
+lh_ui_color_expand_bits(lh_u32_t value, lh_u32_t bits)
+{
+    /* Replicate the top bits into the bottom: 0 → 0, all ones → 255. */
+    return lh_cast_static(lh_ui_color_channel_t, (value << (8U - bits)) | (value >> (2U * bits - 8U)));
+}
+
+lh_void
+lh_ui_color_init_rgb565(lh_ui_color_t *self, lh_u32_t rgb565)
+{
+    lh_ui_color_init(self, lh_ui_color_expand_bits((rgb565 >> 11) & 0x1FU, 5U),
+                     lh_ui_color_expand_bits((rgb565 >> 5) & 0x3FU, 6U), lh_ui_color_expand_bits(rgb565 & 0x1FU, 5U),
+                     LH_BYTE_T_MAX);
+}
+
+lh_u32_t
+lh_ui_color_get_rgb565(const lh_ui_color_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return ((lh_cast_static(lh_u32_t, self->r) >> 3) << 11) | ((lh_cast_static(lh_u32_t, self->g) >> 2) << 5) |
+           (lh_cast_static(lh_u32_t, self->b) >> 3);
+}
+
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
 lh_ui_color_channel_t

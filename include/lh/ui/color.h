@@ -204,6 +204,27 @@ lh_ui_color_init_argb(lh_ui_color_t *self, lh_u32_t argb);
 lh_u32_t
 lh_ui_color_get_argb(const lh_ui_color_t *self);
 
+/**
+ * @brief A @p bits wide channel value (5 or 6 bits) widened to 8 bits by
+ *        repeating its top bits, so the darkest and brightest stay `0` and `255`.
+ */
+lh_ui_color_channel_t
+lh_ui_color_expand_bits(lh_u32_t value, lh_u32_t bits);
+
+/**
+ * @brief Set @p self from an RGB565 pixel (`rrrrrggg gggbbbbb` in the low 16
+ *        bits), opaque: an RGB565 target has no alpha.
+ */
+lh_void
+lh_ui_color_init_rgb565(lh_ui_color_t *self, lh_u32_t rgb565);
+
+/**
+ * @brief @p self as an RGB565 pixel, low 16 bits; the low bits of each channel
+ *        and the alpha are dropped (the target is opaque).
+ */
+lh_u32_t
+lh_ui_color_get_rgb565(const lh_ui_color_t *self);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_COLOR_H */

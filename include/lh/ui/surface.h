@@ -88,8 +88,8 @@ lh_ptr
 lh_ui_surface_get_draw_target(const lh_ui_surface_t *self);
 
 /**
- * @brief Set @p pixmap over the pixels of @p self (::lh_os_system_surface_get_pixels),
- *        rows `width` apart. False, @p pixmap left alone, when @p self is empty.
+ * @brief Set @p pixmap over the pixels of @p self (::lh_os_system_surface_get_pixels):
+ *        ARGB8888, rows `width * 4` bytes apart. False, @p pixmap left alone, when @p self is empty.
  */
 lh_bool_t
 lh_ui_surface_get_pixmap(const lh_ui_surface_t *self, lh_ui_pixmap_t *pixmap);

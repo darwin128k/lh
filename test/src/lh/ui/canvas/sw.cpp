@@ -11,6 +11,7 @@
 #include <lh/ui/radius.h>
 #include <lh/ui/rect.h>
 #include <lh/util/addr.h>
+#include <lh/util/ptr.h>
 
 namespace
 {
@@ -26,13 +27,15 @@ struct sw_fixture
     lh_ui_canvas_sw_t sw;
     lh_ui_canvas_t canvas;
 
-    explicit sw_fixture(const lh_ui_canvas_backend_t *backend = lh_addr_of(lh_ui_canvas_backend_sw))
+    explicit sw_fixture(const lh_ui_canvas_backend_t *backend = lh_addr_of(lh_ui_canvas_backend_sw),
+                        lh_ui_pixmap_format_t format = lh_ui_pixmap_format_argb8888)
     {
         for (lh_u32_t &w : words)
         {
             w = sentinel;
         }
-        lh_ui_pixmap_init(lh_addr_of(pixmap), words, side, side, side);
+        lh_ui_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, words), side, side,
+                          side * lh_ui_pixmap_format_get_bytes(format), format);
         lh_ui_canvas_sw_init(lh_addr_of(sw));
         lh_ui_canvas_sw_set_pixmap(lh_addr_of(sw), lh_addr_of(pixmap));
         lh_ui_canvas_init(lh_addr_of(canvas), backend, lh_addr_of(sw));
@@ -41,7 +44,7 @@ struct sw_fixture
     lh_u32_t
     at(int x, int y) const
     {
-        return words[y * side + x];
+        return lh_ui_pixmap_read_word(lh_addr_of(pixmap), x, y);
     }
 
     int
@@ -303,4 +306,35 @@ TEST(ui_canvas_sw, an_empty_context_cuts_every_write_away)
     lh_ui_canvas_fill_rect(lh_addr_of(canvas), lh_addr_of(rect), lh_addr_of(c));
     lh_ui_canvas_fill_round_rect(lh_addr_of(canvas), lh_addr_of(rect), lh_ui_scalar(3), lh_addr_of(c));
     SUCCEED();
+}
+
+/* RGB565: the same pixels as the canvas fallback on an RGB565 pixmap. */
+TEST(ui_canvas_sw, rgb565_round_rect_and_mask_match_the_canvas_fallback)
+{
+    sw_fixture sw(lh_addr_of(lh_ui_canvas_backend_sw), lh_ui_pixmap_format_rgb565);
+    sw_fixture fallback(&g_rect_only, lh_ui_pixmap_format_rgb565);
+    const lh_ui_color_t c = color_of(200, 100, 50, 255);
+    const lh_ui_color_t text = color_of(250, 250, 250, 255);
+    const lh_ui_rect_t rect = rect_of(1, 2, 21, 19);
+    const lh_ui_mask_t mask = glyph();
+    lh_ui_point_t at;
+
+    lh_ui_point_init(lh_addr_of(at), 6, 9);
+    lh_ui_canvas_clear(lh_addr_of(sw.canvas), lh_addr_of(text));
+    lh_ui_canvas_fill_rect(lh_addr_of(fallback.canvas), &rect, lh_addr_of(text));
+    lh_ui_canvas_fill_round_rect(lh_addr_of(sw.canvas), lh_addr_of(rect), LH_UI_RADIUS_CIRCLE, lh_addr_of(c));
+    lh_ui_canvas_fill_round_rect(lh_addr_of(fallback.canvas), lh_addr_of(rect), LH_UI_RADIUS_CIRCLE,
+                                 lh_addr_of(c));
+    lh_ui_canvas_fill_mask(lh_addr_of(sw.canvas), lh_addr_of(mask), at, lh_addr_of(text));
+    lh_ui_canvas_fill_mask(lh_addr_of(fallback.canvas), lh_addr_of(mask), at, lh_addr_of(text));
+
+    /* The clear covers everything in sw; compare inside the rect only. */
+    for (int y = 2; y < 21; ++y)
+    {
+        for (int x = 1; x < 22; ++x)
+        {
+            EXPECT_EQ(sw.at(x, y), fallback.at(x, y)) << x << "," << y;
+        }
+    }
+    EXPECT_EQ(sw.at(11, 11) >> 16, 0u); /* 16-bit words */
 }
