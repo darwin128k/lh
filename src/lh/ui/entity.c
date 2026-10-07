@@ -362,6 +362,8 @@ lh_ui_entity_searches_children_at(const lh_ui_entity_t *self, lh_ui_point_t poin
 {
     lh_assert_runtime_ref(self);
     lh_return_if(lh_ui_rect_contains_point(lh_addr_of(self->rect), point), lh_bool_true);
+    /* Outside: only children could be hit, and asking about the clip may measure content. */
+    lh_return_if(lh_null_eq(lh_ui_entity_get_first_child(self)), lh_bool_false);
     return !lh_ui_entity_is_clipping(self) ? lh_bool_true : lh_bool_false;
 }
 
@@ -443,7 +445,9 @@ lh_bool_t
 lh_ui_entity_shows_children_on(const lh_ui_entity_t *self, const lh_ui_canvas_t *canvas)
 {
     lh_return_if(lh_null_eq(lh_ui_entity_get_first_child(self)), lh_bool_false);
-    return !lh_ui_entity_is_clipping(self) || lh_ui_entity_shows_on(self, canvas) ? lh_bool_true : lh_bool_false;
+    /* The rect test is cheap; the clip question may measure content. */
+    lh_return_if(lh_ui_entity_shows_on(self, canvas), lh_bool_true);
+    return !lh_ui_entity_is_clipping(self) ? lh_bool_true : lh_bool_false;
 }
 
 lh_void

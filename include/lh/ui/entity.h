@@ -303,8 +303,8 @@ lh_bool_t
 lh_ui_entity_is_hit(const lh_ui_entity_t *self, lh_ui_point_t point);
 
 /**
- * @brief True when a hit test at @p point looks among the children of
- *        @p self: inside its rect, or anywhere when it does not clip them
+ * @brief True when a hit test at @p point looks into @p self: inside its
+ *        rect, or outside it when it has children and does not clip them
  *        (::lh_ui_entity_is_clipping) — the same rule draw uses
  *        (::lh_ui_entity_shows_children_on).
  */
