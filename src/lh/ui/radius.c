@@ -157,22 +157,30 @@ lh_ui_radius_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t
 }
 
 lh_void
-lh_ui_radius_coverage_run(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
-                          lh_byte_t *out)
+lh_ui_radius_run_init(struct lh_ui_radius_run *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius)
 {
     const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
     const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
-    const lh_s64_t r = lh_ui_radius_to_fixed(radius);
-    const lh_s64_t lo = lh_ui_radius_to_fixed(lh_ui_point_get_x(origin));
-    const lh_s64_t hi = lo + lh_ui_radius_to_fixed(lh_ui_size_get_width(size));
-    const lh_s64_t dy = lh_ui_radius_axis_distance(lh_ui_radius_pixel_center(y), lh_ui_point_get_y(origin),
-                                                   lh_ui_size_get_height(size), r);
-    const lh_s64_t near = lo + r; /* right edge of the left corner zone */
-    const lh_s64_t far = hi - r;  /* left edge of the right corner zone */
+
+    lh_assert_runtime_ref(self);
+    self->radius = radius;
+    self->r = lh_ui_radius_to_fixed(radius);
+    self->lo = lh_ui_radius_to_fixed(lh_ui_point_get_x(origin));
+    self->hi = self->lo + lh_ui_radius_to_fixed(lh_ui_size_get_width(size));
+    self->near = self->lo + self->r;
+    self->far = self->hi - self->r;
+    self->top = lh_ui_point_get_y(origin);
+    self->height = lh_ui_size_get_height(size);
+}
+
+lh_void
+lh_ui_radius_run_row(const struct lh_ui_radius_run *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_byte_t *out)
+{
+    const lh_s64_t dy = lh_ui_radius_axis_distance(lh_ui_radius_pixel_center(y), self->top, self->height, self->r);
     const lh_s64_t dy2 = dy * dy;
     /* dy is at most r, and the outer edge of the ramp is r + half a subpixel,
        so lim_sq never goes negative and the arc always has a non-empty core. */
-    const lh_s64_t lim_sq = (r + LH_UI_RADIUS_SUBPIXEL / 2) * (r + LH_UI_RADIUS_SUBPIXEL / 2) - dy2;
+    const lh_s64_t lim_sq = (self->r + LH_UI_RADIUS_SUBPIXEL / 2) * (self->r + LH_UI_RADIUS_SUBPIXEL / 2) - dy2;
     lh_s64_t p;
     lh_s32_t i;
 
@@ -194,7 +202,7 @@ lh_ui_radius_coverage_run(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s3
         for (i = 0; i < x1 - x0; ++i)
         {
             p = lh_ui_radius_pixel_center(x0 + i);
-            out[i] = p < lo || p >= hi ? 0 : 255;
+            out[i] = p < self->lo || p >= self->hi ? 0 : 255;
         }
         return;
     }
@@ -208,17 +216,27 @@ lh_ui_radius_coverage_run(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s3
         lh_s64_t dx;
         lh_s64_t d2;
 
-        if (p < lo || p >= hi)
+        if (p < self->lo || p >= self->hi)
         {
             continue;
         }
-        dx = lh_math_max(lh_math_max(near - p, p - far), 0);
+        dx = lh_math_max(lh_math_max(self->near - p, p - self->far), 0);
         if (dx == 0)
         {
             out[i] = 255;
             continue;
         }
         d2 = dx * dx;
-        out[i] = d2 >= lim_sq ? 0 : lh_ui_radius_cover_from_square(r, d2 + dy2);
+        out[i] = d2 >= lim_sq ? 0 : lh_ui_radius_cover_from_square(self->r, d2 + dy2);
     }
+}
+
+lh_void
+lh_ui_radius_coverage_run(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                          lh_byte_t *out)
+{
+    struct lh_ui_radius_run run;
+
+    lh_ui_radius_run_init(lh_addr_of(run), rect, radius);
+    lh_ui_radius_run_row(lh_addr_of(run), x0, x1, y, out);
 }

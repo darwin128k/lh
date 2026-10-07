@@ -34,6 +34,7 @@
 #include <lh/ui/color.h>
 #include <lh/ui/mask.h>
 #include <lh/ui/pixmap.h>
+#include <lh/ui/radius.h>
 #include <lh/ui/point.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/scalar.h>
@@ -176,6 +177,37 @@ lh_ui_canvas_sw_cover_run(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_
 lh_void
 lh_ui_canvas_sw_cover_span(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0,
                            lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
+
+/**
+ * @brief One run (at most ::LH_UI_PIXMAP_RUN, cut already) of
+ *        ::lh_ui_canvas_sw_cover_span, against an already prepared
+ *        ::lh_ui_radius_run.
+ */
+lh_void
+lh_ui_canvas_sw_cover_run_row(lh_ui_canvas_sw_t *self, const struct lh_ui_radius_run *run, lh_s32_t x0, lh_s32_t x1,
+                              lh_s32_t y, const lh_ui_color_t *color);
+
+/**
+ * @brief ::lh_ui_canvas_sw_cover_span against an already prepared
+ *        ::lh_ui_radius_run, so a run of rows pays for the rect's fixed-point
+ *        edges once instead of once per row.
+ */
+lh_void
+lh_ui_canvas_sw_cover_span_run(lh_ui_canvas_sw_t *self, const struct lh_ui_radius_run *run, lh_s32_t x0, lh_s32_t x1,
+                               lh_s32_t y, const lh_ui_color_t *color);
+
+/**
+ * @brief Rows `y0 .. y1 - 1` of the rounded @p rect: the span wholly inside it
+ *        painted, the corner pixels either side at their coverage.
+ *
+ * A band, not a row, because that is the shape of the work: the arc's square
+ * root and both corner spans change every row, but the rect's fixed-point edges
+ * do not, and the corner rows are always several of them together. The same
+ * pixels as ::lh_ui_canvas_sw_round_row called per row.
+ */
+lh_void
+lh_ui_canvas_sw_round_band(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y0,
+                           lh_s32_t y1, const lh_ui_color_t *color);
 
 /**
  * @brief Row @p y of the rounded @p rect: the span wholly inside it

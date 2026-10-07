@@ -177,18 +177,38 @@ lh_ui_canvas_sw_fill_rows(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t y0, lh_
 }
 
 lh_void
-lh_ui_canvas_sw_cover_run(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0,
-                          lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
+lh_ui_canvas_sw_cover_run_row(lh_ui_canvas_sw_t *self, const struct lh_ui_radius_run *run, lh_s32_t x0, lh_s32_t x1,
+                              lh_s32_t y, const lh_ui_color_t *color)
 {
     lh_byte_t coverage[LH_UI_PIXMAP_RUN];
 
-    lh_ui_radius_coverage_run(rect, radius, x0, x1, y, coverage);
+    lh_ui_radius_run_row(run, x0, x1, y, coverage);
     lh_ui_canvas_sw_blend_run(self, x0, x1, y, color, coverage);
+}
+
+lh_void
+lh_ui_canvas_sw_cover_run(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0,
+                          lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
+{
+    struct lh_ui_radius_run run;
+
+    lh_ui_radius_run_init(lh_addr_of(run), rect, radius);
+    lh_ui_canvas_sw_cover_run_row(self, lh_addr_of(run), x0, x1, y, color);
 }
 
 lh_void
 lh_ui_canvas_sw_cover_span(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0,
                            lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
+{
+    struct lh_ui_radius_run run;
+
+    lh_ui_radius_run_init(lh_addr_of(run), rect, radius);
+    lh_ui_canvas_sw_cover_span_run(self, lh_addr_of(run), x0, x1, y, color);
+}
+
+lh_void
+lh_ui_canvas_sw_cover_span_run(lh_ui_canvas_sw_t *self, const struct lh_ui_radius_run *run, lh_s32_t x0, lh_s32_t x1,
+                               lh_s32_t y, const lh_ui_color_t *color)
 {
     lh_s32_t end;
 
@@ -196,7 +216,38 @@ lh_ui_canvas_sw_cover_span(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh
     for (x0 = lh_ui_canvas_sw_cut_x0(self, x0); x0 < x1; x0 = end)
     {
         end = lh_math_min(x1, x0 + LH_UI_PIXMAP_RUN);
-        lh_ui_canvas_sw_cover_run(self, rect, radius, x0, end, y, color);
+        lh_ui_canvas_sw_cover_run_row(self, run, x0, end, y, color);
+    }
+}
+
+lh_void
+lh_ui_canvas_sw_round_band(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y0,
+                           lh_s32_t y1, const lh_ui_color_t *color)
+{
+    const lh_s32_t left = lh_ui_canvas_round_left(rect);
+    const lh_s32_t right = lh_ui_canvas_round_right(rect);
+    struct lh_ui_radius_run run;
+    lh_s32_t y;
+
+    lh_ui_radius_run_init(lh_addr_of(run), rect, radius);
+    for (y = y0; y < y1; ++y)
+    {
+        lh_s32_t full0;
+        lh_s32_t full1;
+
+        lh_ui_canvas_round_full_span(rect, radius, y, lh_addr_of(full0), lh_addr_of(full1));
+        /* An arc that reaches this row can leave either end empty, and the whole
+           row cost is call overhead — so an end with no partial pixel never pays
+           for its cover call. */
+        if (left < full0)
+        {
+            lh_ui_canvas_sw_cover_span_run(self, lh_addr_of(run), left, full0, y, color);
+        }
+        lh_ui_canvas_sw_fill_span(self, full0, full1, y, color);
+        if (full1 < right)
+        {
+            lh_ui_canvas_sw_cover_span_run(self, lh_addr_of(run), full1, right, y, color);
+        }
     }
 }
 
@@ -204,24 +255,7 @@ lh_void
 lh_ui_canvas_sw_round_row(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y,
                           const lh_ui_color_t *color)
 {
-    lh_s32_t full0;
-    lh_s32_t full1;
-    const lh_s32_t left = lh_ui_canvas_round_left(rect);
-    const lh_s32_t right = lh_ui_canvas_round_right(rect);
-
-    lh_ui_canvas_round_full_span(rect, radius, y, lh_addr_of(full0), lh_addr_of(full1));
-    /* An arc that reaches this row can leave either end empty, and the whole row
-       cost is call overhead — 285 ns here, against 38 for the span itself. So an
-       end that has no partial pixel never pays for its cover_span call. */
-    if (left < full0)
-    {
-        lh_ui_canvas_sw_cover_span(self, rect, radius, left, full0, y, color);
-    }
-    lh_ui_canvas_sw_fill_span(self, full0, full1, y, color);
-    if (full1 < right)
-    {
-        lh_ui_canvas_sw_cover_span(self, rect, radius, full1, right, y, color);
-    }
+    lh_ui_canvas_sw_round_band(self, rect, radius, y, y + 1, color);
 }
 
 lh_void
@@ -291,7 +325,6 @@ lh_ui_canvas_sw_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_
     const lh_s32_t zone = lh_ui_scalar_ceil_s32(radius);
     const lh_s32_t near = lh_ui_canvas_round_near_end(y0, y1, zone);
     const lh_s32_t far = lh_ui_canvas_round_far_start(y0, y1, zone);
-    lh_s32_t y;
 
     if (near < far)
     {
@@ -301,14 +334,8 @@ lh_ui_canvas_sw_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_
                         lh_ui_canvas_round_right(rect) - lh_ui_canvas_round_left(rect), far - near);
         lh_ui_canvas_sw_fill_rect(context, lh_addr_of(middle), color);
     }
-    for (y = y0; y < near; ++y)
-    {
-        lh_ui_canvas_sw_round_row(self, rect, radius, y, color);
-    }
-    for (y = lh_ui_canvas_sw_cut_y0(self, far); y < y1; ++y)
-    {
-        lh_ui_canvas_sw_round_row(self, rect, radius, y, color);
-    }
+    lh_ui_canvas_sw_round_band(self, rect, radius, y0, near, color);
+    lh_ui_canvas_sw_round_band(self, rect, radius, lh_ui_canvas_sw_cut_y0(self, far), y1, color);
     return lh_bool_true;
 }
 
