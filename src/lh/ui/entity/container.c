@@ -92,6 +92,14 @@ lh_ui_entity_container_get_viewport_size(const lh_ui_entity_container_t *self)
 }
 
 lh_ui_point_t
+lh_ui_entity_container_pad_far(const lh_ui_entity_container_t *self, lh_ui_point_t far)
+{
+    const lh_ui_scalar_t padding = lh_ui_entity_get_padding(lh_addr_of(self->entity));
+
+    return lh_ui_point_offset(lh_addr_of(far), padding, padding);
+}
+
+lh_ui_point_t
 lh_ui_entity_container_get_content_far(const lh_ui_entity_container_t *self)
 {
     lh_ui_rect_t bounds;
@@ -100,7 +108,7 @@ lh_ui_entity_container_get_content_far(const lh_ui_entity_container_t *self)
     bounds = lh_ui_entity_get_content_bounds(lh_addr_of(self->entity));
     lh_return_if(lh_ui_rect_is_empty(lh_addr_of(bounds)),
                  *lh_ui_rect_get_origin_as_const(lh_addr_of(self->entity.rect)));
-    return lh_ui_rect_far(lh_addr_of(bounds));
+    return lh_ui_entity_container_pad_far(self, lh_ui_rect_far(lh_addr_of(bounds)));
 }
 
 lh_ui_size_t

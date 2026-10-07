@@ -93,8 +93,15 @@ lh_ui_size_t
 lh_ui_entity_container_get_viewport_size(const lh_ui_entity_container_t *self);
 
 /**
- * @brief Far corner of the content (::lh_ui_entity_get_content_bounds), or
- *        the origin of @p self when the content is empty.
+ * @brief @p far moved out by the padding of @p self on both axes: the room
+ *        left after the last child, as CSS scroll size counts it.
+ */
+lh_ui_point_t
+lh_ui_entity_container_pad_far(const lh_ui_entity_container_t *self, lh_ui_point_t far);
+
+/**
+ * @brief Far corner of the content (::lh_ui_entity_get_content_bounds) plus
+ *        the padding, or the origin of @p self when the content is empty.
  */
 lh_ui_point_t
 lh_ui_entity_container_get_content_far(const lh_ui_entity_container_t *self);

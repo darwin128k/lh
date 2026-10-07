@@ -75,6 +75,20 @@ lh_void
 lh_ui_style_set_radius(lh_ui_style_t *self, lh_ui_scalar_t radius);
 
 /**
+ * @brief Inner space of @p self on every side (`0` = content touches the
+ *        edge): where a label starts its text, and the room a container
+ *        leaves after its last child.
+ */
+lh_ui_scalar_t
+lh_ui_style_get_padding(const lh_ui_style_t *self);
+
+/**
+ * @brief Replace the padding of @p self. @p padding must not be negative.
+ */
+lh_void
+lh_ui_style_set_padding(lh_ui_style_t *self, lh_ui_scalar_t padding);
+
+/**
  * @brief Font text is drawn with, or ::lh_null (no text drawn).
  */
 const lh_ui_font_t *

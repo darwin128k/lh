@@ -78,6 +78,19 @@ lh_ui_entity_get_radius(const lh_ui_entity_t *self)
     return lh_null_eq(self->style) ? lh_ui_scalar(0) : lh_ui_style_get_radius(self->style);
 }
 
+lh_ui_scalar_t
+lh_ui_entity_get_padding(const lh_ui_entity_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_null_eq(self->style) ? lh_ui_scalar(0) : lh_ui_style_get_padding(self->style);
+}
+
+lh_bool_t
+lh_ui_entity_contains_point(const lh_ui_entity_t *self, lh_ui_point_t point)
+{
+    return lh_ui_radius_contains(lh_addr_of(self->rect), lh_ui_entity_get_radius(self), point);
+}
+
 const lh_ui_entity_class_t *
 lh_ui_entity_get_class(const lh_ui_entity_t *self)
 {
@@ -343,7 +356,7 @@ lh_bool_t
 lh_ui_entity_is_hit(const lh_ui_entity_t *self, lh_ui_point_t point)
 {
     lh_assert_runtime_ref(self);
-    lh_return_if(!lh_ui_rect_contains_point(lh_addr_of(self->rect), point), lh_bool_false);
+    lh_return_if(!lh_ui_entity_contains_point(self, point), lh_bool_false);
     return lh_ui_entity_is_shown(self);
 }
 
@@ -368,7 +381,7 @@ lh_bool_t
 lh_ui_entity_searches_children_at(const lh_ui_entity_t *self, lh_ui_point_t point)
 {
     lh_assert_runtime_ref(self);
-    lh_return_if(lh_ui_rect_contains_point(lh_addr_of(self->rect), point), lh_bool_true);
+    lh_return_if(lh_ui_entity_contains_point(self, point), lh_bool_true);
     /* Outside: only children could be hit, and asking about the clip may measure content. */
     lh_return_if(lh_null_eq(lh_ui_entity_get_first_child(self)), lh_bool_false);
     return !lh_ui_entity_is_clipping(self) ? lh_bool_true : lh_bool_false;
@@ -390,7 +403,7 @@ lh_ui_entity_find_at_local(lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_poin
     lh_return_if(!lh_ui_entity_may_hit(self, point), lh_null);
     hit = lh_ui_entity_find_child_at(self, point, local);
     lh_return_if(lh_null_ne(hit), hit);
-    lh_return_if(!lh_ui_rect_contains_point(lh_addr_of(self->rect), point), lh_null);
+    lh_return_if(!lh_ui_entity_contains_point(self, point), lh_null);
     *local = point;
     return self;
 }

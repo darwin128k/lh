@@ -82,3 +82,20 @@ TEST(entity_label, draw_keeps_the_base_class_fill)
 
     EXPECT_EQ(probe.matches, 1);
 }
+
+TEST(entity_label, padding_moves_the_text_in_from_the_corner)
+{
+    lh_ui_entity_label_t label;
+    lh_ui_style_t style;
+    lh_ui_rect_t rect;
+
+    lh_ui_rect_init(&rect, 10, 20, 100, 50);
+    lh_ui_entity_label_init(&label, rect, "x");
+    lh_ui_style_init(&style);
+    lh_ui_style_set_padding(&style, lh_ui_scalar(6));
+    lh_ui_entity_set_style(lh_ui_entity_label_as_entity(&label), &style);
+
+    const lh_ui_point_t origin = lh_ui_entity_label_get_text_origin(&label);
+    EXPECT_EQ(lh_ui_point_get_x(&origin), lh_ui_scalar(16));
+    EXPECT_EQ(lh_ui_point_get_y(&origin), lh_ui_scalar(26));
+}

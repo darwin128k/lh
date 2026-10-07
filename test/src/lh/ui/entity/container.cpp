@@ -255,3 +255,31 @@ TEST(entity_container, event_is_public_and_answers_children)
 
     EXPECT_TRUE(point_is(lh_ui_entity_transform_get_offset(lh_addr_of(transform)), 0, -10));
 }
+
+/* Padding is room after the last child: it adds to the content size (so the
+ * scroll reaches it), but an empty container stays empty. */
+TEST(entity_container, padding_extends_the_content_past_the_last_child)
+{
+    lh_ui_entity_container_t box;
+    lh_ui_entity_t child;
+    lh_ui_style_t style;
+    lh_ui_rect_t rect;
+
+    lh_ui_rect_init(&rect, 0, 0, 100, 100);
+    lh_ui_entity_container_init(&box, rect);
+    lh_ui_style_init(&style);
+    lh_ui_style_set_padding(&style, lh_ui_scalar(8));
+    lh_ui_entity_set_style(lh_ui_entity_container_as_entity(&box), &style);
+
+    lh_ui_size_t size = lh_ui_entity_container_get_content_size(&box);
+    EXPECT_EQ(lh_ui_size_get_height(&size), lh_ui_scalar(0));
+
+    lh_ui_rect_init(&rect, 0, 0, 50, 150);
+    lh_ui_entity_init(&child, rect);
+    lh_ui_entity_add_child(lh_ui_entity_container_as_entity(&box), &child);
+    size = lh_ui_entity_container_get_content_size(&box);
+    EXPECT_EQ(lh_ui_size_get_width(&size), lh_ui_scalar(58));
+    EXPECT_EQ(lh_ui_size_get_height(&size), lh_ui_scalar(158));
+    const lh_ui_point_t max = lh_ui_entity_container_get_scroll_max(&box);
+    EXPECT_EQ(lh_ui_point_get_y(&max), lh_ui_scalar(58));
+}

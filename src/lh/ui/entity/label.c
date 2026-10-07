@@ -107,8 +107,10 @@ lh_ui_entity_label_get_text_color(const lh_ui_entity_label_t *self)
 lh_ui_point_t
 lh_ui_entity_label_get_text_origin(const lh_ui_entity_label_t *self)
 {
-    lh_assert_runtime_ref(self);
-    return *lh_ui_rect_get_origin_as_const(lh_addr_of(self->container.entity.rect));
+    const lh_ui_entity_t *entity = lh_addr_of(self->container.entity);
+    const lh_ui_scalar_t padding = lh_ui_entity_get_padding(entity);
+
+    return lh_ui_point_offset(lh_ui_rect_get_origin_as_const(lh_addr_of(entity->rect)), padding, padding);
 }
 
 lh_ui_rect_t

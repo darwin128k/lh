@@ -58,3 +58,13 @@ TEST(ui_style, radius_starts_square_and_keeps_the_value)
     lh_ui_style_set_radius(lh_addr_of(style), LH_UI_RADIUS_CIRCLE);
     EXPECT_EQ(lh_ui_style_get_radius(lh_addr_of(style)), LH_UI_RADIUS_CIRCLE);
 }
+
+TEST(ui_style, padding_starts_at_zero_and_keeps_what_is_set)
+{
+    lh_ui_style_t style;
+
+    lh_ui_style_init(lh_addr_of(style));
+    EXPECT_EQ(lh_ui_style_get_padding(lh_addr_of(style)), lh_ui_scalar(0));
+    lh_ui_style_set_padding(lh_addr_of(style), lh_ui_scalar(12));
+    EXPECT_EQ(lh_ui_style_get_padding(lh_addr_of(style)), lh_ui_scalar(12));
+}

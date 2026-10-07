@@ -974,3 +974,54 @@ TEST(entity_death, remove_someone_elses_child)
 }
 
 #endif
+
+/* A rounded entity is not hit in its cut corner, and a rounded container does
+ * not hand that corner to its children either. */
+TEST(entity, hit_test_follows_the_rounded_corners)
+{
+    lh_ui_rect_t rect;
+    lh_ui_entity_t root;
+    lh_ui_entity_container_t box;
+    lh_ui_entity_t child;
+    lh_ui_style_t round;
+    lh_ui_point_t corner;
+    lh_ui_point_t inside;
+
+    lh_ui_style_init(lh_addr_of(round));
+    lh_ui_style_set_radius(lh_addr_of(round), lh_ui_scalar(10));
+    lh_ui_rect_init(lh_addr_of(rect), 0, 0, 100, 100);
+    lh_ui_entity_init(lh_addr_of(root), rect);
+    lh_ui_rect_init(lh_addr_of(rect), 20, 20, 40, 40);
+    lh_ui_entity_container_init(lh_addr_of(box), rect);
+    lh_ui_entity_set_style(lh_ui_entity_container_as_entity(lh_addr_of(box)), lh_addr_of(round));
+    lh_ui_entity_init(lh_addr_of(child), rect);
+    lh_ui_entity_add_child(lh_addr_of(root), lh_ui_entity_container_as_entity(lh_addr_of(box)));
+    lh_ui_entity_add_child(lh_ui_entity_container_as_entity(lh_addr_of(box)), lh_addr_of(child));
+
+    lh_ui_point_init(lh_addr_of(corner), 20, 20);
+    lh_ui_point_init(lh_addr_of(inside), 40, 40);
+    EXPECT_EQ(lh_ui_entity_find_at(lh_addr_of(root), corner), lh_addr_of(root));
+    EXPECT_EQ(lh_ui_entity_find_at(lh_addr_of(root), inside), lh_addr_of(child));
+
+    /* A square child of a plain parent is still hit in the same corner. */
+    lh_ui_entity_set_style(lh_ui_entity_container_as_entity(lh_addr_of(box)), nullptr);
+    EXPECT_EQ(lh_ui_entity_find_at(lh_addr_of(root), corner), lh_addr_of(child));
+}
+
+TEST(entity, padding_and_radius_come_from_the_style)
+{
+    lh_ui_rect_t rect;
+    lh_ui_entity_t e;
+    lh_ui_style_t style;
+
+    lh_ui_rect_init(lh_addr_of(rect), 0, 0, 10, 10);
+    lh_ui_entity_init(lh_addr_of(e), rect);
+    EXPECT_EQ(lh_ui_entity_get_padding(lh_addr_of(e)), lh_ui_scalar(0));
+    EXPECT_EQ(lh_ui_entity_get_radius(lh_addr_of(e)), lh_ui_scalar(0));
+    lh_ui_style_init(lh_addr_of(style));
+    lh_ui_style_set_padding(lh_addr_of(style), lh_ui_scalar(3));
+    lh_ui_style_set_radius(lh_addr_of(style), lh_ui_scalar(4));
+    lh_ui_entity_set_style(lh_addr_of(e), lh_addr_of(style));
+    EXPECT_EQ(lh_ui_entity_get_padding(lh_addr_of(e)), lh_ui_scalar(3));
+    EXPECT_EQ(lh_ui_entity_get_radius(lh_addr_of(e)), lh_ui_scalar(4));
+}

@@ -56,6 +56,19 @@ lh_ui_radius_cover_from_distance(lh_s64_t r, lh_s64_t d)
     return lh_cast_static(lh_byte_t, (cover * 255 + LH_UI_RADIUS_SUBPIXEL / 2) / LH_UI_RADIUS_SUBPIXEL);
 }
 
+lh_bool_t
+lh_ui_radius_contains(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_ui_point_t point)
+{
+    lh_return_if(!lh_ui_rect_contains_point(rect, point), lh_bool_false);
+    lh_return_if(radius <= lh_ui_scalar(0), lh_bool_true);
+    return lh_ui_radius_coverage(rect, lh_ui_radius_clamp(rect, radius),
+                                 lh_ui_scalar_floor_s32(lh_ui_point_get_x(lh_addr_of(point))),
+                                 lh_ui_scalar_floor_s32(lh_ui_point_get_y(lh_addr_of(point)))) >=
+                   LH_UI_RADIUS_HIT_COVERAGE
+               ? lh_bool_true
+               : lh_bool_false;
+}
+
 lh_byte_t
 lh_ui_radius_scale(lh_byte_t a, lh_byte_t b)
 {

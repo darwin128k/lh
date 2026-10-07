@@ -1,4 +1,6 @@
 #include <gtest/gtest.h>
+#include <lh/bool.h>
+#include <lh/ui/point.h>
 
 #include <lh/math/isqrt.h>
 #include <lh/ui/radius.h>
@@ -100,6 +102,33 @@ TEST(ui_radius, cover_from_square_matches_the_square_root_everywhere)
                     r, static_cast<lh_s64_t>(lh_math_isqrt_u64(static_cast<lh_u64_t>(d2))));
                 ASSERT_EQ(lh_ui_radius_cover_from_square(r, d2), want) << r << " " << d2;
             }
+        }
+    }
+}
+
+TEST(ui_radius, contains_follows_the_rounded_shape)
+{
+    lh_ui_rect_t rect;
+    lh_ui_point_t point;
+
+    lh_ui_rect_init(&rect, 10, 10, 40, 30);
+    lh_ui_point_init(&point, 10, 10); /* the cut corner pixel */
+    EXPECT_EQ(lh_ui_radius_contains(&rect, lh_ui_scalar(10), point), lh_bool_false);
+    EXPECT_EQ(lh_ui_radius_contains(&rect, lh_ui_scalar(0), point), lh_bool_true);
+    lh_ui_point_init(&point, 30, 10); /* the straight top edge */
+    EXPECT_EQ(lh_ui_radius_contains(&rect, lh_ui_scalar(10), point), lh_bool_true);
+    lh_ui_point_init(&point, 13, 13); /* inside the arc */
+    EXPECT_EQ(lh_ui_radius_contains(&rect, lh_ui_scalar(10), point), lh_bool_true);
+    lh_ui_point_init(&point, 50, 20); /* past the right edge */
+    EXPECT_EQ(lh_ui_radius_contains(&rect, lh_ui_scalar(10), point), lh_bool_false);
+    /* Every pixel: inside exactly when its coverage is at least half. */
+    for (int y = 8; y < 42; ++y)
+    {
+        for (int x = 8; x < 52; ++x)
+        {
+            lh_ui_point_init(&point, x, y);
+            const bool want = lh_ui_radius_coverage(&rect, lh_ui_scalar(10), x, y) >= LH_UI_RADIUS_HIT_COVERAGE;
+            ASSERT_EQ(lh_ui_radius_contains(&rect, lh_ui_scalar(10), point) != 0, want) << x << "," << y;
         }
     }
 }

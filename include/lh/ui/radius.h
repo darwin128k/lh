@@ -71,6 +71,22 @@ lh_byte_t
 lh_ui_radius_cover_from_distance(lh_s64_t r, lh_s64_t d);
 
 /**
+ * @def LH_UI_RADIUS_HIT_COVERAGE
+ * @brief Least coverage of the pixel under a point that counts as inside a
+ *        rounded rect for hit testing: half (the edge pixel is more shape
+ *        than background).
+ */
+#define LH_UI_RADIUS_HIT_COVERAGE 128
+
+/**
+ * @brief True when @p point lies in @p rect and, with @p radius (unclamped)
+ *        rounding its corners, on a pixel at least ::LH_UI_RADIUS_HIT_COVERAGE
+ *        covered: the shape a rounded fill paints, for hit testing.
+ */
+lh_bool_t
+lh_ui_radius_contains(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_ui_point_t point);
+
+/**
  * @brief Two coverages `0..255` combined: `a * b / 255`, rounded (what two
  *        stacked masks let through).
  */

@@ -101,6 +101,20 @@ const lh_ui_entity_class_t *
 lh_ui_entity_get_class(const lh_ui_entity_t *self);
 
 /**
+ * @brief Padding of the style of @p self, `0` without one.
+ */
+lh_ui_scalar_t
+lh_ui_entity_get_padding(const lh_ui_entity_t *self);
+
+/**
+ * @brief True when @p point (space of the rect of @p self) lies in the shape
+ *        @p self paints: its rect with the style radius on the corners
+ *        (::lh_ui_radius_contains). What hit tests and clipping parents use.
+ */
+lh_bool_t
+lh_ui_entity_contains_point(const lh_ui_entity_t *self, lh_ui_point_t point);
+
+/**
  * @brief Point @p self at @p class. The class is not copied.
  */
 lh_void
@@ -304,14 +318,17 @@ lh_ui_entity_get_root_rect(const lh_ui_entity_t *self);
 /* ── Hit test ────────────────────────────────────────────────────────────── */
 
 /**
- * @brief True when the rect of @p self contains @p point and @p self is shown.
+ * @brief True when @p point lies in the shape of @p self
+ *        (::lh_ui_entity_contains_point, corners cut by its radius) and
+ *        @p self is shown.
  */
 lh_bool_t
 lh_ui_entity_is_hit(const lh_ui_entity_t *self, lh_ui_point_t point);
 
 /**
  * @brief True when a hit test at @p point looks into @p self: inside its
- *        rect, or outside it when it has children and does not clip them
+ *        shape (::lh_ui_entity_contains_point), or outside it when it has
+ *        children and does not clip them
  *        (::lh_ui_entity_is_clipping) — the same rule draw uses
  *        (::lh_ui_entity_shows_children_on).
  */
