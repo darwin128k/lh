@@ -179,33 +179,6 @@ lh_ui_radius_run_init(struct lh_ui_radius_run *self, const lh_ui_rect_t *rect, l
     self->height = lh_ui_size_get_height(size);
 }
 
-lh_byte_t
-lh_ui_radius_run_pixel(const struct lh_ui_radius_run *self, lh_s32_t x, lh_s32_t y)
-{
-    const lh_s64_t dy = lh_ui_radius_axis_distance(lh_ui_radius_pixel_center(y), self->top, self->height, self->r);
-    const lh_s64_t outer = self->r + LH_UI_RADIUS_SUBPIXEL / 2;
-    const lh_s64_t p = lh_ui_radius_pixel_center(x);
-    lh_s64_t dx;
-    lh_s64_t d2;
-
-    lh_return_if(dy < 0, 0);
-    lh_return_if(p < self->lo || p >= self->hi, 0);
-    /* A row away from every corner is wholly covered, like lh_ui_radius_run_row
-       answers for a dy of 0 — the arc's formula below would shave the outermost
-       half subpixel of the straight edge, which is not what that row does. */
-    if (dy == 0)
-    {
-        return 255;
-    }
-    dx = lh_math_max(lh_math_max(self->near - p, p - self->far), 0);
-    if (dx == 0)
-    {
-        return 255;
-    }
-    d2 = dx * dx + dy * dy;
-    return d2 >= outer * outer ? 0 : lh_ui_radius_cover_from_square(self->r, d2);
-}
-
 lh_void
 lh_ui_radius_run_row(const struct lh_ui_radius_run *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_byte_t *out)
 {

@@ -133,39 +133,6 @@ TEST(ui_radius, contains_follows_the_rounded_shape)
     }
 }
 
-/* One column instead of a run: the same bytes, so a caller can mix each pixel as it
-   arrives without holding an array for it. */
-TEST(ui_radius_run_pixel, is_run_row_one_column_at_a_time)
-{
-    for (const int w : {4, 10, 40})
-    {
-        for (const int h : {4, 9, 30})
-        {
-            for (const int r : {0, 1, 2, 5, 8, 13})
-            {
-                lh_ui_rect_t rect;
-                lh_ui_rect_init(lh_addr_of(rect), 4, 3, w, h);
-
-                const lh_ui_scalar_t radius = lh_ui_radius_clamp(lh_addr_of(rect), lh_ui_scalar(r));
-                struct lh_ui_radius_run run;
-                lh_ui_radius_run_init(lh_addr_of(run), lh_addr_of(rect), radius);
-
-                for (int y = 0; y < 3 + h + 2; ++y)
-                {
-                    lh_byte_t row[64];
-
-                    lh_ui_radius_run_row(lh_addr_of(run), 0, 64, y, row);
-                    for (int x = 0; x < 64; ++x)
-                    {
-                        ASSERT_EQ(lh_ui_radius_run_pixel(lh_addr_of(run), x, y), row[x])
-                            << w << "x" << h << " r" << r << " @ " << x << "," << y;
-                    }
-                }
-            }
-        }
-    }
-}
-
 /* The run is the per-pixel coverage with the row-invariant parts hoisted. It must
    give the very same bytes, or every edge in the frame moves. */
 TEST(ui_radius_coverage_run, same_bytes_as_per_pixel)

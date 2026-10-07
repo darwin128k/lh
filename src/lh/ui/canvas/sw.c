@@ -207,58 +207,13 @@ lh_ui_canvas_sw_cover_span(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh
 }
 
 lh_void
-lh_ui_canvas_sw_cover_short_row(lh_ui_canvas_sw_t *self, const struct lh_ui_radius_run *run, lh_s32_t x0,
-                                 lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color_in)
-{
-    const lh_ui_color_t *color = color_in;
-    const lh_byte_t alpha = lh_ui_color_get_a(color);
-    const lh_u32_t rgb = lh_ui_color_get_argb(color) & 0x00FFFFFFU;
-    lh_s32_t x;
-
-    /* Each pixel's coverage is taken and mixed where it lands: no array to fill
-       first, no second pass to read it back, and no blend kernel to dispatch for a
-       handful of pixels. lh_ui_canvas_sw_cover_run_row does the same work in two
-       halves, and at this width the halves cost more than the pixels.
-
-       The alpha here has to come out the way lh_ui_canvas_sw_blend_run computes it
-       — the color's own alpha scaled by the shape's coverage first, the clip's
-       coverage second, and not the other way round, because each scale divides by
-       255 and rounds. So it is built here rather than left to
-       lh_ui_pixmap_cover_pixel, which scales the color's alpha AGAIN by whatever
-       it is handed. A pixel whose alpha works out at zero is left alone: the row
-       kernel skips those, and lh_ui_pixmap_blend_pixel would happily write them. */
-    for (x = x0; x < x1; ++x)
-    {
-        lh_ui_color_t edge;
-        lh_byte_t a = lh_ui_radius_scale(alpha, lh_ui_radius_run_pixel(run, x, y));
-
-        if (a != 0U && lh_ui_canvas_sw_is_rounded(self))
-        {
-            a = lh_ui_radius_scale(a, lh_ui_canvas_clip_coverage(lh_addr_of(self->clip), x, y));
-        }
-        if (a == 0U)
-        {
-            continue;
-        }
-        lh_ui_color_init_argb(lh_addr_of(edge), rgb | ((lh_u32_t)a << 24));
-        lh_ui_pixmap_blend_pixel(lh_addr_of(self->pixmap), x, y, lh_addr_of(edge));
-    }
-}
-
-lh_void
 lh_ui_canvas_sw_cover_span_run(lh_ui_canvas_sw_t *self, const struct lh_ui_radius_run *run, lh_s32_t x0, lh_s32_t x1,
                                lh_s32_t y, const lh_ui_color_t *color)
 {
     lh_s32_t end;
 
     x1 = lh_ui_canvas_sw_cut_x1(self, x1);
-    x0 = lh_ui_canvas_sw_cut_x0(self, x0);
-    if (x1 - x0 <= LH_UI_CANVAS_SW_FUSED_MAX)
-    {
-        lh_ui_canvas_sw_cover_short_row(self, run, x0, x1, y, color);
-        return;
-    }
-    for (; x0 < x1; x0 = end)
+    for (x0 = lh_ui_canvas_sw_cut_x0(self, x0); x0 < x1; x0 = end)
     {
         end = lh_math_min(x1, x0 + LH_UI_PIXMAP_RUN);
         lh_ui_canvas_sw_cover_run_row(self, run, x0, end, y, color);
