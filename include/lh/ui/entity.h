@@ -303,6 +303,22 @@ lh_bool_t
 lh_ui_entity_is_hit(const lh_ui_entity_t *self, lh_ui_point_t point);
 
 /**
+ * @brief True when a hit test at @p point looks among the children of
+ *        @p self: inside its rect, or anywhere when it does not clip them
+ *        (::lh_ui_entity_is_clipping) — the same rule draw uses
+ *        (::lh_ui_entity_shows_children_on).
+ */
+lh_bool_t
+lh_ui_entity_searches_children_at(const lh_ui_entity_t *self, lh_ui_point_t point);
+
+/**
+ * @brief True when @p self or one of its children can be hit at @p point:
+ *        ::lh_ui_entity_searches_children_at and ::lh_ui_entity_is_shown.
+ */
+lh_bool_t
+lh_ui_entity_may_hit(const lh_ui_entity_t *self, lh_ui_point_t point);
+
+/**
  * @brief ::lh_ui_entity_find_at_local over the children of @p self, last
  *        first, with @p point moved into their space.
  *
@@ -323,12 +339,15 @@ lh_ui_entity_find_at_local(lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_poin
  *
  * Topmost is the deepest, last-drawn entity whose rect contains @p point.
  * Entities not shown (::lh_ui_entity_is_shown) and their subtrees are
- * skipped. Children outside their parent's rect are not searched. Below a
+ * skipped. A child outside its parent's rect is found where it is drawn:
+ * under a plain parent anywhere, under a clipping one (a container) only
+ * inside the parent rect (::lh_ui_entity_searches_children_at). Below a
  * parent, @p point is moved back by the parent's children offset
  * (::lh_ui_entity_to_children_space), so a scrolled child is found where it
  * is drawn.
  *
- * @return That entity, or ::lh_null when @p point is outside @p self.
+ * @return That entity, or ::lh_null when no shown entity there contains
+ *         @p point.
  */
 lh_ui_entity_t *
 lh_ui_entity_find_at(lh_ui_entity_t *self, lh_ui_point_t point);

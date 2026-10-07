@@ -32,22 +32,26 @@ lh_ui_canvas_can_fill_mask(const struct lh_ui_canvas *self, const lh_ui_rect_t *
                : lh_bool_false;
 }
 
+lh_bool_t
+lh_ui_canvas_try_fill_mask(struct lh_ui_canvas *self, const lh_ui_mask_t *mask, const lh_ui_rect_t *target,
+                           const lh_ui_color_t *color)
+{
+    lh_ui_point_t origin;
+
+    lh_return_if(!lh_ui_canvas_can_fill_mask(self, target), lh_bool_false);
+    lh_ui_point_init(lh_addr_of(origin), lh_ui_canvas_round_left(target), lh_ui_canvas_round_top(target));
+    return self->backend->fill_mask(self->context, lh_addr_of(origin), mask, color);
+}
+
 lh_void
 lh_ui_canvas_fill_target_mask(struct lh_ui_canvas *self, const lh_ui_mask_t *mask, const lh_ui_rect_t *target,
                               const lh_ui_color_t *color)
 {
-    lh_ui_point_t origin;
-    lh_ui_rect_t cut;
+    const lh_ui_rect_t cut = lh_ui_canvas_state_cut(lh_addr_of(self->state), target);
 
-    cut = lh_ui_canvas_state_cut(lh_addr_of(self->state), target);
     lh_return_if(lh_ui_rect_is_empty(lh_addr_of(cut)));
     lh_ui_canvas_add_damage(self, lh_addr_of(cut));
-    lh_ui_point_init(lh_addr_of(origin), lh_ui_canvas_round_left(target), lh_ui_canvas_round_top(target));
-    if (lh_ui_canvas_can_fill_mask(self, target))
-    {
-        self->backend->fill_mask(self->context, lh_addr_of(origin), mask, color);
-        return;
-    }
+    lh_return_if(lh_ui_canvas_try_fill_mask(self, mask, target, color));
     lh_ui_canvas_fill_mask_by_pixels(self, mask, lh_ui_canvas_round_left(target), lh_ui_canvas_round_top(target),
                                      color);
 }

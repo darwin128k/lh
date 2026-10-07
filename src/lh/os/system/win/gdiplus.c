@@ -157,7 +157,7 @@ lh_os_system_gdiplus_frame_ensure_bitmap(lh_os_system_gdiplus_frame_body_t *fram
     return lh_bool_true;
 }
 
-lh_void
+lh_bool_t
 lh_os_system_gdiplus_frame_fill_mask(lh_os_system_gdiplus_frame_t handle, int x, int y, int width,
                                      int height, int bpp, int row_bytes, const lh_byte_t *bits,
                                      lh_byte_t r, lh_byte_t g, lh_byte_t b, lh_byte_t a)
@@ -169,12 +169,12 @@ lh_os_system_gdiplus_frame_fill_mask(lh_os_system_gdiplus_frame_t handle, int x,
     int row;
     int col;
 
-    lh_return_if(lh_null_eq(handle) || lh_null_eq(bits));
-    lh_return_if(width <= 0 || height <= 0 || row_bytes <= 0);
-    lh_return_if(bpp != 1 && bpp != 2 && bpp != 4 && bpp != 8);
+    lh_return_if(lh_null_eq(handle) || lh_null_eq(bits), lh_bool_false);
+    lh_return_if(width <= 0 || height <= 0 || row_bytes <= 0, lh_bool_false);
+    lh_return_if(bpp != 1 && bpp != 2 && bpp != 4 && bpp != 8, lh_bool_false);
     frame = lh_ptr_rcast(lh_os_system_gdiplus_frame_body_t, handle);
-    lh_return_if(lh_null_eq(frame->graphics));
-    lh_return_if(!lh_os_system_gdiplus_frame_ensure_bitmap(frame, width, height));
+    lh_return_if(lh_null_eq(frame->graphics), lh_bool_false);
+    lh_return_if(!lh_os_system_gdiplus_frame_ensure_bitmap(frame, width, height), lh_bool_false);
 
     area.X = 0;
     area.Y = 0;
@@ -183,7 +183,8 @@ lh_os_system_gdiplus_frame_fill_mask(lh_os_system_gdiplus_frame_t handle, int x,
     lh_return_if(GdipBitmapLockBits(frame->bitmap, lh_addr_of(area),
                                     lh_os_system_win_gp_image_lock_mode_write,
                                     LH_OS_SYSTEM_WIN_PIXEL_FORMAT_32BPP_ARGB,
-                                    lh_addr_of(data)) != lh_os_system_win_gp_ok);
+                                    lh_addr_of(data)) != lh_os_system_win_gp_ok,
+                 lh_bool_false);
     max_sample = lh_bit_packed_max(lh_cast_static(lh_u32_t, bpp));
     for (row = 0; row < height; ++row)
     {
@@ -204,11 +205,14 @@ lh_os_system_gdiplus_frame_fill_mask(lh_os_system_gdiplus_frame_t handle, int x,
         }
     }
     GdipBitmapUnlockBits(frame->bitmap, lh_addr_of(data));
-    GdipDrawImagePointRectI(frame->graphics, lh_ptr_rcast(lh_os_system_win_gp_image_t, frame->bitmap),
-                            x, y, 0, 0, width, height, lh_os_system_win_gp_unit_pixel);
+    return GdipDrawImagePointRectI(frame->graphics, lh_ptr_rcast(lh_os_system_win_gp_image_t, frame->bitmap),
+                                   x, y, 0, 0, width, height,
+                                   lh_os_system_win_gp_unit_pixel) == lh_os_system_win_gp_ok
+               ? lh_bool_true
+               : lh_bool_false;
 }
 
-lh_void
+lh_bool_t
 lh_os_system_gdiplus_frame_fill_round_rect(lh_os_system_gdiplus_frame_t handle, int left, int top,
                                            int right, int bottom, int radius, lh_byte_t r,
                                            lh_byte_t g, lh_byte_t b, lh_byte_t a)
@@ -224,10 +228,12 @@ lh_os_system_gdiplus_frame_fill_round_rect(lh_os_system_gdiplus_frame_t handle, 
         (lh_cast_static(lh_os_system_win_gdiplus_argb_t, r) << 16) |
         (lh_cast_static(lh_os_system_win_gdiplus_argb_t, g) << 8) |
         lh_cast_static(lh_os_system_win_gdiplus_argb_t, b);
+    lh_os_system_win_gp_status_t status;
 
-    lh_return_if(lh_null_eq(handle));
+    lh_return_if(lh_null_eq(handle), lh_bool_false);
     frame = lh_ptr_rcast(lh_os_system_gdiplus_frame_body_t, handle);
-    lh_return_if(lh_null_eq(frame->graphics) || lh_null_eq(frame->path) || lh_null_eq(frame->solid));
+    lh_return_if(lh_null_eq(frame->graphics) || lh_null_eq(frame->path) || lh_null_eq(frame->solid),
+                 lh_bool_false);
 
     GdipSetSmoothingMode(frame->graphics, lh_os_system_win_gp_smoothing_mode_anti_alias);
     GdipSetPixelOffsetMode(frame->graphics, lh_os_system_win_gp_pixel_offset_mode_half);
@@ -238,11 +244,12 @@ lh_os_system_gdiplus_frame_fill_round_rect(lh_os_system_gdiplus_frame_t handle, 
     GdipAddPathArc(frame->path, x0, y1, d, d, 90.0f, 90.0f);
     GdipClosePathFigure(frame->path);
     GdipSetSolidFillColor(frame->solid, argb);
-    GdipFillPath(frame->graphics, lh_ptr_rcast(lh_os_system_win_gp_brush_t, frame->solid),
-                 frame->path);
+    status = GdipFillPath(frame->graphics, lh_ptr_rcast(lh_os_system_win_gp_brush_t, frame->solid),
+                          frame->path);
     /* Restore frame defaults so subsequent mask draws stay pixel-aligned. */
     GdipSetPixelOffsetMode(frame->graphics, lh_os_system_win_gp_pixel_offset_mode_none);
     GdipSetSmoothingMode(frame->graphics, lh_os_system_win_gp_smoothing_mode_none);
+    return status == lh_os_system_win_gp_ok ? lh_bool_true : lh_bool_false;
 }
 
 lh_void

@@ -259,9 +259,18 @@ lh_bool_t
 lh_ui_canvas_can_fill_round(const lh_ui_canvas_t *self, const lh_ui_rect_t *target);
 
 /**
+ * @brief Send a rounded fill of @p target to the backend `fill_round_rect`
+ *        when it can take it (::lh_ui_canvas_can_fill_round). True only when
+ *        the slot drew.
+ */
+lh_bool_t
+lh_ui_canvas_try_fill_round(lh_ui_canvas_t *self, const lh_ui_rect_t *target, lh_ui_scalar_t radius,
+                            const lh_ui_color_t *color);
+
+/**
  * @brief Rounded fill of a target-space rect with an already clamped radius:
  *        `0` → ::lh_ui_canvas_fill_target_rect, else the backend slot, else
- *        ::lh_ui_canvas_fill_round_rect_by_rects.
+ *        (no slot, or it drew nothing) ::lh_ui_canvas_fill_round_rect_by_rects.
  */
 lh_void
 lh_ui_canvas_fill_target_round_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *target, lh_ui_scalar_t radius,

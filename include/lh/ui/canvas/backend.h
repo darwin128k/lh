@@ -52,8 +52,11 @@ typedef lh_void(lh_ui_canvas_fill_rect_fn)(lh_ptr context, const lh_ui_rect_t *r
  * @brief Fill @p rect with @p color, corners rounded by @p radius, anti-aliased.
  *
  * @p radius is already clamped by the canvas: `1 .. min(w, h) / 2`.
+ *
+ * @return ::lh_bool_false when the backend drew nothing (e.g. its renderer is
+ *         not available this frame); the canvas then draws the shape itself.
  */
-typedef lh_void(lh_ui_canvas_fill_round_rect_fn)(lh_ptr context, const lh_ui_rect_t *rect,
+typedef lh_bool_t(lh_ui_canvas_fill_round_rect_fn)(lh_ptr context, const lh_ui_rect_t *rect,
                                                  lh_ui_scalar_t radius, const lh_ui_color_t *color);
 
 /**
@@ -73,8 +76,11 @@ typedef lh_void(lh_ui_canvas_set_clip_fn)(lh_ptr context, const lh_ui_rect_t *cl
  * @p origin is in target space, on whole pixels. Each pixel is @p color with
  * its alpha scaled by the mask coverage. The canvas sends only masks it need
  * not cut itself.
+ *
+ * @return ::lh_bool_false when the backend drew nothing; the canvas then
+ *         paints the mask itself.
  */
-typedef lh_void(lh_ui_canvas_fill_mask_fn)(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,
+typedef lh_bool_t(lh_ui_canvas_fill_mask_fn)(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,
                                            const lh_ui_color_t *color);
 
 LH_COMPILER_EXTERN_C_END

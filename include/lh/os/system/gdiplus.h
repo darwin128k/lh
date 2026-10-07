@@ -70,9 +70,12 @@ lh_os_system_gdiplus_frame_end(lh_os_system_gdiplus_frame_t frame);
  * @brief Paint a packed alpha mask in solid RGBA through @p frame.
  *
  * @p bits are high-bit-first @p bpp (1/2/4/8) rows of @p row_bytes. Reuses the
- * frame bitmap; grows it when a glyph is larger. Nothing on failure.
+ * frame bitmap; grows it when a glyph is larger.
+ *
+ * @return ::lh_bool_false when nothing was drawn (bad arguments, no bitmap,
+ *         a GDI+ call failed), so the caller can draw it another way.
  */
-lh_void
+lh_bool_t
 lh_os_system_gdiplus_frame_fill_mask(lh_os_system_gdiplus_frame_t frame, int x, int y, int width,
                                      int height, int bpp, int row_bytes, const lh_byte_t *bits,
                                      lh_byte_t r, lh_byte_t g, lh_byte_t b, lh_byte_t a);
@@ -82,9 +85,12 @@ lh_os_system_gdiplus_frame_fill_mask(lh_os_system_gdiplus_frame_t frame, int x, 
  *
  * Reuses the frame path and solid fill. Temporarily sets PixelOffsetMode half
  * and SmoothingMode anti-alias, then restores PixelOffsetMode none (and
- * SmoothingMode none) so mask draws stay aligned. Nothing on failure.
+ * SmoothingMode none) so mask draws stay aligned.
+ *
+ * @return ::lh_bool_false when nothing was drawn (no frame objects, the fill
+ *         failed), so the caller can draw it another way.
  */
-lh_void
+lh_bool_t
 lh_os_system_gdiplus_frame_fill_round_rect(lh_os_system_gdiplus_frame_t frame, int left, int top,
                                            int right, int bottom, int radius, lh_byte_t r,
                                            lh_byte_t g, lh_byte_t b, lh_byte_t a);

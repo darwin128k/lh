@@ -115,15 +115,15 @@ lh_os_render_backend_gdi_fill_rect(lh_ptr context, const lh_ui_rect_t *rect,
         lh_cast_static(int, lh_ui_point_get_y(lh_addr_of(corner))), color);
 }
 
-lh_void
+lh_bool_t
 lh_os_render_backend_gdi_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect,
                                          lh_ui_scalar_t radius, const lh_ui_color_t *color)
 {
     lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
 
-    lh_return_if(lh_null_eq(gdi->frame));
+    lh_return_if(lh_null_eq(gdi->frame), lh_bool_false);
     ++gdi->round_calls;
-    lh_os_render_backend_gdi_plus_fill_round_rect(gdi->frame, rect, radius, color);
+    return lh_os_render_backend_gdi_plus_fill_round_rect(gdi->frame, rect, radius, color);
 }
 
 lh_void
@@ -163,15 +163,15 @@ lh_os_render_backend_gdi_set_clip(lh_ptr context, const lh_ui_rect_t *clip)
     }
 }
 
-lh_void
+lh_bool_t
 lh_os_render_backend_gdi_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,
                                    const lh_ui_color_t *color)
 {
     lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
 
-    lh_return_if(lh_null_eq(gdi->frame));
+    lh_return_if(lh_null_eq(gdi->frame), lh_bool_false);
     ++gdi->mask_calls;
-    lh_os_render_backend_gdi_plus_fill_mask(gdi->frame, origin, mask, color);
+    return lh_os_render_backend_gdi_plus_fill_mask(gdi->frame, origin, mask, color);
 }
 
 lh_u32_t
@@ -229,24 +229,6 @@ const lh_ui_canvas_backend_t lh_os_render_backend_gdi_soft = {
     lh_os_render_backend_gdi_set_clip,
     lh_os_render_backend_gdi_fill_mask,
 };
-
-/* No GDI+ slots: the canvas draws rounds and masks through fill_rect. */
-const lh_ui_canvas_backend_t lh_os_render_backend_gdi_basic = {
-    lh_os_render_backend_gdi_begin,
-    lh_os_render_backend_gdi_end,
-    lh_os_render_backend_gdi_clear,
-    lh_os_render_backend_gdi_fill_rect,
-    lh_null,
-    lh_os_render_backend_gdi_set_clip,
-    lh_null,
-};
-
-const lh_ui_canvas_backend_t *
-lh_os_render_backend_gdi_select(const lh_ui_canvas_backend_t *wanted)
-{
-    lh_assert_runtime_ref(wanted);
-    return lh_os_render_backend_gdi_plus_is_ready() ? wanted : lh_addr_of(lh_os_render_backend_gdi_basic);
-}
 
 lh_void
 lh_os_render_backend_gdi_context_init(lh_os_render_backend_gdi_context_t *self)

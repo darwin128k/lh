@@ -39,11 +39,11 @@ lh_os_render_backend_gdi_plus_frame_end(lh_os_system_gdiplus_frame_t frame)
     lh_os_system_gdiplus_frame_end(frame);
 }
 
-lh_void
+lh_bool_t
 lh_os_render_backend_gdi_plus_fill_mask(lh_os_system_gdiplus_frame_t frame, const lh_ui_point_t *origin,
                                         const lh_ui_mask_t *mask, const lh_ui_color_t *color)
 {
-    lh_os_system_gdiplus_frame_fill_mask(
+    return lh_os_system_gdiplus_frame_fill_mask(
         frame, lh_cast_static(int, lh_ui_point_get_x(origin)),
         lh_cast_static(int, lh_ui_point_get_y(origin)), lh_ui_mask_get_width(mask),
         lh_ui_mask_get_height(mask), lh_ui_mask_get_bpp(mask), mask->row_bytes, mask->bits,
@@ -51,7 +51,7 @@ lh_os_render_backend_gdi_plus_fill_mask(lh_os_system_gdiplus_frame_t frame, cons
         lh_ui_color_get_a(color));
 }
 
-lh_void
+lh_bool_t
 lh_os_render_backend_gdi_plus_fill_round_rect(lh_os_system_gdiplus_frame_t frame,
                                               const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
                                               const lh_ui_color_t *color)
@@ -59,7 +59,7 @@ lh_os_render_backend_gdi_plus_fill_round_rect(lh_os_system_gdiplus_frame_t frame
     const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
     const lh_ui_point_t corner = lh_ui_rect_far(rect);
 
-    lh_os_system_gdiplus_frame_fill_round_rect(
+    return lh_os_system_gdiplus_frame_fill_round_rect(
         frame, lh_cast_static(int, lh_ui_point_get_x(origin)),
         lh_cast_static(int, lh_ui_point_get_y(origin)),
         lh_cast_static(int, lh_ui_point_get_x(lh_addr_of(corner))),

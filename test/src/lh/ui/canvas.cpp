@@ -7,7 +7,9 @@
 #include <lh/expect/death.h>
 #include <lh/null.h>
 #include <lh/ui/canvas.h>
+#include <lh/ui/canvas/mask.h>
 #include <lh/ui/color.h>
+#include <lh/ui/mask.h>
 #include <lh/ui/radius.h>
 #include <lh/ui/rect.h>
 #include <lh/util/addr.h>
@@ -363,6 +365,82 @@ TEST(ui_canvas, round_rect_across_the_clip_goes_through_the_cut_fallback)
             EXPECT_EQ(target.alpha[y][x], cover) << x << "," << y;
         }
     }
+}
+
+int g_declined;
+
+lh_bool_t
+decline_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, const lh_ui_color_t *color)
+{
+    (void)context;
+    (void)rect;
+    (void)radius;
+    (void)color;
+    ++g_declined;
+    return lh_bool_false;
+}
+
+lh_bool_t
+decline_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask, const lh_ui_color_t *color)
+{
+    (void)context;
+    (void)origin;
+    (void)mask;
+    (void)color;
+    ++g_declined;
+    return lh_bool_false;
+}
+
+/* Both GDI+-like slots present, both draw nothing this frame. */
+const lh_ui_canvas_backend_t g_declining_backend = {nullptr, nullptr, nullptr, target_fill_rect,
+                                                      decline_round_rect, nullptr, decline_mask};
+
+TEST(ui_canvas, round_rect_the_slot_declines_is_drawn_by_the_canvas)
+{
+    alpha_target target{};
+    lh_ui_canvas_t canvas;
+    lh_ui_color_t color;
+    const lh_ui_rect_t rect = rect_of(2, 3, 11, 9);
+    const lh_ui_scalar_t radius = lh_ui_radius_clamp(lh_addr_of(rect), LH_UI_RADIUS_CIRCLE);
+
+    g_declined = 0;
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_declining_backend), lh_addr_of(target));
+
+    lh_ui_canvas_fill_round_rect(lh_addr_of(canvas), lh_addr_of(rect), LH_UI_RADIUS_CIRCLE, lh_addr_of(color));
+
+    EXPECT_EQ(g_declined, 1);
+    for (int y = 0; y < 16; ++y)
+    {
+        for (int x = 0; x < 16; ++x)
+        {
+            EXPECT_LE(target.writes[y][x], 1) << x << "," << y;
+            EXPECT_EQ(target.alpha[y][x], lh_ui_radius_coverage(lh_addr_of(rect), radius, x, y)) << x << "," << y;
+        }
+    }
+    ASSERT_NE(lh_ui_canvas_get_damage(lh_addr_of(canvas)), nullptr);
+}
+
+TEST(ui_canvas, mask_the_slot_declines_is_painted_by_the_canvas)
+{
+    static const lh_byte_t bits[] = {0x00, 0xff, 0x80, 0x00};
+    alpha_target target{};
+    lh_ui_canvas_t canvas;
+    lh_ui_color_t color;
+    lh_ui_mask_t mask;
+
+    g_declined = 0;
+    lh_ui_mask_init(lh_addr_of(mask), bits, 2, 2, 2, 8);
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_declining_backend), lh_addr_of(target));
+
+    lh_ui_canvas_fill_mask(lh_addr_of(canvas), lh_addr_of(mask), point_of(4, 5), lh_addr_of(color));
+
+    EXPECT_EQ(g_declined, 1);
+    EXPECT_EQ(target.writes[5][4], 0);
+    EXPECT_EQ(target.alpha[5][5], 255);
+    EXPECT_EQ(target.alpha[6][4], lh_ui_mask_get_coverage(lh_addr_of(mask), 0, 1));
+    EXPECT_EQ(target.writes[6][5], 0);
 }
 
 #if LH_TEST_EXPECT_DEATH_ENABLED

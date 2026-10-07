@@ -56,7 +56,7 @@ draw_log_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t
     ++log->fill_count;
 }
 
-inline lh_void
+inline lh_bool_t
 draw_log_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
                          const lh_ui_color_t *color)
 {
@@ -68,6 +68,7 @@ draw_log_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_
         log->round_radii[log->round_count] = radius;
     }
     ++log->round_count;
+    return lh_bool_true;
 }
 
 inline lh_void
@@ -83,7 +84,7 @@ draw_log_set_clip(lh_ptr context, const lh_ui_rect_t *clip)
     ++log->clip_count;
 }
 
-inline lh_void
+inline lh_bool_t
 draw_log_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,
                    const lh_ui_color_t *color)
 {
@@ -94,6 +95,7 @@ draw_log_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask
         log->masks[log->mask_count] = lh_ui_mask_get_rect(mask, *origin);
     }
     ++log->mask_count;
+    return lh_bool_true;
 }
 
 /* One backend table: fill_rect, plus the optional slots picked by the flags. */

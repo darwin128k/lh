@@ -48,7 +48,7 @@ fill_probe_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color
     }
 }
 
-inline lh_void
+inline lh_bool_t
 fill_probe_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
                            const lh_ui_color_t *color)
 {
@@ -58,6 +58,7 @@ fill_probe_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scala
         ++probe->round_matches;
         probe->radius = radius;
     }
+    return lh_bool_true;
 }
 
 /** Backend with only fill_rect: round rects go through the canvas fallback. */

@@ -889,6 +889,60 @@ TEST(entity, add_damage_puts_the_rect_in_the_root_space)
     EXPECT_TRUE(lh_ui_rect_eq(damage, lh_addr_of(rect)));
 }
 
+TEST(entity, find_at_reaches_a_child_outside_a_plain_parent)
+{
+    lh_ui_rect_t rect;
+    lh_ui_entity_t root;
+    lh_ui_entity_t parent;
+    lh_ui_entity_t child;
+    lh_ui_point_t point;
+    lh_ui_point_t local;
+
+    lh_ui_rect_init(lh_addr_of(rect), 0, 0, 100, 100);
+    lh_ui_entity_init(lh_addr_of(root), rect);
+    lh_ui_rect_init(lh_addr_of(rect), 0, 0, 10, 10);
+    lh_ui_entity_init(lh_addr_of(parent), rect);
+    lh_ui_rect_init(lh_addr_of(rect), 50, 50, 10, 10);
+    lh_ui_entity_init(lh_addr_of(child), rect);
+    lh_ui_entity_add_child(lh_addr_of(root), lh_addr_of(parent));
+    lh_ui_entity_add_child(lh_addr_of(parent), lh_addr_of(child));
+
+    lh_ui_point_init(lh_addr_of(point), 55, 55);
+    EXPECT_EQ(lh_ui_entity_find_at_local(lh_addr_of(root), point, lh_addr_of(local)), lh_addr_of(child));
+    EXPECT_EQ(lh_ui_point_get_x(lh_addr_of(local)), lh_ui_scalar(55));
+
+    /* Off every rect, the parent is not hit just for being searched. */
+    lh_ui_point_init(lh_addr_of(point), 30, 30);
+    EXPECT_EQ(lh_ui_entity_find_at(lh_addr_of(root), point), lh_addr_of(root));
+    EXPECT_TRUE(lh_null_eq(lh_ui_entity_find_at(lh_addr_of(parent), point)));
+
+    /* Hidden still hides the whole subtree. */
+    lh_ui_entity_set_hidden(lh_addr_of(parent), lh_bool_true);
+    lh_ui_point_init(lh_addr_of(point), 55, 55);
+    EXPECT_EQ(lh_ui_entity_find_at(lh_addr_of(root), point), lh_addr_of(root));
+}
+
+TEST(entity, find_at_does_not_reach_a_child_a_container_cuts_away)
+{
+    lh_ui_rect_t rect;
+    lh_ui_entity_t root;
+    lh_ui_entity_container_t box;
+    lh_ui_entity_t child;
+    lh_ui_point_t point;
+
+    lh_ui_rect_init(lh_addr_of(rect), 0, 0, 100, 100);
+    lh_ui_entity_init(lh_addr_of(root), rect);
+    lh_ui_rect_init(lh_addr_of(rect), 0, 0, 10, 10);
+    lh_ui_entity_container_init(lh_addr_of(box), rect);
+    lh_ui_rect_init(lh_addr_of(rect), 50, 50, 10, 10);
+    lh_ui_entity_init(lh_addr_of(child), rect);
+    lh_ui_entity_add_child(lh_addr_of(root), lh_ui_entity_container_as_entity(lh_addr_of(box)));
+    lh_ui_entity_add_child(lh_ui_entity_container_as_entity(lh_addr_of(box)), lh_addr_of(child));
+
+    lh_ui_point_init(lh_addr_of(point), 55, 55);
+    EXPECT_EQ(lh_ui_entity_find_at(lh_addr_of(root), point), lh_addr_of(root));
+}
+
 #if LH_TEST_EXPECT_DEATH_ENABLED
 
 TEST(entity_death, add_ancestor_as_child_is_a_cycle)

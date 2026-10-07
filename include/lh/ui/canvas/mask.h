@@ -42,8 +42,17 @@ lh_bool_t
 lh_ui_canvas_can_fill_mask(const struct lh_ui_canvas *self, const lh_ui_rect_t *target);
 
 /**
+ * @brief Send @p mask over @p target to the backend `fill_mask` when it can
+ *        take it (::lh_ui_canvas_can_fill_mask). True only when the slot drew.
+ */
+lh_bool_t
+lh_ui_canvas_try_fill_mask(struct lh_ui_canvas *self, const lh_ui_mask_t *mask, const lh_ui_rect_t *target,
+                           const lh_ui_color_t *color);
+
+/**
  * @brief Paint @p mask over @p target (target space, the mask rect already
- *        moved): the backend slot, else ::lh_ui_canvas_fill_mask_by_pixels.
+ *        moved): the backend slot, else (no slot, or it drew nothing)
+ *        ::lh_ui_canvas_fill_mask_by_pixels.
  */
 lh_void
 lh_ui_canvas_fill_target_mask(struct lh_ui_canvas *self, const lh_ui_mask_t *mask, const lh_ui_rect_t *target,

@@ -357,15 +357,31 @@ lh_ui_entity_find_child_at(const lh_ui_entity_t *self, lh_ui_point_t point, lh_u
     return hit;
 }
 
+lh_bool_t
+lh_ui_entity_searches_children_at(const lh_ui_entity_t *self, lh_ui_point_t point)
+{
+    lh_assert_runtime_ref(self);
+    lh_return_if(lh_ui_rect_contains_point(lh_addr_of(self->rect), point), lh_bool_true);
+    return !lh_ui_entity_is_clipping(self) ? lh_bool_true : lh_bool_false;
+}
+
+lh_bool_t
+lh_ui_entity_may_hit(const lh_ui_entity_t *self, lh_ui_point_t point)
+{
+    lh_return_if(!lh_ui_entity_searches_children_at(self, point), lh_bool_false);
+    return lh_ui_entity_is_shown(self);
+}
+
 lh_ui_entity_t *
 lh_ui_entity_find_at_local(lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_point_t *local)
 {
     lh_ui_entity_t *hit;
 
     lh_assert_runtime_ref(local);
-    lh_return_if(!lh_ui_entity_is_hit(self, point), lh_null);
+    lh_return_if(!lh_ui_entity_may_hit(self, point), lh_null);
     hit = lh_ui_entity_find_child_at(self, point, local);
     lh_return_if(lh_null_ne(hit), hit);
+    lh_return_if(!lh_ui_rect_contains_point(lh_addr_of(self->rect), point), lh_null);
     *local = point;
     return self;
 }

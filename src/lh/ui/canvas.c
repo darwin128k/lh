@@ -289,6 +289,14 @@ lh_ui_canvas_can_fill_round(const lh_ui_canvas_t *self, const lh_ui_rect_t *targ
                : lh_bool_false;
 }
 
+lh_bool_t
+lh_ui_canvas_try_fill_round(lh_ui_canvas_t *self, const lh_ui_rect_t *target, lh_ui_scalar_t radius,
+                            const lh_ui_color_t *color)
+{
+    lh_return_if(!lh_ui_canvas_can_fill_round(self, target), lh_bool_false);
+    return self->backend->fill_round_rect(self->context, target, radius, color);
+}
+
 lh_void
 lh_ui_canvas_fill_target_round_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *target, lh_ui_scalar_t radius,
                                     const lh_ui_color_t *color)
@@ -302,12 +310,8 @@ lh_ui_canvas_fill_target_round_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *ta
     }
     cut = lh_ui_canvas_state_cut(lh_addr_of(self->state), target);
     lh_return_if(lh_ui_rect_is_empty(lh_addr_of(cut)));
-    if (lh_ui_canvas_can_fill_round(self, target))
-    {
-        lh_ui_canvas_add_damage(self, lh_addr_of(cut));
-        self->backend->fill_round_rect(self->context, target, radius, color);
-        return;
-    }
+    lh_ui_canvas_add_damage(self, lh_addr_of(cut));
+    lh_return_if(lh_ui_canvas_try_fill_round(self, target, radius, color));
     lh_ui_canvas_fill_round_rect_by_rects(self, target, radius, color);
 }
 

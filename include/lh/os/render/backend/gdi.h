@@ -144,11 +144,11 @@ lh_os_render_backend_gdi_fill_rect(lh_ptr context, const lh_ui_rect_t *rect,
 /**
  * @brief Backend `fill_round_rect`: anti-aliased through the frame GDI+.
  *
- * Nothing without a frame (no surface yet, or the frame could not be made).
- * A backend never falls back itself: without GDI+ pick the table with
- * ::lh_os_render_backend_gdi_select, and the canvas draws the shape.
+ * ::lh_bool_false without a frame (GDI+ not running, no surface yet, or the
+ * frame could not be made) or when GDI+ fails: the canvas then draws the
+ * shape itself. The backend never falls back on its own.
  */
-lh_void
+lh_bool_t
 lh_os_render_backend_gdi_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect,
                                          lh_ui_scalar_t radius, const lh_ui_color_t *color);
 
@@ -160,9 +160,10 @@ lh_os_render_backend_gdi_set_clip(lh_ptr context, const lh_ui_rect_t *clip);
 
 /**
  * @brief Backend `fill_mask`: paint @p mask in @p color through the frame GDI+.
- *        Nothing without a frame, like ::lh_os_render_backend_gdi_fill_round_rect.
+ *        ::lh_bool_false (the canvas paints it) on the same terms as
+ *        ::lh_os_render_backend_gdi_fill_round_rect.
  */
-lh_void
+lh_bool_t
 lh_os_render_backend_gdi_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,
                                    const lh_ui_color_t *color);
 
@@ -208,22 +209,6 @@ extern const lh_ui_canvas_backend_t lh_os_render_backend_gdi;
  *        is ::lh_null — the canvas falls back to ::lh_ui_canvas_fill_round_rect_by_rects.
  */
 extern const lh_ui_canvas_backend_t lh_os_render_backend_gdi_soft;
-
-/**
- * @brief GDI table without the GDI+ slots: `fill_round_rect` and `fill_mask`
- *        are ::lh_null, so the canvas draws both through `fill_rect`.
- */
-extern const lh_ui_canvas_backend_t lh_os_render_backend_gdi_basic;
-
-/**
- * @brief @p wanted while GDI+ runs, else ::lh_os_render_backend_gdi_basic.
- *
- * Call after ::lh_os_render_backend_gdi_context_init (which starts GDI+).
- * This is how a missing GDI+ reaches the canvas fallback instead of a slot
- * that silently draws nothing.
- */
-const lh_ui_canvas_backend_t *
-lh_os_render_backend_gdi_select(const lh_ui_canvas_backend_t *wanted);
 
 LH_COMPILER_EXTERN_C_END
 

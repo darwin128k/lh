@@ -57,15 +57,17 @@ lh_os_render_backend_gdi_plus_frame_end(lh_os_system_gdiplus_frame_t frame);
 
 /**
  * @brief Paint @p mask in @p color at @p origin through @p frame.
+ *        ::lh_bool_false when nothing was drawn.
  */
-lh_void
+lh_bool_t
 lh_os_render_backend_gdi_plus_fill_mask(lh_os_system_gdiplus_frame_t frame, const lh_ui_point_t *origin,
                                         const lh_ui_mask_t *mask, const lh_ui_color_t *color);
 
 /**
- * @brief Anti-aliased rounded fill of @p rect through @p frame; nothing on failure.
+ * @brief Anti-aliased rounded fill of @p rect through @p frame.
+ *        ::lh_bool_false when nothing was drawn.
  */
-lh_void
+lh_bool_t
 lh_os_render_backend_gdi_plus_fill_round_rect(lh_os_system_gdiplus_frame_t frame,
                                               const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
                                               const lh_ui_color_t *color);
