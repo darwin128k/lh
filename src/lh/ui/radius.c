@@ -10,6 +10,7 @@
 #include <lh/cast/static.h>
 #include <lh/math.h>
 #include <lh/math/isqrt.h>
+#include <lh/memory.h>
 #include <lh/ui/radius.h>
 #include <lh/util/return.h>
 
@@ -100,4 +101,60 @@ lh_ui_radius_coverage(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t 
     lh_return_if(dx < 0 || dy < 0, 0);
     lh_return_if(dx == 0 || dy == 0, 255);
     return lh_ui_radius_cover_from_square(r, dx * dx + dy * dy);
+}
+
+lh_void
+lh_ui_radius_coverage_run(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                          lh_byte_t *out)
+{
+    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
+    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
+    const lh_s64_t r = lh_ui_radius_to_fixed(radius);
+    const lh_s64_t lo = lh_ui_radius_to_fixed(lh_ui_point_get_x(origin));
+    const lh_s64_t hi = lo + lh_ui_radius_to_fixed(lh_ui_size_get_width(size));
+    const lh_s64_t dy = lh_ui_radius_axis_distance(lh_ui_radius_pixel_center(y), lh_ui_point_get_y(origin),
+                                                   lh_ui_size_get_height(size), r);
+    lh_s32_t i;
+
+    lh_assert_runtime_ref(out);
+    lh_return_if(x1 <= x0);
+
+    /* A row outside the rect is all 0, no per-pixel math needed. */
+    if (dy < 0)
+    {
+        lh_memory_set(out, lh_cast_static(lh_usize_t, x1 - x0), 0);
+        return;
+    }
+    /* A row away from every corner: whole pixels of the rect are 255, the
+       columns outside it 0. dy == 0 alone does not decide that — the column
+       still has to be inside the rect, or lh_ui_radius_coverage answers 0. */
+    if (dy == 0)
+    {
+        for (i = 0; i < x1 - x0; ++i)
+        {
+            const lh_s64_t p = lh_ui_radius_pixel_center(x0 + i);
+
+            out[i] = p < lo || p >= hi ? 0 : 255;
+        }
+        return;
+    }
+
+    /* dx is lh_ui_radius_axis_distance with its row-invariant edges hoisted: the
+       same arithmetic, so the same bytes, without redoing the fixed-point edges
+       and the vertical distance per pixel. */
+    for (i = 0; i < x1 - x0; ++i)
+    {
+        const lh_s64_t p = lh_ui_radius_pixel_center(x0 + i);
+
+        if (p < lo || p >= hi)
+        {
+            out[i] = 0;
+            continue;
+        }
+        {
+            const lh_s64_t dx = lh_math_max(lh_math_max(lo + r - p, p - (hi - r)), 0);
+
+            out[i] = dx == 0 ? 255 : lh_ui_radius_cover_from_square(r, dx * dx + dy * dy);
+        }
+    }
 }

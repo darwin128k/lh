@@ -132,3 +132,28 @@ TEST(ui_radius, contains_follows_the_rounded_shape)
         }
     }
 }
+
+/* The run is the per-pixel coverage with the row-invariant parts hoisted. It must
+   give the very same bytes, or every edge in the frame moves. */
+TEST(ui_radius_coverage_run, same_bytes_as_per_pixel)
+{
+    lh_ui_rect_t rect;
+    lh_byte_t run[64];
+
+    lh_ui_rect_init(lh_addr_of(rect), 10, 20, 42, 30);
+
+    for (const lh_ui_scalar_t radius : {lh_ui_scalar(0), lh_ui_scalar(3), lh_ui_scalar(10), lh_ui_scalar(16),
+                                        LH_UI_RADIUS_CIRCLE})
+    {
+        for (int y = 14; y < 56; ++y)
+        {
+            lh_ui_radius_coverage_run(lh_addr_of(rect), radius, 4, 60, y, run);
+
+            for (int x = 4; x < 60; ++x)
+            {
+                ASSERT_EQ(run[x - 4], lh_ui_radius_coverage(lh_addr_of(rect), radius, x, y))
+                    << radius << " @ " << x << "," << y;
+            }
+        }
+    }
+}

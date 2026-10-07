@@ -161,12 +161,8 @@ lh_ui_canvas_sw_cover_run(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_
                           lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
 {
     lh_byte_t coverage[LH_UI_PIXMAP_RUN];
-    lh_s32_t i;
 
-    for (i = 0; i < x1 - x0; ++i)
-    {
-        coverage[i] = lh_ui_radius_coverage(rect, radius, x0 + i, y);
-    }
+    lh_ui_radius_coverage_run(rect, radius, x0, x1, y, coverage);
     lh_ui_canvas_sw_blend_run(self, x0, x1, y, color, coverage);
 }
 

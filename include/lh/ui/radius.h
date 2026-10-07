@@ -120,6 +120,19 @@ lh_ui_radius_clamp(const lh_ui_rect_t *rect, lh_ui_scalar_t radius);
 lh_byte_t
 lh_ui_radius_coverage(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x, lh_s32_t y);
 
+/**
+ * @brief Coverage `0..255` of pixels `x0 .. x1 - 1` of row @p y, written to
+ *        @p out `x1 - x0` bytes. The same values as calling
+ *        ::lh_ui_radius_coverage per pixel, with the parts that do not change
+ *        along a row (the rect's fixed-point edges, the radius, and the vertical
+ *        distance) taken once instead of per pixel.
+ *
+ * @param out Receives `x1 - x0` bytes.
+ */
+lh_void
+lh_ui_radius_coverage_run(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                          lh_byte_t *out);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_RADIUS_H */
