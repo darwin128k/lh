@@ -14,7 +14,18 @@ lh_str_init_by_size(lh_str_view_t *self, lh_str_cptr data, lh_usize_t size)
 lh_void
 lh_str_view_init(lh_str_view_t *self, lh_str_cptr data)
 {
-    lh_str_init_by_size(self, data, lh_str_ptr_len(data));
+    const lh_usize_t size = lh_str_ptr_len(data);
+
+    /* An empty string is a present value: "" is not a null pointer. by_size
+       rejects size 0, so the endpoints are stored here instead, which is exactly
+       what lh_str_view_lit("") yields — initialized and empty, not uninitialized.
+       A null data pointer dies in ptr_len above: null is an error, not empty. */
+    if (lh_math_is_zero(size))
+    {
+        lh_memory_view_set(self, data, data);
+        return;
+    }
+    lh_str_init_by_size(self, data, size);
 }
 
 lh_void
@@ -43,9 +54,11 @@ lh_str_view_tail(const lh_str_view_t *self, lh_uoffset_t offset)
     lh_assert_runtime_if(lh_math_gt(offset, size), lh_runtime_error_code_out_of_range);
     if (lh_math_eq(offset, size))
     {
+        /* At the boundary nothing is left. That is an explicitly empty view, not a
+           null pointer: views reject size 0, so init(lh_null) would die here. */
         lh_str_view_t _lh_tmp;
-    lh_str_view_init(lh_addr_of(_lh_tmp), lh_null);
-    return _lh_tmp; /* views reject size 0 */
+        lh_str_view_init_empty(lh_addr_of(_lh_tmp));
+        return _lh_tmp;
     }
     return lh_str_view_from_offset(self, offset, lh_math_sub(size, offset));
 }

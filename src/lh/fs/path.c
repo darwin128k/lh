@@ -174,7 +174,7 @@ lh_fs_path_get_segment(const lh_fs_path_t *self, lh_uindex_t index)
     }
     lh_assert_runtime_if(lh_bool_true, lh_runtime_error_code_out_of_range);
     lh_str_view_t _lh_tmp;
-    lh_str_view_init(lh_addr_of(_lh_tmp), lh_null);
+    lh_str_view_init_empty(lh_addr_of(_lh_tmp));
     return _lh_tmp;
 }
 

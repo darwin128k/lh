@@ -729,5 +729,7 @@ lh_memory_bounds_trim(const lh_memory_bounds_t *self, lh_usize_t left, lh_usize_
 lh_memory_view_t
 lh_memory_bounds_as_view(const lh_memory_bounds_t *self)
 {
-    return ({ lh_memory_view_t _v; lh_memory_view_init(lh_addr_of(_v), lh_memory_bounds_get_begin(self), lh_memory_bounds_get_end(self)); _v; });
+    /* A reinterpretation of the same endpoints, so raw set: init would validate
+       and reject the null, null pair an empty bounds reinterprets to. */
+    return ({ lh_memory_view_t _v; lh_memory_view_set(lh_addr_of(_v), lh_memory_bounds_get_begin(self), lh_memory_bounds_get_end(self)); _v; });
 }

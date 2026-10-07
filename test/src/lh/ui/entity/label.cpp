@@ -47,10 +47,13 @@ TEST(entity_label, draw_goes_through_the_embedded_entity)
 {
     lh_ui_entity_label_t label;
     lh_ui_rect_t rect;
+    lh_ui_canvas_t canvas;
+
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 1, 1);
     lh_ui_entity_label_init(lh_addr_of(label), rect, "x");
-    lh_ui_entity_draw(lh_ui_entity_label_as_entity(lh_addr_of(label)),
-                      static_cast<lh_ui_canvas_t *>(nullptr));
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
+
+    lh_ui_entity_draw(lh_ui_entity_label_as_entity(lh_addr_of(label)), lh_addr_of(canvas));
 }
 
 /* Contract: a derived class keeps the base fill by calling

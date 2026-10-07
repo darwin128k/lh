@@ -11,11 +11,11 @@ TEST(wstr_view_lit, uses_sizeof_of_wide_string_literal)
     EXPECT_EQ(lh_wstr_view_get_end(&v), lh_wstr_view_get_begin(&v) + 3);
 }
 
-TEST(wstr_view_make, empty_and_null_are_empty)
+TEST(wstr_view_make, empty_string_is_empty)
 {
     lh_wstr_view_t a;
 
-    lh_wstr_view_init(lh_addr_of(a), nullptr);
+    lh_wstr_view_init(lh_addr_of(a), L"");
     lh_wstr_view_t b;
 
     lh_wstr_view_init(lh_addr_of(b), L"");
@@ -23,6 +23,43 @@ TEST(wstr_view_make, empty_and_null_are_empty)
     EXPECT_TRUE(lh_wstr_view_is_empty(&a));
     EXPECT_TRUE(lh_wstr_view_is_empty(&b));
 }
+
+/* The runtime spelling of L"" must agree with the literal spelling: the same
+   endpoints, so "present and empty" never depends on which spelling was used. */
+TEST(wstr_view_make, empty_string_matches_the_literal_spelling)
+{
+    lh_wstr_view_t v;
+    const lh_wstr_view_t lit = lh_wstr_view_lit(L"");
+
+    lh_wstr_view_init(lh_addr_of(v), L"");
+
+    EXPECT_EQ(lh_wstr_view_get_begin(&v), lh_wstr_view_get_begin(&lit));
+    EXPECT_EQ(lh_wstr_view_get_end(&v), lh_wstr_view_get_end(&lit));
+}
+
+TEST(wstr_view_make, empty_is_explicit)
+{
+    lh_wstr_view_t v;
+
+    lh_wstr_view_init_empty(lh_addr_of(v));
+
+    EXPECT_TRUE(lh_wstr_view_is_empty(&v));
+}
+
+/* -- death tests ----------------------------------------------------------- */
+
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
+/* A null data pointer is a caller error, not an empty view: str_view_init_death
+   .null_data pins the same contract on the narrow side. Empty is spelled out with
+   init_empty. */
+TEST(wstr_view_init_death, null_data)
+{
+    lh_wstr_view_t v;
+    LH_EXPECT_DEATH(lh_wstr_view_init(lh_addr_of(v), reinterpret_cast<lh_wstr_cptr>(lh_null)));
+}
+
+#endif
 
 TEST(wstr_view_make_from_offset, counts_wide_characters)
 {

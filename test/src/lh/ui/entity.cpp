@@ -229,8 +229,10 @@ TEST(entity, draw_visits_parent_then_children)
     lh_ui_entity_t parent;
     lh_ui_entity_t first;
     lh_ui_entity_t second;
+    lh_ui_canvas_t canvas;
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 1, 1);
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
     lh_ui_entity_init(lh_addr_of(parent), rect);
     lh_ui_entity_init(lh_addr_of(first), rect);
     lh_ui_entity_init(lh_addr_of(second), rect);
@@ -241,7 +243,7 @@ TEST(entity, draw_visits_parent_then_children)
     lh_ui_entity_add_child(lh_addr_of(parent), lh_addr_of(second));
 
     g_draw_order_n = 0;
-    lh_ui_entity_draw(lh_addr_of(parent), static_cast<lh_ui_canvas_t *>(nullptr));
+    lh_ui_entity_draw(lh_addr_of(parent), lh_addr_of(canvas));
 
     ASSERT_EQ(g_draw_order_n, 3);
     EXPECT_EQ(g_draw_order[0], lh_addr_of(parent));
@@ -277,8 +279,10 @@ TEST(entity, draw_skips_hidden_subtree)
     lh_ui_rect_t rect;
     lh_ui_entity_t parent;
     lh_ui_entity_t child;
+    lh_ui_canvas_t canvas;
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 1, 1);
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
     lh_ui_entity_init(lh_addr_of(parent), rect);
     lh_ui_entity_init(lh_addr_of(child), rect);
     lh_ui_entity_set_class(lh_addr_of(parent), lh_addr_of(g_record_class));
@@ -287,7 +291,7 @@ TEST(entity, draw_skips_hidden_subtree)
     lh_ui_entity_set_hidden(lh_addr_of(parent), lh_bool_true);
 
     g_draw_order_n = 0;
-    lh_ui_entity_draw(lh_addr_of(parent), static_cast<lh_ui_canvas_t *>(nullptr));
+    lh_ui_entity_draw(lh_addr_of(parent), lh_addr_of(canvas));
     EXPECT_EQ(g_draw_order_n, 0);
 }
 
@@ -712,8 +716,10 @@ TEST(entity, draw_children_draws_each_child_not_self)
     lh_ui_entity_t root;
     lh_ui_entity_t a;
     lh_ui_entity_t b;
+    lh_ui_canvas_t canvas;
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 1, 1);
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
     lh_ui_entity_init(lh_addr_of(root), rect);
     lh_ui_entity_init(lh_addr_of(a), rect);
     lh_ui_entity_init(lh_addr_of(b), rect);
@@ -724,7 +730,7 @@ TEST(entity, draw_children_draws_each_child_not_self)
     lh_ui_entity_add_child(lh_addr_of(root), lh_addr_of(b));
     g_draw_order_n = 0;
 
-    lh_ui_entity_draw_children(lh_addr_of(root), nullptr);
+    lh_ui_entity_draw_children(lh_addr_of(root), lh_addr_of(canvas));
 
     ASSERT_EQ(g_draw_order_n, 2);
     EXPECT_EQ(g_draw_order[0], lh_addr_of(a));

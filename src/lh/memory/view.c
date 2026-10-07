@@ -622,11 +622,7 @@ lh_memory_view_clear(lh_memory_view_t *self)
 lh_void
 lh_memory_view_assign_v(lh_memory_view_t *self, const lh_memory_view_t *other)
 {
-    /* Empty (null, null) is a legal view; only non-empty ranges must be forward. */
-    if (!lh_memory_view_is_uninitialized(other))
-    {
-        lh_assert_runtime_ifn(lh_memory_view_is_valid(other), lh_runtime_error_code_invalid_range);
-    }
+    lh_assert_runtime_ifn(lh_memory_view_is_valid(other), lh_runtime_error_code_invalid_range);
     lh_memory_view_assign(self, other);
 }
 
@@ -640,22 +636,11 @@ lh_memory_view_set_v(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr en
 lh_void
 lh_memory_view_set_by_size(lh_memory_view_t *self, const lh_ptr begin, lh_usize_t size)
 {
-    lh_assert_runtime_ref(self);
-
-    /* Empty size is a legal empty view (null, null). begin is required only
-       when size is non-zero — used by wstr/str_view_tail at offset == size. */
-    if (lh_math_is_zero(size))
-    {
-        lh_memory_view_set(self, lh_null, lh_null);
-        return;
-    }
-
     lh_assert_runtime_ifn(lh_ptr_is_set(begin), lh_runtime_error_code_invalid_argument);
+    lh_assert_runtime_if(lh_math_is_zero(size), lh_runtime_error_code_invalid_range);
 
-    {
-        const lh_ptr end = lh_ptr_add_by_offset_unsafe(const lh_void, begin, size);
-        lh_memory_view_set(self, begin, end);
-    }
+    const lh_ptr end = lh_ptr_add_by_offset_unsafe(const lh_void, begin, size);
+    lh_memory_view_set(self, begin, end);
 }
 
 lh_void
@@ -694,10 +679,6 @@ lh_memory_view_to_slice(const lh_memory_view_t *self)
 
     const lh_void *begin = lh_memory_view_get_begin_v(self);
     const lh_void *end = lh_memory_view_get_end_v(self);
-
-    /* Closed slices need at least one byte; half-open [x, x) has no closed form. */
-    lh_assert_runtime_if(lh_math_eq(begin, end), lh_runtime_error_code_invalid_range);
-
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_init(lh_addr_of(slice), begin,
                               lh_ptr_sub_by_offset_unsafe(const lh_void, end, 1U));

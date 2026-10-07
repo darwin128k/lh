@@ -613,37 +613,9 @@ lh_memory_view_slice_set_v(lh_memory_view_slice_t *self, const lh_ptr begin, con
 {
     const lh_memory_view_slice_t s = lh_memory_view_slice_initializer(begin, end);
 
+    /* Built and validated here, not through init: those two called each other and
+       recursed until the stack ran out. init still routes here, so init validates. */
     lh_memory_view_slice_assign_v(self, lh_addr_of(s));
-}
-
-lh_void
-lh_memory_view_slice_set_by_size(lh_memory_view_slice_t *self, const lh_ptr begin, lh_usize_t size)
-{
-    lh_assert_runtime_ref(self);
-    /* Closed slices are [begin, begin+size-1]; size 0 is not a closed span. */
-    lh_assert_runtime_ifn(lh_ptr_is_set(begin), lh_runtime_error_code_invalid_argument);
-    lh_assert_runtime_if(lh_math_is_zero(size), lh_runtime_error_code_invalid_range);
-
-    {
-        const lh_ptr end =
-            lh_ptr_add_by_offset_unsafe(const lh_void, begin, lh_math_sub(size, 1));
-
-        /* Forward closed span from a positive size: store without _v validate. */
-        lh_memory_view_slice_set(self, begin, end);
-    }
-}
-
-lh_void
-lh_memory_view_slice_init(lh_memory_view_slice_t *self, const lh_ptr begin, const lh_ptr end)
-{
-    /* init/set store raw endpoints; use set_v / init that goes through assign_v to validate. */
-    lh_memory_view_slice_set(self, begin, end);
-}
-
-lh_void
-lh_memory_view_slice_init_by_size(lh_memory_view_slice_t *self, const lh_ptr begin, lh_usize_t size)
-{
-    lh_memory_view_slice_set_by_size(self, begin, size);
 }
 
 LH_ATTRIBUTE_STATIC
@@ -840,6 +812,33 @@ lh_memory_view_slice_trim(const lh_memory_view_slice_t *self, lh_usize_t left, l
     lh_assert_runtime_ifn(lh_math_le(right, rest), lh_runtime_error_code_out_of_range);
 
     return lh_memory_view_slice_from_offset(self, left, lh_math_sub(rest, right));
+}
+
+lh_void
+lh_memory_view_slice_set_by_size(lh_memory_view_slice_t *self, const lh_ptr begin, lh_usize_t size)
+{
+    lh_assert_runtime_ref(self);
+    /* A closed slice is [begin, begin + size - 1]; size 0 has no closed form. */
+    lh_assert_runtime_ifn(lh_ptr_is_set(begin), lh_runtime_error_code_invalid_argument);
+    lh_assert_runtime_if(lh_math_is_zero(size), lh_runtime_error_code_invalid_range);
+
+    /* Built here, not through init_by_size: those two called each other and
+       recursed until the stack ran out. */
+    lh_memory_view_slice_set(self, begin,
+                             lh_ptr_add_by_offset_unsafe(const lh_void, begin,
+                                                        lh_math_sub(size, 1)));
+}
+
+lh_void
+lh_memory_view_slice_init(lh_memory_view_slice_t *self, const lh_ptr begin, const lh_ptr end)
+{
+    lh_memory_view_slice_set_v(self, begin, end);
+}
+
+lh_void
+lh_memory_view_slice_init_by_size(lh_memory_view_slice_t *self, const lh_ptr begin, lh_usize_t size)
+{
+    lh_memory_view_slice_set_by_size(self, begin, size);
 }
 
 lh_void

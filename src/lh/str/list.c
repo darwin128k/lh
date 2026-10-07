@@ -103,8 +103,8 @@ lh_str_list_get(const lh_str_list_t *self, lh_uindex_t index)
     if (lh_math_is_zero(span.size))
     {
         lh_str_view_t _lh_tmp;
-    lh_str_view_init(lh_addr_of(_lh_tmp), lh_null);
-    return _lh_tmp; /* views reject size 0 */
+        lh_str_view_init_empty(lh_addr_of(_lh_tmp));
+        return _lh_tmp;
     }
     chars = lh_str_as_view(lh_str_list_get_chars_as_const(self));
     return lh_str_view_from_offset(lh_addr_of(chars), span.offset, span.size);

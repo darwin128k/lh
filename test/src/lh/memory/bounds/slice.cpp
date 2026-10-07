@@ -954,27 +954,10 @@ TEST(memory_bounds_slice_assign, self_assign_is_no_op)
     EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, p(buf + 1), p(buf + 3)));
 }
 
-TEST(memory_bounds_slice_make, returns_slice_without_validation)
-{
-    unsigned char buf[4];
-
-    lh_memory_bounds_slice_t s;
-    lh_memory_bounds_slice_init(lh_addr_of(s), p(buf + 1), p(buf + 3));
-
-    EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, p(buf + 1), p(buf + 3)));
-    EXPECT_TRUE(lh_memory_bounds_slice_is_valid(&s));
-}
-
-TEST(memory_bounds_slice_make, accepts_backward_range)
-{
-    unsigned char buf[4];
-
-    lh_memory_bounds_slice_t s;
-    lh_memory_bounds_slice_init(lh_addr_of(s), p(buf + 3), p(buf + 1));
-
-    EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, p(buf + 3), p(buf + 1)));
-    EXPECT_FALSE(lh_memory_bounds_slice_is_valid(&s));
-}
+/* Storing a backward range without validation belongs to the raw set; init
+   validates and rejects it (memory_bounds_slice_init.rejects_invalid_range_death).
+   Both cases are already covered in the memory_bounds_slice_set suite:
+   stores_endpoints_without_validation and accepts_backward_range. */
 
 TEST(memory_bounds_slice_swap, swaps_without_validation)
 {

@@ -597,12 +597,34 @@ TEST(str_view_make_tail, at_size_and_on_empty_is_empty)
     const lh_str_view_t v = lh_str_view_lit("abc");
     lh_str_view_t empty;
 
-    lh_str_view_init(lh_addr_of(empty), nullptr);
+    lh_str_view_init_empty(lh_addr_of(empty));
     const lh_str_view_t at_end = lh_str_view_tail(&v, 3);
     const lh_str_view_t of_empty = lh_str_view_tail(&empty, 0);
 
     EXPECT_TRUE(lh_str_view_is_empty(&at_end));
     EXPECT_TRUE(lh_str_view_is_empty(&of_empty));
+}
+
+TEST(str_view_make, empty_string_is_empty)
+{
+    lh_str_view_t v;
+
+    lh_str_view_init(lh_addr_of(v), "");
+
+    EXPECT_TRUE(lh_str_view_is_empty(&v));
+}
+
+/* The runtime spelling of "" must agree with the literal spelling: the same
+   endpoints, so "present and empty" never depends on which spelling was used. */
+TEST(str_view_make, empty_string_matches_the_literal_spelling)
+{
+    lh_str_view_t v;
+    const lh_str_view_t lit = lh_str_view_lit("");
+
+    lh_str_view_init(lh_addr_of(v), "");
+
+    EXPECT_EQ(lh_str_view_get_begin(&v), lh_str_view_get_begin(&lit));
+    EXPECT_EQ(lh_str_view_get_end(&v), lh_str_view_get_end(&lit));
 }
 
 #if LH_TEST_EXPECT_DEATH_ENABLED

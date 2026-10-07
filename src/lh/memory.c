@@ -93,13 +93,12 @@ const lh_ptr
 lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
                     lh_usize_t step)
 {
-    /* Empty inputs are "not found", not errors — check sizes before pointers. */
+    lh_assert_runtime_ref(lhs);
+    lh_assert_runtime_ref(rhs);
+
     lh_return_ifn(lhs_size, lh_null);
     lh_return_ifn(rhs_size, lh_null);
     lh_return_ifn(step, lh_null);
-
-    lh_assert_runtime_ref(lhs);
-    lh_assert_runtime_ref(rhs);
 
     const lh_byte_t *base = lh_ptr_cast(const lh_byte_t, lhs);
     lh_usize_t off = 0;
@@ -262,13 +261,12 @@ const lh_ptr
 lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
                      lh_usize_t step)
 {
-    /* Empty inputs are "not found", not errors — check sizes before pointers. */
+    lh_assert_runtime_ref(lhs);
+    lh_assert_runtime_ref(rhs);
+
     lh_return_ifn(lhs_size, lh_null);
     lh_return_ifn(rhs_size, lh_null);
     lh_return_ifn(step, lh_null);
-
-    lh_assert_runtime_ref(lhs);
-    lh_assert_runtime_ref(rhs);
 
     const lh_byte_t *base = lh_ptr_cast(const lh_byte_t, lhs);
     if (lhs_size < rhs_size)

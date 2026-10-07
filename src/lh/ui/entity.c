@@ -389,8 +389,7 @@ lh_ui_entity_draw(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
 
     lh_return_if(!lh_ui_entity_is_shown(self));
     rect = lh_ui_entity_get_rect(self);
-    /* Null canvas: still walk the tree (tests); skip clip — nothing to paint into. */
-    lh_return_if(lh_null_ne(canvas) && !lh_ui_canvas_shows_rect(canvas, lh_addr_of(rect)));
+    lh_return_if(!lh_ui_canvas_shows_rect(canvas, lh_addr_of(rect)));
     lh_ui_entity_send(self, lh_ui_entity_event_draw, canvas);
     lh_ui_entity_draw_children(self, canvas);
 }
