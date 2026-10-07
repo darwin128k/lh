@@ -360,3 +360,61 @@ TEST(entity_scrollbar, draw_thumb_needs_a_canvas_and_a_thumb_style)
     EXPECT_EQ(log.round_count, 0);
     EXPECT_EQ(log.fill_count, 0);
 }
+
+TEST(entity_scrollbar, thumb_within_a_known_max_matches_the_measured_thumb)
+{
+    bar_fixture f(400);
+    lh_ui_point_t max;
+
+    f.scroll_to(150);
+    max = lh_ui_entity_container_get_scroll_max(lh_addr_of(f.box));
+    EXPECT_EQ(lh_ui_entity_scrollbar_get_thumb_length_within(lh_addr_of(f.bar), max),
+              lh_ui_entity_scrollbar_get_thumb_length(lh_addr_of(f.bar)));
+    EXPECT_EQ(lh_ui_entity_scrollbar_get_thumb_start_within(lh_addr_of(f.bar), max), lh_ui_scalar(75));
+}
+
+TEST(entity_scrollbar, driven_and_scrolled_containers)
+{
+    bar_fixture f(400);
+
+    EXPECT_EQ(lh_ui_entity_scrollbar_get_driven(f.bar_entity()), lh_addr_of(f.box));
+    EXPECT_TRUE(lh_null_eq(lh_ui_entity_scrollbar_get_driven(f.box_entity())));
+    EXPECT_TRUE(lh_null_eq(lh_ui_entity_scrollbar_get_driven(nullptr)));
+    EXPECT_EQ(lh_ui_entity_scrollbar_find_scrolled(f.bar_entity()), lh_addr_of(f.box));
+    EXPECT_EQ(lh_ui_entity_scrollbar_find_scrolled(lh_addr_of(f.content)), lh_addr_of(f.box));
+    EXPECT_TRUE(lh_null_eq(lh_ui_entity_scrollbar_find_scrolled(lh_addr_of(f.root))));
+}
+
+TEST(entity_scrollbar, get_bound_needs_the_same_container)
+{
+    bar_fixture f(400);
+    lh_ui_entity_container_t other;
+
+    lh_ui_entity_container_init(lh_addr_of(other), rect_of(0, 0, 10, 10));
+    EXPECT_EQ(lh_ui_entity_scrollbar_get_bound(f.bar_entity(), lh_addr_of(f.box)), lh_addr_of(f.bar));
+    EXPECT_TRUE(lh_null_eq(lh_ui_entity_scrollbar_get_bound(f.bar_entity(), lh_addr_of(other))));
+    EXPECT_TRUE(lh_null_eq(lh_ui_entity_scrollbar_get_bound(f.box_entity(), lh_addr_of(f.box))));
+}
+
+/* A horizontal bar linked before the vertical one: scroll damage still holds
+ * the vertical track, so its thumb cannot stay drawn where it was. */
+TEST(entity_scrollbar, scroll_damage_covers_the_viewport_and_every_bound_track)
+{
+    bar_fixture f(400);
+    lh_ui_entity_scrollbar_t across;
+    lh_ui_canvas_t canvas;
+    const lh_ui_rect_t *damage;
+
+    lh_ui_entity_remove_child(lh_addr_of(f.root), f.bar_entity());
+    lh_ui_entity_scrollbar_init(lh_addr_of(across), rect_of(0, 100, 100, 10), lh_ui_axis_horizontal,
+                                lh_addr_of(f.box));
+    lh_ui_entity_add_child(lh_addr_of(f.root), lh_ui_entity_scrollbar_as_entity(lh_addr_of(across)));
+    lh_ui_entity_add_child(lh_addr_of(f.root), f.bar_entity());
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
+
+    lh_ui_entity_scrollbar_add_scroll_damage(lh_addr_of(f.box), lh_addr_of(canvas));
+
+    damage = lh_ui_canvas_get_damage(lh_addr_of(canvas));
+    ASSERT_NE(damage, nullptr);
+    EXPECT_TRUE(rect_is(*damage, rect_of(0, 0, 110, 200)));
+}

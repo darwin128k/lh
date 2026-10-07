@@ -263,6 +263,37 @@ lh_ui_entity_get_content_bounds(const lh_ui_entity_t *self);
 lh_ui_point_t
 lh_ui_entity_to_children_space(const lh_ui_entity_t *self, lh_ui_point_t point);
 
+/**
+ * @brief @p point (in the space of the rect of @p self) moved out to the space
+ *        of the parent: the children offset of @p self added. The inverse of
+ *        ::lh_ui_entity_to_children_space.
+ */
+lh_ui_point_t
+lh_ui_entity_add_children_offset(const lh_ui_entity_t *self, lh_ui_point_t point);
+
+/**
+ * @brief Sum of the children offsets of every ancestor of @p self: where the
+ *        space of the rect of @p self sits in the space of the topmost
+ *        ancestor (the root, the canvas target space of a view).
+ */
+lh_ui_point_t
+lh_ui_entity_get_root_offset(const lh_ui_entity_t *self);
+
+/**
+ * @brief @p point in the root space moved into the space of the rect of
+ *        @p self (::lh_ui_entity_get_root_offset taken away). The same point
+ *        ::lh_ui_entity_find_at_local stores for a hit.
+ */
+lh_ui_point_t
+lh_ui_entity_to_local(const lh_ui_entity_t *self, lh_ui_point_t point);
+
+/**
+ * @brief The rect of @p self in the root space (moved by
+ *        ::lh_ui_entity_get_root_offset).
+ */
+lh_ui_rect_t
+lh_ui_entity_get_root_rect(const lh_ui_entity_t *self);
+
 /* ── Hit test ────────────────────────────────────────────────────────────── */
 
 /**
@@ -325,11 +356,48 @@ lh_bool_t
 lh_ui_entity_push_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas);
 
 /**
+ * @brief True when @p self cuts its children to its rect
+ *        (::lh_ui_entity_get_children_transform asks for the clip).
+ */
+lh_bool_t
+lh_ui_entity_is_clipping(const lh_ui_entity_t *self);
+
+/**
+ * @brief True when the rect of @p self meets the clip of @p canvas; always
+ *        true with a ::lh_null @p canvas (nothing to cull against). The one
+ *        culling test of the draw walk.
+ */
+lh_bool_t
+lh_ui_entity_shows_on(const lh_ui_entity_t *self, const lh_ui_canvas_t *canvas);
+
+/**
+ * @brief True when @p self has children and they can show on @p canvas: a
+ *        clipping parent (::lh_ui_entity_is_clipping) must show itself; a plain
+ *        one never culls them, since its children may lie outside its rect.
+ */
+lh_bool_t
+lh_ui_entity_shows_children_on(const lh_ui_entity_t *self, const lh_ui_canvas_t *canvas);
+
+/**
+ * @brief ::lh_ui_entity_draw on each child of @p self, in child order.
+ */
+lh_void
+lh_ui_entity_draw_each_child(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas);
+
+/**
  * @brief Draw each child of @p self in order inside one
- *        ::lh_ui_entity_push_children / ::lh_ui_canvas_pop.
+ *        ::lh_ui_entity_push_children / ::lh_ui_canvas_pop. Nothing when
+ *        ::lh_ui_entity_shows_children_on says no.
  */
 lh_void
 lh_ui_entity_draw_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas);
+
+/**
+ * @brief Send ::lh_ui_entity_event_draw with @p canvas to @p self alone, when
+ *        ::lh_ui_entity_shows_on.
+ */
+lh_void
+lh_ui_entity_draw_self(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas);
 
 /**
  * @brief Send ::lh_ui_entity_event_draw with @p canvas to @p self, then to
@@ -340,14 +408,17 @@ lh_ui_entity_draw_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas);
  * ::lh_ui_entity_get_fill_color. Children are drawn inside one
  * ::lh_ui_canvas_push / ::lh_ui_canvas_pop with the offset (and, when asked,
  * the rect of @p self as clip) from ::lh_ui_entity_get_children_transform; no
- * push when there is neither. @p canvas may be ::lh_null: the events are
- * still sent, nothing is painted by the base class.
+ * push when there is neither. @p self outside the clip skips its own draw
+ * event; its children are skipped too only when @p self clips them. @p canvas
+ * may be ::lh_null: the events are still sent, nothing is painted by the base
+ * class.
  */
 lh_void
 lh_ui_entity_draw(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas);
 
 /**
- * @brief Union the rect of @p self into the damage of @p canvas.
+ * @brief Union the rect of @p self, in the root space
+ *        (::lh_ui_entity_get_root_rect), into the damage of @p canvas.
  *
  * Nothing when @p self or @p canvas is ::lh_null. The one place an entity
  * marks itself dirty on a canvas.

@@ -149,6 +149,7 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_TEST_SRC_PATH}/lh/ui/entity/container.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/entity/label.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/entity/scrollbar.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/view.cpp
     )
 endif ()
 

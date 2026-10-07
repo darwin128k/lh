@@ -22,6 +22,8 @@
 #include <lh/ui/canvas.h>
 #include <lh/ui/color.h>
 #include <lh/ui/entity.h>
+#include <lh/ui/entity/container.h>
+#include <lh/ui/entity/scrollbar.h>
 #include <lh/ui/point.h>
 #include <lh/ui/scalar.h>
 #include <lh/ui/view/fields.h>
@@ -111,6 +113,32 @@ lh_void
 lh_ui_view_draw(lh_ui_view_t *self, const lh_ui_rect_t *damage);
 
 /**
+ * @brief Size the canvas of @p self to the root rect. Nothing without a root.
+ */
+lh_void
+lh_ui_view_fit_canvas(lh_ui_view_t *self);
+
+/**
+ * @brief Fill with the clear color: the whole canvas for a ::lh_null
+ *        @p damage, else only @p damage. Nothing without a clear color.
+ */
+lh_void
+lh_ui_view_clear(lh_ui_view_t *self, const lh_ui_rect_t *damage);
+
+/**
+ * @brief ::lh_ui_entity_draw of the root on the canvas. Nothing without a root.
+ */
+lh_void
+lh_ui_view_draw_root(lh_ui_view_t *self);
+
+/**
+ * @brief begin → push the @p damage clip (::lh_null keeps none) → clear → root
+ *        → pop → end.
+ */
+lh_void
+lh_ui_view_draw_frame(lh_ui_view_t *self, const lh_ui_rect_t *damage);
+
+/**
  * @brief Topmost visible entity under @p point, or ::lh_null.
  */
 lh_ui_entity_t *
@@ -124,6 +152,51 @@ lh_ui_view_hit_test(lh_ui_view_t *self, lh_ui_point_t point);
  */
 lh_ui_entity_t *
 lh_ui_view_click(lh_ui_view_t *self, lh_ui_point_t point);
+
+/**
+ * @brief ::lh_ui_entity_click on the root; when @p box is not ::lh_null (the
+ *        container a hit scrollbar drives), record its scroll damage if the
+ *        click scrolled it (::lh_ui_view_damage_scroll).
+ */
+lh_ui_entity_t *
+lh_ui_view_click_scrolling(lh_ui_view_t *self, lh_ui_entity_container_t *box, lh_ui_point_t point);
+
+/**
+ * @brief Close a scroll step on @p box: false when its scroll still equals
+ *        @p before; else reset the canvas damage to
+ *        ::lh_ui_entity_scrollbar_add_scroll_damage and return true.
+ *
+ * The one end of every scroll the view drives (click, drag, wheel).
+ */
+lh_bool_t
+lh_ui_view_damage_scroll(lh_ui_view_t *self, lh_ui_entity_container_t *box, lh_ui_point_t before);
+
+/**
+ * @brief Clear grab, grab offset, pressed and dragged.
+ */
+lh_void
+lh_ui_view_reset_pointer(lh_ui_view_t *self);
+
+/**
+ * @brief ::lh_ui_entity_scrollbar_get_thumb_start_at for @p point in the root
+ *        space, moved into the space of @p bar (::lh_ui_entity_to_local).
+ */
+lh_ui_scalar_t
+lh_ui_view_get_thumb_start_at(const lh_ui_entity_scrollbar_t *bar, lh_ui_point_t point);
+
+/**
+ * @brief Grab @p bar when @p point (root space) is on its thumb; nothing for a
+ *        ::lh_null @p bar or a point off the thumb.
+ */
+lh_void
+lh_ui_view_grab_thumb(lh_ui_view_t *self, lh_ui_entity_scrollbar_t *bar, lh_ui_point_t point);
+
+/**
+ * @brief Move the thumb of @p bar under @p point (root space), keeping the
+ *        grab offset. Returns ::lh_ui_view_damage_scroll.
+ */
+lh_bool_t
+lh_ui_view_drag_thumb(lh_ui_view_t *self, lh_ui_entity_scrollbar_t *bar, lh_ui_point_t point);
 
 /**
  * @brief Start a pointer press: grab a scrollbar thumb when hit, else mark
@@ -147,7 +220,15 @@ lh_ui_entity_t *
 lh_ui_view_release(lh_ui_view_t *self, lh_ui_point_t point);
 
 /**
- * @brief Scroll the nearest container under @p point by `(0, @p dy)`.
+ * @brief Scroll @p box by `(0, @p dy)`; false for a ::lh_null @p box.
+ *        Returns ::lh_ui_view_damage_scroll.
+ */
+lh_bool_t
+lh_ui_view_scroll_by(lh_ui_view_t *self, lh_ui_entity_container_t *box, lh_ui_scalar_t dy);
+
+/**
+ * @brief Scroll the container under @p point
+ *        (::lh_ui_entity_scrollbar_find_scrolled) by `(0, @p dy)`.
  *
  * Returns true when scroll changed. @p dy is in content units (caller maps
  * wheel notches).

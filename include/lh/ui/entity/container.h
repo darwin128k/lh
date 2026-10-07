@@ -115,11 +115,26 @@ lh_ui_point_t
 lh_ui_entity_container_get_scroll_max(const lh_ui_entity_container_t *self);
 
 /**
+ * @brief @p scroll clamped per axis to `0 .. @p max`: the one scroll clamp.
+ *        For a caller that already holds the max, so content is not measured
+ *        again.
+ */
+lh_ui_point_t
+lh_ui_entity_container_clamp_scroll_to(lh_ui_point_t scroll, lh_ui_point_t max);
+
+/**
  * @brief @p scroll clamped per axis to `0 .. max`
- *        (::lh_ui_entity_container_get_scroll_max): the one scroll clamp.
+ *        (::lh_ui_entity_container_get_scroll_max).
  */
 lh_ui_point_t
 lh_ui_entity_container_clamp_scroll(const lh_ui_entity_container_t *self, lh_ui_point_t scroll);
+
+/**
+ * @brief The stored scroll of @p self clamped to @p max, which the caller got
+ *        from ::lh_ui_entity_container_get_scroll_max (no second measure).
+ */
+lh_ui_point_t
+lh_ui_entity_container_get_scroll_within(const lh_ui_entity_container_t *self, lh_ui_point_t max);
 
 /**
  * @brief How far the content of @p self is scrolled, clamped on read: when the

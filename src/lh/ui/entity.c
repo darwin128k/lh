@@ -288,6 +288,48 @@ lh_ui_entity_to_children_space(const lh_ui_entity_t *self, lh_ui_point_t point)
                               -lh_ui_point_get_y(lh_addr_of(offset)));
 }
 
+lh_ui_point_t
+lh_ui_entity_add_children_offset(const lh_ui_entity_t *self, lh_ui_point_t point)
+{
+    lh_ui_point_t offset;
+
+    (void)lh_ui_entity_get_children_transform(self, lh_addr_of(offset));
+    return lh_ui_point_offset(lh_addr_of(point), lh_ui_point_get_x(lh_addr_of(offset)),
+                              lh_ui_point_get_y(lh_addr_of(offset)));
+}
+
+lh_ui_point_t
+lh_ui_entity_get_root_offset(const lh_ui_entity_t *self)
+{
+    lh_ui_point_t total;
+
+    lh_assert_runtime_ref(self);
+    lh_ui_point_init(lh_addr_of(total), lh_ui_scalar(0), lh_ui_scalar(0));
+    for (self = self->parent; lh_null_ne(self); self = self->parent)
+    {
+        total = lh_ui_entity_add_children_offset(self, total);
+    }
+    return total;
+}
+
+lh_ui_point_t
+lh_ui_entity_to_local(const lh_ui_entity_t *self, lh_ui_point_t point)
+{
+    const lh_ui_point_t offset = lh_ui_entity_get_root_offset(self);
+
+    return lh_ui_point_offset(lh_addr_of(point), -lh_ui_point_get_x(lh_addr_of(offset)),
+                              -lh_ui_point_get_y(lh_addr_of(offset)));
+}
+
+lh_ui_rect_t
+lh_ui_entity_get_root_rect(const lh_ui_entity_t *self)
+{
+    const lh_ui_point_t offset = lh_ui_entity_get_root_offset(self);
+
+    return lh_ui_rect_offset(lh_addr_of(self->rect), lh_ui_point_get_x(lh_addr_of(offset)),
+                             lh_ui_point_get_y(lh_addr_of(offset)));
+}
+
 /* ── Hit test ────────────────────────────────────────────────────────────── */
 
 lh_bool_t
@@ -365,32 +407,65 @@ lh_ui_entity_push_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
     return lh_bool_true;
 }
 
+lh_bool_t
+lh_ui_entity_is_clipping(const lh_ui_entity_t *self)
+{
+    lh_ui_point_t offset;
+
+    return lh_ui_entity_get_children_transform(self, lh_addr_of(offset));
+}
+
+lh_bool_t
+lh_ui_entity_shows_on(const lh_ui_entity_t *self, const lh_ui_canvas_t *canvas)
+{
+    lh_assert_runtime_ref(self);
+    lh_return_if(lh_null_eq(canvas), lh_bool_true);
+    return lh_ui_canvas_shows_rect(canvas, lh_addr_of(self->rect));
+}
+
+lh_bool_t
+lh_ui_entity_shows_children_on(const lh_ui_entity_t *self, const lh_ui_canvas_t *canvas)
+{
+    lh_return_if(lh_null_eq(lh_ui_entity_get_first_child(self)), lh_bool_false);
+    return !lh_ui_entity_is_clipping(self) || lh_ui_entity_shows_on(self, canvas) ? lh_bool_true : lh_bool_false;
+}
+
 lh_void
-lh_ui_entity_draw_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
+lh_ui_entity_draw_each_child(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
 {
     lh_ui_entity_t *child;
-    lh_bool_t pushed;
 
-    lh_return_if(lh_null_eq(lh_ui_entity_get_first_child(self)));
-    pushed = lh_ui_entity_push_children(self, canvas);
     for (child = lh_ui_entity_get_first_child(self); lh_null_ne(child);
          child = lh_ui_entity_get_next_child(self, child))
     {
         lh_ui_entity_draw(child, canvas);
     }
+}
+
+lh_void
+lh_ui_entity_draw_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
+{
+    lh_bool_t pushed;
+
+    lh_return_if(!lh_ui_entity_shows_children_on(self, canvas));
+    pushed = lh_ui_entity_push_children(self, canvas);
+    lh_ui_entity_draw_each_child(self, canvas);
     lh_return_if(!pushed);
     lh_ui_canvas_pop(canvas);
 }
 
 lh_void
+lh_ui_entity_draw_self(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
+{
+    lh_return_if(!lh_ui_entity_shows_on(self, canvas));
+    lh_ui_entity_send(self, lh_ui_entity_event_draw, canvas);
+}
+
+lh_void
 lh_ui_entity_draw(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
 {
-    lh_ui_rect_t rect;
-
     lh_return_if(!lh_ui_entity_is_shown(self));
-    rect = lh_ui_entity_get_rect(self);
-    lh_return_if(!lh_ui_canvas_shows_rect(canvas, lh_addr_of(rect)));
-    lh_ui_entity_send(self, lh_ui_entity_event_draw, canvas);
+    lh_ui_entity_draw_self(self, canvas);
     lh_ui_entity_draw_children(self, canvas);
 }
 
@@ -400,6 +475,6 @@ lh_ui_entity_add_damage(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
     lh_ui_rect_t rect;
 
     lh_return_if(lh_null_eq(self) || lh_null_eq(canvas));
-    rect = lh_ui_entity_get_rect(self);
+    rect = lh_ui_entity_get_root_rect(self);
     lh_ui_canvas_add_damage(canvas, lh_addr_of(rect));
 }

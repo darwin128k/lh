@@ -19,7 +19,7 @@
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
-static lh_os_render_backend_gdi_context_t *
+lh_os_render_backend_gdi_context_t *
 lh_os_render_backend_gdi_context_from(lh_ptr context)
 {
     lh_os_render_backend_gdi_context_t *gdi = lh_ptr_rcast(lh_os_render_backend_gdi_context_t, context);
@@ -27,14 +27,14 @@ lh_os_render_backend_gdi_context_from(lh_ptr context)
     return gdi;
 }
 
-static lh_ptr
+lh_ptr
 lh_os_render_backend_gdi_context_get_draw_hdc(const lh_os_render_backend_gdi_context_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_ui_surface_get_draw_target(lh_addr_of(self->surface));
 }
 
-static lh_void
+lh_void
 lh_os_render_backend_gdi_fill_area(lh_ptr hdc, int left, int top, int right, int bottom,
                                    const lh_ui_color_t *color)
 {
@@ -121,12 +121,8 @@ lh_os_render_backend_gdi_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rec
 {
     lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
 
+    lh_return_if(lh_null_eq(gdi->frame));
     ++gdi->round_calls;
-    if (lh_null_eq(gdi->frame) || !lh_os_render_backend_gdi_plus_is_ready())
-    {
-        lh_os_render_backend_gdi_fill_rect(context, rect, color);
-        return;
-    }
     lh_os_render_backend_gdi_plus_fill_round_rect(gdi->frame, rect, radius, color);
 }
 
@@ -149,7 +145,7 @@ lh_os_render_backend_gdi_set_clip(lh_ptr context, const lh_ui_rect_t *clip)
         }
         return;
     }
-    lh_return_if(lh_null_eq(gdi->clip_region));
+    lh_assert_runtime_ref(gdi->clip_region);
     origin = lh_ui_rect_get_origin_as_const(clip);
     corner = lh_ui_rect_far(clip);
     lh_os_system_hdc_set_clip(hdc, gdi->clip_region,
@@ -234,6 +230,24 @@ const lh_ui_canvas_backend_t lh_os_render_backend_gdi_soft = {
     lh_os_render_backend_gdi_fill_mask,
 };
 
+/* No GDI+ slots: the canvas draws rounds and masks through fill_rect. */
+const lh_ui_canvas_backend_t lh_os_render_backend_gdi_basic = {
+    lh_os_render_backend_gdi_begin,
+    lh_os_render_backend_gdi_end,
+    lh_os_render_backend_gdi_clear,
+    lh_os_render_backend_gdi_fill_rect,
+    lh_null,
+    lh_os_render_backend_gdi_set_clip,
+    lh_null,
+};
+
+const lh_ui_canvas_backend_t *
+lh_os_render_backend_gdi_select(const lh_ui_canvas_backend_t *wanted)
+{
+    lh_assert_runtime_ref(wanted);
+    return lh_os_render_backend_gdi_plus_is_ready() ? wanted : lh_addr_of(lh_os_render_backend_gdi_basic);
+}
+
 lh_void
 lh_os_render_backend_gdi_context_init(lh_os_render_backend_gdi_context_t *self)
 {
@@ -243,6 +257,8 @@ lh_os_render_backend_gdi_context_init(lh_os_render_backend_gdi_context_t *self)
     lh_ui_surface_init(lh_addr_of(self->surface));
     self->frame = lh_null;
     self->clip_region = lh_os_system_hdc_region_create();
+    /* Without a region set_clip cannot clip, while the canvas would trust it to. */
+    lh_assert_runtime_ref(self->clip_region);
     self->mask_calls = 0U;
     self->rect_calls = 0U;
     self->round_calls = 0U;

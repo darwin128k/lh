@@ -134,17 +134,26 @@ lh_ui_entity_container_get_scroll_max(const lh_ui_entity_container_t *self)
 }
 
 lh_ui_point_t
+lh_ui_entity_container_clamp_scroll_to(lh_ui_point_t scroll, lh_ui_point_t max)
+{
+    lh_ui_point_t zero;
+
+    lh_ui_point_init(lh_addr_of(zero), lh_ui_scalar(0), lh_ui_scalar(0));
+    scroll = lh_ui_point_max(lh_addr_of(scroll), lh_addr_of(zero));
+    return lh_ui_point_min(lh_addr_of(scroll), lh_addr_of(max));
+}
+
+lh_ui_point_t
 lh_ui_entity_container_clamp_scroll(const lh_ui_entity_container_t *self, lh_ui_point_t scroll)
 {
-    const lh_ui_point_t max = lh_ui_entity_container_get_scroll_max(self);
-    const lh_ui_scalar_t x = lh_ui_point_get_x(lh_addr_of(scroll));
-    const lh_ui_scalar_t y = lh_ui_point_get_y(lh_addr_of(scroll));
-    lh_ui_point_t clamped;
+    return lh_ui_entity_container_clamp_scroll_to(scroll, lh_ui_entity_container_get_scroll_max(self));
+}
 
-    lh_ui_point_init(lh_addr_of(clamped),
-                     lh_math_clamp(x, lh_ui_scalar(0), lh_ui_point_get_x(lh_addr_of(max))),
-                     lh_math_clamp(y, lh_ui_scalar(0), lh_ui_point_get_y(lh_addr_of(max))));
-    return clamped;
+lh_ui_point_t
+lh_ui_entity_container_get_scroll_within(const lh_ui_entity_container_t *self, lh_ui_point_t max)
+{
+    lh_assert_runtime_ref(self);
+    return lh_ui_entity_container_clamp_scroll_to(self->scroll, max);
 }
 
 lh_ui_point_t

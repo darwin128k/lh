@@ -56,6 +56,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Clear @p self: no window, no DC, empty surface. Starts GDI+ for the
  *        first context; pair with ::lh_os_render_backend_gdi_context_deinit.
+ *        Asserts the clip region could be made (`set_clip` needs it).
  */
 lh_void
 lh_os_render_backend_gdi_context_init(lh_os_render_backend_gdi_context_t *self);
@@ -94,6 +95,28 @@ lh_ptr
 lh_os_render_backend_gdi_context_get_hdc(const lh_os_render_backend_gdi_context_t *self);
 
 /**
+ * @brief @p context of a backend call as the GDI context it is; asserts it is
+ *        not ::lh_null.
+ */
+lh_os_render_backend_gdi_context_t *
+lh_os_render_backend_gdi_context_from(lh_ptr context);
+
+/**
+ * @brief DC of the off-screen surface of @p self, the one every primitive
+ *        draws into; ::lh_null before the first `begin` sized it.
+ */
+lh_ptr
+lh_os_render_backend_gdi_context_get_draw_hdc(const lh_os_render_backend_gdi_context_t *self);
+
+/**
+ * @brief Solid GDI fill of `left, top .. right, bottom` on @p hdc with the RGB
+ *        of @p color (GDI has no alpha here).
+ */
+lh_void
+lh_os_render_backend_gdi_fill_area(lh_ptr hdc, int left, int top, int right, int bottom,
+                                   const lh_ui_color_t *color);
+
+/**
  * @brief Backend `begin`: size the surface to the client, draw into it.
  */
 lh_void
@@ -119,8 +142,11 @@ lh_os_render_backend_gdi_fill_rect(lh_ptr context, const lh_ui_rect_t *rect,
                                    const lh_ui_color_t *color);
 
 /**
- * @brief Backend `fill_round_rect`: anti-aliased through GDI+ on the surface;
- *        a square fill when GDI+ did not start.
+ * @brief Backend `fill_round_rect`: anti-aliased through the frame GDI+.
+ *
+ * Nothing without a frame (no surface yet, or the frame could not be made).
+ * A backend never falls back itself: without GDI+ pick the table with
+ * ::lh_os_render_backend_gdi_select, and the canvas draws the shape.
  */
 lh_void
 lh_os_render_backend_gdi_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect,
@@ -134,6 +160,7 @@ lh_os_render_backend_gdi_set_clip(lh_ptr context, const lh_ui_rect_t *clip);
 
 /**
  * @brief Backend `fill_mask`: paint @p mask in @p color through the frame GDI+.
+ *        Nothing without a frame, like ::lh_os_render_backend_gdi_fill_round_rect.
  */
 lh_void
 lh_os_render_backend_gdi_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,
@@ -181,6 +208,22 @@ extern const lh_ui_canvas_backend_t lh_os_render_backend_gdi;
  *        is ::lh_null — the canvas falls back to ::lh_ui_canvas_fill_round_rect_by_rects.
  */
 extern const lh_ui_canvas_backend_t lh_os_render_backend_gdi_soft;
+
+/**
+ * @brief GDI table without the GDI+ slots: `fill_round_rect` and `fill_mask`
+ *        are ::lh_null, so the canvas draws both through `fill_rect`.
+ */
+extern const lh_ui_canvas_backend_t lh_os_render_backend_gdi_basic;
+
+/**
+ * @brief @p wanted while GDI+ runs, else ::lh_os_render_backend_gdi_basic.
+ *
+ * Call after ::lh_os_render_backend_gdi_context_init (which starts GDI+).
+ * This is how a missing GDI+ reaches the canvas fallback instead of a slot
+ * that silently draws nothing.
+ */
+const lh_ui_canvas_backend_t *
+lh_os_render_backend_gdi_select(const lh_ui_canvas_backend_t *wanted);
 
 LH_COMPILER_EXTERN_C_END
 

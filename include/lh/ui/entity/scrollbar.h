@@ -196,6 +196,20 @@ lh_ui_scalar_t
 lh_ui_entity_scrollbar_get_track_length(const lh_ui_entity_scrollbar_t *self);
 
 /**
+ * @brief ::lh_ui_entity_scrollbar_get_thumb_length for a container scroll max
+ *        @p max the caller already has (content is not measured again).
+ */
+lh_ui_scalar_t
+lh_ui_entity_scrollbar_get_thumb_length_within(const lh_ui_entity_scrollbar_t *self, lh_ui_point_t max);
+
+/**
+ * @brief ::lh_ui_entity_scrollbar_get_thumb_start for a container scroll max
+ *        @p max the caller already has (content is not measured again).
+ */
+lh_ui_scalar_t
+lh_ui_entity_scrollbar_get_thumb_start_within(const lh_ui_entity_scrollbar_t *self, lh_ui_point_t max);
+
+/**
  * @brief Thumb length: `track * viewport / content`, at least
  *        ::LH_UI_ENTITY_SCROLLBAR_THUMB_MIN (capped by the track); the whole
  *        track with nothing to scroll.
@@ -268,18 +282,49 @@ lh_ui_entity_scrollbar_get_page_toward(const lh_ui_entity_scrollbar_t *self, lh_
 lh_void
 lh_ui_entity_scrollbar_page_toward(const lh_ui_entity_scrollbar_t *self, lh_ui_point_t point);
 
+/* ── Finding and damage ──────────────────────────────────────────────────── */
+
 /**
- * @brief Union scroll damage into @p canvas: the container viewport, the thumb
- *        where it was (@p thumb_before) and where it is now, and the track.
- *
- * This is the one place "harm from scrolling" is recorded — was ∪ became for
- * the thumb, plus the content that shifted and the track that holds it.
- * ::lh_null @p thumb_before skips the old thumb (first paint of a move).
- * Nothing without a canvas or a container on @p self.
+ * @brief The container @p entity drives when it is a scrollbar, else
+ *        ::lh_null (also for a ::lh_null @p entity).
+ */
+lh_ui_entity_container_t *
+lh_ui_entity_scrollbar_get_driven(lh_ui_entity_t *entity);
+
+/**
+ * @brief The container a pointer over @p entity scrolls: the one a scrollbar
+ *        drives (::lh_ui_entity_scrollbar_get_driven), else the nearest
+ *        container at or above @p entity (::lh_ui_entity_find_container).
+ */
+lh_ui_entity_container_t *
+lh_ui_entity_scrollbar_find_scrolled(lh_ui_entity_t *entity);
+
+/**
+ * @brief @p entity as a scrollbar that drives @p container, else ::lh_null.
+ */
+lh_ui_entity_scrollbar_t *
+lh_ui_entity_scrollbar_get_bound(lh_ui_entity_t *entity, const lh_ui_entity_container_t *container);
+
+/**
+ * @brief Damage the track of @p entity when it is a scrollbar bound to
+ *        @p container (::lh_ui_entity_scrollbar_get_bound); nothing otherwise.
  */
 lh_void
-lh_ui_entity_scrollbar_add_scroll_damage(const lh_ui_entity_scrollbar_t *self, lh_ui_canvas_t *canvas,
-                                         const lh_ui_rect_t *thumb_before);
+lh_ui_entity_scrollbar_add_bound_damage(lh_ui_entity_t *entity, const lh_ui_entity_container_t *container,
+                                        lh_ui_canvas_t *canvas);
+
+/**
+ * @brief Union scroll damage of @p container into @p canvas: its viewport
+ *        (the content that shifted) and the track of every sibling scrollbar
+ *        bound to it, on either axis.
+ *
+ * This is the one place "harm from scrolling" is recorded. The thumb always
+ * lies in its track, so the track covers the thumb where it was and where it
+ * is now. Rects go in the root space (::lh_ui_entity_add_damage). Nothing
+ * without a canvas.
+ */
+lh_void
+lh_ui_entity_scrollbar_add_scroll_damage(lh_ui_entity_container_t *container, lh_ui_canvas_t *canvas);
 
 LH_COMPILER_EXTERN_C_END
 
