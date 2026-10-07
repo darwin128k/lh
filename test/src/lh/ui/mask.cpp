@@ -78,4 +78,47 @@ TEST(ui_mask, rect_starts_at_the_origin)
     EXPECT_TRUE(rect_is(lh_ui_mask_get_rect(lh_addr_of(mask), origin), rect_of(5, 6, 3, 2)));
 }
 
+/* The 4 bpp run has an SSE2 pass that unpacks eight nibbles at once, and every
+   way of being wrong about that — starting on an odd pixel, stopping short of
+   eight bytes, running off the end of the row — shows up as one wrong coverage.
+   The answer to compare against is the per-pixel one the loop ends up being. */
+TEST(ui_mask, coverage_run_is_the_per_pixel_coverage_for_every_start_and_length)
+{
+    lh_byte_t bits[4 * 12];
+    lh_ui_mask_t mask;
+    const int width = 20;
+    const int row_bytes = (width * 4) / 8;
+
+    /* Two rows of distinct nibbles, no two alike, so a swapped or shifted sample
+       cannot land on the value it should have. */
+    for (int i = 0; i < 4 * 12; ++i)
+    {
+        bits[i] = static_cast<lh_byte_t>((i * 37 + 11) & 0xFF);
+    }
+    lh_ui_mask_init(lh_addr_of(mask), bits, width, 2, row_bytes, 4);
+
+    for (int y = -1; y < 3; ++y)
+    {
+        for (int x0 = -2; x0 < width; ++x0)
+        {
+            for (int count = 0; count <= 12; ++count)
+            {
+                lh_byte_t run[12];
+                const int x1 = x0 + count;
+
+                for (int i = 0; i < count; ++i)
+                {
+                    run[i] = lh_ui_mask_get_coverage(lh_addr_of(mask), x0 + i, y);
+                }
+                lh_ui_mask_coverage_run(lh_addr_of(mask), x0, x1, y, run);
+                for (int i = 0; i < count; ++i)
+                {
+                    ASSERT_EQ(run[i], lh_ui_mask_get_coverage(lh_addr_of(mask), x0 + i, y))
+                        << "y " << y << " x0 " << x0 << " i " << i;
+                }
+            }
+        }
+    }
+}
+
 } // namespace

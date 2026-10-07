@@ -41,6 +41,19 @@
 #include <lh/void.h>
 
 /**
+ * @brief How wide a coverage span has to stop being worth an array and a blend
+ *        kernel, in pixels.
+ *
+ * Below this, ::lh_ui_canvas_sw_cover_short_row mixes each pixel where it lands;
+ * at or above it, ::lh_ui_canvas_sw_cover_span_run fills a stack array and hands it
+ * to the row kernel, which is cheaper once the run is long enough to pay for its
+ * own overhead. Measured per pixel on the corner ends this path exists for: an array
+ * run is about 98 ns whether it is one pixel or three, while a mixed pixel is about
+ * 27 ns, so the two cross between two and three.
+ */
+#define LH_UI_CANVAS_SW_FUSED_MAX 2
+
+/**
  * @struct lh_ui_canvas_sw
  * @typedef lh_ui_canvas_sw_t
  * @brief Context of ::lh_ui_canvas_backend_sw.
@@ -188,9 +201,29 @@ lh_ui_canvas_sw_cover_run_row(lh_ui_canvas_sw_t *self, const struct lh_ui_radius
                               lh_s32_t y, const lh_ui_color_t *color);
 
 /**
+ * @brief A span of at most ::LH_UI_CANVAS_SW_FUSED_MAX pixels at their coverage of
+ *        the rounded rect, each mixed where it lands: ::lh_ui_canvas_sw_cover_run_row
+ *        with the array between the coverage and the mix left out.
+ *
+ * The same pixels, the same words. At this width the two halves of
+ * ::lh_ui_canvas_sw_cover_run_row — filling a stack array and reading it back — cost
+ * more than the pixels do, so a corner band's one- or two-pixel ends take this
+ * instead. Measured on three pixels: 98 ns through the array against 80 ns here, and
+ * one pixel of an array run is no cheaper than three, because both halves are almost
+ * all overhead. Wider spans go back to the array and the blend kernel.
+ */
+lh_void
+lh_ui_canvas_sw_cover_short_row(lh_ui_canvas_sw_t *self, const struct lh_ui_radius_run *run, lh_s32_t x0,
+                                 lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
+
+/**
  * @brief ::lh_ui_canvas_sw_cover_span against an already prepared
  *        ::lh_ui_radius_run, so a run of rows pays for the rect's fixed-point
  *        edges once instead of once per row.
+ *
+ * A span of at most ::LH_UI_CANVAS_SW_FUSED_MAX pixels goes through
+ * ::lh_ui_canvas_sw_cover_short_row instead of the array, which is where a corner
+ * band ends up.
  */
 lh_void
 lh_ui_canvas_sw_cover_span_run(lh_ui_canvas_sw_t *self, const struct lh_ui_radius_run *run, lh_s32_t x0, lh_s32_t x1,

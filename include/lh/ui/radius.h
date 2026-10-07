@@ -174,6 +174,20 @@ lh_void
 lh_ui_radius_run_init(struct lh_ui_radius_run *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius);
 
 /**
+ * @brief Coverage `0..255` of one pixel, from a prepared run: ::lh_ui_radius_run_row
+ *        for a single column, without writing an array for it.
+ *
+ * The same value, pixel for pixel. A caller that is going to mix each pixel as it
+ * arrives — rather than fill an array and blend it in a second pass — asks here, so
+ * a two- or three-pixel corner costs nothing to hold.
+ *
+ * @param x The column, in whole pixels.
+ * @param y The row, in whole pixels.
+ */
+lh_byte_t
+lh_ui_radius_run_pixel(const struct lh_ui_radius_run *self, lh_s32_t x, lh_s32_t y);
+
+/**
  * @brief Coverage `0..255` of pixels `x0 .. x1 - 1` of row @p y, written to
  *        @p out `x1 - x0` bytes: ::lh_ui_radius_run, asked about one row.
  *
