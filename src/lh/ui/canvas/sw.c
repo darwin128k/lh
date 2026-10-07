@@ -106,11 +106,31 @@ lh_void
 lh_ui_canvas_sw_blend_run(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color,
                           lh_byte_t *coverage)
 {
+    const lh_byte_t alpha = lh_ui_color_get_a(color);
+    lh_s32_t mid0 = x0;
+    lh_s32_t mid1 = x1;
     lh_s32_t i;
 
-    for (i = 0; i < x1 - x0; ++i)
+    /* The middle of the row lies wholly inside every rounded cut, so its clip
+       coverage is 255 and only the shape's own alpha applies. Outside the middle
+       the product is per pixel — lh_ui_canvas_clip_split_row is the one place
+       that knows where that is. */
+    if (lh_ui_canvas_sw_is_rounded(self))
     {
-        coverage[i] = lh_ui_canvas_sw_edge_alpha(self, lh_ui_color_get_a(color), coverage[i], x0 + i, y);
+        lh_ui_canvas_clip_split_row(lh_addr_of(self->clip), x0, x1, y, lh_addr_of(mid0), lh_addr_of(mid1));
+    }
+
+    for (i = 0; i < mid0 - x0; ++i)
+    {
+        coverage[i] = lh_ui_canvas_sw_edge_alpha(self, alpha, coverage[i], x0 + i, y);
+    }
+    for (i = mid0 - x0; i < mid1 - x0; ++i)
+    {
+        coverage[i] = lh_ui_radius_scale(alpha, coverage[i]);
+    }
+    for (i = mid1 - x0; i < x1 - x0; ++i)
+    {
+        coverage[i] = lh_ui_canvas_sw_edge_alpha(self, alpha, coverage[i], x0 + i, y);
     }
     lh_ui_pixmap_blend_alpha_span(lh_addr_of(self->pixmap), x0, x1, y, lh_ui_color_get_argb(color) & 0x00FFFFFFU,
                                   coverage);

@@ -114,15 +114,23 @@ lh_ui_radius_coverage_run(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s3
     const lh_s64_t hi = lo + lh_ui_radius_to_fixed(lh_ui_size_get_width(size));
     const lh_s64_t dy = lh_ui_radius_axis_distance(lh_ui_radius_pixel_center(y), lh_ui_point_get_y(origin),
                                                    lh_ui_size_get_height(size), r);
+    const lh_s64_t near = lo + r; /* right edge of the left corner zone */
+    const lh_s64_t far = hi - r;  /* left edge of the right corner zone */
+    const lh_s64_t dy2 = dy * dy;
+    /* dy is at most r, and the outer edge of the ramp is r + half a subpixel,
+       so lim_sq never goes negative and the arc always has a non-empty core. */
+    const lh_s64_t lim_sq = (r + LH_UI_RADIUS_SUBPIXEL / 2) * (r + LH_UI_RADIUS_SUBPIXEL / 2) - dy2;
+    lh_s64_t p;
     lh_s32_t i;
 
     lh_assert_runtime_ref(out);
     lh_return_if(x1 <= x0);
 
-    /* A row outside the rect is all 0, no per-pixel math needed. */
+    lh_memory_set(out, lh_cast_static(lh_usize_t, x1 - x0), 0);
+
+    /* A row outside the rect is all 0, already written. */
     if (dy < 0)
     {
-        lh_memory_set(out, lh_cast_static(lh_usize_t, x1 - x0), 0);
         return;
     }
     /* A row away from every corner: whole pixels of the rect are 255, the
@@ -132,29 +140,32 @@ lh_ui_radius_coverage_run(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s3
     {
         for (i = 0; i < x1 - x0; ++i)
         {
-            const lh_s64_t p = lh_ui_radius_pixel_center(x0 + i);
-
+            p = lh_ui_radius_pixel_center(x0 + i);
             out[i] = p < lo || p >= hi ? 0 : 255;
         }
         return;
     }
 
-    /* dx is lh_ui_radius_axis_distance with its row-invariant edges hoisted: the
-       same arithmetic, so the same bytes, without redoing the fixed-point edges
-       and the vertical distance per pixel. */
-    for (i = 0; i < x1 - x0; ++i)
+    /* p steps by exactly one subpixel per column, so the fixed-point edges, the
+       radius and the vertical distance are all hoisted. Past the arc's outer
+       edge the coverage is 0, which is what lh_ui_radius_cover_from_square
+       answers to d2 >= outer * outer — decided here, without a square root. */
+    for (i = 0, p = lh_ui_radius_pixel_center(x0); i < x1 - x0; ++i, p += LH_UI_RADIUS_SUBPIXEL)
     {
-        const lh_s64_t p = lh_ui_radius_pixel_center(x0 + i);
+        lh_s64_t dx;
+        lh_s64_t d2;
 
         if (p < lo || p >= hi)
         {
-            out[i] = 0;
             continue;
         }
+        dx = lh_math_max(lh_math_max(near - p, p - far), 0);
+        if (dx == 0)
         {
-            const lh_s64_t dx = lh_math_max(lh_math_max(lo + r - p, p - (hi - r)), 0);
-
-            out[i] = dx == 0 ? 255 : lh_ui_radius_cover_from_square(r, dx * dx + dy * dy);
+            out[i] = 255;
+            continue;
         }
+        d2 = dx * dx;
+        out[i] = d2 >= lim_sq ? 0 : lh_ui_radius_cover_from_square(r, d2 + dy2);
     }
 }

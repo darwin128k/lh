@@ -278,12 +278,23 @@ lh_ui_pixmap_mix_argb(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh
 lh_u32_t
 lh_ui_pixmap_mix_16(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a)
 {
-    lh_ui_color_t under = lh_ui_pixmap_unpack(self, dst);
-    lh_ui_color_t mixed;
+    const lh_u32_t word = lh_ui_pixmap_order_16(self, dst);
+    const lh_u32_t r5 = (word >> 11) & 0x1FU;
+    const lh_u32_t g6 = (word >> 5) & 0x3FU;
+    const lh_u32_t b5 = word & 0x1FU;
+    lh_u32_t mixed;
 
-    lh_ui_color_init_argb(lh_addr_of(mixed), 0xFF000000U | lh_ui_pixmap_mix_rgb(lh_ui_color_get_argb(lh_addr_of(under)),
-                                                                                    src, a));
-    return lh_ui_pixmap_pack(self, lh_addr_of(mixed));
+    /* The channel widening is lh_ui_color_expand_bits (replicate the top bits
+       into the bottom) and the narrowing is lh_ui_color_get_rgb565's truncation,
+       applied here directly: the same bytes, without an lh_ui_color_t per pixel.
+       This is the RGB565 path, the one an MCU actually runs, so the struct round
+       trip through unpack / color_get_argb / color_init_argb / pack is not
+       affordable here. */
+    mixed = lh_ui_pixmap_mix_rgb(0xFF000000U | (((r5 << 3) | (r5 >> 2)) << 16) |
+                                     (((g6 << 2) | (g6 >> 4)) << 8) | ((b5 << 3) | (b5 >> 2)),
+                                src, a);
+    return lh_ui_pixmap_order_16(self, (((mixed >> 16) & 0xFFU) >> 3) << 11 |
+                                     ((((mixed >> 8) & 0xFFU) >> 2) << 5) | ((mixed & 0xFFU) >> 3));
 }
 
 lh_void
