@@ -6,6 +6,7 @@
 #include <lh/null.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/text.h>
+#include <lh/ui/text/align.h>
 #include <lh/util/addr.h>
 
 namespace
@@ -120,6 +121,77 @@ TEST(ui_text, lines_outside_the_clip_are_skipped)
     lh_ui_canvas_pop(lh_addr_of(canvas));
 
     EXPECT_EQ(log.mask_count, 2);
+}
+
+/* The alignment turns a box and a measured text into one point. What matters is
+   that the padding is taken off first, that centre really is the middle, and that
+   text with nowhere to go starts at the near edge instead of going off it. */
+
+lh_ui_point_t
+aligned_at(int box_x, int box_y, int box_w, int box_h, int pad, lh_ui_scalar_t text_w, lh_ui_scalar_t text_h,
+           lh_ui_text_align_h_t horizontal, lh_ui_text_align_v_t vertical)
+{
+    lh_ui_rect_t box;
+    lh_ui_insets_t padding;
+    lh_ui_size_t size;
+
+    lh_ui_rect_init(lh_addr_of(box), box_x, box_y, box_w, box_h);
+    lh_ui_insets_init_all(lh_addr_of(padding), pad);
+    lh_ui_size_init(lh_addr_of(size), text_w, text_h);
+    return lh_ui_text_align_get_origin(lh_addr_of(box), lh_addr_of(padding), size, horizontal, vertical);
+}
+
+void
+expect_origin(const lh_ui_point_t &at, int x, int y)
+{
+    EXPECT_EQ(lh_ui_point_get_x(lh_addr_of(at)), x);
+    EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(at)), y);
+}
+
+TEST(ui_text_align, left_and_top_are_the_padded_corner)
+{
+    expect_origin(aligned_at(10, 20, 100, 40, 5, 30, 10, lh_ui_text_align_h_left, lh_ui_text_align_v_top), 15, 25);
+    expect_origin(aligned_at(10, 20, 100, 40, 0, 30, 10, lh_ui_text_align_h_left, lh_ui_text_align_v_top), 10, 20);
+}
+
+TEST(ui_text_align, centre_is_the_middle_of_the_room_the_padding_leaves)
+{
+    /* 100 wide less 5 and 5 leaves 90, text 30: (90 - 30) / 2 = 30 past the left
+       inset, so x is 15 + 30. Vertically 40 less 5 and 5 leaves 30, text 10, so
+       (30 - 10) / 2 = 10 and y is 25 + 10. */
+    expect_origin(aligned_at(10, 20, 100, 40, 5, 30, 10, lh_ui_text_align_h_center, lh_ui_text_align_v_center), 45, 35);
+}
+
+TEST(ui_text_align, right_and_bottom_end_at_the_far_edge)
+{
+    expect_origin(aligned_at(10, 20, 100, 40, 5, 30, 10, lh_ui_text_align_h_right, lh_ui_text_align_v_bottom), 75,
+                  45);
+}
+
+TEST(ui_text_align, text_wider_or_taller_than_its_box_starts_at_the_near_edge)
+{
+    /* There is nowhere else to start, and a negative offset would push the first
+       glyph off the box and out of the clip with it. */
+    expect_origin(aligned_at(10, 20, 40, 12, 0, 100, 40, lh_ui_text_align_h_center, lh_ui_text_align_v_center), 10,
+                  20);
+    expect_origin(aligned_at(10, 20, 40, 12, 0, 100, 40, lh_ui_text_align_h_right, lh_ui_text_align_v_bottom), 10,
+                  20);
+}
+
+TEST(ui_text_align, a_null_box_is_the_empty_one_and_a_null_padding_is_none)
+{
+    lh_ui_size_t size;
+    lh_ui_rect_t box;
+
+    lh_ui_size_init(lh_addr_of(size), 10, 10);
+    lh_ui_rect_init(lh_addr_of(box), 7, 9, 30, 20);
+
+    expect_origin(lh_ui_text_align_get_origin(lh_addr_of(box), (const lh_ui_insets_t *)lh_null, size,
+                                               lh_ui_text_align_h_left, lh_ui_text_align_v_top),
+                  7, 9);
+    expect_origin(lh_ui_text_align_get_origin((const lh_ui_rect_t *)lh_null, (const lh_ui_insets_t *)lh_null, size,
+                                               lh_ui_text_align_h_center, lh_ui_text_align_v_center),
+                  0, 0);
 }
 
 } // namespace

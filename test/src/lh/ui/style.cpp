@@ -74,3 +74,25 @@ TEST(ui_style, padding_starts_at_zero_and_keeps_what_is_set)
     EXPECT_EQ(lh_ui_insets_get_top(lh_ui_style_get_padding(lh_addr_of(style))), lh_ui_scalar(2));
     EXPECT_EQ(lh_ui_insets_get_right(lh_ui_style_get_padding(lh_addr_of(style))), lh_ui_scalar(3));
 }
+
+/* Alignment is a style's to say, and what a fresh style says has to be what a label
+   did before alignment existed — otherwise every entity in the tree moves. */
+TEST(ui_style, init_aligns_text_top_left)
+{
+    lh_ui_style_t style;
+
+    lh_ui_style_init(lh_addr_of(style));
+    EXPECT_EQ(lh_ui_style_get_align_h(lh_addr_of(style)), lh_ui_text_align_h_left);
+    EXPECT_EQ(lh_ui_style_get_align_v(lh_addr_of(style)), lh_ui_text_align_v_top);
+}
+
+TEST(ui_style, align_round_trips)
+{
+    lh_ui_style_t style;
+
+    lh_ui_style_init(lh_addr_of(style));
+    lh_ui_style_set_align_h(lh_addr_of(style), lh_ui_text_align_h_right);
+    lh_ui_style_set_align_v(lh_addr_of(style), lh_ui_text_align_v_bottom);
+    EXPECT_EQ(lh_ui_style_get_align_h(lh_addr_of(style)), lh_ui_text_align_h_right);
+    EXPECT_EQ(lh_ui_style_get_align_v(lh_addr_of(style)), lh_ui_text_align_v_bottom);
+}

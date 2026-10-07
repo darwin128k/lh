@@ -109,9 +109,22 @@ lh_ui_entity_label_get_text_origin(const lh_ui_entity_label_t *self)
 {
     const lh_ui_entity_t *entity = lh_addr_of(self->container.entity);
     const lh_ui_insets_t padding = lh_ui_entity_get_padding(entity);
+    const lh_ui_style_t *style = lh_ui_entity_get_style(entity);
+    const lh_ui_font_t *font = lh_ui_entity_label_get_font(self);
+    lh_ui_size_t size;
 
-    return lh_ui_point_offset(lh_ui_rect_get_origin_as_const(lh_addr_of(entity->rect)),
-                              lh_ui_insets_get_left(lh_addr_of(padding)), lh_ui_insets_get_top(lh_addr_of(padding)));
+    /* The padding is what keeps the text off the edges, and the alignment is where
+       inside what the padding leaves it starts. Left and top are what this returned
+       before a style could say otherwise, so a style that never set one draws the
+       label exactly as it did. */
+    lh_ui_size_init(lh_addr_of(size), 0, 0);
+    if (!lh_null_eq(style) && !lh_null_eq(font) && !lh_null_eq(self->text))
+    {
+        size = lh_ui_text_get_size(font, self->text);
+    }
+    return lh_ui_text_align_get_origin(lh_addr_of(entity->rect), lh_addr_of(padding), size,
+                                       lh_null_eq(style) ? lh_ui_text_align_h_left : lh_ui_style_get_align_h(style),
+                                       lh_null_eq(style) ? lh_ui_text_align_v_top : lh_ui_style_get_align_v(style));
 }
 
 lh_ui_rect_t

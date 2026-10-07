@@ -19,6 +19,7 @@
 #include <lh/ui/radius.h>
 #include <lh/ui/scalar.h>
 #include <lh/ui/style/fields.h>
+#include <lh/ui/text/align.h>
 #include <lh/void.h>
 
 /**
@@ -127,6 +128,39 @@ lh_ui_style_set_text(lh_ui_style_t *self, const lh_ui_paint_t *text);
  */
 const lh_ui_color_t *
 lh_ui_style_get_text_color(const lh_ui_style_t *self);
+
+/**
+ * @brief Where text starts across the padded box of @p self.
+ *
+ * ::lh_ui_text_align_h_left by default, which is the only thing a style did before
+ * alignment existed. ::lh_ui_text_align_h_center and ::lh_ui_text_align_h_right move
+ * the text's left edge; text wider than the box starts at the left whatever this
+ * says, because there is nowhere else for it to start.
+ */
+lh_ui_text_align_h_t
+lh_ui_style_get_align_h(const lh_ui_style_t *self);
+
+/**
+ * @brief Replace the horizontal text alignment of @p self.
+ */
+lh_void
+lh_ui_style_set_align_h(lh_ui_style_t *self, lh_ui_text_align_h_t align);
+
+/**
+ * @brief Where text starts down the padded box of @p self.
+ *
+ * ::lh_ui_text_align_v_top by default. ::lh_ui_text_align_v_center and
+ * ::lh_ui_text_align_v_bottom move the text's top edge; text taller than the box
+ * starts at the top whatever this says.
+ */
+lh_ui_text_align_v_t
+lh_ui_style_get_align_v(const lh_ui_style_t *self);
+
+/**
+ * @brief Replace the vertical text alignment of @p self.
+ */
+lh_void
+lh_ui_style_set_align_v(lh_ui_style_t *self, lh_ui_text_align_v_t align);
 
 LH_COMPILER_EXTERN_C_END
 
