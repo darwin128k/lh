@@ -253,6 +253,13 @@ lh_void
 lh_ui_view_start_throw(lh_ui_view_t *self, lh_ui_entity_container_t *box);
 
 /**
+ * @brief True while content glides after a throw: keep calling
+ *        ::lh_ui_view_tick until it is false again.
+ */
+lh_bool_t
+lh_ui_view_is_gliding(const lh_ui_view_t *self);
+
+/**
  * @brief One glide step: slow the velocity down and scroll by it. Returns
  *        true when the scroll changed (damage recorded, repaint it); the glide
  *        ends, with scroll_end, when it stops moving or gets too slow.

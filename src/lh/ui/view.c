@@ -265,6 +265,13 @@ lh_ui_view_start_throw(lh_ui_view_t *self, lh_ui_entity_container_t *box)
 }
 
 lh_bool_t
+lh_ui_view_is_gliding(const lh_ui_view_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_null_ne(self->throwing) ? lh_bool_true : lh_bool_false;
+}
+
+lh_bool_t
 lh_ui_view_tick(lh_ui_view_t *self)
 {
     lh_bool_t moved;
