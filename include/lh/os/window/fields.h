@@ -28,6 +28,11 @@
  * Index 0 there is the main window. Modal children sit in a parent's
  * `children` list. Memory is not owned — only the links.
  *
+ * `chrome_title` and `chrome_corner` are the window's own frame: with
+ * `chrome_title` at zero the OS draws its title bar and frame, and above zero the
+ * caller draws that many rows of chrome itself and the window is created without an
+ * OS frame at all. See ::lh_os_window_set_chrome.
+ *
  * `paint_dc` is set only for the duration of ::lh_os_window_on_paint_fn.
  * Click synthesis (press then release without a drag) lives above the OS:
  * the backend fires press / move / release / wheel / key / text; ::lh_os_window_on_click
@@ -45,6 +50,8 @@
     lh_list_node_t link;                                                                            \
     lh_bool_t modal;                                                                                \
     lh_bool_t closing;                                                                              \
+    int chrome_title;                                                                               \
+    int chrome_corner;                                                                              \
     lh_ptr paint_dc;                                                                                \
     int paint_left;                                                                                 \
     int paint_top;                                                                                  \

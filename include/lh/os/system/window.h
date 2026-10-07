@@ -32,10 +32,22 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @p user is an ::lh_os_window_t * stored on the native window.
  * @p owner is the owner/parent handle for a modal child, or invalid for
  * top-level.
+ * @p title_height above zero means the caller draws its own title bar of that many
+ * rows: the window is created without an OS frame, so the client is the whole window
+ * and @p width x @p height is the client size. @p corner (> `0`) cuts the window to
+ * a rounded region of that radius. Both are zero for an ordinary window.
  */
 lh_os_system_window_handle_t
 lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr user,
-                         lh_os_system_window_handle_t owner);
+                         lh_os_system_window_handle_t owner, int title_height, int corner);
+
+/**
+ * @brief Move @p handle with the mouse, the way a caption does.
+ *
+ * Blocks until the drag ends. A no-op when invalid.
+ */
+lh_void
+lh_os_system_window_drag(lh_os_system_window_handle_t handle);
 
 /**
  * @brief True when @p handle names a live window.

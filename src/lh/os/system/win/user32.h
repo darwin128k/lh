@@ -147,7 +147,14 @@ typedef struct lh_os_system_win_createstructa lh_os_system_win_createstructa_t;
 #define LH_OS_SYSTEM_WIN_CS_VREDRAW 0x0001U
 #define LH_OS_SYSTEM_WIN_CS_HREDRAW 0x0002U
 
-/* Window styles. Present since Windows 95. */
+/* Extended window styles. Present since Windows 95. `WS_EX_APPWINDOW` puts a
+   frameless window in the taskbar in its own right; a `WS_POPUP` window without it
+   is invisible there. */
+#define LH_OS_SYSTEM_WIN_WS_EX_APPWINDOW 0x00040000UL
+
+/* Window styles. Present since Windows 95. `WS_POPUP` alone is the frame of last
+   resort: the OS draws nothing, so the window is only what the app paints. */
+#define LH_OS_SYSTEM_WIN_WS_POPUP 0x80000000UL
 #define LH_OS_SYSTEM_WIN_WS_OVERLAPPED 0x00000000UL
 #define LH_OS_SYSTEM_WIN_WS_CAPTION 0x00C00000UL
 #define LH_OS_SYSTEM_WIN_WS_SYSMENU 0x00080000UL
@@ -275,6 +282,27 @@ SetCapture(lh_os_system_win_hwnd_t hWnd);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 ReleaseCapture(lh_void);
+
+/* Hit-test answers for a window that draws its own chrome. Present since
+   Windows 95. `WM_NCLBUTTONDOWN` carrying `HTCAPTION` hands the window to the OS's
+   own move loop, which is the whole dragging machinery for a frameless window: no
+   cursor capture, no `WM_MOUSEMOVE` arithmetic, and the OS's own rules about the
+   menu key and double click come with it. */
+#define LH_OS_SYSTEM_WIN_WM_NCLBUTTONDOWN 0x00A1U
+#define LH_OS_SYSTEM_WIN_HTCAPTION 2
+
+/* Cut the window to a region, so the corners the caller does not fill are really
+   not there — the only way to round a window's corners on Windows XP, where there
+   is no composition to blur them with. Present since Windows 95. The window takes
+   ownership of @p region and deletes it, so handing it lh_null is how a window goes
+   back to square. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+SetWindowRgn(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_handle_t hRgn, lh_os_system_win_bool_t bRedraw);
+
+/* Send to @p hWnd and wait for the answer. Present since Windows 95. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
+SendMessageA(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_uint_t Msg, lh_os_system_win_wparam_t wParam,
+             lh_os_system_win_lparam_t lParam);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_hwnd_t LH_OS_SYSTEM_WIN_CALL
 GetCapture(lh_void);

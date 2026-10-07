@@ -43,6 +43,8 @@ lh_os_window_init(lh_os_window_t *self)
     lh_list_node_init(lh_addr_of(self->link));
     self->modal = lh_bool_false;
     self->closing = lh_bool_false;
+    self->chrome_title = 0;
+    self->chrome_corner = 0;
     self->paint_dc = lh_null;
     self->paint_left = 0;
     self->paint_top = 0;
@@ -80,7 +82,8 @@ lh_os_window_open(lh_os_app_t *app, lh_os_window_t *self, const lh_char_t *title
                          lh_runtime_error_code_invalid_argument);
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     self->handle = lh_os_system_window_open(title, width, height, self,
-                                            LH_OS_SYSTEM_WINDOW_HANDLE_INVALID);
+                                            LH_OS_SYSTEM_WINDOW_HANDLE_INVALID, self->chrome_title,
+                                            self->chrome_corner);
     if (!lh_os_system_window_is_valid(self->handle))
     {
         return lh_bool_false;
@@ -112,7 +115,8 @@ lh_os_window_open_modal(lh_os_window_t *parent, lh_os_window_t *self, const lh_c
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     lh_assert_runtime_ifn(lh_os_system_window_is_valid(parent->handle),
                           lh_runtime_error_code_invalid_argument);
-    self->handle = lh_os_system_window_open(title, width, height, self, parent->handle);
+    self->handle = lh_os_system_window_open(title, width, height, self, parent->handle, self->chrome_title,
+                                            self->chrome_corner);
     if (!lh_os_system_window_is_valid(self->handle))
     {
         return lh_bool_false;
@@ -338,6 +342,25 @@ lh_os_window_deinit(lh_os_window_t *self)
     lh_os_window_close(self);
     self->on_close = lh_null;
     self->on_close_context = lh_null;
+}
+
+lh_void
+lh_os_window_set_chrome(lh_os_window_t *self, int title_height, int corner)
+{
+    lh_assert_runtime_ref(self);
+    self->chrome_title = title_height > 0 ? title_height : 0;
+    self->chrome_corner = corner > 0 ? corner : 0;
+}
+
+lh_void
+lh_os_window_drag(lh_os_window_t *self)
+{
+    lh_assert_runtime_ref(self);
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+    lh_os_system_window_drag(self->handle);
+#else
+    (void)self;
+#endif
 }
 
 lh_void

@@ -1,8 +1,9 @@
 /**
  * @file gdi32.h
- * @brief Backend-private: the part of gdi32.dll the off-screen surface uses
- *        (a 32-bit DIB section, a memory DC, `GdiFlush`, `BitBlt`), declared
- *        by us instead of `<windows.h>`.
+ * @brief Backend-private: the part of gdi32.dll the window and the off-screen
+ *        surface use (a 32-bit DIB section, a memory DC, `GdiFlush`, `BitBlt`, and
+ *        the regions a window is cut to), declared by us instead of
+ *        `<windows.h>`.
  *
  * Same rules as user32.h. Everything here exists since Windows 95 / NT 3.1.
  */
@@ -33,6 +34,12 @@ typedef struct lh_os_system_win_bitmapinfoheader lh_os_system_win_bitmapinfohead
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 DeleteObject(lh_os_system_win_handle_t hObject);
+
+/* A region of a rounded rectangle, the corner ellipses being `width` by `height`.
+   Passed to ::SetWindowRgn to round a window's corners. Present since Windows 95. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
+CreateRoundRectRgn(lh_int_t left, lh_int_t top, lh_int_t right, lh_int_t bottom, lh_int_t width,
+                   lh_int_t height);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
 SelectObject(lh_os_system_win_hdc_t hdc, lh_os_system_win_handle_t h);

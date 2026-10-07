@@ -64,6 +64,41 @@ lh_void
 lh_os_window_init(lh_os_window_t *self);
 
 /**
+ * @brief Draw @p title_height rows of title bar of @p self itself instead of the
+ *        OS's, and round its corners to @p corner pixels.
+ *
+ * Call before ::lh_os_window_open. With @p title_height at `0` (the default) the
+ * window is an ordinary `WS_OVERLAPPEDWINDOW` and the OS draws its frame; above zero
+ * the window is created without one and its client is the whole window, so
+ * @p width x @p height given to open is the client size with nothing subtracted for
+ * a frame. Drawing that strip, and what happens on a press inside it, is the
+ * caller's: call ::lh_os_window_drag to move the window, or hit-test the buttons it
+ * put there first.
+ *
+ * @p corner is clipped away, not painted over: the window is cut to a rounded
+ * region, which is the only way to round a window on a system with no compositor
+ * behind it. Pass `0` for square corners.
+ *
+ * The window then cannot be resized by dragging its edges — there is no frame to
+ * drag — and it has no system menu, taskbar button text or snap.
+ */
+lh_void
+lh_os_window_set_chrome(lh_os_window_t *self, int title_height, int corner);
+
+/**
+ * @brief Move @p self with the mouse until the button comes up.
+ *
+ * The OS's own caption move loop, not arithmetic over move events, so it keeps the
+ * system's rules about the screen edges. Blocks for the length of the drag. No-op
+ * when the window is closed.
+ *
+ * The press that starts it is the caller's to route: a caller whose title bar holds
+ * buttons hit-tests them before deciding this is a drag.
+ */
+lh_void
+lh_os_window_drag(lh_os_window_t *self);
+
+/**
  * @brief Open @p self as a top-level window under @p app and show it.
  *
  * Links @p self at the end of @p app's list. The first window opened is main

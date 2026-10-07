@@ -8,6 +8,7 @@
 #include <lh/cast/static.h>
 #include <lh/memory.h>
 #include <lh/null.h>
+#include <lh/os/system/win/gdi32.h>
 #include <lh/os/system/win/kernel32.h>
 #include <lh/os/system/win/key.h>
 #include <lh/os/system/win/user32.h>
@@ -166,13 +167,15 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
 
 lh_os_system_window_handle_t
 lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr user,
-                         lh_os_system_window_handle_t owner)
+                         lh_os_system_window_handle_t owner, int title_height, int corner)
 {
     lh_os_system_win_hinstance_t instance;
     lh_os_system_win_hwnd_t hwnd;
     lh_os_system_win_hwnd_t owner_hwnd;
     lh_os_system_win_rect_t rect;
     lh_os_system_win_dword_t style;
+    lh_os_system_win_dword_t ex_style;
+    lh_bool_t own_chrome;
 
     lh_assert_runtime_ref(title);
     if (width <= 0 || height <= 0)
@@ -187,14 +190,20 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     }
 
     owner_hwnd = lh_null_eq(owner) ? lh_null : lh_cast_reinterpret(lh_os_system_win_hwnd_t, owner);
-    style = LH_OS_SYSTEM_WIN_WS_OVERLAPPEDWINDOW;
+    /* A title bar of our own means no OS frame at all. WS_POPUP draws nothing, so
+       the client is the whole window and width x height stays the client size with
+       no AdjustWindowRect to undo; WS_EX_APPWINDOW keeps it in the taskbar, which
+       WS_POPUP alone would drop from the taskbar entirely. */
+    own_chrome = lh_cast_static(lh_bool_t, title_height > 0);
+    style = own_chrome ? LH_OS_SYSTEM_WIN_WS_POPUP : LH_OS_SYSTEM_WIN_WS_OVERLAPPEDWINDOW;
+    ex_style = own_chrome ? LH_OS_SYSTEM_WIN_WS_EX_APPWINDOW : 0;
     rect.left = 0;
     rect.top = 0;
     rect.right = width;
     rect.bottom = height;
     AdjustWindowRect(lh_addr_of(rect), style, LH_OS_SYSTEM_WIN_FALSE);
 
-    hwnd = CreateWindowExA(0, LH_OS_SYSTEM_WIN_WINDOW_CLASS_NAME, title, style,
+    hwnd = CreateWindowExA(ex_style, LH_OS_SYSTEM_WIN_WINDOW_CLASS_NAME, title, style,
                            LH_OS_SYSTEM_WIN_CW_USEDEFAULT, LH_OS_SYSTEM_WIN_CW_USEDEFAULT,
                            rect.right - rect.left, rect.bottom - rect.top, owner_hwnd, lh_null,
                            instance, user);
@@ -203,9 +212,48 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
         return LH_OS_SYSTEM_WINDOW_HANDLE_INVALID;
     }
 
+    if (corner > 0)
+    {
+        /* The region is in window coordinates, which for WS_POPUP are the client's:
+           the cut lands exactly on the corner the app did not paint. right and
+           bottom are exclusive here, hence +1, and the corner ellipses are asked
+           for by their full width, hence corner * 2. The window keeps the region,
+           so there is nothing to delete on this side. */
+        lh_os_system_win_handle_t region =
+            CreateRoundRectRgn(0, 0, width + 1, height + 1, corner * 2, corner * 2);
+
+        if (lh_null_ne(region))
+        {
+            SetWindowRgn(hwnd, region, LH_OS_SYSTEM_WIN_TRUE);
+        }
+    }
+
     ShowWindow(hwnd, LH_OS_SYSTEM_WIN_SW_SHOW);
     UpdateWindow(hwnd);
     return lh_cast_reinterpret(lh_os_system_window_handle_t, hwnd);
+}
+
+lh_void
+lh_os_system_window_drag(lh_os_system_window_handle_t handle)
+{
+    lh_os_system_win_hwnd_t hwnd;
+
+    if (lh_null_eq(handle))
+    {
+        return;
+    }
+    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    /* WM_LBUTTONDOWN captured the window before the app heard about it; the move
+       loop runs its own capture and does not expect ours. */
+    if (GetCapture() == hwnd)
+    {
+        ReleaseCapture();
+    }
+    /* WM_NCLBUTTONDOWN over the caption is the OS's move loop: it blocks here until
+       the mouse comes up, then returns and the app's pump carries on. Nothing of it
+       has to be reimplemented to be correct at the screen edges and on the menu key. */
+    SendMessageA(hwnd, LH_OS_SYSTEM_WIN_WM_NCLBUTTONDOWN,
+                 (lh_os_system_win_wparam_t)LH_OS_SYSTEM_WIN_HTCAPTION, 0);
 }
 
 lh_bool_t
