@@ -25,6 +25,7 @@ lh_os_render_backend_gdi_context_init(lh_os_render_backend_gdi_context_t *self)
     self->hdc = lh_null;
     lh_ui_surface_init(lh_addr_of(self->surface));
     lh_ui_canvas_sw_init(lh_addr_of(self->sw));
+    lh_ui_point_init(lh_addr_of(self->present_at), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_os_render_backend_gdi_reset_counters(self);
     self->frame_start_us = 0;
 }
@@ -125,33 +126,37 @@ lh_os_render_backend_gdi_context_get_frame_us(const lh_os_render_backend_gdi_con
 
 /* ── Backend slots ───────────────────────────────────────────────────────── */
 
-lh_bool_t
-lh_os_render_backend_gdi_begin_surface(lh_os_render_backend_gdi_context_t *self)
+lh_void
+lh_os_render_backend_gdi_begin_area(lh_ptr context, const lh_ui_rect_t *area)
 {
-    int width;
-    int height;
-    lh_ui_size_t size;
+    lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
+    lh_ui_pixmap_t pixmap;
 
-    lh_return_if(!lh_os_system_window_get_client_size(self->hwnd, lh_addr_of(width), lh_addr_of(height)),
-                 lh_bool_false);
-    lh_ui_size_init(lh_addr_of(size), lh_cast_static(lh_ui_scalar_t, width), lh_cast_static(lh_ui_scalar_t, height));
-    (void)lh_ui_surface_set_size(lh_addr_of(self->surface), size);
-    lh_os_render_backend_gdi_reset_counters(self);
-    return lh_bool_true;
+    /* The surface is the area and nothing more: a whole frame of 800x600 is
+       1.9 MB of DIB, a 32-row strip is 100 KB, and the pixels that did not
+       change are never cleared, drawn or blitted at all. */
+    gdi->present_at = *lh_ui_rect_get_origin_as_const(area);
+    (void)lh_ui_surface_set_size(lh_addr_of(gdi->surface), *lh_ui_rect_get_size_as_const(area));
+    lh_ui_pixmap_init_empty(lh_addr_of(pixmap));
+    (void)lh_ui_surface_get_pixmap(lh_addr_of(gdi->surface), lh_addr_of(pixmap));
+    lh_ui_canvas_sw_set_pixmap(lh_addr_of(gdi->sw), lh_addr_of(pixmap));
+    lh_os_render_backend_gdi_reset_counters(gdi);
 }
 
 lh_void
 lh_os_render_backend_gdi_begin(lh_ptr context)
 {
     lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
-    lh_ui_pixmap_t pixmap;
+    lh_ui_rect_t area;
+    lh_ui_size_t size;
+    int width;
+    int height;
 
-    lh_ui_pixmap_init_empty(lh_addr_of(pixmap));
-    if (lh_os_render_backend_gdi_begin_surface(gdi))
-    {
-        (void)lh_ui_surface_get_pixmap(lh_addr_of(gdi->surface), lh_addr_of(pixmap));
-    }
-    lh_ui_canvas_sw_set_pixmap(lh_addr_of(gdi->sw), lh_addr_of(pixmap));
+    lh_return_if(!lh_os_system_window_get_client_size(gdi->hwnd, lh_addr_of(width), lh_addr_of(height)));
+    lh_ui_size_init(lh_addr_of(size), lh_cast_static(lh_ui_scalar_t, width), lh_cast_static(lh_ui_scalar_t, height));
+    lh_ui_rect_init(lh_addr_of(area), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_size_get_width(lh_addr_of(size)),
+                    lh_ui_size_get_height(lh_addr_of(size)));
+    lh_os_render_backend_gdi_begin_area(context, lh_addr_of(area));
 }
 
 lh_void
@@ -159,8 +164,10 @@ lh_os_render_backend_gdi_end(lh_ptr context)
 {
     lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
 
-    lh_return_if(lh_null_eq(gdi->hdc));
-    (void)lh_ui_surface_present(lh_addr_of(gdi->surface), gdi->hdc);
+    if (lh_null_ne(gdi->hdc))
+    {
+        (void)lh_ui_surface_present_at(lh_addr_of(gdi->surface), gdi->hdc, gdi->present_at);
+    }
 }
 
 lh_void
@@ -209,6 +216,7 @@ lh_os_render_backend_gdi_fill_mask(lh_ptr context, const lh_ui_point_t *origin, 
 
 const lh_ui_canvas_backend_t lh_os_render_backend_gdi = {
     lh_os_render_backend_gdi_begin,
+    lh_os_render_backend_gdi_begin_area,
     lh_os_render_backend_gdi_end,
     lh_os_render_backend_gdi_clear,
     lh_os_render_backend_gdi_fill_rect,

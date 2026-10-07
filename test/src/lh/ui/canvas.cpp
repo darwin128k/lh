@@ -53,7 +53,7 @@ log_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *col
     ++lh_ptr_rcast(call_log, context)->fill_rect;
 }
 
-const lh_ui_canvas_backend_t g_log_backend = {log_begin, log_end, log_clear, log_fill_rect, nullptr,
+const lh_ui_canvas_backend_t g_log_backend = {log_begin, nullptr, log_end, log_clear, log_fill_rect, nullptr,
                                               nullptr,   nullptr};
 
 TEST(ui_canvas, dispatches_every_call_with_the_context)
@@ -129,7 +129,7 @@ target_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *
     }
 }
 
-const lh_ui_canvas_backend_t g_target_backend = {nullptr, nullptr, nullptr, target_fill_rect, nullptr,
+const lh_ui_canvas_backend_t g_target_backend = {nullptr, nullptr, nullptr, nullptr, target_fill_rect, nullptr,
                                                    nullptr, nullptr};
 
 TEST(ui_canvas, round_rect_slot_gets_the_clamped_radius)
@@ -197,6 +197,92 @@ TEST(ui_canvas, round_rect_fallback_is_anti_aliased_and_draws_each_pixel_once)
         }
     }
     EXPECT_GT(partial, 0);
+}
+
+/* ── Frames ───────────────────────────────────────────────────────────────── */
+
+TEST(ui_canvas, begin_area_moves_the_primitives_and_the_clip_into_the_buffer)
+{
+    lh_test::draw_log log;
+    lh_ui_canvas_t canvas;
+    lh_ui_color_t color;
+    lh_ui_rect_t area;
+    lh_ui_rect_t clip;
+    lh_ui_rect_t rect;
+    lh_ui_point_t zero;
+
+    lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, true);
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_point_init(lh_addr_of(zero), 0, 0);
+    lh_ui_rect_init(lh_addr_of(area), 0, 64, 160, 32);
+    lh_ui_rect_init(lh_addr_of(clip), 0, 70, 160, 20);
+    lh_ui_rect_init(lh_addr_of(rect), 10, 75, 20, 5);
+
+    lh_ui_canvas_begin_area(lh_addr_of(canvas), lh_addr_of(area));
+    lh_ui_canvas_push(lh_addr_of(canvas), zero, lh_addr_of(clip));
+    lh_ui_canvas_fill_rect(lh_addr_of(canvas), lh_addr_of(rect), lh_addr_of(color));
+    lh_ui_canvas_pop(lh_addr_of(canvas));
+    lh_ui_canvas_end(lh_addr_of(canvas));
+
+    /* The strip starts at y 64, so everything the backend sees is 64 rows up:
+       the area is handed over untouched, the clip and the fill are the target
+       ones minus that, and neither leaves the 160x32 buffer. */
+    ASSERT_EQ(log.area_count, 1);
+    EXPECT_TRUE(lh_test::rect_is(log.areas[0], lh_test::rect_of(0, 64, 160, 32)));
+    ASSERT_EQ(log.clip_count, 1);
+    EXPECT_TRUE(lh_test::rect_is(log.clip, lh_test::rect_of(0, 6, 160, 20)));
+    ASSERT_EQ(log.fill_count, 1);
+    EXPECT_TRUE(lh_test::rect_is(log.fills[0], lh_test::rect_of(10, 11, 20, 5)));
+}
+
+TEST(ui_canvas, begin_area_without_the_slot_draws_the_whole_target)
+{
+    lh_test::draw_log log;
+    lh_ui_canvas_backend_t whole = *lh_test::draw_log_backend(false, true);
+    lh_ui_canvas_t canvas;
+    lh_ui_color_t color;
+    lh_ui_rect_t area;
+    lh_ui_rect_t rect;
+
+    /* The fallback is the whole-target frame: the same drawing, no smaller
+       buffer and nothing gained. */
+    whole.begin_area = nullptr;
+    lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, true);
+    lh_ui_canvas_set_backend(lh_addr_of(canvas), lh_addr_of(whole));
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_rect_init(lh_addr_of(area), 0, 64, 160, 32);
+    lh_ui_rect_init(lh_addr_of(rect), 10, 75, 20, 5);
+
+    lh_ui_canvas_begin_area(lh_addr_of(canvas), lh_addr_of(area));
+    lh_ui_canvas_fill_rect(lh_addr_of(canvas), lh_addr_of(rect), lh_addr_of(color));
+    lh_ui_canvas_end(lh_addr_of(canvas));
+
+    EXPECT_EQ(log.area_count, 0);
+    ASSERT_EQ(log.fill_count, 1);
+    EXPECT_TRUE(lh_test::rect_is(log.fills[0], lh_test::rect_of(10, 75, 20, 5)));
+}
+
+TEST(ui_canvas, damage_of_an_area_frame_stays_in_target_space)
+{
+    lh_test::draw_log log;
+    lh_ui_canvas_t canvas;
+    lh_ui_color_t color;
+    lh_ui_rect_t area;
+    lh_ui_rect_t rect;
+
+    lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, true);
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_rect_init(lh_addr_of(area), 0, 64, 160, 32);
+    lh_ui_rect_init(lh_addr_of(rect), 10, 75, 20, 5);
+
+    lh_ui_canvas_begin_area(lh_addr_of(canvas), lh_addr_of(area));
+    lh_ui_canvas_fill_rect(lh_addr_of(canvas), lh_addr_of(rect), lh_addr_of(color));
+    lh_ui_canvas_end(lh_addr_of(canvas));
+
+    /* The buffer moved, the damage did not: a caller invalidates a window
+       rectangle, not a strip offset. */
+    ASSERT_NE(lh_ui_canvas_get_damage(lh_addr_of(canvas)), nullptr);
+    EXPECT_TRUE(lh_test::rect_is(*lh_ui_canvas_get_damage(lh_addr_of(canvas)), lh_test::rect_of(10, 75, 20, 5)));
 }
 
 /* ── Offset and clip ─────────────────────────────────────────────────────── */
@@ -343,7 +429,7 @@ TEST(ui_canvas, round_rect_across_the_clip_goes_through_the_cut_fallback)
     lh_ui_canvas_t canvas;
     lh_ui_color_t color;
     /* Slot present but no set_clip: the canvas must cut, so it falls back. */
-    const lh_ui_canvas_backend_t backend = {nullptr, nullptr, nullptr, target_fill_rect,
+    const lh_ui_canvas_backend_t backend = {nullptr, nullptr, nullptr, nullptr, target_fill_rect,
                                             lh_test::draw_log_fill_round_rect, nullptr, nullptr};
     const lh_ui_rect_t clip = rect_of(0, 0, 8, 16);
     const lh_ui_rect_t rect = rect_of(2, 3, 11, 9);
@@ -392,7 +478,7 @@ decline_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *ma
 }
 
 /* Both GDI+-like slots present, both draw nothing this frame. */
-const lh_ui_canvas_backend_t g_declining_backend = {nullptr, nullptr, nullptr, target_fill_rect,
+const lh_ui_canvas_backend_t g_declining_backend = {nullptr, nullptr, nullptr, nullptr, target_fill_rect,
                                                       decline_round_rect, nullptr, decline_mask};
 
 TEST(ui_canvas, round_rect_the_slot_declines_is_drawn_by_the_canvas)

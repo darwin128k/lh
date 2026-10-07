@@ -30,6 +30,22 @@ LH_COMPILER_EXTERN_C_BEGIN
 typedef lh_void(lh_ui_canvas_begin_fn)(lh_ptr context);
 
 /**
+ * @typedef lh_ui_canvas_begin_area_fn
+ * @brief Start a frame for @p area alone: its top-left pixel is the backend's
+ *        `(0, 0)`.
+ *
+ * @p area is in target space, on whole pixels. The canvas sends every
+ * primitive, clip and rounded cut already moved into that buffer space, so the
+ * backend draws it as if the area were the whole target, and presents it back
+ * to @p area in `end`. A backend whose buffer is @p area sized (or smaller) is
+ * how a partial renderer keeps its memory down.
+ *
+ * Optional: without it the canvas calls ::lh_ui_canvas_begin_fn and the backend
+ * draws the whole target.
+ */
+typedef lh_void(lh_ui_canvas_begin_area_fn)(lh_ptr context, const lh_ui_rect_t *area);
+
+/**
  * @typedef lh_ui_canvas_end_fn
  * @brief Finish a frame on @p context (present / flush).
  */
@@ -98,9 +114,10 @@ LH_COMPILER_EXTERN_C_END
  */
 struct lh_ui_canvas_backend
 {
-    lh_ui_canvas_backend_fields(lh_ui_canvas_begin_fn, lh_ui_canvas_end_fn, lh_ui_canvas_clear_fn,
-                                lh_ui_canvas_fill_rect_fn, lh_ui_canvas_fill_round_rect_fn,
-                                lh_ui_canvas_set_clip_fn, lh_ui_canvas_fill_mask_fn);
+    lh_ui_canvas_backend_fields(lh_ui_canvas_begin_fn, lh_ui_canvas_begin_area_fn, lh_ui_canvas_end_fn,
+                                lh_ui_canvas_clear_fn, lh_ui_canvas_fill_rect_fn,
+                                lh_ui_canvas_fill_round_rect_fn, lh_ui_canvas_set_clip_fn,
+                                lh_ui_canvas_fill_mask_fn);
 };
 typedef struct lh_ui_canvas_backend lh_ui_canvas_backend_t;
 

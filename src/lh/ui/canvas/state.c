@@ -50,6 +50,13 @@ lh_ui_canvas_state_move(lh_ui_canvas_state_t *self, lh_ui_point_t delta)
 }
 
 lh_void
+lh_ui_canvas_state_set_origin(lh_ui_canvas_state_t *self, lh_ui_point_t origin)
+{
+    lh_assert_runtime_ref(self);
+    self->offset = origin;
+}
+
+lh_void
 lh_ui_canvas_state_clip_to(lh_ui_canvas_state_t *self, const lh_ui_rect_t *target)
 {
     self->clip = lh_ui_canvas_state_cut(self, target);

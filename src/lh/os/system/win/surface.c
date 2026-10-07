@@ -129,7 +129,7 @@ lh_os_system_surface_get_pixels(lh_os_system_surface_handle_t handle)
 }
 
 lh_bool_t
-lh_os_system_surface_present(lh_os_system_surface_handle_t handle, lh_ptr dest)
+lh_os_system_surface_present_at(lh_os_system_surface_handle_t handle, lh_ptr dest, int x, int y)
 {
     const lh_os_system_win_surface_t *surface;
     lh_os_system_win_hdc_t dest_dc;
@@ -138,6 +138,12 @@ lh_os_system_surface_present(lh_os_system_surface_handle_t handle, lh_ptr dest)
     surface = lh_ptr_rcast(const lh_os_system_win_surface_t, handle);
     dest_dc = lh_cast_reinterpret(lh_os_system_win_hdc_t, dest);
     return lh_cast_static(lh_bool_t,
-                          BitBlt(dest_dc, 0, 0, surface->width, surface->height, surface->dc, 0, 0,
+                          BitBlt(dest_dc, x, y, surface->width, surface->height, surface->dc, 0, 0,
                                  LH_OS_SYSTEM_WIN_SRCCOPY) != 0);
+}
+
+lh_bool_t
+lh_os_system_surface_present(lh_os_system_surface_handle_t handle, lh_ptr dest)
+{
+    return lh_os_system_surface_present_at(handle, dest, 0, 0);
 }

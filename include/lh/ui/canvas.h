@@ -38,7 +38,7 @@
 struct lh_ui_canvas
 {
     lh_ui_canvas_fields(lh_ui_canvas_backend_t, lh_ptr, lh_ui_canvas_state_t, lh_u8_t, lh_ui_size_t,
-                        lh_ui_rect_t, lh_bool_t, lh_ui_canvas_clip_round_t);
+                        lh_ui_point_t, lh_ui_rect_t, lh_bool_t, lh_ui_canvas_clip_round_t);
 };
 typedef struct lh_ui_canvas lh_ui_canvas_t;
 
@@ -225,6 +225,22 @@ lh_ui_canvas_clip_to(lh_ui_canvas_t *self, const lh_ui_rect_t *clip_rect);
  */
 lh_void
 lh_ui_canvas_begin(lh_ui_canvas_t *self);
+
+/**
+ * @brief Start a frame that covers @p area only, so the backend can keep a
+ *        buffer no larger than that.
+ *
+ * @p area is in target space, on whole pixels. Every primitive, clip and
+ * rounded cut the backend sees afterwards is already moved so that its
+ * `(0, 0)` is the top-left of @p area; `end` presents it back there. Damage
+ * (:lh_ui_canvas_get_damage) stays in target space either way.
+ *
+ * Falls back to ::lh_ui_canvas_begin when the backend has no
+ * ::lh_ui_canvas_begin_area_fn: the frame is then the whole target and the
+ * drawing is unchanged.
+ */
+lh_void
+lh_ui_canvas_begin_area(lh_ui_canvas_t *self, const lh_ui_rect_t *area);
 
 /**
  * @brief Finish a frame.

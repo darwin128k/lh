@@ -4,8 +4,9 @@
  *
  * ::lh_test::draw_log keeps every `fill_rect` and `fill_round_rect` (rect,
  * color, radius), every `set_clip` and every `fill_mask` (origin, size) the
- * canvas sends. Eight tables cover the optional slots: with or without
- * `fill_round_rect`, `set_clip` and `fill_mask`.
+ * canvas sends, and every `begin_area` area it was given. Eight tables cover
+ * the optional slots: with or without `fill_round_rect`, `set_clip` and
+ * `fill_mask`.
  */
 
 #ifndef LH_TEST_UI_DRAW_LOG_H
@@ -43,6 +44,9 @@ struct draw_log
 
     lh_ui_rect_t masks[capacity]; /* each fill_mask: origin and mask size */
     int mask_count;
+
+    lh_ui_rect_t areas[capacity]; /* each begin_area: the strip it was given */
+    int area_count;
 };
 
 inline lh_void
@@ -100,11 +104,23 @@ draw_log_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask
     return lh_bool_true;
 }
 
+inline void
+draw_log_begin_area(lh_ptr context, const lh_ui_rect_t *area)
+{
+    draw_log *log = lh_ptr_rcast(draw_log, context);
+    if (log->area_count < draw_log::capacity)
+    {
+        log->areas[log->area_count] = *area;
+    }
+    ++log->area_count;
+}
+
 /* One backend table: fill_rect, plus the optional slots picked by the flags. */
 #define LH_TEST_DRAW_LOG_BACKEND(round, clip, mask)                                                 \
     {                                                                                               \
-        nullptr, nullptr, nullptr, draw_log_fill_rect, (round) ? draw_log_fill_round_rect : nullptr, \
-            (clip) ? draw_log_set_clip : nullptr, (mask) ? draw_log_fill_mask : nullptr             \
+        nullptr, draw_log_begin_area, nullptr, nullptr, draw_log_fill_rect,                         \
+            (round) ? draw_log_fill_round_rect : nullptr, (clip) ? draw_log_set_clip : nullptr,      \
+            (mask) ? draw_log_fill_mask : nullptr                                                    \
     }
 
 /** Backend for @p log: `fill_rect` always, the optional slots when asked. */

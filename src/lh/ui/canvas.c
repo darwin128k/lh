@@ -5,6 +5,7 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/bool.h>
+#include <lh/math.h>
 #include <lh/null.h>
 #include <lh/runtime/error/code.h>
 #include <lh/ui/canvas.h>
@@ -17,7 +18,7 @@
 /* ── Null backend ────────────────────────────────────────────────────────── */
 
 const lh_ui_canvas_backend_t lh_ui_canvas_backend_null = {lh_null, lh_null, lh_null, lh_null,
-                                                            lh_null, lh_null, lh_null};
+                                                            lh_null, lh_null, lh_null, lh_null};
 
 /* ── Lifetime ────────────────────────────────────────────────────────────── */
 
@@ -30,6 +31,7 @@ lh_ui_canvas_init(lh_ui_canvas_t *self, const lh_ui_canvas_backend_t *backend, l
     lh_ui_canvas_state_init(lh_addr_of(self->state));
     self->depth = 0U;
     lh_ui_size_init(lh_addr_of(self->size), lh_ui_scalar(0), lh_ui_scalar(0));
+    lh_ui_point_init(lh_addr_of(self->frame_at), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_ui_rect_init_empty(lh_addr_of(self->damage));
     self->has_damage = lh_bool_false;
 }
@@ -87,16 +89,23 @@ lh_ui_canvas_get_size(const lh_ui_canvas_t *self)
 lh_void
 lh_ui_canvas_add_damage(lh_ui_canvas_t *self, const lh_ui_rect_t *rect)
 {
+    /* A primitive reaches the backend already moved by the frame origin, so the
+       rect given here is still in the buffer. Put it back: the damage union is
+       in target space, where the caller drew it, and stays that way whichever
+       part of the target this frame covers. */
+    const lh_ui_rect_t drawn = lh_ui_rect_offset(rect, lh_ui_point_get_x(lh_addr_of(self->frame_at)),
+                                                 lh_ui_point_get_y(lh_addr_of(self->frame_at)));
+
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(rect);
-    lh_return_if(lh_ui_rect_is_empty(rect));
+    lh_return_if(lh_ui_rect_is_empty(lh_addr_of(drawn)));
     if (!self->has_damage)
     {
-        self->damage = *rect;
+        self->damage = drawn;
         self->has_damage = lh_bool_true;
         return;
     }
-    self->damage = lh_ui_rect_union(lh_addr_of(self->damage), rect);
+    self->damage = lh_ui_rect_union(lh_addr_of(self->damage), lh_addr_of(drawn));
 }
 
 lh_void
@@ -243,7 +252,34 @@ lh_ui_canvas_begin(lh_ui_canvas_t *self)
 {
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(self->backend) || lh_null_eq(self->backend->begin));
+    lh_ui_point_init(lh_addr_of(self->frame_at), lh_ui_scalar(0), lh_ui_scalar(0));
+    lh_ui_canvas_state_set_origin(lh_addr_of(self->state), self->frame_at);
     self->backend->begin(self->context);
+}
+
+lh_void
+lh_ui_canvas_begin_area(lh_ui_canvas_t *self, const lh_ui_rect_t *area)
+{
+    const lh_ui_point_t *at;
+    lh_ui_point_t origin;
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(area);
+    /* Without the slot the frame is the whole target, which is exactly what
+       begin draws: the area is then only a slice of a full frame, and the
+       picture is the same, just no smaller buffer and no faster. */
+    if (lh_null_eq(self->backend) || lh_null_eq(self->backend->begin_area))
+    {
+        (void)lh_ui_canvas_begin(self);
+        return;
+    }
+    at = lh_ui_rect_get_origin_as_const(area);
+    self->frame_at = *at;
+    /* (0, 0) of the buffer is the area corner, so the space the backend draws
+       in is the target space moved by minus the area origin. */
+    lh_ui_point_init(lh_addr_of(origin), lh_math_neg(lh_ui_point_get_x(at)), lh_math_neg(lh_ui_point_get_y(at)));
+    lh_ui_canvas_state_set_origin(lh_addr_of(self->state), origin);
+    self->backend->begin_area(self->context, area);
 }
 
 lh_void

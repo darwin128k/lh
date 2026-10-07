@@ -72,6 +72,16 @@ lh_os_system_surface_get_pixels(lh_os_system_surface_handle_t handle);
 lh_bool_t
 lh_os_system_surface_present(lh_os_system_surface_handle_t handle, lh_ptr dest);
 
+/**
+ * @brief Copy the whole surface of @p handle into @p dest with its top-left
+ *        pixel at `(x, y)` — the partial case, where the surface is one strip
+ *        of a larger target.
+ *
+ * @return True when the blit ran.
+ */
+lh_bool_t
+lh_os_system_surface_present_at(lh_os_system_surface_handle_t handle, lh_ptr dest, int x, int y);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_OS_SYSTEM_SURFACE_H */

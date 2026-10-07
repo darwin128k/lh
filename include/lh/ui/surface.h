@@ -95,6 +95,16 @@ lh_ui_surface_get_pixmap(const lh_ui_surface_t *self, lh_ui_pixmap_t *pixmap);
 lh_bool_t
 lh_ui_surface_present(const lh_ui_surface_t *self, lh_ptr dest);
 
+/**
+ * @brief Present @p self into @p dest (Win32 paint DC as ::lh_ptr) with its
+ *        top-left pixel at @p at, the client coordinates of the strip it
+ *        covers.
+ *
+ * @return True when the blit ran.
+ */
+lh_bool_t
+lh_ui_surface_present_at(const lh_ui_surface_t *self, lh_ptr dest, lh_ui_point_t at);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_SURFACE_H */

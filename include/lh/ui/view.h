@@ -181,6 +181,61 @@ lh_void
 lh_ui_view_draw_frame(lh_ui_view_t *self, const lh_ui_rect_t *damage);
 
 /**
+ * @brief Rows per buffer when @p self draws strip by strip; `0` draws the whole
+ *        target in one frame.
+ *
+ * This is the switch between the two render modes. A strip costs a buffer of
+ * this many rows for the whole width and nothing else, so the memory falls with
+ * it, and a strip the @p damage of a frame does not reach is not drawn, cleared
+ * or presented at all. The picture is the same either way.
+ */
+lh_void
+lh_ui_view_set_strip_height(lh_ui_view_t *self, lh_ui_scalar_t height);
+
+/**
+ * @brief Strip height of @p self, `0` for a whole-target frame.
+ */
+lh_ui_scalar_t
+lh_ui_view_get_strip_height(const lh_ui_view_t *self);
+
+/**
+ * @brief True when @p self draws strip by strip.
+ */
+lh_bool_t
+lh_ui_view_is_stripped(const lh_ui_view_t *self);
+
+/**
+ * @brief The @p index -th strip of @p self, counting from the top of the
+ *        target. The whole width, exactly the strip height, the last one pulled
+ *        up to fit: every strip is the same size, so the backend sizes its
+ *        buffer once and keeps it. Empty past the last strip.
+ */
+lh_ui_rect_t
+lh_ui_view_get_strip(const lh_ui_view_t *self, lh_ui_scalar_t index);
+
+/**
+ * @brief True when @p damage reaches @p area; ::lh_null @p damage is the whole
+ *        target and reaches everything.
+ */
+lh_bool_t
+lh_ui_view_area_is_damaged(const lh_ui_rect_t *area, const lh_ui_rect_t *damage);
+
+/**
+ * @brief Draw @p self strip by strip, skipping the strips @p damage does not
+ *        reach. One frame in ::lh_ui_view_draw terms: the clock and the call
+ *        counts of the backend cover all of them.
+ */
+lh_void
+lh_ui_view_draw_strips(lh_ui_view_t *self, const lh_ui_rect_t *damage);
+
+/**
+ * @brief begin_area(@p area) → push the @p damage clipped to it → clear → root
+ *        → pop → end. @p damage is in target space; @p area is the buffer.
+ */
+lh_void
+lh_ui_view_draw_frame_on(lh_ui_view_t *self, const lh_ui_rect_t *area, const lh_ui_rect_t *damage);
+
+/**
  * @brief Topmost visible entity under @p point, or ::lh_null.
  */
 lh_ui_entity_t *

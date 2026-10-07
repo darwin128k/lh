@@ -312,7 +312,11 @@ lh_ui_canvas_sw_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_
     return lh_bool_true;
 }
 
+/* No begin_area: the software backend has no buffer of its own to size, so it
+   draws whatever pixmap it was given and a partial frame falls back to a whole
+   target one. A caller that owns a strip buffer gives it one per frame. */
 const lh_ui_canvas_backend_t lh_ui_canvas_backend_sw = {
+    lh_null,
     lh_null,
     lh_null,
     lh_ui_canvas_sw_clear,

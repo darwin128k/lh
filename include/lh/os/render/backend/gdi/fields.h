@@ -10,13 +10,16 @@
 #include <lh/ui/surface.h>
 
 /**
- * @def lh_os_render_backend_gdi_fields(hwnd_type, hdc_type, surface_type, sw_type, count_type, tick_type)
+ * @def lh_os_render_backend_gdi_fields(hwnd_type, hdc_type, surface_type, sw_type, count_type, tick_type,
+ *                                      point_type)
  * @brief Window, paint-time destination DC, off-screen surface, software
  *        context, per-primitive call counts, and frame start tick.
  *
- * `sw` draws into the surface pixels (its pixmap is set in each `begin`);
- * ::lh_os_render_backend_gdi_end blits the surface into `hdc`. The surface is
- * owned by the context. Counters and `frame_start_us` reset in `begin`.
+ * `sw` draws into the surface pixels (its pixmap is set in each `begin` and
+ * `begin_area`); ::lh_os_render_backend_gdi_end blits the surface into `hdc`,
+ * with its top-left pixel at `present_at` — `(0, 0)` for a whole-target frame,
+ * the area corner for one partial strip. The surface is owned by the context
+ * and is the area, never more: that is the memory a partial frame saves.
  *
  * @param hwnd_type    ::lh_os_system_window_handle_t.
  * @param hdc_type     Paint DC as ::lh_ptr.
@@ -24,12 +27,15 @@
  * @param sw_type      ::lh_ui_canvas_sw_t.
  * @param count_type   Unsigned call counter.
  * @param tick_type    Frame start time (::lh_u64_t microseconds).
+ * @param point_type   Type of the present corner.
  */
-#define lh_os_render_backend_gdi_fields(hwnd_type, hdc_type, surface_type, sw_type, count_type, tick_type) \
+#define lh_os_render_backend_gdi_fields(hwnd_type, hdc_type, surface_type, sw_type, count_type,       \
+                                        tick_type, point_type)                                        \
     hwnd_type hwnd;                                                                                \
     hdc_type hdc;                                                                                  \
     surface_type surface;                                                                          \
     sw_type sw;                                                                                    \
+    point_type present_at;                                                                         \
     count_type mask_calls;                                                                         \
     count_type rect_calls;                                                                         \
     count_type round_calls;                                                                        \

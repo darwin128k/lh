@@ -7,6 +7,7 @@
 #include <lh/cast/static.h>
 #include <lh/null.h>
 #include <lh/os/system/surface.h>
+#include <lh/ui/point.h>
 #include <lh/ui/size.h>
 #include <lh/ui/surface.h>
 #include <lh/util/addr.h>
@@ -83,4 +84,12 @@ lh_ui_surface_present(const lh_ui_surface_t *self, lh_ptr dest)
 {
     lh_assert_runtime_ref(self);
     return lh_os_system_surface_present(self->handle, dest);
+}
+
+lh_bool_t
+lh_ui_surface_present_at(const lh_ui_surface_t *self, lh_ptr dest, lh_ui_point_t at)
+{
+    lh_assert_runtime_ref(self);
+    return lh_os_system_surface_present_at(self->handle, dest, lh_cast_static(int, lh_ui_point_get_x(lh_addr_of(at))),
+                                           lh_cast_static(int, lh_ui_point_get_y(lh_addr_of(at))));
 }

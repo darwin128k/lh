@@ -63,6 +63,16 @@ lh_void
 lh_ui_canvas_state_move(lh_ui_canvas_state_t *self, lh_ui_point_t delta);
 
 /**
+ * @brief Replace the offset of @p self with @p origin, instead of adding to it.
+ *
+ * The frame entry points use this to put `(0, 0)` on the buffer origin before
+ * anything is pushed, so the first push of a frame lands on the same space
+ * whatever came before it.
+ */
+lh_void
+lh_ui_canvas_state_set_origin(lh_ui_canvas_state_t *self, lh_ui_point_t origin);
+
+/**
  * @brief Cut the clip of @p self further to @p target (target space).
  */
 lh_void

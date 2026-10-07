@@ -24,6 +24,7 @@ lh_ui_view_init(lh_ui_view_t *self)
     self->canvas = lh_null;
     self->root = lh_null;
     self->clear = lh_null;
+    self->strip_height = lh_ui_scalar(0);
     self->scrolling = lh_null;
     self->throwing = lh_null;
     self->focus = lh_null;
@@ -131,13 +132,108 @@ lh_ui_view_draw_frame(lh_ui_view_t *self, const lh_ui_rect_t *damage)
 }
 
 lh_void
+lh_ui_view_set_strip_height(lh_ui_view_t *self, lh_ui_scalar_t height)
+{
+    lh_assert_runtime_ref(self);
+    self->strip_height = height;
+}
+
+lh_ui_scalar_t
+lh_ui_view_get_strip_height(const lh_ui_view_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->strip_height;
+}
+
+lh_bool_t
+lh_ui_view_is_stripped(const lh_ui_view_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_math_gt(self->strip_height, lh_ui_scalar(0)) ? lh_bool_true : lh_bool_false;
+}
+
+lh_ui_rect_t
+lh_ui_view_get_strip(const lh_ui_view_t *self, lh_ui_scalar_t index)
+{
+    const lh_ui_size_t size = lh_ui_canvas_get_size(self->canvas);
+    const lh_ui_scalar_t whole = lh_ui_size_get_height(lh_addr_of(size));
+    const lh_ui_scalar_t height = lh_math_min(self->strip_height, whole);
+    const lh_ui_scalar_t top = lh_math_min(index * height, whole - height);
+    lh_ui_rect_t strip;
+
+    lh_assert_runtime_ref(self);
+    lh_ui_rect_init_empty(lh_addr_of(strip));
+    /* Past the last strip, and never a strip taller than the target itself. */
+    lh_return_if(height <= lh_ui_scalar(0) || index < lh_ui_scalar(0) || index * height >= whole, strip);
+    lh_ui_rect_init(lh_addr_of(strip), lh_ui_scalar(0), top, lh_ui_size_get_width(lh_addr_of(size)), height);
+    return strip;
+}
+
+lh_bool_t
+lh_ui_view_area_is_damaged(const lh_ui_rect_t *area, const lh_ui_rect_t *damage)
+{
+    lh_ui_rect_t part;
+
+    lh_assert_runtime_ref(area);
+    if (lh_null_eq(damage))
+    {
+        return lh_bool_true;
+    }
+    part = lh_ui_rect_intersection(area, damage);
+    return lh_ui_rect_is_empty(lh_addr_of(part)) ? lh_bool_false : lh_bool_true;
+}
+
+lh_void
+lh_ui_view_draw_frame_on(lh_ui_view_t *self, const lh_ui_rect_t *area, const lh_ui_rect_t *damage)
+{
+    const lh_ui_rect_t part = lh_null_eq(damage) ? *area : lh_ui_rect_intersection(area, damage);
+    lh_ui_point_t zero;
+
+    lh_return_if(lh_ui_rect_is_empty(lh_addr_of(part)));
+    lh_ui_point_init(lh_addr_of(zero), lh_ui_scalar(0), lh_ui_scalar(0));
+    lh_ui_canvas_begin_area(self->canvas, area);
+    lh_ui_canvas_push(self->canvas, zero, lh_addr_of(part));
+    lh_ui_view_clear(self, lh_addr_of(part));
+    lh_ui_view_draw_root(self);
+    lh_ui_canvas_pop(self->canvas);
+    lh_ui_canvas_end(self->canvas);
+}
+
+lh_void
+lh_ui_view_draw_strips(lh_ui_view_t *self, const lh_ui_rect_t *damage)
+{
+    lh_ui_scalar_t index;
+
+    for (index = lh_ui_scalar(0);; ++index)
+    {
+        const lh_ui_rect_t area = lh_ui_view_get_strip(self, index);
+
+        lh_return_if(lh_ui_rect_is_empty(lh_addr_of(area)));
+        /* A strip the damage does not reach keeps the pixels already on
+           screen: no buffer, no clear, no blit. That is where the time and
+           the memory of a partial frame come from. */
+        if (lh_ui_view_area_is_damaged(lh_addr_of(area), damage))
+        {
+            lh_ui_view_draw_frame_on(self, lh_addr_of(area), damage);
+        }
+    }
+}
+
+lh_void
 lh_ui_view_draw(lh_ui_view_t *self, const lh_ui_rect_t *damage)
 {
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(self->canvas));
     lh_ui_view_fit_canvas(self);
     lh_ui_canvas_reset_damage(self->canvas);
-    lh_ui_view_draw_frame(self, damage);
+    if (lh_ui_view_is_stripped(self))
+    {
+        lh_ui_view_draw_strips(self, damage);
+    }
+    else
+    {
+        lh_ui_view_draw_frame(self, damage);
+    }
     lh_ui_canvas_reset_damage(self->canvas);
 }
 

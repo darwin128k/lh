@@ -71,7 +71,7 @@ struct sw_fixture
 
 /* Only fill_rect, through the same software context: the canvas draws
  * round rects and masks itself (its fallback), one pixel box at a time. */
-const lh_ui_canvas_backend_t g_rect_only = {nullptr, nullptr, nullptr, lh_ui_canvas_sw_fill_rect,
+const lh_ui_canvas_backend_t g_rect_only = {nullptr, nullptr, nullptr, nullptr, lh_ui_canvas_sw_fill_rect,
                                               nullptr, nullptr, nullptr};
 
 lh_ui_rect_t

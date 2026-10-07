@@ -65,7 +65,7 @@ fill_probe_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scala
 inline const lh_ui_canvas_backend_t *
 fill_probe_backend()
 {
-    static const lh_ui_canvas_backend_t backend = {nullptr, nullptr, nullptr, fill_probe_fill_rect,
+    static const lh_ui_canvas_backend_t backend = {nullptr, nullptr, nullptr, nullptr, fill_probe_fill_rect,
                                                    nullptr, nullptr, nullptr};
     return &backend;
 }
@@ -74,7 +74,7 @@ fill_probe_backend()
 inline const lh_ui_canvas_backend_t *
 fill_probe_round_backend()
 {
-    static const lh_ui_canvas_backend_t backend = {nullptr, nullptr, nullptr, fill_probe_fill_rect,
+    static const lh_ui_canvas_backend_t backend = {nullptr, nullptr, nullptr, nullptr, fill_probe_fill_rect,
                                                    fill_probe_fill_round_rect, nullptr, nullptr};
     return &backend;
 }
