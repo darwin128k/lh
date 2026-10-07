@@ -9,6 +9,36 @@
 namespace
 {
 
+struct ZoneLog
+{
+    int count;
+    int x;
+    int y;
+    lh_os_window_zone_t last;
+    int top;
+};
+
+/* A frame of the caller's own: the top ::top rows are the caption, and a box in the
+   middle of it is the caller's own button, which must stay its own. */
+lh_os_window_zone_t
+on_zone(lh_os_window_t * /*self*/, int x, int y, lh_ptr context)
+{
+    auto *log = static_cast<ZoneLog *>(context);
+
+    log->count++;
+    log->x = x;
+    log->y = y;
+    if (y < log->top && !(x >= 100 && x < 130 && y >= 4 && y < 28))
+    {
+        log->last = lh_os_window_zone_caption;
+    }
+    else
+    {
+        log->last = lh_os_window_zone_client;
+    }
+    return log->last;
+}
+
 struct CloseLog
 {
     int count;
@@ -49,6 +79,28 @@ on_click(lh_os_window_t * /*self*/, int x, int y, lh_ptr context)
     log->count++;
     log->x = x;
     log->y = y;
+}
+
+struct ResizeLog
+{
+    int count;
+    int width;
+    int height;
+};
+
+lh_void
+on_resize(lh_os_window_t * /*self*/, int width, int height, lh_ptr context)
+{
+    auto *log = static_cast<ResizeLog *>(context);
+
+    if (log == nullptr)
+    {
+        ADD_FAILURE() << "null resize log";
+        return;
+    }
+    log->count++;
+    log->width = width;
+    log->height = height;
 }
 
 TEST(os_window, top_level_open_close_api)
@@ -254,6 +306,151 @@ TEST(os_window, on_native_key_and_text_fire_callbacks)
     EXPECT_EQ(key_seen[0], static_cast<int>(lh_key_tab));
     EXPECT_EQ(key_seen[1], 1);
     EXPECT_EQ(text_seen, 0x0416U);
+    lh_os_window_deinit(lh_addr_of(window));
+}
+
+TEST(os_window, zone_is_client_until_the_caller_says_otherwise)
+{
+    lh_os_window_t window{};
+
+    lh_os_window_init(lh_addr_of(window));
+    /* No callback is the ordinary window: every point is the app's, which is what
+       keeps a press reaching a listener instead of being swallowed as a caption. */
+    EXPECT_EQ(lh_os_window_zone_at(lh_addr_of(window), 0, 0), lh_os_window_zone_client);
+    EXPECT_EQ(lh_os_window_zone_at(lh_addr_of(window), 400, 300), lh_os_window_zone_client);
+    lh_os_window_deinit(lh_addr_of(window));
+}
+
+TEST(os_window, zone_answers_with_the_callers_own_layout)
+{
+    lh_os_window_t window{};
+    ZoneLog log{0, -1, -1, lh_os_window_zone_client, 36};
+
+    lh_os_window_init(lh_addr_of(window));
+    lh_os_window_set_on_zone(lh_addr_of(window), on_zone, lh_addr_of(log));
+
+    EXPECT_EQ(lh_os_window_zone_at(lh_addr_of(window), 300, 18), lh_os_window_zone_caption);
+    EXPECT_EQ(log.count, 1);
+    EXPECT_EQ(log.x, 300);
+    EXPECT_EQ(log.y, 18);
+
+    /* The button the caller drew on its own title bar: still its own, so a press
+       there clicks it instead of moving the window. */
+    EXPECT_EQ(lh_os_window_zone_at(lh_addr_of(window), 110, 10), lh_os_window_zone_client);
+    EXPECT_EQ(lh_os_window_zone_at(lh_addr_of(window), 110, 40), lh_os_window_zone_client);
+    EXPECT_EQ(lh_os_window_zone_at(lh_addr_of(window), 400, 300), lh_os_window_zone_client);
+    EXPECT_EQ(log.count, 4);
+    lh_os_window_deinit(lh_addr_of(window));
+}
+
+TEST(os_window, a_window_starts_with_the_system_frame_and_square_corners)
+{
+    lh_os_window_t window{};
+
+    lh_os_window_init(lh_addr_of(window));
+    /* Both default to what a window that says nothing wants: the OS frame, and no
+       cut on its corners. */
+    EXPECT_EQ(window.frame, lh_os_window_frame_system);
+    EXPECT_EQ(window.corner, 0);
+    lh_os_window_deinit(lh_addr_of(window));
+}
+
+TEST(os_window, corner_radius_is_kept_and_clamped_to_square)
+{
+    lh_os_window_t window{};
+
+    lh_os_window_init(lh_addr_of(window));
+    lh_os_window_set_corner_radius(lh_addr_of(window), 14);
+    EXPECT_EQ(window.corner, 14);
+    /* A negative radius is not an error, it is square: the caller asking for nothing
+       should not have to special-case the ask. */
+    lh_os_window_set_corner_radius(lh_addr_of(window), -3);
+    EXPECT_EQ(window.corner, 0);
+    lh_os_window_set_corner_radius(lh_addr_of(window), 0);
+    EXPECT_EQ(window.corner, 0);
+    lh_os_window_deinit(lh_addr_of(window));
+}
+
+TEST(os_window, frame_and_zone_do_not_interfere)
+{
+    lh_os_window_t window{};
+    ZoneLog log{0, -1, -1, lh_os_window_zone_client, 36};
+
+    lh_os_window_init(lh_addr_of(window));
+    lh_os_window_set_frame(lh_addr_of(window), lh_os_window_frame_own);
+    /* Naming zones is what the caller's own frame has instead of an OS one: with a
+       system frame the OS already moves and resizes the window, and the zones say
+       nothing about that. */
+    lh_os_window_set_on_zone(lh_addr_of(window), on_zone, lh_addr_of(log));
+
+    EXPECT_EQ(window.frame, lh_os_window_frame_own);
+    EXPECT_EQ(lh_os_window_zone_at(lh_addr_of(window), 300, 18), lh_os_window_zone_caption);
+    lh_os_window_deinit(lh_addr_of(window));
+}
+
+TEST(os_window, a_resize_reports_the_client_and_the_maximized_state)
+{
+    lh_os_window_t window{};
+    ResizeLog log{0, -1, -1};
+
+    lh_os_window_init(lh_addr_of(window));
+    lh_os_window_set_on_resize(lh_addr_of(window), on_resize, lh_addr_of(log));
+
+    lh_os_window_on_native_resize(lh_addr_of(window), 2560, 1440, lh_bool_true);
+    EXPECT_EQ(log.count, 1);
+    EXPECT_EQ(log.width, 2560);
+    EXPECT_EQ(log.height, 1440);
+    EXPECT_EQ(lh_os_window_is_maximized(lh_addr_of(window)), lh_bool_true);
+
+    lh_os_window_on_native_resize(lh_addr_of(window), 800, 600, lh_bool_false);
+    EXPECT_EQ(log.count, 2);
+    EXPECT_EQ(lh_os_window_is_maximized(lh_addr_of(window)), lh_bool_false);
+    lh_os_window_deinit(lh_addr_of(window));
+}
+
+/* The message that makes a window appear carries the size before creation has
+   applied the one it was created with, and a minimized window really does have no
+   client at all. Neither is a size to lay out for: an app that laid out for one puts
+   every entity at the origin or off it — a title bar 0 wide is invisible. The
+   maximized flag is a state, not a size, so it is still recorded. */
+TEST(os_window, an_empty_client_is_not_a_size_to_lay_out_for)
+{
+    lh_os_window_t window{};
+    ResizeLog log{0, -1, -1};
+
+    lh_os_window_init(lh_addr_of(window));
+    lh_os_window_set_on_resize(lh_addr_of(window), on_resize, lh_addr_of(log));
+
+    lh_os_window_on_native_resize(lh_addr_of(window), 0, 0, lh_bool_false);
+    EXPECT_EQ(log.count, 0);
+    lh_os_window_on_native_resize(lh_addr_of(window), 800, 0, lh_bool_false);
+    EXPECT_EQ(log.count, 0);
+    lh_os_window_on_native_resize(lh_addr_of(window), 0, 600, lh_bool_false);
+    EXPECT_EQ(log.count, 0);
+    lh_os_window_on_native_resize(lh_addr_of(window), -800, -600, lh_bool_false);
+    EXPECT_EQ(log.count, 0);
+
+    /* Minimizing a maximized window is the same message with nothing to draw into,
+       and the state still has to change: the app asks it to draw the right glyph. */
+    lh_os_window_on_native_resize(lh_addr_of(window), 2560, 1440, lh_bool_true);
+    lh_os_window_on_native_resize(lh_addr_of(window), 0, 0, lh_bool_false);
+    EXPECT_EQ(lh_os_window_is_maximized(lh_addr_of(window)), lh_bool_false);
+    EXPECT_EQ(log.count, 1);
+
+    /* The next real size is the one the app lays out for. */
+    lh_os_window_on_native_resize(lh_addr_of(window), 800, 600, lh_bool_false);
+    EXPECT_EQ(log.count, 2);
+    EXPECT_EQ(log.width, 800);
+    lh_os_window_deinit(lh_addr_of(window));
+}
+
+TEST(os_window, a_window_without_a_resize_callback_still_keeps_its_state)
+{
+    lh_os_window_t window{};
+
+    lh_os_window_init(lh_addr_of(window));
+    lh_os_window_on_native_resize(lh_addr_of(window), 0, 0, lh_bool_true);
+    EXPECT_EQ(lh_os_window_is_maximized(lh_addr_of(window)), lh_bool_true);
     lh_os_window_deinit(lh_addr_of(window));
 }
 

@@ -9,6 +9,13 @@
  *
  * The message pump lives on ::lh_os_app_run, not on the window.
  *
+ * A caller can style the window instead of taking the OS frame, and none of it is
+ * hardcoded here: ::lh_os_window_set_frame says whose frame it is,
+ * ::lh_os_window_set_corner_radius cuts its corners, and
+ * ::lh_os_window_set_on_zone answers point by point what the window system should do
+ * — move it, resize it, or leave the press to the app. What that looks like is the
+ * caller's, so a project draws and hit-tests its own title bar and its own buttons.
+ *
  * Requires ::LH_LIBRARY_OPTION_OS_WINDOW (itself requires ::LH_LIBRARY_OPTION_OS).
  */
 
@@ -22,13 +29,17 @@
 #include <lh/os/system/window/handle.h>
 #include <lh/os/window/close/reason.h>
 #include <lh/os/window/fields.h>
+#include <lh/os/window/frame.h>
 #include <lh/os/window/on/click/cb.h>
 #include <lh/os/window/on/close/cb.h>
 #include <lh/os/window/on/move/cb.h>
 #include <lh/os/window/on/paint/cb.h>
 #include <lh/os/window/on/press/cb.h>
 #include <lh/os/window/on/release/cb.h>
+#include <lh/os/window/on/resize/cb.h>
+#include <lh/os/window/on/zone/cb.h>
 #include <lh/os/window/on/wheel/cb.h>
+#include <lh/os/window/zone.h>
 #include <lh/ptr.h>
 #include <lh/void.h>
 
@@ -64,39 +75,93 @@ lh_void
 lh_os_window_init(lh_os_window_t *self);
 
 /**
- * @brief Draw @p title_height rows of title bar of @p self itself instead of the
- *        OS's, and round its corners to @p corner pixels.
+ * @brief Draw @p self's frame and chrome instead of the OS's.
  *
- * Call before ::lh_os_window_open. With @p title_height at `0` (the default) the
- * window is an ordinary `WS_OVERLAPPEDWINDOW` and the OS draws its frame; above zero
- * the window is created without one and its client is the whole window, so
- * @p width x @p height given to open is the client size with nothing subtracted for
- * a frame. Drawing that strip, and what happens on a press inside it, is the
- * caller's: call ::lh_os_window_drag to move the window, or hit-test the buttons it
- * put there first.
+ * Call before ::lh_os_window_open — what it says is read at creation time.
+ * ::lh_os_window_frame_own creates the window with no OS frame at all: its client is
+ * the whole window, so the width and height given to open are the client size with
+ * nothing subtracted for a frame. Everything that was drawn on that frame is now the
+ * app's to paint and the app's to hit test; tell the window system which of it moves
+ * and resizes the window with ::lh_os_window_set_on_zone.
  *
- * @p corner is clipped away, not painted over: the window is cut to a rounded
- * region, which is the only way to round a window on a system with no compositor
- * behind it. Pass `0` for square corners.
- *
- * The window then cannot be resized by dragging its edges — there is no frame to
- * drag — and it has no system menu, taskbar button text or snap.
+ * The default, ::lh_os_window_frame_system, is the ordinary OS frame with its
+ * caption, menu and resize borders, and needs nothing else set.
  */
 lh_void
-lh_os_window_set_chrome(lh_os_window_t *self, int title_height, int corner);
+lh_os_window_set_frame(lh_os_window_t *self, lh_os_window_frame_t frame);
 
 /**
- * @brief Move @p self with the mouse until the button comes up.
+ * @brief Cut @p self's corners to a rounded region of @p radius pixels.
  *
- * The OS's own caption move loop, not arithmetic over move events, so it keeps the
- * system's rules about the screen edges. Blocks for the length of the drag. No-op
- * when the window is closed.
+ * The corners are clipped away, not painted over: the window is cut to a rounded
+ * region, which is the only way to round a window on a system with no compositor
+ * behind it. Works with either frame and may be set before or after opening; `0` or
+ * less is square.
  *
- * The press that starts it is the caller's to route: a caller whose title bar holds
- * buttons hit-tests them before deciding this is a drag.
+ * @p radius is in pixels and is clamped by the window system to what fits.
  */
 lh_void
-lh_os_window_drag(lh_os_window_t *self);
+lh_os_window_set_corner_radius(lh_os_window_t *self, int radius);
+
+/**
+ * @brief Name what the window system should do with each point of @p self.
+ *
+ * The one hook for styling a window's behaviour around its content, and the reason
+ * none of it is hardcoded here: only the caller knows where its own chrome is. Answer
+ * ::lh_os_window_zone_caption over a strip it drew itself and a press there moves the
+ * window, with the OS's own move loop, its rules about the screen edges and the right
+ * cursor; answer one of the edge and corner zones over a border and the OS resizes
+ * the window; answer ::lh_os_window_zone_client — the default, and the answer when no
+ * callback is set — and the press reaches the app as an ordinary one, so a button the
+ * app drew on its own title bar keeps working.
+ *
+ * Set at any time: it is consulted per press and per pointer move, not read once.
+ */
+lh_void
+lh_os_window_set_on_zone(lh_os_window_t *self, lh_os_window_on_zone_cb on_zone, lh_ptr context);
+
+/**
+ * @brief Minimize, maximize or restore @p self, the way its own frame's buttons do.
+ *
+ * These are here because a window with a frame of its own has no system buttons to
+ * press: `minimize` sends it to the taskbar in its minimized state, `set_maximized`
+ * fills the screen and puts it back, and the restore is the same call with the other
+ * argument. A maximized window answers ::lh_os_window_is_maximized so a button knows
+ * which way round to draw itself.
+ *
+ * A no-op when the window is closed. A maximized window is resized by the window
+ * system, which is why ::lh_os_window_set_on_resize exists.
+ */
+lh_void
+lh_os_window_minimize(lh_os_window_t *self);
+lh_void
+lh_os_window_set_maximized(lh_os_window_t *self, lh_bool_t maximized);
+
+/**
+ * @brief True while @p self is maximized.
+ */
+lh_bool_t
+lh_os_window_is_maximized(const lh_os_window_t *self);
+
+/**
+ * @brief Get @p self's client area size, or false when it is closed.
+ *
+ * The same two numbers ::lh_os_window_set_on_resize hands over, for a caller that
+ * wants them once instead of waiting to be told.
+ */
+lh_bool_t
+lh_os_window_get_client_size(const lh_os_window_t *self, int *width, int *height);
+
+/**
+ * @brief Set what ::lh_os_window_set_on_resize tells @p self about its size.
+ *
+ * Without it a caller cannot tell a window apart from one whose size simply never
+ * changes, which matters as soon as the window can be resized: a drag of one of the
+ * zones named through ::lh_os_window_set_on_zone, or the window system's own
+ * maximize, and neither announces itself through a paint.
+ */
+lh_void
+lh_os_window_set_on_resize(lh_os_window_t *self, lh_os_window_on_resize_cb on_resize, lh_ptr context);
 
 /**
  * @brief Open @p self as a top-level window under @p app and show it.
@@ -288,6 +353,30 @@ lh_os_window_on_native_destroy(lh_os_window_t *self);
 lh_void
 lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc, int left, int top, int right,
                              int bottom);
+
+/**
+ * @brief What the window system should do with the client point (@p x, @p y).
+ *
+ * The backend's way of asking ::lh_os_window_set_on_zone, so the answer is made in
+ * one place whatever the system asks for. ::lh_os_window_zone_client when no callback
+ * is set. @p x and @p y are client-area coordinates.
+ */
+lh_os_window_zone_t
+lh_os_window_zone_at(lh_os_window_t *self, int x, int y);
+
+/**
+ * @brief Called from the native backend after the client area changed.
+ *
+ * Records the maximized state and then fires ::lh_os_window_set_on_resize, so both
+ * facts a caller needs about a size change arrive the same way.
+ *
+ * An empty client (either dimension zero) records the maximized state but fires
+ * nothing: a window that has just been created sends its size before creation has
+ * applied the one it was asked for, and a minimized window has no client at all.
+ * Neither is a size to lay out for; the next message carrying a real one is.
+ */
+lh_void
+lh_os_window_on_native_resize(lh_os_window_t *self, int width, int height, lh_bool_t maximized);
 
 /**
  * @brief Called from the native backend on a primary-button press.

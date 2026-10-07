@@ -9,12 +9,15 @@
 #include <lh/bool.h>
 #include <lh/list.h>
 #include <lh/list/node.h>
+#include <lh/os/window/frame.h>
 #include <lh/os/window/on/click/cb.h>
 #include <lh/os/window/on/close/cb.h>
 #include <lh/os/window/on/move/cb.h>
 #include <lh/os/window/on/paint/cb.h>
 #include <lh/os/window/on/press/cb.h>
 #include <lh/os/window/on/release/cb.h>
+#include <lh/os/window/on/resize/cb.h>
+#include <lh/os/window/on/zone/cb.h>
 #include <lh/os/window/on/key/cb.h>
 #include <lh/os/window/on/text/cb.h>
 #include <lh/os/window/on/wheel/cb.h>
@@ -28,10 +31,12 @@
  * Index 0 there is the main window. Modal children sit in a parent's
  * `children` list. Memory is not owned — only the links.
  *
- * `chrome_title` and `chrome_corner` are the window's own frame: with
- * `chrome_title` at zero the OS draws its title bar and frame, and above zero the
- * caller draws that many rows of chrome itself and the window is created without an
- * OS frame at all. See ::lh_os_window_set_chrome.
+ * `frame`, `corner`, `on_zone` and `on_zone_context` are how a caller styles the
+ * window instead of taking the OS frame: `frame` picks whose frame it is, `corner`
+ * cuts that window to a rounded region, and `on_zone` answers what the window system
+ * should do with each point — move, resize, or leave it to the app. See
+ * ::lh_os_window_set_frame, ::lh_os_window_set_corner_radius and
+ * ::lh_os_window_set_on_zone.
  *
  * `paint_dc` is set only for the duration of ::lh_os_window_on_paint_fn.
  * Click synthesis (press then release without a drag) lives above the OS:
@@ -50,8 +55,13 @@
     lh_list_node_t link;                                                                            \
     lh_bool_t modal;                                                                                \
     lh_bool_t closing;                                                                              \
-    int chrome_title;                                                                               \
-    int chrome_corner;                                                                              \
+    lh_os_window_frame_t frame;                                                                    \
+    int corner;                                                                                    \
+    lh_bool_t maximized;                                                                           \
+    lh_os_window_on_zone_cb on_zone;                                                              \
+    lh_ptr on_zone_context;                                                                        \
+    lh_os_window_on_resize_cb on_resize;                                                          \
+    lh_ptr on_resize_context;                                                                      \
     lh_ptr paint_dc;                                                                                \
     int paint_left;                                                                                 \
     int paint_top;                                                                                  \

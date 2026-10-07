@@ -43,8 +43,13 @@ lh_os_window_init(lh_os_window_t *self)
     lh_list_node_init(lh_addr_of(self->link));
     self->modal = lh_bool_false;
     self->closing = lh_bool_false;
-    self->chrome_title = 0;
-    self->chrome_corner = 0;
+    self->frame = lh_os_window_frame_system;
+    self->corner = 0;
+    self->maximized = lh_bool_false;
+    self->on_zone = lh_null;
+    self->on_zone_context = lh_null;
+    self->on_resize = lh_null;
+    self->on_resize_context = lh_null;
     self->paint_dc = lh_null;
     self->paint_left = 0;
     self->paint_top = 0;
@@ -82,8 +87,7 @@ lh_os_window_open(lh_os_app_t *app, lh_os_window_t *self, const lh_char_t *title
                          lh_runtime_error_code_invalid_argument);
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     self->handle = lh_os_system_window_open(title, width, height, self,
-                                            LH_OS_SYSTEM_WINDOW_HANDLE_INVALID, self->chrome_title,
-                                            self->chrome_corner);
+                                            LH_OS_SYSTEM_WINDOW_HANDLE_INVALID, self->frame, self->corner);
     if (!lh_os_system_window_is_valid(self->handle))
     {
         return lh_bool_false;
@@ -115,8 +119,8 @@ lh_os_window_open_modal(lh_os_window_t *parent, lh_os_window_t *self, const lh_c
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     lh_assert_runtime_ifn(lh_os_system_window_is_valid(parent->handle),
                           lh_runtime_error_code_invalid_argument);
-    self->handle = lh_os_system_window_open(title, width, height, self, parent->handle, self->chrome_title,
-                                            self->chrome_corner);
+    self->handle = lh_os_system_window_open(title, width, height, self, parent->handle, self->frame,
+                                            self->corner);
     if (!lh_os_system_window_is_valid(self->handle))
     {
         return lh_bool_false;
@@ -345,21 +349,126 @@ lh_os_window_deinit(lh_os_window_t *self)
 }
 
 lh_void
-lh_os_window_set_chrome(lh_os_window_t *self, int title_height, int corner)
+lh_os_window_set_frame(lh_os_window_t *self, lh_os_window_frame_t frame)
 {
     lh_assert_runtime_ref(self);
-    self->chrome_title = title_height > 0 ? title_height : 0;
-    self->chrome_corner = corner > 0 ? corner : 0;
+    /* Only while closed: this is read at creation, and a live window's style and
+       region are the OS's to change now, not ours to set behind its back. */
+    lh_assert_runtime_if(lh_null_ne(self->handle), lh_runtime_error_code_invalid_argument);
+    self->frame = frame;
 }
 
 lh_void
-lh_os_window_drag(lh_os_window_t *self)
+lh_os_window_set_corner_radius(lh_os_window_t *self, int radius)
+{
+    lh_assert_runtime_ref(self);
+    self->corner = radius > 0 ? radius : 0;
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+    if (lh_os_system_window_is_valid(self->handle))
+    {
+        lh_os_system_window_set_corner_radius(self->handle, self->corner);
+    }
+#else
+    (void)radius;
+#endif
+}
+
+lh_void
+lh_os_window_set_on_zone(lh_os_window_t *self, lh_os_window_on_zone_cb on_zone, lh_ptr context)
+{
+    lh_assert_runtime_ref(self);
+    self->on_zone = on_zone;
+    self->on_zone_context = context;
+}
+
+lh_os_window_zone_t
+lh_os_window_zone_at(lh_os_window_t *self, int x, int y)
+{
+    lh_assert_runtime_ref(self);
+    lh_return_if(lh_null_eq(lh_ptr_rcast(lh_void, self->on_zone)), lh_os_window_zone_client);
+    return self->on_zone(self, x, y, self->on_zone_context);
+}
+
+lh_void
+lh_os_window_set_on_resize(lh_os_window_t *self, lh_os_window_on_resize_cb on_resize, lh_ptr context)
+{
+    lh_assert_runtime_ref(self);
+    self->on_resize = on_resize;
+    self->on_resize_context = context;
+}
+
+lh_void
+lh_os_window_on_native_resize(lh_os_window_t *self, int width, int height, lh_bool_t maximized)
+{
+    lh_os_window_on_resize_cb on_resize;
+    lh_ptr on_resize_context;
+
+    lh_assert_runtime_ref(self);
+    self->maximized = maximized;
+    /* An empty client is not a size to lay out for, and it arrives from two
+       directions: the first size message of a window's life carries nothing before
+       creation applies the size it was asked for, and a minimized window really
+       does have no client at all. An app that laid out for one would put every
+       entity at the origin or off it — a title bar 0 wide is invisible, and the
+       next message with a real size is what the app should be laying out for. The
+       maximized flag is kept either way: it is a state, not a size. */
+    lh_return_if(width <= 0 || height <= 0);
+    on_resize = self->on_resize;
+    on_resize_context = self->on_resize_context;
+    if (lh_null_ne(lh_ptr_rcast(lh_void, on_resize)))
+    {
+        on_resize(self, width, height, on_resize_context);
+    }
+}
+
+lh_void
+lh_os_window_minimize(lh_os_window_t *self)
 {
     lh_assert_runtime_ref(self);
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-    lh_os_system_window_drag(self->handle);
+    if (lh_os_system_window_is_valid(self->handle))
+    {
+        lh_os_system_window_minimize(self->handle);
+    }
 #else
     (void)self;
+#endif
+}
+
+lh_void
+lh_os_window_set_maximized(lh_os_window_t *self, lh_bool_t maximized)
+{
+    lh_assert_runtime_ref(self);
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+    if (lh_os_system_window_is_valid(self->handle))
+    {
+        lh_os_system_window_set_maximized(self->handle, maximized);
+    }
+#else
+    (void)self;
+    (void)maximized;
+#endif
+}
+
+lh_bool_t
+lh_os_window_is_maximized(const lh_os_window_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->maximized;
+}
+
+lh_bool_t
+lh_os_window_get_client_size(const lh_os_window_t *self, int *width, int *height)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(width);
+    lh_assert_runtime_ref(height);
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+    return lh_os_system_window_get_client_size(self->handle, width, height);
+#else
+    *width = 0;
+    *height = 0;
+    return lh_bool_false;
 #endif
 }
 

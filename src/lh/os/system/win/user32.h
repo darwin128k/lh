@@ -166,8 +166,19 @@ typedef struct lh_os_system_win_createstructa lh_os_system_win_createstructa_t;
      LH_OS_SYSTEM_WIN_WS_THICKFRAME | LH_OS_SYSTEM_WIN_WS_MINIMIZEBOX |                             \
      LH_OS_SYSTEM_WIN_WS_MAXIMIZEBOX)
 
-/* ShowWindow. Present since Windows 95. */
+/* ShowWindow commands. Present since Windows 95. `SW_MAXIMIZE` fills the screen with
+   the window and `SW_RESTORE` puts it back the way it was; both work on a frameless
+   window, which has no maximize box of its own to press. */
 #define LH_OS_SYSTEM_WIN_SW_SHOW 5
+#define LH_OS_SYSTEM_WIN_SW_MINIMIZE 6
+#define LH_OS_SYSTEM_WIN_SW_MAXIMIZE 3
+#define LH_OS_SYSTEM_WIN_SW_RESTORE 9
+
+/* `WM_SIZE`: the window changed size, and this is why. Present since Windows 95. */
+#define LH_OS_SYSTEM_WIN_WM_SIZE 0x0005U
+#define LH_OS_SYSTEM_WIN_SIZE_RESTORED 0
+#define LH_OS_SYSTEM_WIN_SIZE_MINIMIZED 1
+#define LH_OS_SYSTEM_WIN_SIZE_MAXIMIZED 2
 
 /* CreateWindow position. Present since Windows 95. */
 #define LH_OS_SYSTEM_WIN_CW_USEDEFAULT ((lh_int_t)0x80000000)
@@ -183,6 +194,7 @@ typedef struct lh_os_system_win_createstructa lh_os_system_win_createstructa_t;
 #define LH_OS_SYSTEM_WIN_WM_PAINT 0x000FU
 #define LH_OS_SYSTEM_WIN_WM_ERASEBKGND 0x0014U
 #define LH_OS_SYSTEM_WIN_WM_NCCREATE 0x0081U
+#define LH_OS_SYSTEM_WIN_WM_NCHITTEST 0x0084U
 #define LH_OS_SYSTEM_WIN_WM_QUIT 0x0012U
 #define LH_OS_SYSTEM_WIN_WM_MOUSEMOVE 0x0200U
 #define LH_OS_SYSTEM_WIN_WM_LBUTTONDOWN 0x0201U
@@ -283,13 +295,25 @@ SetCapture(lh_os_system_win_hwnd_t hWnd);
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 ReleaseCapture(lh_void);
 
-/* Hit-test answers for a window that draws its own chrome. Present since
-   Windows 95. `WM_NCLBUTTONDOWN` carrying `HTCAPTION` hands the window to the OS's
-   own move loop, which is the whole dragging machinery for a frameless window: no
-   cursor capture, no `WM_MOUSEMOVE` arithmetic, and the OS's own rules about the
-   menu key and double click come with it. */
-#define LH_OS_SYSTEM_WIN_WM_NCLBUTTONDOWN 0x00A1U
+/* Where a window's own corners are, in screen coordinates; only its size matters
+   here. Present since Windows 95. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+GetWindowRect(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_rect_t *lpRect);
+
+/* Hit-test answers. A window that draws its own frame answers `WM_NCHITTEST` itself,
+   and `DefWindowProc` turns a press on one of these into the matching system command
+   — `SC_MOVE` or `SC_SIZE` — which is the whole of moving and resizing a frameless
+   window, cursors included. All present since Windows 95. */
+#define LH_OS_SYSTEM_WIN_HTCLIENT 1
 #define LH_OS_SYSTEM_WIN_HTCAPTION 2
+#define LH_OS_SYSTEM_WIN_HTTOP 12
+#define LH_OS_SYSTEM_WIN_HTBOTTOM 15
+#define LH_OS_SYSTEM_WIN_HTRIGHT 11
+#define LH_OS_SYSTEM_WIN_HTLEFT 10
+#define LH_OS_SYSTEM_WIN_HTTOPLEFT 13
+#define LH_OS_SYSTEM_WIN_HTTOPRIGHT 14
+#define LH_OS_SYSTEM_WIN_HTBOTTOMLEFT 16
+#define LH_OS_SYSTEM_WIN_HTBOTTOMRIGHT 17
 
 /* Cut the window to a region, so the corners the caller does not fill are really
    not there — the only way to round a window's corners on Windows XP, where there
@@ -298,11 +322,6 @@ ReleaseCapture(lh_void);
    back to square. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 SetWindowRgn(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_handle_t hRgn, lh_os_system_win_bool_t bRedraw);
-
-/* Send to @p hWnd and wait for the answer. Present since Windows 95. */
-LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
-SendMessageA(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_uint_t Msg, lh_os_system_win_wparam_t wParam,
-             lh_os_system_win_lparam_t lParam);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_hwnd_t LH_OS_SYSTEM_WIN_CALL
 GetCapture(lh_void);

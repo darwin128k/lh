@@ -16,6 +16,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/system/window/handle.h>
+#include <lh/os/window/frame.h>
 #include <lh/ptr.h>
 #include <lh/timer/tick.h>
 #include <lh/void.h>
@@ -32,22 +33,37 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @p user is an ::lh_os_window_t * stored on the native window.
  * @p owner is the owner/parent handle for a modal child, or invalid for
  * top-level.
- * @p title_height above zero means the caller draws its own title bar of that many
- * rows: the window is created without an OS frame, so the client is the whole window
- * and @p width x @p height is the client size. @p corner (> `0`) cuts the window to
- * a rounded region of that radius. Both are zero for an ordinary window.
+ * @p frame says whose frame the window has; ::lh_os_window_frame_own creates it with
+ * no OS frame, so the client is the whole window and @p width x @p height is the
+ * client size. @p corner (> `0`) cuts the window to a rounded region of that radius.
  */
 lh_os_system_window_handle_t
 lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr user,
-                         lh_os_system_window_handle_t owner, int title_height, int corner);
+                         lh_os_system_window_handle_t owner, lh_os_window_frame_t frame, int corner);
 
 /**
- * @brief Move @p handle with the mouse, the way a caption does.
+ * @brief Re-cut @p handle's corners, or make them square again at `0`.
  *
- * Blocks until the drag ends. A no-op when invalid.
+ * A no-op when invalid.
  */
 lh_void
-lh_os_system_window_drag(lh_os_system_window_handle_t handle);
+lh_os_system_window_set_corner_radius(lh_os_system_window_handle_t handle, int radius);
+
+/**
+ * @brief Send @p handle to the taskbar minimized, or put it back.
+ *
+ * A no-op when invalid.
+ */
+lh_void
+lh_os_system_window_minimize(lh_os_system_window_handle_t handle);
+
+/**
+ * @brief Fill the screen with @p handle, or put it back the way it was.
+ *
+ * A no-op when invalid.
+ */
+lh_void
+lh_os_system_window_set_maximized(lh_os_system_window_handle_t handle, lh_bool_t maximized);
 
 /**
  * @brief True when @p handle names a live window.

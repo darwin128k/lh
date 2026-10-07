@@ -49,6 +49,37 @@ lh_os_system_win_window_register_class(lh_os_system_win_hinstance_t instance)
     return atom;
 }
 
+/* What ::lh_os_window_zone_t means to Windows. The one table, so a zone added to the
+   portable enum cannot be forgotten here. */
+static lh_s32_t
+lh_os_system_win_window_hit(lh_os_window_zone_t zone)
+{
+    switch (zone)
+    {
+    case lh_os_window_zone_caption:
+        return LH_OS_SYSTEM_WIN_HTCAPTION;
+    case lh_os_window_zone_left:
+        return LH_OS_SYSTEM_WIN_HTLEFT;
+    case lh_os_window_zone_right:
+        return LH_OS_SYSTEM_WIN_HTRIGHT;
+    case lh_os_window_zone_top:
+        return LH_OS_SYSTEM_WIN_HTTOP;
+    case lh_os_window_zone_bottom:
+        return LH_OS_SYSTEM_WIN_HTBOTTOM;
+    case lh_os_window_zone_top_left:
+        return LH_OS_SYSTEM_WIN_HTTOPLEFT;
+    case lh_os_window_zone_top_right:
+        return LH_OS_SYSTEM_WIN_HTTOPRIGHT;
+    case lh_os_window_zone_bottom_left:
+        return LH_OS_SYSTEM_WIN_HTBOTTOMLEFT;
+    case lh_os_window_zone_bottom_right:
+        return LH_OS_SYSTEM_WIN_HTBOTTOMRIGHT;
+    case lh_os_window_zone_client:
+    default:
+        return LH_OS_SYSTEM_WIN_HTCLIENT;
+    }
+}
+
 static lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
 lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint_t msg,
                              lh_os_system_win_wparam_t wparam, lh_os_system_win_lparam_t lparam)
@@ -72,6 +103,51 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
 
     switch (msg)
     {
+    case LH_OS_SYSTEM_WIN_WM_NCHITTEST:
+        if (lh_null_ne(window))
+        {
+            /* The point arrives in screen coordinates; the app thinks in client ones,
+               and it is the app that knows what its own chrome is. */
+            lh_os_system_win_point_t at;
+
+            at.x = (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_LOWORD(lparam);
+            at.y = (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_HIWORD(lparam);
+            ScreenToClient(hwnd, lh_addr_of(at));
+            return lh_os_system_win_window_hit(lh_os_window_zone_at(window, at.x, at.y));
+        }
+        break;
+    case LH_OS_SYSTEM_WIN_WM_SIZE:
+        if (lh_null_ne(window))
+        {
+            /* The low word of wParam says why the window changed size; the size it
+               carries is the *window*, not the client, so with a frame of the system
+               on it the two differ by the frame. The app draws into and hit-tests
+               the client, so that is what a resize has to report, and GetClientRect
+               is already the truth by the time this message arrives.
+
+               It also fixes the first message of a window's life: creation sends its
+               size before the one the window was created with is applied, and that
+               message carries 0x0 for a window that is a moment later 800x600. A
+               window with a frame of its own gets no WM_NCPAINT and no frame to hear
+               about, so this is also the only way it learns that it is now a
+               different size or that it is maximized. */
+            lh_os_system_win_rect_t client;
+            const int reason = (int)LH_OS_SYSTEM_WIN_LOWORD(wparam);
+
+            if (GetClientRect(hwnd, lh_addr_of(client)))
+            {
+                lh_os_window_on_native_resize(
+                    window, (int)client.right, (int)client.bottom,
+                    lh_cast_static(lh_bool_t, reason == LH_OS_SYSTEM_WIN_SIZE_MAXIMIZED));
+                /* The cut follows the size, and is gone while the window is maximized:
+                   both are things about this window's shape, not about the app that
+                   drew it, so they belong here rather than in every app that resizes. */
+                lh_os_system_window_set_corner_radius(
+                    lh_cast_reinterpret(lh_os_system_window_handle_t, hwnd),
+                    reason == LH_OS_SYSTEM_WIN_SIZE_MAXIMIZED ? 0 : window->corner);
+            }
+        }
+        return 0;
     case LH_OS_SYSTEM_WIN_WM_ERASEBKGND:
         /* Client is fully redrawn in WM_PAINT; skip the system fill. */
         return 1;
@@ -167,7 +243,7 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
 
 lh_os_system_window_handle_t
 lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr user,
-                         lh_os_system_window_handle_t owner, int title_height, int corner)
+                         lh_os_system_window_handle_t owner, lh_os_window_frame_t frame, int corner)
 {
     lh_os_system_win_hinstance_t instance;
     lh_os_system_win_hwnd_t hwnd;
@@ -175,7 +251,7 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     lh_os_system_win_rect_t rect;
     lh_os_system_win_dword_t style;
     lh_os_system_win_dword_t ex_style;
-    lh_bool_t own_chrome;
+    lh_bool_t own_frame;
 
     lh_assert_runtime_ref(title);
     if (width <= 0 || height <= 0)
@@ -190,13 +266,13 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     }
 
     owner_hwnd = lh_null_eq(owner) ? lh_null : lh_cast_reinterpret(lh_os_system_win_hwnd_t, owner);
-    /* A title bar of our own means no OS frame at all. WS_POPUP draws nothing, so
-       the client is the whole window and width x height stays the client size with
+    /* A frame of the caller's own means no OS frame at all. WS_POPUP draws nothing,
+       so the client is the whole window and width x height stays the client size with
        no AdjustWindowRect to undo; WS_EX_APPWINDOW keeps it in the taskbar, which
        WS_POPUP alone would drop from the taskbar entirely. */
-    own_chrome = lh_cast_static(lh_bool_t, title_height > 0);
-    style = own_chrome ? LH_OS_SYSTEM_WIN_WS_POPUP : LH_OS_SYSTEM_WIN_WS_OVERLAPPEDWINDOW;
-    ex_style = own_chrome ? LH_OS_SYSTEM_WIN_WS_EX_APPWINDOW : 0;
+    own_frame = frame == lh_os_window_frame_own ? lh_bool_true : lh_bool_false;
+    style = own_frame ? LH_OS_SYSTEM_WIN_WS_POPUP : LH_OS_SYSTEM_WIN_WS_OVERLAPPEDWINDOW;
+    ex_style = own_frame ? LH_OS_SYSTEM_WIN_WS_EX_APPWINDOW : 0;
     rect.left = 0;
     rect.top = 0;
     rect.right = width;
@@ -212,21 +288,7 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
         return LH_OS_SYSTEM_WINDOW_HANDLE_INVALID;
     }
 
-    if (corner > 0)
-    {
-        /* The region is in window coordinates, which for WS_POPUP are the client's:
-           the cut lands exactly on the corner the app did not paint. right and
-           bottom are exclusive here, hence +1, and the corner ellipses are asked
-           for by their full width, hence corner * 2. The window keeps the region,
-           so there is nothing to delete on this side. */
-        lh_os_system_win_handle_t region =
-            CreateRoundRectRgn(0, 0, width + 1, height + 1, corner * 2, corner * 2);
-
-        if (lh_null_ne(region))
-        {
-            SetWindowRgn(hwnd, region, LH_OS_SYSTEM_WIN_TRUE);
-        }
-    }
+    lh_os_system_window_set_corner_radius(lh_cast_reinterpret(lh_os_system_window_handle_t, hwnd), corner);
 
     ShowWindow(hwnd, LH_OS_SYSTEM_WIN_SW_SHOW);
     UpdateWindow(hwnd);
@@ -234,7 +296,49 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
 }
 
 lh_void
-lh_os_system_window_drag(lh_os_system_window_handle_t handle)
+lh_os_system_window_set_corner_radius(lh_os_system_window_handle_t handle, int radius)
+{
+    lh_os_system_win_hwnd_t hwnd;
+    lh_os_system_win_rect_t window;
+    lh_os_system_win_handle_t region;
+
+    if (lh_null_eq(handle))
+    {
+        return;
+    }
+    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    if (radius <= 0)
+    {
+        /* A region is the window's shape, and the shape of the size it was cut for: a
+           window that keeps its corners round has to be cut again every time it
+           changes size, or it stays the size it was cut at — a maximized window with
+           the 800x600 region of its normal state is an 800x600 window in the corner of
+           the screen. Radius 0 is therefore not "leave it alone" but "no cut": it is
+           what a maximized window is, on every desktop. */
+        SetWindowRgn(hwnd, lh_null, LH_OS_SYSTEM_WIN_TRUE);
+        return;
+    }
+    if (GetWindowRect(hwnd, lh_addr_of(window)) == 0)
+    {
+        return;
+    }
+    /* The region is in window coordinates, whose origin is the window itself — so
+       this cuts the corners of the window whatever its frame is, and with a frame of
+       the caller's own, where window and client are the same rectangle, the cut lands
+       exactly on the corner the app did not paint. right and bottom are exclusive,
+       hence +1, and the corner ellipses are asked for by their full width, hence
+       radius * 2. The window keeps the region; nothing here has to delete it. */
+    region = CreateRoundRectRgn(0, 0, window.right - window.left + 1, window.bottom - window.top + 1,
+                                radius * 2, radius * 2);
+    if (lh_null_eq(region))
+    {
+        return;
+    }
+    SetWindowRgn(hwnd, region, LH_OS_SYSTEM_WIN_TRUE);
+}
+
+lh_void
+lh_os_system_window_minimize(lh_os_system_window_handle_t handle)
 {
     lh_os_system_win_hwnd_t hwnd;
 
@@ -243,17 +347,20 @@ lh_os_system_window_drag(lh_os_system_window_handle_t handle)
         return;
     }
     hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
-    /* WM_LBUTTONDOWN captured the window before the app heard about it; the move
-       loop runs its own capture and does not expect ours. */
-    if (GetCapture() == hwnd)
+    ShowWindow(hwnd, LH_OS_SYSTEM_WIN_SW_MINIMIZE);
+}
+
+lh_void
+lh_os_system_window_set_maximized(lh_os_system_window_handle_t handle, lh_bool_t maximized)
+{
+    lh_os_system_win_hwnd_t hwnd;
+
+    if (lh_null_eq(handle))
     {
-        ReleaseCapture();
+        return;
     }
-    /* WM_NCLBUTTONDOWN over the caption is the OS's move loop: it blocks here until
-       the mouse comes up, then returns and the app's pump carries on. Nothing of it
-       has to be reimplemented to be correct at the screen edges and on the menu key. */
-    SendMessageA(hwnd, LH_OS_SYSTEM_WIN_WM_NCLBUTTONDOWN,
-                 (lh_os_system_win_wparam_t)LH_OS_SYSTEM_WIN_HTCAPTION, 0);
+    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    ShowWindow(hwnd, maximized ? LH_OS_SYSTEM_WIN_SW_MAXIMIZE : LH_OS_SYSTEM_WIN_SW_RESTORE);
 }
 
 lh_bool_t
