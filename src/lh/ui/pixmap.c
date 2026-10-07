@@ -416,18 +416,112 @@ lh_ui_pixmap_blend_alpha_32(const lh_ui_pixmap_t *self, lh_u32_t *at, const lh_b
     }
 }
 
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+/* (x + 127) / 255, in 16-bit lanes, for x <= 65535 — the same value the scalar
+   kernel divides its way to, with no divide at all. 255 is odd, so x / 255 never
+   lands exactly on .5 and this round-to-nearest cannot disagree with it. */
+#define LH_UI_PIXMAP_DIV255(x) _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(x, _mm_srli_epi16(x, 8)), one), 8)
+
+/* One channel plane of eight pixels: widen the stored bits to a byte, blend,
+   narrow back, and leave the result in that plane's own register. The three
+   channels sit at fixed bit positions inside each 16-bit word, so each plane can
+   be lifted out with a shift and a mask and put back the same way — there is no
+   pixel-to-lane shuffle anywhere in this kernel, and pixel k of the alpha array
+   is lane k of all three planes, which is what keeps them lined up.
+
+   The widening is spelled out as the shift pair rather than folded into a
+   multiply. (r5 * 33) >> 2 does happen to equal (r5 << 3) | (r5 >> 2), because
+   the two halves cannot overlap — but the same trick on green does NOT hold:
+   (g6 * 17) >> 2 spreads g6/4 into the low bits where the scalar spreads g6/16,
+   so every green value from 16 up came out a shade too light. Same two shifts,
+   no cleverness, exactly the value the scalar kernel computes. */
+#define LH_UI_PIXMAP_BLEND_PLANE(out8, bits, src8, up, down, narrow)                                     \
+    do                                                                                                   \
+    {                                                                                                    \
+        const __m128i dst8 = _mm_or_si128(_mm_slli_epi16(bits, up), _mm_srli_epi16(bits, down));          \
+        const __m128i t = _mm_add_epi16(                                                                 \
+            _mm_add_epi16(_mm_mullo_epi16(src8, alpha16), _mm_mullo_epi16(dst8, inv)), round);            \
+        out8 = _mm_srli_epi16(LH_UI_PIXMAP_DIV255(t), narrow);                                            \
+    } while (0)
+
+lh_void
+lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_t *alpha, lh_usize_t count,
+                                 lh_u32_t src)
+{
+    const __m128i zero = _mm_setzero_si128();
+    const __m128i full = _mm_set1_epi16(255);
+    const __m128i round = _mm_set1_epi16(127);
+    const __m128i one = _mm_set1_epi16(1);
+    const __m128i m31 = _mm_set1_epi16(0x1F);
+    const __m128i m63 = _mm_set1_epi16(0x3F);
+    /* The source as three planes of eight 8-bit values, each widened to lanes. */
+    const __m128i src8r = _mm_set1_epi16((short) ((src >> 16) & 0xFF));
+    const __m128i src8g = _mm_set1_epi16((short) ((src >> 8) & 0xFF));
+    const __m128i src8b = _mm_set1_epi16((short) (src & 0xFF));
+    /* A swapped format keeps the low byte first; one 16-bit byte swap per block
+       turns it into the numeric RGB565 the planes below expect, and the same
+       swap on the way out puts it back. */
+    const lh_bool_t swap = lh_ui_pixmap_get_format(self) == lh_ui_pixmap_format_rgb565_swapped;
+    lh_usize_t i;
+
+    for (i = 0U; i + 8U <= count; i += 8U)
+    {
+        const __m128i a8 = _mm_loadl_epi64(lh_ptr_rcast(const __m128i, alpha + i));
+        __m128i in = _mm_loadu_si128(lh_ptr_rcast(const __m128i, at + i));
+        __m128i alpha16;
+        __m128i inv;
+        __m128i r8;
+        __m128i g8;
+        __m128i b8;
+
+        if (swap)
+        {
+            in = _mm_or_si128(_mm_slli_epi16(in, 8), _mm_srli_epi16(in, 8));
+        }
+        alpha16 = _mm_unpacklo_epi8(a8, zero);
+        inv = _mm_sub_epi16(full, alpha16);
+        LH_UI_PIXMAP_BLEND_PLANE(r8, _mm_and_si128(_mm_srli_epi16(in, 11), m31), src8r, 3, 2, 3);
+        LH_UI_PIXMAP_BLEND_PLANE(g8, _mm_and_si128(_mm_srli_epi16(in, 5), m63), src8g, 2, 4, 2);
+        LH_UI_PIXMAP_BLEND_PLANE(b8, _mm_and_si128(in, m31), src8b, 3, 2, 3);
+        in = _mm_or_si128(_mm_slli_epi16(r8, 11), _mm_or_si128(_mm_slli_epi16(g8, 5), b8));
+        if (swap)
+        {
+            in = _mm_or_si128(_mm_slli_epi16(in, 8), _mm_srli_epi16(in, 8));
+        }
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, at + i), in);
+    }
+    for (; i < count; ++i)
+    {
+        if (alpha[i] != 0U)
+        {
+            at[i] = lh_cast_static(lh_u16_t, lh_ui_pixmap_mix_16(self, at[i], src, alpha[i]));
+        }
+    }
+}
+#endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
+
 lh_void
 lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_t *alpha, lh_usize_t count,
                             lh_u32_t src)
 {
-    const lh_u16_t solid = lh_cast_static(lh_u16_t, lh_ui_pixmap_order_16(self, lh_ui_pixmap_pack_rgb(self, src)));
-    lh_usize_t i;
-
-    for (i = 0U; i < count; ++i)
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+    if (lh_cpu_simd_has_sse2())
     {
-        if (alpha[i] != 0U)
+        lh_ui_pixmap_blend_alpha_16_sse2(self, at, alpha, count, src);
+        return;
+    }
+#endif
+    {
+        const lh_u16_t solid =
+            lh_cast_static(lh_u16_t, lh_ui_pixmap_order_16(self, lh_ui_pixmap_pack_rgb(self, src)));
+        lh_usize_t i;
+
+        for (i = 0U; i < count; ++i)
         {
-            at[i] = alpha[i] == 0xFFU ? solid : lh_cast_static(lh_u16_t, lh_ui_pixmap_mix_16(self, at[i], src, alpha[i]));
+            if (alpha[i] != 0U)
+            {
+                at[i] = alpha[i] == 0xFFU ? solid : lh_cast_static(lh_u16_t, lh_ui_pixmap_mix_16(self, at[i], src, alpha[i]));
+            }
         }
     }
 }

@@ -339,6 +339,54 @@ TEST(ui_pixmap, blend_alpha_32_sse2_falls_back_for_a_translucent_destination)
 
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
 
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+
+/* The 16-bit kernel is the MCU path, and the format that most easily goes
+   quietly wrong is the swapped one: a missing byte swap still produces plausible
+   pixels, just the wrong ones. Both formats, every alpha, every run length up to
+   40 so the eight-pixel loop, its tail and both together are all covered. */
+TEST(ui_pixmap, blend_alpha_16_sse2_is_the_scalar_kernel_for_every_alpha_in_both_orders)
+{
+    if (!lh_cpu_simd_has_sse2())
+    {
+        GTEST_SKIP() << "SSE2 not available on this CPU";
+    }
+    const lh_u32_t src = 0x0033ccffu;
+    const lh_ui_pixmap_format_t formats[] = {lh_ui_pixmap_format_rgb565, lh_ui_pixmap_format_rgb565_swapped};
+    for (lh_ui_pixmap_format_t format : formats)
+    {
+        for (int count = 1; count <= 40; ++count)
+        {
+            lh_u16_t at[40];
+            lh_u16_t want[40];
+            lh_byte_t alpha[40];
+            lh_ui_pixmap_t pixmap;
+            lh_u32_t solid;
+
+            lh_ui_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, at), count, 1, count * 2, format);
+            solid = lh_ui_pixmap_order_16(lh_addr_of(pixmap), lh_ui_pixmap_pack_rgb(lh_addr_of(pixmap), src));
+            for (int i = 0; i < count; ++i)
+            {
+                at[i] = static_cast<lh_u16_t>((i * 2654435761u) & 0xffffu);
+                alpha[i] = static_cast<lh_byte_t>(i);
+                want[i] = alpha[i] == 0u
+                              ? at[i]
+                              : (alpha[i] == 255u ? static_cast<lh_u16_t>(solid)
+                                                   : static_cast<lh_u16_t>(lh_ui_pixmap_mix_16(lh_addr_of(pixmap), at[i],
+                                                                                             src, alpha[i])));
+            }
+            lh_ui_pixmap_blend_alpha_16_sse2(lh_addr_of(pixmap), at, alpha, static_cast<lh_usize_t>(count), src);
+            for (int i = 0; i < count; ++i)
+            {
+                ASSERT_EQ(at[i], want[i]) << "format " << static_cast<int>(format) << " count " << count
+                                          << " pixel " << i << " alpha " << static_cast<int>(alpha[i]);
+            }
+        }
+    }
+}
+
+#endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
+
 #if LH_TEST_EXPECT_DEATH_ENABLED
 
 TEST(ui_pixmap_death, stride_shorter_than_a_row)

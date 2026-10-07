@@ -121,6 +121,28 @@ lh_byte_t
 lh_ui_radius_coverage(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x, lh_s32_t y);
 
 /**
+ * @brief The tightest span of row @p y that the rounded @p rect covers wholly,
+ *        written to @p out_x0 / @p out_x1.
+ *
+ * Every pixel in the returned span has coverage exactly `255` and every pixel
+ * outside it (that the rect reaches at all) has less, so a row can be split
+ * once here and the two ends sent through the per-pixel coverage path while the
+ * span itself is a plain store.
+ *
+ * This is one square root per row, against the obvious alternative of cutting
+ * the corner as a `radius x radius` box and walking all of it per pixel — most
+ * of which has coverage `255` and does not need to. Measured on a 240x160 r8
+ * rectangle, 16 corner rows cost 350 ns each against 127 ns for a row with no
+ * corner at all, and that difference was almost entirely the square's inside.
+ *
+ * The span is empty (both ends equal, at the left edge) for a row the rect does
+ * not reach, and the whole width for a row between the corners.
+ */
+lh_void
+lh_ui_radius_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y, lh_s32_t *out_x0,
+                       lh_s32_t *out_x1);
+
+/**
  * @brief Coverage `0..255` of pixels `x0 .. x1 - 1` of row @p y, written to
  *        @p out `x1 - x0` bytes. The same values as calling
  *        ::lh_ui_radius_coverage per pixel, with the parts that do not change

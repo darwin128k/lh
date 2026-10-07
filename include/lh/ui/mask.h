@@ -92,6 +92,17 @@ lh_byte_t
 lh_ui_mask_get_coverage(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y);
 
 /**
+ * @brief Coverage of pixels `x0 .. x1 - 1` of row @p y, written to @p out
+ *        `x1 - x0` bytes. The same values as calling
+ *        ::lh_ui_mask_get_coverage per pixel, with the row pointer, the bits per
+ *        pixel and the rescale taken once instead of once per pixel.
+ *
+ * @param out Receives `x1 - x0` bytes.
+ */
+lh_void
+lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_byte_t *out);
+
+/**
  * @brief The rect @p self covers when its top-left pixel is at @p origin.
  */
 lh_ui_rect_t

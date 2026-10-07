@@ -283,6 +283,31 @@ lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, const
                                  lh_u32_t src);
 
 /**
+ * @brief SSE2 form of ::lh_ui_pixmap_blend_alpha_16, eight pixels at a time.
+ *
+ * Same three branches removed as in ::lh_ui_pixmap_blend_alpha_32_sse2, and the
+ * same branch-free formula covering every alpha including 0 and 255. RGB565 is
+ * the MCU format, so this is the kernel that path actually runs.
+ *
+ * What makes it short is that the three channels sit at fixed bit positions
+ * inside each 16-bit word: red is lifted out of all eight pixels with one shift
+ * and one mask, green with another, blue with a third, giving three registers of
+ * eight lanes each, one channel per register and one pixel per lane. Widening
+ * the stored bits to a byte is a multiply ((r5 * 33) >> 2 is (r5 << 3) | (r5 >> 2)
+ * because the halves cannot overlap) and narrowing is a shift, so nothing ever
+ * has to be shuffled between lanes and pixel k of @p alpha is lane k of all
+ * three planes. A swapped format (::lh_ui_pixmap_format_rgb565_swapped) costs one
+ * 16-bit byte swap on the way in and one on the way out.
+ *
+ * Only meaningful when `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` is on and the running
+ * CPU reports SSE2 (::lh_cpu_simd_has_sse2); ::lh_ui_pixmap_blend_alpha_16 is
+ * what to call, and it dispatches.
+ */
+lh_void
+lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_t *alpha, lh_usize_t count,
+                                 lh_u32_t src);
+
+/**
  * @brief The row kernel: blend @p src (`0xRRGGBB`) over pixels `x0 .. x1 - 1`
  *        of row @p y, pixel `x0 + i` at `alpha[i]`; at most
  *        ::LH_UI_PIXMAP_RUN pixels. The same result as

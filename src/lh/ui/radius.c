@@ -9,6 +9,7 @@
 #include <lh/assert/runtime.h>
 #include <lh/cast/static.h>
 #include <lh/math.h>
+#include <lh/math/floor.h>
 #include <lh/math/isqrt.h>
 #include <lh/memory.h>
 #include <lh/ui/radius.h>
@@ -101,6 +102,58 @@ lh_ui_radius_coverage(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t 
     lh_return_if(dx < 0 || dy < 0, 0);
     lh_return_if(dx == 0 || dy == 0, 255);
     return lh_ui_radius_cover_from_square(r, dx * dx + dy * dy);
+}
+
+lh_void
+lh_ui_radius_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y, lh_s32_t *out_x0,
+                       lh_s32_t *out_x1)
+{
+    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
+    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
+    const lh_s32_t left = lh_ui_scalar_floor_s32(lh_ui_point_get_x(origin));
+    const lh_s32_t right = left + lh_ui_scalar_ceil_s32(lh_ui_size_get_width(size));
+    const lh_s64_t r = lh_ui_radius_to_fixed(radius);
+    const lh_s64_t lo = lh_ui_radius_to_fixed(lh_ui_point_get_x(origin));
+    const lh_s64_t near = lo + r; /* the corner circle center, left side */
+    const lh_s64_t dy = lh_ui_radius_axis_distance(lh_ui_radius_pixel_center(y), lh_ui_point_get_y(origin),
+                                                   lh_ui_size_get_height(size), r);
+    const lh_s64_t inner = r - LH_UI_RADIUS_SUBPIXEL / 2;
+    lh_s64_t reach;
+    lh_s64_t inside;
+    lh_s32_t at;
+
+    lh_assert_runtime_ref(out_x0);
+    if (dy < 0)
+    {
+        *out_x0 = left;
+        *out_x1 = left;
+        return;
+    }
+    /* The straight part between the corners: the whole width is wholly inside,
+       which is what lh_ui_radius_coverage_run answers for a dy of 0. */
+    if (dy == 0)
+    {
+        *out_x0 = left;
+        *out_x1 = right;
+        return;
+    }
+
+    /* How far past the corner center a pixel still counts as wholly inside.
+       lh_ui_radius_cover_from_square answers 255 while dx * dx + dy * dy is at
+       most inner * inner, so dx may be at most the root of what is left of that
+       once dy is squared off. One root per ROW, where the alternative is the
+       corner being cut as a radius-square and every pixel of it — including the
+       ones whose coverage is a flat 255 — walking the per-pixel path. */
+    reach = inner > 0 ? lh_cast_static(lh_s64_t, lh_math_isqrt_u64(lh_cast_static(
+                          lh_u64_t, lh_math_max(inner * inner - dy * dy, 0))))
+                      : 0;
+    inside = near - reach;
+    /* The first pixel whose center is at or past that point: center(x) is
+       x * SUBPIXEL + half, so x is the ceiling of (inside - half) / SUBPIXEL. */
+    at = lh_cast_static(lh_s32_t,
+                        -lh_math_floor_div(LH_UI_RADIUS_SUBPIXEL / 2 - inside, LH_UI_RADIUS_SUBPIXEL));
+    *out_x0 = lh_math_max(at, left);
+    *out_x1 = lh_math_max(right - (*out_x0 - left), *out_x0);
 }
 
 lh_void

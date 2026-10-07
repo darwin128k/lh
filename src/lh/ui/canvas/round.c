@@ -71,12 +71,15 @@ lh_ui_canvas_round_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh
 {
     const lh_s32_t left = lh_ui_canvas_round_left(rect);
     const lh_s32_t right = lh_ui_canvas_round_right(rect);
-    const lh_s32_t zone = lh_ui_canvas_round_has_row(rect, y) && lh_ui_canvas_round_is_corner_row(rect, radius, y)
-                              ? lh_ui_scalar_ceil_s32(radius)
-                              : 0;
 
-    *x0 = lh_ui_canvas_round_near_end(left, right, zone);
-    *x1 = lh_ui_canvas_round_has_row(rect, y) ? lh_ui_canvas_round_far_start(left, right, zone) : *x0;
+    /* The span wholly inside the rounded rect is the arc's, not a radius-square
+       around the corner: lh_ui_radius_full_span finds it with one square root
+       for the row. Every pixel outside it has less than full coverage and goes
+       through the per-pixel path, which is where the savings are — the square
+       used to send the whole corner there, interior included. */
+    lh_ui_radius_full_span(rect, radius, y, x0, x1);
+    *x0 = lh_math_max(*x0, left);
+    *x1 = lh_math_max(lh_math_min(*x1, right), *x0);
 }
 
 lh_void

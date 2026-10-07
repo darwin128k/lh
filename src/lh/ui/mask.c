@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/memory.h>
 #include <lh/bit/packed.h>
 #include <lh/cast/static.h>
 #include <lh/math/rescale.h>
@@ -83,6 +84,36 @@ lh_ui_mask_get_coverage(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y)
 {
     return lh_cast_static(lh_byte_t, lh_math_rescale_u32(lh_ui_mask_get_sample(self, x, y),
                                                          lh_bit_packed_max(lh_ui_mask_get_bpp(self)), 255U));
+}
+
+lh_void
+lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_byte_t *out)
+{
+    const lh_byte_t *row;
+    lh_s32_t x;
+
+    lh_assert_runtime_ref(out);
+    lh_return_if(x1 <= x0);
+
+    /* Everything that does not change along the row — the row pointer, the bits
+       per pixel, and the rescale that turns a sample into a coverage — is taken
+       once here. Asking lh_ui_mask_get_coverage per pixel instead, as the
+       callers did, is a cross-module call per pixel of every glyph, and the
+       text in a frame is nothing but such pixels. */
+    if (!lh_ui_mask_has_pixel(self, x0, y))
+    {
+        lh_memory_set(out, lh_cast_static(lh_usize_t, x1 - x0), 0U);
+        return;
+    }
+    row = lh_ui_mask_get_row(self, y);
+    for (x = x0; x < x1; ++x)
+    {
+        const lh_u32_t sample = x < lh_ui_mask_get_width(self)
+                                    ? lh_bit_packed_get(row, lh_cast_static(lh_u32_t, x), self->bpp)
+                                    : 0U;
+
+        out[x - x0] = lh_cast_static(lh_byte_t, lh_math_rescale_u32(sample, lh_bit_packed_max(self->bpp), 255U));
+    }
 }
 
 lh_ui_rect_t
