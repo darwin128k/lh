@@ -5,6 +5,7 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/math.h>
+#include <lh/memory.h>
 #include <lh/null.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/canvas/sw.h>
@@ -92,39 +93,42 @@ lh_ui_canvas_sw_cut_y1(const lh_ui_canvas_sw_t *self, lh_s32_t y)
 
 /* ── Pixels and rows ─────────────────────────────────────────────────────── */
 
-lh_void
-lh_ui_canvas_sw_clip_pixel(lh_ui_canvas_sw_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color)
+lh_byte_t
+lh_ui_canvas_sw_edge_alpha(const lh_ui_canvas_sw_t *self, lh_byte_t alpha, lh_byte_t coverage, lh_s32_t x, lh_s32_t y)
 {
-    const lh_byte_t kept = lh_ui_canvas_clip_coverage(lh_addr_of(self->clip), x, y);
-    const lh_ui_color_t edge = lh_ui_color_with_coverage(color, kept);
+    const lh_byte_t shaped = lh_ui_radius_scale(alpha, coverage);
 
-    lh_return_if(kept == 0U);
-    lh_ui_pixmap_blend_pixel(lh_addr_of(self->pixmap), x, y, kept == 255U ? color : lh_addr_of(edge));
+    lh_return_if(shaped == 0U || !lh_ui_canvas_sw_is_rounded(self), shaped);
+    return lh_ui_radius_scale(shaped, lh_ui_canvas_clip_coverage(lh_addr_of(self->clip), x, y));
+}
+
+lh_void
+lh_ui_canvas_sw_blend_run(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color,
+                          lh_byte_t *coverage)
+{
+    lh_s32_t i;
+
+    for (i = 0; i < x1 - x0; ++i)
+    {
+        coverage[i] = lh_ui_canvas_sw_edge_alpha(self, lh_ui_color_get_a(color), coverage[i], x0 + i, y);
+    }
+    lh_ui_pixmap_blend_alpha_span(lh_addr_of(self->pixmap), x0, x1, y, lh_ui_color_get_argb(color) & 0x00FFFFFFU,
+                                  coverage);
 }
 
 lh_void
 lh_ui_canvas_sw_clip_pixels(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
                             const lh_ui_color_t *color)
 {
-    for (; x0 < x1; ++x0)
-    {
-        lh_ui_canvas_sw_clip_pixel(self, x0, y, color);
-    }
-}
+    lh_byte_t coverage[LH_UI_PIXMAP_RUN];
+    lh_s32_t end;
 
-lh_void
-lh_ui_canvas_sw_cover_pixel(lh_ui_canvas_sw_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color,
-                            lh_byte_t coverage)
-{
-    const lh_ui_color_t edge = lh_ui_color_with_coverage(color, coverage);
-
-    lh_return_if(coverage == 0U);
-    if (lh_ui_canvas_sw_is_rounded(self))
+    for (; x0 < x1; x0 = end)
     {
-        lh_ui_canvas_sw_clip_pixel(self, x, y, coverage == 255U ? color : lh_addr_of(edge));
-        return;
+        end = lh_math_min(x1, x0 + LH_UI_PIXMAP_RUN);
+        lh_memory_set(coverage, sizeof(coverage), 255U);
+        lh_ui_canvas_sw_blend_run(self, x0, end, y, color, coverage);
     }
-    lh_ui_pixmap_cover_pixel(lh_addr_of(self->pixmap), x, y, color, coverage);
 }
 
 lh_void
@@ -153,15 +157,30 @@ lh_ui_canvas_sw_fill_rows(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t y0, lh_
 }
 
 lh_void
+lh_ui_canvas_sw_cover_run(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0,
+                          lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
+{
+    lh_byte_t coverage[LH_UI_PIXMAP_RUN];
+    lh_s32_t i;
+
+    for (i = 0; i < x1 - x0; ++i)
+    {
+        coverage[i] = lh_ui_radius_coverage(rect, radius, x0 + i, y);
+    }
+    lh_ui_canvas_sw_blend_run(self, x0, x1, y, color, coverage);
+}
+
+lh_void
 lh_ui_canvas_sw_cover_span(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0,
                            lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
 {
-    lh_s32_t x;
+    lh_s32_t end;
 
     x1 = lh_ui_canvas_sw_cut_x1(self, x1);
-    for (x = lh_ui_canvas_sw_cut_x0(self, x0); x < x1; ++x)
+    for (x0 = lh_ui_canvas_sw_cut_x0(self, x0); x0 < x1; x0 = end)
     {
-        lh_ui_canvas_sw_cover_pixel(self, x, y, color, lh_ui_radius_coverage(rect, radius, x, y));
+        end = lh_math_min(x1, x0 + LH_UI_PIXMAP_RUN);
+        lh_ui_canvas_sw_cover_run(self, rect, radius, x0, end, y, color);
     }
 }
 
@@ -179,15 +198,31 @@ lh_ui_canvas_sw_round_row(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_
 }
 
 lh_void
+lh_ui_canvas_sw_mask_run(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_s32_t mx, lh_s32_t my, lh_s32_t x0,
+                         lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
+{
+    lh_byte_t coverage[LH_UI_PIXMAP_RUN];
+    lh_s32_t i;
+
+    for (i = 0; i < x1 - x0; ++i)
+    {
+        coverage[i] = lh_ui_mask_get_coverage(mask, mx + i, my);
+    }
+    lh_ui_canvas_sw_blend_run(self, x0, x1, y, color, coverage);
+}
+
+lh_void
 lh_ui_canvas_sw_mask_row(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_s32_t x0, lh_s32_t y0, lh_s32_t y,
                          const lh_ui_color_t *color)
 {
     const lh_s32_t x1 = lh_ui_canvas_sw_cut_x1(self, x0 + lh_ui_mask_get_width(mask));
     lh_s32_t x;
+    lh_s32_t end;
 
-    for (x = lh_ui_canvas_sw_cut_x0(self, x0); x < x1; ++x)
+    for (x = lh_ui_canvas_sw_cut_x0(self, x0); x < x1; x = end)
     {
-        lh_ui_canvas_sw_cover_pixel(self, x, y, color, lh_ui_mask_get_coverage(mask, x - x0, y - y0));
+        end = lh_math_min(x1, x + LH_UI_PIXMAP_RUN);
+        lh_ui_canvas_sw_mask_run(self, mask, x - x0, y - y0, x, end, y, color);
     }
 }
 

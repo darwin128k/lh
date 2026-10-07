@@ -121,26 +121,30 @@ lh_ui_canvas_sw_cut_y1(const lh_ui_canvas_sw_t *self, lh_s32_t y);
 /* ── Pixels and rows ─────────────────────────────────────────────────────── */
 
 /**
- * @brief Blend @p color over pixel (@p x, @p y) at its clip coverage
- *        (::lh_ui_canvas_clip_coverage); nothing where it is `0`.
+ * @brief Alpha a shape edge pixel is painted with: @p alpha at the shape
+ *        @p coverage, then at the clip coverage when the clip is rounded —
+ *        the order the canvas fallback rounds in.
  */
-lh_void
-lh_ui_canvas_sw_clip_pixel(lh_ui_canvas_sw_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color);
+lh_byte_t
+lh_ui_canvas_sw_edge_alpha(const lh_ui_canvas_sw_t *self, lh_byte_t alpha, lh_byte_t coverage, lh_s32_t x, lh_s32_t y);
 
 /**
- * @brief ::lh_ui_canvas_sw_clip_pixel for `x0 .. x1 - 1` of row @p y.
+ * @brief Paint `x0 .. x1 - 1` of row @p y (at most ::LH_UI_PIXMAP_RUN, cut
+ *        already) with @p color: @p coverage holds each pixel's shape
+ *        coverage and is turned into its alpha in place
+ *        (::lh_ui_canvas_sw_edge_alpha), then one row kernel blends the run.
+ */
+lh_void
+lh_ui_canvas_sw_blend_run(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color,
+                          lh_byte_t *coverage);
+
+/**
+ * @brief Paint `x0 .. x1 - 1` of row @p y with @p color at its clip coverage
+ *        only (the ends of a span under rounded cuts).
  */
 lh_void
 lh_ui_canvas_sw_clip_pixels(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
                             const lh_ui_color_t *color);
-
-/**
- * @brief A shape edge pixel: @p color at @p coverage, then the clip coverage
- *        on top when the clip is rounded. Nothing at coverage `0`.
- */
-lh_void
-lh_ui_canvas_sw_cover_pixel(lh_ui_canvas_sw_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color,
-                            lh_byte_t coverage);
 
 /**
  * @brief Paint `x0 .. x1 - 1` of row @p y, cut to the limit across (the row
@@ -158,8 +162,16 @@ lh_ui_canvas_sw_fill_rows(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t y0, lh_
                           const lh_ui_color_t *color);
 
 /**
+ * @brief One run (at most ::LH_UI_PIXMAP_RUN, cut already) of
+ *        ::lh_ui_canvas_sw_cover_span.
+ */
+lh_void
+lh_ui_canvas_sw_cover_run(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0,
+                          lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
+
+/**
  * @brief Pixels `x0 .. x1 - 1` of row @p y at their coverage of the rounded
- *        @p rect (::lh_ui_radius_coverage), cut to the limit across.
+ *        @p rect (::lh_ui_radius_coverage), cut to the limit across, in runs.
  */
 lh_void
 lh_ui_canvas_sw_cover_span(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0,
@@ -174,6 +186,14 @@ lh_ui_canvas_sw_cover_span(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh
 lh_void
 lh_ui_canvas_sw_round_row(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y,
                           const lh_ui_color_t *color);
+
+/**
+ * @brief One run of ::lh_ui_canvas_sw_mask_row: pixmap `x0 .. x1 - 1` of row
+ *        @p y from mask pixel (@p mx, @p my) on.
+ */
+lh_void
+lh_ui_canvas_sw_mask_run(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_s32_t mx, lh_s32_t my, lh_s32_t x0,
+                         lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
 
 /**
  * @brief Row @p y of @p mask placed with its top-left at (@p x0, @p y0): each

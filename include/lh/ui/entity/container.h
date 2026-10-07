@@ -20,6 +20,8 @@
 #include <lh/ui/entity.h>
 #include <lh/ui/entity/container/fields.h>
 #include <lh/ui/entity/transform.h>
+#include <lh/key.h>
+#include <lh/ui/key.h>
 #include <lh/ui/point.h>
 #include <lh/ui/size.h>
 #include <lh/void.h>
@@ -34,6 +36,12 @@ struct lh_ui_entity_container
     lh_ui_entity_container_fields(lh_ui_entity_t, lh_ui_point_t);
 };
 typedef struct lh_ui_entity_container lh_ui_entity_container_t;
+
+/**
+ * @def LH_UI_ENTITY_CONTAINER_KEY_STEP
+ * @brief Scroll step of one arrow key press, in content units.
+ */
+#define LH_UI_ENTITY_CONTAINER_KEY_STEP lh_ui_scalar(40)
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -51,6 +59,39 @@ extern const lh_ui_entity_class_t lh_ui_entity_container_class;
  */
 lh_void
 lh_ui_entity_container_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *event);
+
+/**
+ * @brief ::lh_ui_entity_event_children: offset `-scroll`, clip on.
+ */
+lh_void
+lh_ui_entity_container_on_children(const lh_ui_entity_container_t *self, const lh_ui_entity_event_t *event);
+
+/**
+ * @brief ::lh_ui_entity_event_focusable: yes (a container scrolls by keys).
+ */
+lh_void
+lh_ui_entity_container_on_focusable(const lh_ui_entity_event_t *event);
+
+/**
+ * @brief ::lh_ui_entity_event_key: scroll by ::lh_ui_entity_container_get_key_delta.
+ */
+lh_void
+lh_ui_entity_container_on_key(lh_ui_entity_container_t *self, const lh_ui_entity_event_t *event);
+
+/**
+ * @brief How far @p key moves the scroll on its axis: arrows
+ *        ::LH_UI_ENTITY_CONTAINER_KEY_STEP, page keys one viewport height,
+ *        Home / End to the top / bottom; `0` for any other key.
+ */
+lh_ui_scalar_t
+lh_ui_entity_container_get_key_step(const lh_ui_entity_container_t *self, lh_key_t key);
+
+/**
+ * @brief The scroll change @p input asks for: left / right across, every
+ *        other key along y; zero for text and key-up.
+ */
+lh_ui_point_t
+lh_ui_entity_container_get_key_delta(const lh_ui_entity_container_t *self, const lh_ui_key_input_t *input);
 
 /**
  * @brief Answer for the children of @p self: offset `-scroll`, clip on.
@@ -93,7 +134,7 @@ lh_ui_size_t
 lh_ui_entity_container_get_viewport_size(const lh_ui_entity_container_t *self);
 
 /**
- * @brief @p far moved out by the padding of @p self on both axes: the room
+ * @brief @p far moved out by the right and bottom padding of @p self: the room
  *        left after the last child, as CSS scroll size counts it.
  */
 lh_ui_point_t

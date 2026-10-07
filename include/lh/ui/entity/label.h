@@ -119,7 +119,7 @@ lh_ui_entity_label_get_text_color(const lh_ui_entity_label_t *self);
 
 /**
  * @brief Where the first line starts: the top-left of the rect of @p self,
- *        moved in by the style padding (::lh_ui_entity_get_padding).
+ *        moved in by the left and top style padding (::lh_ui_entity_get_padding).
  */
 lh_ui_point_t
 lh_ui_entity_label_get_text_origin(const lh_ui_entity_label_t *self);

@@ -1016,12 +1016,14 @@ TEST(entity, padding_and_radius_come_from_the_style)
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 10, 10);
     lh_ui_entity_init(lh_addr_of(e), rect);
-    EXPECT_EQ(lh_ui_entity_get_padding(lh_addr_of(e)), lh_ui_scalar(0));
+    lh_ui_insets_t padding = lh_ui_entity_get_padding(lh_addr_of(e));
+    EXPECT_EQ(lh_ui_insets_is_zero(lh_addr_of(padding)), lh_bool_true);
     EXPECT_EQ(lh_ui_entity_get_radius(lh_addr_of(e)), lh_ui_scalar(0));
     lh_ui_style_init(lh_addr_of(style));
     lh_ui_style_set_padding(lh_addr_of(style), lh_ui_scalar(3));
     lh_ui_style_set_radius(lh_addr_of(style), lh_ui_scalar(4));
     lh_ui_entity_set_style(lh_addr_of(e), lh_addr_of(style));
-    EXPECT_EQ(lh_ui_entity_get_padding(lh_addr_of(e)), lh_ui_scalar(3));
+    padding = lh_ui_entity_get_padding(lh_addr_of(e));
+    EXPECT_EQ(lh_ui_insets_get_bottom(lh_addr_of(padding)), lh_ui_scalar(3));
     EXPECT_EQ(lh_ui_entity_get_radius(lh_addr_of(e)), lh_ui_scalar(4));
 }

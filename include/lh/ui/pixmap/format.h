@@ -18,7 +18,10 @@ enum lh_ui_pixmap_format
     lh_ui_pixmap_format_argb8888,
     /** 16-bit word `rrrrrggg gggbbbbb` in native byte order (STM32 LTDC /
      *  DMA2D RGB565), opaque. */
-    lh_ui_pixmap_format_rgb565
+    lh_ui_pixmap_format_rgb565,
+    /** RGB565 with the two bytes of each word swapped (big-endian in memory):
+     *  what most SPI display controllers take, so a frame goes out as is. */
+    lh_ui_pixmap_format_rgb565_swapped
 };
 typedef enum lh_ui_pixmap_format lh_ui_pixmap_format_t;
 

@@ -78,11 +78,14 @@ lh_ui_entity_get_radius(const lh_ui_entity_t *self)
     return lh_null_eq(self->style) ? lh_ui_scalar(0) : lh_ui_style_get_radius(self->style);
 }
 
-lh_ui_scalar_t
+lh_ui_insets_t
 lh_ui_entity_get_padding(const lh_ui_entity_t *self)
 {
+    lh_ui_insets_t none;
+
     lh_assert_runtime_ref(self);
-    return lh_null_eq(self->style) ? lh_ui_scalar(0) : lh_ui_style_get_padding(self->style);
+    lh_ui_insets_init_all(lh_addr_of(none), lh_ui_scalar(0));
+    return lh_null_eq(self->style) ? none : *lh_ui_style_get_padding(self->style);
 }
 
 lh_bool_t
@@ -105,6 +108,29 @@ lh_ui_entity_set_class(lh_ui_entity_t *self, const lh_ui_entity_class_t *class)
     lh_assert_runtime_ref(class);
     lh_assert_runtime_ref(class->event);
     self->class = class;
+}
+
+lh_void
+lh_ui_entity_move_by(lh_ui_entity_t *self, lh_ui_scalar_t dx, lh_ui_scalar_t dy)
+{
+    lh_ui_entity_t *child;
+
+    lh_assert_runtime_ref(self);
+    self->rect = lh_ui_rect_offset(lh_addr_of(self->rect), dx, dy);
+    for (child = lh_ui_entity_get_first_child(self); lh_null_ne(child);
+         child = lh_ui_entity_get_next_child(self, child))
+    {
+        lh_ui_entity_move_by(child, dx, dy);
+    }
+}
+
+lh_void
+lh_ui_entity_move_to(lh_ui_entity_t *self, lh_ui_point_t origin)
+{
+    const lh_ui_point_t *from = lh_ui_rect_get_origin_as_const(lh_addr_of(self->rect));
+
+    lh_ui_entity_move_by(self, lh_ui_point_get_x(lh_addr_of(origin)) - lh_ui_point_get_x(from),
+                         lh_ui_point_get_y(lh_addr_of(origin)) - lh_ui_point_get_y(from));
 }
 
 lh_bool_t
@@ -243,6 +269,36 @@ lh_ui_entity_is_shown(const lh_ui_entity_t *self)
     lh_return_if(self->hidden, lh_bool_false);
     lh_ui_entity_send(self, lh_ui_entity_event_visible, lh_addr_of(visible));
     return visible;
+}
+
+lh_bool_t
+lh_ui_entity_is_focusable(const lh_ui_entity_t *self)
+{
+    lh_bool_t focusable = lh_bool_false;
+
+    lh_return_if(!lh_ui_entity_is_shown(self), lh_bool_false);
+    lh_ui_entity_send(self, lh_ui_entity_event_focusable, lh_addr_of(focusable));
+    return focusable;
+}
+
+lh_void
+lh_ui_entity_send_pointer(const lh_ui_entity_t *self, lh_ui_entity_event_code_t code, lh_ui_point_t point)
+{
+    lh_ui_point_t local;
+
+    lh_return_if(lh_null_eq(self));
+    local = lh_ui_entity_to_local(self, point);
+    lh_ui_entity_send(self, code, lh_addr_of(local));
+}
+
+lh_ui_entity_t *
+lh_ui_entity_find_focusable(lh_ui_entity_t *self)
+{
+    for (; lh_null_ne(self); self = self->parent)
+    {
+        lh_return_if(lh_ui_entity_is_focusable(self), self);
+    }
+    return lh_null;
 }
 
 lh_void

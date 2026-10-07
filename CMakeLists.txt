@@ -217,6 +217,7 @@ if (LH_LIBRARY_OPTION_OS)
         )
         if (WIN32)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/window.c)
+            list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/key.c)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/surface.c)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/render/backend/gdi.c)
             list(APPEND LH_OS_SYSTEM_LINK_LIBS user32 gdi32)
@@ -228,6 +229,9 @@ endif ()
 if (LH_LIBRARY_OPTION_UI)
     list(APPEND LH_LIB_SOURCES
             ${LH_LIB_SRC_PATH}/ui/axis.c
+            ${LH_LIB_SRC_PATH}/ui/insets.c
+            ${LH_LIB_SRC_PATH}/ui/key.c
+            ${LH_LIB_SRC_PATH}/ui/layout/stack.c
             ${LH_LIB_SRC_PATH}/ui/color.c
             ${LH_LIB_SRC_PATH}/ui/paint.c
             ${LH_LIB_SRC_PATH}/ui/gradient.c

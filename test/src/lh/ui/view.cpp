@@ -76,7 +76,7 @@ TEST(view, wheel_over_the_content_damages_the_vertical_track)
 {
     view_fixture f;
 
-    EXPECT_EQ(lh_ui_view_wheel(lh_addr_of(f.view), point_of(50, 50), lh_ui_scalar(40)), lh_bool_true);
+    EXPECT_EQ(lh_ui_view_wheel(lh_addr_of(f.view), point_of(50, 50), lh_ui_scalar(0), lh_ui_scalar(40)), lh_bool_true);
     EXPECT_EQ(scroll_y_of(f.box), 40);
     ASSERT_NE(f.damage(), nullptr);
     EXPECT_TRUE(rect_is(*f.damage(), rect_of(0, 0, 110, 200)));
@@ -86,7 +86,7 @@ TEST(view, wheel_over_the_horizontal_bar_scrolls_its_container)
 {
     view_fixture f;
 
-    EXPECT_EQ(lh_ui_view_wheel(lh_addr_of(f.view), point_of(50, 105), lh_ui_scalar(40)), lh_bool_true);
+    EXPECT_EQ(lh_ui_view_wheel(lh_addr_of(f.view), point_of(50, 105), lh_ui_scalar(0), lh_ui_scalar(40)), lh_bool_true);
     EXPECT_EQ(scroll_y_of(f.box), 40);
     ASSERT_NE(f.damage(), nullptr);
     EXPECT_TRUE(rect_is(*f.damage(), rect_of(0, 0, 110, 200)));
@@ -96,8 +96,8 @@ TEST(view, wheel_that_does_not_scroll_reports_no_change)
 {
     view_fixture f;
 
-    EXPECT_EQ(lh_ui_view_wheel(lh_addr_of(f.view), point_of(50, 50), lh_ui_scalar(-40)), lh_bool_false);
-    EXPECT_EQ(lh_ui_view_wheel(lh_addr_of(f.view), point_of(150, 150), lh_ui_scalar(40)), lh_bool_false);
+    EXPECT_EQ(lh_ui_view_wheel(lh_addr_of(f.view), point_of(50, 50), lh_ui_scalar(0), lh_ui_scalar(-40)), lh_bool_false);
+    EXPECT_EQ(lh_ui_view_wheel(lh_addr_of(f.view), point_of(150, 150), lh_ui_scalar(0), lh_ui_scalar(40)), lh_bool_false);
     EXPECT_EQ(f.damage(), nullptr);
 }
 
@@ -167,4 +167,16 @@ TEST(view, drag_finds_the_thumb_of_a_bar_inside_a_scrolled_container)
     /* Damage is in the root space: inner (0,10) 100x100 ∪ bar track (100,10) 10x200. */
     ASSERT_NE(lh_ui_canvas_get_damage(lh_addr_of(canvas)), nullptr);
     EXPECT_TRUE(rect_is(*lh_ui_canvas_get_damage(lh_addr_of(canvas)), rect_of(0, 10, 110, 200)));
+}
+
+TEST(view, wheel_sideways_scrolls_a_wide_container_horizontally)
+{
+    view_fixture f;
+
+    lh_ui_entity_set_rect(lh_addr_of(f.content), lh_test::rect_of(0, 0, 300, 400));
+    EXPECT_EQ(lh_ui_view_wheel(lh_addr_of(f.view), point_of(50, 50), lh_ui_scalar(50), lh_ui_scalar(0)),
+              lh_bool_true);
+    const lh_ui_point_t scroll = lh_ui_entity_container_get_scroll(lh_addr_of(f.box));
+    EXPECT_EQ(lh_ui_point_get_x(lh_addr_of(scroll)), lh_ui_scalar(50));
+    EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(scroll)), lh_ui_scalar(0));
 }

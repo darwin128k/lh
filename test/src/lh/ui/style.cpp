@@ -64,7 +64,13 @@ TEST(ui_style, padding_starts_at_zero_and_keeps_what_is_set)
     lh_ui_style_t style;
 
     lh_ui_style_init(lh_addr_of(style));
-    EXPECT_EQ(lh_ui_style_get_padding(lh_addr_of(style)), lh_ui_scalar(0));
+    EXPECT_EQ(lh_ui_insets_is_zero(lh_ui_style_get_padding(lh_addr_of(style))), lh_bool_true);
     lh_ui_style_set_padding(lh_addr_of(style), lh_ui_scalar(12));
-    EXPECT_EQ(lh_ui_style_get_padding(lh_addr_of(style)), lh_ui_scalar(12));
+    EXPECT_EQ(lh_ui_insets_get_left(lh_ui_style_get_padding(lh_addr_of(style))), lh_ui_scalar(12));
+    EXPECT_EQ(lh_ui_insets_get_bottom(lh_ui_style_get_padding(lh_addr_of(style))), lh_ui_scalar(12));
+    lh_ui_insets_t sides;
+    lh_ui_insets_init(lh_addr_of(sides), 1, 2, 3, 4);
+    lh_ui_style_set_padding_insets(lh_addr_of(style), lh_addr_of(sides));
+    EXPECT_EQ(lh_ui_insets_get_top(lh_ui_style_get_padding(lh_addr_of(style))), lh_ui_scalar(2));
+    EXPECT_EQ(lh_ui_insets_get_right(lh_ui_style_get_padding(lh_addr_of(style))), lh_ui_scalar(3));
 }

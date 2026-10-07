@@ -15,6 +15,7 @@
 #include <lh/ui/color.h>
 #include <lh/ui/font.h>
 #include <lh/ui/paint.h>
+#include <lh/ui/insets.h>
 #include <lh/ui/radius.h>
 #include <lh/ui/scalar.h>
 #include <lh/ui/style/fields.h>
@@ -27,7 +28,7 @@
  */
 struct lh_ui_style
 {
-    lh_ui_style_fields(lh_ui_paint_t, lh_ui_scalar_t, lh_ui_font_t);
+    lh_ui_style_fields(lh_ui_paint_t, lh_ui_scalar_t, lh_ui_font_t, lh_ui_insets_t);
 };
 typedef struct lh_ui_style lh_ui_style_t;
 
@@ -75,18 +76,24 @@ lh_void
 lh_ui_style_set_radius(lh_ui_style_t *self, lh_ui_scalar_t radius);
 
 /**
- * @brief Inner space of @p self on every side (`0` = content touches the
- *        edge): where a label starts its text, and the room a container
- *        leaves after its last child.
+ * @brief Inner space of @p self, per side (`0` = content touches the edge):
+ *        where a label starts its text and a layout its first child, and the
+ *        room a container leaves after its last child.
  */
-lh_ui_scalar_t
+const lh_ui_insets_t *
 lh_ui_style_get_padding(const lh_ui_style_t *self);
 
 /**
- * @brief Replace the padding of @p self. @p padding must not be negative.
+ * @brief @p padding on every side of @p self. It must not be negative.
  */
 lh_void
 lh_ui_style_set_padding(lh_ui_style_t *self, lh_ui_scalar_t padding);
+
+/**
+ * @brief Replace the padding of @p self, per side. No side may be negative.
+ */
+lh_void
+lh_ui_style_set_padding_insets(lh_ui_style_t *self, const lh_ui_insets_t *padding);
 
 /**
  * @brief Font text is drawn with, or ::lh_null (no text drawn).

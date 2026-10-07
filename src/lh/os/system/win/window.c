@@ -9,6 +9,7 @@
 #include <lh/memory.h>
 #include <lh/null.h>
 #include <lh/os/system/win/kernel32.h>
+#include <lh/os/system/win/key.h>
 #include <lh/os/system/win/user32.h>
 #include <lh/os/system/window.h>
 #include <lh/os/window.h>
@@ -123,7 +124,31 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
             cursor.y = (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_HIWORD(lparam);
             ScreenToClient(hwnd, lh_addr_of(cursor));
             delta = (int)LH_OS_SYSTEM_WIN_GET_WHEEL_DELTA_WPARAM(wparam) / LH_OS_SYSTEM_WIN_WHEEL_DELTA;
-            lh_os_window_on_native_wheel(window, cursor.x, cursor.y, delta);
+            if ((LH_OS_SYSTEM_WIN_LOWORD(wparam) & LH_OS_SYSTEM_WIN_MK_SHIFT) != 0U)
+            {
+                lh_os_window_on_native_wheel(window, cursor.x, cursor.y, delta, 0);
+                return 0;
+            }
+            lh_os_window_on_native_wheel(window, cursor.x, cursor.y, 0, delta);
+        }
+        return 0;
+    case LH_OS_SYSTEM_WIN_WM_KEYDOWN:
+    case LH_OS_SYSTEM_WIN_WM_KEYUP:
+        if (lh_null_ne(window))
+        {
+            lh_os_window_on_native_key(window, lh_os_system_win_key_from_vk((lh_u32_t)wparam),
+                                       msg == LH_OS_SYSTEM_WIN_WM_KEYDOWN ? lh_bool_true : lh_bool_false);
+        }
+        return 0;
+    case LH_OS_SYSTEM_WIN_WM_CHAR:
+        if (lh_null_ne(window))
+        {
+            const lh_u32_t code = lh_os_system_win_text_from_char((lh_u32_t)wparam);
+
+            if (lh_os_system_win_is_text(code))
+            {
+                lh_os_window_on_native_text(window, code);
+            }
         }
         return 0;
     case LH_OS_SYSTEM_WIN_WM_DESTROY:

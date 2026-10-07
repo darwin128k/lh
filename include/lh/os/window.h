@@ -166,11 +166,25 @@ lh_os_window_set_on_release(lh_os_window_t *self, lh_os_window_on_release_cb on_
 /**
  * @brief Notify @p on_wheel on a mouse-wheel tick in client coordinates.
  *
- * @p context is passed through. ::lh_null clears the slot. @p delta is
- * notches (positive = away from the user).
+ * @p context is passed through. ::lh_null clears the slot. The callback gets
+ * notches per axis (::lh_os_window_on_wheel_fn).
  */
 lh_void
 lh_os_window_set_on_wheel(lh_os_window_t *self, lh_os_window_on_wheel_cb on_wheel, lh_ptr context);
+
+/**
+ * @brief Notify @p on_key when a key goes down or up (::lh_os_window_on_key_fn).
+ *        ::lh_null clears the slot.
+ */
+lh_void
+lh_os_window_set_on_key(lh_os_window_t *self, lh_os_window_on_key_cb on_key, lh_ptr context);
+
+/**
+ * @brief Notify @p on_text with each typed character (::lh_os_window_on_text_fn).
+ *        ::lh_null clears the slot.
+ */
+lh_void
+lh_os_window_set_on_text(lh_os_window_t *self, lh_os_window_on_text_cb on_text, lh_ptr context);
 
 /**
  * @brief Notify @p on_click on a primary-button click in client coordinates.
@@ -267,10 +281,22 @@ lh_os_window_on_native_release(lh_os_window_t *self, int x, int y);
 /**
  * @brief Called from the native backend on a mouse-wheel tick.
  *
- * @p x and @p y are client-area coordinates. @p delta is notches.
+ * @p x and @p y are client-area coordinates. @p dx / @p dy are notches.
  */
 lh_void
-lh_os_window_on_native_wheel(lh_os_window_t *self, int x, int y, int delta);
+lh_os_window_on_native_wheel(lh_os_window_t *self, int x, int y, int dx, int dy);
+
+/**
+ * @brief Called from the native backend when @p key goes down or up.
+ */
+lh_void
+lh_os_window_on_native_key(lh_os_window_t *self, lh_key_t key, lh_bool_t pressed);
+
+/**
+ * @brief Called from the native backend with one typed code point.
+ */
+lh_void
+lh_os_window_on_native_text(lh_os_window_t *self, lh_u32_t code);
 
 /**
  * @brief Called from the native backend on a primary-button click.

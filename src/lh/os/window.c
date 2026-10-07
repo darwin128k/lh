@@ -14,6 +14,7 @@
 #include <lh/runtime/error/code.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+#include <lh/util/return.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
 #    include <lh/os/system/window.h>
@@ -57,6 +58,10 @@ lh_os_window_init(lh_os_window_t *self)
     self->on_release_context = lh_null;
     self->on_wheel = lh_null;
     self->on_wheel_context = lh_null;
+    self->on_key = lh_null;
+    self->on_key_context = lh_null;
+    self->on_text = lh_null;
+    self->on_text_context = lh_null;
     self->on_click = lh_null;
     self->on_click_context = lh_null;
     self->on_close = lh_null;
@@ -220,6 +225,22 @@ lh_os_window_set_on_wheel(lh_os_window_t *self, lh_os_window_on_wheel_cb on_whee
     lh_assert_runtime_ref(self);
     self->on_wheel = on_wheel;
     self->on_wheel_context = context;
+}
+
+lh_void
+lh_os_window_set_on_key(lh_os_window_t *self, lh_os_window_on_key_cb on_key, lh_ptr context)
+{
+    lh_assert_runtime_ref(self);
+    self->on_key = on_key;
+    self->on_key_context = context;
+}
+
+lh_void
+lh_os_window_set_on_text(lh_os_window_t *self, lh_os_window_on_text_cb on_text, lh_ptr context)
+{
+    lh_assert_runtime_ref(self);
+    self->on_text = on_text;
+    self->on_text_context = context;
 }
 
 lh_void
@@ -391,7 +412,23 @@ lh_os_window_on_native_release(lh_os_window_t *self, int x, int y)
 }
 
 lh_void
-lh_os_window_on_native_wheel(lh_os_window_t *self, int x, int y, int delta)
+lh_os_window_on_native_key(lh_os_window_t *self, lh_key_t key, lh_bool_t pressed)
+{
+    lh_assert_runtime_ref(self);
+    lh_return_if(lh_null_eq(lh_ptr_rcast(lh_void, self->on_key)));
+    self->on_key(self, key, pressed, self->on_key_context);
+}
+
+lh_void
+lh_os_window_on_native_text(lh_os_window_t *self, lh_u32_t code)
+{
+    lh_assert_runtime_ref(self);
+    lh_return_if(lh_null_eq(lh_ptr_rcast(lh_void, self->on_text)));
+    self->on_text(self, code, self->on_text_context);
+}
+
+lh_void
+lh_os_window_on_native_wheel(lh_os_window_t *self, int x, int y, int dx, int dy)
 {
     lh_os_window_on_wheel_cb on_wheel;
     lh_ptr on_wheel_context;
@@ -401,7 +438,7 @@ lh_os_window_on_native_wheel(lh_os_window_t *self, int x, int y, int delta)
     on_wheel_context = self->on_wheel_context;
     if (lh_null_ne(lh_ptr_rcast(lh_void, on_wheel)))
     {
-        on_wheel(self, x, y, delta, on_wheel_context);
+        on_wheel(self, x, y, dx, dy, on_wheel_context);
     }
 }
 

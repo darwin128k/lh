@@ -185,6 +185,35 @@ typedef struct lh_os_system_win_createstructa lh_os_system_win_createstructa_t;
 
 #define LH_OS_SYSTEM_WIN_WHEEL_DELTA 120
 
+/* Keyboard messages. Present since Windows 95. With an ANSI window class,
+   `WM_CHAR` carries one byte of the ANSI code page. */
+#define LH_OS_SYSTEM_WIN_WM_KEYDOWN 0x0100U
+#define LH_OS_SYSTEM_WIN_WM_KEYUP 0x0101U
+#define LH_OS_SYSTEM_WIN_WM_CHAR 0x0102U
+
+/* Virtual-key codes. Present since Windows 95. */
+#define LH_OS_SYSTEM_WIN_VK_BACK 0x08U
+#define LH_OS_SYSTEM_WIN_VK_TAB 0x09U
+#define LH_OS_SYSTEM_WIN_VK_RETURN 0x0DU
+#define LH_OS_SYSTEM_WIN_VK_SHIFT 0x10U
+#define LH_OS_SYSTEM_WIN_VK_CONTROL 0x11U
+#define LH_OS_SYSTEM_WIN_VK_MENU 0x12U
+#define LH_OS_SYSTEM_WIN_VK_ESCAPE 0x1BU
+#define LH_OS_SYSTEM_WIN_VK_SPACE 0x20U
+#define LH_OS_SYSTEM_WIN_VK_PRIOR 0x21U
+#define LH_OS_SYSTEM_WIN_VK_NEXT 0x22U
+#define LH_OS_SYSTEM_WIN_VK_END 0x23U
+#define LH_OS_SYSTEM_WIN_VK_HOME 0x24U
+#define LH_OS_SYSTEM_WIN_VK_LEFT 0x25U
+#define LH_OS_SYSTEM_WIN_VK_UP 0x26U
+#define LH_OS_SYSTEM_WIN_VK_RIGHT 0x27U
+#define LH_OS_SYSTEM_WIN_VK_DOWN 0x28U
+#define LH_OS_SYSTEM_WIN_VK_DELETE 0x2EU
+
+/* Mouse-message key state (low word of `wParam`): Shift held. Present since
+   Windows 95. */
+#define LH_OS_SYSTEM_WIN_MK_SHIFT 0x0004U
+
 /* PeekMessage. Present since Windows 95. */
 #define LH_OS_SYSTEM_WIN_PM_REMOVE 0x0001U
 

@@ -29,6 +29,12 @@ typedef enum lh_ui_axis
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
+ * @brief The axis across @p axis: vertical for horizontal and back.
+ */
+lh_ui_axis_t
+lh_ui_axis_get_cross(lh_ui_axis_t axis);
+
+/**
  * @brief The coordinate of @p self on @p axis.
  */
 lh_ui_scalar_t

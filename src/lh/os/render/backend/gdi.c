@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/cast/static.h>
 #include <lh/null.h>
 #include <lh/os/render/backend/gdi.h>
 #include <lh/os/system/window.h>
@@ -133,7 +134,7 @@ lh_os_render_backend_gdi_begin_surface(lh_os_render_backend_gdi_context_t *self)
 
     lh_return_if(!lh_os_system_window_get_client_size(self->hwnd, lh_addr_of(width), lh_addr_of(height)),
                  lh_bool_false);
-    lh_ui_size_init(lh_addr_of(size), lh_ui_scalar(width), lh_ui_scalar(height));
+    lh_ui_size_init(lh_addr_of(size), lh_cast_static(lh_ui_scalar_t, width), lh_cast_static(lh_ui_scalar_t, height));
     (void)lh_ui_surface_set_size(lh_addr_of(self->surface), size);
     lh_os_render_backend_gdi_reset_counters(self);
     return lh_bool_true;

@@ -2,8 +2,8 @@
  * @file pixmap.h
  * @brief A buffer of pixels: ::lh_ui_pixmap_t.
  *
- * `width` x `height` pixels in one ::lh_ui_pixmap_format_t (ARGB8888 or
- * RGB565), rows `stride` bytes apart. The bytes are not owned: a Win32 DIB
+ * `width` x `height` pixels in one ::lh_ui_pixmap_format_t (ARGB8888,
+ * RGB565 or byte-swapped RGB565), rows `stride` bytes apart. The bytes are not owned: a Win32 DIB
  * section, a microcontroller frame buffer, a test array. Rows and pixels are
  * aligned to the pixel size. Everything here writes inside the pixmap only;
  * the caller cuts spans first.
@@ -34,6 +34,13 @@
  * @typedef lh_ui_pixmap_t
  * @brief A view of pixels in one format.
  */
+/**
+ * @def LH_UI_PIXMAP_RUN
+ * @brief Pixels one row kernel call takes at most (the size of the alpha
+ *        buffers callers fill on the stack).
+ */
+#define LH_UI_PIXMAP_RUN 64
+
 struct lh_ui_pixmap
 {
     lh_ui_pixmap_fields(lh_byte_t, lh_s32_t, lh_ui_pixmap_format_t);
@@ -43,6 +50,12 @@ typedef struct lh_ui_pixmap lh_ui_pixmap_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /* ── Lifetime and shape ──────────────────────────────────────────────────── */
+
+/**
+ * @brief True for the 16-bit formats (RGB565, plain or swapped).
+ */
+lh_bool_t
+lh_ui_pixmap_format_is_16(lh_ui_pixmap_format_t format);
 
 /**
  * @brief Bytes one pixel of @p format takes: 4 or 2.
@@ -109,6 +122,13 @@ lh_byte_t *
 lh_ui_pixmap_get_address(const lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y);
 
 /* ── Pixels ──────────────────────────────────────────────────────────────── */
+
+/**
+ * @brief @p word with its two bytes swapped when @p self is
+ *        ::lh_ui_pixmap_format_rgb565_swapped, else as is (its own inverse).
+ */
+lh_u32_t
+lh_ui_pixmap_order_16(const lh_ui_pixmap_t *self, lh_u32_t word);
 
 /**
  * @brief @p color as a word of the format of @p self (::lh_ui_color_get_argb
@@ -184,8 +204,71 @@ lh_ui_pixmap_store_words16(lh_u16_t *at, lh_usize_t count, lh_u16_t word);
 lh_void
 lh_ui_pixmap_store_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_u32_t word);
 
+/* ── Row kernels ─────────────────────────────────────────────────────────── */
+
 /**
- * @brief Blend @p color over pixels `x0 .. x1 - 1` of row @p y.
+ * @brief `0xRRGGBB` of @p src at alpha @p a over opaque @p dst (both
+ *        `0x..RRGGBB`): ::lh_ui_color_over_opaque_channel per channel.
+ */
+lh_u32_t
+lh_ui_pixmap_mix_rgb(lh_u32_t dst, lh_u32_t src, lh_u32_t a);
+
+/**
+ * @brief The stored word @p dst of @p self with @p src (`0xRRGGBB`) at alpha
+ *        @p a over it, through colors: ::lh_ui_color_over for any format and
+ *        any destination alpha (the slow, general case).
+ */
+lh_u32_t
+lh_ui_pixmap_mix_any(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a);
+
+/**
+ * @brief ARGB8888 word @p dst with @p src at alpha @p a over it: the integer
+ *        path for an opaque @p dst, ::lh_ui_pixmap_mix_any otherwise.
+ */
+lh_u32_t
+lh_ui_pixmap_mix_argb(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a);
+
+/**
+ * @brief 16-bit word @p dst (format of @p self) with @p src at alpha @p a
+ *        over it; RGB565 is always opaque.
+ */
+lh_u32_t
+lh_ui_pixmap_mix_16(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a);
+
+/**
+ * @brief @p src (`0xRRGGBB`) as an RGB565 word, native order.
+ */
+lh_u32_t
+lh_ui_pixmap_pack_rgb(const lh_ui_pixmap_t *self, lh_u32_t src);
+
+/**
+ * @brief Blend @p src over @p count ARGB8888 words at @p at, each at its own
+ *        @p alpha (`0` skipped, `255` stored).
+ */
+lh_void
+lh_ui_pixmap_blend_alpha_32(const lh_ui_pixmap_t *self, lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t count,
+                            lh_u32_t src);
+
+/**
+ * @brief ::lh_ui_pixmap_blend_alpha_32 for the 16-bit formats.
+ */
+lh_void
+lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_t *alpha, lh_usize_t count,
+                            lh_u32_t src);
+
+/**
+ * @brief The row kernel: blend @p src (`0xRRGGBB`) over pixels `x0 .. x1 - 1`
+ *        of row @p y, pixel `x0 + i` at `alpha[i]`; at most
+ *        ::LH_UI_PIXMAP_RUN pixels. The same result as
+ *        ::lh_ui_pixmap_blend_pixel per pixel, without its per-pixel calls.
+ */
+lh_void
+lh_ui_pixmap_blend_alpha_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_u32_t src,
+                              const lh_byte_t *alpha);
+
+/**
+ * @brief Blend @p color over pixels `x0 .. x1 - 1` of row @p y (the row
+ *        kernel, one alpha for all).
  */
 lh_void
 lh_ui_pixmap_blend_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);

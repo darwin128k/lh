@@ -15,6 +15,8 @@
 #include <lh/os/window/on/paint/cb.h>
 #include <lh/os/window/on/press/cb.h>
 #include <lh/os/window/on/release/cb.h>
+#include <lh/os/window/on/key/cb.h>
+#include <lh/os/window/on/text/cb.h>
 #include <lh/os/window/on/wheel/cb.h>
 #include <lh/ptr.h>
 
@@ -28,7 +30,7 @@
  *
  * `paint_dc` is set only for the duration of ::lh_os_window_on_paint_fn.
  * Click synthesis (press then release without a drag) lives above the OS:
- * the backend fires press / move / release / wheel; ::lh_os_window_on_click
+ * the backend fires press / move / release / wheel / key / text; ::lh_os_window_on_click
  * stays for callers that still wire it.
  *
  * @param handle_type Type of `handle` (::lh_os_system_window_handle_t).
@@ -58,6 +60,10 @@
     lh_ptr on_release_context;                                                                      \
     lh_os_window_on_wheel_cb on_wheel;                                                              \
     lh_ptr on_wheel_context;                                                                        \
+    lh_os_window_on_key_cb on_key;                                                                  \
+    lh_ptr on_key_context;                                                                          \
+    lh_os_window_on_text_cb on_text;                                                                \
+    lh_ptr on_text_context;                                                                         \
     lh_os_window_on_click_cb on_click;                                                              \
     lh_ptr on_click_context;                                                                        \
     lh_os_window_on_close_cb on_close;                                                              \

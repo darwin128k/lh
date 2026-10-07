@@ -131,6 +131,8 @@ endif ()
 if (LH_LIBRARY_OPTION_UI)
     list(APPEND LH_TEST_SOURCES
             ${LH_TEST_SRC_PATH}/lh/ui/axis.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/insets.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/layout/stack.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/color.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/paint.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/gradient.cpp

@@ -108,9 +108,10 @@ lh_ui_point_t
 lh_ui_entity_label_get_text_origin(const lh_ui_entity_label_t *self)
 {
     const lh_ui_entity_t *entity = lh_addr_of(self->container.entity);
-    const lh_ui_scalar_t padding = lh_ui_entity_get_padding(entity);
+    const lh_ui_insets_t padding = lh_ui_entity_get_padding(entity);
 
-    return lh_ui_point_offset(lh_ui_rect_get_origin_as_const(lh_addr_of(entity->rect)), padding, padding);
+    return lh_ui_point_offset(lh_ui_rect_get_origin_as_const(lh_addr_of(entity->rect)),
+                              lh_ui_insets_get_left(lh_addr_of(padding)), lh_ui_insets_get_top(lh_addr_of(padding)));
 }
 
 lh_ui_rect_t

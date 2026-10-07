@@ -38,6 +38,8 @@
 
 /* MultiByteToWideChar / WideCharToMultiByte. */
 #define LH_OS_SYSTEM_WIN_CP_UTF8 65001U
+/* The ANSI code page of the system. Present since Windows 95. */
+#define LH_OS_SYSTEM_WIN_CP_ACP 0U
 #define LH_OS_SYSTEM_WIN_MB_ERR_INVALID_CHARS 0x00000008UL
 
 /* CreateFile: dwDesiredAccess, dwShareMode, dwCreationDisposition. */

@@ -196,7 +196,7 @@ TEST(os_window, on_native_press_move_release_and_wheel_fire_callbacks)
     ClickLog press{};
     ClickLog move{};
     ClickLog release{};
-    int wheel_delta = 0;
+    int wheel[2] = {0, 0};
 
     lh_os_window_init(lh_addr_of(window));
     lh_os_window_set_on_press(lh_addr_of(window), on_click, lh_addr_of(press));
@@ -204,15 +204,16 @@ TEST(os_window, on_native_press_move_release_and_wheel_fire_callbacks)
     lh_os_window_set_on_release(lh_addr_of(window), on_click, lh_addr_of(release));
     lh_os_window_set_on_wheel(
         lh_addr_of(window),
-        [](lh_os_window_t *, int /*x*/, int /*y*/, int delta, lh_ptr context) {
-            *static_cast<int *>(context) = delta;
+        [](lh_os_window_t *, int /*x*/, int /*y*/, int dx, int dy, lh_ptr context) {
+            static_cast<int *>(context)[0] = dx;
+            static_cast<int *>(context)[1] = dy;
         },
-        lh_addr_of(wheel_delta));
+        wheel);
 
     lh_os_window_on_native_press(lh_addr_of(window), 1, 2);
     lh_os_window_on_native_move(lh_addr_of(window), 3, 4);
     lh_os_window_on_native_release(lh_addr_of(window), 5, 6);
-    lh_os_window_on_native_wheel(lh_addr_of(window), 7, 8, -2);
+    lh_os_window_on_native_wheel(lh_addr_of(window), 7, 8, 1, -2);
 
     EXPECT_EQ(press.count, 1);
     EXPECT_EQ(press.x, 1);
@@ -223,7 +224,36 @@ TEST(os_window, on_native_press_move_release_and_wheel_fire_callbacks)
     EXPECT_EQ(release.count, 1);
     EXPECT_EQ(release.x, 5);
     EXPECT_EQ(release.y, 6);
-    EXPECT_EQ(wheel_delta, -2);
+    EXPECT_EQ(wheel[0], 1);
+    EXPECT_EQ(wheel[1], -2);
+    lh_os_window_deinit(lh_addr_of(window));
+}
+
+TEST(os_window, on_native_key_and_text_fire_callbacks)
+{
+    lh_os_window_t window{};
+    int key_seen[2] = {-1, -1};
+    lh_u32_t text_seen = 0;
+
+    lh_os_window_init(lh_addr_of(window));
+    lh_os_window_set_on_key(
+        lh_addr_of(window),
+        [](lh_os_window_t *, lh_key_t key, lh_bool_t pressed, lh_ptr context) {
+            static_cast<int *>(context)[0] = static_cast<int>(key);
+            static_cast<int *>(context)[1] = pressed ? 1 : 0;
+        },
+        key_seen);
+    lh_os_window_set_on_text(
+        lh_addr_of(window),
+        [](lh_os_window_t *, lh_u32_t code, lh_ptr context) { *static_cast<lh_u32_t *>(context) = code; },
+        lh_addr_of(text_seen));
+
+    lh_os_window_on_native_key(lh_addr_of(window), lh_key_tab, lh_bool_true);
+    lh_os_window_on_native_text(lh_addr_of(window), 0x0416U);
+
+    EXPECT_EQ(key_seen[0], static_cast<int>(lh_key_tab));
+    EXPECT_EQ(key_seen[1], 1);
+    EXPECT_EQ(text_seen, 0x0416U);
     lh_os_window_deinit(lh_addr_of(window));
 }
 

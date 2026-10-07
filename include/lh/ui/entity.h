@@ -101,9 +101,9 @@ const lh_ui_entity_class_t *
 lh_ui_entity_get_class(const lh_ui_entity_t *self);
 
 /**
- * @brief Padding of the style of @p self, `0` without one.
+ * @brief Padding of the style of @p self, all `0` without one.
  */
-lh_ui_scalar_t
+lh_ui_insets_t
 lh_ui_entity_get_padding(const lh_ui_entity_t *self);
 
 /**
@@ -119,6 +119,19 @@ lh_ui_entity_contains_point(const lh_ui_entity_t *self, lh_ui_point_t point);
  */
 lh_void
 lh_ui_entity_set_class(lh_ui_entity_t *self, const lh_ui_entity_class_t *);
+
+/**
+ * @brief Move @p self and its whole subtree by (@p dx, @p dy): rects are
+ *        absolute, so children travel with their parent only this way.
+ */
+lh_void
+lh_ui_entity_move_by(lh_ui_entity_t *self, lh_ui_scalar_t dx, lh_ui_scalar_t dy);
+
+/**
+ * @brief ::lh_ui_entity_move_by so the rect of @p self starts at @p origin.
+ */
+lh_void
+lh_ui_entity_move_to(lh_ui_entity_t *self, lh_ui_point_t origin);
 
 /**
  * @brief True when @p self is hidden (paint and hit tests skip it).
@@ -229,6 +242,26 @@ lh_ui_entity_send(const lh_ui_entity_t *self, lh_ui_entity_event_code_t code, lh
  */
 lh_bool_t
 lh_ui_entity_is_shown(const lh_ui_entity_t *self);
+
+/**
+ * @brief True when @p self is shown and its class answers yes to
+ *        ::lh_ui_entity_event_focusable (the base class says no).
+ */
+lh_bool_t
+lh_ui_entity_is_focusable(const lh_ui_entity_t *self);
+
+/**
+ * @brief Nearest focusable entity at or above @p self, or ::lh_null.
+ */
+lh_ui_entity_t *
+lh_ui_entity_find_focusable(lh_ui_entity_t *self);
+
+/**
+ * @brief Send the pointer event @p code with @p point (root space) moved into
+ *        the rect space of @p self. Nothing for a ::lh_null @p self.
+ */
+lh_void
+lh_ui_entity_send_pointer(const lh_ui_entity_t *self, lh_ui_entity_event_code_t code, lh_ui_point_t point);
 
 /**
  * @brief How @p self places its children: the one answer draw and hit test use.

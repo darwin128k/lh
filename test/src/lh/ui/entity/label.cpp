@@ -99,3 +99,22 @@ TEST(entity_label, padding_moves_the_text_in_from_the_corner)
     EXPECT_EQ(lh_ui_point_get_x(&origin), lh_ui_scalar(16));
     EXPECT_EQ(lh_ui_point_get_y(&origin), lh_ui_scalar(26));
 }
+
+TEST(entity_label, padding_sides_move_the_text_by_left_and_top)
+{
+    lh_ui_entity_label_t label;
+    lh_ui_style_t style;
+    lh_ui_insets_t sides;
+    lh_ui_rect_t rect;
+
+    lh_ui_rect_init(&rect, 10, 20, 100, 50);
+    lh_ui_entity_label_init(&label, rect, "x");
+    lh_ui_style_init(&style);
+    lh_ui_insets_init(&sides, 3, 5, 30, 50);
+    lh_ui_style_set_padding_insets(&style, &sides);
+    lh_ui_entity_set_style(lh_ui_entity_label_as_entity(&label), &style);
+
+    const lh_ui_point_t origin = lh_ui_entity_label_get_text_origin(&label);
+    EXPECT_EQ(lh_ui_point_get_x(&origin), lh_ui_scalar(13));
+    EXPECT_EQ(lh_ui_point_get_y(&origin), lh_ui_scalar(25));
+}

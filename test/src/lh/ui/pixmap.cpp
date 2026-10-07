@@ -102,6 +102,21 @@ TEST(ui_pixmap, rgb565_stores_16_bit_words_and_reads_opaque)
     EXPECT_EQ(lh_ui_color_get_a(lh_addr_of(back)), 255);
 }
 
+TEST(ui_pixmap, rgb565_swapped_puts_the_high_byte_first_in_memory)
+{
+    pixmap_fixture f(0u, lh_ui_pixmap_format_rgb565_swapped);
+    const lh_ui_color_t c = color_of(255, 0, 0, 255); /* 0xF800 */
+    const lh_byte_t *bytes = lh_ptr_rcast(const lh_byte_t, f.words);
+
+    lh_ui_pixmap_set_pixel(lh_addr_of(f.pixmap), 0, 0, lh_addr_of(c));
+    EXPECT_EQ(bytes[0], 0xF8);
+    EXPECT_EQ(bytes[1], 0x00);
+    EXPECT_EQ(lh_ui_pixmap_format_get_bytes(lh_ui_pixmap_format_rgb565_swapped), 2);
+    const lh_ui_color_t back = lh_ui_pixmap_get_pixel(lh_addr_of(f.pixmap), 0, 0);
+    EXPECT_EQ(lh_ui_color_get_r(lh_addr_of(back)), 255);
+    EXPECT_EQ(lh_ui_color_get_g(lh_addr_of(back)), 0);
+}
+
 TEST(ui_pixmap, fill_span_stores_an_opaque_color_and_leaves_the_rest)
 {
     pixmap_fixture f(0x11111111u);
@@ -117,7 +132,8 @@ TEST(ui_pixmap, fill_span_stores_an_opaque_color_and_leaves_the_rest)
 /* Spans of every length (unrolled and tail): every pixel, and not one more. */
 TEST(ui_pixmap, long_store_span_fills_exactly_its_pixels_in_both_formats)
 {
-    const lh_ui_pixmap_format_t formats[] = {lh_ui_pixmap_format_argb8888, lh_ui_pixmap_format_rgb565};
+    const lh_ui_pixmap_format_t formats[] = {lh_ui_pixmap_format_argb8888, lh_ui_pixmap_format_rgb565,
+                                             lh_ui_pixmap_format_rgb565_swapped};
     for (lh_ui_pixmap_format_t format : formats)
     {
         for (int x1 = 3; x1 <= 40; ++x1)

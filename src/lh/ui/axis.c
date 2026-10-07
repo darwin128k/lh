@@ -6,6 +6,12 @@
 #include <lh/assert/runtime.h>
 #include <lh/ui/axis.h>
 
+lh_ui_axis_t
+lh_ui_axis_get_cross(lh_ui_axis_t axis)
+{
+    return axis == lh_ui_axis_vertical ? lh_ui_axis_horizontal : lh_ui_axis_vertical;
+}
+
 lh_ui_scalar_t
 lh_ui_point_get_along(const lh_ui_point_t *self, lh_ui_axis_t axis)
 {

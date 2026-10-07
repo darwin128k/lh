@@ -356,7 +356,7 @@ push_round_clip(sw_fixture &f, int x, int y, int w, int h, int radius)
     lh_ui_point_t zero;
     lh_ui_rect_init(lh_addr_of(clip), x, y, w, h);
     lh_ui_point_init(lh_addr_of(zero), 0, 0);
-    lh_ui_canvas_push_round(lh_addr_of(f.canvas), zero, lh_addr_of(clip), lh_ui_scalar(radius));
+    lh_ui_canvas_push_round(lh_addr_of(f.canvas), zero, lh_addr_of(clip), static_cast<lh_ui_scalar_t>(radius));
 }
 
 /* Draw every primitive kind on @p f under its current clip. */
@@ -455,7 +455,8 @@ TEST(ui_canvas_sw, rounded_clip_alpha_is_the_clip_coverage)
 
 TEST(ui_canvas_sw, rounded_clip_matches_the_canvas_fallback_for_every_primitive)
 {
-    const lh_ui_pixmap_format_t formats[] = {lh_ui_pixmap_format_argb8888, lh_ui_pixmap_format_rgb565};
+    const lh_ui_pixmap_format_t formats[] = {lh_ui_pixmap_format_argb8888, lh_ui_pixmap_format_rgb565,
+                                             lh_ui_pixmap_format_rgb565_swapped};
     for (lh_ui_pixmap_format_t format : formats)
     {
         sw_fixture sw(lh_addr_of(lh_ui_canvas_backend_sw), format);

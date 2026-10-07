@@ -19,7 +19,7 @@ lh_ui_style_init(lh_ui_style_t *self)
     lh_ui_color_init(lh_addr_of(black), 0, 0, 0, 255);
     lh_ui_paint_init(lh_addr_of(self->fill));
     self->radius = lh_ui_scalar(0);
-    self->padding = lh_ui_scalar(0);
+    lh_ui_insets_init_all(lh_addr_of(self->padding), lh_ui_scalar(0));
     self->font = lh_ui_font_get_default();
     lh_ui_paint_init_color(lh_addr_of(self->text), lh_addr_of(black));
 }
@@ -59,19 +59,31 @@ lh_ui_style_set_radius(lh_ui_style_t *self, lh_ui_scalar_t radius)
     self->radius = radius;
 }
 
-lh_ui_scalar_t
+const lh_ui_insets_t *
 lh_ui_style_get_padding(const lh_ui_style_t *self)
 {
     lh_assert_runtime_ref(self);
-    return self->padding;
+    return lh_addr_of(self->padding);
 }
 
 lh_void
 lh_ui_style_set_padding(lh_ui_style_t *self, lh_ui_scalar_t padding)
 {
+    lh_ui_insets_t all;
+
+    lh_ui_insets_init_all(lh_addr_of(all), padding);
+    lh_ui_style_set_padding_insets(self, lh_addr_of(all));
+}
+
+lh_void
+lh_ui_style_set_padding_insets(lh_ui_style_t *self, const lh_ui_insets_t *padding)
+{
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_if(padding < lh_ui_scalar(0), lh_runtime_error_code_invalid_argument);
-    self->padding = padding;
+    lh_assert_runtime_ref(padding);
+    lh_assert_runtime_if(padding->left < lh_ui_scalar(0) || padding->top < lh_ui_scalar(0) ||
+                             padding->right < lh_ui_scalar(0) || padding->bottom < lh_ui_scalar(0),
+                         lh_runtime_error_code_invalid_argument);
+    self->padding = *padding;
 }
 
 const lh_ui_font_t *
