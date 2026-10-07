@@ -257,6 +257,32 @@ lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_b
                             lh_u32_t src);
 
 /**
+ * @brief SSE2 form of ::lh_ui_pixmap_blend_alpha_32, four pixels at a time.
+ *
+ * The scalar kernel branches per pixel three times — on `alpha[i]`, on it being
+ * `255`, and (inside ::lh_ui_pixmap_mix_argb) on whether the destination is
+ * opaque at all — and rebuilds a word per pixel. All three are removable: the
+ * general form `(src * a + dst * (255 - a) + 127) / 255` already *is* the
+ * `a == 0` case (it returns `dst`) and the `a == 255` case (it returns `src`),
+ * so one branch-free pass covers every alpha, and `255` as the divisor becomes
+ * `(x + 1 + (x >> 8)) >> 8` with no divide at all.
+ *
+ * The remaining scalar branch is the translucent *destination*, which
+ * ::lh_ui_pixmap_mix_argb handles by a different formula. A pixel whose
+ * destination alpha is not `255` is detected here and redone scalar, so the
+ * result is bit-identical to the scalar kernel for every input; nothing is
+ * approximated away.
+ *
+ * Only meaningful when `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` is on and the running
+ * CPU reports SSE2 (::lh_cpu_simd_has_sse2); ::lh_ui_pixmap_blend_alpha_32 is
+ * what to call, and it dispatches. Exposed so the tier can be tested against
+ * the scalar kernel directly instead of only through the dispatcher.
+ */
+lh_void
+lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t count,
+                                 lh_u32_t src);
+
+/**
  * @brief The row kernel: blend @p src (`0xRRGGBB`) over pixels `x0 .. x1 - 1`
  *        of row @p y, pixel `x0 + i` at `alpha[i]`; at most
  *        ::LH_UI_PIXMAP_RUN pixels. The same result as

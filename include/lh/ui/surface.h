@@ -88,17 +88,9 @@ lh_bool_t
 lh_ui_surface_get_pixmap(const lh_ui_surface_t *self, lh_ui_pixmap_t *pixmap);
 
 /**
- * @brief Present @p self into @p dest (Win32 paint DC as ::lh_ptr).
- *
- * @return True when the blit ran.
- */
-lh_bool_t
-lh_ui_surface_present(const lh_ui_surface_t *self, lh_ptr dest);
-
-/**
  * @brief Present @p self into @p dest (Win32 paint DC as ::lh_ptr) with its
  *        top-left pixel at @p at, the client coordinates of the strip it
- *        covers.
+ *        covers. `(0, 0)` presents a whole-target frame.
  *
  * @return True when the blit ran.
  */

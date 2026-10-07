@@ -80,13 +80,6 @@ lh_ui_surface_get_pixmap(const lh_ui_surface_t *self, lh_ui_pixmap_t *pixmap)
 }
 
 lh_bool_t
-lh_ui_surface_present(const lh_ui_surface_t *self, lh_ptr dest)
-{
-    lh_assert_runtime_ref(self);
-    return lh_os_system_surface_present(self->handle, dest);
-}
-
-lh_bool_t
 lh_ui_surface_present_at(const lh_ui_surface_t *self, lh_ptr dest, lh_ui_point_t at)
 {
     lh_assert_runtime_ref(self);

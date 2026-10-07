@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <lh/cpu/simd.h>
 #include <lh/expect/death.h>
 #include <lh/ui/color.h>
 #include <lh/ui/pixmap.h>
@@ -217,6 +218,126 @@ TEST(ui_pixmap, translucent_box_blends_every_row)
     EXPECT_NE(f.at(0, 0), 0xff000000u);
     EXPECT_NE(f.at(0, 0), 0xffffffffu);
 }
+
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+
+namespace
+{
+
+/* What the scalar kernel owes the caller, written out per pixel from the
+   public channel formula rather than by calling the kernel under test: an
+   alpha of 0 skips the pixel, 255 stores the source, anything else is
+   lh_ui_pixmap_mix_rgb over an opaque destination. */
+lh_u32_t
+blend_reference(lh_u32_t dst, lh_u32_t src, lh_byte_t alpha)
+{
+    if (alpha == 0u)
+    {
+        return dst;
+    }
+    if (alpha == 255u)
+    {
+        return 0xff000000u | src;
+    }
+    return 0xff000000u | lh_ui_pixmap_mix_rgb(dst, src, alpha);
+}
+
+} // namespace
+
+/* The SIMD kernel trades three per-pixel branches for one unconditional
+   formula, so the thing worth pinning is that it lands on exactly the same
+   word as the scalar kernel for every alpha there is — including 0 and 255,
+   which the formula reproduces rather than special-cases. Every run length up
+   to 40 covers the 4-pixel loop, its tail, and both together. */
+TEST(ui_pixmap, blend_alpha_32_sse2_is_the_scalar_formula_for_every_alpha_and_run_length)
+{
+    if (!lh_cpu_simd_has_sse2())
+    {
+        GTEST_SKIP() << "SSE2 not available on this CPU";
+    }
+    const lh_u32_t src = 0x0033ccffu;
+    for (int count = 1; count <= 40; ++count)
+    {
+        lh_u32_t at[40];
+        lh_u32_t want[40];
+        lh_byte_t alpha[40];
+        lh_ui_pixmap_t pixmap;
+        /* Opaque destinations, so the kernel stays on its vector path. */
+        for (int i = 0; i < count; ++i)
+        {
+            at[i] = 0xff000000u | static_cast<lh_u32_t>((i * 7u * 2654435761u) & 0x00ffffffu);
+            alpha[i] = static_cast<lh_byte_t>(i);
+            want[i] = blend_reference(at[i], src, alpha[i]);
+        }
+        lh_ui_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, at), count, 1,
+                          count * static_cast<int>(lh_ui_pixmap_format_get_bytes(lh_ui_pixmap_format_argb8888)),
+                          lh_ui_pixmap_format_argb8888);
+
+        lh_ui_pixmap_blend_alpha_32_sse2(lh_addr_of(pixmap), at, alpha, static_cast<lh_usize_t>(count), src);
+        for (int i = 0; i < count; ++i)
+        {
+            ASSERT_EQ(at[i], want[i]) << "count " << count << " pixel " << i << " alpha " << static_cast<int>(alpha[i]);
+        }
+    }
+}
+
+/* A translucent destination takes lh_ui_pixmap_mix_any in the scalar path, not
+   the channel formula, so the kernel has to detect that and redo those pixels
+   scalar. The destination alpha walks the whole range including fully
+   transparent, where a source alpha of zero must leave the pixel untouched —
+   the one case the unconditional vector formula gets wrong, and the one a
+   single mid-alpha hole would not catch. */
+TEST(ui_pixmap, blend_alpha_32_sse2_falls_back_for_a_translucent_destination)
+{
+    if (!lh_cpu_simd_has_sse2())
+    {
+        GTEST_SKIP() << "SSE2 not available on this CPU";
+    }
+    const lh_u32_t src = 0x0077aa33u;
+    const int count = 20;
+    const lh_u32_t dest_alpha[] = {0x00000000u, 0x01000000u, 0x7f000000u, 0x80000000u, 0xfe000000u};
+    for (lh_u32_t dst_alpha : dest_alpha)
+    {
+        for (int hole = 0; hole < count; ++hole)
+        {
+            lh_u32_t at[20];
+            lh_u32_t want[20];
+            lh_byte_t alpha[20];
+            lh_ui_pixmap_t pixmap;
+            for (int i = 0; i < count; ++i)
+            {
+                /* One pixel takes the destination alpha under test, the rest
+                   stay opaque; the hole walks the run so every position inside
+                   a group is hit. */
+                const bool special_pixel = (i == hole);
+                at[i] = (special_pixel ? dst_alpha : 0xff000000u) | static_cast<lh_u32_t>(i * 0x030507u);
+                /* Every third pixel blends nothing at all. */
+                alpha[i] = static_cast<lh_byte_t>((i % 3 == 0) ? 0u : i * 13u);
+            }
+            lh_ui_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, at), count, 1, count * 4,
+                              lh_ui_pixmap_format_argb8888);
+            /* Reference through the public per-pixel blend, which is the contract. */
+            for (int i = 0; i < count; ++i)
+            {
+                lh_ui_color_t dst;
+                lh_ui_color_t color;
+                lh_ui_color_t over;
+                lh_ui_color_init_argb(lh_addr_of(dst), at[i]);
+                lh_ui_color_init_argb(lh_addr_of(color), (static_cast<lh_u32_t>(alpha[i]) << 24) | src);
+                over = lh_ui_color_over(lh_addr_of(dst), lh_addr_of(color));
+                want[i] = alpha[i] == 0u ? at[i] : lh_ui_pixmap_pack(lh_addr_of(pixmap), lh_addr_of(over));
+            }
+            lh_ui_pixmap_blend_alpha_32_sse2(lh_addr_of(pixmap), at, alpha, static_cast<lh_usize_t>(count), src);
+            for (int i = 0; i < count; ++i)
+            {
+                ASSERT_EQ(at[i], want[i]) << "dst alpha " << static_cast<lh_u32_t>(dst_alpha >> 24) << " hole at "
+                                          << hole << " pixel " << i;
+            }
+        }
+    }
+}
+
+#endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
 
 #if LH_TEST_EXPECT_DEATH_ENABLED
 

@@ -64,18 +64,9 @@ lh_ptr
 lh_os_system_surface_get_pixels(lh_os_system_surface_handle_t handle);
 
 /**
- * @brief Copy the whole surface of @p handle into @p dest at `(0, 0)`.
- *
- * @p dest is a platform paint target (Win32: window/`BeginPaint` `HDC`).
- * @return True when the blit ran.
- */
-lh_bool_t
-lh_os_system_surface_present(lh_os_system_surface_handle_t handle, lh_ptr dest);
-
-/**
  * @brief Copy the whole surface of @p handle into @p dest with its top-left
  *        pixel at `(x, y)` — the partial case, where the surface is one strip
- *        of a larger target.
+ *        of a larger target. `(0, 0)` presents a whole-target frame.
  *
  * @return True when the blit ran.
  */

@@ -141,9 +141,3 @@ lh_os_system_surface_present_at(lh_os_system_surface_handle_t handle, lh_ptr des
                           BitBlt(dest_dc, x, y, surface->width, surface->height, surface->dc, 0, 0,
                                  LH_OS_SYSTEM_WIN_SRCCOPY) != 0);
 }
-
-lh_bool_t
-lh_os_system_surface_present(lh_os_system_surface_handle_t handle, lh_ptr dest)
-{
-    return lh_os_system_surface_present_at(handle, dest, 0, 0);
-}
