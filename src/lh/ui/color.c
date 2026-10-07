@@ -38,6 +38,21 @@ lh_ui_color_hex_channel(lh_u32_t hex, lh_u32_t shift)
     return lh_cast_static(lh_ui_color_channel_t, (hex >> shift) & lh_cast_static(lh_u32_t, LH_BYTE_T_MAX));
 }
 
+lh_void
+lh_ui_color_init_argb(lh_ui_color_t *self, lh_u32_t argb)
+{
+    lh_ui_color_init(self, lh_ui_color_hex_channel(argb, 16), lh_ui_color_hex_channel(argb, 8),
+                     lh_ui_color_hex_channel(argb, 0), lh_ui_color_hex_channel(argb, 24));
+}
+
+lh_u32_t
+lh_ui_color_get_argb(const lh_ui_color_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return (lh_cast_static(lh_u32_t, self->a) << 24) | (lh_cast_static(lh_u32_t, self->r) << 16) |
+           (lh_cast_static(lh_u32_t, self->g) << 8) | lh_cast_static(lh_u32_t, self->b);
+}
+
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
 lh_ui_color_channel_t
@@ -146,14 +161,40 @@ lh_ui_color_weight_to_alpha(lh_u32_t weight)
     return lh_cast_static(lh_ui_color_channel_t, (weight + LH_BYTE_T_MAX / 2U) / LH_BYTE_T_MAX);
 }
 
+lh_ui_color_channel_t
+lh_ui_color_over_opaque_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t a)
+{
+    return lh_cast_static(lh_ui_color_channel_t,
+                          (src * a + dst * (LH_BYTE_T_MAX - a) + LH_BYTE_T_MAX / 2U) / LH_BYTE_T_MAX);
+}
+
 lh_ui_color_t
-lh_ui_color_over(const lh_ui_color_t *dst, const lh_ui_color_t *color)
+lh_ui_color_over_opaque(const lh_ui_color_t *dst, const lh_ui_color_t *color)
+{
+    lh_ui_color_t out;
+
+    lh_ui_color_init(lh_addr_of(out), lh_ui_color_over_opaque_channel(color->r, dst->r, color->a),
+                     lh_ui_color_over_opaque_channel(color->g, dst->g, color->a),
+                     lh_ui_color_over_opaque_channel(color->b, dst->b, color->a), LH_BYTE_T_MAX);
+    return out;
+}
+
+lh_ui_color_t
+lh_ui_color_over_translucent(const lh_ui_color_t *dst, const lh_ui_color_t *color)
 {
     const lh_u32_t src_w = lh_ui_color_over_src_weight(color);
     const lh_u32_t dst_w = lh_ui_color_over_dst_weight(dst, color);
     lh_ui_color_t clear;
     lh_ui_color_init(lh_addr_of(clear), 0, 0, 0, 0);
     return src_w + dst_w == 0U ? clear : lh_ui_color_blend(dst, color, src_w, dst_w);
+}
+
+lh_ui_color_t
+lh_ui_color_over(const lh_ui_color_t *dst, const lh_ui_color_t *color)
+{
+    lh_assert_runtime_ref(dst);
+    return dst->a == LH_BYTE_T_MAX ? lh_ui_color_over_opaque(dst, color)
+                                   : lh_ui_color_over_translucent(dst, color);
 }
 
 lh_ui_color_t

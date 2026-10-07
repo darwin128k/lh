@@ -22,6 +22,7 @@
 #include <lh/ui/axis.h>
 #include <lh/ui/brush.h>
 #include <lh/ui/canvas.h>
+#include <lh/ui/canvas/sw.h>
 #include <lh/ui/color.h>
 #include <lh/ui/entity.h>
 #include <lh/ui/entity/container.h>
@@ -31,6 +32,7 @@
 #include <lh/ui/gradient.h>
 #include <lh/ui/mask.h>
 #include <lh/ui/paint.h>
+#include <lh/ui/pixmap.h>
 #include <lh/ui/pen.h>
 #include <lh/ui/point.h>
 #include <lh/ui/radius.h>

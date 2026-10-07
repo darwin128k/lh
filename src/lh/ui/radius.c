@@ -57,6 +57,18 @@ lh_ui_radius_cover_from_distance(lh_s64_t r, lh_s64_t d)
 }
 
 lh_byte_t
+lh_ui_radius_cover_from_square(lh_s64_t r, lh_s64_t d2)
+{
+    const lh_s64_t inner = r - LH_UI_RADIUS_SUBPIXEL / 2;
+    const lh_s64_t outer = r + LH_UI_RADIUS_SUBPIXEL / 2;
+
+    /* Whole pixels inside or outside the ramp need no square root. */
+    lh_return_if(inner >= 0 && d2 <= inner * inner, 255);
+    lh_return_if(d2 >= outer * outer, 0);
+    return lh_ui_radius_cover_from_distance(r, lh_cast_static(lh_s64_t, lh_math_isqrt_u64(lh_cast_static(lh_u64_t, d2))));
+}
+
+lh_byte_t
 lh_ui_radius_coverage(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x, lh_s32_t y)
 {
     const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
@@ -68,6 +80,5 @@ lh_ui_radius_coverage(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t 
                                                    lh_ui_size_get_height(size), r);
     lh_return_if(dx < 0 || dy < 0, 0);
     lh_return_if(dx == 0 || dy == 0, 255);
-    return lh_ui_radius_cover_from_distance(r, lh_cast_static(lh_s64_t, lh_math_isqrt_u64(lh_cast_static(
-                                                                            lh_u64_t, dx * dx + dy * dy))));
+    return lh_ui_radius_cover_from_square(r, dx * dx + dy * dy);
 }

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <lh/math/isqrt.h>
 #include <lh/ui/radius.h>
 #include <lh/ui/rect.h>
 #include <lh/util/addr.h>
@@ -84,3 +85,21 @@ TEST(ui_radius, coverage_follows_a_moved_rect)
 }
 
 } // namespace
+
+TEST(ui_radius, cover_from_square_matches_the_square_root_everywhere)
+{
+    const lh_s64_t radii[] = {0, 100, 128, 129, 256, 1000, 4096, 16 * 256};
+    for (lh_s64_t r : radii)
+    {
+        for (lh_s64_t d = 0; d <= r + 3 * LH_UI_RADIUS_SUBPIXEL; d += 7)
+        {
+            for (lh_s64_t extra = 0; extra < 3; ++extra)
+            {
+                const lh_s64_t d2 = d * d + extra * d;
+                const lh_byte_t want = lh_ui_radius_cover_from_distance(
+                    r, static_cast<lh_s64_t>(lh_math_isqrt_u64(static_cast<lh_u64_t>(d2))));
+                ASSERT_EQ(lh_ui_radius_cover_from_square(r, d2), want) << r << " " << d2;
+            }
+        }
+    }
+}

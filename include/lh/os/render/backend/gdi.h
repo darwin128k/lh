@@ -47,7 +47,8 @@
 struct lh_os_render_backend_gdi_context
 {
     lh_os_render_backend_gdi_fields(lh_os_system_window_handle_t, lh_ptr, lh_ui_surface_t,
-                                    lh_os_system_gdiplus_frame_t, lh_ptr, lh_u32_t, lh_u64_t);
+                                    lh_os_system_gdiplus_frame_t, lh_ptr, lh_ui_canvas_sw_t, lh_u32_t,
+                                    lh_u64_t);
 };
 typedef struct lh_os_render_backend_gdi_context lh_os_render_backend_gdi_context_t;
 
@@ -115,6 +116,25 @@ lh_os_render_backend_gdi_context_get_draw_hdc(const lh_os_render_backend_gdi_con
 lh_void
 lh_os_render_backend_gdi_fill_area(lh_ptr hdc, int left, int top, int right, int bottom,
                                    const lh_ui_color_t *color);
+
+/**
+ * @brief End the GDI+ frame of @p self, if one is open.
+ */
+lh_void
+lh_os_render_backend_gdi_end_frame(lh_os_render_backend_gdi_context_t *self);
+
+/**
+ * @brief Zero the per-primitive call counts of @p self and start the frame clock.
+ */
+lh_void
+lh_os_render_backend_gdi_reset_counters(lh_os_render_backend_gdi_context_t *self);
+
+/**
+ * @brief The start of every `begin`: size the surface to the client, end a
+ *        stale GDI+ frame, reset the counters. False without a client size.
+ */
+lh_bool_t
+lh_os_render_backend_gdi_begin_surface(lh_os_render_backend_gdi_context_t *self);
 
 /**
  * @brief Backend `begin`: size the surface to the client, draw into it.
@@ -209,6 +229,55 @@ extern const lh_ui_canvas_backend_t lh_os_render_backend_gdi;
  *        is ::lh_null — the canvas falls back to ::lh_ui_canvas_fill_round_rect_by_rects.
  */
 extern const lh_ui_canvas_backend_t lh_os_render_backend_gdi_soft;
+
+/* ── Software table: lh_ui_canvas_sw on the surface pixels ──────────────── */
+
+/**
+ * @brief Backend `begin` of ::lh_os_render_backend_gdi_sw: size the surface,
+ *        then point the software context at its pixels (an empty pixmap,
+ *        so nothing is drawn, when there is no surface).
+ */
+lh_void
+lh_os_render_backend_gdi_sw_begin(lh_ptr context);
+
+/**
+ * @brief Backend `clear`: ::lh_ui_canvas_sw_clear on the surface pixels.
+ */
+lh_void
+lh_os_render_backend_gdi_sw_clear(lh_ptr context, const lh_ui_color_t *color);
+
+/**
+ * @brief Backend `fill_rect`: counted, then ::lh_ui_canvas_sw_fill_rect.
+ */
+lh_void
+lh_os_render_backend_gdi_sw_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *color);
+
+/**
+ * @brief Backend `fill_round_rect`: counted, then ::lh_ui_canvas_sw_fill_round_rect.
+ */
+lh_bool_t
+lh_os_render_backend_gdi_sw_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+                                            const lh_ui_color_t *color);
+
+/**
+ * @brief Backend `set_clip`: counted, then ::lh_ui_canvas_sw_set_clip.
+ */
+lh_void
+lh_os_render_backend_gdi_sw_set_clip(lh_ptr context, const lh_ui_rect_t *clip);
+
+/**
+ * @brief Backend `fill_mask`: counted, then ::lh_ui_canvas_sw_fill_mask.
+ */
+lh_bool_t
+lh_os_render_backend_gdi_sw_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,
+                                      const lh_ui_color_t *color);
+
+/**
+ * @brief GDI as a screen only: every primitive is drawn by
+ *        ::lh_ui_canvas_backend_sw into the surface pixels, `end` blits them
+ *        (::lh_os_render_backend_gdi_end). No GDI+ calls.
+ */
+extern const lh_ui_canvas_backend_t lh_os_render_backend_gdi_sw;
 
 LH_COMPILER_EXTERN_C_END
 

@@ -71,6 +71,14 @@ lh_byte_t
 lh_ui_radius_cover_from_distance(lh_s64_t r, lh_s64_t d);
 
 /**
+ * @brief ::lh_ui_radius_cover_from_distance for the squared distance @p d2:
+ *        `255` / `0` without a square root when the pixel lies wholly inside
+ *        / outside the one-pixel ramp (the same answer), the root otherwise.
+ */
+lh_byte_t
+lh_ui_radius_cover_from_square(lh_s64_t r, lh_s64_t d2);
+
+/**
  * @brief @p radius limited to `0 .. min(width, height) / 2` of @p rect.
  *
  * Negative gives `0`. ::LH_UI_RADIUS_CIRCLE gives half the short side.

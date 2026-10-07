@@ -43,27 +43,48 @@ lh_os_render_backend_gdi_fill_area(lh_ptr hdc, int left, int top, int right, int
 }
 
 lh_void
-lh_os_render_backend_gdi_begin(lh_ptr context)
+lh_os_render_backend_gdi_end_frame(lh_os_render_backend_gdi_context_t *self)
 {
-    lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
+    lh_assert_runtime_ref(self);
+    lh_return_if(lh_null_eq(self->frame));
+    lh_os_render_backend_gdi_plus_frame_end(self->frame);
+    self->frame = lh_null;
+}
+
+lh_void
+lh_os_render_backend_gdi_reset_counters(lh_os_render_backend_gdi_context_t *self)
+{
+    lh_assert_runtime_ref(self);
+    self->mask_calls = 0U;
+    self->rect_calls = 0U;
+    self->round_calls = 0U;
+    self->clip_calls = 0U;
+    self->frame_start_us = lh_os_tick_us();
+}
+
+lh_bool_t
+lh_os_render_backend_gdi_begin_surface(lh_os_render_backend_gdi_context_t *self)
+{
     int width;
     int height;
     lh_ui_size_t size;
+
+    lh_return_if(!lh_os_system_window_get_client_size(self->hwnd, lh_addr_of(width), lh_addr_of(height)),
+                 lh_bool_false);
+    lh_ui_size_init(lh_addr_of(size), lh_ui_scalar(width), lh_ui_scalar(height));
+    (void)lh_ui_surface_set_size(lh_addr_of(self->surface), size);
+    lh_os_render_backend_gdi_end_frame(self);
+    lh_os_render_backend_gdi_reset_counters(self);
+    return lh_bool_true;
+}
+
+lh_void
+lh_os_render_backend_gdi_begin(lh_ptr context)
+{
+    lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
     lh_ptr draw_hdc;
 
-    lh_return_if(!lh_os_system_window_get_client_size(gdi->hwnd, lh_addr_of(width), lh_addr_of(height)));
-    lh_ui_size_init(lh_addr_of(size), lh_ui_scalar(width), lh_ui_scalar(height));
-    (void)lh_ui_surface_set_size(lh_addr_of(gdi->surface), size);
-    if (lh_null_ne(gdi->frame))
-    {
-        lh_os_render_backend_gdi_plus_frame_end(gdi->frame);
-        gdi->frame = lh_null;
-    }
-    gdi->mask_calls = 0U;
-    gdi->rect_calls = 0U;
-    gdi->round_calls = 0U;
-    gdi->clip_calls = 0U;
-    gdi->frame_start_us = lh_os_tick_us();
+    lh_return_if(!lh_os_render_backend_gdi_begin_surface(gdi));
     draw_hdc = lh_os_render_backend_gdi_context_get_draw_hdc(gdi);
     lh_return_if(lh_null_eq(draw_hdc) || !lh_os_render_backend_gdi_plus_is_ready());
     gdi->frame = lh_os_render_backend_gdi_plus_frame_begin(draw_hdc);
@@ -74,11 +95,7 @@ lh_os_render_backend_gdi_end(lh_ptr context)
 {
     lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
 
-    if (lh_null_ne(gdi->frame))
-    {
-        lh_os_render_backend_gdi_plus_frame_end(gdi->frame);
-        gdi->frame = lh_null;
-    }
+    lh_os_render_backend_gdi_end_frame(gdi);
     lh_return_if(lh_null_eq(gdi->hdc));
     (void)lh_ui_surface_present(lh_addr_of(gdi->surface), gdi->hdc);
 }
@@ -230,6 +247,76 @@ const lh_ui_canvas_backend_t lh_os_render_backend_gdi_soft = {
     lh_os_render_backend_gdi_fill_mask,
 };
 
+/* ── Software table ──────────────────────────────────────────────────────── */
+
+lh_void
+lh_os_render_backend_gdi_sw_begin(lh_ptr context)
+{
+    lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
+    lh_ui_pixmap_t pixmap;
+
+    lh_ui_pixmap_init_empty(lh_addr_of(pixmap));
+    if (lh_os_render_backend_gdi_begin_surface(gdi))
+    {
+        (void)lh_ui_surface_get_pixmap(lh_addr_of(gdi->surface), lh_addr_of(pixmap));
+    }
+    lh_ui_canvas_sw_set_pixmap(lh_addr_of(gdi->sw), lh_addr_of(pixmap));
+}
+
+lh_void
+lh_os_render_backend_gdi_sw_clear(lh_ptr context, const lh_ui_color_t *color)
+{
+    lh_ui_canvas_sw_clear(lh_addr_of(lh_os_render_backend_gdi_context_from(context)->sw), color);
+}
+
+lh_void
+lh_os_render_backend_gdi_sw_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *color)
+{
+    lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
+
+    ++gdi->rect_calls;
+    lh_ui_canvas_sw_fill_rect(lh_addr_of(gdi->sw), rect, color);
+}
+
+lh_bool_t
+lh_os_render_backend_gdi_sw_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+                                            const lh_ui_color_t *color)
+{
+    lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
+
+    ++gdi->round_calls;
+    return lh_ui_canvas_sw_fill_round_rect(lh_addr_of(gdi->sw), rect, radius, color);
+}
+
+lh_void
+lh_os_render_backend_gdi_sw_set_clip(lh_ptr context, const lh_ui_rect_t *clip)
+{
+    lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
+
+    ++gdi->clip_calls;
+    lh_ui_canvas_sw_set_clip(lh_addr_of(gdi->sw), clip);
+}
+
+lh_bool_t
+lh_os_render_backend_gdi_sw_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,
+                                      const lh_ui_color_t *color)
+{
+    lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
+
+    ++gdi->mask_calls;
+    return lh_ui_canvas_sw_fill_mask(lh_addr_of(gdi->sw), origin, mask, color);
+}
+
+const lh_ui_canvas_backend_t lh_os_render_backend_gdi_sw = {
+    lh_os_render_backend_gdi_sw_begin,
+    lh_os_render_backend_gdi_end,
+    lh_os_render_backend_gdi_sw_clear,
+    lh_os_render_backend_gdi_sw_fill_rect,
+    lh_os_render_backend_gdi_sw_fill_round_rect,
+    lh_os_render_backend_gdi_sw_set_clip,
+    lh_os_render_backend_gdi_sw_fill_mask,
+};
+
 lh_void
 lh_os_render_backend_gdi_context_init(lh_os_render_backend_gdi_context_t *self)
 {
@@ -241,6 +328,7 @@ lh_os_render_backend_gdi_context_init(lh_os_render_backend_gdi_context_t *self)
     self->clip_region = lh_os_system_hdc_region_create();
     /* Without a region set_clip cannot clip, while the canvas would trust it to. */
     lh_assert_runtime_ref(self->clip_region);
+    lh_ui_canvas_sw_init(lh_addr_of(self->sw));
     self->mask_calls = 0U;
     self->rect_calls = 0U;
     self->round_calls = 0U;
@@ -252,12 +340,8 @@ lh_os_render_backend_gdi_context_init(lh_os_render_backend_gdi_context_t *self)
 lh_void
 lh_os_render_backend_gdi_context_deinit(lh_os_render_backend_gdi_context_t *self)
 {
-    lh_assert_runtime_ref(self);
-    if (lh_null_ne(self->frame))
-    {
-        lh_os_render_backend_gdi_plus_frame_end(self->frame);
-        self->frame = lh_null;
-    }
+    lh_os_render_backend_gdi_end_frame(self);
+    lh_ui_canvas_sw_init(lh_addr_of(self->sw));
     lh_ui_surface_deinit(lh_addr_of(self->surface));
     lh_os_system_hdc_region_destroy(self->clip_region);
     self->hwnd = LH_OS_SYSTEM_WINDOW_HANDLE_INVALID;

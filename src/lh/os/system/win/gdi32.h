@@ -129,6 +129,11 @@ CreateDIBSection(lh_os_system_win_hdc_t hdc, const lh_os_system_win_bitmapinfohe
                  lh_os_system_win_uint_t usage, lh_ptr *ppvBits, lh_os_system_win_handle_t hSection,
                  lh_os_system_win_dword_t offset);
 
+/* Finish queued GDI drawing of this thread, so DIB bits can be touched
+   directly. Present since Windows 95 / NT 3.1. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+GdiFlush(lh_void);
+
 /* `BitBlt` raster op: copy source to destination. */
 #define LH_OS_SYSTEM_WIN_SRCCOPY 0x00CC0020UL
 

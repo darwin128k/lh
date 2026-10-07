@@ -118,6 +118,40 @@ TEST(ui_color, over_two_transparent_is_zero)
     EXPECT_TRUE(lh_ui_color_equals(lh_addr_of(out), lh_addr_of(zero)));
 }
 
+TEST(ui_color, argb_is_the_pixel_word_and_round_trips)
+{
+    lh_ui_color_t c;
+    lh_ui_color_t back;
+
+    lh_ui_color_init(lh_addr_of(c), 0x11, 0x22, 0x33, 0x44);
+    EXPECT_EQ(lh_ui_color_get_argb(lh_addr_of(c)), 0x44112233u);
+    lh_ui_color_init_argb(lh_addr_of(back), 0x44112233u);
+    EXPECT_TRUE(lh_ui_color_equals(lh_addr_of(back), lh_addr_of(c)));
+}
+
+/* The fast path must not change a single pixel: every alpha, a grid of channels. */
+TEST(ui_color, over_an_opaque_dst_matches_the_general_formula)
+{
+    for (int a = 0; a <= 255; ++a)
+    {
+        for (int s = 0; s <= 255; s += 15)
+        {
+            for (int d = 0; d <= 255; d += 15)
+            {
+                lh_ui_color_t dst;
+                lh_ui_color_t src;
+                lh_ui_color_init(lh_addr_of(dst), static_cast<lh_u8_t>(d), static_cast<lh_u8_t>(255 - d),
+                                 static_cast<lh_u8_t>(d / 2), 255);
+                lh_ui_color_init(lh_addr_of(src), static_cast<lh_u8_t>(s), static_cast<lh_u8_t>(s / 3),
+                                 static_cast<lh_u8_t>(255 - s), static_cast<lh_u8_t>(a));
+                const lh_ui_color_t fast = lh_ui_color_over_opaque(lh_addr_of(dst), lh_addr_of(src));
+                const lh_ui_color_t slow = lh_ui_color_over_translucent(lh_addr_of(dst), lh_addr_of(src));
+                ASSERT_TRUE(lh_ui_color_equals(lh_addr_of(fast), lh_addr_of(slow))) << a << " " << s << " " << d;
+            }
+        }
+    }
+}
+
 TEST(ui_color, equals_compares_channels)
 {
     lh_ui_color_t a;

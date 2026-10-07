@@ -10,6 +10,7 @@
 #include <lh/ui/size.h>
 #include <lh/ui/surface.h>
 #include <lh/util/addr.h>
+#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 lh_void
@@ -70,6 +71,18 @@ lh_ui_surface_get_draw_target(const lh_ui_surface_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_os_system_surface_get_draw_target(self->handle);
+}
+
+lh_bool_t
+lh_ui_surface_get_pixmap(const lh_ui_surface_t *self, lh_ui_pixmap_t *pixmap)
+{
+    const lh_s32_t width = lh_cast_static(lh_s32_t, lh_ui_size_get_width(lh_addr_of(self->size)));
+    lh_u32_t *pixels = lh_ptr_rcast(lh_u32_t, lh_os_system_surface_get_pixels(self->handle));
+
+    lh_return_if(lh_null_eq(pixels), lh_bool_false);
+    lh_ui_pixmap_init(pixmap, pixels, width,
+                      lh_cast_static(lh_s32_t, lh_ui_size_get_height(lh_addr_of(self->size))), width);
+    return lh_bool_true;
 }
 
 lh_bool_t

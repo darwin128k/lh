@@ -60,6 +60,17 @@ lh_ptr
 lh_os_system_surface_get_draw_target(lh_os_system_surface_handle_t handle);
 
 /**
+ * @brief The pixels of @p handle: `height` top-down rows of `width` 32-bit
+ *        words `0xAARRGGBB` (Win32: the DIB section bits, alpha ignored by
+ *        the blit), or ::lh_null when invalid.
+ *
+ * Finishes queued drawing on the surface first (Win32 `GdiFlush`), so the
+ * words are current and safe to write.
+ */
+lh_ptr
+lh_os_system_surface_get_pixels(lh_os_system_surface_handle_t handle);
+
+/**
  * @brief Copy the whole surface of @p handle into @p dest at `(0, 0)`.
  *
  * @p dest is a platform paint target (Win32: window/`BeginPaint` `HDC`).

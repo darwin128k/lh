@@ -150,6 +150,8 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_TEST_SRC_PATH}/lh/ui/entity/label.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/entity/scrollbar.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/view.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/pixmap.cpp
+            ${LH_TEST_SRC_PATH}/lh/ui/canvas/sw.cpp
     )
 endif ()
 

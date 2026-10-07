@@ -117,6 +117,29 @@ lh_ui_color_t
 lh_ui_color_over(const lh_ui_color_t *dst, const lh_ui_color_t *color);
 
 /**
+ * @brief ::lh_ui_color_over for any @p dst: weights, then each channel divided
+ *        back by the result alpha.
+ */
+lh_ui_color_t
+lh_ui_color_over_translucent(const lh_ui_color_t *dst, const lh_ui_color_t *color);
+
+/**
+ * @brief ::lh_ui_color_over for an opaque @p dst: `(c * a + d * (255 - a)) / 255`
+ *        per channel, rounded, alpha 255. The same result as
+ *        ::lh_ui_color_over_translucent, with a constant divisor (the common
+ *        case: painting over a cleared background).
+ */
+lh_ui_color_t
+lh_ui_color_over_opaque(const lh_ui_color_t *dst, const lh_ui_color_t *color);
+
+/**
+ * @brief One channel of ::lh_ui_color_over_opaque: @p src at alpha @p a over
+ *        opaque @p dst.
+ */
+lh_ui_color_channel_t
+lh_ui_color_over_opaque_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t a);
+
+/**
  * @brief Weight of the painted color in ::lh_ui_color_over: `a * 255`.
  */
 lh_u32_t
@@ -165,6 +188,21 @@ lh_ui_color_with_coverage(const lh_ui_color_t *color, lh_byte_t coverage);
  */
 lh_ui_color_channel_t
 lh_ui_color_hex_channel(lh_u32_t hex, lh_u32_t shift);
+
+/**
+ * @brief Set @p self from an ARGB8888 pixel `0xAARRGGBB` (straight alpha):
+ *        the ::lh_ui_pixmap_t pixel word, bytes B, G, R, A in memory on a
+ *        little-endian target (a Win32 32-bit DIB).
+ */
+lh_void
+lh_ui_color_init_argb(lh_ui_color_t *self, lh_u32_t argb);
+
+/**
+ * @brief @p self as an ARGB8888 pixel `0xAARRGGBB`; the inverse of
+ *        ::lh_ui_color_init_argb.
+ */
+lh_u32_t
+lh_ui_color_get_argb(const lh_ui_color_t *self);
 
 LH_COMPILER_EXTERN_C_END
 
