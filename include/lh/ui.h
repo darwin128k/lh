@@ -32,6 +32,7 @@
 #include <lh/ui/toggle.h>
 #include <lh/ui/font.h>
 #include <lh/ui/gradient.h>
+#include <lh/ui/image.h>
 #include <lh/ui/insets.h>
 #include <lh/ui/key.h>
 #include <lh/ui/layout.h>

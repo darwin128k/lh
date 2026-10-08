@@ -42,7 +42,8 @@ struct draw_log
     int clip_count;    /* set_clip calls with a rect */
     int unclip_count;  /* set_clip calls with null */
 
-    lh_ui_rect_t masks[capacity]; /* each fill_mask: origin and mask size */
+    lh_ui_rect_t masks[capacity];     /* each fill_mask: origin and mask size */
+    lh_ui_color_t mask_colors[capacity]; /* each fill_mask: the colour it was given */
     int mask_count;
 
     lh_ui_rect_t areas[capacity]; /* each begin_area: the strip it was given */
@@ -95,10 +96,10 @@ draw_log_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask
                    const lh_ui_color_t *color)
 {
     draw_log *log = lh_ptr_rcast(draw_log, context);
-    (void)color;
     if (log->mask_count < draw_log::capacity)
     {
         log->masks[log->mask_count] = lh_ui_mask_get_rect(mask, *origin);
+        log->mask_colors[log->mask_count] = *color;
     }
     ++log->mask_count;
     return lh_bool_true;

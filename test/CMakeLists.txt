@@ -257,6 +257,7 @@ set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/toggle.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/font.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/gradient.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/image.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/insets.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/layout.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/mask.cpp
