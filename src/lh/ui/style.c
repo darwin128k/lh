@@ -26,6 +26,8 @@ lh_ui_style_init(lh_ui_style_t *self)
        alignment was a thing a style could say. */
     self->align_h = lh_ui_text_align_h_left;
     self->align_v = lh_ui_text_align_v_top;
+    lh_ui_shadow_init(lh_addr_of(self->shadow));
+    self->pressed = lh_null;
 }
 
 const lh_ui_paint_t *
@@ -150,4 +152,37 @@ lh_ui_style_set_align_v(lh_ui_style_t *self, lh_ui_text_align_v_t align)
 {
     lh_assert_runtime_ref(self);
     self->align_v = align;
+}
+
+const lh_ui_shadow_t *
+lh_ui_style_get_shadow(const lh_ui_style_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->shadow);
+}
+
+lh_void
+lh_ui_style_set_shadow(lh_ui_style_t *self, const lh_ui_shadow_t *shadow)
+{
+    lh_assert_runtime_ref(self);
+    if (lh_null_eq(shadow))
+    {
+        lh_ui_shadow_init(lh_addr_of(self->shadow));
+        return;
+    }
+    self->shadow = *shadow;
+}
+
+const lh_ui_style_t *
+lh_ui_style_get_pressed(const lh_ui_style_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->pressed;
+}
+
+lh_void
+lh_ui_style_set_pressed(lh_ui_style_t *self, const lh_ui_style_t *pressed)
+{
+    lh_assert_runtime_ref(self);
+    self->pressed = pressed;
 }

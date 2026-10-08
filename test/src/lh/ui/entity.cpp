@@ -6,13 +6,16 @@
 #include <lh/expect/death.h>
 #include <lh/null.h>
 #include <lh/ui/canvas.h>
+#include <lh/ui/canvas/sw.h>
 #include <lh/ui/color.h>
 #include <lh/ui/entity.h>
 #include <lh/ui/entity/container.h>
 #include <lh/ui/entity/event.h>
+#include <lh/ui/pixmap.h>
 #include <lh/ui/point.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/paint.h>
+#include <lh/ui/shadow.h>
 #include <lh/ui/style.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -138,6 +141,75 @@ count_all(const struct lh_ui_entity *entity, lh_ptr context)
     (void)entity;
     ++*lh_ptr_rcast(int, context);
     return lh_bool_true;
+}
+
+const int g_card_side = 64;
+
+/* One card on a real pixmap: the only way to see where a shadow landed is to
+   look at the pixels it landed on. */
+struct card_fixture
+{
+    lh_u32_t words[g_card_side * g_card_side];
+    lh_ui_pixmap_t pixmap;
+    lh_ui_canvas_sw_t sw;
+    lh_ui_canvas_t canvas;
+    lh_ui_style_t style;
+    lh_ui_style_t pressed;
+    lh_ui_entity_t card;
+    lh_ui_color_t fill;
+
+    card_fixture()
+    {
+        lh_ui_rect_t rect;
+        lh_ui_paint_t paint;
+        lh_ui_pixmap_format_t format = lh_ui_pixmap_format_argb8888;
+
+        for (lh_u32_t &w : words)
+        {
+            w = 0x00204060u; /* the background, so a shadow is a change of it */
+        }
+        lh_ui_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, words), lh_ui_scalar(g_card_side),
+                          lh_ui_scalar(g_card_side), lh_ui_scalar(g_card_side * 4), format);
+        lh_ui_canvas_sw_init(lh_addr_of(sw));
+        lh_ui_canvas_sw_set_pixmap(lh_addr_of(sw), lh_addr_of(pixmap));
+        lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_sw), lh_addr_of(sw));
+
+        lh_ui_color_init(lh_addr_of(fill), 97, 175, 239, 255);
+        lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(fill));
+        lh_ui_style_init(lh_addr_of(style));
+        lh_ui_style_set_fill(lh_addr_of(style), lh_addr_of(paint));
+        lh_ui_style_set_radius(lh_addr_of(style), lh_ui_scalar(4));
+        lh_ui_style_init(lh_addr_of(pressed));
+        lh_ui_rect_init(lh_addr_of(rect), 16, 16, 32, 32);
+        lh_ui_entity_init(lh_addr_of(card), rect);
+        lh_ui_entity_set_style(lh_addr_of(card), lh_addr_of(style));
+    }
+
+    lh_u32_t
+    at(int x, int y) const
+    {
+        return words[y * g_card_side + x];
+    }
+
+    lh_void
+    paint()
+    {
+        /* A frame clears what it draws over, so one fixture drawing twice shows
+           the second frame and not the first one underneath it. */
+        for (lh_u32_t &w : words)
+        {
+            w = 0x00204060u;
+        }
+        lh_ui_canvas_begin(lh_addr_of(canvas));
+        lh_ui_entity_draw(lh_addr_of(card), lh_addr_of(canvas));
+        lh_ui_canvas_end(lh_addr_of(canvas));
+    }
+};
+
+lh_bool_t
+color_is(lh_u32_t argb, int r, int g, int b)
+{
+    return (argb & 0x00FFFFFFu) == (lh_u32_t)((r << 16) | (g << 8) | b);
 }
 } // namespace
 
@@ -1026,4 +1098,142 @@ TEST(entity, padding_and_radius_come_from_the_style)
     padding = lh_ui_entity_get_padding(lh_addr_of(e));
     EXPECT_EQ(lh_ui_insets_get_bottom(lh_addr_of(padding)), lh_ui_scalar(3));
     EXPECT_EQ(lh_ui_entity_get_radius(lh_addr_of(e)), lh_ui_scalar(4));
+}
+
+/* ── The look a press may change ────────────────────────────────────────────── */
+
+/* A card's own pixels are never darkened by its own shadow. That is a property of the
+   shadow and not of the order the two are drawn in: ::lh_ui_shadow_alpha_at paints
+   nothing inside the box, so there is nothing of it to land on a fill drawn later. It is
+   what a card has to be able to rely on. */
+TEST(entity, a_card_casts_its_shadow_outside_its_own_fill)
+{
+    card_fixture f;
+    lh_ui_shadow_t shadow;
+
+    lh_ui_shadow_init(lh_addr_of(shadow));
+    lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 200});
+    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(8));
+    lh_ui_shadow_set_offset(lh_addr_of(shadow), lh_ui_scalar(0), lh_ui_scalar(4));
+    lh_ui_style_set_shadow(lh_addr_of(f.style), lh_addr_of(shadow));
+
+    f.paint();
+
+    /* Inside the card: the fill, untouched. */
+    EXPECT_TRUE(color_is(f.at(32, 32), 97, 175, 239)) << "the shadow reached the fill";
+    /* Below it, where a light from overhead throws it: darker than the ground. */
+    EXPECT_FALSE(color_is(f.at(32, 51), 32, 64, 96)) << "no shadow under the card";
+    /* And far from it: the ground is the ground. */
+    EXPECT_TRUE(color_is(f.at(2, 2), 32, 64, 96));
+}
+
+/* A press may change how an entity looks without one class per widget: the
+   pressed style is what painting reads, and nothing else changes. */
+TEST(entity, a_pressed_card_paints_its_pressed_style_and_picks_it_up_again)
+{
+    card_fixture f;
+    lh_ui_paint_t paint;
+    lh_ui_color_t hot;
+
+    lh_ui_color_init(lh_addr_of(hot), 30, 60, 90, 255);
+    lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(hot));
+    lh_ui_style_set_fill(lh_addr_of(f.pressed), lh_addr_of(paint));
+    lh_ui_style_set_radius(lh_addr_of(f.pressed), lh_ui_scalar(20));
+    lh_ui_style_set_pressed(lh_addr_of(f.style), lh_addr_of(f.pressed));
+
+    f.paint();
+    EXPECT_TRUE(color_is(f.at(32, 32), 97, 175, 239)) << "not pressed yet";
+    /* The corner of the box: painted by the radius 4 fill. */
+    EXPECT_TRUE(color_is(f.at(17, 17), 97, 175, 239));
+
+    lh_ui_entity_set_pressed(lh_addr_of(f.card), lh_bool_true);
+    EXPECT_TRUE(lh_ui_entity_is_pressed(lh_addr_of(f.card)));
+    EXPECT_EQ(lh_ui_entity_get_style_now(lh_addr_of(f.card)), lh_addr_of(f.pressed));
+    f.paint();
+    EXPECT_TRUE(color_is(f.at(32, 32), 30, 60, 90)) << "the pressed style was not painted";
+    /* Rounder while pressed, which is the whole point of it: the same corner the
+       radius 4 fill covered is now outside a radius 20 one. */
+    EXPECT_TRUE(color_is(f.at(17, 17), 32, 64, 96)) << "the corner stayed square";
+
+    lh_ui_entity_set_pressed(lh_addr_of(f.card), lh_bool_false);
+    f.paint();
+    EXPECT_TRUE(color_is(f.at(32, 32), 97, 175, 239)) << "not picked up again";
+    EXPECT_TRUE(color_is(f.at(17, 17), 97, 175, 239));
+}
+
+/* The clip of a clipping entity follows the shape it paints, and the fill is
+   that shape too: a pill pressed onto a square cuts a corner the square never
+   did. Reading the own radius in lh_ui_entity_push_children would leave the
+   child hanging into a corner the pressed fill never covered — the one pixel
+   this checks. */
+TEST(entity, a_pressed_parent_cuts_its_children_along_the_shape_it_paints)
+{
+    card_fixture f;
+    lh_ui_entity_container_t box;
+    lh_ui_entity_t child;
+    lh_ui_rect_t rect;
+    lh_ui_style_t child_style;
+    lh_ui_paint_t paint;
+    lh_ui_color_t child_color;
+
+    lh_ui_rect_init(lh_addr_of(rect), 16, 16, 32, 32);
+    /* The box has no fill of its own: the card below it is what the corner
+       shows once the box stops covering it. */
+    lh_ui_style_set_radius(lh_addr_of(f.style), lh_ui_scalar(0));
+    lh_ui_style_set_radius(lh_addr_of(f.pressed), lh_ui_scalar(20));
+    lh_ui_style_set_pressed(lh_addr_of(f.style), lh_addr_of(f.pressed));
+    lh_ui_entity_container_init(lh_addr_of(box), rect);
+    lh_ui_entity_set_style(lh_ui_entity_container_as_entity(lh_addr_of(box)), lh_addr_of(f.style));
+    lh_ui_style_init(lh_addr_of(child_style));
+    lh_ui_color_init(lh_addr_of(child_color), 200, 60, 90, 255);
+    lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(child_color));
+    lh_ui_style_set_fill(lh_addr_of(child_style), lh_addr_of(paint));
+    lh_ui_entity_init(lh_addr_of(child), rect);
+    lh_ui_entity_set_style(lh_addr_of(child), lh_addr_of(child_style));
+    lh_ui_entity_add_child(lh_addr_of(f.card), lh_ui_entity_container_as_entity(lh_addr_of(box)));
+    lh_ui_entity_add_child(lh_ui_entity_container_as_entity(lh_addr_of(box)), lh_addr_of(child));
+
+    f.paint();
+    EXPECT_TRUE(color_is(f.at(16, 16), 200, 60, 90)) << "the square box does not cut its corner";
+
+    lh_ui_entity_set_pressed(lh_ui_entity_container_as_entity(lh_addr_of(box)), lh_bool_true);
+    f.paint();
+    EXPECT_TRUE(color_is(f.at(16, 16), 97, 175, 239))
+        << "the pressed pill left its child hanging in the corner it cut off";
+
+    lh_ui_entity_set_pressed(lh_ui_entity_container_as_entity(lh_addr_of(box)), lh_bool_false);
+    f.paint();
+    EXPECT_TRUE(color_is(f.at(16, 16), 200, 60, 90)) << "the corner did not come back";
+}
+
+/* The look may change, the shape may not: what a press paints and what it hits
+   are the same entity, so nothing moves under the pointer and a press cannot
+   make a second click land where the first one did. */
+TEST(entity, a_press_does_not_change_the_shape_it_hits)
+{
+    card_fixture f;
+
+    lh_ui_style_set_pressed(lh_addr_of(f.style), lh_addr_of(f.pressed));
+    lh_ui_point_t corner;
+
+    lh_ui_point_init(lh_addr_of(corner), 17, 17);
+    EXPECT_TRUE(lh_ui_entity_contains_point(lh_addr_of(f.card), corner)) << "the radius 4 corner is hit";
+    lh_ui_entity_set_pressed(lh_addr_of(f.card), lh_bool_true);
+    EXPECT_TRUE(lh_ui_entity_contains_point(lh_addr_of(f.card), corner))
+        << "a press moved the hit area out from under the pointer";
+    EXPECT_EQ(lh_ui_entity_get_radius(lh_addr_of(f.card)), lh_ui_scalar(4));
+}
+
+/* No pressed style, no difference: the flag is a look, and an entity with no look
+   to change looks the same either way. */
+TEST(entity, a_card_with_no_pressed_style_paints_the_same_pressed_or_not)
+{
+    card_fixture f;
+
+    f.paint();
+    const lh_u32_t before = f.at(32, 32);
+    lh_ui_entity_set_pressed(lh_addr_of(f.card), lh_bool_true);
+    EXPECT_EQ(lh_ui_entity_get_style_now(lh_addr_of(f.card)), lh_addr_of(f.style));
+    f.paint();
+    EXPECT_EQ(f.at(32, 32), before);
 }

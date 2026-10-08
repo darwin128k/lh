@@ -33,6 +33,13 @@ lh_ui_shadow_get_color(const lh_ui_shadow_t *self)
     return self->color;
 }
 
+lh_bool_t
+lh_ui_shadow_is_empty(const lh_ui_shadow_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->spread <= 0 || lh_ui_color_get_a(&self->color) == 0 ? lh_bool_true : lh_bool_false;
+}
+
 lh_void
 lh_ui_shadow_set_color(lh_ui_shadow_t *self, lh_ui_color_t color)
 {

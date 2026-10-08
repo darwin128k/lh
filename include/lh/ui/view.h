@@ -399,9 +399,37 @@ lh_ui_view_start_pointer(lh_ui_view_t *self, lh_ui_point_t point);
 
 /**
  * @brief The press reaching @p hit: press event, focus, thumb grab, drag box.
+ *
+ * Also presses it (::lh_ui_entity_set_pressed), so an entity paints its pressed
+ * style and the caller has the damage to show it.
  */
 lh_void
 lh_ui_view_press_on(lh_ui_view_t *self, lh_ui_entity_t *hit, lh_ui_point_t point);
+
+/**
+ * @brief Press @p entity or let it go, damaging what either look painted
+ *        (::lh_ui_view_damage_pressed). Nothing for a ::lh_null @p entity or a
+ *        flag that is already what it is asked for.
+ *
+ * What ::lh_ui_view_press and ::lh_ui_view_release call; an app that drives the
+ * pointer itself may call it too. The view clears a press that is still open when
+ * a new one starts, so a pressed look cannot stick.
+ */
+lh_void
+lh_ui_view_set_pressed(lh_ui_view_t *self, lh_ui_entity_t *entity, lh_bool_t pressed);
+
+/**
+ * @brief Record in the canvas damage the rect of @p entity grown by whichever of
+ *        its two shadows (::lh_ui_style_get_shadow of its style and of its
+ *        pressed style) reaches further.
+ *
+ * Both looks and not the current one: a press changes both what is drawn and
+ * what stops being drawn, and a shadow reaches past its own box, so the rect
+ * alone would leave the old fringe on the surface. The caller invalidates, as it
+ * does for every other damage here.
+ */
+lh_void
+lh_ui_view_damage_pressed(lh_ui_view_t *self, const lh_ui_entity_t *entity);
 
 /**
  * @brief True when @p point is ::LH_UI_VIEW_DRAG_THRESHOLD or more from the press.
@@ -429,8 +457,8 @@ lh_void
 lh_ui_view_finish_gesture(lh_ui_view_t *self);
 
 /**
- * @brief Start a pointer press: grab a scrollbar thumb when hit, else mark
- *        pressed for a later click.
+ * @brief Start a pointer press: let go of a press still open, grab a scrollbar
+ *        thumb when hit, else mark pressed for a later click.
  */
 lh_void
 lh_ui_view_press(lh_ui_view_t *self, lh_ui_point_t point);
@@ -443,7 +471,8 @@ lh_bool_t
 lh_ui_view_move(lh_ui_view_t *self, lh_ui_point_t point);
 
 /**
- * @brief End a pointer press: clear grab; if not dragged, ::lh_ui_view_click.
+ * @brief End a pointer press: clear grab and let go of the pressed entity
+ *        (::lh_ui_view_set_pressed); if not dragged, ::lh_ui_view_click.
  *
  * Returns the clicked entity, or ::lh_null.
  */

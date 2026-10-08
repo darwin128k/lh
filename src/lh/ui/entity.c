@@ -24,6 +24,7 @@ lh_ui_entity_init(lh_ui_entity_t *self, lh_ui_rect_t rect)
     self->style = lh_null;
     self->class = lh_addr_of(lh_ui_entity_class);
     self->hidden = lh_bool_false;
+    self->pressed = lh_bool_false;
     self->parent = lh_null;
     lh_list_init(lh_addr_of(self->children));
     lh_list_node_init(lh_addr_of(self->link));
@@ -63,7 +64,7 @@ lh_ui_entity_get_fill_color(const lh_ui_entity_t *self)
     const lh_ui_style_t *style;
 
     lh_assert_runtime_ref(self);
-    style = self->style;
+    style = lh_ui_entity_get_style_now(self);
     if (lh_null_eq(style))
     {
         return lh_null;
@@ -71,11 +72,54 @@ lh_ui_entity_get_fill_color(const lh_ui_entity_t *self)
     return lh_ui_style_get_fill_color(style);
 }
 
+lh_bool_t
+lh_ui_entity_is_pressed(const lh_ui_entity_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->pressed;
+}
+
+lh_void
+lh_ui_entity_set_pressed(lh_ui_entity_t *self, lh_bool_t pressed)
+{
+    lh_assert_runtime_ref(self);
+    self->pressed = pressed;
+}
+
+const lh_ui_style_t *
+lh_ui_entity_get_style_now(const lh_ui_entity_t *self)
+{
+    const lh_ui_style_t *style;
+
+    lh_assert_runtime_ref(self);
+    style = self->style;
+    /* Painting is the only thing the pressed style is asked for, so it cannot
+       change where anything lands. What a press *hits* keeps to the own radius
+       (::lh_ui_entity_contains_point): a hit test runs before the press that
+       asked for it, so a shape read from the pressed flag would answer one
+       frame too late. */
+    if (!self->pressed || lh_null_eq(style))
+    {
+        return style;
+    }
+    return lh_null_eq(lh_ui_style_get_pressed(style)) ? style : lh_ui_style_get_pressed(style);
+}
+
 lh_ui_scalar_t
 lh_ui_entity_get_radius(const lh_ui_entity_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_null_eq(self->style) ? lh_ui_scalar(0) : lh_ui_style_get_radius(self->style);
+}
+
+lh_ui_scalar_t
+lh_ui_entity_get_radius_now(const lh_ui_entity_t *self)
+{
+    const lh_ui_style_t *style;
+
+    lh_assert_runtime_ref(self);
+    style = lh_ui_entity_get_style_now(self);
+    return lh_null_eq(style) ? lh_ui_scalar(0) : lh_ui_style_get_radius(style);
 }
 
 lh_ui_insets_t
@@ -498,7 +542,7 @@ lh_ui_entity_push_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
     rect = self->rect;
     lh_ui_canvas_push_round(canvas, lh_ui_entity_transform_get_offset(lh_addr_of(transform)),
                             lh_ui_entity_transform_is_clip(lh_addr_of(transform)) ? lh_addr_of(rect) : lh_null,
-                            lh_ui_entity_get_radius(self));
+                            lh_ui_entity_get_radius_now(self));
     return lh_bool_true;
 }
 

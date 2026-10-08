@@ -99,7 +99,10 @@ lh_ui_entity_label_get_font(const lh_ui_entity_label_t *self)
 const lh_ui_color_t *
 lh_ui_entity_label_get_text_color(const lh_ui_entity_label_t *self)
 {
-    const lh_ui_style_t *style = lh_ui_entity_get_style(lh_addr_of(self->container.entity));
+    /* The paint of the text follows a press, its place does not: the origin
+       below reads the font, the padding and the alignment from the entity's own
+       style, so nothing moves under the pointer. */
+    const lh_ui_style_t *style = lh_ui_entity_get_style_now(lh_addr_of(self->container.entity));
 
     return lh_null_eq(style) ? lh_null : lh_ui_style_get_text_color(style);
 }

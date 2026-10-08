@@ -2,10 +2,13 @@
  * @file style.h
  * @brief How an entity is painted: ::lh_ui_style_t.
  *
- * Holds a fill ::lh_ui_paint_t by value, a corner radius, and how text is
- * drawn: a font (not owned) and a text paint. Entities point at a style, so
- * one style is shared by every entity that looks the same. Outline and the
- * rest come later.
+ * Holds a fill ::lh_ui_paint_t by value, a corner radius, a shadow cast under
+ * that fill, and how text is drawn: a font (not owned) and a text paint.
+ * Entities point at a style, so one style is shared by every entity that looks
+ * the same. `pressed` is the one style that is chosen rather than shared: an
+ * entity that is pressed paints it instead (::lh_ui_entity_is_pressed), and it
+ * may change how the entity looks — fill, radius, shadow, text paint — not its
+ * geometry. Outline and the rest come later.
  */
 
 #ifndef LH_UI_STYLE_H
@@ -18,6 +21,7 @@
 #include <lh/ui/insets.h>
 #include <lh/ui/radius.h>
 #include <lh/ui/scalar.h>
+#include <lh/ui/shadow.h>
 #include <lh/ui/style/fields.h>
 #include <lh/ui/text/align.h>
 #include <lh/void.h>
@@ -29,7 +33,7 @@
  */
 struct lh_ui_style
 {
-    lh_ui_style_fields(lh_ui_paint_t, lh_ui_scalar_t, lh_ui_font_t, lh_ui_insets_t);
+    lh_ui_style_fields(lh_ui_paint_t, lh_ui_scalar_t, lh_ui_font_t, lh_ui_insets_t, lh_ui_shadow_t);
 };
 typedef struct lh_ui_style lh_ui_style_t;
 
@@ -161,6 +165,41 @@ lh_ui_style_get_align_v(const lh_ui_style_t *self);
  */
 lh_void
 lh_ui_style_set_align_v(lh_ui_style_t *self, lh_ui_text_align_v_t align);
+
+/**
+ * @brief Shadow cast under the fill of @p self. Never ::lh_null; the empty one
+ *        casts nothing (::lh_ui_shadow_is_empty).
+ */
+const lh_ui_shadow_t *
+lh_ui_style_get_shadow(const lh_ui_style_t *self);
+
+/**
+ * @brief Replace the shadow of @p self with a copy of @p shadow.
+ *
+ * Copied, like the paints. ::lh_null clears it to the empty shadow.
+ */
+lh_void
+lh_ui_style_set_shadow(lh_ui_style_t *self, const lh_ui_shadow_t *shadow);
+
+/**
+ * @brief Style an entity painted while it is pressed, or ::lh_null for none.
+ *
+ * Not copied: it is a style like any other, and it has to outlive every entity
+ * that points at it — the same rule as ::lh_ui_entity_set_style. It may change
+ * how the entity looks (fill, radius, shadow, text paint) and not its geometry:
+ * padding, font and alignment are read from the entity's own style, so nothing
+ * moves under the pointer.
+ */
+const lh_ui_style_t *
+lh_ui_style_get_pressed(const lh_ui_style_t *self);
+
+/**
+ * @brief Replace the pressed style of @p self with @p pressed (not copied).
+ *
+ * ::lh_null clears it, and an entity with none looks the same pressed as not.
+ */
+lh_void
+lh_ui_style_set_pressed(lh_ui_style_t *self, const lh_ui_style_t *pressed);
 
 LH_COMPILER_EXTERN_C_END
 

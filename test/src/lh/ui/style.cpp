@@ -3,6 +3,7 @@
 #include <lh/null.h>
 #include <lh/ui/color.h>
 #include <lh/ui/paint.h>
+#include <lh/ui/shadow.h>
 #include <lh/ui/style.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -95,4 +96,53 @@ TEST(ui_style, align_round_trips)
     lh_ui_style_set_align_v(lh_addr_of(style), lh_ui_text_align_v_bottom);
     EXPECT_EQ(lh_ui_style_get_align_h(lh_addr_of(style)), lh_ui_text_align_h_right);
     EXPECT_EQ(lh_ui_style_get_align_v(lh_addr_of(style)), lh_ui_text_align_v_bottom);
+}
+
+/* A fresh style casts no shadow, so an entity that never asked for one pays one
+   question per frame and nothing else. */
+TEST(ui_style, init_casts_no_shadow)
+{
+    lh_ui_style_t style;
+
+    lh_ui_style_init(lh_addr_of(style));
+    EXPECT_TRUE(lh_ui_shadow_is_empty(lh_ui_style_get_shadow(lh_addr_of(style))));
+    EXPECT_EQ(lh_ui_shadow_get_spread(lh_ui_style_get_shadow(lh_addr_of(style))), lh_ui_scalar(0));
+}
+
+TEST(ui_style, set_shadow_copies_it_and_null_clears)
+{
+    lh_ui_shadow_t shadow;
+    lh_ui_style_t style;
+
+    lh_ui_shadow_init(lh_addr_of(shadow));
+    lh_ui_shadow_set_color(lh_addr_of(shadow), (lh_ui_color_t){0, 0, 0, 150});
+    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(14));
+    lh_ui_shadow_set_offset(lh_addr_of(shadow), lh_ui_scalar(0), lh_ui_scalar(4));
+    lh_ui_style_init(lh_addr_of(style));
+    lh_ui_style_set_shadow(lh_addr_of(style), lh_addr_of(shadow));
+
+    /* Copied, like the paints: the style is not a window onto somebody's value. */
+    EXPECT_EQ(lh_ui_shadow_get_spread(lh_ui_style_get_shadow(lh_addr_of(style))), lh_ui_scalar(14));
+    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(99));
+    EXPECT_EQ(lh_ui_shadow_get_spread(lh_ui_style_get_shadow(lh_addr_of(style))), lh_ui_scalar(14));
+
+    lh_ui_style_set_shadow(lh_addr_of(style), lh_ptr_rcast(const lh_ui_shadow_t, lh_null));
+    EXPECT_TRUE(lh_ui_shadow_is_empty(lh_ui_style_get_shadow(lh_addr_of(style))));
+}
+
+TEST(ui_style, a_fresh_style_has_no_pressed_look)
+{
+    lh_ui_style_t pressed;
+    lh_ui_style_t style;
+
+    lh_ui_style_init(lh_addr_of(pressed));
+    lh_ui_style_init(lh_addr_of(style));
+    EXPECT_TRUE(lh_null_eq(lh_ui_style_get_pressed(lh_addr_of(style))));
+
+    /* Not copied, and not owned: the pressed style is a style like any other and
+       has to outlive every entity that points at it. */
+    lh_ui_style_set_pressed(lh_addr_of(style), lh_addr_of(pressed));
+    EXPECT_EQ(lh_ui_style_get_pressed(lh_addr_of(style)), lh_addr_of(pressed));
+    lh_ui_style_set_pressed(lh_addr_of(style), lh_ptr_rcast(const lh_ui_style_t, lh_null));
+    EXPECT_TRUE(lh_null_eq(lh_ui_style_get_pressed(lh_addr_of(style))));
 }

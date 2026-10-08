@@ -11,6 +11,7 @@
 #include <lh/ui/key.h>
 #include <lh/ui/point.h>
 #include <lh/ui/rect.h>
+#include <lh/ui/shadow.h>
 #include <lh/ui/size.h>
 #include <lh/ui/view.h>
 #include <lh/util/addr.h>
@@ -499,6 +500,10 @@ lh_void
 lh_ui_view_start_pointer(lh_ui_view_t *self, lh_ui_point_t point)
 {
     lh_ui_view_stop_throw(self);
+    /* A press still open when a new one starts (a second pointer down, or an
+       app that went away without a release) is let go rather than left pressed
+       under nothing — that is the one way a pressed look could stick. */
+    lh_ui_view_set_pressed(self, self->target, lh_bool_false);
     lh_ui_view_reset_pointer(self);
     self->pressed = lh_bool_true;
     self->press_point = point;
@@ -509,10 +514,53 @@ lh_void
 lh_ui_view_press_on(lh_ui_view_t *self, lh_ui_entity_t *hit, lh_ui_point_t point)
 {
     self->target = hit;
+    /* Pressed is the entity's own state and this is the one place that sets it:
+       a press is a look (::lh_ui_entity_get_style_now), so it has to be paired
+       with the rect it changed, or the picture keeps the old look until
+       something else draws. The caller invalidates, as it does for every other
+       damage here. */
+    lh_ui_view_set_pressed(self, hit, lh_bool_true);
     lh_ui_entity_send_pointer(hit, lh_ui_entity_event_press, point);
     lh_ui_view_set_focus(self, lh_ui_entity_find_focusable(hit));
     lh_ui_view_grab_thumb(self, lh_ui_entity_as_scrollbar(hit), point);
     self->drag = lh_null_eq(self->grab) ? lh_ui_view_get_drag_box(hit) : lh_null;
+}
+
+lh_void
+lh_ui_view_set_pressed(lh_ui_view_t *self, lh_ui_entity_t *entity, lh_bool_t pressed)
+{
+    lh_assert_runtime_ref(self);
+    lh_return_if(lh_null_eq(entity) || lh_ui_entity_is_pressed(entity) == pressed);
+    lh_ui_view_damage_pressed(self, entity);
+    lh_ui_entity_set_pressed(entity, pressed);
+}
+
+lh_void
+lh_ui_view_damage_pressed(lh_ui_view_t *self, const lh_ui_entity_t *entity)
+{
+    const lh_ui_style_t *style;
+    const lh_ui_style_t *pressed;
+    lh_ui_rect_t rect;
+    lh_ui_rect_t bounds;
+    lh_ui_scalar_t outset;
+
+    lh_assert_runtime_ref(self);
+    lh_return_if(lh_null_eq(self->canvas) || lh_null_eq(entity));
+    style = lh_ui_entity_get_style(entity);
+    lh_return_if(lh_null_eq(style));
+    rect = lh_ui_entity_get_rect(entity);
+    /* Both looks and not the current one: the shadow of a card reaches past its
+       own box, so the damage of a press is the rect plus whichever of the two
+       shadows reaches further. Anything less and the look being left leaves its
+       fringe on the surface. */
+    outset = lh_ui_shadow_get_outset(lh_ui_style_get_shadow(style), lh_addr_of(rect));
+    pressed = lh_ui_style_get_pressed(style);
+    if (lh_null_ne(pressed))
+    {
+        outset = lh_math_max(outset, lh_ui_shadow_get_outset(lh_ui_style_get_shadow(pressed), lh_addr_of(rect)));
+    }
+    bounds = lh_ui_rect_inset(lh_addr_of(rect), lh_math_neg(outset), lh_math_neg(outset));
+    lh_ui_canvas_add_damage(self->canvas, lh_addr_of(bounds));
 }
 
 lh_void
@@ -599,6 +647,10 @@ lh_ui_view_release(lh_ui_view_t *self, lh_ui_point_t point)
 
     lh_assert_runtime_ref(self);
     lh_ui_entity_send_pointer(self->target, lh_ui_entity_event_release, point);
+    /* Released before the click, and on the entity the press went down on: a
+       click may move the pointer onto something else, and that thing was never
+       pressed. */
+    lh_ui_view_set_pressed(self, self->target, lh_bool_false);
     lh_ui_view_finish_gesture(self);
     clicked = self->pressed && !self->dragged ? lh_bool_true : lh_bool_false;
     lh_ui_view_reset_pointer(self);

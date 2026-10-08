@@ -580,6 +580,148 @@ TEST(view, a_whole_area_the_view_has_no_room_for_is_refused)
                         lh_test::rect_of(0, 96, 160, 24)));
 }
 
+/* ── Pressing ──────────────────────────────────────────────────────────────── */
+
+/* The panel of the scene above, given a pressed look: the same card in another
+   colour with a shadow under it, so a press has something to say. */
+struct pressed_panel
+{
+    lh_ui_style_t style;
+    lh_ui_style_t hot;
+    lh_ui_shadow_t shadow;
+};
+
+void
+build_pressed_panel(pressed_panel &p)
+{
+    lh_ui_paint_t paint;
+    lh_ui_color_t normal;
+    lh_ui_color_t hot;
+
+    lh_ui_style_init(lh_addr_of(p.style));
+    lh_ui_color_init(lh_addr_of(normal), 30, 60, 90, 255);
+    lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(normal));
+    lh_ui_style_set_fill(lh_addr_of(p.style), lh_addr_of(paint));
+    lh_ui_shadow_init(lh_addr_of(p.shadow));
+    lh_ui_shadow_set_color(lh_addr_of(p.shadow), lh_ui_color_t{0, 0, 0, 200});
+    lh_ui_shadow_set_spread(lh_addr_of(p.shadow), lh_ui_scalar(6));
+    lh_ui_shadow_set_offset(lh_addr_of(p.shadow), lh_ui_scalar(0), lh_ui_scalar(3));
+    lh_ui_style_set_shadow(lh_addr_of(p.style), lh_addr_of(p.shadow));
+    lh_ui_style_init(lh_addr_of(p.hot));
+    lh_ui_color_init(lh_addr_of(hot), 200, 60, 90, 255);
+    lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(hot));
+    lh_ui_style_set_fill(lh_addr_of(p.hot), lh_addr_of(paint));
+    lh_ui_shadow_set_spread(lh_addr_of(p.shadow), lh_ui_scalar(6));
+    lh_ui_style_set_shadow(lh_addr_of(p.hot), lh_addr_of(p.shadow));
+    lh_ui_style_set_pressed(lh_addr_of(p.style), lh_addr_of(p.hot));
+}
+
+/* A press is a look and nothing else: press it, let go, and the frame has to come
+   back pixel for pixel. A flag that is not cleared, or a pressed style that
+   outlasts the press, leaves a difference here that no value assertion would
+   have caught. */
+TEST(view, a_press_and_a_release_leave_the_picture_as_it_was)
+{
+    scene s;
+    partial_probe before;
+    partial_probe after;
+    pressed_panel p;
+    lh_ui_view_t plain;
+    lh_ui_view_t pressed;
+    /* Where only the panel is: its box ends at x 110 and its label at y 60. */
+    const lh_ui_point_t on_panel = point_of(140, 100);
+
+    build_scene(s);
+    build_pressed_panel(p);
+    lh_ui_entity_set_style(lh_addr_of(s.panel), lh_addr_of(p.style));
+    partial_probe_init(lh_addr_of(before));
+    partial_probe_init(lh_addr_of(after));
+    lh_ui_view_init(lh_addr_of(plain));
+    lh_ui_view_init(lh_addr_of(pressed));
+    lh_ui_view_set_canvas(lh_addr_of(plain), lh_addr_of(before.canvas));
+    lh_ui_view_set_canvas(lh_addr_of(pressed), lh_addr_of(after.canvas));
+    lh_ui_view_set_root(lh_addr_of(plain), lh_addr_of(s.panel));
+    lh_ui_view_set_root(lh_addr_of(pressed), lh_addr_of(s.panel));
+
+    /* One frame of a scene nobody has touched. */
+    lh_ui_view_paint(lh_addr_of(plain));
+    ASSERT_EQ(lh_ui_view_hit_test(lh_addr_of(pressed), on_panel), lh_addr_of(s.panel));
+
+    /* Down on the panel, a look of its own, a release, and a repaint. */
+    lh_ui_view_press(lh_addr_of(pressed), on_panel);
+    EXPECT_TRUE(lh_ui_entity_is_pressed(lh_addr_of(s.panel)));
+    lh_ui_view_paint(lh_addr_of(pressed));
+    lh_ui_view_release(lh_addr_of(pressed), on_panel);
+    EXPECT_FALSE(lh_ui_entity_is_pressed(lh_addr_of(s.panel)));
+    lh_ui_view_paint(lh_addr_of(pressed));
+
+    EXPECT_EQ(partial_probe_diff(before, after), 0);
+}
+
+/* The damage of a press is what both looks painted, and a shadow reaches past
+   its own box: less than that and the frame keeps the fringe of the look that is
+   gone. */
+TEST(view, a_press_damages_what_both_looks_painted)
+{
+    scene s;
+    pressed_panel p;
+    lh_ui_view_t view;
+    lh_ui_canvas_t canvas;
+    lh_ui_size_t size;
+    const lh_ui_rect_t *damage;
+
+    build_scene(s);
+    build_pressed_panel(p);
+    lh_ui_entity_set_style(lh_addr_of(s.panel), lh_addr_of(p.style));
+    lh_ui_size_init(lh_addr_of(size), 160, 120);
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
+    lh_ui_canvas_set_size(lh_addr_of(canvas), size);
+    lh_ui_view_init(lh_addr_of(view));
+    lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
+    lh_ui_view_set_root(lh_addr_of(view), lh_addr_of(s.panel));
+
+    lh_ui_view_press(lh_addr_of(view), point_of(140, 100));
+    damage = lh_ui_canvas_get_damage(lh_addr_of(canvas));
+    ASSERT_NE(damage, nullptr);
+    /* The panel is (0,0) 160x120 and its shadow reaches 9 rows past it: 6 of
+       spread and 3 of shift. */
+    EXPECT_TRUE(rect_is(*damage, lh_test::rect_of(-9, -9, 178, 138)));
+}
+
+/* One press at a time. A second pointer down while the first is still open lets
+   go of it rather than leaving a pressed look under nothing — the one way a
+   pressed look could stick. */
+TEST(view, a_press_still_open_when_the_next_one_starts_is_let_go)
+{
+    scene s;
+    pressed_panel p;
+    lh_ui_view_t view;
+    lh_ui_canvas_t canvas;
+    lh_ui_size_t size;
+
+    build_scene(s);
+    build_pressed_panel(p);
+    lh_ui_entity_set_style(lh_addr_of(s.panel), lh_addr_of(p.style));
+    lh_ui_size_init(lh_addr_of(size), 160, 120);
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
+    lh_ui_canvas_set_size(lh_addr_of(canvas), size);
+    lh_ui_view_init(lh_addr_of(view));
+    lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
+    lh_ui_view_set_root(lh_addr_of(view), lh_addr_of(s.panel));
+
+    lh_ui_view_press(lh_addr_of(view), point_of(140, 100));
+    EXPECT_TRUE(lh_ui_entity_is_pressed(lh_addr_of(s.panel)));
+    /* No release in between, and the second press lands elsewhere: the app went
+       away with the pointer still down on the panel. */
+    const lh_ui_point_t on_box = point_of(80, 60);
+    lh_ui_entity_t *second = lh_ui_view_hit_test(lh_addr_of(view), on_box);
+    ASSERT_NE(second, nullptr);
+    ASSERT_NE(second, lh_addr_of(s.panel));
+    lh_ui_view_press(lh_addr_of(view), on_box);
+    EXPECT_FALSE(lh_ui_entity_is_pressed(lh_addr_of(s.panel))) << "the first press stuck";
+    EXPECT_TRUE(lh_ui_entity_is_pressed(second)) << "the second press did not take";
+}
+
 TEST(view, a_strip_height_is_the_buffer_and_not_the_step)
 {
     lh_ui_view_t view;

@@ -63,6 +63,7 @@ struct effect_log
     int glass;
     int round;
     int areas;
+    int ends;
     lh_ui_rect_t at;
     lh_ui_rect_t area;
 };
@@ -111,7 +112,13 @@ effect_round(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, co
     return lh_bool_true;
 }
 
-const lh_ui_canvas_backend_t g_effect_backend = {nullptr,         effect_begin_area, nullptr,
+lh_void
+effect_end(lh_ptr context)
+{
+    ++lh_ptr_rcast(effect_log, context)->ends;
+}
+
+const lh_ui_canvas_backend_t g_effect_backend = {nullptr,         effect_begin_area, effect_end,
                                                   nullptr,         nullptr,          effect_round,
                                                   effect_set_clip, nullptr,          nullptr,
                                                   nullptr,         effect_glass};
@@ -449,6 +456,37 @@ TEST(ui_canvas, damage_of_an_area_frame_stays_in_target_space)
        rectangle, not a strip offset. */
     ASSERT_NE(lh_ui_canvas_get_damage(lh_addr_of(canvas)), nullptr);
     EXPECT_TRUE(lh_test::rect_is(*lh_ui_canvas_get_damage(lh_addr_of(canvas)), lh_test::rect_of(10, 75, 20, 5)));
+}
+
+/* A damage recorded between frames is a window rectangle. The buffer's origin is
+   the last strip's, and moving the rect by it would put the repaint 568 rows below
+   the window — nothing is invalidated and the change never appears. */
+TEST(ui_canvas, damage_between_frames_is_not_moved_by_the_strip_that_was_drawn_last)
+{
+    effect_log log{};
+    lh_ui_canvas_t canvas;
+    lh_ui_color_t color;
+    lh_ui_rect_t area;
+    lh_ui_rect_t rect;
+    lh_ui_rect_t hit;
+
+    /* A backend with an `end` slot: the frame origin is dropped whether there is
+       a slot to present through or not, so the fixture needs one to be able to
+       tell the two apart. */
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_effect_backend), lh_addr_of(log));
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_ui_rect_init(lh_addr_of(area), 0, 64, 160, 32);
+    lh_ui_rect_init(lh_addr_of(rect), 10, 75, 20, 5);
+
+    lh_ui_canvas_begin_area(lh_addr_of(canvas), lh_addr_of(area));
+    lh_ui_canvas_end(lh_addr_of(canvas));
+    ASSERT_EQ(log.ends, 1);
+    lh_ui_canvas_reset_damage(lh_addr_of(canvas));
+
+    /* What the app says afterwards, in the space it says it in. */
+    lh_ui_canvas_add_damage(lh_addr_of(canvas), lh_addr_of(rect));
+    hit = *lh_ui_canvas_get_damage(lh_addr_of(canvas));
+    EXPECT_TRUE(lh_test::rect_is(hit, lh_test::rect_of(10, 75, 20, 5)));
 }
 
 TEST(canvas, damage_in_an_area_is_the_damage_clipped_to_it)

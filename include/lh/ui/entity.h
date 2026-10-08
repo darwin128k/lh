@@ -90,9 +90,54 @@ lh_ui_entity_get_fill_color(const lh_ui_entity_t *self);
 /**
  * @brief Corner radius of the style of @p self (unclamped), `0` without one.
  *        Its fill and, when it clips its children, their clip use it.
+ *
+ * From the entity's own style and not from the pressed one
+ * (::lh_ui_entity_get_style_now): the shape a resting entity has is its own,
+ * and clipping must not depend on a pointer being down somewhere.
  */
 lh_ui_scalar_t
 lh_ui_entity_get_radius(const lh_ui_entity_t *self);
+
+/**
+ * @brief Corner radius @p self is drawn and clipped with right now (unclamped):
+ *        that of ::lh_ui_entity_get_style_now.
+ *
+ * The clip of children and the text of a label have to follow the shape the
+ * fill has, and the fill follows a press. Reading the own radius instead would
+ * cut the corners of the resting shape while the pressed fill is a pill — a
+ * child would stick out past a corner nothing was painted into.
+ */
+lh_ui_scalar_t
+lh_ui_entity_get_radius_now(const lh_ui_entity_t *self);
+
+/**
+ * @brief Style of @p self as it is painted right now: its pressed style while it
+ *        is pressed (::lh_ui_entity_is_pressed) and one with none, and its own
+ *        style otherwise.
+ *
+ * The one place that answers, so painting cannot read two styles by accident.
+ * Geometry — padding, font, alignment — is read from ::lh_ui_entity_get_style
+ * instead, and a pressed style may not move anything.
+ */
+const lh_ui_style_t *
+lh_ui_entity_get_style_now(const lh_ui_entity_t *self);
+
+/**
+ * @brief True while the pointer is down on @p self.
+ *
+ * Kept by the view (::lh_ui_view_press sets it, ::lh_ui_view_release clears it)
+ * and read by painting, which paints ::lh_ui_entity_get_style_now. Nothing else
+ * changes about the entity.
+ */
+lh_bool_t
+lh_ui_entity_is_pressed(const lh_ui_entity_t *self);
+
+/**
+ * @brief Press @p self or let it go. What the view does; an app that drives the
+ *        pointer itself may do it too.
+ */
+lh_void
+lh_ui_entity_set_pressed(lh_ui_entity_t *self, lh_bool_t pressed);
 
 /**
  * @brief Class of @p self.

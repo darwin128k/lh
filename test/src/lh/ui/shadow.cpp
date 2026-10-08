@@ -29,6 +29,27 @@ TEST(ui_shadow, a_fresh_one_paints_nothing)
     EXPECT_EQ(lh_ui_shadow_get_spread(lh_addr_of(shadow)), 0);
     EXPECT_EQ(lh_ui_shadow_get_outset(lh_addr_of(shadow), lh_addr_of(rect)), 0);
     EXPECT_EQ(alpha_at(lh_addr_of(shadow), lh_ui_scalar(18), lh_ui_scalar(40)), 0);
+    EXPECT_TRUE(lh_ui_shadow_is_empty(lh_addr_of(shadow)));
+}
+
+/* The question a caller draws every frame asks first. It has to be the same
+   answer ::lh_ui_canvas_shadow gives — which is why a style with no shadow costs
+   one call and not a rectangle of measurements. */
+TEST(ui_shadow, empty_means_no_peak_or_no_fade)
+{
+    lh_ui_shadow_t shadow;
+    lh_ui_rect_t rect;
+
+    lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(20), lh_ui_scalar(20), lh_ui_scalar(40), lh_ui_scalar(40));
+    lh_ui_shadow_init(lh_addr_of(shadow));
+
+    lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 200});
+    EXPECT_TRUE(lh_ui_shadow_is_empty(lh_addr_of(shadow))) << "a colour with no fade paints nothing";
+    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(8));
+    EXPECT_FALSE(lh_ui_shadow_is_empty(lh_addr_of(shadow)));
+
+    lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 0});
+    EXPECT_TRUE(lh_ui_shadow_is_empty(lh_addr_of(shadow))) << "a fade with no peak paints nothing";
 }
 
 TEST(ui_shadow, nothing_is_painted_inside_the_box)

@@ -325,6 +325,13 @@ lh_void
 lh_ui_canvas_end(lh_ui_canvas_t *self)
 {
     lh_assert_runtime_ref(self);
+    /* The frame is over, so the buffer's origin is over with it — even when there
+       was no `end` slot to present through. A damage recorded between frames is a
+       window rectangle, not a slice of the strip that happened to be drawn last,
+       and it would be moved by that origin (::lh_ui_canvas_add_damage): 568 rows
+       down for an 800x600 target in 32-row strips, which is a repaint of nothing.
+     */
+    lh_ui_point_init(lh_addr_of(self->frame_at), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_return_if(lh_null_eq(self->backend) || lh_null_eq(self->backend->end));
     self->backend->end(self->context);
 }

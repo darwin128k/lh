@@ -18,6 +18,7 @@
 #ifndef LH_UI_SHADOW_H
 #define LH_UI_SHADOW_H
 
+#include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/ui/color.h>
 #include <lh/ui/rect.h>
@@ -55,6 +56,17 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_void
 lh_ui_shadow_init(lh_ui_shadow_t *self);
+
+/**
+ * @brief True when @p self would paint nothing: no peak alpha, or no fade to
+ *        paint it over.
+ *
+ * The same answer ::lh_ui_canvas_shadow gives (it needs an outset and there is
+ * none), told without a rect and without a canvas — what a caller draws every
+ * frame asks this first instead of measuring anything.
+ */
+lh_bool_t
+lh_ui_shadow_is_empty(const lh_ui_shadow_t *self);
 
 /**
  * @brief Peak colour of @p self. Its alpha is the strongest the shadow gets.
