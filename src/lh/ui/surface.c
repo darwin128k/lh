@@ -8,6 +8,7 @@
 #include <lh/null.h>
 #include <lh/os/system/surface.h>
 #include <lh/ui/point.h>
+#include <lh/ui/rect.h>
 #include <lh/ui/size.h>
 #include <lh/ui/surface.h>
 #include <lh/util/addr.h>
@@ -122,4 +123,26 @@ lh_ui_surface_present_at(const lh_ui_surface_t *self, lh_ptr dest, lh_ui_point_t
     lh_assert_runtime_ref(self);
     return lh_os_system_surface_present_at(self->handle, dest, lh_cast_static(int, lh_ui_point_get_x(lh_addr_of(at))),
                                            lh_cast_static(int, lh_ui_point_get_y(lh_addr_of(at))));
+}
+
+lh_bool_t
+lh_ui_surface_present_part(const lh_ui_surface_t *self, lh_ptr dest, const lh_ui_rect_t *part,
+                           lh_ui_point_t at)
+{
+    const lh_ui_point_t *from = lh_ui_rect_get_origin_as_const(part);
+    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(part);
+    /* The part sits inside the surface, so its own corner is added to where the
+       surface goes: `at` is where (0, 0) of the surface lands, and a pixel at
+       (px, py) of it lands at `at` + (px, py). */
+    const int x = lh_cast_static(int, lh_ui_point_get_x(lh_addr_of(at))) +
+                  lh_cast_static(int, lh_ui_point_get_x(from));
+    const int y = lh_cast_static(int, lh_ui_point_get_y(lh_addr_of(at))) +
+                  lh_cast_static(int, lh_ui_point_get_y(from));
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(part);
+    return lh_os_system_surface_present_part(
+        self->handle, dest, x, y, lh_cast_static(int, lh_ui_point_get_x(from)),
+        lh_cast_static(int, lh_ui_point_get_y(from)), lh_cast_static(int, lh_ui_size_get_width(size)),
+        lh_cast_static(int, lh_ui_size_get_height(size)));
 }

@@ -18,6 +18,7 @@
 #include <lh/os/system/surface/handle.h>
 #include <lh/ptr.h>
 #include <lh/ui/pixmap.h>
+#include <lh/ui/rect.h>
 #include <lh/ui/size.h>
 #include <lh/ui/surface/fields.h>
 #include <lh/void.h>
@@ -121,6 +122,22 @@ lh_ui_surface_get_pixmap(const lh_ui_surface_t *self, lh_ui_pixmap_t *pixmap);
  */
 lh_bool_t
 lh_ui_surface_present_at(const lh_ui_surface_t *self, lh_ptr dest, lh_ui_point_t at);
+
+/**
+ * @brief Present the @p part of @p self — in the surface's own pixels, (0, 0)
+ *        its corner — into @p dest with that part's top-left pixel at @p at.
+ *
+ * What a partial frame needs, and the reason the whole surface is the wrong
+ * thing to present: the view clears and draws the damage, not the area, and a
+ * surface holds no promise about the rest of it. The pixels nobody drew are
+ * whatever the buffer of this size held last, and they are on the screen after
+ * one blit.
+ *
+ * @return True when the blit ran.
+ */
+lh_bool_t
+lh_ui_surface_present_part(const lh_ui_surface_t *self, lh_ptr dest, const lh_ui_rect_t *part,
+                           lh_ui_point_t at);
 
 LH_COMPILER_EXTERN_C_END
 

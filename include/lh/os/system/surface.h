@@ -67,6 +67,16 @@ lh_ptr
 lh_os_system_surface_get_pixels(lh_os_system_surface_handle_t handle);
 
 /**
+ * @brief The memory DC of @p handle, or ::lh_null when invalid.
+ *
+ * The same object ::lh_os_system_surface_get_pixels belongs to: a surface is a
+ * DC with a DIB selected into it, and this is the handle a present copies
+ * *into* (::lh_os_system_surface_present_at).
+ */
+lh_ptr
+lh_os_system_surface_get_dc(lh_os_system_surface_handle_t handle);
+
+/**
  * @brief Copy the whole surface of @p handle into @p dest with its top-left
  *        pixel at `(x, y)` — the partial case, where the surface is one strip
  *        of a larger target. `(0, 0)` presents a whole-target frame.
@@ -75,6 +85,23 @@ lh_os_system_surface_get_pixels(lh_os_system_surface_handle_t handle);
  */
 lh_bool_t
 lh_os_system_surface_present_at(lh_os_system_surface_handle_t handle, lh_ptr dest, int x, int y);
+
+/**
+ * @brief Copy @p width by @p height of @p handle, starting at (@p src_x,
+ *        @p src_y) in its own pixels, into @p dest with that corner at
+ *        `(x, y)`.
+ *
+ * The honest case of ::lh_os_system_surface_present_at: a backend that drew
+ * part of its buffer presents that part. What it never drew holds whatever
+ * the previous buffer of this size happened to hold — nothing clears a DIB
+ * between frames — and the present is the one call that can put those bytes
+ * on the screen.
+ *
+ * @return True when the blit ran.
+ */
+lh_bool_t
+lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr dest, int x, int y,
+                                  int src_x, int src_y, int width, int height);
 
 LH_COMPILER_EXTERN_C_END
 

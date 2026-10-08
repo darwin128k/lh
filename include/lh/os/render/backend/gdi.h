@@ -51,7 +51,7 @@
 struct lh_os_render_backend_gdi_context
 {
     lh_os_render_backend_gdi_fields(lh_os_system_window_handle_t, lh_ptr, lh_ui_surface_t, lh_ui_canvas_sw_t,
-                                    lh_u32_t, lh_u64_t, lh_ui_point_t);
+                                    lh_u32_t, lh_u64_t, lh_ui_point_t, lh_ui_rect_t);
 };
 typedef struct lh_os_render_backend_gdi_context lh_os_render_backend_gdi_context_t;
 
@@ -199,7 +199,9 @@ lh_void
 lh_os_render_backend_gdi_begin_area(lh_ptr context, const lh_ui_rect_t *area);
 
 /**
- * @brief Backend `end`: blit the surface into the paint DC, at `present_at`.
+ * @brief Backend `end`: blit into the paint DC, at `present_at` — the whole
+ *        surface for a frame that was never clipped, and `drawn` for one that
+ *        was, which is all this backend wrote.
  */
 lh_void
 lh_os_render_backend_gdi_end(lh_ptr context);
@@ -224,7 +226,8 @@ lh_os_render_backend_gdi_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rec
                                          const lh_ui_color_t *color);
 
 /**
- * @brief Backend `set_clip`: counted, then ::lh_ui_canvas_sw_set_clip.
+ * @brief Backend `set_clip`: counted, ::lh_ui_canvas_sw_set_clip, and the
+ *        clip added to `drawn` — what `end` presents.
  */
 lh_void
 lh_os_render_backend_gdi_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip);

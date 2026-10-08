@@ -50,6 +50,18 @@ typedef lh_void(lh_ui_canvas_begin_area_fn)(lh_ptr context, const lh_ui_rect_t *
 /**
  * @typedef lh_ui_canvas_end_fn
  * @brief Finish a frame on @p context (present / flush).
+ *
+ * **A backend shows what it drew and nothing else.** The canvas clears and draws
+ * the damage, which in a partial frame is smaller than the buffer `begin_area`
+ * asked for, and a buffer is not required to hold anything else: the pixels a
+ * frame never wrote are whatever the buffer held before. Presenting all of it
+ * puts them on screen, which is how a strip's leftover picture turns up beside
+ * the widget that moved.
+ *
+ * A backend with a `set_clip` slot knows its drawn region — the union of the
+ * clips it was handed, because every clip inside a frame is an intersection
+ * with the frame's own — and presents that. One without cannot ask, and presents
+ * its whole buffer.
  */
 typedef lh_void(lh_ui_canvas_end_fn)(lh_ptr context);
 

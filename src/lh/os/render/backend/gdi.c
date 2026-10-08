@@ -30,6 +30,7 @@ lh_os_render_backend_gdi_context_init(lh_os_render_backend_gdi_context_t *self)
        are on ::lh_os_render_backend_gdi_context_get_format. */
     lh_ui_canvas_sw_init(lh_addr_of(self->sw));
     lh_ui_point_init(lh_addr_of(self->present_at), lh_ui_scalar(0), lh_ui_scalar(0));
+    lh_ui_rect_init_empty(lh_addr_of(self->drawn));
     lh_os_render_backend_gdi_reset_counters(self);
     self->frame_start_us = 0;
 }
@@ -159,6 +160,10 @@ lh_os_render_backend_gdi_begin_area(lh_ptr context, const lh_ui_rect_t *area)
     lh_ui_pixmap_init_empty(lh_addr_of(pixmap));
     (void)lh_ui_surface_get_pixmap(lh_addr_of(gdi->surface), lh_addr_of(pixmap));
     lh_ui_canvas_sw_set_pixmap(lh_addr_of(gdi->sw), lh_addr_of(pixmap));
+    /* Nothing of this frame is drawn yet, and the area is not necessarily all of
+       it: a strip is handed the damage it carries, and only that is cleared and
+       drawn. What the rest of the buffer holds is not this frame's. */
+    lh_ui_rect_init_empty(lh_addr_of(gdi->drawn));
     lh_os_render_backend_gdi_reset_counters(gdi);
 }
 
@@ -183,10 +188,24 @@ lh_os_render_backend_gdi_end(lh_ptr context)
 {
     lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
 
-    if (lh_null_ne(gdi->hdc))
+    if (lh_null_eq(gdi->hdc))
+    {
+        return;
+    }
+    /* The whole surface only when the frame was never cut: a frame with no clip
+       drew all of it. A clipped frame drew the union of its clips and no more —
+       every clip inside it is an intersection with it, so the union is the
+       frame's own — and that is what goes to the screen. The rest of the buffer
+       was never written this frame: `begin_area` drops the DIB whenever the area
+       changes size, which between strips it always does, and a new DIB is
+       whatever GDI hands back. Blitting it put a strip's leftover picture under
+       the widget that moved, as vertical streaks next to it. */
+    if (lh_ui_rect_is_empty(lh_addr_of(gdi->drawn)))
     {
         (void)lh_ui_surface_present_at(lh_addr_of(gdi->surface), gdi->hdc, gdi->present_at);
+        return;
     }
+    (void)lh_ui_surface_present_part(lh_addr_of(gdi->surface), gdi->hdc, lh_addr_of(gdi->drawn), gdi->present_at);
 }
 
 lh_void
@@ -220,6 +239,17 @@ lh_os_render_backend_gdi_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *cli
     lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
 
     ++gdi->clip_calls;
+    /* The drawn region of the frame, and the union is the right answer because
+       every clip inside the frame is an intersection with the frame's own: the
+       canvas clips a push against what is already in force. Un-clipping (a
+       `pop` back to no clip) says nothing new about what was drawn, so it adds
+       nothing. Rounded cuts are inside the rect they come with. */
+    if (lh_null_ne(clip))
+    {
+        gdi->drawn = lh_ui_rect_is_empty(lh_addr_of(gdi->drawn))
+                         ? clip->rect
+                         : lh_ui_rect_union(lh_addr_of(gdi->drawn), lh_addr_of(clip->rect));
+    }
     lh_ui_canvas_sw_set_clip(lh_addr_of(gdi->sw), clip);
 }
 
