@@ -722,6 +722,64 @@ TEST(view, a_press_still_open_when_the_next_one_starts_is_let_go)
     EXPECT_TRUE(lh_ui_entity_is_pressed(second)) << "the second press did not take";
 }
 
+/* Hover is the same rule as a press over a different pair of looks: the button
+   is a plain entity with two styles, and changing what the pointer is on has to
+   damage both of them — the one leaving casts its shadow past its own box too. */
+TEST(view, a_hover_damages_what_both_looks_painted)
+{
+    lh_ui_view_t view;
+    lh_ui_canvas_t canvas;
+    lh_ui_button_t button;
+    lh_ui_style_t rest;
+    lh_ui_style_t hot;
+    lh_ui_shadow_t small;
+    lh_ui_shadow_t wide;
+    lh_ui_paint_t paint;
+    lh_ui_color_t color;
+    lh_ui_size_t size;
+    const lh_ui_rect_t *damage;
+
+    lh_ui_shadow_init(lh_addr_of(small));
+    lh_ui_shadow_set_color(lh_addr_of(small), lh_ui_color_t{0, 0, 0, 200});
+    lh_ui_shadow_set_spread(lh_addr_of(small), lh_ui_scalar(6));
+    lh_ui_shadow_set_offset(lh_addr_of(small), lh_ui_scalar(0), lh_ui_scalar(3));
+    lh_ui_shadow_init(lh_addr_of(wide));
+    lh_ui_shadow_set_color(lh_addr_of(wide), lh_ui_color_t{0, 0, 0, 200});
+    lh_ui_shadow_set_spread(lh_addr_of(wide), lh_ui_scalar(12));
+
+    lh_ui_style_init(lh_addr_of(rest));
+    lh_ui_color_init(&color, 30, 60, 90, 255);
+    lh_ui_paint_init_color(&paint, &color);
+    lh_ui_style_set_fill(lh_addr_of(rest), &paint);
+    lh_ui_style_set_shadow(lh_addr_of(rest), lh_addr_of(small));
+    lh_ui_style_init(lh_addr_of(hot));
+    lh_ui_style_set_shadow(lh_addr_of(hot), lh_addr_of(wide));
+    lh_ui_style_set_hit_radius(lh_addr_of(rest), LH_UI_RADIUS_CIRCLE);
+
+    lh_ui_button_init(lh_addr_of(button), lh_test::rect_of(20, 10, 40, 24));
+    lh_ui_button_set_style(lh_addr_of(button), lh_addr_of(rest));
+    lh_ui_button_set_hot_style(lh_addr_of(button), lh_addr_of(hot));
+
+    lh_ui_size_init(lh_addr_of(size), 160, 120);
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
+    lh_ui_canvas_set_size(lh_addr_of(canvas), size);
+    lh_ui_view_init(lh_addr_of(view));
+    lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
+    lh_ui_view_set_root(lh_addr_of(view), lh_ui_button_as_entity(lh_addr_of(button)));
+    /* Nothing drawn and nothing damaged yet, so what the hover adds is what is
+       left to read: a test that clears first would be measuring the clear. */
+    lh_ui_canvas_reset_damage(lh_addr_of(canvas));
+
+    lh_ui_view_set_hot(lh_addr_of(view), lh_addr_of(button), lh_bool_true);
+    damage = lh_ui_canvas_get_damage(lh_addr_of(canvas));
+    ASSERT_NE(damage, nullptr);
+    EXPECT_TRUE(lh_ui_button_get_hot(lh_addr_of(button)));
+    /* The button is (20,10) 40x24 and the hot shadow reaches 12 past it, the
+       resting one only 9: the damage is the larger, or the fringe of the look
+       being left stays on the surface. */
+    EXPECT_TRUE(rect_is(*damage, lh_test::rect_of(8, -2, 64, 48)));
+}
+
 TEST(view, a_strip_height_is_the_buffer_and_not_the_step)
 {
     lh_ui_view_t view;

@@ -6,6 +6,7 @@
 #include <lh/assert/runtime.h>
 #include <lh/math.h>
 #include <lh/null.h>
+#include <lh/ui/entity/button.h>
 #include <lh/ui/entity/container.h>
 #include <lh/ui/entity/scrollbar.h>
 #include <lh/ui/key.h>
@@ -535,32 +536,55 @@ lh_ui_view_set_pressed(lh_ui_view_t *self, lh_ui_entity_t *entity, lh_bool_t pre
     lh_ui_entity_set_pressed(entity, pressed);
 }
 
-lh_void
-lh_ui_view_damage_pressed(lh_ui_view_t *self, const lh_ui_entity_t *entity)
+/* The rect plus whichever of two looks reaches further with its shadow. Both
+   looks and not the current one: a shadow reaches past its own box, so anything
+   less leaves the fringe of the look that is being dropped on the surface. The
+   two are the resting and pressed looks of a press (::lh_ui_view_damage_pressed)
+   and the resting and hot looks of a hover (::lh_ui_view_set_hot); either may
+   be ::lh_null, which is a look that casts nothing. */
+static void
+lh_ui_view_damage_looks(lh_ui_view_t *self, const lh_ui_entity_t *entity,
+                        const lh_ui_style_t *first, const lh_ui_style_t *second)
 {
-    const lh_ui_style_t *style;
-    const lh_ui_style_t *pressed;
     lh_ui_rect_t rect;
     lh_ui_rect_t bounds;
     lh_ui_scalar_t outset;
 
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(self->canvas) || lh_null_eq(entity));
-    style = lh_ui_entity_get_style(entity);
-    lh_return_if(lh_null_eq(style));
     rect = lh_ui_entity_get_rect(entity);
-    /* Both looks and not the current one: the shadow of a card reaches past its
-       own box, so the damage of a press is the rect plus whichever of the two
-       shadows reaches further. Anything less and the look being left leaves its
-       fringe on the surface. */
-    outset = lh_ui_shadow_get_outset(lh_ui_style_get_shadow(style), lh_addr_of(rect));
-    pressed = lh_ui_style_get_pressed(style);
-    if (lh_null_ne(pressed))
+    outset = lh_null_eq(first) ? lh_ui_scalar(0) : lh_ui_shadow_get_outset(lh_ui_style_get_shadow(first),
+                                                                          lh_addr_of(rect));
+    if (lh_null_ne(second))
     {
-        outset = lh_math_max(outset, lh_ui_shadow_get_outset(lh_ui_style_get_shadow(pressed), lh_addr_of(rect)));
+        outset = lh_math_max(outset, lh_ui_shadow_get_outset(lh_ui_style_get_shadow(second), lh_addr_of(rect)));
     }
     bounds = lh_ui_rect_inset(lh_addr_of(rect), lh_math_neg(outset), lh_math_neg(outset));
     lh_ui_canvas_add_damage(self->canvas, lh_addr_of(bounds));
+}
+
+lh_void
+lh_ui_view_damage_pressed(lh_ui_view_t *self, const lh_ui_entity_t *entity)
+{
+    const lh_ui_style_t *style;
+
+    lh_assert_runtime_ref(self);
+    lh_return_if(lh_null_eq(entity));
+    style = lh_ui_entity_get_style(entity);
+    lh_ui_view_damage_looks(self, entity, style, lh_null_eq(style) ? lh_null : lh_ui_style_get_pressed(style));
+}
+
+lh_void
+lh_ui_view_set_hot(lh_ui_view_t *self, lh_ui_button_t *button, lh_bool_t hot)
+{
+    lh_assert_runtime_ref(self);
+    lh_return_if(lh_null_eq(button));
+    lh_return_if(lh_ui_button_get_hot(button) == hot);
+    /* Both looks, in whichever order they are: the one being left and the one
+       arriving are painted by the same rule as a press. */
+    lh_ui_view_damage_looks(self, lh_ui_button_as_entity(button), lh_ui_button_get_style(button),
+                            lh_ui_button_get_hot_style(button));
+    lh_ui_button_set_hot(button, hot);
 }
 
 lh_void

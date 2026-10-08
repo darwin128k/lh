@@ -29,6 +29,7 @@
 #include <lh/ui/canvas.h>
 #include <lh/ui/color.h>
 #include <lh/ui/entity.h>
+#include <lh/ui/entity/button.h>
 #include <lh/ui/entity/container.h>
 #include <lh/ui/entity/scrollbar.h>
 #include <lh/ui/key.h>
@@ -430,6 +431,20 @@ lh_ui_view_set_pressed(lh_ui_view_t *self, lh_ui_entity_t *entity, lh_bool_t pre
  */
 lh_void
 lh_ui_view_damage_pressed(lh_ui_view_t *self, const lh_ui_entity_t *entity);
+
+/**
+ * @brief Say the pointer is on @p button, or is not, and damage what either of
+ *        its two looks painted — the same rule as a press, over the resting and
+ *        the hot style. Nothing for a ::lh_null @p button or a flag that is
+ *        already what it is asked for.
+ *
+ * The step an app takes for ::lh_ui_button_set_hot: the pointer arrives from the
+ * OS as coordinates and the app decides what is under it. This does the state
+ * and the damage together, so the button itself stays a state holder with no
+ * canvas in it. The caller invalidates, as it does for every other damage here.
+ */
+lh_void
+lh_ui_view_set_hot(lh_ui_view_t *self, lh_ui_button_t *button, lh_bool_t hot);
 
 /**
  * @brief True when @p point is ::LH_UI_VIEW_DRAG_THRESHOLD or more from the press.

@@ -25,6 +25,7 @@
 #include <lh/ui/canvas/sw.h>
 #include <lh/ui/color.h>
 #include <lh/ui/entity.h>
+#include <lh/ui/entity/button.h>
 #include <lh/ui/entity/container.h>
 #include <lh/ui/entity/label.h>
 #include <lh/ui/entity/scrollbar.h>

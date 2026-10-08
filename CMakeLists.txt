@@ -252,6 +252,7 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/entity/container.c
             ${LH_LIB_SRC_PATH}/ui/entity/label.c
             ${LH_LIB_SRC_PATH}/ui/entity/scrollbar.c
+            ${LH_LIB_SRC_PATH}/ui/entity/button.c
             ${LH_LIB_SRC_PATH}/ui/view.c
             ${LH_LIB_SRC_PATH}/ui/mask.c
             ${LH_LIB_SRC_PATH}/ui/font.c
