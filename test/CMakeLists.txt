@@ -254,10 +254,11 @@ set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/entity/container.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/entity/label.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/entity/scrollbar.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/entity/toggle.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/font.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/gradient.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/insets.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/layout/stack.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/layout.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/mask.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/paint.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/pen.cpp

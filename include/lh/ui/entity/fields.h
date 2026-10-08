@@ -31,25 +31,28 @@
  * @param class_type  Type of the class pointer.
  * @param bool_type   Type of the hidden and pressed flags.
  * @param entity_type Type of the parent pointer.
+ * @param place_type  Type of ::lh_ui_place_t — how this entity wants a flow to place it.
  */
 #ifdef LH_COMPILER_CXX
-#    define lh_ui_entity_fields(rect_type, style_type, class_type, bool_type, entity_type)           \
+#    define lh_ui_entity_fields(rect_type, style_type, class_type, bool_type, entity_type, place_type)           \
         rect_type rect;                                                                             \
         const style_type *style;                                                                    \
         const class_type *klass;                                                                    \
         bool_type hidden;                                                                           \
         bool_type pressed;                                                                          \
         entity_type *parent;                                                                        \
+        place_type place;                                                                            \
         lh_list_t children;                                                                         \
         lh_list_node_t link
 #else
-#    define lh_ui_entity_fields(rect_type, style_type, class_type, bool_type, entity_type)           \
+#    define lh_ui_entity_fields(rect_type, style_type, class_type, bool_type, entity_type, place_type)           \
         rect_type rect;                                                                             \
         const style_type *style;                                                                    \
         const class_type *class;                                                                    \
         bool_type hidden;                                                                           \
         bool_type pressed;                                                                          \
         entity_type *parent;                                                                        \
+        place_type place;                                                                            \
         lh_list_t children;                                                                         \
         lh_list_node_t link
 #endif

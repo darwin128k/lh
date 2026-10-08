@@ -19,6 +19,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/ui/entity.h>
 #include <lh/ui/entity/container/fields.h>
+#include <lh/ui/layout.h>
 #include <lh/ui/entity/transform.h>
 #include <lh/key.h>
 #include <lh/ui/key.h>
@@ -33,7 +34,7 @@
  */
 struct lh_ui_entity_container
 {
-    lh_ui_entity_container_fields(lh_ui_entity_t, lh_ui_point_t);
+    lh_ui_entity_container_fields(lh_ui_entity_t, lh_ui_point_t, lh_ui_layout_t);
 };
 typedef struct lh_ui_entity_container lh_ui_entity_container_t;
 
@@ -94,11 +95,31 @@ lh_ui_point_t
 lh_ui_entity_container_get_key_delta(const lh_ui_entity_container_t *self, const lh_ui_key_input_t *input);
 
 /**
- * @brief Answer for the children of @p self: offset `-scroll`, clip on.
+ * @brief Answer for the children of @p self: place them by
+ *        ::lh_ui_entity_container_get_layout, then offset `-scroll`, clip on.
+ *
+ * The placement is the container's own and happens here, so a container that
+ * moved carries its children with it — the rects a flow writes are absolute, and
+ * nothing else in the tree is in a position to rewrite them.
  */
 lh_void
 lh_ui_entity_container_place_children(const lh_ui_entity_container_t *self,
                                       lh_ui_entity_transform_t *transform);
+
+/**
+ * @brief The flow @p self places its children by, or ::lh_null when it has none
+ *        and its children keep the rects they were given.
+ */
+const lh_ui_layout_t *
+lh_ui_entity_container_get_layout(const lh_ui_entity_container_t *self);
+
+/**
+ * @brief Place the children of @p self by @p layout from now on: axis, gap and
+ *        where the leftovers go. Not owned — the rule belongs to the caller, like
+ *        a style, and ::lh_null takes it away again.
+ */
+lh_void
+lh_ui_entity_container_set_layout(lh_ui_entity_container_t *self, const lh_ui_layout_t *layout);
 
 /**
  * @brief Fill @p self so it covers @p rect with no style, no children, and

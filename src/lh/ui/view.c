@@ -322,15 +322,29 @@ lh_ui_view_click(lh_ui_view_t *self, lh_ui_point_t point)
         self, lh_ui_entity_scrollbar_get_driven(lh_ui_view_hit_test(self, point)), point);
 }
 
+/* A click may change what the thing clicked looks like — a toggle flips, a row
+   re-styles itself — and it happens after the release damaged the looks the
+   target had then. So the target is damaged once more, now: the same rect, and
+   the union grows only as far as the *new* look reaches. One rect union per
+   click, and no extra pixels unless a look really did reach further. */
+static lh_ui_entity_t *
+lh_ui_view_click_plain(lh_ui_view_t *self, lh_ui_point_t point)
+{
+    lh_ui_entity_t *clicked = lh_ui_entity_click(self->root, point);
+
+    lh_ui_view_damage_pressed(self, clicked);
+    return clicked;
+}
+
 lh_ui_entity_t *
 lh_ui_view_click_scrolling(lh_ui_view_t *self, lh_ui_entity_container_t *box, lh_ui_point_t point)
 {
     lh_ui_point_t before;
     lh_ui_entity_t *clicked;
 
-    lh_return_if(lh_null_eq(box), lh_ui_entity_click(self->root, point));
+    lh_return_if(lh_null_eq(box), lh_ui_view_click_plain(self, point));
     before = lh_ui_entity_container_get_scroll(box);
-    clicked = lh_ui_entity_click(self->root, point);
+    clicked = lh_ui_view_click_plain(self, point);
     (void)lh_ui_view_damage_scroll(self, box, before);
     lh_ui_view_end_scroll(self);
     return clicked;

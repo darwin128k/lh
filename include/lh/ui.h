@@ -29,11 +29,13 @@
 #include <lh/ui/entity/container.h>
 #include <lh/ui/entity/label.h>
 #include <lh/ui/entity/scrollbar.h>
+#include <lh/ui/entity/toggle.h>
 #include <lh/ui/font.h>
 #include <lh/ui/gradient.h>
 #include <lh/ui/insets.h>
 #include <lh/ui/key.h>
-#include <lh/ui/layout/stack.h>
+#include <lh/ui/layout.h>
+#include <lh/ui/layout/place.h>
 #include <lh/ui/mask.h>
 #include <lh/ui/paint.h>
 #include <lh/ui/pixmap.h>

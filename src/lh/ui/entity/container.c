@@ -92,11 +92,33 @@ lh_ui_entity_container_place_children(const lh_ui_entity_container_t *self,
     lh_ui_point_t scroll;
     lh_ui_point_t offset;
 
+    /* First, because everything below is about where the content ended up: the
+       flow is the container's own job and this is the only place in a frame that
+       can do it. The event carries a const self because events do; the children
+       it places are not read-only. */
+    if (lh_null_ne(self->layout))
+    {
+        lh_ui_layout_apply(self->layout, lh_ptr_rcast(lh_ui_entity_t, self));
+    }
     scroll = lh_ui_entity_container_get_scroll(self);
     lh_ui_point_init(lh_addr_of(offset), -lh_ui_point_get_x(lh_addr_of(scroll)),
                      -lh_ui_point_get_y(lh_addr_of(scroll)));
     lh_ui_entity_transform_set_offset(transform, offset);
     lh_ui_entity_transform_set_clip(transform, lh_bool_true);
+}
+
+const lh_ui_layout_t *
+lh_ui_entity_container_get_layout(const lh_ui_entity_container_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->layout;
+}
+
+lh_void
+lh_ui_entity_container_set_layout(lh_ui_entity_container_t *self, const lh_ui_layout_t *layout)
+{
+    lh_assert_runtime_ref(self);
+    self->layout = layout;
 }
 
 lh_void
@@ -106,6 +128,7 @@ lh_ui_entity_container_init(lh_ui_entity_container_t *self, lh_ui_rect_t rect)
     lh_ui_entity_init(lh_addr_of(self->entity), rect);
     lh_ui_entity_set_class(lh_addr_of(self->entity), lh_addr_of(lh_ui_entity_container_class));
     lh_ui_point_init(lh_addr_of(self->scroll), lh_ui_scalar(0), lh_ui_scalar(0));
+    self->layout = lh_null;
 }
 
 lh_ui_entity_t *

@@ -28,6 +28,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 #include <lh/ui/entity.h>
+#include <lh/ui/entity/container.h>
 #include <lh/ui/entity/button/fields.h>
 #include <lh/ui/entity/button/on/click/cb.h>
 #include <lh/ui/entity/button/on/click/fn.h>
@@ -43,7 +44,7 @@
  */
 struct lh_ui_button
 {
-    lh_ui_button_fields(lh_ui_entity_t, lh_ui_style_t, lh_bool_t, lh_ui_button_on_click_cb, lh_ptr);
+    lh_ui_button_fields(lh_ui_entity_container_t, lh_ui_style_t, lh_bool_t, lh_ui_button_on_click_cb, lh_ptr);
 };
 typedef struct lh_ui_button lh_ui_button_t;
 

@@ -231,7 +231,8 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/axis.c
             ${LH_LIB_SRC_PATH}/ui/insets.c
             ${LH_LIB_SRC_PATH}/ui/key.c
-            ${LH_LIB_SRC_PATH}/ui/layout/stack.c
+            ${LH_LIB_SRC_PATH}/ui/layout/layout.c
+            ${LH_LIB_SRC_PATH}/ui/layout/place.c
             ${LH_LIB_SRC_PATH}/ui/color.c
             ${LH_LIB_SRC_PATH}/ui/paint.c
             ${LH_LIB_SRC_PATH}/ui/gradient.c
@@ -253,6 +254,7 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/entity/label.c
             ${LH_LIB_SRC_PATH}/ui/entity/scrollbar.c
             ${LH_LIB_SRC_PATH}/ui/entity/button.c
+             ${LH_LIB_SRC_PATH}/ui/entity/toggle.c
             ${LH_LIB_SRC_PATH}/ui/view.c
             ${LH_LIB_SRC_PATH}/ui/mask.c
             ${LH_LIB_SRC_PATH}/ui/font.c

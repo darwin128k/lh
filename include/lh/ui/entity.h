@@ -27,6 +27,7 @@
 #include <lh/ui/entity/fields.h>
 #include <lh/ui/entity/transform.h>
 #include <lh/ui/entity/visit/cb.h>
+#include <lh/ui/layout/place.h>
 #include <lh/ui/point.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/style.h>
@@ -40,7 +41,7 @@
 struct lh_ui_entity
 {
     lh_ui_entity_fields(lh_ui_rect_t, lh_ui_style_t, lh_ui_entity_class_t, lh_bool_t,
-                        struct lh_ui_entity);
+                        struct lh_ui_entity, lh_ui_place_t);
 };
 typedef struct lh_ui_entity lh_ui_entity_t;
 
@@ -59,6 +60,25 @@ lh_ui_entity_init(lh_ui_entity_t *self, lh_ui_rect_t rect);
  */
 lh_ui_rect_t
 lh_ui_entity_get_rect(const lh_ui_entity_t *self);
+
+/**
+ * @brief How @p self wants a flow to place it (::lh_ui_place_t): fixed zero at
+ *        the start until said otherwise.
+ *
+ * Carried by the entity and not by the parent that lays it out, because "how
+ * long am I" is a fact about the widget and not about whoever holds it — the
+ * same label is as wide as its text in a button and in a column without either
+ * one knowing.
+ */
+const lh_ui_place_t *
+lh_ui_entity_get_place(const lh_ui_entity_t *self);
+
+/**
+ * @brief Put @p place on @p self: what the next ::lh_ui_layout_apply of its
+ *        parent has to work with.
+ */
+lh_void
+lh_ui_entity_set_place(lh_ui_entity_t *self, const lh_ui_place_t *place);
 
 /**
  * @brief Replace the rectangle @p self covers with @p rect.

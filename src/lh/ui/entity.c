@@ -26,6 +26,7 @@ lh_ui_entity_init(lh_ui_entity_t *self, lh_ui_rect_t rect)
     self->hidden = lh_bool_false;
     self->pressed = lh_bool_false;
     self->parent = lh_null;
+    lh_ui_place_init(lh_addr_of(self->place), lh_ui_place_size_fixed, lh_ui_scalar(0));
     lh_list_init(lh_addr_of(self->children));
     lh_list_node_init(lh_addr_of(self->link));
 }
@@ -35,6 +36,21 @@ lh_ui_entity_get_rect(const lh_ui_entity_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->rect;
+}
+
+const lh_ui_place_t *
+lh_ui_entity_get_place(const lh_ui_entity_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->place);
+}
+
+lh_void
+lh_ui_entity_set_place(lh_ui_entity_t *self, const lh_ui_place_t *place)
+{
+    lh_assert_runtime_ref(self);
+    lh_return_if(lh_null_eq(place));
+    self->place = *place;
 }
 
 lh_void
