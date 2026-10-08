@@ -298,9 +298,12 @@ endif ()
 add_library(${PROJECT_NAME} STATIC ${LH_LIB_SOURCES})
 
 # Expose generated and public include directories to consumers.
+# The generated one comes FIRST on purpose: `#include <lh/config.h>` has to find
+# this build tree's header, not one that happens to sit in the source tree.
 target_include_directories(
         ${PROJECT_NAME}
         PUBLIC
+        ${CMAKE_CURRENT_BINARY_DIR}/include
         ${LH_LIB_INCLUDE_PATH}
         # Library-private headers under src/lh/, included as <lh/...>.
         PRIVATE

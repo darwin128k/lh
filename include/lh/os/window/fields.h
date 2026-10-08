@@ -21,6 +21,7 @@
 #include <lh/os/window/on/key/cb.h>
 #include <lh/os/window/on/text/cb.h>
 #include <lh/os/window/on/wheel/cb.h>
+#include <lh/os/window/placement.h>
 #include <lh/ptr.h>
 
 /**
@@ -37,6 +38,9 @@
  * should do with each point — move, resize, or leave it to the app. See
  * ::lh_os_window_set_frame, ::lh_os_window_set_corner_radius and
  * ::lh_os_window_set_on_zone.
+ *
+ * `placement` is where the window opens for the first time; it is read at creation
+ * like `frame` and `corner`. See ::lh_os_window_set_placement.
  *
  * `paint_dc` is set only for the duration of ::lh_os_window_on_paint_fn.
  * Click synthesis (press then release without a drag) lives above the OS:
@@ -57,6 +61,7 @@
     lh_bool_t closing;                                                                              \
     lh_os_window_frame_t frame;                                                                    \
     int corner;                                                                                    \
+    lh_os_window_placement_t placement;                                                            \
     lh_bool_t maximized;                                                                           \
     lh_os_window_on_zone_cb on_zone;                                                              \
     lh_ptr on_zone_context;                                                                        \

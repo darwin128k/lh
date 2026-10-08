@@ -285,6 +285,32 @@ TEST(ui_canvas, damage_of_an_area_frame_stays_in_target_space)
     EXPECT_TRUE(lh_test::rect_is(*lh_ui_canvas_get_damage(lh_addr_of(canvas)), lh_test::rect_of(10, 75, 20, 5)));
 }
 
+TEST(canvas, damage_in_an_area_is_the_damage_clipped_to_it)
+{
+    const lh_ui_rect_t area = lh_test::rect_of(0, 64, 160, 32);
+    const lh_ui_rect_t cut = lh_test::rect_of(20, 70, 40, 10);
+    const lh_ui_rect_t touching = lh_test::rect_of(150, 90, 40, 10);
+    const lh_ui_rect_t below = lh_test::rect_of(0, 200, 160, 10);
+    /* One row short of the area: touching is dirty, one row lower is not. */
+    const lh_ui_rect_t under = lh_test::rect_of(0, 97, 160, 3);
+    const lh_ui_rect_t all = lh_ui_canvas_damage_in(lh_addr_of(area), nullptr);
+    const lh_ui_rect_t part = lh_ui_canvas_damage_in(lh_addr_of(area), lh_addr_of(cut));
+    const lh_ui_rect_t edge = lh_ui_canvas_damage_in(lh_addr_of(area), lh_addr_of(touching));
+    const lh_ui_rect_t none = lh_ui_canvas_damage_in(lh_addr_of(area), lh_addr_of(below));
+    const lh_ui_rect_t short_of = lh_ui_canvas_damage_in(lh_addr_of(area), lh_addr_of(under));
+
+    /* Nothing said means everything still holds, so the area answers itself. */
+    EXPECT_TRUE(lh_test::rect_is(all, area));
+    /* Partly over it: the part, which is what the frame may touch. */
+    EXPECT_TRUE(lh_test::rect_is(part, lh_test::rect_of(20, 70, 40, 10)));
+    /* Touching an edge is not empty: the row on it is still dirty. */
+    EXPECT_TRUE(lh_test::rect_is(edge, lh_test::rect_of(150, 90, 10, 6)));
+    /* And a strip the damage never reaches is empty, which is how a partial frame
+       keeps the pixels already on screen. */
+    EXPECT_TRUE(lh_ui_rect_is_empty(lh_addr_of(none)));
+    EXPECT_TRUE(lh_ui_rect_is_empty(lh_addr_of(short_of)));
+}
+
 /* ── Offset and clip ─────────────────────────────────────────────────────── */
 
 using lh_test::draw_log;

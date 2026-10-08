@@ -42,8 +42,13 @@ lh_os_tick_us(void)
     return lh_cast_static(lh_u64_t, (counter.QuadPart * 1000000LL) / frequency);
 }
 
-#elif defined(CLOCK_MONOTONIC)
+#elif LH_COMPILER_OS == LH_COMPILER_OS_LINUX || LH_COMPILER_OS == LH_COMPILER_OS_MAC
 
+/* `<time.h>` first, and outside any branch that tests what it defines.
+   CLOCK_MONOTONIC comes from it, and testing a macro whose header has not been
+   read yet is always false — which is how this file shipped its `return 0` stub to
+   every POSIX clock. Nothing above the clock can tell a clock that reads zero from
+   a very fast one: every timer on it reported that it worked. */
 #    include <lh/numeric/types.h>
 #    include <time.h>
 
@@ -69,6 +74,8 @@ lh_os_tick_us(void)
 
 #else
 
+/* Nothing to ask, and no header that would answer. A freestanding build that
+   needs a clock brings its own. */
 lh_tick_t
 lh_os_tick_ms(void)
 {
@@ -81,4 +88,4 @@ lh_os_tick_us(void)
     return 0;
 }
 
-#endif
+#endif /* LH_COMPILER_OS */

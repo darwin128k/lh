@@ -44,11 +44,10 @@ option(LH_LIBRARY_OPTION_OS
 # Native window surface: src/lh/os/system/{win}/ window.c + headers in
 # include/lh/os/window.h and include/lh/os/system/window.h.
 #
-#   ON  — compile and link the window backend (links user32 on Windows,
-#              Cocoa through Cocoa on macOS, Xlib on Linux). Default ON when
-#              LH_LIBRARY_OPTION_OS is ON; OFF otherwise (a freestanding build
-#              cannot own a window).
-#   OFF — no window backend, no user32 / Cocoa / Xlib link.
+#   ON  — compile and link the window backend (links user32 and gdi32 on
+#              Windows). Default ON when LH_LIBRARY_OPTION_OS is ON; OFF
+#              otherwise (a freestanding build cannot own a window).
+#   OFF — no window backend, no user32 / gdi32 link.
 #
 # Currently Windows-only; Linux/Xlib and macOS/Cocoa backends are added
 # when an `lh/os/system/{posix,macos}/window.c` shows up under `add_subdirectory`.
@@ -61,11 +60,20 @@ else ()
     set(_LH_OS_WINDOW_DEFAULT OFF)
 endif ()
 option(LH_LIBRARY_OPTION_OS_WINDOW
-        "Compile the native window backend (user32 on Windows, Xlib on Linux, Cocoa on macOS). Requires LH_LIBRARY_OPTION_OS=ON."
+        "Compile the native window backend (user32 + gdi32 on Windows; POSIX and macOS have none yet). Requires LH_LIBRARY_OPTION_OS=ON."
         ${_LH_OS_WINDOW_DEFAULT})
 unset(_LH_OS_WINDOW_DEFAULT)
 if (LH_LIBRARY_OPTION_OS_WINDOW AND NOT LH_LIBRARY_OPTION_OS)
     message(FATAL_ERROR "LH_LIBRARY_OPTION_OS_WINDOW=ON requires LH_LIBRARY_OPTION_OS=ON")
+endif ()
+# The model in include/lh/os/window.h is portable and compiles anywhere, but the
+# backend that puts a window on the screen is added for WIN32 only. Leaving this
+# ON elsewhere builds an archive whose lh_os_window_open has no definition and
+# fails at the link of whoever calls it — a worse surprise than not having it.
+if (LH_LIBRARY_OPTION_OS_WINDOW AND NOT WIN32)
+    message(STATUS
+            "LH_LIBRARY_OPTION_OS_WINDOW=ON on ${CMAKE_SYSTEM_NAME}, which has no window backend yet: turning it off")
+    set(LH_LIBRARY_OPTION_OS_WINDOW OFF)
 endif ()
 
 # -----------------------------------------------------------------------------

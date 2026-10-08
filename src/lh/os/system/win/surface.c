@@ -28,13 +28,13 @@ struct lh_os_system_win_surface
 typedef struct lh_os_system_win_surface lh_os_system_win_surface_t;
 
 lh_os_system_surface_handle_t
-lh_os_system_surface_create(int width, int height)
+lh_os_system_surface_create(int width, int height, int bits)
 {
     lh_os_system_win_surface_t *surface;
-    lh_os_system_win_bitmapinfoheader_t info;
+    lh_os_system_win_bitmapv5header_t info;
     lh_os_system_win_hdc_t dc;
     lh_os_system_win_handle_t bitmap;
-    lh_ptr bits;
+    lh_ptr bits_pointer;
 
     lh_return_if(width <= 0 || height <= 0, LH_OS_SYSTEM_SURFACE_HANDLE_INVALID);
 
@@ -49,17 +49,27 @@ lh_os_system_surface_create(int width, int height)
     }
 
     lh_memory_set(lh_addr_of(info), sizeof(info), 0);
-    info.biSize = lh_cast_static(lh_os_system_win_dword_t, sizeof(info));
-    info.biWidth = width;
-    info.biHeight = -height; /* top-down */
-    info.biPlanes = 1;
-    info.biBitCount = 32;
-    info.biCompression = LH_OS_SYSTEM_WIN_BI_RGB;
+    info.bV5Header.biSize = lh_cast_static(lh_os_system_win_dword_t, sizeof(info));
+    info.bV5Header.biWidth = width;
+    info.bV5Header.biHeight = -height; /* top-down */
+    info.bV5Header.biPlanes = 1;
+    info.bV5Header.biBitCount = lh_cast_static(lh_os_system_win_word_t, bits);
+    info.bV5Header.biCompression = LH_OS_SYSTEM_WIN_BI_RGB;
+    if (bits == 16)
+    {
+        /* 16 bits with nowhere to say where a channel is are RGB555, which loses a
+           bit of green — the channel the eye reads a UI by. `BITMAPV5HEADER` has the
+           room and `CreateDIBSection` has read it since Windows 2000, so say it. */
+        info.bV5Header.biCompression = LH_OS_SYSTEM_WIN_BI_BITFIELDS;
+        info.bV5RedMask = 0x0000F800U;
+        info.bV5GreenMask = 0x000007E0U;
+        info.bV5BlueMask = 0x0000001FU;
+    }
 
-    bits = lh_null;
-    bitmap = CreateDIBSection(dc, lh_addr_of(info), LH_OS_SYSTEM_WIN_DIB_RGB_COLORS, lh_addr_of(bits),
-                              lh_null, 0);
-    if (lh_null_eq(bitmap) || lh_null_eq(bits))
+    bits_pointer = lh_null;
+    bitmap = CreateDIBSection(dc, lh_cast_reinterpret(const lh_os_system_win_bitmapinfo_t *, lh_addr_of(info)),
+                              LH_OS_SYSTEM_WIN_DIB_RGB_COLORS, lh_addr_of(bits_pointer), lh_null, 0);
+    if (lh_null_eq(bitmap) || lh_null_eq(bits_pointer))
     {
         DeleteDC(dc);
         lh_runtime_allocator_free(surface);
@@ -69,7 +79,7 @@ lh_os_system_surface_create(int width, int height)
     surface->dc = dc;
     surface->bitmap = bitmap;
     surface->previous = SelectObject(dc, bitmap);
-    surface->bits = bits;
+    surface->bits = bits_pointer;
     surface->width = width;
     surface->height = height;
     return lh_cast_reinterpret(lh_os_system_surface_handle_t, surface);

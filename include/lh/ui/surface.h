@@ -37,18 +37,18 @@
 /**
  * @struct lh_ui_surface
  * @typedef lh_ui_surface_t
- * @brief Off-screen target: size plus OS handle.
+ * @brief Off-screen target: size, pixel format and OS handle.
  */
 struct lh_ui_surface
 {
-    lh_ui_surface_fields(lh_ui_size_t, lh_os_system_surface_handle_t);
+    lh_ui_surface_fields(lh_ui_size_t, lh_ui_pixmap_format_t, lh_os_system_surface_handle_t);
 };
 typedef struct lh_ui_surface lh_ui_surface_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Empty surface: size zero, no handle.
+ * @brief Empty surface: size zero, no handle, ::lh_ui_pixmap_format_argb8888.
  */
 lh_void
 lh_ui_surface_init(lh_ui_surface_t *self);
@@ -72,6 +72,30 @@ lh_ui_size_t
 lh_ui_surface_get_size(const lh_ui_surface_t *self);
 
 /**
+ * @brief Pixel format of @p self. The format decides how many bytes a pixel is,
+ *        and so what ::lh_ui_surface_get_pixmap hands out.
+ */
+lh_ui_pixmap_format_t
+lh_ui_surface_get_format(const lh_ui_surface_t *self);
+
+/**
+ * @brief Make @p format the format of @p self, recreating the buffer when it does
+ *        not already hold one. Only while empty: a live buffer's format belongs to
+ *        whatever is drawing into it.
+ *
+ * The cheapest pixels are the ones never stored twice, and fewer bytes is the
+ * lever a draw-bound frame pulls. It is not the whole frame, though: whatever
+ * presents the buffer decides the rest of it, and a 32-bit window DC expands a
+ * 16-bit one back to full size, one pixel at a time. On this machine the present
+ * out of ARGB8888 is 382 400 ns and out of RGB565 is 839 050 ns, against 137 750
+ * and 94 100 ns to draw them — so RGB565 pays where the buffer goes straight to a
+ * 16-bit panel, and loses where GDI sits in between. See
+ * ::lh_os_render_backend_gdi_context_get_format.
+ */
+lh_void
+lh_ui_surface_set_format(lh_ui_surface_t *self, lh_ui_pixmap_format_t format);
+
+/**
  * @brief Recreate @p self for @p size. No-op when the size already matches
  *        and the handle is live. Drops the old buffer first when changing.
  *
@@ -81,8 +105,9 @@ lh_bool_t
 lh_ui_surface_set_size(lh_ui_surface_t *self, lh_ui_size_t size);
 
 /**
- * @brief Set @p pixmap over the pixels of @p self (::lh_os_system_surface_get_pixels):
- *        ARGB8888, rows `width * 4` bytes apart. False, @p pixmap left alone, when @p self is empty.
+ * @brief Set @p pixmap over the pixels of @p self (::lh_os_system_surface_get_pixels),
+ *        in the format ::lh_ui_surface_get_format reports: rows a pixel apart by its
+ *        own width. False, @p pixmap left alone, when @p self is empty.
  */
 lh_bool_t
 lh_ui_surface_get_pixmap(const lh_ui_surface_t *self, lh_ui_pixmap_t *pixmap);

@@ -29,10 +29,13 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Create a surface of @p width by @p height pixels.
  *
+ * @param bits 16 or 32 bits per pixel. 16 is RGB565 (five bits of red, six of
+ *             green, five of blue) where the platform can be asked for it by name.
+ *
  * @return Handle, or ::LH_OS_SYSTEM_SURFACE_HANDLE_INVALID on failure.
  */
 lh_os_system_surface_handle_t
-lh_os_system_surface_create(int width, int height);
+lh_os_system_surface_create(int width, int height, int bits);
 
 /**
  * @brief Release @p handle. Safe with ::LH_OS_SYSTEM_SURFACE_HANDLE_INVALID.

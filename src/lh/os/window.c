@@ -45,6 +45,7 @@ lh_os_window_init(lh_os_window_t *self)
     self->closing = lh_bool_false;
     self->frame = lh_os_window_frame_system;
     self->corner = 0;
+    self->placement = lh_os_window_placement_default;
     self->maximized = lh_bool_false;
     self->on_zone = lh_null;
     self->on_zone_context = lh_null;
@@ -87,7 +88,8 @@ lh_os_window_open(lh_os_app_t *app, lh_os_window_t *self, const lh_char_t *title
                          lh_runtime_error_code_invalid_argument);
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     self->handle = lh_os_system_window_open(title, width, height, self,
-                                            LH_OS_SYSTEM_WINDOW_HANDLE_INVALID, self->frame, self->corner);
+                                            LH_OS_SYSTEM_WINDOW_HANDLE_INVALID, self->frame, self->corner,
+                                            self->placement);
     if (!lh_os_system_window_is_valid(self->handle))
     {
         return lh_bool_false;
@@ -120,7 +122,7 @@ lh_os_window_open_modal(lh_os_window_t *parent, lh_os_window_t *self, const lh_c
     lh_assert_runtime_ifn(lh_os_system_window_is_valid(parent->handle),
                           lh_runtime_error_code_invalid_argument);
     self->handle = lh_os_system_window_open(title, width, height, self, parent->handle, self->frame,
-                                            self->corner);
+                                            self->corner, self->placement);
     if (!lh_os_system_window_is_valid(self->handle))
     {
         return lh_bool_false;
@@ -374,6 +376,23 @@ lh_os_window_set_corner_radius(lh_os_window_t *self, int radius)
 }
 
 lh_void
+lh_os_window_set_placement(lh_os_window_t *self, lh_os_window_placement_t placement)
+{
+    lh_assert_runtime_ref(self);
+    /* Only while closed, like ::lh_os_window_set_frame: this is read at creation,
+       and a window that is already up has a position the user may have moved. */
+    lh_assert_runtime_if(lh_null_ne(self->handle), lh_runtime_error_code_invalid_argument);
+    self->placement = placement;
+}
+
+lh_os_window_placement_t
+lh_os_window_get_placement(const lh_os_window_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->placement;
+}
+
+lh_void
 lh_os_window_set_on_zone(lh_os_window_t *self, lh_os_window_on_zone_cb on_zone, lh_ptr context)
 {
     lh_assert_runtime_ref(self);
@@ -468,6 +487,21 @@ lh_os_window_get_client_size(const lh_os_window_t *self, int *width, int *height
 #else
     *width = 0;
     *height = 0;
+    return lh_bool_false;
+#endif
+}
+
+lh_bool_t
+lh_os_window_get_position(const lh_os_window_t *self, int *x, int *y)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(x);
+    lh_assert_runtime_ref(y);
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+    return lh_os_system_window_get_position(self->handle, x, y);
+#else
+    *x = 0;
+    *y = 0;
     return lh_bool_false;
 #endif
 }

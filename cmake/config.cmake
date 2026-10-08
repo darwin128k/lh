@@ -1,8 +1,17 @@
 # ---------------------------------------------------------------------------
 # lh_generate_config()
 #
-# Runs configure_file on include/lh/config.h.in -> include/lh/config.h
-# so #include <lh/config.h> sees a single path in the source tree.
+# Runs configure_file on include/lh/config.h.in -> <build dir>/include/lh/config.h
+# so #include <lh/config.h> finds it on the build include path.
+#
+# Into the build tree, not the source tree: the source tree is one checkout
+# that several build trees share — Debug and Release, Windows and Linux — and a
+# single generated header there means the last one configured wins for all of
+# them. That is not hypothetical: configuring on Linux wrote OS_WINDOW=OFF into
+# the header that the Windows build was reading, and the Windows build then
+# failed in files it had compiled a minute earlier. The generated directory is
+# placed FIRST on the include path (see the lh target), which is what lets it
+# override a config.h in the source tree.
 #
 # Non-CMake: copy config.h.in to config.h and substitute placeholders
 # (see comments in the .in file). Placeholder names must match set() names below.
@@ -182,6 +191,7 @@ function(lh_generate_config)
     set(ValMemoryStdPrefetchDistance "${LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_DISTANCE}")
 
     set(_in "${CMAKE_CURRENT_SOURCE_DIR}/include/lh/config.h.in")
-    set(_out "${CMAKE_CURRENT_SOURCE_DIR}/include/lh/config.h")
+    set(_out "${CMAKE_CURRENT_BINARY_DIR}/include/lh/config.h")
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include/lh")
     configure_file("${_in}" "${_out}" @ONLY)
 endfunction()

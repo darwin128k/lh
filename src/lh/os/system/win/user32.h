@@ -81,6 +81,44 @@ struct lh_os_system_win_rect
 typedef struct lh_os_system_win_rect lh_os_system_win_rect_t;
 
 /**
+ * @struct lh_os_system_win_monitorinfo
+ * @brief `MONITORINFO`: where a display is, and the part of it that is usable.
+ *        Present since Windows 2000.
+ */
+struct lh_os_system_win_monitorinfo
+{
+    lh_os_system_win_dword_t cb_size;
+    lh_os_system_win_rect_t monitor; /* the whole display, in virtual-screen coordinates */
+    lh_os_system_win_rect_t work;    /* the same minus taskbars and docked app bars */
+    lh_os_system_win_dword_t flags;
+};
+typedef struct lh_os_system_win_monitorinfo lh_os_system_win_monitorinfo_t;
+
+/* `MONITORINFOF_PRIMARY`: this display is the one with the Start menu and taskbar.
+ * A `MONITORINFO` asked for without the flag never has it set. */
+#define LH_OS_SYSTEM_WIN_MONITORINFOF_PRIMARY 1
+
+/* `MonitorFromWindow` / `MonitorFromPoint`: which display a window or a point is
+ * on, and what to answer when it is on none. The default-to flags are how a caller
+ * says which screen "the one" means. */
+#define LH_OS_SYSTEM_WIN_MONITOR_DEFAULTTONULL 0
+#define LH_OS_SYSTEM_WIN_MONITOR_DEFAULTTOPRIMARY 1
+#define LH_OS_SYSTEM_WIN_MONITOR_DEFAULTTONEAREST 2
+
+/** The display @p hwnd is on. Present since Windows 2000. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
+MonitorFromWindow(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_dword_t flags);
+
+/** The display @p point is on. Present since Windows 2000. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
+MonitorFromPoint(lh_os_system_win_point_t point, lh_os_system_win_dword_t flags);
+
+/** Where a display is and how much of it is usable, into @p info.
+ *  Present since Windows 2000. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+GetMonitorInfoA(lh_os_system_win_handle_t monitor, lh_os_system_win_monitorinfo_t *info);
+
+/**
  * @struct lh_os_system_win_msg
  * @brief `MSG`. Present since Windows 95.
  *

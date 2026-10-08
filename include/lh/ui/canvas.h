@@ -123,6 +123,17 @@ const lh_ui_rect_t *
 lh_ui_canvas_get_damage(const lh_ui_canvas_t *self);
 
 /**
+ * @brief @p damage clipped to @p area; empty where the two do not meet.
+ *
+ * ::lh_null @p damage is the whole target and answers @p area. Whether a piece of
+ * the target still holds what was drawn there is the one question every frame asks
+ * of every part of itself, so it is asked once here, beside the damage the canvas
+ * keeps, and not again by whoever walks the target.
+ */
+lh_ui_rect_t
+lh_ui_canvas_damage_in(const lh_ui_rect_t *area, const lh_ui_rect_t *damage);
+
+/**
  * @brief Save the offset and clip of @p self, then move and cut later draws.
  *
  * The new offset is the old one plus @p offset_delta. @p clip_rect is in the

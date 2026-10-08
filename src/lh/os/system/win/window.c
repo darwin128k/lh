@@ -241,9 +241,68 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
     return DefWindowProcA(hwnd, msg, wparam, lparam);
 }
 
+/* Where a window opens. Win32 has exactly one answer for this — `CW_USEDEFAULT`,
+   a cascade from the top-left corner — and no call that means "in the middle of
+   what the user is looking at", so that half is ours: the work area of the monitor
+   the window opens on, which is the area the system itself calls usable.
+
+   A modal child centres on the monitor its owner is on, because a dialog that
+   lands on the other screen is not near the thing it belongs to. A window larger
+   than that work area keeps its top-left corner inside it: the size the caller
+   asked for is the size it gets, but a title bar off the edge is a window nobody
+   can move. */
+static lh_void
+lh_os_system_win_window_centered_origin(const lh_os_system_win_rect_t *window_rect,
+                                        lh_os_system_win_hwnd_t owner_hwnd, int *x, int *y)
+{
+    lh_os_system_win_monitorinfo_t monitor_info;
+    lh_os_system_win_handle_t monitor;
+    int centered_x;
+    int centered_y;
+
+    lh_memory_set(lh_addr_of(monitor_info), sizeof(monitor_info), 0);
+    monitor_info.cb_size = lh_cast_static(lh_os_system_win_dword_t, sizeof(monitor_info));
+
+    if (lh_null_ne(owner_hwnd))
+    {
+        monitor = MonitorFromWindow(owner_hwnd, LH_OS_SYSTEM_WIN_MONITOR_DEFAULTTONEAREST);
+    }
+    else
+    {
+        lh_os_system_win_point_t point;
+
+        point.x = 0;
+        point.y = 0;
+        /* Only the primary display starts at the top-left of the virtual screen,
+           so asking which display holds that point with DEFAULTTOPRIMARY asks for
+           the one with the taskbar and the Start menu on it. */
+        monitor = MonitorFromPoint(point, LH_OS_SYSTEM_WIN_MONITOR_DEFAULTTOPRIMARY);
+    }
+
+    if (lh_null_eq(monitor) ||
+        GetMonitorInfoA(monitor, lh_addr_of(monitor_info)) == LH_OS_SYSTEM_WIN_FALSE)
+    {
+        /* Nothing said where to put it, so it goes where the system would have put
+           it. A missing monitor is not a reason to open nothing. */
+        *x = LH_OS_SYSTEM_WIN_CW_USEDEFAULT;
+        *y = LH_OS_SYSTEM_WIN_CW_USEDEFAULT;
+        return;
+    }
+
+    centered_x = monitor_info.work.left +
+                 (monitor_info.work.right - monitor_info.work.left -
+                  (window_rect->right - window_rect->left)) / 2;
+    centered_y = monitor_info.work.top +
+                 (monitor_info.work.bottom - monitor_info.work.top -
+                  (window_rect->bottom - window_rect->top)) / 2;
+    *x = centered_x > monitor_info.work.left ? centered_x : monitor_info.work.left;
+    *y = centered_y > monitor_info.work.top ? centered_y : monitor_info.work.top;
+}
+
 lh_os_system_window_handle_t
 lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr user,
-                         lh_os_system_window_handle_t owner, lh_os_window_frame_t frame, int corner)
+                         lh_os_system_window_handle_t owner, lh_os_window_frame_t frame, int corner,
+                         lh_os_window_placement_t placement)
 {
     lh_os_system_win_hinstance_t instance;
     lh_os_system_win_hwnd_t hwnd;
@@ -252,6 +311,8 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     lh_os_system_win_dword_t style;
     lh_os_system_win_dword_t ex_style;
     lh_bool_t own_frame;
+    int x = LH_OS_SYSTEM_WIN_CW_USEDEFAULT;
+    int y = LH_OS_SYSTEM_WIN_CW_USEDEFAULT;
 
     lh_assert_runtime_ref(title);
     if (width <= 0 || height <= 0)
@@ -279,8 +340,14 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     rect.bottom = height;
     AdjustWindowRect(lh_addr_of(rect), style, LH_OS_SYSTEM_WIN_FALSE);
 
-    hwnd = CreateWindowExA(ex_style, LH_OS_SYSTEM_WIN_WINDOW_CLASS_NAME, title, style,
-                           LH_OS_SYSTEM_WIN_CW_USEDEFAULT, LH_OS_SYSTEM_WIN_CW_USEDEFAULT,
+    /* The outer rectangle is known by now, and that is what has to be centred: the
+       work area is in screen coordinates, the same ones this call passes. */
+    if (placement == lh_os_window_placement_center)
+    {
+        lh_os_system_win_window_centered_origin(lh_addr_of(rect), owner_hwnd, lh_addr_of(x), lh_addr_of(y));
+    }
+
+    hwnd = CreateWindowExA(ex_style, LH_OS_SYSTEM_WIN_WINDOW_CLASS_NAME, title, style, x, y,
                            rect.right - rect.left, rect.bottom - rect.top, owner_hwnd, lh_null,
                            instance, user);
     if (hwnd == lh_null)
@@ -475,5 +542,19 @@ lh_os_system_window_get_client_size(lh_os_system_window_handle_t handle, int *wi
     lh_return_if(GetClientRect(hwnd, lh_addr_of(client)) == 0, lh_bool_false);
     *width = client.right - client.left;
     *height = client.bottom - client.top;
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_os_system_window_get_position(lh_os_system_window_handle_t handle, int *x, int *y)
+{
+    lh_os_system_win_hwnd_t hwnd;
+    lh_os_system_win_rect_t window;
+
+    lh_return_if(lh_null_eq(handle) || lh_null_eq(x) || lh_null_eq(y), lh_bool_false);
+    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    lh_return_if(GetWindowRect(hwnd, lh_addr_of(window)) == 0, lh_bool_false);
+    *x = window.left;
+    *y = window.top;
     return lh_bool_true;
 }

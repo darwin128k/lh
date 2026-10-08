@@ -119,6 +119,7 @@ set(LH_TEST_SOURCES
 if (LH_LIBRARY_OPTION_OS)
     list(APPEND LH_TEST_SOURCES
             # os is being rebuilt from scratch, one piece at a time.
+            ${LH_TEST_SRC_PATH}/lh/os/tick.cpp
     )
 endif ()
 
@@ -126,6 +127,11 @@ if (LH_LIBRARY_OPTION_OS_WINDOW)
     list(APPEND LH_TEST_SOURCES
             ${LH_TEST_SRC_PATH}/lh/os/window.cpp
     )
+    if (WIN32)
+        list(APPEND LH_TEST_SOURCES
+                ${LH_TEST_SRC_PATH}/lh/os/render/backend/gdi.cpp
+        )
+    endif ()
 endif ()
 
 if (LH_LIBRARY_OPTION_UI)
@@ -155,6 +161,13 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_TEST_SRC_PATH}/lh/ui/pixmap.cpp
             ${LH_TEST_SRC_PATH}/lh/ui/canvas/sw.cpp
     )
+    # lh_ui_surface_t is a Windows DIB behind an OS surface, so it is only there
+    # when there is a native window to hold one — the same guard its source has.
+    if (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW)
+        list(APPEND LH_TEST_SOURCES
+                ${LH_TEST_SRC_PATH}/lh/ui/surface.cpp
+        )
+    endif ()
 endif ()
 
 if (LH_LIBRARY_OPTION_MATH_FPU)

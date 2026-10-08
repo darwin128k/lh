@@ -214,13 +214,6 @@ lh_ui_rect_t
 lh_ui_view_get_strip(const lh_ui_view_t *self, lh_ui_scalar_t index);
 
 /**
- * @brief True when @p damage reaches @p area; ::lh_null @p damage is the whole
- *        target and reaches everything.
- */
-lh_bool_t
-lh_ui_view_area_is_damaged(const lh_ui_rect_t *area, const lh_ui_rect_t *damage);
-
-/**
  * @brief Draw @p self strip by strip, skipping the strips @p damage does not
  *        reach. One frame in ::lh_ui_view_draw terms: the clock and the call
  *        counts of the backend cover all of them.

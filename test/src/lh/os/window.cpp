@@ -454,4 +454,114 @@ TEST(os_window, a_window_without_a_resize_callback_still_keeps_its_state)
     lh_os_window_deinit(lh_addr_of(window));
 }
 
+TEST(os_window, a_window_opens_where_the_window_system_wants_by_default)
+{
+    lh_os_window_t window{};
+
+    lh_os_window_init(lh_addr_of(window));
+    /* Saying nothing is a choice too: the window system's own placement, which is
+       not the middle of the screen. */
+    EXPECT_EQ(lh_os_window_get_placement(lh_addr_of(window)), lh_os_window_placement_default);
+    lh_os_window_set_placement(lh_addr_of(window), lh_os_window_placement_center);
+    EXPECT_EQ(lh_os_window_get_placement(lh_addr_of(window)), lh_os_window_placement_center);
+    lh_os_window_deinit(lh_addr_of(window));
+}
+
+TEST(os_window, a_centred_window_centres_on_what_the_system_left_usable)
+{
+    lh_os_app_t app{};
+    lh_os_window_t plain{};
+    lh_os_window_t small{};
+    lh_os_window_t large{};
+    int plain_x = 0;
+    int plain_y = 0;
+    int small_x = 0;
+    int small_y = 0;
+    int small_width = 0;
+    int small_height = 0;
+    int large_x = 0;
+    int large_y = 0;
+    int large_width = 0;
+    int large_height = 0;
+
+    lh_os_app_init(lh_addr_of(app));
+
+    /* The same window three ways. The work area — the monitor without the taskbar
+       and any docked app bars — is what "centred" is measured against, and there
+       is no call that asks what it is, so this checks the two things that hold
+       whatever that area turns out to be on this machine. */
+    lh_os_window_init(lh_addr_of(plain));
+    lh_os_window_set_frame(lh_addr_of(plain), lh_os_window_frame_own);
+    ASSERT_EQ(lh_os_window_open(lh_addr_of(app), lh_addr_of(plain), "lh-test-plain", 320, 200),
+              lh_bool_true);
+    ASSERT_EQ(lh_os_window_get_position(lh_addr_of(plain), lh_addr_of(plain_x), lh_addr_of(plain_y)),
+              lh_bool_true);
+    lh_os_window_close(lh_addr_of(plain));
+
+    lh_os_window_init(lh_addr_of(small));
+    lh_os_window_set_frame(lh_addr_of(small), lh_os_window_frame_own);
+    lh_os_window_set_placement(lh_addr_of(small), lh_os_window_placement_center);
+    ASSERT_EQ(lh_os_window_open(lh_addr_of(app), lh_addr_of(small), "lh-test-centred", 320, 200),
+              lh_bool_true);
+    ASSERT_EQ(lh_os_window_get_position(lh_addr_of(small), lh_addr_of(small_x), lh_addr_of(small_y)),
+              lh_bool_true);
+    ASSERT_EQ(lh_os_window_get_client_size(lh_addr_of(small), lh_addr_of(small_width),
+                                           lh_addr_of(small_height)),
+              lh_bool_true);
+    lh_os_window_close(lh_addr_of(small));
+
+    lh_os_window_init(lh_addr_of(large));
+    lh_os_window_set_frame(lh_addr_of(large), lh_os_window_frame_own);
+    lh_os_window_set_placement(lh_addr_of(large), lh_os_window_placement_center);
+    ASSERT_EQ(lh_os_window_open(lh_addr_of(app), lh_addr_of(large), "lh-test-centred2", 500, 300),
+              lh_bool_true);
+    ASSERT_EQ(lh_os_window_get_position(lh_addr_of(large), lh_addr_of(large_x), lh_addr_of(large_y)),
+              lh_bool_true);
+    ASSERT_EQ(lh_os_window_get_client_size(lh_addr_of(large), lh_addr_of(large_width),
+                                           lh_addr_of(large_height)),
+              lh_bool_true);
+
+    /* The window system's own answer is a cascade from the corner, which is not
+       the middle of anything, so moving off it is what says the placement was read
+       at creation rather than ignored. */
+    EXPECT_TRUE(small_x != plain_x || small_y != plain_y);
+
+    /* Two centred windows of different sizes share one centre — left plus right
+       edges twice, so no rounding hides a pixel — and that holds whichever area was
+       centred on, which is why this does not need to know what it was. */
+    EXPECT_EQ(small_x * 2 + small_width, large_x * 2 + large_width);
+    EXPECT_EQ(small_y * 2 + small_height, large_y * 2 + large_height);
+
+    lh_os_window_close(lh_addr_of(large));
+    lh_os_app_deinit(lh_addr_of(app));
+}
+
+TEST(os_window, a_window_bigger_than_the_screen_keeps_its_title_reachable)
+{
+    lh_os_app_t app{};
+    lh_os_window_t window{};
+    int x = 0;
+    int y = 0;
+
+    lh_os_app_init(lh_addr_of(app));
+    lh_os_window_init(lh_addr_of(window));
+    lh_os_window_set_frame(lh_addr_of(window), lh_os_window_frame_own);
+    lh_os_window_set_placement(lh_addr_of(window), lh_os_window_placement_center);
+    /* Far wider and taller than any desktop, so the centred corner would be well
+       off the screen and the title bar with it. */
+    ASSERT_EQ(lh_os_window_open(lh_addr_of(app), lh_addr_of(window), "lh-test-huge", 20000, 20000),
+              lh_bool_true);
+    ASSERT_EQ(lh_os_window_get_position(lh_addr_of(window), lh_addr_of(x), lh_addr_of(y)), lh_bool_true);
+
+    /* Not resized — the size asked for is the size asked for — but the corner lands
+       on the work area, so the window is still a window the user can move. */
+    EXPECT_GE(x, 0);
+    EXPECT_GE(y, 0);
+    EXPECT_LT(x, 20000);
+    EXPECT_LT(y, 20000);
+
+    lh_os_window_close(lh_addr_of(window));
+    lh_os_app_deinit(lh_addr_of(app));
+}
+
 } // namespace

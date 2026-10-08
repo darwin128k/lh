@@ -17,6 +17,7 @@
 #include <lh/config.h>
 #include <lh/os/system/window/handle.h>
 #include <lh/os/window/frame.h>
+#include <lh/os/window/placement.h>
 #include <lh/ptr.h>
 #include <lh/timer/tick.h>
 #include <lh/void.h>
@@ -36,10 +37,13 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @p frame says whose frame the window has; ::lh_os_window_frame_own creates it with
  * no OS frame, so the client is the whole window and @p width x @p height is the
  * client size. @p corner (> `0`) cuts the window to a rounded region of that radius.
+ * @p placement says where it opens; ::lh_os_window_placement_center puts it in the
+ * middle of the work area of the monitor it opens on.
  */
 lh_os_system_window_handle_t
 lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr user,
-                         lh_os_system_window_handle_t owner, lh_os_window_frame_t frame, int corner);
+                         lh_os_system_window_handle_t owner, lh_os_window_frame_t frame, int corner,
+                         lh_os_window_placement_t placement);
 
 /**
  * @brief Re-cut @p handle's corners, or make them square again at `0`.
@@ -130,6 +134,15 @@ lh_os_system_window_invalidate_rect(lh_os_system_window_handle_t handle, int lef
  */
 lh_bool_t
 lh_os_system_window_get_client_size(lh_os_system_window_handle_t handle, int *width, int *height);
+
+/**
+ * @brief Where @p handle is on the screen, into @p x and @p y (top-left corner,
+ *        screen coordinates).
+ *
+ * @return True when the position was read.
+ */
+lh_bool_t
+lh_os_system_window_get_position(lh_os_system_window_handle_t handle, int *x, int *y);
 
 LH_COMPILER_EXTERN_C_END
 

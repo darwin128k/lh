@@ -104,6 +104,44 @@ lh_void
 lh_os_window_set_corner_radius(lh_os_window_t *self, int radius);
 
 /**
+ * @brief Say where @p self opens for the first time.
+ *
+ * Call before ::lh_os_window_open, like ::lh_os_window_set_frame: what it says is
+ * read at creation. The default, ::lh_os_window_placement_default, is the window
+ * system's own choice, which on Win32 is a cascade from the top-left corner and not
+ * where a user expects a window to be.
+ *
+ * ::lh_os_window_placement_center puts it in the middle of the work area of the
+ * monitor it opens on — a modal child on the monitor its owner is on — and keeps
+ * the title reachable when the window is larger than that area.
+ *
+ * This is where a window *opens*. Moving one that is already up is the window
+ * system's drag, and ::lh_os_window_set_maximized restores it to the rectangle it
+ * was opened at.
+ */
+lh_void
+lh_os_window_set_placement(lh_os_window_t *self, lh_os_window_placement_t placement);
+
+/**
+ * @brief Where @p self opens, or ::lh_os_window_placement_default.
+ */
+lh_os_window_placement_t
+lh_os_window_get_placement(const lh_os_window_t *self);
+
+/**
+ * @brief Where @p self is on the screen, into @p x and @p y: the top-left corner in
+ *        screen coordinates, which is what ::lh_os_window_set_placement counts in.
+ *
+ * The window system may answer differently from what placement asked for — a
+ * window dragged somewhere, or restored from a maximize — so this is the position,
+ * not the request.
+ *
+ * @return True when the position was read.
+ */
+lh_bool_t
+lh_os_window_get_position(const lh_os_window_t *self, int *x, int *y);
+
+/**
  * @brief Name what the window system should do with each point of @p self.
  *
  * The one hook for styling a window's behaviour around its content, and the reason

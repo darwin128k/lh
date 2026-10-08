@@ -14,11 +14,25 @@
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
+/**
+ * @brief Bits one pixel of @p format takes.
+ *
+ * The one place the UI asks how wide a pixel is: the OS is asked for this many
+ * bits per pixel, and the pixmap row is the same number divided by eight times the
+ * width.
+ */
+static int
+lh_ui_surface_format_bits(lh_ui_pixmap_format_t format)
+{
+    return format == lh_ui_pixmap_format_argb8888 ? 32 : 16;
+}
+
 lh_void
 lh_ui_surface_init(lh_ui_surface_t *self)
 {
     lh_assert_runtime_ref(self);
     lh_ui_size_init(lh_addr_of(self->size), lh_ui_scalar(0), lh_ui_scalar(0));
+    self->format = lh_ui_pixmap_format_argb8888;
     self->handle = LH_OS_SYSTEM_SURFACE_HANDLE_INVALID;
 }
 
@@ -44,6 +58,29 @@ lh_ui_surface_get_size(const lh_ui_surface_t *self)
     return self->size;
 }
 
+lh_ui_pixmap_format_t
+lh_ui_surface_get_format(const lh_ui_surface_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->format;
+}
+
+lh_void
+lh_ui_surface_set_format(lh_ui_surface_t *self, lh_ui_pixmap_format_t format)
+{
+    lh_assert_runtime_ref(self);
+    /* Only while empty: a live buffer's format belongs to whatever is drawing into
+       it, and swapping it under that would be a frame drawn in two formats. */
+    lh_assert_runtime_if(lh_ui_surface_is_valid(self), lh_runtime_error_code_invalid_argument);
+    /* A byte-swapped format is for a display controller that wants the words the
+       other way round, not for a buffer this side draws into: the OS hands out words
+       in its own order, and a swapped pixmap over them would read every pixel
+       upside-down in colour. That format belongs to a frame on its way out. */
+    lh_assert_runtime_if(format == lh_ui_pixmap_format_rgb565_swapped,
+                         lh_runtime_error_code_invalid_argument);
+    self->format = format;
+}
+
 lh_bool_t
 lh_ui_surface_set_size(lh_ui_surface_t *self, lh_ui_size_t size)
 {
@@ -63,7 +100,7 @@ lh_ui_surface_set_size(lh_ui_surface_t *self, lh_ui_size_t size)
     self->handle = LH_OS_SYSTEM_SURFACE_HANDLE_INVALID;
     self->size = size;
     lh_return_if(width <= 0 || height <= 0, lh_bool_false);
-    self->handle = lh_os_system_surface_create(width, height);
+    self->handle = lh_os_system_surface_create(width, height, lh_ui_surface_format_bits(self->format));
     return lh_ui_surface_is_valid(self);
 }
 
@@ -75,7 +112,7 @@ lh_ui_surface_get_pixmap(const lh_ui_surface_t *self, lh_ui_pixmap_t *pixmap)
 
     lh_return_if(lh_null_eq(bits), lh_bool_false);
     lh_ui_pixmap_init(pixmap, bits, width, lh_cast_static(lh_s32_t, lh_ui_size_get_height(lh_addr_of(self->size))),
-                      width * 4, lh_ui_pixmap_format_argb8888);
+                      width * (lh_ui_surface_format_bits(self->format) / 8), self->format);
     return lh_bool_true;
 }
 

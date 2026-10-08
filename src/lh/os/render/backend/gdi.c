@@ -24,6 +24,10 @@ lh_os_render_backend_gdi_context_init(lh_os_render_backend_gdi_context_t *self)
     self->hwnd = LH_OS_SYSTEM_WINDOW_HANDLE_INVALID;
     self->hdc = lh_null;
     lh_ui_surface_init(lh_addr_of(self->surface));
+    /* ARGB8888, which is what ::lh_ui_surface_init starts with, and staying there
+       is a measured decision rather than a default nobody looked at: RGB565 draws
+       a desktop frame measurably faster and presents it far slower. The numbers
+       are on ::lh_os_render_backend_gdi_context_get_format. */
     lh_ui_canvas_sw_init(lh_addr_of(self->sw));
     lh_ui_point_init(lh_addr_of(self->present_at), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_os_render_backend_gdi_reset_counters(self);
@@ -74,6 +78,21 @@ lh_os_render_backend_gdi_context_get_hdc(const lh_os_render_backend_gdi_context_
 {
     lh_assert_runtime_ref(self);
     return self->hdc;
+}
+
+lh_ui_pixmap_format_t
+lh_os_render_backend_gdi_context_get_format(const lh_os_render_backend_gdi_context_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_ui_surface_get_format(lh_addr_of(self->surface));
+}
+
+lh_void
+lh_os_render_backend_gdi_context_set_format(lh_os_render_backend_gdi_context_t *self,
+                                            lh_ui_pixmap_format_t format)
+{
+    lh_assert_runtime_ref(self);
+    lh_ui_surface_set_format(lh_addr_of(self->surface), format);
 }
 
 /* ── Counters ────────────────────────────────────────────────────────────── */
@@ -133,7 +152,7 @@ lh_os_render_backend_gdi_begin_area(lh_ptr context, const lh_ui_rect_t *area)
     lh_ui_pixmap_t pixmap;
 
     /* The surface is the area and nothing more: a whole frame of 800x600 is
-       1.9 MB of DIB, a 32-row strip is 100 KB, and the pixels that did not
+       960 KB of RGB565 DIB, a 32-row strip is 48 KB, and the pixels that did not
        change are never cleared, drawn or blitted at all. */
     gdi->present_at = *lh_ui_rect_get_origin_as_const(area);
     (void)lh_ui_surface_set_size(lh_addr_of(gdi->surface), *lh_ui_rect_get_size_as_const(area));

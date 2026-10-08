@@ -130,6 +130,21 @@ lh_ui_canvas_get_damage(const lh_ui_canvas_t *self)
     return self->has_damage ? lh_addr_of(self->damage) : lh_null;
 }
 
+lh_ui_rect_t
+lh_ui_canvas_damage_in(const lh_ui_rect_t *area, const lh_ui_rect_t *damage)
+{
+    lh_ui_rect_t part;
+
+    lh_assert_runtime_ref(area);
+    /* No damage is the whole target: nothing was said, so everything still holds. */
+    if (lh_null_eq(damage))
+    {
+        return *area;
+    }
+    part = lh_ui_rect_intersection(area, damage);
+    return part;
+}
+
 /* ── Offset and clip ─────────────────────────────────────────────────────── */
 
 lh_bool_t

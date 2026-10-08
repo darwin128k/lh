@@ -105,6 +105,39 @@ lh_os_render_backend_gdi_context_set_hdc(lh_os_render_backend_gdi_context_t *sel
 lh_ptr
 lh_os_render_backend_gdi_context_get_hdc(const lh_os_render_backend_gdi_context_t *self);
 
+/**
+ * @brief Pixel format of the off-screen surface of @p self.
+ *
+ * ARGB8888 by default, and that is the measured answer for a window even though
+ * RGB565 draws faster. The frame a user sees is the draw plus the present, and the
+ * two do not agree: this machine draws the same 800x600 scene in 137 750 ns as
+ * ARGB8888 and 94 100 ns as RGB565, and then pays for getting it on the screen
+ * 382 400 ns against 839 050 ns. A 32-bit window DC cannot be copied into from 16
+ * bits — GDI expands every pixel — and the present is the larger half of the
+ * frame, so the 44 us the draw saves comes back as 457 us.
+ *
+ * The present is per pixel and nothing else: the same present of one 256x160
+ * damage strip costs 32 550 ns against 83 850 ns, so its price scales exactly with
+ * the pixels and there is nothing to win from presenting less often.
+ *
+ * RGB565 is still right where nothing widens the buffer on the way out — an MCU
+ * with a DMA2D blits its own 16-bit buffer into a 16-bit framebuffer, and there
+ * half the bytes is half the time. On a desktop it is a trap, and it is one call
+ * away either way.
+ */
+lh_ui_pixmap_format_t
+lh_os_render_backend_gdi_context_get_format(const lh_os_render_backend_gdi_context_t *self);
+
+/**
+ * @brief Make @p format the format of the off-screen surface of @p self.
+ *
+ * Before the first frame: the surface refuses a format change once it holds a
+ * buffer, and changing it afterwards would be a window drawn in two formats.
+ */
+lh_void
+lh_os_render_backend_gdi_context_set_format(lh_os_render_backend_gdi_context_t *self,
+                                            lh_ui_pixmap_format_t format);
+
 /* ── Counters ──────────────────────────────────────────────────────────────
  * They cover what the last `begin` or `begin_area` opened, and nothing more:
  * a whole-target frame is one of those, a partial frame is one per strip, so
