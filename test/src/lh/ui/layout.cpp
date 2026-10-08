@@ -5,7 +5,7 @@
 
 #include <lh/bool.h>
 #include <lh/ui/entity.h>
-#include <lh/ui/entity/label.h>
+#include <lh/ui/label.h>
 #include <lh/ui/layout.h>
 #include <lh/ui/point.h>
 #include <lh/ui/rect.h>
@@ -188,7 +188,7 @@ struct button_fixture
     lh_ui_entity_t parent;
     lh_ui_entity_t picture; /* an image entity does not exist yet; a plain one
                              * with a size is the same thing to the flow */
-    lh_ui_entity_label_t caption;
+    lh_ui_label_t caption;
     lh_ui_style_t style;
     lh_ui_style_t text_style;
     lh_ui_layout_t layout;
@@ -202,12 +202,12 @@ struct button_fixture
         lh_ui_entity_init(&parent, rect_of(100, 50, 240, 160));
         lh_ui_entity_set_style(&parent, &style);
         lh_ui_entity_init(&picture, rect_of(0, 0, 16, 16));
-        lh_ui_entity_label_init(&caption, rect_of(0, 0, 0, 4), "");
-        lh_ui_entity_set_style(lh_ui_entity_label_as_entity(&caption), &text_style);
+        lh_ui_label_init(&caption, rect_of(0, 0, 0, 4), "");
+        lh_ui_entity_set_style(lh_ui_label_as_entity(&caption), &text_style);
         lh_ui_entity_add_child(&parent, &picture);
-        lh_ui_entity_add_child(&parent, lh_ui_entity_label_as_entity(&caption));
+        lh_ui_entity_add_child(&parent, lh_ui_label_as_entity(&caption));
         place_child(&picture, lh_ui_place_size_fixed, lh_ui_scalar(16), lh_ui_place_align_center);
-        place_child(lh_ui_entity_label_as_entity(&caption), lh_ui_place_size_wrap, lh_ui_scalar(0),
+        place_child(lh_ui_label_as_entity(&caption), lh_ui_place_size_wrap, lh_ui_scalar(0),
                     lh_ui_place_align_center);
         lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(8));
         lh_ui_layout_set_justify(&layout, lh_ui_justify_center);
@@ -220,7 +220,7 @@ TEST(ui_layout, a_child_that_wraps_to_nothing_collapses_and_leaves_no_gap)
     lh_ui_rect_t caption_rect;
 
     lh_ui_layout_apply(&f.layout, &f.parent);
-    caption_rect = lh_ui_entity_get_rect(lh_ui_entity_label_as_entity(&f.caption));
+    caption_rect = lh_ui_entity_get_rect(lh_ui_label_as_entity(&f.caption));
 
     /* 16 of picture in a 224 wide box, centred on its own: x 108 + (224 - 16) / 2,
        and 16 tall in a 144 tall box: y 58 + (144 - 16) / 2. */
@@ -236,13 +236,13 @@ TEST(ui_layout, the_same_flow_centres_the_row_once_the_caption_has_text)
     lh_ui_rect_t caption_rect;
     lh_ui_point_t picture_at;
 
-    lh_ui_entity_label_set_text(&f.caption, "AB");
+    lh_ui_label_set_text(&f.caption, "AB");
     lh_ui_layout_apply(&f.layout, &f.parent);
 
     /* 16 + 8 + the width of "AB" is what the row takes, centred as a whole, so
        the picture is no longer in the middle of the button. */
     picture_rect = lh_ui_entity_get_rect(&f.picture);
-    caption_rect = lh_ui_entity_get_rect(lh_ui_entity_label_as_entity(&f.caption));
+    caption_rect = lh_ui_entity_get_rect(lh_ui_label_as_entity(&f.caption));
     picture_at = *lh_ui_rect_get_origin_as_const(lh_addr_of(picture_rect));
 
     EXPECT_LT(lh_ui_point_get_x(&picture_at), 212) << "the picture did not move aside";
@@ -273,7 +273,7 @@ TEST(ui_layout, a_moved_child_takes_its_subtree_along)
    does before it draws them, and the children are placed there and then. */
 TEST(ui_layout, a_container_places_its_own_children_and_takes_them_along_when_it_moves)
 {
-    lh_ui_entity_container_t box;
+    lh_ui_container_t box;
     lh_ui_entity_t kids[2];
     lh_ui_style_t style;
     lh_ui_layout_t layout;
@@ -281,26 +281,26 @@ TEST(ui_layout, a_container_places_its_own_children_and_takes_them_along_when_it
 
     lh_ui_style_init(&style);
     lh_ui_style_set_padding(&style, lh_ui_scalar(8));
-    lh_ui_entity_container_init(&box, rect_of(100, 50, 240, 160));
-    lh_ui_entity_set_style(lh_ui_entity_container_as_entity(&box), &style);
+    lh_ui_container_init(&box, rect_of(100, 50, 240, 160));
+    lh_ui_entity_set_style(lh_ui_container_as_entity(&box), &style);
     lh_ui_layout_init(&layout, lh_ui_axis_vertical, lh_ui_scalar(4));
-    lh_ui_entity_container_set_layout(&box, &layout);
+    lh_ui_container_set_layout(&box, &layout);
     for (int i = 0; i < 2; ++i)
     {
         lh_ui_entity_init(&kids[i], rect_of(0, 0, 30, 20 + i * 10));
         place_child(&kids[i], lh_ui_place_size_fixed, lh_ui_scalar(20 + i * 10),
                     lh_ui_place_align_start);
-        lh_ui_entity_add_child(lh_ui_entity_container_as_entity(&box), &kids[i]);
+        lh_ui_entity_add_child(lh_ui_container_as_entity(&box), &kids[i]);
     }
 
-    lh_ui_entity_get_children_transform(lh_ui_entity_container_as_entity(&box), &offset);
+    lh_ui_entity_get_children_transform(lh_ui_container_as_entity(&box), &offset);
     EXPECT_TRUE(rect_at(&kids[0], 108, 58, 30, 20));
     EXPECT_TRUE(rect_at(&kids[1], 108, 82, 30, 30));
 
     /* The container moves. Nobody runs anything; the next frame is the pass. */
-    lh_ui_entity_set_rect(lh_ui_entity_container_as_entity(&box), rect_of(200, 150, 240, 160));
+    lh_ui_entity_set_rect(lh_ui_container_as_entity(&box), rect_of(200, 150, 240, 160));
     EXPECT_TRUE(rect_at(&kids[0], 108, 58, 30, 20)) << "something placed the children too early";
-    lh_ui_entity_get_children_transform(lh_ui_entity_container_as_entity(&box), &offset);
+    lh_ui_entity_get_children_transform(lh_ui_container_as_entity(&box), &offset);
     EXPECT_TRUE(rect_at(&kids[0], 208, 158, 30, 20))
         << "the children stayed where the box used to be";
     EXPECT_TRUE(rect_at(&kids[1], 208, 182, 30, 30));

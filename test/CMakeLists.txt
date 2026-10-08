@@ -250,11 +250,11 @@ set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/canvas/sw.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/color.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/entity.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/entity/button.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/entity/container.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/entity/label.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/entity/scrollbar.cpp
-        ${LH_TEST_SRC_PATH}/lh/ui/entity/toggle.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/button.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/container.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/label.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/scrollbar.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/toggle.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/font.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/gradient.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/insets.cpp

@@ -29,9 +29,9 @@
 #include <lh/ui/canvas.h>
 #include <lh/ui/color.h>
 #include <lh/ui/entity.h>
-#include <lh/ui/entity/button.h>
-#include <lh/ui/entity/container.h>
-#include <lh/ui/entity/scrollbar.h>
+#include <lh/ui/button.h>
+#include <lh/ui/container.h>
+#include <lh/ui/scrollbar.h>
 #include <lh/ui/key.h>
 #include <lh/ui/point.h>
 #include <lh/ui/scalar.h>
@@ -292,25 +292,25 @@ lh_ui_view_click(lh_ui_view_t *self, lh_ui_point_t point);
  *        click scrolled it (::lh_ui_view_damage_scroll).
  */
 lh_ui_entity_t *
-lh_ui_view_click_scrolling(lh_ui_view_t *self, lh_ui_entity_container_t *box, lh_ui_point_t point);
+lh_ui_view_click_scrolling(lh_ui_view_t *self, lh_ui_container_t *box, lh_ui_point_t point);
 
 /**
  * @brief Close a scroll step on @p box: false when its scroll still equals
  *        @p before; else begin the gesture (::lh_ui_view_begin_scroll), send
  *        ::lh_ui_entity_event_scroll, reset the canvas damage to
- *        ::lh_ui_entity_scrollbar_add_scroll_damage and return true.
+ *        ::lh_ui_scrollbar_add_scroll_damage and return true.
  *
  * The one end of every scroll the view drives (click, drag, wheel, keys, glide).
  */
 lh_bool_t
-lh_ui_view_damage_scroll(lh_ui_view_t *self, lh_ui_entity_container_t *box, lh_ui_point_t before);
+lh_ui_view_damage_scroll(lh_ui_view_t *self, lh_ui_container_t *box, lh_ui_point_t before);
 
 /**
  * @brief Send scroll_begin to @p box unless its gesture is already open
  *        (closing another container's first).
  */
 lh_void
-lh_ui_view_begin_scroll(lh_ui_view_t *self, lh_ui_entity_container_t *box);
+lh_ui_view_begin_scroll(lh_ui_view_t *self, lh_ui_container_t *box);
 
 /**
  * @brief Send scroll_end to the container whose gesture is open, if any.
@@ -341,7 +341,7 @@ lh_ui_view_stop_throw(lh_ui_view_t *self);
  *        enough (::LH_UI_VIEW_THROW_MIN), else close the gesture.
  */
 lh_void
-lh_ui_view_start_throw(lh_ui_view_t *self, lh_ui_entity_container_t *box);
+lh_ui_view_start_throw(lh_ui_view_t *self, lh_ui_container_t *box);
 
 /**
  * @brief True while content glides after a throw: keep calling
@@ -365,31 +365,31 @@ lh_void
 lh_ui_view_reset_pointer(lh_ui_view_t *self);
 
 /**
- * @brief ::lh_ui_entity_scrollbar_get_thumb_start_at for @p point in the root
+ * @brief ::lh_ui_scrollbar_get_thumb_start_at for @p point in the root
  *        space, moved into the space of @p bar (::lh_ui_entity_to_local).
  */
 lh_ui_scalar_t
-lh_ui_view_get_thumb_start_at(const lh_ui_entity_scrollbar_t *bar, lh_ui_point_t point);
+lh_ui_view_get_thumb_start_at(const lh_ui_scrollbar_t *bar, lh_ui_point_t point);
 
 /**
  * @brief Grab @p bar when @p point (root space) is on its thumb; nothing for a
  *        ::lh_null @p bar or a point off the thumb.
  */
 lh_void
-lh_ui_view_grab_thumb(lh_ui_view_t *self, lh_ui_entity_scrollbar_t *bar, lh_ui_point_t point);
+lh_ui_view_grab_thumb(lh_ui_view_t *self, lh_ui_scrollbar_t *bar, lh_ui_point_t point);
 
 /**
  * @brief Move the thumb of @p bar under @p point (root space), keeping the
  *        grab offset. Returns ::lh_ui_view_damage_scroll.
  */
 lh_bool_t
-lh_ui_view_drag_thumb(lh_ui_view_t *self, lh_ui_entity_scrollbar_t *bar, lh_ui_point_t point);
+lh_ui_view_drag_thumb(lh_ui_view_t *self, lh_ui_scrollbar_t *bar, lh_ui_point_t point);
 
 /**
  * @brief The container a press on @p hit may drag: the nearest one at or
  *        above it, none on a scrollbar.
  */
-lh_ui_entity_container_t *
+lh_ui_container_t *
 lh_ui_view_get_drag_box(lh_ui_entity_t *hit);
 
 /**
@@ -499,11 +499,11 @@ lh_ui_view_release(lh_ui_view_t *self, lh_ui_point_t point);
  *        Returns ::lh_ui_view_damage_scroll.
  */
 lh_bool_t
-lh_ui_view_scroll_by(lh_ui_view_t *self, lh_ui_entity_container_t *box, lh_ui_scalar_t dx, lh_ui_scalar_t dy);
+lh_ui_view_scroll_by(lh_ui_view_t *self, lh_ui_container_t *box, lh_ui_scalar_t dx, lh_ui_scalar_t dy);
 
 /**
  * @brief Scroll the container under @p point
- *        (::lh_ui_entity_scrollbar_find_scrolled) by `(@p dx, @p dy)`.
+ *        (::lh_ui_scrollbar_find_scrolled) by `(@p dx, @p dy)`.
  *
  * Returns true when scroll changed. @p dy is in content units (caller maps
  * wheel notches).

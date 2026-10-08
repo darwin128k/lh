@@ -7,7 +7,7 @@
 #include <lh/ui/canvas/sw.h>
 #include <lh/ui/color.h>
 #include <lh/ui/entity.h>
-#include <lh/ui/entity/container.h>
+#include <lh/ui/container.h>
 #include <lh/ui/mask.h>
 #include <lh/ui/paint.h>
 #include <lh/ui/pixmap.h>
@@ -529,7 +529,7 @@ TEST(ui_canvas_sw, container_cuts_its_children_along_its_corners)
     lh_ui_paint_t paint;
     lh_ui_style_t box_style;
     lh_ui_style_t child_style;
-    lh_ui_entity_container_t box;
+    lh_ui_container_t box;
     lh_ui_entity_t child;
     const lh_ui_rect_t box_rect = rect_of(2, 2, 20, 20);
 
@@ -538,13 +538,13 @@ TEST(ui_canvas_sw, container_cuts_its_children_along_its_corners)
     lh_ui_style_set_radius(lh_addr_of(box_style), lh_ui_scalar(8));
     lh_ui_style_init(lh_addr_of(child_style));
     lh_ui_style_set_fill(lh_addr_of(child_style), lh_addr_of(paint));
-    lh_ui_entity_container_init(lh_addr_of(box), box_rect);
-    lh_ui_entity_set_style(lh_ui_entity_container_as_entity(lh_addr_of(box)), lh_addr_of(box_style));
+    lh_ui_container_init(lh_addr_of(box), box_rect);
+    lh_ui_entity_set_style(lh_ui_container_as_entity(lh_addr_of(box)), lh_addr_of(box_style));
     lh_ui_entity_init(lh_addr_of(child), rect_of(0, 0, side, side));
     lh_ui_entity_set_style(lh_addr_of(child), lh_addr_of(child_style));
-    lh_ui_entity_add_child(lh_ui_entity_container_as_entity(lh_addr_of(box)), lh_addr_of(child));
+    lh_ui_entity_add_child(lh_ui_container_as_entity(lh_addr_of(box)), lh_addr_of(child));
 
-    lh_ui_entity_draw(lh_ui_entity_container_as_entity(lh_addr_of(box)), lh_addr_of(f.canvas));
+    lh_ui_entity_draw(lh_ui_container_as_entity(lh_addr_of(box)), lh_addr_of(f.canvas));
 
     EXPECT_EQ(f.at(2, 2), sentinel);     /* the cut corner */
     EXPECT_EQ(f.at(12, 2), 0xff090909u); /* the straight top edge */

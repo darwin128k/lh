@@ -1,19 +1,19 @@
 /**
  * @file toggle.c
- * @brief Implementation of `lh/ui/entity/toggle.h`.
+ * @brief Implementation of `lh/ui/toggle.h`.
  */
 
 #include <lh/assert/runtime.h>
 #include <lh/null.h>
 #include <lh/ui/entity.h>
-#include <lh/ui/entity/button.h>
-#include <lh/ui/entity/toggle.h>
+#include <lh/ui/button.h>
+#include <lh/ui/toggle.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
-const lh_ui_entity_class_t lh_ui_entity_toggle_class = {
-    lh_ui_toggle_event, lh_addr_of(lh_ui_entity_button_class)};
+const lh_ui_entity_class_t lh_ui_toggle_class = {
+    lh_ui_toggle_event, lh_addr_of(lh_ui_button_class)};
 
 /* The looks of the state @p self is in, put on the button — which re-aims the
    entity by itself: ::lh_ui_button_set_style puts the resting one back when the
@@ -40,7 +40,7 @@ lh_ui_toggle_event(const lh_ui_entity_t *self, const lh_ui_entity_event_t *event
 
     /* The button draws and would answer a click of its own — its callback is
        never set, so what comes back from here is the draw. */
-    lh_ui_entity_class_event_base(lh_addr_of(lh_ui_entity_toggle_class), self, event);
+    lh_ui_entity_class_event_base(lh_addr_of(lh_ui_toggle_class), self, event);
     lh_ui_toggle_on_click(toggle, event);
 }
 
@@ -70,7 +70,7 @@ lh_ui_toggle_init(lh_ui_toggle_t *self, lh_ui_rect_t rect)
     /* The button's class is the toggle's: a toggle is a button, and a tree that
        asks for a button has to find one here. */
     lh_ui_entity_set_class(lh_ui_button_as_entity(lh_addr_of(self->button)),
-                           lh_addr_of(lh_ui_entity_toggle_class));
+                           lh_addr_of(lh_ui_toggle_class));
     self->off_style = lh_null;
     self->off_hot_style = lh_null;
     self->on_style = lh_null;
@@ -99,7 +99,7 @@ lh_ui_entity_as_toggle(lh_ui_entity_t *entity)
 {
     lh_return_if(lh_null_eq(entity), lh_null);
     lh_return_if(!lh_ui_entity_class_is(lh_ui_entity_get_class(entity),
-                                        lh_addr_of(lh_ui_entity_toggle_class)),
+                                        lh_addr_of(lh_ui_toggle_class)),
                  lh_null);
     return lh_ptr_rcast(lh_ui_toggle_t, entity);
 }

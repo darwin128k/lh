@@ -25,11 +25,11 @@
 #include <lh/ui/canvas/sw.h>
 #include <lh/ui/color.h>
 #include <lh/ui/entity.h>
-#include <lh/ui/entity/button.h>
-#include <lh/ui/entity/container.h>
-#include <lh/ui/entity/label.h>
-#include <lh/ui/entity/scrollbar.h>
-#include <lh/ui/entity/toggle.h>
+#include <lh/ui/button.h>
+#include <lh/ui/container.h>
+#include <lh/ui/label.h>
+#include <lh/ui/scrollbar.h>
+#include <lh/ui/toggle.h>
 #include <lh/ui/font.h>
 #include <lh/ui/gradient.h>
 #include <lh/ui/insets.h>

@@ -1,19 +1,19 @@
 /**
  * @file button.c
- * @brief Implementation of `lh/ui/entity/button.h`.
+ * @brief Implementation of `lh/ui/button.h`.
  */
 
 #include <lh/assert/runtime.h>
 #include <lh/null.h>
 #include <lh/ui/entity.h>
-#include <lh/ui/entity/container.h>
-#include <lh/ui/entity/button.h>
+#include <lh/ui/container.h>
+#include <lh/ui/button.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
-const lh_ui_entity_class_t lh_ui_entity_button_class = {
-    lh_ui_button_event, lh_addr_of(lh_ui_entity_container_class)};
+const lh_ui_entity_class_t lh_ui_button_class = {
+    lh_ui_button_event, lh_addr_of(lh_ui_container_class)};
 
 /* ── Events ──────────────────────────────────────────────────────────────── */
 
@@ -23,7 +23,7 @@ lh_ui_button_event(const lh_ui_entity_t *self, const lh_ui_entity_event_t *event
     /* The entity is the first field: self is the button. */
     const lh_ui_button_t *button = lh_ptr_rcast(const lh_ui_button_t, self);
 
-    lh_ui_entity_class_event_base(lh_addr_of(lh_ui_entity_button_class), self, event);
+    lh_ui_entity_class_event_base(lh_addr_of(lh_ui_button_class), self, event);
     lh_ui_button_on_click(button, event);
 }
 
@@ -48,9 +48,9 @@ lh_ui_button_init(lh_ui_button_t *self, lh_ui_rect_t rect)
     lh_assert_runtime_ref(self);
     /* The button is a container: that is what gives it somewhere to put a
        caption and a picture, and the flow that places them. */
-    lh_ui_entity_container_init(lh_addr_of(self->container), rect);
-    lh_ui_entity_set_class(lh_ui_entity_container_as_entity(lh_addr_of(self->container)),
-                           lh_addr_of(lh_ui_entity_button_class));
+    lh_ui_container_init(lh_addr_of(self->container), rect);
+    lh_ui_entity_set_class(lh_ui_container_as_entity(lh_addr_of(self->container)),
+                           lh_addr_of(lh_ui_button_class));
     self->rest_style = lh_null;
     self->hot_style = lh_null;
     self->hot = lh_bool_false;
@@ -62,14 +62,14 @@ lh_ui_entity_t *
 lh_ui_button_as_entity(lh_ui_button_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_ui_entity_container_as_entity(lh_addr_of(self->container));
+    return lh_ui_container_as_entity(lh_addr_of(self->container));
 }
 
 lh_ui_button_t *
 lh_ui_entity_as_button(lh_ui_entity_t *entity)
 {
     lh_return_if(lh_null_eq(entity), lh_null);
-    lh_return_if(!lh_ui_entity_class_is(lh_ui_entity_get_class(entity), lh_addr_of(lh_ui_entity_button_class)),
+    lh_return_if(!lh_ui_entity_class_is(lh_ui_entity_get_class(entity), lh_addr_of(lh_ui_button_class)),
                  lh_null);
     return lh_ptr_rcast(lh_ui_button_t, entity);
 }

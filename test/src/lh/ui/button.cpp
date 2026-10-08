@@ -2,7 +2,7 @@
 
 #include <lh/null.h>
 #include <lh/ui/entity.h>
-#include <lh/ui/entity/button.h>
+#include <lh/ui/button.h>
 #include <lh/ui/paint.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/style.h>
@@ -70,7 +70,7 @@ TEST(entity_button, init_is_an_entity_with_nothing_declared)
     stored = lh_ui_entity_get_rect(lh_ui_button_as_entity(lh_addr_of(button)));
     EXPECT_TRUE(lh_ui_rect_eq(lh_addr_of(rect), lh_addr_of(stored)));
     EXPECT_EQ(lh_ui_entity_get_class(lh_ui_button_as_entity(lh_addr_of(button))),
-              lh_addr_of(lh_ui_entity_button_class));
+              lh_addr_of(lh_ui_button_class));
     EXPECT_TRUE(lh_null_eq(lh_ui_entity_get_style(lh_ui_button_as_entity(lh_addr_of(button)))));
     EXPECT_FALSE(lh_ui_button_get_hot(lh_addr_of(button)));
     EXPECT_TRUE(lh_null_eq(lh_ui_button_get_on_click(lh_addr_of(button))));

@@ -5,8 +5,8 @@
  * Not a pointer type by itself. ::lh_ui_toggle_on_click_cb is the pointer.
  */
 
-#ifndef LH_UI_ENTITY_TOGGLE_ON_CLICK_FN_H
-#define LH_UI_ENTITY_TOGGLE_ON_CLICK_FN_H
+#ifndef LH_UI_TOGGLE_ON_CLICK_FN_H
+#define LH_UI_TOGGLE_ON_CLICK_FN_H
 
 #include <lh/ptr.h>
 #include <lh/void.h>
@@ -26,4 +26,4 @@ struct lh_ui_toggle;
  */
 typedef lh_void(lh_ui_toggle_on_click_fn)(struct lh_ui_toggle *self, lh_ptr context);
 
-#endif /* LH_UI_ENTITY_TOGGLE_ON_CLICK_FN_H */
+#endif /* LH_UI_TOGGLE_ON_CLICK_FN_H */

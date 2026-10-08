@@ -16,22 +16,22 @@
  * damage already added; ::lh_ui_button_set_hot is the raw one, for an app that
  * drives its own canvas.
  *
- * Class ::lh_ui_entity_button_class: the base draw (fill, shadow, and the
+ * Class ::lh_ui_button_class: the base draw (fill, shadow, and the
  * pressed style's version of both) and, on a click, the callback if there is
  * one.
  */
 
-#ifndef LH_UI_ENTITY_BUTTON_H
-#define LH_UI_ENTITY_BUTTON_H
+#ifndef LH_UI_BUTTON_H
+#define LH_UI_BUTTON_H
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 #include <lh/ui/entity.h>
-#include <lh/ui/entity/container.h>
-#include <lh/ui/entity/button/fields.h>
-#include <lh/ui/entity/button/on/click/cb.h>
-#include <lh/ui/entity/button/on/click/fn.h>
+#include <lh/ui/container.h>
+#include <lh/ui/button/fields.h>
+#include <lh/ui/button/on/click/cb.h>
+#include <lh/ui/button/on/click/fn.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/style.h>
 #include <lh/util/addr.h>
@@ -44,7 +44,7 @@
  */
 struct lh_ui_button
 {
-    lh_ui_button_fields(lh_ui_entity_container_t, lh_ui_style_t, lh_bool_t, lh_ui_button_on_click_cb, lh_ptr);
+    lh_ui_button_fields(lh_ui_container_t, lh_ui_style_t, lh_bool_t, lh_ui_button_on_click_cb, lh_ptr);
 };
 typedef struct lh_ui_button lh_ui_button_t;
 
@@ -55,10 +55,10 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Class of ::lh_ui_button_t, derived from ::lh_ui_entity_class.
  */
-extern const lh_ui_entity_class_t lh_ui_entity_button_class;
+extern const lh_ui_entity_class_t lh_ui_button_class;
 
 /**
- * @brief Event function of ::lh_ui_entity_button_class: the base class first
+ * @brief Event function of ::lh_ui_button_class: the base class first
  *        (fill and shadow of the style in force), then
  *        ::lh_ui_button_on_click.
  */
@@ -167,4 +167,4 @@ lh_ui_button_set_on_click(lh_ui_button_t *self, lh_ui_button_on_click_cb on_clic
 
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_UI_ENTITY_BUTTON_H */
+#endif /* LH_UI_BUTTON_H */

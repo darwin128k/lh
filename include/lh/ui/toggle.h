@@ -3,7 +3,7 @@
  * @brief A button that remembers whether it is on: ::lh_ui_toggle_t.
  *
  * The second component, and the first one built *on* the first: a toggle **is** a
- * ::lh_ui_button_t (::lh_ui_entity_button_class is its base, and the button is
+ * ::lh_ui_button_t (::lh_ui_button_class is its base, and the button is
  * its first field), so the press, its damage, the shadow, the radius and the
  * clickable area are the button's code, unchanged. A toggle adds one thing the
  * button has no place for: a second pair of looks, and the flag saying which
@@ -24,16 +24,16 @@
  * callback reads the new state instead of guessing which way it went.
  */
 
-#ifndef LH_UI_ENTITY_TOGGLE_H
-#define LH_UI_ENTITY_TOGGLE_H
+#ifndef LH_UI_TOGGLE_H
+#define LH_UI_TOGGLE_H
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 #include <lh/ui/entity.h>
-#include <lh/ui/entity/button.h>
-#include <lh/ui/entity/toggle/on/click/cb.h>
-#include <lh/ui/entity/toggle/on/click/fn.h>
+#include <lh/ui/button.h>
+#include <lh/ui/toggle/on/click/cb.h>
+#include <lh/ui/toggle/on/click/fn.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/style.h>
 #include <lh/util/addr.h>
@@ -62,12 +62,12 @@ LH_COMPILER_EXTERN_C_BEGIN
 /* ── Class ───────────────────────────────────────────────────────────────── */
 
 /**
- * @brief Class of ::lh_ui_toggle_t, derived from ::lh_ui_entity_button_class.
+ * @brief Class of ::lh_ui_toggle_t, derived from ::lh_ui_button_class.
  */
-extern const lh_ui_entity_class_t lh_ui_entity_toggle_class;
+extern const lh_ui_entity_class_t lh_ui_toggle_class;
 
 /**
- * @brief Event function of ::lh_ui_entity_toggle_class: the button first (the
+ * @brief Event function of ::lh_ui_toggle_class: the button first (the
  *        base draw and its click, which is unset and does nothing), then
  *        ::lh_ui_toggle_on_click.
  */
@@ -189,4 +189,4 @@ lh_ui_toggle_set_on_click(lh_ui_toggle_t *self, lh_ui_toggle_on_click_cb on_clic
 
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_UI_ENTITY_TOGGLE_H */
+#endif /* LH_UI_TOGGLE_H */

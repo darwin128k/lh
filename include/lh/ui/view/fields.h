@@ -7,7 +7,7 @@
 #define LH_UI_VIEW_FIELDS_H
 
 #include <lh/bool.h>
-#include <lh/ui/entity/scrollbar.h>
+#include <lh/ui/scrollbar.h>
 #include <lh/ui/point.h>
 #include <lh/ui/scalar.h>
 
@@ -49,17 +49,17 @@
     entity_type *root;                                                                              \
     const color_type *clear;                                                                        \
     lh_ui_scalar_t strip_height;                                                                    \
-    lh_ui_entity_scrollbar_t *grab;                                                                 \
+    lh_ui_scrollbar_t *grab;                                                                 \
     lh_ui_scalar_t grab_offset;                                                                     \
     lh_bool_t pressed;                                                                              \
     lh_bool_t dragged;                                                                              \
     entity_type *target;                                                                            \
-    lh_ui_entity_container_t *drag;                                                                 \
+    lh_ui_container_t *drag;                                                                 \
     lh_ui_point_t press_point;                                                                      \
     lh_ui_point_t last_point;                                                                       \
     lh_ui_point_t velocity;                                                                         \
-    lh_ui_entity_container_t *scrolling;                                                            \
-    lh_ui_entity_container_t *throwing;                                                             \
+    lh_ui_container_t *scrolling;                                                            \
+    lh_ui_container_t *throwing;                                                             \
     entity_type *focus;                                                                             \
     rect_type whole[LH_UI_VIEW_WHOLE_MAX];                                                          \
     lh_ui_scalar_t whole_count

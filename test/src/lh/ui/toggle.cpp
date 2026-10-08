@@ -6,8 +6,8 @@
 #include <lh/ui/canvas.h>
 #include <lh/ui/color.h>
 #include <lh/ui/entity.h>
-#include <lh/ui/entity/button.h>
-#include <lh/ui/entity/toggle.h>
+#include <lh/ui/button.h>
+#include <lh/ui/toggle.h>
 #include <lh/ui/paint.h>
 #include <lh/ui/point.h>
 #include <lh/ui/rect.h>
@@ -120,7 +120,7 @@ TEST(entity_toggle, init_is_a_button_with_nothing_declared)
     lh_ui_toggle_init(&toggle, rect);
 
     EXPECT_EQ(lh_ui_entity_get_class(lh_ui_toggle_as_entity(&toggle)),
-              lh_addr_of(lh_ui_entity_toggle_class));
+              lh_addr_of(lh_ui_toggle_class));
     EXPECT_EQ(lh_ui_entity_as_toggle(lh_ui_toggle_as_entity(&toggle)), &toggle);
     EXPECT_EQ(lh_ui_entity_as_button(lh_ui_toggle_as_entity(&toggle)),
               lh_ui_toggle_as_button(&toggle));

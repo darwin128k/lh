@@ -3,8 +3,8 @@
  * @brief Member fields of ::lh_ui_button_t.
  */
 
-#ifndef LH_UI_ENTITY_BUTTON_FIELDS_H
-#define LH_UI_ENTITY_BUTTON_FIELDS_H
+#ifndef LH_UI_BUTTON_FIELDS_H
+#define LH_UI_BUTTON_FIELDS_H
 
 /**
  * @def lh_ui_button_fields(entity_type, style_type, bool_type, cb_type, ptr_type)
@@ -20,8 +20,8 @@
  *
  * The button **is** a container, and says so: a button with a caption and a
  * picture in it is three entities (the button, a label, an image), and the flow that
- * places the two is the container's (::lh_ui_entity_container_set_layout). That is also
- * why the button's class derives from ::lh_ui_entity_container_class.
+ * places the two is the container's (::lh_ui_container_set_layout). That is also
+ * why the button's class derives from ::lh_ui_container_class.
  *
  * @param entity_type Type of the embedded container.
  * @param style_type  Type of the styles pointed at.
@@ -37,4 +37,4 @@
     cb_type on_click;                                                                                \
     ptr_type click_context
 
-#endif /* LH_UI_ENTITY_BUTTON_FIELDS_H */
+#endif /* LH_UI_BUTTON_FIELDS_H */
