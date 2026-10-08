@@ -1047,8 +1047,11 @@ TEST(entity_death, remove_someone_elses_child)
 
 #endif
 
-/* A rounded entity is not hit in its cut corner, and a rounded container does
- * not hand that corner to its children either. */
+/* A clipping parent does not hand its cut corner to its children, even though a
+ * child's own target is its whole rect: the parent is what cut that corner, and
+ * a hit test follows what is drawn. The parent itself is hit there, because its
+ * own target is the rect. A plain parent does hand the corner to the child,
+ * because a plain parent draws children outside its rounded shape. */
 TEST(entity, hit_test_follows_the_rounded_corners)
 {
     lh_ui_rect_t rect;
@@ -1072,7 +1075,11 @@ TEST(entity, hit_test_follows_the_rounded_corners)
 
     lh_ui_point_init(lh_addr_of(corner), 20, 20);
     lh_ui_point_init(lh_addr_of(inside), 40, 40);
-    EXPECT_EQ(lh_ui_entity_find_at(lh_addr_of(root), corner), lh_addr_of(root));
+    /* The corner the box cut away is the box itself: its target is its rect, and
+       its child is not reached, because a clipping parent hands out only what it
+       draws. */
+    EXPECT_EQ(lh_ui_entity_find_at(lh_addr_of(root), corner),
+              lh_ui_entity_container_as_entity(lh_addr_of(box)));
     EXPECT_EQ(lh_ui_entity_find_at(lh_addr_of(root), inside), lh_addr_of(child));
 
     /* A square child of a plain parent is still hit in the same corner. */
@@ -1206,21 +1213,87 @@ TEST(entity, a_pressed_parent_cuts_its_children_along_the_shape_it_paints)
     EXPECT_TRUE(color_is(f.at(16, 16), 200, 60, 90)) << "the corner did not come back";
 }
 
-/* The look may change, the shape may not: what a press paints and what it hits
-   are the same entity, so nothing moves under the pointer and a press cannot
-   make a second click land where the first one did. */
-TEST(entity, a_press_does_not_change_the_shape_it_hits)
+/* The gate belongs to the children, not to the entity: a childless rounded entity
+   inside a clipping parent is still hit in the corner it does not paint. Gating
+   it on the drawn shape instead — one gate over both — would leave
+   ::lh_ui_style_set_hit_radius unreachable and put the row that owns the corner
+   back into its parent's hands, which is the bug this pins. */
+TEST(entity, a_childless_rounded_entity_is_hit_in_its_own_corner)
 {
-    card_fixture f;
-
-    lh_ui_style_set_pressed(lh_addr_of(f.style), lh_addr_of(f.pressed));
+    lh_ui_rect_t rect;
+    lh_ui_entity_t root;
+    lh_ui_entity_container_t box;
+    lh_ui_entity_t child;
+    lh_ui_style_t round;
+    lh_ui_rect_t child_rect;
     lh_ui_point_t corner;
 
-    lh_ui_point_init(lh_addr_of(corner), 17, 17);
-    EXPECT_TRUE(lh_ui_entity_contains_point(lh_addr_of(f.card), corner)) << "the radius 4 corner is hit";
+    lh_ui_style_init(lh_addr_of(round));
+    lh_ui_style_set_radius(lh_addr_of(round), lh_ui_scalar(12));
+    lh_ui_rect_init(lh_addr_of(rect), 0, 0, 100, 100);
+    lh_ui_entity_init(lh_addr_of(root), rect);
+    lh_ui_entity_container_init(lh_addr_of(box), rect);
+    lh_ui_entity_set_style(lh_ui_entity_container_as_entity(lh_addr_of(box)), lh_addr_of(round));
+    lh_ui_rect_init(lh_addr_of(rect), 10, 10, 40, 40);
+    lh_ui_entity_init(lh_addr_of(child), rect);
+    lh_ui_entity_set_style(lh_addr_of(child), lh_addr_of(round));
+    lh_ui_entity_add_child(lh_addr_of(root), lh_ui_entity_container_as_entity(lh_addr_of(box)));
+    lh_ui_entity_add_child(lh_ui_entity_container_as_entity(lh_addr_of(box)), lh_addr_of(child));
+
+    /* The top-left corner pixel of the child's box, outside its radius 12. */
+    lh_ui_point_init(lh_addr_of(corner), 10, 10);
+    child_rect = lh_ui_entity_get_rect(lh_addr_of(child));
+    EXPECT_FALSE(lh_ui_radius_contains(lh_addr_of(child_rect),
+                                       lh_ui_entity_get_radius(lh_addr_of(child)), corner))
+        << "the radius covers the corner, so this is not the cut one";
+    EXPECT_TRUE(lh_ui_entity_contains_point(lh_addr_of(child), corner)) << "the target is the whole rect";
+    EXPECT_EQ(lh_ui_entity_find_at(lh_addr_of(root), corner), lh_addr_of(child))
+        << "the corner went to the clipping parent instead of the row that owns it";
+}
+
+/* A rounded entity is pressed by its rect: the corner the radius cuts away is
+   still inside the box a pointer aims at, and leaving it to whatever is behind
+   is how a row loses a press to its container. What the press changes is the
+   picture, never the target — so a press and the click that ends it cannot
+   disagree about what was hit. */
+TEST(entity, a_rounded_look_is_pressed_by_its_whole_rect)
+{
+    card_fixture f;
+    lh_ui_point_t corner;
+
+    lh_ui_style_set_pressed(lh_addr_of(f.style), lh_addr_of(f.pressed));
+    lh_ui_point_init(lh_addr_of(corner), 16, 16);
+
+    EXPECT_EQ(lh_ui_entity_get_radius(lh_addr_of(f.card)), lh_ui_scalar(4));
+    EXPECT_EQ(lh_ui_entity_get_hit_radius(lh_addr_of(f.card)), lh_ui_scalar(0))
+        << "a fresh style must not narrow its own target";
+    EXPECT_TRUE(lh_ui_entity_contains_point(lh_addr_of(f.card), corner))
+        << "the corner the paint cuts is not hit";
+
     lh_ui_entity_set_pressed(lh_addr_of(f.card), lh_bool_true);
     EXPECT_TRUE(lh_ui_entity_contains_point(lh_addr_of(f.card), corner))
         << "a press moved the hit area out from under the pointer";
+    lh_ui_entity_set_pressed(lh_addr_of(f.card), lh_bool_false);
+    EXPECT_TRUE(lh_ui_entity_contains_point(lh_addr_of(f.card), corner));
+}
+
+/* Where the rect is much bigger than the shape — a traffic light, a round icon —
+   the shape is the target, and only that is a press of it. */
+TEST(entity, a_hit_radius_narrows_the_target_where_it_is_asked)
+{
+    card_fixture f;
+    lh_ui_point_t corner;
+    lh_ui_point_t inside;
+
+    lh_ui_point_init(lh_addr_of(corner), 16, 16);
+    lh_ui_point_init(lh_addr_of(inside), 32, 32);
+    lh_ui_style_set_hit_radius(lh_addr_of(f.style), lh_ui_scalar(12));
+
+    EXPECT_EQ(lh_ui_entity_get_hit_radius(lh_addr_of(f.card)), lh_ui_scalar(12));
+    EXPECT_FALSE(lh_ui_entity_contains_point(lh_addr_of(f.card), corner))
+        << "the corner is hit although the target was narrowed to a disc";
+    EXPECT_TRUE(lh_ui_entity_contains_point(lh_addr_of(f.card), inside));
+    /* The look did not follow: this is a target, not a second fill. */
     EXPECT_EQ(lh_ui_entity_get_radius(lh_addr_of(f.card)), lh_ui_scalar(4));
 }
 

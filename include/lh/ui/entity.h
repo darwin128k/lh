@@ -111,6 +111,22 @@ lh_ui_scalar_t
 lh_ui_entity_get_radius_now(const lh_ui_entity_t *self);
 
 /**
+ * @brief Corner radius a hit test rounds @p self with (unclamped):
+ *        ::lh_ui_style_get_hit_radius of its own style, `0` without one.
+ *
+ * The whole rect by default: a rounded look is pressed by its rect, because the
+ * rect is what a pointer aims at and the rounding is a look. Set the radius to
+ * narrow that where the rect is much larger than the shape.
+ *
+ * From the own style and not from the style in force: the pressed look may not
+ * change the target, or a press and the click that ends it would disagree about
+ * what was hit. And the hit test runs before the press that asked for it, so a
+ * shape read from the pressed flag would answer one frame too late.
+ */
+lh_ui_scalar_t
+lh_ui_entity_get_hit_radius(const lh_ui_entity_t *self);
+
+/**
  * @brief Style of @p self as it is painted right now: its pressed style while it
  *        is pressed (::lh_ui_entity_is_pressed) and one with none, and its own
  *        style otherwise.
@@ -153,8 +169,14 @@ lh_ui_entity_get_padding(const lh_ui_entity_t *self);
 
 /**
  * @brief True when @p point (space of the rect of @p self) lies in the shape
- *        @p self paints: its rect with the style radius on the corners
- *        (::lh_ui_radius_contains). What hit tests and clipping parents use.
+ *        @p self is hit with: its rect with ::lh_ui_entity_get_hit_radius on the
+ *        corners (::lh_ui_radius_contains).
+ *
+ * The shape it is *hit* with, not the one it paints: by default that is the
+ * whole rect, so a rounded entity is pressed by its cut corner. A clipping
+ * parent asks about the drawn shape instead
+ * (::lh_ui_entity_searches_children_at), so that a corner it cut away is not a
+ * hit of its children either.
  */
 lh_bool_t
 lh_ui_entity_contains_point(const lh_ui_entity_t *self, lh_ui_point_t point);
@@ -396,26 +418,34 @@ lh_ui_entity_get_root_rect(const lh_ui_entity_t *self);
 /* ── Hit test ────────────────────────────────────────────────────────────── */
 
 /**
- * @brief True when @p point lies in the shape of @p self
- *        (::lh_ui_entity_contains_point, corners cut by its radius) and
- *        @p self is shown.
+ * @brief True when @p point lies in the hit shape of @p self
+ *        (::lh_ui_entity_contains_point) and @p self is shown.
  */
 lh_bool_t
 lh_ui_entity_is_hit(const lh_ui_entity_t *self, lh_ui_point_t point);
 
 /**
- * @brief True when a hit test at @p point looks into @p self: inside its
- *        shape (::lh_ui_entity_contains_point), or outside it when it has
- *        children and does not clip them
+ * @brief True when a hit test at @p point looks into @p self: inside the shape
+ *        it is drawn and clipped with (::lh_ui_entity_get_radius_now), or
+ *        outside it when it has children and does not clip them
  *        (::lh_ui_entity_is_clipping) — the same rule draw uses
  *        (::lh_ui_entity_shows_children_on).
+ *
+ * The drawn shape and not the hit one: a clipping parent must not hand a cut
+ * corner to a child, and a plain one must, since a plain parent draws its
+ * children outside its rounded corners.
  */
 lh_bool_t
 lh_ui_entity_searches_children_at(const lh_ui_entity_t *self, lh_ui_point_t point);
 
 /**
  * @brief True when @p self or one of its children can be hit at @p point:
- *        ::lh_ui_entity_searches_children_at and ::lh_ui_entity_is_shown.
+ *        ::lh_ui_entity_is_shown, and either its own target
+ *        (::lh_ui_entity_contains_point) or somewhere its children are searched
+ *        (::lh_ui_entity_searches_children_at).
+ *
+ * Two shapes, one question: the entity is hit by the target it declares, its
+ * children only where it draws them.
  */
 lh_bool_t
 lh_ui_entity_may_hit(const lh_ui_entity_t *self, lh_ui_point_t point);

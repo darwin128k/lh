@@ -81,6 +81,27 @@ lh_void
 lh_ui_style_set_radius(lh_ui_style_t *self, lh_ui_scalar_t radius);
 
 /**
+ * @brief Corner radius a hit test rounds @p self with (`0` = the whole rect).
+ *        Not clamped: the hit test clamps it to the rect, as the canvas does.
+ */
+lh_ui_scalar_t
+lh_ui_style_get_hit_radius(const lh_ui_style_t *self);
+
+/**
+ * @brief Replace the corner radius a hit test rounds @p self with.
+ *
+ * `0` — the default — is the whole rect: a rounded look is pressed by its rect,
+ * because the rect is what a pointer aims at and the rounding is a look. Set it
+ * where the rect is much larger than the shape (a traffic light, a round icon)
+ * so that what sits around the shape is not a press of it.
+ *
+ * @p radius must not be negative; ::LH_UI_RADIUS_CIRCLE asks for the largest
+ * one, which makes the hit shape follow the fill exactly.
+ */
+lh_void
+lh_ui_style_set_hit_radius(lh_ui_style_t *self, lh_ui_scalar_t radius);
+
+/**
  * @brief Inner space of @p self, per side (`0` = content touches the edge):
  *        where a label starts its text and a layout its first child, and the
  *        room a container leaves after its last child.

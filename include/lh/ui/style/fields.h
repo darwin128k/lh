@@ -11,7 +11,9 @@
  * @brief Paint recipe for one entity.
  *
  * `fill` is held by value; the empty paint means no fill. `radius` rounds the
- * corners of the fill (`0` = square). `padding` keeps content (a label's
+ * corners of the fill (`0` = square) and `hit_radius` rounds the corners of
+ * what a hit test accepts (`0` = the whole rect — a rounded look is pressed by
+ * its rect, which is what a finger aims at). `padding` keeps content (a label's
  * text, a layout's children) that far inside the rect, per side. `font` (not owned, may be ::lh_null)
  * and `text` (a paint by value; empty = no text) are how text is drawn, and
  * `align_h` / `align_v` are where inside the padded box it starts. `shadow` is
@@ -28,6 +30,7 @@
 #define lh_ui_style_fields(paint_type, radius_type, font_type, insets_type, shadow_type)              \
     paint_type fill;                                                                                \
     radius_type radius;                                                                             \
+    radius_type hit_radius;                                                                         \
     insets_type padding;                                                                            \
     const font_type *font;                                                                          \
     paint_type text;                                                                                \

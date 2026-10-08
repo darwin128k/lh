@@ -19,6 +19,7 @@ lh_ui_style_init(lh_ui_style_t *self)
     lh_ui_color_init(lh_addr_of(black), 0, 0, 0, 255);
     lh_ui_paint_init(lh_addr_of(self->fill));
     self->radius = lh_ui_scalar(0);
+    self->hit_radius = lh_ui_scalar(0);
     lh_ui_insets_init_all(lh_addr_of(self->padding), lh_ui_scalar(0));
     self->font = lh_ui_font_get_default();
     lh_ui_paint_init_color(lh_addr_of(self->text), lh_addr_of(black));
@@ -63,6 +64,21 @@ lh_ui_style_set_radius(lh_ui_style_t *self, lh_ui_scalar_t radius)
     lh_assert_runtime_ref(self);
     lh_assert_runtime_if(radius < lh_ui_scalar(0), lh_runtime_error_code_invalid_argument);
     self->radius = radius;
+}
+
+lh_ui_scalar_t
+lh_ui_style_get_hit_radius(const lh_ui_style_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->hit_radius;
+}
+
+lh_void
+lh_ui_style_set_hit_radius(lh_ui_style_t *self, lh_ui_scalar_t radius)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_if(radius < lh_ui_scalar(0), lh_runtime_error_code_invalid_argument);
+    self->hit_radius = radius;
 }
 
 const lh_ui_insets_t *

@@ -60,6 +60,22 @@ TEST(ui_style, radius_starts_square_and_keeps_the_value)
     EXPECT_EQ(lh_ui_style_get_radius(lh_addr_of(style)), LH_UI_RADIUS_CIRCLE);
 }
 
+TEST(ui_style, the_hit_radius_starts_at_the_whole_rect)
+{
+    lh_ui_style_t style;
+
+    lh_ui_style_init(lh_addr_of(style));
+    /* The target is not the look: a rounded entity is pressed by its rect until
+       an app says otherwise, and `0` is that "otherwise" without a sentinel. */
+    EXPECT_EQ(lh_ui_style_get_hit_radius(lh_addr_of(style)), lh_ui_scalar(0));
+    EXPECT_EQ(lh_ui_style_get_radius(lh_addr_of(style)), lh_ui_scalar(0));
+    lh_ui_style_set_hit_radius(lh_addr_of(style), lh_ui_scalar(6));
+    EXPECT_EQ(lh_ui_style_get_hit_radius(lh_addr_of(style)), lh_ui_scalar(6));
+    EXPECT_EQ(lh_ui_style_get_radius(lh_addr_of(style)), lh_ui_scalar(0)) << "the look followed";
+    lh_ui_style_set_hit_radius(lh_addr_of(style), LH_UI_RADIUS_CIRCLE);
+    EXPECT_EQ(lh_ui_style_get_hit_radius(lh_addr_of(style)), LH_UI_RADIUS_CIRCLE);
+}
+
 TEST(ui_style, padding_starts_at_zero_and_keeps_what_is_set)
 {
     lh_ui_style_t style;
