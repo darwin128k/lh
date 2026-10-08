@@ -26,8 +26,7 @@ TEST(ui_gradient, init_stops_even_fracs_default_capacity)
         ({ lh_ui_color_t _lh_tmp; lh_ui_color_init(lh_addr_of(_lh_tmp), 0, 0, 255, 255); _lh_tmp; }),
     };
     lh_ui_gradient_t gradient;
-    lh_ui_gradient_init_stops(lh_addr_of(gradient), colors, lh_ptr_rcast(const lh_byte_t, lh_null),
-                              2);
+    lh_ui_gradient_init_stops(lh_addr_of(gradient), colors, lh_null, 2);
     ASSERT_EQ(lh_ui_gradient_get_stop_count(lh_addr_of(gradient)), 2);
     EXPECT_EQ(lh_ui_gradient_stop_get_frac(lh_ui_gradient_get_stop_as_const(lh_addr_of(gradient), 0)),
               0);

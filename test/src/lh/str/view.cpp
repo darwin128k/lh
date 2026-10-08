@@ -533,40 +533,40 @@ TEST(str_view_swap_and_clear, moves_other_into_self_clears_other)
 TEST(str_view_init_death, null_self)
 {
     const lh_char_t s[] = {'a', lh_char_map_nul};
-    LH_EXPECT_DEATH(lh_str_view_init(reinterpret_cast<lh_str_view_t *>(lh_null), s));
+    LH_EXPECT_DEATH(lh_str_view_init(lh_null, s));
 }
 
 TEST(str_view_init_death, null_data)
 {
     lh_str_view_t v;
-    LH_EXPECT_DEATH(lh_str_view_init(&v, reinterpret_cast<lh_str_cptr>(lh_null)));
+    LH_EXPECT_DEATH(lh_str_view_init(&v, lh_null));
 }
 
 TEST(str_view_find_char_death, null_self)
 {
     LH_EXPECT_DEATH(
-        lh_str_view_find_char(reinterpret_cast<const lh_str_view_t *>(lh_null), 'a'));
+        lh_str_view_find_char(lh_null, 'a'));
 }
 
 TEST(str_view_find_death, null_self)
 {
     lh_str_view_t nd = make("x");
     LH_EXPECT_DEATH(
-        lh_str_view_find(reinterpret_cast<const lh_str_view_t *>(lh_null), &nd, lh_bool_false));
+        lh_str_view_find(lh_null, &nd, lh_bool_false));
 }
 
 TEST(str_view_find_of_death, null_self)
 {
     lh_str_view_t chars = make("ab");
     LH_EXPECT_DEATH(
-        lh_str_view_find_of(reinterpret_cast<const lh_str_view_t *>(lh_null), &chars));
+        lh_str_view_find_of(lh_null, &chars));
 }
 
 TEST(str_view_equals_death, null_self)
 {
     lh_str_view_t b = make("x");
     LH_EXPECT_DEATH(
-        lh_str_view_equals(reinterpret_cast<const lh_str_view_t *>(lh_null), &b, lh_bool_false));
+        lh_str_view_equals(lh_null, &b, lh_bool_false));
 }
 
 #endif /* LH_TEST_EXPECT_DEATH_ENABLED */

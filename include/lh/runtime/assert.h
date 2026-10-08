@@ -132,7 +132,7 @@
         } while (0)
 #else
 #    define lh_runtime_check_fail_here(expr, ...)                                                  \
-        lh_runtime_check_fail(lh_ptr_rcast(const lh_exception_origin_t, lh_null),               \
+        lh_runtime_check_fail(lh_null,                                                             \
                               lh_runtime_check_code(__VA_ARGS__))
 #endif
 

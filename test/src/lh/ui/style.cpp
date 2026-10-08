@@ -43,7 +43,7 @@ TEST(ui_style, set_fill_null_clears)
     lh_ui_paint_init_color(lh_addr_of(paint), lh_addr_of(color));
     lh_ui_style_init(lh_addr_of(style));
     lh_ui_style_set_fill(lh_addr_of(style), lh_addr_of(paint));
-    lh_ui_style_set_fill(lh_addr_of(style), lh_ptr_rcast(const lh_ui_paint_t, lh_null));
+    lh_ui_style_set_fill(lh_addr_of(style), lh_null);
     EXPECT_TRUE(lh_ui_paint_is_empty(lh_ui_style_get_fill(lh_addr_of(style))));
     EXPECT_TRUE(lh_null_eq(lh_ui_style_get_fill_color(lh_addr_of(style))));
 }
@@ -142,7 +142,7 @@ TEST(ui_style, set_shadow_copies_it_and_null_clears)
     lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(99));
     EXPECT_EQ(lh_ui_shadow_get_spread(lh_ui_style_get_shadow(lh_addr_of(style))), lh_ui_scalar(14));
 
-    lh_ui_style_set_shadow(lh_addr_of(style), lh_ptr_rcast(const lh_ui_shadow_t, lh_null));
+    lh_ui_style_set_shadow(lh_addr_of(style), lh_null);
     EXPECT_TRUE(lh_ui_shadow_is_empty(lh_ui_style_get_shadow(lh_addr_of(style))));
 }
 
@@ -159,6 +159,6 @@ TEST(ui_style, a_fresh_style_has_no_pressed_look)
        has to outlive every entity that points at it. */
     lh_ui_style_set_pressed(lh_addr_of(style), lh_addr_of(pressed));
     EXPECT_EQ(lh_ui_style_get_pressed(lh_addr_of(style)), lh_addr_of(pressed));
-    lh_ui_style_set_pressed(lh_addr_of(style), lh_ptr_rcast(const lh_ui_style_t, lh_null));
+    lh_ui_style_set_pressed(lh_addr_of(style), lh_null);
     EXPECT_TRUE(lh_null_eq(lh_ui_style_get_pressed(lh_addr_of(style))));
 }

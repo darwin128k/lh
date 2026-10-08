@@ -6,21 +6,37 @@
 #ifndef LH_NULL_H
 #define LH_NULL_H
 
+#include <lh/compiler/cxx.h>
 #include <lh/ptr.h>
 
 /**
  * @def lh_null
- * @brief Null pointer constant typed as ::lh_ptr.
+ * @brief Null pointer constant: ::LH_PTR_T_MIN in C, `nullptr` in C++.
  *
- * Alias for ::LH_PTR_T_MIN from `lh/ptr.h` — the canonical null ::lh_ptr
- * for use with ::lh_optional_ref and pointer comparisons throughout the library.
+ * In C this is the canonical null ::lh_ptr — a typed zero from `lh/ptr.h`, and
+ * what ::lh_optional_ref and every pointer comparison in the library use.
+ *
+ * In C++ it is the language's own `nullptr` (::LH_COMPILER_CXX), and the
+ * difference is not cosmetic. A zero *typed as `void *`* is not a null pointer
+ * constant there, and C++ has no implicit conversion from `void *` to any
+ * pointer type — `int *p = <void *>` is an error, not a conversion
+ * (`invalid conversion from 'void*' to 'int *'`, measured on this toolchain,
+ * every `-std` from c++11 to c++23). So the C spelling reaches a function
+ * pointer, a typed pointer or a handle only through a cast at every one of
+ * those places, and a test that wants to write `lh_null` there has to write
+ * `reinterpret_cast<T *>(lh_null)` instead. The literal the language provides
+ * has no such restriction, and the same spelling now works in both languages.
  *
  * Example usage:
  * @code{.c}
  * if (lh_null_eq(p)) { ... }
  * @endcode
  */
-#define lh_null LH_PTR_T_MIN
+#ifdef LH_COMPILER_CXX
+#    define lh_null nullptr
+#else
+#    define lh_null LH_PTR_T_MIN
+#endif /* LH_COMPILER_CXX */
 
 /**
  * @def lh_null_eq(ptr)

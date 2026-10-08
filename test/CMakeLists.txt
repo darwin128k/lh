@@ -234,6 +234,7 @@ lh_add_test_core(lh_test_timer
 lh_add_test_core(lh_test_util
         ${LH_TEST_SRC_PATH}/lh/util/interval.cpp
         ${LH_TEST_SRC_PATH}/lh/util/memory.cpp
+        ${LH_TEST_SRC_PATH}/lh/util/null.cpp
         ${LH_TEST_SRC_PATH}/lh/util/str/case/map.cpp
         ${LH_TEST_SRC_PATH}/lh/util/str/ptr.cpp
         ${LH_TEST_SRC_PATH}/lh/util/str/ptr/dot.cpp
@@ -250,7 +251,7 @@ set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/color.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/entity.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/entity/button.cpp
-            ${LH_TEST_SRC_PATH}/lh/ui/entity/container.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/entity/container.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/entity/label.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/entity/scrollbar.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/font.cpp

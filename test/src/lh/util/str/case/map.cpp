@@ -78,12 +78,12 @@ TEST(str_raw_to_upper, latin1_small_letters_to_upper)
 
 TEST(str_raw_to_lower_death, null_buffer)
 {
-    LH_EXPECT_DEATH(lh_str_ptr_to_lower(reinterpret_cast<lh_str_ptr>(lh_null), 0));
+    LH_EXPECT_DEATH(lh_str_ptr_to_lower(lh_null, 0));
 }
 
 TEST(str_raw_to_upper_death, null_buffer)
 {
-    LH_EXPECT_DEATH(lh_str_ptr_to_upper(reinterpret_cast<lh_str_ptr>(lh_null), 0));
+    LH_EXPECT_DEATH(lh_str_ptr_to_upper(lh_null, 0));
 }
 
 #endif

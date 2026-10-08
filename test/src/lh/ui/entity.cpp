@@ -56,9 +56,9 @@ record_click(const struct lh_ui_entity *self, const lh_ui_entity_event_t *event)
 }
 
 const lh_ui_entity_class_t g_record_class = {record_draw,
-                                            lh_ptr_rcast(const lh_ui_entity_class_t, lh_null)};
+                                            lh_null};
 const lh_ui_entity_class_t g_click_class = {record_click,
-                                           lh_ptr_rcast(const lh_ui_entity_class_t, lh_null)};
+                                           lh_null};
 struct fill_log
 {
     int count;
@@ -255,7 +255,7 @@ TEST(entity, set_style_keeps_the_pointer)
     lh_ui_entity_init(lh_addr_of(entity), rect);
     lh_ui_entity_set_style(lh_addr_of(entity), lh_addr_of(style));
     EXPECT_EQ(lh_ui_entity_get_style(lh_addr_of(entity)), lh_addr_of(style));
-    lh_ui_entity_set_style(lh_addr_of(entity), lh_ptr_rcast(const lh_ui_style_t, lh_null));
+    lh_ui_entity_set_style(lh_addr_of(entity), lh_null);
     EXPECT_TRUE(lh_null_eq(lh_ui_entity_get_style(lh_addr_of(entity))));
 }
 

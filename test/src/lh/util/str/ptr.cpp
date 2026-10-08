@@ -22,7 +22,7 @@ TEST(str_raw_find_of_char, returns_first_match_or_null)
 
 TEST(str_raw_find_of_char_death, null_str)
 {
-    LH_EXPECT_DEATH(lh_str_ptr_find_of_char(reinterpret_cast<lh_str_cptr>(lh_null), 1, 'x'));
+    LH_EXPECT_DEATH(lh_str_ptr_find_of_char(lh_null, 1, 'x'));
 }
 
 TEST(str_raw_rfind_of_char, returns_last_match_or_null)
@@ -54,7 +54,7 @@ TEST(str_raw_find_of_null_terminator_by_size, finds_nul_inside_prefix_or_null)
 TEST(str_raw_find_of_null_terminator_by_size_death, null_str)
 {
     LH_EXPECT_DEATH(
-        lh_str_ptr_find_of_null_terminator_by_size(reinterpret_cast<lh_str_cptr>(lh_null), 1));
+        lh_str_ptr_find_of_null_terminator_by_size(lh_null, 1));
 }
 
 TEST(str_raw_find_of_null_terminator, finds_first_nul)
@@ -67,7 +67,7 @@ TEST(str_raw_find_of_null_terminator, finds_first_nul)
 
 TEST(str_raw_find_of_null_terminator_death, null_str)
 {
-    LH_EXPECT_DEATH(lh_str_ptr_find_of_null_terminator(reinterpret_cast<lh_str_cptr>(lh_null)));
+    LH_EXPECT_DEATH(lh_str_ptr_find_of_null_terminator(lh_null));
 }
 
 TEST(str_raw_len, counts_chars_before_nul)
@@ -340,14 +340,14 @@ TEST(str_raw_trim_death, null_arguments)
     const lh_char_t ws[] = " ";
 
     LH_EXPECT_DEATH(
-        lh_str_ptr_ltrim_custom(reinterpret_cast<lh_str_ptr>(lh_null), lh_str_ptr_len(s), ws, 1));
+        lh_str_ptr_ltrim_custom(lh_null, lh_str_ptr_len(s), ws, 1));
     LH_EXPECT_DEATH(
-        lh_str_ptr_rtrim_custom(reinterpret_cast<lh_str_ptr>(lh_null), lh_str_ptr_len(s), ws, 1));
+        lh_str_ptr_rtrim_custom(lh_null, lh_str_ptr_len(s), ws, 1));
     LH_EXPECT_DEATH(
-        lh_str_ptr_trim_custom(reinterpret_cast<lh_str_ptr>(lh_null), lh_str_ptr_len(s), ws, 1));
+        lh_str_ptr_trim_custom(lh_null, lh_str_ptr_len(s), ws, 1));
 
     LH_EXPECT_DEATH(
-        lh_str_ptr_ltrim_custom(s, lh_str_ptr_len(s), reinterpret_cast<lh_str_cptr>(lh_null), 1));
+        lh_str_ptr_ltrim_custom(s, lh_str_ptr_len(s), lh_null, 1));
 }
 
 TEST(str_raw_trim_auto, ltrim_and_rtrim_variants)
@@ -667,12 +667,12 @@ TEST(str_raw_erase, writes_nul_at_index)
 
 TEST(str_raw_clear_death, null_str)
 {
-    LH_EXPECT_DEATH(lh_str_ptr_clear(reinterpret_cast<lh_str_ptr>(lh_null)));
+    LH_EXPECT_DEATH(lh_str_ptr_clear(lh_null));
 }
 
 TEST(str_raw_erase_death, null_str)
 {
-    LH_EXPECT_DEATH(lh_str_ptr_erase(reinterpret_cast<lh_str_ptr>(lh_null), 0));
+    LH_EXPECT_DEATH(lh_str_ptr_erase(lh_null, 0));
 }
 
 } // namespace

@@ -11,7 +11,7 @@
 namespace
 {
 int g_clicks = 0;
-const lh_ui_button_t *g_clicked = nullptr;
+const lh_ui_button_t *g_clicked = lh_null;
 lh_ptr g_context = lh_null;
 
 void
@@ -209,7 +209,7 @@ TEST(entity_button, a_click_calls_the_callback_with_its_context)
     lh_ui_button_init(lh_addr_of(button), rect);
     lh_ui_button_set_style(lh_addr_of(button), lh_addr_of(rest));
     g_clicks = 0;
-    g_clicked = nullptr;
+    g_clicked = lh_null;
     lh_ui_button_set_on_click(lh_addr_of(button), count_click, lh_addr_of(context));
     EXPECT_TRUE(lh_null_eq(lh_ui_button_get_on_click(lh_addr_of(button))) == lh_bool_false)
         << "the callback was not stored";

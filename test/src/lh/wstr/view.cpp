@@ -56,7 +56,7 @@ TEST(wstr_view_make, empty_is_explicit)
 TEST(wstr_view_init_death, null_data)
 {
     lh_wstr_view_t v;
-    LH_EXPECT_DEATH(lh_wstr_view_init(lh_addr_of(v), reinterpret_cast<lh_wstr_cptr>(lh_null)));
+    LH_EXPECT_DEATH(lh_wstr_view_init(lh_addr_of(v), lh_null));
 }
 
 #endif

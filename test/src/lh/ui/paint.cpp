@@ -44,7 +44,7 @@ TEST(ui_paint, init_color_null_is_empty)
 {
     lh_ui_paint_t paint;
 
-    lh_ui_paint_init_color(lh_addr_of(paint), lh_ptr_rcast(const lh_ui_color_t, lh_null));
+    lh_ui_paint_init_color(lh_addr_of(paint), lh_null);
     EXPECT_TRUE(lh_ui_paint_is_empty(lh_addr_of(paint)));
     EXPECT_TRUE(lh_null_eq(lh_ui_paint_get_color(lh_addr_of(paint))));
 }
