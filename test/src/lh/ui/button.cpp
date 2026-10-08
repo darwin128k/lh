@@ -1,8 +1,14 @@
 #include <gtest/gtest.h>
 
+#include <lh/test/ui/draw_log.h>
+
 #include <lh/null.h>
 #include <lh/ui/entity.h>
 #include <lh/ui/button.h>
+#include <lh/ui/container.h>
+#include <lh/ui/image.h>
+#include <lh/ui/label.h>
+#include <lh/ui/layout.h>
 #include <lh/ui/paint.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/style.h>
@@ -10,6 +16,8 @@
 
 namespace
 {
+using lh_test::rect_of;
+
 int g_clicks = 0;
 const lh_ui_button_t *g_clicked = lh_null;
 lh_ptr g_context = lh_null;
@@ -89,6 +97,119 @@ TEST(entity_button, as_button_tells_a_button_from_anything_else)
     EXPECT_EQ(lh_ui_entity_as_button(lh_ui_button_as_entity(lh_addr_of(button))), lh_addr_of(button));
     EXPECT_TRUE(lh_null_eq(lh_ui_entity_as_button(lh_addr_of(plain))))
         << "a plain entity was taken for a button";
+}
+
+/* A button of the three-object kind, with the picture and the caption placed by
+   hand: this fixture is about which node takes a click, not about the flow. */
+struct captioned_fixture
+{
+    static const lh_byte_t g_block[8]; /* 4 x 2 at 8 bpp: a solid block */
+
+    lh_ui_entity_t root;
+    lh_ui_button_t button;
+    lh_ui_image_t picture;
+    lh_ui_label_t caption;
+
+    captioned_fixture()
+    {
+        lh_ui_mask_t mask;
+        lh_ui_rect_t rect;
+
+        lh_ui_mask_init(&mask, g_block, 4, 2, 4, 8);
+        lh_ui_entity_init(&root, rect_of(0, 0, 200, 60));
+        lh_ui_rect_init(&rect, 10, 10, 120, 30);
+        lh_ui_button_init(&button, rect);
+        lh_ui_button_set_on_click(&button, count_click, lh_null);
+        lh_ui_image_init(&picture, rect_of(20, 20, 4, 2), &mask);
+        lh_ui_label_init(&caption, rect_of(60, 20, 40, 10), "Hi");
+        lh_ui_entity_add_child(&root, lh_ui_button_as_entity(&button));
+        lh_ui_entity_add_child(lh_ui_container_as_entity(lh_ui_button_as_container(&button)),
+                               lh_ui_image_as_entity(&picture));
+        lh_ui_entity_add_child(lh_ui_container_as_entity(lh_ui_button_as_container(&button)),
+                               lh_ui_label_as_entity(&caption));
+        g_clicks = 0;
+        g_clicked = lh_null;
+    }
+};
+const lh_byte_t captioned_fixture::g_block[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+lh_ui_point_t
+point_of(int x, int y)
+{
+    lh_ui_point_t point;
+
+    lh_ui_point_init(&point, lh_ui_scalar(x), lh_ui_scalar(y));
+    return point;
+}
+
+/* The three-object button, and the reason the pointer over a caption or a picture
+   has to be asked about rather than taken: they belong to the button. */
+TEST(entity_button, a_caption_and_a_picture_hand_the_pointer_to_their_button)
+{
+    captioned_fixture f;
+
+    EXPECT_EQ(lh_ui_entity_click_target(lh_ui_label_as_entity(&f.caption)),
+              lh_ui_button_as_entity(&f.button));
+    EXPECT_EQ(lh_ui_entity_click_target(lh_ui_image_as_entity(&f.picture)),
+              lh_ui_button_as_entity(&f.button));
+}
+
+TEST(entity_button, a_click_on_the_caption_reaches_the_button)
+{
+    captioned_fixture f;
+    lh_ui_point_t on_text = point_of(70, 24);
+
+    EXPECT_EQ(lh_ui_entity_click(&f.root, on_text), lh_ui_button_as_entity(&f.button))
+        << "the caption took the click away from the button";
+    EXPECT_EQ(g_clicks, 1);
+    EXPECT_EQ(g_clicked, lh_addr_of(f.button));
+}
+
+TEST(entity_button, a_click_on_the_picture_reaches_the_button)
+{
+    captioned_fixture f;
+    lh_ui_point_t on_picture = point_of(21, 20);
+
+    EXPECT_EQ(lh_ui_entity_click(&f.root, on_picture), lh_ui_button_as_entity(&f.button));
+    EXPECT_EQ(g_clicks, 1);
+}
+
+/* Nobody claims it, so a click still lands where it was pointed: a plain entity is
+   not clickable, and an app that wants to hear about a click on one still does. */
+TEST(entity_button, a_click_nobody_claims_still_lands_where_it_pointed)
+{
+    lh_ui_entity_t root;
+    lh_ui_label_t caption;
+
+    lh_ui_entity_init(&root, rect_of(0, 0, 200, 60));
+    lh_ui_label_init(&caption, rect_of(20, 20, 40, 10), "Hi");
+    lh_ui_entity_add_child(&root, lh_ui_label_as_entity(&caption));
+
+    EXPECT_EQ(lh_ui_entity_click_target(lh_ui_label_as_entity(&caption)),
+              lh_ui_label_as_entity(&caption));
+}
+
+/* A button that cannot hold a caption is not the button this project means. The
+   flow that places a picture and a caption has to come from somewhere, and the only
+   somewhere it comes from is the container the button is. */
+TEST(entity_button, a_button_is_the_container_its_flow_comes_from)
+{
+    lh_ui_button_t button;
+    lh_ui_layout_t layout;
+    lh_ui_rect_t rect;
+
+    lh_ui_rect_init(lh_addr_of(rect), 0, 0, 40, 20);
+    lh_ui_button_init(lh_addr_of(button), rect);
+    lh_ui_layout_init(lh_addr_of(layout), lh_ui_axis_horizontal, lh_ui_scalar(6));
+
+    EXPECT_EQ(lh_ui_container_as_entity(lh_ui_button_as_container(lh_addr_of(button))),
+              lh_ui_button_as_entity(lh_addr_of(button)));
+    EXPECT_TRUE(lh_null_eq(lh_ui_container_get_layout(lh_ui_button_as_container(lh_addr_of(button)))))
+        << "a fresh button was handed a flow of its own";
+
+    lh_ui_container_set_layout(lh_ui_button_as_container(lh_addr_of(button)), lh_addr_of(layout));
+    EXPECT_EQ(lh_ui_container_get_layout(lh_ui_button_as_container(lh_addr_of(button))),
+              lh_addr_of(layout));
 }
 
 /* The whole point of two styles: the pointer gets its own look, and leaving it

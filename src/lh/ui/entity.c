@@ -348,6 +348,34 @@ lh_ui_entity_is_focusable(const lh_ui_entity_t *self)
     return focusable;
 }
 
+lh_bool_t
+lh_ui_entity_is_clickable(const lh_ui_entity_t *self)
+{
+    lh_bool_t clickable = lh_bool_false;
+
+    lh_return_if(!lh_ui_entity_is_shown(self), lh_bool_false);
+    lh_ui_entity_send(self, lh_ui_entity_event_clickable, lh_addr_of(clickable));
+    return clickable;
+}
+
+lh_ui_entity_t *
+lh_ui_entity_click_target(lh_ui_entity_t *self)
+{
+    lh_ui_entity_t *node = self;
+
+    /* Up the tree, the same walk the focus takes: the nearest thing that takes the
+       pointer. What is under the pointer may be a caption, a picture or a row, and
+       whether that is the whole of the click or only where it landed is not a
+       question about geometry — it is a question about who is clickable. */
+    for (; lh_null_ne(node); node = node->parent)
+    {
+        lh_return_if(lh_ui_entity_is_clickable(node), node);
+    }
+    /* Nobody above claims it, so the click lands where it was pointed — on the
+       background, or on something an app wants to hear about. */
+    return self;
+}
+
 lh_void
 lh_ui_entity_send_pointer(const lh_ui_entity_t *self, lh_ui_entity_event_code_t code, lh_ui_point_t point)
 {
@@ -554,12 +582,20 @@ lh_ui_entity_t *
 lh_ui_entity_click(lh_ui_entity_t *self, lh_ui_point_t point)
 {
     lh_ui_entity_t *hit;
+    lh_ui_entity_t *target;
     lh_ui_point_t local;
 
-    hit = lh_ui_entity_find_at_local(self, point, lh_addr_of(local));
+    hit = lh_ui_entity_find_at(self, point);
     lh_return_if(lh_null_eq(hit), lh_null);
-    lh_ui_entity_send(hit, lh_ui_entity_event_click, lh_addr_of(local));
-    return hit;
+    /* What is under the pointer is where the click landed; who takes it is asked
+       separately, so a click on a button's own caption or picture reaches the button
+       (::lh_ui_entity_click_target). The point is moved into the space of the node
+       that receives it — an ancestor has a children offset of its own. */
+    target = lh_ui_entity_click_target(hit);
+    lh_return_if(lh_null_eq(target), lh_null);
+    local = lh_ui_entity_to_local(target, point);
+    lh_ui_entity_send(target, lh_ui_entity_event_click, lh_addr_of(local));
+    return target;
 }
 
 /* ── Draw ────────────────────────────────────────────────────────────────── */

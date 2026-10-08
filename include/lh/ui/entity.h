@@ -338,6 +338,22 @@ lh_bool_t
 lh_ui_entity_is_focusable(const lh_ui_entity_t *self);
 
 /**
+ * @brief True when @p self takes a click meant for itself rather than for what it
+ *        holds (:lh_ui_entity_event_clickable). The base class says no, so a plain
+ *        entity never steals a click from a child of its own.
+ */
+lh_bool_t
+lh_ui_entity_is_clickable(const lh_ui_entity_t *self);
+
+/**
+ * @brief The nearest entity at or above @p self that takes clicks, and @p self when
+ *        none of them does: a caption or a picture hands the pointer up to the button
+ *        it is in, while a click on the background still arrives where it always did.
+ */
+lh_ui_entity_t *
+lh_ui_entity_click_target(lh_ui_entity_t *self);
+
+/**
  * @brief Nearest focusable entity at or above @p self, or ::lh_null.
  */
 lh_ui_entity_t *

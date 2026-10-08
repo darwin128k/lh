@@ -88,6 +88,16 @@ lh_ui_entity_t *
 lh_ui_button_as_entity(lh_ui_button_t *self);
 
 /**
+ * @brief The container @p self is — where a caption and a picture go, and what
+ *        ::lh_ui_container_set_layout is asked. A button **is** a container: that
+ *        is the only way a button holds three entities and still places them,
+ *        and this is where the flow of @p self comes from
+ *        (::lh_ui_container_get_layout).
+ */
+lh_ui_container_t *
+lh_ui_button_as_container(lh_ui_button_t *self);
+
+/**
  * @brief The button @p entity is, or ::lh_null when it is not one — the class
  *        check is what tells the two apart, the same way
  *        ::lh_ui_entity_as_scrollbar does.

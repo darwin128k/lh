@@ -24,6 +24,13 @@ lh_ui_button_event(const lh_ui_entity_t *self, const lh_ui_entity_event_t *event
     const lh_ui_button_t *button = lh_ptr_rcast(const lh_ui_button_t, self);
 
     lh_ui_entity_class_event_base(lh_addr_of(lh_ui_button_class), self, event);
+    if (lh_ui_entity_event_get_code(event) == lh_ui_entity_event_clickable)
+    {
+        /* A button takes the pointer over everything inside it: the caption and the
+           picture are the button's, not two things of their own that take a click
+           away from it. */
+        *lh_ui_entity_event_get_clickable(event) = lh_bool_true;
+    }
     lh_ui_button_on_click(button, event);
 }
 
@@ -63,6 +70,13 @@ lh_ui_button_as_entity(lh_ui_button_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_ui_container_as_entity(lh_addr_of(self->container));
+}
+
+lh_ui_container_t *
+lh_ui_button_as_container(lh_ui_button_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->container);
 }
 
 lh_ui_button_t *

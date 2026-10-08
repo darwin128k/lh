@@ -8,6 +8,7 @@
 #include <lh/ui/canvas/sw.h>
 #include <lh/ui/color.h>
 #include <lh/ui/entity.h>
+#include <lh/ui/button.h>
 #include <lh/ui/container.h>
 #include <lh/ui/label.h>
 #include <lh/ui/scrollbar.h>
@@ -809,4 +810,45 @@ TEST(view, a_strip_height_is_the_buffer_and_not_the_step)
     lh_ui_view_set_strip_height(lh_addr_of(view), lh_ui_scalar(0));
     strip = lh_ui_view_get_strip(lh_addr_of(view), 0);
     EXPECT_TRUE(lh_ui_rect_is_empty(lh_addr_of(strip)));
+}
+
+/* root 200x200 with a button (10,10) 120x30 and its caption at (20,20) 60x10. */
+struct press_fixture
+{
+    lh_ui_entity_t root;
+    lh_ui_button_t button;
+    lh_ui_label_t caption;
+    lh_ui_canvas_t canvas;
+    lh_ui_view_t view;
+
+    press_fixture()
+    {
+        lh_ui_entity_init(lh_addr_of(root), rect_of(0, 0, 200, 200));
+        lh_ui_button_init(lh_addr_of(button), rect_of(10, 10, 120, 30));
+        lh_ui_label_init(lh_addr_of(caption), rect_of(20, 20, 60, 10), "Hi");
+        lh_ui_entity_add_child(lh_addr_of(root), lh_ui_button_as_entity(lh_addr_of(button)));
+        lh_ui_entity_add_child(lh_ui_container_as_entity(lh_ui_button_as_container(lh_addr_of(button))),
+                               lh_ui_label_as_entity(lh_addr_of(caption)));
+        lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
+        lh_ui_view_init(lh_addr_of(view));
+        lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
+        lh_ui_view_set_root(lh_addr_of(view), lh_addr_of(root));
+    }
+};
+
+/* The pressed look belongs to the button, so a press over its own caption has to
+   press the button: otherwise a captioned button looks like nothing is happening
+   while the pointer is down on it. */
+TEST(view, a_press_on_a_caption_presses_the_button_it_is_in)
+{
+    press_fixture f;
+
+    lh_ui_view_press(lh_addr_of(f.view), point_of(30, 24));
+
+    EXPECT_EQ(lh_ui_entity_is_pressed(lh_ui_button_as_entity(lh_addr_of(f.button))), lh_bool_true)
+        << "the caption took the press away from the button";
+    EXPECT_EQ(lh_ui_entity_is_pressed(lh_ui_label_as_entity(lh_addr_of(f.caption))), lh_bool_false);
+
+    lh_ui_view_release(lh_addr_of(f.view), point_of(30, 24));
+    EXPECT_EQ(lh_ui_entity_is_pressed(lh_ui_button_as_entity(lh_addr_of(f.button))), lh_bool_false);
 }

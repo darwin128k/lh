@@ -409,7 +409,7 @@ lh_ui_view_press_on(lh_ui_view_t *self, lh_ui_entity_t *hit, lh_ui_point_t point
 
 /**
  * @brief Press @p entity or let it go, damaging what either look painted
- *        (::lh_ui_view_damage_pressed). Nothing for a ::lh_null @p entity or a
+ *        (::lh_ui_view_damage_shape). Nothing for a ::lh_null @p entity or a
  *        flag that is already what it is asked for.
  *
  * What ::lh_ui_view_press and ::lh_ui_view_release call; an app that drives the
@@ -424,13 +424,14 @@ lh_ui_view_set_pressed(lh_ui_view_t *self, lh_ui_entity_t *entity, lh_bool_t pre
  *        its two shadows (::lh_ui_style_get_shadow of its style and of its
  *        pressed style) reaches further.
  *
- * Both looks and not the current one: a press changes both what is drawn and
- * what stops being drawn, and a shadow reaches past its own box, so the rect
- * alone would leave the old fringe on the surface. The caller invalidates, as it
- * does for every other damage here.
+ * Everything @p entity paints, in both of its looks and not in the current one: a
+ * press changes what is drawn and what stops being drawn, and so does hiding a card
+ * that casts a shadow — a shadow reaches past its own box, so the rect alone would
+ * leave the fringe of what is being dropped on the surface. The caller invalidates,
+ * as it does for every other damage here.
  */
 lh_void
-lh_ui_view_damage_pressed(lh_ui_view_t *self, const lh_ui_entity_t *entity);
+lh_ui_view_damage_shape(lh_ui_view_t *self, const lh_ui_entity_t *entity);
 
 /**
  * @brief Say the pointer is on @p button, or is not, and damage what either of

@@ -66,6 +66,18 @@ lh_ui_entity_event_get_focusable(const lh_ui_entity_event_t *self)
     return focusable;
 }
 
+lh_bool_t *
+lh_ui_entity_event_get_clickable(const lh_ui_entity_event_t *self)
+{
+    lh_bool_t *clickable;
+
+    lh_assert_runtime_ifn(lh_ui_entity_event_get_code(self) == lh_ui_entity_event_clickable,
+                          lh_runtime_error_code_invalid_argument);
+    clickable = lh_ptr_rcast(lh_bool_t, self->context);
+    lh_assert_runtime_ref(clickable);
+    return clickable;
+}
+
 const struct lh_ui_key_input *
 lh_ui_entity_event_get_key(const lh_ui_entity_event_t *self)
 {

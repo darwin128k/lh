@@ -49,8 +49,13 @@ typedef enum lh_ui_entity_event_code
                                             ::lh_bool_t * preset to false. */
     lh_ui_entity_event_focus = 11,   /**< It took the focus; no context. */
     lh_ui_entity_event_defocus = 12, /**< It lost the focus; no context. */
-    lh_ui_entity_event_key = 13      /**< A key or a character while focused; context
+    lh_ui_entity_event_key = 13,     /**< A key or a character while focused; context
                                           is the const ::lh_ui_key_input_t *. */
+    lh_ui_entity_event_clickable = 14 /**< Does the pointer belong to it, or to what it
+                                           holds? Context is an ::lh_bool_t * preset to
+                                           false: a caption and a picture say no, and a
+                                           button says yes, so the pointer over a button's
+                                           own content reaches the button. */
 } lh_ui_entity_event_code_t;
 
 /**
@@ -104,6 +109,12 @@ lh_ui_entity_event_is_pointer(const lh_ui_entity_event_t *self);
  */
 lh_bool_t *
 lh_ui_entity_event_get_focusable(const lh_ui_entity_event_t *self);
+
+/**
+ * @brief The answer slot of ::lh_ui_entity_event_clickable (preset false).
+ */
+lh_bool_t *
+lh_ui_entity_event_get_clickable(const lh_ui_entity_event_t *self);
 
 /**
  * @brief The key or character of ::lh_ui_entity_event_key.

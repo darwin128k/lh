@@ -26,6 +26,13 @@ lh_ui_scrollbar_event(const struct lh_ui_entity *self, const lh_ui_entity_event_
 
     lh_ui_entity_class_event_base(lh_addr_of(lh_ui_scrollbar_class), self, event);
     lh_ui_scrollbar_on_draw(scrollbar, event);
+    if (lh_ui_entity_event_get_code(event) == lh_ui_entity_event_clickable)
+    {
+        /* The thumb is drawn by this class and not by a child of its own, but the
+           answer is the same one a button gives: the pointer over a scrollbar is the
+           scrollbar's. */
+        *lh_ui_entity_event_get_clickable(event) = lh_bool_true;
+    }
     lh_ui_scrollbar_on_click(scrollbar, event);
     lh_ui_scrollbar_on_visible(scrollbar, event);
 }

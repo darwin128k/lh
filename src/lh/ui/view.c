@@ -332,7 +332,7 @@ lh_ui_view_click_plain(lh_ui_view_t *self, lh_ui_point_t point)
 {
     lh_ui_entity_t *clicked = lh_ui_entity_click(self->root, point);
 
-    lh_ui_view_damage_pressed(self, clicked);
+    lh_ui_view_damage_shape(self, clicked);
     return clicked;
 }
 
@@ -546,14 +546,14 @@ lh_ui_view_set_pressed(lh_ui_view_t *self, lh_ui_entity_t *entity, lh_bool_t pre
 {
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(entity) || lh_ui_entity_is_pressed(entity) == pressed);
-    lh_ui_view_damage_pressed(self, entity);
+    lh_ui_view_damage_shape(self, entity);
     lh_ui_entity_set_pressed(entity, pressed);
 }
 
 /* The rect plus whichever of two looks reaches further with its shadow. Both
    looks and not the current one: a shadow reaches past its own box, so anything
    less leaves the fringe of the look that is being dropped on the surface. The
-   two are the resting and pressed looks of a press (::lh_ui_view_damage_pressed)
+   two are the resting and pressed looks of a press (::lh_ui_view_damage_shape)
    and the resting and hot looks of a hover (::lh_ui_view_set_hot); either may
    be ::lh_null, which is a look that casts nothing. */
 static void
@@ -578,7 +578,7 @@ lh_ui_view_damage_looks(lh_ui_view_t *self, const lh_ui_entity_t *entity,
 }
 
 lh_void
-lh_ui_view_damage_pressed(lh_ui_view_t *self, const lh_ui_entity_t *entity)
+lh_ui_view_damage_shape(lh_ui_view_t *self, const lh_ui_entity_t *entity)
 {
     const lh_ui_style_t *style;
 
@@ -605,7 +605,9 @@ lh_void
 lh_ui_view_press(lh_ui_view_t *self, lh_ui_point_t point)
 {
     lh_ui_view_start_pointer(self, point);
-    lh_ui_view_press_on(self, lh_ui_view_hit_test(self, point), point);
+    /* Pressing is clicking: what the pointer went down on is the thing that takes
+       the pointer, not whatever is painted under it. */
+    lh_ui_view_press_on(self, lh_ui_entity_click_target(lh_ui_view_hit_test(self, point)), point);
 }
 
 lh_bool_t
