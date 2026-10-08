@@ -17,8 +17,8 @@
 
 /* ── Null backend ────────────────────────────────────────────────────────── */
 
-const lh_ui_canvas_backend_t lh_ui_canvas_backend_null = {lh_null, lh_null, lh_null, lh_null,
-                                                            lh_null, lh_null, lh_null, lh_null};
+const lh_ui_canvas_backend_t lh_ui_canvas_backend_null = {
+    lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null};
 
 /* ── Lifetime ────────────────────────────────────────────────────────────── */
 
@@ -34,6 +34,30 @@ lh_ui_canvas_init(lh_ui_canvas_t *self, const lh_ui_canvas_backend_t *backend, l
     lh_ui_point_init(lh_addr_of(self->frame_at), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_ui_rect_init_empty(lh_addr_of(self->damage));
     self->has_damage = lh_bool_false;
+    self->scratch = lh_null;
+    self->scratch_bytes = 0U;
+}
+
+lh_void
+lh_ui_canvas_set_scratch(lh_ui_canvas_t *self, lh_u8_t *scratch, lh_usize_t bytes)
+{
+    lh_assert_runtime_ref(self);
+    self->scratch = scratch;
+    self->scratch_bytes = lh_null_eq(scratch) ? 0U : bytes;
+}
+
+lh_u8_t *
+lh_ui_canvas_get_scratch(const lh_ui_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->scratch;
+}
+
+lh_usize_t
+lh_ui_canvas_get_scratch_bytes(const lh_ui_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->scratch_bytes;
 }
 
 lh_void
@@ -488,4 +512,120 @@ lh_ui_canvas_fill_round_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, lh_
     lh_assert_runtime_ref(color);
     target = lh_ui_canvas_state_to_target(lh_addr_of(self->state), rect);
     lh_ui_canvas_fill_target_round_rect(self, lh_addr_of(target), lh_ui_radius_clamp(rect, radius), color);
+}
+
+lh_void
+lh_ui_canvas_shadow_fallback(lh_ui_canvas_t *self, const lh_ui_rect_t *bounds, const lh_ui_rect_t *target,
+                             lh_ui_scalar_t radius, const lh_ui_shadow_t *shadow)
+{
+    const lh_ui_point_t *cut_origin;
+    const lh_ui_size_t *cut_size;
+    lh_ui_rect_t cut;
+    lh_s32_t x1;
+    lh_s32_t y1;
+    lh_s32_t y;
+
+    /* Only what the clip lets through is worth a pixel each, and a frame drawn in
+       strips clips it once per strip. */
+    cut = lh_ui_canvas_state_cut(lh_addr_of(self->state), bounds);
+    lh_return_if(lh_ui_rect_is_empty(lh_addr_of(cut)));
+    cut_origin = lh_ui_rect_get_origin_as_const(lh_addr_of(cut));
+    cut_size = lh_ui_rect_get_size_as_const(lh_addr_of(cut));
+    x1 = lh_ui_point_get_x(cut_origin) + lh_ui_size_get_width(cut_size);
+    y1 = lh_ui_point_get_y(cut_origin) + lh_ui_size_get_height(cut_size);
+
+    for (y = lh_ui_point_get_y(cut_origin); y < y1; ++y)
+    {
+        lh_s32_t x;
+
+        for (x = lh_ui_point_get_x(cut_origin); x < x1; ++x)
+        {
+            const lh_byte_t alpha = lh_ui_shadow_alpha_at(shadow, lh_ui_scalar(x), lh_ui_scalar(y), target, radius);
+            lh_ui_rect_t pixel;
+            lh_ui_color_t color;
+
+            if (alpha == 0)
+            {
+                continue;
+            }
+            color = lh_ui_shadow_get_color(shadow);
+            lh_ui_color_set_a(&color, alpha);
+            lh_ui_rect_init(lh_addr_of(pixel), lh_ui_scalar(x), lh_ui_scalar(y), lh_ui_scalar(1), lh_ui_scalar(1));
+            lh_ui_canvas_fill_target_rect(self, lh_addr_of(pixel), &color);
+        }
+    }
+}
+
+lh_bool_t
+lh_ui_canvas_shadow(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+                    const lh_ui_shadow_t *shadow)
+{
+    lh_ui_rect_t bounds;
+    lh_ui_rect_t target;
+    lh_ui_scalar_t outset;
+    lh_ui_scalar_t corner;
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(rect);
+    lh_assert_runtime_ref(shadow);
+    target = lh_ui_canvas_state_to_target(lh_addr_of(self->state), rect);
+    outset = lh_ui_shadow_get_outset(shadow, &target);
+    lh_return_if(outset <= 0, lh_bool_false);
+    corner = lh_ui_radius_clamp(&target, radius);
+    bounds = lh_ui_rect_inset(lh_addr_of(target), lh_ui_scalar(-outset), lh_ui_scalar(-outset));
+    lh_ui_canvas_add_damage(self, lh_addr_of(bounds));
+    /* No `can_send_whole` here, unlike a rounded fill: a shadow reads no pixels, it
+       is the box and the shadow alone, so every area that clips it draws its own
+       slice and the picture is the same whether the frame is drawn whole or in
+       strips. The effect that does need the whole area in one buffer is the blur. */
+    lh_return_if(!lh_ui_canvas_shows(self, lh_addr_of(bounds)), lh_bool_false);
+
+    if (!lh_null_eq(self->backend) && !lh_null_eq(self->backend->shadow) &&
+        self->backend->shadow(self->context, &target, corner, shadow))
+    {
+        return lh_bool_true;
+    }
+    lh_ui_canvas_shadow_fallback(self, lh_addr_of(bounds), lh_addr_of(target), corner, shadow);
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_ui_canvas_blur(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t blur_radius)
+{
+    lh_ui_rect_t target;
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(rect);
+    lh_return_if(blur_radius <= 0, lh_bool_false);
+    lh_return_if(lh_null_eq(self->backend) || lh_null_eq(self->backend->blur), lh_bool_false);
+    target = lh_ui_canvas_state_to_target(lh_addr_of(self->state), rect);
+    lh_return_if(!lh_ui_canvas_shows(self, lh_addr_of(target)), lh_bool_false);
+    /* A blur reads the pixels it is about to blur, so unlike a shadow it cannot
+       be cut to the area: in a frame drawn in strips the pixels across the line
+       are not in the buffer at all, and blurring what is there would leave a
+       visible seam every strip. It says it cannot be drawn instead. */
+    lh_return_if(!lh_ui_canvas_can_send_whole(self, lh_addr_of(target)), lh_bool_false);
+    lh_ui_canvas_add_damage(self, lh_addr_of(target));
+    return self->backend->blur(self->context, lh_addr_of(target), blur_radius, self->scratch, self->scratch_bytes);
+}
+
+lh_bool_t
+lh_ui_canvas_glass(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t corner,
+                   lh_ui_scalar_t blur_radius, const lh_ui_color_t *tint)
+{
+    lh_ui_rect_t target;
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(rect);
+    lh_assert_runtime_ref(tint);
+    lh_return_if(lh_null_eq(self->backend) || lh_null_eq(self->backend->glass), lh_bool_false);
+    target = lh_ui_canvas_state_to_target(lh_addr_of(self->state), rect);
+    lh_return_if(!lh_ui_canvas_shows(self, lh_addr_of(target)), lh_bool_false);
+    /* Glass is a blur plus a tint, so it needs the whole rect in the buffer for
+       the same reason, and the tint is not put down without it: a tint on its own
+       is a fill, and a fill that only looks like glass is worse than none. */
+    lh_return_if(!lh_ui_canvas_can_send_whole(self, lh_addr_of(target)), lh_bool_false);
+    lh_ui_canvas_add_damage(self, lh_addr_of(target));
+    return self->backend->glass(self->context, lh_addr_of(target), lh_ui_radius_clamp(lh_addr_of(target), corner),
+                                blur_radius, tint, self->scratch, self->scratch_bytes);
 }

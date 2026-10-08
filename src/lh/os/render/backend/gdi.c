@@ -233,6 +233,39 @@ lh_os_render_backend_gdi_fill_mask(lh_ptr context, const lh_ui_point_t *origin, 
     return lh_ui_canvas_sw_fill_mask(lh_addr_of(gdi->sw), origin, mask, color);
 }
 
+/* The three effects are CPU work on the DIB, and GDI only creates the DIB and
+   blits it — so they are the software ones and nothing else. Each one needs its
+   own wrapper like every other slot above: a backend slot is handed the *GDI*
+   context, and the software functions expect the software context, so plugging
+   them in raw does not draw a little wrong, it reads a different struct. */
+lh_bool_t
+lh_os_render_backend_gdi_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+                               const lh_ui_shadow_t *shadow)
+{
+    lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
+
+    return lh_ui_canvas_sw_shadow(lh_addr_of(gdi->sw), rect, radius, shadow);
+}
+
+lh_bool_t
+lh_os_render_backend_gdi_blur(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t blur_radius,
+                             lh_u8_t *scratch, lh_usize_t bytes)
+{
+    lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
+
+    return lh_ui_canvas_sw_blur(lh_addr_of(gdi->sw), rect, blur_radius, scratch, bytes);
+}
+
+lh_bool_t
+lh_os_render_backend_gdi_glass(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t corner,
+                              lh_ui_scalar_t blur_radius, const lh_ui_color_t *tint, lh_u8_t *scratch,
+                              lh_usize_t bytes)
+{
+    lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
+
+    return lh_ui_canvas_sw_glass(lh_addr_of(gdi->sw), rect, corner, blur_radius, tint, scratch, bytes);
+}
+
 const lh_ui_canvas_backend_t lh_os_render_backend_gdi = {
     lh_os_render_backend_gdi_begin,
     lh_os_render_backend_gdi_begin_area,
@@ -242,4 +275,7 @@ const lh_ui_canvas_backend_t lh_os_render_backend_gdi = {
     lh_os_render_backend_gdi_fill_round_rect,
     lh_os_render_backend_gdi_set_clip,
     lh_os_render_backend_gdi_fill_mask,
+    lh_os_render_backend_gdi_shadow,
+    lh_os_render_backend_gdi_blur,
+    lh_os_render_backend_gdi_glass,
 };

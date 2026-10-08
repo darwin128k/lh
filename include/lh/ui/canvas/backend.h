@@ -12,6 +12,7 @@
 
 #include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
+#include <lh/size.h>
 #include <lh/ui/canvas/backend/fields.h>
 #include <lh/ui/canvas/clip.h>
 #include <lh/ui/color.h>
@@ -19,6 +20,7 @@
 #include <lh/ui/point.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/scalar.h>
+#include <lh/ui/shadow.h>
 #include <lh/void.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -102,6 +104,48 @@ typedef lh_void(lh_ui_canvas_set_clip_fn)(lh_ptr context, const lh_ui_canvas_cli
 typedef lh_bool_t(lh_ui_canvas_fill_mask_fn)(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,
                                            const lh_ui_color_t *color);
 
+/**
+ * @typedef lh_ui_canvas_shadow_fn
+ * @brief Paint @p shadow behind @p rect, corners rounded by @p radius.
+ *
+ * @p radius is already clamped by the canvas. The shadow reaches a spread past
+ * the box — that is the point of it — so the backend paints outside @p rect and
+ * cuts that to its own target like any other write.
+ *
+ * @return ::lh_bool_false when the backend painted nothing; the canvas then
+ *         paints the shadow itself, pixel by pixel.
+ */
+typedef lh_bool_t(lh_ui_canvas_shadow_fn)(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+                                         const lh_ui_shadow_t *shadow);
+
+/**
+ * @typedef lh_ui_canvas_blur_fn
+ * @brief Soften what is already on @p rect of the target, @p blur_radius out.
+ *
+ * Unlike every other slot this one reads pixels it did not write, so there is
+ * nothing for the canvas to do instead: with no slot the effect simply cannot be
+ * drawn, and the canvas says so rather than putting down something that only
+ * looks like one. That also makes it the one slot that needs memory of its own:
+ * @p scratch is the caller's (see ::lh_ui_canvas_set_scratch) and @p bytes how
+ * much of it there is; a blur needs ::lh_ui_blur_scratch_size of @p rect, and a
+ * backend that is given less returns ::lh_bool_false instead of writing past it.
+ */
+typedef lh_bool_t(lh_ui_canvas_blur_fn)(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t blur_radius,
+                                         lh_u8_t *scratch, lh_usize_t bytes);
+
+/**
+ * @typedef lh_ui_canvas_glass_fn
+ * @brief A glass panel over @p rect: blur what is behind it by @p blur_radius,
+ *        then lay @p tint over it inside corners rounded by @p corner.
+ *
+ * Two effects in one call because they are one look: a blurred rectangle without
+ * its tint is a smudge, and a tint without the blur is a fill. @p scratch and
+ * @p bytes are the caller's, exactly as for ::lh_ui_canvas_blur_fn.
+ */
+typedef lh_bool_t(lh_ui_canvas_glass_fn)(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t corner,
+                                        lh_ui_scalar_t blur_radius, const lh_ui_color_t *tint, lh_u8_t *scratch,
+                                        lh_usize_t bytes);
+
 LH_COMPILER_EXTERN_C_END
 
 /**
@@ -117,7 +161,8 @@ struct lh_ui_canvas_backend
     lh_ui_canvas_backend_fields(lh_ui_canvas_begin_fn, lh_ui_canvas_begin_area_fn, lh_ui_canvas_end_fn,
                                 lh_ui_canvas_clear_fn, lh_ui_canvas_fill_rect_fn,
                                 lh_ui_canvas_fill_round_rect_fn, lh_ui_canvas_set_clip_fn,
-                                lh_ui_canvas_fill_mask_fn);
+                                lh_ui_canvas_fill_mask_fn, lh_ui_canvas_shadow_fn, lh_ui_canvas_blur_fn,
+                                lh_ui_canvas_glass_fn);
 };
 typedef struct lh_ui_canvas_backend lh_ui_canvas_backend_t;
 

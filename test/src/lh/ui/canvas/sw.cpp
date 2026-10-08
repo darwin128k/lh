@@ -14,6 +14,7 @@
 #include <lh/ui/point.h>
 #include <lh/ui/radius.h>
 #include <lh/ui/rect.h>
+#include <lh/ui/shadow.h>
 #include <lh/ui/style.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -548,4 +549,134 @@ TEST(ui_canvas_sw, container_cuts_its_children_along_its_corners)
     EXPECT_EQ(f.at(2, 2), sentinel);     /* the cut corner */
     EXPECT_EQ(f.at(12, 2), 0xff090909u); /* the straight top edge */
     EXPECT_EQ(f.alpha_at(3, 5), lh_ui_radius_coverage(&box_rect, lh_ui_scalar(8), 3, 5));
+}
+
+/* ── Effects ───────────────────────────────────────────────────────────────── */
+
+lh_ui_shadow_t
+shadow_of(int peak, int spread, int dx, int dy)
+{
+    lh_ui_shadow_t shadow;
+    lh_ui_color_t black;
+
+    lh_ui_color_init(lh_addr_of(black), 0, 0, 0, static_cast<lh_u8_t>(peak));
+    lh_ui_shadow_init(lh_addr_of(shadow));
+    lh_ui_shadow_set_color(lh_addr_of(shadow), black);
+    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(spread));
+    lh_ui_shadow_set_offset(lh_addr_of(shadow), lh_ui_scalar(dx), lh_ui_scalar(dy));
+    return shadow;
+}
+
+TEST(ui_canvas_sw, a_shadow_reaches_out_of_its_box_and_is_gone_one_spread_past_it)
+{
+    sw_fixture f;
+    const lh_ui_shadow_t shadow = shadow_of(255, 4, 0, 0);
+    const lh_ui_rect_t box = rect_of(8, 8, 8, 8);
+    const lh_ui_color_t white = color_of(255, 255, 255, 255);
+
+    lh_ui_canvas_clear(lh_addr_of(f.canvas), lh_addr_of(white));
+    EXPECT_TRUE(lh_ui_canvas_shadow(lh_addr_of(f.canvas), lh_addr_of(box), lh_ui_scalar(2), lh_addr_of(shadow)));
+
+    EXPECT_EQ(f.at(12, 12), 0xffffffffu); /* inside the box: the fill owns it */
+    EXPECT_LT(f.at(12, 16), 0xffffffffu); /* just past the edge: darkest */
+    EXPECT_LT(f.at(12, 16), f.at(12, 18)); /* and lighter further out */
+    EXPECT_EQ(f.at(12, 20), 0xffffffffu); /* one spread past the edge: gone */
+    EXPECT_EQ(f.at(4, 12), f.at(12, 4));   /* the same all round */
+}
+
+/* The picture must not depend on the frame being drawn in one piece: an area that
+ * clips the shadow draws its own slice of it, and the slices add up to the same
+ * shadow. This is what a partial frame in strips does, every frame. */
+TEST(ui_canvas_sw, a_shadow_cut_by_the_area_is_the_same_shadow)
+{
+    sw_fixture whole;
+    sw_fixture cut;
+    const lh_ui_shadow_t shadow = shadow_of(200, 5, 1, 2);
+    const lh_ui_rect_t box = rect_of(9, 9, 6, 6);
+    const lh_ui_color_t white = color_of(250, 250, 250, 255);
+
+    lh_ui_canvas_clear(lh_addr_of(whole.canvas), lh_addr_of(white));
+    lh_ui_canvas_shadow(lh_addr_of(whole.canvas), lh_addr_of(box), lh_ui_scalar(3), lh_addr_of(shadow));
+
+    lh_ui_canvas_clear(lh_addr_of(cut.canvas), lh_addr_of(white));
+    for (int y = 0; y < side; ++y)
+    {
+        cut.push_clip(0, y, side, 1);
+        lh_ui_canvas_shadow(lh_addr_of(cut.canvas), lh_addr_of(box), lh_ui_scalar(3), lh_addr_of(shadow));
+        lh_ui_canvas_pop(lh_addr_of(cut.canvas));
+    }
+
+    expect_same_pixels(whole, cut);
+}
+
+/* Without the slot the canvas draws it pixel by pixel, and it must be the very
+ * same shadow: a backend that has no shadow renderer still gets this effect. */
+TEST(ui_canvas_sw, the_shadow_without_a_slot_is_the_shadow_with_one)
+{
+    sw_fixture slot;
+    sw_fixture fallback(lh_addr_of(g_rect_only));
+    const lh_ui_shadow_t shadow = shadow_of(180, 5, 2, 3);
+    const lh_ui_rect_t box = rect_of(7, 6, 9, 10);
+    const lh_ui_rect_t everything = rect_of(0, 0, side, side);
+    const lh_ui_color_t white = color_of(240, 240, 240, 255);
+
+    /* ill_rect, not clear: g_rect_only has no clear slot, so the two
+       backgrounds would not have been the same pixels to begin with. */
+    lh_ui_canvas_fill_rect(lh_addr_of(slot.canvas), lh_addr_of(everything), lh_addr_of(white));
+    lh_ui_canvas_shadow(lh_addr_of(slot.canvas), lh_addr_of(box), lh_ui_scalar(4), lh_addr_of(shadow));
+
+    lh_ui_canvas_fill_rect(lh_addr_of(fallback.canvas), lh_addr_of(everything), lh_addr_of(white));
+    lh_ui_canvas_shadow(lh_addr_of(fallback.canvas), lh_addr_of(box), lh_ui_scalar(4), lh_addr_of(shadow));
+
+    expect_same_pixels(slot, fallback);
+}
+
+/* A shadow nowhere near the clip is not drawn at all, and says so, rather than
+ * paying for a pixel loop that every pixel of which is cut away. */
+TEST(ui_canvas_sw, a_shadow_the_clip_cannot_see_paints_nothing_and_says_so)
+{
+    sw_fixture f;
+    const lh_ui_shadow_t shadow = shadow_of(255, 4, 0, 0);
+    const lh_ui_rect_t box = rect_of(0, 0, 4, 4);
+
+    f.push_clip(12, 12, 4, 4);
+    EXPECT_FALSE(lh_ui_canvas_shadow(lh_addr_of(f.canvas), lh_addr_of(box), lh_ui_scalar(1), lh_addr_of(shadow)));
+    lh_ui_canvas_pop(lh_addr_of(f.canvas));
+
+    EXPECT_EQ(f.at(1, 1), sentinel);
+}
+/* A glass panel over a flat picture has to come out flat too: the blur is two
+ * sliding windows over a picture that is one colour, so any column that comes out
+ * different from its neighbour is the window reading something it should not. */
+TEST(ui_canvas_sw, glass_over_a_flat_picture_stays_flat)
+{
+    sw_fixture f;
+    const lh_ui_rect_t rect = rect_of(2, 2, 20, 20);
+    const lh_ui_rect_t everything = rect_of(0, 0, side, side);
+    const lh_ui_color_t dark = color_of(33, 37, 43, 255);
+    const lh_ui_color_t row = color_of(224, 108, 117, 255);
+    const lh_ui_color_t tint = color_of(236, 240, 248, 46);
+    lh_u8_t scratch[side * side * 4];
+    int odd = 0;
+
+    lh_ui_canvas_set_scratch(lh_addr_of(f.canvas), scratch, sizeof(scratch));
+    lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(everything), lh_addr_of(dark));
+    lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(rect), lh_addr_of(row));
+    EXPECT_TRUE(lh_ui_canvas_glass(lh_addr_of(f.canvas), lh_addr_of(rect), lh_ui_scalar(4), lh_ui_scalar(5),
+                                   lh_addr_of(tint)));
+
+    /* The middle of the panel is far from every edge, so only the blur is left. */
+    const lh_u32_t middle = f.at(12, 12);
+    for (int y = 8; y < 16; ++y)
+    {
+        for (int x = 8; x < 16; ++x)
+        {
+            if (f.at(x, y) != middle)
+            {
+                ++odd;
+            }
+        }
+    }
+    EXPECT_EQ(odd, 0);
+    EXPECT_NE(middle, sentinel);
 }

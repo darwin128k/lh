@@ -28,6 +28,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/ptr.h>
+#include <lh/size.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/canvas/clip.h>
 #include <lh/ui/canvas/sw/fields.h>
@@ -279,6 +280,33 @@ lh_ui_canvas_sw_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip);
 lh_bool_t
 lh_ui_canvas_sw_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,
                           const lh_ui_color_t *color);
+
+/**
+ * @brief Backend `shadow`: ::lh_ui_shadow_alpha_at per pixel over the box grown
+ *        by its outset, blended, and cut to the clip like any other write.
+ */
+lh_bool_t
+lh_ui_canvas_sw_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+                       const lh_ui_shadow_t *shadow);
+
+/**
+ * @brief Backend `blur`: ::lh_ui_blur_rect over the rect, cut to the limit.
+ *
+ * @p scratch is the caller's buffer and @p bytes how much of it there is; a rect
+ * that needs more than that (::lh_ui_blur_scratch_size) is one this backend will
+ * not draw.
+ */
+lh_bool_t
+lh_ui_canvas_sw_blur(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t blur_radius, lh_u8_t *scratch,
+                     lh_usize_t bytes);
+
+/**
+ * @brief Backend `glass`: blur what is behind the rect, then fill the rounded
+ *        rect with the tint on top.
+ */
+lh_bool_t
+lh_ui_canvas_sw_glass(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t corner, lh_ui_scalar_t blur_radius,
+                      const lh_ui_color_t *tint, lh_u8_t *scratch, lh_usize_t bytes);
 
 /**
  * @brief The software backend table: clear, fill_rect, fill_round_rect,
