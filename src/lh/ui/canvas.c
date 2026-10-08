@@ -463,7 +463,11 @@ lh_ui_canvas_fill_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_
 lh_bool_t
 lh_ui_canvas_can_send_whole(const lh_ui_canvas_t *self, const lh_ui_rect_t *target)
 {
-    lh_return_if(!lh_ui_canvas_is_cutting(self), lh_bool_true);
+    /* The bar for a slot that *reads* its target: the pixels it is about to work
+       on have to be there. No clip at all, or the target inside a plain
+       (unrounded) one. A rounded cut is refused as well, because a backend that
+       clips knows it and a software one does not. */
+    lh_return_if(!self->state.clipped, lh_bool_true);
     return self->state.round_count == 0U && lh_ui_canvas_state_contains(lh_addr_of(self->state), target)
                ? lh_bool_true
                : lh_bool_false;
@@ -473,6 +477,11 @@ lh_bool_t
 lh_ui_canvas_can_fill_round(const lh_ui_canvas_t *self, const lh_ui_rect_t *target)
 {
     lh_return_if(lh_null_eq(self->backend) || lh_null_eq(self->backend->fill_round_rect), lh_bool_false);
+    /* A rounded box is a shape and not a reading: it is drawn whole and cut by
+       whoever clips, so a backend that clips may have it even when the clip
+       cuts it. Keeping that shortcut here and not in ::lh_ui_canvas_can_send_whole
+       is the whole difference between the two kinds of slot. */
+    lh_return_if(!lh_ui_canvas_is_cutting(self), lh_bool_true);
     return lh_ui_canvas_can_send_whole(self, target);
 }
 

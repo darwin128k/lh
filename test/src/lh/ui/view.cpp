@@ -503,6 +503,83 @@ TEST(view, damage_skips_the_strips_it_does_not_reach)
     EXPECT_EQ(partial_probe_diff(one, strips), 0);
 }
 
+TEST(view, a_whole_area_makes_the_strip_that_reaches_it_wide_and_the_ones_inside_it_are_not_repeated)
+{
+    scene s;
+    partial_probe whole;
+    partial_probe strips;
+    lh_ui_view_t one;
+    lh_ui_view_t many;
+    /* Rows 20..80: crosses two strip lines, so no strip holds all of it. */
+    const lh_ui_rect_t region = lh_test::rect_of(0, 20, 160, 60);
+
+    build_scene(s);
+    partial_probe_init(lh_addr_of(whole));
+    partial_probe_init(lh_addr_of(strips));
+    lh_ui_view_init(lh_addr_of(one));
+    lh_ui_view_init(lh_addr_of(many));
+    lh_ui_view_set_canvas(lh_addr_of(one), lh_addr_of(whole.canvas));
+    lh_ui_view_set_canvas(lh_addr_of(many), lh_addr_of(strips.canvas));
+    lh_ui_view_set_root(lh_addr_of(one), lh_addr_of(s.panel));
+    lh_ui_view_set_root(lh_addr_of(many), lh_addr_of(s.panel));
+    lh_ui_view_set_strip_height(lh_addr_of(many), lh_ui_scalar(32));
+    EXPECT_TRUE(lh_ui_view_add_whole_area(lh_addr_of(many), lh_addr_of(region)));
+
+    lh_ui_view_paint(lh_addr_of(one));
+    lh_ui_view_paint(lh_addr_of(many));
+
+    /* The first strip reaches into the region and is drawn 80 rows tall; the
+       strip at y 32 is inside that area, so it is neither buffered nor
+       presented again; the strip at y 64 has grown past the region, and the one
+       at y 88 reaches nothing. */
+    EXPECT_EQ(strips.area_count, 3);
+    EXPECT_TRUE(rect_is(strips.areas[0], lh_test::rect_of(0, 0, 160, 80)));
+    EXPECT_TRUE(rect_is(strips.areas[1], lh_test::rect_of(0, 20, 160, 76)));
+    EXPECT_TRUE(rect_is(strips.areas[2], lh_test::rect_of(0, 88, 160, 32)));
+    EXPECT_FALSE(strips.escaped) << "a primitive left the area it was drawn for";
+    /* The picture is the whole frame's, overlap and all: a grown area draws the
+       rows it shares with the last one again, and they come out the same. */
+    EXPECT_EQ(partial_probe_diff(whole, strips), 0);
+}
+
+TEST(view, a_whole_area_the_view_has_no_room_for_is_refused)
+{
+    lh_ui_view_t view;
+    lh_ui_canvas_t canvas;
+    lh_ui_size_t size;
+    lh_ui_rect_t at;
+
+    lh_ui_size_init(lh_addr_of(size), 160, 120);
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
+    lh_ui_canvas_set_size(lh_addr_of(canvas), size);
+    lh_ui_view_init(lh_addr_of(view));
+    lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
+
+    /* An empty region is not a region. */
+    lh_ui_rect_init(lh_addr_of(at), 0, 0, 0, 40);
+    EXPECT_FALSE(lh_ui_view_add_whole_area(lh_addr_of(view), lh_addr_of(at)));
+    for (int i = 0; i < LH_UI_VIEW_WHOLE_MAX; ++i)
+    {
+        lh_ui_rect_init(lh_addr_of(at), 0, i * 4, 10, 4);
+        EXPECT_TRUE(lh_ui_view_add_whole_area(lh_addr_of(view), lh_addr_of(at))) << "region " << i;
+    }
+    lh_ui_rect_init(lh_addr_of(at), 0, 100, 10, 4);
+    EXPECT_FALSE(lh_ui_view_add_whole_area(lh_addr_of(view), lh_addr_of(at)));
+
+    /* Forgetting them gives the room back. */
+    lh_ui_view_clear_whole_areas(lh_addr_of(view));
+    EXPECT_TRUE(lh_ui_view_add_whole_area(lh_addr_of(view), lh_addr_of(at)));
+
+    /* A region that leaves the target is cut to it, not refused: the picture is
+       what the target can hold, and an effect that needs the rest is told it
+       cannot be drawn. */
+    lh_ui_rect_init(lh_addr_of(at), 0, 100, 160, 40);
+    EXPECT_TRUE(lh_ui_view_add_whole_area(lh_addr_of(view), lh_addr_of(at)));
+    const lh_ui_rect_t last = lh_test::rect_of(0, 96, 160, 24);
+    EXPECT_TRUE(rect_is(lh_ui_view_area_whole(lh_addr_of(view), lh_addr_of(last), lh_addr_of(last)),
+                        lh_test::rect_of(0, 96, 160, 24)));
+}
+
 TEST(view, a_strip_height_is_the_buffer_and_not_the_step)
 {
     lh_ui_view_t view;

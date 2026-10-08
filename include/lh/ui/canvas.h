@@ -312,8 +312,16 @@ lh_void
 lh_ui_canvas_send_cut(lh_ui_canvas_t *self, const lh_ui_rect_t *cut, const lh_ui_color_t *color);
 
 /**
- * @brief True when a slot may draw @p target whole: the backend clips, or
- *        @p target lies inside a plain (unrounded) clip rect.
+ * @brief True when the clip leaves @p target whole: no clip at all, or @p target
+ *        inside a plain (unrounded) clip rect.
+ *
+ * The bar for a slot that *reads* its target rather than drawing it —
+ * ::lh_ui_canvas_blur and ::lh_ui_canvas_glass, which need the pixels they are
+ * about to work on to be in the buffer. It says nothing about who does the
+ * clipping: a backend with a `set_clip` slot is not exempt from it, because a
+ * clip that cuts the target means those pixels are not in the buffer at all.
+ * A slot that draws a shape may rely on the backend's own clip instead; see
+ * ::lh_ui_canvas_can_fill_round.
  */
 lh_bool_t
 lh_ui_canvas_can_send_whole(const lh_ui_canvas_t *self, const lh_ui_rect_t *target);

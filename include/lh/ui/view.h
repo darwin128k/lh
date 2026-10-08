@@ -48,7 +48,7 @@
  */
 struct lh_ui_view
 {
-    lh_ui_view_fields(lh_ui_canvas_t, lh_ui_entity_t, lh_ui_color_t);
+    lh_ui_view_fields(lh_ui_canvas_t, lh_ui_entity_t, lh_ui_color_t, lh_ui_rect_t);
 };
 typedef struct lh_ui_view lh_ui_view_t;
 
@@ -212,6 +212,48 @@ lh_ui_view_is_stripped(const lh_ui_view_t *self);
  */
 lh_ui_rect_t
 lh_ui_view_get_strip(const lh_ui_view_t *self, lh_ui_scalar_t index);
+
+/**
+ * @brief Name a region of @p self that a frame reads pixels of, so a strip-wise
+ *        frame draws it whole.
+ *
+ * A blur (and glass, which is a blur plus a tint) has to find the pixels it is
+ * about to blur. In a frame drawn strip by strip those pixels are not in the
+ * buffer beyond the strip line, so the effect says it cannot be drawn — which is
+ * honest and leaves a hole in the picture. This is the other half: the caller
+ * already knows where the panel is, so it says so once here, and every strip that
+ * reaches into @p rect is drawn wide enough to hold all of it.
+ *
+ * Declare it where the region is laid out. The view does not own the rectangles
+ * and never frees them; it keeps copies, at most ::LH_UI_VIEW_WHOLE_MAX of them.
+ *
+ * @return False for an empty rect or when all the room is taken.
+ */
+lh_bool_t
+lh_ui_view_add_whole_area(lh_ui_view_t *self, const lh_ui_rect_t *rect);
+
+/**
+ * @brief Forget every whole area of @p self. Call it when the regions move, or
+ *        when there are none left.
+ */
+lh_void
+lh_ui_view_clear_whole_areas(lh_ui_view_t *self);
+
+/**
+ * @brief @p area grown to hold every whole area @p reach reaches into, cut to
+ *        the target. ::lh_null @p area is the whole target.
+ *
+ * One rule, two answers in ::lh_ui_view_draw_strips: the strip is what the backend
+ * sizes its buffer to, and the damage of the frame is what the part being drawn is
+ * cut from. Both need the whole area, because an effect that reads pixels has to
+ * find them in the buffer *and* be inside the part — the canvas refuses it
+ * otherwise (::lh_ui_canvas_can_send_whole), and a refused effect over a cleared
+ * part is a hole in the picture. A whole area @p reach does not touch is left out:
+ * the effect there is not drawn this frame, so growing for it would buy a bigger
+ * buffer and a longer present for nothing.
+ */
+lh_ui_rect_t
+lh_ui_view_area_whole(const lh_ui_view_t *self, const lh_ui_rect_t *area, const lh_ui_rect_t *reach);
 
 /**
  * @brief Draw @p self strip by strip, skipping the strips @p damage does not

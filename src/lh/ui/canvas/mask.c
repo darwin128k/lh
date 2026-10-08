@@ -27,6 +27,9 @@ lh_bool_t
 lh_ui_canvas_can_fill_mask(const struct lh_ui_canvas *self, const lh_ui_rect_t *target)
 {
     lh_return_if(lh_null_eq(self->backend) || lh_null_eq(self->backend->fill_mask), lh_bool_false);
+    /* A mask is per pixel, like a rounded box: drawn whole, cut by whoever
+       clips (::lh_ui_canvas_can_fill_round says the same). */
+    lh_return_if(!lh_ui_canvas_is_cutting(self), lh_bool_true);
     return lh_ui_canvas_can_send_whole(self, target);
 }
 

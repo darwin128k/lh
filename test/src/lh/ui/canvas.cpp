@@ -56,6 +56,172 @@ log_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *col
 const lh_ui_canvas_backend_t g_log_backend = {log_begin, nullptr, log_end, log_clear, log_fill_rect, nullptr,
                                               nullptr,   nullptr};
 
+/* A backend that clips (it has `set_clip`), so the canvas hands it whole rects
+   and lets it cut them — the shape a desktop backend has. */
+struct effect_log
+{
+    int glass;
+    int round;
+    int areas;
+    lh_ui_rect_t at;
+    lh_ui_rect_t area;
+};
+
+lh_void
+effect_begin_area(lh_ptr context, const lh_ui_rect_t *area)
+{
+    effect_log *log = lh_ptr_rcast(effect_log, context);
+
+    log->area = *area;
+    ++log->areas;
+}
+
+lh_void
+effect_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip)
+{
+    (void)context;
+    (void)clip;
+}
+
+lh_bool_t
+effect_glass(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t corner, lh_ui_scalar_t blur_radius,
+             const lh_ui_color_t *tint, lh_u8_t *scratch, lh_usize_t bytes)
+{
+    effect_log *log = lh_ptr_rcast(effect_log, context);
+
+    (void)corner;
+    (void)blur_radius;
+    (void)tint;
+    (void)scratch;
+    (void)bytes;
+    log->at = *rect;
+    ++log->glass;
+    return lh_bool_true;
+}
+
+lh_bool_t
+effect_round(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, const lh_ui_color_t *color)
+{
+    effect_log *log = lh_ptr_rcast(effect_log, context);
+
+    (void)radius;
+    (void)color;
+    log->at = *rect;
+    ++log->round;
+    return lh_bool_true;
+}
+
+const lh_ui_canvas_backend_t g_effect_backend = {nullptr,         effect_begin_area, nullptr,
+                                                  nullptr,         nullptr,          effect_round,
+                                                  effect_set_clip, nullptr,          nullptr,
+                                                  nullptr,         effect_glass};
+
+/* A strip frame: the buffer is the strip, so the space the backend draws in starts
+   at the strip, and a sheet 40 rows tall crosses the line between two of them. This
+   is the case the whole-area mechanism exists for, and it is decided here and not
+   in the backend: with the clip holding only the strip there are no pixels behind
+   the sheet to read, so the canvas refuses rather than blurs whatever rows it
+   happens to have; with the part grown to the sheet there are, and it draws. */
+TEST(ui_canvas, a_sheet_across_the_strip_line_is_refused_until_the_part_holds_it)
+{
+    effect_log log{};
+    lh_ui_canvas_t canvas;
+    lh_ui_size_t size;
+    lh_ui_point_t zero;
+    lh_ui_rect_t area;  /* the strip: rows 32..64 */
+    lh_ui_rect_t part;  /* what the damage leaves of it: the same rows */
+    lh_ui_rect_t whole; /* the strip grown to the sheet: rows 32..88 */
+    lh_ui_rect_t sheet;
+    lh_ui_color_t tint;
+    lh_u8_t scratch[64];
+
+    lh_ui_size_init(lh_addr_of(size), 800, 600);
+    lh_ui_color_init(lh_addr_of(tint), 1, 2, 3, 46);
+    lh_ui_point_init(lh_addr_of(zero), 0, 0);
+    lh_ui_rect_init(lh_addr_of(area), 0, 32, 800, 32);
+    lh_ui_rect_init(lh_addr_of(part), 0, 32, 800, 32);
+    lh_ui_rect_init(lh_addr_of(whole), 0, 32, 800, 56);
+    lh_ui_rect_init(lh_addr_of(sheet), 360, 48, 240, 40);
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_effect_backend), lh_addr_of(log));
+    lh_ui_canvas_set_size(lh_addr_of(canvas), size);
+    lh_ui_canvas_set_scratch(lh_addr_of(canvas), scratch, sizeof(scratch));
+
+    lh_ui_canvas_begin_area(lh_addr_of(canvas), lh_addr_of(area));
+    lh_ui_canvas_push(lh_addr_of(canvas), zero, lh_addr_of(part));
+    EXPECT_FALSE(lh_ui_canvas_glass(lh_addr_of(canvas), lh_addr_of(sheet), lh_ui_scalar(4), lh_ui_scalar(5),
+                                    lh_addr_of(tint)));
+    lh_ui_canvas_pop(lh_addr_of(canvas));
+    lh_ui_canvas_end(lh_addr_of(canvas));
+    EXPECT_EQ(log.glass, 0);
+
+    lh_ui_canvas_begin_area(lh_addr_of(canvas), lh_addr_of(area));
+    lh_ui_canvas_push(lh_addr_of(canvas), zero, lh_addr_of(whole));
+    EXPECT_TRUE(lh_ui_canvas_glass(lh_addr_of(canvas), lh_addr_of(sheet), lh_ui_scalar(4), lh_ui_scalar(5),
+                                   lh_addr_of(tint)));
+    lh_ui_canvas_pop(lh_addr_of(canvas));
+    lh_ui_canvas_end(lh_addr_of(canvas));
+    /* And the sheet reaches the slot whole, in the buffer's own space. */
+    EXPECT_EQ(log.glass, 1);
+    EXPECT_TRUE(lh_test::rect_is(log.at, lh_test::rect_of(360, 16, 240, 40)))
+        << "at " << (int)lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(lh_addr_of(log.at))) << ","
+        << (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(log.at))) << " size "
+        << (int)lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(log.at))) << "x"
+        << (int)lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(log.at)));
+}
+
+/* Two kinds of slot, one clip. A rounded box is a shape: the backend may have it
+   whole and cut it. Glass reads the pixels behind it, so a clip that cuts it
+   means they are not in the buffer at all — and a backend with a `set_clip` slot
+   is not exempt from that, or a strip frame blurs whatever rows it happened to
+   get and calls it a panel. */
+TEST(ui_canvas, a_clip_that_cuts_a_shape_still_cuts_the_effect_that_reads_it)
+{
+    effect_log log{};
+    lh_ui_canvas_t canvas;
+    lh_ui_size_t size;
+    lh_ui_point_t zero;
+    lh_ui_rect_t inside;
+    lh_ui_rect_t across;
+    lh_ui_rect_t panel;
+    lh_ui_rect_t cut_panel;
+    lh_ui_color_t tint;
+    lh_u8_t scratch[64];
+
+    lh_ui_size_init(lh_addr_of(size), 160, 120);
+    lh_ui_color_init(lh_addr_of(tint), 1, 2, 3, 46);
+    lh_ui_point_init(lh_addr_of(zero), 0, 0);
+    lh_ui_rect_init(lh_addr_of(inside), 0, 0, 160, 120);
+    lh_ui_rect_init(lh_addr_of(across), 0, 40, 160, 20);
+    lh_ui_rect_init(lh_addr_of(panel), 20, 40, 40, 20);
+    lh_ui_rect_init(lh_addr_of(cut_panel), 20, 55, 40, 20);
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_effect_backend), lh_addr_of(log));
+    lh_ui_canvas_set_size(lh_addr_of(canvas), size);
+    lh_ui_canvas_set_scratch(lh_addr_of(canvas), scratch, sizeof(scratch));
+
+    /* The clip holds the panel: the shape and the effect both go to the slots. */
+    lh_ui_canvas_begin(lh_addr_of(canvas));
+    lh_ui_canvas_push(lh_addr_of(canvas), zero, lh_addr_of(inside));
+    lh_ui_canvas_fill_round_rect(lh_addr_of(canvas), lh_addr_of(panel), lh_ui_scalar(4), lh_addr_of(tint));
+    EXPECT_TRUE(lh_ui_canvas_glass(lh_addr_of(canvas), lh_addr_of(panel), lh_ui_scalar(4), lh_ui_scalar(5),
+                                   lh_addr_of(tint)));
+    lh_ui_canvas_pop(lh_addr_of(canvas));
+    lh_ui_canvas_end(lh_addr_of(canvas));
+    EXPECT_EQ(log.round, 1);
+    EXPECT_EQ(log.glass, 1);
+
+    /* The clip cuts both: the shape is still the backend's (it clips), the effect
+       is not sent at all — there is nothing honest to draw in its place. */
+    lh_ui_canvas_begin(lh_addr_of(canvas));
+    lh_ui_canvas_push(lh_addr_of(canvas), zero, lh_addr_of(across));
+    lh_ui_canvas_fill_round_rect(lh_addr_of(canvas), lh_addr_of(cut_panel), lh_ui_scalar(4), lh_addr_of(tint));
+    EXPECT_FALSE(lh_ui_canvas_glass(lh_addr_of(canvas), lh_addr_of(cut_panel), lh_ui_scalar(4), lh_ui_scalar(5),
+                                    lh_addr_of(tint)));
+    lh_ui_canvas_pop(lh_addr_of(canvas));
+    lh_ui_canvas_end(lh_addr_of(canvas));
+    EXPECT_EQ(log.round, 2);
+    EXPECT_EQ(log.glass, 1);
+}
+
 TEST(ui_canvas, dispatches_every_call_with_the_context)
 {
     call_log log{};

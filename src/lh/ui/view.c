@@ -28,6 +28,7 @@ lh_ui_view_init(lh_ui_view_t *self)
     self->scrolling = lh_null;
     self->throwing = lh_null;
     self->focus = lh_null;
+    self->whole_count = 0;
     lh_ui_point_init(lh_addr_of(self->velocity), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_ui_view_reset_pointer(self);
 }
@@ -189,21 +190,97 @@ lh_void
 lh_ui_view_draw_strips(lh_ui_view_t *self, const lh_ui_rect_t *damage)
 {
     lh_ui_scalar_t index;
+    lh_ui_rect_t covered;
 
+    lh_ui_rect_init_empty(lh_addr_of(covered));
     for (index = lh_ui_scalar(0);; ++index)
     {
-        const lh_ui_rect_t area = lh_ui_view_get_strip(self, index);
-        const lh_ui_rect_t part = lh_ui_canvas_damage_in(lh_addr_of(area), damage);
+        const lh_ui_rect_t strip = lh_ui_view_get_strip(self, index);
+        const lh_ui_rect_t part = lh_ui_canvas_damage_in(lh_addr_of(strip), damage);
+        lh_ui_rect_t shared;
 
-        lh_return_if(lh_ui_rect_is_empty(lh_addr_of(area)));
-        /* A strip the damage does not reach keeps the pixels already on
-           screen: no buffer, no clear, no blit. That is where the time and
-           the memory of a partial frame come from. */
-        if (!lh_ui_rect_is_empty(lh_addr_of(part)))
+        lh_return_if(lh_ui_rect_is_empty(lh_addr_of(strip)));
+        /* A strip inside the area above was drawn with it, and presenting those
+           pixels a second time costs a frame for no change. Inside, and not
+           "below its bottom": the last strip is pulled up to a full height, so it
+           overlaps the one before it and still carries rows nobody has drawn.
+
+           One rect answers for every area drawn before it. A strip that is not
+           inside it is drawn as a new area whose top starts at the strip and
+           whose bottom is past the last one — the strip is the only part that
+           fails containment that way — so the last area covers all of them. */
+        shared = lh_ui_rect_intersection(lh_addr_of(covered), lh_addr_of(strip));
+        if (lh_ui_rect_eq(lh_addr_of(shared), lh_addr_of(strip)))
         {
-            lh_ui_view_draw_frame_on(self, lh_addr_of(area), damage);
+            continue;
+        }
+        /* A strip the damage does not reach keeps the pixels already on screen:
+           no buffer, no clear, no blit. That is where the time and the memory of
+           a partial frame come from. */
+        if (lh_ui_rect_is_empty(lh_addr_of(part)))
+        {
+            continue;
+        }
+        {
+            /* The area is the strip, which is what the backend sizes its buffer
+               to, and the frame is the damage in the same space. Both are grown
+               to hold every whole area this strip's damaged part reaches into: an
+               effect that reads pixels has to find them in the buffer *and* be
+               inside the part being drawn, or the part would be cleared and the
+               effect refused. A part that reaches none is left alone — the effect
+               in those regions is not drawn this frame anyway, so growing for it
+               would buy a bigger buffer and a longer present for nothing. */
+            const lh_ui_rect_t area = lh_ui_view_area_whole(self, lh_addr_of(strip), lh_addr_of(part));
+            const lh_ui_rect_t frame = lh_ui_view_area_whole(self, damage, lh_addr_of(part));
+
+            lh_ui_view_draw_frame_on(self, lh_addr_of(area), lh_addr_of(frame));
+            covered = area;
         }
     }
+}
+
+lh_bool_t
+lh_ui_view_add_whole_area(lh_ui_view_t *self, const lh_ui_rect_t *rect)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(rect);
+    lh_return_if(lh_ui_rect_is_empty(rect), lh_bool_false);
+    lh_return_if(self->whole_count >= LH_UI_VIEW_WHOLE_MAX, lh_bool_false);
+    self->whole[self->whole_count] = *rect;
+    ++self->whole_count;
+    return lh_bool_true;
+}
+
+lh_void
+lh_ui_view_clear_whole_areas(lh_ui_view_t *self)
+{
+    lh_assert_runtime_ref(self);
+    self->whole_count = 0;
+}
+
+lh_ui_rect_t
+lh_ui_view_area_whole(const lh_ui_view_t *self, const lh_ui_rect_t *area, const lh_ui_rect_t *reach)
+{
+    const lh_ui_size_t size = lh_ui_canvas_get_size(self->canvas);
+    lh_ui_rect_t target;
+    lh_ui_rect_t grown;
+    lh_ui_scalar_t i;
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(reach);
+    lh_ui_rect_init(lh_addr_of(target), 0, 0, lh_ui_size_get_width(lh_addr_of(size)),
+                    lh_ui_size_get_height(lh_addr_of(size)));
+    /* ::lh_null is the whole target, the way ::lh_ui_canvas_damage_in reads it:
+       the damage of a frame is that when nothing was said. */
+    grown = lh_null_eq(area) ? target : lh_ui_rect_intersection(area, lh_addr_of(target));
+    for (i = 0; i < self->whole_count; ++i)
+    {
+        if (lh_ui_rect_intersects(reach, lh_addr_of(self->whole[i])))
+        {
+            grown = lh_ui_rect_union(lh_addr_of(grown), lh_addr_of(self->whole[i]));
+        }
+    }
+    return lh_ui_rect_intersection(lh_addr_of(grown), lh_addr_of(target));
 }
 
 lh_void

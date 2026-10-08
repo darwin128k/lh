@@ -680,3 +680,40 @@ TEST(ui_canvas_sw, glass_over_a_flat_picture_stays_flat)
     EXPECT_EQ(odd, 0);
     EXPECT_NE(middle, sentinel);
 }
+/* The picture must not depend on how much of it was invalidated. A glass panel
+ * drawn while the canvas clips to its own rect has to be the very same panel as
+ * one drawn over a whole-target frame: a frame clears and redraws what it
+ * touches, so the blur reads the picture this frame drew, never one left over
+ * from the last. */
+TEST(ui_canvas_sw, glass_is_the_same_panel_in_a_clipped_frame_as_in_a_whole_one)
+{
+    sw_fixture whole;
+    sw_fixture clipped;
+    const lh_ui_rect_t rect = rect_of(4, 4, 16, 14);
+    const lh_ui_color_t tint = color_of(236, 240, 248, 46);
+    lh_u8_t scratch[side * side * 4];
+
+    /* Something with edges in it: a blur of one flat colour is invisible. */
+    for (int y = 0; y < side; ++y)
+    {
+        for (int x = 0; x < side; ++x)
+        {
+            const lh_ui_color_t c = color_of((x * 9) % 256, (y * 17) % 256, 90, 255);
+            const lh_ui_rect_t one = rect_of(x, y, 1, 1);
+
+            lh_ui_canvas_fill_rect(lh_addr_of(whole.canvas), lh_addr_of(one), lh_addr_of(c));
+            lh_ui_canvas_fill_rect(lh_addr_of(clipped.canvas), lh_addr_of(one), lh_addr_of(c));
+        }
+    }
+    lh_ui_canvas_set_scratch(lh_addr_of(whole.canvas), scratch, sizeof(scratch));
+    EXPECT_TRUE(lh_ui_canvas_glass(lh_addr_of(whole.canvas), lh_addr_of(rect), lh_ui_scalar(4), lh_ui_scalar(4),
+                                   lh_addr_of(tint)));
+
+    lh_ui_canvas_set_scratch(lh_addr_of(clipped.canvas), scratch, sizeof(scratch));
+    clipped.push_clip(4, 4, 16, 14);
+    EXPECT_TRUE(lh_ui_canvas_glass(lh_addr_of(clipped.canvas), lh_addr_of(rect), lh_ui_scalar(4), lh_ui_scalar(4),
+                                   lh_addr_of(tint)));
+    lh_ui_canvas_pop(lh_addr_of(clipped.canvas));
+
+    expect_same_pixels(whole, clipped);
+}
