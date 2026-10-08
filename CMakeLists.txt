@@ -251,6 +251,7 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/entity/event.c
             ${LH_LIB_SRC_PATH}/ui/entity/transform.c
             ${LH_LIB_SRC_PATH}/ui/container.c
+            ${LH_LIB_SRC_PATH}/ui/decl.c
             ${LH_LIB_SRC_PATH}/ui/image.c
             ${LH_LIB_SRC_PATH}/ui/label.c
             ${LH_LIB_SRC_PATH}/ui/scrollbar.c

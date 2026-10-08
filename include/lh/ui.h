@@ -27,6 +27,7 @@
 #include <lh/ui/entity.h>
 #include <lh/ui/button.h>
 #include <lh/ui/container.h>
+#include <lh/ui/decl.h>
 #include <lh/ui/label.h>
 #include <lh/ui/scrollbar.h>
 #include <lh/ui/toggle.h>
