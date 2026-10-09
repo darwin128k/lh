@@ -44,13 +44,14 @@ lh_ui_font_get_default(lh_void);
 
 /**
  * @brief Fill @p self over @p glyphs, @p advances and @p tops: @p count
- *        glyphs from code @p first, line @p line_height with @p ascent.
+ *        glyphs from code @p first, line @p line_height with @p ascent and a
+ *        cap height of @p cap_height.
  *        The tables are not copied. A glyph without ink is a zero-size mask.
  */
 lh_void
 lh_ui_font_init(lh_ui_font_t *self, const lh_ui_mask_t *glyphs, const lh_byte_t *advances,
-                const lh_s32_t *tops, lh_s32_t line_height, lh_s32_t ascent, lh_byte_t first,
-                lh_u32_t count);
+                const lh_s32_t *tops, lh_s32_t line_height, lh_s32_t ascent, lh_s32_t cap_height,
+                lh_byte_t first, lh_u32_t count);
 
 /**
  * @brief Ascent of @p self: baseline from the top of the line, in pixels.
@@ -63,6 +64,19 @@ lh_ui_font_get_ascent(const lh_ui_font_t *self);
  */
 lh_s32_t
 lh_ui_font_get_line_height(const lh_ui_font_t *self);
+
+/**
+ * @brief Cap height of @p self: the baseline up to a capital letter, in pixels.
+ *
+ * The one metric that is about no particular glyph and all of them at once —
+ * where a capital letter of @p font starts above the line it sits on. It is
+ * what `LH_UI_TRIM_CAPITAL_BASELINE` measures, and it is why a text is centred
+ * by it and not by its ink: the ink of a word is as tall as the tallest and the
+ * lowest letter in it, so centring it moves the text when the words change,
+ * while the cap line is the same for every word a font draws.
+ */
+lh_s32_t
+lh_ui_font_get_cap_height(const lh_ui_font_t *self);
 
 /**
  * @brief First code with a glyph.

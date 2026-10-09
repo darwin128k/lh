@@ -64,6 +64,19 @@ lh_void
 lh_ui_label_on_draw(const lh_ui_label_t *self, const lh_ui_entity_event_t *event);
 
 /**
+ * @brief On ::lh_ui_entity_event_children: take the offset and the placement the
+ *        container behind @p self just made and take the clip back off. Other
+ *        events are ignored.
+ *
+ * A container cuts its children to its own rect, which is right for a button and
+ * wrong for a label: the label's rect is where its text is centred
+ * (::lh_ui_text_get_size measures the cap line to the baseline), so the tail of a
+ * 'p' hangs below it and a clip there draws half a letter.
+ */
+lh_void
+lh_ui_label_on_children(const lh_ui_label_t *self, const lh_ui_entity_event_t *event);
+
+/**
  * @brief On ::lh_ui_entity_event_measure: grow the bounds by
  *        ::lh_ui_label_get_text_rect. Other events are ignored.
  */

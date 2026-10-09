@@ -28,21 +28,22 @@ lh_ui_font_get_default(lh_void)
 
 lh_void
 lh_ui_font_init(lh_ui_font_t *self, const lh_ui_mask_t *glyphs, const lh_byte_t *advances,
-                const lh_s32_t *tops, lh_s32_t line_height, lh_s32_t ascent, lh_byte_t first,
-                lh_u32_t count)
+                const lh_s32_t *tops, lh_s32_t line_height, lh_s32_t ascent, lh_s32_t cap_height,
+                lh_byte_t first, lh_u32_t count)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(glyphs);
     lh_assert_runtime_ref(advances);
     lh_assert_runtime_ref(tops);
     lh_assert_runtime_ifn(count > 0U && first + count <= 256U && line_height >= 0 && ascent >= 0 &&
-                              ascent <= line_height,
+                              ascent <= line_height && cap_height >= 0 && cap_height <= ascent,
                           lh_runtime_error_code_invalid_argument);
     self->glyphs = glyphs;
     self->advances = advances;
     self->tops = tops;
     self->line_height = line_height;
     self->ascent = ascent;
+    self->cap_height = cap_height;
     self->first = first;
     self->count = count;
 }
@@ -52,6 +53,13 @@ lh_ui_font_get_ascent(const lh_ui_font_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->ascent;
+}
+
+lh_s32_t
+lh_ui_font_get_cap_height(const lh_ui_font_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->cap_height;
 }
 
 lh_s32_t

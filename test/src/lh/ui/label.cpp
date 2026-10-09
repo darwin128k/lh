@@ -3,9 +3,12 @@
 #include <lh/test/ui/fill_probe.h>
 
 #include <lh/ui/canvas.h>
+#include <lh/ui/canvas/sw.h>
 #include <lh/ui/color.h>
+#include <lh/ui/font.h>
 #include <lh/ui/label.h>
 #include <lh/ui/paint.h>
+#include <lh/ui/pixmap.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/style.h>
 #include <lh/ui/text.h>
@@ -178,19 +181,24 @@ TEST(entity_label, align_h_moves_the_text_across_the_padded_box)
     EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(centred)), lh_ui_scalar(20));
 }
 
-/* The complaint this pins: a caption centred in a button sat a few pixels low,
-   because what got centred was the font's line box (Roboto 16 px: 22 rows) and
-   the ink inside it is not centred in that. Centring the ink puts the pixels on
-   the middle of the button, which is what "centre" has to mean to be worth
-   anything. */
-TEST(entity_label, centring_puts_the_ink_on_the_middle_of_the_box)
+/* What "centre" has to mean to be worth anything: the middle of the box is the
+   middle of the text that stands on it. The first version centred the font's line
+   box (Roboto 16 px: 22 rows) and drew every caption a few pixels low; the second
+   centred the ink, which is as tall as the tallest and the lowest letter of *this*
+   word, so 15 rows of ink in a 28-row box is a coin toss that truncation always
+   lost — measured on the demo's button, the text sat on 193.5 against a middle of
+   194.0 and read high. The cap line to the baseline is 12 rows and 28 - 12 is
+   even, so it lands on the middle with nothing left over, and it is the same for
+   every word the font draws. */
+TEST(entity_label, centring_puts_the_cap_line_on_the_middle_of_the_box)
 {
     lh_ui_label_t label;
     lh_ui_style_t style;
     lh_ui_rect_t rect;
     lh_ui_rect_t ink;
-    lh_ui_scalar_t top;
-    lh_ui_scalar_t height;
+    lh_ui_size_t size;
+    lh_ui_point_t origin;
+    lh_ui_scalar_t middle;
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 132, 28);
     lh_ui_label_init(lh_addr_of(label), rect, "Hide panel");
@@ -199,15 +207,139 @@ TEST(entity_label, centring_puts_the_ink_on_the_middle_of_the_box)
     lh_ui_style_set_align_v(lh_addr_of(style), lh_ui_text_align_v_center);
     lh_ui_entity_set_style(lh_ui_label_as_entity(lh_addr_of(label)), lh_addr_of(style));
 
+    size = lh_ui_text_get_size(lh_ui_font_get_default(), "Hide panel");
+    origin = lh_ui_label_get_text_origin(lh_addr_of(label));
     ink = lh_ui_label_get_text_rect(lh_addr_of(label));
-    top = lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink)));
-    height = lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(ink)));
+    middle = lh_ui_scalar(14);
 
-    /* 28 rows with 15 of ink: the middle falls between 13 and 14, and centring
-       an odd number of rows in an even box cannot land on both, so one row is as
-       close as integers get. Centring the 22 px line box instead put this at 18. */
-    EXPECT_LE(std::abs(static_cast<int>(top + height / 2) - 14), 1);
-    EXPECT_GT(height, lh_ui_scalar(0));
+    /* Exactly, not nearly: the leftover of 28 - 12 is even, and this is the whole
+       reason the cap line was chosen over both the line box and the ink. */
+    EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(origin)) + lh_ui_size_get_height(lh_addr_of(size)) / 2, middle);
+    /* And the two are genuinely different things, so a pass here cannot be the ink
+       passing: the tail of the 'p' hangs below the box. */
+    EXPECT_GT(lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(ink))),
+              lh_ui_size_get_height(lh_addr_of(size)));
+    EXPECT_EQ(lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink))),
+              lh_ui_point_get_y(lh_addr_of(origin)));
+}
+
+/* The box a label is centred in is the cap line to the baseline, and the ink
+   hangs below it: the tail of a 'p' sits under a box that says twelve. A clip
+   that catches only that tail catches no part of the box, so a cull that asked
+   about the box alone threw the whole label away and the tail of that frame came
+   out bare — the same defect as a shadow past its own rect, one layer down. */
+/* The box a label is centred in is the cap line to the baseline, and the pixels
+   hang below it. Whatever the box is for — centring, the flow's cross axis, the
+   cull — it is not a knife: the tail of a 'p' drawn inside a twelve-row box has
+   to come out whole below it. */
+TEST(entity_label, the_ink_is_not_cut_by_the_box_the_text_is_centred_in)
+{
+    lh_u32_t words[64 * 40];
+    lh_ui_pixmap_t pixmap;
+    lh_ui_canvas_sw_t sw;
+    lh_ui_canvas_t canvas;
+    lh_ui_label_t label;
+    lh_ui_style_t style;
+    lh_ui_rect_t box;
+    lh_ui_rect_t ink;
+    lh_ui_color_t ink_color;
+    lh_ui_paint_t text_paint;
+    lh_ui_scalar_t box_bottom;
+    lh_ui_scalar_t lit_below;
+    lh_u32_t w;
+
+    for (lh_u32_t &word : words)
+    {
+        word = 0x00204060u;
+    }
+    lh_ui_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, words), lh_ui_scalar(64), lh_ui_scalar(40),
+                      lh_ui_scalar(64 * 4), lh_ui_pixmap_format_argb8888);
+    lh_ui_canvas_sw_init(lh_addr_of(sw));
+    lh_ui_canvas_sw_set_pixmap(lh_addr_of(sw), lh_addr_of(pixmap));
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_sw), lh_addr_of(sw));
+
+    lh_ui_rect_init(lh_addr_of(box), 0, 0, 132, 12);
+    lh_ui_label_init(lh_addr_of(label), box, "Hide panel");
+    lh_ui_style_init(lh_addr_of(style));
+    /* White on purpose: a style starts with black text, and a test that counts
+       bright pixels of black text counts nothing and would pass on a label that
+       draws no tail at all. */
+    lh_ui_color_init(lh_addr_of(ink_color), 255, 255, 255, 255);
+    lh_ui_paint_init_color(lh_addr_of(text_paint), lh_addr_of(ink_color));
+    lh_ui_style_set_text(lh_addr_of(style), lh_addr_of(text_paint));
+    lh_ui_entity_set_style(lh_ui_label_as_entity(lh_addr_of(label)), lh_addr_of(style));
+    ink = lh_ui_label_get_text_rect(lh_addr_of(label));
+    box_bottom = lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(box))) +
+                 lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(box)));
+
+    lh_ui_canvas_begin(lh_addr_of(canvas));
+    lh_ui_entity_draw(lh_ui_label_as_entity(lh_addr_of(label)), lh_addr_of(canvas));
+    lh_ui_canvas_end(lh_addr_of(canvas));
+
+    /* Denominator first: the tail has to reach below the box, or nothing below it
+       would prove anything. */
+    EXPECT_GT(lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink))) +
+                  lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(ink))),
+              box_bottom);
+    lit_below = lh_ui_scalar(0);
+    for (int y = static_cast<int>(box_bottom); y < 40; ++y)
+    {
+        for (int x = 0; x < 64; ++x)
+        {
+            w = words[y * 64 + x];
+            if (((w & 0x00FFFFFFu) >> 16) > 140)
+            {
+                ++lit_below;
+            }
+        }
+    }
+    EXPECT_GT(lit_below, lh_ui_scalar(0))
+        << "no pixel of the tail was drawn under the box: the box is cutting the ink";
+}
+
+TEST(entity_label, a_label_shows_on_a_clip_that_catches_only_the_ink_below_its_box)
+{
+    lh_test::fill_probe probe;
+    lh_ui_canvas_t canvas;
+    lh_ui_label_t label;
+    lh_ui_style_t style;
+    lh_ui_rect_t box;
+    lh_ui_rect_t ink;
+    lh_ui_rect_t tail;
+    lh_ui_point_t none;
+    lh_ui_entity_t *entity;
+    lh_ui_scalar_t box_bottom;
+    lh_ui_scalar_t ink_bottom;
+
+    lh_ui_rect_init(lh_addr_of(box), 0, 0, 132, 12);
+    lh_ui_label_init(lh_addr_of(label), box, "Hide panel");
+    /* The font is a field of the style, so a label with none has no ink to
+       overflow and the whole test would pass on a label that draws nothing. */
+    lh_ui_style_init(lh_addr_of(style));
+    lh_ui_entity_set_style(lh_ui_label_as_entity(lh_addr_of(label)), lh_addr_of(style));
+    entity = lh_ui_label_as_entity(lh_addr_of(label));
+    ink = lh_ui_label_get_text_rect(lh_addr_of(label));
+
+    /* Denominator first: the tail has to be under the box, or the clip below
+       catches the box too and the whole test would pass on its own. */
+    box_bottom = lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(box))) +
+                 lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(box)));
+    ink_bottom = lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink))) +
+                 lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(ink)));
+    EXPECT_GT(ink_bottom, box_bottom);
+
+    lh_ui_rect_init(lh_addr_of(tail), 0, box_bottom, 132, ink_bottom - box_bottom);
+    EXPECT_EQ(lh_ui_rect_intersects(lh_addr_of(box), lh_addr_of(tail)), lh_bool_false);
+
+    lh_ui_point_init(lh_addr_of(none), 0, 0);
+    lh_test::fill_probe_init(lh_addr_of(probe), lh_addr_of(canvas), lh_test::fill_probe_backend(), box,
+                             lh_ui_color_t{0, 0, 0, 255});
+    lh_ui_canvas_begin(lh_addr_of(canvas));
+    lh_ui_canvas_push(lh_addr_of(canvas), none, lh_addr_of(tail));
+    EXPECT_EQ(lh_ui_entity_shows_on(entity, lh_addr_of(canvas)), lh_bool_true)
+        << "the label was culled with only its tail in the clip";
+    lh_ui_canvas_pop(lh_addr_of(canvas));
+    lh_ui_canvas_end(lh_addr_of(canvas));
 }
 
 TEST(entity_label, align_v_moves_the_text_down_the_padded_box)

@@ -403,6 +403,18 @@ lh_ui_rect_t
 lh_ui_entity_get_children_bounds(const lh_ui_entity_t *self);
 
 /**
+ * @brief What @p self paints of itself beyond its rect: empty, then sent
+ *        ::lh_ui_entity_event_measure for the class to grow (a label's ink, which
+ *        hangs below the box it is centred in).
+ *
+ * The children are not in here — ::lh_ui_entity_get_content_bounds is that union
+ * — because the two are culled by different rules: a plain parent must still be
+ * culled out of its own draw when its child lies outside it.
+ */
+lh_ui_rect_t
+lh_ui_entity_get_measure_bounds(const lh_ui_entity_t *self);
+
+/**
  * @brief What the content of @p self covers: ::lh_ui_entity_get_children_bounds,
  *        then ::lh_ui_entity_event_measure so the class can grow it with
  *        content that is not a child (a label's text). Empty when nothing.

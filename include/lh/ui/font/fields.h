@@ -16,6 +16,11 @@
  * `advances` one byte per glyph; `tops` the mask top relative to the
  * baseline (up is negative). Codes run from `first`.
  *
+ * `cap_height` is the distance from the baseline up to a capital letter, which
+ * is not a property of any one glyph: it is what the letters of a word share
+ * from their cap line down to the line they sit on, and it is what a text is
+ * centred by (see `LH_UI_TRIM_*`). The generator reads it from the font file.
+ *
  * @param byte_type   Type of one byte (also the first code).
  * @param mask_type   Type of one glyph mask (::lh_ui_mask_t).
  * @param length_type Type of a vertical metric, in pixels (signed: tops).
@@ -27,6 +32,7 @@
     const length_type *tops;                                                                        \
     length_type line_height;                                                                        \
     length_type ascent;                                                                             \
+    length_type cap_height;                                                                         \
     byte_type first;                                                                                \
     count_type count
 

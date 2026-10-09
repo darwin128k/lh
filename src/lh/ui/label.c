@@ -6,6 +6,8 @@
 #include <lh/assert/runtime.h>
 #include <lh/null.h>
 #include <lh/ui/canvas.h>
+#include <lh/ui/entity/event.h>
+#include <lh/ui/entity/transform.h>
 #include <lh/ui/label.h>
 #include <lh/ui/text.h>
 #include <lh/util/addr.h>
@@ -24,8 +26,29 @@ lh_ui_label_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *e
     const lh_ui_label_t *label = lh_ptr_rcast(const lh_ui_label_t, self);
 
     lh_ui_entity_class_event_base(lh_addr_of(lh_ui_label_class), self, event);
+    lh_ui_label_on_children(label, event);
     lh_ui_label_on_draw(label, event);
     lh_ui_label_on_measure(label, event);
+}
+
+lh_void
+lh_ui_label_on_children(const lh_ui_label_t *self, const lh_ui_entity_event_t *event)
+{
+    lh_ui_entity_transform_t *transform;
+
+    (void)self;
+    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_children);
+    /* The transform is the one thing an event carries that a class fills in, and
+       the getter takes it without the const every event handler is given. */
+    transform = lh_ui_entity_event_get_transform(lh_ptr_rcast(lh_ui_entity_event_t, event));
+    /* The container behind the label cut its children to its own rect, and that
+       is right for a button and wrong for a label: the label's rect is where the
+       text is *centred* (::lh_ui_text_get_size measures the cap line to the
+       baseline), so the tail of a 'p' hangs below it. Cutting there drew half a
+       letter — measured on the demo, "Hide panel" lost every pixel under row 199.
+       The offset and the placement the container just did stay; only the knife
+       goes. */
+    lh_ui_entity_transform_set_clip(transform, lh_bool_false);
 }
 
 lh_void

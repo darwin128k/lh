@@ -97,17 +97,35 @@ lh_ui_text_get_width(const lh_ui_font_t *font, const lh_char_t *text)
 lh_ui_size_t
 lh_ui_text_get_size(const lh_ui_font_t *font, const lh_char_t *text)
 {
-    /* The ink, not the line box: a flow that centres this box has to centre
-       the pixels, and a line box is taller than what is drawn (Roboto 16 px:
-       line 22, ascent 17, so its ink starts five rows down). Measuring the box
-       drew every caption a few pixels low. */
+    /* The cap line down to the baseline, not the line box and not the ink.
+       A line box is taller than what is drawn (Roboto 16 px: line 22, ascent 17,
+       so its ink starts five rows down) and centring that drew every caption a
+       few pixels low. The ink is the other end of the same mistake: it is as
+       tall as the tallest and the lowest letter of *this* word, so centring it
+       puts the text on a half pixel it cannot win either way — measured on the
+       demo's 28-row Hide panel button, 15 rows of ink in 16 rows of room is a
+       tie, and truncating it left the text half a pixel high. The cap line is
+       the one measure no half pixel is left over in (16 - 12 = 4, even), and it
+       is a metric of the font rather than of the word, so a caption sits at the
+       same height whatever it says. This is LVGL's LV_TEXT_LEADING_TRIM_CAPITAL_BASELINE
+       and CSS's text-box-trim: trim the box to what the letters actually carry. */
     lh_ui_size_t size;
     lh_ui_point_t origin;
     lh_ui_rect_t ink;
+    lh_ui_scalar_t lines;
 
     lh_ui_point_init(lh_addr_of(origin), lh_ui_scalar(0), lh_ui_scalar(0));
     ink = lh_ui_text_get_ink_rect(font, text, origin);
-    return *lh_ui_rect_get_size_as_const(lh_addr_of(ink));
+    size = *lh_ui_rect_get_size_as_const(lh_addr_of(ink));
+    /* Nothing inked is nothing drawn, and a label with nothing in it collapses
+       however tall its font is. */
+    lines = lh_cast_static(lh_ui_scalar_t, lh_ui_text_count_lines(text));
+    lh_ui_size_set_height(lh_addr_of(size),
+                          lh_ui_rect_is_empty(lh_addr_of(ink))
+                              ? lh_ui_scalar(0)
+                              : (lines - lh_ui_scalar(1)) * lh_ui_scalar(lh_ui_font_get_line_height(font)) +
+                                    lh_ui_scalar(lh_ui_font_get_cap_height(font)));
+    return size;
 }
 
 lh_ui_rect_t

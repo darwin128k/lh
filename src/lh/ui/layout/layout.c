@@ -98,7 +98,14 @@ layout_across(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_ui_rec
         *length = own;
         if (align == lh_ui_place_align_center)
         {
-            at = (room - own) / 2;
+            /* Rounded half up, like ::lh_ui_text_align_get_origin and for the same
+               reason: an odd child in even room cannot land on the middle, and
+               truncating hands the leftover half-pixel to the top. Measured on the
+               demo's Hide panel button — room 16 rows, a 15-row caption and a 9-row
+               glyph — that put both on 193.5 inside a box centred on 194.0, half a
+               pixel high and visible as it is one. The leftover half-pixel is the
+               one below. */
+            at = (room - own + 1) / 2;
         }
         else if (align == lh_ui_place_align_end)
         {
@@ -179,7 +186,7 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
     }
     else if (lh_ui_layout_get_justify(self) == lh_ui_justify_center)
     {
-        along += left / 2;
+        along += (left + 1) / 2;
         left = lh_ui_scalar(0);
     }
     else if (lh_ui_layout_get_justify(self) == lh_ui_justify_end)

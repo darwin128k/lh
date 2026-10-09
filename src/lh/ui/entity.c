@@ -443,12 +443,23 @@ lh_ui_entity_get_children_bounds(const lh_ui_entity_t *self)
 }
 
 lh_ui_rect_t
-lh_ui_entity_get_content_bounds(const lh_ui_entity_t *self)
+lh_ui_entity_get_measure_bounds(const lh_ui_entity_t *self)
 {
-    lh_ui_rect_t bounds = lh_ui_entity_get_children_bounds(self);
+    lh_ui_rect_t bounds;
 
+    lh_assert_runtime_ref(self);
+    lh_ui_rect_init_empty(lh_addr_of(bounds));
     lh_ui_entity_send(self, lh_ui_entity_event_measure, lh_addr_of(bounds));
     return bounds;
+}
+
+lh_ui_rect_t
+lh_ui_entity_get_content_bounds(const lh_ui_entity_t *self)
+{
+    const lh_ui_rect_t measured = lh_ui_entity_get_measure_bounds(self);
+    const lh_ui_rect_t children = lh_ui_entity_get_children_bounds(self);
+
+    return lh_ui_rect_union(lh_addr_of(measured), lh_addr_of(children));
 }
 
 lh_ui_point_t
@@ -650,11 +661,22 @@ lh_bool_t
 lh_ui_entity_shows_on(const lh_ui_entity_t *self, const lh_ui_canvas_t *canvas)
 {
     lh_ui_rect_t painted;
+    lh_ui_rect_t content;
 
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(canvas), lh_bool_true);
     painted = lh_ui_entity_get_painted_rect(self);
-    return lh_ui_canvas_shows_rect(canvas, lh_addr_of(painted));
+    lh_return_if(lh_ui_canvas_shows_rect(canvas, lh_addr_of(painted)), lh_bool_true);
+    /* The rect misses the clip, and measuring is not free: ask what the class
+       paints of itself only now, when the cheap answer said no. A label's box is
+       the cap line to the baseline (::lh_ui_text_get_size) while its ink hangs
+       below it, so a clip that catches the tail of a 'p' catches no part of the
+       box and would have dropped the whole label — the same defect as the shadow
+       above, one layer down. Children are not asked about here: they are
+       ::lh_ui_entity_shows_children_on's business, and a plain parent whose child
+       lies outside it must still be culled out of its own draw. */
+    content = lh_ui_entity_get_measure_bounds(self);
+    return lh_ui_canvas_shows_rect(canvas, lh_addr_of(content));
 }
 
 lh_bool_t

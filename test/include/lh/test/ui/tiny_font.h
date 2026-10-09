@@ -3,7 +3,8 @@
  * @brief Test helper: a three-glyph font with known pixels, tops and advances.
  *
  * Codes 'A', 'B', 'C' at 1 bpp. Line height 2, ascent 2 (baseline at the
- * bottom of the line). 'A' is a full 2 x 2 square, advance 3, top -2. 'B' is
+ * bottom of the line), cap height 2 (the same two rows 'A' rises). 'A' is a
+ * full 2 x 2 square, advance 3, top -2. 'B' is
  * a single top-left pixel cropped to 1 x 1, advance 4, top -2. 'C' has no
  * ink: a zero-size mask, advance 2, top 0. Every other code has no glyph.
  */
@@ -36,7 +37,7 @@ tiny_font()
     static bool ready = false;
     if (!ready)
     {
-        lh_ui_font_init(lh_addr_of(font), glyphs, advances, tops, 2, 2, 'A', 3U);
+        lh_ui_font_init(lh_addr_of(font), glyphs, advances, tops, 2, 2, 2, 'A', 3U);
         ready = true;
     }
     return &font;

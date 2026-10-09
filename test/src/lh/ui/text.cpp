@@ -88,8 +88,51 @@ TEST(ui_text, the_ink_is_shorter_than_the_line_and_starts_below_its_top)
     /* @p origin is where the ink goes, and the rect says so. */
     EXPECT_EQ(lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink))),
               lh_ui_point_get_y(lh_addr_of(origin)));
-    EXPECT_EQ(lh_ui_size_get_height(lh_addr_of(size)),
+}
+
+/* The box a text is centred in is the cap line down to the baseline — a metric
+   of the font, the same for every word it draws. The ink is the other end of
+   the same mistake: it is as tall as the tallest and the lowest letter of *this*
+   word, so a caption whose text has a descender sat a row lower than the same
+   caption without one, and an odd ink in an even box has no exact middle to sit
+   on at all. */
+TEST(ui_text, the_size_is_the_cap_line_to_the_baseline_and_not_the_ink)
+{
+    const lh_ui_font_t *font = lh_ui_font_get_default();
+    const lh_ui_scalar_t cap = lh_ui_scalar(lh_ui_font_get_cap_height(font));
+    const lh_ui_point_t origin = point_of(0, 0);
+    const lh_ui_size_t with_tail = lh_ui_text_get_size(font, "Hide panel");
+    const lh_ui_size_t without = lh_ui_text_get_size(font, "Hide");
+    const lh_ui_rect_t tail_ink = lh_ui_text_get_ink_rect(font, "Hide panel", origin);
+    const lh_ui_rect_t ink = lh_ui_text_get_ink_rect(font, "Hide", origin);
+
+    EXPECT_GT(cap, lh_ui_scalar(0));
+    EXPECT_EQ(lh_ui_size_get_height(lh_addr_of(with_tail)), cap);
+    /* A descender hangs below the box instead of pushing it: the box is where the
+       letters stand, and the ink is bigger than the box says. */
+    EXPECT_LT(lh_ui_size_get_height(lh_addr_of(with_tail)),
+              lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(tail_ink))));
+    /* With no descender the two are the same, which is what keeps the box honest
+       for the many strings that have none. */
+    EXPECT_EQ(lh_ui_size_get_height(lh_addr_of(without)),
               lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(ink))));
+    /* The width is still the pen's either way. */
+    EXPECT_EQ(lh_ui_size_get_width(lh_addr_of(with_tail)),
+              lh_ui_text_get_line_width(font, "Hide panel"));
+}
+
+/* Nothing inked is nothing drawn, whatever the font is: a label with a space in
+   it has to collapse like an empty one, or every gap in a layout holds a row. */
+TEST(ui_text, a_text_with_no_ink_in_it_has_no_height)
+{
+    const lh_ui_size_t spaces = lh_ui_text_get_size(tiny_font(), "  ");
+    const lh_ui_size_t empty = lh_ui_text_get_size(tiny_font(), "");
+    const lh_ui_size_t none = lh_ui_text_get_size(tiny_font(), nullptr);
+
+    EXPECT_EQ(lh_ui_scalar(lh_ui_text_count_lines("")), lh_ui_scalar(1));
+    EXPECT_EQ(lh_ui_size_get_height(lh_addr_of(spaces)), lh_ui_scalar(0));
+    EXPECT_EQ(lh_ui_size_get_height(lh_addr_of(empty)), lh_ui_scalar(0));
+    EXPECT_EQ(lh_ui_size_get_height(lh_addr_of(none)), lh_ui_scalar(0));
 }
 
 TEST(ui_text, the_pixels_land_where_the_ink_rect_says)
