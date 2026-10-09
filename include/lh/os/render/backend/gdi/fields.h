@@ -7,12 +7,11 @@
 #define LH_OS_RENDER_BACKEND_GDI_FIELDS_H
 
 #include <lh/ui/canvas/sw.h>
-#include <lh/ui/rects.h>
 #include <lh/ui/surface.h>
 
 /**
  * @def lh_os_render_backend_gdi_fields(hwnd_type, hdc_type, surface_type, sw_type, count_type, tick_type,
- *                                      point_type, rects_type)
+ *                                      point_type)
  * @brief Window, paint-time destination DC, off-screen surface, software
  *        context, per-primitive call counts, and frame start tick.
  *
@@ -22,17 +21,17 @@
  * the area corner for one partial strip. The surface is owned by the context
  * and is the area, never more: that is the memory a partial frame saves.
  *
- * `drawn` is what the frame actually wrote, in surface pixels, and the present
- * is exactly it: a buffer holds no promise about the pixels nobody wrote, and
- * `begin_area` frees the old one whenever the area changes size, so those bytes
- * are whatever GDI hands back. Empty after a frame that was never clipped means
- * the whole surface was drawn.
+ * There is no list of what the frame drew here any more, and that is the point:
+ * it arrives in the `end` slot as a ::lh_ui_rects_t of the clips the canvas cut
+ * this frame to, in surface pixels, and the present is exactly it. A buffer holds
+ * no promise about the pixels nobody wrote, and `begin_area` frees the old one
+ * whenever the area changes size, so those bytes are whatever GDI hands back.
+ * Empty means the frame was never clipped, which is the whole surface.
  *
- * It is a ::lh_ui_rects_t and not one rect on purpose. Every clip of a frame is
- * an intersection with the frame's own, so the union of two cuts standing apart
- * on a strip is their hull — and the hull covers the gap between them, which
- * belongs to neither. Two widgets 6 px apart, which is one row of buttons, put
- * a strip's leftover bytes into that gap.
+ * It is a list and not one rect because ::lh_ui_rect_union is a hull and not a
+ * union: two cuts standing apart on a strip merge into their hull, and the hull
+ * covers the gap between them, which belongs to neither. Two widgets 6 px apart,
+ * which is one row of buttons, put a strip's leftover bytes into that gap.
  *
  * @param hwnd_type    ::lh_os_system_window_handle_t.
  * @param hdc_type     Paint DC as ::lh_ptr.
@@ -41,16 +40,14 @@
  * @param count_type   Unsigned call counter.
  * @param tick_type    Frame start time (::lh_u64_t microseconds).
  * @param point_type   Type of the present corner.
- * @param rects_type   ::lh_ui_rects_t.
  */
 #define lh_os_render_backend_gdi_fields(hwnd_type, hdc_type, surface_type, sw_type, count_type,       \
-                                        tick_type, point_type, rects_type)                            \
+                                        tick_type, point_type)                                         \
     hwnd_type hwnd;                                                                                \
     hdc_type hdc;                                                                                  \
     surface_type surface;                                                                          \
     sw_type sw;                                                                                    \
     point_type present_at;                                                                         \
-    rects_type drawn;                                                                              \
     count_type mask_calls;                                                                         \
     count_type rect_calls;                                                                         \
     count_type round_calls;                                                                        \

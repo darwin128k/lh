@@ -27,6 +27,7 @@
 #include <lh/ui/color.h>
 #include <lh/ui/point.h>
 #include <lh/ui/rect.h>
+#include <lh/ui/rects.h>
 #include <lh/ui/scalar.h>
 #include <lh/ui/size.h>
 #include <lh/void.h>
@@ -40,7 +41,7 @@ struct lh_ui_canvas
 {
     lh_ui_canvas_fields(lh_ui_canvas_backend_t, lh_ptr, lh_ui_canvas_state_t, lh_u8_t, lh_ui_size_t,
                         lh_ui_point_t, lh_ui_rect_t, lh_bool_t, lh_ui_canvas_clip_round_t, lh_u8_t,
-                        lh_usize_t);
+                        lh_usize_t, lh_ui_rects_t);
 };
 typedef struct lh_ui_canvas lh_ui_canvas_t;
 

@@ -15,7 +15,8 @@ lh_assert_static(LH_LIBRARY_OPTION_UI_CANVAS_DEPTH >= 1 && LH_LIBRARY_OPTION_UI_
 
 /**
  * @def lh_ui_canvas_fields(backend_type, context_type, state_type, depth_type, size_type,
- *                          point_type, rect_type, bool_type, round_type, byte_type, usize_type)
+ *                          point_type, rect_type, bool_type, round_type, byte_type, usize_type,
+ *                          rects_type)
  * @brief Backend table (not owned), the context passed into every call, the
  *        current offset / clip, the states saved by push, the target size, the
  *        accumulated damage rectangle, and the scratch for effects that read
@@ -29,6 +30,12 @@ lh_assert_static(LH_LIBRARY_OPTION_UI_CANVAS_DEPTH >= 1 && LH_LIBRARY_OPTION_UI_
  * ::lh_ui_canvas_begin_area. Primitives reach the backend already moved by it;
  * damage is put back, so `damage` unions every primitive rect already cut to
  * the clip in target space; empty when `has_damage` is false.
+ *
+ * `drawn` is what the current frame drew into: the clips it was cut to, as the
+ * list ::lh_ui_canvas_end hands the backend. It is cleared by `begin` and
+ * `begin_area` and is not a hull of them — two cuts standing apart are two
+ * entries, because the gap between them belongs to neither. Empty after a frame
+ * that set no clip means the whole buffer, not none of it.
  *
  * `scratch` is the caller's memory for an effect that needs a second buffer of
  * its own (a blur is one), handed to every backend slot that asks for one. It is
@@ -47,9 +54,11 @@ lh_assert_static(LH_LIBRARY_OPTION_UI_CANVAS_DEPTH >= 1 && LH_LIBRARY_OPTION_UI_
  * @param round_type   ::lh_ui_canvas_clip_round_t.
  * @param byte_type    Type of a byte of scratch.
  * @param usize_type   Type of a byte count.
+ * @param rects_type   ::lh_ui_rects_t, the drawn list.
  */
 #define lh_ui_canvas_fields(backend_type, context_type, state_type, depth_type, size_type,          \
-                            point_type, rect_type, bool_type, round_type, byte_type, usize_type)    \
+                            point_type, rect_type, bool_type, round_type, byte_type, usize_type,    \
+                            rects_type)                                                            \
     const backend_type *backend;                                                                    \
     context_type context;                                                                           \
     state_type state;                                                                               \
@@ -60,6 +69,7 @@ lh_assert_static(LH_LIBRARY_OPTION_UI_CANVAS_DEPTH >= 1 && LH_LIBRARY_OPTION_UI_
     rect_type damage;                                                                               \
     bool_type has_damage;                                                                           \
     round_type rounds[LH_LIBRARY_OPTION_UI_CANVAS_DEPTH];                                           \
+    rects_type drawn;                                                                               \
     byte_type *scratch;                                                                             \
     usize_type scratch_bytes
 

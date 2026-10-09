@@ -19,6 +19,7 @@
 #include <lh/ui/mask.h>
 #include <lh/ui/point.h>
 #include <lh/ui/rect.h>
+#include <lh/ui/rects.h>
 #include <lh/ui/scalar.h>
 #include <lh/ui/shadow.h>
 #include <lh/void.h>
@@ -49,7 +50,7 @@ typedef lh_void(lh_ui_canvas_begin_area_fn)(lh_ptr context, const lh_ui_rect_t *
 
 /**
  * @typedef lh_ui_canvas_end_fn
- * @brief Finish a frame on @p context (present / flush).
+ * @brief Finish a frame on @p context, presenting @p drawn (present / flush).
  *
  * **A backend shows what it drew and nothing else.** The canvas clears and draws
  * the damage, which in a partial frame is smaller than the buffer `begin_area`
@@ -58,12 +59,18 @@ typedef lh_void(lh_ui_canvas_begin_area_fn)(lh_ptr context, const lh_ui_rect_t *
  * puts them on screen, which is how a strip's leftover picture turns up beside
  * the widget that moved.
  *
- * A backend with a `set_clip` slot knows its drawn region — the union of the
- * clips it was handed, because every clip inside a frame is an intersection
- * with the frame's own — and presents that. One without cannot ask, and presents
- * its whole buffer.
+ * **@p drawn is what the frame drew, and the canvas is what knows it.** It is the
+ * list of the clips this frame was cut to, and it is a *list* because
+ * ::lh_ui_rect_union is a hull and not a union: two cuts standing apart merge into
+ * a rectangle spanning the gap, and the gap belongs to neither. A backend that has
+ * to work this out from the clips it was handed answers it a second time and
+ * differently from every other backend, so the canvas hands it over already done.
+ * **An empty list means the frame was never cut, which is "everything" and not
+ * "nothing"** — the whole buffer, the way a frame with no damage draws all of it.
+ *
+ * @param drawn Regions this frame drew into, in the buffer's own space.
  */
-typedef lh_void(lh_ui_canvas_end_fn)(lh_ptr context);
+typedef lh_void(lh_ui_canvas_end_fn)(lh_ptr context, const lh_ui_rects_t *drawn);
 
 /**
  * @typedef lh_ui_canvas_clear_fn

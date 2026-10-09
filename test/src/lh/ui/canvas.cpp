@@ -33,8 +33,9 @@ log_begin(lh_ptr context)
 }
 
 lh_void
-log_end(lh_ptr context)
+log_end(lh_ptr context, const lh_ui_rects_t *drawn)
 {
+    (void)drawn;
     ++lh_ptr_rcast(call_log, context)->end;
 }
 
@@ -113,8 +114,9 @@ effect_round(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, co
 }
 
 lh_void
-effect_end(lh_ptr context)
+effect_end(lh_ptr context, const lh_ui_rects_t *drawn)
 {
+    (void)drawn;
     ++lh_ptr_rcast(effect_log, context)->ends;
 }
 
@@ -227,6 +229,151 @@ TEST(ui_canvas, a_clip_that_cuts_a_shape_still_cuts_the_effect_that_reads_it)
     lh_ui_canvas_end(lh_addr_of(canvas));
     EXPECT_EQ(log.round, 2);
     EXPECT_EQ(log.glass, 1);
+}
+
+/* A backend with a `set_clip` slot records the clips it was handed and what `end`
+   was told about them. The contract is that `end` needs to know nothing: it is
+   handed the frame's drawn region as a list, because a hull is not a region and a
+   backend working the clips out for itself would be answering twice. */
+struct drawn_log
+{
+    int ends;
+    int unclips;
+    lh_ui_rects_t drawn;
+    lh_ui_canvas_clip_t last_clip;
+};
+
+lh_void
+drawn_begin(lh_ptr context)
+{
+    ++lh_ptr_rcast(drawn_log, context)->ends;
+}
+
+lh_void
+drawn_begin_area(lh_ptr context, const lh_ui_rect_t *area)
+{
+    (void)area;
+    ++lh_ptr_rcast(drawn_log, context)->ends;
+}
+
+lh_void
+drawn_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip)
+{
+    drawn_log *log = lh_ptr_rcast(drawn_log, context);
+
+    /* A pop back to no clip arrives as a null pointer, and that is a value the
+       slot has to accept rather than a call it misses. */
+    if (lh_null_eq(clip))
+    {
+        ++log->unclips;
+        return;
+    }
+    log->last_clip = *clip;
+}
+
+lh_void
+drawn_end(lh_ptr context, const lh_ui_rects_t *drawn)
+{
+    drawn_log *log = lh_ptr_rcast(drawn_log, context);
+
+    ++log->ends;
+    log->drawn = *drawn;
+}
+
+const lh_ui_canvas_backend_t g_drawn_backend = {
+    drawn_begin,       /* begin        */
+    drawn_begin_area,  /* begin_area   */
+    drawn_end,         /* end          */
+    nullptr,           /* clear        */
+    nullptr,          /* fill_rect    */
+    nullptr,          /* fill_round_rect */
+    drawn_set_clip,   /* set_clip     */
+    nullptr,          /* fill_mask    */
+    nullptr,          /* shadow       */
+    nullptr,          /* blur         */
+    nullptr           /* glass        */
+};
+
+/* The frame's drawn region reaches `end` as the clips the frame was cut to, in
+   the buffer's own space, and as two entries when two cuts stand apart. A hull
+   would cover the gap between them, and that gap belongs to neither — measured on
+   the GDI backend, its hull kept 100 of 240 green pixels under a widget that was
+   supposed to be alone. */
+TEST(ui_canvas, end_is_handed_the_clips_the_frame_was_cut_to)
+{
+    drawn_log log{};
+    lh_ui_canvas_t canvas;
+    lh_ui_size_t size;
+    lh_ui_point_t zero;
+    lh_ui_rect_t area;
+    lh_ui_rect_t first;
+    lh_ui_rect_t second;
+    lh_ui_rect_t first_in_buffer;
+    lh_ui_rect_t second_in_buffer;
+
+    lh_ui_size_init(lh_addr_of(size), 240, 10);
+    lh_ui_point_init(lh_addr_of(zero), 0, 0);
+    /* A strip at y 30, so the frame's own origin is not (0, 0): the list is in the
+       buffer's space, which is what a backend presents out of, and passing the
+       target-space clips through unchanged would put the present 30 rows too low. */
+    lh_ui_rect_init(lh_addr_of(area), 0, 30, 240, 10);
+    lh_ui_rect_init(lh_addr_of(first), 0, 30, 80, 10);
+    lh_ui_rect_init(lh_addr_of(second), 160, 30, 80, 10);
+    lh_ui_rect_init(lh_addr_of(first_in_buffer), 0, 0, 80, 10);
+    lh_ui_rect_init(lh_addr_of(second_in_buffer), 160, 0, 80, 10);
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_drawn_backend), lh_addr_of(log));
+    lh_ui_canvas_set_size(lh_addr_of(canvas), size);
+
+    lh_ui_canvas_begin_area(lh_addr_of(canvas), lh_addr_of(area));
+    lh_ui_canvas_push(lh_addr_of(canvas), zero, lh_addr_of(first));
+    lh_ui_canvas_pop(lh_addr_of(canvas));
+    lh_ui_canvas_push(lh_addr_of(canvas), zero, lh_addr_of(second));
+    lh_ui_canvas_pop(lh_addr_of(canvas));
+    lh_ui_canvas_end(lh_addr_of(canvas));
+
+    EXPECT_EQ(lh_ui_rects_get_count(lh_addr_of(log.drawn)), lh_u32_t(2));
+    EXPECT_TRUE(lh_test::rect_is(*lh_ui_rects_get_as_const(lh_addr_of(log.drawn), 0), first_in_buffer))
+        << "the first cut, in the buffer's own space";
+    EXPECT_TRUE(lh_test::rect_is(*lh_ui_rects_get_as_const(lh_addr_of(log.drawn), 1), second_in_buffer))
+        << "the second cut, in the buffer's own space";
+    /* The gap between them is not in either entry, and nothing in the frame drew
+       it: the union of the two would be 240 wide. */
+    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_ui_rects_get_as_const(
+                 lh_addr_of(log.drawn), 0))),
+              lh_ui_scalar(80));
+    /* Both pops were forwarded: an absent clip is a value the slot accepts, not a
+       call it misses. */
+    EXPECT_EQ(log.unclips, 2);
+}
+
+/* An empty list is "the whole buffer" and not "nothing": a frame that was never
+   cut drew all of it, and a backend that read emptiness as zero would present an
+   empty rectangle and leave the screen stale. The two frames are separated so a
+   list left over from the first cannot be mistaken for the second's answer. */
+TEST(ui_canvas, a_frame_with_no_clip_hands_end_an_empty_list_and_starts_the_next_one_clean)
+{
+    drawn_log log{};
+    lh_ui_canvas_t canvas;
+    lh_ui_size_t size;
+    lh_ui_point_t zero;
+    lh_ui_rect_t part;
+
+    lh_ui_size_init(lh_addr_of(size), 240, 10);
+    lh_ui_point_init(lh_addr_of(zero), 0, 0);
+    lh_ui_rect_init(lh_addr_of(part), 0, 0, 80, 10);
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(g_drawn_backend), lh_addr_of(log));
+    lh_ui_canvas_set_size(lh_addr_of(canvas), size);
+
+    lh_ui_canvas_begin(lh_addr_of(canvas));
+    lh_ui_canvas_push(lh_addr_of(canvas), zero, lh_addr_of(part));
+    lh_ui_canvas_pop(lh_addr_of(canvas));
+    lh_ui_canvas_end(lh_addr_of(canvas));
+    EXPECT_EQ(lh_ui_rects_get_count(lh_addr_of(log.drawn)), lh_u32_t(1));
+
+    lh_ui_canvas_begin(lh_addr_of(canvas));
+    lh_ui_canvas_end(lh_addr_of(canvas));
+    EXPECT_TRUE(lh_ui_rects_is_empty(lh_addr_of(log.drawn)))
+        << "the second frame inherited the first one's clips";
 }
 
 TEST(ui_canvas, dispatches_every_call_with_the_context)

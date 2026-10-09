@@ -11,6 +11,7 @@
 #include <lh/ui/canvas.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/radius.h>
+#include <lh/ui/rects.h>
 #include <lh/ui/size.h>
 #include <lh/util/addr.h>
 #include <lh/util/return.h>
@@ -34,6 +35,7 @@ lh_ui_canvas_init(lh_ui_canvas_t *self, const lh_ui_canvas_backend_t *backend, l
     lh_ui_point_init(lh_addr_of(self->frame_at), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_ui_rect_init_empty(lh_addr_of(self->damage));
     self->has_damage = lh_bool_false;
+    lh_ui_rects_init(lh_addr_of(self->drawn));
     self->scratch = lh_null;
     self->scratch_bytes = 0U;
 }
@@ -199,10 +201,23 @@ lh_void
 lh_ui_canvas_send_clip(lh_ui_canvas_t *self)
 {
     lh_ui_canvas_clip_t clip;
+    const lh_ui_rect_t *rect;
 
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(self->backend) || lh_null_eq(self->backend->set_clip));
+    /* The clip is the region the frame is about to draw into, so it is what the
+       frame draws into, and this is the one place that knows both. Recorded as the
+       rect the backend is handed — in the buffer's own space, so ::lh_ui_canvas_end
+       presents exactly the pixels the backend was cut to — and as its own entry,
+       because two cuts standing apart are two entries and their gap belongs to
+       neither. A frame that sets no clip leaves the list empty, and empty means
+       "everything", the way a frame with no damage draws all of it. */
+    rect = lh_ui_canvas_get_clip(self);
     self->backend->set_clip(self->context, lh_ui_canvas_describe_clip(self, lh_addr_of(clip)));
+    if (!lh_null_eq(rect))
+    {
+        lh_ui_rects_add(lh_addr_of(self->drawn), rect);
+    }
 }
 
 lh_void
@@ -293,6 +308,7 @@ lh_ui_canvas_begin(lh_ui_canvas_t *self)
     lh_return_if(lh_null_eq(self->backend) || lh_null_eq(self->backend->begin));
     lh_ui_point_init(lh_addr_of(self->frame_at), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_ui_canvas_state_set_origin(lh_addr_of(self->state), self->frame_at);
+    lh_ui_rects_init(lh_addr_of(self->drawn));
     self->backend->begin(self->context);
 }
 
@@ -318,6 +334,7 @@ lh_ui_canvas_begin_area(lh_ui_canvas_t *self, const lh_ui_rect_t *area)
        in is the target space moved by minus the area origin. */
     lh_ui_point_init(lh_addr_of(origin), lh_math_neg(lh_ui_point_get_x(at)), lh_math_neg(lh_ui_point_get_y(at)));
     lh_ui_canvas_state_set_origin(lh_addr_of(self->state), origin);
+    lh_ui_rects_init(lh_addr_of(self->drawn));
     self->backend->begin_area(self->context, area);
 }
 
@@ -333,7 +350,7 @@ lh_ui_canvas_end(lh_ui_canvas_t *self)
      */
     lh_ui_point_init(lh_addr_of(self->frame_at), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_return_if(lh_null_eq(self->backend) || lh_null_eq(self->backend->end));
-    self->backend->end(self->context);
+    self->backend->end(self->context, lh_addr_of(self->drawn));
 }
 
 lh_void

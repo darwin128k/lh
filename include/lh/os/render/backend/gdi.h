@@ -51,7 +51,7 @@
 struct lh_os_render_backend_gdi_context
 {
     lh_os_render_backend_gdi_fields(lh_os_system_window_handle_t, lh_ptr, lh_ui_surface_t, lh_ui_canvas_sw_t,
-                                    lh_u32_t, lh_u64_t, lh_ui_point_t, lh_ui_rects_t);
+                                    lh_u32_t, lh_u64_t, lh_ui_point_t);
 };
 typedef struct lh_os_render_backend_gdi_context lh_os_render_backend_gdi_context_t;
 
@@ -200,11 +200,14 @@ lh_os_render_backend_gdi_begin_area(lh_ptr context, const lh_ui_rect_t *area);
 
 /**
  * @brief Backend `end`: blit into the paint DC, at `present_at` — the whole
- *        surface for a frame that was never clipped, and `drawn` for one that
+ *        surface for a frame that was never clipped, and @p drawn for one that
  *        was, which is all this backend wrote.
+ *
+ * @p drawn arrives from the canvas, not from here: see
+ * ::lh_ui_canvas_end_fn.
  */
 lh_void
-lh_os_render_backend_gdi_end(lh_ptr context);
+lh_os_render_backend_gdi_end(lh_ptr context, const lh_ui_rects_t *drawn);
 
 /**
  * @brief Backend `clear`: ::lh_ui_canvas_sw_clear on the surface pixels.

@@ -102,9 +102,10 @@ partial_probe_begin(lh_ptr context)
 }
 
 void
-partial_probe_end(lh_ptr context)
+partial_probe_end(lh_ptr context, const lh_ui_rects_t *drawn)
 {
     partial_probe *probe = lh_ptr_rcast(partial_probe, context);
+    (void)drawn;
     ++probe->end_count;
 }
 
