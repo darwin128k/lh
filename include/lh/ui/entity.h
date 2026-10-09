@@ -403,6 +403,28 @@ lh_ui_rect_t
 lh_ui_entity_get_children_bounds(const lh_ui_entity_t *self);
 
 /**
+ * @brief Where @p self has its first baseline: rows down from the top of its own
+ *        rect, or -1 when it has none.
+ *
+ * The line the letters of @p self stand on, which is not its box and not its ink:
+ * an icon next to a caption has to sit **on** the caption's line rather than in
+ * the same room as it, or the two are centred side by side and only look like one
+ * line by accident. Measured on the demo's Hide panel button, the 'x' glyph is 9
+ * rows of x-height and the caption is a 12-row cap block: centred in the same
+ * 16 rows they land on 194.5 and 194.0, and by their own baselines they land on
+ * one line exactly.
+ *
+ * A class answers this only if its content stands on a line — a label does, from
+ * the font's baseline under the text (::lh_ui_label_get_baseline), a picture does
+ * when it was told where its baseline is (::lh_ui_image_set_baseline), and the base
+ * entity says -1 so an unknown child is centred and nothing breaks. A vertical
+ * flow never asks: a baseline runs down a picture, and there is no cross row to
+ * put it on.
+ */
+lh_ui_scalar_t
+lh_ui_entity_get_baseline(const lh_ui_entity_t *self);
+
+/**
  * @brief What @p self paints of itself beyond its rect: empty, then sent
  *        ::lh_ui_entity_event_measure for the class to grow (a label's ink, which
  *        hangs below the box it is centred in).

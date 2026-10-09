@@ -37,7 +37,7 @@
  */
 struct lh_ui_image
 {
-    lh_ui_image_fields(lh_ui_entity_t, lh_ui_mask_t, lh_ui_color_t);
+    lh_ui_image_fields(lh_ui_entity_t, lh_ui_mask_t, lh_ui_color_t, lh_ui_scalar_t);
 };
 typedef struct lh_ui_image lh_ui_image_t;
 
@@ -73,6 +73,13 @@ lh_ui_image_draw(const struct lh_ui_image *self, struct lh_ui_canvas *canvas);
 lh_void
 lh_ui_image_on_measure(const struct lh_ui_image *self, const struct lh_ui_entity_event *event);
 
+/**
+ * @brief On ::lh_ui_entity_event_baseline: answer ::lh_ui_image_get_baseline.
+ *        Other events are ignored.
+ */
+lh_void
+lh_ui_image_on_baseline(const struct lh_ui_image *self, const struct lh_ui_entity_event *event);
+
 /* ── Lifetime and fields ─────────────────────────────────────────────────── */
 
 /**
@@ -81,6 +88,37 @@ lh_ui_image_on_measure(const struct lh_ui_image *self, const struct lh_ui_entity
  */
 lh_void
 lh_ui_image_init(lh_ui_image_t *self, lh_ui_rect_t rect, const lh_ui_mask_t *mask);
+
+/**
+ * @brief Say that @p self's baseline is @p baseline rows below the top of its own
+ *        box, so a row can put it on the same line as the text beside it
+ *        (::lh_ui_place_align_baseline). -1 is no line, which is the default.
+ *
+ * A mask carries no baseline of its own — it is cropped to ink and knows nothing
+ * about the type it came out of. An icon taken from the font knows exactly, and the
+ * number is `-lh_ui_font_get_top(font, code)`: how many rows the baseline sits below
+ * the top of *that glyph's* ink, which is `ascent - ink_top` and needs no font metric
+ * beyond the one the top already is.
+ *
+ * The box is the mask and the box's top is where the ink starts
+ * (::lh_ui_image_get_origin), so the ink is what has to stand on the line — which is
+ * why this is not the mask's height. The two agree for a glyph that sits on the
+ * baseline and part company for one that hangs below it: the demo's 'x' is 9 rows of
+ * x-height with `top -9`, so both say 9, while a 'p' would put its 13 rows of top and
+ * tail on 13, not on however many the crop happens to be.
+ *
+ * Measured on the demo's Hide panel button, putting it on the caption's baseline
+ * (row 200) makes the 'x' 191..199, its x-height line exactly where the letters' is.
+ */
+lh_void
+lh_ui_image_set_baseline(lh_ui_image_t *self, lh_ui_scalar_t baseline);
+
+/**
+ * @brief Rows from the top of @p self's box down to its baseline, or -1 when it
+ *        has none.
+ */
+lh_ui_scalar_t
+lh_ui_image_get_baseline(const lh_ui_image_t *self);
 
 /**
  * @brief The entity @p self is: what a tree holds and what a hit test returns.

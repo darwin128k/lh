@@ -136,3 +136,15 @@ lh_ui_entity_event_get_bounds(const lh_ui_entity_event_t *self)
     lh_assert_runtime_ref(bounds);
     return bounds;
 }
+
+lh_ui_scalar_t *
+lh_ui_entity_event_get_baseline(const lh_ui_entity_event_t *self)
+{
+    lh_ui_scalar_t *baseline;
+
+    lh_assert_runtime_ifn(lh_ui_entity_event_get_code(self) == lh_ui_entity_event_baseline,
+                          lh_runtime_error_code_invalid_argument);
+    baseline = lh_ptr_rcast(lh_ui_scalar_t, self->context);
+    lh_assert_runtime_ref(baseline);
+    return baseline;
+}

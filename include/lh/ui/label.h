@@ -64,6 +64,27 @@ lh_void
 lh_ui_label_on_draw(const lh_ui_label_t *self, const lh_ui_entity_event_t *event);
 
 /**
+ * @brief Where the text of @p self stands: rows down from the top of the
+ *        entity's rect to the baseline under its first line, or -1 when there is
+ *        no text or no font to draw it in.
+ *
+ * This is the line a row lines up on (::lh_ui_place_align_baseline), and it is
+ * not the bottom of the box: the text is aligned inside it, so a label centred in
+ * 28 rows has its baseline at 20 and one at the top has it at 12.
+ *
+ * The baseline is where the **tallest letter of this run** ends, not the cap height
+ * and not the line box. The two agree on most captions and disagree on the ones
+ * with an ascender in them, which is the point: measured on the demo's "Hide panel"
+ * the ink starts 5 rows below the cap line with an ascent of 17, so the baseline is
+ * 12 rows down and the cap height is 12 as well; measured on a font whose 'd' rises
+ * a row above the cap line (::lh_test::cap_font: line 8, ascent 6, cap 4) a 'f' gives
+ * 4 and a 'd' gives 5, and taking the cap height would stand a row's icon below the
+ * letters.
+ */
+lh_ui_scalar_t
+lh_ui_label_get_baseline(const lh_ui_label_t *self);
+
+/**
  * @brief On ::lh_ui_entity_event_children: take the offset and the placement the
  *        container behind @p self just made and take the clip back off. Other
  *        events are ignored.
@@ -75,6 +96,13 @@ lh_ui_label_on_draw(const lh_ui_label_t *self, const lh_ui_entity_event_t *event
  */
 lh_void
 lh_ui_label_on_children(const lh_ui_label_t *self, const lh_ui_entity_event_t *event);
+
+/**
+ * @brief On ::lh_ui_entity_event_baseline: answer ::lh_ui_label_get_baseline.
+ *        Other events are ignored.
+ */
+lh_void
+lh_ui_label_on_baseline(const lh_ui_label_t *self, const lh_ui_entity_event_t *event);
 
 /**
  * @brief On ::lh_ui_entity_event_measure: grow the bounds by

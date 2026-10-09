@@ -35,6 +35,10 @@ lh_ui_image_event(const lh_ui_entity_t *self, const lh_ui_entity_event_t *event)
     {
         lh_ui_image_on_measure(image, event);
     }
+    if (lh_ui_entity_event_get_code(event) == lh_ui_entity_event_baseline)
+    {
+        lh_ui_image_on_baseline(image, event);
+    }
 }
 
 lh_void
@@ -73,12 +77,39 @@ lh_ui_image_on_measure(const lh_ui_image_t *self, const lh_ui_entity_event_t *ev
 /* ── Lifetime and fields ─────────────────────────────────────────────────── */
 
 lh_void
+lh_ui_image_on_baseline(const lh_ui_image_t *self, const lh_ui_entity_event_t *event)
+{
+    lh_ui_scalar_t *answer;
+
+    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_baseline);
+    answer = lh_ui_entity_event_get_baseline(lh_ptr_rcast(lh_ui_entity_event_t, event));
+    *answer = self->baseline;
+}
+
+lh_void
+lh_ui_image_set_baseline(lh_ui_image_t *self, lh_ui_scalar_t baseline)
+{
+    lh_assert_runtime_ref(self);
+    self->baseline = baseline;
+}
+
+lh_ui_scalar_t
+lh_ui_image_get_baseline(const lh_ui_image_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->baseline;
+}
+
+lh_void
 lh_ui_image_init(lh_ui_image_t *self, lh_ui_rect_t rect, const lh_ui_mask_t *mask)
 {
     lh_assert_runtime_ref(self);
     lh_ui_entity_init(lh_addr_of(self->entity), rect);
     lh_ui_entity_set_class(lh_addr_of(self->entity), lh_addr_of(lh_ui_image_class));
     self->mask = mask;
+    /* A mask is cropped to ink and knows nothing about the type it came out of,
+       so a picture has no line until somebody says where its is. */
+    self->baseline = lh_ui_scalar(-1);
     lh_ui_color_init(lh_addr_of(self->tint), 255, 255, 255, 255);
 }
 

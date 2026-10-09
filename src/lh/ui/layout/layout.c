@@ -76,11 +76,35 @@ layout_wants(const lh_ui_layout_t *self, lh_ui_entity_t *child)
     return lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(content)), self->axis);
 }
 
+/* Where a child of @p own rows sits in @p room when it is centred across the flow.
+
+   Rounded half up, like ::lh_ui_text_align_get_origin and for the same reason: an
+   odd child in even room cannot land on the middle, and truncating hands the
+   leftover half-pixel to the top. Measured on the demo's Hide panel button — room 16
+   rows, a 15-row caption and a 9-row glyph — that put both on 193.5 inside a box
+   centred on 194.0, half a pixel high and visible as it is one. The leftover
+   half-pixel is the one below.
+
+   The row's line is measured with this and so is every child's place, so the two
+   cannot drift apart: a child measured here and placed by a different formula would
+   move by a row for no reason anyone could see. */
+static lh_ui_scalar_t
+layout_centred(lh_ui_scalar_t room, lh_ui_scalar_t own)
+{
+    return lh_math_max((room - own + lh_ui_scalar(1)) / lh_ui_scalar(2), lh_ui_scalar(0));
+}
+
 /* A child across the flow keeps the size it has and is put where it asked; only
-   `fill` takes the whole cross side of the content box. */
+   `fill` takes the whole cross side of the content box.
+
+   @p line is where the row's baseline sits, measured down from the cross origin
+   of @p content, or -1 when the row has none. It is measured before this pass
+   because a child's own place depends on the line and the line is the deepest of
+   the children's: measured the other way round each child would be setting a line
+   and sitting on it at once. */
 static void
 layout_across(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_ui_rect_t *content,
-              lh_ui_scalar_t *start, lh_ui_scalar_t *length)
+              lh_ui_scalar_t line, lh_ui_scalar_t *start, lh_ui_scalar_t *length)
 {
     const lh_ui_axis_t cross = lh_ui_axis_get_cross(self->axis);
     const lh_ui_rect_t rect = lh_ui_entity_get_rect(child);
@@ -98,18 +122,28 @@ layout_across(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_ui_rec
         *length = own;
         if (align == lh_ui_place_align_center)
         {
-            /* Rounded half up, like ::lh_ui_text_align_get_origin and for the same
-               reason: an odd child in even room cannot land on the middle, and
-               truncating hands the leftover half-pixel to the top. Measured on the
-               demo's Hide panel button — room 16 rows, a 15-row caption and a 9-row
-               glyph — that put both on 193.5 inside a box centred on 194.0, half a
-               pixel high and visible as it is one. The leftover half-pixel is the
-               one below. */
-            at = (room - own + 1) / 2;
+            at = layout_centred(room, own);
         }
         else if (align == lh_ui_place_align_end)
         {
             at = room - own;
+        }
+        else if (align == lh_ui_place_align_baseline)
+        {
+            const lh_ui_scalar_t base = lh_ui_entity_get_baseline(child);
+
+            /* On the row's line rather than in the middle of the room: an icon next
+               to a caption is one line of text, and two things centred in the same
+               16 rows are on one line only by accident.
+
+               A child that has no line of its own is **not** on one, and -1 is not a
+               line: subtracting it would put the child a row *below* the row's line,
+               which is where the measurement put it and is the one row in this whole
+               arrangement nobody could explain. So the answer for a child with no
+               baseline, and for everybody in a vertical flow where there is no cross
+               row to stand on, is the centring above. */
+            at = (base >= lh_ui_scalar(0) && line >= lh_ui_scalar(0)) ? line - base
+                                                                       : layout_centred(room, own);
         }
     }
     *start = lh_math_max(
@@ -133,6 +167,8 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
     lh_ui_scalar_t used = lh_ui_scalar(0);
     lh_ui_scalar_t share = lh_ui_scalar(0);
     lh_ui_scalar_t left = lh_ui_scalar(0);
+    lh_ui_scalar_t line = lh_ui_scalar(-1);
+    const lh_ui_axis_t cross = lh_ui_axis_get_cross(self->axis);
     int shown = 0;
     int fills = 0;
     lh_ui_entity_t *child;
@@ -166,6 +202,39 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
         {
             used += wants;
             ++shown;
+        }
+        /* The line the row stands on, down from the cross origin of the content.
+           It is the **deepest** of the baselines the children would have had on
+           their own, and each of those is a place centring would have chosen, so
+           what this says in one line is that nobody is ever pulled below the
+           middle of the room it is in: the row only ever lifts a child up to meet
+           a deeper one.
+
+           The deepest and not the first, which is the rule CSS flex uses, because
+           the first is whichever child the app happened to add first. An app puts
+           an icon on the left of a caption, so the icon is the first child, and the
+           text was the thing that moved: measured on the demo's Hide panel button,
+           the 'x' sets the line at row 199 and the caption rides up from 188..199 to
+           187..198. An icon is not the line — it has a box, and the text is what has
+           a line to be on.
+
+           A row of one caption is exactly the row it was before anyone asked: its
+           own baseline is the deepest there is. A **vertical** flow has no cross
+           row to stand on and never asks. */
+        if (cross == lh_ui_axis_vertical &&
+            lh_ui_place_get_align(lh_ui_entity_get_place(child)) == lh_ui_place_align_baseline)
+        {
+            const lh_ui_scalar_t at = lh_ui_entity_get_baseline(child);
+            const lh_ui_rect_t rect = lh_ui_entity_get_rect(child);
+            const lh_ui_scalar_t own =
+                lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(rect)), cross);
+            const lh_ui_scalar_t room =
+                lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(content)), cross);
+
+            if (at >= lh_ui_scalar(0))
+            {
+                line = lh_math_max(line, layout_centred(room, own) + at);
+            }
         }
     }
     if (shown > 0)
@@ -212,7 +281,7 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
         wants = (lh_ui_place_get_size_mode(lh_ui_entity_get_place(child)) == lh_ui_place_size_fill)
                     ? share
                     : layout_wants(self, child);
-        layout_across(self, child, lh_addr_of(content), lh_addr_of(across_start), lh_addr_of(across_length));
+        layout_across(self, child, lh_addr_of(content), line, lh_addr_of(across_start), lh_addr_of(across_length));
         lh_ui_rect_init_along(lh_addr_of(placed), lh_addr_of(nowhere), self->axis, along, wants);
         lh_ui_rect_init_along(lh_addr_of(placed), lh_addr_of(placed), lh_ui_axis_get_cross(self->axis),
                               across_start, across_length);

@@ -253,3 +253,25 @@ TEST(entity_image, a_wrap_place_gets_the_picture_its_own_width)
     EXPECT_EQ(lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(&caption_rect)), start + 4 + 4)
         << "the caption did not follow the picture";
 }
+
+/* A mask is cropped to ink and knows nothing about the type it came out of, so a
+   picture starts with no line at all — and saying so is the contract: a row that
+   lines up on a baseline (::lh_ui_place_align_baseline) falls back to centring for
+   a child that answers -1, because -1 is not a line to stand on. */
+TEST(entity_image, a_picture_has_no_baseline_until_it_is_given_one)
+{
+    lh_ui_image_t image;
+    const lh_ui_mask_t mask = block_mask();
+
+    lh_ui_image_init(&image, rect_of(0, 0, 4, 3), &mask);
+
+    EXPECT_EQ(lh_ui_image_get_baseline(&image), lh_ui_scalar(-1));
+    EXPECT_EQ(lh_ui_entity_get_baseline(lh_ui_image_as_entity(&image)), lh_ui_scalar(-1))
+        << "the entity answered for itself instead of asking the picture";
+
+    lh_ui_image_set_baseline(&image, lh_ui_scalar(3));
+
+    EXPECT_EQ(lh_ui_image_get_baseline(&image), lh_ui_scalar(3));
+    EXPECT_EQ(lh_ui_entity_get_baseline(lh_ui_image_as_entity(&image)), lh_ui_scalar(3))
+        << "the baseline did not get out through the event";
+}

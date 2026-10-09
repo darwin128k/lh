@@ -51,11 +51,14 @@ typedef enum lh_ui_entity_event_code
     lh_ui_entity_event_defocus = 12, /**< It lost the focus; no context. */
     lh_ui_entity_event_key = 13,     /**< A key or a character while focused; context
                                           is the const ::lh_ui_key_input_t *. */
-    lh_ui_entity_event_clickable = 14 /**< Does the pointer belong to it, or to what it
+    lh_ui_entity_event_clickable = 14, /**< Does the pointer belong to it, or to what it
                                            holds? Context is an ::lh_bool_t * preset to
                                            false: a caption and a picture say no, and a
                                            button says yes, so the pointer over a button's
                                            own content reaches the button. */
+    lh_ui_entity_event_baseline = 15 /**< Where its first baseline is. Context is an
+                                          ::lh_ui_scalar_t * preset to -1, meaning it has
+                                          none and a row that asks centres it. */
 } lh_ui_entity_event_code_t;
 
 /**
@@ -150,6 +153,13 @@ lh_ui_entity_event_get_visible(const lh_ui_entity_event_t *self);
  */
 lh_ui_rect_t *
 lh_ui_entity_event_get_bounds(const lh_ui_entity_event_t *self);
+
+/**
+ * @brief Rows a baseline event answers in. @p self must be
+ *        ::lh_ui_entity_event_baseline.
+ */
+lh_ui_scalar_t *
+lh_ui_entity_event_get_baseline(const lh_ui_entity_event_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

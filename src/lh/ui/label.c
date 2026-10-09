@@ -27,8 +27,23 @@ lh_ui_label_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *e
 
     lh_ui_entity_class_event_base(lh_addr_of(lh_ui_label_class), self, event);
     lh_ui_label_on_children(label, event);
+    lh_ui_label_on_baseline(label, event);
     lh_ui_label_on_draw(label, event);
     lh_ui_label_on_measure(label, event);
+}
+
+lh_void
+lh_ui_label_on_baseline(const lh_ui_label_t *self, const lh_ui_entity_event_t *event)
+{
+    lh_ui_scalar_t *answer;
+
+    (void)self;
+    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_baseline);
+    /* The one thing that stands on a line in this picture is the text, and where
+       that line is follows the alignment and the padding, not the box: a label
+       centred in 28 rows has its baseline in the middle of them. */
+    answer = lh_ui_entity_event_get_baseline(lh_ptr_rcast(lh_ui_entity_event_t, event));
+    *answer = lh_ui_label_get_baseline(self);
 }
 
 lh_void
@@ -154,6 +169,45 @@ lh_ui_label_get_text_origin(const lh_ui_label_t *self)
     return lh_ui_text_align_get_origin(lh_addr_of(entity->rect), lh_addr_of(padding), size,
                                        lh_null_eq(style) ? lh_ui_text_align_h_left : lh_ui_style_get_align_h(style),
                                        lh_null_eq(style) ? lh_ui_text_align_v_top : lh_ui_style_get_align_v(style));
+}
+
+lh_ui_scalar_t
+lh_ui_label_get_baseline(const lh_ui_label_t *self)
+{
+    const lh_ui_entity_t *entity = lh_addr_of(self->container.entity);
+    const lh_ui_font_t *font = lh_ui_label_get_font(self);
+    const lh_ui_point_t origin = lh_ui_label_get_text_origin(self);
+    const lh_ui_point_t *box = lh_ui_rect_get_origin_as_const(lh_addr_of(entity->rect));
+    lh_ui_size_t size;
+    lh_ui_scalar_t baseline;
+
+    /* Nothing stands on a line that is not drawn. */
+    if (lh_null_eq(font) || lh_null_eq(self->text))
+    {
+        return lh_ui_scalar(-1);
+    }
+    size = lh_ui_text_get_size(font, self->text);
+    lh_return_if(lh_ui_size_get_height(lh_addr_of(size)) == lh_ui_scalar(0), lh_ui_scalar(-1));
+    /* The line the letters stand on is where the **tallest letter of this run**
+       ends, and the origin is where the ink of the run goes, so the line is the
+       ascent down from where that tallest letter's ink begins — `ascent -
+       ink_top(run)`, because ::lh_ui_text_get_ink_top is the ascent plus the top of
+       the highest glyph and the two ascents cancel.
+
+       It is not the cap height, though those agree on most captions: a run with a
+       capital in it is exactly as tall as the cap line, and the demo's "Hide panel"
+       is one of them (measured: ink top 5, ascent 17, so 12 = the cap height, and
+       the line lands on row 200). A run whose letters rise above the cap line — a
+       'd', an 'h', a 't' — is taller than the cap block, the flow centres that
+       block, and taking the cap height would stand the icon a row below where the
+       letters stand. Measured on ::lh_test::cap_font (line 8, ascent 6, cap 4):
+       "H" gives 4 and "d" gives 5, and both letters' ink ends on row 6.
+
+       The first line's, which is what a row lines up on. */
+    baseline = lh_ui_point_get_y(lh_addr_of(origin)) - lh_ui_point_get_y(box) +
+               lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_ascent(font)) -
+               lh_cast_static(lh_ui_scalar_t, lh_ui_text_get_ink_top(font, self->text));
+    return baseline;
 }
 
 lh_ui_rect_t

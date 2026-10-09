@@ -442,6 +442,18 @@ lh_ui_entity_get_children_bounds(const lh_ui_entity_t *self)
     return bounds;
 }
 
+lh_ui_scalar_t
+lh_ui_entity_get_baseline(const lh_ui_entity_t *self)
+{
+    lh_ui_scalar_t baseline = lh_ui_scalar(-1);
+
+    lh_assert_runtime_ref(self);
+    /* No line to stand on, so a row that asks falls back to ::lh_ui_place_align_center.
+       A base entity with a fill has nothing to be the baseline of. */
+    lh_ui_entity_send(self, lh_ui_entity_event_baseline, lh_addr_of(baseline));
+    return baseline;
+}
+
 lh_ui_rect_t
 lh_ui_entity_get_measure_bounds(const lh_ui_entity_t *self)
 {

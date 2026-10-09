@@ -5,6 +5,8 @@
 
 #include <lh/null.h>
 #include <lh/ui/canvas.h>
+#include <lh/ui/font.h>
+#include <lh/ui/mask.h>
 #include <lh/ui/text.h>
 #include <lh/ui/text/align.h>
 #include <lh/util/addr.h>
@@ -294,3 +296,66 @@ TEST(ui_text_align, a_null_box_is_the_empty_one_and_a_null_padding_is_none)
 }
 
 } // namespace
+
+/* ── Where the line is, on the font that is actually in the binary ────────────
+   The instrument, not a claim: the tiny font has cap height 2 out of a line of 2 and
+   an ascent of 2, so all three of its metrics are the same number and it cannot tell
+   two rules apart — it says a baseline is 4 and a cap height is 4 and never notices
+   they are different questions. This one prints the metrics Roboto 16 has, all of
+   them different, and then holds them still.
+
+   Denominator first: the run's own ink is not nothing, or every number below it is
+   a reading of nothing. */
+TEST(ui_text, roboto_16_has_the_metrics_the_measured_numbers_come_from)
+{
+    const lh_ui_font_t *font = lh_ui_font_get_default();
+    const char *text = "Hide panel";
+    lh_ui_point_t origin;
+    lh_ui_size_t size;
+    lh_ui_rect_t ink;
+    lh_ui_mask_t cap_mask;
+    lh_ui_mask_t x_mask;
+    int x = 0;
+
+    lh_ui_point_init(lh_addr_of(origin), x, 0);
+    size = lh_ui_text_get_size(font, text);
+    ink = lh_ui_text_get_ink_rect(font, text, origin);
+    lh_ui_font_get_glyph(font, 'H', lh_addr_of(cap_mask));
+    lh_ui_font_get_glyph(font, 'x', lh_addr_of(x_mask));
+
+    fprintf(stderr,
+            "        line %d ascent %d cap %d\n"
+            "        top(H) %d ink_top(H) %d ink_bottom(H) %d mask(H) %d\n"
+            "        top(x) %d ink_top(x) %d ink_bottom(x) %d mask(x) %d\n"
+            "        size w %d h %d\n"
+            "        ink of the run at y %d..%d (origin y 0)\n"
+            "        ink_top(run) %d\n",
+            (int)lh_ui_font_get_line_height(font), (int)lh_ui_font_get_ascent(font),
+            (int)lh_ui_font_get_cap_height(font), (int)lh_ui_font_get_top(font, 'H'),
+            (int)lh_ui_font_get_ink_top(font, 'H'), (int)lh_ui_font_get_ink_bottom(font, 'H'),
+            (int)lh_ui_mask_get_height(lh_addr_of(cap_mask)), (int)lh_ui_font_get_top(font, 'x'),
+            (int)lh_ui_font_get_ink_top(font, 'x'), (int)lh_ui_font_get_ink_bottom(font, 'x'),
+            (int)lh_ui_mask_get_height(lh_addr_of(x_mask)),
+            (int)lh_ui_size_get_width(lh_addr_of(size)), (int)lh_ui_size_get_height(lh_addr_of(size)),
+            (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink))),
+            (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink))) +
+                (int)lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(ink))),
+            (int)lh_ui_text_get_ink_top(font, text));
+
+    EXPECT_EQ(lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(ink))), 15)
+        << "the run has no ink, so nothing below it means anything";
+
+    /* These are the numbers the project's own measurements are written in — the
+       demo's caption block is 12 rows on it, its baseline lands on row 200 and the
+       'x' beside it is 9 rows on 191..199. A font regenerated at another size moves
+       all of them, and it has to be said out loud rather than found later in a
+       screenshot: every figure the docs quote is read off these. */
+    EXPECT_EQ(lh_ui_font_get_line_height(font), 22);
+    EXPECT_EQ(lh_ui_font_get_ascent(font), 17);
+    EXPECT_EQ(lh_ui_font_get_cap_height(font), 12);
+    EXPECT_EQ(lh_ui_font_get_ink_bottom(font, 'H'), 17) << "a capital does not stand on the baseline";
+    EXPECT_EQ(lh_ui_font_get_ink_bottom(font, 'x'), 17) << "neither does an x-height letter";
+    EXPECT_EQ(lh_ui_font_get_ink_top(font, 'x'), 8);
+    EXPECT_EQ(lh_ui_size_get_height(lh_addr_of(size)), 12) << "the block is no longer the cap line";
+    EXPECT_EQ(lh_ui_text_get_ink_top(font, text), 5);
+}

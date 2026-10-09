@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/test/ui/fill_probe.h>
+#include <lh/test/ui/tiny_font.h>
 
 #include <lh/ui/canvas.h>
 #include <lh/ui/canvas/sw.h>
@@ -354,4 +355,145 @@ TEST(entity_label, align_v_moves_the_text_down_the_padded_box)
     EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(centred)), top + (lh_ui_scalar(50) - height) / 2);
     EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(bottom)), top + lh_ui_scalar(50) - height);
     EXPECT_EQ(lh_ui_point_get_x(lh_addr_of(centred)), lh_ui_scalar(10));
+}
+
+/* ── The label's baseline ────────────────────────────────────────────────────
+   A row of an icon and a caption stands on one line rather than in the middle of
+   the same room twice (::lh_ui_place_align_baseline), and what the label answers
+   is the row the letters are standing on: measured down from the top of its own
+   box, so a row of a caption and an icon reads the same wherever the caption is.
+
+   The tiny font makes the arithmetic exact: "A" is 2 rows of cap, its ink starts
+   at the very top of the line (ascent 2, top -2), and the line is therefore 2 rows
+   down from the top of the box the text is drawn in. */
+
+TEST(entity_label, the_baseline_is_a_cap_height_below_where_the_ink_goes)
+{
+    lh_ui_label_t label;
+    lh_ui_style_t style;
+    lh_ui_rect_t rect;
+    lh_ui_point_t origin;
+
+    lh_ui_rect_init(&rect, 10, 20, 100, 50);
+    lh_ui_label_init(&label, rect, "A");
+    lh_ui_style_init(&style);
+    lh_ui_style_set_font(&style, lh_test::tiny_font());
+    lh_ui_entity_set_style(lh_ui_label_as_entity(&label), &style);
+
+    origin = lh_ui_label_get_text_origin(&label);
+    fprintf(stderr, "        ink at y %d, baseline %d\n", (int)lh_ui_point_get_y(&origin),
+            (int)lh_ui_label_get_baseline(&label));
+    EXPECT_EQ(lh_ui_label_get_baseline(&label), lh_ui_scalar(2));
+}
+
+/* The line the letters stand on is where the **tallest letter of this run**
+   ends, which is not always the cap line. A 'd' rises above the cap height, so the
+   ink starts one row higher and the baseline that goes with it is one row lower
+   than the cap block's bottom — measured on ::lh_test::cap_font (line 8, ascent 6,
+   cap 4): "H" gives 4 and "d" gives 5, and both letters' ink ends on row 6 = the
+   ascent, which is what a baseline is.
+
+   This is the row that tells the cap baseline from the real one, and it needs the
+   second font: the tiny font's ascent, cap and line are all 2, so it would hand
+   both rules the same answer and stay green either way. */
+TEST(entity_label, the_baseline_is_where_the_tallest_letter_of_the_run_ends)
+{
+    lh_ui_label_t label;
+    lh_ui_style_t style;
+    lh_ui_rect_t rect;
+    const lh_ui_font_t *font = lh_test::cap_font();
+    lh_ui_point_t origin;
+
+    lh_ui_rect_init(&rect, 0, 0, 100, 20);
+    lh_ui_style_init(&style);
+    lh_ui_style_set_font(&style, font);
+
+    lh_ui_label_init(&label, rect, "f");
+    lh_ui_entity_set_style(lh_ui_label_as_entity(&label), &style);
+    fprintf(stderr, "        cap %d, ascent %d, line %d\n", (int)lh_ui_font_get_cap_height(font),
+            (int)lh_ui_font_get_ascent(font), (int)lh_ui_font_get_line_height(font));
+    origin = lh_ui_label_get_text_origin(&label);
+    fprintf(stderr, "        \"f\" ink at y %d, baseline %d\n", (int)lh_ui_point_get_y(&origin),
+            (int)lh_ui_label_get_baseline(&label));
+    EXPECT_EQ(lh_ui_label_get_baseline(&label), lh_ui_scalar(4)) << "a capital is the cap line";
+
+    lh_ui_label_set_text(&label, "d");
+    fprintf(stderr, "        \"d\" baseline %d\n", (int)lh_ui_label_get_baseline(&label));
+    EXPECT_EQ(lh_ui_label_get_baseline(&label), lh_ui_scalar(5))
+        << "an ascender rises above the cap line and takes the baseline with it";
+    EXPECT_NE(lh_ui_label_get_baseline(&label), lh_cast_static(lh_ui_scalar_t,
+                                                              lh_ui_font_get_cap_height(font)))
+        << "the baseline is the cap line whatever the run says";
+}
+
+/* Rows down from its own box, not from the top of the page: a caption that has
+   been moved by the flow carries its line with it, which is the whole point — the
+   icon beside it asks the caption, not the screen. */
+TEST(entity_label, the_baseline_is_measured_from_the_box_and_not_from_the_page)
+{
+    lh_ui_label_t here;
+    lh_ui_label_t there;
+    lh_ui_style_t style;
+    lh_ui_rect_t near_rect;
+    lh_ui_rect_t far_rect;
+
+    lh_ui_rect_init(&near_rect, 0, 0, 100, 20);
+    lh_ui_rect_init(&far_rect, 0, 180, 100, 20);
+    lh_ui_label_init(&here, near_rect, "A");
+    lh_ui_label_init(&there, far_rect, "A");
+    lh_ui_style_init(&style);
+    lh_ui_style_set_font(&style, lh_test::tiny_font());
+    lh_ui_entity_set_style(lh_ui_label_as_entity(&here), &style);
+    lh_ui_entity_set_style(lh_ui_label_as_entity(&there), &style);
+
+    EXPECT_EQ(lh_ui_label_get_baseline(&there), lh_ui_label_get_baseline(&here))
+        << "moving a caption moved its line with it";
+}
+
+/* Padding is part of the box, so it moves the line with the text: a label padded
+   5 rows in from the top has its text 5 rows down and its line 7. */
+TEST(entity_label, padding_moves_the_baseline_with_the_text)
+{
+    lh_ui_label_t label;
+    lh_ui_style_t style;
+    lh_ui_rect_t rect;
+
+    lh_ui_rect_init(&rect, 0, 0, 100, 20);
+    lh_ui_label_init(&label, rect, "A");
+    lh_ui_style_init(&style);
+    lh_ui_style_set_font(&style, lh_test::tiny_font());
+    lh_ui_style_set_padding(&style, lh_ui_scalar(5));
+    lh_ui_entity_set_style(lh_ui_label_as_entity(&label), &style);
+
+    EXPECT_EQ(lh_ui_label_get_baseline(&label), lh_ui_scalar(7));
+}
+
+/* Nothing drawn stands on nothing: a label with no text, with an empty one, or
+   with no style to give it a font has no line, and a row that has only these has
+   none either and centres them as it did before. */
+TEST(entity_label, a_label_with_nothing_in_it_has_no_line)
+{
+    lh_ui_label_t label;
+    lh_ui_style_t style;
+    lh_ui_rect_t rect;
+
+    lh_ui_rect_init(&rect, 0, 0, 100, 20);
+    lh_ui_style_init(&style);
+    lh_ui_style_set_font(&style, lh_test::tiny_font());
+
+    lh_ui_label_init(&label, rect, "A");
+    lh_ui_entity_set_style(lh_ui_label_as_entity(&label), &style);
+    EXPECT_NE(lh_ui_label_get_baseline(&label), lh_ui_scalar(-1)) << "a drawn label has no line";
+
+    lh_ui_label_set_text(&label, "C"); /* the tiny font's 'C' has no ink */
+    EXPECT_EQ(lh_ui_label_get_baseline(&label), lh_ui_scalar(-1))
+        << "a label whose text is not drawn is standing on a line";
+
+    lh_ui_label_set_text(&label, "");
+    EXPECT_EQ(lh_ui_label_get_baseline(&label), lh_ui_scalar(-1));
+
+    lh_ui_label_set_text(&label, "A");
+    lh_ui_entity_set_style(lh_ui_label_as_entity(&label), lh_null);
+    EXPECT_EQ(lh_ui_label_get_baseline(&label), lh_ui_scalar(-1))
+        << "a label with no font to measure has no line";
 }

@@ -4,7 +4,10 @@
 #include <lh/test/ui/tiny_font.h>
 
 #include <lh/bool.h>
+#include <lh/ui/container.h>
 #include <lh/ui/entity.h>
+#include <lh/ui/font.h>
+#include <lh/ui/image.h>
 #include <lh/ui/label.h>
 #include <lh/ui/layout.h>
 #include <lh/ui/point.h>
@@ -330,4 +333,197 @@ TEST(ui_axis, cross_swaps_the_axes)
 {
     EXPECT_EQ(lh_ui_axis_get_cross(lh_ui_axis_horizontal), lh_ui_axis_vertical);
     EXPECT_EQ(lh_ui_axis_get_cross(lh_ui_axis_vertical), lh_ui_axis_horizontal);
+}
+
+/* ── The row's line ─────────────────────────────────────────────────────────
+   An icon beside a caption is one line of text, and the numbers below are where
+   the two part company, because the room is **11** rows and odd:
+
+     caption "A" — the cap line down to the baseline is 2 rows, so its box is
+       2 and centring puts it at row 5 with its baseline on 7;
+     icon — a single cropped pixel, 1 row, and centring puts it at row 5 with
+       its baseline on 6, **a row above the letters**.
+
+   Centring both is the arithmetic that put the demo's icon on 194.5 and its
+   caption on 194.0. Standing on one line puts the icon at row 6, and then the
+   two share row 7 and the caption has not moved at all. */
+
+struct baseline_row
+{
+    lh_ui_container_t box;
+    lh_ui_image_t icon;
+    lh_ui_label_t caption;
+    lh_ui_style_t box_style;
+    lh_ui_style_t text_style;
+    lh_ui_layout_t flow;
+    lh_ui_mask_t icon_mask;
+
+    /* @p icon_first is the demo's order: an icon goes on the left of a caption,
+       so it is added first. Which child is first has to make no difference. */
+    baseline_row(bool icon_first)
+    {
+        lh_ui_place_t place;
+
+        lh_ui_style_init(&box_style);
+        lh_ui_style_set_padding(&box_style, lh_ui_scalar(2));
+        lh_ui_style_init(&text_style);
+        lh_ui_style_set_font(&text_style, tiny_font());
+        lh_ui_container_init(&box, rect_of(0, 0, 40, 15));
+        lh_ui_entity_set_style(lh_ui_container_as_entity(&box), &box_style);
+
+        /* 'B' of the tiny font is one cropped pixel: an icon, and as close as this
+           font gets. */
+        lh_ui_font_get_glyph(tiny_font(), 'B', &icon_mask);
+        lh_ui_image_init(&icon,
+                         rect_of(0, 0, (int)lh_ui_mask_get_width(&icon_mask),
+                                 (int)lh_ui_mask_get_height(&icon_mask)),
+                         &icon_mask);
+
+        /* A caption is measured by the cap line down to the baseline, so "A" is a
+           2-row box with its baseline 2 rows down — the thing the line exists for. */
+        lh_ui_label_init(&caption, rect_of(0, 0, 3, 2), "A");
+        lh_ui_entity_set_style(lh_ui_label_as_entity(&caption), &text_style);
+
+        place_child(lh_ui_image_as_entity(&icon), lh_ui_place_size_wrap, lh_ui_scalar(0),
+                    lh_ui_place_align_baseline);
+        place_child(lh_ui_label_as_entity(&caption), lh_ui_place_size_wrap, lh_ui_scalar(0),
+                    lh_ui_place_align_baseline);
+        if (icon_first)
+        {
+            lh_ui_entity_add_child(lh_ui_container_as_entity(&box), lh_ui_image_as_entity(&icon));
+            lh_ui_entity_add_child(lh_ui_container_as_entity(&box), lh_ui_label_as_entity(&caption));
+        }
+        else
+        {
+            lh_ui_entity_add_child(lh_ui_container_as_entity(&box), lh_ui_label_as_entity(&caption));
+            lh_ui_entity_add_child(lh_ui_container_as_entity(&box), lh_ui_image_as_entity(&icon));
+        }
+        lh_ui_layout_init(&flow, lh_ui_axis_horizontal, lh_ui_scalar(0));
+    }
+};
+
+/* The icon stands on the caption's line: rows 191..199 of the demo, six rows up
+   from the middle of the room, with the bottom of the picture and the row the
+   letters sit on being one row. */
+TEST(ui_layout, an_icon_and_a_caption_in_a_row_stand_on_one_line)
+{
+    baseline_row f(true);
+    lh_ui_rect_t icon_rect;
+    lh_ui_rect_t caption_rect;
+    int icon_bottom;
+    int caption_baseline;
+
+    lh_ui_image_set_baseline(&f.icon, lh_ui_scalar(1));
+    lh_ui_layout_apply(&f.flow, lh_ui_container_as_entity(&f.box));
+
+    icon_rect = lh_ui_entity_get_rect(lh_ui_image_as_entity(&f.icon));
+    caption_rect = lh_ui_entity_get_rect(lh_ui_label_as_entity(&f.caption));
+    icon_bottom = (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(icon_rect))) +
+                  (int)lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(icon_rect)));
+    caption_baseline =
+        (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(caption_rect))) +
+        (int)lh_ui_font_get_cap_height(tiny_font());
+
+    /* The row prints the numbers, because "they look aligned" is not a
+       measurement and a failure here has to say what it got. */
+    fprintf(stderr,
+            "        icon %d..%d, caption %d..%d baseline %d\n", icon_bottom - 1, icon_bottom,
+            (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(caption_rect))),
+            caption_baseline - 1, caption_baseline);
+    EXPECT_EQ(icon_bottom, caption_baseline)
+        << "the icon and the caption are not on one line";
+    /* And the caption is where centring alone had put it: a 2-row block in 11
+       rows of room, row (11 - 2 + 1) / 2 = 5 down from y 2. */
+    EXPECT_TRUE(rect_at(lh_ui_label_as_entity(&f.caption), 3, 7, 3, 2))
+        << "the caption moved off the middle to make room for the line";
+    EXPECT_TRUE(rect_at(lh_ui_image_as_entity(&f.icon), 2, 8, 1, 1));
+}
+
+/* The line is the deepest baseline, so the order the children were added in
+   cannot change the picture. The demo adds the icon first, because an icon goes
+   on the left, and taking the first child instead (what CSS flex does) lifted the
+   caption a row off where it belonged: measured, first-wins puts the caption at
+   y 6 when the icon was added first and y 7 when it was added second, so the same
+   two children would draw differently on a difference no app can see.
+
+   Only the cross side is compared — the two orders are two different rows, left to
+   right, and x is what the order is for. */
+TEST(ui_layout, the_line_is_the_deepest_baseline_and_not_the_first_child)
+{
+    baseline_row icon_first(true);
+    baseline_row caption_first(false);
+    lh_ui_rect_t a;
+    lh_ui_rect_t b;
+    int y;
+
+    lh_ui_image_set_baseline(&icon_first.icon, lh_ui_scalar(1));
+    lh_ui_layout_apply(&icon_first.flow, lh_ui_container_as_entity(&icon_first.box));
+    lh_ui_image_set_baseline(&caption_first.icon, lh_ui_scalar(1));
+    lh_ui_layout_apply(&caption_first.flow, lh_ui_container_as_entity(&caption_first.box));
+
+    a = lh_ui_entity_get_rect(lh_ui_label_as_entity(&icon_first.caption));
+    b = lh_ui_entity_get_rect(lh_ui_label_as_entity(&caption_first.caption));
+    y = (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(b)));
+    fprintf(stderr, "        caption at y %d icon first, y %d caption first\n",
+            (int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(a))), y);
+    EXPECT_EQ((int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(a))), y)
+        << "adding the icon first put the caption on another line";
+}
+
+/* Nobody is pulled below the middle of the room: the row's line is the deepest of
+   the baselines the children would have had on their own, so a row of one
+   caption is exactly the row it was before anyone asked for a line. */
+TEST(ui_layout, a_row_of_one_caption_is_the_row_it_was)
+{
+    baseline_row f(true);
+    lh_ui_entity_remove_child(lh_ui_container_as_entity(&f.box), lh_ui_image_as_entity(&f.icon));
+
+    lh_ui_layout_apply(&f.flow, lh_ui_container_as_entity(&f.box));
+
+    EXPECT_TRUE(rect_at(lh_ui_label_as_entity(&f.caption), 2, 7, 3, 2));
+}
+
+/* A picture with no baseline of its own is not on the line: there is nothing to
+   stand on, so it is centred like anything else. A mask is cropped to ink and
+   knows nothing about the type it came out of.
+
+   -1 is not a line, and this is the row that says so. Subtracting it from the
+   row's line of 7 put the icon at y 8 — a row *below* the letters, which is what
+   the first version of the placement did and which reads as a mistake because it
+   is one. */
+TEST(ui_layout, a_child_with_no_baseline_is_centred_and_not_pulled_onto_the_line)
+{
+    baseline_row f(true);
+
+    lh_ui_layout_apply(&f.flow, lh_ui_container_as_entity(&f.box));
+
+    EXPECT_EQ(lh_ui_image_get_baseline(&f.icon), lh_ui_scalar(-1));
+    EXPECT_TRUE(rect_at(lh_ui_image_as_entity(&f.icon), 2, 7, 1, 1))
+        << "a picture with no line was put below one anyway";
+}
+
+/* A baseline runs down a picture and not across one, so a vertical flow has no
+   cross row to line up and asks nobody: the row is stacked along y exactly as it
+   was before anybody asked for a line, and across it everybody is centred. */
+TEST(ui_layout, a_vertical_flow_has_no_line_to_line_up_on)
+{
+    baseline_row f(true);
+    lh_ui_rect_t icon_rect;
+    lh_ui_rect_t caption_rect;
+
+    lh_ui_image_set_baseline(&f.icon, lh_ui_scalar(1));
+    lh_ui_layout_init(&f.flow, lh_ui_axis_vertical, lh_ui_scalar(0));
+    lh_ui_layout_apply(&f.flow, lh_ui_container_as_entity(&f.box));
+
+    /* The icon's 1 row takes the top of the 11 and the caption's 2 rows sit under
+       it, which is the whole of what a vertical flow does; across, a 1 wide icon in
+       the 36 columns of the content box is centred at column (36 - 1 + 1) / 2 = 18,
+       and the content box itself starts at x 2, so x 20. */
+    EXPECT_TRUE(rect_at(lh_ui_image_as_entity(&f.icon), 20, 2, 1, 1));
+    EXPECT_TRUE(rect_at(lh_ui_label_as_entity(&f.caption), 19, 3, 3, 2));
+    icon_rect = lh_ui_entity_get_rect(lh_ui_image_as_entity(&f.icon));
+    EXPECT_EQ((int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(icon_rect))), 2);
+    /* The caption goes under it, in its own 2-row box. */
+    caption_rect = lh_ui_entity_get_rect(lh_ui_label_as_entity(&f.caption));
+    EXPECT_EQ((int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(caption_rect))), 3);
 }

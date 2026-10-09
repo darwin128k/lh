@@ -1367,3 +1367,18 @@ TEST(entity, a_card_with_no_pressed_style_paints_the_same_pressed_or_not)
     f.paint();
     EXPECT_EQ(f.at(32, 32), before);
 }
+
+/* The answer is a question, not a field: a plain entity has a box and nothing to be
+   the line of, so it says -1 and a row that lines up on baselines (::lh_ui_place_align_baseline)
+   centres it exactly as it did before anybody asked. A subclass answers in its own
+   right (::lh_ui_entity_event_baseline); the base class must not answer over it. */
+TEST(entity, a_plain_entity_has_no_line_to_stand_on)
+{
+    lh_ui_entity_t entity;
+    lh_ui_rect_t rect;
+
+    lh_ui_rect_init(&rect, 0, 0, 40, 16);
+    lh_ui_entity_init(&entity, rect);
+
+    EXPECT_EQ(lh_ui_entity_get_baseline(&entity), lh_ui_scalar(-1));
+}
