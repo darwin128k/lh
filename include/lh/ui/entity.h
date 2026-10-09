@@ -552,9 +552,23 @@ lh_bool_t
 lh_ui_entity_is_clipping(const lh_ui_entity_t *self);
 
 /**
- * @brief True when the rect of @p self meets the clip of @p canvas; always
- *        true with a ::lh_null @p canvas (nothing to cull against). The one
- *        culling test of the draw walk.
+ * @brief What @p self paints: its rect grown by the outset of the shadow of the
+ *        style it is painted with right now (::lh_ui_entity_get_style_now, so a
+ *        pressed look's shadow counts while it is down).
+ *
+ * The rect on its own is what ::lh_ui_view_damage_looks grows before it records a
+ * change, and it has to be what the cull grows too: a shadow reaches past its own
+ * box, so an entity culled by the rect alone is thrown away in a frame clipped to
+ * its fringe, and the frame leaves the ground bare where the whole frame draws the
+ * shadow. Empty when @p self casts none.
+ */
+lh_ui_rect_t
+lh_ui_entity_get_painted_rect(const lh_ui_entity_t *self);
+
+/**
+ * @brief True when what @p self paints (::lh_ui_entity_get_painted_rect) meets the
+ *        clip of @p canvas; always true with a ::lh_null @p canvas (nothing to
+ *        cull against). The one culling test of the draw walk.
  */
 lh_bool_t
 lh_ui_entity_shows_on(const lh_ui_entity_t *self, const lh_ui_canvas_t *canvas);

@@ -12,6 +12,8 @@
 #include <lh/ui/canvas.h>
 #include <lh/ui/entity.h>
 #include <lh/ui/point.h>
+#include <lh/ui/shadow.h>
+#include <lh/ui/style.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
@@ -624,12 +626,35 @@ lh_ui_entity_is_clipping(const lh_ui_entity_t *self)
     return lh_ui_entity_get_children_transform(self, lh_addr_of(offset));
 }
 
+/* What an entity paints is not only its rect: a shadow reaches past the box of
+   the thing casting it — the panel card in the demo drops one 18 rows below its own
+   box — and the damage side has said so for a while (::lh_ui_view_damage_looks
+   grows the rect by the outset of the shadow). The cull side did not, so a frame
+   clipped to the fringe threw the whole card away and left the ground bare exactly
+   where the full frame draws the shadow; it showed only in the corners of a
+   rounded widget resting on the fringe, which are the one place nothing else
+   covers it. The two answers have to be one thing, so this is what the draw walk
+   tests and the damage records. */
+lh_ui_rect_t
+lh_ui_entity_get_painted_rect(const lh_ui_entity_t *self)
+{
+    const lh_ui_style_t *style = lh_ui_entity_get_style_now(self);
+    const lh_ui_scalar_t outset =
+        lh_null_eq(style) ? lh_ui_scalar(0)
+                          : lh_ui_shadow_get_outset(lh_ui_style_get_shadow(style), lh_addr_of(self->rect));
+
+    return lh_ui_rect_inset(lh_addr_of(self->rect), lh_math_neg(outset), lh_math_neg(outset));
+}
+
 lh_bool_t
 lh_ui_entity_shows_on(const lh_ui_entity_t *self, const lh_ui_canvas_t *canvas)
 {
+    lh_ui_rect_t painted;
+
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(canvas), lh_bool_true);
-    return lh_ui_canvas_shows_rect(canvas, lh_addr_of(self->rect));
+    painted = lh_ui_entity_get_painted_rect(self);
+    return lh_ui_canvas_shows_rect(canvas, lh_addr_of(painted));
 }
 
 lh_bool_t

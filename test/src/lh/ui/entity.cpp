@@ -204,6 +204,25 @@ struct card_fixture
         lh_ui_entity_draw(lh_addr_of(card), lh_addr_of(canvas));
         lh_ui_canvas_end(lh_addr_of(canvas));
     }
+
+    /* The same frame with the whole tree cut to @p clip — what a partial update
+       of the view is: the same walk, over a part of the target. */
+    lh_void
+    paint_clipped(const lh_ui_rect_t *clip)
+    {
+        lh_ui_point_t none;
+
+        lh_ui_point_init(lh_addr_of(none), 0, 0);
+        for (lh_u32_t &w : words)
+        {
+            w = 0x00204060u;
+        }
+        lh_ui_canvas_begin(lh_addr_of(canvas));
+        lh_ui_canvas_push(lh_addr_of(canvas), none, clip);
+        lh_ui_entity_draw(lh_addr_of(card), lh_addr_of(canvas));
+        lh_ui_canvas_pop(lh_addr_of(canvas));
+        lh_ui_canvas_end(lh_addr_of(canvas));
+    }
 };
 
 lh_bool_t
@@ -1132,6 +1151,44 @@ TEST(entity, a_card_casts_its_shadow_outside_its_own_fill)
     EXPECT_FALSE(color_is(f.at(32, 51), 32, 64, 96)) << "no shadow under the card";
     /* And far from it: the ground is the ground. */
     EXPECT_TRUE(color_is(f.at(2, 2), 32, 64, 96));
+}
+
+/* A shadow reaches past the box of the thing casting it, so a clip that misses the
+   card can still catch the shadow. Culling by the rect threw such a card away in
+   that frame and left the ground bare where the full frame draws the shadow —
+   measured on the demo, the two rows just under the Hide panel button came out as
+   the background instead of the panel card's shadow, and it showed only in the
+   button's rounded corners, which are the only place nothing else covers. */
+TEST(entity, a_shadow_that_reaches_past_the_rect_is_drawn_into_a_clip_that_misses_it)
+{
+    card_fixture f;
+    lh_ui_shadow_t shadow;
+    lh_ui_rect_t card;
+    lh_ui_rect_t under;
+    lh_u32_t full;
+
+    lh_ui_shadow_init(lh_addr_of(shadow));
+    lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 200});
+    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(8));
+    lh_ui_shadow_set_offset(lh_addr_of(shadow), lh_ui_scalar(0), lh_ui_scalar(4));
+    lh_ui_style_set_shadow(lh_addr_of(f.style), lh_addr_of(shadow));
+
+    /* The full frame, and what it puts under the card. Denominator first: a
+       comparison of two frames both drawing nothing would pass on its own. */
+    f.paint();
+    full = f.at(32, 51);
+    EXPECT_FALSE(color_is(full, 32, 64, 96)) << "the full frame draws no shadow here either";
+
+    /* The clip begins below the card and never reaches it: the card ends at y 47
+       and this starts at y 48. Only the shadow is inside it. */
+    lh_ui_rect_init(lh_addr_of(card), 16, 16, 32, 32);
+    lh_ui_rect_init(lh_addr_of(under), 16, 48, 32, 8);
+    EXPECT_EQ(lh_ui_rect_intersects(lh_addr_of(under), lh_addr_of(card)), lh_bool_false)
+        << "the clip is not clear of the card";
+
+    f.paint_clipped(lh_addr_of(under));
+
+    EXPECT_EQ(f.at(32, 51), full) << "the clipped frame left the shadow out";
 }
 
 /* A press may change how an entity looks without one class per widget: the
