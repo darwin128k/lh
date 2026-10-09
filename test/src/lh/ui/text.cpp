@@ -72,6 +72,62 @@ TEST(ui_text, size_and_rect_are_widest_line_by_lines)
     EXPECT_TRUE(rect_is(lh_ui_text_get_line_rect(tiny_font(), "B\nAA", point_of(1, 2)), rect_of(1, 2, 4, 2)));
 }
 
+TEST(ui_text, the_ink_is_shorter_than_the_line_and_starts_below_its_top)
+{
+    const lh_ui_font_t *font = lh_ui_font_get_default();
+    const lh_ui_point_t origin = point_of(0, 0);
+    const lh_ui_size_t size = lh_ui_text_get_size(font, "Hide panel");
+    const lh_ui_rect_t ink = lh_ui_text_get_ink_rect(font, "Hide panel", origin);
+
+    /* The whole reason the rule exists: Roboto 16 px is a 22 px line whose ink
+       starts five rows down, so a size that answered "the line" was centring
+       the padding and drew every caption low. */
+    EXPECT_LT(lh_ui_size_get_height(lh_addr_of(size)),
+              lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font)));
+    EXPECT_GT(lh_ui_text_get_ink_top(font, "Hide panel"), lh_ui_scalar(0));
+    /* @p origin is where the ink goes, and the rect says so. */
+    EXPECT_EQ(lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink))),
+              lh_ui_point_get_y(lh_addr_of(origin)));
+    EXPECT_EQ(lh_ui_size_get_height(lh_addr_of(size)),
+              lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(ink))));
+}
+
+TEST(ui_text, the_pixels_land_where_the_ink_rect_says)
+{
+    lh_test::draw_log log;
+    lh_ui_canvas_t canvas;
+    lh_ui_color_t color;
+    const lh_ui_font_t *font = lh_ui_font_get_default();
+    const lh_ui_point_t origin = point_of(3, 4);
+    const lh_ui_rect_t ink = lh_ui_text_get_ink_rect(font, "Hide panel", origin);
+    lh_s32_t top = 0;
+    lh_s32_t bottom = 0;
+    int i;
+
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, false, true);
+
+    lh_ui_text_draw(lh_addr_of(canvas), font, "Hide panel", origin, lh_addr_of(color));
+
+    ASSERT_GT(log.mask_count, 0);
+    for (i = 0; i < log.mask_count; ++i)
+    {
+        const lh_ui_point_t *at = lh_ui_rect_get_origin_as_const(lh_addr_of(log.masks[i]));
+        const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(lh_addr_of(log.masks[i]));
+        const lh_s32_t y = static_cast<lh_s32_t>(lh_ui_point_get_y(at));
+        const lh_s32_t tail = y + static_cast<lh_s32_t>(lh_ui_size_get_height(size));
+
+        top = i == 0 || y < top ? y : top;
+        bottom = i == 0 || tail > bottom ? tail : bottom;
+    }
+    /* Measure and draw are one rule: the pixels span the measured rect exactly,
+       top to bottom. Drawing from the line box would start them rows higher. */
+    EXPECT_EQ(top, lh_cast_static(lh_s32_t, lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink)))));
+    EXPECT_EQ(bottom,
+              lh_cast_static(lh_s32_t, lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink))) +
+                  lh_cast_static(lh_s32_t, lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(ink))))));
+}
+
 TEST(ui_text, draw_places_each_glyph_at_the_pen)
 {
     lh_test::draw_log log;

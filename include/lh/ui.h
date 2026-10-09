@@ -46,6 +46,7 @@
 #include <lh/ui/radius.h>
 #include <lh/ui/range.h>
 #include <lh/ui/rect.h>
+#include <lh/ui/rects.h>
 #include <lh/ui/scalar.h>
 #include <lh/ui/size.h>
 #include <lh/ui/style.h>

@@ -146,3 +146,19 @@ lh_ui_surface_present_part(const lh_ui_surface_t *self, lh_ptr dest, const lh_ui
         lh_cast_static(int, lh_ui_point_get_y(from)), lh_cast_static(int, lh_ui_size_get_width(size)),
         lh_cast_static(int, lh_ui_size_get_height(size)));
 }
+
+lh_bool_t
+lh_ui_surface_present_rects(const lh_ui_surface_t *self, lh_ptr dest, const lh_ui_rects_t *rects,
+                            lh_ui_point_t at)
+{
+    lh_u32_t i;
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(rects);
+    for (i = 0u; i < lh_ui_rects_get_count(rects); ++i)
+    {
+        lh_return_if(!lh_ui_surface_present_part(self, dest, lh_ui_rects_get_as_const(rects, i), at),
+                     lh_bool_false);
+    }
+    return lh_bool_true;
+}

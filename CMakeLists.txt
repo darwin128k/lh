@@ -238,6 +238,7 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/gradient.c
             ${LH_LIB_SRC_PATH}/ui/style.c
             ${LH_LIB_SRC_PATH}/ui/radius.c
+            ${LH_LIB_SRC_PATH}/ui/rects.c
             ${LH_LIB_SRC_PATH}/ui/shadow.c
             ${LH_LIB_SRC_PATH}/ui/blur.c
             ${LH_LIB_SRC_PATH}/ui/range.c

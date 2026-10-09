@@ -119,7 +119,10 @@ lh_ui_label_get_text_origin(const lh_ui_label_t *self)
     /* The padding is what keeps the text off the edges, and the alignment is where
        inside what the padding leaves it starts. Left and top are what this returned
        before a style could say otherwise, so a style that never set one draws the
-       label exactly as it did. */
+       label exactly as it did. The size is the ink's
+       (::lh_ui_text_get_size), so what is aligned here is the pixels and every
+       v_* means what it says: a 22 px line box with 15 px of ink used to be what
+       got centred, and the caption sat five rows low. */
     lh_ui_size_init(lh_addr_of(size), 0, 0);
     if (!lh_null_eq(style) && !lh_null_eq(font) && !lh_null_eq(self->text))
     {

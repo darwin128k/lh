@@ -102,6 +102,26 @@ lh_s32_t
 lh_ui_font_get_top(const lh_ui_font_t *self, lh_u32_t code);
 
 /**
+ * @brief Where the ink of @p code starts, measured from the top of the line
+ *        box: the baseline (::lh_ui_font_get_ascent) plus
+ *        ::lh_ui_font_get_top.
+ *
+ * The line box is not the ink. A font whose line is 22 px and ascent 17 puts a
+ * capital letter's ink well below the middle of that box, so a line centred by
+ * its box draws its text low — this is the number that says where the pixels
+ * actually are. A code with no ink gives a rect of no height.
+ */
+lh_s32_t
+lh_ui_font_get_ink_top(const lh_ui_font_t *self, lh_u32_t code);
+
+/**
+ * @brief Where the ink of @p code ends, measured from the top of the line box:
+ *        ::lh_ui_font_get_ink_top plus the height of its mask.
+ */
+lh_s32_t
+lh_ui_font_get_ink_bottom(const lh_ui_font_t *self, lh_u32_t code);
+
+/**
  * @brief Fill @p mask with the glyph of @p code.
  *
  * @return ::lh_bool_false (and @p mask untouched) when there is no glyph.

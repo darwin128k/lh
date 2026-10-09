@@ -269,6 +269,7 @@ set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/radius.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/range.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/rect.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/rects.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/shadow.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/style.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/text.cpp

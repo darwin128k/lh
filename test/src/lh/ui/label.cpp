@@ -178,6 +178,38 @@ TEST(entity_label, align_h_moves_the_text_across_the_padded_box)
     EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(centred)), lh_ui_scalar(20));
 }
 
+/* The complaint this pins: a caption centred in a button sat a few pixels low,
+   because what got centred was the font's line box (Roboto 16 px: 22 rows) and
+   the ink inside it is not centred in that. Centring the ink puts the pixels on
+   the middle of the button, which is what "centre" has to mean to be worth
+   anything. */
+TEST(entity_label, centring_puts_the_ink_on_the_middle_of_the_box)
+{
+    lh_ui_label_t label;
+    lh_ui_style_t style;
+    lh_ui_rect_t rect;
+    lh_ui_rect_t ink;
+    lh_ui_scalar_t top;
+    lh_ui_scalar_t height;
+
+    lh_ui_rect_init(lh_addr_of(rect), 0, 0, 132, 28);
+    lh_ui_label_init(lh_addr_of(label), rect, "Hide panel");
+    lh_ui_style_init(lh_addr_of(style));
+    lh_ui_style_set_align_h(lh_addr_of(style), lh_ui_text_align_h_center);
+    lh_ui_style_set_align_v(lh_addr_of(style), lh_ui_text_align_v_center);
+    lh_ui_entity_set_style(lh_ui_label_as_entity(lh_addr_of(label)), lh_addr_of(style));
+
+    ink = lh_ui_label_get_text_rect(lh_addr_of(label));
+    top = lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink)));
+    height = lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(ink)));
+
+    /* 28 rows with 15 of ink: the middle falls between 13 and 14, and centring
+       an odd number of rows in an even box cannot land on both, so one row is as
+       close as integers get. Centring the 22 px line box instead put this at 18. */
+    EXPECT_LE(std::abs(static_cast<int>(top + height / 2) - 14), 1);
+    EXPECT_GT(height, lh_ui_scalar(0));
+}
+
 TEST(entity_label, align_v_moves_the_text_down_the_padded_box)
 {
     const lh_ui_size_t size = lh_ui_text_get_size(lh_ui_font_get_default(), "abc");

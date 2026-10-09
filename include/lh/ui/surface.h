@@ -19,6 +19,7 @@
 #include <lh/ptr.h>
 #include <lh/ui/pixmap.h>
 #include <lh/ui/rect.h>
+#include <lh/ui/rects.h>
 #include <lh/ui/size.h>
 #include <lh/ui/surface/fields.h>
 #include <lh/void.h>
@@ -138,6 +139,20 @@ lh_ui_surface_present_at(const lh_ui_surface_t *self, lh_ptr dest, lh_ui_point_t
 lh_bool_t
 lh_ui_surface_present_part(const lh_ui_surface_t *self, lh_ptr dest, const lh_ui_rect_t *part,
                            lh_ui_point_t at);
+
+/**
+ * @brief Present every rect of @p rects — in the surface's own pixels, (0, 0)
+ *        its corner — into @p dest with each one's top-left pixel at @p at.
+ *
+ * The drawn region of a frame is not one rect whenever two widgets stand apart
+ * in it, and presenting their hull would present the gap between them as well.
+ * One blit per rect, and nothing nobody drew.
+ *
+ * @return True when every blit ran.
+ */
+lh_bool_t
+lh_ui_surface_present_rects(const lh_ui_surface_t *self, lh_ptr dest, const lh_ui_rects_t *rects,
+                            lh_ui_point_t at);
 
 LH_COMPILER_EXTERN_C_END
 

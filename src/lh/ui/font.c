@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/cast/static.h>
 #include <lh/config.h>
 #include <lh/null.h>
 #include <lh/runtime/error/code.h>
@@ -101,6 +102,21 @@ lh_ui_font_get_top(const lh_ui_font_t *self, lh_u32_t code)
 {
     lh_return_if(!lh_ui_font_has_code(self, code), 0);
     return self->tops[lh_ui_font_get_index(self, code)];
+}
+
+lh_s32_t
+lh_ui_font_get_ink_top(const lh_ui_font_t *self, lh_u32_t code)
+{
+    return self->ascent + lh_ui_font_get_top(self, code);
+}
+
+lh_s32_t
+lh_ui_font_get_ink_bottom(const lh_ui_font_t *self, lh_u32_t code)
+{
+    lh_ui_mask_t mask;
+
+    lh_return_if(!lh_ui_font_get_glyph(self, code, lh_addr_of(mask)), 0);
+    return lh_ui_font_get_ink_top(self, code) + lh_cast_static(lh_s32_t, lh_ui_mask_get_height(lh_addr_of(mask)));
 }
 
 lh_bool_t

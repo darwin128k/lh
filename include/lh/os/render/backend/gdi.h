@@ -51,7 +51,7 @@
 struct lh_os_render_backend_gdi_context
 {
     lh_os_render_backend_gdi_fields(lh_os_system_window_handle_t, lh_ptr, lh_ui_surface_t, lh_ui_canvas_sw_t,
-                                    lh_u32_t, lh_u64_t, lh_ui_point_t, lh_ui_rect_t);
+                                    lh_u32_t, lh_u64_t, lh_ui_point_t, lh_ui_rects_t);
 };
 typedef struct lh_os_render_backend_gdi_context lh_os_render_backend_gdi_context_t;
 

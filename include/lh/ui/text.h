@@ -78,19 +78,56 @@ lh_ui_scalar_t
 lh_ui_text_get_width(const lh_ui_font_t *font, const lh_char_t *text);
 
 /**
- * @brief Size of @p text: its width, and its lines times the line height.
+ * @brief Size of @p text: its width, and how tall its ink is.
+ *
+ * The height is the ink, not the line box. A line box is taller than what is
+ * drawn — Roboto 16 px is a 22 px line with a 17 px ascent, and a capital's ink
+ * starts four rows down — so anything that centres *this* box was centring the
+ * padding around the text and drew every caption a few pixels low. The width is
+ * still the pen's, because a space takes room whether or not it is inked.
  */
 lh_ui_size_t
 lh_ui_text_get_size(const lh_ui_font_t *font, const lh_char_t *text);
 
 /**
- * @brief The rect @p text covers when it starts at @p origin.
+ * @brief How far below the top of a line box the ink of @p text starts.
+ *
+ * This is what a vertical alignment has to take back: the alignment places the
+ * ink, and the line is drawn from a row this many above it. `0` for text with
+ * no ink at all.
+ */
+lh_ui_scalar_t
+lh_ui_text_get_ink_top(const lh_ui_font_t *font, const lh_char_t *text);
+
+/**
+ * @brief Where the ink of the line starting at @p line is, with its top-left
+ *        cell at @p origin.
+ *
+ * Width is the line's advance width, height is from the top of the first inked
+ * glyph to the bottom of the last. A line with no ink at all (a space, an empty
+ * line) is a rect of no height.
+ */
+lh_ui_rect_t
+lh_ui_text_get_line_ink_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_point_t origin);
+
+/**
+ * @brief The rect the ink of @p text covers when its first line starts at
+ *        @p origin.
+ */
+lh_ui_rect_t
+lh_ui_text_get_ink_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin);
+
+/**
+ * @brief The rect @p text covers when it starts at @p origin: its ink, which is
+ *        what ::lh_ui_text_draw draws into.
  */
 lh_ui_rect_t
 lh_ui_text_get_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin);
 
 /**
- * @brief The rect the line starting at @p line covers at @p origin.
+ * @brief The line box the line starting at @p line covers at @p origin: as wide
+ *        as its advances and as tall as ::lh_ui_font_get_line_height, which is
+ *        what the next line is placed a line height below.
  */
 lh_ui_rect_t
 lh_ui_text_get_line_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_point_t origin);
@@ -117,6 +154,10 @@ lh_ui_text_draw_line(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_
 /**
  * @brief Draw every line of @p text, the first at @p origin, each next one a
  *        line height lower.
+ *
+ * @p origin is where the ink goes and every line box starts
+ * ::lh_ui_text_get_ink_top rows above it, each next one a line height lower: the
+ * pixels land exactly in ::lh_ui_text_get_ink_rect.
  */
 lh_void
 lh_ui_text_draw(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin,
