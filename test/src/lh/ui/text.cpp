@@ -359,3 +359,91 @@ TEST(ui_text, roboto_16_has_the_metrics_the_measured_numbers_come_from)
     EXPECT_EQ(lh_ui_size_get_height(lh_addr_of(size)), 12) << "the block is no longer the cap line";
     EXPECT_EQ(lh_ui_text_get_ink_top(font, text), 5);
 }
+
+
+TEST(ui_text, russian_is_measured_and_drawn_and_not_skipped)
+{
+    /* The whole chain, not the table: bytes -> code point -> run -> glyph -> pen.
+
+       Every one of those can be wrong while the text still *measures*: a font with no
+       Cyrillic in it still returns a width for every string, and that width is 0 --
+       a plausible number, and a text that is a bit short rather than one that is
+       obviously missing. So the width is compared with the sum of the glyphs' advances
+       (0 if and only if the lookups found nothing), and then the word is **drawn** and
+       the canvas is asked what it was given: one mask per letter, each of them with
+       real width, each one further right than the last.
+
+       The transliterated control matters too. Six Cyrillic letters and six Latin ones
+       are not the same number of pixels, so a run that returned the *Latin* glyph for
+       a Cyrillic code -- the failure that looks like a font with the wrong shapes in it
+       rather than a font with none -- would still measure a width. */
+    const lh_ui_font_t *font = lh_ui_font_get_default();
+    /* "Privet" in UTF-8: 12 bytes, six code points. Spelled as bytes so that the file
+       says the same thing whatever the compiler thinks a source encoding is. */
+    const char *russian = "\xD0\x9F\xD1\x80\xD0\xB8\xD0\xB2\xD0\xB5\xD1\x82";
+    static const lh_u32_t codes[] = {0x041F, 0x0440, 0x0438, 0x0432, 0x0435, 0x0442};
+    lh_test::draw_log log;
+    lh_ui_canvas_t canvas;
+    lh_ui_color_t color;
+    int summed = 0;
+    int i;
+
+    ASSERT_EQ(lh_null_eq(font), lh_bool_false);
+    for (i = 0; i < 6; ++i)
+    {
+        ASSERT_EQ(lh_ui_font_has_code(font, codes[i]), lh_bool_true)
+            << "code point U+" << std::hex << codes[i] << " is not in the font at all";
+        summed += lh_ui_font_get_advance(font, codes[i]);
+    }
+    EXPECT_GT(summed, 0) << "six Cyrillic letters that all advance zero";
+    EXPECT_EQ(lh_ui_text_get_width(font, russian), lh_ui_scalar(summed));
+    EXPECT_NE(lh_ui_text_get_width(font, russian), lh_ui_text_get_width(font, "Privet"));
+
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, false, true);
+    lh_ui_text_draw(lh_addr_of(canvas), font, russian, point_of(10, 20), lh_addr_of(color));
+
+    ASSERT_EQ(log.mask_count, 6) << "six letters should have handed the canvas six masks";
+    for (i = 0; i < log.mask_count; ++i)
+    {
+        const lh_ui_rect_t *mask = lh_addr_of(log.masks[i]);
+
+        EXPECT_GT(lh_cast_static(int, lh_ui_size_get_width(lh_ui_rect_get_size_as_const(mask))), 0)
+            << "letter " << i << " drew a mask with no width";
+        EXPECT_GT(lh_cast_static(int, lh_ui_size_get_height(lh_ui_rect_get_size_as_const(mask))), 0)
+            << "letter " << i << " drew a mask with no height";
+        if (i > 0)
+        {
+            EXPECT_GT(lh_cast_static(int, lh_ui_rect_get_origin_as_const(mask)->x),
+                      lh_cast_static(int, lh_ui_rect_get_origin_as_const(lh_addr_of(log.masks[i - 1]))->x))
+                << "letter " << i << " did not move the pen";
+        }
+    }
+    EXPECT_EQ(lh_cast_static(int, lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(
+                                  lh_addr_of(log.masks[5]))) +
+                              lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(log.masks[5])))),
+              10 + summed)
+        << "the pen ended somewhere other than the width the text measured";
+}
+
+TEST(ui_text, a_code_the_font_has_no_glyph_for_draws_nothing_and_moves_nothing)
+{
+    /* The two codes Roboto has no glyph for. They are not in a run, so a text holding
+       one is not a shorter text -- it is a text with a gap in it, and the gap must not
+       become a space. */
+    const lh_ui_font_t *font = lh_ui_font_get_default();
+    lh_test::draw_log log;
+    lh_ui_canvas_t canvas;
+    lh_ui_color_t color;
+
+    ASSERT_EQ(lh_null_eq(font), lh_bool_false);
+    ASSERT_EQ(lh_ui_font_has_code(font, 0x00ADU), lh_bool_false); /* soft hyphen */
+    ASSERT_EQ(lh_ui_font_has_code(font, 0x00B8U), lh_bool_false); /* spacing diaeresis */
+    EXPECT_EQ(lh_ui_font_get_advance(font, 0x00ADU), 0);
+    EXPECT_EQ(lh_ui_text_get_width(font, "\xC2\xAD"), lh_ui_scalar(0));
+
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, false, true);
+    lh_ui_text_draw(lh_addr_of(canvas), font, "\xC2\xAD", point_of(10, 20), lh_addr_of(color));
+    EXPECT_EQ(log.mask_count, 0);
+}

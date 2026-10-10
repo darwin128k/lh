@@ -282,8 +282,9 @@ lh_ui_canvas_sw_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_
                           const lh_ui_color_t *color);
 
 /**
- * @brief Backend `shadow`: ::lh_ui_shadow_alpha_at per pixel over the box grown
- *        by its outset, blended, and cut to the clip like any other write.
+ * @brief Backend `shadow`: ::lh_ui_shadow_alpha_at_pixel over the box grown by
+ *        its outset, blended in runs, and cut to the clip like any other write.
+ *        Pixels the fill covers wholly are skipped.
  */
 lh_bool_t
 lh_ui_canvas_sw_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
@@ -301,8 +302,8 @@ lh_ui_canvas_sw_blur(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t bl
                      lh_usize_t bytes);
 
 /**
- * @brief Backend `glass`: blur what is behind the rect, then fill the rounded
- *        rect with the tint on top.
+ * @brief Backend `glass`: blur what is behind the rect, writing only where the
+ *        rounded rect covers, then fill that rounded rect with the tint.
  */
 lh_bool_t
 lh_ui_canvas_sw_glass(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t corner, lh_ui_scalar_t blur_radius,

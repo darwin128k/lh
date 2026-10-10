@@ -349,6 +349,17 @@ lh_bool_t
 lh_ui_canvas_shows_rect(const lh_ui_canvas_t *self, const lh_ui_rect_t *rect);
 
 /**
+ * @brief True when the clip holds all of @p rect, not merely some of it.
+ *
+ * ::lh_ui_canvas_shows_rect is the question "is any of it visible". This one is
+ * "is all of it visible", which is what lets a caller skip a measurement that
+ * would only have learned the same thing. With no clip, the answer is yes
+ * whenever @p rect is not empty.
+ */
+lh_bool_t
+lh_ui_canvas_covers_rect(const lh_ui_canvas_t *self, const lh_ui_rect_t *rect);
+
+/**
  * @brief Fill @p rect with the solid @p color.
  *
  * @p rect is moved by the offset; without a backend `set_clip` it is cut to
@@ -462,8 +473,8 @@ lh_ui_canvas_glass(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_
  * Not owned, never allocated and never freed: a frame is not the place to reach
  * for a heap, and an app with no allocator under it would get a fault instead of
  * a "no". @p bytes is how much of @p scratch there is; a blur needs
- * ::lh_ui_blur_scratch_size of the rect it is given and is not drawn when it was
- * given less. With no scratch at all (the default), ::lh_ui_canvas_blur and
+ * ::lh_ui_blur_scratch_size of the rect and the radius, and is not drawn when it
+ * was given less. With no scratch at all (the default), ::lh_ui_canvas_blur and
  * ::lh_ui_canvas_glass return ::lh_bool_false.
  */
 lh_void

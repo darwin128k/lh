@@ -146,7 +146,8 @@ typedef lh_bool_t(lh_ui_canvas_shadow_fn)(lh_ptr context, const lh_ui_rect_t *re
  * drawn, and the canvas says so rather than putting down something that only
  * looks like one. That also makes it the one slot that needs memory of its own:
  * @p scratch is the caller's (see ::lh_ui_canvas_set_scratch) and @p bytes how
- * much of it there is; a blur needs ::lh_ui_blur_scratch_size of @p rect, and a
+ * much of it there is; a blur needs ::lh_ui_blur_scratch_size of @p rect and
+ * @p blur_radius, and a
  * backend that is given less returns ::lh_bool_false instead of writing past it.
  */
 typedef lh_bool_t(lh_ui_canvas_blur_fn)(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t blur_radius,

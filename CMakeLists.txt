@@ -127,6 +127,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/util/str/ptr.c
         ${LH_LIB_SRC_PATH}/util/wchar.c
         ${LH_LIB_SRC_PATH}/str/view.c
+${LH_LIB_SRC_PATH}/str/cstr.c
         ${LH_LIB_SRC_PATH}/wstr/view.c
         ${LH_LIB_SRC_PATH}/str.c
         ${LH_LIB_SRC_PATH}/wstr.c
@@ -156,6 +157,8 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/net/port.c
         ${LH_LIB_SRC_PATH}/net/socket/addr/ip4.c
         ${LH_LIB_SRC_PATH}/net/socket/addr.c
+        ${LH_LIB_SRC_PATH}/net/modbus.c
+        ${LH_LIB_SRC_PATH}/net/modbus/link.c
 
         ${LH_LIB_SRC_PATH}/io/reader.c
         ${LH_LIB_SRC_PATH}/io/writer.c
@@ -255,12 +258,14 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/decl.c
             ${LH_LIB_SRC_PATH}/ui/image.c
             ${LH_LIB_SRC_PATH}/ui/label.c
+            ${LH_LIB_SRC_PATH}/ui/input.c
             ${LH_LIB_SRC_PATH}/ui/scrollbar.c
             ${LH_LIB_SRC_PATH}/ui/button.c
              ${LH_LIB_SRC_PATH}/ui/toggle.c
             ${LH_LIB_SRC_PATH}/ui/view.c
             ${LH_LIB_SRC_PATH}/ui/mask.c
             ${LH_LIB_SRC_PATH}/ui/font.c
+             ${LH_LIB_SRC_PATH}/ui/font/range.c
             ${LH_LIB_SRC_PATH}/ui/text.c
             ${LH_LIB_SRC_PATH}/ui/text/align.c
             ${LH_LIB_SRC_PATH}/ui/canvas/mask.c

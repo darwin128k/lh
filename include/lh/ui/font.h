@@ -2,12 +2,13 @@
  * @file font.h
  * @brief A bitmap font kept in memory: ::lh_ui_font_t.
  *
- * Only data and small queries. Glyphs are a dense run of ::lh_ui_mask_t from
- * code `first`, each cropped to its own ink, with one advance byte and one
- * top (mask top relative to the baseline; up is negative) each. A glyph with
- * no ink is a zero-size mask. Codes outside the run have no glyph and
- * advance `0`. The bytes and tables are not owned; `scripts/font.py` bakes
- * them from a TTF. Measuring and drawing text is `lh/ui/text.h`.
+ * Only data and small queries. Glyphs are a set of ::lh_ui_mask_t each cropped to
+ * its own ink, with one advance byte and one top (mask top relative to the
+ * baseline; up is negative) each, and ::lh_ui_font_range_t says which code point is
+ * which glyph. A glyph with no ink is a zero-size mask with a real advance, because
+ * the pen still moves over it. A code no range covers has no glyph and advance `0`.
+ * The bytes and tables are not owned; `scripts/font.py` bakes them from a TTF.
+ * Measuring and drawing text is `lh/ui/text.h`.
  */
 
 #ifndef LH_UI_FONT_H
@@ -18,6 +19,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/ui/font/fields.h>
+#include <lh/ui/font/range.h>
 #include <lh/ui/mask.h>
 #include <lh/void.h>
 
@@ -28,7 +30,7 @@
  */
 struct lh_ui_font
 {
-    lh_ui_font_fields(lh_byte_t, lh_ui_mask_t, lh_s32_t, lh_u32_t);
+    lh_ui_font_fields(lh_byte_t, lh_ui_mask_t, lh_s32_t, lh_u32_t, lh_ui_font_range_t);
 };
 typedef struct lh_ui_font lh_ui_font_t;
 
@@ -43,15 +45,21 @@ const lh_ui_font_t *
 lh_ui_font_get_default(lh_void);
 
 /**
- * @brief Fill @p self over @p glyphs, @p advances and @p tops: @p count
- *        glyphs from code @p first, line @p line_height with @p ascent and a
- *        cap height of @p cap_height.
- *        The tables are not copied. A glyph without ink is a zero-size mask.
+ * @brief Fill @p self over @p glyphs, @p advances and @p tops: one entry per
+ *        glyph, placed by @p ranges, line @p line_height with @p ascent and a
+ *        cap height of @p cap_height. The tables are not copied. A glyph without
+ *        ink is a zero-size mask.
+ *
+ * @p ranges must be ordered and must not overlap: a code in two runs would have
+ * two answers, and the lookup walks them in order and takes the first, so a font
+ * built wrong draws one of the two glyphs and reports the other in a metric.
+ * That is refused here rather than resolved, because a run that is not a run is a
+ * table built by hand with no way to tell which half was meant.
  */
 lh_void
 lh_ui_font_init(lh_ui_font_t *self, const lh_ui_mask_t *glyphs, const lh_byte_t *advances,
-                const lh_s32_t *tops, lh_s32_t line_height, lh_s32_t ascent, lh_s32_t cap_height,
-                lh_byte_t first, lh_u32_t count);
+                const lh_s32_t *tops, const lh_ui_font_range_t *ranges, lh_s32_t line_height,
+                lh_s32_t ascent, lh_s32_t cap_height, lh_u32_t range_count);
 
 /**
  * @brief Ascent of @p self: baseline from the top of the line, in pixels.
@@ -79,16 +87,36 @@ lh_s32_t
 lh_ui_font_get_cap_height(const lh_ui_font_t *self);
 
 /**
- * @brief First code with a glyph.
+ * @brief How many runs of code points @p self covers.
+ *
+ * One for a font of Latin alone; three or four for one that also has Cyrillic,
+ * because a hole in the coverage (a soft hyphen Roboto has no glyph for) ends a
+ * run and starts another.
+ */
+lh_u32_t
+lh_ui_font_get_range_count(const lh_ui_font_t *self);
+
+/**
+ * @brief Run @p index of @p self. @p index must be below
+ *        ::lh_ui_font_get_range_count.
+ */
+const lh_ui_font_range_t *
+lh_ui_font_get_range(const lh_ui_font_t *self, lh_u32_t index);
+
+/**
+ * @brief Lowest code @p self has a glyph for.
+ *
+ * With Cyrillic beside Latin this is the space, not a statement that the font
+ * covers everything up to it — that is what the runs are for.
  */
 lh_u32_t
 lh_ui_font_get_first(const lh_ui_font_t *self);
 
 /**
- * @brief Number of glyphs.
+ * @brief How many glyphs @p self has in total, over every run.
  */
 lh_u32_t
-lh_ui_font_get_count(const lh_ui_font_t *self);
+lh_ui_font_get_glyph_count(const lh_ui_font_t *self);
 
 /**
  * @brief True when @p self has a glyph for @p code.
@@ -97,7 +125,10 @@ lh_bool_t
 lh_ui_font_has_code(const lh_ui_font_t *self, lh_u32_t code);
 
 /**
- * @brief Position of @p code in the run. @p code must be in it.
+ * @brief Position of @p code in the glyph tables. @p code must be in a run.
+ *
+ * The index is into `glyphs` / `advances` / `tops`, so it is **not** the code
+ * minus anything: it is the run's base plus how far into the run the code sits.
  */
 lh_u32_t
 lh_ui_font_get_index(const lh_ui_font_t *self, lh_u32_t code);
@@ -139,7 +170,7 @@ lh_ui_font_get_ink_bottom(const lh_ui_font_t *self, lh_u32_t code);
  * @brief Fill @p mask with the glyph of @p code.
  *
  * @return ::lh_bool_false (and @p mask untouched) when there is no glyph.
- *         A code in the run with no ink still returns true: @p mask is then
+ *         A code in a run with no ink still returns true: @p mask is then
  *         zero-size.
  */
 lh_bool_t

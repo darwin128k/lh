@@ -6,11 +6,16 @@
  * ::lh_ui_pixmap_t and not about a shape: a panel has to blur the picture
  * *behind* it, and the picture is whatever the frame left there.
  *
- * Two box passes, rows then columns, each averaging `2 * radius + 1` neighbours
- * with the edge clamped. Two boxes make a triangle under the hood, so the result
- * is soft without being a gaussian — and unlike a gaussian it costs two reads and
- * four adds per pixel per pass, because the window slides instead of being added
- * up again.
+ * Two box passes, rows then columns, each averaging `2 * radius + 1` neighbours.
+ * The window is clamped to the pixmap, not to the rect: what is behind a panel
+ * does not stop at the panel's edge, and only the rect is written. Two boxes
+ * make a triangle under the hood, so the result is soft without being a gaussian
+ * — and unlike a gaussian it costs two reads and four adds per pixel per pass,
+ * because the window slides instead of being added up again.
+ *
+ * A channel is summed premultiplied, colour times alpha. A fully transparent
+ * pixel still holds colour bytes, and averaging those straight is what tints
+ * the blur with a colour nobody can see.
  *
  * The two passes are separate functions because each is useful on its own and
  * because this tree keeps no file-scope state: a caller that already has a buffer
@@ -38,7 +43,8 @@
  * @struct lh_ui_blur_window
  * @typedef lh_ui_blur_window_t
  * @brief The colour of a whole window summed in four channels, so a run is two
- *        reads per pixel rather than four calls.
+ *        reads per pixel rather than four calls. Red, green and blue are
+ *        premultiplied by alpha; alpha is the straight sum.
  */
 struct lh_ui_blur_window
 {
@@ -67,17 +73,25 @@ lh_u8_t
 lh_ui_blur_window_average(const lh_ui_blur_window_t *self, lh_s32_t channel, lh_s32_t count);
 
 /**
- * @brief Bytes of scratch ::lh_ui_blur_rect needs for @p rect: one RGBA8 pixel
- *        per pixel, both passes go through the same buffer.
+ * @brief Bytes of scratch ::lh_ui_blur_rect needs: the rect, plus @p radius rows
+ *        above it and below it, four bytes a pixel.
+ *
+ * @p radius `0` (or negative) is the rect alone. Rows that fall outside the
+ * pixmap are not stored, but this count does not know the pixmap, so both
+ * margins are always included. The column pass reads what the row pass wrote,
+ * and that band is taller than the rect precisely so a pixel on the rect's edge
+ * can see the picture past it.
  */
 lh_usize_t
-lh_ui_blur_scratch_size(const lh_ui_rect_t *rect);
+lh_ui_blur_scratch_size(const lh_ui_rect_t *rect, lh_s32_t radius);
 
 /**
- * @brief Blur @p rect along its rows.
+ * @brief Blur @p rect along its rows, reading up to @p radius pixels past it.
  *
- * Writes `width * height` RGBA8 pixels into @p scratch — the picture the column
- * pass reads. Nothing is written to @p pixmap here.
+ * Writes the rect's columns, and up to @p radius rows above and below it, as
+ * RGBA8 into @p scratch — the picture the column pass reads. Nothing is written
+ * to @p pixmap here. The band is addressed from the first row that exists, so
+ * a rect on the top of the pixmap has no rows above it.
  */
 lh_void
 lh_ui_blur_rows(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t radius, lh_u8_t *scratch);
@@ -86,10 +100,17 @@ lh_ui_blur_rows(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t radiu
  * @brief Blur @p rect down its columns, reading @p scratch, writing @p pixmap.
  *
  * The other half of ::lh_ui_blur_rect: this is the pass that writes, and @p
- * scratch has to be what ::lh_ui_blur_rows left in it.
+ * scratch has to be what ::lh_ui_blur_rows left in it. Only the rect is written.
+ *
+ * @p shape and @p corner cut that write to a rounded rect. ::lh_null @p shape,
+ * or a @p corner of `0`, writes every pixel. A pixel the rounded shape does not
+ * cover is left as it was, and one it covers in part is replaced in that part:
+ * the blur of a glass panel is the panel, and the square corners of its box
+ * are not part of it.
  */
 lh_void
-lh_ui_blur_columns(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t radius, const lh_u8_t *scratch);
+lh_ui_blur_columns(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t radius, const lh_u8_t *scratch,
+                   const lh_ui_rect_t *shape, lh_ui_scalar_t corner);
 
 /**
  * @brief Blur @p rect of @p pixmap in place, @p radius pixels out.
@@ -99,7 +120,8 @@ lh_ui_blur_columns(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t ra
  * alone.
  *
  * @p scratch is the caller's buffer for the row pass, and it has to be
- * ::lh_ui_blur_scratch_size of the rect (of the cut rect, which is never bigger).
+ * ::lh_ui_blur_scratch_size of the rect and @p radius (of the cut rect, which is
+ * never bigger).
  * The blur does not allocate: it is a drawing step on somebody else's frame, and
  * a frame is not the place to reach for a heap. A null @p scratch leaves
  * @p pixmap alone.

@@ -133,6 +133,17 @@ lh_ui_shadow_alpha_at(const lh_ui_shadow_t *self, lh_ui_scalar_t x, lh_ui_scalar
                       const lh_ui_rect_t *rect, lh_ui_scalar_t radius);
 
 /**
+ * @brief ::lh_ui_shadow_alpha_at at the center of pixel (@p x, @p y).
+ *
+ * The same center ::lh_ui_radius_coverage samples, so a pixel the fill covers
+ * wholly is outside the shadow, and a rounded corner fades along the fill's
+ * circle rather than along `width / 2` of the box.
+ */
+lh_byte_t
+lh_ui_shadow_alpha_at_pixel(const lh_ui_shadow_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_rect_t *rect,
+                            lh_ui_scalar_t radius);
+
+/**
  * @brief Signed distance from (@p x, @p y) to @p rect with corners rounded by
  *        @p radius, in pixels: negative inside, zero on the edge.
  *

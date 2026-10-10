@@ -15,8 +15,10 @@ struct blur_fixture
 {
     static const int width = 16;
     static const int height = 8;
+    /* Room for the radius rows the scratch now keeps above and below the rect. */
+    static const int radius_room = 8;
     lh_u32_t words[width * height];
-    lh_u8_t scratch[width * height * 4];
+    lh_u8_t scratch[width * (height + 2 * radius_room) * 4];
     /* Memory right after the scratch, filled with whatever the test is testing: a
        blur that reads past its buffer reads *this*, and a test that only checks
        values cannot tell a right answer from a lucky one. */
@@ -171,15 +173,16 @@ TEST(ui_blur, without_a_scratch_nothing_is_blurred)
     EXPECT_EQ(f.red_at(blur_fixture::width - 1, 3), 255);
 }
 
-TEST(ui_blur, the_scratch_is_one_rgba_pixel_per_pixel)
+TEST(ui_blur, the_scratch_holds_the_rect_and_a_margin_of_the_radius)
 {
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(2), lh_ui_scalar(3), lh_ui_scalar(20), lh_ui_scalar(10));
-    EXPECT_EQ(lh_ui_blur_scratch_size(lh_addr_of(rect)), 20u * 10u * 4u);
+    EXPECT_EQ(lh_ui_blur_scratch_size(lh_addr_of(rect), 0), 20u * 10u * 4u);
+    EXPECT_EQ(lh_ui_blur_scratch_size(lh_addr_of(rect), 3), 20u * (10u + 6u) * 4u);
 
     lh_ui_rect_init_empty(lh_addr_of(rect));
-    EXPECT_EQ(lh_ui_blur_scratch_size(lh_addr_of(rect)), 0u);
+    EXPECT_EQ(lh_ui_blur_scratch_size(lh_addr_of(rect), 3), 0u);
 }
 
 TEST(ui_blur, a_window_sums_and_gives_back_what_it_took)
@@ -192,7 +195,10 @@ TEST(ui_blur, a_window_sums_and_gives_back_what_it_took)
     lh_ui_color_init(&b, 50, 60, 70, 80);
     lh_ui_blur_window_take(&window, &a);
     lh_ui_blur_window_take(&window, &b);
-    EXPECT_EQ(lh_ui_blur_window_average(&window, 0, 2), 30);
+    /* (10*40 + 50*80 + 120/2) / 120. Straight 30 would be the green of a
+       transparent pixel leaking into the average; the weights are colour times
+       alpha, so this is not that. */
+    EXPECT_EQ(lh_ui_blur_window_average(&window, 0, 2), 37);
     EXPECT_EQ(lh_ui_blur_window_average(&window, 3, 2), 60);
 
     lh_ui_blur_window_drop(&window, &a);
@@ -277,4 +283,67 @@ TEST(ui_blur, the_picture_does_not_depend_on_what_follows_the_scratch)
         }
     }
     EXPECT_EQ(different, 0);
+}
+
+/* A transparent pixel keeps whatever colour was written into it. Averaging that
+ * colour straight paints it into the neighbours; premultiplying does not. */
+TEST(ui_blur, a_transparent_pixel_does_not_tint_its_neighbours)
+{
+    blur_fixture f;
+    lh_ui_rect_t rect;
+    lh_ui_color_t color;
+    int x;
+    int y;
+
+    for (y = 0; y < blur_fixture::height; ++y)
+    {
+        for (x = 0; x < blur_fixture::width; ++x)
+        {
+            lh_ui_color_init(&color, 200, 0, 0, 255);
+            f.words[y * blur_fixture::width + x] = lh_ui_color_get_argb(&color);
+        }
+    }
+    lh_ui_color_init(&color, 0, 255, 0, 0);
+    f.words[4 * blur_fixture::width + 8] = lh_ui_color_get_argb(&color);
+    lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar(blur_fixture::width),
+                    lh_ui_scalar(blur_fixture::height));
+    lh_ui_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_ui_scalar(1), f.scratch);
+
+    for (y = 3; y <= 5; ++y)
+    {
+        for (x = 7; x <= 9; ++x)
+        {
+            const lh_ui_color_t pixel = lh_ui_pixmap_get_pixel(lh_addr_of(f.pixmap), x, y);
+
+            EXPECT_EQ(lh_ui_color_get_g(&pixel), 0) << x << "," << y;
+        }
+    }
+}
+
+/* The window reaches past the rect into the pixmap. A bright pixel just outside
+ * has to move the edge of the rect, and must itself stay put: only the rect is
+ * written. */
+TEST(ui_blur, a_neighbour_outside_the_rect_still_counts)
+{
+    blur_fixture f;
+    lh_ui_rect_t rect;
+    lh_ui_color_t color;
+    int x;
+    int y;
+
+    for (y = 0; y < blur_fixture::height; ++y)
+    {
+        for (x = 0; x < blur_fixture::width; ++x)
+        {
+            lh_ui_color_init(&color, 0, 0, 0, 255);
+            f.words[y * blur_fixture::width + x] = lh_ui_color_get_argb(&color);
+        }
+    }
+    lh_ui_color_init(&color, 255, 255, 255, 255);
+    f.words[3 * blur_fixture::width + 1] = lh_ui_color_get_argb(&color);
+    lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(3), lh_ui_scalar(2), lh_ui_scalar(8), lh_ui_scalar(4));
+    lh_ui_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_ui_scalar(2), f.scratch);
+
+    EXPECT_EQ(f.red_at(1, 3), 255);
+    EXPECT_GT(f.red_at(3, 3), 0);
 }

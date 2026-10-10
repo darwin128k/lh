@@ -56,6 +56,9 @@ lh_os_window_init(lh_os_window_t *self)
     self->paint_top = 0;
     self->paint_right = 0;
     self->paint_bottom = 0;
+    self->on_tick = lh_null;
+    self->on_tick_context = lh_null;
+    self->tick_ms = 0U;
     self->on_paint = lh_null;
     self->on_paint_context = lh_null;
     self->on_press = lh_null;
@@ -97,6 +100,12 @@ lh_os_window_open(lh_os_app_t *app, lh_os_window_t *self, const lh_char_t *title
     self->app = app;
     self->parent = lh_null;
     self->modal = lh_bool_false;
+    /* A period asked for **before** the window existed is armed here, so that where the
+       call sits does not decide whether it works. A period of `0` is not a timer. */
+    if (self->tick_ms != 0U)
+    {
+        lh_os_system_window_set_timer(self->handle, self->tick_ms);
+    }
     /* First open becomes main (index 0); later opens append. */
     lh_list_push_back(lh_addr_of(app->windows), lh_addr_of(self->link));
     return lh_bool_true;
@@ -261,6 +270,38 @@ lh_os_window_set_on_click(lh_os_window_t *self, lh_os_window_on_click_cb on_clic
     self->on_click_context = context;
 }
 
+lh_void
+lh_os_window_set_on_tick(lh_os_window_t *self, lh_os_window_on_tick_cb on_tick, lh_ptr context,
+                         lh_u32_t ms)
+{
+    lh_assert_runtime_ref(self);
+    self->on_tick = on_tick;
+    self->on_tick_context = context;
+    self->tick_ms = ms;
+    /* A timer asked for before the window exists is kept as the **period** and armed on
+       open, the same way `frame` and `placement` are read at creation. A timer asked
+       for after is armed now. Anything else makes the call's position decide whether it
+       works, which is a thing an app has to remember about every call it makes. */
+    lh_return_if(!lh_os_system_window_is_valid(self->handle));
+    lh_os_system_window_set_timer(self->handle, ms);
+}
+
+lh_void
+lh_os_window_on_native_tick(lh_os_window_t *self)
+{
+    lh_os_window_on_tick_cb on_tick;
+    lh_ptr context;
+
+    lh_assert_runtime_ref(self);
+    on_tick = self->on_tick;
+    /* Read the pair before the call and not after: a tick that stops its own timer -- or
+       that stops it and starts it at another period -- would otherwise be talking about
+       a slot the callback had already been replaced in. */
+    context = self->on_tick_context;
+    lh_return_if(lh_null_eq(lh_ptr_rcast(lh_void, on_tick)));
+    on_tick(self, context);
+}
+
 lh_ptr
 lh_os_window_get_paint_dc(const lh_os_window_t *self)
 {
@@ -319,6 +360,18 @@ lh_os_window_close(lh_os_window_t *self)
     lh_os_window_t *child;
 
     lh_assert_runtime_ref(self);
+    /* The timer stops with the window, and not on the way out of the native one alone:
+       a window that is closed and reopened from the same struct must not come back with
+       the timer it had before, ticking into an app that has already put the session
+       away. The native side kills it on destroy; this makes the **period** zero too, so
+       an open that follows is not a window that starts ticking by itself. */
+#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+    if (lh_os_system_window_is_valid(self->handle))
+    {
+        lh_os_system_window_set_timer(self->handle, 0U);
+    }
+#endif
+    self->tick_ms = 0U;
     for (;;)
     {
         child = lh_os_window_get_first_child(self);

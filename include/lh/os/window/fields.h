@@ -9,6 +9,7 @@
 #include <lh/bool.h>
 #include <lh/list.h>
 #include <lh/list/node.h>
+#include <lh/numeric/types.h>
 #include <lh/os/window/frame.h>
 #include <lh/os/window/on/click/cb.h>
 #include <lh/os/window/on/close/cb.h>
@@ -20,6 +21,7 @@
 #include <lh/os/window/on/zone/cb.h>
 #include <lh/os/window/on/key/cb.h>
 #include <lh/os/window/on/text/cb.h>
+#include <lh/os/window/on/tick/cb.h>
 #include <lh/os/window/on/wheel/cb.h>
 #include <lh/os/window/placement.h>
 #include <lh/ptr.h>
@@ -46,6 +48,12 @@
  * Click synthesis (press then release without a drag) lives above the OS:
  * the backend fires press / move / release / wheel / key / text; ::lh_os_window_on_click
  * stays for callers that still wire it.
+ *
+ * `on_tick` and `tick_ms` are the window's timer: `tick_ms` is the period the window
+ * system was asked for and `0` means no timer is running. It exists because an app
+ * that polls something has to be told to come back, and the only thing that comes back
+ * on its own is a paint -- and work done inside a paint can only ask for the **next**
+ * one, which is a spin, not a schedule. See ::lh_os_window_set_on_tick.
  *
  * @param handle_type Type of `handle` (::lh_os_system_window_handle_t).
  * @param app_type    Type of the owning app pointer (::lh_os_app_t).
@@ -89,6 +97,9 @@
     lh_os_window_on_click_cb on_click;                                                              \
     lh_ptr on_click_context;                                                                        \
     lh_os_window_on_close_cb on_close;                                                              \
-    lh_ptr on_close_context
+    lh_ptr on_close_context;                                                                        \
+    lh_os_window_on_tick_cb on_tick;                                                                \
+    lh_ptr on_tick_context;                                                                         \
+    lh_u32_t tick_ms
 
 #endif /* LH_OS_WINDOW_FIELDS_H */
