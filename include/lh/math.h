@@ -46,6 +46,13 @@
 #    include <lh/math/vec4.h>
 #endif
 
+/* Integer-only, and free of the operator macros defined below, so they can sit
+   here. math/floor.h needs those macros and therefore includes this header —
+   pulling it in from here would close a cycle, so floor stays out until the
+   macros move to their own header. */
+#include <lh/math/isqrt.h>
+#include <lh/math/rescale.h>
+
 
 /* ── arithmetic ────────────────────────────────────────────────────────── */
 

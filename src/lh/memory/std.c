@@ -1092,6 +1092,69 @@ lh_memory_std_copy_simd_dispatch(lh_byte_t *dst, const lh_byte_t *src, lh_usize_
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
 lh_ptr
+lh_memory_std_copy_words(lh_ptr dst, const lh_ptr src, lh_usize_t n)
+{
+    const lh_usize_t w = sizeof(lh_usize_t);
+    lh_byte_t *d = lh_ptr_cast(lh_byte_t, dst);
+    const lh_byte_t *s = lh_ptr_ccast(lh_byte_t, src);
+
+    /* The two pointers advance together, so stepping one byte at a time until
+       each sits on a word boundary aligns the source and the destination in the
+       same pass — neither is ever touched through a misaligned pointer, which is
+       the access a strict-alignment target faults on. */
+    while (n > 0U && ((lh_ptr_to_uaddr(d) % w) != 0U || (lh_ptr_to_uaddr(s) % w) != 0U))
+    {
+        *d++ = *s++;
+        --n;
+    }
+
+    while (n >= w)
+    {
+        *lh_ptr_rcast(lh_usize_t, d) = *lh_ptr_rcast(const lh_usize_t, s);
+        d += w;
+        s += w;
+        n -= w;
+    }
+
+    while (n > 0U)
+    {
+        *d++ = *s++;
+        --n;
+    }
+
+    return lh_ptr_cast(lh_void, d);
+}
+
+lh_ptr
+lh_memory_std_fill_words(lh_ptr dst, lh_usize_t word, lh_usize_t n)
+{
+    const lh_usize_t w = sizeof(lh_usize_t);
+    const lh_byte_t byte = lh_cast_static(lh_byte_t, word);
+    lh_byte_t *d = lh_ptr_cast(lh_byte_t, dst);
+
+    while (n > 0U && (lh_ptr_to_uaddr(d) % w) != 0U)
+    {
+        *d++ = byte;
+        --n;
+    }
+
+    while (n >= w)
+    {
+        *lh_ptr_rcast(lh_usize_t, d) = word;
+        d += w;
+        n -= w;
+    }
+
+    while (n > 0U)
+    {
+        *d++ = byte;
+        --n;
+    }
+
+    return lh_ptr_cast(lh_void, d);
+}
+
+lh_ptr
 lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 {
     lh_assert_runtime_ref(dst);
@@ -1197,7 +1260,11 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
         lh_memory_std_copy_bytes(lh_ptr_cast(lh_byte_t, dst), lh_ptr_ccast(lh_byte_t, src), n);
     }
 #else
-    lh_memory_std_copy_bytes(lh_ptr_cast(lh_byte_t, dst), lh_ptr_ccast(lh_byte_t, src), n);
+    /* No vector unit and no REP MOVSB on this target — the portable word kernel
+       is the floor, not a byte loop. It is the same code the vector tiers are
+       measured against, so a non-x86 build is not left an order of magnitude
+       behind simply by lacking intrinsics. */
+    (void)lh_memory_std_copy_words(dst, src, n);
 #endif
 
     return end;

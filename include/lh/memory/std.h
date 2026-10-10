@@ -45,6 +45,45 @@ lh_ptr
 lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n);
 
 /**
+ * @brief Portable word-granular copy: moves one ::lh_usize_t at a time, with a
+ *        byte head and a byte tail.
+ *
+ * This is the libc-free primitive every tier is allowed to be built on, and the
+ * one that runs when no vector unit was compiled in. Unlike
+ * ::lh_memory_std_copy it never dispatches, so it costs the same everywhere.
+ *
+ * Source and destination must not overlap.
+ *
+ * Both pointers are stepped in lockstep until each sits on a ::lh_usize_t
+ * boundary, so neither is ever read or written through a misaligned pointer —
+ * that is the access a strict-alignment target faults on.
+ *
+ * @param dst Start of the destination range (length @p n bytes).
+ * @param src Source buffer.
+ * @param n   Number of bytes to copy.
+ *
+ * @return Pointer one past the last byte written (i.e. `dst + n` as an untyped pointer).
+ */
+lh_ptr
+lh_memory_std_copy_words(lh_ptr dst, const lh_ptr src, lh_usize_t n);
+
+/**
+ * @brief Portable word-granular fill: writes a repeated ::lh_usize_t pattern.
+ *
+ * The same shape as ::lh_memory_std_copy_words — byte head, word body, byte tail
+ * — and the same reason for it. @p word is broadcast, so filling with the word
+ * whose every byte is the wanted value writes that value across the range.
+ *
+ * @param dst   Start of the destination range (length @p n bytes).
+ * @param word  Word repeated over the range; use @c 0 to zero-fill.
+ * @param n     Number of bytes to write.
+ *
+ * @return Pointer one past the last byte written (i.e. `dst + n` as an untyped pointer).
+ */
+lh_ptr
+lh_memory_std_fill_words(lh_ptr dst, lh_usize_t word, lh_usize_t n);
+
+/**
  * @brief Copy @p n bytes from @p src to @p dst while reversing byte order in the destination range.
  *
  * The first byte read from @p src is stored at the highest address of the @p n-byte destination

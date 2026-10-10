@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <lh/expect/death.h>
 #include <lh/null.h>
 #include <lh/ui/pixmap.h>
 #include <lh/ui/scalar.h>
@@ -53,6 +54,8 @@ TEST(surface, the_format_decides_the_pixmap_under_it)
     lh_ui_surface_deinit(lh_addr_of(surface));
 }
 
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
 /* A swapped word order is for a controller on the way out, not for a buffer this
    side draws into: over native-order words every pixel would read as a different
    colour. Asking for it here is the caller's mistake, not a quiet one. */
@@ -62,12 +65,14 @@ TEST(surface, a_swapped_format_is_not_something_to_draw_into)
     lh_ui_size_t size;
 
     lh_ui_surface_init(lh_addr_of(surface));
-    EXPECT_DEATH(lh_ui_surface_set_format(lh_addr_of(surface), lh_ui_pixmap_format_rgb565_swapped), "");
+    LH_EXPECT_DEATH(lh_ui_surface_set_format(lh_addr_of(surface), lh_ui_pixmap_format_rgb565_swapped));
     lh_ui_size_init(lh_addr_of(size), lh_ui_scalar(8), lh_ui_scalar(8));
     (void)lh_ui_surface_set_size(lh_addr_of(surface), size);
     /* And a live buffer keeps its format: a frame drawn in two is not a frame. */
-    EXPECT_DEATH(lh_ui_surface_set_format(lh_addr_of(surface), lh_ui_pixmap_format_rgb565), "");
+    LH_EXPECT_DEATH(lh_ui_surface_set_format(lh_addr_of(surface), lh_ui_pixmap_format_rgb565));
     lh_ui_surface_deinit(lh_addr_of(surface));
 }
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 } // namespace
