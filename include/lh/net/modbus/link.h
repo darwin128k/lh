@@ -192,6 +192,10 @@ typedef struct lh_mb_link
     lh_mb_framing_t framing;
     lh_u8_t unit;
     lh_u8_t fc;
+    /** @brief The function code of the question in flight: ::fc for a read,
+     *  ::LH_MB_FC_WRITE_MANY for a write. The answer is read by this and not by
+     *  ::fc, because a write does not change what the link reads next. */
+    lh_u8_t asked_fc;
     lh_u8_t state;
     /** @brief Why the last poll ended the way it did, as a ::lh_mb_status_t.
      *
@@ -295,6 +299,20 @@ lh_mb_link_open(lh_mb_link_t *self, const lh_char_t *target, lh_u16_t port);
  */
 lh_bool_t
 lh_mb_link_ask(lh_mb_link_t *self, lh_u16_t address, lh_u16_t count);
+
+/**
+ * @brief Write @p count registers from @p values at @p address ("write many
+ *        registers", ::LH_MB_FC_WRITE_MANY), if nothing else is in flight.
+ *
+ * The same one-question-at-a-time rule as ::lh_mb_link_ask, and the same answer path:
+ * ::lh_mb_link_poll says when the device has confirmed it, and an answered write
+ * carries no values (::lh_mb_link_take gives a count of 0). A refusal is a
+ * ::lh_mb_status_exception in ::lh_mb_link_t.reason, as for a read.
+ *
+ * @return Whether the request went out.
+ */
+lh_bool_t
+lh_mb_link_write(lh_mb_link_t *self, lh_u16_t address, const lh_u16_t *values, lh_u16_t count);
 
 /**
  * @brief Look for an answer without waiting for one.
