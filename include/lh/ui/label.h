@@ -20,13 +20,18 @@
 #include <lh/bool.h>
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/numeric/fixed/types.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/color.h>
 #include <lh/ui/container.h>
 #include <lh/ui/label/fields.h>
 #include <lh/ui/font.h>
+#include <lh/ui/insets.h>
 #include <lh/ui/point.h>
 #include <lh/ui/rect.h>
+#include <lh/ui/scalar.h>
+#include <lh/ui/size.h>
+#include <lh/ui/text/align.h>
 #include <lh/void.h>
 
 /**
@@ -141,10 +146,24 @@ lh_ui_label_get_text(const lh_ui_label_t *self);
 /**
  * @brief Point @p self at @p text. @p text is not copied.
  *
- * ::lh_null clears the text.
+ * ::lh_null clears the text. The same bytes again record nothing: a poll that
+ * rewrites a cell with the number it already shows does not ask the window to
+ * paint it. The bytes are told apart by a hash, because the caller may
+ * overwrite the buffer @p self already points at before this call, and the
+ * previous bytes are gone by then.
  */
 lh_void
 lh_ui_label_set_text(lh_ui_label_t *self, const lh_char_t *text);
+
+/**
+ * @brief Forget the remembered ink of @p self.
+ *
+ * A field edits its buffer in place and never calls ::lh_ui_label_set_text,
+ * because the label already points at that buffer. The next draw measures
+ * again.
+ */
+lh_void
+lh_ui_label_drop_metrics(lh_ui_label_t *self);
 
 /**
  * @brief Font of the style of @p self, or ::lh_null (no style or no font).

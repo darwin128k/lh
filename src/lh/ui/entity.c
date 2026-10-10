@@ -11,9 +11,13 @@
 #include <lh/runtime/error/code.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/entity.h>
+#include <lh/ui/insets.h>
+#include <lh/ui/paint.h>
 #include <lh/ui/point.h>
 #include <lh/ui/shadow.h>
+#include <lh/ui/size.h>
 #include <lh/ui/style.h>
+#include <lh/ui/view.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
@@ -28,6 +32,7 @@ lh_ui_entity_init(lh_ui_entity_t *self, lh_ui_rect_t rect)
     self->hidden = lh_bool_false;
     self->pressed = lh_bool_false;
     self->parent = lh_null;
+    self->view = lh_null;
     lh_ui_place_init(lh_addr_of(self->place), lh_ui_place_size_fixed, lh_ui_scalar(0));
     lh_list_init(lh_addr_of(self->children));
     lh_list_node_init(lh_addr_of(self->link));
@@ -59,7 +64,12 @@ lh_void
 lh_ui_entity_set_rect(lh_ui_entity_t *self, lh_ui_rect_t rect)
 {
     lh_assert_runtime_ref(self);
+    /* The same rect is what a layout writes on every poll. Recording it would
+       paint the whole table to put each row back where it already is. */
+    lh_return_if(lh_ui_rect_eq(lh_addr_of(self->rect), lh_addr_of(rect)));
+    lh_ui_entity_note(self);
     self->rect = rect;
+    lh_ui_entity_note(self);
 }
 
 const lh_ui_style_t *
@@ -73,7 +83,13 @@ lh_void
 lh_ui_entity_set_style(lh_ui_entity_t *self, const lh_ui_style_t *style)
 {
     lh_assert_runtime_ref(self);
+    /* A shared style switched to itself is the steady state of a card that was
+       already selected. Both looks are recorded: a shadow that only the old
+       one casts would otherwise stay on the surface. */
+    lh_return_if(self->style == style);
+    lh_ui_entity_note(self);
     self->style = style;
+    lh_ui_entity_note(self);
 }
 
 const lh_ui_color_t *
@@ -185,12 +201,15 @@ lh_ui_entity_move_by(lh_ui_entity_t *self, lh_ui_scalar_t dx, lh_ui_scalar_t dy)
     lh_ui_entity_t *child;
 
     lh_assert_runtime_ref(self);
+    lh_return_if(dx == lh_ui_scalar(0) && dy == lh_ui_scalar(0));
+    lh_ui_entity_note(self);
     self->rect = lh_ui_rect_offset(lh_addr_of(self->rect), dx, dy);
     for (child = lh_ui_entity_get_first_child(self); lh_null_ne(child);
          child = lh_ui_entity_get_next_child(self, child))
     {
         lh_ui_entity_move_by(child, dx, dy);
     }
+    lh_ui_entity_note(self);
 }
 
 lh_void
@@ -213,7 +232,63 @@ lh_void
 lh_ui_entity_set_hidden(lh_ui_entity_t *self, lh_bool_t hidden)
 {
     lh_assert_runtime_ref(self);
+    lh_return_if(self->hidden == hidden);
+    /* Hide records the rect that is still on screen. Show records the rect
+       that is about to be: noting a hidden node is a no
+       (::lh_ui_entity_note), so the flag has to change first. */
+    if (hidden)
+    {
+        lh_ui_entity_note(self);
+        self->hidden = hidden;
+        return;
+    }
     self->hidden = hidden;
+    lh_ui_entity_note(self);
+}
+
+static lh_bool_t
+lh_ui_entity_chain_shown(const lh_ui_entity_t *self)
+{
+    const lh_ui_entity_t *walk;
+
+    for (walk = self; lh_null_ne(walk); walk = walk->parent)
+    {
+        if (walk->hidden)
+        {
+            return lh_bool_false;
+        }
+    }
+    return lh_bool_true;
+}
+
+static struct lh_ui_view *
+lh_ui_entity_own_view(const lh_ui_entity_t *self)
+{
+    const lh_ui_entity_t *top = self;
+
+    while (lh_null_ne(top->parent))
+    {
+        top = top->parent;
+    }
+    return top->view;
+}
+
+lh_void
+lh_ui_entity_note(const lh_ui_entity_t *self)
+{
+    struct lh_ui_view *view;
+    lh_ui_rect_t rect;
+    lh_ui_point_t offset;
+
+    lh_return_if(lh_null_eq(self));
+    lh_return_if(!lh_ui_entity_chain_shown(self));
+    view = lh_ui_entity_own_view(self);
+    lh_return_if(lh_null_eq(view));
+    rect = lh_ui_entity_get_painted_rect(self);
+    offset = lh_ui_entity_get_root_offset(self);
+    rect = lh_ui_rect_offset(lh_addr_of(rect), lh_ui_point_get_x(lh_addr_of(offset)),
+                             lh_ui_point_get_y(lh_addr_of(offset)));
+    lh_ui_view_add_damage(view, lh_addr_of(rect));
 }
 
 lh_ui_entity_t *
@@ -731,12 +806,90 @@ lh_ui_entity_draw_self(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
     lh_ui_entity_send(self, lh_ui_entity_event_draw, canvas);
 }
 
+static lh_void
+lh_ui_entity_fill_edge(lh_ui_canvas_t *canvas, lh_ui_scalar_t x, lh_ui_scalar_t y, lh_ui_scalar_t width,
+                       lh_ui_scalar_t height, const lh_ui_color_t *color)
+{
+    lh_ui_rect_t strip;
+
+    lh_return_if(width <= lh_ui_scalar(0) || height <= lh_ui_scalar(0));
+    lh_ui_rect_init(lh_addr_of(strip), x, y, width, height);
+    lh_ui_canvas_fill_rect(canvas, lh_addr_of(strip), color);
+}
+
+/* The edge is a straight strip, not a stroke that follows the radius. The rows
+   it replaces were filled rectangles one pixel tall laid across the box, and a
+   rounded card's top pixel was already that strip sitting on the arc. */
+static lh_void
+lh_ui_entity_draw_border(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
+{
+    const lh_ui_style_t *style;
+    const lh_ui_color_t *color;
+    const lh_ui_insets_t *border;
+    const lh_ui_point_t *origin;
+    const lh_ui_size_t *size;
+    lh_ui_rect_t rect;
+    lh_ui_scalar_t x;
+    lh_ui_scalar_t y;
+    lh_ui_scalar_t width;
+    lh_ui_scalar_t height;
+    lh_ui_scalar_t left;
+    lh_ui_scalar_t top;
+    lh_ui_scalar_t right;
+    lh_ui_scalar_t bottom;
+
+    lh_return_if(lh_null_eq(canvas));
+    style = lh_ui_entity_get_style_now(self);
+    lh_return_if(lh_null_eq(style));
+    border = lh_ui_style_get_border(style);
+    left = border->left;
+    top = border->top;
+    right = border->right;
+    bottom = border->bottom;
+    lh_return_if(left <= lh_ui_scalar(0) && top <= lh_ui_scalar(0) && right <= lh_ui_scalar(0) &&
+                 bottom <= lh_ui_scalar(0));
+    color = lh_ui_paint_get_color(lh_ui_style_get_border_fill(style));
+    lh_return_if(lh_null_eq(color));
+    rect = lh_ui_entity_get_rect(self);
+    origin = lh_ui_rect_get_origin_as_const(lh_addr_of(rect));
+    size = lh_ui_rect_get_size_as_const(lh_addr_of(rect));
+    x = lh_ui_point_get_x(origin);
+    y = lh_ui_point_get_y(origin);
+    width = lh_ui_size_get_width(size);
+    height = lh_ui_size_get_height(size);
+    if (top > height)
+    {
+        top = height;
+    }
+    if (bottom > height - top)
+    {
+        bottom = height - top;
+    }
+    if (left > width)
+    {
+        left = width;
+    }
+    if (right > width - left)
+    {
+        right = width - left;
+    }
+    lh_ui_entity_fill_edge(canvas, x, y, width, top, color);
+    lh_ui_entity_fill_edge(canvas, x, y + height - bottom, width, bottom, color);
+    lh_ui_entity_fill_edge(canvas, x, y + top, left, height - top - bottom, color);
+    lh_ui_entity_fill_edge(canvas, x + width - right, y + top, right, height - top - bottom, color);
+}
+
 lh_void
 lh_ui_entity_draw(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
 {
     lh_return_if(!lh_ui_entity_is_shown(self));
     lh_ui_entity_draw_self(self, canvas);
     lh_ui_entity_draw_children(self, canvas);
+    /* After the children, and after their clip has been popped. A row's bottom
+       edge is the line under its letters, and the letters are children: drawn
+       with the fill it would sit underneath them. */
+    lh_return_if(!lh_ui_entity_shows_on(self, canvas));
+    lh_ui_entity_draw_border(self, canvas);
 }
 
 lh_void

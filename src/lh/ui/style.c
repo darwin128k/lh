@@ -6,6 +6,7 @@
 #include <lh/assert/runtime.h>
 #include <lh/null.h>
 #include <lh/runtime/error/code.h>
+#include <lh/ui/insets.h>
 #include <lh/ui/style.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -28,6 +29,11 @@ lh_ui_style_init(lh_ui_style_t *self)
     self->align_h = lh_ui_text_align_h_left;
     self->align_v = lh_ui_text_align_v_top;
     lh_ui_shadow_init(lh_addr_of(self->shadow));
+    /* No edge until a caller asks for one. A style that grew a border and
+       painted it on every existing widget would put a line on things that
+       were square on purpose. */
+    lh_ui_insets_init_all(lh_addr_of(self->border), lh_ui_scalar(0));
+    lh_ui_paint_init(lh_addr_of(self->border_fill));
     self->pressed = lh_null;
 }
 
@@ -201,4 +207,40 @@ lh_ui_style_set_pressed(lh_ui_style_t *self, const lh_ui_style_t *pressed)
 {
     lh_assert_runtime_ref(self);
     self->pressed = pressed;
+}
+
+const lh_ui_insets_t *
+lh_ui_style_get_border(const lh_ui_style_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->border);
+}
+
+lh_void
+lh_ui_style_set_border(lh_ui_style_t *self, const lh_ui_insets_t *border)
+{
+    lh_assert_runtime_ref(self);
+    if (lh_null_eq(border))
+    {
+        lh_ui_insets_init_all(lh_addr_of(self->border), lh_ui_scalar(0));
+        return;
+    }
+    lh_assert_runtime_if(border->left < lh_ui_scalar(0) || border->top < lh_ui_scalar(0) ||
+                             border->right < lh_ui_scalar(0) || border->bottom < lh_ui_scalar(0),
+                         lh_runtime_error_code_invalid_argument);
+    self->border = *border;
+}
+
+const lh_ui_paint_t *
+lh_ui_style_get_border_fill(const lh_ui_style_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->border_fill);
+}
+
+lh_void
+lh_ui_style_set_border_fill(lh_ui_style_t *self, const lh_ui_paint_t *fill)
+{
+    lh_assert_runtime_ref(self);
+    lh_ui_paint_init_copy(lh_addr_of(self->border_fill), fill);
 }

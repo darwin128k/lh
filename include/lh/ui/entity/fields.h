@@ -6,6 +6,8 @@
 #ifndef LH_UI_ENTITY_FIELDS_H
 #define LH_UI_ENTITY_FIELDS_H
 
+struct lh_ui_view;
+
 #include <lh/compiler/cxx.h>
 #include <lh/list.h>
 #include <lh/list/node.h>
@@ -23,8 +25,11 @@
  * is doing on it right now, kept by the view
  * (::lh_ui_view_press / ::lh_ui_view_release): it paints the pressed style of
  * ::lh_ui_style_t when there is one, and changes nothing about the entity.
- * `parent` is ::lh_null for a root. In C++ the class member is `klass` (`class`
- * is a keyword).
+ * `parent` is ::lh_null for a root. `view` is set on that root by
+ * ::lh_ui_view_set_root and is ::lh_null everywhere else: a setter that changes
+ * what is on screen walks up to it and records one rect
+ * (::lh_ui_entity_note). In C++ the class member is `klass` (`class` is a
+ * keyword).
  *
  * @param rect_type   Type of the area.
  * @param style_type  Type of the paint recipe pointed at.
@@ -41,6 +46,7 @@
         bool_type hidden;                                                                           \
         bool_type pressed;                                                                          \
         entity_type *parent;                                                                        \
+        struct lh_ui_view *view;                                                                    \
         place_type place;                                                                            \
         lh_list_t children;                                                                         \
         lh_list_node_t link
@@ -52,6 +58,7 @@
         bool_type hidden;                                                                           \
         bool_type pressed;                                                                          \
         entity_type *parent;                                                                        \
+        struct lh_ui_view *view;                                                                    \
         place_type place;                                                                            \
         lh_list_t children;                                                                         \
         lh_list_node_t link

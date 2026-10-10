@@ -120,6 +120,21 @@ lh_void
 lh_ui_view_set_root(lh_ui_view_t *self, lh_ui_entity_t *root);
 
 /**
+ * @brief Union @p rect (root space) into the one rect the window has yet to
+ *        paint. An empty rect is ignored.
+ */
+lh_void
+lh_ui_view_add_damage(lh_ui_view_t *self, const lh_ui_rect_t *rect);
+
+/**
+ * @brief Hand back the rect ::lh_ui_view_add_damage has collected and clear it.
+ *
+ * False when nothing has been recorded, and @p out is left untouched then.
+ */
+lh_bool_t
+lh_ui_view_take_damage(lh_ui_view_t *self, lh_ui_rect_t *out);
+
+/**
  * @brief Root entity of @p self, or ::lh_null.
  */
 lh_ui_entity_t *

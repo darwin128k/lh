@@ -8,7 +8,8 @@
  * the same. `pressed` is the one style that is chosen rather than shared: an
  * entity that is pressed paints it instead (::lh_ui_entity_is_pressed), and it
  * may change how the entity looks — fill, radius, shadow, text paint — not its
- * geometry. Outline and the rest come later.
+ * geometry. `border` is a straight edge painted after the children, in
+ * `border_fill`.
  */
 
 #ifndef LH_UI_STYLE_H
@@ -221,6 +222,34 @@ lh_ui_style_get_pressed(const lh_ui_style_t *self);
  */
 lh_void
 lh_ui_style_set_pressed(lh_ui_style_t *self, const lh_ui_style_t *pressed);
+
+/**
+ * @brief How far each edge of @p self paints. Zero on a side paints nothing
+ *        there.
+ */
+const lh_ui_insets_t *
+lh_ui_style_get_border(const lh_ui_style_t *self);
+
+/**
+ * @brief Replace the border widths of @p self. A side must not be negative.
+ *        ::lh_null clears every side to 0.
+ */
+lh_void
+lh_ui_style_set_border(lh_ui_style_t *self, const lh_ui_insets_t *border);
+
+/**
+ * @brief Paint the border is drawn in. Never ::lh_null; may be empty, and an
+ *        empty paint draws no border.
+ */
+const lh_ui_paint_t *
+lh_ui_style_get_border_fill(const lh_ui_style_t *self);
+
+/**
+ * @brief Replace the border paint of @p self with a copy of @p fill.
+ *        ::lh_null clears it to the empty paint.
+ */
+lh_void
+lh_ui_style_set_border_fill(lh_ui_style_t *self, const lh_ui_paint_t *fill);
 
 LH_COMPILER_EXTERN_C_END
 

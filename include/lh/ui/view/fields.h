@@ -38,6 +38,11 @@
  * gliding after a release. `focus`: keys go here.
  * `whole`: regions a frame reads pixels of (::lh_ui_view_add_whole_area), and
  * `whole_count` how many are in use.
+ * `pending` is the one rect a setter, a press or a scroll has asked the window
+ * to paint again (::lh_ui_view_add_damage). `has_pending` is false when nothing
+ * has, and ::lh_ui_view_take_damage hands the rect to the window and clears it.
+ * It is not the canvas damage: that one is what the frame just drew, and the
+ * frame resets it.
  *
  * @param canvas_type Type of ::lh_ui_canvas_t.
  * @param entity_type Pointer type of ::lh_ui_entity_t.
@@ -62,6 +67,8 @@
     lh_ui_container_t *throwing;                                                             \
     entity_type *focus;                                                                             \
     rect_type whole[LH_UI_VIEW_WHOLE_MAX];                                                          \
-    lh_ui_scalar_t whole_count
+    lh_ui_scalar_t whole_count;                                                                     \
+    rect_type pending;                                                                              \
+    lh_bool_t has_pending
 
 #endif /* LH_UI_VIEW_FIELDS_H */

@@ -16,7 +16,10 @@
  * its rect, which is what a finger aims at). `padding` keeps content (a label's
  * text, a layout's children) that far inside the rect, per side. `font` (not owned, may be ::lh_null)
  * and `text` (a paint by value; empty = no text) are how text is drawn, and
- * `align_h` / `align_v` are where inside the padded box it starts. `shadow` is
+ * `align_h` / `align_v` are where inside the padded box it starts. `border` is
+ * how many rows each edge paints in `border_fill` after the children (0, and an
+ * empty paint, paint nothing): a 1px line under a row is that edge, not an
+ * entity of its own. `shadow` is
  * cast by the fill before it (the empty one casts nothing), and `pressed` is
  * the style in effect while the entity is pressed (not owned, ::lh_null = it
  * looks the same either way). The style itself is what several entities share.
@@ -37,6 +40,8 @@
     lh_ui_text_align_h_t align_h;                                                                   \
     lh_ui_text_align_v_t align_v;                                                                  \
     shadow_type shadow;                                                                             \
+    insets_type border;                                                                             \
+    paint_type border_fill;                                                                        \
     const struct lh_ui_style *pressed
 
 #endif /* LH_UI_STYLE_FIELDS_H */

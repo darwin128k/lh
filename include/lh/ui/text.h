@@ -213,6 +213,17 @@ lh_void
 lh_ui_text_draw(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin,
                 const lh_ui_color_t *color);
 
+/**
+ * @brief ::lh_ui_text_draw with the ink shift already known.
+ *
+ * @p ink_top is what ::lh_ui_text_get_ink_top would return. A label that has
+ * remembered it (::lh_ui_label_get_text_origin) draws without walking the
+ * string to find it again. The pixels are the same as ::lh_ui_text_draw.
+ */
+lh_void
+lh_ui_text_draw_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text,
+                     lh_ui_point_t origin, const lh_ui_color_t *color, lh_ui_scalar_t ink_top);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_TEXT_H */
