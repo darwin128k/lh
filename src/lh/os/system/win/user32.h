@@ -230,6 +230,7 @@ typedef struct lh_os_system_win_createstructa lh_os_system_win_createstructa_t;
 /* Messages. Present since Windows 95 unless noted. */
 #define LH_OS_SYSTEM_WIN_WM_DESTROY 0x0002U
 #define LH_OS_SYSTEM_WIN_WM_PAINT 0x000FU
+#define LH_OS_SYSTEM_WIN_WM_TIMER 0x0113U
 #define LH_OS_SYSTEM_WIN_WM_ERASEBKGND 0x0014U
 #define LH_OS_SYSTEM_WIN_WM_NCCREATE 0x0081U
 #define LH_OS_SYSTEM_WIN_WM_NCHITTEST 0x0084U
@@ -329,6 +330,19 @@ EndPaint(lh_os_system_win_hwnd_t hWnd, const lh_os_system_win_paintstruct_t *lpP
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_hwnd_t LH_OS_SYSTEM_WIN_CALL
 SetCapture(lh_os_system_win_hwnd_t hWnd);
+
+/* Timers. Present since Windows 95. `SetTimer` returns the new timer id, and returns 0
+   when the timer could not be made -- which is why the caller has to check it rather
+   than trust a window that has simply gone quiet. `lpTimerFunc` is NULL here because
+   the callback is a message, not a function: a window that wants to be called back is
+   sent WM_TIMER and the WndProc dispatches it, which is the only arrangement that keeps
+   every callback on one thread. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_uintptr_t LH_OS_SYSTEM_WIN_CALL
+SetTimer(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_uintptr_t nIDEvent,
+         lh_os_system_win_uint_t uElapse, lh_ptr lpTimerFunc);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+KillTimer(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_uintptr_t nIDEvent);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 ReleaseCapture(lh_void);

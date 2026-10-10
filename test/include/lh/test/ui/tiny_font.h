@@ -1,16 +1,24 @@
 /**
  * @file tiny_font.h
  * @brief Test helpers: a three-glyph font with known pixels, tops and advances,
- *        and a second one whose three metrics are three different numbers.
+ *        a second one whose three metrics are three different numbers, and a third
+ *        that has a hole in the middle of its coverage.
  *
  * Codes 'A', 'B', 'C' at 1 bpp. Line height 2, ascent 2 (baseline at the
- * bottom of the line), cap height 2 (the same two rows 'A' rises). 'A' is a
- * full 2 x 2 square, advance 3, top -2. 'B' is
+ * bottom of the line), cap height 2 (the same two rows 'A' rises). 'A' is
+ * a full 2 x 2 square, advance 3, top -2. 'B' is
  * a single top-left pixel cropped to 1 x 1, advance 4, top -2. 'C' has no
  * ink: a zero-size mask, advance 2, top 0. Every other code has no glyph.
  *
  * ::lh_test::cap_font is the second font, and the reason it exists is written
  * where it is defined: the three metrics of this one are all the same number.
+ *
+ * ::lh_test::split_font is the third, and it exists because of what a font **cannot**
+ * say. A coverage that is one run with a first code and a count cannot hold 'X'..'Z'
+ * as well as 'A'..'C' without every letter between them, so every test of "a code no
+ * range covers has no glyph" passed against a font that had no way to have two runs at
+ * all. Cyrillic is what made the format change: `U+0400` is a thousand codes above the
+ * space, and the gap between them is not something a byte can skip.
  */
 
 #ifndef LH_TEST_UI_TINY_FONT_H
@@ -19,6 +27,7 @@
 #include <lh/byte.h>
 #include <lh/null.h>
 #include <lh/ui/font.h>
+#include <lh/ui/font/range.h>
 #include <lh/ui/mask.h>
 #include <lh/util/addr.h>
 
@@ -37,11 +46,14 @@ tiny_font()
     };
     static const lh_byte_t advances[] = {3, 4, 2};
     static const lh_s32_t tops[] = {-2, -2, 0};
+    static const lh_ui_font_range_t ranges[] = {
+        {'A', 3U, 0U},
+    };
     static lh_ui_font_t font;
     static bool ready = false;
     if (!ready)
     {
-        lh_ui_font_init(lh_addr_of(font), glyphs, advances, tops, 2, 2, 2, 'A', 3U);
+        lh_ui_font_init(lh_addr_of(font), glyphs, advances, tops, ranges, 2, 2, 2, 1U);
         ready = true;
     }
     return &font;
@@ -82,11 +94,53 @@ cap_font()
     };
     static const lh_byte_t advances[] = {5, 5, 6};
     static const lh_s32_t tops[] = {-5, -2, -4};
+    static const lh_ui_font_range_t ranges[] = {
+        {'d', 3U, 0U},
+    };
     static lh_ui_font_t font;
     static bool ready = false;
     if (!ready)
     {
-        lh_ui_font_init(lh_addr_of(font), glyphs, advances, tops, 8, 6, 4, 'd', 3U);
+        lh_ui_font_init(lh_addr_of(font), glyphs, advances, tops, ranges, 8, 6, 4, 1U);
+        ready = true;
+    }
+    return &font;
+}
+
+/**
+ * @brief A font whose coverage has a **hole** in it: 'A'..'C' and 'X'..'Z'.
+ *
+ * Two runs, six glyphs, and the twenty letters between them absent -- the shape a
+ * font has the moment it covers Latin and Cyrillic, and the one thing a single
+ * `first` and `count` could not express at all.
+ *
+ * The second run starts at table index 3, so 'X' is glyph 3 and its advance is the
+ * fourth one. A lookup that went on answering `code - first` would say 23 and read
+ * off the end of a six-entry table, which is the bug this font exists to catch.
+ */
+inline const lh_ui_font_t *
+split_font()
+{
+    static const lh_byte_t bits[] = {0xC0, 0xC0, 0x80, 0x40, 0x40, 0x40};
+    static const lh_ui_mask_t glyphs[] = {
+        {bits + 0, 2, 2, 1, 1}, /* 'A' */
+        {bits + 2, 1, 1, 1, 1}, /* 'B' */
+        {bits + 3, 1, 1, 1, 1}, /* 'C' */
+        {bits + 4, 1, 2, 1, 1}, /* 'X' */
+        {bits + 5, 1, 2, 1, 1}, /* 'Y' */
+        {bits + 6, 1, 2, 1, 1}, /* 'Z' */
+    };
+    static const lh_byte_t advances[] = {3, 4, 2, 7, 7, 8};
+    static const lh_s32_t tops[] = {-2, -2, -2, -4, -4, -4};
+    static const lh_ui_font_range_t ranges[] = {
+        {'A', 3U, 0U},
+        {'X', 3U, 3U},
+    };
+    static lh_ui_font_t font;
+    static bool ready = false;
+    if (!ready)
+    {
+        lh_ui_font_init(lh_addr_of(font), glyphs, advances, tops, ranges, 6, 5, 4, 2U);
         ready = true;
     }
     return &font;

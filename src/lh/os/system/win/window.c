@@ -21,6 +21,12 @@
 
 #define LH_OS_SYSTEM_WIN_WINDOW_CLASS_NAME "lh_os_window"
 
+/** The one timer id this backend uses, and the only one a window of ours may own. */
+#define LH_OS_SYSTEM_WIN_TIMER_ID 1U
+
+/** The shortest period a Windows timer can be relied on to keep: USER_TIMER_MINIMUM. */
+#define LH_OS_SYSTEM_WIN_TIMER_FLOOR_MS 10U
+
 static lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
 lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint_t msg,
                              lh_os_system_win_wparam_t wparam, lh_os_system_win_lparam_t lparam);
@@ -225,6 +231,19 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
             if (lh_os_system_win_is_text(code))
             {
                 lh_os_window_on_native_text(window, code);
+            }
+        }
+        return 0;
+    case LH_OS_SYSTEM_WIN_WM_TIMER:
+        if (lh_null_ne(window))
+        {
+            /* Every timer id is delivered to the window, and only one is ours. A timer
+               another piece of code put on this window must not be read as the app's
+               tick -- the callback would then run at that one's period, which is the one
+               number the app chose not to. */
+            if ((lh_os_system_win_uintptr_t)wparam == (lh_os_system_win_uintptr_t)LH_OS_SYSTEM_WIN_TIMER_ID)
+            {
+                lh_os_window_on_native_tick(window);
             }
         }
         return 0;
@@ -529,6 +548,39 @@ lh_os_system_window_invalidate_rect(lh_os_system_window_handle_t handle, int lef
     area.right = right;
     area.bottom = bottom;
     InvalidateRect(hwnd, lh_addr_of(area), LH_OS_SYSTEM_WIN_FALSE);
+}
+
+/** The one timer id this backend uses, and the only one a window of ours may own. */
+#define LH_OS_SYSTEM_WIN_TIMER_ID 1U
+
+/** The shortest period a Windows timer can be relied on to keep: USER_TIMER_MINIMUM. */
+#define LH_OS_SYSTEM_WIN_TIMER_FLOOR_MS 10U
+
+lh_void
+lh_os_system_window_set_timer(lh_os_system_window_handle_t handle, lh_u32_t ms)
+{
+    lh_os_system_win_hwnd_t hwnd;
+
+    if (lh_null_eq(handle))
+    {
+        return;
+    }
+    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    if (ms == 0U)
+    {
+        KillTimer(hwnd, LH_OS_SYSTEM_WIN_TIMER_ID);
+        return;
+    }
+    /* Not `SetTimer`'s return value that matters: `SetTimer` returns an id, and **0**
+       means the timer could not be made -- not the id it was given, so a window that
+       silently stopped ticking looks exactly like a window whose timer never fired.
+       Retried at the system's floor rather than left dead: a caller asking for 1 ms on
+       a system whose resolution is 15.6 ms asked for as fast as it can, and refusing
+       turns a too-fast request into no timer at all. */
+    if (SetTimer(hwnd, LH_OS_SYSTEM_WIN_TIMER_ID, (lh_os_system_win_uint_t)ms, lh_null) == 0)
+    {
+        SetTimer(hwnd, LH_OS_SYSTEM_WIN_TIMER_ID, (lh_os_system_win_uint_t)LH_OS_SYSTEM_WIN_TIMER_FLOOR_MS, lh_null);
+    }
 }
 
 lh_bool_t

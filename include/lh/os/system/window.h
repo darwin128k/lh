@@ -128,6 +128,20 @@ lh_os_system_window_invalidate_rect(lh_os_system_window_handle_t handle, int lef
                                     int bottom);
 
 /**
+ * @brief Ask the window system to call back every @p ms, or stop with `0`.
+ *
+ * The primitive behind ::lh_os_window_set_on_tick. A window has nothing of its own that
+ * comes back on a schedule: a paint comes back when somebody asks for one, so work that
+ * repeats can only either spin or stall. This is the "come back later" that neither of
+ * those has.
+ *
+ * @p ms of `0` stops the timer. A period the window system cannot reach is raised to the
+ * nearest it can rather than refused.
+ */
+lh_void
+lh_os_system_window_set_timer(lh_os_system_window_handle_t handle, lh_u32_t ms);
+
+/**
  * @brief Client size of @p handle into @p width and @p height.
  *
  * @return True when the size was read.

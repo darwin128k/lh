@@ -335,6 +335,31 @@ lh_void
 lh_os_window_set_on_click(lh_os_window_t *self, lh_os_window_on_click_cb on_click, lh_ptr context);
 
 /**
+ * @brief Notify @p on_tick every @p ms (::lh_os_window_on_tick_fn), or @p ms `0` to
+ *        stop.
+ *
+ * This exists because of a way an app that polls something goes wrong without it. The
+ * only thing a window gets back on its own is a **paint**, so the poll was run inside
+ * the paint and its answer -- "I still have requests due" -- was thrown away. The
+ * device was asked three questions and then went quiet, with a status line saying it had
+ * answered everything. The obvious repair is to invalidate when the poll is not done,
+ * and that is a **spin**: the next paint comes back at once, the gap between two
+ * questions to the same device has not elapsed, the poll sends nothing and says it is
+ * still busy, and 219 requests turn into 219 requests times the gap in wasted frames at
+ * full CPU. A timer is what turns "ask for the next frame" into "come back at 20 ms".
+ *
+ * @p ms below the window system's minimum is raised to it rather than refused: a caller
+ * that asks for 1 ms on a system whose timer resolution is 15.6 ms asked for as fast as
+ * it can, and refusing turns a too-fast request into no timer at all.
+ *
+ * Works before or after opening; the timer is armed when the window is. @p on_tick
+ * ::lh_null stops the timer.
+ */
+lh_void
+lh_os_window_set_on_tick(lh_os_window_t *self, lh_os_window_on_tick_cb on_tick, lh_ptr context,
+                         lh_u32_t ms);
+
+/**
  * @brief Platform paint DC for the current ::lh_os_window_on_paint_fn, or
  *        ::lh_null outside a paint cycle.
  *
@@ -383,6 +408,17 @@ lh_os_window_deinit(lh_os_window_t *self);
  */
 lh_void
 lh_os_window_on_native_destroy(lh_os_window_t *self);
+
+/**
+ * @brief Called from the native backend when the window's timer goes off.
+ *
+ * Invokes the on-tick callback if there is one. The native side owns the schedule; this
+ * is only the delivery, and it is a no-op for a window with no callback rather than a
+ * crash -- a window whose timer was stopped by the window system, or one that was never
+ * given a period, still gets messages.
+ */
+lh_void
+lh_os_window_on_native_tick(lh_os_window_t *self);
 
 /**
  * @brief Called from the native backend inside a paint cycle with @p paint_dc

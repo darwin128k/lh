@@ -473,6 +473,17 @@ lh_ui_canvas_shows_rect(const lh_ui_canvas_t *self, const lh_ui_rect_t *rect)
     return lh_ui_canvas_shows(self, lh_addr_of(target));
 }
 
+lh_bool_t
+lh_ui_canvas_covers_rect(const lh_ui_canvas_t *self, const lh_ui_rect_t *rect)
+{
+    const lh_ui_rect_t target = lh_ui_canvas_state_to_target(lh_addr_of(self->state), rect);
+    const lh_ui_rect_t cut = lh_ui_canvas_state_cut(lh_addr_of(self->state), lh_addr_of(target));
+
+    return !lh_ui_rect_is_empty(lh_addr_of(target)) && lh_ui_rect_eq(lh_addr_of(cut), lh_addr_of(target))
+               ? lh_bool_true
+               : lh_bool_false;
+}
+
 lh_void
 lh_ui_canvas_fill_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_ui_color_t *color)
 {
@@ -573,7 +584,7 @@ lh_ui_canvas_shadow_fallback(lh_ui_canvas_t *self, const lh_ui_rect_t *bounds, c
 
         for (x = lh_ui_point_get_x(cut_origin); x < x1; ++x)
         {
-            const lh_byte_t alpha = lh_ui_shadow_alpha_at(shadow, lh_ui_scalar(x), lh_ui_scalar(y), target, radius);
+            const lh_byte_t alpha = lh_ui_shadow_alpha_at_pixel(shadow, x, y, target, radius);
             lh_ui_rect_t pixel;
             lh_ui_color_t color;
 

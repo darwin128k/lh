@@ -584,6 +584,39 @@ TEST(ui_canvas_sw, a_shadow_reaches_out_of_its_box_and_is_gone_one_spread_past_i
     EXPECT_EQ(f.at(4, 12), f.at(12, 4));   /* the same all round */
 }
 
+/* An odd width used to take its centre as width/2, which drops the half pixel,
+ * so the first pixel past the right edge was a step closer than the first past
+ * the left. Both edges are the same distance from the middle of the box. */
+TEST(ui_canvas_sw, a_shadow_is_the_same_on_both_sides_of_an_odd_box)
+{
+    sw_fixture f;
+    const lh_ui_shadow_t shadow = shadow_of(255, 4, 0, 0);
+    const lh_ui_rect_t box = rect_of(8, 8, 5, 8);
+    const lh_ui_color_t white = color_of(255, 255, 255, 255);
+
+    lh_ui_canvas_clear(lh_addr_of(f.canvas), lh_addr_of(white));
+    EXPECT_TRUE(lh_ui_canvas_shadow(lh_addr_of(f.canvas), lh_addr_of(box), lh_ui_scalar(0), lh_addr_of(shadow)));
+
+    EXPECT_EQ(f.at(7, 12), f.at(13, 12));
+}
+
+/* The fill's own pixels stay clean, including a rounded corner the box's square
+ * would have shaded: the shadow asks the same coverage the fill does. */
+TEST(ui_canvas_sw, a_rounded_shadow_stays_off_pixels_the_fill_covers)
+{
+    sw_fixture f;
+    const lh_ui_shadow_t shadow = shadow_of(255, 4, 0, 0);
+    const lh_ui_rect_t box = rect_of(6, 6, 12, 12);
+    const lh_ui_color_t white = color_of(255, 255, 255, 255);
+
+    lh_ui_canvas_clear(lh_addr_of(f.canvas), lh_addr_of(white));
+    EXPECT_TRUE(lh_ui_canvas_shadow(lh_addr_of(f.canvas), lh_addr_of(box), lh_ui_scalar(6), lh_addr_of(shadow)));
+
+    EXPECT_EQ(f.at(12, 12), 0xffffffffu);
+    EXPECT_EQ(lh_ui_radius_coverage(&box, lh_ui_scalar(6), 6, 6), 0);
+    EXPECT_LT(f.at(6, 6), 0xffffffffu);
+}
+
 /* The picture must not depend on the frame being drawn in one piece: an area that
  * clips the shadow draws its own slice of it, and the slices add up to the same
  * shadow. This is what a partial frame in strips does, every frame. */
@@ -656,7 +689,9 @@ TEST(ui_canvas_sw, glass_over_a_flat_picture_stays_flat)
     const lh_ui_color_t dark = color_of(33, 37, 43, 255);
     const lh_ui_color_t row = color_of(224, 108, 117, 255);
     const lh_ui_color_t tint = color_of(236, 240, 248, 46);
-    lh_u8_t scratch[side * side * 4];
+    /* Radius 5 keeps five rows above the panel and five below, so the rect
+       alone is not enough scratch. */
+    lh_u8_t scratch[side * (side + 16) * 4];
     int odd = 0;
 
     lh_ui_canvas_set_scratch(lh_addr_of(f.canvas), scratch, sizeof(scratch));
@@ -716,4 +751,29 @@ TEST(ui_canvas_sw, glass_is_the_same_panel_in_a_clipped_frame_as_in_a_whole_one)
     lh_ui_canvas_pop(lh_addr_of(clipped.canvas));
 
     expect_same_pixels(whole, clipped);
+}
+
+/* Blurring the whole box and then tinting the arc leaves the square corner
+ * smeared. That corner is not the panel, so it has to still be the pixel that
+ * was there — here a single white pixel on black, which a blur would grey. */
+TEST(ui_canvas_sw, glass_leaves_the_square_corner_of_a_round_panel)
+{
+    sw_fixture f;
+    const lh_ui_rect_t rect = rect_of(4, 4, 16, 16);
+    const lh_ui_rect_t everything = rect_of(0, 0, side, side);
+    const lh_ui_rect_t speck = rect_of(4, 4, 1, 1);
+    const lh_ui_color_t black = color_of(0, 0, 0, 255);
+    const lh_ui_color_t white = color_of(255, 255, 255, 255);
+    const lh_ui_color_t tint = color_of(236, 240, 248, 80);
+    lh_u8_t scratch[side * (side + 16) * 4];
+
+    lh_ui_canvas_set_scratch(lh_addr_of(f.canvas), scratch, sizeof(scratch));
+    lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(everything), lh_addr_of(black));
+    lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(speck), lh_addr_of(white));
+    EXPECT_EQ(lh_ui_radius_coverage(&rect, lh_ui_scalar(8), 4, 4), 0);
+    EXPECT_TRUE(lh_ui_canvas_glass(lh_addr_of(f.canvas), lh_addr_of(rect), lh_ui_scalar(8), lh_ui_scalar(2),
+                                   lh_addr_of(tint)));
+
+    EXPECT_EQ(f.at(4, 4), 0xffffffffu);
+    EXPECT_NE(f.at(12, 12), 0xff000000u);
 }

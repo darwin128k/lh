@@ -165,6 +165,8 @@ lh_add_test_core(lh_test_memory
 
 lh_add_test_core(lh_test_net
         ${LH_TEST_SRC_PATH}/lh/net/ip.cpp
+        ${LH_TEST_SRC_PATH}/lh/net/modbus.cpp
+        ${LH_TEST_SRC_PATH}/lh/net/modbus_link.cpp
         ${LH_TEST_SRC_PATH}/lh/net/port.cpp
         ${LH_TEST_SRC_PATH}/lh/net/socket/addr.cpp
         ${LH_TEST_SRC_PATH}/lh/net/socket/addr/ip4.cpp
@@ -204,6 +206,7 @@ lh_add_test_core(lh_test_str
         ${LH_TEST_SRC_PATH}/lh/str/format/text.cpp
         ${LH_TEST_SRC_PATH}/lh/str/format/uint.cpp
         ${LH_TEST_SRC_PATH}/lh/str/list.cpp
+    ${LH_TEST_SRC_PATH}/lh/str/cstr.cpp
         ${LH_TEST_SRC_PATH}/lh/str/parse/hex.cpp
         ${LH_TEST_SRC_PATH}/lh/str/parse/text.cpp
         ${LH_TEST_SRC_PATH}/lh/str/parse/uint.cpp
@@ -254,6 +257,7 @@ set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/button.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/container.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/label.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/input.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/scrollbar.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/toggle.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/font.cpp

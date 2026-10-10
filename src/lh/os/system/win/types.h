@@ -26,6 +26,16 @@ typedef lh_ulong_t lh_os_system_win_dword_t;
 /** @brief `UINT`. */
 typedef lh_uint_t lh_os_system_win_uint_t;
 
+/**
+ * @brief `UINT_PTR`: an unsigned the size of a pointer.
+ *
+ * On the 32-bit targets this build is pinned to, `LPARAM` -- and so `wParam` -- is a
+ * 32-bit integer even though it carries a pointer's worth of bits, which is what makes
+ * one type that fits both on every target this library builds for. Present since
+ * Windows 95.
+ */
+typedef lh_ulong_t lh_os_system_win_uintptr_t;
+
 /** @brief `WORD`. */
 typedef lh_ushort_t lh_os_system_win_word_t;
 

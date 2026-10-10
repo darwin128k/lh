@@ -342,13 +342,46 @@ lh_ui_canvas_sw_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_
     return lh_bool_true;
 }
 
+static lh_void
+sw_shadow_span(lh_ui_canvas_sw_t *self, const lh_ui_shadow_t *shadow, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+               lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_u32_t rgb, lh_bool_t rounded)
+{
+    lh_byte_t alpha[LH_UI_PIXMAP_RUN];
+    lh_s32_t end;
+
+    x0 = lh_ui_canvas_sw_cut_x0(self, x0);
+    x1 = lh_ui_canvas_sw_cut_x1(self, x1);
+    for (; x0 < x1; x0 = end)
+    {
+        lh_s32_t i;
+
+        end = lh_math_min(x1, x0 + LH_UI_PIXMAP_RUN);
+        for (i = 0; i < end - x0; ++i)
+        {
+            const lh_byte_t shape = lh_ui_shadow_alpha_at_pixel(shadow, x0 + i, y, rect, radius);
+
+            /* The shadow is soft on its own account and then cut by the clip, in
+               that order — the same order the canvas fallback rounds in. What
+               `alpha_at` hands back already carries the peak, so it goes in as the
+               alpha and the coverage is the full 255: scaling it by the colour
+               alpha a second time is what makes a slot shadow lighter than the
+               very same shadow drawn without a slot. */
+            alpha[i] = rounded ? lh_ui_canvas_sw_edge_alpha(self, shape, 255, x0 + i, y) : shape;
+        }
+        lh_ui_pixmap_blend_alpha_span(lh_addr_of(self->pixmap), x0, end, y, rgb, alpha);
+    }
+}
+
 lh_bool_t
 lh_ui_canvas_sw_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, const lh_ui_shadow_t *shadow)
 {
     lh_ui_canvas_sw_t *self = lh_ui_canvas_sw_from(context);
     const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
     const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
-    lh_ui_color_t color = lh_ui_shadow_get_color(shadow);
+    const lh_ui_color_t color = lh_ui_shadow_get_color(shadow);
+    const lh_u32_t rgb = lh_ui_color_get_argb(&color) & 0x00FFFFFFU;
+    const lh_ui_scalar_t corner = lh_ui_radius_clamp(rect, radius);
+    const lh_bool_t rounded = lh_ui_canvas_sw_is_rounded(self);
     const lh_s32_t outset = lh_ui_shadow_get_outset(shadow, rect);
     const lh_s32_t left = lh_ui_point_get_x(origin) - outset;
     const lh_s32_t top = lh_ui_point_get_y(origin) - outset;
@@ -359,37 +392,33 @@ lh_ui_canvas_sw_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t 
     lh_return_if(outset <= 0, lh_bool_false);
     for (y = lh_ui_canvas_sw_cut_y0(self, top); y < lh_ui_canvas_sw_cut_y1(self, bottom); ++y)
     {
-        lh_s32_t x;
+        const lh_s32_t x0 = lh_ui_canvas_sw_cut_x0(self, left);
         const lh_s32_t x1 = lh_ui_canvas_sw_cut_x1(self, right);
+        lh_s32_t full0;
+        lh_s32_t full1;
 
-        for (x = lh_ui_canvas_sw_cut_x0(self, left); x < x1; ++x)
-        {
-            const lh_byte_t shape = lh_ui_shadow_alpha_at(shadow, lh_ui_scalar(x), lh_ui_scalar(y), rect, radius);
-            lh_byte_t alpha;
-            lh_ui_color_t pixel;
-
-            if (shape == 0)
-            {
-                continue;
-            }
-            /* The shadow is soft on its own account and then cut by the clip, in
-               that order — the same order the canvas fallback rounds in. What
-               `alpha_at` hands back already carries the peak, so it goes in as the
-               alpha and the coverage is the full 255: scaling it by the colour
-               alpha a second time is what makes a slot shadow lighter than the
-               very same shadow drawn without a slot. */
-            alpha = lh_ui_canvas_sw_is_rounded(self)
-                        ? lh_ui_canvas_sw_edge_alpha(self, shape, 255, x, y)
-                        : shape;
-            if (alpha == 0)
-            {
-                continue;
-            }
-            pixel = color;
-            lh_ui_color_set_a(&pixel, alpha);
-            lh_ui_pixmap_blend_pixel(lh_addr_of(self->pixmap), x, y, &pixel);
-        }
+        /* The span the fill covers wholly is a span the shadow does not paint
+           (::lh_ui_shadow_alpha_at_pixel). Skipping it is the same pixels, and
+           it is most of a card. */
+        lh_ui_radius_full_span(rect, corner, y, &full0, &full1);
+        sw_shadow_span(self, shadow, rect, corner, x0, lh_math_min(x1, full0), y, rgb, rounded);
+        sw_shadow_span(self, shadow, rect, corner, lh_math_max(x0, full1), x1, y, rgb, rounded);
     }
+    return lh_bool_true;
+}
+
+static lh_bool_t
+sw_soften(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t blur_radius, lh_u8_t *scratch,
+          lh_usize_t bytes, const lh_ui_rect_t *shape, lh_ui_scalar_t corner)
+{
+    const lh_ui_rect_t cut = lh_ui_rect_intersection(rect, &self->limit);
+    const lh_s32_t radius = blur_radius > 0 ? lh_ui_scalar_floor_s32(blur_radius) : 0;
+
+    lh_return_if(lh_ui_rect_is_empty(&cut), lh_bool_false);
+    lh_return_if(lh_null_eq(scratch) || lh_ui_blur_scratch_size(&cut, radius) > bytes, lh_bool_false);
+    lh_return_if(radius <= 0, lh_bool_true);
+    lh_ui_blur_rows(&self->pixmap, &cut, radius, scratch);
+    lh_ui_blur_columns(&self->pixmap, &cut, radius, scratch, shape, corner);
     return lh_bool_true;
 }
 
@@ -397,22 +426,21 @@ lh_bool_t
 lh_ui_canvas_sw_blur(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t blur_radius, lh_u8_t *scratch,
                      lh_usize_t bytes)
 {
-    lh_ui_canvas_sw_t *self = lh_ui_canvas_sw_from(context);
-    const lh_ui_rect_t cut = lh_ui_rect_intersection(rect, lh_addr_of(self->limit));
-
-    lh_return_if(lh_ui_rect_is_empty(&cut), lh_bool_false);
     /* The buffer is the caller's, so a blur too big for it is one we cannot
        draw — and saying so beats writing past what we were given. */
-    lh_return_if(lh_null_eq(scratch) || lh_ui_blur_scratch_size(lh_addr_of(cut)) > bytes, lh_bool_false);
-    lh_ui_blur_rect(lh_addr_of(self->pixmap), lh_addr_of(cut), blur_radius, scratch);
-    return lh_bool_true;
+    return sw_soften(lh_ui_canvas_sw_from(context), rect, blur_radius, scratch, bytes, lh_null, lh_ui_scalar(0));
 }
 
 lh_bool_t
 lh_ui_canvas_sw_glass(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t corner, lh_ui_scalar_t blur_radius,
                      const lh_ui_color_t *tint, lh_u8_t *scratch, lh_usize_t bytes)
 {
-    lh_return_if(!lh_ui_canvas_sw_blur(context, rect, blur_radius, scratch, bytes), lh_bool_false);
+    /* The blur is written only where the rounded panel covers. A square corner
+       the arc misses stays the picture that was there; blurring it first and
+       tinting the arc afterwards leaves that corner smeared. */
+    lh_return_if(!sw_soften(lh_ui_canvas_sw_from(context), rect, blur_radius, scratch, bytes,
+                            corner > lh_ui_scalar(0) ? rect : lh_null, corner),
+                 lh_bool_false);
     lh_ui_canvas_sw_fill_round_rect(context, rect, corner, tint);
     return lh_bool_true;
 }
