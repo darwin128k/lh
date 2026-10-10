@@ -4,6 +4,8 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/cast/static.h>
+#include <lh/math.h>
 #include <lh/null.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/entity/event.h>
@@ -87,12 +89,51 @@ lh_ui_label_on_measure(const lh_ui_label_t *self, const lh_ui_entity_event_t *ev
 
 /* ── Lifetime and fields ─────────────────────────────────────────────────── */
 
+/* FNV-1a over the bytes, with the length beside it: two short strings that collide on
+   both are not a case a label meets. */
+static lh_u32_t
+lh_ui_label_hash(const lh_char_t *text, lh_u32_t *length)
+{
+    lh_u32_t hash = 2166136261U;
+    lh_u32_t n = 0U;
+
+    if (lh_null_ne(text))
+    {
+        for (; text[n] != '\0'; ++n)
+        {
+            hash = (hash ^ lh_cast_static(lh_u32_t, lh_cast_static(lh_u8_t, text[n]))) * 16777619U;
+        }
+    }
+    *length = n;
+    return hash;
+}
+
+/* The ink of the current text, relative to the label's own origin, so it stays right
+   when the label moves before its text changes again. */
+static lh_ui_rect_t
+lh_ui_label_get_ink_reach(lh_ui_label_t *self)
+{
+    const lh_ui_rect_t text = lh_ui_label_get_text_rect(self);
+    const lh_ui_rect_t box = lh_ui_entity_get_rect(lh_ui_label_as_entity(self));
+    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(lh_addr_of(box));
+
+    lh_return_if(lh_ui_rect_is_empty(lh_addr_of(text)), text);
+    return lh_ui_rect_offset(lh_addr_of(text), lh_math_neg(lh_ui_point_get_x(origin)),
+                             lh_math_neg(lh_ui_point_get_y(origin)));
+}
+
 lh_void
 lh_ui_label_init(lh_ui_label_t *self, lh_ui_rect_t rect, const lh_char_t *text)
 {
     lh_assert_runtime_ref(self);
     lh_ui_container_init(lh_addr_of(self->container), rect);
     self->text = text;
+    self->metrics_ready = lh_bool_false;
+    /* Hashed from the start, so a refresh that sets the text the label was built with
+       records nothing. Nothing is noted here: the label is in no tree yet. */
+    self->text_hash = lh_ui_label_hash(text, lh_addr_of(self->text_length));
+    self->text_hashed = lh_bool_true;
+    lh_ui_rect_init_empty(lh_addr_of(self->text_noted));
     lh_ui_entity_set_class(lh_ui_label_as_entity(self), lh_addr_of(lh_ui_label_class));
 }
 
@@ -120,8 +161,53 @@ lh_ui_label_get_text(const lh_ui_label_t *self)
 lh_void
 lh_ui_label_set_text(lh_ui_label_t *self, const lh_char_t *text)
 {
+    lh_ui_entity_t *entity;
+    lh_ui_rect_t box;
+    lh_ui_rect_t old_ink;
+    lh_u32_t length;
+    lh_u32_t hash;
+
     lh_assert_runtime_ref(self);
+    hash = lh_ui_label_hash(text, lh_addr_of(length));
+    if (self->text_hashed && hash == self->text_hash && length == self->text_length)
+    {
+        /* The same bytes, perhaps at a new address: nothing on screen changes. */
+        self->text = text;
+        return;
+    }
+    entity = lh_ui_label_as_entity(self);
+    box = lh_ui_entity_get_rect(entity);
+    /* Before: the box, and the old text where it was last recorded. Measuring the text
+       now would measure the **new** bytes whenever the caller rewrote the buffer first,
+       which is how a cell is usually updated -- so the remembered reach is what is
+       erased, and when there is none yet (the first change) the current measure is. */
+    if (lh_ui_rect_is_empty(lh_addr_of(self->text_noted)))
+    {
+        self->text_noted = lh_ui_label_get_ink_reach(self);
+    }
+    old_ink = lh_ui_rect_offset(lh_addr_of(self->text_noted), lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(lh_addr_of(box))),
+                                lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(box))));
+    lh_ui_entity_note_rect(entity, lh_addr_of(box));
+    lh_ui_entity_note_rect(entity, lh_addr_of(old_ink));
+
     self->text = text;
+    self->text_hashed = lh_bool_true;
+    self->text_hash = hash;
+    self->text_length = length;
+    self->metrics_ready = lh_bool_false;
+    self->text_noted = lh_ui_label_get_ink_reach(self);
+    /* After: the box and the new text (a leaf's note includes what it measures). */
+    lh_ui_entity_note(entity);
+}
+
+lh_void
+lh_ui_label_drop_metrics(lh_ui_label_t *self)
+{
+    lh_assert_runtime_ref(self);
+    /* The bytes changed under the label: the next ::lh_ui_label_set_text must not
+       take them for the same ones. */
+    self->metrics_ready = lh_bool_false;
+    self->text_hashed = lh_bool_false;
 }
 
 /* ── Text ────────────────────────────────────────────────────────────────── */

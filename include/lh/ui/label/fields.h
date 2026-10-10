@@ -16,7 +16,10 @@
  * until the text, the font, the rect or the alignment changes, so a repaint
  * draws the glyphs and measures nothing. `text_hash` / `text_length` are how
  * ::lh_ui_label_set_text tells a new string from the same one when the caller
- * has already overwritten the buffer the label points at.
+ * has already overwritten the buffer the label points at. `text_noted` is where
+ * the text's ink was the last time the label recorded it, **relative to the
+ * label's own origin**, which is the one way left to erase an old text whose
+ * bytes the caller has already replaced.
  *
  * @param container_type Type of the embedded container.
  * @param char_type      Type of one character of the text.
@@ -28,7 +31,8 @@
     lh_bool_t text_hashed;                                                                          \
     lh_u32_t text_hash;                                                                             \
     lh_u32_t text_length;                                                                           \
-    const struct lh_ui_font *metrics_font;                                                         \
+    lh_ui_rect_t text_noted;                                                                        \
+    const struct lh_ui_font *metrics_font;                                                      \
     lh_ui_rect_t metrics_rect;                                                                      \
     lh_ui_insets_t metrics_padding;                                                                 \
     lh_ui_text_align_h_t metrics_align_h;                                                          \

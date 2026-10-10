@@ -247,9 +247,24 @@ lh_ui_entity_set_hidden(lh_ui_entity_t *self, lh_bool_t hidden);
  * an ancestor is hidden: a hidden row is not on screen, and recording it would
  * paint the category underneath it. ::lh_ui_view_take_damage is what the
  * window paints.
+ *
+ * A leaf records what it measures as well as its box (::lh_ui_entity_get_measure_bounds):
+ * a label draws text wider than its box rather than cut it, and that text is on
+ * screen too.
  */
 lh_void
 lh_ui_entity_note(const lh_ui_entity_t *self);
+
+/**
+ * @brief Record @p rect, given in the same space as the rect of @p self, on the
+ *        view that owns its tree -- under the same conditions as ::lh_ui_entity_note.
+ *
+ * For what @p self painted and can no longer measure: a label whose buffer the
+ * caller rewrote in place still has the old text's pixels on screen, and only
+ * the rect remembered from when it was noted says where they are.
+ */
+lh_void
+lh_ui_entity_note_rect(const lh_ui_entity_t *self, const lh_ui_rect_t *rect);
 
 /* ── Tree ────────────────────────────────────────────────────────────────── */
 
