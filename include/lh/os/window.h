@@ -275,6 +275,30 @@ lh_void
 lh_os_window_set_on_paint(lh_os_window_t *self, lh_os_window_on_paint_cb on_paint, lh_ptr context);
 
 /**
+ * @brief Record every paint of @p self into @p stats: what it drew, what the window
+ *        system asked for, and how long the paint callback took.
+ *
+ * "Drew" is the paint rectangle, which is what a renderer that draws one rectangle
+ * clears and presents. "Asked" is the update region the window system collected from
+ * every invalidation, read off the paint DC -- so a hull drawn for two small rows far
+ * apart, and a paint that keeps asking for the next one, both show as numbers. On a
+ * platform that cannot read the region the frame is recorded with its request unknown.
+ *
+ * @p stats is the caller's and must outlive the window or be cleared first; ::lh_null
+ * stops recording. Costs nothing when unset. Needs ::LH_LIBRARY_OPTION_UI; without it
+ * the pointer is kept and nothing is recorded.
+ *
+ * @note The region is the update region **cut by what is visible**: a window partly
+ *       covered by another reads smaller than it was invalidated.
+ */
+lh_void
+lh_os_window_set_frame_stats(lh_os_window_t *self, struct lh_ui_frame_stats *stats);
+
+/** @brief The stats @p self records paints into, or ::lh_null. */
+struct lh_ui_frame_stats *
+lh_os_window_get_frame_stats(const lh_os_window_t *self);
+
+/**
  * @brief Notify @p on_press on a primary-button press in client coordinates.
  *
  * @p context is passed through. ::lh_null clears the slot.

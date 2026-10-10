@@ -26,6 +26,10 @@
 #include <lh/os/window/placement.h>
 #include <lh/ptr.h>
 
+/* Declared here and defined in `lh/ui/frame/stats.h`: a window holds a pointer to it
+   and needs nothing else from the UI to do so. */
+struct lh_ui_frame_stats;
+
 /**
  * @def lh_os_window_fields(handle_type, app_type, window_type)
  * @brief Native handle, app or parent, children, input/paint/close notify, and link.
@@ -45,6 +49,8 @@
  * like `frame` and `corner`. See ::lh_os_window_set_placement.
  *
  * `paint_dc` is set only for the duration of ::lh_os_window_on_paint_fn.
+ * `frame_stats` is the caller's, and every paint is recorded into it when it is set
+ * (::lh_os_window_set_frame_stats).
  * Click synthesis (press then release without a drag) lives above the OS:
  * the backend fires press / move / release / wheel / key / text; ::lh_os_window_on_click
  * stays for callers that still wire it.
@@ -82,7 +88,8 @@
     int paint_bottom;                                                                               \
     lh_os_window_on_paint_cb on_paint;                                                              \
     lh_ptr on_paint_context;                                                                        \
-    lh_os_window_on_press_cb on_press;                                                              \
+    struct lh_ui_frame_stats *frame_stats;                                                          \
+    lh_os_window_on_press_cb on_press;                                                            \
     lh_ptr on_press_context;                                                                        \
     lh_os_window_on_move_cb on_move;                                                                \
     lh_ptr on_move_context;                                                                         \

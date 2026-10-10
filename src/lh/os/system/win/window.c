@@ -598,6 +598,57 @@ lh_os_system_window_get_client_size(lh_os_system_window_handle_t handle, int *wi
 }
 
 lh_bool_t
+lh_os_system_window_get_paint_region(lh_ptr paint_dc, lh_u64_t *area, lh_u32_t *count)
+{
+    /* On the stack, in rects so it is aligned for them: a header and about 250
+       rectangles, which is far more than an invalidation of widgets makes. A region
+       that does not fit is reported as unknown rather than allocated for inside a
+       paint. */
+    lh_os_system_win_rect_t buffer[256];
+    const lh_os_system_win_rgndataheader_t *header = lh_ptr_rcast(const lh_os_system_win_rgndataheader_t, buffer);
+    const lh_os_system_win_rect_t *rects;
+    lh_os_system_win_handle_t rgn;
+    lh_os_system_win_dword_t bytes;
+    lh_os_system_win_dword_t i;
+    lh_int_t got;
+    lh_bool_t ok = lh_bool_false;
+
+    lh_return_if(lh_null_eq(area) || lh_null_eq(count), lh_bool_false);
+    *area = 0U;
+    *count = 0U;
+    lh_return_if(lh_null_eq(paint_dc), lh_bool_false);
+    rgn = CreateRectRgn(0, 0, 0, 0);
+    lh_return_if(lh_null_eq(rgn), lh_bool_false);
+    got = GetRandomRgn(lh_cast_reinterpret(lh_os_system_win_hdc_t, paint_dc), rgn, LH_OS_SYSTEM_WIN_SYSRGN);
+    if (got == 0)
+    {
+        /* No system region: nothing was asked for. */
+        ok = lh_bool_true;
+    }
+    else if (got == 1)
+    {
+        bytes = GetRegionData(rgn, 0U, lh_null);
+        if (bytes != 0U && bytes <= sizeof(buffer) && GetRegionData(rgn, bytes, buffer) == bytes)
+        {
+            /* The rectangles never overlap, so their areas add up to the region's. They
+               are in screen coordinates on NT and client ones on 9x, which moves them
+               and does not resize them -- and only the size is wanted. */
+            rects = lh_ptr_rcast(const lh_os_system_win_rect_t,
+                                 lh_ptr_rcast(const lh_byte_t, buffer) + header->dwSize);
+            for (i = 0U; i < header->nCount; ++i)
+            {
+                *area += lh_cast_static(lh_u64_t, rects[i].right - rects[i].left) *
+                         lh_cast_static(lh_u64_t, rects[i].bottom - rects[i].top);
+            }
+            *count = lh_cast_static(lh_u32_t, header->nCount);
+            ok = lh_bool_true;
+        }
+    }
+    (void)DeleteObject(rgn);
+    return ok;
+}
+
+lh_bool_t
 lh_os_system_window_get_position(lh_os_system_window_handle_t handle, int *x, int *y)
 {
     lh_os_system_win_hwnd_t hwnd;

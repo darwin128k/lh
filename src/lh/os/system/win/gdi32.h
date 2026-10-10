@@ -105,4 +105,36 @@ LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 BitBlt(lh_os_system_win_hdc_t hdc, lh_int_t x, lh_int_t y, lh_int_t cx, lh_int_t cy,
        lh_os_system_win_hdc_t hdcSrc, lh_int_t x1, lh_int_t y1, lh_os_system_win_dword_t rop);
 
+/* An empty region to read another into. Present since Windows 95. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
+CreateRectRgn(lh_int_t left, lh_int_t top, lh_int_t right, lh_int_t bottom);
+
+/* `SYSRGN` for ::GetRandomRgn: the DC's system region, which during a paint is the
+   update region cut by what is visible. The value is the documented 4, which the SDK
+   headers do not all name. */
+#define LH_OS_SYSTEM_WIN_SYSRGN 4
+
+/* Copy one of the regions of @p hdc into @p hrgn: 1 when there is one, 0 when there is
+   none, -1 on error. In screen coordinates on NT, client ones on 9x. Present since
+   Windows 95 / NT 4. */
+LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
+GetRandomRgn(lh_os_system_win_hdc_t hdc, lh_os_system_win_handle_t hrgn, lh_int_t i);
+
+/* `RGNDATAHEADER`; the rectangles of the region follow it, `nCount` of them, and
+   they never overlap. */
+struct lh_os_system_win_rgndataheader
+{
+    lh_os_system_win_dword_t dwSize;
+    lh_os_system_win_dword_t iType;
+    lh_os_system_win_dword_t nCount;
+    lh_os_system_win_dword_t nRgnSize;
+    lh_os_system_win_rect_t rcBound;
+};
+typedef struct lh_os_system_win_rgndataheader lh_os_system_win_rgndataheader_t;
+
+/* The header and rectangles of @p hrgn into @p data, @p count bytes of it: with a null
+   @p data, the number of bytes it would take. Present since Windows 95. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_dword_t LH_OS_SYSTEM_WIN_CALL
+GetRegionData(lh_os_system_win_handle_t hrgn, lh_os_system_win_dword_t count, lh_ptr data);
+
 #endif /* LH_SRC_OS_SYSTEM_WIN_GDI32_H */
