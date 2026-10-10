@@ -82,6 +82,9 @@ lh_ui_entity_set_place(lh_ui_entity_t *self, const lh_ui_place_t *place);
 
 /**
  * @brief Replace the rectangle @p self covers with @p rect.
+ *
+ * The same rect records nothing. A different one records the old picture and
+ * the new one (::lh_ui_entity_note), when @p self is on screen.
  */
 lh_void
 lh_ui_entity_set_rect(lh_ui_entity_t *self, lh_ui_rect_t rect);
@@ -229,9 +232,24 @@ lh_ui_entity_is_hidden(const lh_ui_entity_t *self);
 /**
  * @brief Hide or show @p self. Hidden nodes skip paint and hit tests for the
  *        whole subtree.
+ *
+ * A change records the rect that was, or will be, on screen
+ * (::lh_ui_entity_note). The same flag records nothing.
  */
 lh_void
 lh_ui_entity_set_hidden(lh_ui_entity_t *self, lh_bool_t hidden);
+
+/**
+ * @brief Record the painted rect of @p self, in root space, on the view that
+ *        owns its tree.
+ *
+ * Nothing when @p self is not in a tree, the root has no view, or @p self or
+ * an ancestor is hidden: a hidden row is not on screen, and recording it would
+ * paint the category underneath it. ::lh_ui_view_take_damage is what the
+ * window paints.
+ */
+lh_void
+lh_ui_entity_note(const lh_ui_entity_t *self);
 
 /* ── Tree ────────────────────────────────────────────────────────────────── */
 

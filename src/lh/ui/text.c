@@ -439,12 +439,11 @@ lh_ui_text_draw_line(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_
 }
 
 lh_void
-lh_ui_text_draw(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin,
-                const lh_ui_color_t *color)
+lh_ui_text_draw_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin,
+                     const lh_ui_color_t *color, lh_ui_scalar_t ink_top)
 {
     const lh_ui_scalar_t line_height = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font));
-    lh_ui_point_t box = lh_ui_point_offset(
-        lh_addr_of(origin), lh_ui_scalar(0), -lh_ui_text_get_ink_top(font, text));
+    lh_ui_point_t box = lh_ui_point_offset(lh_addr_of(origin), lh_ui_scalar(0), -ink_top);
 
     /* @p origin is where the ink goes, so the first line box starts that far
        above it; each next one is a line height lower. The pixels land where
@@ -454,4 +453,11 @@ lh_ui_text_draw(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_
         lh_ui_text_draw_line(canvas, font, text, box, color);
         box = lh_ui_point_offset(lh_addr_of(box), lh_ui_scalar(0), line_height);
     }
+}
+
+lh_void
+lh_ui_text_draw(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin,
+                const lh_ui_color_t *color)
+{
+    lh_ui_text_draw_from(canvas, font, text, origin, color, lh_ui_text_get_ink_top(font, text));
 }

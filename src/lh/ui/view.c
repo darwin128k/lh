@@ -31,6 +31,8 @@ lh_ui_view_init(lh_ui_view_t *self)
     self->throwing = lh_null;
     self->focus = lh_null;
     self->whole_count = 0;
+    lh_ui_rect_init_empty(lh_addr_of(self->pending));
+    self->has_pending = lh_bool_false;
     lh_ui_point_init(lh_addr_of(self->velocity), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_ui_view_reset_pointer(self);
 }
@@ -58,8 +60,51 @@ lh_ui_view_get_canvas(const lh_ui_view_t *self)
 lh_void
 lh_ui_view_set_root(lh_ui_view_t *self, lh_ui_entity_t *root)
 {
+    lh_ui_entity_t *top;
+
     lh_assert_runtime_ref(self);
+    /* The pointer lives on the top of the tree, which is where a setter walks
+       to find this view. A root that is itself parented still records on the
+       top, or the walk would stop one short of it. */
+    if (lh_null_ne(self->root) && self->root->view == self)
+    {
+        self->root->view = lh_null;
+    }
     self->root = root;
+    lh_return_if(lh_null_eq(root));
+    top = root;
+    while (lh_null_ne(top->parent))
+    {
+        top = top->parent;
+    }
+    top->view = self;
+}
+
+lh_void
+lh_ui_view_add_damage(lh_ui_view_t *self, const lh_ui_rect_t *rect)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(rect);
+    lh_return_if(lh_ui_rect_is_empty(rect));
+    if (!self->has_pending)
+    {
+        self->pending = *rect;
+        self->has_pending = lh_bool_true;
+        return;
+    }
+    self->pending = lh_ui_rect_union(lh_addr_of(self->pending), rect);
+}
+
+lh_bool_t
+lh_ui_view_take_damage(lh_ui_view_t *self, lh_ui_rect_t *out)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(out);
+    lh_return_if(!self->has_pending, lh_bool_false);
+    *out = self->pending;
+    self->has_pending = lh_bool_false;
+    lh_ui_rect_init_empty(lh_addr_of(self->pending));
+    return lh_bool_true;
 }
 
 lh_ui_entity_t *
@@ -379,6 +424,28 @@ lh_ui_view_damage_scroll(lh_ui_view_t *self, lh_ui_container_t *box, lh_ui_point
     lh_return_if(lh_ui_point_equals(lh_addr_of(before), lh_addr_of(after)), lh_bool_false);
     lh_ui_view_begin_scroll(self, box);
     lh_ui_entity_send(lh_ui_container_as_entity(box), lh_ui_entity_event_scroll, lh_null);
+    /* The pane and the bar that drives it, in root space. The canvas record
+       below is what a test reads back from the frame; the window paints this
+       one, and it has to exist when there is no canvas yet. */
+    lh_ui_entity_note(lh_ui_container_as_entity(box));
+    {
+        lh_ui_entity_t *parent = lh_ui_entity_get_parent(lh_ui_container_as_entity(box));
+        lh_ui_entity_t *child;
+
+        if (lh_null_ne(parent))
+        {
+            for (child = lh_ui_entity_get_first_child(parent); lh_null_ne(child);
+                 child = lh_ui_entity_get_next_child(parent, child))
+            {
+                lh_ui_scrollbar_t *bar = lh_ui_scrollbar_get_bound(child, box);
+
+                if (lh_null_ne(bar))
+                {
+                    lh_ui_entity_note(lh_ui_scrollbar_as_entity(bar));
+                }
+            }
+        }
+    }
     lh_return_if(lh_null_eq(self->canvas), lh_bool_true);
     lh_ui_canvas_reset_damage(self->canvas);
     lh_ui_scrollbar_add_scroll_damage(box, self->canvas);
@@ -532,8 +599,7 @@ lh_ui_view_press_on(lh_ui_view_t *self, lh_ui_entity_t *hit, lh_ui_point_t point
     /* Pressed is the entity's own state and this is the one place that sets it:
        a press is a look (::lh_ui_entity_get_style_now), so it has to be paired
        with the rect it changed, or the picture keeps the old look until
-       something else draws. The caller invalidates, as it does for every other
-       damage here. */
+       something else draws. The rect is ::lh_ui_view_take_damage's. */
     lh_ui_view_set_pressed(self, hit, lh_bool_true);
     lh_ui_entity_send_pointer(hit, lh_ui_entity_event_press, point);
     lh_ui_view_set_focus(self, lh_ui_entity_find_focusable(hit));
@@ -564,8 +630,10 @@ lh_ui_view_damage_looks(lh_ui_view_t *self, const lh_ui_entity_t *entity,
     lh_ui_rect_t bounds;
     lh_ui_scalar_t outset;
 
+    lh_ui_point_t offset;
+
     lh_assert_runtime_ref(self);
-    lh_return_if(lh_null_eq(self->canvas) || lh_null_eq(entity));
+    lh_return_if(lh_null_eq(entity));
     rect = lh_ui_entity_get_rect(entity);
     outset = lh_null_eq(first) ? lh_ui_scalar(0) : lh_ui_shadow_get_outset(lh_ui_style_get_shadow(first),
                                                                           lh_addr_of(rect));
@@ -574,7 +642,17 @@ lh_ui_view_damage_looks(lh_ui_view_t *self, const lh_ui_entity_t *entity,
         outset = lh_math_max(outset, lh_ui_shadow_get_outset(lh_ui_style_get_shadow(second), lh_addr_of(rect)));
     }
     bounds = lh_ui_rect_inset(lh_addr_of(rect), lh_math_neg(outset), lh_math_neg(outset));
-    lh_ui_canvas_add_damage(self->canvas, lh_addr_of(bounds));
+    /* The canvas record stays in the rect's own space: that is what a frame
+       reads back. The window paints root space, because a scrolled row's rect
+       is where it was laid out and the pixels are where the scroll put them. */
+    if (lh_null_ne(self->canvas))
+    {
+        lh_ui_canvas_add_damage(self->canvas, lh_addr_of(bounds));
+    }
+    offset = lh_ui_entity_get_root_offset(entity);
+    bounds = lh_ui_rect_offset(lh_addr_of(bounds), lh_ui_point_get_x(lh_addr_of(offset)),
+                               lh_ui_point_get_y(lh_addr_of(offset)));
+    lh_ui_view_add_damage(self, lh_addr_of(bounds));
 }
 
 lh_void
