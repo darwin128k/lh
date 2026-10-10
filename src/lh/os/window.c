@@ -19,6 +19,10 @@
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
 #    include <lh/os/system/window.h>
 #endif
+#if LH_LIBRARY_OPTION_UI
+#    include <lh/os/tick.h>
+#    include <lh/ui/frame/stats.h>
+#endif
 
 static lh_void
 lh_os_window_unlink(lh_os_window_t *self)
@@ -61,6 +65,7 @@ lh_os_window_init(lh_os_window_t *self)
     self->tick_ms = 0U;
     self->on_paint = lh_null;
     self->on_paint_context = lh_null;
+    self->frame_stats = lh_null;
     self->on_press = lh_null;
     self->on_press_context = lh_null;
     self->on_move = lh_null;
@@ -211,6 +216,20 @@ lh_os_window_set_on_paint(lh_os_window_t *self, lh_os_window_on_paint_cb on_pain
     lh_assert_runtime_ref(self);
     self->on_paint = on_paint;
     self->on_paint_context = context;
+}
+
+lh_void
+lh_os_window_set_frame_stats(lh_os_window_t *self, struct lh_ui_frame_stats *stats)
+{
+    lh_assert_runtime_ref(self);
+    self->frame_stats = stats;
+}
+
+struct lh_ui_frame_stats *
+lh_os_window_get_frame_stats(const lh_os_window_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->frame_stats;
 }
 
 lh_void
@@ -566,6 +585,11 @@ lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc, int left, in
     lh_os_window_on_paint_cb on_paint;
     lh_ptr on_paint_context;
 
+#if LH_LIBRARY_OPTION_UI
+    lh_ui_frame_t frame;
+    lh_u64_t started_us = 0U;
+#endif
+
     lh_assert_runtime_ref(self);
     self->paint_dc = paint_dc;
     self->paint_left = left;
@@ -574,10 +598,35 @@ lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc, int left, in
     self->paint_bottom = bottom;
     on_paint = self->on_paint;
     on_paint_context = self->on_paint_context;
+#if LH_LIBRARY_OPTION_UI
+    if (lh_null_ne(self->frame_stats))
+    {
+        /* The request is read before the paint, off the DC the paint is about to draw
+           on: what the window system collected from every invalidation, against the
+           one rectangle it hands the paint. */
+        lh_ui_rect_init(lh_addr_of(frame.drawn), left, top, right - left, bottom - top);
+#    if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
+        frame.asked_known =
+            lh_os_system_window_get_paint_region(paint_dc, lh_addr_of(frame.asked_px), lh_addr_of(frame.rects));
+#    else
+        frame.asked_known = lh_bool_false;
+        frame.asked_px = 0U;
+        frame.rects = 0U;
+#    endif
+        started_us = lh_os_tick_us();
+    }
+#endif
     if (lh_null_ne(lh_ptr_rcast(lh_void, on_paint)))
     {
         on_paint(self, on_paint_context);
     }
+#if LH_LIBRARY_OPTION_UI
+    if (lh_null_ne(self->frame_stats))
+    {
+        frame.us = lh_os_tick_us() - started_us;
+        lh_ui_frame_stats_record(self->frame_stats, lh_addr_of(frame));
+    }
+#endif
     self->paint_dc = lh_null;
     self->paint_left = 0;
     self->paint_top = 0;

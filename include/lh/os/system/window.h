@@ -17,6 +17,7 @@
 #include <lh/config.h>
 #include <lh/os/system/window/handle.h>
 #include <lh/os/window/frame.h>
+#include <lh/numeric/fixed/types.h>
 #include <lh/os/window/placement.h>
 #include <lh/ptr.h>
 #include <lh/timer/tick.h>
@@ -148,6 +149,16 @@ lh_os_system_window_set_timer(lh_os_system_window_handle_t handle, lh_u32_t ms);
  */
 lh_bool_t
 lh_os_system_window_get_client_size(lh_os_system_window_handle_t handle, int *width, int *height);
+
+/**
+ * @brief The update region of the paint in progress on @p paint_dc: its area in pixels
+ *        into @p area and the number of rectangles it is made of into @p count.
+ *
+ * @return False when the platform cannot say, or the region is too complex to read
+ *         without allocating; @p area and @p count are then 0.
+ */
+lh_bool_t
+lh_os_system_window_get_paint_region(lh_ptr paint_dc, lh_u64_t *area, lh_u32_t *count);
 
 /**
  * @brief Where @p handle is on the screen, into @p x and @p y (top-left corner,

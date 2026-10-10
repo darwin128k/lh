@@ -257,6 +257,7 @@ set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/button.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/container.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/label.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/frame/stats.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/input.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/scrollbar.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/toggle.cpp
