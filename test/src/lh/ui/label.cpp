@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include <gtest/gtest.h>
 
 #include <lh/test/ui/fill_probe.h>
@@ -7,7 +9,9 @@
 #include <lh/ui/canvas/sw.h>
 #include <lh/ui/color.h>
 #include <lh/ui/font.h>
+#include <lh/ui/entity.h>
 #include <lh/ui/label.h>
+#include <lh/ui/view.h>
 #include <lh/ui/paint.h>
 #include <lh/ui/pixmap.h>
 #include <lh/ui/rect.h>
@@ -496,4 +500,94 @@ TEST(entity_label, a_label_with_nothing_in_it_has_no_line)
     lh_ui_entity_set_style(lh_ui_label_as_entity(&label), lh_null);
     EXPECT_EQ(lh_ui_label_get_baseline(&label), lh_ui_scalar(-1))
         << "a label with no font to measure has no line";
+}
+
+/* A label draws text wider than its box rather than cut it, so what it has on screen is
+   not its box. The window learned that the hard way: "Конфигуратор" in a 38-wide crumb
+   was replaced by "JL205" and the tail "...игуратор" stayed, because only the box was
+   recorded. Three claims, one per way that goes wrong. */
+namespace
+{
+struct label_in_view
+{
+    lh_ui_entity_t root;
+    lh_ui_label_t label;
+    lh_ui_style_t style;
+    lh_ui_view_t view;
+    char buffer[16];
+
+    label_in_view()
+    {
+        lh_ui_rect_t r;
+
+        lh_ui_rect_init(&r, 0, 0, 200, 40);
+        lh_ui_entity_init(&root, r);
+        lh_ui_style_init(&style);
+        lh_ui_style_set_font(&style, lh_test::tiny_font());
+        lh_ui_rect_init(&r, 10, 10, 4, 4); /* narrower than any of the texts below */
+        lh_ui_label_init(&label, r, "A");
+        lh_ui_entity_set_style(lh_ui_label_as_entity(&label), &style);
+        lh_ui_entity_add_child(&root, lh_ui_label_as_entity(&label));
+        lh_ui_view_init(&view);
+        lh_ui_view_set_root(&view, &root);
+    }
+
+    lh_bool_t
+    take(lh_ui_rect_t *out)
+    {
+        return lh_ui_view_take_damage(&view, out);
+    }
+
+    static lh_ui_scalar_t
+    right_of(const lh_ui_rect_t *r)
+    {
+        return lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(r)) +
+               lh_ui_size_get_width(lh_ui_rect_get_size_as_const(r));
+    }
+
+    lh_ui_scalar_t
+    right_of_ink(const char *text)
+    {
+        return 10 + lh_ui_text_get_width(lh_test::tiny_font(), text);
+    }
+};
+} // namespace
+
+TEST(entity_label, set_text_with_the_same_bytes_records_nothing)
+{
+    label_in_view t;
+    lh_ui_rect_t damage;
+
+    std::strcpy(t.buffer, "A");
+    lh_ui_label_set_text(&t.label, t.buffer); /* the bytes it was built with */
+    EXPECT_EQ(t.take(&damage), lh_bool_false) << "same text at a new address is no change";
+}
+
+TEST(entity_label, set_text_records_the_text_that_overflows_the_box)
+{
+    label_in_view t;
+    lh_ui_rect_t damage;
+
+    lh_ui_label_set_text(&t.label, "AAAAAA");
+    ASSERT_EQ(t.take(&damage), lh_bool_true);
+    EXPECT_GE(label_in_view::right_of(&damage), t.right_of_ink("AAAAAA") - 1)
+        << "the box is 4 wide and the text is not: the damage has to reach the text";
+}
+
+TEST(entity_label, set_text_erases_a_longer_text_whose_buffer_was_rewritten_first)
+{
+    label_in_view t;
+    lh_ui_rect_t damage;
+
+    std::strcpy(t.buffer, "AAAAAA");
+    lh_ui_label_set_text(&t.label, t.buffer);
+    (void)t.take(&damage);
+
+    /* The usual way a cell is updated: the bytes change first, then the label is told.
+       By then the old text cannot be measured, and its tail is still on screen. */
+    std::strcpy(t.buffer, "A");
+    lh_ui_label_set_text(&t.label, t.buffer);
+    ASSERT_EQ(t.take(&damage), lh_bool_true);
+    EXPECT_GE(label_in_view::right_of(&damage), t.right_of_ink("AAAAAA") - 1)
+        << "the old, longer text has to be erased, not only the new one drawn";
 }

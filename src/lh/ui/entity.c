@@ -274,21 +274,46 @@ lh_ui_entity_own_view(const lh_ui_entity_t *self)
 }
 
 lh_void
-lh_ui_entity_note(const lh_ui_entity_t *self)
+lh_ui_entity_note_rect(const lh_ui_entity_t *self, const lh_ui_rect_t *rect)
 {
     struct lh_ui_view *view;
-    lh_ui_rect_t rect;
+    lh_ui_rect_t moved;
     lh_ui_point_t offset;
 
-    lh_return_if(lh_null_eq(self));
+    lh_return_if(lh_null_eq(self) || lh_null_eq(rect) || lh_ui_rect_is_empty(rect));
     lh_return_if(!lh_ui_entity_chain_shown(self));
     view = lh_ui_entity_own_view(self);
     lh_return_if(lh_null_eq(view));
-    rect = lh_ui_entity_get_painted_rect(self);
     offset = lh_ui_entity_get_root_offset(self);
-    rect = lh_ui_rect_offset(lh_addr_of(rect), lh_ui_point_get_x(lh_addr_of(offset)),
-                             lh_ui_point_get_y(lh_addr_of(offset)));
-    lh_ui_view_add_damage(view, lh_addr_of(rect));
+    moved = lh_ui_rect_offset(rect, lh_ui_point_get_x(lh_addr_of(offset)), lh_ui_point_get_y(lh_addr_of(offset)));
+    lh_ui_view_add_damage(view, lh_addr_of(moved));
+}
+
+lh_void
+lh_ui_entity_note(const lh_ui_entity_t *self)
+{
+    lh_ui_rect_t rect;
+
+    lh_return_if(lh_null_eq(self));
+    lh_return_if(!lh_ui_entity_chain_shown(self));
+    rect = lh_ui_entity_get_painted_rect(self);
+    /* A label draws past its box and on purpose (::lh_ui_label_on_children: the tail
+       of a 'p', and any text wider than the box it was given), so the box alone is
+       not what is on screen. Recording only the box left the overflow behind when the
+       text changed: "Конфигуратор" in a 38-wide crumb became "JL205" over
+       "...игуратор", and "УСТРОЙСТВА · 1" kept showing the 0 it used to end in.
+       A leaf only: a parent's measure is its children, and a scrolled pane's children
+       are the whole table. */
+    if (lh_null_eq(lh_ui_entity_get_first_child(self)))
+    {
+        const lh_ui_rect_t content = lh_ui_entity_get_measure_bounds(self);
+
+        if (!lh_ui_rect_is_empty(lh_addr_of(content)))
+        {
+            rect = lh_ui_rect_union(lh_addr_of(rect), lh_addr_of(content));
+        }
+    }
+    lh_ui_entity_note_rect(self, lh_addr_of(rect));
 }
 
 lh_ui_entity_t *
