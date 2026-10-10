@@ -441,33 +441,120 @@ TEST(entity_input, the_caret_sits_where_the_text_before_it_ends)
     EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(caret))), 1);
 }
 
-TEST(entity_input, the_caret_of_an_empty_field_still_has_a_height)
+namespace
 {
-    field f;
-    lh_ui_rect_t with_text;
-    lh_ui_rect_t empty;
-    lh_ui_style_t style;
+/* A field on the cap font (line 8, ascent 6, cap 4; 'd' 'e' 'f' advance 5, 5, 6), top
+   aligned and with no padding, so every number below is the font's own. */
+void
+cap_field(field *f, lh_ui_style_t *style)
+{
     lh_ui_rect_t rect;
 
-    /* The cap font, because the tiny font's line and its ink are both 2 rows and
-       cannot tell the two heights apart -- which is the whole reason that font
-       cannot be trusted with a rule about height. */
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 200, 24);
-    lh_ui_input_init(lh_addr_of(f.input), rect, f.buffer, 16);
-    lh_ui_style_init(lh_addr_of(style));
-    lh_ui_style_set_font(lh_addr_of(style), cap_font());
-    lh_ui_entity_set_style(lh_ui_input_as_entity(lh_addr_of(f.input)), lh_addr_of(style));
+    lh_ui_input_init(lh_addr_of(f->input), rect, f->buffer, 16);
+    lh_ui_style_init(style);
+    lh_ui_style_set_font(style, cap_font());
+    lh_ui_entity_set_style(lh_ui_input_as_entity(lh_addr_of(f->input)), style);
+}
 
+lh_ui_scalar_t
+top_of(const lh_ui_rect_t *r)
+{
+    return lh_ui_rect_get_origin_as_const(r)->y;
+}
+
+lh_ui_scalar_t
+height_of(const lh_ui_rect_t *r)
+{
+    return lh_ui_size_get_height(lh_ui_rect_get_size_as_const(r));
+}
+
+lh_ui_scalar_t
+width_of(const lh_ui_rect_t *r)
+{
+    return lh_ui_size_get_width(lh_ui_rect_get_size_as_const(r));
+}
+} // namespace
+
+/* The caret is the font's line, not the text's ink. Measured off the ink it was 5 rows
+   for "d", 4 for "e" and the line box for an empty field -- three carets for one field,
+   and on screen a caret that changed height as the first character was typed. */
+TEST(entity_input, the_caret_is_as_tall_as_the_font_line_whatever_the_text)
+{
+    field f;
+    lh_ui_style_t style;
+    lh_ui_rect_t caret;
+
+    cap_field(lh_addr_of(f), lh_addr_of(style));
+    caret = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    EXPECT_EQ(height_of(lh_addr_of(caret)), 8) << "empty";
     lh_ui_input_set_text(lh_addr_of(f.input), "d");
-    with_text = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
-    lh_ui_input_clear(lh_addr_of(f.input));
-    empty = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    caret = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    EXPECT_EQ(height_of(lh_addr_of(caret)), 8) << "an ascender";
+    lh_ui_input_set_text(lh_addr_of(f.input), "e");
+    caret = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    EXPECT_EQ(height_of(lh_addr_of(caret)), 8) << "a short letter";
+}
 
-    /* 'd' rises five rows; an empty field has no ink at all and stands on the line box
-       of eight. A caret whose height came from the text would be **no caret at all**
-       in an empty field, which is where a field starts. */
-    EXPECT_EQ(lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(with_text))), 5);
-    EXPECT_EQ(lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(empty))), 8);
+/* It stands on the line the label draws the letters on: its top is that baseline less
+   the ascent. Taking the ink's top instead put it where the tallest letter began, a few
+   rows lower than the line on screen. */
+TEST(entity_input, the_caret_stands_on_the_baseline_the_text_is_drawn_on)
+{
+    field f;
+    lh_ui_style_t style;
+    lh_ui_rect_t caret;
+
+    cap_field(lh_addr_of(f), lh_addr_of(style));
+    lh_ui_input_set_text(lh_addr_of(f.input), "d");
+    caret = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    EXPECT_EQ(top_of(lh_addr_of(caret)), lh_ui_label_get_baseline(lh_addr_of(f.input.label)) - 6);
+}
+
+/* An empty field has no run to stand on, so it takes the line a run of capitals would:
+   top aligned, a cap block from row 0 is a baseline on row 4, and the line is 6 above. */
+TEST(entity_input, an_empty_field_puts_the_caret_where_capitals_would_stand)
+{
+    field f;
+    lh_ui_style_t style;
+    lh_ui_rect_t caret;
+
+    cap_field(lh_addr_of(f), lh_addr_of(style));
+    caret = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    EXPECT_EQ(top_of(lh_addr_of(caret)), 4 - 6);
+}
+
+TEST(entity_input, a_block_caret_is_as_wide_as_the_character_under_it)
+{
+    field f;
+    lh_ui_style_t style;
+    lh_ui_rect_t caret;
+
+    cap_field(lh_addr_of(f), lh_addr_of(style));
+    lh_ui_input_set_caret_shape(lh_addr_of(f.input), lh_ui_input_caret_block);
+    EXPECT_EQ(lh_ui_input_get_caret_shape(lh_addr_of(f.input)), lh_ui_input_caret_block);
+    lh_ui_input_set_text(lh_addr_of(f.input), "fe");
+    lh_ui_input_set_caret(lh_addr_of(f.input), 0);
+    caret = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    EXPECT_EQ(width_of(lh_addr_of(caret)), 6) << "over 'f'";
+    lh_ui_input_set_caret(lh_addr_of(f.input), 1);
+    caret = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    EXPECT_EQ(width_of(lh_addr_of(caret)), 5) << "over 'e'";
+    EXPECT_EQ(lh_ui_rect_get_origin_as_const(lh_addr_of(caret))->x, 6) << "after the 'f'";
+}
+
+TEST(entity_input, a_bar_caret_is_one_column)
+{
+    field f;
+    lh_ui_style_t style;
+    lh_ui_rect_t caret;
+
+    cap_field(lh_addr_of(f), lh_addr_of(style));
+    EXPECT_EQ(lh_ui_input_get_caret_shape(lh_addr_of(f.input)), lh_ui_input_caret_bar) << "the default";
+    lh_ui_input_set_text(lh_addr_of(f.input), "fe");
+    lh_ui_input_set_caret(lh_addr_of(f.input), 0);
+    caret = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    EXPECT_EQ(width_of(lh_addr_of(caret)), 1);
 }
 
 TEST(entity_input, a_field_with_no_font_has_no_caret_rect)

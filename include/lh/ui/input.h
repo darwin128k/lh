@@ -62,6 +62,25 @@
 #include <lh/void.h>
 
 /**
+ * @typedef lh_ui_input_caret_shape_t
+ * @brief How the caret is drawn.
+ *
+ * Both take their height from the **font**, never from the text: the line of the font
+ * standing on the baseline the label draws on. A caret measured off the text was a
+ * different height for "2" and for "d" and a third one in an empty field, and stood
+ * where the ink was rather than where the line is.
+ *
+ * - `bar` — one column, before the character at the caret.
+ * - `block` — as wide as the character at the caret (or a '0' at the end of the text),
+ *   with that character drawn over it in the field's own fill, the way a terminal does.
+ */
+typedef enum lh_ui_input_caret_shape
+{
+    lh_ui_input_caret_bar = 0,
+    lh_ui_input_caret_block
+} lh_ui_input_caret_shape_t;
+
+/**
  * @struct lh_ui_input
  * @typedef lh_ui_input_t
  * @brief A label, the buffer it edits, and where the caret is.
@@ -81,6 +100,7 @@ struct lh_ui_input
                                    when this is true. */
     const lh_ui_color_t *caret_color; /**< What the caret is drawn in, or ::lh_null for the
                                            text's own colour. Not owned. */
+    lh_ui_input_caret_shape_t caret_shape; /**< Bar or block; bar after init. */
 };
 typedef struct lh_ui_input lh_ui_input_t;
 
@@ -301,6 +321,18 @@ lh_ui_input_get_caret_color(const lh_ui_input_t *self);
  */
 lh_void
 lh_ui_input_set_caret_color(lh_ui_input_t *self, const lh_ui_color_t *color);
+
+/**
+ * @brief How @p self draws its caret.
+ */
+lh_ui_input_caret_shape_t
+lh_ui_input_get_caret_shape(const lh_ui_input_t *self);
+
+/**
+ * @brief Draw the caret of @p self as a bar or a block (::lh_ui_input_caret_shape_t).
+ */
+lh_void
+lh_ui_input_set_caret_shape(lh_ui_input_t *self, lh_ui_input_caret_shape_t shape);
 
 /**
  * @brief True while @p self holds the focus.

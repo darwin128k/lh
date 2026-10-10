@@ -14,7 +14,10 @@
 #include <lh/ui/input.h>
 #include <lh/ui/key.h>
 #include <lh/ui/label.h>
+#include <lh/ui/paint.h>
+#include <lh/ui/style.h>
 #include <lh/ui/text.h>
+#include <lh/ui/text/align.h>
 #include <lh/util/addr.h>
 #include <lh/util/return.h>
 
@@ -256,6 +259,23 @@ lh_ui_input_on_draw_caret(const lh_ui_input_t *self, const lh_ui_entity_event_t 
     canvas = lh_ui_entity_event_get_canvas(event);
     lh_return_if(lh_null_eq(canvas));
     lh_ui_canvas_fill_rect(canvas, lh_addr_of(caret), color);
+    if (self->caret_shape == lh_ui_input_caret_block && self->caret < self->used)
+    {
+        /* The block covers the character it stands on, so the character is drawn
+           again on top of it in the colour that is behind the text -- the field's
+           fill, or white for a field without one. Same font, same line top, same
+           column: the glyph lands exactly where the label put it. */
+        const lh_ui_font_t *font = lh_ui_label_get_font(lh_addr_of(self->label));
+        const lh_ui_style_t *style = lh_ui_entity_get_style(lh_addr_of(self->label.container.entity));
+        const lh_ui_color_t *under = lh_null_eq(style) ? lh_null : lh_ui_paint_get_color(lh_ui_style_get_fill(style));
+        const lh_char_t *at = lh_addr_of(self->buffer[self->caret]);
+        lh_ui_color_t white;
+
+        lh_ui_color_init_argb(lh_addr_of(white), 0xFFFFFFFFU);
+        (void)lh_ui_text_draw_code(canvas, font, lh_ui_text_next_code(lh_addr_of(at)),
+                                   *lh_ui_rect_get_origin_as_const(lh_addr_of(caret)),
+                                   lh_null_eq(under) ? lh_addr_of(white) : under);
+    }
 }
 
 /* ── Lifetime and fields ───────────────────────────────────────────────────── */
@@ -271,6 +291,7 @@ lh_ui_input_init(lh_ui_input_t *self, lh_ui_rect_t rect, lh_char_t *buffer, lh_u
     self->caret = 0U;
     self->focused = lh_bool_false;
     self->caret_color = lh_null;
+    self->caret_shape = lh_ui_input_caret_bar;
     /* The label's own text **is** the buffer, so the drawing the label inherited
        shows what was typed without one call being made to say so. */
     lh_ui_entity_set_class(lh_ui_input_as_entity(self), lh_addr_of(lh_ui_input_class));
@@ -485,16 +506,52 @@ lh_ui_input_end(lh_ui_input_t *self)
     self->caret = self->used;
 }
 
+/* The top of the font's line the text stands on, in the field's own space.
+
+   With text it is the label's own baseline, so the caret stands on the line the letters
+   do. Without text there is no run to centre, so the baseline is the one a run of
+   capitals would get: a block one cap height tall, aligned the way the style says.
+   Digits and capitals are what a field of addresses and numbers holds, so the caret
+   does not move when the first character is typed. */
+static lh_ui_scalar_t
+lh_ui_input_get_line_top(const lh_ui_input_t *self, const lh_ui_font_t *font)
+{
+    const lh_ui_entity_t *entity = lh_addr_of(self->label.container.entity);
+    const lh_ui_rect_t *box = lh_addr_of(entity->rect);
+    const lh_ui_scalar_t ascent = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_ascent(font));
+    /* A run with no height (".", a space) stands on nothing, and the label says so with
+       a negative baseline: that takes the same answer as an empty field. */
+    const lh_ui_scalar_t own = self->used > 0U ? lh_ui_label_get_baseline(lh_addr_of(self->label)) : lh_ui_scalar(-1);
+    lh_ui_scalar_t baseline;
+
+    if (own >= lh_ui_scalar(0))
+    {
+        baseline = lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(box)) + own;
+    }
+    else
+    {
+        const lh_ui_style_t *style = lh_ui_entity_get_style(entity);
+        const lh_ui_insets_t padding = lh_ui_entity_get_padding(entity);
+        const lh_ui_scalar_t cap = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_cap_height(font));
+        lh_ui_size_t size;
+        lh_ui_point_t origin;
+
+        lh_ui_size_init(lh_addr_of(size), 0, cap);
+        origin = lh_ui_text_align_get_origin(box, lh_addr_of(padding), size, lh_ui_text_align_h_left,
+                                             lh_null_eq(style) ? lh_ui_text_align_v_top : lh_ui_style_get_align_v(style));
+        baseline = lh_ui_point_get_y(lh_addr_of(origin)) + cap;
+    }
+    return baseline - ascent;
+}
+
 lh_ui_rect_t
 lh_ui_input_get_caret_rect(const lh_ui_input_t *self)
 {
     lh_ui_rect_t caret;
     const lh_ui_font_t *font;
     lh_ui_point_t origin;
-    lh_ui_rect_t ink;
     lh_ui_scalar_t at;
-    lh_ui_scalar_t y;
-    lh_ui_scalar_t height;
+    lh_ui_scalar_t width = lh_ui_scalar(1);
     lh_char_t saved;
 
     lh_ui_rect_init_empty(lh_addr_of(caret));
@@ -512,24 +569,29 @@ lh_ui_input_get_caret_rect(const lh_ui_input_t *self)
     at = lh_ui_point_get_x(lh_addr_of(origin)) + lh_ui_text_get_width(font, self->buffer);
     self->buffer[self->caret] = saved;
 
-    /* An empty field has no ink to measure, and **a caret whose height comes from
-       the text is no caret at all** in a field with no text -- which is the state a
-       field is in for exactly as long as it takes to notice. The line box stands in
-       for it, which is the one thing that is always there. */
-    ink = lh_ui_text_get_line_ink_rect(font, self->buffer, origin);
-    if (self->used == 0U)
+    if (self->caret_shape == lh_ui_input_caret_block)
     {
-        y = lh_ui_point_get_y(lh_addr_of(origin));
-        height = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font));
+        /* The character under the caret, or a '0' past the end: a block as wide as
+           nothing is a bar, and the end of the text is where a block sits most. */
+        const lh_char_t *next = lh_addr_of(self->buffer[self->caret]);
+        const lh_u32_t code = self->caret < self->used ? lh_ui_text_next_code(lh_addr_of(next)) : '0';
+
+        width = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance(font, code));
+        if (width <= lh_ui_scalar(0))
+        {
+            width = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance(font, '0'));
+        }
+        if (width <= lh_ui_scalar(0))
+        {
+            width = lh_ui_scalar(1);
+        }
     }
-    else
-    {
-        y = lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(ink)));
-        height = lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(ink)));
-    }
-    /* One column, and the caret is not rounded away: a caret on a half pixel is a
-       grey line that is half as visible as the one it was. */
-    lh_ui_rect_init(lh_addr_of(caret), at, y, lh_ui_scalar(1), height);
+    /* The font's line, standing on the text's baseline: the same height whatever the
+       text is, and where the line is rather than where the ink happens to be. One
+       column for a bar, not rounded away: a caret on a half pixel is a grey line half
+       as visible as the one it was. */
+    lh_ui_rect_init(lh_addr_of(caret), at, lh_ui_input_get_line_top(self, font), width,
+                    lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font)));
     return caret;
 }
 
@@ -545,6 +607,20 @@ lh_ui_input_set_caret_color(lh_ui_input_t *self, const lh_ui_color_t *color)
 {
     lh_assert_runtime_ref(self);
     self->caret_color = color;
+}
+
+lh_ui_input_caret_shape_t
+lh_ui_input_get_caret_shape(const lh_ui_input_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->caret_shape;
+}
+
+lh_void
+lh_ui_input_set_caret_shape(lh_ui_input_t *self, lh_ui_input_caret_shape_t shape)
+{
+    lh_assert_runtime_ref(self);
+    self->caret_shape = shape;
 }
 
 lh_bool_t
