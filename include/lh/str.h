@@ -32,6 +32,21 @@
 #include <lh/array.h>
 #include <lh/str/ptr.h>
 #include <lh/str/view.h>
+
+/* Umbrella: the rest of lh/str/. str/list.h is left out on purpose — it is built
+   on lh_str_t from this header, so it depends on us rather than the other way. */
+#include <lh/str/cstr.h>
+#include <lh/str/format/bytes.h>
+#include <lh/str/format/hex.h>
+#include <lh/str/format/sint.h>
+#include <lh/str/format/text.h>
+#include <lh/str/format/uint.h>
+#include <lh/str/parse/hex.h>
+#include <lh/str/parse/text.h>
+#include <lh/str/parse/uint.h>
+#include <lh/str/scanf/next.h>
+#include <lh/str/scanf/spec.h>
+#include <lh/str/split/next.h>
 #include <lh/char.h>
 #include <lh/size.h>
 #include <lh/bool.h>

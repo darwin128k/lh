@@ -5,8 +5,7 @@
 
 #include <lh/net/modbus.h>
 
-#include <string.h>
-
+#include <lh/memory/std.h>
 #include <lh/null.h>
 #include <lh/util/addr.h>
 #include <lh/util/return.h>
@@ -108,7 +107,7 @@ lh_mb_build_read(lh_byte_t *adu, lh_u16_t cap, lh_u8_t unit, lh_u8_t fc, lh_u16_
     lh_return_if(pdu_length == 0, (lh_u16_t)0);
 
     adu[0] = unit;
-    memcpy(lh_addr_of(adu[1]), pdu, pdu_length);
+    lh_memory_std_copy(lh_addr_of(adu[1]), pdu, pdu_length);
     crc = lh_mb_crc16(adu, (lh_u16_t)(1 + pdu_length));
     adu[1 + pdu_length] = (lh_byte_t)(crc & 0xFF);
     adu[2 + pdu_length] = (lh_byte_t)((crc >> 8) & 0xFF);
@@ -131,7 +130,7 @@ lh_mb_build_write(lh_byte_t *adu, lh_u16_t cap, lh_u8_t unit, lh_u16_t address,
     lh_return_if(pdu_length == 0, (lh_u16_t)0);
 
     adu[0] = unit;
-    memcpy(lh_addr_of(adu[1]), pdu, pdu_length);
+    lh_memory_std_copy(lh_addr_of(adu[1]), pdu, pdu_length);
     crc = lh_mb_crc16(adu, (lh_u16_t)(1 + pdu_length));
     adu[1 + pdu_length] = (lh_byte_t)(crc & 0xFF);
     adu[2 + pdu_length] = (lh_byte_t)((crc >> 8) & 0xFF);
@@ -301,7 +300,7 @@ lh_mb_parse_read(const lh_byte_t *adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc
         return lh_mb_status_crc;
     }
     pdu[0] = adu[1];
-    memcpy(lh_addr_of(pdu[1]), lh_addr_of(adu[2]), (size_t)(length - 4));
+    lh_memory_std_copy(lh_addr_of(pdu[1]), lh_addr_of(adu[2]), (lh_usize_t)(length - 4));
     pdu_length = (lh_u16_t)(length - 3);
     return lh_mb_parse_pdu(pdu, pdu_length, fc, expect, values, cap, out, lh_null);
 }

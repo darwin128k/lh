@@ -52,6 +52,11 @@
 #include <lh/ui/style.h>
 #include <lh/ui/text.h>
 #include <lh/ui/view.h>
+#include <lh/ui/blur.h>
+#include <lh/ui/canvas/mask.h>
+#include <lh/ui/canvas/round.h>
+#include <lh/ui/frame/stats.h>
+#include <lh/ui/input.h>
 #if LH_LIBRARY_OPTION_OS && LH_LIBRARY_OPTION_OS_WINDOW
 #    include <lh/ui/surface.h>
 #endif

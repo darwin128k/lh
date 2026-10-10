@@ -31,6 +31,26 @@
 #    error "lh/os.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
 #endif
 
+/* Umbrella: the OS subsystem. os/system/ is the platform layer underneath it
+   and is pulled in separately below. */
+#include <lh/os/alloc.h>
+#include <lh/os/app.h>
+#include <lh/os/fs/dir.h>
+#include <lh/os/fs/file.h>
+#include <lh/os/fs/path.h>
+#include <lh/os/fs/stat.h>
+#include <lh/os/loader.h>
+#include <lh/os/module.h>
+#include <lh/os/net.h>
+#include <lh/os/net/socket.h>
+#include <lh/os/result.h>
+#include <lh/os/shared.h>
+#include <lh/os/str.h>
+#include <lh/os/system.h>
+#include <lh/os/tick.h>
+#include <lh/os/timestamp.h>
+#include <lh/os/window.h>
+
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**

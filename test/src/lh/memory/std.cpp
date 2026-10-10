@@ -1125,4 +1125,97 @@ TEST(memory_std_move, matches_memmove_for_large_sizes)
     }
 }
 
+/* -- the portable word kernel ------------------------------------------------
+ *
+ * lh_memory_std_copy_words is what runs when no vector unit was compiled in: on
+ * ARM, RISC-V, anything but x86 it IS the copy. It is compiled and tested here on
+ * x86 too, so the path a non-x86 target takes is verified on every machine
+ * instead of only on the ones that have it.
+ */
+
+TEST(memory_std_copy_words, matches_a_plain_copy_at_every_size)
+{
+    const std::size_t sizes[] = {0, 1, 2, 7, 8, 9, 15, 16, 17, 63, 64, 65, 1000, 4097};
+    for (std::size_t n : sizes)
+    {
+        std::vector<lh_byte_t> want(n + 64);
+        for (std::size_t i = 0; i < want.size(); ++i)
+        {
+            want[i] = static_cast<lh_byte_t>(i * 31 + 7);
+        }
+        std::vector<lh_byte_t> got = want;
+
+        lh_byte_t *src = want.data() + 8;
+        lh_byte_t *dst = got.data() + 8;
+        const lh_ptr end = lh_memory_std_copy_words(dst, src, n);
+
+        ASSERT_EQ(end, static_cast<lh_ptr>(dst + n)) << "n=" << n;
+        EXPECT_EQ(got, want) << "n=" << n;
+    }
+}
+
+/* The whole reason the kernel steps a byte at a time before going word-wise: a
+   target that faults on a misaligned word access. Every combination of source
+   and destination offset relative to the machine word has to come out identical,
+   because which combination a caller lands on is not theirs to choose. */
+TEST(memory_std_copy_words, survives_every_pair_of_misalignments)
+{
+    const std::size_t n = 37;
+    for (int src_off = 0; src_off < 16; ++src_off)
+    {
+        for (int dst_off = 0; dst_off < 16; ++dst_off)
+        {
+            std::vector<lh_byte_t> source(128);
+            for (std::size_t i = 0; i < source.size(); ++i)
+            {
+                source[i] = static_cast<lh_byte_t>(i * 17 + 3);
+            }
+
+            /* Three buffers, not two: the source pattern cannot double as the
+               expected result, or the comparison is guaranteed to fail on the
+               very range the copy was asked to write. */
+            std::vector<lh_byte_t> got = source;
+            std::vector<lh_byte_t> expect = source;
+
+            lh_byte_t *src = source.data() + src_off;
+            lh_byte_t *dst = got.data() + 16 + dst_off;
+            lh_memory_std_copy_words(dst, src, n);
+            std::memcpy(expect.data() + 16 + dst_off, source.data() + src_off, n);
+
+            ASSERT_EQ(got, expect) << "src_off=" << src_off << " dst_off=" << dst_off;
+        }
+    }
+}
+
+TEST(memory_std_fill_words, zero_word_zeroes_the_range)
+{
+    const std::size_t sizes[] = {0, 1, 7, 8, 9, 33, 64, 65, 1000};
+    for (std::size_t n : sizes)
+    {
+        std::vector<lh_byte_t> got(n + 8, 0xAB);
+        std::vector<lh_byte_t> want = got;
+
+        lh_byte_t *dst = got.data() + 3;
+        const lh_ptr end = lh_memory_std_fill_words(dst, 0, n);
+        std::memset(want.data() + 3, 0, n);
+
+        ASSERT_EQ(end, static_cast<lh_ptr>(dst + n)) << "n=" << n;
+        EXPECT_EQ(got, want) << "n=" << n;
+    }
+}
+
+TEST(memory_std_fill_words, a_word_fills_with_its_own_bytes)
+{
+    lh_byte_t buf[16];
+    for (std::size_t i = 0; i < sizeof(buf); ++i)
+    {
+        buf[i] = 0;
+    }
+    lh_memory_std_fill_words(buf, (lh_usize_t)0x0101010101010101ULL, sizeof(buf));
+    for (lh_byte_t b : buf)
+    {
+        EXPECT_EQ(b, 1);
+    }
+}
+
 } // namespace

@@ -1,8 +1,15 @@
 /**
  * @file lh.h
- * @brief Top-level public API of the lh library.
+ * @brief The library's own interface: which lh this binary is.
  *
- * Include this header to access the library's runtime interface.
+ * Not an umbrella, and deliberately not one. Nothing here pulls in a subsystem.
+ * Each of those has its own door — `lh/math.h`, `lh/memory.h`, `lh/os.h`,
+ * `lh/ui.h`, `lh/str.h` — so a program includes what it uses and nothing else.
+ *
+ * `lh/version.h` is a different thing and does not answer this question. That is
+ * the version *value type*: assign, set components, compare, format, parse over a
+ * version the caller built. This header answers the one question only the
+ * compiled library can answer, which version of lh this binary is.
  * Currently, exposes ::lh_get_version for querying the compiled version.
  */
 

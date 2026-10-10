@@ -5,9 +5,8 @@
 
 #include <lh/net/modbus/link.h>
 
-#include <string.h>
-
 #include <lh/assert/runtime.h>
+#include <lh/memory/std.h>
 #include <lh/null.h>
 #include <lh/util/addr.h>
 #include <lh/util/return.h>
@@ -51,13 +50,13 @@ lh_mb_encode(lh_mb_framing_t framing, lh_u8_t unit, lh_u16_t tx, const lh_byte_t
         out[4] = (lh_byte_t)((1 + pdu_length) >> 8);
         out[5] = (lh_byte_t)((1 + pdu_length) & 0xFF);
         out[6] = unit;
-        memcpy(lh_addr_of(out[7]), pdu, pdu_length);
+        lh_memory_std_copy(lh_addr_of(out[7]), pdu, pdu_length);
         return (lh_u16_t)(LH_MB_MBAP_HEAD + pdu_length);
     }
     /* RTU: unit, PDU, CRC low byte first. */
     lh_return_if(cap < (lh_u16_t)(2 + pdu_length), (lh_u16_t)0);
     out[0] = unit;
-    memcpy(lh_addr_of(out[1]), pdu, pdu_length);
+    lh_memory_std_copy(lh_addr_of(out[1]), pdu, pdu_length);
     {
         const lh_u16_t crc = lh_mb_crc16(out, (lh_u16_t)(1 + pdu_length));
 
@@ -158,7 +157,7 @@ lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, const lh_byte_t *frame, lh_u
            register, and a number that is wrong in its last byte is a number that
            looks right. */
         *pdu_length = (lh_u16_t)(length - LH_MB_MBAP_HEAD);
-        memcpy(pdu, lh_addr_of(frame[7]), *pdu_length);
+        lh_memory_std_copy(pdu, lh_addr_of(frame[7]), *pdu_length);
         return lh_bool_true;
     }
     /* RTU: the CRC is checked before anything is taken out of the frame, for the
@@ -171,7 +170,7 @@ lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, const lh_byte_t *frame, lh_u
         return lh_bool_false;
     }
     *pdu_length = (lh_u16_t)(length - 3);
-    memcpy(pdu, lh_addr_of(frame[1]), *pdu_length);
+    lh_memory_std_copy(pdu, lh_addr_of(frame[1]), *pdu_length);
     return lh_bool_true;
 }
 
@@ -184,7 +183,7 @@ lh_mb_link_init(lh_mb_link_t *self, const lh_mb_transport_t *transport, lh_mb_fr
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(transport));
 
-    memset(lh_addr_of(*self), 0, sizeof(*self));
+    lh_memory_std_set(lh_addr_of(*self), 0, sizeof(*self));
     self->transport = *transport;
     self->framing = framing;
     self->unit = unit;
