@@ -716,3 +716,94 @@ TEST(lh_mb_link, an_rtu_request_is_the_unit_the_pdu_and_two_crc_bytes)
                   answer_length);
     }
 }
+/* ── Writing ──────────────────────────────────────────────────────────────────
+   Every frame below came off a socket from the write-capable copy of the emulator
+   (a separate implementation that shares no code with this link): a write of 1 and 2
+   at address 10, its echo, a read of the same two registers back, and the refusal of a
+   write of zero registers. */
+namespace
+{
+const lh_byte_t kWrite2At10[] = {0x00, 0x01, 0x00, 0x00, 0x00, 0x0b, 0x01, 0x10, 0x00,
+                                 0x0a, 0x00, 0x02, 0x04, 0x00, 0x01, 0x00, 0x02};
+const lh_byte_t kWrite2At10Echo[] = {0x00, 0x01, 0x00, 0x00, 0x00, 0x06,
+                                     0x01, 0x10, 0x00, 0x0a, 0x00, 0x02};
+const lh_byte_t kWriteRefused[] = {0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x01, 0x90, 0x03};
+} /* namespace */
+
+TEST(lh_mb_link, a_write_puts_the_captured_request_on_the_wire)
+{
+    lh_test_link t;
+    const lh_u16_t values[] = {1, 2};
+
+    setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
+    t.link.tx = 1; /* the captured request is transaction 1 */
+    ASSERT_TRUE(lh_mb_link_write(lh_addr_of(t.link), 10, values, 2));
+    ASSERT_EQ(t.tcp.out_size, (lh_u16_t)sizeof(kWrite2At10));
+    EXPECT_EQ(memcmp(t.tcp.out, kWrite2At10, sizeof(kWrite2At10)), 0);
+}
+
+TEST(lh_mb_link, the_echo_of_a_write_answers_it_and_carries_no_values)
+{
+    lh_test_link t;
+    const lh_u16_t values[] = {1, 2};
+    lh_u16_t count = 99;
+
+    setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
+    ASSERT_TRUE(lh_mb_link_write(lh_addr_of(t.link), 10, values, 2));
+    feed(lh_addr_of(t), kWrite2At10Echo, (lh_u16_t)sizeof(kWrite2At10Echo));
+    ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_answered)
+        << "twelve bytes, length field 6: the write's header echoed";
+    EXPECT_NE(lh_mb_link_take(lh_addr_of(t.link), lh_addr_of(count)), lh_null);
+    EXPECT_EQ(count, (lh_u16_t)0) << "a write's answer has no registers in it";
+    EXPECT_EQ(t.link.reason, lh_mb_status_ok);
+}
+
+/* The echo is checked against what was written: an echo of another address is not this
+   write having happened. Asked at 11, answered with the echo of 10. */
+TEST(lh_mb_link, the_echo_of_another_write_is_not_this_one)
+{
+    lh_test_link t;
+    const lh_u16_t values[] = {1, 2};
+
+    setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
+    ASSERT_TRUE(lh_mb_link_write(lh_addr_of(t.link), 11, values, 2));
+    feed(lh_addr_of(t), kWrite2At10Echo, (lh_u16_t)sizeof(kWrite2At10Echo));
+    EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
+    EXPECT_EQ(t.link.reason, lh_mb_status_garbage);
+}
+
+TEST(lh_mb_link, a_refused_write_is_a_refusal_and_not_a_failure)
+{
+    lh_test_link t;
+    const lh_u16_t values[] = {1};
+
+    setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
+    ASSERT_TRUE(lh_mb_link_write(lh_addr_of(t.link), 10, values, 1));
+    feed(lh_addr_of(t), kWriteRefused, (lh_u16_t)sizeof(kWriteRefused));
+    EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
+    EXPECT_EQ(t.link.reason, lh_mb_status_exception) << "0x90 0x03: the device said no";
+    EXPECT_EQ(t.link.counters.refused, (lh_u32_t)1);
+    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)0);
+}
+
+/* A write does not change what the link reads: after it, the next question is a read
+   with the link's own function code, and its answer is read as one. */
+TEST(lh_mb_link, after_a_write_the_link_reads_with_its_own_code_again)
+{
+    lh_test_link t;
+    const lh_u16_t values[] = {1, 2};
+    lh_u16_t count = 0;
+
+    setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
+    ASSERT_TRUE(lh_mb_link_write(lh_addr_of(t.link), 10, values, 2));
+    feed(lh_addr_of(t), kWrite2At10Echo, (lh_u16_t)sizeof(kWrite2At10Echo));
+    ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_answered);
+    lh_mb_link_release(lh_addr_of(t.link));
+    EXPECT_EQ(lh_mb_link_get_fc(lh_addr_of(t.link)), LH_MB_FC_READ_HOLDING);
+
+    ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
+    feed(lh_addr_of(t), kRead3Holding, (lh_u16_t)sizeof(kRead3Holding));
+    ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_answered);
+    EXPECT_NE(lh_mb_link_take(lh_addr_of(t.link), lh_addr_of(count)), lh_null);
+    EXPECT_EQ(count, (lh_u16_t)3);
+}

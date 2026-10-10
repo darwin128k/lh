@@ -309,6 +309,10 @@ ICONS = {
         label="A chevron pointing down -- a category is open",
         shapes=[poly((6, 9), (12, 15), (18, 9))],
     ),
+    "chevron_right": dict(
+        label="A chevron pointing right -- a category is shut",
+        shapes=[poly((9, 6), (15, 12), (9, 18))],
+    ),
 
     # ── the catch-all ─────────────────────────────────────────────────────────
     # Shown in the head of the category that holds registers whose family nobody has

@@ -199,6 +199,7 @@ lh_mb_link_init(lh_mb_link_t *self, const lh_mb_transport_t *transport, lh_mb_fr
        a link that could only ever ask 0x03 could not poll most of what those
        devices have. */
     self->fc = LH_MB_FC_READ_HOLDING;
+    self->asked_fc = LH_MB_FC_READ_HOLDING;
     self->state = (lh_u8_t)lh_mb_link_idle;
     self->reason = lh_mb_status_ok;
     self->now_us = now_us;
@@ -243,28 +244,15 @@ lh_mb_link_open(lh_mb_link_t *self, const lh_char_t *target, lh_u16_t port)
     return lh_bool_true;
 }
 
-lh_bool_t
-lh_mb_link_ask(lh_mb_link_t *self, lh_u16_t address, lh_u16_t count)
+/* Everything after the PDU is the same for a read and a write: the envelope, the send,
+   and the bookkeeping that makes the answer this question's. @p fc is the code the
+   answer will carry, and ::lh_mb_link_poll reads it by that. */
+static lh_bool_t
+lh_mb_link_send(lh_mb_link_t *self, const lh_byte_t *pdu, lh_u16_t pdu_length, lh_u16_t address,
+                lh_u16_t count, lh_u8_t fc)
 {
-    lh_byte_t pdu[LH_MB_ADU_MAX];
-    lh_u16_t pdu_length;
     lh_s32_t wrote;
 
-    lh_assert_runtime_ref(self);
-    /* One question at a time. A second request sent while the first is unanswered
-       comes back after its own answer and is read as somebody else's frame, which
-       is a bug that looks like a device answering the wrong question. */
-    lh_return_ifn(self->state == (lh_u8_t)lh_mb_link_idle, lh_bool_false);
-    lh_return_ifn(count > 0 && count <= LH_MB_READ_MAX, lh_bool_false);
-
-    /* `self->fc`, not a constant. ::lh_mb_link_poll reads the answer back with the same
-       field, and a request built with anything else is a question the reader is not
-       expecting the answer to: the device replies perfectly to a 0x03 read of
-       holding registers, the answer comes back carrying 0x03, and the parser is
-       holding 0x04 and calls it somebody else's frame. It looked like a device
-       answering the wrong question, which is the most expensive kind of bug to
-       chase and the least likely — the answer was fine, the reader was wrong. */
-    pdu_length = lh_mb_build_pdu_read(pdu, (lh_u16_t)sizeof(pdu), self->fc, address, count);
     if (pdu_length == 0)
     {
         return lh_bool_false;
@@ -315,8 +303,46 @@ lh_mb_link_ask(lh_mb_link_t *self, lh_u16_t address, lh_u16_t count)
        reading about the wrong question. */
     self->reason = lh_mb_status_ok;
     self->since_us = self->now_us != lh_null ? self->now_us(self->clock) : 0;
+    self->asked_fc = fc;
     self->state = (lh_u8_t)lh_mb_link_waiting;
     return lh_bool_true;
+}
+
+lh_bool_t
+lh_mb_link_ask(lh_mb_link_t *self, lh_u16_t address, lh_u16_t count)
+{
+    lh_byte_t pdu[LH_MB_ADU_MAX];
+    lh_u16_t pdu_length;
+
+    lh_assert_runtime_ref(self);
+    /* One question at a time. A second request sent while the first is unanswered
+       comes back after its own answer and is read as somebody else's frame, which
+       is a bug that looks like a device answering the wrong question. */
+    lh_return_ifn(self->state == (lh_u8_t)lh_mb_link_idle, lh_bool_false);
+    lh_return_ifn(count > 0 && count <= LH_MB_READ_MAX, lh_bool_false);
+
+    /* `self->fc`, not a constant. ::lh_mb_link_poll reads the answer back with the same
+       field, and a request built with anything else is a question the reader is not
+       expecting the answer to: the device replies perfectly to a 0x03 read of
+       holding registers, the answer comes back carrying 0x03, and the parser is
+       holding 0x04 and calls it somebody else's frame. It looked like a device
+       answering the wrong question, which is the most expensive kind of bug to
+       chase and the least likely — the answer was fine, the reader was wrong. */
+    pdu_length = lh_mb_build_pdu_read(pdu, (lh_u16_t)sizeof(pdu), self->fc, address, count);
+    return lh_mb_link_send(self, pdu, pdu_length, address, count, self->fc);
+}
+
+lh_bool_t
+lh_mb_link_write(lh_mb_link_t *self, lh_u16_t address, const lh_u16_t *values, lh_u16_t count)
+{
+    lh_byte_t pdu[LH_MB_ADU_MAX];
+
+    lh_assert_runtime_ref(self);
+    lh_return_ifn(self->state == (lh_u8_t)lh_mb_link_idle, lh_bool_false);
+    lh_return_ifn(lh_null_ne(values) && count > 0, lh_bool_false);
+    return lh_mb_link_send(self, pdu,
+                           lh_mb_build_pdu_write(pdu, (lh_u16_t)sizeof(pdu), address, values, count),
+                           address, count, LH_MB_FC_WRITE_MANY);
 }
 
 lh_mb_link_state_t
@@ -357,7 +383,7 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
         self->counters.bytes += (lh_u32_t)got;
     }
 
-    need = lh_mb_frame_length(self->framing, self->frame, self->held, self->unit, self->fc);
+    need = lh_mb_frame_length(self->framing, self->frame, self->held, self->unit, self->asked_fc);
     if (need == 0 || self->held < need)
     {
         /* Not yet. How long it has been unanswered is the only thing that turns
@@ -384,8 +410,17 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
         self->held = 0;
         return (lh_mb_link_state_t)self->state;
     }
-    status = lh_mb_parse_pdu(pdu, pdu_length, self->fc, self->expected, self->values,
-                             (lh_u16_t)LH_MB_LINK_VALUES, lh_addr_of(self->got), lh_null);
+    if (self->asked_fc == LH_MB_FC_WRITE_MANY)
+    {
+        /* A write's answer is its own header echoed and carries no values. */
+        self->got = 0;
+        status = lh_mb_parse_pdu_write(pdu, pdu_length, self->address, self->expected, lh_null);
+    }
+    else
+    {
+        status = lh_mb_parse_pdu(pdu, pdu_length, self->asked_fc, self->expected, self->values,
+                                 (lh_u16_t)LH_MB_LINK_VALUES, lh_addr_of(self->got), lh_null);
+    }
     self->held = 0;
     self->reason = status;
     if (status != lh_mb_status_ok && status != lh_mb_status_partial)

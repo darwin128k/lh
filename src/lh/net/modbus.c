@@ -217,6 +217,35 @@ lh_mb_parse_pdu(const lh_byte_t *pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expe
 }
 
 lh_mb_status_t
+lh_mb_parse_pdu_write(const lh_byte_t *pdu, lh_u16_t length, lh_u16_t address, lh_u16_t count,
+                      lh_u8_t *exception)
+{
+    if (exception != lh_null)
+    {
+        *exception = 0;
+    }
+    lh_return_if(lh_null_eq(pdu), lh_mb_status_garbage);
+    /* The refusal first, for the reason ::lh_mb_parse_pdu gives: it is two bytes,
+       shorter than any answer, and checking the length first calls "no" "not yet". */
+    lh_return_if(length < 2, lh_mb_status_short);
+    if (pdu[0] == (lh_u8_t)(LH_MB_FC_WRITE_MANY | 0x80))
+    {
+        if (exception != lh_null)
+        {
+            *exception = pdu[1];
+        }
+        return lh_mb_status_exception;
+    }
+    lh_return_if(length < 5, lh_mb_status_short);
+    lh_return_if(pdu[0] != LH_MB_FC_WRITE_MANY, lh_mb_status_wrong_code);
+    /* The echo has to be this write: the same address and the same count. */
+    lh_return_if(((lh_u16_t)((lh_u16_t)pdu[1] << 8 | pdu[2])) != address ||
+                     ((lh_u16_t)((lh_u16_t)pdu[3] << 8 | pdu[4])) != count,
+                 lh_mb_status_garbage);
+    return lh_mb_status_ok;
+}
+
+lh_mb_status_t
 lh_mb_parse_read(const lh_byte_t *adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh_u16_t expect,
                  lh_u16_t *values, lh_u16_t cap, lh_u16_t *out, lh_u8_t *exception)
 {

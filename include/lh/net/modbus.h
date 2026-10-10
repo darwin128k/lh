@@ -211,6 +211,26 @@ lh_mb_status_t
 lh_mb_parse_read(const lh_byte_t *adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh_u16_t expect,
                  lh_u16_t *values, lh_u16_t cap, lh_u16_t *out, lh_u8_t *exception);
 
+/**
+ * @brief Read what a device answered to "write many registers", from the **PDU**.
+ *
+ * The answer to a write is its own header echoed: the function code, the address and
+ * the count, five bytes. It is checked against what was sent, because an echo of a
+ * different address is not this write being done -- or a refusal, two bytes, exactly
+ * as for a read.
+ *
+ * @param pdu       Function code and data, as it came off the wire.
+ * @param length    How many bytes @p pdu holds.
+ * @param address   The address that was written.
+ * @param count     How many registers were written.
+ * @param exception The device's exception code, when it refused; `lh_null` to not care.
+ *
+ * @return ::lh_mb_status_ok when the echo is this write's. @see lh_mb_status_t
+ */
+lh_mb_status_t
+lh_mb_parse_pdu_write(const lh_byte_t *pdu, lh_u16_t length, lh_u16_t address, lh_u16_t count,
+                      lh_u8_t *exception);
+
 /* ── The plan ────────────────────────────────────────────────────────────── */
 
 /**
