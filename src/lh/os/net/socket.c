@@ -59,6 +59,24 @@ lh_os_net_socket_connect(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_
 }
 
 lh_bool_t
+lh_os_net_socket_set_blocking(lh_os_net_socket_t *self, lh_bool_t blocking)
+{
+    return lh_os_system_net_socket_set_blocking(lh_os_net_socket_get_handle(self), blocking);
+}
+
+lh_ssize_t
+lh_os_net_socket_connect_start(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_t *addr)
+{
+    return lh_os_system_net_socket_connect_start(lh_os_net_socket_get_handle(self), addr);
+}
+
+lh_ssize_t
+lh_os_net_socket_connect_wait(lh_os_net_socket_t *self, lh_u32_t timeout_ms)
+{
+    return lh_os_system_net_socket_connect_wait(lh_os_net_socket_get_handle(self), timeout_ms);
+}
+
+lh_bool_t
 lh_os_net_socket_bind(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_t *addr)
 {
     return lh_os_system_net_socket_bind(lh_os_net_socket_get_handle(self), addr);

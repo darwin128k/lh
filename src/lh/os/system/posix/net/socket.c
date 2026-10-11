@@ -9,9 +9,23 @@
 #include <lh/math.h>
 #include <lh/util/ptr.h>
 
+#include <errno.h>
+#include <fcntl.h>
+#include <limits.h>
 #include <netinet/in.h>
+#include <poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
+/* A send to a peer that has gone raises SIGPIPE, whose default is to end the
+   process. A client that keeps connections to many devices cannot have one device
+   pulling its cable kill it: the send fails with EPIPE instead. Linux has the flag;
+   where it does not exist (macOS has SO_NOSIGPIPE instead) the send is unchanged. */
+#if defined(MSG_NOSIGNAL)
+#    define LH_OS_SYSTEM_POSIX_SEND_FLAGS MSG_NOSIGNAL
+#else
+#    define LH_OS_SYSTEM_POSIX_SEND_FLAGS 0
+#endif
 
 #include <lh/os/system/net/socket/addr.h>
 
@@ -22,13 +36,20 @@ lh_os_system_net_socket_native(lh_os_system_net_socket_handle_t handle)
     return lh_cast_static(int, handle);
 }
 
+/* A failed call on a non-blocking socket that only means "not yet" is not
+   captured: it is what every empty poll says, and capturing formats a message. */
 LH_ATTRIBUTE_STATIC
 lh_ssize_t
 lh_os_system_net_socket_result(lh_ssize_t result)
 {
     if (lh_math_is_negative(result))
     {
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        {
+            return LH_OS_RESULT_PENDING;
+        }
         lh_os_system_error_capture();
+        return LH_OS_RESULT_INVALID;
     }
     return result;
 }
@@ -79,6 +100,86 @@ lh_os_system_net_socket_connect(lh_os_system_net_socket_handle_t handle, const l
     return lh_os_system_net_socket_ok(connect(lh_os_system_net_socket_native(handle),
                                               lh_ptr_rcast(struct sockaddr, lh_addr_of(native_addr)),
                                               sizeof(native_addr)));
+}
+
+lh_bool_t
+lh_os_system_net_socket_set_blocking(lh_os_system_net_socket_handle_t handle, lh_bool_t blocking)
+{
+    const int native = lh_os_system_net_socket_native(handle);
+    const int flags = fcntl(native, F_GETFL, 0);
+
+    if (lh_math_is_negative(flags))
+    {
+        lh_os_system_error_capture();
+        return lh_bool_false;
+    }
+    return lh_os_system_net_socket_ok(fcntl(native, F_SETFL, blocking ? (flags & ~O_NONBLOCK) : (flags | O_NONBLOCK)));
+}
+
+lh_ssize_t
+lh_os_system_net_socket_connect_start(lh_os_system_net_socket_handle_t handle,
+                                      const lh_net_ip4_socket_addr_t *addr)
+{
+    struct sockaddr_in native_addr;
+
+    lh_assert_runtime_ref(addr);
+    lh_os_system_net_socket_native_addr_from_ip4(lh_addr_of(native_addr), addr);
+    if (lh_math_is_zero(connect(lh_os_system_net_socket_native(handle),
+                                lh_ptr_rcast(struct sockaddr, lh_addr_of(native_addr)), sizeof(native_addr))))
+    {
+        return 0;
+    }
+    /* EINTR on a non-blocking connect does not stop it: it carries on in the
+       background, exactly as EINPROGRESS does. */
+    if (errno == EINPROGRESS || errno == EINTR)
+    {
+        return LH_OS_RESULT_PENDING;
+    }
+    lh_os_system_error_capture();
+    return LH_OS_RESULT_INVALID;
+}
+
+lh_ssize_t
+lh_os_system_net_socket_connect_wait(lh_os_system_net_socket_handle_t handle, lh_u32_t timeout_ms)
+{
+    struct pollfd watch;
+    int error = 0;
+    socklen_t error_size = sizeof(error);
+
+    /* poll, not select: select's fd_set is a bit set of FD_SETSIZE (1024) bits,
+       and a descriptor numbered past it -- which a client holding many
+       connections gets -- writes outside the set. */
+    watch.fd = lh_os_system_net_socket_native(handle);
+    watch.events = POLLOUT;
+    watch.revents = 0;
+    const int ready = poll(lh_addr_of(watch), 1, timeout_ms > (lh_u32_t)INT_MAX ? INT_MAX : (int)timeout_ms);
+    if (lh_math_is_negative(ready))
+    {
+        if (errno == EINTR)
+        {
+            return LH_OS_RESULT_PENDING;
+        }
+        lh_os_system_error_capture();
+        return LH_OS_RESULT_INVALID;
+    }
+    if (lh_math_is_zero(ready))
+    {
+        return LH_OS_RESULT_PENDING;
+    }
+    if (!lh_os_system_net_socket_ok(
+            getsockopt(watch.fd, SOL_SOCKET, SO_ERROR, lh_addr_of(error), lh_addr_of(error_size))))
+    {
+        return LH_OS_RESULT_INVALID;
+    }
+    if (lh_math_ne(error, 0))
+    {
+        /* The reason is the socket's, not the last call's: put it where capture
+           reads from. */
+        errno = error;
+        lh_os_system_error_capture();
+        return LH_OS_RESULT_INVALID;
+    }
+    return 0;
 }
 
 lh_bool_t
@@ -151,7 +252,8 @@ lh_ssize_t
 lh_os_system_net_socket_send(lh_os_system_net_socket_handle_t handle, const lh_ptr buf, lh_usize_t size)
 {
     return lh_os_system_net_socket_result(
-        lh_cast_static(lh_ssize_t, send(lh_os_system_net_socket_native(handle), buf, lh_cast_static(size_t, size), 0)));
+        lh_cast_static(lh_ssize_t, send(lh_os_system_net_socket_native(handle), buf, lh_cast_static(size_t, size),
+                                    LH_OS_SYSTEM_POSIX_SEND_FLAGS)));
 }
 
 lh_ssize_t
