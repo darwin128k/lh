@@ -310,8 +310,17 @@ lh_ui_canvas_sw_glass(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t c
                       const lh_ui_color_t *tint, lh_u8_t *scratch, lh_usize_t bytes);
 
 /**
+ * @brief Backend `fill_colors`: each row inside the limit, ::lh_ui_pixmap_fill_colors_span
+ *        when the colours change across and ::lh_ui_pixmap_fill_span in the row's
+ *        colour when they change down. A rounded clip it leaves to the canvas.
+ */
+lh_bool_t
+lh_ui_canvas_sw_fill_colors(lh_ptr context, lh_s32_t x, lh_s32_t y, lh_s32_t w, lh_s32_t h,
+                            const lh_ui_color_t *colors, lh_ui_axis_t axis);
+
+/**
  * @brief The software backend table: clear, fill_rect, fill_round_rect,
- *        set_clip, fill_mask; no begin / end.
+ *        set_clip, fill_mask, the effects and fill_colors; no begin / end.
  */
 extern const lh_ui_canvas_backend_t lh_ui_canvas_backend_sw;
 

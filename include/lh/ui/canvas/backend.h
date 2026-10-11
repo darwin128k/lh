@@ -13,6 +13,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 #include <lh/size.h>
+#include <lh/ui/axis.h>
 #include <lh/ui/canvas/backend/fields.h>
 #include <lh/ui/canvas/clip.h>
 #include <lh/ui/color.h>
@@ -166,6 +167,23 @@ typedef lh_bool_t(lh_ui_canvas_glass_fn)(lh_ptr context, const lh_ui_rect_t *rec
                                         lh_ui_scalar_t blur_radius, const lh_ui_color_t *tint, lh_u8_t *scratch,
                                         lh_usize_t bytes);
 
+/**
+ * @typedef lh_ui_canvas_fill_colors_fn
+ * @brief Paint the pixel box (@p x, @p y, @p w, @p h) in colours that change along
+ *        @p axis, alpha included: across, @p colors holds one for each column and
+ *        every row is the same; down, one for each row and every column is.
+ *
+ * In target space, on whole pixels. A gradient is a colour a pixel, or a colour a
+ * row, and sending them as one call is what keeps it from paying a whole primitive
+ * for every pixel or every row. The box is a shape like a mask: the backend cuts it
+ * to its own clip.
+ *
+ * @return ::lh_bool_false when the backend drew nothing; the canvas then sends the
+ *         box itself, a run of one colour at a time.
+ */
+typedef lh_bool_t(lh_ui_canvas_fill_colors_fn)(lh_ptr context, lh_s32_t x, lh_s32_t y, lh_s32_t w, lh_s32_t h,
+                                              const lh_ui_color_t *colors, lh_ui_axis_t axis);
+
 LH_COMPILER_EXTERN_C_END
 
 /**
@@ -182,7 +200,7 @@ struct lh_ui_canvas_backend
                                 lh_ui_canvas_clear_fn, lh_ui_canvas_fill_rect_fn,
                                 lh_ui_canvas_fill_round_rect_fn, lh_ui_canvas_set_clip_fn,
                                 lh_ui_canvas_fill_mask_fn, lh_ui_canvas_shadow_fn, lh_ui_canvas_blur_fn,
-                                lh_ui_canvas_glass_fn);
+                                lh_ui_canvas_glass_fn, lh_ui_canvas_fill_colors_fn);
 };
 typedef struct lh_ui_canvas_backend lh_ui_canvas_backend_t;
 

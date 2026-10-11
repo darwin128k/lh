@@ -5,11 +5,12 @@
  *
  * A solid box with one radius is ::lh_ui_canvas_fill_round_rect, and goes there: the
  * backend's own rounded fill, unchanged. Anything else is drawn here with the canvas's
- * own sends, so every backend draws it the same: the straight part of each row as
- * spans, the corners pixel by pixel at the coverage of the corner they are in
- * (::lh_ui_radii_get_at). A gradient that runs straight down is one colour a row and
- * one straight across one colour a column, so those go out as spans too; any other
- * angle and a radial one are a colour a pixel, with runs of one colour joined.
+ * own sends, so every backend draws it the same. Where the colour does not change
+ * across a row, the row is a span -- a run of such rows one box -- and a corner's
+ * pixels go out as a short row of colours at the coverage of the corner they are in
+ * (::lh_ui_radii_get_at). Where a gradient colours a pixel at a time, the row goes
+ * out whole as a row of colours (::lh_ui_canvas_fill_colors), read off a
+ * ::lh_ui_gradient_sampler_t, its corner pixels at their coverage.
  */
 
 #include <lh/math.h>
@@ -18,20 +19,15 @@
 #include <lh/ui/canvas/box.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/gradient.h>
+#include <lh/ui/gradient/sampler.h>
 #include <lh/ui/paint.h>
 #include <lh/ui/radii.h>
+#include <lh/ui/radius.h>
 #include <lh/util/addr.h>
 #include <lh/util/return.h>
 
-/* The colour of @p paint at the pixel (@p x, @p y) of @p box. */
-static lh_ui_color_t
-lh_ui_canvas_box_color(const lh_ui_paint_t *paint, const lh_ui_rect_t *box, lh_s32_t x, lh_s32_t y)
-{
-    const lh_ui_gradient_t *gradient = lh_ui_paint_get_gradient(paint);
-
-    lh_return_if(lh_null_eq(gradient), *lh_ui_paint_get_color(paint));
-    return lh_ui_gradient_color_at(gradient, lh_ui_gradient_frac_at(gradient, box, x, y));
-}
+/* How many pixels of a row are coloured before they are sent. */
+#define LH_UI_CANVAS_BOX_RUN 256
 
 /* True when the colour of @p paint does not change across a row (solid, or a
    gradient that runs straight up or down). */
@@ -47,102 +43,174 @@ lh_ui_canvas_box_rows_are_one_colour(const lh_ui_paint_t *paint)
                : lh_bool_false;
 }
 
-/* True when the colour of @p paint does not change down a column. */
+/* True when the colour of @p paint does not change down a column (a gradient that
+   runs straight across). */
 static lh_bool_t
 lh_ui_canvas_box_columns_are_one_colour(const lh_ui_paint_t *paint)
 {
     const lh_ui_gradient_t *gradient = lh_ui_paint_get_gradient(paint);
 
-    lh_return_if(lh_null_eq(gradient), lh_bool_true);
+    lh_return_if(lh_null_eq(gradient), lh_bool_false);
     return lh_ui_gradient_get_shape(gradient) == lh_ui_gradient_shape_linear &&
                    (lh_ui_gradient_get_angle(gradient) % 180) == 90
                ? lh_bool_true
                : lh_bool_false;
 }
 
-/* Pixels @p x0 .. @p x1 - 1 of row @p y, wholly inside the box: one span when the row is
-   one colour, else runs of one colour. */
+/* The colours of pixels @p x0 .. @p x1 - 1 of row @p y into @p out: the gradient's
+   when there is @p sampler, else the paint's one colour. */
 static lh_void
-lh_ui_canvas_box_span(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, const lh_ui_rect_t *box, lh_s32_t x0,
-                      lh_s32_t x1, lh_s32_t y)
+lh_ui_canvas_box_paint_row(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t *sampler, lh_s32_t x0,
+                           lh_s32_t x1, lh_s32_t y, lh_ui_color_t *out)
 {
     lh_s32_t x;
-    lh_s32_t run;
-    lh_ui_color_t colour;
 
-    lh_return_if(x1 <= x0);
-    if (lh_ui_canvas_box_rows_are_one_colour(paint))
+    if (lh_null_ne(sampler))
     {
-        colour = lh_ui_canvas_box_color(paint, box, x0, y);
-        lh_ui_canvas_fill_pixels(self, x0, y, x1 - x0, 1, lh_addr_of(colour));
+        lh_ui_gradient_sampler_row(sampler, x0, x1, y, out);
         return;
     }
-    run = x0;
-    colour = lh_ui_canvas_box_color(paint, box, x0, y);
-    for (x = x0 + 1; x <= x1; ++x)
+    for (x = x0; x < x1; ++x)
     {
-        lh_ui_color_t next;
+        out[x - x0] = *lh_ui_paint_get_color(paint);
+    }
+}
 
-        if (x < x1)
+/* The one colour of row @p y of a paint whose rows are one colour each. */
+static lh_ui_color_t
+lh_ui_canvas_box_row_colour(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t *sampler, lh_s32_t x,
+                            lh_s32_t y)
+{
+    lh_ui_color_t colour;
+
+    lh_return_if(lh_null_eq(sampler), *lh_ui_paint_get_color(paint));
+    lh_ui_gradient_sampler_column(sampler, x, y, y + 1, lh_addr_of(colour));
+    return colour;
+}
+
+/* Pixels @p x0 .. @p x1 - 1 of row @p y in one colour @p colour, each at its
+   coverage by the corner @p corner (::lh_ui_radius_run_init). */
+static lh_void
+lh_ui_canvas_box_corner(lh_ui_canvas_t *self, const lh_ui_color_t *colour, const struct lh_ui_radius_run *corner,
+                        lh_s32_t x0, lh_s32_t x1, lh_s32_t y)
+{
+    lh_ui_color_t colours[LH_UI_CANVAS_BOX_RUN];
+    lh_byte_t cover[LH_UI_CANVAS_BOX_RUN];
+    lh_s32_t end;
+    lh_s32_t x;
+
+    for (; x0 < x1; x0 = end)
+    {
+        end = lh_math_min(x1, x0 + LH_UI_CANVAS_BOX_RUN);
+        lh_ui_radius_run_row(corner, x0, end, y, cover);
+        for (x = x0; x < end; ++x)
         {
-            next = lh_ui_canvas_box_color(paint, box, x, y);
-            if (lh_ui_color_equals(lh_addr_of(next), lh_addr_of(colour)))
+            colours[x - x0] = lh_ui_color_with_coverage(colour, cover[x - x0]);
+        }
+        lh_ui_canvas_fill_colors(self, x0, y, end - x0, 1, colours, lh_ui_axis_horizontal);
+    }
+}
+
+/* Pixels @p x0 .. @p x1 - 1 of row @p y; those left of @p near_end are cut by the
+   corner @p near and those from @p far_start on by the corner @p far, each the
+   corner of a box rounded all round by its radius (::lh_ui_radius_run_init). A row
+   of one colour sends its corners as colours and the middle as one span; any other
+   goes out whole as a row of colours. */
+static lh_void
+lh_ui_canvas_box_row(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t *sampler,
+                     lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_s32_t near_end, const struct lh_ui_radius_run *near,
+                     lh_s32_t far_start, const struct lh_ui_radius_run *far)
+{
+    lh_ui_color_t colours[LH_UI_CANVAS_BOX_RUN];
+    lh_byte_t cover[LH_UI_CANVAS_BOX_RUN];
+    lh_s32_t end;
+    lh_s32_t cut;
+    lh_s32_t x;
+
+    near_end = lh_math_max(x0, lh_math_min(x1, near_end));
+    far_start = lh_math_min(x1, lh_math_max(near_end, far_start));
+    if (lh_ui_canvas_box_rows_are_one_colour(paint))
+    {
+        const lh_ui_color_t colour = lh_ui_canvas_box_row_colour(paint, sampler, x0, y);
+
+        lh_ui_canvas_box_corner(self, lh_addr_of(colour), near, x0, near_end, y);
+        lh_ui_canvas_fill_pixels(self, near_end, y, far_start - near_end, 1, lh_addr_of(colour));
+        lh_ui_canvas_box_corner(self, lh_addr_of(colour), far, far_start, x1, y);
+        return;
+    }
+    for (; x0 < x1; x0 = end)
+    {
+        end = lh_math_min(x1, x0 + LH_UI_CANVAS_BOX_RUN);
+        lh_ui_canvas_box_paint_row(paint, sampler, x0, end, y, colours);
+        cut = lh_math_min(end, near_end);
+        if (x0 < cut)
+        {
+            lh_ui_radius_run_row(near, x0, cut, y, cover);
+            for (x = x0; x < cut; ++x)
             {
-                continue;
+                colours[x - x0] = lh_ui_color_with_coverage(colours + (x - x0), cover[x - x0]);
             }
         }
-        lh_ui_canvas_fill_pixels(self, run, y, x - run, 1, lh_addr_of(colour));
-        if (x < x1)
+        cut = lh_math_max(x0, far_start);
+        if (cut < end)
         {
-            run = x;
-            colour = next;
+            lh_ui_radius_run_row(far, cut, end, y, cover);
+            for (x = cut; x < end; ++x)
+            {
+                colours[x - x0] = lh_ui_color_with_coverage(colours + (x - x0), cover[x - cut]);
+            }
         }
+        lh_ui_canvas_fill_colors(self, x0, y, end - x0, 1, colours, lh_ui_axis_horizontal);
     }
 }
 
 /* Rows @p y0 .. @p y1 - 1, which no corner reaches: one box when the paint is one
-   colour, a column a colour when it changes only across, else row by row. */
+   colour, one box of a colour a row or a colour a column when it changes only one
+   way, else a row of colours a row. */
 static lh_void
-lh_ui_canvas_box_band(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, const lh_ui_rect_t *box, lh_s32_t x0,
-                      lh_s32_t x1, lh_s32_t y0, lh_s32_t y1)
+lh_ui_canvas_box_band(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t *sampler,
+                      lh_s32_t x0, lh_s32_t x1, lh_s32_t y0, lh_s32_t y1)
 {
-    lh_s32_t x;
     lh_s32_t y;
-    lh_ui_color_t colour;
 
     lh_return_if(y1 <= y0 || x1 <= x0);
-    if (lh_null_eq(lh_ui_paint_get_gradient(paint)))
+    if (lh_null_eq(sampler))
     {
         lh_ui_canvas_fill_pixels(self, x0, y0, x1 - x0, y1 - y0, lh_ui_paint_get_color(paint));
         return;
     }
+    if (lh_ui_canvas_box_rows_are_one_colour(paint))
+    {
+        /* A colour a row, read down the first column, the rows sent together. */
+        lh_ui_color_t colours[LH_UI_CANVAS_BOX_RUN];
+        lh_s32_t end;
+
+        for (y = y0; y < y1; y = end)
+        {
+            end = lh_math_min(y1, y + LH_UI_CANVAS_BOX_RUN);
+            lh_ui_gradient_sampler_column(sampler, x0, y, end, colours);
+            lh_ui_canvas_fill_colors(self, x0, y, x1 - x0, end - y, colours, lh_ui_axis_vertical);
+        }
+        return;
+    }
     if (lh_ui_canvas_box_columns_are_one_colour(paint))
     {
-        for (x = x0; x < x1; ++x)
+        /* A colour a column, the same all the way down: the row once, for every row. */
+        lh_ui_color_t colours[LH_UI_CANVAS_BOX_RUN];
+        lh_s32_t end;
+        lh_s32_t x;
+
+        for (x = x0; x < x1; x = end)
         {
-            colour = lh_ui_canvas_box_color(paint, box, x, y0);
-            lh_ui_canvas_fill_pixels(self, x, y0, 1, y1 - y0, lh_addr_of(colour));
+            end = lh_math_min(x1, x + LH_UI_CANVAS_BOX_RUN);
+            lh_ui_gradient_sampler_row(sampler, x, end, y0, colours);
+            lh_ui_canvas_fill_colors(self, x, y0, end - x, y1 - y0, colours, lh_ui_axis_horizontal);
         }
         return;
     }
     for (y = y0; y < y1; ++y)
     {
-        lh_ui_canvas_box_span(self, paint, box, x0, x1, y);
-    }
-}
-
-/* The corner pixels @p x0 .. @p x1 - 1 of row @p y, each at its coverage by @p radius. */
-static lh_void
-lh_ui_canvas_box_corner(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, const lh_ui_rect_t *box,
-                        lh_ui_scalar_t radius, lh_s32_t x0, lh_s32_t x1, lh_s32_t y)
-{
-    lh_s32_t x;
-
-    for (x = x0; x < x1; ++x)
-    {
-        const lh_ui_color_t colour = lh_ui_canvas_box_color(paint, box, x, y);
-
-        lh_ui_canvas_fill_coverage_pixel(self, box, radius, x, y, lh_addr_of(colour));
+        lh_ui_canvas_box_row(self, paint, sampler, x0, x1, y, x0, lh_null, x1, lh_null);
     }
 }
 
@@ -150,6 +218,9 @@ lh_void
 lh_ui_canvas_fill_box(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_ui_radii_t *radii,
                       const lh_ui_paint_t *paint)
 {
+    lh_ui_gradient_sampler_t sampler;
+    lh_ui_gradient_sampler_t *colours = lh_null;
+    struct lh_ui_radius_run corners[4];
     lh_ui_radii_t fit;
     lh_ui_rect_t box;
     lh_ui_rect_t cut;
@@ -159,6 +230,8 @@ lh_ui_canvas_fill_box(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_u
     lh_s32_t bottom;
     lh_s32_t first;
     lh_s32_t last;
+    lh_s32_t shown_left;
+    lh_s32_t shown_right;
     lh_s32_t plain_from;
     lh_s32_t y;
 
@@ -179,10 +252,25 @@ lh_ui_canvas_fill_box(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_u
     right = lh_ui_canvas_round_right(lh_addr_of(box));
     top = lh_ui_canvas_round_top(lh_addr_of(box));
     bottom = lh_ui_canvas_round_bottom(lh_addr_of(box));
-    /* Only the rows the clip shows: a long gradient list scrolled to its end
-       does not colour the rows above the window. */
+    /* Only the rows and columns the clip shows: a long gradient list scrolled to its
+       end does not colour the rows above the window, nor a wide one the columns off
+       to the side. */
     first = lh_math_max(top, lh_ui_canvas_round_top(lh_addr_of(cut)));
     last = lh_math_min(bottom, lh_ui_canvas_round_bottom(lh_addr_of(cut)));
+    shown_left = lh_math_max(left, lh_ui_canvas_round_left(lh_addr_of(cut)));
+    shown_right = lh_math_min(right, lh_ui_canvas_round_right(lh_addr_of(cut)));
+    lh_return_if(shown_right <= shown_left);
+    if (lh_null_ne(lh_ui_paint_get_gradient(paint)))
+    {
+        lh_ui_gradient_sampler_init(lh_addr_of(sampler), lh_ui_paint_get_gradient(paint), lh_addr_of(box));
+        colours = lh_addr_of(sampler);
+    }
+    /* Each corner is the corner of a box rounded all round by its radius, and only
+       the pixels in that corner are asked about it. */
+    lh_ui_radius_run_init(lh_addr_of(corners[0]), lh_addr_of(box), fit.top_left);
+    lh_ui_radius_run_init(lh_addr_of(corners[1]), lh_addr_of(box), fit.top_right);
+    lh_ui_radius_run_init(lh_addr_of(corners[2]), lh_addr_of(box), fit.bottom_left);
+    lh_ui_radius_run_init(lh_addr_of(corners[3]), lh_addr_of(box), fit.bottom_right);
     plain_from = first;
     for (y = first; y < last; ++y)
     {
@@ -201,12 +289,11 @@ lh_ui_canvas_fill_box(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_u
             continue;
         }
         /* A row a corner reaches: the rows before it that none did go out as one
-           band, then this one, its corners pixel by pixel. */
-        lh_ui_canvas_box_band(self, paint, lh_addr_of(box), left, right, plain_from, y);
+           band, then this one whole, its corners at their coverage. */
+        lh_ui_canvas_box_band(self, paint, colours, shown_left, shown_right, plain_from, y);
         plain_from = y + 1;
-        lh_ui_canvas_box_corner(self, paint, lh_addr_of(box), near, left, left + zone_near, y);
-        lh_ui_canvas_box_span(self, paint, lh_addr_of(box), left + zone_near, right - zone_far, y);
-        lh_ui_canvas_box_corner(self, paint, lh_addr_of(box), far, right - zone_far, right, y);
+        lh_ui_canvas_box_row(self, paint, colours, shown_left, shown_right, y, left + zone_near,
+                             lh_addr_of(corners[upper ? 0 : 2]), right - zone_far, lh_addr_of(corners[upper ? 1 : 3]));
     }
-    lh_ui_canvas_box_band(self, paint, lh_addr_of(box), left, right, plain_from, last);
+    lh_ui_canvas_box_band(self, paint, colours, shown_left, shown_right, plain_from, last);
 }

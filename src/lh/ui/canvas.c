@@ -9,6 +9,7 @@
 #include <lh/null.h>
 #include <lh/runtime/error/code.h>
 #include <lh/ui/canvas.h>
+#include <lh/ui/shadow/shape.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/radius.h>
 #include <lh/ui/rects.h>
@@ -567,6 +568,7 @@ lh_ui_canvas_shadow_fallback(lh_ui_canvas_t *self, const lh_ui_rect_t *bounds, c
     lh_ui_rect_t cut;
     lh_s32_t x1;
     lh_s32_t y1;
+    lh_ui_shadow_shape_t shape;
     lh_s32_t y;
 
     /* Only what the clip lets through is worth a pixel each, and a frame drawn in
@@ -578,13 +580,15 @@ lh_ui_canvas_shadow_fallback(lh_ui_canvas_t *self, const lh_ui_rect_t *bounds, c
     x1 = lh_ui_point_get_x(cut_origin) + lh_ui_size_get_width(cut_size);
     y1 = lh_ui_point_get_y(cut_origin) + lh_ui_size_get_height(cut_size);
 
+    lh_ui_shadow_shape_init(&shape, shadow, target, radius);
     for (y = lh_ui_point_get_y(cut_origin); y < y1; ++y)
     {
+        const lh_s32_t row = lh_ui_shadow_shape_row(&shape, y);
         lh_s32_t x;
 
         for (x = lh_ui_point_get_x(cut_origin); x < x1; ++x)
         {
-            const lh_byte_t alpha = lh_ui_shadow_alpha_at_pixel(shadow, x, y, target, radius);
+            const lh_byte_t alpha = lh_ui_shadow_shape_alpha(&shape, row, x, y);
             lh_ui_rect_t pixel;
             lh_ui_color_t color;
 

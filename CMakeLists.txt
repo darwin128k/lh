@@ -240,6 +240,8 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/color.c
             ${LH_LIB_SRC_PATH}/ui/paint.c
             ${LH_LIB_SRC_PATH}/ui/gradient.c
+            ${LH_LIB_SRC_PATH}/ui/gradient/sampler.c
+            ${LH_LIB_SRC_PATH}/ui/gradient/sine.c
             ${LH_LIB_SRC_PATH}/ui/style.c
             ${LH_LIB_SRC_PATH}/ui/easing.c
             ${LH_LIB_SRC_PATH}/ui/transition.c
@@ -247,6 +249,8 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/radii.c
             ${LH_LIB_SRC_PATH}/ui/rects.c
             ${LH_LIB_SRC_PATH}/ui/shadow.c
+            ${LH_LIB_SRC_PATH}/ui/shadow/ramp.c
+            ${LH_LIB_SRC_PATH}/ui/shadow/shape.c
             ${LH_LIB_SRC_PATH}/ui/blur.c
             ${LH_LIB_SRC_PATH}/ui/range.c
             ${LH_LIB_SRC_PATH}/ui/canvas.c

@@ -17,6 +17,9 @@
 #include <lh/ui/shadow.h>
 #include <lh/ui/style.h>
 #include <lh/util/addr.h>
+#include <lh/ui/canvas/box.h>
+#include <lh/ui/gradient.h>
+#include <lh/ui/radii.h>
 #include <lh/util/ptr.h>
 
 namespace
@@ -376,6 +379,87 @@ draw_everything(sw_fixture &f)
     lh_ui_canvas_fill_rect(lh_addr_of(f.canvas), lh_addr_of(all), lh_addr_of(half));
     lh_ui_canvas_fill_round_rect(lh_addr_of(f.canvas), lh_addr_of(round), lh_ui_scalar(6), lh_addr_of(half));
     lh_ui_canvas_fill_mask(lh_addr_of(f.canvas), lh_addr_of(mask), at, lh_addr_of(opaque));
+}
+
+TEST(ui_canvas_sw, a_gradient_box_matches_the_canvas_fallback_pixel_for_pixel)
+{
+    lh_ui_color_t colors[2];
+    lh_ui_gradient_t gradient;
+    lh_ui_paint_t paint;
+    lh_ui_radii_t radii;
+    const lh_ui_rect_t rect = rect_of(1, 2, 21, 19);
+
+    /* A row of colours sent whole has to land as the same row sent a run of one
+       colour at a time through fill_rect: corners, see-through stops, clip and all. */
+    colors[0] = color_of(10, 200, 30, 255);
+    colors[1] = color_of(250, 20, 140, 120);
+    lh_ui_gradient_init(lh_addr_of(gradient));
+    lh_ui_gradient_init_stops(lh_addr_of(gradient), colors, lh_null, 2);
+    lh_ui_paint_init_gradient(lh_addr_of(paint), lh_addr_of(gradient));
+    lh_ui_radii_init(lh_addr_of(radii), 0, 7, 3, 11);
+    for (int angle = -1; angle < 360; angle += 45)
+    {
+        for (int clipped = 0; clipped < 2; ++clipped)
+        {
+            sw_fixture sw;
+            sw_fixture fallback(&g_rect_only);
+
+            if (angle < 0)
+            {
+                lh_ui_gradient_set_radial(lh_addr_of(gradient));
+            }
+            else
+            {
+                lh_ui_gradient_set_linear(lh_addr_of(gradient), angle);
+            }
+            if (clipped != 0)
+            {
+                sw.push_clip(4, 3, 13, 15);
+                fallback.push_clip(4, 3, 13, 15);
+            }
+            lh_ui_canvas_fill_box(lh_addr_of(sw.canvas), lh_addr_of(rect), lh_addr_of(radii), lh_addr_of(paint));
+            lh_ui_canvas_fill_box(lh_addr_of(fallback.canvas), lh_addr_of(rect), lh_addr_of(radii),
+                                  lh_addr_of(paint));
+            expect_same_pixels(sw, fallback);
+        }
+    }
+}
+
+TEST(ui_canvas_sw, a_four_bit_glyph_matches_the_canvas_fallback_pixel_for_pixel)
+{
+    /* Five pixels a row, three bytes: every nibble value, both halves of a byte, and a
+       row whose last byte is half used -- the shape of a baked glyph. */
+    static const lh_byte_t bits[] = {
+        0x0F, 0x8F, 0x30, 0xF1, 0x23, 0x40, 0x56, 0x78, 0x90, 0xAB, 0xCD, 0xE0,
+    };
+    lh_ui_mask_t mask;
+
+    lh_ui_mask_init(lh_addr_of(mask), bits, 5, 4, 3, 4);
+    for (int alpha : {255, 140})
+    {
+        for (int clipped = 0; clipped < 2; ++clipped)
+        {
+            sw_fixture sw;
+            sw_fixture fallback(&g_rect_only);
+            const lh_ui_color_t ink = color_of(250, 120, 30, alpha);
+            const lh_ui_color_t under = color_of(10, 60, 200, 255);
+            const lh_ui_rect_t all = rect_of(0, 0, side, side);
+            lh_ui_point_t at;
+
+            /* Over an opaque ground, so a blend has something to mix with. */
+            lh_ui_canvas_fill_rect(lh_addr_of(sw.canvas), lh_addr_of(all), lh_addr_of(under));
+            lh_ui_canvas_fill_rect(lh_addr_of(fallback.canvas), lh_addr_of(all), lh_addr_of(under));
+            if (clipped != 0)
+            {
+                sw.push_clip(4, 3, 3, 2);
+                fallback.push_clip(4, 3, 3, 2);
+            }
+            lh_ui_point_init(lh_addr_of(at), 3, 2);
+            lh_ui_canvas_fill_mask(lh_addr_of(sw.canvas), lh_addr_of(mask), at, lh_addr_of(ink));
+            lh_ui_canvas_fill_mask(lh_addr_of(fallback.canvas), lh_addr_of(mask), at, lh_addr_of(ink));
+            expect_same_pixels(sw, fallback);
+        }
+    }
 }
 
 } // namespace
