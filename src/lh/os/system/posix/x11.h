@@ -36,6 +36,8 @@ typedef struct lh_os_system_posix_visual lh_os_system_posix_visual_t;
 typedef struct lh_os_system_posix_gc lh_os_system_posix_gc_t;
 /** @brief `XErrorEvent`: only ever a pointer, and never read. */
 typedef struct lh_os_system_posix_xerror_event lh_os_system_posix_xerror_event_t;
+/** @brief `XRenderPictFormat`: only ever a pointer. */
+typedef struct lh_os_system_posix_xrender_format lh_os_system_posix_xrender_format_t;
 
 #include <lh/os/system/posix/x11/xany_event/fields.h>
 #include <lh/os/system/posix/x11/xbutton_event/fields.h>
@@ -47,6 +49,7 @@ typedef struct lh_os_system_posix_xerror_event lh_os_system_posix_xerror_event_t
 #include <lh/os/system/posix/x11/xmotion_event/fields.h>
 #include <lh/os/system/posix/x11/xproperty_event/fields.h>
 #include <lh/os/system/posix/x11/xrectangle/fields.h>
+#include <lh/os/system/posix/x11/xrender_color/fields.h>
 #include <lh/os/system/posix/x11/xset_window_attributes/fields.h>
 #include <lh/os/system/posix/x11/xshm_segment_info/fields.h>
 #include <lh/os/system/posix/x11/xsize_hints/fields.h>
@@ -165,6 +168,13 @@ struct lh_os_system_posix_xrectangle
 };
 typedef struct lh_os_system_posix_xrectangle lh_os_system_posix_xrectangle_t;
 
+/** @brief `XRenderColor`. */
+struct lh_os_system_posix_xrender_color
+{
+    lh_os_system_posix_xrender_color_fields;
+};
+typedef struct lh_os_system_posix_xrender_color lh_os_system_posix_xrender_color_t;
+
 /** @brief `XShmSegmentInfo`. */
 struct lh_os_system_posix_xshm_segment_info
 {
@@ -208,6 +218,7 @@ typedef struct lh_os_system_posix_xshm_segment_info lh_os_system_posix_xshm_segm
 #define LH_OS_SYSTEM_POSIX_X_INPUT_OUTPUT 1U
 #define LH_OS_SYSTEM_POSIX_X_COPY_FROM_PARENT 0
 #define LH_OS_SYSTEM_POSIX_X_CW_BACK_PIXMAP (1UL << 0)
+#define LH_OS_SYSTEM_POSIX_X_CW_BACK_PIXEL (1UL << 1)
 #define LH_OS_SYSTEM_POSIX_X_CW_BORDER_PIXEL (1UL << 3)
 #define LH_OS_SYSTEM_POSIX_X_CW_BIT_GRAVITY (1UL << 4)
 #define LH_OS_SYSTEM_POSIX_X_CW_EVENT_MASK (1UL << 11)
@@ -245,6 +256,10 @@ typedef struct lh_os_system_posix_xshm_segment_info lh_os_system_posix_xshm_segm
 #define LH_OS_SYSTEM_POSIX_X_SHAPE_BOUNDING 0
 #define LH_OS_SYSTEM_POSIX_X_SHAPE_SET 0
 #define LH_OS_SYSTEM_POSIX_X_SHAPE_UNSORTED 0
+
+/* RENDER (render.h): replace the destination; the standard xRGB format. */
+#define LH_OS_SYSTEM_POSIX_X_PICT_OP_SRC 1
+#define LH_OS_SYSTEM_POSIX_X_PICT_STANDARD_RGB24 1
 
 /* ── The library ─────────────────────────────────────────────────────────── */
 
@@ -290,5 +305,25 @@ typedef struct lh_os_system_posix_xext lh_os_system_posix_xext_t;
  */
 const lh_os_system_posix_xext_t *
 lh_os_system_posix_xext_load(void);
+
+#include <lh/os/system/posix/x11/xrender/fields.h>
+
+/**
+ * @brief libXrender, opened at run time.
+ */
+struct lh_os_system_posix_xrender
+{
+    lh_os_system_posix_xrender_fields;
+};
+typedef struct lh_os_system_posix_xrender lh_os_system_posix_xrender_t;
+
+/**
+ * @brief libXrender, loaded on the first call and kept.
+ *
+ * @return The functions, or `lh_null` when there is no libXrender: a window then
+ *         has no alpha of its own, and round corners are cut by SHAPE alone.
+ */
+const lh_os_system_posix_xrender_t *
+lh_os_system_posix_xrender_load(void);
 
 #endif /* LH_SRC_OS_SYSTEM_POSIX_X11_H */

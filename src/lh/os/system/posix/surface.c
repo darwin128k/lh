@@ -201,9 +201,8 @@ lh_os_system_surface_get_dc(lh_os_system_surface_handle_t handle)
     return lh_null;
 }
 
-/* RGB565 to 0xFFRRGGBB, with each channel's top bits repeated into its bottom
-   ones so that full scale stays full scale. Opaque: a 24-bit window ignores the
-   top byte, and a 32-bit one -- a window with round corners -- reads it as alpha. */
+/* RGB565 to the 0x00RRGGBB a 24-bit window takes, with each channel's top bits
+   repeated into its bottom ones so that full scale stays full scale. */
 static lh_u32_t
 lh_os_system_posix_surface_from_565(lh_u16_t pixel)
 {
@@ -211,7 +210,7 @@ lh_os_system_posix_surface_from_565(lh_u16_t pixel)
     const lh_u32_t g = (lh_u32_t)(pixel >> 5) & 0x3fU;
     const lh_u32_t b = (lh_u32_t)pixel & 0x1fU;
 
-    return 0xff000000U | ((r << 3 | r >> 2) << 16) | ((g << 2 | g >> 4) << 8) | (b << 3 | b >> 2);
+    return ((r << 3 | r >> 2) << 16) | ((g << 2 | g >> 4) << 8) | (b << 3 | b >> 2);
 }
 
 /* The rows of a 16-bit surface that a present covers, widened into the staging

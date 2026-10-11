@@ -18,6 +18,9 @@ static int lh_os_system_posix_x11_state;
 static lh_os_system_posix_xext_t lh_os_system_posix_xext;
 static int lh_os_system_posix_xext_state;
 
+static lh_os_system_posix_xrender_t lh_os_system_posix_xrender;
+static int lh_os_system_posix_xrender_state;
+
 /* Each pointer is filled from the symbol of its own name. Assigned through a
    `void **` because ISO C has no conversion from `void *` to a function pointer,
    and dlsym returns the one to stand for the other. */
@@ -33,6 +36,7 @@ static int lh_os_system_posix_xext_state;
     } while (0)
 #define LH_OS_SYSTEM_POSIX_X11_LOAD(name) LH_OS_SYSTEM_POSIX_X11_LOAD_INTO(lh_os_system_posix_x11, name)
 #define LH_OS_SYSTEM_POSIX_XEXT_LOAD(name) LH_OS_SYSTEM_POSIX_X11_LOAD_INTO(lh_os_system_posix_xext, name)
+#define LH_OS_SYSTEM_POSIX_XRENDER_LOAD(name) LH_OS_SYSTEM_POSIX_X11_LOAD_INTO(lh_os_system_posix_xrender, name)
 
 static const lh_os_system_posix_x11_t *
 lh_os_system_posix_x11_open(void)
@@ -87,8 +91,8 @@ lh_os_system_posix_x11_open(void)
     LH_OS_SYSTEM_POSIX_X11_LOAD(XMatchVisualInfo);
     LH_OS_SYSTEM_POSIX_X11_LOAD(XCreateColormap);
     LH_OS_SYSTEM_POSIX_X11_LOAD(XFreeColormap);
-    LH_OS_SYSTEM_POSIX_X11_LOAD(XSetForeground);
-    LH_OS_SYSTEM_POSIX_X11_LOAD(XFillRectangles);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XCreatePixmap);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XFreePixmap);
     LH_OS_SYSTEM_POSIX_X11_LOAD(XUngrabPointer);
     LH_OS_SYSTEM_POSIX_X11_LOAD(XIconifyWindow);
     LH_OS_SYSTEM_POSIX_X11_LOAD(XSetErrorHandler);
@@ -137,4 +141,37 @@ lh_os_system_posix_xext_load(void)
         lh_os_system_posix_xext_state = lh_null_ne(lh_os_system_posix_xext_open()) ? 1 : -1;
     }
     return lh_os_system_posix_xext_state > 0 ? &lh_os_system_posix_xext : lh_null;
+}
+
+static const lh_os_system_posix_xrender_t *
+lh_os_system_posix_xrender_open(void)
+{
+    void *library = dlopen("libXrender.so.1", RTLD_NOW | RTLD_LOCAL);
+
+    if (lh_null_eq(library))
+    {
+        library = dlopen("libXrender.so", RTLD_NOW | RTLD_LOCAL);
+    }
+    if (lh_null_eq(library))
+    {
+        return lh_null;
+    }
+    LH_OS_SYSTEM_POSIX_XRENDER_LOAD(XRenderQueryExtension);
+    LH_OS_SYSTEM_POSIX_XRENDER_LOAD(XRenderFindVisualFormat);
+    LH_OS_SYSTEM_POSIX_XRENDER_LOAD(XRenderFindStandardFormat);
+    LH_OS_SYSTEM_POSIX_XRENDER_LOAD(XRenderCreatePicture);
+    LH_OS_SYSTEM_POSIX_XRENDER_LOAD(XRenderFreePicture);
+    LH_OS_SYSTEM_POSIX_XRENDER_LOAD(XRenderComposite);
+    LH_OS_SYSTEM_POSIX_XRENDER_LOAD(XRenderFillRectangles);
+    return &lh_os_system_posix_xrender;
+}
+
+const lh_os_system_posix_xrender_t *
+lh_os_system_posix_xrender_load(void)
+{
+    if (lh_os_system_posix_xrender_state == 0)
+    {
+        lh_os_system_posix_xrender_state = lh_null_ne(lh_os_system_posix_xrender_open()) ? 1 : -1;
+    }
+    return lh_os_system_posix_xrender_state > 0 ? &lh_os_system_posix_xrender : lh_null;
 }
