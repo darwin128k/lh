@@ -447,3 +447,56 @@ TEST(ui_text, a_code_the_font_has_no_glyph_for_draws_nothing_and_moves_nothing)
     lh_ui_text_draw(lh_addr_of(canvas), font, "\xC2\xAD", point_of(10, 20), lh_addr_of(color));
     EXPECT_EQ(log.mask_count, 0);
 }
+/* -- Lines a width breaks --------------------------------------------------- */
+
+/* The tiny font: 'A' 3 wide and inked, ' ' no glyph and no width. Three words of
+   "AA" are 6 each; in 7 the second word would not fit after the first, so every word
+   is a line. */
+TEST(ui_text, a_width_breaks_text_before_the_word_that_would_not_fit)
+{
+    const lh_ui_font_t *font = lh_test::tiny_font();
+    const lh_ui_scalar_t line = lh_ui_scalar(lh_ui_font_get_line_height(font));
+    const lh_ui_size_t one = lh_ui_text_get_size(font, "AA AA AA");
+    const lh_ui_size_t three = lh_ui_text_get_size_wrapped(font, "AA AA AA", lh_ui_scalar(7));
+
+    EXPECT_EQ(lh_ui_size_get_height(&three), lh_ui_size_get_height(&one) + 2 * line);
+    EXPECT_EQ(lh_ui_size_get_width(&three), lh_ui_scalar(6)) << "the widest line is one word";
+    /* With no width it is the plain text, line breaks and all. */
+    const lh_ui_size_t none = lh_ui_text_get_size_wrapped(font, "AA AA AA", lh_ui_scalar(0));
+    EXPECT_EQ(lh_ui_size_get_height(&none), lh_ui_size_get_height(&one));
+    EXPECT_EQ(lh_ui_size_get_width(&none), lh_ui_size_get_width(&one));
+}
+
+/* A word wider than the whole width is cut inside it, never before its first
+   letter: "AAAA" in 7 is "AA" and "AA", and in 1 it is a letter a line. */
+TEST(ui_text, a_word_wider_than_the_width_is_cut_and_a_line_always_takes_a_letter)
+{
+    const lh_ui_font_t *font = lh_test::tiny_font();
+    const lh_ui_scalar_t line = lh_ui_scalar(lh_ui_font_get_line_height(font));
+    const lh_ui_size_t one = lh_ui_text_get_size(font, "AAAA");
+    const lh_ui_size_t two = lh_ui_text_get_size_wrapped(font, "AAAA", lh_ui_scalar(7));
+    const lh_ui_size_t four = lh_ui_text_get_size_wrapped(font, "AAAA", lh_ui_scalar(1));
+
+    EXPECT_EQ(lh_ui_size_get_height(&two), lh_ui_size_get_height(&one) + line);
+    EXPECT_EQ(lh_ui_size_get_height(&four), lh_ui_size_get_height(&one) + 3 * line);
+}
+
+/* Every letter is drawn once, wrapped or not, and each line of a centred paragraph
+   is centred on its own: "A" under "AAA" starts 3 in. */
+TEST(ui_text, wrapped_lines_are_drawn_and_a_centred_line_is_centred_on_its_own)
+{
+    lh_test::draw_log log;
+    lh_ui_canvas_t canvas;
+    lh_ui_color_t color;
+    const lh_ui_font_t *font = lh_test::tiny_font();
+    const lh_ui_point_t origin = point_of(0, 10);
+
+    lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
+    lh_test::draw_log_init(lh_addr_of(log), lh_addr_of(canvas), false, false, true);
+    lh_ui_text_draw_wrapped(lh_addr_of(canvas), font, "AAA A", origin, lh_addr_of(color), lh_ui_scalar(10),
+                            lh_ui_text_align_h_center);
+    ASSERT_EQ(log.mask_count, 4);
+    EXPECT_EQ((int)lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(lh_addr_of(log.masks[0]))), 0);
+    EXPECT_EQ((int)lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(lh_addr_of(log.masks[3]))), 3)
+        << "the one-letter line is centred under the three-letter one";
+}

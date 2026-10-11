@@ -28,6 +28,9 @@ lh_ui_style_init(lh_ui_style_t *self)
        alignment was a thing a style could say. */
     self->align_h = lh_ui_text_align_h_left;
     self->align_v = lh_ui_text_align_v_top;
+    /* Drawn whole and clipped, which is what a label did before it could say more. */
+    self->overflow = lh_ui_text_overflow_clip;
+    self->wrap = lh_ui_text_wrap_none;
     lh_ui_shadow_init(lh_addr_of(self->shadow));
     /* No edge until a caller asks for one. A style that grew a border and
        painted it on every existing widget would put a line on things that
@@ -174,6 +177,34 @@ lh_ui_style_set_align_v(lh_ui_style_t *self, lh_ui_text_align_v_t align)
 {
     lh_assert_runtime_ref(self);
     self->align_v = align;
+}
+
+lh_ui_text_overflow_t
+lh_ui_style_get_overflow(const lh_ui_style_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->overflow;
+}
+
+lh_void
+lh_ui_style_set_overflow(lh_ui_style_t *self, lh_ui_text_overflow_t overflow)
+{
+    lh_assert_runtime_ref(self);
+    self->overflow = overflow;
+}
+
+lh_ui_text_wrap_t
+lh_ui_style_get_wrap(const lh_ui_style_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->wrap;
+}
+
+lh_void
+lh_ui_style_set_wrap(lh_ui_style_t *self, lh_ui_text_wrap_t wrap)
+{
+    lh_assert_runtime_ref(self);
+    self->wrap = wrap;
 }
 
 const lh_ui_shadow_t *

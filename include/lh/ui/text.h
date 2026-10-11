@@ -25,6 +25,7 @@
 #include <lh/ui/rect.h>
 #include <lh/ui/scalar.h>
 #include <lh/ui/size.h>
+#include <lh/ui/text/align.h>
 #include <lh/void.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -223,6 +224,51 @@ lh_ui_text_draw(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_
 lh_void
 lh_ui_text_draw_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text,
                      lh_ui_point_t origin, const lh_ui_color_t *color, lh_ui_scalar_t ink_top);
+
+/* ── Wrapped ─────────────────────────────────────────────────────────────── */
+
+/*
+ * The same measures and the same drawing for text broken into lines @p width wide:
+ * at a line break, before a word that would not fit, or inside a word wider than the
+ * whole width -- never before its first letter, so a line always takes something.
+ * The spaces a line breaks at belong to neither line. A @p width of 0 or less breaks
+ * at line breaks only, which is exactly the functions above; they are these with no
+ * width.
+ *
+ * @p align places each line inside the widest one, so a centred paragraph has every
+ * line centred, as CSS centres it, rather than the paragraph centred as one block with
+ * its lines flush left inside it.
+ */
+
+/**
+ * @brief ::lh_ui_text_get_size of @p text broken into lines @p width wide.
+ */
+lh_ui_size_t
+lh_ui_text_get_size_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width);
+
+/**
+ * @brief ::lh_ui_text_get_ink_top of @p text broken into lines @p width wide.
+ */
+lh_ui_scalar_t
+lh_ui_text_get_ink_top_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width);
+
+/**
+ * @brief ::lh_ui_text_get_ink_rect of @p text broken into lines @p width wide, each
+ *        placed by @p align inside the widest.
+ */
+lh_ui_rect_t
+lh_ui_text_get_ink_rect_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin,
+                                lh_ui_scalar_t width, lh_ui_text_align_h_t align);
+
+/**
+ * @brief ::lh_ui_text_draw of @p text broken into lines @p width wide, each placed
+ *        by @p align inside the widest. The pixels land in
+ *        ::lh_ui_text_get_ink_rect_wrapped.
+ */
+lh_void
+lh_ui_text_draw_wrapped(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text,
+                        lh_ui_point_t origin, const lh_ui_color_t *color, lh_ui_scalar_t width,
+                        lh_ui_text_align_h_t align);
 
 LH_COMPILER_EXTERN_C_END
 

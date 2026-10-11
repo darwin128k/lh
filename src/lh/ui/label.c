@@ -231,6 +231,34 @@ lh_ui_label_get_text_color(const lh_ui_label_t *self)
     return lh_null_eq(style) ? lh_null : lh_ui_style_get_text_color(style);
 }
 
+/* How wide the lines of the text may be: the padded box when the style wraps, and 0
+   -- no width, lines end at line breaks only -- when it does not. */
+static lh_ui_scalar_t
+lh_ui_label_get_wrap_width(const lh_ui_label_t *self)
+{
+    const lh_ui_entity_t *entity = lh_addr_of(self->container.entity);
+    const lh_ui_style_t *style = lh_ui_entity_get_style(entity);
+    lh_ui_insets_t padding;
+    lh_ui_scalar_t width;
+
+    lh_return_if(lh_null_eq(style) || lh_ui_style_get_wrap(style) != lh_ui_text_wrap_words, lh_ui_scalar(0));
+    padding = lh_ui_entity_get_padding(entity);
+    width = lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(entity->rect))) -
+            lh_ui_insets_get_left(lh_addr_of(padding)) - lh_ui_insets_get_right(lh_addr_of(padding));
+    /* A box with no room still wraps, one letter a line, rather than not at all. */
+    return lh_math_max(width, lh_ui_scalar(1));
+}
+
+/* Where each line of a wrapped text sits inside the widest: the alignment the text
+   is placed by. */
+static lh_ui_text_align_h_t
+lh_ui_label_get_line_align(const lh_ui_label_t *self)
+{
+    const lh_ui_style_t *style = lh_ui_entity_get_style(lh_addr_of(self->container.entity));
+
+    return lh_null_eq(style) ? lh_ui_text_align_h_left : lh_ui_style_get_align_h(style);
+}
+
 lh_ui_point_t
 lh_ui_label_get_text_origin(const lh_ui_label_t *self)
 {
@@ -250,7 +278,7 @@ lh_ui_label_get_text_origin(const lh_ui_label_t *self)
     lh_ui_size_init(lh_addr_of(size), 0, 0);
     if (!lh_null_eq(style) && !lh_null_eq(font) && !lh_null_eq(self->text))
     {
-        size = lh_ui_text_get_size(font, self->text);
+        size = lh_ui_text_get_size_wrapped(font, self->text, lh_ui_label_get_wrap_width(self));
     }
     return lh_ui_text_align_get_origin(lh_addr_of(entity->rect), lh_addr_of(padding), size,
                                        lh_null_eq(style) ? lh_ui_text_align_h_left : lh_ui_style_get_align_h(style),
@@ -272,7 +300,7 @@ lh_ui_label_get_baseline(const lh_ui_label_t *self)
     {
         return lh_ui_scalar(-1);
     }
-    size = lh_ui_text_get_size(font, self->text);
+    size = lh_ui_text_get_size_wrapped(font, self->text, lh_ui_label_get_wrap_width(self));
     lh_return_if(lh_ui_size_get_height(lh_addr_of(size)) == lh_ui_scalar(0), lh_ui_scalar(-1));
     /* The line the letters stand on is where the **tallest letter of this run**
        ends, and the origin is where the ink of the run goes, so the line is the
@@ -292,7 +320,8 @@ lh_ui_label_get_baseline(const lh_ui_label_t *self)
        The first line's, which is what a row lines up on. */
     baseline = lh_ui_point_get_y(lh_addr_of(origin)) - lh_ui_point_get_y(box) +
                lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_ascent(font)) -
-               lh_cast_static(lh_ui_scalar_t, lh_ui_text_get_ink_top(font, self->text));
+               lh_cast_static(lh_ui_scalar_t,
+                              lh_ui_text_get_ink_top_wrapped(font, self->text, lh_ui_label_get_wrap_width(self)));
     return baseline;
 }
 
@@ -304,7 +333,8 @@ lh_ui_label_get_text_rect(const lh_ui_label_t *self)
 
     lh_ui_rect_init_empty(lh_addr_of(empty));
     lh_return_if(lh_null_eq(font) || lh_null_eq(self->text), empty);
-    return lh_ui_text_get_rect(font, self->text, lh_ui_label_get_text_origin(self));
+    return lh_ui_text_get_ink_rect_wrapped(font, self->text, lh_ui_label_get_text_origin(self),
+                                           lh_ui_label_get_wrap_width(self), lh_ui_label_get_line_align(self));
 }
 
 lh_bool_t
@@ -316,16 +346,107 @@ lh_ui_label_can_draw_text(const lh_ui_label_t *self, const lh_ui_canvas_t *canva
                : lh_bool_false;
 }
 
+/* The longest start of @p text that fits in @p room with an ellipsis after it, written
+   into @p out with the ellipsis, or `lh_bool_false` when the whole line fits and is to
+   be drawn as it is.
+
+   The ellipsis is the font's own `…` when it has one and three dots when it does not:
+   a box of a glyph nobody baked is worse than three full stops. The cut is between
+   code points, never inside one, and a start that would not fit in @p out is cut
+   shorter rather than written past it. */
+static lh_bool_t
+lh_ui_label_shorten(const lh_ui_font_t *font, const lh_char_t *text, lh_s32_t room, lh_char_t *out,
+                    lh_u32_t size)
+{
+    const lh_bool_t has_ellipsis = lh_ui_font_has_code(font, 0x2026U);
+    const lh_s32_t tail = has_ellipsis ? lh_ui_font_get_advance(font, 0x2026U)
+                                       : 3 * lh_ui_font_get_advance(font, (lh_u32_t)'.');
+    /* `…` is three bytes of UTF-8, and so are three dots. */
+    const lh_u32_t tail_bytes = 3U;
+    const lh_char_t *cursor = text;
+    const lh_char_t *fits = text;
+    lh_s32_t width = 0;
+    lh_u32_t code;
+    lh_u32_t used;
+
+    /* A line that fits, or text of several lines, is drawn as it is. */
+    for (cursor = text; *cursor != '\0'; ++cursor)
+    {
+        lh_return_if(*cursor == '\n', lh_bool_false);
+    }
+    lh_return_if(lh_ui_text_get_width(font, text) <= room, lh_bool_false);
+
+    cursor = text;
+    while ((code = lh_ui_text_next_code(lh_addr_of(cursor))) != 0U)
+    {
+        width += lh_ui_font_get_advance(font, code);
+        if (width + tail > room || (lh_u32_t)(cursor - text) + tail_bytes + 1U > size)
+        {
+            break;
+        }
+        fits = cursor;
+    }
+    used = (lh_u32_t)(fits - text);
+    for (cursor = text; cursor < fits; ++cursor)
+    {
+        out[cursor - text] = *cursor;
+    }
+    if (has_ellipsis)
+    {
+        used += lh_ui_text_encode_code(out + used, size - used, 0x2026U);
+    }
+    else
+    {
+        out[used++] = '.';
+        out[used++] = '.';
+        out[used++] = '.';
+    }
+    out[used] = '\0';
+    return lh_bool_true;
+}
+
 lh_void
 lh_ui_label_draw_text(const lh_ui_label_t *self, lh_ui_canvas_t *canvas)
 {
     const lh_ui_entity_t *entity = lh_addr_of(self->container.entity);
+    const lh_ui_style_t *style = lh_ui_entity_get_style(entity);
+    const lh_char_t *text = self->text;
+    lh_char_t shortened[256];
     lh_bool_t pushed;
 
     lh_return_if(!lh_ui_label_can_draw_text(self, canvas));
+    /* A text that wraps has no line that runs past the box to shorten. */
+    if (lh_null_ne(style) && lh_ui_style_get_overflow(style) == lh_ui_text_overflow_ellipsis &&
+        lh_ui_style_get_wrap(style) == lh_ui_text_wrap_none)
+    {
+        const lh_ui_insets_t padding = lh_ui_entity_get_padding(entity);
+        const lh_ui_rect_t rect = lh_ui_entity_get_rect(entity);
+        const lh_s32_t room = lh_ui_scalar_floor_s32(
+            lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(rect))) -
+            lh_ui_insets_get_left(lh_addr_of(padding)) - lh_ui_insets_get_right(lh_addr_of(padding)));
+
+        /* A line that does not fit is drawn from where it starts anyway -- a line wider
+           than its box starts at the left whatever the alignment -- so the shortened
+           one is drawn from the same place. */
+        if (lh_ui_label_shorten(lh_ui_label_get_font(self), self->text, room, shortened,
+                                (lh_u32_t)sizeof shortened))
+        {
+            text = shortened;
+        }
+    }
     pushed = lh_ui_entity_push_children(entity, canvas);
-    lh_ui_text_draw(canvas, lh_ui_label_get_font(self), self->text, lh_ui_label_get_text_origin(self),
-                    lh_ui_label_get_text_color(self));
+    if (text == self->text)
+    {
+        /* Wrapped or not: with no width to wrap at, these are the plain lines. */
+        lh_ui_text_draw_wrapped(canvas, lh_ui_label_get_font(self), text, lh_ui_label_get_text_origin(self),
+                                lh_ui_label_get_text_color(self), lh_ui_label_get_wrap_width(self),
+                                lh_ui_label_get_line_align(self));
+    }
+    else
+    {
+        lh_ui_text_draw(canvas, lh_ui_label_get_font(self), text, lh_ui_label_get_text_origin(self),
+                        lh_ui_label_get_text_color(self));
+    }
     lh_return_if(!pushed);
     lh_ui_canvas_pop(canvas);
 }

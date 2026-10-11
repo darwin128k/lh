@@ -22,7 +22,10 @@
  * entity of its own. `shadow` is
  * cast by the fill before it (the empty one casts nothing), and `pressed` is
  * the style in effect while the entity is pressed (not owned, ::lh_null = it
- * looks the same either way). The style itself is what several entities share.
+ * looks the same either way). `overflow` is what a line of text too wide for the
+ * padded box draws (::lh_ui_text_overflow_t), and `wrap` whether the text is broken
+ * into lines that fit it (::lh_ui_text_wrap_t). The style itself is what several
+ * entities share.
  *
  * @param paint_type  Type of the fill and text paints.
  * @param radius_type Type of the corner radius.
@@ -39,6 +42,8 @@
     paint_type text;                                                                                \
     lh_ui_text_align_h_t align_h;                                                                   \
     lh_ui_text_align_v_t align_v;                                                                  \
+    lh_ui_text_overflow_t overflow;                                                                \
+    lh_ui_text_wrap_t wrap;                                                                     \
     shadow_type shadow;                                                                             \
     insets_type border;                                                                             \
     paint_type border_fill;                                                                        \

@@ -51,9 +51,12 @@ box#root {
 
 #: name -> (stylesheet, a word the refusal must contain)
 CASES = [
-    ("an `auto` margin along the flow is refused: the leftover is the flow's", OK.replace(
-        "label#a { width: 200; height: 260; }", "label#a { width: 200; margin: 0 auto; }"),
-     "`justify-content`"),
+    ("a `z-index` that is not a number is refused", OK.replace(
+        "box#body { display: flex; flex-direction: row; width: 400; height: 260;",
+        "box#body { width: 400; height: 260;").replace(
+        "label#a { width: 200; height: 260; }",
+        "label#a { position: absolute; left: 0; top: 0; width: 1; height: 1; z-index: top; }"),
+     "whole number"),
     ("a `display` nothing here lays out is refused", OK.replace(
         "box#body { display: flex;", "box#body { display: grid;"), "grid"),
     ("a property nothing here can draw is refused, and says why", OK.replace(
@@ -150,6 +153,8 @@ CASES = [
         "label#a { width: 200; height: 260; }",
         "label#a { position: absolute; left: 0; top: -20px; width: 10; height: 10; }"),
      "would not be seen"),
+    ("a `white-space` nothing here draws is refused", OK.replace(
+        "height: 40;", "height: 40; white-space: break-spaces;"), "white-space"),
     ("a `maxlength` on something that is not an input is refused", OK.replace(
         "height: 40;", "height: 40; maxlength: 8;"), "not an `input`"),
     ("a coordinate without `position` is refused, not a traceback", OK.replace(
@@ -255,6 +260,37 @@ CLAIMS = [
 #: to come out as one. It went out between two `"` as it stood, so `\` reached the
 #: compiler as the start of an escape nobody wrote.
 EMITS = [
+    ("`white-space: normal` breaks a caption into lines that fit its box",
+     OK.replace("height: 40;", "height: 40; white-space: normal;"),
+     "lh_ui_style_set_wrap(lh_addr_of(ui_s_title), lh_ui_text_wrap_words);"),
+    ("...and is handed down, as in CSS",
+     OK.replace("    width: 400; height: 300;", "    width: 400; height: 300; white-space: normal;"),
+     "lh_ui_style_set_wrap(lh_addr_of(ui_s_title), lh_ui_text_wrap_words);"),
+    ("`text-overflow: ellipsis` shortens a line that does not fit",
+     OK.replace("height: 40;", "height: 40; white-space: nowrap; overflow: hidden; "
+                               "text-overflow: ellipsis;"),
+     "lh_ui_style_set_overflow(lh_addr_of(ui_s_title), lh_ui_text_overflow_ellipsis);"),
+    ("a hex escape in a caption is that code point: backslash-A is a line break",
+     OK.replace('text: "Hi";', r'text: "one\A two";'), r'{.label = {"one\012two"}}'),
+    ("`margin-left: auto` pushes the row to the far end",
+     OK.replace("label#a { width: 200; height: 260; }", "label#a { width: 100; }")
+       .replace("label#b { width: 200; height: 260; }", "label#b { width: 100; margin-left: auto; }"),
+     "{lh_ui_decl_kind_label, 300, 40, 100, 260, 2,"),
+    ("...by a spacer that fills, named after it",
+     OK.replace("label#b { width: 200; height: 260; }", "label#b { width: 100; margin-left: auto; }"),
+     "/*   4  b__left */"),
+    ("an `auto` margin gets nothing when a row of the flow grows, as in CSS",
+     OK.replace("label#a { width: 200; height: 260; }", "label#a { flex: 1; }")
+       .replace("label#b { width: 200; height: 260; }", "label#b { width: 100; margin-left: auto; }"),
+     "!b__left"),
+    ("`z-index` draws a row placed by hand later, whatever order it was written in",
+     OK.replace("box#body { display: flex; flex-direction: row; width: 400; height: 260;",
+                "box#body { width: 400; height: 260;")
+       .replace("label#a { width: 200; height: 260; }",
+                "label#a { position: absolute; left: 0; top: 0; width: 10; height: 10; z-index: 2; }")
+       .replace("label#b { width: 200; height: 260; }",
+                "label#b { position: absolute; left: 0; top: 0; width: 10; height: 10; }"),
+     "/*   3  b */"),
     # -- widgets built out of others
     ("a row placed by hand in a flow is lifted out of it: the flow gets a box of its own",
      OK.replace("label#b { width: 200; height: 260; }",
