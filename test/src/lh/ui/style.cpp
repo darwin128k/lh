@@ -131,7 +131,7 @@ TEST(ui_style, set_shadow_copies_it_and_null_clears)
     lh_ui_style_t style;
 
     lh_ui_shadow_init(lh_addr_of(shadow));
-    lh_ui_shadow_set_color(lh_addr_of(shadow), (lh_ui_color_t){0, 0, 0, 150});
+    lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 150});
     lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(14));
     lh_ui_shadow_set_offset(lh_addr_of(shadow), lh_ui_scalar(0), lh_ui_scalar(4));
     lh_ui_style_init(lh_addr_of(style));
