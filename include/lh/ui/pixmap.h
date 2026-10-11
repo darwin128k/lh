@@ -332,6 +332,15 @@ lh_void
 lh_ui_pixmap_fill_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
 
 /**
+ * @brief Paint pixels `x0 .. x1 - 1` of row @p y each with its own colour,
+ *        `colors[0]` the first: ::lh_ui_pixmap_fill_span over every run of one
+ *        colour, so a pixel comes out as it would from a fill of that colour.
+ */
+lh_void
+lh_ui_pixmap_fill_colors_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                              const lh_ui_color_t *colors);
+
+/**
  * @brief ::lh_ui_pixmap_store_span on rows `y0 .. y1 - 1`.
  */
 lh_void

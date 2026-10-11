@@ -2,6 +2,8 @@
 
 #include <lh/ui/rect.h>
 #include <lh/ui/shadow.h>
+#include <lh/ui/shadow/ramp.h>
+#include <lh/ui/shadow/shape.h>
 #include <lh/util/addr.h>
 
 namespace
@@ -168,6 +170,75 @@ TEST(ui_shadow, the_falloff_runs_from_the_peak_to_nothing)
     EXPECT_LT(lh_ui_shadow_falloff(0, lh_ui_scalar(8), 200), 200);
     EXPECT_EQ(lh_ui_shadow_falloff(0, lh_ui_scalar(0), 200), 0);
     EXPECT_EQ(lh_ui_shadow_falloff(-4, lh_ui_scalar(8), 0), 0);
+}
+
+TEST(ui_shadow, an_offset_moves_the_pixels_it_paints)
+{
+    lh_ui_shadow_t shadow;
+    lh_ui_rect_t rect;
+
+    /* The same distance out from either side of the box: without the offset the
+       two pixels are as dark as each other. The offset was once handed back by
+       ::lh_ui_rect_offset and dropped, and every shadow sat square under its box. */
+    lh_ui_shadow_init(lh_addr_of(shadow));
+    lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, 255});
+    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(6));
+    lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(20), lh_ui_scalar(20), lh_ui_scalar(40), lh_ui_scalar(40));
+    EXPECT_EQ(lh_ui_shadow_alpha_at_pixel(lh_addr_of(shadow), 17, 40, lh_addr_of(rect), lh_ui_scalar(0)),
+              lh_ui_shadow_alpha_at_pixel(lh_addr_of(shadow), 62, 40, lh_addr_of(rect), lh_ui_scalar(0)));
+
+    lh_ui_shadow_set_offset(lh_addr_of(shadow), lh_ui_scalar(3), lh_ui_scalar(0));
+    EXPECT_LT(lh_ui_shadow_alpha_at_pixel(lh_addr_of(shadow), 17, 40, lh_addr_of(rect), lh_ui_scalar(0)),
+              lh_ui_shadow_alpha_at_pixel(lh_addr_of(shadow), 62, 40, lh_addr_of(rect), lh_ui_scalar(0)));
+}
+
+TEST(ui_shadow, a_span_reads_the_same_alphas_as_each_pixel)
+{
+    static const lh_s32_t spreads[] = {1, 3, 6, 12, 25};
+    static const lh_s32_t radii[] = {0, 2, 8, 30};
+    static const lh_byte_t peaks[] = {1, 77, 128, 255};
+    static const lh_s32_t offsets[] = {-5, 0, 4};
+
+    /* A corner's alpha comes off the ramp's thresholds instead of a square root;
+       across shapes, fades and peaks it has to be the root's to the last alpha. */
+    for (lh_s32_t spread : spreads)
+    {
+        for (lh_s32_t radius : radii)
+        {
+            for (lh_byte_t peak : peaks)
+            {
+                for (lh_s32_t offset : offsets)
+                {
+                    lh_ui_shadow_t shadow;
+                    lh_ui_rect_t rect;
+                    lh_ui_shadow_shape_t shape;
+                    lh_ui_shadow_ramp_t ramp;
+                    lh_byte_t row[120];
+
+                    lh_ui_shadow_init(lh_addr_of(shadow));
+                    lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, peak});
+                    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(spread));
+                    lh_ui_shadow_set_offset(lh_addr_of(shadow), lh_ui_scalar(offset), lh_ui_scalar(-offset));
+                    lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(35), lh_ui_scalar(35), lh_ui_scalar(51),
+                                    lh_ui_scalar(37));
+                    lh_ui_shadow_shape_init(lh_addr_of(shape), lh_addr_of(shadow), lh_addr_of(rect),
+                                            lh_ui_scalar(radius));
+                    lh_ui_shadow_ramp_init(lh_addr_of(ramp), lh_addr_of(shape));
+                    for (lh_s32_t y = 0; y < 110; ++y)
+                    {
+                        lh_ui_shadow_shape_span(lh_addr_of(shape), lh_addr_of(ramp), y, 0, 120, row);
+                        for (lh_s32_t x = 0; x < 120; ++x)
+                        {
+                            ASSERT_EQ(row[x], lh_ui_shadow_alpha_at_pixel(lh_addr_of(shadow), x, y, lh_addr_of(rect),
+                                                                          lh_ui_scalar(radius)))
+                                << "spread " << spread << " radius " << radius << " peak " << int(peak)
+                                << " offset " << offset << " at " << x << "," << y;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 } // namespace

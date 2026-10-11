@@ -375,6 +375,7 @@ lh_ui_input_set_text(lh_ui_input_t *self, const lh_char_t *text)
     self->used = used;
     self->buffer[used] = '\0';
     self->caret = used;
+    lh_ui_label_drop_metrics(lh_addr_of(self->label));
     return lh_bool_true;
 }
 
@@ -386,6 +387,7 @@ lh_ui_input_clear(lh_ui_input_t *self)
     self->used = 0U;
     self->caret = 0U;
     self->buffer[0] = '\0';
+    lh_ui_label_drop_metrics(lh_addr_of(self->label));
 }
 
 lh_u16_t
@@ -420,6 +422,7 @@ lh_ui_input_insert(lh_ui_input_t *self, lh_u32_t code)
     self->used = lh_cast_static(lh_u16_t, self->used + size);
     self->caret = lh_cast_static(lh_u16_t, self->caret + size);
     self->buffer[self->used] = '\0';
+    lh_ui_label_drop_metrics(lh_addr_of(self->label));
     return lh_bool_true;
 }
 
@@ -440,6 +443,7 @@ lh_ui_input_backspace(lh_ui_input_t *self)
     self->used = lh_cast_static(lh_u16_t, self->used - (self->caret - from));
     self->caret = from;
     self->buffer[self->used] = '\0';
+    lh_ui_label_drop_metrics(lh_addr_of(self->label));
     return lh_bool_true;
 }
 
@@ -467,6 +471,7 @@ lh_ui_input_delete_forward(lh_ui_input_t *self)
     }
     self->used = lh_cast_static(lh_u16_t, self->used - size);
     self->buffer[self->used] = '\0';
+    lh_ui_label_drop_metrics(lh_addr_of(self->label));
     return lh_bool_true;
 }
 

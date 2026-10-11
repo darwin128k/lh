@@ -10,6 +10,7 @@
 #define LH_MATH_ISQRT_H
 
 #include <lh/attribute/force_inline.h>
+#include <lh/bit/scan.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
@@ -23,12 +24,18 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_u64_t
 lh_math_isqrt_u64_top_bit(lh_u64_t n)
 {
-    lh_u64_t bit = lh_cast_static(lh_u64_t, 1) << 62;
-    while (bit > n)
+    const lh_u32_t high = lh_cast_static(lh_u32_t, n >> 32);
+    lh_usize_t index;
+
+    if (n == 0U)
     {
-        bit >>= 2;
+        return 0U;
     }
-    return bit;
+    /* The highest set bit, rounded down to an even one: a scan, not a walk down from
+       2^62 that took thirty steps for a corner's few-thousand-squared distances. */
+    index = high != 0U ? 32U + lh_bit_scan_reverse_u32(high)
+                       : lh_bit_scan_reverse_u32(lh_cast_static(lh_u32_t, n));
+    return lh_cast_static(lh_u64_t, 1) << (index & ~lh_cast_static(lh_usize_t, 1));
 }
 
 /**

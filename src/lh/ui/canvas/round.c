@@ -4,6 +4,7 @@
  */
 
 #include <lh/math.h>
+#include <lh/null.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/radius.h>
@@ -90,6 +91,48 @@ lh_ui_canvas_fill_pixels(struct lh_ui_canvas *self, lh_s32_t x, lh_s32_t y, lh_s
     lh_return_if(w <= 0 || h <= 0);
     lh_ui_rect_init(lh_addr_of(box), x, y, w, h);
     lh_ui_canvas_fill_target_rect(self, lh_addr_of(box), color);
+}
+
+lh_void
+lh_ui_canvas_fill_colors(struct lh_ui_canvas *self, lh_s32_t x, lh_s32_t y, lh_s32_t w, lh_s32_t h,
+                         const lh_ui_color_t *colors, lh_ui_axis_t axis)
+{
+    const lh_s32_t count = axis == lh_ui_axis_horizontal ? w : h;
+    lh_ui_rect_t box;
+    lh_ui_rect_t cut;
+    lh_s32_t at;
+    lh_s32_t end;
+
+    lh_return_if(w <= 0 || h <= 0 || lh_null_eq(self->backend));
+    lh_ui_rect_init(lh_addr_of(box), x, y, w, h);
+    cut = lh_ui_canvas_state_cut(lh_addr_of(self->state), lh_addr_of(box));
+    lh_return_if(lh_ui_rect_is_empty(lh_addr_of(cut)));
+    /* The box is drawn whole and cut by whoever clips, as a mask is
+       (::lh_ui_canvas_can_fill_mask). */
+    if (!lh_null_eq(self->backend->fill_colors) &&
+        (!lh_ui_canvas_is_cutting(self) || lh_ui_canvas_can_send_whole(self, lh_addr_of(box))))
+    {
+        lh_ui_canvas_add_damage(self, lh_addr_of(cut));
+        lh_return_if(self->backend->fill_colors(self->context, x, y, w, h, colors, axis));
+    }
+    for (at = 0; at < count; at = end)
+    {
+        for (end = at + 1; end < count && lh_ui_color_equals(colors + at, colors + end); ++end)
+        {
+        }
+        if (lh_ui_color_get_a(colors + at) == 0U)
+        {
+            continue;
+        }
+        if (axis == lh_ui_axis_horizontal)
+        {
+            lh_ui_canvas_fill_pixels(self, x + at, y, end - at, h, colors + at);
+        }
+        else
+        {
+            lh_ui_canvas_fill_pixels(self, x, y + at, w, end - at, colors + at);
+        }
+    }
 }
 
 lh_void

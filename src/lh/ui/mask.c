@@ -175,13 +175,19 @@ lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s
     {
         const lh_s32_t width = self->width;
         const lh_u32_t top = lh_bit_packed_max(self->bpp);
+        /* The same rescale as above: every bpp up to eight has a maximum that divides
+           255, so the division is a multiply. A glyph row is too short for the SSE2
+           pass to start at all -- nine pixels are five bytes -- so this loop is every
+           pixel of the text, and a division by 15 in it was most of what a letter
+           cost. */
+        const lh_u32_t step = (255U % top) == 0U ? 255U / top : 0U;
 
         for (; x < x1; ++x)
         {
             const lh_u32_t sample =
                 x < width ? lh_bit_packed_get(row, lh_cast_static(lh_u32_t, x), self->bpp) : 0U;
 
-            out[x - x0] = lh_cast_static(lh_byte_t, lh_math_rescale_u32(sample, top, 255U));
+            out[x - x0] = lh_cast_static(lh_byte_t, step != 0U ? sample * step : lh_math_rescale_u32(sample, top, 255U));
         }
     }
 }

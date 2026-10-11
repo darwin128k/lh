@@ -9,7 +9,7 @@
 /**
  * @def lh_ui_canvas_backend_fields(begin_fn, begin_area_fn, end_fn, clear_fn, fill_rect_fn,
  *                                  fill_round_rect_fn, set_clip_fn, fill_mask_fn, shadow_fn,
- *                                  blur_fn, glass_fn)
+ *                                  blur_fn, glass_fn, fill_colors_fn)
  * @brief Frame, 2D primitive and effect entry points for one backend.
  *
  * Each parameter is a function type; the members are pointers to it. Context
@@ -29,6 +29,10 @@
  * those slots cannot draw them and the canvas reports that instead of
  * substituting something that only looks like the effect.
  *
+ * `fill_colors` is optional and last, so a table written before it is still
+ * whole: without it, or when it returns ::lh_bool_false, the canvas sends the
+ * box through `fill_rect`, a run of one colour at a time.
+ *
  * @param begin_fn        ::lh_ui_canvas_begin_fn.
  * @param begin_area_fn   ::lh_ui_canvas_begin_area_fn.
  * @param end_fn          ::lh_ui_canvas_end_fn.
@@ -40,10 +44,11 @@
  * @param shadow_fn       ::lh_ui_canvas_shadow_fn.
  * @param blur_fn         ::lh_ui_canvas_blur_fn.
  * @param glass_fn        ::lh_ui_canvas_glass_fn.
+ * @param fill_colors_fn  ::lh_ui_canvas_fill_colors_fn.
  */
 #define lh_ui_canvas_backend_fields(begin_fn, begin_area_fn, end_fn, clear_fn, fill_rect_fn,          \
                                     fill_round_rect_fn, set_clip_fn, fill_mask_fn, shadow_fn, blur_fn, \
-                                    glass_fn)                                                            \
+                                    glass_fn, fill_colors_fn)                                            \
     begin_fn *begin;                                                                                  \
     begin_area_fn *begin_area;                                                                        \
     end_fn *end;                                                                                      \
@@ -54,6 +59,7 @@
     fill_mask_fn *fill_mask;                                                                          \
     shadow_fn *shadow;                                                                                \
     blur_fn *blur;                                                                                    \
-    glass_fn *glass
+    glass_fn *glass;                                                                                  \
+    fill_colors_fn *fill_colors
 
 #endif /* LH_UI_CANVAS_BACKEND_FIELDS_H */

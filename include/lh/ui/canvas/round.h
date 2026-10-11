@@ -15,6 +15,7 @@
 
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
+#include <lh/ui/axis.h>
 #include <lh/ui/color.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/scalar.h>
@@ -88,6 +89,16 @@ lh_ui_canvas_round_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh
 lh_void
 lh_ui_canvas_fill_pixels(struct lh_ui_canvas *self, lh_s32_t x, lh_s32_t y, lh_s32_t w, lh_s32_t h,
                          const lh_ui_color_t *color);
+
+/**
+ * @brief Paint the pixel box (@p x, @p y, @p w, @p h) in colours that change along
+ *        @p axis (::lh_ui_canvas_fill_colors_fn): the backend's `fill_colors` when it
+ *        has one and takes the box, else a ::lh_ui_canvas_fill_pixels for every run of
+ *        one colour. Colours with no alpha send nothing.
+ */
+lh_void
+lh_ui_canvas_fill_colors(struct lh_ui_canvas *self, lh_s32_t x, lh_s32_t y, lh_s32_t w, lh_s32_t h,
+                         const lh_ui_color_t *colors, lh_ui_axis_t axis);
 
 /**
  * @brief Fill pixel (@p x, @p y) with @p color at its coverage of the rounded
