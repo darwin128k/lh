@@ -1,16 +1,17 @@
 /**
  * @file stats.h
- * @brief What each frame drew against what it was asked to draw: ::lh_ui_frame_stats_t.
+ * @brief Running totals over the frames a window recorded: ::lh_ui_frame_stats_t.
  *
  * **A frame is a rectangle and a request is a region.** A window collects what was
  * invalidated exactly -- a status line at the bottom and a row at the top are two small
  * rectangles -- and hands the paint the **hull** of them, which is what a renderer that
  * draws one rectangle clears, draws and presents. How much bigger the one is than the
  * other is the cost of drawing rectangles, and the number of rectangles the request was
- * made of is what a damage *list* would buy back. Those are measurements, and this is
- * where they are kept.
+ * made of is what a damage *list* would buy back. The struct the renderer hands back
+ * is a single ::lh_ui_frame_t; this is the running aggregate that turns it into a
+ * measurement, kept here.
  *
- * It is also the instrument that tells a renderer that converges from one that does not:
+ * The instrument that tells a renderer that converges from one that does not:
  * a paint that asks for the next paint shows up here as thousands of frames a second of
  * the same rectangle, which is how a window that "works" turned out to have asked its
  * device nothing for eight seconds.
@@ -28,24 +29,10 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/ptr.h>
-#include <lh/ui/rect.h>
+#include <lh/ui/frame.h>
 #include <lh/void.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
-
-/**
- * @struct lh_ui_frame
- * @typedef lh_ui_frame_t
- * @brief One frame: what was drawn, what was asked for, and how long it took.
- */
-typedef struct lh_ui_frame
-{
-    lh_ui_rect_t drawn;    /**< the rectangle the frame cleared, drew and presented */
-    lh_bool_t asked_known; /**< false when the platform could not say what was asked */
-    lh_u64_t asked_px;     /**< pixels of the request; meaningless unless @ref asked_known */
-    lh_u32_t rects;        /**< rectangles the request is made of; ditto */
-    lh_u64_t us;           /**< time spent drawing and presenting it */
-} lh_ui_frame_t;
 
 /**
  * @typedef lh_ui_frame_stats_on_frame_cb
@@ -115,10 +102,6 @@ lh_ui_frame_stats_get_us(const lh_ui_frame_stats_t *self);
 /** @brief The longest single frame, in microseconds. */
 lh_u64_t
 lh_ui_frame_stats_get_worst_us(const lh_ui_frame_stats_t *self);
-
-/** @brief The pixel count of @p rect, 0 for an empty one. */
-lh_u64_t
-lh_ui_frame_area(const lh_ui_rect_t *rect);
 
 LH_COMPILER_EXTERN_C_END
 

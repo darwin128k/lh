@@ -20,3 +20,7 @@ cmake-build-release
 
 docs/html
 docs/latex
+
+# Python byte cache left by lh_test_css2decl_selftest and any other `python` runner
+# that touches scripts/. Without this, the next clean run adds scripts/__pycache__/.
+__pycache__
