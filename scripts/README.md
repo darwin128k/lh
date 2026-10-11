@@ -131,10 +131,11 @@ What it reads, in short (the module docstring has the whole list):
 
 | | |
 |---|---|
+| states | `:hover`, `:active`, `:checked` and `transition: background 150ms ease-out` between them |
 | selectors | tags (`box` or `div`, `label` or `p` / `h1` / `span`, `img`, `checkbox`, `input`, ...), `#id`, `.class`, ` ` and `>`, lists, `:hover` `:active` `:checked` |
 | values | `px` `rem` `em` `%`, every CSS colour form, `var()` with fallbacks, `!important`, `inherit` / `initial` |
-| layout | `display: flex / block / none`, `justify-content` incl. `space-*`, `align-items` / `-self`, `gap`, `flex` with weights and `flex-basis`, `margin` (incl. `auto` both ways), `min-` / `max-` sizes, `padding`, `aspect-ratio`, `position: absolute / fixed` with `left` / `right` / `top` / `bottom` / `inset`, `z-index` |
-| look | `background`, `color`, `border`, `border-radius`, `box-shadow`, `opacity`, `visibility`, `font`, `text-align`, `vertical-align`, `text-transform`, `text-overflow: ellipsis`, `white-space` (`normal` wraps at the box; one line is the default here, unlike CSS), `\A` line breaks |
+| layout | `display: flex / block / grid / none`, `flex-wrap`, `justify-content` incl. `space-*`, `align-items` / `-self`, `gap`, `flex` with weights and `flex-basis`, `margin` (incl. `auto` both ways), `min-` / `max-` sizes, `padding`, `aspect-ratio`, `position: absolute / fixed` with `left` / `right` / `top` / `bottom` / `inset`, `z-index` |
+| look | `background` (colour or `linear-` / `radial-gradient()`), `color`, `border`, `border-radius`, `box-shadow`, `opacity`, `visibility`, `font`, `text-align`, `vertical-align`, `text-transform`, `text-overflow: ellipsis`, `white-space` (`normal` wraps at the box; one line is the default here, unlike CSS), `\A` line breaks |
 
 What `lh` has no widget for is built out of what it has: a `button` with `text`, a
 `checkbox` / `radio` / `switch` with a caption, a `progress` bar, `overflow: auto` (a

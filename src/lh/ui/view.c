@@ -14,6 +14,7 @@
 #include <lh/ui/rect.h>
 #include <lh/ui/shadow.h>
 #include <lh/ui/size.h>
+#include <lh/ui/transition.h>
 #include <lh/ui/view.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -22,6 +23,8 @@
 lh_void
 lh_ui_view_init(lh_ui_view_t *self)
 {
+    int i;
+
     lh_assert_runtime_ref(self);
     self->canvas = lh_null;
     self->root = lh_null;
@@ -35,11 +38,17 @@ lh_ui_view_init(lh_ui_view_t *self)
     self->has_pending = lh_bool_false;
     lh_ui_point_init(lh_addr_of(self->velocity), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_ui_view_reset_pointer(self);
+    for (i = 0; i < LH_UI_VIEW_TRANSITION_MAX; ++i)
+    {
+        lh_ui_transition_init(lh_addr_of(self->transitions[i]));
+    }
 }
 
 lh_void
 lh_ui_view_deinit(lh_ui_view_t *self)
 {
+    /* Every entity in flight points into this view's slots: they land first. */
+    lh_ui_view_finish_transitions(self, lh_null);
     lh_ui_view_init(self);
 }
 
@@ -63,6 +72,12 @@ lh_ui_view_set_root(lh_ui_view_t *self, lh_ui_entity_t *root)
     lh_ui_entity_t *top;
 
     lh_assert_runtime_ref(self);
+    /* The tree that leaves takes its looks with it, landed: its entities must not
+       point into a view that no longer holds them. */
+    if (self->root != root)
+    {
+        lh_ui_view_finish_transitions(self, lh_null);
+    }
     /* The pointer lives on the top of the tree, which is where a setter walks
        to find this view. A root that is itself parented still records on the
        top, or the walk would stop one short of it. */
@@ -519,14 +534,19 @@ lh_ui_view_tick(lh_ui_view_t *self)
 {
     lh_bool_t moved;
 
+    lh_bool_t faded;
+
     lh_assert_runtime_ref(self);
-    lh_return_if(lh_null_eq(self->throwing), lh_bool_false);
+    /* Looks first, whether or not anything glides: a frame that only fades is a
+       frame to paint. */
+    faded = lh_ui_view_advance(self, LH_UI_VIEW_FRAME_MS);
+    lh_return_if(lh_null_eq(self->throwing), faded);
     self->velocity = lh_ui_view_slow_down(self->velocity);
     moved = lh_ui_view_scroll_by(self, self->throwing, lh_ui_point_get_x(lh_addr_of(self->velocity)),
                                  lh_ui_point_get_y(lh_addr_of(self->velocity)));
-    lh_return_if(moved && !lh_ui_view_is_slow(self->velocity, lh_ui_scalar(1)), moved);
+    lh_return_if(moved && !lh_ui_view_is_slow(self->velocity, lh_ui_scalar(1)), lh_bool_true);
     lh_ui_view_stop_throw(self);
-    return moved;
+    return moved ? lh_bool_true : faded;
 }
 
 lh_ui_point_t
@@ -866,4 +886,138 @@ lh_ui_view_text(lh_ui_view_t *self, lh_u32_t code)
     lh_assert_runtime_ref(self);
     lh_ui_key_input_init_text(lh_addr_of(input), code);
     return lh_ui_view_send_input(self, lh_addr_of(input));
+}
+
+/* ── Transitions ──────────────────────────────────────────────────────────── */
+
+/* The slot @p entity is in flight in, or ::lh_null. */
+static lh_ui_transition_t *
+lh_ui_view_slot_of(const lh_ui_view_t *self, const lh_ui_entity_t *entity)
+{
+    int i;
+
+    for (i = 0; i < LH_UI_VIEW_TRANSITION_MAX; ++i)
+    {
+        if (lh_ui_transition_get_entity(lh_addr_of(self->transitions[i])) == entity)
+        {
+            return lh_ptr_rcast(lh_ui_transition_t, lh_addr_of(self->transitions[i]));
+        }
+    }
+    return lh_null;
+}
+
+/* Point the entity of @p slot at its target and free the slot. */
+static lh_void
+lh_ui_view_land(lh_ui_transition_t *slot)
+{
+    lh_ui_entity_t *entity = lh_ui_transition_get_entity(slot);
+    const lh_ui_style_t *to = lh_ui_transition_get_target(slot);
+
+    lh_ui_transition_init(slot);
+    lh_ui_entity_set_style_at_once(entity, to);
+}
+
+lh_bool_t
+lh_ui_view_start_transition(lh_ui_view_t *self, lh_ui_entity_t *entity, const lh_ui_style_t *to)
+{
+    lh_ui_transition_t *slot;
+    const lh_ui_style_t *from;
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(entity);
+    lh_assert_runtime_ref(to);
+    from = lh_ui_entity_get_style(entity);
+    lh_return_if(lh_null_eq(from), lh_bool_false);
+    slot = lh_ui_view_slot_of(self, entity);
+    if (lh_null_eq(slot))
+    {
+        /* A free slot is one with no entity in it. */
+        slot = lh_ui_view_slot_of(self, lh_null);
+    }
+    lh_return_if(lh_null_eq(slot), lh_bool_false);
+    /* From the look on screen, which may be this slot's own half-way look. */
+    lh_ui_transition_start(slot, entity, from, to);
+    lh_ui_entity_set_style_at_once(entity, lh_ui_transition_get_look(slot));
+    lh_ui_entity_note(entity);
+    return lh_bool_true;
+}
+
+const lh_ui_style_t *
+lh_ui_view_get_transition_target(const lh_ui_view_t *self, const lh_ui_entity_t *entity)
+{
+    const lh_ui_transition_t *slot;
+
+    lh_assert_runtime_ref(self);
+    lh_return_if(lh_null_eq(entity), lh_null);
+    slot = lh_ui_view_slot_of(self, entity);
+    return lh_null_eq(slot) ? lh_null : lh_ui_transition_get_target(slot);
+}
+
+lh_void
+lh_ui_view_drop_transition(lh_ui_view_t *self, const lh_ui_entity_t *entity)
+{
+    lh_ui_transition_t *slot;
+
+    lh_assert_runtime_ref(self);
+    lh_return_if(lh_null_eq(entity));
+    slot = lh_ui_view_slot_of(self, entity);
+    lh_return_if(lh_null_eq(slot));
+    lh_ui_transition_init(slot);
+}
+
+lh_void
+lh_ui_view_finish_transitions(lh_ui_view_t *self, const lh_ui_entity_t *subtree)
+{
+    int i;
+
+    lh_assert_runtime_ref(self);
+    for (i = 0; i < LH_UI_VIEW_TRANSITION_MAX; ++i)
+    {
+        lh_ui_transition_t *slot = lh_addr_of(self->transitions[i]);
+        const lh_ui_entity_t *up = lh_ui_transition_get_entity(slot);
+
+        if (lh_null_eq(up))
+        {
+            continue;
+        }
+        /* In the subtree when @p subtree is the entity or one of its ancestors. */
+        while (lh_null_ne(subtree) && lh_null_ne(up) && up != subtree)
+        {
+            up = lh_ui_entity_get_parent(up);
+        }
+        if (lh_null_eq(subtree) || up == subtree)
+        {
+            lh_ui_view_land(slot);
+        }
+    }
+}
+
+lh_bool_t
+lh_ui_view_advance(lh_ui_view_t *self, lh_u16_t ms)
+{
+    lh_bool_t moved = lh_bool_false;
+    int i;
+
+    lh_assert_runtime_ref(self);
+    lh_return_if(ms == 0, lh_bool_false);
+    for (i = 0; i < LH_UI_VIEW_TRANSITION_MAX; ++i)
+    {
+        lh_ui_transition_t *slot = lh_addr_of(self->transitions[i]);
+        lh_ui_entity_t *entity = lh_ui_transition_get_entity(slot);
+
+        if (lh_null_eq(entity))
+        {
+            continue;
+        }
+        moved = lh_bool_true;
+        /* The entity already points at the slot's look, so a new look in the same
+           place is a repaint and nothing else: both the old pixels and the new. */
+        lh_ui_entity_note(entity);
+        if (!lh_ui_transition_advance(slot, ms))
+        {
+            lh_ui_view_land(slot);
+        }
+        lh_ui_entity_note(entity);
+    }
+    return moved;
 }

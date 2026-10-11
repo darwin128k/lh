@@ -26,19 +26,21 @@ Tags are the widgets (`box`, `label`, `button`, `toggle`, `image`, `input`,
 
 What it reads
 -------------
-* layout: `display: flex | block | none`, `flex-direction`, `justify-content` (with
+* layout: `display: flex | block | grid | none`, `flex-direction`, `flex-wrap`,
+  `justify-content` (with
   `space-between / -around / -evenly`), `align-items`, `align-self`, `gap`, `flex`
   (weights, `flex-basis`), `width` / `height` in `px`, `rem`, `em` or `%`, `margin`
   (`auto` either way), `min-` / `max-` sizes, `padding`, `aspect-ratio`,
   `position: absolute | fixed` with any two of `left` / `right` / `width` per axis,
   `z-index`;
-* look: `background`, `color`, `border` (inside the box, as `box-sizing: border-box`),
-  `border-radius`, `box-shadow`, `opacity`, `visibility`, `font` (a resource the
+* look: `background` (a colour, `linear-gradient()` or `radial-gradient()`), `color`,
+  `border` (inside the box, as `box-sizing: border-box`), `border-radius` (each corner), `box-shadow`, `opacity`, `visibility`, `font` (a resource the
   application defines -- see the header), `text-align`, `vertical-align`,
   `text-transform`, `text-overflow: ellipsis`, `white-space` (`normal` wraps; a label is one line
   unless it says so -- the one default that is not CSS's); any colour
   CSS writes, `var()` with fallbacks, `inherit` / `initial`;
-* states: `:hover`, `:active`, `:checked`, `:checked:hover`, as rules or nested blocks.
+* states: `:hover`, `:active`, `:checked`, `:checked:hover`, as rules or nested blocks,
+  and `transition` between them (a time, a curve CSS names, the properties).
 
 What lh has no widget for is built out of what it has (::compose): a button with `text`,
 a checkbox with a caption, a progress bar, `overflow: auto` (a frame and a scroll bar),
@@ -159,7 +161,8 @@ STATES = {
 #: What a state may change: its look, and not where anything is. A `width` under
 #: `:hover` would be a button that grows under the pointer, and nothing here resizes a
 #: row because of the pointer.
-LOOK_PROPS = ("background", "color", "padding", "padx", "pady", "radius", "shadow",
+LOOK_PROPS = ("background", "color", "padding", "padx", "pady", "radius-tl", "radius-tr",
+              "radius-br", "radius-bl", "shadow",
               "text-align", "valign", "padding-top", "padding-right", "padding-bottom",
               "padding-left", "border-width", "border-top-width", "border-right-width",
               "border-bottom-width", "border-left-width", "border-style", "border-color",
@@ -170,7 +173,8 @@ LOOK_PROPS = ("background", "color", "padding", "padx", "pady", "radius", "shado
 #: of a pressed style: "padding, font and alignment are read from the entity's own
 #: style, so nothing moves under the pointer". A `padding` under `:active` would be read
 #: and ignored.
-PRESSED_PROPS = ("background", "color", "radius", "shadow", "box-shadow", "border-color",
+PRESSED_PROPS = ("background", "color", "radius-tl", "radius-tr", "radius-br", "radius-bl",
+                 "shadow", "box-shadow", "border-color",
                  "opacity")
 
 TEXT_ALIGN = {"left": "lh_ui_text_align_h_left",
@@ -191,8 +195,8 @@ VALIGN = {"top": "lh_ui_text_align_v_top",
 NOT_SUPPORTED = {
     "float": "a child is a child, at the next place in the flow",
     "transform": "a row is drawn where its rect is; there is no matrix between them",
-    "transition": "a look changes when its state does, at once: there is no clock here",
-    "animation": "same as `transition`",
+    "animation": "there are no keyframes here, only a time between two looks: that is "
+                 "`transition`",
     "filter": "a style's paint is solid, and nothing is drawn through a filter",
     "backdrop-filter": "same as `filter`",
     "cursor": "the pointer's shape is the window's, not a row's",
@@ -203,22 +207,20 @@ NOT_SUPPORTED = {
     "word-spacing": "same as `letter-spacing`",
     "line-height": "a label is one line, and its height is the font's",
     "text-decoration": "a font draws its letters and nothing under them",
-    "background-image": "a style's paint is solid; a picture is an `image` row",
     "pointer-events": "every row that can be clicked is clicked; say `display: none`",
     "user-select": "a label's text is not selectable",
     "content": "there is no `::before` and no `::after`: a caption is a `label` row "
                "with `text`",
-    "grid-template-columns": "there is no grid here: a grid is rows of `display: flex`",
-    "grid-template-rows": "same as `grid-template-columns`",
-    "grid-area": "same as `grid-template-columns`",
-    "grid-column": "same as `grid-template-columns`",
-    "grid-row": "same as `grid-template-columns`",
-    "flex-wrap": "a flow is one line: a row that does not fit is clipped, not wrapped",
-    "flex-flow": "write `flex-direction`: a flow is one line and does not wrap",
+    "grid-template-areas": "a grid here is placed in order, a cell after a cell: name the "
+                           "rows in the order they go instead",
+    "grid-area": "same as `grid-template-areas`",
+    "grid-row": "a grid here is placed in order, a row after a row; a cell may `span` columns",
+    "grid-auto-flow": "a grid here fills a row before the next, which is `row`",
+    "grid-auto-columns": "a grid here has the columns `grid-template-columns` names",
     "order": "the order of the rows is the order in the sheet",
 }
 
-DISPLAY_VALUES = {"flex", "block", "none"}
+DISPLAY_VALUES = {"flex", "block", "none", "grid"}
 
 MARGIN_PROPS = ("margin", "margin-top", "margin-right", "margin-bottom", "margin-left")
 BOUND_PROPS = ("min-width", "max-width", "min-height", "max-height")
@@ -276,6 +278,8 @@ VALUE_TABLES = {
     "border-style": {"solid": "solid", "none": "none", "hidden": "none"},
     "font-style": {"normal": "normal", "italic": "italic"},
     "text-overflow": {"clip": "lh_ui_text_overflow_clip", "ellipsis": "lh_ui_text_overflow_ellipsis"},
+    # `wrap-reverse` would put the lines the other way across, which no flow here does.
+    "flex-wrap": {"nowrap": "lh_bool_false", "wrap": "lh_bool_true"},
     # `nowrap` and `pre` are what a label does unless told otherwise: its lines end
     # where the text breaks them and nowhere else. `normal` and `pre-wrap` also break
     # before a word that would not fit the box (::lh_ui_style_set_wrap). This is the one
@@ -286,31 +290,40 @@ VALUE_TABLES = {
                     "pre-wrap": "lh_ui_text_wrap_words"},
 }
 NUMERIC_PROPS = ("width", "height", "flex", "row-gap", "column-gap", "padding", "padx",
-                 "pady", "radius", "left", "top", "right", "bottom", "shadow", "padding-top",
+                 "pady", "radius-tl", "radius-tr", "radius-br", "radius-bl", "left", "top", "right", "bottom", "shadow", "padding-top",
                  "padding-right", "padding-bottom", "padding-left", "flex-basis",
                  "border-width", "border-top-width", "border-right-width",
                  "border-bottom-width", "border-left-width", "font-size")
 
 #: The lengths that may be a percentage, because a parent has a size to be a share of.
 SIZED = ("width", "height", "left", "top", "right", "bottom", "flex-basis")
-COLOUR_PROPS = ("background", "color", "border-color")
+#: Colours; `background` may also be a gradient (::read_paint).
+COLOUR_PROPS = ("color", "border-color")
 
 #: `display` is the only thing that gives a container a flow. Everything else about a
 #: row's place comes from where the row sits, so a stylesheet that says `gap` without
 #: saying `display: flex` is describing a flow that does not exist -- the number would
 #: be read by nothing and the rows would sit where the flow put them.
-FLOW_PROPS = ("flex-direction", "justify-content", "row-gap", "column-gap", "align-items")
+FLOW_PROPS = ("flex-direction", "justify-content", "row-gap", "column-gap", "align-items",
+              "flex-wrap")
 
 #: What a declaration may name: the properties this parser keeps, and the CSS ones that
 #: are written differently and turned into them (::expand) once variables are in.
-CSS_ALIASES = ("background-color", "border-radius", "vertical-align", "align-self",
+CSS_ALIASES = ("flex-flow", "background-color", "background-image", "border-radius", "radius",
+               "border-top-left-radius", "border-top-right-radius",
+               "border-bottom-right-radius", "border-bottom-left-radius", "vertical-align", "align-self",
                "flex-grow", "flex-shrink", "gap", "border", "border-top", "border-right",
                "border-bottom", "border-left", "inset", "font", "font-family",
                "font-weight", "box-shadow", "opacity", "aspect-ratio", "overflow")
 
 KNOWN_PROPS = (set(VALUE_TABLES) | set(NUMERIC_PROPS) | set(COLOUR_PROPS) | set(CSS_ALIASES)
                | set(MARGIN_PROPS) | set(BOUND_PROPS)
-               | {"display", "scrolls", "text", "value", "maxlength", "max", "accent-color",
+               | {"grid-template-columns", "grid-template-rows", "grid-auto-rows", "grid-column",
+                  "justify-items", "justify-self"}
+               | {"background", "display", "scrolls", "text", "value", "maxlength", "max",
+                  "accent-color",
+                  "transition", "transition-duration", "transition-timing-function",
+                  "transition-property", "transition-delay",
                   "z-index"})
 
 COLOUR = re.compile(r"^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")
@@ -855,6 +868,143 @@ def read_colour(value, line, variables, where):
     return (red, green, blue, alpha)
 
 
+def split_commas(text):
+    """@p text split on the commas that are not inside `( ... )`."""
+    parts = []
+    depth = 0
+    cur = []
+    for ch in text:
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+        if ch == "," and depth == 0:
+            parts.append("".join(cur).strip())
+            cur = []
+            continue
+        cur.append(ch)
+    parts.append("".join(cur).strip())
+    return parts
+
+
+ANGLE = re.compile(r"^(-?\d+(?:\.\d+)?)(deg|turn|rad|grad)$")
+SIDES = {"to top": 0, "to right": 90, "to bottom": 180, "to left": 270}
+CORNER_WORDS = {"to top right": "tr", "to right top": "tr", "to bottom right": "br",
+                "to right bottom": "br", "to bottom left": "bl", "to left bottom": "bl",
+                "to top left": "tl", "to left top": "tl"}
+
+
+def gradient_angle(text, rect):
+    """Degrees of a gradient direction, or None when @p text is not one. A corner
+    (`to top right`) is the angle whose line meets that corner of a box of @p rect's
+    size, as CSS draws it: perpendicular to the diagonal between the other two."""
+    import math
+    text = re.sub(r"\s+", " ", text.strip())
+    m = ANGLE.match(text)
+    if m:
+        value = float(m.group(1))
+        unit = m.group(2)
+        degrees = {"deg": value, "turn": value * 360, "rad": math.degrees(value),
+                   "grad": value * 0.9}[unit]
+        return int(round(degrees)) % 360
+    if text in SIDES:
+        return SIDES[text]
+    if text in CORNER_WORDS:
+        w, h = (rect[2], rect[3]) if rect is not None and rect[2] > 0 and rect[3] > 0 else (1, 1)
+        across = math.degrees(math.atan2(h, w))
+        return int(round({"tr": across, "br": 180 - across, "bl": 180 + across,
+                          "tl": 360 - across}[CORNER_WORDS[text]])) % 360
+    return None
+
+
+def read_stops(parts, line, variables, where):
+    """[(rgb, frac 0..255)] for the colour stops of a gradient, with the positions CSS
+    leaves out filled in as CSS fills them: the first at 0, the last at 100%, and the
+    ones between spread evenly between the stops either side that say."""
+    stops = []
+    for part in parts:
+        tokens = re.findall(r"[a-zA-Z-]+\([^)]*\)|\S+", part)
+        positions = []
+        while tokens and re.match(r"^-?\d+(?:\.\d+)?%$|^0$", tokens[-1]):
+            positions.insert(0, tokens.pop())
+        if not tokens:
+            raise Failure("%s at line %d has a stop with no colour: %r" % (where, line, part))
+        if tokens and re.match(r"^-?\d+(?:\.\d+)?(px|rem|em)$", tokens[-1]):
+            raise Failure("%s at line %d places a stop at %s. A stop here is a share of the "
+                          "gradient, in `%%`: the length of the line is the box's"
+                          % (where, line, tokens[-1]))
+        rgb = read_colour(" ".join(tokens), line, variables, where)
+        if len(positions) > 2:
+            raise Failure("%s at line %d: a stop has one or two positions" % (where, line))
+        if not positions:
+            stops.append([rgb, None])
+        for pos in positions:
+            stops.append([rgb, 0.0 if pos == "0" else float(pos[:-1])])
+    if len(stops) < 2:
+        raise Failure("%s at line %d: a gradient has at least two colours" % (where, line))
+    if stops[0][1] is None:
+        stops[0][1] = 0.0
+    if stops[-1][1] is None:
+        stops[-1][1] = 100.0
+    i = 0
+    while i < len(stops):
+        if stops[i][1] is not None:
+            i += 1
+            continue
+        j = i
+        while stops[j][1] is None:
+            j += 1
+        start, end = stops[i - 1][1], stops[j][1]
+        for k in range(i, j):
+            stops[k][1] = start + (end - start) * (k - i + 1) / (j - i + 1)
+        i = j
+    out = []
+    last = 0.0
+    for rgb, pos in stops:
+        # A stop before the one ahead of it is moved up to it, as CSS does.
+        pos = max(last, min(100.0, max(0.0, pos)))
+        last = pos
+        out.append((rgb, int(round(pos * 255 / 100))))
+    return out
+
+
+def read_paint(value, line, variables, where, rect=None):
+    """`("solid", rgb)` or `("linear" | "radial", angle, [(rgb, frac)])` for a
+    `background`."""
+    text = value.strip()
+    m = re.match(r"^(repeating-)?(linear|radial|conic)-gradient\((.*)\)$", text, re.S)
+    if not m:
+        return ("solid", read_colour(text, line, variables, where))
+    if m.group(1):
+        raise Failure("%s at line %d is a repeating gradient, and a gradient here runs once "
+                      "across the box" % (where, line))
+    kind = m.group(2)
+    if kind == "conic":
+        raise Failure("%s at line %d is a conic gradient: a gradient here runs along a "
+                      "line or out from the middle" % (where, line))
+    parts = split_commas(m.group(3))
+    if kind == "linear":
+        angle = gradient_angle(parts[0], rect)
+        if angle is not None:
+            parts = parts[1:]
+        elif parts[0].strip().startswith("to "):
+            raise Failure("%s at line %d: `%s` is not a direction" % (where, line, parts[0]))
+        else:
+            angle = 180
+        return ("linear", angle, read_stops(parts, line, variables, where))
+    first = re.sub(r"\s+", " ", parts[0].strip())
+    if re.match(r"^(circle|ellipse|closest|farthest|at )|^(ellipse|circle)? ?(closest|farthest)", first) or \
+            first.startswith("at "):
+        if first not in ("ellipse", "farthest-corner", "ellipse farthest-corner", "at center",
+                         "ellipse at center", "farthest-corner at center",
+                         "ellipse farthest-corner at center"):
+            raise Failure("%s at line %d: `%s`. A radial gradient here is the CSS default -- "
+                          "an ellipse the shape of the box, from the middle to the farthest "
+                          "corner -- and says nothing else" % (where, line, parts[0]))
+        parts = parts[1:]
+    return ("radial", 0, read_stops(parts, line, variables, where))
+
+
 def read_number(value, line, where):
     """A plain whole number, for what is a count and not a length (`flex`)."""
     value = value.strip()
@@ -917,6 +1067,96 @@ def read_shadow(value, line, where):
                       "`--shadow` in `:root`, and not a fourth number here"
                       % (where, line, value.strip()))
     return int(found.group(1)), int(found.group(2) or 0)
+
+
+#: A time, as CSS writes one: `150ms`, `0.2s`. A bare number is milliseconds, the way a
+#: bare number is pixels everywhere else this parser reads one.
+TIME = re.compile(r"^(\d+(?:\.\d+)?|\.\d+)(ms|s)?$")
+
+#: The longest a transition may be: `lh_ui_style_set_transition` takes an `lh_u16_t`, and
+#: a time that does not fit in one is not rounded into it.
+MAX_TRANSITION = 65535
+
+#: The curves CSS names, and the engine's names for them (::lh_ui_easing_t).
+EASINGS = {"ease": "lh_ui_easing_ease", "linear": "lh_ui_easing_linear",
+           "ease-in": "lh_ui_easing_ease_in", "ease-out": "lh_ui_easing_ease_out",
+           "ease-in-out": "lh_ui_easing_ease_in_out"}
+
+#: What a transition can be asked to move. The engine mixes everything a look has an
+#: amount of -- fills, the text and border paints, corners, the shadow -- and these are
+#: the CSS names of those; `all` is all of them.
+TRANSITION_PROPERTIES = ("all", "background", "background-color", "color", "border-color",
+                         "border-radius", "border-top-left-radius", "border-top-right-radius",
+                         "border-bottom-right-radius", "border-bottom-left-radius", "box-shadow",
+                         "opacity", "none")
+
+
+def read_time(text, line, where):
+    """A time in whole milliseconds, or a refusal that says what is wrong."""
+    text = text.strip()
+    if text.startswith("-"):
+        raise Failure("%s at line %d is %s, and a look that changes in less than no time "
+                      "changes at once. Write `0`, or the time it should take"
+                      % (where, line, text))
+    found = TIME.match(text)
+    if not found:
+        raise Failure("%s at line %d: `%s` is not a time. A time is `150ms`, or `0.2s`, or "
+                      "a bare number of milliseconds" % (where, line, text))
+    number = float(found.group(1))
+    ms = int(round(number * 1000)) if found.group(2) == "s" else int(round(number))
+    if ms > MAX_TRANSITION:
+        raise Failure("%s at line %d is %d ms, and a style keeps this time in an "
+                      "`lh_u16_t`: at most %d" % (where, line, ms, MAX_TRANSITION))
+    return ms
+
+
+def _expand_transition(text, line, where):
+    """`transition: <property> <time> <curve> [<delay>], ...` into its three parts.
+
+    One time and one curve a look: the engine moves a whole look at once, so every
+    item's time is the longest of them and the items must agree on a curve -- a look
+    whose fill eased in while its text eased out is two transitions, and a style here
+    is one. A delay other than 0 is refused: a look changes the moment its state does.
+    The properties are kept for the check that something they name is changed by a
+    state; the engine itself mixes every amount the look has.
+    """
+    if text == "none":
+        return [("transition-duration", "0"), ("transition-property", "none")]
+    longest = 0
+    curves = set()
+    names = []
+    for item in split_commas(text):
+        times = []
+        for token in item.split():
+            if token in EASINGS:
+                curves.add(token)
+            elif re.match(r"^(cubic-bezier|steps)\(", token) or token in ("step-start", "step-end"):
+                raise Failure("%s at line %d: `%s`. A curve here is one CSS names -- `ease`, "
+                              "`linear`, `ease-in`, `ease-out`, `ease-in-out` -- and not a "
+                              "Bezier or steps of its own" % (where, line, token))
+            elif TIME.match(token) or token.startswith("-"):
+                times.append(token)
+            elif token in TRANSITION_PROPERTIES:
+                names.append(token)
+            else:
+                raise Failure("%s at line %d: `%s` is not a property a look moves. Here: %s"
+                              % (where, line, token, ", ".join(TRANSITION_PROPERTIES)))
+        if len(times) > 2:
+            raise Failure("%s at line %d: `%s` has more times than a duration and a delay"
+                          % (where, line, item))
+        if len(times) == 2 and read_time(times[1], line, "the delay in " + where) != 0:
+            raise Failure("%s at line %d has a delay of %s. A look changes the moment its "
+                          "state does; there is no clock to wait on" % (where, line, times[1]))
+        if times:
+            longest = max(longest, read_time(times[0], line, where))
+    if len(curves) > 1:
+        raise Failure("%s at line %d asks for %s. A look moves on one curve: say one"
+                      % (where, line, " and ".join(sorted(curves))))
+    out = [("transition-duration", "%d" % longest)]
+    if curves:
+        out.append(("transition-timing-function", curves.pop()))
+    out.append(("transition-property", ",".join(names) or "all"))
+    return out
 
 
 def read_text(value, line, where):
@@ -1075,7 +1315,7 @@ PLACE_KEYS = ("flex", "flex-basis", "align", "margin", "margin-top", "margin-rig
 
 #: What makes a flow, and moves with it.
 FLOW_KEYS = ("display", "flex-direction", "justify-content", "align-items", "row-gap",
-             "column-gap")
+             "column-gap", "flex-wrap")
 
 #: How wide a scroll bar is, by `scrollbar-width`.
 SCROLLBAR_WIDTH = {"auto": 12, "thin": 8}
@@ -1137,6 +1377,8 @@ def compose(node):
     The row keeps its `#id`, so the application asks for the toggle, the bar or the box
     it wrote; the rows made around it are named after it, `#remember__text`.
     """
+    if node.props.get("display", ("", 0))[0].strip() == "grid":
+        grid_rows(node)
     for child in list(node.children):
         compose_one(child)
     if node.tag in HOLDERS:
@@ -1216,8 +1458,9 @@ def progress_bar(node):
     share = max(0.0, min(1.0, share))
     props = {"width": ("%g%%" % (share * 100), line), "height": ("100%", line),
              "background": node.props.get("accent-color", ("#2d6cdf", line))}
-    if "radius" in node.props:
-        props["radius"] = node.props["radius"]
+    for key in ("radius-tl", "radius-tr", "radius-br", "radius-bl"):
+        if key in node.props:
+            props[key] = node.props[key]
     bar = new_row("entity", named(node) + "__bar", line, props)
     node.children = [bar]
     bar.parent = node
@@ -1265,6 +1508,178 @@ def scroll_frame(node):
                             node.line, props)
         frame.children.append(scrollbar)
         scrollbar.parent = frame
+
+
+def grid_tracks(node, key, line):
+    """The tracks a `grid-template-*` names: `[("length", text) | ("fr", weight)]`."""
+    value = node.props[key][0].strip()
+    text = value
+    # repeat(N, tracks) -> the tracks N times.
+    while True:
+        m = re.search(r"repeat\(\s*(\d+)\s*,\s*([^()]*)\)", text)
+        if not m:
+            break
+        text = text[:m.start()] + " ".join([m.group(2).strip()] * int(m.group(1))) + text[m.end():]
+    if re.search(r"repeat\(|minmax\(|fit-content\(|\[", text):
+        raise Failure("`%s: %s` at line %d in %s. A track here is a length or a share (`fr`), "
+                      "and `repeat()` of those; `minmax()`, `auto-fill` and named lines are "
+                      "sizes a grid here does not work out" % (key, value, line, describe(node)))
+    tracks = []
+    for token in text.split():
+        m = re.match(r"^(\d+(?:\.\d+)?)fr$", token)
+        if m:
+            weight = float(m.group(1))
+            if weight != int(weight) or weight <= 0:
+                raise Failure("`%s` at line %d in %s: a share is a whole number of `fr`"
+                              % (token, line, describe(node)))
+            tracks.append(("fr", int(weight)))
+        elif token in ("auto", "min-content", "max-content"):
+            if key == "grid-template-columns":
+                raise Failure("`%s` in `%s` at line %d in %s: a column as wide as the widest "
+                              "thing in it is a size a grid here cannot work out; give it a "
+                              "length or a share (`1fr`)" % (token, key, line, describe(node)))
+            # A row that says `auto` shares the room down with the others, as CSS
+            # stretches auto rows to a grid that is taller than they are.
+            tracks.append(("fr", 1))
+        else:
+            read_length(token, line, "`%s` of %s" % (key, describe(node)), 100)
+            tracks.append(("length", token))
+    if not tracks:
+        raise Failure("`%s` at line %d in %s names no tracks" % (key, line, describe(node)))
+    return tracks
+
+
+def grid_span(item):
+    """How many columns @p item spans: `grid-column: span 2`, else 1."""
+    if "grid-column" not in item.props:
+        return 1
+    value, line = item.props.pop("grid-column")
+    text = re.sub(r"\s+", " ", value.strip())
+    m = re.match(r"^(?:auto ?/ ?)?span (\d+)$", text)
+    if m and int(m.group(1)) >= 1:
+        return int(m.group(1))
+    if text == "auto":
+        return 1
+    raise Failure("`grid-column: %s` at line %d in %s. A grid here is placed in order, a "
+                  "cell after a cell; a cell may say `span N` and nothing else"
+                  % (value, line, describe(item)))
+
+
+def grid_rows(node):
+    """`display: grid` as the engine draws it: a column of rows, each a row of cells.
+
+    A column whose track is a length is that wide in every row, and one that is a
+    share (`fr`) has that weight in every row -- so the columns line up, row under row,
+    as long as every row has every column. The last row is filled up with empty cells
+    for that, and a cell that spans columns of shares takes their weights together,
+    which lines up only when there is no gap between columns to lose; one that spans
+    lengths takes their lengths and the gaps between them. A row's track is its
+    height, or its share of the height.
+    """
+    line = node.props["display"][1]
+    if "grid-template-columns" not in node.props:
+        raise Failure("%s at line %d is a grid with no `grid-template-columns`. Name the "
+                      "columns -- `repeat(3, 1fr)` is three equal ones" % (describe(node), line))
+    columns = grid_tracks(node, "grid-template-columns", node.props["grid-template-columns"][1])
+    rows = grid_tracks(node, "grid-template-rows", node.props["grid-template-rows"][1]) \
+        if "grid-template-rows" in node.props else []
+    auto_row = grid_tracks(node, "grid-auto-rows", node.props["grid-auto-rows"][1])[0] \
+        if "grid-auto-rows" in node.props else ("fr", 1)
+    column_gap = node.props.get("column-gap", ("0", line))[0]
+    row_gap = node.props.get("row-gap", ("0", line))
+    justify = node.props.pop("justify-items", ("stretch", line))[0].strip()
+    across = node.props.pop("align-items", None)
+    for key in ("grid-template-columns", "grid-template-rows", "grid-auto-rows"):
+        node.props.pop(key, None)
+
+    items = [child for child in node.children if in_flow(child)]
+    others = [child for child in node.children if not in_flow(child)]
+    placed = []
+    row = []
+    used = 0
+    for item in items:
+        span = grid_span(item)
+        if span > len(columns):
+            raise Failure("%s spans %d columns of a grid that has %d" % (describe(item), span, len(columns)))
+        if used + span > len(columns):
+            placed.append(row)
+            row, used = [], 0
+        row.append((item, used, span))
+        used += span
+    if row:
+        placed.append(row)
+
+    def track_props(start, span, at_line):
+        tracks = columns[start:start + span]
+        if span == len(columns):
+            # Every column: the whole row, whatever the columns are -- a heading
+            # across a grid is the span a sheet writes most.
+            return {"flex": ("1", at_line)}
+        if all(kind == "length" for kind, _v in tracks):
+            if span == 1:
+                return {"width": (tracks[0][1], at_line)}
+            total = sum(read_length(v, at_line, "a column of %s" % describe(node), 100) for _k, v in tracks)
+            gap = read_length(column_gap, at_line, "`column-gap` of %s" % describe(node))
+            return {"width": ("%dpx" % (total + gap * (span - 1)), at_line)}
+        if all(kind == "fr" for kind, _v in tracks):
+            if span > 1 and read_length(column_gap, at_line, "`column-gap`") != 0:
+                raise Failure("a cell at line %d in %s spans %d shared columns with a "
+                              "`column-gap` between them. Its share would be the columns' and "
+                              "not the gap's, and the cells under it would not line up: drop "
+                              "the gap or give the columns lengths" % (at_line, describe(node), span))
+            return {"flex": ("%d" % sum(v for _k, v in tracks), at_line)}
+        raise Failure("a cell at line %d in %s spans a column of length and one of a share; a "
+                      "span here is all lengths or all shares" % (at_line, describe(node)))
+
+    name = named(node)
+    row_nodes = []
+    for index, cells in enumerate(placed):
+        kind, value = rows[index] if index < len(rows) else auto_row
+        props = {"display": ("flex", line), "column-gap": (column_gap, line)}
+        if kind == "length":
+            props["height"] = (value, line)
+        else:
+            props["flex"] = ("%d" % value, line)
+        if across is not None:
+            props["align-items"] = across
+        row_box = new_row("box", "%s__row%d" % (name, index), line, props)
+        row_box.parent = node
+        filled = 0
+        for item, start, span in cells:
+            cell = track_props(start, span, item.line)
+            self_justify = item.props.pop("justify-self", (justify, item.line))[0].strip()
+            if self_justify in ("start", "end", "center") or "width" in item.props:
+                # A cell narrower than its column is put in a box the column's width,
+                # at the start, the end or the middle of it, as `justify-self` says.
+                holder_props = dict(cell)
+                holder_props.update({"display": ("flex", item.line),
+                                     "justify-content": ({"start": "start", "end": "end",
+                                                          "center": "center"}.get(self_justify, "start"),
+                                                         item.line)})
+                holder = new_row("box", "%s__cell" % named(item), item.line, holder_props)
+                holder.children = [item]
+                item.parent = holder
+                holder.parent = row_box
+                row_box.children.append(holder)
+            else:
+                for key in ("width", "flex", "flex-basis"):
+                    item.props.pop(key, None)
+                item.props.update(cell)
+                item.parent = row_box
+                row_box.children.append(item)
+            filled = start + span
+        # The empty cells of the last row, so its columns are the others' columns.
+        for column in range(filled, len(columns)):
+            spacer = new_row("entity", "%s__fill%d_%d" % (name, index, column), line,
+                             track_props(column, 1, line), "spacer")
+            spacer.parent = row_box
+            row_box.children.append(spacer)
+        row_nodes.append(row_box)
+    node.props["display"] = ("flex", line)
+    node.props["flex-direction"] = ("column", line)
+    node.props["row-gap"] = row_gap
+    node.props.pop("column-gap", None)
+    node.children = row_nodes + others
 
 
 def flow_axis(node):
@@ -1517,12 +1932,30 @@ def _expand(key, text, line, where):
         return [("background", text)]
     if key == "background":
         return [("background", "transparent" if text == "none" else text)]
-    if key == "border-radius":
-        parts = text.split()
-        if len(set(parts)) != 1:
-            raise Failure("`border-radius: %s` at line %d in %s: one radius for every "
-                          "corner -- a style has one" % (text, line, where))
-        return [("radius", parts[0])]
+    if key == "background-image":
+        if text == "none":
+            return []
+        if not re.match(r"^(linear|radial)-gradient\(", text):
+            raise Failure("`background-image: %s` at line %d in %s: a gradient is a paint, "
+                          "and a picture is an `image` row" % (text, line, where))
+        return [("background", text)]
+    if key in ("border-radius", "radius"):
+        if "/" in text:
+            raise Failure("`border-radius: %s` at line %d in %s: an elliptical corner -- two "
+                          "radii either side of a `/` -- is not a corner a style rounds"
+                          % (text, line, where))
+        top_left, top_right, bottom_right, bottom_left = box_sides_text(
+            text, line, "`border-radius` of %s" % where)
+        return [("radius-tl", top_left), ("radius-tr", top_right),
+                ("radius-br", bottom_right), ("radius-bl", bottom_left)]
+    corner = {"border-top-left-radius": "radius-tl", "border-top-right-radius": "radius-tr",
+              "border-bottom-right-radius": "radius-br",
+              "border-bottom-left-radius": "radius-bl"}.get(key)
+    if corner is not None:
+        if len(text.split()) != 1:
+            raise Failure("`%s: %s` at line %d in %s: an elliptical corner is not one a style "
+                          "rounds" % (key, text, line, where))
+        return [(corner, text)]
     if key == "vertical-align":
         table = {"top": "top", "middle": "center", "center": "center", "bottom": "bottom"}
         if text not in table:
@@ -1533,6 +1966,35 @@ def _expand(key, text, line, where):
         return [] if text == "auto" else [("align", text)]
     if key == "flex-grow":
         return [("flex", text)]
+    if key == "transition":
+        return _expand_transition(text, line, where)
+    if key == "transition-duration":
+        return [("transition-duration", "%d" % max(read_time(t, line, where) for t in split_commas(text)))]
+    if key == "transition-timing-function":
+        curves = set(c.strip() for c in split_commas(text))
+        if len(curves) != 1 or next(iter(curves)) not in EASINGS:
+            raise Failure("`transition-timing-function: %s` at line %d in %s. One curve a "
+                          "look, of: %s" % (text, line, where, ", ".join(sorted(EASINGS))))
+        return [("transition-timing-function", curves.pop())]
+    if key == "transition-property":
+        for name in split_commas(text):
+            if name.strip() not in TRANSITION_PROPERTIES:
+                raise Failure("`transition-property: %s` at line %d in %s: `%s` is not a "
+                              "property a look moves" % (text, line, where, name.strip()))
+        return [("transition-property", ",".join(n.strip() for n in split_commas(text)))]
+    if key == "transition-delay":
+        if any(read_time(t, line, where) != 0 for t in split_commas(text)):
+            raise Failure("`transition-delay: %s` at line %d in %s. A look changes the moment "
+                          "its state does; there is no clock to wait on" % (text, line, where))
+        return []
+    if key == "flex-flow":
+        out = []
+        for word in text.split():
+            if word in DIRECTIONS or word in ("row-reverse", "column-reverse"):
+                out.append(("flex-direction", word))
+            else:
+                out.append(("flex-wrap", word))
+        return out
     if key == "flex-shrink":
         # A flow here never shrinks a row: one that does not fit runs past the end and
         # is clipped. `flex-shrink: 0` is what that is, and `1` is the CSS default a
@@ -1578,6 +2040,8 @@ def _expand(key, text, line, where):
             return [("display", "block")]
         if text == "inline-flex":
             return [("display", "flex")]
+        if text == "inline-grid":
+            return [("display", "grid")]
         return [("display", text)]
     return [(key, text)]
 
@@ -1908,6 +2372,7 @@ def check_values(root):
     for node in all_nodes(root):
         check_states(node)
         check_layout_values(node)
+        check_transition(node)
         if "maxlength" in node.props:
             if node.tag != "input":
                 raise Failure("`maxlength` at line %d on %s, which is not an `input`"
@@ -1969,6 +2434,31 @@ def check_layout_values(node):
             break
 
 
+#: What the engine mixes between two looks, and the whole of it: a fill and a radius.
+#: `border-radius` and `radius` are turned into the four corners by ::expand before
+#: they get here, so the corners are what a sheet's spelling has become.
+ANIMATED = ("background", "color", "border-color", "radius-tl", "radius-tr", "radius-br",
+            "radius-bl", "box-shadow", "shadow", "opacity", "visibility")
+
+
+def check_transition(node):
+    """A `transition` has to have something to move: a state of the row that changes a
+    fill, a paint, a corner or a shadow. A transition on a row whose looks are all the
+    same in those would be a clock running over a picture that never moves."""
+    for props, where in prop_sets(node):
+        if "transition-duration" not in props:
+            continue
+        value, line = props["transition-duration"]
+        if not int(value):
+            continue
+        if any(key in other for other, _where in prop_sets(node) for key in ANIMATED
+               if other is not props or key in props):
+            continue
+        raise Failure("`transition` at line %d in %s, and there is nothing for it to move: "
+                      "no state of %s changes a fill, a colour, a corner or a shadow"
+                      % (line, where, describe(node)))
+
+
 def check_states(node):
     """A state belongs to a tag that has it, and says only what a state can change."""
     for selector, (props, line) in sorted(node.states.items()):
@@ -2014,6 +2504,9 @@ def check_colours(root):
                     continue
                 value, line = props[key]
                 read_colour(value, line, root.variables, "`%s` of %s" % (key, where))
+            if "background" in props:
+                value, line = props["background"]
+                read_paint(value, line, root.variables, "`background` of %s" % where)
 
 
 def check_scrollbars(root, ids):
@@ -2218,6 +2711,74 @@ def clamp(length, least, most):
 
 
 def lay_out(node, flowing, axis, gap, content, ids):
+    """::lay_out_line once, or -- for a flow that wraps -- once a line, the way
+    `lh_ui_layout_apply` breaks the children into lines and shares out what is left
+    across them (CSS's `align-content: stretch`)."""
+    wraps = node.props.get("flex-wrap", ("nowrap", 0))[0].strip() == "wrap"
+    if not wraps:
+        lay_out_line(node, flowing, axis, gap, content, ids)
+        return
+    cx, cy, cw, ch = content
+    vertical = axis == "lh_ui_axis_vertical"
+    room_along, room_across = (ch, cw) if vertical else (cw, ch)
+    line_gap = number_of(node, "column-gap" if vertical else "row-gap", 0)
+
+    def size_of(child, mode, size, cross):
+        left, top, right, bottom = child.margin
+        ms, me, cs, ce = (top, bottom, left, right) if vertical else (left, right, top, bottom)
+        minw, minh, maxw, maxh = child.bounds
+        along_bounds = (minh, maxh) if vertical else (minw, maxw)
+        across_bounds = (minw, maxw) if vertical else (minh, maxh)
+        if mode == "fill":
+            wants = 0
+        else:
+            wants = clamp(size if mode == "fixed" else 0, *along_bounds)
+        return wants + ms + me
+
+    def depth_of(child, cross, align):
+        left, top, right, bottom = child.margin
+        cs, ce = (left, right) if vertical else (top, bottom)
+        minw, minh, maxw, maxh = child.bounds
+        across_bounds = (minw, maxw) if vertical else (minh, maxh)
+        own = clamp(0, *across_bounds) if align == "lh_ui_place_align_fill" else cross
+        return own + cs + ce
+
+    lines = []
+    line = []
+    used = 0
+    count = 0
+    depth = 0
+    for item in flowing:
+        child, mode, size, cross, align = item
+        if child.hidden:
+            line.append(item)
+            continue
+        length = size_of(child, mode, size, cross)
+        if count > 0 and used + gap + length > room_along:
+            lines.append((line, depth))
+            line, used, count, depth = [], 0, 0, 0
+        used += (gap if count > 0 else 0) + length
+        count += 1
+        depth = max(depth, depth_of(child, cross, align))
+        line.append(item)
+    if line:
+        lines.append((line, depth))
+    if not lines:
+        return
+    total = sum(d for _l, d in lines)
+    free = room_across - total - line_gap * (len(lines) - 1)
+    extra = free // len(lines) if free > 0 else 0
+    at = 0
+    for items, depth in lines:
+        if vertical:
+            band = (cx + at, cy, depth + extra, ch)
+        else:
+            band = (cx, cy + at, cw, depth + extra)
+        lay_out_line(node, items, axis, gap, band, ids)
+        at += depth + extra + line_gap
+
+
+def lay_out_line(node, flowing, axis, gap, content, ids):
     """Place the flowing children of @p node the way `lh_ui_layout_apply` will.
 
     A line-for-line copy of that pass, for the cases it can know: fixed lengths,
@@ -2614,7 +3175,9 @@ def _measure(node, x, y, w, h, ids):
     # the 1408 rows of the parameter table and those are data the application fills;
     # tying the flow to the stylesheet's own children left that one container with no
     # flow at all, and 1408 rows with a place and nowhere to be placed by.
-    node.layout = (axis, gap, lookup(JUSTIFY, node, "justify-content") if "justify-content" in node.props else "lh_ui_justify_start") \
+    node.layout = (axis, gap, lookup(JUSTIFY, node, "justify-content") if "justify-content" in node.props else "lh_ui_justify_start",
+                   node.props.get("flex-wrap", ("nowrap", 0))[0].strip() == "wrap",
+                   number_of(node, "column-gap" if axis == "lh_ui_axis_vertical" else "row-gap", 0)) \
         if flows else None
 
 
@@ -2908,8 +3471,36 @@ def emit(nodes, variables, root, source=""):
                                                "`%s` of %s" % (key, where)), fade))
 
         if "background" in props:
-            body.append("lh_ui_style_set_fill(lh_addr_of(ui_s_%s), lh_addr_of(%s_paints));"
-                        % (sname, paint("background")))
+            value, line = props["background"]
+            fill = read_paint(value, line, variables, "`background` of %s" % where, node.rect)
+            if fill[0] == "solid":
+                body.append("lh_ui_style_set_fill(lh_addr_of(ui_s_%s), lh_addr_of(%s_paints));"
+                            % (sname, colour_of(faded(fill[1], fade))))
+            else:
+                # The stops are set on the gradient once, in this init, and the paint
+                # points at it: a gradient is a table and a paint is copied by value.
+                shape, angle, stops = fill
+                gradients_used.append(len(stops))
+                body.append("{")
+                body.append("    lh_ui_color_t stops[%d];" % len(stops))
+                body.append("    const lh_byte_t at[%d] = {%s};"
+                            % (len(stops), ", ".join("%d" % frac for _rgb, frac in stops)))
+                for index, (rgb, _frac) in enumerate(stops):
+                    rgb = faded(rgb, fade)
+                    body.append("    lh_ui_color_init(lh_addr_of(stops[%d]), %d, %d, %d, %d);"
+                                % (index, rgb[0], rgb[1], rgb[2], rgb[3] if len(rgb) > 3 else 255))
+                body.append("    lh_ui_gradient_init(lh_addr_of(ui_gr_%s));" % sname)
+                body.append("    lh_ui_gradient_init_stops(lh_addr_of(ui_gr_%s), stops, at, %d);"
+                            % (sname, len(stops)))
+                if shape == "radial":
+                    body.append("    lh_ui_gradient_set_radial(lh_addr_of(ui_gr_%s));" % sname)
+                else:
+                    body.append("    lh_ui_gradient_set_linear(lh_addr_of(ui_gr_%s), %d);" % (sname, angle))
+                body.append("}")
+                body.append("lh_ui_paint_init_gradient(lh_addr_of(ui_gp_%s), lh_addr_of(ui_gr_%s));"
+                            % (sname, sname))
+                body.append("lh_ui_style_set_fill(lh_addr_of(ui_s_%s), lh_addr_of(ui_gp_%s));"
+                            % (sname, sname))
         # On an image `color` is the tint (`lh_ui_decl_t::as.image.tint`), which is
         # what a picture's colour is; a style's text paint is read by nothing there.
         if "color" in props and node.tag != "image":
@@ -2951,9 +3542,35 @@ def emit(nodes, variables, root, source=""):
                             % ((sname,) + sides))
                 body.append("lh_ui_style_set_padding_insets(lh_addr_of(ui_s_%s), "
                             "lh_addr_of(ui_pad_%s));" % (sname, sname))
-        if "radius" in props:
-            body.append("lh_ui_style_set_radius(lh_addr_of(ui_s_%s), lh_ui_scalar(%d));"
-                        % (sname, number_in(props, "radius")))
+        corners = [number_in(props, key) if key in props else None
+                   for key in ("radius-tl", "radius-tr", "radius-br", "radius-bl")]
+        if any(c is not None for c in corners):
+            corners = [c or 0 for c in corners]
+            if len(set(corners)) == 1:
+                body.append("lh_ui_style_set_radius(lh_addr_of(ui_s_%s), lh_ui_scalar(%d));"
+                            % (sname, corners[0]))
+            else:
+                body.append("lh_ui_radii_init(lh_addr_of(ui_rd_%s), lh_ui_scalar(%d), "
+                            "lh_ui_scalar(%d), lh_ui_scalar(%d), lh_ui_scalar(%d));"
+                            % ((sname,) + tuple(corners)))
+                body.append("lh_ui_style_set_radii(lh_addr_of(ui_s_%s), lh_addr_of(ui_rd_%s));"
+                            % (sname, sname))
+        # A transition is set on **every** look of the row, not only the resting one.
+        # The engine reads the time off the style it is switching *to*
+        # (::lh_ui_style_get_transition), so a `:hover` that carried the time and a
+        # resting style that did not would interpolate on the way in and snap on the
+        # way out. `props` here is the whole cascade for this state, so a `transition`
+        # written once on the row is already in every one of these calls.
+        #
+        # A time of zero is the style's own default and is not written: an
+        # `lh_ui_style_set_transition(..., 0)` says nothing the `lh_ui_style_init` two
+        # lines above it does not.
+        if "transition-duration" in props and int(props["transition-duration"][0]):
+            body.append("lh_ui_style_set_transition(lh_addr_of(ui_s_%s), %d);"
+                        % (sname, int(props["transition-duration"][0])))
+            curve = props.get("transition-timing-function", ("ease", 0))[0].strip()
+            if curve != "ease":
+                body.append("lh_ui_style_set_easing(lh_addr_of(ui_s_%s), %s);" % (sname, EASINGS[curve]))
         # `shadow` is the fade distance and how far down it is cast. Its **colour** is
         # `--shadow` in `:root`, because a colour is a thing a theme changes and a
         # distance is a thing a layout changes: one variable the reader can replace to
@@ -2997,6 +3614,7 @@ def emit(nodes, variables, root, source=""):
     styled = {}
     del FONTS_USED[:]
     fonts_used = set()
+    gradients_used = []
     #: sname -> the style it is written as (itself, or an identical one written first).
     canonical = {}
     #: the calls of a style -> the name it was first written under.
@@ -3050,8 +3668,7 @@ def emit(nodes, variables, root, source=""):
             colour_of(tint_of(node, variables))
 
         if node.layout:
-            axis, gap, justify = node.layout
-            layouts.append((node, axis, gap, justify))
+            layouts.append((node,) + tuple(node.layout))
         if node.place:
             places.append((node,) + node.place)
 
@@ -3086,7 +3703,9 @@ def emit(nodes, variables, root, source=""):
     add("#include \"ui_generated.h\"")
     add("")
     add("#include <string.h>")
+    add("#include <lh/ui/gradient.h>")
     add("#include <lh/ui/insets.h>")
+    add("#include <lh/ui/radii.h>")
     add("#include <lh/ui/shadow.h>")
     add("#include <lh/util/addr.h>")
     add("")
@@ -3143,6 +3762,15 @@ def emit(nodes, variables, root, source=""):
         add("    %s_init();" % key)
     add("}")
     add("")
+    if gradients_used:
+        # A gradient's stops are a fixed table in lh, as many as the build allows; a
+        # sheet with more is told so by the compiler rather than by a gradient that
+        # stops short.
+        add("#if LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS < %d" % max(gradients_used))
+        add("#error \"a gradient in the sheet has %d colour stops: build lh with "
+            "-DLH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS=%d or more\"" % ((max(gradients_used),) * 2))
+        add("#endif")
+        add("")
     add("/* -- Styles --------------------------------------------------------- */")
     add("")
     for sname, has_look, body in styles:
@@ -3159,6 +3787,13 @@ def emit(nodes, variables, root, source=""):
     for sname, has_look, body in styles:
         if has_look and any("ui_bd_" in line for line in body):
             add("static lh_ui_insets_t ui_bd_%s;" % sname)
+    for sname, has_look, body in styles:
+        if has_look and any("ui_rd_" in line for line in body):
+            add("static lh_ui_radii_t ui_rd_%s;" % sname)
+    for sname, has_look, body in styles:
+        if has_look and any("ui_gr_" in line for line in body):
+            add("static lh_ui_gradient_t ui_gr_%s;" % sname)
+            add("static lh_ui_paint_t ui_gp_%s;" % sname)
     add("")
     for sname, has_look, body in styles:
         if has_look and any("ui_shadow_" in line for line in body):
@@ -3190,17 +3825,20 @@ def emit(nodes, variables, root, source=""):
     add("")
     add("/* -- Flows ---------------------------------------------------------- */")
     add("")
-    for node, axis, gap, justify in layouts:
+    for node, axis, gap, justify, wraps, line_gap in layouts:
         add("static lh_ui_layout_t ui_l_%s;" % node.cname())
         add("static void ui_l_%s_init(void)" % node.cname())
         add("{")
         add("    lh_ui_layout_init(lh_addr_of(ui_l_%s), %s, lh_ui_scalar(%d));" % (node.cname(), axis, gap))
         add("    lh_ui_layout_set_justify(lh_addr_of(ui_l_%s), %s);" % (node.cname(), justify))
+        if wraps:
+            add("    lh_ui_layout_set_wrap(lh_addr_of(ui_l_%s), lh_bool_true, lh_ui_scalar(%d));"
+                % (node.cname(), line_gap))
         add("}")
         add("")
     add("static void ui_layouts_init(void)")
     add("{")
-    for node, _a, _g, _j in layouts:
+    for node, _a, _g, _j, _w, _lg in layouts:
         add("    ui_l_%s_init();" % node.cname())
     add("}")
     add("")

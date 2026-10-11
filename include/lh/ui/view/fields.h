@@ -10,6 +10,7 @@
 #include <lh/ui/scrollbar.h>
 #include <lh/ui/point.h>
 #include <lh/ui/scalar.h>
+#include <lh/ui/transition.h>
 
 /**
  * @def LH_UI_VIEW_WHOLE_MAX
@@ -22,6 +23,19 @@
  * more than this many regions is a frame whose areas have stopped being local.
  */
 #define LH_UI_VIEW_WHOLE_MAX 4
+
+/**
+ * @def LH_UI_VIEW_TRANSITION_MAX
+ * @brief How many looks one view keeps in flight at once (::lh_ui_transition_t).
+ *
+ * A transition is a hover, a press, a toggle: something the pointer did to a few
+ * widgets, not to a screen. When every slot is taken the next switch is instant,
+ * which is what a switch was before there were transitions. Each slot holds two
+ * styles, so this is a memory knob: define it before including lh to change it.
+ */
+#ifndef LH_UI_VIEW_TRANSITION_MAX
+#    define LH_UI_VIEW_TRANSITION_MAX 8
+#endif
 
 /**
  * @def lh_ui_view_fields(canvas_type, entity_type, color_type, rect_type)
@@ -43,6 +57,8 @@
  * has, and ::lh_ui_view_take_damage hands the rect to the window and clears it.
  * It is not the canvas damage: that one is what the frame just drew, and the
  * frame resets it.
+ * `transitions`: the looks in flight (::lh_ui_view_advance), a slot with no entity
+ * being free.
  *
  * @param canvas_type Type of ::lh_ui_canvas_t.
  * @param entity_type Pointer type of ::lh_ui_entity_t.
@@ -69,6 +85,7 @@
     rect_type whole[LH_UI_VIEW_WHOLE_MAX];                                                          \
     lh_ui_scalar_t whole_count;                                                                     \
     rect_type pending;                                                                              \
-    lh_bool_t has_pending
+    lh_bool_t has_pending;                                                                          \
+    lh_ui_transition_t transitions[LH_UI_VIEW_TRANSITION_MAX]
 
 #endif /* LH_UI_VIEW_FIELDS_H */

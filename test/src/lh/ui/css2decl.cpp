@@ -71,15 +71,15 @@ struct sheet
 void
 expect_the_first_layout_moves_nothing(const lh_ui_decl_t *decls, lh_u32_t count, const char *const *names)
 {
-    alignas(16) static lh_byte_t pool[32 * LH_UI_DECL_NODE_MAX];
-    lh_ui_entity_t *nodes[32];
-    lh_ui_rect_t before[32];
+    alignas(16) static lh_byte_t pool[64 * LH_UI_DECL_NODE_MAX];
+    lh_ui_entity_t *nodes[64];
+    lh_ui_rect_t before[64];
     lh_ui_entity_t *root;
     lh_ui_decl_fault_t fault;
     lh_ui_entity_transform_t transform;
     lh_u32_t i;
 
-    ASSERT_LE(count, 32u);
+    ASSERT_LE(count, 64u);
     ASSERT_EQ(lh_ui_decl_build(decls, count, nodes, pool, sizeof pool, &root, &fault), lh_bool_true);
     for (i = 0; i < count; ++i)
     {
@@ -174,8 +174,8 @@ TEST(ui_css2decl, every_way_a_flow_hands_out_room_is_worked_out_as_the_engine_do
 
 TEST(ui_css2decl, display_none_is_built_hidden)
 {
-    alignas(16) static lh_byte_t pool[32 * LH_UI_DECL_NODE_MAX];
-    lh_ui_entity_t *nodes[32];
+    alignas(16) static lh_byte_t pool[64 * LH_UI_DECL_NODE_MAX];
+    lh_ui_entity_t *nodes[64];
     lh_ui_entity_t *root;
     lh_ui_decl_fault_t fault;
 
@@ -307,10 +307,10 @@ namespace
 {
 struct app_screen
 {
-    lh_ui_entity_t *nodes[32];
+    lh_ui_entity_t *nodes[64];
     lh_ui_entity_t *root;
     lh_ui_decl_fault_t fault;
-    alignas(16) lh_byte_t pool[32 * LH_UI_DECL_NODE_MAX];
+    alignas(16) lh_byte_t pool[64 * LH_UI_DECL_NODE_MAX];
     lh_bool_t built;
 
     app_screen()

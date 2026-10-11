@@ -248,8 +248,10 @@ lh_add_test_core(lh_test_util
 set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/axis.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/blur.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/box.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/brush.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/canvas.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/transition.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/canvas/sw.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/color.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/decl.cpp
