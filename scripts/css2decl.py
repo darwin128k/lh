@@ -29,12 +29,15 @@ What it reads
 * layout: `display: flex | block | none`, `flex-direction`, `justify-content` (with
   `space-between / -around / -evenly`), `align-items`, `align-self`, `gap`, `flex`
   (weights, `flex-basis`), `width` / `height` in `px`, `rem`, `em` or `%`, `margin`
-  (with `auto` across the flow), `min-` / `max-` sizes, `padding`, `aspect-ratio`,
-  `position: absolute | fixed` with any two of `left` / `right` / `width` per axis;
+  (`auto` either way), `min-` / `max-` sizes, `padding`, `aspect-ratio`,
+  `position: absolute | fixed` with any two of `left` / `right` / `width` per axis,
+  `z-index`;
 * look: `background`, `color`, `border` (inside the box, as `box-sizing: border-box`),
   `border-radius`, `box-shadow`, `opacity`, `visibility`, `font` (a resource the
   application defines -- see the header), `text-align`, `vertical-align`,
-  `text-transform`; any colour CSS writes, `var()` with fallbacks, `inherit` / `initial`;
+  `text-transform`, `text-overflow: ellipsis`, `white-space` (`normal` wraps; a label is one line
+  unless it says so -- the one default that is not CSS's); any colour
+  CSS writes, `var()` with fallbacks, `inherit` / `initial`;
 * states: `:hover`, `:active`, `:checked`, `:checked:hover`, as rules or nested blocks.
 
 What lh has no widget for is built out of what it has (::compose): a button with `text`,
@@ -161,7 +164,7 @@ LOOK_PROPS = ("background", "color", "padding", "padx", "pady", "radius", "shado
               "padding-left", "border-width", "border-top-width", "border-right-width",
               "border-bottom-width", "border-left-width", "border-style", "border-color",
               "box-shadow", "opacity", "visibility", "font-family", "font-size",
-              "font-weight", "font-style")
+              "font-weight", "font-style", "text-overflow", "white-space")
 
 #: Narrower again for `:active`, because ::lh_ui_style_get_pressed reads only the paint
 #: of a pressed style: "padding, font and alignment are read from the entity's own
@@ -199,8 +202,6 @@ NOT_SUPPORTED = {
     "letter-spacing": "a font's advances are baked into it",
     "word-spacing": "same as `letter-spacing`",
     "line-height": "a label is one line, and its height is the font's",
-    "white-space": "a label is one line and does not wrap",
-    "text-overflow": "a label draws what fits and clips the rest; there is no ellipsis",
     "text-decoration": "a font draws its letters and nothing under them",
     "background-image": "a style's paint is solid; a picture is an `image` row",
     "pointer-events": "every row that can be clicked is clicked; say `display: none`",
@@ -224,7 +225,7 @@ BOUND_PROPS = ("min-width", "max-width", "min-height", "max-height")
 
 #: The properties CSS hands from a parent to its children when they say nothing.
 INHERITED = ("color", "text-align", "font-family", "font-size", "font-weight", "font-style",
-             "text-transform", "visibility", "accent-color")
+             "text-transform", "visibility", "accent-color", "white-space")
 DIRECTIONS = {"row": "lh_ui_axis_horizontal", "column": "lh_ui_axis_vertical"}
 AXES = {"horizontal": "lh_ui_axis_horizontal", "vertical": "lh_ui_axis_vertical"}
 JUSTIFY = {"start": "lh_ui_justify_start", "flex-start": "lh_ui_justify_start",
@@ -274,6 +275,15 @@ VALUE_TABLES = {
     "scrollbar-width": {"auto": "auto", "thin": "thin", "none": "none"},
     "border-style": {"solid": "solid", "none": "none", "hidden": "none"},
     "font-style": {"normal": "normal", "italic": "italic"},
+    "text-overflow": {"clip": "lh_ui_text_overflow_clip", "ellipsis": "lh_ui_text_overflow_ellipsis"},
+    # `nowrap` and `pre` are what a label does unless told otherwise: its lines end
+    # where the text breaks them and nowhere else. `normal` and `pre-wrap` also break
+    # before a word that would not fit the box (::lh_ui_style_set_wrap). This is the one
+    # default that is not CSS's: a label here was always one line, and a sheet written
+    # for that would see its captions fold onto a second line where they were clipped.
+    "white-space": {"nowrap": "lh_ui_text_wrap_none", "pre": "lh_ui_text_wrap_none",
+                    "pre-line": "lh_ui_text_wrap_none", "normal": "lh_ui_text_wrap_words",
+                    "pre-wrap": "lh_ui_text_wrap_words"},
 }
 NUMERIC_PROPS = ("width", "height", "flex", "row-gap", "column-gap", "padding", "padx",
                  "pady", "radius", "left", "top", "right", "bottom", "shadow", "padding-top",
@@ -300,7 +310,8 @@ CSS_ALIASES = ("background-color", "border-radius", "vertical-align", "align-sel
 
 KNOWN_PROPS = (set(VALUE_TABLES) | set(NUMERIC_PROPS) | set(COLOUR_PROPS) | set(CSS_ALIASES)
                | set(MARGIN_PROPS) | set(BOUND_PROPS)
-               | {"display", "scrolls", "text", "value", "maxlength", "max", "accent-color"})
+               | {"display", "scrolls", "text", "value", "maxlength", "max", "accent-color",
+                  "z-index"})
 
 COLOUR = re.compile(r"^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")
 NUMBER = re.compile(r"^-?\d+$")
@@ -911,9 +922,9 @@ def read_shadow(value, line, where):
 def read_text(value, line, where):
     """The caption a `text:` spells, as the string it means.
 
-    Quoted or bare; inside quotes `\\"` is a quote and `\\\\` is a backslash, and any
-    other backslash is refused. CSS gives `\\` a dozen meanings (hex code points among
-    them) and this reads two, so a `\\n` that meant a new line is told so rather than
+    Quoted or bare; inside quotes `\\"` is a quote, `\\\\` a backslash, and `\\` with one
+    to six hex digits is that code point, as in CSS -- so `\\A` is a line break. Any
+    other backslash is refused: a `\\n` that meant a new line is told so rather than
     drawn as an `n`.
     """
     value = value.strip()
@@ -925,6 +936,15 @@ def read_text(value, line, where):
         ch = value[i]
         if ch == "\\":
             nxt = value[i + 1] if i + 1 < len(value) - 1 else ""
+            hexa = re.match(r"[0-9A-Fa-f]{1,6}", value[i + 1:len(value) - 1])
+            if hexa:
+                # A code point, as CSS writes one: `\A` is a line break. One space
+                # after the digits ends them and is not part of the text.
+                out.append(chr(int(hexa.group(0), 16)))
+                i += 1 + len(hexa.group(0))
+                if i < len(value) - 1 and value[i] == " ":
+                    i += 1
+                continue
             if nxt not in ('"', "\\"):
                 raise Failure("%s at line %d has `\\%s`. Inside a caption `\\\"` is a "
                               "quote and `\\\\` a backslash, and nothing else is an escape"
@@ -1110,7 +1130,9 @@ def compose(node):
       beside it;
     - a flow with rows placed by hand is a frame holding the flow and, over it, those
       rows -- because a flow places every row it holds, and a row placed by hand has to
-      be somewhere a flow is not.
+      be somewhere a flow is not;
+    - an `auto` margin along a flow is a spacer that takes a share of what is left;
+    - `z-index` is the order rows placed by hand are drawn in.
 
     The row keeps its `#id`, so the application asks for the toggle, the bar or the box
     it wrote; the rows made around it are named after it, `#remember__text`.
@@ -1118,7 +1140,9 @@ def compose(node):
     for child in list(node.children):
         compose_one(child)
     if node.tag in HOLDERS:
+        auto_margins(node)
         lift_placed_rows(node)
+        stack(node)
 
 
 def compose_one(node):
@@ -1241,6 +1265,108 @@ def scroll_frame(node):
                             node.line, props)
         frame.children.append(scrollbar)
         scrollbar.parent = frame
+
+
+def flow_axis(node):
+    """`"vertical"` or `"horizontal"` for a row that holds a flow, else None."""
+    display = node.props.get("display", ("", 0))[0].strip()
+    if display == "block":
+        return "vertical"
+    if display == "flex":
+        direction = node.props.get("flex-direction", ("row", 0))[0].strip()
+        return "vertical" if direction == "column" else "horizontal"
+    return None
+
+
+def in_flow(node):
+    return (node.props.get("position", ("", 0))[0].strip() not in ("absolute", "fixed")
+            and node.props.get("display", ("", 0))[0].strip() != "none")
+
+
+def margin_texts(node):
+    """The four sides of @p node's margin as written: `{side: (text, line)}`."""
+    sides = dict((side, ("0", node.line)) for side in ("top", "right", "bottom", "left"))
+    if "margin" in node.props:
+        value, line = node.props["margin"]
+        for side, text in zip(("top", "right", "bottom", "left"),
+                              box_sides_text(value, line, "`margin` of %s" % describe(node))):
+            sides[side] = (text.strip(), line)
+    for side in ("top", "right", "bottom", "left"):
+        if "margin-" + side in node.props:
+            value, line = node.props["margin-" + side]
+            sides[side] = (value.strip(), line)
+    return sides
+
+
+def auto_margins(node):
+    """`margin-left: auto` in a row: a spacer that takes a share of what is left.
+
+    CSS gives the free room of a flow to its `auto` margins, equally, once the rows
+    that grow have had none of it to take -- which is exactly what a filling row with a
+    weight of one is. So each `auto` margin along the flow becomes an empty row that
+    fills, beside the row that said it. A spacer is one more row in the flow and so one
+    more gap; it is given a margin of minus one gap to take that gap back, and the
+    arithmetic is CSS's to the pixel. When a row of the flow grows (`flex`), the `auto`
+    margins get nothing, as in CSS, and are 0.
+    """
+    axis = flow_axis(node)
+    if axis is None:
+        return
+    vertical = axis == "vertical"
+    near, far = ("top", "bottom") if vertical else ("left", "right")
+    gap = node.props.get("row-gap" if vertical else "column-gap", ("0", node.line))[0].strip()
+    flowing = [child for child in node.children if in_flow(child)]
+    growing = False
+    for child in flowing:
+        if "flex" in child.props and NUMBER.match(child.props["flex"][0].strip()):
+            growing = growing or int(child.props["flex"][0]) > 0
+    rows = []
+    for child in node.children:
+        if child not in flowing:
+            rows.append(child)
+            continue
+        sides = margin_texts(child)
+        autos = [side for side in (near, far) if sides[side][0] == "auto"]
+        for side in autos:
+            child.props["margin-" + side] = ("0", sides[side][1])
+        if not autos or growing:
+            rows.append(child)
+            continue
+        for side in (near, far):
+            if side == far:
+                rows.append(child)
+            if side in autos:
+                spacer = new_row("entity", "%s__%s" % (named(child), side), sides[side][1],
+                                 {"flex": ("1", sides[side][1]),
+                                  "margin-" + near: (gap if gap.startswith("-") else "-" + gap,
+                                                     sides[side][1])}, "spacer")
+                spacer.parent = node
+                rows.append(spacer)
+    node.children = rows
+
+
+def stack(node):
+    """`z-index` on the rows placed by hand: the order they are drawn in.
+
+    Only those: a row in a flow is placed in its order, so its order is not the sheet's
+    to change, and in a flow nothing overlaps for a `z-index` to decide. A negative one
+    goes under the flow, as in CSS, and equals keep the order they were written in.
+    """
+    def depth(child):
+        if child.props.get("position", ("", 0))[0].strip() not in ("absolute", "fixed"):
+            return 0
+        if "z-index" not in child.props:
+            return 0
+        value, line = child.props["z-index"]
+        value = value.strip()
+        if value == "auto":
+            return 0
+        if not NUMBER.match(value):
+            raise Failure("`z-index: %s` at line %d in %s is not a whole number"
+                          % (value, line, describe(child)))
+        return int(value)
+
+    node.children = sorted(node.children, key=depth)
 
 
 def lift_placed_rows(node):
@@ -2858,6 +2984,13 @@ def emit(nodes, variables, root, source=""):
         if "valign" in props:
             body.append("lh_ui_style_set_align_v(lh_addr_of(ui_s_%s), %s);"
                         % (sname, lookup(VALIGN, node, "valign", props)))
+        if "text-overflow" in props:
+            body.append("lh_ui_style_set_overflow(lh_addr_of(ui_s_%s), %s);"
+                        % (sname, lookup(VALUE_TABLES["text-overflow"], node, "text-overflow", props)))
+        if "white-space" in props and node.tag in ("label", "input"):
+            wrap = lookup(VALUE_TABLES["white-space"], node, "white-space", props)
+            if wrap != "lh_ui_text_wrap_none":
+                body.append("lh_ui_style_set_wrap(lh_addr_of(ui_s_%s), %s);" % (sname, wrap))
         return body
 
     #: sname -> whether a row in that look has a style at all, for the rows to point at.

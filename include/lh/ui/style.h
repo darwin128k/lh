@@ -25,6 +25,7 @@
 #include <lh/ui/shadow.h>
 #include <lh/ui/style/fields.h>
 #include <lh/ui/text/align.h>
+#include <lh/ui/text/overflow.h>
 #include <lh/void.h>
 
 /**
@@ -187,6 +188,33 @@ lh_ui_style_get_align_v(const lh_ui_style_t *self);
  */
 lh_void
 lh_ui_style_set_align_v(lh_ui_style_t *self, lh_ui_text_align_v_t align);
+
+/**
+ * @brief What a line of text too wide for the padded box draws.
+ */
+lh_ui_text_overflow_t
+lh_ui_style_get_overflow(const lh_ui_style_t *self);
+
+/**
+ * @brief Draw a line that does not fit whole and clipped
+ *        (::lh_ui_text_overflow_clip, the default) or shortened with an ellipsis
+ *        (::lh_ui_text_overflow_ellipsis).
+ */
+lh_void
+lh_ui_style_set_overflow(lh_ui_style_t *self, lh_ui_text_overflow_t overflow);
+
+/**
+ * @brief Whether text is broken into lines as wide as the padded box.
+ */
+lh_ui_text_wrap_t
+lh_ui_style_get_wrap(const lh_ui_style_t *self);
+
+/**
+ * @brief Break text only where it has line breaks (::lh_ui_text_wrap_none, the
+ *        default) or also before a word that would not fit (::lh_ui_text_wrap_words).
+ */
+lh_void
+lh_ui_style_set_wrap(lh_ui_style_t *self, lh_ui_text_wrap_t wrap);
 
 /**
  * @brief Shadow cast under the fill of @p self. Never ::lh_null; the empty one
