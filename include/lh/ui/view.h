@@ -74,6 +74,15 @@ typedef struct lh_ui_view lh_ui_view_t;
 #define LH_UI_VIEW_THROW_KEEP 90
 
 /**
+ * @def LH_UI_VIEW_FRAME_MS
+ * @brief What one ::lh_ui_view_tick spends on the transitions in flight: one frame
+ *        at the 60 Hz the tick is meant to be called at. An application that knows
+ *        how long its frames really were calls ::lh_ui_view_advance with that
+ *        instead -- not on top of the tick.
+ */
+#define LH_UI_VIEW_FRAME_MS 16
+
+/**
  * @struct lh_ui_view_focus_walk
  * @typedef lh_ui_view_focus_walk_t
  * @brief State of ::lh_ui_view_visit_focus while looking for the next focus.
@@ -366,12 +375,60 @@ lh_bool_t
 lh_ui_view_is_gliding(const lh_ui_view_t *self);
 
 /**
- * @brief One glide step: slow the velocity down and scroll by it. Returns
- *        true when the scroll changed (damage recorded, repaint it); the glide
- *        ends, with scroll_end, when it stops moving or gets too slow.
+ * @brief One frame: the transitions in flight move on by ::LH_UI_VIEW_FRAME_MS,
+ *        and a glide takes a step -- slow the velocity down and scroll by it.
+ *        Returns true when anything changed (damage recorded, repaint it); the
+ *        glide ends, with scroll_end, when it stops moving or gets too slow.
  */
 lh_bool_t
 lh_ui_view_tick(lh_ui_view_t *self);
+
+/**
+ * @brief Move every transition in flight on by @p ms, recording the damage of each
+ *        look that changed; a transition whose time is up lands on its style and
+ *        frees its slot.
+ *
+ * @return ::lh_bool_true while anything changed, so a frame that only fades is
+ *         painted.
+ */
+lh_bool_t
+lh_ui_view_advance(lh_ui_view_t *self, lh_u16_t ms);
+
+/**
+ * @brief Send @p entity towards @p to over @p to's time (::lh_ui_style_get_transition),
+ *        from the look it has now -- a look in flight included.
+ *
+ * Called by ::lh_ui_entity_set_style, which is the way to ask for one.
+ *
+ * @return ::lh_bool_false when every slot is taken: the switch is then the caller's to
+ *         make at once.
+ */
+lh_bool_t
+lh_ui_view_start_transition(lh_ui_view_t *self, lh_ui_entity_t *entity, const lh_ui_style_t *to);
+
+/**
+ * @brief The style @p entity is heading for, or ::lh_null when it is not in flight.
+ */
+const lh_ui_style_t *
+lh_ui_view_get_transition_target(const lh_ui_view_t *self, const lh_ui_entity_t *entity);
+
+/**
+ * @brief Forget the flight of @p entity without touching its style: the caller is
+ *        about to give it another one.
+ */
+lh_void
+lh_ui_view_drop_transition(lh_ui_view_t *self, const lh_ui_entity_t *entity);
+
+/**
+ * @brief Land every transition of @p subtree -- the entity and everything under it --
+ *        on its style at once, and free the slots.
+ *
+ * ::lh_ui_entity_remove_child calls it for the subtree it takes out, so an entity that
+ * is taken out of the tree before the application frees it is never left behind in a
+ * slot. ::lh_null lands every transition of the view.
+ */
+lh_void
+lh_ui_view_finish_transitions(lh_ui_view_t *self, const lh_ui_entity_t *subtree);
 
 /**
  * @brief Clear grab, pressed, dragged, the pressed entity and the drag box.

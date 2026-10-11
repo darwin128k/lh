@@ -6,6 +6,7 @@
 #include <lh/assert/runtime.h>
 #include <lh/null.h>
 #include <lh/ui/canvas.h>
+#include <lh/ui/canvas/box.h>
 #include <lh/ui/entity.h>
 #include <lh/ui/entity/class.h>
 #include <lh/ui/shadow.h>
@@ -15,14 +16,19 @@
 lh_void
 lh_ui_entity_class_fill(const struct lh_ui_entity *self, lh_ui_canvas_t *canvas)
 {
-    const lh_ui_color_t *color = lh_ui_entity_get_fill_color(self);
+    const lh_ui_style_t *style = lh_ui_entity_get_style_now(self);
     lh_ui_rect_t rect;
-    lh_return_if(lh_null_eq(canvas) || lh_null_eq(color));
+
+    lh_return_if(lh_null_eq(canvas) || lh_null_eq(style));
+    lh_return_if(lh_ui_paint_is_empty(lh_ui_style_get_fill(style)));
     rect = lh_ui_entity_get_rect(self);
-    /* A fill color implies a style; its radius is clamped by the canvas. It is
-       the radius in force, which is also what a clipping parent cuts its
-       children with — one answer, so the fill and the clip cannot disagree. */
-    lh_ui_canvas_fill_round_rect(canvas, lh_addr_of(rect), lh_ui_entity_get_radius_now(self), color);
+    /* The style in force (a press may change it), its paint and its corners. One
+       radius and one colour are the backend's rounded fill, as they always were;
+       a corner of its own or a gradient is drawn by the canvas
+       (::lh_ui_canvas_fill_box). The clip a parent cuts its children with is the
+       smallest corner (::lh_ui_style_get_radius), so a child never shows past a
+       corner that is rounder than the clip. */
+    lh_ui_canvas_fill_box(canvas, lh_addr_of(rect), lh_ui_style_get_radii(style), lh_ui_style_get_fill(style));
 }
 
 lh_void

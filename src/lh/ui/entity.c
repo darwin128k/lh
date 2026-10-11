@@ -79,8 +79,34 @@ lh_ui_entity_get_style(const lh_ui_entity_t *self)
     return self->style;
 }
 
+static struct lh_ui_view *
+lh_ui_entity_own_view(const lh_ui_entity_t *self);
+
 lh_void
 lh_ui_entity_set_style(lh_ui_entity_t *self, const lh_ui_style_t *style)
+{
+    struct lh_ui_view *view;
+
+    lh_assert_runtime_ref(self);
+    view = lh_ui_entity_own_view(self);
+    if (lh_null_ne(view))
+    {
+        /* Already on its way there: a hover that is asked for on every move of the
+           pointer must not start the fade again on every move. */
+        lh_return_if(lh_null_ne(style) && lh_ui_view_get_transition_target(view, self) == style);
+        if (lh_null_ne(style) && lh_null_ne(self->style) && self->style != style &&
+            lh_ui_style_get_transition(style) > 0 && lh_ui_view_start_transition(view, self, style))
+        {
+            return;
+        }
+        /* At once: whatever was in flight is over, from the look it had. */
+        lh_ui_view_drop_transition(view, self);
+    }
+    lh_ui_entity_set_style_at_once(self, style);
+}
+
+lh_void
+lh_ui_entity_set_style_at_once(lh_ui_entity_t *self, const lh_ui_style_t *style)
 {
     lh_assert_runtime_ref(self);
     /* A shared style switched to itself is the steady state of a card that was
@@ -356,6 +382,12 @@ lh_ui_entity_remove_child(lh_ui_entity_t *self, lh_ui_entity_t *child)
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(child);
     lh_assert_runtime_ifn(child->parent == self, lh_runtime_error_code_invalid_argument);
+    /* Out of the tree, out of the view's slots: what leaves lands on its styles, so
+       an entity the application frees after taking it out is not left in flight. */
+    if (lh_null_ne(lh_ui_entity_own_view(self)))
+    {
+        lh_ui_view_finish_transitions(lh_ui_entity_own_view(self), child);
+    }
     lh_list_node_unlink(lh_addr_of(child->link));
     child->parent = lh_null;
 }

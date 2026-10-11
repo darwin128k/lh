@@ -98,10 +98,22 @@ lh_ui_entity_get_style(const lh_ui_entity_t *self);
 /**
  * @brief Point @p self at @p style. The style is not copied.
  *
- * ::lh_null clears the style.
+ * ::lh_null clears the style. A style that asks for time
+ * (::lh_ui_style_set_transition) is not taken at once when @p self is in a view's
+ * tree: the view sends it there from the look it has (::lh_ui_view_start_transition),
+ * and until it lands ::lh_ui_entity_get_style answers with the look on screen. Asking
+ * again for the style it is already heading to changes nothing.
  */
 lh_void
 lh_ui_entity_set_style(lh_ui_entity_t *self, const lh_ui_style_t *style);
+
+/**
+ * @brief Point @p self at @p style now, with no transition -- what
+ *        ::lh_ui_entity_set_style did before there were any, and what a view uses to
+ *        put a look in flight and to land it.
+ */
+lh_void
+lh_ui_entity_set_style_at_once(lh_ui_entity_t *self, const lh_ui_style_t *style);
 
 /**
  * @brief Solid fill color from the style of @p self, or ::lh_null when there

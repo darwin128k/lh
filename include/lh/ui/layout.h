@@ -19,6 +19,13 @@
  *    where they are, so nothing that follows moves because of something nobody
  *    can see.
  *
+ * A flow that **wraps** (::lh_ui_layout_set_wrap) breaks its children into lines
+ * first -- a line ends before the child that would run past the content box -- and
+ * then does the three steps above for each line on its own, in a band across the
+ * flow as deep as the deepest child in it. What is left across the bands is shared
+ * between them equally, which is CSS's `align-content: stretch`, so a line of
+ * children that stretch across fills its share.
+ *
  * The pass starts at the parent's content box (its rect inside the style padding,
  * ::lh_ui_insets_shrink), and rects it writes are absolute — the same space as
  * the parent's — so a pass has to run again whenever the parent moves or a child
@@ -71,7 +78,7 @@ typedef enum lh_ui_justify
  */
 struct lh_ui_layout
 {
-    lh_ui_layout_fields(lh_ui_axis_t, lh_ui_scalar_t, lh_ui_justify_t);
+    lh_ui_layout_fields(lh_ui_axis_t, lh_ui_scalar_t, lh_ui_justify_t, lh_bool_t);
 };
 typedef struct lh_ui_layout lh_ui_layout_t;
 
@@ -107,6 +114,26 @@ lh_ui_layout_get_justify(const lh_ui_layout_t *self);
  */
 lh_void
 lh_ui_layout_set_justify(lh_ui_layout_t *self, lh_ui_justify_t justify);
+
+/**
+ * @brief Break the children of the flow into lines that fit (@p wrap), @p line_gap
+ *        apart -- CSS's `flex-wrap: wrap` with its `row-gap` for a row -- or keep
+ *        them on one line (the default).
+ */
+lh_void
+lh_ui_layout_set_wrap(lh_ui_layout_t *self, lh_bool_t wrap, lh_ui_scalar_t line_gap);
+
+/**
+ * @brief True when the flow breaks its children into lines.
+ */
+lh_bool_t
+lh_ui_layout_get_wrap(const lh_ui_layout_t *self);
+
+/**
+ * @brief The room between two lines of a flow that wraps.
+ */
+lh_ui_scalar_t
+lh_ui_layout_get_line_gap(const lh_ui_layout_t *self);
 
 /**
  * @brief Place every shown child of @p parent by @p self, from the top-left of

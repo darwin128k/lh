@@ -241,7 +241,10 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/paint.c
             ${LH_LIB_SRC_PATH}/ui/gradient.c
             ${LH_LIB_SRC_PATH}/ui/style.c
+            ${LH_LIB_SRC_PATH}/ui/easing.c
+            ${LH_LIB_SRC_PATH}/ui/transition.c
             ${LH_LIB_SRC_PATH}/ui/radius.c
+            ${LH_LIB_SRC_PATH}/ui/radii.c
             ${LH_LIB_SRC_PATH}/ui/rects.c
             ${LH_LIB_SRC_PATH}/ui/shadow.c
             ${LH_LIB_SRC_PATH}/ui/blur.c
@@ -249,6 +252,7 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/canvas.c
             ${LH_LIB_SRC_PATH}/ui/canvas/state.c
             ${LH_LIB_SRC_PATH}/ui/canvas/round.c
+            ${LH_LIB_SRC_PATH}/ui/canvas/box.c
             ${LH_LIB_SRC_PATH}/ui/canvas/clip.c
             ${LH_LIB_SRC_PATH}/ui/pen.c
             ${LH_LIB_SRC_PATH}/ui/entity.c
