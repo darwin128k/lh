@@ -301,6 +301,44 @@ else ()
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_UI_SOURCES})
 endif ()
 
+# scripts/css2decl.py, run the two ways it can go wrong: its self-test asks whether it
+# still refuses what it should, and lh_test_css2decl asks whether what it writes is C
+# this library takes. The second is generated at build time and compiled as C, so a
+# generator that drifts from the API it emits calls into breaks the build, not an app.
+#
+# Both need Python, which a library build does not; without it they are not built and
+# the guard below is told so.
+set(LH_TEST_CSS2DECL_SOURCE ${LH_TEST_SRC_PATH}/lh/ui/css2decl.cpp)
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if (LH_LIBRARY_OPTION_UI AND Python3_Interpreter_FOUND)
+    set(LH_CSS2DECL_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/css2decl.py")
+    set(LH_CSS2DECL_GENERATED)
+    # Each sheet is generated under its own prefix and directory, and both are linked
+    # into one test: two screens in one program is the case the prefix exists for.
+    foreach (LH_CSS2DECL_PAIR IN ITEMS "css2decl:lh_test_css_" "css2decl_flow:lh_test_flow_"
+                                       "css2decl_app:lh_test_app_")
+        string(REPLACE ":" ";" LH_CSS2DECL_PAIR "${LH_CSS2DECL_PAIR}")
+        list(GET LH_CSS2DECL_PAIR 0 LH_CSS2DECL_NAME)
+        list(GET LH_CSS2DECL_PAIR 1 LH_CSS2DECL_PREFIX)
+        set(LH_CSS2DECL_SHEET "${LH_TEST_SRC_PATH}/lh/ui/${LH_CSS2DECL_NAME}.css")
+        set(LH_CSS2DECL_OUT "${CMAKE_CURRENT_BINARY_DIR}/${LH_CSS2DECL_NAME}_generated")
+        add_custom_command(
+                OUTPUT "${LH_CSS2DECL_OUT}/ui_generated.c" "${LH_CSS2DECL_OUT}/ui_generated.h"
+                COMMAND Python3::Interpreter "${LH_CSS2DECL_SCRIPT}" "${LH_CSS2DECL_SHEET}"
+                        "${LH_CSS2DECL_OUT}" --prefix ${LH_CSS2DECL_PREFIX}
+                DEPENDS "${LH_CSS2DECL_SCRIPT}" "${LH_CSS2DECL_SHEET}"
+                COMMENT "css2decl: ${LH_CSS2DECL_SHEET}"
+                VERBATIM)
+        list(APPEND LH_CSS2DECL_GENERATED "${LH_CSS2DECL_OUT}/ui_generated.c")
+    endforeach ()
+    lh_add_test_core(lh_test_css2decl ${LH_TEST_CSS2DECL_SOURCE} ${LH_CSS2DECL_GENERATED})
+    target_include_directories(lh_test_css2decl PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+    add_test(NAME lh_test_css2decl_selftest
+             COMMAND Python3::Interpreter "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/css2decl-selftest.py")
+else ()
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_CSS2DECL_SOURCE})
+endif ()
+
 # Every test file belongs to a core, or the build says so.
 #
 # The check runs over the same lists the targets above were built from, so a file

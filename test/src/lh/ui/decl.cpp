@@ -432,3 +432,49 @@ TEST(ui_decl, an_unknown_kind_is_refused_with_its_row)
     EXPECT_EQ(fault.code, lh_ui_decl_error_kind);
     EXPECT_EQ(fault.index, 0u);
 }
+TEST(ui_decl, a_hidden_row_is_built_hidden_and_the_rest_are_not)
+{
+    lh_ui_entity_t *nodes[2] = {};
+    lh_ui_entity_t *root = nullptr;
+    lh_ui_decl_fault_t fault;
+    lh_ui_decl_t rows[2] = {};
+
+    rows[0].kind = lh_ui_decl_kind_container;
+    rows[0].parent = LH_UI_DECL_ROOT;
+    rows[0].w = 100;
+    rows[0].h = 100;
+    rows[1].kind = lh_ui_decl_kind_entity;
+    rows[1].parent = 0;
+    rows[1].hidden = lh_bool_true;
+
+    ASSERT_TRUE(lh_ui_decl_build(rows, 2, nodes, g_storage, (lh_u32_t)sizeof(g_storage), &root, &fault) ==
+                lh_bool_true);
+    EXPECT_EQ(lh_ui_entity_is_hidden(nodes[0]), lh_bool_false);
+    EXPECT_EQ(lh_ui_entity_is_hidden(nodes[1]), lh_bool_true);
+}
+
+TEST(ui_decl, an_input_row_edits_the_buffer_it_names_and_starts_with_its_text)
+{
+    lh_ui_entity_t *nodes[2] = {};
+    lh_ui_entity_t *root = nullptr;
+    lh_ui_decl_fault_t fault;
+    lh_ui_decl_t rows[2] = {};
+    static lh_char_t buffer[9];
+
+    rows[0].kind = lh_ui_decl_kind_container;
+    rows[0].parent = LH_UI_DECL_ROOT;
+    rows[0].w = 100;
+    rows[0].h = 100;
+    rows[1].kind = lh_ui_decl_kind_input;
+    rows[1].parent = 0;
+    rows[1].w = 80;
+    rows[1].h = 20;
+    rows[1].as.input.buffer = buffer;
+    rows[1].as.input.capacity = 8;
+    rows[1].as.input.text = "hello";
+
+    ASSERT_TRUE(lh_ui_decl_build(rows, 2, nodes, g_storage, (lh_u32_t)sizeof(g_storage), &root, &fault) ==
+                lh_bool_true);
+    EXPECT_STREQ(buffer, "hello");
+    EXPECT_STREQ(lh_ui_input_get_text(lh_ptr_rcast(lh_ui_input_t, nodes[1])), "hello");
+}

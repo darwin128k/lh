@@ -40,6 +40,7 @@
 #include <lh/ui/container.h>
 #include <lh/ui/entity.h>
 #include <lh/ui/image.h>
+#include <lh/ui/input.h>
 #include <lh/ui/label.h>
 #include <lh/ui/layout.h>
 #include <lh/ui/layout/place.h>
@@ -68,7 +69,8 @@ typedef enum lh_ui_decl_kind
     lh_ui_decl_kind_button,     /**< ::lh_ui_button_t, its two looks and its click. */
     lh_ui_decl_kind_toggle,     /**< ::lh_ui_toggle_t, both pairs of looks and its state. */
     lh_ui_decl_kind_image,      /**< ::lh_ui_image_t, its mask and its tint. */
-    lh_ui_decl_kind_scrollbar   /**< ::lh_ui_scrollbar_t over the container of another row. */
+    lh_ui_decl_kind_scrollbar,  /**< ::lh_ui_scrollbar_t over the container of another row. */
+    lh_ui_decl_kind_input       /**< ::lh_ui_input_t over a buffer the app owns. */
 } lh_ui_decl_kind_t;
 
 /**
@@ -145,7 +147,25 @@ typedef struct lh_ui_decl
             lh_ui_axis_t axis;             /**< Axis it scrolls on. */
             lh_ui_scrollbar_mode_t mode;   /**< When it is shown (default auto). */
         } scrollbar;
+
+        /** lh_ui_decl_kind_input */
+        struct
+        {
+            lh_char_t *buffer;     /**< At least @p capacity + 1 bytes; outlives the input. */
+            lh_u16_t capacity;     /**< Bytes that may be typed, terminator aside. */
+            const lh_char_t *text; /**< What it starts with (copied in; may be ::lh_null). */
+        } input;
     } as;
+
+    /**
+     * @brief Built hidden: it takes no room in its parent's flow and is not drawn
+     *        until the app shows it (::lh_ui_entity_set_hidden). CSS's
+     *        `display: none`.
+     *
+     * Last, so that a table written before it was here -- every field in order, no
+     * names -- is still a table of rows that are shown.
+     */
+    lh_bool_t hidden;
 } lh_ui_decl_t;
 
 /**
@@ -208,7 +228,7 @@ lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nod
  *        app that wants a static pool of a known row count can size it without
  *        measuring anything. Dense packing usually needs less.
  */
-#define LH_UI_DECL_NODE_MAX (sizeof(lh_ui_toggle_t))
+#define LH_UI_DECL_NODE_MAX                                                                           (sizeof(lh_ui_toggle_t) > sizeof(lh_ui_input_t) ? sizeof(lh_ui_toggle_t) : sizeof(lh_ui_input_t))
 
 LH_COMPILER_EXTERN_C_END
 
