@@ -1,0 +1,97 @@
+/**
+ * @file x11.c
+ * @brief libX11, opened when the first window is.
+ */
+
+#include <lh/os/system/posix/x11.h>
+
+#include <lh/null.h>
+
+#include <dlfcn.h>
+
+static lh_os_system_posix_x11_t lh_os_system_posix_x11;
+
+/* 0 not tried yet, 1 loaded, -1 tried and there is none. Tried once: a machine
+   that has no libX11 will not grow one, and dlopen is not free. */
+static int lh_os_system_posix_x11_state;
+
+/* Each pointer is filled from the symbol of its own name. Assigned through a
+   `void **` because ISO C has no conversion from `void *` to a function pointer,
+   and dlsym returns the one to stand for the other. */
+#define LH_OS_SYSTEM_POSIX_X11_LOAD(name)                                                          \
+    do                                                                                             \
+    {                                                                                              \
+        void *symbol = dlsym(library, #name);                                                      \
+        if (lh_null_eq(symbol))                                                                    \
+        {                                                                                          \
+            return lh_null;                                                                        \
+        }                                                                                          \
+        *(void **)(&lh_os_system_posix_x11.name) = symbol;                                         \
+    } while (0)
+
+static const lh_os_system_posix_x11_t *
+lh_os_system_posix_x11_open(void)
+{
+    /* The versioned name is the one every distribution installs with the runtime;
+       the bare one exists only with the development package. */
+    void *library = dlopen("libX11.so.6", RTLD_NOW | RTLD_LOCAL);
+
+    if (lh_null_eq(library))
+    {
+        library = dlopen("libX11.so", RTLD_NOW | RTLD_LOCAL);
+    }
+    if (lh_null_eq(library))
+    {
+        return lh_null;
+    }
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XOpenDisplay);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XCloseDisplay);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XConnectionNumber);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XDefaultScreen);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XRootWindow);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XDefaultVisual);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XDefaultDepth);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XDisplayWidth);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XDisplayHeight);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XCreateWindow);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XDestroyWindow);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XMapWindow);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XStoreName);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XChangeProperty);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XGetWindowProperty);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XFree);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XInternAtom);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XSetWMProtocols);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XSetWMNormalHints);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XSetTransientForHint);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XCreateGC);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XFreeGC);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XInitImage);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XPutImage);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XPending);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XEventsQueued);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XNextEvent);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XPeekEvent);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XCheckTypedWindowEvent);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XSendEvent);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XFlush);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XSync);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XLookupString);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XTranslateCoordinates);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XGetGeometry);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XUngrabPointer);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XIconifyWindow);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XSetErrorHandler);
+    /* The library stays open: every pointer above points into it. */
+    return &lh_os_system_posix_x11;
+}
+
+const lh_os_system_posix_x11_t *
+lh_os_system_posix_x11_load(void)
+{
+    if (lh_os_system_posix_x11_state == 0)
+    {
+        lh_os_system_posix_x11_state = lh_null_ne(lh_os_system_posix_x11_open()) ? 1 : -1;
+    }
+    return lh_os_system_posix_x11_state > 0 ? &lh_os_system_posix_x11 : lh_null;
+}

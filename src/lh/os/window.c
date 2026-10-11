@@ -5,7 +5,6 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/cast/static.h>
-#include <lh/compiler/os.h>
 #include <lh/list.h>
 #include <lh/list/node.h>
 #include <lh/null.h>
@@ -16,9 +15,7 @@
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-#    include <lh/os/system/window.h>
-#endif
+#include <lh/os/system/window.h>
 #if LH_LIBRARY_OPTION_UI
 #    include <lh/os/tick.h>
 #    include <lh/ui/frame/stats.h>
@@ -94,7 +91,6 @@ lh_os_window_open(lh_os_app_t *app, lh_os_window_t *self, const lh_char_t *title
     lh_assert_runtime_if(lh_null_ne(self->handle), lh_runtime_error_code_invalid_argument);
     lh_assert_runtime_if(lh_list_node_is_linked(lh_addr_of(self->link)),
                          lh_runtime_error_code_invalid_argument);
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     self->handle = lh_os_system_window_open(title, width, height, self,
                                             LH_OS_SYSTEM_WINDOW_HANDLE_INVALID, self->frame, self->corner,
                                             self->placement);
@@ -114,11 +110,6 @@ lh_os_window_open(lh_os_app_t *app, lh_os_window_t *self, const lh_char_t *title
     /* First open becomes main (index 0); later opens append. */
     lh_list_push_back(lh_addr_of(app->windows), lh_addr_of(self->link));
     return lh_bool_true;
-#else
-    (void)width;
-    (void)height;
-    return lh_bool_false;
-#endif
 }
 
 lh_bool_t
@@ -132,7 +123,6 @@ lh_os_window_open_modal(lh_os_window_t *parent, lh_os_window_t *self, const lh_c
     lh_assert_runtime_if(lh_null_ne(self->handle), lh_runtime_error_code_invalid_argument);
     lh_assert_runtime_if(lh_list_node_is_linked(lh_addr_of(self->link)),
                          lh_runtime_error_code_invalid_argument);
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     lh_assert_runtime_ifn(lh_os_system_window_is_valid(parent->handle),
                           lh_runtime_error_code_invalid_argument);
     self->handle = lh_os_system_window_open(title, width, height, self, parent->handle, self->frame,
@@ -147,22 +137,13 @@ lh_os_window_open_modal(lh_os_window_t *parent, lh_os_window_t *self, const lh_c
     lh_list_push_back(lh_addr_of(parent->children), lh_addr_of(self->link));
     lh_os_system_window_set_enabled(parent->handle, lh_bool_false);
     return lh_bool_true;
-#else
-    (void)width;
-    (void)height;
-    return lh_bool_false;
-#endif
 }
 
 lh_bool_t
 lh_os_window_is_open(const lh_os_window_t *self)
 {
     lh_assert_runtime_ref(self);
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     return lh_os_system_window_is_valid(self->handle);
-#else
-    return lh_bool_false;
-#endif
 }
 
 lh_os_system_window_handle_t
@@ -346,31 +327,20 @@ lh_void
 lh_os_window_invalidate(lh_os_window_t *self)
 {
     lh_assert_runtime_ref(self);
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     if (lh_os_system_window_is_valid(self->handle))
     {
         lh_os_system_window_invalidate(self->handle);
     }
-#else
-    (void)self;
-#endif
 }
 
 lh_void
 lh_os_window_invalidate_rect(lh_os_window_t *self, int left, int top, int right, int bottom)
 {
     lh_assert_runtime_ref(self);
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     if (lh_os_system_window_is_valid(self->handle))
     {
         lh_os_system_window_invalidate_rect(self->handle, left, top, right, bottom);
     }
-#else
-    (void)left;
-    (void)top;
-    (void)right;
-    (void)bottom;
-#endif
 }
 
 lh_void
@@ -384,12 +354,10 @@ lh_os_window_close(lh_os_window_t *self)
        the timer it had before, ticking into an app that has already put the session
        away. The native side kills it on destroy; this makes the **period** zero too, so
        an open that follows is not a window that starts ticking by itself. */
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     if (lh_os_system_window_is_valid(self->handle))
     {
         lh_os_system_window_set_timer(self->handle, 0U);
     }
-#endif
     self->tick_ms = 0U;
     for (;;)
     {
@@ -400,13 +368,11 @@ lh_os_window_close(lh_os_window_t *self)
         }
         lh_os_window_close(child);
     }
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     if (lh_os_system_window_is_valid(self->handle))
     {
         self->closing = lh_bool_true;
         lh_os_system_window_close(self->handle);
     }
-#endif
     if (lh_null_ne(self->handle) || lh_list_node_is_linked(lh_addr_of(self->link)))
     {
         lh_os_window_on_native_destroy(self);
@@ -437,14 +403,10 @@ lh_os_window_set_corner_radius(lh_os_window_t *self, int radius)
 {
     lh_assert_runtime_ref(self);
     self->corner = radius > 0 ? radius : 0;
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     if (lh_os_system_window_is_valid(self->handle))
     {
         lh_os_system_window_set_corner_radius(self->handle, self->corner);
     }
-#else
-    (void)radius;
-#endif
 }
 
 lh_void
@@ -516,29 +478,20 @@ lh_void
 lh_os_window_minimize(lh_os_window_t *self)
 {
     lh_assert_runtime_ref(self);
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     if (lh_os_system_window_is_valid(self->handle))
     {
         lh_os_system_window_minimize(self->handle);
     }
-#else
-    (void)self;
-#endif
 }
 
 lh_void
 lh_os_window_set_maximized(lh_os_window_t *self, lh_bool_t maximized)
 {
     lh_assert_runtime_ref(self);
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     if (lh_os_system_window_is_valid(self->handle))
     {
         lh_os_system_window_set_maximized(self->handle, maximized);
     }
-#else
-    (void)self;
-    (void)maximized;
-#endif
 }
 
 lh_bool_t
@@ -554,13 +507,7 @@ lh_os_window_get_client_size(const lh_os_window_t *self, int *width, int *height
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(width);
     lh_assert_runtime_ref(height);
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     return lh_os_system_window_get_client_size(self->handle, width, height);
-#else
-    *width = 0;
-    *height = 0;
-    return lh_bool_false;
-#endif
 }
 
 lh_bool_t
@@ -569,13 +516,7 @@ lh_os_window_get_position(const lh_os_window_t *self, int *x, int *y)
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(x);
     lh_assert_runtime_ref(y);
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     return lh_os_system_window_get_position(self->handle, x, y);
-#else
-    *x = 0;
-    *y = 0;
-    return lh_bool_false;
-#endif
 }
 
 lh_void
@@ -605,14 +546,8 @@ lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc, int left, in
            on: what the window system collected from every invalidation, against the
            one rectangle it hands the paint. */
         lh_ui_rect_init(lh_addr_of(frame.drawn), left, top, right - left, bottom - top);
-#    if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
         frame.asked_known =
             lh_os_system_window_get_paint_region(paint_dc, lh_addr_of(frame.asked_px), lh_addr_of(frame.rects));
-#    else
-        frame.asked_known = lh_bool_false;
-        frame.asked_px = 0U;
-        frame.rects = 0U;
-#    endif
         started_us = lh_os_tick_us();
     }
 #endif
@@ -748,15 +683,10 @@ lh_os_window_on_native_destroy(lh_os_window_t *self)
     reason = self->closing ? lh_os_window_close_reason_api : lh_os_window_close_reason_os;
     self->closing = lh_bool_false;
     self->handle = LH_OS_SYSTEM_WINDOW_HANDLE_INVALID;
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     if (modal && lh_null_ne(parent) && lh_os_system_window_is_valid(parent->handle))
     {
         lh_os_system_window_set_enabled(parent->handle, lh_bool_true);
     }
-#else
-    (void)modal;
-    (void)parent;
-#endif
     on_close = self->on_close;
     on_close_context = self->on_close_context;
     if (lh_null_ne(lh_ptr_rcast(lh_void, on_close)))

@@ -2,8 +2,10 @@
  * @file window.h
  * @brief Platform window primitives behind ::lh_os_window_t.
  *
- * Win32 lives in `src/lh/os/system/win/window.c`. Other backends are added
- * the same way when needed.
+ * Win32 lives in `src/lh/os/system/win/window.c`, X11 in
+ * `src/lh/os/system/posix/window.c`. On X11 a paint's `paint_dc` is the
+ * backend's own paint context rather than a device context, and it is only ever
+ * handed back to `lh/os/system/surface.h`, which knows it.
  *
  * Requires ::LH_LIBRARY_OPTION_OS_WINDOW.
  */
