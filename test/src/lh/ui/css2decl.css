@@ -1,0 +1,59 @@
+/* The sheet test/src/lh/ui/css2decl.cpp builds. Generated into the build tree by
+   scripts/css2decl.py on every build, compiled as C and linked into the test, so a
+   generator that writes C the library no longer takes is a build that fails.
+
+   Sizes are written only where nothing else gives one: the window, a row placed by
+   hand, and a fixed length along a flow. Everything else is stretched across its
+   parent or takes a share of what is left -- and the test checks that the rects the
+   generator worked out are the ones the first layout keeps. */
+
+:root {
+    --ink: #D2D8E2;
+    --panel: #1B2027;
+    --accent-dim: #2E4A6B;
+    --shadow: #00000080;
+}
+
+box#root {
+    display: flex; flex-direction: column; gap: 4;
+    width: 400; height: 300;
+    background: var(--panel);
+
+    label#title {
+        height: 40;
+        color: var(--ink); text-align: center; valign: center; padx: 8; pady: 2;
+        text: "Say \"hi\" { to } é";
+    }
+
+    box#body {
+        display: flex; flex-direction: row; gap: 10;
+        height: 200; padding: 5;
+
+        /* Every state starts from the row's own look: the hover keeps the radius. */
+        button#ok {
+            width: 100; radius: 6; shadow: 18 4; background: var(--accent-dim);
+            :hover { background: var(--ink); }
+            :active { background: #101010; }
+        }
+        toggle#sw {
+            width: 60; background: var(--panel); checked: true;
+            :hover { background: #333333; }
+            :checked { background: var(--accent-dim); }
+            :checked:hover { background: var(--ink); }
+            :active { radius: 2; }
+        }
+        image#icon { width: 16; height: 20; align: center; color: var(--ink); }
+        label#rest { flex: 1; }
+    }
+
+    /* No `display`: a box that places nothing, so what is in it stays where `left`
+       and `top` put it. A flow would move a row placed by hand on its first layout. */
+    box#list {
+        flex: 1;
+
+        box#rows { display: flex; flex-direction: column; width: 380; height: 52;
+                   position: absolute; left: 0; top: 0; }
+        scrollbar#bar { width: 12; height: 52; axis: vertical; scrolls: #rows;
+                        position: absolute; left: 388; top: 0; }
+    }
+}

@@ -184,6 +184,139 @@ TEST(ui_layout, justify_puts_what_is_left_over)
     EXPECT_TRUE(rect_at(&f.kids[0], 302, 58, 30, 20));
 }
 
+/* A fill's length is its weight: one of 1 and one of 3 split what is left a
+   quarter and three quarters. A weight of 0 weighs 1, which is every fill that was
+   written before there were weights. */
+TEST(ui_layout, fills_share_what_is_left_by_weight)
+{
+    layout_fixture f;
+    lh_ui_layout_t layout;
+
+    place_child(&f.kids[0], lh_ui_place_size_fill, lh_ui_scalar(1), lh_ui_place_align_start);
+    place_child(&f.kids[1], lh_ui_place_size_fill, lh_ui_scalar(3), lh_ui_place_align_start);
+    place_child(&f.kids[2], lh_ui_place_size_fixed, lh_ui_scalar(24), lh_ui_place_align_start);
+    lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(0));
+    lh_ui_layout_apply(&layout, &f.parent);
+
+    /* 224 of content less 24 fixed: 200, as 50 and 150. */
+    EXPECT_TRUE(rect_at(&f.kids[0], 108, 58, 50, 20));
+    EXPECT_TRUE(rect_at(&f.kids[1], 158, 58, 150, 25));
+    EXPECT_TRUE(rect_at(&f.kids[2], 308, 58, 24, 30));
+
+    place_child(&f.kids[1], lh_ui_place_size_fill, lh_ui_scalar(0), lh_ui_place_align_start);
+    lh_ui_layout_apply(&layout, &f.parent);
+    EXPECT_TRUE(rect_at(&f.kids[0], 108, 58, 100, 20)) << "a weight of 0 did not weigh 1";
+    EXPECT_TRUE(rect_at(&f.kids[1], 208, 58, 100, 25));
+}
+
+/* The three ways CSS hands the leftover out between the children. 224 wide, 30 +
+   40 + 50 and two gaps of 4: 96 is left. */
+TEST(ui_layout, space_justify_puts_the_leftover_between_the_children)
+{
+    layout_fixture f;
+    lh_ui_layout_t layout;
+
+    place_child(&f.kids[0], lh_ui_place_size_fixed, lh_ui_scalar(30), lh_ui_place_align_start);
+    place_child(&f.kids[1], lh_ui_place_size_fixed, lh_ui_scalar(40), lh_ui_place_align_start);
+    place_child(&f.kids[2], lh_ui_place_size_fixed, lh_ui_scalar(50), lh_ui_place_align_start);
+    lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(4));
+
+    /* between: 48 in each of two spaces, none at the ends. */
+    lh_ui_layout_set_justify(&layout, lh_ui_justify_space_between);
+    lh_ui_layout_apply(&layout, &f.parent);
+    EXPECT_TRUE(rect_at(&f.kids[0], 108, 58, 30, 20));
+    EXPECT_TRUE(rect_at(&f.kids[1], 190, 58, 40, 25));
+    EXPECT_TRUE(rect_at(&f.kids[2], 282, 58, 50, 30)) << "the last child is not at the end";
+
+    /* around: 32 around each child, so 16 at either end. */
+    lh_ui_layout_set_justify(&layout, lh_ui_justify_space_around);
+    lh_ui_layout_apply(&layout, &f.parent);
+    EXPECT_TRUE(rect_at(&f.kids[0], 124, 58, 30, 20));
+    EXPECT_TRUE(rect_at(&f.kids[1], 190, 58, 40, 25));
+    EXPECT_TRUE(rect_at(&f.kids[2], 266, 58, 50, 30));
+
+    /* evenly: four spaces of 24, the ends included. */
+    lh_ui_layout_set_justify(&layout, lh_ui_justify_space_evenly);
+    lh_ui_layout_apply(&layout, &f.parent);
+    EXPECT_TRUE(rect_at(&f.kids[0], 132, 58, 30, 20));
+    EXPECT_TRUE(rect_at(&f.kids[1], 190, 58, 40, 25));
+    EXPECT_TRUE(rect_at(&f.kids[2], 258, 58, 50, 30));
+}
+
+TEST(ui_layout, space_between_puts_a_single_child_at_the_start)
+{
+    layout_fixture f;
+    lh_ui_layout_t layout;
+
+    place_child(&f.kids[0], lh_ui_place_size_fixed, lh_ui_scalar(30), lh_ui_place_align_start);
+    lh_ui_entity_set_hidden(&f.kids[1], lh_bool_true);
+    lh_ui_entity_set_hidden(&f.kids[2], lh_bool_true);
+    lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(0));
+    lh_ui_layout_set_justify(&layout, lh_ui_justify_space_between);
+    lh_ui_layout_apply(&layout, &f.parent);
+    EXPECT_TRUE(rect_at(&f.kids[0], 108, 58, 30, 20));
+}
+
+/* A margin is room the child takes along the flow and room it keeps clear across
+   it: the child after it moves by both sides of it, and a child that fills across
+   is that much narrower. */
+TEST(ui_layout, a_margin_is_kept_clear_around_the_child)
+{
+    layout_fixture f;
+    lh_ui_layout_t layout;
+    lh_ui_place_t place;
+    lh_ui_insets_t margin;
+
+    lh_ui_place_init(&place, lh_ui_place_size_fixed, lh_ui_scalar(20));
+    lh_ui_place_set_align(&place, lh_ui_place_align_fill);
+    lh_ui_insets_init(&margin, lh_ui_scalar(5), lh_ui_scalar(3), lh_ui_scalar(7), lh_ui_scalar(2));
+    lh_ui_place_set_margin(&place, &margin);
+    lh_ui_entity_set_place(&f.kids[0], &place);
+    place_child(&f.kids[1], lh_ui_place_size_fixed, lh_ui_scalar(25), lh_ui_place_align_start);
+    lh_ui_entity_set_hidden(&f.kids[2], lh_bool_true);
+    lh_ui_layout_init(&layout, lh_ui_axis_vertical, lh_ui_scalar(4));
+    lh_ui_layout_apply(&layout, &f.parent);
+
+    EXPECT_TRUE(rect_at(&f.kids[0], 113, 61, 212, 20)) << "the margin was not kept clear";
+    /* 61 + 20 + 2 below it + a gap of 4. */
+    EXPECT_TRUE(rect_at(&f.kids[1], 108, 87, 40, 25));
+}
+
+/* A maximum holds a fill and a stretch, and a minimum holds a fixed length. */
+TEST(ui_layout, min_and_max_hold_the_length_a_child_is_given)
+{
+    layout_fixture f;
+    lh_ui_layout_t layout;
+    lh_ui_place_t place;
+
+    lh_ui_place_init(&place, lh_ui_place_size_fill, lh_ui_scalar(0));
+    lh_ui_place_set_align(&place, lh_ui_place_align_fill);
+    lh_ui_place_set_max(&place, lh_ui_scalar(100), lh_ui_scalar(50));
+    lh_ui_entity_set_place(&f.kids[0], &place);
+    lh_ui_place_init(&place, lh_ui_place_size_fixed, lh_ui_scalar(25));
+    lh_ui_place_set_min(&place, lh_ui_scalar(0), lh_ui_scalar(40));
+    lh_ui_entity_set_place(&f.kids[1], &place);
+    lh_ui_entity_set_hidden(&f.kids[2], lh_bool_true);
+    lh_ui_layout_init(&layout, lh_ui_axis_vertical, lh_ui_scalar(4));
+    lh_ui_layout_apply(&layout, &f.parent);
+
+    EXPECT_TRUE(rect_at(&f.kids[0], 108, 58, 100, 50)) << "the maximum did not hold";
+    EXPECT_TRUE(rect_at(&f.kids[1], 108, 112, 40, 40)) << "the minimum did not hold";
+}
+
+TEST(ui_place, a_place_starts_with_no_margin_and_no_bounds)
+{
+    lh_ui_place_t place;
+
+    lh_ui_place_init(&place, lh_ui_place_size_fixed, lh_ui_scalar(10));
+    EXPECT_EQ(lh_ui_insets_is_zero(lh_ui_place_get_margin(&place)), lh_bool_true);
+    EXPECT_EQ(lh_ui_place_clamp(&place, lh_ui_axis_horizontal, lh_ui_scalar(500)), lh_ui_scalar(500));
+    lh_ui_place_set_min(&place, lh_ui_scalar(30), lh_ui_scalar(0));
+    lh_ui_place_set_max(&place, lh_ui_scalar(20), lh_ui_scalar(0));
+    /* A minimum above a maximum is the minimum, as CSS has it. */
+    EXPECT_EQ(lh_ui_place_clamp(&place, lh_ui_axis_horizontal, lh_ui_scalar(25)), lh_ui_scalar(30));
+}
+
 /* A button is a background, a picture and a caption; what the flow has to do is
    get out of the way when the caption is not there. */
 struct button_fixture
@@ -526,4 +659,45 @@ TEST(ui_layout, a_vertical_flow_has_no_line_to_line_up_on)
     /* The caption goes under it, in its own 2-row box. */
     caption_rect = lh_ui_entity_get_rect(lh_ui_label_as_entity(&f.caption));
     EXPECT_EQ((int)lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(caption_rect))), 3);
+}
+/* A row sized by what it holds, holding a caption stretched across it and centred in
+   it: the row's height is the caption's ink, and where the ink is depends on the
+   row's height. Placing the caption moved it, moving it asked every container above
+   it where it is -- the row included -- and the row ran its flow again from inside
+   itself, until the stack ran out. A flow runs once now, and this returns. */
+TEST(ui_layout, a_flow_does_not_run_again_from_inside_itself)
+{
+    lh_ui_container_t column;
+    lh_ui_container_t row;
+    lh_ui_label_t caption;
+    lh_ui_layout_t down;
+    lh_ui_layout_t across;
+    lh_ui_style_t text_style;
+    lh_ui_entity_transform_t transform;
+
+    lh_ui_style_init(&text_style);
+    lh_ui_style_set_font(&text_style, tiny_font());
+    lh_ui_style_set_align_v(&text_style, lh_ui_text_align_v_center);
+    lh_ui_container_init(&column, rect_of(0, 0, 200, 100));
+    lh_ui_container_init(&row, rect_of(0, 0, 0, 0));
+    lh_ui_label_init(&caption, rect_of(0, 0, 0, 0), "Ag");
+    lh_ui_entity_set_style(lh_ui_label_as_entity(&caption), &text_style);
+    lh_ui_entity_add_child(lh_ui_container_as_entity(&column), lh_ui_container_as_entity(&row));
+    lh_ui_entity_add_child(lh_ui_container_as_entity(&row), lh_ui_label_as_entity(&caption));
+    place_child(lh_ui_container_as_entity(&row), lh_ui_place_size_wrap, lh_ui_scalar(0), lh_ui_place_align_fill);
+    place_child(lh_ui_label_as_entity(&caption), lh_ui_place_size_wrap, lh_ui_scalar(0), lh_ui_place_align_fill);
+    lh_ui_layout_init(&down, lh_ui_axis_vertical, lh_ui_scalar(0));
+    lh_ui_layout_init(&across, lh_ui_axis_horizontal, lh_ui_scalar(0));
+    lh_ui_container_set_layout(&column, &down);
+    lh_ui_container_set_layout(&row, &across);
+
+    for (int frame = 0; frame < 3; ++frame)
+    {
+        lh_ui_entity_transform_init(&transform);
+        lh_ui_container_place_children(&column, &transform);
+        lh_ui_entity_transform_init(&transform);
+        lh_ui_container_place_children(&row, &transform);
+    }
+    EXPECT_EQ(column.placing, lh_bool_false);
+    EXPECT_EQ(row.placing, lh_bool_false);
 }

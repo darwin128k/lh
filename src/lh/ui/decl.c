@@ -39,6 +39,8 @@ lh_ui_decl_size_of(lh_ui_decl_kind_t kind)
         return (lh_u32_t)sizeof(lh_ui_image_t);
     case lh_ui_decl_kind_scrollbar:
         return (lh_u32_t)sizeof(lh_ui_scrollbar_t);
+    case lh_ui_decl_kind_input:
+        return (lh_u32_t)sizeof(lh_ui_input_t);
     default:
         return 0;
     }
@@ -151,6 +153,19 @@ lh_ui_decl_place_row(const lh_ui_decl_t *row, lh_byte_t *slot, lh_ui_entity_t **
         }
         return lh_ui_scrollbar_as_entity(bar);
     }
+    case lh_ui_decl_kind_input:
+    {
+        lh_ui_input_t *input = lh_ptr_rcast(lh_ui_input_t, slot);
+
+        lh_ui_input_init(input, rect, row->as.input.buffer, row->as.input.capacity);
+        /* Init empties the buffer -- it is the field's from then on -- so what the
+           row starts with is put in after, through the field's own door. */
+        if (lh_null_ne(row->as.input.text))
+        {
+            lh_ui_input_set_text(input, row->as.input.text);
+        }
+        return lh_ui_input_as_entity(input);
+    }
     default:
         return lh_null;
     }
@@ -248,6 +263,10 @@ lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nod
                 {
                     lh_ui_container_set_layout(box, row->layout);
                 }
+            }
+            if (row->hidden)
+            {
+                lh_ui_entity_set_hidden(entity, lh_bool_true);
             }
             nodes[index] = entity;
             used += lh_ui_decl_size_of(row->kind);

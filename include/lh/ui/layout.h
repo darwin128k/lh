@@ -11,7 +11,9 @@
  *    flow (::lh_ui_place_t): its own length, its share of what is left, or its
  *    content, which is empty for a child with none.
  * 2. **distribute** — what is left after the gaps goes to the children that asked
- *    to fill; what is still left goes where ::lh_ui_justify_t says.
+ *    to fill, by weight; what is still left goes where ::lh_ui_justify_t says.
+ *    A child's margin is room it takes on both sides of its own length, and its
+ *    minimum and maximum hold whatever length it was given.
  * 3. **place** — each child is given an absolute rect at its own place across
  *    the flow (::lh_ui_place_align_t). Hidden children take no room and are left
  *    where they are, so nothing that follows moves because of something nobody
@@ -44,12 +46,22 @@
  * Only asked when no child took it: a child that fills (::lh_ui_place_size_fill)
  * gets what is left, and this is what centres or ends the row when none does —
  * a button with a picture and no text, for instance.
+ *
+ * The `space_*` three hand it out **between** the children instead, the way CSS's
+ * `justify-content` does: `between` puts it all between them and none at the ends
+ * (one child is at the start), `around` gives each child the same room on both of
+ * its sides, so the ends have half of what is between, and `evenly` makes every
+ * space the same, the ends included. The gap is still kept between children, and
+ * the leftover comes on top of it.
  */
 typedef enum lh_ui_justify
 {
     lh_ui_justify_start = 0,
     lh_ui_justify_center,
-    lh_ui_justify_end
+    lh_ui_justify_end,
+    lh_ui_justify_space_between,
+    lh_ui_justify_space_around,
+    lh_ui_justify_space_evenly
 } lh_ui_justify_t;
 
 /**

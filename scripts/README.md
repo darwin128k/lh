@@ -97,32 +97,80 @@ wrong font rather than an error.
 `include/lh/ui/decl.h` says there is no parser and no markup language, and that a
 declaration is a `const` array the compiler puts in flash. `css2decl.py` is what writes
 that array: it reads a stylesheet and emits `ui_generated.c` and `ui_generated.h` --
-`lh_ui_decl_t` rows, `lh_ui_style_t`, `lh_ui_insets_t`, `lh_ui_color_t` and an
-`lh_cfg_ui_find` by name.
+`lh_ui_decl_t` rows, the styles, places and flows they point at, the theme colours by
+name, and accessors by `#id`.
 
-It lives **here** rather than in an application because everything it emits is `lh_ui_*`,
-and because the dialect it accepts is *this library's*, not a browser's: `box#id`,
-`button#id`, `label#id`, absolute `left`/`top`, `padx`, `valign`, `text-align`,
-`radius`, `background`, `color`. It is not a CSS parser and will not read a stylesheet
-written for one.
+It reads CSS the way the web writes it -- as much of it as `lh` can draw -- and refuses
+the rest with the line and the reason. One top-level rule with a tag and an `#id` is the
+screen, and nesting is its tree; every other top-level rule styles it, with the cascade
+worked out at generation time:
+
+```css
+:root { --accent: #2e6be6; --ink: #d2d8e2; }
+
+.btn        { height: 28px; padding: 0 12px; border-radius: 6px; background: var(--accent); color: white; }
+.btn:hover  { background: #4a82ef; }
+.btn:active { background: #2457bd; }
+
+div#app { width: 480px; height: 320px; padding: 12px; gap: 10px; color: var(--ink);
+    header#top { display: flex; align-items: center; height: 32px; gap: 8px;
+        h1#title       { flex: 1; text: "Devices"; }
+        button#add.btn { width: 90px; text: "Add device"; }
+    }
+    div#list { flex: 1; border: 1px solid #2a313b; border-radius: 8px; overflow-y: auto;
+        checkbox#c1 { text: "Sensor A"; checked: true; }
+    }
+    footer#bottom { display: flex; height: 28px; gap: 8px;
+        input#name    { flex: 1; value: "New device"; maxlength: 32; }
+        button#ok.btn { width: 80px; text: "OK"; }
+    }
+}
+```
+
+What it reads, in short (the module docstring has the whole list):
+
+| | |
+|---|---|
+| selectors | tags (`box` or `div`, `label` or `p` / `h1` / `span`, `img`, `checkbox`, `input`, ...), `#id`, `.class`, ` ` and `>`, lists, `:hover` `:active` `:checked` |
+| values | `px` `rem` `em` `%`, every CSS colour form, `var()` with fallbacks, `!important`, `inherit` / `initial` |
+| layout | `display: flex / block / none`, `justify-content` incl. `space-*`, `align-items` / `-self`, `gap`, `flex` with weights and `flex-basis`, `margin` (incl. `auto` across), `min-` / `max-` sizes, `padding`, `aspect-ratio`, `position: absolute / fixed` with `left` / `right` / `top` / `bottom` / `inset` |
+| look | `background`, `color`, `border`, `border-radius`, `box-shadow`, `opacity`, `visibility`, `font`, `text-align`, `vertical-align`, `text-transform` |
+
+What `lh` has no widget for is built out of what it has: a `button` with `text`, a
+`checkbox` / `radio` / `switch` with a caption, a `progress` bar, `overflow: auto` (a
+frame and a scroll bar), and rows placed by hand over a flow. The generated rows are
+named after the one the sheet wrote: `#c1__text`, `#list__vbar`.
+
+What a stylesheet does not carry is what the application loads or writes in C: an
+image's mask, click callbacks (set through the generated `<prefix>button` /
+`<prefix>toggle` accessors), and fonts -- `font: bold 14px Inter` names
+`<prefix>font_inter_14_bold`, which the header declares and the application defines, so
+a font nobody baked is a link error and not a caption in some other face.
 
 ```sh
 python3 scripts/css2decl.py ui/window.css src/ui --prefix cfg_ui_
+python3 scripts/css2decl.py ui/window.css src/ui --preview shot.png --build build --watch
 ```
 
 | Flag | Meaning |
 |------|---------|
 | `--prefix` | the C name every generated symbol hangs off: `cfg_ui_decls`, `cfg_ui_colour_ink`, `cfg_ui_init`, `cfg_ui_find`, `cfg_ui_label` |
+| `--preview` | also paint the screen into this PNG, with lh's own software canvas |
+| `--build` | the lh build directory the preview links against (`liblh.a`, `include/lh/config.h`) |
+| `--cc` | the compiler for the preview (default `$CC`, else `cc`) |
+| `--watch` | paint the preview again every time the sheet is saved |
 
 `--prefix` is an option and not a constant **because this script is not one
 application's**. It must end in `_` -- every generated name is the prefix followed by a
 name that does not start with one, so `cfg_ui_` gives `cfg_ui_decls` and a prefix without
 the underscore would give `cfg_uidecls`.
 
-`css2decl-selftest.py` runs the checks: that every property the grammar names is one it
-emits, that a bad sheet fails with the line that is wrong rather than a traceback, and
-that the emitted table satisfies the rules `decl.h` states -- a parent is a lower index,
-exactly one root.
+Two checks keep it honest. `css2decl-selftest.py` runs a hundred-odd sheets that must be
+refused (with the word that says why), accepted, or written a particular way. And the
+CTest target `lh_test_css2decl` generates three sheets under `test/src/lh/ui/` at build
+time, compiles them as C, builds the trees and checks them -- including that the first
+`lh_ui_layout_apply` moves **no** row, because the generator works layouts out with the
+engine's own arithmetic.
 
 ## Icons: `gen-icons.py`
 
