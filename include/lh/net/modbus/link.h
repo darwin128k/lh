@@ -77,10 +77,18 @@ lh_mb_encode(lh_mb_framing_t framing, lh_u8_t unit, lh_u16_t tx, const lh_byte_t
  * the function code and for MBAP means reading the length out of the header. Not
  * knowing this is what makes a parser guess, and a parser that guesses reads the
  * next device's frame as its own.
+ *
+ * It does **not** ask whose frame it is. Over TCP a frame for another unit, or an
+ * answer to a question that has already timed out, is still a frame of a known
+ * length, and knowing that length is the only way to step over it to the one
+ * behind it. Whose it is is ::lh_mb_decode's question.
+ *
+ * @return For MBAP, 0 also when the header is not a Modbus header at all — a
+ *         protocol id other than 0, or a length no frame can have. With seven bytes
+ *         in hand that is not "not yet": it is a stream that has lost its place.
  */
 lh_u16_t
-lh_mb_frame_length(lh_mb_framing_t framing, const lh_byte_t *frame, lh_u16_t have, lh_u8_t unit,
-                   lh_u8_t fc);
+lh_mb_frame_length(lh_mb_framing_t framing, const lh_byte_t *frame, lh_u16_t have, lh_u8_t fc);
 
 /**
  * @brief The PDU inside @p frame, once the framing is off and the CRC, if the
@@ -90,8 +98,10 @@ lh_mb_frame_length(lh_mb_framing_t framing, const lh_byte_t *frame, lh_u16_t hav
  *                   only bytes in front of it are dropped.
  * @param pdu_length How many bytes the PDU is.
  *
- * @return Whether the frame is one of ours. A frame that is not is not an error
- *         to report upward: a line carries every device's traffic.
+ * @return Whether the frame is one of ours: @p unit's, and for MBAP with protocol
+ *         id 0. A frame that is not is not an error to report upward: a line
+ *         carries every device's traffic. The transaction id is not looked at here
+ *         — only the link knows which question is in flight.
  */
 lh_bool_t
 lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, const lh_byte_t *frame, lh_u16_t length,
@@ -209,8 +219,24 @@ typedef struct lh_mb_link
     lh_u16_t address;   /**< what the question in flight asked for */
     lh_u16_t expected;  /**< how many words it asked for */
     lh_u16_t got;       /**< how many the answer carried */
-    lh_u16_t held;      /**< bytes of a frame that has not all arrived */
+    /** @brief Bytes received and not yet consumed.
+     *
+     *  Over MBAP this is a window on a byte stream, and it outlives a question: what
+     *  comes after an answer, and what is left of an answer to a question that timed
+     *  out, are the start of the next frame, and dropping them puts every later
+     *  frame off by that many bytes. Only a new connection (::lh_mb_link_open) or a
+     *  stream that has lost its place empties it. Over RTU there is no length to
+     *  find the next frame by, and it is emptied whenever a question ends. */
+    lh_u16_t held;
     lh_u16_t tx;        /**< next transaction id, for MBAP */
+    /** @brief The transaction id of the question in flight, for MBAP.
+     *
+     *  The only thing that tells an answer to *this* question from a late answer
+     *  to the last one. Without it, a device that answers just after the timeout
+     *  has its answer read as the answer to the next question — and when the next
+     *  question asks the same registers, which a poll loop does every pass, the
+     *  stale values are accepted with nothing anywhere to say so. */
+    lh_u16_t asked_tx;
     /** @brief When the question went out, on the link's own clock.
      *
      * 64 bits for the same reason the clock is 64: it is **microseconds since

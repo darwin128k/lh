@@ -26,6 +26,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/net/socket/addr/ip4.h>
+#include <lh/numeric/fixed/types.h>
 #include <lh/numeric/types.h>
 #include <lh/os/result.h>
 #include <lh/os/system/net/socket/handle.h>
@@ -63,6 +64,43 @@ lh_os_system_net_socket_close(lh_os_system_net_socket_handle_t handle);
  */
 lh_bool_t
 lh_os_system_net_socket_connect(lh_os_system_net_socket_handle_t handle, const lh_net_ip4_socket_addr_t *addr);
+
+/**
+ * @brief Put @p handle into blocking or non-blocking mode.
+ *
+ * A non-blocking handle never waits: ::lh_os_system_net_socket_send and
+ * ::lh_os_system_net_socket_recv answer ::LH_OS_RESULT_PENDING instead, and a
+ * connect is started with ::lh_os_system_net_socket_connect_start.
+ *
+ * @return ::lh_bool_true on success, ::lh_bool_false if the native call failed.
+ */
+lh_bool_t
+lh_os_system_net_socket_set_blocking(lh_os_system_net_socket_handle_t handle, lh_bool_t blocking);
+
+/**
+ * @brief Start connecting a non-blocking @p handle to @p addr.
+ *
+ * @return `0` if it connected at once (loopback can), ::LH_OS_RESULT_PENDING if
+ *         the connect is under way (finish it with
+ *         ::lh_os_system_net_socket_connect_wait), ::LH_OS_RESULT_INVALID if it
+ *         failed.
+ */
+lh_ssize_t
+lh_os_system_net_socket_connect_start(lh_os_system_net_socket_handle_t handle,
+                                      const lh_net_ip4_socket_addr_t *addr);
+
+/**
+ * @brief Wait at most @p timeout_ms for a connect started by
+ *        ::lh_os_system_net_socket_connect_start to finish.
+ *
+ * @param timeout_ms `0` only looks.
+ *
+ * @return `0` once connected, ::LH_OS_RESULT_PENDING if it is still under way
+ *         when the time is up, ::LH_OS_RESULT_INVALID if it failed — refused,
+ *         unreachable — with the reason in ::lh_os_system_last_error.
+ */
+lh_ssize_t
+lh_os_system_net_socket_connect_wait(lh_os_system_net_socket_handle_t handle, lh_u32_t timeout_ms);
 
 /**
  * @brief Bind @p handle to the local @p addr.
@@ -108,9 +146,11 @@ lh_os_system_net_socket_set_reuse_addr(lh_os_system_net_socket_handle_t handle, 
  * @brief Send up to @p size bytes from @p buf on a connected @p handle.
  *
  * One native call; may send fewer bytes than asked (also when @p size
- * exceeds what the native call accepts at once).
+ * exceeds what the native call accepts at once). Never raises SIGPIPE: a peer
+ * that has gone is a failed send, not a dead process.
  *
- * @return Bytes actually sent, or ::LH_OS_RESULT_INVALID on failure.
+ * @return Bytes actually sent, ::LH_OS_RESULT_PENDING when a non-blocking
+ *         handle's buffer is full, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
 lh_os_system_net_socket_send(lh_os_system_net_socket_handle_t handle, const lh_ptr buf, lh_usize_t size);
@@ -121,7 +161,8 @@ lh_os_system_net_socket_send(lh_os_system_net_socket_handle_t handle, const lh_p
  * One native call; may receive fewer bytes than asked.
  *
  * @return Bytes actually received (`0` if the peer closed the connection),
- *         or ::LH_OS_RESULT_INVALID on failure.
+ *         ::LH_OS_RESULT_PENDING when a non-blocking handle has nothing yet, or
+ *         ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
 lh_os_system_net_socket_recv(lh_os_system_net_socket_handle_t handle, lh_ptr buf, lh_usize_t size);

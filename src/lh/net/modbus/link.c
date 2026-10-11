@@ -94,8 +94,7 @@ rtu_length(const lh_byte_t *frame, lh_u16_t have, lh_u8_t fc)
 }
 
 lh_u16_t
-lh_mb_frame_length(lh_mb_framing_t framing, const lh_byte_t *frame, lh_u16_t have, lh_u8_t unit,
-                   lh_u8_t fc)
+lh_mb_frame_length(lh_mb_framing_t framing, const lh_byte_t *frame, lh_u16_t have, lh_u8_t fc)
 {
     lh_return_if(lh_null_eq(frame), (lh_u16_t)0);
 
@@ -123,15 +122,23 @@ lh_mb_frame_length(lh_mb_framing_t framing, const lh_byte_t *frame, lh_u16_t hav
                00 01 | 00 00 | 00 09 | 01 | 03 06 | 00 01 00 01 00 01
 
            -- 15 bytes, length field 9 -- and that is what this returns. */
+        if (frame[2] != 0 || frame[3] != 0)
+        {
+            return 0; /* protocol id 0 is Modbus; anything else is not a frame we can size */
+        }
         length = (lh_u16_t)(((lh_u16_t)frame[4] << 8) | frame[5]);
-        if (length < 2)
+        if (length < 2 || length > (lh_u16_t)(LH_MB_ADU_MAX - LH_MB_MBAP_HEAD + 1))
         {
-            return 0; /* unit and a function code at least */
+            /* Unit and a function code at least, and no more than the buffer holds.
+               A length past that is not a big frame, it is a header that is not one:
+               waiting for it would wait for bytes that can never fit. */
+            return 0;
         }
-        if (frame[6] != unit)
-        {
-            return 0; /* somebody else's; the link will skip it when it can */
-        }
+        /* Whose frame it is does not matter here. Another unit's answer, or a late
+           answer to a question that has timed out, is still exactly this long, and
+           knowing that is what lets the link step over it to the frame behind it.
+           Calling it "not complete" instead left the link waiting out its timeout
+           on bytes that had all arrived. */
         return (lh_u16_t)(LH_MB_MBAP_HEAD + length - 1);
     }
     return rtu_length(frame, have, fc);
@@ -146,7 +153,7 @@ lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, const lh_byte_t *frame, lh_u
     if (framing == lh_mb_framing_mbap)
     {
         lh_return_ifn(length > LH_MB_MBAP_HEAD, lh_bool_false);
-        if (frame[6] != unit)
+        if (frame[2] != 0 || frame[3] != 0 || frame[6] != unit)
         {
             return lh_bool_false;
         }
@@ -164,6 +171,10 @@ lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, const lh_byte_t *frame, lh_u
        same reason the reader checks it before the byte count — a corrupted length
        sends the copy off the end of the buffer. */
     lh_return_ifn(length >= 4, lh_bool_false);
+    if (frame[0] != unit)
+    {
+        return lh_bool_false; /* a good frame for another unit on the same line */
+    }
     if (lh_mb_crc16(frame, (lh_u16_t)(length - 2)) !=
         (lh_u16_t)((lh_u16_t)frame[length - 1] << 8 | frame[length - 2]))
     {
@@ -239,8 +250,27 @@ lh_mb_link_open(lh_mb_link_t *self, const lh_char_t *target, lh_u16_t port)
         self->counters.failed++;
         return lh_bool_false;
     }
+    /* A new connection is a new stream: whatever was held belonged to the old one,
+       and the first byte that arrives now is the first byte of a frame. */
+    self->held = 0;
     self->state = (lh_u8_t)lh_mb_link_idle;
     return lh_bool_true;
+}
+
+/* Drop the first @p n bytes held. Over MBAP what follows them is the start of the
+   next frame and is kept: TCP is a stream, a recv hands over whatever has arrived,
+   and an answer and the frame behind it come in one piece as often as not. Over RTU
+   there is no length to find the next frame by, so everything goes. */
+static lh_void
+lh_mb_link_consume(lh_mb_link_t *self, lh_u16_t n)
+{
+    if (self->framing != lh_mb_framing_mbap || n >= self->held)
+    {
+        self->held = 0;
+        return;
+    }
+    lh_memory_std_move(self->frame, lh_addr_of(self->frame[n]), (lh_usize_t)(self->held - n));
+    self->held = (lh_u16_t)(self->held - n);
 }
 
 /* Everything after the PDU is the same for a read and a write: the envelope, the send,
@@ -250,19 +280,25 @@ static lh_bool_t
 lh_mb_link_send(lh_mb_link_t *self, const lh_byte_t *pdu, lh_u16_t pdu_length, lh_u16_t address,
                 lh_u16_t count, lh_u8_t fc)
 {
+    /* The request is built in a buffer of its own. ::lh_mb_link_t.frame is the
+       receive side, and over MBAP it may already hold the start of the next frame:
+       building the request there wrote it over those bytes, and the request -- which
+       carries this question's own transaction id -- was then read back as the
+       answer. */
+    lh_byte_t out[LH_MB_ADU_MAX];
     lh_s32_t wrote;
 
     if (pdu_length == 0)
     {
         return lh_bool_false;
     }
-    pdu_length = lh_mb_encode(self->framing, self->unit, self->tx, pdu, pdu_length, self->frame,
-                              (lh_u16_t)sizeof(self->frame));
+    pdu_length = lh_mb_encode(self->framing, self->unit, self->tx, pdu, pdu_length, out,
+                              (lh_u16_t)sizeof(out));
     if (pdu_length == 0)
     {
         return lh_bool_false;
     }
-    wrote = self->transport.send(self->transport.self, self->frame, pdu_length);
+    wrote = self->transport.send(self->transport.self, out, pdu_length);
     if (wrote < 0)
     {
         /* Idle, not failed, for the same reason ::lh_mb_link_poll does it: a
@@ -292,8 +328,16 @@ lh_mb_link_send(lh_mb_link_t *self, const lh_byte_t *pdu, lh_u16_t pdu_length, l
     }
     self->address = address;
     self->expected = count;
-    self->held = 0;
+    /* Over MBAP the held bytes stay: they arrived before this question went out, so
+       they are not its answer, but they may be the start of an answer to the last
+       one, and dropping half a frame puts every frame after it off by that much.
+       The transaction id is what keeps them from being taken for this answer. */
+    if (self->framing != lh_mb_framing_mbap)
+    {
+        self->held = 0;
+    }
     self->got = 0;
+    self->asked_tx = self->tx;
     ++self->tx;
     self->counters.sent++;
     self->counters.bytes += (lh_u32_t)pdu_length;
@@ -356,8 +400,14 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
     lh_assert_runtime_ref(self);
     lh_return_ifn(self->state == (lh_u8_t)lh_mb_link_waiting, (lh_mb_link_state_t)self->state);
 
-    got = self->transport.recv(self->transport.self, lh_addr_of(self->frame[self->held]),
-                               (lh_u16_t)(sizeof(self->frame) - self->held));
+    /* Nothing to ask for when the buffer is full: it holds a whole frame at least,
+       and the loop below consumes it. A recv for zero bytes is not a harmless call
+       on a real socket -- it returns 0, which is how a socket says the peer has
+       closed. */
+    got = self->held < (lh_u16_t)sizeof(self->frame)
+              ? self->transport.recv(self->transport.self, lh_addr_of(self->frame[self->held]),
+                                     (lh_u16_t)(sizeof(self->frame) - self->held))
+              : 0;
     if (got < 0)
     {
         /* Every failure below ends the same way: **back to idle, not stuck.**
@@ -370,7 +420,11 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
            The caller learns it happened from the state this poll returns, from
            ::lh_mb_link_t.reason and from ::lh_mb_link_counters_t.failed; deciding
            that a device is *off* rather than *slow* is the app's business, because
-           only it knows how many failures in a row mean that. */
+           only it knows how many failures in a row mean that.
+
+           A transport that failed has no stream left to keep a place in, so what
+           was held goes with it. */
+        self->held = 0;
         self->state = (lh_u8_t)lh_mb_link_idle;
         self->reason = lh_mb_status_garbage;
         self->counters.failed++;
@@ -382,32 +436,67 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
         self->counters.bytes += (lh_u32_t)got;
     }
 
-    need = lh_mb_frame_length(self->framing, self->frame, self->held, self->unit, self->asked_fc);
-    if (need == 0 || self->held < need)
+    /* Every whole frame that is not this question's answer is stepped over, and the
+       loop goes on to the one behind it: a recv can hand over another unit's frame,
+       or the late answer to a question that timed out, and this answer right after
+       it in the same bytes. */
+    for (;;)
     {
-        /* Not yet. How long it has been unanswered is the only thing that turns
-           "not yet" into "never", and that check is what stops one dead device
-           from holding a place in every pass for ever. */
-        const lh_u64_t now = self->now_us != lh_null ? self->now_us(self->clock) : 0;
-        if (self->now_us != lh_null && timeout_us > 0 && now - self->since_us > (lh_u64_t)timeout_us)
+        lh_bool_t ours;
+
+        need = lh_mb_frame_length(self->framing, self->frame, self->held, self->asked_fc);
+        if (need == 0 && self->framing == lh_mb_framing_mbap && self->held >= LH_MB_MBAP_HEAD)
         {
+            /* Seven bytes and still no length: the header is not a Modbus header.
+               On a stream that means the place is lost, and nothing after it can be
+               framed until the connection starts over -- so this is said now, not
+               after a timeout spent waiting for a frame that has no end. */
             self->held = 0;
             self->state = (lh_u8_t)lh_mb_link_idle;
-            self->reason = lh_mb_status_short;
+            self->reason = lh_mb_status_garbage;
             self->counters.failed++;
             return (lh_mb_link_state_t)lh_mb_link_failed;
         }
-        return (lh_mb_link_state_t)self->state;
-    }
+        if (need == 0 || self->held < need)
+        {
+            /* Not yet. How long it has been unanswered is the only thing that turns
+               "not yet" into "never", and that check is what stops one dead device
+               from holding a place in every pass for ever. */
+            const lh_u64_t now = self->now_us != lh_null ? self->now_us(self->clock) : 0;
+            if (self->now_us != lh_null && timeout_us > 0 && now - self->since_us > (lh_u64_t)timeout_us)
+            {
+                /* Over MBAP what has arrived of a frame is kept: if the rest of a
+                   slow answer comes later, it completes the frame and the frame is
+                   stepped over by its transaction id. Dropping the half that came
+                   would read the half that comes as a header. */
+                if (self->framing != lh_mb_framing_mbap)
+                {
+                    self->held = 0;
+                }
+                self->state = (lh_u8_t)lh_mb_link_idle;
+                self->reason = lh_mb_status_short;
+                self->counters.failed++;
+                return (lh_mb_link_state_t)lh_mb_link_failed;
+            }
+            return (lh_mb_link_state_t)self->state;
+        }
 
-    if (!lh_mb_decode(self->framing, self->unit, self->frame, need, pdu, lh_addr_of(pdu_length)))
-    {
-        /* A frame that is whole and is not ours: another device on the line, or a
-           line that is not one. Drop it and keep waiting rather than counting it
-           as this device's answer — that is the difference between a bus and a
-           fault. */
-        self->held = 0;
-        return (lh_mb_link_state_t)self->state;
+        /* A frame that is whole and is not ours -- another device on the line, or
+           over MBAP an answer to some other question -- is dropped and the wait goes
+           on, rather than being counted as this device's answer: that is the
+           difference between a bus and a fault. The transaction id is checked
+           because nothing else can tell a late answer from this one: asked for the
+           same registers, it parses perfectly, and its values are stale. */
+        ours = lh_mb_decode(self->framing, self->unit, self->frame, need, pdu, lh_addr_of(pdu_length));
+        if (ours && self->framing == lh_mb_framing_mbap)
+        {
+            ours = (lh_bool_t)((((lh_u16_t)self->frame[0] << 8) | self->frame[1]) == self->asked_tx);
+        }
+        lh_mb_link_consume(self, need);
+        if (ours)
+        {
+            break;
+        }
     }
     if (self->asked_fc == LH_MB_FC_WRITE_MANY)
     {
@@ -420,7 +509,6 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
         status = lh_mb_parse_pdu(pdu, pdu_length, self->asked_fc, self->expected, self->values,
                                  (lh_u16_t)LH_MB_LINK_VALUES, lh_addr_of(self->got), lh_null);
     }
-    self->held = 0;
     self->reason = status;
     if (status != lh_mb_status_ok && status != lh_mb_status_partial)
     {
@@ -468,5 +556,10 @@ lh_mb_link_release(lh_mb_link_t *self)
 {
     lh_assert_runtime_ref(self);
     self->state = (lh_u8_t)lh_mb_link_idle;
-    self->held = 0;
+    /* Over MBAP what is held after the answer is the next frame's start; see
+       ::lh_mb_link_consume. */
+    if (self->framing != lh_mb_framing_mbap)
+    {
+        self->held = 0;
+    }
 }
