@@ -61,15 +61,21 @@ lh_math_fpoint_set_y(lh_math_fpoint_t *self, lh_math_fscalar_t y)
 lh_math_point_t
 lh_math_fpoint_to_point(lh_math_fpoint_t self)
 {
-    return ({ lh_math_point_t _v; lh_math_point_init(lh_addr_of(_v), lh_cast_static(lh_math_scalar_t, lh_math_fpoint_get_x(lh_addr_of(self))),
-        lh_cast_static(lh_math_scalar_t, lh_math_fpoint_get_y(lh_addr_of(self)))); _v; });
+    lh_math_point_t result;
+    lh_math_point_init(lh_addr_of(result),
+                       lh_cast_static(lh_math_scalar_t, lh_math_fpoint_get_x(lh_addr_of(self))),
+                       lh_cast_static(lh_math_scalar_t, lh_math_fpoint_get_y(lh_addr_of(self))));
+    return result;
 }
 
 lh_math_fpoint_t
 lh_math_point_to_fpoint(lh_math_point_t self)
 {
-    return ({ lh_math_fpoint_t _v; lh_math_fpoint_init(lh_addr_of(_v), lh_cast_static(lh_math_fscalar_t, lh_math_point_get_x(lh_addr_of(self))),
-        lh_cast_static(lh_math_fscalar_t, lh_math_point_get_y(lh_addr_of(self)))); _v; });
+    lh_math_fpoint_t result;
+    lh_math_fpoint_init(lh_addr_of(result),
+                        lh_cast_static(lh_math_fscalar_t, lh_math_point_get_x(lh_addr_of(self))),
+                        lh_cast_static(lh_math_fscalar_t, lh_math_point_get_y(lh_addr_of(self))));
+    return result;
 }
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
@@ -128,8 +134,11 @@ lh_math_fpoint_min(const lh_math_fpoint_t *a, const lh_math_fpoint_t *b)
 {
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
-    return ({ lh_math_fpoint_t _v; lh_math_fpoint_init(lh_addr_of(_v), lh_math_min(lh_math_fpoint_get_x(a), lh_math_fpoint_get_x(b)),
-                               lh_math_min(lh_math_fpoint_get_y(a), lh_math_fpoint_get_y(b))); _v; });
+    lh_math_fpoint_t result;
+    lh_math_fpoint_init(lh_addr_of(result),
+                        lh_math_min(lh_math_fpoint_get_x(a), lh_math_fpoint_get_x(b)),
+                        lh_math_min(lh_math_fpoint_get_y(a), lh_math_fpoint_get_y(b)));
+    return result;
 }
 
 lh_math_fpoint_t
@@ -137,8 +146,11 @@ lh_math_fpoint_max(const lh_math_fpoint_t *a, const lh_math_fpoint_t *b)
 {
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
-    return ({ lh_math_fpoint_t _v; lh_math_fpoint_init(lh_addr_of(_v), lh_math_max(lh_math_fpoint_get_x(a), lh_math_fpoint_get_x(b)),
-                               lh_math_max(lh_math_fpoint_get_y(a), lh_math_fpoint_get_y(b))); _v; });
+    lh_math_fpoint_t result;
+    lh_math_fpoint_init(lh_addr_of(result),
+                        lh_math_max(lh_math_fpoint_get_x(a), lh_math_fpoint_get_x(b)),
+                        lh_math_max(lh_math_fpoint_get_y(a), lh_math_fpoint_get_y(b)));
+    return result;
 }
 
 lh_bool_t
@@ -173,7 +185,10 @@ lh_math_fpoint_t
 lh_math_fpoint_offset(const lh_math_fpoint_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy)
 {
     lh_assert_runtime_ref(self);
-    return ({ lh_math_fpoint_t _v; lh_math_fpoint_init(lh_addr_of(_v), lh_math_fpoint_get_x(self) + dx, lh_math_fpoint_get_y(self) + dy); _v; });
+    lh_math_fpoint_t result;
+    lh_math_fpoint_init(lh_addr_of(result), lh_math_fpoint_get_x(self) + dx,
+                        lh_math_fpoint_get_y(self) + dy);
+    return result;
 }
 
 lh_math_fpoint_t

@@ -26,14 +26,20 @@ lh_math_frect_from_extent(const lh_math_fpoint_t *min, const lh_math_fpoint_t *m
     lh_math_frect_init_empty(lh_addr_of(_lh_tmp));
     return _lh_tmp;
     }
-    return ({ lh_math_frect_t _v; lh_math_frect_init_origin_size(lh_addr_of(_v), lh_ptr_deref(min), size); _v; });
+    lh_math_frect_t result;
+    lh_math_frect_init_origin_size(lh_addr_of(result), lh_ptr_deref(min), size);
+    return result;
 }
 
 lh_void
 lh_math_frect_init(lh_math_frect_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y, lh_math_fscalar_t width,
                    lh_math_fscalar_t height)
 {
-    lh_math_frect_init_origin_size(self, ({ lh_math_fpoint_t _v; lh_math_fpoint_init(lh_addr_of(_v), x, y); _v; }), ({ lh_math_fsize_t _v; lh_math_fsize_init(lh_addr_of(_v), width, height); _v; }));
+    lh_math_fpoint_t origin;
+    lh_math_fpoint_init(lh_addr_of(origin), x, y);
+    lh_math_fsize_t size;
+    lh_math_fsize_init(lh_addr_of(size), width, height);
+    lh_math_frect_init_origin_size(self, origin, size);
 }
 
 lh_void
@@ -297,14 +303,20 @@ lh_math_frect_t
 lh_math_frect_offset(const lh_math_frect_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy)
 {
     lh_assert_runtime_ref(self);
-    return ({ lh_math_frect_t _v; lh_math_frect_init_origin_size(lh_addr_of(_v), lh_math_fpoint_offset(lh_math_frect_get_origin_as_const(self), dx, dy),
-        lh_ptr_deref(lh_math_frect_get_size_as_const(self))); _v; });
+    lh_math_frect_t result;
+    lh_math_frect_init_origin_size(
+        lh_addr_of(result), lh_math_fpoint_offset(lh_math_frect_get_origin_as_const(self), dx, dy),
+        lh_ptr_deref(lh_math_frect_get_size_as_const(self)));
+    return result;
 }
 
 lh_math_frect_t
 lh_math_frect_inset(const lh_math_frect_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy)
 {
     lh_assert_runtime_ref(self);
-    return ({ lh_math_frect_t _v; lh_math_frect_init_origin_size(lh_addr_of(_v), lh_math_fpoint_offset(lh_math_frect_get_origin_as_const(self), dx, dy),
-        lh_math_fsize_inset(lh_math_frect_get_size_as_const(self), dx, dy)); _v; });
+    lh_math_frect_t result;
+    lh_math_frect_init_origin_size(
+        lh_addr_of(result), lh_math_fpoint_offset(lh_math_frect_get_origin_as_const(self), dx, dy),
+        lh_math_fsize_inset(lh_math_frect_get_size_as_const(self), dx, dy));
+    return result;
 }

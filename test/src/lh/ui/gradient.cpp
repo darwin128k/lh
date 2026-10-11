@@ -13,6 +13,15 @@
 namespace
 {
 
+lh_ui_color_t
+rgba(lh_ui_color_channel_t r, lh_ui_color_channel_t g, lh_ui_color_channel_t b,
+     lh_ui_color_channel_t a)
+{
+    lh_ui_color_t color;
+    lh_ui_color_init(lh_addr_of(color), r, g, b, a);
+    return color;
+}
+
 TEST(ui_gradient, make_empty_has_no_stops)
 {
     lh_ui_gradient_t gradient;
@@ -24,8 +33,8 @@ TEST(ui_gradient, make_empty_has_no_stops)
 TEST(ui_gradient, init_stops_even_fracs_default_capacity)
 {
     const lh_ui_color_t colors[2] = {
-        ({ lh_ui_color_t _lh_tmp; lh_ui_color_init(lh_addr_of(_lh_tmp), 255, 0, 0, 255); _lh_tmp; }),
-        ({ lh_ui_color_t _lh_tmp; lh_ui_color_init(lh_addr_of(_lh_tmp), 0, 0, 255, 255); _lh_tmp; }),
+        rgba(255, 0, 0, 255),
+        rgba(0, 0, 255, 255),
     };
     lh_ui_gradient_t gradient;
     lh_ui_gradient_init_stops(lh_addr_of(gradient), colors, lh_null, 2);
@@ -45,8 +54,8 @@ TEST(ui_gradient, init_stops_even_fracs_default_capacity)
 TEST(ui_gradient, init_stops_uses_explicit_fracs)
 {
     const lh_ui_color_t colors[2] = {
-        ({ lh_ui_color_t _lh_tmp; lh_ui_color_init(lh_addr_of(_lh_tmp), 0, 0, 0, 255); _lh_tmp; }),
-        ({ lh_ui_color_t _lh_tmp; lh_ui_color_init(lh_addr_of(_lh_tmp), 255, 255, 255, 255); _lh_tmp; }),
+        rgba(0, 0, 0, 255),
+        rgba(255, 255, 255, 255),
     };
     const lh_byte_t fracs[2] = {40, 200};
     lh_ui_gradient_t gradient;

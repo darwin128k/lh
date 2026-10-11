@@ -34,7 +34,6 @@
 /* Umbrella: the OS subsystem. os/system/ is the platform layer underneath it
    and is pulled in separately below. */
 #include <lh/os/alloc.h>
-#include <lh/os/app.h>
 #include <lh/os/fs/dir.h>
 #include <lh/os/fs/file.h>
 #include <lh/os/fs/path.h>
@@ -49,7 +48,13 @@
 #include <lh/os/system.h>
 #include <lh/os/tick.h>
 #include <lh/os/timestamp.h>
-#include <lh/os/window.h>
+/* app and window exist only where there is a window backend: Windows today.
+   Including them unconditionally made the umbrella itself an #error on Linux,
+   where library_options.cmake turns OS_WINDOW off. */
+#if LH_LIBRARY_OPTION_OS_WINDOW
+#    include <lh/os/app.h>
+#    include <lh/os/window.h>
+#endif
 
 LH_COMPILER_EXTERN_C_BEGIN
 
