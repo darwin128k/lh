@@ -18,6 +18,7 @@
 #include <lh/memory.h>
 #include <lh/null.h>
 #include <lh/os/alloc.h>
+#include <lh/os/system/posix/connection.h>
 #include <lh/os/system/posix/key.h>
 #include <lh/os/system/posix/paint.h>
 #include <lh/os/system/posix/window/fields.h>
@@ -69,6 +70,9 @@ static int lh_os_system_posix_depth;
 static lh_os_system_posix_xid_t lh_os_system_posix_root;
 static lh_os_system_posix_window_t *lh_os_system_posix_windows;
 static lh_bool_t lh_os_system_posix_quit;
+static lh_bool_t lh_os_system_posix_failed;
+/* -1 not asked yet, 0 the server has no SHAPE, 1 it has. */
+static int lh_os_system_posix_shape = -1;
 
 static lh_os_system_posix_xid_t lh_os_system_posix_atom_wm_protocols;
 static lh_os_system_posix_xid_t lh_os_system_posix_atom_wm_delete_window;
@@ -89,7 +93,23 @@ lh_os_system_posix_on_error(lh_os_system_posix_display_t *display, lh_os_system_
 {
     (void)display;
     (void)error;
+    lh_os_system_posix_failed = lh_bool_true;
     return 0;
+}
+
+lh_os_system_posix_display_t *
+lh_os_system_posix_connection_get_display(void)
+{
+    return lh_os_system_posix_display;
+}
+
+lh_bool_t
+lh_os_system_posix_connection_take_error(void)
+{
+    const lh_bool_t failed = lh_os_system_posix_failed;
+
+    lh_os_system_posix_failed = lh_bool_false;
+    return failed;
 }
 
 static lh_bool_t
@@ -194,6 +214,129 @@ lh_os_system_posix_window_damage(lh_os_system_posix_window_t *self, int left, in
     self->dirty_bottom = bottom > self->dirty_bottom ? bottom : self->dirty_bottom;
 }
 
+/* How far in from the side row @p row of a corner of @p radius starts: the first
+   pixel whose centre is inside the circle. In half pixels, so that it is all
+   integers -- the same cut CreateRoundRectRgn makes on Windows, near enough that
+   the two cannot be told apart at the radii a UI uses. */
+static int
+lh_os_system_posix_corner_inset(int radius, int row)
+{
+    const long dy = 2L * radius - 2L * row - 1L;
+    int inset;
+
+    for (inset = 0; inset < radius; ++inset)
+    {
+        const long dx = 2L * radius - 2L * inset - 1L;
+
+        lh_return_if(dx * dx + dy * dy <= 4L * radius * radius, inset);
+    }
+    return radius;
+}
+
+/* The largest radius cut, which is far past any corner a UI draws and keeps the
+   rectangles on the stack. */
+#define LH_OS_SYSTEM_POSIX_CORNER_MAX 128
+
+/* The rows of a round-rect of @p radius over @p width x @p height: the inside of
+   it, or with @p outside the corners that are not in it. Returns how many. */
+static int
+lh_os_system_posix_corner_rows(lh_os_system_posix_xrectangle_t *rows, int width, int height, int radius,
+                               lh_bool_t outside)
+{
+    int count = 0;
+    int row;
+
+    for (row = 0; row < radius; ++row)
+    {
+        const int inset = lh_os_system_posix_corner_inset(radius, row);
+        const int ys[2] = {row, height - 1 - row};
+        int side;
+
+        for (side = 0; side < 2; ++side)
+        {
+            if (!outside)
+            {
+                rows[count].x = (short)inset;
+                rows[count].y = (short)ys[side];
+                rows[count].width = (unsigned short)(width - 2 * inset);
+                rows[count].height = 1U;
+                ++count;
+            }
+            else if (inset > 0)
+            {
+                rows[count].x = 0;
+                rows[count].y = (short)ys[side];
+                rows[count].width = (unsigned short)inset;
+                rows[count].height = 1U;
+                ++count;
+                rows[count].x = (short)(width - inset);
+                rows[count].y = (short)ys[side];
+                rows[count].width = (unsigned short)inset;
+                rows[count].height = 1U;
+                ++count;
+            }
+        }
+    }
+    if (!outside)
+    {
+        rows[count].x = 0;
+        rows[count].y = (short)radius;
+        rows[count].width = (unsigned short)width;
+        rows[count].height = (unsigned short)(height - 2 * radius);
+        ++count;
+    }
+    return count;
+}
+
+/* The radius the window is cut at now: none while maximized, and never more than
+   half the window or the most this backend cuts. */
+static int
+lh_os_system_posix_window_radius(const lh_os_system_posix_window_t *self)
+{
+    int radius = self->maximized ? 0 : self->corner;
+
+    radius = radius < self->width / 2 ? radius : self->width / 2;
+    radius = radius < self->height / 2 ? radius : self->height / 2;
+    return radius < LH_OS_SYSTEM_POSIX_CORNER_MAX ? radius : LH_OS_SYSTEM_POSIX_CORNER_MAX;
+}
+
+/* Cut the window's corners round, or give it back its rectangle. The shape is the
+   window's, of the size it was cut at, so it is cut again on every resize -- and
+   taken off while the window is maximized, as a maximized window has no corners
+   on any desktop. Without the SHAPE extension the corners simply stay square. */
+static lh_void
+lh_os_system_posix_window_cut(lh_os_system_posix_window_t *self)
+{
+    const lh_os_system_posix_xext_t *ext = lh_os_system_posix_xext_load();
+    lh_os_system_posix_xrectangle_t rows[2 * LH_OS_SYSTEM_POSIX_CORNER_MAX + 1];
+    const int radius = lh_os_system_posix_window_radius(self);
+
+    lh_return_if(lh_null_eq(ext));
+    if (lh_os_system_posix_shape < 0)
+    {
+        int event_base = 0;
+        int error_base = 0;
+
+        lh_os_system_posix_shape =
+            ext->XShapeQueryExtension(lh_os_system_posix_display, lh_addr_of(event_base), lh_addr_of(error_base)) != 0
+                ? 1
+                : 0;
+    }
+    lh_return_if(lh_os_system_posix_shape == 0);
+    if (radius <= 0)
+    {
+        ext->XShapeCombineMask(lh_os_system_posix_display, self->window, LH_OS_SYSTEM_POSIX_X_SHAPE_BOUNDING, 0, 0,
+                               LH_OS_SYSTEM_POSIX_X_NONE, LH_OS_SYSTEM_POSIX_X_SHAPE_SET);
+        return;
+    }
+    /* One rectangle per row of the top corners, one for everything between, and
+       the bottom corners as the top ones upside down. */
+    ext->XShapeCombineRectangles(lh_os_system_posix_display, self->window, LH_OS_SYSTEM_POSIX_X_SHAPE_BOUNDING, 0, 0,
+                                 rows,
+                                 lh_os_system_posix_corner_rows(rows, self->width, self->height, radius, lh_bool_false),
+                                 LH_OS_SYSTEM_POSIX_X_SHAPE_SET, LH_OS_SYSTEM_POSIX_X_SHAPE_UNSORTED);
+}
+
 static lh_void
 lh_os_system_posix_window_paint(lh_os_system_posix_window_t *self)
 {
@@ -208,10 +351,30 @@ lh_os_system_posix_window_paint(lh_os_system_posix_window_t *self)
     paint.display = lh_os_system_posix_display;
     paint.window = self->window;
     paint.gc = self->gc;
-    paint.depth = lh_os_system_posix_depth;
+    paint.depth = self->depth;
     paint.area = (lh_u64_t)(right - left) * (lh_u64_t)(bottom - top);
     paint.rects = 1U;
     lh_os_window_on_native_paint(self->user, lh_addr_of(paint), left, top, right, bottom);
+    /* A window with an alpha channel shows what is under it wherever its pixels
+       say so, and the app painted its corners opaque like everything else. Under a
+       compositor -- every Wayland desktop, through XWayland -- the SHAPE cut alone
+       leaves those corners black, so they are made transparent here, after the
+       app's paint and on every paint, because every paint can cover them. The
+       window may have been closed by the paint, so it is looked up first. */
+    if (lh_null_ne(lh_os_system_posix_window_find(self)) && self->colormap != LH_OS_SYSTEM_POSIX_X_NONE)
+    {
+        const int radius = lh_os_system_posix_window_radius(self);
+
+        if (radius > 0)
+        {
+            lh_os_system_posix_xrectangle_t rows[4 * LH_OS_SYSTEM_POSIX_CORNER_MAX];
+
+            (void)lh_os_system_posix_x->XSetForeground(lh_os_system_posix_display, self->gc, 0UL);
+            (void)lh_os_system_posix_x->XFillRectangles(
+                lh_os_system_posix_display, self->window, self->gc, rows,
+                lh_os_system_posix_corner_rows(rows, self->width, self->height, radius, lh_bool_true));
+        }
+    }
 }
 
 /* Whether the window manager has the window maximized: both halves of
@@ -390,6 +553,7 @@ lh_os_system_posix_dispatch(lh_os_system_posix_xevent_t *event)
             /* A window of another size is drawn again whole, as a Windows class
                with CS_HREDRAW | CS_VREDRAW is. */
             lh_os_system_posix_window_damage(self, 0, 0, self->width, self->height);
+            lh_os_system_posix_window_cut(self);
             lh_os_window_on_native_resize(self->user, self->width, self->height, self->maximized);
         }
         return;
@@ -401,6 +565,7 @@ lh_os_system_posix_dispatch(lh_os_system_posix_xevent_t *event)
             if (maximized != self->maximized)
             {
                 self->maximized = maximized;
+                lh_os_system_posix_window_cut(self);
                 lh_os_window_on_native_resize(self->user, self->width, self->height, maximized);
             }
         }
@@ -571,6 +736,9 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     lh_os_system_posix_xsize_hints_t hints;
     lh_os_system_posix_xid_t protocols[1];
     lh_os_system_posix_xid_t root;
+    lh_os_system_posix_visual_t *visual = lh_null;
+    unsigned long mask = LH_OS_SYSTEM_POSIX_X_CW_BACK_PIXMAP | LH_OS_SYSTEM_POSIX_X_CW_BIT_GRAVITY |
+                         LH_OS_SYSTEM_POSIX_X_CW_EVENT_MASK;
     unsigned int got_width = 0U;
     unsigned int got_height = 0U;
     unsigned int border = 0U;
@@ -580,7 +748,6 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     lh_usize_t title_length = 0U;
 
     lh_assert_runtime_ref(title);
-    (void)corner; /* a rounded window needs the SHAPE extension, which is not used yet */
     lh_return_if(width <= 0 || height <= 0, LH_OS_SYSTEM_WINDOW_HANDLE_INVALID);
     lh_return_if(!lh_os_system_posix_connect(), LH_OS_SYSTEM_WINDOW_HANDLE_INVALID);
     x = lh_os_system_posix_x;
@@ -594,6 +761,7 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     self->width = width;
     self->height = height;
     self->enabled = lh_bool_true;
+    self->corner = corner > 0 ? corner : 0;
 
     if (placement == lh_os_window_placement_center)
     {
@@ -614,6 +782,31 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     }
 
     lh_memory_set(lh_addr_of(attributes), sizeof(attributes), 0);
+    self->depth = lh_os_system_posix_depth;
+    if (self->corner > 0)
+    {
+        lh_os_system_posix_xvisual_info_t info;
+
+        /* A window with round corners needs somewhere to say "nothing here": a 32-bit
+           visual, whose top byte the compositor reads as alpha. Asked for only
+           then, because it changes what a pixel means -- every other window keeps
+           the screen's own visual, where the top byte is ignored as it is on
+           Windows. Without one, the corners are cut by SHAPE alone. */
+        lh_memory_set(lh_addr_of(info), sizeof(info), 0);
+        if (x->XMatchVisualInfo(lh_os_system_posix_display, lh_os_system_posix_screen, 32,
+                                LH_OS_SYSTEM_POSIX_X_TRUE_COLOR, lh_addr_of(info)) != 0)
+        {
+            visual = info.visual;
+            self->depth = 32;
+            self->colormap = x->XCreateColormap(lh_os_system_posix_display, lh_os_system_posix_root, info.visual,
+                                                LH_OS_SYSTEM_POSIX_X_ALLOC_NONE);
+            /* A visual other than the parent's needs a colormap and a border pixel
+               of its own, or the server refuses the window. */
+            attributes.colormap = self->colormap;
+            attributes.border_pixel = 0UL;
+            mask |= LH_OS_SYSTEM_POSIX_X_CW_COLORMAP | LH_OS_SYSTEM_POSIX_X_CW_BORDER_PIXEL;
+        }
+    }
     /* No background: the server would clear every exposed area to it before the
        paint, which is a flash of it on every resize. The app paints all of it. */
     attributes.background_pixmap = LH_OS_SYSTEM_POSIX_X_NONE;
@@ -623,13 +816,16 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
                             LH_OS_SYSTEM_POSIX_X_POINTER_MOTION_MASK | LH_OS_SYSTEM_POSIX_X_EXPOSURE_MASK |
                             LH_OS_SYSTEM_POSIX_X_STRUCTURE_NOTIFY_MASK | LH_OS_SYSTEM_POSIX_X_PROPERTY_CHANGE_MASK;
     self->window = x->XCreateWindow(lh_os_system_posix_display, lh_os_system_posix_root, at_x, at_y,
-                                    (unsigned int)width, (unsigned int)height, 0U, LH_OS_SYSTEM_POSIX_X_COPY_FROM_PARENT,
-                                    LH_OS_SYSTEM_POSIX_X_INPUT_OUTPUT, lh_null,
-                                    LH_OS_SYSTEM_POSIX_X_CW_BACK_PIXMAP | LH_OS_SYSTEM_POSIX_X_CW_BIT_GRAVITY |
-                                        LH_OS_SYSTEM_POSIX_X_CW_EVENT_MASK,
-                                    lh_addr_of(attributes));
+                                    (unsigned int)width, (unsigned int)height, 0U,
+                                    self->colormap != LH_OS_SYSTEM_POSIX_X_NONE ? 32
+                                                                                : LH_OS_SYSTEM_POSIX_X_COPY_FROM_PARENT,
+                                    LH_OS_SYSTEM_POSIX_X_INPUT_OUTPUT, visual, mask, lh_addr_of(attributes));
     if (self->window == LH_OS_SYSTEM_POSIX_X_NONE)
     {
+        if (self->colormap != LH_OS_SYSTEM_POSIX_X_NONE)
+        {
+            (void)x->XFreeColormap(lh_os_system_posix_display, self->colormap);
+        }
         lh_runtime_allocator_free(self);
         return LH_OS_SYSTEM_WINDOW_HANDLE_INVALID;
     }
@@ -700,6 +896,7 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
         self->width = (int)got_width;
         self->height = (int)got_height;
     }
+    lh_os_system_posix_window_cut(self);
     if (lh_null_ne(self->user))
     {
         lh_os_window_on_native_resize(self->user, self->width, self->height, lh_bool_false);
@@ -717,10 +914,12 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
 lh_void
 lh_os_system_window_set_corner_radius(lh_os_system_window_handle_t handle, int radius)
 {
-    /* A rounded window is cut with the SHAPE extension, which this backend does
-       not use yet: the corners stay square. */
-    (void)handle;
-    (void)radius;
+    lh_os_system_posix_window_t *self = lh_os_system_posix_window_find(handle);
+
+    lh_return_if(lh_null_eq(self));
+    self->corner = radius > 0 ? radius : 0;
+    lh_os_system_posix_window_cut(self);
+    (void)lh_os_system_posix_x->XFlush(lh_os_system_posix_display);
 }
 
 lh_void
@@ -801,6 +1000,10 @@ lh_os_system_window_close(lh_os_system_window_handle_t handle)
     lh_os_system_posix_window_unlist(self);
     (void)lh_os_system_posix_x->XFreeGC(lh_os_system_posix_display, self->gc);
     (void)lh_os_system_posix_x->XDestroyWindow(lh_os_system_posix_display, self->window);
+    if (self->colormap != LH_OS_SYSTEM_POSIX_X_NONE)
+    {
+        (void)lh_os_system_posix_x->XFreeColormap(lh_os_system_posix_display, self->colormap);
+    }
     (void)lh_os_system_posix_x->XFlush(lh_os_system_posix_display);
     /* Destroying is synchronous on Windows and ends in WM_DESTROY; the portable
        layer is told here, the same way and at the same point. */

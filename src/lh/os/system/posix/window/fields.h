@@ -19,6 +19,9 @@
     lh_os_system_posix_gc_t *gc;                                                                   \
     int width;                                                                                     \
     int height;                                                                                    \
+    int corner;                                                                                    \
+    int depth;                                                                                     \
+    lh_os_system_posix_xid_t colormap;                                                             \
     lh_bool_t enabled;                                                                             \
     lh_bool_t maximized;                                                                           \
     lh_bool_t dirty;                                                                               \
