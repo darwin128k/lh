@@ -79,6 +79,17 @@
     int (*XGetGeometry)(lh_os_system_posix_display_t *display, lh_os_system_posix_xid_t drawable,  \
                         lh_os_system_posix_xid_t *root, int *x, int *y, unsigned int *width,       \
                         unsigned int *height, unsigned int *border, unsigned int *depth);          \
+    int (*XMatchVisualInfo)(lh_os_system_posix_display_t *display, int screen, int depth, int klass, \
+                            lh_os_system_posix_xvisual_info_t *info);                              \
+    lh_os_system_posix_xid_t (*XCreateColormap)(lh_os_system_posix_display_t *display,             \
+                                                lh_os_system_posix_xid_t window,                   \
+                                                lh_os_system_posix_visual_t *visual, int alloc);   \
+    int (*XFreeColormap)(lh_os_system_posix_display_t *display, lh_os_system_posix_xid_t colormap);\
+    int (*XSetForeground)(lh_os_system_posix_display_t *display, lh_os_system_posix_gc_t *gc,      \
+                          unsigned long pixel);                                                    \
+    int (*XFillRectangles)(lh_os_system_posix_display_t *display, lh_os_system_posix_xid_t drawable,\
+                           lh_os_system_posix_gc_t *gc, lh_os_system_posix_xrectangle_t *rectangles,\
+                           int count);                                                             \
     int (*XUngrabPointer)(lh_os_system_posix_display_t *display, lh_os_system_posix_xid_t time);   \
     int (*XIconifyWindow)(lh_os_system_posix_display_t *display, lh_os_system_posix_xid_t window,  \
                           int screen);                                                             \

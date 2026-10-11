@@ -46,8 +46,11 @@ typedef struct lh_os_system_posix_xerror_event lh_os_system_posix_xerror_event_t
 #include <lh/os/system/posix/x11/xkey_event/fields.h>
 #include <lh/os/system/posix/x11/xmotion_event/fields.h>
 #include <lh/os/system/posix/x11/xproperty_event/fields.h>
+#include <lh/os/system/posix/x11/xrectangle/fields.h>
 #include <lh/os/system/posix/x11/xset_window_attributes/fields.h>
+#include <lh/os/system/posix/x11/xshm_segment_info/fields.h>
 #include <lh/os/system/posix/x11/xsize_hints/fields.h>
+#include <lh/os/system/posix/x11/xvisual_info/fields.h>
 
 /** @brief `XAnyEvent`. */
 struct lh_os_system_posix_xany_event
@@ -141,12 +144,33 @@ struct lh_os_system_posix_xsize_hints
 };
 typedef struct lh_os_system_posix_xsize_hints lh_os_system_posix_xsize_hints_t;
 
+/** @brief `XVisualInfo`. */
+struct lh_os_system_posix_xvisual_info
+{
+    lh_os_system_posix_xvisual_info_fields;
+};
+typedef struct lh_os_system_posix_xvisual_info lh_os_system_posix_xvisual_info_t;
+
 /** @brief `XImage`. */
 struct lh_os_system_posix_ximage
 {
     lh_os_system_posix_ximage_fields;
 };
 typedef struct lh_os_system_posix_ximage lh_os_system_posix_ximage_t;
+
+/** @brief `XRectangle`. */
+struct lh_os_system_posix_xrectangle
+{
+    lh_os_system_posix_xrectangle_fields;
+};
+typedef struct lh_os_system_posix_xrectangle lh_os_system_posix_xrectangle_t;
+
+/** @brief `XShmSegmentInfo`. */
+struct lh_os_system_posix_xshm_segment_info
+{
+    lh_os_system_posix_xshm_segment_info_fields;
+};
+typedef struct lh_os_system_posix_xshm_segment_info lh_os_system_posix_xshm_segment_info_t;
 
 /* ── Constants (X.h, Xutil.h, keysymdef.h) ───────────────────────────────── */
 
@@ -184,8 +208,12 @@ typedef struct lh_os_system_posix_ximage lh_os_system_posix_ximage_t;
 #define LH_OS_SYSTEM_POSIX_X_INPUT_OUTPUT 1U
 #define LH_OS_SYSTEM_POSIX_X_COPY_FROM_PARENT 0
 #define LH_OS_SYSTEM_POSIX_X_CW_BACK_PIXMAP (1UL << 0)
+#define LH_OS_SYSTEM_POSIX_X_CW_BORDER_PIXEL (1UL << 3)
 #define LH_OS_SYSTEM_POSIX_X_CW_BIT_GRAVITY (1UL << 4)
 #define LH_OS_SYSTEM_POSIX_X_CW_EVENT_MASK (1UL << 11)
+#define LH_OS_SYSTEM_POSIX_X_CW_COLORMAP (1UL << 13)
+#define LH_OS_SYSTEM_POSIX_X_TRUE_COLOR 4
+#define LH_OS_SYSTEM_POSIX_X_ALLOC_NONE 0
 #define LH_OS_SYSTEM_POSIX_X_NORTH_WEST_GRAVITY 1
 
 /* Image formats and byte orders. */
@@ -213,6 +241,11 @@ typedef struct lh_os_system_posix_ximage lh_os_system_posix_ximage_t;
 #define LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_LEFT 6U
 #define LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_RIGHT 7U
 
+/* SHAPE (shape.h): the bounding shape, replaced, rectangles in no promised order. */
+#define LH_OS_SYSTEM_POSIX_X_SHAPE_BOUNDING 0
+#define LH_OS_SYSTEM_POSIX_X_SHAPE_SET 0
+#define LH_OS_SYSTEM_POSIX_X_SHAPE_UNSORTED 0
+
 /* ── The library ─────────────────────────────────────────────────────────── */
 
 #include <lh/os/system/posix/x11/fields.h>
@@ -236,5 +269,26 @@ typedef struct lh_os_system_posix_x11 lh_os_system_posix_x11_t;
  */
 const lh_os_system_posix_x11_t *
 lh_os_system_posix_x11_load(void);
+
+#include <lh/os/system/posix/x11/xext/fields.h>
+
+/**
+ * @brief libXext, opened at run time: SHAPE and MIT-SHM.
+ */
+struct lh_os_system_posix_xext
+{
+    lh_os_system_posix_xext_fields;
+};
+typedef struct lh_os_system_posix_xext lh_os_system_posix_xext_t;
+
+/**
+ * @brief libXext, loaded on the first call and kept.
+ *
+ * @return The functions, or `lh_null` when there is no libXext. Both extensions
+ *         are things a window is better with and works without: square corners,
+ *         and pixels sent through the socket.
+ */
+const lh_os_system_posix_xext_t *
+lh_os_system_posix_xext_load(void);
 
 #endif /* LH_SRC_OS_SYSTEM_POSIX_X11_H */

@@ -15,10 +15,13 @@ static lh_os_system_posix_x11_t lh_os_system_posix_x11;
    that has no libX11 will not grow one, and dlopen is not free. */
 static int lh_os_system_posix_x11_state;
 
+static lh_os_system_posix_xext_t lh_os_system_posix_xext;
+static int lh_os_system_posix_xext_state;
+
 /* Each pointer is filled from the symbol of its own name. Assigned through a
    `void **` because ISO C has no conversion from `void *` to a function pointer,
    and dlsym returns the one to stand for the other. */
-#define LH_OS_SYSTEM_POSIX_X11_LOAD(name)                                                          \
+#define LH_OS_SYSTEM_POSIX_X11_LOAD_INTO(table, name)                                              \
     do                                                                                             \
     {                                                                                              \
         void *symbol = dlsym(library, #name);                                                      \
@@ -26,8 +29,10 @@ static int lh_os_system_posix_x11_state;
         {                                                                                          \
             return lh_null;                                                                        \
         }                                                                                          \
-        *(void **)(&lh_os_system_posix_x11.name) = symbol;                                         \
+        *(void **)(&(table).name) = symbol;                                                        \
     } while (0)
+#define LH_OS_SYSTEM_POSIX_X11_LOAD(name) LH_OS_SYSTEM_POSIX_X11_LOAD_INTO(lh_os_system_posix_x11, name)
+#define LH_OS_SYSTEM_POSIX_XEXT_LOAD(name) LH_OS_SYSTEM_POSIX_X11_LOAD_INTO(lh_os_system_posix_xext, name)
 
 static const lh_os_system_posix_x11_t *
 lh_os_system_posix_x11_open(void)
@@ -79,6 +84,11 @@ lh_os_system_posix_x11_open(void)
     LH_OS_SYSTEM_POSIX_X11_LOAD(XLookupString);
     LH_OS_SYSTEM_POSIX_X11_LOAD(XTranslateCoordinates);
     LH_OS_SYSTEM_POSIX_X11_LOAD(XGetGeometry);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XMatchVisualInfo);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XCreateColormap);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XFreeColormap);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XSetForeground);
+    LH_OS_SYSTEM_POSIX_X11_LOAD(XFillRectangles);
     LH_OS_SYSTEM_POSIX_X11_LOAD(XUngrabPointer);
     LH_OS_SYSTEM_POSIX_X11_LOAD(XIconifyWindow);
     LH_OS_SYSTEM_POSIX_X11_LOAD(XSetErrorHandler);
@@ -94,4 +104,37 @@ lh_os_system_posix_x11_load(void)
         lh_os_system_posix_x11_state = lh_null_ne(lh_os_system_posix_x11_open()) ? 1 : -1;
     }
     return lh_os_system_posix_x11_state > 0 ? &lh_os_system_posix_x11 : lh_null;
+}
+
+static const lh_os_system_posix_xext_t *
+lh_os_system_posix_xext_open(void)
+{
+    void *library = dlopen("libXext.so.6", RTLD_NOW | RTLD_LOCAL);
+
+    if (lh_null_eq(library))
+    {
+        library = dlopen("libXext.so", RTLD_NOW | RTLD_LOCAL);
+    }
+    if (lh_null_eq(library))
+    {
+        return lh_null;
+    }
+    LH_OS_SYSTEM_POSIX_XEXT_LOAD(XShapeQueryExtension);
+    LH_OS_SYSTEM_POSIX_XEXT_LOAD(XShapeCombineRectangles);
+    LH_OS_SYSTEM_POSIX_XEXT_LOAD(XShapeCombineMask);
+    LH_OS_SYSTEM_POSIX_XEXT_LOAD(XShmQueryExtension);
+    LH_OS_SYSTEM_POSIX_XEXT_LOAD(XShmAttach);
+    LH_OS_SYSTEM_POSIX_XEXT_LOAD(XShmDetach);
+    LH_OS_SYSTEM_POSIX_XEXT_LOAD(XShmPutImage);
+    return &lh_os_system_posix_xext;
+}
+
+const lh_os_system_posix_xext_t *
+lh_os_system_posix_xext_load(void)
+{
+    if (lh_os_system_posix_xext_state == 0)
+    {
+        lh_os_system_posix_xext_state = lh_null_ne(lh_os_system_posix_xext_open()) ? 1 : -1;
+    }
+    return lh_os_system_posix_xext_state > 0 ? &lh_os_system_posix_xext : lh_null;
 }
