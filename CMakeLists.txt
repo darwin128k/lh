@@ -223,9 +223,19 @@ if (LH_LIBRARY_OPTION_OS)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/window.c)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/key.c)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/surface.c)
-            list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/render/backend/gdi.c)
             list(APPEND LH_OS_SYSTEM_LINK_LIBS user32 gdi32)
+        else ()
+            # Xlib, opened with dlopen when the first window is: nothing to link but
+            # the loader, and no X11 headers or development package to build with.
+            list(APPEND LH_LIB_SOURCES
+                    ${LH_LIB_SRC_PATH}/os/system/posix/x11.c
+                    ${LH_LIB_SRC_PATH}/os/system/posix/window.c
+                    ${LH_LIB_SRC_PATH}/os/system/posix/key.c
+                    ${LH_LIB_SRC_PATH}/os/system/posix/surface.c
+            )
+            list(APPEND LH_OS_SYSTEM_LINK_LIBS ${CMAKE_DL_LIBS})
         endif ()
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/render/backend/gdi.c)
     endif ()
 endif ()
 

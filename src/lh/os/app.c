@@ -4,7 +4,6 @@
  */
 
 #include <lh/assert/runtime.h>
-#include <lh/compiler/os.h>
 #include <lh/list.h>
 #include <lh/null.h>
 #include <lh/os/app.h>
@@ -13,9 +12,7 @@
 #include <lh/timer.h>
 #include <lh/util/addr.h>
 
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
-#    include <lh/os/system/window.h>
-#endif
+#include <lh/os/system/window.h>
 
 lh_void
 lh_os_app_init(lh_os_app_t *self)
@@ -70,9 +67,7 @@ lh_os_app_quit(lh_os_app_t *self)
 {
     lh_assert_runtime_ref(self);
     self->quit = lh_bool_true;
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     lh_os_system_window_post_quit();
-#endif
 }
 
 lh_os_window_t *
@@ -95,7 +90,6 @@ lh_void
 lh_os_app_run(lh_os_app_t *self)
 {
     lh_assert_runtime_ref(self);
-#if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
     while (!self->quit && !lh_list_is_empty(lh_addr_of(self->windows)))
     {
         lh_tick_t now;
@@ -112,7 +106,4 @@ lh_os_app_run(lh_os_app_t *self)
             break;
         }
     }
-#else
-    (void)self;
-#endif
 }

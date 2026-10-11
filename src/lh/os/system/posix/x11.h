@@ -3,231 +3,238 @@
  * @brief Backend-private: the part of libX11 the Linux window backend uses,
  *        declared by us instead of `<X11/Xlib.h>`.
  *
- * Same rules as ws2_32.h / user32.h on Windows: only what is called, `lh`-prefixed
- * types and constants, Xlib function and member names (Xlib is an old ABI,
- * names are frozen).
+ * Same rules as ws2_32.h / user32.h on Windows: only what is called,
+ * `lh`-prefixed types and constants, Xlib's own function and member names.
+ * Xlib is an old ABI and its layouts are frozen, but they are **layouts**:
+ * a structure Xlib writes into has to be the size Xlib thinks it is, field for
+ * field. The previous version of this file declared `XEvent` as a type and five
+ * small structs, and `XNextEvent` writes 192 bytes into whatever it is given —
+ * so every event wrote past the end of the one it was read into. Every
+ * structure here is therefore the whole of Xlib's, in Xlib's order, and the
+ * event is padded to Xlib's 24 longs.
  *
- * `Xlib` types come in two flavours: opaque pointers (`Display`, `GC`,
- * `Visual`, `Screen`) and integer `XID`s (`Window`, `Drawable`, `Atom`,
- * `Pixmap`, `Cursor`). We mirror that split — opaque types become
- * `struct foo *` (forward-declared here), XIDs become a single
- * `lh_os_system_posix_xid_t` `typedef` of `lh_ulong_t`. Keeps the rest of
- * the backend from ever naming `<X11/X*.h>` directly.
- *
- * XP-equivalent note: we never use any modern X extension (XInput, XRender
- * for visual effects, XRandR for runtime resize). The basic Xlib core is
- * what shipped with X11R6 in the 1990s and works everywhere.
+ * libX11 is **not linked**: ::lh_os_system_posix_x11_load opens `libX11.so.6`
+ * the first time a window is opened, and a program that never opens one never
+ * needs it. The same library serves a Modbus poller on a headless server and a
+ * configurator on a desktop; linking X11 in would make the first one fail to
+ * start on the machine it is for.
  */
 
 #ifndef LH_SRC_OS_SYSTEM_POSIX_X11_H
 #define LH_SRC_OS_SYSTEM_POSIX_X11_H
 
-#include <lh/cast/static.h>
-#include <lh/cast/reinterpret.h>
 #include <lh/numeric/types.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
 
-/* `XID` — every X server resource token (Window, Drawable, Atom, Pixmap,
-   Cursor, ...). Same width as `unsigned long` on every platform lh targets
-   (LP64 Unix = 64-bit, LLP64 Windows = 32-bit, but we never build the
-   POSIX window backend on Windows — `LH_OS_SYSTEM_BACKEND` excludes it). */
-typedef lh_ulong_t lh_os_system_posix_xid_t;
+/** @brief `XID`: every server resource (`Window`, `Atom`, `Pixmap`, ...). */
+typedef unsigned long lh_os_system_posix_xid_t;
 
-/* Forward-declared opaque types — only used as pointers. */
+/** @brief `Display`: only ever a pointer. */
 typedef struct lh_os_system_posix_display lh_os_system_posix_display_t;
-typedef struct lh_os_system_posix_visual  lh_os_system_posix_visual_t;
-typedef struct lh_os_system_posix_screen   lh_os_system_posix_screen_t;
-typedef struct lh_os_system_posix_gc       lh_os_system_posix_gc_t;
+/** @brief `Visual`: only ever a pointer. */
+typedef struct lh_os_system_posix_visual lh_os_system_posix_visual_t;
+/** @brief `GC`'s target: only ever a pointer. */
+typedef struct lh_os_system_posix_gc lh_os_system_posix_gc_t;
+/** @brief `XErrorEvent`: only ever a pointer, and never read. */
+typedef struct lh_os_system_posix_xerror_event lh_os_system_posix_xerror_event_t;
 
-/* Opaque-pointer aliases — matches Xlib's `Display *` etc. so that
-   `XOpenDisplay` etc. line up with no extra casts at call sites. */
-typedef lh_os_system_posix_display_t *lh_os_system_posix_display_p;
+#include <lh/os/system/posix/x11/xany_event/fields.h>
+#include <lh/os/system/posix/x11/xbutton_event/fields.h>
+#include <lh/os/system/posix/x11/xclient_message_event/fields.h>
+#include <lh/os/system/posix/x11/xconfigure_event/fields.h>
+#include <lh/os/system/posix/x11/xexpose_event/fields.h>
+#include <lh/os/system/posix/x11/ximage/fields.h>
+#include <lh/os/system/posix/x11/xkey_event/fields.h>
+#include <lh/os/system/posix/x11/xmotion_event/fields.h>
+#include <lh/os/system/posix/x11/xproperty_event/fields.h>
+#include <lh/os/system/posix/x11/xset_window_attributes/fields.h>
+#include <lh/os/system/posix/x11/xsize_hints/fields.h>
 
-/* `Window`, `Drawable`, `Atom`, `Pixmap`, `Cursor` — all XIDs. */
-typedef lh_os_system_posix_xid_t lh_os_system_window_xid_t;
-typedef lh_os_system_posix_xid_t lh_os_system_drawable_xid_t;
-typedef lh_os_system_posix_xid_t lh_os_system_atom_t;
-
-/* No window / no atom / no XID sentinels — Xlib's only "no" sentinel is
-   the all-ones pattern (`(XID)-1`), which `LH_OS_SYSTEM_POSIX_XID_NONE`
-   captures. */
-#define LH_OS_SYSTEM_POSIX_XID_NONE                                                              \
-    (lh_cast_static(lh_os_system_posix_xid_t, lh_cast_static(lh_ssize_t, -1)))
-
-/* `XEvent` — Xlib's tagged union has 30+ variants. We declare only the
-   fields we actually read in the window proc (Expose / KeyPress /
-   ButtonPress / ConfigureNotify / ClientMessage), with enough storage
-   (`data[5]`) for the largest variant (ClientMessage.data.l). Wrong-by-ABI
-   for the unused variants, but the union tag makes that impossible to
-   observe: every read is gated by `v == XXXX_Event`. */
-struct lh_os_system_posix_xevent
+/** @brief `XAnyEvent`. */
+struct lh_os_system_posix_xany_event
 {
-    lh_int_t type;
-    union {
-        struct {
-            lh_int_t x;
-            lh_int_t y;
-            lh_uint_t width;
-            lh_uint_t height;
-            lh_int_t count;
-        } expose;
-        struct {
-            lh_uint_t button;
-            lh_uint_t x;
-            lh_uint_t y;
-        } button;
-        struct {
-            lh_uint_t keycode;
-        } key;
-        struct {
-            lh_int_t x;
-            lh_int_t y;
-            lh_uint_t width;
-            lh_uint_t height;
-        } configure;
-        struct {
-            lh_ulong_t data[5];
-        } client;
-    } as;
+    lh_os_system_posix_xany_event_fields;
 };
-typedef struct lh_os_system_posix_xevent lh_os_system_posix_xevent_t;
+typedef struct lh_os_system_posix_xany_event lh_os_system_posix_xany_event_t;
 
-/* `XSetWindowAttributes` — passed to `XCreateWindow` with a valuemask
-   describing which fields are set. We only ever set `background_pixel` and
-   `event_mask`. */
+/** @brief `XKeyEvent`. */
+struct lh_os_system_posix_xkey_event
+{
+    lh_os_system_posix_xkey_event_fields;
+};
+typedef struct lh_os_system_posix_xkey_event lh_os_system_posix_xkey_event_t;
+
+/** @brief `XButtonEvent`. */
+struct lh_os_system_posix_xbutton_event
+{
+    lh_os_system_posix_xbutton_event_fields;
+};
+typedef struct lh_os_system_posix_xbutton_event lh_os_system_posix_xbutton_event_t;
+
+/** @brief `XMotionEvent`. */
+struct lh_os_system_posix_xmotion_event
+{
+    lh_os_system_posix_xmotion_event_fields;
+};
+typedef struct lh_os_system_posix_xmotion_event lh_os_system_posix_xmotion_event_t;
+
+/** @brief `XExposeEvent`. */
+struct lh_os_system_posix_xexpose_event
+{
+    lh_os_system_posix_xexpose_event_fields;
+};
+typedef struct lh_os_system_posix_xexpose_event lh_os_system_posix_xexpose_event_t;
+
+/** @brief `XConfigureEvent`. */
+struct lh_os_system_posix_xconfigure_event
+{
+    lh_os_system_posix_xconfigure_event_fields;
+};
+typedef struct lh_os_system_posix_xconfigure_event lh_os_system_posix_xconfigure_event_t;
+
+/** @brief `XClientMessageEvent`. */
+struct lh_os_system_posix_xclient_message_event
+{
+    lh_os_system_posix_xclient_message_event_fields;
+};
+typedef struct lh_os_system_posix_xclient_message_event lh_os_system_posix_xclient_message_event_t;
+
+/** @brief `XPropertyEvent`. */
+struct lh_os_system_posix_xproperty_event
+{
+    lh_os_system_posix_xproperty_event_fields;
+};
+typedef struct lh_os_system_posix_xproperty_event lh_os_system_posix_xproperty_event_t;
+
+/**
+ * @brief `XEvent`: every event Xlib can deliver, padded to its 24 longs.
+ *
+ * The pad is the point. `XNextEvent` copies a whole `XEvent` whatever the event
+ * is, so this union has to be at least that big even though only the members
+ * below are ever read.
+ */
+union lh_os_system_posix_xevent
+{
+    int type;
+    lh_os_system_posix_xany_event_t any;
+    lh_os_system_posix_xkey_event_t key;
+    lh_os_system_posix_xbutton_event_t button;
+    lh_os_system_posix_xmotion_event_t motion;
+    lh_os_system_posix_xexpose_event_t expose;
+    lh_os_system_posix_xconfigure_event_t configure;
+    lh_os_system_posix_xclient_message_event_t client;
+    lh_os_system_posix_xproperty_event_t property;
+    long pad[24];
+};
+typedef union lh_os_system_posix_xevent lh_os_system_posix_xevent_t;
+
+/** @brief `XSetWindowAttributes`. */
 struct lh_os_system_posix_xset_window_attributes
 {
-    lh_ulong_t background_pixel;
-    lh_ulong_t event_mask;
+    lh_os_system_posix_xset_window_attributes_fields;
 };
 typedef struct lh_os_system_posix_xset_window_attributes lh_os_system_posix_xset_window_attributes_t;
 
-/* ── Constants we actually use ──────────────────────────────────────────── */
+/** @brief `XSizeHints`. */
+struct lh_os_system_posix_xsize_hints
+{
+    lh_os_system_posix_xsize_hints_fields;
+};
+typedef struct lh_os_system_posix_xsize_hints lh_os_system_posix_xsize_hints_t;
 
-/* Event types (`type` field of `XEvent`). */
-#define LH_OS_SYSTEM_POSIX_EXPOSE          12
-#define LH_OS_SYSTEM_POSIX_CONFIGURE_NOTIFY 22
-#define LH_OS_SYSTEM_POSIX_BUTTON_PRESS     4
-#define LH_OS_SYSTEM_POSIX_BUTTON_RELEASE   5
-#define LH_OS_SYSTEM_POSIX_KEY_PRESS        2
-#define LH_OS_SYSTEM_POSIX_KEY_RELEASE      3
-#define LH_OS_SYSTEM_POSIX_CLIENT_MESSAGE   33
+/** @brief `XImage`. */
+struct lh_os_system_posix_ximage
+{
+    lh_os_system_posix_ximage_fields;
+};
+typedef struct lh_os_system_posix_ximage lh_os_system_posix_ximage_t;
 
-/* `XCreateWindow` valuemask bits. */
-#define LH_OS_SYSTEM_POSIX_CW_BACK_PIXEL (1L << 1)
-#define LH_OS_SYSTEM_POSIX_CW_EVENT_MASK  (1L << 17)
+/* ── Constants (X.h, Xutil.h, keysymdef.h) ───────────────────────────────── */
 
-/* `XCreateWindow` class. */
-#define LH_OS_SYSTEM_POSIX_INPUT_OUTPUT      1
-#define LH_OS_SYSTEM_POSIX_COPY_FROM_PARENT  0
+#define LH_OS_SYSTEM_POSIX_X_NONE 0UL
+#define LH_OS_SYSTEM_POSIX_X_CURRENT_TIME 0UL
 
-/* `Depth` (XCreateWindow's `depth` arg). `CopyFromParent` means "match the
-   parent window's depth", which is what we always want for a top-level. */
-#define LH_OS_SYSTEM_POSIX_COPY_FROM_PARENT_DEPTH  0
+/* Event types. */
+#define LH_OS_SYSTEM_POSIX_X_KEY_PRESS 2
+#define LH_OS_SYSTEM_POSIX_X_KEY_RELEASE 3
+#define LH_OS_SYSTEM_POSIX_X_BUTTON_PRESS 4
+#define LH_OS_SYSTEM_POSIX_X_BUTTON_RELEASE 5
+#define LH_OS_SYSTEM_POSIX_X_MOTION_NOTIFY 6
+#define LH_OS_SYSTEM_POSIX_X_EXPOSE 12
+#define LH_OS_SYSTEM_POSIX_X_MAP_NOTIFY 19
+#define LH_OS_SYSTEM_POSIX_X_CONFIGURE_NOTIFY 22
+#define LH_OS_SYSTEM_POSIX_X_PROPERTY_NOTIFY 28
+#define LH_OS_SYSTEM_POSIX_X_CLIENT_MESSAGE 33
 
-/* Event mask bits. */
-#define LH_OS_SYSTEM_POSIX_EXPOSURE_MASK         (1L << 15)
-#define LH_OS_SYSTEM_POSIX_BUTTON_PRESS_MASK     (1L << 2)
-#define LH_OS_SYSTEM_POSIX_BUTTON_RELEASE_MASK   (1L << 3)
-#define LH_OS_SYSTEM_POSIX_KEY_PRESS_MASK        (1L << 0)
-#define LH_OS_SYSTEM_POSIX_KEY_RELEASE_MASK      (1L << 1)
-#define LH_OS_SYSTEM_POSIX_STRUCTURE_NOTIFY_MASK (1L << 17)
-#define LH_OS_SYSTEM_POSIX_POINTER_MOTION_MASK   (1L << 6)
+/* Event masks. */
+#define LH_OS_SYSTEM_POSIX_X_KEY_PRESS_MASK (1L << 0)
+#define LH_OS_SYSTEM_POSIX_X_KEY_RELEASE_MASK (1L << 1)
+#define LH_OS_SYSTEM_POSIX_X_BUTTON_PRESS_MASK (1L << 2)
+#define LH_OS_SYSTEM_POSIX_X_BUTTON_RELEASE_MASK (1L << 3)
+#define LH_OS_SYSTEM_POSIX_X_POINTER_MOTION_MASK (1L << 6)
+#define LH_OS_SYSTEM_POSIX_X_EXPOSURE_MASK (1L << 15)
+#define LH_OS_SYSTEM_POSIX_X_STRUCTURE_NOTIFY_MASK (1L << 17)
+#define LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_NOTIFY_MASK (1L << 19)
+#define LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_REDIRECT_MASK (1L << 20)
+#define LH_OS_SYSTEM_POSIX_X_PROPERTY_CHANGE_MASK (1L << 22)
 
-/* `XInternAtoms` — names of well-known atoms we register once per
-   connection (we only need `WM_PROTOCOLS` and `WM_DELETE_WINDOW` for
-   window-close handling). */
-#define LH_OS_SYSTEM_POSIX_ATOM_WM_PROTOCOLS   1
-#define LH_OS_SYSTEM_POSIX_ATOM_WM_DELETE_WINDOW 2
+/* Modifier state. */
+#define LH_OS_SYSTEM_POSIX_X_SHIFT_MASK (1U << 0)
 
-/* ── Function declarations (libX11, link with `-lX11`) ──────────────────── */
+/* XCreateWindow: class, and the value-mask bits for the attributes set. */
+#define LH_OS_SYSTEM_POSIX_X_INPUT_OUTPUT 1U
+#define LH_OS_SYSTEM_POSIX_X_COPY_FROM_PARENT 0
+#define LH_OS_SYSTEM_POSIX_X_CW_BACK_PIXMAP (1UL << 0)
+#define LH_OS_SYSTEM_POSIX_X_CW_BIT_GRAVITY (1UL << 4)
+#define LH_OS_SYSTEM_POSIX_X_CW_EVENT_MASK (1UL << 11)
+#define LH_OS_SYSTEM_POSIX_X_NORTH_WEST_GRAVITY 1
 
-lh_os_system_posix_display_p
-XOpenDisplay(const char *display_name);
+/* Image formats and byte orders. */
+#define LH_OS_SYSTEM_POSIX_X_ZPIXMAP 2
+#define LH_OS_SYSTEM_POSIX_X_LSB_FIRST 0
+#define LH_OS_SYSTEM_POSIX_X_MSB_FIRST 1
 
-int
-XCloseDisplay(lh_os_system_posix_display_p display);
+/* Properties. */
+#define LH_OS_SYSTEM_POSIX_X_PROP_MODE_REPLACE 0
+#define LH_OS_SYSTEM_POSIX_X_SUCCESS 0
+#define LH_OS_SYSTEM_POSIX_X_XA_ATOM 4UL
+#define LH_OS_SYSTEM_POSIX_X_XA_CARDINAL 6UL
 
-lh_os_system_window_xid_t
-XCreateWindow(lh_os_system_posix_display_p display,
-              lh_os_system_window_xid_t parent, lh_int_t x, lh_int_t y,
-              lh_uint_t width, lh_uint_t height, lh_uint_t border_width,
-              lh_int_t depth, lh_uint_t class,
-              lh_os_system_posix_visual_t *visual,
-              lh_ulong_t valuemask,
-              lh_os_system_posix_xset_window_attributes_t *attributes);
+/* XEventsQueued modes. */
+#define LH_OS_SYSTEM_POSIX_X_QUEUED_AFTER_READING 1
 
-int
-XDestroyWindow(lh_os_system_posix_display_p display,
-               lh_os_system_window_xid_t window);
+/* XSizeHints flags. */
+#define LH_OS_SYSTEM_POSIX_X_US_POSITION (1L << 0)
+#define LH_OS_SYSTEM_POSIX_X_P_POSITION (1L << 2)
 
-int
-XMapWindow(lh_os_system_posix_display_p display,
-           lh_os_system_window_xid_t window);
+/* Pointer buttons. 4 and 5 are the vertical wheel, 6 and 7 the horizontal one. */
+#define LH_OS_SYSTEM_POSIX_X_BUTTON_LEFT 1U
+#define LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_UP 4U
+#define LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_DOWN 5U
+#define LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_LEFT 6U
+#define LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_RIGHT 7U
 
-int
-XStoreName(lh_os_system_posix_display_p display,
-           lh_os_system_window_xid_t window, const char *window_name);
+/* ── The library ─────────────────────────────────────────────────────────── */
 
-int
-XSelectInput(lh_os_system_posix_display_p display,
-             lh_os_system_window_xid_t window, lh_long_t event_mask);
+#include <lh/os/system/posix/x11/fields.h>
 
-lh_os_system_posix_gc_t *
-XCreateGC(lh_os_system_posix_display_p display,
-          lh_os_system_drawable_xid_t drawable, lh_ulong_t valuemask, void *values);
+/**
+ * @brief libX11, opened at run time: one function pointer per call the backend
+ *        makes, named as Xlib names them.
+ */
+struct lh_os_system_posix_x11
+{
+    lh_os_system_posix_x11_fields;
+};
+typedef struct lh_os_system_posix_x11 lh_os_system_posix_x11_t;
 
-int
-XFreeGC(lh_os_system_posix_display_p display, lh_os_system_posix_gc_t *gc);
-
-int
-XSetForeground(lh_os_system_posix_display_p display,
-               lh_os_system_posix_gc_t *gc, lh_ulong_t foreground);
-
-int
-XFillRectangle(lh_os_system_posix_display_p display,
-               lh_os_system_drawable_xid_t drawable,
-               lh_os_system_posix_gc_t *gc, lh_int_t x, lh_int_t y,
-               lh_uint_t width, lh_uint_t height);
-
-int
-XPending(lh_os_system_posix_display_p display);
-
-int
-XNextEvent(lh_os_system_posix_display_p display,
-           lh_os_system_posix_xevent_t *event_return);
-
-int
-XFlush(lh_os_system_posix_display_p display);
-
-int
-XSync(lh_os_system_posix_display_p display, int discard);
-
-lh_os_system_atom_t
-XInternAtom(lh_os_system_posix_display_p display, const char *atom_name, int only_if_exists);
-
-int
-XSetWMProtocols(lh_os_system_posix_display_p display,
-                lh_os_system_window_xid_t window,
-                lh_os_system_atom_t *protocols, int count);
-
-int
-XGetGeometry(lh_os_system_posix_display_p display, lh_os_system_drawable_xid_t drawable,
-             lh_os_system_window_xid_t *root, lh_int_t *x, lh_int_t *y, lh_uint_t *width,
-             lh_uint_t *height, lh_uint_t *border_width, lh_uint_t *depth);
-
-/* Real functions in libX11 (the same names are macros in `<X11/Xlib.h>`). */
-int
-XDefaultScreen(lh_os_system_posix_display_p display);
-
-int
-XScreenCount(lh_os_system_posix_display_p display);
-
-int
-XDisplayWidth(lh_os_system_posix_display_p display, int screen);
-
-int
-XDisplayHeight(lh_os_system_posix_display_p display, int screen);
+/**
+ * @brief libX11, loaded on the first call and kept for the life of the process.
+ *
+ * @return The functions, or `lh_null` when there is no libX11 on this machine or
+ *         it lacks one of them — a machine without X has no windows, which is a
+ *         window that does not open, not a program that does not start.
+ */
+const lh_os_system_posix_x11_t *
+lh_os_system_posix_x11_load(void);
 
 #endif /* LH_SRC_OS_SYSTEM_POSIX_X11_H */

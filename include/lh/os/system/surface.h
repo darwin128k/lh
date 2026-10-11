@@ -3,7 +3,8 @@
  * @brief Kernel off-screen surface: create, size, pixels, present.
  *
  * The only place that talks to `CreateCompatibleDC` / `CreateDIBSection` /
- * `BitBlt` / `DeleteDC` (Windows). One contract on every platform; the
+ * `BitBlt` / `DeleteDC` (Windows) or `XPutImage` (X11, where a surface is
+ * plain memory and has no DC of its own). One contract on every platform; the
  * backend is picked by CMake. Holds no portable state — a handle in, a
  * result out.
  *
