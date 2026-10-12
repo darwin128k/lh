@@ -125,6 +125,21 @@ option(LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB
         ON)
 
 # -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_RUNTIME_LOGGER_USE_STDLIB
+#
+# Default sink of the runtime logger, lh_runtime_logger() (lh/runtime/logger.c).
+#
+#   ON  — every level is written to stderr from <stdio.h>, one line per record.
+#   OFF — the logger starts with no slots: records are dropped until user code
+#         installs a sink with lh_logger_set(lh_runtime_logger(), ...).
+#
+# Runtime override: lh_logger_set() / lh_logger_assign() on lh_runtime_logger().
+# -----------------------------------------------------------------------------
+option(LH_LIBRARY_OPTION_RUNTIME_LOGGER_USE_STDLIB
+        "Default runtime logger writes to stderr; OFF leaves it without a sink."
+        ON)
+
+# -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT
 #
 # What a failed runtime check hands to its handler (lh/runtime/check.h):

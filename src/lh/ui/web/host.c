@@ -18,6 +18,7 @@
 #include <lh/os/result.h>
 #include <lh/os/tick.h>
 #include <lh/runtime/allocator.h>
+#include <lh/runtime/logger.h>
 #include <lh/str/format/text.h>
 #include <lh/str/parse/text.h>
 #include <lh/ui/canvas.h>
@@ -27,8 +28,6 @@
 #include <lh/ui/scalar.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
-
-#include <stdio.h>
 
 #define HOST_WS_MAX 8u
 #define HOST_WS_RX (LH_UI_WEB_WS_MAX_MSG + 32u)
@@ -1194,7 +1193,7 @@ lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *js
         return lh_bool_false;
     }
     (void)lh_os_net_socket_set_blocking(lh_addr_of(listen_fd), lh_bool_false);
-    (void)fprintf(stderr, "[lh] ui web host http://127.0.0.1:%u/\n", (unsigned)port);
+    lh_logger_notice(lh_runtime_logger(), "[lh] ui web host http://127.0.0.1:%u/", (lh_uint_t)port);
     {
         unsigned gen = 1u;
         unsigned i;
