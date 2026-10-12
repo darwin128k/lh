@@ -3,10 +3,12 @@
  * @brief Serve one ::lh_ui_view_t over HTTP as canvas JSON. No Python.
  *
  * GET `/` is a Canvas2D player. GET `/ui.json` is ::lh_ui_view_draw through
- * ::lh_ui_canvas_backend_web. `ws://…/ws` pushes a frame only when the tree
- * changed and takes the same events a window delivers. HTTP remains for a
- * first paint and for tools. A 3D pane is ::lh_ui_viewport3d, not an op in
- * that JSON. The host does not know whose tree it is.
+ * ::lh_ui_canvas_backend_web. `ws://…/ws` (and `wss` when the page is TLS)
+ * pushes a frame only when the tree changed. Several tabs may share the
+ * listen socket. Frames are `lh/ui/web/ws.h`: ping/pong, close, fragments,
+ * a send queue. TLS itself is not in this host — WINVER is XP, loopback is
+ * cleartext; `wss` is the same codec on a TLS stream when one exists. HTTP
+ * remains for a first paint. A 3D pane is ::lh_ui_viewport3d, not an op.
  *
  * Requires ::LH_LIBRARY_OPTION_UI and ::LH_LIBRARY_OPTION_OS.
  */

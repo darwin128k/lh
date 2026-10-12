@@ -4,6 +4,7 @@
  */
 
 #include <lh/ui/web/host.h>
+#include <lh/ui/web/ws.h>
 
 #include <lh/crypto/sha.h>
 #include <lh/net/ip.h>
@@ -27,8 +28,43 @@
 #if defined(_WIN32)
 #    include <windows.h>
 #else
+#    include <time.h>
 #    include <unistd.h>
 #endif
+
+#define HOST_WS_MAX 8u
+#define HOST_WS_RX (LH_UI_WEB_WS_MAX_MSG + 32u)
+#define HOST_WS_QMAX (4u * 1024u * 1024u)
+#define HOST_WS_PING_MS 15000u
+#define HOST_WS_DEAD_MS 45000u
+
+typedef struct host_ws_q
+{
+    struct host_ws_q *next;
+    unsigned char *bytes;
+    unsigned len;
+    unsigned off;
+} host_ws_q_t;
+
+typedef struct host_ws_cli
+{
+    lh_os_net_socket_t sock;
+    unsigned char *rx;
+    unsigned rx_len;
+    unsigned char *msg;
+    unsigned msg_len;
+    unsigned msg_cap;
+    unsigned msg_op;
+    lh_bool_t msg_on;
+    host_ws_q_t *qhead;
+    host_ws_q_t *qtail;
+    unsigned queued;
+    unsigned seen;
+    unsigned last_rx_ms;
+    unsigned last_ping_ms;
+    lh_bool_t used;
+    lh_bool_t closing;
+} host_ws_cli_t;
 
 static const char lh_ui_web_page[] =
     "<!doctype html><html lang=\"ru\"><head><meta charset=\"utf-8\">"
@@ -101,10 +137,22 @@ static const char lh_ui_web_page[] =
     "e.preventDefault();emit('t '+e.key.codePointAt(0));}"
     "};\n"
     "c.focus();\n"
-    "try{sock=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws');"
+    "var sock=null,retry=200,pollId=0,retryId=0;\n"
+    "function stopPoll(){if(pollId){clearInterval(pollId);pollId=0;}}\n"
+    "function startPoll(){if(!pollId)pollId=setInterval(poll,80);}\n"
+    "function armRetry(){if(retryId)return;retryId=setTimeout(function(){retryId=0;openWs();},retry);"
+    "retry=Math.min(retry*2,5000);}\n"
+    "function openWs(){"
+    "if(sock&&(sock.readyState===0||sock.readyState===1))return;"
+    "try{sock=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws');}"
+    "catch(e){sock=null;startPoll();armRetry();return;}"
+    "sock.onopen=function(){retry=200;stopPoll();};"
     "sock.onmessage=function(ev){play(JSON.parse(ev.data));};"
-    "sock.onclose=function(){sock=null;load();setInterval(poll,80);};"
-    "}catch(e){sock=null;load();setInterval(poll,80);}\n"
+    "sock.onclose=function(){sock=null;startPoll();armRetry();};"
+    "sock.onerror=function(){};"
+    "}\n"
+    "load();\n"
+    "openWs();\n"
     "</script></body></html>";
 
 static void
@@ -114,6 +162,19 @@ host_idle_ms(unsigned ms)
     Sleep(ms);
 #else
     usleep((unsigned)(ms * 1000u));
+#endif
+}
+
+static unsigned
+host_now_ms(void)
+{
+#if defined(_WIN32)
+    return (unsigned)GetTickCount();
+#else
+    struct timespec ts;
+
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (unsigned)((unsigned long)ts.tv_sec * 1000ul + (unsigned long)ts.tv_nsec / 1000000ul);
 #endif
 }
 
@@ -361,40 +422,6 @@ host_ws_upgrade(lh_os_net_socket_t *client, const char *req)
 }
 
 static void
-host_ws_send_text(lh_os_net_socket_t *client, const char *body, lh_usize_t len)
-{
-    unsigned char head[10];
-    unsigned hlen;
-
-    head[0] = 0x81u;
-    if (len < 126u)
-    {
-        head[1] = (unsigned char)len;
-        hlen = 2u;
-    }
-    else if (len <= 65535u)
-    {
-        head[1] = 126u;
-        head[2] = (unsigned char)(len >> 8);
-        head[3] = (unsigned char)len;
-        hlen = 4u;
-    }
-    else
-    {
-        unsigned i;
-
-        head[1] = 127u;
-        for (i = 0; i < 8u; ++i)
-        {
-            head[9u - i] = (unsigned char)(len >> (8u * i));
-        }
-        hlen = 10u;
-    }
-    host_send_all(client, (const char *)head, hlen);
-    host_send_all(client, body, len);
-}
-
-static void
 host_event_line(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *gen, const char *line)
 {
     int x = 0;
@@ -441,76 +468,373 @@ host_event_line(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigne
     }
 }
 
-static int
-host_ws_take(char *buf, unsigned *len, char *out, unsigned out_cap)
+static void
+host_ws_drop(host_ws_cli_t *c)
 {
-    const unsigned char *p = (const unsigned char *)buf;
-    unsigned opcode;
-    unsigned masked;
-    unsigned plen;
-    unsigned off = 2u;
+    host_ws_q_t *q;
+
+    if (c == lh_null || !c->used)
+    {
+        return;
+    }
+    lh_os_net_socket_close(lh_addr_of(c->sock));
+    lh_os_net_socket_init(lh_addr_of(c->sock));
+    q = c->qhead;
+    while (q != lh_null)
+    {
+        host_ws_q_t *n = q->next;
+
+        free(q->bytes);
+        free(q);
+        q = n;
+    }
+    free(c->rx);
+    free(c->msg);
+    c->rx = lh_null;
+    c->msg = lh_null;
+    c->rx_len = 0u;
+    c->msg_len = 0u;
+    c->msg_cap = 0u;
+    c->msg_on = lh_bool_false;
+    c->qhead = lh_null;
+    c->qtail = lh_null;
+    c->queued = 0u;
+    c->used = lh_bool_false;
+    c->closing = lh_bool_false;
+}
+
+static lh_bool_t
+host_ws_enqueue(host_ws_cli_t *c, unsigned opcode, const void *payload, lh_usize_t plen, lh_bool_t front)
+{
+    const lh_usize_t need = lh_ui_web_ws_frame_size(plen);
+    host_ws_q_t *q;
+    unsigned char *bytes;
+
+    if (c == lh_null || !c->used)
+    {
+        return lh_bool_false;
+    }
+    if (need == 0u || c->queued + (unsigned)need > HOST_WS_QMAX)
+    {
+        host_ws_drop(c);
+        return lh_bool_false;
+    }
+    q = (host_ws_q_t *)malloc(sizeof(*q));
+    bytes = (unsigned char *)malloc(need);
+    if (q == lh_null || bytes == lh_null)
+    {
+        free(q);
+        free(bytes);
+        host_ws_drop(c);
+        return lh_bool_false;
+    }
+    if (lh_ui_web_ws_write(bytes, need, opcode, lh_bool_true, payload, plen) != need)
+    {
+        free(q);
+        free(bytes);
+        host_ws_drop(c);
+        return lh_bool_false;
+    }
+    q->bytes = bytes;
+    q->len = (unsigned)need;
+    q->off = 0u;
+    if (front)
+    {
+        q->next = c->qhead;
+        c->qhead = q;
+        if (c->qtail == lh_null)
+        {
+            c->qtail = q;
+        }
+    }
+    else
+    {
+        q->next = lh_null;
+        if (c->qtail != lh_null)
+        {
+            c->qtail->next = q;
+        }
+        else
+        {
+            c->qhead = q;
+        }
+        c->qtail = q;
+    }
+    c->queued += (unsigned)need;
+    return lh_bool_true;
+}
+
+static void
+host_ws_flush(host_ws_cli_t *c)
+{
+    while (c != lh_null && c->used && c->qhead != lh_null)
+    {
+        host_ws_q_t *q = c->qhead;
+        const unsigned left = q->len - q->off;
+        const unsigned chunk = (left > 16384u) ? 16384u : left;
+        const lh_ssize_t w = lh_os_net_socket_send(lh_addr_of(c->sock), (lh_ptr)(q->bytes + q->off), chunk);
+
+        if (w == LH_OS_RESULT_PENDING)
+        {
+            return;
+        }
+        if (w <= 0)
+        {
+            host_ws_drop(c);
+            return;
+        }
+        q->off += (unsigned)w;
+        c->queued -= (unsigned)w;
+        if (q->off >= q->len)
+        {
+            c->qhead = q->next;
+            if (c->qhead == lh_null)
+            {
+                c->qtail = lh_null;
+            }
+            free(q->bytes);
+            free(q);
+        }
+    }
+    if (c != lh_null && c->used && c->closing && c->qhead == lh_null)
+    {
+        host_ws_drop(c);
+    }
+}
+
+static lh_bool_t
+host_ws_msg_add(host_ws_cli_t *c, const unsigned char *p, lh_usize_t n)
+{
+    unsigned char *grow;
+
+    if (c->msg_len + (unsigned)n > LH_UI_WEB_WS_MAX_MSG)
+    {
+        return lh_bool_false;
+    }
+    if (c->msg_len + (unsigned)n > c->msg_cap)
+    {
+        const unsigned cap = c->msg_len + (unsigned)n;
+        const unsigned next = (c->msg_cap == 0u) ? 256u : (c->msg_cap * 2u);
+        const unsigned want = (cap > next) ? cap : next;
+
+        grow = (unsigned char *)realloc(c->msg, want);
+        if (grow == lh_null)
+        {
+            return lh_bool_false;
+        }
+        c->msg = grow;
+        c->msg_cap = want;
+    }
+    memcpy(c->msg + c->msg_len, p, (size_t)n);
+    c->msg_len += (unsigned)n;
+    return lh_bool_true;
+}
+
+static void
+host_ws_text(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *gen,
+             const unsigned char *p, unsigned n)
+{
+    char line[256];
+
+    if (n >= sizeof(line))
+    {
+        return;
+    }
+    memcpy(line, p, (size_t)n);
+    line[n] = 0;
+    host_event_line(view, hooks, gen, line);
+    (void)c;
+}
+
+static void
+host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *gen,
+               unsigned now)
+{
+    while (c->used && c->rx_len >= 2u)
+    {
+        unsigned opcode = 0;
+        lh_bool_t fin = lh_bool_false;
+        const unsigned char *payload = lh_null;
+        lh_usize_t plen = 0;
+        const unsigned char *mask = lh_null;
+        const lh_usize_t n = lh_ui_web_ws_read(c->rx, c->rx_len, lh_addr_of(opcode), lh_addr_of(fin),
+                                               lh_addr_of(payload), lh_addr_of(plen), lh_addr_of(mask));
+        unsigned char *body;
+
+        if (n == 0u)
+        {
+            return;
+        }
+        if (n == (lh_usize_t)-1)
+        {
+            host_ws_drop(c);
+            return;
+        }
+        body = (unsigned char *)payload;
+        if (mask != lh_null)
+        {
+            lh_ui_web_ws_unmask(body, plen, mask);
+        }
+        c->last_rx_ms = now;
+        if (opcode >= 8u)
+        {
+            if (!fin || plen > 125u)
+            {
+                host_ws_drop(c);
+                return;
+            }
+            if (opcode == LH_UI_WEB_WS_PING)
+            {
+                if (!host_ws_enqueue(c, LH_UI_WEB_WS_PONG, body, plen, lh_bool_true))
+                {
+                    return;
+                }
+            }
+            else if (opcode == LH_UI_WEB_WS_CLOSE)
+            {
+                c->closing = lh_bool_true;
+                if (!host_ws_enqueue(c, LH_UI_WEB_WS_CLOSE, body, plen, lh_bool_true))
+                {
+                    return;
+                }
+            }
+        }
+        else if (opcode == LH_UI_WEB_WS_CONT)
+        {
+            if (!c->msg_on || !host_ws_msg_add(c, body, plen))
+            {
+                host_ws_drop(c);
+                return;
+            }
+            if (fin)
+            {
+                if (c->msg_op == LH_UI_WEB_WS_TEXT)
+                {
+                    host_ws_text(c, view, hooks, gen, c->msg, c->msg_len);
+                }
+                c->msg_on = lh_bool_false;
+                c->msg_len = 0u;
+            }
+        }
+        else if (opcode == LH_UI_WEB_WS_TEXT || opcode == LH_UI_WEB_WS_BIN)
+        {
+            if (c->msg_on)
+            {
+                host_ws_drop(c);
+                return;
+            }
+            if (fin)
+            {
+                if (opcode == LH_UI_WEB_WS_TEXT)
+                {
+                    host_ws_text(c, view, hooks, gen, body, (unsigned)plen);
+                }
+            }
+            else
+            {
+                c->msg_on = lh_bool_true;
+                c->msg_op = opcode;
+                c->msg_len = 0u;
+                if (!host_ws_msg_add(c, body, plen))
+                {
+                    host_ws_drop(c);
+                    return;
+                }
+            }
+        }
+        else
+        {
+            host_ws_drop(c);
+            return;
+        }
+        memmove(c->rx, c->rx + n, (size_t)(c->rx_len - (unsigned)n));
+        c->rx_len -= (unsigned)n;
+    }
+}
+
+static void
+host_ws_attach(host_ws_cli_t *slots, lh_os_net_socket_t *client, unsigned now)
+{
     unsigned i;
-    unsigned char mask[4];
 
-    if (*len < 2u)
+    for (i = 0u; i < HOST_WS_MAX; ++i)
     {
-        return 0;
-    }
-    opcode = (unsigned)(p[0] & 0x0fu);
-    masked = (unsigned)(p[1] & 0x80u);
-    plen = (unsigned)(p[1] & 0x7fu);
-    if (plen == 126u)
-    {
-        if (*len < 4u)
-        {
-            return 0;
-        }
-        plen = ((unsigned)p[2] << 8) | (unsigned)p[3];
-        off = 4u;
-    }
-    else if (plen == 127u)
-    {
-        return -1;
-    }
-    if (masked != 0u)
-    {
-        if (*len < off + 4u + plen)
-        {
-            return 0;
-        }
-        memcpy(mask, p + off, 4u);
-        off += 4u;
-    }
-    else if (*len < off + plen)
-    {
-        return 0;
-    }
-    if (opcode == 8u)
-    {
-        return -1;
-    }
-    if (plen >= out_cap)
-    {
-        return -1;
-    }
-    for (i = 0; i < plen; ++i)
-    {
-        unsigned char b = p[off + i];
+        host_ws_cli_t *c = slots + i;
 
-        if (masked != 0u)
+        if (c->used)
         {
-            b = (unsigned char)(b ^ mask[i & 3u]);
+            continue;
         }
-        out[i] = (char)b;
+        c->rx = (unsigned char *)malloc(HOST_WS_RX);
+        if (c->rx == lh_null)
+        {
+            lh_os_net_socket_close(client);
+            return;
+        }
+        c->sock = *client;
+        c->rx_len = 0u;
+        c->msg = lh_null;
+        c->msg_len = 0u;
+        c->msg_cap = 0u;
+        c->msg_on = lh_bool_false;
+        c->qhead = lh_null;
+        c->qtail = lh_null;
+        c->queued = 0u;
+        c->seen = 0u;
+        c->last_rx_ms = now;
+        c->last_ping_ms = now;
+        c->used = lh_bool_true;
+        c->closing = lh_bool_false;
+        return;
     }
-    out[plen] = 0;
-    memmove(buf, buf + off + plen, (size_t)(*len - off - plen));
-    *len -= off + plen;
-    if (opcode == 9u)
+    lh_os_net_socket_close(client);
+}
+
+static void
+host_ws_pump(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *gen,
+             unsigned now)
+{
+    lh_ssize_t got;
+
+    if (!c->used)
     {
-        return 0;
+        return;
     }
-    return (int)plen;
+    if ((now - c->last_rx_ms) > HOST_WS_DEAD_MS)
+    {
+        host_ws_drop(c);
+        return;
+    }
+    if (!c->closing && (now - c->last_ping_ms) >= HOST_WS_PING_MS)
+    {
+        if (!host_ws_enqueue(c, LH_UI_WEB_WS_PING, lh_null, 0u, lh_bool_true))
+        {
+            return;
+        }
+        c->last_ping_ms = now;
+    }
+    if (c->rx_len >= HOST_WS_RX)
+    {
+        host_ws_drop(c);
+        return;
+    }
+    got = lh_os_net_socket_recv(lh_addr_of(c->sock), c->rx + c->rx_len, HOST_WS_RX - c->rx_len);
+    if (got == LH_OS_RESULT_PENDING)
+    {
+        host_ws_flush(c);
+        return;
+    }
+    if (got <= 0)
+    {
+        host_ws_drop(c);
+        return;
+    }
+    c->rx_len += (unsigned)got;
+    host_ws_ingest(c, view, hooks, gen, now);
+    if (c->used)
+    {
+        host_ws_flush(c);
+    }
 }
 
 static lh_bool_t
@@ -675,19 +999,22 @@ lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *js
     fprintf(stderr, "[lh] ui web host http://127.0.0.1:%u/\n", (unsigned)port);
     {
         unsigned gen = 1u;
-        unsigned sent = 0u;
-        lh_os_net_socket_t ws;
-        lh_bool_t have_ws = lh_bool_false;
-        char ws_buf[2048];
-        unsigned ws_fill = 0u;
+        unsigned i;
+        host_ws_cli_t cli[HOST_WS_MAX];
 
-        lh_os_net_socket_init(lh_addr_of(ws));
+        memset(cli, 0, sizeof(cli));
+        for (i = 0u; i < HOST_WS_MAX; ++i)
+        {
+            lh_os_net_socket_init(lh_addr_of(cli[i].sock));
+        }
         for (;;)
         {
             lh_os_net_socket_t client;
             lh_net_ip4_socket_addr_t peer;
             lh_ui_rect_t damage;
             lh_bool_t accepted;
+            lh_bool_t need_draw = lh_bool_false;
+            const unsigned now = host_now_ms();
 
             if (hooks != lh_null && hooks->tick != lh_null)
             {
@@ -704,67 +1031,43 @@ lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *js
                 if (host_handle(view, width, height, json, json_cap, hooks, lh_addr_of(gen),
                                 lh_addr_of(client)))
                 {
-                    if (have_ws)
-                    {
-                        lh_os_net_socket_close(lh_addr_of(ws));
-                    }
-                    ws = client;
-                    have_ws = lh_bool_true;
-                    sent = 0u;
-                    ws_fill = 0u;
+                    host_ws_attach(cli, lh_addr_of(client), now);
                 }
                 else
                 {
                     lh_os_net_socket_close(lh_addr_of(client));
                 }
             }
-            if (have_ws)
+            for (i = 0u; i < HOST_WS_MAX; ++i)
             {
-                const lh_ssize_t got =
-                    lh_os_net_socket_recv(lh_addr_of(ws), ws_buf + ws_fill, sizeof(ws_buf) - 1u - ws_fill);
-
-                if (got == LH_OS_RESULT_PENDING)
+                host_ws_pump(lh_addr_of(cli[i]), view, hooks, lh_addr_of(gen), now);
+                if (cli[i].used && !cli[i].closing && cli[i].seen != gen && cli[i].qhead == lh_null)
                 {
-                    /* idle */
-                }
-                else if (got <= 0)
-                {
-                    lh_os_net_socket_close(lh_addr_of(ws));
-                    lh_os_net_socket_init(lh_addr_of(ws));
-                    have_ws = lh_bool_false;
-                }
-                else
-                {
-                    ws_fill += (unsigned)got;
-                    for (;;)
-                    {
-                        char line[256];
-                        const int take = host_ws_take(ws_buf, lh_addr_of(ws_fill), line, (unsigned)sizeof(line));
-
-                        if (take < 0)
-                        {
-                            lh_os_net_socket_close(lh_addr_of(ws));
-                            lh_os_net_socket_init(lh_addr_of(ws));
-                            have_ws = lh_bool_false;
-                            break;
-                        }
-                        if (take == 0)
-                        {
-                            break;
-                        }
-                        host_event_line(view, hooks, lh_addr_of(gen), line);
-                    }
+                    need_draw = lh_bool_true;
                 }
             }
-            if (have_ws && gen != sent)
+            if (need_draw)
             {
                 lh_ui_canvas_web_t web;
 
                 if (host_draw(view, width, height, json, json_cap, lh_addr_of(web)))
                 {
-                    host_ws_send_text(lh_addr_of(ws), lh_ui_canvas_web_bytes(lh_addr_of(web)),
-                                      lh_ui_canvas_web_length(lh_addr_of(web)));
-                    sent = gen;
+                    const char *body = lh_ui_canvas_web_bytes(lh_addr_of(web));
+                    const lh_usize_t len = lh_ui_canvas_web_length(lh_addr_of(web));
+
+                    for (i = 0u; i < HOST_WS_MAX; ++i)
+                    {
+                        if (cli[i].used && !cli[i].closing && cli[i].seen != gen &&
+                            cli[i].qhead == lh_null)
+                        {
+                            if (host_ws_enqueue(lh_addr_of(cli[i]), LH_UI_WEB_WS_TEXT, body, len,
+                                                lh_bool_false))
+                            {
+                                cli[i].seen = gen;
+                                host_ws_flush(lh_addr_of(cli[i]));
+                            }
+                        }
+                    }
                 }
             }
             if (!accepted)
