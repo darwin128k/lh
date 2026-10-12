@@ -94,7 +94,8 @@ static const char lh_ui_web_page[] =
     /* atlas: covers by id, kept for the life of the page (the host sends each
        once per connection). tints: one coloured copy per (id, colour), kept
        across frames too -- rebuilding them every frame was most of a frame. */
-    "var atlas=[],tints={},ntint=0,fw=980,fh=620,cssS=1,lastD=null,pend=null,raf=0,v3on=0;\n"
+    "var atlas=[],tints={},ntint=0,fw=980,fh=620,cssS=1,lastD=null,pend=null,raf=0,v3on=0;"
+    "var scaleMode=(/scale=layout/.test(location.search)?'layout':'fit'),lastZW=0,lastZH=0;\n"
     "function hexv(c){return c<58?c-48:(c|32)-87;}\n"
     "function decodeCover(w,h,cv){var im=document.createElement('canvas');im.width=w;im.height=h;"
     "if(w<=0||h<=0)return im;var g=im.getContext('2d'),id=g.createImageData(w,h),p=id.data,n=w*h,i,j,k;"
@@ -123,10 +124,13 @@ static const char lh_ui_web_page[] =
     "v.width=Math.max(1,Math.round(r[2]*cssS*dpr));v.height=Math.max(1,Math.round(r[3]*cssS*dpr));"
     "if(!v.gl)v.gl=v.getContext('webgl')||v.getContext('experimental-webgl');}\n"
     "function fit(){"
-    "var c=document.getElementById('c'),vw=window.innerWidth,vh=window.innerHeight;"
-    "var s=Math.min(vw/fw,vh/fh);if(!isFinite(s)||s<=0)s=1;cssS=s;"
-    "var dpr=window.devicePixelRatio||1;"
-    "var bw=Math.max(1,Math.round(fw*s*dpr)),bh=Math.max(1,Math.round(fh*s*dpr));"
+    "var c=document.getElementById('c'),vw=window.innerWidth,vh=window.innerHeight,dpr=window.devicePixelRatio||1,s,bw,bh;"
+    "if(scaleMode==='layout'){cssS=1;bw=Math.max(1,Math.round(fw*dpr));bh=Math.max(1,Math.round(fh*dpr));"
+    "if(c.width!==bw)c.width=bw;if(c.height!==bh)c.height=bh;"
+    "c.style.width=fw+'px';c.style.height=fh+'px';c.style.left='0';c.style.top='0';"
+    "return c.getContext('2d');}"
+    "s=Math.min(vw/fw,vh/fh);if(!isFinite(s)||s<=0)s=1;cssS=s;"
+    "bw=Math.max(1,Math.round(fw*s*dpr));bh=Math.max(1,Math.round(fh*s*dpr));"
     "if(c.width!==bw)c.width=bw;if(c.height!==bh)c.height=bh;"
     "c.style.width=Math.round(fw*s)+'px';c.style.height=Math.round(fh*s)+'px';"
     "c.style.left=Math.round((vw-fw*s)/2)+'px';c.style.top=Math.round((vh-fh*s)/2)+'px';"
@@ -152,7 +156,10 @@ static const char lh_ui_web_page[] =
     "function pos(e){var c=document.getElementById('c'),r=c.getBoundingClientRect();"
     "return {x:Math.round((e.clientX-r.left)*fw/r.width),y:Math.round((e.clientY-r.top)*fh/r.height)};"
     "}\n"
-    "window.onresize=function(){if(lastD)play(lastD);};\n"
+    "function reportSize(){if(scaleMode!=='layout')return;"
+    "var w=window.innerWidth|0,h=window.innerHeight|0;if(w<1)w=1;if(h<1)h=1;"
+    "if(w===lastZW&&h===lastZH)return;lastZW=w;lastZH=h;emit('z '+w+' '+h);}\n"
+    "window.onresize=function(){if(scaleMode==='layout')reportSize();else if(lastD)play(lastD);};\n"
     "var busy=0,rev=-1;\n"
     "function load(){if(busy)return busy;busy=fetch('/ui.json').then(function(r){return r.json();}).then(show).then(function(){busy=0;},function(){busy=0;});return busy;}\n"
     "function poll(){fetch('/ui.rev').then(function(r){return r.text();}).then(function(t){var n=+t;if(n!==rev){rev=n;load();}});}\n"
@@ -163,6 +170,7 @@ static const char lh_ui_web_page[] =
     "if(p[0]==='w')return fetch('/ui/wheel?x='+p[1]+'&y='+p[2]+'&dx='+p[3]+'&dy='+p[4]).then(function(){rev=-1;return load();});"
     "if(p[0]==='k')return fetch('/ui/key?k='+p[1]).then(function(){rev=-1;return load();});"
     "if(p[0]==='t')return fetch('/ui/text?c='+p[1]).then(function(){rev=-1;return load();});"
+    "if(p[0]==='z')return fetch('/ui/size?w='+p[1]+'&h='+p[2]).then(function(){rev=-1;return load();});"
     "}\n"
     "var c=document.getElementById('c');\n"
     "c.onmousedown=function(e){var p=pos(e);emit('p '+p.x+' '+p.y);};\n"
@@ -187,12 +195,12 @@ static const char lh_ui_web_page[] =
     "if(sock&&(sock.readyState===0||sock.readyState===1))return;"
     "try{sock=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws');}"
     "catch(e){sock=null;startPoll();armRetry();return;}"
-    "sock.onopen=function(){retry=200;stopPoll();};"
+    "sock.onopen=function(){retry=200;stopPoll();reportSize();};"
     "sock.onmessage=function(ev){show(JSON.parse(ev.data));};"
     "sock.onclose=function(){sock=null;startPoll();armRetry();};"
     "sock.onerror=function(){};"
     "}\n"
-    "load();\n"
+    "if(scaleMode==='layout')reportSize();else load();\n"
     "openWs();\n"
     "</script></body></html>";
 
@@ -374,6 +382,47 @@ host_wheel(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int y
     (void)lh_ui_view_wheel(view, host_point(x, y), lh_cast_static(lh_ui_scalar_t, dx), lh_cast_static(lh_ui_scalar_t, dy));
 }
 
+/* Layout mode: the tab is the view. Clamp so a 1×1 or a 16k request cannot
+   blow the JSON scratch or starve the host. Fit mode never calls this. */
+#define HOST_SIZE_MIN 160
+#define HOST_SIZE_MAX 4096
+
+static lh_bool_t
+host_resize(const lh_ui_web_host_hooks_t *hooks, unsigned *width, unsigned *height, int w, int h)
+{
+    if (width == lh_null || height == lh_null)
+    {
+        return lh_bool_false;
+    }
+    if (w < HOST_SIZE_MIN)
+    {
+        w = HOST_SIZE_MIN;
+    }
+    if (h < HOST_SIZE_MIN)
+    {
+        h = HOST_SIZE_MIN;
+    }
+    if (w > HOST_SIZE_MAX)
+    {
+        w = HOST_SIZE_MAX;
+    }
+    if (h > HOST_SIZE_MAX)
+    {
+        h = HOST_SIZE_MAX;
+    }
+    if (lh_cast_static(unsigned, w) == *width && lh_cast_static(unsigned, h) == *height)
+    {
+        return lh_bool_false;
+    }
+    *width = lh_cast_static(unsigned, w);
+    *height = lh_cast_static(unsigned, h);
+    if (hooks != lh_null && hooks->resize != lh_null)
+    {
+        hooks->resize(w, h, hooks->ctx);
+    }
+    return lh_bool_true;
+}
+
 static lh_void
 host_key(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int k)
 {
@@ -490,10 +539,11 @@ host_ws_upgrade(lh_os_net_socket_t *client, const char *req, lh_usize_t len)
     return lh_bool_true;
 }
 
-/* One input from the player: `p x y`, `r x y`, `w x y dx dy`, `k key`, `t code`. */
+/* One input from the player: `p x y`, `r x y`, `w x y dx dy`, `k key`, `t code`,
+   `z w h` (layout-mode size). */
 static lh_void
-host_event_line(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *gen, const char *line,
-                lh_usize_t len)
+host_event_line(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *width, unsigned *height,
+                unsigned *gen, const char *line, lh_usize_t len)
 {
     lh_sint_t x = 0;
     lh_sint_t y = 0;
@@ -522,6 +572,13 @@ host_event_line(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigne
     else if (lh_str_ptr_parse_text(line, len, "t %u", lh_addr_of(code)) != 0u)
     {
         host_text(view, hooks, lh_cast_static(lh_u32_t, code));
+    }
+    else if (lh_str_ptr_parse_text(line, len, "z %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
+    {
+        if (!host_resize(hooks, width, height, lh_cast_static(int, x), lh_cast_static(int, y)))
+        {
+            return;
+        }
     }
     else
     {
@@ -686,8 +743,8 @@ host_ws_msg_add(host_ws_cli_t *c, lh_byte_cptr p, lh_usize_t n)
 }
 
 static lh_void
-host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *gen,
-               unsigned now)
+host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *width,
+               unsigned *height, unsigned *gen, unsigned now)
 {
     while (c->used && c->rx_len >= 2u)
     {
@@ -749,7 +806,8 @@ host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_
             {
                 if (c->msg_op == LH_UI_WEB_WS_TEXT)
                 {
-                    host_event_line(view, hooks, gen, lh_ptr_rcast(const char, c->msg), c->msg_len);
+                    host_event_line(view, hooks, width, height, gen, lh_ptr_rcast(const char, c->msg),
+                                    c->msg_len);
                 }
                 c->msg_on = lh_bool_false;
                 c->msg_len = 0u;
@@ -766,7 +824,7 @@ host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_
             {
                 if (opcode == LH_UI_WEB_WS_TEXT)
                 {
-                    host_event_line(view, hooks, gen, lh_ptr_rcast(const char, body), plen);
+                    host_event_line(view, hooks, width, height, gen, lh_ptr_rcast(const char, body), plen);
                 }
             }
             else
@@ -831,8 +889,8 @@ host_ws_attach(host_ws_cli_t *slots, lh_os_net_socket_t *client, unsigned now)
 }
 
 static lh_void
-host_ws_pump(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *gen,
-             unsigned now)
+host_ws_pump(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *width,
+             unsigned *height, unsigned *gen, unsigned now)
 {
     lh_ssize_t got;
 
@@ -870,7 +928,7 @@ host_ws_pump(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_t 
         return;
     }
     c->rx_len += lh_cast_static(unsigned, got);
-    host_ws_ingest(c, view, hooks, gen, now);
+    host_ws_ingest(c, view, hooks, width, height, gen, now);
     if (c->used)
     {
         host_ws_flush(c);
@@ -895,9 +953,10 @@ host_draw(lh_ui_view_t *view, unsigned width, unsigned height, char *json, lh_us
     return lh_ui_canvas_web_close(web);
 }
 
-/* An input over HTTP: the same five as a WS line, with the numbers in the query. */
+/* An input over HTTP: the same lines as WS, with the numbers in the query. */
 static lh_bool_t
-host_handle_input(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, const char *req, lh_usize_t len)
+host_handle_input(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *width, unsigned *height,
+                  const char *req, lh_usize_t len)
 {
     const int x = host_query_int(req, len, host_lit("x="));
     const int y = host_query_int(req, len, host_lit("y="));
@@ -928,6 +987,12 @@ host_handle_input(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, const
     {
         host_text(view, hooks, lh_cast_static(lh_u32_t, host_query_uint(req, len, host_lit("c="))));
     }
+    else if (host_route(req, len, host_lit("/ui/size")))
+    {
+        /* Always handled: an unchanged size is still a valid no-op, not a 404. */
+        (void)host_resize(hooks, width, height, host_query_int(req, len, host_lit("w=")),
+                          host_query_int(req, len, host_lit("h=")));
+    }
     else
     {
         return lh_bool_false;
@@ -936,7 +1001,7 @@ host_handle_input(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, const
 }
 
 static lh_bool_t
-host_handle(lh_ui_view_t *view, unsigned width, unsigned height, char *json, lh_usize_t json_cap,
+host_handle(lh_ui_view_t *view, unsigned *width, unsigned *height, char *json, lh_usize_t json_cap,
             const lh_ui_web_host_hooks_t *hooks, unsigned *gen, lh_os_net_socket_t *client)
 {
     char req[1024];
@@ -964,7 +1029,7 @@ host_handle(lh_ui_view_t *view, unsigned width, unsigned height, char *json, lh_
     {
         return host_ws_upgrade(client, req, len);
     }
-    if (host_handle_input(view, hooks, req, len))
+    if (host_handle_input(view, hooks, width, height, req, len))
     {
         host_bump(gen);
         host_reply_text(client, 200u, host_lit("ok\n"));
@@ -985,7 +1050,7 @@ host_handle(lh_ui_view_t *view, unsigned width, unsigned height, char *json, lh_
             host_reply_text(client, 304u, host_lit(""));
             return lh_bool_false;
         }
-        if (!host_draw(view, width, height, json, json_cap, lh_addr_of(web), lh_null))
+        if (!host_draw(view, *width, *height, json, json_cap, lh_addr_of(web), lh_null))
         {
             host_reply_text(client, 500u, host_lit("draw failed\n"));
             return lh_bool_false;
@@ -994,7 +1059,9 @@ host_handle(lh_ui_view_t *view, unsigned width, unsigned height, char *json, lh_
                    lh_ui_canvas_web_length(lh_addr_of(web)));
         return lh_bool_false;
     }
-    if (host_route(req, len, host_lit("/ ")) || host_route(req, len, host_lit("/index.html")))
+    /* `/` and `/?scale=…` — not a bare `/` prefix, or `/ui.json` would match too. */
+    if (host_route(req, len, host_lit("/ ")) || host_route(req, len, host_lit("/?")) ||
+        host_route(req, len, host_lit("/index.html")))
     {
         host_reply(client, 200u, "text/html; charset=utf-8", host_lit(lh_ui_web_page));
         return lh_bool_false;
@@ -1107,8 +1174,8 @@ host_ws_frame(host_ws_cli_t *cli, host_ws_stream_t *stream, lh_ui_view_t *view, 
 }
 
 static lh_void
-host_accept_all(lh_os_net_socket_t *listen_fd, host_ws_cli_t *cli, lh_ui_view_t *view, unsigned width,
-                unsigned height, char *json, lh_usize_t json_cap, const lh_ui_web_host_hooks_t *hooks,
+host_accept_all(lh_os_net_socket_t *listen_fd, host_ws_cli_t *cli, lh_ui_view_t *view, unsigned *width,
+                unsigned *height, char *json, lh_usize_t json_cap, const lh_ui_web_host_hooks_t *hooks,
                 unsigned *gen, unsigned now)
 {
     for (;;)
@@ -1196,10 +1263,14 @@ lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *js
         return lh_bool_false;
     }
     (void)lh_os_net_socket_set_blocking(lh_addr_of(listen_fd), lh_bool_false);
-    lh_logger_notice(lh_runtime_logger(), "[lh] ui web host http://127.0.0.1:%u/", lh_cast_static(lh_uint_t, port));
+    lh_logger_notice(lh_runtime_logger(),
+                     "[lh] ui web host http://127.0.0.1:%u/ (fit default, ?scale=layout)",
+                     lh_cast_static(lh_uint_t, port));
     {
         unsigned gen = 1u;
         unsigned i;
+        unsigned frame_w = width;
+        unsigned frame_h = height;
         host_ws_cli_t cli[HOST_WS_MAX];
         host_ws_stream_t stream;
 
@@ -1219,11 +1290,12 @@ lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *js
             {
                 hooks->tick(hooks->ctx);
             }
-            host_accept_all(lh_addr_of(listen_fd), cli, view, width, height, json, json_cap, hooks,
-                            lh_addr_of(gen), now);
+            host_accept_all(lh_addr_of(listen_fd), cli, view, lh_addr_of(frame_w), lh_addr_of(frame_h), json,
+                            json_cap, hooks, lh_addr_of(gen), now);
             for (i = 0u; i < HOST_WS_MAX; ++i)
             {
-                host_ws_pump(lh_addr_of(cli[i]), view, hooks, lh_addr_of(gen), now);
+                host_ws_pump(lh_addr_of(cli[i]), view, hooks, lh_addr_of(frame_w), lh_addr_of(frame_h),
+                             lh_addr_of(gen), now);
             }
             /* After the input, not before it: an event and the damage it caused
                are one change and one frame, not two. */
@@ -1231,8 +1303,8 @@ lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *js
             {
                 ++gen;
             }
-            host_ws_frame(cli, lh_addr_of(stream), view, width, height, json, json_cap, gen);
-            spent = lh_cast_static(unsigned, lh_os_tick_ms())- now;
+            host_ws_frame(cli, lh_addr_of(stream), view, frame_w, frame_h, json, json_cap, gen);
+            spent = lh_cast_static(unsigned, lh_os_tick_ms()) - now;
             host_wait(lh_addr_of(listen_fd), cli, (spent >= HOST_TICK_MS) ? 0u : HOST_TICK_MS - spent);
         }
     }
