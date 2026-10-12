@@ -10,6 +10,7 @@
 #include <lh/ui/color.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/scalar.h>
+#include <lh/ui/shadow.h>
 #include <lh/util/addr.h>
 
 #include <fstream>
@@ -44,6 +45,34 @@ TEST(canvas_web, records_engine_ops_not_dom)
     EXPECT_NE(body.find("\"op\":\"fill_round_rect\""), std::string::npos);
     EXPECT_EQ(body.find("<div"), std::string::npos);
     EXPECT_EQ(body.find("grid-template"), std::string::npos);
+}
+
+TEST(canvas_web, shadow_is_one_op_not_a_pixel_each)
+{
+    lh_ui_canvas_web_t web;
+    lh_ui_canvas_t canvas;
+    lh_ui_rect_t rect;
+    lh_ui_color_t fill;
+    lh_ui_shadow_t shadow;
+    char buf[2048];
+
+    ASSERT_TRUE(lh_ui_canvas_web_open_mem(lh_addr_of(web), buf, sizeof(buf), 80u, 80u));
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_web), lh_addr_of(web));
+    lh_ui_color_init(lh_addr_of(fill), 0, 0, 0, 40);
+    lh_ui_shadow_init(lh_addr_of(shadow));
+    lh_ui_shadow_set_color(lh_addr_of(shadow), fill);
+    lh_ui_shadow_set_spread(lh_addr_of(shadow), (lh_ui_scalar_t)8);
+    lh_ui_rect_init(lh_addr_of(rect), 10, 10, 40, 40);
+    ASSERT_TRUE(lh_ui_canvas_shadow(lh_addr_of(canvas), lh_addr_of(rect), (lh_ui_scalar_t)8,
+                                   lh_addr_of(shadow)));
+    ASSERT_TRUE(lh_ui_canvas_web_close(lh_addr_of(web)));
+    {
+        const std::string body(lh_ui_canvas_web_bytes(lh_addr_of(web)),
+                               (size_t)lh_ui_canvas_web_length(lh_addr_of(web)));
+        EXPECT_NE(body.find("\"op\":\"shadow\""), std::string::npos);
+        EXPECT_EQ(body.find("\"op\":\"fill_rect\""), std::string::npos);
+        EXPECT_EQ(web.ops, 1u);
+    }
 }
 
 TEST(canvas_web, memory_buffer_is_the_same_ops_without_a_file)

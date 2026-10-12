@@ -14,6 +14,7 @@
 #include <lh/ui/canvas.h>
 #include <lh/ui/canvas/web.h>
 #include <lh/ui/point.h>
+#include <lh/ui/rect.h>
 #include <lh/ui/scalar.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -36,27 +37,37 @@ static const char lh_ui_web_page[] =
     "<canvas id=\"c\" width=\"980\" height=\"620\" tabindex=\"0\"></canvas>"
     "<script>\n"
     "function rgba(c){return 'rgba('+c[0]+','+c[1]+','+c[2]+','+(c[3]/255)+')';}\n"
+    "var glyphs={};\n"
+    "function glyph(op){"
+    "var k=op.size[0]+'x'+op.size[1]+':'+op.cover+':'+(op.color||[]).join(',');"
+    "if(glyphs[k])return glyphs[k];"
+    "var w=op.size[0],h=op.size[1],cv=op.cover||'',cr=op.color,im=document.createElement('canvas');"
+    "im.width=w;im.height=h;var g=im.getContext('2d'),id=g.createImageData(w,h);"
+    "for(var i=0;i<w*h;i++){var a=parseInt(cv.substr(i*2,2),16);if(isNaN(a))a=0;"
+    "id.data[i*4]=cr[0];id.data[i*4+1]=cr[1];id.data[i*4+2]=cr[2];id.data[i*4+3]=Math.round(cr[3]*a/255);}"
+    "g.putImageData(id,0,0);glyphs[k]=im;return im;"
+    "}\n"
+    "function round(x,r,rad){x.beginPath();if(x.roundRect)x.roundRect(r[0],r[1],r[2],r[3],rad||0);else x.rect(r[0],r[1],r[2],r[3]);}\n"
     "function play(d){"
-    "var c=document.getElementById('c'),x=c.getContext('2d');"
-    "c.width=d.width;c.height=d.height;x.clearRect(0,0,c.width,c.height);"
-    "(d.ops||[]).forEach(function(op){"
+    "var c=document.getElementById('c'),x=c.getContext('2d'),ops=d.ops||[],i;"
+    "if(c.width!==d.width)c.width=d.width;if(c.height!==d.height)c.height=d.height;"
+    "for(i=0;i<ops.length;i++){var op=ops[i];"
     "if(op.op==='clear'){x.fillStyle=rgba(op.color);x.fillRect(0,0,c.width,c.height);}"
     "else if(op.op==='fill_rect'){x.fillStyle=rgba(op.color);x.fillRect(op.rect[0],op.rect[1],op.rect[2],op.rect[3]);}"
-    "else if(op.op==='fill_round_rect'){var r=op.rect;x.fillStyle=rgba(op.color);x.beginPath();"
-    "if(x.roundRect)x.roundRect(r[0],r[1],r[2],r[3],op.radius||0);else x.rect(r[0],r[1],r[2],r[3]);x.fill();}"
-    "else if(op.op==='fill_mask'){var im=x.createImageData(op.size[0],op.size[1]),cv=op.cover||'',cr=op.color;"
-    "for(var i=0;i<op.size[0]*op.size[1];i++){var a=parseInt(cv.substr(i*2,2),16);if(isNaN(a))a=0;"
-    "im.data[i*4]=cr[0];im.data[i*4+1]=cr[1];im.data[i*4+2]=cr[2];im.data[i*4+3]=Math.round(cr[3]*a/255);}"
-    "var o=document.createElement('canvas');o.width=op.size[0];o.height=op.size[1];"
-    "o.getContext('2d').putImageData(im,0,0);x.drawImage(o,op.origin[0],op.origin[1]);}"
-    "});"
+    "else if(op.op==='fill_round_rect'){x.fillStyle=rgba(op.color);round(x,op.rect,op.radius||0);x.fill();}"
+    "else if(op.op==='shadow'){x.save();x.shadowColor=rgba(op.color);x.shadowBlur=op.spread||0;"
+    "x.shadowOffsetX=op.offset?op.offset[0]:0;x.shadowOffsetY=op.offset?op.offset[1]:0;"
+    "x.fillStyle=rgba(op.color);round(x,op.rect,op.radius||0);x.fill();x.restore();}"
+    "else if(op.op==='fill_mask'){x.drawImage(glyph(op),op.origin[0],op.origin[1]);}"
+    "}"
     "}\n"
     "function pos(e){var c=document.getElementById('c'),r=c.getBoundingClientRect();"
     "return {x:Math.round((e.clientX-r.left)*c.width/r.width),y:Math.round((e.clientY-r.top)*c.height/r.height)};"
     "}\n"
-    "var busy=0;\n"
+    "var busy=0,rev=-1;\n"
     "function load(){if(busy)return busy;busy=fetch('/ui.json').then(function(r){return r.json();}).then(play).then(function(){busy=0;},function(){busy=0;});return busy;}\n"
-    "function send(path){return fetch(path).then(load);}\n"
+    "function send(path){return fetch(path).then(function(){rev=-1;return load();});}\n"
+    "function poll(){fetch('/ui.rev').then(function(r){return r.text();}).then(function(t){var n=+t;if(n!==rev){rev=n;load();}});}\n"
     "var c=document.getElementById('c');\n"
     "c.onmousedown=function(e){var p=pos(e);send('/ui/press?x='+p.x+'&y='+p.y);};\n"
     "c.onmouseup=function(e){var p=pos(e);send('/ui/release?x='+p.x+'&y='+p.y);};\n"
@@ -73,7 +84,7 @@ static const char lh_ui_web_page[] =
     "};\n"
     "c.focus();\n"
     "load();\n"
-    "setInterval(load,100);\n"
+    "setInterval(poll,50);\n"
     "</script></body></html>";
 
 static void
@@ -260,8 +271,17 @@ host_draw(lh_ui_view_t *view, unsigned width, unsigned height, char *json, lh_us
 }
 
 static void
+host_bump(unsigned *gen)
+{
+    if (gen != lh_null)
+    {
+        ++*gen;
+    }
+}
+
+static void
 host_handle(lh_ui_view_t *view, unsigned width, unsigned height, char *json, lh_usize_t json_cap,
-            const lh_ui_web_host_hooks_t *hooks, lh_os_net_socket_t *client)
+            const lh_ui_web_host_hooks_t *hooks, unsigned *gen, lh_os_net_socket_t *client)
 {
     char req[1024];
     const lh_ssize_t n = lh_os_net_socket_recv(client, req, sizeof(req) - 1u);
@@ -276,37 +296,51 @@ host_handle(lh_ui_view_t *view, unsigned width, unsigned height, char *json, lh_
     {
         host_press(view, req, hooks);
         host_release(view, req, hooks);
+        host_bump(gen);
         host_ok(client);
         return;
     }
     if (strncmp(req, "GET /ui/press", 13) == 0 || strncmp(req, "POST /ui/press", 14) == 0)
     {
         host_press(view, req, hooks);
+        host_bump(gen);
         host_ok(client);
         return;
     }
     if (strncmp(req, "GET /ui/release", 15) == 0 || strncmp(req, "POST /ui/release", 16) == 0)
     {
         host_release(view, req, hooks);
+        host_bump(gen);
         host_ok(client);
         return;
     }
     if (strncmp(req, "GET /ui/wheel", 13) == 0 || strncmp(req, "POST /ui/wheel", 14) == 0)
     {
         host_wheel(view, req, hooks);
+        host_bump(gen);
         host_ok(client);
         return;
     }
     if (strncmp(req, "GET /ui/key", 11) == 0 || strncmp(req, "POST /ui/key", 12) == 0)
     {
         host_key(view, req, hooks);
+        host_bump(gen);
         host_ok(client);
         return;
     }
     if (strncmp(req, "GET /ui/text", 12) == 0 || strncmp(req, "POST /ui/text", 13) == 0)
     {
         host_text(view, req, hooks);
+        host_bump(gen);
         host_ok(client);
+        return;
+    }
+    if (strncmp(req, "GET /ui.rev", 11) == 0)
+    {
+        char body[32];
+        int n = snprintf(body, sizeof(body), "%u\n", gen != lh_null ? *gen : 0u);
+
+        host_reply(client, 200, "text/plain; charset=utf-8", body, n > 0 ? (lh_usize_t)n : 0u);
         return;
     }
     if (strncmp(req, "GET /ui.json", 12) == 0)
@@ -367,24 +401,33 @@ lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *js
     }
     (void)lh_os_net_socket_set_blocking(lh_addr_of(listen_fd), lh_bool_false);
     fprintf(stderr, "[lh] ui web host http://127.0.0.1:%u/\n", (unsigned)port);
-    for (;;)
     {
-        lh_os_net_socket_t client;
-        lh_net_ip4_socket_addr_t peer;
+        unsigned gen = 1u;
 
-        if (hooks != lh_null && hooks->tick != lh_null)
+        for (;;)
         {
-            hooks->tick(hooks->ctx);
-        }
-        lh_os_net_socket_init(lh_addr_of(client));
-        if (lh_os_net_socket_accept(lh_addr_of(listen_fd), lh_addr_of(client), lh_addr_of(peer)))
-        {
-            host_handle(view, width, height, json, json_cap, hooks, lh_addr_of(client));
-            lh_os_net_socket_close(lh_addr_of(client));
-        }
-        else
-        {
-            host_idle_ms(20u);
+            lh_os_net_socket_t client;
+            lh_net_ip4_socket_addr_t peer;
+            lh_ui_rect_t damage;
+
+            if (hooks != lh_null && hooks->tick != lh_null)
+            {
+                hooks->tick(hooks->ctx);
+            }
+            if (lh_ui_view_take_damage(view, lh_addr_of(damage)))
+            {
+                ++gen;
+            }
+            lh_os_net_socket_init(lh_addr_of(client));
+            if (lh_os_net_socket_accept(lh_addr_of(listen_fd), lh_addr_of(client), lh_addr_of(peer)))
+            {
+                host_handle(view, width, height, json, json_cap, hooks, lh_addr_of(gen), lh_addr_of(client));
+                lh_os_net_socket_close(lh_addr_of(client));
+            }
+            else
+            {
+                host_idle_ms(20u);
+            }
         }
     }
 }
