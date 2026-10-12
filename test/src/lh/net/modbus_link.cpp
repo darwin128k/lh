@@ -66,64 +66,60 @@ const lh_byte_t kException[] = {0x00, 0x01, 0x00, 0x00, 0x00, 0x03, 0x01, 0x83, 
 const lh_byte_t kRefusedByDevice[] = {0x00, 0x07, 0x00, 0x00, 0x00, 0x03,
                                       0x01, 0x83, 0x03};
 
-/* ── A transport that hands out bytes one recv at a time ────────────────────────
+/* ── A stream that hands out bytes one read at a time ───────────────────────────
    No sockets, no device, no clock: what goes out is recorded and what comes back is
-   whatever the test put in the queue. That is the whole reason a link is a link. */
+   whatever the test put in the queue. That is the whole reason a link reads a
+   stream and not a socket. Nothing queued is ::LH_IO_PENDING, as on a quiet socket
+   or serial line; `0` is the end of the stream, and only `closed` says that. */
 
 struct lh_test_transport
 {
     lh_u8_t in[512];
     lh_u16_t in_size;
     lh_u16_t in_at;
-    lh_u16_t chunk;         /**< 0: as much as fits. Otherwise: at most this much per recv */
+    lh_u16_t chunk;          /**< 0: as much as fits. Otherwise: at most this much per read */
     lh_u8_t out[512];
     lh_u16_t out_size;
-    lh_s32_t fail_next_recv; /**< 0 to be normal, otherwise the value recv returns once */
+    lh_ssize_t fail_next_recv;  /**< 0 to be normal, otherwise the value a read returns once */
+    lh_ssize_t fail_next_send;  /**< 0 to be normal, otherwise the value a write returns once */
+    bool closed;             /**< the peer has gone: every read is the end of the stream */
 };
 
 struct lh_test_link
 {
     lh_test_transport tcp;
-    lh_mb_transport_t transport;
+    lh_io_stream_t stream;
     lh_mb_link_t link;
     lh_u64_t now_us;
 };
 
-lh_bool_t
-test_open(lh_ptr self, const lh_char_t *target, lh_u16_t port)
-{
-    (void)self;
-    (void)target;
-    (void)port;
-    return lh_bool_true;
-}
-
-lh_void
-test_close(lh_ptr self)
-{
-    (void)self;
-}
-
-lh_s32_t
-test_send(lh_ptr self, const lh_byte_t *bytes, lh_u16_t length)
+lh_ssize_t
+test_send(lh_self_ptr self, const lh_ptr bytes, lh_usize_t length)
 {
     lh_test_transport *t = (lh_test_transport *)self;
 
-    if ((lh_u16_t)(t->out_size + length) > (lh_u16_t)sizeof(t->out))
+    if (t->fail_next_send != 0)
+    {
+        const lh_ssize_t rc = t->fail_next_send;
+
+        t->fail_next_send = 0;
+        return rc;
+    }
+    if (t->out_size + length > sizeof(t->out))
     {
         return -1;
     }
     memcpy(lh_addr_of(t->out[t->out_size]), bytes, length);
     t->out_size = (lh_u16_t)(t->out_size + length);
-    return (lh_s32_t)length;
+    return (lh_ssize_t)length;
 }
 
-lh_s32_t
-test_recv(lh_ptr self, lh_byte_t *bytes, lh_u16_t cap)
+lh_ssize_t
+test_recv(lh_self_ptr self, lh_ptr bytes, lh_usize_t cap)
 {
     lh_test_transport *t = (lh_test_transport *)self;
-    lh_u16_t left = (lh_u16_t)(t->in_size - t->in_at);
-    lh_u16_t take = left < cap ? left : cap;
+    lh_usize_t left = (lh_usize_t)(t->in_size - t->in_at);
+    lh_usize_t take = left < cap ? left : cap;
 
     if (t->chunk != 0 && take > t->chunk)
     {
@@ -131,18 +127,22 @@ test_recv(lh_ptr self, lh_byte_t *bytes, lh_u16_t cap)
     }
     if (t->fail_next_recv != 0)
     {
-        const lh_s32_t rc = t->fail_next_recv;
+        const lh_ssize_t rc = t->fail_next_recv;
 
         t->fail_next_recv = 0;
         return rc;
     }
+    if (t->closed)
+    {
+        return 0;
+    }
     if (take == 0)
     {
-        return 0; /* nothing yet */
+        return LH_IO_PENDING; /* nothing yet */
     }
     memcpy(bytes, lh_addr_of(t->in[t->in_at]), take);
     t->in_at = (lh_u16_t)(t->in_at + take);
-    return (lh_s32_t)take;
+    return (lh_ssize_t)take;
 }
 
 lh_u64_t
@@ -162,15 +162,16 @@ feed(lh_test_link *self, const lh_byte_t *bytes, lh_u16_t length)
 void
 setup(lh_test_link *self, lh_u8_t fc)
 {
+    lh_io_reader_t reader;
+    lh_io_writer_t writer;
+
     memset(self, 0, sizeof(*self));
-    self->transport.self = (lh_ptr)lh_addr_of(self->tcp);
-    self->transport.open = test_open;
-    self->transport.close = test_close;
-    self->transport.send = test_send;
-    self->transport.recv = test_recv;
+    lh_io_reader_init(lh_addr_of(reader), test_recv, lh_addr_of(self->tcp));
+    lh_io_writer_init(lh_addr_of(writer), test_send, lh_addr_of(self->tcp));
+    lh_io_stream_init(lh_addr_of(self->stream), lh_addr_of(reader), lh_addr_of(writer));
     self->now_us = 1000000;
-    lh_mb_link_init(lh_addr_of(self->link), lh_addr_of(self->transport), lh_mb_framing_mbap, 1,
-                    test_clock, (lh_ptr)self);
+    lh_mb_link_init(lh_addr_of(self->link), lh_addr_of(self->stream), lh_mb_framing_mbap, 1, test_clock,
+                    (lh_ptr)self);
     lh_mb_link_set_fc(lh_addr_of(self->link), fc);
     /* The captured answers are answers to transaction 1, so the first question asked
        here is transaction 1. An answer is only an answer to the question with its
@@ -179,7 +180,7 @@ setup(lh_test_link *self, lh_u8_t fc)
     self->link.tx = 1;
 }
 
-/* Put @p bytes after whatever the transport has not handed over yet: two frames in
+/* Put @p bytes after whatever the stream has not handed over yet: two frames in
    one recv, the way a stream delivers them. */
 void
 append(lh_test_link *self, const lh_byte_t *bytes, lh_u16_t length)
@@ -614,6 +615,7 @@ TEST(lh_mb_link, a_socket_error_leaves_the_link_able_to_be_asked_again)
     t.tcp.fail_next_recv = -1;
     EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
     EXPECT_EQ(t.link.state, (lh_u8_t)lh_mb_link_idle);
+    EXPECT_EQ(t.link.reason, lh_mb_status_lost) << "a stream that failed is a stream to open again";
     ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 20, 3));
 }
 
@@ -1025,7 +1027,7 @@ TEST(lh_mb_link, a_new_connection_starts_with_nothing_held)
     ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
     ASSERT_EQ(t.link.held, (lh_u16_t)9);
 
-    ASSERT_TRUE(lh_mb_link_open(lh_addr_of(t.link), "127.0.0.1", 502));
+    lh_mb_link_set_stream(lh_addr_of(t.link), lh_addr_of(t.stream)); /* the connection, made again */
     EXPECT_EQ(t.link.held, (lh_u16_t)0) << "half a frame from the old connection is not a frame";
 }
 
@@ -1040,4 +1042,159 @@ TEST(lh_mb_link, an_rtu_frame_for_another_unit_is_not_ours)
     /* A good CRC says the line is clean, not that the frame is for us. */
     EXPECT_FALSE(lh_mb_decode(lh_mb_framing_rtu, 1, answer, length, pdu, lh_addr_of(pdu_length)));
     EXPECT_TRUE(lh_mb_decode(lh_mb_framing_rtu, 2, answer, length, pdu, lh_addr_of(pdu_length)));
+}
+
+/* ── Write one register over a link ─────────────────────────────────────────────
+   Transaction 1, unit 1: 0x1234 to register 10. The request and its echo are the
+   same twelve bytes, header and all. */
+namespace
+{
+const lh_byte_t kWriteOne1234At10[] = {0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x01, 0x06, 0x00, 0x0A, 0x12, 0x34};
+const lh_byte_t kWriteOneRefused[] = {0x00, 0x01, 0x00, 0x00, 0x00, 0x03, 0x01, 0x86, 0x02};
+} /* namespace */
+
+TEST(lh_mb_link, a_single_write_puts_twelve_bytes_on_the_wire)
+{
+    lh_test_link t;
+
+    setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
+    ASSERT_TRUE(lh_mb_link_write_one(lh_addr_of(t.link), 10, 0x1234));
+    ASSERT_EQ(t.tcp.out_size, (lh_u16_t)sizeof(kWriteOne1234At10));
+    EXPECT_EQ(memcmp(t.tcp.out, kWriteOne1234At10, sizeof(kWriteOne1234At10)), 0);
+    EXPECT_FALSE(lh_mb_link_write_one(lh_addr_of(t.link), 11, 1)) << "one question at a time, writes included";
+}
+
+TEST(lh_mb_link, the_echo_of_a_single_write_answers_it)
+{
+    lh_test_link t;
+    lh_u16_t count = 99;
+
+    setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
+    ASSERT_TRUE(lh_mb_link_write_one(lh_addr_of(t.link), 10, 0x1234));
+    feed(lh_addr_of(t), kWriteOne1234At10, (lh_u16_t)sizeof(kWriteOne1234At10));
+    ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_answered);
+    EXPECT_NE(lh_mb_link_take(lh_addr_of(t.link), lh_addr_of(count)), lh_null);
+    EXPECT_EQ(count, (lh_u16_t)0) << "a write's answer has no registers in it";
+    EXPECT_EQ(t.link.counters.done, (lh_u32_t)1);
+}
+
+TEST(lh_mb_link, the_echo_of_another_value_is_not_this_single_write)
+{
+    lh_test_link t;
+
+    setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
+    ASSERT_TRUE(lh_mb_link_write_one(lh_addr_of(t.link), 10, 0x4321));
+    feed(lh_addr_of(t), kWriteOne1234At10, (lh_u16_t)sizeof(kWriteOne1234At10));
+    EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
+    EXPECT_EQ(t.link.reason, lh_mb_status_garbage) << "asked to store 0x4321, it says it stored 0x1234";
+}
+
+TEST(lh_mb_link, a_refused_single_write_is_a_refusal_and_not_a_failure)
+{
+    lh_test_link t;
+
+    setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
+    ASSERT_TRUE(lh_mb_link_write_one(lh_addr_of(t.link), 10, 0x1234));
+    feed(lh_addr_of(t), kWriteOneRefused, (lh_u16_t)sizeof(kWriteOneRefused));
+    EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
+    EXPECT_EQ(t.link.reason, lh_mb_status_exception);
+    EXPECT_EQ(t.link.counters.refused, (lh_u32_t)1);
+    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)0);
+}
+
+TEST(lh_mb_link, after_a_single_write_the_link_reads_again)
+{
+    lh_test_link t;
+    lh_u16_t count = 0;
+
+    setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
+    ASSERT_TRUE(lh_mb_link_write_one(lh_addr_of(t.link), 10, 0x1234));
+    feed(lh_addr_of(t), kWriteOne1234At10, (lh_u16_t)sizeof(kWriteOne1234At10));
+    ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_answered);
+    lh_mb_link_release(lh_addr_of(t.link));
+
+    t.link.tx = 1; /* the captured read answers transaction 1 */
+    ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
+    feed(lh_addr_of(t), kRead3Holding, (lh_u16_t)sizeof(kRead3Holding));
+    ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_answered);
+    EXPECT_NE(lh_mb_link_take(lh_addr_of(t.link), lh_addr_of(count)), lh_null);
+    EXPECT_EQ(count, (lh_u16_t)3);
+}
+
+/* ── The stream, not the question ───────────────────────────────────────────────
+   `0` from a read is the end of the stream, ::LH_IO_PENDING is "nothing yet", and
+   the two have opposite answers: one is a new connection, the other is patience. A
+   link that mixed them up either waits for ever on a socket the device closed, or
+   gives up on a device that is merely quiet. */
+
+TEST(lh_mb_link, nothing_yet_is_waiting_and_not_a_failure)
+{
+    lh_test_link t;
+
+    setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
+    ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
+    for (int i = 0; i < 10; ++i)
+    {
+        EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_waiting);
+    }
+    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)0);
+}
+
+TEST(lh_mb_link, the_end_of_the_stream_is_a_lost_stream)
+{
+    lh_test_link t;
+
+    setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
+    ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
+    t.tcp.closed = true;
+    EXPECT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
+    EXPECT_EQ(t.link.reason, lh_mb_status_lost) << "the device closed the connection";
+    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)1);
+    EXPECT_EQ(t.link.state, (lh_u8_t)lh_mb_link_idle);
+}
+
+TEST(lh_mb_link, a_full_send_buffer_is_not_a_failure)
+{
+    lh_test_link t;
+
+    setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
+    t.tcp.fail_next_send = LH_IO_PENDING;
+    EXPECT_FALSE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3)) << "nothing went out";
+    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)0) << "and nothing is wrong";
+    EXPECT_EQ(t.link.counters.sent, (lh_u32_t)0);
+    EXPECT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3)) << "the next pass asks again";
+}
+
+TEST(lh_mb_link, half_a_request_out_is_a_lost_stream)
+{
+    lh_test_link t;
+
+    setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
+    t.tcp.fail_next_send = 5; /* five bytes of twelve */
+    EXPECT_FALSE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
+    EXPECT_EQ(t.link.reason, lh_mb_status_lost) << "the device will read the next request as the rest of this one";
+    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)1);
+}
+
+TEST(lh_mb_link, a_new_stream_forgets_the_question_in_flight)
+{
+    lh_test_link t;
+    lh_u16_t count = 0;
+
+    setup(lh_addr_of(t), LH_MB_FC_READ_HOLDING);
+    ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
+    t.tcp.closed = true;
+    ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_failed);
+
+    /* Reconnected: the same device, a new stream, asked again. */
+    t.tcp.closed = false;
+    lh_mb_link_set_stream(lh_addr_of(t.link), lh_addr_of(t.stream));
+    EXPECT_EQ(t.link.reason, lh_mb_status_ok);
+    t.link.tx = 1;
+    ASSERT_TRUE(lh_mb_link_ask(lh_addr_of(t.link), 10, 3));
+    feed(lh_addr_of(t), kRead3Holding, (lh_u16_t)sizeof(kRead3Holding));
+    ASSERT_EQ(lh_mb_link_poll(lh_addr_of(t.link), 1000000), lh_mb_link_answered);
+    EXPECT_NE(lh_mb_link_take(lh_addr_of(t.link), lh_addr_of(count)), lh_null);
+    EXPECT_EQ(count, (lh_u16_t)3);
+    EXPECT_EQ(t.link.counters.failed, (lh_u32_t)1) << "the counters are the device's and are kept";
 }

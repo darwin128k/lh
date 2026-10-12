@@ -7,6 +7,7 @@
 #include <lh/util/addr.h>
 #include <lh/math.h>
 #include <lh/util/ptr.h>
+#include <lh/util/return.h>
 
 void
 lh_os_net_socket_init(lh_os_net_socket_t *self)
@@ -74,6 +75,21 @@ lh_ssize_t
 lh_os_net_socket_connect_wait(lh_os_net_socket_t *self, lh_u32_t timeout_ms)
 {
     return lh_os_system_net_socket_connect_wait(lh_os_net_socket_get_handle(self), timeout_ms);
+}
+
+lh_bool_t
+lh_os_net_socket_connect_within(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_t *addr,
+                                lh_u32_t timeout_ms)
+{
+    lh_ssize_t connected;
+
+    lh_return_ifn(lh_os_net_socket_set_blocking(self, lh_bool_false), lh_bool_false);
+    connected = lh_os_net_socket_connect_start(self, addr);
+    if (connected == LH_OS_RESULT_PENDING)
+    {
+        connected = lh_os_net_socket_connect_wait(self, timeout_ms);
+    }
+    return connected == 0 ? lh_bool_true : lh_bool_false;
 }
 
 lh_bool_t

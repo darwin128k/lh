@@ -186,8 +186,8 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/fs/file.c
             ${LH_LIB_SRC_PATH}/os/fs/dir.c
             ${LH_LIB_SRC_PATH}/os/net.c
-            ${LH_LIB_SRC_PATH}/os/net/modbus/tcp.c
             ${LH_LIB_SRC_PATH}/os/net/socket.c
+            ${LH_LIB_SRC_PATH}/os/serial.c
             ${LH_LIB_SRC_PATH}/os/shared.c
             ${LH_LIB_SRC_PATH}/os/module.c
             ${LH_LIB_SRC_PATH}/os/loader.c
@@ -211,6 +211,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/stat.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/net.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/net/socket.c
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/serial.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/shared.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/str.c
     )

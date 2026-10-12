@@ -5,7 +5,6 @@
 #include <lh/net/socket/addr/ip4.h>
 #include <lh/null.h>
 #include <lh/os/net.h>
-#include <lh/os/net/modbus/tcp.h>
 #include <lh/os/net/socket.h>
 #include <lh/os/tick.h>
 #include <lh/util/addr.h>
@@ -17,8 +16,10 @@
 /* ── A device on this machine ───────────────────────────────────────────────────
    Everything in lh_mb_link was tested over a pair of arrays. These are the same
    questions over a real socket: a listener on 127.0.0.1 plays the device, with the
-   ordinary blocking socket calls, and the link on the other end has to get its
-   answers without ever waiting for one. */
+   ordinary blocking socket calls, and the link on the other end reads the socket's
+   own stream (::lh_os_net_socket_get_stream) without ever waiting for an answer.
+   There is no Modbus transport in between any more: a non-blocking socket already
+   says "nothing yet" and "closed" the way a link needs them said. */
 namespace
 {
 
@@ -37,6 +38,17 @@ tick_us(lh_ptr self)
     return lh_os_tick_us();
 }
 
+lh_net_ip4_socket_addr_t
+loopback(lh_u16_t port)
+{
+    lh_net_ip4_t ip;
+    lh_net_ip4_socket_addr_t addr;
+
+    lh_net_ip4_init(&ip, 127, 0, 0, 1);
+    lh_net_ip4_socket_addr_init(&addr, &ip, port);
+    return addr;
+}
+
 struct device
 {
     lh_os_net_socket_t listener;
@@ -44,12 +56,9 @@ struct device
 
     device()
     {
-        lh_net_ip4_t loopback;
-        lh_net_ip4_socket_addr_t addr;
+        lh_net_ip4_socket_addr_t addr = loopback(0);
 
         lh_os_net_socket_init(&listener);
-        lh_net_ip4_init(&loopback, 127, 0, 0, 1);
-        lh_net_ip4_socket_addr_init(&addr, &loopback, 0);
         EXPECT_TRUE(lh_os_net_socket_open(&listener, lh_os_system_net_socket_type_tcp));
         EXPECT_TRUE(lh_os_net_socket_bind(&listener, &addr));
         EXPECT_TRUE(lh_os_net_socket_listen(&listener, 16));
@@ -62,7 +71,7 @@ struct device
         lh_os_net_socket_close(&listener);
     }
 
-    /* The connection the link opened; it is already in the backlog, so this does
+    /* The connection the client made; it is already in the backlog, so this does
        not wait. */
     void
     accept(lh_os_net_socket_t *client)
@@ -71,6 +80,38 @@ struct device
 
         lh_os_net_socket_init(client);
         ASSERT_TRUE(lh_os_net_socket_accept(&listener, client, &peer));
+    }
+};
+
+/* The client's side: a socket, connected without waiting longer than asked, and
+   the stream a link reads. */
+struct connection
+{
+    lh_os_net_socket_t socket;
+    lh_io_stream_t stream;
+
+    connection()
+    {
+        lh_os_net_socket_init(&socket);
+    }
+
+    ~connection()
+    {
+        lh_os_net_socket_close(&socket);
+    }
+
+    bool
+    open(const lh_net_ip4_socket_addr_t &addr, lh_u32_t timeout_ms)
+    {
+        lh_os_net_socket_close(&socket);
+        if (!lh_os_net_socket_open(&socket, lh_os_system_net_socket_type_tcp) ||
+            !lh_os_net_socket_connect_within(&socket, &addr, timeout_ms))
+        {
+            lh_os_net_socket_close(&socket);
+            return false;
+        }
+        stream = lh_os_net_socket_get_stream(&socket);
+        return true;
     }
 };
 
@@ -143,19 +184,16 @@ class os_net_modbus_tcp : public ::testing::Test
 TEST_F(os_net_modbus_tcp, a_question_is_answered_over_a_real_socket)
 {
     device dev;
-    lh_os_net_modbus_tcp_t tcp;
-    lh_mb_transport_t transport;
+    connection to;
     lh_mb_link_t link;
     lh_os_net_socket_t client;
     lh_byte_t request[kRequestSize];
     const lh_u16_t *values;
     lh_u16_t count = 0;
 
-    lh_os_net_modbus_tcp_init(&tcp, 1000);
-    transport = lh_os_net_modbus_tcp_get_transport(&tcp);
-    lh_mb_link_init(&link, &transport, lh_mb_framing_mbap, 1, tick_us, lh_null);
-    ASSERT_TRUE(lh_mb_link_open(&link, "127.0.0.1", dev.port));
+    ASSERT_TRUE(to.open(loopback(dev.port), 1000));
     dev.accept(&client);
+    lh_mb_link_init(&link, &to.stream, lh_mb_framing_mbap, 1, tick_us, lh_null);
 
     ASSERT_TRUE(lh_mb_link_ask(&link, 10, 3));
     ASSERT_TRUE(read_request(&client, request));
@@ -169,25 +207,21 @@ TEST_F(os_net_modbus_tcp, a_question_is_answered_over_a_real_socket)
     EXPECT_EQ(values[0], 1);
 
     lh_os_net_socket_close(&client);
-    transport.close(transport.self);
 }
 
 TEST_F(os_net_modbus_tcp, a_poll_with_nothing_on_the_wire_does_not_wait)
 {
     device dev;
-    lh_os_net_modbus_tcp_t tcp;
-    lh_mb_transport_t transport;
+    connection to;
     lh_mb_link_t link;
     lh_os_net_socket_t client;
 
-    /* The device has the question and has not answered. A blocking recv would sit
+    /* The device has the question and has not answered. A blocking read would sit
        here until it did -- and with eight devices in a pass, one quiet device would
        hold up the other seven. */
-    lh_os_net_modbus_tcp_init(&tcp, 1000);
-    transport = lh_os_net_modbus_tcp_get_transport(&tcp);
-    lh_mb_link_init(&link, &transport, lh_mb_framing_mbap, 1, tick_us, lh_null);
-    ASSERT_TRUE(lh_mb_link_open(&link, "127.0.0.1", dev.port));
+    ASSERT_TRUE(to.open(loopback(dev.port), 1000));
     dev.accept(&client);
+    lh_mb_link_init(&link, &to.stream, lh_mb_framing_mbap, 1, tick_us, lh_null);
     ASSERT_TRUE(lh_mb_link_ask(&link, 10, 3));
 
     const lh_u64_t before = lh_os_tick_us();
@@ -199,51 +233,45 @@ TEST_F(os_net_modbus_tcp, a_poll_with_nothing_on_the_wire_does_not_wait)
     EXPECT_EQ(link.counters.failed, 0u);
 
     lh_os_net_socket_close(&client);
-    transport.close(transport.self);
 }
 
-TEST_F(os_net_modbus_tcp, a_device_that_hangs_up_is_a_failure_and_a_reopen_brings_it_back)
+TEST_F(os_net_modbus_tcp, a_device_that_hangs_up_is_a_lost_stream_and_a_new_one_brings_it_back)
 {
     device dev;
-    lh_os_net_modbus_tcp_t tcp;
-    lh_mb_transport_t transport;
+    connection to;
     lh_mb_link_t link;
     lh_os_net_socket_t client;
     lh_byte_t request[kRequestSize];
 
-    lh_os_net_modbus_tcp_init(&tcp, 1000);
-    transport = lh_os_net_modbus_tcp_get_transport(&tcp);
-    lh_mb_link_init(&link, &transport, lh_mb_framing_mbap, 1, tick_us, lh_null);
-    ASSERT_TRUE(lh_mb_link_open(&link, "127.0.0.1", dev.port));
+    ASSERT_TRUE(to.open(loopback(dev.port), 1000));
     dev.accept(&client);
+    lh_mb_link_init(&link, &to.stream, lh_mb_framing_mbap, 1, tick_us, lh_null);
     ASSERT_TRUE(lh_mb_link_ask(&link, 10, 3));
     ASSERT_TRUE(read_request(&client, request));
 
-    /* The device closes without answering. A recv of 0 is the peer hanging up, and
-       a transport that passed it on as "nothing yet" would leave the link waiting
-       out its timeout on every question from now on. */
+    /* The device closes without answering. A read of 0 is the peer hanging up, and
+       a link that took it for "nothing yet" would wait out its timeout on every
+       question from now on. */
     lh_os_net_socket_close(&client);
     EXPECT_EQ(poll_until_done(&link), lh_mb_link_failed);
+    EXPECT_EQ(link.reason, lh_mb_status_lost) << "said as a lost stream, so the app knows to reconnect";
     EXPECT_EQ(link.counters.failed, 1u);
-    EXPECT_FALSE(lh_mb_link_ask(&link, 10, 3)) << "nothing to ask over until it is opened again";
 
-    ASSERT_TRUE(lh_mb_link_open(&link, "127.0.0.1", dev.port)) << "the device is still there";
+    ASSERT_TRUE(to.open(loopback(dev.port), 1000)) << "the device is still there";
     dev.accept(&client);
+    lh_mb_link_set_stream(&link, &to.stream);
     ASSERT_TRUE(lh_mb_link_ask(&link, 10, 3));
     ASSERT_TRUE(read_request(&client, request));
     answer(&client, request);
     EXPECT_EQ(poll_until_done(&link), lh_mb_link_answered);
 
     lh_os_net_socket_close(&client);
-    transport.close(transport.self);
 }
 
-TEST_F(os_net_modbus_tcp, a_port_nobody_listens_on_is_not_opened_and_costs_no_more_than_the_timeout)
+TEST_F(os_net_modbus_tcp, a_port_nobody_listens_on_is_not_connected_and_costs_no_more_than_the_timeout)
 {
     lh_u16_t port;
-    lh_os_net_modbus_tcp_t tcp;
-    lh_mb_transport_t transport;
-    lh_mb_link_t link;
+    connection to;
 
     {
         device gone; /* a port that was just in use and is not any more */
@@ -252,54 +280,33 @@ TEST_F(os_net_modbus_tcp, a_port_nobody_listens_on_is_not_opened_and_costs_no_mo
     /* Linux refuses it at once. Windows does not: it retries a connect that was
        reset and says "refused" only after about two seconds, even on loopback --
        so on Windows it is the timeout that answers, and the timeout is the bound. */
-    lh_os_net_modbus_tcp_init(&tcp, 300);
-    transport = lh_os_net_modbus_tcp_get_transport(&tcp);
-    lh_mb_link_init(&link, &transport, lh_mb_framing_mbap, 1, tick_us, lh_null);
-
     const lh_u64_t before = lh_os_tick_us();
-    EXPECT_FALSE(lh_mb_link_open(&link, "127.0.0.1", port));
+    EXPECT_FALSE(to.open(loopback(port), 300));
     EXPECT_LT(lh_os_tick_us() - before, 300000u + 500000u) << "never much longer than the timeout";
-    EXPECT_EQ(link.counters.failed, 1u);
 }
 
 TEST_F(os_net_modbus_tcp, an_address_that_never_answers_costs_the_timeout_and_no_more)
 {
-    lh_os_net_modbus_tcp_t tcp;
-    lh_mb_transport_t transport;
-    lh_mb_link_t link;
+    lh_net_ip4_t ip;
+    lh_net_ip4_socket_addr_t nowhere;
+    connection to;
 
     /* 10.255.255.1 is private and routed nowhere: a connect to it is not refused,
        it is simply never answered, which is what a switched-off device looks like.
        Left to the operating system that is tens of seconds; here it is 200 ms. A
        machine with no route at all refuses it at once, which is as good. */
-    lh_os_net_modbus_tcp_init(&tcp, 200);
-    transport = lh_os_net_modbus_tcp_get_transport(&tcp);
-    lh_mb_link_init(&link, &transport, lh_mb_framing_mbap, 1, tick_us, lh_null);
-
+    lh_net_ip4_init(&ip, 10, 255, 255, 1);
+    lh_net_ip4_socket_addr_init(&nowhere, &ip, 502);
     const lh_u64_t before = lh_os_tick_us();
-    EXPECT_FALSE(lh_mb_link_open(&link, "10.255.255.1", LH_OS_NET_MODBUS_TCP_PORT));
+    EXPECT_FALSE(to.open(nowhere, 200));
     EXPECT_LT(lh_os_tick_us() - before, 1500000u);
-}
-
-TEST_F(os_net_modbus_tcp, a_target_that_is_not_an_address_is_not_opened)
-{
-    lh_os_net_modbus_tcp_t tcp;
-    lh_mb_transport_t transport;
-    lh_mb_link_t link;
-
-    lh_os_net_modbus_tcp_init(&tcp, 200);
-    transport = lh_os_net_modbus_tcp_get_transport(&tcp);
-    lh_mb_link_init(&link, &transport, lh_mb_framing_mbap, 1, tick_us, lh_null);
-    EXPECT_FALSE(lh_mb_link_open(&link, "plc.local", LH_OS_NET_MODBUS_TCP_PORT)) << "no name lookup";
-    EXPECT_FALSE(lh_mb_link_open(&link, "", LH_OS_NET_MODBUS_TCP_PORT));
 }
 
 TEST_F(os_net_modbus_tcp, eight_devices_answer_in_any_order_on_eight_connections)
 {
     enum { k_devices = 8 };
     device dev;
-    lh_os_net_modbus_tcp_t tcp[k_devices];
-    lh_mb_transport_t transport[k_devices];
+    connection to[k_devices];
     lh_mb_link_t link[k_devices];
     lh_os_net_socket_t client[k_devices];
     lh_byte_t request[k_devices][kRequestSize];
@@ -309,11 +316,9 @@ TEST_F(os_net_modbus_tcp, eight_devices_answer_in_any_order_on_eight_connections
        Nobody waits for anybody: the first answer to arrive is the first one read. */
     for (int i = 0; i < k_devices; ++i)
     {
-        lh_os_net_modbus_tcp_init(&tcp[i], 1000);
-        transport[i] = lh_os_net_modbus_tcp_get_transport(&tcp[i]);
-        lh_mb_link_init(&link[i], &transport[i], lh_mb_framing_mbap, 1, tick_us, lh_null);
-        ASSERT_TRUE(lh_mb_link_open(&link[i], "127.0.0.1", dev.port));
+        ASSERT_TRUE(to[i].open(loopback(dev.port), 1000));
         dev.accept(&client[i]);
+        lh_mb_link_init(&link[i], &to[i].stream, lh_mb_framing_mbap, 1, tick_us, lh_null);
         ASSERT_TRUE(lh_mb_link_ask(&link[i], 10, 3));
     }
     for (int i = 0; i < k_devices; ++i)
@@ -342,6 +347,5 @@ TEST_F(os_net_modbus_tcp, eight_devices_answer_in_any_order_on_eight_connections
     for (int i = 0; i < k_devices; ++i)
     {
         lh_os_net_socket_close(&client[i]);
-        transport[i].close(transport[i].self);
     }
 }
