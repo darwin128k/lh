@@ -2,12 +2,14 @@
  * @file host.h
  * @brief Serve one ::lh_ui_view_t over HTTP as canvas JSON. No Python.
  *
- * GET `/` is a Canvas2D player. It scales the frame to the tab (contain, same
- * aspect) and maps clicks back into view pixels. GET `/ui.json` is
- * ::lh_ui_view_draw through ::lh_ui_canvas_backend_web. `ws://…/ws` (and
- * `wss` when the page is TLS)
- * pushes a frame only when the tree changed. Several tabs may share the
- * listen socket. Frames are `lh/ui/web/ws.h`: ping/pong, close, fragments,
+ * GET `/` is a Canvas2D player. Two scale modes (query `scale=`):
+ * - `fit` (default) — contain-fit the fixed frame into the tab (may blur);
+ * - `layout` — the tab size becomes the view size; the app lays out again
+ *   (sharp). The player sends `z w h` / `GET /ui/size` on resize.
+ * Clicks map back into view pixels. GET `/ui.json` is ::lh_ui_view_draw
+ * through ::lh_ui_canvas_backend_web. `ws://…/ws` (and `wss` when the page
+ * is TLS) pushes a frame only when the tree changed. Several tabs may share
+ * the listen socket. Frames are `lh/ui/web/ws.h`: ping/pong, close, fragments,
  * a send queue. TLS itself is not in this host — WINVER is XP, loopback is
  * cleartext; `wss` is the same codec on a TLS stream when one exists. HTTP
  * remains for a first paint. A 3D pane is ::lh_ui_viewport3d, not an op.
@@ -51,6 +53,8 @@ struct lh_ui_web_host_hooks
     lh_void (*wheel)(int x, int y, int dx, int dy, lh_ptr ctx);
     lh_void (*key)(lh_key_t key, lh_bool_t pressed, lh_ptr ctx);
     lh_void (*text)(lh_u32_t code, lh_ptr ctx);
+    /** Layout-mode tab size; ::lh_null keeps the host's initial width/height. */
+    lh_void (*resize)(int width, int height, lh_ptr ctx);
 };
 typedef struct lh_ui_web_host_hooks lh_ui_web_host_hooks_t;
 
