@@ -3,7 +3,6 @@
  * @brief ::lh_os_serial_t over `lh/os/system/serial.h`.
  */
 
-#include <lh/void.h>
 #include <lh/os/serial.h>
 
 #include <lh/assert/runtime.h>

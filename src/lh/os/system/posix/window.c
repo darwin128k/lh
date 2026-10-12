@@ -14,7 +14,6 @@
  * `_MOTIF_WM_HINTS` for a window that draws its own frame.
  */
 
-#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/memory.h>
 #include <lh/null.h>

@@ -3,7 +3,6 @@
  * @brief Implementation of `lh/ui/gradient/sampler.h`.
  */
 
-#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/math.h>
 #include <lh/ui/gradient/sampler.h>

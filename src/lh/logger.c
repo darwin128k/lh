@@ -4,7 +4,6 @@
 #include <lh/runtime/error.h>
 #include <lh/bit.h>
 #include <lh/util/ptr.h>
-#include <lh/void.h>
 
 lh_void
 lh_logger_set(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emergency_cb,

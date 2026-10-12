@@ -3,7 +3,6 @@
  * @brief Implementation of lh/math/size.h.
  */
 
-#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/bool.h>
 #include <lh/cast/static.h>

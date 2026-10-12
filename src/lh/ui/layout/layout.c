@@ -3,7 +3,6 @@
  * @brief Implementation of `lh/ui/layout.h`.
  */
 
-#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/bool.h>
 #include <lh/math.h>

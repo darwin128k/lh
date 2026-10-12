@@ -30,7 +30,6 @@
 #include <lh/byte.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
-#include <lh/void.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

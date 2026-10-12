@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/math/vec2.h>
 #include <lh/cast/static.h>

@@ -3,7 +3,6 @@
  * @brief Implementation of `lh/ui/canvas/web.h`.
  */
 
-#include <lh/void.h>
 #include <lh/ui/canvas/web.h>
 
 #include <lh/cast/const.h>

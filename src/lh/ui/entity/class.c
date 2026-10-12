@@ -3,7 +3,6 @@
  * @brief Implementation of `lh/ui/entity/class.h`.
  */
 
-#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/null.h>
 #include <lh/ui/canvas.h>

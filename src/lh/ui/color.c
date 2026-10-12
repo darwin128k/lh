@@ -3,7 +3,6 @@
  * @brief Implementation of `lh/ui/color.h`.
  */
 
-#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/bool.h>
 #include <lh/byte/limits.h>

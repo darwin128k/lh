@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/fs/path.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>

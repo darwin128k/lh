@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/math/quat.h>
 #include <lh/float/sin_cos.h>

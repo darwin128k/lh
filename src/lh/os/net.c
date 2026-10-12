@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/os/net.h>
 #include <lh/os/system/net.h>
 

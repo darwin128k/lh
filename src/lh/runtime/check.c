@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/runtime/check.h>
 #include <lh/attribute/static.h>
 #include <lh/attribute/thread_local.h>

@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/memory/std.h>
 #include <lh/assert.h>
 #include <lh/attribute/force_inline.h>

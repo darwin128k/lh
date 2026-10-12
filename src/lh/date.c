@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/date.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>

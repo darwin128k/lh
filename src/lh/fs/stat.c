@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/fs/stat.h>
 #include <lh/assert.h>
 #include <lh/util/ptr.h>

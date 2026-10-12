@@ -3,7 +3,6 @@
  * @brief Implementation of `lh/ui/viewport3d.h`.
  */
 
-#include <lh/void.h>
 #include <lh/ui/viewport3d.h>
 
 #include <lh/null.h>

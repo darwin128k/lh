@@ -3,7 +3,6 @@
  * @brief Implementation of `lh/ui/pixmap.h`.
  */
 
-#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/bit/bswap.h>
 #include <lh/byte/limits.h>

@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/io/stream.h>
 #include <lh/assert.h>
 #include <lh/util/addr.h>

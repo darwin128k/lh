@@ -8,7 +8,6 @@
 #ifndef LH_PTR_H
 #define LH_PTR_H
 
-#include <lh/void.h>
 #include <lh/void/ptr.h>
 
 /**

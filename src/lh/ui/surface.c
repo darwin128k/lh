@@ -3,7 +3,6 @@
  * @brief Implementation of `lh/ui/surface.h`.
  */
 
-#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/cast/static.h>
 #include <lh/null.h>

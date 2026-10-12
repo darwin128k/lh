@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/net/socket/addr/ip4.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>

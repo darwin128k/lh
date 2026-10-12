@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/memory/typed/allocated.h>
 #include <lh/math.h>
 

@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/os.h>
 #include <lh/attribute/thread_local.h>
 #include <lh/util/addr.h>

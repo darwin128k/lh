@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/memory/tree.h>
 #include <lh/assert.h>
 #include <lh/memory/tree/header.h>

@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/os/error.h>
 #include <lh/error.h>
 #include <lh/util/addr.h>
