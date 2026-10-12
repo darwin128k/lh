@@ -167,7 +167,8 @@ lh_memory_view_get_offset_from_end(const lh_memory_view_t *self, const lh_ptr pt
 lh_bool_t
 lh_memory_view_contains_ptr(const lh_memory_view_t *self, const lh_ptr ptr)
 {
-    const lh_void *begin, *end;
+    const lh_ptr begin;
+    const lh_ptr end;
     begin = lh_memory_view_get_begin_v(self);
 
     end = lh_memory_view_get_end_v(self);
@@ -194,7 +195,8 @@ lh_memory_view_contains_range(const lh_memory_view_t *self, const lh_ptr begin, 
 lh_bool_t
 lh_memory_view_contains(const lh_memory_view_t *self, const lh_memory_view_t *other)
 {
-    const lh_void *begin, *end;
+    const lh_ptr begin;
+    const lh_ptr end;
     begin = lh_memory_view_get_begin(other);
 
     end = lh_memory_view_get_end(other);
@@ -399,7 +401,8 @@ lh_memory_view_overlaps_range(const lh_memory_view_t *self, const lh_ptr begin, 
 lh_bool_t
 lh_memory_view_overlaps(const lh_memory_view_t *self, const lh_memory_view_t *other)
 {
-    const lh_void *begin, *end;
+    const lh_ptr begin;
+    const lh_ptr end;
     begin = lh_memory_view_get_begin(other);
 
     end = lh_memory_view_get_end(other);
@@ -471,7 +474,8 @@ lh_memory_view_find_range(const lh_memory_view_t *self, const lh_ptr begin, cons
 const lh_ptr
 lh_memory_view_find(const lh_memory_view_t *self, const lh_memory_view_t *other)
 {
-    const lh_void *begin, *end;
+    const lh_ptr begin;
+    const lh_ptr end;
 
     begin = lh_memory_view_get_begin_v(other);
 
@@ -496,7 +500,8 @@ lh_memory_view_rfind_range(const lh_memory_view_t *self, const lh_ptr begin, con
 const lh_ptr
 lh_memory_view_rfind(const lh_memory_view_t *self, const lh_memory_view_t *other)
 {
-    const lh_void *begin, *end;
+    const lh_ptr begin;
+    const lh_ptr end;
 
     begin = lh_memory_view_get_begin_v(other);
 
@@ -521,7 +526,8 @@ lh_memory_view_compare_range(const lh_memory_view_t *self, const lh_ptr begin, c
 const lh_ptr
 lh_memory_view_compare(const lh_memory_view_t *self, const lh_memory_view_t *other)
 {
-    const lh_void *begin, *end;
+    const lh_ptr begin;
+    const lh_ptr end;
 
     begin = lh_memory_view_get_begin_v(other);
 
@@ -546,7 +552,8 @@ lh_memory_view_rcompare_range(const lh_memory_view_t *self, const lh_ptr begin, 
 const lh_ptr
 lh_memory_view_rcompare(const lh_memory_view_t *self, const lh_memory_view_t *other)
 {
-    const lh_void *begin, *end;
+    const lh_ptr begin;
+    const lh_ptr end;
 
     begin = lh_memory_view_get_begin_v(other);
 
@@ -569,7 +576,8 @@ lh_memory_view_assign(lh_memory_view_t *self, const lh_memory_view_t *other)
 {
     lh_return_if(lh_math_eq(self, other));
 
-    const lh_void *begin, *end;
+    const lh_ptr begin;
+    const lh_ptr end;
     begin = lh_memory_view_get_begin(other);
 
     end = lh_memory_view_get_end(other);
@@ -678,8 +686,8 @@ lh_memory_view_to_slice(const lh_memory_view_t *self)
         return slice;
     }
 
-    const lh_void *begin = lh_memory_view_get_begin_v(self);
-    const lh_void *end = lh_memory_view_get_end_v(self);
+    const lh_ptr begin = lh_memory_view_get_begin_v(self);
+    const lh_ptr end = lh_memory_view_get_end_v(self);
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_init(lh_addr_of(slice), begin,
                               lh_ptr_sub_by_offset_unsafe(const lh_void, end, 1U));

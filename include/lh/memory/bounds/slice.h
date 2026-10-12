@@ -38,7 +38,7 @@
 
 /**
  * @struct lh_memory_bounds_slice
- * @brief Non-owning mutable closed byte slice: two ::lh_void * endpoints.
+ * @brief Non-owning mutable closed byte slice: two ::lh_ptr endpoints.
  *
  * Endpoints describe <tt>[first, second]</tt> in address space when both are
  * non-null and ordered. Public typedef: ::lh_memory_bounds_slice_t.
