@@ -40,7 +40,7 @@
 
 /**
  * @struct lh_memory_view_slice
- * @brief Non-owning read-only closed byte slice: two <tt>const ::lh_void *</tt> endpoints.
+ * @brief Non-owning read-only closed byte slice: two <tt>const ::lh_ptr</tt> endpoints.
  *
  * Endpoints describe <tt>[first, second]</tt> in address space when both are
  * non-null and ordered. Public typedef: ::lh_memory_view_slice_t.
