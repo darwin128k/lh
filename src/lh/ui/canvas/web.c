@@ -21,8 +21,6 @@
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 
-#include <stdio.h>
-
 /* Every write goes through here. A buffer always keeps one byte free, so close
  * can terminate it without a check of its own. */
 static void
@@ -30,14 +28,6 @@ web_put(lh_ui_canvas_web_t *self, const char *p, lh_usize_t n)
 {
     if (!self->ok)
     {
-        return;
-    }
-    if (self->out != lh_null)
-    {
-        if (fwrite(p, 1, (size_t)n, self->out) != (size_t)n)
-        {
-            self->ok = lh_bool_false;
-        }
         return;
     }
     if (self->mem == lh_null || n >= self->cap - self->len)
@@ -270,7 +260,6 @@ web_atlas_intern(lh_ui_canvas_web_t *self, const unsigned char *px, int w, int h
 static lh_void
 web_reset(lh_ui_canvas_web_t *self, unsigned width, unsigned height)
 {
-    self->out = lh_null;
     self->mem = lh_null;
     self->cap = 0;
     self->len = 0;
@@ -466,29 +455,6 @@ const lh_ui_canvas_backend_t lh_ui_canvas_backend_web = {
 };
 
 lh_bool_t
-lh_ui_canvas_web_open(lh_ui_canvas_web_t *self, const char *path, unsigned width, unsigned height)
-{
-    if (self == lh_null)
-    {
-        return lh_bool_false;
-    }
-    lh_memory_set(self, sizeof(*self), 0);
-    web_reset(self, width, height);
-    if (path == lh_null || path[0] == '\0')
-    {
-        return lh_bool_false;
-    }
-    self->out = fopen(path, "wb");
-    if (self->out == lh_null)
-    {
-        return lh_bool_false;
-    }
-    self->ok = lh_bool_true;
-    web_head(self);
-    return self->ok;
-}
-
-lh_bool_t
 lh_ui_canvas_web_open_mem(lh_ui_canvas_web_t *self, char *buf, lh_usize_t cap, unsigned width,
                           unsigned height)
 {
@@ -523,14 +489,6 @@ lh_ui_canvas_web_close(lh_ui_canvas_web_t *self)
     if (self->mem != lh_null)
     {
         self->mem[self->len] = 0;
-    }
-    if (self->out != lh_null)
-    {
-        if (fclose(self->out) != 0)
-        {
-            ok = lh_bool_false;
-        }
-        self->out = lh_null;
     }
     web_glyphs_free(self);
     self->ok = ok;

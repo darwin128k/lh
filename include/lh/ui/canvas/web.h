@@ -20,7 +20,6 @@
 #include <lh/size.h>
 #include <lh/ui/canvas/backend.h>
 #include <lh/void.h>
-#include <stdio.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/canvas/web.h requires LH_LIBRARY_OPTION_UI"
@@ -46,11 +45,10 @@ typedef struct lh_ui_canvas_web_glyphs
 } lh_ui_canvas_web_glyphs_t;
 
 /**
- * @brief An open JSON array of canvas ops, to a file or to a buffer the caller owns.
+ * @brief An open JSON array of canvas ops, in a buffer the caller owns.
  */
 typedef struct lh_ui_canvas_web
 {
-    FILE *out;
     char *mem;
     lh_usize_t cap;
     lh_usize_t len;
@@ -67,13 +65,10 @@ typedef struct lh_ui_canvas_web
 extern const lh_ui_canvas_backend_t lh_ui_canvas_backend_web;
 
 /**
- * @brief Start a file of ops for a @p width × @p height target.
- */
-lh_bool_t
-lh_ui_canvas_web_open(lh_ui_canvas_web_t *self, const char *path, unsigned width, unsigned height);
-
-/**
  * @brief Start a buffer of ops. @p buf is the caller's and is not freed here.
+ *
+ * A file is not a second sink: write ::lh_ui_canvas_web_bytes through
+ * ::lh_os_fs_file_write.
  */
 lh_bool_t
 lh_ui_canvas_web_open_mem(lh_ui_canvas_web_t *self, char *buf, lh_usize_t cap, unsigned width,
@@ -93,16 +88,16 @@ lh_void
 lh_ui_canvas_web_set_glyphs(lh_ui_canvas_web_t *self, lh_ui_canvas_web_glyphs_t *glyphs);
 
 /**
- * @brief Close the array. A file is closed; a buffer stays valid at ::lh_ui_canvas_web_bytes.
+ * @brief Close the array. @p self's buffer stays valid at ::lh_ui_canvas_web_bytes.
  */
 lh_bool_t
 lh_ui_canvas_web_close(lh_ui_canvas_web_t *self);
 
-/** Bytes of JSON after a successful memory close, else "". */
+/** Bytes of JSON after a successful close, else "". */
 const char *
 lh_ui_canvas_web_bytes(const lh_ui_canvas_web_t *self);
 
-/** How many of those bytes. A file stream answers 0. */
+/** How many of those bytes. */
 lh_usize_t
 lh_ui_canvas_web_length(const lh_ui_canvas_web_t *self);
 
