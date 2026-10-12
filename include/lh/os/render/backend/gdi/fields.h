@@ -48,6 +48,8 @@
     surface_type surface;                                                                          \
     sw_type sw;                                                                                    \
     point_type present_at;                                                                         \
+    count_type logical_w;                                                                          \
+    count_type logical_h;                                                                          \
     count_type mask_calls;                                                                         \
     count_type rect_calls;                                                                         \
     count_type round_calls;                                                                        \

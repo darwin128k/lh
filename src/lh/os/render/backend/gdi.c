@@ -7,6 +7,7 @@
 #include <lh/cast/static.h>
 #include <lh/null.h>
 #include <lh/os/render/backend/gdi.h>
+#include <lh/os/system/surface.h>
 #include <lh/os/system/window.h>
 #include <lh/os/tick.h>
 #include <lh/ui/pixmap.h>
@@ -30,6 +31,8 @@ lh_os_render_backend_gdi_context_init(lh_os_render_backend_gdi_context_t *self)
        are on ::lh_os_render_backend_gdi_context_get_format. */
     lh_ui_canvas_sw_init(lh_addr_of(self->sw));
     lh_ui_point_init(lh_addr_of(self->present_at), lh_ui_scalar(0), lh_ui_scalar(0));
+    self->logical_w = 0;
+    self->logical_h = 0;
     lh_os_render_backend_gdi_reset_counters(self);
     self->frame_start_us = 0;
 }
@@ -78,6 +81,15 @@ lh_os_render_backend_gdi_context_get_hdc(const lh_os_render_backend_gdi_context_
 {
     lh_assert_runtime_ref(self);
     return self->hdc;
+}
+
+lh_void
+lh_os_render_backend_gdi_context_set_logical_size(lh_os_render_backend_gdi_context_t *self,
+                                                  unsigned width, unsigned height)
+{
+    lh_assert_runtime_ref(self);
+    self->logical_w = width;
+    self->logical_h = height;
 }
 
 lh_ui_pixmap_format_t
@@ -175,7 +187,15 @@ lh_os_render_backend_gdi_begin(lh_ptr context)
     int width;
     int height;
 
-    lh_return_if(!lh_os_system_window_get_client_size(gdi->hwnd, lh_addr_of(width), lh_addr_of(height)));
+    if (gdi->logical_w > 0u && gdi->logical_h > 0u)
+    {
+        width = (int)gdi->logical_w;
+        height = (int)gdi->logical_h;
+    }
+    else
+    {
+        lh_return_if(!lh_os_system_window_get_client_size(gdi->hwnd, lh_addr_of(width), lh_addr_of(height)));
+    }
     lh_ui_size_init(lh_addr_of(size), lh_cast_static(lh_ui_scalar_t, width), lh_cast_static(lh_ui_scalar_t, height));
     lh_ui_rect_init(lh_addr_of(area), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_size_get_width(lh_addr_of(size)),
                     lh_ui_size_get_height(lh_addr_of(size)));
@@ -188,6 +208,20 @@ lh_os_render_backend_gdi_end(lh_ptr context, const lh_ui_rects_t *drawn)
     lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
 
     lh_return_if(lh_null_eq(gdi->hdc));
+    if (gdi->logical_w > 0u && gdi->logical_h > 0u)
+    {
+        int client_w = 0;
+        int client_h = 0;
+
+        if (lh_os_system_window_get_client_size(gdi->hwnd, lh_addr_of(client_w), lh_addr_of(client_h)) &&
+            (client_w != (int)gdi->logical_w || client_h != (int)gdi->logical_h))
+        {
+            /* 0x00BBGGRR of `--canvas` #EDF0F5, for the letterbox. */
+            (void)lh_os_system_surface_present_fit(gdi->surface.handle, gdi->hdc, client_w, client_h,
+                                                   0x00F5F0EDu);
+            return;
+        }
+    }
     /* @p drawn is the canvas's answer to what this frame drew, and it is a list
        because the clips a frame is cut to need not touch: their hull would carry
        the gap between two cuts, and the gap belongs to neither.

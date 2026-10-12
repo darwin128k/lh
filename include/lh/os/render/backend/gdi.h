@@ -101,6 +101,14 @@ lh_void
 lh_os_render_backend_gdi_context_set_hdc(lh_os_render_backend_gdi_context_t *self, lh_ptr hdc);
 
 /**
+ * @brief Draw into a @p width × @p height buffer and stretch it to the client
+ *        (contain). Zero restores "the surface is the client".
+ */
+lh_void
+lh_os_render_backend_gdi_context_set_logical_size(lh_os_render_backend_gdi_context_t *self,
+                                                  unsigned width, unsigned height);
+
+/**
  * @brief Current paint destination DC, or ::lh_null outside a paint cycle.
  */
 lh_ptr

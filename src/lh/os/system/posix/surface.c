@@ -333,3 +333,13 @@ lh_os_system_surface_present_at(lh_os_system_surface_handle_t handle, lh_ptr des
     surface = lh_ptr_rcast(const lh_os_system_posix_surface_t, handle);
     return lh_os_system_surface_present_part(handle, dest, x, y, 0, 0, surface->width, surface->height);
 }
+
+lh_bool_t
+lh_os_system_surface_present_fit(lh_os_system_surface_handle_t handle, lh_ptr dest, int dest_w,
+                                 int dest_h, lh_u32_t fill)
+{
+    (void)dest_w;
+    (void)dest_h;
+    (void)fill;
+    return lh_os_system_surface_present_at(handle, dest, 0, 0);
+}
