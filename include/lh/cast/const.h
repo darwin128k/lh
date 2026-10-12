@@ -1,3 +1,4 @@
+#include <lh/cast/static.h>
 /**
  * @file const.h
  * @brief Const-qualification cast macro for C and C++.
@@ -25,7 +26,7 @@
 #if defined(__cplusplus)
 #    define lh_cast_const(T, expr) const_cast<T>(expr)
 #else
-#    define lh_cast_const(T, expr) ((T)(expr))
+#    define lh_cast_const(T, expr) (lh_cast_static(T, (expr)))
 #endif
 
 #endif /* LH_CAST_CONST_H */

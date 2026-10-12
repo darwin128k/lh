@@ -43,6 +43,7 @@
 #include <lh/str/view/initializer.h>
 #include <lh/util/arg.h>
 #include <lh/util/ptr.h>
+#include <lh/cast/static.h>
 
 /**
  * @def LH_RUNTIME_ASSERT_ENABLED
@@ -126,7 +127,7 @@
         do                                                                                         \
         {                                                                                          \
             static const lh_exception_origin_t _lh_exception_origin = {                            \
-                __FILE__, (lh_str_cptr)lh_null, (lh_str_cptr)lh_null,                              \
+                __FILE__, lh_cast_static(lh_str_cptr, lh_null), lh_cast_static(lh_str_cptr, lh_null),                              \
                 lh_runtime_check_desc(__VA_ARGS__), __LINE__};                                     \
             lh_runtime_check_fail(&_lh_exception_origin, lh_runtime_check_code(__VA_ARGS__));      \
         } while (0)

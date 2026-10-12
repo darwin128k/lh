@@ -9,6 +9,7 @@
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
+#include <lh/cast/static.h>
 
 static lh_void
 lh_ui_decl_fault(lh_ui_decl_fault_t *fault, lh_ui_decl_error_t code, lh_u32_t index)
@@ -60,7 +61,7 @@ lh_ui_decl_check(const lh_ui_decl_t *decls, lh_u32_t index)
     }
     /* A child cannot exist before the thing that holds it, so a parent is a lower
        index or nothing at all. */
-    if (row->parent != LH_UI_DECL_ROOT && (row->parent < 0 || (lh_u32_t)row->parent >= index))
+    if (row->parent != LH_UI_DECL_ROOT && (row->parent < 0 || lh_cast_static(lh_u32_t, row->parent)>= index))
     {
         return lh_ui_decl_error_parent;
     }
@@ -68,7 +69,7 @@ lh_ui_decl_check(const lh_ui_decl_t *decls, lh_u32_t index)
        asked once the nodes are placed, because the answer is a property of the
        component the row builds and not of the kind it wrote. */
     if (row->kind == lh_ui_decl_kind_scrollbar &&
-        (row->as.scrollbar.box < 0 || (lh_u32_t)row->as.scrollbar.box >= index))
+        (row->as.scrollbar.box < 0 || lh_cast_static(lh_u32_t, row->as.scrollbar.box)>= index))
     {
         return lh_ui_decl_error_box;
     }
@@ -147,7 +148,7 @@ lh_ui_decl_place_row(const lh_ui_decl_t *row, lh_byte_t *slot, lh_ui_entity_t **
         lh_ui_scrollbar_init(bar, rect, row->as.scrollbar.axis, box);
         /* An undeclared mode is the one the component starts with, so a row that
            says nothing gets what a hand-written bar gets. */
-        if (row->as.scrollbar.mode != (lh_ui_scrollbar_mode_t)0)
+        if (row->as.scrollbar.mode != lh_cast_static(lh_ui_scrollbar_mode_t, 0))
         {
             lh_ui_scrollbar_set_mode(bar, row->as.scrollbar.mode);
         }

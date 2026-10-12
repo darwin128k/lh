@@ -215,6 +215,19 @@ lh_os_system_net_socket_sendto(lh_os_system_net_socket_handle_t handle, const lh
                                const lh_net_ip4_socket_addr_t *addr);
 
 /**
+ * @brief How many bytes are sitting in @p handle's receive buffer, without reading them.
+ *
+ * `FIONREAD` (`ioctlsocket` on Windows, `ioctl` on POSIX). On a stream that is what
+ * a `recv` made right now could return; on a datagram socket Windows answers the
+ * size of everything queued and POSIX the size of the next datagram, so do not
+ * size a buffer from it on UDP.
+ *
+ * @return Bytes pending (`0` when empty), or ::LH_OS_RESULT_INVALID on failure.
+ */
+lh_ssize_t
+lh_os_system_net_socket_pending(lh_os_system_net_socket_handle_t handle);
+
+/**
  * @brief Receive one datagram into @p buf; @p addr receives the sender.
  *
  * `0` is an empty datagram, not end-of-stream. @p addr is written only on

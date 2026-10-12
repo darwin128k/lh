@@ -38,6 +38,7 @@
 #include <lh/numeric/fixed/types.h>
 #include <lh/util/ptr.h>
 #include <lh/void.h>
+#include <lh/cast/static.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -58,7 +59,7 @@ typedef enum lh_mb_framing
 } lh_mb_framing_t;
 
 /** @brief Bytes of MBAP header ahead of the unit and the PDU. */
-#define LH_MB_MBAP_HEAD ((lh_u16_t)7)
+#define LH_MB_MBAP_HEAD (lh_cast_static(lh_u16_t, 7))
 
 /**
  * @brief Wrap @p pdu for @p framing.
@@ -117,7 +118,7 @@ lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, const lh_byte_t *frame, lh_u
 /* ── Link ────────────────────────────────────────────────────────────────── */
 
 /** @brief How many words one link holds; the most a single read may ask for. */
-#define LH_MB_LINK_VALUES ((lh_u16_t)LH_MB_READ_MAX)
+#define LH_MB_LINK_VALUES (lh_cast_static(lh_u16_t, LH_MB_READ_MAX))
 
 /**
  * @brief Where a link is with the device behind it.

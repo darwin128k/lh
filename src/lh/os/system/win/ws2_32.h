@@ -51,6 +51,10 @@ typedef lh_usize_t lh_os_system_win_socket_t;
    socket between blocking and non-blocking. Negative as a `long`. */
 #define LH_OS_SYSTEM_WIN_FIONBIO (lh_cast_static(lh_long_t, 0x8004667EUL))
 
+/* `FIONREAD`: _IOR('f', 127, u_long), the ioctlsocket command that answers how many
+   bytes a `recv` could return now. */
+#define LH_OS_SYSTEM_WIN_FIONREAD (lh_cast_static(lh_long_t, 0x4004667FUL))
+
 /* `WSAEWOULDBLOCK`: a non-blocking call that cannot finish yet. A connect that is
    under way says it too, where POSIX says EINPROGRESS. */
 #define LH_OS_SYSTEM_WIN_WSAEWOULDBLOCK 10035

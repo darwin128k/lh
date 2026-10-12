@@ -4,6 +4,7 @@
 #include <lh/char.h>
 #include <lh/memory/std.h>
 #include <lh/str/format/uint.h>
+#include <lh/cast/static.h>
 
 /* 10^9 fits in ::lh_uint_t and is nine decimal digits — one call of
    ::lh_str_ptr_format_uint per chunk, not a second digit loop. */
@@ -24,7 +25,7 @@ lh_str_ptr_format_ullong(lh_ullong_t value, lh_str_ptr str, lh_usize_t str_size)
 
     do
     {
-        parts[count++] = (lh_uint_t)(x % LH_STR_FORMAT_ULLONG_CHUNK);
+        parts[count++] = lh_cast_static(lh_uint_t, (x % LH_STR_FORMAT_ULLONG_CHUNK));
         x /= LH_STR_FORMAT_ULLONG_CHUNK;
     } while (x > 0U && count < LH_STR_FORMAT_ULLONG_PARTS_MAX);
 

@@ -30,22 +30,23 @@
 #include <lh/byte.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
+#include <lh/cast/static.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 
 /* ── The wire ────────────────────────────────────────────────────────────── */
 
 /** @brief Function code: read holding registers. */
-#define LH_MB_FC_READ_HOLDING ((lh_u8_t)0x03)
+#define LH_MB_FC_READ_HOLDING (lh_cast_static(lh_u8_t, 0x03))
 /** @brief Function code: read input registers. */
-#define LH_MB_FC_READ_INPUT ((lh_u8_t)0x04)
+#define LH_MB_FC_READ_INPUT (lh_cast_static(lh_u8_t, 0x04))
 /** @brief Function code: write one register. */
-#define LH_MB_FC_WRITE_ONE ((lh_u8_t)0x06)
+#define LH_MB_FC_WRITE_ONE (lh_cast_static(lh_u8_t, 0x06))
 /** @brief Function code: write many registers. */
-#define LH_MB_FC_WRITE_MANY ((lh_u8_t)0x10)
+#define LH_MB_FC_WRITE_MANY (lh_cast_static(lh_u8_t, 0x10))
 
 /** @brief Unit 0: every unit on the line is meant, and nobody answers. */
-#define LH_MB_UNIT_BROADCAST ((lh_u8_t)0x00)
+#define LH_MB_UNIT_BROADCAST (lh_cast_static(lh_u8_t, 0x00))
 
 /**
  * @brief Longest ADU, the whole frame in whichever envelope it travels.
@@ -70,7 +71,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * is the number that was remembered, and it was wrong for one of the two framings this
  * library speaks.
  */
-#define LH_MB_ADU_MAX ((lh_u16_t)260)
+#define LH_MB_ADU_MAX (lh_cast_static(lh_u16_t, 260))
 
 /**
  * @brief Most registers one read may ask for.
@@ -79,7 +80,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * fits a 256-byte frame once the unit, the code, the byte count and the CRC are
  * taken off it.
  */
-#define LH_MB_READ_MAX ((lh_u16_t)125)
+#define LH_MB_READ_MAX (lh_cast_static(lh_u16_t, 125))
 
 /**
  * @brief Most registers one "write many registers" (0x10) may carry.
@@ -90,7 +91,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * "illegal data value". The two used to be one constant, which let a write through
  * that every conforming device turns down.
  */
-#define LH_MB_WRITE_MAX ((lh_u16_t)123)
+#define LH_MB_WRITE_MAX (lh_cast_static(lh_u16_t, 123))
 
 /**
  * @brief CRC-16 as Modbus uses it: reflected, polynomial 0xA001.
@@ -309,7 +310,7 @@ typedef struct lh_mb_read
  * `8` is where it was worth measuring, and the measurement is the number to move
  * if a card turns out to be denser than the ones in the firmware.
  */
-#define LH_MB_GAP_MAX ((lh_u16_t)8)
+#define LH_MB_GAP_MAX (lh_cast_static(lh_u16_t, 8))
 
 /**
  * @brief Turn a sorted list of wants into the fewest requests that cover them.

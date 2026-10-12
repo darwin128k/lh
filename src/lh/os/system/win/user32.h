@@ -23,6 +23,7 @@
 #include <lh/size.h>
 #include <lh/str/ptr.h>
 #include <lh/void.h>
+#include <lh/cast/static.h>
 
 /** @brief `HDC`. Present since Windows 95. */
 typedef lh_ptr lh_os_system_win_hdc_t;
@@ -219,10 +220,10 @@ typedef struct lh_os_system_win_createstructa lh_os_system_win_createstructa_t;
 #define LH_OS_SYSTEM_WIN_SIZE_MAXIMIZED 2
 
 /* CreateWindow position. Present since Windows 95. */
-#define LH_OS_SYSTEM_WIN_CW_USEDEFAULT ((lh_int_t)0x80000000)
+#define LH_OS_SYSTEM_WIN_CW_USEDEFAULT (lh_cast_static(lh_int_t, 0x80000000))
 
 /* Stock cursor id as `MakeIntResourceA(32512)`. Present since Windows 95. */
-#define LH_OS_SYSTEM_WIN_IDC_ARROW ((lh_str_cptr)(lh_usize_t)32512)
+#define LH_OS_SYSTEM_WIN_IDC_ARROW (lh_cast_static(lh_str_cptr, lh_cast_static(lh_usize_t, 32512)))
 
 /* Window long offsets. Present since Windows 95 (`GWL_USERDATA`). */
 #define LH_OS_SYSTEM_WIN_GWLP_USERDATA (-21)
@@ -282,10 +283,10 @@ typedef struct lh_os_system_win_createstructa lh_os_system_win_createstructa_t;
 #define LH_OS_SYSTEM_WIN_INFINITE 0xFFFFFFFFUL
 #define LH_OS_SYSTEM_WIN_WAIT_TIMEOUT 258UL
 
-#define LH_OS_SYSTEM_WIN_LOWORD(v) ((lh_os_system_win_word_t)((lh_usize_t)(v) & 0xffffU))
-#define LH_OS_SYSTEM_WIN_HIWORD(v) ((lh_os_system_win_word_t)(((lh_usize_t)(v) >> 16) & 0xffffU))
+#define LH_OS_SYSTEM_WIN_LOWORD(v) (lh_cast_static(lh_os_system_win_word_t, (lh_cast_static(lh_usize_t, (v))& 0xffffU)))
+#define LH_OS_SYSTEM_WIN_HIWORD(v) (lh_cast_static(lh_os_system_win_word_t, ((lh_cast_static(lh_usize_t, (v))>> 16) & 0xffffU)))
 #define LH_OS_SYSTEM_WIN_GET_WHEEL_DELTA_WPARAM(w)                                                 \
-    ((lh_sshort_t)LH_OS_SYSTEM_WIN_HIWORD(w))
+    (lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(w)))
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_atom_t LH_OS_SYSTEM_WIN_CALL
 RegisterClassExA(const lh_os_system_win_wndclassexa_t *wc);
@@ -422,9 +423,9 @@ LH_OS_SYSTEM_WIN_IMPORT lh_long_t LH_OS_SYSTEM_WIN_CALL
 GetWindowLongA(lh_os_system_win_hwnd_t hWnd, lh_int_t nIndex);
 
 #define SetWindowLongPtrA(hwnd, index, value)                                                      \
-    SetWindowLongA((hwnd), (index), (lh_long_t)(lh_ssize_t)(value))
+    SetWindowLongA((hwnd), (index), lh_cast_static(lh_long_t, lh_cast_static(lh_ssize_t, (value))))
 #define GetWindowLongPtrA(hwnd, index)                                                             \
-    ((lh_os_system_win_lparam_t)GetWindowLongA((hwnd), (index)))
+    (lh_cast_static(lh_os_system_win_lparam_t, GetWindowLongA((hwnd), (index))))
 
 #endif
 

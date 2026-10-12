@@ -178,6 +178,12 @@ lh_os_net_socket_recv(lh_self_ptr self, lh_ptr buf, lh_usize_t size)
 }
 
 lh_ssize_t
+lh_os_net_socket_pending(const lh_os_net_socket_t *self)
+{
+    return lh_os_system_net_socket_pending(lh_os_net_socket_get_handle(self));
+}
+
+lh_ssize_t
 lh_os_net_socket_sendto(lh_self_ptr self, const lh_ptr buf, lh_usize_t size,
                         const lh_net_ip4_socket_addr_t *addr)
 {

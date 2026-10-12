@@ -16,6 +16,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/size.h>
+#include <lh/cast/static.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/web/ws.h requires LH_LIBRARY_OPTION_UI"
@@ -29,7 +30,7 @@
 #define LH_UI_WEB_WS_PONG 10u
 
 /** Largest payload the decoder will assemble (1 MiB). */
-#define LH_UI_WEB_WS_MAX_MSG ((lh_usize_t)(1024u * 1024u))
+#define LH_UI_WEB_WS_MAX_MSG (lh_cast_static(lh_usize_t, (1024u * 1024u)))
 
 LH_COMPILER_EXTERN_C_BEGIN
 

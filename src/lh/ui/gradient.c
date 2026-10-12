@@ -136,7 +136,7 @@ static lh_s64_t
 lh_ui_gradient_isqrt(lh_s64_t v)
 {
     lh_s64_t r = 0;
-    lh_s64_t bit = (lh_s64_t)1 << 40;
+    lh_s64_t bit = lh_cast_static(lh_s64_t, 1)<< 40;
 
     while (bit > v)
     {
@@ -196,8 +196,8 @@ lh_ui_gradient_frac_at(const lh_ui_gradient_t *self, const lh_ui_rect_t *rect, l
     const lh_s64_t w = lh_ui_scalar_floor_s32(lh_ui_size_get_width(size));
     const lh_s64_t h = lh_ui_scalar_floor_s32(lh_ui_size_get_height(size));
     /* The pixel's centre from the middle of the box, both doubled so no half is lost. */
-    const lh_s64_t dx = 2 * (lh_s64_t)x + 1 - (2 * (lh_s64_t)lh_ui_scalar_floor_s32(lh_ui_point_get_x(origin)) + w);
-    const lh_s64_t dy = 2 * (lh_s64_t)y + 1 - (2 * (lh_s64_t)lh_ui_scalar_floor_s32(lh_ui_point_get_y(origin)) + h);
+    const lh_s64_t dx = 2 * lh_cast_static(lh_s64_t, x)+ 1 - (2 * lh_cast_static(lh_s64_t, lh_ui_scalar_floor_s32(lh_ui_point_get_x(origin)))+ w);
+    const lh_s64_t dy = 2 * lh_cast_static(lh_s64_t, y)+ 1 - (2 * lh_cast_static(lh_s64_t, lh_ui_scalar_floor_s32(lh_ui_point_get_y(origin)))+ h);
     lh_s64_t frac;
 
     lh_assert_runtime_ref(self);
@@ -249,10 +249,10 @@ lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac)
         const lh_s32_t start = lh_ui_gradient_stop_get_frac(a);
         const lh_s32_t end = lh_ui_gradient_stop_get_frac(b);
 
-        if ((lh_s32_t)frac <= end)
+        if (lh_cast_static(lh_s32_t, frac)<= end)
         {
             const lh_s32_t span = end - start;
-            const lh_s32_t at = (lh_s32_t)frac - start;
+            const lh_s32_t at = lh_cast_static(lh_s32_t, frac)- start;
 
             lh_return_if(span <= 0, *to);
             /* Each channel, alpha with them, mixed in proportion to how far along the

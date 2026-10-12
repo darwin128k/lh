@@ -11,6 +11,7 @@
 #include <lh/ui/size.h>
 #include <lh/util/addr.h>
 #include <lh/util/return.h>
+#include <lh/cast/static.h>
 
 lh_void
 lh_ui_rects_init(lh_ui_rects_t *self)
@@ -82,7 +83,7 @@ lh_ui_rects_add(lh_ui_rects_t *self, const lh_ui_rect_t *rect)
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(rect);
     lh_return_if(lh_ui_rect_is_empty(rect));
-    if (self->count >= (lh_u32_t)LH_UI_RECTS_MAX)
+    if (self->count >= lh_cast_static(lh_u32_t, LH_UI_RECTS_MAX))
     {
         lh_ui_rects_squeeze(self, rect);
         return;

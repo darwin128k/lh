@@ -48,7 +48,7 @@ lh_ui_blur_window_average(const lh_ui_blur_window_t *self, lh_s32_t channel, lh_
     lh_s32_t straight;
 
     lh_assert_runtime_ref(self);
-    lh_return_if(channel < 0 || channel > 3 || count <= 0, (lh_u8_t)0);
+    lh_return_if(channel < 0 || channel > 3 || count <= 0, lh_cast_static(lh_u8_t, 0));
     if (channel == 3)
     {
         return lh_cast_static(lh_u8_t, lh_math_clamp(lh_math_div(self->a + count / 2, count), 0, 255));
@@ -65,7 +65,7 @@ lh_ui_blur_window_average(const lh_ui_blur_window_t *self, lh_s32_t channel, lh_
             sum = self->b;
             break;
     }
-    lh_return_if(sum == 0 || self->a <= 0, (lh_u8_t)0);
+    lh_return_if(sum == 0 || self->a <= 0, lh_cast_static(lh_u8_t, 0));
     /* Every pixel opaque is the picture a frame actually blurs, and that average
        was already (sum of the channel + count / 2) / count. Dividing the
        premultiplied sum by the alpha sum rounds the other way once the window
@@ -94,7 +94,7 @@ lh_ui_blur_scratch_size(const lh_ui_rect_t *rect, lh_s32_t radius)
     {
         rows += radius * 2;
     }
-    return (lh_usize_t)lh_ui_size_get_width(size) * (lh_usize_t)rows * 4U;
+    return (lh_usize_t)lh_ui_size_get_width(size) * lh_cast_static(lh_usize_t, rows)* 4U;
 }
 
 /* Rows the column pass has to already hold: the rect, and up to @p radius rows

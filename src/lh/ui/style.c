@@ -11,6 +11,7 @@
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
+#include <lh/cast/static.h>
 
 lh_void
 lh_ui_style_init(lh_ui_style_t *self)
@@ -94,7 +95,7 @@ lh_ui_style_set_easing(lh_ui_style_t *self, lh_ui_easing_t easing)
 static lh_ui_scalar_t
 lh_ui_style_mix(lh_ui_scalar_t from, lh_ui_scalar_t to, lh_u32_t weight)
 {
-    return from + ((to - from) * (lh_ui_scalar_t)weight) / lh_ui_scalar(255);
+    return from + ((to - from) * lh_cast_static(lh_ui_scalar_t, weight)) / lh_ui_scalar(255);
 }
 
 /* @p from moved @p weight of the way to @p to, every channel and the alpha with them:
