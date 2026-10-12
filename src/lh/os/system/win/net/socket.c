@@ -12,6 +12,8 @@
 #include <lh/util/addr.h>
 #include <lh/math.h>
 #include <lh/util/ptr.h>
+#include <lh/util/return.h>
+#include <lh/void.h>
 
 LH_ATTRIBUTE_STATIC
 lh_os_system_win_socket_t
@@ -233,6 +235,60 @@ lh_os_system_net_socket_set_reuse_addr(lh_os_system_net_socket_handle_t handle, 
                                                  LH_OS_SYSTEM_WIN_SO_REUSEADDR,
                                                  lh_ptr_ccast(char, lh_addr_of(value)),
                                                  lh_cast_static(int, sizeof(value))));
+}
+
+lh_bool_t
+lh_os_system_net_socket_set_no_delay(lh_os_system_net_socket_handle_t handle, lh_bool_t enabled)
+{
+    const int value = enabled ? 1 : 0;
+
+    return lh_os_system_net_socket_ok(setsockopt(lh_os_system_net_socket_native(handle),
+                                                 LH_OS_SYSTEM_WIN_IPPROTO_TCP, LH_OS_SYSTEM_WIN_TCP_NODELAY,
+                                                 lh_ptr_ccast(char, lh_addr_of(value)),
+                                                 lh_cast_static(int, sizeof(value))));
+}
+
+LH_ATTRIBUTE_STATIC
+lh_void
+lh_os_system_net_socket_fill_set(lh_os_system_win_fd_set_t *set, const lh_os_system_net_socket_handle_t *handles,
+                                 lh_usize_t count)
+{
+    lh_usize_t i;
+
+    lh_assert_runtime_if(count > LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX, lh_runtime_error_code_invalid_argument);
+    set->fd_count = lh_cast_static(lh_uint_t, count);
+    for (i = 0; i < count; ++i)
+    {
+        set->fd_array[i] = lh_os_system_net_socket_native(handles[i]);
+    }
+}
+
+lh_ssize_t
+lh_os_system_net_socket_wait(const lh_os_system_net_socket_handle_t *read, lh_usize_t read_count,
+                             const lh_os_system_net_socket_handle_t *write, lh_usize_t write_count,
+                             lh_u32_t timeout_ms)
+{
+    lh_os_system_win_fd_set_t readable;
+    lh_os_system_win_fd_set_t writable;
+    lh_os_system_win_timeval_t timeout;
+
+    /* Winsock refuses a select with every set empty (WSAEINVAL) where POSIX
+       would sleep; neither is what a caller with nothing to watch wants. */
+    lh_return_if(lh_math_is_zero(read_count + write_count), LH_OS_RESULT_PENDING);
+    lh_os_system_net_socket_fill_set(lh_addr_of(readable), read, read_count);
+    lh_os_system_net_socket_fill_set(lh_addr_of(writable), write, write_count);
+    timeout.tv_sec = lh_cast_static(lh_long_t, timeout_ms / 1000U);
+    timeout.tv_usec = lh_cast_static(lh_long_t, (timeout_ms % 1000U) * 1000U);
+
+    const lh_int_t ready = select(0, lh_math_is_zero(read_count) ? lh_null : lh_addr_of(readable),
+                                  lh_math_is_zero(write_count) ? lh_null : lh_addr_of(writable), lh_null,
+                                  lh_addr_of(timeout));
+    if (lh_math_eq(ready, LH_OS_SYSTEM_WIN_SOCKET_ERROR))
+    {
+        lh_os_system_error_capture();
+        return LH_OS_RESULT_INVALID;
+    }
+    return lh_math_is_zero(ready) ? LH_OS_RESULT_PENDING : lh_cast_static(lh_ssize_t, ready);
 }
 
 lh_ssize_t

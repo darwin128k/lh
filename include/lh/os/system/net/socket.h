@@ -143,6 +143,39 @@ lh_bool_t
 lh_os_system_net_socket_set_reuse_addr(lh_os_system_net_socket_handle_t handle, lh_bool_t enabled);
 
 /**
+ * @brief Enable or disable `TCP_NODELAY` (Nagle off) on a TCP @p handle.
+ *
+ * With Nagle on, the tail of a write smaller than a segment waits for the
+ * peer's ACK of the one before it, and a delayed ACK makes that a wait of
+ * tens of milliseconds. A connection that answers each input with a frame
+ * wants it off.
+ *
+ * @return ::lh_bool_true on success, ::lh_bool_false if the native call failed.
+ */
+lh_bool_t
+lh_os_system_net_socket_set_no_delay(lh_os_system_net_socket_handle_t handle, lh_bool_t enabled);
+
+/** How many handles one ::lh_os_system_net_socket_wait watches in each set at most. */
+#define LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX 64U
+
+/**
+ * @brief Wait at most @p timeout_ms until any of @p read is readable (or, for a
+ *        listening handle, has a connection to accept) or any of @p write is
+ *        writable.
+ *
+ * Each set holds at most ::LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX handles. With both
+ * sets empty it answers ::LH_OS_RESULT_PENDING at once instead of sleeping.
+ *
+ * @param timeout_ms `0` only looks.
+ * @return How many handles are ready (> 0), ::LH_OS_RESULT_PENDING when the
+ *         time ran out first, ::LH_OS_RESULT_INVALID on failure.
+ */
+lh_ssize_t
+lh_os_system_net_socket_wait(const lh_os_system_net_socket_handle_t *read, lh_usize_t read_count,
+                             const lh_os_system_net_socket_handle_t *write, lh_usize_t write_count,
+                             lh_u32_t timeout_ms);
+
+/**
  * @brief Send up to @p size bytes from @p buf on a connected @p handle.
  *
  * One native call; may send fewer bytes than asked (also when @p size

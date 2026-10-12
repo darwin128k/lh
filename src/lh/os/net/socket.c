@@ -132,6 +132,37 @@ lh_os_net_socket_set_reuse_addr(lh_os_net_socket_t *self, lh_bool_t enabled)
     return lh_os_system_net_socket_set_reuse_addr(lh_os_net_socket_get_handle(self), enabled);
 }
 
+lh_bool_t
+lh_os_net_socket_set_no_delay(lh_os_net_socket_t *self, lh_bool_t enabled)
+{
+    return lh_os_system_net_socket_set_no_delay(lh_os_net_socket_get_handle(self), enabled);
+}
+
+lh_usize_t
+lh_os_net_socket_get_handles(lh_os_system_net_socket_handle_t *out, lh_os_net_socket_t *const *sockets,
+                             lh_usize_t count)
+{
+    lh_usize_t i;
+
+    lh_assert_runtime_if(count > LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX, lh_runtime_error_code_invalid_argument);
+    for (i = 0; i < count; ++i)
+    {
+        out[i] = lh_os_net_socket_get_handle(sockets[i]);
+    }
+    return count;
+}
+
+lh_ssize_t
+lh_os_net_socket_wait(lh_os_net_socket_t *const *read, lh_usize_t read_count, lh_os_net_socket_t *const *write,
+                      lh_usize_t write_count, lh_u32_t timeout_ms)
+{
+    lh_os_system_net_socket_handle_t readable[LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX];
+    lh_os_system_net_socket_handle_t writable[LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX];
+
+    return lh_os_system_net_socket_wait(readable, lh_os_net_socket_get_handles(readable, read, read_count), writable,
+                                        lh_os_net_socket_get_handles(writable, write, write_count), timeout_ms);
+}
+
 lh_ssize_t
 lh_os_net_socket_send(lh_self_ptr self, const lh_ptr buf, lh_usize_t size)
 {
