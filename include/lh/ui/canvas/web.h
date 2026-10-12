@@ -19,6 +19,7 @@
 #include <lh/config.h>
 #include <lh/size.h>
 #include <lh/ui/canvas/backend.h>
+#include <lh/void.h>
 #include <stdio.h>
 
 #if !LH_LIBRARY_OPTION_UI
@@ -26,6 +27,23 @@
 #endif
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/** How many distinct glyph covers the process-wide intern table holds. */
+#define LH_UI_CANVAS_WEB_GLYPHS_MAX 1024u
+
+/**
+ * @brief Which interned covers a reader has already been sent.
+ *
+ * One frame on its own carries every cover it uses once (the default, when
+ * nothing is set with ::lh_ui_canvas_web_set_glyphs). A stream of frames to
+ * the same reader keeps one of these across frames, so a glyph's coverage
+ * crosses the wire once per reader and not once per frame; a new reader
+ * starts from ::lh_ui_canvas_web_glyphs_reset.
+ */
+typedef struct lh_ui_canvas_web_glyphs
+{
+    unsigned char sent[LH_UI_CANVAS_WEB_GLYPHS_MAX];
+} lh_ui_canvas_web_glyphs_t;
 
 /**
  * @brief An open JSON array of canvas ops, to a file or to a buffer the caller owns.
@@ -41,7 +59,8 @@ typedef struct lh_ui_canvas_web
     unsigned ops;
     int comma;
     lh_bool_t ok;
-    void *atlas; /**< Which intern ids this JSON already emitted; freed on close. */
+    lh_ui_canvas_web_glyphs_t *glyphs; /**< Which covers the reader has; ::lh_null = this frame's own. */
+    lh_bool_t glyphs_owned;            /**< @c glyphs was allocated here and is freed on close. */
 } lh_ui_canvas_web_t;
 
 /** The table ::lh_ui_canvas_init wants. */
@@ -59,6 +78,19 @@ lh_ui_canvas_web_open(lh_ui_canvas_web_t *self, const char *path, unsigned width
 lh_bool_t
 lh_ui_canvas_web_open_mem(lh_ui_canvas_web_t *self, char *buf, lh_usize_t cap, unsigned width,
                           unsigned height);
+
+/** Forget every cover @p self says was sent: the next frame carries them again. */
+lh_void
+lh_ui_canvas_web_glyphs_reset(lh_ui_canvas_web_glyphs_t *self);
+
+/**
+ * @brief Record sent covers in @p glyphs (not owned) instead of in this frame alone.
+ *
+ * Call after open and before the first op. A cover marked there is sent as
+ * its id only, so the reader must have kept every earlier frame's covers.
+ */
+lh_void
+lh_ui_canvas_web_set_glyphs(lh_ui_canvas_web_t *self, lh_ui_canvas_web_glyphs_t *glyphs);
 
 /**
  * @brief Close the array. A file is closed; a buffer stays valid at ::lh_ui_canvas_web_bytes.

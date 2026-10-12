@@ -44,6 +44,9 @@ typedef lh_usize_t lh_os_system_win_socket_t;
 #define LH_OS_SYSTEM_WIN_SO_REUSEADDR 0x0004
 #define LH_OS_SYSTEM_WIN_SO_ERROR 0x1007
 
+/* `TCP_NODELAY` at level IPPROTO_TCP. Present since Winsock 1.1. */
+#define LH_OS_SYSTEM_WIN_TCP_NODELAY 0x0001
+
 /* `FIONBIO`: _IOW('f', 126, u_long), the ioctlsocket command that switches a
    socket between blocking and non-blocking. Negative as a `long`. */
 #define LH_OS_SYSTEM_WIN_FIONBIO (lh_cast_static(lh_long_t, 0x8004667EUL))

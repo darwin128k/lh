@@ -8,11 +8,13 @@
 #include <lh/util/addr.h>
 #include <lh/math.h>
 #include <lh/util/ptr.h>
+#include <lh/util/return.h>
 
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -246,6 +248,54 @@ lh_os_system_net_socket_set_reuse_addr(lh_os_system_net_socket_handle_t handle, 
 
     return lh_os_system_net_socket_ok(
         setsockopt(lh_os_system_net_socket_native(handle), SOL_SOCKET, SO_REUSEADDR, lh_addr_of(value), sizeof(value)));
+}
+
+lh_bool_t
+lh_os_system_net_socket_set_no_delay(lh_os_system_net_socket_handle_t handle, lh_bool_t enabled)
+{
+    const int value = enabled ? 1 : 0;
+
+    return lh_os_system_net_socket_ok(
+        setsockopt(lh_os_system_net_socket_native(handle), IPPROTO_TCP, TCP_NODELAY, lh_addr_of(value), sizeof(value)));
+}
+
+LH_ATTRIBUTE_STATIC
+lh_usize_t
+lh_os_system_net_socket_fill_watch(struct pollfd *watch, const lh_os_system_net_socket_handle_t *handles,
+                                   lh_usize_t count, short events)
+{
+    lh_usize_t i;
+
+    lh_assert_runtime_if(count > LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX, lh_runtime_error_code_invalid_argument);
+    for (i = 0; i < count; ++i)
+    {
+        watch[i].fd = lh_os_system_net_socket_native(handles[i]);
+        watch[i].events = events;
+        watch[i].revents = 0;
+    }
+    return count;
+}
+
+lh_ssize_t
+lh_os_system_net_socket_wait(const lh_os_system_net_socket_handle_t *read, lh_usize_t read_count,
+                             const lh_os_system_net_socket_handle_t *write, lh_usize_t write_count,
+                             lh_u32_t timeout_ms)
+{
+    struct pollfd watch[2U * LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX];
+    lh_usize_t count;
+
+    lh_return_if(lh_math_is_zero(read_count + write_count), LH_OS_RESULT_PENDING);
+    count = lh_os_system_net_socket_fill_watch(watch, read, read_count, POLLIN);
+    count += lh_os_system_net_socket_fill_watch(watch + count, write, write_count, POLLOUT);
+
+    const int ready = poll(watch, (nfds_t)count, timeout_ms > (lh_u32_t)INT_MAX ? INT_MAX : (int)timeout_ms);
+    if (lh_math_is_negative(ready))
+    {
+        lh_return_if(errno == EINTR, LH_OS_RESULT_PENDING);
+        lh_os_system_error_capture();
+        return LH_OS_RESULT_INVALID;
+    }
+    return lh_math_is_zero(ready) ? LH_OS_RESULT_PENDING : lh_cast_static(lh_ssize_t, ready);
 }
 
 lh_ssize_t

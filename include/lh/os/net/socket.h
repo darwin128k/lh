@@ -240,6 +240,40 @@ lh_bool_t
 lh_os_net_socket_set_reuse_addr(lh_os_net_socket_t *self, lh_bool_t enabled);
 
 /**
+ * @brief Enable or disable `TCP_NODELAY` on a TCP @p self.
+ *
+ * A connection that answers every input with one write (a frame, a reply)
+ * wants Nagle off: otherwise the tail of the write can wait for a delayed ACK.
+ *
+ * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
+ */
+lh_bool_t
+lh_os_net_socket_set_no_delay(lh_os_net_socket_t *self, lh_bool_t enabled);
+
+/**
+ * @brief Copy the handles of @p count @p sockets into @p out (at most
+ *        ::LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX) and answer @p count.
+ */
+lh_usize_t
+lh_os_net_socket_get_handles(lh_os_system_net_socket_handle_t *out, lh_os_net_socket_t *const *sockets,
+                             lh_usize_t count);
+
+/**
+ * @brief Wait at most @p timeout_ms until one of @p read can be read (or
+ *        accepted from) or one of @p write can be written.
+ *
+ * What a server loop calls instead of sleeping: it returns as soon as there
+ * is something to do. Each list holds at most ::LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX
+ * sockets; both empty answers ::LH_OS_RESULT_PENDING at once.
+ *
+ * @return How many sockets are ready (> 0), ::LH_OS_RESULT_PENDING when the
+ *         time ran out, ::LH_OS_RESULT_INVALID on failure.
+ */
+lh_ssize_t
+lh_os_net_socket_wait(lh_os_net_socket_t *const *read, lh_usize_t read_count, lh_os_net_socket_t *const *write,
+                      lh_usize_t write_count, lh_u32_t timeout_ms);
+
+/**
  * @brief ::lh_io_writer_write_fn backed by @p context's socket.
  *
  * @param self An ::lh_os_net_socket_t* (passed as the writer's context).
