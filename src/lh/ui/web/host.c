@@ -151,14 +151,19 @@ static const char lh_ui_web_page[] =
     "x.fillStyle=rgba(op.color);round(x,op.rect,op.radius||0);x.fill();x.restore();fs=null;break;"
     "}}"
     "}\n"
-    /* Frames that arrive faster than the screen refreshes: draw the newest once. */
-    "function show(d){ingest(d);pend=d;if(!raf)raf=requestAnimationFrame(function(){raf=0;var p=pend;pend=null;if(p)play(p);});}\n"
+    /* Layout mode: a WS frame can beat the first `z w h` and paint the design
+       980×620 into the corner. Reject only that design frame when the viewport is
+       not 980×620 — strict equality with lastZW also dropped good frames when the
+       scrollbar ate one pixel of height. */
+    "function sized(d){if(scaleMode!=='layout'||!lastZW)return 1;"
+    "if(d.width===980&&d.height===620&&(lastZW!==980||lastZH!==620))return 0;return 1;}\n"
+    "function show(d){ingest(d);if(!sized(d))return;pend=d;if(!raf)raf=requestAnimationFrame(function(){raf=0;var p=pend;pend=null;if(p)play(p);});}\n"
     "function pos(e){var c=document.getElementById('c'),r=c.getBoundingClientRect();"
     "return {x:Math.round((e.clientX-r.left)*fw/r.width),y:Math.round((e.clientY-r.top)*fh/r.height)};"
     "}\n"
-    "function reportSize(){if(scaleMode!=='layout')return;"
-    "var w=window.innerWidth|0,h=window.innerHeight|0;if(w<1)w=1;if(h<1)h=1;"
-    "if(w===lastZW&&h===lastZH)return;lastZW=w;lastZH=h;emit('z '+w+' '+h);}\n"
+    "function viewSize(){var w=window.innerWidth|0,h=window.innerHeight|0;if(w<1)w=1;if(h<1)h=1;return {w:w,h:h};}\n"
+    "function reportSize(force){if(scaleMode!=='layout')return;"
+    "var s=viewSize();if(!force&&s.w===lastZW&&s.h===lastZH)return;lastZW=s.w;lastZH=s.h;emit('z '+s.w+' '+s.h);}\n"
     "window.onresize=function(){if(scaleMode==='layout')reportSize();else if(lastD)play(lastD);};\n"
     "var busy=0,rev=-1;\n"
     "function load(){if(busy)return busy;busy=fetch('/ui.json').then(function(r){return r.json();}).then(show).then(function(){busy=0;},function(){busy=0;});return busy;}\n"
@@ -195,13 +200,19 @@ static const char lh_ui_web_page[] =
     "if(sock&&(sock.readyState===0||sock.readyState===1))return;"
     "try{sock=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws');}"
     "catch(e){sock=null;startPoll();armRetry();return;}"
-    "sock.onopen=function(){retry=200;stopPoll();reportSize();};"
+    /* Do not clear lastZW here: a zero window lets a stale 980 frame paint.
+       Force `z` so the host bumps even when the size did not change. */
+    "sock.onopen=function(){retry=200;stopPoll();reportSize(1);};"
     "sock.onmessage=function(ev){show(JSON.parse(ev.data));};"
     "sock.onclose=function(){sock=null;startPoll();armRetry();};"
     "sock.onerror=function(){};"
     "}\n"
-    "if(scaleMode==='layout')reportSize();else load();\n"
-    "openWs();\n"
+    /* Layout: size the host over HTTP *before* opening WS, so the first frame is
+       already the viewport — not the design 980×620 that otherwise wins the race. */
+    "if(scaleMode==='layout'){(function(){var s=viewSize();lastZW=s.w;lastZH=s.h;"
+    "fetch('/ui/size?w='+s.w+'&h='+s.h).then(function(){rev=-1;return load();},function(){})."
+    "then(function(){openWs();},function(){openWs();});})();}\n"
+    "else{load();openWs();}\n"
     "</script></body></html>";
 
 /* A literal and its length, for the wrappers that take both. */
@@ -575,10 +586,9 @@ host_event_line(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigne
     }
     else if (lh_str_ptr_parse_text(line, len, "z %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
     {
-        if (!host_resize(hooks, width, height, lh_cast_static(int, x), lh_cast_static(int, y)))
-        {
-            return;
-        }
+        /* Always bump: an unchanged size still needs a frame for a new tab, or the
+           player keeps the design 980×620 it got before `z` arrived. */
+        (void)host_resize(hooks, width, height, lh_cast_static(int, x), lh_cast_static(int, y));
     }
     else
     {
