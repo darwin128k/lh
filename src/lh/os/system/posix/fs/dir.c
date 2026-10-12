@@ -1,5 +1,6 @@
 #include <lh/os/system/fs/dir.h>
 #include <lh/assert.h>
+#include <lh/byte.h>
 #include <lh/attribute/static.h>
 #include <lh/cast/static.h>
 #include <lh/null.h>
@@ -27,7 +28,7 @@ lh_os_system_fs_dir_native(lh_os_system_fs_dir_handle_t handle)
 
 LH_ATTRIBUTE_STATIC
 lh_fs_kind_t
-lh_os_system_fs_dir_kind(unsigned char type)
+lh_os_system_fs_dir_kind(lh_byte_t type)
 {
 #ifdef DT_LNK
     if (lh_math_eq(type, DT_LNK))

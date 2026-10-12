@@ -2,6 +2,7 @@
 #include <lh/assert.h>
 #include <lh/bool.h>
 #include <lh/byte.h>
+#include <lh/byte/ptr.h>
 #include <lh/cast/const.h>
 #include <lh/cast/static.h>
 #include <lh/null.h>
@@ -73,7 +74,7 @@ lh_io_writer_write(lh_io_writer_t *self, const lh_ptr buf, lh_usize_t size)
 lh_bool_t
 lh_io_writer_write_all(lh_io_writer_t *self, const lh_ptr buf, lh_usize_t size)
 {
-    const lh_byte_t *p = lh_ptr_ccast(lh_byte_t, buf);
+    lh_byte_cptr p = lh_ptr_ccast(lh_byte_t, buf);
     lh_usize_t left = size;
 
     if (size == 0u)

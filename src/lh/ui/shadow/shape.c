@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/byte/ptr.h>
 #include <lh/math/isqrt.h>
 #include <lh/memory.h>
 #include <lh/ui/canvas/round.h>
@@ -126,7 +127,7 @@ lh_ui_shadow_shape_alpha(const lh_ui_shadow_shape_t *self, lh_s32_t row, lh_s32_
 
 lh_void
 lh_ui_shadow_shape_span(const lh_ui_shadow_shape_t *self, const struct lh_ui_shadow_ramp *ramp, lh_s32_t y,
-                        lh_s32_t x0, lh_s32_t x1, lh_byte_t *out)
+                        lh_s32_t x0, lh_s32_t x1, lh_byte_ptr out)
 {
     const lh_s32_t row = lh_ui_shadow_shape_row(self, y);
     const lh_s32_t oy = row > 0 ? row : 0;

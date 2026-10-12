@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/byte/ptr.h>
 #include <lh/math.h>
 #include <lh/math/isqrt.h>
 #include <lh/memory.h>
@@ -112,7 +113,7 @@ lh_ui_canvas_sw_edge_alpha(const lh_ui_canvas_sw_t *self, lh_byte_t alpha, lh_by
 
 lh_void
 lh_ui_canvas_sw_blend_run(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color,
-                          lh_byte_t *coverage)
+                          lh_byte_ptr coverage)
 {
     const lh_byte_t alpha = lh_ui_color_get_a(color);
     lh_s32_t mid0 = x0;
@@ -487,7 +488,7 @@ sw_glyph_rows(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_s32_t x0, lh
 
     for (; y < y1; ++y)
     {
-        const lh_byte_t *row = lh_ui_mask_get_row(mask, y - y0);
+        lh_byte_cptr row = lh_ui_mask_get_row(mask, y - y0);
         lh_u32_t *at = lh_ptr_rcast(lh_u32_t, lh_ui_pixmap_get_address(lh_addr_of(self->pixmap), 0, y));
 
         for (x = from; x < to; ++x)

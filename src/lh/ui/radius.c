@@ -7,6 +7,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/byte/ptr.h>
 #include <lh/cast/static.h>
 #include <lh/math.h>
 #include <lh/math/floor.h>
@@ -180,7 +181,7 @@ lh_ui_radius_run_init(struct lh_ui_radius_run *self, const lh_ui_rect_t *rect, l
 }
 
 lh_void
-lh_ui_radius_run_row(const struct lh_ui_radius_run *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_byte_t *out)
+lh_ui_radius_run_row(const struct lh_ui_radius_run *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_byte_ptr out)
 {
     const lh_s64_t dy = lh_ui_radius_axis_distance(lh_ui_radius_pixel_center(y), self->top, self->height, self->r);
     const lh_s64_t dy2 = dy * dy;
@@ -244,7 +245,7 @@ lh_ui_radius_run_row(const struct lh_ui_radius_run *self, lh_s32_t x0, lh_s32_t 
 
 lh_void
 lh_ui_radius_coverage_run(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
-                          lh_byte_t *out)
+                          lh_byte_ptr out)
 {
     struct lh_ui_radius_run run;
 

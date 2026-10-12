@@ -4,12 +4,13 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/byte/ptr.h>
 #include <lh/cast/static.h>
 #include <lh/numeric/parse/bytes.h>
 #include <lh/runtime/error/code.h>
 
 lh_void
-lh_numeric_parse_bytes(lh_uint_t value, lh_byte_t *out, lh_usize_t count)
+lh_numeric_parse_bytes(lh_uint_t value, lh_byte_ptr out, lh_usize_t count)
 {
     lh_usize_t i;
     lh_assert_runtime_ref(out);

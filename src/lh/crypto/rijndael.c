@@ -1,4 +1,5 @@
 #include <lh/crypto/rijndael.h>
+#include <lh/byte/ptr.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/unreachable.h>
@@ -103,7 +104,7 @@ lh_crypto_rijndael_shift_offsets(lh_usize_t nb, lh_usize_t *c1, lh_usize_t *c2, 
 }
 
 static lh_void
-lh_crypto_rijndael_shift_row(lh_byte_t *state, lh_usize_t nb, lh_usize_t row, lh_usize_t shift,
+lh_crypto_rijndael_shift_row(lh_byte_ptr state, lh_usize_t nb, lh_usize_t row, lh_usize_t shift,
                              lh_bool_t inverse)
 {
     lh_byte_t tmp[8];
@@ -122,7 +123,7 @@ lh_crypto_rijndael_shift_row(lh_byte_t *state, lh_usize_t nb, lh_usize_t row, lh
 }
 
 static lh_void
-lh_crypto_rijndael_shift_rows(lh_byte_t *state, lh_usize_t nb, lh_bool_t inverse)
+lh_crypto_rijndael_shift_rows(lh_byte_ptr state, lh_usize_t nb, lh_bool_t inverse)
 {
     lh_usize_t c1;
     lh_usize_t c2;
@@ -135,9 +136,9 @@ lh_crypto_rijndael_shift_rows(lh_byte_t *state, lh_usize_t nb, lh_bool_t inverse
 }
 
 static lh_void
-lh_crypto_rijndael_sub_bytes(lh_byte_t *state, lh_usize_t block_size, lh_bool_t inverse)
+lh_crypto_rijndael_sub_bytes(lh_byte_ptr state, lh_usize_t block_size, lh_bool_t inverse)
 {
-    const lh_byte_t *box = inverse ? m_inv_sbox : m_sbox;
+    lh_byte_cptr box = inverse ? m_inv_sbox : m_sbox;
     lh_usize_t i;
 
     for (i = 0; i < block_size; ++i)
@@ -147,13 +148,13 @@ lh_crypto_rijndael_sub_bytes(lh_byte_t *state, lh_usize_t block_size, lh_bool_t 
 }
 
 static lh_void
-lh_crypto_rijndael_mix_columns(lh_byte_t *state, lh_usize_t nb, lh_bool_t inverse)
+lh_crypto_rijndael_mix_columns(lh_byte_ptr state, lh_usize_t nb, lh_bool_t inverse)
 {
     lh_usize_t c;
 
     for (c = 0; c < nb; ++c)
     {
-        lh_byte_t *col = state + c * 4U;
+        lh_byte_ptr col = state + c * 4U;
         lh_byte_t a0 = col[0];
         lh_byte_t a1 = col[1];
         lh_byte_t a2 = col[2];
@@ -208,7 +209,7 @@ lh_crypto_rijndael_rot_word(lh_u32_t w)
 }
 
 static lh_void
-lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, const lh_byte_t *key,
+lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, lh_byte_cptr key,
                               lh_usize_t key_size)
 {
     lh_usize_t nk = key_size / 4U;
@@ -265,7 +266,7 @@ lh_crypto_rijndael_get_block_size(const lh_crypto_rijndael_t *self)
 }
 
 static lh_void
-lh_crypto_rijndael_cipher(const lh_crypto_rijndael_t *self, const lh_byte_t *in, lh_byte_t *out,
+lh_crypto_rijndael_cipher(const lh_crypto_rijndael_t *self, lh_byte_cptr in, lh_byte_ptr out,
                           lh_bool_t decrypt)
 {
     const lh_usize_t block_size = lh_crypto_rijndael_get_block_size(self);
@@ -359,8 +360,8 @@ lh_bool_t
 lh_crypto_rijndael_encrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh_ptr out)
 {
     lh_usize_t block_size;
-    const lh_byte_t *in_bytes;
-    lh_byte_t *out_bytes;
+    lh_byte_cptr in_bytes;
+    lh_byte_ptr out_bytes;
     lh_byte_t block[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX];
 
     lh_assert_runtime_ref(self);
@@ -396,8 +397,8 @@ lh_bool_t
 lh_crypto_rijndael_decrypt_block(lh_crypto_rijndael_t *self, const lh_ptr in, lh_ptr out)
 {
     lh_usize_t block_size;
-    const lh_byte_t *in_bytes;
-    lh_byte_t *out_bytes;
+    lh_byte_cptr in_bytes;
+    lh_byte_ptr out_bytes;
     lh_byte_t block[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX];
     lh_byte_t saved[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX];
 

@@ -16,6 +16,7 @@
 
 #include <lh/bool.h>
 #include <lh/byte.h>
+#include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/ui/font/fields.h>
@@ -57,7 +58,7 @@ lh_ui_font_get_default(lh_void);
  * table built by hand with no way to tell which half was meant.
  */
 lh_void
-lh_ui_font_init(lh_ui_font_t *self, const lh_ui_mask_t *glyphs, const lh_byte_t *advances,
+lh_ui_font_init(lh_ui_font_t *self, const lh_ui_mask_t *glyphs, lh_byte_cptr advances,
                 const lh_s32_t *tops, const lh_ui_font_range_t *ranges, lh_s32_t line_height,
                 lh_s32_t ascent, lh_s32_t cap_height, lh_u32_t range_count);
 

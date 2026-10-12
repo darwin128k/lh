@@ -4,6 +4,7 @@
  */
 
 #include <lh/ui/web/ws.h>
+#include <lh/byte/ptr.h>
 
 #include <lh/null.h>
 #include <lh/numeric/fixed/types.h>
@@ -31,11 +32,11 @@ lh_ui_web_ws_frame_size(lh_usize_t payload_len)
 }
 
 lh_usize_t
-lh_ui_web_ws_write(unsigned char *out, lh_usize_t cap, unsigned opcode, lh_bool_t fin, const void *payload,
+lh_ui_web_ws_write(lh_byte_ptr out, lh_usize_t cap, unsigned opcode, lh_bool_t fin, const void *payload,
                    lh_usize_t payload_len)
 {
     const lh_usize_t need = lh_ui_web_ws_frame_size(payload_len);
-    const unsigned char *src = lh_ptr_ccast(unsigned char, payload);
+    lh_byte_cptr src = lh_ptr_ccast(lh_byte_t, payload);
     lh_usize_t i;
     lh_usize_t off;
 
@@ -47,17 +48,17 @@ lh_ui_web_ws_write(unsigned char *out, lh_usize_t cap, unsigned opcode, lh_bool_
     {
         return 0;
     }
-    out[0] = lh_cast_static(unsigned char, ((fin ? 0x80u : 0u) | (opcode & 0x0fu)));
+    out[0] = lh_cast_static(lh_byte_t, ((fin ? 0x80u : 0u) | (opcode & 0x0fu)));
     if (payload_len < 126u)
     {
-        out[1] = lh_cast_static(unsigned char, payload_len);
+        out[1] = lh_cast_static(lh_byte_t, payload_len);
         off = 2u;
     }
     else if (payload_len <= 65535u)
     {
         out[1] = 126u;
-        out[2] = lh_cast_static(unsigned char, (payload_len >> 8));
-        out[3] = lh_cast_static(unsigned char, payload_len);
+        out[2] = lh_cast_static(lh_byte_t, (payload_len >> 8));
+        out[3] = lh_cast_static(lh_byte_t, payload_len);
         off = 4u;
     }
     else
@@ -65,7 +66,7 @@ lh_ui_web_ws_write(unsigned char *out, lh_usize_t cap, unsigned opcode, lh_bool_
         out[1] = 127u;
         for (i = 0; i < 8u; ++i)
         {
-            out[9u - i] = lh_cast_static(unsigned char, (payload_len >> (8u * i)));
+            out[9u - i] = lh_cast_static(lh_byte_t, (payload_len >> (8u * i)));
         }
         off = 10u;
     }
@@ -77,8 +78,8 @@ lh_ui_web_ws_write(unsigned char *out, lh_usize_t cap, unsigned opcode, lh_bool_
 }
 
 lh_usize_t
-lh_ui_web_ws_read(const unsigned char *p, lh_usize_t n, unsigned *opcode, lh_bool_t *fin,
-                  const unsigned char **payload, lh_usize_t *payload_len, const unsigned char **mask)
+lh_ui_web_ws_read(lh_byte_cptr p, lh_usize_t n, unsigned *opcode, lh_bool_t *fin,
+                  lh_byte_cptr *payload, lh_usize_t *payload_len, lh_byte_cptr *mask)
 {
     unsigned masked;
     unsigned len7;
@@ -172,7 +173,7 @@ lh_ui_web_ws_read(const unsigned char *p, lh_usize_t n, unsigned *opcode, lh_boo
 }
 
 lh_void
-lh_ui_web_ws_unmask(unsigned char *data, lh_usize_t len, const unsigned char mask[4])
+lh_ui_web_ws_unmask(lh_byte_ptr data, lh_usize_t len, const lh_byte_t mask[4])
 {
     lh_usize_t i;
 
@@ -182,6 +183,6 @@ lh_ui_web_ws_unmask(unsigned char *data, lh_usize_t len, const unsigned char mas
     }
     for (i = 0; i < len; ++i)
     {
-        data[i] = lh_cast_static(unsigned char, (data[i] ^ mask[i & 3u]));
+        data[i] = lh_cast_static(lh_byte_t, (data[i] ^ mask[i & 3u]));
     }
 }

@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/byte/ptr.h>
 #include <lh/bit/bswap.h>
 #include <lh/byte/limits.h>
 #include <lh/cast/static.h>
@@ -41,7 +42,7 @@ lh_ui_pixmap_format_get_bytes(lh_ui_pixmap_format_t format)
 }
 
 lh_void
-lh_ui_pixmap_init(lh_ui_pixmap_t *self, lh_byte_t *bits, lh_s32_t width, lh_s32_t height, lh_s32_t stride,
+lh_ui_pixmap_init(lh_ui_pixmap_t *self, lh_byte_ptr bits, lh_s32_t width, lh_s32_t height, lh_s32_t stride,
                   lh_ui_pixmap_format_t format)
 {
     const lh_s32_t bytes = lh_ui_pixmap_format_get_bytes(format);
@@ -100,14 +101,14 @@ lh_ui_pixmap_get_bounds(const lh_ui_pixmap_t *self)
     return bounds;
 }
 
-lh_byte_t *
+lh_byte_ptr
 lh_ui_pixmap_get_row(const lh_ui_pixmap_t *self, lh_s32_t y)
 {
     lh_assert_runtime_ref(self);
     return self->bits + y * self->stride;
 }
 
-lh_byte_t *
+lh_byte_ptr
 lh_ui_pixmap_get_address(const lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y)
 {
     return lh_ui_pixmap_get_row(self, y) + x * lh_ui_pixmap_get_pixel_bytes(self);
@@ -146,7 +147,7 @@ lh_ui_pixmap_unpack(const lh_ui_pixmap_t *self, lh_u32_t word)
 lh_u32_t
 lh_ui_pixmap_read_word(const lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y)
 {
-    const lh_byte_t *at = lh_ui_pixmap_get_address(self, x, y);
+    lh_byte_cptr at = lh_ui_pixmap_get_address(self, x, y);
 
     return lh_ui_pixmap_format_is_16(self->format) ? *lh_ptr_rcast(const lh_u16_t, at)
                                                       : *lh_ptr_rcast(const lh_u32_t, at);
@@ -155,7 +156,7 @@ lh_ui_pixmap_read_word(const lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y)
 lh_void
 lh_ui_pixmap_write_word(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_u32_t word)
 {
-    lh_byte_t *at = lh_ui_pixmap_get_address(self, x, y);
+    lh_byte_ptr at = lh_ui_pixmap_get_address(self, x, y);
 
     if (lh_ui_pixmap_format_is_16(self->format))
     {
@@ -244,7 +245,7 @@ lh_ui_pixmap_store_words16(lh_u16_t *at, lh_usize_t count, lh_u16_t word)
 lh_void
 lh_ui_pixmap_store_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_u32_t word)
 {
-    lh_byte_t *at = lh_ui_pixmap_get_address(self, x0, y);
+    lh_byte_ptr at = lh_ui_pixmap_get_address(self, x0, y);
 
     lh_return_if(x1 <= x0);
     if (lh_ui_pixmap_format_is_16(self->format))
@@ -309,7 +310,7 @@ lh_ui_pixmap_mix_16(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 lh_void
-lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t count,
+lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_byte_cptr alpha, lh_usize_t count,
                                  lh_u32_t src)
 {
     const __m128i zero = _mm_setzero_si128();
@@ -393,7 +394,7 @@ lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, const
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
 
 lh_void
-lh_ui_pixmap_blend_alpha_32(const lh_ui_pixmap_t *self, lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t count,
+lh_ui_pixmap_blend_alpha_32(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_byte_cptr alpha, lh_usize_t count,
                             lh_u32_t src)
 {
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
@@ -445,7 +446,7 @@ lh_ui_pixmap_blend_alpha_32(const lh_ui_pixmap_t *self, lh_u32_t *at, const lh_b
     } while (0)
 
 lh_void
-lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_t *alpha, lh_usize_t count,
+lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha, lh_usize_t count,
                                  lh_u32_t src)
 {
     const __m128i zero = _mm_setzero_si128();
@@ -501,7 +502,7 @@ lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, const
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
 
 lh_void
-lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_t *alpha, lh_usize_t count,
+lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha, lh_usize_t count,
                             lh_u32_t src)
 {
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
@@ -538,9 +539,9 @@ lh_ui_pixmap_pack_rgb(const lh_ui_pixmap_t *self, lh_u32_t src)
 
 lh_void
 lh_ui_pixmap_blend_alpha_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_u32_t src,
-                              const lh_byte_t *alpha)
+                              lh_byte_cptr alpha)
 {
-    lh_byte_t *at = lh_ui_pixmap_get_address(self, x0, y);
+    lh_byte_ptr at = lh_ui_pixmap_get_address(self, x0, y);
 
     lh_return_if(x1 <= x0);
     if (lh_ui_pixmap_format_is_16(self->format))

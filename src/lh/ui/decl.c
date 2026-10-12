@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/byte/ptr.h>
 #include <lh/null.h>
 #include <lh/ui/decl.h>
 #include <lh/util/addr.h>
@@ -80,7 +81,7 @@ lh_ui_decl_check(const lh_ui_decl_t *decls, lh_u32_t index)
    and nothing of any other kind. The style and the place are the caller's, because
    they are the same whatever the widget is. */
 static lh_ui_entity_t *
-lh_ui_decl_place_row(const lh_ui_decl_t *row, lh_byte_t *slot, lh_ui_entity_t **nodes)
+lh_ui_decl_place_row(const lh_ui_decl_t *row, lh_byte_ptr slot, lh_ui_entity_t **nodes)
 {
     lh_ui_rect_t rect;
 
@@ -173,7 +174,7 @@ lh_ui_decl_place_row(const lh_ui_decl_t *row, lh_byte_t *slot, lh_ui_entity_t **
 }
 
 lh_bool_t
-lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nodes, lh_byte_t *storage,
+lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nodes, lh_byte_ptr storage,
                  lh_u32_t bytes, lh_ui_entity_t **root, lh_ui_decl_fault_t *fault)
 {
     lh_ui_entity_t *tree = lh_null;
@@ -226,7 +227,7 @@ lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nod
         for (index = 0; index < count; ++index)
         {
             const lh_ui_decl_t *row = lh_addr_of(decls[index]);
-            lh_byte_t *slot = storage + used;
+            lh_byte_ptr slot = storage + used;
             lh_ui_entity_t *entity;
 
             /* A scrollbar is built around the container it scrolls, and

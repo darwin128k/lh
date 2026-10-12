@@ -11,6 +11,7 @@
 #define LH_SRC_OS_SYSTEM_NET_SOCKET_ADDR_H
 
 #include <lh/void.h>
+#include <lh/byte/ptr.h>
 #include <lh/attribute/static.h>
 #include <lh/compiler/os.h>
 #include <lh/memory.h>
@@ -38,7 +39,7 @@ lh_os_system_net_socket_native_addr_from_ip4(lh_os_system_net_socket_native_addr
 {
     lh_net_ip4_t ip;
     lh_net_port_t port;
-    lh_byte_t *addr_bytes;
+    lh_byte_ptr addr_bytes;
 
     ip = lh_net_ip4_socket_addr_get_ip(addr);
     port = lh_net_ip4_socket_addr_get_port(addr);
@@ -65,7 +66,7 @@ lh_void
 lh_os_system_net_socket_ip4_from_native_addr(lh_net_ip4_socket_addr_t *addr,
                                              const lh_os_system_net_socket_native_addr_t *native_addr)
 {
-    const lh_byte_t *addr_bytes;
+    lh_byte_cptr addr_bytes;
     lh_net_ip4_t ip;
     lh_net_port_t port;
 

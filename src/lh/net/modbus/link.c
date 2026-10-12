@@ -4,6 +4,7 @@
  */
 
 #include <lh/net/modbus/link.h>
+#include <lh/byte/ptr.h>
 
 #include <lh/assert/runtime.h>
 #include <lh/memory/std.h>
@@ -19,8 +20,8 @@
    with a CRC, a network has a header with a length in it and no CRC. */
 
 lh_u16_t
-lh_mb_encode(lh_mb_framing_t framing, lh_u8_t unit, lh_u16_t tx, const lh_byte_t *pdu,
-             lh_u16_t pdu_length, lh_byte_t *out, lh_u16_t cap)
+lh_mb_encode(lh_mb_framing_t framing, lh_u8_t unit, lh_u16_t tx, lh_byte_cptr pdu,
+             lh_u16_t pdu_length, lh_byte_ptr out, lh_u16_t cap)
 {
     lh_return_if(lh_null_eq(out) || lh_null_eq(pdu), lh_cast_static(lh_u16_t, 0));
 
@@ -72,7 +73,7 @@ lh_mb_encode(lh_mb_framing_t framing, lh_u8_t unit, lh_u16_t tx, const lh_byte_t
    in its third byte, a write echoes its request, and an exception is five. 125
    registers is the most, so 255 bytes is the most a read answer can be. */
 static lh_u16_t
-rtu_length(const lh_byte_t *frame, lh_u16_t have, lh_u8_t fc)
+rtu_length(lh_byte_cptr frame, lh_u16_t have, lh_u8_t fc)
 {
     if (have < 3)
     {
@@ -96,7 +97,7 @@ rtu_length(const lh_byte_t *frame, lh_u16_t have, lh_u8_t fc)
 }
 
 lh_u16_t
-lh_mb_frame_length(lh_mb_framing_t framing, const lh_byte_t *frame, lh_u16_t have, lh_u8_t fc)
+lh_mb_frame_length(lh_mb_framing_t framing, lh_byte_cptr frame, lh_u16_t have, lh_u8_t fc)
 {
     lh_return_if(lh_null_eq(frame), lh_cast_static(lh_u16_t, 0));
 
@@ -147,8 +148,8 @@ lh_mb_frame_length(lh_mb_framing_t framing, const lh_byte_t *frame, lh_u16_t hav
 }
 
 lh_bool_t
-lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, const lh_byte_t *frame, lh_u16_t length,
-             lh_byte_t *pdu, lh_u16_t *pdu_length)
+lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, lh_byte_cptr frame, lh_u16_t length,
+             lh_byte_ptr pdu, lh_u16_t *pdu_length)
 {
     lh_return_ifn(lh_null_ne(frame) && lh_null_ne(pdu) && lh_null_ne(pdu_length), lh_bool_false);
 
@@ -285,7 +286,7 @@ lh_mb_link_consume(lh_mb_link_t *self, lh_u16_t n)
    and the bookkeeping that makes the answer this question's. @p fc is the code the
    answer will carry, and ::lh_mb_link_poll reads it by that. */
 static lh_bool_t
-lh_mb_link_send(lh_mb_link_t *self, const lh_byte_t *pdu, lh_u16_t pdu_length, lh_u16_t address,
+lh_mb_link_send(lh_mb_link_t *self, lh_byte_cptr pdu, lh_u16_t pdu_length, lh_u16_t address,
                 lh_u16_t count, lh_u8_t fc)
 {
     /* The request is built in a buffer of its own. ::lh_mb_link_t.frame is the
