@@ -9,6 +9,7 @@
 #ifndef LH_IO_WRITER_H
 #define LH_IO_WRITER_H
 
+#include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/io/pending.h>
 #include <lh/io/writer/cb.h>
@@ -116,6 +117,20 @@ lh_io_writer_get_context(const lh_io_writer_t *self);
  */
 lh_ssize_t
 lh_io_writer_write(lh_io_writer_t *self, const lh_ptr buf, lh_usize_t size);
+
+/**
+ * @brief Write every byte of @p buf by repeating ::lh_io_writer_write.
+ *
+ * The one-shot write may take less than @p size (a socket, a short OS
+ * write). This is that loop, once, so a file dump and a stream do not each
+ * grow their own. ::LH_IO_PENDING and any other non-positive result stop
+ * it: a blocking dump has no "try later".
+ *
+ * @return ::lh_bool_true when all @p size bytes were taken (including
+ *         @p size of 0).
+ */
+lh_bool_t
+lh_io_writer_write_all(lh_io_writer_t *self, const lh_ptr buf, lh_usize_t size);
 
 LH_COMPILER_EXTERN_C_END
 

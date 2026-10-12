@@ -5,6 +5,7 @@
 
 #include <lh/io/writer.h>
 #include <lh/self.h>
+#include <lh/bool.h>
 
 namespace
 {
@@ -65,6 +66,27 @@ TEST(io_writer_deinit, clears_callback_and_context)
 
     EXPECT_EQ(lh_io_writer_get_write_cb(&writer), nullptr);
     EXPECT_EQ(lh_io_writer_get_context(&writer), nullptr);
+}
+
+lh_ssize_t
+MemorySinkWriteAtMostTwo(lh_self_ptr self, const lh_ptr buf, lh_usize_t size)
+{
+    MemorySink *sink = static_cast<MemorySink *>(self);
+    const lh_usize_t n = size > 2U ? 2U : size;
+
+    std::memcpy(sink->data + sink->size, buf, n);
+    sink->size += n;
+    return static_cast<lh_ssize_t>(n);
+}
+
+TEST(io_writer_write_all, repeats_until_the_buffer_is_gone)
+{
+    MemorySink sink{};
+    lh_io_writer_t writer{};
+    lh_io_writer_init(&writer, &MemorySinkWriteAtMostTwo, &sink);
+
+    EXPECT_EQ(lh_io_writer_write_all(&writer, "abcdef", 6), lh_bool_true);
+    EXPECT_EQ(std::string(sink.data, sink.size), "abcdef");
 }
 
 TEST(io_writer_assign, copies_callback_and_context)

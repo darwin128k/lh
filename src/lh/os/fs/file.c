@@ -1,14 +1,20 @@
 #include <lh/os/fs/file.h>
 #include <lh/assert.h>
+#include <lh/cast/const.h>
 #include <lh/cast/static.h>
+#include <lh/fs/path.h>
 #include <lh/null.h>
 #include <lh/os/fs/path.h>
 #include <lh/os/system/fs/file.h>
+#include <lh/os/system/fs/path.h>
 #include <lh/self.h>
 #include <lh/str.h>
+#include <lh/str/view.h>
 #include <lh/util/addr.h>
 #include <lh/math.h>
 #include <lh/util/ptr.h>
+
+#include <stdarg.h>
 
 lh_fs_path_t *
 lh_os_fs_file_get_path(lh_os_fs_file_t *self)
@@ -122,6 +128,21 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_fs_file_m
     return lh_bool_true;
 }
 
+lh_bool_t
+lh_os_fs_file_open_cstr(lh_os_fs_file_t *self, lh_str_cptr path, lh_fs_file_mode_t mode)
+{
+    lh_fs_path_t fp;
+    lh_str_view_t text;
+    lh_bool_t ok;
+
+    lh_str_view_init(lh_addr_of(text), path);
+    lh_fs_path_init(lh_addr_of(fp));
+    lh_fs_path_set(lh_addr_of(fp), text, lh_os_system_fs_path_style_native());
+    ok = lh_os_fs_file_open(self, lh_addr_of(fp), mode);
+    lh_fs_path_deinit(lh_addr_of(fp));
+    return ok;
+}
+
 lh_ssize_t
 lh_os_fs_file_read(lh_self_ptr self, lh_ptr buf, lh_usize_t size)
 {
@@ -165,4 +186,43 @@ lh_os_fs_file_get_stream(lh_os_fs_file_t *self)
     lh_io_stream_t stream;
     lh_io_stream_init(lh_addr_of(stream), lh_addr_of(reader), lh_addr_of(writer));
     return stream;
+}
+
+lh_bool_t
+lh_os_fs_file_write_all(lh_os_fs_file_t *self, const lh_ptr buf, lh_usize_t size)
+{
+    lh_io_writer_t writer = lh_os_fs_file_get_writer(self);
+
+    return lh_io_writer_write_all(lh_addr_of(writer), buf, size);
+}
+
+lh_bool_t
+lh_os_fs_file_print_v(lh_os_fs_file_t *self, lh_str_cptr fmt, va_list args)
+{
+    lh_str_t text;
+    lh_usize_t n;
+    lh_bool_t ok;
+
+    lh_str_init(lh_addr_of(text));
+    n = lh_str_format_v(lh_addr_of(text), fmt, args);
+    if (n == 0u && fmt[0] != '\0')
+    {
+        lh_str_deinit(lh_addr_of(text));
+        return lh_bool_false;
+    }
+    ok = lh_os_fs_file_write_all(self, lh_cast_const(lh_ptr, lh_str_get_data(lh_addr_of(text))), n);
+    lh_str_deinit(lh_addr_of(text));
+    return ok;
+}
+
+lh_bool_t
+lh_os_fs_file_print(lh_os_fs_file_t *self, lh_str_cptr fmt, ...)
+{
+    va_list args;
+    lh_bool_t ok;
+
+    va_start(args, fmt);
+    ok = lh_os_fs_file_print_v(self, fmt, args);
+    va_end(args);
+    return ok;
 }

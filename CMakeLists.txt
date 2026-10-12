@@ -133,6 +133,7 @@ ${LH_LIB_SRC_PATH}/str/cstr.c
         ${LH_LIB_SRC_PATH}/str.c
         ${LH_LIB_SRC_PATH}/wstr.c
         ${LH_LIB_SRC_PATH}/str/format/uint.c
+        ${LH_LIB_SRC_PATH}/str/format/ullong.c
         ${LH_LIB_SRC_PATH}/str/format/sint.c
         ${LH_LIB_SRC_PATH}/str/format/hex.c
         ${LH_LIB_SRC_PATH}/str/format/text.c
