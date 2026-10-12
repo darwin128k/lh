@@ -188,14 +188,14 @@ lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, const lh_byte_t *frame, lh_u
 /* ── A link ───────────────────────────────────────────────────────────────── */
 
 lh_void
-lh_mb_link_init(lh_mb_link_t *self, const lh_mb_transport_t *transport, lh_mb_framing_t framing,
+lh_mb_link_init(lh_mb_link_t *self, const lh_io_stream_t *stream, lh_mb_framing_t framing,
                 lh_u8_t unit, lh_u64_t (*now_us)(lh_ptr self), lh_ptr clock)
 {
     lh_assert_runtime_ref(self);
-    lh_return_if(lh_null_eq(transport));
+    lh_assert_runtime_ref(stream);
 
     lh_memory_std_set(lh_addr_of(*self), 0, sizeof(*self));
-    self->transport = *transport;
+    lh_io_stream_assign(lh_addr_of(self->stream), stream);
     self->framing = framing;
     self->unit = unit;
     /* Which question this link asks. It is a field and not an argument to every
@@ -236,25 +236,31 @@ lh_mb_link_get_fc(const lh_mb_link_t *self)
     return self->fc;
 }
 
-lh_bool_t
-lh_mb_link_open(lh_mb_link_t *self, const lh_char_t *target, lh_u16_t port)
+lh_void
+lh_mb_link_set_stream(lh_mb_link_t *self, const lh_io_stream_t *stream)
 {
     lh_assert_runtime_ref(self);
-    lh_return_ifn(lh_null_ne(self->transport.open), lh_bool_false);
-    if (!self->transport.open(self->transport.self, target, port))
-    {
-        /* A device that is not there leaves the link failed rather than idle: the
-           difference is whether the next pass tries again or sits still. */
-        self->state = (lh_u8_t)lh_mb_link_failed;
-        self->reason = lh_mb_status_garbage;
-        self->counters.failed++;
-        return lh_bool_false;
-    }
+    lh_assert_runtime_ref(stream);
+    lh_io_stream_assign(lh_addr_of(self->stream), stream);
     /* A new connection is a new stream: whatever was held belonged to the old one,
        and the first byte that arrives now is the first byte of a frame. */
     self->held = 0;
     self->state = (lh_u8_t)lh_mb_link_idle;
-    return lh_bool_true;
+    self->reason = lh_mb_status_ok;
+}
+
+/* The stream is gone: the peer closed it, it failed, or it took half a request. A
+   frame boundary cannot be found on it again, so nothing held is kept, and the
+   reason says so -- the app opens a new stream and hands it to
+   ::lh_mb_link_set_stream. */
+static lh_mb_link_state_t
+lh_mb_link_lose(lh_mb_link_t *self)
+{
+    self->held = 0;
+    self->state = (lh_u8_t)lh_mb_link_idle;
+    self->reason = lh_mb_status_lost;
+    self->counters.failed++;
+    return lh_mb_link_failed;
 }
 
 /* Drop the first @p n bytes held. Over MBAP what follows them is the start of the
@@ -286,7 +292,7 @@ lh_mb_link_send(lh_mb_link_t *self, const lh_byte_t *pdu, lh_u16_t pdu_length, l
        carries this question's own transaction id -- was then read back as the
        answer. */
     lh_byte_t out[LH_MB_ADU_MAX];
-    lh_s32_t wrote;
+    lh_ssize_t wrote;
 
     if (pdu_length == 0)
     {
@@ -298,32 +304,21 @@ lh_mb_link_send(lh_mb_link_t *self, const lh_byte_t *pdu, lh_u16_t pdu_length, l
     {
         return lh_bool_false;
     }
-    wrote = self->transport.send(self->transport.self, out, pdu_length);
-    if (wrote < 0)
+    wrote = lh_io_stream_write(lh_addr_of(self->stream), out, (lh_usize_t)pdu_length);
+    if (wrote == LH_IO_PENDING)
     {
-        /* Idle, not failed, for the same reason ::lh_mb_link_poll does it: a
-           question that could not go out is one question, and a link left in
-           `failed` here can never be asked anything again -- so one would-block on
-           a full send buffer, or one reset, would take that device out for the rest
-           of the session while every other device kept polling. The caller gets
-           `false` and decides what a device that will not take a question means. */
+        /* Nothing went out: the send buffer is full for the moment. Not a fault --
+           the stream is fine and so is the device -- so it is not counted as one;
+           the caller gets `false` and asks again on its next pass. */
         self->state = (lh_u8_t)lh_mb_link_idle;
-        self->counters.failed++;
         return lh_bool_false;
     }
-    if (wrote < (lh_s32_t)pdu_length)
+    if (wrote != (lh_ssize_t)pdu_length)
     {
-        /* Half a request out is worse than none: whatever is on the line is a
-           frame nobody sent. The transport is expected to have taken all of it
-           or said so, and this is where a transport that does not is caught.
-
-           `wrote == 0` is the ordinary answer from a **non-blocking** socket whose
-           buffer is full, which is not a fault at all -- it is a socket that is
-           busy. Reporting it as a failed question makes a link that had a full
-           send buffer for a moment indistinguishable from a device that is gone,
-           and the app above cannot tell whether to wait or to give up. */
-        self->state = (lh_u8_t)lh_mb_link_idle;
-        self->counters.failed++;
+        /* A failure, or half a request out. The second is worse than none: what is
+           on the line now is a frame nobody sent, and the device will read whatever
+           comes next as the rest of it. Either way the stream is lost. */
+        (void)lh_mb_link_lose(self);
         return lh_bool_false;
     }
     self->address = address;
@@ -388,10 +383,25 @@ lh_mb_link_write(lh_mb_link_t *self, lh_u16_t address, const lh_u16_t *values, l
                            address, count, LH_MB_FC_WRITE_MANY);
 }
 
+lh_bool_t
+lh_mb_link_write_one(lh_mb_link_t *self, lh_u16_t address, lh_u16_t value)
+{
+    lh_byte_t pdu[LH_MB_ADU_MAX];
+
+    lh_assert_runtime_ref(self);
+    lh_return_ifn(self->state == (lh_u8_t)lh_mb_link_idle, lh_bool_false);
+    lh_return_ifn(lh_mb_link_send(self, pdu, lh_mb_build_pdu_write_one(pdu, (lh_u16_t)sizeof(pdu), address, value),
+                                  address, 1, LH_MB_FC_WRITE_ONE),
+                  lh_bool_false);
+    /* After the send, which starts a question by forgetting the last one's. */
+    self->written = value;
+    return lh_bool_true;
+}
+
 lh_mb_link_state_t
 lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
 {
-    lh_s32_t got;
+    lh_ssize_t got;
     lh_u16_t need;
     lh_byte_t pdu[LH_MB_ADU_MAX];
     lh_u16_t pdu_length = 0;
@@ -401,14 +411,14 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
     lh_return_ifn(self->state == (lh_u8_t)lh_mb_link_waiting, (lh_mb_link_state_t)self->state);
 
     /* Nothing to ask for when the buffer is full: it holds a whole frame at least,
-       and the loop below consumes it. A recv for zero bytes is not a harmless call
-       on a real socket -- it returns 0, which is how a socket says the peer has
+       and the loop below consumes it. A read of zero bytes is not a harmless call on
+       a real socket -- it returns 0, which is how a socket says the peer has
        closed. */
     got = self->held < (lh_u16_t)sizeof(self->frame)
-              ? self->transport.recv(self->transport.self, lh_addr_of(self->frame[self->held]),
-                                     (lh_u16_t)(sizeof(self->frame) - self->held))
-              : 0;
-    if (got < 0)
+              ? lh_io_stream_read(lh_addr_of(self->stream), lh_addr_of(self->frame[self->held]),
+                                  (lh_usize_t)(sizeof(self->frame) - self->held))
+              : LH_IO_PENDING;
+    if (got == 0 || (got < 0 && got != LH_IO_PENDING))
     {
         /* Every failure below ends the same way: **back to idle, not stuck.**
            A question that came back wrong, came back short, or never came back is
@@ -422,13 +432,10 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
            that a device is *off* rather than *slow* is the app's business, because
            only it knows how many failures in a row mean that.
 
-           A transport that failed has no stream left to keep a place in, so what
-           was held goes with it. */
-        self->held = 0;
-        self->state = (lh_u8_t)lh_mb_link_idle;
-        self->reason = lh_mb_status_garbage;
-        self->counters.failed++;
-        return (lh_mb_link_state_t)lh_mb_link_failed;
+           This one is not a question going wrong but the stream ending -- `0` is
+           the peer closing, a negative value a failure -- and it is said as such,
+           because the answer to it is a new connection and not another question. */
+        return lh_mb_link_lose(self);
     }
     if (got > 0)
     {
@@ -503,6 +510,12 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
         /* A write's answer is its own header echoed and carries no values. */
         self->got = 0;
         status = lh_mb_parse_pdu_write(pdu, pdu_length, self->address, self->expected, lh_null);
+    }
+    else if (self->asked_fc == LH_MB_FC_WRITE_ONE)
+    {
+        /* And a single write's is the whole request echoed, the value with it. */
+        self->got = 0;
+        status = lh_mb_parse_pdu_write_one(pdu, pdu_length, self->address, self->written, lh_null);
     }
     else
     {

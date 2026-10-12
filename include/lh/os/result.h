@@ -17,6 +17,7 @@
 #define LH_OS_RESULT_H
 
 #include <lh/cast/static.h>
+#include <lh/io/pending.h>
 #include <lh/size.h>
 
 /**
@@ -29,6 +30,10 @@
  * @def LH_OS_RESULT_PENDING
  * @brief A call on a non-blocking handle that cannot finish **yet** (`-2`).
  *
+ * The same value as ::LH_IO_PENDING, on purpose: a socket's send and recv are a
+ * stream's write and read (::lh_os_net_socket_get_stream), and the answer passes
+ * through unchanged.
+ *
  * Not a failure: the handle is fine and the same call will do something later.
  * Negative, so a caller that only knows "negative is failure" still stops — but a
  * caller that polls must tell the two apart, because treating "nothing has
@@ -37,6 +42,6 @@
  * ordinary answer of a poll loop, and formatting an OS message on every empty
  * poll would cost more than the poll.
  */
-#define LH_OS_RESULT_PENDING (lh_cast_static(lh_ssize_t, -2))
+#define LH_OS_RESULT_PENDING LH_IO_PENDING
 
 #endif /* LH_OS_RESULT_H */

@@ -16,6 +16,9 @@
 #include <lh/cast/static.h>
 #include <lh/char.h>
 #include <lh/numeric/fixed/types.h>
+#include <lh/byte.h>
+#include <lh/os/system/win/kernel32/commtimeouts/fields.h>
+#include <lh/os/system/win/kernel32/dcb/fields.h>
 #include <lh/os/system/win/kernel32/file_attribute_data/fields.h>
 #include <lh/os/system/win/kernel32/filetime/fields.h>
 #include <lh/os/system/win/kernel32/find_data/fields.h>
@@ -49,6 +52,31 @@
 #define LH_OS_SYSTEM_WIN_CREATE_ALWAYS 2UL
 #define LH_OS_SYSTEM_WIN_OPEN_EXISTING 3UL
 #define LH_OS_SYSTEM_WIN_OPEN_ALWAYS 4UL
+
+/* Serial ports: DCB flag bits (the DCB's bit fields), its Parity and StopBits
+   values, and PurgeComm's flags. */
+#define LH_OS_SYSTEM_WIN_DCB_BINARY 0x00000001UL
+#define LH_OS_SYSTEM_WIN_DCB_PARITY 0x00000002UL
+#define LH_OS_SYSTEM_WIN_DCB_DTR_ENABLE 0x00000010UL
+#define LH_OS_SYSTEM_WIN_DCB_RTS_ENABLE 0x00001000UL
+#define LH_OS_SYSTEM_WIN_ONESTOPBIT 0U
+#define LH_OS_SYSTEM_WIN_TWOSTOPBITS 2U
+#define LH_OS_SYSTEM_WIN_PURGE_TXCLEAR 0x0004UL
+#define LH_OS_SYSTEM_WIN_PURGE_RXCLEAR 0x0008UL
+
+/** @brief `DCB`. */
+struct lh_os_system_win_dcb
+{
+    lh_os_system_win_dcb_fields(lh_os_system_win_dword_t, lh_os_system_win_word_t, lh_byte_t, lh_char_t);
+};
+typedef struct lh_os_system_win_dcb lh_os_system_win_dcb_t;
+
+/** @brief `COMMTIMEOUTS`. */
+struct lh_os_system_win_commtimeouts
+{
+    lh_os_system_win_commtimeouts_fields(lh_os_system_win_dword_t);
+};
+typedef struct lh_os_system_win_commtimeouts lh_os_system_win_commtimeouts_t;
 
 /* FILE_ATTRIBUTE_*. */
 #define LH_OS_SYSTEM_WIN_FILE_ATTRIBUTE_READONLY 0x00000001UL
@@ -139,6 +167,20 @@ CreateFileW(lh_wstr_cptr lpFileName, lh_os_system_win_dword_t dwDesiredAccess,
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 CloseHandle(lh_os_system_win_handle_t hObject);
+
+/* Serial ports. */
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+GetCommState(lh_os_system_win_handle_t hFile, lh_os_system_win_dcb_t *lpDCB);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+SetCommState(lh_os_system_win_handle_t hFile, lh_os_system_win_dcb_t *lpDCB);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+SetCommTimeouts(lh_os_system_win_handle_t hFile, lh_os_system_win_commtimeouts_t *lpCommTimeouts);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+PurgeComm(lh_os_system_win_handle_t hFile, lh_os_system_win_dword_t dwFlags);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 ReadFile(lh_os_system_win_handle_t hFile, lh_ptr lpBuffer, lh_os_system_win_dword_t nNumberOfBytesToRead,

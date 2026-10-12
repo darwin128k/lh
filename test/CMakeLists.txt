@@ -178,6 +178,7 @@ lh_add_test_core(lh_test_numeric
 
 set(LH_TEST_OS_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/net/modbus_tcp.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/serial.cpp
         ${LH_TEST_SRC_PATH}/lh/os/tick.cpp
         ${LH_TEST_SRC_PATH}/lh/os/window.cpp
         ${LH_TEST_SRC_PATH}/lh/os/render/backend/gdi.cpp
@@ -188,6 +189,8 @@ if (NOT LH_LIBRARY_OPTION_OS)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/tick.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/net/modbus_tcp.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/net/modbus_tcp.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/serial.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/serial.cpp)
 endif ()
 if (NOT (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW))
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/window.cpp)

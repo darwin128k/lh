@@ -105,7 +105,8 @@ lh_io_stream_set_writer(lh_io_stream_t *self, const lh_io_writer_t *writer);
  * @param self Stream to read from.
  * @param buf  Destination buffer.
  * @param size Maximum bytes to read into @p buf.
- * @return Bytes read (`0` at end of stream), or negative on failure.
+ * @return Bytes read, `0` at the end of the stream, ::LH_IO_PENDING when a
+ *         non-blocking stream has nothing yet, or another negative value on failure.
  */
 lh_ssize_t
 lh_io_stream_read(lh_io_stream_t *self, lh_ptr buf, lh_usize_t size);

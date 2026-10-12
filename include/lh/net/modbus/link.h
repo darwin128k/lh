@@ -14,9 +14,15 @@
  * than the whole pass. That is what makes the thing scale with the number of
  * devices instead of with the number of round trips.
  *
- * A link owns a transport (::lh_mb_transport_t) and does not know what one is.
- * A TCP socket, a COM port and a pair of arrays in a test are the same three
+ * A link reads and writes an ::lh_io_stream_t and does not know what is behind it.
+ * A TCP socket (::lh_os_net_socket_get_stream), a COM port
+ * (::lh_os_serial_get_stream) and a pair of arrays in a test are the same two
  * calls, and this is what lets the state machine be tested with no device at all.
+ *
+ * The stream has to be **non-blocking**: a read answers ::LH_IO_PENDING when
+ * nothing has arrived, and `0` only when the stream has ended. A blocking stream
+ * works, but a read on it waits for the device, which is the one thing a link
+ * exists not to do.
  *
  * @see lh_mb_link_ask, lh_mb_link_poll
  */
@@ -28,6 +34,7 @@
 #include <lh/net/modbus.h>
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/io/stream.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/util/ptr.h>
 #include <lh/void.h>
@@ -107,29 +114,6 @@ lh_bool_t
 lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, const lh_byte_t *frame, lh_u16_t length,
              lh_byte_t *pdu, lh_u16_t *pdu_length);
 
-/* ── Transport ───────────────────────────────────────────────────────────── */
-
-/**
- * @brief Whoever moves the bytes.
- *
- * Every call is non-blocking and answers in one step: there is no "wait for it"
- * call anywhere in this interface, because a program that has one has a place
- * where a dead device stops the world. A transport that has nothing to report
- * says so — zero bytes read, or fewer written than asked — and the link comes
- * back to it later.
- *
- * @param send Bytes written, or a negative value for an error.
- * @param recv Bytes read, 0 for nothing yet, or a negative value for an error.
- */
-typedef struct lh_mb_transport
-{
-    lh_ptr self; /**< whatever the four calls below close over */
-    lh_bool_t (*open)(lh_ptr self, const lh_char_t *target, lh_u16_t port);
-    lh_void (*close)(lh_ptr self);
-    lh_s32_t (*send)(lh_ptr self, const lh_byte_t *bytes, lh_u16_t length);
-    lh_s32_t (*recv)(lh_ptr self, lh_byte_t *bytes, lh_u16_t cap);
-} lh_mb_transport_t;
-
 /* ── Link ────────────────────────────────────────────────────────────────── */
 
 /** @brief How many words one link holds; the most a single read may ask for. */
@@ -154,7 +138,7 @@ typedef enum lh_mb_link_state
     lh_mb_link_idle = 0,  /**< nothing in flight */
     lh_mb_link_waiting,   /**< a question is out and no answer has come back yet */
     lh_mb_link_answered,  /**< an answer arrived and was parsed; ::lh_mb_link_take takes it */
-    lh_mb_link_failed     /**< the transport gave up, or the answer was not ours */
+    lh_mb_link_failed     /**< the stream gave up, or the answer was not ours */
 } lh_mb_link_state_t;
 
 /**
@@ -166,9 +150,9 @@ typedef enum lh_mb_link_state
  */
 typedef struct lh_mb_link_counters
 {
-    lh_u32_t sent;    /**< requests written to the transport */
+    lh_u32_t sent;    /**< requests written to the stream */
     lh_u32_t done;    /**< answers parsed in full */
-    lh_u32_t failed;  /**< timeouts and transport errors, and nothing else */
+    lh_u32_t failed;  /**< timeouts and stream errors, and nothing else */
     /** @brief Answers the device understood and refused: a Modbus exception.
      *
      *  **This is an answer, and it is the most useful one a device can give.** It
@@ -198,7 +182,7 @@ typedef struct lh_mb_link_counters
  */
 typedef struct lh_mb_link
 {
-    lh_mb_transport_t transport;
+    lh_io_stream_t stream;
     lh_mb_framing_t framing;
     lh_u8_t unit;
     lh_u8_t fc;
@@ -219,12 +203,14 @@ typedef struct lh_mb_link
     lh_u16_t address;   /**< what the question in flight asked for */
     lh_u16_t expected;  /**< how many words it asked for */
     lh_u16_t got;       /**< how many the answer carried */
+    /** @brief The word a "write one register" sent, which its echo has to carry back. */
+    lh_u16_t written;
     /** @brief Bytes received and not yet consumed.
      *
      *  Over MBAP this is a window on a byte stream, and it outlives a question: what
      *  comes after an answer, and what is left of an answer to a question that timed
      *  out, are the start of the next frame, and dropping them puts every later
-     *  frame off by that many bytes. Only a new connection (::lh_mb_link_open) or a
+     *  frame off by that many bytes. Only a new stream (::lh_mb_link_set_stream) or a
      *  stream that has lost its place empties it. Over RTU there is no length to
      *  find the next frame by, and it is emptied whenever a question ends. */
     lh_u16_t held;
@@ -265,17 +251,30 @@ typedef struct lh_mb_link
 } lh_mb_link_t;
 
 /**
- * @brief Point @p self at @p transport and start empty.
+ * @brief Point @p self at @p stream and start empty.
  *
  * @param self     Link to set up.
- * @param transport The four calls that move the bytes; not owned.
+ * @param stream   What the bytes go through, non-blocking; copied, and what it
+ *                 reads and writes must outlive the link.
  * @param framing  What the line carries.
  * @param unit     Slave address, 1..247.
  * @param now_us   The link's clock; `lh_null` means the link counts nothing.
  */
 lh_void
-lh_mb_link_init(lh_mb_link_t *self, const lh_mb_transport_t *transport, lh_mb_framing_t framing,
+lh_mb_link_init(lh_mb_link_t *self, const lh_io_stream_t *stream, lh_mb_framing_t framing,
                 lh_u8_t unit, lh_u64_t (*now_us)(lh_ptr self), lh_ptr clock);
+
+/**
+ * @brief Carry on over a new @p stream: the connection was made again.
+ *
+ * Whatever was held belonged to the old stream and is dropped, and any question in
+ * flight is forgotten -- its answer, if it comes, comes on the old one. This is
+ * what an app does when ::lh_mb_link_t.reason says ::lh_mb_status_lost: open a new
+ * socket or port, and hand it here. The counters are kept; they are the device's,
+ * not the connection's.
+ */
+lh_void
+lh_mb_link_set_stream(lh_mb_link_t *self, const lh_io_stream_t *stream);
 
 /**
  * @brief Ask ::LH_MB_FC_READ_INPUT or ::LH_MB_FC_READ_HOLDING on this link.
@@ -307,15 +306,6 @@ lh_u8_t
 lh_mb_link_get_fc(const lh_mb_link_t *self);
 
 /**
- * @brief Open the transport. False when the device is not there.
- *
- * A device that is off is a state this program has, not an error: a configurator
- * with six devices on a panel has to keep drawing the five that answer.
- */
-lh_bool_t
-lh_mb_link_open(lh_mb_link_t *self, const lh_char_t *target, lh_u16_t port);
-
-/**
  * @brief Ask for @p count registers at @p address, if nothing else is in flight.
  *
  * @return Whether a question went out. False means the link is busy, which is
@@ -341,9 +331,23 @@ lh_bool_t
 lh_mb_link_write(lh_mb_link_t *self, lh_u16_t address, const lh_u16_t *values, lh_u16_t count);
 
 /**
+ * @brief Write one register with @p value at @p address ("write one register",
+ *        ::LH_MB_FC_WRITE_ONE), if nothing else is in flight.
+ *
+ * The same rules and the same answer path as ::lh_mb_link_write: one question at a
+ * time, ::lh_mb_link_poll says when the device confirmed it, an answered write
+ * carries no values, and a refusal is a ::lh_mb_status_exception. For the devices
+ * that take 0x06 and refuse 0x10, and for one word anywhere.
+ *
+ * @return Whether the request went out.
+ */
+lh_bool_t
+lh_mb_link_write_one(lh_mb_link_t *self, lh_u16_t address, lh_u16_t value);
+
+/**
  * @brief Look for an answer without waiting for one.
  *
- * One pass over the transport, then a decision: whole frame, not yet, or not
+ * One read of the stream, then a decision: whole frame, not yet, or not
  * ours. Never blocks, and never asks for anything new — sending is
  * ::lh_mb_link_ask's job, so that a pass cannot turn into a stall.
  *

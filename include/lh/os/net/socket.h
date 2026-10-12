@@ -155,6 +155,29 @@ lh_ssize_t
 lh_os_net_socket_connect_wait(lh_os_net_socket_t *self, lh_u32_t timeout_ms);
 
 /**
+ * @brief Connect @p self to @p addr and leave it non-blocking, waiting at most
+ *        @p timeout_ms for the other end to accept.
+ *
+ * The three calls above in the order they are always made in, so that what a
+ * stream user gets back is a socket that never waits: ::lh_os_net_socket_get_stream
+ * on it reads ::LH_IO_PENDING when nothing has arrived and `0` when the peer has
+ * closed. A connect left to the operating system waits out its SYN retries, twenty
+ * seconds and more, on an address where nothing answers -- a device that is
+ * switched off; here that costs @p timeout_ms.
+ *
+ * @param self       Open TCP socket (::lh_os_net_socket_open).
+ * @param addr       Where to connect.
+ * @param timeout_ms How long the connect may take.
+ *
+ * @return ::lh_bool_true when connected; on failure (refused, unreachable, no
+ *         answer in time) ::lh_bool_false, and the socket is still open for the
+ *         caller to close.
+ */
+lh_bool_t
+lh_os_net_socket_connect_within(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_t *addr,
+                                lh_u32_t timeout_ms);
+
+/**
  * @brief Bind an open @p self to @p addr (TCP listen socket or UDP local port).
  *
  * Port `0` asks the OS for an ephemeral port; read it back with
