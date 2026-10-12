@@ -13,10 +13,13 @@
 #include <lh/os/result.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/canvas/web.h>
+#include <lh/ui/point.h>
+#include <lh/ui/scalar.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 static const char lh_ui_web_page[] =
@@ -24,7 +27,7 @@ static const char lh_ui_web_page[] =
     "<title>lh_ui</title>"
     "<style>html,body{margin:0;background:#edf0f5;color:#1b2433;font:14px/1.4 sans-serif}"
     "header{padding:10px 16px;background:#fafbfd;border-bottom:1px solid #e7e8ec}"
-    "canvas{display:block;margin:16px auto;background:#edf0f5;box-shadow:0 8px 24px #1b24331a}"
+    "canvas{display:block;margin:16px auto;background:#edf0f5;box-shadow:0 8px 24px #1b24331a;cursor:pointer}"
     "#st{color:#54596a;padding:0 16px 16px}</style></head><body>"
     "<header>Кадр из <code>lh_ui</code>. Не Python и не DOM-макет.</header>"
     "<canvas id=\"c\" width=\"980\" height=\"620\"></canvas>"
@@ -45,9 +48,15 @@ static const char lh_ui_web_page[] =
     "var o=document.createElement('canvas');o.width=op.size[0];o.height=op.size[1];"
     "o.getContext('2d').putImageData(im,0,0);x.drawImage(o,op.origin[0],op.origin[1])}"
     "});"
-    "document.getElementById('st').textContent=(d.ops?d.ops.length:0)+' ops, '+d.width+'×'+d.height+' from /ui.json'}"
-    "fetch('/ui.json').then(function(r){return r.json()}).then(play).catch(function(e){"
-    "document.getElementById('st').textContent=String(e)})"
+    "document.getElementById('st').textContent=(d.ops?d.ops.length:0)+' ops, '+d.width+'x'+d.height+' from /ui.json';"
+    "}\n"
+    "function pos(e){var c=document.getElementById('c'),r=c.getBoundingClientRect();"
+    "return {x:Math.round((e.clientX-r.left)*c.width/r.width),y:Math.round((e.clientY-r.top)*c.height/r.height)};"
+    "}\n"
+    "function load(){return fetch('/ui.json').then(function(r){return r.json()}).then(play);}\n"
+    "document.getElementById('c').onclick=function(e){var p=pos(e);"
+    "fetch('/ui/click?x='+p.x+'&y='+p.y).then(load);};\n"
+    "load().catch(function(e){document.getElementById('st').textContent=String(e);});"
     "</script></body></html>";
 
 static void
@@ -84,6 +93,30 @@ host_reply(lh_os_net_socket_t *client, int code, const char *type, const char *b
     host_send_all(client, body, len);
 }
 
+static int
+host_query_int(const char *req, const char *key)
+{
+    const char *p = strstr(req, key);
+
+    if (p == lh_null)
+    {
+        return 0;
+    }
+    return atoi(p + strlen(key));
+}
+
+static void
+host_click(lh_ui_view_t *view, const char *req)
+{
+    lh_ui_point_t point;
+    const int x = host_query_int(req, "x=");
+    const int y = host_query_int(req, "y=");
+
+    lh_ui_point_init(lh_addr_of(point), (lh_ui_scalar_t)x, (lh_ui_scalar_t)y);
+    lh_ui_view_press(view, point);
+    (void)lh_ui_view_release(view, point);
+}
+
 static lh_bool_t
 host_draw(lh_ui_view_t *view, unsigned width, unsigned height, char *json, lh_usize_t json_cap,
           lh_ui_canvas_web_t *web)
@@ -114,6 +147,14 @@ host_handle(lh_ui_view_t *view, unsigned width, unsigned height, char *json, lh_
         return;
     }
     req[n] = 0;
+    if (strncmp(req, "POST /ui/click", 14) == 0 || strncmp(req, "GET /ui/click", 13) == 0)
+    {
+        const char *ok = "ok\n";
+
+        host_click(view, req);
+        host_reply(client, 200, "text/plain; charset=utf-8", ok, strlen(ok));
+        return;
+    }
     if (strncmp(req, "GET /ui.json", 12) == 0)
     {
         if (!host_draw(view, width, height, json, json_cap, lh_addr_of(web)))

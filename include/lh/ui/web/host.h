@@ -3,8 +3,9 @@
  * @brief Serve one ::lh_ui_view_t over HTTP as canvas JSON. No Python.
  *
  * GET `/` is a Canvas2D player. GET `/ui.json` is ::lh_ui_view_draw through
- * ::lh_ui_canvas_backend_web. The host does not know whose tree it is: cfg
- * plugs the configurator, Paladin plugs its own window.
+ * ::lh_ui_canvas_backend_web. GET or POST `/ui/click?x=&y=` is press then
+ * release on that view, the same pair a window delivers. The host does not
+ * know whose tree it is: cfg plugs the configurator, Paladin plugs its own window.
  *
  * Requires ::LH_LIBRARY_OPTION_UI and ::LH_LIBRARY_OPTION_OS.
  */
