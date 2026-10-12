@@ -10,7 +10,11 @@
  * `on_paint`, then paint; clear it when the paint ends. Win32 calls go
  * through ::lh_os_system_*.
  *
- * Requires ::LH_LIBRARY_OPTION_OS_WINDOW and Windows.
+ * The name is where it started. Nothing in it is GDI's any more: it draws in
+ * memory and presents through `lh/os/system/surface.h`, so it is the same screen
+ * on every backend that has one -- the Win32 one and the X11 one.
+ *
+ * Requires ::LH_LIBRARY_OPTION_OS_WINDOW.
  */
 
 #ifndef LH_OS_RENDER_BACKEND_GDI_H
@@ -39,9 +43,6 @@
 #    error "lh/os/render/backend/gdi.h requires LH_LIBRARY_OPTION_OS_WINDOW"
 #endif
 
-#if LH_COMPILER_OS != LH_COMPILER_OS_WINDOWS
-#    error "lh/os/render/backend/gdi.h requires Windows"
-#endif
 
 /**
  * @struct lh_os_render_backend_gdi_context

@@ -480,7 +480,10 @@ TEST(memory_view_slice_make_v, rejects_invalid_range_death)
 {
     const unsigned char buf[4] = {10, 20, 30, 40};
 
-    LH_EXPECT_DEATH(({ lh_memory_view_slice_t _v; lh_memory_view_slice_init(lh_addr_of(_v), p(buf + 3), p(buf + 1)); (void)_v; }));
+    LH_EXPECT_DEATH(([&] {
+        lh_memory_view_slice_t v;
+        lh_memory_view_slice_init(lh_addr_of(v), p(buf + 3), p(buf + 1));
+    }()));
 }
 
 TEST(memory_view_slice_get_ptr_from_begin, rejects_out_of_range_offset_death)

@@ -4,7 +4,8 @@
    widget the generator builds out of others is compiled, built and asked for. */
 
 :root { --bg: #14181d; --panel: #1b2027; --ink: #d2d8e2; --accent: #2e6be6; --line: #2a313b; }
-.btn { height: 28px; padding: 0 12px; border-radius: 6px; background: var(--accent); color: white; }
+.btn { height: 28px; padding: 0 12px; border-radius: 6px; background: var(--accent); color: white;
+       transition: background 150ms ease-out; }
 .btn:hover { background: #4a82ef; }
 .btn:active { background: #2457bd; }
 div#app { width: 480px; height: 320px; background: var(--bg); color: var(--ink); padding: 12px; gap: 10px;

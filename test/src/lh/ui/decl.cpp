@@ -224,19 +224,19 @@ build_by_hand(scene &s, hand_tree &tree, lh_ui_entity_t **nodes, lh_ui_entity_t 
 const lh_ui_decl_t g_rows[k_rows] = {
     {lh_ui_decl_kind_entity, 0, 0, 200, 140, LH_UI_DECL_ROOT, nullptr, nullptr, nullptr, {}},
     {lh_ui_decl_kind_container, 10, 10, 160, 60, 0, nullptr, nullptr, nullptr, {}},
-    {lh_ui_decl_kind_label, 0, 0, 150, 20, 1, nullptr, nullptr, nullptr, {.label = {"row one"}}},
-    {lh_ui_decl_kind_label, 0, 0, 150, 20, 1, nullptr, nullptr, nullptr, {.label = {"row two"}}},
-    {lh_ui_decl_kind_button, 10, 80, 140, 30, 0, nullptr, nullptr, nullptr,
-     {.button = {nullptr, count_click, lh_null}}},
-    {lh_ui_decl_kind_image, 0, 0, 4, 2, 4, nullptr, nullptr, nullptr, {.image = {nullptr, nullptr}}},
-    {lh_ui_decl_kind_label, 0, 0, 60, 14, 4, nullptr, nullptr, nullptr, {.label = {"Hide panel"}}},
-    {lh_ui_decl_kind_scrollbar, 180, 10, 10, 60, 0, nullptr, nullptr, nullptr,
-     {.scrollbar = {1, lh_ui_axis_vertical, lh_ui_scrollbar_mode_always}}},
-    {lh_ui_decl_kind_toggle, 160, 110, 24, 24, 0, nullptr, nullptr, nullptr, {.toggle = {}}},
+    {lh_ui_decl_kind_label, 0, 0, 150, 20, 1, nullptr, nullptr, nullptr, {}},
+    {lh_ui_decl_kind_label, 0, 0, 150, 20, 1, nullptr, nullptr, nullptr, {}},
+    {lh_ui_decl_kind_button, 10, 80, 140, 30, 0, nullptr, nullptr, nullptr, {}},
+    {lh_ui_decl_kind_image, 0, 0, 4, 2, 4, nullptr, nullptr, nullptr, {}},
+    {lh_ui_decl_kind_label, 0, 0, 60, 14, 4, nullptr, nullptr, nullptr, {}},
+    {lh_ui_decl_kind_scrollbar, 180, 10, 10, 60, 0, nullptr, nullptr, nullptr, {}},
+    {lh_ui_decl_kind_toggle, 160, 110, 24, 24, 0, nullptr, nullptr, nullptr, {}},
 };
 
 /* The materials of the tree, filled into a copy of the table: styles, flows, places,
-   a mask and a callback — every one of them the app's own object. */
+   a mask and a callback — every one of them the app's own object. What each kind
+   carries is set here too and not in the table: a designated initializer for a
+   union member is C++20, and MSVC does not take it in the standard tests build with. */
 void
 fill_rows(scene &s, lh_ui_decl_t *rows)
 {
@@ -244,6 +244,13 @@ fill_rows(scene &s, lh_ui_decl_t *rows)
     {
         rows[i] = g_rows[i];
     }
+    rows[2].as.label.text = "row one";
+    rows[3].as.label.text = "row two";
+    rows[4].as.button.on_click = count_click;
+    rows[6].as.label.text = "Hide panel";
+    rows[7].as.scrollbar.box = 1;
+    rows[7].as.scrollbar.axis = lh_ui_axis_vertical;
+    rows[7].as.scrollbar.mode = lh_ui_scrollbar_mode_always;
     rows[0].style = &s.root_style;
     rows[1].style = &s.card_style;
     rows[1].layout = &s.column;

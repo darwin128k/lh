@@ -6,7 +6,7 @@
 
 box#root {
     display: flex; flex-direction: column; gap: 4px;
-    width: 400px; height: 300px; padding: 6px;
+    width: 400px; height: 400px; padding: 6px;
 
     /* 388 wide: 50 + 60 + 70 and two gaps of 2 leave 204, four spaces of 51. */
     box#r1 {
@@ -27,12 +27,47 @@ box#root {
         box#g { width: 20px; display: none; }
     }
 
-    /* What is left of the column: 300 - 12 of padding - 120 - three gaps of 4. */
+    /* What is left of the column: 400 - 12 of padding - 260 - seven gaps of 4. */
     box#r3 {
         flex: 1; display: flex; flex-direction: column; align-items: center;
         box#h { width: 100px; height: 20px; }
         box#i { width: 50px; height: 10px; margin: 0 auto; }
         box#j { height: 8px; align-self: stretch; }
+    }
+
+    /* `margin-left: auto` pushes `n` and what follows it to the far end, gaps kept:
+       388 - 3 x 40 - 2 gaps of 6 = 256 for the margin. */
+    box#r5 {
+        display: flex; gap: 6px; height: 20px;
+        box#m { width: 40px; }
+        box#n { width: 40px; margin-left: auto; }
+        box#o { width: 40px; }
+    }
+
+    /* `margin: 0 auto` along a row: 169 either side of a 50 box. */
+    box#r6 {
+        display: flex; height: 10px;
+        box#q { width: 50px; margin: 0 auto; }
+    }
+
+    /* `flex-wrap`: five tags of 120 in 388, gaps of 4 along and 6 between lines --
+       three on the first line, two on the second, 20 deep each, and the 24 left of
+       the 70 shared between the two lines. */
+    box#r7 {
+        display: flex; flex-wrap: wrap; gap: 6px 4px; height: 70px;
+        box#t1 { width: 120px; height: 20px; }
+        box#t2 { width: 120px; height: 20px; }
+        box#t3 { width: 120px; height: 20px; }
+        box#t4 { width: 120px; height: 20px; }
+        box#t5 { width: 120px; height: 20px; }
+    }
+
+    /* `display: grid`: columns of 100, 1fr and 2fr with gaps of 4 -- 280 shared as 93
+       and 186 -- and two rows that share the 36 left down, 18 each. The second row is
+       one cell and two empty ones, so its columns are the first row's. */
+    box#r8 {
+        display: grid; grid-template-columns: 100px 1fr 2fr; gap: 4px; height: 40px;
+        box#g1 { } box#g2 { } box#g3 { } box#g4 { }
     }
 
     /* 388 less two 40s: 308, 154 around each, 77 at either end. */

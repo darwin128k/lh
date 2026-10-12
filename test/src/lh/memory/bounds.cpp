@@ -346,19 +346,28 @@ TEST(memory_bounds_make_v, rejects_invalid_range_death)
 {
     unsigned char buf[2];
 
-    LH_EXPECT_DEATH(({ lh_memory_bounds_t _v; lh_memory_bounds_init(lh_addr_of(_v), p(buf + 1), p(buf)); (void)_v; }));
+    LH_EXPECT_DEATH(([&] {
+        lh_memory_bounds_t v;
+        lh_memory_bounds_init(lh_addr_of(v), p(buf + 1), p(buf));
+    }()));
 }
 
 TEST(memory_bounds_make_by_size, rejects_zero_size_death)
 {
     unsigned char buf[1];
 
-    LH_EXPECT_DEATH(({ lh_memory_bounds_t _v; lh_memory_bounds_init_by_size(lh_addr_of(_v), p(buf), 0); (void)_v; }));
+    LH_EXPECT_DEATH(([&] {
+        lh_memory_bounds_t v;
+        lh_memory_bounds_init_by_size(lh_addr_of(v), p(buf), 0);
+    }()));
 }
 
 TEST(memory_bounds_make_by_size, rejects_null_begin_death)
 {
-    LH_EXPECT_DEATH(({ lh_memory_bounds_t _v; lh_memory_bounds_init_by_size(lh_addr_of(_v), lh_null, 1); (void)_v; }));
+    LH_EXPECT_DEATH(([&] {
+        lh_memory_bounds_t v;
+        lh_memory_bounds_init_by_size(lh_addr_of(v), lh_null, 1);
+    }()));
 }
 
 TEST(memory_bounds_make_slice, rejects_invalid_bounds_death)

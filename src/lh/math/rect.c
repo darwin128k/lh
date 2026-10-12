@@ -29,7 +29,9 @@ lh_math_rect_from_extent(const lh_math_point_t *min, const lh_math_point_t *max)
     lh_math_rect_init_empty(lh_addr_of(_lh_tmp));
     return _lh_tmp;
     }
-    return ({ lh_math_rect_t _v; lh_math_rect_init_origin_size(lh_addr_of(_v), lh_ptr_deref(min), size); _v; });
+    lh_math_rect_t result;
+    lh_math_rect_init_origin_size(lh_addr_of(result), lh_ptr_deref(min), size);
+    return result;
 }
 
 lh_math_rect_t
@@ -38,8 +40,8 @@ lh_math_rect_from_min_max(lh_math_scalar_t x_min, lh_math_scalar_t y_min,
 {
     lh_math_point_t min;
     lh_math_point_t max;
-    min = ({ lh_math_point_t _v; lh_math_point_init(lh_addr_of(_v), x_min, y_min); _v; });
-    max = ({ lh_math_point_t _v; lh_math_point_init(lh_addr_of(_v), x_max, y_max); _v; });
+    lh_math_point_init(lh_addr_of(min), x_min, y_min);
+    lh_math_point_init(lh_addr_of(max), x_max, y_max);
     return lh_math_rect_from_extent(lh_addr_of(min), lh_addr_of(max));
 }
 
@@ -47,7 +49,11 @@ lh_void
 lh_math_rect_init(lh_math_rect_t *self, lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t width,
                   lh_math_scalar_t height)
 {
-    lh_math_rect_init_origin_size(self, ({ lh_math_point_t _v; lh_math_point_init(lh_addr_of(_v), x, y); _v; }), ({ lh_math_size_t _v; lh_math_size_init(lh_addr_of(_v), width, height); _v; }));
+    lh_math_point_t origin;
+    lh_math_point_init(lh_addr_of(origin), x, y);
+    lh_math_size_t size;
+    lh_math_size_init(lh_addr_of(size), width, height);
+    lh_math_rect_init_origin_size(self, origin, size);
 }
 
 lh_void
@@ -283,14 +289,20 @@ lh_math_rect_t
 lh_math_rect_offset(const lh_math_rect_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy)
 {
     lh_assert_runtime_ref(self);
-    return ({ lh_math_rect_t _v; lh_math_rect_init_origin_size(lh_addr_of(_v), lh_math_point_offset(lh_math_rect_get_origin_as_const(self), dx, dy),
-        lh_ptr_deref(lh_math_rect_get_size_as_const(self))); _v; });
+    lh_math_rect_t result;
+    lh_math_rect_init_origin_size(
+        lh_addr_of(result), lh_math_point_offset(lh_math_rect_get_origin_as_const(self), dx, dy),
+        lh_ptr_deref(lh_math_rect_get_size_as_const(self)));
+    return result;
 }
 
 lh_math_rect_t
 lh_math_rect_inset(const lh_math_rect_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy)
 {
     lh_assert_runtime_ref(self);
-    return ({ lh_math_rect_t _v; lh_math_rect_init_origin_size(lh_addr_of(_v), lh_math_point_offset(lh_math_rect_get_origin_as_const(self), dx, dy),
-        lh_math_size_inset(lh_math_rect_get_size_as_const(self), dx, dy)); _v; });
+    lh_math_rect_t result;
+    lh_math_rect_init_origin_size(
+        lh_addr_of(result), lh_math_point_offset(lh_math_rect_get_origin_as_const(self), dx, dy),
+        lh_math_size_inset(lh_math_rect_get_size_as_const(self), dx, dy));
+    return result;
 }

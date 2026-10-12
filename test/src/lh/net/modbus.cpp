@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstring>
+
 #include <lh/net/modbus.h>
 #include <lh/null.h>
 #include <lh/util/addr.h>
@@ -89,6 +91,62 @@ TEST(lh_mb, a_write_carries_the_words_and_stays_inside_the_frame)
        words we trusted. */
     EXPECT_EQ(lh_mb_crc16(adu, (lh_u16_t)(length - 2)),
               (lh_u16_t)((lh_u16_t)adu[length - 1] << 8 | adu[length - 2]));
+}
+
+TEST(lh_mb, a_write_of_many_stops_at_123_registers_and_not_at_the_read_limit)
+{
+    lh_byte_t pdu[LH_MB_ADU_MAX];
+    lh_u16_t values[LH_MB_READ_MAX] = {};
+
+    /* 0x10 carries a byte count, an address and a quantity on top of its words, and
+       its limit is 123 (0x7B). 124 and 125 are reads' numbers: a device asked to
+       write them refuses with "illegal data value". */
+    EXPECT_EQ(LH_MB_WRITE_MAX, (lh_u16_t)123);
+    EXPECT_EQ(lh_mb_build_pdu_write(pdu, (lh_u16_t)sizeof(pdu), 0, values, 123), (lh_u16_t)(6 + 123 * 2))
+        << "123 registers is a write";
+    EXPECT_EQ(lh_mb_build_pdu_write(pdu, (lh_u16_t)sizeof(pdu), 0, values, 124), (lh_u16_t)0)
+        << "124 is past what one write may carry";
+    EXPECT_EQ(lh_mb_build_pdu_write(pdu, (lh_u16_t)sizeof(pdu), 0, values, LH_MB_READ_MAX), (lh_u16_t)0)
+        << "and the read limit is not the write limit";
+}
+
+/* ── Write one register (0x06) ────────────────────────────────────────────────
+   Written out byte by byte from the specification, not round-tripped through our
+   own builder: 0x1234 to register 10 is `06 00 0A 12 34`, and the device answers
+   with the same five bytes. */
+
+TEST(lh_mb, a_single_write_is_the_code_the_address_and_the_value)
+{
+    const lh_byte_t expected[] = {0x06, 0x00, 0x0A, 0x12, 0x34};
+    lh_byte_t pdu[LH_MB_ADU_MAX];
+
+    ASSERT_EQ(lh_mb_build_pdu_write_one(pdu, (lh_u16_t)sizeof(pdu), 10, 0x1234), (lh_u16_t)5);
+    EXPECT_EQ(memcmp(pdu, expected, sizeof(expected)), 0);
+    EXPECT_EQ(lh_mb_build_pdu_write_one(pdu, 4, 10, 0x1234), (lh_u16_t)0) << "five bytes do not fit in four";
+}
+
+TEST(lh_mb, the_echo_of_a_single_write_answers_it_with_the_value)
+{
+    const lh_byte_t echo[] = {0x06, 0x00, 0x0A, 0x12, 0x34};
+    const lh_byte_t other_value[] = {0x06, 0x00, 0x0A, 0x12, 0x35};
+    const lh_byte_t refused[] = {0x86, 0x02};
+    lh_u8_t exception = 0;
+
+    EXPECT_EQ(lh_mb_parse_pdu_write_one(echo, 5, 10, 0x1234, lh_null), lh_mb_status_ok);
+    EXPECT_EQ(lh_mb_parse_pdu_write_one(other_value, 5, 10, 0x1234, lh_null), lh_mb_status_garbage)
+        << "an echo of another value is not this write having happened";
+    EXPECT_EQ(lh_mb_parse_pdu_write_one(echo, 5, 11, 0x1234, lh_null), lh_mb_status_garbage)
+        << "nor is an echo of another address";
+    EXPECT_EQ(lh_mb_parse_pdu_write_one(refused, 2, 10, 0x1234, lh_addr_of(exception)), lh_mb_status_exception);
+    EXPECT_EQ(exception, 0x02) << "illegal data address";
+    EXPECT_EQ(lh_mb_parse_pdu_write_one(echo, 4, 10, 0x1234, lh_null), lh_mb_status_short);
+    EXPECT_EQ(lh_mb_parse_pdu_write_one(echo, 5, 10, 0x1234, lh_null), lh_mb_status_ok);
+    {
+        const lh_byte_t many_echo[] = {0x10, 0x00, 0x0A, 0x00, 0x01};
+
+        EXPECT_EQ(lh_mb_parse_pdu_write_one(many_echo, 5, 10, 1, lh_null), lh_mb_status_wrong_code)
+            << "the echo of a 0x10 is not the answer to a 0x06";
+    }
 }
 
 /* ── Answers ──────────────────────────────────────────────────────────────────

@@ -6,6 +6,29 @@
 #include <lh/os/window/close/reason.h>
 #include <lh/util/addr.h>
 
+#if !defined(_WIN32)
+#    include <cstdlib>
+#endif
+
+/* A test that opens a real window needs a screen to open it on. Windows always has
+   one; Linux has one when $DISPLAY names an X server, and a CI machine has none --
+   there the test is skipped, not failed: no window is what a headless machine is. */
+static bool
+lh_test_has_display()
+{
+#if defined(_WIN32)
+    return true;
+#else
+    const char *display = std::getenv("DISPLAY");
+
+    return display != nullptr && *display != '\0';
+#endif
+}
+
+#define LH_TEST_NEEDS_DISPLAY()                                                                    \
+    if (!lh_test_has_display())                                                                    \
+    GTEST_SKIP() << "no display to open a window on"
+
 namespace
 {
 
@@ -105,6 +128,7 @@ on_resize(lh_os_window_t * /*self*/, int width, int height, lh_ptr context)
 
 TEST(os_window, top_level_open_close_api)
 {
+    LH_TEST_NEEDS_DISPLAY();
     lh_os_app_t app{};
     lh_os_window_t main_win{};
     CloseLog log{};
@@ -133,6 +157,7 @@ TEST(os_window, top_level_open_close_api)
 
 TEST(os_window, second_top_level_is_not_main)
 {
+    LH_TEST_NEEDS_DISPLAY();
     lh_os_app_t app{};
     lh_os_window_t main_win{};
     lh_os_window_t other{};
@@ -164,6 +189,7 @@ TEST(os_window, second_top_level_is_not_main)
 
 TEST(os_window, modal_child_links_and_closes)
 {
+    LH_TEST_NEEDS_DISPLAY();
     lh_os_app_t app{};
     lh_os_window_t parent{};
     lh_os_window_t child{};
@@ -201,6 +227,7 @@ TEST(os_window, modal_child_links_and_closes)
 
 TEST(os_window, close_parent_closes_modal_child)
 {
+    LH_TEST_NEEDS_DISPLAY();
     lh_os_app_t app{};
     lh_os_window_t parent{};
     lh_os_window_t child{};
@@ -469,6 +496,7 @@ TEST(os_window, a_window_opens_where_the_window_system_wants_by_default)
 
 TEST(os_window, a_centred_window_centres_on_what_the_system_left_usable)
 {
+    LH_TEST_NEEDS_DISPLAY();
     lh_os_app_t app{};
     lh_os_window_t plain{};
     lh_os_window_t small{};
@@ -538,6 +566,7 @@ TEST(os_window, a_centred_window_centres_on_what_the_system_left_usable)
 
 TEST(os_window, a_window_bigger_than_the_screen_keeps_its_title_reachable)
 {
+    LH_TEST_NEEDS_DISPLAY();
     lh_os_app_t app{};
     lh_os_window_t window{};
     int x = 0;

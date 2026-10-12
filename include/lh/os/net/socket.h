@@ -10,7 +10,12 @@
  * listening server after ::lh_os_net_socket_bind / ::lh_os_net_socket_listen
  * — matching the OS `socket()`, not a second type.
  *
- * Deliberately narrow otherwise: no non-blocking mode.
+ * Blocking by default. ::lh_os_net_socket_set_blocking makes it a socket that
+ * never waits — send and recv answer ::LH_OS_RESULT_PENDING instead — and a
+ * connect is then started and finished in two steps
+ * (::lh_os_net_socket_connect_start, ::lh_os_net_socket_connect_wait), so that
+ * how long a dead address may hold the caller up is the caller's number, not the
+ * operating system's.
  *
  * On failure the reason is in ::lh_os_system_last_error (`lh/os/system.h`)
  * — every failure here is a native call, never one of our own checks.
@@ -27,6 +32,7 @@
 #include <lh/io/stream.h>
 #include <lh/io/writer.h>
 #include <lh/net/socket/addr/ip4.h>
+#include <lh/numeric/fixed/types.h>
 #include <lh/numeric/types.h>
 #include <lh/os/result.h>
 #include <lh/os/system/net/socket/handle.h>
@@ -119,6 +125,57 @@ lh_os_net_socket_is_valid(const lh_os_net_socket_t *self);
  */
 lh_bool_t
 lh_os_net_socket_connect(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_t *addr);
+
+/**
+ * @brief Make @p self blocking or non-blocking.
+ *
+ * @param self     Open socket.
+ * @param blocking ::lh_bool_false for a socket whose calls never wait.
+ * @return ::lh_bool_true on success, ::lh_bool_false if the OS call failed.
+ */
+lh_bool_t
+lh_os_net_socket_set_blocking(lh_os_net_socket_t *self, lh_bool_t blocking);
+
+/**
+ * @brief Start connecting a non-blocking @p self to @p addr.
+ *
+ * @return `0` connected already, ::LH_OS_RESULT_PENDING under way,
+ *         ::LH_OS_RESULT_INVALID failed.
+ */
+lh_ssize_t
+lh_os_net_socket_connect_start(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_t *addr);
+
+/**
+ * @brief Wait at most @p timeout_ms for the connect under way on @p self.
+ *
+ * @return `0` connected, ::LH_OS_RESULT_PENDING still under way when the time is
+ *         up, ::LH_OS_RESULT_INVALID failed (refused, unreachable, ...).
+ */
+lh_ssize_t
+lh_os_net_socket_connect_wait(lh_os_net_socket_t *self, lh_u32_t timeout_ms);
+
+/**
+ * @brief Connect @p self to @p addr and leave it non-blocking, waiting at most
+ *        @p timeout_ms for the other end to accept.
+ *
+ * The three calls above in the order they are always made in, so that what a
+ * stream user gets back is a socket that never waits: ::lh_os_net_socket_get_stream
+ * on it reads ::LH_IO_PENDING when nothing has arrived and `0` when the peer has
+ * closed. A connect left to the operating system waits out its SYN retries, twenty
+ * seconds and more, on an address where nothing answers -- a device that is
+ * switched off; here that costs @p timeout_ms.
+ *
+ * @param self       Open TCP socket (::lh_os_net_socket_open).
+ * @param addr       Where to connect.
+ * @param timeout_ms How long the connect may take.
+ *
+ * @return ::lh_bool_true when connected; on failure (refused, unreachable, no
+ *         answer in time) ::lh_bool_false, and the socket is still open for the
+ *         caller to close.
+ */
+lh_bool_t
+lh_os_net_socket_connect_within(lh_os_net_socket_t *self, const lh_net_ip4_socket_addr_t *addr,
+                                lh_u32_t timeout_ms);
 
 /**
  * @brief Bind an open @p self to @p addr (TCP listen socket or UDP local port).

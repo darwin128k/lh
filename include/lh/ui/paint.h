@@ -4,7 +4,7 @@
  *
  * The color is held by value, so a paint never dangles. ::lh_ui_brush_t is an
  * alias of this type; ::lh_ui_pen_t embeds one. Stop maps live on
- * ::lh_ui_gradient_t; paint has no gradient kind yet.
+ * ::lh_ui_gradient_t, laid over the box the paint fills (::lh_ui_paint_init_gradient).
  */
 
 #ifndef LH_UI_PAINT_H
@@ -13,6 +13,7 @@
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/ui/color.h>
+#include <lh/ui/gradient.h>
 #include <lh/ui/paint/fields.h>
 #include <lh/ui/paint/kind.h>
 #include <lh/void.h>
@@ -24,7 +25,7 @@
  */
 struct lh_ui_paint
 {
-    lh_ui_paint_fields(lh_ui_paint_kind_t, lh_ui_color_t);
+    lh_ui_paint_fields(lh_ui_paint_kind_t, lh_ui_color_t, lh_ui_gradient_t);
 };
 typedef struct lh_ui_paint lh_ui_paint_t;
 
@@ -49,6 +50,20 @@ lh_ui_paint_init_color(lh_ui_paint_t *self, const lh_ui_color_t *color);
  */
 lh_void
 lh_ui_paint_init_copy(lh_ui_paint_t *self, const lh_ui_paint_t *other);
+
+/**
+ * @brief Fill @p self with @p gradient (::lh_ui_paint_kind_gradient), pointed at and
+ *        not copied: it must outlive every paint made from it. Its first stop's colour
+ *        is also the paint's colour, for whatever asks a gradient for one colour.
+ */
+lh_void
+lh_ui_paint_init_gradient(lh_ui_paint_t *self, const lh_ui_gradient_t *gradient);
+
+/**
+ * @brief The gradient of @p self, or ::lh_null when it is not one.
+ */
+const lh_ui_gradient_t *
+lh_ui_paint_get_gradient(const lh_ui_paint_t *self);
 
 /**
  * @brief What @p self holds.

@@ -13,9 +13,12 @@
 #include <lh/cast/static.h>
 #include <lh/char.h>
 #include <lh/os/system/win/types.h>
+#include <lh/numeric/types.h>
+#include <lh/os/system/win/ws2_32/fd_set/fields.h>
 #include <lh/os/system/win/ws2_32/in_addr/fields.h>
 #include <lh/os/system/win/ws2_32/sockaddr/fields.h>
 #include <lh/os/system/win/ws2_32/sockaddr_in/fields.h>
+#include <lh/os/system/win/ws2_32/timeval/fields.h>
 #include <lh/os/system/win/ws2_32/wsadata/fields.h>
 #include <lh/str/ptr.h>
 
@@ -39,6 +42,18 @@ typedef lh_usize_t lh_os_system_win_socket_t;
    Linux's (1 / 2). */
 #define LH_OS_SYSTEM_WIN_SOL_SOCKET 0xFFFF
 #define LH_OS_SYSTEM_WIN_SO_REUSEADDR 0x0004
+#define LH_OS_SYSTEM_WIN_SO_ERROR 0x1007
+
+/* `FIONBIO`: _IOW('f', 126, u_long), the ioctlsocket command that switches a
+   socket between blocking and non-blocking. Negative as a `long`. */
+#define LH_OS_SYSTEM_WIN_FIONBIO (lh_cast_static(lh_long_t, 0x8004667EUL))
+
+/* `WSAEWOULDBLOCK`: a non-blocking call that cannot finish yet. A connect that is
+   under way says it too, where POSIX says EINPROGRESS. */
+#define LH_OS_SYSTEM_WIN_WSAEWOULDBLOCK 10035
+
+/* `FD_SETSIZE`: the default, which is all a single-socket wait needs. */
+#define LH_OS_SYSTEM_WIN_FD_SETSIZE 64
 
 /** @brief `WSADATA`. */
 struct lh_os_system_win_wsadata
@@ -60,6 +75,20 @@ struct lh_os_system_win_sockaddr
     lh_os_system_win_sockaddr_fields(lh_ushort_t, lh_char_t);
 };
 typedef struct lh_os_system_win_sockaddr lh_os_system_win_sockaddr_t;
+
+/** @brief `fd_set`. */
+struct lh_os_system_win_fd_set
+{
+    lh_os_system_win_fd_set_fields(lh_uint_t, lh_os_system_win_socket_t, LH_OS_SYSTEM_WIN_FD_SETSIZE);
+};
+typedef struct lh_os_system_win_fd_set lh_os_system_win_fd_set_t;
+
+/** @brief `TIMEVAL`. */
+struct lh_os_system_win_timeval
+{
+    lh_os_system_win_timeval_fields(lh_long_t);
+};
+typedef struct lh_os_system_win_timeval lh_os_system_win_timeval_t;
 
 /** @brief `SOCKADDR_IN`. */
 struct lh_os_system_win_sockaddr_in
@@ -102,6 +131,19 @@ getsockname(lh_os_system_win_socket_t s, lh_os_system_win_sockaddr_t *name, lh_i
 
 LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
 setsockopt(lh_os_system_win_socket_t s, lh_int_t level, lh_int_t optname, lh_str_cptr optval, lh_int_t optlen);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
+getsockopt(lh_os_system_win_socket_t s, lh_int_t level, lh_int_t optname, lh_str_ptr optval, lh_int_t *optlen);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
+ioctlsocket(lh_os_system_win_socket_t s, lh_long_t cmd, lh_ulong_t *argp);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
+select(lh_int_t nfds, lh_os_system_win_fd_set_t *readfds, lh_os_system_win_fd_set_t *writefds,
+       lh_os_system_win_fd_set_t *exceptfds, const lh_os_system_win_timeval_t *timeout);
+
+LH_OS_SYSTEM_WIN_IMPORT void LH_OS_SYSTEM_WIN_CALL
+WSASetLastError(lh_int_t iError);
 
 LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
 send(lh_os_system_win_socket_t s, lh_str_cptr buf, lh_int_t len, lh_int_t flags);

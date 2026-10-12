@@ -75,7 +75,7 @@ lh_mb_build_pdu_write(lh_byte_t *pdu, lh_u16_t cap, lh_u16_t address, const lh_u
     lh_u16_t i;
 
     lh_return_if(lh_null_eq(pdu) || lh_null_eq(values), (lh_u16_t)0);
-    lh_return_if(count == 0 || count > LH_MB_READ_MAX, (lh_u16_t)0);
+    lh_return_if(count == 0 || count > LH_MB_WRITE_MAX, (lh_u16_t)0);
     lh_return_if(cap < (lh_u16_t)(6 + count * 2), (lh_u16_t)0);
 
     pdu[0] = LH_MB_FC_WRITE_MANY;
@@ -90,6 +90,18 @@ lh_mb_build_pdu_write(lh_byte_t *pdu, lh_u16_t cap, lh_u16_t address, const lh_u
         pdu[7 + i * 2] = (lh_byte_t)(values[i] & 0xFF);
     }
     return (lh_u16_t)(6 + count * 2);
+}
+
+lh_u16_t
+lh_mb_build_pdu_write_one(lh_byte_t *pdu, lh_u16_t cap, lh_u16_t address, lh_u16_t value)
+{
+    lh_return_if(lh_null_eq(pdu) || cap < 5, (lh_u16_t)0);
+    pdu[0] = LH_MB_FC_WRITE_ONE;
+    pdu[1] = (lh_byte_t)((address >> 8) & 0xFF);
+    pdu[2] = (lh_byte_t)(address & 0xFF);
+    pdu[3] = (lh_byte_t)((value >> 8) & 0xFF);
+    pdu[4] = (lh_byte_t)(value & 0xFF);
+    return 5;
 }
 
 lh_u16_t
@@ -240,6 +252,34 @@ lh_mb_parse_pdu_write(const lh_byte_t *pdu, lh_u16_t length, lh_u16_t address, l
     /* The echo has to be this write: the same address and the same count. */
     lh_return_if(((lh_u16_t)((lh_u16_t)pdu[1] << 8 | pdu[2])) != address ||
                      ((lh_u16_t)((lh_u16_t)pdu[3] << 8 | pdu[4])) != count,
+                 lh_mb_status_garbage);
+    return lh_mb_status_ok;
+}
+
+lh_mb_status_t
+lh_mb_parse_pdu_write_one(const lh_byte_t *pdu, lh_u16_t length, lh_u16_t address, lh_u16_t value,
+                          lh_u8_t *exception)
+{
+    if (exception != lh_null)
+    {
+        *exception = 0;
+    }
+    lh_return_if(lh_null_eq(pdu), lh_mb_status_garbage);
+    lh_return_if(length < 2, lh_mb_status_short);
+    if (pdu[0] == (lh_u8_t)(LH_MB_FC_WRITE_ONE | 0x80))
+    {
+        if (exception != lh_null)
+        {
+            *exception = pdu[1];
+        }
+        return lh_mb_status_exception;
+    }
+    lh_return_if(length < 5, lh_mb_status_short);
+    lh_return_if(pdu[0] != LH_MB_FC_WRITE_ONE, lh_mb_status_wrong_code);
+    /* The whole request comes back, so the value is checked as well as the
+       address: a device that stored something else says so here. */
+    lh_return_if(((lh_u16_t)((lh_u16_t)pdu[1] << 8 | pdu[2])) != address ||
+                     ((lh_u16_t)((lh_u16_t)pdu[3] << 8 | pdu[4])) != value,
                  lh_mb_status_garbage);
     return lh_mb_status_ok;
 }
