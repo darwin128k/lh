@@ -17,6 +17,7 @@
 
 #include <lh/bool.h>
 #include <lh/byte.h>
+#include <lh/byte/ptr.h>
 #include <lh/memory.h>
 #include <lh/null.h>
 #include <lh/os/alloc.h>
@@ -257,7 +258,7 @@ lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr d
     const lh_os_system_posix_paint_t *paint;
     lh_os_system_posix_ximage_t image;
     const lh_u32_t one = 1U;
-    lh_byte_t *data;
+    lh_byte_ptr data;
     int image_width;
     int image_height;
 

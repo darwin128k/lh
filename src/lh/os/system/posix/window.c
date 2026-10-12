@@ -15,6 +15,8 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/byte.h>
+#include <lh/byte/ptr.h>
 #include <lh/memory.h>
 #include <lh/null.h>
 #include <lh/os/alloc.h>
@@ -432,7 +434,7 @@ lh_os_system_posix_window_read_maximized(const lh_os_system_posix_window_t *self
     int format = 0;
     unsigned long count = 0UL;
     unsigned long after = 0UL;
-    unsigned char *data = lh_null;
+    lh_byte_ptr data = lh_null;
     lh_bool_t vertical = lh_bool_false;
     lh_bool_t horizontal = lh_bool_false;
     unsigned long i;
@@ -468,7 +470,7 @@ lh_os_system_posix_workarea(int *x, int *y, int *width, int *height)
     int format = 0;
     unsigned long count = 0UL;
     unsigned long after = 0UL;
-    unsigned char *data = lh_null;
+    lh_byte_ptr data = lh_null;
 
     *x = 0;
     *y = 0;
@@ -906,7 +908,7 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     (void)x->XStoreName(lh_os_system_posix_display, self->window, title);
     (void)x->XChangeProperty(lh_os_system_posix_display, self->window, lh_os_system_posix_atom_net_wm_name,
                              lh_os_system_posix_atom_utf8_string, 8, LH_OS_SYSTEM_POSIX_X_PROP_MODE_REPLACE,
-                             lh_ptr_rcast(const unsigned char, title), lh_cast_static(int, title_length));
+                             lh_ptr_rcast(const lh_byte_t, title), lh_cast_static(int, title_length));
 
     /* The close button sends a message instead of killing the connection. */
     protocols[0] = lh_os_system_posix_atom_wm_delete_window;
@@ -936,7 +938,7 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
 
         (void)x->XChangeProperty(lh_os_system_posix_display, self->window, lh_os_system_posix_atom_motif_wm_hints,
                                  lh_os_system_posix_atom_motif_wm_hints, 32, LH_OS_SYSTEM_POSIX_X_PROP_MODE_REPLACE,
-                                 lh_ptr_rcast(const unsigned char, motif), 5);
+                                 lh_ptr_rcast(const lh_byte_t, motif), 5);
     }
 
     /* Listed before it is mapped: the events of its first moments are for it. And

@@ -20,6 +20,7 @@
 
 #include <lh/bool.h>
 #include <lh/byte.h>
+#include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/size.h>
@@ -70,7 +71,7 @@ lh_ui_pixmap_format_get_bytes(lh_ui_pixmap_format_t format);
  * @p stride is at least `width * bytes` and a multiple of the pixel size.
  */
 lh_void
-lh_ui_pixmap_init(lh_ui_pixmap_t *self, lh_byte_t *bits, lh_s32_t width, lh_s32_t height, lh_s32_t stride,
+lh_ui_pixmap_init(lh_ui_pixmap_t *self, lh_byte_ptr bits, lh_s32_t width, lh_s32_t height, lh_s32_t stride,
                   lh_ui_pixmap_format_t format);
 
 /**
@@ -112,13 +113,13 @@ lh_ui_pixmap_get_bounds(const lh_ui_pixmap_t *self);
 /**
  * @brief First byte of row @p y.
  */
-lh_byte_t *
+lh_byte_ptr
 lh_ui_pixmap_get_row(const lh_ui_pixmap_t *self, lh_s32_t y);
 
 /**
  * @brief First byte of pixel (@p x, @p y).
  */
-lh_byte_t *
+lh_byte_ptr
 lh_ui_pixmap_get_address(const lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y);
 
 /* ── Pixels ──────────────────────────────────────────────────────────────── */
@@ -246,14 +247,14 @@ lh_ui_pixmap_pack_rgb(const lh_ui_pixmap_t *self, lh_u32_t src);
  *        @p alpha (`0` skipped, `255` stored).
  */
 lh_void
-lh_ui_pixmap_blend_alpha_32(const lh_ui_pixmap_t *self, lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t count,
+lh_ui_pixmap_blend_alpha_32(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_byte_cptr alpha, lh_usize_t count,
                             lh_u32_t src);
 
 /**
  * @brief ::lh_ui_pixmap_blend_alpha_32 for the 16-bit formats.
  */
 lh_void
-lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_t *alpha, lh_usize_t count,
+lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha, lh_usize_t count,
                             lh_u32_t src);
 
 /**
@@ -279,7 +280,7 @@ lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_b
  * the scalar kernel directly instead of only through the dispatcher.
  */
 lh_void
-lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, const lh_byte_t *alpha, lh_usize_t count,
+lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_byte_cptr alpha, lh_usize_t count,
                                  lh_u32_t src);
 
 /**
@@ -304,7 +305,7 @@ lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, const
  * what to call, and it dispatches.
  */
 lh_void
-lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_t *alpha, lh_usize_t count,
+lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha, lh_usize_t count,
                                  lh_u32_t src);
 
 /**
@@ -315,7 +316,7 @@ lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, const
  */
 lh_void
 lh_ui_pixmap_blend_alpha_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_u32_t src,
-                              const lh_byte_t *alpha);
+                              lh_byte_cptr alpha);
 
 /**
  * @brief Blend @p color over pixels `x0 .. x1 - 1` of row @p y (the row

@@ -17,6 +17,7 @@
 
 #include <lh/attribute/force_inline.h>
 #include <lh/byte.h>
+#include <lh/byte/ptr.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
@@ -55,7 +56,7 @@ lh_bit_packed_bytes(lh_u32_t count, lh_u32_t bits)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_u32_t
-lh_bit_packed_get(const lh_byte_t *row, lh_u32_t index, lh_u32_t bits)
+lh_bit_packed_get(lh_byte_cptr row, lh_u32_t index, lh_u32_t bits)
 {
     const lh_u32_t bit = index * bits;
 

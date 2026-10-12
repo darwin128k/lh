@@ -5,6 +5,7 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/byte.h>
+#include <lh/byte/ptr.h>
 #include <lh/byte/limits.h>
 #include <lh/cast/static.h>
 #include <lh/config.h>
@@ -74,7 +75,7 @@ lh_ui_gradient_init(lh_ui_gradient_t *self)
 }
 
 lh_void
-lh_ui_gradient_init_stops(lh_ui_gradient_t *self, const lh_ui_color_t *colors, const lh_byte_t *fracs,
+lh_ui_gradient_init_stops(lh_ui_gradient_t *self, const lh_ui_color_t *colors, lh_byte_cptr fracs,
                           lh_ui_gradient_stop_count_t num_stops)
 {
     lh_ui_gradient_stop_count_t i;

@@ -25,6 +25,7 @@
 
 #include <lh/bool.h>
 #include <lh/byte.h>
+#include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/ptr.h>
@@ -138,7 +139,7 @@ lh_ui_canvas_sw_edge_alpha(const lh_ui_canvas_sw_t *self, lh_byte_t alpha, lh_by
  */
 lh_void
 lh_ui_canvas_sw_blend_run(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color,
-                          lh_byte_t *coverage);
+                          lh_byte_ptr coverage);
 
 /**
  * @brief Paint `x0 .. x1 - 1` of row @p y with @p color at its clip coverage

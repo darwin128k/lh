@@ -31,6 +31,7 @@
 #define LH_NET_MODBUS_LINK_H
 
 #include <lh/bool.h>
+#include <lh/byte/ptr.h>
 #include <lh/net/modbus.h>
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
@@ -75,8 +76,8 @@ typedef enum lh_mb_framing
  * @return Length of the frame, 0 when it does not fit.
  */
 lh_u16_t
-lh_mb_encode(lh_mb_framing_t framing, lh_u8_t unit, lh_u16_t tx, const lh_byte_t *pdu,
-             lh_u16_t pdu_length, lh_byte_t *out, lh_u16_t cap);
+lh_mb_encode(lh_mb_framing_t framing, lh_u8_t unit, lh_u16_t tx, lh_byte_cptr pdu,
+             lh_u16_t pdu_length, lh_byte_ptr out, lh_u16_t cap);
 
 /**
  * @brief How many bytes a whole frame of @p framing takes, or 0 if it cannot.
@@ -96,7 +97,7 @@ lh_mb_encode(lh_mb_framing_t framing, lh_u8_t unit, lh_u16_t tx, const lh_byte_t
  *         in hand that is not "not yet": it is a stream that has lost its place.
  */
 lh_u16_t
-lh_mb_frame_length(lh_mb_framing_t framing, const lh_byte_t *frame, lh_u16_t have, lh_u8_t fc);
+lh_mb_frame_length(lh_mb_framing_t framing, lh_byte_cptr frame, lh_u16_t have, lh_u8_t fc);
 
 /**
  * @brief The PDU inside @p frame, once the framing is off and the CRC, if the
@@ -112,8 +113,8 @@ lh_mb_frame_length(lh_mb_framing_t framing, const lh_byte_t *frame, lh_u16_t hav
  *         — only the link knows which question is in flight.
  */
 lh_bool_t
-lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, const lh_byte_t *frame, lh_u16_t length,
-             lh_byte_t *pdu, lh_u16_t *pdu_length);
+lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, lh_byte_cptr frame, lh_u16_t length,
+             lh_byte_ptr pdu, lh_u16_t *pdu_length);
 
 /* ── Link ────────────────────────────────────────────────────────────────── */
 

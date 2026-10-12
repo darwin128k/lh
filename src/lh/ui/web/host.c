@@ -6,6 +6,8 @@
 #include <lh/ui/web/host.h>
 #include <lh/ui/web/ws.h>
 
+#include <lh/byte.h>
+#include <lh/byte/ptr.h>
 #include <lh/cast/const.h>
 #include <lh/crypto/sha.h>
 #include <lh/memory.h>
@@ -43,7 +45,7 @@
 typedef struct host_ws_q
 {
     struct host_ws_q *next;
-    unsigned char *bytes;
+    lh_byte_ptr bytes;
     unsigned len;
     unsigned off;
 } host_ws_q_t;
@@ -51,9 +53,9 @@ typedef struct host_ws_q
 typedef struct host_ws_cli
 {
     lh_os_net_socket_t sock;
-    unsigned char *rx;
+    lh_byte_ptr rx;
     unsigned rx_len;
-    unsigned char *msg;
+    lh_byte_ptr msg;
     unsigned msg_len;
     unsigned msg_cap;
     unsigned msg_op;
@@ -412,7 +414,7 @@ host_bump(unsigned *gen)
 }
 
 static lh_void
-host_b64_sha1(const unsigned char *in, char *out)
+host_b64_sha1(lh_byte_cptr in, char *out)
 {
     static const char tab[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     unsigned i;
@@ -444,7 +446,7 @@ host_ws_upgrade(lh_os_net_socket_t *client, const char *req, lh_usize_t len)
     static const char guid[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     const char *k = host_find(req, len, host_lit("Sec-WebSocket-Key:"));
     char cat[80];
-    unsigned char digest[LH_CRYPTO_SHA1_DIGEST_SIZE];
+    lh_byte_t digest[LH_CRYPTO_SHA1_DIGEST_SIZE];
     char accept[32];
     char head[280];
     lh_usize_t n = 0u;
@@ -568,7 +570,7 @@ host_ws_enqueue(host_ws_cli_t *c, unsigned opcode, const void *payload, lh_usize
 {
     const lh_usize_t need = lh_ui_web_ws_frame_size(plen);
     host_ws_q_t *q;
-    unsigned char *bytes;
+    lh_byte_ptr bytes;
 
     if (c == lh_null || !c->used)
     {
@@ -580,7 +582,7 @@ host_ws_enqueue(host_ws_cli_t *c, unsigned opcode, const void *payload, lh_usize
         return lh_bool_false;
     }
     q = lh_ptr_rcast(host_ws_q_t, lh_os_alloc(sizeof(*q)));
-    bytes = lh_ptr_rcast(unsigned char, lh_os_alloc(need));
+    bytes = lh_ptr_rcast(lh_byte_t, lh_os_alloc(need));
     if (q == lh_null || bytes == lh_null ||
         lh_ui_web_ws_write(bytes, need, opcode, lh_bool_true, payload, plen) != need)
     {
@@ -656,9 +658,9 @@ host_ws_flush(host_ws_cli_t *c)
 }
 
 static lh_bool_t
-host_ws_msg_add(host_ws_cli_t *c, const unsigned char *p, lh_usize_t n)
+host_ws_msg_add(host_ws_cli_t *c, lh_byte_cptr p, lh_usize_t n)
 {
-    unsigned char *grow;
+    lh_byte_ptr grow;
 
     if (c->msg_len + lh_cast_static(unsigned, n)> LH_UI_WEB_WS_MAX_MSG)
     {
@@ -670,7 +672,7 @@ host_ws_msg_add(host_ws_cli_t *c, const unsigned char *p, lh_usize_t n)
         const unsigned next = (c->msg_cap == 0u) ? 256u : (c->msg_cap * 2u);
         const unsigned want = (cap > next) ? cap : next;
 
-        grow = lh_ptr_rcast(unsigned char, lh_runtime_allocator_realloc(c->msg, c->msg_cap, want));
+        grow = lh_ptr_rcast(lh_byte_t, lh_runtime_allocator_realloc(c->msg, c->msg_cap, want));
         if (grow == lh_null)
         {
             return lh_bool_false;
@@ -691,12 +693,12 @@ host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_
     {
         unsigned opcode = 0;
         lh_bool_t fin = lh_bool_false;
-        const unsigned char *payload = lh_null;
+        lh_byte_cptr payload = lh_null;
         lh_usize_t plen = 0;
-        const unsigned char *mask = lh_null;
+        lh_byte_cptr mask = lh_null;
         const lh_usize_t n = lh_ui_web_ws_read(c->rx, c->rx_len, lh_addr_of(opcode), lh_addr_of(fin),
                                                lh_addr_of(payload), lh_addr_of(plen), lh_addr_of(mask));
-        unsigned char *body;
+        lh_byte_ptr body;
 
         if (n == 0u)
         {
@@ -707,7 +709,7 @@ host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_
             host_ws_drop(c);
             return;
         }
-        body = lh_cast_const(unsigned char *, payload);
+        body = lh_cast_const(lh_byte_ptr, payload);
         if (mask != lh_null)
         {
             lh_ui_web_ws_unmask(body, plen, mask);
@@ -802,7 +804,7 @@ host_ws_attach(host_ws_cli_t *slots, lh_os_net_socket_t *client, unsigned now)
         {
             continue;
         }
-        c->rx = lh_ptr_rcast(unsigned char, lh_os_alloc(HOST_WS_RX));
+        c->rx = lh_ptr_rcast(lh_byte_t, lh_os_alloc(HOST_WS_RX));
         if (c->rx == lh_null)
         {
             lh_os_net_socket_close(client);

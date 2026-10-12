@@ -18,6 +18,7 @@
 #define LH_UI_SHADOW_SHAPE_H
 
 #include <lh/compiler/extern/c.h>
+#include <lh/byte/ptr.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/scalar.h>
@@ -75,7 +76,7 @@ lh_ui_shadow_shape_alpha(const lh_ui_shadow_shape_t *self, lh_s32_t row, lh_s32_
  */
 lh_void
 lh_ui_shadow_shape_span(const lh_ui_shadow_shape_t *self, const struct lh_ui_shadow_ramp *ramp, lh_s32_t y,
-                        lh_s32_t x0, lh_s32_t x1, lh_byte_t *out);
+                        lh_s32_t x0, lh_s32_t x1, lh_byte_ptr out);
 
 LH_COMPILER_EXTERN_C_END
 

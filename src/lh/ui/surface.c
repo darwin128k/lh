@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/byte/ptr.h>
 #include <lh/cast/static.h>
 #include <lh/null.h>
 #include <lh/os/system/surface.h>
@@ -109,7 +110,7 @@ lh_bool_t
 lh_ui_surface_get_pixmap(const lh_ui_surface_t *self, lh_ui_pixmap_t *pixmap)
 {
     const lh_s32_t width = lh_cast_static(lh_s32_t, lh_ui_size_get_width(lh_addr_of(self->size)));
-    lh_byte_t *bits = lh_ptr_rcast(lh_byte_t, lh_os_system_surface_get_pixels(self->handle));
+    lh_byte_ptr bits = lh_ptr_rcast(lh_byte_t, lh_os_system_surface_get_pixels(self->handle));
 
     lh_return_if(lh_null_eq(bits), lh_bool_false);
     lh_ui_pixmap_init(pixmap, bits, width, lh_cast_static(lh_s32_t, lh_ui_size_get_height(lh_addr_of(self->size))),

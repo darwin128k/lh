@@ -13,6 +13,8 @@
 
 #include <lh/void.h>
 #include <lh/bool.h>
+#include <lh/byte.h>
+#include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/size.h>
@@ -46,7 +48,7 @@ lh_ui_web_ws_frame_size(lh_usize_t payload_len);
  * @return Bytes written, or 0 if @p cap is too small or @p opcode is not a frame.
  */
 lh_usize_t
-lh_ui_web_ws_write(unsigned char *out, lh_usize_t cap, unsigned opcode, lh_bool_t fin, const void *payload,
+lh_ui_web_ws_write(lh_byte_ptr out, lh_usize_t cap, unsigned opcode, lh_bool_t fin, const void *payload,
                    lh_usize_t payload_len);
 
 /**
@@ -60,14 +62,14 @@ lh_ui_web_ws_write(unsigned char *out, lh_usize_t cap, unsigned opcode, lh_bool_
  * opcode ::LH_UI_WEB_WS_CONT.
  */
 lh_usize_t
-lh_ui_web_ws_read(const unsigned char *p, lh_usize_t n, unsigned *opcode, lh_bool_t *fin,
-                  const unsigned char **payload, lh_usize_t *payload_len, const unsigned char **mask);
+lh_ui_web_ws_read(lh_byte_cptr p, lh_usize_t n, unsigned *opcode, lh_bool_t *fin,
+                  lh_byte_cptr *payload, lh_usize_t *payload_len, lh_byte_cptr *mask);
 
 /**
  * @brief XOR @p len bytes of @p data with the 4-byte @p mask (RFC masking).
  */
 lh_void
-lh_ui_web_ws_unmask(unsigned char *data, lh_usize_t len, const unsigned char mask[4]);
+lh_ui_web_ws_unmask(lh_byte_ptr data, lh_usize_t len, const lh_byte_t mask[4]);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -9,6 +9,9 @@
  * addresses; use ::lh_char_t for text and ::lh_schar_t for a character with
  * explicit signedness.
  *
+ * Pointers to a raw buffer are ::lh_byte_ptr / ::lh_byte_cptr in
+ * <lh/byte/ptr.h> (macros, so `const` binds to the pointee).
+ *
  * Limits (::LH_BYTE_T_MIN, ::LH_BYTE_T_MAX, ::LH_BYTE_T_SIZE) live in
  * <lh/byte/limits.h>.
  */

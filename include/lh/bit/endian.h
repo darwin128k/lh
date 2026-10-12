@@ -21,6 +21,7 @@
 #define LH_BIT_ENDIAN_H
 
 #include <lh/void.h>
+#include <lh/byte/ptr.h>
 #include <lh/assert.h>
 #include <lh/attribute/force_inline.h>
 #include <lh/cast/static.h>
@@ -39,7 +40,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_void
-lh_bit_pack_be16(lh_u16_t value, lh_byte_t *out)
+lh_bit_pack_be16(lh_u16_t value, lh_byte_ptr out)
 {
     lh_assert_runtime_ref(out);
     out[0] = lh_cast_static(lh_byte_t, value >> 8);
@@ -56,7 +57,7 @@ lh_bit_pack_be16(lh_u16_t value, lh_byte_t *out)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_u16_t
-lh_bit_unpack_be16(const lh_byte_t *in)
+lh_bit_unpack_be16(lh_byte_cptr in)
 {
     lh_assert_runtime_ref(in);
     return lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, in[0]) << 8) | in[1]);
@@ -71,7 +72,7 @@ lh_bit_unpack_be16(const lh_byte_t *in)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_void
-lh_bit_pack_le16(lh_u16_t value, lh_byte_t *out)
+lh_bit_pack_le16(lh_u16_t value, lh_byte_ptr out)
 {
     lh_assert_runtime_ref(out);
     out[0] = lh_cast_static(lh_byte_t, value);
@@ -88,7 +89,7 @@ lh_bit_pack_le16(lh_u16_t value, lh_byte_t *out)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_u16_t
-lh_bit_unpack_le16(const lh_byte_t *in)
+lh_bit_unpack_le16(lh_byte_cptr in)
 {
     lh_assert_runtime_ref(in);
     return lh_cast_static(lh_u16_t, in[0] | (lh_cast_static(lh_u16_t, in[1]) << 8));
@@ -103,7 +104,7 @@ lh_bit_unpack_le16(const lh_byte_t *in)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_void
-lh_bit_pack_be32(lh_u32_t value, lh_byte_t *out)
+lh_bit_pack_be32(lh_u32_t value, lh_byte_ptr out)
 {
     lh_assert_runtime_ref(out);
     out[0] = lh_cast_static(lh_byte_t, value >> 24);
@@ -122,7 +123,7 @@ lh_bit_pack_be32(lh_u32_t value, lh_byte_t *out)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_u32_t
-lh_bit_unpack_be32(const lh_byte_t *in)
+lh_bit_unpack_be32(lh_byte_cptr in)
 {
     lh_assert_runtime_ref(in);
     return (lh_cast_static(lh_u32_t, in[0]) << 24) | (lh_cast_static(lh_u32_t, in[1]) << 16) |
@@ -138,7 +139,7 @@ lh_bit_unpack_be32(const lh_byte_t *in)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_void
-lh_bit_pack_le32(lh_u32_t value, lh_byte_t *out)
+lh_bit_pack_le32(lh_u32_t value, lh_byte_ptr out)
 {
     lh_assert_runtime_ref(out);
     out[0] = lh_cast_static(lh_byte_t, value);
@@ -157,7 +158,7 @@ lh_bit_pack_le32(lh_u32_t value, lh_byte_t *out)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_u32_t
-lh_bit_unpack_le32(const lh_byte_t *in)
+lh_bit_unpack_le32(lh_byte_cptr in)
 {
     lh_assert_runtime_ref(in);
     return lh_cast_static(lh_u32_t, in[0]) | (lh_cast_static(lh_u32_t, in[1]) << 8) |
@@ -173,7 +174,7 @@ lh_bit_unpack_le32(const lh_byte_t *in)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_void
-lh_bit_pack_be64(lh_u64_t value, lh_byte_t *out)
+lh_bit_pack_be64(lh_u64_t value, lh_byte_ptr out)
 {
     lh_assert_runtime_ref(out);
     lh_bit_pack_be32(lh_bit_get_high_u32(value), out);
@@ -190,7 +191,7 @@ lh_bit_pack_be64(lh_u64_t value, lh_byte_t *out)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_u64_t
-lh_bit_unpack_be64(const lh_byte_t *in)
+lh_bit_unpack_be64(lh_byte_cptr in)
 {
     lh_assert_runtime_ref(in);
     return lh_bit_make_u64(lh_bit_unpack_be32(in), lh_bit_unpack_be32(in + 4));
@@ -205,7 +206,7 @@ lh_bit_unpack_be64(const lh_byte_t *in)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_void
-lh_bit_pack_le64(lh_u64_t value, lh_byte_t *out)
+lh_bit_pack_le64(lh_u64_t value, lh_byte_ptr out)
 {
     lh_assert_runtime_ref(out);
     lh_bit_pack_le32(lh_bit_get_low_u32(value), out);
@@ -222,7 +223,7 @@ lh_bit_pack_le64(lh_u64_t value, lh_byte_t *out)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_u64_t
-lh_bit_unpack_le64(const lh_byte_t *in)
+lh_bit_unpack_le64(lh_byte_cptr in)
 {
     lh_assert_runtime_ref(in);
     return lh_bit_make_u64(lh_bit_unpack_le32(in + 4), lh_bit_unpack_le32(in));

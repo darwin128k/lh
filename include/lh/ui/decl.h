@@ -31,6 +31,7 @@
 #define LH_UI_DECL_H
 
 #include <lh/byte.h>
+#include <lh/byte/ptr.h>
 #include <lh/bool.h>
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
@@ -220,7 +221,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *         half-built tree that looks finished.
  */
 lh_bool_t
-lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nodes, lh_byte_t *storage,
+lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nodes, lh_byte_ptr storage,
                  lh_u32_t bytes, lh_ui_entity_t **root, lh_ui_decl_fault_t *fault);
 
 /**

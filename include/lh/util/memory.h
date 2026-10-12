@@ -14,6 +14,7 @@
 #define LH_UTIL_MEMORY_H
 
 #include <lh/attribute/force_inline.h>
+#include <lh/byte/ptr.h>
 #include <lh/bool.h>
 #include <lh/cast/static.h>
 #include <lh/char.h>
@@ -76,7 +77,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
-lh_memory_bytes_eq(const lh_byte_t *lhs, const lh_byte_t *rhs, lh_usize_t n)
+lh_memory_bytes_eq(lh_byte_cptr lhs, lh_byte_cptr rhs, lh_usize_t n)
 {
     lh_usize_t i;
     for (i = 0; i < n; ++i)
@@ -106,7 +107,7 @@ lh_memory_bytes_eq(const lh_byte_t *lhs, const lh_byte_t *rhs, lh_usize_t n)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
-lh_memory_bytes_any_eq(const lh_byte_t *lhs, lh_usize_t n, lh_byte_t val)
+lh_memory_bytes_any_eq(lh_byte_cptr lhs, lh_usize_t n, lh_byte_t val)
 {
     lh_bool_t hit = lh_bool_false;
     lh_usize_t i;
@@ -139,7 +140,7 @@ lh_memory_bytes_any_eq(const lh_byte_t *lhs, lh_usize_t n, lh_byte_t val)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
-lh_memory_bytes_any_eq_step(const lh_byte_t *lhs, lh_usize_t n, const lh_byte_t *rhs,
+lh_memory_bytes_any_eq_step(lh_byte_cptr lhs, lh_usize_t n, lh_byte_cptr rhs,
                             lh_usize_t rhs_size, lh_usize_t step)
 {
     lh_bool_t hit = lh_bool_false;
@@ -167,7 +168,7 @@ lh_memory_bytes_any_eq_step(const lh_byte_t *lhs, lh_usize_t n, const lh_byte_t 
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
-lh_memory_bytes_any_ne(const lh_byte_t *lhs, const lh_byte_t *rhs, lh_usize_t n)
+lh_memory_bytes_any_ne(lh_byte_cptr lhs, lh_byte_cptr rhs, lh_usize_t n)
 {
     lh_bool_t hit = lh_bool_false;
     lh_usize_t i;

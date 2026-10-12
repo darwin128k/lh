@@ -4,6 +4,7 @@
  */
 
 #include <lh/ui/canvas/web.h>
+#include <lh/byte/ptr.h>
 
 #include <lh/cast/const.h>
 #include <lh/memory.h>
@@ -66,7 +67,7 @@ web_quad(lh_ui_canvas_web_t *self, long a, long b, long c, long d)
 }
 
 static lh_void
-web_hex(lh_ui_canvas_web_t *self, const unsigned char *px, unsigned n)
+web_hex(lh_ui_canvas_web_t *self, lh_byte_cptr px, unsigned n)
 {
     static const char digits[] = "0123456789abcdef";
     char buf[256];
@@ -129,7 +130,7 @@ typedef struct web_atlas
     int h[WEB_ATLAS_MAX];
     unsigned len[WEB_ATLAS_MAX];
     unsigned hash[WEB_ATLAS_MAX];
-    unsigned char *px[WEB_ATLAS_MAX];
+    lh_byte_ptr px[WEB_ATLAS_MAX];
     int slot[WEB_ATLAS_SLOTS]; /* open addressing by content hash: id + 1, 0 = empty */
 } web_atlas_t;
 
@@ -138,7 +139,7 @@ typedef struct web_atlas
 static web_atlas_t g_web_atlas;
 
 static unsigned
-web_atlas_hash(const unsigned char *px, unsigned n, int w, int h)
+web_atlas_hash(lh_byte_cptr px, unsigned n, int w, int h)
 {
     unsigned x = 2166136261u ^ (lh_cast_static(unsigned, w)* 131u + lh_cast_static(unsigned, h));
     unsigned i;
@@ -152,7 +153,7 @@ web_atlas_hash(const unsigned char *px, unsigned n, int w, int h)
 
 /* The id of these pixels, or -1 with @p slot the empty place they would go. */
 static int
-web_atlas_find(const web_atlas_t *atlas, const unsigned char *px, unsigned n, int w, int h, unsigned hash,
+web_atlas_find(const web_atlas_t *atlas, lh_byte_cptr px, unsigned n, int w, int h, unsigned hash,
                unsigned *slot)
 {
     unsigned s = hash & (WEB_ATLAS_SLOTS - 1u);
@@ -176,7 +177,7 @@ web_atlas_find(const web_atlas_t *atlas, const unsigned char *px, unsigned n, in
 }
 
 static int
-web_atlas_add(web_atlas_t *atlas, const unsigned char *px, unsigned n, int w, int h, unsigned hash,
+web_atlas_add(web_atlas_t *atlas, lh_byte_cptr px, unsigned n, int w, int h, unsigned hash,
               unsigned slot)
 {
     const unsigned id = atlas->n;
@@ -185,7 +186,7 @@ web_atlas_add(web_atlas_t *atlas, const unsigned char *px, unsigned n, int w, in
     {
         return -1;
     }
-    atlas->px[id] = lh_ptr_rcast(unsigned char, lh_runtime_allocator_alloc(n));
+    atlas->px[id] = lh_ptr_rcast(lh_byte_t, lh_runtime_allocator_alloc(n));
     if (atlas->px[id] == lh_null)
     {
         return -1;
@@ -226,7 +227,7 @@ web_glyphs_free(lh_ui_canvas_web_t *self)
 /* The id of @p px, and whether the reader still needs its cover. -1 when the
  * table is full: the caller sends the cover inline, every time. */
 static int
-web_atlas_intern(lh_ui_canvas_web_t *self, const unsigned char *px, int w, int h, int *is_new)
+web_atlas_intern(lh_ui_canvas_web_t *self, lh_byte_cptr px, int w, int h, int *is_new)
 {
     const unsigned n = lh_cast_static(unsigned, w)* lh_cast_static(unsigned, h);
     const unsigned hash = web_atlas_hash(px, n, w, h);
@@ -371,7 +372,7 @@ web_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, cons
 static lh_void
 web_cover_inline(lh_ui_canvas_web_t *self, const lh_ui_mask_t *mask, int w, int h)
 {
-    unsigned char row[WEB_ATLAS_PIX];
+    lh_byte_t row[WEB_ATLAS_PIX];
     int x0;
     int y;
 
@@ -395,7 +396,7 @@ web_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *m
     const int w = lh_cast_static(int, lh_ui_mask_get_width(mask));
     const int h = lh_cast_static(int, lh_ui_mask_get_height(mask));
     const unsigned n = (w > 0 && h > 0) ? lh_cast_static(unsigned, w)* lh_cast_static(unsigned, h): 0u;
-    unsigned char px[WEB_ATLAS_PIX];
+    lh_byte_t px[WEB_ATLAS_PIX];
     int is_new = 1;
     int id = -1;
     int y;

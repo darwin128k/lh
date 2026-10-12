@@ -13,6 +13,7 @@
 
 #include <lh/void.h>
 #include <lh/byte.h>
+#include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/ui/rect.h>
@@ -181,7 +182,7 @@ lh_ui_radius_run_init(struct lh_ui_radius_run *self, const lh_ui_rect_t *rect, l
  * @param out Receives `x1 - x0` bytes.
  */
 lh_void
-lh_ui_radius_run_row(const struct lh_ui_radius_run *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_byte_t *out);
+lh_ui_radius_run_row(const struct lh_ui_radius_run *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_byte_ptr out);
 
 /**
  * @brief Coverage `0..255` of pixels `x0 .. x1 - 1` of row @p y, written to
@@ -194,7 +195,7 @@ lh_ui_radius_run_row(const struct lh_ui_radius_run *self, lh_s32_t x0, lh_s32_t 
  */
 lh_void
 lh_ui_radius_coverage_run(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
-                          lh_byte_t *out);
+                          lh_byte_ptr out);
 
 LH_COMPILER_EXTERN_C_END
 

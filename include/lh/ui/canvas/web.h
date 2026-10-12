@@ -15,6 +15,7 @@
 #define LH_UI_CANVAS_WEB_H
 
 #include <lh/bool.h>
+#include <lh/byte.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/size.h>
@@ -41,7 +42,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 typedef struct lh_ui_canvas_web_glyphs
 {
-    unsigned char sent[LH_UI_CANVAS_WEB_GLYPHS_MAX];
+    lh_byte_t sent[LH_UI_CANVAS_WEB_GLYPHS_MAX];
 } lh_ui_canvas_web_glyphs_t;
 
 /**

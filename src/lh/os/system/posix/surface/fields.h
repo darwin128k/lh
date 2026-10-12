@@ -16,7 +16,7 @@
  * which the next write has to wait for.
  */
 #define lh_os_system_posix_surface_fields                                                          \
-    lh_byte_t *bits;                                                                               \
+    lh_byte_ptr bits;                                                                               \
     int width;                                                                                     \
     int height;                                                                                    \
     int pixel_bits;                                                                                \

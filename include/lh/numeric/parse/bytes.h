@@ -11,6 +11,7 @@
 #define LH_NUMERIC_PARSE_BYTES_H
 
 #include <lh/byte.h>
+#include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/types.h>
 #include <lh/size.h>
@@ -25,7 +26,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * `8 * count` bits of @p value are used.
  */
 lh_void
-lh_numeric_parse_bytes(lh_uint_t value, lh_byte_t *out, lh_usize_t count);
+lh_numeric_parse_bytes(lh_uint_t value, lh_byte_ptr out, lh_usize_t count);
 
 LH_COMPILER_EXTERN_C_END
 

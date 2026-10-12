@@ -11,6 +11,7 @@
 #define LH_UTIL_PTR_H
 
 #include <lh/void.h>
+#include <lh/byte/ptr.h>
 #include <lh/null.h>
 #include <lh/util/addr.h>
 
@@ -87,7 +88,7 @@
  *
  * Example usage:
  * @code{.c}
- * lh_ptr_rcast(lh_byte_t, &x)   // → (lh_byte_t *)(&x)
+ * lh_ptr_rcast(lh_byte_t, &x)   // → (lh_byte_ptr)(&x)
  * @endcode
  */
 #define lh_ptr_rcast(T, ptr) lh_cast_reinterpret(T *, ptr)
@@ -237,9 +238,9 @@
  *
  * Example usage:
  * @code{.c}
- * unsigned char blob[32];
- * unsigned char *lo = &blob[4];
- * unsigned char *hi = &blob[12];
+ * lh_byte_t blob[32];
+ * lh_byte_ptr lo = &blob[4];
+ * lh_byte_ptr hi = &blob[12];
  * lh_uaddr_t d = lh_ptr_udiff(hi, lo); // 8
  * @endcode
  */
@@ -251,7 +252,7 @@
  *
  * Example usage:
  * @code{.c}
- * unsigned char buf[8];
+ * lh_byte_t buf[8];
  * if (lh_ptr_eq(&buf[2], &buf[2])) {
  *     // same address
  * }
@@ -265,7 +266,7 @@
  *
  * Example usage:
  * @code{.c}
- * unsigned char buf[8];
+ * lh_byte_t buf[8];
  * if (lh_ptr_ne(&buf[1], &buf[3])) {
  *     // different addresses
  * }
@@ -283,7 +284,7 @@
  *
  * Example usage:
  * @code{.c}
- * unsigned char buf[8];
+ * lh_byte_t buf[8];
  * if (lh_ptr_lt(&buf[1], &buf[4])) {
  *     // buf + 1 is before buf + 4
  * }
@@ -299,7 +300,7 @@
  *
  * Example usage:
  * @code{.c}
- * unsigned char buf[8];
+ * lh_byte_t buf[8];
  * if (lh_ptr_gt(&buf[6], &buf[2])) {
  *     // buf + 6 is after buf + 2
  * }
@@ -315,7 +316,7 @@
  *
  * Example usage:
  * @code{.c}
- * unsigned char buf[8];
+ * lh_byte_t buf[8];
  * if (lh_ptr_le(&buf[2], &buf[2])) {
  *     // equal addresses are accepted
  * }
@@ -331,7 +332,7 @@
  *
  * Example usage:
  * @code{.c}
- * unsigned char buf[8];
+ * lh_byte_t buf[8];
  * if (lh_ptr_ge(&buf[7], &buf[3])) {
  *     // buf + 7 is not before buf + 3
  * }
@@ -349,7 +350,7 @@
  * Example usage:
  * @code{.c}
  * struct object {
- *     unsigned char pad[64];
+ *     lh_byte_t pad[64];
  * } obj;
  * if (lh_ptr_is_aligned(&obj, 16)) {
  *     // ...
@@ -407,16 +408,16 @@
  *
  * @note @p offset counts **bytes**, not elements. For `T` with `alignof(T) > 1`,
  *       the result may be misaligned for `T` unless @p offset is a multiple of the alignment
- *       — prefer `unsigned char *` for raw byte walking, or only use offsets you have proven safe.
+ *       — prefer `lh_byte_ptr ` for raw byte walking, or only use offsets you have proven safe.
  *
  * @warning Does not treat null specially; combining a null @p ptr
  *          with a non-zero @p offset is still undefined for downstream use.
  *
  * Example usage:
  * @code{.c}
- * unsigned char block[64];
- * unsigned char *p = &block[8];
- * unsigned char *q = lh_ptr_add_by_offset_unsafe(unsigned char, p, (lh_uaddr_t)16);
+ * lh_byte_t block[64];
+ * lh_byte_ptr p = &block[8];
+ * lh_byte_ptr q = lh_ptr_add_by_offset_unsafe(lh_byte_t, p, (lh_uaddr_t)16);
  * @endcode
  */
 #define lh_ptr_add_by_offset_unsafe(T, ptr, offset)                                                \
@@ -430,9 +431,9 @@
  *
  * Example usage:
  * @code{.c}
- * unsigned char block[64];
- * unsigned char *p = &block[40];
- * unsigned char *q = lh_ptr_sub_by_offset_unsafe(unsigned char, p, (lh_uaddr_t)8);
+ * lh_byte_t block[64];
+ * lh_byte_ptr p = &block[40];
+ * lh_byte_ptr q = lh_ptr_sub_by_offset_unsafe(lh_byte_t, p, (lh_uaddr_t)8);
  * @endcode
  */
 #define lh_ptr_sub_by_offset_unsafe(T, ptr, offset)                                                \
@@ -555,8 +556,8 @@
  * @code{.c}
  * lh_wchar_t buf[16];
  * lh_wchar_t *base = &buf[0];
- * unsigned char *p = lh_ptr_rcast(lh_byte_t, base) + 3;
- * unsigned char *q = lh_ptr_align_up_grid(lh_byte_t, p, base, (lh_uaddr_t)sizeof(lh_wchar_t));
+ * lh_byte_ptr p = lh_ptr_rcast(lh_byte_t, base) + 3;
+ * lh_byte_ptr q = lh_ptr_align_up_grid(lh_byte_t, p, base, (lh_uaddr_t)sizeof(lh_wchar_t));
  * @endcode
  */
 #define lh_ptr_align_up_grid(T, ptr, origin, grid)                                                 \
@@ -581,8 +582,8 @@
  * @code{.c}
  * lh_wchar_t buf[16];
  * lh_wchar_t *base = &buf[0];
- * unsigned char *p = lh_ptr_rcast(lh_byte_t, base) + 11;
- * unsigned char *q = lh_ptr_align_down_grid(lh_byte_t, p, base, (lh_uaddr_t)sizeof(lh_wchar_t));
+ * lh_byte_ptr p = lh_ptr_rcast(lh_byte_t, base) + 11;
+ * lh_byte_ptr q = lh_ptr_align_down_grid(lh_byte_t, p, base, (lh_uaddr_t)sizeof(lh_wchar_t));
  * @endcode
  */
 #define lh_ptr_align_down_grid(T, ptr, origin, grid)                                               \
@@ -601,9 +602,9 @@
  *
  * Example usage:
  * @code{.c}
- * unsigned char blob[128];
- * unsigned char *p = &blob[5];
- * unsigned char *q = lh_ptr_align_up(unsigned char, p, (lh_uaddr_t)16);
+ * lh_byte_t blob[128];
+ * lh_byte_ptr p = &blob[5];
+ * lh_byte_ptr q = lh_ptr_align_up(lh_byte_t, p, (lh_uaddr_t)16);
  * @endcode
  */
 #define lh_ptr_align_up(T, ptr, align)                                                             \
@@ -620,9 +621,9 @@
  *
  * Example usage:
  * @code{.c}
- * unsigned char blob[128];
- * unsigned char *p = &blob[90];
- * unsigned char *q = lh_ptr_align_down(unsigned char, p, (lh_uaddr_t)32);
+ * lh_byte_t blob[128];
+ * lh_byte_ptr p = &blob[90];
+ * lh_byte_ptr q = lh_ptr_align_down(lh_byte_t, p, (lh_uaddr_t)32);
  * @endcode
  */
 #define lh_ptr_align_down(T, ptr, align)                                                           \

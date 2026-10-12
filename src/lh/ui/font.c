@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/byte/ptr.h>
 #include <lh/cast/static.h>
 #include <lh/config.h>
 #include <lh/null.h>
@@ -59,7 +60,7 @@ font_runs_are_a_runs(const lh_ui_font_range_t *ranges, lh_u32_t count)
 }
 
 lh_void
-lh_ui_font_init(lh_ui_font_t *self, const lh_ui_mask_t *glyphs, const lh_byte_t *advances,
+lh_ui_font_init(lh_ui_font_t *self, const lh_ui_mask_t *glyphs, lh_byte_cptr advances,
                 const lh_s32_t *tops, const lh_ui_font_range_t *ranges, lh_s32_t line_height,
                 lh_s32_t ascent, lh_s32_t cap_height, lh_u32_t range_count)
 {

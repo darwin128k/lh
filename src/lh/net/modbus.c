@@ -4,6 +4,7 @@
  */
 
 #include <lh/net/modbus.h>
+#include <lh/byte/ptr.h>
 
 #include <lh/memory/std.h>
 #include <lh/null.h>
@@ -18,7 +19,7 @@
    specification rather than a round trip through the builder. */
 
 lh_u16_t
-lh_mb_crc16(const lh_byte_t *bytes, lh_u16_t length)
+lh_mb_crc16(lh_byte_cptr bytes, lh_u16_t length)
 {
     lh_u16_t crc = 0xFFFF;
 
@@ -55,7 +56,7 @@ lh_mb_crc16(const lh_byte_t *bytes, lh_u16_t length)
    over a network, and only the envelope differs. */
 
 lh_u16_t
-lh_mb_build_pdu_read(lh_byte_t *pdu, lh_u16_t cap, lh_u8_t fc, lh_u16_t address, lh_u16_t count)
+lh_mb_build_pdu_read(lh_byte_ptr pdu, lh_u16_t cap, lh_u8_t fc, lh_u16_t address, lh_u16_t count)
 {
     lh_return_if(lh_null_eq(pdu), lh_cast_static(lh_u16_t, 0));
     lh_return_if(cap < 6 || count == 0 || count > LH_MB_READ_MAX, lh_cast_static(lh_u16_t, 0));
@@ -70,7 +71,7 @@ lh_mb_build_pdu_read(lh_byte_t *pdu, lh_u16_t cap, lh_u8_t fc, lh_u16_t address,
 }
 
 lh_u16_t
-lh_mb_build_pdu_write(lh_byte_t *pdu, lh_u16_t cap, lh_u16_t address, const lh_u16_t *values,
+lh_mb_build_pdu_write(lh_byte_ptr pdu, lh_u16_t cap, lh_u16_t address, const lh_u16_t *values,
                       lh_u16_t count)
 {
     lh_u16_t i;
@@ -94,7 +95,7 @@ lh_mb_build_pdu_write(lh_byte_t *pdu, lh_u16_t cap, lh_u16_t address, const lh_u
 }
 
 lh_u16_t
-lh_mb_build_pdu_write_one(lh_byte_t *pdu, lh_u16_t cap, lh_u16_t address, lh_u16_t value)
+lh_mb_build_pdu_write_one(lh_byte_ptr pdu, lh_u16_t cap, lh_u16_t address, lh_u16_t value)
 {
     lh_return_if(lh_null_eq(pdu) || cap < 5, lh_cast_static(lh_u16_t, 0));
     pdu[0] = LH_MB_FC_WRITE_ONE;
@@ -106,7 +107,7 @@ lh_mb_build_pdu_write_one(lh_byte_t *pdu, lh_u16_t cap, lh_u16_t address, lh_u16
 }
 
 lh_u16_t
-lh_mb_build_read(lh_byte_t *adu, lh_u16_t cap, lh_u8_t unit, lh_u8_t fc, lh_u16_t address,
+lh_mb_build_read(lh_byte_ptr adu, lh_u16_t cap, lh_u8_t unit, lh_u8_t fc, lh_u16_t address,
                  lh_u16_t count)
 {
     lh_byte_t pdu[16];
@@ -128,7 +129,7 @@ lh_mb_build_read(lh_byte_t *adu, lh_u16_t cap, lh_u8_t unit, lh_u8_t fc, lh_u16_
 }
 
 lh_u16_t
-lh_mb_build_write(lh_byte_t *adu, lh_u16_t cap, lh_u8_t unit, lh_u16_t address,
+lh_mb_build_write(lh_byte_ptr adu, lh_u16_t cap, lh_u8_t unit, lh_u16_t address,
                   const lh_u16_t *values, lh_u16_t count)
 {
     lh_byte_t pdu[LH_MB_ADU_MAX];
@@ -151,7 +152,7 @@ lh_mb_build_write(lh_byte_t *adu, lh_u16_t cap, lh_u8_t unit, lh_u16_t address,
 }
 
 lh_mb_status_t
-lh_mb_parse_pdu(const lh_byte_t *pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect,
+lh_mb_parse_pdu(lh_byte_cptr pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect,
                 lh_u16_t *values, lh_u16_t cap, lh_u16_t *out, lh_u8_t *exception)
 {
     lh_u8_t bytes;
@@ -229,7 +230,7 @@ lh_mb_parse_pdu(const lh_byte_t *pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expe
 }
 
 lh_mb_status_t
-lh_mb_parse_pdu_write(const lh_byte_t *pdu, lh_u16_t length, lh_u16_t address, lh_u16_t count,
+lh_mb_parse_pdu_write(lh_byte_cptr pdu, lh_u16_t length, lh_u16_t address, lh_u16_t count,
                       lh_u8_t *exception)
 {
     if (exception != lh_null)
@@ -258,7 +259,7 @@ lh_mb_parse_pdu_write(const lh_byte_t *pdu, lh_u16_t length, lh_u16_t address, l
 }
 
 lh_mb_status_t
-lh_mb_parse_pdu_write_one(const lh_byte_t *pdu, lh_u16_t length, lh_u16_t address, lh_u16_t value,
+lh_mb_parse_pdu_write_one(lh_byte_cptr pdu, lh_u16_t length, lh_u16_t address, lh_u16_t value,
                           lh_u8_t *exception)
 {
     if (exception != lh_null)
@@ -286,7 +287,7 @@ lh_mb_parse_pdu_write_one(const lh_byte_t *pdu, lh_u16_t length, lh_u16_t addres
 }
 
 lh_mb_status_t
-lh_mb_parse_read(const lh_byte_t *adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh_u16_t expect,
+lh_mb_parse_read(lh_byte_cptr adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh_u16_t expect,
                  lh_u16_t *values, lh_u16_t cap, lh_u16_t *out, lh_u8_t *exception)
 {
     lh_byte_t pdu[LH_MB_ADU_MAX];

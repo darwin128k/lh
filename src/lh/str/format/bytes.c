@@ -1,4 +1,5 @@
 #include <lh/str/format/bytes.h>
+#include <lh/byte/ptr.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/cast/static.h>
@@ -38,7 +39,7 @@ lh_usize_t
 lh_str_ptr_format_bytes_hex(const lh_ptr data, lh_usize_t data_size, lh_bool_t uppercase,
                             lh_str_ptr str, lh_usize_t str_size)
 {
-    const lh_byte_t *bytes;
+    lh_byte_cptr bytes;
     lh_usize_t i;
     lh_usize_t needed;
 
@@ -72,7 +73,7 @@ lh_usize_t
 lh_str_ptr_format_bytes_hex_dump(const lh_ptr data, lh_usize_t data_size, lh_bool_t uppercase,
                                  lh_str_ptr str, lh_usize_t str_size)
 {
-    const lh_byte_t *bytes;
+    lh_byte_cptr bytes;
     lh_usize_t needed;
     lh_usize_t pos;
     lh_usize_t offset;

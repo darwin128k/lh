@@ -28,6 +28,7 @@
 
 #include <lh/bool.h>
 #include <lh/byte.h>
+#include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/cast/static.h>
@@ -100,7 +101,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * answers anyway will notice first.
  */
 lh_u16_t
-lh_mb_crc16(const lh_byte_t *bytes, lh_u16_t length);
+lh_mb_crc16(lh_byte_cptr bytes, lh_u16_t length);
 
 /**
  * @brief Build a read request into @p adu.
@@ -118,7 +119,7 @@ lh_mb_crc16(const lh_byte_t *bytes, lh_u16_t length);
  *         this", and the plan below never builds one.
  */
 lh_u16_t
-lh_mb_build_read(lh_byte_t *adu, lh_u16_t cap, lh_u8_t unit, lh_u8_t fc, lh_u16_t address,
+lh_mb_build_read(lh_byte_ptr adu, lh_u16_t cap, lh_u8_t unit, lh_u8_t fc, lh_u16_t address,
                  lh_u16_t count);
 
 /**
@@ -134,7 +135,7 @@ lh_mb_build_read(lh_byte_t *adu, lh_u16_t cap, lh_u8_t unit, lh_u8_t fc, lh_u16_
  * @return Length of the frame in bytes, 0 when it does not fit.
  */
 lh_u16_t
-lh_mb_build_write(lh_byte_t *adu, lh_u16_t cap, lh_u8_t unit, lh_u16_t address,
+lh_mb_build_write(lh_byte_ptr adu, lh_u16_t cap, lh_u8_t unit, lh_u16_t address,
                   const lh_u16_t *values, lh_u16_t count);
 
 /** @brief What came back. */
@@ -191,13 +192,13 @@ typedef enum lh_mb_status
  * @return Length of the PDU, 0 when it does not fit or is not one Modbus allows.
  */
 lh_u16_t
-lh_mb_build_pdu_read(lh_byte_t *pdu, lh_u16_t cap, lh_u8_t fc, lh_u16_t address, lh_u16_t count);
+lh_mb_build_pdu_read(lh_byte_ptr pdu, lh_u16_t cap, lh_u8_t fc, lh_u16_t address, lh_u16_t count);
 
 /**
  * @brief Build a "write many registers" **PDU** — no unit, no CRC.
  */
 lh_u16_t
-lh_mb_build_pdu_write(lh_byte_t *pdu, lh_u16_t cap, lh_u16_t address, const lh_u16_t *values,
+lh_mb_build_pdu_write(lh_byte_ptr pdu, lh_u16_t cap, lh_u16_t address, const lh_u16_t *values,
                       lh_u16_t count);
 
 /**
@@ -209,7 +210,7 @@ lh_mb_build_pdu_write(lh_byte_t *pdu, lh_u16_t cap, lh_u16_t address, const lh_u
  * @return Length of the PDU, 0 when it does not fit.
  */
 lh_u16_t
-lh_mb_build_pdu_write_one(lh_byte_t *pdu, lh_u16_t cap, lh_u16_t address, lh_u16_t value);
+lh_mb_build_pdu_write_one(lh_byte_ptr pdu, lh_u16_t cap, lh_u16_t address, lh_u16_t value);
 
 /**
  * @brief Read what a device answered, from the **PDU** of its answer.
@@ -230,11 +231,11 @@ lh_mb_build_pdu_write_one(lh_byte_t *pdu, lh_u16_t cap, lh_u16_t address, lh_u16
  * @return What came back. @see lh_mb_status_t
  */
 lh_mb_status_t
-lh_mb_parse_pdu(const lh_byte_t *pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect, lh_u16_t *values,
+lh_mb_parse_pdu(lh_byte_cptr pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect, lh_u16_t *values,
                 lh_u16_t cap, lh_u16_t *out, lh_u8_t *exception);
 
 lh_mb_status_t
-lh_mb_parse_read(const lh_byte_t *adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh_u16_t expect,
+lh_mb_parse_read(lh_byte_cptr adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh_u16_t expect,
                  lh_u16_t *values, lh_u16_t cap, lh_u16_t *out, lh_u8_t *exception);
 
 /**
@@ -254,7 +255,7 @@ lh_mb_parse_read(const lh_byte_t *adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc
  * @return ::lh_mb_status_ok when the echo is this write's. @see lh_mb_status_t
  */
 lh_mb_status_t
-lh_mb_parse_pdu_write(const lh_byte_t *pdu, lh_u16_t length, lh_u16_t address, lh_u16_t count,
+lh_mb_parse_pdu_write(lh_byte_cptr pdu, lh_u16_t length, lh_u16_t address, lh_u16_t count,
                       lh_u8_t *exception);
 
 /**
@@ -269,7 +270,7 @@ lh_mb_parse_pdu_write(const lh_byte_t *pdu, lh_u16_t length, lh_u16_t address, l
  * @return ::lh_mb_status_ok when the echo is this write's. @see lh_mb_status_t
  */
 lh_mb_status_t
-lh_mb_parse_pdu_write_one(const lh_byte_t *pdu, lh_u16_t length, lh_u16_t address, lh_u16_t value,
+lh_mb_parse_pdu_write_one(lh_byte_cptr pdu, lh_u16_t length, lh_u16_t address, lh_u16_t value,
                           lh_u8_t *exception);
 
 /* ── The plan ────────────────────────────────────────────────────────────── */
