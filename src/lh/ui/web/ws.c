@@ -7,6 +7,7 @@
 
 #include <lh/null.h>
 #include <lh/numeric/fixed/types.h>
+#include <lh/util/ptr.h>
 
 static unsigned
 ws_ok_opcode(unsigned opcode)
@@ -33,7 +34,7 @@ lh_ui_web_ws_write(unsigned char *out, lh_usize_t cap, unsigned opcode, lh_bool_
                    lh_usize_t payload_len)
 {
     const lh_usize_t need = lh_ui_web_ws_frame_size(payload_len);
-    const unsigned char *src = (const unsigned char *)payload;
+    const unsigned char *src = lh_ptr_ccast(unsigned char, payload);
     lh_usize_t i;
     lh_usize_t off;
 
