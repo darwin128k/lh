@@ -71,15 +71,22 @@ lh_math_fsize_set_height(lh_math_fsize_t *self, lh_math_fscalar_t height)
 lh_math_size_t
 lh_math_fsize_to_size(lh_math_fsize_t self)
 {
-    return ({ lh_math_size_t _v; lh_math_size_init(lh_addr_of(_v), lh_cast_static(lh_math_scalar_t, lh_math_fsize_get_width(lh_addr_of(self))),
-        lh_cast_static(lh_math_scalar_t, lh_math_fsize_get_height(lh_addr_of(self)))); _v; });
+    lh_math_size_t result;
+    lh_math_size_init(lh_addr_of(result),
+                      lh_cast_static(lh_math_scalar_t, lh_math_fsize_get_width(lh_addr_of(self))),
+                      lh_cast_static(lh_math_scalar_t, lh_math_fsize_get_height(lh_addr_of(self))));
+    return result;
 }
 
 lh_math_fsize_t
 lh_math_size_to_fsize(lh_math_size_t self)
 {
-    return ({ lh_math_fsize_t _v; lh_math_fsize_init(lh_addr_of(_v), lh_cast_static(lh_math_fscalar_t, lh_math_size_get_width(lh_addr_of(self))),
-        lh_cast_static(lh_math_fscalar_t, lh_math_size_get_height(lh_addr_of(self)))); _v; });
+    lh_math_fsize_t result;
+    lh_math_fsize_init(
+        lh_addr_of(result),
+        lh_cast_static(lh_math_fscalar_t, lh_math_size_get_width(lh_addr_of(self))),
+        lh_cast_static(lh_math_fscalar_t, lh_math_size_get_height(lh_addr_of(self))));
+    return result;
 }
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
@@ -147,6 +154,8 @@ lh_math_fsize_t
 lh_math_fsize_inset(const lh_math_fsize_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy)
 {
     lh_assert_runtime_ref(self);
-    return ({ lh_math_fsize_t _v; lh_math_fsize_init(lh_addr_of(_v), lh_math_fsize_get_width(self) - dx - dx,
-                              lh_math_fsize_get_height(self) - dy - dy); _v; });
+    lh_math_fsize_t result;
+    lh_math_fsize_init(lh_addr_of(result), lh_math_fsize_get_width(self) - dx - dx,
+                       lh_math_fsize_get_height(self) - dy - dy);
+    return result;
 }

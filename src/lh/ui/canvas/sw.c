@@ -5,14 +5,19 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/math.h>
+#include <lh/math/isqrt.h>
 #include <lh/memory.h>
 #include <lh/null.h>
+#include <lh/cast/static.h>
 #include <lh/ui/blur.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/canvas/sw.h>
+#include <lh/ui/mask.h>
 #include <lh/ui/pixmap.h>
 #include <lh/ui/radius.h>
 #include <lh/ui/shadow.h>
+#include <lh/ui/shadow/ramp.h>
+#include <lh/ui/shadow/shape.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
@@ -343,7 +348,7 @@ lh_ui_canvas_sw_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_
 }
 
 static lh_void
-sw_shadow_span(lh_ui_canvas_sw_t *self, const lh_ui_shadow_t *shadow, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+sw_shadow_span(lh_ui_canvas_sw_t *self, const lh_ui_shadow_shape_t *shape, const lh_ui_shadow_ramp_t *ramp,
                lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_u32_t rgb, lh_bool_t rounded)
 {
     lh_byte_t alpha[LH_UI_PIXMAP_RUN];
@@ -356,17 +361,18 @@ sw_shadow_span(lh_ui_canvas_sw_t *self, const lh_ui_shadow_t *shadow, const lh_u
         lh_s32_t i;
 
         end = lh_math_min(x1, x0 + LH_UI_PIXMAP_RUN);
-        for (i = 0; i < end - x0; ++i)
+        lh_ui_shadow_shape_span(shape, ramp, y, x0, end, alpha);
+        /* The shadow is soft on its own account and then cut by the clip, in that
+           order — the same order the canvas fallback rounds in. What the shape hands
+           back already carries the peak, so it goes in as the alpha and the coverage
+           is the full 255: scaling it by the colour alpha a second time is what makes
+           a slot shadow lighter than the very same shadow drawn without a slot. */
+        if (rounded)
         {
-            const lh_byte_t shape = lh_ui_shadow_alpha_at_pixel(shadow, x0 + i, y, rect, radius);
-
-            /* The shadow is soft on its own account and then cut by the clip, in
-               that order — the same order the canvas fallback rounds in. What
-               `alpha_at` hands back already carries the peak, so it goes in as the
-               alpha and the coverage is the full 255: scaling it by the colour
-               alpha a second time is what makes a slot shadow lighter than the
-               very same shadow drawn without a slot. */
-            alpha[i] = rounded ? lh_ui_canvas_sw_edge_alpha(self, shape, 255, x0 + i, y) : shape;
+            for (i = 0; i < end - x0; ++i)
+            {
+                alpha[i] = lh_ui_canvas_sw_edge_alpha(self, alpha[i], 255, x0 + i, y);
+            }
         }
         lh_ui_pixmap_blend_alpha_span(lh_addr_of(self->pixmap), x0, end, y, rgb, alpha);
     }
@@ -387,9 +393,13 @@ lh_ui_canvas_sw_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t 
     const lh_s32_t top = lh_ui_point_get_y(origin) - outset;
     const lh_s32_t right = left + lh_ui_size_get_width(size) + outset * 2;
     const lh_s32_t bottom = top + lh_ui_size_get_height(size) + outset * 2;
+    lh_ui_shadow_shape_t shape;
+    lh_ui_shadow_ramp_t ramp;
     lh_s32_t y;
 
     lh_return_if(outset <= 0, lh_bool_false);
+    lh_ui_shadow_shape_init(&shape, shadow, rect, corner);
+    lh_ui_shadow_ramp_init(&ramp, &shape);
     for (y = lh_ui_canvas_sw_cut_y0(self, top); y < lh_ui_canvas_sw_cut_y1(self, bottom); ++y)
     {
         const lh_s32_t x0 = lh_ui_canvas_sw_cut_x0(self, left);
@@ -401,8 +411,8 @@ lh_ui_canvas_sw_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t 
            (::lh_ui_shadow_alpha_at_pixel). Skipping it is the same pixels, and
            it is most of a card. */
         lh_ui_radius_full_span(rect, corner, y, &full0, &full1);
-        sw_shadow_span(self, shadow, rect, corner, x0, lh_math_min(x1, full0), y, rgb, rounded);
-        sw_shadow_span(self, shadow, rect, corner, lh_math_max(x0, full1), x1, y, rgb, rounded);
+        sw_shadow_span(self, &shape, &ramp, x0, lh_math_min(x1, full0), y, rgb, rounded);
+        sw_shadow_span(self, &shape, &ramp, lh_math_max(x0, full1), x1, y, rgb, rounded);
     }
     return lh_bool_true;
 }
@@ -458,6 +468,47 @@ lh_ui_canvas_sw_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip)
     self->limit = lh_ui_rect_intersection(lh_addr_of(bounds), lh_ui_canvas_clip_get_rect(clip));
 }
 
+/* Rows @p y .. @p y1 - 1 of a four-bit @p mask whose top-left pixel is (@p x0,
+   @p y0), into a 32-bit pixmap with no rounded cut: a glyph, which is what this format
+   is baked for. The row goes from the packed samples straight to the pixels -- the
+   coverage, the colour's alpha over it and the blend each as ::lh_ui_mask_coverage_run,
+   ::lh_ui_canvas_sw_blend_run and the alpha kernels have them -- because a glyph row
+   is nine pixels and running it through those three, each with its own buffer, cost
+   more than the pixels did. */
+static lh_void
+sw_glyph_rows(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_s32_t x0, lh_s32_t y0, lh_s32_t y,
+              lh_s32_t y1, const lh_ui_color_t *color)
+{
+    const lh_s32_t from = lh_ui_canvas_sw_cut_x0(self, x0);
+    const lh_s32_t to = lh_ui_canvas_sw_cut_x1(self, x0 + lh_ui_mask_get_width(mask));
+    const lh_byte_t alpha = lh_ui_color_get_a(color);
+    const lh_u32_t src = lh_ui_color_get_argb(color) & 0x00FFFFFFU;
+    lh_s32_t x;
+
+    for (; y < y1; ++y)
+    {
+        const lh_byte_t *row = lh_ui_mask_get_row(mask, y - y0);
+        lh_u32_t *at = lh_ptr_rcast(lh_u32_t, lh_ui_pixmap_get_address(lh_addr_of(self->pixmap), 0, y));
+
+        for (x = from; x < to; ++x)
+        {
+            const lh_s32_t mx = x - x0;
+            const lh_u32_t sample = (mx & 1) != 0 ? row[mx >> 1] & 0x0FU : row[mx >> 1] >> 4;
+            const lh_byte_t cover = lh_cast_static(lh_byte_t, sample * 17U);
+            const lh_byte_t a = alpha == 255U ? cover : lh_ui_radius_scale(alpha, cover);
+
+            if (a == 255U)
+            {
+                at[x] = 0xFF000000U | src;
+            }
+            else if (a != 0U)
+            {
+                at[x] = lh_ui_pixmap_mix_argb(lh_addr_of(self->pixmap), at[x], src, a);
+            }
+        }
+    }
+}
+
 lh_bool_t
 lh_ui_canvas_sw_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,
                           const lh_ui_color_t *color)
@@ -468,9 +519,43 @@ lh_ui_canvas_sw_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_
     const lh_s32_t y1 = lh_ui_canvas_sw_cut_y1(self, y0 + lh_ui_mask_get_height(mask));
     lh_s32_t y;
 
+    if (lh_ui_mask_get_bpp(mask) == 4U && !lh_ui_canvas_sw_is_rounded(self) &&
+        !lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(lh_addr_of(self->pixmap))))
+    {
+        sw_glyph_rows(self, mask, x0, y0, lh_ui_canvas_sw_cut_y0(self, y0), y1, color);
+        return lh_bool_true;
+    }
     for (y = lh_ui_canvas_sw_cut_y0(self, y0); y < y1; ++y)
     {
         lh_ui_canvas_sw_mask_row(self, mask, x0, y0, y, color);
+    }
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_ui_canvas_sw_fill_colors(lh_ptr context, lh_s32_t x, lh_s32_t y, lh_s32_t w, lh_s32_t h,
+                            const lh_ui_color_t *colors, lh_ui_axis_t axis)
+{
+    lh_ui_canvas_sw_t *self = lh_ui_canvas_sw_from(context);
+    const lh_s32_t x0 = lh_ui_canvas_sw_cut_x0(self, x);
+    const lh_s32_t x1 = lh_ui_canvas_sw_cut_x1(self, x + w);
+    const lh_s32_t y1 = lh_ui_canvas_sw_cut_y1(self, y + h);
+    lh_s32_t row;
+
+    /* A rounded cut is a coverage a pixel on top of the colours' own alpha; the
+       canvas sends the box through fill_rect, which knows it. */
+    lh_return_if(lh_ui_canvas_sw_is_rounded(self), lh_bool_false);
+    lh_return_if(x1 <= x0, lh_bool_true);
+    for (row = lh_ui_canvas_sw_cut_y0(self, y); row < y1; ++row)
+    {
+        if (axis == lh_ui_axis_horizontal)
+        {
+            lh_ui_pixmap_fill_colors_span(lh_addr_of(self->pixmap), x0, x1, row, colors + (x0 - x));
+        }
+        else
+        {
+            lh_ui_pixmap_fill_span(lh_addr_of(self->pixmap), x0, x1, row, colors + (row - y));
+        }
     }
     return lh_bool_true;
 }
@@ -490,4 +575,5 @@ const lh_ui_canvas_backend_t lh_ui_canvas_backend_sw = {
     lh_ui_canvas_sw_shadow,
     lh_ui_canvas_sw_blur,
     lh_ui_canvas_sw_glass,
+    lh_ui_canvas_sw_fill_colors,
 };

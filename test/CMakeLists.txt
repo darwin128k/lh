@@ -177,17 +177,28 @@ lh_add_test_core(lh_test_numeric
 )
 
 set(LH_TEST_OS_SOURCES
+        ${LH_TEST_SRC_PATH}/lh/os/net/modbus_tcp.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/serial.cpp
         ${LH_TEST_SRC_PATH}/lh/os/tick.cpp
         ${LH_TEST_SRC_PATH}/lh/os/window.cpp
         ${LH_TEST_SRC_PATH}/lh/os/render/backend/gdi.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/system/posix/key.cpp
 )
 if (NOT LH_LIBRARY_OPTION_OS)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/tick.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/tick.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/net/modbus_tcp.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/net/modbus_tcp.cpp)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/serial.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/serial.cpp)
 endif ()
 if (NOT (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW))
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/window.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/window.cpp)
+endif ()
+if (WIN32 OR NOT (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW))
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/system/posix/key.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/system/posix/key.cpp)
 endif ()
 if (NOT (WIN32 AND LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW))
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/render/backend/gdi.cpp)
@@ -248,8 +259,10 @@ lh_add_test_core(lh_test_util
 set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/axis.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/blur.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/box.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/brush.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/canvas.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/transition.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/canvas/sw.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/canvas/web.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/color.cpp

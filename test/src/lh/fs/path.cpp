@@ -10,8 +10,10 @@ lh_usize_t
 segment_count(const char *text, lh_fs_path_style_t style)
 {
     lh_fs_path_t path;
+    lh_str_view_t view;
     lh_fs_path_init(&path);
-    lh_fs_path_set(&path, ({ lh_str_view_t _lh_tmp; lh_str_view_init(lh_addr_of(_lh_tmp), text); _lh_tmp; }), style);
+    lh_str_view_init(&view, text);
+    lh_fs_path_set(&path, view, style);
     const lh_usize_t count = lh_fs_path_get_segment_count(&path);
     lh_fs_path_deinit(&path);
     return count;

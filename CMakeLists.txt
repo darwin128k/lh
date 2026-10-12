@@ -187,6 +187,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/fs/dir.c
             ${LH_LIB_SRC_PATH}/os/net.c
             ${LH_LIB_SRC_PATH}/os/net/socket.c
+            ${LH_LIB_SRC_PATH}/os/serial.c
             ${LH_LIB_SRC_PATH}/os/shared.c
             ${LH_LIB_SRC_PATH}/os/module.c
             ${LH_LIB_SRC_PATH}/os/loader.c
@@ -210,6 +211,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/stat.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/net.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/net/socket.c
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/serial.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/shared.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/str.c
     )
@@ -222,9 +224,19 @@ if (LH_LIBRARY_OPTION_OS)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/window.c)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/key.c)
             list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/win/surface.c)
-            list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/render/backend/gdi.c)
             list(APPEND LH_OS_SYSTEM_LINK_LIBS user32 gdi32)
+        else ()
+            # Xlib, opened with dlopen when the first window is: nothing to link but
+            # the loader, and no X11 headers or development package to build with.
+            list(APPEND LH_LIB_SOURCES
+                    ${LH_LIB_SRC_PATH}/os/system/posix/x11.c
+                    ${LH_LIB_SRC_PATH}/os/system/posix/window.c
+                    ${LH_LIB_SRC_PATH}/os/system/posix/key.c
+                    ${LH_LIB_SRC_PATH}/os/system/posix/surface.c
+            )
+            list(APPEND LH_OS_SYSTEM_LINK_LIBS ${CMAKE_DL_LIBS})
         endif ()
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/render/backend/gdi.c)
     endif ()
 endif ()
 
@@ -240,15 +252,23 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/color.c
             ${LH_LIB_SRC_PATH}/ui/paint.c
             ${LH_LIB_SRC_PATH}/ui/gradient.c
+            ${LH_LIB_SRC_PATH}/ui/gradient/sampler.c
+            ${LH_LIB_SRC_PATH}/ui/gradient/sine.c
             ${LH_LIB_SRC_PATH}/ui/style.c
+            ${LH_LIB_SRC_PATH}/ui/easing.c
+            ${LH_LIB_SRC_PATH}/ui/transition.c
             ${LH_LIB_SRC_PATH}/ui/radius.c
+            ${LH_LIB_SRC_PATH}/ui/radii.c
             ${LH_LIB_SRC_PATH}/ui/rects.c
             ${LH_LIB_SRC_PATH}/ui/shadow.c
+            ${LH_LIB_SRC_PATH}/ui/shadow/ramp.c
+            ${LH_LIB_SRC_PATH}/ui/shadow/shape.c
             ${LH_LIB_SRC_PATH}/ui/blur.c
             ${LH_LIB_SRC_PATH}/ui/range.c
             ${LH_LIB_SRC_PATH}/ui/canvas.c
             ${LH_LIB_SRC_PATH}/ui/canvas/state.c
             ${LH_LIB_SRC_PATH}/ui/canvas/round.c
+            ${LH_LIB_SRC_PATH}/ui/canvas/box.c
             ${LH_LIB_SRC_PATH}/ui/canvas/clip.c
             ${LH_LIB_SRC_PATH}/ui/pen.c
             ${LH_LIB_SRC_PATH}/ui/entity.c

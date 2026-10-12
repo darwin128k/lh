@@ -83,6 +83,17 @@ LH_COMPILER_EXTERN_C_BEGIN
 #define LH_MB_READ_MAX ((lh_u16_t)125)
 
 /**
+ * @brief Most registers one "write many registers" (0x10) may carry.
+ *
+ * 123 (0x7B), and **not** ::LH_MB_READ_MAX. A write carries a byte count, an
+ * address and a quantity on top of its words, so the protocol's limit for it is two
+ * registers less than for a read, and a device asked to write 124 refuses with
+ * "illegal data value". The two used to be one constant, which let a write through
+ * that every conforming device turns down.
+ */
+#define LH_MB_WRITE_MAX ((lh_u16_t)123)
+
+/**
  * @brief CRC-16 as Modbus uses it: reflected, polynomial 0xA001.
  *
  * The one piece of arithmetic every frame depends on, and the one a device that
@@ -136,7 +147,11 @@ typedef enum lh_mb_status
     lh_mb_status_exception,  /**< the device understood and refused; `exception` says how */
     lh_mb_status_wrong_unit, /**< somebody else's answer on a shared line */
     lh_mb_status_wrong_code, /**< a different question than the one that was sent */
-    lh_mb_status_garbage     /**< a whole frame that is not an answer at all */
+    lh_mb_status_garbage,    /**< a whole frame that is not an answer at all */
+    /** @brief The stream is gone: the peer closed it, it failed, or half a request
+     *  went out. Nothing more can be read on it in step with the frames, and the
+     *  only way back is a new one (::lh_mb_link_set_stream). */
+    lh_mb_status_lost
 } lh_mb_status_t;
 
 /**
@@ -186,6 +201,17 @@ lh_mb_build_pdu_write(lh_byte_t *pdu, lh_u16_t cap, lh_u16_t address, const lh_u
                       lh_u16_t count);
 
 /**
+ * @brief Build a "write one register" (0x06) **PDU** — no unit, no CRC.
+ *
+ * Five bytes: the code, the address and the value. The function some devices
+ * accept where they refuse 0x10, and the cheaper one for a single word either way.
+ *
+ * @return Length of the PDU, 0 when it does not fit.
+ */
+lh_u16_t
+lh_mb_build_pdu_write_one(lh_byte_t *pdu, lh_u16_t cap, lh_u16_t address, lh_u16_t value);
+
+/**
  * @brief Read what a device answered, from the **PDU** of its answer.
  *
  * No unit and no CRC here: those belong to the framing and have been checked by the
@@ -230,6 +256,21 @@ lh_mb_parse_read(const lh_byte_t *adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc
 lh_mb_status_t
 lh_mb_parse_pdu_write(const lh_byte_t *pdu, lh_u16_t length, lh_u16_t address, lh_u16_t count,
                       lh_u8_t *exception);
+
+/**
+ * @brief Read what a device answered to "write one register" (0x06), from the **PDU**.
+ *
+ * The answer is the request echoed, all five bytes of it, so it is checked against
+ * the address **and the value**: an echo of another value is a write that did not
+ * happen as asked. A refusal is two bytes, `0x86` and the exception code.
+ *
+ * @param exception The device's exception code, when it refused; `lh_null` to not care.
+ *
+ * @return ::lh_mb_status_ok when the echo is this write's. @see lh_mb_status_t
+ */
+lh_mb_status_t
+lh_mb_parse_pdu_write_one(const lh_byte_t *pdu, lh_u16_t length, lh_u16_t address, lh_u16_t value,
+                          lh_u8_t *exception);
 
 /* ── The plan ────────────────────────────────────────────────────────────── */
 

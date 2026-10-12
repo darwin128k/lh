@@ -14,6 +14,7 @@
 #define LH_IO_READER_H
 
 #include <lh/compiler/extern/c.h>
+#include <lh/io/pending.h>
 #include <lh/io/reader/cb.h>
 #include <lh/io/reader/fields.h>
 #include <lh/ptr.h>
@@ -113,7 +114,8 @@ lh_io_reader_get_context(const lh_io_reader_t *self);
  * @param buf  Destination buffer.
  * @param size Maximum bytes to read into @p buf.
  *
- * @return Bytes actually read (`0` at end of stream), or a negative value
+ * @return Bytes actually read, `0` at the end of the stream, ::LH_IO_PENDING
+ *         when a non-blocking source has nothing yet, or another negative value
  *         if the underlying callback reports a failure.
  */
 lh_ssize_t

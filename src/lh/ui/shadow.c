@@ -7,6 +7,7 @@
 #include <lh/cast/static.h>
 #include <lh/math.h>
 #include <lh/math/isqrt.h>
+#include <lh/ui/shadow/shape.h>
 #include <lh/null.h>
 #include <lh/ui/color.h>
 #include <lh/ui/point.h>
@@ -130,6 +131,18 @@ shadow_sd(lh_s64_t px, lh_s64_t py, const lh_ui_rect_t *rect, lh_ui_scalar_t rad
     {
         return inside - r;
     }
+    /* Beside a straight edge only one of the two is outside, and the length of
+       (ox, 0) is ox: the square root is the corner's alone. Taking it for every
+       pixel of a shadow -- most of which lie along an edge -- was most of the
+       shadow's time, for the same number. */
+    if (oy == 0)
+    {
+        return ox + inside - r;
+    }
+    if (ox == 0)
+    {
+        return oy + inside - r;
+    }
     return (lh_s64_t)lh_math_isqrt_u64((lh_u64_t)ox * (lh_u64_t)ox + (lh_u64_t)oy * (lh_u64_t)oy) + inside - r;
 }
 
@@ -217,7 +230,10 @@ lh_ui_shadow_alpha_at(const lh_ui_shadow_t *self, lh_ui_scalar_t x, lh_ui_scalar
     }
 
     shifted = *rect;
-    lh_ui_rect_offset(&shifted, self->offset_x, self->offset_y);
+    /* ::lh_ui_rect_offset hands back the moved rect: it does not move its argument.
+       Calling it for its effect left every shadow where its box was, whatever offset
+       the style gave it. */
+    shifted = lh_ui_rect_offset(&shifted, self->offset_x, self->offset_y);
     return lh_ui_shadow_falloff(lh_ui_shadow_distance(x, y, &shifted, corner), self->spread, peak);
 }
 
@@ -225,26 +241,13 @@ lh_byte_t
 lh_ui_shadow_alpha_at_pixel(const lh_ui_shadow_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_rect_t *rect,
                             lh_ui_scalar_t radius)
 {
-    const lh_byte_t peak = lh_ui_color_get_a(&self->color);
-    const lh_ui_scalar_t corner = lh_ui_radius_clamp(rect, radius);
-    lh_ui_rect_t shifted;
+    lh_ui_shadow_shape_t shape;
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(rect);
-    if (self->spread <= 0 || peak == 0 || lh_ui_rect_is_empty(rect))
-    {
-        return 0;
-    }
-    /* The fill owns a pixel it covers wholly, and it decides that from the
-       pixel's center (::lh_ui_radius_coverage). Asking the integer corner of
-       the pixel instead puts the shadow's edge a different place from the
-       fill's, and on a rounded corner the two no longer meet. */
-    if (lh_ui_radius_coverage(rect, corner, x, y) == 255U)
-    {
-        return 0;
-    }
-    shifted = *rect;
-    lh_ui_rect_offset(&shifted, self->offset_x, self->offset_y);
-    return shadow_falloff_sub(shadow_sd(lh_ui_radius_pixel_center(x), lh_ui_radius_pixel_center(y), &shifted, corner),
-                              lh_ui_radius_to_fixed(self->spread), peak);
+    /* The one reading of a shadow (::lh_ui_shadow_shape_t), so a backend that draws a
+       whole shadow through the shape and the canvas that asks pixel by pixel give the
+       same alpha. */
+    lh_ui_shadow_shape_init(&shape, self, rect, radius);
+    return lh_ui_shadow_shape_alpha(&shape, lh_ui_shadow_shape_row(&shape, y), x, y);
 }

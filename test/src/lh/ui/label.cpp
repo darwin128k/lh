@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include <lh/test/ui/draw_log.h>
 #include <lh/test/ui/fill_probe.h>
 #include <lh/test/ui/tiny_font.h>
 
@@ -590,4 +591,65 @@ TEST(entity_label, set_text_erases_a_longer_text_whose_buffer_was_rewritten_firs
     ASSERT_EQ(t.take(&damage), lh_bool_true);
     EXPECT_GE(label_in_view::right_of(&damage), t.right_of_ink("AAAAAA") - 1)
         << "the old, longer text has to be erased, not only the new one drawn";
+}
+
+/* A line wider than its box: drawn whole and cut by the clip, or shortened to what
+   fits with an ellipsis after it. The tiny font's 'A' is 3 wide, so eight of them are
+   24 in a box of 10; it has no '.', and the dots of the ellipsis draw nothing, which
+   leaves the glyphs that were kept to be counted. */
+TEST(ui_label, an_ellipsis_shortens_a_line_that_does_not_fit)
+{
+    lh_test::draw_log log;
+    lh_ui_canvas_t canvas;
+    lh_ui_label_t label;
+    lh_ui_style_t style;
+
+    lh_ui_style_init(&style);
+    lh_ui_style_set_font(&style, lh_test::tiny_font());
+    lh_ui_label_init(&label, lh_test::rect_of(0, 0, 10, 8), "AAAAAAAA");
+    lh_ui_entity_set_style(lh_ui_label_as_entity(&label), &style);
+
+    lh_test::draw_log_init(&log, &canvas, false, false, true);
+    lh_ui_label_draw_text(&label, &canvas);
+    EXPECT_EQ(log.mask_count, 8) << "clipped is drawn whole";
+
+    lh_ui_style_set_overflow(&style, lh_ui_text_overflow_ellipsis);
+    lh_test::draw_log_init(&log, &canvas, false, false, true);
+    lh_ui_label_draw_text(&label, &canvas);
+    EXPECT_EQ(log.mask_count, 3) << "three 'A' of 3 fit in 10, the fourth would not";
+
+    /* A line that fits is drawn as it is. */
+    lh_ui_label_set_text(&label, "AAA");
+    lh_test::draw_log_init(&log, &canvas, false, false, true);
+    lh_ui_label_draw_text(&label, &canvas);
+    EXPECT_EQ(log.mask_count, 3);
+}
+
+/* A label that wraps breaks its text at its own padded width: 11 wide less 2 of
+   padding either side is 7, three words of "AA" are three lines, and the text's rect
+   is that much taller than one line -- which is what a column asks of a label it
+   sizes by its content. */
+TEST(ui_label, a_label_that_wraps_breaks_its_text_at_its_padded_width)
+{
+    lh_ui_label_t label;
+    lh_ui_style_t style;
+    lh_ui_insets_t padding;
+    const lh_ui_font_t *font = lh_test::tiny_font();
+
+    lh_ui_style_init(&style);
+    lh_ui_style_set_font(&style, font);
+    lh_ui_insets_init(&padding, lh_ui_scalar(2), lh_ui_scalar(0), lh_ui_scalar(2), lh_ui_scalar(0));
+    lh_ui_style_set_padding_insets(&style, &padding);
+    lh_ui_label_init(&label, lh_test::rect_of(0, 0, 11, 40), "AA AA AA");
+    lh_ui_entity_set_style(lh_ui_label_as_entity(&label), &style);
+
+    const lh_ui_rect_t one = lh_ui_label_get_text_rect(&label);
+    lh_ui_style_set_wrap(&style, lh_ui_text_wrap_words);
+    lh_ui_label_drop_metrics(&label);
+    const lh_ui_rect_t three = lh_ui_label_get_text_rect(&label);
+
+    EXPECT_EQ(lh_ui_size_get_height(lh_ui_rect_get_size_as_const(&three)),
+              lh_ui_size_get_height(lh_ui_rect_get_size_as_const(&one)) +
+                  2 * lh_ui_scalar(lh_ui_font_get_line_height(font)));
+    EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size_as_const(&three)), lh_ui_scalar(6));
 }

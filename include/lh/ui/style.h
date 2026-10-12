@@ -16,15 +16,19 @@
 #define LH_UI_STYLE_H
 
 #include <lh/compiler/extern/c.h>
+#include <lh/numeric/types.h>
 #include <lh/ui/color.h>
+#include <lh/ui/easing.h>
 #include <lh/ui/font.h>
 #include <lh/ui/paint.h>
 #include <lh/ui/insets.h>
+#include <lh/ui/radii.h>
 #include <lh/ui/radius.h>
 #include <lh/ui/scalar.h>
 #include <lh/ui/shadow.h>
 #include <lh/ui/style/fields.h>
 #include <lh/ui/text/align.h>
+#include <lh/ui/text/overflow.h>
 #include <lh/void.h>
 
 /**
@@ -34,7 +38,8 @@
  */
 struct lh_ui_style
 {
-    lh_ui_style_fields(lh_ui_paint_t, lh_ui_scalar_t, lh_ui_font_t, lh_ui_insets_t, lh_ui_shadow_t);
+    lh_ui_style_fields(lh_ui_paint_t, lh_ui_scalar_t, lh_ui_font_t, lh_ui_insets_t, lh_ui_shadow_t,
+                       lh_ui_radii_t);
 };
 typedef struct lh_ui_style lh_ui_style_t;
 
@@ -80,6 +85,21 @@ lh_ui_style_get_radius(const lh_ui_style_t *self);
  */
 lh_void
 lh_ui_style_set_radius(lh_ui_style_t *self, lh_ui_scalar_t radius);
+
+/**
+ * @brief The radius of each corner of the fill of @p self.
+ */
+const lh_ui_radii_t *
+lh_ui_style_get_radii(const lh_ui_style_t *self);
+
+/**
+ * @brief Round each corner of the fill of @p self on its own (copied): CSS's
+ *        `border-radius: 8px 8px 0 0`. ::lh_ui_style_get_radius is then the smallest
+ *        of them, which is the radius a clipping parent cuts its children with and the
+ *        one a hit test rounds by; ::lh_ui_style_set_radius sets all four again.
+ */
+lh_void
+lh_ui_style_set_radii(lh_ui_style_t *self, const lh_ui_radii_t *radii);
 
 /**
  * @brief Corner radius a hit test rounds @p self with (`0` = the whole rect).
@@ -189,6 +209,33 @@ lh_void
 lh_ui_style_set_align_v(lh_ui_style_t *self, lh_ui_text_align_v_t align);
 
 /**
+ * @brief What a line of text too wide for the padded box draws.
+ */
+lh_ui_text_overflow_t
+lh_ui_style_get_overflow(const lh_ui_style_t *self);
+
+/**
+ * @brief Draw a line that does not fit whole and clipped
+ *        (::lh_ui_text_overflow_clip, the default) or shortened with an ellipsis
+ *        (::lh_ui_text_overflow_ellipsis).
+ */
+lh_void
+lh_ui_style_set_overflow(lh_ui_style_t *self, lh_ui_text_overflow_t overflow);
+
+/**
+ * @brief Whether text is broken into lines as wide as the padded box.
+ */
+lh_ui_text_wrap_t
+lh_ui_style_get_wrap(const lh_ui_style_t *self);
+
+/**
+ * @brief Break text only where it has line breaks (::lh_ui_text_wrap_none, the
+ *        default) or also before a word that would not fit (::lh_ui_text_wrap_words).
+ */
+lh_void
+lh_ui_style_set_wrap(lh_ui_style_t *self, lh_ui_text_wrap_t wrap);
+
+/**
  * @brief Shadow cast under the fill of @p self. Never ::lh_null; the empty one
  *        casts nothing (::lh_ui_shadow_is_empty).
  */
@@ -250,6 +297,59 @@ lh_ui_style_get_border_fill(const lh_ui_style_t *self);
  */
 lh_void
 lh_ui_style_set_border_fill(lh_ui_style_t *self, const lh_ui_paint_t *fill);
+
+/**
+ * @brief How long an entity takes to reach @p self from the style it had, in
+ *        milliseconds. `0` — the default — means it reaches it at once, which is
+ *        how every style behaved before transitions existed.
+ *
+ * It is read off the style an entity is **switched to**, not the one it leaves,
+ * so every style that can be reached by a switch has to carry the time of that
+ * switch. A generated screen does this for every look of a row at once, which is
+ * why this is one call per style rather than one per entity.
+ *
+ * A style alone changes nothing: ::lh_ui_entity_set_style starts the transition,
+ * ::lh_ui_view_advance is what moves it, and ::lh_ui_style_init_blend is the look
+ * on screen while it does.
+ */
+lh_u16_t
+lh_ui_style_get_transition(const lh_ui_style_t *self);
+
+/**
+ * @brief Set how long an entity takes to reach @p self, in milliseconds
+ *        (::lh_ui_style_get_transition).
+ */
+lh_void
+lh_ui_style_set_transition(lh_ui_style_t *self, lh_u16_t ms);
+
+/**
+ * @brief The curve an entity moves on towards @p self (::lh_ui_easing_ease, CSS's
+ *        default, until a style says otherwise).
+ */
+lh_ui_easing_t
+lh_ui_style_get_easing(const lh_ui_style_t *self);
+
+/**
+ * @brief Set the curve an entity moves on towards @p self.
+ */
+lh_void
+lh_ui_style_set_easing(lh_ui_style_t *self, lh_ui_easing_t easing);
+
+/**
+ * @brief @p self as the look @p weight of the way from @p from to @p to (weights of
+ *        `255`): what is on screen while a transition runs.
+ *
+ * Everything that has an amount is mixed -- the fill and the text and border paints
+ * when both ends are solid, every corner radius, the shadow's colour, fade and
+ * shift -- and everything else is @p to's from the first frame: the font, the
+ * alignment, the padding and the border's widths (a box does not move its contents
+ * by fractions of a pixel while it fades), a gradient, and the pressed look. A paint
+ * that is solid at one end only is @p to's at once, as is a shadow cast at one end
+ * only fading in from the other's nothing.
+ */
+lh_void
+lh_ui_style_init_blend(lh_ui_style_t *self, const lh_ui_style_t *from, const lh_ui_style_t *to,
+                       lh_u32_t weight);
 
 LH_COMPILER_EXTERN_C_END
 

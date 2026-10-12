@@ -577,6 +577,51 @@ lh_ui_pixmap_fill_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t 
 }
 
 lh_void
+lh_ui_pixmap_fill_colors_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                              const lh_ui_color_t *colors)
+{
+    lh_s32_t x;
+    lh_s32_t end;
+
+    if (!lh_ui_pixmap_format_is_16(self->format))
+    {
+        /* A gradient changes colour every pixel or two, and a run that short is all
+           call and no store: an opaque pixel is its colour's word, written here. */
+        lh_u32_t *at = lh_ptr_rcast(lh_u32_t, lh_ui_pixmap_get_address(self, x0, y));
+
+        for (x = x0; x < x1; ++x)
+        {
+            const lh_ui_color_t *color = colors + (x - x0);
+            const lh_byte_t alpha = lh_ui_color_get_a(color);
+
+            if (alpha == LH_BYTE_T_MAX)
+            {
+                at[x - x0] = lh_ui_color_get_argb(color);
+            }
+            else if (alpha != 0U)
+            {
+                /* What the alpha kernels make of one pixel, without filling a run's
+                   worth of alpha for it: an edge pixel is one at a time. */
+                at[x - x0] = lh_ui_pixmap_mix_argb(self, at[x - x0], lh_ui_color_get_argb(color) & 0x00FFFFFFU, alpha);
+            }
+        }
+        return;
+    }
+    for (x = x0; x < x1; x = end)
+    {
+        const lh_ui_color_t *color = colors + (x - x0);
+
+        for (end = x + 1; end < x1 && lh_ui_color_equals(color, colors + (end - x0)); ++end)
+        {
+        }
+        if (lh_ui_color_get_a(color) != 0U)
+        {
+            lh_ui_pixmap_fill_span(self, x, end, y, color);
+        }
+    }
+}
+
+lh_void
 lh_ui_pixmap_store_box(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t y0, lh_s32_t x1, lh_s32_t y1, lh_u32_t word)
 {
     lh_s32_t y;

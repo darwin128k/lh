@@ -22,6 +22,31 @@ lh_ui_layout_init(lh_ui_layout_t *self, lh_ui_axis_t axis, lh_ui_scalar_t gap)
     self->axis = axis;
     self->gap = gap;
     self->justify = lh_ui_justify_start;
+    self->wrap = lh_bool_false;
+    self->line_gap = lh_ui_scalar(0);
+}
+
+lh_void
+lh_ui_layout_set_wrap(lh_ui_layout_t *self, lh_bool_t wrap, lh_ui_scalar_t line_gap)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_if(line_gap < lh_ui_scalar(0), lh_runtime_error_code_invalid_argument);
+    self->wrap = wrap;
+    self->line_gap = line_gap;
+}
+
+lh_bool_t
+lh_ui_layout_get_wrap(const lh_ui_layout_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->wrap;
+}
+
+lh_ui_scalar_t
+lh_ui_layout_get_line_gap(const lh_ui_layout_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->line_gap;
 }
 
 lh_ui_axis_t
@@ -202,12 +227,14 @@ layout_across(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_ui_rec
         lh_ui_scalar(0));
 }
 
-lh_void
-lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
+/* One line of the flow: the children from @p first up to @p end (::lh_null for the
+   last child), measured, shared out and placed in @p content_box. A flow that does not
+   wrap is this once, over every child, in the parent's content box. */
+static lh_void
+layout_run(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity_t *first, lh_ui_entity_t *end,
+           const lh_ui_rect_t *content_box)
 {
-    const lh_ui_insets_t padding = lh_ui_entity_get_padding(parent);
-    const lh_ui_rect_t rect = lh_ui_entity_get_rect(parent);
-    const lh_ui_rect_t content = lh_ui_insets_shrink(lh_addr_of(padding), lh_addr_of(rect));
+    const lh_ui_rect_t content = *content_box;
     /* ::lh_ui_rect_init_along measures `start` past the origin of its base, and
        the rects a child carries are absolute, so the slice is cut out of nothing
        and the two calls hand the child its own place. */
@@ -229,8 +256,7 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
     /* Measure: what everyone asked for, and what is left of the content box. The
        gap is counted between children that take room only, so a collapsed one
        leaves neither space nor a hole in the row. */
-    for (child = lh_ui_entity_get_first_child(parent); lh_null_ne(child);
-         child = lh_ui_entity_get_next_child(parent, child))
+    for (child = first; child != end; child = lh_ui_entity_get_next_child(parent, child))
     {
         const lh_ui_place_t *place = lh_ui_entity_get_place(child);
         const lh_bool_t fills_too = lh_ui_place_get_size_mode(place) == lh_ui_place_size_fill;
@@ -329,8 +355,7 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
     }
 
     /* Place. */
-    for (child = lh_ui_entity_get_first_child(parent); lh_null_ne(child);
-         child = lh_ui_entity_get_next_child(parent, child))
+    for (child = first; child != end; child = lh_ui_entity_get_next_child(parent, child))
     {
         const lh_ui_place_t *place = lh_ui_entity_get_place(child);
         const lh_ui_insets_t *margin = lh_ui_place_get_margin(place);
@@ -363,5 +388,103 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
         {
             along += before + wants + after + self->gap + spread;
         }
+    }
+}
+
+/* How deep @p child is across the flow, margins and all: its own size, or -- for one
+   that stretches across -- only its minimum, since the line it is in decides the rest. */
+static lh_ui_scalar_t
+layout_depth(const lh_ui_layout_t *self, lh_ui_entity_t *child)
+{
+    const lh_ui_axis_t cross = lh_ui_axis_get_cross(self->axis);
+    const lh_ui_place_t *place = lh_ui_entity_get_place(child);
+    const lh_ui_insets_t *margin = lh_ui_place_get_margin(place);
+    const lh_ui_rect_t rect = lh_ui_entity_get_rect(child);
+    const lh_ui_scalar_t own =
+        lh_ui_place_get_align(place) == lh_ui_place_align_fill
+            ? lh_ui_place_clamp(place, cross, lh_ui_scalar(0))
+            : lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(rect)), cross);
+
+    return own + lh_ui_insets_get_start(margin, cross) + lh_ui_insets_get_end(margin, cross);
+}
+
+/* The child after the last one that fits on the line starting at @p first in @p room
+   along the flow (::lh_null when every one does), and in @p depth how deep the line is.
+   A line always takes its first child, so a child longer than the room is a line on
+   its own rather than none. */
+static lh_ui_entity_t *
+layout_line_end(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity_t *first, lh_ui_scalar_t room,
+                lh_ui_scalar_t *depth)
+{
+    lh_ui_scalar_t used = lh_ui_scalar(0);
+    int count = 0;
+    lh_ui_entity_t *child;
+
+    *depth = lh_ui_scalar(0);
+    for (child = first; lh_null_ne(child); child = lh_ui_entity_get_next_child(parent, child))
+    {
+        lh_ui_scalar_t size;
+
+        if (lh_ui_entity_is_hidden(child))
+        {
+            continue;
+        }
+        size = layout_wants(self, child) + layout_margin_along(self, lh_ui_entity_get_place(child));
+        if (count > 0 && used + self->gap + size > room)
+        {
+            return child;
+        }
+        used += (count > 0 ? self->gap : lh_ui_scalar(0)) + size;
+        ++count;
+        *depth = lh_math_max(*depth, layout_depth(self, child));
+    }
+    return lh_null;
+}
+
+lh_void
+lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
+{
+    const lh_ui_insets_t padding = lh_ui_entity_get_padding(parent);
+    const lh_ui_rect_t rect = lh_ui_entity_get_rect(parent);
+    const lh_ui_rect_t content = lh_ui_insets_shrink(lh_addr_of(padding), lh_addr_of(rect));
+    const lh_ui_axis_t cross = lh_ui_axis_get_cross(self->axis);
+    const lh_ui_scalar_t room = lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(content)), self->axis);
+    const lh_ui_scalar_t room_across = lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(content)), cross);
+    lh_ui_scalar_t depths = lh_ui_scalar(0);
+    lh_ui_scalar_t extra = lh_ui_scalar(0);
+    lh_ui_scalar_t at = lh_ui_scalar(0);
+    lh_ui_scalar_t depth;
+    lh_ui_entity_t *first;
+    lh_ui_entity_t *end;
+    int lines = 0;
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(parent);
+    if (!self->wrap)
+    {
+        layout_run(self, parent, lh_ui_entity_get_first_child(parent), lh_null, lh_addr_of(content));
+        return;
+    }
+    /* How many lines, and how deep they are together; what is left across is then
+       shared between them, which is CSS's `align-content: stretch`. */
+    for (first = lh_ui_entity_get_first_child(parent); lh_null_ne(first); first = end)
+    {
+        end = layout_line_end(self, parent, first, room, lh_addr_of(depth));
+        depths += depth;
+        ++lines;
+    }
+    lh_return_if(lines == 0);
+    if (room_across - depths - self->line_gap * (lines - 1) > lh_ui_scalar(0))
+    {
+        extra = (room_across - depths - self->line_gap * (lines - 1)) / lines;
+    }
+    for (first = lh_ui_entity_get_first_child(parent); lh_null_ne(first); first = end)
+    {
+        lh_ui_rect_t band;
+
+        end = layout_line_end(self, parent, first, room, lh_addr_of(depth));
+        lh_ui_rect_init_along(lh_addr_of(band), lh_addr_of(content), cross, at, depth + extra);
+        layout_run(self, parent, first, end, lh_addr_of(band));
+        at += depth + extra + self->line_gap;
     }
 }

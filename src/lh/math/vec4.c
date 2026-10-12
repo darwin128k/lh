@@ -81,51 +81,63 @@ lh_math_vec4_set_w(lh_math_vec4_t *self, lh_float_t w)
 lh_math_vec4_t
 lh_math_vec3_to_vec4(lh_math_vec3_t v, lh_float_t w)
 {
-    return ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), lh_math_vec3_get_x(lh_addr_of(v)), lh_math_vec3_get_y(lh_addr_of(v)),
-                             lh_math_vec3_get_z(lh_addr_of(v)), w); _v; });
+    lh_math_vec4_t result;
+    lh_math_vec4_init(lh_addr_of(result), lh_math_vec3_get_x(lh_addr_of(v)),
+                      lh_math_vec3_get_y(lh_addr_of(v)), lh_math_vec3_get_z(lh_addr_of(v)), w);
+    return result;
 }
 
 lh_math_vec3_t
 lh_math_vec4_to_vec3(lh_math_vec4_t v)
 {
-    return ({ lh_math_vec3_t _v; lh_math_vec3_init(lh_addr_of(_v), lh_math_vec4_get_x(lh_addr_of(v)), lh_math_vec4_get_y(lh_addr_of(v)),
-                             lh_math_vec4_get_z(lh_addr_of(v))); _v; });
+    lh_math_vec3_t result;
+    lh_math_vec3_init(lh_addr_of(result), lh_math_vec4_get_x(lh_addr_of(v)),
+                      lh_math_vec4_get_y(lh_addr_of(v)), lh_math_vec4_get_z(lh_addr_of(v)));
+    return result;
 }
 
 lh_math_vec4_t
 lh_math_vec4_add(lh_math_vec4_t a, lh_math_vec4_t b)
 {
-    return ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), lh_math_vec4_get_x(lh_addr_of(a)) + lh_math_vec4_get_x(lh_addr_of(b)),
-                             lh_math_vec4_get_y(lh_addr_of(a)) + lh_math_vec4_get_y(lh_addr_of(b)),
-                             lh_math_vec4_get_z(lh_addr_of(a)) + lh_math_vec4_get_z(lh_addr_of(b)),
-                             lh_math_vec4_get_w(lh_addr_of(a)) + lh_math_vec4_get_w(lh_addr_of(b))); _v; });
+    lh_math_vec4_t result;
+    lh_math_vec4_init(lh_addr_of(result),
+                      lh_math_vec4_get_x(lh_addr_of(a)) + lh_math_vec4_get_x(lh_addr_of(b)),
+                      lh_math_vec4_get_y(lh_addr_of(a)) + lh_math_vec4_get_y(lh_addr_of(b)),
+                      lh_math_vec4_get_z(lh_addr_of(a)) + lh_math_vec4_get_z(lh_addr_of(b)),
+                      lh_math_vec4_get_w(lh_addr_of(a)) + lh_math_vec4_get_w(lh_addr_of(b)));
+    return result;
 }
 
 lh_math_vec4_t
 lh_math_vec4_sub(lh_math_vec4_t a, lh_math_vec4_t b)
 {
-    return ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), lh_math_vec4_get_x(lh_addr_of(a)) - lh_math_vec4_get_x(lh_addr_of(b)),
-                             lh_math_vec4_get_y(lh_addr_of(a)) - lh_math_vec4_get_y(lh_addr_of(b)),
-                             lh_math_vec4_get_z(lh_addr_of(a)) - lh_math_vec4_get_z(lh_addr_of(b)),
-                             lh_math_vec4_get_w(lh_addr_of(a)) - lh_math_vec4_get_w(lh_addr_of(b))); _v; });
+    lh_math_vec4_t result;
+    lh_math_vec4_init(lh_addr_of(result),
+                      lh_math_vec4_get_x(lh_addr_of(a)) - lh_math_vec4_get_x(lh_addr_of(b)),
+                      lh_math_vec4_get_y(lh_addr_of(a)) - lh_math_vec4_get_y(lh_addr_of(b)),
+                      lh_math_vec4_get_z(lh_addr_of(a)) - lh_math_vec4_get_z(lh_addr_of(b)),
+                      lh_math_vec4_get_w(lh_addr_of(a)) - lh_math_vec4_get_w(lh_addr_of(b)));
+    return result;
 }
 
 lh_math_vec4_t
 lh_math_vec4_scale(lh_math_vec4_t v, lh_float_t s)
 {
-    return ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), lh_math_vec4_get_x(lh_addr_of(v)) * s,
-                             lh_math_vec4_get_y(lh_addr_of(v)) * s,
-                             lh_math_vec4_get_z(lh_addr_of(v)) * s,
-                             lh_math_vec4_get_w(lh_addr_of(v)) * s); _v; });
+    lh_math_vec4_t result;
+    lh_math_vec4_init(lh_addr_of(result), lh_math_vec4_get_x(lh_addr_of(v)) * s,
+                      lh_math_vec4_get_y(lh_addr_of(v)) * s, lh_math_vec4_get_z(lh_addr_of(v)) * s,
+                      lh_math_vec4_get_w(lh_addr_of(v)) * s);
+    return result;
 }
 
 lh_math_vec4_t
 lh_math_vec4_neg(lh_math_vec4_t v)
 {
-    return ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), -lh_math_vec4_get_x(lh_addr_of(v)),
-                             -lh_math_vec4_get_y(lh_addr_of(v)),
-                             -lh_math_vec4_get_z(lh_addr_of(v)),
-                             -lh_math_vec4_get_w(lh_addr_of(v))); _v; });
+    lh_math_vec4_t result;
+    lh_math_vec4_init(lh_addr_of(result), -lh_math_vec4_get_x(lh_addr_of(v)),
+                      -lh_math_vec4_get_y(lh_addr_of(v)), -lh_math_vec4_get_z(lh_addr_of(v)),
+                      -lh_math_vec4_get_w(lh_addr_of(v)));
+    return result;
 }
 
 lh_float_t
@@ -163,14 +175,18 @@ lh_math_vec4_normalize(lh_math_vec4_t v)
 lh_math_vec4_t
 lh_math_vec4_lerp(lh_math_vec4_t a, lh_math_vec4_t b, lh_float_t t)
 {
-    return ({ lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), lh_math_vec4_get_x(lh_addr_of(a))
-                                 + (lh_math_vec4_get_x(lh_addr_of(b)) - lh_math_vec4_get_x(lh_addr_of(a))) * t,
-                             lh_math_vec4_get_y(lh_addr_of(a))
-                                 + (lh_math_vec4_get_y(lh_addr_of(b)) - lh_math_vec4_get_y(lh_addr_of(a))) * t,
-                             lh_math_vec4_get_z(lh_addr_of(a))
-                                 + (lh_math_vec4_get_z(lh_addr_of(b)) - lh_math_vec4_get_z(lh_addr_of(a))) * t,
-                             lh_math_vec4_get_w(lh_addr_of(a))
-                                 + (lh_math_vec4_get_w(lh_addr_of(b)) - lh_math_vec4_get_w(lh_addr_of(a))) * t); _v; });
+    lh_math_vec4_t result;
+    lh_math_vec4_init(
+        lh_addr_of(result),
+        lh_math_vec4_get_x(lh_addr_of(a)) +
+            (lh_math_vec4_get_x(lh_addr_of(b)) - lh_math_vec4_get_x(lh_addr_of(a))) * t,
+        lh_math_vec4_get_y(lh_addr_of(a)) +
+            (lh_math_vec4_get_y(lh_addr_of(b)) - lh_math_vec4_get_y(lh_addr_of(a))) * t,
+        lh_math_vec4_get_z(lh_addr_of(a)) +
+            (lh_math_vec4_get_z(lh_addr_of(b)) - lh_math_vec4_get_z(lh_addr_of(a))) * t,
+        lh_math_vec4_get_w(lh_addr_of(a)) +
+            (lh_math_vec4_get_w(lh_addr_of(b)) - lh_math_vec4_get_w(lh_addr_of(a))) * t);
+    return result;
 }
 
 lh_bool_t

@@ -246,8 +246,10 @@ lh_int_t
 by_key(const lh_list_node_t *a, const lh_list_node_t *b, lh_ptr context)
 {
     (void)context;
-    const int ka = lh_list_entry(const Keyed, node, a)->key;
-    const int kb = lh_list_entry(const Keyed, node, b)->key;
+    /* Not `const Keyed`: offsetof over a const-qualified type is an internal
+       compiler error in MSVC (C1001). The entry is only read either way. */
+    const int ka = lh_list_entry(Keyed, node, a)->key;
+    const int kb = lh_list_entry(Keyed, node, b)->key;
     return ka < kb ? -1 : ka > kb ? 1 : 0;
 }
 

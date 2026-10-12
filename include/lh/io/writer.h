@@ -10,6 +10,7 @@
 #define LH_IO_WRITER_H
 
 #include <lh/compiler/extern/c.h>
+#include <lh/io/pending.h>
 #include <lh/io/writer/cb.h>
 #include <lh/io/writer/fields.h>
 #include <lh/ptr.h>
@@ -109,8 +110,9 @@ lh_io_writer_get_context(const lh_io_writer_t *self);
  * @param buf  Source buffer.
  * @param size Number of bytes from @p buf to write.
  *
- * @return Bytes actually written, or a negative value if the underlying
- *         callback reports a failure.
+ * @return Bytes actually written, ::LH_IO_PENDING when a non-blocking sink can
+ *         take nothing yet, or another negative value if the underlying callback
+ *         reports a failure.
  */
 lh_ssize_t
 lh_io_writer_write(lh_io_writer_t *self, const lh_ptr buf, lh_usize_t size);

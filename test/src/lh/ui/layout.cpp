@@ -701,3 +701,42 @@ TEST(ui_layout, a_flow_does_not_run_again_from_inside_itself)
     EXPECT_EQ(column.placing, lh_bool_false);
     EXPECT_EQ(row.placing, lh_bool_false);
 }
+
+/* A row that wraps: three children of 100 in 224 is two on the first line and one on
+   the second. The lines are 25 and 30 deep, 6 apart, and the 83 left across the 144 is
+   shared between them -- 41 each -- as CSS's `align-content: stretch` shares it. */
+TEST(ui_layout, a_flow_that_wraps_starts_a_new_line_for_what_does_not_fit)
+{
+    layout_fixture f;
+    lh_ui_layout_t layout;
+
+    place_child(&f.kids[0], lh_ui_place_size_fixed, lh_ui_scalar(100), lh_ui_place_align_start);
+    place_child(&f.kids[1], lh_ui_place_size_fixed, lh_ui_scalar(100), lh_ui_place_align_start);
+    place_child(&f.kids[2], lh_ui_place_size_fixed, lh_ui_scalar(100), lh_ui_place_align_start);
+    lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(4));
+    lh_ui_layout_set_wrap(&layout, lh_bool_true, lh_ui_scalar(6));
+    EXPECT_EQ(lh_ui_layout_get_wrap(&layout), lh_bool_true);
+    lh_ui_layout_apply(&layout, &f.parent);
+
+    EXPECT_TRUE(rect_at(&f.kids[0], 108, 58, 100, 20));
+    EXPECT_TRUE(rect_at(&f.kids[1], 212, 58, 100, 25));
+    EXPECT_TRUE(rect_at(&f.kids[2], 108, 130, 100, 30)) << "58 + 25 + 41 of the share + a gap of 6";
+}
+
+/* A line of children that stretch across fills its share of the depth. */
+TEST(ui_layout, children_that_stretch_fill_the_depth_of_their_line)
+{
+    layout_fixture f;
+    lh_ui_layout_t layout;
+
+    place_child(&f.kids[0], lh_ui_place_size_fixed, lh_ui_scalar(150), lh_ui_place_align_fill);
+    place_child(&f.kids[1], lh_ui_place_size_fixed, lh_ui_scalar(150), lh_ui_place_align_fill);
+    lh_ui_entity_set_hidden(&f.kids[2], lh_bool_true);
+    lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(0));
+    lh_ui_layout_set_wrap(&layout, lh_bool_true, lh_ui_scalar(4));
+    lh_ui_layout_apply(&layout, &f.parent);
+
+    /* 144 deep, one gap of 4: 70 a line. */
+    EXPECT_TRUE(rect_at(&f.kids[0], 108, 58, 150, 70));
+    EXPECT_TRUE(rect_at(&f.kids[1], 108, 132, 150, 70));
+}
