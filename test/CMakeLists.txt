@@ -251,6 +251,7 @@ set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/brush.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/canvas.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/canvas/sw.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/canvas/web.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/color.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/decl.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/entity.cpp
