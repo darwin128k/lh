@@ -2,8 +2,10 @@
  * @file host.h
  * @brief Serve one ::lh_ui_view_t over HTTP as canvas JSON. No Python.
  *
- * GET `/` is a Canvas2D player. GET `/ui.json` is ::lh_ui_view_draw through
- * ::lh_ui_canvas_backend_web. `ws://…/ws` (and `wss` when the page is TLS)
+ * GET `/` is a Canvas2D player. It scales the frame to the tab (contain, same
+ * aspect) and maps clicks back into view pixels. GET `/ui.json` is
+ * ::lh_ui_view_draw through ::lh_ui_canvas_backend_web. `ws://…/ws` (and
+ * `wss` when the page is TLS)
  * pushes a frame only when the tree changed. Several tabs may share the
  * listen socket. Frames are `lh/ui/web/ws.h`: ping/pong, close, fragments,
  * a send queue. TLS itself is not in this host — WINVER is XP, loopback is
