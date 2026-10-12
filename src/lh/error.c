@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/error.h>
 #include <lh/error/initializer.h>
 #include <lh/str/view/initializer.h>

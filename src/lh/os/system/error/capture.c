@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/attribute/thread_local.h>
 #include <lh/os/system.h>

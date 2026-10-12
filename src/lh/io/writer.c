@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/io/writer.h>
 #include <lh/assert.h>
 #include <lh/bool.h>

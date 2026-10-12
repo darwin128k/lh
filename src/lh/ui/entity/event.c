@@ -3,7 +3,6 @@
  * @brief Implementation of `lh/ui/entity/event.h`.
  */
 
-#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/null.h>
 #include <lh/runtime/error/code.h>

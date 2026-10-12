@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/memory/view/slice.h>
 #include <lh/memory/view/slice/initializer.h>
 #include <lh/initializer.h>

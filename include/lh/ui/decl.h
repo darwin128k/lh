@@ -48,7 +48,6 @@
 #include <lh/ui/style.h>
 #include <lh/ui/toggle.h>
 #include <lh/util/addr.h>
-#include <lh/void.h>
 
 /**
  * @brief @p parent of a row that is a root: no parent, and exactly one row of a

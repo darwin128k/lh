@@ -3,7 +3,6 @@
  * @brief Implementation of `lh/timer.h` and `lh/timer/group.h`.
  */
 
-#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/cast/static.h>
 #include <lh/list.h>

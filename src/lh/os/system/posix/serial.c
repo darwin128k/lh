@@ -9,7 +9,6 @@
 #    define _DEFAULT_SOURCE 1
 #endif
 
-#include <lh/void.h>
 #include <lh/os/system/serial.h>
 
 #include <lh/assert/runtime.h>

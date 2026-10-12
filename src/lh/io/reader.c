@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/io/reader.h>
 #include <lh/assert.h>
 #include <lh/null.h>

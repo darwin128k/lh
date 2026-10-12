@@ -22,7 +22,6 @@
 #include <lh/numeric/fixed/types.h>
 #include <lh/ptr.h>
 #include <lh/ui/rect.h>
-#include <lh/void.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/memory/bounds/slice.h>
 #include <lh/memory/view/slice/initializer.h>
 #include <lh/util/addr.h>

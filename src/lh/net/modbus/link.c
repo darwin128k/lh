@@ -3,7 +3,6 @@
  * @brief Framing, and a link that never waits.
  */
 
-#include <lh/void.h>
 #include <lh/net/modbus/link.h>
 
 #include <lh/assert/runtime.h>

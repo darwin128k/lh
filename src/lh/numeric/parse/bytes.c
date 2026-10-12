@@ -3,7 +3,6 @@
  * @brief Implementation of `lh/numeric/parse/bytes.h`.
  */
 
-#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/cast/static.h>
 #include <lh/numeric/parse/bytes.h>

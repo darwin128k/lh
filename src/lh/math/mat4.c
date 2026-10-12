@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/math/mat4.h>
 

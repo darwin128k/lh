@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/os/system/net.h>
 #include <lh/cast/static.h>
 #include <lh/os/system/win/ws2_32.h>

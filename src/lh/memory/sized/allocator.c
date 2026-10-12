@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/memory/sized/allocator.h>
 #include <lh/assert.h>
 #include <lh/null.h>

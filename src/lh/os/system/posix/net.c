@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/os/system/net.h>
 
 lh_bool_t

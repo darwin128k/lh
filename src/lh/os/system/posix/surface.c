@@ -15,7 +15,6 @@
  * keeps on Windows. Anywhere else, the plain path: the pixels in the request.
  */
 
-#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/byte.h>
 #include <lh/memory.h>

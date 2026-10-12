@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/runtime/error.h>
 #include <lh/util/ptr.h>
 #include <lh/error.h>

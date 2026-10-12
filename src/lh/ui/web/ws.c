@@ -3,7 +3,6 @@
  * @brief Implementation of `lh/ui/web/ws.h`.
  */
 
-#include <lh/void.h>
 #include <lh/ui/web/ws.h>
 
 #include <lh/null.h>

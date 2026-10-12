@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/list/node.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>

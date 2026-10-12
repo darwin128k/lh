@@ -3,7 +3,6 @@
  * @brief Win32 backend for `lh/os/system/serial.h`: a COM port.
  */
 
-#include <lh/void.h>
 #include <lh/os/system/serial.h>
 
 #include <lh/assert/runtime.h>

@@ -6,7 +6,6 @@
  * follow ::lh_math_size_is_empty on the embedded size.
  */
 
-#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/bool.h>
 #include <lh/cast/static.h>

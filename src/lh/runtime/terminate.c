@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/runtime/terminate.h>
 #include <lh/compiler/unreachable.h>
 #include <lh/attribute/thread_local.h>

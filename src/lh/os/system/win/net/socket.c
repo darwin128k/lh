@@ -13,7 +13,6 @@
 #include <lh/math.h>
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
-#include <lh/void.h>
 
 LH_ATTRIBUTE_STATIC
 lh_os_system_win_socket_t

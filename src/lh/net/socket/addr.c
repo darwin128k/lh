@@ -1,4 +1,3 @@
-#include <lh/void.h>
 #include <lh/net/socket/addr.h>
 #include <lh/assert.h>
 #include <lh/runtime/error.h>

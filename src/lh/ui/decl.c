@@ -3,7 +3,6 @@
  * @brief Implementation of `lh/ui/decl.h`.
  */
 
-#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/null.h>
 #include <lh/ui/decl.h>

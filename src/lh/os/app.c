@@ -3,7 +3,6 @@
  * @brief Portable ::lh_os_app_t — windows, logical timers, message pump.
  */
 
-#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/list.h>
 #include <lh/null.h>
