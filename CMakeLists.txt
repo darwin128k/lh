@@ -272,7 +272,11 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/canvas/mask.c
             ${LH_LIB_SRC_PATH}/ui/pixmap.c
             ${LH_LIB_SRC_PATH}/ui/canvas/sw.c
+            ${LH_LIB_SRC_PATH}/ui/canvas/web.c
     )
+    if (LH_LIBRARY_OPTION_OS)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/web/host.c)
+    endif ()
     if (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW)
         list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/ui/surface.c)
     endif ()
