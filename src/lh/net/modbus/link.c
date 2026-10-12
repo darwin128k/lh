@@ -9,6 +9,7 @@
 #include <lh/memory/std.h>
 #include <lh/null.h>
 #include <lh/util/addr.h>
+#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 /* ── Framing ──────────────────────────────────────────────────────────────────
@@ -556,7 +557,7 @@ const lh_u16_t *
 lh_mb_link_take(lh_mb_link_t *self, lh_u16_t *count)
 {
     lh_assert_runtime_ref(self);
-    lh_return_ifn(self->state == (lh_u8_t)lh_mb_link_answered, (const lh_u16_t *)lh_null);
+    lh_return_ifn(self->state == (lh_u8_t)lh_mb_link_answered, lh_ptr_ccast(lh_u16_t, lh_null));
     if (count != lh_null)
     {
         *count = self->got;

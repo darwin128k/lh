@@ -3708,6 +3708,7 @@ def emit(nodes, variables, root, source=""):
     add("#include <lh/ui/radii.h>")
     add("#include <lh/ui/shadow.h>")
     add("#include <lh/util/addr.h>")
+    add("#include <lh/util/ptr.h>")
     add("")
     add("/* -- The theme -------------------------------------------------------- */")
     add("")
@@ -4164,9 +4165,9 @@ def accessors():
         out.append("    {")
         # `lh_null` is `void *`, and a function returning `lh_ui_label_t *` will not take
         # it without saying so. The cast is written here rather than left to a caller.
-        out.append("        return (%s *)lh_null;" % ctype)
+        out.append("        return lh_ptr_cast(%s, lh_null);" % ctype)
         out.append("    }")
-        out.append("    return (%s *)nodes[at];" % ctype)
+        out.append("    return lh_ptr_rcast(%s, nodes[at]);" % ctype)
         out.append("}")
         out.append("")
     return "\n".join(out)

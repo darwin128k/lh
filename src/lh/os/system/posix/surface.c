@@ -69,7 +69,7 @@ lh_os_system_posix_surface_share(lh_os_system_posix_surface_t *surface, lh_usize
     id = shmget(IPC_PRIVATE, (size_t)bytes, IPC_CREAT | 0600);
     lh_return_if(id < 0, lh_bool_false);
     address = shmat(id, lh_null, 0);
-    if (address == (void *)-1)
+    if (address == LH_PTR_T_MAX)
     {
         (void)shmctl(id, IPC_RMID, lh_null);
         return lh_bool_false;
