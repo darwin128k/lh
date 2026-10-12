@@ -9,6 +9,7 @@
 #ifndef LH_MEMORY_VIEW_SLICE_FIELDS_H
 #define LH_MEMORY_VIEW_SLICE_FIELDS_H
 
+#include <lh/void.h>
 #include <lh/interval/bounds/fields.h>
 
 /**

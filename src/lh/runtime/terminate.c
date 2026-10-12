@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/runtime/terminate.h>
 #include <lh/compiler/unreachable.h>
 #include <lh/attribute/thread_local.h>
@@ -18,13 +19,13 @@ lh_runtime_terminate_get(void)
     return m_runtime_terminate;
 }
 
-void
+lh_void
 lh_runtime_terminate_set(lh_runtime_terminate_cb fn)
 {
     m_runtime_terminate = fn;
 }
 
-void
+lh_void
 lh_runtime_terminate(void)
 {
     m_runtime_terminate();

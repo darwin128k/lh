@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/os/shared.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
@@ -36,7 +37,7 @@ lh_os_shared_get_handle(const lh_os_shared_t *self)
 }
 
 LH_ATTRIBUTE_STATIC
-void
+lh_void
 lh_os_shared_set_handle(lh_os_shared_t *self, lh_os_system_shared_handle_t handle)
 {
     lh_assert_runtime_ref(self);
@@ -51,14 +52,14 @@ lh_os_shared_is_open(const lh_os_shared_t *self)
 
 /* ── init / deinit ───────────────────────────────────────────────────────── */
 
-void
+lh_void
 lh_os_shared_init(lh_os_shared_t *self)
 {
     lh_fs_path_init(lh_os_shared_get_path(self));
     lh_os_shared_set_handle(self, LH_OS_SYSTEM_SHARED_HANDLE_INVALID);
 }
 
-void
+lh_void
 lh_os_shared_deinit(lh_os_shared_t *self)
 {
     lh_os_shared_close(self);

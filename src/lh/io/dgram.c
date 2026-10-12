@@ -1,16 +1,17 @@
+#include <lh/void.h>
 #include <lh/io/dgram.h>
 #include <lh/assert.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 
-void
+lh_void
 lh_io_dgram_init(lh_io_dgram_t *self, const lh_io_dgram_reader_t *reader,
                  const lh_io_dgram_writer_t *writer)
 {
     lh_io_dgram_set(self, reader, writer);
 }
 
-void
+lh_void
 lh_io_dgram_set(lh_io_dgram_t *self, const lh_io_dgram_reader_t *reader,
                 const lh_io_dgram_writer_t *writer)
 {
@@ -20,7 +21,7 @@ lh_io_dgram_set(lh_io_dgram_t *self, const lh_io_dgram_reader_t *reader,
     lh_io_dgram_set_writer(self, writer);
 }
 
-void
+lh_void
 lh_io_dgram_assign(lh_io_dgram_t *self, const lh_io_dgram_t *other)
 {
     lh_io_dgram_reader_t reader;
@@ -41,7 +42,7 @@ lh_io_dgram_get_reader(const lh_io_dgram_t *self)
     return self->reader;
 }
 
-void
+lh_void
 lh_io_dgram_set_reader(lh_io_dgram_t *self, const lh_io_dgram_reader_t *reader)
 {
     lh_assert_runtime_ref(self);
@@ -56,7 +57,7 @@ lh_io_dgram_get_writer(const lh_io_dgram_t *self)
     return self->writer;
 }
 
-void
+lh_void
 lh_io_dgram_set_writer(lh_io_dgram_t *self, const lh_io_dgram_writer_t *writer)
 {
     lh_assert_runtime_ref(self);

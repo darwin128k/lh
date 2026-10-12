@@ -10,6 +10,7 @@
 #ifndef LH_SRC_OS_SYSTEM_NET_SOCKET_ADDR_H
 #define LH_SRC_OS_SYSTEM_NET_SOCKET_ADDR_H
 
+#include <lh/void.h>
 #include <lh/attribute/static.h>
 #include <lh/compiler/os.h>
 #include <lh/memory.h>
@@ -31,7 +32,7 @@ typedef struct sockaddr_in lh_os_system_net_socket_native_addr_t;
 #endif
 
 LH_ATTRIBUTE_STATIC
-void
+lh_void
 lh_os_system_net_socket_native_addr_from_ip4(lh_os_system_net_socket_native_addr_t *native_addr,
                                              const lh_net_ip4_socket_addr_t *addr)
 {
@@ -60,7 +61,7 @@ lh_os_system_net_socket_native_addr_from_ip4(lh_os_system_net_socket_native_addr
 }
 
 LH_ATTRIBUTE_STATIC
-void
+lh_void
 lh_os_system_net_socket_ip4_from_native_addr(lh_net_ip4_socket_addr_t *addr,
                                              const lh_os_system_net_socket_native_addr_t *native_addr)
 {

@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/memory/view.h>
 #include <lh/memory/view/initializer.h>
 #include <lh/util/return.h>

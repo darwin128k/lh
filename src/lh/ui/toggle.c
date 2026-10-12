@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/toggle.h`.
  */
 
+#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/null.h>
 #include <lh/ui/entity.h>
@@ -21,7 +22,7 @@ const lh_ui_entity_class_t lh_ui_toggle_class = {
    while it is there. That is why a flip under the pointer keeps the hot look:
    the pointer asked the button, not the state. Every setter below ends here, so
    there is one place that decides what a state change means. */
-static void
+static lh_void
 lh_ui_toggle_push_looks(lh_ui_toggle_t *self)
 {
     lh_ui_button_t *button = lh_addr_of(self->button);

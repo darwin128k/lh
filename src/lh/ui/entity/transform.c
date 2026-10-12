@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/entity/transform.h`.
  */
 
+#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/ui/entity/transform.h>
 #include <lh/util/addr.h>

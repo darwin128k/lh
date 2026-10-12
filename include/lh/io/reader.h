@@ -13,6 +13,7 @@
 #ifndef LH_IO_READER_H
 #define LH_IO_READER_H
 
+#include <lh/void.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/io/pending.h>
 #include <lh/io/reader/cb.h>
@@ -41,7 +42,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param self  Destination reader.
  * @param other Source reader.
  */
-void
+lh_void
 lh_io_reader_assign(lh_io_reader_t *self, const lh_io_reader_t *other);
 
 /**
@@ -51,19 +52,19 @@ lh_io_reader_assign(lh_io_reader_t *self, const lh_io_reader_t *other);
  * @param read_cb New read callback.
  * @param context New context.
  */
-void
+lh_void
 lh_io_reader_set(lh_io_reader_t *self, lh_io_reader_read_cb read_cb, lh_ptr context);
 
 /**
  * @brief Write only the read callback.
  */
-void
+lh_void
 lh_io_reader_set_read_cb(lh_io_reader_t *self, lh_io_reader_read_cb read_cb);
 
 /**
  * @brief Write only the context.
  */
-void
+lh_void
 lh_io_reader_set_context(lh_io_reader_t *self, lh_ptr context);
 
 /**
@@ -75,14 +76,14 @@ lh_io_reader_set_context(lh_io_reader_t *self, lh_ptr context);
  * @param read_cb Read callback (may be ::lh_null to leave reading disabled).
  * @param context Context passed to @p read_cb on every call.
  */
-void
+lh_void
 lh_io_reader_init(lh_io_reader_t *self, lh_io_reader_read_cb read_cb, lh_ptr context);
 
 /**
  * @brief Reset a reader to empty state (callback and context both ::lh_null).
  * @param self Reader object to reset.
  */
-void
+lh_void
 lh_io_reader_deinit(lh_io_reader_t *self);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */

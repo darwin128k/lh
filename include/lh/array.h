@@ -14,6 +14,7 @@
 #ifndef LH_ARRAY_H
 #define LH_ARRAY_H
 
+#include <lh/void.h>
 #include <lh/array/cb.h>
 #include <lh/array/fields.h>
 #include <lh/index.h>

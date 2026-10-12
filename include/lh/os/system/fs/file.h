@@ -20,6 +20,7 @@
 #ifndef LH_OS_SYSTEM_FS_FILE_H
 #define LH_OS_SYSTEM_FS_FILE_H
 
+#include <lh/void.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/result.h>
@@ -52,7 +53,7 @@ lh_os_system_fs_file_open(lh_str_cptr path, lh_fs_file_mode_t mode);
  *
  * @param handle Open handle; must not be ::LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID.
  */
-void
+lh_void
 lh_os_system_fs_file_close(lh_os_system_fs_file_handle_t handle);
 
 /**

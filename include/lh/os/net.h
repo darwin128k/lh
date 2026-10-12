@@ -11,6 +11,7 @@
 #ifndef LH_OS_NET_H
 #define LH_OS_NET_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -39,7 +40,7 @@ lh_os_net_init(void);
  * Call once after every ::lh_os_net_socket_t has been closed. Safe to call
  * on every platform.
  */
-void
+lh_void
 lh_os_net_deinit(void);
 
 LH_COMPILER_EXTERN_C_END

@@ -28,6 +28,7 @@
 #ifndef LH_STR_H
 #define LH_STR_H
 
+#include <lh/void.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/array.h>
 #include <lh/str/ptr.h>

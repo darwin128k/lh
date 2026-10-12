@@ -13,6 +13,7 @@
 #ifndef LH_TIME_HOUR_H
 #define LH_TIME_HOUR_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
@@ -49,7 +50,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * For a large count that may overflow into days, use ::lh_time_hour_set.
  */
-void
+lh_void
 lh_time_hour_init(lh_time_hour_t *self, lh_time_hour_t value);
 
 /**

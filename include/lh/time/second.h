@@ -17,6 +17,7 @@
 #ifndef LH_TIME_SECOND_H
 #define LH_TIME_SECOND_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
@@ -53,7 +54,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * For a large count that may overflow into minutes, use ::lh_time_second_set.
  */
-void
+lh_void
 lh_time_second_init(lh_time_second_t *self, lh_time_second_t value);
 
 /**

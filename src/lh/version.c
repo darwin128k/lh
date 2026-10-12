@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/version.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
@@ -5,28 +6,28 @@
 #include <lh/str/parse/text.h>
 #include <lh/util/addr.h>
 
-void
+lh_void
 lh_version_set_major(lh_version_t *self, lh_version_major_t major)
 {
     lh_assert_runtime_ref(self);
     self->major = major;
 }
 
-void
+lh_void
 lh_version_set_minor(lh_version_t *self, lh_version_minor_t minor)
 {
     lh_assert_runtime_ref(self);
     self->minor = minor;
 }
 
-void
+lh_void
 lh_version_set_patch(lh_version_t *self, lh_version_patch_t patch)
 {
     lh_assert_runtime_ref(self);
     self->patch = patch;
 }
 
-void
+lh_void
 lh_version_set(lh_version_t *self, lh_version_major_t major, lh_version_minor_t minor,
                lh_version_patch_t patch)
 {
@@ -35,7 +36,7 @@ lh_version_set(lh_version_t *self, lh_version_major_t major, lh_version_minor_t 
     lh_version_set_patch(self, patch);
 }
 
-void
+lh_void
 lh_version_assign(lh_version_t *self, const lh_version_t *other)
 {
     lh_version_set(self, lh_version_get_major(other), lh_version_get_minor(other),

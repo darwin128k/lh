@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/timestamp.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
@@ -68,7 +69,7 @@ lh_timestamp_get_time(lh_timestamp_t self)
     return lh_time_from_seconds_of_day(lh_cast_static(lh_uint_t, lh_timestamp_get_seconds_of_day(self)));
 }
 
-void
+lh_void
 lh_timestamp_to_datetime(lh_timestamp_t self, lh_datetime_t *out)
 {
     lh_date_t date = lh_timestamp_get_date(self);

@@ -10,6 +10,7 @@
 #ifndef LH_COMPILER_CONSTRUCTOR_H
 #define LH_COMPILER_CONSTRUCTOR_H
 
+#include <lh/void.h>
 #include <lh/compiler/arch.h>
 #include <lh/compiler/type.h>
 
@@ -39,21 +40,21 @@
  * @endcode
  */
 #if (LH_COMPILER_TYPE_IS_GCC_LIKE)
-#    define lh_compiler_constructor(f) __attribute__((constructor)) static void f(void)
+#    define lh_compiler_constructor(f) __attribute__((constructor)) static lh_void f(void)
 
 #elif (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC)
 #    if LH_COMPILER_ARCH == LH_COMPILER_ARCH_64
 #        define lh_compiler_constructor(f)                                                         \
-            __pragma(section(".CRT$XCU", read)) static void __cdecl f(void);                       \
-            __declspec(allocate(".CRT$XCU")) void(__cdecl * f##_)(void) = f;                       \
+            __pragma(section(".CRT$XCU", read)) static lh_void __cdecl f(void);                       \
+            __declspec(allocate(".CRT$XCU")) lh_void(__cdecl * f##_)(void) = f;                       \
             __pragma(comment(linker, "/include:" #f "_"));                                         \
-            static void __cdecl f(void)
+            static lh_void __cdecl f(void)
 #    elif LH_COMPILER_ARCH == LH_COMPILER_ARCH_32
 #        define lh_compiler_constructor(f)                                                         \
-            __pragma(section(".CRT$XCU", read)) static void __cdecl f(void);                       \
-            __declspec(allocate(".CRT$XCU")) void(__cdecl * f##_)(void) = f;                       \
+            __pragma(section(".CRT$XCU", read)) static lh_void __cdecl f(void);                       \
+            __declspec(allocate(".CRT$XCU")) lh_void(__cdecl * f##_)(void) = f;                       \
             __pragma(comment(linker, "/include:_" #f "_"));                                        \
-            static void __cdecl f(void)
+            static lh_void __cdecl f(void)
 #    endif
 
 #else

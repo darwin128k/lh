@@ -81,7 +81,7 @@ lh_os_system_net_socket_open(lh_os_system_net_socket_type_t type)
     return lh_cast_static(lh_os_system_net_socket_handle_t, native);
 }
 
-void
+lh_void
 lh_os_system_net_socket_close(lh_os_system_net_socket_handle_t handle)
 {
     (void)closesocket(lh_os_system_net_socket_native(handle));

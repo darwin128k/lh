@@ -15,6 +15,7 @@
 #ifndef LH_MEMORY_TYPED_ALLOCATED_H
 #define LH_MEMORY_TYPED_ALLOCATED_H
 
+#include <lh/void.h>
 #include <lh/memory/typed.h>
 #include <lh/memory/bounds/allocated.h>
 

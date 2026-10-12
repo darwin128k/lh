@@ -26,6 +26,7 @@
 #ifndef LH_OS_LOADER_H
 #define LH_OS_LOADER_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -64,13 +65,13 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param owner Module holding this privilege.
  * @param entry Name a child exports its ::lh_os_module_ops_t under. Copied.
  */
-void
+lh_void
 lh_os_loader_init(lh_os_loader_t *self, lh_os_module_t *owner, lh_str_cptr entry);
 
 /**
  * @brief Unload every child, then release the loader's own storage.
  */
-void
+lh_void
 lh_os_loader_deinit(lh_os_loader_t *self);
 
 /**
@@ -87,13 +88,13 @@ lh_os_loader_create(lh_os_module_t *owner, lh_str_cptr entry);
  * @brief ::lh_os_loader_deinit (every child unloaded), then free the memory.
  *        Only for a loader from ::lh_os_loader_create.
  */
-void
+lh_void
 lh_os_loader_destroy(lh_os_loader_t *self);
 
 /**
  * @brief Close every child, last loaded first. The loader stays usable.
  */
-void
+lh_void
 lh_os_loader_unload(lh_os_loader_t *self);
 
 /**
@@ -123,7 +124,7 @@ lh_os_loader_load(lh_os_loader_t *self, const lh_fs_path_t *path);
  *
  * @param child A module this loader loaded (its owner is @p self).
  */
-void
+lh_void
 lh_os_loader_unload_child(lh_os_loader_t *self, lh_os_module_t *child);
 
 /**

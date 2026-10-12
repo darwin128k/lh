@@ -24,6 +24,7 @@
 #ifndef LH_FS_PATH_H
 #define LH_FS_PATH_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
@@ -51,25 +52,25 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Empty, relative path (no root, no segments). Does not touch the OS.
  */
-void
+lh_void
 lh_fs_path_init(lh_fs_path_t *self);
 
 /**
  * @brief Release everything owned by @p self.
  */
-void
+lh_void
 lh_fs_path_deinit(lh_fs_path_t *self);
 
 /**
  * @brief Reset @p self to empty (no root, no segments). Keeps allocations.
  */
-void
+lh_void
 lh_fs_path_clear(lh_fs_path_t *self);
 
 /**
  * @brief Copy @p other into @p self (root and segments).
  */
-void
+lh_void
 lh_fs_path_assign(lh_fs_path_t *self, const lh_fs_path_t *other);
 
 /**
@@ -153,7 +154,7 @@ lh_fs_path_is_hidden(const lh_fs_path_t *self);
  * ::lh_fs_path_root_kind_drive. Repeated and trailing separators produce no
  * empty segments.
  */
-void
+lh_void
 lh_fs_path_set(lh_fs_path_t *self, lh_str_view_t text, lh_fs_path_style_t style);
 
 /**
@@ -168,7 +169,7 @@ lh_fs_path_set(lh_fs_path_t *self, lh_str_view_t text, lh_fs_path_style_t style)
  * ordinary ::lh_str_t; get the `const char *` for an OS call with
  * ::lh_str_get_data(@p out).
  */
-void
+lh_void
 lh_fs_path_to_str(const lh_fs_path_t *self, lh_fs_path_style_t style, lh_str_t *out);
 
 /**

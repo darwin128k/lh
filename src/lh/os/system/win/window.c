@@ -3,6 +3,7 @@
  * @brief Win32 backend for `lh/os/system/window.h`.
  */
 
+#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/cast/reinterpret.h>
 #include <lh/cast/static.h>

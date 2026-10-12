@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/os/system/error.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
@@ -6,21 +7,21 @@
 #include <lh/util/addr.h>
 #include <lh/math.h>
 
-void
+lh_void
 lh_os_system_error_set_code(lh_os_system_error_t *self, lh_os_system_error_code_t code)
 {
     lh_assert_runtime_ref(self);
     self->code = code;
 }
 
-void
+lh_void
 lh_os_system_error_set_desc(lh_os_system_error_t *self, lh_os_error_desc_t desc)
 {
     lh_assert_runtime_ref(self);
     self->desc = desc;
 }
 
-void
+lh_void
 lh_os_system_error_set(lh_os_system_error_t *self, lh_os_system_error_code_t code, lh_os_error_desc_t desc)
 {
     lh_os_system_error_set_code(self, code);
@@ -51,38 +52,38 @@ lh_os_system_error_get_desc_or(const lh_os_system_error_t *self, lh_os_error_des
     return fallback;
 }
 
-void
+lh_void
 lh_os_system_error_assign(lh_os_system_error_t *self, const lh_os_system_error_t *other)
 {
     lh_os_system_error_set(self, lh_os_system_error_get_code(other), lh_os_system_error_get_desc(other));
 }
 
-void
+lh_void
 lh_os_system_error_clear(lh_os_system_error_t *self)
 {
     const lh_os_system_error_t empty_initializer = lh_os_system_error_empty_initializer();
     lh_os_system_error_assign(self, lh_addr_of(empty_initializer));
 }
 
-void
+lh_void
 lh_os_system_error_init(lh_os_system_error_t *self, lh_os_system_error_code_t code, lh_os_error_desc_t desc)
 {
     lh_os_system_error_set(self, code, desc);
 }
 
-void
+lh_void
 lh_os_system_error_init_by_other(lh_os_system_error_t *self, const lh_os_system_error_t *other)
 {
     lh_os_system_error_assign(self, other);
 }
 
-void
+lh_void
 lh_os_system_error_init_by_empty(lh_os_system_error_t *self)
 {
     lh_os_system_error_clear(self);
 }
 
-void
+lh_void
 lh_os_system_error_init_by_code(lh_os_system_error_t *self, lh_os_system_error_code_t code)
 {
 #if LH_LIBRARY_OPTION_OS_WERROR

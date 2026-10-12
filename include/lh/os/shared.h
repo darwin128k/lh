@@ -23,6 +23,7 @@
 #ifndef LH_OS_SHARED_H
 #define LH_OS_SHARED_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -51,13 +52,13 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Closed image, empty path. Does not touch the OS.
  */
-void
+lh_void
 lh_os_shared_init(lh_os_shared_t *self);
 
 /**
  * @brief ::lh_os_shared_close, then release the stored path.
  */
-void
+lh_void
 lh_os_shared_deinit(lh_os_shared_t *self);
 
 /**

@@ -16,6 +16,7 @@
 #ifndef LH_STR_LIST_H
 #define LH_STR_LIST_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/index.h>
@@ -42,19 +43,19 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Empty list. Allocates nothing until the first element.
  */
-void
+lh_void
 lh_str_list_init(lh_str_list_t *self);
 
 /**
  * @brief Release the shared buffer and the span table.
  */
-void
+lh_void
 lh_str_list_deinit(lh_str_list_t *self);
 
 /**
  * @brief Remove every element. Keeps both allocations for reuse.
  */
-void
+lh_void
 lh_str_list_clear(lh_str_list_t *self);
 
 /**
@@ -107,7 +108,7 @@ lh_str_list_push_back_str(lh_str_list_t *self, const lh_str_t *value);
  * @brief Make @p self a copy of @p other (two buffer copies, no per-element
  *        work).
  */
-void
+lh_void
 lh_str_list_assign(lh_str_list_t *self, const lh_str_list_t *other);
 
 /**
@@ -115,13 +116,13 @@ lh_str_list_assign(lh_str_list_t *self, const lh_str_list_t *other);
  *
  * @p other may be @p self.
  */
-void
+lh_void
 lh_str_list_append(lh_str_list_t *self, const lh_str_list_t *other);
 
 /**
  * @brief Append every element of @p self to @p out, separated by @p sep.
  */
-void
+lh_void
 lh_str_list_join(const lh_str_list_t *self, lh_str_t *out, lh_char_t sep);
 
 /**
@@ -134,7 +135,7 @@ lh_str_list_join(const lh_str_list_t *self, lh_str_t *out, lh_char_t sep);
  *
  * Does not clear @p self first — it appends, mirroring ::lh_str_list_join.
  */
-void
+lh_void
 lh_str_list_split_of(lh_str_list_t *self, lh_str_view_t text, lh_str_cptr delims, lh_usize_t delim_count);
 
 LH_COMPILER_EXTERN_C_END

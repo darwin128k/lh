@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/os/net/socket.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
@@ -9,7 +10,7 @@
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
-void
+lh_void
 lh_os_net_socket_init(lh_os_net_socket_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -29,7 +30,7 @@ lh_os_net_socket_open(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t t
     return lh_bool_true;
 }
 
-void
+lh_void
 lh_os_net_socket_close(lh_os_net_socket_t *self)
 {
     if (lh_os_net_socket_is_valid(self))

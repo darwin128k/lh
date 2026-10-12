@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/web/ws.h`.
  */
 
+#include <lh/void.h>
 #include <lh/ui/web/ws.h>
 
 #include <lh/null.h>
@@ -170,7 +171,7 @@ lh_ui_web_ws_read(const unsigned char *p, lh_usize_t n, unsigned *opcode, lh_boo
     return off + plen;
 }
 
-void
+lh_void
 lh_ui_web_ws_unmask(unsigned char *data, lh_usize_t len, const unsigned char mask[4])
 {
     lh_usize_t i;

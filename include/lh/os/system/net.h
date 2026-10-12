@@ -9,6 +9,7 @@
 #ifndef LH_OS_SYSTEM_NET_H
 #define LH_OS_SYSTEM_NET_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -29,7 +30,7 @@ lh_os_system_net_init(void);
 /**
  * @brief Undo one successful ::lh_os_system_net_init.
  */
-void
+lh_void
 lh_os_system_net_deinit(void);
 
 LH_COMPILER_EXTERN_C_END

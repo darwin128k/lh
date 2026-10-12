@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/mask.h`.
  */
 
+#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/cpu/simd.h>
 #include <lh/memory.h>

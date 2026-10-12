@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/crypto/sha.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
@@ -83,7 +84,7 @@ lh_crypto_sha_block_size(lh_crypto_sha_kind_t kind)
                                             : LH_CRYPTO_SHA_BLOCK_SIZE_32;
 }
 
-static void
+static lh_void
 lh_crypto_sha_process_1(lh_crypto_sha_t *self, const lh_byte_t *block)
 {
     lh_u32_t w[80];
@@ -151,7 +152,7 @@ lh_crypto_sha_process_1(lh_crypto_sha_t *self, const lh_byte_t *block)
     self->state[4] = lh_cast_static(lh_u32_t, self->state[4]) + e;
 }
 
-static void
+static lh_void
 lh_crypto_sha_process_256(lh_crypto_sha_t *self, const lh_byte_t *block)
 {
     lh_u32_t w[64];
@@ -218,7 +219,7 @@ lh_crypto_sha_process_256(lh_crypto_sha_t *self, const lh_byte_t *block)
     self->state[7] = lh_cast_static(lh_u32_t, self->state[7]) + h;
 }
 
-static void
+static lh_void
 lh_crypto_sha_process_512(lh_crypto_sha_t *self, const lh_byte_t *block)
 {
     lh_u64_t w[80];
@@ -285,7 +286,7 @@ lh_crypto_sha_process_512(lh_crypto_sha_t *self, const lh_byte_t *block)
     self->state[7] += h;
 }
 
-static void
+static lh_void
 lh_crypto_sha_process(lh_crypto_sha_t *self, const lh_byte_t *block)
 {
     if (self->kind == lh_crypto_sha_kind_1)
@@ -302,7 +303,7 @@ lh_crypto_sha_process(lh_crypto_sha_t *self, const lh_byte_t *block)
     }
 }
 
-static void
+static lh_void
 lh_crypto_sha_add_bits(lh_crypto_sha_t *self, lh_usize_t byte_count)
 {
     lh_u64_t bits = lh_cast_static(lh_u64_t, byte_count) << 3;
@@ -316,7 +317,7 @@ lh_crypto_sha_add_bits(lh_crypto_sha_t *self, lh_usize_t byte_count)
     self->bit_count_hi += lh_cast_static(lh_u64_t, byte_count) >> 61;
 }
 
-void
+lh_void
 lh_crypto_sha_init(lh_crypto_sha_t *self, lh_crypto_sha_kind_t kind)
 {
     lh_assert_runtime_ref(self);
@@ -387,7 +388,7 @@ lh_crypto_sha_init(lh_crypto_sha_t *self, lh_crypto_sha_kind_t kind)
     }
 }
 
-void
+lh_void
 lh_crypto_sha_update(lh_crypto_sha_t *self, const lh_ptr data, lh_usize_t size)
 {
     const lh_byte_t *bytes;

@@ -19,6 +19,7 @@
 #ifndef LH_OS_SYSTEM_ERROR_H
 #define LH_OS_SYSTEM_ERROR_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/error/fields.h>
@@ -42,19 +43,19 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Replace @p self with @p code and @p desc.
  */
-void
+lh_void
 lh_os_system_error_set(lh_os_system_error_t *self, lh_os_system_error_code_t code, lh_os_error_desc_t desc);
 
 /**
  * @brief Replace only the error code stored in @p self.
  */
-void
+lh_void
 lh_os_system_error_set_code(lh_os_system_error_t *self, lh_os_system_error_code_t code);
 
 /**
  * @brief Replace only the description stored in @p self.
  */
-void
+lh_void
 lh_os_system_error_set_desc(lh_os_system_error_t *self, lh_os_error_desc_t desc);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
@@ -130,13 +131,13 @@ lh_os_system_error_has_diff_code(const lh_os_system_error_t *self, const lh_os_s
 /**
  * @brief Copy the error state from @p other into @p self.
  */
-void
+lh_void
 lh_os_system_error_assign(lh_os_system_error_t *self, const lh_os_system_error_t *other);
 
 /**
  * @brief Reset @p self to an empty success state.
  */
-void
+lh_void
 lh_os_system_error_clear(lh_os_system_error_t *self);
 
 /* ── init ────────────────────────────────────────────────────────────────── */
@@ -144,25 +145,25 @@ lh_os_system_error_clear(lh_os_system_error_t *self);
 /**
  * @brief Initialize @p self with @p code and @p desc.
  */
-void
+lh_void
 lh_os_system_error_init(lh_os_system_error_t *self, lh_os_system_error_code_t code, lh_os_error_desc_t desc);
 
 /**
  * @brief Initialize @p self by copying from @p other.
  */
-void
+lh_void
 lh_os_system_error_init_by_other(lh_os_system_error_t *self, const lh_os_system_error_t *other);
 
 /**
  * @brief Initialize @p self to an empty success state.
  */
-void
+lh_void
 lh_os_system_error_init_by_empty(lh_os_system_error_t *self);
 
 /**
  * @brief Initialize @p self with @p code and an empty description.
  */
-void
+lh_void
 lh_os_system_error_init_by_code(lh_os_system_error_t *self, lh_os_system_error_code_t code);
 
 /**

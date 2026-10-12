@@ -11,6 +11,7 @@
 #ifndef LH_DATE_H
 #define LH_DATE_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/date/day.h>
@@ -52,7 +53,7 @@ typedef struct lh_date lh_date_t;
  * @param self  Destination (not null).
  * @param other Source (not null).
  */
-void
+lh_void
 lh_date_assign(lh_date_t *self, const lh_date_t *other);
 
 /**
@@ -63,7 +64,7 @@ lh_date_assign(lh_date_t *self, const lh_date_t *other);
  * @param month Month (::LH_DATE_MONTH_MIN–::LH_DATE_MONTH_MAX).
  * @param day   Day of month (::LH_DATE_DAY_MIN and up).
  */
-void
+lh_void
 lh_date_set(lh_date_t *self, lh_date_year_t year, lh_date_month_t month, lh_date_day_t day);
 
 /**
@@ -72,7 +73,7 @@ lh_date_set(lh_date_t *self, lh_date_year_t year, lh_date_month_t month, lh_date
  * @param self Date to modify (not null).
  * @param year New year.
  */
-void
+lh_void
 lh_date_set_year(lh_date_t *self, lh_date_year_t year);
 
 /**
@@ -81,7 +82,7 @@ lh_date_set_year(lh_date_t *self, lh_date_year_t year);
  * @param self  Date to modify (not null).
  * @param month New month.
  */
-void
+lh_void
 lh_date_set_month(lh_date_t *self, lh_date_month_t month);
 
 /**
@@ -90,7 +91,7 @@ lh_date_set_month(lh_date_t *self, lh_date_month_t month);
  * @param self Date to modify (not null).
  * @param day  New day of month.
  */
-void
+lh_void
 lh_date_set_day(lh_date_t *self, lh_date_day_t day);
 
 /**

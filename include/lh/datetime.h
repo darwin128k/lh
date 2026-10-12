@@ -11,6 +11,7 @@
 #ifndef LH_DATETIME_H
 #define LH_DATETIME_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/date.h>
@@ -50,7 +51,7 @@ typedef struct lh_datetime lh_datetime_t;
  * @param self  Destination (not null).
  * @param other Source (not null).
  */
-void
+lh_void
 lh_datetime_assign(lh_datetime_t *self, const lh_datetime_t *other);
 
 /**
@@ -60,7 +61,7 @@ lh_datetime_assign(lh_datetime_t *self, const lh_datetime_t *other);
  * @param date Date (not null).
  * @param time Time (not null).
  */
-void
+lh_void
 lh_datetime_set(lh_datetime_t *self, const lh_date_t *date, const lh_time_t *time);
 
 /**
@@ -69,7 +70,7 @@ lh_datetime_set(lh_datetime_t *self, const lh_date_t *date, const lh_time_t *tim
  * @param self Date-time to modify (not null).
  * @param date Date (not null).
  */
-void
+lh_void
 lh_datetime_set_date(lh_datetime_t *self, const lh_date_t *date);
 
 /**
@@ -78,7 +79,7 @@ lh_datetime_set_date(lh_datetime_t *self, const lh_date_t *date);
  * @param self Date-time to modify (not null).
  * @param time Time (not null).
  */
-void
+lh_void
 lh_datetime_set_time(lh_datetime_t *self, const lh_time_t *time);
 
 /**

@@ -1,8 +1,9 @@
+#include <lh/void.h>
 #include <lh/fs/stat.h>
 #include <lh/assert.h>
 #include <lh/util/ptr.h>
 
-void
+lh_void
 lh_fs_stat_init(lh_fs_stat_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -15,7 +16,7 @@ lh_fs_stat_init(lh_fs_stat_t *self)
     self->attr = 0U;
 }
 
-void
+lh_void
 lh_fs_stat_assign(lh_fs_stat_t *self, const lh_fs_stat_t *other)
 {
     lh_assert_runtime_ref(self);
@@ -72,7 +73,7 @@ lh_fs_stat_get_attr(const lh_fs_stat_t *self)
     return self->attr;
 }
 
-void
+lh_void
 lh_fs_stat_set(lh_fs_stat_t *self, lh_fs_kind_t kind, lh_fs_perm_t perm, lh_fs_size_t size,
                lh_fs_time_t atime, lh_fs_time_t mtime, lh_fs_time_t ctime, lh_fs_attr_t attr)
 {
@@ -86,7 +87,7 @@ lh_fs_stat_set(lh_fs_stat_t *self, lh_fs_kind_t kind, lh_fs_perm_t perm, lh_fs_s
     self->attr = attr;
 }
 
-void
+lh_void
 lh_fs_stat_set_attr(lh_fs_stat_t *self, lh_fs_attr_t attr)
 {
     lh_assert_runtime_ref(self);

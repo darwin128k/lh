@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/crypto/rijndael.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
@@ -85,7 +86,7 @@ lh_crypto_rijndael_gf_mul(lh_byte_t a, lh_byte_t b)
     return p;
 }
 
-static void
+static lh_void
 lh_crypto_rijndael_shift_offsets(lh_usize_t nb, lh_usize_t *c1, lh_usize_t *c2, lh_usize_t *c3)
 {
     if (nb == 8U)
@@ -102,7 +103,7 @@ lh_crypto_rijndael_shift_offsets(lh_usize_t nb, lh_usize_t *c1, lh_usize_t *c2, 
     }
 }
 
-static void
+static lh_void
 lh_crypto_rijndael_shift_row(lh_byte_t *state, lh_usize_t nb, lh_usize_t row, lh_usize_t shift,
                              lh_bool_t inverse)
 {
@@ -121,7 +122,7 @@ lh_crypto_rijndael_shift_row(lh_byte_t *state, lh_usize_t nb, lh_usize_t row, lh
     }
 }
 
-static void
+static lh_void
 lh_crypto_rijndael_shift_rows(lh_byte_t *state, lh_usize_t nb, lh_bool_t inverse)
 {
     lh_usize_t c1;
@@ -134,7 +135,7 @@ lh_crypto_rijndael_shift_rows(lh_byte_t *state, lh_usize_t nb, lh_bool_t inverse
     lh_crypto_rijndael_shift_row(state, nb, 3U, c3, inverse);
 }
 
-static void
+static lh_void
 lh_crypto_rijndael_sub_bytes(lh_byte_t *state, lh_usize_t block_size, lh_bool_t inverse)
 {
     const lh_byte_t *box = inverse ? m_inv_sbox : m_sbox;
@@ -146,7 +147,7 @@ lh_crypto_rijndael_sub_bytes(lh_byte_t *state, lh_usize_t block_size, lh_bool_t 
     }
 }
 
-static void
+static lh_void
 lh_crypto_rijndael_mix_columns(lh_byte_t *state, lh_usize_t nb, lh_bool_t inverse)
 {
     lh_usize_t c;
@@ -207,7 +208,7 @@ lh_crypto_rijndael_rot_word(lh_u32_t w)
     return lh_bit_rotate_left_u32(w, 8U);
 }
 
-static void
+static lh_void
 lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, const lh_byte_t *key,
                               lh_usize_t key_size)
 {
@@ -264,7 +265,7 @@ lh_crypto_rijndael_get_block_size(const lh_crypto_rijndael_t *self)
     return block_size;
 }
 
-static void
+static lh_void
 lh_crypto_rijndael_cipher(const lh_crypto_rijndael_t *self, const lh_byte_t *in, lh_byte_t *out,
                           lh_bool_t decrypt)
 {

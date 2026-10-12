@@ -19,6 +19,7 @@
 #ifndef LH_OS_SYSTEM_SERIAL_H
 #define LH_OS_SYSTEM_SERIAL_H
 
+#include <lh/void.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/numeric/fixed/types.h>
@@ -52,7 +53,7 @@ lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t 
 /**
  * @brief Close @p handle. No-op when invalid.
  */
-void
+lh_void
 lh_os_system_serial_close(lh_os_system_serial_handle_t handle);
 
 /**

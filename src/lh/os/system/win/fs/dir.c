@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/os/system/fs/dir.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
@@ -87,7 +88,7 @@ lh_os_system_fs_dir_open(lh_str_cptr path)
     return state;
 }
 
-void
+lh_void
 lh_os_system_fs_dir_close(lh_os_system_fs_dir_handle_t handle)
 {
     struct lh_os_system_fs_dir_state *const state = lh_os_system_fs_dir_state(handle);

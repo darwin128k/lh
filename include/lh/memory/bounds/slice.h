@@ -25,6 +25,7 @@
 #ifndef LH_MEMORY_BOUNDS_SLICE_H
 #define LH_MEMORY_BOUNDS_SLICE_H
 
+#include <lh/void.h>
 #include <lh/ptr.h>
 #include <lh/bool.h>
 #include <lh/size.h>

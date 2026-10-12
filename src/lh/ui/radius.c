@@ -6,6 +6,7 @@
  * the same code for the integer and the float scalar, so it needs no FPU.
  */
 
+#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/cast/static.h>
 #include <lh/math.h>

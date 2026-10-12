@@ -12,6 +12,7 @@
 #ifndef LH_TIME_H
 #define LH_TIME_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
@@ -64,7 +65,7 @@ typedef struct lh_time lh_time_t;
  * @param self  Destination (not null).
  * @param other Source (not null).
  */
-void
+lh_void
 lh_time_assign(lh_time_t *self, const lh_time_t *other);
 
 /**
@@ -75,7 +76,7 @@ lh_time_assign(lh_time_t *self, const lh_time_t *other);
  * @param minute Minute (`0`–::LH_TIME_MINUTE_MAX).
  * @param second Second (`0`–::LH_TIME_SECOND_MAX).
  */
-void
+lh_void
 lh_time_set(lh_time_t *self, lh_time_hour_t hour, lh_time_minute_t minute, lh_time_second_t second);
 
 /**
@@ -84,7 +85,7 @@ lh_time_set(lh_time_t *self, lh_time_hour_t hour, lh_time_minute_t minute, lh_ti
  * @param self Time to modify (not null).
  * @param hour New hour.
  */
-void
+lh_void
 lh_time_set_hour(lh_time_t *self, lh_time_hour_t hour);
 
 /**
@@ -93,7 +94,7 @@ lh_time_set_hour(lh_time_t *self, lh_time_hour_t hour);
  * @param self   Time to modify (not null).
  * @param minute New minute.
  */
-void
+lh_void
 lh_time_set_minute(lh_time_t *self, lh_time_minute_t minute);
 
 /**
@@ -102,7 +103,7 @@ lh_time_set_minute(lh_time_t *self, lh_time_minute_t minute);
  * @param self   Time to modify (not null).
  * @param second New second.
  */
-void
+lh_void
 lh_time_set_second(lh_time_t *self, lh_time_second_t second);
 
 /**

@@ -10,6 +10,7 @@
 #ifndef LH_IO_DGRAM_READER_H
 #define LH_IO_DGRAM_READER_H
 
+#include <lh/void.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/io/dgram/reader/cb.h>
 #include <lh/io/dgram/reader/fields.h>
@@ -29,17 +30,17 @@ typedef struct lh_io_dgram_reader lh_io_dgram_reader_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-void
+lh_void
 lh_io_dgram_reader_assign(lh_io_dgram_reader_t *self, const lh_io_dgram_reader_t *other);
 
-void
+lh_void
 lh_io_dgram_reader_set(lh_io_dgram_reader_t *self, lh_io_dgram_reader_recv_cb recv_cb,
                        lh_ptr context);
 
-void
+lh_void
 lh_io_dgram_reader_set_recv_cb(lh_io_dgram_reader_t *self, lh_io_dgram_reader_recv_cb recv_cb);
 
-void
+lh_void
 lh_io_dgram_reader_set_context(lh_io_dgram_reader_t *self, lh_ptr context);
 
 /**
@@ -49,11 +50,11 @@ lh_io_dgram_reader_set_context(lh_io_dgram_reader_t *self, lh_ptr context);
  * @param recv_cb Recv callback (may be ::lh_null to leave receiving disabled).
  * @param context Context passed to @p recv_cb on every call.
  */
-void
+lh_void
 lh_io_dgram_reader_init(lh_io_dgram_reader_t *self, lh_io_dgram_reader_recv_cb recv_cb,
                         lh_ptr context);
 
-void
+lh_void
 lh_io_dgram_reader_deinit(lh_io_dgram_reader_t *self);
 
 lh_io_dgram_reader_recv_cb

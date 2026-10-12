@@ -20,6 +20,7 @@
 #ifndef LH_BIT_ENDIAN_H
 #define LH_BIT_ENDIAN_H
 
+#include <lh/void.h>
 #include <lh/assert.h>
 #include <lh/attribute/force_inline.h>
 #include <lh/cast/static.h>
@@ -37,7 +38,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *              significant byte).
  */
 LH_ATTRIBUTE_FORCE_INLINE
-void
+lh_void
 lh_bit_pack_be16(lh_u16_t value, lh_byte_t *out)
 {
     lh_assert_runtime_ref(out);
@@ -69,7 +70,7 @@ lh_bit_unpack_be16(const lh_byte_t *in)
  *              significant byte).
  */
 LH_ATTRIBUTE_FORCE_INLINE
-void
+lh_void
 lh_bit_pack_le16(lh_u16_t value, lh_byte_t *out)
 {
     lh_assert_runtime_ref(out);
@@ -101,7 +102,7 @@ lh_bit_unpack_le16(const lh_byte_t *in)
  *              significant byte).
  */
 LH_ATTRIBUTE_FORCE_INLINE
-void
+lh_void
 lh_bit_pack_be32(lh_u32_t value, lh_byte_t *out)
 {
     lh_assert_runtime_ref(out);
@@ -136,7 +137,7 @@ lh_bit_unpack_be32(const lh_byte_t *in)
  *              significant byte).
  */
 LH_ATTRIBUTE_FORCE_INLINE
-void
+lh_void
 lh_bit_pack_le32(lh_u32_t value, lh_byte_t *out)
 {
     lh_assert_runtime_ref(out);
@@ -171,7 +172,7 @@ lh_bit_unpack_le32(const lh_byte_t *in)
  *              significant byte).
  */
 LH_ATTRIBUTE_FORCE_INLINE
-void
+lh_void
 lh_bit_pack_be64(lh_u64_t value, lh_byte_t *out)
 {
     lh_assert_runtime_ref(out);
@@ -203,7 +204,7 @@ lh_bit_unpack_be64(const lh_byte_t *in)
  *              significant byte).
  */
 LH_ATTRIBUTE_FORCE_INLINE
-void
+lh_void
 lh_bit_pack_le64(lh_u64_t value, lh_byte_t *out)
 {
     lh_assert_runtime_ref(out);

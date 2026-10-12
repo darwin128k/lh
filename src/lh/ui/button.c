@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/button.h`.
  */
 
+#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/null.h>
 #include <lh/ui/entity.h>

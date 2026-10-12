@@ -19,6 +19,7 @@
 #ifndef LH_OS_SYSTEM_FS_DIR_H
 #define LH_OS_SYSTEM_FS_DIR_H
 
+#include <lh/void.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/fs/kind.h>
@@ -47,7 +48,7 @@ lh_os_system_fs_dir_open(lh_str_cptr path);
  *
  * @param handle Open handle; must not be ::LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID.
  */
-void
+lh_void
 lh_os_system_fs_dir_close(lh_os_system_fs_dir_handle_t handle);
 
 /**

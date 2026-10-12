@@ -3731,7 +3731,7 @@ def emit(nodes, variables, root, source=""):
         r, g, b = rgb[0], rgb[1], rgb[2]
         alpha = rgb[3] if len(rgb) > 3 else 255
         add("/* --%s  #%02X%02X%02X%02X */" % (name, r, g, b, alpha))
-        add("static void lh_cfg_ui_colour_%s_init(void)" % varname(name))
+        add("static lh_void lh_cfg_ui_colour_%s_init(void)" % varname(name))
         add("{")
         add("    lh_ui_color_init(lh_addr_of(lh_cfg_ui_colour_%s), %d, %d, %d, %d);"
             % (varname(name), r, g, b, alpha))
@@ -3749,13 +3749,13 @@ def emit(nodes, variables, root, source=""):
         r, g, b = rgb[0], rgb[1], rgb[2]
         alpha = rgb[3] if len(rgb) > 3 else 255
         add("/* %s  #%02X%02X%02X%02X */" % (key, r, g, b, alpha))
-        add("static void %s_init(void)" % key)
+        add("static lh_void %s_init(void)" % key)
         add("{")
         add("    lh_ui_color_init(lh_addr_of(%s), %d, %d, %d, %d);" % (key, r, g, b, alpha))
         add("    lh_ui_paint_init_color(lh_addr_of(%s_paints), lh_addr_of(%s));" % (key, key))
         add("}")
         add("")
-    add("static void ui_colours_init(void)")
+    add("static lh_void ui_colours_init(void)")
     add("{")
     for name in sorted(variables):
         add("    lh_cfg_ui_colour_%s_init();" % varname(name))
@@ -3803,7 +3803,7 @@ def emit(nodes, variables, root, source=""):
     for sname, has_look, body in styles:
         if not has_look:
             continue
-        add("static void ui_style_%s_init(void)" % sname)
+        add("static lh_void ui_style_%s_init(void)" % sname)
         add("{")
         # `lh_ui_style_init` is what puts the **default font** in a style, and the font
         # is where a label looks: `lh_ui_label_get_font` reads it out of the style, not
@@ -3817,7 +3817,7 @@ def emit(nodes, variables, root, source=""):
             add("    " + line)
         add("}")
         add("")
-    add("static void ui_styles_init(void)")
+    add("static lh_void ui_styles_init(void)")
     add("{")
     for sname, has_look, _body in styles:
         if has_look:
@@ -3828,7 +3828,7 @@ def emit(nodes, variables, root, source=""):
     add("")
     for node, axis, gap, justify, wraps, line_gap in layouts:
         add("static lh_ui_layout_t ui_l_%s;" % node.cname())
-        add("static void ui_l_%s_init(void)" % node.cname())
+        add("static lh_void ui_l_%s_init(void)" % node.cname())
         add("{")
         add("    lh_ui_layout_init(lh_addr_of(ui_l_%s), %s, lh_ui_scalar(%d));" % (node.cname(), axis, gap))
         add("    lh_ui_layout_set_justify(lh_addr_of(ui_l_%s), %s);" % (node.cname(), justify))
@@ -3837,7 +3837,7 @@ def emit(nodes, variables, root, source=""):
                 % (node.cname(), line_gap))
         add("}")
         add("")
-    add("static void ui_layouts_init(void)")
+    add("static lh_void ui_layouts_init(void)")
     add("{")
     for node, _a, _g, _j, _w, _lg in layouts:
         add("    ui_l_%s_init();" % node.cname())
@@ -3850,7 +3850,7 @@ def emit(nodes, variables, root, source=""):
         if any(margin):
             add("static lh_ui_insets_t ui_mg_%s;" % name)
         add("static lh_ui_place_t ui_pl_%s;" % name)
-        add("static void ui_pl_%s_init(void)" % name)
+        add("static lh_void ui_pl_%s_init(void)" % name)
         add("{")
         add("    lh_ui_place_init(lh_addr_of(ui_pl_%s), %s, lh_ui_scalar(%d));" % (name, mode, size))
         add("    lh_ui_place_set_align(lh_addr_of(ui_pl_%s), %s);" % (name, align))
@@ -3867,7 +3867,7 @@ def emit(nodes, variables, root, source=""):
                 % ((name,) + tuple(most)))
         add("}")
         add("")
-    add("static void ui_places_init(void)")
+    add("static lh_void ui_places_init(void)")
     add("{")
     for place in places:
         add("    ui_pl_%s_init();" % place[0].cname())

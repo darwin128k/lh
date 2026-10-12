@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/net/ip.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
@@ -9,13 +10,13 @@
 #include <lh/str/split/next.h>
 #include <lh/util/addr.h>
 
-void
+lh_void
 lh_net_ip4_init(lh_net_ip4_t *self, lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet2, lh_u8_t octet3)
 {
     lh_net_ip4_set(self, octet0, octet1, octet2, octet3);
 }
 
-void
+lh_void
 lh_net_ip4_set(lh_net_ip4_t *self, lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet2, lh_u8_t octet3)
 {
     lh_net_ip4_set_octet(self, LH_NET_IP4_OCTET_INDEX_0, octet0);
@@ -24,7 +25,7 @@ lh_net_ip4_set(lh_net_ip4_t *self, lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet
     lh_net_ip4_set_octet(self, LH_NET_IP4_OCTET_INDEX_3, octet3);
 }
 
-void
+lh_void
 lh_net_ip4_assign(lh_net_ip4_t *self, const lh_net_ip4_t *other)
 {
     lh_net_ip4_set(self, lh_net_ip4_get_octet(other, LH_NET_IP4_OCTET_INDEX_0),
@@ -41,7 +42,7 @@ lh_net_ip4_get_octet(const lh_net_ip4_t *self, lh_usize_t index)
     return self->octets[index];
 }
 
-void
+lh_void
 lh_net_ip4_set_octet(lh_net_ip4_t *self, lh_usize_t index, lh_u8_t value)
 {
     lh_assert_runtime_ref(self);

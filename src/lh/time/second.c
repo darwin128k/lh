@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/time/second.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
@@ -17,7 +18,7 @@ lh_time_second_set(lh_time_second_t *self, lh_uint_t value)
     return overflow;
 }
 
-void
+lh_void
 lh_time_second_init(lh_time_second_t *self, lh_time_second_t value)
 {
     lh_assert_runtime_ref(self);

@@ -22,6 +22,7 @@
 #ifndef LH_LIST_H
 #define LH_LIST_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/index.h>
@@ -68,7 +69,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Empty list.
  */
-void
+lh_void
 lh_list_init(lh_list_t *self);
 
 /**
@@ -139,13 +140,13 @@ lh_list_contains(const lh_list_t *self, const lh_list_node_t *node);
 /**
  * @brief Make unlinked @p node the first element.
  */
-void
+lh_void
 lh_list_push_front(lh_list_t *self, lh_list_node_t *node);
 
 /**
  * @brief Make unlinked @p node the last element.
  */
-void
+lh_void
 lh_list_push_back(lh_list_t *self, lh_list_node_t *node);
 
 /**
@@ -158,7 +159,7 @@ lh_list_push_back(lh_list_t *self, lh_list_node_t *node);
  * @param cmp     Order of two elements.
  * @param context Passed to every @p cmp call.
  */
-void
+lh_void
 lh_list_insert_sorted(lh_list_t *self, lh_list_node_t *node, lh_list_cmp_cb cmp, lh_ptr context);
 
 /**
@@ -167,21 +168,21 @@ lh_list_insert_sorted(lh_list_t *self, lh_list_node_t *node, lh_list_cmp_cb cmp,
  * O(1): the two rings are joined, no element is visited. @p other ends up
  * empty. @p other must not be @p self.
  */
-void
+lh_void
 lh_list_splice_back(lh_list_t *self, lh_list_t *other);
 
 /**
  * @brief Move every element of @p other, in order, to the front of @p self.
  *        O(1); see ::lh_list_splice_back.
  */
-void
+lh_void
 lh_list_splice_front(lh_list_t *self, lh_list_t *other);
 
 /**
  * @brief Unlink every element. Each node is left unlinked; the objects
  *        themselves are untouched. O(n).
  */
-void
+lh_void
 lh_list_clear(lh_list_t *self);
 
 /**
@@ -193,7 +194,7 @@ lh_list_clear(lh_list_t *self);
  * @param cmp     Order of two elements.
  * @param context Passed to every @p cmp call.
  */
-void
+lh_void
 lh_list_sort(lh_list_t *self, lh_list_cmp_cb cmp, lh_ptr context);
 
 /**

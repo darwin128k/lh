@@ -3,6 +3,7 @@
  * @brief Win32 off-screen surface: DIB section + memory DC + BitBlt present.
  */
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/cast/reinterpret.h>
 #include <lh/cast/static.h>

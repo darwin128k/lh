@@ -32,6 +32,7 @@
 #ifndef LH_MEMORY_BOUNDS_H
 #define LH_MEMORY_BOUNDS_H
 
+#include <lh/void.h>
 #include <lh/memory/bounds/slice.h>
 #include <lh/memory/view.h>
 

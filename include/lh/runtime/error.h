@@ -15,6 +15,7 @@
 #ifndef LH_RUNTIME_ERROR_H
 #define LH_RUNTIME_ERROR_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/runtime/error/code.h>
@@ -44,7 +45,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param code New error code.
  * @param desc New description view (empty view = no description).
  */
-void
+lh_void
 lh_runtime_error_set(lh_runtime_error_t *self, lh_runtime_error_code_t code,
                      lh_str_view_t desc);
 
@@ -54,7 +55,7 @@ lh_runtime_error_set(lh_runtime_error_t *self, lh_runtime_error_code_t code,
  * @param self Error object to modify.
  * @param code New error code.
  */
-void
+lh_void
 lh_runtime_error_set_code(lh_runtime_error_t *self, lh_runtime_error_code_t code);
 
 /**
@@ -63,7 +64,7 @@ lh_runtime_error_set_code(lh_runtime_error_t *self, lh_runtime_error_code_t code
  * @param self Error object to modify.
  * @param desc New description view (empty view = no description).
  */
-void
+lh_void
 lh_runtime_error_set_desc(lh_runtime_error_t *self, lh_str_view_t desc);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
@@ -177,14 +178,14 @@ lh_runtime_error_has_diff_code(const lh_runtime_error_t *self, const lh_runtime_
  * @param self  Destination error object.
  * @param other Source error object to copy from.
  */
-void
+lh_void
 lh_runtime_error_assign(lh_runtime_error_t *self, const lh_runtime_error_t *other);
 
 /**
  * @brief Reset @p self to an empty success state.
  * @param self Error object to clear.
  */
-void
+lh_void
 lh_runtime_error_clear(lh_runtime_error_t *self);
 
 /* ── init ────────────────────────────────────────────────────────────────── */
@@ -196,7 +197,7 @@ lh_runtime_error_clear(lh_runtime_error_t *self);
  * @param code Initial error code.
  * @param desc Initial description view (empty view = no description).
  */
-void
+lh_void
 lh_runtime_error_init(lh_runtime_error_t *self, lh_runtime_error_code_t code,
                       lh_str_view_t desc);
 
@@ -205,26 +206,26 @@ lh_runtime_error_init(lh_runtime_error_t *self, lh_runtime_error_code_t code,
  * @param self  Error object to initialize.
  * @param other Source error to copy from.
  */
-void
+lh_void
 lh_runtime_error_init_by_other(lh_runtime_error_t *self, const lh_runtime_error_t *other);
 
 /**
  * @brief Initialize @p self to an empty success state.
  * @param self Error object to initialize.
  */
-void
+lh_void
 lh_runtime_error_init_by_empty(lh_runtime_error_t *self);
 
 /**
  * @brief Initialize @p self with @p code and an empty description.
  */
-void
+lh_void
 lh_runtime_error_init_by_code(lh_runtime_error_t *self, lh_runtime_error_code_t code);
 
 /**
  * @brief Initialize @p self with @p desc and ::lh_runtime_error_code_interrupt.
  */
-void
+lh_void
 lh_runtime_error_init_by_desc(lh_runtime_error_t *self, lh_str_view_t desc);
 
 /**

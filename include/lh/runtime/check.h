@@ -20,6 +20,7 @@
 #ifndef LH_RUNTIME_CHECK_H
 #define LH_RUNTIME_CHECK_H
 
+#include <lh/void.h>
 #include <lh/attribute/noreturn.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/library/fallback.h>
@@ -40,7 +41,7 @@ lh_runtime_check_get(void);
  * @brief Install the handler for failed runtime checks.
  * @param fn New handler, or ::lh_null to restore the default one.
  */
-void
+lh_void
 lh_runtime_check_set(lh_runtime_check_fail_cb fn);
 
 /**
@@ -52,7 +53,7 @@ lh_runtime_check_set(lh_runtime_check_fail_cb fn);
  * ::LH_RUNTIME_CHECK_REPORT_NONE (the exception then has the code only).
  */
 LH_ATTRIBUTE_NORETURN
-void
+lh_void
 lh_runtime_check_fail(const lh_exception_origin_t *origin, lh_runtime_error_code_t code);
 
 LH_COMPILER_EXTERN_C_END

@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/insets.h`.
  */
 
+#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/bool.h>
 #include <lh/math.h>

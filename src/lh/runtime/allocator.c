@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/runtime/allocator.h>
 #include <lh/library/fallback.h>
 #include <lh/attribute/thread_local.h>

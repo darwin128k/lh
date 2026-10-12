@@ -22,6 +22,7 @@
 #ifndef LH_LOGGER_H
 #define LH_LOGGER_H
 
+#include <lh/void.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/logger/emit/cb.h>
 #include <lh/logger/fields.h>
@@ -130,7 +131,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param self  Destination logger.
  * @param other Source logger.
  */
-void
+lh_void
 lh_logger_assign(lh_logger_t *self, const lh_logger_t *other);
 
 /**
@@ -152,7 +153,7 @@ lh_logger_assign(lh_logger_t *self, const lh_logger_t *other);
  * @param debug_cb     Debug slot (may be ::lh_null).
  * @param context      Userdata passed to whichever slot runs.
  */
-void
+lh_void
 lh_logger_set(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emergency_cb,
               lh_logger_emit_cb alert_cb, lh_logger_emit_cb critical_cb, lh_logger_emit_cb error_cb,
               lh_logger_emit_cb warning_cb, lh_logger_emit_cb notice_cb, lh_logger_emit_cb info_cb,
@@ -177,7 +178,7 @@ lh_logger_set(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_c
  * @param debug_cb     Debug slot (may be ::lh_null).
  * @param context      Userdata passed to whichever slot runs.
  */
-void
+lh_void
 lh_logger_init_of(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emergency_cb,
                   lh_logger_emit_cb alert_cb, lh_logger_emit_cb critical_cb,
                   lh_logger_emit_cb error_cb, lh_logger_emit_cb warning_cb,
@@ -195,7 +196,7 @@ lh_logger_init_of(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_em
  * @param emit_cb Callback for every slot (may be ::lh_null).
  * @param context Userdata passed to @p emit_cb.
  */
-void
+lh_void
 lh_logger_init(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emit_cb,
                lh_ptr context);
 
@@ -204,7 +205,7 @@ lh_logger_init(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_
  *
  * @param self Logger to reset.
  */
-void
+lh_void
 lh_logger_deinit(lh_logger_t *self);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */

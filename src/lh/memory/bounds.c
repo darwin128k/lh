@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/memory/bounds.h>
 #include <lh/util/addr.h>
 #include <lh/attribute/static.h>

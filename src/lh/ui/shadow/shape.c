@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/shadow/shape.h`.
  */
 
+#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/math/isqrt.h>
 #include <lh/memory.h>

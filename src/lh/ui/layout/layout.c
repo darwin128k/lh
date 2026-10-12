@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/layout.h`.
  */
 
+#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/bool.h>
 #include <lh/math.h>
@@ -171,7 +172,7 @@ layout_centred(lh_ui_scalar_t room, lh_ui_scalar_t own)
    because a child's own place depends on the line and the line is the deepest of
    the children's: measured the other way round each child would be setting a line
    and sitting on it at once. */
-static void
+static lh_void
 layout_across(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_ui_rect_t *content,
               lh_ui_scalar_t line, lh_ui_scalar_t *start, lh_ui_scalar_t *length)
 {

@@ -1,23 +1,24 @@
+#include <lh/void.h>
 #include <lh/io/dgram/reader.h>
 #include <lh/assert.h>
 #include <lh/null.h>
 #include <lh/runtime/error.h>
 
-void
+lh_void
 lh_io_dgram_reader_set_recv_cb(lh_io_dgram_reader_t *self, lh_io_dgram_reader_recv_cb recv_cb)
 {
     lh_assert_runtime_ref(self);
     self->recv_cb = recv_cb;
 }
 
-void
+lh_void
 lh_io_dgram_reader_set_context(lh_io_dgram_reader_t *self, lh_ptr context)
 {
     lh_assert_runtime_ref(self);
     self->context = context;
 }
 
-void
+lh_void
 lh_io_dgram_reader_set(lh_io_dgram_reader_t *self, lh_io_dgram_reader_recv_cb recv_cb,
                        lh_ptr context)
 {
@@ -25,21 +26,21 @@ lh_io_dgram_reader_set(lh_io_dgram_reader_t *self, lh_io_dgram_reader_recv_cb re
     lh_io_dgram_reader_set_context(self, context);
 }
 
-void
+lh_void
 lh_io_dgram_reader_assign(lh_io_dgram_reader_t *self, const lh_io_dgram_reader_t *other)
 {
     lh_io_dgram_reader_set(self, lh_io_dgram_reader_get_recv_cb(other),
                            lh_io_dgram_reader_get_context(other));
 }
 
-void
+lh_void
 lh_io_dgram_reader_init(lh_io_dgram_reader_t *self, lh_io_dgram_reader_recv_cb recv_cb,
                         lh_ptr context)
 {
     lh_io_dgram_reader_set(self, recv_cb, context);
 }
 
-void
+lh_void
 lh_io_dgram_reader_deinit(lh_io_dgram_reader_t *self)
 {
     lh_io_dgram_reader_set(self, lh_null, lh_null);

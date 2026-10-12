@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/os/system/net.h>
 #include <lh/cast/static.h>
 #include <lh/os/system/win/ws2_32.h>
@@ -14,7 +15,7 @@ lh_os_system_net_init(void)
         lh_math_is_zero(WSAStartup(LH_OS_SYSTEM_WIN_WINSOCK_VERSION_2_2, lh_addr_of(wsa_data))));
 }
 
-void
+lh_void
 lh_os_system_net_deinit(void)
 {
     (void)WSACleanup();

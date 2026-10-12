@@ -20,6 +20,7 @@
 #ifndef LH_OS_SYSTEM_H
 #define LH_OS_SYSTEM_H
 
+#include <lh/void.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/system/error.h>
@@ -44,7 +45,7 @@ lh_os_system_last_error(void);
  * Description is not copied. Literals stay valid; text captured from the
  * OS must keep its own buffer alive for as long as it is stored here.
  */
-void
+lh_void
 lh_os_system_set_last_error(lh_os_system_error_t error);
 
 /**

@@ -1,20 +1,21 @@
+#include <lh/void.h>
 #include <lh/werror.h>
 #include <lh/error.h>
 #include <lh/util/ptr.h>
 
-void
+lh_void
 lh_werror_set(lh_werror_t *self, lh_error_code_t code, lh_wstr_view_t desc)
 {
     lh_error_set(lh_ptr_cast(lh_error_t, self), code, desc);
 }
 
-void
+lh_void
 lh_werror_set_code(lh_werror_t *self, lh_error_code_t code)
 {
     lh_error_set_code(lh_ptr_cast(lh_error_t, self), code);
 }
 
-void
+lh_void
 lh_werror_set_desc(lh_werror_t *self, lh_wstr_view_t desc)
 {
     lh_error_set_desc(lh_ptr_cast(lh_error_t, self), desc);
@@ -86,37 +87,37 @@ lh_werror_has_diff_code(const lh_werror_t *self, const lh_werror_t *other)
     return lh_error_has_diff_code(lh_ptr_ccast(lh_error_t, self), lh_ptr_ccast(lh_error_t, other));
 }
 
-void
+lh_void
 lh_werror_assign(lh_werror_t *self, const lh_werror_t *other)
 {
     lh_error_assign(lh_ptr_cast(lh_error_t, self), lh_ptr_ccast(lh_error_t, other));
 }
 
-void
+lh_void
 lh_werror_clear(lh_werror_t *self)
 {
     lh_error_clear(lh_ptr_cast(lh_error_t, self));
 }
 
-void
+lh_void
 lh_werror_init(lh_werror_t *self, lh_error_code_t code, lh_wstr_view_t desc)
 {
     lh_error_init(lh_ptr_cast(lh_error_t, self), code, desc);
 }
 
-void
+lh_void
 lh_werror_init_by_other(lh_werror_t *self, const lh_werror_t *other)
 {
     lh_error_init_by_other(lh_ptr_cast(lh_error_t, self), lh_ptr_ccast(lh_error_t, other));
 }
 
-void
+lh_void
 lh_werror_init_by_empty(lh_werror_t *self)
 {
     lh_error_init_by_empty(lh_ptr_cast(lh_error_t, self));
 }
 
-void
+lh_void
 lh_werror_init_by_code(lh_werror_t *self, lh_error_code_t code)
 {
     lh_error_init_by_code(lh_ptr_cast(lh_error_t, self), code);

@@ -11,6 +11,7 @@
 #ifndef LH_OS_MODULE_FN_H
 #define LH_OS_MODULE_FN_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 
 struct lh_os_module;
@@ -34,6 +35,6 @@ typedef lh_bool_t(lh_os_module_start_fn)(struct lh_os_module *self);
  * Runs after @p self's children (if it holds a loader) are already
  * unloaded, and before the image is closed.
  */
-typedef void(lh_os_module_stop_fn)(struct lh_os_module *self);
+typedef lh_void(lh_os_module_stop_fn)(struct lh_os_module *self);
 
 #endif /* LH_OS_MODULE_FN_H */

@@ -18,6 +18,7 @@
 #ifndef LH_WSTR_LIST_H
 #define LH_WSTR_LIST_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/index.h>
@@ -44,19 +45,19 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Empty list. Allocates nothing until the first element.
  */
-void
+lh_void
 lh_wstr_list_init(lh_wstr_list_t *self);
 
 /**
  * @brief Release the shared buffer and the span table.
  */
-void
+lh_void
 lh_wstr_list_deinit(lh_wstr_list_t *self);
 
 /**
  * @brief Remove every element. Keeps both allocations for reuse.
  */
-void
+lh_void
 lh_wstr_list_clear(lh_wstr_list_t *self);
 
 /**
@@ -109,7 +110,7 @@ lh_wstr_list_push_back_str(lh_wstr_list_t *self, const lh_wstr_t *value);
  * @brief Make @p self a copy of @p other (two buffer copies, no per-element
  *        work).
  */
-void
+lh_void
 lh_wstr_list_assign(lh_wstr_list_t *self, const lh_wstr_list_t *other);
 
 /**
@@ -117,13 +118,13 @@ lh_wstr_list_assign(lh_wstr_list_t *self, const lh_wstr_list_t *other);
  *
  * @p other may be @p self.
  */
-void
+lh_void
 lh_wstr_list_append(lh_wstr_list_t *self, const lh_wstr_list_t *other);
 
 /**
  * @brief Append every element of @p self to @p out, separated by @p sep.
  */
-void
+lh_void
 lh_wstr_list_join(const lh_wstr_list_t *self, lh_wstr_t *out, lh_wchar_t sep);
 
 LH_COMPILER_EXTERN_C_END

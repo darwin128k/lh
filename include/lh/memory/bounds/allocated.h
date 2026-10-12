@@ -14,6 +14,7 @@
 #ifndef LH_MEMORY_BOUNDS_ALLOCATED_H
 #define LH_MEMORY_BOUNDS_ALLOCATED_H
 
+#include <lh/void.h>
 #include <lh/memory/bounds.h>
 
 /**

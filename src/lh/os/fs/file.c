@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/os/fs/file.h>
 #include <lh/assert.h>
 #include <lh/cast/const.h>
@@ -58,20 +59,20 @@ lh_os_fs_file_get_mode(const lh_os_fs_file_t *self)
     return self->mode;
 }
 
-void
+lh_void
 lh_os_fs_file_set_mode(lh_os_fs_file_t *self, lh_fs_file_mode_t mode)
 {
     lh_assert_runtime_ref(self);
     self->mode = mode;
 }
 
-void
+lh_void
 lh_os_fs_file_set_path(lh_os_fs_file_t *self, const lh_fs_path_t *path)
 {
     lh_fs_path_assign(lh_os_fs_file_get_path(self), path);
 }
 
-void
+lh_void
 lh_os_fs_file_init(lh_os_fs_file_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -80,7 +81,7 @@ lh_os_fs_file_init(lh_os_fs_file_t *self)
     lh_os_fs_file_set_mode(self, lh_fs_file_mode_none);
 }
 
-void
+lh_void
 lh_os_fs_file_close(lh_os_fs_file_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -94,7 +95,7 @@ lh_os_fs_file_close(lh_os_fs_file_t *self)
     lh_os_fs_file_set_mode(self, lh_fs_file_mode_none);
 }
 
-void
+lh_void
 lh_os_fs_file_deinit(lh_os_fs_file_t *self)
 {
     lh_assert_runtime_ref(self);

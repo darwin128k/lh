@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/attribute/thread_local.h>
 #include <lh/os/system.h>
@@ -11,7 +12,7 @@ LH_ATTRIBUTE_THREAD_LOCAL
 lh_char_t m_os_system_error_buffer[LH_OS_SYSTEM_ERROR_BUFFER_SIZE];
 #endif
 
-void
+lh_void
 lh_os_system_error_capture(void)
 {
     const lh_os_system_error_code_t code = lh_os_system_error_get_native_code();
