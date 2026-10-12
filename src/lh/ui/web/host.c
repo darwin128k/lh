@@ -25,13 +25,9 @@
 static const char lh_ui_web_page[] =
     "<!doctype html><html lang=\"ru\"><head><meta charset=\"utf-8\">"
     "<title>lh_ui</title>"
-    "<style>html,body{margin:0;background:#edf0f5;color:#1b2433;font:14px/1.4 sans-serif}"
-    "header{padding:10px 16px;background:#fafbfd;border-bottom:1px solid #e7e8ec}"
-    "canvas{display:block;margin:16px auto;background:#edf0f5;box-shadow:0 8px 24px #1b24331a;cursor:pointer}"
-    "#st{color:#54596a;padding:0 16px 16px}</style></head><body>"
-    "<header>Кадр из <code>lh_ui</code>. Не Python и не DOM-макет.</header>"
+    "<style>html,body{margin:0;background:#edf0f5}"
+    "canvas{display:block;cursor:pointer}</style></head><body>"
     "<canvas id=\"c\" width=\"980\" height=\"620\"></canvas>"
-    "<div id=\"st\"></div>"
     "<script>"
     "function rgba(c){return 'rgba('+c[0]+','+c[1]+','+c[2]+','+(c[3]/255)+')'}"
     "function play(d){"
@@ -48,7 +44,6 @@ static const char lh_ui_web_page[] =
     "var o=document.createElement('canvas');o.width=op.size[0];o.height=op.size[1];"
     "o.getContext('2d').putImageData(im,0,0);x.drawImage(o,op.origin[0],op.origin[1])}"
     "});"
-    "document.getElementById('st').textContent=(d.ops?d.ops.length:0)+' ops, '+d.width+'x'+d.height+' from /ui.json';"
     "}\n"
     "function pos(e){var c=document.getElementById('c'),r=c.getBoundingClientRect();"
     "return {x:Math.round((e.clientX-r.left)*c.width/r.width),y:Math.round((e.clientY-r.top)*c.height/r.height)};"
@@ -56,7 +51,7 @@ static const char lh_ui_web_page[] =
     "function load(){return fetch('/ui.json').then(function(r){return r.json()}).then(play);}\n"
     "document.getElementById('c').onclick=function(e){var p=pos(e);"
     "fetch('/ui/click?x='+p.x+'&y='+p.y).then(load);};\n"
-    "load().catch(function(e){document.getElementById('st').textContent=String(e);});"
+    "load();\n"
     "</script></body></html>";
 
 static void
