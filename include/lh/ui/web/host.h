@@ -3,9 +3,10 @@
  * @brief Serve one ::lh_ui_view_t over HTTP as canvas JSON. No Python.
  *
  * GET `/` is a Canvas2D player. GET `/ui.json` is ::lh_ui_view_draw through
- * ::lh_ui_canvas_backend_web. GET or POST `/ui/click?x=&y=` is press then
- * release on that view, the same pair a window delivers. The host does not
- * know whose tree it is: cfg plugs the configurator, Paladin plugs its own window.
+ * ::lh_ui_canvas_backend_web. The player posts the same events a window
+ * delivers — press, release, wheel, key, text — and the host calls the
+ * application's hooks, not a second UI. A tick hook is the window's timer
+ * (cfg polls devices from it). The host does not know whose tree it is.
  *
  * Requires ::LH_LIBRARY_OPTION_UI and ::LH_LIBRARY_OPTION_OS.
  */
@@ -16,9 +17,13 @@
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
+#include <lh/key.h>
 #include <lh/net/port.h>
+#include <lh/numeric/fixed/types.h>
+#include <lh/ptr.h>
 #include <lh/size.h>
 #include <lh/ui/view.h>
+#include <lh/void.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/web/host.h requires LH_LIBRARY_OPTION_UI"
@@ -27,6 +32,24 @@
 #    error "lh/ui/web/host.h requires LH_LIBRARY_OPTION_OS"
 #endif
 
+/**
+ * @brief What a window would call: the application, not the JSON player.
+ *
+ * Any function may be ::lh_null. A missing press/release falls back to
+ * ::lh_ui_view_press / ::lh_ui_view_release on the served view.
+ */
+struct lh_ui_web_host_hooks
+{
+    lh_ptr ctx;
+    lh_void (*tick)(lh_ptr ctx);
+    lh_void (*press)(int x, int y, lh_ptr ctx);
+    lh_void (*release)(int x, int y, lh_ptr ctx);
+    lh_void (*wheel)(int x, int y, int dx, int dy, lh_ptr ctx);
+    lh_void (*key)(lh_key_t key, lh_bool_t pressed, lh_ptr ctx);
+    lh_void (*text)(lh_u32_t code, lh_ptr ctx);
+};
+typedef struct lh_ui_web_host_hooks lh_ui_web_host_hooks_t;
+
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
@@ -34,12 +57,14 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @p json is the caller's scratch for one frame; it is overwritten each GET
  * `/ui.json`. @p width and @p height are the canvas the player should match.
+ * @p hooks may be ::lh_null. When @p hooks->tick is set, it runs about every
+ * 20 ms, and also between requests, so a session poll is not starved by HTTP.
  *
  * @return ::lh_bool_false when the socket would not listen (or @p view is null).
  */
 lh_bool_t
 lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *json, lh_usize_t json_cap,
-                   lh_net_port_t port);
+                   lh_net_port_t port, const lh_ui_web_host_hooks_t *hooks);
 
 LH_COMPILER_EXTERN_C_END
 
