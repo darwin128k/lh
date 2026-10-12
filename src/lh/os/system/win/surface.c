@@ -173,3 +173,52 @@ lh_os_system_surface_present_at(lh_os_system_surface_handle_t handle, lh_ptr des
     surface = lh_ptr_rcast(const lh_os_system_win_surface_t, handle);
     return lh_os_system_surface_present_part(handle, dest, x, y, 0, 0, surface->width, surface->height);
 }
+
+lh_bool_t
+lh_os_system_surface_present_fit(lh_os_system_surface_handle_t handle, lh_ptr dest, int dest_w,
+                                 int dest_h, lh_u32_t fill)
+{
+    const lh_os_system_win_surface_t *surface;
+    lh_os_system_win_hdc_t dest_dc;
+    lh_os_system_win_handle_t brush;
+    lh_os_system_win_handle_t previous;
+    int dw;
+    int dh;
+    int ox;
+    int oy;
+
+    lh_return_if(lh_null_eq(handle) || lh_null_eq(dest) || dest_w <= 0 || dest_h <= 0, lh_bool_false);
+    surface = lh_ptr_rcast(const lh_os_system_win_surface_t, handle);
+    dest_dc = lh_cast_reinterpret(lh_os_system_win_hdc_t, dest);
+    if (dest_w * surface->height > dest_h * surface->width)
+    {
+        dh = dest_h;
+        dw = dest_h * surface->width / surface->height;
+    }
+    else
+    {
+        dw = dest_w;
+        dh = dest_w * surface->height / surface->width;
+    }
+    if (dw < 1)
+    {
+        dw = 1;
+    }
+    if (dh < 1)
+    {
+        dh = 1;
+    }
+    ox = (dest_w - dw) / 2;
+    oy = (dest_h - dh) / 2;
+    brush = CreateSolidBrush(fill);
+    previous = SelectObject(dest_dc, brush);
+    (void)PatBlt(dest_dc, 0, 0, dest_w, dest_h, LH_OS_SYSTEM_WIN_PATCOPY);
+    (void)SelectObject(dest_dc, previous);
+    if (lh_null_ne(brush))
+    {
+        (void)DeleteObject(brush);
+    }
+    (void)SetStretchBltMode(dest_dc, LH_OS_SYSTEM_WIN_COLORONCOLOR);
+    return lh_cast_static(lh_bool_t, StretchBlt(dest_dc, ox, oy, dw, dh, surface->dc, 0, 0, surface->width,
+                                                surface->height, LH_OS_SYSTEM_WIN_SRCCOPY) != 0);
+}

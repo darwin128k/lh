@@ -17,6 +17,7 @@
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
+#include <lh/numeric/fixed/types.h>
 #include <lh/os/system/surface/handle.h>
 #include <lh/ptr.h>
 #include <lh/void.h>
@@ -103,6 +104,14 @@ lh_os_system_surface_present_at(lh_os_system_surface_handle_t handle, lh_ptr des
 lh_bool_t
 lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr dest, int x, int y,
                                   int src_x, int src_y, int width, int height);
+
+/**
+ * @brief Present the whole surface into @p dest_w × @p dest_h, letterboxed
+ *        (contain). @p fill is `0x00BBGGRR` (GDI `COLORREF`) for the margins.
+ */
+lh_bool_t
+lh_os_system_surface_present_fit(lh_os_system_surface_handle_t handle, lh_ptr dest, int dest_w,
+                                 int dest_h, lh_u32_t fill);
 
 LH_COMPILER_EXTERN_C_END
 

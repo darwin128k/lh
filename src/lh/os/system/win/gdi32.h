@@ -105,6 +105,27 @@ LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 BitBlt(lh_os_system_win_hdc_t hdc, lh_int_t x, lh_int_t y, lh_int_t cx, lh_int_t cy,
        lh_os_system_win_hdc_t hdcSrc, lh_int_t x1, lh_int_t y1, lh_os_system_win_dword_t rop);
 
+/* `COLORONCOLOR`: drop pixels when shrinking. Present since Windows 95. */
+#define LH_OS_SYSTEM_WIN_COLORONCOLOR 3
+
+LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
+SetStretchBltMode(lh_os_system_win_hdc_t hdc, lh_int_t mode);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+StretchBlt(lh_os_system_win_hdc_t hdc, lh_int_t x, lh_int_t y, lh_int_t cx, lh_int_t cy,
+           lh_os_system_win_hdc_t hdcSrc, lh_int_t x1, lh_int_t y1, lh_int_t cx1, lh_int_t cy1,
+           lh_os_system_win_dword_t rop);
+
+/* `PATCOPY`: fill with the selected brush. */
+#define LH_OS_SYSTEM_WIN_PATCOPY 0x00F00021UL
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+PatBlt(lh_os_system_win_hdc_t hdc, lh_int_t x, lh_int_t y, lh_int_t cx, lh_int_t cy,
+       lh_os_system_win_dword_t rop);
+
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
+CreateSolidBrush(lh_os_system_win_dword_t color);
+
 /* An empty region to read another into. Present since Windows 95. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
 CreateRectRgn(lh_int_t left, lh_int_t top, lh_int_t right, lh_int_t bottom);
