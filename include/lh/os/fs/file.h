@@ -30,6 +30,9 @@
 #include <lh/ptr.h>
 #include <lh/self.h>
 #include <lh/size.h>
+#include <lh/str/ptr.h>
+
+#include <stdarg.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/fs/file.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
@@ -137,6 +140,15 @@ lh_bool_t
 lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_fs_file_mode_t mode);
 
 /**
+ * @brief Parse @p path as native-style text and ::lh_os_fs_file_open it.
+ *
+ * Composes ::lh_str_view_init, ::lh_fs_path_set and ::lh_os_fs_file_open.
+ * @p self must already have been ::lh_os_fs_file_init'd.
+ */
+lh_bool_t
+lh_os_fs_file_open_cstr(lh_os_fs_file_t *self, lh_str_cptr path, lh_fs_file_mode_t mode);
+
+/**
  * @brief ::lh_io_reader_read_fn backed by @p context's file.
  *
  * @param self An ::lh_os_fs_file_t* (passed as the reader's context).
@@ -187,6 +199,29 @@ lh_os_fs_file_get_writer(lh_os_fs_file_t *self);
  */
 lh_io_stream_t
 lh_os_fs_file_get_stream(lh_os_fs_file_t *self);
+
+/**
+ * @brief Write every byte of @p buf through this file's writer.
+ *
+ * Delegates to ::lh_io_writer_write_all.
+ */
+lh_bool_t
+lh_os_fs_file_write_all(lh_os_fs_file_t *self, const lh_ptr buf, lh_usize_t size);
+
+/**
+ * @brief Format @p fmt with ::lh_str_format_v and write the result.
+ *
+ * Same conversions as ::lh_str_ptr_format_text. The string kernel formats;
+ * this only hands the bytes to the file.
+ */
+lh_bool_t
+lh_os_fs_file_print_v(lh_os_fs_file_t *self, lh_str_cptr fmt, va_list args);
+
+/**
+ * @brief Variadic wrapper for ::lh_os_fs_file_print_v.
+ */
+lh_bool_t
+lh_os_fs_file_print(lh_os_fs_file_t *self, lh_str_cptr fmt, ...);
 
 LH_COMPILER_EXTERN_C_END
 

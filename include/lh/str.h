@@ -41,6 +41,7 @@
 #include <lh/str/format/sint.h>
 #include <lh/str/format/text.h>
 #include <lh/str/format/uint.h>
+#include <lh/str/format/ullong.h>
 #include <lh/str/parse/hex.h>
 #include <lh/str/parse/text.h>
 #include <lh/str/parse/uint.h>
