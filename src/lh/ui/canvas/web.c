@@ -114,21 +114,19 @@ typedef struct web_atlas
     unsigned char *px[WEB_ATLAS_MAX];
 } web_atlas_t;
 
+typedef struct web_frame
+{
+    unsigned char sent[WEB_ATLAS_MAX];
+} web_frame_t;
+
+/* Cover identity is process-wide so `m` does not reshuffle when the tree
+ * changes. `self->atlas` is only which ids this JSON already carried. */
+static web_atlas_t g_web_atlas;
+
 static void
 web_atlas_free(lh_ui_canvas_web_t *self)
 {
-    web_atlas_t *atlas = (web_atlas_t *)self->atlas;
-    unsigned i;
-
-    if (atlas == lh_null)
-    {
-        return;
-    }
-    for (i = 0; i < atlas->n; ++i)
-    {
-        free(atlas->px[i]);
-    }
-    free(atlas);
+    free(self->atlas);
     self->atlas = lh_null;
 }
 
@@ -137,9 +135,11 @@ web_atlas_intern(lh_ui_canvas_web_t *self, const lh_ui_mask_t *mask, int w, int 
 {
     unsigned char tmp[WEB_ATLAS_PIX];
     const unsigned n = (unsigned)w * (unsigned)h;
-    web_atlas_t *atlas;
+    web_atlas_t *atlas = lh_addr_of(g_web_atlas);
+    web_frame_t *frame;
     unsigned i;
     int y;
+    int id = -1;
 
     *is_new = 0;
     if (w <= 0 || h <= 0 || n > (unsigned)WEB_ATLAS_PIX)
@@ -150,39 +150,48 @@ web_atlas_intern(lh_ui_canvas_web_t *self, const lh_ui_mask_t *mask, int w, int 
     {
         lh_ui_mask_coverage_run(mask, 0, w, y, tmp + (unsigned)y * (unsigned)w);
     }
-    atlas = (web_atlas_t *)self->atlas;
-    if (atlas == lh_null)
-    {
-        atlas = (web_atlas_t *)calloc(1, sizeof(*atlas));
-        if (atlas == lh_null)
-        {
-            return -1;
-        }
-        self->atlas = atlas;
-    }
     for (i = 0; i < atlas->n; ++i)
     {
         if (atlas->w[i] == w && atlas->h[i] == h && atlas->len[i] == n &&
             memcmp(atlas->px[i], tmp, (size_t)n) == 0)
         {
-            return (int)i;
+            id = (int)i;
+            break;
         }
     }
-    if (atlas->n >= WEB_ATLAS_MAX)
+    if (id < 0)
     {
-        return -1;
+        if (atlas->n >= WEB_ATLAS_MAX)
+        {
+            return -1;
+        }
+        atlas->px[atlas->n] = (unsigned char *)malloc((size_t)n);
+        if (atlas->px[atlas->n] == lh_null)
+        {
+            return -1;
+        }
+        memcpy(atlas->px[atlas->n], tmp, (size_t)n);
+        atlas->w[atlas->n] = w;
+        atlas->h[atlas->n] = h;
+        atlas->len[atlas->n] = n;
+        id = (int)atlas->n++;
     }
-    atlas->px[atlas->n] = (unsigned char *)malloc((size_t)n);
-    if (atlas->px[atlas->n] == lh_null)
+    frame = (web_frame_t *)self->atlas;
+    if (frame == lh_null)
     {
-        return -1;
+        frame = (web_frame_t *)calloc(1, sizeof(*frame));
+        if (frame == lh_null)
+        {
+            return id;
+        }
+        self->atlas = frame;
     }
-    memcpy(atlas->px[atlas->n], tmp, (size_t)n);
-    atlas->w[atlas->n] = w;
-    atlas->h[atlas->n] = h;
-    atlas->len[atlas->n] = n;
-    *is_new = 1;
-    return (int)atlas->n++;
+    if (frame->sent[id] == 0u)
+    {
+        frame->sent[id] = 1u;
+        *is_new = 1;
+    }
+    return id;
 }
 
 static lh_void

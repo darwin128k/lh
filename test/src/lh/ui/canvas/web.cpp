@@ -101,7 +101,7 @@ TEST(canvas_web, glyph_cover_is_interned)
                                (size_t)lh_ui_canvas_web_length(lh_addr_of(web)));
         size_t first = body.find("\"cover\":");
         size_t second = (first == std::string::npos) ? std::string::npos : body.find("\"cover\":", first + 1);
-        EXPECT_NE(body.find("\"m\":0"), std::string::npos);
+        EXPECT_NE(body.find("\"m\":"), std::string::npos);
         EXPECT_NE(first, std::string::npos);
         EXPECT_EQ(second, std::string::npos);
         EXPECT_EQ(web.ops, 2u);

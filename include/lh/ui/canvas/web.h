@@ -41,7 +41,7 @@ typedef struct lh_ui_canvas_web
     unsigned ops;
     int comma;
     lh_bool_t ok;
-    void *atlas; /**< Glyph intern table for this frame; freed on close. */
+    void *atlas; /**< Which intern ids this JSON already emitted; freed on close. */
 } lh_ui_canvas_web_t;
 
 /** The table ::lh_ui_canvas_init wants. */
