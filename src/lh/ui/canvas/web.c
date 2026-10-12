@@ -20,6 +20,8 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 static void
 web_write(lh_ui_canvas_web_t *self, const char *fmt, ...)
@@ -100,6 +102,89 @@ web_rect(lh_ui_canvas_web_t *self, const lh_ui_rect_t *rect)
               (int)lh_ui_size_get_width(size), (int)lh_ui_size_get_height(size));
 }
 
+#define WEB_ATLAS_MAX 256
+#define WEB_ATLAS_PIX 4096
+
+typedef struct web_atlas
+{
+    unsigned n;
+    int w[WEB_ATLAS_MAX];
+    int h[WEB_ATLAS_MAX];
+    unsigned len[WEB_ATLAS_MAX];
+    unsigned char *px[WEB_ATLAS_MAX];
+} web_atlas_t;
+
+static void
+web_atlas_free(lh_ui_canvas_web_t *self)
+{
+    web_atlas_t *atlas = (web_atlas_t *)self->atlas;
+    unsigned i;
+
+    if (atlas == lh_null)
+    {
+        return;
+    }
+    for (i = 0; i < atlas->n; ++i)
+    {
+        free(atlas->px[i]);
+    }
+    free(atlas);
+    self->atlas = lh_null;
+}
+
+static int
+web_atlas_intern(lh_ui_canvas_web_t *self, const lh_ui_mask_t *mask, int w, int h, int *is_new)
+{
+    unsigned char tmp[WEB_ATLAS_PIX];
+    const unsigned n = (unsigned)w * (unsigned)h;
+    web_atlas_t *atlas;
+    unsigned i;
+    int y;
+
+    *is_new = 0;
+    if (w <= 0 || h <= 0 || n > (unsigned)WEB_ATLAS_PIX)
+    {
+        return -1;
+    }
+    for (y = 0; y < h; ++y)
+    {
+        lh_ui_mask_coverage_run(mask, 0, w, y, tmp + (unsigned)y * (unsigned)w);
+    }
+    atlas = (web_atlas_t *)self->atlas;
+    if (atlas == lh_null)
+    {
+        atlas = (web_atlas_t *)calloc(1, sizeof(*atlas));
+        if (atlas == lh_null)
+        {
+            return -1;
+        }
+        self->atlas = atlas;
+    }
+    for (i = 0; i < atlas->n; ++i)
+    {
+        if (atlas->w[i] == w && atlas->h[i] == h && atlas->len[i] == n &&
+            memcmp(atlas->px[i], tmp, (size_t)n) == 0)
+        {
+            return (int)i;
+        }
+    }
+    if (atlas->n >= WEB_ATLAS_MAX)
+    {
+        return -1;
+    }
+    atlas->px[atlas->n] = (unsigned char *)malloc((size_t)n);
+    if (atlas->px[atlas->n] == lh_null)
+    {
+        return -1;
+    }
+    memcpy(atlas->px[atlas->n], tmp, (size_t)n);
+    atlas->w[atlas->n] = w;
+    atlas->h[atlas->n] = h;
+    atlas->len[atlas->n] = n;
+    *is_new = 1;
+    return (int)atlas->n++;
+}
+
 static lh_void
 web_reset(lh_ui_canvas_web_t *self, unsigned width, unsigned height)
 {
@@ -112,6 +197,7 @@ web_reset(lh_ui_canvas_web_t *self, unsigned width, unsigned height)
     self->ops = 0;
     self->comma = 0;
     self->ok = lh_bool_false;
+    self->atlas = lh_null;
 }
 
 static lh_void
@@ -204,15 +290,28 @@ web_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *m
     web_write(self, "{\"op\":\"fill_mask\",\"origin\":[%d,%d],\"size\":[%d,%d],\"color\":",
               (int)lh_ui_point_get_x(origin), (int)lh_ui_point_get_y(origin), w, h);
     web_color(self, color);
-    web_write(self, ",\"cover\":\"");
-    for (y = 0; y < h; ++y)
     {
-        for (x = 0; x < w; ++x)
+        int is_new = 0;
+        const int id = web_atlas_intern(self, mask, w, h, lh_addr_of(is_new));
+
+        if (id >= 0)
         {
-            web_write(self, "%02x", (unsigned)lh_ui_mask_get_coverage(mask, x, y));
+            web_write(self, ",\"m\":%d", id);
+        }
+        if (id < 0 || is_new)
+        {
+            web_write(self, ",\"cover\":\"");
+            for (y = 0; y < h; ++y)
+            {
+                for (x = 0; x < w; ++x)
+                {
+                    web_write(self, "%02x", (unsigned)lh_ui_mask_get_coverage(mask, x, y));
+                }
+            }
+            web_write(self, "\"");
         }
     }
-    web_write(self, "\"}");
+    web_write(self, "}");
     return lh_bool_true;
 }
 
@@ -237,6 +336,7 @@ lh_ui_canvas_web_open(lh_ui_canvas_web_t *self, const char *path, unsigned width
     {
         return lh_bool_false;
     }
+    memset(self, 0, sizeof(*self));
     web_reset(self, width, height);
     if (path == lh_null || path[0] == '\0')
     {
@@ -261,6 +361,7 @@ lh_ui_canvas_web_open_mem(lh_ui_canvas_web_t *self, char *buf, lh_usize_t cap, u
     {
         return lh_bool_false;
     }
+    memset(self, 0, sizeof(*self));
     web_reset(self, width, height);
     self->mem = buf;
     self->cap = cap;
@@ -293,6 +394,7 @@ lh_ui_canvas_web_close(lh_ui_canvas_web_t *self)
         }
         self->out = lh_null;
     }
+    web_atlas_free(self);
     self->ok = ok;
     return ok;
 }

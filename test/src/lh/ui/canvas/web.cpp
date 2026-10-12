@@ -8,6 +8,8 @@
 #include <lh/ui/canvas.h>
 #include <lh/ui/canvas/web.h>
 #include <lh/ui/color.h>
+#include <lh/ui/mask.h>
+#include <lh/ui/point.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/scalar.h>
 #include <lh/ui/shadow.h>
@@ -72,6 +74,37 @@ TEST(canvas_web, shadow_is_one_op_not_a_pixel_each)
         EXPECT_NE(body.find("\"op\":\"shadow\""), std::string::npos);
         EXPECT_EQ(body.find("\"op\":\"fill_rect\""), std::string::npos);
         EXPECT_EQ(web.ops, 1u);
+    }
+}
+
+TEST(canvas_web, glyph_cover_is_interned)
+{
+    lh_ui_canvas_web_t web;
+    lh_ui_point_t origin;
+    lh_ui_color_t fill;
+    lh_ui_mask_t mask;
+    const lh_byte_t bits[] = {0xA0};
+    char buf[2048];
+
+    ASSERT_TRUE(lh_ui_canvas_web_open_mem(lh_addr_of(web), buf, sizeof(buf), 16u, 16u));
+    lh_ui_mask_init(lh_addr_of(mask), bits, 3, 1, 1, 1);
+    lh_ui_color_init(lh_addr_of(fill), 1, 2, 3, 255);
+    lh_ui_point_init(lh_addr_of(origin), 0, 0);
+    ASSERT_TRUE(lh_ui_canvas_backend_web.fill_mask(lh_addr_of(web), lh_addr_of(origin), lh_addr_of(mask),
+                                                   lh_addr_of(fill)));
+    lh_ui_point_init(lh_addr_of(origin), 4, 0);
+    ASSERT_TRUE(lh_ui_canvas_backend_web.fill_mask(lh_addr_of(web), lh_addr_of(origin), lh_addr_of(mask),
+                                                   lh_addr_of(fill)));
+    ASSERT_TRUE(lh_ui_canvas_web_close(lh_addr_of(web)));
+    {
+        const std::string body(lh_ui_canvas_web_bytes(lh_addr_of(web)),
+                               (size_t)lh_ui_canvas_web_length(lh_addr_of(web)));
+        size_t first = body.find("\"cover\":");
+        size_t second = (first == std::string::npos) ? std::string::npos : body.find("\"cover\":", first + 1);
+        EXPECT_NE(body.find("\"m\":0"), std::string::npos);
+        EXPECT_NE(first, std::string::npos);
+        EXPECT_EQ(second, std::string::npos);
+        EXPECT_EQ(web.ops, 2u);
     }
 }
 

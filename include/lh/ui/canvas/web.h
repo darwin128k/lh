@@ -3,9 +3,10 @@
  * @brief Canvas backend that records primitives as JSON: ::lh_ui_canvas_backend_web.
  *
  * Same slot table as GDI and the software pixmap. A browser that replays the
- * bytes is painting this stream, not a DOM layout. XP never loads that player;
- * the desktop there stays GDI. Paladin, cfg and a visual editor all take this
- * backend from here, not a private copy in an application.
+ * bytes is painting this stream, not a DOM layout. Glyph covers are interned
+ * (`m` plus `cover` on first use). A 3D viewport is not an op here — see
+ * `lh/ui/viewport3d.h`. XP never loads that player; the desktop there stays
+ * GDI.
  *
  * Requires ::LH_LIBRARY_OPTION_UI.
  */
@@ -40,6 +41,7 @@ typedef struct lh_ui_canvas_web
     unsigned ops;
     int comma;
     lh_bool_t ok;
+    void *atlas; /**< Glyph intern table for this frame; freed on close. */
 } lh_ui_canvas_web_t;
 
 /** The table ::lh_ui_canvas_init wants. */
