@@ -3,6 +3,7 @@
  * @brief Portable ::lh_os_window_t on top of `lh/os/system/window.h`.
  */
 
+#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/cast/static.h>
 #include <lh/list.h>

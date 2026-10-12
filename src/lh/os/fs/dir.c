@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/os/fs/dir.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
@@ -14,7 +15,7 @@
 #include <lh/util/ptr.h>
 #include <lh/util/str/ptr/dot.h>
 
-void
+lh_void
 lh_os_fs_dir_init(lh_os_fs_dir_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -39,7 +40,7 @@ lh_os_fs_dir_open(lh_os_fs_dir_t *self, const lh_fs_path_t *path)
     return lh_bool_true;
 }
 
-void
+lh_void
 lh_os_fs_dir_close(lh_os_fs_dir_t *self)
 {
     if (!lh_os_fs_dir_is_valid(self))

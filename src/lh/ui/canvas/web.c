@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/canvas/web.h`.
  */
 
+#include <lh/void.h>
 #include <lh/ui/canvas/web.h>
 
 #include <lh/cast/const.h>
@@ -23,7 +24,7 @@
 
 /* Every write goes through here. A buffer always keeps one byte free, so close
  * can terminate it without a check of its own. */
-static void
+static lh_void
 web_put(lh_ui_canvas_web_t *self, const char *p, lh_usize_t n)
 {
     if (!self->ok)
@@ -42,7 +43,7 @@ web_put(lh_ui_canvas_web_t *self, const char *p, lh_usize_t n)
 #define web_lit(self, s) web_put((self), (s), (lh_usize_t)(sizeof(s) - 1u))
 
 /* One number, without a format string to parse: a frame is mostly numbers. */
-static void
+static lh_void
 web_int(lh_ui_canvas_web_t *self, long v)
 {
     char buf[24];
@@ -50,7 +51,7 @@ web_int(lh_ui_canvas_web_t *self, long v)
     web_put(self, buf, lh_str_ptr_format_sint((lh_sint_t)v, buf, sizeof(buf)));
 }
 
-static void
+static lh_void
 web_quad(lh_ui_canvas_web_t *self, long a, long b, long c, long d)
 {
     web_lit(self, "[");
@@ -64,7 +65,7 @@ web_quad(lh_ui_canvas_web_t *self, long a, long b, long c, long d)
     web_lit(self, "]");
 }
 
-static void
+static lh_void
 web_hex(lh_ui_canvas_web_t *self, const unsigned char *px, unsigned n)
 {
     static const char digits[] = "0123456789abcdef";
@@ -85,7 +86,7 @@ web_hex(lh_ui_canvas_web_t *self, const unsigned char *px, unsigned n)
     web_put(self, buf, (lh_usize_t)o);
 }
 
-static void
+static lh_void
 web_comma(lh_ui_canvas_web_t *self)
 {
     if (!self->ok)
@@ -100,14 +101,14 @@ web_comma(lh_ui_canvas_web_t *self)
     ++self->ops;
 }
 
-static void
+static lh_void
 web_color(lh_ui_canvas_web_t *self, const lh_ui_color_t *color)
 {
     web_quad(self, (long)lh_ui_color_get_r(color), (long)lh_ui_color_get_g(color), (long)lh_ui_color_get_b(color),
              (long)lh_ui_color_get_a(color));
 }
 
-static void
+static lh_void
 web_rect(lh_ui_canvas_web_t *self, const lh_ui_rect_t *rect)
 {
     const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
@@ -211,7 +212,7 @@ web_glyphs(lh_ui_canvas_web_t *self)
     return self->glyphs;
 }
 
-static void
+static lh_void
 web_glyphs_free(lh_ui_canvas_web_t *self)
 {
     if (self->glyphs_owned)
@@ -272,7 +273,7 @@ web_reset(lh_ui_canvas_web_t *self, unsigned width, unsigned height)
     self->glyphs_owned = lh_bool_false;
 }
 
-static void
+static lh_void
 web_head(lh_ui_canvas_web_t *self)
 {
     web_lit(self, "{\"kind\":\"lh_ui_canvas\",\"width\":");
@@ -367,7 +368,7 @@ web_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, cons
 }
 
 /* A mask too big for the intern table: its coverage goes inline, a row at a time. */
-static void
+static lh_void
 web_cover_inline(lh_ui_canvas_web_t *self, const lh_ui_mask_t *mask, int w, int h)
 {
     unsigned char row[WEB_ATLAS_PIX];

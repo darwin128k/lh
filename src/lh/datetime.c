@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/datetime.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
@@ -6,28 +7,28 @@
 #include <lh/util/addr.h>
 #include <lh/math.h>
 
-void
+lh_void
 lh_datetime_set_date(lh_datetime_t *self, const lh_date_t *date)
 {
     lh_assert_runtime_ref(self);
     lh_date_assign(lh_addr_of(self->date), date);
 }
 
-void
+lh_void
 lh_datetime_set_time(lh_datetime_t *self, const lh_time_t *time)
 {
     lh_assert_runtime_ref(self);
     lh_time_assign(lh_addr_of(self->time), time);
 }
 
-void
+lh_void
 lh_datetime_set(lh_datetime_t *self, const lh_date_t *date, const lh_time_t *time)
 {
     lh_datetime_set_date(self, date);
     lh_datetime_set_time(self, time);
 }
 
-void
+lh_void
 lh_datetime_assign(lh_datetime_t *self, const lh_datetime_t *other)
 {
     lh_date_t date = lh_datetime_get_date(other);

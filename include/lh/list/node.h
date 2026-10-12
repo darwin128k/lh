@@ -15,6 +15,7 @@
 #ifndef LH_LIST_NODE_H
 #define LH_LIST_NODE_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/list/node/fields.h>
@@ -36,7 +37,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Unlinked node: links to itself both ways.
  */
-void
+lh_void
 lh_list_node_init(lh_list_node_t *self);
 
 /**
@@ -73,13 +74,13 @@ lh_list_node_is_linked(const lh_list_node_t *self);
 /**
  * @brief Link unlinked @p self right after @p pos (an element or a head).
  */
-void
+lh_void
 lh_list_node_insert_after(lh_list_node_t *self, lh_list_node_t *pos);
 
 /**
  * @brief Link unlinked @p self right before @p pos (an element or a head).
  */
-void
+lh_void
 lh_list_node_insert_before(lh_list_node_t *self, lh_list_node_t *pos);
 
 /**
@@ -88,7 +89,7 @@ lh_list_node_insert_before(lh_list_node_t *self, lh_list_node_t *pos);
  * @p pos may be in another list, or be a list head (after the head =
  * first). Moving a node next to itself is a no-op.
  */
-void
+lh_void
 lh_list_node_move_after(lh_list_node_t *self, lh_list_node_t *pos);
 
 /**
@@ -96,7 +97,7 @@ lh_list_node_move_after(lh_list_node_t *self, lh_list_node_t *pos);
  *
  * Before a list head = last. See ::lh_list_node_move_after.
  */
-void
+lh_void
 lh_list_node_move_before(lh_list_node_t *self, lh_list_node_t *pos);
 
 /**
@@ -104,7 +105,7 @@ lh_list_node_move_before(lh_list_node_t *self, lh_list_node_t *pos);
  *
  * No-op on an unlinked node.
  */
-void
+lh_void
 lh_list_node_unlink(lh_list_node_t *self);
 
 LH_COMPILER_EXTERN_C_END

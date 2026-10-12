@@ -3,6 +3,7 @@
  * @brief ::lh_os_serial_t over `lh/os/system/serial.h`.
  */
 
+#include <lh/void.h>
 #include <lh/os/serial.h>
 
 #include <lh/assert/runtime.h>
@@ -11,7 +12,7 @@
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
-void
+lh_void
 lh_os_serial_init(lh_os_serial_t *self)
 {
     lh_assert_runtime_ref(self);
@@ -29,7 +30,7 @@ lh_os_serial_open(lh_os_serial_t *self, lh_str_cptr name, lh_u32_t baud, lh_os_s
     return lh_os_serial_is_open(self);
 }
 
-void
+lh_void
 lh_os_serial_close(lh_os_serial_t *self)
 {
     lh_assert_runtime_ref(self);

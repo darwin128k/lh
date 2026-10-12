@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/os.h>
 #include <lh/attribute/thread_local.h>
 #include <lh/util/addr.h>
@@ -17,7 +18,7 @@ lh_os_last_error(void)
     return lh_addr_of(m_os_last_error);
 }
 
-void
+lh_void
 lh_os_set_last_error(lh_os_error_t error)
 {
     lh_os_error_assign(lh_os_last_error(), lh_addr_of(error));

@@ -3,6 +3,7 @@
  * @brief Implementation of lh/math/point.h.
  */
 
+#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/bool.h>
 #include <lh/util/return.h>

@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/os/system/net/socket.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
@@ -86,7 +87,7 @@ lh_os_system_net_socket_open(lh_os_system_net_socket_type_t type)
     return lh_cast_static(lh_os_system_net_socket_handle_t, native);
 }
 
-void
+lh_void
 lh_os_system_net_socket_close(lh_os_system_net_socket_handle_t handle)
 {
     (void)close(lh_os_system_net_socket_native(handle));

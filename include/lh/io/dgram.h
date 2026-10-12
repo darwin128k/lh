@@ -13,6 +13,7 @@
 #ifndef LH_IO_DGRAM_H
 #define LH_IO_DGRAM_H
 
+#include <lh/void.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/io/dgram/reader.h>
 #include <lh/io/dgram/writer.h>
@@ -37,27 +38,27 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Initialize @p self from a datagram reader and writer.
  */
-void
+lh_void
 lh_io_dgram_init(lh_io_dgram_t *self, const lh_io_dgram_reader_t *reader,
                  const lh_io_dgram_writer_t *writer);
 
-void
+lh_void
 lh_io_dgram_set(lh_io_dgram_t *self, const lh_io_dgram_reader_t *reader,
                 const lh_io_dgram_writer_t *writer);
 
-void
+lh_void
 lh_io_dgram_assign(lh_io_dgram_t *self, const lh_io_dgram_t *other);
 
 lh_io_dgram_reader_t
 lh_io_dgram_get_reader(const lh_io_dgram_t *self);
 
-void
+lh_void
 lh_io_dgram_set_reader(lh_io_dgram_t *self, const lh_io_dgram_reader_t *reader);
 
 lh_io_dgram_writer_t
 lh_io_dgram_get_writer(const lh_io_dgram_t *self);
 
-void
+lh_void
 lh_io_dgram_set_writer(lh_io_dgram_t *self, const lh_io_dgram_writer_t *writer);
 
 /**

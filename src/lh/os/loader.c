@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/os/loader.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
@@ -34,7 +35,7 @@ lh_os_loader_get_owner(const lh_os_loader_t *self)
 }
 
 LH_ATTRIBUTE_STATIC
-void
+lh_void
 lh_os_loader_set_owner(lh_os_loader_t *self, lh_os_module_t *owner)
 {
     lh_assert_runtime_ref(self);
@@ -59,7 +60,7 @@ lh_os_loader_get_entry(const lh_os_loader_t *self)
 
 /* ── init / deinit ───────────────────────────────────────────────────────── */
 
-void
+lh_void
 lh_os_loader_init(lh_os_loader_t *self, lh_os_module_t *owner, lh_str_cptr entry)
 {
     lh_assert_runtime_ref(entry);
@@ -70,7 +71,7 @@ lh_os_loader_init(lh_os_loader_t *self, lh_os_module_t *owner, lh_str_cptr entry
     lh_str_init_by_view(lh_os_loader_get_entry_mut(self), view);
 }
 
-void
+lh_void
 lh_os_loader_unload(lh_os_loader_t *self)
 {
     lh_list_t *const modules = lh_os_loader_get_modules(self);
@@ -83,7 +84,7 @@ lh_os_loader_unload(lh_os_loader_t *self)
     }
 }
 
-void
+lh_void
 lh_os_loader_unload_child(lh_os_loader_t *self, lh_os_module_t *child)
 {
     lh_assert_runtime_if(lh_ptr_ne(lh_os_module_get_owner(child), self),
@@ -92,7 +93,7 @@ lh_os_loader_unload_child(lh_os_loader_t *self, lh_os_module_t *child)
     lh_os_module_destroy(child);
 }
 
-void
+lh_void
 lh_os_loader_deinit(lh_os_loader_t *self)
 {
     lh_os_loader_unload(self);
@@ -111,7 +112,7 @@ lh_os_loader_create(lh_os_module_t *owner, lh_str_cptr entry)
     return self;
 }
 
-void
+lh_void
 lh_os_loader_destroy(lh_os_loader_t *self)
 {
     lh_os_loader_deinit(self);

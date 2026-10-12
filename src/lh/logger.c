@@ -6,7 +6,7 @@
 #include <lh/util/ptr.h>
 #include <lh/void.h>
 
-void
+lh_void
 lh_logger_set(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emergency_cb,
               lh_logger_emit_cb alert_cb, lh_logger_emit_cb critical_cb, lh_logger_emit_cb error_cb,
               lh_logger_emit_cb warning_cb, lh_logger_emit_cb notice_cb, lh_logger_emit_cb info_cb,
@@ -25,7 +25,7 @@ lh_logger_set(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_c
     self->context = context;
 }
 
-void
+lh_void
 lh_logger_assign(lh_logger_t *self, const lh_logger_t *other)
 {
     lh_logger_set(self, lh_logger_get_flags(other),
@@ -40,7 +40,7 @@ lh_logger_assign(lh_logger_t *self, const lh_logger_t *other)
                   lh_logger_get_context(other));
 }
 
-void
+lh_void
 lh_logger_init_of(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emergency_cb,
                   lh_logger_emit_cb alert_cb, lh_logger_emit_cb critical_cb,
                   lh_logger_emit_cb error_cb, lh_logger_emit_cb warning_cb,
@@ -51,7 +51,7 @@ lh_logger_init_of(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_em
                   info_cb, debug_cb, context);
 }
 
-void
+lh_void
 lh_logger_init(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emit_cb,
                lh_ptr context)
 {
@@ -59,7 +59,7 @@ lh_logger_init(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_
                       emit_cb, context);
 }
 
-void
+lh_void
 lh_logger_deinit(lh_logger_t *self)
 {
     lh_logger_set(self, lh_logger_level_flags_none, lh_null, lh_null, lh_null, lh_null, lh_null,

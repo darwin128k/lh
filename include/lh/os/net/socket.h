@@ -24,6 +24,7 @@
 #ifndef LH_OS_NET_SOCKET_H
 #define LH_OS_NET_SOCKET_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -68,7 +69,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @param self Socket object to initialize.
  */
-void
+lh_void
 lh_os_net_socket_init(lh_os_net_socket_t *self);
 
 /**
@@ -91,7 +92,7 @@ lh_os_net_socket_open(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t t
  *
  * @param self Socket object to close.
  */
-void
+lh_void
 lh_os_net_socket_close(lh_os_net_socket_t *self);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */

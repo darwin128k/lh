@@ -10,6 +10,7 @@
 #ifndef LH_VERSION_H
 #define LH_VERSION_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/limits.h>
@@ -89,7 +90,7 @@ typedef struct lh_version lh_version_t;
  * @param self  Destination version (not null).
  * @param other Source version (not null).
  */
-void
+lh_void
 lh_version_assign(lh_version_t *self, const lh_version_t *other);
 
 /**
@@ -100,26 +101,26 @@ lh_version_assign(lh_version_t *self, const lh_version_t *other);
  * @param minor New minor component.
  * @param patch New patch component.
  */
-void
+lh_void
 lh_version_set(lh_version_t *self, lh_version_major_t major, lh_version_minor_t minor,
                lh_version_patch_t patch);
 
 /**
  * @brief Write only the major component.
  */
-void
+lh_void
 lh_version_set_major(lh_version_t *self, lh_version_major_t major);
 
 /**
  * @brief Write only the minor component.
  */
-void
+lh_void
 lh_version_set_minor(lh_version_t *self, lh_version_minor_t minor);
 
 /**
  * @brief Write only the patch component.
  */
-void
+lh_void
 lh_version_set_patch(lh_version_t *self, lh_version_patch_t patch);
 
 /* ── getters ─────────────────────────────────────────────────────────────── */

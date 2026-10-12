@@ -16,6 +16,7 @@
 #ifndef LH_OS_SERIAL_H
 #define LH_OS_SERIAL_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -49,7 +50,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Start closed.
  */
-void
+lh_void
 lh_os_serial_init(lh_os_serial_t *self);
 
 /**
@@ -70,7 +71,7 @@ lh_os_serial_open(lh_os_serial_t *self, lh_str_cptr name, lh_u32_t baud, lh_os_s
 /**
  * @brief Close the port. Safe on one that is not open.
  */
-void
+lh_void
 lh_os_serial_close(lh_os_serial_t *self);
 
 /**

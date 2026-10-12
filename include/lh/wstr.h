@@ -14,6 +14,7 @@
 #ifndef LH_WSTR_H
 #define LH_WSTR_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
@@ -40,13 +41,13 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Initialize @p self as an empty, NUL-terminated wide string.
  *        Allocates nothing until the first append.
  */
-void
+lh_void
 lh_wstr_init(lh_wstr_t *self);
 
 /**
  * @brief Free the buffer owned by @p self and reset it to empty.
  */
-void
+lh_void
 lh_wstr_deinit(lh_wstr_t *self);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
@@ -74,25 +75,25 @@ lh_wstr_is_empty(const lh_wstr_t *self);
 /**
  * @brief Append @p ch to the end of @p self, growing it if needed.
  */
-void
+lh_void
 lh_wstr_push_back(lh_wstr_t *self, lh_wchar_t ch);
 
 /**
  * @brief Append @p count characters from @p text to the end of @p self.
  */
-void
+lh_void
 lh_wstr_append(lh_wstr_t *self, lh_wstr_cptr text, lh_usize_t count);
 
 /**
  * @brief Append the characters of @p view to @p self.
  */
-void
+lh_void
 lh_wstr_append_view(lh_wstr_t *self, lh_wstr_view_t view);
 
 /**
  * @brief Append the characters of @p other to @p self.
  */
-void
+lh_void
 lh_wstr_append_str(lh_wstr_t *self, const lh_wstr_t *other);
 
 /**
@@ -100,13 +101,13 @@ lh_wstr_append_str(lh_wstr_t *self, const lh_wstr_t *other);
  *
  * No-op when @p self is @p other.
  */
-void
+lh_void
 lh_wstr_assign(lh_wstr_t *self, const lh_wstr_t *other);
 
 /**
  * @brief Replace @p self with a copy of @p view.
  */
-void
+lh_void
 lh_wstr_assign_view(lh_wstr_t *self, lh_wstr_view_t view);
 
 /**
@@ -114,13 +115,13 @@ lh_wstr_assign_view(lh_wstr_t *self, lh_wstr_view_t view);
  *
  * Empty views are kept (two empties yield a lone separator).
  */
-void
+lh_void
 lh_wstr_join(lh_wstr_t *self, const lh_wstr_view_t *parts, lh_usize_t count, lh_wchar_t sep);
 
 /**
  * @brief Empty @p self without releasing its buffer.
  */
-void
+lh_void
 lh_wstr_clear(lh_wstr_t *self);
 
 /**
@@ -128,7 +129,7 @@ lh_wstr_clear(lh_wstr_t *self);
  *
  * @param n New size; must be <= ::lh_wstr_get_size.
  */
-void
+lh_void
 lh_wstr_truncate(lh_wstr_t *self, lh_usize_t n);
 
 /* ── view ────────────────────────────────────────────────────────────────── */

@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/font.h`.
  */
 
+#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/cast/static.h>
 #include <lh/config.h>

@@ -16,6 +16,7 @@
 #ifndef LH_NET_SOCKET_ADDR_H
 #define LH_NET_SOCKET_ADDR_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/net/socket/addr/ip4.h>
@@ -61,7 +62,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Initialize @p self as an IPv4 socket address wrapper.
  */
-void
+lh_void
 lh_net_socket_addr_init_ip4(lh_net_socket_addr_t *self, const lh_net_ip4_socket_addr_t *addr);
 
 /**

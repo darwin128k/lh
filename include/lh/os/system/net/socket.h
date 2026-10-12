@@ -22,6 +22,7 @@
 #ifndef LH_OS_SYSTEM_NET_SOCKET_H
 #define LH_OS_SYSTEM_NET_SOCKET_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -55,7 +56,7 @@ lh_os_system_net_socket_open(lh_os_system_net_socket_type_t type);
  *
  * @param handle Open handle; must not be ::LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID.
  */
-void
+lh_void
 lh_os_system_net_socket_close(lh_os_system_net_socket_handle_t handle);
 
 /**

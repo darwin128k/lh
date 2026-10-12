@@ -14,6 +14,7 @@
 #ifndef LH_IO_STREAM_H
 #define LH_IO_STREAM_H
 
+#include <lh/void.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/io/reader.h>
 #include <lh/io/writer.h>
@@ -43,7 +44,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param reader Read half.
  * @param writer Write half.
  */
-void
+lh_void
 lh_io_stream_init(lh_io_stream_t *self, const lh_io_reader_t *reader, const lh_io_writer_t *writer);
 
 /**
@@ -53,7 +54,7 @@ lh_io_stream_init(lh_io_stream_t *self, const lh_io_reader_t *reader, const lh_i
  * @param reader New read half.
  * @param writer New write half.
  */
-void
+lh_void
 lh_io_stream_set(lh_io_stream_t *self, const lh_io_reader_t *reader, const lh_io_writer_t *writer);
 
 /**
@@ -61,7 +62,7 @@ lh_io_stream_set(lh_io_stream_t *self, const lh_io_reader_t *reader, const lh_io
  * @param self  Destination stream.
  * @param other Source stream.
  */
-void
+lh_void
 lh_io_stream_assign(lh_io_stream_t *self, const lh_io_stream_t *other);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
@@ -79,7 +80,7 @@ lh_io_stream_get_reader(const lh_io_stream_t *self);
  * @param self   Stream to modify.
  * @param reader New read half.
  */
-void
+lh_void
 lh_io_stream_set_reader(lh_io_stream_t *self, const lh_io_reader_t *reader);
 
 /**
@@ -95,7 +96,7 @@ lh_io_stream_get_writer(const lh_io_stream_t *self);
  * @param self   Stream to modify.
  * @param writer New write half.
  */
-void
+lh_void
 lh_io_stream_set_writer(lh_io_stream_t *self, const lh_io_writer_t *writer);
 
 /* ── operations ──────────────────────────────────────────────────────────── */

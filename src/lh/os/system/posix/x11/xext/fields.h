@@ -14,11 +14,11 @@
 #define lh_os_system_posix_xext_fields                                                             \
     int (*XShapeQueryExtension)(lh_os_system_posix_display_t *display, int *event_base,            \
                                 int *error_base);                                                  \
-    void (*XShapeCombineRectangles)(lh_os_system_posix_display_t *display,                         \
+    lh_void (*XShapeCombineRectangles)(lh_os_system_posix_display_t *display,                         \
                                     lh_os_system_posix_xid_t window, int kind, int x, int y,       \
                                     lh_os_system_posix_xrectangle_t *rectangles, int count,        \
                                     int operation, int ordering);                                  \
-    void (*XShapeCombineMask)(lh_os_system_posix_display_t *display,                               \
+    lh_void (*XShapeCombineMask)(lh_os_system_posix_display_t *display,                               \
                               lh_os_system_posix_xid_t window, int kind, int x, int y,             \
                               lh_os_system_posix_xid_t mask, int operation);                       \
     int (*XShmQueryExtension)(lh_os_system_posix_display_t *display);                              \

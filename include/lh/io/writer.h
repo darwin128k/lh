@@ -9,6 +9,7 @@
 #ifndef LH_IO_WRITER_H
 #define LH_IO_WRITER_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/io/pending.h>
@@ -38,7 +39,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param self  Destination writer.
  * @param other Source writer.
  */
-void
+lh_void
 lh_io_writer_assign(lh_io_writer_t *self, const lh_io_writer_t *other);
 
 /**
@@ -48,19 +49,19 @@ lh_io_writer_assign(lh_io_writer_t *self, const lh_io_writer_t *other);
  * @param write_cb New write callback.
  * @param context  New context.
  */
-void
+lh_void
 lh_io_writer_set(lh_io_writer_t *self, lh_io_writer_write_cb write_cb, lh_ptr context);
 
 /**
  * @brief Write only the write callback.
  */
-void
+lh_void
 lh_io_writer_set_write_cb(lh_io_writer_t *self, lh_io_writer_write_cb write_cb);
 
 /**
  * @brief Write only the context.
  */
-void
+lh_void
 lh_io_writer_set_context(lh_io_writer_t *self, lh_ptr context);
 
 /**
@@ -72,14 +73,14 @@ lh_io_writer_set_context(lh_io_writer_t *self, lh_ptr context);
  * @param write_cb Write callback (may be ::lh_null to leave writing disabled).
  * @param context  Context passed to @p write_cb on every call.
  */
-void
+lh_void
 lh_io_writer_init(lh_io_writer_t *self, lh_io_writer_write_cb write_cb, lh_ptr context);
 
 /**
  * @brief Reset a writer to empty state (callback and context both ::lh_null).
  * @param self Writer object to reset.
  */
-void
+lh_void
 lh_io_writer_deinit(lh_io_writer_t *self);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */

@@ -46,7 +46,7 @@
                                             const char *name, int only_if_exists);                 \
     int (*XSetWMProtocols)(lh_os_system_posix_display_t *display, lh_os_system_posix_xid_t window, \
                            lh_os_system_posix_xid_t *protocols, int count);                        \
-    void (*XSetWMNormalHints)(lh_os_system_posix_display_t *display,                               \
+    lh_void (*XSetWMNormalHints)(lh_os_system_posix_display_t *display,                               \
                               lh_os_system_posix_xid_t window,                                     \
                               lh_os_system_posix_xsize_hints_t *hints);                            \
     int (*XSetTransientForHint)(lh_os_system_posix_display_t *display,                             \

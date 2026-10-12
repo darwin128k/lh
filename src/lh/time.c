@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/time.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
@@ -7,28 +8,28 @@
 #include <lh/util/addr.h>
 #include <lh/math.h>
 
-void
+lh_void
 lh_time_set_hour(lh_time_t *self, lh_time_hour_t hour)
 {
     lh_assert_runtime_ref(self);
     self->hour = hour;
 }
 
-void
+lh_void
 lh_time_set_minute(lh_time_t *self, lh_time_minute_t minute)
 {
     lh_assert_runtime_ref(self);
     self->minute = minute;
 }
 
-void
+lh_void
 lh_time_set_second(lh_time_t *self, lh_time_second_t second)
 {
     lh_assert_runtime_ref(self);
     self->second = second;
 }
 
-void
+lh_void
 lh_time_set(lh_time_t *self, lh_time_hour_t hour, lh_time_minute_t minute, lh_time_second_t second)
 {
     lh_time_set_hour(self, hour);
@@ -36,7 +37,7 @@ lh_time_set(lh_time_t *self, lh_time_hour_t hour, lh_time_minute_t minute, lh_ti
     lh_time_set_second(self, second);
 }
 
-void
+lh_void
 lh_time_assign(lh_time_t *self, const lh_time_t *other)
 {
     lh_time_set(self, lh_time_get_hour(other), lh_time_get_minute(other), lh_time_get_second(other));

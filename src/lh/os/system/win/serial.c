@@ -3,6 +3,7 @@
  * @brief Win32 backend for `lh/os/system/serial.h`: a COM port.
  */
 
+#include <lh/void.h>
 #include <lh/os/system/serial.h>
 
 #include <lh/assert/runtime.h>
@@ -119,7 +120,7 @@ lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t 
     return lh_cast_reinterpret(lh_os_system_serial_handle_t, port);
 }
 
-void
+lh_void
 lh_os_system_serial_close(lh_os_system_serial_handle_t handle)
 {
     if (handle != LH_OS_SYSTEM_SERIAL_HANDLE_INVALID)

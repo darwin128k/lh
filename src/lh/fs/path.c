@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/fs/path.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
@@ -52,7 +53,7 @@ lh_fs_path_get_text_mut(lh_fs_path_t *self)
 }
 
 LH_ATTRIBUTE_STATIC
-void
+lh_void
 lh_fs_path_set_root_kind(lh_fs_path_t *self, lh_fs_path_root_kind_t kind)
 {
     lh_assert_runtime_ref(self);
@@ -71,27 +72,27 @@ lh_fs_path_get_rest(const lh_fs_path_t *self)
                                  lh_fs_path_root_len(lh_fs_path_get_root_kind(self)));
 }
 
-void
+lh_void
 lh_fs_path_init(lh_fs_path_t *self)
 {
     lh_fs_path_set_root_kind(self, lh_fs_path_root_kind_none);
     lh_str_init(lh_fs_path_get_text_mut(self));
 }
 
-void
+lh_void
 lh_fs_path_deinit(lh_fs_path_t *self)
 {
     lh_str_deinit(lh_fs_path_get_text_mut(self));
 }
 
-void
+lh_void
 lh_fs_path_clear(lh_fs_path_t *self)
 {
     lh_fs_path_set_root_kind(self, lh_fs_path_root_kind_none);
     lh_str_clear(lh_fs_path_get_text_mut(self));
 }
 
-void
+lh_void
 lh_fs_path_assign(lh_fs_path_t *self, const lh_fs_path_t *other)
 {
     if (lh_math_eq(self, other))
@@ -273,7 +274,7 @@ lh_fs_path_take_root(lh_fs_path_t *self, const lh_str_view_t *text, lh_fs_path_s
     return 0U;
 }
 
-void
+lh_void
 lh_fs_path_set(lh_fs_path_t *self, lh_str_view_t text, lh_fs_path_style_t style)
 {
     lh_str_t *out;
@@ -316,7 +317,7 @@ lh_fs_path_set(lh_fs_path_t *self, lh_str_view_t text, lh_fs_path_style_t style)
     }
 }
 
-void
+lh_void
 lh_fs_path_to_str(const lh_fs_path_t *self, lh_fs_path_style_t style, lh_str_t *out)
 {
     lh_str_view_t text;

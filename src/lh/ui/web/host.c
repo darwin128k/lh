@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/web/host.h`.
  */
 
+#include <lh/void.h>
 #include <lh/ui/web/host.h>
 #include <lh/ui/web/ws.h>
 
@@ -196,7 +197,7 @@ static const char lh_ui_web_page[] =
 /* A literal and its length, for the wrappers that take both. */
 #define host_lit(s) (s), (lh_usize_t)(sizeof(s) - 1u)
 
-static void
+static lh_void
 host_send_all(lh_os_net_socket_t *client, const char *p, lh_usize_t left)
 {
     while (left > 0u)
@@ -212,7 +213,7 @@ host_send_all(lh_os_net_socket_t *client, const char *p, lh_usize_t left)
     }
 }
 
-static void
+static lh_void
 host_reply(lh_os_net_socket_t *client, unsigned code, const char *type, const char *body, lh_usize_t len)
 {
     char head[256];
@@ -227,7 +228,7 @@ host_reply(lh_os_net_socket_t *client, unsigned code, const char *type, const ch
     host_send_all(client, body, len);
 }
 
-static void
+static lh_void
 host_reply_text(lh_os_net_socket_t *client, unsigned code, const char *text, lh_usize_t len)
 {
     host_reply(client, code, "text/plain; charset=utf-8", text, len);
@@ -338,7 +339,7 @@ host_point(int x, int y)
     return point;
 }
 
-static void
+static lh_void
 host_press(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int y)
 {
     if (hooks != lh_null && hooks->press != lh_null)
@@ -349,7 +350,7 @@ host_press(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int y
     lh_ui_view_press(view, host_point(x, y));
 }
 
-static void
+static lh_void
 host_release(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int y)
 {
     if (hooks != lh_null && hooks->release != lh_null)
@@ -360,7 +361,7 @@ host_release(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int
     (void)lh_ui_view_release(view, host_point(x, y));
 }
 
-static void
+static lh_void
 host_wheel(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int y, int dx, int dy)
 {
     if (hooks != lh_null && hooks->wheel != lh_null)
@@ -371,7 +372,7 @@ host_wheel(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int y
     (void)lh_ui_view_wheel(view, host_point(x, y), (lh_ui_scalar_t)dx, (lh_ui_scalar_t)dy);
 }
 
-static void
+static lh_void
 host_key(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int k)
 {
     if (k < (int)lh_key_other || k > (int)lh_key_alt)
@@ -386,7 +387,7 @@ host_key(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int k)
     (void)lh_ui_view_key(view, (lh_key_t)k, lh_bool_true);
 }
 
-static void
+static lh_void
 host_text(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, lh_u32_t code)
 {
     if (code == 0u)
@@ -401,7 +402,7 @@ host_text(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, lh_u32_t code
     (void)lh_ui_view_text(view, code);
 }
 
-static void
+static lh_void
 host_bump(unsigned *gen)
 {
     if (gen != lh_null)
@@ -410,7 +411,7 @@ host_bump(unsigned *gen)
     }
 }
 
-static void
+static lh_void
 host_b64_sha1(const unsigned char *in, char *out)
 {
     static const char tab[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -488,7 +489,7 @@ host_ws_upgrade(lh_os_net_socket_t *client, const char *req, lh_usize_t len)
 }
 
 /* One input from the player: `p x y`, `r x y`, `w x y dx dy`, `k key`, `t code`. */
-static void
+static lh_void
 host_event_line(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *gen, const char *line,
                 lh_usize_t len)
 {
@@ -527,7 +528,7 @@ host_event_line(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigne
     host_bump(gen);
 }
 
-static void
+static lh_void
 host_ws_drop(host_ws_cli_t *c)
 {
     host_ws_q_t *q;
@@ -617,7 +618,7 @@ host_ws_enqueue(host_ws_cli_t *c, unsigned opcode, const void *payload, lh_usize
     return lh_bool_true;
 }
 
-static void
+static lh_void
 host_ws_flush(host_ws_cli_t *c)
 {
     while (c != lh_null && c->used && c->qhead != lh_null)
@@ -682,7 +683,7 @@ host_ws_msg_add(host_ws_cli_t *c, const unsigned char *p, lh_usize_t n)
     return lh_bool_true;
 }
 
-static void
+static lh_void
 host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *gen,
                unsigned now)
 {
@@ -788,7 +789,7 @@ host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_
     }
 }
 
-static void
+static lh_void
 host_ws_attach(host_ws_cli_t *slots, lh_os_net_socket_t *client, unsigned now)
 {
     unsigned i;
@@ -827,7 +828,7 @@ host_ws_attach(host_ws_cli_t *slots, lh_os_net_socket_t *client, unsigned now)
     lh_os_net_socket_close(client);
 }
 
-static void
+static lh_void
 host_ws_pump(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *gen,
              unsigned now)
 {
@@ -1008,7 +1009,7 @@ host_ws_wants(const host_ws_cli_t *c, unsigned gen)
     return (c->used && !c->closing && c->seen != gen && c->qhead == lh_null) ? lh_bool_true : lh_bool_false;
 }
 
-static void
+static lh_void
 host_ws_remember(host_ws_stream_t *stream, const char *body, lh_usize_t len)
 {
     if (len > stream->last_cap)
@@ -1039,7 +1040,7 @@ host_ws_same(const host_ws_stream_t *stream, const char *body, lh_usize_t len)
 /* Draw once for every client that wants a frame and send it. Covers go once per
    connection: a client that missed a frame, or is new, resets the set so this
    one carries them all. A frame equal to the last one sent is not sent again. */
-static void
+static lh_void
 host_ws_frame(host_ws_cli_t *cli, host_ws_stream_t *stream, lh_ui_view_t *view, unsigned width,
               unsigned height, char *json, lh_usize_t json_cap, unsigned gen)
 {
@@ -1103,7 +1104,7 @@ host_ws_frame(host_ws_cli_t *cli, host_ws_stream_t *stream, lh_ui_view_t *view, 
     }
 }
 
-static void
+static lh_void
 host_accept_all(lh_os_net_socket_t *listen_fd, host_ws_cli_t *cli, lh_ui_view_t *view, unsigned width,
                 unsigned height, char *json, lh_usize_t json_cap, const lh_ui_web_host_hooks_t *hooks,
                 unsigned *gen, unsigned now)
@@ -1134,7 +1135,7 @@ host_accept_all(lh_os_net_socket_t *listen_fd, host_ws_cli_t *cli, lh_ui_view_t 
    time it takes to draw it, rather than in up to one tick. A wait that fails
    (a client socket gone bad under it) waits on the listener alone, so the loop
    still sleeps instead of spinning. */
-static void
+static lh_void
 host_wait(lh_os_net_socket_t *listen_fd, host_ws_cli_t *cli, unsigned timeout_ms)
 {
     lh_os_net_socket_t *read[HOST_WS_MAX + 1u];

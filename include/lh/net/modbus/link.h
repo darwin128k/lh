@@ -246,7 +246,7 @@ typedef struct lh_mb_link
        decide what a microsecond is worth. */
     lh_u64_t (*now_us)(lh_ptr self);
     lh_ptr clock;
-    lh_void (*on_change)(lh_ptr self, lh_void *link);
+    lh_void (*on_change)(lh_ptr self, lh_ptr link);
     lh_ptr owner;
 } lh_mb_link_t;
 

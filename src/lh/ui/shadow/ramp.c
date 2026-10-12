@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/shadow/ramp.h`.
  */
 
+#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/ui/shadow/ramp.h>
 

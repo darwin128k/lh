@@ -11,14 +11,15 @@
 #ifndef LH_SRC_LIST_NODE_LINK_H
 #define LH_SRC_LIST_NODE_LINK_H
 
+#include <lh/void.h>
 #include <lh/list/node.h>
 
 /** @brief Point @p self's `next` at @p next. Nothing else changes. */
-void
+lh_void
 lh_list_node_set_next(lh_list_node_t *self, lh_list_node_t *next);
 
 /** @brief Point @p self's `prev` at @p prev. Nothing else changes. */
-void
+lh_void
 lh_list_node_set_prev(lh_list_node_t *self, lh_list_node_t *prev);
 
 #endif /* LH_SRC_LIST_NODE_LINK_H */

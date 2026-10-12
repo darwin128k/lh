@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/str.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>

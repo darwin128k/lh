@@ -18,6 +18,7 @@
 #ifndef LH_OS_SYSTEM_ERROR_CAPTURE_H
 #define LH_OS_SYSTEM_ERROR_CAPTURE_H
 
+#include <lh/void.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/error/desc.h>
@@ -77,7 +78,7 @@ lh_os_system_error_get_native_code(void);
  * buffer. The stored description views that buffer; it stays valid until
  * the next call to this function on the same thread.
  */
-void
+lh_void
 lh_os_system_error_capture(void);
 
 LH_COMPILER_EXTERN_C_END

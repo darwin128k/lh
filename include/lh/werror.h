@@ -17,6 +17,7 @@
 #ifndef LH_WERROR_H
 #define LH_WERROR_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/error/code.h>
@@ -44,7 +45,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param code New error code.
  * @param desc New description view (empty view = no description).
  */
-void
+lh_void
 lh_werror_set(lh_werror_t *self, lh_error_code_t code, lh_wstr_view_t desc);
 
 /**
@@ -53,7 +54,7 @@ lh_werror_set(lh_werror_t *self, lh_error_code_t code, lh_wstr_view_t desc);
  * @param self Wide error object to modify.
  * @param code New error code.
  */
-void
+lh_void
 lh_werror_set_code(lh_werror_t *self, lh_error_code_t code);
 
 /**
@@ -62,7 +63,7 @@ lh_werror_set_code(lh_werror_t *self, lh_error_code_t code);
  * @param self Wide error object to modify.
  * @param desc New description view (empty view = no description).
  */
-void
+lh_void
 lh_werror_set_desc(lh_werror_t *self, lh_wstr_view_t desc);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
@@ -186,7 +187,7 @@ lh_werror_has_diff_code(const lh_werror_t *self, const lh_werror_t *other);
  * @param self  Destination wide error object.
  * @param other Source wide error object to copy from.
  */
-void
+lh_void
 lh_werror_assign(lh_werror_t *self, const lh_werror_t *other);
 
 /**
@@ -196,7 +197,7 @@ lh_werror_assign(lh_werror_t *self, const lh_werror_t *other);
  *
  * @param self Wide error object to clear.
  */
-void
+lh_void
 lh_werror_clear(lh_werror_t *self);
 
 /* ── init ────────────────────────────────────────────────────────────────── */
@@ -208,7 +209,7 @@ lh_werror_clear(lh_werror_t *self);
  * @param code Initial error code.
  * @param desc Initial description view (empty view = no description).
  */
-void
+lh_void
 lh_werror_init(lh_werror_t *self, lh_error_code_t code, lh_wstr_view_t desc);
 
 /**
@@ -216,7 +217,7 @@ lh_werror_init(lh_werror_t *self, lh_error_code_t code, lh_wstr_view_t desc);
  * @param self  Wide error object to initialize.
  * @param other Source error to copy from.
  */
-void
+lh_void
 lh_werror_init_by_other(lh_werror_t *self, const lh_werror_t *other);
 
 /**
@@ -226,13 +227,13 @@ lh_werror_init_by_other(lh_werror_t *self, const lh_werror_t *other);
  *
  * @param self Wide error object to initialize.
  */
-void
+lh_void
 lh_werror_init_by_empty(lh_werror_t *self);
 
 /**
  * @brief Initialize @p self with @p code and an empty description.
  */
-void
+lh_void
 lh_werror_init_by_code(lh_werror_t *self, lh_error_code_t code);
 
 /**

@@ -27,6 +27,7 @@
 #ifndef LH_MEMORY_SIZED_ALLOCATOR_H
 #define LH_MEMORY_SIZED_ALLOCATOR_H
 
+#include <lh/void.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/memory/allocator.h>
 #include <lh/ptr.h>

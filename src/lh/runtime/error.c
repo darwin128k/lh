@@ -1,21 +1,22 @@
+#include <lh/void.h>
 #include <lh/runtime/error.h>
 #include <lh/util/ptr.h>
 #include <lh/error.h>
 
-void
+lh_void
 lh_runtime_error_set(lh_runtime_error_t *self, lh_runtime_error_code_t code,
                      lh_str_view_t desc)
 {
     lh_error_set(lh_ptr_cast(lh_error_t, self), code, desc);
 }
 
-void
+lh_void
 lh_runtime_error_set_code(lh_runtime_error_t *self, lh_runtime_error_code_t code)
 {
     lh_error_set_code(lh_ptr_cast(lh_error_t, self), code);
 }
 
-void
+lh_void
 lh_runtime_error_set_desc(lh_runtime_error_t *self, lh_str_view_t desc)
 {
     lh_error_set_desc(lh_ptr_cast(lh_error_t, self), desc);
@@ -87,44 +88,44 @@ lh_runtime_error_has_diff_code(const lh_runtime_error_t *self, const lh_runtime_
     return lh_error_has_diff_code(lh_ptr_ccast(lh_error_t, self), lh_ptr_ccast(lh_error_t, other));
 }
 
-void
+lh_void
 lh_runtime_error_assign(lh_runtime_error_t *self, const lh_runtime_error_t *other)
 {
     lh_error_assign(lh_ptr_cast(lh_error_t, self), lh_ptr_ccast(lh_error_t, other));
 }
 
-void
+lh_void
 lh_runtime_error_clear(lh_runtime_error_t *self)
 {
     lh_error_clear(lh_ptr_cast(lh_error_t, self));
 }
 
-void
+lh_void
 lh_runtime_error_init(lh_runtime_error_t *self, lh_runtime_error_code_t code,
                       lh_str_view_t desc)
 {
     lh_error_init(lh_ptr_cast(lh_error_t, self), code, desc);
 }
 
-void
+lh_void
 lh_runtime_error_init_by_other(lh_runtime_error_t *self, const lh_runtime_error_t *other)
 {
     lh_error_init_by_other(lh_ptr_cast(lh_error_t, self), lh_ptr_ccast(lh_error_t, other));
 }
 
-void
+lh_void
 lh_runtime_error_init_by_empty(lh_runtime_error_t *self)
 {
     lh_error_init_by_empty(lh_ptr_cast(lh_error_t, self));
 }
 
-void
+lh_void
 lh_runtime_error_init_by_code(lh_runtime_error_t *self, lh_runtime_error_code_t code)
 {
     lh_error_init_by_code(lh_ptr_cast(lh_error_t, self), code);
 }
 
-void
+lh_void
 lh_runtime_error_init_by_desc(lh_runtime_error_t *self, lh_str_view_t desc)
 {
     lh_runtime_error_init(self, lh_runtime_error_code_interrupt, desc);

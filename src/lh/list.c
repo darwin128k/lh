@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/list.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
@@ -31,7 +32,7 @@ lh_list_as_element(const lh_list_t *self, lh_list_node_t *node)
     return lh_ptr_eq(node, lh_list_get_head_as_const(self)) ? lh_null : node;
 }
 
-void
+lh_void
 lh_list_init(lh_list_t *self)
 {
     lh_list_node_init(lh_list_get_head(self));
@@ -116,19 +117,19 @@ lh_list_contains(const lh_list_t *self, const lh_list_node_t *node)
     return lh_cast_static(lh_bool_t, lh_math_ne(lh_list_index_of(self, node), LH_LIST_INVALID));
 }
 
-void
+lh_void
 lh_list_push_front(lh_list_t *self, lh_list_node_t *node)
 {
     lh_list_node_insert_after(node, lh_list_get_head(self));
 }
 
-void
+lh_void
 lh_list_push_back(lh_list_t *self, lh_list_node_t *node)
 {
     lh_list_node_insert_before(node, lh_list_get_head(self));
 }
 
-void
+lh_void
 lh_list_insert_sorted(lh_list_t *self, lh_list_node_t *node, lh_list_cmp_cb cmp, lh_ptr context)
 {
     lh_list_node_t *pos;
@@ -172,7 +173,7 @@ lh_list_pop_back(lh_list_t *self)
 /* Join every element of `other` between `prev` and `next`, which are
    neighbours in another list, then leave `other` empty. */
 LH_ATTRIBUTE_STATIC
-void
+lh_void
 lh_list_splice_between(lh_list_t *other, lh_list_node_t *prev, lh_list_node_t *next)
 {
     if (lh_list_is_empty(other))
@@ -189,7 +190,7 @@ lh_list_splice_between(lh_list_t *other, lh_list_node_t *prev, lh_list_node_t *n
     lh_list_init(other);
 }
 
-void
+lh_void
 lh_list_splice_back(lh_list_t *self, lh_list_t *other)
 {
     lh_assert_runtime_if(lh_ptr_eq(self, other), lh_runtime_error_code_invalid_argument);
@@ -198,7 +199,7 @@ lh_list_splice_back(lh_list_t *self, lh_list_t *other)
     lh_list_splice_between(other, lh_list_node_get_prev(head), head);
 }
 
-void
+lh_void
 lh_list_splice_front(lh_list_t *self, lh_list_t *other)
 {
     lh_assert_runtime_if(lh_ptr_eq(self, other), lh_runtime_error_code_invalid_argument);
@@ -207,7 +208,7 @@ lh_list_splice_front(lh_list_t *self, lh_list_t *other)
     lh_list_splice_between(other, head, lh_list_node_get_next(head));
 }
 
-void
+lh_void
 lh_list_clear(lh_list_t *self)
 {
     while (lh_ptr_is_set(lh_list_pop_front(self)))
@@ -222,7 +223,7 @@ lh_list_clear(lh_list_t *self)
  * left; then the chain is closed back into a ring and every `prev` rebuilt.
  * Taking from the left run on a tie keeps equal elements in order.
  */
-void
+lh_void
 lh_list_sort(lh_list_t *self, lh_list_cmp_cb cmp, lh_ptr context)
 {
     lh_assert_runtime_ref(cmp);

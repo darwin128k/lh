@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/str/list.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
@@ -60,21 +61,21 @@ lh_str_list_get_span(const lh_str_list_t *self, lh_uindex_t index)
         lh_ptr_cast(const lh_str_list_span_t, lh_array_get_ptr(lh_str_list_get_spans_as_const(self), index)));
 }
 
-void
+lh_void
 lh_str_list_init(lh_str_list_t *self)
 {
     lh_str_init(lh_str_list_get_chars(self));
     lh_array_init(lh_str_list_get_spans(self), sizeof(lh_str_list_span_t));
 }
 
-void
+lh_void
 lh_str_list_deinit(lh_str_list_t *self)
 {
     lh_str_deinit(lh_str_list_get_chars(self));
     lh_array_deinit(lh_str_list_get_spans(self));
 }
 
-void
+lh_void
 lh_str_list_clear(lh_str_list_t *self)
 {
     lh_str_clear(lh_str_list_get_chars(self));
@@ -142,7 +143,7 @@ lh_str_list_push_back_str(lh_str_list_t *self, const lh_str_t *value)
     return lh_str_list_push_back(self, lh_str_as_view(value));
 }
 
-void
+lh_void
 lh_str_list_assign(lh_str_list_t *self, const lh_str_list_t *other)
 {
     if (lh_math_eq(self, other))
@@ -153,7 +154,7 @@ lh_str_list_assign(lh_str_list_t *self, const lh_str_list_t *other)
     lh_array_assign(lh_str_list_get_spans(self), lh_str_list_get_spans_as_const(other));
 }
 
-void
+lh_void
 lh_str_list_append(lh_str_list_t *self, const lh_str_list_t *other)
 {
     lh_usize_t base;
@@ -173,7 +174,7 @@ lh_str_list_append(lh_str_list_t *self, const lh_str_list_t *other)
     }
 }
 
-void
+lh_void
 lh_str_list_join(const lh_str_list_t *self, lh_str_t *out, lh_char_t sep)
 {
     lh_usize_t n;
@@ -190,7 +191,7 @@ lh_str_list_join(const lh_str_list_t *self, lh_str_t *out, lh_char_t sep)
     }
 }
 
-void
+lh_void
 lh_str_list_split_of(lh_str_list_t *self, lh_str_view_t text, lh_str_cptr delims, lh_usize_t delim_count)
 {
     lh_usize_t pos = 0U;

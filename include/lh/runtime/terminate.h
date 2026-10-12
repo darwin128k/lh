@@ -13,6 +13,7 @@
 #ifndef LH_RUNTIME_TERMINATE_H
 #define LH_RUNTIME_TERMINATE_H
 
+#include <lh/void.h>
 #include <lh/library/fallback.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/attribute/noreturn.h>
@@ -45,7 +46,7 @@ lh_runtime_terminate_get(void);
  * lh_runtime_terminate_set(my_handler);
  * @endcode
  */
-void
+lh_void
 lh_runtime_terminate_set(lh_runtime_terminate_cb fn);
 
 /**
@@ -63,7 +64,7 @@ lh_runtime_terminate_set(lh_runtime_terminate_cb fn);
  * @endcode
  */
 LH_ATTRIBUTE_NORETURN
-void
+lh_void
 lh_runtime_terminate(void);
 
 LH_COMPILER_EXTERN_C_END

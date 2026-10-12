@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/net/socket/addr/ip4.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
@@ -7,14 +8,14 @@
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 
-void
+lh_void
 lh_net_ip4_socket_addr_init(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *ip,
                             lh_net_port_t port)
 {
     lh_net_ip4_socket_addr_set(self, ip, port);
 }
 
-void
+lh_void
 lh_net_ip4_socket_addr_set(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *ip,
                            lh_net_port_t port)
 {
@@ -24,7 +25,7 @@ lh_net_ip4_socket_addr_set(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *i
     lh_net_ip4_socket_addr_set_port(self, port);
 }
 
-void
+lh_void
 lh_net_ip4_socket_addr_assign(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_socket_addr_t *other)
 {
     lh_net_ip4_t ip;
@@ -43,7 +44,7 @@ lh_net_ip4_socket_addr_get_ip(const lh_net_ip4_socket_addr_t *self)
     return self->ip;
 }
 
-void
+lh_void
 lh_net_ip4_socket_addr_set_ip(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *ip)
 {
     lh_assert_runtime_ref(self);
@@ -58,7 +59,7 @@ lh_net_ip4_socket_addr_get_port(const lh_net_ip4_socket_addr_t *self)
     return self->port;
 }
 
-void
+lh_void
 lh_net_ip4_socket_addr_set_port(lh_net_ip4_socket_addr_t *self, lh_net_port_t port)
 {
     lh_assert_runtime_ref(self);

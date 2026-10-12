@@ -17,6 +17,7 @@
 #ifndef LH_NET_SOCKET_ADDR_IP4_H
 #define LH_NET_SOCKET_ADDR_IP4_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/net/ip.h>
@@ -53,7 +54,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Fill @p self from @p ip and @p port.
  */
-void
+lh_void
 lh_net_ip4_socket_addr_init(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *ip,
                              lh_net_port_t port);
 
@@ -64,7 +65,7 @@ lh_net_ip4_socket_addr_init(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *
  * @param ip   New IP address.
  * @param port New port number.
  */
-void
+lh_void
 lh_net_ip4_socket_addr_set(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *ip,
                            lh_net_port_t port);
 
@@ -73,7 +74,7 @@ lh_net_ip4_socket_addr_set(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *i
  * @param self  Destination address.
  * @param other Source address.
  */
-void
+lh_void
 lh_net_ip4_socket_addr_assign(lh_net_ip4_socket_addr_t *self,
                               const lh_net_ip4_socket_addr_t *other);
 
@@ -92,7 +93,7 @@ lh_net_ip4_socket_addr_get_ip(const lh_net_ip4_socket_addr_t *self);
  * @param self Address to modify.
  * @param ip   New IP address.
  */
-void
+lh_void
 lh_net_ip4_socket_addr_set_ip(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *ip);
 
 /**
@@ -108,7 +109,7 @@ lh_net_ip4_socket_addr_get_port(const lh_net_ip4_socket_addr_t *self);
  * @param self Address to modify.
  * @param port New port number.
  */
-void
+lh_void
 lh_net_ip4_socket_addr_set_port(lh_net_ip4_socket_addr_t *self, lh_net_port_t port);
 
 /* ── parse / format / compare ────────────────────────────────────────────── */

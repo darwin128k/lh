@@ -21,6 +21,7 @@
 #ifndef LH_TIMESTAMP_H
 #define LH_TIMESTAMP_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/datetime.h>
@@ -121,7 +122,7 @@ lh_timestamp_get_time(lh_timestamp_t self);
 /**
  * @brief Convert @p self into its date and time-of-day components.
  */
-void
+lh_void
 lh_timestamp_to_datetime(lh_timestamp_t self, lh_datetime_t *out);
 
 /**

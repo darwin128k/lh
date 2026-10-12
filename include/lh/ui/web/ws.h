@@ -11,6 +11,7 @@
 #ifndef LH_UI_WEB_WS_H
 #define LH_UI_WEB_WS_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -64,7 +65,7 @@ lh_ui_web_ws_read(const unsigned char *p, lh_usize_t n, unsigned *opcode, lh_boo
 /**
  * @brief XOR @p len bytes of @p data with the 4-byte @p mask (RFC masking).
  */
-void
+lh_void
 lh_ui_web_ws_unmask(unsigned char *data, lh_usize_t len, const unsigned char mask[4]);
 
 LH_COMPILER_EXTERN_C_END

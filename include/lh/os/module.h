@@ -31,6 +31,7 @@
 #ifndef LH_OS_MODULE_H
 #define LH_OS_MODULE_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -68,7 +69,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Empty module: no image, no methods, no owner, no loader. Does not
  *        touch the OS.
  */
-void
+lh_void
 lh_os_module_init(lh_os_module_t *self);
 
 /**
@@ -79,7 +80,7 @@ lh_os_module_init(lh_os_module_t *self);
  * (::lh_os_loader_unload_child / ::lh_os_loader_unload); deinitializing it
  * directly is a checked error.
  */
-void
+lh_void
 lh_os_module_deinit(lh_os_module_t *self);
 
 /**
@@ -99,7 +100,7 @@ lh_os_module_create(void);
  * @brief ::lh_os_module_deinit, then free the memory. Only for a module from
  *        ::lh_os_module_create; same "nobody holds it" rule as deinit.
  */
-void
+lh_void
 lh_os_module_destroy(lh_os_module_t *self);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
@@ -148,7 +149,7 @@ lh_os_module_get_ops(const lh_os_module_t *self);
  * module. The table must outlive the module (normally it is static data
  * inside the image).
  */
-void
+lh_void
 lh_os_module_set_ops(lh_os_module_t *self, const lh_os_module_ops_t *ops);
 
 /**
@@ -160,7 +161,7 @@ lh_os_module_get_data(const lh_os_module_t *self);
 /**
  * @brief Keep @p data as the module's private state. The module owns it.
  */
-void
+lh_void
 lh_os_module_set_data(lh_os_module_t *self, lh_ptr data);
 
 /**
@@ -174,7 +175,7 @@ lh_os_module_get_owner(const lh_os_module_t *self);
 /**
  * @brief Record which loader holds @p self. Set by ::lh_os_loader_load.
  */
-void
+lh_void
 lh_os_module_set_owner(lh_os_module_t *self, struct lh_os_loader *owner);
 
 /**
@@ -290,7 +291,7 @@ lh_os_module_start(lh_os_module_t *self);
  *
  * Safe on a module that is not started.
  */
-void
+lh_void
 lh_os_module_stop(lh_os_module_t *self);
 
 /* ── symbols ─────────────────────────────────────────────────────────────── */

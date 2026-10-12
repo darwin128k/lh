@@ -16,6 +16,7 @@
 #ifndef LH_OS_FS_FILE_H
 #define LH_OS_FS_FILE_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -56,13 +57,13 @@ LH_COMPILER_EXTERN_C_BEGIN
  * Call once on uninitialized storage. Reset an already-initialized file
  * with ::lh_os_fs_file_close (handle only) or ::lh_os_fs_file_deinit.
  */
-void
+lh_void
 lh_os_fs_file_init(lh_os_fs_file_t *self);
 
 /**
  * @brief Close the handle and release the stored path.
  */
-void
+lh_void
 lh_os_fs_file_deinit(lh_os_fs_file_t *self);
 
 /**
@@ -70,13 +71,13 @@ lh_os_fs_file_deinit(lh_os_fs_file_t *self);
  *
  * Safe to call on an already-closed file. Releases the OS handle when open.
  */
-void
+lh_void
 lh_os_fs_file_close(lh_os_fs_file_t *self);
 
 /**
  * @brief Copy @p path into the stored path. The handle is not touched.
  */
-void
+lh_void
 lh_os_fs_file_set_path(lh_os_fs_file_t *self, const lh_fs_path_t *path);
 
 /**
@@ -122,7 +123,7 @@ lh_os_fs_file_get_mode(const lh_os_fs_file_t *self);
  * Internal bookkeeping for ::lh_os_fs_file_open/::lh_os_fs_file_close —
  * does not itself open or close anything.
  */
-void
+lh_void
 lh_os_fs_file_set_mode(lh_os_fs_file_t *self, lh_fs_file_mode_t mode);
 
 /**

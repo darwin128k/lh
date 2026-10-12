@@ -3,6 +3,7 @@
  * @brief Implementation of lh/ui/view.h — entity tree on an lh_ui_canvas_t.
  */
 
+#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/math.h>
 #include <lh/null.h>
@@ -642,7 +643,7 @@ lh_ui_view_set_pressed(lh_ui_view_t *self, lh_ui_entity_t *entity, lh_bool_t pre
    two are the resting and pressed looks of a press (::lh_ui_view_damage_shape)
    and the resting and hot looks of a hover (::lh_ui_view_set_hot); either may
    be ::lh_null, which is a look that casts nothing. */
-static void
+static lh_void
 lh_ui_view_damage_looks(lh_ui_view_t *self, const lh_ui_entity_t *entity,
                         const lh_ui_style_t *first, const lh_ui_style_t *second)
 {

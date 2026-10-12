@@ -6,6 +6,7 @@
 #ifndef LH_RUNTIME_CHECK_FAIL_FN_H
 #define LH_RUNTIME_CHECK_FAIL_FN_H
 
+#include <lh/void.h>
 #include <lh/exception.h>
 
 /**
@@ -19,6 +20,6 @@
  * you keep. The handler may log, reset the board, or stop; if it returns,
  * ::lh_runtime_terminate runs next.
  */
-typedef void(lh_runtime_check_fail_fn)(const lh_exception_t *exception);
+typedef lh_void(lh_runtime_check_fail_fn)(const lh_exception_t *exception);
 
 #endif /* LH_RUNTIME_CHECK_FAIL_FN_H */

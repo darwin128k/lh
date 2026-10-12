@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/os/system/fs/file.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
@@ -87,7 +88,7 @@ lh_os_system_fs_file_open(lh_str_cptr path, lh_fs_file_mode_t mode)
     return lh_cast_reinterpret(lh_os_system_fs_file_handle_t, native);
 }
 
-void
+lh_void
 lh_os_system_fs_file_close(lh_os_system_fs_file_handle_t handle)
 {
     (void)CloseHandle(lh_os_system_fs_file_native(handle));

@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/date.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
@@ -28,21 +29,21 @@ lh_date_days_from_year_zero(lh_date_year_t year)
     return lh_math_add(common_days, leap_count);
 }
 
-void
+lh_void
 lh_date_set_year(lh_date_t *self, lh_date_year_t year)
 {
     lh_assert_runtime_ref(self);
     self->year = year;
 }
 
-void
+lh_void
 lh_date_set_month(lh_date_t *self, lh_date_month_t month)
 {
     lh_assert_runtime_ref(self);
     self->month = month;
 }
 
-void
+lh_void
 lh_date_set_day(lh_date_t *self, lh_date_day_t day)
 {
     lh_assert_runtime_ref(self);
@@ -61,7 +62,7 @@ lh_date_ymd_is_valid(lh_uint_t year, lh_uint_t month, lh_uint_t day)
                                                                   lh_cast_static(lh_date_month_t, month)));
 }
 
-void
+lh_void
 lh_date_set(lh_date_t *self, lh_date_year_t year, lh_date_month_t month, lh_date_day_t day)
 {
     lh_date_set_year(self, year);
@@ -69,7 +70,7 @@ lh_date_set(lh_date_t *self, lh_date_year_t year, lh_date_month_t month, lh_date
     lh_date_set_day(self, day);
 }
 
-void
+lh_void
 lh_date_assign(lh_date_t *self, const lh_date_t *other)
 {
     lh_date_set(self, lh_date_get_year(other), lh_date_get_month(other), lh_date_get_day(other));

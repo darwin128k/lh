@@ -9,6 +9,7 @@
 #ifndef LH_ERROR_H
 #define LH_ERROR_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/error/code.h>
@@ -36,7 +37,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param code New error code.
  * @param desc New description view (empty view = no description).
  */
-void
+lh_void
 lh_error_set(lh_error_t *self, lh_error_code_t code, lh_str_view_t desc);
 
 /**
@@ -45,7 +46,7 @@ lh_error_set(lh_error_t *self, lh_error_code_t code, lh_str_view_t desc);
  * @param self Error object to modify.
  * @param code New error code.
  */
-void
+lh_void
 lh_error_set_code(lh_error_t *self, lh_error_code_t code);
 
 /**
@@ -54,7 +55,7 @@ lh_error_set_code(lh_error_t *self, lh_error_code_t code);
  * @param self Error object to modify.
  * @param desc New description view (empty view = no description).
  */
-void
+lh_void
 lh_error_set_desc(lh_error_t *self, lh_str_view_t desc);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
@@ -178,7 +179,7 @@ lh_error_has_diff_code(const lh_error_t *self, const lh_error_t *other);
  * @param self  Destination error object.
  * @param other Source error object to copy from.
  */
-void
+lh_void
 lh_error_assign(lh_error_t *self, const lh_error_t *other);
 
 /**
@@ -188,7 +189,7 @@ lh_error_assign(lh_error_t *self, const lh_error_t *other);
  *
  * @param self Error object to clear.
  */
-void
+lh_void
 lh_error_clear(lh_error_t *self);
 
 /* ── init ────────────────────────────────────────────────────────────────── */
@@ -200,7 +201,7 @@ lh_error_clear(lh_error_t *self);
  * @param code Initial error code.
  * @param desc Initial description view (empty view = no description).
  */
-void
+lh_void
 lh_error_init(lh_error_t *self, lh_error_code_t code, lh_str_view_t desc);
 
 /**
@@ -208,7 +209,7 @@ lh_error_init(lh_error_t *self, lh_error_code_t code, lh_str_view_t desc);
  * @param self  Error object to initialize.
  * @param other Source error to copy from.
  */
-void
+lh_void
 lh_error_init_by_other(lh_error_t *self, const lh_error_t *other);
 
 /**
@@ -218,13 +219,13 @@ lh_error_init_by_other(lh_error_t *self, const lh_error_t *other);
  *
  * @param self Error object to initialize.
  */
-void
+lh_void
 lh_error_init_by_empty(lh_error_t *self);
 
 /**
  * @brief Initialize @p self with @p code and an empty description.
  */
-void
+lh_void
 lh_error_init_by_code(lh_error_t *self, lh_error_code_t code);
 
 /**

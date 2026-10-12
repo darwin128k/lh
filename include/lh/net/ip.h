@@ -10,6 +10,7 @@
 #ifndef LH_NET_IP_H
 #define LH_NET_IP_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/limits.h>
@@ -82,7 +83,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Fill @p self from four octets.
  */
-void
+lh_void
 lh_net_ip4_init(lh_net_ip4_t *self, lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet2, lh_u8_t octet3);
 
 /**
@@ -94,7 +95,7 @@ lh_net_ip4_init(lh_net_ip4_t *self, lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octe
  * @param octet2 Third octet.
  * @param octet3 Fourth octet.
  */
-void
+lh_void
 lh_net_ip4_set(lh_net_ip4_t *self, lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet2, lh_u8_t octet3);
 
 /**
@@ -102,7 +103,7 @@ lh_net_ip4_set(lh_net_ip4_t *self, lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet
  * @param self  Destination address.
  * @param other Source address.
  */
-void
+lh_void
 lh_net_ip4_assign(lh_net_ip4_t *self, const lh_net_ip4_t *other);
 
 /* ── octet access ────────────────────────────────────────────────────────── */
@@ -124,7 +125,7 @@ lh_net_ip4_get_octet(const lh_net_ip4_t *self, lh_usize_t index);
  * @param index Octet position (0-3).
  * @param value New octet value.
  */
-void
+lh_void
 lh_net_ip4_set_octet(lh_net_ip4_t *self, lh_usize_t index, lh_u8_t value);
 
 /**

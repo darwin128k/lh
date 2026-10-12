@@ -10,6 +10,7 @@
 #ifndef LH_IO_DGRAM_WRITER_H
 #define LH_IO_DGRAM_WRITER_H
 
+#include <lh/void.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/io/dgram/writer/cb.h>
 #include <lh/io/dgram/writer/fields.h>
@@ -29,17 +30,17 @@ typedef struct lh_io_dgram_writer lh_io_dgram_writer_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-void
+lh_void
 lh_io_dgram_writer_assign(lh_io_dgram_writer_t *self, const lh_io_dgram_writer_t *other);
 
-void
+lh_void
 lh_io_dgram_writer_set(lh_io_dgram_writer_t *self, lh_io_dgram_writer_send_cb send_cb,
                        lh_ptr context);
 
-void
+lh_void
 lh_io_dgram_writer_set_send_cb(lh_io_dgram_writer_t *self, lh_io_dgram_writer_send_cb send_cb);
 
-void
+lh_void
 lh_io_dgram_writer_set_context(lh_io_dgram_writer_t *self, lh_ptr context);
 
 /**
@@ -49,11 +50,11 @@ lh_io_dgram_writer_set_context(lh_io_dgram_writer_t *self, lh_ptr context);
  * @param send_cb Send callback (may be ::lh_null to leave sending disabled).
  * @param context Context passed to @p send_cb on every call.
  */
-void
+lh_void
 lh_io_dgram_writer_init(lh_io_dgram_writer_t *self, lh_io_dgram_writer_send_cb send_cb,
                         lh_ptr context);
 
-void
+lh_void
 lh_io_dgram_writer_deinit(lh_io_dgram_writer_t *self);
 
 lh_io_dgram_writer_send_cb

@@ -1,24 +1,25 @@
+#include <lh/void.h>
 #include <lh/error.h>
 #include <lh/error/initializer.h>
 #include <lh/str/view/initializer.h>
 #include <lh/util/addr.h>
 #include <lh/assert.h>
 
-void
+lh_void
 lh_error_set(lh_error_t *self, lh_error_code_t code, lh_str_view_t desc)
 {
     lh_error_set_code(self, code);
     lh_error_set_desc(self, desc);
 }
 
-void
+lh_void
 lh_error_set_code(lh_error_t *self, lh_error_code_t code)
 {
     lh_assert_runtime_ref(self);
     self->code = code;
 }
 
-void
+lh_void
 lh_error_set_desc(lh_error_t *self, lh_str_view_t desc)
 {
     lh_assert_runtime_ref(self);
@@ -49,38 +50,38 @@ lh_error_get_desc_or(const lh_error_t *self, lh_str_view_t fallback)
     return fallback;
 }
 
-void
+lh_void
 lh_error_assign(lh_error_t *self, const lh_error_t *other)
 {
     lh_error_set(self, lh_error_get_code(other), lh_error_get_desc(other));
 }
 
-void
+lh_void
 lh_error_clear(lh_error_t *self)
 {
     const lh_error_t empty_initializer = lh_error_empty_initializer();
     lh_error_assign(self, lh_addr_of(empty_initializer));
 }
 
-void
+lh_void
 lh_error_init(lh_error_t *self, lh_error_code_t code, lh_str_view_t desc)
 {
     lh_error_set(self, code, desc);
 }
 
-void
+lh_void
 lh_error_init_by_other(lh_error_t *self, const lh_error_t *other)
 {
     lh_error_assign(self, other);
 }
 
-void
+lh_void
 lh_error_init_by_empty(lh_error_t *self)
 {
     lh_error_clear(self);
 }
 
-void
+lh_void
 lh_error_init_by_code(lh_error_t *self, lh_error_code_t code)
 {
     lh_error_init(self, code, lh_str_view_empty());

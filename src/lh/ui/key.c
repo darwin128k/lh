@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/key.h`.
  */
 
+#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/runtime/error/code.h>
 #include <lh/ui/key.h>

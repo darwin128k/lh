@@ -10,6 +10,7 @@
 #ifndef LH_CRYPTO_SHA_H
 #define LH_CRYPTO_SHA_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/crypto/sha/kind.h>
@@ -106,7 +107,7 @@ lh_crypto_sha_block_size(lh_crypto_sha_kind_t kind);
  * @param self Hasher to initialise.
  * @param kind Algorithm; one of the `lh_crypto_sha_kind_*` constants.
  */
-void
+lh_void
 lh_crypto_sha_init(lh_crypto_sha_t *self, lh_crypto_sha_kind_t kind);
 
 /**
@@ -118,7 +119,7 @@ lh_crypto_sha_init(lh_crypto_sha_t *self, lh_crypto_sha_kind_t kind);
  * @param data Input span. Ignored when @p size is 0.
  * @param size Number of bytes in @p data.
  */
-void
+lh_void
 lh_crypto_sha_update(lh_crypto_sha_t *self, const lh_ptr data, lh_usize_t size);
 
 /**

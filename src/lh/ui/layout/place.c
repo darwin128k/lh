@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/layout/place.h`.
  */
 
+#include <lh/void.h>
 #include <lh/assert/runtime.h>
 #include <lh/ui/layout/place.h>
 #include <lh/util/addr.h>

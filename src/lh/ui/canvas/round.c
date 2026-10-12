@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/canvas/round.h`.
  */
 
+#include <lh/void.h>
 #include <lh/math.h>
 #include <lh/null.h>
 #include <lh/ui/canvas.h>

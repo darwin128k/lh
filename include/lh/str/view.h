@@ -20,6 +20,7 @@
 #ifndef LH_STR_VIEW_H
 #define LH_STR_VIEW_H
 
+#include <lh/void.h>
 #include <lh/memory/view.h>
 #include <lh/str/ptr.h>
 #include <lh/str/view/initializer.h>

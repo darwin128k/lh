@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/wstr.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
@@ -12,7 +13,7 @@ static const lh_wchar_t m_wstr_empty[1] = {0};
 /* Write the NUL after the last character. Only for a string that owns a
    buffer: every buffer is sized for size + 1, so the slot exists. */
 LH_ATTRIBUTE_STATIC
-void
+lh_void
 lh_wstr_write_terminator(lh_wstr_t *self)
 {
     lh_ptr_deref_of(lh_wchar_t, lh_array_get_end(self)) = 0;
@@ -21,7 +22,7 @@ lh_wstr_write_terminator(lh_wstr_t *self)
 /* Same, for callers that may run on a string that never grew (no buffer,
    nothing to write). */
 LH_ATTRIBUTE_STATIC
-void
+lh_void
 lh_wstr_terminate(lh_wstr_t *self)
 {
     if (lh_math_is_zero(lh_array_get_capacity(self)))
@@ -31,13 +32,13 @@ lh_wstr_terminate(lh_wstr_t *self)
     lh_wstr_write_terminator(self);
 }
 
-void
+lh_void
 lh_wstr_init(lh_wstr_t *self)
 {
     lh_array_init(self, sizeof(lh_wchar_t));
 }
 
-void
+lh_void
 lh_wstr_deinit(lh_wstr_t *self)
 {
     lh_array_deinit(self);
@@ -65,7 +66,7 @@ lh_wstr_is_empty(const lh_wstr_t *self)
     return lh_array_is_empty(self);
 }
 
-void
+lh_void
 lh_wstr_append(lh_wstr_t *self, lh_wstr_cptr text, lh_usize_t count)
 {
     lh_usize_t needed;
@@ -87,13 +88,13 @@ lh_wstr_append(lh_wstr_t *self, lh_wstr_cptr text, lh_usize_t count)
     lh_wstr_write_terminator(self);
 }
 
-void
+lh_void
 lh_wstr_push_back(lh_wstr_t *self, lh_wchar_t ch)
 {
     lh_wstr_append(self, lh_addr_of(ch), 1);
 }
 
-void
+lh_void
 lh_wstr_append_view(lh_wstr_t *self, lh_wstr_view_t view)
 {
     if (lh_wstr_view_is_empty(lh_addr_of(view)))
@@ -104,7 +105,7 @@ lh_wstr_append_view(lh_wstr_t *self, lh_wstr_view_t view)
                   lh_wstr_view_get_size(lh_addr_of(view)));
 }
 
-void
+lh_void
 lh_wstr_append_str(lh_wstr_t *self, const lh_wstr_t *other)
 {
     lh_assert_runtime_ref(other);
@@ -123,7 +124,7 @@ lh_wstr_append_str(lh_wstr_t *self, const lh_wstr_t *other)
     lh_wstr_append_view(self, lh_wstr_as_view(other));
 }
 
-void
+lh_void
 lh_wstr_assign(lh_wstr_t *self, const lh_wstr_t *other)
 {
     lh_assert_runtime_ref(other);
@@ -135,14 +136,14 @@ lh_wstr_assign(lh_wstr_t *self, const lh_wstr_t *other)
     lh_wstr_append_str(self, other);
 }
 
-void
+lh_void
 lh_wstr_assign_view(lh_wstr_t *self, lh_wstr_view_t view)
 {
     lh_wstr_clear(self);
     lh_wstr_append_view(self, view);
 }
 
-void
+lh_void
 lh_wstr_join(lh_wstr_t *self, const lh_wstr_view_t *parts, lh_usize_t count, lh_wchar_t sep)
 {
     lh_usize_t i;
@@ -162,14 +163,14 @@ lh_wstr_join(lh_wstr_t *self, const lh_wstr_view_t *parts, lh_usize_t count, lh_
     }
 }
 
-void
+lh_void
 lh_wstr_clear(lh_wstr_t *self)
 {
     lh_array_clear(self);
     lh_wstr_terminate(self);
 }
 
-void
+lh_void
 lh_wstr_truncate(lh_wstr_t *self, lh_usize_t n)
 {
     lh_assert_runtime_ref(self);

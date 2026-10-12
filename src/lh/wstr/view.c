@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/wstr/view.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>

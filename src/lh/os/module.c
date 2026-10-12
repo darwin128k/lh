@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/os/module.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
@@ -55,7 +56,7 @@ lh_os_module_is_started(const lh_os_module_t *self)
 }
 
 LH_ATTRIBUTE_STATIC
-void
+lh_void
 lh_os_module_set_started(lh_os_module_t *self, lh_bool_t started)
 {
     lh_assert_runtime_ref(self);
@@ -69,7 +70,7 @@ lh_os_module_get_ops(const lh_os_module_t *self)
     return self->ops;
 }
 
-void
+lh_void
 lh_os_module_set_ops(lh_os_module_t *self, const lh_os_module_ops_t *ops)
 {
     lh_assert_runtime_if(lh_os_module_is_started(self), lh_runtime_error_code_invalid_argument);
@@ -83,7 +84,7 @@ lh_os_module_get_data(const lh_os_module_t *self)
     return self->data;
 }
 
-void
+lh_void
 lh_os_module_set_data(lh_os_module_t *self, lh_ptr data)
 {
     lh_assert_runtime_ref(self);
@@ -97,7 +98,7 @@ lh_os_module_get_owner(const lh_os_module_t *self)
     return self->owner;
 }
 
-void
+lh_void
 lh_os_module_set_owner(lh_os_module_t *self, lh_os_loader_t *owner)
 {
     lh_assert_runtime_ref(self);
@@ -133,7 +134,7 @@ lh_os_module_get_loader(const lh_os_module_t *self)
 }
 
 LH_ATTRIBUTE_STATIC
-void
+lh_void
 lh_os_module_set_loader(lh_os_module_t *self, lh_os_loader_t *loader)
 {
     lh_assert_runtime_ref(self);
@@ -142,7 +143,7 @@ lh_os_module_set_loader(lh_os_module_t *self, lh_os_loader_t *loader)
 
 /* ── init / deinit ───────────────────────────────────────────────────────── */
 
-void
+lh_void
 lh_os_module_init(lh_os_module_t *self)
 {
     lh_os_shared_init(lh_os_module_get_image(self));
@@ -154,7 +155,7 @@ lh_os_module_init(lh_os_module_t *self)
     lh_list_node_init(lh_os_module_get_node(self));
 }
 
-void
+lh_void
 lh_os_module_deinit(lh_os_module_t *self)
 {
     /* A child still in its owner's list would leave the list pointing at freed memory. */
@@ -177,7 +178,7 @@ lh_os_module_create(void)
     return self;
 }
 
-void
+lh_void
 lh_os_module_destroy(lh_os_module_t *self)
 {
     lh_os_module_deinit(self);
@@ -205,7 +206,7 @@ lh_os_module_grant_loader(lh_os_module_t *self, lh_str_cptr entry)
 
 /* Children go before their parent: they may still use what it provides. */
 LH_ATTRIBUTE_STATIC
-void
+lh_void
 lh_os_module_revoke_loader(lh_os_module_t *self)
 {
     lh_os_loader_t *const loader = lh_os_module_get_loader(self);
@@ -238,7 +239,7 @@ lh_os_module_start(lh_os_module_t *self)
     return lh_bool_true;
 }
 
-void
+lh_void
 lh_os_module_stop(lh_os_module_t *self)
 {
     lh_os_module_revoke_loader(self);

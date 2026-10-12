@@ -17,6 +17,8 @@
 #ifndef LH_RUNTIME_TERMINATE_FN_H
 #define LH_RUNTIME_TERMINATE_FN_H
 
+#include <lh/void.h>
+
 /**
  * @typedef lh_runtime_terminate_fn
  * @brief Function type `void (void)` — the terminate handler signature.
@@ -28,6 +30,6 @@
  * @see lh_runtime_terminate_set
  * @see lh_runtime_terminate
  */
-typedef void(lh_runtime_terminate_fn)(void);
+typedef lh_void(lh_runtime_terminate_fn)(void);
 
 #endif /* LH_RUNTIME_TERMINATE_FN_H */

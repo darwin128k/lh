@@ -18,6 +18,7 @@
 #ifndef LH_OS_FS_DIR_H
 #define LH_OS_FS_DIR_H
 
+#include <lh/void.h>
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -52,7 +53,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @param self Directory object to initialize.
  */
-void
+lh_void
 lh_os_fs_dir_init(lh_os_fs_dir_t *self);
 
 /**
@@ -73,7 +74,7 @@ lh_os_fs_dir_open(lh_os_fs_dir_t *self, const lh_fs_path_t *path);
  *
  * @param self Directory object to close.
  */
-void
+lh_void
 lh_os_fs_dir_close(lh_os_fs_dir_t *self);
 
 /**

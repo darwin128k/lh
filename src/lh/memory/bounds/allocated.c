@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/memory/bounds/allocated.h>
 #include <lh/runtime/allocator.h>
 #include <lh/util/ptr.h>

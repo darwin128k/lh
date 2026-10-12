@@ -1,3 +1,4 @@
+#include <lh/void.h>
 #include <lh/memory/std.h>
 #include <lh/assert.h>
 #include <lh/attribute/force_inline.h>
@@ -152,7 +153,7 @@ lh_memory_std_has_sse2(void)
  * x86/x86-64 unaligned integer loads/stores are architecturally defined.
  * Precondition: n < 16. */
 LH_ATTRIBUTE_FORCE_INLINE
-void
+lh_void
 lh_memory_std_copy_tiny(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     if (n >= 8U)
@@ -193,7 +194,7 @@ lh_memory_std_copy_tiny(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 #endif
 
 LH_ATTRIBUTE_FORCE_INLINE
-void
+lh_void
 lh_memory_std_copy_bytes(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
 #if LH_MEMORY_STD_HAVE_COPY_TINY
@@ -224,7 +225,7 @@ lh_memory_std_copy_bytes(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 /* dst[i] = src[n-1-i] for n < 16. Both ends loaded before any store so an
  * in-place reverse is defined. Precondition: n < 16. */
 LH_ATTRIBUTE_FORCE_INLINE
-void
+lh_void
 lh_memory_std_copy_rev_tiny(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     if (n >= 8U)
@@ -262,7 +263,7 @@ lh_memory_std_copy_rev_tiny(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 #endif
 
 LH_ATTRIBUTE_FORCE_INLINE
-void
+lh_void
 lh_memory_std_copy_rev_bytes(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
 #if LH_COMPILER_ARCH_FAMILY_IS_X86
@@ -297,7 +298,7 @@ lh_memory_std_copy_rev_bytes(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
  * store, then the high end is written first — safe for memmove-backward overlap
  * (dst inside the source span). Precondition: n < 16. */
 LH_ATTRIBUTE_FORCE_INLINE
-void
+lh_void
 lh_memory_std_rcopy_tiny(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     if (n >= 8U)
@@ -335,7 +336,7 @@ lh_memory_std_rcopy_tiny(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 #endif
 
 LH_ATTRIBUTE_FORCE_INLINE
-void
+lh_void
 lh_memory_std_rcopy_bytes(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
 #if LH_COMPILER_ARCH_FAMILY_IS_X86
@@ -368,7 +369,7 @@ lh_memory_std_rcopy_bytes(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 }
 
 LH_ATTRIBUTE_FORCE_INLINE
-void
+lh_void
 lh_memory_std_set_bytes(lh_byte_t *dst, lh_byte_t val, lh_usize_t n)
 {
 #if LH_COMPILER_ARCH_FAMILY_IS_X86
@@ -497,7 +498,7 @@ static unsigned char m_copy_rev_kind;
 
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
-void
+lh_void
 lh_memory_std_copy64_storeu(lh_byte_t *dst, const lh_byte_t *src)
 {
     const __m128i v0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 0));
@@ -512,7 +513,7 @@ lh_memory_std_copy64_storeu(lh_byte_t *dst, const lh_byte_t *src)
 
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
-void
+lh_void
 lh_memory_std_copy128_store_sse2(lh_byte_t *dst, const lh_byte_t *src)
 {
     const __m128i v0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 0));
@@ -541,7 +542,7 @@ lh_memory_std_copy128_store_sse2(lh_byte_t *dst, const lh_byte_t *src)
  * and the Zen2 bench machines. Precondition: n < 512. */
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
-void
+lh_void
 lh_memory_std_copy_sse2_small(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     /* CRT-style overlapping vector stores: two (or four) unaligned 16-byte moves
@@ -598,7 +599,7 @@ lh_memory_std_copy_sse2_small(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n
 }
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
-static void
+static lh_void
 lh_memory_std_copy_sse2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     if (n < 512U)
@@ -671,7 +672,7 @@ lh_memory_std_copy_sse2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
  * destination; the short unaligned head is copied with regular stores first, and
  * _mm_sfence() fences the weakly-ordered NT stores before the scalar tail runs. */
 LH_MEMORY_STD_SIMD_TARGET("sse2")
-static void
+static lh_void
 lh_memory_std_copy_sse2_stream(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     lh_byte_t *dst_end = dst + n;
@@ -744,7 +745,7 @@ lh_memory_std_copy_sse2_stream(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t 
  * SSE/AVX transition penalty on older microarchitectures. */
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("avx2")
-void
+lh_void
 lh_memory_std_copy128_storeu(lh_byte_t *dst, const lh_byte_t *src)
 {
     const __m256i v0 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 0));
@@ -759,7 +760,7 @@ lh_memory_std_copy128_storeu(lh_byte_t *dst, const lh_byte_t *src)
 
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("avx2")
-void
+lh_void
 lh_memory_std_copy256_store(lh_byte_t *dst, const lh_byte_t *src)
 {
     const __m256i v0 = _mm256_loadu_si256(lh_ptr_rcast(const __m256i, src + 0));
@@ -781,7 +782,7 @@ lh_memory_std_copy256_store(lh_byte_t *dst, const lh_byte_t *src)
 }
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
-static void
+static lh_void
 lh_memory_std_copy_avx2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     /* 16-31: overlapping XMM. Compiled under target("avx2") so GCC/Clang emit
@@ -906,7 +907,7 @@ lh_memory_std_copy_avx2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
  * first; and the stores are weakly ordered against everything after them until a fence, handled
  * by _mm_sfence() before the tail below runs. */
 LH_MEMORY_STD_SIMD_TARGET("avx2")
-static void
+static lh_void
 lh_memory_std_copy_avx2_stream(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     lh_byte_t *dst_end = dst + n;
@@ -972,15 +973,15 @@ lh_memory_std_copy_avx2_stream(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t 
 
 #    endif /* LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
-static void
+static lh_void
 lh_memory_std_copy_simd_scalar(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     lh_memory_std_copy_bytes(dst, src, n);
 }
 
-typedef void (*lh_memory_std_copy_simd_fn)(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n);
+typedef lh_void(*lh_memory_std_copy_simd_fn)(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n);
 
-static void
+static lh_void
 lh_memory_std_copy_simd_dispatch(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n);
 
 /* Rewrites itself to the resolved implementation on the first real call, same
@@ -1051,7 +1052,7 @@ lh_memory_std_is_stream_size(lh_usize_t n, lh_usize_t traffic)
     return lh_cast_static(lh_bool_t, n >= cache_size / traffic);
 }
 
-static void
+static lh_void
 lh_memory_std_copy_simd_dispatch(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
@@ -1289,7 +1290,7 @@ LH_MEMORY_STD_SIMD_TARGET("sse2") static __m128i lh_memory_std_reverse_epi8_sse2
  * dst[i] = src[n-1-i]. Load a forward block from src, byte-reverse it in-register,
  * store it at the descending destination cursor. */
 LH_MEMORY_STD_SIMD_TARGET("sse2")
-static void
+static lh_void
 lh_memory_std_copy_rev_sse2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     lh_byte_t *d_end = dst + n;
@@ -1351,7 +1352,7 @@ LH_MEMORY_STD_SIMD_TARGET("ssse3") static __m128i lh_memory_std_reverse_epi8_sss
 /* Same structure as lh_memory_std_copy_rev_sse2 — only the in-register reverse
  * differs. See that function's own comments for the block/chunk-order reasoning. */
 LH_MEMORY_STD_SIMD_TARGET("ssse3")
-static void
+static lh_void
 lh_memory_std_copy_rev_ssse3(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     lh_byte_t *d_end = dst + n;
@@ -1400,7 +1401,7 @@ lh_memory_std_copy_rev_ssse3(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
-static void
+static lh_void
 lh_memory_std_copy_rev_avx2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     const __m256i lane_rev = _mm256_setr_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,
@@ -1496,16 +1497,16 @@ lh_memory_std_copy_rev_avx2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 
 #    endif /* LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
-static void
+static lh_void
 lh_memory_std_copy_rev_simd_scalar(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     lh_memory_std_copy_rev_bytes(dst, src, n);
 }
 
-typedef void (*lh_memory_std_copy_rev_simd_fn)(lh_byte_t *dst, const lh_byte_t *src,
+typedef lh_void(*lh_memory_std_copy_rev_simd_fn)(lh_byte_t *dst, const lh_byte_t *src,
                                                lh_usize_t n);
 
-static void
+static lh_void
 lh_memory_std_copy_rev_simd_dispatch(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n);
 
 static lh_memory_std_copy_rev_simd_fn m_copy_rev_simd_impl = lh_memory_std_copy_rev_simd_dispatch;
@@ -1513,7 +1514,7 @@ static lh_memory_std_copy_rev_simd_fn m_copy_rev_simd_impl = lh_memory_std_copy_
 #    define LH_MEMORY_STD_SIMD_COPY_REV_THRESHOLD                                                  \
         (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_SIMD_MIN_THRESHOLD))
 
-static void
+static lh_void
 lh_memory_std_copy_rev_simd_dispatch(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
@@ -1617,7 +1618,7 @@ lh_memory_std_copy_rev(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 
 LH_MEMORY_STD_SIMD_TARGET("sse2")
-static void
+static lh_void
 lh_memory_std_rcopy_sse2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     if (n < 64U)
@@ -1700,7 +1701,7 @@ lh_memory_std_rcopy_sse2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 
 /* See lh_memory_std_compare_avx2 for why the tail falls back to scalar, not SSE2. */
 LH_MEMORY_STD_SIMD_TARGET("avx2")
-static void
+static lh_void
 lh_memory_std_rcopy_avx2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     if (n < 64U)
@@ -1766,20 +1767,20 @@ lh_memory_std_rcopy_avx2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 
 #    endif /* LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
-static void
+static lh_void
 lh_memory_std_rcopy_simd_scalar(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     lh_memory_std_rcopy_bytes(dst, src, n);
 }
 
-typedef void (*lh_memory_std_rcopy_simd_fn)(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n);
+typedef lh_void(*lh_memory_std_rcopy_simd_fn)(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n);
 
-static void
+static lh_void
 lh_memory_std_rcopy_simd_dispatch(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n);
 
 static lh_memory_std_rcopy_simd_fn m_rcopy_simd_impl = lh_memory_std_rcopy_simd_dispatch;
 
-static void
+static lh_void
 lh_memory_std_rcopy_simd_dispatch(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
@@ -1875,7 +1876,7 @@ lh_memory_std_rcopy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 /* 16 <= n <= 128. */
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
-void
+lh_void
 lh_memory_std_move_small_sse2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     if (n <= 32U)
@@ -1931,7 +1932,7 @@ lh_memory_std_move_small_sse2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n
  * corrupted such moves from 65 bytes up. The last 16 bytes are loaded before
  * the first store instead, as glibc's memmove does. n > 16. */
 LH_MEMORY_STD_SIMD_TARGET("sse2")
-static void
+static lh_void
 lh_memory_std_move_forward_sse2(lh_byte_t *dst, const lh_byte_t *src, lh_usize_t n)
 {
     const __m128i tail = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + n - 16U));
@@ -2030,7 +2031,7 @@ lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n)
  * on the SSE2-only bench machine. Same story as lh_memory_std_copy_sse2_small. */
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
-void
+lh_void
 lh_memory_std_set_sse2(lh_byte_t *dst, lh_byte_t val, lh_usize_t n)
 {
     const __m128i v = _mm_set1_epi8(lh_cast_static(char, val));
@@ -2115,7 +2116,7 @@ lh_memory_std_set_sse2(lh_byte_t *dst, lh_byte_t val, lh_usize_t n)
  * NT stores past a few MiB; without this tier large sets keep paying RFO on every
  * destination line (Release MSVC bench: 16MB set was ~2x behind CRT). */
 LH_MEMORY_STD_SIMD_TARGET("sse2")
-static void
+static lh_void
 lh_memory_std_set_sse2_stream(lh_byte_t *dst, lh_byte_t val, lh_usize_t n)
 {
     const __m128i v = _mm_set1_epi8(lh_cast_static(char, val));
@@ -2165,7 +2166,7 @@ lh_memory_std_set_sse2_stream(lh_byte_t *dst, lh_byte_t val, lh_usize_t n)
 
 /* See lh_memory_std_compare_avx2 for why the tail falls back to scalar, not SSE2. */
 LH_MEMORY_STD_SIMD_TARGET("avx2")
-static void
+static lh_void
 lh_memory_std_set_avx2(lh_byte_t *dst, lh_byte_t val, lh_usize_t n)
 {
     const __m256i v = _mm256_set1_epi8(lh_cast_static(char, val));
@@ -2263,7 +2264,7 @@ lh_memory_std_set_avx2(lh_byte_t *dst, lh_byte_t val, lh_usize_t n)
 }
 
 LH_MEMORY_STD_SIMD_TARGET("avx2")
-static void
+static lh_void
 lh_memory_std_set_avx2_stream(lh_byte_t *dst, lh_byte_t val, lh_usize_t n)
 {
     const __m256i v = _mm256_set1_epi8(lh_cast_static(char, val));
@@ -2309,21 +2310,21 @@ lh_memory_std_set_avx2_stream(lh_byte_t *dst, lh_byte_t val, lh_usize_t n)
 
 #    endif /* LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 */
 
-static void
+static lh_void
 lh_memory_std_set_simd_scalar(lh_byte_t *dst, lh_byte_t val, lh_usize_t n)
 {
     lh_memory_std_set_bytes(dst, val, n);
 }
 
-typedef void (*lh_memory_std_set_simd_fn)(lh_byte_t *dst, lh_byte_t val, lh_usize_t n);
+typedef lh_void(*lh_memory_std_set_simd_fn)(lh_byte_t *dst, lh_byte_t val, lh_usize_t n);
 
-static void
+static lh_void
 lh_memory_std_set_simd_dispatch(lh_byte_t *dst, lh_byte_t val, lh_usize_t n);
 
 static lh_memory_std_set_simd_fn m_set_simd_impl = lh_memory_std_set_simd_dispatch;
 static lh_memory_std_set_simd_fn m_set_stream_impl = lh_null;
 
-static void
+static lh_void
 lh_memory_std_set_simd_dispatch(lh_byte_t *dst, lh_byte_t val, lh_usize_t n)
 {
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
@@ -2435,7 +2436,7 @@ lh_memory_std_set(lh_ptr dst, lh_byte_t val, lh_usize_t n)
  * movdqu/pxor loop (checked via -S), so SSE2 needs no hand-written tier of its
  * own. dst may equal lhs or rhs: each byte is read before it is written. */
 LH_ATTRIBUTE_FORCE_INLINE
-void
+lh_void
 lh_memory_std_xor_bytes(lh_byte_t *dst, const lh_byte_t *lhs, const lh_byte_t *rhs, lh_usize_t n)
 {
     lh_usize_t i;
@@ -2454,7 +2455,7 @@ lh_memory_std_xor_bytes(lh_byte_t *dst, const lh_byte_t *lhs, const lh_byte_t *r
  * 16KB, ~1.2x-1.5x once memory-bound — hence LH_MEMORY_STD_SIMD_XOR_THRESHOLD.
  * dst may equal lhs or rhs: each block is fully loaded before it is stored. */
 LH_MEMORY_STD_SIMD_TARGET("avx2")
-static void
+static lh_void
 lh_memory_std_xor_avx2(lh_byte_t *dst, const lh_byte_t *lhs, const lh_byte_t *rhs, lh_usize_t n)
 {
     lh_usize_t i = 0U;
@@ -2480,7 +2481,7 @@ lh_memory_std_xor_avx2(lh_byte_t *dst, const lh_byte_t *lhs, const lh_byte_t *rh
 
 /* Resolve m_simd_kind the same way the copy/set dispatchers do, for a first
  * std call that happens to be a large xor. */
-static void
+static lh_void
 lh_memory_std_xor_resolve_kind(void)
 {
     if (lh_cpu_simd_has_avx2())

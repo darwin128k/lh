@@ -11,6 +11,7 @@
 #ifndef LH_UI_RADIUS_H
 #define LH_UI_RADIUS_H
 
+#include <lh/void.h>
 #include <lh/byte.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
