@@ -32,6 +32,7 @@
 
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <lh/cast/static.h>
 
 /** @brief A surface: its pixels and what they look like. */
 struct lh_os_system_posix_surface
@@ -66,7 +67,7 @@ lh_os_system_posix_surface_share(lh_os_system_posix_surface_t *surface, lh_usize
         lh_os_system_posix_surface_shm = 0;
         return lh_bool_false;
     }
-    id = shmget(IPC_PRIVATE, (size_t)bytes, IPC_CREAT | 0600);
+    id = shmget(IPC_PRIVATE, lh_cast_static(size_t, bytes), IPC_CREAT | 0600);
     lh_return_if(id < 0, lh_bool_false);
     address = shmat(id, lh_null, 0);
     if (address == LH_PTR_T_MAX)
@@ -122,10 +123,10 @@ lh_os_system_surface_create(int width, int height, int bits)
     /* Only 32 bits are shared: a 16-bit surface is widened on its way out, so the
        server never reads it as it is. */
     if (bits != 32 ||
-        !lh_os_system_posix_surface_share(surface, (lh_usize_t)width * (lh_usize_t)height * 4U))
+        !lh_os_system_posix_surface_share(surface, lh_cast_static(lh_usize_t, width)* lh_cast_static(lh_usize_t, height)* 4U))
     {
         surface->bits =
-            lh_ptr_rcast(lh_byte_t, lh_os_alloc((lh_usize_t)width * (lh_usize_t)height * (lh_usize_t)(bits / 8)));
+            lh_ptr_rcast(lh_byte_t, lh_os_alloc(lh_cast_static(lh_usize_t, width)* lh_cast_static(lh_usize_t, height)* lh_cast_static(lh_usize_t, (bits / 8))));
         if (lh_null_eq(surface->bits))
         {
             lh_runtime_allocator_free(surface);
@@ -206,9 +207,9 @@ lh_os_system_surface_get_dc(lh_os_system_surface_handle_t handle)
 static lh_u32_t
 lh_os_system_posix_surface_from_565(lh_u16_t pixel)
 {
-    const lh_u32_t r = (lh_u32_t)(pixel >> 11) & 0x1fU;
-    const lh_u32_t g = (lh_u32_t)(pixel >> 5) & 0x3fU;
-    const lh_u32_t b = (lh_u32_t)pixel & 0x1fU;
+    const lh_u32_t r = lh_cast_static(lh_u32_t, (pixel >> 11))& 0x1fU;
+    const lh_u32_t g = lh_cast_static(lh_u32_t, (pixel >> 5))& 0x3fU;
+    const lh_u32_t b = lh_cast_static(lh_u32_t, pixel)& 0x1fU;
 
     return ((r << 3 | r >> 2) << 16) | ((g << 2 | g >> 4) << 8) | (b << 3 | b >> 2);
 }
@@ -219,7 +220,7 @@ static lh_u32_t *
 lh_os_system_posix_surface_widen(lh_os_system_posix_surface_t *surface, int src_x, int src_y, int width,
                                  int height)
 {
-    const lh_usize_t words = (lh_usize_t)width * (lh_usize_t)height;
+    const lh_usize_t words = lh_cast_static(lh_usize_t, width)* lh_cast_static(lh_usize_t, height);
     int x;
     int y;
 
@@ -237,11 +238,11 @@ lh_os_system_posix_surface_widen(lh_os_system_posix_surface_t *surface, int src_
     }
     for (y = 0; y < height; ++y)
     {
-        const lh_u16_t *row = lh_ptr_rcast(const lh_u16_t, surface->bits) + (lh_usize_t)(src_y + y) * (lh_usize_t)surface->width;
+        const lh_u16_t *row = lh_ptr_rcast(const lh_u16_t, surface->bits) + lh_cast_static(lh_usize_t, (src_y + y))* lh_cast_static(lh_usize_t, surface->width);
 
         for (x = 0; x < width; ++x)
         {
-            surface->staging[(lh_usize_t)y * (lh_usize_t)width + (lh_usize_t)x] =
+            surface->staging[lh_cast_static(lh_usize_t, y)* lh_cast_static(lh_usize_t, width)+ lh_cast_static(lh_usize_t, x)] =
                 lh_os_system_posix_surface_from_565(row[src_x + x]);
         }
     }
@@ -314,13 +315,13 @@ lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr d
     if (surface->shared && surface->display == paint->display)
     {
         (void)lh_os_system_posix_xext_load()->XShmPutImage(paint->display, paint->window, paint->gc, lh_addr_of(image),
-                                                           src_x, src_y, x, y, (unsigned int)width,
-                                                           (unsigned int)height, 0);
+                                                           src_x, src_y, x, y, lh_cast_static(unsigned int, width),
+                                                           lh_cast_static(unsigned int, height), 0);
         surface->pending = lh_bool_true;
         return lh_bool_true;
     }
     paint->x11->XPutImage(paint->display, paint->window, paint->gc, lh_addr_of(image), src_x, src_y, x, y,
-                          (unsigned int)width, (unsigned int)height);
+                          lh_cast_static(unsigned int, width), lh_cast_static(unsigned int, height));
     return lh_bool_true;
 }
 

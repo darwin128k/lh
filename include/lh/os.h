@@ -39,6 +39,7 @@
 #include <lh/os/fs/file.h>
 #include <lh/os/fs/path.h>
 #include <lh/os/fs/stat.h>
+#include <lh/os/env.h>
 #include <lh/os/loader.h>
 #include <lh/os/module.h>
 #include <lh/os/net.h>

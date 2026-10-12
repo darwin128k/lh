@@ -12,6 +12,7 @@
 #include <lh/ui/shadow/shape.h>
 #include <lh/util/addr.h>
 #include <lh/util/return.h>
+#include <lh/cast/static.h>
 
 lh_void
 lh_ui_shadow_shape_init(lh_ui_shadow_shape_t *self, const lh_ui_shadow_t *shadow, const lh_ui_rect_t *rect,
@@ -36,24 +37,24 @@ lh_ui_shadow_shape_init(lh_ui_shadow_shape_t *self, const lh_ui_shadow_t *shadow
     self->box_x1 = lh_ui_canvas_round_right(rect);
     self->box_y0 = lh_ui_canvas_round_top(rect);
     self->box_y1 = lh_ui_canvas_round_bottom(rect);
-    lo_x = (lh_s32_t)lh_ui_radius_to_fixed(lh_ui_point_get_x(origin) + lh_ui_shadow_get_offset_x(shadow));
-    lo_y = (lh_s32_t)lh_ui_radius_to_fixed(lh_ui_point_get_y(origin) + lh_ui_shadow_get_offset_y(shadow));
-    half_x = (lh_s32_t)lh_ui_radius_to_fixed(lh_ui_size_get_width(size)) / 2;
-    half_y = (lh_s32_t)lh_ui_radius_to_fixed(lh_ui_size_get_height(size)) / 2;
-    self->r = (lh_s32_t)lh_ui_radius_to_fixed(self->corner);
+    lo_x = lh_cast_static(lh_s32_t, lh_ui_radius_to_fixed(lh_ui_point_get_x(origin) + lh_ui_shadow_get_offset_x(shadow)));
+    lo_y = lh_cast_static(lh_s32_t, lh_ui_radius_to_fixed(lh_ui_point_get_y(origin) + lh_ui_shadow_get_offset_y(shadow)));
+    half_x = lh_cast_static(lh_s32_t, lh_ui_radius_to_fixed(lh_ui_size_get_width(size)))/ 2;
+    half_y = lh_cast_static(lh_s32_t, lh_ui_radius_to_fixed(lh_ui_size_get_height(size)))/ 2;
+    self->r = lh_cast_static(lh_s32_t, lh_ui_radius_to_fixed(self->corner));
     self->cx = lo_x + half_x;
     self->cy = lo_y + half_y;
     self->hx = half_x - self->r;
     self->hy = half_y - self->r;
-    self->spread = (lh_s32_t)lh_ui_radius_to_fixed(lh_ui_shadow_get_spread(shadow));
-    self->peak = (self->spread <= 0 || lh_ui_rect_is_empty(rect)) ? 0 : (lh_s32_t)lh_ui_color_get_a(&color);
+    self->spread = lh_cast_static(lh_s32_t, lh_ui_radius_to_fixed(lh_ui_shadow_get_spread(shadow)));
+    self->peak = (self->spread <= 0 || lh_ui_rect_is_empty(rect)) ? 0 : lh_cast_static(lh_s32_t, lh_ui_color_get_a(&color));
     /* The fade straddles the edge: the peak a spread inside it, nothing a spread
        outside, and a straight line between -- `peak * (spread - d) / (2 * spread)`,
        rounded, which is a start and a step once both are in 16.16. */
     if (self->peak > 0)
     {
-        self->step = ((lh_s64_t)self->peak << 16) / (2 * (lh_s64_t)self->spread);
-        self->start = ((lh_s64_t)self->peak << 15) + (1 << 15);
+        self->step = (lh_cast_static(lh_s64_t, self->peak)<< 16) / (2 * lh_cast_static(lh_s64_t, self->spread));
+        self->start = (lh_cast_static(lh_s64_t, self->peak)<< 15) + (1 << 15);
     }
     else
     {
@@ -79,8 +80,8 @@ lh_ui_shadow_shape_fade(const lh_ui_shadow_shape_t *self, lh_s32_t distance)
     lh_s64_t fade;
 
     lh_return_if(distance >= self->spread, 0);
-    lh_return_if(distance <= -self->spread, (lh_byte_t)self->peak);
-    fade = (self->start - (lh_s64_t)distance * self->step) >> 16;
+    lh_return_if(distance <= -self->spread, lh_cast_static(lh_byte_t, self->peak));
+    fade = (self->start - lh_cast_static(lh_s64_t, distance)* self->step) >> 16;
     return (lh_byte_t)(fade <= 0 ? 0 : (fade > self->peak ? self->peak : fade));
 }
 
@@ -117,7 +118,7 @@ lh_ui_shadow_shape_alpha(const lh_ui_shadow_shape_t *self, lh_s32_t row, lh_s32_
     }
     else
     {
-        length = (lh_s32_t)lh_math_isqrt_u64((lh_u64_t)ox * (lh_u64_t)ox + (lh_u64_t)oy * (lh_u64_t)oy);
+        length = lh_cast_static(lh_s32_t, lh_math_isqrt_u64(lh_cast_static(lh_u64_t, ox)* lh_cast_static(lh_u64_t, ox)+ lh_cast_static(lh_u64_t, oy)* lh_cast_static(lh_u64_t, oy)));
     }
     distance = length + (most < 0 ? most : 0) - self->r;
     return lh_ui_shadow_shape_fade(self, distance);
@@ -161,7 +162,7 @@ lh_ui_shadow_shape_span(const lh_ui_shadow_shape_t *self, const struct lh_ui_sha
         if (x >= full0 && x < full1)
         {
             end = full1 < x1 ? full1 : x1;
-            lh_memory_set(out + (x - x0), (lh_usize_t)(end - x), 0U);
+            lh_memory_set(out + (x - x0), lh_cast_static(lh_usize_t, (end - x)), 0U);
         }
         else if (ox == 0 && oy > 0)
         {
@@ -171,7 +172,7 @@ lh_ui_shadow_shape_span(const lh_ui_shadow_shape_t *self, const struct lh_ui_sha
             end = x + (self->cx + self->hx - px) / LH_UI_RADIUS_SUBPIXEL + 1;
             end = end < x1 ? end : x1;
             end = x < full0 && full0 < end ? full0 : end;
-            lh_memory_set(out + (x - x0), (lh_usize_t)(end - x), lh_ui_shadow_shape_fade(self, oy - self->r));
+            lh_memory_set(out + (x - x0), lh_cast_static(lh_usize_t, (end - x)), lh_ui_shadow_shape_fade(self, oy - self->r));
         }
         else
         {
@@ -181,9 +182,9 @@ lh_ui_shadow_shape_span(const lh_ui_shadow_shape_t *self, const struct lh_ui_sha
                 /* Past a corner, outside both edges: the alpha is the root's, read off
                    the ramp from the squared distance, a step or two from the last
                    pixel's. */
-                level = lh_ui_shadow_ramp_walk(ramp, (lh_u64_t)ox * (lh_u64_t)ox + (lh_u64_t)oy * (lh_u64_t)oy,
+                level = lh_ui_shadow_ramp_walk(ramp, lh_cast_static(lh_u64_t, ox)* lh_cast_static(lh_u64_t, ox)+ lh_cast_static(lh_u64_t, oy)* lh_cast_static(lh_u64_t, oy),
                                                level);
-                out[x - x0] = (lh_byte_t)level;
+                out[x - x0] = lh_cast_static(lh_byte_t, level);
             }
             else
             {

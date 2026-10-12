@@ -189,8 +189,8 @@ lh_os_render_backend_gdi_begin(lh_ptr context)
 
     if (gdi->logical_w > 0u && gdi->logical_h > 0u)
     {
-        width = (int)gdi->logical_w;
-        height = (int)gdi->logical_h;
+        width = lh_cast_static(int, gdi->logical_w);
+        height = lh_cast_static(int, gdi->logical_h);
     }
     else
     {
@@ -214,7 +214,7 @@ lh_os_render_backend_gdi_end(lh_ptr context, const lh_ui_rects_t *drawn)
         int client_h = 0;
 
         if (lh_os_system_window_get_client_size(gdi->hwnd, lh_addr_of(client_w), lh_addr_of(client_h)) &&
-            (client_w != (int)gdi->logical_w || client_h != (int)gdi->logical_h))
+            (client_w != lh_cast_static(int, gdi->logical_w)|| client_h != lh_cast_static(int, gdi->logical_h)))
         {
             /* 0x00BBGGRR of `--canvas` #EDF0F5, for the letterbox. */
             (void)lh_os_system_surface_present_fit(gdi->surface.handle, gdi->hdc, client_w, client_h,

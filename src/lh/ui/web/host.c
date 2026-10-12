@@ -28,6 +28,7 @@
 #include <lh/ui/scalar.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+#include <lh/cast/static.h>
 
 #define HOST_WS_MAX 8u
 #define HOST_WS_RX (LH_UI_WEB_WS_MAX_MSG + 32u)
@@ -194,7 +195,7 @@ static const char lh_ui_web_page[] =
     "</script></body></html>";
 
 /* A literal and its length, for the wrappers that take both. */
-#define host_lit(s) (s), (lh_usize_t)(sizeof(s) - 1u)
+#define host_lit(s) (s), lh_cast_static(lh_usize_t, (sizeof(s) - 1u))
 
 static lh_void
 host_send_all(lh_os_net_socket_t *client, const char *p, lh_usize_t left)
@@ -207,8 +208,8 @@ host_send_all(lh_os_net_socket_t *client, const char *p, lh_usize_t left)
         {
             break;
         }
-        p += (lh_usize_t)w;
-        left -= (lh_usize_t)w;
+        p += lh_cast_static(lh_usize_t, w);
+        left -= lh_cast_static(lh_usize_t, w);
     }
 }
 
@@ -221,7 +222,7 @@ host_reply(lh_os_net_socket_t *client, unsigned code, const char *type, const ch
     const lh_usize_t n = lh_str_ptr_format_text(head, sizeof(head),
                                                 "HTTP/1.1 %u %s\r\nContent-Type: %s\r\nContent-Length: %u\r\n"
                                                 "Connection: close\r\nCache-Control: no-store\r\n\r\n",
-                                                (lh_uint_t)code, reason, type, (lh_uint_t)len);
+                                                lh_cast_static(lh_uint_t, code), reason, type, lh_cast_static(lh_uint_t, len));
 
     host_send_all(client, head, n);
     host_send_all(client, body, len);
@@ -251,7 +252,7 @@ host_find(const char *p, lh_usize_t len, const char *needle, lh_usize_t needle_l
     const char *at = lh_ptr_rcast(const char, lh_memory_find(lh_cast_const(lh_ptr, p), len,
                                                               lh_cast_const(lh_ptr, needle), needle_len));
 
-    return (at != lh_null && (lh_usize_t)(at - p) + needle_len <= len) ? at : lh_null;
+    return (at != lh_null && lh_cast_static(lh_usize_t, (at - p))+ needle_len <= len) ? at : lh_null;
 }
 
 /* `GET <path>` or `POST <path>` at the start of the request. */
@@ -286,7 +287,7 @@ host_query(const char *req, lh_usize_t len, const char *key, lh_usize_t key_len,
         {
             return 0u;
         }
-        off = (lh_usize_t)(at - req) + key_len;
+        off = lh_cast_static(lh_usize_t, (at - req))+ key_len;
         if (at == req || (at[-1] != '?' && at[-1] != '&'))
         {
             continue;
@@ -334,7 +335,7 @@ host_point(int x, int y)
 {
     lh_ui_point_t point;
 
-    lh_ui_point_init(lh_addr_of(point), (lh_ui_scalar_t)x, (lh_ui_scalar_t)y);
+    lh_ui_point_init(lh_addr_of(point), lh_cast_static(lh_ui_scalar_t, x), lh_cast_static(lh_ui_scalar_t, y));
     return point;
 }
 
@@ -368,22 +369,22 @@ host_wheel(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int y
         hooks->wheel(x, y, dx, dy, hooks->ctx);
         return;
     }
-    (void)lh_ui_view_wheel(view, host_point(x, y), (lh_ui_scalar_t)dx, (lh_ui_scalar_t)dy);
+    (void)lh_ui_view_wheel(view, host_point(x, y), lh_cast_static(lh_ui_scalar_t, dx), lh_cast_static(lh_ui_scalar_t, dy));
 }
 
 static lh_void
 host_key(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int k)
 {
-    if (k < (int)lh_key_other || k > (int)lh_key_alt)
+    if (k < lh_cast_static(int, lh_key_other)|| k > lh_cast_static(int, lh_key_alt))
     {
-        k = (int)lh_key_other;
+        k = lh_cast_static(int, lh_key_other);
     }
     if (hooks != lh_null && hooks->key != lh_null)
     {
-        hooks->key((lh_key_t)k, lh_bool_true, hooks->ctx);
+        hooks->key(lh_cast_static(lh_key_t, k), lh_bool_true, hooks->ctx);
         return;
     }
-    (void)lh_ui_view_key(view, (lh_key_t)k, lh_bool_true);
+    (void)lh_ui_view_key(view, lh_cast_static(lh_key_t, k), lh_bool_true);
 }
 
 static lh_void
@@ -419,7 +420,7 @@ host_b64_sha1(const unsigned char *in, char *out)
 
     for (i = 0; i < 18u; i += 3u)
     {
-        const unsigned n = ((unsigned)in[i] << 16) | ((unsigned)in[i + 1u] << 8) | (unsigned)in[i + 2u];
+        const unsigned n = (lh_cast_static(unsigned, in[i])<< 16) | (lh_cast_static(unsigned, in[i + 1u])<< 8) | lh_cast_static(unsigned, in[i + 2u]);
 
         out[o++] = tab[(n >> 18) & 63u];
         out[o++] = tab[(n >> 12) & 63u];
@@ -427,7 +428,7 @@ host_b64_sha1(const unsigned char *in, char *out)
         out[o++] = tab[n & 63u];
     }
     {
-        const unsigned n = ((unsigned)in[18] << 16) | ((unsigned)in[19] << 8);
+        const unsigned n = (lh_cast_static(unsigned, in[18])<< 16) | (lh_cast_static(unsigned, in[19])<< 8);
 
         out[o++] = tab[(n >> 18) & 63u];
         out[o++] = tab[(n >> 12) & 63u];
@@ -501,24 +502,24 @@ host_event_line(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigne
 
     if (lh_str_ptr_parse_text(line, len, "p %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
     {
-        host_press(view, hooks, (int)x, (int)y);
+        host_press(view, hooks, lh_cast_static(int, x), lh_cast_static(int, y));
     }
     else if (lh_str_ptr_parse_text(line, len, "r %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
     {
-        host_release(view, hooks, (int)x, (int)y);
+        host_release(view, hooks, lh_cast_static(int, x), lh_cast_static(int, y));
     }
     else if (lh_str_ptr_parse_text(line, len, "w %d %d %d %d", lh_addr_of(x), lh_addr_of(y), lh_addr_of(dx),
                                    lh_addr_of(dy)) != 0u)
     {
-        host_wheel(view, hooks, (int)x, (int)y, (int)dx, (int)dy);
+        host_wheel(view, hooks, lh_cast_static(int, x), lh_cast_static(int, y), lh_cast_static(int, dx), lh_cast_static(int, dy));
     }
     else if (lh_str_ptr_parse_text(line, len, "k %d", lh_addr_of(k)) != 0u)
     {
-        host_key(view, hooks, (int)k);
+        host_key(view, hooks, lh_cast_static(int, k));
     }
     else if (lh_str_ptr_parse_text(line, len, "t %u", lh_addr_of(code)) != 0u)
     {
-        host_text(view, hooks, (lh_u32_t)code);
+        host_text(view, hooks, lh_cast_static(lh_u32_t, code));
     }
     else
     {
@@ -573,7 +574,7 @@ host_ws_enqueue(host_ws_cli_t *c, unsigned opcode, const void *payload, lh_usize
     {
         return lh_bool_false;
     }
-    if (need == 0u || c->queued + (unsigned)need > HOST_WS_QMAX)
+    if (need == 0u || c->queued + lh_cast_static(unsigned, need)> HOST_WS_QMAX)
     {
         host_ws_drop(c);
         return lh_bool_false;
@@ -589,7 +590,7 @@ host_ws_enqueue(host_ws_cli_t *c, unsigned opcode, const void *payload, lh_usize
         return lh_bool_false;
     }
     q->bytes = bytes;
-    q->len = (unsigned)need;
+    q->len = lh_cast_static(unsigned, need);
     q->off = 0u;
     if (front)
     {
@@ -613,7 +614,7 @@ host_ws_enqueue(host_ws_cli_t *c, unsigned opcode, const void *payload, lh_usize
         }
         c->qtail = q;
     }
-    c->queued += (unsigned)need;
+    c->queued += lh_cast_static(unsigned, need);
     return lh_bool_true;
 }
 
@@ -624,7 +625,7 @@ host_ws_flush(host_ws_cli_t *c)
     {
         host_ws_q_t *q = c->qhead;
         const lh_ssize_t w =
-            lh_os_net_socket_send(lh_addr_of(c->sock), q->bytes + q->off, (lh_usize_t)(q->len - q->off));
+            lh_os_net_socket_send(lh_addr_of(c->sock), q->bytes + q->off, lh_cast_static(lh_usize_t, (q->len - q->off)));
 
         if (w == LH_OS_RESULT_PENDING)
         {
@@ -635,8 +636,8 @@ host_ws_flush(host_ws_cli_t *c)
             host_ws_drop(c);
             return;
         }
-        q->off += (unsigned)w;
-        c->queued -= (unsigned)w;
+        q->off += lh_cast_static(unsigned, w);
+        c->queued -= lh_cast_static(unsigned, w);
         if (q->off >= q->len)
         {
             c->qhead = q->next;
@@ -659,13 +660,13 @@ host_ws_msg_add(host_ws_cli_t *c, const unsigned char *p, lh_usize_t n)
 {
     unsigned char *grow;
 
-    if (c->msg_len + (unsigned)n > LH_UI_WEB_WS_MAX_MSG)
+    if (c->msg_len + lh_cast_static(unsigned, n)> LH_UI_WEB_WS_MAX_MSG)
     {
         return lh_bool_false;
     }
-    if (c->msg_len + (unsigned)n > c->msg_cap)
+    if (c->msg_len + lh_cast_static(unsigned, n)> c->msg_cap)
     {
-        const unsigned cap = c->msg_len + (unsigned)n;
+        const unsigned cap = c->msg_len + lh_cast_static(unsigned, n);
         const unsigned next = (c->msg_cap == 0u) ? 256u : (c->msg_cap * 2u);
         const unsigned want = (cap > next) ? cap : next;
 
@@ -678,7 +679,7 @@ host_ws_msg_add(host_ws_cli_t *c, const unsigned char *p, lh_usize_t n)
         c->msg_cap = want;
     }
     lh_memory_copy(c->msg + c->msg_len, c->msg_cap - c->msg_len, lh_cast_const(lh_ptr, p), n);
-    c->msg_len += (unsigned)n;
+    c->msg_len += lh_cast_static(unsigned, n);
     return lh_bool_true;
 }
 
@@ -701,7 +702,7 @@ host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_
         {
             return;
         }
-        if (n == (lh_usize_t)-1)
+        if (n == lh_cast_static(lh_usize_t, -1))
         {
             host_ws_drop(c);
             return;
@@ -783,8 +784,8 @@ host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_
             host_ws_drop(c);
             return;
         }
-        lh_memory_move(c->rx, HOST_WS_RX, c->rx + n, (lh_usize_t)(c->rx_len - (unsigned)n));
-        c->rx_len -= (unsigned)n;
+        lh_memory_move(c->rx, HOST_WS_RX, c->rx + n, lh_cast_static(lh_usize_t, (c->rx_len - lh_cast_static(unsigned, n))));
+        c->rx_len -= lh_cast_static(unsigned, n);
     }
 }
 
@@ -866,7 +867,7 @@ host_ws_pump(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_t 
         host_ws_drop(c);
         return;
     }
-    c->rx_len += (unsigned)got;
+    c->rx_len += lh_cast_static(unsigned, got);
     host_ws_ingest(c, view, hooks, gen, now);
     if (c->used)
     {
@@ -923,7 +924,7 @@ host_handle_input(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, const
     }
     else if (host_route(req, len, host_lit("/ui/text")))
     {
-        host_text(view, hooks, (lh_u32_t)host_query_uint(req, len, host_lit("c=")));
+        host_text(view, hooks, lh_cast_static(lh_u32_t, host_query_uint(req, len, host_lit("c="))));
     }
     else
     {
@@ -956,7 +957,7 @@ host_handle(lh_ui_view_t *view, unsigned width, unsigned height, char *json, lh_
     {
         return lh_bool_false;
     }
-    len = (lh_usize_t)got;
+    len = lh_cast_static(lh_usize_t, got);
     if (host_route(req, len, host_lit("/ws")))
     {
         return host_ws_upgrade(client, req, len);
@@ -970,7 +971,7 @@ host_handle(lh_ui_view_t *view, unsigned width, unsigned height, char *json, lh_
     if (host_route(req, len, host_lit("/ui.rev")))
     {
         char body[32];
-        const lh_usize_t n = lh_str_ptr_format_text(body, sizeof(body), "%u\n", (lh_uint_t)(gen != lh_null ? *gen : 0u));
+        const lh_usize_t n = lh_str_ptr_format_text(body, sizeof(body), "%u\n", lh_cast_static(lh_uint_t, (gen != lh_null ? *gen : 0u)));
 
         host_reply_text(client, 200u, body, n);
         return lh_bool_false;
@@ -1156,9 +1157,9 @@ host_wait(lh_os_net_socket_t *listen_fd, host_ws_cli_t *cli, unsigned timeout_ms
             write[nw++] = lh_addr_of(cli[i].sock);
         }
     }
-    if (lh_os_net_socket_wait(read, nr, write, nw, (lh_u32_t)timeout_ms) == LH_OS_RESULT_INVALID)
+    if (lh_os_net_socket_wait(read, nr, write, nw, lh_cast_static(lh_u32_t, timeout_ms)) == LH_OS_RESULT_INVALID)
     {
-        (void)lh_os_net_socket_wait(read, 1u, lh_null, 0u, (lh_u32_t)timeout_ms);
+        (void)lh_os_net_socket_wait(read, 1u, lh_null, 0u, lh_cast_static(lh_u32_t, timeout_ms));
     }
 }
 
@@ -1193,7 +1194,7 @@ lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *js
         return lh_bool_false;
     }
     (void)lh_os_net_socket_set_blocking(lh_addr_of(listen_fd), lh_bool_false);
-    lh_logger_notice(lh_runtime_logger(), "[lh] ui web host http://127.0.0.1:%u/", (lh_uint_t)port);
+    lh_logger_notice(lh_runtime_logger(), "[lh] ui web host http://127.0.0.1:%u/", lh_cast_static(lh_uint_t, port));
     {
         unsigned gen = 1u;
         unsigned i;
@@ -1209,7 +1210,7 @@ lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *js
         for (;;)
         {
             lh_ui_rect_t damage;
-            const unsigned now = (unsigned)lh_os_tick_ms();
+            const unsigned now = lh_cast_static(unsigned, lh_os_tick_ms());
             unsigned spent;
 
             if (hooks != lh_null && hooks->tick != lh_null)
@@ -1229,7 +1230,7 @@ lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *js
                 ++gen;
             }
             host_ws_frame(cli, lh_addr_of(stream), view, width, height, json, json_cap, gen);
-            spent = (unsigned)lh_os_tick_ms() - now;
+            spent = lh_cast_static(unsigned, lh_os_tick_ms())- now;
             host_wait(lh_addr_of(listen_fd), cli, (spent >= HOST_TICK_MS) ? 0u : HOST_TICK_MS - spent);
         }
     }

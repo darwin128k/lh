@@ -9,6 +9,7 @@
 #include <lh/ui/transition.h>
 #include <lh/util/addr.h>
 #include <lh/util/return.h>
+#include <lh/cast/static.h>
 
 lh_void
 lh_ui_transition_init(lh_ui_transition_t *self)
@@ -71,15 +72,15 @@ lh_ui_transition_advance(lh_ui_transition_t *self, lh_u16_t ms)
 
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(self->entity) || lh_null_eq(self->to), lh_bool_false);
-    spent = (lh_u32_t)self->elapsed + (lh_u32_t)ms;
-    if (spent >= (lh_u32_t)self->total)
+    spent = lh_cast_static(lh_u32_t, self->elapsed)+ lh_cast_static(lh_u32_t, ms);
+    if (spent >= lh_cast_static(lh_u32_t, self->total))
     {
         self->elapsed = self->total;
         self->look = *self->to;
         return lh_bool_false;
     }
-    self->elapsed = (lh_u16_t)spent;
-    time = spent * 255U / (lh_u32_t)self->total;
+    self->elapsed = lh_cast_static(lh_u16_t, spent);
+    time = spent * 255U / lh_cast_static(lh_u32_t, self->total);
     lh_ui_style_init_blend(lh_addr_of(self->look), lh_addr_of(self->from), self->to,
                            lh_ui_easing_apply(lh_ui_style_get_easing(self->to), time));
     return lh_bool_true;

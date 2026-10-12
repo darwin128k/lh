@@ -95,9 +95,10 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
     if (msg == LH_OS_SYSTEM_WIN_WM_NCCREATE)
     {
         const lh_os_system_win_createstructa_t *cs =
-            lh_ptr_rcast(const lh_os_system_win_createstructa_t, (lh_ptr)lparam);
+            lh_ptr_rcast(const lh_os_system_win_createstructa_t, lh_cast_reinterpret(lh_ptr, lparam));
         window = lh_ptr_rcast(lh_os_window_t, cs->lpCreateParams);
-        SetWindowLongPtrA(hwnd, LH_OS_SYSTEM_WIN_GWLP_USERDATA, (lh_os_system_win_lparam_t)window);
+        SetWindowLongPtrA(hwnd, LH_OS_SYSTEM_WIN_GWLP_USERDATA,
+                          lh_cast_reinterpret(lh_os_system_win_lparam_t, window));
         if (lh_null_ne(window))
         {
             window->handle = lh_cast_reinterpret(lh_os_system_window_handle_t, hwnd);
@@ -105,7 +106,7 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
     }
 
     window = lh_cast_reinterpret(lh_os_window_t *,
-                                 (lh_ptr)GetWindowLongPtrA(hwnd, LH_OS_SYSTEM_WIN_GWLP_USERDATA));
+                                 lh_cast_reinterpret(lh_ptr, GetWindowLongPtrA(hwnd, LH_OS_SYSTEM_WIN_GWLP_USERDATA)));
 
     switch (msg)
     {
@@ -116,8 +117,8 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
                and it is the app that knows what its own chrome is. */
             lh_os_system_win_point_t at;
 
-            at.x = (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_LOWORD(lparam);
-            at.y = (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_HIWORD(lparam);
+            at.x = lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam)));
+            at.y = lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam)));
             ScreenToClient(hwnd, lh_addr_of(at));
             return lh_os_system_win_window_hit(lh_os_window_zone_at(window, at.x, at.y));
         }
@@ -138,12 +139,12 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
                about, so this is also the only way it learns that it is now a
                different size or that it is maximized. */
             lh_os_system_win_rect_t client;
-            const int reason = (int)LH_OS_SYSTEM_WIN_LOWORD(wparam);
+            const int reason = lh_cast_static(int, LH_OS_SYSTEM_WIN_LOWORD(wparam));
 
             if (GetClientRect(hwnd, lh_addr_of(client)))
             {
                 lh_os_window_on_native_resize(
-                    window, (int)client.right, (int)client.bottom,
+                    window, lh_cast_static(int, client.right), lh_cast_static(int, client.bottom),
                     lh_cast_static(lh_bool_t, reason == LH_OS_SYSTEM_WIN_SIZE_MAXIMIZED));
                 /* The cut follows the size, and is gone while the window is maximized:
                    both are things about this window's shape, not about the app that
@@ -175,15 +176,15 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
         if (lh_null_ne(window))
         {
             SetCapture(hwnd);
-            lh_os_window_on_native_press(window, (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_LOWORD(lparam),
-                                         (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_HIWORD(lparam));
+            lh_os_window_on_native_press(window, lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam))),
+                                         lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam))));
         }
         return 0;
     case LH_OS_SYSTEM_WIN_WM_MOUSEMOVE:
         if (lh_null_ne(window))
         {
-            lh_os_window_on_native_move(window, (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_LOWORD(lparam),
-                                        (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_HIWORD(lparam));
+            lh_os_window_on_native_move(window, lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam))),
+                                        lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam))));
         }
         return 0;
     case LH_OS_SYSTEM_WIN_WM_LBUTTONUP:
@@ -193,8 +194,8 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
             {
                 ReleaseCapture();
             }
-            lh_os_window_on_native_release(window, (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_LOWORD(lparam),
-                                           (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_HIWORD(lparam));
+            lh_os_window_on_native_release(window, lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam))),
+                                           lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam))));
         }
         return 0;
     case LH_OS_SYSTEM_WIN_WM_MOUSEWHEEL:
@@ -203,10 +204,10 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
             lh_os_system_win_point_t cursor;
             int delta;
 
-            cursor.x = (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_LOWORD(lparam);
-            cursor.y = (int)(lh_sshort_t)LH_OS_SYSTEM_WIN_HIWORD(lparam);
+            cursor.x = lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam)));
+            cursor.y = lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam)));
             ScreenToClient(hwnd, lh_addr_of(cursor));
-            delta = (int)LH_OS_SYSTEM_WIN_GET_WHEEL_DELTA_WPARAM(wparam) / LH_OS_SYSTEM_WIN_WHEEL_DELTA;
+            delta = lh_cast_static(int, LH_OS_SYSTEM_WIN_GET_WHEEL_DELTA_WPARAM(wparam))/ LH_OS_SYSTEM_WIN_WHEEL_DELTA;
             if ((LH_OS_SYSTEM_WIN_LOWORD(wparam) & LH_OS_SYSTEM_WIN_MK_SHIFT) != 0U)
             {
                 lh_os_window_on_native_wheel(window, cursor.x, cursor.y, delta, 0);
@@ -219,14 +220,14 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
     case LH_OS_SYSTEM_WIN_WM_KEYUP:
         if (lh_null_ne(window))
         {
-            lh_os_window_on_native_key(window, lh_os_system_win_key_from_vk((lh_u32_t)wparam),
+            lh_os_window_on_native_key(window, lh_os_system_win_key_from_vk(lh_cast_static(lh_u32_t, wparam)),
                                        msg == LH_OS_SYSTEM_WIN_WM_KEYDOWN ? lh_bool_true : lh_bool_false);
         }
         return 0;
     case LH_OS_SYSTEM_WIN_WM_CHAR:
         if (lh_null_ne(window))
         {
-            const lh_u32_t code = lh_os_system_win_text_from_char((lh_u32_t)wparam);
+            const lh_u32_t code = lh_os_system_win_text_from_char(lh_cast_static(lh_u32_t, wparam));
 
             if (lh_os_system_win_is_text(code))
             {
@@ -241,7 +242,7 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
                another piece of code put on this window must not be read as the app's
                tick -- the callback would then run at that one's period, which is the one
                number the app chose not to. */
-            if ((lh_os_system_win_uintptr_t)wparam == (lh_os_system_win_uintptr_t)LH_OS_SYSTEM_WIN_TIMER_ID)
+            if (lh_cast_static(lh_os_system_win_uintptr_t, wparam)== lh_cast_static(lh_os_system_win_uintptr_t, LH_OS_SYSTEM_WIN_TIMER_ID))
             {
                 lh_os_window_on_native_tick(window);
             }
@@ -577,9 +578,9 @@ lh_os_system_window_set_timer(lh_os_system_window_handle_t handle, lh_u32_t ms)
        Retried at the system's floor rather than left dead: a caller asking for 1 ms on
        a system whose resolution is 15.6 ms asked for as fast as it can, and refusing
        turns a too-fast request into no timer at all. */
-    if (SetTimer(hwnd, LH_OS_SYSTEM_WIN_TIMER_ID, (lh_os_system_win_uint_t)ms, lh_null) == 0)
+    if (SetTimer(hwnd, LH_OS_SYSTEM_WIN_TIMER_ID, lh_cast_static(lh_os_system_win_uint_t, ms), lh_null) == 0)
     {
-        SetTimer(hwnd, LH_OS_SYSTEM_WIN_TIMER_ID, (lh_os_system_win_uint_t)LH_OS_SYSTEM_WIN_TIMER_FLOOR_MS, lh_null);
+        SetTimer(hwnd, LH_OS_SYSTEM_WIN_TIMER_ID, lh_cast_static(lh_os_system_win_uint_t, LH_OS_SYSTEM_WIN_TIMER_FLOOR_MS), lh_null);
     }
 }
 

@@ -298,6 +298,20 @@ lh_ssize_t
 lh_os_net_socket_recv(lh_self_ptr self, lh_ptr buf, lh_usize_t size);
 
 /**
+ * @brief How many bytes are waiting in @p self's receive buffer, unread.
+ *
+ * Settles "nothing has arrived" against "something has and the read was made at
+ * the wrong moment", which a non-blocking recv answers the same way
+ * (::LH_OS_RESULT_PENDING). Meaningful on a TCP socket (see
+ * ::lh_os_system_net_socket_pending for UDP).
+ *
+ * @param self Open socket.
+ * @return Bytes pending (`0` when empty), or ::LH_OS_RESULT_INVALID on failure.
+ */
+lh_ssize_t
+lh_os_net_socket_pending(const lh_os_net_socket_t *self);
+
+/**
  * @brief ::lh_io_dgram_writer_send_fn backed by @p context's socket (`sendto`).
  *
  * Each call is one datagram to @p addr. Not a stream write.

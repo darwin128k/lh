@@ -4,6 +4,7 @@
  */
 
 #include <lh/ui/easing.h>
+#include <lh/cast/static.h>
 
 /* Each curve at time 0/16 .. 16/16, in weights of 255: the Bézier's y where its x is
    that time, solved once off the target and kept as numbers. */
@@ -30,7 +31,7 @@ lh_ui_easing_apply(lh_ui_easing_t easing, lh_u32_t time)
     {
         return time;
     }
-    table = lh_ui_easing_tables[(unsigned)easing <= 4U ? (unsigned)easing : 0U];
+    table = lh_ui_easing_tables[lh_cast_static(unsigned, easing)<= 4U ? lh_cast_static(unsigned, easing): 0U];
     /* Which sixteenth the time is in, and how far into it -- then straight between
        the two samples either side. */
     at = time * 16U / 255U;

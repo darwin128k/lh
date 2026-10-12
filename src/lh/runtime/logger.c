@@ -4,6 +4,7 @@
 #include <lh/library/option.h>
 #include <lh/null.h>
 #include <lh/util/addr.h>
+#include <lh/cast/static.h>
 
 #if (LH_LIBRARY_OPTION_RUNTIME_LOGGER_USE_STDLIB == LH_LIBRARY_OPTION_ON)
 #    include <lh/self.h>
@@ -31,7 +32,7 @@ lh_runtime_logger_stderr(lh_self_ptr self, lh_logger_level_t level, lh_str_cptr 
         text = fmt;
         n = lh_str_len(fmt);
     }
-    if (fwrite(text, 1u, (size_t)n, stderr) != (size_t)n || fputc('\n', stderr) == EOF)
+    if (fwrite(text, 1u, lh_cast_static(size_t, n), stderr) != lh_cast_static(size_t, n)|| fputc('\n', stderr) == EOF)
     {
         return -1;
     }

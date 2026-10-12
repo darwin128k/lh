@@ -32,6 +32,7 @@
 #include <lh/util/return.h>
 
 #include <poll.h>
+#include <lh/cast/static.h>
 
 /** @brief One window of ours. */
 struct lh_os_system_posix_window
@@ -250,21 +251,21 @@ lh_os_system_posix_corner_rows(lh_os_system_posix_xrectangle_t *rows, int width,
     {
         const int inset = lh_os_system_posix_corner_inset(radius, row);
 
-        rows[count].x = (short)inset;
-        rows[count].y = (short)row;
-        rows[count].width = (unsigned short)(width - 2 * inset);
+        rows[count].x = lh_cast_static(short, inset);
+        rows[count].y = lh_cast_static(short, row);
+        rows[count].width = lh_cast_static(unsigned short, (width - 2 * inset));
         rows[count].height = 1U;
         ++count;
-        rows[count].x = (short)inset;
-        rows[count].y = (short)(height - 1 - row);
-        rows[count].width = (unsigned short)(width - 2 * inset);
+        rows[count].x = lh_cast_static(short, inset);
+        rows[count].y = lh_cast_static(short, (height - 1 - row));
+        rows[count].width = lh_cast_static(unsigned short, (width - 2 * inset));
         rows[count].height = 1U;
         ++count;
     }
     rows[count].x = 0;
-    rows[count].y = (short)radius;
-    rows[count].width = (unsigned short)width;
-    rows[count].height = (unsigned short)(height - 2 * radius);
+    rows[count].y = lh_cast_static(short, radius);
+    rows[count].width = lh_cast_static(unsigned short, width);
+    rows[count].height = lh_cast_static(unsigned short, (height - 2 * radius));
     return count + 1;
 }
 
@@ -340,15 +341,15 @@ lh_os_system_posix_corner_outside(lh_os_system_posix_xrectangle_t *rows, int wid
         if (inset > 0)
         {
             rows[count].x = 0;
-            rows[count].y = (short)row;
-            rows[count].width = (unsigned short)inset;
+            rows[count].y = lh_cast_static(short, row);
+            rows[count].width = lh_cast_static(unsigned short, inset);
             rows[count].height = 1U;
             rows[count + 1] = rows[count];
-            rows[count + 1].x = (short)(width - inset);
+            rows[count + 1].x = lh_cast_static(short, (width - inset));
             rows[count + 2] = rows[count];
-            rows[count + 2].y = (short)(height - 1 - row);
+            rows[count + 2].y = lh_cast_static(short, (height - 1 - row));
             rows[count + 3] = rows[count + 1];
-            rows[count + 3].y = (short)(height - 1 - row);
+            rows[count + 3].y = lh_cast_static(short, (height - 1 - row));
             count += 4;
         }
     }
@@ -372,8 +373,8 @@ lh_os_system_posix_window_back(lh_os_system_posix_window_t *self)
     {
         (void)x->XFreePixmap(lh_os_system_posix_display, self->backing);
     }
-    self->backing = x->XCreatePixmap(lh_os_system_posix_display, self->window, (unsigned int)self->width,
-                                     (unsigned int)self->height, (unsigned int)lh_os_system_posix_depth);
+    self->backing = x->XCreatePixmap(lh_os_system_posix_display, self->window, lh_cast_static(unsigned int, self->width),
+                                     lh_cast_static(unsigned int, self->height), lh_cast_static(unsigned int, lh_os_system_posix_depth));
     self->backing_picture = render->XRenderCreatePicture(
         lh_os_system_posix_display, self->backing,
         render->XRenderFindStandardFormat(lh_os_system_posix_display, LH_OS_SYSTEM_POSIX_X_PICT_STANDARD_RGB24), 0UL,
@@ -395,7 +396,7 @@ lh_os_system_posix_window_paint(lh_os_system_posix_window_t *self)
     paint.window = self->backing != LH_OS_SYSTEM_POSIX_X_NONE ? self->backing : self->window;
     paint.gc = self->gc;
     paint.depth = lh_os_system_posix_depth;
-    paint.area = (lh_u64_t)(right - left) * (lh_u64_t)(bottom - top);
+    paint.area = lh_cast_static(lh_u64_t, (right - left))* lh_cast_static(lh_u64_t, (bottom - top));
     paint.rects = 1U;
     lh_os_window_on_native_paint(self->user, lh_addr_of(paint), left, top, right, bottom);
     /* What the paint put in the pixmap goes into the window, opaque, and the
@@ -408,7 +409,7 @@ lh_os_system_posix_window_paint(lh_os_system_posix_window_t *self)
 
         render->XRenderComposite(lh_os_system_posix_display, LH_OS_SYSTEM_POSIX_X_PICT_OP_SRC, self->backing_picture,
                                  LH_OS_SYSTEM_POSIX_X_NONE, self->window_picture, left, top, 0, 0, left, top,
-                                 (unsigned int)(right - left), (unsigned int)(bottom - top));
+                                 lh_cast_static(unsigned int, (right - left)), lh_cast_static(unsigned int, (bottom - top)));
         if (radius > 0)
         {
             const lh_os_system_posix_xrender_color_t transparent = {0U, 0U, 0U, 0U};
@@ -487,10 +488,10 @@ lh_os_system_posix_workarea(int *x, int *y, int *width, int *height)
         /* The first desktop's area: x, y, width, height. */
         if (format == 32 && count >= 4UL && area[2] > 0 && area[3] > 0)
         {
-            *x = (int)area[0];
-            *y = (int)area[1];
-            *width = (int)area[2];
-            *height = (int)area[3];
+            *x = lh_cast_static(int, area[0]);
+            *y = lh_cast_static(int, area[1]);
+            *width = lh_cast_static(int, area[2]);
+            *height = lh_cast_static(int, area[3]);
         }
         (void)xlib->XFree(data);
     }
@@ -549,7 +550,7 @@ lh_os_system_posix_window_begin_moveresize(lh_os_system_posix_window_t *self, lh
     event.client.data[0] = x_root;
     event.client.data[1] = y_root;
     event.client.data[2] = direction;
-    event.client.data[3] = (long)LH_OS_SYSTEM_POSIX_X_BUTTON_LEFT;
+    event.client.data[3] = lh_cast_static(long, LH_OS_SYSTEM_POSIX_X_BUTTON_LEFT);
     event.client.data[4] = 1L; /* source: an application */
     (void)lh_os_system_posix_x->XSendEvent(
         lh_os_system_posix_display, lh_os_system_posix_root, 0,
@@ -621,7 +622,7 @@ lh_os_system_posix_dispatch(lh_os_system_posix_xevent_t *event)
         return;
     case LH_OS_SYSTEM_POSIX_X_CLIENT_MESSAGE:
         if (event->client.message_type == lh_os_system_posix_atom_wm_protocols &&
-            (lh_os_system_posix_xid_t)event->client.data[0] == lh_os_system_posix_atom_wm_delete_window)
+            lh_cast_static(lh_os_system_posix_xid_t, event->client.data[0])== lh_os_system_posix_atom_wm_delete_window)
         {
             /* The close button of the window manager's frame. On Windows this is
                WM_CLOSE, which with no handler destroys the window -- and the
@@ -693,7 +694,7 @@ lh_os_system_posix_dispatch(lh_os_system_posix_xevent_t *event)
             return;
         }
         /* The keysym with the layout and Shift applied: what the key means now. */
-        (void)lh_os_system_posix_x->XLookupString(lh_addr_of(event->key), text, (int)sizeof(text),
+        (void)lh_os_system_posix_x->XLookupString(lh_addr_of(event->key), text, lh_cast_static(int, sizeof(text)),
                                                   lh_addr_of(keysym), lh_null);
         lh_os_window_on_native_key(self->user, lh_os_system_posix_key_from_keysym(keysym), pressed);
         /* Text only from a press, and not from a chord: Ctrl+C is a command, and
@@ -747,7 +748,7 @@ lh_os_system_posix_window_is_placed(const lh_os_system_posix_window_t *self)
 static lh_void
 lh_os_system_posix_window_wait_placed(lh_os_system_posix_window_t *self)
 {
-    const lh_u64_t until = lh_os_tick_us() + (lh_u64_t)LH_OS_SYSTEM_POSIX_WINDOW_MAP_WAIT_MS * 1000U;
+    const lh_u64_t until = lh_os_tick_us() + lh_cast_static(lh_u64_t, LH_OS_SYSTEM_POSIX_WINDOW_MAP_WAIT_MS)* 1000U;
     lh_os_system_posix_xevent_t event;
     lh_bool_t mapped = lh_bool_false;
     struct pollfd watch;
@@ -769,7 +770,7 @@ lh_os_system_posix_window_wait_placed(lh_os_system_posix_window_t *self)
         /* Asked again every few milliseconds once mapped: the move that places it is
            the window manager's, and it does not always tell the window. */
         watch.revents = 0;
-        (void)poll(lh_addr_of(watch), 1, mapped ? 5 : (int)((until - now) / 1000U) + 1);
+        (void)poll(lh_addr_of(watch), 1, mapped ? 5 : lh_cast_static(int, ((until - now) / 1000U))+ 1);
     }
 }
 
@@ -858,7 +859,7 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
         attributes.border_pixel = 0UL;
         attributes.colormap = self->colormap;
         self->window = x->XCreateWindow(lh_os_system_posix_display, lh_os_system_posix_root, at_x, at_y,
-                                        (unsigned int)width, (unsigned int)height, 0U, 32,
+                                        lh_cast_static(unsigned int, width), lh_cast_static(unsigned int, height), 0U, 32,
                                         LH_OS_SYSTEM_POSIX_X_INPUT_OUTPUT, info.visual,
                                         mask | LH_OS_SYSTEM_POSIX_X_CW_BORDER_PIXEL | LH_OS_SYSTEM_POSIX_X_CW_COLORMAP,
                                         lh_addr_of(attributes));
@@ -881,7 +882,7 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
            is. Round corners are then cut by SHAPE alone, and a compositor shows
            them black. */
         self->window = x->XCreateWindow(lh_os_system_posix_display, lh_os_system_posix_root, at_x, at_y,
-                                        (unsigned int)width, (unsigned int)height, 0U,
+                                        lh_cast_static(unsigned int, width), lh_cast_static(unsigned int, height), 0U,
                                         LH_OS_SYSTEM_POSIX_X_COPY_FROM_PARENT, LH_OS_SYSTEM_POSIX_X_INPUT_OUTPUT,
                                         lh_null, mask, lh_addr_of(attributes));
     }
@@ -905,7 +906,7 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     (void)x->XStoreName(lh_os_system_posix_display, self->window, title);
     (void)x->XChangeProperty(lh_os_system_posix_display, self->window, lh_os_system_posix_atom_net_wm_name,
                              lh_os_system_posix_atom_utf8_string, 8, LH_OS_SYSTEM_POSIX_X_PROP_MODE_REPLACE,
-                             lh_ptr_rcast(const unsigned char, title), (int)title_length);
+                             lh_ptr_rcast(const unsigned char, title), lh_cast_static(int, title_length));
 
     /* The close button sends a message instead of killing the connection. */
     protocols[0] = lh_os_system_posix_atom_wm_delete_window;
@@ -957,8 +958,8 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
                         lh_addr_of(depth)) != 0 &&
         got_width > 0U && got_height > 0U)
     {
-        self->width = (int)got_width;
-        self->height = (int)got_height;
+        self->width = lh_cast_static(int, got_width);
+        self->height = lh_cast_static(int, got_height);
         if (self->backing != LH_OS_SYSTEM_POSIX_X_NONE)
         {
             lh_os_system_posix_window_back(self);
@@ -1015,8 +1016,8 @@ lh_os_system_window_set_maximized(lh_os_system_window_handle_t handle, lh_bool_t
     event.client.message_type = lh_os_system_posix_atom_net_wm_state;
     event.client.format = 32;
     event.client.data[0] = maximized ? 1L : 0L; /* _NET_WM_STATE_ADD / _REMOVE */
-    event.client.data[1] = (long)lh_os_system_posix_atom_net_wm_state_max_vert;
-    event.client.data[2] = (long)lh_os_system_posix_atom_net_wm_state_max_horz;
+    event.client.data[1] = lh_cast_static(long, lh_os_system_posix_atom_net_wm_state_max_vert);
+    event.client.data[2] = lh_cast_static(long, lh_os_system_posix_atom_net_wm_state_max_horz);
     event.client.data[3] = 1L;
     (void)lh_os_system_posix_x->XSendEvent(
         lh_os_system_posix_display, lh_os_system_posix_root, 0,
@@ -1157,7 +1158,7 @@ lh_os_system_window_pump_wait(lh_tick_t timeout_ms)
         lh_os_system_posix_quit = lh_bool_false;
         return lh_os_system_window_pump_quit;
     }
-    wait = timeout_ms == LH_TICK_T_MAX ? -1 : (int)timeout_ms;
+    wait = timeout_ms == LH_TICK_T_MAX ? -1 : lh_cast_static(int, timeout_ms);
     if (lh_null_eq(lh_os_system_posix_display))
     {
         /* Nothing to wait on but the time. */
@@ -1198,7 +1199,7 @@ lh_os_system_window_pump_wait(lh_tick_t timeout_ms)
     {
         /* From now, not from when it was due: a tick that is late does not come
            back twice to catch up, which a busy UI would only fall further behind on. */
-        window->tick_due_us = now + (lh_u64_t)window->tick_ms * 1000U;
+        window->tick_due_us = now + lh_cast_static(lh_u64_t, window->tick_ms)* 1000U;
         lh_os_window_on_native_tick(window->user);
         handled = lh_bool_true;
     }
@@ -1251,7 +1252,7 @@ lh_os_system_window_set_timer(lh_os_system_window_handle_t handle, lh_u32_t ms)
 
     lh_return_if(lh_null_eq(self));
     self->tick_ms = ms;
-    self->tick_due_us = lh_os_tick_us() + (lh_u64_t)ms * 1000U;
+    self->tick_due_us = lh_os_tick_us() + lh_cast_static(lh_u64_t, ms)* 1000U;
 }
 
 lh_bool_t

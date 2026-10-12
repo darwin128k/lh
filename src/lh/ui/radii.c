@@ -8,6 +8,7 @@
 #include <lh/ui/radii.h>
 #include <lh/ui/radius.h>
 #include <lh/util/addr.h>
+#include <lh/cast/static.h>
 
 lh_void
 lh_ui_radii_init(lh_ui_radii_t *self, lh_ui_scalar_t top_left, lh_ui_scalar_t top_right,
@@ -120,10 +121,10 @@ lh_ui_radii_get_at(const lh_ui_radii_t *self, const lh_ui_rect_t *rect, lh_s32_t
     const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
     /* Pixel centres against the middle, both doubled, so an odd box has no half. */
     const lh_bool_t left =
-        (lh_ui_scalar_t)(2 * x + 1) < 2 * lh_ui_point_get_x(origin) + lh_ui_size_get_width(size) ? lh_bool_true
+        lh_cast_static(lh_ui_scalar_t, (2 * x + 1))< 2 * lh_ui_point_get_x(origin) + lh_ui_size_get_width(size) ? lh_bool_true
                                                                                                 : lh_bool_false;
     const lh_bool_t top =
-        (lh_ui_scalar_t)(2 * y + 1) < 2 * lh_ui_point_get_y(origin) + lh_ui_size_get_height(size) ? lh_bool_true
+        lh_cast_static(lh_ui_scalar_t, (2 * y + 1))< 2 * lh_ui_point_get_y(origin) + lh_ui_size_get_height(size) ? lh_bool_true
                                                                                                  : lh_bool_false;
 
     lh_assert_runtime_ref(self);

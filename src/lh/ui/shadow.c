@@ -143,7 +143,7 @@ shadow_sd(lh_s64_t px, lh_s64_t py, const lh_ui_rect_t *rect, lh_ui_scalar_t rad
     {
         return oy + inside - r;
     }
-    return (lh_s64_t)lh_math_isqrt_u64((lh_u64_t)ox * (lh_u64_t)ox + (lh_u64_t)oy * (lh_u64_t)oy) + inside - r;
+    return (lh_s64_t)lh_math_isqrt_u64(lh_cast_static(lh_u64_t, ox)* lh_cast_static(lh_u64_t, ox)+ lh_cast_static(lh_u64_t, oy)* lh_cast_static(lh_u64_t, oy)) + inside - r;
 }
 
 /* @p distance and @p spread are in the same fixed point. The public falloff
@@ -159,7 +159,7 @@ shadow_falloff_sub(lh_s64_t distance, lh_s64_t spread, lh_byte_t peak)
     {
         return 0;
     }
-    fade = (lh_s64_t)peak * (spread - distance);
+    fade = lh_cast_static(lh_s64_t, peak)* (spread - distance);
     if (fade <= 0)
     {
         return 0;

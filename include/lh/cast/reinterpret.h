@@ -11,6 +11,7 @@
 #define LH_CAST_REINTERPRET_H
 
 #include <lh/compiler/cxx.h>
+#include <lh/cast/static.h>
 
 /**
  * @def lh_cast_reinterpret(T, expr)
@@ -34,7 +35,7 @@
 #ifdef LH_COMPILER_CXX
 #    define lh_cast_reinterpret(T, expr) reinterpret_cast<T>(expr)
 #else
-#    define lh_cast_reinterpret(T, expr) ((T)(expr))
+#    define lh_cast_reinterpret(T, expr) (lh_cast_static(T, (expr)))
 #endif /* LH_COMPILER_CXX */
 
 #endif /* LH_CAST_REINTERPRET_H */

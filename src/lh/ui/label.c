@@ -431,13 +431,13 @@ lh_ui_label_shorten(const lh_ui_font_t *font, const lh_char_t *text, lh_s32_t ro
     while ((code = lh_ui_text_next_code(lh_addr_of(cursor))) != 0U)
     {
         width += lh_ui_font_get_advance(font, code);
-        if (width + tail > room || (lh_u32_t)(cursor - text) + tail_bytes + 1U > size)
+        if (width + tail > room || lh_cast_static(lh_u32_t, (cursor - text))+ tail_bytes + 1U > size)
         {
             break;
         }
         fits = cursor;
     }
-    used = (lh_u32_t)(fits - text);
+    used = lh_cast_static(lh_u32_t, (fits - text));
     for (cursor = text; cursor < fits; ++cursor)
     {
         out[cursor - text] = *cursor;
@@ -480,7 +480,7 @@ lh_ui_label_draw_text(const lh_ui_label_t *self, lh_ui_canvas_t *canvas)
            than its box starts at the left whatever the alignment -- so the shortened
            one is drawn from the same place. */
         if (lh_ui_label_shorten(lh_ui_label_get_font(self), self->text, room, shortened,
-                                (lh_u32_t)sizeof shortened))
+                                lh_cast_static(lh_u32_t, sizeof(shortened))))
         {
             text = shortened;
         }

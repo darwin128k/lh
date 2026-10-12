@@ -8,6 +8,7 @@
 #include <lh/null.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/util/ptr.h>
+#include <lh/cast/static.h>
 
 static unsigned
 ws_ok_opcode(unsigned opcode)
@@ -46,17 +47,17 @@ lh_ui_web_ws_write(unsigned char *out, lh_usize_t cap, unsigned opcode, lh_bool_
     {
         return 0;
     }
-    out[0] = (unsigned char)((fin ? 0x80u : 0u) | (opcode & 0x0fu));
+    out[0] = lh_cast_static(unsigned char, ((fin ? 0x80u : 0u) | (opcode & 0x0fu)));
     if (payload_len < 126u)
     {
-        out[1] = (unsigned char)payload_len;
+        out[1] = lh_cast_static(unsigned char, payload_len);
         off = 2u;
     }
     else if (payload_len <= 65535u)
     {
         out[1] = 126u;
-        out[2] = (unsigned char)(payload_len >> 8);
-        out[3] = (unsigned char)payload_len;
+        out[2] = lh_cast_static(unsigned char, (payload_len >> 8));
+        out[3] = lh_cast_static(unsigned char, payload_len);
         off = 4u;
     }
     else
@@ -64,7 +65,7 @@ lh_ui_web_ws_write(unsigned char *out, lh_usize_t cap, unsigned opcode, lh_bool_
         out[1] = 127u;
         for (i = 0; i < 8u; ++i)
         {
-            out[9u - i] = (unsigned char)(payload_len >> (8u * i));
+            out[9u - i] = lh_cast_static(unsigned char, (payload_len >> (8u * i)));
         }
         off = 10u;
     }
@@ -92,25 +93,25 @@ lh_ui_web_ws_read(const unsigned char *p, lh_usize_t n, unsigned *opcode, lh_boo
     }
     if (opcode != lh_null)
     {
-        *opcode = (unsigned)(p[0] & 0x0fu);
+        *opcode = lh_cast_static(unsigned, (p[0] & 0x0fu));
     }
     if (fin != lh_null)
     {
         *fin = (p[0] & 0x80u) ? lh_bool_true : lh_bool_false;
     }
-    if (!ws_ok_opcode((unsigned)(p[0] & 0x0fu)))
+    if (!ws_ok_opcode(lh_cast_static(unsigned, (p[0] & 0x0fu))))
     {
         return (lh_usize_t)-1;
     }
-    masked = (unsigned)(p[1] & 0x80u);
-    len7 = (unsigned)(p[1] & 0x7fu);
+    masked = lh_cast_static(unsigned, (p[1] & 0x80u));
+    len7 = lh_cast_static(unsigned, (p[1] & 0x7fu));
     if (len7 == 126u)
     {
         if (n < 4u)
         {
             return 0;
         }
-        plen = ((lh_usize_t)p[2] << 8) | (lh_usize_t)p[3];
+        plen = (lh_cast_static(lh_usize_t, p[2])<< 8) | lh_cast_static(lh_usize_t, p[3]);
         off = 4u;
     }
     else if (len7 == 127u)
@@ -122,18 +123,18 @@ lh_ui_web_ws_read(const unsigned char *p, lh_usize_t n, unsigned *opcode, lh_boo
         wide = 0;
         for (i = 0; i < 8u; ++i)
         {
-            wide = (wide << 8) | (lh_u64_t)p[2u + i];
+            wide = (wide << 8) | lh_cast_static(lh_u64_t, p[2u + i]);
         }
-        if ((wide >> 63) != 0u || wide > (lh_u64_t)LH_UI_WEB_WS_MAX_MSG)
+        if ((wide >> 63) != 0u || wide > lh_cast_static(lh_u64_t, LH_UI_WEB_WS_MAX_MSG))
         {
             return (lh_usize_t)-1;
         }
-        plen = (lh_usize_t)wide;
+        plen = lh_cast_static(lh_usize_t, wide);
         off = 10u;
     }
     else
     {
-        plen = (lh_usize_t)len7;
+        plen = lh_cast_static(lh_usize_t, len7);
     }
     if (plen > LH_UI_WEB_WS_MAX_MSG)
     {
@@ -181,6 +182,6 @@ lh_ui_web_ws_unmask(unsigned char *data, lh_usize_t len, const unsigned char mas
     }
     for (i = 0; i < len; ++i)
     {
-        data[i] = (unsigned char)(data[i] ^ mask[i & 3u]);
+        data[i] = lh_cast_static(unsigned char, (data[i] ^ mask[i & 3u]));
     }
 }

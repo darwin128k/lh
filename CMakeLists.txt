@@ -134,6 +134,7 @@ ${LH_LIB_SRC_PATH}/str/cstr.c
         ${LH_LIB_SRC_PATH}/wstr.c
         ${LH_LIB_SRC_PATH}/str/format/uint.c
         ${LH_LIB_SRC_PATH}/str/format/ullong.c
+        ${LH_LIB_SRC_PATH}/str/format/float.c
         ${LH_LIB_SRC_PATH}/str/format/sint.c
         ${LH_LIB_SRC_PATH}/str/format/hex.c
         ${LH_LIB_SRC_PATH}/str/format/text.c
@@ -183,6 +184,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/str.c
             ${LH_LIB_SRC_PATH}/os/timestamp.c
             ${LH_LIB_SRC_PATH}/os/tick.c
+            ${LH_LIB_SRC_PATH}/os/env.c
             ${LH_LIB_SRC_PATH}/os/fs/path.c
             ${LH_LIB_SRC_PATH}/os/fs/stat.c
             ${LH_LIB_SRC_PATH}/os/fs/file.c
@@ -207,6 +209,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/error/capture.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/error/kind.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/timestamp.c
+            ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/env.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/path.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/file.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/fs/dir.c

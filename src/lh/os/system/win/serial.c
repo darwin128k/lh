@@ -29,7 +29,7 @@ lh_os_system_serial_native(lh_os_system_serial_handle_t handle)
 static lh_os_system_win_dword_t
 lh_os_system_serial_size(lh_usize_t size)
 {
-    return size > (lh_usize_t)LH_OS_SYSTEM_WIN_MAXDWORD ? LH_OS_SYSTEM_WIN_MAXDWORD : (lh_os_system_win_dword_t)size;
+    return size > lh_cast_static(lh_usize_t, LH_OS_SYSTEM_WIN_MAXDWORD)? LH_OS_SYSTEM_WIN_MAXDWORD : lh_cast_static(lh_os_system_win_dword_t, size);
 }
 
 /* Set up an opened port: the line, and timeouts that make a read return at once. */
@@ -41,12 +41,12 @@ lh_os_system_serial_setup(lh_os_system_win_handle_t port, lh_u32_t baud, lh_os_s
     lh_os_system_win_commtimeouts_t timeouts;
 
     lh_memory_set(lh_addr_of(dcb), sizeof(dcb), 0);
-    dcb.DCBlength = (lh_os_system_win_dword_t)sizeof(dcb);
+    dcb.DCBlength = lh_cast_static(lh_os_system_win_dword_t, sizeof(dcb));
     lh_return_if(GetCommState(port, lh_addr_of(dcb)) == 0, lh_bool_false);
-    dcb.BaudRate = (lh_os_system_win_dword_t)baud;
+    dcb.BaudRate = lh_cast_static(lh_os_system_win_dword_t, baud);
     dcb.ByteSize = 8U;
-    dcb.Parity = (lh_byte_t)parity; /* NOPARITY, ODDPARITY, EVENPARITY are 0, 1, 2 */
-    dcb.StopBits = (lh_byte_t)(stop_bits == 2U ? LH_OS_SYSTEM_WIN_TWOSTOPBITS : LH_OS_SYSTEM_WIN_ONESTOPBIT);
+    dcb.Parity = lh_cast_static(lh_byte_t, parity); /* NOPARITY, ODDPARITY, EVENPARITY are 0, 1, 2 */
+    dcb.StopBits = lh_cast_static(lh_byte_t, (stop_bits == 2U ? LH_OS_SYSTEM_WIN_TWOSTOPBITS : LH_OS_SYSTEM_WIN_ONESTOPBIT));
     /* Every bit field said outright rather than kept from whatever was there: no
        flow control of either kind -- RS-485 has neither -- and no abort on error,
        which would stop every read after one framing error until it is cleared.
@@ -89,7 +89,7 @@ lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t 
         path[at++] = '.';
         path[at++] = '\\';
     }
-    while (name[i] != '\0' && at + 1U < (lh_usize_t)LH_OS_SYSTEM_WIN_SERIAL_NAME_MAX)
+    while (name[i] != '\0' && at + 1U < lh_cast_static(lh_usize_t, LH_OS_SYSTEM_WIN_SERIAL_NAME_MAX))
     {
         path[at++] = name[i++];
     }

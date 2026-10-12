@@ -58,8 +58,8 @@ lh_os_tick_ms(void)
     struct timespec ts;
 
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    return lh_cast_static(lh_tick_t, (lh_ullong_t)ts.tv_sec * 1000ull +
-                                         (lh_ullong_t)ts.tv_nsec / 1000000ull);
+    return lh_cast_static(lh_tick_t, lh_cast_static(lh_ullong_t, ts.tv_sec)* 1000ull +
+                                         lh_cast_static(lh_ullong_t, ts.tv_nsec)/ 1000000ull);
 }
 
 lh_u64_t
@@ -68,8 +68,8 @@ lh_os_tick_us(void)
     struct timespec ts;
 
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    return lh_cast_static(lh_u64_t, (lh_ullong_t)ts.tv_sec * 1000000ull +
-                                        (lh_ullong_t)ts.tv_nsec / 1000ull);
+    return lh_cast_static(lh_u64_t, lh_cast_static(lh_ullong_t, ts.tv_sec)* 1000000ull +
+                                        lh_cast_static(lh_ullong_t, ts.tv_nsec)/ 1000ull);
 }
 
 #else

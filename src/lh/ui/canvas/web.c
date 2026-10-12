@@ -20,6 +20,7 @@
 #include <lh/ui/size.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+#include <lh/cast/static.h>
 
 /* Every write goes through here. A buffer always keeps one byte free, so close
  * can terminate it without a check of its own. */
@@ -39,7 +40,7 @@ web_put(lh_ui_canvas_web_t *self, const char *p, lh_usize_t n)
     self->len += n;
 }
 
-#define web_lit(self, s) web_put((self), (s), (lh_usize_t)(sizeof(s) - 1u))
+#define web_lit(self, s) web_put((self), (s), lh_cast_static(lh_usize_t, (sizeof(s) - 1u)))
 
 /* One number, without a format string to parse: a frame is mostly numbers. */
 static lh_void
@@ -47,7 +48,7 @@ web_int(lh_ui_canvas_web_t *self, long v)
 {
     char buf[24];
 
-    web_put(self, buf, lh_str_ptr_format_sint((lh_sint_t)v, buf, sizeof(buf)));
+    web_put(self, buf, lh_str_ptr_format_sint(lh_cast_static(lh_sint_t, v), buf, sizeof(buf)));
 }
 
 static lh_void
@@ -78,11 +79,11 @@ web_hex(lh_ui_canvas_web_t *self, const unsigned char *px, unsigned n)
         buf[o++] = digits[px[i] & 15u];
         if (o == sizeof(buf))
         {
-            web_put(self, buf, (lh_usize_t)o);
+            web_put(self, buf, lh_cast_static(lh_usize_t, o));
             o = 0;
         }
     }
-    web_put(self, buf, (lh_usize_t)o);
+    web_put(self, buf, lh_cast_static(lh_usize_t, o));
 }
 
 static lh_void
@@ -103,8 +104,8 @@ web_comma(lh_ui_canvas_web_t *self)
 static lh_void
 web_color(lh_ui_canvas_web_t *self, const lh_ui_color_t *color)
 {
-    web_quad(self, (long)lh_ui_color_get_r(color), (long)lh_ui_color_get_g(color), (long)lh_ui_color_get_b(color),
-             (long)lh_ui_color_get_a(color));
+    web_quad(self, lh_cast_static(long, lh_ui_color_get_r(color)), lh_cast_static(long, lh_ui_color_get_g(color)), lh_cast_static(long, lh_ui_color_get_b(color)),
+             lh_cast_static(long, lh_ui_color_get_a(color)));
 }
 
 static lh_void
@@ -113,8 +114,8 @@ web_rect(lh_ui_canvas_web_t *self, const lh_ui_rect_t *rect)
     const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
     const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
 
-    web_quad(self, (long)lh_ui_point_get_x(origin), (long)lh_ui_point_get_y(origin),
-             (long)lh_ui_size_get_width(size), (long)lh_ui_size_get_height(size));
+    web_quad(self, lh_cast_static(long, lh_ui_point_get_x(origin)), lh_cast_static(long, lh_ui_point_get_y(origin)),
+             lh_cast_static(long, lh_ui_size_get_width(size)), lh_cast_static(long, lh_ui_size_get_height(size)));
 }
 
 #define WEB_ATLAS_MAX LH_UI_CANVAS_WEB_GLYPHS_MAX
@@ -139,7 +140,7 @@ static web_atlas_t g_web_atlas;
 static unsigned
 web_atlas_hash(const unsigned char *px, unsigned n, int w, int h)
 {
-    unsigned x = 2166136261u ^ ((unsigned)w * 131u + (unsigned)h);
+    unsigned x = 2166136261u ^ (lh_cast_static(unsigned, w)* 131u + lh_cast_static(unsigned, h));
     unsigned i;
 
     for (i = 0; i < n; ++i)
@@ -194,7 +195,7 @@ web_atlas_add(web_atlas_t *atlas, const unsigned char *px, unsigned n, int w, in
     atlas->h[id] = h;
     atlas->len[id] = n;
     atlas->hash[id] = hash;
-    atlas->slot[slot] = (int)id + 1;
+    atlas->slot[slot] = lh_cast_static(int, id)+ 1;
     ++atlas->n;
     return (int)id;
 }
@@ -227,7 +228,7 @@ web_glyphs_free(lh_ui_canvas_web_t *self)
 static int
 web_atlas_intern(lh_ui_canvas_web_t *self, const unsigned char *px, int w, int h, int *is_new)
 {
-    const unsigned n = (unsigned)w * (unsigned)h;
+    const unsigned n = lh_cast_static(unsigned, w)* lh_cast_static(unsigned, h);
     const unsigned hash = web_atlas_hash(px, n, w, h);
     web_atlas_t *atlas = lh_addr_of(g_web_atlas);
     lh_ui_canvas_web_glyphs_t *glyphs;
@@ -276,9 +277,9 @@ static lh_void
 web_head(lh_ui_canvas_web_t *self)
 {
     web_lit(self, "{\"kind\":\"lh_ui_canvas\",\"width\":");
-    web_int(self, (long)self->width);
+    web_int(self, lh_cast_static(long, self->width));
     web_lit(self, ",\"height\":");
-    web_int(self, (long)self->height);
+    web_int(self, lh_cast_static(long, self->height));
     web_lit(self, ",\"ops\":[");
 }
 
@@ -329,7 +330,7 @@ web_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t rad
     web_lit(self, "{\"op\":\"fill_round_rect\",\"rect\":");
     web_rect(self, rect);
     web_lit(self, ",\"radius\":");
-    web_int(self, (long)radius);
+    web_int(self, lh_cast_static(long, radius));
     web_lit(self, ",\"color\":");
     web_color(self, color);
     web_lit(self, "}");
@@ -353,13 +354,13 @@ web_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, cons
     web_lit(self, "{\"op\":\"shadow\",\"rect\":");
     web_rect(self, rect);
     web_lit(self, ",\"radius\":");
-    web_int(self, (long)radius);
+    web_int(self, lh_cast_static(long, radius));
     web_lit(self, ",\"spread\":");
-    web_int(self, (long)lh_ui_shadow_get_spread(shadow));
+    web_int(self, lh_cast_static(long, lh_ui_shadow_get_spread(shadow)));
     web_lit(self, ",\"offset\":[");
-    web_int(self, (long)lh_ui_shadow_get_offset_x(shadow));
+    web_int(self, lh_cast_static(long, lh_ui_shadow_get_offset_x(shadow)));
     web_lit(self, ",");
-    web_int(self, (long)lh_ui_shadow_get_offset_y(shadow));
+    web_int(self, lh_cast_static(long, lh_ui_shadow_get_offset_y(shadow)));
     web_lit(self, "],\"color\":");
     web_color(self, lh_addr_of(color));
     web_lit(self, "}");
@@ -381,7 +382,7 @@ web_cover_inline(lh_ui_canvas_web_t *self, const lh_ui_mask_t *mask, int w, int 
             const int x1 = (w - x0 > WEB_ATLAS_PIX) ? x0 + WEB_ATLAS_PIX : w;
 
             lh_ui_mask_coverage_run(mask, x0, x1, y, row);
-            web_hex(self, row, (unsigned)(x1 - x0));
+            web_hex(self, row, lh_cast_static(unsigned, (x1 - x0)));
         }
     }
 }
@@ -391,9 +392,9 @@ web_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *m
               const lh_ui_color_t *color)
 {
     lh_ui_canvas_web_t *self = lh_ptr_rcast(lh_ui_canvas_web_t, context);
-    const int w = (int)lh_ui_mask_get_width(mask);
-    const int h = (int)lh_ui_mask_get_height(mask);
-    const unsigned n = (w > 0 && h > 0) ? (unsigned)w * (unsigned)h : 0u;
+    const int w = lh_cast_static(int, lh_ui_mask_get_width(mask));
+    const int h = lh_cast_static(int, lh_ui_mask_get_height(mask));
+    const unsigned n = (w > 0 && h > 0) ? lh_cast_static(unsigned, w)* lh_cast_static(unsigned, h): 0u;
     unsigned char px[WEB_ATLAS_PIX];
     int is_new = 1;
     int id = -1;
@@ -401,16 +402,16 @@ web_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *m
 
     web_comma(self);
     web_lit(self, "{\"op\":\"fill_mask\",\"origin\":[");
-    web_int(self, (long)lh_ui_point_get_x(origin));
+    web_int(self, lh_cast_static(long, lh_ui_point_get_x(origin)));
     web_lit(self, ",");
-    web_int(self, (long)lh_ui_point_get_y(origin));
+    web_int(self, lh_cast_static(long, lh_ui_point_get_y(origin)));
     web_lit(self, "],\"size\":[");
-    web_int(self, (long)w);
+    web_int(self, lh_cast_static(long, w));
     web_lit(self, ",");
-    web_int(self, (long)h);
+    web_int(self, lh_cast_static(long, h));
     web_lit(self, "],\"color\":");
     web_color(self, color);
-    if (n == 0u || n > (unsigned)WEB_ATLAS_PIX)
+    if (n == 0u || n > lh_cast_static(unsigned, WEB_ATLAS_PIX))
     {
         web_lit(self, ",\"cover\":\"");
         if (n != 0u)
@@ -422,13 +423,13 @@ web_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *m
     }
     for (y = 0; y < h; ++y)
     {
-        lh_ui_mask_coverage_run(mask, 0, w, y, px + (unsigned)y * (unsigned)w);
+        lh_ui_mask_coverage_run(mask, 0, w, y, px + lh_cast_static(unsigned, y)* lh_cast_static(unsigned, w));
     }
     id = web_atlas_intern(self, px, w, h, lh_addr_of(is_new));
     if (id >= 0)
     {
         web_lit(self, ",\"m\":");
-        web_int(self, (long)id);
+        web_int(self, lh_cast_static(long, id));
     }
     if (id < 0 || is_new)
     {

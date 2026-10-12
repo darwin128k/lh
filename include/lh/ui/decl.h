@@ -48,12 +48,13 @@
 #include <lh/ui/style.h>
 #include <lh/ui/toggle.h>
 #include <lh/util/addr.h>
+#include <lh/cast/static.h>
 
 /**
  * @brief @p parent of a row that is a root: no parent, and exactly one row of a
  *        declaration may say it.
  */
-#define LH_UI_DECL_ROOT ((lh_s32_t)(-1))
+#define LH_UI_DECL_ROOT (lh_cast_static(lh_s32_t, (-1)))
 
 /**
  * @enum lh_ui_decl_kind

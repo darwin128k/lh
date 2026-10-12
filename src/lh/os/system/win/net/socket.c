@@ -305,6 +305,19 @@ lh_os_system_net_socket_recv(lh_os_system_net_socket_handle_t handle, lh_ptr buf
 }
 
 lh_ssize_t
+lh_os_system_net_socket_pending(lh_os_system_net_socket_handle_t handle)
+{
+    lh_ulong_t pending = 0UL;
+
+    if (!lh_os_system_net_socket_ok(
+            ioctlsocket(lh_os_system_net_socket_native(handle), LH_OS_SYSTEM_WIN_FIONREAD, lh_addr_of(pending))))
+    {
+        return LH_OS_RESULT_INVALID;
+    }
+    return lh_cast_static(lh_ssize_t, pending);
+}
+
+lh_ssize_t
 lh_os_system_net_socket_sendto(lh_os_system_net_socket_handle_t handle, const lh_ptr buf, lh_usize_t size,
                                const lh_net_ip4_socket_addr_t *addr)
 {

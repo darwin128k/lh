@@ -9,6 +9,7 @@
 #include <lh/null.h>
 #include <lh/util/addr.h>
 #include <lh/util/return.h>
+#include <lh/cast/static.h>
 
 /* ── CRC ─────────────────────────────────────────────────────────────────────
    Reflected 0x8005, which Modbus writes as 0xA001 with the low byte first. This
@@ -21,23 +22,23 @@ lh_mb_crc16(const lh_byte_t *bytes, lh_u16_t length)
 {
     lh_u16_t crc = 0xFFFF;
 
-    lh_return_if(lh_null_eq(bytes), (lh_u16_t)0xFFFF);
+    lh_return_if(lh_null_eq(bytes), lh_cast_static(lh_u16_t, 0xFFFF));
     while (length > 0)
     {
         lh_u8_t bit;
 
-        crc ^= (lh_u16_t)(*bytes);
+        crc ^= lh_cast_static(lh_u16_t, (*bytes));
         ++bytes;
         --length;
         for (bit = 0; bit < 8; ++bit)
         {
             if ((crc & 1) != 0)
             {
-                crc = (lh_u16_t)((crc >> 1) ^ 0xA001);
+                crc = lh_cast_static(lh_u16_t, ((crc >> 1) ^ 0xA001));
             }
             else
             {
-                crc = (lh_u16_t)(crc >> 1);
+                crc = lh_cast_static(lh_u16_t, (crc >> 1));
             }
         }
     }
@@ -56,15 +57,15 @@ lh_mb_crc16(const lh_byte_t *bytes, lh_u16_t length)
 lh_u16_t
 lh_mb_build_pdu_read(lh_byte_t *pdu, lh_u16_t cap, lh_u8_t fc, lh_u16_t address, lh_u16_t count)
 {
-    lh_return_if(lh_null_eq(pdu), (lh_u16_t)0);
-    lh_return_if(cap < 6 || count == 0 || count > LH_MB_READ_MAX, (lh_u16_t)0);
-    lh_return_ifn(fc == LH_MB_FC_READ_HOLDING || fc == LH_MB_FC_READ_INPUT, (lh_u16_t)0);
+    lh_return_if(lh_null_eq(pdu), lh_cast_static(lh_u16_t, 0));
+    lh_return_if(cap < 6 || count == 0 || count > LH_MB_READ_MAX, lh_cast_static(lh_u16_t, 0));
+    lh_return_ifn(fc == LH_MB_FC_READ_HOLDING || fc == LH_MB_FC_READ_INPUT, lh_cast_static(lh_u16_t, 0));
 
     pdu[0] = fc;
-    pdu[1] = (lh_byte_t)((address >> 8) & 0xFF);
-    pdu[2] = (lh_byte_t)(address & 0xFF);
-    pdu[3] = (lh_byte_t)((count >> 8) & 0xFF);
-    pdu[4] = (lh_byte_t)(count & 0xFF);
+    pdu[1] = lh_cast_static(lh_byte_t, ((address >> 8) & 0xFF));
+    pdu[2] = lh_cast_static(lh_byte_t, (address & 0xFF));
+    pdu[3] = lh_cast_static(lh_byte_t, ((count >> 8) & 0xFF));
+    pdu[4] = lh_cast_static(lh_byte_t, (count & 0xFF));
     return 5;
 }
 
@@ -74,20 +75,20 @@ lh_mb_build_pdu_write(lh_byte_t *pdu, lh_u16_t cap, lh_u16_t address, const lh_u
 {
     lh_u16_t i;
 
-    lh_return_if(lh_null_eq(pdu) || lh_null_eq(values), (lh_u16_t)0);
-    lh_return_if(count == 0 || count > LH_MB_WRITE_MAX, (lh_u16_t)0);
-    lh_return_if(cap < (lh_u16_t)(6 + count * 2), (lh_u16_t)0);
+    lh_return_if(lh_null_eq(pdu) || lh_null_eq(values), lh_cast_static(lh_u16_t, 0));
+    lh_return_if(count == 0 || count > LH_MB_WRITE_MAX, lh_cast_static(lh_u16_t, 0));
+    lh_return_if(cap < lh_cast_static(lh_u16_t, (6 + count * 2)), lh_cast_static(lh_u16_t, 0));
 
     pdu[0] = LH_MB_FC_WRITE_MANY;
-    pdu[1] = (lh_byte_t)((address >> 8) & 0xFF);
-    pdu[2] = (lh_byte_t)(address & 0xFF);
-    pdu[3] = (lh_byte_t)((count >> 8) & 0xFF);
-    pdu[4] = (lh_byte_t)(count & 0xFF);
-    pdu[5] = (lh_byte_t)(count * 2);
+    pdu[1] = lh_cast_static(lh_byte_t, ((address >> 8) & 0xFF));
+    pdu[2] = lh_cast_static(lh_byte_t, (address & 0xFF));
+    pdu[3] = lh_cast_static(lh_byte_t, ((count >> 8) & 0xFF));
+    pdu[4] = lh_cast_static(lh_byte_t, (count & 0xFF));
+    pdu[5] = lh_cast_static(lh_byte_t, (count * 2));
     for (i = 0; i < count; ++i)
     {
-        pdu[6 + i * 2] = (lh_byte_t)((values[i] >> 8) & 0xFF);
-        pdu[7 + i * 2] = (lh_byte_t)(values[i] & 0xFF);
+        pdu[6 + i * 2] = lh_cast_static(lh_byte_t, ((values[i] >> 8) & 0xFF));
+        pdu[7 + i * 2] = lh_cast_static(lh_byte_t, (values[i] & 0xFF));
     }
     return (lh_u16_t)(6 + count * 2);
 }
@@ -95,12 +96,12 @@ lh_mb_build_pdu_write(lh_byte_t *pdu, lh_u16_t cap, lh_u16_t address, const lh_u
 lh_u16_t
 lh_mb_build_pdu_write_one(lh_byte_t *pdu, lh_u16_t cap, lh_u16_t address, lh_u16_t value)
 {
-    lh_return_if(lh_null_eq(pdu) || cap < 5, (lh_u16_t)0);
+    lh_return_if(lh_null_eq(pdu) || cap < 5, lh_cast_static(lh_u16_t, 0));
     pdu[0] = LH_MB_FC_WRITE_ONE;
-    pdu[1] = (lh_byte_t)((address >> 8) & 0xFF);
-    pdu[2] = (lh_byte_t)(address & 0xFF);
-    pdu[3] = (lh_byte_t)((value >> 8) & 0xFF);
-    pdu[4] = (lh_byte_t)(value & 0xFF);
+    pdu[1] = lh_cast_static(lh_byte_t, ((address >> 8) & 0xFF));
+    pdu[2] = lh_cast_static(lh_byte_t, (address & 0xFF));
+    pdu[3] = lh_cast_static(lh_byte_t, ((value >> 8) & 0xFF));
+    pdu[4] = lh_cast_static(lh_byte_t, (value & 0xFF));
     return 5;
 }
 
@@ -112,17 +113,17 @@ lh_mb_build_read(lh_byte_t *adu, lh_u16_t cap, lh_u8_t unit, lh_u8_t fc, lh_u16_
     lh_u16_t pdu_length;
     lh_u16_t crc;
 
-    lh_return_if(lh_null_eq(adu), (lh_u16_t)0);
+    lh_return_if(lh_null_eq(adu), lh_cast_static(lh_u16_t, 0));
     /* unit, PDU, CRC. */
-    lh_return_if(cap < 8, (lh_u16_t)0);
-    pdu_length = lh_mb_build_pdu_read(pdu, (lh_u16_t)sizeof(pdu), fc, address, count);
-    lh_return_if(pdu_length == 0, (lh_u16_t)0);
+    lh_return_if(cap < 8, lh_cast_static(lh_u16_t, 0));
+    pdu_length = lh_mb_build_pdu_read(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), fc, address, count);
+    lh_return_if(pdu_length == 0, lh_cast_static(lh_u16_t, 0));
 
     adu[0] = unit;
     lh_memory_std_copy(lh_addr_of(adu[1]), pdu, pdu_length);
-    crc = lh_mb_crc16(adu, (lh_u16_t)(1 + pdu_length));
-    adu[1 + pdu_length] = (lh_byte_t)(crc & 0xFF);
-    adu[2 + pdu_length] = (lh_byte_t)((crc >> 8) & 0xFF);
+    crc = lh_mb_crc16(adu, lh_cast_static(lh_u16_t, (1 + pdu_length)));
+    adu[1 + pdu_length] = lh_cast_static(lh_byte_t, (crc & 0xFF));
+    adu[2 + pdu_length] = lh_cast_static(lh_byte_t, ((crc >> 8) & 0xFF));
     return (lh_u16_t)(3 + pdu_length);
 }
 
@@ -134,18 +135,18 @@ lh_mb_build_write(lh_byte_t *adu, lh_u16_t cap, lh_u8_t unit, lh_u16_t address,
     lh_u16_t pdu_length;
     lh_u16_t crc;
 
-    lh_return_if(lh_null_eq(adu) || lh_null_eq(values), (lh_u16_t)0);
+    lh_return_if(lh_null_eq(adu) || lh_null_eq(values), lh_cast_static(lh_u16_t, 0));
     /* unit, PDU, CRC. */
-    lh_return_if(count == 0 || count > LH_MB_READ_MAX, (lh_u16_t)0);
-    lh_return_if(cap < (lh_u16_t)(9 + count * 2), (lh_u16_t)0);
-    pdu_length = lh_mb_build_pdu_write(pdu, (lh_u16_t)sizeof(pdu), address, values, count);
-    lh_return_if(pdu_length == 0, (lh_u16_t)0);
+    lh_return_if(count == 0 || count > LH_MB_READ_MAX, lh_cast_static(lh_u16_t, 0));
+    lh_return_if(cap < lh_cast_static(lh_u16_t, (9 + count * 2)), lh_cast_static(lh_u16_t, 0));
+    pdu_length = lh_mb_build_pdu_write(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), address, values, count);
+    lh_return_if(pdu_length == 0, lh_cast_static(lh_u16_t, 0));
 
     adu[0] = unit;
     lh_memory_std_copy(lh_addr_of(adu[1]), pdu, pdu_length);
-    crc = lh_mb_crc16(adu, (lh_u16_t)(1 + pdu_length));
-    adu[1 + pdu_length] = (lh_byte_t)(crc & 0xFF);
-    adu[2 + pdu_length] = (lh_byte_t)((crc >> 8) & 0xFF);
+    crc = lh_mb_crc16(adu, lh_cast_static(lh_u16_t, (1 + pdu_length)));
+    adu[1 + pdu_length] = lh_cast_static(lh_byte_t, (crc & 0xFF));
+    adu[2 + pdu_length] = lh_cast_static(lh_byte_t, ((crc >> 8) & 0xFF));
     return (lh_u16_t)(3 + pdu_length);
 }
 
@@ -181,7 +182,7 @@ lh_mb_parse_pdu(const lh_byte_t *pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expe
        client that has to tell a healthy device from a broken one could not. */
     lh_return_if(length < 2, lh_mb_status_short);
 
-    if (pdu[0] == (lh_u8_t)(fc | 0x80))
+    if (pdu[0] == lh_cast_static(lh_u8_t, (fc | 0x80)))
     {
         if (exception != lh_null)
         {
@@ -202,12 +203,12 @@ lh_mb_parse_pdu(const lh_byte_t *pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expe
     {
         return lh_mb_status_garbage; /* not a whole number of words */
     }
-    got = (lh_u16_t)(bytes / 2);
+    got = lh_cast_static(lh_u16_t, (bytes / 2));
     /* The bytes that arrived decide this, not the byte count inside them: a
        device that says eight words and sends four has not answered, and taking
        its word for how much came is how a parser reads the next frame as its
        own. */
-    if ((lh_u16_t)(length - 2) < bytes)
+    if (lh_cast_static(lh_u16_t, (length - 2))< bytes)
     {
         return lh_mb_status_short;
     }
@@ -217,7 +218,7 @@ lh_mb_parse_pdu(const lh_byte_t *pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expe
 
         for (i = 0; i < take; ++i)
         {
-            values[i] = (lh_u16_t)((lh_u16_t)pdu[2 + i * 2] << 8 | pdu[3 + i * 2]);
+            values[i] = lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, pdu[2 + i * 2])<< 8 | pdu[3 + i * 2]));
         }
     }
     if (out != lh_null)
@@ -239,7 +240,7 @@ lh_mb_parse_pdu_write(const lh_byte_t *pdu, lh_u16_t length, lh_u16_t address, l
     /* The refusal first, for the reason ::lh_mb_parse_pdu gives: it is two bytes,
        shorter than any answer, and checking the length first calls "no" "not yet". */
     lh_return_if(length < 2, lh_mb_status_short);
-    if (pdu[0] == (lh_u8_t)(LH_MB_FC_WRITE_MANY | 0x80))
+    if (pdu[0] == lh_cast_static(lh_u8_t, (LH_MB_FC_WRITE_MANY | 0x80)))
     {
         if (exception != lh_null)
         {
@@ -250,8 +251,8 @@ lh_mb_parse_pdu_write(const lh_byte_t *pdu, lh_u16_t length, lh_u16_t address, l
     lh_return_if(length < 5, lh_mb_status_short);
     lh_return_if(pdu[0] != LH_MB_FC_WRITE_MANY, lh_mb_status_wrong_code);
     /* The echo has to be this write: the same address and the same count. */
-    lh_return_if(((lh_u16_t)((lh_u16_t)pdu[1] << 8 | pdu[2])) != address ||
-                     ((lh_u16_t)((lh_u16_t)pdu[3] << 8 | pdu[4])) != count,
+    lh_return_if((lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, pdu[1])<< 8 | pdu[2]))) != address ||
+                     (lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, pdu[3])<< 8 | pdu[4]))) != count,
                  lh_mb_status_garbage);
     return lh_mb_status_ok;
 }
@@ -266,7 +267,7 @@ lh_mb_parse_pdu_write_one(const lh_byte_t *pdu, lh_u16_t length, lh_u16_t addres
     }
     lh_return_if(lh_null_eq(pdu), lh_mb_status_garbage);
     lh_return_if(length < 2, lh_mb_status_short);
-    if (pdu[0] == (lh_u8_t)(LH_MB_FC_WRITE_ONE | 0x80))
+    if (pdu[0] == lh_cast_static(lh_u8_t, (LH_MB_FC_WRITE_ONE | 0x80)))
     {
         if (exception != lh_null)
         {
@@ -278,8 +279,8 @@ lh_mb_parse_pdu_write_one(const lh_byte_t *pdu, lh_u16_t length, lh_u16_t addres
     lh_return_if(pdu[0] != LH_MB_FC_WRITE_ONE, lh_mb_status_wrong_code);
     /* The whole request comes back, so the value is checked as well as the
        address: a device that stored something else says so here. */
-    lh_return_if(((lh_u16_t)((lh_u16_t)pdu[1] << 8 | pdu[2])) != address ||
-                     ((lh_u16_t)((lh_u16_t)pdu[3] << 8 | pdu[4])) != value,
+    lh_return_if((lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, pdu[1])<< 8 | pdu[2]))) != address ||
+                     (lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, pdu[3])<< 8 | pdu[4]))) != value,
                  lh_mb_status_garbage);
     return lh_mb_status_ok;
 }
@@ -319,7 +320,7 @@ lh_mb_parse_read(const lh_byte_t *adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc
        Asked before the five-byte check for the same reason ::lh_mb_parse_pdu asks
        it before its four: the reason is at byte 3, and a device that has only a
        reason to give has given a whole answer. */
-    if (adu[1] == (lh_u8_t)(fc | 0x80))
+    if (adu[1] == lh_cast_static(lh_u8_t, (fc | 0x80)))
     {
         if (exception != lh_null)
         {
@@ -334,14 +335,14 @@ lh_mb_parse_read(const lh_byte_t *adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc
     /* The CRC covers everything but the last two bytes, and it is checked before
        anything is taken out of the frame: a corrupted byte count would send the
        copy off the end of the buffer on the strength of a bad byte. */
-    if (lh_mb_crc16(adu, (lh_u16_t)(length - 2)) !=
-        (lh_u16_t)((lh_u16_t)adu[length - 1] << 8 | adu[length - 2]))
+    if (lh_mb_crc16(adu, lh_cast_static(lh_u16_t, (length - 2))) !=
+        lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, adu[length - 1])<< 8 | adu[length - 2])))
     {
         return lh_mb_status_crc;
     }
     pdu[0] = adu[1];
-    lh_memory_std_copy(lh_addr_of(pdu[1]), lh_addr_of(adu[2]), (lh_usize_t)(length - 4));
-    pdu_length = (lh_u16_t)(length - 3);
+    lh_memory_std_copy(lh_addr_of(pdu[1]), lh_addr_of(adu[2]), lh_cast_static(lh_usize_t, (length - 4)));
+    pdu_length = lh_cast_static(lh_u16_t, (length - 3));
     return lh_mb_parse_pdu(pdu, pdu_length, fc, expect, values, cap, out, lh_null);
 }
 
@@ -361,7 +362,7 @@ lh_mb_parse_read(const lh_byte_t *adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc
 static lh_u16_t
 mb_reach(lh_u16_t start, lh_u16_t end, const lh_mb_want_t *next)
 {
-    const lh_u16_t next_end = (lh_u16_t)(next->address + (next->registers ? next->registers : 1));
+    const lh_u16_t next_end = lh_cast_static(lh_u16_t, (next->address + (next->registers ? next->registers : 1)));
     const lh_u16_t reach = next_end > end ? next_end : end;
 
     if (next->address > end && next->address - end > LH_MB_GAP_MAX)
@@ -381,13 +382,13 @@ lh_mb_plan_reads(const lh_mb_want_t *wants, lh_u16_t count, lh_mb_read_t *reads,
     lh_u16_t made = 0;
     lh_u16_t i = 0;
 
-    lh_return_if(lh_null_eq(wants) || lh_null_eq(reads), (lh_u16_t)0);
-    lh_return_if(count == 0 || cap == 0, (lh_u16_t)0);
+    lh_return_if(lh_null_eq(wants) || lh_null_eq(reads), lh_cast_static(lh_u16_t, 0));
+    lh_return_if(count == 0 || cap == 0, lh_cast_static(lh_u16_t, 0));
 
     while (i < count && made < cap)
     {
         const lh_u16_t start = wants[i].address;
-        lh_u16_t end = (lh_u16_t)(start + (wants[i].registers ? wants[i].registers : 1));
+        lh_u16_t end = lh_cast_static(lh_u16_t, (start + (wants[i].registers ? wants[i].registers : 1)));
         lh_u16_t j = i;
         lh_mb_read_t *one;
 
@@ -406,11 +407,11 @@ lh_mb_plan_reads(const lh_mb_want_t *wants, lh_u16_t count, lh_mb_read_t *reads,
 
         one = lh_addr_of(reads[made]);
         one->start = start;
-        one->count = (lh_u16_t)(end - start);
+        one->count = lh_cast_static(lh_u16_t, (end - start));
         one->first = i;
         one->last = j;
         ++made;
-        i = (lh_u16_t)(j + 1);
+        i = lh_cast_static(lh_u16_t, (j + 1));
     }
     return made;
 }
@@ -421,13 +422,13 @@ lh_mb_count_requests(const lh_mb_want_t *wants, lh_u16_t count)
     lh_u16_t made = 0;
     lh_u16_t i = 0;
 
-    lh_return_if(lh_null_eq(wants), (lh_u16_t)0);
-    lh_return_if(count == 0, (lh_u16_t)0);
+    lh_return_if(lh_null_eq(wants), lh_cast_static(lh_u16_t, 0));
+    lh_return_if(count == 0, lh_cast_static(lh_u16_t, 0));
 
     while (i < count)
     {
         const lh_u16_t start = wants[i].address;
-        lh_u16_t end = (lh_u16_t)(start + (wants[i].registers ? wants[i].registers : 1));
+        lh_u16_t end = lh_cast_static(lh_u16_t, (start + (wants[i].registers ? wants[i].registers : 1)));
         lh_u16_t j = i;
 
         while (j + 1 < count)
@@ -442,7 +443,7 @@ lh_mb_count_requests(const lh_mb_want_t *wants, lh_u16_t count)
             ++j;
         }
         ++made;
-        i = (lh_u16_t)(j + 1);
+        i = lh_cast_static(lh_u16_t, (j + 1));
     }
     return made;
 }

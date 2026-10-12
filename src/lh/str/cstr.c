@@ -14,6 +14,7 @@
 
 #include <lh/str/cstr.h>
 #include <lh/util/str/ptr.h>
+#include <lh/cast/static.h>
 
 lh_usize_t
 lh_str_len(lh_str_cptr str)
@@ -23,11 +24,11 @@ lh_str_len(lh_str_cptr str)
        both rules -- no terminator, and null among the operands -- already hold one call
        down, where they are tested. A second `if` here would be a second answer to the same
        question, and the two could disagree the day one of them changed. */
-    return lh_str_ptr_len((lh_str_ptr)str);
+    return lh_str_ptr_len(lh_cast_static(lh_str_ptr, str));
 }
 
 lh_bool_t
 lh_str_eq(lh_str_cptr lhs, lh_str_cptr rhs, lh_bool_t ignore_case)
 {
-    return lh_str_ptr_equals((lh_str_ptr)lhs, (lh_str_ptr)rhs, ignore_case);
+    return lh_str_ptr_equals(lh_cast_static(lh_str_ptr, lhs), lh_cast_static(lh_str_ptr, rhs), ignore_case);
 }

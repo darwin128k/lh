@@ -16,6 +16,7 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <poll.h>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -154,7 +155,7 @@ lh_os_system_net_socket_connect_wait(lh_os_system_net_socket_handle_t handle, lh
     watch.fd = lh_os_system_net_socket_native(handle);
     watch.events = POLLOUT;
     watch.revents = 0;
-    const int ready = poll(lh_addr_of(watch), 1, timeout_ms > (lh_u32_t)INT_MAX ? INT_MAX : (int)timeout_ms);
+    const int ready = poll(lh_addr_of(watch), 1, timeout_ms > lh_cast_static(lh_u32_t, INT_MAX)? INT_MAX : lh_cast_static(int, timeout_ms));
     if (lh_math_is_negative(ready))
     {
         if (errno == EINTR)
@@ -288,7 +289,7 @@ lh_os_system_net_socket_wait(const lh_os_system_net_socket_handle_t *read, lh_us
     count = lh_os_system_net_socket_fill_watch(watch, read, read_count, POLLIN);
     count += lh_os_system_net_socket_fill_watch(watch + count, write, write_count, POLLOUT);
 
-    const int ready = poll(watch, (nfds_t)count, timeout_ms > (lh_u32_t)INT_MAX ? INT_MAX : (int)timeout_ms);
+    const int ready = poll(watch, (nfds_t)count, timeout_ms > lh_cast_static(lh_u32_t, INT_MAX)? INT_MAX : lh_cast_static(int, timeout_ms));
     if (lh_math_is_negative(ready))
     {
         lh_return_if(errno == EINTR, LH_OS_RESULT_PENDING);
@@ -311,6 +312,19 @@ lh_os_system_net_socket_recv(lh_os_system_net_socket_handle_t handle, lh_ptr buf
 {
     return lh_os_system_net_socket_result(
         lh_cast_static(lh_ssize_t, recv(lh_os_system_net_socket_native(handle), buf, lh_cast_static(size_t, size), 0)));
+}
+
+lh_ssize_t
+lh_os_system_net_socket_pending(lh_os_system_net_socket_handle_t handle)
+{
+    int pending = 0;
+
+    if (lh_math_is_negative(ioctl(lh_os_system_net_socket_native(handle), FIONREAD, lh_addr_of(pending))))
+    {
+        lh_os_system_error_capture();
+        return LH_OS_RESULT_INVALID;
+    }
+    return lh_cast_static(lh_ssize_t, pending);
 }
 
 lh_ssize_t

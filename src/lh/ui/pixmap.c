@@ -455,9 +455,9 @@ lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, const
     const __m128i m31 = _mm_set1_epi16(0x1F);
     const __m128i m63 = _mm_set1_epi16(0x3F);
     /* The source as three planes of eight 8-bit values, each widened to lanes. */
-    const __m128i src8r = _mm_set1_epi16((short) ((src >> 16) & 0xFF));
-    const __m128i src8g = _mm_set1_epi16((short) ((src >> 8) & 0xFF));
-    const __m128i src8b = _mm_set1_epi16((short) (src & 0xFF));
+    const __m128i src8r = _mm_set1_epi16(lh_cast_static(short, ((src >> 16) & 0xFF)));
+    const __m128i src8g = _mm_set1_epi16(lh_cast_static(short, ((src >> 8) & 0xFF)));
+    const __m128i src8b = _mm_set1_epi16(lh_cast_static(short, (src & 0xFF)));
     /* A swapped format keeps the low byte first; one 16-bit byte swap per block
        turns it into the numeric RGB565 the planes below expect, and the same
        swap on the way out puts it back. */
