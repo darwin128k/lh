@@ -12,6 +12,7 @@
 #include <lh/ui/rect.h>
 #include <lh/ui/rects.h>
 #include <lh/ui/scalar.h>
+#include <lh/ui/shadow.h>
 #include <lh/ui/size.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -173,6 +174,23 @@ web_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip)
 }
 
 static lh_bool_t
+web_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, const lh_ui_shadow_t *shadow)
+{
+    lh_ui_canvas_web_t *self = lh_ptr_rcast(lh_ui_canvas_web_t, context);
+    const lh_ui_color_t color = lh_ui_shadow_get_color(shadow);
+
+    web_comma(self);
+    web_write(self, "{\"op\":\"shadow\",\"rect\":");
+    web_rect(self, rect);
+    web_write(self, ",\"radius\":%d,\"spread\":%d,\"offset\":[%d,%d],\"color\":", (int)radius,
+              (int)lh_ui_shadow_get_spread(shadow), (int)lh_ui_shadow_get_offset_x(shadow),
+              (int)lh_ui_shadow_get_offset_y(shadow));
+    web_color(self, lh_addr_of(color));
+    web_write(self, "}");
+    return lh_bool_true;
+}
+
+static lh_bool_t
 web_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,
               const lh_ui_color_t *color)
 {
@@ -207,7 +225,7 @@ const lh_ui_canvas_backend_t lh_ui_canvas_backend_web = {
     /* fill_round_rect */ web_fill_round_rect,
     /* set_clip */ web_set_clip,
     /* fill_mask */ web_fill_mask,
-    /* shadow */ lh_null,
+    /* shadow */ web_shadow,
     /* blur */ lh_null,
     /* glass */ lh_null,
 };
