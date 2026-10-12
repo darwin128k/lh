@@ -79,6 +79,7 @@ lh_add_test_core(lh_test_core
 lh_add_test_core(lh_test_runtime
         ${LH_TEST_SRC_PATH}/lh/runtime/check.cpp
         ${LH_TEST_SRC_PATH}/lh/runtime/error.cpp
+        ${LH_TEST_SRC_PATH}/lh/runtime/logger.cpp
 )
 
 lh_add_test_core(lh_test_bit
