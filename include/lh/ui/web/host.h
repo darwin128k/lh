@@ -3,10 +3,10 @@
  * @brief Serve one ::lh_ui_view_t over HTTP as canvas JSON. No Python.
  *
  * GET `/` is a Canvas2D player. GET `/ui.json` is ::lh_ui_view_draw through
- * ::lh_ui_canvas_backend_web. The player posts the same events a window
- * delivers — press, release, wheel, key, text — and the host calls the
- * application's hooks, not a second UI. A tick hook is the window's timer
- * (cfg polls devices from it). The host does not know whose tree it is.
+ * ::lh_ui_canvas_backend_web. `ws://…/ws` pushes a frame only when the tree
+ * changed and takes the same events a window delivers. HTTP remains for a
+ * first paint and for tools. A 3D pane is ::lh_ui_viewport3d, not an op in
+ * that JSON. The host does not know whose tree it is.
  *
  * Requires ::LH_LIBRARY_OPTION_UI and ::LH_LIBRARY_OPTION_OS.
  */
