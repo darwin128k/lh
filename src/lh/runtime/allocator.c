@@ -55,6 +55,13 @@ lh_runtime_allocator(void)
     return lh_addr_of(m_runtime_allocator);
 }
 
+lh_void
+lh_runtime_allocator_init(lh_memory_allocator_alloc_cb alloc_cb,
+                          lh_memory_allocator_dealloc_cb dealloc_cb)
+{
+    lh_memory_allocator_init(lh_runtime_allocator(), alloc_cb, dealloc_cb);
+}
+
 lh_ptr
 lh_runtime_allocator_alloc(lh_usize_t size)
 {

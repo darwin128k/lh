@@ -5,8 +5,11 @@
 #include <lh/byte/ptr.h>
 #include <lh/cast/const.h>
 #include <lh/cast/static.h>
+#include <lh/char.h>
 #include <lh/null.h>
 #include <lh/runtime/error.h>
+#include <lh/size/limits.h>
+#include <lh/str/format/text.h>
 #include <lh/util/ptr.h>
 
 lh_void
@@ -95,4 +98,56 @@ lh_io_writer_write_all(lh_io_writer_t *self, const lh_ptr buf, lh_usize_t size)
         left -= n;
     }
     return lh_bool_true;
+}
+
+lh_ssize_t
+lh_io_writer_print_v(lh_io_writer_t *self, const lh_str_ptr fmt, va_list args)
+{
+    lh_char_t buf[LH_IO_WRITER_PRINT_CAPACITY];
+    va_list args_count;
+    va_list args_format;
+    lh_usize_t need;
+    lh_usize_t n;
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(fmt);
+
+    va_copy(args_count, args);
+    need = lh_str_ptr_format_text_size_v(fmt, args_count);
+    va_end(args_count);
+
+    if (need == LH_USIZE_T_MAX || need > LH_IO_WRITER_PRINT_CAPACITY)
+    {
+        return -1;
+    }
+    if (need == 0u)
+    {
+        return 0;
+    }
+
+    va_copy(args_format, args);
+    n = lh_str_ptr_format_text_v(buf, LH_IO_WRITER_PRINT_CAPACITY, fmt, args_format);
+    va_end(args_format);
+
+    if (n != need)
+    {
+        return -1;
+    }
+    if (!lh_io_writer_write_all(self, lh_cast_const(lh_ptr, buf), n))
+    {
+        return -1;
+    }
+    return lh_cast_static(lh_ssize_t, n);
+}
+
+lh_ssize_t
+lh_io_writer_print(lh_io_writer_t *self, const lh_str_ptr fmt, ...)
+{
+    va_list args;
+    lh_ssize_t n;
+
+    va_start(args, fmt);
+    n = lh_io_writer_print_v(self, fmt, args);
+    va_end(args);
+    return n;
 }

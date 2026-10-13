@@ -2,10 +2,18 @@
  * @file allocator.h
  * @brief Runtime allocator accessor and convenience allocation API.
  *
- * Exposes an accessor for the internal ::lh_memory_allocator_t used by runtime
- * helpers, plus ::lh_runtime_allocator_alloc / ::lh_runtime_allocator_free /
- * ::lh_runtime_allocator_realloc as thin wrappers over ::lh_memory_allocator_*
- * on that instance.
+ * Same shape as ::lh_runtime_writer / ::lh_runtime_terminate: one slot the host
+ * wires, then thin wrappers for everyday use. With
+ * ::LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB on it starts as malloc/free;
+ * off (bare-metal), empty until the application installs callbacks:
+ *
+ * @code
+ * lh_runtime_allocator_init(pool_alloc, pool_free);
+ * lh_ptr p = lh_runtime_allocator_alloc(64);
+ * @endcode
+ *
+ * ::lh_runtime_allocator() remains for hosts that need the underlying
+ * ::lh_memory_allocator_t (context, realloc, …).
  */
 
 #ifndef LH_RUNTIME_ALLOCATOR_H
@@ -27,6 +35,19 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_memory_allocator_t *
 lh_runtime_allocator(void);
+
+/**
+ * @brief Install alloc/dealloc on ::lh_runtime_allocator().
+ *
+ * Same as ::lh_memory_allocator_init(::lh_runtime_allocator(), …). Use this on
+ * freestanding builds; with the stdlib option on, the slot is already wired.
+ *
+ * @param alloc_cb   Allocation callback (may be ::lh_null).
+ * @param dealloc_cb Deallocation callback (may be ::lh_null).
+ */
+lh_void
+lh_runtime_allocator_init(lh_memory_allocator_alloc_cb alloc_cb,
+                          lh_memory_allocator_dealloc_cb dealloc_cb);
 
 /**
  * @brief Allocate @p size bytes using the runtime allocator.

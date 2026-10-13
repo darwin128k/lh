@@ -17,6 +17,21 @@
 #include <lh/io/writer/fields.h>
 #include <lh/ptr.h>
 #include <lh/size.h>
+#include <lh/str/ptr.h>
+
+#include <stdarg.h>
+
+/**
+ * @def LH_IO_WRITER_PRINT_CAPACITY
+ * @brief Stack buffer for ::lh_io_writer_print / ::lh_runtime_writer_print.
+ *
+ * ::lh_str_ptr_format_text is all-or-nothing: if the formatted line does not
+ * fit, nothing is written and the call fails. Override before including this
+ * header when a host needs a larger line.
+ */
+#ifndef LH_IO_WRITER_PRINT_CAPACITY
+#    define LH_IO_WRITER_PRINT_CAPACITY 256u
+#endif
 
 /**
  * @struct lh_io_writer
@@ -132,6 +147,25 @@ lh_io_writer_write(lh_io_writer_t *self, const lh_ptr buf, lh_usize_t size);
  */
 lh_bool_t
 lh_io_writer_write_all(lh_io_writer_t *self, const lh_ptr buf, lh_usize_t size);
+
+/**
+ * @brief Format @p fmt with @p args via ::lh_str_ptr_format_text_v and write
+ *        the result through @p self.
+ *
+ * Same conversions as ::lh_str_ptr_format_text. Uses a
+ * ::LH_IO_WRITER_PRINT_CAPACITY stack buffer — oversized or malformed masks
+ * fail without writing.
+ *
+ * @return Characters written, or a negative value on format / write failure.
+ */
+lh_ssize_t
+lh_io_writer_print_v(lh_io_writer_t *self, const lh_str_ptr fmt, va_list args);
+
+/**
+ * @brief Variadic wrapper for ::lh_io_writer_print_v.
+ */
+lh_ssize_t
+lh_io_writer_print(lh_io_writer_t *self, const lh_str_ptr fmt, ...);
 
 LH_COMPILER_EXTERN_C_END
 
