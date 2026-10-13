@@ -140,6 +140,24 @@ option(LH_LIBRARY_OPTION_RUNTIME_LOGGER_USE_STDLIB
         ON)
 
 # -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_RUNTIME_IO_USE_STDLIB
+#
+# Default ends of lh_runtime_writer() / lh_runtime_reader() (and the duplex
+# lh_runtime_stream() built from them).
+#
+#   ON  — writer is stdout, reader is stdin from <stdio.h>.
+#   OFF — both start empty (null callbacks) until the host installs sinks with
+#         lh_io_writer_set(lh_runtime_writer(), ...) / lh_io_reader_set(...).
+#         Freestanding / STM builds use OFF and plug UART (or RTT, …) here;
+#         lh itself never names a concrete peripheral.
+#
+# Runtime override: lh_io_writer_set / lh_io_reader_set on the runtime instances.
+# -----------------------------------------------------------------------------
+option(LH_LIBRARY_OPTION_RUNTIME_IO_USE_STDLIB
+        "Default runtime writer/reader use stdout/stdin; OFF leaves them empty for the host to wire."
+        ON)
+
+# -----------------------------------------------------------------------------
 # Option: LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT
 #
 # What a failed runtime check hands to its handler (lh/runtime/check.h):

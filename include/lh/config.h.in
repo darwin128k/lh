@@ -140,6 +140,14 @@
 #define LH_LIBRARY_OPTION_RUNTIME_LOGGER_USE_STDLIB @ValRtLoggerStdlib@
 
 /**
+ * @def LH_LIBRARY_OPTION_RUNTIME_IO_USE_STDLIB
+ * @brief Default runtime writer/reader use `stdout`/`stdin`
+ *        from the C library (::LH_LIBRARY_OPTION_OFF / ::LH_LIBRARY_OPTION_ON).
+ *        OFF: empty until the host installs callbacks (UART on STM, …).
+ */
+#define LH_LIBRARY_OPTION_RUNTIME_IO_USE_STDLIB @ValRtIoStdlib@
+
+/**
  * @def LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT
  * @brief What a failed runtime check hands to its handler:
  *        `0` nothing, `1` file + line, `2` also function + condition
