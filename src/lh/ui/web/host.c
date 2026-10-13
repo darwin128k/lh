@@ -4,6 +4,7 @@
  */
 
 #include <lh/ui/web/host.h>
+#include <lh/ui/web/page.h>
 #include <lh/ui/web/ws.h>
 
 #include <lh/byte.h>
@@ -41,6 +42,11 @@
 #define HOST_TICK_MS 20u
 /* How long an accepted connection may take to send its request line. */
 #define HOST_REQUEST_MS 2000u
+/* Player HTML from ::lh_ui_web_page_build — room for the script to grow. */
+#define HOST_PAGE_CAP (48u * 1024u)
+
+static lh_byte_t host_page_mem[HOST_PAGE_CAP];
+static lh_usize_t host_page_len;
 
 typedef struct host_ws_q
 {
@@ -79,141 +85,6 @@ typedef struct host_ws_stream
     lh_usize_t last_len;
     lh_usize_t last_cap;
 } host_ws_stream_t;
-
-static const char lh_ui_web_page[] =
-    "<!doctype html><html lang=\"ru\"><head><meta charset=\"utf-8\">"
-    "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
-    "<title>lh_ui</title>"
-    "<style>html,body{margin:0;height:100%;background:#edf0f5;overflow:hidden}"
-    "#c{display:block;position:absolute;cursor:pointer;outline:none}"
-    "#v3d{position:absolute;display:none;pointer-events:none}</style></head><body>"
-    "<canvas id=\"c\" width=\"980\" height=\"620\" tabindex=\"0\"></canvas>"
-    "<canvas id=\"v3d\"></canvas>"
-    "<script>\n"
-    "function rgba(c){return 'rgba('+c[0]+','+c[1]+','+c[2]+','+(c[3]/255)+')';}\n"
-    /* atlas: covers by id, kept for the life of the page (the host sends each
-       once per connection). tints: one coloured copy per (id, colour), kept
-       across frames too -- rebuilding them every frame was most of a frame. */
-    "var atlas=[],tints={},ntint=0,fw=980,fh=620,cssS=1,lastD=null,pend=null,raf=0,v3on=0;"
-    "var scaleMode=(/scale=layout/.test(location.search)?'layout':'fit'),lastZW=0,lastZH=0;\n"
-    "function hexv(c){return c<58?c-48:(c|32)-87;}\n"
-    "function decodeCover(w,h,cv){var im=document.createElement('canvas');im.width=w;im.height=h;"
-    "if(w<=0||h<=0)return im;var g=im.getContext('2d'),id=g.createImageData(w,h),p=id.data,n=w*h,i,j,k;"
-    "for(i=0,j=0;i<n;i++,j+=4){k=i*2;p[j]=p[j+1]=p[j+2]=255;"
-    "p[j+3]=k+1<cv.length?(hexv(cv.charCodeAt(k))<<4)|hexv(cv.charCodeAt(k+1)):0;}"
-    "g.putImageData(id,0,0);return im;}\n"
-    /* Every frame that arrives is ingested, even one that is never drawn: a
-       cover is only sent once and a skipped frame may be the one carrying it. */
-    "function ingest(d){var ops=d.ops||[],i,op;for(i=0;i<ops.length;i++){op=ops[i];"
-    "if(op.cover!==undefined&&typeof op.m==='number')atlas[op.m]=decodeCover(op.size[0],op.size[1],op.cover);}}\n"
-    "function tint(a,c){var t=document.createElement('canvas');t.width=a.width;t.height=a.height;"
-    "if(!a.width||!a.height)return t;"
-    "var g=t.getContext('2d');g.fillStyle=rgba(c);g.fillRect(0,0,t.width,t.height);"
-    "g.globalCompositeOperation='destination-in';g.drawImage(a,0,0);return t;}\n"
-    "function glyph(op){var c=op.color;"
-    "if(typeof op.m!=='number'){return tint(decodeCover(op.size[0],op.size[1],op.cover||''),c);}"
-    "var k=op.m+','+c[0]+','+c[1]+','+c[2]+','+c[3],t=tints[k];if(t)return t;"
-    "var a=atlas[op.m];if(!a)return null;"
-    "if(ntint>=8192){tints={};ntint=0;}t=tint(a,c);tints[k]=t;++ntint;return t;}\n"
-    "function round(x,r,rad){x.beginPath();if(x.roundRect)x.roundRect(r[0],r[1],r[2],r[3],rad||0);else x.rect(r[0],r[1],r[2],r[3]);}\n"
-    "function pane3d(d){var v=document.getElementById('v3d'),r=d.viewport3d,c=document.getElementById('c');"
-    "if(!r){if(v3on){v.style.display='none';v3on=0;}return;}v3on=1;"
-    "var box=c.getBoundingClientRect(),dpr=window.devicePixelRatio||1;"
-    "v.style.display='block';v.style.left=(box.left+r[0]*cssS)+'px';v.style.top=(box.top+r[1]*cssS)+'px';"
-    "v.style.width=(r[2]*cssS)+'px';v.style.height=(r[3]*cssS)+'px';"
-    "v.width=Math.max(1,Math.round(r[2]*cssS*dpr));v.height=Math.max(1,Math.round(r[3]*cssS*dpr));"
-    "if(!v.gl)v.gl=v.getContext('webgl')||v.getContext('experimental-webgl');}\n"
-    "function fit(){"
-    "var c=document.getElementById('c'),vw=window.innerWidth,vh=window.innerHeight,dpr=window.devicePixelRatio||1,s,bw,bh;"
-    "if(scaleMode==='layout'){cssS=1;bw=Math.max(1,Math.round(fw*dpr));bh=Math.max(1,Math.round(fh*dpr));"
-    "if(c.width!==bw)c.width=bw;if(c.height!==bh)c.height=bh;"
-    "c.style.width=fw+'px';c.style.height=fh+'px';c.style.left='0';c.style.top='0';"
-    "return c.getContext('2d');}"
-    "s=Math.min(vw/fw,vh/fh);if(!isFinite(s)||s<=0)s=1;cssS=s;"
-    "bw=Math.max(1,Math.round(fw*s*dpr));bh=Math.max(1,Math.round(fh*s*dpr));"
-    "if(c.width!==bw)c.width=bw;if(c.height!==bh)c.height=bh;"
-    "c.style.width=Math.round(fw*s)+'px';c.style.height=Math.round(fh*s)+'px';"
-    "c.style.left=Math.round((vw-fw*s)/2)+'px';c.style.top=Math.round((vh-fh*s)/2)+'px';"
-    "return c.getContext('2d');}\n"
-    /* Setting fillStyle parses a colour string; most neighbouring ops share one. */
-    "function play(d){"
-    "lastD=d;fw=d.width;fh=d.height;"
-    "var x=fit(),ops=d.ops||[],i,op,s,fs=null,dpr=window.devicePixelRatio||1;"
-    "x.setTransform(cssS*dpr,0,0,cssS*dpr,0,0);"
-    "pane3d(d);"
-    "for(i=0;i<ops.length;i++){op=ops[i];switch(op.op){"
-    "case 'fill_mask':{var g=glyph(op);if(g)x.drawImage(g,op.origin[0],op.origin[1]);break;}"
-    "case 'fill_rect':s=rgba(op.color);if(s!==fs){x.fillStyle=s;fs=s;}x.fillRect(op.rect[0],op.rect[1],op.rect[2],op.rect[3]);break;"
-    "case 'fill_round_rect':s=rgba(op.color);if(s!==fs){x.fillStyle=s;fs=s;}round(x,op.rect,op.radius||0);x.fill();break;"
-    "case 'clear':s=rgba(op.color);if(s!==fs){x.fillStyle=s;fs=s;}x.fillRect(0,0,fw,fh);break;"
-    "case 'shadow':x.save();x.shadowColor=rgba(op.color);x.shadowBlur=op.spread||0;"
-    "x.shadowOffsetX=op.offset?op.offset[0]:0;x.shadowOffsetY=op.offset?op.offset[1]:0;"
-    "x.fillStyle=rgba(op.color);round(x,op.rect,op.radius||0);x.fill();x.restore();fs=null;break;"
-    "}}"
-    "}\n"
-    /* Layout mode: a WS frame can beat the first `z w h` and paint the design
-       980×620 into the corner. Reject only that design frame when the viewport is
-       not 980×620 — strict equality with lastZW also dropped good frames when the
-       scrollbar ate one pixel of height. */
-    "function sized(d){if(scaleMode!=='layout'||!lastZW)return 1;"
-    "if(d.width===980&&d.height===620&&(lastZW!==980||lastZH!==620))return 0;return 1;}\n"
-    "function show(d){ingest(d);if(!sized(d))return;pend=d;if(!raf)raf=requestAnimationFrame(function(){raf=0;var p=pend;pend=null;if(p)play(p);});}\n"
-    "function pos(e){var c=document.getElementById('c'),r=c.getBoundingClientRect();"
-    "return {x:Math.round((e.clientX-r.left)*fw/r.width),y:Math.round((e.clientY-r.top)*fh/r.height)};"
-    "}\n"
-    "function viewSize(){var w=window.innerWidth|0,h=window.innerHeight|0;if(w<1)w=1;if(h<1)h=1;return {w:w,h:h};}\n"
-    "function reportSize(force){if(scaleMode!=='layout')return;"
-    "var s=viewSize();if(!force&&s.w===lastZW&&s.h===lastZH)return;lastZW=s.w;lastZH=s.h;emit('z '+s.w+' '+s.h);}\n"
-    "window.onresize=function(){if(scaleMode==='layout')reportSize();else if(lastD)play(lastD);};\n"
-    "var busy=0,rev=-1;\n"
-    "function load(){if(busy)return busy;busy=fetch('/ui.json').then(function(r){return r.json();}).then(show).then(function(){busy=0;},function(){busy=0;});return busy;}\n"
-    "function poll(){fetch('/ui.rev').then(function(r){return r.text();}).then(function(t){var n=+t;if(n!==rev){rev=n;load();}});}\n"
-    "function emit(line){if(sock&&sock.readyState===1){sock.send(line);return;}"
-    "var p=line.split(' ');"
-    "if(p[0]==='p')return fetch('/ui/press?x='+p[1]+'&y='+p[2]).then(function(){rev=-1;return load();});"
-    "if(p[0]==='r')return fetch('/ui/release?x='+p[1]+'&y='+p[2]).then(function(){rev=-1;return load();});"
-    "if(p[0]==='w')return fetch('/ui/wheel?x='+p[1]+'&y='+p[2]+'&dx='+p[3]+'&dy='+p[4]).then(function(){rev=-1;return load();});"
-    "if(p[0]==='k')return fetch('/ui/key?k='+p[1]).then(function(){rev=-1;return load();});"
-    "if(p[0]==='t')return fetch('/ui/text?c='+p[1]).then(function(){rev=-1;return load();});"
-    "if(p[0]==='z')return fetch('/ui/size?w='+p[1]+'&h='+p[2]).then(function(){rev=-1;return load();});"
-    "}\n"
-    "var c=document.getElementById('c');\n"
-    "c.onmousedown=function(e){var p=pos(e);emit('p '+p.x+' '+p.y);};\n"
-    "c.onmouseup=function(e){var p=pos(e);emit('r '+p.x+' '+p.y);};\n"
-    "c.onwheel=function(e){e.preventDefault();var p=pos(e);"
-    "var dy=e.deltaY===0?0:(e.deltaY>0?-1:1);var dx=e.deltaX===0?0:(e.deltaX>0?-1:1);"
-    "if(e.shiftKey&&dy){dx=dy;dy=0;}emit('w '+p.x+' '+p.y+' '+dx+' '+dy);};\n"
-    "var keys={Tab:1,Enter:2,Escape:3,Backspace:4,Delete:5,ArrowLeft:7,ArrowRight:8,ArrowUp:9,ArrowDown:10,Home:11,End:12,PageUp:13,PageDown:14};\n"
-    "document.onkeydown=function(e){"
-    "var k=keys[e.key];"
-    "if(k){e.preventDefault();emit('k '+k);return;}"
-    "if(e.key&&e.key.length===1&&!e.ctrlKey&&!e.altKey&&!e.metaKey){"
-    "e.preventDefault();emit('t '+e.key.codePointAt(0));}"
-    "};\n"
-    "c.focus();\n"
-    "var sock=null,retry=200,pollId=0,retryId=0;\n"
-    "function stopPoll(){if(pollId){clearInterval(pollId);pollId=0;}}\n"
-    "function startPoll(){if(!pollId)pollId=setInterval(poll,80);}\n"
-    "function armRetry(){if(retryId)return;retryId=setTimeout(function(){retryId=0;openWs();},retry);"
-    "retry=Math.min(retry*2,5000);}\n"
-    "function openWs(){"
-    "if(sock&&(sock.readyState===0||sock.readyState===1))return;"
-    "try{sock=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws');}"
-    "catch(e){sock=null;startPoll();armRetry();return;}"
-    /* Do not clear lastZW here: a zero window lets a stale 980 frame paint.
-       Force `z` so the host bumps even when the size did not change. */
-    "sock.onopen=function(){retry=200;stopPoll();reportSize(1);};"
-    "sock.onmessage=function(ev){show(JSON.parse(ev.data));};"
-    "sock.onclose=function(){sock=null;startPoll();armRetry();};"
-    "sock.onerror=function(){};"
-    "}\n"
-    /* Layout: size the host over HTTP *before* opening WS, so the first frame is
-       already the viewport — not the design 980×620 that otherwise wins the race. */
-    "if(scaleMode==='layout'){(function(){var s=viewSize();lastZW=s.w;lastZH=s.h;"
-    "fetch('/ui/size?w='+s.w+'&h='+s.h).then(function(){rev=-1;return load();},function(){})."
-    "then(function(){openWs();},function(){openWs();});})();}\n"
-    "else{load();openWs();}\n"
-    "</script></body></html>";
 
 /* A literal and its length, for the wrappers that take both. */
 #define host_lit(s) (s), lh_cast_static(lh_usize_t, (sizeof(s) - 1u))
@@ -1073,7 +944,8 @@ host_handle(lh_ui_view_t *view, unsigned *width, unsigned *height, char *json, l
     if (host_route(req, len, host_lit("/ ")) || host_route(req, len, host_lit("/?")) ||
         host_route(req, len, host_lit("/index.html")))
     {
-        host_reply(client, 200u, "text/html; charset=utf-8", host_lit(lh_ui_web_page));
+        host_reply(client, 200u, "text/html; charset=utf-8",
+                   lh_ptr_rcast(const char, host_page_mem), host_page_len);
         return lh_bool_false;
     }
     host_reply_text(client, 404u, host_lit("not found\n"));
@@ -1269,6 +1141,13 @@ lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *js
     if (!lh_os_net_socket_bind(lh_addr_of(listen_fd), lh_addr_of(addr)) ||
         !lh_os_net_socket_listen(lh_addr_of(listen_fd), 8))
     {
+        lh_os_net_socket_close(lh_addr_of(listen_fd));
+        return lh_bool_false;
+    }
+    if (!lh_ui_web_page_build(host_page_mem, lh_cast_static(lh_usize_t, sizeof(host_page_mem)),
+                              lh_addr_of(host_page_len)))
+    {
+        lh_logger_error(lh_runtime_logger(), "[lh] ui web player page would not build");
         lh_os_net_socket_close(lh_addr_of(listen_fd));
         return lh_bool_false;
     }
