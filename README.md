@@ -148,6 +148,11 @@ The HTML output is written to `docs/html/index.html`.
 
 ## Usage
 
+Integration guides by target — options, runtime wiring, display and UI:
+[docs/usage.md](docs/usage.md) (overview and option matrix),
+[microcontroller](docs/usage-embedded.md), [desktop window](docs/usage-desktop.md),
+[web host](docs/usage-web.md).
+
 Umbrella header (version entry point):
 
 ```c

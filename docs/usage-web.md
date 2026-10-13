@@ -1,0 +1,207 @@
+# lh in a browser: the web host
+
+The same UI tree as the desktop window — but the browser paints the pixels.
+A walk through the `cfg_web` target of `H:\Projects\configurator`: it is built
+from **the same `main.c`** as `configurator`, with one flag.
+
+Read [usage-desktop.md](usage-desktop.md) first — the tree, styles and input
+handlers are the same.
+
+---
+
+## 1. How it works
+
+```
+ application                    lh/ui/web/host.c                   browser
+ ┌────────────┐  draw   ┌──────────────────────────┐  HTTP / WS  ┌─────────────┐
+ │lh_ui_view_t│────────▶│ lh_ui_canvas_backend_web │────────────▶│ Canvas2D    │
+ │ + hooks    │◀────────│ → JSON ops               │◀────────────│ player      │
+ └────────────┘ press,  └──────────────────────────┘ clicks,     └─────────────┘
+               wheel…                                 resize
+```
+
+- `lh_ui_canvas_backend_web` (`lh/ui/canvas/web.h`) records a frame's
+  primitives as JSON. Glyph covers are interned: each glyph crosses the wire
+  once per client.
+- `lh_ui_web_host_run` (`lh/ui/web/host.h`) listens on `127.0.0.1:<port>`:
+  - `GET /` — the Canvas2D HTML player (built by `lh_ui_web_page_build`);
+  - `GET /ui.json` — one frame;
+  - `ws://…/ws` — pushes a frame **only when the tree changed**;
+  - clicks, wheel and tab size come back and call the hooks.
+- No Python, Node or external web server — everything runs in the process.
+- Several tabs can watch one process.
+
+Requires `LH_LIBRARY_OPTION_UI=ON` and `LH_LIBRARY_OPTION_OS=ON` (sockets).
+The host does not need a window (`OS_WINDOW`).
+
+---
+
+## 2. Build: a second target from the same source
+
+```cmake
+add_executable(my_app "src/main.c")
+target_link_libraries(my_app PRIVATE lh)
+
+add_executable(my_web "src/main.c")
+target_compile_definitions(my_web PRIVATE MY_WEB_HOST=1)
+target_link_libraries(my_web PRIVATE lh)
+```
+
+In `main.c`:
+
+```c
+#ifndef MY_WEB_HOST
+#    define MY_WEB_HOST 0
+#endif
+```
+
+---
+
+## 3. Hooks: the same handlers, `window = NULL`
+
+The web host knows nothing about `lh_os_window_t`. The desktop handlers are
+plugged in through thin wrappers — **which is why they must survive
+`window == lh_null`**:
+
+```c
+#if MY_WEB_HOST
+#include <lh/ui/web/host.h>
+
+static lh_void web_tick   (lh_ptr c)                              { on_tick(lh_null, c); }
+static lh_void web_press  (int x, int y, lh_ptr c)                { on_press(lh_null, x, y, c); }
+static lh_void web_release(int x, int y, lh_ptr c)                { on_release(lh_null, x, y, c); }
+static lh_void web_wheel  (int x, int y, int dx, int dy, lh_ptr c){ on_wheel(lh_null, x, y, dx, dy, c); }
+static lh_void web_resize (int w, int h, lh_ptr c)                { on_resize(lh_null, w, h, c); }
+#endif
+```
+
+Notes:
+
+- In the web build `on_resize` lays the tree out again but does **not** call
+  `lh_os_window_invalidate` — damage on the view is enough for the next frame.
+- Any hook may be `lh_null`. Without `press` / `release` the host calls
+  `lh_ui_view_press` / `lh_ui_view_release` itself.
+- `tick` runs about every 20 ms **and between requests**, so device polling is
+  not starved by HTTP.
+
+---
+
+## 4. `main`: branch before the window
+
+Everything before the window opens (state, canvas, view, tree) is shared. The
+branch goes right after `my_main_init`:
+
+```c
+int
+main(int argc, char **argv)
+{
+    static struct my_main self;
+    lh_os_app_t app;
+    lh_os_window_t window;
+
+    lh_os_app_init(lh_addr_of(app));
+    lh_os_window_init(lh_addr_of(window));
+    if (!my_main_init(lh_addr_of(self)))
+        return 1;
+
+#if MY_WEB_HOST
+    {
+        /* One JSON frame. 4 MB is ample for configurator. */
+        static char json[4u * 1024u * 1024u];
+        lh_net_port_t port = (lh_net_port_t)8765;
+        lh_ui_web_host_hooks_t hooks;
+
+        (void)app; (void)window;
+        if (argc > 1)
+            port = (lh_net_port_t)atoi(argv[1]);
+
+        hooks.ctx     = lh_addr_of(self);
+        hooks.tick    = web_tick;
+        hooks.press   = web_press;
+        hooks.release = web_release;
+        hooks.wheel   = web_wheel;
+        hooks.key     = lh_null;
+        hooks.text    = lh_null;
+        hooks.resize  = web_resize;
+
+        /* Does not return on success. */
+        if (!lh_ui_web_host_run(lh_addr_of(self.view), 980u, 620u,
+                                json, sizeof(json), port, &hooks))
+        {
+            lh_logger_error(lh_runtime_logger(), "listen %u failed", (unsigned)port);
+            return 1;
+        }
+        return 0;
+    }
+#else
+    (void)argc; (void)argv;
+#endif
+
+    /* ... desktop branch: set_on_*, lh_os_window_open, lh_os_app_run ... */
+}
+```
+
+The view's canvas needs no preparation: for every frame the host binds a web
+backend to the view, draws the whole frame, and **resets the canvas to
+`lh_null`**. So in the web build do not draw the view with your own canvas
+outside the host — between frames it has none.
+
+Running:
+
+```bat
+build\my_web.exe          rem http://127.0.0.1:8765/
+build\my_web.exe 9000     rem another port
+```
+
+---
+
+## 5. Scaling
+
+The mode is a query parameter of the page:
+
+| URL | Behaviour |
+|---|---|
+| `http://127.0.0.1:8765/` (`scale=layout`) | The tab size becomes the view size; the app lays out again (`resize` hook). Sharp. |
+| `http://127.0.0.1:8765/?scale=fit` | The fixed `width × height` frame is contain-fit into the tab. May blur. |
+
+In both modes clicks are mapped back into view pixels.
+
+---
+
+## 6. No server: a frame to memory or a file
+
+The web backend can be used on its own — e.g. to dump a frame for comparison
+against a wireframe (configurator's `CFG_DUMP_WEB`):
+
+```c
+#include <lh/ui/canvas/web.h>
+
+static char buf[4u * 1024u * 1024u];
+lh_ui_canvas_web_t web;
+lh_ui_canvas_t canvas;
+
+if (lh_ui_canvas_web_open_mem(&web, buf, sizeof(buf), 980u, 620u))
+{
+    lh_ui_canvas_init(&canvas, lh_addr_of(lh_ui_canvas_backend_web), &web);
+    lh_ui_view_set_canvas(&self->view, &canvas);
+    lh_ui_view_draw(&self->view, lh_null);             /* whole frame */
+    lh_ui_view_set_canvas(&self->view, &self->canvas); /* restore our own */
+
+    if (lh_ui_canvas_web_close(&web))
+        write_file(path, lh_ui_canvas_web_bytes(&web), lh_ui_canvas_web_length(&web));
+}
+```
+
+---
+
+## 7. Limitations
+
+- Listens on `127.0.0.1` only, no TLS — a local tool, not a public server.
+  `wss` is supported by the codec, but no TLS stream is built into the host.
+- configurator does not wire `key` / `text` yet (`lh_null`) — keyboard input
+  in the web build is wired the same way as the mouse.
+- The `json` buffer holds one frame; enlarge it for a big tree (an overflow
+  does not write past the end: the frame fails and `lh_ui_canvas_web_close`
+  returns `lh_bool_false`).
+- A 3D pane is not a canvas op but a separate backend (`lh/ui/viewport3d.h`).
+- Windows XP does not need the player — it stays on the GDI window.
