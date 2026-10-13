@@ -69,6 +69,9 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/runtime/allocator.c
         ${LH_LIB_SRC_PATH}/runtime/terminate.c
         ${LH_LIB_SRC_PATH}/runtime/logger.c
+        ${LH_LIB_SRC_PATH}/runtime/writer.c
+        ${LH_LIB_SRC_PATH}/runtime/reader.c
+        ${LH_LIB_SRC_PATH}/runtime/stream.c
         ${LH_LIB_SRC_PATH}/runtime/check.c
         ${LH_LIB_SRC_PATH}/exception.c
 
