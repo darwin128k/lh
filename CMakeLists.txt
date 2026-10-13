@@ -307,6 +307,9 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/pixmap.c
             ${LH_LIB_SRC_PATH}/ui/canvas/sw.c
             ${LH_LIB_SRC_PATH}/ui/canvas/web.c
+            ${LH_LIB_SRC_PATH}/ui/present.c
+            ${LH_LIB_SRC_PATH}/ui/present/sink.c
+            ${LH_LIB_SRC_PATH}/ui/display.c
             ${LH_LIB_SRC_PATH}/ui/viewport3d.c
             ${LH_LIB_SRC_PATH}/ui/web/ws.c
             ${LH_LIB_SRC_PATH}/ui/web/buf.c
