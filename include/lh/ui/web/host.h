@@ -3,9 +3,9 @@
  * @brief Serve one ::lh_ui_view_t over HTTP as canvas JSON. No Python.
  *
  * GET `/` is a Canvas2D player. Two scale modes (query `scale=`):
- * - `fit` (default) — contain-fit the fixed frame into the tab (may blur);
- * - `layout` — the tab size becomes the view size; the app lays out again
- *   (sharp). The player sends `z w h` / `GET /ui/size` on resize.
+ * - `layout` (default) — the tab size becomes the view size; the app lays out
+ *   again (sharp). The player sends `z w h` / `GET /ui/size` on resize.
+ * - `fit` (`?scale=fit`) — contain-fit the fixed frame into the tab (may blur).
  * Clicks map back into view pixels. GET `/ui.json` is ::lh_ui_view_draw
  * through ::lh_ui_canvas_backend_web. `ws://…/ws` (and `wss` when the page
  * is TLS) pushes a frame only when the tree changed. Several tabs may share

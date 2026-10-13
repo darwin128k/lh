@@ -1153,7 +1153,7 @@ lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *js
     }
     (void)lh_os_net_socket_set_blocking(lh_addr_of(listen_fd), lh_bool_false);
     lh_logger_notice(lh_runtime_logger(),
-                     "[lh] ui web host http://127.0.0.1:%u/ (fit default, ?scale=layout)",
+                     "[lh] ui web host http://127.0.0.1:%u/ (layout default, ?scale=fit)",
                      lh_cast_static(lh_uint_t, port));
     {
         unsigned gen = 1u;

@@ -174,7 +174,7 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_js_fun_close(j);
 
     lh_ui_web_js_vars(j, "atlas=[],tints={},ntint=0,fw=980,fh=620,cssS=1,lastD=null,pend=null,raf=0,v3on=0");
-    lh_ui_web_js_vars(j, "scaleMode=(/scale=layout/.test(location.search)?'layout':'fit'),lastZW=0,lastZH=0");
+    lh_ui_web_js_vars(j, "scaleMode=(/scale=fit/.test(location.search)?'fit':'layout'),lastZW=0,lastZH=0");
 
     /* ── hexv ─────────────────────────────────────────────────────────────── */
     lh_ui_web_js_fun_open(j, "hexv", "c");
