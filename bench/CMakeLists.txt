@@ -39,6 +39,8 @@ add_subdirectory(${LH_BENCH_LIB_PATH}/benchmark)
 set(LH_BENCH_SOURCES
         ${LH_BENCH_SRC_PATH}/lh/memory/std.cpp
         ${LH_BENCH_SRC_PATH}/lh/array.cpp
+        ${LH_BENCH_SRC_PATH}/lh/list.cpp
+        ${LH_BENCH_SRC_PATH}/lh/str.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/format/uint.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/format/sint.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/format/hex.cpp
@@ -52,13 +54,16 @@ set(LH_BENCH_SOURCES
         ${LH_BENCH_SRC_PATH}/lh/datetime.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/format/bytes.cpp
         ${LH_BENCH_SRC_PATH}/lh/crypto/sha.cpp
+        ${LH_BENCH_SRC_PATH}/lh/crypto/rijndael.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/view.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/ptr.cpp
         ${LH_BENCH_SRC_PATH}/lh/str/split/next.cpp
         ${LH_BENCH_SRC_PATH}/lh/wstr/ptr.cpp
+        ${LH_BENCH_SRC_PATH}/lh/wstr/view.cpp
         ${LH_BENCH_SRC_PATH}/lh/net/ip.cpp
         ${LH_BENCH_SRC_PATH}/lh/net/port.cpp
         ${LH_BENCH_SRC_PATH}/lh/net/socket/addr.cpp
+        ${LH_BENCH_SRC_PATH}/lh/net/modbus.cpp
         ${LH_BENCH_SRC_PATH}/lh/io/stream.cpp
         ${LH_BENCH_SRC_PATH}/lh/memory/allocator.cpp
         ${LH_BENCH_SRC_PATH}/lh/memory/bounds.cpp
@@ -66,7 +71,23 @@ set(LH_BENCH_SOURCES
         ${LH_BENCH_SRC_PATH}/lh/memory/typed.cpp
         ${LH_BENCH_SRC_PATH}/lh/memory/typed/allocated.cpp
         ${LH_BENCH_SRC_PATH}/lh/memory/view.cpp
+        ${LH_BENCH_SRC_PATH}/lh/bit/scan.cpp
+        ${LH_BENCH_SRC_PATH}/lh/bit/bswap.cpp
+        ${LH_BENCH_SRC_PATH}/lh/bit/rotate.cpp
+        ${LH_BENCH_SRC_PATH}/lh/bit/endian.cpp
+        ${LH_BENCH_SRC_PATH}/lh/math/rect.cpp
+        ${LH_BENCH_SRC_PATH}/lh/fs/path.cpp
+        ${LH_BENCH_SRC_PATH}/lh/logger.cpp
 )
+
+# Float math (vec/quat/mat4) is only in the library when MATH_FPU is ON.
+if (LH_LIBRARY_OPTION_MATH_FPU)
+    list(APPEND LH_BENCH_SOURCES
+            ${LH_BENCH_SRC_PATH}/lh/math/vec3.cpp
+            ${LH_BENCH_SRC_PATH}/lh/math/mat4.cpp
+            ${LH_BENCH_SRC_PATH}/lh/math/quat.cpp
+    )
+endif ()
 
 if (LH_LIBRARY_OPTION_OS)
     # os is being rebuilt from scratch, one piece at a time.
