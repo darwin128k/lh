@@ -118,7 +118,7 @@ lh_io_writer_print_v(lh_io_writer_t *self, const lh_str_ptr fmt, va_list args)
 
     if (need == LH_USIZE_T_MAX || need > LH_IO_WRITER_PRINT_CAPACITY)
     {
-        return -1;
+        return LH_IO_ERROR;
     }
     if (need == 0u)
     {
@@ -131,11 +131,11 @@ lh_io_writer_print_v(lh_io_writer_t *self, const lh_str_ptr fmt, va_list args)
 
     if (n != need)
     {
-        return -1;
+        return LH_IO_ERROR;
     }
     if (!lh_io_writer_write_all(self, lh_cast_const(lh_ptr, buf), n))
     {
-        return -1;
+        return LH_IO_ERROR;
     }
     return lh_cast_static(lh_ssize_t, n);
 }
