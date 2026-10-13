@@ -307,3 +307,52 @@ BM_memory_std_move(benchmark::State &state)
     state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
 }
 BENCHMARK(BM_memory_std_move)->ArgsProduct({{8, 16, 32, 64, 128, 256, 4096}, {0, 1}});
+
+static void
+BM_memory_std_xor(benchmark::State &state)
+{
+    Buffers bufs(static_cast<lh_usize_t>(state.range(0)));
+    std::vector<unsigned char> rhs(bufs.src.size(), 0xA5);
+    for (auto _ : state)
+    {
+        benchmark::DoNotOptimize(
+            lh_memory_std_xor(bufs.dst.data(), bufs.src.data(), rhs.data(), bufs.src.size()));
+        benchmark::DoNotOptimize(bufs.dst.data());
+    }
+    state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
+}
+BENCHMARK(BM_memory_std_xor)
+    ->Arg(16)
+    ->Arg(64)
+    ->Arg(256)
+    ->Arg(1024)
+    ->Arg(4096)
+    ->Arg(65536)
+    ->Arg(1024 * 1024);
+
+static void
+BM_memory_std_copy_words(benchmark::State &state)
+{
+    Buffers bufs(static_cast<lh_usize_t>(state.range(0)));
+    for (auto _ : state)
+    {
+        benchmark::DoNotOptimize(
+            lh_memory_std_copy_words(bufs.dst.data(), bufs.src.data(), bufs.src.size()));
+    }
+    state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
+}
+BENCHMARK(BM_memory_std_copy_words)->Arg(64)->Arg(4096)->Arg(65536)->Arg(1024 * 1024);
+
+static void
+BM_memory_std_fill_words(benchmark::State &state)
+{
+    Buffers bufs(static_cast<lh_usize_t>(state.range(0)));
+    const lh_usize_t word = static_cast<lh_usize_t>(0x3333333333333333ull);
+    for (auto _ : state)
+    {
+        benchmark::DoNotOptimize(lh_memory_std_fill_words(bufs.dst.data(), word, bufs.dst.size()));
+        benchmark::DoNotOptimize(bufs.dst.data());
+    }
+    state.SetBytesProcessed(static_cast<std::int64_t>(state.iterations()) * state.range(0));
+}
+BENCHMARK(BM_memory_std_fill_words)->Arg(64)->Arg(4096)->Arg(65536)->Arg(1024 * 1024);
