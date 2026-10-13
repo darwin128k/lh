@@ -301,6 +301,7 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/viewport3d.c
             ${LH_LIB_SRC_PATH}/ui/web/ws.c
             ${LH_LIB_SRC_PATH}/ui/web/js.c
+            ${LH_LIB_SRC_PATH}/ui/web/x.c
             ${LH_LIB_SRC_PATH}/ui/web/page.c
     )
     if (LH_LIBRARY_OPTION_OS)

@@ -11,6 +11,7 @@
 #include <lh/cast/static.h>
 #include <lh/null.h>
 #include <lh/ui/web/js.h>
+#include <lh/ui/web/x.h>
 #include <lh/util/addr.h>
 
 #define page_lit(j, s) lh_ui_web_js_lit((j), (s), lh_cast_static(lh_usize_t, (sizeof(s) - 1u)))
@@ -41,7 +42,54 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
 
     /* ── rgba ─────────────────────────────────────────────────────────────── */
     lh_ui_web_js_fun_open(j, "rgba", "c");
-    lh_ui_web_js_ret(j, "'rgba('+c[0]+','+c[1]+','+c[2]+','+(c[3]/255)+')'");
+    {
+        lh_ui_web_x_t xc;
+        lh_ui_web_x_t i0;
+        lh_ui_web_x_t i1;
+        lh_ui_web_x_t i2;
+        lh_ui_web_x_t i3;
+        lh_ui_web_x_t c0;
+        lh_ui_web_x_t c1;
+        lh_ui_web_x_t c2;
+        lh_ui_web_x_t c3;
+        lh_ui_web_x_t n255;
+        lh_ui_web_x_t alpha;
+        lh_ui_web_x_t s_rgba;
+        lh_ui_web_x_t s_comma;
+        lh_ui_web_x_t s_end;
+        lh_ui_web_x_t t0;
+        lh_ui_web_x_t t1;
+        lh_ui_web_x_t t2;
+        lh_ui_web_x_t t3;
+        lh_ui_web_x_t t4;
+        lh_ui_web_x_t t5;
+        lh_ui_web_x_t t6;
+        lh_ui_web_x_t t7;
+
+        xc = lh_ui_web_x_id("c");
+        i0 = lh_ui_web_x_num(0);
+        i1 = lh_ui_web_x_num(1);
+        i2 = lh_ui_web_x_num(2);
+        i3 = lh_ui_web_x_num(3);
+        c0 = lh_ui_web_x_idx(lh_addr_of(xc), lh_addr_of(i0));
+        c1 = lh_ui_web_x_idx(lh_addr_of(xc), lh_addr_of(i1));
+        c2 = lh_ui_web_x_idx(lh_addr_of(xc), lh_addr_of(i2));
+        c3 = lh_ui_web_x_idx(lh_addr_of(xc), lh_addr_of(i3));
+        n255 = lh_ui_web_x_num(255);
+        alpha = lh_ui_web_x_bin(lh_addr_of(c3), "/", lh_addr_of(n255));
+        s_rgba = lh_ui_web_x_str("rgba(");
+        s_comma = lh_ui_web_x_str(",");
+        s_end = lh_ui_web_x_str(")");
+        t0 = lh_ui_web_x_bin(lh_addr_of(s_rgba), "+", lh_addr_of(c0));
+        t1 = lh_ui_web_x_bin(lh_addr_of(t0), "+", lh_addr_of(s_comma));
+        t2 = lh_ui_web_x_bin(lh_addr_of(t1), "+", lh_addr_of(c1));
+        t3 = lh_ui_web_x_bin(lh_addr_of(t2), "+", lh_addr_of(s_comma));
+        t4 = lh_ui_web_x_bin(lh_addr_of(t3), "+", lh_addr_of(c2));
+        t5 = lh_ui_web_x_bin(lh_addr_of(t4), "+", lh_addr_of(s_comma));
+        t6 = lh_ui_web_x_bin(lh_addr_of(t5), "+", lh_addr_of(alpha));
+        t7 = lh_ui_web_x_bin(lh_addr_of(t6), "+", lh_addr_of(s_end));
+        lh_ui_web_js_ret_x(j, lh_addr_of(t7));
+    }
     lh_ui_web_js_fun_close(j);
 
     lh_ui_web_js_vars(j, "atlas=[],tints={},ntint=0,fw=980,fh=620,cssS=1,lastD=null,pend=null,raf=0,v3on=0");
@@ -49,7 +97,30 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
 
     /* ── hexv ─────────────────────────────────────────────────────────────── */
     lh_ui_web_js_fun_open(j, "hexv", "c");
-    lh_ui_web_js_ret(j, "c<58?c-48:(c|32)-87");
+    {
+        lh_ui_web_x_t xc;
+        lh_ui_web_x_t n58;
+        lh_ui_web_x_t n48;
+        lh_ui_web_x_t n32;
+        lh_ui_web_x_t n87;
+        lh_ui_web_x_t lt;
+        lh_ui_web_x_t sub48;
+        lh_ui_web_x_t or32;
+        lh_ui_web_x_t sub87;
+        lh_ui_web_x_t tern;
+
+        xc = lh_ui_web_x_id("c");
+        n58 = lh_ui_web_x_num(58);
+        n48 = lh_ui_web_x_num(48);
+        n32 = lh_ui_web_x_num(32);
+        n87 = lh_ui_web_x_num(87);
+        lt = lh_ui_web_x_bin(lh_addr_of(xc), "<", lh_addr_of(n58));
+        sub48 = lh_ui_web_x_bin(lh_addr_of(xc), "-", lh_addr_of(n48));
+        or32 = lh_ui_web_x_bin(lh_addr_of(xc), "|", lh_addr_of(n32));
+        sub87 = lh_ui_web_x_bin(lh_addr_of(or32), "-", lh_addr_of(n87));
+        tern = lh_ui_web_x_tern(lh_addr_of(lt), lh_addr_of(sub48), lh_addr_of(sub87));
+        lh_ui_web_js_ret_x(j, lh_addr_of(tern));
+    }
     lh_ui_web_js_fun_close(j);
 
     /* ── decodeCover ──────────────────────────────────────────────────────── */
@@ -217,55 +288,257 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
 
     /* ── sized / show / pos / viewSize / reportSize ───────────────────────── */
     lh_ui_web_js_fun_open(j, "sized", "d");
-    lh_ui_web_js_if(j, "scaleMode!=='layout'||!lastZW");
-    lh_ui_web_js_ret(j, "1");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_if(j, "d.width===980&&d.height===620&&(lastZW!==980||lastZH!==620)");
-    lh_ui_web_js_ret(j, "0");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_ret(j, "1");
+    {
+        lh_ui_web_x_t scale;
+        lh_ui_web_x_t layout;
+        lh_ui_web_x_t ne;
+        lh_ui_web_x_t last_zw;
+        lh_ui_web_x_t not_zw;
+        lh_ui_web_x_t skip;
+        lh_ui_web_x_t one;
+        lh_ui_web_x_t zero;
+        lh_ui_web_x_t xd;
+        lh_ui_web_x_t dw;
+        lh_ui_web_x_t dh;
+        lh_ui_web_x_t n980;
+        lh_ui_web_x_t n620;
+        lh_ui_web_x_t last_zh;
+        lh_ui_web_x_t eq_w;
+        lh_ui_web_x_t eq_h;
+        lh_ui_web_x_t ne_zw;
+        lh_ui_web_x_t ne_zh;
+        lh_ui_web_x_t wrong_z;
+        lh_ui_web_x_t design;
+        lh_ui_web_x_t reject;
+
+        scale = lh_ui_web_x_id("scaleMode");
+        layout = lh_ui_web_x_str("layout");
+        ne = lh_ui_web_x_bin(lh_addr_of(scale), "!==", lh_addr_of(layout));
+        last_zw = lh_ui_web_x_id("lastZW");
+        not_zw = lh_ui_web_x_un("!", lh_addr_of(last_zw));
+        skip = lh_ui_web_x_bin(lh_addr_of(ne), "||", lh_addr_of(not_zw));
+        one = lh_ui_web_x_num(1);
+        lh_ui_web_js_if_x(j, lh_addr_of(skip));
+        lh_ui_web_js_ret_x(j, lh_addr_of(one));
+        lh_ui_web_js_end(j);
+
+        xd = lh_ui_web_x_id("d");
+        dw = lh_ui_web_x_dot(lh_addr_of(xd), "width");
+        dh = lh_ui_web_x_dot(lh_addr_of(xd), "height");
+        n980 = lh_ui_web_x_num(980);
+        n620 = lh_ui_web_x_num(620);
+        last_zh = lh_ui_web_x_id("lastZH");
+        eq_w = lh_ui_web_x_bin(lh_addr_of(dw), "===", lh_addr_of(n980));
+        eq_h = lh_ui_web_x_bin(lh_addr_of(dh), "===", lh_addr_of(n620));
+        ne_zw = lh_ui_web_x_bin(lh_addr_of(last_zw), "!==", lh_addr_of(n980));
+        ne_zh = lh_ui_web_x_bin(lh_addr_of(last_zh), "!==", lh_addr_of(n620));
+        wrong_z = lh_ui_web_x_bin(lh_addr_of(ne_zw), "||", lh_addr_of(ne_zh));
+        design = lh_ui_web_x_bin(lh_addr_of(eq_w), "&&", lh_addr_of(eq_h));
+        reject = lh_ui_web_x_bin(lh_addr_of(design), "&&", lh_addr_of(wrong_z));
+        zero = lh_ui_web_x_num(0);
+        lh_ui_web_js_if_x(j, lh_addr_of(reject));
+        lh_ui_web_js_ret_x(j, lh_addr_of(zero));
+        lh_ui_web_js_end(j);
+        lh_ui_web_js_ret_x(j, lh_addr_of(one));
+    }
     lh_ui_web_js_fun_close(j);
 
     lh_ui_web_js_fun_open(j, "show", "d");
-    lh_ui_web_js_stmt(j, "ingest(d)");
-    lh_ui_web_js_if(j, "!sized(d)");
-    lh_ui_web_js_ret(j, lh_null);
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_assign(j, "pend", "d");
-    lh_ui_web_js_if(j, "!raf");
-    lh_ui_web_js_assign(j, "raf",
-                        "requestAnimationFrame(function(){raf=0;var p=pend;pend=null;if(p)play(p);})");
-    lh_ui_web_js_end(j);
+    {
+        lh_ui_web_x_t xd;
+        lh_ui_web_x_t ingest;
+        lh_ui_web_x_t sized;
+        lh_ui_web_x_t not_sized;
+        lh_ui_web_x_t pend;
+        lh_ui_web_x_t raf;
+        lh_ui_web_x_t not_raf;
+        const lh_ui_web_x_t *ingest_args[1];
+        const lh_ui_web_x_t *sized_args[1];
+
+        xd = lh_ui_web_x_id("d");
+        ingest_args[0] = lh_addr_of(xd);
+        ingest = lh_ui_web_x_call_id("ingest", ingest_args, 1u);
+        lh_ui_web_js_stmt_x(j, lh_addr_of(ingest));
+        sized_args[0] = lh_addr_of(xd);
+        sized = lh_ui_web_x_call_id("sized", sized_args, 1u);
+        not_sized = lh_ui_web_x_un("!", lh_addr_of(sized));
+        lh_ui_web_js_if_x(j, lh_addr_of(not_sized));
+        lh_ui_web_js_ret_x(j, lh_null);
+        lh_ui_web_js_end(j);
+        pend = lh_ui_web_x_id("pend");
+        lh_ui_web_js_assign_x(j, lh_addr_of(pend), lh_addr_of(xd));
+        raf = lh_ui_web_x_id("raf");
+        not_raf = lh_ui_web_x_un("!", lh_addr_of(raf));
+        lh_ui_web_js_if_x(j, lh_addr_of(not_raf));
+        lh_ui_web_js_assign(j, "raf",
+                            "requestAnimationFrame(function(){raf=0;var p=pend;pend=null;if(p)play(p);})");
+        lh_ui_web_js_end(j);
+    }
     lh_ui_web_js_fun_close(j);
 
     lh_ui_web_js_fun_open(j, "pos", "e");
     lh_ui_web_js_vars(j, "c=document.getElementById('c'),r=c.getBoundingClientRect()");
-    lh_ui_web_js_ret(j, "{x:Math.round((e.clientX-r.left)*fw/r.width),"
-                        "y:Math.round((e.clientY-r.top)*fh/r.height)}");
+    {
+        lh_ui_web_x_t xe;
+        lh_ui_web_x_t xr;
+        lh_ui_web_x_t xfw;
+        lh_ui_web_x_t xfh;
+        lh_ui_web_x_t client_x;
+        lh_ui_web_x_t client_y;
+        lh_ui_web_x_t left;
+        lh_ui_web_x_t top;
+        lh_ui_web_x_t width;
+        lh_ui_web_x_t height;
+        lh_ui_web_x_t dx;
+        lh_ui_web_x_t dy;
+        lh_ui_web_x_t nx1;
+        lh_ui_web_x_t nx2;
+        lh_ui_web_x_t ny1;
+        lh_ui_web_x_t ny2;
+        lh_ui_web_x_t math;
+        lh_ui_web_x_t math_round;
+        lh_ui_web_x_t round_x;
+        lh_ui_web_x_t round_y;
+        lh_ui_web_x_t obj;
+        const lh_char_t *keys[2];
+        const lh_ui_web_x_t *vals[2];
+        const lh_ui_web_x_t *rx_args[1];
+        const lh_ui_web_x_t *ry_args[1];
+
+        xe = lh_ui_web_x_id("e");
+        xr = lh_ui_web_x_id("r");
+        xfw = lh_ui_web_x_id("fw");
+        xfh = lh_ui_web_x_id("fh");
+        client_x = lh_ui_web_x_dot(lh_addr_of(xe), "clientX");
+        client_y = lh_ui_web_x_dot(lh_addr_of(xe), "clientY");
+        left = lh_ui_web_x_dot(lh_addr_of(xr), "left");
+        top = lh_ui_web_x_dot(lh_addr_of(xr), "top");
+        width = lh_ui_web_x_dot(lh_addr_of(xr), "width");
+        height = lh_ui_web_x_dot(lh_addr_of(xr), "height");
+        dx = lh_ui_web_x_bin(lh_addr_of(client_x), "-", lh_addr_of(left));
+        dy = lh_ui_web_x_bin(lh_addr_of(client_y), "-", lh_addr_of(top));
+        nx1 = lh_ui_web_x_bin(lh_addr_of(dx), "*", lh_addr_of(xfw));
+        nx2 = lh_ui_web_x_bin(lh_addr_of(nx1), "/", lh_addr_of(width));
+        ny1 = lh_ui_web_x_bin(lh_addr_of(dy), "*", lh_addr_of(xfh));
+        ny2 = lh_ui_web_x_bin(lh_addr_of(ny1), "/", lh_addr_of(height));
+        math = lh_ui_web_x_id("Math");
+        math_round = lh_ui_web_x_dot(lh_addr_of(math), "round");
+        rx_args[0] = lh_addr_of(nx2);
+        ry_args[0] = lh_addr_of(ny2);
+        round_x = lh_ui_web_x_call(lh_addr_of(math_round), rx_args, 1u);
+        round_y = lh_ui_web_x_call(lh_addr_of(math_round), ry_args, 1u);
+        keys[0] = "x";
+        keys[1] = "y";
+        vals[0] = lh_addr_of(round_x);
+        vals[1] = lh_addr_of(round_y);
+        obj = lh_ui_web_x_obj(keys, vals, 2u);
+        lh_ui_web_js_ret_x(j, lh_addr_of(obj));
+    }
     lh_ui_web_js_fun_close(j);
 
     lh_ui_web_js_fun_open(j, "viewSize", "");
-    lh_ui_web_js_vars(j, "w=window.innerWidth|0,h=window.innerHeight|0");
-    lh_ui_web_js_if(j, "w<1");
-    lh_ui_web_js_assign(j, "w", "1");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_if(j, "h<1");
-    lh_ui_web_js_assign(j, "h", "1");
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_ret(j, "{w:w,h:h}");
+    {
+        lh_ui_web_x_t win;
+        lh_ui_web_x_t iw;
+        lh_ui_web_x_t ih;
+        lh_ui_web_x_t zero;
+        lh_ui_web_x_t w_init;
+        lh_ui_web_x_t h_init;
+        lh_ui_web_x_t xw;
+        lh_ui_web_x_t xh;
+        lh_ui_web_x_t one;
+        lh_ui_web_x_t w_lt;
+        lh_ui_web_x_t h_lt;
+        lh_ui_web_x_t obj;
+        const lh_char_t *keys[2];
+        const lh_ui_web_x_t *vals[2];
+
+        win = lh_ui_web_x_id("window");
+        iw = lh_ui_web_x_dot(lh_addr_of(win), "innerWidth");
+        ih = lh_ui_web_x_dot(lh_addr_of(win), "innerHeight");
+        zero = lh_ui_web_x_num(0);
+        w_init = lh_ui_web_x_bin(lh_addr_of(iw), "|", lh_addr_of(zero));
+        h_init = lh_ui_web_x_bin(lh_addr_of(ih), "|", lh_addr_of(zero));
+        lh_ui_web_js_var_x(j, "w", lh_addr_of(w_init));
+        lh_ui_web_js_var_x(j, "h", lh_addr_of(h_init));
+        xw = lh_ui_web_x_id("w");
+        xh = lh_ui_web_x_id("h");
+        one = lh_ui_web_x_num(1);
+        w_lt = lh_ui_web_x_bin(lh_addr_of(xw), "<", lh_addr_of(one));
+        lh_ui_web_js_if_x(j, lh_addr_of(w_lt));
+        lh_ui_web_js_assign_x(j, lh_addr_of(xw), lh_addr_of(one));
+        lh_ui_web_js_end(j);
+        h_lt = lh_ui_web_x_bin(lh_addr_of(xh), "<", lh_addr_of(one));
+        lh_ui_web_js_if_x(j, lh_addr_of(h_lt));
+        lh_ui_web_js_assign_x(j, lh_addr_of(xh), lh_addr_of(one));
+        lh_ui_web_js_end(j);
+        keys[0] = "w";
+        keys[1] = "h";
+        vals[0] = lh_addr_of(xw);
+        vals[1] = lh_addr_of(xh);
+        obj = lh_ui_web_x_obj(keys, vals, 2u);
+        lh_ui_web_js_ret_x(j, lh_addr_of(obj));
+    }
     lh_ui_web_js_fun_close(j);
 
     lh_ui_web_js_fun_open(j, "reportSize", "force");
-    lh_ui_web_js_if(j, "scaleMode!=='layout'");
-    lh_ui_web_js_ret(j, lh_null);
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_var(j, "s", "viewSize()");
-    lh_ui_web_js_if(j, "!force&&s.w===lastZW&&s.h===lastZH");
-    lh_ui_web_js_ret(j, lh_null);
-    lh_ui_web_js_end(j);
-    lh_ui_web_js_assign(j, "lastZW", "s.w");
-    lh_ui_web_js_assign(j, "lastZH", "s.h");
-    lh_ui_web_js_stmt(j, "emit('z '+s.w+' '+s.h)");
+    {
+        lh_ui_web_x_t scale;
+        lh_ui_web_x_t layout;
+        lh_ui_web_x_t ne;
+        lh_ui_web_x_t view;
+        lh_ui_web_x_t xs;
+        lh_ui_web_x_t force;
+        lh_ui_web_x_t not_force;
+        lh_ui_web_x_t sw;
+        lh_ui_web_x_t sh;
+        lh_ui_web_x_t last_zw;
+        lh_ui_web_x_t last_zh;
+        lh_ui_web_x_t eq_w;
+        lh_ui_web_x_t eq_h;
+        lh_ui_web_x_t same;
+        lh_ui_web_x_t skip;
+        lh_ui_web_x_t s_z;
+        lh_ui_web_x_t s_sp;
+        lh_ui_web_x_t t0;
+        lh_ui_web_x_t t1;
+        lh_ui_web_x_t t2;
+        lh_ui_web_x_t emit;
+        const lh_ui_web_x_t *emit_args[1];
+
+        scale = lh_ui_web_x_id("scaleMode");
+        layout = lh_ui_web_x_str("layout");
+        ne = lh_ui_web_x_bin(lh_addr_of(scale), "!==", lh_addr_of(layout));
+        lh_ui_web_js_if_x(j, lh_addr_of(ne));
+        lh_ui_web_js_ret_x(j, lh_null);
+        lh_ui_web_js_end(j);
+        view = lh_ui_web_x_call_id("viewSize", lh_null, 0u);
+        lh_ui_web_js_var_x(j, "s", lh_addr_of(view));
+        xs = lh_ui_web_x_id("s");
+        force = lh_ui_web_x_id("force");
+        not_force = lh_ui_web_x_un("!", lh_addr_of(force));
+        sw = lh_ui_web_x_dot(lh_addr_of(xs), "w");
+        sh = lh_ui_web_x_dot(lh_addr_of(xs), "h");
+        last_zw = lh_ui_web_x_id("lastZW");
+        last_zh = lh_ui_web_x_id("lastZH");
+        eq_w = lh_ui_web_x_bin(lh_addr_of(sw), "===", lh_addr_of(last_zw));
+        eq_h = lh_ui_web_x_bin(lh_addr_of(sh), "===", lh_addr_of(last_zh));
+        same = lh_ui_web_x_bin(lh_addr_of(eq_w), "&&", lh_addr_of(eq_h));
+        skip = lh_ui_web_x_bin(lh_addr_of(not_force), "&&", lh_addr_of(same));
+        lh_ui_web_js_if_x(j, lh_addr_of(skip));
+        lh_ui_web_js_ret_x(j, lh_null);
+        lh_ui_web_js_end(j);
+        lh_ui_web_js_assign_x(j, lh_addr_of(last_zw), lh_addr_of(sw));
+        lh_ui_web_js_assign_x(j, lh_addr_of(last_zh), lh_addr_of(sh));
+        s_z = lh_ui_web_x_str("z ");
+        s_sp = lh_ui_web_x_str(" ");
+        t0 = lh_ui_web_x_bin(lh_addr_of(s_z), "+", lh_addr_of(sw));
+        t1 = lh_ui_web_x_bin(lh_addr_of(t0), "+", lh_addr_of(s_sp));
+        t2 = lh_ui_web_x_bin(lh_addr_of(t1), "+", lh_addr_of(sh));
+        emit_args[0] = lh_addr_of(t2);
+        emit = lh_ui_web_x_call_id("emit", emit_args, 1u);
+        lh_ui_web_js_stmt_x(j, lh_addr_of(emit));
+    }
     lh_ui_web_js_fun_close(j);
 
     lh_ui_web_js_assign(j, "window.onresize",
