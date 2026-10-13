@@ -13,7 +13,7 @@
 #define LH_UI_WEB_X_H
 
 #include <lh/bool.h>
-#include <lh/char.h>
+#include <lh/str/ptr.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/numeric/fixed/types.h>
@@ -53,13 +53,13 @@ typedef struct lh_ui_web_x
     lh_ui_web_x_kind_t kind;
     union
     {
-        const lh_char_t *id;
+        const lh_str_ptr id;
         lh_s64_t num;
-        const lh_char_t *str;
+        const lh_str_ptr str;
         struct
         {
             const struct lh_ui_web_x *obj;
-            const lh_char_t *name;
+            const lh_str_ptr name;
         } dot;
         struct
         {
@@ -74,19 +74,19 @@ typedef struct lh_ui_web_x
         } call;
         struct
         {
-            const lh_char_t *name;
+            const lh_str_ptr name;
             const struct lh_ui_web_x *const *args;
             lh_u16_t n;
         } call_id;
         struct
         {
             const struct lh_ui_web_x *a;
-            const lh_char_t *op;
+            const lh_str_ptr op;
             const struct lh_ui_web_x *b;
         } bin;
         struct
         {
-            const lh_char_t *op;
+            const lh_str_ptr op;
             const struct lh_ui_web_x *a;
         } un;
         struct
@@ -98,7 +98,7 @@ typedef struct lh_ui_web_x
         const struct lh_ui_web_x *typeof_a;
         struct
         {
-            const lh_char_t *const *keys;
+            const lh_str_ptr *keys;
             const struct lh_ui_web_x *const *vals;
             lh_u16_t n;
         } obj;
@@ -106,13 +106,13 @@ typedef struct lh_ui_web_x
 } lh_ui_web_x_t;
 
 lh_ui_web_x_t
-lh_ui_web_x_id(const lh_char_t *name);
+lh_ui_web_x_id(const lh_str_ptr name);
 
 lh_ui_web_x_t
 lh_ui_web_x_num(lh_s64_t n);
 
 lh_ui_web_x_t
-lh_ui_web_x_str(const lh_char_t *s);
+lh_ui_web_x_str(const lh_str_ptr s);
 
 lh_ui_web_x_t
 lh_ui_web_x_null(void);
@@ -124,7 +124,7 @@ lh_ui_web_x_t
 lh_ui_web_x_false(void);
 
 lh_ui_web_x_t
-lh_ui_web_x_dot(const lh_ui_web_x_t *obj, const lh_char_t *name);
+lh_ui_web_x_dot(const lh_ui_web_x_t *obj, const lh_str_ptr name);
 
 lh_ui_web_x_t
 lh_ui_web_x_idx(const lh_ui_web_x_t *obj, const lh_ui_web_x_t *ix);
@@ -134,13 +134,13 @@ lh_ui_web_x_call(const lh_ui_web_x_t *fn, const lh_ui_web_x_t *const *args, lh_u
 
 /** Call a bare identifier: `name(args…)`. */
 lh_ui_web_x_t
-lh_ui_web_x_call_id(const lh_char_t *name, const lh_ui_web_x_t *const *args, lh_u16_t n);
+lh_ui_web_x_call_id(const lh_str_ptr name, const lh_ui_web_x_t *const *args, lh_u16_t n);
 
 lh_ui_web_x_t
-lh_ui_web_x_bin(const lh_ui_web_x_t *a, const lh_char_t *op, const lh_ui_web_x_t *b);
+lh_ui_web_x_bin(const lh_ui_web_x_t *a, const lh_str_ptr op, const lh_ui_web_x_t *b);
 
 lh_ui_web_x_t
-lh_ui_web_x_un(const lh_char_t *op, const lh_ui_web_x_t *a);
+lh_ui_web_x_un(const lh_str_ptr op, const lh_ui_web_x_t *a);
 
 lh_ui_web_x_t
 lh_ui_web_x_tern(const lh_ui_web_x_t *c, const lh_ui_web_x_t *t, const lh_ui_web_x_t *f);
@@ -150,7 +150,7 @@ lh_ui_web_x_typeof(const lh_ui_web_x_t *a);
 
 /** Object literal `{keys[i]:vals[i],…}` — @p keys and @p vals must both have @p n entries. */
 lh_ui_web_x_t
-lh_ui_web_x_obj(const lh_char_t *const *keys, const lh_ui_web_x_t *const *vals, lh_u16_t n);
+lh_ui_web_x_obj(const lh_str_ptr *keys, const lh_ui_web_x_t *const *vals, lh_u16_t n);
 
 LH_COMPILER_EXTERN_C_END
 

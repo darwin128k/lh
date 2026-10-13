@@ -3,25 +3,27 @@
  * @brief Canvas2D player: HTML entities + JS constructor, then serialize.
  *
  * Markup is ::lh_ui_web_html; the script body is ::lh_ui_web_js / ::lh_ui_web_x.
- * Dense loops still use ::lh_ui_web_js_raw until they become statement entities.
+ * Dense loops still use ::lh_ui_web_buf_raw until they become statement entities.
  */
 
 #include <lh/ui/web/page.h>
 
 #include <lh/cast/static.h>
 #include <lh/null.h>
+#include <lh/ui/web/buf.h>
 #include <lh/ui/web/html.h>
 #include <lh/ui/web/js.h>
+#include <lh/ui/web/js/x.h>
 #include <lh/ui/web/x.h>
 #include <lh/util/addr.h>
 
-#define page_lit(j, s) lh_ui_web_js_lit((j), (s), lh_cast_static(lh_usize_t, (sizeof(s) - 1u)))
+#define page_lit(j, s) lh_ui_web_buf_lit((j), (s), lh_cast_static(lh_usize_t, (sizeof(s) - 1u)))
 
 lh_bool_t
 lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
 {
-    lh_ui_web_js_t *j;
-    lh_ui_web_js_t js;
+    lh_ui_web_buf_t *j;
+    lh_ui_web_buf_t js;
     lh_ui_web_html_t doc_type;
     lh_ui_web_html_t el_html;
     lh_ui_web_html_t el_head;
@@ -53,7 +55,7 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     const lh_ui_web_html_t *title_kids[1];
     const lh_ui_web_html_t *style_kids[1];
 
-    lh_ui_web_js_init(lh_addr_of(js), mem, cap);
+    lh_ui_web_buf_init(lh_addr_of(js), mem, cap);
     j = lh_addr_of(js);
     if (out_len != lh_null)
     {
@@ -117,7 +119,7 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_html_emit(j, lh_addr_of(el_canvas_c));
     lh_ui_web_html_emit(j, lh_addr_of(el_canvas_v3d));
     lh_ui_web_html_open(j, lh_addr_of(el_script));
-    lh_ui_web_js_lit(j, "\n", 1u);
+    lh_ui_web_buf_lit(j, "\n", 1u);
 
     /* ── rgba ─────────────────────────────────────────────────────────────── */
     lh_ui_web_js_fun_open(j, "rgba", "c");
@@ -212,7 +214,7 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_js_end(j);
     lh_ui_web_js_vars(j, "g=im.getContext('2d'),id=g.createImageData(w,h),p=id.data,n=w*h,i,j,k");
     /* Pixel loop stays dense — expanding it gains nothing readable. */
-    lh_ui_web_js_raw(j, "for(i=0,j=0;i<n;i++,j+=4){k=i*2;p[j]=p[j+1]=p[j+2]=255;"
+    lh_ui_web_buf_raw(j, "for(i=0,j=0;i<n;i++,j+=4){k=i*2;p[j]=p[j+1]=p[j+2]=255;"
                         "p[j+3]=k+1<cv.length?(hexv(cv.charCodeAt(k))<<4)|hexv(cv.charCodeAt(k+1)):0;}\n");
     lh_ui_web_js_stmt(j, "g.putImageData(id,0,0)");
     lh_ui_web_js_ret(j, "im");
@@ -351,7 +353,7 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_js_vars(j, "x=fit(),ops=d.ops||[],i,op,s,fs=null,dpr=window.devicePixelRatio||1");
     lh_ui_web_js_stmt(j, "x.setTransform(cssS*dpr,0,0,cssS*dpr,0,0)");
     lh_ui_web_js_stmt(j, "pane3d(d)");
-    lh_ui_web_js_raw(j,
+    lh_ui_web_buf_raw(j,
                      "for(i=0;i<ops.length;i++){op=ops[i];switch(op.op){"
                      "case 'fill_mask':{var g=glyph(op);if(g)x.drawImage(g,op.origin[0],op.origin[1]);break;}"
                      "case 'fill_rect':s=rgba(op.color);if(s!==fs){x.fillStyle=s;fs=s;}"
@@ -479,7 +481,7 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
         lh_ui_web_x_t round_x;
         lh_ui_web_x_t round_y;
         lh_ui_web_x_t obj;
-        const lh_char_t *keys[2];
+        const lh_str_ptr keys[2];
         const lh_ui_web_x_t *vals[2];
         const lh_ui_web_x_t *rx_args[1];
         const lh_ui_web_x_t *ry_args[1];
@@ -529,7 +531,7 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
         lh_ui_web_x_t w_lt;
         lh_ui_web_x_t h_lt;
         lh_ui_web_x_t obj;
-        const lh_char_t *keys[2];
+        const lh_str_ptr keys[2];
         const lh_ui_web_x_t *vals[2];
 
         win = lh_ui_web_x_id("window");
@@ -712,7 +714,7 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_js_if(j, "sock&&(sock.readyState===0||sock.readyState===1)");
     lh_ui_web_js_ret(j, lh_null);
     lh_ui_web_js_end(j);
-    lh_ui_web_js_raw(j, "try{sock=new WebSocket((location.protocol==='https:'?'wss://':'ws://')"
+    lh_ui_web_buf_raw(j, "try{sock=new WebSocket((location.protocol==='https:'?'wss://':'ws://')"
                         "+location.host+'/ws');}\n"
                         "catch(e){sock=null;startPoll();armRetry();return;}\n");
     lh_ui_web_js_prop(j, "sock", "onopen", "function(){retry=200;stopPoll();reportSize(1);}");
@@ -731,14 +733,14 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_html_close(j, lh_addr_of(el_body));
     lh_ui_web_html_close(j, lh_addr_of(el_html));
 
-    lh_ui_web_js_finish(j);
-    if (!lh_ui_web_js_ok(j))
+    lh_ui_web_buf_finish(j);
+    if (!lh_ui_web_buf_ok(j))
     {
         return lh_bool_false;
     }
     if (out_len != lh_null)
     {
-        *out_len = lh_ui_web_js_len(j);
+        *out_len = lh_ui_web_buf_len(j);
     }
     return lh_bool_true;
 }
