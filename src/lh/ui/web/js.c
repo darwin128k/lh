@@ -99,15 +99,68 @@ lh_ui_web_js_vars(lh_ui_web_js_t *self, const lh_char_t *decls)
 }
 
 lh_void
-lh_ui_web_js_fun(lh_ui_web_js_t *self, const lh_char_t *name, const lh_char_t *params,
-                 const lh_char_t *body)
+lh_ui_web_js_fun_open(lh_ui_web_js_t *self, const lh_char_t *name, const lh_char_t *params)
 {
     js_put(self, "function ", 9u);
     lh_ui_web_js_raw(self, name);
     js_put(self, "(", 1u);
     lh_ui_web_js_raw(self, params);
-    js_put(self, "){", 2u);
+    js_put(self, "){\n", 3u);
+}
+
+lh_void
+lh_ui_web_js_fun_close(lh_ui_web_js_t *self)
+{
+    js_put(self, "}\n", 2u);
+}
+
+lh_void
+lh_ui_web_js_fun(lh_ui_web_js_t *self, const lh_char_t *name, const lh_char_t *params,
+                 const lh_char_t *body)
+{
+    lh_ui_web_js_fun_open(self, name, params);
     lh_ui_web_js_raw(self, body);
+    js_put(self, "\n", 1u);
+    lh_ui_web_js_fun_close(self);
+}
+
+lh_void
+lh_ui_web_js_ret(lh_ui_web_js_t *self, const lh_char_t *expr)
+{
+    js_put(self, "return", 6u);
+    if (expr != lh_null && expr[0] != '\0')
+    {
+        js_put(self, " ", 1u);
+        lh_ui_web_js_raw(self, expr);
+    }
+    js_put(self, ";\n", 2u);
+}
+
+lh_void
+lh_ui_web_js_if(lh_ui_web_js_t *self, const lh_char_t *cond)
+{
+    js_put(self, "if(", 3u);
+    lh_ui_web_js_raw(self, cond);
+    js_put(self, "){\n", 3u);
+}
+
+lh_void
+lh_ui_web_js_else(lh_ui_web_js_t *self)
+{
+    js_put(self, "}else{\n", 7u);
+}
+
+lh_void
+lh_ui_web_js_for(lh_ui_web_js_t *self, const lh_char_t *head)
+{
+    js_put(self, "for(", 4u);
+    lh_ui_web_js_raw(self, head);
+    js_put(self, "){\n", 3u);
+}
+
+lh_void
+lh_ui_web_js_end(lh_ui_web_js_t *self)
+{
     js_put(self, "}\n", 2u);
 }
 
