@@ -1,15 +1,16 @@
 /**
  * @file page.c
- * @brief Canvas2D player: built with ::lh_ui_web_js, not a host string literal.
+ * @brief Canvas2D player: HTML entities + JS constructor, then serialize.
  *
- * Functions are opened, filled with stmt/if/ret, and closed — bodies are not
- * one opaque string per function (except dense loops still emitted with ::lh_ui_web_js_raw).
+ * Markup is ::lh_ui_web_html; the script body is ::lh_ui_web_js / ::lh_ui_web_x.
+ * Dense loops still use ::lh_ui_web_js_raw until they become statement entities.
  */
 
 #include <lh/ui/web/page.h>
 
 #include <lh/cast/static.h>
 #include <lh/null.h>
+#include <lh/ui/web/html.h>
 #include <lh/ui/web/js.h>
 #include <lh/ui/web/x.h>
 #include <lh/util/addr.h>
@@ -21,6 +22,36 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
 {
     lh_ui_web_js_t *j;
     lh_ui_web_js_t js;
+    lh_ui_web_html_t doc_type;
+    lh_ui_web_html_t el_html;
+    lh_ui_web_html_t el_head;
+    lh_ui_web_html_t el_body;
+    lh_ui_web_html_t el_script;
+    lh_ui_web_html_t el_meta_cs;
+    lh_ui_web_html_t el_meta_vp;
+    lh_ui_web_html_t el_title;
+    lh_ui_web_html_t el_style;
+    lh_ui_web_html_t el_canvas_c;
+    lh_ui_web_html_t el_canvas_v3d;
+    lh_ui_web_html_t title_text;
+    lh_ui_web_html_t style_raw;
+    lh_ui_web_html_attr_t attr_lang;
+    lh_ui_web_html_attr_t attr_charset;
+    lh_ui_web_html_attr_t attr_vp_name;
+    lh_ui_web_html_attr_t attr_vp_content;
+    lh_ui_web_html_attr_t attr_c_id;
+    lh_ui_web_html_attr_t attr_c_w;
+    lh_ui_web_html_attr_t attr_c_h;
+    lh_ui_web_html_attr_t attr_c_tab;
+    lh_ui_web_html_attr_t attr_v3d_id;
+    lh_ui_web_html_attr_t meta_cs_attrs[1];
+    lh_ui_web_html_attr_t meta_vp_attrs[2];
+    lh_ui_web_html_attr_t canvas_c_attrs[4];
+    lh_ui_web_html_attr_t canvas_v3d_attrs[1];
+    lh_ui_web_html_attr_t html_attrs[1];
+    const lh_ui_web_html_t *head_kids[4];
+    const lh_ui_web_html_t *title_kids[1];
+    const lh_ui_web_html_t *style_kids[1];
 
     lh_ui_web_js_init(lh_addr_of(js), mem, cap);
     j = lh_addr_of(js);
@@ -29,16 +60,64 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
         *out_len = 0u;
     }
 
-    /* ── document shell ───────────────────────────────────────────────────── */
-    page_lit(j, "<!doctype html><html lang=\"ru\"><head><meta charset=\"utf-8\">"
-                "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
-                "<title>lh_ui</title>"
-                "<style>html,body{margin:0;height:100%;background:#edf0f5;overflow:hidden}"
-                "#c{display:block;position:absolute;cursor:pointer;outline:none}"
-                "#v3d{position:absolute;display:none;pointer-events:none}</style></head><body>"
-                "<canvas id=\"c\" width=\"980\" height=\"620\" tabindex=\"0\"></canvas>"
-                "<canvas id=\"v3d\"></canvas>"
-                "<script>\n");
+    /* ── markup tree (construct, then serialize) ──────────────────────────── */
+    doc_type = lh_ui_web_html_doctype();
+    attr_lang = lh_ui_web_html_attr("lang", "ru");
+    html_attrs[0] = attr_lang;
+    el_html = lh_ui_web_html_tag("html", html_attrs, 1u, lh_null, 0u, lh_bool_false);
+
+    attr_charset = lh_ui_web_html_attr("charset", "utf-8");
+    meta_cs_attrs[0] = attr_charset;
+    el_meta_cs = lh_ui_web_html_tag("meta", meta_cs_attrs, 1u, lh_null, 0u, lh_bool_true);
+
+    attr_vp_name = lh_ui_web_html_attr("name", "viewport");
+    attr_vp_content = lh_ui_web_html_attr("content", "width=device-width,initial-scale=1");
+    meta_vp_attrs[0] = attr_vp_name;
+    meta_vp_attrs[1] = attr_vp_content;
+    el_meta_vp = lh_ui_web_html_tag("meta", meta_vp_attrs, 2u, lh_null, 0u, lh_bool_true);
+
+    title_text = lh_ui_web_html_text("lh_ui");
+    title_kids[0] = lh_addr_of(title_text);
+    el_title = lh_ui_web_html_tag("title", lh_null, 0u, title_kids, 1u, lh_bool_false);
+
+    style_raw = lh_ui_web_html_raw(
+        "html,body{margin:0;height:100%;background:#edf0f5;overflow:hidden}"
+        "#c{display:block;position:absolute;cursor:pointer;outline:none}"
+        "#v3d{position:absolute;display:none;pointer-events:none}");
+    style_kids[0] = lh_addr_of(style_raw);
+    el_style = lh_ui_web_html_tag("style", lh_null, 0u, style_kids, 1u, lh_bool_false);
+
+    head_kids[0] = lh_addr_of(el_meta_cs);
+    head_kids[1] = lh_addr_of(el_meta_vp);
+    head_kids[2] = lh_addr_of(el_title);
+    head_kids[3] = lh_addr_of(el_style);
+    el_head = lh_ui_web_html_tag("head", lh_null, 0u, head_kids, 4u, lh_bool_false);
+
+    attr_c_id = lh_ui_web_html_attr("id", "c");
+    attr_c_w = lh_ui_web_html_attr("width", "980");
+    attr_c_h = lh_ui_web_html_attr("height", "620");
+    attr_c_tab = lh_ui_web_html_attr("tabindex", "0");
+    canvas_c_attrs[0] = attr_c_id;
+    canvas_c_attrs[1] = attr_c_w;
+    canvas_c_attrs[2] = attr_c_h;
+    canvas_c_attrs[3] = attr_c_tab;
+    el_canvas_c = lh_ui_web_html_tag("canvas", canvas_c_attrs, 4u, lh_null, 0u, lh_bool_false);
+
+    attr_v3d_id = lh_ui_web_html_attr("id", "v3d");
+    canvas_v3d_attrs[0] = attr_v3d_id;
+    el_canvas_v3d = lh_ui_web_html_tag("canvas", canvas_v3d_attrs, 1u, lh_null, 0u, lh_bool_false);
+
+    el_body = lh_ui_web_html_tag("body", lh_null, 0u, lh_null, 0u, lh_bool_false);
+    el_script = lh_ui_web_html_tag("script", lh_null, 0u, lh_null, 0u, lh_bool_false);
+
+    lh_ui_web_html_emit(j, lh_addr_of(doc_type));
+    lh_ui_web_html_open(j, lh_addr_of(el_html));
+    lh_ui_web_html_emit(j, lh_addr_of(el_head));
+    lh_ui_web_html_open(j, lh_addr_of(el_body));
+    lh_ui_web_html_emit(j, lh_addr_of(el_canvas_c));
+    lh_ui_web_html_emit(j, lh_addr_of(el_canvas_v3d));
+    lh_ui_web_html_open(j, lh_addr_of(el_script));
+    lh_ui_web_js_lit(j, "\n", 1u);
 
     /* ── rgba ─────────────────────────────────────────────────────────────── */
     lh_ui_web_js_fun_open(j, "rgba", "c");
@@ -646,8 +725,11 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     page_lit(j, "if(scaleMode==='layout'){(function(){var s=viewSize();lastZW=s.w;lastZH=s.h;"
                 "fetch('/ui/size?w='+s.w+'&h='+s.h).then(function(){rev=-1;return load();},function(){})."
                 "then(function(){openWs();},function(){openWs();});})();}\n"
-                "else{load();openWs();}\n"
-                "</script></body></html>");
+                "else{load();openWs();}\n");
+
+    lh_ui_web_html_close(j, lh_addr_of(el_script));
+    lh_ui_web_html_close(j, lh_addr_of(el_body));
+    lh_ui_web_html_close(j, lh_addr_of(el_html));
 
     lh_ui_web_js_finish(j);
     if (!lh_ui_web_js_ok(j))
