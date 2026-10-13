@@ -6,6 +6,8 @@
  * the stack; ::lh_ui_web_html_emit / ::lh_ui_web_html_open / ::lh_ui_web_html_close
  * write text only at the end. Children and attribute arrays must outlive emit.
  *
+ * Attributes live in ::lh/ui/web/html/attr.h.
+ *
  * Requires ::LH_LIBRARY_OPTION_UI.
  */
 
@@ -17,6 +19,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/numeric/fixed/types.h>
+#include <lh/ui/web/html/attr.h>
 #include <lh/ui/web/js.h>
 #include <lh/void.h>
 
@@ -25,13 +28,6 @@
 #endif
 
 LH_COMPILER_EXTERN_C_BEGIN
-
-/** One attribute: `name="value"`, or bare `name` when @p value is ::lh_null. */
-typedef struct lh_ui_web_html_attr
-{
-    const lh_char_t *name;
-    const lh_char_t *value;
-} lh_ui_web_html_attr_t;
 
 typedef enum lh_ui_web_html_kind
 {
@@ -44,8 +40,7 @@ typedef enum lh_ui_web_html_kind
 /**
  * @brief One markup node.
  *
- * `tag.void_el` is for HTML void elements (`meta`, `canvas` with no children
- * still uses a normal close unless void_el is set — canvas is not void).
+ * `tag.void_el` is for HTML void elements (`meta`, …) — no children, no close.
  */
 typedef struct lh_ui_web_html
 {
@@ -65,9 +60,6 @@ typedef struct lh_ui_web_html
         } tag;
     } u;
 } lh_ui_web_html_t;
-
-lh_ui_web_html_attr_t
-lh_ui_web_html_attr(const lh_char_t *name, const lh_char_t *value);
 
 /** `<!doctype html>` */
 lh_ui_web_html_t
