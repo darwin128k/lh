@@ -18,8 +18,6 @@ lh_check_simd()
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-# Keep all targets position-independent (shared is automatic, static becomes reusable in shared link scenarios).
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Windows target floor: XP (5.1). Handwritten Win32 decls in lh/os/system/win
 # are the real fence; this stops SDK headers that still get pulled elsewhere
@@ -35,6 +33,14 @@ option(LH_BUILD_DOCS "Build documentation" ON)
 option(LH_BUILD_TESTS "Build tests" ON)
 option(LH_BUILD_BENCH "Build microbenchmarks (requires the bench/lib/benchmark submodule)" OFF)
 option(LH_BUILD_EXAMPLES "Build the example programs" OFF)
+
+# PIC/GOT: ON for desktop (static lib reusable from a shared object). OFF for
+# freestanding / bare-metal — there is no dynamic loader to relocate .got, and
+# an uncopied GOT leaves runtime globals (writer, terminate, …) as NULL.
+option(LH_POSITION_INDEPENDENT_CODE
+        "Build lh as position-independent (-fPIC). OFF for bare-metal / freestanding."
+        ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ${LH_POSITION_INDEPENDENT_CODE})
 
 # ---------------------------------------------------------------------------
 # Release optimization options
@@ -351,6 +357,8 @@ endif ()
 # lh is a static library only: it is linked into its host, never loaded as a
 # DLL / shared object.
 add_library(${PROJECT_NAME} STATIC ${LH_LIB_SOURCES})
+set_target_properties(${PROJECT_NAME} PROPERTIES
+        POSITION_INDEPENDENT_CODE ${LH_POSITION_INDEPENDENT_CODE})
 
 # Expose generated and public include directories to consumers.
 # The generated one comes FIRST on purpose: `#include <lh/config.h>` has to find
