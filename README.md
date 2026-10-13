@@ -202,34 +202,66 @@ behind a self-rewriting function pointer). Everywhere either doesn't hold, it
 falls back to the portable scalar path, unchanged.
 
 Throughput against the platform CRT, measured on this project's own x86-64
-GCC/MinGW dev machine (SSE2 present, no AVX2 — an AVX2-capable CPU pushes the
-SIMD numbers further still):
+GCC/MinGW Release build (`CMAKE_BUILD_TYPE=Release`, SSE2 present, no AVX2 —
+an AVX2-capable CPU pushes the SIMD numbers further still):
 
 ```
                                                       GB/s
-copy     64 B   lh ####                              6.5  crt #####                             8.1
-copy     4 KB   lh ##################               31.2  crt #########################        43.8
-copy     64 KB  lh #############                    21.9  crt ##############                   25.0
-copy     1 MB   lh ########                         14.7  crt #####                             8.9
-copy     16 MB  lh #####                             8.3  crt ####                              6.9
-set      64 B   lh ####                              7.2  crt ###                               5.9
-set      4 KB   lh ###########################      46.0  crt ##############################   52.1
-set      64 KB  lh #################                30.1  crt #####################            36.5
-set      1 MB   lh ##############                   24.9  crt ##############                   24.4
-set      16 MB  lh #########                        15.1  crt ####                              7.5
-compare  4 KB   lh #############                    23.4  crt ###########                      19.2
-compare  64 KB  lh #############                    22.0  crt ##########                       17.9
-compare  1 MB   lh ########                         14.7  crt ########                         14.0
+copy     64 B   lh #############                    21.4  crt #########                        15.3
+copy     4 KB   lh ##############################  108.9  crt #################               61.0
+copy     64 KB  lh ##################               65.3  crt ############                    43.8
+copy     1 MB   lh ##############                   52.3  crt ###                             10.5
+copy     16 MB  lh ##                                7.5  crt ###                             11.3
+set      64 B   lh #########                        15.3  crt ########                        14.2
+set      4 KB   lh ##############################  109.4  crt #################               61.3
+set      64 KB  lh ##############################  112.0  crt #################               65.3
+set      1 MB   lh ######################           83.6  crt ###############                 56.0
+set      16 MB  lh #####                            18.0  crt ##                               9.0
+compare  4 KB   lh #################                61.3  crt #######                         27.3
+compare  64 KB  lh ###############                  55.8  crt ########                        29.2
+compare  1 MB   lh #############                    46.7  crt ########                        28.0
+xor      4 KB   lh ####################             72.9
+xor      1 MB   lh ##########                       35.0
 ```
 
-No universal winner: `lh` tends to pull ahead at the very small end (its SIMD/
-`REP MOVSB` tiers avoid the platform CRT's own dispatch overhead) and at the
-very large end (non-temporal streaming stores above the 2 MiB threshold avoid
-cache pollution the CRT's regular stores pay for); in the middle band the two
-trade blows depending on the operation and size. Reproduce or extend these
-numbers with `lh_bench --benchmark_filter=memory_std` (see [bench/](bench));
-tune the crossover points for your own CPU via the `LH_LIBRARY_OPTION_MEMORY_STD_*`
+No universal winner: `lh` tends to pull ahead in the mid-size SIMD band (its
+hand kernels avoid the platform CRT's own dispatch overhead) and on large
+fills/compares; at multi-megabyte copies the CRT can still win depending on
+cache and streaming thresholds. Reproduce or extend these numbers with
+`lh_bench --benchmark_filter=memory_std` (see [bench/](bench)); tune the
+crossover points for your own CPU via the `LH_LIBRARY_OPTION_MEMORY_STD_*`
 options above.
+
+Other hot paths from the same Release run (`lh_bench`, ~330 cases):
+
+```
+                                         time / note
+SHA-256         64 B                    456 ns   (~117 MB/s)
+SHA-256         4 KB                     14 µs   (~278 MB/s)
+SHA-256         1 MB                    4.2 ms   (~288 MB/s)
+AES-128 ECB     encrypt block           323 ns   (~44 MB/s)
+AES-256 ECB     encrypt block           451 ns   (~36 MB/s)
+AES-128         key schedule             68 ns
+Modbus CRC-16   64 B                    497 ns   (~98 MB/s)
+list_sort       1 000 ints               18 µs
+list_sort       10 000 ints             354 µs
+array_push      1 000 reserved          2.3 µs
+str_append      1 000×10 chars          4.6 µs
+fs_path_join                            23 ns
+logger_info     (sink enabled)          51 ns
+logger_debug    (filtered out)         1.5 ns
+rect_contains                           3.1 ns
+bswap_u32                             0.23 ns
+```
+
+Build and run the full suite:
+
+```bat
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DLH_BUILD_BENCH=ON
+cmake --build build --config Release --target lh_bench
+build\bench\lh_bench.exe --benchmark_filter=crypto
+build\bench\lh_bench.exe --benchmark_list_tests
+```
 
 ## Safety conventions
 
