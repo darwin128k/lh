@@ -23,7 +23,7 @@ lh_runtime_writer_stdout(lh_self_ptr self, const lh_ptr buf, lh_usize_t size)
     n = fwrite(buf, 1u, lh_cast_static(size_t, size), stdout);
     if (n == 0u && ferror(stdout))
     {
-        return -1;
+        return LH_IO_ERROR;
     }
     return lh_cast_static(lh_ssize_t, n);
 }

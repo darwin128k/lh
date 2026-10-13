@@ -156,7 +156,7 @@ lh_io_writer_write_all(lh_io_writer_t *self, const lh_ptr buf, lh_usize_t size);
  * ::LH_IO_WRITER_PRINT_CAPACITY stack buffer — oversized or malformed masks
  * fail without writing.
  *
- * @return Characters written, or a negative value on format / write failure.
+ * @return Characters written, or ::LH_IO_ERROR on format / write failure.
  */
 lh_ssize_t
 lh_io_writer_print_v(lh_io_writer_t *self, const lh_str_ptr fmt, va_list args);
