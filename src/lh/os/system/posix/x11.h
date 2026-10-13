@@ -24,6 +24,7 @@
 #define LH_SRC_OS_SYSTEM_POSIX_X11_H
 
 #include <lh/numeric/types.h>
+#include <lh/void.h>
 
 /** @brief `XID`: every server resource (`Window`, `Atom`, `Pixmap`, ...). */
 typedef unsigned long lh_os_system_posix_xid_t;
