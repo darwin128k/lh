@@ -2,8 +2,8 @@
  * @file page.h
  * @brief Build the Canvas2D player HTML into a caller-owned byte buffer.
  *
- * Markup is a ::lh_ui_web_html tree; the script body is ::lh_ui_web_js /
- * ::lh_ui_web_x. Both are constructed first, then serialized into the buffer.
+ * Markup is ::lh_ui_web_html; script is ::lh_ui_web_js / ::lh_ui_web_x.
+ * Both are constructed first, then serialized into a ::lh_ui_web_buf_t.
  *
  * Requires ::LH_LIBRARY_OPTION_UI.
  */

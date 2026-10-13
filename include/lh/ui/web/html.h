@@ -1,12 +1,10 @@
 /**
  * @file html.h
- * @brief HTML markup entities: construct a tree, then serialize to bytes.
+ * @brief HTML markup entities: construct a tree, then serialize to a buf.
  *
- * Same shape as ::lh_ui_web_x for expressions — the page is built as nodes on
- * the stack; ::lh_ui_web_html_emit / ::lh_ui_web_html_open / ::lh_ui_web_html_close
- * write text only at the end. Children and attribute arrays must outlive emit.
- *
- * Attributes live in ::lh/ui/web/html/attr.h.
+ * Attributes live in ::lh/ui/web/html/attr.h. Serialize with
+ * ::lh_ui_web_html_emit / ::lh_ui_web_html_open / ::lh_ui_web_html_close into a
+ * ::lh_ui_web_buf_t — not by writing strings by hand.
  *
  * Requires ::LH_LIBRARY_OPTION_UI.
  */
@@ -15,12 +13,12 @@
 #define LH_UI_WEB_HTML_H
 
 #include <lh/bool.h>
-#include <lh/char.h>
+#include <lh/str/ptr.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/numeric/fixed/types.h>
+#include <lh/ui/web/buf.h>
 #include <lh/ui/web/html/attr.h>
-#include <lh/ui/web/js.h>
 #include <lh/void.h>
 
 #if !LH_LIBRARY_OPTION_UI
@@ -47,11 +45,11 @@ typedef struct lh_ui_web_html
     lh_ui_web_html_kind_t kind;
     union
     {
-        const lh_char_t *text;
-        const lh_char_t *raw;
+        const lh_str_ptr text;
+        const lh_str_ptr raw;
         struct
         {
-            const lh_char_t *name;
+            const lh_str_ptr name;
             const lh_ui_web_html_attr_t *attrs;
             lh_u16_t nattrs;
             const struct lh_ui_web_html *const *kids;
@@ -67,11 +65,11 @@ lh_ui_web_html_doctype(void);
 
 /** Text node — `&`, `<`, `>` escaped on emit. */
 lh_ui_web_html_t
-lh_ui_web_html_text(const lh_char_t *s);
+lh_ui_web_html_text(const lh_str_ptr s);
 
 /** Raw bytes inside a parent (e.g. CSS) — not escaped. */
 lh_ui_web_html_t
-lh_ui_web_html_raw(const lh_char_t *s);
+lh_ui_web_html_raw(const lh_str_ptr s);
 
 /**
  * @brief Element node.
@@ -79,20 +77,20 @@ lh_ui_web_html_raw(const lh_char_t *s);
  * @param void_el When true, emit `<name …>` with no children and no close tag.
  */
 lh_ui_web_html_t
-lh_ui_web_html_tag(const lh_char_t *name, const lh_ui_web_html_attr_t *attrs, lh_u16_t nattrs,
+lh_ui_web_html_tag(const lh_str_ptr name, const lh_ui_web_html_attr_t *attrs, lh_u16_t nattrs,
                    const lh_ui_web_html_t *const *kids, lh_u16_t nkids, lh_bool_t void_el);
 
 /** Serialize a full node (doctype / text / raw / element with kids). */
 lh_void
-lh_ui_web_html_emit(lh_ui_web_js_t *out, const lh_ui_web_html_t *node);
+lh_ui_web_html_emit(lh_ui_web_buf_t *out, const lh_ui_web_html_t *node);
 
 /** Emit only `<tag attrs>` — for elements whose body is filled elsewhere (script). */
 lh_void
-lh_ui_web_html_open(lh_ui_web_js_t *out, const lh_ui_web_html_t *node);
+lh_ui_web_html_open(lh_ui_web_buf_t *out, const lh_ui_web_html_t *node);
 
 /** Emit `</tag>`. */
 lh_void
-lh_ui_web_html_close(lh_ui_web_js_t *out, const lh_ui_web_html_t *node);
+lh_ui_web_html_close(lh_ui_web_buf_t *out, const lh_ui_web_html_t *node);
 
 LH_COMPILER_EXTERN_C_END
 

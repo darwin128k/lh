@@ -6,7 +6,7 @@
 #include <lh/ui/web/x.h>
 
 lh_ui_web_x_t
-lh_ui_web_x_id(const lh_char_t *name)
+lh_ui_web_x_id(const lh_str_ptr name)
 {
     lh_ui_web_x_t x;
 
@@ -26,7 +26,7 @@ lh_ui_web_x_num(lh_s64_t n)
 }
 
 lh_ui_web_x_t
-lh_ui_web_x_str(const lh_char_t *s)
+lh_ui_web_x_str(const lh_str_ptr s)
 {
     lh_ui_web_x_t x;
 
@@ -63,7 +63,7 @@ lh_ui_web_x_false(void)
 }
 
 lh_ui_web_x_t
-lh_ui_web_x_dot(const lh_ui_web_x_t *obj, const lh_char_t *name)
+lh_ui_web_x_dot(const lh_ui_web_x_t *obj, const lh_str_ptr name)
 {
     lh_ui_web_x_t x;
 
@@ -97,7 +97,7 @@ lh_ui_web_x_call(const lh_ui_web_x_t *fn, const lh_ui_web_x_t *const *args, lh_u
 }
 
 lh_ui_web_x_t
-lh_ui_web_x_call_id(const lh_char_t *name, const lh_ui_web_x_t *const *args, lh_u16_t n)
+lh_ui_web_x_call_id(const lh_str_ptr name, const lh_ui_web_x_t *const *args, lh_u16_t n)
 {
     lh_ui_web_x_t x;
 
@@ -109,7 +109,7 @@ lh_ui_web_x_call_id(const lh_char_t *name, const lh_ui_web_x_t *const *args, lh_
 }
 
 lh_ui_web_x_t
-lh_ui_web_x_bin(const lh_ui_web_x_t *a, const lh_char_t *op, const lh_ui_web_x_t *b)
+lh_ui_web_x_bin(const lh_ui_web_x_t *a, const lh_str_ptr op, const lh_ui_web_x_t *b)
 {
     lh_ui_web_x_t x;
 
@@ -121,7 +121,7 @@ lh_ui_web_x_bin(const lh_ui_web_x_t *a, const lh_char_t *op, const lh_ui_web_x_t
 }
 
 lh_ui_web_x_t
-lh_ui_web_x_un(const lh_char_t *op, const lh_ui_web_x_t *a)
+lh_ui_web_x_un(const lh_str_ptr op, const lh_ui_web_x_t *a)
 {
     lh_ui_web_x_t x;
 
@@ -154,7 +154,7 @@ lh_ui_web_x_typeof(const lh_ui_web_x_t *a)
 }
 
 lh_ui_web_x_t
-lh_ui_web_x_obj(const lh_char_t *const *keys, const lh_ui_web_x_t *const *vals, lh_u16_t n)
+lh_ui_web_x_obj(const lh_str_ptr *keys, const lh_ui_web_x_t *const *vals, lh_u16_t n)
 {
     lh_ui_web_x_t x;
 
