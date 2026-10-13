@@ -14,6 +14,20 @@ static const lh_char_t m_whitespace_chars[] = {lh_char_map_space, lh_char_map_lf
 
 static const lh_usize_t m_whitespace_size = lh_str_ptr_get_size(m_whitespace_chars);
 
+/* 256-byte membership map for find_of_chars / find_not_of_chars (and reverse).
+ * The previous loop called lh_str_ptr_contains_char per haystack byte — O(n*m)
+ * and a call per step. A dense set makes membership O(1); chars_size == 1
+ * still goes through lh_str_ptr_find_of_char (SIMD memchr path). */
+static void
+lh_str_ptr_fill_char_set(lh_byte_t *set, const lh_str_ptr chars, lh_usize_t chars_size)
+{
+    lh_memory_set(set, 256U, 0);
+    for (lh_usize_t i = 0; i < chars_size; ++i)
+    {
+        set[lh_cast_static(lh_byte_t, chars[i])] = 1;
+    }
+}
+
 lh_usize_t
 lh_str_ptr_index_of_by_size(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src,
                             lh_usize_t src_size, lh_bool_t ignore_case)
@@ -45,13 +59,21 @@ const lh_str_ptr
 lh_str_ptr_find_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
                          lh_usize_t chars_size)
 {
+    lh_byte_t set[256];
+
     lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(chars);
     lh_return_ifn(chars_size, lh_null);
 
+    if (chars_size == 1U)
+    {
+        return lh_str_ptr_find_of_char(str, str_size, chars[0]);
+    }
+
+    lh_str_ptr_fill_char_set(set, chars, chars_size);
     for (lh_usize_t i = 0; i < str_size; ++i)
     {
-        if (lh_str_ptr_contains_char(chars, chars_size, str[i]))
+        if (set[lh_cast_static(lh_byte_t, str[i])])
         {
             return str + i;
         }
@@ -63,21 +85,32 @@ const lh_str_ptr
 lh_str_ptr_rfind_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
                           lh_usize_t chars_size)
 {
+    lh_byte_t set[256];
+
     lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(chars);
     lh_return_ifn(chars_size, lh_null);
 
     /* do-while starts with i = str_size; --i would wrap on unsigned 0 */
     lh_return_ifn(str_size, lh_null);
-    lh_usize_t i = str_size;
-    do
+
+    if (chars_size == 1U)
     {
-        --i;
-        if (lh_str_ptr_contains_char(chars, chars_size, str[i]))
+        return lh_str_ptr_rfind_of_char(str, str_size, chars[0]);
+    }
+
+    lh_str_ptr_fill_char_set(set, chars, chars_size);
+    {
+        lh_usize_t i = str_size;
+        do
         {
-            return str + i;
-        }
-    } while (i > 0);
+            --i;
+            if (set[lh_cast_static(lh_byte_t, str[i])])
+            {
+                return str + i;
+            }
+        } while (i > 0);
+    }
     return lh_null;
 }
 
@@ -85,12 +118,15 @@ const lh_str_ptr
 lh_str_ptr_find_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
                              lh_usize_t chars_size)
 {
+    lh_byte_t set[256];
+
     lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(chars);
 
+    lh_str_ptr_fill_char_set(set, chars, chars_size);
     for (lh_usize_t i = 0; i < str_size; ++i)
     {
-        if (!lh_str_ptr_contains_char(chars, chars_size, str[i]))
+        if (!set[lh_cast_static(lh_byte_t, str[i])])
         {
             return str + i;
         }
@@ -102,20 +138,26 @@ const lh_str_ptr
 lh_str_ptr_rfind_not_of_chars(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr chars,
                               lh_usize_t chars_size)
 {
+    lh_byte_t set[256];
+
     lh_assert_runtime_ref(str);
     lh_assert_runtime_ref(chars);
 
     /* do-while starts with i = str_size; --i would wrap on unsigned 0 */
     lh_return_ifn(str_size, lh_null);
-    lh_usize_t i = str_size;
-    do
+
+    lh_str_ptr_fill_char_set(set, chars, chars_size);
     {
-        --i;
-        if (!lh_str_ptr_contains_char(chars, chars_size, str[i]))
+        lh_usize_t i = str_size;
+        do
         {
-            return str + i;
-        }
-    } while (i > 0);
+            --i;
+            if (!set[lh_cast_static(lh_byte_t, str[i])])
+            {
+                return str + i;
+            }
+        } while (i > 0);
+    }
     return lh_null;
 }
 

@@ -414,6 +414,23 @@
 #define LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD @ValMemoryStdGccRepMovsbThreshold@
 
 /**
+ * @def LH_LIBRARY_OPTION_MEMORY_STD_USE_ERMS
+ * @brief ::lh_memory_std_copy: Intel+ERMS mid-size uses OWN @c rep movsb
+ *        (::LH_LIBRARY_OPTION_ON) or stays on SSE2/AVX2 (::LH_LIBRARY_OPTION_OFF).
+ */
+#define LH_LIBRARY_OPTION_MEMORY_STD_USE_ERMS @ValMemoryStdUseErms@
+
+/**
+ * @def LH_LIBRARY_OPTION_MEMORY_STD_ERMS_COPY_THRESHOLD
+ * @brief ::lh_memory_std_copy when ::LH_LIBRARY_OPTION_MEMORY_STD_USE_ERMS is on:
+ *        below this size (bytes) keep SSE2/AVX2; at/above it use OWN @c rep movsb
+ *        on Intel+ERMS (until the NT stream floor).
+ *
+ * @note The value must be greater than zero.
+ */
+#define LH_LIBRARY_OPTION_MEMORY_STD_ERMS_COPY_THRESHOLD @ValMemoryStdErmsCopyThreshold@
+
+/**
  * @def LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER
  * @brief ::lh_memory_std_copy: minimum remaining bytes before issuing a prefetch.
  *

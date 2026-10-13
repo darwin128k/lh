@@ -435,6 +435,23 @@ set(LH_LIBRARY_OPTION_MEMORY_STD_SIMD_STREAM_THRESHOLD "2097152" CACHE STRING
 set(LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD "512" CACHE STRING
         "lh_memory_std_copy under GCC/Clang, x86 only: below this size (bytes), prefer the SIMD tier over REP MOVSB in the (normally unused) fallback path taken when SIMD intrinsics did not compile at all — REP MOVSB's fixed microcode setup cost is not worth paying for small copies. Must be a positive decimal integer.")
 
+# -----------------------------------------------------------------------------
+# Option: LH_LIBRARY_OPTION_MEMORY_STD_USE_ERMS
+#
+# Inside lh_memory_std_copy's SIMD dispatch (x86): on Intel CPUs that advertise
+# Enhanced REP MOVSB/STOSB, use OWN `rep movsb` for the mid-size band (above
+# LH_LIBRARY_OPTION_MEMORY_STD_ERMS_COPY_THRESHOLD, below the NT stream floor).
+# Not CRT memcpy — same entry point, native string op. OFF keeps pure SSE2/AVX2
+# for A/B measurement. AMD stays on SIMD either way (Zen2 measured slower with
+# ERMS than with our vector path). No effect on non-x86 / STM32.
+# -----------------------------------------------------------------------------
+option(LH_LIBRARY_OPTION_MEMORY_STD_USE_ERMS
+        "lh_memory_std_copy: Intel+ERMS mid-size uses OWN rep movsb (ON) or stays on SSE2/AVX2 (OFF)."
+        ON)
+
+set(LH_LIBRARY_OPTION_MEMORY_STD_ERMS_COPY_THRESHOLD "16384" CACHE STRING
+        "lh_memory_std_copy when LH_LIBRARY_OPTION_MEMORY_STD_USE_ERMS is ON: below this size (bytes) keep SSE2/AVX2; at/above it (and below the NT stream floor) use OWN rep movsb on Intel+ERMS. Measured crossover vs hand SSE2 on Ivy Bridge ~8-16KB. Must be a positive decimal integer.")
+
 set(LH_LIBRARY_OPTION_MEMORY_STD_PREFETCH_TRIGGER "4096" CACHE STRING
         "lh_memory_std_copy: minimum remaining bytes before issuing a prefetch. Prefetch on sub-4KiB copies was measured to lose to CRT on the 512B-2KiB band. Must be a positive decimal integer.")
 
