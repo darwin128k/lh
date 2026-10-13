@@ -68,10 +68,38 @@ lh_ui_web_js_var(lh_ui_web_js_t *self, const lh_char_t *name, const lh_char_t *e
 lh_void
 lh_ui_web_js_vars(lh_ui_web_js_t *self, const lh_char_t *decls);
 
-/** `function @p name(@p params){@p body}\n` */
+/** `function @p name(@p params){@p body}\n` — one-shot body. */
 lh_void
 lh_ui_web_js_fun(lh_ui_web_js_t *self, const lh_char_t *name, const lh_char_t *params,
                  const lh_char_t *body);
+
+/** `function @p name(@p params){\n` — body follows via stmt/if/ret, then ::lh_ui_web_js_fun_close. */
+lh_void
+lh_ui_web_js_fun_open(lh_ui_web_js_t *self, const lh_char_t *name, const lh_char_t *params);
+
+/** `}\n` closing a ::lh_ui_web_js_fun_open. */
+lh_void
+lh_ui_web_js_fun_close(lh_ui_web_js_t *self);
+
+/** `return @p expr;\n` — @p expr may be ::lh_null for a bare `return;`. */
+lh_void
+lh_ui_web_js_ret(lh_ui_web_js_t *self, const lh_char_t *expr);
+
+/** `if(@p cond){\n` */
+lh_void
+lh_ui_web_js_if(lh_ui_web_js_t *self, const lh_char_t *cond);
+
+/** `}else{\n` */
+lh_void
+lh_ui_web_js_else(lh_ui_web_js_t *self);
+
+/** `for(@p head){\n` — @p head is the three-clause list without parentheses. */
+lh_void
+lh_ui_web_js_for(lh_ui_web_js_t *self, const lh_char_t *head);
+
+/** `}\n` closing if/else/for. */
+lh_void
+lh_ui_web_js_end(lh_ui_web_js_t *self);
 
 /** `@p lhs=@p rhs;\n` */
 lh_void
@@ -82,7 +110,7 @@ lh_void
 lh_ui_web_js_prop(lh_ui_web_js_t *self, const lh_char_t *obj, const lh_char_t *prop,
                   const lh_char_t *expr);
 
-/** One statement plus `;\n` when @p stmt has no terminator of its own. */
+/** `@p stmt;\n` */
 lh_void
 lh_ui_web_js_stmt(lh_ui_web_js_t *self, const lh_char_t *stmt);
 
