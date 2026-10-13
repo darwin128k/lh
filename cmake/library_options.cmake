@@ -306,13 +306,13 @@ set(LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS "2" CACHE STRING
 # -----------------------------------------------------------------------------
 # LH_LIBRARY_OPTION_UI_FONT_ROBOTO
 #
-# Bake Roboto Regular 16 px (codes 32..126, 4 bits per pixel, about 15 KB of
-# const data) into the library as lh_ui_font_roboto; a new style starts with
-# it. OFF leaves it out (a small STM32 image); styles then start with no font
-# and text is not drawn until one is set. Needs LH_LIBRARY_OPTION_UI.
+# Bake Roboto Regular 16 px (Latin+Cyrillic, 4 bits per pixel) as
+# lh_ui_font_roboto. With full UI ON it is the default style font; with UI OFF
+# it still builds (mask + font + roboto) so freestanding hosts can draw text.
+# OFF leaves it out of the image.
 # -----------------------------------------------------------------------------
 option(LH_LIBRARY_OPTION_UI_FONT_ROBOTO
-        "Bake the Roboto 16 px font into lh/ui as the default style font."
+        "Bake Roboto 16 px into lh (works with UI ON or OFF)."
         ON)
 
 # -----------------------------------------------------------------------------

@@ -328,6 +328,16 @@ if (LH_LIBRARY_OPTION_UI)
     endif ()
 endif ()
 
+# Font-only: Roboto + mask/font without the widget/canvas tree (STM TFT, …).
+if (LH_LIBRARY_OPTION_UI_FONT_ROBOTO AND NOT LH_LIBRARY_OPTION_UI)
+    list(APPEND LH_LIB_SOURCES
+            ${LH_LIB_SRC_PATH}/ui/mask.c
+            ${LH_LIB_SRC_PATH}/ui/font.c
+            ${LH_LIB_SRC_PATH}/ui/font/range.c
+            ${LH_LIB_SRC_PATH}/ui/font/roboto.c
+    )
+endif ()
+
 # Float math (vec, quat, mat4) is the FPU. OFF leaves it out of the library.
 if (LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_LIB_SOURCES
