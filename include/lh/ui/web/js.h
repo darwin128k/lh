@@ -18,6 +18,7 @@
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/size.h>
+#include <lh/ui/web/x.h>
 #include <lh/void.h>
 
 #if !LH_LIBRARY_OPTION_UI
@@ -113,6 +114,30 @@ lh_ui_web_js_prop(lh_ui_web_js_t *self, const lh_char_t *obj, const lh_char_t *p
 /** `@p stmt;\n` */
 lh_void
 lh_ui_web_js_stmt(lh_ui_web_js_t *self, const lh_char_t *stmt);
+
+/** Emit a ::lh_ui_web_x expression (no trailing semicolon). */
+lh_void
+lh_ui_web_js_x(lh_ui_web_js_t *self, const lh_ui_web_x_t *x);
+
+/** `return <x>;\n` — @p x may be ::lh_null for a bare `return;`. */
+lh_void
+lh_ui_web_js_ret_x(lh_ui_web_js_t *self, const lh_ui_web_x_t *x);
+
+/** `if(<x>){\n` */
+lh_void
+lh_ui_web_js_if_x(lh_ui_web_js_t *self, const lh_ui_web_x_t *cond);
+
+/** `var @p name=<x>;\n` */
+lh_void
+lh_ui_web_js_var_x(lh_ui_web_js_t *self, const lh_char_t *name, const lh_ui_web_x_t *x);
+
+/** `<lhs>=<rhs>;\n` */
+lh_void
+lh_ui_web_js_assign_x(lh_ui_web_js_t *self, const lh_ui_web_x_t *lhs, const lh_ui_web_x_t *rhs);
+
+/** `<x>;\n` */
+lh_void
+lh_ui_web_js_stmt_x(lh_ui_web_js_t *self, const lh_ui_web_x_t *x);
 
 /** Write a trailing NUL without counting it in ::lh_ui_web_js_len. */
 lh_void
