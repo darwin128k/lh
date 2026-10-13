@@ -41,6 +41,12 @@ lh_runtime_writer(void)
     return lh_addr_of(m_runtime_writer);
 }
 
+lh_void
+lh_runtime_writer_init(lh_io_writer_write_cb write_cb, lh_ptr context)
+{
+    lh_io_writer_init(lh_runtime_writer(), write_cb, context);
+}
+
 lh_ssize_t
 lh_runtime_writer_write(const lh_ptr buf, lh_usize_t size)
 {
@@ -51,4 +57,22 @@ lh_bool_t
 lh_runtime_writer_write_all(const lh_ptr buf, lh_usize_t size)
 {
     return lh_io_writer_write_all(lh_runtime_writer(), buf, size);
+}
+
+lh_ssize_t
+lh_runtime_writer_print_v(const lh_str_ptr fmt, va_list args)
+{
+    return lh_io_writer_print_v(lh_runtime_writer(), fmt, args);
+}
+
+lh_ssize_t
+lh_runtime_writer_print(const lh_str_ptr fmt, ...)
+{
+    va_list args;
+    lh_ssize_t n;
+
+    va_start(args, fmt);
+    n = lh_runtime_writer_print_v(fmt, args);
+    va_end(args);
+    return n;
 }

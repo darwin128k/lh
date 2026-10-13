@@ -41,6 +41,12 @@ lh_runtime_reader(void)
     return lh_addr_of(m_runtime_reader);
 }
 
+lh_void
+lh_runtime_reader_init(lh_io_reader_read_cb read_cb, lh_ptr context)
+{
+    lh_io_reader_init(lh_runtime_reader(), read_cb, context);
+}
+
 lh_ssize_t
 lh_runtime_reader_read(lh_ptr buf, lh_usize_t size)
 {

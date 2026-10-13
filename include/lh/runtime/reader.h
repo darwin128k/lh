@@ -7,7 +7,7 @@
  * until the host installs a source (UART RX, …):
  *
  * @code
- * lh_io_reader_set(lh_runtime_reader(), usart_read_cb, lh_null);
+ * lh_runtime_reader_init(usart_read_cb, lh_null);
  * @endcode
  *
  * When thread-local mode is enabled, each thread has its own instance.
@@ -29,6 +29,17 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 lh_io_reader_t *
 lh_runtime_reader(void);
+
+/**
+ * @brief Install a source on ::lh_runtime_reader().
+ *
+ * Same as ::lh_io_reader_init(::lh_runtime_reader(), @p read_cb, @p context).
+ *
+ * @param read_cb Read callback (may be ::lh_null to disable).
+ * @param context Passed to @p read_cb on every call.
+ */
+lh_void
+lh_runtime_reader_init(lh_io_reader_read_cb read_cb, lh_ptr context);
 
 /**
  * @brief Read through ::lh_runtime_reader().
