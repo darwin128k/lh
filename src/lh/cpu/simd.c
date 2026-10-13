@@ -10,21 +10,22 @@
 #include <lh/cpu/id.h>
 #include <lh/numeric/fixed/types.h>
 
+/* CPUID leaves / bits shared by the MSVC hand-rolled probes and by
+ * ::lh_cpu_simd_has_erms (which always goes through ::lh_cpu_id — GCC has no
+ * reliable __builtin_cpu_supports string for ERMS on every toolchain). */
+#define LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO 1      /* processor feature bits */
+#define LH_CPU_SIMD_CPUID_LEAF_EXTENDED_FEATURES 7 /* AVX2 / ERMS and newer */
+#define LH_CPU_SIMD_CPUID_EDX_SSE2_BIT 26
+#define LH_CPU_SIMD_CPUID_ECX_SSSE3_BIT 9
+#define LH_CPU_SIMD_CPUID_ECX_OSXSAVE_BIT 27
+#define LH_CPU_SIMD_CPUID_ECX_AVX_BIT 28
+#define LH_CPU_SIMD_CPUID_EXTENDED_FEATURES_EBX_AVX2_BIT 5
+#define LH_CPU_SIMD_CPUID_EXTENDED_FEATURES_EBX_ERMS_BIT 9 /* Enhanced REP MOVSB/STOSB */
+
 #if (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC) &&                                                 \
     (LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_SSSE3 ||                      \
      LH_LIBRARY_OPTION_SIMD_HAVE_AVX2)
 #    include <intrin.h>
-
-/* CPUID leaves used below. The registers themselves come from ::lh_cpu_id. */
-#    define LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO 1      /* processor feature bits */
-#    define LH_CPU_SIMD_CPUID_LEAF_EXTENDED_FEATURES 7 /* AVX2 and newer feature bits */
-
-/* Feature bit positions within the registers above. */
-#    define LH_CPU_SIMD_CPUID_EDX_SSE2_BIT 26                  /* leaf 1, EDX */
-#    define LH_CPU_SIMD_CPUID_ECX_SSSE3_BIT 9                  /* leaf 1, ECX */
-#    define LH_CPU_SIMD_CPUID_ECX_OSXSAVE_BIT 27               /* leaf 1, ECX */
-#    define LH_CPU_SIMD_CPUID_ECX_AVX_BIT 28                   /* leaf 1, ECX */
-#    define LH_CPU_SIMD_CPUID_EXTENDED_FEATURES_EBX_AVX2_BIT 5 /* leaf 7 sub-leaf 0, EBX */
 
 /* _xgetbv's control-register index, and the XCR0 bits it reports back. */
 #    define LH_CPU_SIMD_XCR0 0
@@ -130,6 +131,25 @@ lh_cpu_simd_has_avx2(void)
 #    else
     return lh_bool_false;
 #    endif
+#else
+    return lh_bool_false;
+#endif
+}
+
+lh_bool_t
+lh_cpu_simd_has_erms(void)
+{
+#if LH_COMPILER_ARCH_FAMILY_IS_X86
+    lh_u32_t regs[LH_CPU_ID_REGISTER_COUNT];
+
+    /* Leaf 7 may be absent on pre-Ivy Bridge / old AMD — lh_cpu_id fails then. */
+    if (!lh_cpu_id(LH_CPU_SIMD_CPUID_LEAF_EXTENDED_FEATURES, 0U, regs))
+    {
+        return lh_bool_false;
+    }
+    return lh_cast_static(
+        lh_bool_t, !lh_bit_disjoint(regs[LH_CPU_ID_EBX],
+                                    lh_bit_mask(LH_CPU_SIMD_CPUID_EXTENDED_FEATURES_EBX_ERMS_BIT)));
 #else
     return lh_bool_false;
 #endif

@@ -63,6 +63,18 @@ lh_cpu_simd_has_ssse3(void);
 lh_bool_t
 lh_cpu_simd_has_avx2(void);
 
+/**
+ * @brief Whether this CPU has Enhanced REP MOVSB/STOSB (ERMS).
+ *
+ * CPUID leaf 7 EBX bit 9. x86-only; returns ::lh_bool_false on every other
+ * architecture (no CPUID probe is compiled in). Used by ::lh_memory_std_copy to
+ * pick the mid-size string-op path on Intel — not a public memcpy substitute.
+ *
+ * @return ::lh_bool_true if ERMS is advertised, ::lh_bool_false otherwise.
+ */
+lh_bool_t
+lh_cpu_simd_has_erms(void);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_CPU_SIMD_H */

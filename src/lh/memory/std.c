@@ -11,6 +11,7 @@
 #include <lh/config.h>
 #include <lh/cpu/cache.h>
 #include <lh/cpu/simd.h>
+#include <lh/cpu/vendor.h>
 #include <lh/null.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/bit.h>
@@ -131,10 +132,18 @@ lh_memory_std_has_sse2(void)
  * LH_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD picks a size at that measured crossover. */
 #if LH_COMPILER_TYPE_IS_GCC_LIKE && LH_COMPILER_ARCH_FAMILY_IS_X86
 #    define LH_MEMORY_STD_HAVE_GCC_REP_MOVSB 1
-#    define LH_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD                                                  \
-        (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD))
 #else
 #    define LH_MEMORY_STD_HAVE_GCC_REP_MOVSB 0
+#endif
+
+#if LH_COMPILER_TYPE_IS_GCC_LIKE && LH_COMPILER_ARCH_FAMILY_IS_X86
+#    define LH_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD                                                  \
+        (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD))
+#endif
+
+#if LH_COMPILER_ARCH_FAMILY_IS_X86
+#    define LH_MEMORY_STD_ERMS_COPY_THRESHOLD                                                      \
+        (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_ERMS_COPY_THRESHOLD))
 #endif
 
 /* Scalar kernels owned by this file. SIMD tiers (and the public entry points
@@ -995,6 +1004,27 @@ static lh_memory_std_copy_simd_fn m_copy_simd_impl = lh_memory_std_copy_simd_dis
  * only implementations of this tier). */
 static lh_memory_std_copy_simd_fn m_copy_stream_impl = lh_null;
 
+#if LH_LIBRARY_OPTION_MEMORY_STD_USE_ERMS
+/* 0 = unresolved, 1 = use OWN REP MOVSB for mid-size, 2 = stay on SIMD.
+ * Intel ERMS beats hand SSE2 on this project's Ivy Bridge bench host past
+ * LH_MEMORY_STD_ERMS_COPY_THRESHOLD; AMD also sets the ERMS bit but measured
+ * slower than our SIMD on Zen2 — vendor is part of the decision. Same
+ * lh_memory_std_copy entry: no second public copy API. */
+static lh_byte_t m_erms_copy_kind;
+
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
+lh_memory_std_use_erms_copy(void)
+{
+    if (m_erms_copy_kind == 0U)
+    {
+        m_erms_copy_kind =
+            (lh_cpu_vendor_is_intel() && lh_cpu_simd_has_erms()) ? 1U : 2U;
+    }
+    return lh_cast_static(lh_bool_t, m_erms_copy_kind == 1U);
+}
+#endif /* LH_LIBRARY_OPTION_MEMORY_STD_USE_ERMS */
+
 /* Below this, the overlapping-word tiny ladder (lh_memory_std_copy_tiny) handles the
  * copy — small enough that an indirect SIMD call cannot pay for itself, and on MSVC
  * the plain scalar byte loop is catastrophically bad (see the Release
@@ -1206,6 +1236,21 @@ lh_memory_std_copy(lh_ptr dst, const lh_ptr src, lh_usize_t n)
         else if (n < LH_MEMORY_STD_SIMD_DIRECT_DISPATCH_THRESHOLD)
         {
             lh_memory_std_copy_sse2_small(d, s, n);
+        }
+#    endif
+#    if LH_LIBRARY_OPTION_MEMORY_STD_USE_ERMS &&                                                   \
+        (LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB || LH_MEMORY_STD_HAVE_GCC_REP_MOVSB)
+        /* Mid-size on Intel+ERMS: OWN `rep movsb` inside this same function — not
+         * CRT memcpy, not a second copy entry. Beats SSE2 on Ivy Bridge at 64KB;
+         * skipped on AMD (Zen2 SIMD won). Below DIRECT_DISPATCH and past the
+         * stream floor the vector/NT tiers keep ownership. */
+        else if (n >= LH_MEMORY_STD_ERMS_COPY_THRESHOLD && lh_memory_std_use_erms_copy())
+        {
+#        if LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB
+            __movsb(lh_ptr_cast(unsigned char, d), lh_ptr_ccast(unsigned char, s), n);
+#        else
+            __asm__ volatile("rep movsb" : "+D"(d), "+S"(s), "+c"(n) : : "memory");
+#        endif
         }
 #    endif
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
