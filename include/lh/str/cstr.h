@@ -54,7 +54,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *         empty string and not a missing one.
  */
 lh_usize_t
-lh_str_len(lh_str_cptr str);
+lh_str_len(const lh_str_ptr str);
 
 /**
  * @brief Whether @p lhs and @p rhs are the same string.
@@ -73,7 +73,7 @@ lh_str_len(lh_str_cptr str);
  *         an empty string here, for the reason ::lh_str_len gives.
  */
 lh_bool_t
-lh_str_eq(lh_str_cptr lhs, lh_str_cptr rhs, lh_bool_t ignore_case);
+lh_str_eq(const lh_str_ptr lhs, const lh_str_ptr rhs, lh_bool_t ignore_case);
 
 LH_COMPILER_EXTERN_C_END
 

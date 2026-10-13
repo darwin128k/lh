@@ -229,7 +229,7 @@ lh_os_module_get_loader(const lh_os_module_t *self);
  * @return The loader, or ::lh_null (already granted, or out of memory).
  */
 struct lh_os_loader *
-lh_os_module_grant_loader(lh_os_module_t *self, lh_str_cptr entry);
+lh_os_module_grant_loader(lh_os_module_t *self, const lh_str_ptr entry);
 
 /* ── image ───────────────────────────────────────────────────────────────── */
 
@@ -302,13 +302,13 @@ lh_os_module_stop(lh_os_module_t *self);
  * No image: ::lh_os_error_code_not_open. Missing: the native slot.
  */
 lh_ptr
-lh_os_module_get_sym(const lh_os_module_t *self, lh_str_cptr name);
+lh_os_module_get_sym(const lh_os_module_t *self, const lh_str_ptr name);
 
 /**
  * @brief True if an image is open and @p name is exported.
  */
 lh_bool_t
-lh_os_module_has_sym(const lh_os_module_t *self, lh_str_cptr name);
+lh_os_module_has_sym(const lh_os_module_t *self, const lh_str_ptr name);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -68,7 +68,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *        @p size is zero or the computed view is not valid.
  */
 lh_void
-lh_str_init_by_size(lh_str_view_t *self, lh_str_cptr data, lh_usize_t size);
+lh_str_init_by_size(lh_str_view_t *self, const lh_str_ptr data, lh_usize_t size);
 
 /**
  * @brief Initialize @p self from a NUL-terminated string @p data.
@@ -84,7 +84,7 @@ lh_str_init_by_size(lh_str_view_t *self, lh_str_cptr data, lh_usize_t size);
  *        @p data is ::lh_null.
  */
 lh_void
-lh_str_view_init(lh_str_view_t *self, lh_str_cptr data);
+lh_str_view_init(lh_str_view_t *self, const lh_str_ptr data);
 
 /**
  * @brief Initialize @p self with the empty view initializer.
@@ -162,44 +162,44 @@ lh_str_view_tail(const lh_str_view_t *self, lh_uoffset_t offset);
 /* -- getters --------------------------------------------------------------- */
 
 /**
- * @brief Return @c first as ::lh_str_cptr after validating @p self.
+ * @brief Return @c first as const lh_str_ptr after validating @p self.
  *
  * @param self Valid view to read.
- * @return Begin pointer cast to ::lh_str_cptr.
+ * @return Begin pointer cast to const lh_str_ptr.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-lh_str_cptr
+const lh_str_ptr
 lh_str_view_get_begin(const lh_str_view_t *self);
 
 /**
- * @brief Return @c second as ::lh_str_cptr after validating @p self.
+ * @brief Return @c second as const lh_str_ptr after validating @p self.
  *
  * @c second is the exclusive end: one past the last character.
  *
  * @param self Valid view to read.
- * @return End pointer cast to ::lh_str_cptr.
+ * @return End pointer cast to const lh_str_ptr.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not valid.
  */
-lh_str_cptr
+const lh_str_ptr
 lh_str_view_get_end(const lh_str_view_t *self);
 
 /**
- * @brief Return @c first as ::lh_str_cptr.
+ * @brief Return @c first as const lh_str_ptr.
  * @param self View to read.
- * @return @c first cast to ::lh_str_cptr.
+ * @return @c first cast to const lh_str_ptr.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-lh_str_cptr
+const lh_str_ptr
 lh_str_view_get_data(const lh_str_view_t *self);
 
 /**
@@ -401,7 +401,7 @@ lh_str_view_rfind_not_of(const lh_str_view_t *self, const lh_str_view_t *chars);
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-lh_str_cptr
+const lh_str_ptr
 lh_str_view_compare(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case);
 
 /**
@@ -418,7 +418,7 @@ lh_str_view_compare(const lh_str_view_t *self, const lh_str_view_t *other, lh_bo
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self or @p other is not valid.
  */
-lh_str_cptr
+const lh_str_ptr
 lh_str_view_rcompare(const lh_str_view_t *self, const lh_str_view_t *other, lh_bool_t ignore_case);
 
 /**

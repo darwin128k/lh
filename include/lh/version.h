@@ -229,7 +229,7 @@ lh_version_is_compatible(const lh_version_t *self, const lh_version_t *required)
  *         version, ::lh_bool_false otherwise.
  */
 lh_bool_t
-lh_version_parse(lh_str_cptr str, lh_usize_t str_size, lh_version_t *out);
+lh_version_parse(const lh_str_ptr str, lh_usize_t str_size, lh_version_t *out);
 
 /**
  * @brief Format @p self as `major.minor.patch` text.

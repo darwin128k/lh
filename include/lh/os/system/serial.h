@@ -48,7 +48,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return Open handle, or ::LH_OS_SYSTEM_SERIAL_HANDLE_INVALID.
  */
 lh_os_system_serial_handle_t
-lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t parity, lh_u8_t stop_bits);
+lh_os_system_serial_open(const lh_str_ptr name, lh_u32_t baud, lh_os_serial_parity_t parity, lh_u8_t stop_bits);
 
 /**
  * @brief Close @p handle. No-op when invalid.

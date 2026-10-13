@@ -5,11 +5,11 @@
  * The semantic "one byte" name, layered on the numeric base: ::lh_byte_t is
  * the ::lh_u8_t alias from <lh/numeric/fixed/types.h>, which is in turn the
  * base 8-bit type from <lh/char.h>. Use this name for raw bytes and binary
- * data — buffers, memory, packed fields, hash blocks, color channels,
+ * data вЂ” buffers, memory, packed fields, hash blocks, color channels,
  * addresses; use ::lh_char_t for text and ::lh_schar_t for a character with
  * explicit signedness.
  *
- * Pointers to a raw buffer are ::lh_byte_ptr / ::lh_byte_cptr in
+ * Pointers to a raw buffer are ::lh_byte_ptr / const lh_byte_ptr in
  * <lh/byte/ptr.h> (macros, so `const` binds to the pointee).
  *
  * Limits (::LH_BYTE_T_MIN, ::LH_BYTE_T_MAX, ::LH_BYTE_T_SIZE) live in

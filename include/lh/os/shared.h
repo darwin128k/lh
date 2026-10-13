@@ -120,13 +120,13 @@ lh_os_shared_close(lh_os_shared_t *self);
  * Closed: ::lh_os_error_code_not_open. Missing: the native slot.
  */
 lh_ptr
-lh_os_shared_get_sym(const lh_os_shared_t *self, lh_str_cptr name);
+lh_os_shared_get_sym(const lh_os_shared_t *self, const lh_str_ptr name);
 
 /**
  * @brief True if open and @p name is exported.
  */
 lh_bool_t
-lh_os_shared_has_sym(const lh_os_shared_t *self, lh_str_cptr name);
+lh_os_shared_has_sym(const lh_os_shared_t *self, const lh_str_ptr name);
 
 LH_COMPILER_EXTERN_C_END
 

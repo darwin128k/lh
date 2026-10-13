@@ -55,7 +55,7 @@ lh_os_system_shared_get_ext(void);
  * @return Open handle, or ::LH_OS_SYSTEM_SHARED_HANDLE_INVALID on failure.
  */
 lh_os_system_shared_handle_t
-lh_os_system_shared_open(lh_str_cptr path);
+lh_os_system_shared_open(const lh_str_ptr path);
 
 /**
  * @brief Give back the one reference @p handle holds.
@@ -73,7 +73,7 @@ lh_os_system_shared_close(lh_os_system_shared_handle_t handle);
  * @param name   Exported symbol name.
  */
 lh_ptr
-lh_os_system_shared_get_sym(lh_os_system_shared_handle_t handle, lh_str_cptr name);
+lh_os_system_shared_get_sym(lh_os_system_shared_handle_t handle, const lh_str_ptr name);
 
 /**
  * @brief Handle of the program itself (the executable, not a library).

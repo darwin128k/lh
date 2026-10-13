@@ -50,7 +50,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *         number, ::lh_bool_false otherwise.
  */
 lh_bool_t
-lh_net_port_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_port_t *out);
+lh_net_port_parse(const lh_str_ptr str, lh_usize_t str_size, lh_net_port_t *out);
 
 /**
  * @brief True if @p self and @p other are the same port value.

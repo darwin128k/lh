@@ -3,7 +3,7 @@
  * @brief Memory-span helpers for sized search and sentinel scan.
  *
  * Remaining length (::lh_memory_size_rest) and the address-space bound
- * (::lh_memory_scan_bound) are macros — they are expressions.
+ * (::lh_memory_scan_bound) are macros вЂ” they are expressions.
  * Byte predicates (::lh_memory_bytes_eq, ::lh_memory_bytes_any_eq,
  * ::lh_memory_bytes_any_ne) are loops, so they are
  * ::LH_ATTRIBUTE_FORCE_INLINE in this header rather than a `#define`.
@@ -77,7 +77,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
-lh_memory_bytes_eq(lh_byte_cptr lhs, lh_byte_cptr rhs, lh_usize_t n)
+lh_memory_bytes_eq(const lh_byte_ptr lhs, const lh_byte_ptr rhs, lh_usize_t n)
 {
     lh_usize_t i;
     for (i = 0; i < n; ++i)
@@ -107,7 +107,7 @@ lh_memory_bytes_eq(lh_byte_cptr lhs, lh_byte_cptr rhs, lh_usize_t n)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
-lh_memory_bytes_any_eq(lh_byte_cptr lhs, lh_usize_t n, lh_byte_t val)
+lh_memory_bytes_any_eq(const lh_byte_ptr lhs, lh_usize_t n, lh_byte_t val)
 {
     lh_bool_t hit = lh_bool_false;
     lh_usize_t i;
@@ -123,7 +123,7 @@ lh_memory_bytes_any_eq(lh_byte_cptr lhs, lh_usize_t n, lh_byte_t val)
  *        on a @p step grid.
  *
  * Used by the wchar / unit path of ::lh_memory_find_step over a scan block.
- * Callers must pass a span where each candidate @c i, @c i+step, … has
+ * Callers must pass a span where each candidate @c i, @c i+step, вЂ¦ has
  * @p rhs_size bytes in range (block size a multiple of @p step, @p rhs_size
  * equal to @p step).
  *
@@ -140,7 +140,7 @@ lh_memory_bytes_any_eq(lh_byte_cptr lhs, lh_usize_t n, lh_byte_t val)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
-lh_memory_bytes_any_eq_step(lh_byte_cptr lhs, lh_usize_t n, lh_byte_cptr rhs,
+lh_memory_bytes_any_eq_step(const lh_byte_ptr lhs, lh_usize_t n, const lh_byte_ptr rhs,
                             lh_usize_t rhs_size, lh_usize_t step)
 {
     lh_bool_t hit = lh_bool_false;
@@ -155,7 +155,7 @@ lh_memory_bytes_any_eq_step(lh_byte_cptr lhs, lh_usize_t n, lh_byte_cptr rhs,
 /**
  * @brief Branchless: true if any of the first @p n bytes of @p lhs and @p rhs differ.
  *
- * No early exit — same shape as the block walk in ::lh_memory_std_compare.
+ * No early exit вЂ” same shape as the block walk in ::lh_memory_std_compare.
  * Zero @p n is not a difference.
  *
  * @param lhs First buffer.
@@ -168,7 +168,7 @@ lh_memory_bytes_any_eq_step(lh_byte_cptr lhs, lh_usize_t n, lh_byte_cptr rhs,
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
-lh_memory_bytes_any_ne(lh_byte_cptr lhs, lh_byte_cptr rhs, lh_usize_t n)
+lh_memory_bytes_any_ne(const lh_byte_ptr lhs, const lh_byte_ptr rhs, lh_usize_t n)
 {
     lh_bool_t hit = lh_bool_false;
     lh_usize_t i;

@@ -13,7 +13,7 @@
  *
  * Formatting is the callback's job. There is no scratch string on the
  * logger; when ::lh_str_t exists, log calls can grow a typed overload.
- * Until then the mask is ::lh_str_cptr, same as ::lh_str_ptr_format_text.
+ * Until then the mask is const lh_str_ptr, same as ::lh_str_ptr_format_text.
  *
  * @c context is not a second sink: it is the pointer the callbacks receive,
  * typically an ::lh_io_writer_t * (or UART / `FILE *`).
@@ -250,7 +250,7 @@ lh_logger_get_context(const lh_logger_t *self);
  * @return Whatever the slot callback returns, or 0 if filtered / no slot.
  */
 lh_ssize_t
-lh_logger_log_v(lh_logger_t *self, lh_logger_level_t level, lh_str_cptr fmt, va_list args);
+lh_logger_log_v(lh_logger_t *self, lh_logger_level_t level, const lh_str_ptr fmt, va_list args);
 
 /**
  * @brief Dispatch @p fmt at @p level, if flags and the slot allow.
@@ -263,7 +263,7 @@ lh_logger_log_v(lh_logger_t *self, lh_logger_level_t level, lh_str_cptr fmt, va_
  * @return See ::lh_logger_log_v.
  */
 lh_ssize_t
-lh_logger_log(lh_logger_t *self, lh_logger_level_t level, lh_str_cptr fmt, ...);
+lh_logger_log(lh_logger_t *self, lh_logger_level_t level, const lh_str_ptr fmt, ...);
 
 LH_COMPILER_EXTERN_C_END
 

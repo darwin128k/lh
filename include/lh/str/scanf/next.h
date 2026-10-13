@@ -38,7 +38,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *         ::lh_bool_false if `*pos` is already at the NUL (nothing left).
  */
 lh_bool_t
-lh_str_ptr_scanf_next(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out);
+lh_str_ptr_scanf_next(const lh_str_ptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

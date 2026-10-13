@@ -43,7 +43,7 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Framing ─────────────────────────────────────────────────────────────── */
+/* в”Ђв”Ђ Framing в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
 
 /**
  * @brief How a request is wrapped for the wire it goes out on.
@@ -55,8 +55,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 typedef enum lh_mb_framing
 {
-    lh_mb_framing_rtu = 0, /**< unit, PDU, CRC low byte first — a COM port, or RTU over TCP */
-    lh_mb_framing_mbap = 1 /**< seven-byte header with a length, unit, PDU — Modbus TCP */
+    lh_mb_framing_rtu = 0, /**< unit, PDU, CRC low byte first вЂ” a COM port, or RTU over TCP */
+    lh_mb_framing_mbap = 1 /**< seven-byte header with a length, unit, PDU вЂ” Modbus TCP */
 } lh_mb_framing_t;
 
 /** @brief Bytes of MBAP header ahead of the unit and the PDU. */
@@ -76,7 +76,7 @@ typedef enum lh_mb_framing
  * @return Length of the frame, 0 when it does not fit.
  */
 lh_u16_t
-lh_mb_encode(lh_mb_framing_t framing, lh_u8_t unit, lh_u16_t tx, lh_byte_cptr pdu,
+lh_mb_encode(lh_mb_framing_t framing, lh_u8_t unit, lh_u16_t tx, const lh_byte_ptr pdu,
              lh_u16_t pdu_length, lh_byte_ptr out, lh_u16_t cap);
 
 /**
@@ -92,12 +92,12 @@ lh_mb_encode(lh_mb_framing_t framing, lh_u8_t unit, lh_u16_t tx, lh_byte_cptr pd
  * length, and knowing that length is the only way to step over it to the one
  * behind it. Whose it is is ::lh_mb_decode's question.
  *
- * @return For MBAP, 0 also when the header is not a Modbus header at all — a
+ * @return For MBAP, 0 also when the header is not a Modbus header at all вЂ” a
  *         protocol id other than 0, or a length no frame can have. With seven bytes
  *         in hand that is not "not yet": it is a stream that has lost its place.
  */
 lh_u16_t
-lh_mb_frame_length(lh_mb_framing_t framing, lh_byte_cptr frame, lh_u16_t have, lh_u8_t fc);
+lh_mb_frame_length(lh_mb_framing_t framing, const lh_byte_ptr frame, lh_u16_t have, lh_u8_t fc);
 
 /**
  * @brief The PDU inside @p frame, once the framing is off and the CRC, if the
@@ -110,13 +110,13 @@ lh_mb_frame_length(lh_mb_framing_t framing, lh_byte_cptr frame, lh_u16_t have, l
  * @return Whether the frame is one of ours: @p unit's, and for MBAP with protocol
  *         id 0. A frame that is not is not an error to report upward: a line
  *         carries every device's traffic. The transaction id is not looked at here
- *         — only the link knows which question is in flight.
+ *         вЂ” only the link knows which question is in flight.
  */
 lh_bool_t
-lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, lh_byte_cptr frame, lh_u16_t length,
+lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, const lh_byte_ptr frame, lh_u16_t length,
              lh_byte_ptr pdu, lh_u16_t *pdu_length);
 
-/* ── Link ────────────────────────────────────────────────────────────────── */
+/* в”Ђв”Ђ Link в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
 
 /** @brief How many words one link holds; the most a single read may ask for. */
 #define LH_MB_LINK_VALUES (lh_cast_static(lh_u16_t, LH_MB_READ_MAX))
@@ -131,8 +131,8 @@ lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, lh_byte_cptr frame, lh_u16_t
  *       meant a device that answers "illegal function" for one register bank was
  *       dropped for good, and a poll loop that keeps finding the link busy spins
  *       for ever instead of moving on to the next device. Whether a device is
- *       *off* rather than *slow* is the app's decision — only it knows how many
- *       failures in a row mean that — and ::lh_mb_link_counters_t.failed is what
+ *       *off* rather than *slow* is the app's decision вЂ” only it knows how many
+ *       failures in a row mean that вЂ” and ::lh_mb_link_counters_t.failed is what
  *       it counts them from.
  */
 typedef enum lh_mb_link_state
@@ -165,7 +165,7 @@ typedef struct lh_mb_link_counters
      *  through: the counter's own words said "timeouts and transport errors", the
      *  code counted exceptions there too, and a card that asked for one register
      *  the device did not have looked exactly like a device that had stopped
-     *  answering. That is not a small difference here — the client's rule for
+     *  answering. That is not a small difference here вЂ” the client's rule for
      *  "this device is off line" is a count of failures in a row, so a **healthy**
      *  controller with a card slightly wider than its firmware would be taken off
      *  line by its own app while every other device kept being polled.
@@ -221,7 +221,7 @@ typedef struct lh_mb_link
      *
      *  The only thing that tells an answer to *this* question from a late answer
      *  to the last one. Without it, a device that answers just after the timeout
-     *  has its answer read as the answer to the next question — and when the next
+     *  has its answer read as the answer to the next question вЂ” and when the next
      *  question asks the same registers, which a poll loop does every pass, the
      *  stale values are accepted with nothing anywhere to say so. */
     lh_u16_t asked_tx;
@@ -230,7 +230,7 @@ typedef struct lh_mb_link
      * 64 bits for the same reason the clock is 64: it is **microseconds since
      * boot**, and 32 bits of those run out after 4294 seconds. A machine that had
      * been up for seventy-one minutes stored a wrapped value here, and
-     * `now - since_us` then came out at exactly 5 · 2³² microseconds — a question
+     * `now - since_us` then came out at exactly 5 В· 2ВіВІ microseconds вЂ” a question
      * that had been in flight for four and a half hours, so **every** request timed
      * out the instant it was sent and not one answer was ever parsed.
      *
@@ -283,7 +283,7 @@ lh_mb_link_set_stream(lh_mb_link_t *self, const lh_io_stream_t *stream);
  *
  * Modbus has two read functions and they read two different spaces: 0x03 reads
  * holding registers (4xxxx) and 0x04 reads input registers (3xxxx). A device that
- * has both is **two conversations**, not one — the answer frames differ by a byte
+ * has both is **two conversations**, not one вЂ” the answer frames differ by a byte
  * of function code, and a link that asked 0x03 can only be answered by a device
  * that has holding registers at that address.
  *
@@ -350,7 +350,7 @@ lh_mb_link_write_one(lh_mb_link_t *self, lh_u16_t address, lh_u16_t value);
  * @brief Look for an answer without waiting for one.
  *
  * One read of the stream, then a decision: whole frame, not yet, or not
- * ours. Never blocks, and never asks for anything new — sending is
+ * ours. Never blocks, and never asks for anything new вЂ” sending is
  * ::lh_mb_link_ask's job, so that a pass cannot turn into a stall.
  *
  * @param self Link to look at.

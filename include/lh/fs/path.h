@@ -182,7 +182,7 @@ lh_fs_path_to_str(const lh_fs_path_t *self, lh_fs_path_style_t style, lh_str_t *
  * Equivalent to init + ::lh_fs_path_to_str + ::lh_str_get_data, collapsed
  * for the common "one OS call" case.
  */
-lh_str_cptr
+const lh_str_ptr
 lh_fs_path_to_cstr(const lh_fs_path_t *self, lh_fs_path_style_t style, lh_str_t *scratch);
 
 /**

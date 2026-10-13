@@ -42,8 +42,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  *         `*pos` was already at @p str_size (nothing left to read).
  */
 lh_bool_t
-lh_str_ptr_split_next_of(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr delims,
-                         lh_usize_t delim_count, lh_usize_t *pos, lh_str_cptr *field,
+lh_str_ptr_split_next_of(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr delims,
+                         lh_usize_t delim_count, lh_usize_t *pos, const lh_str_ptr *field,
                          lh_usize_t *field_size, lh_bool_t *had_delim);
 
 /**
@@ -70,8 +70,8 @@ lh_str_ptr_split_next_of(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr delim
  *         `*pos` was already at @p str_size (nothing left to read).
  */
 lh_bool_t
-lh_str_ptr_split_next(lh_str_cptr str, lh_usize_t str_size, lh_char_t delim, lh_usize_t *pos,
-                      lh_str_cptr *field, lh_usize_t *field_size, lh_bool_t *had_delim);
+lh_str_ptr_split_next(const lh_str_ptr str, lh_usize_t str_size, lh_char_t delim, lh_usize_t *pos,
+                      const lh_str_ptr *field, lh_usize_t *field_size, lh_bool_t *had_delim);
 
 /**
  * @brief View wrapper for ::lh_str_ptr_split_next_of.
@@ -80,7 +80,7 @@ lh_str_ptr_split_next(lh_str_cptr str, lh_usize_t str_size, lh_char_t delim, lh_
  * view (leading or doubled delimiter).
  */
 lh_bool_t
-lh_str_view_split_next_of(const lh_str_view_t *self, lh_str_cptr delims, lh_usize_t delim_count,
+lh_str_view_split_next_of(const lh_str_view_t *self, const lh_str_ptr delims, lh_usize_t delim_count,
                           lh_usize_t *pos, lh_str_view_t *field, lh_bool_t *had_delim);
 
 LH_COMPILER_EXTERN_C_END

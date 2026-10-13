@@ -16,7 +16,7 @@
  *
  * Delegates to ::lh_memory_view_initializer.
  *
- * @param begin Inclusive begin pointer (::lh_wstr_cptr).
+ * @param begin Inclusive begin pointer (const lh_wstr_ptr).
  * @param end   Exclusive end pointer (one past the last payload ::lh_wchar_t).
  *
  * @see lh_memory_view_initializer

@@ -6,7 +6,7 @@
  * to hand a 16-bit field to a wire format (a socket address's port today; any
  * future length-prefixed or fixed-header protocol tomorrow) is exactly the
  * kind of small, easy-to-subtly-reimplement primitive this library prefers to
- * name once — see `lh/bit/scan.h` for the same reasoning applied to
+ * name once вЂ” see `lh/bit/scan.h` for the same reasoning applied to
  * bit-scan.
  *
  * Named `pack`/`unpack` for the wire-byte conversion itself
@@ -57,7 +57,7 @@ lh_bit_pack_be16(lh_u16_t value, lh_byte_ptr out)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_u16_t
-lh_bit_unpack_be16(lh_byte_cptr in)
+lh_bit_unpack_be16(const lh_byte_ptr in)
 {
     lh_assert_runtime_ref(in);
     return lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, in[0]) << 8) | in[1]);
@@ -89,7 +89,7 @@ lh_bit_pack_le16(lh_u16_t value, lh_byte_ptr out)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_u16_t
-lh_bit_unpack_le16(lh_byte_cptr in)
+lh_bit_unpack_le16(const lh_byte_ptr in)
 {
     lh_assert_runtime_ref(in);
     return lh_cast_static(lh_u16_t, in[0] | (lh_cast_static(lh_u16_t, in[1]) << 8));
@@ -123,7 +123,7 @@ lh_bit_pack_be32(lh_u32_t value, lh_byte_ptr out)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_u32_t
-lh_bit_unpack_be32(lh_byte_cptr in)
+lh_bit_unpack_be32(const lh_byte_ptr in)
 {
     lh_assert_runtime_ref(in);
     return (lh_cast_static(lh_u32_t, in[0]) << 24) | (lh_cast_static(lh_u32_t, in[1]) << 16) |
@@ -158,7 +158,7 @@ lh_bit_pack_le32(lh_u32_t value, lh_byte_ptr out)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_u32_t
-lh_bit_unpack_le32(lh_byte_cptr in)
+lh_bit_unpack_le32(const lh_byte_ptr in)
 {
     lh_assert_runtime_ref(in);
     return lh_cast_static(lh_u32_t, in[0]) | (lh_cast_static(lh_u32_t, in[1]) << 8) |
@@ -191,7 +191,7 @@ lh_bit_pack_be64(lh_u64_t value, lh_byte_ptr out)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_u64_t
-lh_bit_unpack_be64(lh_byte_cptr in)
+lh_bit_unpack_be64(const lh_byte_ptr in)
 {
     lh_assert_runtime_ref(in);
     return lh_bit_make_u64(lh_bit_unpack_be32(in), lh_bit_unpack_be32(in + 4));
@@ -223,7 +223,7 @@ lh_bit_pack_le64(lh_u64_t value, lh_byte_ptr out)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_u64_t
-lh_bit_unpack_le64(lh_byte_cptr in)
+lh_bit_unpack_le64(const lh_byte_ptr in)
 {
     lh_assert_runtime_ref(in);
     return lh_bit_make_u64(lh_bit_unpack_le32(in + 4), lh_bit_unpack_le32(in));

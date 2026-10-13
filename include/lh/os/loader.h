@@ -66,7 +66,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param entry Name a child exports its ::lh_os_module_ops_t under. Copied.
  */
 lh_void
-lh_os_loader_init(lh_os_loader_t *self, lh_os_module_t *owner, lh_str_cptr entry);
+lh_os_loader_init(lh_os_loader_t *self, lh_os_module_t *owner, const lh_str_ptr entry);
 
 /**
  * @brief Unload every child, then release the loader's own storage.
@@ -82,7 +82,7 @@ lh_os_loader_deinit(lh_os_loader_t *self);
  *         ::lh_os_last_error).
  */
 lh_os_loader_t *
-lh_os_loader_create(lh_os_module_t *owner, lh_str_cptr entry);
+lh_os_loader_create(lh_os_module_t *owner, const lh_str_ptr entry);
 
 /**
  * @brief ::lh_os_loader_deinit (every child unloaded), then free the memory.
@@ -106,7 +106,7 @@ lh_os_loader_get_owner(const lh_os_loader_t *self);
 /**
  * @brief Name a child exports its method table under.
  */
-lh_str_cptr
+const lh_str_ptr
 lh_os_loader_get_entry(const lh_os_loader_t *self);
 
 /**

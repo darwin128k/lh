@@ -41,7 +41,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return Open handle, or ::LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID on failure.
  */
 lh_os_system_fs_dir_handle_t
-lh_os_system_fs_dir_open(lh_str_cptr path);
+lh_os_system_fs_dir_open(const lh_str_ptr path);
 
 /**
  * @brief Stop listing and release @p handle.
@@ -62,7 +62,7 @@ lh_os_system_fs_dir_close(lh_os_system_fs_dir_handle_t handle);
  *         exhausted, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
-lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, lh_str_cptr *name, lh_fs_kind_t *kind);
+lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, const lh_str_ptr *name, lh_fs_kind_t *kind);
 
 /**
  * @brief Longest directory-entry name the platform reports, in `char`s,

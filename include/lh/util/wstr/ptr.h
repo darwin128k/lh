@@ -120,7 +120,7 @@
  * @brief Turn a single character token
  *        into a one-element wide string literal (@c L#c).
  *
- * @param c Character token (e.g. @c a → @c L"a").
+ * @param c Character token (e.g. @c a в†’ @c L"a").
  *
  * @note Written as @c L""#c rather than @c L#c: adjacent string-literal
  *       concatenation joins the empty wide literal with the stringized
@@ -137,12 +137,12 @@
 #define lh_wstr_ptr_lit_va(...) lh_wstr_ptr_lit(__VA_ARGS__)
 
 /**
- * @brief Check whether @p x is ::lh_wstr_ptr or ::lh_wstr_cptr.
+ * @brief Check whether @p x is ::lh_wstr_ptr or const lh_wstr_ptr.
  *
  * @param x Expression to inspect.
- * @return `1` if @p x has type ::lh_wstr_ptr or ::lh_wstr_cptr, `0` otherwise.
+ * @return `1` if @p x has type ::lh_wstr_ptr or const lh_wstr_ptr, `0` otherwise.
  */
-#define lh_wstr_ptr_is(x) _Generic((x), lh_wstr_cptr: 1, lh_wstr_ptr: 1, default: 0)
+#define lh_wstr_ptr_is(x) _Generic((x), const lh_wstr_ptr: 1, lh_wstr_ptr: 1, default: 0)
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -400,7 +400,7 @@ lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t size);
  * but always uses the folding path.
  *
  * This is not full Unicode string case folding
- * (multi-code-unit expansions such as ß→ss are omitted);
+ * (multi-code-unit expansions such as Гџв†’ss are omitted);
  *
  * @param str      First buffer (::lh_runtime_check_ref).
  * @param str_size Length of @p str in ::lh_wchar_t elements (not bytes).
@@ -497,8 +497,8 @@ lh_wstr_ptr_rfind_by_ignore_case(const lh_wstr_ptr str, lh_usize_t str_size, con
  * @param str_size     Length of @p str in wide characters.
  * @param src          Needle.
  * @param src_size     Length of @p src in wide characters.
- * @param ignore_case  ::lh_bool_false → case-sensitive (::lh_memory_find_step).
- *                     ::lh_bool_true → ::lh_wstr_ptr_find_by_ignore_case.
+ * @param ignore_case  ::lh_bool_false в†’ case-sensitive (::lh_memory_find_step).
+ *                     ::lh_bool_true в†’ ::lh_wstr_ptr_find_by_ignore_case.
  *
  * @return Pointer to the first code unit of the match (aligned to @p str),
  *         or ::lh_null if none.
@@ -521,8 +521,8 @@ lh_wstr_ptr_find(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr s
  * @param str_size     Length of @p str in wide characters.
  * @param src          Needle.
  * @param src_size     Length of @p src in wide characters.
- * @param ignore_case  ::lh_bool_false → case-sensitive step search.
- *                     ::lh_bool_true → ::lh_wstr_ptr_rfind_by_ignore_case.
+ * @param ignore_case  ::lh_bool_false в†’ case-sensitive step search.
+ *                     ::lh_bool_true в†’ ::lh_wstr_ptr_rfind_by_ignore_case.
  *
  * @return Pointer to the first code unit of the last match,
  *         or ::lh_null if none.
@@ -546,8 +546,8 @@ lh_wstr_ptr_rfind(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr 
  * @param str_size     Length of @p str in wide characters.
  * @param src          Second buffer.
  * @param src_size     Length of @p src in wide characters.
- * @param ignore_case  ::lh_bool_false → ::lh_memory_compare.
- *                     ::lh_bool_true → ::lh_wstr_ptr_compare_by_ignore_case.
+ * @param ignore_case  ::lh_bool_false в†’ ::lh_memory_compare.
+ *                     ::lh_bool_true в†’ ::lh_wstr_ptr_compare_by_ignore_case.
  *
  * @return Pointer to the first differing byte in @p str (::lh_memory_compare rules),
  *         or ::lh_null if the compared prefixes match.
@@ -570,8 +570,8 @@ lh_wstr_ptr_compare(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_pt
  * @param str_size     Length of @p str in wide characters.
  * @param src          Second buffer.
  * @param src_size     Length of @p src in wide characters.
- * @param ignore_case  ::lh_bool_false → ::lh_memory_rcompare.
- *                     ::lh_bool_true → ::lh_wstr_ptr_rcompare_by_ignore_case.
+ * @param ignore_case  ::lh_bool_false в†’ ::lh_memory_rcompare.
+ *                     ::lh_bool_true в†’ ::lh_wstr_ptr_rcompare_by_ignore_case.
  *
  * @return Pointer into @p str at the first differing byte in the suffix window,
  *         or ::lh_null if that window matches.
@@ -623,8 +623,8 @@ lh_wstr_ptr_index_of(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ign
  *
  * @param str          Haystack.
  * @param src          Needle.
- * @param ignore_case  ::lh_bool_false → case-sensitive (::lh_memory_find_step on wide spans).
- *                     ::lh_bool_true → folded code units (::lh_wstr_ptr_find_by_ignore_case).
+ * @param ignore_case  ::lh_bool_false в†’ case-sensitive (::lh_memory_find_step on wide spans).
+ *                     ::lh_bool_true в†’ folded code units (::lh_wstr_ptr_find_by_ignore_case).
  *
  * @return ::lh_true if @p src occurs in @p str under the selected rules, ::lh_false otherwise.
  *
@@ -662,8 +662,8 @@ lh_wstr_ptr_contains_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const l
  *
  * @param str          First string.
  * @param src          Second string.
- * @param ignore_case  ::lh_bool_false → exact ::lh_wchar_t equality (::lh_memory_compare path).
- *                     ::lh_bool_true → pair-wise ::lh_wchar_fold_case
+ * @param ignore_case  ::lh_bool_false в†’ exact ::lh_wchar_t equality (::lh_memory_compare path).
+ *                     ::lh_bool_true в†’ pair-wise ::lh_wchar_fold_case
  *                     (::lh_wstr_ptr_compare_by_ignore_case).
  *
  * @return ::lh_true if equal under the selected rules,
@@ -683,8 +683,8 @@ lh_wstr_ptr_equals(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignor
  * @param str_size     Length of @p str in wide characters.
  * @param src          Second buffer.
  * @param src_size     Length of @p src in wide characters.
- * @param ignore_case  ::lh_bool_false → exact ::lh_wchar_t equality (::lh_memory_compare path).
- *                     ::lh_bool_true → pair-wise ::lh_wchar_fold_case
+ * @param ignore_case  ::lh_bool_false в†’ exact ::lh_wchar_t equality (::lh_memory_compare path).
+ *                     ::lh_bool_true в†’ pair-wise ::lh_wchar_fold_case
  *                     (::lh_wstr_ptr_compare_by_ignore_case).
  *
  * @return ::lh_true if @p str_size equals @p src_size and
@@ -712,8 +712,8 @@ lh_wstr_ptr_equals_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_
  *
  * @param str          Haystack.
  * @param src          Prefix.
- * @param ignore_case  ::lh_bool_false → raw code units.
- *                     ::lh_bool_true → ::lh_wchar_fold_case per code unit.
+ * @param ignore_case  ::lh_bool_false в†’ raw code units.
+ *                     ::lh_bool_true в†’ ::lh_wchar_fold_case per code unit.
  *
  * @return ::lh_true if the compared prefixes match, ::lh_false otherwise.
  *
@@ -730,8 +730,8 @@ lh_wstr_ptr_starts_with(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t 
  * @param str_size     Haystack size in wide characters.
  * @param src          Prefix buffer.
  * @param src_size     Prefix size in wide characters.
- * @param ignore_case  ::lh_bool_false → raw code units (::lh_memory_compare on wide spans).
- *                     ::lh_bool_true → ::lh_wchar_fold_case per code unit.
+ * @param ignore_case  ::lh_bool_false в†’ raw code units (::lh_memory_compare on wide spans).
+ *                     ::lh_bool_true в†’ ::lh_wchar_fold_case per code unit.
  *
  * @return ::lh_true if the leading @p src_size wide characters of @p str match @p src,
  *         ::lh_false otherwise.
@@ -754,8 +754,8 @@ lh_wstr_ptr_starts_with_by_size(const lh_wstr_ptr str, lh_usize_t str_size, cons
  *
  * @param str          Haystack.
  * @param src          Suffix.
- * @param ignore_case  ::lh_bool_false → raw code units (::lh_memory_rcompare).
- *                     ::lh_bool_true → ::lh_wstr_ptr_rcompare_by_ignore_case.
+ * @param ignore_case  ::lh_bool_false в†’ raw code units (::lh_memory_rcompare).
+ *                     ::lh_bool_true в†’ ::lh_wstr_ptr_rcompare_by_ignore_case.
  *
  * @return ::lh_true if the suffix window matches
  *         under the selected rules, ::lh_false otherwise.
@@ -774,8 +774,8 @@ lh_wstr_ptr_ends_with(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ig
  * @param str_size     Haystack size in wide characters.
  * @param src          Suffix buffer.
  * @param src_size     Suffix size in wide characters.
- * @param ignore_case  ::lh_bool_false → raw code units (::lh_memory_rcompare on wide spans).
- *                     ::lh_bool_true → ::lh_wstr_ptr_rcompare_by_ignore_case.
+ * @param ignore_case  ::lh_bool_false в†’ raw code units (::lh_memory_rcompare on wide spans).
+ *                     ::lh_bool_true в†’ ::lh_wstr_ptr_rcompare_by_ignore_case.
  *
  * @return ::lh_true if the trailing @p src_size wide characters of @p str match @p src,
  *         ::lh_false otherwise.

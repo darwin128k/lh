@@ -87,7 +87,7 @@ lh_str_list_get(const lh_str_list_t *self, lh_uindex_t index);
  * @fails ::lh_runtime_error_code_out_of_range @p index is not below
  *        ::lh_str_list_get_size.
  */
-lh_str_cptr
+const lh_str_ptr
 lh_str_list_get_data(const lh_str_list_t *self, lh_uindex_t index);
 
 /**
@@ -136,7 +136,7 @@ lh_str_list_join(const lh_str_list_t *self, lh_str_t *out, lh_char_t sep);
  * Does not clear @p self first — it appends, mirroring ::lh_str_list_join.
  */
 lh_void
-lh_str_list_split_of(lh_str_list_t *self, lh_str_view_t text, lh_str_cptr delims, lh_usize_t delim_count);
+lh_str_list_split_of(lh_str_list_t *self, lh_str_view_t text, const lh_str_ptr delims, lh_usize_t delim_count);
 
 LH_COMPILER_EXTERN_C_END
 

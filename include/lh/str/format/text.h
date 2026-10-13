@@ -41,12 +41,12 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param str_size Capacity of @p str in characters.
  * @param fmt      NUL-terminated format string.
  * @param args     Arguments, one per conversion in @p fmt (`%s` arguments
- *                 are ::lh_str_cptr, NUL-terminated).
+ *                 are const lh_str_ptr, NUL-terminated).
  *
  * @return Characters written, or 0 on failure (see above).
  */
 lh_usize_t
-lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, va_list args);
+lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt, va_list args);
 
 /**
  * @brief Format @p fmt and the following arguments into @p str.
@@ -59,7 +59,7 @@ lh_str_ptr_format_text_v(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, v
  * @return Characters written, or 0 on failure (see ::lh_str_ptr_format_text_v).
  */
 lh_usize_t
-lh_str_ptr_format_text(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, ...);
+lh_str_ptr_format_text(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt, ...);
 
 /**
  * @brief Characters ::lh_str_ptr_format_text_v would write for @p fmt.
@@ -68,13 +68,13 @@ lh_str_ptr_format_text(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, ...
  * A valid empty mask returns 0.
  */
 lh_usize_t
-lh_str_ptr_format_text_size_v(lh_str_cptr fmt, va_list args);
+lh_str_ptr_format_text_size_v(const lh_str_ptr fmt, va_list args);
 
 /**
  * @brief Variadic wrapper for ::lh_str_ptr_format_text_size_v.
  */
 lh_usize_t
-lh_str_ptr_format_text_size(lh_str_cptr fmt, ...);
+lh_str_ptr_format_text_size(const lh_str_ptr fmt, ...);
 
 LH_COMPILER_EXTERN_C_END
 
