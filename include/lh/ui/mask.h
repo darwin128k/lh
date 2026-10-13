@@ -47,7 +47,7 @@ lh_ui_mask_is_bpp(lh_u32_t bpp);
  * @p row_bytes is at least ::lh_bit_packed_bytes(width, bpp).
  */
 lh_void
-lh_ui_mask_init(lh_ui_mask_t *self, lh_byte_cptr bits, lh_s32_t width, lh_s32_t height, lh_s32_t row_bytes,
+lh_ui_mask_init(lh_ui_mask_t *self, const lh_byte_ptr bits, lh_s32_t width, lh_s32_t height, lh_s32_t row_bytes,
                 lh_byte_t bpp);
 
 /**
@@ -71,7 +71,7 @@ lh_ui_mask_get_bpp(const lh_ui_mask_t *self);
 /**
  * @brief First byte of row @p y. @p y must be in `0 .. height - 1`.
  */
-lh_byte_cptr
+const lh_byte_ptr
 lh_ui_mask_get_row(const lh_ui_mask_t *self, lh_s32_t y);
 
 /**

@@ -42,7 +42,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return ::lh_bool_true on success, ::lh_bool_false on failure.
  */
 lh_bool_t
-lh_os_system_fs_stat(lh_str_cptr path, lh_fs_stat_t *out);
+lh_os_system_fs_stat(const lh_str_ptr path, lh_fs_stat_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

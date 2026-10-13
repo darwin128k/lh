@@ -4,7 +4,7 @@
  *
  * Capacity is ::LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS (default `2`, same
  * idea as LVGL `LV_GRADIENT_MAX_STOPS`). Alpha lives on each
- * ::lh_ui_color_t — there is no separate opacity array.
+ * ::lh_ui_color_t вЂ” there is no separate opacity array.
  *
  * How the stops lie over a box is the gradient's too, the way CSS has it:
  * along a line at an angle through the middle (`linear-gradient(180deg, ...)`, 0 up
@@ -65,11 +65,11 @@ lh_ui_gradient_init(lh_ui_gradient_t *self);
  * @brief Fill @p self from @p colors and optional @p fracs.
  *
  * Copies @p num_stops colors into the fixed table. When @p fracs is
- * ::lh_null, positions are spaced evenly (`0` … `255`). @p num_stops must be
+ * ::lh_null, positions are spaced evenly (`0` вЂ¦ `255`). @p num_stops must be
  * in `1..LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS`.
  */
 lh_void
-lh_ui_gradient_init_stops(lh_ui_gradient_t *self, const lh_ui_color_t *colors, lh_byte_cptr fracs,
+lh_ui_gradient_init_stops(lh_ui_gradient_t *self, const lh_ui_color_t *colors, const lh_byte_ptr fracs,
                           lh_ui_gradient_stop_count_t num_stops);
 
 /**

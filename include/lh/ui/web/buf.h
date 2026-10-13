@@ -3,7 +3,7 @@
  * @brief Byte sink for web page serialization (HTML and JS text).
  *
  * Construct markup / JS with their own entities, then write through this API.
- * Callers do not touch the fields — use ::lh_ui_web_buf_init / lit / raw / fail.
+ * Callers do not touch the fields вЂ” use ::lh_ui_web_buf_init / lit / raw / fail.
  *
  * Requires ::LH_LIBRARY_OPTION_UI.
  */
@@ -48,7 +48,7 @@ lh_ui_web_buf_ok(const lh_ui_web_buf_t *self);
 lh_usize_t
 lh_ui_web_buf_len(const lh_ui_web_buf_t *self);
 
-lh_byte_cptr
+const lh_byte_ptr
 lh_ui_web_buf_bytes(const lh_ui_web_buf_t *self);
 
 /** Mark the buffer failed (further writes are no-ops). */

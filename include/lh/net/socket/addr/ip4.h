@@ -128,7 +128,7 @@ lh_net_ip4_socket_addr_set_port(lh_net_ip4_socket_addr_t *self, lh_net_port_t po
  *         `ip:port` pair, ::lh_bool_false otherwise.
  */
 lh_bool_t
-lh_net_ip4_socket_addr_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_ip4_socket_addr_t *out);
+lh_net_ip4_socket_addr_parse(const lh_str_ptr str, lh_usize_t str_size, lh_net_ip4_socket_addr_t *out);
 
 /**
  * @brief Format @p self as `ip:port` text.

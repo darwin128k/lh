@@ -33,7 +33,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *         integer not exceeding @p max, ::lh_bool_false otherwise.
  */
 lh_bool_t
-lh_str_ptr_parse_uint_digits(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
+lh_str_ptr_parse_uint_digits(const lh_str_ptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
 
 /**
  * @brief Parse an unsigned decimal integer without padded leading zeros.
@@ -50,7 +50,7 @@ lh_str_ptr_parse_uint_digits(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max
  *         @p max and not zero-padded, ::lh_bool_false otherwise.
  */
 lh_bool_t
-lh_str_ptr_parse_uint(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
+lh_str_ptr_parse_uint(const lh_str_ptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
 
 /**
  * @brief Parse the unsigned decimal integer at the start of @p str and
@@ -79,7 +79,7 @@ lh_str_ptr_parse_uint(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_ui
  *        @p str or @p out is ::lh_null.
  */
 lh_usize_t
-lh_str_ptr_parse_uint_prefix(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
+lh_str_ptr_parse_uint_prefix(const lh_str_ptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
 
 /**
  * @brief Next @p delim-separated field, parsed as a padded unsigned integer.
@@ -100,7 +100,7 @@ lh_str_ptr_parse_uint_prefix(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max
  *         @p want_delim requires.
  */
 lh_bool_t
-lh_str_ptr_split_next_uint_digits(lh_str_cptr str, lh_usize_t str_size, lh_char_t delim,
+lh_str_ptr_split_next_uint_digits(const lh_str_ptr str, lh_usize_t str_size, lh_char_t delim,
                                   lh_usize_t *pos, lh_uint_t max, lh_uint_t *out,
                                   lh_bool_t want_delim);
 

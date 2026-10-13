@@ -185,7 +185,7 @@ lh_datetime_is_greater(const lh_datetime_t *self, const lh_datetime_t *other);
  * @return ::lh_bool_true if all of @p str_size was consumed as a valid datetime.
  */
 lh_bool_t
-lh_datetime_parse(lh_str_cptr str, lh_usize_t str_size, lh_datetime_t *out);
+lh_datetime_parse(const lh_str_ptr str, lh_usize_t str_size, lh_datetime_t *out);
 
 /**
  * @brief Format @p self as `YYYY/MM/DD HH:MM:SS`.

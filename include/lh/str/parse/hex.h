@@ -34,7 +34,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *         integer not exceeding @p max, ::lh_bool_false otherwise.
  */
 lh_bool_t
-lh_str_ptr_parse_hex(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
+lh_str_ptr_parse_hex(const lh_str_ptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
 
 /**
  * @brief Parse the hexadecimal integer at the start of @p str and report
@@ -62,7 +62,7 @@ lh_str_ptr_parse_hex(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uin
  *        @p str or @p out is ::lh_null.
  */
 lh_usize_t
-lh_str_ptr_parse_hex_prefix(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
+lh_str_ptr_parse_hex_prefix(const lh_str_ptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -166,7 +166,7 @@ lh_net_ip4_is_private(const lh_net_ip4_t *self);
  *         address, ::lh_bool_false otherwise.
  */
 lh_bool_t
-lh_net_ip4_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_ip4_t *out);
+lh_net_ip4_parse(const lh_str_ptr str, lh_usize_t str_size, lh_net_ip4_t *out);
 
 /**
  * @brief Format @p self as dotted-decimal text.

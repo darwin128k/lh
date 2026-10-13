@@ -100,7 +100,7 @@ lh_str_deinit(lh_str_t *self);
  * @brief Return a pointer to the NUL-terminated character data.
  * @param self String to inspect.
  */
-lh_str_cptr
+const lh_str_ptr
 lh_str_get_data(const lh_str_t *self);
 
 /**
@@ -136,7 +136,7 @@ lh_str_push_back(lh_str_t *self, lh_char_t ch);
  * @param count Number of characters to append.
  */
 lh_void
-lh_str_append(lh_str_t *self, lh_str_cptr text, lh_usize_t count);
+lh_str_append(lh_str_t *self, const lh_str_ptr text, lh_usize_t count);
 
 /**
  * @brief Append the characters of @p view to @p self.
@@ -183,13 +183,13 @@ lh_str_join(lh_str_t *self, const lh_str_view_t *parts, lh_usize_t count, lh_cha
  * @return Characters written, or 0 on failure.
  */
 lh_usize_t
-lh_str_format_v(lh_str_t *self, lh_str_cptr fmt, va_list args);
+lh_str_format_v(lh_str_t *self, const lh_str_ptr fmt, va_list args);
 
 /**
  * @brief Variadic wrapper for ::lh_str_format_v.
  */
 lh_usize_t
-lh_str_format(lh_str_t *self, lh_str_cptr fmt, ...);
+lh_str_format(lh_str_t *self, const lh_str_ptr fmt, ...);
 
 /**
  * @brief Make room for at least @p count characters (plus the terminator)

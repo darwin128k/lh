@@ -147,7 +147,7 @@ lh_os_fs_file_open(lh_os_fs_file_t *self, const lh_fs_path_t *path, lh_fs_file_m
  * @p self must already have been ::lh_os_fs_file_init'd.
  */
 lh_bool_t
-lh_os_fs_file_open_cstr(lh_os_fs_file_t *self, lh_str_cptr path, lh_fs_file_mode_t mode);
+lh_os_fs_file_open_cstr(lh_os_fs_file_t *self, const lh_str_ptr path, lh_fs_file_mode_t mode);
 
 /**
  * @brief ::lh_io_reader_read_fn backed by @p context's file.
@@ -216,13 +216,13 @@ lh_os_fs_file_write_all(lh_os_fs_file_t *self, const lh_ptr buf, lh_usize_t size
  * this only hands the bytes to the file.
  */
 lh_bool_t
-lh_os_fs_file_print_v(lh_os_fs_file_t *self, lh_str_cptr fmt, va_list args);
+lh_os_fs_file_print_v(lh_os_fs_file_t *self, const lh_str_ptr fmt, va_list args);
 
 /**
  * @brief Variadic wrapper for ::lh_os_fs_file_print_v.
  */
 lh_bool_t
-lh_os_fs_file_print(lh_os_fs_file_t *self, lh_str_cptr fmt, ...);
+lh_os_fs_file_print(lh_os_fs_file_t *self, const lh_str_ptr fmt, ...);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -56,7 +56,7 @@ lh_bit_packed_bytes(lh_u32_t count, lh_u32_t bits)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_u32_t
-lh_bit_packed_get(lh_byte_cptr row, lh_u32_t index, lh_u32_t bits)
+lh_bit_packed_get(const lh_byte_ptr row, lh_u32_t index, lh_u32_t bits)
 {
     const lh_u32_t bit = index * bits;
 

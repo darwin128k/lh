@@ -46,7 +46,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return Open handle, or ::LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID on failure.
  */
 lh_os_system_fs_file_handle_t
-lh_os_system_fs_file_open(lh_str_cptr path, lh_fs_file_mode_t mode);
+lh_os_system_fs_file_open(const lh_str_ptr path, lh_fs_file_mode_t mode);
 
 /**
  * @brief Release @p handle. The close result is not reported.

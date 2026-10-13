@@ -26,9 +26,9 @@
  */
 struct lh_exception_origin
 {
-    lh_str_cptr file;      /**< Source file (`__FILE__`); LOCATION and FULL. */
-    lh_str_cptr function;  /**< Enclosing function (`__func__`); FULL only. */
-    lh_str_cptr condition; /**< Text of the condition that held; FULL only. */
+    const lh_str_ptr file;      /**< Source file (`__FILE__`); LOCATION and FULL. */
+    const lh_str_ptr function;  /**< Enclosing function (`__func__`); FULL only. */
+    const lh_str_ptr condition; /**< Text of the condition that held; FULL only. */
     lh_str_view_t message; /**< Message given at the check, or empty; LOCATION and FULL. */
     lh_uint_t line;        /**< Source line (`__LINE__`); LOCATION and FULL. */
 };

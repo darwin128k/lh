@@ -33,7 +33,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return The native text, or ::lh_null for an empty @p path (reason in
  *         ::lh_os_last_error).
  */
-lh_str_cptr
+const lh_str_ptr
 lh_os_fs_path_to_cstr(const lh_fs_path_t *path, lh_str_t *scratch);
 
 LH_COMPILER_EXTERN_C_END

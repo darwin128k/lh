@@ -25,8 +25,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @p name is a non-null, NUL-terminated string.
  */
-lh_str_cptr
-lh_os_system_env_get(lh_str_cptr name);
+const lh_str_ptr
+lh_os_system_env_get(const lh_str_ptr name);
 
 LH_COMPILER_EXTERN_C_END
 

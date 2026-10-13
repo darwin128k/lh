@@ -2,7 +2,7 @@
  * @file wstr.h
  * @brief Owning, growable, NUL-terminated wide string (::lh_wstr_t).
  *
- * Wide counterpart of ::lh_str_t — same shape, ::lh_wchar_t elements
+ * Wide counterpart of ::lh_str_t вЂ” same shape, ::lh_wchar_t elements
  * instead of ::lh_char_t. ::lh_str_format / ::lh_str_format_v have no
  * counterpart here: they depend on the narrow `lh_str_ptr_format_text_*`
  * formatter, and no wide equivalent exists in the library yet.
@@ -35,7 +35,7 @@ typedef lh_array_t lh_wstr_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── init / deinit ───────────────────────────────────────────────────────── */
+/* в”Ђв”Ђ init / deinit в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
 
 /**
  * @brief Initialize @p self as an empty, NUL-terminated wide string.
@@ -50,12 +50,12 @@ lh_wstr_init(lh_wstr_t *self);
 lh_void
 lh_wstr_deinit(lh_wstr_t *self);
 
-/* ── accessors ───────────────────────────────────────────────────────────── */
+/* в”Ђв”Ђ accessors в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
 
 /**
  * @brief Return a pointer to the NUL-terminated character data.
  */
-lh_wstr_cptr
+const lh_wstr_ptr
 lh_wstr_get_data(const lh_wstr_t *self);
 
 /**
@@ -70,7 +70,7 @@ lh_wstr_get_size(const lh_wstr_t *self);
 lh_bool_t
 lh_wstr_is_empty(const lh_wstr_t *self);
 
-/* ── mutation ────────────────────────────────────────────────────────────── */
+/* в”Ђв”Ђ mutation в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
 
 /**
  * @brief Append @p ch to the end of @p self, growing it if needed.
@@ -82,7 +82,7 @@ lh_wstr_push_back(lh_wstr_t *self, lh_wchar_t ch);
  * @brief Append @p count characters from @p text to the end of @p self.
  */
 lh_void
-lh_wstr_append(lh_wstr_t *self, lh_wstr_cptr text, lh_usize_t count);
+lh_wstr_append(lh_wstr_t *self, const lh_wstr_ptr text, lh_usize_t count);
 
 /**
  * @brief Append the characters of @p view to @p self.
@@ -132,7 +132,7 @@ lh_wstr_clear(lh_wstr_t *self);
 lh_void
 lh_wstr_truncate(lh_wstr_t *self, lh_usize_t n);
 
-/* ── view ────────────────────────────────────────────────────────────────── */
+/* в”Ђв”Ђ view в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
 
 /**
  * @brief Return a non-owning view over @p self's current contents.

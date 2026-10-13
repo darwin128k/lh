@@ -31,7 +31,7 @@ struct lh_str_scanf_spec
     lh_uint_t width;
     lh_bool_t have_precision;
     lh_uint_t precision;
-    lh_str_cptr literal;
+    const lh_str_ptr literal;
     lh_usize_t literal_size;
 };
 typedef struct lh_str_scanf_spec lh_str_scanf_spec_t;

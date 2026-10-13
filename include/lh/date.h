@@ -341,7 +341,7 @@ lh_date_ymd_is_valid(lh_uint_t year, lh_uint_t month, lh_uint_t day);
  * @return ::lh_bool_true if all of @p str_size was consumed as a valid date.
  */
 lh_bool_t
-lh_date_parse(lh_str_cptr str, lh_usize_t str_size, lh_date_t *out);
+lh_date_parse(const lh_str_ptr str, lh_usize_t str_size, lh_date_t *out);
 
 /**
  * @brief Format @p self as `YYYY/MM/DD` (month and day zero-padded).

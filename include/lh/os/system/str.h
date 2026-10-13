@@ -10,7 +10,7 @@
  * Invalid UTF-8 going in is an error, never silently replaced: a path that
  * does not round-trip must not name a different file. Coming out on
  * Windows, an unpaired UTF-16 surrogate (possible in NTFS names) becomes
- * U+FFFD — rejecting it needs `WC_ERR_INVALID_CHARS`, which XP lacks.
+ * U+FFFD вЂ” rejecting it needs `WC_ERR_INVALID_CHARS`, which XP lacks.
  *
  * Requires ::LH_LIBRARY_OPTION_OS.
  */
@@ -40,7 +40,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *         UTF-8 (::lh_os_system_last_error). @p out is then unchanged.
  */
 lh_bool_t
-lh_os_system_str_from_utf8(lh_os_str_t *out, lh_str_cptr text);
+lh_os_system_str_from_utf8(lh_os_str_t *out, const lh_str_ptr text);
 
 /**
  * @brief @p count code units of OS text @p text as UTF-8, replacing @p out.
@@ -51,12 +51,12 @@ lh_os_system_str_from_utf8(lh_os_str_t *out, lh_str_cptr text);
  *         unchanged.
  */
 lh_bool_t
-lh_os_system_str_to_utf8(lh_os_str_cptr text, lh_usize_t count, lh_str_t *out);
+lh_os_system_str_to_utf8(const lh_os_str_ptr text, lh_usize_t count, lh_str_t *out);
 
 /**
  * @brief Initialize @p self as NUL-terminated UTF-8 @p text in OS text.
  *
- * @p self is initialized either way — empty on failure — so one
+ * @p self is initialized either way вЂ” empty on failure вЂ” so one
  * ::lh_os_str_deinit afterwards is always right:
  * @code{.c}
  * lh_os_str_t os_path;
@@ -68,7 +68,7 @@ lh_os_system_str_to_utf8(lh_os_str_cptr text, lh_usize_t count, lh_str_t *out);
  * @return As ::lh_os_system_str_from_utf8.
  */
 lh_bool_t
-lh_os_system_str_init_by_utf8(lh_os_str_t *self, lh_str_cptr text);
+lh_os_system_str_init_by_utf8(lh_os_str_t *self, const lh_str_ptr text);
 
 /**
  * @brief NUL-terminated OS text @p text as UTF-8, replacing @p out.
@@ -76,7 +76,7 @@ lh_os_system_str_init_by_utf8(lh_os_str_t *self, lh_str_cptr text);
  * ::lh_os_system_str_to_utf8 with the length counted up to the NUL.
  */
 lh_bool_t
-lh_os_system_str_ptr_to_utf8(lh_os_str_cptr text, lh_str_t *out);
+lh_os_system_str_ptr_to_utf8(const lh_os_str_ptr text, lh_str_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

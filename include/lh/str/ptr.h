@@ -2,9 +2,8 @@
  * @file ptr.h
  * @brief String pointer type aliases.
  *
- * Provides type aliases for mutable and const string pointers.
- *
- * @see lh_str_cptr
+ * Public headers write read-only text as `const lh_str_ptr` so the const is
+ * visible. ::lh_str_cptr is the same pointee type for `.c` implementations.
  */
 
 #ifndef LH_STR_PTR_H
@@ -18,7 +17,7 @@
  * @brief Pointer to ::lh_char_t — mutable string / text buffer view.
  *
  * Expands to `lh_char_t *` (plain `char *`).
- * For read-only text use ::lh_str_cptr.
+ * For read-only text in headers use `const lh_str_ptr`.
  */
 #define lh_str_ptr lh_ptr_of(lh_char_t)
 
@@ -27,8 +26,7 @@
  * @brief Pointer to `const` ::lh_char_t — read-only string / text view.
  *
  * Expands to `const lh_char_t *` (plain `const char *`).
- * Prefer over `const lh_str_ptr`
- * for an explicit const-pointee type in signatures and struct fields.
+ * For implementation files only; headers use `const lh_str_ptr` instead.
  */
 #define lh_str_cptr lh_cptr_of(lh_char_t)
 

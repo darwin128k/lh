@@ -29,7 +29,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
-lh_str_ptr_is_dot(lh_str_cptr name)
+lh_str_ptr_is_dot(const lh_str_ptr name)
 {
     return (lh_char_is_dot(lh_ptr_deref(name)) &&
             lh_ptr_deref(lh_ptr_add_by_offset(const lh_char_t, name, 1U)) == lh_char_map_nul)
@@ -47,7 +47,7 @@ lh_str_ptr_is_dot(lh_str_cptr name)
  */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
-lh_str_ptr_is_double_dot(lh_str_cptr name)
+lh_str_ptr_is_double_dot(const lh_str_ptr name)
 {
     return (lh_char_is_dot(lh_ptr_deref(name)) &&
             lh_str_ptr_is_dot(lh_ptr_add_by_offset(const lh_char_t, name, 1U)))
