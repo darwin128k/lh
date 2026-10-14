@@ -18,7 +18,6 @@
 
 /**
  * @struct lh_wchar_case_pair
- * @typedef lh_wchar_case_pair_t
  * @brief One entry in a sorted UCS-4 case mapping table (`first` → `second`).
  *
  * Shared by case folding (::lh_wchar_fold_case)
@@ -28,8 +27,10 @@
  */
 struct lh_wchar_case_pair
 {
+    /** Members: ::lh_pair_fields. */
     lh_pair_fields(lh_uchar32_t, lh_uchar32_t);
 };
+/** @copybrief lh_wchar_case_pair */
 typedef struct lh_wchar_case_pair lh_wchar_case_pair_t;
 
 #endif /* LH_WCHAR_CASE_PAIR_H */

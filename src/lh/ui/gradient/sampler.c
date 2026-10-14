@@ -14,7 +14,7 @@
 #include <lh/util/return.h>
 #include <lh/cast/static.h>
 
-/* `ceil(1448 * k / 255)` squared: the least squared distance, on the 1024-to-a-side
+/** `ceil(1448 * k / 255)` squared: the least squared distance, on the 1024-to-a-side
    scale ::lh_ui_gradient_frac_at puts a radial gradient on, whose whole square root
    reaches step `k` of the axis (`isqrt(n) * 255 / 1448 >= k`). */
 static const lh_u32_t lh_ui_gradient_sampler_reach[256] = {
@@ -52,7 +52,7 @@ static const lh_u32_t lh_ui_gradient_sampler_reach[256] = {
     1985281U, 1999396U, 2016400U, 2033476U, 2047761U, 2064969U, 2082249U, 2096704U,
 };
 
-/* `a / b` rounded down, for @p b above zero, and what is left over in @p rest
+/** `a / b` rounded down, for @p b above zero, and what is left over in @p rest
    (`0 .. b - 1`). */
 static lh_s64_t
 lh_ui_gradient_sampler_floor_div(lh_s64_t a, lh_s64_t b, lh_s64_t *rest)
@@ -69,7 +69,7 @@ lh_ui_gradient_sampler_floor_div(lh_s64_t a, lh_s64_t b, lh_s64_t *rest)
     return quotient;
 }
 
-/* The colour of every step of the axis, as ::lh_ui_gradient_color_at has it. Between
+/** The colour of every step of the axis, as ::lh_ui_gradient_color_at has it. Between
    two stops each channel is `(from * (span - at) + to * at) / span`, and one step on
    adds `to - from` to what is divided: the quotient and its remainder are carried
    instead of dividing again. A step before its stop's start -- stops out of order --
@@ -169,7 +169,7 @@ lh_ui_gradient_sampler_fill(lh_ui_gradient_sampler_t *self)
     }
 }
 
-/* The colours of pixels @p x0 .. @p x1 - 1 of a radial gradient's row whose doubled
+/** The colours of pixels @p x0 .. @p x1 - 1 of a radial gradient's row whose doubled
    distance from the middle is @p dy: `dx * 1024 / w` cut toward zero, carried from
    pixel to pixel as a quotient rounded down and its remainder. The squared distance
    then crosses the steps of the axis at ::lh_ui_gradient_sampler_reach, and the step

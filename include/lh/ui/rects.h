@@ -47,13 +47,14 @@
 
 /**
  * @struct lh_ui_rects
- * @typedef lh_ui_rects_t
  * @brief A region as up to ::LH_UI_RECTS_MAX rects.
  */
 struct lh_ui_rects
 {
+    /** Members: ::lh_ui_rects_fields. */
     lh_ui_rects_fields(lh_ui_rect_t, lh_u32_t);
 };
+/** @copybrief lh_ui_rects */
 typedef struct lh_ui_rects lh_ui_rects_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

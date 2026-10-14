@@ -46,16 +46,23 @@
  */
 struct lh_ui_web_host_hooks
 {
-    lh_ptr ctx;
+    lh_ptr ctx; /**< Passed to every hook. */
+    /** About every 20 ms, and between requests. */
     lh_void (*tick)(lh_ptr ctx);
+    /** Pointer down at view pixel (@p x, @p y). */
     lh_void (*press)(int x, int y, lh_ptr ctx);
+    /** Pointer up at view pixel (@p x, @p y). */
     lh_void (*release)(int x, int y, lh_ptr ctx);
+    /** One wheel notch at (@p x, @p y): @p dx, @p dy are -1, 0 or 1 (1 is left / up). */
     lh_void (*wheel)(int x, int y, int dx, int dy, lh_ptr ctx);
+    /** Key @p key went down (@p pressed) or up. */
     lh_void (*key)(lh_key_t key, lh_bool_t pressed, lh_ptr ctx);
+    /** One typed character, as a Unicode code point. */
     lh_void (*text)(lh_u32_t code, lh_ptr ctx);
     /** Layout-mode tab size; ::lh_null keeps the host's initial width/height. */
     lh_void (*resize)(int width, int height, lh_ptr ctx);
 };
+/** @copybrief lh_ui_web_host_hooks */
 typedef struct lh_ui_web_host_hooks lh_ui_web_host_hooks_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

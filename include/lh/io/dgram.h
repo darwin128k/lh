@@ -23,14 +23,14 @@
 
 /**
  * @struct lh_io_dgram
- * @typedef lh_io_dgram_t
  * @brief An ::lh_io_dgram_reader_t paired with an ::lh_io_dgram_writer_t.
  */
 struct lh_io_dgram
 {
-    lh_io_dgram_reader_t reader;
-    lh_io_dgram_writer_t writer;
+    lh_io_dgram_reader_t reader; /**< Receive half. */
+    lh_io_dgram_writer_t writer; /**< Send half. */
 };
+/** @copybrief lh_io_dgram */
 typedef struct lh_io_dgram lh_io_dgram_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -42,22 +42,53 @@ lh_void
 lh_io_dgram_init(lh_io_dgram_t *self, const lh_io_dgram_reader_t *reader,
                  const lh_io_dgram_writer_t *writer);
 
+/**
+ * @brief Replace both halves of @p self.
+ * @param self   Pair to modify.
+ * @param reader New receive half.
+ * @param writer New send half.
+ */
 lh_void
 lh_io_dgram_set(lh_io_dgram_t *self, const lh_io_dgram_reader_t *reader,
                 const lh_io_dgram_writer_t *writer);
 
+/**
+ * @brief Copy both halves of @p other into @p self.
+ * @param self  Destination pair.
+ * @param other Source pair.
+ */
 lh_void
 lh_io_dgram_assign(lh_io_dgram_t *self, const lh_io_dgram_t *other);
 
+/**
+ * @brief The receive half of @p self.
+ * @param self Pair to read from.
+ * @return Current ::lh_io_dgram_reader_t.
+ */
 lh_io_dgram_reader_t
 lh_io_dgram_get_reader(const lh_io_dgram_t *self);
 
+/**
+ * @brief Replace the receive half of @p self.
+ * @param self   Pair to modify.
+ * @param reader New receive half.
+ */
 lh_void
 lh_io_dgram_set_reader(lh_io_dgram_t *self, const lh_io_dgram_reader_t *reader);
 
+/**
+ * @brief The send half of @p self.
+ * @param self Pair to read from.
+ * @return Current ::lh_io_dgram_writer_t.
+ */
 lh_io_dgram_writer_t
 lh_io_dgram_get_writer(const lh_io_dgram_t *self);
 
+/**
+ * @brief Replace the send half of @p self.
+ * @param self   Pair to modify.
+ * @param writer New send half.
+ */
 lh_void
 lh_io_dgram_set_writer(lh_io_dgram_t *self, const lh_io_dgram_writer_t *writer);
 

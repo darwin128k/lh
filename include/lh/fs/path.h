@@ -43,8 +43,10 @@
  */
 struct lh_fs_path
 {
+    /** Members: ::lh_fs_path_fields. */
     lh_fs_path_fields(lh_str_t, lh_fs_path_root_kind_t);
 };
+/** @copybrief lh_fs_path */
 typedef struct lh_fs_path lh_fs_path_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

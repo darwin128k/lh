@@ -132,7 +132,7 @@ lh_ui_gradient_get_stop(lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t inde
 
 /* ── Over a box ──────────────────────────────────────────────────────────── */
 
-/* The integer square root of @p v: the largest r with r * r <= v. */
+/** The integer square root of @p v: the largest r with r * r <= v. */
 static lh_s64_t
 lh_ui_gradient_isqrt(lh_s64_t v)
 {

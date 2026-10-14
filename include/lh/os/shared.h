@@ -43,8 +43,10 @@
  */
 struct lh_os_shared
 {
+    /** Members: ::lh_os_shared_fields. */
     lh_os_shared_fields(lh_fs_path_t, lh_os_system_shared_handle_t);
 };
+/** @copybrief lh_os_shared */
 typedef struct lh_os_shared lh_os_shared_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

@@ -58,14 +58,14 @@
 
 /**
  * @struct lh_net_ip4
- * @typedef lh_net_ip4_t
  * @brief IPv4 address as ::LH_NET_IP4_OCTET_COUNT octets, in the order they
  *        appear in dotted-decimal text (`octets[0]` is `192` in `192.168.0.1`).
  */
 struct lh_net_ip4
 {
-    lh_u8_t octets[LH_NET_IP4_OCTET_COUNT];
+    lh_u8_t octets[LH_NET_IP4_OCTET_COUNT]; /**< The octets, most significant first. */
 };
+/** @copybrief lh_net_ip4 */
 typedef struct lh_net_ip4 lh_net_ip4_t;
 
 /**

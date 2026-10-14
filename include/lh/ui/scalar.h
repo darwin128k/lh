@@ -20,6 +20,7 @@
 #if LH_LIBRARY_OPTION_MATH_FPU
 #    include <lh/math/fscalar.h>
 
+/** @brief A UI coordinate: ::lh_math_fscalar_t when ::LH_LIBRARY_OPTION_MATH_FPU is on. */
 typedef lh_math_fscalar_t lh_ui_scalar_t;
 
 /**
@@ -41,6 +42,7 @@ typedef lh_math_fscalar_t lh_ui_scalar_t;
 #else
 #    include <lh/math/scalar.h>
 
+/** @brief A UI coordinate: ::lh_math_scalar_t when ::LH_LIBRARY_OPTION_MATH_FPU is off. */
 typedef lh_math_scalar_t lh_ui_scalar_t;
 
 /**

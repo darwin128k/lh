@@ -48,13 +48,13 @@
 
 /**
  * @struct lh_os_net_socket
- * @typedef lh_os_net_socket_t
  * @brief A single OS socket handle.
  */
 struct lh_os_net_socket
 {
-    lh_os_system_net_socket_handle_t handle;
+    lh_os_system_net_socket_handle_t handle; /**< Native socket handle. */
 };
+/** @copybrief lh_os_net_socket */
 typedef struct lh_os_net_socket lh_os_net_socket_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

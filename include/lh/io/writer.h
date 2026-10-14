@@ -41,8 +41,10 @@
  */
 struct lh_io_writer
 {
+    /** Members: ::lh_io_writer_fields. */
     lh_io_writer_fields(lh_io_writer_write_fn);
 };
+/** @copybrief lh_io_writer */
 typedef struct lh_io_writer lh_io_writer_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

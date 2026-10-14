@@ -38,13 +38,14 @@
 
 /**
  * @struct lh_ui_surface
- * @typedef lh_ui_surface_t
  * @brief Off-screen target: size, pixel format and OS handle.
  */
 struct lh_ui_surface
 {
+    /** Members: ::lh_ui_surface_fields. */
     lh_ui_surface_fields(lh_ui_size_t, lh_ui_pixmap_format_t, lh_os_system_surface_handle_t);
 };
+/** @copybrief lh_ui_surface */
 typedef struct lh_ui_surface lh_ui_surface_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

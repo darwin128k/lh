@@ -16,15 +16,17 @@
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
+/** An off-screen surface: a DIB section selected into a memory DC. */
 struct lh_os_system_win_surface
 {
-    lh_os_system_win_hdc_t dc;
-    lh_os_system_win_handle_t bitmap;
-    lh_os_system_win_handle_t previous;
-    lh_ptr bits;
-    int width;
-    int height;
+    lh_os_system_win_hdc_t dc;           /**< memory DC the bitmap is selected into */
+    lh_os_system_win_handle_t bitmap;    /**< the DIB section */
+    lh_os_system_win_handle_t previous;  /**< the DC's bitmap before ours, restored on free */
+    lh_ptr bits;                         /**< the DIB's pixels */
+    int width;                           /**< width in pixels */
+    int height;                          /**< height in pixels */
 };
+/** @copybrief lh_os_system_win_surface */
 typedef struct lh_os_system_win_surface lh_os_system_win_surface_t;
 
 lh_os_system_surface_handle_t

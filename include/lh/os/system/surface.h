@@ -31,6 +31,8 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Create a surface of @p width by @p height pixels.
  *
+ * @param width Width in pixels.
+ * @param height Height in pixels.
  * @param bits 16 or 32 bits per pixel. 16 is RGB565 (five bits of red, six of
  *             green, five of blue) where the platform can be asked for it by name.
  *

@@ -103,7 +103,7 @@ lh_ui_shadow_get_outset(const lh_ui_shadow_t *self, const lh_ui_rect_t *rect)
     return (lh_ui_scalar_t)(self->spread + lh_math_max(shift_x, shift_y));
 }
 
-/* Signed distance, in the same fixed point as ::lh_ui_radius_coverage, from the
+/** Signed distance, in the same fixed point as ::lh_ui_radius_coverage, from the
    sample (@p px, @p py) to the rounded edge. The centre is the middle of the
    two edges, not `width / 2` of a truncated corner: an odd width then leans a
    pixel to one side, and the shadow on the right of a box is heavier than the
@@ -146,7 +146,7 @@ shadow_sd(lh_s64_t px, lh_s64_t py, const lh_ui_rect_t *rect, lh_ui_scalar_t rad
     return (lh_s64_t)lh_math_isqrt_u64(lh_cast_static(lh_u64_t, ox)* lh_cast_static(lh_u64_t, ox)+ lh_cast_static(lh_u64_t, oy)* lh_cast_static(lh_u64_t, oy)) + inside - r;
 }
 
-/* @p distance and @p spread are in the same fixed point. The public falloff
+/** @p distance and @p spread are in the same fixed point. The public falloff
    stays in whole pixels and truncates; this one is what a pixel center, which
    sits half a pixel off the integer grid, has to be faded by. */
 static lh_byte_t

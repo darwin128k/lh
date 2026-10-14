@@ -36,13 +36,14 @@
 
 /**
  * @struct lh_os_serial
- * @typedef lh_os_serial_t
  * @brief One serial port.
  */
 struct lh_os_serial
 {
+    /** Members: ::lh_os_serial_fields. */
     lh_os_serial_fields(lh_os_system_serial_handle_t);
 };
+/** @copybrief lh_os_serial */
 typedef struct lh_os_serial lh_os_serial_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -56,6 +57,7 @@ lh_os_serial_init(lh_os_serial_t *self);
 /**
  * @brief Open the port @p name. Closes whatever @p self had open first.
  *
+ * @param self      Port to open.
  * @param name      `COM3` on Windows, `/dev/ttyUSB0` on POSIX, UTF-8.
  * @param baud      Bits per second.
  * @param parity    The parity bit.

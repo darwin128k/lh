@@ -41,7 +41,6 @@
 
 /**
  * @struct lh_ui_toggle
- * @typedef lh_ui_toggle_t
  * @brief A button, the two pairs of looks it has, and whether it is on.
  */
 struct lh_ui_toggle
@@ -55,6 +54,7 @@ struct lh_ui_toggle
     lh_ui_toggle_on_click_cb on_click; /**< Who to tell about a click. */
     lh_ptr click_context;             /**< What to tell them with. */
 };
+/** @copybrief lh_ui_toggle */
 typedef struct lh_ui_toggle lh_ui_toggle_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

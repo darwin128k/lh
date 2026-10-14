@@ -44,13 +44,14 @@
 
 /**
  * @struct lh_ui_canvas_sw
- * @typedef lh_ui_canvas_sw_t
  * @brief Context of ::lh_ui_canvas_backend_sw.
  */
 struct lh_ui_canvas_sw
 {
+    /** Members: ::lh_ui_canvas_sw_fields. */
     lh_ui_canvas_sw_fields(lh_ui_pixmap_t, lh_ui_rect_t, lh_ui_canvas_clip_t);
 };
+/** @copybrief lh_ui_canvas_sw */
 typedef struct lh_ui_canvas_sw lh_ui_canvas_sw_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

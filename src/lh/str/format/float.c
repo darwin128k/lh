@@ -17,10 +17,11 @@
 #define LH_STR_FORMAT_FLOAT_WORDS 8U
 #define LH_STR_FORMAT_FLOAT_TMP 40U
 
+/** An unsigned 256-bit number, as the division above needs it. */
 typedef struct lh_str_format_float_big
 {
-    lh_u32_t w[LH_STR_FORMAT_FLOAT_WORDS];
-} lh_str_format_float_big_t;
+    lh_u32_t w[LH_STR_FORMAT_FLOAT_WORDS]; /**< 32-bit words, least significant first */
+} lh_str_format_float_big_t; /**< An unsigned 256-bit number. */
 
 static void
 big_set(lh_str_format_float_big_t *b, lh_u32_t value)

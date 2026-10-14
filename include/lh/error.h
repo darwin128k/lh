@@ -22,8 +22,10 @@
  */
 struct lh_error
 {
+    /** Members: ::lh_error_fields. */
     lh_error_fields(lh_error_code_t, lh_str_view_t);
-}; /**< Typedef for struct ::lh_error. */
+};
+/** @copybrief lh_error */
 typedef struct lh_error lh_error_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

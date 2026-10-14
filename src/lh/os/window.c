@@ -21,6 +21,7 @@
 #    include <lh/ui/frame/stats.h>
 #endif
 
+/** Take @p self out of its app's window list and forget its app, parent and modal state. */
 static lh_void
 lh_os_window_unlink(lh_os_window_t *self)
 {

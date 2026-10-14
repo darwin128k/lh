@@ -31,13 +31,14 @@ struct lh_os_window;
 
 /**
  * @struct lh_os_app
- * @typedef lh_os_app_t
  * @brief Top-level windows, logical timers, and quit flag.
  */
 struct lh_os_app
 {
+    /** Members: ::lh_os_app_fields. */
     lh_os_app_fields(lh_list_t, lh_timer_group_t);
 };
+/** @copybrief lh_os_app */
 typedef struct lh_os_app lh_os_app_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

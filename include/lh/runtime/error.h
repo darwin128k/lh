@@ -30,8 +30,10 @@
  */
 struct lh_runtime_error
 {
+    /** Members: ::lh_runtime_error_fields. */
     lh_runtime_error_fields(lh_runtime_error_code_t, lh_str_view_t);
-}; /**< Typedef for struct ::lh_runtime_error. */
+};
+/** @copybrief lh_runtime_error */
 typedef struct lh_runtime_error lh_runtime_error_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

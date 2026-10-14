@@ -19,14 +19,14 @@
 #include <lh/math.h>
 #include <lh/math/floor.h>
 
-/* 100-ns intervals between the FILETIME epoch (1601-01-01) and the Unix
+/** 100-ns intervals between the FILETIME epoch (1601-01-01) and the Unix
    epoch (1970-01-01) - a fixed, well-known constant. */
 #define LH_OS_SYSTEM_WIN_FILETIME_UNIX_EPOCH 116444736000000000LL
 
-/* FILETIME ticks per second (100 ns each). */
+/** FILETIME ticks per second (100 ns each). */
 #define LH_OS_SYSTEM_WIN_FILETIME_HZ 10000000LL
 
-/* Seconds since the Unix epoch of @p time. A FILETIME before 1970 gives a
+/** Seconds since the Unix epoch of @p time. A FILETIME before 1970 gives a
    negative timestamp, floored to whole seconds; every valid FILETIME
    (below 2^63 ticks) fits the signed arithmetic. */
 LH_ATTRIBUTE_STATIC

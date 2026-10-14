@@ -11,12 +11,12 @@
 #include <lh/math.h>
 #include <lh/util/ptr.h>
 
-/* Where one element sits in the shared buffer; its NUL follows at
+/** Where one element sits in the shared buffer; its NUL follows at
    offset + size. */
 struct lh_str_list_span
 {
-    lh_usize_t offset;
-    lh_usize_t size;
+    lh_usize_t offset; /**< where the element starts */
+    lh_usize_t size;   /**< its length, without the NUL */
 };
 typedef struct lh_str_list_span lh_str_list_span_t;
 

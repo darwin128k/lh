@@ -24,22 +24,45 @@
  */
 struct lh_io_dgram_reader
 {
+    /** Members: ::lh_io_dgram_reader_fields. */
     lh_io_dgram_reader_fields(lh_io_dgram_reader_recv_fn);
 };
+/** @copybrief lh_io_dgram_reader */
 typedef struct lh_io_dgram_reader lh_io_dgram_reader_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/**
+ * @brief Copy the reader state from @p other into @p self.
+ * @param self  Destination reader.
+ * @param other Source reader.
+ */
 lh_void
 lh_io_dgram_reader_assign(lh_io_dgram_reader_t *self, const lh_io_dgram_reader_t *other);
 
+/**
+ * @brief Replace the receive callback and context of @p self.
+ * @param self    Reader to modify.
+ * @param recv_cb New receive callback.
+ * @param context New context.
+ */
 lh_void
 lh_io_dgram_reader_set(lh_io_dgram_reader_t *self, lh_io_dgram_reader_recv_cb recv_cb,
                        lh_ptr context);
 
+/**
+ * @brief Write only the receive callback.
+ * @param self    Reader to modify.
+ * @param recv_cb New receive callback.
+ */
 lh_void
 lh_io_dgram_reader_set_recv_cb(lh_io_dgram_reader_t *self, lh_io_dgram_reader_recv_cb recv_cb);
 
+/**
+ * @brief Write only the context.
+ * @param self    Reader to modify.
+ * @param context New context.
+ */
 lh_void
 lh_io_dgram_reader_set_context(lh_io_dgram_reader_t *self, lh_ptr context);
 
@@ -54,12 +77,26 @@ lh_void
 lh_io_dgram_reader_init(lh_io_dgram_reader_t *self, lh_io_dgram_reader_recv_cb recv_cb,
                         lh_ptr context);
 
+/**
+ * @brief Reset @p self to empty state (callback and context both ::lh_null).
+ * @param self Reader to reset.
+ */
 lh_void
 lh_io_dgram_reader_deinit(lh_io_dgram_reader_t *self);
 
+/**
+ * @brief The current receive callback of @p self.
+ * @param self Reader to read from.
+ * @return Current receive callback (may be ::lh_null).
+ */
 lh_io_dgram_reader_recv_cb
 lh_io_dgram_reader_get_recv_cb(const lh_io_dgram_reader_t *self);
 
+/**
+ * @brief The current context of @p self.
+ * @param self Reader to read from.
+ * @return Current context (may be ::lh_null).
+ */
 lh_ptr
 lh_io_dgram_reader_get_context(const lh_io_dgram_reader_t *self);
 

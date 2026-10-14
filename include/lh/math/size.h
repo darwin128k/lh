@@ -24,13 +24,14 @@
 
 /**
  * @struct lh_math_size
- * @typedef lh_math_size_t
  * @brief A 2D size: positive `width` and `height`.
  */
 struct lh_math_size
 {
+    /** Members: ::lh_math_size_fields. */
     lh_math_size_fields(lh_math_scalar_t);
 };
+/** @copybrief lh_math_size */
 typedef struct lh_math_size lh_math_size_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

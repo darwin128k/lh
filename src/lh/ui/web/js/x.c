@@ -11,6 +11,7 @@
 
 static lh_void js_emit_x(lh_ui_web_buf_t *self, const lh_ui_web_x_t *x);
 
+/** Append @p n in decimal. */
 static lh_void
 js_put_s64(lh_ui_web_buf_t *self, lh_s64_t n)
 {
@@ -44,6 +45,7 @@ js_put_s64(lh_ui_web_buf_t *self, lh_s64_t n)
     }
 }
 
+/** Append @p s as a single-quoted JavaScript string literal, escaped. */
 static lh_void
 js_put_str_lit(lh_ui_web_buf_t *self, const lh_str_ptr s)
 {
@@ -81,6 +83,7 @@ js_put_str_lit(lh_ui_web_buf_t *self, const lh_str_ptr s)
     lh_ui_web_buf_lit(self, "'", 1u);
 }
 
+/** Append an argument list `(a,b,...)` of @p n expressions. */
 static lh_void
 js_emit_args(lh_ui_web_buf_t *self, const lh_ui_web_x_t *const *args, lh_u16_t n)
 {
@@ -98,6 +101,7 @@ js_emit_args(lh_ui_web_buf_t *self, const lh_ui_web_x_t *const *args, lh_u16_t n
     lh_ui_web_buf_lit(self, ")", 1u);
 }
 
+/** Append expression node @p x as JavaScript, parenthesised so precedence never matters. */
 static lh_void
 js_emit_x(lh_ui_web_buf_t *self, const lh_ui_web_x_t *x)
 {

@@ -7,13 +7,14 @@
 
 #include <lh/util/return.h>
 
-/* Keysym and portable key, side by side; both Shift, Control and Alt keys are
+/** Keysym and portable key, side by side; both Shift, Control and Alt keys are
    the one modifier, as on Windows. */
 static const unsigned long lh_os_system_posix_key_keysyms[] = {
     0xff09UL, 0xff0dUL, 0xff8dUL, 0xff1bUL, 0xff08UL, 0xffffUL, 0xff9fUL, 0x0020UL,
     0xff51UL, 0xff53UL, 0xff52UL, 0xff54UL, 0xff50UL, 0xff57UL, 0xff55UL, 0xff56UL,
     0xffe1UL, 0xffe2UL, 0xffe3UL, 0xffe4UL, 0xffe9UL, 0xffeaUL,
 };
+/** The portable key of each entry of ::lh_os_system_posix_key_keysyms, in the same order. */
 static const lh_key_t lh_os_system_posix_key_keys[] = {
     lh_key_tab,     lh_key_enter,     lh_key_enter,   lh_key_escape,  lh_key_backspace, lh_key_delete,
     lh_key_delete,  lh_key_space,     lh_key_left,    lh_key_right,   lh_key_up,        lh_key_down,
@@ -21,7 +22,7 @@ static const lh_key_t lh_os_system_posix_key_keys[] = {
     lh_key_control, lh_key_control,   lh_key_alt,     lh_key_alt,
 };
 
-/* keysymdef.h, 0x6a1..0x6bf: the letters of Serbian, Macedonian, Ukrainian and
+/** keysymdef.h, 0x6a1..0x6bf: the letters of Serbian, Macedonian, Ukrainian and
    Belarusian that are not in the Russian alphabet, Ё, and the numero sign. */
 static const lh_u16_t lh_os_system_posix_key_cyrillic_extra[] = {
     0x0452, 0x0453, 0x0451, 0x0454, 0x0455, 0x0456, 0x0457, 0x0458, 0x0459, 0x045a, 0x045b,
@@ -29,7 +30,7 @@ static const lh_u16_t lh_os_system_posix_key_cyrillic_extra[] = {
     0x0407, 0x0408, 0x0409, 0x040a, 0x040b, 0x040c, 0x0490, 0x040e, 0x040f,
 };
 
-/* keysymdef.h, 0x6c0..0x6df: the lower-case Russian alphabet in the order X has
+/** keysymdef.h, 0x6c0..0x6df: the lower-case Russian alphabet in the order X has
    it, which is not the alphabet's -- ю а б ц д е ф г х и й ... -- and 0x6e0..0x6ff
    is the same letters in upper case, 0x20 below in Unicode. */
 static const lh_u16_t lh_os_system_posix_key_cyrillic[] = {

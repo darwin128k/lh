@@ -26,13 +26,14 @@
 
 /**
  * @struct lh_ui_font
- * @typedef lh_ui_font_t
  * @brief Glyph masks, advances and tops over bytes the caller owns.
  */
 struct lh_ui_font
 {
+    /** Members: ::lh_ui_font_fields. */
     lh_ui_font_fields(lh_byte_t, lh_ui_mask_t, lh_s32_t, lh_u32_t, lh_ui_font_range_t);
 };
+/** @copybrief lh_ui_font */
 typedef struct lh_ui_font lh_ui_font_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

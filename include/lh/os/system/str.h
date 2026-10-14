@@ -36,6 +36,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief NUL-terminated UTF-8 @p text as OS text, replacing @p out.
  *
  * @param out Initialized OS string; NUL-terminated afterwards.
+ * @param text UTF-8 text to convert.
  * @return ::lh_bool_false: out of memory (::lh_os_last_error) or invalid
  *         UTF-8 (::lh_os_system_last_error). @p out is then unchanged.
  */
@@ -45,7 +46,9 @@ lh_os_system_str_from_utf8(lh_os_str_t *out, const lh_str_ptr text);
 /**
  * @brief @p count code units of OS text @p text as UTF-8, replacing @p out.
  *
+ * @param text  OS text to convert.
  * @param count Units to convert, not counting a NUL; `0` gives "".
+ * @param out   Initialized string; receives the UTF-8 text.
  * @return ::lh_bool_false: out of memory (::lh_os_last_error) or the
  *         conversion failed (::lh_os_system_last_error). @p out is then
  *         unchanged.

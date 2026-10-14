@@ -30,13 +30,14 @@
 
 /**
  * @struct lh_math_frect
- * @typedef lh_math_frect_t
  * @brief An axis-aligned rectangle of ::lh_math_fscalar_t components.
  */
 struct lh_math_frect
 {
+    /** Members: ::lh_math_rect_fields. */
     lh_math_rect_fields(lh_math_fpoint_t, lh_math_fsize_t);
 };
+/** @copybrief lh_math_frect */
 typedef struct lh_math_frect lh_math_frect_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

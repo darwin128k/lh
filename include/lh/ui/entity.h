@@ -35,14 +35,15 @@
 
 /**
  * @struct lh_ui_entity
- * @typedef lh_ui_entity_t
  * @brief A tree node: rect, style, class, hidden, parent, children, link.
  */
 struct lh_ui_entity
 {
+    /** Members: ::lh_ui_entity_fields. */
     lh_ui_entity_fields(lh_ui_rect_t, lh_ui_style_t, lh_ui_entity_class_t, lh_bool_t,
                         struct lh_ui_entity, lh_ui_place_t);
 };
+/** @copybrief lh_ui_entity */
 typedef struct lh_ui_entity lh_ui_entity_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -418,6 +419,7 @@ lh_ui_entity_send_pointer(const lh_ui_entity_t *self, lh_ui_entity_event_code_t 
  * no offset, no clip; the base class leaves it so. A scrolling container
  * answers with its scroll as the offset and asks for the clip.
  *
+ * @param self   Entity whose children are placed.
  * @param offset Receives the offset added to every child rect.
  * @return ::lh_bool_true when the children are cut to the rect of @p self.
  */

@@ -45,6 +45,6 @@ typedef enum lh_os_window_zone
     lh_os_window_zone_bottom_left = 8,
     /** Resize by the bottom-right corner. */
     lh_os_window_zone_bottom_right = 9
-} lh_os_window_zone_t;
+} lh_os_window_zone_t; /**< What part of the window a point is. */
 
 #endif /* LH_OS_WINDOW_ZONE_H */

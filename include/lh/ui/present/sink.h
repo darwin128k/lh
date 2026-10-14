@@ -34,13 +34,14 @@ typedef lh_void(lh_ui_present_fn)(lh_ptr context, const lh_ui_pixmap_t *pixels,
 
 /**
  * @struct lh_ui_present_sink
- * @typedef lh_ui_present_sink_t
  * @brief Name + present slot + context. Not owned by the display.
  */
 struct lh_ui_present_sink
 {
+    /** Members: ::lh_ui_present_sink_fields. */
     lh_ui_present_sink_fields(const char *, lh_ui_present_fn, lh_ptr);
 };
+/** @copybrief lh_ui_present_sink */
 typedef struct lh_ui_present_sink lh_ui_present_sink_t;
 
 /**

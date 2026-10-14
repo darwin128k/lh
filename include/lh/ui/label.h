@@ -36,13 +36,14 @@
 
 /**
  * @struct lh_ui_entity_label
- * @typedef lh_ui_label_t
  * @brief A container and the text it shows.
  */
 struct lh_ui_entity_label
 {
+    /** Members: ::lh_ui_label_fields. */
     lh_ui_label_fields(lh_ui_container_t, lh_char_t);
 };
+/** @copybrief lh_ui_entity_label */
 typedef struct lh_ui_entity_label lh_ui_label_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

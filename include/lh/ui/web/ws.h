@@ -24,11 +24,17 @@
 #    error "lh/ui/web/ws.h requires LH_LIBRARY_OPTION_UI"
 #endif
 
+/** @brief WebSocket opcode: continuation of a fragmented message. */
 #define LH_UI_WEB_WS_CONT 0u
+/** @brief WebSocket opcode: text frame. */
 #define LH_UI_WEB_WS_TEXT 1u
+/** @brief WebSocket opcode: binary frame. */
 #define LH_UI_WEB_WS_BIN 2u
+/** @brief WebSocket opcode: close. */
 #define LH_UI_WEB_WS_CLOSE 8u
+/** @brief WebSocket opcode: ping. */
 #define LH_UI_WEB_WS_PING 9u
+/** @brief WebSocket opcode: pong. */
 #define LH_UI_WEB_WS_PONG 10u
 
 /** Largest payload the decoder will assemble (1 MiB). */

@@ -56,12 +56,11 @@
 #include <stdarg.h>
 
 /**
- * @struct lh_str
+ * @typedef lh_str_t
  * @brief Owning, growable, NUL-terminated string.
  *
  * A direct typedef of ::lh_array_t; element type is ::lh_char_t
  * (`type_size == sizeof(lh_char_t)`).
- * Public typedef: ::lh_str_t.
  */
 typedef lh_array_t lh_str_t;
 

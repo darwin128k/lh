@@ -17,6 +17,7 @@
 #include <lh/ui/web/x.h>
 #include <lh/util/addr.h>
 
+/** Append string literal @p s to @p j, its length taken at compile time. */
 #define page_lit(j, s) lh_ui_web_buf_lit((j), (s), lh_cast_static(lh_usize_t, (sizeof(s) - 1u)))
 
 lh_bool_t

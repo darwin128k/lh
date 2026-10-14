@@ -18,8 +18,10 @@
 /** @brief A paint in progress on one window. */
 struct lh_os_system_posix_paint
 {
+    /** Members: ::lh_os_system_posix_paint_fields. */
     lh_os_system_posix_paint_fields;
 };
+/** @copybrief lh_os_system_posix_paint */
 typedef struct lh_os_system_posix_paint lh_os_system_posix_paint_t;
 
 #endif /* LH_SRC_OS_SYSTEM_POSIX_PAINT_H */

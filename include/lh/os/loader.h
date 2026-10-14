@@ -49,8 +49,10 @@
  */
 struct lh_os_loader
 {
+    /** Members: ::lh_os_loader_fields. */
     lh_os_loader_fields(lh_list_t, lh_os_module_t *, lh_str_t);
 };
+/** @copybrief lh_os_loader */
 typedef struct lh_os_loader lh_os_loader_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -62,6 +64,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * Normally reached through ::lh_os_loader_create (which ::lh_os_module_grant_loader
  * calls); call it directly only for a loader in memory of your own.
  *
+ * @param self  Loader to set up.
  * @param owner Module holding this privilege.
  * @param entry Name a child exports its ::lh_os_module_ops_t under. Copied.
  */
@@ -122,6 +125,7 @@ lh_os_loader_load(lh_os_loader_t *self, const lh_fs_path_t *path);
  * @brief Unload one child of @p self in O(1): close it (its own children
  *        first), then free it. The other children are untouched.
  *
+ * @param self  Loader that loaded @p child.
  * @param child A module this loader loaded (its owner is @p self).
  */
 lh_void

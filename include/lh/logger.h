@@ -117,8 +117,10 @@
  */
 struct lh_logger
 {
+    /** Members: ::lh_logger_fields. */
     lh_logger_fields(lh_logger_emit_fn);
 };
+/** @copybrief lh_logger */
 typedef struct lh_logger lh_logger_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

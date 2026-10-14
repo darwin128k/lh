@@ -62,6 +62,8 @@ typedef enum lh_ui_text_align_v
  * @param box The box to align inside; ::lh_null is read as an empty one.
  * @param padding Space kept off each side before aligning; ::lh_null is none.
  * @param size Measured size of the text, from ::lh_ui_text_get_size.
+ * @param horizontal Horizontal alignment inside the padded box.
+ * @param vertical Vertical alignment inside the padded box.
  */
 lh_ui_point_t
 lh_ui_text_align_get_origin(const lh_ui_rect_t *box, const lh_ui_insets_t *padding, lh_ui_size_t size,

@@ -36,6 +36,6 @@ typedef enum lh_os_window_placement
      * asked for.
      */
     lh_os_window_placement_center = 1
-} lh_os_window_placement_t;
+} lh_os_window_placement_t; /**< Where ::lh_os_window_open puts a window for the first time. */
 
 #endif /* LH_OS_WINDOW_PLACEMENT_H */

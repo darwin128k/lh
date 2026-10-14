@@ -28,13 +28,14 @@ struct lh_math_fsize;
 
 /**
  * @struct lh_math_fpoint
- * @typedef lh_math_fpoint_t
  * @brief A 2D point of ::lh_math_fscalar_t components.
  */
 struct lh_math_fpoint
 {
+    /** Members: ::lh_math_point_fields. */
     lh_math_point_fields(lh_math_fscalar_t);
 };
+/** @copybrief lh_math_fpoint */
 typedef struct lh_math_fpoint lh_math_fpoint_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

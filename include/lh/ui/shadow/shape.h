@@ -28,13 +28,14 @@
 
 /**
  * @struct lh_ui_shadow_shape
- * @typedef lh_ui_shadow_shape_t
  * @brief A shadow over one box, worked out once.
  */
 struct lh_ui_shadow_shape
 {
+    /** Members: ::lh_ui_shadow_shape_fields. */
     lh_ui_shadow_shape_fields(lh_ui_rect_t, lh_ui_scalar_t);
 };
+/** @copybrief lh_ui_shadow_shape */
 typedef struct lh_ui_shadow_shape lh_ui_shadow_shape_t;
 
 struct lh_ui_shadow_ramp;

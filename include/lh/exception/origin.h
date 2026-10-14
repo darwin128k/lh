@@ -20,7 +20,6 @@
 
 /**
  * @struct lh_exception_origin
- * @typedef lh_exception_origin_t
  * @brief Location, message and (at the full level) text of the runtime
  *        check an exception comes from.
  */
@@ -32,6 +31,7 @@ struct lh_exception_origin
     lh_str_view_t message; /**< Message given at the check, or empty; LOCATION and FULL. */
     lh_uint_t line;        /**< Source line (`__LINE__`); LOCATION and FULL. */
 };
+/** @copybrief lh_exception_origin */
 typedef struct lh_exception_origin lh_exception_origin_t;
 
 #endif /* LH_EXCEPTION_ORIGIN_H */

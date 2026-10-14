@@ -50,7 +50,7 @@ lh_ui_input_boundary_before(const lh_ui_input_t *self, lh_u16_t caret)
 /**
  * @brief Is byte @p at the start of a code point of @p self?
  *
- * The byte that decides it is the one **at** @p, not the one before it: a position is
+ * The byte that decides it is the one **at** @p at, not the one before it: a position is
  * the start of a character when the byte it stands on is a lead byte rather than a
  * continuation. Asking about the byte before asks the same question about the
  * character *ending* there, which is a different character -- so every position in a
@@ -511,7 +511,7 @@ lh_ui_input_end(lh_ui_input_t *self)
     self->caret = self->used;
 }
 
-/* The top of the font's line the text stands on, in the field's own space.
+/** The top of the font's line the text stands on, in the field's own space.
 
    With text it is the label's own baseline, so the caret stands on the line the letters
    do. Without text there is no run to centre, so the baseline is the one a run of

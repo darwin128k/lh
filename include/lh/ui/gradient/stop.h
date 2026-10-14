@@ -14,13 +14,14 @@
 
 /**
  * @struct lh_ui_gradient_stop
- * @typedef lh_ui_gradient_stop_t
  * @brief A color on the virtual gradient axis `0..255`.
  */
 struct lh_ui_gradient_stop
 {
+    /** Members: ::lh_ui_gradient_stop_fields. */
     lh_ui_gradient_stop_fields(lh_ui_color_t, lh_byte_t);
 };
+/** @copybrief lh_ui_gradient_stop */
 typedef struct lh_ui_gradient_stop lh_ui_gradient_stop_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

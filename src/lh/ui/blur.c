@@ -97,7 +97,7 @@ lh_ui_blur_scratch_size(const lh_ui_rect_t *rect, lh_s32_t radius)
     return (lh_usize_t)lh_ui_size_get_width(size) * lh_cast_static(lh_usize_t, rows)* 4U;
 }
 
-/* Rows the column pass has to already hold: the rect, and up to @p radius rows
+/** Rows the column pass has to already hold: the rect, and up to @p radius rows
    past it on each side, cut to the pixmap. The scratch is addressed from @p y0. */
 static lh_void
 blur_band(const lh_ui_pixmap_t *pixmap, lh_s32_t top, lh_s32_t height, lh_s32_t radius, lh_s32_t *y0, lh_s32_t *y1)
@@ -113,7 +113,7 @@ blur_band(const lh_ui_pixmap_t *pixmap, lh_s32_t top, lh_s32_t height, lh_s32_t 
     *y1 = last;
 }
 
-/* One row, blurred across. The window reads the pixmap, out to @p radius past
+/** One row, blurred across. The window reads the pixmap, out to @p radius past
    the rect and no further than the pixmap; @p out receives only the rect. */
 static lh_void
 blur_row_x(const lh_ui_pixmap_t *pixmap, lh_s32_t y, lh_s32_t left, lh_s32_t width, lh_s32_t radius, lh_u8_t *out)
@@ -200,6 +200,8 @@ lh_ui_blur_rows(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t radiu
     }
 }
 
+/** Write a blurred pixel, cut to the rounded @p shape when there is one: kept out of its square
+ * corners, blended on its edge. */
 static lh_void
 blur_put(lh_ui_pixmap_t *pixmap, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color, const lh_ui_rect_t *shape,
          lh_ui_scalar_t corner)

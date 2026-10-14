@@ -34,8 +34,10 @@
  */
 struct lh_str_list
 {
+    /** Members: ::lh_str_list_fields. */
     lh_str_list_fields(lh_str_t, lh_array_t);
 };
+/** @copybrief lh_str_list */
 typedef struct lh_str_list lh_str_list_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

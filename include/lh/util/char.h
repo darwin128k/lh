@@ -16,7 +16,9 @@
 #include <lh/char.h>
 #include <lh/compiler/extern/c.h>
 
+/** @brief Code of character @p c as type @p T. */
 #define lh_char_ord_to(T, c) lh_cast_static(T, c)
+/** @brief Code of character @p c as ::lh_sint_t. */
 #define lh_char_ord(c) lh_char_ord_to(lh_sint_t, c)
 
 LH_COMPILER_EXTERN_C_BEGIN

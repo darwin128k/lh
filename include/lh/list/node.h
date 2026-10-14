@@ -28,8 +28,10 @@
  */
 struct lh_list_node
 {
+    /** Members: ::lh_list_node_fields. */
     lh_list_node_fields(struct lh_list_node *);
 };
+/** @copybrief lh_list_node */
 typedef struct lh_list_node lh_list_node_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

@@ -4,6 +4,7 @@
  */
 
 LH_ATTRIBUTE_FORCE_INLINE
+/** Copy fewer than 16 bytes with two overlapping loads and stores of the widest fitting word. */
 lh_void
 lh_memory_std_copy_tiny(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
@@ -41,6 +42,7 @@ lh_memory_std_copy_tiny(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 }
 
 LH_ATTRIBUTE_FORCE_INLINE
+/** Scalar forward copy: 8-byte words, then ::lh_memory_std_copy_tiny for the tail. */
 lh_void
 lh_memory_std_copy_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
@@ -69,6 +71,7 @@ lh_memory_std_copy_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 }
 
 LH_ATTRIBUTE_FORCE_INLINE
+/** ::lh_memory_std_copy_rev for fewer than 16 bytes: @p src byte-reversed into @p dst. */
 lh_void
 lh_memory_std_copy_rev_tiny(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
@@ -106,6 +109,7 @@ lh_memory_std_copy_rev_tiny(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 }
 
 LH_ATTRIBUTE_FORCE_INLINE
+/** Scalar ::lh_memory_std_copy_rev: @p src byte-reversed into @p dst. */
 lh_void
 lh_memory_std_copy_rev_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
@@ -137,6 +141,7 @@ lh_memory_std_copy_rev_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 }
 
 LH_ATTRIBUTE_FORCE_INLINE
+/** ::lh_memory_std_rcopy for fewer than 16 bytes: copy high to low, safe for overlap. */
 lh_void
 lh_memory_std_rcopy_tiny(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
@@ -174,6 +179,7 @@ lh_memory_std_rcopy_tiny(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 }
 
 LH_ATTRIBUTE_FORCE_INLINE
+/** Scalar ::lh_memory_std_rcopy: copy from the high end down, safe for overlap. */
 lh_void
 lh_memory_std_rcopy_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
@@ -207,6 +213,7 @@ lh_memory_std_rcopy_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 }
 
 LH_ATTRIBUTE_FORCE_INLINE
+/** Scalar fill of @p n bytes with @p val. */
 lh_void
 lh_memory_std_set_bytes(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 {
@@ -256,6 +263,7 @@ lh_memory_std_set_bytes(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 #endif
 }
 
+/** Scalar ::lh_memory_std_compare: the first differing byte of @p lhs, or ::lh_null. */
 static const lh_ptr
 lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
@@ -285,6 +293,7 @@ lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
     return lh_null;
 }
 
+/** Scalar ::lh_memory_std_rcompare: the last differing byte of @p lhs, or ::lh_null. */
 static const lh_ptr
 lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
@@ -395,6 +404,7 @@ lh_memory_std_set_simd_scalar(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 #endif
 
 LH_ATTRIBUTE_FORCE_INLINE
+/** Scalar ::lh_memory_std_xor: @p dst = @p lhs ^ @p rhs, byte by byte. */
 lh_void
 lh_memory_std_xor_bytes(lh_byte_ptr dst, lh_byte_cptr lhs, lh_byte_cptr rhs, lh_usize_t n)
 {
@@ -421,6 +431,7 @@ lh_memory_std_rcompare_scalar(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 #endif
 
 LH_ATTRIBUTE_FORCE_INLINE
+/** Whether @p cand matches @p needle between its first and last byte (already checked). */
 lh_bool_t
 lh_memory_std_find_is_match(lh_byte_cptr cand, lh_byte_cptr needle, lh_usize_t m)
 {
@@ -428,6 +439,8 @@ lh_memory_std_find_is_match(lh_byte_cptr cand, lh_byte_cptr needle, lh_usize_t m
                           m <= 2U || lh_null_eq(lh_memory_std_compare(cand + 1, needle + 1, m - 2U)));
 }
 
+/** Scalar ::lh_memory_std_find from offset @p off: first and last byte as a filter,
+ * then the middle. */
 static const lh_ptr
 lh_memory_std_find_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh_usize_t m,
                           lh_usize_t off)

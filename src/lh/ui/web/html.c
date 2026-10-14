@@ -53,6 +53,7 @@ lh_ui_web_html_tag(const lh_str_ptr name, const lh_ui_web_html_attr_t *attrs, lh
     return n;
 }
 
+/** Append @p s as element text: `&`, `<` and `>` escaped. */
 static lh_void
 html_put_esc_text(lh_ui_web_buf_t *out, const lh_str_ptr s)
 {
@@ -84,6 +85,7 @@ html_put_esc_text(lh_ui_web_buf_t *out, const lh_str_ptr s)
     }
 }
 
+/** Append @p s as an attribute value: `&`, `"` and `<` escaped. */
 static lh_void
 html_put_esc_attr(lh_ui_web_buf_t *out, const lh_str_ptr s)
 {
@@ -115,6 +117,7 @@ html_put_esc_attr(lh_ui_web_buf_t *out, const lh_str_ptr s)
     }
 }
 
+/** Append @p n attributes as ` name="value"` (or bare ` name`). */
 static lh_void
 html_put_attrs(lh_ui_web_buf_t *out, const lh_ui_web_html_attr_t *attrs, lh_u16_t n)
 {
@@ -133,6 +136,7 @@ html_put_attrs(lh_ui_web_buf_t *out, const lh_ui_web_html_attr_t *attrs, lh_u16_
     }
 }
 
+/** Append the opening tag of @p node with its attributes. */
 static lh_void
 html_open_tag(lh_ui_web_buf_t *out, const lh_ui_web_html_t *node)
 {

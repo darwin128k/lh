@@ -18,13 +18,24 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/** `name="value"`, or bare `name` when @p value is ::lh_null. */
+/**
+ * @struct lh_ui_web_html_attr
+ * @brief `name="value"`, or bare `name` when `value` is ::lh_null.
+ */
 typedef struct lh_ui_web_html_attr
 {
-    const lh_str_ptr name;
-    const lh_str_ptr value;
-} lh_ui_web_html_attr_t;
+    const lh_str_ptr name;  /**< Attribute name. Not owned. */
+    const lh_str_ptr value; /**< Attribute value, or ::lh_null for a bare attribute. Not owned. */
+} lh_ui_web_html_attr_t; /**< An HTML attribute: name and optional value. */
 
+/**
+ * @brief An attribute of @p name and @p value. Neither string is copied.
+ *
+ * @param name  Attribute name.
+ * @param value Attribute value, or ::lh_null for a bare attribute.
+ *
+ * @return The attribute.
+ */
 lh_ui_web_html_attr_t
 lh_ui_web_html_attr(const lh_str_ptr name, const lh_str_ptr value);
 

@@ -24,6 +24,6 @@ typedef enum lh_os_window_frame
      * through ::lh_os_window_set_on_zone instead.
      */
     lh_os_window_frame_own = 1
-} lh_os_window_frame_t;
+} lh_os_window_frame_t; /**< Whether the window system draws a window's frame or the app does. */
 
 #endif /* LH_OS_WINDOW_FRAME_H */

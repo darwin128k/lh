@@ -32,13 +32,14 @@
 
 /**
  * @struct lh_ui_image
- * @typedef lh_ui_image_t
  * @brief An entity, the mask it shows and the colour it shows it in.
  */
 struct lh_ui_image
 {
+    /** Members: ::lh_ui_image_fields. */
     lh_ui_image_fields(lh_ui_entity_t, lh_ui_mask_t, lh_ui_color_t, lh_ui_scalar_t);
 };
+/** @copybrief lh_ui_image */
 typedef struct lh_ui_image lh_ui_image_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

@@ -33,14 +33,15 @@
 
 /**
  * @struct lh_ui_style
- * @typedef lh_ui_style_t
  * @brief Paint recipe for one entity.
  */
 struct lh_ui_style
 {
+    /** Members: ::lh_ui_style_fields. */
     lh_ui_style_fields(lh_ui_paint_t, lh_ui_scalar_t, lh_ui_font_t, lh_ui_insets_t, lh_ui_shadow_t,
                        lh_ui_radii_t);
 };
+/** @copybrief lh_ui_style */
 typedef struct lh_ui_style lh_ui_style_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

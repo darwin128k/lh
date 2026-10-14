@@ -89,7 +89,7 @@ lh_ui_style_set_easing(lh_ui_style_t *self, lh_ui_easing_t easing)
     self->easing = easing;
 }
 
-/* @p from moved @p weight of the way to @p to, in weights of 255. Written so it means
+/** @p from moved @p weight of the way to @p to, in weights of 255. Written so it means
    the same on both arithmetic paths: `to - from` first, so a step that runs the other
    way stays negative. */
 static lh_ui_scalar_t
@@ -98,7 +98,7 @@ lh_ui_style_mix(lh_ui_scalar_t from, lh_ui_scalar_t to, lh_u32_t weight)
     return from + ((to - from) * lh_cast_static(lh_ui_scalar_t, weight)) / lh_ui_scalar(255);
 }
 
-/* @p from moved @p weight of the way to @p to, every channel and the alpha with them:
+/** @p from moved @p weight of the way to @p to, every channel and the alpha with them:
    a shadow fading in from nothing is a colour whose alpha grows. */
 static lh_ui_color_t
 lh_ui_style_mix_color(const lh_ui_color_t *from, const lh_ui_color_t *to, lh_u32_t weight)
@@ -113,7 +113,7 @@ lh_ui_style_mix_color(const lh_ui_color_t *from, const lh_ui_color_t *to, lh_u32
     return out;
 }
 
-/* @p to's paint, or -- when both ends are one colour -- the colour between them. */
+/** @p to's paint, or -- when both ends are one colour -- the colour between them. */
 static lh_void
 lh_ui_style_mix_paint(lh_ui_paint_t *out, const lh_ui_paint_t *from, const lh_ui_paint_t *to, lh_u32_t weight)
 {

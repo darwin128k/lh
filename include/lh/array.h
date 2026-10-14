@@ -34,8 +34,10 @@
  */
 struct lh_array
 {
+    /** Members: ::lh_array_fields. */
     lh_array_fields(lh_memory_typed_allocated_t, lh_usize_t);
 };
+/** @copybrief lh_array */
 typedef struct lh_array lh_array_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

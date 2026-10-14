@@ -62,7 +62,6 @@
 
 /**
  * @struct lh_crypto_sha
- * @typedef lh_crypto_sha_t
  * @brief Running SHA hash. Re-init to reuse after ::lh_crypto_sha_finish.
  *
  * Fields are the compression state; treat them as opaque outside this
@@ -79,6 +78,7 @@ struct lh_crypto_sha
     lh_byte_t block[LH_CRYPTO_SHA_BLOCK_SIZE_MAX]; /**< Partial compression block. */
     lh_usize_t block_fill;                          /**< Bytes currently in @c block. */
 };
+/** @copybrief lh_crypto_sha */
 typedef struct lh_crypto_sha lh_crypto_sha_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

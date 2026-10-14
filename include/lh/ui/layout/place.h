@@ -38,7 +38,7 @@
 #include <lh/void.h>
 
 /**
- * @typedef lh_ui_place_size_t
+ * @enum lh_ui_place_size
  * @brief How much room a child takes along the flow.
  *
  * - `fixed` — the length it carries (::lh_ui_place_get_size).
@@ -53,10 +53,10 @@ typedef enum lh_ui_place_size
     lh_ui_place_size_fixed = 0,
     lh_ui_place_size_fill,
     lh_ui_place_size_wrap
-} lh_ui_place_size_t;
+} lh_ui_place_size_t; /**< How much room a child takes along the flow. */
 
 /**
- * @typedef lh_ui_place_align_t
+ * @enum lh_ui_place_align
  * @brief Where a child sits across the flow.
  *
  * `fill` takes the whole cross size of the content box; `start`, `center` and
@@ -81,18 +81,19 @@ typedef enum lh_ui_place_align
     lh_ui_place_align_end,
     lh_ui_place_align_fill,
     lh_ui_place_align_baseline
-} lh_ui_place_align_t;
+} lh_ui_place_align_t; /**< Where a child sits across the flow. */
 
 /**
  * @struct lh_ui_place
- * @typedef lh_ui_place_t
  * @brief Room along the flow and a place across it.
  */
 struct lh_ui_place
 {
+    /** Members: ::lh_ui_place_fields. */
     lh_ui_place_fields(lh_ui_place_size_t, lh_ui_scalar_t, lh_ui_place_align_t, lh_ui_insets_t,
                        lh_ui_size_t);
 };
+/** @copybrief lh_ui_place */
 typedef struct lh_ui_place lh_ui_place_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

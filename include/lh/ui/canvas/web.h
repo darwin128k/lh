@@ -42,7 +42,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 typedef struct lh_ui_canvas_web_glyphs
 {
-    lh_byte_t sent[LH_UI_CANVAS_WEB_GLYPHS_MAX];
+    lh_byte_t sent[LH_UI_CANVAS_WEB_GLYPHS_MAX]; /**< Non-zero for each glyph id already sent. */
 } lh_ui_canvas_web_glyphs_t;
 
 /**
@@ -50,14 +50,14 @@ typedef struct lh_ui_canvas_web_glyphs
  */
 typedef struct lh_ui_canvas_web
 {
-    char *mem;
-    lh_usize_t cap;
-    lh_usize_t len;
-    unsigned width;
-    unsigned height;
-    unsigned ops;
-    int comma;
-    lh_bool_t ok;
+    char *mem;         /**< The caller's buffer. Not owned. */
+    lh_usize_t cap;    /**< Size of ::mem. */
+    lh_usize_t len;    /**< Bytes written so far. */
+    unsigned width;    /**< Frame width in pixels. */
+    unsigned height;   /**< Frame height in pixels. */
+    unsigned ops;      /**< Ops recorded so far. */
+    int comma;         /**< Non-zero when the next op needs a separating comma. */
+    lh_bool_t ok;      /**< False once the buffer ran out; the frame is then unusable. */
     lh_ui_canvas_web_glyphs_t *glyphs; /**< Which covers the reader has; ::lh_null = this frame's own. */
     lh_bool_t glyphs_owned;            /**< @c glyphs was allocated here and is freed on close. */
 } lh_ui_canvas_web_t;

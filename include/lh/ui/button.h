@@ -39,13 +39,14 @@
 
 /**
  * @struct lh_ui_button
- * @typedef lh_ui_button_t
  * @brief An entity, two styles, a hover flag and a click callback.
  */
 struct lh_ui_button
 {
+    /** Members: ::lh_ui_button_fields. */
     lh_ui_button_fields(lh_ui_container_t, lh_ui_style_t, lh_bool_t, lh_ui_button_on_click_cb, lh_ptr);
 };
+/** @copybrief lh_ui_button */
 typedef struct lh_ui_button lh_ui_button_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

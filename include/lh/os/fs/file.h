@@ -45,8 +45,10 @@
  */
 struct lh_os_fs_file
 {
+    /** Members: ::lh_os_fs_file_fields. */
     lh_os_fs_file_fields(lh_fs_path_t, lh_os_system_fs_file_handle_t, lh_fs_file_mode_t);
 };
+/** @copybrief lh_os_fs_file */
 typedef struct lh_os_fs_file lh_os_fs_file_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

@@ -27,7 +27,7 @@ lh_ui_font_get_default(lh_void)
 #endif
 }
 
-/* Whether the runs are in order and none of them overlaps the one before.
+/** Whether the runs are in order and none of them overlaps the one before.
 
    The lookup walks them in order and takes the first run that holds the code, so an
    overlap is not a wrong answer but **two**: the glyph drawn is one and the advance
@@ -141,7 +141,7 @@ lh_ui_font_get_glyph_count(const lh_ui_font_t *self)
     return total;
 }
 
-/* Which run holds @p code, or `lh_null`. The one place a code is looked up, because
+/** Which run holds @p code, or `lh_null`. The one place a code is looked up, because
    ::lh_ui_font_has_code and ::lh_ui_font_get_index asking it two different ways is how
    they come to answer two different things -- the whole defect this format exists to
    allow for is a code that is in one run and not the other.

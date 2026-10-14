@@ -31,25 +31,26 @@
 #include <lh/void.h>
 
 /**
- * @typedef lh_ui_gradient_shape_t
+ * @enum lh_ui_gradient_shape
  * @brief How the stops lie over a box.
  */
 typedef enum lh_ui_gradient_shape
 {
     lh_ui_gradient_shape_linear = 0, /**< Along a line at ::lh_ui_gradient_get_angle. */
     lh_ui_gradient_shape_radial      /**< Out from the middle to the farthest corner. */
-} lh_ui_gradient_shape_t;
+} lh_ui_gradient_shape_t; /**< How the stops lie over a box. */
 
 /**
  * @struct lh_ui_gradient
- * @typedef lh_ui_gradient_t
  * @brief Ordered color stops on a `0..255` axis.
  */
 struct lh_ui_gradient
 {
+    /** Members: ::lh_ui_gradient_fields. */
     lh_ui_gradient_fields(lh_ui_gradient_stop_t, lh_ui_gradient_stop_count_t, lh_ui_gradient_shape_t,
                           lh_s16_t);
 };
+/** @copybrief lh_ui_gradient */
 typedef struct lh_ui_gradient lh_ui_gradient_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

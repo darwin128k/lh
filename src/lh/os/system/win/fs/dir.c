@@ -20,12 +20,13 @@
 #include <lh/util/ptr.h>
 #include <lh/util/wstr/ptr.h>
 
+/** An open directory listing: the `FindFirstFileW` handle and the entry in hand. */
 struct lh_os_system_fs_dir_state
 {
-    lh_os_system_win_handle_t find;
-    lh_os_system_win_find_data_t data;
-    lh_str_t name;   /* data.cFileName as UTF-8: what read hands out. */
-    lh_bool_t ready; /* data holds an entry not yet reported (FindFirstFile's). */
+    lh_os_system_win_handle_t find;    /**< the listing, from FindFirstFileW */
+    lh_os_system_win_find_data_t data; /**< the entry FindFirstFileW / FindNextFileW last wrote */
+    lh_str_t name;   /**< data.cFileName as UTF-8: what read hands out. */
+    lh_bool_t ready; /**< data holds an entry not yet reported (FindFirstFile's). */
 };
 
 LH_ATTRIBUTE_STATIC

@@ -31,7 +31,6 @@
 
 /**
  * @struct lh_ui_shadow
- * @typedef lh_ui_shadow_t
  * @brief One soft shadow: a color, a fade distance and a shift.
  *
  * Read and written through the accessors; the struct is the caller's, not the
@@ -39,11 +38,12 @@
  */
 struct lh_ui_shadow
 {
-    lh_ui_color_t color;      /* peak colour; its alpha is the peak opacity */
-    lh_ui_scalar_t spread;    /* how far the fade reaches, in pixels */
-    lh_ui_scalar_t offset_x;  /* shift right / down */
-    lh_ui_scalar_t offset_y;
+    lh_ui_color_t color;      /**< peak colour; its alpha is the peak opacity */
+    lh_ui_scalar_t spread;    /**< how far the fade reaches, in pixels */
+    lh_ui_scalar_t offset_x;  /**< shift right */
+    lh_ui_scalar_t offset_y;  /**< shift down */
 };
+/** @copybrief lh_ui_shadow */
 typedef struct lh_ui_shadow lh_ui_shadow_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

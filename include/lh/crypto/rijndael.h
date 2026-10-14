@@ -60,7 +60,6 @@
 
 /**
  * @struct lh_crypto_rijndael
- * @typedef lh_crypto_rijndael_t
  * @brief Rijndael session: expanded key, chaining value, and mode.
  *
  * Fields are the cipher state; treat them as opaque outside this module.
@@ -73,6 +72,7 @@ struct lh_crypto_rijndael
     lh_byte_t expanded_key[LH_CRYPTO_RIJNDAEL_EXPANDED_KEY_SIZE_MAX]; /**< Round keys. */
     lh_byte_t chain[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX]; /**< CBC/CFB chaining block. */
 };
+/** @copybrief lh_crypto_rijndael */
 typedef struct lh_crypto_rijndael lh_crypto_rijndael_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

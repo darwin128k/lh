@@ -29,13 +29,14 @@
 
 /**
  * @struct lh_ui_entity_container
- * @typedef lh_ui_container_t
  * @brief An entity used as a scrollable content box.
  */
 struct lh_ui_entity_container
 {
+    /** Members: ::lh_ui_container_fields. */
     lh_ui_container_fields(lh_ui_entity_t, lh_ui_point_t, lh_ui_layout_t, lh_bool_t);
 };
+/** @copybrief lh_ui_entity_container */
 typedef struct lh_ui_entity_container lh_ui_container_t;
 
 /**

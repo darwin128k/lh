@@ -159,14 +159,14 @@ lh_ui_radius_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t
  */
 struct lh_ui_radius_run
 {
-    lh_s64_t r;   /* the radius in fixed point */
-    lh_s64_t lo;  /* the rect's left edge in fixed point */
-    lh_s64_t hi;  /* its right edge */
-    lh_s64_t near; /* the left corner circle center, `lo + r` */
-    lh_s64_t far;  /* the right corner circle center, `hi - r` */
-    lh_ui_scalar_t top; /* the rect's top edge, in the units lh_ui_radius_axis_distance takes */
-    lh_ui_scalar_t height;
-    lh_ui_scalar_t radius;
+    lh_s64_t r;   /**< the radius in fixed point */
+    lh_s64_t lo;  /**< the rect's left edge in fixed point */
+    lh_s64_t hi;  /**< its right edge */
+    lh_s64_t near; /**< the left corner circle center, `lo + r` */
+    lh_s64_t far;  /**< the right corner circle center, `hi - r` */
+    lh_ui_scalar_t top; /**< the rect's top edge, in the units lh_ui_radius_axis_distance takes */
+    lh_ui_scalar_t height; /**< the rect's height */
+    lh_ui_scalar_t radius; /**< the corner radius, as given */
 };
 
 /**
@@ -179,6 +179,10 @@ lh_ui_radius_run_init(struct lh_ui_radius_run *self, const lh_ui_rect_t *rect, l
  * @brief Coverage `0..255` of pixels `x0 .. x1 - 1` of row @p y, written to
  *        @p out `x1 - x0` bytes: ::lh_ui_radius_run, asked about one row.
  *
+ * @param self Run prepared for the rect.
+ * @param x0  First column.
+ * @param x1  One past the last column.
+ * @param y   Row.
  * @param out Receives `x1 - x0` bytes.
  */
 lh_void
@@ -191,6 +195,11 @@ lh_ui_radius_run_row(const struct lh_ui_radius_run *self, lh_s32_t x0, lh_s32_t 
  *        along a row (the rect's fixed-point edges, the radius, and the vertical
  *        distance) taken once instead of per pixel.
  *
+ * @param rect Rounded rect to cover.
+ * @param radius Corner radius.
+ * @param x0  First column.
+ * @param x1  One past the last column.
+ * @param y   Row.
  * @param out Receives `x1 - x0` bytes.
  */
 lh_void

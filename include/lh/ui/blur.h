@@ -41,18 +41,18 @@
 
 /**
  * @struct lh_ui_blur_window
- * @typedef lh_ui_blur_window_t
  * @brief The colour of a whole window summed in four channels, so a run is two
  *        reads per pixel rather than four calls. Red, green and blue are
  *        premultiplied by alpha; alpha is the straight sum.
  */
 struct lh_ui_blur_window
 {
-    lh_s32_t r;
-    lh_s32_t g;
-    lh_s32_t b;
-    lh_s32_t a;
+    lh_s32_t r; /**< Sum of premultiplied red. */
+    lh_s32_t g; /**< Sum of premultiplied green. */
+    lh_s32_t b; /**< Sum of premultiplied blue. */
+    lh_s32_t a; /**< Sum of alpha. */
 };
+/** @copybrief lh_ui_blur_window */
 typedef struct lh_ui_blur_window lh_ui_blur_window_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

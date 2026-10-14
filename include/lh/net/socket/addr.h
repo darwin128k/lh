@@ -41,7 +41,6 @@ typedef lh_u8_t lh_net_socket_addr_family_t;
 
 /**
  * @struct lh_net_socket_addr
- * @typedef lh_net_socket_addr_t
  * @brief A `family` tag plus a union of the address it names.
  *
  * Only ::lh_net_socket_addr_family_ip4 / `.as.ip4` exist today; a future
@@ -49,12 +48,14 @@ typedef lh_u8_t lh_net_socket_addr_family_t;
  */
 struct lh_net_socket_addr
 {
-    lh_net_socket_addr_family_t family;
+    lh_net_socket_addr_family_t family; /**< Which member of ::as is set. */
+    /** The address, by ::family. */
     union
     {
-        lh_net_ip4_socket_addr_t ip4;
+        lh_net_ip4_socket_addr_t ip4; /**< IPv4 address and port. */
     } as;
 };
+/** @copybrief lh_net_socket_addr */
 typedef struct lh_net_socket_addr lh_net_socket_addr_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

@@ -72,11 +72,10 @@ typedef enum lh_ui_decl_kind
     lh_ui_decl_kind_image,      /**< ::lh_ui_image_t, its mask and its tint. */
     lh_ui_decl_kind_scrollbar,  /**< ::lh_ui_scrollbar_t over the container of another row. */
     lh_ui_decl_kind_input       /**< ::lh_ui_input_t over a buffer the app owns. */
-} lh_ui_decl_kind_t;
+} lh_ui_decl_kind_t; /**< What a row builds. */
 
 /**
  * @struct lh_ui_decl
- * @typedef lh_ui_decl_t
  * @brief One row: one widget, where it sits, who holds it, and what it is made
  *        of.
  *
@@ -167,7 +166,7 @@ typedef struct lh_ui_decl
      * names -- is still a table of rows that are shown.
      */
     lh_bool_t hidden;
-} lh_ui_decl_t;
+} lh_ui_decl_t; /**< One row of a declared tree. */
 
 /**
  * @enum lh_ui_decl_error
@@ -181,11 +180,10 @@ typedef enum lh_ui_decl_error
     lh_ui_decl_error_roots,        /**< Not exactly one row is a root. */
     lh_ui_decl_error_box,          /**< A scrollbar names a row that is not a container, or is higher. */
     lh_ui_decl_error_storage      /**< The pool is too small for these rows. */
-} lh_ui_decl_error_t;
+} lh_ui_decl_error_t; /**< What a build refused. */
 
 /**
  * @struct lh_ui_decl_fault
- * @typedef lh_ui_decl_fault_t
  * @brief Which row, and what was wrong with it. A table is data, so a typo in one
  *        row has to say which row — that is the whole difference between a
  *        declaration and a call sequence.
@@ -194,7 +192,7 @@ typedef struct lh_ui_decl_fault
 {
     lh_ui_decl_error_t code; /**< ::lh_ui_decl_error_none when the build worked. */
     lh_u32_t index;          /**< Row that was refused; the last row for a whole-table fault. */
-} lh_ui_decl_fault_t;
+} lh_ui_decl_fault_t; /**< Which row a build refused, and why. */
 
 LH_COMPILER_EXTERN_C_BEGIN
 

@@ -27,13 +27,17 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/**
+ * @enum lh_ui_web_html_kind
+ * @brief What an ::lh_ui_web_html_t node is, and so which member of its union is set.
+ */
 typedef enum lh_ui_web_html_kind
 {
-    lh_ui_web_html_kind_doctype = 0,
-    lh_ui_web_html_kind_text,
-    lh_ui_web_html_kind_raw,
-    lh_ui_web_html_kind_tag
-} lh_ui_web_html_kind_t;
+    lh_ui_web_html_kind_doctype = 0, /**< `<!doctype html>`. */
+    lh_ui_web_html_kind_text,        /**< Text, HTML-escaped on emit. */
+    lh_ui_web_html_kind_raw,         /**< Markup written as is. */
+    lh_ui_web_html_kind_tag          /**< An element with attributes and children. */
+} lh_ui_web_html_kind_t; /**< What an ::lh_ui_web_html_t node is. */
 
 /**
  * @brief One markup node.
@@ -42,7 +46,8 @@ typedef enum lh_ui_web_html_kind
  */
 typedef struct lh_ui_web_html
 {
-    lh_ui_web_html_kind_t kind;
+    lh_ui_web_html_kind_t kind; /**< Which member of @c u is set. */
+    /** The content of the node, by @c kind. */
     union
     {
         const lh_str_ptr text;
@@ -74,6 +79,11 @@ lh_ui_web_html_raw(const lh_str_ptr s);
 /**
  * @brief Element node.
  *
+ * @param name    Tag name.
+ * @param attrs   Attributes, in order; may be ::lh_null when @p nattrs is `0`.
+ * @param nattrs  How many attributes @p attrs holds.
+ * @param kids    Child nodes, in order; may be ::lh_null when @p nkids is `0`.
+ * @param nkids   How many children @p kids holds.
  * @param void_el When true, emit `<name …>` with no children and no close tag.
  */
 lh_ui_web_html_t

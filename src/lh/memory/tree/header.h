@@ -24,9 +24,11 @@
  */
 struct lh_memory_tree_header
 {
+    /** Members: ::lh_memory_tree_header_fields. */
     lh_memory_tree_header_fields(lh_memory_sized_allocator_t, struct lh_memory_tree_header,
                                  lh_list_node_t, lh_list_t, lh_memory_tree_destructor_fn);
 };
+/** @copybrief lh_memory_tree_header */
 typedef struct lh_memory_tree_header lh_memory_tree_header_t;
 
 /**

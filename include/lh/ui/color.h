@@ -19,13 +19,14 @@
 
 /**
  * @struct lh_ui_color
- * @typedef lh_ui_color_t
  * @brief 8-bit RGBA. Alpha at the top of the channel is opaque.
  */
 struct lh_ui_color
 {
+    /** Members: ::lh_ui_color_fields. */
     lh_ui_color_fields(lh_ui_color_channel_t);
 };
+/** @copybrief lh_ui_color */
 typedef struct lh_ui_color lh_ui_color_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

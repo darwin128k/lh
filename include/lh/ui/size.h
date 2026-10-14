@@ -16,25 +16,38 @@
 #if LH_LIBRARY_OPTION_MATH_FPU
 #    include <lh/math/fsize.h>
 
+/** @brief A UI size: ::lh_math_fsize_t when ::LH_LIBRARY_OPTION_MATH_FPU is on. */
 typedef lh_math_fsize_t lh_ui_size_t;
 
 /** @brief Name of the float math function @p name for ::lh_ui_size_t. */
 #    define LH_UI_SIZE_FN(name) lh_math_fsize_##name
+/** @brief ::lh_ui_size_t to ::lh_math_size_t (::lh_math_fsize_to_size). */
 #    define lh_ui_size_to_size lh_math_fsize_to_size
+/** @brief ::lh_math_size_t to ::lh_ui_size_t (::lh_math_size_to_fsize). */
 #    define lh_ui_size_from_size lh_math_size_to_fsize
 #else
 #    include <lh/math/size.h>
 
+/** @brief A UI size: ::lh_math_size_t when ::LH_LIBRARY_OPTION_MATH_FPU is off. */
 typedef lh_math_size_t lh_ui_size_t;
 
 /** @brief Name of the integer math function @p name for ::lh_ui_size_t. */
 #    define LH_UI_SIZE_FN(name) lh_math_size_##name
+/** @brief ::lh_ui_size_t to ::lh_math_size_t: the same type here, so @p self as is. */
 #    define lh_ui_size_to_size(self) (self)
+/** @brief ::lh_math_size_t to ::lh_ui_size_t: the same type here, so @p self as is. */
 #    define lh_ui_size_from_size(self) (self)
 #endif
 
 /* One list for both paths: a math function missing on either side fails to
  * compile on that side instead of silently drifting. */
+/**
+ * @name Size functions
+ * Each `lh_ui_size_<op>` is `lh_math_size_<op>` (or `lh_math_fsize_<op>` with
+ * ::LH_LIBRARY_OPTION_MATH_FPU): see that function for the contract.
+ * @{
+ */
+/** @brief The `lh_math_size_*` / `lh_math_fsize_*` function of the same suffix. */
 #define lh_ui_size_init LH_UI_SIZE_FN(init)
 #define lh_ui_size_init_empty LH_UI_SIZE_FN(init_empty)
 #define lh_ui_size_from_extent LH_UI_SIZE_FN(from_extent)
@@ -49,5 +62,6 @@ typedef lh_math_size_t lh_ui_size_t;
 #define lh_ui_size_is_greater LH_UI_SIZE_FN(is_greater)
 #define lh_ui_size_is_empty LH_UI_SIZE_FN(is_empty)
 #define lh_ui_size_inset LH_UI_SIZE_FN(inset)
+/** @} */
 
 #endif /* LH_UI_SIZE_H */

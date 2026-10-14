@@ -30,8 +30,10 @@
  */
 struct lh_werror
 {
+    /** Members: ::lh_error_fields. */
     lh_error_fields(lh_error_code_t, lh_wstr_view_t);
-}; /**< Typedef for struct ::lh_werror. */
+};
+/** @copybrief lh_werror */
 typedef struct lh_werror lh_werror_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

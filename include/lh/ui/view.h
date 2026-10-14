@@ -44,13 +44,14 @@
 
 /**
  * @struct lh_ui_view
- * @typedef lh_ui_view_t
  * @brief One UI tree bound to a canvas.
  */
 struct lh_ui_view
 {
+    /** Members: ::lh_ui_view_fields. */
     lh_ui_view_fields(lh_ui_canvas_t, lh_ui_entity_t, lh_ui_color_t, lh_ui_rect_t);
 };
+/** @copybrief lh_ui_view */
 typedef struct lh_ui_view lh_ui_view_t;
 
 /**
@@ -84,16 +85,16 @@ typedef struct lh_ui_view lh_ui_view_t;
 
 /**
  * @struct lh_ui_view_focus_walk
- * @typedef lh_ui_view_focus_walk_t
  * @brief State of ::lh_ui_view_visit_focus while looking for the next focus.
  */
 struct lh_ui_view_focus_walk
 {
-    const lh_ui_entity_t *current;
-    lh_bool_t passed;
-    const lh_ui_entity_t *first;
-    const lh_ui_entity_t *next;
+    const lh_ui_entity_t *current; /**< The focus the walk starts from. */
+    lh_bool_t passed;              /**< True once ::current has been visited. */
+    const lh_ui_entity_t *first;   /**< First focusable met: the wrap-around answer. */
+    const lh_ui_entity_t *next;    /**< First focusable after ::current, once found. */
 };
+/** @copybrief lh_ui_view_focus_walk */
 typedef struct lh_ui_view_focus_walk lh_ui_view_focus_walk_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

@@ -18,7 +18,7 @@
 #include <lh/bit.h>
 #include <lh/math.h>
 
-/* A reparse point is not necessarily a symlink (junctions, dedup, cloud
+/** A reparse point is not necessarily a symlink (junctions, dedup, cloud
    placeholders are reparse points too): only its tag says so. The tag is in
    WIN32_FIND_DATA's dwReserved0. */
 LH_ATTRIBUTE_STATIC
@@ -30,7 +30,7 @@ lh_os_system_fs_is_symlink_tag(lh_os_system_win_dword_t attrs, lh_os_system_win_
                               lh_math_eq(reparse_tag, LH_OS_SYSTEM_WIN_IO_REPARSE_TAG_SYMLINK));
 }
 
-/* Symlink first (a symlink to a directory carries the directory flag too),
+/** Symlink first (a symlink to a directory carries the directory flag too),
    then directory, else a regular file. */
 LH_ATTRIBUTE_STATIC
 lh_fs_kind_t

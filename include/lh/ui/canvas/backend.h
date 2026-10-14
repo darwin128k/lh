@@ -188,7 +188,6 @@ LH_COMPILER_EXTERN_C_END
 
 /**
  * @struct lh_ui_canvas_backend
- * @typedef lh_ui_canvas_backend_t
  * @brief Function table for one renderer implementation.
  *
  * Usually a static const; not owned by ::lh_ui_canvas_t. A slot may be
@@ -196,12 +195,14 @@ LH_COMPILER_EXTERN_C_END
  */
 struct lh_ui_canvas_backend
 {
+    /** Members: ::lh_ui_canvas_backend_fields. */
     lh_ui_canvas_backend_fields(lh_ui_canvas_begin_fn, lh_ui_canvas_begin_area_fn, lh_ui_canvas_end_fn,
                                 lh_ui_canvas_clear_fn, lh_ui_canvas_fill_rect_fn,
                                 lh_ui_canvas_fill_round_rect_fn, lh_ui_canvas_set_clip_fn,
                                 lh_ui_canvas_fill_mask_fn, lh_ui_canvas_shadow_fn, lh_ui_canvas_blur_fn,
                                 lh_ui_canvas_glass_fn, lh_ui_canvas_fill_colors_fn);
 };
+/** @copybrief lh_ui_canvas_backend */
 typedef struct lh_ui_canvas_backend lh_ui_canvas_backend_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

@@ -65,6 +65,7 @@ typedef enum lh_mb_framing
 /**
  * @brief Wrap @p pdu for @p framing.
  *
+ * @param framing What the line carries.
  * @param unit Slave address.
  * @param pdu  Function code and data, as `lh_mb_build_pdu` left them.
  * @param pdu_length How many bytes @p pdu is.
@@ -103,6 +104,10 @@ lh_mb_frame_length(lh_mb_framing_t framing, const lh_byte_ptr frame, lh_u16_t ha
  * @brief The PDU inside @p frame, once the framing is off and the CRC, if the
  *        framing has one, has been checked.
  *
+ * @param framing    What the line carries.
+ * @param unit       Slave address the frame must be for.
+ * @param frame      The frame as it came off the wire.
+ * @param length     How many bytes @p frame holds.
  * @param pdu        Where the PDU goes; may be the same array as @p frame, since
  *                   only bytes in front of it are dropped.
  * @param pdu_length How many bytes the PDU is.
@@ -184,15 +189,15 @@ typedef struct lh_mb_link_counters
  */
 typedef struct lh_mb_link
 {
-    lh_io_stream_t stream;
-    lh_mb_framing_t framing;
-    lh_u8_t unit;
-    lh_u8_t fc;
+    lh_io_stream_t stream;   /**< what the bytes go through (::lh_mb_link_set_stream) */
+    lh_mb_framing_t framing; /**< what the line carries */
+    lh_u8_t unit;            /**< slave address of the device */
+    lh_u8_t fc;              /**< function code a read uses (::lh_mb_link_set_fc) */
     /** @brief The function code of the question in flight: ::fc for a read,
      *  ::LH_MB_FC_WRITE_MANY for a write. The answer is read by this and not by
      *  ::fc, because a write does not change what the link reads next. */
     lh_u8_t asked_fc;
-    lh_u8_t state;
+    lh_u8_t state; /**< where the question is, as a ::lh_mb_link_state_t */
     /** @brief Why the last poll ended the way it did, as a ::lh_mb_status_t.
      *
      *  The state says *whether* a question produced data; this says *why not*. The
@@ -240,17 +245,18 @@ typedef struct lh_mb_link
      * device that is not there.
      */
     lh_u64_t since_us;
-    lh_u16_t values[LH_MB_LINK_VALUES];
-    lh_byte_t frame[LH_MB_ADU_MAX];
-    lh_mb_link_counters_t counters;
+    lh_u16_t values[LH_MB_LINK_VALUES]; /**< words of the last answer (::lh_mb_link_take) */
+    lh_byte_t frame[LH_MB_ADU_MAX];     /**< bytes received, the first ::held of them live */
+    lh_mb_link_counters_t counters;     /**< what this link has cost so far */
     /* The clock, in microseconds. A link does not read the system clock itself:
        a test has to be able to move time by hand, and an app has to be able to
        decide what a microsecond is worth. */
-    lh_u64_t (*now_us)(lh_ptr self);
-    lh_ptr clock;
+    lh_u64_t (*now_us)(lh_ptr self); /**< the clock; ::lh_null counts nothing */
+    lh_ptr clock;                    /**< passed to every ::now_us call */
+    /** Not called by the link: a slot for the application's own notification. */
     lh_void (*on_change)(lh_ptr self, lh_ptr link);
-    lh_ptr owner;
-} lh_mb_link_t;
+    lh_ptr owner; /**< not read by the link: the application's own back pointer */
+} lh_mb_link_t; /**< One device: the question in flight, the answer, and what it cost. */
 
 /**
  * @brief Point @p self at @p stream and start empty.
@@ -261,6 +267,7 @@ typedef struct lh_mb_link
  * @param framing  What the line carries.
  * @param unit     Slave address, 1..247.
  * @param now_us   The link's clock; `lh_null` means the link counts nothing.
+ * @param clock    Passed to every @p now_us call.
  */
 lh_void
 lh_mb_link_init(lh_mb_link_t *self, const lh_io_stream_t *stream, lh_mb_framing_t framing,
