@@ -41,9 +41,11 @@
  */
 struct lh_memory_allocator
 {
+    /** Members: ::lh_memory_allocator_fields. */
     lh_memory_allocator_fields(lh_memory_allocator_alloc_fn, lh_memory_allocator_dealloc_fn,
                                lh_memory_allocator_realloc_fn, lh_ptr);
 };
+/** @copybrief lh_memory_allocator */
 typedef struct lh_memory_allocator lh_memory_allocator_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

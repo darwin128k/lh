@@ -19,6 +19,7 @@
 #include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
+/** The window class every window of ours is registered under. */
 #define LH_OS_SYSTEM_WIN_WINDOW_CLASS_NAME "lh_os_window"
 
 /** The one timer id this backend uses, and the only one a window of ours may own. */
@@ -27,10 +28,12 @@
 /** The shortest period a Windows timer can be relied on to keep: USER_TIMER_MINIMUM. */
 #define LH_OS_SYSTEM_WIN_TIMER_FLOOR_MS 10U
 
+/** The window procedure of every window of ours: Win32 messages to the window's callbacks. */
 static lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
 lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint_t msg,
                              lh_os_system_win_wparam_t wparam, lh_os_system_win_lparam_t lparam);
 
+/** Register the window class once per process; its atom, or 0 on failure. */
 static lh_os_system_win_atom_t
 lh_os_system_win_window_register_class(lh_os_system_win_hinstance_t instance)
 {
@@ -55,7 +58,7 @@ lh_os_system_win_window_register_class(lh_os_system_win_hinstance_t instance)
     return atom;
 }
 
-/* What ::lh_os_window_zone_t means to Windows. The one table, so a zone added to the
+/** What ::lh_os_window_zone_t means to Windows. The one table, so a zone added to the
    portable enum cannot be forgotten here. */
 static lh_s32_t
 lh_os_system_win_window_hit(lh_os_window_zone_t zone)
@@ -261,7 +264,7 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
     return DefWindowProcA(hwnd, msg, wparam, lparam);
 }
 
-/* Where a window opens. Win32 has exactly one answer for this — `CW_USEDEFAULT`,
+/** Where a window opens. Win32 has exactly one answer for this — `CW_USEDEFAULT`,
    a cascade from the top-left corner — and no call that means "in the middle of
    what the user is looking at", so that half is ours: the work area of the monitor
    the window opens on, which is the area the system itself calls usable.

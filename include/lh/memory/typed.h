@@ -6,10 +6,17 @@
 #include <lh/memory/bounds.h>
 #include <lh/index.h>
 
+/**
+ * @struct lh_memory_typed
+ * @brief Raw memory bounds read as an array of equally sized elements: the
+ *        bounds, the size of one element and the element count.
+ */
 struct lh_memory_typed
 {
+    /** Members: ::lh_memory_typed_fields. */
     lh_memory_typed_fields(lh_memory_bounds_t);
 };
+/** @copybrief lh_memory_typed */
 typedef struct lh_memory_typed lh_memory_typed_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

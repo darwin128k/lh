@@ -33,62 +33,72 @@
 #include <lh/util/ptr.h>
 #include <lh/cast/static.h>
 
+/** WebSocket clients served at once; one more is closed on arrival. */
 #define HOST_WS_MAX 8u
+/** Receive buffer of one client: the largest message plus a frame header. */
 #define HOST_WS_RX (LH_UI_WEB_WS_MAX_MSG + 32u)
+/** Bytes a client may have queued for sending before it is dropped as too slow. */
 #define HOST_WS_QMAX (4u * 1024u * 1024u)
+/** How long a quiet client goes before the host pings it. */
 #define HOST_WS_PING_MS 15000u
+/** How long a client may send nothing at all before it is dropped. */
 #define HOST_WS_DEAD_MS 45000u
-/* How long the loop sleeps when nothing at all happens: the tick's period. */
+/** How long the loop sleeps when nothing at all happens: the tick's period. */
 #define HOST_TICK_MS 20u
-/* How long an accepted connection may take to send its request line. */
+/** How long an accepted connection may take to send its request line. */
 #define HOST_REQUEST_MS 2000u
-/* Player HTML from ::lh_ui_web_page_build — room for the script to grow. */
+/** Player HTML from ::lh_ui_web_page_build — room for the script to grow. */
 #define HOST_PAGE_CAP (48u * 1024u)
 
+/** The player page, built once by ::lh_ui_web_page_build. */
 static lh_byte_t host_page_mem[HOST_PAGE_CAP];
+/** Bytes of ::host_page_mem in use. */
 static lh_usize_t host_page_len;
 
+/** One encoded WebSocket frame waiting to be sent. */
 typedef struct host_ws_q
 {
-    struct host_ws_q *next;
-    lh_byte_ptr bytes;
-    unsigned len;
-    unsigned off;
-} host_ws_q_t;
+    struct host_ws_q *next; /**< next frame in the queue */
+    lh_byte_ptr bytes;      /**< the whole frame, header included */
+    unsigned len;           /**< bytes in ::bytes */
+    unsigned off;           /**< bytes of it already sent */
+} host_ws_q_t; /**< One encoded WebSocket frame waiting to be sent. */
 
+/** One WebSocket client: its socket, what it sent, and what is queued for it. */
 typedef struct host_ws_cli
 {
-    lh_os_net_socket_t sock;
-    lh_byte_ptr rx;
-    unsigned rx_len;
-    lh_byte_ptr msg;
-    unsigned msg_len;
-    unsigned msg_cap;
-    unsigned msg_op;
-    lh_bool_t msg_on;
-    host_ws_q_t *qhead;
-    host_ws_q_t *qtail;
-    unsigned queued;
-    unsigned seen;
-    unsigned last_rx_ms;
-    unsigned last_ping_ms;
-    lh_bool_t used;
-    lh_bool_t closing;
-    lh_bool_t synced; /* got the last frame sent, so it holds every cover that frame assumed */
-} host_ws_cli_t;
+    lh_os_net_socket_t sock;  /**< the connection, non-blocking */
+    lh_byte_ptr rx;           /**< received bytes not yet parsed (::HOST_WS_RX) */
+    unsigned rx_len;          /**< bytes in ::rx */
+    lh_byte_ptr msg;          /**< a fragmented message being assembled */
+    unsigned msg_len;         /**< bytes in ::msg */
+    unsigned msg_cap;         /**< capacity of ::msg */
+    unsigned msg_op;          /**< opcode of the message in ::msg */
+    lh_bool_t msg_on;         /**< a fragmented message is in progress */
+    host_ws_q_t *qhead;       /**< first frame to send */
+    host_ws_q_t *qtail;       /**< last frame to send */
+    unsigned queued;          /**< bytes queued, against ::HOST_WS_QMAX */
+    unsigned seen;            /**< tree generation of the last frame it got */
+    unsigned last_rx_ms;      /**< when it last sent anything */
+    unsigned last_ping_ms;    /**< when it was last pinged */
+    lh_bool_t used;           /**< this slot holds a client */
+    lh_bool_t closing;        /**< a close was exchanged; drop once the queue drains */
+    lh_bool_t synced; /**< got the last frame sent, so it holds every cover that frame assumed */
+} host_ws_cli_t; /**< One WebSocket client. */
 
-/* What the stream of WS frames shares between iterations. */
+/** What the stream of WS frames shares between iterations. */
 typedef struct host_ws_stream
 {
-    lh_ui_canvas_web_glyphs_t glyphs; /* covers every synced client already holds */
-    char *last;                       /* bytes of the last frame sent */
-    lh_usize_t last_len;
-    lh_usize_t last_cap;
-} host_ws_stream_t;
+    lh_ui_canvas_web_glyphs_t glyphs; /**< covers every synced client already holds */
+    char *last;                       /**< bytes of the last frame sent */
+    lh_usize_t last_len;              /**< bytes in ::last */
+    lh_usize_t last_cap;              /**< capacity of ::last */
+} host_ws_stream_t; /**< What the stream of WS frames shares between iterations. */
 
-/* A literal and its length, for the wrappers that take both. */
+/** A literal and its length, for the wrappers that take both. */
 #define host_lit(s) (s), lh_cast_static(lh_usize_t, (sizeof(s) - 1u))
 
+/** Send all of @p p, stopping early only when the socket fails. */
 static lh_void
 host_send_all(lh_os_net_socket_t *client, const char *p, lh_usize_t left)
 {
@@ -105,6 +115,7 @@ host_send_all(lh_os_net_socket_t *client, const char *p, lh_usize_t left)
     }
 }
 
+/** Answer an HTTP request with status @p code, content type @p type and @p body. */
 static lh_void
 host_reply(lh_os_net_socket_t *client, unsigned code, const char *type, const char *body, lh_usize_t len)
 {
@@ -120,13 +131,14 @@ host_reply(lh_os_net_socket_t *client, unsigned code, const char *type, const ch
     host_send_all(client, body, len);
 }
 
+/** ::host_reply with a plain-text body. */
 static lh_void
 host_reply_text(lh_os_net_socket_t *client, unsigned code, const char *text, lh_usize_t len)
 {
     host_reply(client, code, "text/plain; charset=utf-8", text, len);
 }
 
-/* Does @p p (of @p len bytes) start with @p lit? */
+/** Does @p p (of @p len bytes) start with @p lit? */
 static lh_bool_t
 host_starts(const char *p, lh_usize_t len, const char *lit, lh_usize_t lit_len)
 {
@@ -136,7 +148,7 @@ host_starts(const char *p, lh_usize_t len, const char *lit, lh_usize_t lit_len)
                : lh_bool_false;
 }
 
-/* The first whole @p needle in @p p, or lh_null. lh_memory_find compares a
+/** The first whole @p needle in @p p, or lh_null. lh_memory_find compares a
    shortened needle at the tail, so a match running past the end is no match. */
 static const char *
 host_find(const char *p, lh_usize_t len, const char *needle, lh_usize_t needle_len)
@@ -147,7 +159,7 @@ host_find(const char *p, lh_usize_t len, const char *needle, lh_usize_t needle_l
     return (at != lh_null && lh_cast_static(lh_usize_t, (at - p))+ needle_len <= len) ? at : lh_null;
 }
 
-/* `GET <path>` or `POST <path>` at the start of the request. */
+/** `GET <path>` or `POST <path>` at the start of the request. */
 static lh_bool_t
 host_route(const char *req, lh_usize_t len, const char *path, lh_usize_t path_len)
 {
@@ -162,7 +174,7 @@ host_route(const char *req, lh_usize_t len, const char *path, lh_usize_t path_le
     return lh_bool_false;
 }
 
-/* The value of query parameter @p key (written `x=`), as text up to the next
+/** The value of query parameter @p key (written `x=`), as text up to the next
    `&`, space or line end. Only a key right after `?` or `&` counts, so `x=`
    is never found inside `dx=`. */
 static lh_usize_t
@@ -194,6 +206,7 @@ host_query(const char *req, lh_usize_t len, const char *key, lh_usize_t key_len,
     }
 }
 
+/** Query parameter @p key as a signed integer; 0 when absent or not a number. */
 static int
 host_query_int(const char *req, lh_usize_t len, const char *key, lh_usize_t key_len)
 {
@@ -208,6 +221,7 @@ host_query_int(const char *req, lh_usize_t len, const char *key, lh_usize_t key_
     return (int)v;
 }
 
+/** Query parameter @p key as an unsigned integer; 0 when absent or not a number. */
 static unsigned
 host_query_uint(const char *req, lh_usize_t len, const char *key, lh_usize_t key_len)
 {
@@ -222,6 +236,7 @@ host_query_uint(const char *req, lh_usize_t len, const char *key, lh_usize_t key
     return (unsigned)v;
 }
 
+/** (@p x, @p y) as an ::lh_ui_point_t. */
 static lh_ui_point_t
 host_point(int x, int y)
 {
@@ -231,6 +246,7 @@ host_point(int x, int y)
     return point;
 }
 
+/** A press at (@p x, @p y): the app's hook, or ::lh_ui_view_press without one. */
 static lh_void
 host_press(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int y)
 {
@@ -242,6 +258,7 @@ host_press(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int y
     lh_ui_view_press(view, host_point(x, y));
 }
 
+/** A release at (@p x, @p y): the app's hook, or ::lh_ui_view_release without one. */
 static lh_void
 host_release(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int y)
 {
@@ -253,6 +270,7 @@ host_release(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int
     (void)lh_ui_view_release(view, host_point(x, y));
 }
 
+/** A wheel notch at (@p x, @p y): the app's hook, or ::lh_ui_view_wheel without one. */
 static lh_void
 host_wheel(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int y, int dx, int dy)
 {
@@ -264,11 +282,14 @@ host_wheel(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int y
     (void)lh_ui_view_wheel(view, host_point(x, y), lh_cast_static(lh_ui_scalar_t, dx), lh_cast_static(lh_ui_scalar_t, dy));
 }
 
-/* Layout mode: the tab is the view. Clamp so a 1×1 or a 16k request cannot
+/** @{ */
+/** Layout mode: the tab is the view. Clamp so a 1×1 or a 16k request cannot
    blow the JSON scratch or starve the host. Fit mode never calls this. */
 #define HOST_SIZE_MIN 160
 #define HOST_SIZE_MAX 4096
+/** @} */
 
+/** Layout mode: make the view @p w x @p h, clamped; true when the size changed. */
 static lh_bool_t
 host_resize(const lh_ui_web_host_hooks_t *hooks, unsigned *width, unsigned *height, int w, int h)
 {
@@ -305,6 +326,7 @@ host_resize(const lh_ui_web_host_hooks_t *hooks, unsigned *width, unsigned *heig
     return lh_bool_true;
 }
 
+/** A key from the player (an ::lh_key_t, anything else is `other`) to the hook or the view. */
 static lh_void
 host_key(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int k)
 {
@@ -320,6 +342,7 @@ host_key(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int k)
     (void)lh_ui_view_key(view, lh_cast_static(lh_key_t, k), lh_bool_true);
 }
 
+/** A typed code point from the player to the hook or the view; 0 is ignored. */
 static lh_void
 host_text(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, lh_u32_t code)
 {
@@ -335,6 +358,7 @@ host_text(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, lh_u32_t code
     (void)lh_ui_view_text(view, code);
 }
 
+/** Mark the tree changed: the next frame is due for every client. */
 static lh_void
 host_bump(unsigned *gen)
 {
@@ -344,6 +368,7 @@ host_bump(unsigned *gen)
     }
 }
 
+/** Base64 of a 20-byte SHA-1 digest into @p out (29 bytes with the NUL). */
 static lh_void
 host_b64_sha1(lh_byte_cptr in, char *out)
 {
@@ -371,6 +396,7 @@ host_b64_sha1(lh_byte_cptr in, char *out)
     }
 }
 
+/** Answer a WebSocket handshake (RFC 6455) and make the socket non-blocking. */
 static lh_bool_t
 host_ws_upgrade(lh_os_net_socket_t *client, const char *req, lh_usize_t len)
 {
@@ -421,7 +447,7 @@ host_ws_upgrade(lh_os_net_socket_t *client, const char *req, lh_usize_t len)
     return lh_bool_true;
 }
 
-/* One input from the player: `p x y`, `r x y`, `w x y dx dy`, `k key`, `t code`,
+/** One input from the player: `p x y`, `r x y`, `w x y dx dy`, `k key`, `t code`,
    `z w h` (layout-mode size). */
 static lh_void
 host_event_line(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *width, unsigned *height,
@@ -468,6 +494,7 @@ host_event_line(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigne
     host_bump(gen);
 }
 
+/** Close a client and free everything it holds. */
 static lh_void
 host_ws_drop(host_ws_cli_t *c)
 {
@@ -503,6 +530,8 @@ host_ws_drop(host_ws_cli_t *c)
     c->closing = lh_bool_false;
 }
 
+/** Queue one frame for a client, at the front for control frames; drops a client over
+ * ::HOST_WS_QMAX. */
 static lh_bool_t
 host_ws_enqueue(host_ws_cli_t *c, unsigned opcode, const void *payload, lh_usize_t plen, lh_bool_t front)
 {
@@ -558,6 +587,7 @@ host_ws_enqueue(host_ws_cli_t *c, unsigned opcode, const void *payload, lh_usize
     return lh_bool_true;
 }
 
+/** Send what a client's socket takes now; drops it on error or once a close has drained. */
 static lh_void
 host_ws_flush(host_ws_cli_t *c)
 {
@@ -595,6 +625,7 @@ host_ws_flush(host_ws_cli_t *c)
     }
 }
 
+/** Append a fragment to the message being assembled; false past ::LH_UI_WEB_WS_MAX_MSG. */
 static lh_bool_t
 host_ws_msg_add(host_ws_cli_t *c, lh_byte_cptr p, lh_usize_t n)
 {
@@ -623,6 +654,7 @@ host_ws_msg_add(host_ws_cli_t *c, lh_byte_cptr p, lh_usize_t n)
     return lh_bool_true;
 }
 
+/** Parse every whole frame received: answer pings and closes, run text messages as input lines. */
 static lh_void
 host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *width,
                unsigned *height, unsigned *gen, unsigned now)
@@ -730,6 +762,7 @@ host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_
     }
 }
 
+/** Give an upgraded connection a free client slot, or close it when there is none. */
 static lh_void
 host_ws_attach(host_ws_cli_t *slots, lh_os_net_socket_t *client, unsigned now)
 {
@@ -769,6 +802,7 @@ host_ws_attach(host_ws_cli_t *slots, lh_os_net_socket_t *client, unsigned now)
     lh_os_net_socket_close(client);
 }
 
+/** Ping, time out, read and answer one client; one pass, never blocks. */
 static lh_void
 host_ws_pump(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *width,
              unsigned *height, unsigned *gen, unsigned now)
@@ -816,6 +850,7 @@ host_ws_pump(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_t 
     }
 }
 
+/** Draw the whole view as one JSON frame into @p json. */
 static lh_bool_t
 host_draw(lh_ui_view_t *view, unsigned width, unsigned height, char *json, lh_usize_t json_cap,
           lh_ui_canvas_web_t *web, lh_ui_canvas_web_glyphs_t *glyphs)
@@ -834,7 +869,7 @@ host_draw(lh_ui_view_t *view, unsigned width, unsigned height, char *json, lh_us
     return lh_ui_canvas_web_close(web);
 }
 
-/* An input over HTTP: the same lines as WS, with the numbers in the query. */
+/** An input over HTTP: the same lines as WS, with the numbers in the query. */
 static lh_bool_t
 host_handle_input(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *width, unsigned *height,
                   const char *req, lh_usize_t len)
@@ -881,6 +916,7 @@ host_handle_input(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsig
     return lh_bool_true;
 }
 
+/** Serve one HTTP request; true when it became a WebSocket to keep. */
 static lh_bool_t
 host_handle(lh_ui_view_t *view, unsigned *width, unsigned *height, char *json, lh_usize_t json_cap,
             const lh_ui_web_host_hooks_t *hooks, unsigned *gen, lh_os_net_socket_t *client)
@@ -952,7 +988,7 @@ host_handle(lh_ui_view_t *view, unsigned *width, unsigned *height, char *json, l
     return lh_bool_false;
 }
 
-/* Is @p c waiting for a frame it can take now? A client still sending the last
+/** Is @p c waiting for a frame it can take now? A client still sending the last
    one is skipped and gets the newest when it is done. */
 static lh_bool_t
 host_ws_wants(const host_ws_cli_t *c, unsigned gen)
@@ -960,6 +996,7 @@ host_ws_wants(const host_ws_cli_t *c, unsigned gen)
     return (c->used && !c->closing && c->seen != gen && c->qhead == lh_null) ? lh_bool_true : lh_bool_false;
 }
 
+/** Keep a copy of the frame just sent, to skip sending an equal one. */
 static lh_void
 host_ws_remember(host_ws_stream_t *stream, const char *body, lh_usize_t len)
 {
@@ -979,6 +1016,7 @@ host_ws_remember(host_ws_stream_t *stream, const char *body, lh_usize_t len)
     stream->last_len = len;
 }
 
+/** Whether @p body equals the last frame sent. */
 static lh_bool_t
 host_ws_same(const host_ws_stream_t *stream, const char *body, lh_usize_t len)
 {
@@ -988,7 +1026,7 @@ host_ws_same(const host_ws_stream_t *stream, const char *body, lh_usize_t len)
                : lh_bool_false;
 }
 
-/* Draw once for every client that wants a frame and send it. Covers go once per
+/** Draw once for every client that wants a frame and send it. Covers go once per
    connection: a client that missed a frame, or is new, resets the set so this
    one carries them all. A frame equal to the last one sent is not sent again. */
 static lh_void
@@ -1055,6 +1093,7 @@ host_ws_frame(host_ws_cli_t *cli, host_ws_stream_t *stream, lh_ui_view_t *view, 
     }
 }
 
+/** Accept and serve every connection waiting on the listener. */
 static lh_void
 host_accept_all(lh_os_net_socket_t *listen_fd, host_ws_cli_t *cli, lh_ui_view_t *view, unsigned *width,
                 unsigned *height, char *json, lh_usize_t json_cap, const lh_ui_web_host_hooks_t *hooks,
@@ -1081,7 +1120,7 @@ host_accept_all(lh_os_net_socket_t *listen_fd, host_ws_cli_t *cli, lh_ui_view_t 
     }
 }
 
-/* Sleep until a connection, a client's input or room for its queued output --
+/** Sleep until a connection, a client's input or room for its queued output --
    or @p timeout_ms, whichever is first. This is what answers an input in the
    time it takes to draw it, rather than in up to one tick. A wait that fails
    (a client socket gone bad under it) waits on the listener alone, so the loop

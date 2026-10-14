@@ -212,7 +212,7 @@ lh_ui_text_count_lines(const lh_char_t *text)
 
 /* ── Lines a width breaks ────────────────────────────────────────────────── */
 
-/* Where the line that starts at @p line ends when it may be @p width wide: at a line
+/** Where the line that starts at @p line ends when it may be @p width wide: at a line
    break, or before the word that would not fit, or -- when one word is wider than the
    whole width -- before the first letter that would not, and never before the first
    letter, so a line always takes something and a text always ends. @p width of 0 or
@@ -250,7 +250,7 @@ lh_ui_text_wrap_end(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_scala
     }
 }
 
-/* Where the line after the one that ends at @p end starts, or ::lh_null when there is
+/** Where the line after the one that ends at @p end starts, or ::lh_null when there is
    none. A line break is stepped over; so are the spaces a wrap broke at, which belong
    to neither line. */
 static const lh_char_t *
@@ -276,7 +276,7 @@ lh_ui_text_wrap_next(const lh_char_t *end, lh_ui_scalar_t width)
 
 /* ── Measuring ───────────────────────────────────────────────────────────── */
 
-/* The advances of the letters from @p line up to @p end. */
+/** The advances of the letters from @p line up to @p end. */
 static lh_ui_scalar_t
 lh_ui_text_span_width(const lh_ui_font_t *font, const lh_char_t *line, const lh_char_t *end)
 {
@@ -310,7 +310,7 @@ lh_ui_text_get_width(const lh_ui_font_t *font, const lh_char_t *text)
     return width;
 }
 
-/* The widest line @p width breaks @p text into. */
+/** The widest line @p width breaks @p text into. */
 static lh_ui_scalar_t
 lh_ui_text_get_wrapped_width(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width)
 {
@@ -327,7 +327,7 @@ lh_ui_text_get_wrapped_width(const lh_ui_font_t *font, const lh_char_t *text, lh
     return widest;
 }
 
-/* How far right a line of @p line_width starts in a block @p block wide: every line
+/** How far right a line of @p line_width starts in a block @p block wide: every line
    of a centred paragraph is centred on its own, as CSS centres them, and not the
    paragraph as one block with its lines flush left inside it. */
 static lh_ui_scalar_t
@@ -344,7 +344,7 @@ lh_ui_text_line_shift(lh_ui_scalar_t block, lh_ui_scalar_t line_width, lh_ui_tex
     return lh_ui_scalar(0);
 }
 
-/* The ink of the letters from @p line up to @p end, the line box at @p origin. */
+/** The ink of the letters from @p line up to @p end, the line box at @p origin. */
 static lh_ui_rect_t
 lh_ui_text_span_ink_rect(const lh_ui_font_t *font, const lh_char_t *line, const lh_char_t *end,
                          lh_ui_point_t origin)
@@ -545,7 +545,7 @@ lh_ui_text_draw_code(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, lh_u32_t 
     return lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance(font, code));
 }
 
-/* The letters from @p line up to @p end, the line box at @p origin. */
+/** The letters from @p line up to @p end, the line box at @p origin. */
 static lh_void
 lh_ui_text_draw_span(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *line,
                      const lh_char_t *end, lh_ui_point_t origin, const lh_ui_color_t *color)
@@ -585,7 +585,7 @@ lh_ui_text_draw_line(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_
     lh_ui_text_draw_span(canvas, font, line, lh_ui_text_get_line_end(line), origin, color);
 }
 
-/* Every line @p width breaks @p text into, each shifted by @p align inside the block,
+/** Every line @p width breaks @p text into, each shifted by @p align inside the block,
    the first line box @p ink_top above @p origin. */
 static lh_void
 lh_ui_text_draw_lines(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text,

@@ -6,6 +6,7 @@
 /* termios' CRTSCTS and the high baud rates are not POSIX; glibc shows them with
    its default feature set, which a project built with -std=c11 does not get. */
 #if !defined(_DEFAULT_SOURCE)
+/** glibc feature macro: shows `CRTSCTS` and the high baud rates under `-std=c11`. */
 #    define _DEFAULT_SOURCE 1
 #endif
 
@@ -20,7 +21,7 @@
 #include <termios.h>
 #include <unistd.h>
 
-/* A rate is a constant on POSIX, not a number: `B9600`, not 9600. Only the ones
+/** A rate is a constant on POSIX, not a number: `B9600`, not 9600. Only the ones
    this platform defines are listed, and a rate that is not here is refused. */
 static speed_t
 lh_os_system_serial_speed(lh_u32_t baud)

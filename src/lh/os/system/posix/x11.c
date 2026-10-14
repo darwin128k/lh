@@ -9,19 +9,25 @@
 
 #include <dlfcn.h>
 
+/** libX11's entry points, once loaded. */
 static lh_os_system_posix_x11_t lh_os_system_posix_x11;
 
-/* 0 not tried yet, 1 loaded, -1 tried and there is none. Tried once: a machine
+/** 0 not tried yet, 1 loaded, -1 tried and there is none. Tried once: a machine
    that has no libX11 will not grow one, and dlopen is not free. */
 static int lh_os_system_posix_x11_state;
 
+/** libXext's entry points, once loaded. */
 static lh_os_system_posix_xext_t lh_os_system_posix_xext;
+/** Same states as ::lh_os_system_posix_x11_state, for libXext. */
 static int lh_os_system_posix_xext_state;
 
+/** libXrender's entry points, once loaded. */
 static lh_os_system_posix_xrender_t lh_os_system_posix_xrender;
+/** Same states as ::lh_os_system_posix_x11_state, for libXrender. */
 static int lh_os_system_posix_xrender_state;
 
-/* Each pointer is filled from the symbol of its own name. Assigned through a
+/** @{ */
+/** Each pointer is filled from the symbol of its own name. Assigned through a
    `void **` because ISO C has no conversion from `void *` to a function pointer,
    and dlsym returns the one to stand for the other. */
 #define LH_OS_SYSTEM_POSIX_X11_LOAD_INTO(table, name)                                              \
@@ -37,7 +43,9 @@ static int lh_os_system_posix_xrender_state;
 #define LH_OS_SYSTEM_POSIX_X11_LOAD(name) LH_OS_SYSTEM_POSIX_X11_LOAD_INTO(lh_os_system_posix_x11, name)
 #define LH_OS_SYSTEM_POSIX_XEXT_LOAD(name) LH_OS_SYSTEM_POSIX_X11_LOAD_INTO(lh_os_system_posix_xext, name)
 #define LH_OS_SYSTEM_POSIX_XRENDER_LOAD(name) LH_OS_SYSTEM_POSIX_X11_LOAD_INTO(lh_os_system_posix_xrender, name)
+/** @} */
 
+/** Load libX11 and every symbol the backend calls; ::lh_null when it is not there. */
 static const lh_os_system_posix_x11_t *
 lh_os_system_posix_x11_open(void)
 {
@@ -110,6 +118,7 @@ lh_os_system_posix_x11_load(void)
     return lh_os_system_posix_x11_state > 0 ? &lh_os_system_posix_x11 : lh_null;
 }
 
+/** Load libXext (MIT-SHM, SHAPE); ::lh_null when it is not there. */
 static const lh_os_system_posix_xext_t *
 lh_os_system_posix_xext_open(void)
 {
@@ -143,6 +152,7 @@ lh_os_system_posix_xext_load(void)
     return lh_os_system_posix_xext_state > 0 ? &lh_os_system_posix_xext : lh_null;
 }
 
+/** Load libXrender; ::lh_null when it is not there. */
 static const lh_os_system_posix_xrender_t *
 lh_os_system_posix_xrender_open(void)
 {

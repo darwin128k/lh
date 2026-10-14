@@ -94,6 +94,7 @@ lh_os_system_net_socket_connect_start(lh_os_system_net_socket_handle_t handle,
  * @brief Wait at most @p timeout_ms for a connect started by
  *        ::lh_os_system_net_socket_connect_start to finish.
  *
+ * @param handle     Socket a connect was started on.
  * @param timeout_ms `0` only looks.
  *
  * @return `0` once connected, ::LH_OS_RESULT_PENDING if it is still under way
@@ -112,6 +113,7 @@ lh_os_system_net_socket_bind(lh_os_system_net_socket_handle_t handle, const lh_n
 
 /**
  * @brief Mark a bound TCP @p handle as listening.
+ * @param handle  Bound TCP socket.
  * @param backlog Maximum pending connections to queue; must not be negative.
  * @return ::lh_bool_true on success, ::lh_bool_false if the native call failed.
  */
@@ -167,6 +169,10 @@ lh_os_system_net_socket_set_no_delay(lh_os_system_net_socket_handle_t handle, lh
  * Each set holds at most ::LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX handles. With both
  * sets empty it answers ::LH_OS_RESULT_PENDING at once instead of sleeping.
  *
+ * @param read       Handles to watch for reading; may be ::lh_null when @p read_count is `0`.
+ * @param read_count How many handles @p read holds.
+ * @param write      Handles to watch for writing; may be ::lh_null when @p write_count is `0`.
+ * @param write_count How many handles @p write holds.
  * @param timeout_ms `0` only looks.
  * @return How many handles are ready (> 0), ::LH_OS_RESULT_PENDING when the
  *         time ran out first, ::LH_OS_RESULT_INVALID on failure.

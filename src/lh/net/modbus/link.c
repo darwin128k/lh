@@ -69,7 +69,7 @@ lh_mb_encode(lh_mb_framing_t framing, lh_u8_t unit, lh_u16_t tx, lh_byte_cptr pd
     return (lh_u16_t)(3 + pdu_length);
 }
 
-/* How long an RTU answer is, from its function code: a read says how many bytes
+/** How long an RTU answer is, from its function code: a read says how many bytes
    in its third byte, a write echoes its request, and an exception is five. 125
    registers is the most, so 255 bytes is the most a read answer can be. */
 static lh_u16_t
@@ -252,7 +252,7 @@ lh_mb_link_set_stream(lh_mb_link_t *self, const lh_io_stream_t *stream)
     self->reason = lh_mb_status_ok;
 }
 
-/* The stream is gone: the peer closed it, it failed, or it took half a request. A
+/** The stream is gone: the peer closed it, it failed, or it took half a request. A
    frame boundary cannot be found on it again, so nothing held is kept, and the
    reason says so -- the app opens a new stream and hands it to
    ::lh_mb_link_set_stream. */
@@ -266,7 +266,7 @@ lh_mb_link_lose(lh_mb_link_t *self)
     return lh_mb_link_failed;
 }
 
-/* Drop the first @p n bytes held. Over MBAP what follows them is the start of the
+/** Drop the first @p n bytes held. Over MBAP what follows them is the start of the
    next frame and is kept: TCP is a stream, a recv hands over whatever has arrived,
    and an answer and the frame behind it come in one piece as often as not. Over RTU
    there is no length to find the next frame by, so everything goes. */
@@ -282,7 +282,7 @@ lh_mb_link_consume(lh_mb_link_t *self, lh_u16_t n)
     self->held = lh_cast_static(lh_u16_t, (self->held - n));
 }
 
-/* Everything after the PDU is the same for a read and a write: the envelope, the send,
+/** Everything after the PDU is the same for a read and a write: the envelope, the send,
    and the bookkeeping that makes the answer this question's. @p fc is the code the
    answer will carry, and ::lh_mb_link_poll reads it by that. */
 static lh_bool_t

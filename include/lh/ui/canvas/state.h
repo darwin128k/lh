@@ -20,13 +20,14 @@
 
 /**
  * @struct lh_ui_canvas_state
- * @typedef lh_ui_canvas_state_t
  * @brief Offset, and the clip when there is one.
  */
 struct lh_ui_canvas_state
 {
+    /** Members: ::lh_ui_canvas_state_fields. */
     lh_ui_canvas_state_fields(lh_ui_point_t, lh_ui_rect_t, lh_bool_t, lh_u8_t);
 };
+/** @copybrief lh_ui_canvas_state */
 typedef struct lh_ui_canvas_state lh_ui_canvas_state_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

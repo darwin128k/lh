@@ -36,6 +36,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 struct lh_datetime
 {
+    /** Members: ::lh_datetime_fields. */
     lh_datetime_fields(lh_date_t, lh_time_t);
 };
 

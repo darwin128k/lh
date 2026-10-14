@@ -10,6 +10,8 @@
 #include <lh/ui/canvas/backend.h>
 #include <lh/util/addr.h>
 
+/** Point the pixmap at @p bits, sized to the panel or the strip; empty when there is nothing to
+ * bind. */
 static lh_void
 display_rebind_pixmap(lh_ui_display_t *self, lh_byte_ptr bits, lh_s32_t stride)
 {

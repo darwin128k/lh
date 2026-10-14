@@ -56,9 +56,11 @@ struct lh_os_loader;
  */
 struct lh_os_module
 {
+    /** Members: ::lh_os_module_fields. */
     lh_os_module_fields(lh_os_shared_t, lh_bool_t, const lh_os_module_ops_t *, lh_ptr,
                         struct lh_os_loader *, lh_list_node_t);
 };
+/** @copybrief lh_os_module */
 typedef struct lh_os_module lh_os_module_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

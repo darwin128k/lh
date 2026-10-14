@@ -23,13 +23,14 @@
 
 /**
  * @struct lh_ui_mask
- * @typedef lh_ui_mask_t
  * @brief A view of packed coverage pixels.
  */
 struct lh_ui_mask
 {
+    /** Members: ::lh_ui_mask_fields. */
     lh_ui_mask_fields(lh_byte_t, lh_s32_t, lh_byte_t);
 };
+/** @copybrief lh_ui_mask */
 typedef struct lh_ui_mask lh_ui_mask_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -98,6 +99,10 @@ lh_ui_mask_get_coverage(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y);
  *        ::lh_ui_mask_get_coverage per pixel, with the row pointer, the bits per
  *        pixel and the rescale taken once instead of once per pixel.
  *
+ * @param self Mask to read.
+ * @param x0  First column.
+ * @param x1  One past the last column.
+ * @param y   Row.
  * @param out Receives `x1 - x0` bytes.
  */
 lh_void

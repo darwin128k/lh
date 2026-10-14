@@ -47,7 +47,7 @@
 #include <lh/void.h>
 
 /**
- * @typedef lh_ui_justify_t
+ * @enum lh_ui_justify
  * @brief Where the leftover room goes along the flow.
  *
  * Only asked when no child took it: a child that fills (::lh_ui_place_size_fill)
@@ -69,17 +69,18 @@ typedef enum lh_ui_justify
     lh_ui_justify_space_between,
     lh_ui_justify_space_around,
     lh_ui_justify_space_evenly
-} lh_ui_justify_t;
+} lh_ui_justify_t; /**< Where the leftover room goes along the flow. */
 
 /**
  * @struct lh_ui_layout
- * @typedef lh_ui_layout_t
  * @brief A row or column rule, with a place for what is left over.
  */
 struct lh_ui_layout
 {
+    /** Members: ::lh_ui_layout_fields. */
     lh_ui_layout_fields(lh_ui_axis_t, lh_ui_scalar_t, lh_ui_justify_t, lh_bool_t);
 };
+/** @copybrief lh_ui_layout */
 typedef struct lh_ui_layout lh_ui_layout_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

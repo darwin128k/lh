@@ -28,13 +28,14 @@ struct lh_math_size;
 
 /**
  * @struct lh_math_point
- * @typedef lh_math_point_t
  * @brief A 2D point: `x` is horizontal, `y` is vertical.
  */
 struct lh_math_point
 {
+    /** Members: ::lh_math_point_fields. */
     lh_math_point_fields(lh_math_scalar_t);
 };
+/** @copybrief lh_math_point */
 typedef struct lh_math_point lh_math_point_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

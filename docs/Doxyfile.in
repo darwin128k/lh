@@ -9,9 +9,18 @@ OUTPUT_DIRECTORY       = @CMAKE_SOURCE_DIR@/docs
 #---------------------------------------------------------------------------
 # Input
 #---------------------------------------------------------------------------
+# The guides README.md links to are listed one by one: docs/ itself also holds
+# the generated html/, which must never be read back in.
 INPUT                  = @CMAKE_SOURCE_DIR@/README.md \
                          @CMAKE_SOURCE_DIR@/CHANGELOG.md \
                          @CMAKE_SOURCE_DIR@/LICENSE.md \
+                         @CMAKE_SOURCE_DIR@/docs/usage.md \
+                         @CMAKE_SOURCE_DIR@/docs/usage-embedded.md \
+                         @CMAKE_SOURCE_DIR@/docs/usage-desktop.md \
+                         @CMAKE_SOURCE_DIR@/docs/usage-web.md \
+                         @CMAKE_SOURCE_DIR@/docs/module-loader.md \
+                         @CMAKE_SOURCE_DIR@/scripts/README.md \
+                         @CMAKE_SOURCE_DIR@/tools/README.md \
                          @CMAKE_SOURCE_DIR@/include \
                          @CMAKE_SOURCE_DIR@/src
 
@@ -19,13 +28,39 @@ INPUT                  = @CMAKE_SOURCE_DIR@/README.md \
 IMAGE_PATH             = @CMAKE_SOURCE_DIR@/docs/assets
 FILE_PATTERNS          = *.h *.c *.md
 RECURSIVE              = YES
-EXCLUDE_PATTERNS       = */build/* */cmake-build-*/* */tools/*
+EXCLUDE_PATTERNS       = */build/* */cmake-build-*/* */tools/*.py
 USE_MDFILE_AS_MAINPAGE = @CMAKE_SOURCE_DIR@/README.md
+# Heading ids as GitHub makes them, so README's [Performance](#performance)
+# resolves in both places.
+MARKDOWN_ID_STYLE      = GITHUB
+
+#---------------------------------------------------------------------------
+# Preprocessing
+#---------------------------------------------------------------------------
+# `extern "C" {` / `}` wrappers carry no semicolon; unexpanded, Doxygen glues
+# them onto the declaration that follows and loses its documentation.
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+# WCHAR_MIN / WCHAR_MAX come from <stdint.h>, which Doxygen does not read; without
+# them lh/wchar.h takes its #error branch and LH_WCHAR_T_MIN / _MAX vanish.
+# lh_assert_static(...) is a declaration-level check, not an API: hidden here.
+PREDEFINED             = LH_COMPILER_EXTERN_C_BEGIN= \
+                         LH_COMPILER_EXTERN_C_END= \
+                         "lh_assert_static(cond, msg)=" \
+                         WCHAR_MIN \
+                         WCHAR_MAX \
+                         "lh_byte_cptr=const lh_byte_ptr" \
+                         "lh_str_cptr=const lh_str_ptr" \
+                         "lh_wstr_cptr=const lh_wstr_ptr"
 
 #---------------------------------------------------------------------------
 # Extraction
 #---------------------------------------------------------------------------
 EXTRACT_ALL            = NO
+# A `@name ... @{ @}` group of one-line forwarders (lh/ui/rect.h, ...) is
+# documented once, on its first member, and shared by the rest.
+DISTRIBUTE_GROUP_DOC   = YES
 EXTRACT_STATIC         = YES
 HIDE_UNDOC_MEMBERS     = NO
 OPTIMIZE_OUTPUT_FOR_C  = YES
@@ -46,6 +81,9 @@ GENERATE_LATEX         = NO
 #---------------------------------------------------------------------------
 HAVE_DOT               = @DOXYGEN_HAVE_DOT@
 DOT_PATH               = @DOXYGEN_DOT_PATH@
+# One `dot` per graph, thousands of graphs: unbounded, they take every core and
+# the machine with them. Two at a time keeps it usable.
+DOT_NUM_THREADS        = 2
 
 INCLUDE_GRAPH          = @DOXYGEN_HAVE_DOT@
 INCLUDED_BY_GRAPH      = @DOXYGEN_HAVE_DOT@
@@ -66,4 +104,6 @@ ALIASES                = "fails=@par Fails (runtime check):^^"
 QUIET                  = NO
 WARNINGS               = YES
 WARN_IF_UNDOCUMENTED   = YES
-WARN_NO_PARAMDOC       = YES
+# The library documents parameters inline with @p in the @brief; a separate
+# @param / @return per function is not required.
+WARN_NO_PARAMDOC       = NO

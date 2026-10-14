@@ -8,7 +8,6 @@
 
 /**
  * @enum lh_ui_pixmap_format
- * @typedef lh_ui_pixmap_format_t
  * @brief How one pixel is stored.
  */
 enum lh_ui_pixmap_format
@@ -23,6 +22,7 @@ enum lh_ui_pixmap_format
      *  what most SPI display controllers take, so a frame goes out as is. */
     lh_ui_pixmap_format_rgb565_swapped
 };
+/** @brief How one pixel is stored. */
 typedef enum lh_ui_pixmap_format lh_ui_pixmap_format_t;
 
 #endif /* LH_UI_PIXMAP_FORMAT_H */

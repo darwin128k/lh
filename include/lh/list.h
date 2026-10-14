@@ -47,8 +47,10 @@
  */
 struct lh_list
 {
+    /** Members: ::lh_list_fields. */
     lh_list_fields(lh_list_node_t);
 };
+/** @copybrief lh_list */
 typedef struct lh_list lh_list_t;
 
 /**
@@ -111,6 +113,7 @@ lh_list_get_at(const lh_list_t *self, lh_uindex_t index);
 /**
  * @brief Element after @p node, or ::lh_null if @p node is the last.
  *
+ * @param self List that holds @p node.
  * @param node An element of @p self.
  */
 lh_list_node_t *
@@ -119,6 +122,7 @@ lh_list_get_next(const lh_list_t *self, const lh_list_node_t *node);
 /**
  * @brief Element before @p node, or ::lh_null if @p node is the first.
  *
+ * @param self List that holds @p node.
  * @param node An element of @p self.
  */
 lh_list_node_t *
@@ -156,6 +160,8 @@ lh_list_push_back(lh_list_t *self, lh_list_node_t *node);
  * existing element. Equal keys stay stable — @p node is placed after them.
  * O(n).
  *
+ * @param self    Ordered list to insert into.
+ * @param node    Element to insert; must not be in any list.
  * @param cmp     Order of two elements.
  * @param context Passed to every @p cmp call.
  */
@@ -191,6 +197,7 @@ lh_list_clear(lh_list_t *self);
  * Bottom-up merge sort over the links themselves. Pointers to elements stay
  * valid; only their order changes.
  *
+ * @param self    List to sort in place.
  * @param cmp     Order of two elements.
  * @param context Passed to every @p cmp call.
  */

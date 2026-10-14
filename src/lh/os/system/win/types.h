@@ -45,13 +45,13 @@ typedef lh_int_t lh_os_system_win_bool_t;
 /** @brief `HANDLE`. */
 typedef lh_ptr lh_os_system_win_handle_t;
 
-/* `MAX_PATH`: length of a classic (non-`\\?\`) path buffer, NUL included. */
+/** `MAX_PATH`: length of a classic (non-`\\?\`) path buffer, NUL included. */
 #define LH_OS_SYSTEM_WIN_MAX_PATH 260
 
-/* Placed before the return type: the function lives in a system DLL. */
+/** Placed before the return type: the function lives in a system DLL. */
 #define LH_OS_SYSTEM_WIN_IMPORT __declspec(dllimport)
 
-/* Placed before the function name: `WINAPI` / `WSAAPI`. Only matters on
+/** Placed before the function name: `WINAPI` / `WSAAPI`. Only matters on
    32-bit x86, where it is not the default convention. */
 #define LH_OS_SYSTEM_WIN_CALL __stdcall
 

@@ -357,7 +357,7 @@ lh_mb_parse_read(lh_byte_cptr adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh
    a slide that the code does not produce, and nobody finds out which of the two is
    wrong until a device is asked for something it was never sent. */
 
-/* How far a run that currently ends at `end` reaches once `next` is folded in, or
+/** How far a run that currently ends at `end` reaches once `next` is folded in, or
    0 when it must not be — the two reasons being a gap worth crossing and a run
    longer than one read may ask for. */
 static lh_u16_t

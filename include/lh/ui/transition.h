@@ -28,13 +28,14 @@ struct lh_ui_entity;
 
 /**
  * @struct lh_ui_transition
- * @typedef lh_ui_transition_t
  * @brief A slot for one look in flight.
  */
 struct lh_ui_transition
 {
+    /** Members: ::lh_ui_transition_fields. */
     lh_ui_transition_fields(struct lh_ui_entity, lh_ui_style_t);
 };
+/** @copybrief lh_ui_transition */
 typedef struct lh_ui_transition lh_ui_transition_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

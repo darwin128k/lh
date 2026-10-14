@@ -20,13 +20,14 @@
 
 /**
  * @struct lh_ui_insets
- * @typedef lh_ui_insets_t
  * @brief Left, top, right, bottom.
  */
 struct lh_ui_insets
 {
+    /** Members: ::lh_ui_insets_fields. */
     lh_ui_insets_fields(lh_ui_scalar_t);
 };
+/** @copybrief lh_ui_insets */
 typedef struct lh_ui_insets lh_ui_insets_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

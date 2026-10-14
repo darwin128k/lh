@@ -38,6 +38,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 struct lh_date
 {
+    /** Members: ::lh_date_fields. */
     lh_date_fields(lh_date_year_t, lh_date_month_t, lh_date_day_t);
 };
 

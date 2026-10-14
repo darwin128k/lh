@@ -25,13 +25,14 @@
 
 /**
  * @struct lh_ui_shadow_ramp
- * @typedef lh_ui_shadow_ramp_t
  * @brief A shadow's corner fade as squared distances.
  */
 struct lh_ui_shadow_ramp
 {
+    /** Members: ::lh_ui_shadow_ramp_fields. */
     lh_ui_shadow_ramp_fields(LH_UI_SHADOW_RAMP_LEVELS);
 };
+/** @copybrief lh_ui_shadow_ramp */
 typedef struct lh_ui_shadow_ramp lh_ui_shadow_ramp_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

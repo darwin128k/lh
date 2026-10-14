@@ -19,13 +19,14 @@
 
 /**
  * @struct lh_ui_entity_transform
- * @typedef lh_ui_entity_transform_t
  * @brief Offset added to the children, and the clip flag.
  */
 struct lh_ui_entity_transform
 {
+    /** Members: ::lh_ui_entity_transform_fields. */
     lh_ui_entity_transform_fields(lh_ui_point_t, lh_bool_t);
 };
+/** @copybrief lh_ui_entity_transform */
 typedef struct lh_ui_entity_transform lh_ui_entity_transform_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

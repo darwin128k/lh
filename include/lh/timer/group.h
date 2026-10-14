@@ -18,13 +18,14 @@
 
 /**
  * @struct lh_timer_group
- * @typedef lh_timer_group_t
  * @brief List head for ::lh_timer_t nodes.
  */
 struct lh_timer_group
 {
+    /** Members: ::lh_timer_group_fields. */
     lh_timer_group_fields(lh_list_t);
 };
+/** @copybrief lh_timer_group */
 typedef struct lh_timer_group lh_timer_group_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

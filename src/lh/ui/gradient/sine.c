@@ -5,7 +5,7 @@
 
 #include <lh/ui/gradient/sine.h>
 
-/* sin(d) for d in 0 .. 90 degrees, times 4096. Whole degrees are all CSS angles a sheet
+/** sin(d) for d in 0 .. 90 degrees, times 4096. Whole degrees are all CSS angles a sheet
    writes in practice, and a table is the same on a build with no FPU. */
 static const lh_s16_t lh_ui_gradient_sine_table[91] = {
     0, 71, 143, 214, 286, 357, 428, 499, 570, 641, 711, 782,

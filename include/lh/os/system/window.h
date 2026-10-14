@@ -99,7 +99,7 @@ typedef enum lh_os_system_window_pump_result
     lh_os_system_window_pump_quit = 0,
     lh_os_system_window_pump_message = 1,
     lh_os_system_window_pump_timeout = 2
-} lh_os_system_window_pump_result_t;
+} lh_os_system_window_pump_result_t; /**< Outcome of ::lh_os_system_window_pump_wait. */
 
 /**
  * @brief Wait up to @p timeout_ms for input, then dispatch pending messages.

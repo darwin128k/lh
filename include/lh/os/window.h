@@ -55,13 +55,14 @@ struct lh_os_app;
 
 /**
  * @struct lh_os_window
- * @typedef lh_os_window_t
  * @brief One native window: handle, app or parent, and modal children.
  */
 struct lh_os_window
 {
+    /** Members: ::lh_os_window_fields. */
     lh_os_window_fields(lh_os_system_window_handle_t, struct lh_os_app, struct lh_os_window);
 };
+/** @copybrief lh_os_window */
 typedef struct lh_os_window lh_os_window_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -172,6 +173,11 @@ lh_os_window_set_on_zone(lh_os_window_t *self, lh_os_window_on_zone_cb on_zone, 
  */
 lh_void
 lh_os_window_minimize(lh_os_window_t *self);
+
+/**
+ * @brief Maximize @p self, or restore it when @p maximized is false. See
+ *        ::lh_os_window_minimize.
+ */
 lh_void
 lh_os_window_set_maximized(lh_os_window_t *self, lh_bool_t maximized);
 

@@ -79,7 +79,7 @@ lh_ui_layout_set_justify(lh_ui_layout_t *self, lh_ui_justify_t justify)
 
 /* ── The pass ────────────────────────────────────────────────────────────── */
 
-/* What one child wants along the flow, before anything is shared out: its own
+/** What one child wants along the flow, before anything is shared out: its own
    length, or its content, or nothing at all for a child that wants to fill —
    that one is decided once every other child has said. A `wrap` child with no
    content asks for nothing, and that is what makes an empty label collapse.
@@ -106,7 +106,7 @@ layout_wants(const lh_ui_layout_t *self, lh_ui_entity_t *child)
                              lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(content)), self->axis));
 }
 
-/* How much of the fill a filling child weighs. Its length is read by nothing when
+/** How much of the fill a filling child weighs. Its length is read by nothing when
    it fills, so that is where the weight lives, and a fill that says nothing weighs
    one: every fill that was written before there were weights takes an equal share,
    as it always did. */
@@ -118,7 +118,7 @@ layout_weight(const lh_ui_place_t *place)
     return weight > lh_ui_scalar(0) ? weight : lh_ui_scalar(1);
 }
 
-/* The margin a child keeps on either side of it along the flow, together. */
+/** The margin a child keeps on either side of it along the flow, together. */
 static lh_ui_scalar_t
 layout_margin_along(const lh_ui_layout_t *self, const lh_ui_place_t *place)
 {
@@ -127,7 +127,7 @@ layout_margin_along(const lh_ui_layout_t *self, const lh_ui_place_t *place)
     return lh_ui_insets_get_start(margin, self->axis) + lh_ui_insets_get_end(margin, self->axis);
 }
 
-/* The room a child is placed in across the flow: the content box, less the margin
+/** The room a child is placed in across the flow: the content box, less the margin
    the child keeps on either side of it across. */
 static lh_ui_rect_t
 layout_slot(const lh_ui_layout_t *self, const lh_ui_place_t *place, const lh_ui_rect_t *content)
@@ -144,7 +144,7 @@ layout_slot(const lh_ui_layout_t *self, const lh_ui_place_t *place, const lh_ui_
     return slot;
 }
 
-/* Where a child of @p own rows sits in @p room when it is centred across the flow.
+/** Where a child of @p own rows sits in @p room when it is centred across the flow.
 
    Rounded half up, like ::lh_ui_text_align_get_origin and for the same reason: an
    odd child in even room cannot land on the middle, and truncating hands the
@@ -162,7 +162,7 @@ layout_centred(lh_ui_scalar_t room, lh_ui_scalar_t own)
     return lh_math_max((room - own + lh_ui_scalar(1)) / lh_ui_scalar(2), lh_ui_scalar(0));
 }
 
-/* A child across the flow keeps the size it has and is put where it asked; only
+/** A child across the flow keeps the size it has and is put where it asked; only
    `fill` takes the whole cross side of the room it is placed in, held between its
    minimum and maximum.
 
@@ -227,7 +227,7 @@ layout_across(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_ui_rec
         lh_ui_scalar(0));
 }
 
-/* One line of the flow: the children from @p first up to @p end (::lh_null for the
+/** One line of the flow: the children from @p first up to @p end (::lh_null for the
    last child), measured, shared out and placed in @p content_box. A flow that does not
    wrap is this once, over every child, in the parent's content box. */
 static lh_void
@@ -391,7 +391,7 @@ layout_run(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity_t *f
     }
 }
 
-/* How deep @p child is across the flow, margins and all: its own size, or -- for one
+/** How deep @p child is across the flow, margins and all: its own size, or -- for one
    that stretches across -- only its minimum, since the line it is in decides the rest. */
 static lh_ui_scalar_t
 layout_depth(const lh_ui_layout_t *self, lh_ui_entity_t *child)
@@ -408,7 +408,7 @@ layout_depth(const lh_ui_layout_t *self, lh_ui_entity_t *child)
     return own + lh_ui_insets_get_start(margin, cross) + lh_ui_insets_get_end(margin, cross);
 }
 
-/* The child after the last one that fits on the line starting at @p first in @p room
+/** The child after the last one that fits on the line starting at @p first in @p room
    along the flow (::lh_null when every one does), and in @p depth how deep the line is.
    A line always takes its first child, so a child longer than the room is a line on
    its own rather than none. */

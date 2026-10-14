@@ -47,8 +47,10 @@
  */
 struct lh_memory_view_slice
 {
+    /** Members: ::lh_memory_view_slice_fields. */
     lh_memory_view_slice_fields(lh_void);
-}; /**< Typedef for struct ::lh_memory_view_slice. */
+};
+/** @copybrief lh_memory_view_slice */
 typedef struct lh_memory_view_slice lh_memory_view_slice_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

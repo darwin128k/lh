@@ -26,13 +26,14 @@
 
 /**
  * @struct lh_ui_gradient_sampler
- * @typedef lh_ui_gradient_sampler_t
  * @brief A gradient over one box.
  */
 struct lh_ui_gradient_sampler
 {
+    /** Members: ::lh_ui_gradient_sampler_fields. */
     lh_ui_gradient_sampler_fields(lh_ui_gradient_t, lh_ui_color_t, lh_ui_gradient_shape_t);
 };
+/** @copybrief lh_ui_gradient_sampler */
 typedef struct lh_ui_gradient_sampler lh_ui_gradient_sampler_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

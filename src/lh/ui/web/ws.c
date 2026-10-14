@@ -11,6 +11,7 @@
 #include <lh/util/ptr.h>
 #include <lh/cast/static.h>
 
+/** Whether @p opcode is one RFC 6455 defines: data 0..2 or control 8..10. */
 static unsigned
 ws_ok_opcode(unsigned opcode)
 {

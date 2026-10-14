@@ -17,6 +17,7 @@ const lh_ui_entity_class_t lh_ui_button_class = {
 
 /* ── Events ──────────────────────────────────────────────────────────────── */
 
+/** @copydoc lh_ui_button_event(const struct lh_ui_entity *, const lh_ui_entity_event_t *) */
 lh_void
 lh_ui_button_event(const lh_ui_entity_t *self, const lh_ui_entity_event_t *event)
 {
@@ -34,6 +35,7 @@ lh_ui_button_event(const lh_ui_entity_t *self, const lh_ui_entity_event_t *event
     lh_ui_button_on_click(button, event);
 }
 
+/** @copydoc lh_ui_button_on_click(const struct lh_ui_button *, const lh_ui_entity_event_t *) */
 lh_void
 lh_ui_button_on_click(const lh_ui_button_t *self, const lh_ui_entity_event_t *event)
 {

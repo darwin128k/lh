@@ -62,7 +62,7 @@
 #include <lh/void.h>
 
 /**
- * @typedef lh_ui_input_caret_shape_t
+ * @enum lh_ui_input_caret_shape
  * @brief How the caret is drawn.
  *
  * Both take their height from the **font**, never from the text: the line of the font
@@ -78,11 +78,10 @@ typedef enum lh_ui_input_caret_shape
 {
     lh_ui_input_caret_bar = 0,
     lh_ui_input_caret_block
-} lh_ui_input_caret_shape_t;
+} lh_ui_input_caret_shape_t; /**< How the caret is drawn. */
 
 /**
  * @struct lh_ui_input
- * @typedef lh_ui_input_t
  * @brief A label, the buffer it edits, and where the caret is.
  */
 struct lh_ui_input
@@ -102,12 +101,14 @@ struct lh_ui_input
                                            text's own colour. Not owned. */
     lh_ui_input_caret_shape_t caret_shape; /**< Bar or block; bar after init. */
 };
+/** @copybrief lh_ui_input */
 typedef struct lh_ui_input lh_ui_input_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
 /* -- Class ---------------------------------------------------------------- */
 
+/** @brief Class of ::lh_ui_input_t, derived from ::lh_ui_label_class. */
 extern const lh_ui_entity_class_t lh_ui_input_class;
 
 /**
@@ -169,6 +170,8 @@ lh_ui_input_on_draw_caret(const lh_ui_input_t *self, const lh_ui_entity_event_t 
 /**
  * @brief An empty input at @p rect, editing @p buffer (not owned).
  *
+ * @param self     Input to set up.
+ * @param rect     Where the input sits, in its parent's space.
  * @param buffer   At least @p capacity + 1 bytes, and it must outlive the input.
  *                 A buffer of `0` leaves the input with a text it cannot change and
  *                 every editing call answers false -- which is a field that refuses to

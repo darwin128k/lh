@@ -73,7 +73,7 @@ lh_ui_shadow_shape_row(const lh_ui_shadow_shape_t *self, lh_s32_t y)
     return (py > self->cy ? py - self->cy : self->cy - py) - self->hy;
 }
 
-/* The alpha @p distance past the edge: the peak a spread inside it, nothing a spread
+/** The alpha @p distance past the edge: the peak a spread inside it, nothing a spread
    outside, and the fade between. */
 static lh_byte_t
 lh_ui_shadow_shape_fade(const lh_ui_shadow_shape_t *self, lh_s32_t distance)

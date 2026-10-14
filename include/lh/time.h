@@ -50,6 +50,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 struct lh_time
 {
+    /** Members: ::lh_time_fields. */
     lh_time_fields(lh_time_hour_t, lh_time_minute_t, lh_time_second_t);
 };
 

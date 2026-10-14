@@ -22,6 +22,7 @@
 #endif
 
 LH_ATTRIBUTE_STATIC
+/** Square root of @p x: the compiler builtin on GCC / Clang, `sqrtf` elsewhere. */
 lh_float_t
 lh_float_sqrt(lh_float_t x)
 {

@@ -31,21 +31,22 @@
 #include <lh/void.h>
 
 /**
- * @struct lh_ui_pixmap
- * @typedef lh_ui_pixmap_t
- * @brief A view of pixels in one format.
- */
-/**
  * @def LH_UI_PIXMAP_RUN
  * @brief Pixels one row kernel call takes at most (the size of the alpha
  *        buffers callers fill on the stack).
  */
 #define LH_UI_PIXMAP_RUN 64
 
+/**
+ * @struct lh_ui_pixmap
+ * @brief A view of pixels in one format.
+ */
 struct lh_ui_pixmap
 {
+    /** Members: ::lh_ui_pixmap_fields. */
     lh_ui_pixmap_fields(lh_byte_t, lh_s32_t, lh_ui_pixmap_format_t);
 };
+/** @copybrief lh_ui_pixmap */
 typedef struct lh_ui_pixmap lh_ui_pixmap_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

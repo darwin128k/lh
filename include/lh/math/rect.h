@@ -29,13 +29,14 @@
 
 /**
  * @struct lh_math_rect
- * @typedef lh_math_rect_t
  * @brief An axis-aligned rectangle: `origin` plus `size`, half-open.
  */
 struct lh_math_rect
 {
+    /** Members: ::lh_math_rect_fields. */
     lh_math_rect_fields(lh_math_point_t, lh_math_size_t);
 };
+/** @copybrief lh_math_rect */
 typedef struct lh_math_rect lh_math_rect_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

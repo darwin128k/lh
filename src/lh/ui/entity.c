@@ -79,6 +79,7 @@ lh_ui_entity_get_style(const lh_ui_entity_t *self)
     return self->style;
 }
 
+/** The view the tree of @p self belongs to, read off its root; may be ::lh_null. */
 static struct lh_ui_view *
 lh_ui_entity_own_view(const lh_ui_entity_t *self);
 
@@ -272,6 +273,7 @@ lh_ui_entity_set_hidden(lh_ui_entity_t *self, lh_bool_t hidden)
     lh_ui_entity_note(self);
 }
 
+/** Whether @p self and every ancestor of it are shown. */
 static lh_bool_t
 lh_ui_entity_chain_shown(const lh_ui_entity_t *self)
 {
@@ -863,6 +865,7 @@ lh_ui_entity_draw_self(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
     lh_ui_entity_send(self, lh_ui_entity_event_draw, canvas);
 }
 
+/** Fill one straight edge strip of a box; nothing when it is empty. */
 static lh_void
 lh_ui_entity_fill_edge(lh_ui_canvas_t *canvas, lh_ui_scalar_t x, lh_ui_scalar_t y, lh_ui_scalar_t width,
                        lh_ui_scalar_t height, const lh_ui_color_t *color)
@@ -874,7 +877,7 @@ lh_ui_entity_fill_edge(lh_ui_canvas_t *canvas, lh_ui_scalar_t x, lh_ui_scalar_t 
     lh_ui_canvas_fill_rect(canvas, lh_addr_of(strip), color);
 }
 
-/* The edge is a straight strip, not a stroke that follows the radius. The rows
+/** The edge is a straight strip, not a stroke that follows the radius. The rows
    it replaces were filled rectangles one pixel tall laid across the box, and a
    rounded card's top pixel was already that strip sitting on the arc. */
 static lh_void

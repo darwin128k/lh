@@ -18,7 +18,6 @@
 
 /**
  * @struct lh_char_case_pair
- * @typedef lh_char_case_pair_t
  * @brief One entry in a sorted narrow case mapping table (`first` → `second`).
  *
  * Intended for single-byte Latin-1 style mappings where both endpoints are
@@ -29,8 +28,10 @@
  */
 struct lh_char_case_pair
 {
+    /** Members: ::lh_pair_fields. */
     lh_pair_fields(lh_char_t, lh_char_t);
 };
+/** @copybrief lh_char_case_pair */
 typedef struct lh_char_case_pair lh_char_case_pair_t;
 
 #endif /* LH_CHAR_CASE_PAIR_H */

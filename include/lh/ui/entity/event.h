@@ -59,17 +59,18 @@ typedef enum lh_ui_entity_event_code
     lh_ui_entity_event_baseline = 15 /**< Where its first baseline is. Context is an
                                           ::lh_ui_scalar_t * preset to -1, meaning it has
                                           none and a row that asks centres it. */
-} lh_ui_entity_event_code_t;
+} lh_ui_entity_event_code_t; /**< What the face was asked to do. */
 
 /**
  * @struct lh_ui_entity_event
- * @typedef lh_ui_entity_event_t
  * @brief The code, and the context that goes with it.
  */
 struct lh_ui_entity_event
 {
+    /** Members: ::lh_ui_entity_event_fields. */
     lh_ui_entity_event_fields(lh_ui_entity_event_code_t, lh_ptr);
 };
+/** @copybrief lh_ui_entity_event */
 typedef struct lh_ui_entity_event lh_ui_entity_event_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

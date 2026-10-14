@@ -33,13 +33,14 @@
 
 /**
  * @struct lh_math_quat
- * @typedef lh_math_quat_t
  * @brief Rotation quaternion. Fields via ::lh_math_quat_fields.
  */
 struct lh_math_quat
 {
+    /** Members: ::lh_math_quat_fields. */
     lh_math_quat_fields(lh_math_fscalar_t);
 };
+/** @copybrief lh_math_quat */
 typedef struct lh_math_quat lh_math_quat_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

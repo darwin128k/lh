@@ -24,7 +24,7 @@ typedef enum lh_ui_axis
 {
     lh_ui_axis_horizontal = 0, /**< `x` and width; left to right. */
     lh_ui_axis_vertical = 1    /**< `y` and height; top to bottom. */
-} lh_ui_axis_t;
+} lh_ui_axis_t; /**< Horizontal (`x`, width) or vertical (`y`, height). */
 
 LH_COMPILER_EXTERN_C_BEGIN
 

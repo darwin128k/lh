@@ -45,8 +45,10 @@
  */
 struct lh_memory_bounds_slice
 {
+    /** Members: ::lh_memory_bounds_slice_fields. */
     lh_memory_bounds_slice_fields(lh_void);
-}; /**< Typedef for struct ::lh_memory_bounds_slice. */
+};
+/** @copybrief lh_memory_bounds_slice */
 typedef struct lh_memory_bounds_slice lh_memory_bounds_slice_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

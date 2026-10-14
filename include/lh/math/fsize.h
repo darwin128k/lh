@@ -27,13 +27,14 @@
 
 /**
  * @struct lh_math_fsize
- * @typedef lh_math_fsize_t
  * @brief A 2D size of ::lh_math_fscalar_t components.
  */
 struct lh_math_fsize
 {
+    /** Members: ::lh_math_size_fields. */
     lh_math_size_fields(lh_math_fscalar_t);
 };
+/** @copybrief lh_math_fsize */
 typedef struct lh_math_fsize lh_math_fsize_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

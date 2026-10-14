@@ -23,14 +23,14 @@
 
 /**
  * @struct lh_io_stream
- * @typedef lh_io_stream_t
  * @brief An ::lh_io_reader_t paired with an ::lh_io_writer_t.
  */
 struct lh_io_stream
 {
-    lh_io_reader_t reader;
-    lh_io_writer_t writer;
+    lh_io_reader_t reader; /**< Read half. */
+    lh_io_writer_t writer; /**< Write half. */
 };
+/** @copybrief lh_io_stream */
 typedef struct lh_io_stream lh_io_stream_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

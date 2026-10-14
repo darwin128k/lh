@@ -59,57 +59,73 @@ typedef struct lh_os_system_posix_xrender_format lh_os_system_posix_xrender_form
 /** @brief `XAnyEvent`. */
 struct lh_os_system_posix_xany_event
 {
+    /** Members: ::lh_os_system_posix_xany_event_fields. */
     lh_os_system_posix_xany_event_fields;
 };
+/** @copybrief lh_os_system_posix_xany_event */
 typedef struct lh_os_system_posix_xany_event lh_os_system_posix_xany_event_t;
 
 /** @brief `XKeyEvent`. */
 struct lh_os_system_posix_xkey_event
 {
+    /** Members: ::lh_os_system_posix_xkey_event_fields. */
     lh_os_system_posix_xkey_event_fields;
 };
+/** @copybrief lh_os_system_posix_xkey_event */
 typedef struct lh_os_system_posix_xkey_event lh_os_system_posix_xkey_event_t;
 
 /** @brief `XButtonEvent`. */
 struct lh_os_system_posix_xbutton_event
 {
+    /** Members: ::lh_os_system_posix_xbutton_event_fields. */
     lh_os_system_posix_xbutton_event_fields;
 };
+/** @copybrief lh_os_system_posix_xbutton_event */
 typedef struct lh_os_system_posix_xbutton_event lh_os_system_posix_xbutton_event_t;
 
 /** @brief `XMotionEvent`. */
 struct lh_os_system_posix_xmotion_event
 {
+    /** Members: ::lh_os_system_posix_xmotion_event_fields. */
     lh_os_system_posix_xmotion_event_fields;
 };
+/** @copybrief lh_os_system_posix_xmotion_event */
 typedef struct lh_os_system_posix_xmotion_event lh_os_system_posix_xmotion_event_t;
 
 /** @brief `XExposeEvent`. */
 struct lh_os_system_posix_xexpose_event
 {
+    /** Members: ::lh_os_system_posix_xexpose_event_fields. */
     lh_os_system_posix_xexpose_event_fields;
 };
+/** @copybrief lh_os_system_posix_xexpose_event */
 typedef struct lh_os_system_posix_xexpose_event lh_os_system_posix_xexpose_event_t;
 
 /** @brief `XConfigureEvent`. */
 struct lh_os_system_posix_xconfigure_event
 {
+    /** Members: ::lh_os_system_posix_xconfigure_event_fields. */
     lh_os_system_posix_xconfigure_event_fields;
 };
+/** @copybrief lh_os_system_posix_xconfigure_event */
 typedef struct lh_os_system_posix_xconfigure_event lh_os_system_posix_xconfigure_event_t;
 
 /** @brief `XClientMessageEvent`. */
 struct lh_os_system_posix_xclient_message_event
 {
+    /** Members: ::lh_os_system_posix_xclient_message_event_fields. */
     lh_os_system_posix_xclient_message_event_fields;
 };
+/** @copybrief lh_os_system_posix_xclient_message_event */
 typedef struct lh_os_system_posix_xclient_message_event lh_os_system_posix_xclient_message_event_t;
 
 /** @brief `XPropertyEvent`. */
 struct lh_os_system_posix_xproperty_event
 {
+    /** Members: ::lh_os_system_posix_xproperty_event_fields. */
     lh_os_system_posix_xproperty_event_fields;
 };
+/** @copybrief lh_os_system_posix_xproperty_event */
 typedef struct lh_os_system_posix_xproperty_event lh_os_system_posix_xproperty_event_t;
 
 /**
@@ -121,74 +137,92 @@ typedef struct lh_os_system_posix_xproperty_event lh_os_system_posix_xproperty_e
  */
 union lh_os_system_posix_xevent
 {
-    int type;
-    lh_os_system_posix_xany_event_t any;
-    lh_os_system_posix_xkey_event_t key;
-    lh_os_system_posix_xbutton_event_t button;
-    lh_os_system_posix_xmotion_event_t motion;
-    lh_os_system_posix_xexpose_event_t expose;
-    lh_os_system_posix_xconfigure_event_t configure;
-    lh_os_system_posix_xclient_message_event_t client;
-    lh_os_system_posix_xproperty_event_t property;
-    long pad[24];
+    int type;                                          /**< which event; selects the member */
+    lh_os_system_posix_xany_event_t any;               /**< what every event starts with */
+    lh_os_system_posix_xkey_event_t key;               /**< `KeyPress` / `KeyRelease` */
+    lh_os_system_posix_xbutton_event_t button;         /**< `ButtonPress` / `ButtonRelease` */
+    lh_os_system_posix_xmotion_event_t motion;         /**< `MotionNotify` */
+    lh_os_system_posix_xexpose_event_t expose;         /**< `Expose` */
+    lh_os_system_posix_xconfigure_event_t configure;   /**< `ConfigureNotify` */
+    lh_os_system_posix_xclient_message_event_t client; /**< `ClientMessage` */
+    lh_os_system_posix_xproperty_event_t property;     /**< `PropertyNotify` */
+    long pad[24];                                      /**< Xlib's full `XEvent` size */
 };
+/** @copybrief lh_os_system_posix_xevent */
 typedef union lh_os_system_posix_xevent lh_os_system_posix_xevent_t;
 
 /** @brief `XSetWindowAttributes`. */
 struct lh_os_system_posix_xset_window_attributes
 {
+    /** Members: ::lh_os_system_posix_xset_window_attributes_fields. */
     lh_os_system_posix_xset_window_attributes_fields;
 };
+/** @copybrief lh_os_system_posix_xset_window_attributes */
 typedef struct lh_os_system_posix_xset_window_attributes lh_os_system_posix_xset_window_attributes_t;
 
 /** @brief `XSizeHints`. */
 struct lh_os_system_posix_xsize_hints
 {
+    /** Members: ::lh_os_system_posix_xsize_hints_fields. */
     lh_os_system_posix_xsize_hints_fields;
 };
+/** @copybrief lh_os_system_posix_xsize_hints */
 typedef struct lh_os_system_posix_xsize_hints lh_os_system_posix_xsize_hints_t;
 
 /** @brief `XVisualInfo`. */
 struct lh_os_system_posix_xvisual_info
 {
+    /** Members: ::lh_os_system_posix_xvisual_info_fields. */
     lh_os_system_posix_xvisual_info_fields;
 };
+/** @copybrief lh_os_system_posix_xvisual_info */
 typedef struct lh_os_system_posix_xvisual_info lh_os_system_posix_xvisual_info_t;
 
 /** @brief `XImage`. */
 struct lh_os_system_posix_ximage
 {
+    /** Members: ::lh_os_system_posix_ximage_fields. */
     lh_os_system_posix_ximage_fields;
 };
+/** @copybrief lh_os_system_posix_ximage */
 typedef struct lh_os_system_posix_ximage lh_os_system_posix_ximage_t;
 
 /** @brief `XRectangle`. */
 struct lh_os_system_posix_xrectangle
 {
+    /** Members: ::lh_os_system_posix_xrectangle_fields. */
     lh_os_system_posix_xrectangle_fields;
 };
+/** @copybrief lh_os_system_posix_xrectangle */
 typedef struct lh_os_system_posix_xrectangle lh_os_system_posix_xrectangle_t;
 
 /** @brief `XRenderColor`. */
 struct lh_os_system_posix_xrender_color
 {
+    /** Members: ::lh_os_system_posix_xrender_color_fields. */
     lh_os_system_posix_xrender_color_fields;
 };
+/** @copybrief lh_os_system_posix_xrender_color */
 typedef struct lh_os_system_posix_xrender_color lh_os_system_posix_xrender_color_t;
 
 /** @brief `XShmSegmentInfo`. */
 struct lh_os_system_posix_xshm_segment_info
 {
+    /** Members: ::lh_os_system_posix_xshm_segment_info_fields. */
     lh_os_system_posix_xshm_segment_info_fields;
 };
+/** @copybrief lh_os_system_posix_xshm_segment_info */
 typedef struct lh_os_system_posix_xshm_segment_info lh_os_system_posix_xshm_segment_info_t;
 
 /* ── Constants (X.h, Xutil.h, keysymdef.h) ───────────────────────────────── */
 
+/** `None`: no resource. */
 #define LH_OS_SYSTEM_POSIX_X_NONE 0UL
+/** `CurrentTime`: the server's time when the request is processed. */
 #define LH_OS_SYSTEM_POSIX_X_CURRENT_TIME 0UL
 
-/* Event types. */
+/** @{ */
+/** Event types. */
 #define LH_OS_SYSTEM_POSIX_X_KEY_PRESS 2
 #define LH_OS_SYSTEM_POSIX_X_KEY_RELEASE 3
 #define LH_OS_SYSTEM_POSIX_X_BUTTON_PRESS 4
@@ -199,8 +233,10 @@ typedef struct lh_os_system_posix_xshm_segment_info lh_os_system_posix_xshm_segm
 #define LH_OS_SYSTEM_POSIX_X_CONFIGURE_NOTIFY 22
 #define LH_OS_SYSTEM_POSIX_X_PROPERTY_NOTIFY 28
 #define LH_OS_SYSTEM_POSIX_X_CLIENT_MESSAGE 33
+/** @} */
 
-/* Event masks. */
+/** @{ */
+/** Event masks. */
 #define LH_OS_SYSTEM_POSIX_X_KEY_PRESS_MASK (1L << 0)
 #define LH_OS_SYSTEM_POSIX_X_KEY_RELEASE_MASK (1L << 1)
 #define LH_OS_SYSTEM_POSIX_X_BUTTON_PRESS_MASK (1L << 2)
@@ -211,11 +247,13 @@ typedef struct lh_os_system_posix_xshm_segment_info lh_os_system_posix_xshm_segm
 #define LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_NOTIFY_MASK (1L << 19)
 #define LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_REDIRECT_MASK (1L << 20)
 #define LH_OS_SYSTEM_POSIX_X_PROPERTY_CHANGE_MASK (1L << 22)
+/** @} */
 
-/* Modifier state. */
+/** Modifier state. */
 #define LH_OS_SYSTEM_POSIX_X_SHIFT_MASK (1U << 0)
 
-/* XCreateWindow: class, and the value-mask bits for the attributes set. */
+/** @{ */
+/** XCreateWindow: class, and the value-mask bits for the attributes set. */
 #define LH_OS_SYSTEM_POSIX_X_INPUT_OUTPUT 1U
 #define LH_OS_SYSTEM_POSIX_X_COPY_FROM_PARENT 0
 #define LH_OS_SYSTEM_POSIX_X_CW_BACK_PIXMAP (1UL << 0)
@@ -227,40 +265,53 @@ typedef struct lh_os_system_posix_xshm_segment_info lh_os_system_posix_xshm_segm
 #define LH_OS_SYSTEM_POSIX_X_TRUE_COLOR 4
 #define LH_OS_SYSTEM_POSIX_X_ALLOC_NONE 0
 #define LH_OS_SYSTEM_POSIX_X_NORTH_WEST_GRAVITY 1
+/** @} */
 
-/* Image formats and byte orders. */
+/** @{ */
+/** Image formats and byte orders. */
 #define LH_OS_SYSTEM_POSIX_X_ZPIXMAP 2
 #define LH_OS_SYSTEM_POSIX_X_LSB_FIRST 0
 #define LH_OS_SYSTEM_POSIX_X_MSB_FIRST 1
+/** @} */
 
-/* Properties. */
+/** @{ */
+/** Properties. */
 #define LH_OS_SYSTEM_POSIX_X_PROP_MODE_REPLACE 0
 #define LH_OS_SYSTEM_POSIX_X_SUCCESS 0
 #define LH_OS_SYSTEM_POSIX_X_XA_ATOM 4UL
 #define LH_OS_SYSTEM_POSIX_X_XA_CARDINAL 6UL
+/** @} */
 
-/* XEventsQueued modes. */
+/** XEventsQueued modes. */
 #define LH_OS_SYSTEM_POSIX_X_QUEUED_AFTER_READING 1
 
-/* XSizeHints flags. */
+/** @{ */
+/** XSizeHints flags. */
 #define LH_OS_SYSTEM_POSIX_X_US_POSITION (1L << 0)
 #define LH_OS_SYSTEM_POSIX_X_P_POSITION (1L << 2)
+/** @} */
 
-/* Pointer buttons. 4 and 5 are the vertical wheel, 6 and 7 the horizontal one. */
+/** @{ */
+/** Pointer buttons. 4 and 5 are the vertical wheel, 6 and 7 the horizontal one. */
 #define LH_OS_SYSTEM_POSIX_X_BUTTON_LEFT 1U
 #define LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_UP 4U
 #define LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_DOWN 5U
 #define LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_LEFT 6U
 #define LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_RIGHT 7U
+/** @} */
 
-/* SHAPE (shape.h): the bounding shape, replaced, rectangles in no promised order. */
+/** @{ */
+/** SHAPE (shape.h): the bounding shape, replaced, rectangles in no promised order. */
 #define LH_OS_SYSTEM_POSIX_X_SHAPE_BOUNDING 0
 #define LH_OS_SYSTEM_POSIX_X_SHAPE_SET 0
 #define LH_OS_SYSTEM_POSIX_X_SHAPE_UNSORTED 0
+/** @} */
 
-/* RENDER (render.h): replace the destination; the standard xRGB format. */
+/** @{ */
+/** RENDER (render.h): replace the destination; the standard xRGB format. */
 #define LH_OS_SYSTEM_POSIX_X_PICT_OP_SRC 1
 #define LH_OS_SYSTEM_POSIX_X_PICT_STANDARD_RGB24 1
+/** @} */
 
 /* ── The library ─────────────────────────────────────────────────────────── */
 
@@ -272,8 +323,10 @@ typedef struct lh_os_system_posix_xshm_segment_info lh_os_system_posix_xshm_segm
  */
 struct lh_os_system_posix_x11
 {
+    /** Members: ::lh_os_system_posix_x11_fields. */
     lh_os_system_posix_x11_fields;
 };
+/** @copybrief lh_os_system_posix_x11 */
 typedef struct lh_os_system_posix_x11 lh_os_system_posix_x11_t;
 
 /**
@@ -293,8 +346,10 @@ lh_os_system_posix_x11_load(void);
  */
 struct lh_os_system_posix_xext
 {
+    /** Members: ::lh_os_system_posix_xext_fields. */
     lh_os_system_posix_xext_fields;
 };
+/** @copybrief lh_os_system_posix_xext */
 typedef struct lh_os_system_posix_xext lh_os_system_posix_xext_t;
 
 /**
@@ -314,8 +369,10 @@ lh_os_system_posix_xext_load(void);
  */
 struct lh_os_system_posix_xrender
 {
+    /** Members: ::lh_os_system_posix_xrender_fields. */
     lh_os_system_posix_xrender_fields;
 };
+/** @copybrief lh_os_system_posix_xrender */
 typedef struct lh_os_system_posix_xrender lh_os_system_posix_xrender_t;
 
 /**

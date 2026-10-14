@@ -19,6 +19,6 @@ typedef enum lh_os_serial_parity
     lh_os_serial_parity_none = 0,
     lh_os_serial_parity_odd = 1,
     lh_os_serial_parity_even = 2
-} lh_os_serial_parity_t;
+} lh_os_serial_parity_t; /**< Whether each character carries a parity bit, and which. */
 
 #endif /* LH_OS_SERIAL_PARITY_H */

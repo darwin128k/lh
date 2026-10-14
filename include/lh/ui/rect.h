@@ -17,25 +17,38 @@
 #if LH_LIBRARY_OPTION_MATH_FPU
 #    include <lh/math/frect.h>
 
+/** @brief A UI rectangle: ::lh_math_frect_t when ::LH_LIBRARY_OPTION_MATH_FPU is on. */
 typedef lh_math_frect_t lh_ui_rect_t;
 
 /** @brief Name of the float math function @p name for ::lh_ui_rect_t. */
 #    define LH_UI_RECT_FN(name) lh_math_frect_##name
+/** @brief ::lh_ui_rect_t to ::lh_math_rect_t (::lh_math_frect_to_rect). */
 #    define lh_ui_rect_to_rect lh_math_frect_to_rect
+/** @brief ::lh_math_rect_t to ::lh_ui_rect_t (::lh_math_rect_to_frect). */
 #    define lh_ui_rect_from_rect lh_math_rect_to_frect
 #else
 #    include <lh/math/rect.h>
 
+/** @brief A UI rectangle: ::lh_math_rect_t when ::LH_LIBRARY_OPTION_MATH_FPU is off. */
 typedef lh_math_rect_t lh_ui_rect_t;
 
 /** @brief Name of the integer math function @p name for ::lh_ui_rect_t. */
 #    define LH_UI_RECT_FN(name) lh_math_rect_##name
+/** @brief ::lh_ui_rect_t to ::lh_math_rect_t: the same type here, so @p self as is. */
 #    define lh_ui_rect_to_rect(self) (self)
+/** @brief ::lh_math_rect_t to ::lh_ui_rect_t: the same type here, so @p self as is. */
 #    define lh_ui_rect_from_rect(self) (self)
 #endif
 
 /* One list for both paths: a math function missing on either side fails to
  * compile on that side instead of silently drifting. */
+/**
+ * @name Rect functions
+ * Each `lh_ui_rect_<op>` is `lh_math_rect_<op>` (or `lh_math_frect_<op>` with
+ * ::LH_LIBRARY_OPTION_MATH_FPU): see that function for the contract.
+ * @{
+ */
+/** @brief The `lh_math_rect_*` / `lh_math_frect_*` function of the same suffix. */
 #define lh_ui_rect_from_extent LH_UI_RECT_FN(from_extent)
 #define lh_ui_rect_init LH_UI_RECT_FN(init)
 #define lh_ui_rect_init_origin_size LH_UI_RECT_FN(init_origin_size)
@@ -63,5 +76,6 @@ typedef lh_math_rect_t lh_ui_rect_t;
 #define lh_ui_rect_union LH_UI_RECT_FN(union)
 #define lh_ui_rect_offset LH_UI_RECT_FN(offset)
 #define lh_ui_rect_inset LH_UI_RECT_FN(inset)
+/** @} */
 
 #endif /* LH_UI_RECT_H */

@@ -35,13 +35,13 @@
 
 /**
  * @struct lh_os_fs_dir
- * @typedef lh_os_fs_dir_t
  * @brief Open directory iterator.
  */
 struct lh_os_fs_dir
 {
-    lh_os_system_fs_dir_handle_t handle;
+    lh_os_system_fs_dir_handle_t handle; /**< Native directory handle. */
 };
+/** @copybrief lh_os_fs_dir */
 typedef struct lh_os_fs_dir lh_os_fs_dir_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

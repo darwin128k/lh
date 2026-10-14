@@ -20,13 +20,14 @@
 
 /**
  * @struct lh_ui_paint
- * @typedef lh_ui_paint_t
  * @brief Nothing, or a solid color (also brush, and the paint of a pen).
  */
 struct lh_ui_paint
 {
+    /** Members: ::lh_ui_paint_fields. */
     lh_ui_paint_fields(lh_ui_paint_kind_t, lh_ui_color_t, lh_ui_gradient_t);
 };
+/** @copybrief lh_ui_paint */
 typedef struct lh_ui_paint lh_ui_paint_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

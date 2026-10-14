@@ -38,6 +38,7 @@
 #    endif
 #endif
 
+/** @brief Compile one function for instruction set @p isa (GCC / Clang `target`). */
 #if LH_COMPILER_TYPE_IS_GCC_LIKE
 #    define LH_MEMORY_STD_SIMD_TARGET(isa) __attribute__((target(isa)))
 #else
@@ -52,6 +53,7 @@
 #    endif
 #endif
 
+/** @brief 1 when MSVC's `__movsb` intrinsic (`REP MOVSB`) is available. */
 #if (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC) && LH_COMPILER_ARCH_FAMILY_IS_X86
 #    define LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB 1
 #    include <intrin.h>
@@ -59,6 +61,7 @@
 #    define LH_MEMORY_STD_HAVE_MSVC_REP_MOVSB 0
 #endif
 
+/** @brief 1 when `REP MOVSB` is reachable through GCC / Clang inline assembly. */
 #if LH_COMPILER_TYPE_IS_GCC_LIKE && LH_COMPILER_ARCH_FAMILY_IS_X86
 #    define LH_MEMORY_STD_HAVE_GCC_REP_MOVSB 1
 #    define LH_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD                                                  \
@@ -72,6 +75,7 @@
         (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_MEMORY_STD_ERMS_COPY_THRESHOLD))
 #endif
 
+/** @brief Block size of the branchless compare / find scan. */
 #define LH_MEMORY_STD_SCAN_BLOCK (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK))
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2

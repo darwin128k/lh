@@ -27,24 +27,26 @@
 
 /**
  * @struct lh_ui_canvas_clip_round
- * @typedef lh_ui_canvas_clip_round_t
  * @brief One rounded cut.
  */
 struct lh_ui_canvas_clip_round
 {
+    /** Members: ::lh_ui_canvas_clip_round_fields. */
     lh_ui_canvas_clip_round_fields(lh_ui_rect_t, lh_ui_scalar_t);
 };
+/** @copybrief lh_ui_canvas_clip_round */
 typedef struct lh_ui_canvas_clip_round lh_ui_canvas_clip_round_t;
 
 /**
  * @struct lh_ui_canvas_clip
- * @typedef lh_ui_canvas_clip_t
  * @brief A clip rect and the rounded cuts on it.
  */
 struct lh_ui_canvas_clip
 {
+    /** Members: ::lh_ui_canvas_clip_fields. */
     lh_ui_canvas_clip_fields(lh_ui_rect_t, lh_ui_canvas_clip_round_t, lh_u32_t);
 };
+/** @copybrief lh_ui_canvas_clip */
 typedef struct lh_ui_canvas_clip lh_ui_canvas_clip_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

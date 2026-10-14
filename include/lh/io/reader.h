@@ -29,8 +29,10 @@
  */
 struct lh_io_reader
 {
+    /** Members: ::lh_io_reader_fields. */
     lh_io_reader_fields(lh_io_reader_read_fn);
 };
+/** @copybrief lh_io_reader */
 typedef struct lh_io_reader lh_io_reader_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

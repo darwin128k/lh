@@ -31,9 +31,12 @@
  */
 struct lh_ui_viewport3d_backend
 {
+    /** Start drawing the 3D pane into @p rect. */
     lh_void (*begin)(lh_ptr context, const lh_ui_rect_t *rect);
+    /** Finish the 3D pane started by ::begin. */
     lh_void (*end)(lh_ptr context);
 };
+/** @copybrief lh_ui_viewport3d_backend */
 typedef struct lh_ui_viewport3d_backend lh_ui_viewport3d_backend_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

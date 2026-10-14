@@ -30,8 +30,10 @@
  */
 struct lh_fs_stat
 {
+    /** Members: ::lh_fs_stat_fields. */
     lh_fs_stat_fields(lh_fs_kind_t, lh_fs_perm_t, lh_fs_size_t, lh_fs_time_t, lh_fs_attr_t);
 };
+/** @copybrief lh_fs_stat */
 typedef struct lh_fs_stat lh_fs_stat_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -48,18 +50,43 @@ lh_fs_stat_init(lh_fs_stat_t *self);
 lh_void
 lh_fs_stat_assign(lh_fs_stat_t *self, const lh_fs_stat_t *other);
 
+/**
+ * @brief What the entry is: file, directory, link or other.
+ * @param self Stat to read.
+ * @return The ::lh_fs_kind_t.
+ */
 lh_fs_kind_t
 lh_fs_stat_get_kind(const lh_fs_stat_t *self);
 
+/**
+ * @brief Permission bits of the entry.
+ * @param self Stat to read.
+ * @return The ::lh_fs_perm_t mask.
+ */
 lh_fs_perm_t
 lh_fs_stat_get_perm(const lh_fs_stat_t *self);
 
+/**
+ * @brief Size of the entry in bytes.
+ * @param self Stat to read.
+ * @return The size.
+ */
 lh_fs_size_t
 lh_fs_stat_get_size(const lh_fs_stat_t *self);
 
+/**
+ * @brief Last access time.
+ * @param self Stat to read.
+ * @return Unix seconds (::lh_fs_time_t).
+ */
 lh_fs_time_t
 lh_fs_stat_get_atime(const lh_fs_stat_t *self);
 
+/**
+ * @brief Last modification time.
+ * @param self Stat to read.
+ * @return Unix seconds (::lh_fs_time_t).
+ */
 lh_fs_time_t
 lh_fs_stat_get_mtime(const lh_fs_stat_t *self);
 
@@ -69,6 +96,11 @@ lh_fs_stat_get_mtime(const lh_fs_stat_t *self);
 lh_fs_time_t
 lh_fs_stat_get_ctime(const lh_fs_stat_t *self);
 
+/**
+ * @brief Extra attributes Unix `st_mode` does not carry (hidden, ...).
+ * @param self Stat to read.
+ * @return The ::lh_fs_attr_t mask.
+ */
 lh_fs_attr_t
 lh_fs_stat_get_attr(const lh_fs_stat_t *self);
 

@@ -42,7 +42,6 @@ typedef lh_void (*lh_ui_frame_stats_on_frame_cb)(const lh_ui_frame_t *frame, lh_
 
 /**
  * @struct lh_ui_frame_stats
- * @typedef lh_ui_frame_stats_t
  * @brief Running totals over frames. Read through the getters.
  */
 typedef struct lh_ui_frame_stats
@@ -55,9 +54,10 @@ typedef struct lh_ui_frame_stats
     lh_u64_t rects;    /**< rectangles in the requests, over the same frames */
     lh_u64_t us;       /**< time, over every frame */
     lh_u64_t worst_us; /**< the longest single frame */
+    /** called after each frame is counted; may be ::lh_null */
     lh_ui_frame_stats_on_frame_cb on_frame;
-    lh_ptr on_frame_context;
-} lh_ui_frame_stats_t;
+    lh_ptr on_frame_context; /**< passed to ::on_frame */
+} lh_ui_frame_stats_t; /**< Running totals over frames. */
 
 /** @brief Zero every total and drop the callback. */
 lh_void

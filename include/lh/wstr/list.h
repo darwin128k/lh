@@ -36,8 +36,10 @@
  */
 struct lh_wstr_list
 {
+    /** Members: ::lh_str_list_fields. */
     lh_str_list_fields(lh_wstr_t, lh_array_t);
 };
+/** @copybrief lh_wstr_list */
 typedef struct lh_wstr_list lh_wstr_list_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

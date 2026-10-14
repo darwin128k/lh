@@ -21,13 +21,14 @@ struct lh_ui_canvas;
 
 /**
  * @struct lh_ui_entity_class
- * @typedef lh_ui_entity_class_t
  * @brief The event function of one kind, and the class it extends.
  */
 struct lh_ui_entity_class
 {
+    /** Members: ::lh_ui_entity_class_fields. */
     lh_ui_entity_class_fields(lh_ui_entity_face_cb, struct lh_ui_entity_class);
 };
+/** @copybrief lh_ui_entity_class */
 typedef struct lh_ui_entity_class lh_ui_entity_class_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

@@ -8,6 +8,7 @@
 #include <lh/null.h>
 #include <lh/util/ptr.h>
 
+/** `begin` of ::lh_ui_viewport3d_backend_null: does nothing. */
 static lh_void
 viewport3d_null_begin(lh_ptr context, const lh_ui_rect_t *rect)
 {
@@ -15,6 +16,7 @@ viewport3d_null_begin(lh_ptr context, const lh_ui_rect_t *rect)
     (void)rect;
 }
 
+/** `end` of ::lh_ui_viewport3d_backend_null: does nothing. */
 static lh_void
 viewport3d_null_end(lh_ptr context)
 {

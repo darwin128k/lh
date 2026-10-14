@@ -543,6 +543,23 @@
 #define lh_interval_op_wrap_value(wrap_value, op, a, b, lower, upper)                              \
     wrap_value(op((a), (b)), (lower), (upper))
 
+/**
+ * @name Closed-interval arithmetic
+ * `lh_interval_closed_<op>_wrap_overflow` / `_wrap_value` for `<op>` in `add`,
+ * `sub`, `mul`, `div` (::lh_math_add, ...): the result of `a <op> b` folded into
+ * [@p lower, @p upper],
+ * through ::lh_interval_closed_wrap_overflow /
+ * ::lh_interval_closed_wrap_value.
+ * @{
+ */
+/**
+ * @brief `a <op> b` folded into [@p lower, @p upper]: `_overflow` is how many whole
+ *        widths it wrapped by, `_value` where it lands.
+ * @param a     Left operand.
+ * @param b     Right operand.
+ * @param lower Lower bound of the interval.
+ * @param upper Upper bound of the interval.
+ */
 #define lh_interval_closed_add_wrap_overflow(a, b, lower, upper)                                   \
     lh_interval_op_wrap_overflow(lh_interval_closed_wrap_overflow, lh_math_add, (a), (b),          \
                                  (lower), (upper))
@@ -567,7 +584,25 @@
 #define lh_interval_closed_div_wrap_value(a, b, lower, upper)                                      \
     lh_interval_op_wrap_value(lh_interval_closed_wrap_value, lh_math_div, (a), (b), (lower),       \
                               (upper))
+/** @} */
 
+/**
+ * @name Left-open-interval arithmetic
+ * `lh_interval_lopen_<op>_wrap_overflow` / `_wrap_value` for `<op>` in `add`,
+ * `sub`, `mul`, `div` (::lh_math_add, ...): the result of `a <op> b` folded into
+ * (@p lower, @p upper],
+ * through ::lh_interval_lopen_wrap_overflow /
+ * ::lh_interval_lopen_wrap_value.
+ * @{
+ */
+/**
+ * @brief `a <op> b` folded into (@p lower, @p upper]: `_overflow` is how many whole
+ *        widths it wrapped by, `_value` where it lands.
+ * @param a     Left operand.
+ * @param b     Right operand.
+ * @param lower Lower bound of the interval.
+ * @param upper Upper bound of the interval.
+ */
 #define lh_interval_lopen_add_wrap_overflow(a, b, lower, upper)                                    \
     lh_interval_op_wrap_overflow(lh_interval_lopen_wrap_overflow, lh_math_add, (a), (b), (lower),  \
                                  (upper))
@@ -592,7 +627,25 @@
 #define lh_interval_lopen_div_wrap_value(a, b, lower, upper)                                       \
     lh_interval_op_wrap_value(lh_interval_lopen_wrap_value, lh_math_div, (a), (b), (lower),        \
                               (upper))
+/** @} */
 
+/**
+ * @name Right-open-interval arithmetic
+ * `lh_interval_ropen_<op>_wrap_overflow` / `_wrap_value` for `<op>` in `add`,
+ * `sub`, `mul`, `div` (::lh_math_add, ...): the result of `a <op> b` folded into
+ * [@p lower, @p upper),
+ * through ::lh_interval_ropen_wrap_overflow /
+ * ::lh_interval_ropen_wrap_value.
+ * @{
+ */
+/**
+ * @brief `a <op> b` folded into [@p lower, @p upper): `_overflow` is how many whole
+ *        widths it wrapped by, `_value` where it lands.
+ * @param a     Left operand.
+ * @param b     Right operand.
+ * @param lower Lower bound of the interval.
+ * @param upper Upper bound of the interval.
+ */
 #define lh_interval_ropen_add_wrap_overflow(a, b, lower, upper)                                    \
     lh_interval_op_wrap_overflow(lh_interval_ropen_wrap_overflow, lh_math_add, (a), (b), (lower),  \
                                  (upper))
@@ -617,7 +670,25 @@
 #define lh_interval_ropen_div_wrap_value(a, b, lower, upper)                                       \
     lh_interval_op_wrap_value(lh_interval_ropen_wrap_value, lh_math_div, (a), (b), (lower),        \
                               (upper))
+/** @} */
 
+/**
+ * @name Open-interval arithmetic
+ * `lh_interval_open_<op>_wrap_overflow` / `_wrap_value` for `<op>` in `add`,
+ * `sub`, `mul`, `div` (::lh_math_add, ...): the result of `a <op> b` folded into
+ * (@p lower, @p upper),
+ * through ::lh_interval_open_wrap_overflow /
+ * ::lh_interval_open_wrap_value.
+ * @{
+ */
+/**
+ * @brief `a <op> b` folded into (@p lower, @p upper): `_overflow` is how many whole
+ *        widths it wrapped by, `_value` where it lands.
+ * @param a     Left operand.
+ * @param b     Right operand.
+ * @param lower Lower bound of the interval.
+ * @param upper Upper bound of the interval.
+ */
 #define lh_interval_open_add_wrap_overflow(a, b, lower, upper)                                     \
     lh_interval_op_wrap_overflow(lh_interval_open_wrap_overflow, lh_math_add, (a), (b), (lower),   \
                                  (upper))
@@ -638,6 +709,7 @@
                                  (upper))
 #define lh_interval_open_div_wrap_value(a, b, lower, upper)                                        \
     lh_interval_op_wrap_value(lh_interval_open_wrap_value, lh_math_div, (a), (b), (lower), (upper))
+/** @} */
 
 /**
  * @def lh_interval_closed_contains_value(lower, upper, value)

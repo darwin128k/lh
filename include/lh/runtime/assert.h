@@ -80,7 +80,9 @@
 
 /* ── the error argument: code [, message] ─────────────────────────────── */
 
+/** @brief ::lh_runtime_check_code for a `code` argument alone: @p code. */
 #define lh_runtime_check_code_1(code) (code)
+/** @brief ::lh_runtime_check_code for `code, message`: @p code. */
 #define lh_runtime_check_code_2(code, message) (code)
 
 /**
@@ -90,7 +92,9 @@
 #define lh_runtime_check_code(...)                                                                 \
     lh_arg_expand(lh_arg_concat(lh_runtime_check_code_, lh_arg_get_count(__VA_ARGS__))(__VA_ARGS__))
 
+/** @brief ::lh_runtime_check_desc for a `code` argument alone: an empty view. */
 #define lh_runtime_check_desc_1(code) lh_str_view_empty_initializer()
+/** @brief ::lh_runtime_check_desc for `code, message`: a view of literal @p message. */
 #define lh_runtime_check_desc_2(code, message) lh_str_view_initializer_lit(message)
 
 /**

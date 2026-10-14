@@ -26,6 +26,8 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Write the player document into @p mem.
  *
+ * @param mem     Buffer the document is written into.
+ * @param cap     Size of @p mem in bytes.
  * @param out_len Receives the byte length (no trailing NUL counted). May be ::lh_null.
  *
  * @return ::lh_bool_false when the buffer is too small or @p mem is null.

@@ -101,7 +101,7 @@
 #define lh_wstr_ptr_get_end(x) ((lh_wstr_ptr_get_begin(x)) + lh_wstr_ptr_get_size(x))
 
 /**
- * @brief Preprocessor paste: @c L##c
+ * @brief Preprocessor paste: @c L\#\#c
  *        (wide literal / token per compiler token rules).
  *
  * @param c Token pasted immediately after @c L.
@@ -118,13 +118,13 @@
 
 /**
  * @brief Turn a single character token
- *        into a one-element wide string literal (@c L#c).
+ *        into a one-element wide string literal (@c L\#c).
  *
  * @param c Character token (e.g. @c a в†’ @c L"a").
  *
- * @note Written as @c L""#c rather than @c L#c: adjacent string-literal
+ * @note Written as @c L""\#c rather than @c L\#c: adjacent string-literal
  *       concatenation joins the empty wide literal with the stringized
- *       token into one wide literal, avoiding MSVC C5104 on @c L#c.
+ *       token into one wide literal, avoiding MSVC C5104 on @c L\#c.
  */
 #define lh_wstr_ptr_lit(c) L"" #c
 

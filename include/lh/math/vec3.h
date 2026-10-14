@@ -28,13 +28,14 @@
 
 /**
  * @struct lh_math_vec3
- * @typedef lh_math_vec3_t
  * @brief 3-component float vector.
  */
 struct lh_math_vec3
 {
+    /** Members: ::lh_math_vec3_fields. */
     lh_math_vec3_fields(lh_math_fscalar_t);
 };
+/** @copybrief lh_math_vec3 */
 typedef struct lh_math_vec3 lh_math_vec3_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

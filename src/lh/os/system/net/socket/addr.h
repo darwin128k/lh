@@ -24,15 +24,20 @@
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
 #    include <lh/os/system/win/ws2_32.h>
+/** @brief The platform's IPv4 socket address, `sockaddr_in`. */
 typedef lh_os_system_win_sockaddr_in_t lh_os_system_net_socket_native_addr_t;
+/** @brief The platform's `AF_INET`. */
 #    define LH_OS_SYSTEM_NET_SOCKET_NATIVE_AF_INET LH_OS_SYSTEM_WIN_AF_INET
 #else
 #    include <netinet/in.h>
+/** @brief The platform's IPv4 socket address, `sockaddr_in`. */
 typedef struct sockaddr_in lh_os_system_net_socket_native_addr_t;
+/** @brief The platform's `AF_INET`. */
 #    define LH_OS_SYSTEM_NET_SOCKET_NATIVE_AF_INET AF_INET
 #endif
 
 LH_ATTRIBUTE_STATIC
+/** Fill @p native_addr from @p addr: family, address and port in network byte order. */
 lh_void
 lh_os_system_net_socket_native_addr_from_ip4(lh_os_system_net_socket_native_addr_t *native_addr,
                                              const lh_net_ip4_socket_addr_t *addr)
@@ -62,6 +67,7 @@ lh_os_system_net_socket_native_addr_from_ip4(lh_os_system_net_socket_native_addr
 }
 
 LH_ATTRIBUTE_STATIC
+/** Read @p native_addr back into @p addr. */
 lh_void
 lh_os_system_net_socket_ip4_from_native_addr(lh_net_ip4_socket_addr_t *addr,
                                              const lh_os_system_net_socket_native_addr_t *native_addr)

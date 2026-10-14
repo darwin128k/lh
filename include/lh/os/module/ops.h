@@ -32,8 +32,10 @@
  */
 struct lh_os_module_ops
 {
+    /** Members: ::lh_os_module_ops_fields. */
     lh_os_module_ops_fields(lh_os_module_start_cb, lh_os_module_stop_cb);
 };
+/** @copybrief lh_os_module_ops */
 typedef struct lh_os_module_ops lh_os_module_ops_t;
 
 #endif /* LH_OS_MODULE_OPS_H */

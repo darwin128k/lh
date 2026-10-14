@@ -348,6 +348,7 @@ lh_ui_canvas_sw_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_
     return lh_bool_true;
 }
 
+/** Blend the shadow of @p shape over pixels `x0 .. x1 - 1` of row @p y, cut to the clip. */
 static lh_void
 sw_shadow_span(lh_ui_canvas_sw_t *self, const lh_ui_shadow_shape_t *shape, const lh_ui_shadow_ramp_t *ramp,
                lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_u32_t rgb, lh_bool_t rounded)
@@ -418,6 +419,8 @@ lh_ui_canvas_sw_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t 
     return lh_bool_true;
 }
 
+/** Blur @p rect in place, cut to the limit; with a @p shape, only where its rounded
+ * corners cover. */
 static lh_bool_t
 sw_soften(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t blur_radius, lh_u8_t *scratch,
           lh_usize_t bytes, const lh_ui_rect_t *shape, lh_ui_scalar_t corner)
@@ -469,7 +472,7 @@ lh_ui_canvas_sw_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip)
     self->limit = lh_ui_rect_intersection(lh_addr_of(bounds), lh_ui_canvas_clip_get_rect(clip));
 }
 
-/* Rows @p y .. @p y1 - 1 of a four-bit @p mask whose top-left pixel is (@p x0,
+/** Rows @p y .. @p y1 - 1 of a four-bit @p mask whose top-left pixel is (@p x0,
    @p y0), into a 32-bit pixmap with no rounded cut: a glyph, which is what this format
    is baked for. The row goes from the packed samples straight to the pixels -- the
    coverage, the colour's alpha over it and the blend each as ::lh_ui_mask_coverage_run,

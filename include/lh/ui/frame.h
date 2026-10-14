@@ -27,7 +27,6 @@ LH_COMPILER_EXTERN_C_BEGIN
 
 /**
  * @struct lh_ui_frame
- * @typedef lh_ui_frame_t
  * @brief One frame: what was drawn, what was asked for, and how long it took.
  */
 typedef struct lh_ui_frame
@@ -37,7 +36,7 @@ typedef struct lh_ui_frame
     lh_u64_t asked_px;     /**< pixels of the request; meaningless unless @ref asked_known */
     lh_u32_t rects;        /**< rectangles the request is made of; ditto */
     lh_u64_t us;           /**< time spent drawing and presenting it */
-} lh_ui_frame_t;
+} lh_ui_frame_t; /**< One frame: what was drawn, what was asked for, and how long it took. */
 
 /**
  * @brief The pixel count of @p rect, 0 for an empty one.

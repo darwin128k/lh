@@ -17,13 +17,14 @@
 
 /**
  * @struct lh_ui_pen
- * @typedef lh_ui_pen_t
  * @brief An outline: paint and width.
  */
 struct lh_ui_pen
 {
+    /** Members: ::lh_ui_pen_fields. */
     lh_ui_pen_fields(lh_ui_paint_t, lh_ui_scalar_t);
 };
+/** @copybrief lh_ui_pen */
 typedef struct lh_ui_pen lh_ui_pen_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

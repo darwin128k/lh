@@ -77,6 +77,7 @@ lh_os_app_get_first_window(const lh_os_app_t *self)
     return lh_list_entry(lh_os_window_t, link, lh_list_get_first(lh_addr_of(self->windows)));
 }
 
+/** @copydoc lh_os_app_get_next_window(const lh_os_app_t *, const struct lh_os_window *) */
 lh_os_window_t *
 lh_os_app_get_next_window(const lh_os_app_t *self, const lh_os_window_t *window)
 {

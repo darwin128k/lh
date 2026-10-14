@@ -16,6 +16,6 @@ typedef enum lh_os_window_close_reason
     lh_os_window_close_reason_api = 0,
     /** User or OS (caption close, task manager, owner destroyed, …). */
     lh_os_window_close_reason_os = 1
-} lh_os_window_close_reason_t;
+} lh_os_window_close_reason_t; /**< Who tore the native window down. */
 
 #endif /* LH_OS_WINDOW_CLOSE_REASON_H */

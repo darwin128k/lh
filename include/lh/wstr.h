@@ -24,12 +24,11 @@
 #include <lh/wstr/view.h>
 
 /**
- * @struct lh_wstr
+ * @typedef lh_wstr_t
  * @brief Owning, growable, NUL-terminated wide string.
  *
  * A direct typedef of ::lh_array_t; element type is ::lh_wchar_t
  * (`type_size == sizeof(lh_wchar_t)`).
- * Public typedef: ::lh_wstr_t.
  */
 typedef lh_array_t lh_wstr_t;
 
@@ -127,6 +126,7 @@ lh_wstr_clear(lh_wstr_t *self);
 /**
  * @brief Shrink @p self to @p n characters and keep it NUL-terminated.
  *
+ * @param self String to shrink.
  * @param n New size; must be <= ::lh_wstr_get_size.
  */
 lh_void

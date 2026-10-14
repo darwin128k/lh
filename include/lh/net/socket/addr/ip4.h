@@ -36,15 +36,16 @@
 
 /**
  * @struct lh_net_ip4_socket_addr
- * @typedef lh_net_ip4_socket_addr_t
  * @brief An ::lh_net_ip4_t paired with an ::lh_net_port_t.
  *
  * Fields injected via ::lh_net_socket_addr_fields.
  */
 struct lh_net_ip4_socket_addr
 {
+    /** Members: ::lh_net_socket_addr_fields. */
     lh_net_socket_addr_fields(lh_net_ip4_t);
 };
+/** @copybrief lh_net_ip4_socket_addr */
 typedef struct lh_net_ip4_socket_addr lh_net_ip4_socket_addr_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

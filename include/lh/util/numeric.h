@@ -1,5 +1,5 @@
 /**
- * @file limit.h
+ * @file numeric.h
  * @brief Compile-time numeric limit macros.
  *
  * Provides macros for computing the minimum and maximum representable

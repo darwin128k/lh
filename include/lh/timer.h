@@ -24,13 +24,14 @@
 
 /**
  * @struct lh_timer
- * @typedef lh_timer_t
  * @brief One period callback linked into a group.
  */
 struct lh_timer
 {
+    /** Members: ::lh_timer_fields. */
     lh_timer_fields(lh_tick_t, lh_timer_cb);
 };
+/** @copybrief lh_timer */
 typedef struct lh_timer lh_timer_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

@@ -6,7 +6,7 @@
 #include <lh/ui/easing.h>
 #include <lh/cast/static.h>
 
-/* Each curve at time 0/16 .. 16/16, in weights of 255: the Bézier's y where its x is
+/** Each curve at time 0/16 .. 16/16, in weights of 255: the Bézier's y where its x is
    that time, solved once off the target and kept as numbers. */
 static const lh_u8_t lh_ui_easing_tables[5][17] = {
     {0, 12, 35, 68, 104, 137, 165, 187, 205, 219, 230, 238, 245, 250, 253, 254, 255},   /* ease */

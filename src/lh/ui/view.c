@@ -382,7 +382,7 @@ lh_ui_view_click(lh_ui_view_t *self, lh_ui_point_t point)
         self, lh_ui_scrollbar_get_driven(lh_ui_view_hit_test(self, point)), point);
 }
 
-/* A click may change what the thing clicked looks like — a toggle flips, a row
+/** A click may change what the thing clicked looks like — a toggle flips, a row
    re-styles itself — and it happens after the release damaged the looks the
    target had then. So the target is damaged once more, now: the same rect, and
    the union grows only as far as the *new* look reaches. One rect union per
@@ -636,7 +636,7 @@ lh_ui_view_set_pressed(lh_ui_view_t *self, lh_ui_entity_t *entity, lh_bool_t pre
     lh_ui_entity_set_pressed(entity, pressed);
 }
 
-/* The rect plus whichever of two looks reaches further with its shadow. Both
+/** The rect plus whichever of two looks reaches further with its shadow. Both
    looks and not the current one: a shadow reaches past its own box, so anything
    less leaves the fringe of the look that is being dropped on the surface. The
    two are the resting and pressed looks of a press (::lh_ui_view_damage_shape)
@@ -890,7 +890,7 @@ lh_ui_view_text(lh_ui_view_t *self, lh_u32_t code)
 
 /* ── Transitions ──────────────────────────────────────────────────────────── */
 
-/* The slot @p entity is in flight in, or ::lh_null. */
+/** The slot @p entity is in flight in, or ::lh_null. */
 static lh_ui_transition_t *
 lh_ui_view_slot_of(const lh_ui_view_t *self, const lh_ui_entity_t *entity)
 {
@@ -906,7 +906,7 @@ lh_ui_view_slot_of(const lh_ui_view_t *self, const lh_ui_entity_t *entity)
     return lh_null;
 }
 
-/* Point the entity of @p slot at its target and free the slot. */
+/** Point the entity of @p slot at its target and free the slot. */
 static lh_void
 lh_ui_view_land(lh_ui_transition_t *slot)
 {

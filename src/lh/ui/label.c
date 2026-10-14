@@ -89,7 +89,7 @@ lh_ui_label_on_measure(const lh_ui_label_t *self, const lh_ui_entity_event_t *ev
 
 /* ── Lifetime and fields ─────────────────────────────────────────────────── */
 
-/* FNV-1a over the bytes, with the length beside it: two short strings that collide on
+/** FNV-1a over the bytes, with the length beside it: two short strings that collide on
    both are not a case a label meets. */
 static lh_u32_t
 lh_ui_label_hash(const lh_char_t *text, lh_u32_t *length)
@@ -108,7 +108,7 @@ lh_ui_label_hash(const lh_char_t *text, lh_u32_t *length)
     return hash;
 }
 
-/* The ink of the current text, relative to the label's own origin, so it stays right
+/** The ink of the current text, relative to the label's own origin, so it stays right
    when the label moves before its text changes again. */
 static lh_ui_rect_t
 lh_ui_label_get_ink_reach(lh_ui_label_t *self)
@@ -231,7 +231,7 @@ lh_ui_label_get_text_color(const lh_ui_label_t *self)
     return lh_null_eq(style) ? lh_null : lh_ui_style_get_text_color(style);
 }
 
-/* How wide the lines of the text may be: the padded box when the style wraps, and 0
+/** How wide the lines of the text may be: the padded box when the style wraps, and 0
    -- no width, lines end at line breaks only -- when it does not. */
 static lh_ui_scalar_t
 lh_ui_label_get_wrap_width(const lh_ui_label_t *self)
@@ -249,7 +249,7 @@ lh_ui_label_get_wrap_width(const lh_ui_label_t *self)
     return lh_math_max(width, lh_ui_scalar(1));
 }
 
-/* Where each line of a wrapped text sits inside the widest: the alignment the text
+/** Where each line of a wrapped text sits inside the widest: the alignment the text
    is placed by. */
 static lh_ui_text_align_h_t
 lh_ui_label_get_line_align(const lh_ui_label_t *self)
@@ -259,7 +259,7 @@ lh_ui_label_get_line_align(const lh_ui_label_t *self)
     return lh_null_eq(style) ? lh_ui_text_align_h_left : lh_ui_style_get_align_h(style);
 }
 
-/* True when @p a and @p b keep the same distances off every edge. */
+/** True when @p a and @p b keep the same distances off every edge. */
 static lh_bool_t
 lh_ui_label_same_insets(const lh_ui_insets_t *a, const lh_ui_insets_t *b)
 {
@@ -271,7 +271,7 @@ lh_ui_label_same_insets(const lh_ui_insets_t *a, const lh_ui_insets_t *b)
                : lh_bool_false;
 }
 
-/* @p self with what its text measures worked out: from the metrics fields when
+/** @p self with what its text measures worked out: from the metrics fields when
    nothing they were worked out from has changed, else measured again and kept.
 
    Measuring is laying the text out glyph by glyph, wrapped or not, and every frame
@@ -397,7 +397,7 @@ lh_ui_label_can_draw_text(const lh_ui_label_t *self, const lh_ui_canvas_t *canva
                : lh_bool_false;
 }
 
-/* The longest start of @p text that fits in @p room with an ellipsis after it, written
+/** The longest start of @p text that fits in @p room with an ellipsis after it, written
    into @p out with the ellipsis, or `lh_bool_false` when the whole line fits and is to
    be drawn as it is.
 

@@ -13,7 +13,7 @@
 
 /**
  * @enum lh_key
- * @typedef lh_key_t
+ * @enum lh_key
  * @brief One key.
  */
 typedef enum lh_key
@@ -36,6 +36,6 @@ typedef enum lh_key
     lh_key_shift,
     lh_key_control,
     lh_key_alt
-} lh_key_t;
+} lh_key_t; /**< One key. */
 
 #endif /* LH_KEY_H */

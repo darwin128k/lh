@@ -52,6 +52,8 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief CPUID leaf @p leaf, sub-leaf @p subleaf, into @p regs.
  *
+ * @param leaf CPUID leaf (EAX on entry).
+ * @param subleaf Sub-leaf (ECX on entry); ignored by leaves that have none.
  * @param regs Four registers, indexed by ::LH_CPU_ID_EAX and the three
  *        that follow. Written only when the read succeeds.
  * @return ::lh_bool_false when CPUID cannot be read or @p leaf is past the

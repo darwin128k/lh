@@ -18,13 +18,14 @@
 
 /**
  * @struct lh_ui_key_input
- * @typedef lh_ui_key_input_t
  * @brief A key or a character.
  */
 struct lh_ui_key_input
 {
+    /** Members: ::lh_ui_key_input_fields. */
     lh_ui_key_input_fields(lh_key_t, lh_bool_t, lh_u32_t);
 };
+/** @copybrief lh_ui_key_input */
 typedef struct lh_ui_key_input lh_ui_key_input_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

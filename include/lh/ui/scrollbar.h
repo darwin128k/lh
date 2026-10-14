@@ -43,14 +43,15 @@
 
 /**
  * @struct lh_ui_entity_scrollbar
- * @typedef lh_ui_scrollbar_t
  * @brief A track entity, its axis, its show mode, its container, its thumb style.
  */
 struct lh_ui_entity_scrollbar
 {
+    /** Members: ::lh_ui_scrollbar_fields. */
     lh_ui_scrollbar_fields(lh_ui_entity_t, lh_ui_axis_t, lh_ui_scrollbar_mode_t,
                                   lh_ui_container_t, lh_ui_style_t);
 };
+/** @copybrief lh_ui_entity_scrollbar */
 typedef struct lh_ui_entity_scrollbar lh_ui_scrollbar_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

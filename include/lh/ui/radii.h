@@ -25,13 +25,14 @@
 
 /**
  * @struct lh_ui_radii
- * @typedef lh_ui_radii_t
  * @brief The radius of each corner.
  */
 struct lh_ui_radii
 {
+    /** Members: ::lh_ui_radii_fields. */
     lh_ui_radii_fields(lh_ui_scalar_t);
 };
+/** @copybrief lh_ui_radii */
 typedef struct lh_ui_radii lh_ui_radii_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

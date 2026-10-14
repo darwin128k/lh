@@ -23,7 +23,7 @@
 #include <lh/util/ptr.h>
 #include <lh/cast/static.h>
 
-/* Every write goes through here. A buffer always keeps one byte free, so close
+/** Every write goes through here. A buffer always keeps one byte free, so close
  * can terminate it without a check of its own. */
 static lh_void
 web_put(lh_ui_canvas_web_t *self, const char *p, lh_usize_t n)
@@ -41,9 +41,10 @@ web_put(lh_ui_canvas_web_t *self, const char *p, lh_usize_t n)
     self->len += n;
 }
 
+/** Append string literal @p s, its length taken at compile time. */
 #define web_lit(self, s) web_put((self), (s), lh_cast_static(lh_usize_t, (sizeof(s) - 1u)))
 
-/* One number, without a format string to parse: a frame is mostly numbers. */
+/** One number, without a format string to parse: a frame is mostly numbers. */
 static lh_void
 web_int(lh_ui_canvas_web_t *self, long v)
 {
@@ -52,6 +53,7 @@ web_int(lh_ui_canvas_web_t *self, long v)
     web_put(self, buf, lh_str_ptr_format_sint(lh_cast_static(lh_sint_t, v), buf, sizeof(buf)));
 }
 
+/** Append the JSON array `[a,b,c,d]`. */
 static lh_void
 web_quad(lh_ui_canvas_web_t *self, long a, long b, long c, long d)
 {
@@ -66,6 +68,7 @@ web_quad(lh_ui_canvas_web_t *self, long a, long b, long c, long d)
     web_lit(self, "]");
 }
 
+/** Append @p n bytes of @p px as lower-case hex. */
 static lh_void
 web_hex(lh_ui_canvas_web_t *self, lh_byte_cptr px, unsigned n)
 {
@@ -87,6 +90,7 @@ web_hex(lh_ui_canvas_web_t *self, lh_byte_cptr px, unsigned n)
     web_put(self, buf, lh_cast_static(lh_usize_t, o));
 }
 
+/** Start an op: the separating comma when one is due, and count it. */
 static lh_void
 web_comma(lh_ui_canvas_web_t *self)
 {
@@ -102,6 +106,7 @@ web_comma(lh_ui_canvas_web_t *self)
     ++self->ops;
 }
 
+/** Append @p color as `[r,g,b,a]`. */
 static lh_void
 web_color(lh_ui_canvas_web_t *self, const lh_ui_color_t *color)
 {
@@ -109,6 +114,7 @@ web_color(lh_ui_canvas_web_t *self, const lh_ui_color_t *color)
              lh_cast_static(long, lh_ui_color_get_a(color)));
 }
 
+/** Append @p rect as `[x,y,w,h]`. */
 static lh_void
 web_rect(lh_ui_canvas_web_t *self, const lh_ui_rect_t *rect)
 {
@@ -119,25 +125,30 @@ web_rect(lh_ui_canvas_web_t *self, const lh_ui_rect_t *rect)
              lh_cast_static(long, lh_ui_size_get_width(size)), lh_cast_static(long, lh_ui_size_get_height(size)));
 }
 
+/** Distinct glyph covers the process-wide table holds. */
 #define WEB_ATLAS_MAX LH_UI_CANVAS_WEB_GLYPHS_MAX
+/** Largest cover, in pixels, that is interned; bigger ones go inline every time. */
 #define WEB_ATLAS_PIX 4096
+/** Hash slots: twice the entries, a power of two. */
 #define WEB_ATLAS_SLOTS (2u * WEB_ATLAS_MAX)
 
+/** Every distinct glyph cover sent so far, by id, with a hash index over them. */
 typedef struct web_atlas
 {
-    unsigned n;
-    int w[WEB_ATLAS_MAX];
-    int h[WEB_ATLAS_MAX];
-    unsigned len[WEB_ATLAS_MAX];
-    unsigned hash[WEB_ATLAS_MAX];
-    lh_byte_ptr px[WEB_ATLAS_MAX];
-    int slot[WEB_ATLAS_SLOTS]; /* open addressing by content hash: id + 1, 0 = empty */
-} web_atlas_t;
+    unsigned n;                    /**< covers held */
+    int w[WEB_ATLAS_MAX];          /**< width of each cover */
+    int h[WEB_ATLAS_MAX];          /**< height of each cover */
+    unsigned len[WEB_ATLAS_MAX];   /**< bytes of each cover */
+    unsigned hash[WEB_ATLAS_MAX];  /**< content hash of each cover */
+    lh_byte_ptr px[WEB_ATLAS_MAX]; /**< the coverage bytes of each cover (owned) */
+    int slot[WEB_ATLAS_SLOTS]; /**< open addressing by content hash: id + 1, 0 = empty */
+} web_atlas_t; /**< Every distinct glyph cover sent so far. */
 
-/* Cover identity is process-wide so `m` does not reshuffle when the tree
+/** Cover identity is process-wide so `m` does not reshuffle when the tree
  * changes. `self->glyphs` is only which ids the reader already holds. */
 static web_atlas_t g_web_atlas;
 
+/** FNV-1a hash of a cover's size and pixels. */
 static unsigned
 web_atlas_hash(lh_byte_cptr px, unsigned n, int w, int h)
 {
@@ -151,7 +162,7 @@ web_atlas_hash(lh_byte_cptr px, unsigned n, int w, int h)
     return x;
 }
 
-/* The id of these pixels, or -1 with @p slot the empty place they would go. */
+/** The id of these pixels, or -1 with @p slot the empty place they would go. */
 static int
 web_atlas_find(const web_atlas_t *atlas, lh_byte_cptr px, unsigned n, int w, int h, unsigned hash,
                unsigned *slot)
@@ -176,6 +187,7 @@ web_atlas_find(const web_atlas_t *atlas, lh_byte_cptr px, unsigned n, int w, int
     }
 }
 
+/** Copy a new cover into the table at hash @p slot; its id, or -1 when the table is full. */
 static int
 web_atlas_add(web_atlas_t *atlas, lh_byte_cptr px, unsigned n, int w, int h, unsigned hash,
               unsigned slot)
@@ -201,6 +213,7 @@ web_atlas_add(web_atlas_t *atlas, lh_byte_cptr px, unsigned n, int w, int h, uns
     return (int)id;
 }
 
+/** Which covers the reader holds: the caller's set, or one owned by this frame. */
 static lh_ui_canvas_web_glyphs_t *
 web_glyphs(lh_ui_canvas_web_t *self)
 {
@@ -213,6 +226,7 @@ web_glyphs(lh_ui_canvas_web_t *self)
     return self->glyphs;
 }
 
+/** Free the set ::web_glyphs made for this frame, if it made one. */
 static lh_void
 web_glyphs_free(lh_ui_canvas_web_t *self)
 {
@@ -224,7 +238,7 @@ web_glyphs_free(lh_ui_canvas_web_t *self)
     self->glyphs_owned = lh_bool_false;
 }
 
-/* The id of @p px, and whether the reader still needs its cover. -1 when the
+/** The id of @p px, and whether the reader still needs its cover. -1 when the
  * table is full: the caller sends the cover inline, every time. */
 static int
 web_atlas_intern(lh_ui_canvas_web_t *self, lh_byte_cptr px, int w, int h, int *is_new)
@@ -259,6 +273,7 @@ web_atlas_intern(lh_ui_canvas_web_t *self, lh_byte_cptr px, int w, int h, int *i
     return id;
 }
 
+/** Empty @p self: no buffer, no ops, sized @p width x @p height. */
 static lh_void
 web_reset(lh_ui_canvas_web_t *self, unsigned width, unsigned height)
 {
@@ -274,6 +289,7 @@ web_reset(lh_ui_canvas_web_t *self, unsigned width, unsigned height)
     self->glyphs_owned = lh_bool_false;
 }
 
+/** Append the frame header and open the `ops` array. */
 static lh_void
 web_head(lh_ui_canvas_web_t *self)
 {
@@ -284,12 +300,14 @@ web_head(lh_ui_canvas_web_t *self)
     web_lit(self, ",\"ops\":[");
 }
 
+/** Backend `begin`: nothing to do, the frame is opened by ::lh_ui_canvas_web_open_mem. */
 static lh_void
 web_begin(lh_ptr context)
 {
     (void)context;
 }
 
+/** Backend `end`: nothing to do, the frame is closed by ::lh_ui_canvas_web_close. */
 static lh_void
 web_end(lh_ptr context, const lh_ui_rects_t *drawn)
 {
@@ -297,6 +315,7 @@ web_end(lh_ptr context, const lh_ui_rects_t *drawn)
     (void)drawn;
 }
 
+/** Backend `clear`: record a `clear` op. */
 static lh_void
 web_clear(lh_ptr context, const lh_ui_color_t *color)
 {
@@ -308,6 +327,7 @@ web_clear(lh_ptr context, const lh_ui_color_t *color)
     web_lit(self, "}");
 }
 
+/** Backend `fill_rect`: record a `fill_rect` op. */
 static lh_void
 web_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *color)
 {
@@ -321,6 +341,7 @@ web_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *col
     web_lit(self, "}");
 }
 
+/** Backend `fill_round_rect`: record a `fill_round_rect` op. */
 static lh_bool_t
 web_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
                     const lh_ui_color_t *color)
@@ -338,6 +359,7 @@ web_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t rad
     return lh_bool_true;
 }
 
+/** Backend `set_clip`: ignored, the ops already arrive cut by the canvas. */
 static lh_void
 web_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip)
 {
@@ -345,6 +367,7 @@ web_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip)
     (void)clip;
 }
 
+/** Backend `shadow`: record a `shadow` op. */
 static lh_bool_t
 web_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, const lh_ui_shadow_t *shadow)
 {
@@ -368,7 +391,7 @@ web_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, cons
     return lh_bool_true;
 }
 
-/* A mask too big for the intern table: its coverage goes inline, a row at a time. */
+/** A mask too big for the intern table: its coverage goes inline, a row at a time. */
 static lh_void
 web_cover_inline(lh_ui_canvas_web_t *self, const lh_ui_mask_t *mask, int w, int h)
 {
@@ -388,6 +411,8 @@ web_cover_inline(lh_ui_canvas_web_t *self, const lh_ui_mask_t *mask, int w, int 
     }
 }
 
+/** Backend `fill_mask`: a `fill_mask` op with an interned cover id, and the cover
+ * when the reader lacks it. */
 static lh_bool_t
 web_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,
               const lh_ui_color_t *color)

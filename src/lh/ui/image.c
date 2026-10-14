@@ -20,6 +20,7 @@ const lh_ui_entity_class_t lh_ui_image_class = {lh_ui_image_event, lh_addr_of(lh
 
 /* ── Events ──────────────────────────────────────────────────────────────── */
 
+/** @copydoc lh_ui_image_event(const struct lh_ui_entity *, const struct lh_ui_entity_event *) */
 lh_void
 lh_ui_image_event(const lh_ui_entity_t *self, const lh_ui_entity_event_t *event)
 {
@@ -41,6 +42,7 @@ lh_ui_image_event(const lh_ui_entity_t *self, const lh_ui_entity_event_t *event)
     }
 }
 
+/** @copydoc lh_ui_image_draw(const struct lh_ui_image *, struct lh_ui_canvas *) */
 lh_void
 lh_ui_image_draw(const lh_ui_image_t *self, lh_ui_canvas_t *canvas)
 {
@@ -53,6 +55,9 @@ lh_ui_image_draw(const lh_ui_image_t *self, lh_ui_canvas_t *canvas)
     lh_ui_canvas_fill_mask(canvas, lh_ui_image_get_mask(self), origin, lh_ui_image_get_tint(self));
 }
 
+/**
+ * @copydoc lh_ui_image_on_measure(const struct lh_ui_image *, const struct lh_ui_entity_event *)
+ */
 lh_void
 lh_ui_image_on_measure(const lh_ui_image_t *self, const lh_ui_entity_event_t *event)
 {
@@ -76,6 +81,9 @@ lh_ui_image_on_measure(const lh_ui_image_t *self, const lh_ui_entity_event_t *ev
 
 /* ── Lifetime and fields ─────────────────────────────────────────────────── */
 
+/**
+ * @copydoc lh_ui_image_on_baseline(const struct lh_ui_image *, const struct lh_ui_entity_event *)
+ */
 lh_void
 lh_ui_image_on_baseline(const lh_ui_image_t *self, const lh_ui_entity_event_t *event)
 {

@@ -19,13 +19,14 @@
 
 /**
  * @struct lh_ui_font_range
- * @typedef lh_ui_font_range_t
  * @brief @p length consecutive code points from @p first, glyphs at @p base.
  */
 struct lh_ui_font_range
 {
+    /** Members: ::lh_ui_font_range_fields. */
     lh_ui_font_range_fields(lh_u32_t, lh_u32_t);
 };
+/** @copybrief lh_ui_font_range */
 typedef struct lh_ui_font_range lh_ui_font_range_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

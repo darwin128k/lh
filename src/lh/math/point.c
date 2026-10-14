@@ -201,6 +201,7 @@ lh_math_point_offset(const lh_math_point_t *self, lh_math_scalar_t dx, lh_math_s
     return p;
 }
 
+/** @copydoc lh_math_point_offset_size(const lh_math_point_t *, const struct lh_math_size *) */
 lh_math_point_t
 lh_math_point_offset_size(const lh_math_point_t *self, const lh_math_size_t *size)
 {

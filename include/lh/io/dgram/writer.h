@@ -24,22 +24,45 @@
  */
 struct lh_io_dgram_writer
 {
+    /** Members: ::lh_io_dgram_writer_fields. */
     lh_io_dgram_writer_fields(lh_io_dgram_writer_send_fn);
 };
+/** @copybrief lh_io_dgram_writer */
 typedef struct lh_io_dgram_writer lh_io_dgram_writer_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+/**
+ * @brief Copy the writer state from @p other into @p self.
+ * @param self  Destination writer.
+ * @param other Source writer.
+ */
 lh_void
 lh_io_dgram_writer_assign(lh_io_dgram_writer_t *self, const lh_io_dgram_writer_t *other);
 
+/**
+ * @brief Replace the send callback and context of @p self.
+ * @param self    Writer to modify.
+ * @param send_cb New send callback.
+ * @param context New context.
+ */
 lh_void
 lh_io_dgram_writer_set(lh_io_dgram_writer_t *self, lh_io_dgram_writer_send_cb send_cb,
                        lh_ptr context);
 
+/**
+ * @brief Write only the send callback.
+ * @param self    Writer to modify.
+ * @param send_cb New send callback.
+ */
 lh_void
 lh_io_dgram_writer_set_send_cb(lh_io_dgram_writer_t *self, lh_io_dgram_writer_send_cb send_cb);
 
+/**
+ * @brief Write only the context.
+ * @param self    Writer to modify.
+ * @param context New context.
+ */
 lh_void
 lh_io_dgram_writer_set_context(lh_io_dgram_writer_t *self, lh_ptr context);
 
@@ -54,12 +77,26 @@ lh_void
 lh_io_dgram_writer_init(lh_io_dgram_writer_t *self, lh_io_dgram_writer_send_cb send_cb,
                         lh_ptr context);
 
+/**
+ * @brief Reset @p self to empty state (callback and context both ::lh_null).
+ * @param self Writer to reset.
+ */
 lh_void
 lh_io_dgram_writer_deinit(lh_io_dgram_writer_t *self);
 
+/**
+ * @brief The current send callback of @p self.
+ * @param self Writer to read from.
+ * @return Current send callback (may be ::lh_null).
+ */
 lh_io_dgram_writer_send_cb
 lh_io_dgram_writer_get_send_cb(const lh_io_dgram_writer_t *self);
 
+/**
+ * @brief The current context of @p self.
+ * @param self Writer to read from.
+ * @return Current context (may be ::lh_null).
+ */
 lh_ptr
 lh_io_dgram_writer_get_context(const lh_io_dgram_writer_t *self);
 

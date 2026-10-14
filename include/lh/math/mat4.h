@@ -32,13 +32,14 @@
 
 /**
  * @struct lh_math_mat4
- * @typedef lh_math_mat4_t
  * @brief 4x4 float matrix. Fields via ::lh_math_mat4_fields.
  */
 struct lh_math_mat4
 {
+    /** Members: ::lh_math_mat4_fields. */
     lh_math_mat4_fields(lh_math_vec4_t);
 };
+/** @copybrief lh_math_mat4 */
 typedef struct lh_math_mat4 lh_math_mat4_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

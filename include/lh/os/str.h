@@ -63,6 +63,13 @@ typedef lh_wstr_view_t lh_os_str_view_t;
  */
 #    define lh_os_str_cptr lh_wstr_cptr
 
+/**
+ * @name OS string functions
+ * Each `lh_os_str_<op>` is `lh_wstr_<op>` on this platform: see that function
+ * for the contract.
+ * @{
+ */
+/** @brief The `lh_wstr_*` function of the same suffix, on ::lh_os_str_t. */
 #    define lh_os_str_init(self) lh_wstr_init(self)
 #    define lh_os_str_deinit(self) lh_wstr_deinit(self)
 #    define lh_os_str_get_data(self) lh_wstr_get_data(self)
@@ -70,6 +77,7 @@ typedef lh_wstr_view_t lh_os_str_view_t;
 #    define lh_os_str_clear(self) lh_wstr_clear(self)
 #    define lh_os_str_append(self, text, count) lh_wstr_append(self, text, count)
 #    define lh_os_str_as_view(self) lh_wstr_as_view(self)
+/** @} */
 /** @brief Length of NUL-terminated OS text, in code units. */
 #    define lh_os_str_ptr_len(text) lh_wstr_ptr_len(text)
 #else
@@ -89,6 +97,13 @@ typedef lh_str_view_t lh_os_str_view_t;
 /** @brief Read-only OS text for `.c` files; headers use `const lh_os_str_ptr`. */
 #    define lh_os_str_cptr lh_str_cptr
 
+/**
+ * @name OS string functions
+ * Each `lh_os_str_<op>` is `lh_str_<op>` on this platform: see that function
+ * for the contract.
+ * @{
+ */
+/** @brief The `lh_str_*` function of the same suffix, on ::lh_os_str_t. */
 #    define lh_os_str_init(self) lh_str_init(self)
 #    define lh_os_str_deinit(self) lh_str_deinit(self)
 #    define lh_os_str_get_data(self) lh_str_get_data(self)
@@ -96,6 +111,7 @@ typedef lh_str_view_t lh_os_str_view_t;
 #    define lh_os_str_clear(self) lh_str_clear(self)
 #    define lh_os_str_append(self, text, count) lh_str_append(self, text, count)
 #    define lh_os_str_as_view(self) lh_str_as_view(self)
+/** @} */
 #    define lh_os_str_ptr_len(text) lh_str_ptr_len(text)
 #endif
 

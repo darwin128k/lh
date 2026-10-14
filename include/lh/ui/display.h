@@ -39,14 +39,15 @@
 
 /**
  * @struct lh_ui_display
- * @typedef lh_ui_display_t
  * @brief Panel policy + sw canvas over host bits + sink table.
  */
 struct lh_ui_display
 {
+    /** Members: ::lh_ui_display_fields. */
     lh_ui_display_fields(lh_ui_size_t, lh_ui_scalar_t, lh_ui_pixmap_format_t, lh_ui_pixmap_t,
                          lh_ui_canvas_sw_t, lh_ui_canvas_t, lh_ui_present_sink_t, lh_u32_t);
 };
+/** @copybrief lh_ui_display */
 typedef struct lh_ui_display lh_ui_display_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

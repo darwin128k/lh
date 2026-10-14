@@ -27,13 +27,14 @@
 
 /**
  * @struct lh_math_vec2
- * @typedef lh_math_vec2_t
  * @brief 2-component float vector.
  */
 struct lh_math_vec2
 {
+    /** Members: ::lh_math_vec2_fields. */
     lh_math_vec2_fields(lh_math_fscalar_t);
 };
+/** @copybrief lh_math_vec2 */
 typedef struct lh_math_vec2 lh_math_vec2_t;
 
 LH_COMPILER_EXTERN_C_BEGIN

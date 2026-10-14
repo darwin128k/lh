@@ -155,26 +155,6 @@ typedef enum lh_mb_status
     lh_mb_status_lost
 } lh_mb_status_t;
 
-/**
- * @brief Read what a device answered into @p values.
- *
- * @param adu      The frame as it came off the wire.
- * @param length   How many bytes @p adu holds.
- * @param unit     The unit that was asked.
- * @param fc       The function code that was sent.
- * @param expect   How many registers were asked for.
- * @param values   Where the words go.
- * @param cap      How many words @p values really holds.
- * @param out      How many words arrived; `lh_null` to not care.
- * @param exception The device's exception code, when it refused.
- *
- * @return What came back.
- *
- * @note A frame for another unit is not an error and not garbage: a line carries
- *       every unit's traffic, and a device that is not ours answering means
- *       somebody else is on the bus. Treating it as a failure is what makes a bus
- *       with eight devices look like eight broken ones.
- */
 /* The PDU вЂ” function code and data, no unit and no CRC вЂ” is the part of a frame
    that is the same on every line, and it is what `lh/net/modbus/link.h` hands to
    whichever framing it has. The three below are the PDU on its own; the three after
@@ -234,6 +214,26 @@ lh_mb_status_t
 lh_mb_parse_pdu(const lh_byte_ptr pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect, lh_u16_t *values,
                 lh_u16_t cap, lh_u16_t *out, lh_u8_t *exception);
 
+/**
+ * @brief Read what a device answered into @p values.
+ *
+ * @param adu      The frame as it came off the wire.
+ * @param length   How many bytes @p adu holds.
+ * @param unit     The unit that was asked.
+ * @param fc       The function code that was sent.
+ * @param expect   How many registers were asked for.
+ * @param values   Where the words go.
+ * @param cap      How many words @p values really holds.
+ * @param out      How many words arrived; `lh_null` to not care.
+ * @param exception The device's exception code, when it refused.
+ *
+ * @return What came back.
+ *
+ * @note A frame for another unit is not an error and not garbage: a line carries
+ *       every unit's traffic, and a device that is not ours answering means
+ *       somebody else is on the bus. Treating it as a failure is what makes a bus
+ *       with eight devices look like eight broken ones.
+ */
 lh_mb_status_t
 lh_mb_parse_read(const lh_byte_ptr adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh_u16_t expect,
                  lh_u16_t *values, lh_u16_t cap, lh_u16_t *out, lh_u8_t *exception);
@@ -265,6 +265,10 @@ lh_mb_parse_pdu_write(const lh_byte_ptr pdu, lh_u16_t length, lh_u16_t address, 
  * the address **and the value**: an echo of another value is a write that did not
  * happen as asked. A refusal is two bytes, `0x86` and the exception code.
  *
+ * @param pdu       Function code and data, as it came off the wire.
+ * @param length    How many bytes @p pdu holds.
+ * @param address   The address that was written.
+ * @param value     The value that was written.
  * @param exception The device's exception code, when it refused; `lh_null` to not care.
  *
  * @return ::lh_mb_status_ok when the echo is this write's. @see lh_mb_status_t
