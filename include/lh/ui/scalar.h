@@ -17,7 +17,9 @@
 #define LH_UI_SCALAR_H
 
 #include <lh/cast/static.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
+#include <lh/void.h>
 
 #if LH_LIBRARY_OPTION_MATH_FPU
 #    include <lh/math/fscalar.h>
@@ -74,5 +76,19 @@ typedef lh_math_scalar_t lh_ui_scalar_t;
  * for whole values up to 2^24; the int path truncates toward zero.
  */
 #define lh_ui_scalar_of(v) lh_cast_static(lh_ui_scalar_t, (v))
+
+LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief @p v with its fraction dropped, toward zero, into @p out.
+ *
+ * Alignment halves leftover room; on the int path that division already
+ * truncates toward zero, and this makes the float path land on the same
+ * pixels (negative room included). The int path copies @p v.
+ */
+lh_void
+lh_ui_scalar_trunc(lh_ui_scalar_t v, lh_ui_scalar_t *out);
+
+LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_SCALAR_H */

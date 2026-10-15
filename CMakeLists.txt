@@ -274,6 +274,7 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/radius.c
             ${LH_LIB_SRC_PATH}/ui/radii.c
             ${LH_LIB_SRC_PATH}/ui/rects.c
+            ${LH_LIB_SRC_PATH}/ui/scalar.c
             ${LH_LIB_SRC_PATH}/ui/shadow.c
             ${LH_LIB_SRC_PATH}/ui/shadow/ramp.c
             ${LH_LIB_SRC_PATH}/ui/shadow/shape.c

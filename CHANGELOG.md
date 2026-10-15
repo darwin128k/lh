@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Building with `LH_LIBRARY_OPTION_MATH_FPU=ON` failed: `lh_ui_scalar` (a literal-only macro that pastes `e0f`) was given variables and calls in `lh/ui` and its tests; those sites now use the new `lh_ui_scalar_of` (`lh/ui/scalar.h`), a cast for any arithmetic expression on both paths. `lh_ui_view_t::whole_count` and its loop index are `lh_u32_t` instead of `lh_ui_scalar_t` (a float cannot index an array)
 - `lh_ui_point_to_point` / `lh_ui_point_from_point` and `lh_ui_rect_to_rect` / `lh_ui_rect_from_rect` take an out-parameter on the `MATH_FPU=OFF` path too, matching the float path
 - `test/src/lh/os/serial.cpp` called `lh_os_serial_get_stream` with its old by-value signature
+- With `LH_LIBRARY_OPTION_MATH_FPU=ON`, alignment and layout landed on half pixels where the int path truncates (centring in `lh_ui_text_align_get_origin` and `lh_ui_text_line_get_shift`, `justify` center / space-*, fill shares by weight and the cross room shared between wrapped lines in `lh/ui/layout`). Those divisions now go through the new `lh_ui_scalar_trunc` (`lh/ui/scalar.h`), which drops the fraction toward zero on the float path and copies on the int path, so both paths place the same pixels
 
 ## [0.3.0] - 2026-09-14
 
