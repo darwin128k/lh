@@ -492,6 +492,38 @@ TEST(memory_view_slice_ropen_bricks, convert_half_open_storage)
     EXPECT_TRUE(lh_memory_view_slice_equals_of(&made, p(buf), p(buf + 1)));
 }
 
+TEST(memory_view_slice_ropen_bricks, size_containment_and_subrange)
+{
+    const unsigned char buf[4] = {10, 20, 30, 40};
+    lh_memory_view_slice_t empty_view = slice(p(buf), p(buf));
+    lh_memory_view_slice_t bytes = slice(p(buf), p(buf + 3));
+
+    EXPECT_EQ(lh_memory_view_slice_get_ropen_size(p(buf), p(buf)), 0u);
+    EXPECT_EQ(lh_memory_view_slice_get_ropen_size(lh_null, p(buf + 2)), lh_ptr_udiff(p(buf + 2), lh_null));
+    EXPECT_EQ(lh_memory_view_slice_get_ropen_size(p(buf), p(buf + 3)), 3u);
+    EXPECT_EQ(lh_memory_view_slice_get_ropen_last(p(buf + 3)), p(buf + 2));
+    EXPECT_EQ(lh_memory_view_slice_get_ropen_past(p(buf + 2)), p(buf + 3));
+
+    EXPECT_TRUE(lh_memory_view_slice_ropen_contains_range(p(buf), p(buf + 4), p(buf + 1), p(buf + 3)));
+    EXPECT_FALSE(lh_memory_view_slice_ropen_contains_range(p(buf), p(buf + 4), p(buf), p(buf + 5)));
+    EXPECT_TRUE(lh_memory_view_slice_ropen_overlaps_range(p(buf), p(buf + 2), p(buf + 1), p(buf + 3)));
+    EXPECT_FALSE(lh_memory_view_slice_ropen_overlaps_range(p(buf), p(buf + 2), p(buf + 2), p(buf + 4)));
+
+    lh_memory_view_slice_assert_ropen_not_empty(p(buf), p(buf + 2));
+    EXPECT_EQ(lh_memory_view_slice_get_ropen_view_size(&empty_view), 0u);
+    EXPECT_EQ(lh_memory_view_slice_get_ropen_view_size(&bytes), 3u);
+
+    lh_memory_view_slice_t sub = lh_memory_view_slice_return_ropen_sub(&bytes, 1, 2);
+    EXPECT_TRUE(lh_memory_view_slice_equals_of(&sub, p(buf + 1), p(buf + 2)));
+    lh_memory_view_slice_t none = lh_memory_view_slice_return_ropen_sub(&bytes, 1, 0);
+    EXPECT_TRUE(lh_memory_view_slice_is_uninitialized(&none));
+
+    EXPECT_TRUE(lh_memory_view_slice_needs_ropen(&empty_view, p(buf), p(buf + 2)));
+    EXPECT_TRUE(lh_memory_view_slice_needs_ropen(&bytes, p(buf), p(buf)));
+    EXPECT_FALSE(lh_memory_view_slice_needs_ropen(&bytes, p(buf), p(buf + 2)));
+    lh_memory_view_slice_assert_sub_range(3, 1, 2);
+}
+
 #if LH_TEST_EXPECT_DEATH_ENABLED
 
 TEST(memory_view_slice_make_v, rejects_invalid_range_death)
@@ -534,6 +566,25 @@ TEST(memory_view_slice_make_between, rejects_out_of_bounds_ptrs_death)
     lh_memory_view_slice_t s = slice(p(buf), p(buf + 3));
 
     LH_EXPECT_DEATH((void)lh_memory_view_slice_between(&s, p(buf + 1), p(buf + 5)));
+}
+
+TEST(memory_view_slice_get_ropen_size, rejects_null_end_death)
+{
+    const unsigned char buf[1] = {1};
+
+    LH_EXPECT_DEATH((void)lh_memory_view_slice_get_ropen_size(p(buf), lh_null));
+}
+
+TEST(memory_view_slice_assert_ropen_not_empty, rejects_empty_pair_death)
+{
+    const unsigned char buf[1] = {1};
+
+    LH_EXPECT_DEATH((void)lh_memory_view_slice_assert_ropen_not_empty(p(buf), p(buf)));
+}
+
+TEST(memory_view_slice_assert_sub_range, rejects_offset_past_total_death)
+{
+    LH_EXPECT_DEATH((void)lh_memory_view_slice_assert_sub_range(3, 4, 0));
 }
 
 #endif /* LH_TEST_EXPECT_DEATH_ENABLED */
