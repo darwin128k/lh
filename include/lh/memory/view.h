@@ -12,7 +12,10 @@
  * which treat the same two-field storage as a closed interval
  * <tt>[first, second]</tt>. The public typedef is layout-compatible with the
  * slice type, but every function in this header interprets @c second as an
- * exclusive endpoint.
+ * exclusive endpoint. View functions delegate to ::lh_memory_view_slice_*
+ * through the conversion <tt>[first, second)</tt> &lt;-&gt;
+ * <tt>[first, second - 1]</tt>. A valid empty view <tt>[x, x)</tt> has no
+ * closed form and is handled before that conversion.
  *
  * The view can also represent incomplete storage: each endpoint may be
  * ::lh_null. Endpoint presence is reported as
@@ -1060,10 +1063,63 @@ lh_memory_view_init_by_other(lh_memory_view_t *self, const lh_memory_view_t *oth
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is neither uninitialized nor valid half-open view.
+ *        @p self is not a valid half-open view, including a valid empty
+ *        view <tt>[x, x)</tt>, which has no closed form.
  */
 lh_memory_view_slice_t
 lh_memory_view_to_slice(const lh_memory_view_t *self);
+
+/**
+ * @brief Build a half-open view from closed @p slice.
+ *
+ * Valid slice <tt>[begin, end]</tt> becomes view <tt>[begin, end + 1)</tt>.
+ * An uninitialized slice becomes an uninitialized view.
+ *
+ * @param slice Closed slice to copy as a half-open view.
+ * @return Converted view value.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p slice is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p slice is initialized but not a valid closed slice.
+ */
+lh_memory_view_t
+lh_memory_view_return_of_slice(const lh_memory_view_slice_t *slice);
+
+/**
+ * @brief Return an uninitialized empty view.
+ * @return View with both endpoints ::lh_null.
+ */
+lh_memory_view_t
+lh_memory_view_return_empty(void);
+
+/**
+ * @brief Return a validated half-open view <tt>[begin, end)</tt>.
+ *
+ * @param begin First byte.
+ * @param end   One past the last byte. Equal to @p begin for an empty view.
+ * @return Validated view value.
+ *
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        <tt>[begin, end)</tt> is not a valid view.
+ */
+lh_memory_view_t
+lh_memory_view_return_init_v(const lh_ptr begin, const lh_ptr end);
+
+/**
+ * @brief Return a validated half-open view of @p size bytes at @p begin.
+ *
+ * @param begin First byte.
+ * @param size  Number of bytes. Must be non-zero.
+ * @return View <tt>[begin, begin + size)</tt>.
+ *
+ * @fails ::lh_runtime_error_code_invalid_argument
+ *        @p begin is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p size is zero.
+ */
+lh_memory_view_t
+lh_memory_view_return_init_by_size(const lh_ptr begin, lh_usize_t size);
 
 /* -- sub-range construction -------------------------------------------------- */
 

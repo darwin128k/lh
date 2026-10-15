@@ -474,6 +474,24 @@ TEST(memory_view_slice_init_by_other, copies_const_endpoints)
 
 /* ── death tests ────────────────────────────────────────────────────────── */
 
+TEST(memory_view_slice_ropen_bricks, convert_half_open_storage)
+{
+    const unsigned char buf[4] = {10, 20, 30, 40};
+    lh_memory_view_slice_t empty_view = slice(p(buf), p(buf));
+    lh_memory_view_slice_t bytes = slice(p(buf), p(buf + 3));
+
+    EXPECT_TRUE(lh_memory_view_slice_is_ropen_empty(&empty_view));
+    EXPECT_FALSE(lh_memory_view_slice_is_ropen_empty(&bytes));
+    EXPECT_TRUE(lh_memory_view_slice_is_unclosable_ropen(p(buf), p(buf)));
+    EXPECT_FALSE(lh_memory_view_slice_is_unclosable_ropen(p(buf), p(buf + 2)));
+
+    lh_memory_view_slice_t closed = lh_memory_view_slice_from_view(&bytes);
+    EXPECT_TRUE(lh_memory_view_slice_equals_of(&closed, p(buf), p(buf + 2)));
+
+    lh_memory_view_slice_t made = lh_memory_view_slice_return_init_by_size(p(buf), 2);
+    EXPECT_TRUE(lh_memory_view_slice_equals_of(&made, p(buf), p(buf + 1)));
+}
+
 #if LH_TEST_EXPECT_DEATH_ENABLED
 
 TEST(memory_view_slice_make_v, rejects_invalid_range_death)

@@ -37,6 +37,7 @@
 #include <lh/memory/view/slice/initializer.h>
 #include <lh/memory/view/slice/fields.h>
 #include <lh/util/ptr.h>
+#include <lh/runtime/error/code.h>
 
 /**
  * @struct lh_memory_view_slice
@@ -1336,6 +1337,200 @@ lh_memory_view_slice_init_empty(lh_memory_view_slice_t *self);
 lh_void
 lh_memory_view_slice_init_by_other(lh_memory_view_slice_t *self,
                                    const lh_memory_view_slice_t *other);
+
+/**
+ * @brief Return an uninitialized empty slice.
+ * @return Slice with both endpoints ::lh_null.
+ */
+lh_memory_view_slice_t
+lh_memory_view_slice_return_empty(void);
+
+/**
+ * @brief Return a validated closed slice <tt>[begin, end]</tt>.
+ *
+ * @param begin First byte.
+ * @param end   Last byte.
+ * @return Validated slice value.
+ *
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        <tt>[begin, end]</tt> is not a valid slice.
+ */
+lh_memory_view_slice_t
+lh_memory_view_slice_return_init_v(const lh_ptr begin, const lh_ptr end);
+
+/**
+ * @brief Return a validated closed slice of @p size bytes at @p begin.
+ *
+ * @param begin First byte.
+ * @param size  Number of bytes. Must be non-zero.
+ * @return Slice <tt>[begin, begin + size - 1]</tt>.
+ *
+ * @fails ::lh_runtime_error_code_invalid_argument
+ *        @p begin is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p size is zero.
+ */
+lh_memory_view_slice_t
+lh_memory_view_slice_return_init_by_size(const lh_ptr begin, lh_usize_t size);
+
+/**
+ * @brief Resolve @p ptr moved by @p offset to an offset from the slice begin.
+ *
+ * A ::lh_null @p ptr means "from the slice begin". On failure the error code
+ * is returned and @p out is left unchanged, except the null-pointer path,
+ * which reports range errors through the asserting getters.
+ *
+ * @param self   Slice to search.
+ * @param ptr    Anchor inside the slice, or ::lh_null for the beginning.
+ * @param offset Signed step from @p ptr.
+ * @param out    Receives the resulting offset from the beginning.
+ * @return ::lh_runtime_error_code_ok, or an underflow/overflow code.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p out is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @fails ::lh_runtime_error_code_out_of_range
+ *        @p ptr is outside @p self.
+ */
+lh_runtime_error_code_t
+lh_memory_view_slice_find_offset_from_ptr(const lh_memory_view_slice_t *self, const lh_ptr ptr,
+                                          lh_soffset_t offset, lh_uoffset_t *out);
+
+/**
+ * @brief True when @p self is a valid half-open empty range <tt>[x, x)</tt>.
+ *
+ * The same bits are a one-byte closed slice. This predicate is for callers
+ * that interpret the storage as a half-open view.
+ *
+ * @param self View storage to test.
+ * @return ::lh_bool_true when both endpoints are set, ordered, and equal.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ */
+lh_bool_t
+lh_memory_view_slice_is_ropen_empty(const lh_memory_view_slice_t *self);
+
+/**
+ * @brief True when half-open <tt>[begin, end)</tt> has no closed form.
+ *
+ * That is a null endpoint or @p begin == @p end.
+ *
+ * @param begin Range begin.
+ * @param end   Exclusive range end.
+ * @return ::lh_bool_true when the pair cannot be stored as a closed slice.
+ */
+lh_bool_t
+lh_memory_view_slice_is_unclosable_ropen(const lh_ptr begin, const lh_ptr end);
+
+/**
+ * @brief Copy half-open @p self as a closed slice.
+ *
+ * Uninitialized storage becomes an empty slice. A valid non-empty view
+ * <tt>[begin, end)</tt> becomes <tt>[begin, end - 1]</tt>.
+ *
+ * @param self View storage to convert.
+ * @return Closed slice value.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self is not uninitialized and not a non-empty valid half-open view.
+ */
+lh_memory_view_slice_t
+lh_memory_view_slice_from_view(const lh_memory_view_slice_t *self);
+
+/**
+ * @brief Half-open containment of <tt>[begin, end)</tt> in @p self.
+ *
+ * Used when @p self or the argument range has no closed form.
+ *
+ * @param self  View storage.
+ * @param begin Inner range begin.
+ * @param end   Inner exclusive end.
+ * @return ::lh_bool_true when the half-open inner range is contained.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self is not a valid half-open view.
+ */
+lh_bool_t
+lh_memory_view_slice_contains_ropen(const lh_memory_view_slice_t *self, const lh_ptr begin,
+                                    const lh_ptr end);
+
+/**
+ * @brief Half-open overlap of @p self with <tt>[begin, end)</tt>.
+ *
+ * @param self  View storage.
+ * @param begin Other range begin.
+ * @param end   Other exclusive end.
+ * @return ::lh_bool_true when the half-open ranges overlap.
+ *
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self is not a valid half-open view.
+ */
+lh_bool_t
+lh_memory_view_slice_overlaps_ropen(const lh_memory_view_slice_t *self, const lh_ptr begin,
+                                    const lh_ptr end);
+
+/**
+ * @brief Find half-open <tt>[begin, end)</tt> inside half-open @p self.
+ * @return Match pointer, or ::lh_null.
+ *
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self is not a valid half-open view.
+ */
+const lh_ptr
+lh_memory_view_slice_find_ropen(const lh_memory_view_slice_t *self, const lh_ptr begin,
+                                const lh_ptr end);
+
+/** @copydoc lh_memory_view_slice_find_ropen */
+const lh_ptr
+lh_memory_view_slice_rfind_ropen(const lh_memory_view_slice_t *self, const lh_ptr begin,
+                                 const lh_ptr end);
+
+/** @copydoc lh_memory_view_slice_find_ropen */
+const lh_ptr
+lh_memory_view_slice_compare_ropen(const lh_memory_view_slice_t *self, const lh_ptr begin,
+                                   const lh_ptr end);
+
+/** @copydoc lh_memory_view_slice_find_ropen */
+const lh_ptr
+lh_memory_view_slice_rcompare_ropen(const lh_memory_view_slice_t *self, const lh_ptr begin,
+                                    const lh_ptr end);
+
+/**
+ * @brief Take the first @p n bytes of half-open <tt>[begin, end)</tt> as a closed slice.
+ *
+ * @p n of zero returns an uninitialized slice without validating the range.
+ * A non-zero @p n on <tt>[x, x)</tt> fails with ::lh_runtime_error_code_out_of_range.
+ *
+ * @return Closed slice covering those bytes, or an empty slice when @p n is zero.
+ */
+lh_memory_view_slice_t
+lh_memory_view_slice_take_first_ropen(const lh_ptr begin, const lh_ptr end, lh_usize_t n);
+
+/**
+ * @brief Take the last @p n bytes of half-open <tt>[begin, end)</tt> as a closed slice.
+ * @return Closed slice covering those bytes, or an empty slice when @p n is zero.
+ */
+lh_memory_view_slice_t
+lh_memory_view_slice_take_last_ropen(const lh_ptr begin, const lh_ptr end, lh_usize_t n);
+
+/**
+ * @brief Sub-range of half-open @p self, returned as a closed slice.
+ *
+ * @p size of zero returns an uninitialized slice. A positive size is a closed
+ * slice of that many bytes, which converts back to <tt>[ptr, ptr + size)</tt>.
+ *
+ * @fails ::lh_runtime_error_code_out_of_range
+ *        The requested window is outside @p self.
+ */
+lh_memory_view_slice_t
+lh_memory_view_slice_from_offset_ropen(const lh_memory_view_slice_t *self, lh_uoffset_t offset,
+                                       lh_usize_t size);
 
 LH_COMPILER_EXTERN_C_END
 
