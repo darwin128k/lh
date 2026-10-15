@@ -4,6 +4,7 @@
 #include <lh/math/slice.h>
 #include <lh/null.h>
 #include <lh/util/addr.h>
+#include <lh/test/out.h>
 
 #include <cmath>
 
@@ -94,11 +95,11 @@ TEST(math_slice, get_at_and_index_bounds)
 TEST(math_slice, sub_take_and_drop_share_the_data)
 {
     const lh_math_slice_t s = slice_of(data, 5U);
-    const lh_math_slice_t sub = lh_math_slice_get_sub(lh_addr_of(s), 1U, 3U);
-    const lh_math_slice_t first = lh_math_slice_take_first(lh_addr_of(s), 2U);
-    const lh_math_slice_t last = lh_math_slice_take_last(lh_addr_of(s), 2U);
-    const lh_math_slice_t dropped_first = lh_math_slice_drop_first(lh_addr_of(s), 2U);
-    const lh_math_slice_t dropped_last = lh_math_slice_drop_last(lh_addr_of(s), 2U);
+    const lh_math_slice_t sub = lh_test::out(lh_math_slice_get_sub, lh_addr_of(s), 1U, 3U);
+    const lh_math_slice_t first = lh_test::out(lh_math_slice_take_first, lh_addr_of(s), 2U);
+    const lh_math_slice_t last = lh_test::out(lh_math_slice_take_last, lh_addr_of(s), 2U);
+    const lh_math_slice_t dropped_first = lh_test::out(lh_math_slice_drop_first, lh_addr_of(s), 2U);
+    const lh_math_slice_t dropped_last = lh_test::out(lh_math_slice_drop_last, lh_addr_of(s), 2U);
 
     EXPECT_EQ(lh_math_slice_get_begin(lh_addr_of(sub)), data + 1);
     EXPECT_EQ(lh_math_slice_get_size(lh_addr_of(sub)), 3U);
@@ -115,10 +116,10 @@ TEST(math_slice, sub_take_and_drop_share_the_data)
 TEST(math_slice, taking_or_dropping_everything_or_nothing)
 {
     const lh_math_slice_t s = slice_of(data, 5U);
-    const lh_math_slice_t none = lh_math_slice_take_first(lh_addr_of(s), 0U);
-    const lh_math_slice_t all = lh_math_slice_take_last(lh_addr_of(s), 5U);
-    const lh_math_slice_t gone = lh_math_slice_drop_first(lh_addr_of(s), 5U);
-    const lh_math_slice_t kept = lh_math_slice_drop_last(lh_addr_of(s), 0U);
+    const lh_math_slice_t none = lh_test::out(lh_math_slice_take_first, lh_addr_of(s), 0U);
+    const lh_math_slice_t all = lh_test::out(lh_math_slice_take_last, lh_addr_of(s), 5U);
+    const lh_math_slice_t gone = lh_test::out(lh_math_slice_drop_first, lh_addr_of(s), 5U);
+    const lh_math_slice_t kept = lh_test::out(lh_math_slice_drop_last, lh_addr_of(s), 0U);
     lh_math_slice_t empty;
 
     EXPECT_TRUE(lh_math_slice_is_empty(lh_addr_of(none)));
@@ -127,7 +128,7 @@ TEST(math_slice, taking_or_dropping_everything_or_nothing)
     EXPECT_TRUE(lh_math_slice_equals(lh_addr_of(kept), lh_addr_of(s)));
     lh_math_slice_init_empty(lh_addr_of(empty));
     EXPECT_TRUE(lh_math_slice_is_empty(lh_addr_of(empty)));
-    const lh_math_slice_t still = lh_math_slice_take_first(lh_addr_of(empty), 0U);
+    const lh_math_slice_t still = lh_test::out(lh_math_slice_take_first, lh_addr_of(empty), 0U);
     EXPECT_TRUE(lh_math_slice_is_empty(lh_addr_of(still)));
 }
 
@@ -161,8 +162,8 @@ TEST(math_slice, equals_compares_sizes_and_elements)
 TEST(math_slice, sum_and_dot)
 {
     const lh_math_slice_t s = slice_of(data, 5U);
-    const lh_math_slice_t head = lh_math_slice_take_first(lh_addr_of(s), 3U);
-    const lh_math_slice_t tail = lh_math_slice_take_last(lh_addr_of(s), 3U);
+    const lh_math_slice_t head = lh_test::out(lh_math_slice_take_first, lh_addr_of(s), 3U);
+    const lh_math_slice_t tail = lh_test::out(lh_math_slice_take_last, lh_addr_of(s), 3U);
     const lh_float_t negative_zeros[] = {-0.0f, -0.0f};
     const lh_math_slice_t nz = slice_of(negative_zeros, 2U);
     lh_math_slice_t empty;
@@ -191,11 +192,11 @@ TEST(math_slice_death, sub_past_the_end)
 {
     const lh_math_slice_t s = slice_of(data, 5U);
 
-    LH_EXPECT_DEATH(lh_math_slice_get_sub(lh_addr_of(s), 4U, 2U));
-    LH_EXPECT_DEATH(lh_math_slice_take_first(lh_addr_of(s), 6U));
-    LH_EXPECT_DEATH(lh_math_slice_take_last(lh_addr_of(s), 6U));
-    LH_EXPECT_DEATH(lh_math_slice_drop_first(lh_addr_of(s), 6U));
-    LH_EXPECT_DEATH(lh_math_slice_drop_last(lh_addr_of(s), 6U));
+    LH_EXPECT_DEATH(lh_test::out(lh_math_slice_get_sub, lh_addr_of(s), 4U, 2U));
+    LH_EXPECT_DEATH(lh_test::out(lh_math_slice_take_first, lh_addr_of(s), 6U));
+    LH_EXPECT_DEATH(lh_test::out(lh_math_slice_take_last, lh_addr_of(s), 6U));
+    LH_EXPECT_DEATH(lh_test::out(lh_math_slice_drop_first, lh_addr_of(s), 6U));
+    LH_EXPECT_DEATH(lh_test::out(lh_math_slice_drop_last, lh_addr_of(s), 6U));
 }
 
 TEST(math_slice_death, size_of_a_reversed_slice_and_dot_of_different_sizes)

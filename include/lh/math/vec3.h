@@ -143,6 +143,20 @@ lh_void
 lh_math_vec3_scale(lh_math_vec3_t v, lh_math_fscalar_t s, lh_math_vec3_t *out);
 
 /**
+ * @brief Multiply-accumulate: @p a + @p b * @p s, component-wise.
+ *
+ * @p a and @p b are taken by value, so @p out may point at the storage either
+ * of them was copied from (`lh_math_vec3_madd(*out, b, s, out)` accumulates in
+ * place); `*out` is only written, never read.
+ * @param a Vector to add to.
+ * @param b Vector to scale.
+ * @param s Factor for @p b.
+ * @param out Receives the result.
+ */
+lh_void
+lh_math_vec3_madd(lh_math_vec3_t a, lh_math_vec3_t b, lh_math_fscalar_t s, lh_math_vec3_t *out);
+
+/**
  * @brief @p v with every component negated.
  */
 lh_void

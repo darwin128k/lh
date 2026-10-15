@@ -128,7 +128,6 @@ lh_ui_text_block_get_size(const lh_ui_text_block_t *self, const lh_ui_font_t *fo
 lh_void
 lh_ui_text_block_get_ink_rect(const lh_ui_text_block_t *self, lh_ui_point_t origin, lh_ui_rect_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
     /* The union skips empty rects, so moving the hull is the hull of the moved
        lines -- including when nothing is inked and the hull is the last line's box. */

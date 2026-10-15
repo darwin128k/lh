@@ -44,7 +44,6 @@ lh_str_view_init_by_other(lh_str_view_t *self, const lh_str_view_t *other)
 lh_void
 lh_str_view_from_offset(const lh_str_view_t *self, lh_uoffset_t offset, lh_usize_t size, lh_str_view_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_memory_view_from_offset(self, offset, size, out);
     return;
 }

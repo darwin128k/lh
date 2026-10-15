@@ -176,7 +176,6 @@ lh_ui_pixmap_write_word(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_u32_t w
 lh_void
 lh_ui_pixmap_get_pixel(const lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_ui_color_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_ui_pixmap_unpack(self, lh_ui_pixmap_read_word(self, x, y), out);
     return;
 }

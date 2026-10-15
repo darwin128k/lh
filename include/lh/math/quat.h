@@ -167,6 +167,9 @@ lh_math_quat_normalize(lh_math_quat_t q, lh_math_quat_t *out);
 
 /**
  * @brief @p v rotated by the unit quaternion @p q.
+ *
+ * The inputs are taken by value, so @p out may point at the storage one of
+ * them was copied from.
  */
 lh_void
 lh_math_quat_rotate(lh_math_quat_t q, lh_math_vec3_t v, lh_math_vec3_t *out);

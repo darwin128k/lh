@@ -144,6 +144,17 @@ lh_math_vec4_scale(lh_math_vec4_t v, lh_float_t s, lh_math_vec4_t *out)
 }
 
 lh_void
+lh_math_vec4_madd(lh_math_vec4_t a, lh_math_vec4_t b, lh_float_t s, lh_math_vec4_t *out)
+{
+    lh_math_vec4_init(out,
+                      lh_math_vec4_get_x(lh_addr_of(a)) + lh_math_vec4_get_x(lh_addr_of(b)) * s,
+                      lh_math_vec4_get_y(lh_addr_of(a)) + lh_math_vec4_get_y(lh_addr_of(b)) * s,
+                      lh_math_vec4_get_z(lh_addr_of(a)) + lh_math_vec4_get_z(lh_addr_of(b)) * s,
+                      lh_math_vec4_get_w(lh_addr_of(a)) + lh_math_vec4_get_w(lh_addr_of(b)) * s);
+    return;
+}
+
+lh_void
 lh_math_vec4_neg(lh_math_vec4_t v, lh_math_vec4_t *out)
 {
     lh_assert_runtime_ref(out);

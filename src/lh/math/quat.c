@@ -177,24 +177,20 @@ lh_void
 lh_math_quat_rotate(lh_math_quat_t q, lh_math_vec3_t v, lh_math_vec3_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_math_vec3_t vec3;
-    lh_math_vec3_init(lh_addr_of(vec3), lh_math_quat_get_x(lh_addr_of(q)),
-                      lh_math_quat_get_y(lh_addr_of(q)), lh_math_quat_get_z(lh_addr_of(q)));
-    /* v + w * t + u x t, with u = (x, y, z) and t = 2 (u x v): the expanded
-     * q v q* without forming the intermediate quaternions. */
-    const lh_math_vec3_t u = vec3;
-    lh_math_vec3_t uv;
+    lh_math_vec3_t u;
     lh_math_vec3_t t;
-    lh_math_vec3_t wt;
-    lh_math_vec3_t ut;
-    lh_math_vec3_t sum;
 
-    lh_math_vec3_cross(u, v, lh_addr_of(uv));
-    lh_math_vec3_scale(uv, 2.0f, lh_addr_of(t));
-    lh_math_vec3_scale(t, lh_math_quat_get_w(lh_addr_of(q)), lh_addr_of(wt));
-    lh_math_vec3_cross(u, t, lh_addr_of(ut));
-    lh_math_vec3_add(v, wt, lh_addr_of(sum));
-    lh_math_vec3_add(sum, ut, out);
+    /* v + w * t + u x t, with u = (x, y, z) and t = 2 (u x v): the expanded
+     * q v q* without forming the intermediate quaternions. u x t is built in
+     * u's slot once u is no longer needed. */
+    lh_math_vec3_init(lh_addr_of(u), lh_math_quat_get_x(lh_addr_of(q)),
+                      lh_math_quat_get_y(lh_addr_of(q)), lh_math_quat_get_z(lh_addr_of(q)));
+    lh_math_vec3_cross(u, v, lh_addr_of(t));
+    lh_math_vec3_scale(t, 2.0f, lh_addr_of(t));
+    lh_math_vec3_madd(v, t, lh_math_quat_get_w(lh_addr_of(q)), out);
+    lh_math_vec3_cross(u, t, lh_addr_of(u));
+    lh_math_vec3_add(*out, u, out);
+    return;
 }
 
 lh_void
@@ -208,11 +204,10 @@ lh_math_quat_nlerp(lh_math_quat_t a, lh_math_quat_t b, lh_float_t t, lh_math_qua
         lh_math_vec4_neg(to, lh_addr_of(to));
     }
     lh_math_vec4_t from;
-    lh_math_vec4_t mixed;
-    lh_math_vec4_t unit;
 
+    /* from is reused for the blend and its unit form. */
     lh_math_quat_to_vec4(a, lh_addr_of(from));
-    lh_math_vec4_lerp(from, to, t, lh_addr_of(mixed));
-    lh_math_vec4_normalize(mixed, lh_addr_of(unit));
-    lh_math_quat_from_vec4(unit, out);
+    lh_math_vec4_lerp(from, to, t, lh_addr_of(from));
+    lh_math_vec4_normalize(from, lh_addr_of(from));
+    lh_math_quat_from_vec4(from, out);
 }

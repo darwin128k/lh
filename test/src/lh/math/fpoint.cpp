@@ -6,6 +6,7 @@
 #include <lh/math/point.h>
 #include <lh/math/fscalar.h>
 #include <lh/util/addr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -68,8 +69,8 @@ TEST(math_fpoint, roundtrip_through_point)
     lh_math_point_t pixel;
 
     lh_math_point_init(lh_addr_of(pixel), -8, 15);
-    const lh_math_fpoint_t p = lh_math_point_to_fpoint(pixel);
-    const lh_math_point_t back = lh_math_fpoint_to_point(p);
+    const lh_math_fpoint_t p = lh_test::out(lh_math_point_to_fpoint, pixel);
+    const lh_math_point_t back = lh_test::out(lh_math_fpoint_to_point, p);
     EXPECT_EQ(lh_math_point_get_x(lh_addr_of(back)), -8);
     EXPECT_EQ(lh_math_point_get_y(lh_addr_of(back)), 15);
 }
@@ -79,7 +80,7 @@ TEST(math_fpoint, to_point_truncates_toward_zero)
     lh_math_fpoint_t p;
 
     lh_math_fpoint_init(lh_addr_of(p), 3.9f, -3.9f);
-    const lh_math_point_t pixel = lh_math_fpoint_to_point(p);
+    const lh_math_point_t pixel = lh_test::out(lh_math_fpoint_to_point, p);
     EXPECT_EQ(lh_math_point_get_x(lh_addr_of(pixel)), 3);
     EXPECT_EQ(lh_math_point_get_y(lh_addr_of(pixel)), -3);
 }
@@ -92,8 +93,8 @@ TEST(math_fpoint, min_max_and_offset_size)
     lh_math_fpoint_t b;
 
     lh_math_fpoint_init(lh_addr_of(b), 4, 2);
-    const lh_math_fpoint_t lo = lh_math_fpoint_min(lh_addr_of(a), lh_addr_of(b));
-    const lh_math_fpoint_t hi = lh_math_fpoint_max(lh_addr_of(a), lh_addr_of(b));
+    const lh_math_fpoint_t lo = lh_test::out(lh_math_fpoint_min, lh_addr_of(a), lh_addr_of(b));
+    const lh_math_fpoint_t hi = lh_test::out(lh_math_fpoint_max, lh_addr_of(a), lh_addr_of(b));
     EXPECT_EQ(lh_math_fpoint_get_x(lh_addr_of(lo)), 1);
     EXPECT_EQ(lh_math_fpoint_get_y(lh_addr_of(lo)), 2);
     EXPECT_EQ(lh_math_fpoint_get_x(lh_addr_of(hi)), 4);
@@ -103,7 +104,7 @@ TEST(math_fpoint, min_max_and_offset_size)
 
 
     lh_math_fsize_init(lh_addr_of(size), 5, 3);
-    const lh_math_fpoint_t far = lh_math_fpoint_offset_size(lh_addr_of(a), lh_addr_of(size));
+    const lh_math_fpoint_t far = lh_test::out(lh_math_fpoint_offset_size, lh_addr_of(a), lh_addr_of(size));
     EXPECT_EQ(lh_math_fpoint_get_x(lh_addr_of(far)), 6);
     EXPECT_EQ(lh_math_fpoint_get_y(lh_addr_of(far)), 11);
 }
