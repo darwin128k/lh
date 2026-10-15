@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lh/float/*` (`lh_float_sqrt`, `lh_float_sin_cos`, `lh_float_floor_to_int`, `lh_float_ceil_to_int`) became public functions in `.c` with headers in `include/lh/float/`
 - `lh/float` moved to `lh/math/float`; `lh_float_sqrt`, `lh_float_sin_cos`, `lh_float_floor_to_int`, `lh_float_ceil_to_int` renamed to `lh_math_float_sqrt`, `lh_math_float_sin_cos`, `lh_math_float_floor_to_int`, `lh_math_float_ceil_to_int`
 - `lh_math_vec2/3/4_dot`, `_length_sq` and `_length` compute through `lh_math_view_*` over the vector components (same results, bit for bit)
-- RGB565 and ARGB8888 alpha blending without SSE (ARM) works on words: two channels per multiply in `0x00FF00FF` lanes, an exact divide-free `/255`, `SMLAD` on cores with the DSP extension, and two RGB565 pixels per step; results unchanged bit for bit
+- RGB565 and ARGB8888 alpha blending without SSE (ARM) works on words: two channels per multiply in `0x00FF00FF` lanes, an exact divide-free `/255`, `SMLAD` on cores with the DSP extension, and RGB565 pixels are processed in pairs (two 16-bit accesses, which the compiler may merge); results unchanged bit for bit
 
 ## [0.3.0] - 2026-09-14
 

@@ -841,16 +841,12 @@ lh_void
 lh_ui_pixmap_blend_16_pair_at(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha, lh_u32_t src,
                               lh_u32_t solid)
 {
-    /* Read and written through the pixels' own type: a 32-bit lvalue on a 16-bit
-       buffer is an aliasing violation, and the compiler joins the two halves into
-       one access where it may. */
-    lh_u32_t pair;
-
+    /* Each pixel through its own 16-bit access (a 32-bit lvalue on a 16-bit buffer
+       is an aliasing violation; the compiler may merge the two). Joining them into
+       one word only for lh_ui_pixmap_blend_16_pair to split it again bought nothing. */
     lh_return_if(alpha[0] == 0U && alpha[1] == 0U);
-    pair = lh_ui_pixmap_blend_16_pair(self, lh_cast_static(lh_u32_t, at[0]) | (lh_cast_static(lh_u32_t, at[1]) << 16),
-                                      src, solid, alpha[0], alpha[1]);
-    at[0] = lh_cast_static(lh_u16_t, pair);
-    at[1] = lh_cast_static(lh_u16_t, pair >> 16);
+    at[0] = lh_cast_static(lh_u16_t, lh_ui_pixmap_blend_16_one(self, at[0], src, solid, alpha[0]));
+    at[1] = lh_cast_static(lh_u16_t, lh_ui_pixmap_blend_16_one(self, at[1], src, solid, alpha[1]));
 }
 
 lh_u32_t

@@ -234,10 +234,17 @@ lh_ui_color_mix_pair(lh_u32_t dst, lh_u32_t src, lh_u32_t a)
 lh_ui_color_channel_t
 lh_ui_color_over_opaque_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t a)
 {
-    /* src * a + dst * (255 - a) is one dual multiply-accumulate: SMLAD where the
-       core has it (Cortex-M4 and up), two multiplies elsewhere. */
+#if LH_UI_COLOR_HAVE_SMLAD
+    /* src * a + dst * (255 - a) is one dual multiply-accumulate: SMLAD on a core
+       with the DSP extension (Cortex-M4 and up). */
     return lh_cast_static(lh_ui_color_channel_t,
                           lh_ui_color_div255_round(lh_ui_color_dual_mac(src | (dst << 16), a | ((LH_BYTE_T_MAX - a) << 16), 0U)));
+#else
+    /* Without SMLAD the two products are written out: packing them into halfwords
+       only for lh_ui_color_dual_mac to unpack them again costs shifts, masks and
+       ORs a channel on cores without the extension (ESP32, RISC-V). */
+    return lh_cast_static(lh_ui_color_channel_t, lh_ui_color_div255_round(src * a + dst * (LH_BYTE_T_MAX - a)));
+#endif
 }
 
 lh_u32_t

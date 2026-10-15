@@ -273,8 +273,8 @@ lh_ui_pixmap_blend_16_pair(const lh_ui_pixmap_t *self, lh_u32_t pair, lh_u32_t s
                            lh_u32_t a_hi);
 
 /**
- * @brief ::lh_ui_pixmap_blend_16_pair on the two pixels at @p at, joined into one
- *        32-bit word (left alone when both alphas are 0).
+ * @brief The two pixels at @p at, each through ::lh_ui_pixmap_blend_16_one at its
+ *        own alpha with its own 16-bit access (left alone when both alphas are 0).
  */
 lh_void
 lh_ui_pixmap_blend_16_pair_at(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_ptr alpha, lh_u32_t src,
