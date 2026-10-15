@@ -186,4 +186,99 @@ TEST(ui_color, equals_compares_channels)
     EXPECT_EQ(lh_ui_color_equals(lh_addr_of(a), lh_addr_of(b)), lh_bool_false);
 }
 
+/* The scalar formula every word path has to reproduce bit for bit. */
+lh_u32_t
+over_channel_reference(lh_u32_t src, lh_u32_t dst, lh_u32_t a)
+{
+    return (src * a + dst * (255u - a) + 127u) / 255u;
+}
+
+TEST(ui_color, div255_round_is_the_division_for_every_numerator)
+{
+    for (lh_u32_t x = 0u; x <= 255u * 255u; ++x)
+    {
+        ASSERT_EQ(lh_ui_color_div255_round(x), (x + 127u) / 255u) << x;
+    }
+}
+
+TEST(ui_color, div255_round_pair_divides_each_lane_on_its_own)
+{
+    const lh_u32_t others[] = {0u, 1u, 127u, 128u, 255u * 255u};
+
+    for (lh_u32_t x = 0u; x <= 255u * 255u; ++x)
+    {
+        for (lh_u32_t y : others)
+        {
+            const lh_u32_t got = lh_ui_color_div255_round_pair(x | (y << 16));
+
+            ASSERT_EQ(got & 0xFFFFu, (x + 127u) / 255u) << x << " beside " << y;
+            ASSERT_EQ(got >> 16, (y + 127u) / 255u) << y << " beside " << x;
+        }
+    }
+}
+
+TEST(ui_color, dual_mac_is_two_products_and_the_accumulator)
+{
+    EXPECT_EQ(lh_ui_color_dual_mac(0u, 0u, 7u), 7u);
+    EXPECT_EQ(lh_ui_color_dual_mac(3u | (5u << 16), 7u | (11u << 16), 2u), 2u + 3u * 7u + 5u * 11u);
+    EXPECT_EQ(lh_ui_color_dual_mac(255u | (255u << 16), 255u | (255u << 16), 127u), 2u * 255u * 255u + 127u);
+}
+
+TEST(ui_color, mix_pair_is_the_channel_formula_in_both_lanes)
+{
+    for (lh_u32_t a = 0u; a <= 255u; ++a)
+    {
+        for (lh_u32_t s = 0u; s <= 255u; ++s)
+        {
+            for (lh_u32_t d = 0u; d <= 255u; ++d)
+            {
+                const lh_u32_t other = (s * 7u + d * 13u + a) & 0xFFu;
+                const lh_u32_t got = lh_ui_color_mix_pair(d | (other << 16), s | ((255u - other) << 16), a);
+
+                ASSERT_EQ(got & 0xFFFFu, over_channel_reference(s, d, a)) << s << " " << d << " " << a;
+                ASSERT_EQ(got >> 16, over_channel_reference(255u - other, other, a)) << other << " " << a;
+            }
+        }
+    }
+}
+
+TEST(ui_color, over_opaque_channel_is_the_formula_for_every_input)
+{
+    for (lh_u32_t a = 0u; a <= 255u; ++a)
+    {
+        for (lh_u32_t s = 0u; s <= 255u; ++s)
+        {
+            for (lh_u32_t d = 0u; d <= 255u; ++d)
+            {
+                ASSERT_EQ(lh_ui_color_over_opaque_channel(s, d, a), over_channel_reference(s, d, a));
+            }
+        }
+    }
+}
+
+TEST(ui_color, argb_over_opaque_is_the_channel_formula_word_for_word)
+{
+    lh_u32_t seed = 12345u;
+
+    for (lh_u32_t a = 0u; a <= 255u; ++a)
+    {
+        for (int i = 0; i < 4096; ++i)
+        {
+            seed = seed * 1664525u + 1013904223u;
+            const lh_u32_t dst = 0xFF000000u | (seed >> 8);
+            seed = seed * 1664525u + 1013904223u;
+            const lh_u32_t src = (a << 24) | (seed & 0x00FFFFFFu);
+            const lh_u32_t want = 0xFF000000u |
+                                  (over_channel_reference((src >> 16) & 0xFFu, (dst >> 16) & 0xFFu, a) << 16) |
+                                  (over_channel_reference((src >> 8) & 0xFFu, (dst >> 8) & 0xFFu, a) << 8) |
+                                  over_channel_reference(src & 0xFFu, dst & 0xFFu, a);
+
+            ASSERT_EQ(lh_ui_color_argb_over_opaque(dst, src), want) << std::hex << dst << " " << src;
+        }
+    }
+    /* The ends: alpha 255 is the source, alpha 0 the destination. */
+    EXPECT_EQ(lh_ui_color_argb_over_opaque(0xFF123456u, 0xFFABCDEFu), 0xFFABCDEFu);
+    EXPECT_EQ(lh_ui_color_argb_over_opaque(0xFF123456u, 0x00ABCDEFu), 0xFF123456u);
+}
+
 } // namespace

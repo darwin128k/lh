@@ -238,6 +238,49 @@ lh_u32_t
 lh_ui_pixmap_mix_16(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a);
 
 /**
+ * @brief Red and blue of an RGB565 @p word (numeric order), each widened to 8
+ *        bits in its byte lane: red in bits 16..23, blue in 0..7 (`0x00FF00FF`).
+ */
+lh_u32_t
+lh_ui_pixmap_rb_of_565(lh_u32_t word);
+
+/**
+ * @brief Green of an RGB565 @p word (numeric order), widened to 8 bits.
+ */
+lh_u32_t
+lh_ui_pixmap_g_of_565(lh_u32_t word);
+
+/**
+ * @brief The RGB565 word (numeric order) of 8-bit red and blue lanes @p rb
+ *        (::lh_ui_pixmap_rb_of_565's layout) and 8-bit green @p g, truncated.
+ */
+lh_u32_t
+lh_ui_pixmap_565_of(lh_u32_t rb, lh_u32_t g);
+
+/**
+ * @brief One 16-bit pixel @p dst under @p src at alpha @p a: unchanged at `0`,
+ *        @p solid (the packed @p src) at `255`, ::lh_ui_pixmap_mix_16 between.
+ */
+lh_u32_t
+lh_ui_pixmap_blend_16_one(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t solid, lh_u32_t a);
+
+/**
+ * @brief Two 16-bit pixels in one 32-bit word @p pair (the low half first in
+ *        memory), each through ::lh_ui_pixmap_blend_16_one at its own alpha.
+ */
+lh_u32_t
+lh_ui_pixmap_blend_16_pair(const lh_ui_pixmap_t *self, lh_u32_t pair, lh_u32_t src, lh_u32_t solid, lh_u32_t a_lo,
+                           lh_u32_t a_hi);
+
+/**
+ * @brief ::lh_ui_pixmap_blend_16_pair on the two pixels at @p at, joined into one
+ *        32-bit word (left alone when both alphas are 0).
+ */
+lh_void
+lh_ui_pixmap_blend_16_pair_at(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_ptr alpha, lh_u32_t src,
+                              lh_u32_t solid);
+
+/**
  * @brief Pixel word @p dst (format of @p self) with RGB @p src at alpha @p a
  *        over it: ::lh_ui_pixmap_mix_16 or ::lh_ui_pixmap_mix_argb, by format.
  */
@@ -383,6 +426,15 @@ lh_ui_pixmap_blend_alpha_32_over_sse2(lh_u32_t *at, const lh_byte_ptr alpha, lh_
 lh_void
 lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_ptr alpha, lh_usize_t count,
                                  lh_u32_t src);
+
+/**
+ * @brief The portable form of ::lh_ui_pixmap_blend_alpha_16: two pixels a 32-bit
+ *        word where @p at is word-aligned (::lh_ui_pixmap_blend_16_pair_at), the
+ *        unaligned first and odd last pixel alone. What runs without SSE2.
+ */
+lh_void
+lh_ui_pixmap_blend_alpha_16_words(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_ptr alpha, lh_usize_t count,
+                                  lh_u32_t src);
 
 /**
  * @brief One block of ::lh_ui_pixmap_blend_alpha_16_sse2: exactly eight RGB565

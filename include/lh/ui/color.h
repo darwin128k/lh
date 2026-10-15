@@ -173,6 +173,51 @@ lh_ui_color_channel_t
 lh_ui_color_over_opaque_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t a);
 
 /**
+ * @def LH_UI_COLOR_HAVE_SMLAD
+ * @brief `1` where the compiler targets an Arm core with the DSP extension
+ *        (`__ARM_FEATURE_DSP`, Cortex-M4 and up): ::lh_ui_color_dual_mac is then
+ *        the `SMLAD` instruction. `0` elsewhere.
+ */
+#if defined(__ARM_FEATURE_DSP) && __ARM_FEATURE_DSP && defined(__ARM_FEATURE_SIMD32) && __ARM_FEATURE_SIMD32
+#    define LH_UI_COLOR_HAVE_SMLAD 1
+#else
+#    define LH_UI_COLOR_HAVE_SMLAD 0
+#endif
+
+/**
+ * @brief `(x + 127) / 255`, rounded to nearest, without a divide: exact for every
+ *        @p x from `0` to `255 * 255`.
+ */
+lh_u32_t
+lh_ui_color_div255_round(lh_u32_t x);
+
+/**
+ * @brief ::lh_ui_color_div255_round in both 16-bit lanes of @p x at once; the
+ *        result has one byte a lane (`0x00FF00FF`).
+ */
+lh_u32_t
+lh_ui_color_div255_round_pair(lh_u32_t x);
+
+/**
+ * @brief Dual 16-bit multiply-accumulate: `acc + lo(x) * lo(y) + hi(x) * hi(y)`,
+ *        lanes taken unsigned below `2^15`. The `SMLAD` instruction where
+ *        ::LH_UI_COLOR_HAVE_SMLAD, two multiplies elsewhere.
+ */
+lh_u32_t
+lh_ui_color_dual_mac(lh_u32_t x, lh_u32_t y, lh_u32_t acc);
+
+/**
+ * @brief Two channels blended at once: @p src over @p dst at alpha @p a in each
+ *        byte lane of `0x00FF00FF`, rounded as ::lh_ui_color_over_opaque_channel.
+ *
+ * @param dst Two 8-bit channels, in bits 0..7 and 16..23.
+ * @param src Two 8-bit channels, the same lanes.
+ * @param a   Alpha, 0..255.
+ */
+lh_u32_t
+lh_ui_color_mix_pair(lh_u32_t dst, lh_u32_t src, lh_u32_t a);
+
+/**
  * @brief Weight of the painted color in ::lh_ui_color_over: `a * 255`.
  */
 lh_u32_t

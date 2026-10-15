@@ -553,6 +553,139 @@ TEST(ui_pixmap, blend_cover_8_is_blend_alpha_span_for_every_count_and_format)
     }
 }
 
+namespace
+{
+
+/* The RGB565 blend as it was before the word path: widen to 888, blend each
+   channel with the scalar formula, truncate back. Kept here as the reference. */
+lh_u32_t
+mix_16_reference(lh_u32_t word, lh_u32_t src, lh_u32_t a)
+{
+    const lh_u32_t r5 = (word >> 11) & 0x1Fu;
+    const lh_u32_t g6 = (word >> 5) & 0x3Fu;
+    const lh_u32_t b5 = word & 0x1Fu;
+    const lh_u32_t r = ((src >> 16) & 0xFFu) * a + ((r5 << 3) | (r5 >> 2)) * (255u - a) + 127u;
+    const lh_u32_t g = ((src >> 8) & 0xFFu) * a + ((g6 << 2) | (g6 >> 4)) * (255u - a) + 127u;
+    const lh_u32_t b = (src & 0xFFu) * a + ((b5 << 3) | (b5 >> 2)) * (255u - a) + 127u;
+
+    return ((r / 255u) >> 3) << 11 | ((g / 255u) >> 2) << 5 | ((b / 255u) >> 3);
+}
+
+lh_u32_t
+swap16(lh_u32_t w)
+{
+    return ((w & 0xFFu) << 8) | ((w >> 8) & 0xFFu);
+}
+
+TEST(ui_pixmap, the_565_lanes_widen_and_narrow_like_the_888_path)
+{
+    for (lh_u32_t w = 0u; w <= 0xFFFFu; ++w)
+    {
+        const lh_u32_t r5 = (w >> 11) & 0x1Fu;
+        const lh_u32_t g6 = (w >> 5) & 0x3Fu;
+        const lh_u32_t b5 = w & 0x1Fu;
+        const lh_u32_t rb = lh_ui_pixmap_rb_of_565(w);
+
+        ASSERT_EQ(rb, (((r5 << 3) | (r5 >> 2)) << 16) | ((b5 << 3) | (b5 >> 2))) << w;
+        ASSERT_EQ(lh_ui_pixmap_g_of_565(w), (g6 << 2) | (g6 >> 4)) << w;
+        ASSERT_EQ(lh_ui_pixmap_565_of(rb, lh_ui_pixmap_g_of_565(w)), w) << w;
+    }
+}
+
+TEST(ui_pixmap, mix_16_is_the_888_path_bit_for_bit_in_both_byte_orders)
+{
+    const lh_u32_t sources[] = {0x000000u, 0xFFFFFFu, 0x0033CCFFu, 0x00F08040u, 0x00010203u, 0x007F807Fu};
+    const lh_ui_pixmap_format_t formats[] = {lh_ui_pixmap_format_rgb565, lh_ui_pixmap_format_rgb565_swapped};
+    lh_u16_t word = 0;
+
+    for (lh_ui_pixmap_format_t format : formats)
+    {
+        lh_ui_pixmap_t pixmap;
+
+        lh_ui_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, &word), 1, 1, 2, format);
+        for (lh_u32_t src : sources)
+        {
+            for (lh_u32_t a = 0u; a <= 255u; ++a)
+            {
+                for (lh_u32_t w = 0u; w <= 0xFFFFu; w += (a & 1u) != 0u ? 7u : 1u)
+                {
+                    const lh_u32_t stored = format == lh_ui_pixmap_format_rgb565 ? w : swap16(w);
+                    const lh_u32_t want = mix_16_reference(w, src, a);
+
+                    ASSERT_EQ(lh_ui_pixmap_mix_16(lh_addr_of(pixmap), stored, src, a),
+                              format == lh_ui_pixmap_format_rgb565 ? want : swap16(want))
+                        << "format " << static_cast<int>(format) << " word " << w << " src " << src << " a " << a;
+                }
+            }
+        }
+    }
+}
+
+TEST(ui_pixmap, blend_16_one_keeps_the_ends_exact)
+{
+    lh_u16_t word = 0;
+    lh_ui_pixmap_t pixmap;
+
+    lh_ui_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, &word), 1, 1, 2, lh_ui_pixmap_format_rgb565);
+    EXPECT_EQ(lh_ui_pixmap_blend_16_one(lh_addr_of(pixmap), 0x1234u, 0x0033CCFFu, 0xABCDu, 0u), 0x1234u);
+    EXPECT_EQ(lh_ui_pixmap_blend_16_one(lh_addr_of(pixmap), 0x1234u, 0x0033CCFFu, 0xABCDu, 255u), 0xABCDu);
+    for (lh_u32_t a : {1u, 127u, 128u, 254u})
+    {
+        EXPECT_EQ(lh_ui_pixmap_blend_16_one(lh_addr_of(pixmap), 0x1234u, 0x0033CCFFu, 0xABCDu, a),
+                  mix_16_reference(0x1234u, 0x0033CCFFu, a)) << a;
+    }
+}
+
+/* The portable row kernel against the reference, pixel for pixel: every length
+   from 0 to 9, from a word-aligned and from an unaligned start, in both byte
+   orders, with the ends (0, 255) and the middle alphas (1, 127, 128, 254) mixed
+   in; the pixels around the row are never written. */
+TEST(ui_pixmap, blend_alpha_16_words_is_the_reference_for_every_length_and_start)
+{
+    const lh_ui_pixmap_format_t formats[] = {lh_ui_pixmap_format_rgb565, lh_ui_pixmap_format_rgb565_swapped};
+    const lh_byte_t alphas[] = {0u, 1u, 127u, 128u, 254u, 255u, 60u, 200u, 0u, 9u};
+    const lh_u32_t src = 0x0033CCFFu;
+
+    for (lh_ui_pixmap_format_t format : formats)
+    {
+        for (int start = 0; start < 2; ++start)
+        {
+            for (int count = 0; count <= 9; ++count)
+            {
+                alignas(4) lh_u16_t row[16];
+                lh_u16_t want[16];
+                lh_ui_pixmap_t pixmap;
+
+                for (int i = 0; i < 16; ++i)
+                {
+                    row[i] = want[i] = static_cast<lh_u16_t>((i * 2654435761u) >> 7);
+                }
+                lh_ui_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, row), 16, 1, 32, format);
+                for (int i = 0; i < count; ++i)
+                {
+                    const lh_u32_t a = alphas[i];
+                    const lh_u32_t w = format == lh_ui_pixmap_format_rgb565 ? want[start + 1 + i] : swap16(want[start + 1 + i]);
+                    const lh_u32_t solid = lh_ui_pixmap_pack_rgb(lh_addr_of(pixmap), src);
+                    const lh_u32_t mixed = a == 0u ? w : (a == 255u ? solid : mix_16_reference(w, src, a));
+
+                    want[start + 1 + i] =
+                        static_cast<lh_u16_t>(format == lh_ui_pixmap_format_rgb565 ? mixed : swap16(mixed));
+                }
+                /* row + 1 is unaligned, row + 2 is aligned. */
+                lh_ui_pixmap_blend_alpha_16_words(lh_addr_of(pixmap), row + start + 1, alphas,
+                                                  static_cast<lh_usize_t>(count), src);
+                for (int i = 0; i < 16; ++i)
+                {
+                    ASSERT_EQ(row[i], want[i]) << "format " << static_cast<int>(format) << " start " << start
+                                               << " count " << count << " pixel " << i;
+                }
+            }
+        }
+    }
+}
+
+} // namespace
+
 #if LH_TEST_EXPECT_DEATH_ENABLED
 
 TEST(ui_pixmap_death, stride_shorter_than_a_row)
