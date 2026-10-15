@@ -57,6 +57,7 @@ lh_ui_text_align_get_origin(const lh_ui_rect_t *box, const lh_ui_insets_t *paddi
            is the one under the text. */
         dx = (lh_math_max(0, lh_ui_size_get_width(lh_addr_of(room)) - lh_ui_size_get_width(lh_addr_of(size))) + 1) /
              2;
+        lh_ui_scalar_trunc(dx, lh_addr_of(dx));
     }
     else if (horizontal == lh_ui_text_align_h_right)
     {
@@ -67,6 +68,7 @@ lh_ui_text_align_get_origin(const lh_ui_rect_t *box, const lh_ui_insets_t *paddi
         dy = (lh_math_max(0, lh_ui_size_get_height(lh_addr_of(room)) - lh_ui_size_get_height(lh_addr_of(size))) +
              1) /
              2;
+        lh_ui_scalar_trunc(dy, lh_addr_of(dy));
     }
     else if (vertical == lh_ui_text_align_v_bottom)
     {

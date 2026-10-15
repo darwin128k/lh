@@ -219,7 +219,10 @@ lh_ui_text_line_get_shift(const lh_ui_text_line_t *self, lh_ui_scalar_t block, l
 
     if (align == lh_ui_text_align_h_center)
     {
-        return lh_math_max((block - width + lh_ui_scalar(1)) / lh_ui_scalar(2), lh_ui_scalar(0));
+        lh_ui_scalar_t half;
+
+        lh_ui_scalar_trunc((block - width + lh_ui_scalar(1)) / lh_ui_scalar(2), lh_addr_of(half));
+        return lh_math_max(half, lh_ui_scalar(0));
     }
     if (align == lh_ui_text_align_h_right)
     {
