@@ -1,8 +1,10 @@
 #include <lh/assert/runtime.h>
+#include <lh/assert/static.h>
 #include <lh/math/vec2.h>
 #include <lh/math/view.h>
 #include <lh/util/ptr.h>
 #include <lh/util/addr.h>
+#include <lh/util/offset.h>
 #include <lh/cast/static.h>
 
 lh_void
@@ -85,8 +87,12 @@ lh_math_vec2_neg(lh_math_vec2_t v)
     return result;
 }
 
-/** The 2 components of @p v as a view: a vector is laid out as `float[2]`. */
-static lh_math_view_t
+/* lh_math_vec2_view_of reads the vector as lh_float_t[2]: the components must
+   follow each other with no padding, from the first byte. */
+lh_assert_static(sizeof(lh_math_vec2_t) == 2U * sizeof(lh_float_t), "lh_math_vec2_t must be laid out as lh_float_t[2]");
+lh_assert_static(lh_offset_of(lh_math_vec2_t, x) == 0U, "lh_math_vec2_t must start with x");
+
+lh_math_view_t
 lh_math_vec2_view_of(const lh_math_vec2_t *v)
 {
     lh_math_slice_t slice;

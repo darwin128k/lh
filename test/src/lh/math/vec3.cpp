@@ -177,4 +177,17 @@ TEST(vec3, vec2_round_trip_through_vec3_keeps_xy)
     EXPECT_FLOAT_EQ(b.y, a.y);
 }
 
+TEST(vec3, view_of_reads_the_components_in_order)
+{
+    lh_math_vec3_t v;
+
+    lh_math_vec3_init(lh_addr_of(v), 3.0f, -5.0f, 7.0f);
+    const lh_math_view_t view = lh_math_vec3_view_of(lh_addr_of(v));
+
+    EXPECT_EQ(lh_math_view_get_size(lh_addr_of(view)), 3U);
+    EXPECT_EQ(lh_math_view_get_at(lh_addr_of(view), 0U), lh_math_vec3_get_x(lh_addr_of(v)));
+    EXPECT_EQ(lh_math_view_get_at(lh_addr_of(view), 1U), lh_math_vec3_get_y(lh_addr_of(v)));
+    EXPECT_EQ(lh_math_view_get_at(lh_addr_of(view), 2U), lh_math_vec3_get_z(lh_addr_of(v)));
+}
+
 } // namespace
