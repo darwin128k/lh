@@ -252,6 +252,76 @@ TEST(memory_view_make, returns_validated_values)
     EXPECT_TRUE(lh_memory_view_equals_of(&empty, lh_null, lh_null));
 }
 
+TEST(memory_view_empty_range, reports_zero_size_and_no_containment)
+{
+    const unsigned char buf[4] = {1, 2, 3, 4};
+    lh_memory_view_t empty = view(p(buf), p(buf));
+    lh_memory_view_t other = view(p(buf), p(buf + 2));
+
+    EXPECT_TRUE(lh_memory_view_slice_is_ropen_empty(&empty));
+    EXPECT_EQ(lh_memory_view_get_size(&empty), 0u);
+    EXPECT_TRUE(lh_memory_view_is_empty(&empty));
+    EXPECT_FALSE(lh_memory_view_is_valid_offset(&empty, 0));
+    EXPECT_FALSE(lh_memory_view_contains_ptr(&empty, p(buf)));
+    EXPECT_TRUE(lh_memory_view_contains_of(&empty, p(buf), p(buf)));
+    EXPECT_FALSE(lh_memory_view_contains(&empty, &other));
+    EXPECT_FALSE(lh_memory_view_overlaps(&empty, &other));
+    EXPECT_FALSE(lh_memory_view_overlaps_of(&empty, p(buf), p(buf + 1)));
+    EXPECT_TRUE(lh_memory_view_is_multiple_of(&empty, 4));
+    EXPECT_EQ(lh_memory_view_find_range(&empty, p(buf), p(buf + 1)), lh_null);
+    EXPECT_EQ(lh_memory_view_find_range(&other, p(buf + 1), p(buf + 1)), lh_null);
+
+    lh_memory_view_t taken = lh_memory_view_take_first(p(buf), p(buf), 0);
+    EXPECT_TRUE(lh_memory_view_is_uninitialized(&taken));
+    lh_memory_view_t dropped = lh_memory_view_drop_first(&empty, 0);
+    EXPECT_TRUE(lh_memory_view_is_uninitialized(&dropped));
+}
+
+TEST(memory_view_one_byte, shifts_end_offsets_by_one)
+{
+    alignas(16) const unsigned char buf[16] = {9, 8, 7};
+    lh_memory_view_t byte = view(p(buf), p(buf + 1));
+
+    EXPECT_EQ(lh_memory_view_get_size(&byte), 1u);
+    EXPECT_EQ(lh_memory_view_get_ptr_from_end(&byte, 0), p(buf));
+    EXPECT_EQ(lh_memory_view_get_offset_from_end(&byte, p(buf)), 0u);
+    EXPECT_EQ(lh_memory_view_get_last_value(&byte), 9);
+    EXPECT_TRUE(lh_memory_view_contains_ptr(&byte, p(buf)));
+    EXPECT_FALSE(lh_memory_view_contains_ptr(&byte, p(buf + 1)));
+    EXPECT_TRUE(lh_memory_view_is_begin_aligned(&byte, 16));
+    EXPECT_FALSE(lh_memory_view_is_aligned(&byte, 16));
+
+    lh_memory_view_t empty = view(p(buf), p(buf));
+    EXPECT_TRUE(lh_memory_view_is_aligned(&empty, 16));
+}
+
+TEST(memory_view_slice_round_trip, converts_non_empty_and_uninitialized)
+{
+    const unsigned char buf[8] = {1, 2, 3, 4, 5, 6, 7, 8};
+    lh_memory_view_t v = view(p(buf + 1), p(buf + 5));
+    lh_memory_view_slice_t slice = lh_memory_view_to_slice(&v);
+    lh_memory_view_t back = lh_memory_view_return_of_slice(&slice);
+
+    EXPECT_TRUE(lh_memory_view_slice_equals_of(&slice, p(buf + 1), p(buf + 4)));
+    EXPECT_TRUE(lh_memory_view_equals(&back, &v));
+
+    lh_memory_view_t uninit = lh_memory_view_return_empty();
+    lh_memory_view_slice_t empty_slice = lh_memory_view_to_slice(&uninit);
+    lh_memory_view_t uninit_back = lh_memory_view_return_of_slice(&empty_slice);
+    EXPECT_TRUE(lh_memory_view_is_uninitialized(&uninit_back));
+}
+
+TEST(memory_view_between, keeps_empty_subrange)
+{
+    const unsigned char buf[4] = {};
+    lh_memory_view_t outer = view(p(buf), p(buf + 4));
+    lh_memory_view_t inner = lh_memory_view_between(&outer, p(buf + 2), p(buf + 2));
+
+    EXPECT_TRUE(lh_memory_view_equals_of(&inner, p(buf + 2), p(buf + 2)));
+    EXPECT_TRUE(lh_memory_view_is_empty(&inner));
+    EXPECT_FALSE(lh_memory_view_is_uninitialized(&inner));
+}
+
 #if LH_TEST_EXPECT_DEATH_ENABLED
 
 TEST(memory_view_get_begin_v, rejects_uninitialized_death)
@@ -303,6 +373,24 @@ TEST(memory_view_next_value, rejects_end_boundary_death)
     lh_memory_view_t v = view(p(buf), p(buf + 2));
 
     LH_EXPECT_DEATH((void)lh_memory_view_next_value(&v, p(buf + 1)));
+}
+
+TEST(memory_view_empty_range, rejects_indexed_access_death)
+{
+    const unsigned char buf[1] = {1};
+    lh_memory_view_t empty = view(p(buf), p(buf));
+
+    LH_EXPECT_DEATH((void)lh_memory_view_get_ptr_from_end(&empty, 0));
+    LH_EXPECT_DEATH((void)lh_memory_view_get_offset_from_end(&empty, p(buf)));
+    LH_EXPECT_DEATH((void)lh_memory_view_take_first(p(buf), p(buf), 1));
+}
+
+TEST(memory_view_get_size, rejects_backward_death)
+{
+    const unsigned char buf[2] = {};
+    lh_memory_view_t backward = view(p(buf + 1), p(buf));
+
+    LH_EXPECT_DEATH((void)lh_memory_view_get_size(&backward));
 }
 
 #endif /* LH_TEST_EXPECT_DEATH_ENABLED */

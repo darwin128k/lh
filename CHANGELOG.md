@@ -11,8 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `lh_math_slice_t` (`lh/math/slice.h`) and `lh_math_view_t` (`lh/math/view.h`): read-only closed slice and strided view of `lh_float_t` values, built on `lh_memory_view_slice_fields` and `lh_interval_closed_*`
 - `LH_FLOAT_T_MIN`, `LH_FLOAT_T_MAX` and `LH_FLOAT_T_EPS` (`lh/numeric/float.h`): `FLT_MIN` (smallest positive normalized value), `FLT_MAX` and `FLT_EPSILON` limits for `lh_float_t`
+- `lh_memory_view_return_of_slice`, `lh_memory_view_return_empty`, `lh_memory_view_return_init_v`, `lh_memory_view_return_init_by_size` (`lh/memory/view.h`): half-open view constructors and the closed-to-half-open conversion
+- `lh_memory_view_slice_return_empty`, `lh_memory_view_slice_return_init_v`, `lh_memory_view_slice_return_init_by_size`, `lh_memory_view_slice_find_offset_from_ptr` (`lh/memory/view/slice.h`): previously file-local bricks, now public
+- `lh_memory_view_slice_is_ropen_empty`, `lh_memory_view_slice_is_unclosable_ropen`, `lh_memory_view_slice_from_view`, `lh_memory_view_slice_contains_ropen`, `lh_memory_view_slice_overlaps_ropen`, `lh_memory_view_slice_find_ropen`, `lh_memory_view_slice_rfind_ropen`, `lh_memory_view_slice_compare_ropen`, `lh_memory_view_slice_rcompare_ropen`, `lh_memory_view_slice_take_first_ropen`, `lh_memory_view_slice_take_last_ropen`, `lh_memory_view_slice_from_offset_ropen`: half-open cases a closed slice cannot store (`[x, x)` and an empty or null argument range)
 
 ### Changed
+
+- `lh_memory_view_*` is a thin wrapper over `lh_memory_view_slice_*`. Signatures and results stay the same; a non-empty view `[begin, end)` is the closed slice `[begin, end - 1]`, and a valid empty view `[x, x)` is handled before that conversion. `lh_memory_view_is_aligned` still checks the exclusive end. `lh_memory_view_set_by_size` stores `begin + size`, not the closed `begin + size - 1`. `lh_memory_view_between` can return `[p, p)` when that empty sub-range is contained. Find, rfind, compare and rcompare of an empty or null needle stay on the half-open raw path
 
 - `lh/float/*` (`lh_float_sqrt`, `lh_float_sin_cos`, `lh_float_floor_to_int`, `lh_float_ceil_to_int`) became public functions in `.c` with headers in `include/lh/float/`
 - `lh/float` moved to `lh/math/float`; `lh_float_sqrt`, `lh_float_sin_cos`, `lh_float_floor_to_int`, `lh_float_ceil_to_int` renamed to `lh_math_float_sqrt`, `lh_math_float_sin_cos`, `lh_math_float_floor_to_int`, `lh_math_float_ceil_to_int`
