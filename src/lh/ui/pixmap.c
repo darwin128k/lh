@@ -577,7 +577,7 @@ lh_ui_pixmap_blend_cover_32_sse2(lh_u32_t *at, lh_usize_t count, lh_u64_t cover,
     const __m128i a8 = _mm_loadl_epi64(lh_ptr_rcast(const __m128i, lh_addr_of(cover)));
     const __m128i a8_hi = _mm_srli_si128(a8, 4);
 
-    lh_assert_runtime(count >= 1U && count <= 8U, lh_runtime_error_code_invalid_argument);
+    lh_assert_runtime(count >= 1U && count <= 8U);
     if (count < 4U)
     {
         lh_ui_pixmap_scatter_32(at, count, lh_ui_pixmap_blend_quad_m128(lh_ui_pixmap_gather_32(at, count), a8, src));

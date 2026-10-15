@@ -307,7 +307,7 @@ lh_ui_canvas_sw_cover_row(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_
     const lh_u32_t src = lh_ui_color_get_argb(color) & 0x00FFFFFFU;
     lh_s32_t x;
 
-    lh_assert_runtime(!lh_ui_canvas_sw_is_rounded(self), lh_runtime_error_code_invalid_argument);
+    lh_assert_runtime(!lh_ui_canvas_sw_is_rounded(self));
     /* Eight pixels a step, the coverages never leaving a register: a glyph row is
        one or two steps. The buffered run (::lh_ui_canvas_sw_mask_row) took a
        coverage pass, an alpha pass and a blend pass per row, each through its own
