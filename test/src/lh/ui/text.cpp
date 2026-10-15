@@ -102,7 +102,7 @@ TEST(ui_text, the_ink_is_shorter_than_the_line_and_starts_below_its_top)
 TEST(ui_text, the_size_is_the_cap_line_to_the_baseline_and_not_the_ink)
 {
     const lh_ui_font_t *font = lh_ui_font_get_default();
-    const lh_ui_scalar_t cap = lh_ui_scalar(lh_ui_font_get_cap_height(font));
+    const lh_ui_scalar_t cap = lh_ui_scalar_of(lh_ui_font_get_cap_height(font));
     const lh_ui_point_t origin = point_of(0, 0);
     const lh_ui_size_t with_tail = lh_test::out(lh_ui_text_get_size, font, "Hide panel");
     const lh_ui_size_t without = lh_test::out(lh_ui_text_get_size, font, "Hide");
@@ -132,7 +132,7 @@ TEST(ui_text, a_text_with_no_ink_in_it_has_no_height)
     const lh_ui_size_t empty = lh_test::out(lh_ui_text_get_size, tiny_font(), "");
     const lh_ui_size_t none = lh_test::out(lh_ui_text_get_size, tiny_font(), nullptr);
 
-    EXPECT_EQ(lh_ui_scalar(lh_ui_text_count_lines("")), lh_ui_scalar(1));
+    EXPECT_EQ(lh_ui_scalar_of(lh_ui_text_count_lines("")), lh_ui_scalar(1));
     EXPECT_EQ(lh_ui_size_get_height(lh_addr_of(spaces)), lh_ui_scalar(0));
     EXPECT_EQ(lh_ui_size_get_height(lh_addr_of(empty)), lh_ui_scalar(0));
     EXPECT_EQ(lh_ui_size_get_height(lh_addr_of(none)), lh_ui_scalar(0));
@@ -397,7 +397,7 @@ TEST(ui_text, russian_is_measured_and_drawn_and_not_skipped)
         summed += lh_ui_font_get_advance(font, codes[i]);
     }
     EXPECT_GT(summed, 0) << "six Cyrillic letters that all advance zero";
-    EXPECT_EQ(lh_ui_text_get_width(font, russian), lh_ui_scalar(summed));
+    EXPECT_EQ(lh_ui_text_get_width(font, russian), lh_ui_scalar_of(summed));
     EXPECT_NE(lh_ui_text_get_width(font, russian), lh_ui_text_get_width(font, "Privet"));
 
     lh_ui_color_init(lh_addr_of(color), 1, 2, 3, 255);
@@ -456,7 +456,7 @@ TEST(ui_text, a_code_the_font_has_no_glyph_for_draws_nothing_and_moves_nothing)
 TEST(ui_text, a_width_breaks_text_before_the_word_that_would_not_fit)
 {
     const lh_ui_font_t *font = lh_test::tiny_font();
-    const lh_ui_scalar_t line = lh_ui_scalar(lh_ui_font_get_line_height(font));
+    const lh_ui_scalar_t line = lh_ui_scalar_of(lh_ui_font_get_line_height(font));
     const lh_ui_size_t one = lh_test::out(lh_ui_text_get_size, font, "AA AA AA");
     const lh_ui_size_t three = lh_test::out(lh_ui_text_get_size_wrapped, font, "AA AA AA", lh_ui_scalar(7));
 
@@ -473,7 +473,7 @@ TEST(ui_text, a_width_breaks_text_before_the_word_that_would_not_fit)
 TEST(ui_text, a_word_wider_than_the_width_is_cut_and_a_line_always_takes_a_letter)
 {
     const lh_ui_font_t *font = lh_test::tiny_font();
-    const lh_ui_scalar_t line = lh_ui_scalar(lh_ui_font_get_line_height(font));
+    const lh_ui_scalar_t line = lh_ui_scalar_of(lh_ui_font_get_line_height(font));
     const lh_ui_size_t one = lh_test::out(lh_ui_text_get_size, font, "AAAA");
     const lh_ui_size_t two = lh_test::out(lh_ui_text_get_size_wrapped, font, "AAAA", lh_ui_scalar(7));
     const lh_ui_size_t four = lh_test::out(lh_ui_text_get_size_wrapped, font, "AAAA", lh_ui_scalar(1));

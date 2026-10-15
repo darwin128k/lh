@@ -88,8 +88,8 @@ TEST(ui_blur, an_edge_becomes_a_ramp_and_stays_a_ramp)
     lh_u8_t middle;
     lh_u8_t near_edge;
 
-    lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar(blur_fixture::width),
-                    lh_ui_scalar(blur_fixture::height));
+    lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar_of(blur_fixture::width),
+                    lh_ui_scalar_of(blur_fixture::height));
     lh_ui_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_ui_scalar(3), f.scratch);
 
     middle = f.red_at(blur_fixture::width / 2 - 1, 3);
@@ -115,8 +115,8 @@ TEST(ui_blur, a_radius_of_zero_changes_nothing)
     blur_fixture f;
     lh_ui_rect_t rect;
 
-    lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar(blur_fixture::width),
-                    lh_ui_scalar(blur_fixture::height));
+    lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar_of(blur_fixture::width),
+                    lh_ui_scalar_of(blur_fixture::height));
     lh_ui_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_ui_scalar(0), f.scratch);
 
     EXPECT_EQ(f.red_at(0, 3), 0);
@@ -164,8 +164,8 @@ TEST(ui_blur, without_a_scratch_nothing_is_blurred)
     blur_fixture f;
     lh_ui_rect_t rect;
 
-    lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar(blur_fixture::width),
-                    lh_ui_scalar(blur_fixture::height));
+    lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar_of(blur_fixture::width),
+                    lh_ui_scalar_of(blur_fixture::height));
     lh_ui_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_ui_scalar(3), static_cast<lh_u8_t *>(nullptr));
 
     EXPECT_EQ(f.red_at(0, 3), 0);
@@ -229,8 +229,8 @@ TEST(ui_blur, the_bottom_rows_are_blurred_and_not_read_past)
             f.words[y * blur_fixture::width + x] = lh_ui_color_get_argb(&color);
         }
     }
-    lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar(blur_fixture::width),
-                    lh_ui_scalar(blur_fixture::height));
+    lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar_of(blur_fixture::width),
+                    lh_ui_scalar_of(blur_fixture::height));
     lh_ui_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_ui_scalar(2), f.scratch);
 
     EXPECT_EQ(f.red_at(0, 0), 0);
@@ -264,8 +264,8 @@ TEST(ui_blur, the_picture_does_not_depend_on_what_follows_the_scratch)
     high.fill_poison(255);
 
     lh_ui_rect_t rect;
-    lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar(blur_fixture::width),
-                    lh_ui_scalar(blur_fixture::height));
+    lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar_of(blur_fixture::width),
+                    lh_ui_scalar_of(blur_fixture::height));
     lh_ui_blur_rect(lh_addr_of(low.pixmap), lh_addr_of(rect), lh_ui_scalar(3), low.scratch);
     lh_ui_blur_rect(lh_addr_of(high.pixmap), lh_addr_of(rect), lh_ui_scalar(3), high.scratch);
 
@@ -306,8 +306,8 @@ TEST(ui_blur, a_transparent_pixel_does_not_tint_its_neighbours)
     }
     lh_ui_color_init(&color, 0, 255, 0, 0);
     f.words[4 * blur_fixture::width + 8] = lh_ui_color_get_argb(&color);
-    lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar(blur_fixture::width),
-                    lh_ui_scalar(blur_fixture::height));
+    lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar_of(blur_fixture::width),
+                    lh_ui_scalar_of(blur_fixture::height));
     lh_ui_blur_rect(lh_addr_of(f.pixmap), lh_addr_of(rect), lh_ui_scalar(1), f.scratch);
 
     for (y = 3; y <= 5; ++y)

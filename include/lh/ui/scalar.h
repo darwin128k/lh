@@ -9,12 +9,14 @@
  * Matching geometry aliases live in <lh/ui/point.h>,
  * <lh/ui/size.h>, <lh/ui/rect.h>.
  *
- * ::lh_ui_scalar writes one number through the chosen math literal macro.
+ * ::lh_ui_scalar writes one number through the chosen math literal macro;
+ * ::lh_ui_scalar_of converts any arithmetic expression (a variable, a call).
  */
 
 #ifndef LH_UI_SCALAR_H
 #define LH_UI_SCALAR_H
 
+#include <lh/cast/static.h>
 #include <lh/config.h>
 
 #if LH_LIBRARY_OPTION_MATH_FPU
@@ -50,7 +52,6 @@ typedef lh_math_scalar_t lh_ui_scalar_t;
  */
 #    define lh_ui_scalar(n) lh_math_scalar(n)
 
-#    include <lh/cast/static.h>
 #    include <lh/numeric/fixed/types.h>
 
 /**
@@ -63,5 +64,15 @@ typedef lh_math_scalar_t lh_ui_scalar_t;
  */
 #    define lh_ui_scalar_ceil_s32(v) lh_cast_static(lh_s32_t, (v))
 #endif
+
+/**
+ * @def lh_ui_scalar_of(v)
+ * @brief One ::lh_ui_scalar_t from an arithmetic expression `v` (a cast).
+ *
+ * ::lh_ui_scalar takes a numeric literal only (the float path pastes a suffix
+ * onto it); use this for variables and calls. The float path converts exactly
+ * for whole values up to 2^24; the int path truncates toward zero.
+ */
+#define lh_ui_scalar_of(v) lh_cast_static(lh_ui_scalar_t, (v))
 
 #endif /* LH_UI_SCALAR_H */

@@ -425,7 +425,7 @@ TEST(ui_layout, a_container_places_its_own_children_and_takes_them_along_when_it
     for (int i = 0; i < 2; ++i)
     {
         lh_ui_entity_init(&kids[i], rect_of(0, 0, 30, 20 + i * 10));
-        place_child(&kids[i], lh_ui_place_size_fixed, lh_ui_scalar(20 + i * 10),
+        place_child(&kids[i], lh_ui_place_size_fixed, lh_ui_scalar_of(20 + i * 10),
                     lh_ui_place_align_start);
         lh_ui_entity_add_child(lh_ui_container_as_entity(&box), &kids[i]);
     }

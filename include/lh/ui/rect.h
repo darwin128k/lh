@@ -34,10 +34,10 @@ typedef lh_math_rect_t lh_ui_rect_t;
 
 /** @brief Name of the integer math function @p name for ::lh_ui_rect_t. */
 #    define LH_UI_RECT_FN(name) lh_math_rect_##name
-/** @brief ::lh_ui_rect_t to ::lh_math_rect_t: the same type here, so @p self as is. */
-#    define lh_ui_rect_to_rect(self) (self)
-/** @brief ::lh_math_rect_t to ::lh_ui_rect_t: the same type here, so @p self as is. */
-#    define lh_ui_rect_from_rect(self) (self)
+/** @brief ::lh_ui_rect_t to ::lh_math_rect_t: the same type here, so @p self copied to @p out. */
+#    define lh_ui_rect_to_rect(self, out) (*(out) = (self))
+/** @brief ::lh_math_rect_t to ::lh_ui_rect_t: the same type here, so @p self copied to @p out. */
+#    define lh_ui_rect_from_rect(self, out) (*(out) = (self))
 #endif
 
 /* One list for both paths: a math function missing on either side fails to

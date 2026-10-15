@@ -178,8 +178,8 @@ lh_ui_image_get_size(const lh_ui_image_t *self, lh_ui_size_t *out)
     lh_ui_size_init(lh_addr_of(size), lh_ui_scalar(0), lh_ui_scalar(0));
     if (lh_null_ne(self->mask))
     {
-        lh_ui_size_init(lh_addr_of(size), lh_ui_scalar(lh_ui_mask_get_width(self->mask)),
-                        lh_ui_scalar(lh_ui_mask_get_height(self->mask)));
+        lh_ui_size_init(lh_addr_of(size), lh_ui_scalar_of(lh_ui_mask_get_width(self->mask)),
+                        lh_ui_scalar_of(lh_ui_mask_get_height(self->mask)));
     }
     *out = size;
     return;

@@ -165,7 +165,7 @@ partial_probe_init(partial_probe *probe)
     lh_ui_canvas_sw_init(lh_addr_of(probe->sw));
     lh_ui_canvas_sw_set_pixmap(lh_addr_of(probe->sw), lh_addr_of(probe->pixmap));
     lh_ui_canvas_init(lh_addr_of(probe->canvas), partial_probe_backend(), probe);
-    lh_ui_size_init(lh_addr_of(size), lh_ui_scalar(partial_probe::width), lh_ui_scalar(partial_probe::height));
+    lh_ui_size_init(lh_addr_of(size), lh_ui_scalar_of(partial_probe::width), lh_ui_scalar_of(partial_probe::height));
     lh_ui_canvas_set_size(lh_addr_of(probe->canvas), size);
 }
 

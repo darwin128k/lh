@@ -66,10 +66,12 @@ TEST(ui_point, eq)
 TEST(ui_point, roundtrip_through_the_screen_point)
 {
     lh_math_point_t pixel;
+    lh_ui_point_t p;
+    lh_math_point_t back;
 
     lh_math_point_init(lh_addr_of(pixel), -8, 15);
-    const lh_ui_point_t p = lh_ui_point_from_point(pixel);
-    const lh_math_point_t back = lh_ui_point_to_point(p);
+    lh_ui_point_from_point(pixel, lh_addr_of(p));
+    lh_ui_point_to_point(p, lh_addr_of(back));
     EXPECT_EQ(lh_math_point_get_x(lh_addr_of(back)), -8);
     EXPECT_EQ(lh_math_point_get_y(lh_addr_of(back)), 15);
 }
@@ -78,9 +80,10 @@ TEST(ui_point, roundtrip_through_the_screen_point)
 TEST(ui_point, to_point_truncates_toward_zero)
 {
     lh_ui_point_t p;
+    lh_math_point_t pixel;
 
     lh_ui_point_init(lh_addr_of(p), 3.9f, -3.9f);
-    const lh_math_point_t pixel = lh_ui_point_to_point(p);
+    lh_ui_point_to_point(p, lh_addr_of(pixel));
     EXPECT_EQ(lh_math_point_get_x(lh_addr_of(pixel)), 3);
     EXPECT_EQ(lh_math_point_get_y(lh_addr_of(pixel)), -3);
 }

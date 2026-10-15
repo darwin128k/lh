@@ -340,7 +340,7 @@ lh_ui_view_area_whole(const lh_ui_view_t *self, const lh_ui_rect_t *area, const 
     lh_ui_canvas_get_size(self->canvas, lh_addr_of(size));
     lh_ui_rect_t target;
     lh_ui_rect_t grown;
-    lh_ui_scalar_t i;
+    lh_u32_t i;
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(reach);

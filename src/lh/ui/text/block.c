@@ -119,8 +119,8 @@ lh_ui_text_block_get_size(const lh_ui_text_block_t *self, const lh_ui_font_t *fo
                           lh_ui_rect_is_empty(lh_addr_of(ink))
                               ? lh_ui_scalar(0)
                               : (lh_cast_static(lh_ui_scalar_t, lh_ui_text_block_get_lines(self)) - lh_ui_scalar(1)) *
-                                        lh_ui_scalar(lh_ui_font_get_line_height(font)) +
-                                    lh_ui_scalar(lh_ui_font_get_cap_height(font)));
+                                        lh_ui_scalar_of(lh_ui_font_get_line_height(font)) +
+                                    lh_ui_scalar_of(lh_ui_font_get_cap_height(font)));
     *out = size;
     return;
 }

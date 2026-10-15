@@ -698,8 +698,8 @@ shadow_of(int peak, int spread, int dx, int dy)
     lh_ui_color_init(lh_addr_of(black), 0, 0, 0, static_cast<lh_u8_t>(peak));
     lh_ui_shadow_init(lh_addr_of(shadow));
     lh_ui_shadow_set_color(lh_addr_of(shadow), black);
-    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(spread));
-    lh_ui_shadow_set_offset(lh_addr_of(shadow), lh_ui_scalar(dx), lh_ui_scalar(dy));
+    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar_of(spread));
+    lh_ui_shadow_set_offset(lh_addr_of(shadow), lh_ui_scalar_of(dx), lh_ui_scalar_of(dy));
     return shadow;
 }
 

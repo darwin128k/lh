@@ -29,6 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lh_math_vec2/3/4_dot`, `_length_sq` and `_length` compute through `lh_math_view_*` over the vector components (same results, bit for bit)
 - RGB565 and ARGB8888 alpha blending without SSE (ARM) works on words: two channels per multiply in `0x00FF00FF` lanes, an exact divide-free `/255`, `SMLAD` on cores with the DSP extension, and RGB565 pixels are processed in pairs (two 16-bit accesses, which the compiler may merge); results unchanged bit for bit
 
+### Fixed
+
+- Building with `LH_LIBRARY_OPTION_MATH_FPU=ON` failed: `lh_ui_scalar` (a literal-only macro that pastes `e0f`) was given variables and calls in `lh/ui` and its tests; those sites now use the new `lh_ui_scalar_of` (`lh/ui/scalar.h`), a cast for any arithmetic expression on both paths. `lh_ui_view_t::whole_count` and its loop index are `lh_u32_t` instead of `lh_ui_scalar_t` (a float cannot index an array)
+- `lh_ui_point_to_point` / `lh_ui_point_from_point` and `lh_ui_rect_to_rect` / `lh_ui_rect_from_rect` take an out-parameter on the `MATH_FPU=OFF` path too, matching the float path
+- `test/src/lh/os/serial.cpp` called `lh_os_serial_get_stream` with its old by-value signature
+
 ## [0.3.0] - 2026-09-14
 
 ### Added

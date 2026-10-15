@@ -33,10 +33,10 @@ typedef lh_math_point_t lh_ui_point_t;
 
 /** @brief Name of the integer math function @p name for ::lh_ui_point_t. */
 #    define LH_UI_POINT_FN(name) lh_math_point_##name
-/** @brief ::lh_ui_point_t to ::lh_math_point_t: the same type here, so @p self as is. */
-#    define lh_ui_point_to_point(self) (self)
-/** @brief ::lh_math_point_t to ::lh_ui_point_t: the same type here, so @p self as is. */
-#    define lh_ui_point_from_point(self) (self)
+/** @brief ::lh_ui_point_t to ::lh_math_point_t: the same type here, so @p self copied to @p out. */
+#    define lh_ui_point_to_point(self, out) (*(out) = (self))
+/** @brief ::lh_math_point_t to ::lh_ui_point_t: the same type here, so @p self copied to @p out. */
+#    define lh_ui_point_from_point(self, out) (*(out) = (self))
 #endif
 
 /* One list for both paths: a math function missing on either side fails to

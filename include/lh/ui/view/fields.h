@@ -7,6 +7,7 @@
 #define LH_UI_VIEW_FIELDS_H
 
 #include <lh/bool.h>
+#include <lh/numeric/fixed/types.h>
 #include <lh/ui/scrollbar.h>
 #include <lh/ui/point.h>
 #include <lh/ui/scalar.h>
@@ -83,7 +84,7 @@
     lh_ui_container_t *throwing;                                                             \
     entity_type *focus;                                                                             \
     rect_type whole[LH_UI_VIEW_WHOLE_MAX];                                                          \
-    lh_ui_scalar_t whole_count;                                                                     \
+    lh_u32_t whole_count;                                                                           \
     rect_type pending;                                                                              \
     lh_bool_t has_pending;                                                                          \
     lh_ui_transition_t transitions[LH_UI_VIEW_TRANSITION_MAX]
