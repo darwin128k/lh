@@ -4,10 +4,10 @@
  *
  * GCC and Clang get `__builtin_sqrtf`, which becomes the CPU's own square root
  * instruction (SSE `sqrtss`, AArch64 `fsqrt`, the Cortex-M4F `vsqrt.f32`, ...).
- * The library builds its source with `-fno-math-errno`, which is what keeps the
- * compiler from adding a call to libm's `sqrtf` only to set `errno` on negative
- * input; the caller's own flags do not matter, because the call goes through
- * this function. MSVC treats `sqrtf` as an intrinsic and always has its CRT.
+ * The library builds its own source so that the compiler does not add a call to
+ * libm's `sqrtf` only to set `errno` on negative input (see `src/lh/float/sqrt.c`);
+ * the caller's own flags do not matter, because the call goes through this
+ * function. MSVC treats `sqrtf` as an intrinsic and always has its CRT.
  *
  * Requires ::LH_LIBRARY_OPTION_MATH_FPU.
  */
