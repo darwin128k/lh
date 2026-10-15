@@ -121,4 +121,84 @@ TEST(ui_mask, coverage_run_is_the_per_pixel_coverage_for_every_start_and_length)
     }
 }
 
+/* A glyph row: an odd width, so its last byte carries a padding nibble (set here,
+   so a run that decoded it would show it), rows packed back to back, and runs
+   shorter than one eight-pixel pass. Nothing past a run is written. */
+TEST(ui_mask, coverage_run_of_a_glyph_row_stops_at_the_mask_and_the_run)
+{
+    for (int width = 1; width <= 17; ++width)
+    {
+        const int row_bytes = (width + 1) / 2;
+        lh_byte_t bits[3 * 9];
+        lh_ui_mask_t mask;
+
+        for (int i = 0; i < 3 * 9; ++i)
+        {
+            bits[i] = static_cast<lh_byte_t>((i * 53 + 7) | 0x01);
+        }
+        lh_ui_mask_init(lh_addr_of(mask), bits, width, 3, row_bytes, 4);
+        for (int y = 0; y < 3; ++y)
+        {
+            for (int x0 = -1; x0 <= width; ++x0)
+            {
+                for (int count = 0; count <= width + 2; ++count)
+                {
+                    lh_byte_t run[24];
+
+                    for (int i = 0; i < 24; ++i)
+                    {
+                        run[i] = 0xA5u;
+                    }
+                    lh_ui_mask_coverage_run(lh_addr_of(mask), x0, x0 + count, y, run);
+                    for (int i = 0; i < count; ++i)
+                    {
+                        ASSERT_EQ(run[i], lh_ui_mask_get_coverage(lh_addr_of(mask), x0 + i, y))
+                            << "width " << width << " y " << y << " x0 " << x0 << " i " << i;
+                    }
+                    for (int i = count; i < 24; ++i)
+                    {
+                        ASSERT_EQ(run[i], 0xA5u) << "width " << width << " x0 " << x0 << " wrote past the run at " << i;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* Eight coverages in a register: byte i is pixel x + i, 0 outside the mask, for
+   every start on and off it, odd widths (a padding nibble, set) and rows packed
+   back to back -- in every depth, the four-bit one read eight at a time. */
+TEST(ui_mask, coverage_8_is_eight_per_pixel_coverages)
+{
+    for (int bpp : {1, 2, 4, 8})
+    {
+        for (int width = 1; width <= 17; ++width)
+        {
+            const int row_bytes = (width * bpp + 7) / 8;
+            lh_byte_t bits[3 * 17];
+            lh_ui_mask_t mask;
+
+            for (int i = 0; i < 3 * 17; ++i)
+            {
+                bits[i] = static_cast<lh_byte_t>((i * 53 + 7) | 0x01);
+            }
+            lh_ui_mask_init(lh_addr_of(mask), bits, width, 3, row_bytes, static_cast<lh_byte_t>(bpp));
+            for (int y = -1; y <= 3; ++y)
+            {
+                for (int x = -9; x <= width + 1; ++x)
+                {
+                    const lh_u64_t cover = lh_ui_mask_get_coverage_8(lh_addr_of(mask), x, y);
+
+                    for (int i = 0; i < 8; ++i)
+                    {
+                        ASSERT_EQ(static_cast<lh_byte_t>(cover >> (8 * i)),
+                                  lh_ui_mask_get_coverage(lh_addr_of(mask), x + i, y))
+                            << "bpp " << bpp << " width " << width << " y " << y << " x " << x << " i " << i;
+                    }
+                }
+            }
+        }
+    }
+}
+
 } // namespace

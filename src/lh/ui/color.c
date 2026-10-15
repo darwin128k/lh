@@ -11,6 +11,7 @@
 #include <lh/numeric/fixed/types.h>
 #include <lh/ui/color.h>
 #include <lh/util/addr.h>
+#include <lh/util/return.h>
 
 /* ── Constructors ────────────────────────────────────────────────────────── */
 
@@ -189,6 +190,46 @@ lh_ui_color_over_opaque_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t a)
 {
     return lh_cast_static(lh_ui_color_channel_t,
                           (src * a + dst * (LH_BYTE_T_MAX - a) + LH_BYTE_T_MAX / 2U) / LH_BYTE_T_MAX);
+}
+
+lh_u32_t
+lh_ui_color_argb_make(lh_u32_t r, lh_u32_t g, lh_u32_t b, lh_u32_t a)
+{
+    return (a << 24) | (r << 16) | (g << 8) | b;
+}
+
+lh_u32_t
+lh_ui_color_argb_over_opaque(lh_u32_t dst, lh_u32_t src)
+{
+    const lh_u32_t a = lh_ui_color_hex_channel(src, 24);
+
+    return lh_ui_color_argb_make(
+        lh_ui_color_over_opaque_channel(lh_ui_color_hex_channel(src, 16), lh_ui_color_hex_channel(dst, 16), a),
+        lh_ui_color_over_opaque_channel(lh_ui_color_hex_channel(src, 8), lh_ui_color_hex_channel(dst, 8), a),
+        lh_ui_color_over_opaque_channel(lh_ui_color_hex_channel(src, 0), lh_ui_color_hex_channel(dst, 0), a),
+        LH_BYTE_T_MAX);
+}
+
+lh_u32_t
+lh_ui_color_argb_over_translucent(lh_u32_t dst, lh_u32_t src)
+{
+    const lh_u32_t a = lh_ui_color_hex_channel(src, 24);
+    const lh_u32_t src_w = a * LH_BYTE_T_MAX;
+    const lh_u32_t dst_w = lh_cast_static(lh_u32_t, lh_ui_color_hex_channel(dst, 24)) * (LH_BYTE_T_MAX - a);
+
+    lh_return_if(src_w + dst_w == 0U, 0U);
+    return lh_ui_color_argb_make(
+        lh_ui_color_blend_channel(lh_ui_color_hex_channel(src, 16), lh_ui_color_hex_channel(dst, 16), src_w, dst_w),
+        lh_ui_color_blend_channel(lh_ui_color_hex_channel(src, 8), lh_ui_color_hex_channel(dst, 8), src_w, dst_w),
+        lh_ui_color_blend_channel(lh_ui_color_hex_channel(src, 0), lh_ui_color_hex_channel(dst, 0), src_w, dst_w),
+        lh_ui_color_weight_to_alpha(src_w + dst_w));
+}
+
+lh_u32_t
+lh_ui_color_argb_over(lh_u32_t dst, lh_u32_t src)
+{
+    return lh_ui_color_hex_channel(dst, 24) == LH_BYTE_T_MAX ? lh_ui_color_argb_over_opaque(dst, src)
+                                                             : lh_ui_color_argb_over_translucent(dst, src);
 }
 
 lh_ui_color_t

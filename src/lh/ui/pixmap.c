@@ -8,10 +8,12 @@
 #include <lh/bit/bswap.h>
 #include <lh/byte/limits.h>
 #include <lh/cast/static.h>
+#include <lh/compiler/attribute/force_inline.h>
 #include <lh/cpu/simd.h>
 #include <lh/math.h>
 #include <lh/memory.h>
 #include <lh/null.h>
+#include <lh/numeric/float.h>
 #include <lh/runtime/error/code.h>
 #include <lh/size.h>
 #include <lh/ui/pixmap.h>
@@ -181,16 +183,7 @@ lh_ui_pixmap_set_pixel(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, const lh_ui
 lh_void
 lh_ui_pixmap_blend_pixel(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color)
 {
-    lh_ui_color_t dst;
-
-    if (lh_ui_color_get_a(color) == LH_BYTE_T_MAX)
-    {
-        lh_ui_pixmap_set_pixel(self, x, y, color);
-        return;
-    }
-    dst = lh_ui_pixmap_get_pixel(self, x, y);
-    dst = lh_ui_color_over(lh_addr_of(dst), color);
-    lh_ui_pixmap_set_pixel(self, x, y, lh_addr_of(dst));
+    lh_ui_pixmap_write_word(self, x, y, lh_ui_pixmap_over_word(self, lh_ui_pixmap_read_word(self, x, y), color));
 }
 
 lh_void
@@ -262,10 +255,7 @@ lh_ui_pixmap_store_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t
 lh_u32_t
 lh_ui_pixmap_mix_rgb(lh_u32_t dst, lh_u32_t src, lh_u32_t a)
 {
-    return (lh_cast_static(lh_u32_t, lh_ui_color_over_opaque_channel((src >> 16) & 0xFFU, (dst >> 16) & 0xFFU, a))
-            << 16) |
-           (lh_cast_static(lh_u32_t, lh_ui_color_over_opaque_channel((src >> 8) & 0xFFU, (dst >> 8) & 0xFFU, a)) << 8) |
-           lh_cast_static(lh_u32_t, lh_ui_color_over_opaque_channel(src & 0xFFU, dst & 0xFFU, a));
+    return lh_ui_color_argb_over_opaque(dst, (a << 24) | src) & 0x00FFFFFFU;
 }
 
 lh_u32_t
@@ -282,8 +272,43 @@ lh_ui_pixmap_mix_any(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_
 lh_u32_t
 lh_ui_pixmap_mix_argb(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a)
 {
-    lh_return_if((dst >> 24) != 0xFFU, lh_ui_pixmap_mix_any(self, dst, src, a));
-    return 0xFF000000U | lh_ui_pixmap_mix_rgb(dst, src, a);
+    (void)self;
+    return lh_ui_color_argb_over(dst, (a << 24) | src);
+}
+
+lh_u32_t
+lh_ui_pixmap_mix_word(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a)
+{
+    return lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)) ? lh_ui_pixmap_mix_16(self, dst, src, a)
+                                                                      : lh_ui_pixmap_mix_argb(self, dst, src, a);
+}
+
+lh_u32_t
+lh_ui_pixmap_over_argb(const lh_ui_pixmap_t *self, lh_u32_t dst, const lh_ui_color_t *color)
+{
+    const lh_u32_t argb = lh_ui_color_get_argb(color);
+    const lh_u32_t a = argb >> 24;
+
+    lh_return_if(a == LH_BYTE_T_MAX, argb);
+    lh_return_if(a == 0U, dst);
+    return lh_ui_pixmap_mix_argb(self, dst, argb & 0x00FFFFFFU, a);
+}
+
+lh_u32_t
+lh_ui_pixmap_over_16(const lh_ui_pixmap_t *self, lh_u32_t dst, const lh_ui_color_t *color)
+{
+    const lh_u32_t a = lh_ui_color_get_a(color);
+
+    lh_return_if(a == LH_BYTE_T_MAX, lh_ui_pixmap_order_16(self, lh_ui_color_get_rgb565(color)));
+    lh_return_if(a == 0U, dst);
+    return lh_ui_pixmap_mix_16(self, dst, lh_ui_color_get_argb(color) & 0x00FFFFFFU, a);
+}
+
+lh_u32_t
+lh_ui_pixmap_over_word(const lh_ui_pixmap_t *self, lh_u32_t dst, const lh_ui_color_t *color)
+{
+    return lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)) ? lh_ui_pixmap_over_16(self, dst, color)
+                                                                      : lh_ui_pixmap_over_argb(self, dst, color);
 }
 
 lh_u32_t
@@ -309,9 +334,60 @@ lh_ui_pixmap_mix_16(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u
 }
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
-lh_void
-lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_byte_cptr alpha, lh_usize_t count,
-                                 lh_u32_t src)
+/* One channel of four pixels, `(s * src_w + d * dst_w + total / 2) / total`: the
+   channel at bit @p shift of every pixel, as floats, over its own divisor. */
+#define LH_UI_PIXMAP_OVER_CHANNEL(pix, shift, src_word, src_w, dst_w, half, total)                        \
+    _mm_cvttps_epi32(_mm_div_ps(                                                                          \
+        _mm_add_ps(_mm_add_ps(_mm_mul_ps(_mm_set1_ps(lh_cast_static(lh_float_t, ((src_word) >> (shift)) & 0xFFU)), \
+                                         (src_w)),                                                        \
+                              _mm_mul_ps(_mm_cvtepi32_ps(_mm_and_si128(_mm_srli_epi32(pix, shift),         \
+                                                                       _mm_set1_epi32(0xFF))),            \
+                                         (dst_w))),                                                       \
+                   (half)),                                                                               \
+        (total)))
+
+/* The translucent "over" of four words in registers: four alphas, one per 32-bit
+   lane of @p a32. */
+LH_COMPILER_ATTRIBUTE_FORCE_INLINE __m128i
+lh_ui_pixmap_over_quad_m128(__m128i pix, __m128i a32, lh_u32_t src)
+{
+    const __m128i zero = _mm_setzero_si128();
+    const __m128 full = _mm_set1_ps(255.0F);
+    const __m128 round = _mm_set1_ps(127.0F);
+    const __m128 a = _mm_cvtepi32_ps(a32);
+    /* The weights of ::lh_ui_color_argb_over_translucent, exact in floats:
+       src_w = a * 255, dst_w = dst_a * (255 - a), both at most 65025. */
+    const __m128 src_w = _mm_mul_ps(a, full);
+    const __m128 dst_w = _mm_mul_ps(_mm_cvtepi32_ps(_mm_srli_epi32(pix, 24)), _mm_sub_ps(full, a));
+    const __m128 total = _mm_add_ps(src_w, dst_w);
+    const __m128i total32 = _mm_cvttps_epi32(total);
+    const __m128 half = _mm_cvtepi32_ps(_mm_srli_epi32(total32, 1));
+    const __m128i r = LH_UI_PIXMAP_OVER_CHANNEL(pix, 16, src, src_w, dst_w, half, total);
+    const __m128i g = LH_UI_PIXMAP_OVER_CHANNEL(pix, 8, src, src_w, dst_w, half, total);
+    const __m128i b = LH_UI_PIXMAP_OVER_CHANNEL(pix, 0, src, src_w, dst_w, half, total);
+    const __m128i out_a = _mm_cvttps_epi32(_mm_div_ps(_mm_add_ps(total, round), full));
+    /* Two transparent words give 0 (the divisor was 0, the lanes are junk),
+       and a zero alpha keeps the pixel it found. */
+    const __m128i keep = _mm_cmpeq_epi32(a32, zero);
+    __m128i word = _mm_or_si128(_mm_or_si128(_mm_slli_epi32(out_a, 24), _mm_slli_epi32(r, 16)),
+                                _mm_or_si128(_mm_slli_epi32(g, 8), b));
+
+    word = _mm_andnot_si128(_mm_cmpeq_epi32(total32, zero), word);
+    return _mm_or_si128(_mm_and_si128(keep, pix), _mm_andnot_si128(keep, word));
+}
+
+/* Four alphas, the low four bytes of @p a8, one per 32-bit lane. */
+LH_COMPILER_ATTRIBUTE_FORCE_INLINE __m128i
+lh_ui_pixmap_alpha_lanes_32(__m128i a8)
+{
+    const __m128i zero = _mm_setzero_si128();
+
+    return _mm_unpacklo_epi16(_mm_unpacklo_epi8(a8, zero), zero);
+}
+
+/* Four words blended in registers, pixel k at byte k of @p a8. */
+LH_COMPILER_ATTRIBUTE_FORCE_INLINE __m128i
+lh_ui_pixmap_blend_quad_m128(__m128i pix, __m128i a8, lh_u32_t src)
 {
     const __m128i zero = _mm_setzero_si128();
     const __m128i full = _mm_set1_epi16(255);
@@ -321,74 +397,173 @@ lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_by
     const __m128i src_lo = _mm_unpacklo_epi8(src_word, zero);
     const __m128i src_hi = _mm_unpackhi_epi8(src_word, zero);
     const __m128i alpha_mask = _mm_set1_epi32(lh_cast_static(lh_s32_t, 0xFF000000));
+    /* Each pixel owns four 16-bit lanes in the order B, G, R, A, so its
+       alpha has to land in four lanes, not one: a8 is four bytes, so widen
+       it to one lane each, duplicate each lane, then pair them up into
+       "the four lanes of pixel 0" and "the four lanes of pixel 1". Skipping
+       either duplication blends pixel 0's green with pixel 1's alpha. */
+    const __m128i a_dup = _mm_unpacklo_epi16(_mm_unpacklo_epi8(a8, zero), _mm_unpacklo_epi8(a8, zero));
+    const __m128i a_lo = _mm_unpacklo_epi32(a_dup, a_dup);
+    const __m128i a_hi = _mm_unpackhi_epi32(a_dup, a_dup);
+    __m128i lo = _mm_unpacklo_epi8(pix, zero);
+    __m128i hi = _mm_unpackhi_epi8(pix, zero);
+
+    /* A translucent destination takes the general formula, with a divisor per
+       pixel, so a block with one in it goes through the "over".
+       The test is on the alpha byte of every pixel at once: masking keeps the
+       alpha byte and zeroes the colour bytes, so comparing the result with the
+       mask itself is true exactly where that alpha is 0xFF, and movemask packs
+       those sixteen byte comparisons into one test. Comparing the unmasked
+       pixel instead would put the colour bytes up against zero and send every
+       pixel but a black one down the fallback. */
+    if (_mm_movemask_epi8(_mm_cmpeq_epi8(_mm_and_si128(pix, alpha_mask), alpha_mask)) != 0xFFFF)
+    {
+        return lh_ui_pixmap_over_quad_m128(pix, lh_ui_pixmap_alpha_lanes_32(a8), src);
+    }
+    /* t = (src * a + dst * (255 - a) + 127) / 255, per channel, in 16-bit
+       lanes. Every product and every partial sum is <= 65025, so mullo and
+       add cannot wrap; the widest intermediate is 65252 + 254 + 1 = 65507,
+       still inside 16 bits. */
+    lo = _mm_add_epi16(_mm_add_epi16(_mm_mullo_epi16(src_lo, a_lo), _mm_mullo_epi16(lo, _mm_sub_epi16(full, a_lo))),
+                       round);
+    hi = _mm_add_epi16(_mm_add_epi16(_mm_mullo_epi16(src_hi, a_hi), _mm_mullo_epi16(hi, _mm_sub_epi16(full, a_hi))),
+                       round);
+    /* 255 is odd, so x / 255 never ties at .5 and this round-to-nearest is
+       the same value as the scalar (x + 127) / 255 for every x <= 65535. */
+    lo = _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(lo, _mm_srli_epi16(lo, 8)), one), 8);
+    hi = _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(hi, _mm_srli_epi16(hi, 8)), one), 8);
+    return _mm_or_si128(_mm_packus_epi16(lo, hi), alpha_mask);
+}
+
+/* The first @p count (1 .. 3) words at @p at in the low lanes; the lanes past them
+   opaque, so they never send an opaque run down the "over". Read word by word
+   into the register: the eight-byte store and sixteen-byte load of a buffer on
+   the stack is a store the CPU cannot forward. */
+LH_COMPILER_ATTRIBUTE_FORCE_INLINE __m128i
+lh_ui_pixmap_gather_32(const lh_u32_t *at, lh_usize_t count)
+{
+    const lh_s32_t opaque = lh_cast_static(lh_s32_t, 0xFF000000U);
+
+    return _mm_setr_epi32(lh_cast_static(lh_s32_t, at[0]), count > 1U ? lh_cast_static(lh_s32_t, at[1]) : opaque,
+                          count > 2U ? lh_cast_static(lh_s32_t, at[2]) : opaque, opaque);
+}
+
+/* The low @p count (1 .. 3) lanes of @p v back to @p at; the rest are not written. */
+LH_COMPILER_ATTRIBUTE_FORCE_INLINE lh_void
+lh_ui_pixmap_scatter_32(lh_u32_t *at, lh_usize_t count, __m128i v)
+{
+    at[0] = lh_cast_static(lh_u32_t, _mm_cvtsi128_si32(v));
+    if (count > 1U)
+    {
+        at[1] = lh_cast_static(lh_u32_t, _mm_cvtsi128_si32(_mm_srli_si128(v, 4)));
+    }
+    if (count > 2U)
+    {
+        at[2] = lh_cast_static(lh_u32_t, _mm_cvtsi128_si32(_mm_srli_si128(v, 8)));
+    }
+}
+
+/* The first @p count alphas at @p alpha in the low bytes of a register, 0 past them. */
+LH_COMPILER_ATTRIBUTE_FORCE_INLINE __m128i
+lh_ui_pixmap_gather_alpha(lh_byte_cptr alpha, lh_usize_t count)
+{
+    lh_u64_t bytes = 0U;
+    lh_usize_t k;
+
+    for (k = count; k > 0U; --k)
+    {
+        bytes = (bytes << 8) | alpha[k - 1U];
+    }
+    return _mm_loadl_epi64(lh_ptr_rcast(const __m128i, lh_addr_of(bytes)));
+}
+
+lh_void
+lh_ui_pixmap_blend_alpha_32_over_quad_sse2(lh_u32_t *at, lh_byte_cptr alpha, lh_u32_t src)
+{
+    const __m128i pix = _mm_loadu_si128(lh_ptr_rcast(const __m128i, at));
+    const __m128i a8 = _mm_cvtsi32_si128(lh_ptr_rcast(const lh_s32_t, alpha)[0]);
+
+    _mm_storeu_si128(lh_ptr_rcast(__m128i, at), lh_ui_pixmap_over_quad_m128(pix, lh_ui_pixmap_alpha_lanes_32(a8), src));
+}
+
+lh_void
+lh_ui_pixmap_blend_alpha_32_over_sse2(lh_u32_t *at, lh_byte_cptr alpha, lh_usize_t count, lh_u32_t src)
+{
     lh_usize_t i;
 
     for (i = 0U; i + 4U <= count; i += 4U)
     {
-        const __m128i pix = _mm_loadu_si128(lh_ptr_rcast(const __m128i, at + i));
-        const __m128i a8 = _mm_cvtsi32_si128(lh_ptr_rcast(lh_s32_t, alpha + i)[0]);
-        /* Each pixel owns four 16-bit lanes in the order B, G, R, A, so its
-           alpha has to land in four lanes, not one: a8 is four bytes, so widen
-           it to one lane each, duplicate each lane, then pair them up into
-           "the four lanes of pixel 0" and "the four lanes of pixel 1". Skipping
-           either duplication blends pixel 0's green with pixel 1's alpha. */
-        const __m128i a_dup = _mm_unpacklo_epi16(_mm_unpacklo_epi8(a8, zero), _mm_unpacklo_epi8(a8, zero));
-        __m128i lo = _mm_unpacklo_epi8(pix, zero);
-        __m128i hi = _mm_unpackhi_epi8(pix, zero);
-        const __m128i a_lo = _mm_unpacklo_epi32(a_dup, a_dup);
-        const __m128i a_hi = _mm_unpackhi_epi32(a_dup, a_dup);
+        const __m128i a8 = _mm_cvtsi32_si128(lh_ptr_rcast(const lh_s32_t, alpha + i)[0]);
 
-        /* A translucent destination takes a different formula in the scalar path
-           (lh_ui_pixmap_mix_any), so those pixels have to go back through it.
-           The test is on the alpha byte of every pixel at once: masking keeps the
-           alpha byte and zeroes the colour bytes, so comparing the result with the
-           mask itself is true exactly where that alpha is 0xFF, and movemask packs
-           those sixteen byte comparisons into one test. Comparing the unmasked
-           pixel instead would put the colour bytes up against zero and send every
-           pixel but a black one down the fallback. */
-        if (_mm_movemask_epi8(_mm_cmpeq_epi8(_mm_and_si128(pix, alpha_mask), alpha_mask)) != 0xFFFF)
-        {
-            lh_usize_t k;
-
-            for (k = 0U; k < 4U; ++k)
-            {
-                /* The skip on a zero alpha is not an optimisation, it is the
-                   contract: on a transparent destination a zero alpha must
-                   leave the pixel exactly as it was, and mix_any would write a
-                   computed zero over it instead. */
-                if (alpha[i + k] != 0U)
-                {
-                    at[i + k] = alpha[i + k] == 0xFFU
-                                    ? 0xFF000000U | src
-                                    : lh_ui_pixmap_mix_argb(self, at[i + k], src, alpha[i + k]);
-                }
-            }
-            continue;
-        }
-        /* t = (src * a + dst * (255 - a) + 127) / 255, per channel, in 16-bit
-           lanes. Every product and every partial sum is <= 65025, so mullo and
-           add cannot wrap; the widest intermediate is 65252 + 254 + 1 = 65507,
-           still inside 16 bits. */
-        lo = _mm_add_epi16(_mm_add_epi16(_mm_mullo_epi16(src_lo, a_lo),
-                                         _mm_mullo_epi16(lo, _mm_sub_epi16(full, a_lo))),
-                            round);
-        hi = _mm_add_epi16(_mm_add_epi16(_mm_mullo_epi16(src_hi, a_hi),
-                                         _mm_mullo_epi16(hi, _mm_sub_epi16(full, a_hi))),
-                            round);
-        /* 255 is odd, so x / 255 never ties at .5 and this round-to-nearest is
-           the same value as the scalar (x + 127) / 255 for every x <= 65535. */
-        lo = _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(lo, _mm_srli_epi16(lo, 8)), one), 8);
-        hi = _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(hi, _mm_srli_epi16(hi, 8)), one), 8);
-        _mm_storeu_si128(
-            lh_ptr_rcast(__m128i, at + i),
-            _mm_or_si128(_mm_packus_epi16(lo, hi), _mm_set1_epi32(lh_cast_static(lh_s32_t, 0xFF000000))));
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, at + i),
+                         lh_ui_pixmap_over_quad_m128(_mm_loadu_si128(lh_ptr_rcast(const __m128i, at + i)),
+                                                     lh_ui_pixmap_alpha_lanes_32(a8), src));
     }
-    for (; i < count; ++i)
+    lh_return_if(i == count);
+    lh_ui_pixmap_scatter_32(at + i, count - i,
+                            lh_ui_pixmap_over_quad_m128(lh_ui_pixmap_gather_32(at + i, count - i),
+                                                        lh_ui_pixmap_alpha_lanes_32(lh_ui_pixmap_gather_alpha(alpha + i, count - i)),
+                                                        src));
+}
+
+lh_void
+lh_ui_pixmap_blend_alpha_32_quad_sse2(lh_u32_t *at, lh_byte_cptr alpha, lh_u32_t src)
+{
+    const __m128i pix = _mm_loadu_si128(lh_ptr_rcast(const __m128i, at));
+    const __m128i a8 = _mm_cvtsi32_si128(lh_ptr_rcast(const lh_s32_t, alpha)[0]);
+
+    _mm_storeu_si128(lh_ptr_rcast(__m128i, at), lh_ui_pixmap_blend_quad_m128(pix, a8, src));
+}
+
+lh_void
+lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_byte_cptr alpha, lh_usize_t count,
+                                 lh_u32_t src)
+{
+    lh_usize_t i;
+
+    (void)self;
+    /* The block itself, not the exported quad: inlined, its constants are set up
+       once for the run instead of once a block. */
+    for (i = 0U; i + 4U <= count; i += 4U)
     {
-        if (alpha[i] != 0U)
-        {
-            at[i] = alpha[i] == 0xFFU ? 0xFF000000U | src : lh_ui_pixmap_mix_argb(self, at[i], src, alpha[i]);
-        }
+        const __m128i a8 = _mm_cvtsi32_si128(lh_ptr_rcast(const lh_s32_t, alpha + i)[0]);
+
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, at + i),
+                         lh_ui_pixmap_blend_quad_m128(_mm_loadu_si128(lh_ptr_rcast(const __m128i, at + i)), a8, src));
+    }
+    lh_return_if(i == count);
+    /* The last one to three pixels are a block too, not a scalar loop that
+       branched per pixel on a coverage that is noise to the predictor: a glyph
+       row is six to fourteen pixels, so this tail is part of every row a caption
+       draws. */
+    lh_ui_pixmap_scatter_32(at + i, count - i,
+                            lh_ui_pixmap_blend_quad_m128(lh_ui_pixmap_gather_32(at + i, count - i),
+                                                         lh_ui_pixmap_gather_alpha(alpha + i, count - i), src));
+}
+
+lh_void
+lh_ui_pixmap_blend_cover_32_sse2(lh_u32_t *at, lh_usize_t count, lh_u64_t cover, lh_u32_t src)
+{
+    const __m128i a8 = _mm_loadl_epi64(lh_ptr_rcast(const __m128i, lh_addr_of(cover)));
+    const __m128i a8_hi = _mm_srli_si128(a8, 4);
+
+    lh_assert_runtime(count >= 1U && count <= 8U);
+    if (count < 4U)
+    {
+        lh_ui_pixmap_scatter_32(at, count, lh_ui_pixmap_blend_quad_m128(lh_ui_pixmap_gather_32(at, count), a8, src));
+        return;
+    }
+    _mm_storeu_si128(lh_ptr_rcast(__m128i, at),
+                     lh_ui_pixmap_blend_quad_m128(_mm_loadu_si128(lh_ptr_rcast(const __m128i, at)), a8, src));
+    if (count == 8U)
+    {
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, at + 4),
+                         lh_ui_pixmap_blend_quad_m128(_mm_loadu_si128(lh_ptr_rcast(const __m128i, at + 4)), a8_hi, src));
+    }
+    else if (count > 4U)
+    {
+        lh_ui_pixmap_scatter_32(at + 4, count - 4U,
+                                lh_ui_pixmap_blend_quad_m128(lh_ui_pixmap_gather_32(at + 4, count - 4U), a8_hi, src));
     }
 }
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
@@ -445,9 +620,9 @@ lh_ui_pixmap_blend_alpha_32(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_byte_cp
         out8 = _mm_srli_epi16(LH_UI_PIXMAP_DIV255(t), narrow);                                            \
     } while (0)
 
-lh_void
-lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha, lh_usize_t count,
-                                 lh_u32_t src)
+/* Eight RGB565 words blended in registers, pixel k at byte k of @p a8. */
+LH_COMPILER_ATTRIBUTE_FORCE_INLINE __m128i
+lh_ui_pixmap_blend_octet_m128(__m128i in, __m128i a8, lh_u32_t src, lh_bool_t swap)
 {
     const __m128i zero = _mm_setzero_si128();
     const __m128i full = _mm_set1_epi16(255);
@@ -459,45 +634,138 @@ lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_by
     const __m128i src8r = _mm_set1_epi16(lh_cast_static(short, ((src >> 16) & 0xFF)));
     const __m128i src8g = _mm_set1_epi16(lh_cast_static(short, ((src >> 8) & 0xFF)));
     const __m128i src8b = _mm_set1_epi16(lh_cast_static(short, (src & 0xFF)));
+    const __m128i alpha16 = _mm_unpacklo_epi8(a8, zero);
+    const __m128i inv = _mm_sub_epi16(full, alpha16);
+    __m128i r8;
+    __m128i g8;
+    __m128i b8;
+
     /* A swapped format keeps the low byte first; one 16-bit byte swap per block
        turns it into the numeric RGB565 the planes below expect, and the same
        swap on the way out puts it back. */
+    if (swap)
+    {
+        in = _mm_or_si128(_mm_slli_epi16(in, 8), _mm_srli_epi16(in, 8));
+    }
+    LH_UI_PIXMAP_BLEND_PLANE(r8, _mm_and_si128(_mm_srli_epi16(in, 11), m31), src8r, 3, 2, 3);
+    LH_UI_PIXMAP_BLEND_PLANE(g8, _mm_and_si128(_mm_srli_epi16(in, 5), m63), src8g, 2, 4, 2);
+    LH_UI_PIXMAP_BLEND_PLANE(b8, _mm_and_si128(in, m31), src8b, 3, 2, 3);
+    in = _mm_or_si128(_mm_slli_epi16(r8, 11), _mm_or_si128(_mm_slli_epi16(g8, 5), b8));
+    if (swap)
+    {
+        in = _mm_or_si128(_mm_slli_epi16(in, 8), _mm_srli_epi16(in, 8));
+    }
+    return in;
+}
+
+/* The first @p count (1 .. 7) words at @p at in the low lanes, 0 past them -- a
+   lane the blend never writes back. pinsrw takes its lane as an immediate, so the
+   lanes are spelled out. */
+LH_COMPILER_ATTRIBUTE_FORCE_INLINE __m128i
+lh_ui_pixmap_gather_16(const lh_u16_t *at, lh_usize_t count)
+{
+    __m128i v = _mm_cvtsi32_si128(at[0]);
+
+    if (count > 1U)
+    {
+        v = _mm_insert_epi16(v, at[1], 1);
+    }
+    if (count > 2U)
+    {
+        v = _mm_insert_epi16(v, at[2], 2);
+    }
+    if (count > 3U)
+    {
+        v = _mm_insert_epi16(v, at[3], 3);
+    }
+    if (count > 4U)
+    {
+        v = _mm_insert_epi16(v, at[4], 4);
+    }
+    if (count > 5U)
+    {
+        v = _mm_insert_epi16(v, at[5], 5);
+    }
+    if (count > 6U)
+    {
+        v = _mm_insert_epi16(v, at[6], 6);
+    }
+    return v;
+}
+
+/* The low @p count (1 .. 7) lanes of @p v back to @p at; the rest are not written. */
+LH_COMPILER_ATTRIBUTE_FORCE_INLINE lh_void
+lh_ui_pixmap_scatter_16(lh_u16_t *at, lh_usize_t count, __m128i v)
+{
+    at[0] = lh_cast_static(lh_u16_t, _mm_extract_epi16(v, 0));
+    if (count > 1U)
+    {
+        at[1] = lh_cast_static(lh_u16_t, _mm_extract_epi16(v, 1));
+    }
+    if (count > 2U)
+    {
+        at[2] = lh_cast_static(lh_u16_t, _mm_extract_epi16(v, 2));
+    }
+    if (count > 3U)
+    {
+        at[3] = lh_cast_static(lh_u16_t, _mm_extract_epi16(v, 3));
+    }
+    if (count > 4U)
+    {
+        at[4] = lh_cast_static(lh_u16_t, _mm_extract_epi16(v, 4));
+    }
+    if (count > 5U)
+    {
+        at[5] = lh_cast_static(lh_u16_t, _mm_extract_epi16(v, 5));
+    }
+    if (count > 6U)
+    {
+        at[6] = lh_cast_static(lh_u16_t, _mm_extract_epi16(v, 6));
+    }
+}
+
+lh_void
+lh_ui_pixmap_blend_alpha_16_octet_sse2(lh_u16_t *at, lh_byte_cptr alpha, lh_u32_t src, lh_bool_t swap)
+{
+    _mm_storeu_si128(lh_ptr_rcast(__m128i, at),
+                     lh_ui_pixmap_blend_octet_m128(_mm_loadu_si128(lh_ptr_rcast(const __m128i, at)),
+                                                   _mm_loadl_epi64(lh_ptr_rcast(const __m128i, alpha)), src, swap));
+}
+
+lh_void
+lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha, lh_usize_t count,
+                                 lh_u32_t src)
+{
     const lh_bool_t swap = lh_ui_pixmap_get_format(self) == lh_ui_pixmap_format_rgb565_swapped;
     lh_usize_t i;
 
     for (i = 0U; i + 8U <= count; i += 8U)
     {
-        const __m128i a8 = _mm_loadl_epi64(lh_ptr_rcast(const __m128i, alpha + i));
-        __m128i in = _mm_loadu_si128(lh_ptr_rcast(const __m128i, at + i));
-        __m128i alpha16;
-        __m128i inv;
-        __m128i r8;
-        __m128i g8;
-        __m128i b8;
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, at + i),
+                         lh_ui_pixmap_blend_octet_m128(_mm_loadu_si128(lh_ptr_rcast(const __m128i, at + i)),
+                                                       _mm_loadl_epi64(lh_ptr_rcast(const __m128i, alpha + i)), src,
+                                                       swap));
+    }
+    lh_return_if(i == count);
+    /* The tail is a block too, as in ::lh_ui_pixmap_blend_alpha_32_sse2. */
+    lh_ui_pixmap_scatter_16(at + i, count - i,
+                            lh_ui_pixmap_blend_octet_m128(lh_ui_pixmap_gather_16(at + i, count - i),
+                                                          lh_ui_pixmap_gather_alpha(alpha + i, count - i), src, swap));
+}
 
-        if (swap)
-        {
-            in = _mm_or_si128(_mm_slli_epi16(in, 8), _mm_srli_epi16(in, 8));
-        }
-        alpha16 = _mm_unpacklo_epi8(a8, zero);
-        inv = _mm_sub_epi16(full, alpha16);
-        LH_UI_PIXMAP_BLEND_PLANE(r8, _mm_and_si128(_mm_srli_epi16(in, 11), m31), src8r, 3, 2, 3);
-        LH_UI_PIXMAP_BLEND_PLANE(g8, _mm_and_si128(_mm_srli_epi16(in, 5), m63), src8g, 2, 4, 2);
-        LH_UI_PIXMAP_BLEND_PLANE(b8, _mm_and_si128(in, m31), src8b, 3, 2, 3);
-        in = _mm_or_si128(_mm_slli_epi16(r8, 11), _mm_or_si128(_mm_slli_epi16(g8, 5), b8));
-        if (swap)
-        {
-            in = _mm_or_si128(_mm_slli_epi16(in, 8), _mm_srli_epi16(in, 8));
-        }
-        _mm_storeu_si128(lh_ptr_rcast(__m128i, at + i), in);
-    }
-    for (; i < count; ++i)
+lh_void
+lh_ui_pixmap_blend_cover_16_sse2(lh_u16_t *at, lh_usize_t count, lh_u64_t cover, lh_u32_t src, lh_bool_t swap)
+{
+    const __m128i a8 = _mm_loadl_epi64(lh_ptr_rcast(const __m128i, lh_addr_of(cover)));
+
+    lh_assert_runtime(count >= 1U && count <= 8U);
+    if (count == 8U)
     {
-        if (alpha[i] != 0U)
-        {
-            at[i] = lh_cast_static(lh_u16_t, lh_ui_pixmap_mix_16(self, at[i], src, alpha[i]));
-        }
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, at),
+                         lh_ui_pixmap_blend_octet_m128(_mm_loadu_si128(lh_ptr_rcast(const __m128i, at)), a8, src, swap));
+        return;
     }
+    lh_ui_pixmap_scatter_16(at, count, lh_ui_pixmap_blend_octet_m128(lh_ui_pixmap_gather_16(at, count), a8, src, swap));
 }
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
 
@@ -553,6 +821,35 @@ lh_ui_pixmap_blend_alpha_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh
 }
 
 lh_void
+lh_ui_pixmap_blend_cover_8(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_s32_t count, lh_u64_t cover, lh_u32_t src)
+{
+    lh_byte_t alpha[8];
+    lh_s32_t i;
+
+    lh_assert_runtime(count >= 1 && count <= 8);
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+    if (lh_cpu_simd_has_sse2())
+    {
+        lh_byte_ptr at = lh_ui_pixmap_get_address(self, x, y);
+
+        if (lh_ui_pixmap_format_is_16(self->format))
+        {
+            lh_ui_pixmap_blend_cover_16_sse2(lh_ptr_rcast(lh_u16_t, at), lh_cast_static(lh_usize_t, count), cover, src,
+                                             self->format == lh_ui_pixmap_format_rgb565_swapped);
+            return;
+        }
+        lh_ui_pixmap_blend_cover_32_sse2(lh_ptr_rcast(lh_u32_t, at), lh_cast_static(lh_usize_t, count), cover, src);
+        return;
+    }
+#endif
+    for (i = 0; i < count; ++i)
+    {
+        alpha[i] = lh_cast_static(lh_byte_t, cover >> (8 * i));
+    }
+    lh_ui_pixmap_blend_alpha_span(self, x, x + count, y, src, alpha);
+}
+
+lh_void
 lh_ui_pixmap_blend_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
 {
     lh_byte_t alpha[LH_UI_PIXMAP_RUN];
@@ -581,43 +878,26 @@ lh_void
 lh_ui_pixmap_fill_colors_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
                               const lh_ui_color_t *colors)
 {
-    lh_s32_t x;
-    lh_s32_t end;
+    const lh_usize_t count = x1 > x0 ? lh_cast_static(lh_usize_t, x1 - x0) : 0U;
+    lh_byte_ptr row = lh_ui_pixmap_get_address(self, x0, y);
+    lh_usize_t i;
 
-    if (!lh_ui_pixmap_format_is_16(self->format))
+    if (lh_ui_pixmap_format_is_16(self->format))
     {
-        /* A gradient changes colour every pixel or two, and a run that short is all
-           call and no store: an opaque pixel is its colour's word, written here. */
-        lh_u32_t *at = lh_ptr_rcast(lh_u32_t, lh_ui_pixmap_get_address(self, x0, y));
+        lh_u16_t *at = lh_ptr_rcast(lh_u16_t, row);
 
-        for (x = x0; x < x1; ++x)
+        for (i = 0U; i < count; ++i)
         {
-            const lh_ui_color_t *color = colors + (x - x0);
-            const lh_byte_t alpha = lh_ui_color_get_a(color);
-
-            if (alpha == LH_BYTE_T_MAX)
-            {
-                at[x - x0] = lh_ui_color_get_argb(color);
-            }
-            else if (alpha != 0U)
-            {
-                /* What the alpha kernels make of one pixel, without filling a run's
-                   worth of alpha for it: an edge pixel is one at a time. */
-                at[x - x0] = lh_ui_pixmap_mix_argb(self, at[x - x0], lh_ui_color_get_argb(color) & 0x00FFFFFFU, alpha);
-            }
+            at[i] = lh_cast_static(lh_u16_t, lh_ui_pixmap_over_16(self, at[i], colors + i));
         }
         return;
     }
-    for (x = x0; x < x1; x = end)
     {
-        const lh_ui_color_t *color = colors + (x - x0);
+        lh_u32_t *at = lh_ptr_rcast(lh_u32_t, row);
 
-        for (end = x + 1; end < x1 && lh_ui_color_equals(color, colors + (end - x0)); ++end)
+        for (i = 0U; i < count; ++i)
         {
-        }
-        if (lh_ui_color_get_a(color) != 0U)
-        {
-            lh_ui_pixmap_fill_span(self, x, end, y, color);
+            at[i] = lh_ui_pixmap_over_argb(self, at[i], colors + i);
         }
     }
 }

@@ -244,6 +244,17 @@ lh_void
 lh_ui_canvas_sw_mask_row(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_s32_t x0, lh_s32_t y0, lh_s32_t y,
                          const lh_ui_color_t *color);
 
+/**
+ * @brief Row @p y of @p mask (top-left pixel at @p x0, @p y0) in @p color, eight
+ *        pixels a step: ::lh_ui_mask_get_coverage_8 into
+ *        ::lh_ui_pixmap_blend_cover_8, the coverages never in a buffer. What
+ *        `fill_mask` draws with when the clip has no rounded cut (it asserts
+ *        so); ::lh_ui_canvas_sw_mask_row is the row with one.
+ */
+lh_void
+lh_ui_canvas_sw_cover_row(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_s32_t x0, lh_s32_t y0, lh_s32_t y,
+                          const lh_ui_color_t *color);
+
 /* ── Backend slots (context: ::lh_ui_canvas_sw_t) ────────────────────────── */
 
 /**
@@ -276,8 +287,9 @@ lh_void
 lh_ui_canvas_sw_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip);
 
 /**
- * @brief Backend `fill_mask`: ::lh_ui_canvas_sw_mask_row for each row of
- *        @p mask inside the limit. Always draws.
+ * @brief Backend `fill_mask`: ::lh_ui_canvas_sw_cover_row for each row of
+ *        @p mask inside the limit (::lh_ui_canvas_sw_mask_row under a rounded
+ *        cut). Always draws.
  */
 lh_bool_t
 lh_ui_canvas_sw_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,

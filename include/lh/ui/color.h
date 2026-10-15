@@ -134,6 +134,38 @@ lh_ui_color_t
 lh_ui_color_over_opaque(const lh_ui_color_t *dst, const lh_ui_color_t *color);
 
 /**
+ * @brief An ARGB8888 word `0xAARRGGBB` from its four channels.
+ */
+lh_u32_t
+lh_ui_color_argb_make(lh_u32_t r, lh_u32_t g, lh_u32_t b, lh_u32_t a);
+
+/**
+ * @brief ::lh_ui_color_over_opaque on ARGB8888 words: @p src over an opaque @p dst,
+ *        per channel `(s * a + d * (255 - a) + 127) / 255`, alpha 255.
+ *
+ * The word form is the one a pixel loop wants: no ::lh_ui_color_t is built per
+ * pixel. It and the struct form are both built on the channel kernels
+ * (::lh_ui_color_over_opaque_channel, ::lh_ui_color_blend_channel,
+ * ::lh_ui_color_weight_to_alpha), so the two cannot disagree.
+ */
+lh_u32_t
+lh_ui_color_argb_over_opaque(lh_u32_t dst, lh_u32_t src);
+
+/**
+ * @brief ::lh_ui_color_over_translucent on ARGB8888 words: weights, then each
+ *        channel divided back by the result alpha; two transparent words give 0.
+ */
+lh_u32_t
+lh_ui_color_argb_over_translucent(lh_u32_t dst, lh_u32_t src);
+
+/**
+ * @brief ::lh_ui_color_over on ARGB8888 words (straight alpha): the opaque form
+ *        when @p dst is opaque, the translucent one otherwise.
+ */
+lh_u32_t
+lh_ui_color_argb_over(lh_u32_t dst, lh_u32_t src);
+
+/**
  * @brief One channel of ::lh_ui_color_over_opaque: @p src at alpha @p a over
  *        opaque @p dst.
  */

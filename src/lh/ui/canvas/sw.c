@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/byte/limits.h>
 #include <lh/byte/ptr.h>
 #include <lh/math.h>
 #include <lh/math/isqrt.h>
@@ -133,9 +134,14 @@ lh_ui_canvas_sw_blend_run(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_
     {
         coverage[i] = lh_ui_canvas_sw_edge_alpha(self, alpha, coverage[i], x0 + i, y);
     }
-    for (i = mid0 - x0; i < mid1 - x0; ++i)
+    /* An opaque colour scales nothing: lh_ui_radius_scale(255, c) is c. Text is
+       drawn in one, and this loop was a multiply per pixel of every glyph row. */
+    if (alpha != LH_BYTE_T_MAX)
     {
-        coverage[i] = lh_ui_radius_scale(alpha, coverage[i]);
+        for (i = mid0 - x0; i < mid1 - x0; ++i)
+        {
+            coverage[i] = lh_ui_radius_scale(alpha, coverage[i]);
+        }
     }
     for (i = mid1 - x0; i < x1 - x0; ++i)
     {
@@ -289,6 +295,37 @@ lh_ui_canvas_sw_mask_row(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_s
     {
         end = lh_math_min(x1, x + LH_UI_PIXMAP_RUN);
         lh_ui_canvas_sw_mask_run(self, mask, x - x0, y - y0, x, end, y, color);
+    }
+}
+
+lh_void
+lh_ui_canvas_sw_cover_row(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_s32_t x0, lh_s32_t y0, lh_s32_t y,
+                          const lh_ui_color_t *color)
+{
+    const lh_s32_t x1 = lh_ui_canvas_sw_cut_x1(self, x0 + lh_ui_mask_get_width(mask));
+    const lh_byte_t alpha = lh_ui_color_get_a(color);
+    const lh_u32_t src = lh_ui_color_get_argb(color) & 0x00FFFFFFU;
+    lh_s32_t x;
+
+    lh_assert_runtime(!lh_ui_canvas_sw_is_rounded(self));
+    /* Eight pixels a step, the coverages never leaving a register: a glyph row is
+       one or two steps. The buffered run (::lh_ui_canvas_sw_mask_row) took a
+       coverage pass, an alpha pass and a blend pass per row, each through its own
+       calls, and on rows this short that was the cost of the text. */
+    for (x = lh_ui_canvas_sw_cut_x0(self, x0); x < x1; x += 8)
+    {
+        lh_u64_t cover = lh_ui_mask_get_coverage_8(mask, x - x0, y - y0);
+
+        /* Nothing covered is nothing to blend, and the edges of a glyph are. */
+        if (cover == 0U)
+        {
+            continue;
+        }
+        if (alpha != LH_BYTE_T_MAX)
+        {
+            cover = lh_ui_radius_scale_8(alpha, cover);
+        }
+        lh_ui_pixmap_blend_cover_8(lh_addr_of(self->pixmap), x, y, lh_math_min(x1 - x, 8), cover, src);
     }
 }
 
@@ -472,47 +509,6 @@ lh_ui_canvas_sw_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip)
     self->limit = lh_ui_rect_intersection(lh_addr_of(bounds), lh_ui_canvas_clip_get_rect(clip));
 }
 
-/** Rows @p y .. @p y1 - 1 of a four-bit @p mask whose top-left pixel is (@p x0,
-   @p y0), into a 32-bit pixmap with no rounded cut: a glyph, which is what this format
-   is baked for. The row goes from the packed samples straight to the pixels -- the
-   coverage, the colour's alpha over it and the blend each as ::lh_ui_mask_coverage_run,
-   ::lh_ui_canvas_sw_blend_run and the alpha kernels have them -- because a glyph row
-   is nine pixels and running it through those three, each with its own buffer, cost
-   more than the pixels did. */
-static lh_void
-sw_glyph_rows(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_s32_t x0, lh_s32_t y0, lh_s32_t y,
-              lh_s32_t y1, const lh_ui_color_t *color)
-{
-    const lh_s32_t from = lh_ui_canvas_sw_cut_x0(self, x0);
-    const lh_s32_t to = lh_ui_canvas_sw_cut_x1(self, x0 + lh_ui_mask_get_width(mask));
-    const lh_byte_t alpha = lh_ui_color_get_a(color);
-    const lh_u32_t src = lh_ui_color_get_argb(color) & 0x00FFFFFFU;
-    lh_s32_t x;
-
-    for (; y < y1; ++y)
-    {
-        lh_byte_cptr row = lh_ui_mask_get_row(mask, y - y0);
-        lh_u32_t *at = lh_ptr_rcast(lh_u32_t, lh_ui_pixmap_get_address(lh_addr_of(self->pixmap), 0, y));
-
-        for (x = from; x < to; ++x)
-        {
-            const lh_s32_t mx = x - x0;
-            const lh_u32_t sample = (mx & 1) != 0 ? row[mx >> 1] & 0x0FU : row[mx >> 1] >> 4;
-            const lh_byte_t cover = lh_cast_static(lh_byte_t, sample * 17U);
-            const lh_byte_t a = alpha == 255U ? cover : lh_ui_radius_scale(alpha, cover);
-
-            if (a == 255U)
-            {
-                at[x] = 0xFF000000U | src;
-            }
-            else if (a != 0U)
-            {
-                at[x] = lh_ui_pixmap_mix_argb(lh_addr_of(self->pixmap), at[x], src, a);
-            }
-        }
-    }
-}
-
 lh_bool_t
 lh_ui_canvas_sw_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,
                           const lh_ui_color_t *color)
@@ -523,15 +519,20 @@ lh_ui_canvas_sw_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_
     const lh_s32_t y1 = lh_ui_canvas_sw_cut_y1(self, y0 + lh_ui_mask_get_height(mask));
     lh_s32_t y;
 
-    if (lh_ui_mask_get_bpp(mask) == 4U && !lh_ui_canvas_sw_is_rounded(self) &&
-        !lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(lh_addr_of(self->pixmap))))
+    /* A rounded cut is a coverage a pixel of its own, which the run path
+       multiplies in; without one, the mask's coverages go to the pixels straight
+       from the register. */
+    if (lh_ui_canvas_sw_is_rounded(self))
     {
-        sw_glyph_rows(self, mask, x0, y0, lh_ui_canvas_sw_cut_y0(self, y0), y1, color);
+        for (y = lh_ui_canvas_sw_cut_y0(self, y0); y < y1; ++y)
+        {
+            lh_ui_canvas_sw_mask_row(self, mask, x0, y0, y, color);
+        }
         return lh_bool_true;
     }
     for (y = lh_ui_canvas_sw_cut_y0(self, y0); y < y1; ++y)
     {
-        lh_ui_canvas_sw_mask_row(self, mask, x0, y0, y, color);
+        lh_ui_canvas_sw_cover_row(self, mask, x0, y0, y, color);
     }
     return lh_bool_true;
 }

@@ -312,8 +312,13 @@ lh_ui_label_measured(const lh_ui_label_t *self)
     label->metrics_ink_top = 0;
     if (lh_null_ne(font) && lh_null_ne(self->text))
     {
-        label->metrics_size = lh_ui_text_get_size_wrapped(font, self->text, wrap);
-        label->metrics_ink_top = lh_cast_static(lh_ui_scalar_t, lh_ui_text_get_ink_top_wrapped(font, self->text, wrap));
+        lh_ui_text_block_t block;
+
+        /* One walk of the text for both: the size and the first ink row are two
+           questions about the same lines. */
+        lh_ui_text_block_measure(lh_addr_of(block), font, self->text, wrap);
+        label->metrics_size = lh_ui_text_block_get_size(lh_addr_of(block), font);
+        label->metrics_ink_top = lh_ui_text_block_get_ink_top(lh_addr_of(block));
     }
     /* The padding is what keeps the text off the edges, and the alignment is where
        inside what the padding leaves it starts. Left and top are what this returned
@@ -337,6 +342,12 @@ lh_ui_label_measured(const lh_ui_label_t *self)
     }
     label->metrics_ready = lh_bool_true;
     return self;
+}
+
+lh_ui_scalar_t
+lh_ui_label_get_ink_top(const lh_ui_label_t *self)
+{
+    return lh_ui_label_measured(self)->metrics_ink_top;
 }
 
 lh_ui_point_t
@@ -489,9 +500,9 @@ lh_ui_label_draw_text(const lh_ui_label_t *self, lh_ui_canvas_t *canvas)
     if (text == self->text)
     {
         /* Wrapped or not: with no width to wrap at, these are the plain lines. */
-        lh_ui_text_draw_wrapped(canvas, lh_ui_label_get_font(self), text, lh_ui_label_get_text_origin(self),
-                                lh_ui_label_get_text_color(self), lh_ui_label_get_wrap_width(self),
-                                lh_ui_label_get_line_align(self));
+        lh_ui_text_draw_wrapped_from(canvas, lh_ui_label_get_font(self), text, lh_ui_label_get_text_origin(self),
+                                     lh_ui_label_get_text_color(self), lh_ui_label_get_ink_top(self),
+                                     lh_ui_label_get_wrap_width(self), lh_ui_label_get_line_align(self));
     }
     else
     {

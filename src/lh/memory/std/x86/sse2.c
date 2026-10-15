@@ -20,11 +20,30 @@ lh_memory_std_copy64_storeu(lh_byte_ptr dst, lh_byte_cptr src)
     _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 48), v3);
 }
 
+/* 64 bytes into a 16-aligned @p dst: the aligned tail block of copy_sse2. */
+LH_ATTRIBUTE_FORCE_INLINE
+LH_MEMORY_STD_SIMD_TARGET("sse2")
+lh_void
+lh_memory_std_copy64_store_sse2(lh_byte_ptr dst, lh_byte_cptr src)
+{
+    const __m128i v0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 0));
+    const __m128i v1 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 16));
+    const __m128i v2 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 32));
+    const __m128i v3 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 48));
+    _mm_store_si128(lh_ptr_rcast(__m128i, dst + 0), v0);
+    _mm_store_si128(lh_ptr_rcast(__m128i, dst + 16), v1);
+    _mm_store_si128(lh_ptr_rcast(__m128i, dst + 32), v2);
+    _mm_store_si128(lh_ptr_rcast(__m128i, dst + 48), v3);
+}
+
 LH_ATTRIBUTE_FORCE_INLINE
 LH_MEMORY_STD_SIMD_TARGET("sse2")
 lh_void
 lh_memory_std_copy128_store_sse2(lh_byte_ptr dst, lh_byte_cptr src)
 {
+    /* All eight loads ahead of the stores, not two halves of four: measured on an
+       Ivy Bridge, splitting it (to spare the Win64 spill of xmm6/7) gained nothing
+       and lost a few percent from 1 KB up. */
     const __m128i v0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 0));
     const __m128i v1 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 16));
     const __m128i v2 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 32));
@@ -146,14 +165,7 @@ lh_memory_std_copy_sse2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
         if (n >= 64U)
         {
-            const __m128i v0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 0));
-            const __m128i v1 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 16));
-            const __m128i v2 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 32));
-            const __m128i v3 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + 48));
-            _mm_store_si128(lh_ptr_rcast(__m128i, dst + 0), v0);
-            _mm_store_si128(lh_ptr_rcast(__m128i, dst + 16), v1);
-            _mm_store_si128(lh_ptr_rcast(__m128i, dst + 32), v2);
-            _mm_store_si128(lh_ptr_rcast(__m128i, dst + 48), v3);
+            lh_memory_std_copy64_store_sse2(dst, src);
             dst += 64;
             src += 64;
             n -= 64U;

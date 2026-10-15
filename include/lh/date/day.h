@@ -72,6 +72,19 @@ lh_date_day_t
 lh_date_days_in_month(lh_date_year_t year, lh_date_month_t month);
 
 /**
+ * @brief Days in @p year before the first of @p month: `0` for January, `31` for
+ *        February, one more from March on in a leap year. O(1), from a table.
+ *
+ * @param year  Calendar year (used only for the leap day).
+ * @param month Calendar month (`1`–`12`).
+ *
+ * @return `0`–`335`, or `0` if @p month is not in
+ *         `[::LH_DATE_MONTH_MIN, ::LH_DATE_MONTH_MAX]`.
+ */
+lh_u16_t
+lh_date_days_before_month(lh_date_year_t year, lh_date_month_t month);
+
+/**
  * @brief True if @p self and @p other are the same day value.
  */
 lh_bool_t
