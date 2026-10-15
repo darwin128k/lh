@@ -218,12 +218,12 @@ TEST(ui_shadow, a_span_reads_the_same_alphas_as_each_pixel)
 
                     lh_ui_shadow_init(lh_addr_of(shadow));
                     lh_ui_shadow_set_color(lh_addr_of(shadow), lh_ui_color_t{0, 0, 0, peak});
-                    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar(spread));
-                    lh_ui_shadow_set_offset(lh_addr_of(shadow), lh_ui_scalar(offset), lh_ui_scalar(-offset));
+                    lh_ui_shadow_set_spread(lh_addr_of(shadow), lh_ui_scalar_of(spread));
+                    lh_ui_shadow_set_offset(lh_addr_of(shadow), lh_ui_scalar_of(offset), lh_ui_scalar_of(-offset));
                     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(35), lh_ui_scalar(35), lh_ui_scalar(51),
                                     lh_ui_scalar(37));
                     lh_ui_shadow_shape_init(lh_addr_of(shape), lh_addr_of(shadow), lh_addr_of(rect),
-                                            lh_ui_scalar(radius));
+                                            lh_ui_scalar_of(radius));
                     lh_ui_shadow_ramp_init(lh_addr_of(ramp), lh_addr_of(shape));
                     for (lh_s32_t y = 0; y < 110; ++y)
                     {
@@ -231,7 +231,7 @@ TEST(ui_shadow, a_span_reads_the_same_alphas_as_each_pixel)
                         for (lh_s32_t x = 0; x < 120; ++x)
                         {
                             ASSERT_EQ(row[x], lh_ui_shadow_alpha_at_pixel(lh_addr_of(shadow), x, y, lh_addr_of(rect),
-                                                                          lh_ui_scalar(radius)))
+                                                                          lh_ui_scalar_of(radius)))
                                 << "spread " << spread << " radius " << radius << " peak " << int(peak)
                                 << " offset " << offset << " at " << x << "," << y;
                         }

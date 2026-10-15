@@ -139,7 +139,7 @@ point_of(int x, int y)
 {
     lh_ui_point_t point;
 
-    lh_ui_point_init(&point, lh_ui_scalar(x), lh_ui_scalar(y));
+    lh_ui_point_init(&point, lh_ui_scalar_of(x), lh_ui_scalar_of(y));
     return point;
 }
 

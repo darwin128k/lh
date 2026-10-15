@@ -54,10 +54,12 @@ TEST(ui_rect, negative_extent_is_empty)
 TEST(ui_rect, roundtrip_through_the_screen_rect)
 {
     lh_math_rect_t screen;
+    lh_ui_rect_t r;
+    lh_math_rect_t back;
 
     lh_math_rect_init(lh_addr_of(screen), -8, 15, 4, 9);
-    const lh_ui_rect_t r = lh_ui_rect_from_rect(screen);
-    const lh_math_rect_t back = lh_ui_rect_to_rect(r);
+    lh_ui_rect_from_rect(screen, lh_addr_of(r));
+    lh_ui_rect_to_rect(r, lh_addr_of(back));
     EXPECT_EQ(lh_math_point_get_x(lh_math_rect_get_origin_as_const(lh_addr_of(back))), -8);
     EXPECT_EQ(lh_math_point_get_y(lh_math_rect_get_origin_as_const(lh_addr_of(back))), 15);
     EXPECT_EQ(lh_math_size_get_width(lh_math_rect_get_size_as_const(lh_addr_of(back))), 4);
@@ -68,9 +70,10 @@ TEST(ui_rect, roundtrip_through_the_screen_rect)
 TEST(ui_rect, to_rect_truncates_toward_zero)
 {
     lh_ui_rect_t r;
+    lh_math_rect_t screen;
 
     lh_ui_rect_init(lh_addr_of(r), 3.9f, -3.9f, 8.2f, 1.1f);
-    const lh_math_rect_t screen = lh_ui_rect_to_rect(r);
+    lh_ui_rect_to_rect(r, lh_addr_of(screen));
     EXPECT_EQ(lh_math_point_get_x(lh_math_rect_get_origin_as_const(lh_addr_of(screen))), 3);
     EXPECT_EQ(lh_math_point_get_y(lh_math_rect_get_origin_as_const(lh_addr_of(screen))), -3);
     EXPECT_EQ(lh_math_size_get_width(lh_math_rect_get_size_as_const(lh_addr_of(screen))), 8);

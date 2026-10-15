@@ -169,8 +169,8 @@ struct card_fixture
         {
             w = 0x00204060u; /* the background, so a shadow is a change of it */
         }
-        lh_ui_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, words), lh_ui_scalar(g_card_side),
-                          lh_ui_scalar(g_card_side), lh_ui_scalar(g_card_side * 4), format);
+        lh_ui_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, words), lh_ui_scalar_of(g_card_side),
+                          lh_ui_scalar_of(g_card_side), lh_ui_scalar_of(g_card_side * 4), format);
         lh_ui_canvas_sw_init(lh_addr_of(sw));
         lh_ui_canvas_sw_set_pixmap(lh_addr_of(sw), lh_addr_of(pixmap));
         lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_sw), lh_addr_of(sw));

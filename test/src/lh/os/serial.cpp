@@ -110,7 +110,7 @@ TEST(os_serial, bytes_go_both_ways_through_the_stream)
     ASSERT_NE(line.port_name, nullptr);
     lh_os_serial_init(&port);
     ASSERT_TRUE(lh_os_serial_open(&port, line.port_name, 115200, lh_os_serial_parity_none, 2));
-    stream = lh_os_serial_get_stream(&port);
+    lh_os_serial_get_stream(&port, &stream);
 
     ASSERT_EQ(lh_io_stream_write(&stream, (lh_ptr)hello, sizeof(hello)), (lh_ssize_t)sizeof(hello));
     ASSERT_TRUE(line.read_exactly(got, sizeof(got)));
@@ -149,7 +149,7 @@ TEST(os_serial, a_modbus_rtu_question_is_answered_over_the_port)
     ASSERT_NE(line.port_name, nullptr);
     lh_os_serial_init(&port);
     ASSERT_TRUE(lh_os_serial_open(&port, line.port_name, 9600, lh_os_serial_parity_even, 1));
-    stream = lh_os_serial_get_stream(&port);
+    lh_os_serial_get_stream(&port, &stream);
     lh_mb_link_init(&link, &stream, lh_mb_framing_rtu, 1, lh_null, lh_null);
 
     ASSERT_TRUE(lh_mb_link_ask(&link, 10, 3));

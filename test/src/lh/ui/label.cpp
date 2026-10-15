@@ -260,7 +260,7 @@ TEST(entity_label, the_ink_is_not_cut_by_the_box_the_text_is_centred_in)
         word = 0x00204060u;
     }
     lh_ui_pixmap_init(lh_addr_of(pixmap), lh_ptr_rcast(lh_byte_t, words), lh_ui_scalar(64), lh_ui_scalar(40),
-                      lh_ui_scalar(64 * 4), lh_ui_pixmap_format_argb8888);
+                      lh_ui_scalar_of(64 * 4), lh_ui_pixmap_format_argb8888);
     lh_ui_canvas_sw_init(lh_addr_of(sw));
     lh_ui_canvas_sw_set_pixmap(lh_addr_of(sw), lh_addr_of(pixmap));
     lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_sw), lh_addr_of(sw));
@@ -651,6 +651,6 @@ TEST(ui_label, a_label_that_wraps_breaks_its_text_at_its_padded_width)
 
     EXPECT_EQ(lh_ui_size_get_height(lh_ui_rect_get_size_as_const(&three)),
               lh_ui_size_get_height(lh_ui_rect_get_size_as_const(&one)) +
-                  2 * lh_ui_scalar(lh_ui_font_get_line_height(font)));
+                  2 * lh_ui_scalar_of(lh_ui_font_get_line_height(font)));
     EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size_as_const(&three)), lh_ui_scalar(6));
 }

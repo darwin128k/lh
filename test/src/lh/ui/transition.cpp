@@ -77,7 +77,7 @@ struct scene
         lh_ui_canvas_sw_init(&sw);
         lh_ui_canvas_sw_set_pixmap(&sw, &pixmap);
         lh_ui_canvas_init(&canvas, &lh_ui_canvas_backend_sw, &sw);
-        lh_ui_size_init(&size, lh_ui_scalar(side), lh_ui_scalar(side));
+        lh_ui_size_init(&size, lh_ui_scalar_of(side), lh_ui_scalar_of(side));
         lh_ui_canvas_set_size(&canvas, size);
         lh_ui_entity_init(&root, rect_of(0, 0, side, side));
         lh_ui_entity_init(&box, rect_of(0, 0, side, side));
