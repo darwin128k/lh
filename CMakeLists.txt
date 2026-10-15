@@ -354,6 +354,8 @@ if (LH_LIBRARY_OPTION_MATH_FPU)
             ${LH_LIB_SRC_PATH}/math/float/sqrt.c
             ${LH_LIB_SRC_PATH}/math/float/sin_cos.c
             ${LH_LIB_SRC_PATH}/math/float/round.c
+            ${LH_LIB_SRC_PATH}/math/slice.c
+            ${LH_LIB_SRC_PATH}/math/view.c
             ${LH_LIB_SRC_PATH}/math/fpoint.c
             ${LH_LIB_SRC_PATH}/math/fsize.c
             ${LH_LIB_SRC_PATH}/math/frect.c

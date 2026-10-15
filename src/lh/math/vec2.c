@@ -1,7 +1,9 @@
 #include <lh/assert/runtime.h>
 #include <lh/math/vec2.h>
+#include <lh/math/view.h>
+#include <lh/util/ptr.h>
+#include <lh/util/addr.h>
 #include <lh/cast/static.h>
-#include <lh/math/float/sqrt.h>
 
 lh_void
 lh_math_vec2_init(lh_math_vec2_t *self, lh_float_t x, lh_float_t y)
@@ -83,23 +85,41 @@ lh_math_vec2_neg(lh_math_vec2_t v)
     return result;
 }
 
+/** The 2 components of @p v as a view: a vector is laid out as `float[2]`. */
+static lh_math_view_t
+lh_math_vec2_view_of(const lh_math_vec2_t *v)
+{
+    lh_math_slice_t slice;
+    lh_math_view_t view;
+
+    lh_math_slice_init(lh_addr_of(slice), lh_ptr_rcast(const lh_float_t, v), 2U);
+    lh_math_view_init_by_slice(lh_addr_of(view), lh_addr_of(slice));
+    return view;
+}
+
 lh_float_t
 lh_math_vec2_dot(lh_math_vec2_t a, lh_math_vec2_t b)
 {
-    return lh_math_vec2_get_x(lh_addr_of(a)) * lh_math_vec2_get_x(lh_addr_of(b))
-         + lh_math_vec2_get_y(lh_addr_of(a)) * lh_math_vec2_get_y(lh_addr_of(b));
+    const lh_math_view_t va = lh_math_vec2_view_of(lh_addr_of(a));
+    const lh_math_view_t vb = lh_math_vec2_view_of(lh_addr_of(b));
+
+    return lh_math_view_dot(lh_addr_of(va), lh_addr_of(vb));
 }
 
 lh_float_t
 lh_math_vec2_length_sq(lh_math_vec2_t v)
 {
-    return lh_math_vec2_dot(v, v);
+    const lh_math_view_t view = lh_math_vec2_view_of(lh_addr_of(v));
+
+    return lh_math_view_length_sq(lh_addr_of(view));
 }
 
 lh_float_t
 lh_math_vec2_length(lh_math_vec2_t v)
 {
-    return lh_math_float_sqrt(lh_math_vec2_length_sq(v));
+    const lh_math_view_t view = lh_math_vec2_view_of(lh_addr_of(v));
+
+    return lh_math_view_length(lh_addr_of(view));
 }
 
 lh_math_vec2_t
