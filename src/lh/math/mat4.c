@@ -110,29 +110,18 @@ lh_void
 lh_math_mat4_mul_vec4(lh_math_mat4_t m, lh_math_vec4_t v, lh_math_vec4_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_math_vec4_t column0;
-    lh_math_vec4_t column1;
-    lh_math_vec4_t column2;
-    lh_math_vec4_t column3;
-    lh_math_vec4_t scaled0;
-    lh_math_vec4_t scaled1;
-    lh_math_vec4_t scaled2;
-    lh_math_vec4_t scaled3;
-    lh_math_vec4_t xy;
-    lh_math_vec4_t zw;
+    lh_math_vec4_t column;
 
     /* A sum of the columns, weighted by v's components. */
-    lh_math_mat4_get_column(lh_addr_of(m), 0, lh_addr_of(column0));
-    lh_math_mat4_get_column(lh_addr_of(m), 1, lh_addr_of(column1));
-    lh_math_mat4_get_column(lh_addr_of(m), 2, lh_addr_of(column2));
-    lh_math_mat4_get_column(lh_addr_of(m), 3, lh_addr_of(column3));
-    lh_math_vec4_scale(column0, lh_math_vec4_get_x(lh_addr_of(v)), lh_addr_of(scaled0));
-    lh_math_vec4_scale(column1, lh_math_vec4_get_y(lh_addr_of(v)), lh_addr_of(scaled1));
-    lh_math_vec4_scale(column2, lh_math_vec4_get_z(lh_addr_of(v)), lh_addr_of(scaled2));
-    lh_math_vec4_scale(column3, lh_math_vec4_get_w(lh_addr_of(v)), lh_addr_of(scaled3));
-    lh_math_vec4_add(scaled0, scaled1, lh_addr_of(xy));
-    lh_math_vec4_add(scaled2, scaled3, lh_addr_of(zw));
-    lh_math_vec4_add(xy, zw, out);
+    lh_math_mat4_get_column(lh_addr_of(m), 0, lh_addr_of(column));
+    lh_math_vec4_scale(column, lh_math_vec4_get_x(lh_addr_of(v)), out);
+    lh_math_mat4_get_column(lh_addr_of(m), 1, lh_addr_of(column));
+    lh_math_vec4_madd(*out, column, lh_math_vec4_get_y(lh_addr_of(v)), out);
+    lh_math_mat4_get_column(lh_addr_of(m), 2, lh_addr_of(column));
+    lh_math_vec4_madd(*out, column, lh_math_vec4_get_z(lh_addr_of(v)), out);
+    lh_math_mat4_get_column(lh_addr_of(m), 3, lh_addr_of(column));
+    lh_math_vec4_madd(*out, column, lh_math_vec4_get_w(lh_addr_of(v)), out);
+    return;
 }
 
 lh_void
@@ -140,21 +129,17 @@ lh_math_mat4_mul(lh_math_mat4_t a, lh_math_mat4_t b, lh_math_mat4_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_math_vec4_t column;
-    lh_math_vec4_t product0;
-    lh_math_vec4_t product1;
-    lh_math_vec4_t product2;
-    lh_math_vec4_t product3;
 
-    /* Column c of the product is a applied to column c of b. */
-    lh_math_mat4_get_column(lh_addr_of(b), 0, lh_addr_of(column));
-    lh_math_mat4_mul_vec4(a, column, lh_addr_of(product0));
-    lh_math_mat4_get_column(lh_addr_of(b), 1, lh_addr_of(column));
-    lh_math_mat4_mul_vec4(a, column, lh_addr_of(product1));
-    lh_math_mat4_get_column(lh_addr_of(b), 2, lh_addr_of(column));
-    lh_math_mat4_mul_vec4(a, column, lh_addr_of(product2));
-    lh_math_mat4_get_column(lh_addr_of(b), 3, lh_addr_of(column));
-    lh_math_mat4_mul_vec4(a, column, lh_addr_of(product3));
-    lh_math_mat4_from_columns(product0, product1, product2, product3, out);
+    /* Column c of the product is a applied to column c of b. a and b are
+     * copies, so writing each column straight into out is safe even when out
+     * is where a or b came from. */
+    for (unsigned c = 0; c < 4; ++c)
+    {
+        lh_math_mat4_get_column(lh_addr_of(b), c, lh_addr_of(column));
+        lh_math_mat4_mul_vec4(a, column, lh_addr_of(column));
+        lh_math_mat4_set_column(out, c, column);
+    }
+    return;
 }
 
 lh_void

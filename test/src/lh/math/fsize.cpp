@@ -3,6 +3,7 @@
 #include <lh/math/fpoint.h>
 #include <lh/math/fsize.h>
 #include <lh/util/addr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -25,7 +26,7 @@ TEST(math_fsize, is_empty_and_from_extent)
     lh_math_fpoint_t max;
 
     lh_math_fpoint_init(lh_addr_of(max), 6.f, 5.f);
-    const lh_math_fsize_t size = lh_math_fsize_from_extent(lh_addr_of(min), lh_addr_of(max));
+    const lh_math_fsize_t size = lh_test::out(lh_math_fsize_from_extent, lh_addr_of(min), lh_addr_of(max));
     EXPECT_EQ(lh_math_fsize_get_width(lh_addr_of(size)), 5.f);
     EXPECT_EQ(lh_math_fsize_get_height(lh_addr_of(size)), 3.f);
 }
@@ -35,7 +36,7 @@ TEST(math_fsize, inset_shrinks_both_sides)
     lh_math_fsize_t size;
 
     lh_math_fsize_init(lh_addr_of(size), 10.f, 8.f);
-    const lh_math_fsize_t inner = lh_math_fsize_inset(lh_addr_of(size), 1.f, 2.f);
+    const lh_math_fsize_t inner = lh_test::out(lh_math_fsize_inset, lh_addr_of(size), 1.f, 2.f);
     EXPECT_EQ(lh_math_fsize_get_width(lh_addr_of(inner)), 8.f);
     EXPECT_EQ(lh_math_fsize_get_height(lh_addr_of(inner)), 4.f);
 }

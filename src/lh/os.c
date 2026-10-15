@@ -41,7 +41,6 @@ lh_os_get_last_error_code(void)
 lh_void
 lh_os_get_last_error_desc(lh_os_error_desc_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_os_error_get_desc(lh_os_last_error(), out);
     return;
 }

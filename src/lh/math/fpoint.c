@@ -205,7 +205,6 @@ lh_math_fpoint_offset(const lh_math_fpoint_t *self, lh_math_fscalar_t dx, lh_mat
 lh_void
 lh_math_fpoint_offset_size(const lh_math_fpoint_t *self, const lh_math_fsize_t *size, lh_math_fpoint_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(size);
     lh_math_fpoint_offset(self, lh_math_fsize_get_width(size), lh_math_fsize_get_height(size), out);

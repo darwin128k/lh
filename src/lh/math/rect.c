@@ -123,7 +123,6 @@ lh_math_rect_set_size(lh_math_rect_t *self, lh_math_size_t size)
 lh_void
 lh_math_rect_far(const lh_math_rect_t *self, lh_math_point_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
     lh_math_point_offset_size(lh_math_rect_get_origin_as_const(self),
                                      lh_math_rect_get_size_as_const(self), out);
@@ -216,7 +215,6 @@ lh_math_rect_is_greater(const lh_math_rect_t *self, const lh_math_rect_t *other)
 lh_void
 lh_math_rect_origin_min(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_math_point_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
     lh_math_point_min(lh_math_rect_get_origin_as_const(a), lh_math_rect_get_origin_as_const(b), out);
@@ -226,7 +224,6 @@ lh_math_rect_origin_min(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_mat
 lh_void
 lh_math_rect_origin_max(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_math_point_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
     lh_math_point_max(lh_math_rect_get_origin_as_const(a), lh_math_rect_get_origin_as_const(b), out);

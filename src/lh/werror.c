@@ -30,7 +30,6 @@ lh_werror_get_code(const lh_werror_t *self)
 lh_void
 lh_werror_get_desc(const lh_werror_t *self, lh_wstr_view_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_error_get_desc(lh_ptr_ccast(lh_error_t, self), out);
     return;
 }
@@ -38,7 +37,6 @@ lh_werror_get_desc(const lh_werror_t *self, lh_wstr_view_t *out)
 lh_void
 lh_werror_get_desc_or(const lh_werror_t *self, lh_wstr_view_t fallback, lh_wstr_view_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_error_get_desc_or(lh_ptr_ccast(lh_error_t, self), fallback, out);
     return;
 }

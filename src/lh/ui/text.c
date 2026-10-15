@@ -324,7 +324,6 @@ lh_ui_text_get_ink_rect_wrapped(const lh_ui_font_t *font, const lh_char_t *text,
 lh_void
 lh_ui_text_get_ink_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin, lh_ui_rect_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_ui_text_get_ink_rect_wrapped(font, text, origin, lh_ui_scalar(0), lh_ui_text_align_h_left, out);
     return;
 }
@@ -343,7 +342,6 @@ lh_ui_text_get_size_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_
 lh_void
 lh_ui_text_get_size(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_size_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_ui_text_get_size_wrapped(font, text, lh_ui_scalar(0), out);
     return;
 }
@@ -351,7 +349,6 @@ lh_ui_text_get_size(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_size_
 lh_void
 lh_ui_text_get_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin, lh_ui_rect_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_ui_text_get_ink_rect(font, text, origin, out);
     return;
 }

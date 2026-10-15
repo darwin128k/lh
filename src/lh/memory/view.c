@@ -523,7 +523,6 @@ lh_memory_view_init_by_other(lh_memory_view_t *self, const lh_memory_view_t *oth
 lh_void
 lh_memory_view_to_slice(const lh_memory_view_t *self, lh_memory_view_slice_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_memory_view_slice_from_view(self, out);
     return;
 }
@@ -608,7 +607,6 @@ lh_memory_view_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_
 lh_void
 lh_memory_view_from_begin(const lh_memory_view_t *self, lh_usize_t size, lh_memory_view_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_memory_view_take_first(lh_memory_view_get_begin(self), lh_memory_view_get_end(self),
                                      size, out);
     return;
@@ -617,7 +615,6 @@ lh_memory_view_from_begin(const lh_memory_view_t *self, lh_usize_t size, lh_memo
 lh_void
 lh_memory_view_from_end(const lh_memory_view_t *self, lh_usize_t size, lh_memory_view_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_memory_view_take_last(lh_memory_view_get_begin(self), lh_memory_view_get_end(self),
                                     size, out);
     return;
@@ -626,7 +623,6 @@ lh_memory_view_from_end(const lh_memory_view_t *self, lh_usize_t size, lh_memory
 lh_void
 lh_memory_view_between(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end, lh_memory_view_t *out)
 {
-    lh_assert_runtime_ref(out);
     /* [p, p) is a valid empty view and has no closed slice. */
     lh_assert_runtime_ifn(lh_memory_view_contains_range(self, begin, end),
                           lh_runtime_error_code_out_of_range);

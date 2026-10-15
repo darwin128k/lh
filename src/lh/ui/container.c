@@ -274,7 +274,6 @@ lh_ui_container_clamp_scroll(const lh_ui_container_t *self, lh_ui_point_t scroll
 lh_void
 lh_ui_container_get_scroll_within(const lh_ui_container_t *self, lh_ui_point_t max, lh_ui_point_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
     lh_ui_container_clamp_scroll_to(self->scroll, max, out);
     return;
@@ -283,7 +282,6 @@ lh_ui_container_get_scroll_within(const lh_ui_container_t *self, lh_ui_point_t m
 lh_void
 lh_ui_container_get_scroll(const lh_ui_container_t *self, lh_ui_point_t *out)
 {
-    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
     lh_ui_container_clamp_scroll(self, self->scroll, out);
     return;

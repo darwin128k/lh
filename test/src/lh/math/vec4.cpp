@@ -2,6 +2,7 @@
 
 #include <lh/math/vec4.h>
 #include <lh/util/addr.h>
+#include <lh/test/out.h>
 
 #include <cstddef>
 
@@ -22,18 +23,18 @@ TEST(vec4, arithmetic)
     lh_math_vec4_t b;
 
     lh_math_vec4_init(lh_addr_of(b), 0.5f, -1.0f, 2.0f, 0.0f);
-    lh_math_vec4_t r = lh_math_vec4_add(a, b);
+    lh_math_vec4_t r = lh_test::out(lh_math_vec4_add, a, b);
     EXPECT_FLOAT_EQ(r.x, 1.5f);
     EXPECT_FLOAT_EQ(r.y, 1.0f);
     EXPECT_FLOAT_EQ(r.z, 5.0f);
     EXPECT_FLOAT_EQ(r.w, 4.0f);
-    r = lh_math_vec4_sub(a, b);
+    r = lh_test::out(lh_math_vec4_sub, a, b);
     EXPECT_FLOAT_EQ(r.w, 4.0f);
     EXPECT_FLOAT_EQ(r.y, 3.0f);
-    r = lh_math_vec4_scale(a, 0.5f);
+    r = lh_test::out(lh_math_vec4_scale, a, 0.5f);
     EXPECT_FLOAT_EQ(r.x, 0.5f);
     EXPECT_FLOAT_EQ(r.w, 2.0f);
-    r = lh_math_vec4_neg(a);
+    r = lh_test::out(lh_math_vec4_neg, a);
     EXPECT_FLOAT_EQ(r.z, -3.0f);
 }
 
@@ -45,11 +46,45 @@ TEST(vec4, dot_length_normalize)
     EXPECT_FLOAT_EQ(lh_math_vec4_dot(v, ([&]() { lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), 1.0f, 2.0f, 3.0f, 4.0f); return _v; })()), 10.0f);
     EXPECT_FLOAT_EQ(lh_math_vec4_length_sq(v), 4.0f);
     EXPECT_FLOAT_EQ(lh_math_vec4_length(v), 2.0f);
-    const lh_math_vec4_t n = lh_math_vec4_normalize(v);
+    const lh_math_vec4_t n = lh_test::out(lh_math_vec4_normalize, v);
     EXPECT_FLOAT_EQ(n.x, 0.5f);
     EXPECT_FLOAT_EQ(n.w, 0.5f);
-    const lh_math_vec4_t zero = lh_math_vec4_normalize(([&]() { lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), 0, 0, 0, 0); return _v; })());
+    const lh_math_vec4_t zero = lh_test::out(lh_math_vec4_normalize, ([&]() { lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), 0, 0, 0, 0); return _v; })());
     EXPECT_FLOAT_EQ(zero.w, 0.0f);
+}
+
+TEST(vec4, madd_adds_b_scaled_by_s)
+{
+    lh_math_vec4_t a;
+
+    lh_math_vec4_init(lh_addr_of(a), 1.0f, 2.0f, 3.0f, 4.0f);
+    lh_math_vec4_t b;
+
+    lh_math_vec4_init(lh_addr_of(b), 0.5f, -1.0f, 2.0f, 0.0f);
+    lh_math_vec4_t r = lh_test::out(lh_math_vec4_madd, a, b, 2.0f);
+    EXPECT_FLOAT_EQ(r.x, 2.0f);
+    EXPECT_FLOAT_EQ(r.y, 0.0f);
+    EXPECT_FLOAT_EQ(r.z, 7.0f);
+    EXPECT_FLOAT_EQ(r.w, 4.0f);
+    // s = 0 leaves a as it is.
+    r = lh_test::out(lh_math_vec4_madd, a, b, 0.0f);
+    EXPECT_TRUE(lh_math_vec4_near(r, a, 0.0f));
+}
+
+TEST(vec4, madd_may_write_over_its_own_input)
+{
+    lh_math_vec4_t acc;
+
+    lh_math_vec4_init(lh_addr_of(acc), 1.0f, 1.0f, 1.0f, 1.0f);
+    lh_math_vec4_t b;
+
+    lh_math_vec4_init(lh_addr_of(b), 1.0f, 2.0f, 3.0f, 4.0f);
+    // a is copied from acc before acc is written.
+    lh_math_vec4_madd(acc, b, 0.5f, lh_addr_of(acc));
+    EXPECT_FLOAT_EQ(acc.x, 1.5f);
+    EXPECT_FLOAT_EQ(acc.y, 2.0f);
+    EXPECT_FLOAT_EQ(acc.z, 2.5f);
+    EXPECT_FLOAT_EQ(acc.w, 3.0f);
 }
 
 TEST(vec4, lerp_and_near)
@@ -60,7 +95,7 @@ TEST(vec4, lerp_and_near)
     lh_math_vec4_t b;
 
     lh_math_vec4_init(lh_addr_of(b), 4.0f, 8.0f, -4.0f, 1.0f);
-    const lh_math_vec4_t m = lh_math_vec4_lerp(a, b, 0.5f);
+    const lh_math_vec4_t m = lh_test::out(lh_math_vec4_lerp, a, b, 0.5f);
     EXPECT_TRUE(lh_math_vec4_near(m, ([&]() { lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), 2.0f, 4.0f, -2.0f, 1.0f); return _v; })(), 0.0f));
     EXPECT_FALSE(lh_math_vec4_near(m, ([&]() { lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), 2.0f, 4.0f, -2.0f, 1.1f); return _v; })(), 0.01f));
 }
@@ -72,13 +107,13 @@ TEST(vec4, vec3_to_vec4_sets_w)
     lh_math_vec3_t a;
 
     lh_math_vec3_init(lh_addr_of(a), 1.0f, 2.0f, 3.0f);
-    lh_math_vec4_t r = lh_math_vec3_to_vec4(a, 1.0f);
+    lh_math_vec4_t r = lh_test::out(lh_math_vec3_to_vec4, a, 1.0f);
     EXPECT_FLOAT_EQ(r.x, 1.0f);
     EXPECT_FLOAT_EQ(r.y, 2.0f);
     EXPECT_FLOAT_EQ(r.z, 3.0f);
     EXPECT_FLOAT_EQ(r.w, 1.0f);
     // w = 0 is the direction form used by mat4_transform_dir.
-    r = lh_math_vec3_to_vec4(a, 0.0f);
+    r = lh_test::out(lh_math_vec3_to_vec4, a, 0.0f);
     EXPECT_FLOAT_EQ(r.w, 0.0f);
 }
 
@@ -87,7 +122,7 @@ TEST(vec4, vec4_to_vec3_drops_w)
     lh_math_vec4_t a;
 
     lh_math_vec4_init(lh_addr_of(a), 1.0f, 2.0f, 3.0f, 99.0f);
-    const lh_math_vec3_t b = lh_math_vec4_to_vec3(a);
+    const lh_math_vec3_t b = lh_test::out(lh_math_vec4_to_vec3, a);
     EXPECT_FLOAT_EQ(b.x, 1.0f);
     EXPECT_FLOAT_EQ(b.y, 2.0f);
     EXPECT_FLOAT_EQ(b.z, 3.0f);
@@ -98,7 +133,7 @@ TEST(vec4, vec3_round_trip_keeps_xyz)
     lh_math_vec3_t a;
 
     lh_math_vec3_init(lh_addr_of(a), 1.5f, -2.25f, 3.125f);
-    const lh_math_vec3_t b = lh_math_vec4_to_vec3(lh_math_vec3_to_vec4(a, 7.0f));
+    const lh_math_vec3_t b = lh_test::out(lh_math_vec4_to_vec3, lh_test::out(lh_math_vec3_to_vec4, a, 7.0f));
     EXPECT_FLOAT_EQ(b.x, a.x);
     EXPECT_FLOAT_EQ(b.y, a.y);
     EXPECT_FLOAT_EQ(b.z, a.z);
@@ -109,7 +144,7 @@ TEST(vec4, view_of_reads_the_components_in_order)
     lh_math_vec4_t v;
 
     lh_math_vec4_init(lh_addr_of(v), 3.0f, -5.0f, 7.0f, 11.0f);
-    const lh_math_view_t view = lh_math_vec4_view_of(lh_addr_of(v));
+    const lh_math_view_t view = lh_test::out(lh_math_vec4_view_of, lh_addr_of(v));
 
     EXPECT_EQ(lh_math_view_get_size(lh_addr_of(view)), 4U);
     EXPECT_EQ(lh_math_view_get_at(lh_addr_of(view), 0U), lh_math_vec4_get_x(lh_addr_of(v)));

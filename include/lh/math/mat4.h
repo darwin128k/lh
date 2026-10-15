@@ -90,12 +90,18 @@ lh_math_mat4_from_quat(lh_math_quat_t q, lh_math_mat4_t *out);
 
 /**
  * @brief Product @p a * @p b: the transform @p b followed by @p a.
+ *
+ * The inputs are taken by value, so @p out may point at the storage one of
+ * them was copied from.
  */
 lh_void
 lh_math_mat4_mul(lh_math_mat4_t a, lh_math_mat4_t b, lh_math_mat4_t *out);
 
 /**
  * @brief @p m * @p v.
+ *
+ * The inputs are taken by value, so @p out may point at the storage one of
+ * them was copied from.
  */
 lh_void
 lh_math_mat4_mul_vec4(lh_math_mat4_t m, lh_math_vec4_t v, lh_math_vec4_t *out);
