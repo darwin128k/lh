@@ -1,6 +1,6 @@
 #include <lh/assert/runtime.h>
 #include <lh/math/quat.h>
-#include <lh/float/sin_cos.h>
+#include <lh/math/float/sin_cos.h>
 #include <lh/util/addr.h>
 
 lh_void
@@ -102,7 +102,7 @@ lh_math_quat_from_axis_angle(lh_math_vec3_t axis, lh_float_t angle)
 {
     lh_float_t s;
     lh_float_t c;
-    lh_float_sin_cos(angle * 0.5f, lh_addr_of(s), lh_addr_of(c));
+    lh_math_float_sin_cos(angle * 0.5f, lh_addr_of(s), lh_addr_of(c));
     lh_math_quat_t result;
     lh_math_quat_init(lh_addr_of(result), lh_math_vec3_get_x(lh_addr_of(axis)) * s,
                       lh_math_vec3_get_y(lh_addr_of(axis)) * s,

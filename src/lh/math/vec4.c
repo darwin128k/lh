@@ -1,7 +1,7 @@
 #include <lh/assert/runtime.h>
 #include <lh/math/vec4.h>
 #include <lh/cast/static.h>
-#include <lh/float/sqrt.h>
+#include <lh/math/float/sqrt.h>
 #include <lh/util/addr.h>
 
 lh_void
@@ -158,7 +158,7 @@ lh_math_vec4_length_sq(lh_math_vec4_t v)
 lh_float_t
 lh_math_vec4_length(lh_math_vec4_t v)
 {
-    return lh_float_sqrt(lh_math_vec4_length_sq(v));
+    return lh_math_float_sqrt(lh_math_vec4_length_sq(v));
 }
 
 lh_math_vec4_t

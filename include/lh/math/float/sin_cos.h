@@ -1,6 +1,6 @@
 /**
  * @file sin_cos.h
- * @brief Single-precision sine and cosine without libm: ::lh_float_sin_cos.
+ * @brief Single-precision sine and cosine without libm: ::lh_math_float_sin_cos.
  *
  * `__builtin_sinf` / `__builtin_cosf` are not instructions on any target lh
  * builds for: the compiler emits calls to libm, which a freestanding build
@@ -18,8 +18,8 @@
  * Requires ::LH_LIBRARY_OPTION_MATH_FPU.
  */
 
-#ifndef LH_FLOAT_SIN_COS_H
-#define LH_FLOAT_SIN_COS_H
+#ifndef LH_MATH_FLOAT_SIN_COS_H
+#define LH_MATH_FLOAT_SIN_COS_H
 
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/float.h>
@@ -36,8 +36,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @param cos_out Receives `cos(x)`.
  */
 lh_void
-lh_float_sin_cos(lh_float_t x, lh_float_t *sin_out, lh_float_t *cos_out);
+lh_math_float_sin_cos(lh_float_t x, lh_float_t *sin_out, lh_float_t *cos_out);
 
 LH_COMPILER_EXTERN_C_END
 
-#endif /* LH_FLOAT_SIN_COS_H */
+#endif /* LH_MATH_FLOAT_SIN_COS_H */

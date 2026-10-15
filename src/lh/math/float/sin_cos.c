@@ -1,14 +1,14 @@
 /**
  * @file sin_cos.c
- * @brief Implementation of `lh/float/sin_cos.h`.
+ * @brief Implementation of `lh/math/float/sin_cos.h`.
  */
 
 #include <lh/cast/static.h>
-#include <lh/float/sin_cos.h>
+#include <lh/math/float/sin_cos.h>
 #include <lh/numeric/types.h>
 
 lh_void
-lh_float_sin_cos(lh_float_t x, lh_float_t *sin_out, lh_float_t *cos_out)
+lh_math_float_sin_cos(lh_float_t x, lh_float_t *sin_out, lh_float_t *cos_out)
 {
     const lh_float_t quarter_turns = x * 0.636619772f; /* x / (pi/2) */
     const lh_float_t rounded = quarter_turns >= 0.0f ? quarter_turns + 0.5f : quarter_turns - 0.5f;

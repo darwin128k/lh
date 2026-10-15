@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `lh/float/*` (`lh_float_sqrt`, `lh_float_sin_cos`, `lh_float_floor_to_int`, `lh_float_ceil_to_int`) became public functions in `.c` with headers in `include/lh/float/`
+- `lh/float` moved to `lh/math/float`; `lh_float_sqrt`, `lh_float_sin_cos`, `lh_float_floor_to_int`, `lh_float_ceil_to_int` renamed to `lh_math_float_sqrt`, `lh_math_float_sin_cos`, `lh_math_float_floor_to_int`, `lh_math_float_ceil_to_int`
 
 ## [0.3.0] - 2026-09-14
 
