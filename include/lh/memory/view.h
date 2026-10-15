@@ -205,7 +205,7 @@ lh_memory_view_get_end_v(const lh_memory_view_t *self);
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
+ *        @p self is not valid, including an uninitialized view.
  */
 lh_usize_t
 lh_memory_view_get_size(const lh_memory_view_t *self);
@@ -672,8 +672,10 @@ lh_memory_view_overlaps_v(const lh_memory_view_t *self, const lh_memory_view_t *
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
+ * @fails ::lh_runtime_error_code_division_by_zero
+ *        @p alignment is zero.
  * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
+ *        @p self is not valid, including an uninitialized view.
  */
 lh_bool_t
 lh_memory_view_is_multiple_of(const lh_memory_view_t *self, lh_usize_t alignment);
@@ -1085,6 +1087,18 @@ lh_memory_view_to_slice(const lh_memory_view_t *self);
  */
 lh_memory_view_t
 lh_memory_view_return_of_slice(const lh_memory_view_slice_t *slice);
+
+/**
+ * @brief Return the half-open view of a valid closed @p slice.
+ *
+ * @param slice Valid closed slice <tt>[begin, end]</tt>.
+ * @return View <tt>[begin, end + 1)</tt>.
+ *
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p slice is not valid.
+ */
+lh_memory_view_t
+lh_memory_view_return_init_of_slice(const lh_memory_view_slice_t *slice);
 
 /**
  * @brief Return an uninitialized empty view.

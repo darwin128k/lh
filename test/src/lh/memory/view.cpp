@@ -322,6 +322,19 @@ TEST(memory_view_between, keeps_empty_subrange)
     EXPECT_FALSE(lh_memory_view_is_uninitialized(&inner));
 }
 
+TEST(memory_view_uninitialized, safe_queries)
+{
+    lh_memory_view_t v = view(lh_null, lh_null);
+
+    EXPECT_TRUE(lh_memory_view_is_uninitialized(&v));
+    EXPECT_FALSE(lh_memory_view_is_initialized(&v));
+    EXPECT_FALSE(lh_memory_view_is_valid(&v));
+    EXPECT_TRUE(lh_memory_view_is_empty(&v));
+    EXPECT_EQ(lh_memory_view_get_direction(&v), lh_memory_view_slice_direction_unknown);
+    EXPECT_EQ(lh_memory_view_get_flags(&v), lh_memory_view_slice_flags_uninitialized);
+    EXPECT_FALSE(lh_memory_view_slice_is_ropen_empty(&v));
+}
+
 #if LH_TEST_EXPECT_DEATH_ENABLED
 
 TEST(memory_view_get_begin_v, rejects_uninitialized_death)
@@ -391,6 +404,45 @@ TEST(memory_view_get_size, rejects_backward_death)
     lh_memory_view_t backward = view(p(buf + 1), p(buf));
 
     LH_EXPECT_DEATH((void)lh_memory_view_get_size(&backward));
+}
+
+TEST(memory_view_get_size, rejects_uninitialized_death)
+{
+    lh_memory_view_t v = view(lh_null, lh_null);
+
+    LH_EXPECT_DEATH((void)lh_memory_view_get_size(&v));
+}
+
+TEST(memory_view_is_multiple_of, rejects_uninitialized_death)
+{
+    lh_memory_view_t v = view(lh_null, lh_null);
+
+    LH_EXPECT_DEATH((void)lh_memory_view_is_multiple_of(&v, 1));
+}
+
+TEST(memory_view_is_multiple_of, rejects_zero_alignment_death)
+{
+    const unsigned char buf[4] = {};
+    lh_memory_view_t v = view(p(buf), p(buf + 4));
+
+    LH_EXPECT_DEATH((void)lh_memory_view_is_multiple_of(&v, 0));
+}
+
+TEST(memory_view_uninitialized, rejects_access_death)
+{
+    const unsigned char buf[2] = {1, 2};
+    lh_memory_view_t v = view(lh_null, lh_null);
+    lh_memory_view_t other = view(p(buf), p(buf + 2));
+
+    LH_EXPECT_DEATH((void)lh_memory_view_get_end_v(&v));
+    LH_EXPECT_DEATH((void)lh_memory_view_get_first_ptr(&v));
+    LH_EXPECT_DEATH((void)lh_memory_view_get_last_ptr(&v));
+    LH_EXPECT_DEATH((void)lh_memory_view_get_value(&v, 0));
+    LH_EXPECT_DEATH((void)lh_memory_view_is_valid_offset(&v, 0));
+    LH_EXPECT_DEATH((void)lh_memory_view_contains_ptr(&v, p(buf)));
+    LH_EXPECT_DEATH((void)lh_memory_view_from_offset(&v, 0, 1));
+    LH_EXPECT_DEATH((void)lh_memory_view_drop_first(&v, 0));
+    LH_EXPECT_DEATH((void)lh_memory_view_find(&v, &other));
 }
 
 #endif /* LH_TEST_EXPECT_DEATH_ENABLED */
