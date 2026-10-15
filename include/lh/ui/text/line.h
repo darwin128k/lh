@@ -59,12 +59,26 @@ lh_ui_text_line_init(lh_ui_text_line_t *self);
  * @param self  Line to fill.
  * @param font  Font the letters are measured in.
  * @param text  First byte of the line (UTF-8); ::lh_null is no line.
+ * Only the layout: bytes, next line and width. The ink is
+ * ::lh_ui_text_line_measure_ink, asked when it is wanted; until then the line
+ * reads as not inked.
+ *
  * @param width Line width to break at; `0` or less never breaks.
  * @return ::lh_bool_false, and @p self an empty line, when @p text is ::lh_null.
  */
 lh_bool_t
 lh_ui_text_line_measure(lh_ui_text_line_t *self, const lh_ui_font_t *font, const lh_char_t *text,
                         lh_ui_scalar_t width);
+
+/**
+ * @brief Measure which rows the letters of a laid-out line ink (its first and last
+ *        ink row, and whether it has any), walking the bytes
+ *        ::lh_ui_text_line_measure settled.
+ *
+ * @param font The font the line was laid out in.
+ */
+lh_void
+lh_ui_text_line_measure_ink(lh_ui_text_line_t *self, const lh_ui_font_t *font);
 
 /**
  * @brief First byte of the line.

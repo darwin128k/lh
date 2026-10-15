@@ -58,6 +58,15 @@ lh_ui_text_block_measure(lh_ui_text_block_t *self, const lh_ui_font_t *font, con
                          lh_ui_scalar_t width);
 
 /**
+ * @brief ::lh_ui_text_block_measure without the ink: the line count and the widest
+ *        line, which is all a width or a line count asks. The ink fields are those
+ *        of an empty block.
+ */
+lh_void
+lh_ui_text_block_measure_layout(lh_ui_text_block_t *self, const lh_ui_font_t *font, const lh_char_t *text,
+                                lh_ui_scalar_t width);
+
+/**
  * @brief How many lines the text broke into.
  */
 lh_u32_t

@@ -228,7 +228,7 @@ lh_ui_text_get_wrapped_width(const lh_ui_font_t *font, const lh_char_t *text, lh
 {
     lh_ui_text_block_t block;
 
-    lh_ui_text_block_measure(lh_addr_of(block), font, text, width);
+    lh_ui_text_block_measure_layout(lh_addr_of(block), font, text, width);
     return lh_ui_text_block_get_width(lh_addr_of(block));
 }
 
@@ -243,7 +243,7 @@ lh_ui_text_count_lines_wrapped(const lh_ui_font_t *font, const lh_char_t *text, 
 {
     lh_ui_text_block_t block;
 
-    lh_ui_text_block_measure(lh_addr_of(block), font, text, width);
+    lh_ui_text_block_measure_layout(lh_addr_of(block), font, text, width);
     return lh_ui_text_block_get_lines(lh_addr_of(block));
 }
 
@@ -255,6 +255,7 @@ lh_ui_text_get_line_ink_rect(const lh_ui_font_t *font, const lh_char_t *line, lh
     lh_ui_text_line_t laid;
 
     (void)lh_ui_text_line_measure(lh_addr_of(laid), font, line, lh_ui_scalar(0));
+    lh_ui_text_line_measure_ink(lh_addr_of(laid), font);
     return lh_ui_text_line_get_ink_rect(lh_addr_of(laid), origin);
 }
 
@@ -297,7 +298,10 @@ lh_ui_text_get_ink_rect_wrapped(const lh_ui_font_t *font, const lh_char_t *text,
         const lh_ui_point_t box = lh_ui_point_offset(
             lh_addr_of(origin), lh_ui_text_line_get_shift(lh_addr_of(laid), lh_ui_text_block_get_width(lh_addr_of(block)), align),
             down);
-        const lh_ui_rect_t line_ink = lh_ui_text_line_get_ink_rect(lh_addr_of(laid), box);
+        lh_ui_rect_t line_ink;
+
+        lh_ui_text_line_measure_ink(lh_addr_of(laid), font);
+        line_ink = lh_ui_text_line_get_ink_rect(lh_addr_of(laid), box);
 
         /* A hull: as wide as the widest line and as tall as the first ink to the
            last. The gap between two lines is inside it and is not drawn into, which
@@ -392,8 +396,11 @@ lh_ui_text_draw_laid_line(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, cons
        case asks the ink too. */
     if (!lh_ui_canvas_covers_rect(canvas, lh_addr_of(box)))
     {
-        const lh_ui_rect_t ink = lh_ui_text_line_get_ink_rect(line, origin);
+        lh_ui_text_line_t inked = *line;
+        lh_ui_rect_t ink;
 
+        lh_ui_text_line_measure_ink(lh_addr_of(inked), font);
+        ink = lh_ui_text_line_get_ink_rect(lh_addr_of(inked), origin);
         lh_return_if(!lh_ui_canvas_shows_rect(canvas, lh_addr_of(ink)));
     }
     while (cursor < end)

@@ -22,6 +22,20 @@ lh_ui_text_block_init(lh_ui_text_block_t *self)
 }
 
 lh_void
+lh_ui_text_block_measure_layout(lh_ui_text_block_t *self, const lh_ui_font_t *font, const lh_char_t *text,
+                                lh_ui_scalar_t width)
+{
+    lh_ui_text_line_t laid;
+
+    lh_ui_text_block_init(self);
+    for (; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width); text = lh_ui_text_line_get_next(lh_addr_of(laid)))
+    {
+        self->width = lh_math_max(self->width, lh_ui_text_line_get_width(lh_addr_of(laid)));
+        ++self->lines;
+    }
+}
+
+lh_void
 lh_ui_text_block_measure(lh_ui_text_block_t *self, const lh_ui_font_t *font, const lh_char_t *text,
                          lh_ui_scalar_t width)
 {
@@ -34,8 +48,12 @@ lh_ui_text_block_measure(lh_ui_text_block_t *self, const lh_ui_font_t *font, con
     lh_ui_point_init(lh_addr_of(box), lh_ui_scalar(0), lh_ui_scalar(0));
     for (; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width); text = lh_ui_text_line_get_next(lh_addr_of(laid)))
     {
-        const lh_ui_rect_t line_ink = lh_ui_text_line_get_ink_rect(lh_addr_of(laid), box);
-        const lh_ui_scalar_t at = lh_ui_text_line_get_ink_top(lh_addr_of(laid));
+        lh_ui_rect_t line_ink;
+        lh_ui_scalar_t at;
+
+        lh_ui_text_line_measure_ink(lh_addr_of(laid), font);
+        line_ink = lh_ui_text_line_get_ink_rect(lh_addr_of(laid), box);
+        at = lh_ui_text_line_get_ink_top(lh_addr_of(laid));
 
         /* The first ink is asked of each line from the top of its own box: it is
            what an alignment takes back. */

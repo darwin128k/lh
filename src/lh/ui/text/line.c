@@ -27,15 +27,14 @@ lh_ui_text_line_init(lh_ui_text_line_t *self)
     self->inked = lh_bool_false;
 }
 
-/** Add the glyph at @p index to the pen and the ink of @p self. */
+/** Add the rows the glyph at @p index inks to the ink of @p self. */
 static lh_void
-lh_ui_text_line_take(lh_ui_text_line_t *self, const lh_ui_font_t *font, lh_u32_t index)
+lh_ui_text_line_take_ink(lh_ui_text_line_t *self, const lh_ui_font_t *font, lh_u32_t index)
 {
     const lh_ui_scalar_t at = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_ascent(font) + lh_ui_font_get_top_at(font, index));
     const lh_ui_scalar_t to =
         at + lh_cast_static(lh_ui_scalar_t, lh_ui_mask_get_height(lh_ui_font_get_glyph_at(font, index)));
 
-    self->width += lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance_at(font, index));
     lh_return_if(to <= at); /* a space: it moves the pen and draws nothing */
     if (!self->inked || at < self->ink_top)
     {
@@ -107,10 +106,7 @@ lh_ui_text_line_measure(lh_ui_text_line_t *self, const lh_ui_font_t *font, const
             if (before == text)
             {
                 /* A first letter wider than the line still takes it. */
-                if (found)
-                {
-                    lh_ui_text_line_take(self, font, index);
-                }
+                self->width += advance;
                 self->end = cursor;
                 break;
             }
@@ -123,13 +119,34 @@ lh_ui_text_line_measure(lh_ui_text_line_t *self, const lh_ui_font_t *font, const
             at_space.end = before;
             has_space = lh_bool_true;
         }
-        if (found)
-        {
-            lh_ui_text_line_take(self, font, index);
-        }
+        self->width += advance;
     }
     self->next = lh_ui_text_line_next_of(self->end, width);
     return lh_bool_true;
+}
+
+lh_void
+lh_ui_text_line_measure_ink(lh_ui_text_line_t *self, const lh_ui_font_t *font)
+{
+    const lh_char_t *cursor = lh_ui_text_line_get_begin(self);
+    const lh_char_t *end = lh_ui_text_line_get_end(self);
+
+    lh_assert_runtime_ref(font);
+    self->ink_top = lh_ui_scalar(0);
+    self->ink_bottom = lh_ui_scalar(0);
+    self->inked = lh_bool_false;
+    /* A second walk, over the bytes the layout already settled: no breaking left
+       to decide, only which rows the letters ink. Asking it inside the layout made
+       every width -- the measure a layout asks most -- pay for ink it never read. */
+    while (cursor < end)
+    {
+        lh_u32_t index = 0U;
+
+        if (lh_ui_font_find_index(font, lh_ui_text_next_code(lh_addr_of(cursor)), lh_addr_of(index)))
+        {
+            lh_ui_text_line_take_ink(self, font, index);
+        }
+    }
 }
 
 const lh_char_t *
