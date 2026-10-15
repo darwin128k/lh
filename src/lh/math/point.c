@@ -9,7 +9,7 @@
 #include <lh/cast/static.h>
 #include <lh/config.h>
 #if LH_LIBRARY_OPTION_MATH_FPU
-#    include <lh/float/round.h>
+#    include <lh/math/float/round.h>
 #endif
 #include <lh/math/point.h>
 #include <lh/math/size.h>
@@ -84,8 +84,8 @@ lh_math_vec2_to_point(lh_math_vec2_t v)
     lh_math_point_t p;
     lh_math_point_init(
         lh_addr_of(p),
-        lh_cast_static(lh_math_scalar_t, lh_float_ceil_to_int(lh_math_vec2_get_x(lh_addr_of(v)) - 0.5f)),
-        lh_cast_static(lh_math_scalar_t, lh_float_ceil_to_int(lh_math_vec2_get_y(lh_addr_of(v)) - 0.5f)));
+        lh_cast_static(lh_math_scalar_t, lh_math_float_ceil_to_int(lh_math_vec2_get_x(lh_addr_of(v)) - 0.5f)),
+        lh_cast_static(lh_math_scalar_t, lh_math_float_ceil_to_int(lh_math_vec2_get_y(lh_addr_of(v)) - 0.5f)));
     return p;
 }
 #endif

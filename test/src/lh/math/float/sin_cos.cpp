@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <lh/float/sin_cos.h>
+#include <lh/math/float/sin_cos.h>
 
 #include <cmath>
 
@@ -15,22 +15,22 @@ expect_sin_cos(float x, float tolerance)
     float s = 2.0f;
     float c = 2.0f;
 
-    lh_float_sin_cos(x, &s, &c);
+    lh_math_float_sin_cos(x, &s, &c);
     EXPECT_NEAR(s, std::sin(static_cast<double>(x)), tolerance) << "sin " << x;
     EXPECT_NEAR(c, std::cos(static_cast<double>(x)), tolerance) << "cos " << x;
 }
 
-TEST(float_sin_cos, zero)
+TEST(math_float_sin_cos, zero)
 {
     float s = 2.0f;
     float c = 2.0f;
 
-    lh_float_sin_cos(0.0f, &s, &c);
+    lh_math_float_sin_cos(0.0f, &s, &c);
     EXPECT_EQ(s, 0.0f);
     EXPECT_EQ(c, 1.0f);
 }
 
-TEST(float_sin_cos, quadrant_angles)
+TEST(math_float_sin_cos, quadrant_angles)
 {
     expect_sin_cos(pi / 2.0f, 1e-6f);
     expect_sin_cos(pi, 1e-6f);
@@ -40,7 +40,7 @@ TEST(float_sin_cos, quadrant_angles)
     expect_sin_cos(pi / 4.0f, 1e-6f);
 }
 
-TEST(float_sin_cos, negative_angles_are_odd_and_even)
+TEST(math_float_sin_cos, negative_angles_are_odd_and_even)
 {
     for (float x : {0.1f, 0.5f, 1.0f, 2.5f, 4.0f, 10.0f})
     {
@@ -49,15 +49,15 @@ TEST(float_sin_cos, negative_angles_are_odd_and_even)
         float s_neg;
         float c_neg;
 
-        lh_float_sin_cos(x, &s_pos, &c_pos);
-        lh_float_sin_cos(-x, &s_neg, &c_neg);
+        lh_math_float_sin_cos(x, &s_pos, &c_pos);
+        lh_math_float_sin_cos(-x, &s_neg, &c_neg);
         EXPECT_FLOAT_EQ(s_neg, -s_pos) << x;
         EXPECT_FLOAT_EQ(c_neg, c_pos) << x;
         expect_sin_cos(-x, 2e-6f);
     }
 }
 
-TEST(float_sin_cos, a_sweep_matches_libm_within_a_few_ulp)
+TEST(math_float_sin_cos, a_sweep_matches_libm_within_a_few_ulp)
 {
     for (int i = -2000; i <= 2000; ++i)
     {
@@ -67,7 +67,7 @@ TEST(float_sin_cos, a_sweep_matches_libm_within_a_few_ulp)
     }
 }
 
-TEST(float_sin_cos, large_angles_stay_accurate)
+TEST(math_float_sin_cos, large_angles_stay_accurate)
 {
     expect_sin_cos(1000.0f, 1e-4f);
     expect_sin_cos(-12345.0f, 1e-3f);

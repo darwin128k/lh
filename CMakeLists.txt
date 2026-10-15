@@ -345,15 +345,15 @@ endif ()
 
 # Float math (vec, quat, mat4) is the FPU. OFF leaves it out of the library.
 #
-# lh/float (sqrt, sin_cos, round) is part of it: built only with the option ON,
-# like vec* and quat that call it, and point.c includes lh/float/round.h only
+# lh/math/float (sqrt, sin_cos, round) is part of it: built only with the option ON,
+# like vec* and quat that call it, and point.c includes lh/math/float/round.h only
 # under the same option. With it OFF nothing in the library asks for a float
 # operation, so neither an FPU nor libm is needed.
 if (LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_LIB_SOURCES
-            ${LH_LIB_SRC_PATH}/float/sqrt.c
-            ${LH_LIB_SRC_PATH}/float/sin_cos.c
-            ${LH_LIB_SRC_PATH}/float/round.c
+            ${LH_LIB_SRC_PATH}/math/float/sqrt.c
+            ${LH_LIB_SRC_PATH}/math/float/sin_cos.c
+            ${LH_LIB_SRC_PATH}/math/float/round.c
             ${LH_LIB_SRC_PATH}/math/fpoint.c
             ${LH_LIB_SRC_PATH}/math/fsize.c
             ${LH_LIB_SRC_PATH}/math/frect.c
@@ -363,18 +363,18 @@ if (LH_LIBRARY_OPTION_MATH_FPU)
             ${LH_LIB_SRC_PATH}/math/quat.c
             ${LH_LIB_SRC_PATH}/math/mat4.c
     )
-    # Square roots go through __builtin_sqrtf (src/lh/float/sqrt.c). Without
+    # Square roots go through __builtin_sqrtf (src/lh/math/float/sqrt.c). Without
     # -fno-math-errno GCC/Clang keep a call to libm's sqrtf next to the CPU
     # instruction, only to set errno on negative input: a dependency a
     # freestanding build cannot satisfy, for a value lh never reads. The flag is
     # a property of these sources only -- never of the target's PUBLIC/INTERFACE
-    # options -- so code that includes lh/float/*.h builds with its own flags;
-    # vec*.c call lh_float_sqrt and no longer need it.
+    # options -- so code that includes lh/math/float/*.h builds with its own flags;
+    # vec*.c call lh_math_float_sqrt and no longer need it.
     if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
         set_source_files_properties(
-                ${LH_LIB_SRC_PATH}/float/sqrt.c
-                ${LH_LIB_SRC_PATH}/float/sin_cos.c
-                ${LH_LIB_SRC_PATH}/float/round.c
+                ${LH_LIB_SRC_PATH}/math/float/sqrt.c
+                ${LH_LIB_SRC_PATH}/math/float/sin_cos.c
+                ${LH_LIB_SRC_PATH}/math/float/round.c
                 PROPERTIES COMPILE_OPTIONS -fno-math-errno
         )
     endif ()
