@@ -53,11 +53,13 @@ lh_ui_surface_is_valid(const lh_ui_surface_t *self)
     return lh_null_ne(self->handle) ? lh_bool_true : lh_bool_false;
 }
 
-lh_ui_size_t
-lh_ui_surface_get_size(const lh_ui_surface_t *self)
+lh_void
+lh_ui_surface_get_size(const lh_ui_surface_t *self, lh_ui_size_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    return self->size;
+    *out = self->size;
+    return;
 }
 
 lh_ui_pixmap_format_t

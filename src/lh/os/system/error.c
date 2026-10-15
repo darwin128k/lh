@@ -1,4 +1,5 @@
 #include <lh/os/system/error.h>
+#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/memory/view.h>
@@ -34,27 +35,34 @@ lh_os_system_error_get_code(const lh_os_system_error_t *self)
     return self->code;
 }
 
-lh_os_error_desc_t
-lh_os_system_error_get_desc(const lh_os_system_error_t *self)
+lh_void
+lh_os_system_error_get_desc(const lh_os_system_error_t *self, lh_os_error_desc_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    return self->desc;
+    *out = self->desc;
+    return;
 }
 
-lh_os_error_desc_t
-lh_os_system_error_get_desc_or(const lh_os_system_error_t *self, lh_os_error_desc_t fallback)
+lh_void
+lh_os_system_error_get_desc_or(const lh_os_system_error_t *self, lh_os_error_desc_t fallback, lh_os_error_desc_t *out)
 {
+    lh_assert_runtime_ref(out);
     if (lh_os_system_error_has_desc(self))
     {
-        return lh_os_system_error_get_desc(self);
+        lh_os_system_error_get_desc(self, out);
+        return;
     }
-    return fallback;
+    *out = fallback;
+    return;
 }
 
 lh_void
 lh_os_system_error_assign(lh_os_system_error_t *self, const lh_os_system_error_t *other)
 {
-    lh_os_system_error_set(self, lh_os_system_error_get_code(other), lh_os_system_error_get_desc(other));
+    lh_os_error_desc_t desc;
+    lh_os_system_error_get_desc(other, lh_addr_of(desc));
+    lh_os_system_error_set(self, lh_os_system_error_get_code(other), desc);
 }
 
 lh_void
@@ -121,7 +129,8 @@ lh_os_system_error_is_failure(const lh_os_system_error_t *self)
 lh_bool_t
 lh_os_system_error_has_desc(const lh_os_system_error_t *self)
 {
-    const lh_os_error_desc_t desc = lh_os_system_error_get_desc(self);
+    lh_os_error_desc_t desc;
+    lh_os_system_error_get_desc(self, lh_addr_of(desc));
     return lh_cast_static(lh_bool_t, !lh_memory_view_is_empty(lh_addr_of(desc)));
 }
 
@@ -147,8 +156,10 @@ lh_os_system_error_has_diff_code(const lh_os_system_error_t *self, const lh_os_s
 lh_bool_t
 lh_os_system_error_equals(const lh_os_system_error_t *self, const lh_os_system_error_t *other)
 {
-    const lh_os_error_desc_t a = lh_os_system_error_get_desc(self);
-    const lh_os_error_desc_t b = lh_os_system_error_get_desc(other);
+    lh_os_error_desc_t a;
+    lh_os_system_error_get_desc(self, lh_addr_of(a));
+    lh_os_error_desc_t b;
+    lh_os_system_error_get_desc(other, lh_addr_of(b));
 
     return lh_cast_static(lh_bool_t,
                           lh_os_system_error_has_same_code(self, other) &&

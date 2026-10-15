@@ -5,6 +5,7 @@
 #include <lh/ui/shadow/ramp.h>
 #include <lh/ui/shadow/shape.h>
 #include <lh/util/addr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -27,7 +28,7 @@ TEST(ui_shadow, a_fresh_one_paints_nothing)
 
     lh_ui_shadow_init(lh_addr_of(shadow));
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_scalar(20), lh_ui_scalar(20), lh_ui_scalar(40), lh_ui_scalar(40));
-    EXPECT_EQ(lh_ui_shadow_get_color(lh_addr_of(shadow)).a, 0);
+    EXPECT_EQ(lh_test::out(lh_ui_shadow_get_color, lh_addr_of(shadow)).a, 0);
     EXPECT_EQ(lh_ui_shadow_get_spread(lh_addr_of(shadow)), 0);
     EXPECT_EQ(lh_ui_shadow_get_outset(lh_addr_of(shadow), lh_addr_of(rect)), 0);
     EXPECT_EQ(alpha_at(lh_addr_of(shadow), lh_ui_scalar(18), lh_ui_scalar(40)), 0);

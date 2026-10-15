@@ -14,6 +14,7 @@
 #include <lh/ui/rect.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -644,11 +645,11 @@ TEST(canvas, damage_in_an_area_is_the_damage_clipped_to_it)
     const lh_ui_rect_t below = lh_test::rect_of(0, 200, 160, 10);
     /* One row short of the area: touching is dirty, one row lower is not. */
     const lh_ui_rect_t under = lh_test::rect_of(0, 97, 160, 3);
-    const lh_ui_rect_t all = lh_ui_canvas_damage_in(lh_addr_of(area), nullptr);
-    const lh_ui_rect_t part = lh_ui_canvas_damage_in(lh_addr_of(area), lh_addr_of(cut));
-    const lh_ui_rect_t edge = lh_ui_canvas_damage_in(lh_addr_of(area), lh_addr_of(touching));
-    const lh_ui_rect_t none = lh_ui_canvas_damage_in(lh_addr_of(area), lh_addr_of(below));
-    const lh_ui_rect_t short_of = lh_ui_canvas_damage_in(lh_addr_of(area), lh_addr_of(under));
+    const lh_ui_rect_t all = lh_test::out(lh_ui_canvas_damage_in, lh_addr_of(area), nullptr);
+    const lh_ui_rect_t part = lh_test::out(lh_ui_canvas_damage_in, lh_addr_of(area), lh_addr_of(cut));
+    const lh_ui_rect_t edge = lh_test::out(lh_ui_canvas_damage_in, lh_addr_of(area), lh_addr_of(touching));
+    const lh_ui_rect_t none = lh_test::out(lh_ui_canvas_damage_in, lh_addr_of(area), lh_addr_of(below));
+    const lh_ui_rect_t short_of = lh_test::out(lh_ui_canvas_damage_in, lh_addr_of(area), lh_addr_of(under));
 
     /* Nothing said means everything still holds, so the area answers itself. */
     EXPECT_TRUE(lh_test::rect_is(all, area));
@@ -688,7 +689,7 @@ TEST(ui_canvas, push_moves_every_primitive_and_pop_restores)
 
     lh_ui_canvas_push(lh_addr_of(canvas), point_of(5, 7), nullptr);
     lh_ui_canvas_push(lh_addr_of(canvas), point_of(1, 1), nullptr);
-    const lh_ui_point_t offset = lh_ui_canvas_get_offset(lh_addr_of(canvas));
+    const lh_ui_point_t offset = lh_test::out(lh_ui_canvas_get_offset, lh_addr_of(canvas));
     EXPECT_EQ(lh_ui_point_get_x(lh_addr_of(offset)), lh_ui_scalar(6));
     EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(offset)), lh_ui_scalar(8));
     EXPECT_TRUE(lh_null_eq(lh_ui_canvas_get_clip(lh_addr_of(canvas))));

@@ -41,8 +41,8 @@ lh_ui_entity_transform_init(lh_ui_entity_transform_t *self);
  * @brief Offset added to every child rect when drawn; subtracted from the
  *        point when the children are hit-tested.
  */
-lh_ui_point_t
-lh_ui_entity_transform_get_offset(const lh_ui_entity_transform_t *self);
+lh_void
+lh_ui_entity_transform_get_offset(const lh_ui_entity_transform_t *self, lh_ui_point_t *out);
 
 /**
  * @brief Replace the offset of @p self.

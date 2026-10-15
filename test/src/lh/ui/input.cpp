@@ -22,6 +22,7 @@
 #include <lh/ui/text.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -433,7 +434,7 @@ TEST(entity_input, the_caret_sits_where_the_text_before_it_ends)
 
     lh_ui_input_set_text(lh_addr_of(f.input), "AB");
     lh_ui_input_set_caret(lh_addr_of(f.input), 1);
-    caret = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
 
     /* The tiny font gives 'A' an advance of 3 and the field no padding, so the caret
        after one character is three columns from the text's own corner. */
@@ -486,13 +487,13 @@ TEST(entity_input, the_caret_is_as_tall_as_the_font_line_whatever_the_text)
     lh_ui_rect_t caret;
 
     cap_field(lh_addr_of(f), lh_addr_of(style));
-    caret = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(height_of(lh_addr_of(caret)), 8) << "empty";
     lh_ui_input_set_text(lh_addr_of(f.input), "d");
-    caret = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(height_of(lh_addr_of(caret)), 8) << "an ascender";
     lh_ui_input_set_text(lh_addr_of(f.input), "e");
-    caret = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(height_of(lh_addr_of(caret)), 8) << "a short letter";
 }
 
@@ -507,7 +508,7 @@ TEST(entity_input, the_caret_stands_on_the_baseline_the_text_is_drawn_on)
 
     cap_field(lh_addr_of(f), lh_addr_of(style));
     lh_ui_input_set_text(lh_addr_of(f.input), "d");
-    caret = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(top_of(lh_addr_of(caret)), lh_ui_label_get_baseline(lh_addr_of(f.input.label)) - 6);
 }
 
@@ -520,7 +521,7 @@ TEST(entity_input, an_empty_field_puts_the_caret_where_capitals_would_stand)
     lh_ui_rect_t caret;
 
     cap_field(lh_addr_of(f), lh_addr_of(style));
-    caret = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(top_of(lh_addr_of(caret)), 4 - 6);
 }
 
@@ -535,10 +536,10 @@ TEST(entity_input, a_block_caret_is_as_wide_as_the_character_under_it)
     EXPECT_EQ(lh_ui_input_get_caret_shape(lh_addr_of(f.input)), lh_ui_input_caret_block);
     lh_ui_input_set_text(lh_addr_of(f.input), "fe");
     lh_ui_input_set_caret(lh_addr_of(f.input), 0);
-    caret = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(width_of(lh_addr_of(caret)), 6) << "over 'f'";
     lh_ui_input_set_caret(lh_addr_of(f.input), 1);
-    caret = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(width_of(lh_addr_of(caret)), 5) << "over 'e'";
     EXPECT_EQ(lh_ui_rect_get_origin_as_const(lh_addr_of(caret))->x, 6) << "after the 'f'";
 }
@@ -553,7 +554,7 @@ TEST(entity_input, a_bar_caret_is_one_column)
     EXPECT_EQ(lh_ui_input_get_caret_shape(lh_addr_of(f.input)), lh_ui_input_caret_bar) << "the default";
     lh_ui_input_set_text(lh_addr_of(f.input), "fe");
     lh_ui_input_set_caret(lh_addr_of(f.input), 0);
-    caret = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(width_of(lh_addr_of(caret)), 1);
 }
 
@@ -570,7 +571,7 @@ TEST(entity_input, a_field_with_no_font_has_no_caret_rect)
     lh_ui_input_init(lh_addr_of(f.input), rect, f.buffer, 16);
     lh_ui_input_set_text(lh_addr_of(f.input), "A");
 
-    caret = lh_ui_input_get_caret_rect(lh_addr_of(f.input));
+    caret = lh_test::out(lh_ui_input_get_caret_rect, lh_addr_of(f.input));
     EXPECT_EQ(lh_ui_rect_is_empty(lh_addr_of(caret)), lh_bool_true);
 }
 

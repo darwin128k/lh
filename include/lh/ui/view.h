@@ -236,8 +236,8 @@ lh_ui_view_is_stripped(const lh_ui_view_t *self);
  *        up to fit: every strip is the same size, so the backend sizes its
  *        buffer once and keeps it. Empty past the last strip.
  */
-lh_ui_rect_t
-lh_ui_view_get_strip(const lh_ui_view_t *self, lh_ui_scalar_t index);
+lh_void
+lh_ui_view_get_strip(const lh_ui_view_t *self, lh_ui_scalar_t index, lh_ui_rect_t *out);
 
 /**
  * @brief Name a region of @p self that a frame reads pixels of, so a strip-wise
@@ -278,8 +278,8 @@ lh_ui_view_clear_whole_areas(lh_ui_view_t *self);
  * the effect there is not drawn this frame, so growing for it would buy a bigger
  * buffer and a longer present for nothing.
  */
-lh_ui_rect_t
-lh_ui_view_area_whole(const lh_ui_view_t *self, const lh_ui_rect_t *area, const lh_ui_rect_t *reach);
+lh_void
+lh_ui_view_area_whole(const lh_ui_view_t *self, const lh_ui_rect_t *area, const lh_ui_rect_t *reach, lh_ui_rect_t *out);
 
 /**
  * @brief Draw @p self strip by strip, skipping the strips @p damage does not
@@ -352,8 +352,8 @@ lh_ui_view_is_slow(lh_ui_point_t velocity, lh_ui_scalar_t limit);
 /**
  * @brief @p velocity times ::LH_UI_VIEW_THROW_KEEP percent.
  */
-lh_ui_point_t
-lh_ui_view_slow_down(lh_ui_point_t velocity);
+lh_void
+lh_ui_view_slow_down(lh_ui_point_t velocity, lh_ui_point_t *out);
 
 /**
  * @brief Stop a glide (and close its gesture); zero the velocity.

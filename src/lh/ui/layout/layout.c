@@ -101,7 +101,7 @@ layout_wants(const lh_ui_layout_t *self, lh_ui_entity_t *child)
     {
         return lh_ui_place_clamp(place, self->axis, lh_ui_place_get_size(place));
     }
-    content = lh_ui_entity_get_content_bounds(child);
+    lh_ui_entity_get_content_bounds(child, lh_addr_of(content));
     return lh_ui_place_clamp(place, self->axis,
                              lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(content)), self->axis));
 }
@@ -129,9 +129,10 @@ layout_margin_along(const lh_ui_layout_t *self, const lh_ui_place_t *place)
 
 /** The room a child is placed in across the flow: the content box, less the margin
    the child keeps on either side of it across. */
-static lh_ui_rect_t
-layout_slot(const lh_ui_layout_t *self, const lh_ui_place_t *place, const lh_ui_rect_t *content)
+static lh_void
+layout_slot(const lh_ui_layout_t *self, const lh_ui_place_t *place, const lh_ui_rect_t *content, lh_ui_rect_t *out)
 {
+    lh_assert_runtime_ref(out);
     const lh_ui_axis_t cross = lh_ui_axis_get_cross(self->axis);
     const lh_ui_insets_t *margin = lh_ui_place_get_margin(place);
     const lh_ui_scalar_t before = lh_ui_insets_get_start(margin, cross);
@@ -141,7 +142,8 @@ layout_slot(const lh_ui_layout_t *self, const lh_ui_place_t *place, const lh_ui_
 
     lh_ui_rect_init_along(lh_addr_of(slot), content, cross, before,
                           lh_math_max(room - before - after, lh_ui_scalar(0)));
-    return slot;
+    *out = slot;
+    return;
 }
 
 /** Where a child of @p own rows sits in @p room when it is centred across the flow.
@@ -176,10 +178,12 @@ layout_across(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_ui_rec
               lh_ui_scalar_t line, lh_ui_scalar_t *start, lh_ui_scalar_t *length)
 {
     const lh_ui_axis_t cross = lh_ui_axis_get_cross(self->axis);
-    const lh_ui_rect_t rect = lh_ui_entity_get_rect(child);
+    lh_ui_rect_t rect;
+    lh_ui_entity_get_rect(child, lh_addr_of(rect));
     const lh_ui_place_t *place = lh_ui_entity_get_place(child);
     const lh_ui_place_align_t align = lh_ui_place_get_align(place);
-    const lh_ui_rect_t slot = layout_slot(self, place, content);
+    lh_ui_rect_t slot;
+    layout_slot(self, place, content, lh_addr_of(slot));
     const lh_ui_scalar_t own = lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(rect)), cross);
     const lh_ui_scalar_t room = lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(slot)), cross);
     /* The line is measured from the content box; the slot starts the margin further
@@ -301,8 +305,10 @@ layout_run(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity_t *f
         if (cross == lh_ui_axis_vertical && lh_ui_place_get_align(place) == lh_ui_place_align_baseline)
         {
             const lh_ui_scalar_t at = lh_ui_entity_get_baseline(child);
-            const lh_ui_rect_t own_rect = lh_ui_entity_get_rect(child);
-            const lh_ui_rect_t slot = layout_slot(self, place, lh_addr_of(content));
+            lh_ui_rect_t own_rect;
+            lh_ui_entity_get_rect(child, lh_addr_of(own_rect));
+            lh_ui_rect_t slot;
+            layout_slot(self, place, lh_addr_of(content), lh_addr_of(slot));
             const lh_ui_scalar_t own =
                 lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(own_rect)), cross);
             const lh_ui_scalar_t room = lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(slot)), cross);
@@ -399,7 +405,8 @@ layout_depth(const lh_ui_layout_t *self, lh_ui_entity_t *child)
     const lh_ui_axis_t cross = lh_ui_axis_get_cross(self->axis);
     const lh_ui_place_t *place = lh_ui_entity_get_place(child);
     const lh_ui_insets_t *margin = lh_ui_place_get_margin(place);
-    const lh_ui_rect_t rect = lh_ui_entity_get_rect(child);
+    lh_ui_rect_t rect;
+    lh_ui_entity_get_rect(child, lh_addr_of(rect));
     const lh_ui_scalar_t own =
         lh_ui_place_get_align(place) == lh_ui_place_align_fill
             ? lh_ui_place_clamp(place, cross, lh_ui_scalar(0))
@@ -444,9 +451,12 @@ layout_line_end(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity
 lh_void
 lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
 {
-    const lh_ui_insets_t padding = lh_ui_entity_get_padding(parent);
-    const lh_ui_rect_t rect = lh_ui_entity_get_rect(parent);
-    const lh_ui_rect_t content = lh_ui_insets_shrink(lh_addr_of(padding), lh_addr_of(rect));
+    lh_ui_insets_t padding;
+    lh_ui_entity_get_padding(parent, lh_addr_of(padding));
+    lh_ui_rect_t rect;
+    lh_ui_entity_get_rect(parent, lh_addr_of(rect));
+    lh_ui_rect_t content;
+    lh_ui_insets_shrink(lh_addr_of(padding), lh_addr_of(rect), lh_addr_of(content));
     const lh_ui_axis_t cross = lh_ui_axis_get_cross(self->axis);
     const lh_ui_scalar_t room = lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(content)), self->axis);
     const lh_ui_scalar_t room_across = lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(content)), cross);

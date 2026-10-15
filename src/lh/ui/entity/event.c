@@ -90,15 +90,17 @@ lh_ui_entity_event_get_key(const lh_ui_entity_event_t *self)
     return input;
 }
 
-lh_ui_point_t
-lh_ui_entity_event_get_point(const lh_ui_entity_event_t *self)
+lh_void
+lh_ui_entity_event_get_point(const lh_ui_entity_event_t *self, lh_ui_point_t *out)
 {
+    lh_assert_runtime_ref(out);
     const lh_ui_point_t *point;
 
     lh_assert_runtime_ifn(lh_ui_entity_event_is_pointer(self), lh_runtime_error_code_invalid_argument);
     point = lh_ptr_rcast(const lh_ui_point_t, self->context);
     lh_assert_runtime_ref(point);
-    return *point;
+    *out = *point;
+    return;
 }
 
 struct lh_ui_entity_transform *

@@ -1,4 +1,5 @@
 #include <lh/str/scanf/next.h>
+#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/char/digit.h>
 #include <lh/util/addr.h>

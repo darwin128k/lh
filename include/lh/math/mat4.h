@@ -49,8 +49,8 @@ LH_COMPILER_EXTERN_C_BEGIN
 /**
  * @brief Column @p index (`0..3`) of @p self.
  */
-lh_math_vec4_t
-lh_math_mat4_get_column(const lh_math_mat4_t *self, unsigned index);
+lh_void
+lh_math_mat4_get_column(const lh_math_mat4_t *self, unsigned index, lh_math_vec4_t *out);
 
 /**
  * @brief Replace column @p index (`0..3`) of @p self with @p column.
@@ -61,44 +61,44 @@ lh_math_mat4_set_column(lh_math_mat4_t *self, unsigned index, lh_math_vec4_t col
 /**
  * @brief The identity: transforms every vector to itself.
  */
-lh_math_mat4_t
-lh_math_mat4_identity(void);
+lh_void
+lh_math_mat4_identity(lh_math_mat4_t *out);
 
 /**
  * @brief Matrix with the given columns.
  */
-lh_math_mat4_t
-lh_math_mat4_from_columns(lh_math_vec4_t c0, lh_math_vec4_t c1, lh_math_vec4_t c2, lh_math_vec4_t c3);
+lh_void
+lh_math_mat4_from_columns(lh_math_vec4_t c0, lh_math_vec4_t c1, lh_math_vec4_t c2, lh_math_vec4_t c3, lh_math_mat4_t *out);
 
 /**
  * @brief Moves points by @p offset; directions are unaffected.
  */
-lh_math_mat4_t
-lh_math_mat4_from_translation(lh_math_vec3_t offset);
+lh_void
+lh_math_mat4_from_translation(lh_math_vec3_t offset, lh_math_mat4_t *out);
 
 /**
  * @brief Scales each axis by the matching component of @p factors.
  */
-lh_math_mat4_t
-lh_math_mat4_from_scale(lh_math_vec3_t factors);
+lh_void
+lh_math_mat4_from_scale(lh_math_vec3_t factors, lh_math_mat4_t *out);
 
 /**
  * @brief The rotation of the unit quaternion @p q.
  */
-lh_math_mat4_t
-lh_math_mat4_from_quat(lh_math_quat_t q);
+lh_void
+lh_math_mat4_from_quat(lh_math_quat_t q, lh_math_mat4_t *out);
 
 /**
  * @brief Product @p a * @p b: the transform @p b followed by @p a.
  */
-lh_math_mat4_t
-lh_math_mat4_mul(lh_math_mat4_t a, lh_math_mat4_t b);
+lh_void
+lh_math_mat4_mul(lh_math_mat4_t a, lh_math_mat4_t b, lh_math_mat4_t *out);
 
 /**
  * @brief @p m * @p v.
  */
-lh_math_vec4_t
-lh_math_mat4_mul_vec4(lh_math_mat4_t m, lh_math_vec4_t v);
+lh_void
+lh_math_mat4_mul_vec4(lh_math_mat4_t m, lh_math_vec4_t v, lh_math_vec4_t *out);
 
 /**
  * @brief Transform the point @p p (`w = 1`): translation applies.
@@ -107,15 +107,15 @@ lh_math_mat4_mul_vec4(lh_math_mat4_t m, lh_math_vec4_t v);
  * exact for affine matrices (bottom row `0 0 0 1`); for a projection use
  * ::lh_math_mat4_mul_vec4 and divide by `w` yourself.
  */
-lh_math_vec3_t
-lh_math_mat4_transform_point(lh_math_mat4_t m, lh_math_vec3_t p);
+lh_void
+lh_math_mat4_transform_point(lh_math_mat4_t m, lh_math_vec3_t p, lh_math_vec3_t *out);
 
 /**
  * @brief Transform the direction @p d (`w = 0`): translation does not
  *        apply.
  */
-lh_math_vec3_t
-lh_math_mat4_transform_dir(lh_math_mat4_t m, lh_math_vec3_t d);
+lh_void
+lh_math_mat4_transform_dir(lh_math_mat4_t m, lh_math_vec3_t d, lh_math_vec3_t *out);
 
 /**
  * @brief Rows and columns swapped.
@@ -123,8 +123,8 @@ lh_math_mat4_transform_dir(lh_math_mat4_t m, lh_math_vec3_t d);
  * For a pure rotation this is also its inverse, much cheaper than
  * ::lh_math_mat4_inverse.
  */
-lh_math_mat4_t
-lh_math_mat4_transpose(lh_math_mat4_t m);
+lh_void
+lh_math_mat4_transpose(lh_math_mat4_t m, lh_math_mat4_t *out);
 
 /**
  * @brief Inverse of @p m: the transform that undoes it.

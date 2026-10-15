@@ -4,43 +4,52 @@
  */
 
 #include <lh/ui/web/html.h>
+#include <lh/assert/runtime.h>
 
 #include <lh/null.h>
 #include <lh/util/addr.h>
 
-lh_ui_web_html_t
-lh_ui_web_html_doctype(void)
+lh_void
+lh_ui_web_html_doctype(lh_ui_web_html_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_ui_web_html_t n;
 
     n.kind = lh_ui_web_html_kind_doctype;
-    return n;
+    *out = n;
+    return;
 }
 
-lh_ui_web_html_t
-lh_ui_web_html_text(const lh_str_ptr s)
+lh_void
+lh_ui_web_html_text(const lh_str_ptr s, lh_ui_web_html_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_ui_web_html_t n;
 
     n.kind = lh_ui_web_html_kind_text;
     n.u.text = s;
-    return n;
+    *out = n;
+    return;
 }
 
-lh_ui_web_html_t
-lh_ui_web_html_raw(const lh_str_ptr s)
+lh_void
+lh_ui_web_html_raw(const lh_str_ptr s, lh_ui_web_html_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_ui_web_html_t n;
 
     n.kind = lh_ui_web_html_kind_raw;
     n.u.raw = s;
-    return n;
+    *out = n;
+    return;
 }
 
-lh_ui_web_html_t
+lh_void
 lh_ui_web_html_tag(const lh_str_ptr name, const lh_ui_web_html_attr_t *attrs, lh_u16_t nattrs,
-                   const lh_ui_web_html_t *const *kids, lh_u16_t nkids, lh_bool_t void_el)
+                   const lh_ui_web_html_t *const *kids, lh_u16_t nkids, lh_bool_t void_el,
+                   lh_ui_web_html_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_ui_web_html_t n;
 
     n.kind = lh_ui_web_html_kind_tag;
@@ -50,7 +59,8 @@ lh_ui_web_html_tag(const lh_str_ptr name, const lh_ui_web_html_attr_t *attrs, lh
     n.u.tag.kids = kids;
     n.u.tag.nkids = nkids;
     n.u.tag.void_el = void_el;
-    return n;
+    *out = n;
+    return;
 }
 
 /** Append @p s as element text: `&`, `<` and `>` escaped. */

@@ -48,16 +48,17 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @p max is exclusive (`origin + size`). Empty size yields an empty rectangle.
  */
-lh_math_rect_t
-lh_math_rect_from_extent(const lh_math_point_t *min, const lh_math_point_t *max);
+lh_void
+lh_math_rect_from_extent(const lh_math_point_t *min, const lh_math_point_t *max, lh_math_rect_t *out);
 
 /**
  * @brief Build a `::lh_math_rect_t` from min/max scalars (Win32-style:
  *        left, top, right, bottom — right/bottom are exclusive).
  */
-lh_math_rect_t
+lh_void
 lh_math_rect_from_min_max(lh_math_scalar_t x_min, lh_math_scalar_t y_min,
-                          lh_math_scalar_t x_max, lh_math_scalar_t y_max);
+                          lh_math_scalar_t x_max, lh_math_scalar_t y_max,
+                          lh_math_rect_t *out);
 
 /**
  * @brief Fill @p self from origin coordinates and extents.
@@ -119,32 +120,32 @@ lh_math_rect_set_size(lh_math_rect_t *self, lh_math_size_t size);
 /**
  * @brief Exclusive far corner: origin offset by size.
  */
-lh_math_point_t
-lh_math_rect_far(const lh_math_rect_t *self);
+lh_void
+lh_math_rect_far(const lh_math_rect_t *self, lh_math_point_t *out);
 
 /**
  * @brief Element-wise minimum of the origins of @p a and @p b.
  */
-lh_math_point_t
-lh_math_rect_origin_min(const lh_math_rect_t *a, const lh_math_rect_t *b);
+lh_void
+lh_math_rect_origin_min(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_math_point_t *out);
 
 /**
  * @brief Element-wise maximum of the origins of @p a and @p b.
  */
-lh_math_point_t
-lh_math_rect_origin_max(const lh_math_rect_t *a, const lh_math_rect_t *b);
+lh_void
+lh_math_rect_origin_max(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_math_point_t *out);
 
 /**
  * @brief Element-wise minimum of the exclusive far corners of @p a and @p b.
  */
-lh_math_point_t
-lh_math_rect_far_min(const lh_math_rect_t *a, const lh_math_rect_t *b);
+lh_void
+lh_math_rect_far_min(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_math_point_t *out);
 
 /**
  * @brief Element-wise maximum of the exclusive far corners of @p a and @p b.
  */
-lh_math_point_t
-lh_math_rect_far_max(const lh_math_rect_t *a, const lh_math_rect_t *b);
+lh_void
+lh_math_rect_far_max(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_math_point_t *out);
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
 
@@ -209,28 +210,28 @@ lh_math_rect_is_greater(const lh_math_rect_t *self, const lh_math_rect_t *other)
  * @brief Intersection of @p a and @p b. Returns ::lh_math_rect_init_empty if they do
  *        not overlap.
  */
-lh_math_rect_t
-lh_math_rect_intersection(const lh_math_rect_t *a, const lh_math_rect_t *b);
+lh_void
+lh_math_rect_intersection(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_math_rect_t *out);
 
 /**
  * @brief Union of @p a and @p b: the smallest rectangle containing both.
  *        Empty @p a or @p b returns the other.
  */
-lh_math_rect_t
-lh_math_rect_union(const lh_math_rect_t *a, const lh_math_rect_t *b);
+lh_void
+lh_math_rect_union(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_math_rect_t *out);
 
 /**
  * @brief Translate @p self by `(@p dx, @p dy)`.
  */
-lh_math_rect_t
-lh_math_rect_offset(const lh_math_rect_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy);
+lh_void
+lh_math_rect_offset(const lh_math_rect_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy, lh_math_rect_t *out);
 
 /**
  * @brief Inset @p self by `(@p dx, @p dy)` on each side (positive shrinks,
  *        negative grows).
  */
-lh_math_rect_t
-lh_math_rect_inset(const lh_math_rect_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy);
+lh_void
+lh_math_rect_inset(const lh_math_rect_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy, lh_math_rect_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

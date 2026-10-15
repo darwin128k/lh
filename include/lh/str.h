@@ -230,8 +230,8 @@ lh_str_truncate(lh_str_t *self, lh_usize_t n);
  *
  * @param self String to view.
  */
-lh_str_view_t
-lh_str_as_view(const lh_str_t *self);
+lh_void
+lh_str_as_view(const lh_str_t *self, lh_str_view_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

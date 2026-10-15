@@ -59,8 +59,8 @@ lh_ui_entity_init(lh_ui_entity_t *self, lh_ui_rect_t rect);
 /**
  * @brief Rectangle @p self covers, in the same space as its parent.
  */
-lh_ui_rect_t
-lh_ui_entity_get_rect(const lh_ui_entity_t *self);
+lh_void
+lh_ui_entity_get_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out);
 
 /**
  * @brief How @p self wants a flow to place it (::lh_ui_place_t): fixed zero at
@@ -200,8 +200,8 @@ lh_ui_entity_get_class(const lh_ui_entity_t *self);
 /**
  * @brief Padding of the style of @p self, all `0` without one.
  */
-lh_ui_insets_t
-lh_ui_entity_get_padding(const lh_ui_entity_t *self);
+lh_void
+lh_ui_entity_get_padding(const lh_ui_entity_t *self, lh_ui_insets_t *out);
 
 /**
  * @brief True when @p point (space of the rect of @p self) lies in the shape
@@ -439,15 +439,15 @@ lh_ui_entity_ask_children(const lh_ui_entity_t *self, lh_ui_entity_transform_t *
  * @brief @p bounds grown to cover the rect of @p self; unchanged when @p self
  *        is hidden.
  */
-lh_ui_rect_t
-lh_ui_entity_extend_bounds(const lh_ui_entity_t *self, lh_ui_rect_t bounds);
+lh_void
+lh_ui_entity_extend_bounds(const lh_ui_entity_t *self, lh_ui_rect_t bounds, lh_ui_rect_t *out);
 
 /**
  * @brief Union of the rects of the children of @p self that are not hidden;
  *        empty when there are none.
  */
-lh_ui_rect_t
-lh_ui_entity_get_children_bounds(const lh_ui_entity_t *self);
+lh_void
+lh_ui_entity_get_children_bounds(const lh_ui_entity_t *self, lh_ui_rect_t *out);
 
 /**
  * @brief Where @p self has its first baseline: rows down from the top of its own
@@ -480,8 +480,8 @@ lh_ui_entity_get_baseline(const lh_ui_entity_t *self);
  * — because the two are culled by different rules: a plain parent must still be
  * culled out of its own draw when its child lies outside it.
  */
-lh_ui_rect_t
-lh_ui_entity_get_measure_bounds(const lh_ui_entity_t *self);
+lh_void
+lh_ui_entity_get_measure_bounds(const lh_ui_entity_t *self, lh_ui_rect_t *out);
 
 /**
  * @brief What the content of @p self covers: ::lh_ui_entity_get_children_bounds,
@@ -491,46 +491,46 @@ lh_ui_entity_get_measure_bounds(const lh_ui_entity_t *self);
  * A measure answer must not ask for scroll or visibility (that path calls
  * back into this one).
  */
-lh_ui_rect_t
-lh_ui_entity_get_content_bounds(const lh_ui_entity_t *self);
+lh_void
+lh_ui_entity_get_content_bounds(const lh_ui_entity_t *self, lh_ui_rect_t *out);
 
 /**
  * @brief @p point (in the space of the rect of @p self) moved into the space
  *        of its children: the children offset taken away.
  */
-lh_ui_point_t
-lh_ui_entity_to_children_space(const lh_ui_entity_t *self, lh_ui_point_t point);
+lh_void
+lh_ui_entity_to_children_space(const lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_point_t *out);
 
 /**
  * @brief @p point (in the space of the rect of @p self) moved out to the space
  *        of the parent: the children offset of @p self added. The inverse of
  *        ::lh_ui_entity_to_children_space.
  */
-lh_ui_point_t
-lh_ui_entity_add_children_offset(const lh_ui_entity_t *self, lh_ui_point_t point);
+lh_void
+lh_ui_entity_add_children_offset(const lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_point_t *out);
 
 /**
  * @brief Sum of the children offsets of every ancestor of @p self: where the
  *        space of the rect of @p self sits in the space of the topmost
  *        ancestor (the root, the canvas target space of a view).
  */
-lh_ui_point_t
-lh_ui_entity_get_root_offset(const lh_ui_entity_t *self);
+lh_void
+lh_ui_entity_get_root_offset(const lh_ui_entity_t *self, lh_ui_point_t *out);
 
 /**
  * @brief @p point in the root space moved into the space of the rect of
  *        @p self (::lh_ui_entity_get_root_offset taken away). The same point
  *        ::lh_ui_entity_find_at_local stores for a hit.
  */
-lh_ui_point_t
-lh_ui_entity_to_local(const lh_ui_entity_t *self, lh_ui_point_t point);
+lh_void
+lh_ui_entity_to_local(const lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_point_t *out);
 
 /**
  * @brief The rect of @p self in the root space (moved by
  *        ::lh_ui_entity_get_root_offset).
  */
-lh_ui_rect_t
-lh_ui_entity_get_root_rect(const lh_ui_entity_t *self);
+lh_void
+lh_ui_entity_get_root_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out);
 
 /* ── Hit test ────────────────────────────────────────────────────────────── */
 
@@ -643,8 +643,8 @@ lh_ui_entity_is_clipping(const lh_ui_entity_t *self);
  * its fringe, and the frame leaves the ground bare where the whole frame draws the
  * shadow. Empty when @p self casts none.
  */
-lh_ui_rect_t
-lh_ui_entity_get_painted_rect(const lh_ui_entity_t *self);
+lh_void
+lh_ui_entity_get_painted_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out);
 
 /**
  * @brief True when what @p self paints (::lh_ui_entity_get_painted_rect) meets the

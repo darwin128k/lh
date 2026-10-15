@@ -173,15 +173,17 @@ lh_ui_color_blend_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t src_w, lh_u32_t d
     return lh_cast_static(lh_ui_color_channel_t, (src * src_w + dst * dst_w + total / 2U) / total);
 }
 
-lh_ui_color_t
-lh_ui_color_blend(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_u32_t src_w, lh_u32_t dst_w)
+lh_void
+lh_ui_color_blend(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_u32_t src_w, lh_u32_t dst_w, lh_ui_color_t *out)
 {
-    lh_ui_color_t out;
-    lh_ui_color_init(lh_addr_of(out), lh_ui_color_blend_channel(color->r, dst->r, src_w, dst_w),
+    lh_assert_runtime_ref(out);
+    lh_ui_color_t result;
+    lh_ui_color_init(lh_addr_of(result), lh_ui_color_blend_channel(color->r, dst->r, src_w, dst_w),
                      lh_ui_color_blend_channel(color->g, dst->g, src_w, dst_w),
                      lh_ui_color_blend_channel(color->b, dst->b, src_w, dst_w),
                      lh_ui_color_weight_to_alpha(src_w + dst_w));
-    return out;
+    *out = result;
+    return;
 }
 
 lh_ui_color_channel_t
@@ -287,41 +289,62 @@ lh_ui_color_argb_over(lh_u32_t dst, lh_u32_t src)
                                                              : lh_ui_color_argb_over_translucent(dst, src);
 }
 
-lh_ui_color_t
-lh_ui_color_over_opaque(const lh_ui_color_t *dst, const lh_ui_color_t *color)
+lh_void
+lh_ui_color_over_opaque(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_ui_color_t *out)
 {
-    lh_ui_color_t out;
+    lh_assert_runtime_ref(out);
+    lh_ui_color_t result;
 
-    lh_ui_color_init(lh_addr_of(out), lh_ui_color_over_opaque_channel(color->r, dst->r, color->a),
+    lh_ui_color_init(lh_addr_of(result), lh_ui_color_over_opaque_channel(color->r, dst->r, color->a),
                      lh_ui_color_over_opaque_channel(color->g, dst->g, color->a),
                      lh_ui_color_over_opaque_channel(color->b, dst->b, color->a), LH_BYTE_T_MAX);
-    return out;
+    *out = result;
+    return;
 }
 
-lh_ui_color_t
-lh_ui_color_over_translucent(const lh_ui_color_t *dst, const lh_ui_color_t *color)
+lh_void
+lh_ui_color_over_translucent(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_ui_color_t *out)
 {
+    lh_assert_runtime_ref(out);
     const lh_u32_t src_w = lh_ui_color_over_src_weight(color);
     const lh_u32_t dst_w = lh_ui_color_over_dst_weight(dst, color);
     lh_ui_color_t clear;
     lh_ui_color_init(lh_addr_of(clear), 0, 0, 0, 0);
-    return src_w + dst_w == 0U ? clear : lh_ui_color_blend(dst, color, src_w, dst_w);
+    if (src_w + dst_w == 0U)
+    {
+        *out = clear;
+    }
+    else
+    {
+        lh_ui_color_blend(dst, color, src_w, dst_w, out);
+    }
+    return;
 }
 
-lh_ui_color_t
-lh_ui_color_over(const lh_ui_color_t *dst, const lh_ui_color_t *color)
+lh_void
+lh_ui_color_over(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_ui_color_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(dst);
-    return dst->a == LH_BYTE_T_MAX ? lh_ui_color_over_opaque(dst, color)
-                                   : lh_ui_color_over_translucent(dst, color);
+    if (dst->a == LH_BYTE_T_MAX)
+    {
+        lh_ui_color_over_opaque(dst, color, out);
+    }
+    else
+    {
+        lh_ui_color_over_translucent(dst, color, out);
+    }
+    return;
 }
 
-lh_ui_color_t
-lh_ui_color_with_coverage(const lh_ui_color_t *color, lh_byte_t coverage)
+lh_void
+lh_ui_color_with_coverage(const lh_ui_color_t *color, lh_byte_t coverage, lh_ui_color_t *out)
 {
-    lh_ui_color_t out;
+    lh_assert_runtime_ref(out);
+    lh_ui_color_t result;
     lh_assert_runtime_ref(color);
-    out = *color;
-    out.a = lh_cast_static(lh_ui_color_channel_t, (color->a * coverage + LH_BYTE_T_MAX / 2U) / LH_BYTE_T_MAX);
-    return out;
+    result = *color;
+    result.a = lh_cast_static(lh_ui_color_channel_t, (color->a * coverage + LH_BYTE_T_MAX / 2U) / LH_BYTE_T_MAX);
+    *out = result;
+    return;
 }

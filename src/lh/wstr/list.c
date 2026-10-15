@@ -1,4 +1,5 @@
 #include <lh/wstr/list.h>
+#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/cast/static.h>
@@ -51,11 +52,13 @@ lh_wstr_list_get_spans_as_const(const lh_wstr_list_t *self)
 }
 
 LH_ATTRIBUTE_STATIC
-lh_wstr_list_span_t
-lh_wstr_list_get_span(const lh_wstr_list_t *self, lh_uindex_t index)
+lh_void
+lh_wstr_list_get_span(const lh_wstr_list_t *self, lh_uindex_t index, lh_wstr_list_span_t *out)
 {
-    return lh_ptr_deref(
+    lh_assert_runtime_ref(out);
+    *out = lh_ptr_deref(
         lh_ptr_cast(const lh_wstr_list_span_t, lh_array_get_ptr(lh_wstr_list_get_spans_as_const(self), index)));
+    return;
 }
 
 lh_void
@@ -91,21 +94,24 @@ lh_wstr_list_get_size(const lh_wstr_list_t *self)
     return lh_array_get_size(lh_wstr_list_get_spans_as_const(self));
 }
 
-lh_wstr_view_t
-lh_wstr_list_get(const lh_wstr_list_t *self, lh_uindex_t index)
+lh_void
+lh_wstr_list_get(const lh_wstr_list_t *self, lh_uindex_t index, lh_wstr_view_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_wstr_list_span_t span;
     lh_wstr_view_t chars;
 
-    span = lh_wstr_list_get_span(self, index);
+    lh_wstr_list_get_span(self, index, lh_addr_of(span));
     if (lh_math_is_zero(span.size))
     {
         lh_wstr_view_t _lh_tmp;
         lh_wstr_view_init_empty(lh_addr_of(_lh_tmp));
-        return _lh_tmp;
+        *out = _lh_tmp;
+        return;
     }
-    chars = lh_wstr_as_view(lh_wstr_list_get_chars_as_const(self));
-    return lh_wstr_view_from_offset(lh_addr_of(chars), span.offset, span.size);
+    lh_wstr_as_view(lh_wstr_list_get_chars_as_const(self), lh_addr_of(chars));
+    lh_wstr_view_from_offset(lh_addr_of(chars), span.offset, span.size, out);
+    return;
 }
 
 lh_wstr_cptr
@@ -114,8 +120,8 @@ lh_wstr_list_get_data(const lh_wstr_list_t *self, lh_uindex_t index)
     lh_wstr_list_span_t span;
     lh_wstr_view_t chars;
 
-    span = lh_wstr_list_get_span(self, index);
-    chars = lh_wstr_as_view(lh_wstr_list_get_chars_as_const(self));
+    lh_wstr_list_get_span(self, index, lh_addr_of(span));
+    lh_wstr_as_view(lh_wstr_list_get_chars_as_const(self), lh_addr_of(chars));
     return lh_ptr_cast(const lh_wchar_t,
                        lh_memory_view_get_ptr_from_begin(
                            lh_addr_of(chars), lh_math_mul(span.offset, lh_cast_static(lh_usize_t, LH_WCHAR_T_SIZE))));
@@ -138,7 +144,9 @@ lh_wstr_list_push_back(lh_wstr_list_t *self, lh_wstr_view_t text)
 lh_uindex_t
 lh_wstr_list_push_back_str(lh_wstr_list_t *self, const lh_wstr_t *value)
 {
-    return lh_wstr_list_push_back(self, lh_wstr_as_view(value));
+    lh_wstr_view_t view;
+    lh_wstr_as_view(value, lh_addr_of(view));
+    return lh_wstr_list_push_back(self, view);
 }
 
 lh_void
@@ -166,7 +174,7 @@ lh_wstr_list_append(lh_wstr_list_t *self, const lh_wstr_list_t *other)
     lh_wstr_append_str(lh_wstr_list_get_chars(self), lh_wstr_list_get_chars_as_const(other));
     for (i = 0U; lh_math_lt(i, n); i = lh_math_add_one(i))
     {
-        span = lh_wstr_list_get_span(other, i);
+        lh_wstr_list_get_span(other, i, lh_addr_of(span));
         span.offset = lh_math_add(span.offset, base);
         lh_array_push_back(lh_wstr_list_get_spans(self), lh_addr_of(span));
     }
@@ -185,6 +193,8 @@ lh_wstr_list_join(const lh_wstr_list_t *self, lh_wstr_t *out, lh_wchar_t sep)
         {
             lh_wstr_push_back(out, sep);
         }
-        lh_wstr_append_view(out, lh_wstr_list_get(self, i));
+        lh_wstr_view_t view;
+        lh_wstr_list_get(self, i, lh_addr_of(view));
+        lh_wstr_append_view(out, view);
     }
 }

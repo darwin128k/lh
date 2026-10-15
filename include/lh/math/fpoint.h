@@ -86,16 +86,16 @@ lh_math_fpoint_set_y(lh_math_fpoint_t *self, lh_math_fscalar_t y);
  *
  * Casts each component to ::lh_math_scalar_t (truncates toward zero).
  */
-lh_math_point_t
-lh_math_fpoint_to_point(lh_math_fpoint_t self);
+lh_void
+lh_math_fpoint_to_point(lh_math_fpoint_t self, lh_math_point_t *out);
 
 /**
  * @brief Widen @p self to a continuous point.
  *
  * Casts each ::lh_math_scalar_t to ::lh_math_fscalar_t.
  */
-lh_math_fpoint_t
-lh_math_point_to_fpoint(lh_math_point_t self);
+lh_void
+lh_math_point_to_fpoint(lh_math_point_t self, lh_math_fpoint_t *out);
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
 
@@ -138,14 +138,14 @@ lh_math_fpoint_is_greater(const lh_math_fpoint_t *self, const lh_math_fpoint_t *
 /**
  * @brief Element-wise minimum of @p a and @p b.
  */
-lh_math_fpoint_t
-lh_math_fpoint_min(const lh_math_fpoint_t *a, const lh_math_fpoint_t *b);
+lh_void
+lh_math_fpoint_min(const lh_math_fpoint_t *a, const lh_math_fpoint_t *b, lh_math_fpoint_t *out);
 
 /**
  * @brief Element-wise maximum of @p a and @p b.
  */
-lh_math_fpoint_t
-lh_math_fpoint_max(const lh_math_fpoint_t *a, const lh_math_fpoint_t *b);
+lh_void
+lh_math_fpoint_max(const lh_math_fpoint_t *a, const lh_math_fpoint_t *b, lh_math_fpoint_t *out);
 
 /**
  * @brief Test whether @p self lies in the half-open extent `[@p min, @p max)`.
@@ -159,14 +159,14 @@ lh_math_fpoint_in_extent(const lh_math_fpoint_t *self, const lh_math_fpoint_t *m
 /**
  * @brief Translate @p self by `(@p dx, @p dy)`.
  */
-lh_math_fpoint_t
-lh_math_fpoint_offset(const lh_math_fpoint_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy);
+lh_void
+lh_math_fpoint_offset(const lh_math_fpoint_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy, lh_math_fpoint_t *out);
 
 /**
  * @brief Exclusive far corner: @p self offset by @p size (`x + width`, `y + height`).
  */
-lh_math_fpoint_t
-lh_math_fpoint_offset_size(const lh_math_fpoint_t *self, const struct lh_math_fsize *size);
+lh_void
+lh_math_fpoint_offset_size(const lh_math_fpoint_t *self, const struct lh_math_fsize *size, lh_math_fpoint_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

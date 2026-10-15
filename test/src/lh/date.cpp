@@ -5,6 +5,7 @@
 #include <lh/date.h>
 #include <lh/date/initializer.h>
 #include <lh/date/month/index.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -124,8 +125,8 @@ TEST(date_days_since_epoch, known_offsets)
 TEST(date_from_epoch_days, roundtrip_before_and_after_epoch)
 {
     const lh_date_t date = lh_date_initializer(2026, 9, 16);
-    const lh_date_t result = lh_date_from_epoch_days(lh_date_days_since_epoch(&date));
-    const lh_date_t before_epoch = lh_date_from_epoch_days(-1);
+    const lh_date_t result = lh_test::out(lh_date_from_epoch_days, lh_date_days_since_epoch(&date));
+    const lh_date_t before_epoch = lh_test::out(lh_date_from_epoch_days, -1);
 
     EXPECT_EQ(lh_date_equals(&date, &result), lh_bool_true);
     EXPECT_EQ(lh_date_get_year(&before_epoch), 1969);
@@ -147,7 +148,7 @@ TEST(date_from_epoch_days, matches_a_day_by_day_walk_for_ten_thousand_years)
 
     for (; year <= 9999; ++days)
     {
-        const lh_date_t got = lh_date_from_epoch_days(days);
+        const lh_date_t got = lh_test::out(lh_date_from_epoch_days, days);
 
         ASSERT_EQ(lh_date_get_year(&got), year) << "day " << days;
         ASSERT_EQ(lh_date_get_month(&got), month) << "day " << days;

@@ -50,8 +50,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @p max is exclusive (`origin + size`). Empty size yields
  * ::lh_math_rect_init_empty.
  */
-lh_math_frect_t
-lh_math_frect_from_extent(const lh_math_fpoint_t *min, const lh_math_fpoint_t *max);
+lh_void
+lh_math_frect_from_extent(const lh_math_fpoint_t *min, const lh_math_fpoint_t *max, lh_math_frect_t *out);
 
 /**
  * @brief Fill @p self from origin coordinates and extents.
@@ -113,32 +113,32 @@ lh_math_frect_set_size(lh_math_frect_t *self, lh_math_fsize_t size);
 /**
  * @brief Exclusive far corner: origin offset by size.
  */
-lh_math_fpoint_t
-lh_math_frect_far(const lh_math_frect_t *self);
+lh_void
+lh_math_frect_far(const lh_math_frect_t *self, lh_math_fpoint_t *out);
 
 /**
  * @brief Element-wise minimum of the origins of @p a and @p b.
  */
-lh_math_fpoint_t
-lh_math_frect_origin_min(const lh_math_frect_t *a, const lh_math_frect_t *b);
+lh_void
+lh_math_frect_origin_min(const lh_math_frect_t *a, const lh_math_frect_t *b, lh_math_fpoint_t *out);
 
 /**
  * @brief Element-wise maximum of the origins of @p a and @p b.
  */
-lh_math_fpoint_t
-lh_math_frect_origin_max(const lh_math_frect_t *a, const lh_math_frect_t *b);
+lh_void
+lh_math_frect_origin_max(const lh_math_frect_t *a, const lh_math_frect_t *b, lh_math_fpoint_t *out);
 
 /**
  * @brief Element-wise minimum of the exclusive far corners of @p a and @p b.
  */
-lh_math_fpoint_t
-lh_math_frect_far_min(const lh_math_frect_t *a, const lh_math_frect_t *b);
+lh_void
+lh_math_frect_far_min(const lh_math_frect_t *a, const lh_math_frect_t *b, lh_math_fpoint_t *out);
 
 /**
  * @brief Element-wise maximum of the exclusive far corners of @p a and @p b.
  */
-lh_math_fpoint_t
-lh_math_frect_far_max(const lh_math_frect_t *a, const lh_math_frect_t *b);
+lh_void
+lh_math_frect_far_max(const lh_math_frect_t *a, const lh_math_frect_t *b, lh_math_fpoint_t *out);
 
 /* ── Conversions ─────────────────────────────────────────────────────────── */
 
@@ -147,14 +147,14 @@ lh_math_frect_far_max(const lh_math_frect_t *a, const lh_math_frect_t *b);
  *
  * Casts the origin and the size (truncates toward zero).
  */
-lh_math_rect_t
-lh_math_frect_to_rect(lh_math_frect_t self);
+lh_void
+lh_math_frect_to_rect(lh_math_frect_t self, lh_math_rect_t *out);
 
 /**
  * @brief Widen @p self to a continuous rectangle.
  */
-lh_math_frect_t
-lh_math_rect_to_frect(lh_math_rect_t self);
+lh_void
+lh_math_rect_to_frect(lh_math_rect_t self, lh_math_frect_t *out);
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
 
@@ -219,28 +219,28 @@ lh_math_frect_is_greater(const lh_math_frect_t *self, const lh_math_frect_t *oth
  * @brief Intersection of @p a and @p b. Returns ::lh_math_rect_init_empty if they
  *        do not overlap.
  */
-lh_math_frect_t
-lh_math_frect_intersection(const lh_math_frect_t *a, const lh_math_frect_t *b);
+lh_void
+lh_math_frect_intersection(const lh_math_frect_t *a, const lh_math_frect_t *b, lh_math_frect_t *out);
 
 /**
  * @brief Union of @p a and @p b: the smallest rectangle containing both.
  *        Empty @p a or @p b returns the other.
  */
-lh_math_frect_t
-lh_math_frect_union(const lh_math_frect_t *a, const lh_math_frect_t *b);
+lh_void
+lh_math_frect_union(const lh_math_frect_t *a, const lh_math_frect_t *b, lh_math_frect_t *out);
 
 /**
  * @brief Translate @p self by `(@p dx, @p dy)`.
  */
-lh_math_frect_t
-lh_math_frect_offset(const lh_math_frect_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy);
+lh_void
+lh_math_frect_offset(const lh_math_frect_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy, lh_math_frect_t *out);
 
 /**
  * @brief Inset @p self by `(@p dx, @p dy)` on each side (positive shrinks,
  *        negative grows).
  */
-lh_math_frect_t
-lh_math_frect_inset(const lh_math_frect_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy);
+lh_void
+lh_math_frect_inset(const lh_math_frect_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy, lh_math_frect_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

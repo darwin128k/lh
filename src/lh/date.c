@@ -1,4 +1,5 @@
 #include <lh/date.h>
+#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/numeric/types.h>
@@ -78,9 +79,10 @@ lh_date_days_since_epoch(const lh_date_t *self)
     return days;
 }
 
-lh_date_t
-lh_date_from_epoch_days(lh_s64_t days)
+lh_void
+lh_date_from_epoch_days(lh_s64_t days, lh_date_t *out)
 {
+    lh_assert_runtime_ref(out);
     const lh_s64_t absolute = lh_math_add(days, lh_date_year_days_from_zero(LH_DATE_EPOCH_YEAR));
     const lh_s64_t year64 = lh_date_year_from_days_from_zero(absolute);
     const lh_date_year_t year = lh_cast_static(lh_date_year_t, year64);
@@ -99,7 +101,8 @@ lh_date_from_epoch_days(lh_s64_t days)
                 lh_cast_static(lh_date_day_t,
                                lh_math_add_one(lh_math_sub(day_of_year,
                                                            lh_cast_static(lh_s64_t, lh_date_days_before_month(year, month))))));
-    return date;
+    *out = date;
+    return;
 }
 
 lh_uint_t
@@ -150,8 +153,8 @@ lh_uint_t
 lh_date_add_day(lh_date_t *self, lh_uint_t value)
 {
     lh_date_year_t before = lh_date_get_year(self);
-    lh_date_t result =
-        lh_date_from_epoch_days(lh_math_add(lh_date_days_since_epoch(self), lh_cast_static(lh_s64_t, value)));
+    lh_date_t result;
+    lh_date_from_epoch_days(lh_math_add(lh_date_days_since_epoch(self), lh_cast_static(lh_s64_t, value)), lh_addr_of(result));
 
     lh_date_assign(self, lh_addr_of(result));
     return lh_cast_static(lh_uint_t, lh_math_lt(lh_date_get_year(self), before));
@@ -161,8 +164,8 @@ lh_uint_t
 lh_date_sub_day(lh_date_t *self, lh_uint_t value)
 {
     lh_date_year_t before = lh_date_get_year(self);
-    lh_date_t result =
-        lh_date_from_epoch_days(lh_math_sub(lh_date_days_since_epoch(self), lh_cast_static(lh_s64_t, value)));
+    lh_date_t result;
+    lh_date_from_epoch_days(lh_math_sub(lh_date_days_since_epoch(self), lh_cast_static(lh_s64_t, value)), lh_addr_of(result));
 
     lh_date_assign(self, lh_addr_of(result));
     return lh_cast_static(lh_uint_t, lh_math_gt(lh_date_get_year(self), before));

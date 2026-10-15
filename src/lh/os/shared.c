@@ -118,7 +118,9 @@ lh_os_shared_adopt(lh_os_shared_t *self, lh_os_system_shared_handle_t handle)
     const lh_bool_t ok = lh_os_system_shared_get_path(handle, lh_addr_of(text));
     if (ok)
     {
-        lh_fs_path_set(lh_os_shared_get_path(self), lh_str_as_view(lh_addr_of(text)),
+        lh_str_view_t view;
+        lh_str_as_view(lh_addr_of(text), lh_addr_of(view));
+        lh_fs_path_set(lh_os_shared_get_path(self), view,
                        lh_os_system_fs_path_style_native());
         lh_os_shared_set_handle(self, handle);
     }

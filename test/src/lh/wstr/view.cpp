@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/wstr/view.h>
+#include <lh/test/out.h>
 
 TEST(wstr_view_lit, uses_sizeof_of_wide_string_literal)
 {
@@ -64,7 +65,7 @@ TEST(wstr_view_init_death, null_data)
 TEST(wstr_view_make_from_offset, counts_wide_characters)
 {
     const lh_wstr_view_t v = lh_wstr_view_lit(L"key=value");
-    const lh_wstr_view_t mid = lh_wstr_view_from_offset(&v, 3, 1);
+    const lh_wstr_view_t mid = lh_test::out(lh_wstr_view_from_offset, &v, 3, 1);
 
     EXPECT_EQ(lh_wstr_view_get_size(&mid), 1u);
     EXPECT_EQ(lh_wstr_view_get_data(&mid)[0], L'=');
@@ -74,8 +75,8 @@ TEST(wstr_view_make_from_offset, counts_wide_characters)
 TEST(wstr_view_make_tail, from_offset_to_end_and_empty_at_size)
 {
     const lh_wstr_view_t v = lh_wstr_view_lit(L"key=value");
-    const lh_wstr_view_t value = lh_wstr_view_tail(&v, 4);
-    const lh_wstr_view_t at_end = lh_wstr_view_tail(&v, 9);
+    const lh_wstr_view_t value = lh_test::out(lh_wstr_view_tail, &v, 4);
+    const lh_wstr_view_t at_end = lh_test::out(lh_wstr_view_tail, &v, 9);
 
     EXPECT_EQ(lh_wstr_view_get_size(&value), 5u);
     EXPECT_EQ(lh_wstr_view_get_data(&value)[0], L'v');

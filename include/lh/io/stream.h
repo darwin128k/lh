@@ -72,8 +72,8 @@ lh_io_stream_assign(lh_io_stream_t *self, const lh_io_stream_t *other);
  * @param self Stream to read from.
  * @return Current ::lh_io_reader_t.
  */
-lh_io_reader_t
-lh_io_stream_get_reader(const lh_io_stream_t *self);
+lh_void
+lh_io_stream_get_reader(const lh_io_stream_t *self, lh_io_reader_t *out);
 
 /**
  * @brief Replace the read half of @p self.
@@ -88,8 +88,8 @@ lh_io_stream_set_reader(lh_io_stream_t *self, const lh_io_reader_t *reader);
  * @param self Stream to read from.
  * @return Current ::lh_io_writer_t.
  */
-lh_io_writer_t
-lh_io_stream_get_writer(const lh_io_stream_t *self);
+lh_void
+lh_io_stream_get_writer(const lh_io_stream_t *self, lh_io_writer_t *out);
 
 /**
  * @brief Replace the write half of @p self.

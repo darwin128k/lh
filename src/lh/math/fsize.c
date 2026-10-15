@@ -25,15 +25,17 @@ lh_math_fsize_init_empty(lh_math_fsize_t *self)
     lh_math_fsize_init(self, 0, 0);
 }
 
-lh_math_fsize_t
-lh_math_fsize_from_extent(const lh_math_fpoint_t *min, const lh_math_fpoint_t *max)
+lh_void
+lh_math_fsize_from_extent(const lh_math_fpoint_t *min, const lh_math_fpoint_t *max, lh_math_fsize_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(min);
     lh_assert_runtime_ref(max);
     lh_math_fsize_t s;
     lh_math_fsize_init(lh_addr_of(s), lh_math_fpoint_get_x(max) - lh_math_fpoint_get_x(min),
                        lh_math_fpoint_get_y(max) - lh_math_fpoint_get_y(min));
-    return s;
+    *out = s;
+    return;
 }
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
@@ -68,25 +70,29 @@ lh_math_fsize_set_height(lh_math_fsize_t *self, lh_math_fscalar_t height)
 
 /* ── Conversions ─────────────────────────────────────────────────────────── */
 
-lh_math_size_t
-lh_math_fsize_to_size(lh_math_fsize_t self)
+lh_void
+lh_math_fsize_to_size(lh_math_fsize_t self, lh_math_size_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_math_size_t result;
     lh_math_size_init(lh_addr_of(result),
                       lh_cast_static(lh_math_scalar_t, lh_math_fsize_get_width(lh_addr_of(self))),
                       lh_cast_static(lh_math_scalar_t, lh_math_fsize_get_height(lh_addr_of(self))));
-    return result;
+    *out = result;
+    return;
 }
 
-lh_math_fsize_t
-lh_math_size_to_fsize(lh_math_size_t self)
+lh_void
+lh_math_size_to_fsize(lh_math_size_t self, lh_math_fsize_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_math_fsize_t result;
     lh_math_fsize_init(
         lh_addr_of(result),
         lh_cast_static(lh_math_fscalar_t, lh_math_size_get_width(lh_addr_of(self))),
         lh_cast_static(lh_math_fscalar_t, lh_math_size_get_height(lh_addr_of(self))));
-    return result;
+    *out = result;
+    return;
 }
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
@@ -150,12 +156,14 @@ lh_math_fsize_is_empty(const lh_math_fsize_t *self)
 
 /* ── Set ops ────────────────────────────────────────────────────────────── */
 
-lh_math_fsize_t
-lh_math_fsize_inset(const lh_math_fsize_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy)
+lh_void
+lh_math_fsize_inset(const lh_math_fsize_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy, lh_math_fsize_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
     lh_math_fsize_t result;
     lh_math_fsize_init(lh_addr_of(result), lh_math_fsize_get_width(self) - dx - dx,
                        lh_math_fsize_get_height(self) - dy - dy);
-    return result;
+    *out = result;
+    return;
 }

@@ -4,6 +4,7 @@
 #endif
 
 #include <lh/os/system/shared.h>
+#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/null.h>
@@ -17,10 +18,12 @@
 #include <dlfcn.h>
 #include <link.h>
 
-lh_str_view_t
-lh_os_system_shared_get_ext(void)
+lh_void
+lh_os_system_shared_get_ext(lh_str_view_t *out)
 {
-    return lh_str_view_lit(".so");
+    lh_assert_runtime_ref(out);
+    *out = lh_str_view_lit(".so");
+    return;
 }
 
 /* Name of the image behind `map`. dladdr on its own dynamic section also

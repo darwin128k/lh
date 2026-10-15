@@ -124,8 +124,8 @@ lh_wstr_view_init_by_other(lh_wstr_view_t *self, const lh_wstr_view_t *other);
  * @fails ::lh_runtime_error_code_out_of_range
  *        <tt>[offset, offset + size)</tt> is outside @p self.
  */
-lh_wstr_view_t
-lh_wstr_view_from_offset(const lh_wstr_view_t *self, lh_uoffset_t offset, lh_usize_t size);
+lh_void
+lh_wstr_view_from_offset(const lh_wstr_view_t *self, lh_uoffset_t offset, lh_usize_t size, lh_wstr_view_t *out);
 
 /**
  * @brief The wide characters of @p self from @p offset to its end.
@@ -148,8 +148,8 @@ lh_wstr_view_from_offset(const lh_wstr_view_t *self, lh_uoffset_t offset, lh_usi
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p offset is greater than the size of @p self.
  */
-lh_wstr_view_t
-lh_wstr_view_tail(const lh_wstr_view_t *self, lh_uoffset_t offset);
+lh_void
+lh_wstr_view_tail(const lh_wstr_view_t *self, lh_uoffset_t offset, lh_wstr_view_t *out);
 
 /* -- getters --------------------------------------------------------------- */
 

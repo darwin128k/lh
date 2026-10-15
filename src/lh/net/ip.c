@@ -1,4 +1,5 @@
 #include <lh/net/ip.h>
+#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/memory.h>

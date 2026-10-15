@@ -228,18 +228,24 @@ lh_ui_gradient_frac_at(const lh_ui_gradient_t *self, const lh_ui_rect_t *rect, l
     return lh_cast_static(lh_byte_t, frac < 0 ? 0 : (frac > 255 ? 255 : frac));
 }
 
-lh_ui_color_t
-lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac)
+lh_void
+lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac, lh_ui_color_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_ui_gradient_stop_count_t i;
-    lh_ui_color_t out;
+    lh_ui_color_t result;
 
     lh_assert_runtime_ref(self);
-    lh_ui_color_init(lh_addr_of(out), 0, 0, 0, 0);
-    lh_return_if(self->stops_count == 0, out);
+    lh_ui_color_init(lh_addr_of(result), 0, 0, 0, 0);
+    if (self->stops_count == 0)
+    {
+        *out = result;
+        return;
+    }
     if (self->stops_count == 1 || frac <= lh_ui_gradient_stop_get_frac(lh_addr_of(self->stops[0])))
     {
-        return *lh_ui_gradient_stop_get_color_as_const(lh_addr_of(self->stops[0]));
+        *out = *lh_ui_gradient_stop_get_color_as_const(lh_addr_of(self->stops[0]));
+        return;
     }
     for (i = 1; i < self->stops_count; ++i)
     {
@@ -255,11 +261,15 @@ lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac)
             const lh_s32_t span = end - start;
             const lh_s32_t at = lh_cast_static(lh_s32_t, frac)- start;
 
-            lh_return_if(span <= 0, *to);
+            if (span <= 0)
+            {
+                *out = *to;
+                return;
+            }
             /* Each channel, alpha with them, mixed in proportion to how far along the
                span the pixel is. */
             lh_ui_color_init(
-                lh_addr_of(out),
+                lh_addr_of(result),
                 lh_cast_static(lh_ui_color_channel_t,
                                (lh_ui_color_get_r(from) * (span - at) + lh_ui_color_get_r(to) * at) / span),
                 lh_cast_static(lh_ui_color_channel_t,
@@ -268,8 +278,10 @@ lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac)
                                (lh_ui_color_get_b(from) * (span - at) + lh_ui_color_get_b(to) * at) / span),
                 lh_cast_static(lh_ui_color_channel_t,
                                (lh_ui_color_get_a(from) * (span - at) + lh_ui_color_get_a(to) * at) / span));
-            return out;
+            *out = result;
+            return;
         }
     }
-    return *lh_ui_gradient_stop_get_color_as_const(lh_addr_of(self->stops[self->stops_count - 1]));
+    *out = *lh_ui_gradient_stop_get_color_as_const(lh_addr_of(self->stops[self->stops_count - 1]));
+    return;
 }

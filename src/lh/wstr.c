@@ -1,4 +1,5 @@
 #include <lh/wstr.h>
+#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/null.h>
@@ -120,7 +121,9 @@ lh_wstr_append_str(lh_wstr_t *self, const lh_wstr_t *other)
         lh_wstr_append(self, lh_wstr_get_data(self), n);
         return;
     }
-    lh_wstr_append_view(self, lh_wstr_as_view(other));
+    lh_wstr_view_t view;
+    lh_wstr_as_view(other, lh_addr_of(view));
+    lh_wstr_append_view(self, view);
 }
 
 lh_void
@@ -178,17 +181,20 @@ lh_wstr_truncate(lh_wstr_t *self, lh_usize_t n)
     lh_wstr_terminate(self);
 }
 
-lh_wstr_view_t
-lh_wstr_as_view(const lh_wstr_t *self)
+lh_void
+lh_wstr_as_view(const lh_wstr_t *self, lh_wstr_view_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_wstr_view_t view;
 
     /* A sized view rejects size 0; an empty string is the empty view. */
     if (lh_wstr_is_empty(self))
     {
         lh_wstr_view_init_empty(lh_addr_of(view));
-        return view;
+        *out = view;
+        return;
     }
     lh_wstr_view_init_by_size(lh_addr_of(view), lh_wstr_get_data(self), lh_wstr_get_size(self));
-    return view;
+    *out = view;
+    return;
 }

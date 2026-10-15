@@ -67,8 +67,8 @@ lh_ui_radii_get_min(const lh_ui_radii_t *self);
  *        add up to more than the side, every radius is scaled down by the same
  *        factor, and none is more than half the shorter side.
  */
-lh_ui_radii_t
-lh_ui_radii_clamp(const lh_ui_radii_t *self, const lh_ui_rect_t *rect);
+lh_void
+lh_ui_radii_clamp(const lh_ui_radii_t *self, const lh_ui_rect_t *rect, lh_ui_radii_t *out);
 
 /**
  * @brief The radius of the corner of @p rect the pixel (@p x, @p y) is nearest:

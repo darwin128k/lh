@@ -140,8 +140,8 @@ lh_wstr_truncate(lh_wstr_t *self, lh_usize_t n);
  * The view is only valid as long as @p self is not mutated or deinitialized
  * afterwards.
  */
-lh_wstr_view_t
-lh_wstr_as_view(const lh_wstr_t *self);
+lh_void
+lh_wstr_as_view(const lh_wstr_t *self, lh_wstr_view_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

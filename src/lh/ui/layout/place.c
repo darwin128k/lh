@@ -76,11 +76,13 @@ lh_ui_place_set_min(lh_ui_place_t *self, lh_ui_scalar_t width, lh_ui_scalar_t he
     lh_ui_size_init(lh_addr_of(self->min), width, height);
 }
 
-lh_ui_size_t
-lh_ui_place_get_min(const lh_ui_place_t *self)
+lh_void
+lh_ui_place_get_min(const lh_ui_place_t *self, lh_ui_size_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    return self->min;
+    *out = self->min;
+    return;
 }
 
 lh_void
@@ -90,11 +92,13 @@ lh_ui_place_set_max(lh_ui_place_t *self, lh_ui_scalar_t width, lh_ui_scalar_t he
     lh_ui_size_init(lh_addr_of(self->max), width, height);
 }
 
-lh_ui_size_t
-lh_ui_place_get_max(const lh_ui_place_t *self)
+lh_void
+lh_ui_place_get_max(const lh_ui_place_t *self, lh_ui_size_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    return self->max;
+    *out = self->max;
+    return;
 }
 
 lh_ui_scalar_t

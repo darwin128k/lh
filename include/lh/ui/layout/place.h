@@ -161,8 +161,8 @@ lh_ui_place_set_min(lh_ui_place_t *self, lh_ui_scalar_t width, lh_ui_scalar_t he
 /**
  * @brief The least @p self is sized to.
  */
-lh_ui_size_t
-lh_ui_place_get_min(const lh_ui_place_t *self);
+lh_void
+lh_ui_place_get_min(const lh_ui_place_t *self, lh_ui_size_t *out);
 
 /**
  * @brief The most @p self is sized to by a flow, on each axis (0: no most).
@@ -177,8 +177,8 @@ lh_ui_place_set_max(lh_ui_place_t *self, lh_ui_scalar_t width, lh_ui_scalar_t he
 /**
  * @brief The most @p self is sized to.
  */
-lh_ui_size_t
-lh_ui_place_get_max(const lh_ui_place_t *self);
+lh_void
+lh_ui_place_get_max(const lh_ui_place_t *self, lh_ui_size_t *out);
 
 /**
  * @brief @p length along @p axis, held between the minimum and the maximum of

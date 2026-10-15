@@ -65,16 +65,16 @@ typedef struct lh_ui_web_html
 } lh_ui_web_html_t;
 
 /** `<!doctype html>` */
-lh_ui_web_html_t
-lh_ui_web_html_doctype(void);
+lh_void
+lh_ui_web_html_doctype(lh_ui_web_html_t *out);
 
 /** Text node — `&`, `<`, `>` escaped on emit. */
-lh_ui_web_html_t
-lh_ui_web_html_text(const lh_str_ptr s);
+lh_void
+lh_ui_web_html_text(const lh_str_ptr s, lh_ui_web_html_t *out);
 
 /** Raw bytes inside a parent (e.g. CSS) — not escaped. */
-lh_ui_web_html_t
-lh_ui_web_html_raw(const lh_str_ptr s);
+lh_void
+lh_ui_web_html_raw(const lh_str_ptr s, lh_ui_web_html_t *out);
 
 /**
  * @brief Element node.
@@ -86,9 +86,10 @@ lh_ui_web_html_raw(const lh_str_ptr s);
  * @param nkids   How many children @p kids holds.
  * @param void_el When true, emit `<name …>` with no children and no close tag.
  */
-lh_ui_web_html_t
+lh_void
 lh_ui_web_html_tag(const lh_str_ptr name, const lh_ui_web_html_attr_t *attrs, lh_u16_t nattrs,
-                   const lh_ui_web_html_t *const *kids, lh_u16_t nkids, lh_bool_t void_el);
+                   const lh_ui_web_html_t *const *kids, lh_u16_t nkids, lh_bool_t void_el,
+                   lh_ui_web_html_t *out);
 
 /** Serialize a full node (doctype / text / raw / element with kids). */
 lh_void

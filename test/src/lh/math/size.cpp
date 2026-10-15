@@ -3,6 +3,7 @@
 #include <lh/math/point.h>
 #include <lh/math/size.h>
 #include <lh/util/addr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -31,7 +32,7 @@ TEST(math_size, from_extent_is_delta)
     lh_math_point_t max;
 
     lh_math_point_init(lh_addr_of(max), 6, 5);
-    const lh_math_size_t size = lh_math_size_from_extent(lh_addr_of(min), lh_addr_of(max));
+    const lh_math_size_t size = lh_test::out(lh_math_size_from_extent, lh_addr_of(min), lh_addr_of(max));
     EXPECT_EQ(lh_math_size_get_width(lh_addr_of(size)), 5);
     EXPECT_EQ(lh_math_size_get_height(lh_addr_of(size)), 3);
 }
@@ -41,7 +42,7 @@ TEST(math_size, inset_shrinks_both_sides)
     lh_math_size_t size;
 
     lh_math_size_init(lh_addr_of(size), 10, 8);
-    const lh_math_size_t inner = lh_math_size_inset(lh_addr_of(size), 1, 2);
+    const lh_math_size_t inner = lh_test::out(lh_math_size_inset, lh_addr_of(size), 1, 2);
     EXPECT_EQ(lh_math_size_get_width(lh_addr_of(inner)), 8);
     EXPECT_EQ(lh_math_size_get_height(lh_addr_of(inner)), 4);
 }

@@ -41,7 +41,7 @@ lh_ui_canvas_sw_set_pixmap(lh_ui_canvas_sw_t *self, const lh_ui_pixmap_t *pixmap
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(pixmap);
     self->pixmap = *pixmap;
-    self->limit = lh_ui_pixmap_get_bounds(pixmap);
+    lh_ui_pixmap_get_bounds(pixmap, lh_addr_of(self->limit));
     lh_ui_canvas_clip_init_empty(lh_addr_of(self->clip));
 }
 
@@ -52,11 +52,13 @@ lh_ui_canvas_sw_get_pixmap(const lh_ui_canvas_sw_t *self)
     return lh_addr_of(self->pixmap);
 }
 
-lh_ui_rect_t
-lh_ui_canvas_sw_get_limit(const lh_ui_canvas_sw_t *self)
+lh_void
+lh_ui_canvas_sw_get_limit(const lh_ui_canvas_sw_t *self, lh_ui_rect_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    return self->limit;
+    *out = self->limit;
+    return;
 }
 
 lh_bool_t
@@ -423,7 +425,8 @@ lh_ui_canvas_sw_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t 
     lh_ui_canvas_sw_t *self = lh_ui_canvas_sw_from(context);
     const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
     const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
-    const lh_ui_color_t color = lh_ui_shadow_get_color(shadow);
+    lh_ui_color_t color;
+    lh_ui_shadow_get_color(shadow, lh_addr_of(color));
     const lh_u32_t rgb = lh_ui_color_get_argb(&color) & 0x00FFFFFFU;
     const lh_ui_scalar_t corner = lh_ui_radius_clamp(rect, radius);
     const lh_bool_t rounded = lh_ui_canvas_sw_is_rounded(self);
@@ -462,7 +465,8 @@ static lh_bool_t
 sw_soften(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t blur_radius, lh_u8_t *scratch,
           lh_usize_t bytes, const lh_ui_rect_t *shape, lh_ui_scalar_t corner)
 {
-    const lh_ui_rect_t cut = lh_ui_rect_intersection(rect, &self->limit);
+    lh_ui_rect_t cut;
+    lh_ui_rect_intersection(rect, &self->limit, lh_addr_of(cut));
     const lh_s32_t radius = blur_radius > 0 ? lh_ui_scalar_floor_s32(blur_radius) : 0;
 
     lh_return_if(lh_ui_rect_is_empty(&cut), lh_bool_false);
@@ -500,13 +504,14 @@ lh_void
 lh_ui_canvas_sw_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip)
 {
     lh_ui_canvas_sw_t *self = lh_ui_canvas_sw_from(context);
-    const lh_ui_rect_t bounds = lh_ui_pixmap_get_bounds(lh_addr_of(self->pixmap));
+    lh_ui_rect_t bounds;
+    lh_ui_pixmap_get_bounds(lh_addr_of(self->pixmap), lh_addr_of(bounds));
 
     lh_ui_canvas_clip_init_empty(lh_addr_of(self->clip));
     self->limit = bounds;
     lh_return_if(lh_null_eq(clip));
     self->clip = *clip;
-    self->limit = lh_ui_rect_intersection(lh_addr_of(bounds), lh_ui_canvas_clip_get_rect(clip));
+    lh_ui_rect_intersection(lh_addr_of(bounds), lh_ui_canvas_clip_get_rect(clip), lh_addr_of(self->limit));
 }
 
 lh_bool_t

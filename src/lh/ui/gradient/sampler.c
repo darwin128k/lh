@@ -98,7 +98,7 @@ lh_ui_gradient_sampler_fill(lh_ui_gradient_sampler_t *self)
 
         if (count <= 1 || frac <= lh_ui_gradient_stop_get_frac(lh_ui_gradient_get_stop_as_const(gradient, 0)))
         {
-            self->colors[frac] = lh_ui_gradient_color_at(gradient, lh_cast_static(lh_byte_t, frac));
+            lh_ui_gradient_color_at(gradient, lh_cast_static(lh_byte_t, frac), lh_addr_of(self->colors[frac]));
             continue;
         }
         /* The first stop at or past this step only moves on as the step does. */
@@ -110,7 +110,7 @@ lh_ui_gradient_sampler_fill(lh_ui_gradient_sampler_t *self)
         }
         if (segment >= count)
         {
-            self->colors[frac] = lh_ui_gradient_color_at(gradient, lh_cast_static(lh_byte_t, frac));
+            lh_ui_gradient_color_at(gradient, lh_cast_static(lh_byte_t, frac), lh_addr_of(self->colors[frac]));
             continue;
         }
         a = lh_ui_gradient_get_stop_as_const(gradient, lh_cast_static(lh_ui_gradient_stop_count_t, (segment - 1)));
@@ -120,7 +120,7 @@ lh_ui_gradient_sampler_fill(lh_ui_gradient_sampler_t *self)
         at = frac - start;
         if (span <= 0 || at < 0)
         {
-            self->colors[frac] = lh_ui_gradient_color_at(gradient, lh_cast_static(lh_byte_t, frac));
+            lh_ui_gradient_color_at(gradient, lh_cast_static(lh_byte_t, frac), lh_addr_of(self->colors[frac]));
             carried = 0;
             continue;
         }

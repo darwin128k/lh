@@ -78,9 +78,10 @@ lh_ui_insets_is_zero(const lh_ui_insets_t *self)
                : lh_bool_false;
 }
 
-lh_ui_rect_t
-lh_ui_insets_shrink(const lh_ui_insets_t *self, const lh_ui_rect_t *rect)
+lh_void
+lh_ui_insets_shrink(const lh_ui_insets_t *self, const lh_ui_rect_t *rect, lh_ui_rect_t *out)
 {
+    lh_assert_runtime_ref(out);
     const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
     const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
     lh_ui_rect_t inner;
@@ -89,5 +90,6 @@ lh_ui_insets_shrink(const lh_ui_insets_t *self, const lh_ui_rect_t *rect)
     lh_ui_rect_init(lh_addr_of(inner), lh_ui_point_get_x(origin) + self->left, lh_ui_point_get_y(origin) + self->top,
                     lh_math_max(lh_ui_size_get_width(size) - self->left - self->right, lh_ui_scalar(0)),
                     lh_math_max(lh_ui_size_get_height(size) - self->top - self->bottom, lh_ui_scalar(0)));
-    return inner;
+    *out = inner;
+    return;
 }

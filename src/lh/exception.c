@@ -55,7 +55,8 @@ lh_usize_t
 lh_exception_format_walk(const lh_exception_t *self, lh_str_ptr str, lh_usize_t str_size)
 {
     const lh_exception_origin_t *origin = lh_exception_get_origin(self);
-    const lh_str_view_t desc = lh_runtime_error_get_desc(lh_exception_get_error(self));
+    lh_str_view_t desc;
+    lh_runtime_error_get_desc(lh_exception_get_error(self), lh_addr_of(desc));
     lh_usize_t pos;
 
     pos = lh_exception_format_put(str, str_size, 0U, "lh: runtime check failed: error %d",

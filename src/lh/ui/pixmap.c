@@ -93,14 +93,16 @@ lh_ui_pixmap_get_pixel_bytes(const lh_ui_pixmap_t *self)
     return lh_ui_pixmap_format_get_bytes(lh_ui_pixmap_get_format(self));
 }
 
-lh_ui_rect_t
-lh_ui_pixmap_get_bounds(const lh_ui_pixmap_t *self)
+lh_void
+lh_ui_pixmap_get_bounds(const lh_ui_pixmap_t *self, lh_ui_rect_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_ui_rect_t bounds;
 
     lh_assert_runtime_ref(self);
     lh_ui_rect_init(lh_addr_of(bounds), 0, 0, self->width, self->height);
-    return bounds;
+    *out = bounds;
+    return;
 }
 
 lh_byte_ptr
@@ -132,18 +134,21 @@ lh_ui_pixmap_pack(const lh_ui_pixmap_t *self, const lh_ui_color_t *color)
     return lh_ui_pixmap_order_16(self, lh_ui_color_get_rgb565(color));
 }
 
-lh_ui_color_t
-lh_ui_pixmap_unpack(const lh_ui_pixmap_t *self, lh_u32_t word)
+lh_void
+lh_ui_pixmap_unpack(const lh_ui_pixmap_t *self, lh_u32_t word, lh_ui_color_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_ui_color_t color;
 
     if (lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)))
     {
         lh_ui_color_init_rgb565(lh_addr_of(color), lh_ui_pixmap_order_16(self, word));
-        return color;
+        *out = color;
+        return;
     }
     lh_ui_color_init_argb(lh_addr_of(color), word);
-    return color;
+    *out = color;
+    return;
 }
 
 lh_u32_t
@@ -168,10 +173,12 @@ lh_ui_pixmap_write_word(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_u32_t w
     *lh_ptr_rcast(lh_u32_t, at) = word;
 }
 
-lh_ui_color_t
-lh_ui_pixmap_get_pixel(const lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y)
+lh_void
+lh_ui_pixmap_get_pixel(const lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_ui_color_t *out)
 {
-    return lh_ui_pixmap_unpack(self, lh_ui_pixmap_read_word(self, x, y));
+    lh_assert_runtime_ref(out);
+    lh_ui_pixmap_unpack(self, lh_ui_pixmap_read_word(self, x, y), out);
+    return;
 }
 
 lh_void
@@ -198,7 +205,7 @@ lh_ui_pixmap_cover_pixel(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, const lh_
         lh_ui_pixmap_blend_pixel(self, x, y, color);
         return;
     }
-    edge = lh_ui_color_with_coverage(color, coverage);
+    lh_ui_color_with_coverage(color, coverage, lh_addr_of(edge));
     lh_ui_pixmap_blend_pixel(self, x, y, lh_addr_of(edge));
 }
 
@@ -261,11 +268,12 @@ lh_ui_pixmap_mix_rgb(lh_u32_t dst, lh_u32_t src, lh_u32_t a)
 lh_u32_t
 lh_ui_pixmap_mix_any(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a)
 {
-    lh_ui_color_t under = lh_ui_pixmap_unpack(self, dst);
+    lh_ui_color_t under;
+    lh_ui_pixmap_unpack(self, dst, lh_addr_of(under));
     lh_ui_color_t over;
 
     lh_ui_color_init_argb(lh_addr_of(over), (a << 24) | src);
-    under = lh_ui_color_over(lh_addr_of(under), lh_addr_of(over));
+    lh_ui_color_over(lh_addr_of(under), lh_addr_of(over), lh_addr_of(under));
     return lh_ui_pixmap_pack(self, lh_addr_of(under));
 }
 

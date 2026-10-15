@@ -69,37 +69,44 @@ lh_math_quat_set_w(lh_math_quat_t *self, lh_float_t w)
     self->w = w;
 }
 
-lh_math_vec4_t
-lh_math_quat_to_vec4(lh_math_quat_t q)
+lh_void
+lh_math_quat_to_vec4(lh_math_quat_t q, lh_math_vec4_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_math_vec4_t result;
     lh_math_vec4_init(lh_addr_of(result), lh_math_quat_get_x(lh_addr_of(q)),
                       lh_math_quat_get_y(lh_addr_of(q)), lh_math_quat_get_z(lh_addr_of(q)),
                       lh_math_quat_get_w(lh_addr_of(q)));
-    return result;
+    *out = result;
+    return;
 }
 
-lh_math_quat_t
-lh_math_quat_from_vec4(lh_math_vec4_t v)
+lh_void
+lh_math_quat_from_vec4(lh_math_vec4_t v, lh_math_quat_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_math_quat_t result;
     lh_math_quat_init(lh_addr_of(result), lh_math_vec4_get_x(lh_addr_of(v)),
                       lh_math_vec4_get_y(lh_addr_of(v)), lh_math_vec4_get_z(lh_addr_of(v)),
                       lh_math_vec4_get_w(lh_addr_of(v)));
-    return result;
+    *out = result;
+    return;
 }
 
-lh_math_quat_t
-lh_math_quat_identity(void)
+lh_void
+lh_math_quat_identity(lh_math_quat_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_math_quat_t _lh_tmp;
     lh_math_quat_init(lh_addr_of(_lh_tmp), 0.0f, 0.0f, 0.0f, 1.0f);
-    return _lh_tmp;
+    *out = _lh_tmp;
+    return;
 }
 
-lh_math_quat_t
-lh_math_quat_from_axis_angle(lh_math_vec3_t axis, lh_float_t angle)
+lh_void
+lh_math_quat_from_axis_angle(lh_math_vec3_t axis, lh_float_t angle, lh_math_quat_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_float_t s;
     lh_float_t c;
     lh_math_float_sin_cos(angle * 0.5f, lh_addr_of(s), lh_addr_of(c));
@@ -107,12 +114,14 @@ lh_math_quat_from_axis_angle(lh_math_vec3_t axis, lh_float_t angle)
     lh_math_quat_init(lh_addr_of(result), lh_math_vec3_get_x(lh_addr_of(axis)) * s,
                       lh_math_vec3_get_y(lh_addr_of(axis)) * s,
                       lh_math_vec3_get_z(lh_addr_of(axis)) * s, c);
-    return result;
+    *out = result;
+    return;
 }
 
-lh_math_quat_t
-lh_math_quat_mul(lh_math_quat_t a, lh_math_quat_t b)
+lh_void
+lh_math_quat_mul(lh_math_quat_t a, lh_math_quat_t b, lh_math_quat_t *out)
 {
+    lh_assert_runtime_ref(out);
     const lh_float_t ax = lh_math_quat_get_x(lh_addr_of(a));
     const lh_float_t ay = lh_math_quat_get_y(lh_addr_of(a));
     const lh_float_t az = lh_math_quat_get_z(lh_addr_of(a));
@@ -126,52 +135,84 @@ lh_math_quat_mul(lh_math_quat_t a, lh_math_quat_t b)
                              aw * by - ax * bz + ay * bw + az * bx,
                              aw * bz + ax * by - ay * bx + az * bw,
                              aw * bw - ax * bx - ay * by - az * bz);
-    return _lh_tmp;
+    *out = _lh_tmp;
+    return;
 }
 
-lh_math_quat_t
-lh_math_quat_conjugate(lh_math_quat_t q)
+lh_void
+lh_math_quat_conjugate(lh_math_quat_t q, lh_math_quat_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_math_quat_t result;
     lh_math_quat_init(lh_addr_of(result), -lh_math_quat_get_x(lh_addr_of(q)),
                       -lh_math_quat_get_y(lh_addr_of(q)), -lh_math_quat_get_z(lh_addr_of(q)),
                       lh_math_quat_get_w(lh_addr_of(q)));
-    return result;
+    *out = result;
+    return;
 }
 
 lh_float_t
 lh_math_quat_dot(lh_math_quat_t a, lh_math_quat_t b)
 {
-    return lh_math_vec4_dot(lh_math_quat_to_vec4(a), lh_math_quat_to_vec4(b));
+    lh_math_vec4_t vec4;
+    lh_math_quat_to_vec4(b, lh_addr_of(vec4));
+    lh_math_vec4_t vec41;
+    lh_math_quat_to_vec4(a, lh_addr_of(vec41));
+    return lh_math_vec4_dot(vec41, vec4);
 }
 
-lh_math_quat_t
-lh_math_quat_normalize(lh_math_quat_t q)
+lh_void
+lh_math_quat_normalize(lh_math_quat_t q, lh_math_quat_t *out)
 {
-    return lh_math_quat_from_vec4(lh_math_vec4_normalize(lh_math_quat_to_vec4(q)));
+    lh_assert_runtime_ref(out);
+    lh_math_vec4_t v;
+    lh_math_vec4_t unit;
+
+    lh_math_quat_to_vec4(q, lh_addr_of(v));
+    lh_math_vec4_normalize(v, lh_addr_of(unit));
+    lh_math_quat_from_vec4(unit, out);
 }
 
-lh_math_vec3_t
-lh_math_quat_rotate(lh_math_quat_t q, lh_math_vec3_t v)
+lh_void
+lh_math_quat_rotate(lh_math_quat_t q, lh_math_vec3_t v, lh_math_vec3_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_math_vec3_t vec3;
     lh_math_vec3_init(lh_addr_of(vec3), lh_math_quat_get_x(lh_addr_of(q)),
                       lh_math_quat_get_y(lh_addr_of(q)), lh_math_quat_get_z(lh_addr_of(q)));
     /* v + w * t + u x t, with u = (x, y, z) and t = 2 (u x v): the expanded
      * q v q* without forming the intermediate quaternions. */
     const lh_math_vec3_t u = vec3;
-    const lh_math_vec3_t t = lh_math_vec3_scale(lh_math_vec3_cross(u, v), 2.0f);
-    return lh_math_vec3_add(lh_math_vec3_add(v, lh_math_vec3_scale(t, lh_math_quat_get_w(lh_addr_of(q)))),
-                           lh_math_vec3_cross(u, t));
+    lh_math_vec3_t uv;
+    lh_math_vec3_t t;
+    lh_math_vec3_t wt;
+    lh_math_vec3_t ut;
+    lh_math_vec3_t sum;
+
+    lh_math_vec3_cross(u, v, lh_addr_of(uv));
+    lh_math_vec3_scale(uv, 2.0f, lh_addr_of(t));
+    lh_math_vec3_scale(t, lh_math_quat_get_w(lh_addr_of(q)), lh_addr_of(wt));
+    lh_math_vec3_cross(u, t, lh_addr_of(ut));
+    lh_math_vec3_add(v, wt, lh_addr_of(sum));
+    lh_math_vec3_add(sum, ut, out);
 }
 
-lh_math_quat_t
-lh_math_quat_nlerp(lh_math_quat_t a, lh_math_quat_t b, lh_float_t t)
+lh_void
+lh_math_quat_nlerp(lh_math_quat_t a, lh_math_quat_t b, lh_float_t t, lh_math_quat_t *out)
 {
-    lh_math_vec4_t to = lh_math_quat_to_vec4(b);
+    lh_assert_runtime_ref(out);
+    lh_math_vec4_t to;
+    lh_math_quat_to_vec4(b, lh_addr_of(to));
     if (lh_math_quat_dot(a, b) < 0.0f)
     {
-        to = lh_math_vec4_neg(to);
+        lh_math_vec4_neg(to, lh_addr_of(to));
     }
-    return lh_math_quat_from_vec4(lh_math_vec4_normalize(lh_math_vec4_lerp(lh_math_quat_to_vec4(a), to, t)));
+    lh_math_vec4_t from;
+    lh_math_vec4_t mixed;
+    lh_math_vec4_t unit;
+
+    lh_math_quat_to_vec4(a, lh_addr_of(from));
+    lh_math_vec4_lerp(from, to, t, lh_addr_of(mixed));
+    lh_math_vec4_normalize(mixed, lh_addr_of(unit));
+    lh_math_quat_from_vec4(unit, out);
 }

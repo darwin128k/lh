@@ -79,8 +79,8 @@ lh_str_list_get_size(const lh_str_list_t *self);
  * @fails ::lh_runtime_error_code_out_of_range @p index is not below
  *        ::lh_str_list_get_size.
  */
-lh_str_view_t
-lh_str_list_get(const lh_str_list_t *self, lh_uindex_t index);
+lh_void
+lh_str_list_get(const lh_str_list_t *self, lh_uindex_t index, lh_str_view_t *out);
 
 /**
  * @brief Element @p index as a NUL-terminated pointer into the shared

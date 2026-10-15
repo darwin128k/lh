@@ -2,6 +2,7 @@
 
 #include <lh/ui/color.h>
 #include <lh/util/addr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -58,7 +59,7 @@ TEST(ui_color, over_opaque_replaces_dst)
     lh_ui_color_t out;
     lh_ui_color_init(lh_addr_of(dst), 10, 20, 30, 255);
     lh_ui_color_init(lh_addr_of(src), 100, 110, 120, 255);
-    out = lh_ui_color_over(lh_addr_of(dst), lh_addr_of(src));
+    out = lh_test::out(lh_ui_color_over, lh_addr_of(dst), lh_addr_of(src));
     EXPECT_EQ(lh_ui_color_get_r(lh_addr_of(out)), 100);
     EXPECT_EQ(lh_ui_color_get_g(lh_addr_of(out)), 110);
     EXPECT_EQ(lh_ui_color_get_b(lh_addr_of(out)), 120);
@@ -72,7 +73,7 @@ TEST(ui_color, over_transparent_keeps_dst)
     lh_ui_color_t out;
     lh_ui_color_init(lh_addr_of(dst), 10, 20, 30, 255);
     lh_ui_color_init(lh_addr_of(src), 100, 110, 120, 0);
-    out = lh_ui_color_over(lh_addr_of(dst), lh_addr_of(src));
+    out = lh_test::out(lh_ui_color_over, lh_addr_of(dst), lh_addr_of(src));
     EXPECT_EQ(lh_ui_color_get_r(lh_addr_of(out)), 10);
     EXPECT_EQ(lh_ui_color_get_g(lh_addr_of(out)), 20);
     EXPECT_EQ(lh_ui_color_get_b(lh_addr_of(out)), 30);
@@ -86,7 +87,7 @@ TEST(ui_color, over_translucent_dst_divides_by_out_alpha)
     lh_ui_color_t out;
     lh_ui_color_init(lh_addr_of(dst), 200, 0, 0, 128);
     lh_ui_color_init(lh_addr_of(src), 0, 0, 200, 128);
-    out = lh_ui_color_over(lh_addr_of(dst), lh_addr_of(src));
+    out = lh_test::out(lh_ui_color_over, lh_addr_of(dst), lh_addr_of(src));
     /* out_a = 0.502 + 0.502 * 0.498 = 0.752; r = 200 * 0.25 / 0.752; b = 200 * 0.502 / 0.752. */
     EXPECT_EQ(lh_ui_color_get_r(lh_addr_of(out)), 66);
     EXPECT_EQ(lh_ui_color_get_g(lh_addr_of(out)), 0);
@@ -101,7 +102,7 @@ TEST(ui_color, over_opaque_on_transparent_dst_is_src)
     lh_ui_color_t out;
     lh_ui_color_init(lh_addr_of(dst), 10, 20, 30, 0);
     lh_ui_color_init(lh_addr_of(src), 100, 110, 120, 77);
-    out = lh_ui_color_over(lh_addr_of(dst), lh_addr_of(src));
+    out = lh_test::out(lh_ui_color_over, lh_addr_of(dst), lh_addr_of(src));
     EXPECT_TRUE(lh_ui_color_equals(lh_addr_of(out), lh_addr_of(src)));
 }
 
@@ -114,7 +115,7 @@ TEST(ui_color, over_two_transparent_is_zero)
     lh_ui_color_init(lh_addr_of(dst), 10, 20, 30, 0);
     lh_ui_color_init(lh_addr_of(src), 100, 110, 120, 0);
     lh_ui_color_init(lh_addr_of(zero), 0, 0, 0, 0);
-    out = lh_ui_color_over(lh_addr_of(dst), lh_addr_of(src));
+    out = lh_test::out(lh_ui_color_over, lh_addr_of(dst), lh_addr_of(src));
     EXPECT_TRUE(lh_ui_color_equals(lh_addr_of(out), lh_addr_of(zero)));
 }
 
@@ -144,8 +145,8 @@ TEST(ui_color, over_an_opaque_dst_matches_the_general_formula)
                                  static_cast<lh_u8_t>(d / 2), 255);
                 lh_ui_color_init(lh_addr_of(src), static_cast<lh_u8_t>(s), static_cast<lh_u8_t>(s / 3),
                                  static_cast<lh_u8_t>(255 - s), static_cast<lh_u8_t>(a));
-                const lh_ui_color_t fast = lh_ui_color_over_opaque(lh_addr_of(dst), lh_addr_of(src));
-                const lh_ui_color_t slow = lh_ui_color_over_translucent(lh_addr_of(dst), lh_addr_of(src));
+                const lh_ui_color_t fast = lh_test::out(lh_ui_color_over_opaque, lh_addr_of(dst), lh_addr_of(src));
+                const lh_ui_color_t slow = lh_test::out(lh_ui_color_over_translucent, lh_addr_of(dst), lh_addr_of(src));
                 ASSERT_TRUE(lh_ui_color_equals(lh_addr_of(fast), lh_addr_of(slow))) << a << " " << s << " " << d;
             }
         }

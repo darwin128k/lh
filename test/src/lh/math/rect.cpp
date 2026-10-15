@@ -2,6 +2,7 @@
 
 #include <lh/math/rect.h>
 #include <lh/util/addr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -39,7 +40,7 @@ TEST(math_rect, far_and_from_extent)
     lh_math_rect_t r;
 
     lh_math_rect_init(lh_addr_of(r), 10, 20, 5, 3);
-    const lh_math_point_t far = lh_math_rect_far(&r);
+    const lh_math_point_t far = lh_test::out(lh_math_rect_far, &r);
     EXPECT_EQ(lh_math_point_get_x(&far), 15);
     EXPECT_EQ(lh_math_point_get_y(&far), 23);
 
@@ -47,14 +48,14 @@ TEST(math_rect, far_and_from_extent)
 
 
     lh_math_point_init(lh_addr_of(min), 10, 20);
-    const lh_math_rect_t from_extent = lh_math_rect_from_extent(&min, &far);
+    const lh_math_rect_t from_extent = lh_test::out(lh_math_rect_from_extent, &min, &far);
     EXPECT_TRUE(lh_math_rect_eq(&from_extent, &r));
 
     lh_math_point_t inverted;
 
 
     lh_math_point_init(lh_addr_of(inverted), 0, 0);
-    const lh_math_rect_t empty = lh_math_rect_from_extent(&far, &inverted);
+    const lh_math_rect_t empty = lh_test::out(lh_math_rect_from_extent, &far, &inverted);
     EXPECT_TRUE(lh_math_rect_is_empty(&empty));
 }
 
@@ -76,14 +77,14 @@ TEST(math_rect, intersection_and_union)
     lh_math_rect_t b;
 
     lh_math_rect_init(lh_addr_of(b), 5, 5, 10, 10);
-    const lh_math_rect_t i = lh_math_rect_intersection(&a, &b);
+    const lh_math_rect_t i = lh_test::out(lh_math_rect_intersection, &a, &b);
     lh_math_rect_t expected_i;
 
     lh_math_rect_init(lh_addr_of(expected_i), 5, 5, 5, 5);
     EXPECT_TRUE(lh_math_rect_eq(&i, &expected_i));
     EXPECT_TRUE(lh_math_rect_intersects(&a, &b));
 
-    const lh_math_rect_t u = lh_math_rect_union(&a, &b);
+    const lh_math_rect_t u = lh_test::out(lh_math_rect_union, &a, &b);
     lh_math_rect_t expected_u;
 
     lh_math_rect_init(lh_addr_of(expected_u), 0, 0, 15, 15);
@@ -94,7 +95,7 @@ TEST(math_rect, intersection_and_union)
 
     lh_math_rect_init(lh_addr_of(far), 100, 100, 1, 1);
     EXPECT_FALSE(lh_math_rect_intersects(&a, &far));
-    const lh_math_rect_t none = lh_math_rect_intersection(&a, &far);
+    const lh_math_rect_t none = lh_test::out(lh_math_rect_intersection, &a, &far);
     EXPECT_TRUE(lh_math_rect_is_empty(&none));
 }
 
@@ -103,12 +104,12 @@ TEST(math_rect, offset_and_inset)
     lh_math_rect_t r;
 
     lh_math_rect_init(lh_addr_of(r), 0, 0, 10, 8);
-    const lh_math_rect_t moved = lh_math_rect_offset(&r, 3, -2);
+    const lh_math_rect_t moved = lh_test::out(lh_math_rect_offset, &r, 3, -2);
     EXPECT_EQ(lh_math_point_get_x(lh_math_rect_get_origin_as_const(&moved)), 3);
     EXPECT_EQ(lh_math_point_get_y(lh_math_rect_get_origin_as_const(&moved)), -2);
     EXPECT_EQ(lh_math_size_get_width(lh_math_rect_get_size_as_const(&moved)), 10);
 
-    const lh_math_rect_t inner = lh_math_rect_inset(&r, 1, 2);
+    const lh_math_rect_t inner = lh_test::out(lh_math_rect_inset, &r, 1, 2);
     lh_math_rect_t expected;
 
     lh_math_rect_init(lh_addr_of(expected), 1, 2, 8, 4);

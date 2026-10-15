@@ -71,8 +71,8 @@ lh_ui_surface_is_valid(const lh_ui_surface_t *self);
 /**
  * @brief Pixel size of @p self (zero when empty).
  */
-lh_ui_size_t
-lh_ui_surface_get_size(const lh_ui_surface_t *self);
+lh_void
+lh_ui_surface_get_size(const lh_ui_surface_t *self, lh_ui_size_t *out);
 
 /**
  * @brief Pixel format of @p self. The format decides how many bytes a pixel is,

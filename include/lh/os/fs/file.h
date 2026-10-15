@@ -182,8 +182,8 @@ lh_os_fs_file_write(lh_self_ptr self, const lh_ptr buf, lh_usize_t size);
  * @param self File to read from; must outlive the returned reader.
  * @return An ::lh_io_reader_t wired to ::lh_os_fs_file_read.
  */
-lh_io_reader_t
-lh_os_fs_file_get_reader(lh_os_fs_file_t *self);
+lh_void
+lh_os_fs_file_get_reader(lh_os_fs_file_t *self, lh_io_reader_t *out);
 
 /**
  * @brief Build an ::lh_io_writer_t that writes to @p self.
@@ -191,8 +191,8 @@ lh_os_fs_file_get_reader(lh_os_fs_file_t *self);
  * @param self File to write to; must outlive the returned writer.
  * @return An ::lh_io_writer_t wired to ::lh_os_fs_file_write.
  */
-lh_io_writer_t
-lh_os_fs_file_get_writer(lh_os_fs_file_t *self);
+lh_void
+lh_os_fs_file_get_writer(lh_os_fs_file_t *self, lh_io_writer_t *out);
 
 /**
  * @brief Build an ::lh_io_stream_t (reader + writer) over @p self.
@@ -200,8 +200,8 @@ lh_os_fs_file_get_writer(lh_os_fs_file_t *self);
  * @param self File to wrap; must outlive the returned stream.
  * @return An ::lh_io_stream_t backed by @p self.
  */
-lh_io_stream_t
-lh_os_fs_file_get_stream(lh_os_fs_file_t *self);
+lh_void
+lh_os_fs_file_get_stream(lh_os_fs_file_t *self, lh_io_stream_t *out);
 
 /**
  * @brief Write every byte of @p buf through this file's writer.

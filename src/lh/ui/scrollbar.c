@@ -48,7 +48,9 @@ lh_void
 lh_ui_scrollbar_on_click(const lh_ui_scrollbar_t *self, const lh_ui_entity_event_t *event)
 {
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_click);
-    lh_ui_scrollbar_page_toward(self, lh_ui_entity_event_get_point(event));
+    lh_ui_point_t point;
+    lh_ui_entity_event_get_point(event, lh_addr_of(point));
+    lh_ui_scrollbar_page_toward(self, point);
 }
 
 lh_void
@@ -139,7 +141,8 @@ lh_ui_scrollbar_set_thumb_style(lh_ui_scrollbar_t *self, const lh_ui_style_t *st
 lh_ui_scalar_t
 lh_ui_scrollbar_get_scroll(const lh_ui_scrollbar_t *self)
 {
-    const lh_ui_point_t scroll = lh_ui_container_get_scroll(self->container);
+    lh_ui_point_t scroll;
+    lh_ui_container_get_scroll(self->container, lh_addr_of(scroll));
 
     return lh_ui_point_get_along(lh_addr_of(scroll), self->axis);
 }
@@ -147,7 +150,8 @@ lh_ui_scrollbar_get_scroll(const lh_ui_scrollbar_t *self)
 lh_ui_scalar_t
 lh_ui_scrollbar_get_scroll_max(const lh_ui_scrollbar_t *self)
 {
-    const lh_ui_point_t max = lh_ui_container_get_scroll_max(self->container);
+    lh_ui_point_t max;
+    lh_ui_container_get_scroll_max(self->container, lh_addr_of(max));
 
     return lh_ui_point_get_along(lh_addr_of(max), self->axis);
 }
@@ -155,7 +159,8 @@ lh_ui_scrollbar_get_scroll_max(const lh_ui_scrollbar_t *self)
 lh_ui_scalar_t
 lh_ui_scrollbar_get_viewport_length(const lh_ui_scrollbar_t *self)
 {
-    const lh_ui_size_t viewport = lh_ui_container_get_viewport_size(self->container);
+    lh_ui_size_t viewport;
+    lh_ui_container_get_viewport_size(self->container, lh_addr_of(viewport));
 
     return lh_ui_size_get_along(lh_addr_of(viewport), self->axis);
 }
@@ -163,7 +168,8 @@ lh_ui_scrollbar_get_viewport_length(const lh_ui_scrollbar_t *self)
 lh_ui_scalar_t
 lh_ui_scrollbar_get_content_length(const lh_ui_scrollbar_t *self)
 {
-    const lh_ui_size_t content = lh_ui_container_get_content_size(self->container);
+    lh_ui_size_t content;
+    lh_ui_container_get_content_size(self->container, lh_addr_of(content));
 
     return lh_ui_size_get_along(lh_addr_of(content), self->axis);
 }
@@ -207,7 +213,8 @@ lh_ui_scrollbar_get_thumb_length_within(const lh_ui_scrollbar_t *self, lh_ui_poi
 lh_ui_scalar_t
 lh_ui_scrollbar_get_thumb_start_within(const lh_ui_scrollbar_t *self, lh_ui_point_t max)
 {
-    const lh_ui_point_t scroll = lh_ui_container_get_scroll_within(self->container, max);
+    lh_ui_point_t scroll;
+    lh_ui_container_get_scroll_within(self->container, max, lh_addr_of(scroll));
 
     return lh_ui_range_window_start(lh_ui_scrollbar_get_track_length(self),
                                     lh_ui_scrollbar_get_thumb_length_within(self, max),
@@ -219,16 +226,20 @@ lh_ui_scalar_t
 lh_ui_scrollbar_get_thumb_length(const lh_ui_scrollbar_t *self)
 {
     lh_assert_runtime_ref(self);
+    lh_ui_point_t point;
+    lh_ui_container_get_scroll_max(self->container, lh_addr_of(point));
     return lh_ui_scrollbar_get_thumb_length_within(
-        self, lh_ui_container_get_scroll_max(self->container));
+        self, point);
 }
 
 lh_ui_scalar_t
 lh_ui_scrollbar_get_thumb_start(const lh_ui_scrollbar_t *self)
 {
     lh_assert_runtime_ref(self);
+    lh_ui_point_t point;
+    lh_ui_container_get_scroll_max(self->container, lh_addr_of(point));
     return lh_ui_scrollbar_get_thumb_start_within(
-        self, lh_ui_container_get_scroll_max(self->container));
+        self, point);
 }
 
 lh_ui_scalar_t
@@ -249,8 +260,8 @@ lh_ui_scrollbar_set_thumb_start(lh_ui_scrollbar_t *self, lh_ui_scalar_t start)
     lh_ui_point_t scroll;
 
     lh_assert_runtime_ref(self);
-    max = lh_ui_container_get_scroll_max(self->container);
-    scroll = lh_ui_container_get_scroll_within(self->container, max);
+    lh_ui_container_get_scroll_max(self->container, lh_addr_of(max));
+    lh_ui_container_get_scroll_within(self->container, max, lh_addr_of(scroll));
     lh_ui_point_set_along(lh_addr_of(scroll), self->axis,
                           lh_ui_range_offset_from_window_start(
                               lh_ui_scrollbar_get_track_length(self),
@@ -259,18 +270,20 @@ lh_ui_scrollbar_set_thumb_start(lh_ui_scrollbar_t *self, lh_ui_scalar_t start)
     lh_ui_container_set_scroll(self->container, scroll);
 }
 
-lh_ui_rect_t
-lh_ui_scrollbar_get_thumb_rect(const lh_ui_scrollbar_t *self)
+lh_void
+lh_ui_scrollbar_get_thumb_rect(const lh_ui_scrollbar_t *self, lh_ui_rect_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_ui_point_t max;
     lh_ui_rect_t thumb;
 
     lh_assert_runtime_ref(self);
-    max = lh_ui_container_get_scroll_max(self->container);
+    lh_ui_container_get_scroll_max(self->container, lh_addr_of(max));
     lh_ui_rect_init_along(lh_addr_of(thumb), lh_addr_of(self->entity.rect), self->axis,
                           lh_ui_scrollbar_get_thumb_start_within(self, max),
                           lh_ui_scrollbar_get_thumb_length_within(self, max));
-    return thumb;
+    *out = thumb;
+    return;
 }
 
 lh_void
@@ -282,14 +295,15 @@ lh_ui_scrollbar_draw_thumb(const lh_ui_scrollbar_t *self, lh_ui_canvas_t *canvas
     lh_return_if(lh_null_eq(canvas) || lh_null_eq(self->thumb_style));
     color = lh_ui_style_get_fill_color(self->thumb_style);
     lh_return_if(lh_null_eq(color));
-    thumb = lh_ui_scrollbar_get_thumb_rect(self);
+    lh_ui_scrollbar_get_thumb_rect(self, lh_addr_of(thumb));
     lh_ui_canvas_fill_round_rect(canvas, lh_addr_of(thumb), lh_ui_style_get_radius(self->thumb_style), color);
 }
 
 lh_bool_t
 lh_ui_scrollbar_contains_thumb(const lh_ui_scrollbar_t *self, lh_ui_point_t point)
 {
-    const lh_ui_rect_t thumb = lh_ui_scrollbar_get_thumb_rect(self);
+    lh_ui_rect_t thumb;
+    lh_ui_scrollbar_get_thumb_rect(self, lh_addr_of(thumb));
 
     lh_assert_runtime_ref(self);
     return lh_ui_rect_contains_point(lh_addr_of(thumb), point);
@@ -306,7 +320,8 @@ lh_ui_scrollbar_set_scroll_at(lh_ui_scrollbar_t *self, lh_ui_point_t point)
 lh_ui_scalar_t
 lh_ui_scrollbar_get_page_toward(const lh_ui_scrollbar_t *self, lh_ui_point_t point)
 {
-    const lh_ui_rect_t thumb = lh_ui_scrollbar_get_thumb_rect(self);
+    lh_ui_rect_t thumb;
+    lh_ui_scrollbar_get_thumb_rect(self, lh_addr_of(thumb));
     const lh_ui_scalar_t page = lh_ui_scrollbar_get_viewport_length(self);
 
     lh_return_if(lh_ui_rect_contains_point(lh_addr_of(thumb), point), lh_ui_scalar(0));

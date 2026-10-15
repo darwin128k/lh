@@ -372,7 +372,8 @@ static lh_bool_t
 web_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, const lh_ui_shadow_t *shadow)
 {
     lh_ui_canvas_web_t *self = lh_ptr_rcast(lh_ui_canvas_web_t, context);
-    const lh_ui_color_t color = lh_ui_shadow_get_color(shadow);
+    lh_ui_color_t color;
+    lh_ui_shadow_get_color(shadow, lh_addr_of(color));
 
     web_comma(self);
     web_lit(self, "{\"op\":\"shadow\",\"rect\":");

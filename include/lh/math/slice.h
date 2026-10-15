@@ -117,40 +117,40 @@ lh_math_slice_get_at(const lh_math_slice_t *self, lh_usize_t index);
  *
  * @fails ::lh_runtime_error_code_out_of_range `offset + count` passes the size.
  */
-lh_math_slice_t
-lh_math_slice_get_sub(const lh_math_slice_t *self, lh_usize_t offset, lh_usize_t count);
+lh_void
+lh_math_slice_get_sub(const lh_math_slice_t *self, lh_usize_t offset, lh_usize_t count, lh_math_slice_t *out);
 
 /**
  * @brief The first @p n elements.
  *
  * @fails ::lh_runtime_error_code_out_of_range @p n is above the size.
  */
-lh_math_slice_t
-lh_math_slice_take_first(const lh_math_slice_t *self, lh_usize_t n);
+lh_void
+lh_math_slice_take_first(const lh_math_slice_t *self, lh_usize_t n, lh_math_slice_t *out);
 
 /**
  * @brief The last @p n elements.
  *
  * @fails ::lh_runtime_error_code_out_of_range @p n is above the size.
  */
-lh_math_slice_t
-lh_math_slice_take_last(const lh_math_slice_t *self, lh_usize_t n);
+lh_void
+lh_math_slice_take_last(const lh_math_slice_t *self, lh_usize_t n, lh_math_slice_t *out);
 
 /**
  * @brief All but the first @p n elements.
  *
  * @fails ::lh_runtime_error_code_out_of_range @p n is above the size.
  */
-lh_math_slice_t
-lh_math_slice_drop_first(const lh_math_slice_t *self, lh_usize_t n);
+lh_void
+lh_math_slice_drop_first(const lh_math_slice_t *self, lh_usize_t n, lh_math_slice_t *out);
 
 /**
  * @brief All but the last @p n elements.
  *
  * @fails ::lh_runtime_error_code_out_of_range @p n is above the size.
  */
-lh_math_slice_t
-lh_math_slice_drop_last(const lh_math_slice_t *self, lh_usize_t n);
+lh_void
+lh_math_slice_drop_last(const lh_math_slice_t *self, lh_usize_t n, lh_math_slice_t *out);
 
 /**
  * @brief True when @p a and @p b have the same size and equal elements (`==`: a

@@ -71,8 +71,8 @@ lh_ui_shadow_is_empty(const lh_ui_shadow_t *self);
 /**
  * @brief Peak colour of @p self. Its alpha is the strongest the shadow gets.
  */
-lh_ui_color_t
-lh_ui_shadow_get_color(const lh_ui_shadow_t *self);
+lh_void
+lh_ui_shadow_get_color(const lh_ui_shadow_t *self, lh_ui_color_t *out);
 
 /**
  * @brief Set the peak colour.

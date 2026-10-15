@@ -1,4 +1,5 @@
 #include <lh/net/socket/addr/ip4.h>
+#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/memory/std.h>
@@ -32,15 +33,17 @@ lh_net_ip4_socket_addr_assign(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_s
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(other);
 
-    ip = lh_net_ip4_socket_addr_get_ip(other);
+    lh_net_ip4_socket_addr_get_ip(other, lh_addr_of(ip));
     lh_net_ip4_socket_addr_set(self, lh_addr_of(ip), lh_net_ip4_socket_addr_get_port(other));
 }
 
-lh_net_ip4_t
-lh_net_ip4_socket_addr_get_ip(const lh_net_ip4_socket_addr_t *self)
+lh_void
+lh_net_ip4_socket_addr_get_ip(const lh_net_ip4_socket_addr_t *self, lh_net_ip4_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    return self->ip;
+    *out = self->ip;
+    return;
 }
 
 lh_void
@@ -119,7 +122,7 @@ lh_net_ip4_socket_addr_format(const lh_net_ip4_socket_addr_t *self, lh_str_ptr s
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(str);
 
-    ip = lh_net_ip4_socket_addr_get_ip(self);
+    lh_net_ip4_socket_addr_get_ip(self, lh_addr_of(ip));
 
     for (octet_index = 0; octet_index < LH_NET_IP4_OCTET_COUNT; octet_index++)
     {
@@ -169,8 +172,8 @@ lh_net_ip4_socket_addr_equals(const lh_net_ip4_socket_addr_t *self,
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(other);
 
-    self_ip = lh_net_ip4_socket_addr_get_ip(self);
-    other_ip = lh_net_ip4_socket_addr_get_ip(other);
+    lh_net_ip4_socket_addr_get_ip(self, lh_addr_of(self_ip));
+    lh_net_ip4_socket_addr_get_ip(other, lh_addr_of(other_ip));
     if (!lh_net_ip4_equals(lh_addr_of(self_ip), lh_addr_of(other_ip)))
     {
         return lh_bool_false;
@@ -189,8 +192,8 @@ lh_net_ip4_socket_addr_is_at_least(const lh_net_ip4_socket_addr_t *self,
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(minimum);
 
-    self_ip = lh_net_ip4_socket_addr_get_ip(self);
-    minimum_ip = lh_net_ip4_socket_addr_get_ip(minimum);
+    lh_net_ip4_socket_addr_get_ip(self, lh_addr_of(self_ip));
+    lh_net_ip4_socket_addr_get_ip(minimum, lh_addr_of(minimum_ip));
     if (!lh_net_ip4_is_at_least(lh_addr_of(self_ip), lh_addr_of(minimum_ip)))
     {
         return lh_bool_false;

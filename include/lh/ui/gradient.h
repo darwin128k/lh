@@ -126,8 +126,8 @@ lh_ui_gradient_frac_at(const lh_ui_gradient_t *self, const lh_ui_rect_t *rect, l
  * @brief The colour of @p self at @p frac on its stop axis: the stops either side
  *        mixed in proportion, the first stop's colour before it and the last's after.
  */
-lh_ui_color_t
-lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac);
+lh_void
+lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac, lh_ui_color_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

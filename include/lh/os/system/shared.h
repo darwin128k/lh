@@ -45,8 +45,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  *
  * @return View over a static literal; its size is known without a scan.
  */
-lh_str_view_t
-lh_os_system_shared_get_ext(void);
+lh_void
+lh_os_system_shared_get_ext(lh_str_view_t *out);
 
 /**
  * @brief Open the shared image at @p path.

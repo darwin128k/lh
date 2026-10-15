@@ -1,4 +1,5 @@
 #include <lh/time.h>
+#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/numeric/types.h>
@@ -161,16 +162,18 @@ lh_time_seconds_of_day(const lh_time_t *self)
     return lh_math_add(lh_math_add(hour_seconds, minute_seconds), lh_cast_static(lh_uint_t, lh_time_get_second(self)));
 }
 
-lh_time_t
-lh_time_from_seconds_of_day(lh_uint_t seconds)
+lh_void
+lh_time_from_seconds_of_day(lh_uint_t seconds, lh_time_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_time_t time;
     const lh_uint_t seconds_of_hour = lh_math_mod(seconds, LH_TIME_SECONDS_PER_HOUR);
 
     lh_time_set(lh_addr_of(time), lh_cast_static(lh_time_hour_t, lh_math_div(seconds, LH_TIME_SECONDS_PER_HOUR)),
                lh_cast_static(lh_time_minute_t, lh_math_div(seconds_of_hour, LH_TIME_SECONDS_PER_MINUTE)),
                lh_cast_static(lh_time_second_t, lh_math_mod(seconds, LH_TIME_SECONDS_PER_MINUTE)));
-    return time;
+    *out = time;
+    return;
 }
 
 lh_bool_t

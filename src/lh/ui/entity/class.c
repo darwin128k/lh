@@ -21,7 +21,7 @@ lh_ui_entity_class_fill(const struct lh_ui_entity *self, lh_ui_canvas_t *canvas)
 
     lh_return_if(lh_null_eq(canvas) || lh_null_eq(style));
     lh_return_if(lh_ui_paint_is_empty(lh_ui_style_get_fill(style)));
-    rect = lh_ui_entity_get_rect(self);
+    lh_ui_entity_get_rect(self, lh_addr_of(rect));
     /* The style in force (a press may change it), its paint and its corners. One
        radius and one colour are the backend's rounded fill, as they always were;
        a corner of its own or a gradient is drawn by the canvas
@@ -45,7 +45,7 @@ lh_ui_entity_class_shadow(const struct lh_ui_entity *self, lh_ui_canvas_t *canva
        nothing of it left to land on the fill. An empty shadow is the common case
        and costs nothing but this question. */
     lh_return_if(lh_ui_shadow_is_empty(lh_ui_style_get_shadow(style)));
-    rect = lh_ui_entity_get_rect(self);
+    lh_ui_entity_get_rect(self, lh_addr_of(rect));
     (void)lh_ui_canvas_shadow(canvas, lh_addr_of(rect), lh_ui_entity_get_radius_now(self),
                               lh_ui_style_get_shadow(style));
 }

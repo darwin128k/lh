@@ -1101,8 +1101,8 @@ lh_memory_view_slice_swap_and_clear(lh_memory_view_slice_t *self, lh_memory_view
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source range size.
  */
-lh_memory_view_slice_t
-lh_memory_view_slice_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t n);
+lh_void
+lh_memory_view_slice_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_memory_view_slice_t *out);
 
 /**
  * @brief Build a slice containing the last @p n bytes of a valid closed range.
@@ -1120,8 +1120,8 @@ lh_memory_view_slice_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source range size.
  */
-lh_memory_view_slice_t
-lh_memory_view_slice_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t n);
+lh_void
+lh_memory_view_slice_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_memory_view_slice_t *out);
 
 /**
  * @brief Build a slice containing the first @p size bytes of @p self.
@@ -1139,8 +1139,8 @@ lh_memory_view_slice_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t 
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p size is greater than the source slice size.
  */
-lh_memory_view_slice_t
-lh_memory_view_slice_from_begin(const lh_memory_view_slice_t *self, lh_usize_t size);
+lh_void
+lh_memory_view_slice_from_begin(const lh_memory_view_slice_t *self, lh_usize_t size, lh_memory_view_slice_t *out);
 
 /**
  * @brief Build a slice containing the last @p size bytes of @p self.
@@ -1158,8 +1158,8 @@ lh_memory_view_slice_from_begin(const lh_memory_view_slice_t *self, lh_usize_t s
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p size is greater than the source slice size.
  */
-lh_memory_view_slice_t
-lh_memory_view_slice_from_end(const lh_memory_view_slice_t *self, lh_usize_t size);
+lh_void
+lh_memory_view_slice_from_end(const lh_memory_view_slice_t *self, lh_usize_t size, lh_memory_view_slice_t *out);
 
 /**
  * @brief Build a sub-slice between @p begin and @p end inside @p self.
@@ -1176,9 +1176,10 @@ lh_memory_view_slice_from_end(const lh_memory_view_slice_t *self, lh_usize_t siz
  * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end]</tt> is not a valid slice.
  */
-lh_memory_view_slice_t
+lh_void
 lh_memory_view_slice_between(const lh_memory_view_slice_t *self, const lh_ptr begin,
-                                  const lh_ptr end);
+                                  const lh_ptr end,
+                                  lh_memory_view_slice_t *out);
 
 /**
  * @brief Build a sub-slice starting at @p offset with @p size bytes.
@@ -1197,9 +1198,10 @@ lh_memory_view_slice_between(const lh_memory_view_slice_t *self, const lh_ptr be
  * @fails ::lh_runtime_error_code_out_of_range
  *        <tt>[offset, offset + size)</tt> is outside @p self.
  */
-lh_memory_view_slice_t
+lh_void
 lh_memory_view_slice_from_offset(const lh_memory_view_slice_t *self, lh_uoffset_t offset,
-                                      lh_usize_t size);
+                                      lh_usize_t size,
+                                      lh_memory_view_slice_t *out);
 
 /**
  * @brief Build a slice with @p n bytes removed from the beginning.
@@ -1217,8 +1219,8 @@ lh_memory_view_slice_from_offset(const lh_memory_view_slice_t *self, lh_uoffset_
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source slice size.
  */
-lh_memory_view_slice_t
-lh_memory_view_slice_drop_first(const lh_memory_view_slice_t *self, lh_usize_t n);
+lh_void
+lh_memory_view_slice_drop_first(const lh_memory_view_slice_t *self, lh_usize_t n, lh_memory_view_slice_t *out);
 
 /**
  * @brief Build a slice with @p n bytes removed from the end.
@@ -1236,8 +1238,8 @@ lh_memory_view_slice_drop_first(const lh_memory_view_slice_t *self, lh_usize_t n
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source slice size.
  */
-lh_memory_view_slice_t
-lh_memory_view_slice_drop_last(const lh_memory_view_slice_t *self, lh_usize_t n);
+lh_void
+lh_memory_view_slice_drop_last(const lh_memory_view_slice_t *self, lh_usize_t n, lh_memory_view_slice_t *out);
 
 /**
  * @brief Build a slice with bytes removed from both sides.
@@ -1256,8 +1258,8 @@ lh_memory_view_slice_drop_last(const lh_memory_view_slice_t *self, lh_usize_t n)
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p left + @p right is greater than the source slice size.
  */
-lh_memory_view_slice_t
-lh_memory_view_slice_trim(const lh_memory_view_slice_t *self, lh_usize_t left, lh_usize_t right);
+lh_void
+lh_memory_view_slice_trim(const lh_memory_view_slice_t *self, lh_usize_t left, lh_usize_t right, lh_memory_view_slice_t *out);
 
 /**
  * @brief Store a closed slice starting at @p begin with @p size bytes.
@@ -1342,8 +1344,8 @@ lh_memory_view_slice_init_by_other(lh_memory_view_slice_t *self,
  * @brief Return an uninitialized empty slice.
  * @return Slice with both endpoints ::lh_null.
  */
-lh_memory_view_slice_t
-lh_memory_view_slice_return_empty(void);
+lh_void
+lh_memory_view_slice_return_empty(lh_memory_view_slice_t *out);
 
 /**
  * @brief Return a validated closed slice <tt>[begin, end]</tt>.
@@ -1355,8 +1357,8 @@ lh_memory_view_slice_return_empty(void);
  * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end]</tt> is not a valid slice.
  */
-lh_memory_view_slice_t
-lh_memory_view_slice_return_init_v(const lh_ptr begin, const lh_ptr end);
+lh_void
+lh_memory_view_slice_return_init_v(const lh_ptr begin, const lh_ptr end, lh_memory_view_slice_t *out);
 
 /**
  * @brief Return a validated closed slice of @p size bytes at @p begin.
@@ -1370,8 +1372,8 @@ lh_memory_view_slice_return_init_v(const lh_ptr begin, const lh_ptr end);
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p size is zero.
  */
-lh_memory_view_slice_t
-lh_memory_view_slice_return_init_by_size(const lh_ptr begin, lh_usize_t size);
+lh_void
+lh_memory_view_slice_return_init_by_size(const lh_ptr begin, lh_usize_t size, lh_memory_view_slice_t *out);
 
 /**
  * @brief Resolve @p ptr moved by @p offset to an offset from the slice begin.
@@ -1438,8 +1440,8 @@ lh_memory_view_slice_is_unclosable_ropen(const lh_ptr begin, const lh_ptr end);
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not uninitialized and not a non-empty valid half-open view.
  */
-lh_memory_view_slice_t
-lh_memory_view_slice_from_view(const lh_memory_view_slice_t *self);
+lh_void
+lh_memory_view_slice_from_view(const lh_memory_view_slice_t *self, lh_memory_view_slice_t *out);
 
 /**
  * @brief Half-open containment of <tt>[begin, end)</tt> in @p self.
@@ -1509,15 +1511,15 @@ lh_memory_view_slice_rcompare_ropen(const lh_memory_view_slice_t *self, const lh
  *
  * @return Closed slice covering those bytes, or an empty slice when @p n is zero.
  */
-lh_memory_view_slice_t
-lh_memory_view_slice_take_first_ropen(const lh_ptr begin, const lh_ptr end, lh_usize_t n);
+lh_void
+lh_memory_view_slice_take_first_ropen(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_memory_view_slice_t *out);
 
 /**
  * @brief Take the last @p n bytes of half-open <tt>[begin, end)</tt> as a closed slice.
  * @return Closed slice covering those bytes, or an empty slice when @p n is zero.
  */
-lh_memory_view_slice_t
-lh_memory_view_slice_take_last_ropen(const lh_ptr begin, const lh_ptr end, lh_usize_t n);
+lh_void
+lh_memory_view_slice_take_last_ropen(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_memory_view_slice_t *out);
 
 /**
  * @brief Sub-range of half-open @p self, returned as a closed slice.
@@ -1528,9 +1530,10 @@ lh_memory_view_slice_take_last_ropen(const lh_ptr begin, const lh_ptr end, lh_us
  * @fails ::lh_runtime_error_code_out_of_range
  *        The requested window is outside @p self.
  */
-lh_memory_view_slice_t
+lh_void
 lh_memory_view_slice_from_offset_ropen(const lh_memory_view_slice_t *self, lh_uoffset_t offset,
-                                       lh_usize_t size);
+                                       lh_usize_t size,
+                                       lh_memory_view_slice_t *out);
 
 /**
  * @brief Inclusive last byte of half-open <tt>[begin, end)</tt>: @p end @c - @c 1.
@@ -1593,8 +1596,8 @@ lh_memory_view_slice_needs_ropen(const lh_memory_view_slice_t *self, const lh_pt
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is not a valid non-empty half-open view.
  */
-lh_memory_view_slice_t
-lh_memory_view_slice_return_of_ropen_v(const lh_memory_view_slice_t *self);
+lh_void
+lh_memory_view_slice_return_of_ropen_v(const lh_memory_view_slice_t *self, lh_memory_view_slice_t *out);
 
 /**
  * @brief Half-open containment of <tt>[begin, end)</tt> in <tt>[self_begin, self_end)</tt>.
@@ -1667,9 +1670,10 @@ lh_memory_view_slice_get_ropen_ptr(const lh_memory_view_slice_t *self, lh_uoffse
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p offset is outside that closed slice.
  */
-lh_memory_view_slice_t
+lh_void
 lh_memory_view_slice_return_ropen_sub(const lh_memory_view_slice_t *self, lh_uoffset_t offset,
-                                      lh_usize_t size);
+                                      lh_usize_t size,
+                                      lh_memory_view_slice_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -4,6 +4,7 @@
  */
 
 #include <lh/ui/web/host.h>
+#include <lh/assert/runtime.h>
 #include <lh/ui/web/page.h>
 #include <lh/ui/web/ws.h>
 
@@ -237,13 +238,15 @@ host_query_uint(const char *req, lh_usize_t len, const char *key, lh_usize_t key
 }
 
 /** (@p x, @p y) as an ::lh_ui_point_t. */
-static lh_ui_point_t
-host_point(int x, int y)
+static lh_void
+host_point(int x, int y, lh_ui_point_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_ui_point_t point;
 
     lh_ui_point_init(lh_addr_of(point), lh_cast_static(lh_ui_scalar_t, x), lh_cast_static(lh_ui_scalar_t, y));
-    return point;
+    *out = point;
+    return;
 }
 
 /** A press at (@p x, @p y): the app's hook, or ::lh_ui_view_press without one. */
@@ -255,7 +258,9 @@ host_press(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int y
         hooks->press(x, y, hooks->ctx);
         return;
     }
-    lh_ui_view_press(view, host_point(x, y));
+    lh_ui_point_t point;
+    host_point(x, y, lh_addr_of(point));
+    lh_ui_view_press(view, point);
 }
 
 /** A release at (@p x, @p y): the app's hook, or ::lh_ui_view_release without one. */
@@ -267,7 +272,9 @@ host_release(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int
         hooks->release(x, y, hooks->ctx);
         return;
     }
-    (void)lh_ui_view_release(view, host_point(x, y));
+    lh_ui_point_t point;
+    host_point(x, y, lh_addr_of(point));
+    (void)lh_ui_view_release(view, point);
 }
 
 /** A wheel notch at (@p x, @p y): the app's hook, or ::lh_ui_view_wheel without one. */
@@ -279,7 +286,9 @@ host_wheel(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int y
         hooks->wheel(x, y, dx, dy, hooks->ctx);
         return;
     }
-    (void)lh_ui_view_wheel(view, host_point(x, y), lh_cast_static(lh_ui_scalar_t, dx), lh_cast_static(lh_ui_scalar_t, dy));
+    lh_ui_point_t point;
+    host_point(x, y, lh_addr_of(point));
+    (void)lh_ui_view_wheel(view, point, lh_cast_static(lh_ui_scalar_t, dx), lh_cast_static(lh_ui_scalar_t, dy));
 }
 
 /** @{ */

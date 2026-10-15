@@ -1068,8 +1068,8 @@ lh_memory_view_init_by_other(lh_memory_view_t *self, const lh_memory_view_t *oth
  *        @p self is not a valid half-open view, including a valid empty
  *        view <tt>[x, x)</tt>, which has no closed form.
  */
-lh_memory_view_slice_t
-lh_memory_view_to_slice(const lh_memory_view_t *self);
+lh_void
+lh_memory_view_to_slice(const lh_memory_view_t *self, lh_memory_view_slice_t *out);
 
 /**
  * @brief Build a half-open view from closed @p slice.
@@ -1085,8 +1085,8 @@ lh_memory_view_to_slice(const lh_memory_view_t *self);
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p slice is initialized but not a valid closed slice.
  */
-lh_memory_view_t
-lh_memory_view_return_of_slice(const lh_memory_view_slice_t *slice);
+lh_void
+lh_memory_view_return_of_slice(const lh_memory_view_slice_t *slice, lh_memory_view_t *out);
 
 /**
  * @brief Return the half-open view of a valid closed @p slice.
@@ -1097,15 +1097,15 @@ lh_memory_view_return_of_slice(const lh_memory_view_slice_t *slice);
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p slice is not valid.
  */
-lh_memory_view_t
-lh_memory_view_return_init_of_slice(const lh_memory_view_slice_t *slice);
+lh_void
+lh_memory_view_return_init_of_slice(const lh_memory_view_slice_t *slice, lh_memory_view_t *out);
 
 /**
  * @brief Return an uninitialized empty view.
  * @return View with both endpoints ::lh_null.
  */
-lh_memory_view_t
-lh_memory_view_return_empty(void);
+lh_void
+lh_memory_view_return_empty(lh_memory_view_t *out);
 
 /**
  * @brief Return a validated half-open view <tt>[begin, end)</tt>.
@@ -1117,8 +1117,8 @@ lh_memory_view_return_empty(void);
  * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not a valid view.
  */
-lh_memory_view_t
-lh_memory_view_return_init_v(const lh_ptr begin, const lh_ptr end);
+lh_void
+lh_memory_view_return_init_v(const lh_ptr begin, const lh_ptr end, lh_memory_view_t *out);
 
 /**
  * @brief Return a validated half-open view of @p size bytes at @p begin.
@@ -1132,8 +1132,8 @@ lh_memory_view_return_init_v(const lh_ptr begin, const lh_ptr end);
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p size is zero.
  */
-lh_memory_view_t
-lh_memory_view_return_init_by_size(const lh_ptr begin, lh_usize_t size);
+lh_void
+lh_memory_view_return_init_by_size(const lh_ptr begin, lh_usize_t size, lh_memory_view_t *out);
 
 /* -- sub-range construction -------------------------------------------------- */
 
@@ -1153,8 +1153,8 @@ lh_memory_view_return_init_by_size(const lh_ptr begin, lh_usize_t size);
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source range size.
  */
-lh_memory_view_t
-lh_memory_view_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t n);
+lh_void
+lh_memory_view_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_memory_view_t *out);
 
 /**
  * @brief Build a view containing the last @p n bytes of a valid half-open range.
@@ -1172,8 +1172,8 @@ lh_memory_view_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t n);
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source range size.
  */
-lh_memory_view_t
-lh_memory_view_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t n);
+lh_void
+lh_memory_view_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_memory_view_t *out);
 
 /**
  * @brief Build a view containing the first @p size bytes of @p self.
@@ -1191,8 +1191,8 @@ lh_memory_view_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t n);
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p size is greater than the source view size.
  */
-lh_memory_view_t
-lh_memory_view_from_begin(const lh_memory_view_t *self, lh_usize_t size);
+lh_void
+lh_memory_view_from_begin(const lh_memory_view_t *self, lh_usize_t size, lh_memory_view_t *out);
 
 /**
  * @brief Build a view containing the last @p size bytes of @p self.
@@ -1210,8 +1210,8 @@ lh_memory_view_from_begin(const lh_memory_view_t *self, lh_usize_t size);
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p size is greater than the source view size.
  */
-lh_memory_view_t
-lh_memory_view_from_end(const lh_memory_view_t *self, lh_usize_t size);
+lh_void
+lh_memory_view_from_end(const lh_memory_view_t *self, lh_usize_t size, lh_memory_view_t *out);
 
 /**
  * @brief Build a sub-view between @p begin and @p end inside @p self.
@@ -1228,8 +1228,8 @@ lh_memory_view_from_end(const lh_memory_view_t *self, lh_usize_t size);
  * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not a valid view.
  */
-lh_memory_view_t
-lh_memory_view_between(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end);
+lh_void
+lh_memory_view_between(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end, lh_memory_view_t *out);
 
 /**
  * @brief Build a sub-view starting at @p offset with @p size bytes.
@@ -1248,8 +1248,8 @@ lh_memory_view_between(const lh_memory_view_t *self, const lh_ptr begin, const l
  * @fails ::lh_runtime_error_code_out_of_range
  *        <tt>[offset, offset + size)</tt> is outside @p self.
  */
-lh_memory_view_t
-lh_memory_view_from_offset(const lh_memory_view_t *self, lh_uoffset_t offset, lh_usize_t size);
+lh_void
+lh_memory_view_from_offset(const lh_memory_view_t *self, lh_uoffset_t offset, lh_usize_t size, lh_memory_view_t *out);
 
 /**
  * @brief Build a view with @p n bytes removed from the beginning.
@@ -1267,8 +1267,8 @@ lh_memory_view_from_offset(const lh_memory_view_t *self, lh_uoffset_t offset, lh
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source view size.
  */
-lh_memory_view_t
-lh_memory_view_drop_first(const lh_memory_view_t *self, lh_usize_t n);
+lh_void
+lh_memory_view_drop_first(const lh_memory_view_t *self, lh_usize_t n, lh_memory_view_t *out);
 
 /**
  * @brief Build a view with @p n bytes removed from the end.
@@ -1286,8 +1286,8 @@ lh_memory_view_drop_first(const lh_memory_view_t *self, lh_usize_t n);
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source view size.
  */
-lh_memory_view_t
-lh_memory_view_drop_last(const lh_memory_view_t *self, lh_usize_t n);
+lh_void
+lh_memory_view_drop_last(const lh_memory_view_t *self, lh_usize_t n, lh_memory_view_t *out);
 
 /**
  * @brief Build a view with bytes removed from both sides.
@@ -1306,8 +1306,8 @@ lh_memory_view_drop_last(const lh_memory_view_t *self, lh_usize_t n);
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p left + @p right is greater than the source view size.
  */
-lh_memory_view_t
-lh_memory_view_trim(const lh_memory_view_t *self, lh_usize_t left, lh_usize_t right);
+lh_void
+lh_memory_view_trim(const lh_memory_view_t *self, lh_usize_t left, lh_usize_t right, lh_memory_view_t *out);
 
 LH_COMPILER_EXTERN_C_END
 
