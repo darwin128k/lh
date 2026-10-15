@@ -577,7 +577,7 @@ lh_ui_pixmap_blend_cover_32_sse2(lh_u32_t *at, lh_usize_t count, lh_u64_t cover,
     const __m128i a8 = _mm_loadl_epi64(lh_ptr_rcast(const __m128i, lh_addr_of(cover)));
     const __m128i a8_hi = _mm_srli_si128(a8, 4);
 
-    lh_assert_runtime(count >= 1U && count <= 8U);
+    lh_assert_runtime(count >= 1U && count <= 8U, lh_runtime_error_code_invalid_argument);
     if (count < 4U)
     {
         lh_ui_pixmap_scatter_32(at, count, lh_ui_pixmap_blend_quad_m128(lh_ui_pixmap_gather_32(at, count), a8, src));
@@ -788,7 +788,7 @@ lh_ui_pixmap_blend_cover_16_sse2(lh_u16_t *at, lh_usize_t count, lh_u64_t cover,
 {
     const __m128i a8 = _mm_loadl_epi64(lh_ptr_rcast(const __m128i, lh_addr_of(cover)));
 
-    lh_assert_runtime(count >= 1U && count <= 8U);
+    lh_assert_runtime(count >= 1U && count <= 8U, lh_runtime_error_code_invalid_argument);
     if (count == 8U)
     {
         _mm_storeu_si128(lh_ptr_rcast(__m128i, at),
@@ -880,7 +880,7 @@ lh_ui_pixmap_blend_cover_8(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_s32_
     lh_byte_t alpha[8];
     lh_s32_t i;
 
-    lh_assert_runtime(count >= 1 && count <= 8);
+    lh_assert_runtime(count >= 1 && count <= 8, lh_runtime_error_code_invalid_argument);
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
     if (lh_cpu_simd_has_sse2())
     {
