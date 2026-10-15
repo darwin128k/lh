@@ -26,6 +26,8 @@
 #include <lh/ui/scalar.h>
 #include <lh/ui/size.h>
 #include <lh/ui/text/align.h>
+#include <lh/ui/text/block.h>
+#include <lh/ui/text/line.h>
 #include <lh/void.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -186,6 +188,24 @@ lh_ui_text_get_line_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_
 /* ── Drawing ─────────────────────────────────────────────────────────────── */
 
 /**
+ * @brief Draw the glyph at @p index (::lh_ui_font_find_index) with its cell at
+ *        @p origin: what ::lh_ui_text_draw_code does once the code is looked up.
+ *
+ * @return The advance of the glyph.
+ */
+lh_ui_scalar_t
+lh_ui_text_draw_glyph_at(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, lh_u32_t index, lh_ui_point_t origin,
+                         const lh_ui_color_t *color);
+
+/**
+ * @brief Draw a line laid out by ::lh_ui_text_line_measure with its line box at
+ *        @p origin; nothing when the clip misses its ink.
+ */
+lh_void
+lh_ui_text_draw_laid_line(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_ui_text_line_t *line,
+                          lh_ui_point_t origin, const lh_ui_color_t *color);
+
+/**
  * @brief Draw the glyph of @p code with its cell at @p origin.
  *
  * @return The advance of @p code (`0` without a glyph).
@@ -251,6 +271,31 @@ lh_ui_text_get_size_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_
  */
 lh_ui_scalar_t
 lh_ui_text_get_ink_top_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width);
+
+/**
+ * @brief Width of the widest line of @p text broken into lines @p width wide
+ *        (`0` or less: at line breaks only), the block an alignment works in.
+ */
+lh_ui_scalar_t
+lh_ui_text_get_wrapped_width(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width);
+
+/**
+ * @brief How many lines @p text is broken into at @p width (`0` or less: at
+ *        line breaks only, the same as ::lh_ui_text_count_lines).
+ */
+lh_u32_t
+lh_ui_text_count_lines_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width);
+
+/**
+ * @brief ::lh_ui_text_draw_wrapped with the first ink row already known: what a
+ *        caller that measured the text once (a label) draws every frame with.
+ *
+ * @param ink_top ::lh_ui_text_get_ink_top_wrapped of the same text and width.
+ */
+lh_void
+lh_ui_text_draw_wrapped_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text,
+                             lh_ui_point_t origin, const lh_ui_color_t *color, lh_ui_scalar_t ink_top,
+                             lh_ui_scalar_t width, lh_ui_text_align_h_t align);
 
 /**
  * @brief ::lh_ui_text_get_ink_rect of @p text broken into lines @p width wide, each

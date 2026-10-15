@@ -64,6 +64,13 @@ typedef lh_u16_t lh_date_year_t;
  */
 #define LH_DATE_YEAR_DAYS_COMMON 365U
 
+/**
+ * @def LH_DATE_YEAR_GREGORIAN_CYCLE_DAYS
+ * @brief Days in one ::LH_DATE_YEAR_GREGORIAN_CYCLE of years: the calendar
+ *        repeats after exactly this many days (97 leap years in 400).
+ */
+#define LH_DATE_YEAR_GREGORIAN_CYCLE_DAYS 146097U
+
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
@@ -85,6 +92,33 @@ lh_date_year_is_leap(lh_date_year_t self);
  */
 lh_u16_t
 lh_date_year_days(lh_date_year_t self);
+
+/**
+ * @brief Days from 1 January of proleptic year 0 (itself a leap year) to
+ *        1 January of @p year: a closed-form leap-year count, O(1).
+ *
+ * Takes any year, not only the ::lh_date_year_t range, so it can be asked about
+ * a year that is only an estimate (::lh_date_year_from_days_from_zero).
+ *
+ * @param year Proleptic Gregorian year.
+ * @return Day number of its first day, `0` for year `0`.
+ */
+lh_s64_t
+lh_date_year_days_from_zero(lh_s64_t year);
+
+/**
+ * @brief The year whose days hold day number @p days counted from 1 January of
+ *        year 0: the inverse of ::lh_date_year_days_from_zero, O(1).
+ *
+ * The year is estimated from the length of a ::LH_DATE_YEAR_GREGORIAN_CYCLE and
+ * corrected by at most a step either way against ::lh_date_year_days_from_zero
+ * itself, so the two cannot disagree.
+ *
+ * @param days Day number from 1 January of year 0 (negative before it).
+ * @return Proleptic Gregorian year.
+ */
+lh_s64_t
+lh_date_year_from_days_from_zero(lh_s64_t days);
 
 /**
  * @brief Add @p value years, wrapping on `[0, ::LH_DATE_YEAR_MAX]`.

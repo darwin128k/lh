@@ -136,6 +136,47 @@ lh_u32_t
 lh_ui_font_get_index(const lh_ui_font_t *self, lh_u32_t code);
 
 /**
+ * @brief The run of @p self that holds @p code, or ::lh_null when none does.
+ *
+ * The one lookup every per-code query of this module makes; the runs are sorted,
+ * so the walk stops at the first run that starts past @p code.
+ */
+const lh_ui_font_range_t *
+lh_ui_font_get_range_of(const lh_ui_font_t *self, lh_u32_t code);
+
+/**
+ * @brief Find the glyph index of @p code: one run lookup, then every metric of the
+ *        glyph is an array read (::lh_ui_font_get_advance_at, ...).
+ *
+ * What a loop over a line of text wants: ::lh_ui_font_get_advance,
+ * ::lh_ui_font_get_top and ::lh_ui_font_get_glyph each look the code up again.
+ *
+ * @param index Receives the index when the code is in @p self.
+ * @return ::lh_bool_false, @p index untouched, when @p self has no glyph for @p code.
+ */
+lh_bool_t
+lh_ui_font_find_index(const lh_ui_font_t *self, lh_u32_t code, lh_u32_t *index);
+
+/**
+ * @brief Advance of the glyph at @p index (from ::lh_ui_font_find_index).
+ */
+lh_s32_t
+lh_ui_font_get_advance_at(const lh_ui_font_t *self, lh_u32_t index);
+
+/**
+ * @brief Top of the ink of the glyph at @p index, from the ascent line
+ *        (::lh_ui_font_get_top for an index).
+ */
+lh_s32_t
+lh_ui_font_get_top_at(const lh_ui_font_t *self, lh_u32_t index);
+
+/**
+ * @brief The mask of the glyph at @p index (::lh_ui_font_get_glyph for an index).
+ */
+const lh_ui_mask_t *
+lh_ui_font_get_glyph_at(const lh_ui_font_t *self, lh_u32_t index);
+
+/**
  * @brief How far the pen moves after @p code; `0` when there is no glyph.
  */
 lh_s32_t

@@ -78,7 +78,19 @@ set(LH_BENCH_SOURCES
         ${LH_BENCH_SRC_PATH}/lh/math/rect.cpp
         ${LH_BENCH_SRC_PATH}/lh/fs/path.cpp
         ${LH_BENCH_SRC_PATH}/lh/logger.cpp
+        ${LH_BENCH_SRC_PATH}/lh/timestamp.cpp
+        ${LH_BENCH_SRC_PATH}/lh/timer.cpp
 )
+
+# The software renderer, the entity tree and the web canvas. One frame of a real
+# screen is the number that matters, so these draw the screens bench/lvgl compares.
+if (LH_LIBRARY_OPTION_UI)
+    list(APPEND LH_BENCH_SOURCES
+            ${LH_BENCH_SRC_PATH}/lh/ui/canvas.cpp
+            ${LH_BENCH_SRC_PATH}/lh/ui/view.cpp
+            ${LH_BENCH_SRC_PATH}/lh/ui/web.cpp
+    )
+endif ()
 
 # Float math (vec/quat/mat4) is only in the library when MATH_FPU is ON.
 if (LH_LIBRARY_OPTION_MATH_FPU)
@@ -90,8 +102,9 @@ if (LH_LIBRARY_OPTION_MATH_FPU)
 endif ()
 
 if (LH_LIBRARY_OPTION_OS)
-    # os is being rebuilt from scratch, one piece at a time.
-endif()
+    # Clocks, files, a directory listing and loopback sockets: system calls through lh.
+    list(APPEND LH_BENCH_SOURCES ${LH_BENCH_SRC_PATH}/lh/os/os.cpp)
+endif ()
 
 add_executable(${PROJECT_NAME} ${LH_BENCH_SOURCES})
 

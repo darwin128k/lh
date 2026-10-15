@@ -10,24 +10,6 @@
 
 #define LH_DATE_EPOCH_YEAR 1970U
 
-/**
- * Days from proleptic year 0 (Jan 1, itself a leap year) to @p year (Jan 1).
- * Closed-form Gregorian leap-year count - O(1), no loop.
- */
-static lh_s64_t
-lh_date_days_from_year_zero(lh_date_year_t year)
-{
-    const lh_s64_t y = lh_math_sub_one(lh_cast_static(lh_s64_t, year));
-    const lh_s64_t leap_4 = lh_math_floor_div(y, 4);
-    const lh_s64_t leap_100 = lh_math_floor_div(y, 100);
-    const lh_s64_t leap_400 = lh_math_floor_div(y, 400);
-    const lh_s64_t leap_count = lh_math_add_one(lh_math_add(lh_math_sub(leap_4, leap_100), leap_400));
-    const lh_s64_t common_days =
-        lh_math_mul(lh_cast_static(lh_s64_t, LH_DATE_YEAR_DAYS_COMMON), lh_cast_static(lh_s64_t, year));
-
-    return lh_math_add(common_days, leap_count);
-}
-
 lh_void
 lh_date_set_year(lh_date_t *self, lh_date_year_t year)
 {
@@ -86,16 +68,12 @@ lh_date_days_since_epoch(const lh_date_t *self)
 {
     lh_date_year_t year;
     lh_date_month_t month;
-    lh_date_month_t m;
     lh_s64_t days;
 
     year = lh_date_get_year(self);
     month = lh_date_get_month(self);
-    days = lh_math_sub(lh_date_days_from_year_zero(year), lh_date_days_from_year_zero(LH_DATE_EPOCH_YEAR));
-    for (m = 1U; lh_math_lt(m, month); m = lh_math_add_one(m))
-    {
-        days = lh_math_add(days, lh_date_days_in_month(year, m));
-    }
+    days = lh_math_sub(lh_date_year_days_from_zero(year), lh_date_year_days_from_zero(LH_DATE_EPOCH_YEAR));
+    days = lh_math_add(days, lh_cast_static(lh_s64_t, lh_date_days_before_month(year, month)));
     days = lh_math_add(days, lh_math_sub_one(lh_cast_static(lh_s64_t, lh_date_get_day(self))));
     return days;
 }
@@ -103,29 +81,24 @@ lh_date_days_since_epoch(const lh_date_t *self)
 lh_date_t
 lh_date_from_epoch_days(lh_s64_t days)
 {
-    lh_date_year_t year = LH_DATE_EPOCH_YEAR;
-    lh_date_month_t month;
+    const lh_s64_t absolute = lh_math_add(days, lh_date_year_days_from_zero(LH_DATE_EPOCH_YEAR));
+    const lh_s64_t year64 = lh_date_year_from_days_from_zero(absolute);
+    const lh_date_year_t year = lh_cast_static(lh_date_year_t, year64);
+    const lh_s64_t day_of_year = lh_math_sub(absolute, lh_date_year_days_from_zero(year64));
+    /* Every month is at most 31 days, so day_of_year / 31 never runs past the month
+       the day is in; at most two steps forward find it. */
+    lh_date_month_t month = lh_cast_static(lh_date_month_t, lh_math_add_one(day_of_year / LH_DATE_DAY_MAX));
     lh_date_t date;
 
-    while (lh_math_is_negative(days))
+    while (lh_math_lt(month, LH_DATE_MONTH_MAX) &&
+           lh_math_le(lh_cast_static(lh_s64_t, lh_date_days_before_month(year, lh_math_add_one(month))), day_of_year))
     {
-        year = lh_math_sub_one(year);
-        days = lh_math_add(days, lh_date_year_days(year));
+        month = lh_cast_static(lh_date_month_t, lh_math_add_one(month));
     }
-    while (lh_math_ge(days, lh_date_year_days(year)))
-    {
-        days = lh_math_sub(days, lh_date_year_days(year));
-        year = lh_math_add_one(year);
-    }
-
-    month = 1U;
-    while (lh_math_ge(days, lh_date_days_in_month(year, month)))
-    {
-        days = lh_math_sub(days, lh_date_days_in_month(year, month));
-        month = lh_math_add_one(month);
-    }
-
-    lh_date_set(lh_addr_of(date), year, month, lh_cast_static(lh_date_day_t, lh_math_add_one(days)));
+    lh_date_set(lh_addr_of(date), year, month,
+                lh_cast_static(lh_date_day_t,
+                               lh_math_add_one(lh_math_sub(day_of_year,
+                                                           lh_cast_static(lh_s64_t, lh_date_days_before_month(year, month))))));
     return date;
 }
 

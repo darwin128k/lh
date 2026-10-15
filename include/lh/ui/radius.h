@@ -96,6 +96,13 @@ lh_byte_t
 lh_ui_radius_scale(lh_byte_t a, lh_byte_t b);
 
 /**
+ * @brief ::lh_ui_radius_scale of @p a with each of the eight coverages packed in
+ *        @p b, byte `i` to byte `i` (::lh_ui_mask_get_coverage_8's layout).
+ */
+lh_u64_t
+lh_ui_radius_scale_8(lh_byte_t a, lh_u64_t b);
+
+/**
  * @brief ::lh_ui_radius_cover_from_distance for the squared distance @p d2:
  *        `255` / `0` without a square root when the pixel lies wholly inside
  *        / outside the one-pixel ramp (the same answer), the root otherwise.

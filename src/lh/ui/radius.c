@@ -78,6 +78,19 @@ lh_ui_radius_scale(lh_byte_t a, lh_byte_t b)
     return lh_cast_static(lh_byte_t, (lh_cast_static(lh_u32_t, a) * b + 127U) / 255U);
 }
 
+lh_u64_t
+lh_ui_radius_scale_8(lh_byte_t a, lh_u64_t b)
+{
+    lh_u64_t out = 0U;
+    lh_u32_t i;
+
+    for (i = 0U; i < 8U; ++i)
+    {
+        out |= lh_cast_static(lh_u64_t, lh_ui_radius_scale(a, lh_cast_static(lh_byte_t, b >> (8U * i)))) << (8U * i);
+    }
+    return out;
+}
+
 lh_byte_t
 lh_ui_radius_cover_from_square(lh_s64_t r, lh_s64_t d2)
 {

@@ -9,6 +9,8 @@
 #include <lh/null.h>
 #include <lh/ui/canvas/mask.h>
 #include <lh/ui/text.h>
+#include <lh/ui/text/block.h>
+#include <lh/ui/text/line.h>
 #include <lh/util/addr.h>
 #include <lh/util/return.h>
 
@@ -212,211 +214,57 @@ lh_ui_text_count_lines(const lh_char_t *text)
 
 /* ── Lines a width breaks ────────────────────────────────────────────────── */
 
-/** Where the line that starts at @p line ends when it may be @p width wide: at a line
-   break, or before the word that would not fit, or -- when one word is wider than the
-   whole width -- before the first letter that would not, and never before the first
-   letter, so a line always takes something and a text always ends. @p width of 0 or
-   less breaks at line breaks only, which is every line a text had before it could
-   wrap. */
-static const lh_char_t *
-lh_ui_text_wrap_end(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_scalar_t width)
-{
-    const lh_char_t *cursor = line;
-    const lh_char_t *space = lh_null;
-    lh_ui_scalar_t pen = lh_ui_scalar(0);
-
-    lh_return_if(width <= lh_ui_scalar(0), lh_ui_text_get_line_end(line));
-    for (;;)
-    {
-        const lh_char_t *before = cursor;
-        const lh_u32_t code = lh_ui_text_next_code(lh_addr_of(cursor));
-        const lh_ui_scalar_t advance = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance(font, code));
-
-        lh_return_if(lh_ui_text_is_line_end(code), before);
-        /* A space may hang past the edge: it is where the line breaks, not ink. */
-        if (code != (lh_u32_t)' ' && pen + advance > width)
-        {
-            if (lh_null_ne(space))
-            {
-                return space;
-            }
-            return before == line ? cursor : before;
-        }
-        if (code == (lh_u32_t)' ')
-        {
-            space = before;
-        }
-        pen += advance;
-    }
-}
-
-/** Where the line after the one that ends at @p end starts, or ::lh_null when there is
-   none. A line break is stepped over; so are the spaces a wrap broke at, which belong
-   to neither line. */
-static const lh_char_t *
-lh_ui_text_wrap_next(const lh_char_t *end, lh_ui_scalar_t width)
-{
-    const lh_char_t *cursor = end;
-    const lh_u32_t code = lh_ui_text_next_code(lh_addr_of(cursor));
-
-    lh_return_if(code == 0U, lh_null);
-    lh_return_if(lh_ui_text_is_line_end(code), cursor);
-    if (width > lh_ui_scalar(0) && code == (lh_u32_t)' ')
-    {
-        while (*cursor == ' ')
-        {
-            ++cursor;
-        }
-        lh_return_if(*cursor == '\0', lh_null);
-        return cursor;
-    }
-    /* A word cut in two: the next line starts with the letter that did not fit. */
-    return end;
-}
-
-/* ── Measuring ───────────────────────────────────────────────────────────── */
-
-/** The advances of the letters from @p line up to @p end. */
-static lh_ui_scalar_t
-lh_ui_text_span_width(const lh_ui_font_t *font, const lh_char_t *line, const lh_char_t *end)
-{
-    const lh_char_t *cursor = line;
-    lh_ui_scalar_t width = lh_ui_scalar(0);
-
-    while (cursor < end)
-    {
-        width += lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance(font, lh_ui_text_next_code(lh_addr_of(cursor))));
-    }
-    return width;
-}
-
 lh_ui_scalar_t
 lh_ui_text_get_line_width(const lh_ui_font_t *font, const lh_char_t *line)
 {
-    return lh_ui_text_span_width(font, line, lh_ui_text_get_line_end(line));
+    lh_ui_text_line_t laid;
+
+    (void)lh_ui_text_line_measure(lh_addr_of(laid), font, line, lh_ui_scalar(0));
+    return lh_ui_text_line_get_width(lh_addr_of(laid));
+}
+
+lh_ui_scalar_t
+lh_ui_text_get_wrapped_width(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width)
+{
+    lh_ui_text_block_t block;
+
+    lh_ui_text_block_measure(lh_addr_of(block), font, text, width);
+    return lh_ui_text_block_get_width(lh_addr_of(block));
 }
 
 lh_ui_scalar_t
 lh_ui_text_get_width(const lh_ui_font_t *font, const lh_char_t *text)
 {
-    lh_ui_scalar_t width = lh_ui_scalar(0);
-    lh_ui_scalar_t line_width;
-
-    for (; lh_null_ne(text); text = lh_ui_text_get_next_line(text))
-    {
-        line_width = lh_ui_text_get_line_width(font, text);
-        width = lh_math_max(width, line_width);
-    }
-    return width;
+    return lh_ui_text_get_wrapped_width(font, text, lh_ui_scalar(0));
 }
 
-/** The widest line @p width breaks @p text into. */
-static lh_ui_scalar_t
-lh_ui_text_get_wrapped_width(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width)
+lh_u32_t
+lh_ui_text_count_lines_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width)
 {
-    lh_ui_scalar_t widest = lh_ui_scalar(0);
+    lh_ui_text_block_t block;
 
-    while (lh_null_ne(text))
-    {
-        const lh_char_t *end = lh_ui_text_wrap_end(font, text, width);
-        const lh_ui_scalar_t line_width = lh_ui_text_span_width(font, text, end);
-
-        widest = lh_math_max(widest, line_width);
-        text = lh_ui_text_wrap_next(end, width);
-    }
-    return widest;
+    lh_ui_text_block_measure(lh_addr_of(block), font, text, width);
+    return lh_ui_text_block_get_lines(lh_addr_of(block));
 }
 
-/** How far right a line of @p line_width starts in a block @p block wide: every line
-   of a centred paragraph is centred on its own, as CSS centres them, and not the
-   paragraph as one block with its lines flush left inside it. */
-static lh_ui_scalar_t
-lh_ui_text_line_shift(lh_ui_scalar_t block, lh_ui_scalar_t line_width, lh_ui_text_align_h_t align)
-{
-    if (align == lh_ui_text_align_h_center)
-    {
-        return lh_math_max((block - line_width + lh_ui_scalar(1)) / lh_ui_scalar(2), lh_ui_scalar(0));
-    }
-    if (align == lh_ui_text_align_h_right)
-    {
-        return lh_math_max(block - line_width, lh_ui_scalar(0));
-    }
-    return lh_ui_scalar(0);
-}
-
-/** The ink of the letters from @p line up to @p end, the line box at @p origin. */
-static lh_ui_rect_t
-lh_ui_text_span_ink_rect(const lh_ui_font_t *font, const lh_char_t *line, const lh_char_t *end,
-                         lh_ui_point_t origin)
-{
-    const lh_char_t *cursor = line;
-    lh_ui_scalar_t top = lh_ui_scalar(0);
-    lh_ui_scalar_t bottom = lh_ui_scalar(0);
-    lh_ui_scalar_t width = lh_ui_scalar(0);
-    lh_bool_t inked = lh_bool_false;
-    lh_ui_rect_t rect;
-
-    while (cursor < end)
-    {
-        const lh_u32_t code = lh_ui_text_next_code(lh_addr_of(cursor));
-        const lh_ui_scalar_t at = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_ink_top(font, code));
-        const lh_ui_scalar_t to = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_ink_bottom(font, code));
-
-        /* The pen moves for a space too. Measuring the width afterwards walked
-           the same letters a second time, and a label asks this on every frame. */
-        width += lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance(font, code));
-        if (to <= at) /* a space, or a glyph the font has no mask for */
-        {
-            continue;
-        }
-        if (!inked || at < top)
-        {
-            top = at;
-        }
-        if (!inked || to > bottom)
-        {
-            bottom = to;
-        }
-        inked = lh_bool_true;
-    }
-    /* Width stays the pen's: a trailing space takes room whether or not it is
-       inked, and that is what every other toolkit measures too. */
-    lh_ui_rect_init(lh_addr_of(rect), lh_ui_point_get_x(lh_addr_of(origin)),
-                    lh_ui_point_get_y(lh_addr_of(origin)) + top, width, bottom - top);
-    return rect;
-}
+/* ── Ink ─────────────────────────────────────────────────────────────────── */
 
 lh_ui_rect_t
 lh_ui_text_get_line_ink_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_point_t origin)
 {
-    return lh_ui_text_span_ink_rect(font, line, lh_ui_text_get_line_end(line), origin);
+    lh_ui_text_line_t laid;
+
+    (void)lh_ui_text_line_measure(lh_addr_of(laid), font, line, lh_ui_scalar(0));
+    return lh_ui_text_line_get_ink_rect(lh_addr_of(laid), origin);
 }
 
 lh_ui_scalar_t
 lh_ui_text_get_ink_top_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width)
 {
-    lh_ui_point_t origin_zero;
-    lh_ui_scalar_t best = lh_ui_scalar(0);
-    lh_bool_t inked = lh_bool_false;
+    lh_ui_text_block_t block;
 
-    lh_ui_point_init(lh_addr_of(origin_zero), lh_ui_scalar(0), lh_ui_scalar(0));
-    while (lh_null_ne(text))
-    {
-        const lh_char_t *end = lh_ui_text_wrap_end(font, text, width);
-        const lh_ui_rect_t line_ink = lh_ui_text_span_ink_rect(font, text, end, origin_zero);
-        const lh_ui_scalar_t at = lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(line_ink)));
-
-        /* Each line is asked from the top of its own box: the first ink of the
-           text is what an alignment takes back, and that is what this has always
-           measured. */
-        if (!lh_ui_rect_is_empty(lh_addr_of(line_ink)) && (!inked || at < best))
-        {
-            best = at;
-            inked = lh_bool_true;
-        }
-        text = lh_ui_text_wrap_next(end, width);
-    }
-    return inked ? best : lh_ui_scalar(0);
+    lh_ui_text_block_measure(lh_addr_of(block), font, text, width);
+    return lh_ui_text_block_get_ink_top(lh_addr_of(block));
 }
 
 lh_ui_scalar_t
@@ -430,28 +278,32 @@ lh_ui_text_get_ink_rect_wrapped(const lh_ui_font_t *font, const lh_char_t *text,
                                 lh_ui_scalar_t width, lh_ui_text_align_h_t align)
 {
     const lh_ui_scalar_t line_height = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font));
-    const lh_ui_scalar_t first = lh_ui_text_get_ink_top_wrapped(font, text, width);
-    const lh_ui_scalar_t block = lh_ui_text_get_wrapped_width(font, text, width);
-    lh_ui_scalar_t down = lh_ui_scalar(0);
+    lh_ui_text_block_t block;
+    lh_ui_text_line_t laid;
+    lh_ui_scalar_t down;
     lh_ui_rect_t ink;
 
+    lh_ui_text_block_measure(lh_addr_of(block), font, text, width);
+    /* Left-aligned, the block already holds the hull: one walk. Centred or right,
+       every line moves by the room the widest one leaves it, which is only known
+       once every line has been measured, so the lines are laid out a second time. */
+    lh_return_if(align == lh_ui_text_align_h_left, lh_ui_text_block_get_ink_rect(lh_addr_of(block), origin));
+    down = -lh_ui_text_block_get_ink_top(lh_addr_of(block));
     lh_ui_rect_init_empty(lh_addr_of(ink));
-    while (lh_null_ne(text))
+    for (; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width); text = lh_ui_text_line_get_next(lh_addr_of(laid)))
     {
-        const lh_char_t *end = lh_ui_text_wrap_end(font, text, width);
-        const lh_ui_scalar_t shift =
-            lh_ui_text_line_shift(block, lh_ui_text_span_width(font, text, end), align);
         /* Every line box starts that far above @p origin, because @p origin is
            where the ink is and a line box is taller than what it draws. */
-        const lh_ui_point_t box = lh_ui_point_offset(lh_addr_of(origin), shift, down - first);
-        const lh_ui_rect_t line_ink = lh_ui_text_span_ink_rect(font, text, end, box);
+        const lh_ui_point_t box = lh_ui_point_offset(
+            lh_addr_of(origin), lh_ui_text_line_get_shift(lh_addr_of(laid), lh_ui_text_block_get_width(lh_addr_of(block)), align),
+            down);
+        const lh_ui_rect_t line_ink = lh_ui_text_line_get_ink_rect(lh_addr_of(laid), box);
 
         /* A hull: as wide as the widest line and as tall as the first ink to the
            last. The gap between two lines is inside it and is not drawn into, which
            is what a line box is for anyway. */
         ink = lh_ui_rect_union(lh_addr_of(ink), lh_addr_of(line_ink));
         down += line_height;
-        text = lh_ui_text_wrap_next(end, width);
     }
     return ink;
 }
@@ -465,40 +317,10 @@ lh_ui_text_get_ink_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_p
 lh_ui_size_t
 lh_ui_text_get_size_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width)
 {
-    /* The cap line down to the baseline, not the line box and not the ink.
-       A line box is taller than what is drawn (Roboto 16 px: line 22, ascent 17,
-       so its ink starts five rows down) and centring that drew every caption a
-       few pixels low. The ink is the other end of the same mistake: it is as
-       tall as the tallest and the lowest letter of *this* word, so centring it
-       puts the text on a half pixel it cannot win either way — measured on the
-       demo's 28-row Hide panel button, 15 rows of ink in 16 rows of room is a
-       tie, and truncating it left the text half a pixel high. The cap line is
-       the one measure no half pixel is left over in (16 - 12 = 4, even), and it
-       is a metric of the font rather than of the word, so a caption sits at the
-       same height whatever it says. This is LVGL's LV_TEXT_LEADING_TRIM_CAPITAL_BASELINE
-       and CSS's text-box-trim: trim the box to what the letters actually carry. */
-    lh_ui_size_t size;
-    lh_ui_point_t origin;
-    lh_ui_rect_t ink;
-    lh_ui_scalar_t lines = lh_ui_scalar(0);
-    const lh_char_t *line;
+    lh_ui_text_block_t block;
 
-    lh_ui_point_init(lh_addr_of(origin), lh_ui_scalar(0), lh_ui_scalar(0));
-    ink = lh_ui_text_get_ink_rect_wrapped(font, text, origin, width, lh_ui_text_align_h_left);
-    size = *lh_ui_rect_get_size_as_const(lh_addr_of(ink));
-    for (line = text; lh_null_ne(line);
-         line = lh_ui_text_wrap_next(lh_ui_text_wrap_end(font, line, width), width))
-    {
-        lines += lh_ui_scalar(1);
-    }
-    /* Nothing inked is nothing drawn, and a label with nothing in it collapses
-       however tall its font is. */
-    lh_ui_size_set_height(lh_addr_of(size),
-                          lh_ui_rect_is_empty(lh_addr_of(ink))
-                              ? lh_ui_scalar(0)
-                              : (lines - lh_ui_scalar(1)) * lh_ui_scalar(lh_ui_font_get_line_height(font)) +
-                                    lh_ui_scalar(lh_ui_font_get_cap_height(font)));
-    return size;
+    lh_ui_text_block_measure(lh_addr_of(block), font, text, width);
+    return lh_ui_text_block_get_size(lh_addr_of(block), font);
 }
 
 lh_ui_size_t
@@ -527,35 +349,40 @@ lh_ui_text_get_line_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_
 /* ── Drawing ─────────────────────────────────────────────────────────────── */
 
 lh_ui_scalar_t
+lh_ui_text_draw_glyph_at(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, lh_u32_t index, lh_ui_point_t origin,
+                         const lh_ui_color_t *color)
+{
+    lh_ui_point_t at;
+
+    /* origin is the line top-left; baseline is ascent down; mask top is relative to it. */
+    lh_ui_point_init(lh_addr_of(at), lh_ui_point_get_x(lh_addr_of(origin)),
+                     lh_ui_point_get_y(lh_addr_of(origin)) +
+                         lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_ascent(font)) +
+                         lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_top_at(font, index)));
+    lh_ui_canvas_fill_mask(canvas, lh_ui_font_get_glyph_at(font, index), at, color);
+    return lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance_at(font, index));
+}
+
+lh_ui_scalar_t
 lh_ui_text_draw_code(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, lh_u32_t code, lh_ui_point_t origin,
                      const lh_ui_color_t *color)
 {
-    lh_ui_mask_t glyph;
-    lh_ui_point_t at;
+    lh_u32_t index = 0U;
 
-    if (lh_ui_font_get_glyph(font, code, lh_addr_of(glyph)))
-    {
-        /* origin is the line top-left; baseline is ascent down; mask top is relative to it. */
-        lh_ui_point_init(lh_addr_of(at), lh_ui_point_get_x(lh_addr_of(origin)),
-                         lh_ui_point_get_y(lh_addr_of(origin)) +
-                             lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_ascent(font)) +
-                             lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_top(font, code)));
-        lh_ui_canvas_fill_mask(canvas, lh_addr_of(glyph), at, color);
-    }
-    return lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance(font, code));
+    lh_return_if(!lh_ui_font_find_index(font, code, lh_addr_of(index)), lh_ui_scalar(0));
+    return lh_ui_text_draw_glyph_at(canvas, font, index, origin, color);
 }
 
-/** The letters from @p line up to @p end, the line box at @p origin. */
-static lh_void
-lh_ui_text_draw_span(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *line,
-                     const lh_char_t *end, lh_ui_point_t origin, const lh_ui_color_t *color)
+lh_void
+lh_ui_text_draw_laid_line(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_ui_text_line_t *line,
+                          lh_ui_point_t origin, const lh_ui_color_t *color)
 {
-    const lh_char_t *cursor = line;
+    const lh_char_t *cursor = lh_ui_text_line_get_begin(line);
+    const lh_char_t *end = lh_ui_text_line_get_end(line);
     lh_ui_rect_t box;
 
     lh_ui_rect_init(lh_addr_of(box), lh_ui_point_get_x(lh_addr_of(origin)), lh_ui_point_get_y(lh_addr_of(origin)),
-                    lh_ui_text_span_width(font, line, end),
-                    lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font)));
+                    lh_ui_text_line_get_width(line), lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font)));
     /* The ink sits inside the line box (Roboto 16: line 22, the highest glyph
        starts at row 2). A clip that holds the whole box holds the ink, and
        measuring the ink first would walk every letter to learn that. A clip
@@ -565,7 +392,7 @@ lh_ui_text_draw_span(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_
        case asks the ink too. */
     if (!lh_ui_canvas_covers_rect(canvas, lh_addr_of(box)))
     {
-        const lh_ui_rect_t ink = lh_ui_text_span_ink_rect(font, line, end, origin);
+        const lh_ui_rect_t ink = lh_ui_text_line_get_ink_rect(line, origin);
 
         lh_return_if(!lh_ui_canvas_shows_rect(canvas, lh_addr_of(ink)));
     }
@@ -582,33 +409,33 @@ lh_void
 lh_ui_text_draw_line(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *line,
                      lh_ui_point_t origin, const lh_ui_color_t *color)
 {
-    lh_ui_text_draw_span(canvas, font, line, lh_ui_text_get_line_end(line), origin, color);
+    lh_ui_text_line_t laid;
+
+    lh_return_if(!lh_ui_text_line_measure(lh_addr_of(laid), font, line, lh_ui_scalar(0)));
+    lh_ui_text_draw_laid_line(canvas, font, lh_addr_of(laid), origin, color);
 }
 
-/** Every line @p width breaks @p text into, each shifted by @p align inside the block,
-   the first line box @p ink_top above @p origin. */
-static lh_void
-lh_ui_text_draw_lines(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text,
-                      lh_ui_point_t origin, const lh_ui_color_t *color, lh_ui_scalar_t ink_top,
-                      lh_ui_scalar_t width, lh_ui_text_align_h_t align)
+lh_void
+lh_ui_text_draw_wrapped_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text,
+                             lh_ui_point_t origin, const lh_ui_color_t *color, lh_ui_scalar_t ink_top,
+                             lh_ui_scalar_t width, lh_ui_text_align_h_t align)
 {
     const lh_ui_scalar_t line_height = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font));
     const lh_ui_scalar_t block = align == lh_ui_text_align_h_left ? lh_ui_scalar(0)
                                                                    : lh_ui_text_get_wrapped_width(font, text, width);
     lh_ui_point_t box = lh_ui_point_offset(lh_addr_of(origin), lh_ui_scalar(0), -ink_top);
+    lh_ui_text_line_t laid;
 
     /* @p origin is where the ink goes, so the first line box starts that far
        above it; each next one is a line height lower. The pixels land where
        ::lh_ui_text_get_ink_rect_wrapped says, which is the whole point. */
-    while (lh_null_ne(text))
+    for (; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width); text = lh_ui_text_line_get_next(lh_addr_of(laid)))
     {
-        const lh_char_t *end = lh_ui_text_wrap_end(font, text, width);
-        const lh_ui_scalar_t shift = lh_ui_text_line_shift(block, lh_ui_text_span_width(font, text, end), align);
+        const lh_ui_scalar_t shift = lh_ui_text_line_get_shift(lh_addr_of(laid), block, align);
 
-        lh_ui_text_draw_span(canvas, font, text, end, lh_ui_point_offset(lh_addr_of(box), shift, lh_ui_scalar(0)),
-                             color);
+        lh_ui_text_draw_laid_line(canvas, font, lh_addr_of(laid),
+                                  lh_ui_point_offset(lh_addr_of(box), shift, lh_ui_scalar(0)), color);
         box = lh_ui_point_offset(lh_addr_of(box), lh_ui_scalar(0), line_height);
-        text = lh_ui_text_wrap_next(end, width);
     }
 }
 
@@ -616,7 +443,8 @@ lh_void
 lh_ui_text_draw_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin,
                      const lh_ui_color_t *color, lh_ui_scalar_t ink_top)
 {
-    lh_ui_text_draw_lines(canvas, font, text, origin, color, ink_top, lh_ui_scalar(0), lh_ui_text_align_h_left);
+    lh_ui_text_draw_wrapped_from(canvas, font, text, origin, color, ink_top, lh_ui_scalar(0),
+                                 lh_ui_text_align_h_left);
 }
 
 lh_void
@@ -631,6 +459,9 @@ lh_ui_text_draw_wrapped(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const 
                         lh_ui_point_t origin, const lh_ui_color_t *color, lh_ui_scalar_t width,
                         lh_ui_text_align_h_t align)
 {
-    lh_ui_text_draw_lines(canvas, font, text, origin, color, lh_ui_text_get_ink_top_wrapped(font, text, width),
-                          width, align);
+    lh_ui_text_block_t block;
+
+    lh_ui_text_block_measure(lh_addr_of(block), font, text, width);
+    lh_ui_text_draw_wrapped_from(canvas, font, text, origin, color, lh_ui_text_block_get_ink_top(lh_addr_of(block)),
+                                 width, align);
 }

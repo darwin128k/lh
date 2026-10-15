@@ -1,0 +1,210 @@
+/**
+ * @file line.c
+ * @brief Implementation of `lh/ui/text/line.h`.
+ */
+
+#include <lh/ui/text/line.h>
+
+#include <lh/assert/runtime.h>
+#include <lh/cast/static.h>
+#include <lh/math.h>
+#include <lh/null.h>
+#include <lh/ui/mask.h>
+#include <lh/ui/text.h>
+#include <lh/util/addr.h>
+#include <lh/util/return.h>
+
+lh_void
+lh_ui_text_line_init(lh_ui_text_line_t *self)
+{
+    lh_assert_runtime_ref(self);
+    self->begin = lh_null;
+    self->end = lh_null;
+    self->next = lh_null;
+    self->width = lh_ui_scalar(0);
+    self->ink_top = lh_ui_scalar(0);
+    self->ink_bottom = lh_ui_scalar(0);
+    self->inked = lh_bool_false;
+}
+
+/** Add the glyph at @p index to the pen and the ink of @p self. */
+static lh_void
+lh_ui_text_line_take(lh_ui_text_line_t *self, const lh_ui_font_t *font, lh_u32_t index)
+{
+    const lh_ui_scalar_t at = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_ascent(font) + lh_ui_font_get_top_at(font, index));
+    const lh_ui_scalar_t to =
+        at + lh_cast_static(lh_ui_scalar_t, lh_ui_mask_get_height(lh_ui_font_get_glyph_at(font, index)));
+
+    self->width += lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance_at(font, index));
+    lh_return_if(to <= at); /* a space: it moves the pen and draws nothing */
+    if (!self->inked || at < self->ink_top)
+    {
+        self->ink_top = at;
+    }
+    if (!self->inked || to > self->ink_bottom)
+    {
+        self->ink_bottom = to;
+    }
+    self->inked = lh_bool_true;
+}
+
+/** Where the line after the one ending at @p end starts: past the line end, past
+    the spaces a wrapped line broke at, or at @p end for a word cut in two. */
+static const lh_char_t *
+lh_ui_text_line_next_of(const lh_char_t *end, lh_ui_scalar_t width)
+{
+    const lh_char_t *cursor = end;
+    const lh_u32_t code = lh_ui_text_next_code(lh_addr_of(cursor));
+
+    lh_return_if(code == 0U, lh_null);
+    lh_return_if(lh_ui_text_is_line_end(code), cursor);
+    if (width > lh_ui_scalar(0) && code == lh_cast_static(lh_u32_t, ' '))
+    {
+        while (*cursor == ' ')
+        {
+            ++cursor;
+        }
+        lh_return_if(*cursor == '\0', lh_null);
+        return cursor;
+    }
+    return end;
+}
+
+lh_bool_t
+lh_ui_text_line_measure(lh_ui_text_line_t *self, const lh_ui_font_t *font, const lh_char_t *text,
+                        lh_ui_scalar_t width)
+{
+    lh_ui_text_line_t at_space;
+    lh_bool_t has_space = lh_bool_false;
+    const lh_char_t *cursor = text;
+
+    lh_ui_text_line_init(self);
+    lh_return_if(lh_null_eq(text), lh_bool_false);
+    lh_assert_runtime_ref(font);
+    self->begin = text;
+    for (;;)
+    {
+        const lh_char_t *before = cursor;
+        const lh_u32_t code = lh_ui_text_next_code(lh_addr_of(cursor));
+        lh_u32_t index = 0U;
+        const lh_bool_t found = lh_ui_font_find_index(font, code, lh_addr_of(index));
+        const lh_ui_scalar_t advance =
+            found ? lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance_at(font, index)) : lh_ui_scalar(0);
+
+        if (lh_ui_text_is_line_end(code))
+        {
+            self->end = before;
+            break;
+        }
+        /* A space may hang past the edge: it is where the line breaks, not ink. */
+        if (width > lh_ui_scalar(0) && code != lh_cast_static(lh_u32_t, ' ') && self->width + advance > width)
+        {
+            if (has_space)
+            {
+                *self = at_space;
+                break;
+            }
+            if (before == text)
+            {
+                /* A first letter wider than the line still takes it. */
+                if (found)
+                {
+                    lh_ui_text_line_take(self, font, index);
+                }
+                self->end = cursor;
+                break;
+            }
+            self->end = before;
+            break;
+        }
+        if (code == lh_cast_static(lh_u32_t, ' '))
+        {
+            at_space = *self;
+            at_space.end = before;
+            has_space = lh_bool_true;
+        }
+        if (found)
+        {
+            lh_ui_text_line_take(self, font, index);
+        }
+    }
+    self->next = lh_ui_text_line_next_of(self->end, width);
+    return lh_bool_true;
+}
+
+const lh_char_t *
+lh_ui_text_line_get_begin(const lh_ui_text_line_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->begin;
+}
+
+const lh_char_t *
+lh_ui_text_line_get_end(const lh_ui_text_line_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->end;
+}
+
+const lh_char_t *
+lh_ui_text_line_get_next(const lh_ui_text_line_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->next;
+}
+
+lh_ui_scalar_t
+lh_ui_text_line_get_width(const lh_ui_text_line_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->width;
+}
+
+lh_ui_scalar_t
+lh_ui_text_line_get_ink_top(const lh_ui_text_line_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->ink_top;
+}
+
+lh_ui_scalar_t
+lh_ui_text_line_get_ink_bottom(const lh_ui_text_line_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->ink_bottom;
+}
+
+lh_bool_t
+lh_ui_text_line_is_inked(const lh_ui_text_line_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->inked;
+}
+
+lh_ui_rect_t
+lh_ui_text_line_get_ink_rect(const lh_ui_text_line_t *self, lh_ui_point_t origin)
+{
+    lh_ui_rect_t rect;
+
+    lh_ui_rect_init(lh_addr_of(rect), lh_ui_point_get_x(lh_addr_of(origin)),
+                    lh_ui_point_get_y(lh_addr_of(origin)) + lh_ui_text_line_get_ink_top(self),
+                    lh_ui_text_line_get_width(self),
+                    lh_ui_text_line_get_ink_bottom(self) - lh_ui_text_line_get_ink_top(self));
+    return rect;
+}
+
+lh_ui_scalar_t
+lh_ui_text_line_get_shift(const lh_ui_text_line_t *self, lh_ui_scalar_t block, lh_ui_text_align_h_t align)
+{
+    const lh_ui_scalar_t width = lh_ui_text_line_get_width(self);
+
+    if (align == lh_ui_text_align_h_center)
+    {
+        return lh_math_max((block - width + lh_ui_scalar(1)) / lh_ui_scalar(2), lh_ui_scalar(0));
+    }
+    if (align == lh_ui_text_align_h_right)
+    {
+        return lh_math_max(block - width, lh_ui_scalar(0));
+    }
+    return lh_ui_scalar(0);
+}

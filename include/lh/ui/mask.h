@@ -109,6 +109,28 @@ lh_void
 lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_byte_ptr out);
 
 /**
+ * @brief Coverage of pixels `x .. x + 7` of row @p y in one register, pixel
+ *        `x + i` in byte `i` (`0` outside the mask): eight of
+ *        ::lh_ui_mask_coverage_run without a buffer, which is how
+ *        ::lh_ui_pixmap_blend_cover_8 takes them. A four-bit row is read with
+ *        ::lh_ui_mask_unpack_4_sse2.
+ */
+lh_u64_t
+lh_ui_mask_get_coverage_8(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y);
+
+/**
+ * @brief Eight coverages of a four-bit row: @p bytes is eight packed bytes,
+ *        lowest first, and the result is eight coverages, pixel `i` in byte `i`
+ *        (each sample times 17). The first pixel is the high nibble of the lowest
+ *        byte, or its low nibble when @p odd; five bytes are used at most.
+ *        ::lh_ui_mask_get_coverage_8 runs it on a row, a zero-padded end included.
+ *
+ * Only defined when `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` is on.
+ */
+lh_u64_t
+lh_ui_mask_unpack_4_sse2(lh_u64_t bytes, lh_bool_t odd);
+
+/**
  * @brief The rect @p self covers when its top-left pixel is at @p origin.
  */
 lh_ui_rect_t

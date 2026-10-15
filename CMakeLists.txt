@@ -303,6 +303,8 @@ if (LH_LIBRARY_OPTION_UI)
              ${LH_LIB_SRC_PATH}/ui/font/range.c
             ${LH_LIB_SRC_PATH}/ui/text.c
             ${LH_LIB_SRC_PATH}/ui/text/align.c
+            ${LH_LIB_SRC_PATH}/ui/text/line.c
+            ${LH_LIB_SRC_PATH}/ui/text/block.c
             ${LH_LIB_SRC_PATH}/ui/canvas/mask.c
             ${LH_LIB_SRC_PATH}/ui/pixmap.c
             ${LH_LIB_SRC_PATH}/ui/canvas/sw.c

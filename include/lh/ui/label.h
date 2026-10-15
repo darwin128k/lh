@@ -186,6 +186,13 @@ lh_ui_point_t
 lh_ui_label_get_text_origin(const lh_ui_label_t *self);
 
 /**
+ * @brief First ink row of the text of @p self below the top of its first line
+ *        box (::lh_ui_text_get_ink_top_wrapped), measured once with its size.
+ */
+lh_ui_scalar_t
+lh_ui_label_get_ink_top(const lh_ui_label_t *self);
+
+/**
  * @brief The rect the text covers (unscrolled); empty without text or font.
  */
 lh_ui_rect_t

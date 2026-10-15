@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <vector>
 
 #include <lh/cpu/simd.h>
 #include <lh/expect/death.h>
@@ -219,6 +220,72 @@ TEST(ui_pixmap, translucent_box_blends_every_row)
     EXPECT_NE(f.at(0, 0), 0xffffffffu);
 }
 
+/* fill_colors_span walks a gradient pixel by pixel through lh_ui_pixmap_over_word;
+   each pixel has to come out exactly as a one-pixel fill_span of its colour would
+   leave it, in every format, for opaque, translucent and transparent colours, and
+   (ARGB) over a translucent destination too. */
+TEST(ui_pixmap, fill_colors_span_is_a_fill_span_per_pixel_in_every_format)
+{
+    const lh_ui_pixmap_format_t formats[] = {lh_ui_pixmap_format_argb8888, lh_ui_pixmap_format_rgb565,
+                                             lh_ui_pixmap_format_rgb565_swapped};
+    const int count = 64;
+
+    for (lh_ui_pixmap_format_t format : formats)
+    {
+        const bool wide = format == lh_ui_pixmap_format_argb8888;
+        std::vector<lh_u32_t> got(count);
+        std::vector<lh_u32_t> want(count);
+        std::vector<lh_ui_color_t> colors(count);
+        lh_ui_pixmap_t a;
+        lh_ui_pixmap_t b;
+
+        for (int i = 0; i < count; ++i)
+        {
+            const lh_u32_t under = (wide ? (static_cast<lh_u32_t>(i * 37) & 0xFFu) << 24 : 0u) |
+                                   (static_cast<lh_u32_t>(i) * 0x0A0B0Cu & 0x00FFFFFFu);
+            got[i] = wide ? under : (under & 0xFFFFu);
+            want[i] = got[i];
+            lh_ui_color_init(lh_addr_of(colors[i]), static_cast<lh_ui_color_channel_t>(i * 4),
+                             static_cast<lh_ui_color_channel_t>(255 - i * 3), static_cast<lh_ui_color_channel_t>(i * 7),
+                             static_cast<lh_ui_color_channel_t>(i % 4 == 0 ? 0 : (i % 4 == 1 ? 255 : i * 4)));
+        }
+        if (!wide)
+        {
+            /* 16-bit words packed two to a lane of the vectors above. */
+            std::vector<lh_u16_t> g16(count);
+            std::vector<lh_u16_t> w16(count);
+            for (int i = 0; i < count; ++i)
+            {
+                g16[i] = static_cast<lh_u16_t>(got[i]);
+                w16[i] = g16[i];
+            }
+            lh_ui_pixmap_init(lh_addr_of(a), lh_ptr_rcast(lh_byte_t, g16.data()), count, 1, count * 2, format);
+            lh_ui_pixmap_init(lh_addr_of(b), lh_ptr_rcast(lh_byte_t, w16.data()), count, 1, count * 2, format);
+            lh_ui_pixmap_fill_colors_span(lh_addr_of(a), 0, count, 0, colors.data());
+            for (int i = 0; i < count; ++i)
+            {
+                lh_ui_pixmap_fill_span(lh_addr_of(b), i, i + 1, 0, lh_addr_of(colors[i]));
+            }
+            for (int i = 0; i < count; ++i)
+            {
+                ASSERT_EQ(g16[i], w16[i]) << "format " << static_cast<int>(format) << " pixel " << i;
+            }
+            continue;
+        }
+        lh_ui_pixmap_init(lh_addr_of(a), lh_ptr_rcast(lh_byte_t, got.data()), count, 1, count * 4, format);
+        lh_ui_pixmap_init(lh_addr_of(b), lh_ptr_rcast(lh_byte_t, want.data()), count, 1, count * 4, format);
+        lh_ui_pixmap_fill_colors_span(lh_addr_of(a), 0, count, 0, colors.data());
+        for (int i = 0; i < count; ++i)
+        {
+            lh_ui_pixmap_fill_span(lh_addr_of(b), i, i + 1, 0, lh_addr_of(colors[i]));
+        }
+        for (int i = 0; i < count; ++i)
+        {
+            ASSERT_EQ(got[i], want[i]) << "argb pixel " << i;
+        }
+    }
+}
+
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 
 namespace
@@ -281,9 +348,9 @@ TEST(ui_pixmap, blend_alpha_32_sse2_is_the_scalar_formula_for_every_alpha_and_ru
     }
 }
 
-/* A translucent destination takes lh_ui_pixmap_mix_any in the scalar path, not
-   the channel formula, so the kernel has to detect that and redo those pixels
-   scalar. The destination alpha walks the whole range including fully
+/* A translucent destination takes the general formula, with a divisor per pixel,
+   so the kernel has to send a block holding one through
+   lh_ui_pixmap_blend_alpha_32_over_sse2. The destination alpha walks the whole range including fully
    transparent, where a source alpha of zero must leave the pixel untouched —
    the one case the unconditional vector formula gets wrong, and the one a
    single mid-alpha hole would not catch. */
@@ -332,6 +399,52 @@ TEST(ui_pixmap, blend_alpha_32_sse2_falls_back_for_a_translucent_destination)
             {
                 ASSERT_EQ(at[i], want[i]) << "dst alpha " << static_cast<lh_u32_t>(dst_alpha >> 24) << " hole at "
                                           << hole << " pixel " << i;
+            }
+        }
+    }
+}
+
+/* The general "over" divides in single precision, and is exact only because every
+   numerator stays below 2^24 and every quotient that is not whole stays more than
+   half an ulp from the next integer. The tightest cases are a large total (both
+   alphas near 255) with channels near 255, and a tiny total with channels at the
+   ends: every destination alpha and every source alpha, against the channel values
+   that sit at those edges, each compared bit for bit with the scalar word form. */
+TEST(ui_pixmap, blend_alpha_32_over_sse2_is_exact_for_every_alpha_pair)
+{
+    if (!lh_cpu_simd_has_sse2())
+    {
+        GTEST_SKIP() << "SSE2 not available on this CPU";
+    }
+    const lh_u32_t channels[] = {0u, 1u, 2u, 63u, 64u, 127u, 128u, 129u, 191u, 253u, 254u, 255u};
+    const lh_usize_t n = sizeof(channels) / sizeof(channels[0]);
+    std::vector<lh_u32_t> at(256u);
+    std::vector<lh_u32_t> want(256u);
+    std::vector<lh_byte_t> alpha(256u);
+
+    for (lh_u32_t dst_a = 0u; dst_a < 256u; ++dst_a)
+    {
+        for (lh_usize_t si = 0u; si < n; ++si)
+        {
+            for (lh_usize_t di = 0u; di < n; ++di)
+            {
+                const lh_u32_t s = channels[si];
+                const lh_u32_t d = channels[di];
+                const lh_u32_t src = (s << 16) | (d << 8) | (255u - s);
+                const lh_u32_t dst = (dst_a << 24) | (d << 16) | (s << 8) | (255u - d);
+
+                for (lh_u32_t a = 0u; a < 256u; ++a)
+                {
+                    at[a] = dst;
+                    alpha[a] = static_cast<lh_byte_t>(a);
+                    want[a] = a == 0u ? dst : lh_ui_color_argb_over(dst, (a << 24) | src);
+                }
+                lh_ui_pixmap_blend_alpha_32_over_sse2(at.data(), alpha.data(), 256u, src);
+                for (lh_u32_t a = 0u; a < 256u; ++a)
+                {
+                    ASSERT_EQ(at[a], want[a]) << "dst alpha " << dst_a << " src alpha " << a << " s " << s
+                                              << " d " << d;
+                }
             }
         }
     }
@@ -386,6 +499,59 @@ TEST(ui_pixmap, blend_alpha_16_sse2_is_the_scalar_kernel_for_every_alpha_in_both
 }
 
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
+
+/* Eight coverages from a register are the same blend as the same coverages from
+   a buffer, for every count, in every format, over opaque and translucent ARGB. */
+TEST(ui_pixmap, blend_cover_8_is_blend_alpha_span_for_every_count_and_format)
+{
+    const lh_ui_pixmap_format_t formats[] = {lh_ui_pixmap_format_argb8888, lh_ui_pixmap_format_rgb565,
+                                             lh_ui_pixmap_format_rgb565_swapped};
+    const lh_u32_t src = 0x0033ccffu;
+
+    for (lh_ui_pixmap_format_t format : formats)
+    {
+        for (int translucent = 0; translucent < 2; ++translucent)
+        {
+            for (int count = 1; count <= 8; ++count)
+            {
+                for (int seed = 0; seed < 64; ++seed)
+                {
+                    lh_u32_t got[12];
+                    lh_u32_t want[12];
+                    lh_byte_t alpha[8];
+                    lh_u64_t cover = 0u;
+                    lh_ui_pixmap_t a;
+                    lh_ui_pixmap_t b;
+                    const int bytes = lh_ui_pixmap_format_get_bytes(format);
+
+                    for (int i = 0; i < 12; ++i)
+                    {
+                        const lh_u32_t word = (static_cast<lh_u32_t>(i + seed * 12) * 2654435761u) ^ 0x5a5a5a5au;
+
+                        got[i] = want[i] = translucent != 0 ? word : (word | 0xff000000u);
+                    }
+                    for (int i = 0; i < 8; ++i)
+                    {
+                        const int pick = (seed * 7 + i * 29) % 4;
+
+                        alpha[i] = static_cast<lh_byte_t>(pick == 0 ? 0 : (pick == 1 ? 255 : (seed * 31 + i * 97) & 0xff));
+                        cover |= static_cast<lh_u64_t>(alpha[i]) << (8 * i);
+                    }
+                    lh_ui_pixmap_init(lh_addr_of(a), lh_ptr_rcast(lh_byte_t, got), 12 * 4 / bytes, 1, 48, format);
+                    lh_ui_pixmap_init(lh_addr_of(b), lh_ptr_rcast(lh_byte_t, want), 12 * 4 / bytes, 1, 48, format);
+                    lh_ui_pixmap_blend_cover_8(lh_addr_of(a), 2, 0, count, cover, src);
+                    lh_ui_pixmap_blend_alpha_span(lh_addr_of(b), 2, 2 + count, 0, src, alpha);
+                    for (int i = 0; i < 12; ++i)
+                    {
+                        ASSERT_EQ(got[i], want[i]) << "format " << static_cast<int>(format) << " translucent "
+                                                   << translucent << " count " << count << " seed " << seed
+                                                   << " word " << i;
+                    }
+                }
+            }
+        }
+    }
+}
 
 #if LH_TEST_EXPECT_DEATH_ENABLED
 

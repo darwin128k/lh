@@ -7,6 +7,7 @@
 #include <lh/ui/canvas/sw.h>
 #include <lh/ui/color.h>
 #include <lh/ui/entity.h>
+#include <lh/ui/font.h>
 #include <lh/ui/container.h>
 #include <lh/ui/mask.h>
 #include <lh/ui/paint.h>
@@ -458,6 +459,56 @@ TEST(ui_canvas_sw, a_four_bit_glyph_matches_the_canvas_fallback_pixel_for_pixel)
             lh_ui_canvas_fill_mask(lh_addr_of(sw.canvas), lh_addr_of(mask), at, lh_addr_of(ink));
             lh_ui_canvas_fill_mask(lh_addr_of(fallback.canvas), lh_addr_of(mask), at, lh_addr_of(ink));
             expect_same_pixels(sw, fallback);
+        }
+    }
+}
+
+/* Every glyph of the font, the way a caption draws it: eight coverages a step
+   straight into the pixels. Over an opaque ground and a transparent one (the
+   "over" with a divisor), in RGB565, in an opaque and a translucent ink, and
+   hanging off both sides of the pixmap -- each the per-pixel fallback's pixels. */
+TEST(ui_canvas_sw, every_glyph_of_the_font_matches_the_canvas_fallback_pixel_for_pixel)
+{
+    const lh_ui_font_t *font = lh_ui_font_get_default();
+
+    for (lh_u32_t code = 32U; code < 127U; ++code)
+    {
+        lh_u32_t index = 0U;
+
+        if (!lh_ui_font_find_index(font, code, lh_addr_of(index)))
+        {
+            continue;
+        }
+        const lh_ui_mask_t *glyph = lh_ui_font_get_glyph_at(font, index);
+
+        for (int ground = 0; ground < 3; ++ground)
+        {
+            const lh_ui_pixmap_format_t format = ground == 2 ? lh_ui_pixmap_format_rgb565 : lh_ui_pixmap_format_argb8888;
+
+            for (int alpha : {255, 140})
+            {
+                for (int x : {-5, 3, side - 6})
+                {
+                    sw_fixture sw(lh_addr_of(lh_ui_canvas_backend_sw), format);
+                    sw_fixture fallback(&g_rect_only, format);
+                    const lh_ui_color_t ink = color_of(250, 120, 30, alpha);
+                    const lh_ui_color_t under = color_of(10, 60, 200, 255);
+                    const lh_ui_rect_t all = rect_of(0, 0, side, side);
+                    lh_ui_point_t at;
+
+                    if (ground != 1)
+                    {
+                        lh_ui_canvas_fill_rect(lh_addr_of(sw.canvas), lh_addr_of(all), lh_addr_of(under));
+                        lh_ui_canvas_fill_rect(lh_addr_of(fallback.canvas), lh_addr_of(all), lh_addr_of(under));
+                    }
+                    lh_ui_point_init(lh_addr_of(at), x, 4);
+                    lh_ui_canvas_fill_mask(lh_addr_of(sw.canvas), glyph, at, lh_addr_of(ink));
+                    lh_ui_canvas_fill_mask(lh_addr_of(fallback.canvas), glyph, at, lh_addr_of(ink));
+                    SCOPED_TRACE(::testing::Message() << "code " << code << " ground " << ground << " alpha " << alpha
+                                                      << " x " << x);
+                    expect_same_pixels(sw, fallback);
+                }
+            }
         }
     }
 }

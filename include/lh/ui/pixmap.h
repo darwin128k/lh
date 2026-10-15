@@ -224,8 +224,8 @@ lh_u32_t
 lh_ui_pixmap_mix_any(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a);
 
 /**
- * @brief ARGB8888 word @p dst with @p src at alpha @p a over it: the integer
- *        path for an opaque @p dst, ::lh_ui_pixmap_mix_any otherwise.
+ * @brief ARGB8888 word @p dst with @p src at alpha @p a over it:
+ *        ::lh_ui_color_argb_over on the words, opaque or translucent @p dst.
  */
 lh_u32_t
 lh_ui_pixmap_mix_argb(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a);
@@ -236,6 +236,39 @@ lh_ui_pixmap_mix_argb(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh
  */
 lh_u32_t
 lh_ui_pixmap_mix_16(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a);
+
+/**
+ * @brief Pixel word @p dst (format of @p self) with RGB @p src at alpha @p a
+ *        over it: ::lh_ui_pixmap_mix_16 or ::lh_ui_pixmap_mix_argb, by format.
+ */
+lh_u32_t
+lh_ui_pixmap_mix_word(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a);
+
+/**
+ * @brief The word pixel @p dst (format of @p self) becomes with @p color painted
+ *        over it (::lh_ui_color_over): @p color packed when it is opaque, @p dst
+ *        when it is transparent, ::lh_ui_pixmap_mix_word otherwise.
+ *
+ * The one per-pixel "over" of this module: ::lh_ui_pixmap_blend_pixel and
+ * ::lh_ui_pixmap_fill_colors_span are this, read and written back, and no
+ * ::lh_ui_color_t is built for the destination.
+ */
+lh_u32_t
+lh_ui_pixmap_over_word(const lh_ui_pixmap_t *self, lh_u32_t dst, const lh_ui_color_t *color);
+
+/**
+ * @brief ::lh_ui_pixmap_over_word for an ARGB8888 @p self: the format already
+ *        known, so a loop over a row pays for no format test per pixel.
+ */
+lh_u32_t
+lh_ui_pixmap_over_argb(const lh_ui_pixmap_t *self, lh_u32_t dst, const lh_ui_color_t *color);
+
+/**
+ * @brief ::lh_ui_pixmap_over_word for a 16-bit @p self (RGB565, either byte
+ *        order): the format already known.
+ */
+lh_u32_t
+lh_ui_pixmap_over_16(const lh_ui_pixmap_t *self, lh_u32_t dst, const lh_ui_color_t *color);
 
 /**
  * @brief @p src (`0xRRGGBB`) as an RGB565 word, native order.
@@ -261,7 +294,8 @@ lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_b
 /**
  * @brief SSE2 form of ::lh_ui_pixmap_blend_alpha_32, four pixels at a time.
  *
- * The scalar kernel branches per pixel three times вЂ” on `alpha[i]`, on it being
+ * Blocks of four, the last one to three pixels included: they are read into a
+ * block and written back word by word. The scalar kernel branches per pixel three times вЂ” on `alpha[i]`, on it being
  * `255`, and (inside ::lh_ui_pixmap_mix_argb) on whether the destination is
  * opaque at all вЂ” and rebuilds a word per pixel. All three are removable: the
  * general form `(src * a + dst * (255 - a) + 127) / 255` already *is* the
@@ -269,11 +303,11 @@ lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_b
  * so one branch-free pass covers every alpha, and `255` as the divisor becomes
  * `(x + 1 + (x >> 8)) >> 8` with no divide at all.
  *
- * The remaining scalar branch is the translucent *destination*, which
- * ::lh_ui_pixmap_mix_argb handles by a different formula. A pixel whose
- * destination alpha is not `255` is detected here and redone scalar, so the
- * result is bit-identical to the scalar kernel for every input; nothing is
- * approximated away.
+ * A translucent *destination* takes the general formula, with a divisor per
+ * pixel: a block of four with one in it goes through
+ * ::lh_ui_pixmap_blend_alpha_32_over_sse2, which is exact too, so the result is
+ * bit-identical to the scalar kernel for every input; nothing is approximated
+ * away.
  *
  * Only meaningful when `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` is on and the running
  * CPU reports SSE2 (::lh_cpu_simd_has_sse2); ::lh_ui_pixmap_blend_alpha_32 is
@@ -283,6 +317,48 @@ lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_b
 lh_void
 lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, const lh_byte_ptr alpha, lh_usize_t count,
                                  lh_u32_t src);
+
+/**
+ * @brief One block of ::lh_ui_pixmap_blend_alpha_32_sse2: exactly four words at
+ *        @p at, pixel `i` at `alpha[i]`. A block with a translucent word in it
+ *        goes through ::lh_ui_pixmap_blend_alpha_32_over_quad_sse2.
+ */
+lh_void
+lh_ui_pixmap_blend_alpha_32_quad_sse2(lh_u32_t *at, const lh_byte_ptr alpha, lh_u32_t src);
+
+/**
+ * @brief One block of ::lh_ui_pixmap_blend_alpha_32_over_sse2: exactly four words.
+ */
+lh_void
+lh_ui_pixmap_blend_alpha_32_over_quad_sse2(lh_u32_t *at, const lh_byte_ptr alpha, lh_u32_t src);
+
+/**
+ * @brief Blend @p src (`0xRRGGBB`) over the first @p count (1 .. 8) ARGB8888
+ *        words at @p at, pixel `i` at byte `i` of @p cover: eight coverages in a
+ *        register, as ::lh_ui_mask_get_coverage_8 reads them. A short count is
+ *        read into the register and written back word by word; nothing past it is
+ *        touched.
+ */
+lh_void
+lh_ui_pixmap_blend_cover_32_sse2(lh_u32_t *at, lh_usize_t count, lh_u64_t cover, lh_u32_t src);
+
+/**
+ * @brief SSE2 ::lh_ui_color_argb_over of @p src at each @p alpha onto @p count
+ *        ARGB8888 words at @p at, for any destination alpha, four pixels a step.
+ *
+ * The general "over": each channel is divided back by the result alpha, which
+ * is a different divisor per pixel. The division is done in single precision and
+ * is exact: every numerator is an integer below 2^24, so it is representable, and
+ * `divps` rounds correctly; a quotient that is not whole sits at least 1/65025 from
+ * the next integer, more than half an ulp below 256, so truncating it is the
+ * integer division the scalar kernel does. A zero @p alpha leaves the pixel as it
+ * was, as in ::lh_ui_pixmap_blend_alpha_32.
+ *
+ * ::lh_ui_pixmap_blend_alpha_32_sse2 runs this on a block with a translucent
+ * pixel in it; exposed so it can be tested and reused on its own.
+ */
+lh_void
+lh_ui_pixmap_blend_alpha_32_over_sse2(lh_u32_t *at, const lh_byte_ptr alpha, lh_usize_t count, lh_u32_t src);
 
 /**
  * @brief SSE2 form of ::lh_ui_pixmap_blend_alpha_16, eight pixels at a time.
@@ -295,9 +371,8 @@ lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, const
  * inside each 16-bit word: red is lifted out of all eight pixels with one shift
  * and one mask, green with another, blue with a third, giving three registers of
  * eight lanes each, one channel per register and one pixel per lane. Widening
- * the stored bits to a byte is a multiply ((r5 * 33) >> 2 is (r5 << 3) | (r5 >> 2)
- * because the halves cannot overlap) and narrowing is a shift, so nothing ever
- * has to be shuffled between lanes and pixel k of @p alpha is lane k of all
+ * the stored bits to a byte is the shift pair `(v << up) | (v >> down)` and
+ * narrowing is a shift, so nothing ever has to be shuffled between lanes and pixel k of @p alpha is lane k of all
  * three planes. A swapped format (::lh_ui_pixmap_format_rgb565_swapped) costs one
  * 16-bit byte swap on the way in and one on the way out.
  *
@@ -310,6 +385,22 @@ lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, const
                                  lh_u32_t src);
 
 /**
+ * @brief One block of ::lh_ui_pixmap_blend_alpha_16_sse2: exactly eight RGB565
+ *        words at @p at, pixel `i` at `alpha[i]`; @p swap for
+ *        ::lh_ui_pixmap_format_rgb565_swapped.
+ */
+lh_void
+lh_ui_pixmap_blend_alpha_16_octet_sse2(lh_u16_t *at, const lh_byte_ptr alpha, lh_u32_t src, lh_bool_t swap);
+
+/**
+ * @brief ::lh_ui_pixmap_blend_cover_32_sse2 for RGB565: the first @p count
+ *        (1 .. 8) words at @p at, pixel `i` at byte `i` of @p cover; @p swap for
+ *        ::lh_ui_pixmap_format_rgb565_swapped.
+ */
+lh_void
+lh_ui_pixmap_blend_cover_16_sse2(lh_u16_t *at, lh_usize_t count, lh_u64_t cover, lh_u32_t src, lh_bool_t swap);
+
+/**
  * @brief The row kernel: blend @p src (`0xRRGGBB`) over pixels `x0 .. x1 - 1`
  *        of row @p y, pixel `x0 + i` at `alpha[i]`; at most
  *        ::LH_UI_PIXMAP_RUN pixels. The same result as
@@ -318,6 +409,16 @@ lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, const
 lh_void
 lh_ui_pixmap_blend_alpha_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_u32_t src,
                               const lh_byte_ptr alpha);
+
+/**
+ * @brief Blend @p src (`0xRRGGBB`) over the @p count (1 .. 8) pixels of row @p y
+ *        from @p x, pixel `x + i` at byte `i` of @p cover: the coverages a mask
+ *        row hands over eight at a time (::lh_ui_mask_get_coverage_8), blended
+ *        straight from the register in every format. What
+ *        ::lh_ui_pixmap_blend_alpha_span does with the same coverages in a buffer.
+ */
+lh_void
+lh_ui_pixmap_blend_cover_8(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_s32_t count, lh_u64_t cover, lh_u32_t src);
 
 /**
  * @brief Blend @p color over pixels `x0 .. x1 - 1` of row @p y (the row
@@ -335,8 +436,11 @@ lh_ui_pixmap_fill_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t 
 
 /**
  * @brief Paint pixels `x0 .. x1 - 1` of row @p y each with its own colour,
- *        `colors[0]` the first: ::lh_ui_pixmap_fill_span over every run of one
- *        colour, so a pixel comes out as it would from a fill of that colour.
+ *        `colors[0]` the first: ::lh_ui_pixmap_over_word per pixel, so a pixel
+ *        comes out as it would from a fill of its colour.
+ *
+ * A gradient changes colour every pixel or two, so the run is walked pixel by
+ * pixel in either format rather than split into one-colour fills.
  */
 lh_void
 lh_ui_pixmap_fill_colors_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,

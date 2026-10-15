@@ -133,6 +133,63 @@ TEST(date_from_epoch_days, roundtrip_before_and_after_epoch)
     EXPECT_EQ(lh_date_get_day(&before_epoch), 31);
 }
 
+/* lh_date_from_epoch_days finds the year in O(1) from the 400-year cycle. The
+   reference here is the plain walk it replaced -- a year at a time, then a month at
+   a time -- written out independently, and every day from 0000-01-01 to 9999-12-31
+   has to come out the same and go back to the same day number. */
+TEST(date_from_epoch_days, matches_a_day_by_day_walk_for_ten_thousand_years)
+{
+    const lh_s64_t first = -719528; /* 0000-01-01 */
+    lh_s64_t days = first;
+    lh_date_year_t year = 0;
+    lh_date_month_t month = 1;
+    lh_date_day_t day = 1;
+
+    for (; year <= 9999; ++days)
+    {
+        const lh_date_t got = lh_date_from_epoch_days(days);
+
+        ASSERT_EQ(lh_date_get_year(&got), year) << "day " << days;
+        ASSERT_EQ(lh_date_get_month(&got), month) << "day " << days;
+        ASSERT_EQ(lh_date_get_day(&got), day) << "day " << days;
+        ASSERT_EQ(lh_date_days_since_epoch(&got), days);
+
+        if (day < lh_date_days_in_month(year, month))
+        {
+            ++day;
+            continue;
+        }
+        day = 1;
+        if (month < 12)
+        {
+            ++month;
+            continue;
+        }
+        month = 1;
+        ++year;
+    }
+}
+
+TEST(date_year_from_days_from_zero, is_the_inverse_of_days_from_zero)
+{
+    for (lh_s64_t y = -1000; y <= 70000; ++y)
+    {
+        const lh_s64_t start = lh_date_year_days_from_zero(y);
+
+        ASSERT_EQ(lh_date_year_from_days_from_zero(start), y);
+        ASSERT_EQ(lh_date_year_from_days_from_zero(start - 1), y - 1);
+    }
+}
+
+TEST(date_days_before_month, common_and_leap)
+{
+    EXPECT_EQ(lh_date_days_before_month(2026, 1), 0);
+    EXPECT_EQ(lh_date_days_before_month(2026, 3), 59);
+    EXPECT_EQ(lh_date_days_before_month(2024, 3), 60);
+    EXPECT_EQ(lh_date_days_before_month(2024, 12), 335);
+    EXPECT_EQ(lh_date_days_before_month(2026, 13), 0);
+}
+
 TEST(date_year_days, leap_and_common)
 {
     EXPECT_EQ(lh_date_year_days(2024), 366);
