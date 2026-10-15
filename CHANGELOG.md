@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `lh_math_slice_t` (`lh/math/slice.h`) and `lh_math_view_t` (`lh/math/view.h`): read-only closed slice and strided view of `lh_float_t` values, built on `lh_memory_view_slice_fields` and `lh_interval_closed_*`
+- `LH_FLOAT_T_MIN`, `LH_FLOAT_T_MAX` and `LH_FLOAT_T_EPS` (`lh/numeric/float.h`): `FLT_MIN` (smallest positive normalized value), `FLT_MAX` and `FLT_EPSILON` limits for `lh_float_t`
 
 ### Changed
 
