@@ -13,6 +13,7 @@
 #include <lh/ui/radii.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -88,12 +89,12 @@ TEST(ui_radii, corners_that_do_not_fit_are_scaled_down_together)
        more than half the shorter side -- 20 -- because each quarter of the box is cut
        by its own corner only. */
     lh_ui_radii_init(&radii, lh_ui_scalar(30), lh_ui_scalar(30), lh_ui_scalar(0), lh_ui_scalar(0));
-    fit = lh_ui_radii_clamp(&radii, &rect);
+    fit = lh_test::out(lh_ui_radii_clamp, &radii, &rect);
     EXPECT_EQ(fit.top_left, lh_ui_scalar(20));
     EXPECT_EQ(fit.bottom_left, lh_ui_scalar(0));
 
     lh_ui_radii_init(&radii, lh_ui_scalar(30), lh_ui_scalar(30), lh_ui_scalar(30), lh_ui_scalar(30));
-    fit = lh_ui_radii_clamp(&radii, &rect);
+    fit = lh_test::out(lh_ui_radii_clamp, &radii, &rect);
     EXPECT_EQ(fit.top_left, lh_ui_scalar(20));
     EXPECT_EQ(fit.bottom_right, lh_ui_scalar(20));
 }
@@ -154,7 +155,7 @@ TEST(ui_gradient, a_colour_between_two_stops_is_the_two_mixed_in_proportion)
 
     lh_ui_gradient_init(&g);
     lh_ui_gradient_init_stops(&g, stops, lh_null, 2);
-    mid = lh_ui_gradient_color_at(&g, 51);
+    mid = lh_test::out(lh_ui_gradient_color_at, &g, 51);
     EXPECT_EQ(lh_ui_color_get_r(&mid), 160);
     EXPECT_EQ(lh_ui_color_get_b(&mid), 20);
 }

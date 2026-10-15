@@ -1213,8 +1213,8 @@ lh_memory_bounds_swap_and_clear(lh_memory_bounds_t *self, lh_memory_bounds_t *ot
  * @fails ::lh_runtime_error_code_invalid_range
  *        @p self is neither uninitialized nor valid half-open bounds.
  */
-lh_memory_bounds_slice_t
-lh_memory_bounds_to_slice(const lh_memory_bounds_t *self);
+lh_void
+lh_memory_bounds_to_slice(const lh_memory_bounds_t *self, lh_memory_bounds_slice_t *out);
 
 /* -- sub-range construction -------------------------------------------------- */
 
@@ -1235,8 +1235,8 @@ lh_memory_bounds_to_slice(const lh_memory_bounds_t *self);
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source range size.
  */
-lh_memory_bounds_t
-lh_memory_bounds_take_first(lh_ptr begin, lh_ptr end, lh_usize_t n);
+lh_void
+lh_memory_bounds_take_first(lh_ptr begin, lh_ptr end, lh_usize_t n, lh_memory_bounds_t *out);
 
 /**
  * @brief Build bounds containing the last @p n bytes of a valid half-open range.
@@ -1254,8 +1254,8 @@ lh_memory_bounds_take_first(lh_ptr begin, lh_ptr end, lh_usize_t n);
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source range size.
  */
-lh_memory_bounds_t
-lh_memory_bounds_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n);
+lh_void
+lh_memory_bounds_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n, lh_memory_bounds_t *out);
 
 /**
  * @brief Build bounds containing the first @p size bytes of @p self.
@@ -1273,8 +1273,8 @@ lh_memory_bounds_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n);
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p size is greater than the source bounds size.
  */
-lh_memory_bounds_t
-lh_memory_bounds_from_begin(const lh_memory_bounds_t *self, lh_usize_t size);
+lh_void
+lh_memory_bounds_from_begin(const lh_memory_bounds_t *self, lh_usize_t size, lh_memory_bounds_t *out);
 
 /**
  * @brief Build bounds containing the last @p size bytes of @p self.
@@ -1292,8 +1292,8 @@ lh_memory_bounds_from_begin(const lh_memory_bounds_t *self, lh_usize_t size);
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p size is greater than the source bounds size.
  */
-lh_memory_bounds_t
-lh_memory_bounds_from_end(const lh_memory_bounds_t *self, lh_usize_t size);
+lh_void
+lh_memory_bounds_from_end(const lh_memory_bounds_t *self, lh_usize_t size, lh_memory_bounds_t *out);
 
 /**
  * @brief Build sub-bounds between @p begin and @p end inside @p self.
@@ -1310,8 +1310,8 @@ lh_memory_bounds_from_end(const lh_memory_bounds_t *self, lh_usize_t size);
  * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not valid bounds.
  */
-lh_memory_bounds_t
-lh_memory_bounds_between(const lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end);
+lh_void
+lh_memory_bounds_between(const lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end, lh_memory_bounds_t *out);
 
 /**
  * @brief Build sub-bounds starting at @p offset with @p size bytes.
@@ -1330,9 +1330,10 @@ lh_memory_bounds_between(const lh_memory_bounds_t *self, lh_ptr begin, lh_ptr en
  * @fails ::lh_runtime_error_code_out_of_range
  *        <tt>[offset, offset + size)</tt> is outside @p self.
  */
-lh_memory_bounds_t
+lh_void
 lh_memory_bounds_from_offset(const lh_memory_bounds_t *self, lh_uoffset_t offset,
-                                  lh_usize_t size);
+                                  lh_usize_t size,
+                                  lh_memory_bounds_t *out);
 
 /**
  * @brief Build bounds with @p n bytes removed from the beginning.
@@ -1350,8 +1351,8 @@ lh_memory_bounds_from_offset(const lh_memory_bounds_t *self, lh_uoffset_t offset
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source bounds size.
  */
-lh_memory_bounds_t
-lh_memory_bounds_drop_first(const lh_memory_bounds_t *self, lh_usize_t n);
+lh_void
+lh_memory_bounds_drop_first(const lh_memory_bounds_t *self, lh_usize_t n, lh_memory_bounds_t *out);
 
 /**
  * @brief Build bounds with @p n bytes removed from the end.
@@ -1369,8 +1370,8 @@ lh_memory_bounds_drop_first(const lh_memory_bounds_t *self, lh_usize_t n);
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source bounds size.
  */
-lh_memory_bounds_t
-lh_memory_bounds_drop_last(const lh_memory_bounds_t *self, lh_usize_t n);
+lh_void
+lh_memory_bounds_drop_last(const lh_memory_bounds_t *self, lh_usize_t n, lh_memory_bounds_t *out);
 
 /**
  * @brief Build bounds with bytes removed from both sides.
@@ -1389,8 +1390,8 @@ lh_memory_bounds_drop_last(const lh_memory_bounds_t *self, lh_usize_t n);
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p left + @p right is greater than the source bounds size.
  */
-lh_memory_bounds_t
-lh_memory_bounds_trim(const lh_memory_bounds_t *self, lh_usize_t left, lh_usize_t right);
+lh_void
+lh_memory_bounds_trim(const lh_memory_bounds_t *self, lh_usize_t left, lh_usize_t right, lh_memory_bounds_t *out);
 
 /* ── view ────────────────────────────────────────────────────────────────── */
 
@@ -1416,8 +1417,8 @@ lh_memory_bounds_trim(const lh_memory_bounds_t *self, lh_usize_t left, lh_usize_
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-lh_memory_view_t
-lh_memory_bounds_as_view(const lh_memory_bounds_t *self);
+lh_void
+lh_memory_bounds_as_view(const lh_memory_bounds_t *self, lh_memory_view_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

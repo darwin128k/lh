@@ -133,8 +133,8 @@ lh_ui_mask_unpack_4_sse2(lh_u64_t bytes, lh_bool_t odd);
 /**
  * @brief The rect @p self covers when its top-left pixel is at @p origin.
  */
-lh_ui_rect_t
-lh_ui_mask_get_rect(const lh_ui_mask_t *self, lh_ui_point_t origin);
+lh_void
+lh_ui_mask_get_rect(const lh_ui_mask_t *self, lh_ui_point_t origin, lh_ui_rect_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

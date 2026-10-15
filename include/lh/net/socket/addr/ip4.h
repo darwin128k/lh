@@ -86,8 +86,8 @@ lh_net_ip4_socket_addr_assign(lh_net_ip4_socket_addr_t *self,
  * @param self Address to read from.
  * @return Current IP address.
  */
-lh_net_ip4_t
-lh_net_ip4_socket_addr_get_ip(const lh_net_ip4_socket_addr_t *self);
+lh_void
+lh_net_ip4_socket_addr_get_ip(const lh_net_ip4_socket_addr_t *self, lh_net_ip4_t *out);
 
 /**
  * @brief Replace the IP address stored in @p self.

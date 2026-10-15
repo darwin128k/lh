@@ -15,6 +15,7 @@
 #include <lh/ui/style.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -55,9 +56,9 @@ TEST(entity_image, init_keeps_the_mask_the_rect_and_the_class)
     lh_ui_size_t size;
 
     lh_ui_image_init(&image, rect_of(10, 20, 16, 16), &mask);
-    size = lh_ui_image_get_size(&image);
+    size = lh_test::out(lh_ui_image_get_size, &image);
 
-    EXPECT_TRUE(rect_is(lh_ui_entity_get_rect(lh_ui_image_as_entity(&image)), rect_of(10, 20, 16, 16)));
+    EXPECT_TRUE(rect_is(lh_test::out(lh_ui_entity_get_rect, lh_ui_image_as_entity(&image)), rect_of(10, 20, 16, 16)));
     EXPECT_EQ(lh_ui_image_get_mask(&image), &mask);
     EXPECT_EQ(lh_ui_entity_get_class(lh_ui_image_as_entity(&image)), &lh_ui_image_class);
     EXPECT_EQ(lh_ui_size_get_width(&size), lh_ui_scalar(4)) << "the picture is not the mask";
@@ -133,7 +134,7 @@ TEST(entity_image, nothing_is_drawn_without_a_mask)
     draw_log_init(&log, &canvas, false, false, true);
 
     lh_ui_entity_draw(lh_ui_image_as_entity(&image), &canvas);
-    size = lh_ui_image_get_size(&image);
+    size = lh_test::out(lh_ui_image_get_size, &image);
 
     EXPECT_EQ(log.mask_count, 0);
     EXPECT_EQ(lh_ui_size_get_width(&size), lh_ui_scalar(0));
@@ -196,13 +197,13 @@ TEST(entity_image, an_image_measures_as_its_mask)
     lh_ui_rect_t bounds;
 
     lh_ui_image_init(&image, rect_of(10, 20, 16, 16), &mask);
-    bounds = lh_ui_entity_get_content_bounds(lh_ui_image_as_entity(&image));
+    bounds = lh_test::out(lh_ui_entity_get_content_bounds, lh_ui_image_as_entity(&image));
     EXPECT_TRUE(rect_is(bounds, rect_of(10, 20, 4, 3)))
         << "the image measured the box it was given instead of the picture it shows";
 
     const lh_ui_style_t style = plain_style(lh_ui_scalar(2));
     lh_ui_entity_set_style(lh_ui_image_as_entity(&image), &style);
-    bounds = lh_ui_entity_get_content_bounds(lh_ui_image_as_entity(&image));
+    bounds = lh_test::out(lh_ui_entity_get_content_bounds, lh_ui_image_as_entity(&image));
     EXPECT_TRUE(rect_is(bounds, rect_of(12, 22, 4, 3))) << "the padding was not measured with it";
 }
 
@@ -239,8 +240,8 @@ TEST(entity_image, a_wrap_place_gets_the_picture_its_own_width)
     lh_ui_point_t offset;
     lh_ui_entity_get_children_transform(lh_ui_container_as_entity(&box), &offset);
 
-    const lh_ui_rect_t picture_rect = lh_ui_entity_get_rect(lh_ui_image_as_entity(&picture));
-    const lh_ui_rect_t caption_rect = lh_ui_entity_get_rect(lh_ui_label_as_entity(&caption));
+    const lh_ui_rect_t picture_rect = lh_test::out(lh_ui_entity_get_rect, lh_ui_image_as_entity(&picture));
+    const lh_ui_rect_t caption_rect = lh_test::out(lh_ui_entity_get_rect, lh_ui_label_as_entity(&caption));
     /* 4 of picture, 4 of gap, 20 of caption, in a 224 wide content box. */
     const int start = 108 + (224 - 28) / 2;
 

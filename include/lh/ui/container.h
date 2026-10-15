@@ -92,8 +92,8 @@ lh_ui_container_get_key_step(const lh_ui_container_t *self, lh_key_t key);
  * @brief The scroll change @p input asks for: left / right across, every
  *        other key along y; zero for text and key-up.
  */
-lh_ui_point_t
-lh_ui_container_get_key_delta(const lh_ui_container_t *self, const lh_ui_key_input_t *input);
+lh_void
+lh_ui_container_get_key_delta(const lh_ui_container_t *self, const lh_ui_key_input_t *input, lh_ui_point_t *out);
 
 /**
  * @brief Answer for the children of @p self: place them by
@@ -152,22 +152,22 @@ lh_ui_entity_find_container(lh_ui_entity_t *entity);
 /**
  * @brief Size of the viewport: the size of the rect of @p self.
  */
-lh_ui_size_t
-lh_ui_container_get_viewport_size(const lh_ui_container_t *self);
+lh_void
+lh_ui_container_get_viewport_size(const lh_ui_container_t *self, lh_ui_size_t *out);
 
 /**
  * @brief @p far moved out by the right and bottom padding of @p self: the room
  *        left after the last child, as CSS scroll size counts it.
  */
-lh_ui_point_t
-lh_ui_container_pad_far(const lh_ui_container_t *self, lh_ui_point_t far);
+lh_void
+lh_ui_container_pad_far(const lh_ui_container_t *self, lh_ui_point_t far, lh_ui_point_t *out);
 
 /**
  * @brief Far corner of the content (::lh_ui_entity_get_content_bounds) plus
  *        the padding, or the origin of @p self when the content is empty.
  */
-lh_ui_point_t
-lh_ui_container_get_content_far(const lh_ui_container_t *self);
+lh_void
+lh_ui_container_get_content_far(const lh_ui_container_t *self, lh_ui_point_t *out);
 
 /**
  * @brief Size of the content: from the container origin to
@@ -175,43 +175,43 @@ lh_ui_container_get_content_far(const lh_ui_container_t *self);
  *
  * Computed on each call, not stored.
  */
-lh_ui_size_t
-lh_ui_container_get_content_size(const lh_ui_container_t *self);
+lh_void
+lh_ui_container_get_content_size(const lh_ui_container_t *self, lh_ui_size_t *out);
 
 /**
  * @brief Largest scroll per axis: content minus viewport, never below `0`.
  */
-lh_ui_point_t
-lh_ui_container_get_scroll_max(const lh_ui_container_t *self);
+lh_void
+lh_ui_container_get_scroll_max(const lh_ui_container_t *self, lh_ui_point_t *out);
 
 /**
  * @brief @p scroll clamped per axis to `0 .. @p max`: the one scroll clamp.
  *        For a caller that already holds the max, so content is not measured
  *        again.
  */
-lh_ui_point_t
-lh_ui_container_clamp_scroll_to(lh_ui_point_t scroll, lh_ui_point_t max);
+lh_void
+lh_ui_container_clamp_scroll_to(lh_ui_point_t scroll, lh_ui_point_t max, lh_ui_point_t *out);
 
 /**
  * @brief @p scroll clamped per axis to `0 .. max`
  *        (::lh_ui_container_get_scroll_max).
  */
-lh_ui_point_t
-lh_ui_container_clamp_scroll(const lh_ui_container_t *self, lh_ui_point_t scroll);
+lh_void
+lh_ui_container_clamp_scroll(const lh_ui_container_t *self, lh_ui_point_t scroll, lh_ui_point_t *out);
 
 /**
  * @brief The stored scroll of @p self clamped to @p max, which the caller got
  *        from ::lh_ui_container_get_scroll_max (no second measure).
  */
-lh_ui_point_t
-lh_ui_container_get_scroll_within(const lh_ui_container_t *self, lh_ui_point_t max);
+lh_void
+lh_ui_container_get_scroll_within(const lh_ui_container_t *self, lh_ui_point_t max, lh_ui_point_t *out);
 
 /**
  * @brief How far the content of @p self is scrolled, clamped on read: when the
  *        content shrank since the last set, this is already the new max.
  */
-lh_ui_point_t
-lh_ui_container_get_scroll(const lh_ui_container_t *self);
+lh_void
+lh_ui_container_get_scroll(const lh_ui_container_t *self, lh_ui_point_t *out);
 
 /**
  * @brief Scroll @p self to @p scroll, clamped with

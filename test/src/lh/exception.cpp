@@ -5,6 +5,7 @@
 #include <lh/runtime/error/initializer.h>
 #include <lh/str/view.h>
 #include <lh/str/view/initializer.h>
+#include <lh/test/out.h>
 
 #include <string>
 
@@ -14,7 +15,7 @@ namespace
 std::string
 desc_of(const lh_exception_t *exception)
 {
-    lh_str_view_t desc = lh_runtime_error_get_desc(lh_exception_get_error(exception));
+    lh_str_view_t desc = lh_test::out(lh_runtime_error_get_desc, lh_exception_get_error(exception));
     if (lh_str_view_is_empty(&desc))
     {
         return std::string();

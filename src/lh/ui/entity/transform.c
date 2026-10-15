@@ -15,11 +15,13 @@ lh_ui_entity_transform_init(lh_ui_entity_transform_t *self)
     self->clip = lh_bool_false;
 }
 
-lh_ui_point_t
-lh_ui_entity_transform_get_offset(const lh_ui_entity_transform_t *self)
+lh_void
+lh_ui_entity_transform_get_offset(const lh_ui_entity_transform_t *self, lh_ui_point_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    return self->offset;
+    *out = self->offset;
+    return;
 }
 
 lh_void

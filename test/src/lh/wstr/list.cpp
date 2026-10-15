@@ -2,6 +2,7 @@
 
 #include <lh/expect/death.h>
 #include <lh/wstr/list.h>
+#include <lh/test/out.h>
 
 #include <cwchar>
 #include <string>
@@ -44,9 +45,9 @@ TEST_F(wstr_list, elements_are_wide_characters_not_bytes)
     lh_wstr_list_push_back(&list, lh_wstr_view_lit(L"\x0436\x0443\x043a"));
 
     ASSERT_EQ(lh_wstr_list_get_size(&list), 3u);
-    EXPECT_EQ(as_wstring(lh_wstr_list_get(&list, 0)), L"alpha");
-    EXPECT_EQ(as_wstring(lh_wstr_list_get(&list, 1)), L"");
-    EXPECT_EQ(as_wstring(lh_wstr_list_get(&list, 2)), L"\x0436\x0443\x043a");
+    EXPECT_EQ(as_wstring(lh_test::out(lh_wstr_list_get, &list, 0)), L"alpha");
+    EXPECT_EQ(as_wstring(lh_test::out(lh_wstr_list_get, &list, 1)), L"");
+    EXPECT_EQ(as_wstring(lh_test::out(lh_wstr_list_get, &list, 2)), L"\x0436\x0443\x043a");
     EXPECT_EQ(std::wcscmp(lh_wstr_list_get_data(&list, 2), L"\x0436\x0443\x043a"), 0);
     EXPECT_EQ(std::wcscmp(lh_wstr_list_get_data(&list, 1), L""), 0);
 }
@@ -75,7 +76,7 @@ TEST_F(wstr_list, join_assign_append_self)
 #if LH_TEST_EXPECT_DEATH_ENABLED
 TEST_F(wstr_list, get_out_of_range_dies)
 {
-    LH_EXPECT_DEATH((void)lh_wstr_list_get(&list, 0));
+    LH_EXPECT_DEATH((void)lh_test::out(lh_wstr_list_get, &list, 0));
 }
 #endif
 

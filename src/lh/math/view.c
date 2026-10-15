@@ -24,7 +24,7 @@ lh_math_view_init(lh_math_view_t *self, const lh_math_slice_t *base, lh_usize_t 
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ifn(stride != 0U, lh_runtime_error_code_invalid_range);
-    self->slice = lh_math_slice_get_sub(base, offset, lh_math_view_get_span(stride, count));
+    lh_math_slice_get_sub(base, offset, lh_math_view_get_span(stride, count), lh_addr_of(self->slice));
     self->stride = stride;
     self->count = count;
 }

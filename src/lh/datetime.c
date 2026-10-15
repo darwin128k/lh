@@ -1,4 +1,5 @@
 #include <lh/datetime.h>
+#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/memory/std.h>
@@ -30,8 +31,10 @@ lh_datetime_set(lh_datetime_t *self, const lh_date_t *date, const lh_time_t *tim
 lh_void
 lh_datetime_assign(lh_datetime_t *self, const lh_datetime_t *other)
 {
-    lh_date_t date = lh_datetime_get_date(other);
-    lh_time_t time = lh_datetime_get_time(other);
+    lh_date_t date;
+    lh_datetime_get_date(other, lh_addr_of(date));
+    lh_time_t time;
+    lh_datetime_get_time(other, lh_addr_of(time));
 
     lh_datetime_set(self, lh_addr_of(date), lh_addr_of(time));
 }
@@ -39,10 +42,14 @@ lh_datetime_assign(lh_datetime_t *self, const lh_datetime_t *other)
 lh_uint_t
 lh_datetime_add(lh_datetime_t *self, const lh_datetime_t *other)
 {
-    lh_date_t other_date = lh_datetime_get_date(other);
-    lh_time_t other_time = lh_datetime_get_time(other);
-    lh_date_t date = lh_datetime_get_date(self);
-    lh_time_t time = lh_datetime_get_time(self);
+    lh_date_t other_date;
+    lh_datetime_get_date(other, lh_addr_of(other_date));
+    lh_time_t other_time;
+    lh_datetime_get_time(other, lh_addr_of(other_time));
+    lh_date_t date;
+    lh_datetime_get_date(self, lh_addr_of(date));
+    lh_time_t time;
+    lh_datetime_get_time(self, lh_addr_of(time));
     lh_uint_t day_carry;
     lh_uint_t overflow;
 
@@ -59,10 +66,14 @@ lh_datetime_add(lh_datetime_t *self, const lh_datetime_t *other)
 lh_uint_t
 lh_datetime_sub(lh_datetime_t *self, const lh_datetime_t *other)
 {
-    lh_date_t other_date = lh_datetime_get_date(other);
-    lh_time_t other_time = lh_datetime_get_time(other);
-    lh_date_t date = lh_datetime_get_date(self);
-    lh_time_t time = lh_datetime_get_time(self);
+    lh_date_t other_date;
+    lh_datetime_get_date(other, lh_addr_of(other_date));
+    lh_time_t other_time;
+    lh_datetime_get_time(other, lh_addr_of(other_time));
+    lh_date_t date;
+    lh_datetime_get_date(self, lh_addr_of(date));
+    lh_time_t time;
+    lh_datetime_get_time(self, lh_addr_of(time));
     lh_uint_t day_borrow;
     lh_uint_t overflow;
 
@@ -76,27 +87,35 @@ lh_datetime_sub(lh_datetime_t *self, const lh_datetime_t *other)
     return overflow;
 }
 
-lh_date_t
-lh_datetime_get_date(const lh_datetime_t *self)
+lh_void
+lh_datetime_get_date(const lh_datetime_t *self, lh_date_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    return self->date;
+    *out = self->date;
+    return;
 }
 
-lh_time_t
-lh_datetime_get_time(const lh_datetime_t *self)
+lh_void
+lh_datetime_get_time(const lh_datetime_t *self, lh_time_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    return self->time;
+    *out = self->time;
+    return;
 }
 
 lh_bool_t
 lh_datetime_equals(const lh_datetime_t *self, const lh_datetime_t *other)
 {
-    lh_date_t self_date = lh_datetime_get_date(self);
-    lh_date_t other_date = lh_datetime_get_date(other);
-    lh_time_t self_time = lh_datetime_get_time(self);
-    lh_time_t other_time = lh_datetime_get_time(other);
+    lh_date_t self_date;
+    lh_datetime_get_date(self, lh_addr_of(self_date));
+    lh_date_t other_date;
+    lh_datetime_get_date(other, lh_addr_of(other_date));
+    lh_time_t self_time;
+    lh_datetime_get_time(self, lh_addr_of(self_time));
+    lh_time_t other_time;
+    lh_datetime_get_time(other, lh_addr_of(other_time));
 
     return lh_cast_static(lh_bool_t, lh_date_equals(lh_addr_of(self_date), lh_addr_of(other_date)) &&
                                      lh_time_equals(lh_addr_of(self_time), lh_addr_of(other_time)));
@@ -105,8 +124,10 @@ lh_datetime_equals(const lh_datetime_t *self, const lh_datetime_t *other)
 lh_bool_t
 lh_datetime_is_at_least(const lh_datetime_t *self, const lh_datetime_t *minimum)
 {
-    lh_date_t self_date = lh_datetime_get_date(self);
-    lh_date_t minimum_date = lh_datetime_get_date(minimum);
+    lh_date_t self_date;
+    lh_datetime_get_date(self, lh_addr_of(self_date));
+    lh_date_t minimum_date;
+    lh_datetime_get_date(minimum, lh_addr_of(minimum_date));
     lh_time_t self_time;
     lh_time_t minimum_time;
 
@@ -114,8 +135,8 @@ lh_datetime_is_at_least(const lh_datetime_t *self, const lh_datetime_t *minimum)
     {
         return lh_date_is_at_least(lh_addr_of(self_date), lh_addr_of(minimum_date));
     }
-    self_time = lh_datetime_get_time(self);
-    minimum_time = lh_datetime_get_time(minimum);
+    lh_datetime_get_time(self, lh_addr_of(self_time));
+    lh_datetime_get_time(minimum, lh_addr_of(minimum_time));
     return lh_time_is_at_least(lh_addr_of(self_time), lh_addr_of(minimum_time));
 }
 
@@ -184,8 +205,8 @@ lh_datetime_format(const lh_datetime_t *self, lh_str_ptr str, lh_usize_t str_siz
     lh_usize_t time_len;
     lh_usize_t total;
 
-    date = lh_datetime_get_date(self);
-    time = lh_datetime_get_time(self);
+    lh_datetime_get_date(self, lh_addr_of(date));
+    lh_datetime_get_time(self, lh_addr_of(time));
     date_len = lh_date_format(lh_addr_of(date), scratch, LH_DATE_TEXT_MAX);
     if (date_len == 0)
     {

@@ -3,6 +3,7 @@
 #include <string>
 
 #include <lh/net/socket/addr/ip4.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -16,7 +17,7 @@ TEST(net_ip4_socket_addr_make, roundtrip_via_getters)
 
     lh_net_ip4_socket_addr_init(lh_addr_of(addr), &ip, 27015);
 
-    lh_net_ip4_t got_ip = lh_net_ip4_socket_addr_get_ip(&addr);
+    lh_net_ip4_t got_ip = lh_test::out(lh_net_ip4_socket_addr_get_ip, &addr);
     EXPECT_TRUE(lh_net_ip4_equals(&got_ip, &ip));
     EXPECT_EQ(lh_net_ip4_socket_addr_get_port(&addr), 27015U);
 }
@@ -31,7 +32,7 @@ TEST(net_ip4_socket_addr_set_port, replaces_only_port)
     lh_net_ip4_socket_addr_init(lh_addr_of(addr), &ip, 80);
     lh_net_ip4_socket_addr_set_port(&addr, 443);
 
-    lh_net_ip4_t got_ip = lh_net_ip4_socket_addr_get_ip(&addr);
+    lh_net_ip4_t got_ip = lh_test::out(lh_net_ip4_socket_addr_get_ip, &addr);
     EXPECT_TRUE(lh_net_ip4_equals(&got_ip, &ip));
     EXPECT_EQ(lh_net_ip4_socket_addr_get_port(&addr), 443U);
 }
@@ -51,7 +52,7 @@ TEST(net_ip4_socket_addr_set_ip, replaces_only_ip)
     lh_net_ip4_init(lh_addr_of(new_ip), 5, 6, 7, 8);
     lh_net_ip4_socket_addr_set_ip(&addr, &new_ip);
 
-    lh_net_ip4_t got_ip = lh_net_ip4_socket_addr_get_ip(&addr);
+    lh_net_ip4_t got_ip = lh_test::out(lh_net_ip4_socket_addr_get_ip, &addr);
     EXPECT_TRUE(lh_net_ip4_equals(&got_ip, &new_ip));
     EXPECT_EQ(lh_net_ip4_socket_addr_get_port(&addr), 80U);
 }
@@ -73,7 +74,7 @@ TEST(net_ip4_socket_addr_parse, parses_valid_address)
 {
     lh_net_ip4_socket_addr_t addr{};
     ASSERT_TRUE(lh_net_ip4_socket_addr_parse("192.168.0.1:27015", 17, &addr));
-    lh_net_ip4_t ip = lh_net_ip4_socket_addr_get_ip(&addr);
+    lh_net_ip4_t ip = lh_test::out(lh_net_ip4_socket_addr_get_ip, &addr);
     EXPECT_EQ(lh_net_ip4_get_octet(&ip, LH_NET_IP4_OCTET_INDEX_0), 192);
     EXPECT_EQ(lh_net_ip4_get_octet(&ip, LH_NET_IP4_OCTET_INDEX_3), 1);
     EXPECT_EQ(lh_net_ip4_socket_addr_get_port(&addr), 27015U);

@@ -1,4 +1,5 @@
 #include <lh/net/socket/addr.h>
+#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/runtime/error.h>
 #include <lh/util/addr.h>
@@ -20,13 +21,15 @@ lh_net_socket_addr_get_family(const lh_net_socket_addr_t *self)
     return self->family;
 }
 
-lh_net_ip4_socket_addr_t
-lh_net_socket_addr_get_ip4(const lh_net_socket_addr_t *self)
+lh_void
+lh_net_socket_addr_get_ip4(const lh_net_socket_addr_t *self, lh_net_ip4_socket_addr_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
     lh_assert_runtime_if(self->family != lh_net_socket_addr_family_ip4,
                          lh_runtime_error_code_invalid_argument);
-    return self->as.ip4;
+    *out = self->as.ip4;
+    return;
 }
 
 lh_usize_t

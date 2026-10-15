@@ -3,6 +3,7 @@
 #include <lh/expect/death.h>
 #include <lh/str/list.h>
 #include <lh/test/alloc_counter.h>
+#include <lh/test/out.h>
 
 #include <cstring>
 #include <string>
@@ -57,9 +58,9 @@ TEST_F(str_list, push_back_returns_indices_and_keeps_empty_elements)
     EXPECT_EQ(lh_str_list_push_back(&list, lh_str_view_lit("three")), 2u);
 
     ASSERT_EQ(lh_str_list_get_size(&list), 3u);
-    EXPECT_EQ(as_string(lh_str_list_get(&list, 0)), "one");
-    EXPECT_EQ(as_string(lh_str_list_get(&list, 1)), "");
-    EXPECT_EQ(as_string(lh_str_list_get(&list, 2)), "three");
+    EXPECT_EQ(as_string(lh_test::out(lh_str_list_get, &list, 0)), "one");
+    EXPECT_EQ(as_string(lh_test::out(lh_str_list_get, &list, 1)), "");
+    EXPECT_EQ(as_string(lh_test::out(lh_str_list_get, &list, 2)), "three");
 }
 
 TEST_F(str_list, get_data_is_nul_terminated_per_element)
@@ -82,7 +83,7 @@ TEST_F(str_list, push_back_str_copies_the_string)
     lh_str_list_push_back_str(&list, &s);
     lh_str_clear(&s);
     lh_str_append(&s, "changed", 7);
-    EXPECT_EQ(as_string(lh_str_list_get(&list, 0)), "copy");
+    EXPECT_EQ(as_string(lh_test::out(lh_str_list_get, &list, 0)), "copy");
     lh_str_deinit(&s);
 }
 
@@ -109,7 +110,7 @@ TEST_F(str_list, clear_keeps_buffers_for_reuse)
     lh_test::alloc_counter counter;
     lh_str_list_split_of(&list, lh_str_view_lit("w/x/y/z"), "/", 1);
     EXPECT_EQ(counter.count(), 0);
-    EXPECT_EQ(as_string(lh_str_list_get(&list, 3)), "z");
+    EXPECT_EQ(as_string(lh_test::out(lh_str_list_get, &list, 3)), "z");
 }
 
 TEST_F(str_list, join_glues_with_separator)
@@ -166,16 +167,16 @@ TEST_F(str_list, split_of_skips_empty_pieces)
 
     lh_str_list_split_of(&list, lh_str_view_lit("//C:\\Users/x\\\\"), seps, 2);
     ASSERT_EQ(lh_str_list_get_size(&list), 3u);
-    EXPECT_EQ(as_string(lh_str_list_get(&list, 0)), "C:");
-    EXPECT_EQ(as_string(lh_str_list_get(&list, 1)), "Users");
-    EXPECT_EQ(as_string(lh_str_list_get(&list, 2)), "x");
+    EXPECT_EQ(as_string(lh_test::out(lh_str_list_get, &list, 0)), "C:");
+    EXPECT_EQ(as_string(lh_test::out(lh_str_list_get, &list, 1)), "Users");
+    EXPECT_EQ(as_string(lh_test::out(lh_str_list_get, &list, 2)), "x");
 }
 
 #if LH_TEST_EXPECT_DEATH_ENABLED
 TEST_F(str_list, get_out_of_range_dies)
 {
     lh_str_list_push_back(&list, lh_str_view_lit("only"));
-    LH_EXPECT_DEATH((void)lh_str_list_get(&list, 1));
+    LH_EXPECT_DEATH((void)lh_test::out(lh_str_list_get, &list, 1));
     LH_EXPECT_DEATH((void)lh_str_list_get_data(&list, 1));
 }
 #endif

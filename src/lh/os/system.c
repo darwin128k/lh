@@ -1,4 +1,5 @@
 #include <lh/os/system.h>
+#include <lh/assert/runtime.h>
 #include <lh/attribute/thread_local.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -23,10 +24,12 @@ lh_os_system_set_last_error(lh_os_system_error_t error)
     lh_os_system_error_assign(lh_os_system_last_error(), lh_addr_of(error));
 }
 
-lh_os_system_error_t
-lh_os_system_get_last_error(void)
+lh_void
+lh_os_system_get_last_error(lh_os_system_error_t *out)
 {
-    return lh_ptr_deref(lh_os_system_last_error());
+    lh_assert_runtime_ref(out);
+    *out = lh_ptr_deref(lh_os_system_last_error());
+    return;
 }
 
 lh_os_system_error_code_t
@@ -35,8 +38,10 @@ lh_os_system_get_last_error_code(void)
     return lh_os_system_error_get_code(lh_os_system_last_error());
 }
 
-lh_os_error_desc_t
-lh_os_system_get_last_error_desc(void)
+lh_void
+lh_os_system_get_last_error_desc(lh_os_error_desc_t *out)
 {
-    return lh_os_system_error_get_desc(lh_os_system_last_error());
+    lh_assert_runtime_ref(out);
+    lh_os_system_error_get_desc(lh_os_system_last_error(), out);
+    return;
 }

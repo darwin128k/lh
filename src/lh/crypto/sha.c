@@ -1,4 +1,5 @@
 #include <lh/crypto/sha.h>
+#include <lh/assert/runtime.h>
 #include <lh/byte/ptr.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>

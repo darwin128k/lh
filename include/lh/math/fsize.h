@@ -55,8 +55,8 @@ lh_math_fsize_init_empty(lh_math_fsize_t *self);
 /**
  * @brief Size spanning from @p min (inclusive) to @p max (exclusive).
  */
-lh_math_fsize_t
-lh_math_fsize_from_extent(const lh_math_fpoint_t *min, const lh_math_fpoint_t *max);
+lh_void
+lh_math_fsize_from_extent(const lh_math_fpoint_t *min, const lh_math_fpoint_t *max, lh_math_fsize_t *out);
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
@@ -91,16 +91,16 @@ lh_math_fsize_set_height(lh_math_fsize_t *self, lh_math_fscalar_t height);
  *
  * Casts each component to ::lh_math_scalar_t (truncates toward zero).
  */
-lh_math_size_t
-lh_math_fsize_to_size(lh_math_fsize_t self);
+lh_void
+lh_math_fsize_to_size(lh_math_fsize_t self, lh_math_size_t *out);
 
 /**
  * @brief Widen @p self to a continuous size.
  *
  * Casts each ::lh_math_scalar_t to ::lh_math_fscalar_t.
  */
-lh_math_fsize_t
-lh_math_size_to_fsize(lh_math_size_t self);
+lh_void
+lh_math_size_to_fsize(lh_math_size_t self, lh_math_fsize_t *out);
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
 
@@ -152,8 +152,8 @@ lh_math_fsize_is_empty(const lh_math_fsize_t *self);
  * @brief Inset @p self by `(@p dx, @p dy)` on each side (positive shrinks,
  *        negative grows).
  */
-lh_math_fsize_t
-lh_math_fsize_inset(const lh_math_fsize_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy);
+lh_void
+lh_math_fsize_inset(const lh_math_fsize_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy, lh_math_fsize_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

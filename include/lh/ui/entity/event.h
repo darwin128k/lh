@@ -131,8 +131,8 @@ lh_ui_entity_event_get_key(const lh_ui_entity_event_t *self);
  *        ::lh_ui_entity_event_click, ::lh_ui_entity_event_press or
  *        ::lh_ui_entity_event_release.
  */
-lh_ui_point_t
-lh_ui_entity_event_get_point(const lh_ui_entity_event_t *self);
+lh_void
+lh_ui_entity_event_get_point(const lh_ui_entity_event_t *self, lh_ui_point_t *out);
 
 /**
  * @brief Answer a children event fills. @p self must be

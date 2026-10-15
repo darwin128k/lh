@@ -207,9 +207,9 @@ lh_ui_input_on_press(const lh_ui_input_t *self, const lh_ui_entity_event_t *even
     font = lh_ui_label_get_font(lh_addr_of(self->label));
     lh_return_if(lh_null_eq(font), lh_bool_false);
 
-    origin = lh_ui_label_get_text_origin(lh_addr_of(self->label));
+    lh_ui_label_get_text_origin(lh_addr_of(self->label), lh_addr_of(origin));
     at = lh_ui_point_get_x(lh_addr_of(origin));
-    press = lh_ui_entity_event_get_point(event);
+    lh_ui_entity_event_get_point(event, lh_addr_of(press));
     x = lh_ui_point_get_x(lh_addr_of(press));
     /* The walk is in **advances**, not in repeated widths of the whole prefix: a
        field of 64 characters measured once per character is 4096 glyph lookups for
@@ -254,7 +254,7 @@ lh_ui_input_on_draw_caret(const lh_ui_input_t *self, const lh_ui_entity_event_t 
     lh_return_if(self->focused == lh_bool_false);
     color = lh_ui_input_get_caret_color(self);
     lh_return_if(lh_null_eq(color));
-    caret = lh_ui_input_get_caret_rect(self);
+    lh_ui_input_get_caret_rect(self, lh_addr_of(caret));
     lh_return_if(lh_ui_rect_is_empty(lh_addr_of(caret)));
     canvas = lh_ui_entity_event_get_canvas(event);
     lh_return_if(lh_null_eq(canvas));
@@ -536,22 +536,24 @@ lh_ui_input_get_line_top(const lh_ui_input_t *self, const lh_ui_font_t *font)
     else
     {
         const lh_ui_style_t *style = lh_ui_entity_get_style(entity);
-        const lh_ui_insets_t padding = lh_ui_entity_get_padding(entity);
+        lh_ui_insets_t padding;
+        lh_ui_entity_get_padding(entity, lh_addr_of(padding));
         const lh_ui_scalar_t cap = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_cap_height(font));
         lh_ui_size_t size;
         lh_ui_point_t origin;
 
         lh_ui_size_init(lh_addr_of(size), 0, cap);
-        origin = lh_ui_text_align_get_origin(box, lh_addr_of(padding), size, lh_ui_text_align_h_left,
-                                             lh_null_eq(style) ? lh_ui_text_align_v_top : lh_ui_style_get_align_v(style));
+        lh_ui_text_align_get_origin(box, lh_addr_of(padding), size, lh_ui_text_align_h_left,
+                                             lh_null_eq(style) ? lh_ui_text_align_v_top : lh_ui_style_get_align_v(style), lh_addr_of(origin));
         baseline = lh_ui_point_get_y(lh_addr_of(origin)) + cap;
     }
     return baseline - ascent;
 }
 
-lh_ui_rect_t
-lh_ui_input_get_caret_rect(const lh_ui_input_t *self)
+lh_void
+lh_ui_input_get_caret_rect(const lh_ui_input_t *self, lh_ui_rect_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_ui_rect_t caret;
     const lh_ui_font_t *font;
     lh_ui_point_t origin;
@@ -560,11 +562,19 @@ lh_ui_input_get_caret_rect(const lh_ui_input_t *self)
     lh_char_t saved;
 
     lh_ui_rect_init_empty(lh_addr_of(caret));
-    lh_return_if(lh_null_eq(self->buffer), caret);
+    if (lh_null_eq(self->buffer))
+    {
+        *out = caret;
+        return;
+    }
     font = lh_ui_label_get_font(lh_addr_of(self->label));
-    lh_return_if(lh_null_eq(font), caret);
+    if (lh_null_eq(font))
+    {
+        *out = caret;
+        return;
+    }
 
-    origin = lh_ui_label_get_text_origin(lh_addr_of(self->label));
+    lh_ui_label_get_text_origin(lh_addr_of(self->label), lh_addr_of(origin));
     /* The width of the text **before** the caret, measured by cutting the buffer at
        the caret and putting the byte back. A prefix is a string only while it is cut
        off, and the input owns what is in its buffer -- which is the whole reason it
@@ -597,7 +607,8 @@ lh_ui_input_get_caret_rect(const lh_ui_input_t *self)
        as visible as the one it was. */
     lh_ui_rect_init(lh_addr_of(caret), at, lh_ui_input_get_line_top(self, font), width,
                     lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font)));
-    return caret;
+    *out = caret;
+    return;
 }
 
 const lh_ui_color_t *

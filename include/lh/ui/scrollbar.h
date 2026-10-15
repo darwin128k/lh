@@ -244,8 +244,8 @@ lh_ui_scrollbar_set_thumb_start(lh_ui_scrollbar_t *self, lh_ui_scalar_t start);
  * @brief The thumb, in the space of the track rect: start and length on the
  *        axis, the whole track across it.
  */
-lh_ui_rect_t
-lh_ui_scrollbar_get_thumb_rect(const lh_ui_scrollbar_t *self);
+lh_void
+lh_ui_scrollbar_get_thumb_rect(const lh_ui_scrollbar_t *self, lh_ui_rect_t *out);
 
 /**
  * @brief Fill the thumb rect on @p canvas with the thumb style color and

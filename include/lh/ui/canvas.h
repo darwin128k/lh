@@ -97,8 +97,8 @@ lh_ui_canvas_set_size(lh_ui_canvas_t *self, lh_ui_size_t size);
 /**
  * @brief Target size of @p self.
  */
-lh_ui_size_t
-lh_ui_canvas_get_size(const lh_ui_canvas_t *self);
+lh_void
+lh_ui_canvas_get_size(const lh_ui_canvas_t *self, lh_ui_size_t *out);
 
 /**
  * @brief Union @p rect (target space) into the accumulated damage of @p self.
@@ -134,8 +134,8 @@ lh_ui_canvas_get_damage(const lh_ui_canvas_t *self);
  * of every part of itself, so it is asked once here, beside the damage the canvas
  * keeps, and not again by whoever walks the target.
  */
-lh_ui_rect_t
-lh_ui_canvas_damage_in(const lh_ui_rect_t *area, const lh_ui_rect_t *damage);
+lh_void
+lh_ui_canvas_damage_in(const lh_ui_rect_t *area, const lh_ui_rect_t *damage, lh_ui_rect_t *out);
 
 /**
  * @brief Save the offset and clip of @p self, then move and cut later draws.
@@ -194,8 +194,8 @@ lh_ui_canvas_pop(lh_ui_canvas_t *self);
 /**
  * @brief Offset @p self adds to every primitive (sum of the pushed deltas).
  */
-lh_ui_point_t
-lh_ui_canvas_get_offset(const lh_ui_canvas_t *self);
+lh_void
+lh_ui_canvas_get_offset(const lh_ui_canvas_t *self, lh_ui_point_t *out);
 
 /**
  * @brief Clip of @p self in target space, or ::lh_null when nothing is cut.

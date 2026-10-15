@@ -14,6 +14,7 @@
  */
 
 #include <lh/math.h>
+#include <lh/assert/runtime.h>
 #include <lh/null.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/canvas/box.h>
@@ -77,15 +78,22 @@ lh_ui_canvas_box_paint_row(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t 
 }
 
 /** The one colour of row @p y of a paint whose rows are one colour each. */
-static lh_ui_color_t
+static lh_void
 lh_ui_canvas_box_row_colour(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t *sampler, lh_s32_t x,
-                            lh_s32_t y)
+                            lh_s32_t y,
+                            lh_ui_color_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_ui_color_t colour;
 
-    lh_return_if(lh_null_eq(sampler), *lh_ui_paint_get_color(paint));
+    if (lh_null_eq(sampler))
+    {
+        *out = *lh_ui_paint_get_color(paint);
+        return;
+    }
     lh_ui_gradient_sampler_column(sampler, x, y, y + 1, lh_addr_of(colour));
-    return colour;
+    *out = colour;
+    return;
 }
 
 /** Pixels @p x0 .. @p x1 - 1 of row @p y in one colour @p colour, each at its
@@ -105,7 +113,7 @@ lh_ui_canvas_box_corner(lh_ui_canvas_t *self, const lh_ui_color_t *colour, const
         lh_ui_radius_run_row(corner, x0, end, y, cover);
         for (x = x0; x < end; ++x)
         {
-            colours[x - x0] = lh_ui_color_with_coverage(colour, cover[x - x0]);
+            lh_ui_color_with_coverage(colour, cover[x - x0], lh_addr_of(colours[x - x0]));
         }
         lh_ui_canvas_fill_colors(self, x0, y, end - x0, 1, colours, lh_ui_axis_horizontal);
     }
@@ -131,7 +139,8 @@ lh_ui_canvas_box_row(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, lh_ui_gra
     far_start = lh_math_min(x1, lh_math_max(near_end, far_start));
     if (lh_ui_canvas_box_rows_are_one_colour(paint))
     {
-        const lh_ui_color_t colour = lh_ui_canvas_box_row_colour(paint, sampler, x0, y);
+        lh_ui_color_t colour;
+        lh_ui_canvas_box_row_colour(paint, sampler, x0, y, lh_addr_of(colour));
 
         lh_ui_canvas_box_corner(self, lh_addr_of(colour), near, x0, near_end, y);
         lh_ui_canvas_fill_pixels(self, near_end, y, far_start - near_end, 1, lh_addr_of(colour));
@@ -148,7 +157,7 @@ lh_ui_canvas_box_row(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, lh_ui_gra
             lh_ui_radius_run_row(near, x0, cut, y, cover);
             for (x = x0; x < cut; ++x)
             {
-                colours[x - x0] = lh_ui_color_with_coverage(colours + (x - x0), cover[x - x0]);
+                lh_ui_color_with_coverage(colours + (x - x0), cover[x - x0], lh_addr_of(colours[x - x0]));
             }
         }
         cut = lh_math_max(x0, far_start);
@@ -157,7 +166,7 @@ lh_ui_canvas_box_row(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, lh_ui_gra
             lh_ui_radius_run_row(far, cut, end, y, cover);
             for (x = cut; x < end; ++x)
             {
-                colours[x - x0] = lh_ui_color_with_coverage(colours + (x - x0), cover[x - cut]);
+                lh_ui_color_with_coverage(colours + (x - x0), cover[x - cut], lh_addr_of(colours[x - x0]));
             }
         }
         lh_ui_canvas_fill_colors(self, x0, y, end - x0, 1, colours, lh_ui_axis_horizontal);
@@ -237,7 +246,7 @@ lh_ui_canvas_fill_box(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_u
 
     lh_return_if(lh_null_eq(self) || lh_null_eq(rect) || lh_null_eq(radii) || lh_null_eq(paint));
     lh_return_if(lh_ui_paint_is_empty(paint));
-    fit = lh_ui_radii_clamp(radii, rect);
+    lh_ui_radii_clamp(radii, rect, lh_addr_of(fit));
     /* The common case keeps its own road: one colour and one radius are the
        backend's rounded fill, exactly as before there were corners and gradients. */
     if (lh_null_eq(lh_ui_paint_get_gradient(paint)) && lh_ui_radii_is_uniform(lh_addr_of(fit)))
@@ -245,8 +254,8 @@ lh_ui_canvas_fill_box(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_u
         lh_ui_canvas_fill_round_rect(self, rect, fit.top_left, lh_ui_paint_get_color(paint));
         return;
     }
-    box = lh_ui_canvas_state_to_target(lh_addr_of(self->state), rect);
-    cut = lh_ui_canvas_state_cut(lh_addr_of(self->state), lh_addr_of(box));
+    lh_ui_canvas_state_to_target(lh_addr_of(self->state), rect, lh_addr_of(box));
+    lh_ui_canvas_state_cut(lh_addr_of(self->state), lh_addr_of(box), lh_addr_of(cut));
     lh_return_if(lh_ui_rect_is_empty(lh_addr_of(cut)));
     left = lh_ui_canvas_round_left(lh_addr_of(box));
     right = lh_ui_canvas_round_right(lh_addr_of(box));

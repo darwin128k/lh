@@ -167,8 +167,8 @@ lh_ui_image_set_tint(lh_ui_image_t *self, const lh_ui_color_t *tint);
  *        padding around it. What an app asks before it puts an image somewhere,
  *        and the size ::lh_ui_image_on_measure measures it as.
  */
-lh_ui_size_t
-lh_ui_image_get_size(const lh_ui_image_t *self);
+lh_void
+lh_ui_image_get_size(const lh_ui_image_t *self, lh_ui_size_t *out);
 
 /**
  * @brief Where the picture sits inside the box of @p self: the top-left corner
@@ -176,8 +176,8 @@ lh_ui_image_get_size(const lh_ui_image_t *self);
  *        label's text gets, and the one place it is worked out. The picture is
  *        not centred and not scaled, so this is the only position it has.
  */
-lh_ui_point_t
-lh_ui_image_get_origin(const lh_ui_image_t *self);
+lh_void
+lh_ui_image_get_origin(const lh_ui_image_t *self, lh_ui_point_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

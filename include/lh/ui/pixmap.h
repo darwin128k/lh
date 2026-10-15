@@ -108,8 +108,8 @@ lh_ui_pixmap_get_pixel_bytes(const lh_ui_pixmap_t *self);
 /**
  * @brief `(0, 0, width, height)`: the rect every write stays in.
  */
-lh_ui_rect_t
-lh_ui_pixmap_get_bounds(const lh_ui_pixmap_t *self);
+lh_void
+lh_ui_pixmap_get_bounds(const lh_ui_pixmap_t *self, lh_ui_rect_t *out);
 
 /**
  * @brief First byte of row @p y.
@@ -142,8 +142,8 @@ lh_ui_pixmap_pack(const lh_ui_pixmap_t *self, const lh_ui_color_t *color);
 /**
  * @brief A word of the format of @p self as a color; RGB565 reads opaque.
  */
-lh_ui_color_t
-lh_ui_pixmap_unpack(const lh_ui_pixmap_t *self, lh_u32_t word);
+lh_void
+lh_ui_pixmap_unpack(const lh_ui_pixmap_t *self, lh_u32_t word, lh_ui_color_t *out);
 
 /**
  * @brief The stored word of pixel (@p x, @p y).
@@ -161,8 +161,8 @@ lh_ui_pixmap_write_word(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_u32_t w
 /**
  * @brief Pixel (@p x, @p y) as a color.
  */
-lh_ui_color_t
-lh_ui_pixmap_get_pixel(const lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y);
+lh_void
+lh_ui_pixmap_get_pixel(const lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_ui_color_t *out);
 
 /**
  * @brief Store @p color at (@p x, @p y), no blending.

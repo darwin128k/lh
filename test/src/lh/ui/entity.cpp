@@ -20,6 +20,7 @@
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
 #include <lh/void.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -51,7 +52,7 @@ record_click(const struct lh_ui_entity *self, const lh_ui_entity_event_t *event)
         return;
     }
     g_click_target = self;
-    g_click_point = lh_ui_entity_event_get_point(event);
+    g_click_point = lh_test::out(lh_ui_entity_event_get_point, event);
     ++g_click_count;
 }
 
@@ -239,7 +240,7 @@ TEST(entity, init_keeps_the_rect)
     lh_ui_rect_init(lh_addr_of(rect), 1, 2, 3, 4);
     lh_ui_entity_t entity;
     lh_ui_entity_init(lh_addr_of(entity), rect);
-    const lh_ui_rect_t stored = lh_ui_entity_get_rect(lh_addr_of(entity));
+    const lh_ui_rect_t stored = lh_test::out(lh_ui_entity_get_rect, lh_addr_of(entity));
 
     EXPECT_EQ(lh_ui_rect_eq(lh_addr_of(rect), lh_addr_of(stored)), lh_bool_true);
     EXPECT_EQ(lh_ui_entity_get_class(lh_addr_of(entity)), lh_addr_of(lh_ui_entity_class));
@@ -714,7 +715,7 @@ TEST(entity, children_bounds_unite_the_children_that_are_not_hidden)
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 100, 100);
     lh_ui_entity_init(lh_addr_of(root), rect);
-    const lh_ui_rect_t none = lh_ui_entity_get_children_bounds(lh_addr_of(root));
+    const lh_ui_rect_t none = lh_test::out(lh_ui_entity_get_children_bounds, lh_addr_of(root));
     EXPECT_EQ(lh_ui_rect_is_empty(lh_addr_of(none)), lh_bool_true);
     lh_ui_rect_init(lh_addr_of(rect), 10, 10, 5, 5);
     lh_ui_entity_init(lh_addr_of(a), rect);
@@ -727,7 +728,7 @@ TEST(entity, children_bounds_unite_the_children_that_are_not_hidden)
     lh_ui_entity_add_child(lh_addr_of(root), lh_addr_of(b));
     lh_ui_entity_add_child(lh_addr_of(root), lh_addr_of(c));
 
-    const lh_ui_rect_t bounds = lh_ui_entity_get_children_bounds(lh_addr_of(root));
+    const lh_ui_rect_t bounds = lh_test::out(lh_ui_entity_get_children_bounds, lh_addr_of(root));
     lh_ui_rect_init(lh_addr_of(rect), 10, 10, 15, 25);
     EXPECT_EQ(lh_ui_rect_eq(lh_addr_of(bounds), lh_addr_of(rect)), lh_bool_true);
 }
@@ -772,7 +773,7 @@ TEST(entity, push_children_only_when_the_transform_does_something)
     lh_ui_canvas_pop(lh_addr_of(canvas));
 
     lh_ui_point_init(lh_addr_of(point), 1, 1);
-    point = lh_ui_entity_to_children_space(lh_addr_of(plain), point);
+    point = lh_test::out(lh_ui_entity_to_children_space, lh_addr_of(plain), point);
     EXPECT_EQ(lh_ui_point_get_x(lh_addr_of(point)), lh_ui_scalar(1));
 }
 
@@ -928,21 +929,21 @@ TEST(entity, root_offset_and_local_follow_every_scrolled_ancestor)
     lh_ui_point_init(lh_addr_of(scroll), 0, 30);
     lh_ui_container_set_scroll(lh_addr_of(box), scroll);
 
-    offset = lh_ui_entity_get_root_offset(lh_addr_of(leaf));
+    offset = lh_test::out(lh_ui_entity_get_root_offset, lh_addr_of(leaf));
     EXPECT_EQ(lh_ui_point_get_x(lh_addr_of(offset)), lh_ui_scalar(0));
     EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(offset)), lh_ui_scalar(-30));
-    offset = lh_ui_entity_get_root_offset(lh_addr_of(root));
+    offset = lh_test::out(lh_ui_entity_get_root_offset, lh_addr_of(root));
     EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(offset)), lh_ui_scalar(0));
 
     /* Same local point the hit test gives. */
     lh_ui_point_init(lh_addr_of(point), 20, 30);
-    local = lh_ui_entity_to_local(lh_addr_of(leaf), point);
+    local = lh_test::out(lh_ui_entity_to_local, lh_addr_of(leaf), point);
     EXPECT_EQ(lh_ui_point_get_x(lh_addr_of(local)), lh_ui_scalar(20));
     EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(local)), lh_ui_scalar(60));
-    point = lh_ui_entity_add_children_offset(lh_ui_container_as_entity(lh_addr_of(box)), local);
+    point = lh_test::out(lh_ui_entity_add_children_offset, lh_ui_container_as_entity(lh_addr_of(box)), local);
     EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(point)), lh_ui_scalar(30));
 
-    rect = lh_ui_entity_get_root_rect(lh_addr_of(leaf));
+    rect = lh_test::out(lh_ui_entity_get_root_rect, lh_addr_of(leaf));
     EXPECT_EQ(lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(rect))), lh_ui_scalar(20));
 }
 
@@ -1114,14 +1115,14 @@ TEST(entity, padding_and_radius_come_from_the_style)
 
     lh_ui_rect_init(lh_addr_of(rect), 0, 0, 10, 10);
     lh_ui_entity_init(lh_addr_of(e), rect);
-    lh_ui_insets_t padding = lh_ui_entity_get_padding(lh_addr_of(e));
+    lh_ui_insets_t padding = lh_test::out(lh_ui_entity_get_padding, lh_addr_of(e));
     EXPECT_EQ(lh_ui_insets_is_zero(lh_addr_of(padding)), lh_bool_true);
     EXPECT_EQ(lh_ui_entity_get_radius(lh_addr_of(e)), lh_ui_scalar(0));
     lh_ui_style_init(lh_addr_of(style));
     lh_ui_style_set_padding(lh_addr_of(style), lh_ui_scalar(3));
     lh_ui_style_set_radius(lh_addr_of(style), lh_ui_scalar(4));
     lh_ui_entity_set_style(lh_addr_of(e), lh_addr_of(style));
-    padding = lh_ui_entity_get_padding(lh_addr_of(e));
+    padding = lh_test::out(lh_ui_entity_get_padding, lh_addr_of(e));
     EXPECT_EQ(lh_ui_insets_get_bottom(lh_addr_of(padding)), lh_ui_scalar(3));
     EXPECT_EQ(lh_ui_entity_get_radius(lh_addr_of(e)), lh_ui_scalar(4));
 }
@@ -1299,7 +1300,7 @@ TEST(entity, a_childless_rounded_entity_is_hit_in_its_own_corner)
 
     /* The top-left corner pixel of the child's box, outside its radius 12. */
     lh_ui_point_init(lh_addr_of(corner), 10, 10);
-    child_rect = lh_ui_entity_get_rect(lh_addr_of(child));
+    child_rect = lh_test::out(lh_ui_entity_get_rect, lh_addr_of(child));
     EXPECT_FALSE(lh_ui_radius_contains(lh_addr_of(child_rect),
                                        lh_ui_entity_get_radius(lh_addr_of(child)), corner))
         << "the radius covers the corner, so this is not the cut one";

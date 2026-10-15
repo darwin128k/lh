@@ -9,6 +9,7 @@
 #include <lh/ui/rect.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -111,7 +112,7 @@ TEST(ui_gradient, a_sampled_row_is_every_pixel_asked_alone)
                     lh_ui_gradient_sampler_row(lh_addr_of(sampler), b[0] - 20, b[0] + 100, y, row);
                     for (int x = b[0] - 20; x < b[0] + 100; ++x)
                     {
-                        const lh_ui_color_t want = lh_ui_gradient_color_at(
+                        const lh_ui_color_t want = lh_test::out(lh_ui_gradient_color_at, 
                             lh_addr_of(gradient), lh_ui_gradient_frac_at(lh_addr_of(gradient), lh_addr_of(rect), x, y));
 
                         ASSERT_TRUE(lh_ui_color_equals(row + (x - (b[0] - 20)), lh_addr_of(want)))

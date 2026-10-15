@@ -105,8 +105,8 @@ lh_os_serial_write(lh_self_ptr self, const lh_ptr buf, lh_usize_t size);
  *
  * @param self Port; must outlive the stream.
  */
-lh_io_stream_t
-lh_os_serial_get_stream(lh_os_serial_t *self);
+lh_void
+lh_os_serial_get_stream(lh_os_serial_t *self, lh_io_stream_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

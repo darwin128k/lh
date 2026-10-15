@@ -5,6 +5,7 @@
 #include <lh/ui/rect.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -55,7 +56,7 @@ struct blur_fixture
     lh_u8_t
     red_at(int x, int y) const
     {
-        const lh_ui_color_t pixel = lh_ui_pixmap_get_pixel(lh_addr_of(pixmap), x, y);
+        const lh_ui_color_t pixel = lh_test::out(lh_ui_pixmap_get_pixel, lh_addr_of(pixmap), x, y);
 
         return lh_ui_color_get_r(&pixel);
     }
@@ -273,8 +274,8 @@ TEST(ui_blur, the_picture_does_not_depend_on_what_follows_the_scratch)
     {
         for (int x = 0; x < blur_fixture::width; ++x)
         {
-            const lh_ui_color_t a = lh_ui_pixmap_get_pixel(lh_addr_of(low.pixmap), x, y);
-            const lh_ui_color_t b = lh_ui_pixmap_get_pixel(lh_addr_of(high.pixmap), x, y);
+            const lh_ui_color_t a = lh_test::out(lh_ui_pixmap_get_pixel, lh_addr_of(low.pixmap), x, y);
+            const lh_ui_color_t b = lh_test::out(lh_ui_pixmap_get_pixel, lh_addr_of(high.pixmap), x, y);
 
             if (a.r != b.r || a.g != b.g || a.b != b.b)
             {
@@ -313,7 +314,7 @@ TEST(ui_blur, a_transparent_pixel_does_not_tint_its_neighbours)
     {
         for (x = 7; x <= 9; ++x)
         {
-            const lh_ui_color_t pixel = lh_ui_pixmap_get_pixel(lh_addr_of(f.pixmap), x, y);
+            const lh_ui_color_t pixel = lh_test::out(lh_ui_pixmap_get_pixel, lh_addr_of(f.pixmap), x, y);
 
             EXPECT_EQ(lh_ui_color_get_g(&pixel), 0) << x << "," << y;
         }

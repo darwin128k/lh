@@ -5,6 +5,7 @@
 
 #include <lh/io/stream.h>
 #include <lh/self.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -49,8 +50,8 @@ TEST(io_stream_make, roundtrip_via_getters)
 
     lh_io_stream_init(lh_addr_of(stream), &reader, &writer);
 
-    lh_io_reader_t got_reader = lh_io_stream_get_reader(&stream);
-    lh_io_writer_t got_writer = lh_io_stream_get_writer(&stream);
+    lh_io_reader_t got_reader = lh_test::out(lh_io_stream_get_reader, &stream);
+    lh_io_writer_t got_writer = lh_test::out(lh_io_stream_get_writer, &stream);
     EXPECT_EQ(lh_io_reader_get_read_cb(&got_reader), &LoopbackRead);
     EXPECT_EQ(lh_io_writer_get_write_cb(&got_writer), &LoopbackWrite);
 }
@@ -92,10 +93,10 @@ TEST(io_stream_set_reader, replaces_only_reader)
     lh_io_reader_deinit(&new_reader);
     lh_io_stream_set_reader(&stream, &new_reader);
 
-    lh_io_writer_t got_writer = lh_io_stream_get_writer(&stream);
+    lh_io_writer_t got_writer = lh_test::out(lh_io_stream_get_writer, &stream);
     EXPECT_EQ(lh_io_writer_get_write_cb(&got_writer), &LoopbackWrite);
 
-    lh_io_reader_t got_reader = lh_io_stream_get_reader(&stream);
+    lh_io_reader_t got_reader = lh_test::out(lh_io_stream_get_reader, &stream);
     EXPECT_EQ(lh_io_reader_get_read_cb(&got_reader), nullptr);
 }
 

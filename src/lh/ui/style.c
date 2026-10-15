@@ -100,17 +100,19 @@ lh_ui_style_mix(lh_ui_scalar_t from, lh_ui_scalar_t to, lh_u32_t weight)
 
 /** @p from moved @p weight of the way to @p to, every channel and the alpha with them:
    a shadow fading in from nothing is a colour whose alpha grows. */
-static lh_ui_color_t
-lh_ui_style_mix_color(const lh_ui_color_t *from, const lh_ui_color_t *to, lh_u32_t weight)
+static lh_void
+lh_ui_style_mix_color(const lh_ui_color_t *from, const lh_ui_color_t *to, lh_u32_t weight, lh_ui_color_t *out)
 {
-    lh_ui_color_t out;
+    lh_assert_runtime_ref(out);
+    lh_ui_color_t result;
 
-    lh_ui_color_init(lh_addr_of(out),
+    lh_ui_color_init(lh_addr_of(result),
                      lh_ui_color_blend_channel(lh_ui_color_get_r(to), lh_ui_color_get_r(from), weight, 255U - weight),
                      lh_ui_color_blend_channel(lh_ui_color_get_g(to), lh_ui_color_get_g(from), weight, 255U - weight),
                      lh_ui_color_blend_channel(lh_ui_color_get_b(to), lh_ui_color_get_b(from), weight, 255U - weight),
                      lh_ui_color_blend_channel(lh_ui_color_get_a(to), lh_ui_color_get_a(from), weight, 255U - weight));
-    return out;
+    *out = result;
+    return;
 }
 
 /** @p to's paint, or -- when both ends are one colour -- the colour between them. */
@@ -123,7 +125,7 @@ lh_ui_style_mix_paint(lh_ui_paint_t *out, const lh_ui_paint_t *from, const lh_ui
 
     lh_ui_paint_init_copy(out, to);
     lh_return_if(lh_null_eq(a) || lh_null_eq(b) || weight >= 255U);
-    mixed = lh_ui_style_mix_color(a, b, weight);
+    lh_ui_style_mix_color(a, b, weight, lh_addr_of(mixed));
     lh_ui_paint_init_color(out, lh_addr_of(mixed));
 }
 
@@ -156,15 +158,32 @@ lh_ui_style_init_blend(lh_ui_style_t *self, const lh_ui_style_t *from, const lh_
         /* A shadow at one end only grows out of, or melts into, the other end's
            nothing: the same shadow with no colour. */
         const lh_ui_shadow_t *shape = lh_ui_shadow_is_empty(fade_to) ? fade_from : fade_to;
-        lh_ui_color_t clear = lh_ui_shadow_get_color(shape);
+        lh_ui_color_t clear;
+        lh_ui_shadow_get_color(shape, lh_addr_of(clear));
         lh_ui_color_t a;
         lh_ui_color_t b;
 
         lh_ui_color_set_a(lh_addr_of(clear), 0);
-        a = lh_ui_shadow_is_empty(fade_from) ? clear : lh_ui_shadow_get_color(fade_from);
-        b = lh_ui_shadow_is_empty(fade_to) ? clear : lh_ui_shadow_get_color(fade_to);
+        if (lh_ui_shadow_is_empty(fade_from))
+        {
+            a = clear;
+        }
+        else
+        {
+            lh_ui_shadow_get_color(fade_from, lh_addr_of(a));
+        }
+        if (lh_ui_shadow_is_empty(fade_to))
+        {
+            b = clear;
+        }
+        else
+        {
+            lh_ui_shadow_get_color(fade_to, lh_addr_of(b));
+        }
         self->shadow = *shape;
-        lh_ui_shadow_set_color(lh_addr_of(self->shadow), lh_ui_style_mix_color(lh_addr_of(a), lh_addr_of(b), weight));
+        lh_ui_color_t color;
+        lh_ui_style_mix_color(lh_addr_of(a), lh_addr_of(b), weight, lh_addr_of(color));
+        lh_ui_shadow_set_color(lh_addr_of(self->shadow), color);
         if (!lh_ui_shadow_is_empty(fade_from) && !lh_ui_shadow_is_empty(fade_to))
         {
             lh_ui_shadow_set_spread(lh_addr_of(self->shadow),

@@ -99,8 +99,8 @@ lh_os_set_last_error(lh_os_error_t error);
 /**
  * @brief Last error on this thread, as ::lh_os_error_t.
  */
-lh_os_error_t
-lh_os_get_last_error(void);
+lh_void
+lh_os_get_last_error(lh_os_error_t *out);
 
 /**
  * @brief Code of the last error on this thread.
@@ -111,8 +111,8 @@ lh_os_get_last_error_code(void);
 /**
  * @brief Description of the last error on this thread.
  */
-lh_os_error_desc_t
-lh_os_get_last_error_desc(void);
+lh_void
+lh_os_get_last_error_desc(lh_os_error_desc_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

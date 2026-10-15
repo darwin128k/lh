@@ -3,6 +3,7 @@
 #include <lh/error.h>
 #include <lh/error/initializer.h>
 #include <lh/expect/death.h>
+#include <lh/test/out.h>
 
 
 namespace
@@ -19,7 +20,7 @@ TEST(error_set, roundtrip_code_and_desc)
     lh_error_t err{};
     lh_error_set(&err, 42, lh_str_view_lit("msg"));
     EXPECT_EQ(lh_error_get_code(&err), 42);
-    EXPECT_STREQ(desc_cstr(lh_error_get_desc(&err)), "msg");
+    EXPECT_STREQ(desc_cstr(lh_test::out(lh_error_get_desc, &err)), "msg");
 }
 
 TEST(error_set, null_desc_roundtrip)
@@ -27,7 +28,7 @@ TEST(error_set, null_desc_roundtrip)
     lh_error_t err{};
     lh_error_set(&err, 3, lh_str_view_empty());
     EXPECT_EQ(lh_error_get_code(&err), 3);
-    EXPECT_EQ(desc_cstr(lh_error_get_desc(&err)), nullptr);
+    EXPECT_EQ(desc_cstr(lh_test::out(lh_error_get_desc, &err)), nullptr);
 }
 
 TEST(error_set_code, updates_code_and_keeps_desc)
@@ -37,7 +38,7 @@ TEST(error_set_code, updates_code_and_keeps_desc)
     lh_error_set_code(&err, 2);
 
     EXPECT_EQ(lh_error_get_code(&err), 2);
-    EXPECT_STREQ(desc_cstr(lh_error_get_desc(&err)), "keep");
+    EXPECT_STREQ(desc_cstr(lh_test::out(lh_error_get_desc, &err)), "keep");
 }
 
 TEST(error_set_desc, updates_desc_and_keeps_code)
@@ -47,7 +48,7 @@ TEST(error_set_desc, updates_desc_and_keeps_code)
     lh_error_set_desc(&err, lh_str_view_lit("new"));
 
     EXPECT_EQ(lh_error_get_code(&err), 1);
-    EXPECT_STREQ(desc_cstr(lh_error_get_desc(&err)), "new");
+    EXPECT_STREQ(desc_cstr(lh_test::out(lh_error_get_desc, &err)), "new");
 }
 
 TEST(error_set_desc, accepts_null_desc)
@@ -57,7 +58,7 @@ TEST(error_set_desc, accepts_null_desc)
     lh_error_set_desc(&err, lh_str_view_empty());
 
     EXPECT_EQ(lh_error_get_code(&err), 1);
-    EXPECT_EQ(desc_cstr(lh_error_get_desc(&err)), nullptr);
+    EXPECT_EQ(desc_cstr(lh_test::out(lh_error_get_desc, &err)), nullptr);
 }
 
 TEST(error_assign, copies_from_other)
@@ -66,7 +67,7 @@ TEST(error_assign, copies_from_other)
     lh_error_t dst = lh_error_initializer(0, lh_str_view_empty());
     lh_error_assign(&dst, &src);
     EXPECT_EQ(lh_error_get_code(&dst), 11);
-    EXPECT_STREQ(desc_cstr(lh_error_get_desc(&dst)), "src");
+    EXPECT_STREQ(desc_cstr(lh_test::out(lh_error_get_desc, &dst)), "src");
 }
 
 TEST(error_clear, resets_to_ok_and_null_desc)
@@ -74,7 +75,7 @@ TEST(error_clear, resets_to_ok_and_null_desc)
     lh_error_t err = lh_error_initializer(5, lh_str_view_lit("gone"));
     lh_error_clear(&err);
     EXPECT_EQ(lh_error_get_code(&err), lh_error_code_ok);
-    EXPECT_EQ(desc_cstr(lh_error_get_desc(&err)), nullptr);
+    EXPECT_EQ(desc_cstr(lh_test::out(lh_error_get_desc, &err)), nullptr);
 }
 
 TEST(error_init, matches_set)
@@ -84,7 +85,7 @@ TEST(error_init, matches_set)
     lh_error_init(&a, 8, lh_str_view_lit("eight"));
     lh_error_set(&b, 8, lh_str_view_lit("eight"));
     EXPECT_EQ(lh_error_get_code(&a), lh_error_get_code(&b));
-    EXPECT_STREQ(desc_cstr(lh_error_get_desc(&a)), desc_cstr(lh_error_get_desc(&b)));
+    EXPECT_STREQ(desc_cstr(lh_test::out(lh_error_get_desc, &a)), desc_cstr(lh_test::out(lh_error_get_desc, &b)));
 }
 
 TEST(error_init_by_other, matches_assign)
@@ -95,7 +96,7 @@ TEST(error_init_by_other, matches_assign)
     lh_error_init_by_other(&a, &src);
     lh_error_assign(&b, &src);
     EXPECT_EQ(lh_error_get_code(&a), lh_error_get_code(&b));
-    EXPECT_STREQ(desc_cstr(lh_error_get_desc(&a)), desc_cstr(lh_error_get_desc(&b)));
+    EXPECT_STREQ(desc_cstr(lh_test::out(lh_error_get_desc, &a)), desc_cstr(lh_test::out(lh_error_get_desc, &b)));
 }
 
 TEST(error_init_by_empty, clears_like_clear)
@@ -105,7 +106,7 @@ TEST(error_init_by_empty, clears_like_clear)
     lh_error_init_by_empty(&a);
     lh_error_clear(&b);
     EXPECT_EQ(lh_error_get_code(&a), lh_error_get_code(&b));
-    EXPECT_EQ(desc_cstr(lh_error_get_desc(&a)), desc_cstr(lh_error_get_desc(&b)));
+    EXPECT_EQ(desc_cstr(lh_test::out(lh_error_get_desc, &a)), desc_cstr(lh_test::out(lh_error_get_desc, &b)));
 }
 
 TEST(error_get_code_and_clear, returns_previous_then_ok)
@@ -113,7 +114,7 @@ TEST(error_get_code_and_clear, returns_previous_then_ok)
     lh_error_t err = lh_error_initializer(100, lh_str_view_lit("z"));
     EXPECT_EQ(lh_error_get_code_and_clear(&err), 100);
     EXPECT_EQ(lh_error_get_code(&err), lh_error_code_ok);
-    EXPECT_EQ(desc_cstr(lh_error_get_desc(&err)), nullptr);
+    EXPECT_EQ(desc_cstr(lh_test::out(lh_error_get_desc, &err)), nullptr);
 }
 
 TEST(error_has_code, returns_true_for_matching_code)
@@ -134,21 +135,21 @@ TEST(error_get_desc_or, returns_desc_when_non_null)
 {
     const lh_error_t err = lh_error_initializer(1, lh_str_view_lit("desc"));
 
-    EXPECT_STREQ(desc_cstr(lh_error_get_desc_or(&err, lh_str_view_lit("fallback"))), "desc");
+    EXPECT_STREQ(desc_cstr(lh_test::out(lh_error_get_desc_or, &err, lh_str_view_lit("fallback"))), "desc");
 }
 
 TEST(error_get_desc_or, returns_fallback_when_desc_is_null)
 {
     const lh_error_t err = lh_error_initializer(1, lh_str_view_empty());
 
-    EXPECT_STREQ(desc_cstr(lh_error_get_desc_or(&err, lh_str_view_lit("fallback"))), "fallback");
+    EXPECT_STREQ(desc_cstr(lh_test::out(lh_error_get_desc_or, &err, lh_str_view_lit("fallback"))), "fallback");
 }
 
 TEST(error_get_desc_or, accepts_null_fallback)
 {
     const lh_error_t err = lh_error_initializer(1, lh_str_view_empty());
 
-    EXPECT_EQ(desc_cstr(lh_error_get_desc_or(&err, lh_str_view_empty())), nullptr);
+    EXPECT_EQ(desc_cstr(lh_test::out(lh_error_get_desc_or, &err, lh_str_view_empty())), nullptr);
 }
 
 TEST(error_is_ok, returns_true_for_ok_code)
@@ -344,12 +345,12 @@ TEST(error_death, get_code_and_clear_null_self)
 
 TEST(error_death, get_desc_null_self)
 {
-    LH_EXPECT_DEATH(lh_error_get_desc(nullptr));
+    LH_EXPECT_DEATH(lh_test::out(lh_error_get_desc, nullptr));
 }
 
 TEST(error_death, get_desc_or_null_self)
 {
-    LH_EXPECT_DEATH(lh_error_get_desc_or(nullptr, lh_str_view_lit("fallback")));
+    LH_EXPECT_DEATH(lh_test::out(lh_error_get_desc_or, nullptr, lh_str_view_lit("fallback")));
 }
 
 TEST(error_death, has_code_null_self)

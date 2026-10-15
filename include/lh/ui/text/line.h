@@ -127,8 +127,8 @@ lh_ui_text_line_is_inked(const lh_ui_text_line_t *self);
  * @brief The ink of the line with its line box at @p origin: as wide as the pen
  *        advance, from the first ink row to the last (height `0` when nothing is inked).
  */
-lh_ui_rect_t
-lh_ui_text_line_get_ink_rect(const lh_ui_text_line_t *self, lh_ui_point_t origin);
+lh_void
+lh_ui_text_line_get_ink_rect(const lh_ui_text_line_t *self, lh_ui_point_t origin, lh_ui_rect_t *out);
 
 /**
  * @brief How far right @p align puts the line inside a block @p block wide:

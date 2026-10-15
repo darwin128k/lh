@@ -46,7 +46,7 @@ lh_os_system_net_socket_native_addr_from_ip4(lh_os_system_net_socket_native_addr
     lh_net_port_t port;
     lh_byte_ptr addr_bytes;
 
-    ip = lh_net_ip4_socket_addr_get_ip(addr);
+    lh_net_ip4_socket_addr_get_ip(addr, lh_addr_of(ip));
     port = lh_net_ip4_socket_addr_get_port(addr);
 
     lh_memory_set(lh_addr_of(*native_addr), sizeof(*native_addr), 0);

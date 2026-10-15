@@ -5,6 +5,7 @@
 #include <lh/memory/view.h>
 #include <lh/memory/view/initializer.h>
 #include <lh/null.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -35,7 +36,7 @@ TEST(memory_view_make_slice, copies_half_open_view_as_closed_slice)
     const unsigned char buf[8] = {};
     lh_memory_view_t v = view(p(buf + 1), p(buf + 5));
 
-    lh_memory_view_slice_t s = lh_memory_view_to_slice(&v);
+    lh_memory_view_slice_t s = lh_test::out(lh_memory_view_to_slice, &v);
 
     EXPECT_TRUE(lh_memory_view_slice_equals_of(&s, p(buf + 1), p(buf + 4)));
 }
@@ -44,7 +45,7 @@ TEST(memory_view_make_slice, copies_uninitialized_view_as_empty_slice)
 {
     lh_memory_view_t v = view(lh_null, lh_null);
 
-    lh_memory_view_slice_t s = lh_memory_view_to_slice(&v);
+    lh_memory_view_slice_t s = lh_test::out(lh_memory_view_to_slice, &v);
 
     EXPECT_TRUE(lh_memory_view_slice_equals_of(&s, lh_null, lh_null));
 }
@@ -271,9 +272,9 @@ TEST(memory_view_empty_range, reports_zero_size_and_no_containment)
     EXPECT_EQ(lh_memory_view_find_range(&empty, p(buf), p(buf + 1)), lh_null);
     EXPECT_EQ(lh_memory_view_find_range(&other, p(buf + 1), p(buf + 1)), lh_null);
 
-    lh_memory_view_t taken = lh_memory_view_take_first(p(buf), p(buf), 0);
+    lh_memory_view_t taken = lh_test::out(lh_memory_view_take_first, p(buf), p(buf), 0);
     EXPECT_TRUE(lh_memory_view_is_uninitialized(&taken));
-    lh_memory_view_t dropped = lh_memory_view_drop_first(&empty, 0);
+    lh_memory_view_t dropped = lh_test::out(lh_memory_view_drop_first, &empty, 0);
     EXPECT_TRUE(lh_memory_view_is_uninitialized(&dropped));
 }
 
@@ -299,15 +300,15 @@ TEST(memory_view_slice_round_trip, converts_non_empty_and_uninitialized)
 {
     const unsigned char buf[8] = {1, 2, 3, 4, 5, 6, 7, 8};
     lh_memory_view_t v = view(p(buf + 1), p(buf + 5));
-    lh_memory_view_slice_t slice = lh_memory_view_to_slice(&v);
-    lh_memory_view_t back = lh_memory_view_return_of_slice(&slice);
+    lh_memory_view_slice_t slice = lh_test::out(lh_memory_view_to_slice, &v);
+    lh_memory_view_t back = lh_test::out(lh_memory_view_return_of_slice, &slice);
 
     EXPECT_TRUE(lh_memory_view_slice_equals_of(&slice, p(buf + 1), p(buf + 4)));
     EXPECT_TRUE(lh_memory_view_equals(&back, &v));
 
-    lh_memory_view_t uninit = lh_memory_view_return_empty();
-    lh_memory_view_slice_t empty_slice = lh_memory_view_to_slice(&uninit);
-    lh_memory_view_t uninit_back = lh_memory_view_return_of_slice(&empty_slice);
+    lh_memory_view_t uninit = lh_test::out(lh_memory_view_return_empty);
+    lh_memory_view_slice_t empty_slice = lh_test::out(lh_memory_view_to_slice, &uninit);
+    lh_memory_view_t uninit_back = lh_test::out(lh_memory_view_return_of_slice, &empty_slice);
     EXPECT_TRUE(lh_memory_view_is_uninitialized(&uninit_back));
 }
 
@@ -315,7 +316,7 @@ TEST(memory_view_between, keeps_empty_subrange)
 {
     const unsigned char buf[4] = {};
     lh_memory_view_t outer = view(p(buf), p(buf + 4));
-    lh_memory_view_t inner = lh_memory_view_between(&outer, p(buf + 2), p(buf + 2));
+    lh_memory_view_t inner = lh_test::out(lh_memory_view_between, &outer, p(buf + 2), p(buf + 2));
 
     EXPECT_TRUE(lh_memory_view_equals_of(&inner, p(buf + 2), p(buf + 2)));
     EXPECT_TRUE(lh_memory_view_is_empty(&inner));
@@ -377,7 +378,7 @@ TEST(memory_view_make_slice, rejects_invalid_view_death)
     const unsigned char buf[2] = {};
     lh_memory_view_t v = view(p(buf), p(buf));
 
-    LH_EXPECT_DEATH((void)lh_memory_view_to_slice(&v));
+    LH_EXPECT_DEATH((void)lh_test::out(lh_memory_view_to_slice, &v));
 }
 
 TEST(memory_view_next_value, rejects_end_boundary_death)
@@ -395,7 +396,7 @@ TEST(memory_view_empty_range, rejects_indexed_access_death)
 
     LH_EXPECT_DEATH((void)lh_memory_view_get_ptr_from_end(&empty, 0));
     LH_EXPECT_DEATH((void)lh_memory_view_get_offset_from_end(&empty, p(buf)));
-    LH_EXPECT_DEATH((void)lh_memory_view_take_first(p(buf), p(buf), 1));
+    LH_EXPECT_DEATH((void)lh_test::out(lh_memory_view_take_first, p(buf), p(buf), 1));
 }
 
 TEST(memory_view_get_size, rejects_backward_death)
@@ -440,8 +441,8 @@ TEST(memory_view_uninitialized, rejects_access_death)
     LH_EXPECT_DEATH((void)lh_memory_view_get_value(&v, 0));
     LH_EXPECT_DEATH((void)lh_memory_view_is_valid_offset(&v, 0));
     LH_EXPECT_DEATH((void)lh_memory_view_contains_ptr(&v, p(buf)));
-    LH_EXPECT_DEATH((void)lh_memory_view_from_offset(&v, 0, 1));
-    LH_EXPECT_DEATH((void)lh_memory_view_drop_first(&v, 0));
+    LH_EXPECT_DEATH((void)lh_test::out(lh_memory_view_from_offset, &v, 0, 1));
+    LH_EXPECT_DEATH((void)lh_test::out(lh_memory_view_drop_first, &v, 0));
     LH_EXPECT_DEATH((void)lh_memory_view_find(&v, &other));
 }
 

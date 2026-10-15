@@ -53,8 +53,8 @@ lh_math_size_init_empty(lh_math_size_t *self);
 /**
  * @brief Size spanning from @p min (inclusive) to @p max (exclusive).
  */
-lh_math_size_t
-lh_math_size_from_extent(const lh_math_point_t *min, const lh_math_point_t *max);
+lh_void
+lh_math_size_from_extent(const lh_math_point_t *min, const lh_math_point_t *max, lh_math_size_t *out);
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
@@ -132,8 +132,8 @@ lh_math_size_is_empty(const lh_math_size_t *self);
  * @brief Inset @p self by `(@p dx, @p dy)` on each side (positive shrinks,
  *        negative grows): width `-= 2 * dx`, height `-= 2 * dy`.
  */
-lh_math_size_t
-lh_math_size_inset(const lh_math_size_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy);
+lh_void
+lh_math_size_inset(const lh_math_size_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy, lh_math_size_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

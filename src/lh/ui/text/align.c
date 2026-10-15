@@ -4,14 +4,17 @@
  */
 
 #include <lh/math.h>
+#include <lh/assert/runtime.h>
 #include <lh/null.h>
 #include <lh/ui/text/align.h>
 #include <lh/util/addr.h>
 
-lh_ui_point_t
+lh_void
 lh_ui_text_align_get_origin(const lh_ui_rect_t *box, const lh_ui_insets_t *padding, lh_ui_size_t size,
-                            lh_ui_text_align_h_t horizontal, lh_ui_text_align_v_t vertical)
+                            lh_ui_text_align_h_t horizontal, lh_ui_text_align_v_t vertical,
+                            lh_ui_point_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_ui_rect_t empty_box;
     lh_ui_insets_t no_padding;
     lh_ui_size_t room;
@@ -75,5 +78,6 @@ lh_ui_text_align_get_origin(const lh_ui_rect_t *box, const lh_ui_insets_t *paddi
                          dx,
                      lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(box)) + lh_ui_insets_get_top((padding)) +
                          dy);
-    return origin;
+    *out = origin;
+    return;
 }

@@ -113,8 +113,8 @@ lh_math_vec4_set_w(lh_math_vec4_t *self, lh_math_fscalar_t w);
  * @param w Homogeneous component; `1.0f` for a point, `0.0f` for a direction.
  * @return `(v.x, v.y, v.z, w)`.
  */
-lh_math_vec4_t
-lh_math_vec3_to_vec4(lh_math_vec3_t v, lh_math_fscalar_t w);
+lh_void
+lh_math_vec3_to_vec4(lh_math_vec3_t v, lh_math_fscalar_t w, lh_math_vec4_t *out);
 
 /**
  * @brief Narrow @p v from homogeneous space, dropping `w`.
@@ -125,32 +125,32 @@ lh_math_vec3_to_vec4(lh_math_vec3_t v, lh_math_fscalar_t w);
  * @param v Vector to narrow.
  * @return `(v.x, v.y, v.z)`.
  */
-lh_math_vec3_t
-lh_math_vec4_to_vec3(lh_math_vec4_t v);
+lh_void
+lh_math_vec4_to_vec3(lh_math_vec4_t v, lh_math_vec3_t *out);
 
 /**
  * @brief Component-wise sum @p a + @p b.
  */
-lh_math_vec4_t
-lh_math_vec4_add(lh_math_vec4_t a, lh_math_vec4_t b);
+lh_void
+lh_math_vec4_add(lh_math_vec4_t a, lh_math_vec4_t b, lh_math_vec4_t *out);
 
 /**
  * @brief Component-wise difference @p a - @p b.
  */
-lh_math_vec4_t
-lh_math_vec4_sub(lh_math_vec4_t a, lh_math_vec4_t b);
+lh_void
+lh_math_vec4_sub(lh_math_vec4_t a, lh_math_vec4_t b, lh_math_vec4_t *out);
 
 /**
  * @brief @p v with every component multiplied by @p s.
  */
-lh_math_vec4_t
-lh_math_vec4_scale(lh_math_vec4_t v, lh_math_fscalar_t s);
+lh_void
+lh_math_vec4_scale(lh_math_vec4_t v, lh_math_fscalar_t s, lh_math_vec4_t *out);
 
 /**
  * @brief @p v with every component negated.
  */
-lh_math_vec4_t
-lh_math_vec4_neg(lh_math_vec4_t v);
+lh_void
+lh_math_vec4_neg(lh_math_vec4_t v, lh_math_vec4_t *out);
 
 /**
  * @brief Dot product: the sum of the component products.
@@ -183,8 +183,8 @@ lh_math_vec4_length(lh_math_vec4_t v);
  * view reads the components in place without copying them; it is valid while
  * @p v is. ::lh_math_vec4_dot and the lengths are measured through it.
  */
-lh_math_view_t
-lh_math_vec4_view_of(const lh_math_vec4_t *v);
+lh_void
+lh_math_vec4_view_of(const lh_math_vec4_t *v, lh_math_view_t *out);
 
 /**
  * @brief @p v scaled to length 1, same direction.
@@ -192,16 +192,16 @@ lh_math_vec4_view_of(const lh_math_vec4_t *v);
  * A zero vector has no direction and is returned unchanged (zero), not as
  * NaNs.
  */
-lh_math_vec4_t
-lh_math_vec4_normalize(lh_math_vec4_t v);
+lh_void
+lh_math_vec4_normalize(lh_math_vec4_t v, lh_math_vec4_t *out);
 
 /**
  * @brief Linear interpolation: @p a at @p t = 0, @p b at @p t = 1.
  *
  * @p t is not clamped: values outside `[0, 1]` extrapolate along the line.
  */
-lh_math_vec4_t
-lh_math_vec4_lerp(lh_math_vec4_t a, lh_math_vec4_t b, lh_math_fscalar_t t);
+lh_void
+lh_math_vec4_lerp(lh_math_vec4_t a, lh_math_vec4_t b, lh_math_fscalar_t t, lh_math_vec4_t *out);
 
 /**
  * @brief Whether every component of @p a and @p b differs by at most @p eps.

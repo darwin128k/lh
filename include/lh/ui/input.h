@@ -309,8 +309,8 @@ lh_ui_input_end(lh_ui_input_t *self);
  *
  * An empty rect when the field has no font or no buffer.
  */
-lh_ui_rect_t
-lh_ui_input_get_caret_rect(const lh_ui_input_t *self);
+lh_void
+lh_ui_input_get_caret_rect(const lh_ui_input_t *self, lh_ui_rect_t *out);
 
 /**
  * @brief What the caret is drawn in (not owned), or ::lh_null for the text's own

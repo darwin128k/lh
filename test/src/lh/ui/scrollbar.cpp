@@ -11,6 +11,7 @@
 #include <lh/ui/rect.h>
 #include <lh/ui/style.h>
 #include <lh/util/addr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -61,7 +62,7 @@ struct bar_fixture
     int
     scroll_y()
     {
-        const lh_ui_point_t scroll = lh_ui_container_get_scroll(lh_addr_of(box));
+        const lh_ui_point_t scroll = lh_test::out(lh_ui_container_get_scroll, lh_addr_of(box));
         return static_cast<int>(lh_ui_point_get_y(lh_addr_of(scroll)));
     }
 
@@ -77,7 +78,7 @@ struct bar_fixture
 lh_ui_rect_t
 thumb_of(const bar_fixture &f)
 {
-    return lh_ui_scrollbar_get_thumb_rect(lh_addr_of(f.bar));
+    return lh_test::out(lh_ui_scrollbar_get_thumb_rect, lh_addr_of(f.bar));
 }
 } // namespace
 
@@ -135,7 +136,7 @@ TEST(entity_scrollbar, horizontal_thumb_runs_along_x)
     lh_ui_point_init(lh_addr_of(scroll), 300, 0);
     lh_ui_container_set_scroll(lh_addr_of(box), scroll);
 
-    EXPECT_TRUE(rect_is(lh_ui_scrollbar_get_thumb_rect(lh_addr_of(bar)), rect_of(150, 100, 50, 10)));
+    EXPECT_TRUE(rect_is(lh_test::out(lh_ui_scrollbar_get_thumb_rect, lh_addr_of(bar)), rect_of(150, 100, 50, 10)));
 }
 
 TEST(entity_scrollbar, click_off_the_thumb_pages_toward_it)
@@ -367,7 +368,7 @@ TEST(entity_scrollbar, thumb_within_a_known_max_matches_the_measured_thumb)
     lh_ui_point_t max;
 
     f.scroll_to(150);
-    max = lh_ui_container_get_scroll_max(lh_addr_of(f.box));
+    max = lh_test::out(lh_ui_container_get_scroll_max, lh_addr_of(f.box));
     EXPECT_EQ(lh_ui_scrollbar_get_thumb_length_within(lh_addr_of(f.bar), max),
               lh_ui_scrollbar_get_thumb_length(lh_addr_of(f.bar)));
     EXPECT_EQ(lh_ui_scrollbar_get_thumb_start_within(lh_addr_of(f.bar), max), lh_ui_scalar(75));

@@ -21,7 +21,8 @@ lh_ui_shadow_shape_init(lh_ui_shadow_shape_t *self, const lh_ui_shadow_t *shadow
 {
     const lh_ui_point_t *origin;
     const lh_ui_size_t *size;
-    const lh_ui_color_t color = lh_ui_shadow_get_color(shadow);
+    lh_ui_color_t color;
+    lh_ui_shadow_get_color(shadow, lh_addr_of(color));
     lh_s32_t lo_x;
     lh_s32_t lo_y;
     lh_s32_t half_x;

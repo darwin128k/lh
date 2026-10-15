@@ -38,11 +38,13 @@ lh_ui_entity_init(lh_ui_entity_t *self, lh_ui_rect_t rect)
     lh_list_node_init(lh_addr_of(self->link));
 }
 
-lh_ui_rect_t
-lh_ui_entity_get_rect(const lh_ui_entity_t *self)
+lh_void
+lh_ui_entity_get_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    return self->rect;
+    *out = self->rect;
+    return;
 }
 
 const lh_ui_place_t *
@@ -190,14 +192,16 @@ lh_ui_entity_get_hit_radius(const lh_ui_entity_t *self)
     return lh_null_eq(self->style) ? lh_ui_scalar(0) : lh_ui_style_get_hit_radius(self->style);
 }
 
-lh_ui_insets_t
-lh_ui_entity_get_padding(const lh_ui_entity_t *self)
+lh_void
+lh_ui_entity_get_padding(const lh_ui_entity_t *self, lh_ui_insets_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_ui_insets_t none;
 
     lh_assert_runtime_ref(self);
     lh_ui_insets_init_all(lh_addr_of(none), lh_ui_scalar(0));
-    return lh_null_eq(self->style) ? none : *lh_ui_style_get_padding(self->style);
+    *out = lh_null_eq(self->style) ? none : *lh_ui_style_get_padding(self->style);
+    return;
 }
 
 lh_bool_t
@@ -230,7 +234,7 @@ lh_ui_entity_move_by(lh_ui_entity_t *self, lh_ui_scalar_t dx, lh_ui_scalar_t dy)
     lh_assert_runtime_ref(self);
     lh_return_if(dx == lh_ui_scalar(0) && dy == lh_ui_scalar(0));
     lh_ui_entity_note(self);
-    self->rect = lh_ui_rect_offset(lh_addr_of(self->rect), dx, dy);
+    lh_ui_rect_offset(lh_addr_of(self->rect), dx, dy, lh_addr_of(self->rect));
     for (child = lh_ui_entity_get_first_child(self); lh_null_ne(child);
          child = lh_ui_entity_get_next_child(self, child))
     {
@@ -312,8 +316,8 @@ lh_ui_entity_note_rect(const lh_ui_entity_t *self, const lh_ui_rect_t *rect)
     lh_return_if(!lh_ui_entity_chain_shown(self));
     view = lh_ui_entity_own_view(self);
     lh_return_if(lh_null_eq(view));
-    offset = lh_ui_entity_get_root_offset(self);
-    moved = lh_ui_rect_offset(rect, lh_ui_point_get_x(lh_addr_of(offset)), lh_ui_point_get_y(lh_addr_of(offset)));
+    lh_ui_entity_get_root_offset(self, lh_addr_of(offset));
+    lh_ui_rect_offset(rect, lh_ui_point_get_x(lh_addr_of(offset)), lh_ui_point_get_y(lh_addr_of(offset)), lh_addr_of(moved));
     lh_ui_view_add_damage(view, lh_addr_of(moved));
 }
 
@@ -324,7 +328,7 @@ lh_ui_entity_note(const lh_ui_entity_t *self)
 
     lh_return_if(lh_null_eq(self));
     lh_return_if(!lh_ui_entity_chain_shown(self));
-    rect = lh_ui_entity_get_painted_rect(self);
+    lh_ui_entity_get_painted_rect(self, lh_addr_of(rect));
     /* A label draws past its box and on purpose (::lh_ui_label_on_children: the tail
        of a 'p', and any text wider than the box it was given), so the box alone is
        not what is on screen. Recording only the box left the overflow behind when the
@@ -334,11 +338,12 @@ lh_ui_entity_note(const lh_ui_entity_t *self)
        are the whole table. */
     if (lh_null_eq(lh_ui_entity_get_first_child(self)))
     {
-        const lh_ui_rect_t content = lh_ui_entity_get_measure_bounds(self);
+        lh_ui_rect_t content;
+        lh_ui_entity_get_measure_bounds(self, lh_addr_of(content));
 
         if (!lh_ui_rect_is_empty(lh_addr_of(content)))
         {
-            rect = lh_ui_rect_union(lh_addr_of(rect), lh_addr_of(content));
+            lh_ui_rect_union(lh_addr_of(rect), lh_addr_of(content), lh_addr_of(rect));
         }
     }
     lh_ui_entity_note_rect(self, lh_addr_of(rect));
@@ -518,7 +523,7 @@ lh_ui_entity_send_pointer(const lh_ui_entity_t *self, lh_ui_entity_event_code_t 
     lh_ui_point_t local;
 
     lh_return_if(lh_null_eq(self));
-    local = lh_ui_entity_to_local(self, point);
+    lh_ui_entity_to_local(self, point, lh_addr_of(local));
     lh_ui_entity_send(self, code, lh_addr_of(local));
 }
 
@@ -546,23 +551,30 @@ lh_ui_entity_get_children_transform(const lh_ui_entity_t *self, lh_ui_point_t *o
 
     lh_assert_runtime_ref(offset);
     lh_ui_entity_ask_children(self, lh_addr_of(transform));
-    *offset = lh_ui_entity_transform_get_offset(lh_addr_of(transform));
+    lh_ui_entity_transform_get_offset(lh_addr_of(transform), offset);
     return lh_ui_entity_transform_is_clip(lh_addr_of(transform));
 }
 
 /* ── Geometry ────────────────────────────────────────────────────────────── */
 
-lh_ui_rect_t
-lh_ui_entity_extend_bounds(const lh_ui_entity_t *self, lh_ui_rect_t bounds)
+lh_void
+lh_ui_entity_extend_bounds(const lh_ui_entity_t *self, lh_ui_rect_t bounds, lh_ui_rect_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    lh_return_if(self->hidden, bounds);
-    return lh_ui_rect_union(lh_addr_of(bounds), lh_addr_of(self->rect));
+    if (self->hidden)
+    {
+        *out = bounds;
+        return;
+    }
+    lh_ui_rect_union(lh_addr_of(bounds), lh_addr_of(self->rect), out);
+    return;
 }
 
-lh_ui_rect_t
-lh_ui_entity_get_children_bounds(const lh_ui_entity_t *self)
+lh_void
+lh_ui_entity_get_children_bounds(const lh_ui_entity_t *self, lh_ui_rect_t *out)
 {
+    lh_assert_runtime_ref(out);
     const lh_ui_entity_t *child;
     lh_ui_rect_t bounds;
 
@@ -571,9 +583,10 @@ lh_ui_entity_get_children_bounds(const lh_ui_entity_t *self)
     for (child = lh_ui_entity_get_first_child(self); lh_null_ne(child);
          child = lh_ui_entity_get_next_child(self, child))
     {
-        bounds = lh_ui_entity_extend_bounds(child, bounds);
+        lh_ui_entity_extend_bounds(child, bounds, lh_addr_of(bounds));
     }
-    return bounds;
+    *out = bounds;
+    return;
 }
 
 lh_ui_scalar_t
@@ -588,76 +601,94 @@ lh_ui_entity_get_baseline(const lh_ui_entity_t *self)
     return baseline;
 }
 
-lh_ui_rect_t
-lh_ui_entity_get_measure_bounds(const lh_ui_entity_t *self)
+lh_void
+lh_ui_entity_get_measure_bounds(const lh_ui_entity_t *self, lh_ui_rect_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_ui_rect_t bounds;
 
     lh_assert_runtime_ref(self);
     lh_ui_rect_init_empty(lh_addr_of(bounds));
     lh_ui_entity_send(self, lh_ui_entity_event_measure, lh_addr_of(bounds));
-    return bounds;
+    *out = bounds;
+    return;
 }
 
-lh_ui_rect_t
-lh_ui_entity_get_content_bounds(const lh_ui_entity_t *self)
+lh_void
+lh_ui_entity_get_content_bounds(const lh_ui_entity_t *self, lh_ui_rect_t *out)
 {
-    const lh_ui_rect_t measured = lh_ui_entity_get_measure_bounds(self);
-    const lh_ui_rect_t children = lh_ui_entity_get_children_bounds(self);
+    lh_assert_runtime_ref(out);
+    lh_ui_rect_t measured;
+    lh_ui_entity_get_measure_bounds(self, lh_addr_of(measured));
+    lh_ui_rect_t children;
+    lh_ui_entity_get_children_bounds(self, lh_addr_of(children));
 
-    return lh_ui_rect_union(lh_addr_of(measured), lh_addr_of(children));
+    lh_ui_rect_union(lh_addr_of(measured), lh_addr_of(children), out);
+    return;
 }
 
-lh_ui_point_t
-lh_ui_entity_to_children_space(const lh_ui_entity_t *self, lh_ui_point_t point)
+lh_void
+lh_ui_entity_to_children_space(const lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_point_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_ui_point_t offset;
 
     (void)lh_ui_entity_get_children_transform(self, lh_addr_of(offset));
-    return lh_ui_point_offset(lh_addr_of(point), -lh_ui_point_get_x(lh_addr_of(offset)),
-                              -lh_ui_point_get_y(lh_addr_of(offset)));
+    lh_ui_point_offset(lh_addr_of(point), -lh_ui_point_get_x(lh_addr_of(offset)),
+                              -lh_ui_point_get_y(lh_addr_of(offset)), out);
+    return;
 }
 
-lh_ui_point_t
-lh_ui_entity_add_children_offset(const lh_ui_entity_t *self, lh_ui_point_t point)
+lh_void
+lh_ui_entity_add_children_offset(const lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_point_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_ui_point_t offset;
 
     (void)lh_ui_entity_get_children_transform(self, lh_addr_of(offset));
-    return lh_ui_point_offset(lh_addr_of(point), lh_ui_point_get_x(lh_addr_of(offset)),
-                              lh_ui_point_get_y(lh_addr_of(offset)));
+    lh_ui_point_offset(lh_addr_of(point), lh_ui_point_get_x(lh_addr_of(offset)),
+                              lh_ui_point_get_y(lh_addr_of(offset)), out);
+    return;
 }
 
-lh_ui_point_t
-lh_ui_entity_get_root_offset(const lh_ui_entity_t *self)
+lh_void
+lh_ui_entity_get_root_offset(const lh_ui_entity_t *self, lh_ui_point_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_ui_point_t total;
 
     lh_assert_runtime_ref(self);
     lh_ui_point_init(lh_addr_of(total), lh_ui_scalar(0), lh_ui_scalar(0));
     for (self = self->parent; lh_null_ne(self); self = self->parent)
     {
-        total = lh_ui_entity_add_children_offset(self, total);
+        lh_ui_entity_add_children_offset(self, total, lh_addr_of(total));
     }
-    return total;
+    *out = total;
+    return;
 }
 
-lh_ui_point_t
-lh_ui_entity_to_local(const lh_ui_entity_t *self, lh_ui_point_t point)
+lh_void
+lh_ui_entity_to_local(const lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_point_t *out)
 {
-    const lh_ui_point_t offset = lh_ui_entity_get_root_offset(self);
+    lh_assert_runtime_ref(out);
+    lh_ui_point_t offset;
+    lh_ui_entity_get_root_offset(self, lh_addr_of(offset));
 
-    return lh_ui_point_offset(lh_addr_of(point), -lh_ui_point_get_x(lh_addr_of(offset)),
-                              -lh_ui_point_get_y(lh_addr_of(offset)));
+    lh_ui_point_offset(lh_addr_of(point), -lh_ui_point_get_x(lh_addr_of(offset)),
+                              -lh_ui_point_get_y(lh_addr_of(offset)), out);
+    return;
 }
 
-lh_ui_rect_t
-lh_ui_entity_get_root_rect(const lh_ui_entity_t *self)
+lh_void
+lh_ui_entity_get_root_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out)
 {
-    const lh_ui_point_t offset = lh_ui_entity_get_root_offset(self);
+    lh_assert_runtime_ref(out);
+    lh_ui_point_t offset;
+    lh_ui_entity_get_root_offset(self, lh_addr_of(offset));
 
-    return lh_ui_rect_offset(lh_addr_of(self->rect), lh_ui_point_get_x(lh_addr_of(offset)),
-                             lh_ui_point_get_y(lh_addr_of(offset)));
+    lh_ui_rect_offset(lh_addr_of(self->rect), lh_ui_point_get_x(lh_addr_of(offset)),
+                             lh_ui_point_get_y(lh_addr_of(offset)), out);
+    return;
 }
 
 /* ── Hit test ────────────────────────────────────────────────────────────── */
@@ -679,7 +710,7 @@ lh_ui_entity_find_child_at(const lh_ui_entity_t *self, lh_ui_point_t point, lh_u
     lh_assert_runtime_ref(self);
     lh_return_if(!lh_ui_entity_searches_children_at(self, point), lh_null);
     lh_return_if(lh_null_eq(lh_ui_entity_get_last_child(self)), lh_null);
-    point = lh_ui_entity_to_children_space(self, point);
+    lh_ui_entity_to_children_space(self, point, lh_addr_of(point));
     for (child = lh_ui_entity_get_last_child(self); lh_null_eq(hit) && lh_null_ne(child);
          child = lh_ui_entity_get_prev_child(self, child))
     {
@@ -752,7 +783,7 @@ lh_ui_entity_click(lh_ui_entity_t *self, lh_ui_point_t point)
        that receives it — an ancestor has a children offset of its own. */
     target = lh_ui_entity_click_target(hit);
     lh_return_if(lh_null_eq(target), lh_null);
-    local = lh_ui_entity_to_local(target, point);
+    lh_ui_entity_to_local(target, point, lh_addr_of(local));
     lh_ui_entity_send(target, lh_ui_entity_event_click, lh_addr_of(local));
     return target;
 }
@@ -769,7 +800,9 @@ lh_ui_entity_push_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
     lh_ui_entity_ask_children(self, lh_addr_of(transform));
     lh_return_if(lh_ui_entity_transform_is_identity(lh_addr_of(transform)), lh_bool_false);
     rect = self->rect;
-    lh_ui_canvas_push_round(canvas, lh_ui_entity_transform_get_offset(lh_addr_of(transform)),
+    lh_ui_point_t point;
+    lh_ui_entity_transform_get_offset(lh_addr_of(transform), lh_addr_of(point));
+    lh_ui_canvas_push_round(canvas, point,
                             lh_ui_entity_transform_is_clip(lh_addr_of(transform)) ? lh_addr_of(rect) : lh_null,
                             lh_ui_entity_get_radius_now(self));
     return lh_bool_true;
@@ -792,15 +825,17 @@ lh_ui_entity_is_clipping(const lh_ui_entity_t *self)
    rounded widget resting on the fringe, which are the one place nothing else
    covers it. The two answers have to be one thing, so this is what the draw walk
    tests and the damage records. */
-lh_ui_rect_t
-lh_ui_entity_get_painted_rect(const lh_ui_entity_t *self)
+lh_void
+lh_ui_entity_get_painted_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out)
 {
+    lh_assert_runtime_ref(out);
     const lh_ui_style_t *style = lh_ui_entity_get_style_now(self);
     const lh_ui_scalar_t outset =
         lh_null_eq(style) ? lh_ui_scalar(0)
                           : lh_ui_shadow_get_outset(lh_ui_style_get_shadow(style), lh_addr_of(self->rect));
 
-    return lh_ui_rect_inset(lh_addr_of(self->rect), lh_math_neg(outset), lh_math_neg(outset));
+    lh_ui_rect_inset(lh_addr_of(self->rect), lh_math_neg(outset), lh_math_neg(outset), out);
+    return;
 }
 
 lh_bool_t
@@ -811,7 +846,7 @@ lh_ui_entity_shows_on(const lh_ui_entity_t *self, const lh_ui_canvas_t *canvas)
 
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(canvas), lh_bool_true);
-    painted = lh_ui_entity_get_painted_rect(self);
+    lh_ui_entity_get_painted_rect(self, lh_addr_of(painted));
     lh_return_if(lh_ui_canvas_shows_rect(canvas, lh_addr_of(painted)), lh_bool_true);
     /* The rect misses the clip, and measuring is not free: ask what the class
        paints of itself only now, when the cheap answer said no. A label's box is
@@ -821,7 +856,7 @@ lh_ui_entity_shows_on(const lh_ui_entity_t *self, const lh_ui_canvas_t *canvas)
        above, one layer down. Children are not asked about here: they are
        ::lh_ui_entity_shows_children_on's business, and a plain parent whose child
        lies outside it must still be culled out of its own draw. */
-    content = lh_ui_entity_get_measure_bounds(self);
+    lh_ui_entity_get_measure_bounds(self, lh_addr_of(content));
     return lh_ui_canvas_shows_rect(canvas, lh_addr_of(content));
 }
 
@@ -910,7 +945,7 @@ lh_ui_entity_draw_border(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
                  bottom <= lh_ui_scalar(0));
     color = lh_ui_paint_get_color(lh_ui_style_get_border_fill(style));
     lh_return_if(lh_null_eq(color));
-    rect = lh_ui_entity_get_rect(self);
+    lh_ui_entity_get_rect(self, lh_addr_of(rect));
     origin = lh_ui_rect_get_origin_as_const(lh_addr_of(rect));
     size = lh_ui_rect_get_size_as_const(lh_addr_of(rect));
     x = lh_ui_point_get_x(origin);
@@ -958,6 +993,6 @@ lh_ui_entity_add_damage(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
     lh_ui_rect_t rect;
 
     lh_return_if(lh_null_eq(self) || lh_null_eq(canvas));
-    rect = lh_ui_entity_get_root_rect(self);
+    lh_ui_entity_get_root_rect(self, lh_addr_of(rect));
     lh_ui_canvas_add_damage(canvas, lh_addr_of(rect));
 }

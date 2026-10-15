@@ -84,8 +84,8 @@ lh_runtime_error_get_code(const lh_runtime_error_t *self);
  * @param self Error object to read from.
  * @return Current @c desc (empty view when there is no description).
  */
-lh_str_view_t
-lh_runtime_error_get_desc(const lh_runtime_error_t *self);
+lh_void
+lh_runtime_error_get_desc(const lh_runtime_error_t *self, lh_str_view_t *out);
 
 /**
  * @brief Return the description view or @p fallback when it is empty.
@@ -94,8 +94,8 @@ lh_runtime_error_get_desc(const lh_runtime_error_t *self);
  * @param fallback Description returned when @p self has no description.
  * @return Stored description when non-empty, otherwise @p fallback.
  */
-lh_str_view_t
-lh_runtime_error_get_desc_or(const lh_runtime_error_t *self, lh_str_view_t fallback);
+lh_void
+lh_runtime_error_get_desc_or(const lh_runtime_error_t *self, lh_str_view_t fallback, lh_str_view_t *out);
 
 /* ── predicates ──────────────────────────────────────────────────────────── */
 

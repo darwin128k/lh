@@ -7,6 +7,7 @@
 #include <lh/net/ip.h>
 #include <lh/net/socket/addr/ip4.h>
 #include <lh/self.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -62,8 +63,8 @@ TEST(io_dgram_make, roundtrip_via_getters)
 
     lh_io_dgram_init(lh_addr_of(dgram), &reader, &writer);
 
-    lh_io_dgram_reader_t got_reader = lh_io_dgram_get_reader(&dgram);
-    lh_io_dgram_writer_t got_writer = lh_io_dgram_get_writer(&dgram);
+    lh_io_dgram_reader_t got_reader = lh_test::out(lh_io_dgram_get_reader, &dgram);
+    lh_io_dgram_writer_t got_writer = lh_test::out(lh_io_dgram_get_writer, &dgram);
     EXPECT_EQ(lh_io_dgram_reader_get_recv_cb(&got_reader), &PacketBoxRecv);
     EXPECT_EQ(lh_io_dgram_writer_get_send_cb(&got_writer), &PacketBoxSend);
 }

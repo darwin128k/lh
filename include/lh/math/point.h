@@ -91,8 +91,8 @@ lh_math_point_set_y(lh_math_point_t *self, lh_math_scalar_t y);
  * @param self Point to widen.
  * @return `(self.x, self.y)`.
  */
-lh_math_vec2_t
-lh_math_point_to_vec2(lh_math_point_t self);
+lh_void
+lh_math_point_to_vec2(lh_math_point_t self, lh_math_vec2_t *out);
 
 /**
  * @brief Narrow @p v to the pixel it lands on.
@@ -106,8 +106,8 @@ lh_math_point_to_vec2(lh_math_point_t self);
  * @param v Continuous position.
  * @return The pixel containing @p v.
  */
-lh_math_point_t
-lh_math_vec2_to_point(lh_math_vec2_t v);
+lh_void
+lh_math_vec2_to_point(lh_math_vec2_t v, lh_math_point_t *out);
 #endif
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
@@ -151,14 +151,14 @@ lh_math_point_is_greater(const lh_math_point_t *self, const lh_math_point_t *oth
 /**
  * @brief Element-wise minimum of @p a and @p b.
  */
-lh_math_point_t
-lh_math_point_min(const lh_math_point_t *a, const lh_math_point_t *b);
+lh_void
+lh_math_point_min(const lh_math_point_t *a, const lh_math_point_t *b, lh_math_point_t *out);
 
 /**
  * @brief Element-wise maximum of @p a and @p b.
  */
-lh_math_point_t
-lh_math_point_max(const lh_math_point_t *a, const lh_math_point_t *b);
+lh_void
+lh_math_point_max(const lh_math_point_t *a, const lh_math_point_t *b, lh_math_point_t *out);
 
 /**
  * @brief Test whether @p self lies in the half-open extent `[@p min, @p max)`.
@@ -172,14 +172,14 @@ lh_math_point_in_extent(const lh_math_point_t *self, const lh_math_point_t *min,
 /**
  * @brief Translate @p self by `(@p dx, @p dy)`.
  */
-lh_math_point_t
-lh_math_point_offset(const lh_math_point_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy);
+lh_void
+lh_math_point_offset(const lh_math_point_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy, lh_math_point_t *out);
 
 /**
  * @brief Exclusive far corner: @p self offset by @p size (`x + width`, `y + height`).
  */
-lh_math_point_t
-lh_math_point_offset_size(const lh_math_point_t *self, const struct lh_math_size *size);
+lh_void
+lh_math_point_offset_size(const lh_math_point_t *self, const struct lh_math_size *size, lh_math_point_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

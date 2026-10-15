@@ -62,7 +62,7 @@ lh_ui_rects_touch(const lh_ui_rect_t *a, const lh_ui_rect_t *b)
     /* One pixel of slack on every side, which is what makes sharing an edge
        count: two rects that meet can become one without covering anything
        either of them was not already covering. */
-    reach = lh_ui_rect_inset(b, lh_ui_scalar(-1), lh_ui_scalar(-1));
+    lh_ui_rect_inset(b, lh_ui_scalar(-1), lh_ui_scalar(-1), lh_addr_of(reach));
     return lh_ui_rect_intersects(a, lh_addr_of(reach));
 }
 
@@ -73,7 +73,7 @@ lh_ui_rects_waste(const lh_ui_rect_t *a, const lh_ui_rect_t *b)
 
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
-    hull = lh_ui_rect_union(a, b);
+    lh_ui_rect_union(a, b, lh_addr_of(hull));
     return lh_ui_rects_area(lh_addr_of(hull)) - lh_ui_rects_area(a) - lh_ui_rects_area(b);
 }
 
@@ -117,7 +117,7 @@ lh_ui_rects_join_once(lh_ui_rects_t *self)
             {
                 continue;
             }
-            self->rects[keep] = lh_ui_rect_union(lh_addr_of(self->rects[keep]), lh_addr_of(self->rects[drop]));
+            lh_ui_rect_union(lh_addr_of(self->rects[keep]), lh_addr_of(self->rects[drop]), lh_addr_of(self->rects[keep]));
             lh_ui_rects_drop(self, drop);
             return lh_bool_true;
         }
@@ -157,6 +157,6 @@ lh_ui_rects_squeeze(lh_ui_rects_t *self, const lh_ui_rect_t *rect)
             cheapest = i;
         }
     }
-    self->rects[cheapest] = lh_ui_rect_union(lh_addr_of(self->rects[cheapest]), rect);
+    lh_ui_rect_union(lh_addr_of(self->rects[cheapest]), rect, lh_addr_of(self->rects[cheapest]));
     lh_ui_rects_close(self);
 }

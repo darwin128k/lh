@@ -4,6 +4,7 @@
 
 #include <lh/ui/mask.h>
 #include <lh/util/addr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -75,7 +76,7 @@ TEST(ui_mask, rect_starts_at_the_origin)
 
     lh_ui_mask_init(lh_addr_of(mask), g_bits4, 3, 2, 2, 4);
     lh_ui_point_init(lh_addr_of(origin), 5, 6);
-    EXPECT_TRUE(rect_is(lh_ui_mask_get_rect(lh_addr_of(mask), origin), rect_of(5, 6, 3, 2)));
+    EXPECT_TRUE(rect_is(lh_test::out(lh_ui_mask_get_rect, lh_addr_of(mask), origin), rect_of(5, 6, 3, 2)));
 }
 
 /* The 4 bpp run has an SSE2 pass that unpacks eight nibbles at once, and every

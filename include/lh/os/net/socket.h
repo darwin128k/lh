@@ -350,8 +350,8 @@ lh_os_net_socket_recvfrom(lh_self_ptr self, lh_ptr buf, lh_usize_t size,
  * @param self Socket to read from; must outlive the returned reader.
  * @return An ::lh_io_reader_t wired to ::lh_os_net_socket_recv.
  */
-lh_io_reader_t
-lh_os_net_socket_get_reader(lh_os_net_socket_t *self);
+lh_void
+lh_os_net_socket_get_reader(lh_os_net_socket_t *self, lh_io_reader_t *out);
 
 /**
  * @brief Build an ::lh_io_writer_t that writes to @p self.
@@ -359,8 +359,8 @@ lh_os_net_socket_get_reader(lh_os_net_socket_t *self);
  * @param self Socket to write to; must outlive the returned writer.
  * @return An ::lh_io_writer_t wired to ::lh_os_net_socket_send.
  */
-lh_io_writer_t
-lh_os_net_socket_get_writer(lh_os_net_socket_t *self);
+lh_void
+lh_os_net_socket_get_writer(lh_os_net_socket_t *self, lh_io_writer_t *out);
 
 /**
  * @brief Build an ::lh_io_stream_t (reader + writer) over @p self.
@@ -377,8 +377,8 @@ lh_os_net_socket_get_writer(lh_os_net_socket_t *self);
  *             returned stream.
  * @return An ::lh_io_stream_t backed by @p self.
  */
-lh_io_stream_t
-lh_os_net_socket_get_stream(lh_os_net_socket_t *self);
+lh_void
+lh_os_net_socket_get_stream(lh_os_net_socket_t *self, lh_io_stream_t *out);
 
 /**
  * @brief Build an ::lh_io_dgram_reader_t that receives from @p self.
@@ -386,8 +386,8 @@ lh_os_net_socket_get_stream(lh_os_net_socket_t *self);
  * @param self Socket to receive from; must outlive the returned reader.
  * @return An ::lh_io_dgram_reader_t wired to ::lh_os_net_socket_recvfrom.
  */
-lh_io_dgram_reader_t
-lh_os_net_socket_get_dgram_reader(lh_os_net_socket_t *self);
+lh_void
+lh_os_net_socket_get_dgram_reader(lh_os_net_socket_t *self, lh_io_dgram_reader_t *out);
 
 /**
  * @brief Build an ::lh_io_dgram_writer_t that sends through @p self.
@@ -395,8 +395,8 @@ lh_os_net_socket_get_dgram_reader(lh_os_net_socket_t *self);
  * @param self Socket to send through; must outlive the returned writer.
  * @return An ::lh_io_dgram_writer_t wired to ::lh_os_net_socket_sendto.
  */
-lh_io_dgram_writer_t
-lh_os_net_socket_get_dgram_writer(lh_os_net_socket_t *self);
+lh_void
+lh_os_net_socket_get_dgram_writer(lh_os_net_socket_t *self, lh_io_dgram_writer_t *out);
 
 /**
  * @brief Build an ::lh_io_dgram_t (recvfrom + sendto) over @p self.
@@ -412,8 +412,8 @@ lh_os_net_socket_get_dgram_writer(lh_os_net_socket_t *self);
  * @param self Open UDP socket to wrap; must outlive the returned dgram.
  * @return An ::lh_io_dgram_t backed by @p self.
  */
-lh_io_dgram_t
-lh_os_net_socket_get_dgram(lh_os_net_socket_t *self);
+lh_void
+lh_os_net_socket_get_dgram(lh_os_net_socket_t *self, lh_io_dgram_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

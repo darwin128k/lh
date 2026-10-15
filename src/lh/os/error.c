@@ -1,4 +1,5 @@
 #include <lh/os/error.h>
+#include <lh/assert/runtime.h>
 #include <lh/error.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -27,16 +28,20 @@ lh_os_error_get_code(const lh_os_error_t *self)
     return lh_error_get_code(lh_ptr_ccast(lh_error_t, self));
 }
 
-lh_os_error_desc_t
-lh_os_error_get_desc(const lh_os_error_t *self)
+lh_void
+lh_os_error_get_desc(const lh_os_error_t *self, lh_os_error_desc_t *out)
 {
-    return lh_error_get_desc(lh_ptr_ccast(lh_error_t, self));
+    lh_assert_runtime_ref(out);
+    lh_error_get_desc(lh_ptr_ccast(lh_error_t, self), out);
+    return;
 }
 
-lh_os_error_desc_t
-lh_os_error_get_desc_or(const lh_os_error_t *self, lh_os_error_desc_t fallback)
+lh_void
+lh_os_error_get_desc_or(const lh_os_error_t *self, lh_os_error_desc_t fallback, lh_os_error_desc_t *out)
 {
-    return lh_error_get_desc_or(lh_ptr_ccast(lh_error_t, self), fallback);
+    lh_assert_runtime_ref(out);
+    lh_error_get_desc_or(lh_ptr_ccast(lh_error_t, self), fallback, out);
+    return;
 }
 
 lh_bool_t

@@ -9,6 +9,7 @@
 #include <lh/ui/size.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -66,7 +67,7 @@ TEST(ui_pixmap, init_keeps_shape_and_rows_follow_the_stride)
     EXPECT_EQ(lh_ui_pixmap_get_format(lh_addr_of(f.pixmap)), lh_ui_pixmap_format_argb8888);
     EXPECT_EQ(lh_ui_pixmap_get_row(lh_addr_of(f.pixmap), 2), lh_ptr_rcast(lh_byte_t, f.words) + 2 * 20);
     EXPECT_EQ(lh_ui_pixmap_get_address(lh_addr_of(f.pixmap), 3, 1), lh_ptr_rcast(lh_byte_t, f.words) + 20 + 12);
-    const lh_ui_rect_t bounds = lh_ui_pixmap_get_bounds(lh_addr_of(f.pixmap));
+    const lh_ui_rect_t bounds = lh_test::out(lh_ui_pixmap_get_bounds, lh_addr_of(f.pixmap));
     EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(bounds))), 4);
     EXPECT_EQ(lh_ui_size_get_height(lh_ui_rect_get_size_as_const(lh_addr_of(bounds))), 3);
 }
@@ -84,7 +85,7 @@ TEST(ui_pixmap, set_and_get_pixel_round_trip_through_argb)
 
     lh_ui_pixmap_set_pixel(lh_addr_of(f.pixmap), 3, 1, lh_addr_of(c));
     EXPECT_EQ(f.at(3, 1), 0x04010203u);
-    const lh_ui_color_t back = lh_ui_pixmap_get_pixel(lh_addr_of(f.pixmap), 3, 1);
+    const lh_ui_color_t back = lh_test::out(lh_ui_pixmap_get_pixel, lh_addr_of(f.pixmap), 3, 1);
     EXPECT_TRUE(lh_ui_color_equals(lh_addr_of(back), lh_addr_of(c)));
 }
 
@@ -98,7 +99,7 @@ TEST(ui_pixmap, rgb565_stores_16_bit_words_and_reads_opaque)
     /* Only the two bytes of that pixel changed. */
     EXPECT_EQ(f.at(0, 0), 0u);
     EXPECT_EQ(f.at(2, 0), 0u);
-    const lh_ui_color_t back = lh_ui_pixmap_get_pixel(lh_addr_of(f.pixmap), 1, 0);
+    const lh_ui_color_t back = lh_test::out(lh_ui_pixmap_get_pixel, lh_addr_of(f.pixmap), 1, 0);
     EXPECT_EQ(lh_ui_color_get_r(lh_addr_of(back)), 255);
     EXPECT_EQ(lh_ui_color_get_g(lh_addr_of(back)), 0);
     EXPECT_EQ(lh_ui_color_get_a(lh_addr_of(back)), 255);
@@ -114,7 +115,7 @@ TEST(ui_pixmap, rgb565_swapped_puts_the_high_byte_first_in_memory)
     EXPECT_EQ(bytes[0], 0xF8);
     EXPECT_EQ(bytes[1], 0x00);
     EXPECT_EQ(lh_ui_pixmap_format_get_bytes(lh_ui_pixmap_format_rgb565_swapped), 2);
-    const lh_ui_color_t back = lh_ui_pixmap_get_pixel(lh_addr_of(f.pixmap), 0, 0);
+    const lh_ui_color_t back = lh_test::out(lh_ui_pixmap_get_pixel, lh_addr_of(f.pixmap), 0, 0);
     EXPECT_EQ(lh_ui_color_get_r(lh_addr_of(back)), 255);
     EXPECT_EQ(lh_ui_color_get_g(lh_addr_of(back)), 0);
 }
@@ -159,8 +160,8 @@ TEST(ui_pixmap, fill_span_blends_a_translucent_color)
     const lh_ui_color_t black = color_of(0, 0, 0, 255);
 
     lh_ui_pixmap_fill_span(lh_addr_of(f.pixmap), 0, 1, 0, lh_addr_of(c));
-    const lh_ui_color_t want = lh_ui_color_over(lh_addr_of(black), lh_addr_of(c));
-    const lh_ui_color_t got = lh_ui_pixmap_get_pixel(lh_addr_of(f.pixmap), 0, 0);
+    const lh_ui_color_t want = lh_test::out(lh_ui_color_over, lh_addr_of(black), lh_addr_of(c));
+    const lh_ui_color_t got = lh_test::out(lh_ui_pixmap_get_pixel, lh_addr_of(f.pixmap), 0, 0);
     EXPECT_TRUE(lh_ui_color_equals(lh_addr_of(got), lh_addr_of(want)));
 }
 
@@ -172,7 +173,7 @@ TEST(ui_pixmap, rgb565_blend_works_on_the_unpacked_pixel)
 
     lh_ui_pixmap_set_pixel(lh_addr_of(f.pixmap), 0, 0, lh_addr_of(white));
     lh_ui_pixmap_blend_pixel(lh_addr_of(f.pixmap), 0, 0, lh_addr_of(half));
-    const lh_ui_color_t over = lh_ui_color_over(lh_addr_of(white), lh_addr_of(half));
+    const lh_ui_color_t over = lh_test::out(lh_ui_color_over, lh_addr_of(white), lh_addr_of(half));
     EXPECT_EQ(f.at(0, 0), lh_ui_color_get_rgb565(lh_addr_of(over)));
 }
 
@@ -184,7 +185,7 @@ TEST(ui_pixmap, cover_pixel_scales_alpha_skips_zero_and_stores_full)
     lh_ui_pixmap_cover_pixel(lh_addr_of(f.pixmap), 0, 0, lh_addr_of(c), 0);
     EXPECT_EQ(f.at(0, 0), 0u);
     lh_ui_pixmap_cover_pixel(lh_addr_of(f.pixmap), 0, 0, lh_addr_of(c), 100);
-    const lh_ui_color_t got = lh_ui_pixmap_get_pixel(lh_addr_of(f.pixmap), 0, 0);
+    const lh_ui_color_t got = lh_test::out(lh_ui_pixmap_get_pixel, lh_addr_of(f.pixmap), 0, 0);
     EXPECT_EQ(lh_ui_color_get_a(lh_addr_of(got)), 100);
     EXPECT_EQ(lh_ui_color_get_r(lh_addr_of(got)), 9);
     lh_ui_pixmap_cover_pixel(lh_addr_of(f.pixmap), 1, 0, lh_addr_of(c), 255);
@@ -391,7 +392,7 @@ TEST(ui_pixmap, blend_alpha_32_sse2_falls_back_for_a_translucent_destination)
                 lh_ui_color_t over;
                 lh_ui_color_init_argb(lh_addr_of(dst), at[i]);
                 lh_ui_color_init_argb(lh_addr_of(color), (static_cast<lh_u32_t>(alpha[i]) << 24) | src);
-                over = lh_ui_color_over(lh_addr_of(dst), lh_addr_of(color));
+                over = lh_test::out(lh_ui_color_over, lh_addr_of(dst), lh_addr_of(color));
                 want[i] = alpha[i] == 0u ? at[i] : lh_ui_pixmap_pack(lh_addr_of(pixmap), lh_addr_of(over));
             }
             lh_ui_pixmap_blend_alpha_32_sse2(lh_addr_of(pixmap), at, alpha, static_cast<lh_usize_t>(count), src);

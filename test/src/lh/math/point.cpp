@@ -3,6 +3,7 @@
 #include <lh/math/point.h>
 #include <lh/math/size.h>
 #include <lh/util/addr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -15,8 +16,8 @@ TEST(math_point, min_max_are_element_wise)
     lh_math_point_t b;
 
     lh_math_point_init(lh_addr_of(b), 4, 2);
-    const lh_math_point_t lo = lh_math_point_min(lh_addr_of(a), lh_addr_of(b));
-    const lh_math_point_t hi = lh_math_point_max(lh_addr_of(a), lh_addr_of(b));
+    const lh_math_point_t lo = lh_test::out(lh_math_point_min, lh_addr_of(a), lh_addr_of(b));
+    const lh_math_point_t hi = lh_test::out(lh_math_point_max, lh_addr_of(a), lh_addr_of(b));
     EXPECT_EQ(lh_math_point_get_x(lh_addr_of(lo)), 1);
     EXPECT_EQ(lh_math_point_get_y(lh_addr_of(lo)), 2);
     EXPECT_EQ(lh_math_point_get_x(lh_addr_of(hi)), 4);
@@ -31,7 +32,7 @@ TEST(math_point, offset_size_is_far_corner)
     lh_math_size_t size;
 
     lh_math_size_init(lh_addr_of(size), 5, 3);
-    const lh_math_point_t far = lh_math_point_offset_size(lh_addr_of(origin), lh_addr_of(size));
+    const lh_math_point_t far = lh_test::out(lh_math_point_offset_size, lh_addr_of(origin), lh_addr_of(size));
     EXPECT_EQ(lh_math_point_get_x(lh_addr_of(far)), 15);
     EXPECT_EQ(lh_math_point_get_y(lh_addr_of(far)), 23);
 }

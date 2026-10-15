@@ -249,8 +249,8 @@ lh_date_days_since_epoch(const lh_date_t *self);
  * @param days Epoch-day number.
  * @return Calendar date.
  */
-lh_date_t
-lh_date_from_epoch_days(lh_s64_t days);
+lh_void
+lh_date_from_epoch_days(lh_s64_t days, lh_date_t *out);
 
 /**
  * @brief Return the year of @p self.

@@ -15,8 +15,10 @@ lh_void
 lh_ui_canvas_fill_mask(struct lh_ui_canvas *self, const lh_ui_mask_t *mask, lh_ui_point_t origin,
                        const lh_ui_color_t *color)
 {
-    const lh_ui_rect_t rect = lh_ui_mask_get_rect(mask, origin);
-    const lh_ui_rect_t target = lh_ui_canvas_state_to_target(lh_addr_of(self->state), lh_addr_of(rect));
+    lh_ui_rect_t rect;
+    lh_ui_mask_get_rect(mask, origin, lh_addr_of(rect));
+    lh_ui_rect_t target;
+    lh_ui_canvas_state_to_target(lh_addr_of(self->state), lh_addr_of(rect), lh_addr_of(target));
 
     lh_assert_runtime_ref(color);
     lh_return_if(!lh_ui_canvas_shows(self, lh_addr_of(target)));
@@ -48,7 +50,8 @@ lh_void
 lh_ui_canvas_fill_target_mask(struct lh_ui_canvas *self, const lh_ui_mask_t *mask, const lh_ui_rect_t *target,
                               const lh_ui_color_t *color)
 {
-    const lh_ui_rect_t cut = lh_ui_canvas_state_cut(lh_addr_of(self->state), target);
+    lh_ui_rect_t cut;
+    lh_ui_canvas_state_cut(lh_addr_of(self->state), target, lh_addr_of(cut));
 
     lh_return_if(lh_ui_rect_is_empty(lh_addr_of(cut)));
     lh_ui_canvas_add_damage(self, lh_addr_of(cut));
@@ -86,7 +89,8 @@ lh_ui_canvas_fill_mask_pixel(struct lh_ui_canvas *self, const lh_ui_mask_t *mask
                              lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color)
 {
     const lh_byte_t cover = lh_ui_mask_get_coverage(mask, x, y);
-    const lh_ui_color_t pixel = lh_ui_color_with_coverage(color, cover);
+    lh_ui_color_t pixel;
+    lh_ui_color_with_coverage(color, cover, lh_addr_of(pixel));
 
     lh_return_if(cover == 0U);
     lh_ui_canvas_fill_pixels(self, x0 + x, y0 + y, 1, 1, lh_addr_of(pixel));

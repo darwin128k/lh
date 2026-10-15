@@ -3,6 +3,7 @@
 #include <lh/expect/death.h>
 #include <lh/memory/view/slice.h>
 #include <lh/null.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -365,7 +366,7 @@ TEST(memory_view_slice_make_from_offset, returns_const_subslice)
     const unsigned char buf[6] = {10, 20, 30, 40, 50, 60};
     lh_memory_view_slice_t base = slice(p(buf), p(buf + 5));
 
-    lh_memory_view_slice_t s = lh_memory_view_slice_from_offset(&base, 2, 3);
+    lh_memory_view_slice_t s = lh_test::out(lh_memory_view_slice_from_offset, &base, 2, 3);
 
     EXPECT_TRUE(lh_memory_view_slice_equals_of(&s, p(buf + 2), p(buf + 4)));
 }
@@ -374,7 +375,7 @@ TEST(memory_view_slice_make_from_begin, takes_n_from_start)
 {
     const unsigned char buf[4] = {10, 20, 30, 40};
     lh_memory_view_slice_t s = slice(p(buf), p(buf + 3));
-    lh_memory_view_slice_t r = lh_memory_view_slice_from_begin(&s, 2);
+    lh_memory_view_slice_t r = lh_test::out(lh_memory_view_slice_from_begin, &s, 2);
     EXPECT_TRUE(lh_memory_view_slice_equals_of(&r, p(buf), p(buf + 1)));
 }
 
@@ -382,7 +383,7 @@ TEST(memory_view_slice_make_from_end, takes_n_from_end)
 {
     const unsigned char buf[4] = {10, 20, 30, 40};
     lh_memory_view_slice_t s = slice(p(buf), p(buf + 3));
-    lh_memory_view_slice_t r = lh_memory_view_slice_from_end(&s, 2);
+    lh_memory_view_slice_t r = lh_test::out(lh_memory_view_slice_from_end, &s, 2);
     EXPECT_TRUE(lh_memory_view_slice_equals_of(&r, p(buf + 2), p(buf + 3)));
 }
 
@@ -390,7 +391,7 @@ TEST(memory_view_slice_make_between, returns_subslice_between_ptrs)
 {
     const unsigned char buf[6] = {10, 20, 30, 40, 50, 60};
     lh_memory_view_slice_t s = slice(p(buf), p(buf + 5));
-    lh_memory_view_slice_t r = lh_memory_view_slice_between(&s, p(buf + 1), p(buf + 4));
+    lh_memory_view_slice_t r = lh_test::out(lh_memory_view_slice_between, &s, p(buf + 1), p(buf + 4));
     EXPECT_TRUE(lh_memory_view_slice_equals_of(&r, p(buf + 1), p(buf + 4)));
 }
 
@@ -399,7 +400,7 @@ TEST(memory_view_slice_drop_first, returns_empty_when_all_removed)
     const unsigned char buf[3] = {10, 20, 30};
     lh_memory_view_slice_t base = slice(p(buf), p(buf + 2));
 
-    lh_memory_view_slice_t s = lh_memory_view_slice_drop_first(&base, 3);
+    lh_memory_view_slice_t s = lh_test::out(lh_memory_view_slice_drop_first, &base, 3);
 
     EXPECT_TRUE(lh_memory_view_slice_equals_of(&s, lh_null, lh_null));
 }
@@ -408,7 +409,7 @@ TEST(memory_view_slice_drop_last, removes_n_from_end)
 {
     const unsigned char buf[4] = {10, 20, 30, 40};
     lh_memory_view_slice_t s = slice(p(buf), p(buf + 3));
-    lh_memory_view_slice_t r = lh_memory_view_slice_drop_last(&s, 2);
+    lh_memory_view_slice_t r = lh_test::out(lh_memory_view_slice_drop_last, &s, 2);
     EXPECT_TRUE(lh_memory_view_slice_equals_of(&r, p(buf), p(buf + 1)));
 }
 
@@ -416,7 +417,7 @@ TEST(memory_view_slice_trim, removes_from_both_sides)
 {
     const unsigned char buf[6] = {10, 20, 30, 40, 50, 60};
     lh_memory_view_slice_t s = slice(p(buf), p(buf + 5));
-    lh_memory_view_slice_t r = lh_memory_view_slice_trim(&s, 1, 2);
+    lh_memory_view_slice_t r = lh_test::out(lh_memory_view_slice_trim, &s, 1, 2);
     EXPECT_TRUE(lh_memory_view_slice_equals_of(&r, p(buf + 1), p(buf + 3)));
 }
 
@@ -485,10 +486,10 @@ TEST(memory_view_slice_ropen_bricks, convert_half_open_storage)
     EXPECT_TRUE(lh_memory_view_slice_is_unclosable_ropen(p(buf), p(buf)));
     EXPECT_FALSE(lh_memory_view_slice_is_unclosable_ropen(p(buf), p(buf + 2)));
 
-    lh_memory_view_slice_t closed = lh_memory_view_slice_from_view(&bytes);
+    lh_memory_view_slice_t closed = lh_test::out(lh_memory_view_slice_from_view, &bytes);
     EXPECT_TRUE(lh_memory_view_slice_equals_of(&closed, p(buf), p(buf + 2)));
 
-    lh_memory_view_slice_t made = lh_memory_view_slice_return_init_by_size(p(buf), 2);
+    lh_memory_view_slice_t made = lh_test::out(lh_memory_view_slice_return_init_by_size, p(buf), 2);
     EXPECT_TRUE(lh_memory_view_slice_equals_of(&made, p(buf), p(buf + 1)));
 }
 
@@ -513,9 +514,9 @@ TEST(memory_view_slice_ropen_bricks, size_containment_and_subrange)
     EXPECT_EQ(lh_memory_view_slice_get_ropen_view_size(&empty_view), 0u);
     EXPECT_EQ(lh_memory_view_slice_get_ropen_view_size(&bytes), 3u);
 
-    lh_memory_view_slice_t sub = lh_memory_view_slice_return_ropen_sub(&bytes, 1, 2);
+    lh_memory_view_slice_t sub = lh_test::out(lh_memory_view_slice_return_ropen_sub, &bytes, 1, 2);
     EXPECT_TRUE(lh_memory_view_slice_equals_of(&sub, p(buf + 1), p(buf + 2)));
-    lh_memory_view_slice_t none = lh_memory_view_slice_return_ropen_sub(&bytes, 1, 0);
+    lh_memory_view_slice_t none = lh_test::out(lh_memory_view_slice_return_ropen_sub, &bytes, 1, 0);
     EXPECT_TRUE(lh_memory_view_slice_is_uninitialized(&none));
 
     EXPECT_TRUE(lh_memory_view_slice_needs_ropen(&empty_view, p(buf), p(buf + 2)));
@@ -565,7 +566,7 @@ TEST(memory_view_slice_make_between, rejects_out_of_bounds_ptrs_death)
     const unsigned char buf[4] = {10, 20, 30, 40};
     lh_memory_view_slice_t s = slice(p(buf), p(buf + 3));
 
-    LH_EXPECT_DEATH((void)lh_memory_view_slice_between(&s, p(buf + 1), p(buf + 5)));
+    LH_EXPECT_DEATH((void)lh_test::out(lh_memory_view_slice_between, &s, p(buf + 1), p(buf + 5)));
 }
 
 TEST(memory_view_slice_get_ropen_size, rejects_null_end_death)

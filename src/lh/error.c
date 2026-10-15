@@ -1,4 +1,5 @@
 #include <lh/error.h>
+#include <lh/assert/runtime.h>
 #include <lh/error/initializer.h>
 #include <lh/str/view/initializer.h>
 #include <lh/util/addr.h>
@@ -32,27 +33,34 @@ lh_error_get_code(const lh_error_t *self)
     return self->code;
 }
 
-lh_str_view_t
-lh_error_get_desc(const lh_error_t *self)
+lh_void
+lh_error_get_desc(const lh_error_t *self, lh_str_view_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    return self->desc;
+    *out = self->desc;
+    return;
 }
 
-lh_str_view_t
-lh_error_get_desc_or(const lh_error_t *self, lh_str_view_t fallback)
+lh_void
+lh_error_get_desc_or(const lh_error_t *self, lh_str_view_t fallback, lh_str_view_t *out)
 {
+    lh_assert_runtime_ref(out);
     if (lh_error_has_desc(self))
     {
-        return lh_error_get_desc(self);
+        lh_error_get_desc(self, out);
+        return;
     }
-    return fallback;
+    *out = fallback;
+    return;
 }
 
 lh_void
 lh_error_assign(lh_error_t *self, const lh_error_t *other)
 {
-    lh_error_set(self, lh_error_get_code(other), lh_error_get_desc(other));
+    lh_str_view_t view;
+    lh_error_get_desc(other, lh_addr_of(view));
+    lh_error_set(self, lh_error_get_code(other), view);
 }
 
 lh_void
@@ -115,7 +123,8 @@ lh_error_is_failure(const lh_error_t *self)
 lh_bool_t
 lh_error_has_desc(const lh_error_t *self)
 {
-    const lh_str_view_t desc = lh_error_get_desc(self);
+    lh_str_view_t desc;
+    lh_error_get_desc(self, lh_addr_of(desc));
     return !lh_str_view_is_empty(&desc);
 }
 
@@ -128,8 +137,10 @@ lh_error_is_empty(const lh_error_t *self)
 lh_bool_t
 lh_error_equals(const lh_error_t *self, const lh_error_t *other)
 {
-    const lh_str_view_t a = lh_error_get_desc(self);
-    const lh_str_view_t b = lh_error_get_desc(other);
+    lh_str_view_t a;
+    lh_error_get_desc(self, lh_addr_of(a));
+    lh_str_view_t b;
+    lh_error_get_desc(other, lh_addr_of(b));
 
     return lh_error_get_code(self) == lh_error_get_code(other) &&
            lh_memory_view_get_begin(&a) == lh_memory_view_get_begin(&b) &&

@@ -139,8 +139,8 @@ lh_ui_text_get_width(const lh_ui_font_t *font, const lh_char_t *text);
  * padding around the text and drew every caption a few pixels low. The width is
  * still the pen's, because a space takes room whether or not it is inked.
  */
-lh_ui_size_t
-lh_ui_text_get_size(const lh_ui_font_t *font, const lh_char_t *text);
+lh_void
+lh_ui_text_get_size(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_size_t *out);
 
 /**
  * @brief How far below the top of a line box the ink of @p text starts.
@@ -160,30 +160,30 @@ lh_ui_text_get_ink_top(const lh_ui_font_t *font, const lh_char_t *text);
  * glyph to the bottom of the last. A line with no ink at all (a space, an empty
  * line) is a rect of no height.
  */
-lh_ui_rect_t
-lh_ui_text_get_line_ink_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_point_t origin);
+lh_void
+lh_ui_text_get_line_ink_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_point_t origin, lh_ui_rect_t *out);
 
 /**
  * @brief The rect the ink of @p text covers when its first line starts at
  *        @p origin.
  */
-lh_ui_rect_t
-lh_ui_text_get_ink_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin);
+lh_void
+lh_ui_text_get_ink_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin, lh_ui_rect_t *out);
 
 /**
  * @brief The rect @p text covers when it starts at @p origin: its ink, which is
  *        what ::lh_ui_text_draw draws into.
  */
-lh_ui_rect_t
-lh_ui_text_get_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin);
+lh_void
+lh_ui_text_get_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin, lh_ui_rect_t *out);
 
 /**
  * @brief The line box the line starting at @p line covers at @p origin: as wide
  *        as its advances and as tall as ::lh_ui_font_get_line_height, which is
  *        what the next line is placed a line height below.
  */
-lh_ui_rect_t
-lh_ui_text_get_line_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_point_t origin);
+lh_void
+lh_ui_text_get_line_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_point_t origin, lh_ui_rect_t *out);
 
 /* ── Drawing ─────────────────────────────────────────────────────────────── */
 
@@ -263,8 +263,8 @@ lh_ui_text_draw_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_
 /**
  * @brief ::lh_ui_text_get_size of @p text broken into lines @p width wide.
  */
-lh_ui_size_t
-lh_ui_text_get_size_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width);
+lh_void
+lh_ui_text_get_size_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width, lh_ui_size_t *out);
 
 /**
  * @brief ::lh_ui_text_get_ink_top of @p text broken into lines @p width wide.
@@ -301,9 +301,10 @@ lh_ui_text_draw_wrapped_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, c
  * @brief ::lh_ui_text_get_ink_rect of @p text broken into lines @p width wide, each
  *        placed by @p align inside the widest.
  */
-lh_ui_rect_t
+lh_void
 lh_ui_text_get_ink_rect_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin,
-                                lh_ui_scalar_t width, lh_ui_text_align_h_t align);
+                                lh_ui_scalar_t width, lh_ui_text_align_h_t align,
+                                lh_ui_rect_t *out);
 
 /**
  * @brief ::lh_ui_text_draw of @p text broken into lines @p width wide, each placed

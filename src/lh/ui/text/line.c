@@ -198,16 +198,18 @@ lh_ui_text_line_is_inked(const lh_ui_text_line_t *self)
     return self->inked;
 }
 
-lh_ui_rect_t
-lh_ui_text_line_get_ink_rect(const lh_ui_text_line_t *self, lh_ui_point_t origin)
+lh_void
+lh_ui_text_line_get_ink_rect(const lh_ui_text_line_t *self, lh_ui_point_t origin, lh_ui_rect_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_ui_rect_t rect;
 
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_point_get_x(lh_addr_of(origin)),
                     lh_ui_point_get_y(lh_addr_of(origin)) + lh_ui_text_line_get_ink_top(self),
                     lh_ui_text_line_get_width(self),
                     lh_ui_text_line_get_ink_bottom(self) - lh_ui_text_line_get_ink_top(self));
-    return rect;
+    *out = rect;
+    return;
 }
 
 lh_ui_scalar_t

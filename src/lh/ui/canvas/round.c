@@ -26,14 +26,16 @@ lh_ui_canvas_round_top(const lh_ui_rect_t *rect)
 lh_s32_t
 lh_ui_canvas_round_right(const lh_ui_rect_t *rect)
 {
-    const lh_ui_point_t corner = lh_ui_rect_far(rect);
+    lh_ui_point_t corner;
+    lh_ui_rect_far(rect, lh_addr_of(corner));
     return lh_ui_scalar_ceil_s32(lh_ui_point_get_x(lh_addr_of(corner)));
 }
 
 lh_s32_t
 lh_ui_canvas_round_bottom(const lh_ui_rect_t *rect)
 {
-    const lh_ui_point_t corner = lh_ui_rect_far(rect);
+    lh_ui_point_t corner;
+    lh_ui_rect_far(rect, lh_addr_of(corner));
     return lh_ui_scalar_ceil_s32(lh_ui_point_get_y(lh_addr_of(corner)));
 }
 
@@ -105,7 +107,7 @@ lh_ui_canvas_fill_colors(struct lh_ui_canvas *self, lh_s32_t x, lh_s32_t y, lh_s
 
     lh_return_if(w <= 0 || h <= 0 || lh_null_eq(self->backend));
     lh_ui_rect_init(lh_addr_of(box), x, y, w, h);
-    cut = lh_ui_canvas_state_cut(lh_addr_of(self->state), lh_addr_of(box));
+    lh_ui_canvas_state_cut(lh_addr_of(self->state), lh_addr_of(box), lh_addr_of(cut));
     lh_return_if(lh_ui_rect_is_empty(lh_addr_of(cut)));
     /* The box is drawn whole and cut by whoever clips, as a mask is
        (::lh_ui_canvas_can_fill_mask). */
@@ -140,7 +142,8 @@ lh_ui_canvas_fill_coverage_pixel(struct lh_ui_canvas *self, const lh_ui_rect_t *
                                  lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color)
 {
     const lh_byte_t cover = lh_ui_radius_coverage(rect, radius, x, y);
-    const lh_ui_color_t edge = lh_ui_color_with_coverage(color, cover);
+    lh_ui_color_t edge;
+    lh_ui_color_with_coverage(color, cover, lh_addr_of(edge));
     lh_return_if(cover == 0U);
     lh_ui_canvas_fill_pixels(self, x, y, 1, 1, lh_addr_of(edge));
 }

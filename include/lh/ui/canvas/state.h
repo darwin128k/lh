@@ -54,8 +54,8 @@ lh_ui_canvas_state_has_same_clip(const lh_ui_canvas_state_t *a, const lh_ui_canv
 /**
  * @brief @p rect moved by the offset of @p self: target space.
  */
-lh_ui_rect_t
-lh_ui_canvas_state_to_target(const lh_ui_canvas_state_t *self, const lh_ui_rect_t *rect);
+lh_void
+lh_ui_canvas_state_to_target(const lh_ui_canvas_state_t *self, const lh_ui_rect_t *rect, lh_ui_rect_t *out);
 
 /**
  * @brief Add @p delta to the offset of @p self.
@@ -82,8 +82,8 @@ lh_ui_canvas_state_clip_to(lh_ui_canvas_state_t *self, const lh_ui_rect_t *targe
 /**
  * @brief @p target cut to the clip of @p self (unchanged when nothing is cut).
  */
-lh_ui_rect_t
-lh_ui_canvas_state_cut(const lh_ui_canvas_state_t *self, const lh_ui_rect_t *target);
+lh_void
+lh_ui_canvas_state_cut(const lh_ui_canvas_state_t *self, const lh_ui_rect_t *target, lh_ui_rect_t *out);
 
 /**
  * @brief True when @p target lies wholly inside the clip (or nothing is cut).

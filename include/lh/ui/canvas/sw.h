@@ -80,8 +80,8 @@ lh_ui_canvas_sw_get_pixmap(const lh_ui_canvas_sw_t *self);
 /**
  * @brief The rect every write is cut to: pixmap bounds ∩ clip rect.
  */
-lh_ui_rect_t
-lh_ui_canvas_sw_get_limit(const lh_ui_canvas_sw_t *self);
+lh_void
+lh_ui_canvas_sw_get_limit(const lh_ui_canvas_sw_t *self, lh_ui_rect_t *out);
 
 /**
  * @brief True when the clip of @p self has rounded cuts.

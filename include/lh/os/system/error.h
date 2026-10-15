@@ -71,14 +71,14 @@ lh_os_system_error_get_code(const lh_os_system_error_t *self);
 /**
  * @brief Return the description stored in @p self.
  */
-lh_os_error_desc_t
-lh_os_system_error_get_desc(const lh_os_system_error_t *self);
+lh_void
+lh_os_system_error_get_desc(const lh_os_system_error_t *self, lh_os_error_desc_t *out);
 
 /**
  * @brief Return the description stored in @p self, or @p fallback when empty.
  */
-lh_os_error_desc_t
-lh_os_system_error_get_desc_or(const lh_os_system_error_t *self, lh_os_error_desc_t fallback);
+lh_void
+lh_os_system_error_get_desc_or(const lh_os_system_error_t *self, lh_os_error_desc_t fallback, lh_os_error_desc_t *out);
 
 /**
  * @brief Test whether @p self stores @p code.

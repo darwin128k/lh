@@ -21,6 +21,7 @@
 #include <lh/ui/scalar.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+#include <lh/test/out.h>
 
 namespace lh_test
 {
@@ -98,7 +99,7 @@ draw_log_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask
     draw_log *log = lh_ptr_rcast(draw_log, context);
     if (log->mask_count < draw_log::capacity)
     {
-        log->masks[log->mask_count] = lh_ui_mask_get_rect(mask, *origin);
+        log->masks[log->mask_count] = lh_test::out(lh_ui_mask_get_rect, mask, *origin);
         log->mask_colors[log->mask_count] = *color;
     }
     ++log->mask_count;

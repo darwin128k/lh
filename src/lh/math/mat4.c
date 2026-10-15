@@ -1,32 +1,38 @@
 #include <lh/assert/runtime.h>
 #include <lh/math/mat4.h>
 
-lh_math_mat4_t
-lh_math_mat4_from_columns(lh_math_vec4_t c0, lh_math_vec4_t c1, lh_math_vec4_t c2, lh_math_vec4_t c3)
+lh_void
+lh_math_mat4_from_columns(lh_math_vec4_t c0, lh_math_vec4_t c1, lh_math_vec4_t c2, lh_math_vec4_t c3, lh_math_mat4_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_math_mat4_t m;
     lh_math_mat4_set_column(lh_addr_of(m), 0, c0);
     lh_math_mat4_set_column(lh_addr_of(m), 1, c1);
     lh_math_mat4_set_column(lh_addr_of(m), 2, c2);
     lh_math_mat4_set_column(lh_addr_of(m), 3, c3);
-    return m;
+    *out = m;
+    return;
 }
 
-lh_math_mat4_t
-lh_math_mat4_identity(void)
+lh_void
+lh_math_mat4_identity(lh_math_mat4_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_math_vec3_t result;
     lh_math_vec3_init(lh_addr_of(result), 1.0f, 1.0f, 1.0f);
-    return lh_math_mat4_from_scale(result);
+    lh_math_mat4_from_scale(result, out);
+    return;
 }
 
 /* ── Accessors ───────────────────────────────────────────────────────────── */
 
-lh_math_vec4_t
-lh_math_mat4_get_column(const lh_math_mat4_t *self, unsigned index)
+lh_void
+lh_math_mat4_get_column(const lh_math_mat4_t *self, unsigned index, lh_math_vec4_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    return self->columns[index];
+    *out = self->columns[index];
+    return;
 }
 
 lh_void
@@ -36,21 +42,25 @@ lh_math_mat4_set_column(lh_math_mat4_t *self, unsigned index, lh_math_vec4_t col
     self->columns[index] = column;
 }
 
-lh_math_mat4_t
-lh_math_mat4_from_translation(lh_math_vec3_t offset)
+lh_void
+lh_math_mat4_from_translation(lh_math_vec3_t offset, lh_math_mat4_t *out)
 {
-    lh_math_mat4_t m = lh_math_mat4_identity();
+    lh_assert_runtime_ref(out);
+    lh_math_mat4_t m;
+    lh_math_mat4_identity(lh_addr_of(m));
     lh_math_vec4_t vec4;
     lh_math_vec4_init(lh_addr_of(vec4), lh_math_vec3_get_x(lh_addr_of(offset)),
                       lh_math_vec3_get_y(lh_addr_of(offset)),
                       lh_math_vec3_get_z(lh_addr_of(offset)), 1.0f);
     lh_math_mat4_set_column(lh_addr_of(m), 3, vec4);
-    return m;
+    *out = m;
+    return;
 }
 
-lh_math_mat4_t
-lh_math_mat4_from_scale(lh_math_vec3_t factors)
+lh_void
+lh_math_mat4_from_scale(lh_math_vec3_t factors, lh_math_mat4_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_math_vec4_t column0;
     lh_math_vec4_init(lh_addr_of(column0), lh_math_vec3_get_x(lh_addr_of(factors)), 0.0f, 0.0f,
                       0.0f);
@@ -62,12 +72,14 @@ lh_math_mat4_from_scale(lh_math_vec3_t factors)
                       0.0f);
     lh_math_vec4_t column3;
     lh_math_vec4_init(lh_addr_of(column3), 0.0f, 0.0f, 0.0f, 1.0f);
-    return lh_math_mat4_from_columns(column0, column1, column2, column3);
+    lh_math_mat4_from_columns(column0, column1, column2, column3, out);
+    return;
 }
 
-lh_math_mat4_t
-lh_math_mat4_from_quat(lh_math_quat_t q)
+lh_void
+lh_math_mat4_from_quat(lh_math_quat_t q, lh_math_mat4_t *out)
 {
+    lh_assert_runtime_ref(out);
     const lh_float_t xx = lh_math_quat_get_x(lh_addr_of(q)) * lh_math_quat_get_x(lh_addr_of(q));
     const lh_float_t yy = lh_math_quat_get_y(lh_addr_of(q)) * lh_math_quat_get_y(lh_addr_of(q));
     const lh_float_t zz = lh_math_quat_get_z(lh_addr_of(q)) * lh_math_quat_get_z(lh_addr_of(q));
@@ -90,53 +102,97 @@ lh_math_mat4_from_quat(lh_math_quat_t q)
     lh_math_vec4_t column3;
     lh_math_vec4_init(lh_addr_of(column3), 0.0f, 0.0f, 0.0f, 1.0f);
     /* Column c is where the rotation takes axis c. */
-    return lh_math_mat4_from_columns(column0, column1, column2, column3);
+    lh_math_mat4_from_columns(column0, column1, column2, column3, out);
+    return;
 }
 
-lh_math_vec4_t
-lh_math_mat4_mul_vec4(lh_math_mat4_t m, lh_math_vec4_t v)
+lh_void
+lh_math_mat4_mul_vec4(lh_math_mat4_t m, lh_math_vec4_t v, lh_math_vec4_t *out)
 {
+    lh_assert_runtime_ref(out);
+    lh_math_vec4_t column0;
+    lh_math_vec4_t column1;
+    lh_math_vec4_t column2;
+    lh_math_vec4_t column3;
+    lh_math_vec4_t scaled0;
+    lh_math_vec4_t scaled1;
+    lh_math_vec4_t scaled2;
+    lh_math_vec4_t scaled3;
+    lh_math_vec4_t xy;
+    lh_math_vec4_t zw;
+
     /* A sum of the columns, weighted by v's components. */
-    const lh_math_vec4_t xy = lh_math_vec4_add(
-        lh_math_vec4_scale(lh_math_mat4_get_column(lh_addr_of(m), 0), lh_math_vec4_get_x(lh_addr_of(v))),
-        lh_math_vec4_scale(lh_math_mat4_get_column(lh_addr_of(m), 1), lh_math_vec4_get_y(lh_addr_of(v))));
-    const lh_math_vec4_t zw = lh_math_vec4_add(
-        lh_math_vec4_scale(lh_math_mat4_get_column(lh_addr_of(m), 2), lh_math_vec4_get_z(lh_addr_of(v))),
-        lh_math_vec4_scale(lh_math_mat4_get_column(lh_addr_of(m), 3), lh_math_vec4_get_w(lh_addr_of(v))));
-    return lh_math_vec4_add(xy, zw);
+    lh_math_mat4_get_column(lh_addr_of(m), 0, lh_addr_of(column0));
+    lh_math_mat4_get_column(lh_addr_of(m), 1, lh_addr_of(column1));
+    lh_math_mat4_get_column(lh_addr_of(m), 2, lh_addr_of(column2));
+    lh_math_mat4_get_column(lh_addr_of(m), 3, lh_addr_of(column3));
+    lh_math_vec4_scale(column0, lh_math_vec4_get_x(lh_addr_of(v)), lh_addr_of(scaled0));
+    lh_math_vec4_scale(column1, lh_math_vec4_get_y(lh_addr_of(v)), lh_addr_of(scaled1));
+    lh_math_vec4_scale(column2, lh_math_vec4_get_z(lh_addr_of(v)), lh_addr_of(scaled2));
+    lh_math_vec4_scale(column3, lh_math_vec4_get_w(lh_addr_of(v)), lh_addr_of(scaled3));
+    lh_math_vec4_add(scaled0, scaled1, lh_addr_of(xy));
+    lh_math_vec4_add(scaled2, scaled3, lh_addr_of(zw));
+    lh_math_vec4_add(xy, zw, out);
 }
 
-lh_math_mat4_t
-lh_math_mat4_mul(lh_math_mat4_t a, lh_math_mat4_t b)
+lh_void
+lh_math_mat4_mul(lh_math_mat4_t a, lh_math_mat4_t b, lh_math_mat4_t *out)
 {
+    lh_assert_runtime_ref(out);
+    lh_math_vec4_t column;
+    lh_math_vec4_t product0;
+    lh_math_vec4_t product1;
+    lh_math_vec4_t product2;
+    lh_math_vec4_t product3;
+
     /* Column c of the product is a applied to column c of b. */
-    return lh_math_mat4_from_columns(lh_math_mat4_mul_vec4(a, lh_math_mat4_get_column(lh_addr_of(b), 0)),
-                                     lh_math_mat4_mul_vec4(a, lh_math_mat4_get_column(lh_addr_of(b), 1)),
-                                     lh_math_mat4_mul_vec4(a, lh_math_mat4_get_column(lh_addr_of(b), 2)),
-                                     lh_math_mat4_mul_vec4(a, lh_math_mat4_get_column(lh_addr_of(b), 3)));
+    lh_math_mat4_get_column(lh_addr_of(b), 0, lh_addr_of(column));
+    lh_math_mat4_mul_vec4(a, column, lh_addr_of(product0));
+    lh_math_mat4_get_column(lh_addr_of(b), 1, lh_addr_of(column));
+    lh_math_mat4_mul_vec4(a, column, lh_addr_of(product1));
+    lh_math_mat4_get_column(lh_addr_of(b), 2, lh_addr_of(column));
+    lh_math_mat4_mul_vec4(a, column, lh_addr_of(product2));
+    lh_math_mat4_get_column(lh_addr_of(b), 3, lh_addr_of(column));
+    lh_math_mat4_mul_vec4(a, column, lh_addr_of(product3));
+    lh_math_mat4_from_columns(product0, product1, product2, product3, out);
 }
 
-lh_math_vec3_t
-lh_math_mat4_transform_point(lh_math_mat4_t m, lh_math_vec3_t p)
+lh_void
+lh_math_mat4_transform_point(lh_math_mat4_t m, lh_math_vec3_t p, lh_math_vec3_t *out)
 {
-    const lh_math_vec4_t r = lh_math_mat4_mul_vec4(m, lh_math_vec3_to_vec4(p, 1.0f));
-    return lh_math_vec4_to_vec3(r);
+    lh_assert_runtime_ref(out);
+    lh_math_vec4_t p4;
+    lh_math_vec4_t r;
+
+    lh_math_vec3_to_vec4(p, 1.0f, lh_addr_of(p4));
+    lh_math_mat4_mul_vec4(m, p4, lh_addr_of(r));
+    lh_math_vec4_to_vec3(r, out);
 }
 
-lh_math_vec3_t
-lh_math_mat4_transform_dir(lh_math_mat4_t m, lh_math_vec3_t d)
+lh_void
+lh_math_mat4_transform_dir(lh_math_mat4_t m, lh_math_vec3_t d, lh_math_vec3_t *out)
 {
-    const lh_math_vec4_t r = lh_math_mat4_mul_vec4(m, lh_math_vec3_to_vec4(d, 0.0f));
-    return lh_math_vec4_to_vec3(r);
+    lh_assert_runtime_ref(out);
+    lh_math_vec4_t d4;
+    lh_math_vec4_t r;
+
+    lh_math_vec3_to_vec4(d, 0.0f, lh_addr_of(d4));
+    lh_math_mat4_mul_vec4(m, d4, lh_addr_of(r));
+    lh_math_vec4_to_vec3(r, out);
 }
 
-lh_math_mat4_t
-lh_math_mat4_transpose(lh_math_mat4_t m)
+lh_void
+lh_math_mat4_transpose(lh_math_mat4_t m, lh_math_mat4_t *out)
 {
-    const lh_math_vec4_t c0 = lh_math_mat4_get_column(lh_addr_of(m), 0);
-    const lh_math_vec4_t c1 = lh_math_mat4_get_column(lh_addr_of(m), 1);
-    const lh_math_vec4_t c2 = lh_math_mat4_get_column(lh_addr_of(m), 2);
-    const lh_math_vec4_t c3 = lh_math_mat4_get_column(lh_addr_of(m), 3);
+    lh_assert_runtime_ref(out);
+    lh_math_vec4_t c0;
+    lh_math_mat4_get_column(lh_addr_of(m), 0, lh_addr_of(c0));
+    lh_math_vec4_t c1;
+    lh_math_mat4_get_column(lh_addr_of(m), 1, lh_addr_of(c1));
+    lh_math_vec4_t c2;
+    lh_math_mat4_get_column(lh_addr_of(m), 2, lh_addr_of(c2));
+    lh_math_vec4_t c3;
+    lh_math_mat4_get_column(lh_addr_of(m), 3, lh_addr_of(c3));
     lh_math_vec4_t column0;
     lh_math_vec4_init(lh_addr_of(column0), lh_math_vec4_get_x(lh_addr_of(c0)),
                       lh_math_vec4_get_x(lh_addr_of(c1)), lh_math_vec4_get_x(lh_addr_of(c2)),
@@ -153,7 +209,8 @@ lh_math_mat4_transpose(lh_math_mat4_t m)
     lh_math_vec4_init(lh_addr_of(column3), lh_math_vec4_get_w(lh_addr_of(c0)),
                       lh_math_vec4_get_w(lh_addr_of(c1)), lh_math_vec4_get_w(lh_addr_of(c2)),
                       lh_math_vec4_get_w(lh_addr_of(c3)));
-    return lh_math_mat4_from_columns(column0, column1, column2, column3);
+    lh_math_mat4_from_columns(column0, column1, column2, column3, out);
+    return;
 }
 
 lh_bool_t
@@ -167,7 +224,8 @@ lh_math_mat4_inverse(lh_math_mat4_t m, lh_math_mat4_t *out)
     lh_float_t inv[16];
     for (unsigned c = 0; c < 4; ++c)
     {
-        const lh_math_vec4_t col = lh_math_mat4_get_column(lh_addr_of(m), c);
+        lh_math_vec4_t col;
+        lh_math_mat4_get_column(lh_addr_of(m), c, lh_addr_of(col));
         a[c * 4 + 0] = lh_math_vec4_get_x(lh_addr_of(col));
         a[c * 4 + 1] = lh_math_vec4_get_y(lh_addr_of(col));
         a[c * 4 + 2] = lh_math_vec4_get_z(lh_addr_of(col));
@@ -229,7 +287,11 @@ lh_math_mat4_near(lh_math_mat4_t a, lh_math_mat4_t b, lh_float_t eps)
 {
     for (unsigned c = 0; c < 4; ++c)
     {
-        if (!lh_math_vec4_near(lh_math_mat4_get_column(lh_addr_of(a), c), lh_math_mat4_get_column(lh_addr_of(b), c), eps))
+        lh_math_vec4_t vec4;
+        lh_math_mat4_get_column(lh_addr_of(b), c, lh_addr_of(vec4));
+        lh_math_vec4_t vec41;
+        lh_math_mat4_get_column(lh_addr_of(a), c, lh_addr_of(vec41));
+        if (!lh_math_vec4_near(vec41, vec4, eps))
         {
             return lh_bool_false;
         }

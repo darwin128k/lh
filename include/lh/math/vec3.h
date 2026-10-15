@@ -100,8 +100,8 @@ lh_math_vec3_set_z(lh_math_vec3_t *self, lh_math_fscalar_t z);
  * @param z Depth to add.
  * @return `(v.x, v.y, z)`.
  */
-lh_math_vec3_t
-lh_math_vec2_to_vec3(lh_math_vec2_t v, lh_math_fscalar_t z);
+lh_void
+lh_math_vec2_to_vec3(lh_math_vec2_t v, lh_math_fscalar_t z, lh_math_vec3_t *out);
 
 /**
  * @brief Widen @p v to the plane `z = 0`.
@@ -112,8 +112,8 @@ lh_math_vec2_to_vec3(lh_math_vec2_t v, lh_math_fscalar_t z);
  * @param v Vector to widen.
  * @return `(v.x, v.y, 0)`.
  */
-lh_math_vec3_t
-lh_math_vec2_to_vec3_z0(lh_math_vec2_t v);
+lh_void
+lh_math_vec2_to_vec3_z0(lh_math_vec2_t v, lh_math_vec3_t *out);
 
 /**
  * @brief Narrow @p v to the plane, dropping `z`.
@@ -121,32 +121,32 @@ lh_math_vec2_to_vec3_z0(lh_math_vec2_t v);
  * @param v Vector to narrow.
  * @return `(v.x, v.y)`.
  */
-lh_math_vec2_t
-lh_math_vec3_to_vec2(lh_math_vec3_t v);
+lh_void
+lh_math_vec3_to_vec2(lh_math_vec3_t v, lh_math_vec2_t *out);
 
 /**
  * @brief Component-wise sum @p a + @p b.
  */
-lh_math_vec3_t
-lh_math_vec3_add(lh_math_vec3_t a, lh_math_vec3_t b);
+lh_void
+lh_math_vec3_add(lh_math_vec3_t a, lh_math_vec3_t b, lh_math_vec3_t *out);
 
 /**
  * @brief Component-wise difference @p a - @p b.
  */
-lh_math_vec3_t
-lh_math_vec3_sub(lh_math_vec3_t a, lh_math_vec3_t b);
+lh_void
+lh_math_vec3_sub(lh_math_vec3_t a, lh_math_vec3_t b, lh_math_vec3_t *out);
 
 /**
  * @brief @p v with every component multiplied by @p s.
  */
-lh_math_vec3_t
-lh_math_vec3_scale(lh_math_vec3_t v, lh_math_fscalar_t s);
+lh_void
+lh_math_vec3_scale(lh_math_vec3_t v, lh_math_fscalar_t s, lh_math_vec3_t *out);
 
 /**
  * @brief @p v with every component negated.
  */
-lh_math_vec3_t
-lh_math_vec3_neg(lh_math_vec3_t v);
+lh_void
+lh_math_vec3_neg(lh_math_vec3_t v, lh_math_vec3_t *out);
 
 /**
  * @brief Dot product: the sum of the component products.
@@ -179,8 +179,8 @@ lh_math_vec3_length(lh_math_vec3_t v);
  * view reads the components in place without copying them; it is valid while
  * @p v is. ::lh_math_vec3_dot and the lengths are measured through it.
  */
-lh_math_view_t
-lh_math_vec3_view_of(const lh_math_vec3_t *v);
+lh_void
+lh_math_vec3_view_of(const lh_math_vec3_t *v, lh_math_view_t *out);
 
 /**
  * @brief @p v scaled to length 1, same direction.
@@ -188,16 +188,16 @@ lh_math_vec3_view_of(const lh_math_vec3_t *v);
  * A zero vector has no direction and is returned unchanged (zero), not as
  * NaNs.
  */
-lh_math_vec3_t
-lh_math_vec3_normalize(lh_math_vec3_t v);
+lh_void
+lh_math_vec3_normalize(lh_math_vec3_t v, lh_math_vec3_t *out);
 
 /**
  * @brief Linear interpolation: @p a at @p t = 0, @p b at @p t = 1.
  *
  * @p t is not clamped: values outside `[0, 1]` extrapolate along the line.
  */
-lh_math_vec3_t
-lh_math_vec3_lerp(lh_math_vec3_t a, lh_math_vec3_t b, lh_math_fscalar_t t);
+lh_void
+lh_math_vec3_lerp(lh_math_vec3_t a, lh_math_vec3_t b, lh_math_fscalar_t t, lh_math_vec3_t *out);
 
 /**
  * @brief Whether every component of @p a and @p b differs by at most @p eps.
@@ -222,8 +222,8 @@ lh_math_vec3_equals(lh_math_vec3_t self, lh_math_vec3_t other);
  * a right-handed coordinate system (and the left-hand rule in a left-handed
  * one). Anticommutative: `cross(b, a) == -cross(a, b)`.
  */
-lh_math_vec3_t
-lh_math_vec3_cross(lh_math_vec3_t a, lh_math_vec3_t b);
+lh_void
+lh_math_vec3_cross(lh_math_vec3_t a, lh_math_vec3_t b, lh_math_vec3_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

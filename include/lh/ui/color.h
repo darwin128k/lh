@@ -114,15 +114,15 @@ lh_ui_color_equals(const lh_ui_color_t *self, const lh_ui_color_t *other);
  * translucent: the result alpha is `a + dst_a * (1 - a)` and each channel is
  * divided back by it. Two fully transparent inputs give `0, 0, 0, 0`.
  */
-lh_ui_color_t
-lh_ui_color_over(const lh_ui_color_t *dst, const lh_ui_color_t *color);
+lh_void
+lh_ui_color_over(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_ui_color_t *out);
 
 /**
  * @brief ::lh_ui_color_over for any @p dst: weights, then each channel divided
  *        back by the result alpha.
  */
-lh_ui_color_t
-lh_ui_color_over_translucent(const lh_ui_color_t *dst, const lh_ui_color_t *color);
+lh_void
+lh_ui_color_over_translucent(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_ui_color_t *out);
 
 /**
  * @brief ::lh_ui_color_over for an opaque @p dst: `(c * a + d * (255 - a)) / 255`
@@ -130,8 +130,8 @@ lh_ui_color_over_translucent(const lh_ui_color_t *dst, const lh_ui_color_t *colo
  *        ::lh_ui_color_over_translucent, with a constant divisor (the common
  *        case: painting over a cleared background).
  */
-lh_ui_color_t
-lh_ui_color_over_opaque(const lh_ui_color_t *dst, const lh_ui_color_t *color);
+lh_void
+lh_ui_color_over_opaque(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_ui_color_t *out);
 
 /**
  * @brief An ARGB8888 word `0xAARRGGBB` from its four channels.
@@ -243,8 +243,8 @@ lh_ui_color_blend_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t src_w, lh_u32_t d
  *        (the alpha is `(src_w + dst_w) / 255`). The weights must not both
  *        be `0`.
  */
-lh_ui_color_t
-lh_ui_color_blend(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_u32_t src_w, lh_u32_t dst_w);
+lh_void
+lh_ui_color_blend(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_u32_t src_w, lh_u32_t dst_w, lh_ui_color_t *out);
 
 /**
  * @brief A summed ::lh_ui_color_over weight (alpha scaled by 255) back to an
@@ -258,8 +258,8 @@ lh_ui_color_weight_to_alpha(lh_u32_t weight);
  *
  * What an anti-aliased edge pixel is painted with.
  */
-lh_ui_color_t
-lh_ui_color_with_coverage(const lh_ui_color_t *color, lh_byte_t coverage);
+lh_void
+lh_ui_color_with_coverage(const lh_ui_color_t *color, lh_byte_t coverage, lh_ui_color_t *out);
 
 /**
  * @brief The byte of @p hex at bit @p shift as a channel.

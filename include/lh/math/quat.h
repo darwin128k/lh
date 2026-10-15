@@ -108,20 +108,20 @@ lh_math_quat_set_w(lh_math_quat_t *self, lh_math_fscalar_t w);
  * For code that treats a quaternion as plain data: a shader uniform, a
  * vertex attribute, a keyframe array of 4-float tuples.
  */
-lh_math_vec4_t
-lh_math_quat_to_vec4(lh_math_quat_t q);
+lh_void
+lh_math_quat_to_vec4(lh_math_quat_t q, lh_math_vec4_t *out);
 
 /**
  * @brief The quaternion with @p v's 4 numbers; see ::lh_math_quat_to_vec4.
  */
-lh_math_quat_t
-lh_math_quat_from_vec4(lh_math_vec4_t v);
+lh_void
+lh_math_quat_from_vec4(lh_math_vec4_t v, lh_math_quat_t *out);
 
 /**
  * @brief No rotation: `(0, 0, 0, 1)`.
  */
-lh_math_quat_t
-lh_math_quat_identity(void);
+lh_void
+lh_math_quat_identity(lh_math_quat_t *out);
 
 /**
  * @brief Rotation about @p axis by @p angle radians.
@@ -129,8 +129,8 @@ lh_math_quat_identity(void);
  * @param axis  Rotation axis; must be unit length (see ::lh_math_vec3_normalize).
  * @param angle Angle in radians.
  */
-lh_math_quat_t
-lh_math_quat_from_axis_angle(lh_math_vec3_t axis, lh_math_fscalar_t angle);
+lh_void
+lh_math_quat_from_axis_angle(lh_math_vec3_t axis, lh_math_fscalar_t angle, lh_math_quat_t *out);
 
 /**
  * @brief Product @p a * @p b: the rotation @p b followed by @p a.
@@ -138,15 +138,15 @@ lh_math_quat_from_axis_angle(lh_math_vec3_t axis, lh_math_fscalar_t angle);
  * Not commutative: `mul(a, b)` and `mul(b, a)` are different rotations in
  * general.
  */
-lh_math_quat_t
-lh_math_quat_mul(lh_math_quat_t a, lh_math_quat_t b);
+lh_void
+lh_math_quat_mul(lh_math_quat_t a, lh_math_quat_t b, lh_math_quat_t *out);
 
 /**
  * @brief Conjugate `(-x, -y, -z, w)`: for a unit quaternion, the inverse
  *        rotation.
  */
-lh_math_quat_t
-lh_math_quat_conjugate(lh_math_quat_t q);
+lh_void
+lh_math_quat_conjugate(lh_math_quat_t q, lh_math_quat_t *out);
 
 /**
  * @brief 4D dot product. For unit quaternions, `|dot|` near 1 means nearly
@@ -162,14 +162,14 @@ lh_math_quat_dot(lh_math_quat_t a, lh_math_quat_t b);
  * normalizing now and then keeps them rotations. A zero quaternion is
  * returned unchanged.
  */
-lh_math_quat_t
-lh_math_quat_normalize(lh_math_quat_t q);
+lh_void
+lh_math_quat_normalize(lh_math_quat_t q, lh_math_quat_t *out);
 
 /**
  * @brief @p v rotated by the unit quaternion @p q.
  */
-lh_math_vec3_t
-lh_math_quat_rotate(lh_math_quat_t q, lh_math_vec3_t v);
+lh_void
+lh_math_quat_rotate(lh_math_quat_t q, lh_math_vec3_t v, lh_math_vec3_t *out);
 
 /**
  * @brief Interpolate between the rotations @p a (at @p t = 0) and @p b
@@ -180,8 +180,8 @@ lh_math_quat_rotate(lh_math_quat_t q, lh_math_vec3_t v);
  * constant (unlike slerp), which is invisible for the small steps between
  * animation frames.
  */
-lh_math_quat_t
-lh_math_quat_nlerp(lh_math_quat_t a, lh_math_quat_t b, lh_math_fscalar_t t);
+lh_void
+lh_math_quat_nlerp(lh_math_quat_t a, lh_math_quat_t b, lh_math_fscalar_t t, lh_math_quat_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

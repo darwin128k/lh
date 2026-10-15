@@ -81,8 +81,8 @@ lh_net_socket_addr_get_family(const lh_net_socket_addr_t *self);
  *             ::lh_net_socket_addr_family_ip4 (checked at runtime).
  * @return The wrapped IPv4 socket address.
  */
-lh_net_ip4_socket_addr_t
-lh_net_socket_addr_get_ip4(const lh_net_socket_addr_t *self);
+lh_void
+lh_net_socket_addr_get_ip4(const lh_net_socket_addr_t *self, lh_net_ip4_socket_addr_t *out);
 
 /**
  * @brief Format @p self as text, dispatching on its family.

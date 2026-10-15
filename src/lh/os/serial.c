@@ -57,9 +57,10 @@ lh_os_serial_write(lh_self_ptr self, const lh_ptr buf, lh_usize_t size)
     return lh_os_system_serial_write(lh_ptr_cast(lh_os_serial_t, self)->handle, buf, size);
 }
 
-lh_io_stream_t
-lh_os_serial_get_stream(lh_os_serial_t *self)
+lh_void
+lh_os_serial_get_stream(lh_os_serial_t *self, lh_io_stream_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_io_reader_t reader;
     lh_io_writer_t writer;
     lh_io_stream_t stream;
@@ -68,5 +69,6 @@ lh_os_serial_get_stream(lh_os_serial_t *self)
     lh_io_reader_init(lh_addr_of(reader), lh_os_serial_read, self);
     lh_io_writer_init(lh_addr_of(writer), lh_os_serial_write, self);
     lh_io_stream_init(lh_addr_of(stream), lh_addr_of(reader), lh_addr_of(writer));
-    return stream;
+    *out = stream;
+    return;
 }

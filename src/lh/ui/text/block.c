@@ -52,7 +52,7 @@ lh_ui_text_block_measure(lh_ui_text_block_t *self, const lh_ui_font_t *font, con
         lh_ui_scalar_t at;
 
         lh_ui_text_line_measure_ink(lh_addr_of(laid), font);
-        line_ink = lh_ui_text_line_get_ink_rect(lh_addr_of(laid), box);
+        lh_ui_text_line_get_ink_rect(lh_addr_of(laid), box, lh_addr_of(line_ink));
         at = lh_ui_text_line_get_ink_top(lh_addr_of(laid));
 
         /* The first ink is asked of each line from the top of its own box: it is
@@ -63,9 +63,9 @@ lh_ui_text_block_measure(lh_ui_text_block_t *self, const lh_ui_font_t *font, con
             inked = lh_bool_true;
         }
         self->width = lh_math_max(self->width, lh_ui_text_line_get_width(lh_addr_of(laid)));
-        self->ink = lh_ui_rect_union(lh_addr_of(self->ink), lh_addr_of(line_ink));
+        lh_ui_rect_union(lh_addr_of(self->ink), lh_addr_of(line_ink), lh_addr_of(self->ink));
         ++self->lines;
-        box = lh_ui_point_offset(lh_addr_of(box), lh_ui_scalar(0), line_height);
+        lh_ui_point_offset(lh_addr_of(box), lh_ui_scalar(0), line_height, lh_addr_of(box));
     }
 }
 
@@ -90,9 +90,10 @@ lh_ui_text_block_get_ink_top(const lh_ui_text_block_t *self)
     return self->ink_top;
 }
 
-lh_ui_size_t
-lh_ui_text_block_get_size(const lh_ui_text_block_t *self, const lh_ui_font_t *font)
+lh_void
+lh_ui_text_block_get_size(const lh_ui_text_block_t *self, const lh_ui_font_t *font, lh_ui_size_t *out)
 {
+    lh_assert_runtime_ref(out);
     /* The cap line down to the baseline, not the line box and not the ink.
        A line box is taller than what is drawn (Roboto 16 px: line 22, ascent 17,
        so its ink starts five rows down) and centring that drew every caption a
@@ -110,7 +111,7 @@ lh_ui_text_block_get_size(const lh_ui_text_block_t *self, const lh_ui_font_t *fo
     lh_ui_size_t size;
 
     lh_ui_point_init(lh_addr_of(origin), lh_ui_scalar(0), lh_ui_scalar(0));
-    ink = lh_ui_text_block_get_ink_rect(self, origin);
+    lh_ui_text_block_get_ink_rect(self, origin, lh_addr_of(ink));
     size = *lh_ui_rect_get_size_as_const(lh_addr_of(ink));
     /* Nothing inked is nothing drawn, and a label with nothing in it collapses
        however tall its font is. */
@@ -120,15 +121,18 @@ lh_ui_text_block_get_size(const lh_ui_text_block_t *self, const lh_ui_font_t *fo
                               : (lh_cast_static(lh_ui_scalar_t, lh_ui_text_block_get_lines(self)) - lh_ui_scalar(1)) *
                                         lh_ui_scalar(lh_ui_font_get_line_height(font)) +
                                     lh_ui_scalar(lh_ui_font_get_cap_height(font)));
-    return size;
+    *out = size;
+    return;
 }
 
-lh_ui_rect_t
-lh_ui_text_block_get_ink_rect(const lh_ui_text_block_t *self, lh_ui_point_t origin)
+lh_void
+lh_ui_text_block_get_ink_rect(const lh_ui_text_block_t *self, lh_ui_point_t origin, lh_ui_rect_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
     /* The union skips empty rects, so moving the hull is the hull of the moved
        lines -- including when nothing is inked and the hull is the last line's box. */
-    return lh_ui_rect_offset(lh_addr_of(self->ink), lh_ui_point_get_x(lh_addr_of(origin)),
-                             lh_ui_point_get_y(lh_addr_of(origin)) - self->ink_top);
+    lh_ui_rect_offset(lh_addr_of(self->ink), lh_ui_point_get_x(lh_addr_of(origin)),
+                             lh_ui_point_get_y(lh_addr_of(origin)) - self->ink_top, out);
+    return;
 }

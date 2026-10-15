@@ -2,6 +2,7 @@
 
 #include <lh/test/alloc_counter.h>
 #include <lh/wstr.h>
+#include <lh/test/out.h>
 
 #include <cwchar>
 
@@ -30,7 +31,7 @@ TEST(wstr_bufferless, readers_and_resets_work_before_first_grow)
     lh_wstr_init(&other);
     lh_wstr_clear(&s);
     lh_wstr_truncate(&s, 0);
-    lh_wstr_view_t view = lh_wstr_as_view(&s);
+    lh_wstr_view_t view = lh_test::out(lh_wstr_as_view, &s);
     EXPECT_TRUE(lh_wstr_view_is_empty(&view));
     lh_wstr_assign(&s, &other);
     lh_wstr_append_str(&s, &other);

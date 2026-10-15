@@ -10,6 +10,7 @@
 #include <lh/ui/text.h>
 #include <lh/ui/text/align.h>
 #include <lh/util/addr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -66,20 +67,20 @@ TEST(ui_text, width_sums_advances_and_takes_the_widest_line)
 
 TEST(ui_text, size_and_rect_are_widest_line_by_lines)
 {
-    const lh_ui_size_t size = lh_ui_text_get_size(tiny_font(), "AB\nA");
+    const lh_ui_size_t size = lh_test::out(lh_ui_text_get_size, tiny_font(), "AB\nA");
 
     EXPECT_EQ(lh_ui_size_get_width(lh_addr_of(size)), lh_ui_scalar(7));
     EXPECT_EQ(lh_ui_size_get_height(lh_addr_of(size)), lh_ui_scalar(4));
-    EXPECT_TRUE(rect_is(lh_ui_text_get_rect(tiny_font(), "AB\nA", point_of(5, 6)), rect_of(5, 6, 7, 4)));
-    EXPECT_TRUE(rect_is(lh_ui_text_get_line_rect(tiny_font(), "B\nAA", point_of(1, 2)), rect_of(1, 2, 4, 2)));
+    EXPECT_TRUE(rect_is(lh_test::out(lh_ui_text_get_rect, tiny_font(), "AB\nA", point_of(5, 6)), rect_of(5, 6, 7, 4)));
+    EXPECT_TRUE(rect_is(lh_test::out(lh_ui_text_get_line_rect, tiny_font(), "B\nAA", point_of(1, 2)), rect_of(1, 2, 4, 2)));
 }
 
 TEST(ui_text, the_ink_is_shorter_than_the_line_and_starts_below_its_top)
 {
     const lh_ui_font_t *font = lh_ui_font_get_default();
     const lh_ui_point_t origin = point_of(0, 0);
-    const lh_ui_size_t size = lh_ui_text_get_size(font, "Hide panel");
-    const lh_ui_rect_t ink = lh_ui_text_get_ink_rect(font, "Hide panel", origin);
+    const lh_ui_size_t size = lh_test::out(lh_ui_text_get_size, font, "Hide panel");
+    const lh_ui_rect_t ink = lh_test::out(lh_ui_text_get_ink_rect, font, "Hide panel", origin);
 
     /* The whole reason the rule exists: Roboto 16 px is a 22 px line whose ink
        starts five rows down, so a size that answered "the line" was centring
@@ -103,10 +104,10 @@ TEST(ui_text, the_size_is_the_cap_line_to_the_baseline_and_not_the_ink)
     const lh_ui_font_t *font = lh_ui_font_get_default();
     const lh_ui_scalar_t cap = lh_ui_scalar(lh_ui_font_get_cap_height(font));
     const lh_ui_point_t origin = point_of(0, 0);
-    const lh_ui_size_t with_tail = lh_ui_text_get_size(font, "Hide panel");
-    const lh_ui_size_t without = lh_ui_text_get_size(font, "Hide");
-    const lh_ui_rect_t tail_ink = lh_ui_text_get_ink_rect(font, "Hide panel", origin);
-    const lh_ui_rect_t ink = lh_ui_text_get_ink_rect(font, "Hide", origin);
+    const lh_ui_size_t with_tail = lh_test::out(lh_ui_text_get_size, font, "Hide panel");
+    const lh_ui_size_t without = lh_test::out(lh_ui_text_get_size, font, "Hide");
+    const lh_ui_rect_t tail_ink = lh_test::out(lh_ui_text_get_ink_rect, font, "Hide panel", origin);
+    const lh_ui_rect_t ink = lh_test::out(lh_ui_text_get_ink_rect, font, "Hide", origin);
 
     EXPECT_GT(cap, lh_ui_scalar(0));
     EXPECT_EQ(lh_ui_size_get_height(lh_addr_of(with_tail)), cap);
@@ -127,9 +128,9 @@ TEST(ui_text, the_size_is_the_cap_line_to_the_baseline_and_not_the_ink)
    it has to collapse like an empty one, or every gap in a layout holds a row. */
 TEST(ui_text, a_text_with_no_ink_in_it_has_no_height)
 {
-    const lh_ui_size_t spaces = lh_ui_text_get_size(tiny_font(), "  ");
-    const lh_ui_size_t empty = lh_ui_text_get_size(tiny_font(), "");
-    const lh_ui_size_t none = lh_ui_text_get_size(tiny_font(), nullptr);
+    const lh_ui_size_t spaces = lh_test::out(lh_ui_text_get_size, tiny_font(), "  ");
+    const lh_ui_size_t empty = lh_test::out(lh_ui_text_get_size, tiny_font(), "");
+    const lh_ui_size_t none = lh_test::out(lh_ui_text_get_size, tiny_font(), nullptr);
 
     EXPECT_EQ(lh_ui_scalar(lh_ui_text_count_lines("")), lh_ui_scalar(1));
     EXPECT_EQ(lh_ui_size_get_height(lh_addr_of(spaces)), lh_ui_scalar(0));
@@ -144,7 +145,7 @@ TEST(ui_text, the_pixels_land_where_the_ink_rect_says)
     lh_ui_color_t color;
     const lh_ui_font_t *font = lh_ui_font_get_default();
     const lh_ui_point_t origin = point_of(3, 4);
-    const lh_ui_rect_t ink = lh_ui_text_get_ink_rect(font, "Hide panel", origin);
+    const lh_ui_rect_t ink = lh_test::out(lh_ui_text_get_ink_rect, font, "Hide panel", origin);
     lh_s32_t top = 0;
     lh_s32_t bottom = 0;
     int i;
@@ -239,7 +240,7 @@ aligned_at(int box_x, int box_y, int box_w, int box_h, int pad, lh_ui_scalar_t t
     lh_ui_rect_init(lh_addr_of(box), box_x, box_y, box_w, box_h);
     lh_ui_insets_init_all(lh_addr_of(padding), pad);
     lh_ui_size_init(lh_addr_of(size), text_w, text_h);
-    return lh_ui_text_align_get_origin(lh_addr_of(box), lh_addr_of(padding), size, horizontal, vertical);
+    return lh_test::out(lh_ui_text_align_get_origin, lh_addr_of(box), lh_addr_of(padding), size, horizontal, vertical);
 }
 
 void
@@ -287,10 +288,10 @@ TEST(ui_text_align, a_null_box_is_the_empty_one_and_a_null_padding_is_none)
     lh_ui_size_init(lh_addr_of(size), 10, 10);
     lh_ui_rect_init(lh_addr_of(box), 7, 9, 30, 20);
 
-    expect_origin(lh_ui_text_align_get_origin(lh_addr_of(box), (const lh_ui_insets_t *)lh_null, size,
+    expect_origin(lh_test::out(lh_ui_text_align_get_origin, lh_addr_of(box), (const lh_ui_insets_t *)lh_null, size,
                                                lh_ui_text_align_h_left, lh_ui_text_align_v_top),
                   7, 9);
-    expect_origin(lh_ui_text_align_get_origin((const lh_ui_rect_t *)lh_null, (const lh_ui_insets_t *)lh_null, size,
+    expect_origin(lh_test::out(lh_ui_text_align_get_origin, (const lh_ui_rect_t *)lh_null, (const lh_ui_insets_t *)lh_null, size,
                                                lh_ui_text_align_h_center, lh_ui_text_align_v_center),
                   0, 0);
 }
@@ -318,8 +319,8 @@ TEST(ui_text, roboto_16_has_the_metrics_the_measured_numbers_come_from)
     int x = 0;
 
     lh_ui_point_init(lh_addr_of(origin), x, 0);
-    size = lh_ui_text_get_size(font, text);
-    ink = lh_ui_text_get_ink_rect(font, text, origin);
+    size = lh_test::out(lh_ui_text_get_size, font, text);
+    ink = lh_test::out(lh_ui_text_get_ink_rect, font, text, origin);
     lh_ui_font_get_glyph(font, 'H', lh_addr_of(cap_mask));
     lh_ui_font_get_glyph(font, 'x', lh_addr_of(x_mask));
 
@@ -456,13 +457,13 @@ TEST(ui_text, a_width_breaks_text_before_the_word_that_would_not_fit)
 {
     const lh_ui_font_t *font = lh_test::tiny_font();
     const lh_ui_scalar_t line = lh_ui_scalar(lh_ui_font_get_line_height(font));
-    const lh_ui_size_t one = lh_ui_text_get_size(font, "AA AA AA");
-    const lh_ui_size_t three = lh_ui_text_get_size_wrapped(font, "AA AA AA", lh_ui_scalar(7));
+    const lh_ui_size_t one = lh_test::out(lh_ui_text_get_size, font, "AA AA AA");
+    const lh_ui_size_t three = lh_test::out(lh_ui_text_get_size_wrapped, font, "AA AA AA", lh_ui_scalar(7));
 
     EXPECT_EQ(lh_ui_size_get_height(&three), lh_ui_size_get_height(&one) + 2 * line);
     EXPECT_EQ(lh_ui_size_get_width(&three), lh_ui_scalar(6)) << "the widest line is one word";
     /* With no width it is the plain text, line breaks and all. */
-    const lh_ui_size_t none = lh_ui_text_get_size_wrapped(font, "AA AA AA", lh_ui_scalar(0));
+    const lh_ui_size_t none = lh_test::out(lh_ui_text_get_size_wrapped, font, "AA AA AA", lh_ui_scalar(0));
     EXPECT_EQ(lh_ui_size_get_height(&none), lh_ui_size_get_height(&one));
     EXPECT_EQ(lh_ui_size_get_width(&none), lh_ui_size_get_width(&one));
 }
@@ -473,9 +474,9 @@ TEST(ui_text, a_word_wider_than_the_width_is_cut_and_a_line_always_takes_a_lette
 {
     const lh_ui_font_t *font = lh_test::tiny_font();
     const lh_ui_scalar_t line = lh_ui_scalar(lh_ui_font_get_line_height(font));
-    const lh_ui_size_t one = lh_ui_text_get_size(font, "AAAA");
-    const lh_ui_size_t two = lh_ui_text_get_size_wrapped(font, "AAAA", lh_ui_scalar(7));
-    const lh_ui_size_t four = lh_ui_text_get_size_wrapped(font, "AAAA", lh_ui_scalar(1));
+    const lh_ui_size_t one = lh_test::out(lh_ui_text_get_size, font, "AAAA");
+    const lh_ui_size_t two = lh_test::out(lh_ui_text_get_size_wrapped, font, "AAAA", lh_ui_scalar(7));
+    const lh_ui_size_t four = lh_test::out(lh_ui_text_get_size_wrapped, font, "AAAA", lh_ui_scalar(1));
 
     EXPECT_EQ(lh_ui_size_get_height(&two), lh_ui_size_get_height(&one) + line);
     EXPECT_EQ(lh_ui_size_get_height(&four), lh_ui_size_get_height(&one) + 3 * line);

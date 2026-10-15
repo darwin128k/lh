@@ -3,6 +3,7 @@
 #include <string>
 
 #include <lh/net/socket/addr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -36,7 +37,7 @@ TEST(net_socket_addr_get_ip4, roundtrips_wrapped_address)
 
 
     lh_net_socket_addr_init_ip4(lh_addr_of(addr), &ip4_addr);
-    lh_net_ip4_socket_addr_t got = lh_net_socket_addr_get_ip4(&addr);
+    lh_net_ip4_socket_addr_t got = lh_test::out(lh_net_socket_addr_get_ip4, &addr);
     EXPECT_TRUE(lh_net_ip4_socket_addr_equals(&got, &ip4_addr));
 }
 

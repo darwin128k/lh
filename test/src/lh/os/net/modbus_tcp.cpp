@@ -8,6 +8,7 @@
 #include <lh/os/net/socket.h>
 #include <lh/os/tick.h>
 #include <lh/util/addr.h>
+#include <lh/test/out.h>
 
 #include <chrono>
 #include <cstring>
@@ -110,7 +111,7 @@ struct connection
             lh_os_net_socket_close(&socket);
             return false;
         }
-        stream = lh_os_net_socket_get_stream(&socket);
+        stream = lh_test::out(lh_os_net_socket_get_stream, &socket);
         return true;
     }
 };

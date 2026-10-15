@@ -91,8 +91,8 @@ lh_ui_insets_is_zero(const lh_ui_insets_t *self);
  * @brief @p rect with each side moved in by @p self; the size never goes
  *        below `0`.
  */
-lh_ui_rect_t
-lh_ui_insets_shrink(const lh_ui_insets_t *self, const lh_ui_rect_t *rect);
+lh_void
+lh_ui_insets_shrink(const lh_ui_insets_t *self, const lh_ui_rect_t *rect, lh_ui_rect_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

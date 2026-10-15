@@ -81,8 +81,8 @@ lh_wstr_list_get_size(const lh_wstr_list_t *self);
  * @fails ::lh_runtime_error_code_out_of_range @p index is not below
  *        ::lh_wstr_list_get_size.
  */
-lh_wstr_view_t
-lh_wstr_list_get(const lh_wstr_list_t *self, lh_uindex_t index);
+lh_void
+lh_wstr_list_get(const lh_wstr_list_t *self, lh_uindex_t index, lh_wstr_view_t *out);
 
 /**
  * @brief Element @p index as a NUL-terminated pointer into the shared

@@ -65,9 +65,10 @@ typedef enum lh_ui_text_align_v
  * @param horizontal Horizontal alignment inside the padded box.
  * @param vertical Vertical alignment inside the padded box.
  */
-lh_ui_point_t
+lh_void
 lh_ui_text_align_get_origin(const lh_ui_rect_t *box, const lh_ui_insets_t *padding, lh_ui_size_t size,
-                            lh_ui_text_align_h_t horizontal, lh_ui_text_align_v_t vertical);
+                            lh_ui_text_align_h_t horizontal, lh_ui_text_align_v_t vertical,
+                            lh_ui_point_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

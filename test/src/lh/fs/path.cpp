@@ -2,6 +2,7 @@
 
 #include <lh/fs/path.h>
 #include <lh/str/view.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -53,7 +54,7 @@ TEST(fs_path_get_segment_count, matches_get_segment)
     lh_fs_path_init(&path);
     lh_fs_path_set(&path, lh_str_view_lit("/x/yy/zzz"), lh_fs_path_style_posix);
     ASSERT_EQ(lh_fs_path_get_segment_count(&path), 3u);
-    const lh_str_view_t last = lh_fs_path_get_segment(&path, 2);
+    const lh_str_view_t last = lh_test::out(lh_fs_path_get_segment, &path, 2);
     EXPECT_EQ(lh_str_view_get_size(&last), 3u);
     lh_fs_path_deinit(&path);
 }

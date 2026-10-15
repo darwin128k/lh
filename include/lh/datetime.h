@@ -119,8 +119,8 @@ lh_datetime_sub(lh_datetime_t *self, const lh_datetime_t *other);
  * @param self Date-time to read (not null).
  * @return Copy of the stored ::lh_date_t.
  */
-lh_date_t
-lh_datetime_get_date(const lh_datetime_t *self);
+lh_void
+lh_datetime_get_date(const lh_datetime_t *self, lh_date_t *out);
 
 /**
  * @brief Return the time of @p self.
@@ -128,8 +128,8 @@ lh_datetime_get_date(const lh_datetime_t *self);
  * @param self Date-time to read (not null).
  * @return Copy of the stored ::lh_time_t.
  */
-lh_time_t
-lh_datetime_get_time(const lh_datetime_t *self);
+lh_void
+lh_datetime_get_time(const lh_datetime_t *self, lh_time_t *out);
 
 /**
  * @brief True if @p self and @p other hold the same date and time.

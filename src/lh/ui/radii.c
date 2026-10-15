@@ -57,9 +57,10 @@ lh_ui_radii_scale(lh_ui_scalar_t radius, lh_ui_scalar_t num, lh_ui_scalar_t den)
     return radius * num / den;
 }
 
-lh_ui_radii_t
-lh_ui_radii_clamp(const lh_ui_radii_t *self, const lh_ui_rect_t *rect)
+lh_void
+lh_ui_radii_clamp(const lh_ui_radii_t *self, const lh_ui_rect_t *rect, lh_ui_radii_t *out)
 {
+    lh_assert_runtime_ref(out);
     const lh_ui_size_t *size;
     lh_ui_scalar_t width;
     lh_ui_scalar_t height;
@@ -68,7 +69,7 @@ lh_ui_radii_clamp(const lh_ui_radii_t *self, const lh_ui_rect_t *rect)
     lh_ui_scalar_t sums[4];
     lh_ui_scalar_t sides[4];
     lh_ui_scalar_t half;
-    lh_ui_radii_t out;
+    lh_ui_radii_t result;
     int i;
 
     lh_assert_runtime_ref(self);
@@ -76,20 +77,20 @@ lh_ui_radii_clamp(const lh_ui_radii_t *self, const lh_ui_rect_t *rect)
     size = lh_ui_rect_get_size_as_const(rect);
     width = lh_ui_size_get_width(size);
     height = lh_ui_size_get_height(size);
-    out = *self;
-    out.top_left = lh_math_max(out.top_left, lh_ui_scalar(0));
-    out.top_right = lh_math_max(out.top_right, lh_ui_scalar(0));
-    out.bottom_right = lh_math_max(out.bottom_right, lh_ui_scalar(0));
-    out.bottom_left = lh_math_max(out.bottom_left, lh_ui_scalar(0));
+    result = *self;
+    result.top_left = lh_math_max(result.top_left, lh_ui_scalar(0));
+    result.top_right = lh_math_max(result.top_right, lh_ui_scalar(0));
+    result.bottom_right = lh_math_max(result.bottom_right, lh_ui_scalar(0));
+    result.bottom_left = lh_math_max(result.bottom_left, lh_ui_scalar(0));
     /* The side that is most over-full decides one factor for all four corners, so a
        rounded tab stays the same shape, smaller, rather than turning into another. */
-    sums[0] = out.top_left + out.top_right;
+    sums[0] = result.top_left + result.top_right;
     sides[0] = width;
-    sums[1] = out.bottom_left + out.bottom_right;
+    sums[1] = result.bottom_left + result.bottom_right;
     sides[1] = width;
-    sums[2] = out.top_left + out.bottom_left;
+    sums[2] = result.top_left + result.bottom_left;
     sides[2] = height;
-    sums[3] = out.top_right + out.bottom_right;
+    sums[3] = result.top_right + result.bottom_right;
     sides[3] = height;
     for (i = 0; i < 4; ++i)
     {
@@ -100,18 +101,19 @@ lh_ui_radii_clamp(const lh_ui_radii_t *self, const lh_ui_rect_t *rect)
             den = sums[i];
         }
     }
-    out.top_left = lh_ui_radii_scale(out.top_left, num, den);
-    out.top_right = lh_ui_radii_scale(out.top_right, num, den);
-    out.bottom_right = lh_ui_radii_scale(out.bottom_right, num, den);
-    out.bottom_left = lh_ui_radii_scale(out.bottom_left, num, den);
+    result.top_left = lh_ui_radii_scale(result.top_left, num, den);
+    result.top_right = lh_ui_radii_scale(result.top_right, num, den);
+    result.bottom_right = lh_ui_radii_scale(result.bottom_right, num, den);
+    result.bottom_left = lh_ui_radii_scale(result.bottom_left, num, den);
     /* And none past half the shorter side, where a corner would reach into the
        quarter of the box that belongs to its neighbour. */
     half = lh_ui_radius_get_max(rect);
-    out.top_left = lh_math_min(out.top_left, half);
-    out.top_right = lh_math_min(out.top_right, half);
-    out.bottom_right = lh_math_min(out.bottom_right, half);
-    out.bottom_left = lh_math_min(out.bottom_left, half);
-    return out;
+    result.top_left = lh_math_min(result.top_left, half);
+    result.top_right = lh_math_min(result.top_right, half);
+    result.bottom_right = lh_math_min(result.bottom_right, half);
+    result.bottom_left = lh_math_min(result.bottom_left, half);
+    *out = result;
+    return;
 }
 
 lh_ui_scalar_t

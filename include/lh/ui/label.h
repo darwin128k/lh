@@ -182,8 +182,8 @@ lh_ui_label_get_text_color(const lh_ui_label_t *self);
  * @brief Where the first line starts: the top-left of the rect of @p self,
  *        moved in by the left and top style padding (::lh_ui_entity_get_padding).
  */
-lh_ui_point_t
-lh_ui_label_get_text_origin(const lh_ui_label_t *self);
+lh_void
+lh_ui_label_get_text_origin(const lh_ui_label_t *self, lh_ui_point_t *out);
 
 /**
  * @brief First ink row of the text of @p self below the top of its first line
@@ -195,8 +195,8 @@ lh_ui_label_get_ink_top(const lh_ui_label_t *self);
 /**
  * @brief The rect the text covers (unscrolled); empty without text or font.
  */
-lh_ui_rect_t
-lh_ui_label_get_text_rect(const lh_ui_label_t *self);
+lh_void
+lh_ui_label_get_text_rect(const lh_ui_label_t *self, lh_ui_rect_t *out);
 
 /**
  * @brief True when there is a canvas, text, a font and a text color.

@@ -2,6 +2,7 @@
 
 #include <lh/str.h>
 #include <lh/test/alloc_counter.h>
+#include <lh/test/out.h>
 
 #include <cstring>
 
@@ -84,7 +85,7 @@ TEST(str_as_view, reflects_current_contents)
     lh_str_init(&s);
     lh_str_append(&s, "hello", 5);
 
-    lh_str_view_t v = lh_str_as_view(&s);
+    lh_str_view_t v = lh_test::out(lh_str_as_view, &s);
 
     ASSERT_EQ(lh_str_view_get_size(&v), 5u);
     EXPECT_TRUE(lh_str_view_equals(&v, &v, lh_bool_false));
@@ -228,7 +229,7 @@ TEST(str_bufferless, every_reader_and_reset_works_before_first_grow)
 
     lh_str_clear(&s);
     lh_str_truncate(&s, 0);
-    lh_str_view_t view = lh_str_as_view(&s);
+    lh_str_view_t view = lh_test::out(lh_str_as_view, &s);
     EXPECT_TRUE(lh_str_view_is_empty(&view));
     lh_str_append_str(&s, &other);
     lh_str_assign(&s, &other);

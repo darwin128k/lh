@@ -1,4 +1,5 @@
 #include <lh/str.h>
+#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/null.h>
@@ -129,7 +130,9 @@ lh_str_append_str(lh_str_t *self, const lh_str_t *other)
         lh_str_append(self, lh_str_get_data(self), n);
         return;
     }
-    lh_str_append_view(self, lh_str_as_view(other));
+    lh_str_view_t view;
+    lh_str_as_view(other, lh_addr_of(view));
+    lh_str_append_view(self, view);
 }
 
 lh_void
@@ -230,17 +233,20 @@ lh_str_truncate(lh_str_t *self, lh_usize_t n)
     lh_str_terminate(self);
 }
 
-lh_str_view_t
-lh_str_as_view(const lh_str_t *self)
+lh_void
+lh_str_as_view(const lh_str_t *self, lh_str_view_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_str_view_t view;
 
     /* A sized view rejects size 0; an empty string is the empty view. */
     if (lh_str_is_empty(self))
     {
         lh_str_view_init_empty(lh_addr_of(view));
-        return view;
+        *out = view;
+        return;
     }
     lh_str_init_by_size(lh_addr_of(view), lh_str_get_data(self), lh_str_get_size(self));
-    return view;
+    *out = view;
+    return;
 }

@@ -19,6 +19,7 @@
 #include <lh/ui/view.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -65,7 +66,7 @@ partial_probe_is_inside(const partial_probe *probe, const lh_ui_rect_t *buffer)
 
     lh_ui_rect_init(lh_addr_of(window), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_size_get_width(lh_addr_of(*size)),
                     lh_ui_size_get_height(lh_addr_of(*size)));
-    part = lh_ui_rect_intersection(lh_addr_of(window), buffer);
+    lh_ui_rect_intersection(lh_addr_of(window), buffer, lh_addr_of(part));
     return lh_ui_rect_equals(lh_addr_of(part), buffer);
 }
 
@@ -78,7 +79,7 @@ partial_probe_place(lh_ui_rect_t *placed, const lh_ui_rect_t *buffer, partial_pr
     {
         probe->escaped = true;
     }
-    *placed = lh_ui_rect_offset(buffer, lh_ui_point_get_x(at), lh_ui_point_get_y(at));
+    lh_ui_rect_offset(buffer, lh_ui_point_get_x(at), lh_ui_point_get_y(at), placed);
 }
 
 void
@@ -194,7 +195,7 @@ point_of(int x, int y)
 int
 scroll_y_of(const lh_ui_container_t &box)
 {
-    const lh_ui_point_t scroll = lh_ui_container_get_scroll(lh_addr_of(box));
+    const lh_ui_point_t scroll = lh_test::out(lh_ui_container_get_scroll, lh_addr_of(box));
     return static_cast<int>(lh_ui_point_get_y(lh_addr_of(scroll)));
 }
 
@@ -342,7 +343,7 @@ TEST(view, wheel_sideways_scrolls_a_wide_container_horizontally)
     lh_ui_entity_set_rect(lh_addr_of(f.content), lh_test::rect_of(0, 0, 300, 400));
     EXPECT_EQ(lh_ui_view_wheel(lh_addr_of(f.view), point_of(50, 50), lh_ui_scalar(50), lh_ui_scalar(0)),
               lh_bool_true);
-    const lh_ui_point_t scroll = lh_ui_container_get_scroll(lh_addr_of(f.box));
+    const lh_ui_point_t scroll = lh_test::out(lh_ui_container_get_scroll, lh_addr_of(f.box));
     EXPECT_EQ(lh_ui_point_get_x(lh_addr_of(scroll)), lh_ui_scalar(50));
     EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(scroll)), lh_ui_scalar(0));
 }
@@ -578,7 +579,7 @@ TEST(view, a_whole_area_the_view_has_no_room_for_is_refused)
     lh_ui_rect_init(lh_addr_of(at), 0, 100, 160, 40);
     EXPECT_TRUE(lh_ui_view_add_whole_area(lh_addr_of(view), lh_addr_of(at)));
     const lh_ui_rect_t last = lh_test::rect_of(0, 96, 160, 24);
-    EXPECT_TRUE(rect_is(lh_ui_view_area_whole(lh_addr_of(view), lh_addr_of(last), lh_addr_of(last)),
+    EXPECT_TRUE(rect_is(lh_test::out(lh_ui_view_area_whole, lh_addr_of(view), lh_addr_of(last), lh_addr_of(last)),
                         lh_test::rect_of(0, 96, 160, 24)));
 }
 
@@ -798,18 +799,18 @@ TEST(view, a_strip_height_is_the_buffer_and_not_the_step)
 
     /* Every strip is the same height, the last pulled up: the backend sizes its
        buffer once instead of once per strip. */
-    strip = lh_ui_view_get_strip(lh_addr_of(view), 0);
+    strip = lh_test::out(lh_ui_view_get_strip, lh_addr_of(view), 0);
     EXPECT_TRUE(rect_is(strip, lh_test::rect_of(0, 0, 160, 32)));
-    strip = lh_ui_view_get_strip(lh_addr_of(view), 1);
+    strip = lh_test::out(lh_ui_view_get_strip, lh_addr_of(view), 1);
     EXPECT_TRUE(rect_is(strip, lh_test::rect_of(0, 32, 160, 32)));
-    strip = lh_ui_view_get_strip(lh_addr_of(view), 2);
+    strip = lh_test::out(lh_ui_view_get_strip, lh_addr_of(view), 2);
     EXPECT_TRUE(rect_is(strip, lh_test::rect_of(0, 64, 160, 32)));
-    strip = lh_ui_view_get_strip(lh_addr_of(view), 3);
+    strip = lh_test::out(lh_ui_view_get_strip, lh_addr_of(view), 3);
     EXPECT_TRUE(rect_is(strip, lh_test::rect_of(0, 88, 160, 32)));
-    strip = lh_ui_view_get_strip(lh_addr_of(view), 4);
+    strip = lh_test::out(lh_ui_view_get_strip, lh_addr_of(view), 4);
     EXPECT_TRUE(lh_ui_rect_is_empty(lh_addr_of(strip)));
     lh_ui_view_set_strip_height(lh_addr_of(view), lh_ui_scalar(0));
-    strip = lh_ui_view_get_strip(lh_addr_of(view), 0);
+    strip = lh_test::out(lh_ui_view_get_strip, lh_addr_of(view), 0);
     EXPECT_TRUE(lh_ui_rect_is_empty(lh_addr_of(strip)));
 }
 

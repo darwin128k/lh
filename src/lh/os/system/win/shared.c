@@ -1,4 +1,5 @@
 #include <lh/os/system/shared.h>
+#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/cast/static.h>
 #include <lh/null.h>
@@ -16,10 +17,12 @@
 /* The longest path Windows accepts, in UTF-16 units, NUL included. */
 #define LH_OS_SYSTEM_WIN_SHARED_PATH_MAX 32768U
 
-lh_str_view_t
-lh_os_system_shared_get_ext(void)
+lh_void
+lh_os_system_shared_get_ext(lh_str_view_t *out)
 {
-    return lh_str_view_lit(".dll");
+    lh_assert_runtime_ref(out);
+    *out = lh_str_view_lit(".dll");
+    return;
 }
 
 lh_os_system_shared_handle_t

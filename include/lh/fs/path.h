@@ -112,8 +112,8 @@ lh_fs_path_get_segment_count(const lh_fs_path_t *self);
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p index is not below ::lh_fs_path_get_segment_count.
  */
-lh_str_view_t
-lh_fs_path_get_segment(const lh_fs_path_t *self, lh_uindex_t index);
+lh_void
+lh_fs_path_get_segment(const lh_fs_path_t *self, lh_uindex_t index, lh_str_view_t *out);
 
 /**
  * @brief True when @p self has neither a root nor any segments.

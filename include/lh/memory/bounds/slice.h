@@ -1199,8 +1199,8 @@ lh_memory_bounds_slice_set_v(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_pt
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source range size.
  */
-lh_memory_bounds_slice_t
-lh_memory_bounds_slice_take_first(lh_ptr begin, lh_ptr end, lh_usize_t n);
+lh_void
+lh_memory_bounds_slice_take_first(lh_ptr begin, lh_ptr end, lh_usize_t n, lh_memory_bounds_slice_t *out);
 
 /**
  * @brief Build a slice containing the last @p n bytes of a valid closed range.
@@ -1218,8 +1218,8 @@ lh_memory_bounds_slice_take_first(lh_ptr begin, lh_ptr end, lh_usize_t n);
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source range size.
  */
-lh_memory_bounds_slice_t
-lh_memory_bounds_slice_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n);
+lh_void
+lh_memory_bounds_slice_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n, lh_memory_bounds_slice_t *out);
 
 /**
  * @brief Build a slice containing the first @p size bytes of @p self.
@@ -1237,8 +1237,8 @@ lh_memory_bounds_slice_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n);
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p size is greater than the source slice size.
  */
-lh_memory_bounds_slice_t
-lh_memory_bounds_slice_from_begin(const lh_memory_bounds_slice_t *self, lh_usize_t size);
+lh_void
+lh_memory_bounds_slice_from_begin(const lh_memory_bounds_slice_t *self, lh_usize_t size, lh_memory_bounds_slice_t *out);
 
 /**
  * @brief Build a slice containing the last @p size bytes of @p self.
@@ -1256,8 +1256,8 @@ lh_memory_bounds_slice_from_begin(const lh_memory_bounds_slice_t *self, lh_usize
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p size is greater than the source slice size.
  */
-lh_memory_bounds_slice_t
-lh_memory_bounds_slice_from_end(const lh_memory_bounds_slice_t *self, lh_usize_t size);
+lh_void
+lh_memory_bounds_slice_from_end(const lh_memory_bounds_slice_t *self, lh_usize_t size, lh_memory_bounds_slice_t *out);
 
 /**
  * @brief Build a sub-slice between @p begin and @p end inside @p self.
@@ -1274,8 +1274,8 @@ lh_memory_bounds_slice_from_end(const lh_memory_bounds_slice_t *self, lh_usize_t
  * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end]</tt> is not a valid slice.
  */
-lh_memory_bounds_slice_t
-lh_memory_bounds_slice_between(const lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr end);
+lh_void
+lh_memory_bounds_slice_between(const lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr end, lh_memory_bounds_slice_t *out);
 
 /**
  * @brief Build a sub-slice starting at @p offset with @p size bytes.
@@ -1294,9 +1294,10 @@ lh_memory_bounds_slice_between(const lh_memory_bounds_slice_t *self, lh_ptr begi
  * @fails ::lh_runtime_error_code_out_of_range
  *        <tt>[offset, offset + size)</tt> is outside @p self.
  */
-lh_memory_bounds_slice_t
+lh_void
 lh_memory_bounds_slice_from_offset(const lh_memory_bounds_slice_t *self, lh_uoffset_t offset,
-                                        lh_usize_t size);
+                                        lh_usize_t size,
+                                        lh_memory_bounds_slice_t *out);
 
 /**
  * @brief Build a slice with @p n bytes removed from the beginning.
@@ -1314,8 +1315,8 @@ lh_memory_bounds_slice_from_offset(const lh_memory_bounds_slice_t *self, lh_uoff
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source slice size.
  */
-lh_memory_bounds_slice_t
-lh_memory_bounds_slice_drop_first(const lh_memory_bounds_slice_t *self, lh_usize_t n);
+lh_void
+lh_memory_bounds_slice_drop_first(const lh_memory_bounds_slice_t *self, lh_usize_t n, lh_memory_bounds_slice_t *out);
 
 /**
  * @brief Build a slice with @p n bytes removed from the end.
@@ -1333,8 +1334,8 @@ lh_memory_bounds_slice_drop_first(const lh_memory_bounds_slice_t *self, lh_usize
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p n is greater than the source slice size.
  */
-lh_memory_bounds_slice_t
-lh_memory_bounds_slice_drop_last(const lh_memory_bounds_slice_t *self, lh_usize_t n);
+lh_void
+lh_memory_bounds_slice_drop_last(const lh_memory_bounds_slice_t *self, lh_usize_t n, lh_memory_bounds_slice_t *out);
 
 /**
  * @brief Build a slice with bytes removed from both sides.
@@ -1353,9 +1354,10 @@ lh_memory_bounds_slice_drop_last(const lh_memory_bounds_slice_t *self, lh_usize_
  * @fails ::lh_runtime_error_code_out_of_range
  *        @p left + @p right is greater than the source slice size.
  */
-lh_memory_bounds_slice_t
+lh_void
 lh_memory_bounds_slice_trim(const lh_memory_bounds_slice_t *self, lh_usize_t left,
-                            lh_usize_t right);
+                            lh_usize_t right,
+                            lh_memory_bounds_slice_t *out);
 
 /**
  * @brief Store a closed slice starting at @p begin with @p size bytes.
@@ -1510,8 +1512,8 @@ lh_memory_bounds_slice_swap_and_clear(lh_memory_bounds_slice_t *self,
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-lh_memory_view_slice_t
-lh_memory_bounds_slice_as_view(const lh_memory_bounds_slice_t *self);
+lh_void
+lh_memory_bounds_slice_as_view(const lh_memory_bounds_slice_t *self, lh_memory_view_slice_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

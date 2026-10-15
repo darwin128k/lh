@@ -115,45 +115,45 @@ typedef struct lh_ui_web_x
  * @param name Identifier text. Not copied.
  * @return The node.
  */
-lh_ui_web_x_t
-lh_ui_web_x_id(const lh_str_ptr name);
+lh_void
+lh_ui_web_x_id(const lh_str_ptr name, lh_ui_web_x_t *out);
 
 /**
  * @brief Number literal @p n.
  * @param n The value.
  * @return The node.
  */
-lh_ui_web_x_t
-lh_ui_web_x_num(lh_s64_t n);
+lh_void
+lh_ui_web_x_num(lh_s64_t n, lh_ui_web_x_t *out);
 
 /**
  * @brief String literal @p s, quoted and escaped on emit.
  * @param s NUL-terminated text. Not copied.
  * @return The node.
  */
-lh_ui_web_x_t
-lh_ui_web_x_str(const lh_str_ptr s);
+lh_void
+lh_ui_web_x_str(const lh_str_ptr s, lh_ui_web_x_t *out);
 
 /**
  * @brief `null`.
  * @return The node.
  */
-lh_ui_web_x_t
-lh_ui_web_x_null(void);
+lh_void
+lh_ui_web_x_null(lh_ui_web_x_t *out);
 
 /**
  * @brief `true`.
  * @return The node.
  */
-lh_ui_web_x_t
-lh_ui_web_x_true(void);
+lh_void
+lh_ui_web_x_true(lh_ui_web_x_t *out);
 
 /**
  * @brief `false`.
  * @return The node.
  */
-lh_ui_web_x_t
-lh_ui_web_x_false(void);
+lh_void
+lh_ui_web_x_false(lh_ui_web_x_t *out);
 
 /**
  * @brief Member access `(obj).name`.
@@ -161,8 +161,8 @@ lh_ui_web_x_false(void);
  * @param name Member name. Not copied.
  * @return The node.
  */
-lh_ui_web_x_t
-lh_ui_web_x_dot(const lh_ui_web_x_t *obj, const lh_str_ptr name);
+lh_void
+lh_ui_web_x_dot(const lh_ui_web_x_t *obj, const lh_str_ptr name, lh_ui_web_x_t *out);
 
 /**
  * @brief Index `(obj)[ix]`.
@@ -170,8 +170,8 @@ lh_ui_web_x_dot(const lh_ui_web_x_t *obj, const lh_str_ptr name);
  * @param ix  Index expression. Not copied.
  * @return The node.
  */
-lh_ui_web_x_t
-lh_ui_web_x_idx(const lh_ui_web_x_t *obj, const lh_ui_web_x_t *ix);
+lh_void
+lh_ui_web_x_idx(const lh_ui_web_x_t *obj, const lh_ui_web_x_t *ix, lh_ui_web_x_t *out);
 
 /**
  * @brief Call `(fn)(args...)`.
@@ -180,12 +180,12 @@ lh_ui_web_x_idx(const lh_ui_web_x_t *obj, const lh_ui_web_x_t *ix);
  * @param n    How many arguments.
  * @return The node.
  */
-lh_ui_web_x_t
-lh_ui_web_x_call(const lh_ui_web_x_t *fn, const lh_ui_web_x_t *const *args, lh_u16_t n);
+lh_void
+lh_ui_web_x_call(const lh_ui_web_x_t *fn, const lh_ui_web_x_t *const *args, lh_u16_t n, lh_ui_web_x_t *out);
 
 /** Call a bare identifier: `name(args…)`. */
-lh_ui_web_x_t
-lh_ui_web_x_call_id(const lh_str_ptr name, const lh_ui_web_x_t *const *args, lh_u16_t n);
+lh_void
+lh_ui_web_x_call_id(const lh_str_ptr name, const lh_ui_web_x_t *const *args, lh_u16_t n, lh_ui_web_x_t *out);
 
 /**
  * @brief Binary operation `(a)op(b)`.
@@ -194,8 +194,8 @@ lh_ui_web_x_call_id(const lh_str_ptr name, const lh_ui_web_x_t *const *args, lh_
  * @param b  Right operand. Not copied.
  * @return The node.
  */
-lh_ui_web_x_t
-lh_ui_web_x_bin(const lh_ui_web_x_t *a, const lh_str_ptr op, const lh_ui_web_x_t *b);
+lh_void
+lh_ui_web_x_bin(const lh_ui_web_x_t *a, const lh_str_ptr op, const lh_ui_web_x_t *b, lh_ui_web_x_t *out);
 
 /**
  * @brief Unary operation `op(a)`.
@@ -203,8 +203,8 @@ lh_ui_web_x_bin(const lh_ui_web_x_t *a, const lh_str_ptr op, const lh_ui_web_x_t
  * @param a  Operand. Not copied.
  * @return The node.
  */
-lh_ui_web_x_t
-lh_ui_web_x_un(const lh_str_ptr op, const lh_ui_web_x_t *a);
+lh_void
+lh_ui_web_x_un(const lh_str_ptr op, const lh_ui_web_x_t *a, lh_ui_web_x_t *out);
 
 /**
  * @brief Conditional `(c)?(t):(f)`.
@@ -213,20 +213,20 @@ lh_ui_web_x_un(const lh_str_ptr op, const lh_ui_web_x_t *a);
  * @param f Value otherwise. Not copied.
  * @return The node.
  */
-lh_ui_web_x_t
-lh_ui_web_x_tern(const lh_ui_web_x_t *c, const lh_ui_web_x_t *t, const lh_ui_web_x_t *f);
+lh_void
+lh_ui_web_x_tern(const lh_ui_web_x_t *c, const lh_ui_web_x_t *t, const lh_ui_web_x_t *f, lh_ui_web_x_t *out);
 
 /**
  * @brief `typeof(a)`.
  * @param a Operand. Not copied.
  * @return The node.
  */
-lh_ui_web_x_t
-lh_ui_web_x_typeof(const lh_ui_web_x_t *a);
+lh_void
+lh_ui_web_x_typeof(const lh_ui_web_x_t *a, lh_ui_web_x_t *out);
 
 /** Object literal `{keys[i]:vals[i],…}` — @p keys and @p vals must both have @p n entries. */
-lh_ui_web_x_t
-lh_ui_web_x_obj(const lh_str_ptr *keys, const lh_ui_web_x_t *const *vals, lh_u16_t n);
+lh_void
+lh_ui_web_x_obj(const lh_str_ptr *keys, const lh_ui_web_x_t *const *vals, lh_u16_t n, lh_ui_web_x_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

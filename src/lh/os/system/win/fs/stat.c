@@ -1,4 +1,5 @@
 #include <lh/os/system/fs/stat.h>
+#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/cast/static.h>

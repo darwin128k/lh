@@ -8,6 +8,7 @@
 #include <lh/runtime/check.h>
 #include <lh/runtime/error/code.h>
 #include <lh/str/view.h>
+#include <lh/test/out.h>
 
 #include <cstdio>
 
@@ -26,7 +27,7 @@ void
 test_check_handler_prints(const lh_exception_t *exception)
 {
     const lh_exception_origin_t *origin = lh_exception_get_origin(exception);
-    lh_str_view_t desc = lh_runtime_error_get_desc(lh_exception_get_error(exception));
+    lh_str_view_t desc = lh_test::out(lh_runtime_error_get_desc, lh_exception_get_error(exception));
     const bool has_desc = !lh_str_view_is_empty(&desc);
 
     /* "known"/"none" rather than the number: the death-test regexes below must

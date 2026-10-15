@@ -1,4 +1,5 @@
 #include <lh/io/dgram.h>
+#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/util/addr.h>
 #include <lh/util/ptr.h>
@@ -29,16 +30,18 @@ lh_io_dgram_assign(lh_io_dgram_t *self, const lh_io_dgram_t *other)
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(other);
 
-    reader = lh_io_dgram_get_reader(other);
-    writer = lh_io_dgram_get_writer(other);
+    lh_io_dgram_get_reader(other, lh_addr_of(reader));
+    lh_io_dgram_get_writer(other, lh_addr_of(writer));
     lh_io_dgram_set(self, lh_addr_of(reader), lh_addr_of(writer));
 }
 
-lh_io_dgram_reader_t
-lh_io_dgram_get_reader(const lh_io_dgram_t *self)
+lh_void
+lh_io_dgram_get_reader(const lh_io_dgram_t *self, lh_io_dgram_reader_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    return self->reader;
+    *out = self->reader;
+    return;
 }
 
 lh_void
@@ -49,11 +52,13 @@ lh_io_dgram_set_reader(lh_io_dgram_t *self, const lh_io_dgram_reader_t *reader)
     self->reader = lh_ptr_deref(reader);
 }
 
-lh_io_dgram_writer_t
-lh_io_dgram_get_writer(const lh_io_dgram_t *self)
+lh_void
+lh_io_dgram_get_writer(const lh_io_dgram_t *self, lh_io_dgram_writer_t *out)
 {
+    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    return self->writer;
+    *out = self->writer;
+    return;
 }
 
 lh_void
@@ -71,7 +76,7 @@ lh_io_dgram_recv(lh_io_dgram_t *self, lh_ptr buf, lh_usize_t size, lh_net_ip4_so
 
     lh_assert_runtime_ref(self);
 
-    reader = lh_io_dgram_get_reader(self);
+    lh_io_dgram_get_reader(self, lh_addr_of(reader));
     return lh_io_dgram_reader_recv(lh_addr_of(reader), buf, size, addr);
 }
 
@@ -83,6 +88,6 @@ lh_io_dgram_send(lh_io_dgram_t *self, const lh_ptr buf, lh_usize_t size,
 
     lh_assert_runtime_ref(self);
 
-    writer = lh_io_dgram_get_writer(self);
+    lh_io_dgram_get_writer(self, lh_addr_of(writer));
     return lh_io_dgram_writer_send(lh_addr_of(writer), buf, size, addr);
 }

@@ -4,6 +4,7 @@
 
 #include <lh/time.h>
 #include <lh/time/initializer.h>
+#include <lh/test/out.h>
 
 namespace
 {
@@ -77,7 +78,7 @@ TEST(time_seconds_of_day, known_offset)
 TEST(time_from_seconds_of_day, roundtrip)
 {
     const lh_time_t t = lh_time_initializer(9, 5, 30);
-    const lh_time_t result = lh_time_from_seconds_of_day(lh_time_seconds_of_day(&t));
+    const lh_time_t result = lh_test::out(lh_time_from_seconds_of_day, lh_time_seconds_of_day(&t));
 
     EXPECT_EQ(lh_time_equals(&t, &result), lh_bool_true);
 }
