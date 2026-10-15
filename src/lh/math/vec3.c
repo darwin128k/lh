@@ -1,9 +1,11 @@
 #include <lh/assert/runtime.h>
+#include <lh/assert/static.h>
 #include <lh/math/vec3.h>
 #include <lh/math/view.h>
 #include <lh/util/ptr.h>
 #include <lh/cast/static.h>
 #include <lh/util/addr.h>
+#include <lh/util/offset.h>
 
 lh_void
 lh_math_vec3_init(lh_math_vec3_t *self, lh_float_t x, lh_float_t y, lh_float_t z)
@@ -128,8 +130,12 @@ lh_math_vec3_neg(lh_math_vec3_t v)
     return result;
 }
 
-/** The 3 components of @p v as a view: a vector is laid out as `float[3]`. */
-static lh_math_view_t
+/* lh_math_vec3_view_of reads the vector as lh_float_t[3]: the components must
+   follow each other with no padding, from the first byte. */
+lh_assert_static(sizeof(lh_math_vec3_t) == 3U * sizeof(lh_float_t), "lh_math_vec3_t must be laid out as lh_float_t[3]");
+lh_assert_static(lh_offset_of(lh_math_vec3_t, x) == 0U, "lh_math_vec3_t must start with x");
+
+lh_math_view_t
 lh_math_vec3_view_of(const lh_math_vec3_t *v)
 {
     lh_math_slice_t slice;

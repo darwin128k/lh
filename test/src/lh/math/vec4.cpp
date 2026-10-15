@@ -104,4 +104,18 @@ TEST(vec4, vec3_round_trip_keeps_xyz)
     EXPECT_FLOAT_EQ(b.z, a.z);
 }
 
+TEST(vec4, view_of_reads_the_components_in_order)
+{
+    lh_math_vec4_t v;
+
+    lh_math_vec4_init(lh_addr_of(v), 3.0f, -5.0f, 7.0f, 11.0f);
+    const lh_math_view_t view = lh_math_vec4_view_of(lh_addr_of(v));
+
+    EXPECT_EQ(lh_math_view_get_size(lh_addr_of(view)), 4U);
+    EXPECT_EQ(lh_math_view_get_at(lh_addr_of(view), 0U), lh_math_vec4_get_x(lh_addr_of(v)));
+    EXPECT_EQ(lh_math_view_get_at(lh_addr_of(view), 1U), lh_math_vec4_get_y(lh_addr_of(v)));
+    EXPECT_EQ(lh_math_view_get_at(lh_addr_of(view), 2U), lh_math_vec4_get_z(lh_addr_of(v)));
+    EXPECT_EQ(lh_math_view_get_at(lh_addr_of(view), 3U), lh_math_vec4_get_w(lh_addr_of(v)));
+}
+
 } // namespace

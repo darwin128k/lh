@@ -23,6 +23,7 @@
 #include <lh/numeric/float.h>
 #include <lh/math/fscalar.h>
 #include <lh/math/vec2/fields.h>
+#include <lh/math/view.h>
 #include <lh/void.h>
 
 /**
@@ -126,6 +127,16 @@ lh_math_vec2_length_sq(lh_math_vec2_t v);
  */
 lh_math_fscalar_t
 lh_math_vec2_length(lh_math_vec2_t v);
+
+/**
+ * @brief The components of @p v as a read-only view: `x`, `y`, in that order.
+ *
+ * A vector is laid out as `float[2]` (checked when the library is built), so the
+ * view reads the components in place without copying them; it is valid while
+ * @p v is. ::lh_math_vec2_dot and the lengths are measured through it.
+ */
+lh_math_view_t
+lh_math_vec2_view_of(const lh_math_vec2_t *v);
 
 /**
  * @brief @p v scaled to length 1, same direction.

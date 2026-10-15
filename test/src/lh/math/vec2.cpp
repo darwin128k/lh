@@ -67,4 +67,16 @@ TEST(vec2, lerp_and_near)
     EXPECT_FALSE(lh_math_vec2_near(m, ([&]() { lh_math_vec2_t _v; lh_math_vec2_init(lh_addr_of(_v), 2.6f, -2.5f); return _v; })(), 0.001f));
 }
 
+TEST(vec2, view_of_reads_the_components_in_order)
+{
+    lh_math_vec2_t v;
+
+    lh_math_vec2_init(lh_addr_of(v), 3.0f, -5.0f);
+    const lh_math_view_t view = lh_math_vec2_view_of(lh_addr_of(v));
+
+    EXPECT_EQ(lh_math_view_get_size(lh_addr_of(view)), 2U);
+    EXPECT_EQ(lh_math_view_get_at(lh_addr_of(view), 0U), lh_math_vec2_get_x(lh_addr_of(v)));
+    EXPECT_EQ(lh_math_view_get_at(lh_addr_of(view), 1U), lh_math_vec2_get_y(lh_addr_of(v)));
+}
+
 } // namespace
