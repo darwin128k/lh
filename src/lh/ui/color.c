@@ -13,6 +13,11 @@
 #include <lh/util/addr.h>
 #include <lh/util/return.h>
 
+#if LH_UI_COLOR_HAVE_SMLAD
+#    include <arm_acle.h>
+#    include <stdint.h>
+#endif
+
 /* ── Constructors ────────────────────────────────────────────────────────── */
 
 lh_void
@@ -185,11 +190,54 @@ lh_ui_color_weight_to_alpha(lh_u32_t weight)
     return lh_cast_static(lh_ui_color_channel_t, (weight + LH_BYTE_T_MAX / 2U) / LH_BYTE_T_MAX);
 }
 
+lh_u32_t
+lh_ui_color_div255_round(lh_u32_t x)
+{
+    /* (x + 127) / 255 for x up to 255 * 255, with no divide: 255 is odd, so x / 255
+       never ties at .5 and rounding to nearest is t = x + 128, (t + t / 256) / 256.
+       (x + 1 + (x >> 8)) >> 8 is the truncating form, not this one. */
+    const lh_u32_t t = x + 128U;
+
+    return (t + (t >> 8)) >> 8;
+}
+
+lh_u32_t
+lh_ui_color_div255_round_pair(lh_u32_t x)
+{
+    /* ::lh_ui_color_div255_round in each 16-bit lane at once. A lane holds at most
+       255 * 255 + 128, so t + (t >> 8) stays below 2^16 and never carries into the
+       lane above; the mask drops what the shift brings down from it. */
+    const lh_u32_t t = x + 0x00800080U;
+
+    return ((t + ((t >> 8) & 0x00FF00FFU)) >> 8) & 0x00FF00FFU;
+}
+
+lh_u32_t
+lh_ui_color_dual_mac(lh_u32_t x, lh_u32_t y, lh_u32_t acc)
+{
+#if LH_UI_COLOR_HAVE_SMLAD
+    return lh_cast_static(lh_u32_t, __smlad(lh_cast_static(int16x2_t, x), lh_cast_static(int16x2_t, y),
+                                           lh_cast_static(int32_t, acc)));
+#else
+    return acc + (x & 0xFFFFU) * (y & 0xFFFFU) + (x >> 16) * (y >> 16);
+#endif
+}
+
+lh_u32_t
+lh_ui_color_mix_pair(lh_u32_t dst, lh_u32_t src, lh_u32_t a)
+{
+    /* Two channels a word (0x00FF00FF lanes): one multiply blends both, and the
+       products of a lane (255 * 255 at most) never reach the next one. */
+    return lh_ui_color_div255_round_pair(src * a + dst * (LH_BYTE_T_MAX - a));
+}
+
 lh_ui_color_channel_t
 lh_ui_color_over_opaque_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t a)
 {
+    /* src * a + dst * (255 - a) is one dual multiply-accumulate: SMLAD where the
+       core has it (Cortex-M4 and up), two multiplies elsewhere. */
     return lh_cast_static(lh_ui_color_channel_t,
-                          (src * a + dst * (LH_BYTE_T_MAX - a) + LH_BYTE_T_MAX / 2U) / LH_BYTE_T_MAX);
+                          lh_ui_color_div255_round(lh_ui_color_dual_mac(src | (dst << 16), a | ((LH_BYTE_T_MAX - a) << 16), 0U)));
 }
 
 lh_u32_t
@@ -202,12 +250,12 @@ lh_u32_t
 lh_ui_color_argb_over_opaque(lh_u32_t dst, lh_u32_t src)
 {
     const lh_u32_t a = lh_ui_color_hex_channel(src, 24);
+    /* R and B in one word, G (and the alpha lane, which an opaque result does not
+       read) in another: two multiplies a pair instead of one a channel. */
+    const lh_u32_t rb = lh_ui_color_mix_pair(dst & 0x00FF00FFU, src & 0x00FF00FFU, a);
+    const lh_u32_t ga = lh_ui_color_mix_pair((dst >> 8) & 0x00FF00FFU, (src >> 8) & 0x00FF00FFU, a);
 
-    return lh_ui_color_argb_make(
-        lh_ui_color_over_opaque_channel(lh_ui_color_hex_channel(src, 16), lh_ui_color_hex_channel(dst, 16), a),
-        lh_ui_color_over_opaque_channel(lh_ui_color_hex_channel(src, 8), lh_ui_color_hex_channel(dst, 8), a),
-        lh_ui_color_over_opaque_channel(lh_ui_color_hex_channel(src, 0), lh_ui_color_hex_channel(dst, 0), a),
-        LH_BYTE_T_MAX);
+    return 0xFF000000U | rb | ((ga & 0xFFU) << 8);
 }
 
 lh_u32_t

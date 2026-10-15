@@ -312,25 +312,55 @@ lh_ui_pixmap_over_word(const lh_ui_pixmap_t *self, lh_u32_t dst, const lh_ui_col
 }
 
 lh_u32_t
+lh_ui_pixmap_rb_of_565(lh_u32_t word)
+{
+    /* Red to bits 16.., blue at 0, each then widened to 8 bits in its lane:
+       v * 33 >> 2 is (v << 3) | (v >> 2) for a 5-bit v (lh_ui_color_expand_bits),
+       and the mask drops what the shift brings down from the red lane. */
+    return ((((word & 0xF800U) << 5) | (word & 0x001FU)) * 33U >> 2) & 0x00FF00FFU;
+}
+
+lh_u32_t
+lh_ui_pixmap_g_of_565(lh_u32_t word)
+{
+    /* g * 65 >> 4 is (g << 2) | (g >> 4) for a 6-bit g. */
+    return (((word >> 5) & 0x3FU) * 65U) >> 4;
+}
+
+lh_u32_t
+lh_ui_pixmap_565_of(lh_u32_t rb, lh_u32_t g)
+{
+    /* Narrowing is truncation, as lh_ui_color_get_rgb565's. */
+    return ((rb >> 19) << 11) | ((g >> 2) << 5) | ((rb & 0xFFU) >> 3);
+}
+
+lh_u32_t
 lh_ui_pixmap_mix_16(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a)
 {
     const lh_u32_t word = lh_ui_pixmap_order_16(self, dst);
-    const lh_u32_t r5 = (word >> 11) & 0x1FU;
-    const lh_u32_t g6 = (word >> 5) & 0x3FU;
-    const lh_u32_t b5 = word & 0x1FU;
-    lh_u32_t mixed;
 
-    /* The channel widening is lh_ui_color_expand_bits (replicate the top bits
-       into the bottom) and the narrowing is lh_ui_color_get_rgb565's truncation,
-       applied here directly: the same bytes, without an lh_ui_color_t per pixel.
-       This is the RGB565 path, the one an MCU actually runs, so the struct round
-       trip through unpack / color_get_argb / color_init_argb / pack is not
-       affordable here. */
-    mixed = lh_ui_pixmap_mix_rgb(0xFF000000U | (((r5 << 3) | (r5 >> 2)) << 16) |
-                                     (((g6 << 2) | (g6 >> 4)) << 8) | ((b5 << 3) | (b5 >> 2)),
-                                src, a);
-    return lh_ui_pixmap_order_16(self, (((mixed >> 16) & 0xFFU) >> 3) << 11 |
-                                     ((((mixed >> 8) & 0xFFU) >> 2) << 5) | ((mixed & 0xFFU) >> 3));
+    /* The 888 blend of the widened word, bit for bit, without unpacking a channel
+       at a time: red and blue go through one multiply pair (0x00FF00FF lanes),
+       green through the other. This is the RGB565 path an MCU runs. */
+    return lh_ui_pixmap_order_16(
+        self, lh_ui_pixmap_565_of(lh_ui_color_mix_pair(lh_ui_pixmap_rb_of_565(word), src & 0x00FF00FFU, a),
+                                  lh_ui_color_mix_pair(lh_ui_pixmap_g_of_565(word), (src >> 8) & 0xFFU, a)));
+}
+
+lh_u32_t
+lh_ui_pixmap_blend_16_one(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t solid, lh_u32_t a)
+{
+    lh_return_if(a == 0U, dst);
+    lh_return_if(a == LH_BYTE_T_MAX, solid);
+    return lh_ui_pixmap_mix_16(self, dst, src, a);
+}
+
+lh_u32_t
+lh_ui_pixmap_blend_16_pair(const lh_ui_pixmap_t *self, lh_u32_t pair, lh_u32_t src, lh_u32_t solid, lh_u32_t a_lo,
+                           lh_u32_t a_hi)
+{
+    return lh_ui_pixmap_blend_16_one(self, pair & 0xFFFFU, src, solid, a_lo) |
+           (lh_ui_pixmap_blend_16_one(self, pair >> 16, src, solid, a_hi) << 16);
 }
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
@@ -780,19 +810,47 @@ lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cp
         return;
     }
 #endif
-    {
-        const lh_u16_t solid =
-            lh_cast_static(lh_u16_t, lh_ui_pixmap_order_16(self, lh_ui_pixmap_pack_rgb(self, src)));
-        lh_usize_t i;
+    lh_ui_pixmap_blend_alpha_16_words(self, at, alpha, count, src);
+}
 
-        for (i = 0U; i < count; ++i)
-        {
-            if (alpha[i] != 0U)
-            {
-                at[i] = alpha[i] == 0xFFU ? solid : lh_cast_static(lh_u16_t, lh_ui_pixmap_mix_16(self, at[i], src, alpha[i]));
-            }
-        }
+lh_void
+lh_ui_pixmap_blend_alpha_16_words(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha, lh_usize_t count,
+                                  lh_u32_t src)
+{
+    const lh_u32_t solid = lh_ui_pixmap_order_16(self, lh_ui_pixmap_pack_rgb(self, src));
+    lh_usize_t i = 0U;
+
+    /* Two pixels a 32-bit load and store once @p at is word-aligned; the pixel
+       before that and an odd last one go alone. */
+    if (count > 0U && (lh_ptr_to_uaddr(at) & 2U) != 0U)
+    {
+        at[0] = lh_cast_static(lh_u16_t, lh_ui_pixmap_blend_16_one(self, at[0], src, solid, alpha[0]));
+        i = 1U;
     }
+    for (; i + 2U <= count; i += 2U)
+    {
+        lh_ui_pixmap_blend_16_pair_at(self, at + i, alpha + i, src, solid);
+    }
+    if (i < count)
+    {
+        at[i] = lh_cast_static(lh_u16_t, lh_ui_pixmap_blend_16_one(self, at[i], src, solid, alpha[i]));
+    }
+}
+
+lh_void
+lh_ui_pixmap_blend_16_pair_at(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha, lh_u32_t src,
+                              lh_u32_t solid)
+{
+    /* Read and written through the pixels' own type: a 32-bit lvalue on a 16-bit
+       buffer is an aliasing violation, and the compiler joins the two halves into
+       one access where it may. */
+    lh_u32_t pair;
+
+    lh_return_if(alpha[0] == 0U && alpha[1] == 0U);
+    pair = lh_ui_pixmap_blend_16_pair(self, lh_cast_static(lh_u32_t, at[0]) | (lh_cast_static(lh_u32_t, at[1]) << 16),
+                                      src, solid, alpha[0], alpha[1]);
+    at[0] = lh_cast_static(lh_u16_t, pair);
+    at[1] = lh_cast_static(lh_u16_t, pair >> 16);
 }
 
 lh_u32_t
