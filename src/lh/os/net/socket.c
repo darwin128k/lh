@@ -24,16 +24,6 @@ lh_os_net_socket_open(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t t
     return lh_bool_true;
 }
 
-lh_void
-lh_os_net_socket_close(lh_os_net_socket_t *self)
-{
-    if (lh_os_net_socket_is_valid(self))
-    {
-        lh_os_system_net_socket_close(lh_os_net_socket_get_handle(self));
-        self->handle = LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID;
-    }
-}
-
 lh_os_system_net_socket_handle_t
 lh_os_net_socket_get_handle(const lh_os_net_socket_t *self)
 {
@@ -46,6 +36,16 @@ lh_os_net_socket_is_valid(const lh_os_net_socket_t *self)
 {
     return lh_cast_static(lh_bool_t,
                           lh_math_ne(lh_os_net_socket_get_handle(self), LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID));
+}
+
+lh_void
+lh_os_net_socket_close(lh_os_net_socket_t *self)
+{
+    if (lh_os_net_socket_is_valid(self))
+    {
+        lh_os_system_net_socket_close(lh_os_net_socket_get_handle(self));
+        self->handle = LH_OS_SYSTEM_NET_SOCKET_HANDLE_INVALID;
+    }
 }
 
 lh_bool_t

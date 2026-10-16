@@ -30,17 +30,6 @@ lh_os_fs_dir_open(lh_os_fs_dir_t *self, const lh_fs_path_t *path)
     return lh_bool_true;
 }
 
-lh_void
-lh_os_fs_dir_close(lh_os_fs_dir_t *self)
-{
-    if (!lh_os_fs_dir_is_valid(self))
-    {
-        return;
-    }
-    lh_os_system_fs_dir_close(lh_os_fs_dir_get_handle(self));
-    self->handle = LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID;
-}
-
 lh_os_system_fs_dir_handle_t
 lh_os_fs_dir_get_handle(const lh_os_fs_dir_t *self)
 {
@@ -52,6 +41,17 @@ lh_bool_t
 lh_os_fs_dir_is_valid(const lh_os_fs_dir_t *self)
 {
     return lh_cast_static(lh_bool_t, lh_null_ne(lh_os_fs_dir_get_handle(self)));
+}
+
+lh_void
+lh_os_fs_dir_close(lh_os_fs_dir_t *self)
+{
+    if (!lh_os_fs_dir_is_valid(self))
+    {
+        return;
+    }
+    lh_os_system_fs_dir_close(lh_os_fs_dir_get_handle(self));
+    self->handle = LH_OS_SYSTEM_FS_DIR_HANDLE_INVALID;
 }
 
 lh_ssize_t

@@ -27,17 +27,17 @@ lh_ui_color_init(lh_ui_color_t *self, lh_ui_color_channel_t r, lh_ui_color_chann
     self->a = a;
 }
 
+lh_ui_color_channel_t
+lh_ui_color_hex_channel(lh_u32_t hex, lh_u32_t shift)
+{
+    return lh_cast_static(lh_ui_color_channel_t, (hex >> shift) & lh_cast_static(lh_u32_t, LH_BYTE_T_MAX));
+}
+
 lh_void
 lh_ui_color_init_hex(lh_ui_color_t *self, lh_u32_t hex)
 {
     lh_ui_color_init(self, lh_ui_color_hex_channel(hex, 24), lh_ui_color_hex_channel(hex, 16),
                      lh_ui_color_hex_channel(hex, 8), lh_ui_color_hex_channel(hex, 0));
-}
-
-lh_ui_color_channel_t
-lh_ui_color_hex_channel(lh_u32_t hex, lh_u32_t shift)
-{
-    return lh_cast_static(lh_ui_color_channel_t, (hex >> shift) & lh_cast_static(lh_u32_t, LH_BYTE_T_MAX));
 }
 
 lh_void
@@ -169,6 +169,12 @@ lh_ui_color_blend_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t src_w, lh_u32_t d
     return lh_cast_static(lh_ui_color_channel_t, lh_math_div_round(src * src_w + dst * dst_w, total));
 }
 
+lh_ui_color_channel_t
+lh_ui_color_weight_to_alpha(lh_u32_t weight)
+{
+    return lh_cast_static(lh_ui_color_channel_t, lh_math_div_round(weight, LH_BYTE_T_MAX));
+}
+
 lh_void
 lh_ui_color_blend(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_u32_t src_w, lh_u32_t dst_w, lh_ui_color_t *out)
 {
@@ -180,12 +186,6 @@ lh_ui_color_blend(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_u32_t
                      lh_ui_color_weight_to_alpha(src_w + dst_w));
     *out = result;
     return;
-}
-
-lh_ui_color_channel_t
-lh_ui_color_weight_to_alpha(lh_u32_t weight)
-{
-    return lh_cast_static(lh_ui_color_channel_t, lh_math_div_round(weight, LH_BYTE_T_MAX));
 }
 
 lh_u32_t

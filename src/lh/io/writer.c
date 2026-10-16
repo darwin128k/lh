@@ -26,12 +26,6 @@ lh_io_writer_set(lh_io_writer_t *self, lh_io_writer_write_cb write_cb, lh_ptr co
 }
 
 lh_void
-lh_io_writer_assign(lh_io_writer_t *self, const lh_io_writer_t *other)
-{
-    lh_io_writer_set(self, lh_io_writer_get_write_cb(other), lh_io_writer_get_context(other));
-}
-
-lh_void
 lh_io_writer_init(lh_io_writer_t *self, lh_io_writer_write_cb write_cb, lh_ptr context)
 {
     lh_io_writer_set(self, write_cb, context);
@@ -55,6 +49,12 @@ lh_io_writer_get_context(const lh_io_writer_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->context;
+}
+
+lh_void
+lh_io_writer_assign(lh_io_writer_t *self, const lh_io_writer_t *other)
+{
+    lh_io_writer_set(self, lh_io_writer_get_write_cb(other), lh_io_writer_get_context(other));
 }
 
 lh_ssize_t

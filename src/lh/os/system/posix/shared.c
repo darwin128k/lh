@@ -41,27 +41,6 @@ lh_os_system_shared_map_name(const struct link_map *map)
     return info.dli_fname;
 }
 
-/* True when `base` is where the executable is mapped. dladdr may name it
-   by argv[0], which dlopen(RTLD_NOLOAD) does not find; only dlopen(NULL) does. */
-LH_ATTRIBUTE_STATIC
-lh_bool_t
-lh_os_system_shared_is_executable(lh_ptr base)
-{
-    struct link_map *map = lh_null;
-    Dl_info info;
-
-    const lh_os_system_shared_handle_t program = lh_os_system_shared_get_executable();
-    if (lh_null_eq(program))
-    {
-        return lh_bool_false;
-    }
-    const lh_bool_t is_executable =
-        lh_math_is_zero(dlinfo(program, RTLD_DI_LINKMAP, lh_addr_of(map))) && lh_null_ne(map) &&
-        lh_math_ne(dladdr(map->l_ld, lh_addr_of(info)), 0) && lh_math_eq(info.dli_fbase, base);
-    lh_os_system_shared_close(program);
-    return is_executable;
-}
-
 lh_os_system_shared_handle_t
 lh_os_system_shared_open(lh_str_cptr path)
 {
@@ -106,6 +85,27 @@ lh_os_system_shared_get_executable(void)
         lh_os_system_error_capture();
     }
     return handle;
+}
+
+/* True when `base` is where the executable is mapped. dladdr may name it
+   by argv[0], which dlopen(RTLD_NOLOAD) does not find; only dlopen(NULL) does. */
+LH_ATTRIBUTE_STATIC
+lh_bool_t
+lh_os_system_shared_is_executable(lh_ptr base)
+{
+    struct link_map *map = lh_null;
+    Dl_info info;
+
+    const lh_os_system_shared_handle_t program = lh_os_system_shared_get_executable();
+    if (lh_null_eq(program))
+    {
+        return lh_bool_false;
+    }
+    const lh_bool_t is_executable =
+        lh_math_is_zero(dlinfo(program, RTLD_DI_LINKMAP, lh_addr_of(map))) && lh_null_ne(map) &&
+        lh_math_ne(dladdr(map->l_ld, lh_addr_of(info)), 0) && lh_math_eq(info.dli_fbase, base);
+    lh_os_system_shared_close(program);
+    return is_executable;
 }
 
 lh_os_system_shared_handle_t

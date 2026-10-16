@@ -198,6 +198,51 @@ lh_ui_canvas_get_round_count(const lh_ui_canvas_t *self)
 }
 
 lh_void
+lh_ui_canvas_save(lh_ui_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_if(self->depth >= LH_LIBRARY_OPTION_UI_CANVAS_DEPTH, lh_runtime_error_code_overflow);
+    self->saved[self->depth] = self->state;
+    ++self->depth;
+}
+
+lh_void
+lh_ui_canvas_clip_to(lh_ui_canvas_t *self, const lh_ui_rect_t *clip_rect)
+{
+    lh_ui_rect_t target;
+    lh_return_if(lh_null_eq(clip_rect));
+    lh_ui_canvas_state_to_target(lh_addr_of(self->state), clip_rect, lh_addr_of(target));
+    lh_ui_canvas_state_clip_to(lh_addr_of(self->state), lh_addr_of(target));
+}
+
+lh_void
+lh_ui_canvas_add_round(lh_ui_canvas_t *self, const lh_ui_rect_t *clip_rect, lh_ui_scalar_t radius)
+{
+    lh_ui_rect_t target;
+
+    lh_return_if(lh_null_eq(clip_rect) || radius <= lh_ui_scalar(0));
+    lh_ui_canvas_state_to_target(lh_addr_of(self->state), clip_rect, lh_addr_of(target));
+    lh_ui_canvas_clip_round_init(self->rounds + self->state.round_count, lh_addr_of(target), radius);
+    ++self->state.round_count;
+}
+
+lh_void
+lh_ui_canvas_get_offset(const lh_ui_canvas_t *self, lh_ui_point_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_assert_runtime_ref(self);
+    *out = self->state.offset;
+    return;
+}
+
+const lh_ui_rect_t *
+lh_ui_canvas_get_clip(const lh_ui_canvas_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_ui_canvas_state_get_clip(lh_addr_of(self->state));
+}
+
+lh_void
 lh_ui_canvas_send_clip(lh_ui_canvas_t *self)
 {
     lh_ui_canvas_clip_t clip;
@@ -229,35 +274,6 @@ lh_ui_canvas_sync_clip(lh_ui_canvas_t *self, const lh_ui_canvas_state_t *before)
 }
 
 lh_void
-lh_ui_canvas_save(lh_ui_canvas_t *self)
-{
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_if(self->depth >= LH_LIBRARY_OPTION_UI_CANVAS_DEPTH, lh_runtime_error_code_overflow);
-    self->saved[self->depth] = self->state;
-    ++self->depth;
-}
-
-lh_void
-lh_ui_canvas_clip_to(lh_ui_canvas_t *self, const lh_ui_rect_t *clip_rect)
-{
-    lh_ui_rect_t target;
-    lh_return_if(lh_null_eq(clip_rect));
-    lh_ui_canvas_state_to_target(lh_addr_of(self->state), clip_rect, lh_addr_of(target));
-    lh_ui_canvas_state_clip_to(lh_addr_of(self->state), lh_addr_of(target));
-}
-
-lh_void
-lh_ui_canvas_add_round(lh_ui_canvas_t *self, const lh_ui_rect_t *clip_rect, lh_ui_scalar_t radius)
-{
-    lh_ui_rect_t target;
-
-    lh_return_if(lh_null_eq(clip_rect) || radius <= lh_ui_scalar(0));
-    lh_ui_canvas_state_to_target(lh_addr_of(self->state), clip_rect, lh_addr_of(target));
-    lh_ui_canvas_clip_round_init(self->rounds + self->state.round_count, lh_addr_of(target), radius);
-    ++self->state.round_count;
-}
-
-lh_void
 lh_ui_canvas_push_round(lh_ui_canvas_t *self, lh_ui_point_t offset_delta, const lh_ui_rect_t *clip_rect,
                         lh_ui_scalar_t radius)
 {
@@ -283,22 +299,6 @@ lh_ui_canvas_pop(lh_ui_canvas_t *self)
     dropped = self->state;
     self->state = self->saved[--self->depth];
     lh_ui_canvas_sync_clip(self, lh_addr_of(dropped));
-}
-
-lh_void
-lh_ui_canvas_get_offset(const lh_ui_canvas_t *self, lh_ui_point_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_assert_runtime_ref(self);
-    *out = self->state.offset;
-    return;
-}
-
-const lh_ui_rect_t *
-lh_ui_canvas_get_clip(const lh_ui_canvas_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_ui_canvas_state_get_clip(lh_addr_of(self->state));
 }
 
 /* ── Frame ───────────────────────────────────────────────────────────────── */

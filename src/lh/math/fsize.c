@@ -11,6 +11,36 @@
 
 /* ── init ────────────────────────────────────────────────────────────────── */
 
+lh_math_fscalar_t
+lh_math_fsize_get_width(const lh_math_fsize_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->width;
+}
+
+lh_math_fscalar_t
+lh_math_fsize_get_height(const lh_math_fsize_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->height;
+}
+
+lh_void
+lh_math_fsize_set_width(lh_math_fsize_t *self, lh_math_fscalar_t width)
+{
+    lh_assert_runtime_ref(self);
+    self->width = width;
+}
+
+/* ── Accessors ───────────────────────────────────────────────────────────── */
+
+lh_void
+lh_math_fsize_set_height(lh_math_fsize_t *self, lh_math_fscalar_t height)
+{
+    lh_assert_runtime_ref(self);
+    self->height = height;
+}
+
 lh_void
 lh_math_fsize_init(lh_math_fsize_t *self, lh_math_fscalar_t width, lh_math_fscalar_t height)
 {
@@ -35,36 +65,6 @@ lh_math_fsize_from_extent(const lh_math_fpoint_t *min, const lh_math_fpoint_t *m
                        lh_math_fpoint_get_y(max) - lh_math_fpoint_get_y(min));
     *out = s;
     return;
-}
-
-/* ── Accessors ───────────────────────────────────────────────────────────── */
-
-lh_math_fscalar_t
-lh_math_fsize_get_width(const lh_math_fsize_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->width;
-}
-
-lh_math_fscalar_t
-lh_math_fsize_get_height(const lh_math_fsize_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->height;
-}
-
-lh_void
-lh_math_fsize_set_width(lh_math_fsize_t *self, lh_math_fscalar_t width)
-{
-    lh_assert_runtime_ref(self);
-    self->width = width;
-}
-
-lh_void
-lh_math_fsize_set_height(lh_math_fsize_t *self, lh_math_fscalar_t height)
-{
-    lh_assert_runtime_ref(self);
-    self->height = height;
 }
 
 /* ── Conversions ─────────────────────────────────────────────────────────── */

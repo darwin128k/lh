@@ -52,15 +52,6 @@ lh_os_shared_init(lh_os_shared_t *self)
     lh_os_shared_set_handle(self, LH_OS_SYSTEM_SHARED_HANDLE_INVALID);
 }
 
-lh_void
-lh_os_shared_deinit(lh_os_shared_t *self)
-{
-    lh_os_shared_close(self);
-    lh_fs_path_deinit(lh_os_shared_get_path(self));
-}
-
-/* ── open / close ────────────────────────────────────────────────────────── */
-
 /* Open, bind and bind_executable all need a closed image. */
 LH_ATTRIBUTE_STATIC
 lh_bool_t
@@ -73,6 +64,8 @@ lh_os_shared_is_free(const lh_os_shared_t *self)
     }
     return lh_bool_true;
 }
+
+/* ── open / close ────────────────────────────────────────────────────────── */
 
 lh_bool_t
 lh_os_shared_open(lh_os_shared_t *self, const lh_fs_path_t *path)
@@ -157,6 +150,13 @@ lh_os_shared_close(lh_os_shared_t *self)
 
     lh_os_shared_set_handle(self, LH_OS_SYSTEM_SHARED_HANDLE_INVALID);
     return ok;
+}
+
+lh_void
+lh_os_shared_deinit(lh_os_shared_t *self)
+{
+    lh_os_shared_close(self);
+    lh_fs_path_deinit(lh_os_shared_get_path(self));
 }
 
 /* ── symbols ─────────────────────────────────────────────────────────────── */

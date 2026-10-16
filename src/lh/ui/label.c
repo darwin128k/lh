@@ -14,33 +14,6 @@ const lh_ui_entity_class_t lh_ui_label_class = {
     lh_ui_label_event, lh_addr_of(lh_ui_container_class)};
 
 lh_void
-lh_ui_label_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *event)
-{
-    /* The container (and its entity) is the first field: self is the label. */
-    const lh_ui_label_t *label = lh_ptr_rcast(const lh_ui_label_t, self);
-
-    lh_ui_entity_class_event_base(lh_addr_of(lh_ui_label_class), self, event);
-    lh_ui_label_on_children(label, event);
-    lh_ui_label_on_baseline(label, event);
-    lh_ui_label_on_draw(label, event);
-    lh_ui_label_on_measure(label, event);
-}
-
-lh_void
-lh_ui_label_on_baseline(const lh_ui_label_t *self, const lh_ui_entity_event_t *event)
-{
-    lh_ui_scalar_t *answer;
-
-    (void)self;
-    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_baseline);
-    /* The one thing that stands on a line in this picture is the text, and where
-       that line is follows the alignment and the padding, not the box: a label
-       centred in 28 rows has its baseline in the middle of them. */
-    answer = lh_ui_entity_event_get_baseline(lh_ptr_rcast(lh_ui_entity_event_t, event));
-    *answer = lh_ui_label_get_baseline(self);
-}
-
-lh_void
 lh_ui_label_on_children(const lh_ui_label_t *self, const lh_ui_entity_event_t *event)
 {
     lh_ui_entity_transform_t *transform;
@@ -59,27 +32,6 @@ lh_ui_label_on_children(const lh_ui_label_t *self, const lh_ui_entity_event_t *e
        goes. */
     lh_ui_entity_transform_set_clip(transform, lh_bool_false);
 }
-
-lh_void
-lh_ui_label_on_draw(const lh_ui_label_t *self, const lh_ui_entity_event_t *event)
-{
-    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_draw);
-    lh_ui_label_draw_text(self, lh_ui_entity_event_get_canvas(event));
-}
-
-lh_void
-lh_ui_label_on_measure(const lh_ui_label_t *self, const lh_ui_entity_event_t *event)
-{
-    lh_ui_rect_t *bounds;
-    lh_ui_rect_t text;
-
-    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_measure);
-    bounds = lh_ui_entity_event_get_bounds(event);
-    lh_ui_label_get_text_rect(self, lh_addr_of(text));
-    lh_ui_rect_union(bounds, lh_addr_of(text), bounds);
-}
-
-/* ── Lifetime and fields ─────────────────────────────────────────────────── */
 
 /** FNV-1a over the bytes, with the length beside it: two short strings that collide on
    both are not a case a label meets. */
@@ -100,26 +52,11 @@ lh_ui_label_hash(const lh_char_t *text, lh_u32_t *length)
     return hash;
 }
 
-/** The ink of the current text, relative to the label's own origin, so it stays right
-   when the label moves before its text changes again. */
-static lh_void
-lh_ui_label_get_ink_reach(lh_ui_label_t *self, lh_ui_rect_t *out)
+lh_ui_entity_t *
+lh_ui_label_as_entity(lh_ui_label_t *self)
 {
-    lh_assert_runtime_ref(out);
-    lh_ui_rect_t text;
-    lh_ui_label_get_text_rect(self, lh_addr_of(text));
-    lh_ui_rect_t box;
-    lh_ui_entity_get_rect(lh_ui_label_as_entity(self), lh_addr_of(box));
-    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(lh_addr_of(box));
-
-    if (lh_ui_rect_is_empty(lh_addr_of(text)))
-    {
-        *out = text;
-        return;
-    }
-    lh_ui_rect_offset(lh_addr_of(text), lh_math_neg(lh_ui_point_get_x(origin)),
-                             lh_math_neg(lh_ui_point_get_y(origin)), out);
-    return;
+    lh_assert_runtime_ref(self);
+    return lh_ui_container_as_entity(lh_addr_of(self->container));
 }
 
 lh_void
@@ -137,13 +74,6 @@ lh_ui_label_init(lh_ui_label_t *self, lh_ui_rect_t rect, const lh_char_t *text)
     lh_ui_entity_set_class(lh_ui_label_as_entity(self), lh_addr_of(lh_ui_label_class));
 }
 
-lh_ui_entity_t *
-lh_ui_label_as_entity(lh_ui_label_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_ui_container_as_entity(lh_addr_of(self->container));
-}
-
 lh_ui_container_t *
 lh_ui_label_as_container(lh_ui_label_t *self)
 {
@@ -151,53 +81,13 @@ lh_ui_label_as_container(lh_ui_label_t *self)
     return lh_addr_of(self->container);
 }
 
+/* ── Lifetime and fields ─────────────────────────────────────────────────── */
+
 const lh_char_t *
 lh_ui_label_get_text(const lh_ui_label_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->text;
-}
-
-lh_void
-lh_ui_label_set_text(lh_ui_label_t *self, const lh_char_t *text)
-{
-    lh_ui_entity_t *entity;
-    lh_ui_rect_t box;
-    lh_ui_rect_t old_ink;
-    lh_u32_t length;
-    lh_u32_t hash;
-
-    lh_assert_runtime_ref(self);
-    hash = lh_ui_label_hash(text, lh_addr_of(length));
-    if (self->text_hashed && hash == self->text_hash && length == self->text_length)
-    {
-        /* The same bytes, perhaps at a new address: nothing on screen changes. */
-        self->text = text;
-        return;
-    }
-    entity = lh_ui_label_as_entity(self);
-    lh_ui_entity_get_rect(entity, lh_addr_of(box));
-    /* Before: the box, and the old text where it was last recorded. Measuring the text
-       now would measure the **new** bytes whenever the caller rewrote the buffer first,
-       which is how a cell is usually updated -- so the remembered reach is what is
-       erased, and when there is none yet (the first change) the current measure is. */
-    if (lh_ui_rect_is_empty(lh_addr_of(self->text_noted)))
-    {
-        lh_ui_label_get_ink_reach(self, lh_addr_of(self->text_noted));
-    }
-    lh_ui_rect_offset(lh_addr_of(self->text_noted), lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(lh_addr_of(box))),
-                                lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(box))), lh_addr_of(old_ink));
-    lh_ui_entity_note_rect(entity, lh_addr_of(box));
-    lh_ui_entity_note_rect(entity, lh_addr_of(old_ink));
-
-    self->text = text;
-    self->text_hashed = lh_bool_true;
-    self->text_hash = hash;
-    self->text_length = length;
-    self->metrics_ready = lh_bool_false;
-    lh_ui_label_get_ink_reach(self, lh_addr_of(self->text_noted));
-    /* After: the box and the new text (a leaf's note includes what it measures). */
-    lh_ui_entity_note(entity);
 }
 
 lh_void
@@ -209,8 +99,6 @@ lh_ui_label_drop_metrics(lh_ui_label_t *self)
     self->metrics_ready = lh_bool_false;
     self->text_hashed = lh_bool_false;
 }
-
-/* ── Text ────────────────────────────────────────────────────────────────── */
 
 const lh_ui_font_t *
 lh_ui_label_get_font(const lh_ui_label_t *self)
@@ -343,6 +231,8 @@ lh_ui_label_measured(const lh_ui_label_t *self)
     return self;
 }
 
+/* ── Text ────────────────────────────────────────────────────────────────── */
+
 lh_ui_scalar_t
 lh_ui_label_get_ink_top(const lh_ui_label_t *self)
 {
@@ -395,11 +285,101 @@ lh_ui_label_get_baseline(const lh_ui_label_t *self)
 }
 
 lh_void
+lh_ui_label_on_baseline(const lh_ui_label_t *self, const lh_ui_entity_event_t *event)
+{
+    lh_ui_scalar_t *answer;
+
+    (void)self;
+    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_baseline);
+    /* The one thing that stands on a line in this picture is the text, and where
+       that line is follows the alignment and the padding, not the box: a label
+       centred in 28 rows has its baseline in the middle of them. */
+    answer = lh_ui_entity_event_get_baseline(lh_ptr_rcast(lh_ui_entity_event_t, event));
+    *answer = lh_ui_label_get_baseline(self);
+}
+
+lh_void
 lh_ui_label_get_text_rect(const lh_ui_label_t *self, lh_ui_rect_t *out)
 {
     lh_assert_runtime_ref(out);
     *out = lh_ui_label_measured(self)->metrics_ink;
     return;
+}
+
+lh_void
+lh_ui_label_on_measure(const lh_ui_label_t *self, const lh_ui_entity_event_t *event)
+{
+    lh_ui_rect_t *bounds;
+    lh_ui_rect_t text;
+
+    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_measure);
+    bounds = lh_ui_entity_event_get_bounds(event);
+    lh_ui_label_get_text_rect(self, lh_addr_of(text));
+    lh_ui_rect_union(bounds, lh_addr_of(text), bounds);
+}
+
+/** The ink of the current text, relative to the label's own origin, so it stays right
+   when the label moves before its text changes again. */
+static lh_void
+lh_ui_label_get_ink_reach(lh_ui_label_t *self, lh_ui_rect_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_ui_rect_t text;
+    lh_ui_label_get_text_rect(self, lh_addr_of(text));
+    lh_ui_rect_t box;
+    lh_ui_entity_get_rect(lh_ui_label_as_entity(self), lh_addr_of(box));
+    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(lh_addr_of(box));
+
+    if (lh_ui_rect_is_empty(lh_addr_of(text)))
+    {
+        *out = text;
+        return;
+    }
+    lh_ui_rect_offset(lh_addr_of(text), lh_math_neg(lh_ui_point_get_x(origin)),
+                             lh_math_neg(lh_ui_point_get_y(origin)), out);
+    return;
+}
+
+lh_void
+lh_ui_label_set_text(lh_ui_label_t *self, const lh_char_t *text)
+{
+    lh_ui_entity_t *entity;
+    lh_ui_rect_t box;
+    lh_ui_rect_t old_ink;
+    lh_u32_t length;
+    lh_u32_t hash;
+
+    lh_assert_runtime_ref(self);
+    hash = lh_ui_label_hash(text, lh_addr_of(length));
+    if (self->text_hashed && hash == self->text_hash && length == self->text_length)
+    {
+        /* The same bytes, perhaps at a new address: nothing on screen changes. */
+        self->text = text;
+        return;
+    }
+    entity = lh_ui_label_as_entity(self);
+    lh_ui_entity_get_rect(entity, lh_addr_of(box));
+    /* Before: the box, and the old text where it was last recorded. Measuring the text
+       now would measure the **new** bytes whenever the caller rewrote the buffer first,
+       which is how a cell is usually updated -- so the remembered reach is what is
+       erased, and when there is none yet (the first change) the current measure is. */
+    if (lh_ui_rect_is_empty(lh_addr_of(self->text_noted)))
+    {
+        lh_ui_label_get_ink_reach(self, lh_addr_of(self->text_noted));
+    }
+    lh_ui_rect_offset(lh_addr_of(self->text_noted), lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(lh_addr_of(box))),
+                                lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(box))), lh_addr_of(old_ink));
+    lh_ui_entity_note_rect(entity, lh_addr_of(box));
+    lh_ui_entity_note_rect(entity, lh_addr_of(old_ink));
+
+    self->text = text;
+    self->text_hashed = lh_bool_true;
+    self->text_hash = hash;
+    self->text_length = length;
+    self->metrics_ready = lh_bool_false;
+    lh_ui_label_get_ink_reach(self, lh_addr_of(self->text_noted));
+    /* After: the box and the new text (a leaf's note includes what it measures). */
+    lh_ui_entity_note(entity);
 }
 
 lh_bool_t
@@ -520,4 +500,24 @@ lh_ui_label_draw_text(const lh_ui_label_t *self, lh_ui_canvas_t *canvas)
     }
     lh_return_if(!pushed);
     lh_ui_canvas_pop(canvas);
+}
+
+lh_void
+lh_ui_label_on_draw(const lh_ui_label_t *self, const lh_ui_entity_event_t *event)
+{
+    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_draw);
+    lh_ui_label_draw_text(self, lh_ui_entity_event_get_canvas(event));
+}
+
+lh_void
+lh_ui_label_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *event)
+{
+    /* The container (and its entity) is the first field: self is the label. */
+    const lh_ui_label_t *label = lh_ptr_rcast(const lh_ui_label_t, self);
+
+    lh_ui_entity_class_event_base(lh_addr_of(lh_ui_label_class), self, event);
+    lh_ui_label_on_children(label, event);
+    lh_ui_label_on_baseline(label, event);
+    lh_ui_label_on_draw(label, event);
+    lh_ui_label_on_measure(label, event);
 }

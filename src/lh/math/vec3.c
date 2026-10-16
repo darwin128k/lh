@@ -3,21 +3,6 @@
 #include <lh/math/vec3.h>
 #include <lh/util/offset.h>
 
-lh_void
-lh_math_vec3_init(lh_math_vec3_t *self, lh_float_t x, lh_float_t y, lh_float_t z)
-{
-    lh_assert_runtime_ref(self);
-    lh_math_vec3_set_x(self, x);
-    lh_math_vec3_set_y(self, y);
-    lh_math_vec3_set_z(self, z);
-}
-
-lh_void
-lh_math_vec3_init_empty(lh_math_vec3_t *self)
-{
-    lh_math_vec3_init(self, 0, 0, 0);
-}
-
 lh_float_t
 lh_math_vec3_get_x(const lh_math_vec3_t *self)
 {
@@ -58,6 +43,21 @@ lh_math_vec3_set_z(lh_math_vec3_t *self, lh_float_t z)
 {
     lh_assert_runtime_ref(self);
     self->z = z;
+}
+
+lh_void
+lh_math_vec3_init(lh_math_vec3_t *self, lh_float_t x, lh_float_t y, lh_float_t z)
+{
+    lh_assert_runtime_ref(self);
+    lh_math_vec3_set_x(self, x);
+    lh_math_vec3_set_y(self, y);
+    lh_math_vec3_set_z(self, z);
+}
+
+lh_void
+lh_math_vec3_init_empty(lh_math_vec3_t *self)
+{
+    lh_math_vec3_init(self, 0, 0, 0);
 }
 
 /* ── Conversions ─────────────────────────────────────────────────────────── */

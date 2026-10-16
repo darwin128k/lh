@@ -35,13 +35,6 @@ lh_str_init(lh_str_t *self)
 }
 
 lh_void
-lh_str_init_by_view(lh_str_t *self, lh_str_view_t view)
-{
-    lh_str_init(self);
-    lh_str_append_view(self, view);
-}
-
-lh_void
 lh_str_deinit(lh_str_t *self)
 {
     lh_array_deinit(self);
@@ -109,63 +102,10 @@ lh_str_append_view(lh_str_t *self, lh_str_view_t view)
 }
 
 lh_void
-lh_str_append_str(lh_str_t *self, const lh_str_t *other)
+lh_str_init_by_view(lh_str_t *self, lh_str_view_t view)
 {
-    lh_assert_runtime_ref(other);
-    if (self == other)
-    {
-        const lh_usize_t n = lh_str_get_size(self);
-        if (n == 0U)
-        {
-            return;
-        }
-        lh_array_reserve(self, lh_array_get_grown_capacity(
-                                    lh_array_get_capacity(self), lh_math_add(n + n, 1U)));
-        lh_str_append(self, lh_str_get_data(self), n);
-        return;
-    }
-    lh_str_view_t view;
-    lh_str_as_view(other, lh_addr_of(view));
+    lh_str_init(self);
     lh_str_append_view(self, view);
-}
-
-lh_void
-lh_str_assign(lh_str_t *self, const lh_str_t *other)
-{
-    lh_assert_runtime_ref(other);
-    if (self == other)
-    {
-        return;
-    }
-    lh_str_clear(self);
-    lh_str_append_str(self, other);
-}
-
-lh_void
-lh_str_assign_view(lh_str_t *self, lh_str_view_t view)
-{
-    lh_str_clear(self);
-    lh_str_append_view(self, view);
-}
-
-lh_void
-lh_str_join(lh_str_t *self, const lh_str_view_t *parts, lh_usize_t count, lh_char_t sep)
-{
-    lh_usize_t i;
-
-    if (count > 0U)
-    {
-        lh_assert_runtime_ref(parts);
-    }
-    lh_str_clear(self);
-    for (i = 0U; i < count; ++i)
-    {
-        if (i > 0U)
-        {
-            lh_str_push_back(self, sep);
-        }
-        lh_str_append_view(self, parts[i]);
-    }
 }
 
 lh_usize_t
@@ -219,6 +159,33 @@ lh_str_clear(lh_str_t *self)
 }
 
 lh_void
+lh_str_assign_view(lh_str_t *self, lh_str_view_t view)
+{
+    lh_str_clear(self);
+    lh_str_append_view(self, view);
+}
+
+lh_void
+lh_str_join(lh_str_t *self, const lh_str_view_t *parts, lh_usize_t count, lh_char_t sep)
+{
+    lh_usize_t i;
+
+    if (count > 0U)
+    {
+        lh_assert_runtime_ref(parts);
+    }
+    lh_str_clear(self);
+    for (i = 0U; i < count; ++i)
+    {
+        if (i > 0U)
+        {
+            lh_str_push_back(self, sep);
+        }
+        lh_str_append_view(self, parts[i]);
+    }
+}
+
+lh_void
 lh_str_truncate(lh_str_t *self, lh_usize_t n)
 {
     lh_assert_runtime_ref(self);
@@ -243,4 +210,37 @@ lh_str_as_view(const lh_str_t *self, lh_str_view_t *out)
     lh_str_init_by_size(lh_addr_of(view), lh_str_get_data(self), lh_str_get_size(self));
     *out = view;
     return;
+}
+
+lh_void
+lh_str_append_str(lh_str_t *self, const lh_str_t *other)
+{
+    lh_assert_runtime_ref(other);
+    if (self == other)
+    {
+        const lh_usize_t n = lh_str_get_size(self);
+        if (n == 0U)
+        {
+            return;
+        }
+        lh_array_reserve(self, lh_array_get_grown_capacity(
+                                    lh_array_get_capacity(self), lh_math_add(n + n, 1U)));
+        lh_str_append(self, lh_str_get_data(self), n);
+        return;
+    }
+    lh_str_view_t view;
+    lh_str_as_view(other, lh_addr_of(view));
+    lh_str_append_view(self, view);
+}
+
+lh_void
+lh_str_assign(lh_str_t *self, const lh_str_t *other)
+{
+    lh_assert_runtime_ref(other);
+    if (self == other)
+    {
+        return;
+    }
+    lh_str_clear(self);
+    lh_str_append_str(self, other);
 }

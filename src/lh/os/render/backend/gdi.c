@@ -11,33 +11,6 @@
 
 /* ── Context ─────────────────────────────────────────────────────────────── */
 
-lh_void
-lh_os_render_backend_gdi_context_init(lh_os_render_backend_gdi_context_t *self)
-{
-    lh_assert_runtime_ref(self);
-    self->hwnd = LH_OS_SYSTEM_WINDOW_HANDLE_INVALID;
-    self->hdc = lh_null;
-    lh_ui_surface_init(lh_addr_of(self->surface));
-    /* ARGB8888, which is what ::lh_ui_surface_init starts with, and staying there
-       is a measured decision rather than a default nobody looked at: RGB565 draws
-       a desktop frame measurably faster and presents it far slower. The numbers
-       are on ::lh_os_render_backend_gdi_context_get_format. */
-    lh_ui_canvas_sw_init(lh_addr_of(self->sw));
-    lh_ui_point_init(lh_addr_of(self->present_at), lh_ui_scalar(0), lh_ui_scalar(0));
-    self->logical_w = 0;
-    self->logical_h = 0;
-    lh_os_render_backend_gdi_reset_counters(self);
-    self->frame_start_us = 0;
-}
-
-lh_void
-lh_os_render_backend_gdi_context_deinit(lh_os_render_backend_gdi_context_t *self)
-{
-    lh_assert_runtime_ref(self);
-    lh_ui_surface_deinit(lh_addr_of(self->surface));
-    lh_os_render_backend_gdi_context_init(self);
-}
-
 lh_os_render_backend_gdi_context_t *
 lh_os_render_backend_gdi_context_from(lh_ptr context)
 {
@@ -100,8 +73,6 @@ lh_os_render_backend_gdi_context_set_format(lh_os_render_backend_gdi_context_t *
     lh_ui_surface_set_format(lh_addr_of(self->surface), format);
 }
 
-/* ── Counters ────────────────────────────────────────────────────────────── */
-
 lh_void
 lh_os_render_backend_gdi_reset_counters(lh_os_render_backend_gdi_context_t *self)
 {
@@ -111,6 +82,35 @@ lh_os_render_backend_gdi_reset_counters(lh_os_render_backend_gdi_context_t *self
     self->round_calls = 0U;
     self->clip_calls = 0U;
     self->frame_start_us = lh_os_tick_us();
+}
+
+lh_void
+lh_os_render_backend_gdi_context_init(lh_os_render_backend_gdi_context_t *self)
+{
+    lh_assert_runtime_ref(self);
+    self->hwnd = LH_OS_SYSTEM_WINDOW_HANDLE_INVALID;
+    self->hdc = lh_null;
+    lh_ui_surface_init(lh_addr_of(self->surface));
+    /* ARGB8888, which is what ::lh_ui_surface_init starts with, and staying there
+       is a measured decision rather than a default nobody looked at: RGB565 draws
+       a desktop frame measurably faster and presents it far slower. The numbers
+       are on ::lh_os_render_backend_gdi_context_get_format. */
+    lh_ui_canvas_sw_init(lh_addr_of(self->sw));
+    lh_ui_point_init(lh_addr_of(self->present_at), lh_ui_scalar(0), lh_ui_scalar(0));
+    self->logical_w = 0;
+    self->logical_h = 0;
+    lh_os_render_backend_gdi_reset_counters(self);
+    self->frame_start_us = 0;
+}
+
+/* ── Counters ────────────────────────────────────────────────────────────── */
+
+lh_void
+lh_os_render_backend_gdi_context_deinit(lh_os_render_backend_gdi_context_t *self)
+{
+    lh_assert_runtime_ref(self);
+    lh_ui_surface_deinit(lh_addr_of(self->surface));
+    lh_os_render_backend_gdi_context_init(self);
 }
 
 lh_u32_t

@@ -55,13 +55,6 @@ lh_ui_canvas_state_set_origin(lh_ui_canvas_state_t *self, lh_ui_point_t origin)
 }
 
 lh_void
-lh_ui_canvas_state_clip_to(lh_ui_canvas_state_t *self, const lh_ui_rect_t *target)
-{
-    lh_ui_canvas_state_cut(self, target, lh_addr_of(self->clip));
-    self->clipped = lh_bool_true;
-}
-
-lh_void
 lh_ui_canvas_state_cut(const lh_ui_canvas_state_t *self, const lh_ui_rect_t *target, lh_ui_rect_t *out)
 {
     lh_assert_runtime_ref(out);
@@ -75,6 +68,13 @@ lh_ui_canvas_state_cut(const lh_ui_canvas_state_t *self, const lh_ui_rect_t *tar
         *out = *target;
     }
     return;
+}
+
+lh_void
+lh_ui_canvas_state_clip_to(lh_ui_canvas_state_t *self, const lh_ui_rect_t *target)
+{
+    lh_ui_canvas_state_cut(self, target, lh_addr_of(self->clip));
+    self->clipped = lh_bool_true;
 }
 
 lh_bool_t

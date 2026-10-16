@@ -2,31 +2,6 @@
 #include <lh/math/mat4.h>
 
 lh_void
-lh_math_mat4_from_columns(lh_math_vec4_t c0, lh_math_vec4_t c1, lh_math_vec4_t c2, lh_math_vec4_t c3, lh_math_mat4_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_math_mat4_t m;
-    lh_math_mat4_set_column(lh_addr_of(m), 0, c0);
-    lh_math_mat4_set_column(lh_addr_of(m), 1, c1);
-    lh_math_mat4_set_column(lh_addr_of(m), 2, c2);
-    lh_math_mat4_set_column(lh_addr_of(m), 3, c3);
-    *out = m;
-    return;
-}
-
-lh_void
-lh_math_mat4_identity(lh_math_mat4_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_math_vec3_t result;
-    lh_math_vec3_init(lh_addr_of(result), 1.0f, 1.0f, 1.0f);
-    lh_math_mat4_from_scale(result, out);
-    return;
-}
-
-/* ── Accessors ───────────────────────────────────────────────────────────── */
-
-lh_void
 lh_math_mat4_get_column(const lh_math_mat4_t *self, unsigned index, lh_math_vec4_t *out)
 {
     lh_assert_runtime_ref(out);
@@ -42,17 +17,17 @@ lh_math_mat4_set_column(lh_math_mat4_t *self, unsigned index, lh_math_vec4_t col
     self->columns[index] = column;
 }
 
+/* ── Accessors ───────────────────────────────────────────────────────────── */
+
 lh_void
-lh_math_mat4_from_translation(lh_math_vec3_t offset, lh_math_mat4_t *out)
+lh_math_mat4_from_columns(lh_math_vec4_t c0, lh_math_vec4_t c1, lh_math_vec4_t c2, lh_math_vec4_t c3, lh_math_mat4_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_math_mat4_t m;
-    lh_math_mat4_identity(lh_addr_of(m));
-    lh_math_vec4_t vec4;
-    lh_math_vec4_init(lh_addr_of(vec4), lh_math_vec3_get_x(lh_addr_of(offset)),
-                      lh_math_vec3_get_y(lh_addr_of(offset)),
-                      lh_math_vec3_get_z(lh_addr_of(offset)), 1.0f);
-    lh_math_mat4_set_column(lh_addr_of(m), 3, vec4);
+    lh_math_mat4_set_column(lh_addr_of(m), 0, c0);
+    lh_math_mat4_set_column(lh_addr_of(m), 1, c1);
+    lh_math_mat4_set_column(lh_addr_of(m), 2, c2);
+    lh_math_mat4_set_column(lh_addr_of(m), 3, c3);
     *out = m;
     return;
 }
@@ -73,6 +48,31 @@ lh_math_mat4_from_scale(lh_math_vec3_t factors, lh_math_mat4_t *out)
     lh_math_vec4_t column3;
     lh_math_vec4_init(lh_addr_of(column3), 0.0f, 0.0f, 0.0f, 1.0f);
     lh_math_mat4_from_columns(column0, column1, column2, column3, out);
+    return;
+}
+
+lh_void
+lh_math_mat4_identity(lh_math_mat4_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_math_vec3_t result;
+    lh_math_vec3_init(lh_addr_of(result), 1.0f, 1.0f, 1.0f);
+    lh_math_mat4_from_scale(result, out);
+    return;
+}
+
+lh_void
+lh_math_mat4_from_translation(lh_math_vec3_t offset, lh_math_mat4_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_math_mat4_t m;
+    lh_math_mat4_identity(lh_addr_of(m));
+    lh_math_vec4_t vec4;
+    lh_math_vec4_init(lh_addr_of(vec4), lh_math_vec3_get_x(lh_addr_of(offset)),
+                      lh_math_vec3_get_y(lh_addr_of(offset)),
+                      lh_math_vec3_get_z(lh_addr_of(offset)), 1.0f);
+    lh_math_mat4_set_column(lh_addr_of(m), 3, vec4);
+    *out = m;
     return;
 }
 

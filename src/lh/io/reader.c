@@ -23,12 +23,6 @@ lh_io_reader_set(lh_io_reader_t *self, lh_io_reader_read_cb read_cb, lh_ptr cont
 }
 
 lh_void
-lh_io_reader_assign(lh_io_reader_t *self, const lh_io_reader_t *other)
-{
-    lh_io_reader_set(self, lh_io_reader_get_read_cb(other), lh_io_reader_get_context(other));
-}
-
-lh_void
 lh_io_reader_init(lh_io_reader_t *self, lh_io_reader_read_cb read_cb, lh_ptr context)
 {
     lh_io_reader_set(self, read_cb, context);
@@ -52,6 +46,12 @@ lh_io_reader_get_context(const lh_io_reader_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->context;
+}
+
+lh_void
+lh_io_reader_assign(lh_io_reader_t *self, const lh_io_reader_t *other)
+{
+    lh_io_reader_set(self, lh_io_reader_get_read_cb(other), lh_io_reader_get_context(other));
 }
 
 lh_ssize_t

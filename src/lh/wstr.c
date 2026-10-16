@@ -102,36 +102,10 @@ lh_wstr_append_view(lh_wstr_t *self, lh_wstr_view_t view)
 }
 
 lh_void
-lh_wstr_append_str(lh_wstr_t *self, const lh_wstr_t *other)
+lh_wstr_clear(lh_wstr_t *self)
 {
-    lh_assert_runtime_ref(other);
-    if (self == other)
-    {
-        const lh_usize_t n = lh_wstr_get_size(self);
-        if (n == 0U)
-        {
-            return;
-        }
-        lh_array_reserve(self, lh_array_get_grown_capacity(
-                                    lh_array_get_capacity(self), lh_math_add(n + n, 1U)));
-        lh_wstr_append(self, lh_wstr_get_data(self), n);
-        return;
-    }
-    lh_wstr_view_t view;
-    lh_wstr_as_view(other, lh_addr_of(view));
-    lh_wstr_append_view(self, view);
-}
-
-lh_void
-lh_wstr_assign(lh_wstr_t *self, const lh_wstr_t *other)
-{
-    lh_assert_runtime_ref(other);
-    if (self == other)
-    {
-        return;
-    }
-    lh_wstr_clear(self);
-    lh_wstr_append_str(self, other);
+    lh_array_clear(self);
+    lh_wstr_terminate(self);
 }
 
 lh_void
@@ -162,13 +136,6 @@ lh_wstr_join(lh_wstr_t *self, const lh_wstr_view_t *parts, lh_usize_t count, lh_
 }
 
 lh_void
-lh_wstr_clear(lh_wstr_t *self)
-{
-    lh_array_clear(self);
-    lh_wstr_terminate(self);
-}
-
-lh_void
 lh_wstr_truncate(lh_wstr_t *self, lh_usize_t n)
 {
     lh_assert_runtime_ref(self);
@@ -193,4 +160,37 @@ lh_wstr_as_view(const lh_wstr_t *self, lh_wstr_view_t *out)
     lh_wstr_view_init_by_size(lh_addr_of(view), lh_wstr_get_data(self), lh_wstr_get_size(self));
     *out = view;
     return;
+}
+
+lh_void
+lh_wstr_append_str(lh_wstr_t *self, const lh_wstr_t *other)
+{
+    lh_assert_runtime_ref(other);
+    if (self == other)
+    {
+        const lh_usize_t n = lh_wstr_get_size(self);
+        if (n == 0U)
+        {
+            return;
+        }
+        lh_array_reserve(self, lh_array_get_grown_capacity(
+                                    lh_array_get_capacity(self), lh_math_add(n + n, 1U)));
+        lh_wstr_append(self, lh_wstr_get_data(self), n);
+        return;
+    }
+    lh_wstr_view_t view;
+    lh_wstr_as_view(other, lh_addr_of(view));
+    lh_wstr_append_view(self, view);
+}
+
+lh_void
+lh_wstr_assign(lh_wstr_t *self, const lh_wstr_t *other)
+{
+    lh_assert_runtime_ref(other);
+    if (self == other)
+    {
+        return;
+    }
+    lh_wstr_clear(self);
+    lh_wstr_append_str(self, other);
 }

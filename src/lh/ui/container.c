@@ -11,101 +11,10 @@ const lh_ui_entity_class_t lh_ui_container_class = {
     lh_ui_container_event, lh_addr_of(lh_ui_entity_class)};
 
 lh_void
-lh_ui_container_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *event)
-{
-    /* The entity is the first field: self is the container. Keys move its
-       scroll, so the event's const self is the container it was sent to. */
-    lh_ui_container_t *container = lh_ptr_rcast(lh_ui_container_t, self);
-
-    lh_ui_container_on_children(container, event);
-    lh_ui_container_on_focusable(event);
-    lh_ui_container_on_key(container, event);
-    lh_ui_entity_class_event_base(lh_addr_of(lh_ui_container_class), self, event);
-}
-
-lh_void
-lh_ui_container_on_children(const lh_ui_container_t *self, const lh_ui_entity_event_t *event)
-{
-    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_children);
-    lh_ui_container_place_children(self, lh_ui_entity_event_get_transform(event));
-}
-
-lh_void
 lh_ui_container_on_focusable(const lh_ui_entity_event_t *event)
 {
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_focusable);
     *lh_ui_entity_event_get_focusable(event) = lh_bool_true;
-}
-
-lh_void
-lh_ui_container_on_key(lh_ui_container_t *self, const lh_ui_entity_event_t *event)
-{
-    lh_ui_point_t delta;
-
-    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_key);
-    lh_ui_container_get_key_delta(self, lh_ui_entity_event_get_key(event), lh_addr_of(delta));
-    lh_ui_container_scroll_by(self, lh_ui_point_get_x(lh_addr_of(delta)), lh_ui_point_get_y(lh_addr_of(delta)));
-}
-
-lh_ui_scalar_t
-lh_ui_container_get_key_step(const lh_ui_container_t *self, lh_key_t key)
-{
-    lh_ui_size_t page;
-    lh_ui_container_get_viewport_size(self, lh_addr_of(page));
-    lh_ui_point_t scroll;
-    lh_ui_container_get_scroll(self, lh_addr_of(scroll));
-    lh_ui_point_t max;
-    lh_ui_container_get_scroll_max(self, lh_addr_of(max));
-
-    lh_return_if(key == lh_key_up || key == lh_key_left, -LH_UI_CONTAINER_KEY_STEP);
-    lh_return_if(key == lh_key_down || key == lh_key_right, LH_UI_CONTAINER_KEY_STEP);
-    lh_return_if(key == lh_key_page_up, -lh_ui_size_get_height(lh_addr_of(page)));
-    lh_return_if(key == lh_key_page_down, lh_ui_size_get_height(lh_addr_of(page)));
-    lh_return_if(key == lh_key_home, -lh_ui_point_get_y(lh_addr_of(scroll)));
-    lh_return_if(key == lh_key_end, lh_ui_point_get_y(lh_addr_of(max)) - lh_ui_point_get_y(lh_addr_of(scroll)));
-    return lh_ui_scalar(0);
-}
-
-lh_void
-lh_ui_container_get_key_delta(const lh_ui_container_t *self, const lh_ui_key_input_t *input, lh_ui_point_t *out)
-{
-    lh_assert_runtime_ref(out);
-    const lh_key_t key = lh_ui_key_input_get_key(input);
-    const lh_bool_t across = key == lh_key_left || key == lh_key_right ? lh_bool_true : lh_bool_false;
-    const lh_ui_scalar_t step = lh_ui_key_input_get_code(input) == 0U && lh_ui_key_input_is_pressed(input)
-                                    ? lh_ui_container_get_key_step(self, key)
-                                    : lh_ui_scalar(0);
-    lh_ui_point_t delta;
-
-    lh_ui_point_init(lh_addr_of(delta), across ? step : lh_ui_scalar(0), across ? lh_ui_scalar(0) : step);
-    *out = delta;
-    return;
-}
-
-lh_void
-lh_ui_container_place_children(const lh_ui_container_t *self,
-                                      lh_ui_entity_transform_t *transform)
-{
-    lh_ui_point_t scroll;
-    lh_ui_point_t offset;
-
-    /* First, because everything below is about where the content ended up: the
-       flow is the container's own job and this is the only place in a frame that
-       can do it. The event carries a const self because events do; the children
-       it places are not read-only. */
-    if (lh_null_ne(self->layout) && !self->placing)
-    {
-        lh_ui_container_t *placing = lh_ptr_rcast(lh_ui_container_t, self);
-
-        placing->placing = lh_bool_true;
-        lh_ui_layout_apply(self->layout, lh_ptr_rcast(lh_ui_entity_t, self));
-        placing->placing = lh_bool_false;
-    }
-    lh_ui_container_get_scroll(self, lh_addr_of(scroll));
-    lh_ui_point_init(lh_addr_of(offset), -lh_ui_point_get_x(lh_addr_of(scroll)),
-                     -lh_ui_point_get_y(lh_addr_of(scroll)));
-    lh_ui_entity_transform_set_offset(transform, offset);
-    lh_ui_entity_transform_set_clip(transform, lh_bool_true);
 }
 
 const lh_ui_layout_t *
@@ -277,6 +186,74 @@ lh_ui_container_get_scroll(const lh_ui_container_t *self, lh_ui_point_t *out)
     return;
 }
 
+lh_ui_scalar_t
+lh_ui_container_get_key_step(const lh_ui_container_t *self, lh_key_t key)
+{
+    lh_ui_size_t page;
+    lh_ui_container_get_viewport_size(self, lh_addr_of(page));
+    lh_ui_point_t scroll;
+    lh_ui_container_get_scroll(self, lh_addr_of(scroll));
+    lh_ui_point_t max;
+    lh_ui_container_get_scroll_max(self, lh_addr_of(max));
+
+    lh_return_if(key == lh_key_up || key == lh_key_left, -LH_UI_CONTAINER_KEY_STEP);
+    lh_return_if(key == lh_key_down || key == lh_key_right, LH_UI_CONTAINER_KEY_STEP);
+    lh_return_if(key == lh_key_page_up, -lh_ui_size_get_height(lh_addr_of(page)));
+    lh_return_if(key == lh_key_page_down, lh_ui_size_get_height(lh_addr_of(page)));
+    lh_return_if(key == lh_key_home, -lh_ui_point_get_y(lh_addr_of(scroll)));
+    lh_return_if(key == lh_key_end, lh_ui_point_get_y(lh_addr_of(max)) - lh_ui_point_get_y(lh_addr_of(scroll)));
+    return lh_ui_scalar(0);
+}
+
+lh_void
+lh_ui_container_get_key_delta(const lh_ui_container_t *self, const lh_ui_key_input_t *input, lh_ui_point_t *out)
+{
+    lh_assert_runtime_ref(out);
+    const lh_key_t key = lh_ui_key_input_get_key(input);
+    const lh_bool_t across = key == lh_key_left || key == lh_key_right ? lh_bool_true : lh_bool_false;
+    const lh_ui_scalar_t step = lh_ui_key_input_get_code(input) == 0U && lh_ui_key_input_is_pressed(input)
+                                    ? lh_ui_container_get_key_step(self, key)
+                                    : lh_ui_scalar(0);
+    lh_ui_point_t delta;
+
+    lh_ui_point_init(lh_addr_of(delta), across ? step : lh_ui_scalar(0), across ? lh_ui_scalar(0) : step);
+    *out = delta;
+    return;
+}
+
+lh_void
+lh_ui_container_place_children(const lh_ui_container_t *self,
+                                      lh_ui_entity_transform_t *transform)
+{
+    lh_ui_point_t scroll;
+    lh_ui_point_t offset;
+
+    /* First, because everything below is about where the content ended up: the
+       flow is the container's own job and this is the only place in a frame that
+       can do it. The event carries a const self because events do; the children
+       it places are not read-only. */
+    if (lh_null_ne(self->layout) && !self->placing)
+    {
+        lh_ui_container_t *placing = lh_ptr_rcast(lh_ui_container_t, self);
+
+        placing->placing = lh_bool_true;
+        lh_ui_layout_apply(self->layout, lh_ptr_rcast(lh_ui_entity_t, self));
+        placing->placing = lh_bool_false;
+    }
+    lh_ui_container_get_scroll(self, lh_addr_of(scroll));
+    lh_ui_point_init(lh_addr_of(offset), -lh_ui_point_get_x(lh_addr_of(scroll)),
+                     -lh_ui_point_get_y(lh_addr_of(scroll)));
+    lh_ui_entity_transform_set_offset(transform, offset);
+    lh_ui_entity_transform_set_clip(transform, lh_bool_true);
+}
+
+lh_void
+lh_ui_container_on_children(const lh_ui_container_t *self, const lh_ui_entity_event_t *event)
+{
+    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_children);
+    lh_ui_container_place_children(self, lh_ui_entity_event_get_transform(event));
+}
+
 lh_void
 lh_ui_container_set_scroll(lh_ui_container_t *self, lh_ui_point_t scroll)
 {
@@ -293,4 +270,27 @@ lh_ui_container_scroll_by(lh_ui_container_t *self, lh_ui_scalar_t dx, lh_ui_scal
     lh_ui_point_t point;
     lh_ui_point_offset(lh_addr_of(scroll), dx, dy, lh_addr_of(point));
     lh_ui_container_set_scroll(self, point);
+}
+
+lh_void
+lh_ui_container_on_key(lh_ui_container_t *self, const lh_ui_entity_event_t *event)
+{
+    lh_ui_point_t delta;
+
+    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_key);
+    lh_ui_container_get_key_delta(self, lh_ui_entity_event_get_key(event), lh_addr_of(delta));
+    lh_ui_container_scroll_by(self, lh_ui_point_get_x(lh_addr_of(delta)), lh_ui_point_get_y(lh_addr_of(delta)));
+}
+
+lh_void
+lh_ui_container_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *event)
+{
+    /* The entity is the first field: self is the container. Keys move its
+       scroll, so the event's const self is the container it was sent to. */
+    lh_ui_container_t *container = lh_ptr_rcast(lh_ui_container_t, self);
+
+    lh_ui_container_on_children(container, event);
+    lh_ui_container_on_focusable(event);
+    lh_ui_container_on_key(container, event);
+    lh_ui_entity_class_event_base(lh_addr_of(lh_ui_container_class), self, event);
 }

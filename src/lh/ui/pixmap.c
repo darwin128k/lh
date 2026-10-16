@@ -179,30 +179,6 @@ lh_ui_pixmap_set_pixel(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, const lh_ui
 }
 
 lh_void
-lh_ui_pixmap_blend_pixel(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color)
-{
-    lh_ui_pixmap_write_word(self, x, y, lh_ui_pixmap_over_word(self, lh_ui_pixmap_read_word(self, x, y), color));
-}
-
-lh_void
-lh_ui_pixmap_cover_pixel(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color,
-                         lh_byte_t coverage)
-{
-    lh_ui_color_t edge;
-
-    lh_return_if(coverage == 0U);
-    if (coverage == LH_BYTE_T_MAX)
-    {
-        lh_ui_pixmap_blend_pixel(self, x, y, color);
-        return;
-    }
-    lh_ui_color_with_coverage(color, coverage, lh_addr_of(edge));
-    lh_ui_pixmap_blend_pixel(self, x, y, lh_addr_of(edge));
-}
-
-/* ── Spans and boxes ─────────────────────────────────────────────────────── */
-
-lh_void
 lh_ui_pixmap_store_words32(lh_u32_t *at, lh_usize_t count, lh_u32_t word)
 {
     /* Eight per turn: cheap loop overhead unoptimized, still vectorized at -O2/-O3.
@@ -233,6 +209,8 @@ lh_ui_pixmap_store_words16(lh_u16_t *at, lh_usize_t count, lh_u16_t word)
     }
 }
 
+/* ── Spans and boxes ─────────────────────────────────────────────────────── */
+
 lh_void
 lh_ui_pixmap_store_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_u32_t word)
 {
@@ -247,8 +225,6 @@ lh_ui_pixmap_store_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t
     }
     lh_ui_pixmap_store_words32(lh_ptr_rcast(lh_u32_t, at), lh_cast_static(lh_usize_t, x1 - x0), word);
 }
-
-/* ── Row kernels ─────────────────────────────────────────────────────────── */
 
 lh_u32_t
 lh_ui_pixmap_mix_rgb(lh_u32_t dst, lh_u32_t src, lh_u32_t a)
@@ -268,18 +244,13 @@ lh_ui_pixmap_mix_any(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_
     return lh_ui_pixmap_pack(self, lh_addr_of(under));
 }
 
+/* ── Row kernels ─────────────────────────────────────────────────────────── */
+
 lh_u32_t
 lh_ui_pixmap_mix_argb(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a)
 {
     (void)self;
     return lh_ui_color_argb_over(dst, (a << 24) | src);
-}
-
-lh_u32_t
-lh_ui_pixmap_mix_word(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a)
-{
-    return lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)) ? lh_ui_pixmap_mix_16(self, dst, src, a)
-                                                                      : lh_ui_pixmap_mix_argb(self, dst, src, a);
 }
 
 lh_u32_t
@@ -291,23 +262,6 @@ lh_ui_pixmap_over_argb(const lh_ui_pixmap_t *self, lh_u32_t dst, const lh_ui_col
     lh_return_if(a == LH_BYTE_T_MAX, argb);
     lh_return_if(a == 0U, dst);
     return lh_ui_pixmap_mix_argb(self, dst, argb & 0x00FFFFFFU, a);
-}
-
-lh_u32_t
-lh_ui_pixmap_over_16(const lh_ui_pixmap_t *self, lh_u32_t dst, const lh_ui_color_t *color)
-{
-    const lh_u32_t a = lh_ui_color_get_a(color);
-
-    lh_return_if(a == LH_BYTE_T_MAX, lh_ui_pixmap_order_16(self, lh_ui_color_get_rgb565(color)));
-    lh_return_if(a == 0U, dst);
-    return lh_ui_pixmap_mix_16(self, dst, lh_ui_color_get_argb(color) & 0x00FFFFFFU, a);
-}
-
-lh_u32_t
-lh_ui_pixmap_over_word(const lh_ui_pixmap_t *self, lh_u32_t dst, const lh_ui_color_t *color)
-{
-    return lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)) ? lh_ui_pixmap_over_16(self, dst, color)
-                                                                      : lh_ui_pixmap_over_argb(self, dst, color);
 }
 
 lh_u32_t
@@ -344,6 +298,52 @@ lh_ui_pixmap_mix_16(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u
     return lh_ui_pixmap_order_16(
         self, lh_ui_pixmap_565_of(lh_ui_color_mix_pair(lh_ui_pixmap_rb_of_565(word), src & 0x00FF00FFU, a),
                                   lh_ui_color_mix_pair(lh_ui_pixmap_g_of_565(word), (src >> 8) & 0xFFU, a)));
+}
+
+lh_u32_t
+lh_ui_pixmap_mix_word(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a)
+{
+    return lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)) ? lh_ui_pixmap_mix_16(self, dst, src, a)
+                                                                      : lh_ui_pixmap_mix_argb(self, dst, src, a);
+}
+
+lh_u32_t
+lh_ui_pixmap_over_16(const lh_ui_pixmap_t *self, lh_u32_t dst, const lh_ui_color_t *color)
+{
+    const lh_u32_t a = lh_ui_color_get_a(color);
+
+    lh_return_if(a == LH_BYTE_T_MAX, lh_ui_pixmap_order_16(self, lh_ui_color_get_rgb565(color)));
+    lh_return_if(a == 0U, dst);
+    return lh_ui_pixmap_mix_16(self, dst, lh_ui_color_get_argb(color) & 0x00FFFFFFU, a);
+}
+
+lh_u32_t
+lh_ui_pixmap_over_word(const lh_ui_pixmap_t *self, lh_u32_t dst, const lh_ui_color_t *color)
+{
+    return lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)) ? lh_ui_pixmap_over_16(self, dst, color)
+                                                                      : lh_ui_pixmap_over_argb(self, dst, color);
+}
+
+lh_void
+lh_ui_pixmap_blend_pixel(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color)
+{
+    lh_ui_pixmap_write_word(self, x, y, lh_ui_pixmap_over_word(self, lh_ui_pixmap_read_word(self, x, y), color));
+}
+
+lh_void
+lh_ui_pixmap_cover_pixel(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color,
+                         lh_byte_t coverage)
+{
+    lh_ui_color_t edge;
+
+    lh_return_if(coverage == 0U);
+    if (coverage == LH_BYTE_T_MAX)
+    {
+        lh_ui_pixmap_blend_pixel(self, x, y, color);
+        return;
+    }
+    lh_ui_color_with_coverage(color, coverage, lh_addr_of(edge));
+    lh_ui_pixmap_blend_pixel(self, x, y, lh_addr_of(edge));
 }
 
 lh_u32_t
@@ -799,17 +799,25 @@ lh_ui_pixmap_blend_cover_16_sse2(lh_u16_t *at, lh_usize_t count, lh_u64_t cover,
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
 
 lh_void
-lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha, lh_usize_t count,
-                            lh_u32_t src)
+lh_ui_pixmap_blend_16_pair_at(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha, lh_u32_t src,
+                              lh_u32_t solid)
 {
-#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
-    if (lh_cpu_simd_has_sse2())
-    {
-        lh_ui_pixmap_blend_alpha_16_sse2(self, at, alpha, count, src);
-        return;
-    }
-#endif
-    lh_ui_pixmap_blend_alpha_16_words(self, at, alpha, count, src);
+    /* Each pixel through its own 16-bit access (a 32-bit lvalue on a 16-bit buffer
+       is an aliasing violation; the compiler may merge the two). Joining them into
+       one word only for lh_ui_pixmap_blend_16_pair to split it again bought nothing. */
+    lh_return_if(alpha[0] == 0U && alpha[1] == 0U);
+    at[0] = lh_cast_static(lh_u16_t, lh_ui_pixmap_blend_16_one(self, at[0], src, solid, alpha[0]));
+    at[1] = lh_cast_static(lh_u16_t, lh_ui_pixmap_blend_16_one(self, at[1], src, solid, alpha[1]));
+}
+
+lh_u32_t
+lh_ui_pixmap_pack_rgb(const lh_ui_pixmap_t *self, lh_u32_t src)
+{
+    lh_ui_color_t color;
+
+    (void)self;
+    lh_ui_color_init_argb(lh_addr_of(color), 0xFF000000U | src);
+    return lh_ui_color_get_rgb565(lh_addr_of(color));
 }
 
 lh_void
@@ -837,25 +845,17 @@ lh_ui_pixmap_blend_alpha_16_words(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_b
 }
 
 lh_void
-lh_ui_pixmap_blend_16_pair_at(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha, lh_u32_t src,
-                              lh_u32_t solid)
+lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha, lh_usize_t count,
+                            lh_u32_t src)
 {
-    /* Each pixel through its own 16-bit access (a 32-bit lvalue on a 16-bit buffer
-       is an aliasing violation; the compiler may merge the two). Joining them into
-       one word only for lh_ui_pixmap_blend_16_pair to split it again bought nothing. */
-    lh_return_if(alpha[0] == 0U && alpha[1] == 0U);
-    at[0] = lh_cast_static(lh_u16_t, lh_ui_pixmap_blend_16_one(self, at[0], src, solid, alpha[0]));
-    at[1] = lh_cast_static(lh_u16_t, lh_ui_pixmap_blend_16_one(self, at[1], src, solid, alpha[1]));
-}
-
-lh_u32_t
-lh_ui_pixmap_pack_rgb(const lh_ui_pixmap_t *self, lh_u32_t src)
-{
-    lh_ui_color_t color;
-
-    (void)self;
-    lh_ui_color_init_argb(lh_addr_of(color), 0xFF000000U | src);
-    return lh_ui_color_get_rgb565(lh_addr_of(color));
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+    if (lh_cpu_simd_has_sse2())
+    {
+        lh_ui_pixmap_blend_alpha_16_sse2(self, at, alpha, count, src);
+        return;
+    }
+#endif
+    lh_ui_pixmap_blend_alpha_16_words(self, at, alpha, count, src);
 }
 
 lh_void

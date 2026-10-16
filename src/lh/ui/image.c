@@ -11,67 +11,6 @@ const lh_ui_entity_class_t lh_ui_image_class = {lh_ui_image_event, lh_addr_of(lh
 
 /* ── Events ──────────────────────────────────────────────────────────────── */
 
-/** @copydoc lh_ui_image_event(const struct lh_ui_entity *, const struct lh_ui_entity_event *) */
-lh_void
-lh_ui_image_event(const lh_ui_entity_t *self, const lh_ui_entity_event_t *event)
-{
-    /* The entity is the first field: self is the image. */
-    const lh_ui_image_t *image = lh_ptr_rcast(const lh_ui_image_t, self);
-
-    lh_ui_entity_class_event_base(lh_addr_of(lh_ui_image_class), self, event);
-    if (lh_ui_entity_event_get_code(event) == lh_ui_entity_event_draw)
-    {
-        lh_ui_image_draw(image, lh_ui_entity_event_get_canvas(event));
-    }
-    if (lh_ui_entity_event_get_code(event) == lh_ui_entity_event_measure)
-    {
-        lh_ui_image_on_measure(image, event);
-    }
-    if (lh_ui_entity_event_get_code(event) == lh_ui_entity_event_baseline)
-    {
-        lh_ui_image_on_baseline(image, event);
-    }
-}
-
-/** @copydoc lh_ui_image_draw(const struct lh_ui_image *, struct lh_ui_canvas *) */
-lh_void
-lh_ui_image_draw(const lh_ui_image_t *self, lh_ui_canvas_t *canvas)
-{
-    lh_ui_point_t origin;
-
-    lh_return_if(lh_null_eq(canvas) || lh_null_eq(lh_ui_image_get_mask(self)));
-    /* The mask starts where lh_ui_image_get_origin says and is as big as it is:
-       it is not scaled, so there is nothing to centre. */
-    lh_ui_image_get_origin(self, lh_addr_of(origin));
-    lh_ui_canvas_fill_mask(canvas, lh_ui_image_get_mask(self), origin, lh_ui_image_get_tint(self));
-}
-
-/**
- * @copydoc lh_ui_image_on_measure(const struct lh_ui_image *, const struct lh_ui_entity_event *)
- */
-lh_void
-lh_ui_image_on_measure(const lh_ui_image_t *self, const lh_ui_entity_event_t *event)
-{
-    const lh_ui_mask_t *mask = lh_ui_image_get_mask(self);
-    lh_ui_rect_t *bounds;
-    lh_ui_point_t origin;
-    lh_ui_size_t size;
-    lh_ui_rect_t picture;
-
-    lh_return_if(lh_null_eq(mask));
-    bounds = lh_ui_entity_event_get_bounds(event);
-    /* Where it would sit: the picture is as big as the mask, and it keeps the
-       padding that keeps it off the edges — the same box the text of a label
-       measures as. */
-    lh_ui_image_get_origin(self, lh_addr_of(origin));
-    lh_ui_image_get_size(self, lh_addr_of(size));
-    lh_ui_rect_init(lh_addr_of(picture), lh_ui_point_get_x(&origin), lh_ui_point_get_y(&origin),
-                    lh_ui_size_get_width(lh_addr_of(size)), lh_ui_size_get_height(lh_addr_of(size)));
-    lh_ui_rect_union(bounds, lh_addr_of(picture), bounds);
-}
-
-/* ── Lifetime and fields ─────────────────────────────────────────────────── */
-
 /**
  * @copydoc lh_ui_image_on_baseline(const struct lh_ui_image *, const struct lh_ui_entity_event *)
  */
@@ -98,6 +37,8 @@ lh_ui_image_get_baseline(const lh_ui_image_t *self)
     lh_assert_runtime_ref(self);
     return self->baseline;
 }
+
+/* ── Lifetime and fields ─────────────────────────────────────────────────── */
 
 lh_void
 lh_ui_image_init(lh_ui_image_t *self, lh_ui_rect_t rect, const lh_ui_mask_t *mask)
@@ -128,8 +69,6 @@ lh_ui_entity_as_image(lh_ui_entity_t *entity)
     return lh_ptr_rcast(lh_ui_image_t, entity);
 }
 
-/* ── Picture ─────────────────────────────────────────────────────────────── */
-
 const lh_ui_mask_t *
 lh_ui_image_get_mask(const lh_ui_image_t *self)
 {
@@ -150,6 +89,8 @@ lh_ui_image_get_tint(const lh_ui_image_t *self)
     lh_assert_runtime_ref(self);
     return lh_addr_of(self->tint);
 }
+
+/* ── Picture ─────────────────────────────────────────────────────────────── */
 
 lh_void
 lh_ui_image_set_tint(lh_ui_image_t *self, const lh_ui_color_t *tint)
@@ -195,4 +136,63 @@ lh_ui_image_get_origin(const lh_ui_image_t *self, lh_ui_point_t *out)
                      lh_ui_point_get_y(&corner) + lh_ui_insets_get_top(&padding));
     *out = origin;
     return;
+}
+
+/** @copydoc lh_ui_image_draw(const struct lh_ui_image *, struct lh_ui_canvas *) */
+lh_void
+lh_ui_image_draw(const lh_ui_image_t *self, lh_ui_canvas_t *canvas)
+{
+    lh_ui_point_t origin;
+
+    lh_return_if(lh_null_eq(canvas) || lh_null_eq(lh_ui_image_get_mask(self)));
+    /* The mask starts where lh_ui_image_get_origin says and is as big as it is:
+       it is not scaled, so there is nothing to centre. */
+    lh_ui_image_get_origin(self, lh_addr_of(origin));
+    lh_ui_canvas_fill_mask(canvas, lh_ui_image_get_mask(self), origin, lh_ui_image_get_tint(self));
+}
+
+/**
+ * @copydoc lh_ui_image_on_measure(const struct lh_ui_image *, const struct lh_ui_entity_event *)
+ */
+lh_void
+lh_ui_image_on_measure(const lh_ui_image_t *self, const lh_ui_entity_event_t *event)
+{
+    const lh_ui_mask_t *mask = lh_ui_image_get_mask(self);
+    lh_ui_rect_t *bounds;
+    lh_ui_point_t origin;
+    lh_ui_size_t size;
+    lh_ui_rect_t picture;
+
+    lh_return_if(lh_null_eq(mask));
+    bounds = lh_ui_entity_event_get_bounds(event);
+    /* Where it would sit: the picture is as big as the mask, and it keeps the
+       padding that keeps it off the edges — the same box the text of a label
+       measures as. */
+    lh_ui_image_get_origin(self, lh_addr_of(origin));
+    lh_ui_image_get_size(self, lh_addr_of(size));
+    lh_ui_rect_init(lh_addr_of(picture), lh_ui_point_get_x(&origin), lh_ui_point_get_y(&origin),
+                    lh_ui_size_get_width(lh_addr_of(size)), lh_ui_size_get_height(lh_addr_of(size)));
+    lh_ui_rect_union(bounds, lh_addr_of(picture), bounds);
+}
+
+/** @copydoc lh_ui_image_event(const struct lh_ui_entity *, const struct lh_ui_entity_event *) */
+lh_void
+lh_ui_image_event(const lh_ui_entity_t *self, const lh_ui_entity_event_t *event)
+{
+    /* The entity is the first field: self is the image. */
+    const lh_ui_image_t *image = lh_ptr_rcast(const lh_ui_image_t, self);
+
+    lh_ui_entity_class_event_base(lh_addr_of(lh_ui_image_class), self, event);
+    if (lh_ui_entity_event_get_code(event) == lh_ui_entity_event_draw)
+    {
+        lh_ui_image_draw(image, lh_ui_entity_event_get_canvas(event));
+    }
+    if (lh_ui_entity_event_get_code(event) == lh_ui_entity_event_measure)
+    {
+        lh_ui_image_on_measure(image, event);
+    }
+    if (lh_ui_entity_event_get_code(event) == lh_ui_entity_event_baseline)
+    {
+        lh_ui_image_on_baseline(image, event);
+    }
 }

@@ -13,21 +13,6 @@
 
 /* ── init ────────────────────────────────────────────────────────────────── */
 
-lh_void
-lh_math_point_init(lh_math_point_t *self, lh_math_scalar_t x, lh_math_scalar_t y)
-{
-    lh_math_point_set_x(self, x);
-    lh_math_point_set_y(self, y);
-}
-
-lh_void
-lh_math_point_init_empty(lh_math_point_t *self)
-{
-    lh_math_point_init(self, 0, 0);
-}
-
-/* ── Accessors ───────────────────────────────────────────────────────────── */
-
 lh_math_scalar_t
 lh_math_point_get_x(const lh_math_point_t *self)
 {
@@ -42,6 +27,8 @@ lh_math_point_get_y(const lh_math_point_t *self)
     return self->y;
 }
 
+/* ── Accessors ───────────────────────────────────────────────────────────── */
+
 lh_void
 lh_math_point_set_x(lh_math_point_t *self, lh_math_scalar_t x)
 {
@@ -54,6 +41,19 @@ lh_math_point_set_y(lh_math_point_t *self, lh_math_scalar_t y)
 {
     lh_assert_runtime_ref(self);
     self->y = y;
+}
+
+lh_void
+lh_math_point_init(lh_math_point_t *self, lh_math_scalar_t x, lh_math_scalar_t y)
+{
+    lh_math_point_set_x(self, x);
+    lh_math_point_set_y(self, y);
+}
+
+lh_void
+lh_math_point_init_empty(lh_math_point_t *self)
+{
+    lh_math_point_init(self, 0, 0);
 }
 
 /* ── Queries ────────────────────────────────────────────────────────────── */

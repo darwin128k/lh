@@ -17,14 +17,10 @@ lh_os_serial_init(lh_os_serial_t *self)
 }
 
 lh_bool_t
-lh_os_serial_open(lh_os_serial_t *self, lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t parity,
-                  lh_u8_t stop_bits)
+lh_os_serial_is_open(const lh_os_serial_t *self)
 {
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(name);
-    lh_os_serial_close(self);
-    self->handle = lh_os_system_serial_open(name, baud, parity, stop_bits);
-    return lh_os_serial_is_open(self);
+    return self->handle != LH_OS_SYSTEM_SERIAL_HANDLE_INVALID ? lh_bool_true : lh_bool_false;
 }
 
 lh_void
@@ -37,10 +33,14 @@ lh_os_serial_close(lh_os_serial_t *self)
 }
 
 lh_bool_t
-lh_os_serial_is_open(const lh_os_serial_t *self)
+lh_os_serial_open(lh_os_serial_t *self, lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t parity,
+                  lh_u8_t stop_bits)
 {
     lh_assert_runtime_ref(self);
-    return self->handle != LH_OS_SYSTEM_SERIAL_HANDLE_INVALID ? lh_bool_true : lh_bool_false;
+    lh_assert_runtime_ref(name);
+    lh_os_serial_close(self);
+    self->handle = lh_os_system_serial_open(name, baud, parity, stop_bits);
+    return lh_os_serial_is_open(self);
 }
 
 lh_ssize_t

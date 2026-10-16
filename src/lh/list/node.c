@@ -17,19 +17,6 @@ lh_list_node_set_prev(lh_list_node_t *self, lh_list_node_t *prev)
     self->prev = prev;
 }
 
-/* Put `self` between neighbours `prev` and `next`. */
-LH_ATTRIBUTE_STATIC
-lh_void
-lh_list_node_link(lh_list_node_t *self, lh_list_node_t *prev, lh_list_node_t *next)
-{
-    /* Linking a linked node would silently tear its old list apart. */
-    lh_assert_runtime_if(lh_list_node_is_linked(self), lh_runtime_error_code_invalid_argument);
-    lh_list_node_set_prev(self, prev);
-    lh_list_node_set_next(self, next);
-    lh_list_node_set_next(prev, self);
-    lh_list_node_set_prev(next, self);
-}
-
 lh_void
 lh_list_node_init(lh_list_node_t *self)
 {
@@ -65,6 +52,19 @@ lh_bool_t
 lh_list_node_is_linked(const lh_list_node_t *self)
 {
     return lh_cast_static(lh_bool_t, lh_ptr_ne(lh_list_node_get_next(self), self));
+}
+
+/* Put `self` between neighbours `prev` and `next`. */
+LH_ATTRIBUTE_STATIC
+lh_void
+lh_list_node_link(lh_list_node_t *self, lh_list_node_t *prev, lh_list_node_t *next)
+{
+    /* Linking a linked node would silently tear its old list apart. */
+    lh_assert_runtime_if(lh_list_node_is_linked(self), lh_runtime_error_code_invalid_argument);
+    lh_list_node_set_prev(self, prev);
+    lh_list_node_set_next(self, next);
+    lh_list_node_set_next(prev, self);
+    lh_list_node_set_prev(next, self);
 }
 
 lh_void

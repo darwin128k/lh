@@ -51,20 +51,6 @@ lh_fs_path_set_root_kind(lh_fs_path_t *self, lh_fs_path_root_kind_t kind)
     self->root_kind = kind;
 }
 
-/* The segments part of `text`, root prefix dropped. */
-LH_ATTRIBUTE_STATIC
-lh_void
-lh_fs_path_get_rest(const lh_fs_path_t *self, lh_str_view_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_str_view_t text;
-
-    lh_str_as_view(lh_fs_path_get_text(self), lh_addr_of(text));
-    lh_str_view_tail(lh_addr_of(text),
-                                 lh_fs_path_root_len(lh_fs_path_get_root_kind(self)), out);
-    return;
-}
-
 lh_void
 lh_fs_path_init(lh_fs_path_t *self)
 {
@@ -85,6 +71,27 @@ lh_fs_path_clear(lh_fs_path_t *self)
     lh_str_clear(lh_fs_path_get_text_mut(self));
 }
 
+lh_fs_path_root_kind_t
+lh_fs_path_get_root_kind(const lh_fs_path_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->root_kind;
+}
+
+/* The segments part of `text`, root prefix dropped. */
+LH_ATTRIBUTE_STATIC
+lh_void
+lh_fs_path_get_rest(const lh_fs_path_t *self, lh_str_view_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_str_view_t text;
+
+    lh_str_as_view(lh_fs_path_get_text(self), lh_addr_of(text));
+    lh_str_view_tail(lh_addr_of(text),
+                                 lh_fs_path_root_len(lh_fs_path_get_root_kind(self)), out);
+    return;
+}
+
 lh_void
 lh_fs_path_assign(lh_fs_path_t *self, const lh_fs_path_t *other)
 {
@@ -94,13 +101,6 @@ lh_fs_path_assign(lh_fs_path_t *self, const lh_fs_path_t *other)
     }
     lh_fs_path_set_root_kind(self, lh_fs_path_get_root_kind(other));
     lh_str_assign(lh_fs_path_get_text_mut(self), lh_fs_path_get_text(other));
-}
-
-lh_fs_path_root_kind_t
-lh_fs_path_get_root_kind(const lh_fs_path_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->root_kind;
 }
 
 lh_char_t

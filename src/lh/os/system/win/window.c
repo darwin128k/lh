@@ -27,31 +27,6 @@ static lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
 lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint_t msg,
                              lh_os_system_win_wparam_t wparam, lh_os_system_win_lparam_t lparam);
 
-/** Register the window class once per process; its atom, or 0 on failure. */
-static lh_os_system_win_atom_t
-lh_os_system_win_window_register_class(lh_os_system_win_hinstance_t instance)
-{
-    lh_os_system_win_wndclassexa_t wc;
-    static lh_os_system_win_atom_t atom;
-
-    if (atom != 0)
-    {
-        return atom;
-    }
-
-    lh_memory_set(lh_addr_of(wc), sizeof(wc), 0);
-    wc.cbSize = sizeof(wc);
-    wc.style = LH_OS_SYSTEM_WIN_CS_HREDRAW | LH_OS_SYSTEM_WIN_CS_VREDRAW;
-    wc.lpfnWndProc = lh_os_system_win_window_proc;
-    wc.hInstance = instance;
-    wc.hCursor = LoadCursorA(lh_null, LH_OS_SYSTEM_WIN_IDC_ARROW);
-    /* No class brush: the app paints the whole client; erase would flash. */
-    wc.hbrBackground = lh_null;
-    wc.lpszClassName = LH_OS_SYSTEM_WIN_WINDOW_CLASS_NAME;
-    atom = RegisterClassExA(lh_addr_of(wc));
-    return atom;
-}
-
 /** What ::lh_os_window_zone_t means to Windows. The one table, so a zone added to the
    portable enum cannot be forgotten here. */
 static lh_s32_t
@@ -81,6 +56,106 @@ lh_os_system_win_window_hit(lh_os_window_zone_t zone)
     default:
         return LH_OS_SYSTEM_WIN_HTCLIENT;
     }
+}
+
+/** Where a window opens. Win32 has exactly one answer for this — `CW_USEDEFAULT`,
+   a cascade from the top-left corner — and no call that means "in the middle of
+   what the user is looking at", so that half is ours: the work area of the monitor
+   the window opens on, which is the area the system itself calls usable.
+
+   A modal child centres on the monitor its owner is on, because a dialog that
+   lands on the other screen is not near the thing it belongs to. A window larger
+   than that work area keeps its top-left corner inside it: the size the caller
+   asked for is the size it gets, but a title bar off the edge is a window nobody
+   can move. */
+static lh_void
+lh_os_system_win_window_centered_origin(const lh_os_system_win_rect_t *window_rect,
+                                        lh_os_system_win_hwnd_t owner_hwnd, int *x, int *y)
+{
+    lh_os_system_win_monitorinfo_t monitor_info;
+    lh_os_system_win_handle_t monitor;
+    int centered_x;
+    int centered_y;
+
+    lh_memory_set(lh_addr_of(monitor_info), sizeof(monitor_info), 0);
+    monitor_info.cb_size = lh_cast_static(lh_os_system_win_dword_t, sizeof(monitor_info));
+
+    if (lh_null_ne(owner_hwnd))
+    {
+        monitor = MonitorFromWindow(owner_hwnd, LH_OS_SYSTEM_WIN_MONITOR_DEFAULTTONEAREST);
+    }
+    else
+    {
+        lh_os_system_win_point_t point;
+
+        point.x = 0;
+        point.y = 0;
+        /* Only the primary display starts at the top-left of the virtual screen,
+           so asking which display holds that point with DEFAULTTOPRIMARY asks for
+           the one with the taskbar and the Start menu on it. */
+        monitor = MonitorFromPoint(point, LH_OS_SYSTEM_WIN_MONITOR_DEFAULTTOPRIMARY);
+    }
+
+    if (lh_null_eq(monitor) ||
+        GetMonitorInfoA(monitor, lh_addr_of(monitor_info)) == LH_OS_SYSTEM_WIN_FALSE)
+    {
+        /* Nothing said where to put it, so it goes where the system would have put
+           it. A missing monitor is not a reason to open nothing. */
+        *x = LH_OS_SYSTEM_WIN_CW_USEDEFAULT;
+        *y = LH_OS_SYSTEM_WIN_CW_USEDEFAULT;
+        return;
+    }
+
+    centered_x = monitor_info.work.left +
+                 (monitor_info.work.right - monitor_info.work.left -
+                  (window_rect->right - window_rect->left)) / 2;
+    centered_y = monitor_info.work.top +
+                 (monitor_info.work.bottom - monitor_info.work.top -
+                  (window_rect->bottom - window_rect->top)) / 2;
+    *x = centered_x > monitor_info.work.left ? centered_x : monitor_info.work.left;
+    *y = centered_y > monitor_info.work.top ? centered_y : monitor_info.work.top;
+}
+
+lh_void
+lh_os_system_window_set_corner_radius(lh_os_system_window_handle_t handle, int radius)
+{
+    lh_os_system_win_hwnd_t hwnd;
+    lh_os_system_win_rect_t window;
+    lh_os_system_win_handle_t region;
+
+    if (lh_null_eq(handle))
+    {
+        return;
+    }
+    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
+    if (radius <= 0)
+    {
+        /* A region is the window's shape, and the shape of the size it was cut for: a
+           window that keeps its corners round has to be cut again every time it
+           changes size, or it stays the size it was cut at — a maximized window with
+           the 800x600 region of its normal state is an 800x600 window in the corner of
+           the screen. Radius 0 is therefore not "leave it alone" but "no cut": it is
+           what a maximized window is, on every desktop. */
+        SetWindowRgn(hwnd, lh_null, LH_OS_SYSTEM_WIN_TRUE);
+        return;
+    }
+    if (GetWindowRect(hwnd, lh_addr_of(window)) == 0)
+    {
+        return;
+    }
+    /* The region is in window coordinates, whose origin is the window itself — so
+       this cuts the corners of the window whatever its frame is, and with a frame of
+       the caller's own, where window and client are the same rectangle, the cut lands
+       exactly on the corner the app did not paint. right and bottom are exclusive,
+       hence +1, and the corner ellipses are asked for by their full width, hence
+       radius * 2. The window keeps the region; nothing here has to delete it. */
+    region = CreateRoundRectRgn(0, 0, window.right - window.left + 1, window.bottom - window.top + 1,
+                                radius * 2, radius * 2);
+    if (lh_null_eq(region))
+    {
+        return;
+    }
+    SetWindowRgn(hwnd, region, LH_OS_SYSTEM_WIN_TRUE);
 }
 
 static lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
@@ -258,62 +333,29 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
     return DefWindowProcA(hwnd, msg, wparam, lparam);
 }
 
-/** Where a window opens. Win32 has exactly one answer for this — `CW_USEDEFAULT`,
-   a cascade from the top-left corner — and no call that means "in the middle of
-   what the user is looking at", so that half is ours: the work area of the monitor
-   the window opens on, which is the area the system itself calls usable.
-
-   A modal child centres on the monitor its owner is on, because a dialog that
-   lands on the other screen is not near the thing it belongs to. A window larger
-   than that work area keeps its top-left corner inside it: the size the caller
-   asked for is the size it gets, but a title bar off the edge is a window nobody
-   can move. */
-static lh_void
-lh_os_system_win_window_centered_origin(const lh_os_system_win_rect_t *window_rect,
-                                        lh_os_system_win_hwnd_t owner_hwnd, int *x, int *y)
+/** Register the window class once per process; its atom, or 0 on failure. */
+static lh_os_system_win_atom_t
+lh_os_system_win_window_register_class(lh_os_system_win_hinstance_t instance)
 {
-    lh_os_system_win_monitorinfo_t monitor_info;
-    lh_os_system_win_handle_t monitor;
-    int centered_x;
-    int centered_y;
+    lh_os_system_win_wndclassexa_t wc;
+    static lh_os_system_win_atom_t atom;
 
-    lh_memory_set(lh_addr_of(monitor_info), sizeof(monitor_info), 0);
-    monitor_info.cb_size = lh_cast_static(lh_os_system_win_dword_t, sizeof(monitor_info));
-
-    if (lh_null_ne(owner_hwnd))
+    if (atom != 0)
     {
-        monitor = MonitorFromWindow(owner_hwnd, LH_OS_SYSTEM_WIN_MONITOR_DEFAULTTONEAREST);
-    }
-    else
-    {
-        lh_os_system_win_point_t point;
-
-        point.x = 0;
-        point.y = 0;
-        /* Only the primary display starts at the top-left of the virtual screen,
-           so asking which display holds that point with DEFAULTTOPRIMARY asks for
-           the one with the taskbar and the Start menu on it. */
-        monitor = MonitorFromPoint(point, LH_OS_SYSTEM_WIN_MONITOR_DEFAULTTOPRIMARY);
+        return atom;
     }
 
-    if (lh_null_eq(monitor) ||
-        GetMonitorInfoA(monitor, lh_addr_of(monitor_info)) == LH_OS_SYSTEM_WIN_FALSE)
-    {
-        /* Nothing said where to put it, so it goes where the system would have put
-           it. A missing monitor is not a reason to open nothing. */
-        *x = LH_OS_SYSTEM_WIN_CW_USEDEFAULT;
-        *y = LH_OS_SYSTEM_WIN_CW_USEDEFAULT;
-        return;
-    }
-
-    centered_x = monitor_info.work.left +
-                 (monitor_info.work.right - monitor_info.work.left -
-                  (window_rect->right - window_rect->left)) / 2;
-    centered_y = monitor_info.work.top +
-                 (monitor_info.work.bottom - monitor_info.work.top -
-                  (window_rect->bottom - window_rect->top)) / 2;
-    *x = centered_x > monitor_info.work.left ? centered_x : monitor_info.work.left;
-    *y = centered_y > monitor_info.work.top ? centered_y : monitor_info.work.top;
+    lh_memory_set(lh_addr_of(wc), sizeof(wc), 0);
+    wc.cbSize = sizeof(wc);
+    wc.style = LH_OS_SYSTEM_WIN_CS_HREDRAW | LH_OS_SYSTEM_WIN_CS_VREDRAW;
+    wc.lpfnWndProc = lh_os_system_win_window_proc;
+    wc.hInstance = instance;
+    wc.hCursor = LoadCursorA(lh_null, LH_OS_SYSTEM_WIN_IDC_ARROW);
+    /* No class brush: the app paints the whole client; erase would flash. */
+    wc.hbrBackground = lh_null;
+    wc.lpszClassName = LH_OS_SYSTEM_WIN_WINDOW_CLASS_NAME;
+    atom = RegisterClassExA(lh_addr_of(wc));
+    return atom;
 }
 
 lh_os_system_window_handle_t
@@ -377,48 +419,6 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     ShowWindow(hwnd, LH_OS_SYSTEM_WIN_SW_SHOW);
     UpdateWindow(hwnd);
     return lh_cast_reinterpret(lh_os_system_window_handle_t, hwnd);
-}
-
-lh_void
-lh_os_system_window_set_corner_radius(lh_os_system_window_handle_t handle, int radius)
-{
-    lh_os_system_win_hwnd_t hwnd;
-    lh_os_system_win_rect_t window;
-    lh_os_system_win_handle_t region;
-
-    if (lh_null_eq(handle))
-    {
-        return;
-    }
-    hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
-    if (radius <= 0)
-    {
-        /* A region is the window's shape, and the shape of the size it was cut for: a
-           window that keeps its corners round has to be cut again every time it
-           changes size, or it stays the size it was cut at — a maximized window with
-           the 800x600 region of its normal state is an 800x600 window in the corner of
-           the screen. Radius 0 is therefore not "leave it alone" but "no cut": it is
-           what a maximized window is, on every desktop. */
-        SetWindowRgn(hwnd, lh_null, LH_OS_SYSTEM_WIN_TRUE);
-        return;
-    }
-    if (GetWindowRect(hwnd, lh_addr_of(window)) == 0)
-    {
-        return;
-    }
-    /* The region is in window coordinates, whose origin is the window itself — so
-       this cuts the corners of the window whatever its frame is, and with a frame of
-       the caller's own, where window and client are the same rectangle, the cut lands
-       exactly on the corner the app did not paint. right and bottom are exclusive,
-       hence +1, and the corner ellipses are asked for by their full width, hence
-       radius * 2. The window keeps the region; nothing here has to delete it. */
-    region = CreateRoundRectRgn(0, 0, window.right - window.left + 1, window.bottom - window.top + 1,
-                                radius * 2, radius * 2);
-    if (lh_null_eq(region))
-    {
-        return;
-    }
-    SetWindowRgn(hwnd, region, LH_OS_SYSTEM_WIN_TRUE);
 }
 
 lh_void

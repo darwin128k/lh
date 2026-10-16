@@ -26,37 +26,6 @@ lh_ui_toggle_push_looks(lh_ui_toggle_t *self)
 
 /* ── Events ──────────────────────────────────────────────────────────────── */
 
-/** @copydoc lh_ui_toggle_event(const struct lh_ui_entity *, const lh_ui_entity_event_t *) */
-lh_void
-lh_ui_toggle_event(const lh_ui_entity_t *self, const lh_ui_entity_event_t *event)
-{
-    /* The button is the first field: self is the toggle. */
-    const lh_ui_toggle_t *toggle = lh_ptr_rcast(const lh_ui_toggle_t, self);
-
-    /* The button draws and would answer a click of its own — its callback is
-       never set, so what comes back from here is the draw. */
-    lh_ui_entity_class_event_base(lh_addr_of(lh_ui_toggle_class), self, event);
-    lh_ui_toggle_on_click(toggle, event);
-}
-
-lh_void
-lh_ui_toggle_on_click(const lh_ui_toggle_t *self, const lh_ui_entity_event_t *event)
-{
-    lh_ui_toggle_on_click_cb on_click;
-
-    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_click);
-    /* A toggle answers with itself: what a click means here is that the state
-       changed, and that is this component's business. The app is told after the
-       flip, so it reads the new state rather than tracking which way it went. */
-    lh_ui_toggle_set_checked(lh_ptr_rcast(lh_ui_toggle_t, self),
-                             !lh_ui_toggle_get_checked(self));
-    on_click = lh_ui_toggle_get_on_click(self);
-    lh_return_if(lh_null_eq(on_click));
-    on_click(lh_ptr_rcast(lh_ui_toggle_t, self), self->click_context);
-}
-
-/* ── Lifetime and fields ─────────────────────────────────────────────────── */
-
 lh_void
 lh_ui_toggle_init(lh_ui_toggle_t *self, lh_ui_rect_t rect)
 {
@@ -82,6 +51,8 @@ lh_ui_toggle_as_entity(lh_ui_toggle_t *self)
     return lh_ui_button_as_entity(lh_addr_of(self->button));
 }
 
+/* ── Lifetime and fields ─────────────────────────────────────────────────── */
+
 lh_ui_button_t *
 lh_ui_toggle_as_button(lh_ui_toggle_t *self)
 {
@@ -98,8 +69,6 @@ lh_ui_entity_as_toggle(lh_ui_entity_t *entity)
                  lh_null);
     return lh_ptr_rcast(lh_ui_toggle_t, entity);
 }
-
-/* ── Looks ───────────────────────────────────────────────────────────────── */
 
 lh_void
 lh_ui_toggle_set_off_style(lh_ui_toggle_t *self, const lh_ui_style_t *rest, const lh_ui_style_t *hot)
@@ -119,6 +88,8 @@ lh_ui_toggle_get_off_style(const lh_ui_toggle_t *self)
     lh_assert_runtime_ref(self);
     return self->off_style;
 }
+
+/* ── Looks ───────────────────────────────────────────────────────────────── */
 
 const lh_ui_style_t *
 lh_ui_toggle_get_off_hot_style(const lh_ui_toggle_t *self)
@@ -153,8 +124,6 @@ lh_ui_toggle_get_on_hot_style(const lh_ui_toggle_t *self)
     return self->on_hot_style;
 }
 
-/* ── State ───────────────────────────────────────────────────────────────── */
-
 lh_bool_t
 lh_ui_toggle_get_checked(const lh_ui_toggle_t *self)
 {
@@ -171,13 +140,44 @@ lh_ui_toggle_set_checked(lh_ui_toggle_t *self, lh_bool_t checked)
     lh_ui_toggle_push_looks(self);
 }
 
-/* ── Click ───────────────────────────────────────────────────────────────── */
+/* ── State ───────────────────────────────────────────────────────────────── */
 
 lh_ui_toggle_on_click_cb
 lh_ui_toggle_get_on_click(const lh_ui_toggle_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->on_click;
+}
+
+lh_void
+lh_ui_toggle_on_click(const lh_ui_toggle_t *self, const lh_ui_entity_event_t *event)
+{
+    lh_ui_toggle_on_click_cb on_click;
+
+    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_click);
+    /* A toggle answers with itself: what a click means here is that the state
+       changed, and that is this component's business. The app is told after the
+       flip, so it reads the new state rather than tracking which way it went. */
+    lh_ui_toggle_set_checked(lh_ptr_rcast(lh_ui_toggle_t, self),
+                             !lh_ui_toggle_get_checked(self));
+    on_click = lh_ui_toggle_get_on_click(self);
+    lh_return_if(lh_null_eq(on_click));
+    on_click(lh_ptr_rcast(lh_ui_toggle_t, self), self->click_context);
+}
+
+/* ── Click ───────────────────────────────────────────────────────────────── */
+
+/** @copydoc lh_ui_toggle_event(const struct lh_ui_entity *, const lh_ui_entity_event_t *) */
+lh_void
+lh_ui_toggle_event(const lh_ui_entity_t *self, const lh_ui_entity_event_t *event)
+{
+    /* The button is the first field: self is the toggle. */
+    const lh_ui_toggle_t *toggle = lh_ptr_rcast(const lh_ui_toggle_t, self);
+
+    /* The button draws and would answer a click of its own — its callback is
+       never set, so what comes back from here is the draw. */
+    lh_ui_entity_class_event_base(lh_addr_of(lh_ui_toggle_class), self, event);
+    lh_ui_toggle_on_click(toggle, event);
 }
 
 lh_void

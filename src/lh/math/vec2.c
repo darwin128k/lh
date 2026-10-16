@@ -3,20 +3,6 @@
 #include <lh/math/vec2.h>
 #include <lh/util/offset.h>
 
-lh_void
-lh_math_vec2_init(lh_math_vec2_t *self, lh_float_t x, lh_float_t y)
-{
-    lh_assert_runtime_ref(self);
-    lh_math_vec2_set_x(self, x);
-    lh_math_vec2_set_y(self, y);
-}
-
-lh_void
-lh_math_vec2_init_empty(lh_math_vec2_t *self)
-{
-    lh_math_vec2_init(self, 0, 0);
-}
-
 lh_float_t
 lh_math_vec2_get_x(const lh_math_vec2_t *self)
 {
@@ -43,6 +29,20 @@ lh_math_vec2_set_y(lh_math_vec2_t *self, lh_float_t y)
 {
     lh_assert_runtime_ref(self);
     self->y = y;
+}
+
+lh_void
+lh_math_vec2_init(lh_math_vec2_t *self, lh_float_t x, lh_float_t y)
+{
+    lh_assert_runtime_ref(self);
+    lh_math_vec2_set_x(self, x);
+    lh_math_vec2_set_y(self, y);
+}
+
+lh_void
+lh_math_vec2_init_empty(lh_math_vec2_t *self)
+{
+    lh_math_vec2_init(self, 0, 0);
 }
 
 lh_void

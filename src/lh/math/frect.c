@@ -10,54 +10,6 @@
 
 /* ── Constructors ────────────────────────────────────────────────────────── */
 
-lh_void
-lh_math_frect_from_extent(const lh_math_fpoint_t *min, const lh_math_fpoint_t *max, lh_math_frect_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_math_fsize_t size;
-    lh_assert_runtime_ref(min);
-    lh_assert_runtime_ref(max);
-    lh_math_fsize_from_extent(min, max, lh_addr_of(size));
-    if (lh_math_fsize_is_empty(lh_addr_of(size)))
-    {
-        lh_math_frect_t _lh_tmp;
-    lh_math_frect_init_empty(lh_addr_of(_lh_tmp));
-    *out = _lh_tmp;
-    return;
-    }
-    lh_math_frect_t result;
-    lh_math_frect_init_origin_size(lh_addr_of(result), lh_ptr_deref(min), size);
-    *out = result;
-    return;
-}
-
-lh_void
-lh_math_frect_init(lh_math_frect_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y, lh_math_fscalar_t width,
-                   lh_math_fscalar_t height)
-{
-    lh_math_fpoint_t origin;
-    lh_math_fpoint_init(lh_addr_of(origin), x, y);
-    lh_math_fsize_t size;
-    lh_math_fsize_init(lh_addr_of(size), width, height);
-    lh_math_frect_init_origin_size(self, origin, size);
-}
-
-lh_void
-lh_math_frect_init_origin_size(lh_math_frect_t *self, lh_math_fpoint_t origin, lh_math_fsize_t size)
-{
-    lh_assert_runtime_ref(self);
-    lh_math_frect_set_origin(self, origin);
-    lh_math_frect_set_size(self, size);
-}
-
-lh_void
-lh_math_frect_init_empty(lh_math_frect_t *self)
-{
-    lh_math_frect_init(self, 0, 0, 0, 0);
-}
-
-/* ── Accessors ───────────────────────────────────────────────────────────── */
-
 lh_math_fpoint_t *
 lh_math_frect_get_origin(lh_math_frect_t *self)
 {
@@ -86,6 +38,8 @@ lh_math_frect_get_size_as_const(const lh_math_frect_t *self)
     return lh_addr_of(self->size);
 }
 
+/* ── Accessors ───────────────────────────────────────────────────────────── */
+
 lh_void
 lh_math_frect_set_origin(lh_math_frect_t *self, lh_math_fpoint_t origin)
 {
@@ -98,6 +52,52 @@ lh_math_frect_set_size(lh_math_frect_t *self, lh_math_fsize_t size)
 {
     lh_assert_runtime_ref(self);
     lh_ptr_deref(lh_math_frect_get_size(self)) = size;
+}
+
+lh_void
+lh_math_frect_init_origin_size(lh_math_frect_t *self, lh_math_fpoint_t origin, lh_math_fsize_t size)
+{
+    lh_assert_runtime_ref(self);
+    lh_math_frect_set_origin(self, origin);
+    lh_math_frect_set_size(self, size);
+}
+
+lh_void
+lh_math_frect_init(lh_math_frect_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y, lh_math_fscalar_t width,
+                   lh_math_fscalar_t height)
+{
+    lh_math_fpoint_t origin;
+    lh_math_fpoint_init(lh_addr_of(origin), x, y);
+    lh_math_fsize_t size;
+    lh_math_fsize_init(lh_addr_of(size), width, height);
+    lh_math_frect_init_origin_size(self, origin, size);
+}
+
+lh_void
+lh_math_frect_init_empty(lh_math_frect_t *self)
+{
+    lh_math_frect_init(self, 0, 0, 0, 0);
+}
+
+lh_void
+lh_math_frect_from_extent(const lh_math_fpoint_t *min, const lh_math_fpoint_t *max, lh_math_frect_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_math_fsize_t size;
+    lh_assert_runtime_ref(min);
+    lh_assert_runtime_ref(max);
+    lh_math_fsize_from_extent(min, max, lh_addr_of(size));
+    if (lh_math_fsize_is_empty(lh_addr_of(size)))
+    {
+        lh_math_frect_t _lh_tmp;
+    lh_math_frect_init_empty(lh_addr_of(_lh_tmp));
+    *out = _lh_tmp;
+    return;
+    }
+    lh_math_frect_t result;
+    lh_math_frect_init_origin_size(lh_addr_of(result), lh_ptr_deref(min), size);
+    *out = result;
+    return;
 }
 
 lh_void
@@ -219,16 +219,6 @@ lh_math_frect_contains_point(const lh_math_frect_t *self, lh_math_fpoint_t point
 }
 
 lh_bool_t
-lh_math_frect_intersects(const lh_math_frect_t *a, const lh_math_frect_t *b)
-{
-    lh_math_frect_t overlap;
-    lh_assert_runtime_ref(a);
-    lh_assert_runtime_ref(b);
-    lh_math_frect_intersection(a, b, lh_addr_of(overlap));
-    return !lh_math_frect_is_empty(lh_addr_of(overlap));
-}
-
-lh_bool_t
 lh_math_frect_eq(const lh_math_frect_t *a, const lh_math_frect_t *b)
 {
     lh_return_if(a == b, lh_bool_true);
@@ -278,8 +268,6 @@ lh_math_frect_is_greater(const lh_math_frect_t *self, const lh_math_frect_t *oth
     return lh_math_frect_is_less(other, self);
 }
 
-/* ── Set ops ────────────────────────────────────────────────────────────── */
-
 lh_void
 lh_math_frect_intersection(const lh_math_frect_t *a, const lh_math_frect_t *b, lh_math_frect_t *out)
 {
@@ -299,6 +287,18 @@ lh_math_frect_intersection(const lh_math_frect_t *a, const lh_math_frect_t *b, l
     lh_math_frect_far_min(a, b, lh_addr_of(far));
     lh_math_frect_from_extent(lh_addr_of(origin), lh_addr_of(far), out);
     return;
+}
+
+/* ── Set ops ────────────────────────────────────────────────────────────── */
+
+lh_bool_t
+lh_math_frect_intersects(const lh_math_frect_t *a, const lh_math_frect_t *b)
+{
+    lh_math_frect_t overlap;
+    lh_assert_runtime_ref(a);
+    lh_assert_runtime_ref(b);
+    lh_math_frect_intersection(a, b, lh_addr_of(overlap));
+    return !lh_math_frect_is_empty(lh_addr_of(overlap));
 }
 
 lh_void

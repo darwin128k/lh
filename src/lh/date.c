@@ -48,33 +48,6 @@ lh_date_set(lh_date_t *self, lh_date_year_t year, lh_date_month_t month, lh_date
 }
 
 lh_void
-lh_date_assign(lh_date_t *self, const lh_date_t *other)
-{
-    lh_date_set(self, lh_date_get_year(other), lh_date_get_month(other), lh_date_get_day(other));
-}
-
-lh_date_day_t
-lh_date_max_days(const lh_date_t *self)
-{
-    return lh_date_days_in_month(lh_date_get_year(self), lh_date_get_month(self));
-}
-
-lh_s64_t
-lh_date_days_since_epoch(const lh_date_t *self)
-{
-    lh_date_year_t year;
-    lh_date_month_t month;
-    lh_s64_t days;
-
-    year = lh_date_get_year(self);
-    month = lh_date_get_month(self);
-    days = lh_math_sub(lh_date_year_days_from_zero(year), lh_date_year_days_from_zero(LH_DATE_EPOCH_YEAR));
-    days = lh_math_add(days, lh_cast_static(lh_s64_t, lh_date_days_before_month(year, month)));
-    days = lh_math_add(days, lh_math_sub_one(lh_cast_static(lh_s64_t, lh_date_get_day(self))));
-    return days;
-}
-
-lh_void
 lh_date_from_epoch_days(lh_s64_t days, lh_date_t *out)
 {
     lh_assert_runtime_ref(out);
@@ -98,6 +71,54 @@ lh_date_from_epoch_days(lh_s64_t days, lh_date_t *out)
                                                            lh_cast_static(lh_s64_t, lh_date_days_before_month(year, month))))));
     *out = date;
     return;
+}
+
+lh_date_year_t
+lh_date_get_year(const lh_date_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->year;
+}
+
+lh_date_month_t
+lh_date_get_month(const lh_date_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->month;
+}
+
+lh_date_day_t
+lh_date_max_days(const lh_date_t *self)
+{
+    return lh_date_days_in_month(lh_date_get_year(self), lh_date_get_month(self));
+}
+
+lh_date_day_t
+lh_date_get_day(const lh_date_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->day;
+}
+
+lh_void
+lh_date_assign(lh_date_t *self, const lh_date_t *other)
+{
+    lh_date_set(self, lh_date_get_year(other), lh_date_get_month(other), lh_date_get_day(other));
+}
+
+lh_s64_t
+lh_date_days_since_epoch(const lh_date_t *self)
+{
+    lh_date_year_t year;
+    lh_date_month_t month;
+    lh_s64_t days;
+
+    year = lh_date_get_year(self);
+    month = lh_date_get_month(self);
+    days = lh_math_sub(lh_date_year_days_from_zero(year), lh_date_year_days_from_zero(LH_DATE_EPOCH_YEAR));
+    days = lh_math_add(days, lh_cast_static(lh_s64_t, lh_date_days_before_month(year, month)));
+    days = lh_math_add(days, lh_math_sub_one(lh_cast_static(lh_s64_t, lh_date_get_day(self))));
+    return days;
 }
 
 lh_uint_t
@@ -200,27 +221,6 @@ lh_date_sub(lh_date_t *self, const lh_date_t *other)
     return lh_date_sub_custom(self, lh_cast_static(lh_uint_t, lh_date_get_year(other)),
                               lh_cast_static(lh_uint_t, lh_date_get_month(other)),
                               lh_cast_static(lh_uint_t, lh_date_get_day(other)));
-}
-
-lh_date_year_t
-lh_date_get_year(const lh_date_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->year;
-}
-
-lh_date_month_t
-lh_date_get_month(const lh_date_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->month;
-}
-
-lh_date_day_t
-lh_date_get_day(const lh_date_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->day;
 }
 
 lh_bool_t
