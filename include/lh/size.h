@@ -11,7 +11,7 @@
  *   - Other platforms: ::lh_slong_t / ::lh_ulong_t
  *
  * Limits (::LH_SSIZE_T_MIN, ::LH_SSIZE_T_MAX, ::LH_USIZE_T_MIN,
- * ::LH_USIZE_T_MAX, ::LH_SIZE_T_SIZE, ::LH_SSIZE_T_SIZE, ::LH_USIZE_T_SIZE)
+ * ::LH_USIZE_T_MAX, ::LH_SSIZE_T_SIZE, ::LH_USIZE_T_SIZE)
  * live in <lh/size/limits.h>.
  */
 

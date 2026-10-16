@@ -1,5 +1,6 @@
 #include <lh/str/split/next.h>
 #include <lh/assert.h>
+#include <lh/char/limits.h>
 #include <lh/memory.h>
 
 lh_bool_t

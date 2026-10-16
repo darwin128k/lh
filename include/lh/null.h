@@ -6,6 +6,7 @@
 #ifndef LH_NULL_H
 #define LH_NULL_H
 
+#include <lh/math/ops.h>
 #include <lh/ptr.h>
 
 /**
