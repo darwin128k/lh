@@ -184,7 +184,7 @@ lh_ui_color_blend(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_u32_t
 lh_ui_color_channel_t
 lh_ui_color_weight_to_alpha(lh_u32_t weight)
 {
-    return lh_cast_static(lh_ui_color_channel_t, (weight + LH_BYTE_T_MAX / 2U) / LH_BYTE_T_MAX);
+    return lh_cast_static(lh_ui_color_channel_t, lh_math_div_round(weight, LH_BYTE_T_MAX));
 }
 
 lh_u32_t
@@ -339,7 +339,7 @@ lh_ui_color_with_coverage(const lh_ui_color_t *color, lh_byte_t coverage, lh_ui_
     lh_ui_color_t result;
     lh_assert_runtime_ref(color);
     result = *color;
-    result.a = lh_cast_static(lh_ui_color_channel_t, (color->a * coverage + LH_BYTE_T_MAX / 2U) / LH_BYTE_T_MAX);
+    result.a = lh_cast_static(lh_ui_color_channel_t, lh_math_div_round(color->a * coverage, LH_BYTE_T_MAX));
     *out = result;
     return;
 }
