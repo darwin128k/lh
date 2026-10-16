@@ -391,7 +391,7 @@ lh_ui_layout_run_place_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *run
     /* ::lh_ui_rect_init_along measures `start` past the origin of its base, and
        the rects a child carries are absolute, so the slice is cut out of nothing
        and the two calls hand the child its own place. */
-    const lh_ui_rect_t nowhere = {0, 0, 0, 0};
+    const lh_ui_rect_t nowhere = {{0, 0}, {0, 0}};
     const lh_ui_insets_t *margin = lh_ui_place_get_margin(lh_ui_entity_get_place(child));
     const lh_ui_scalar_t before = lh_ui_insets_get_start(margin, self->axis);
     const lh_ui_scalar_t after = lh_ui_insets_get_end(margin, self->axis);

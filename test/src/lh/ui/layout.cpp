@@ -486,8 +486,6 @@ struct baseline_row
        so it is added first. Which child is first has to make no difference. */
     baseline_row(bool icon_first)
     {
-        lh_ui_place_t place;
-
         lh_ui_style_init(&box_style);
         lh_ui_style_set_padding(&box_style, lh_ui_scalar(2));
         lh_ui_style_init(&text_style);
