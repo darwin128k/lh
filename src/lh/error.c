@@ -1,5 +1,6 @@
 #include <lh/error.h>
 #include <lh/error/initializer.h>
+#include <lh/str/view/initializer.h>
 #include <lh/assert.h>
 
 lh_void
@@ -49,7 +50,7 @@ lh_error_assign(lh_error_t *self, const lh_error_t *other)
 lh_void
 lh_error_clear(lh_error_t *self)
 {
-    const lh_error_t empty_initializer = lh_error_empty_initializer();
+    const lh_error_t empty_initializer = lh_error_empty_initializer(lh_str_view_empty_initializer());
     lh_error_assign(self, lh_addr_of(empty_initializer));
 }
 
