@@ -13,6 +13,7 @@
 #                         (intrinsics + its "is SSE2 usable here" runtime check).
 #   LH_SIMD_HAVE_SSSE3 — same, for the SSSE3 tier.
 #   LH_SIMD_HAVE_AVX2  — same, for the AVX2 tier.
+#   LH_SIMD_HAVE_AESNI — same, for the AES-NI tier (AESENC / AESDEC / AESIMC).
 #
 # Both are plain (non-cache) variables — this is a toolchain fact, not a user
 # choice, same treatment as LH_IPO_SUPPORTED in the top-level CMakeLists.txt.
@@ -75,6 +76,24 @@ function(lh_check_simd)
             }
             int main(void) { char a[32] = {0}, b[32] = {0}; return f(a, b) + cpu_has_avx2(); }
         " LH_SIMD_HAVE_AVX2)
+
+        check_c_source_compiles("
+            #include <intrin.h>
+            #include <immintrin.h>
+            static int f(const char *a, const char *k) {
+                __m128i v = _mm_loadu_si128((const __m128i *)a);
+                __m128i rk = _mm_loadu_si128((const __m128i *)k);
+                v = _mm_aesenc_si128(v, rk);
+                v = _mm_aesdec_si128(v, _mm_aesimc_si128(rk));
+                return _mm_movemask_epi8(_mm_aesenclast_si128(v, rk));
+            }
+            static int cpu_has_aesni(void) {
+                int info[4];
+                __cpuid(info, 1);
+                return (info[2] >> 25) & 1;
+            }
+            int main(void) { char a[16] = {0}, k[16] = {0}; return f(a, k) + cpu_has_aesni(); }
+        " LH_SIMD_HAVE_AESNI)
     else ()
         # GCC/Clang: per-function __attribute__((target(...))) selects the ISA for
         # that function only; runtime gating uses __builtin_cpu_supports.
@@ -119,9 +138,26 @@ function(lh_check_simd)
                 return f(a, b) + __builtin_cpu_supports(\"avx2\");
             }
         " LH_SIMD_HAVE_AVX2)
+
+        check_c_source_compiles("
+            #include <immintrin.h>
+            __attribute__((target(\"aes,sse2\")))
+            static int f(const char *a, const char *k) {
+                __m128i v = _mm_loadu_si128((const __m128i *)a);
+                __m128i rk = _mm_loadu_si128((const __m128i *)k);
+                v = _mm_aesenc_si128(v, rk);
+                v = _mm_aesdec_si128(v, _mm_aesimc_si128(rk));
+                return _mm_movemask_epi8(_mm_aesenclast_si128(v, rk));
+            }
+            int main(void) {
+                char a[16] = {0}, k[16] = {0};
+                return f(a, k) + __builtin_cpu_supports(\"aes\");
+            }
+        " LH_SIMD_HAVE_AESNI)
     endif ()
 
     set(LH_SIMD_HAVE_SSE2 "${LH_SIMD_HAVE_SSE2}" PARENT_SCOPE)
     set(LH_SIMD_HAVE_SSSE3 "${LH_SIMD_HAVE_SSSE3}" PARENT_SCOPE)
     set(LH_SIMD_HAVE_AVX2 "${LH_SIMD_HAVE_AVX2}" PARENT_SCOPE)
+    set(LH_SIMD_HAVE_AESNI "${LH_SIMD_HAVE_AESNI}" PARENT_SCOPE)
 endfunction()

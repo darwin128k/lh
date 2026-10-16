@@ -5,12 +5,13 @@
  * Whether the compiler can even compile a given tier's intrinsics for this target
  * at all is a build-time toolchain fact — decided once, at CMake configure time, by
  * a compile-only probe (cmake/check_simd.cmake) and recorded as
- * `LH_LIBRARY_OPTION_SIMD_HAVE_{SSE2,SSSE3,AVX2}` in `lh/config.h`. Whether the CPU
+ * `LH_LIBRARY_OPTION_SIMD_HAVE_{SSE2,SSSE3,AVX2,AESNI}` in `lh/config.h`. Whether the CPU
  * actually running the resulting binary supports that tier is a separate,
  * runtime-only question — the two differ under cross-compilation, or simply
  * because a binary built for a wide baseline ends up running on older hardware.
- * ::lh_cpu_simd_has_sse2 / ::lh_cpu_simd_has_ssse3 / ::lh_cpu_simd_has_avx2 answer
- * that runtime question; all three are safe to call unconditionally and return
+ * ::lh_cpu_simd_has_sse2 / ::lh_cpu_simd_has_ssse3 / ::lh_cpu_simd_has_avx2 /
+ * ::lh_cpu_simd_has_aesni answer that runtime question; all four are safe to call
+ * unconditionally and return
  * ::lh_bool_false whenever the corresponding build-time option is off, regardless
  * of the actual CPU.
  */
@@ -62,6 +63,20 @@ lh_cpu_simd_has_ssse3(void);
  */
 lh_bool_t
 lh_cpu_simd_has_avx2(void);
+
+/**
+ * @brief Whether this CPU supports AES-NI (AESENC / AESDEC / AESIMC / AESKEYGENASSIST).
+ *
+ * AES-NI is never part of any baseline ISA, so this is always a real check: CPUID leaf
+ * 1 ECX bit 25. Like SSSE3 it works on XMM registers, so there is no separate
+ * OS-enablement (XCR0/XGETBV) check. Used by ::lh_crypto_rijndael_t to run 16-byte
+ * (AES) blocks in hardware.
+ *
+ * @return ::lh_bool_true if AES-NI is usable on this CPU, ::lh_bool_false otherwise
+ *         (including whenever `LH_LIBRARY_OPTION_SIMD_HAVE_AESNI` is off).
+ */
+lh_bool_t
+lh_cpu_simd_has_aesni(void);
 
 /**
  * @brief Whether this CPU has Enhanced REP MOVSB/STOSB (ERMS).

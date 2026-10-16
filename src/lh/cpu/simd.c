@@ -15,6 +15,7 @@
 #define LH_CPU_SIMD_CPUID_LEAF_EXTENDED_FEATURES 7 /* AVX2 / ERMS and newer */
 #define LH_CPU_SIMD_CPUID_EDX_SSE2_BIT 26
 #define LH_CPU_SIMD_CPUID_ECX_SSSE3_BIT 9
+#define LH_CPU_SIMD_CPUID_ECX_AESNI_BIT 25
 #define LH_CPU_SIMD_CPUID_ECX_OSXSAVE_BIT 27
 #define LH_CPU_SIMD_CPUID_ECX_AVX_BIT 28
 #define LH_CPU_SIMD_CPUID_EXTENDED_FEATURES_EBX_AVX2_BIT 5
@@ -22,7 +23,7 @@
 
 #if (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC) &&                                                 \
     (LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_SSSE3 ||                      \
-     LH_LIBRARY_OPTION_SIMD_HAVE_AVX2)
+     LH_LIBRARY_OPTION_SIMD_HAVE_AVX2 || LH_LIBRARY_OPTION_SIMD_HAVE_AESNI)
 #    include <intrin.h>
 
 /* _xgetbv's control-register index, and the XCR0 bits it reports back. */
@@ -126,6 +127,30 @@ lh_cpu_simd_has_avx2(void)
     return lh_cast_static(
         lh_bool_t, !lh_bit_disjoint(regs[LH_CPU_ID_EBX],
                                     lh_bit_mask(LH_CPU_SIMD_CPUID_EXTENDED_FEATURES_EBX_AVX2_BIT)));
+#    else
+    return lh_bool_false;
+#    endif
+#else
+    return lh_bool_false;
+#endif
+}
+
+lh_bool_t
+lh_cpu_simd_has_aesni(void)
+{
+#if LH_LIBRARY_OPTION_SIMD_HAVE_AESNI
+#    if LH_COMPILER_TYPE_IS_GCC_LIKE
+    return lh_cast_static(lh_bool_t, !!lh_compiler_cpu_has_feature("aes"));
+#    elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
+    /* XMM state only, like SSSE3 — no XCR0/XGETBV check. */
+    lh_u32_t regs[LH_CPU_ID_REGISTER_COUNT];
+    if (!lh_cpu_id(LH_CPU_SIMD_CPUID_LEAF_FEATURE_INFO, 0U, regs))
+    {
+        return lh_bool_false;
+    }
+    return lh_cast_static(lh_bool_t,
+                          !lh_bit_disjoint(regs[LH_CPU_ID_ECX],
+                                           lh_bit_mask(LH_CPU_SIMD_CPUID_ECX_AESNI_BIT)));
 #    else
     return lh_bool_false;
 #    endif
