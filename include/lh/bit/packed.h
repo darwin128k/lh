@@ -18,7 +18,6 @@
 #include <lh/attribute/force_inline.h>
 #include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/util/ptr.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -58,7 +57,8 @@ lh_bit_packed_get(const lh_byte_ptr row, lh_u32_t index, lh_u32_t bits)
 {
     const lh_u32_t bit = index * bits;
 
-    return lh_cast_static(lh_u32_t, row[bit / 8U] >> (8U - bits - bit % 8U)) & lh_bit_packed_max(bits);
+    return lh_cast_static(lh_u32_t, row[bit / 8U] >> (8U - bits - bit % 8U)) &
+           lh_bit_packed_max(bits);
 }
 
 LH_COMPILER_EXTERN_C_END
