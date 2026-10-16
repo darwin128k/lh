@@ -20,6 +20,7 @@
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/config.h>
 #include <lh/crypto/rijndael/mode.h>
 #include <lh/null.h>
 #include <lh/size.h>
@@ -61,11 +62,22 @@
 #define LH_CRYPTO_RIJNDAEL_EXPANDED_KEY_SIZE_MAX                                                   \
     (LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX * (LH_CRYPTO_RIJNDAEL_ROUND_COUNT_MAX + 1U))
 
+#if LH_LIBRARY_OPTION_SIMD_HAVE_AESNI
+/**
+ * @def LH_CRYPTO_RIJNDAEL_AESNI_DEC_KEY_SIZE_MAX
+ * @brief Bytes of the AES-NI decryption key schedule: block_min * (rounds_max + 1).
+ */
+#    define LH_CRYPTO_RIJNDAEL_AESNI_DEC_KEY_SIZE_MAX                                              \
+        (LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MIN * (LH_CRYPTO_RIJNDAEL_ROUND_COUNT_MAX + 1U))
+#endif
+
 /**
  * @struct lh_crypto_rijndael
  * @brief Rijndael session: expanded key, chaining value, and mode.
  *
  * Fields are the cipher state; treat them as opaque outside this module.
+ * The layout depends on ::LH_LIBRARY_OPTION_SIMD_HAVE_AESNI from the shared
+ * lh/config.h, so library and consumers must use the same config.h.
  */
 struct lh_crypto_rijndael
 {
@@ -74,6 +86,10 @@ struct lh_crypto_rijndael
     lh_usize_t round_count;         /**< Number of rounds for this key/block pair. */
     lh_byte_t expanded_key[LH_CRYPTO_RIJNDAEL_EXPANDED_KEY_SIZE_MAX]; /**< Round keys. */
     lh_byte_t chain[LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX]; /**< CBC/CFB chaining block. */
+#if LH_LIBRARY_OPTION_SIMD_HAVE_AESNI
+    /** AESDEC round keys: InvMixColumns of round keys 1..nr-1 (16-byte blocks on AES-NI only). */
+    lh_byte_t aesni_dec_key[LH_CRYPTO_RIJNDAEL_AESNI_DEC_KEY_SIZE_MAX];
+#endif
 };
 /** @copybrief lh_crypto_rijndael */
 typedef struct lh_crypto_rijndael lh_crypto_rijndael_t;
