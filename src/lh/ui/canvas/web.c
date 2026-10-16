@@ -468,6 +468,7 @@ const lh_ui_canvas_backend_t lh_ui_canvas_backend_web = {
     /* shadow */ web_shadow,
     /* blur */ lh_null,
     /* glass */ lh_null,
+    /* fill_colors */ lh_null,
 };
 
 lh_bool_t

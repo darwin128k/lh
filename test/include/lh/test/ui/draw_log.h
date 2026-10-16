@@ -122,7 +122,7 @@ draw_log_begin_area(lh_ptr context, const lh_ui_rect_t *area)
     {                                                                                               \
         nullptr, draw_log_begin_area, nullptr, nullptr, draw_log_fill_rect,                         \
             (round) ? draw_log_fill_round_rect : nullptr, (clip) ? draw_log_set_clip : nullptr,      \
-            (mask) ? draw_log_fill_mask : nullptr                                                    \
+            (mask) ? draw_log_fill_mask : nullptr, nullptr, nullptr, nullptr, nullptr               \
     }
 
 /** Backend for @p log: `fill_rect` always, the optional slots when asked. */

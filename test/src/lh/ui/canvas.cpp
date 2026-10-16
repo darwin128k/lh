@@ -50,7 +50,7 @@ log_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *col
 }
 
 const lh_ui_canvas_backend_t g_log_backend = {log_begin, nullptr, log_end, log_clear, log_fill_rect, nullptr,
-                                              nullptr,   nullptr};
+                                              nullptr,   nullptr, nullptr,  nullptr,  nullptr,       nullptr};
 
 /* A backend that clips (it has `set_clip`), so the canvas hands it whole rects
    and lets it cut them — the shape a desktop backend has. */
@@ -118,7 +118,7 @@ effect_end(lh_ptr context, const lh_ui_rects_t *drawn)
 const lh_ui_canvas_backend_t g_effect_backend = {nullptr,         effect_begin_area, effect_end,
                                                   nullptr,         nullptr,          effect_round,
                                                   effect_set_clip, nullptr,          nullptr,
-                                                  nullptr,         effect_glass};
+                                                  nullptr,         effect_glass,     nullptr};
 
 /* A strip frame: the buffer is the strip, so the space the backend draws in starts
    at the strip, and a sheet 40 rows tall crosses the line between two of them. This
@@ -286,7 +286,8 @@ const lh_ui_canvas_backend_t g_drawn_backend = {
     nullptr,          /* fill_mask    */
     nullptr,          /* shadow       */
     nullptr,          /* blur         */
-    nullptr           /* glass        */
+    nullptr,          /* glass        */
+    nullptr           /* fill_colors  */
 };
 
 /* The frame's drawn region reaches `end` as the clips the frame was cut to, in
@@ -445,7 +446,7 @@ target_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *
 }
 
 const lh_ui_canvas_backend_t g_target_backend = {nullptr, nullptr, nullptr, nullptr, target_fill_rect, nullptr,
-                                                   nullptr, nullptr};
+                                                   nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
 
 TEST(ui_canvas, round_rect_slot_gets_the_clamped_radius)
 {
@@ -802,7 +803,8 @@ TEST(ui_canvas, round_rect_across_the_clip_goes_through_the_cut_fallback)
     lh_ui_color_t color;
     /* Slot present but no set_clip: the canvas must cut, so it falls back. */
     const lh_ui_canvas_backend_t backend = {nullptr, nullptr, nullptr, nullptr, target_fill_rect,
-                                            lh_test::draw_log_fill_round_rect, nullptr, nullptr};
+                                            lh_test::draw_log_fill_round_rect, nullptr, nullptr,
+                                            nullptr, nullptr, nullptr, nullptr};
     const lh_ui_rect_t clip = rect_of(0, 0, 8, 16);
     const lh_ui_rect_t rect = rect_of(2, 3, 11, 9);
 
@@ -851,7 +853,8 @@ decline_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *ma
 
 /* Both GDI+-like slots present, both draw nothing this frame. */
 const lh_ui_canvas_backend_t g_declining_backend = {nullptr, nullptr, nullptr, nullptr, target_fill_rect,
-                                                      decline_round_rect, nullptr, decline_mask};
+                                                      decline_round_rect, nullptr, decline_mask,
+                                                      nullptr, nullptr, nullptr, nullptr};
 
 TEST(ui_canvas, round_rect_the_slot_declines_is_drawn_by_the_canvas)
 {

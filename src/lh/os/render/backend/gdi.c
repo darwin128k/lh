@@ -327,4 +327,5 @@ const lh_ui_canvas_backend_t lh_os_render_backend_gdi = {
     lh_os_render_backend_gdi_shadow,
     lh_os_render_backend_gdi_blur,
     lh_os_render_backend_gdi_glass,
+    lh_null,
 };

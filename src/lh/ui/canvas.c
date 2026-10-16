@@ -13,7 +13,8 @@
 /* ── Null backend ────────────────────────────────────────────────────────── */
 
 const lh_ui_canvas_backend_t lh_ui_canvas_backend_null = {
-    lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null};
+    lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null,
+    lh_null};
 
 /* ── Lifetime ────────────────────────────────────────────────────────────── */
 
