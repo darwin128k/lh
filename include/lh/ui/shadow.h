@@ -156,6 +156,14 @@ lh_ui_shadow_distance(lh_ui_scalar_t x, lh_ui_scalar_t y, const lh_ui_rect_t *re
 lh_byte_t
 lh_ui_shadow_falloff(lh_s32_t distance, lh_ui_scalar_t spread, lh_byte_t peak);
 
+/**
+ * @brief ::lh_ui_shadow_falloff in fixed point: @p distance and @p spread share one
+ *        fixed-point scale, and the result is rounded instead of truncated (what a
+ *        pixel center, half a pixel off the integer grid, is faded by).
+ */
+lh_byte_t
+lh_ui_shadow_falloff_sub(lh_s64_t distance, lh_s64_t spread, lh_byte_t peak);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_UI_SHADOW_H */

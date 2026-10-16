@@ -1430,6 +1430,46 @@ lh_memory_bounds_slice_init_by_other(lh_memory_bounds_slice_t *self,
                                      const lh_memory_bounds_slice_t *other);
 
 /**
+ * @brief Write the closed slice <tt>[begin, end]</tt> to @p out without validating it.
+ *
+ * @param begin First byte.
+ * @param end   Last byte.
+ * @param out   Receives the slice; must not be null.
+ */
+lh_void
+lh_memory_bounds_slice_return_unsafe(lh_ptr begin, lh_ptr end, lh_memory_bounds_slice_t *out);
+
+/**
+ * @brief Write the closed slice <tt>[begin, end]</tt> to @p out, validated like
+ *        ::lh_memory_view_slice_init.
+ *
+ * @param begin First byte.
+ * @param end   Last byte.
+ * @param out   Receives the slice; must not be null.
+ */
+lh_void
+lh_memory_bounds_slice_return_v(lh_ptr begin, lh_ptr end, lh_memory_bounds_slice_t *out);
+
+/**
+ * @brief Write the slice of @p size bytes from @p begin to @p out, validated like
+ *        ::lh_memory_view_slice_init_by_size.
+ *
+ * @param begin First byte.
+ * @param size  Byte count.
+ * @param out   Receives the slice; must not be null.
+ */
+lh_void
+lh_memory_bounds_slice_return_by_size(lh_ptr begin, lh_usize_t size, lh_memory_bounds_slice_t *out);
+
+/**
+ * @brief Write the empty slice to @p out.
+ *
+ * @param out Receives the slice; must not be null.
+ */
+lh_void
+lh_memory_bounds_slice_return_empty(lh_memory_bounds_slice_t *out);
+
+/**
  * @brief Swap @p self and @p other without range validation.
  *
  * The caller is responsible for ensuring both slices are meaningful.

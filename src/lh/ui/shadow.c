@@ -142,8 +142,8 @@ shadow_sd(lh_s64_t px, lh_s64_t py, const lh_ui_rect_t *rect, lh_ui_scalar_t rad
 /** @p distance and @p spread are in the same fixed point. The public falloff
    stays in whole pixels and truncates; this one is what a pixel center, which
    sits half a pixel off the integer grid, has to be faded by. */
-static lh_byte_t
-shadow_falloff_sub(lh_s64_t distance, lh_s64_t spread, lh_byte_t peak)
+lh_byte_t
+lh_ui_shadow_falloff_sub(lh_s64_t distance, lh_s64_t spread, lh_byte_t peak)
 {
     const lh_s64_t span = spread * 2;
     lh_s64_t fade;

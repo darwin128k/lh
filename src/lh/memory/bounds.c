@@ -550,7 +550,6 @@ lh_memory_bounds_return_of_view(const lh_memory_view_t *view, lh_memory_bounds_t
     return;
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_memory_bounds_return_v(lh_ptr begin, lh_ptr end, lh_memory_bounds_t *out)
 {
@@ -561,7 +560,6 @@ lh_memory_bounds_return_v(lh_ptr begin, lh_ptr end, lh_memory_bounds_t *out)
     return;
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_memory_bounds_return_by_size(lh_ptr begin, lh_usize_t size, lh_memory_bounds_t *out)
 {
@@ -572,7 +570,6 @@ lh_memory_bounds_return_by_size(lh_ptr begin, lh_usize_t size, lh_memory_bounds_
     return;
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_memory_bounds_return_empty(lh_memory_bounds_t *out)
 {

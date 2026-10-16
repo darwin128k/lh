@@ -1148,6 +1148,36 @@ lh_void
 lh_memory_bounds_init_by_other(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
 /**
+ * @brief Write the bounds <tt>[begin, end)</tt> to @p out, validated like
+ *        ::lh_memory_view_init.
+ *
+ * @param begin First byte.
+ * @param end   One past the last byte.
+ * @param out   Receives the bounds; must not be null.
+ */
+lh_void
+lh_memory_bounds_return_v(lh_ptr begin, lh_ptr end, lh_memory_bounds_t *out);
+
+/**
+ * @brief Write the bounds of @p size bytes from @p begin to @p out, validated
+ *        like ::lh_memory_view_init_by_size.
+ *
+ * @param begin First byte.
+ * @param size  Byte count.
+ * @param out   Receives the bounds; must not be null.
+ */
+lh_void
+lh_memory_bounds_return_by_size(lh_ptr begin, lh_usize_t size, lh_memory_bounds_t *out);
+
+/**
+ * @brief Write empty bounds to @p out.
+ *
+ * @param out Receives the bounds; must not be null.
+ */
+lh_void
+lh_memory_bounds_return_empty(lh_memory_bounds_t *out);
+
+/**
  * @brief Swap @p self and @p other without range validation.
  *
  * The caller is responsible for ensuring both bounds are meaningful.

@@ -589,7 +589,6 @@ lh_memory_view_slice_set_v(lh_memory_view_slice_t *self, const lh_ptr begin, con
     lh_memory_view_slice_assign_v(self, lh_addr_of(s));
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_memory_view_slice_return_unsafe(const lh_ptr begin, const lh_ptr end, lh_memory_view_slice_t *out)
 {
