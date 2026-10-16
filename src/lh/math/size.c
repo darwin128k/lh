@@ -62,8 +62,7 @@ lh_math_size_from_extent(const lh_math_point_t *min, const lh_math_point_t *max,
     lh_math_size_t s;
     lh_math_size_init(lh_addr_of(s), lh_math_point_get_x(max) - lh_math_point_get_x(min),
                       lh_math_point_get_y(max) - lh_math_point_get_y(min));
-    *out = s;
-    return;
+    lh_ptr_deref(out) = s;
 }
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
@@ -134,8 +133,7 @@ lh_math_size_min(const lh_math_size_t *a, const lh_math_size_t *b, lh_math_size_
     lh_assert_runtime_ref(b);
     lh_math_size_t s;
     lh_math_size_pairwise(lh_math_size, lh_math_min, a, b, lh_addr_of(s));
-    *out = s;
-    return;
+    lh_ptr_deref(out) = s;
 }
 
 lh_void
@@ -146,8 +144,7 @@ lh_math_size_max(const lh_math_size_t *a, const lh_math_size_t *b, lh_math_size_
     lh_assert_runtime_ref(b);
     lh_math_size_t s;
     lh_math_size_pairwise(lh_math_size, lh_math_max, a, b, lh_addr_of(s));
-    *out = s;
-    return;
+    lh_ptr_deref(out) = s;
 }
 
 lh_math_scalar_t
@@ -167,6 +164,5 @@ lh_math_size_inset(const lh_math_size_t *self, lh_math_scalar_t dx, lh_math_scal
     lh_math_size_t s;
     lh_math_size_init(lh_addr_of(s), lh_math_size_get_width(self) - dx - dx,
                       lh_math_size_get_height(self) - dy - dy);
-    *out = s;
-    return;
+    lh_ptr_deref(out) = s;
 }

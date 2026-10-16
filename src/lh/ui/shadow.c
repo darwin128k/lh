@@ -23,8 +23,7 @@ lh_ui_shadow_get_color(const lh_ui_shadow_t *self, lh_ui_color_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    *out = self->color;
-    return;
+    lh_ptr_deref(out) = self->color;
 }
 
 lh_bool_t
@@ -222,7 +221,7 @@ lh_ui_shadow_alpha_at(const lh_ui_shadow_t *self, lh_ui_scalar_t x, lh_ui_scalar
         return 0;
     }
 
-    shifted = *rect;
+    shifted = lh_ptr_deref(rect);
     /* ::lh_ui_rect_offset hands back the moved rect: it does not move its argument.
        Calling it for its effect left every shadow where its box was, whatever offset
        the style gave it. */

@@ -93,13 +93,12 @@ lh_math_rect_from_extent(const lh_math_point_t *min, const lh_math_point_t *max,
     {
         lh_math_rect_t _lh_tmp;
     lh_math_rect_init_empty(lh_addr_of(_lh_tmp));
-    *out = _lh_tmp;
+    lh_ptr_deref(out) = _lh_tmp;
     return;
     }
     lh_math_rect_t result;
     lh_math_rect_init_origin_size(lh_addr_of(result), lh_ptr_deref(min), size);
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_void
@@ -256,13 +255,12 @@ lh_math_rect_intersection(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_m
     {
         lh_math_rect_t _lh_tmp;
     lh_math_rect_init_empty(lh_addr_of(_lh_tmp));
-    *out = _lh_tmp;
+    lh_ptr_deref(out) = _lh_tmp;
     return;
     }
     lh_math_rect_origin_max(a, b, lh_addr_of(origin));
     lh_math_rect_far_min(a, b, lh_addr_of(far));
     lh_math_rect_from_extent(lh_addr_of(origin), lh_addr_of(far), out);
-    return;
 }
 
 /* ── Set ops ────────────────────────────────────────────────────────────── */
@@ -287,18 +285,17 @@ lh_math_rect_union(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_math_rec
     lh_assert_runtime_ref(b);
     if (lh_math_rect_is_empty(a))
     {
-        *out = lh_ptr_deref(b);
+        lh_ptr_deref(out) = lh_ptr_deref(b);
         return;
     }
     if (lh_math_rect_is_empty(b))
     {
-        *out = lh_ptr_deref(a);
+        lh_ptr_deref(out) = lh_ptr_deref(a);
         return;
     }
     lh_math_rect_origin_min(a, b, lh_addr_of(origin));
     lh_math_rect_far_max(a, b, lh_addr_of(far));
     lh_math_rect_from_extent(lh_addr_of(origin), lh_addr_of(far), out);
-    return;
 }
 
 lh_void
@@ -312,8 +309,7 @@ lh_math_rect_offset(const lh_math_rect_t *self, lh_math_scalar_t dx, lh_math_sca
     lh_math_rect_init_origin_size(
         lh_addr_of(result), point,
         lh_ptr_deref(lh_math_rect_get_size_as_const(self)));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_void
@@ -329,6 +325,5 @@ lh_math_rect_inset(const lh_math_rect_t *self, lh_math_scalar_t dx, lh_math_scal
     lh_math_rect_init_origin_size(
         lh_addr_of(result), point,
         size);
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }

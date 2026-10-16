@@ -68,6 +68,5 @@ lh_ui_text_align_get_origin(const lh_ui_rect_t *box, const lh_ui_insets_t *paddi
                          dx,
                      lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(box)) + lh_ui_insets_get_top((padding)) +
                          dy);
-    *out = origin;
-    return;
+    lh_ptr_deref(out) = origin;
 }

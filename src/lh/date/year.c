@@ -60,10 +60,10 @@ lh_date_year_add(lh_date_year_t *self, lh_uint_t value)
     lh_uint_t overflow;
 
     lh_assert_runtime_ref(self);
-    cur = lh_cast_static(lh_ullong_t, *self);
+    cur = lh_cast_static(lh_ullong_t, lh_ptr_deref(self));
     overflow = lh_interval_closed_wrap_add(&cur, lh_cast_static(lh_ullong_t, value), 0,
                                            lh_cast_static(lh_ullong_t, LH_DATE_YEAR_MAX));
-    *self = lh_cast_static(lh_date_year_t, cur);
+    lh_ptr_deref(self) = lh_cast_static(lh_date_year_t, cur);
     return overflow;
 }
 
@@ -74,10 +74,10 @@ lh_date_year_sub(lh_date_year_t *self, lh_uint_t value)
     lh_uint_t overflow;
 
     lh_assert_runtime_ref(self);
-    cur = lh_cast_static(lh_ullong_t, *self);
+    cur = lh_cast_static(lh_ullong_t, lh_ptr_deref(self));
     overflow = lh_interval_closed_wrap_sub(&cur, lh_cast_static(lh_ullong_t, value), 0,
                                            lh_cast_static(lh_ullong_t, LH_DATE_YEAR_MAX));
-    *self = lh_cast_static(lh_date_year_t, cur);
+    lh_ptr_deref(self) = lh_cast_static(lh_date_year_t, cur);
     return overflow;
 }
 

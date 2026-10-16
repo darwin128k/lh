@@ -36,8 +36,7 @@ lh_os_system_error_get_desc(const lh_os_system_error_t *self, lh_os_error_desc_t
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    *out = self->desc;
-    return;
+    lh_ptr_deref(out) = self->desc;
 }
 
 lh_void
@@ -126,8 +125,7 @@ lh_os_system_error_get_desc_or(const lh_os_system_error_t *self, lh_os_error_des
         lh_os_system_error_get_desc(self, out);
         return;
     }
-    *out = fallback;
-    return;
+    lh_ptr_deref(out) = fallback;
 }
 
 lh_bool_t

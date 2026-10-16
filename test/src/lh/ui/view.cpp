@@ -50,8 +50,8 @@ partial_probe_is_inside(const partial_probe *probe, const lh_ui_rect_t *buffer)
     lh_ui_rect_t window;
     lh_ui_rect_t part;
 
-    lh_ui_rect_init(lh_addr_of(window), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_size_get_width(lh_addr_of(*size)),
-                    lh_ui_size_get_height(lh_addr_of(*size)));
+    lh_ui_rect_init(lh_addr_of(window), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_size_get_width(lh_addr_of(lh_ptr_deref(size))),
+                    lh_ui_size_get_height(lh_addr_of(lh_ptr_deref(size))));
     lh_ui_rect_intersection(lh_addr_of(window), buffer, lh_addr_of(part));
     return lh_ui_rect_equals(lh_addr_of(part), buffer);
 }
@@ -74,10 +74,10 @@ partial_probe_begin_area(lh_ptr context, const lh_ui_rect_t *area)
     partial_probe *probe = lh_ptr_rcast(partial_probe, context);
     if (probe->area_count < partial_probe::capacity)
     {
-        probe->areas[probe->area_count] = *area;
+        probe->areas[probe->area_count] = lh_ptr_deref(area);
     }
     ++probe->area_count;
-    probe->area = *area;
+    probe->area = lh_ptr_deref(area);
 }
 
 void
@@ -140,7 +140,7 @@ partial_probe_init(partial_probe *probe)
 {
     lh_ui_size_t size;
 
-    *probe = partial_probe{};
+    lh_ptr_deref(probe) = partial_probe{};
     for (lh_u32_t &w : probe->words)
     {
         w = partial_probe::sentinel;
@@ -674,7 +674,7 @@ TEST(view, a_press_damages_what_both_looks_painted)
     ASSERT_NE(damage, nullptr);
     /* The panel is (0,0) 160x120 and its shadow reaches 9 rows past it: 6 of
        spread and 3 of shift. */
-    EXPECT_TRUE(rect_is(*damage, lh_test::rect_of(-9, -9, 178, 138)));
+    EXPECT_TRUE(rect_is(lh_ptr_deref(damage), lh_test::rect_of(-9, -9, 178, 138)));
 }
 
 /* One press at a time. A second pointer down while the first is still open lets
@@ -766,7 +766,7 @@ TEST(view, a_hover_damages_what_both_looks_painted)
     /* The button is (20,10) 40x24 and the hot shadow reaches 12 past it, the
        resting one only 9: the damage is the larger, or the fringe of the look
        being left stays on the surface. */
-    EXPECT_TRUE(rect_is(*damage, lh_test::rect_of(8, -2, 64, 48)));
+    EXPECT_TRUE(rect_is(lh_ptr_deref(damage), lh_test::rect_of(8, -2, 64, 48)));
 }
 
 TEST(view, a_strip_height_is_the_buffer_and_not_the_step)

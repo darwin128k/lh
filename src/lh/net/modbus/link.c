@@ -162,8 +162,8 @@ lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, lh_byte_cptr frame, lh_u16_t
            byte of every answer, which for a read is the top byte of the last
            register, and a number that is wrong in its last byte is a number that
            looks right. */
-        *pdu_length = lh_cast_static(lh_u16_t, (length - LH_MB_MBAP_HEAD));
-        lh_memory_std_copy(pdu, lh_addr_of(frame[7]), *pdu_length);
+        lh_ptr_deref(pdu_length) = lh_cast_static(lh_u16_t, (length - LH_MB_MBAP_HEAD));
+        lh_memory_std_copy(pdu, lh_addr_of(frame[7]), lh_ptr_deref(pdu_length));
         return lh_bool_true;
     }
     /* RTU: the CRC is checked before anything is taken out of the frame, for the
@@ -179,8 +179,8 @@ lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, lh_byte_cptr frame, lh_u16_t
     {
         return lh_bool_false;
     }
-    *pdu_length = lh_cast_static(lh_u16_t, (length - 3));
-    lh_memory_std_copy(pdu, lh_addr_of(frame[1]), *pdu_length);
+    lh_ptr_deref(pdu_length) = lh_cast_static(lh_u16_t, (length - 3));
+    lh_memory_std_copy(pdu, lh_addr_of(frame[1]), lh_ptr_deref(pdu_length));
     return lh_bool_true;
 }
 
@@ -193,7 +193,7 @@ lh_mb_link_init(lh_mb_link_t *self, const lh_io_stream_t *stream, lh_mb_framing_
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(stream);
 
-    lh_memory_std_set(lh_addr_of(*self), 0, sizeof(*self));
+    lh_memory_std_set(lh_addr_of(lh_ptr_deref(self)), 0, sizeof(lh_ptr_deref(self)));
     lh_io_stream_assign(lh_addr_of(self->stream), stream);
     self->framing = framing;
     self->unit = unit;
@@ -557,7 +557,7 @@ lh_mb_link_take(lh_mb_link_t *self, lh_u16_t *count)
     lh_return_ifn(self->state == lh_cast_static(lh_u8_t, lh_mb_link_answered), lh_ptr_ccast(lh_u16_t, lh_null));
     if (count != lh_null)
     {
-        *count = self->got;
+        lh_ptr_deref(count) = self->got;
     }
     return self->values;
 }

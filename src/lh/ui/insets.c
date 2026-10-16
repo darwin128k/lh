@@ -85,6 +85,5 @@ lh_ui_insets_shrink(const lh_ui_insets_t *self, const lh_ui_rect_t *rect, lh_ui_
     lh_ui_rect_init(lh_addr_of(inner), lh_ui_point_get_x(origin) + self->left, lh_ui_point_get_y(origin) + self->top,
                     lh_ui_scalar_slack(lh_ui_size_get_width(size) - self->left, self->right),
                     lh_ui_scalar_slack(lh_ui_size_get_height(size) - self->top, self->bottom));
-    *out = inner;
-    return;
+    lh_ptr_deref(out) = inner;
 }

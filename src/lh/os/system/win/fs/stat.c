@@ -69,7 +69,7 @@ lh_os_system_fs_is_symlink(lh_wstr_cptr path, lh_os_system_win_dword_t attrs, lh
 
     if (lh_math_is_zero(lh_bit_and(attrs, LH_OS_SYSTEM_WIN_FILE_ATTRIBUTE_REPARSE_POINT)))
     {
-        *out = lh_bool_false;
+        lh_ptr_deref(out) = lh_bool_false;
         return lh_bool_true;
     }
     const lh_os_system_win_handle_t find = FindFirstFileW(path, lh_addr_of(data));
@@ -79,7 +79,7 @@ lh_os_system_fs_is_symlink(lh_wstr_cptr path, lh_os_system_win_dword_t attrs, lh
         return lh_bool_false;
     }
     (void)FindClose(find);
-    *out = lh_os_system_fs_is_symlink_tag(attrs, data.dwReserved0);
+    lh_ptr_deref(out) = lh_os_system_fs_is_symlink_tag(attrs, data.dwReserved0);
     return lh_bool_true;
 }
 

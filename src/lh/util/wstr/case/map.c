@@ -4207,7 +4207,7 @@ lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n)
 
     lh_foreach(lh_wchar_t, p, str, n)
     {
-        lh_wchar_t c = *p;
+        lh_wchar_t c = lh_ptr_deref(p);
 
 #    if LH_WCHAR_T_MAX > 0xFFFF
         if (c > 0xFFFF)
@@ -4219,13 +4219,13 @@ lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n)
                                             m_wchar_to_lower_smp_table_size, c, first, result,
                                             found);
 
-            *p = found ? result.second : c;
+            lh_ptr_deref(p) = found ? result.second : c;
         }
         else
 #    endif /* LH_WCHAR_T_MAX > 0xFFFF */
         {
             const lh_u8_t block = m_wchar_to_lower_stage1[lh_cast_static(lh_usize_t, c) >> 8];
-            *p = (block == 0xFFU)
+            lh_ptr_deref(p) = (block == 0xFFU)
                      ? c
                      : lh_cast_static(lh_wchar_t,
                                       m_wchar_to_lower_stage2[lh_cast_static(lh_usize_t, block) *
@@ -4248,7 +4248,7 @@ lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n)
 
     lh_foreach(lh_wchar_t, p, str, n)
     {
-        lh_wchar_t c = *p;
+        lh_wchar_t c = lh_ptr_deref(p);
 
         lh_wchar_case_pair_t result;
         lh_bool_t found = lh_bool_false;
@@ -4256,7 +4256,7 @@ lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n)
         lh_interval_ropen_binary_search(lh_usize_t, m_wchar_to_lower_table, sz, c, first, result,
                                         found);
 
-        *p = found ? result.second : c;
+        lh_ptr_deref(p) = found ? result.second : c;
     }
 
     return str + n;
@@ -4272,7 +4272,7 @@ lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n)
 
     lh_foreach(lh_wchar_t, p, str, n)
     {
-        lh_wchar_t c = *p;
+        lh_wchar_t c = lh_ptr_deref(p);
 
 #    if LH_WCHAR_T_MAX > 0xFFFF
         if (c > 0xFFFF)
@@ -4284,13 +4284,13 @@ lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n)
                                             m_wchar_to_upper_smp_table_size, c, first, result,
                                             found);
 
-            *p = found ? result.second : c;
+            lh_ptr_deref(p) = found ? result.second : c;
         }
         else
 #    endif /* LH_WCHAR_T_MAX > 0xFFFF */
         {
             const lh_u8_t block = m_wchar_to_upper_stage1[lh_cast_static(lh_usize_t, c) >> 8];
-            *p = (block == 0xFFU)
+            lh_ptr_deref(p) = (block == 0xFFU)
                      ? c
                      : lh_cast_static(lh_wchar_t,
                                       m_wchar_to_upper_stage2[lh_cast_static(lh_usize_t, block) *
@@ -4313,7 +4313,7 @@ lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n)
 
     lh_foreach(lh_wchar_t, p, str, n)
     {
-        lh_wchar_t c = *p;
+        lh_wchar_t c = lh_ptr_deref(p);
 
         lh_wchar_case_pair_t result;
         lh_bool_t found = lh_bool_false;
@@ -4321,7 +4321,7 @@ lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n)
         lh_interval_ropen_binary_search(lh_usize_t, m_wchar_to_upper_table, sz, c, first, result,
                                         found);
 
-        *p = found ? result.second : c;
+        lh_ptr_deref(p) = found ? result.second : c;
     }
 
     return str + n;

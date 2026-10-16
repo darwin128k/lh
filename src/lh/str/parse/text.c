@@ -74,7 +74,7 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
             {
                 return 0;
             }
-            *out = str[in_pos];
+            lh_ptr_deref(out) = str[in_pos];
             in_pos++;
             break;
         }
@@ -134,7 +134,7 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
                 return 0;
             }
             in_pos = lh_math_add(in_pos, consumed);
-            *out = value;
+            lh_ptr_deref(out) = value;
             break;
         }
         case lh_str_scanf_spec_kind_sint:
@@ -166,12 +166,12 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
             in_pos = lh_math_add(in_pos, consumed);
             if (is_negative)
             {
-                *out = (magnitude == (0U - lh_cast_static(lh_uint_t, LH_SINT_T_MIN))) ? LH_SINT_T_MIN
+                lh_ptr_deref(out) = (magnitude == (0U - lh_cast_static(lh_uint_t, LH_SINT_T_MIN))) ? LH_SINT_T_MIN
                                                                       : -lh_cast_static(lh_sint_t, magnitude);
             }
             else
             {
-                *out = lh_cast_static(lh_sint_t, magnitude);
+                lh_ptr_deref(out) = lh_cast_static(lh_sint_t, magnitude);
             }
             break;
         }
@@ -188,7 +188,7 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
                 return 0;
             }
             in_pos = lh_math_add(in_pos, consumed);
-            *out = value;
+            lh_ptr_deref(out) = value;
             break;
         }
         default:

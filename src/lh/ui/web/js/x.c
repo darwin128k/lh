@@ -48,11 +48,11 @@ js_put_str_lit(lh_ui_web_buf_t *self, const lh_str_ptr s)
     lh_ui_web_buf_lit(self, "'", 1u);
     if (s != lh_null)
     {
-        while (*s != '\0')
+        while (lh_ptr_deref(s) != '\0')
         {
             lh_char_t c;
 
-            c = *s++;
+            c = lh_ptr_deref(s++);
             if (c == '\\' || c == '\'')
             {
                 lh_ui_web_buf_lit(self, "\\", 1u);

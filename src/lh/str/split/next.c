@@ -20,7 +20,7 @@ lh_str_ptr_split_next_of(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr delim
     lh_assert_runtime_ref(field_size);
     lh_assert_runtime_ref(had_delim);
 
-    start = *pos;
+    start = lh_ptr_deref(pos);
     if (start >= str_size)
     {
         return lh_bool_false;
@@ -37,18 +37,18 @@ lh_str_ptr_split_next_of(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr delim
         }
     }
 
-    *field = str + start;
+    lh_ptr_deref(field) = str + start;
     if (delim_at != lh_null)
     {
-        *field_size = lh_cast_static(lh_usize_t, delim_at - (str + start));
-        *had_delim = lh_bool_true;
-        *pos = start + *field_size + 1U;
+        lh_ptr_deref(field_size) = lh_cast_static(lh_usize_t, delim_at - (str + start));
+        lh_ptr_deref(had_delim) = lh_bool_true;
+        lh_ptr_deref(pos) = start + lh_ptr_deref(field_size) + 1U;
     }
     else
     {
-        *field_size = rest;
-        *had_delim = lh_bool_false;
-        *pos = str_size;
+        lh_ptr_deref(field_size) = rest;
+        lh_ptr_deref(had_delim) = lh_bool_false;
+        lh_ptr_deref(pos) = str_size;
     }
     return lh_bool_true;
 }

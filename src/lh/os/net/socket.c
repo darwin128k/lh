@@ -202,8 +202,7 @@ lh_os_net_socket_get_reader(lh_os_net_socket_t *self, lh_io_reader_t *out)
 
     lh_assert_runtime_ref(self);
     lh_io_reader_init(lh_addr_of(reader), lh_os_net_socket_recv, self);
-    *out = reader;
-    return;
+    lh_ptr_deref(out) = reader;
 }
 
 lh_void
@@ -214,8 +213,7 @@ lh_os_net_socket_get_writer(lh_os_net_socket_t *self, lh_io_writer_t *out)
 
     lh_assert_runtime_ref(self);
     lh_io_writer_init(lh_addr_of(writer), lh_os_net_socket_send, self);
-    *out = writer;
-    return;
+    lh_ptr_deref(out) = writer;
 }
 
 lh_void
@@ -229,8 +227,7 @@ lh_os_net_socket_get_stream(lh_os_net_socket_t *self, lh_io_stream_t *out)
 
     lh_io_stream_t stream;
     lh_io_stream_init(lh_addr_of(stream), lh_addr_of(reader), lh_addr_of(writer));
-    *out = stream;
-    return;
+    lh_ptr_deref(out) = stream;
 }
 
 lh_void
@@ -241,8 +238,7 @@ lh_os_net_socket_get_dgram_reader(lh_os_net_socket_t *self, lh_io_dgram_reader_t
 
     lh_assert_runtime_ref(self);
     lh_io_dgram_reader_init(lh_addr_of(reader), lh_os_net_socket_recvfrom, self);
-    *out = reader;
-    return;
+    lh_ptr_deref(out) = reader;
 }
 
 lh_void
@@ -253,8 +249,7 @@ lh_os_net_socket_get_dgram_writer(lh_os_net_socket_t *self, lh_io_dgram_writer_t
 
     lh_assert_runtime_ref(self);
     lh_io_dgram_writer_init(lh_addr_of(writer), lh_os_net_socket_sendto, self);
-    *out = writer;
-    return;
+    lh_ptr_deref(out) = writer;
 }
 
 lh_void
@@ -268,6 +263,5 @@ lh_os_net_socket_get_dgram(lh_os_net_socket_t *self, lh_io_dgram_t *out)
 
     lh_io_dgram_t dgram;
     lh_io_dgram_init(lh_addr_of(dgram), lh_addr_of(reader), lh_addr_of(writer));
-    *out = dgram;
-    return;
+    lh_ptr_deref(out) = dgram;
 }

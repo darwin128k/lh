@@ -50,8 +50,7 @@ lh_ui_surface_get_size(const lh_ui_surface_t *self, lh_ui_size_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    *out = self->size;
-    return;
+    lh_ptr_deref(out) = self->size;
 }
 
 lh_ui_pixmap_format_t

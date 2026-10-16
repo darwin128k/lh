@@ -50,7 +50,7 @@ lh_ui_transition_start(lh_ui_transition_t *self, struct lh_ui_entity *entity, co
     lh_assert_runtime_ref(to);
     /* Through a copy: @p from may be this slot's own look, and the look is about to
        be written. */
-    start = *from;
+    start = lh_ptr_deref(from);
     self->from = start;
     self->entity = entity;
     self->to = to;
@@ -71,7 +71,7 @@ lh_ui_transition_advance(lh_ui_transition_t *self, lh_u16_t ms)
     if (spent >= lh_cast_static(lh_u32_t, self->total))
     {
         self->elapsed = self->total;
-        self->look = *self->to;
+        self->look = lh_ptr_deref(self->to);
         return lh_bool_false;
     }
     self->elapsed = lh_cast_static(lh_u16_t, spent);

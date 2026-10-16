@@ -22,7 +22,7 @@ PacketBoxRecv(lh_self_ptr self, lh_ptr buf, lh_usize_t size, lh_net_ip4_socket_a
     PacketBox *box = static_cast<PacketBox *>(self);
     lh_usize_t to_copy = size < box->size ? size : box->size;
     std::memcpy(buf, box->data, to_copy);
-    *addr = box->peer;
+    lh_ptr_deref(addr) = box->peer;
     return static_cast<lh_ssize_t>(to_copy);
 }
 
@@ -32,7 +32,7 @@ PacketBoxSend(lh_self_ptr self, const lh_ptr buf, lh_usize_t size, const lh_net_
     PacketBox *box = static_cast<PacketBox *>(self);
     std::memcpy(box->data, buf, size);
     box->size = size;
-    box->peer = *addr;
+    box->peer = lh_ptr_deref(addr);
     return static_cast<lh_ssize_t>(size);
 }
 

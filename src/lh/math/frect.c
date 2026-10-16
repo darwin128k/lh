@@ -91,13 +91,12 @@ lh_math_frect_from_extent(const lh_math_fpoint_t *min, const lh_math_fpoint_t *m
     {
         lh_math_frect_t _lh_tmp;
     lh_math_frect_init_empty(lh_addr_of(_lh_tmp));
-    *out = _lh_tmp;
+    lh_ptr_deref(out) = _lh_tmp;
     return;
     }
     lh_math_frect_t result;
     lh_math_frect_init_origin_size(lh_addr_of(result), lh_ptr_deref(min), size);
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_void
@@ -172,8 +171,7 @@ lh_math_frect_to_rect(lh_math_frect_t self, lh_math_rect_t *out)
                               lh_math_frect_get_size_as_const(lh_addr_of(self))), lh_addr_of(size));
     lh_math_rect_set_size(lh_addr_of(r),
                           size);
-    *out = r;
-    return;
+    lh_ptr_deref(out) = r;
 }
 
 lh_void
@@ -191,8 +189,7 @@ lh_math_rect_to_frect(lh_math_rect_t self, lh_math_frect_t *out)
                                lh_math_rect_get_size_as_const(lh_addr_of(self))), lh_addr_of(fsize));
     lh_math_frect_set_size(lh_addr_of(r),
                            fsize);
-    *out = r;
-    return;
+    lh_ptr_deref(out) = r;
 }
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
@@ -280,13 +277,12 @@ lh_math_frect_intersection(const lh_math_frect_t *a, const lh_math_frect_t *b, l
     {
         lh_math_frect_t _lh_tmp;
     lh_math_frect_init_empty(lh_addr_of(_lh_tmp));
-    *out = _lh_tmp;
+    lh_ptr_deref(out) = _lh_tmp;
     return;
     }
     lh_math_frect_origin_max(a, b, lh_addr_of(origin));
     lh_math_frect_far_min(a, b, lh_addr_of(far));
     lh_math_frect_from_extent(lh_addr_of(origin), lh_addr_of(far), out);
-    return;
 }
 
 /* ── Set ops ────────────────────────────────────────────────────────────── */
@@ -311,18 +307,17 @@ lh_math_frect_union(const lh_math_frect_t *a, const lh_math_frect_t *b, lh_math_
     lh_assert_runtime_ref(b);
     if (lh_math_frect_is_empty(a))
     {
-        *out = lh_ptr_deref(b);
+        lh_ptr_deref(out) = lh_ptr_deref(b);
         return;
     }
     if (lh_math_frect_is_empty(b))
     {
-        *out = lh_ptr_deref(a);
+        lh_ptr_deref(out) = lh_ptr_deref(a);
         return;
     }
     lh_math_frect_origin_min(a, b, lh_addr_of(origin));
     lh_math_frect_far_max(a, b, lh_addr_of(far));
     lh_math_frect_from_extent(lh_addr_of(origin), lh_addr_of(far), out);
-    return;
 }
 
 lh_void
@@ -336,8 +331,7 @@ lh_math_frect_offset(const lh_math_frect_t *self, lh_math_fscalar_t dx, lh_math_
     lh_math_frect_init_origin_size(
         lh_addr_of(result), fpoint,
         lh_ptr_deref(lh_math_frect_get_size_as_const(self)));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_void
@@ -353,6 +347,5 @@ lh_math_frect_inset(const lh_math_frect_t *self, lh_math_fscalar_t dx, lh_math_f
     lh_math_frect_init_origin_size(
         lh_addr_of(result), fpoint,
         fsize);
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }

@@ -112,7 +112,7 @@ lh_net_ip4_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_ip4_t *out)
         lh_net_ip4_set_octet(lh_addr_of(result), octet_index, lh_cast_static(lh_u8_t, octet_value));
     }
 
-    *out = result;
+    lh_ptr_deref(out) = result;
     return lh_bool_true;
 }
 

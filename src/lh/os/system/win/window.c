@@ -101,8 +101,8 @@ lh_os_system_win_window_centered_origin(const lh_os_system_win_rect_t *window_re
     {
         /* Nothing said where to put it, so it goes where the system would have put
            it. A missing monitor is not a reason to open nothing. */
-        *x = LH_OS_SYSTEM_WIN_CW_USEDEFAULT;
-        *y = LH_OS_SYSTEM_WIN_CW_USEDEFAULT;
+        lh_ptr_deref(x) = LH_OS_SYSTEM_WIN_CW_USEDEFAULT;
+        lh_ptr_deref(y) = LH_OS_SYSTEM_WIN_CW_USEDEFAULT;
         return;
     }
 
@@ -112,8 +112,8 @@ lh_os_system_win_window_centered_origin(const lh_os_system_win_rect_t *window_re
     centered_y = monitor_info.work.top +
                  (monitor_info.work.bottom - monitor_info.work.top -
                   (window_rect->bottom - window_rect->top)) / 2;
-    *x = centered_x > monitor_info.work.left ? centered_x : monitor_info.work.left;
-    *y = centered_y > monitor_info.work.top ? centered_y : monitor_info.work.top;
+    lh_ptr_deref(x) = centered_x > monitor_info.work.left ? centered_x : monitor_info.work.left;
+    lh_ptr_deref(y) = centered_y > monitor_info.work.top ? centered_y : monitor_info.work.top;
 }
 
 lh_void
@@ -590,8 +590,8 @@ lh_os_system_window_get_client_size(lh_os_system_window_handle_t handle, int *wi
     lh_return_if(lh_null_eq(handle) || lh_null_eq(width) || lh_null_eq(height), lh_bool_false);
     hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
     lh_return_if(GetClientRect(hwnd, lh_addr_of(client)) == 0, lh_bool_false);
-    *width = client.right - client.left;
-    *height = client.bottom - client.top;
+    lh_ptr_deref(width) = client.right - client.left;
+    lh_ptr_deref(height) = client.bottom - client.top;
     return lh_bool_true;
 }
 
@@ -612,8 +612,8 @@ lh_os_system_window_get_paint_region(lh_ptr paint_dc, lh_u64_t *area, lh_u32_t *
     lh_bool_t ok = lh_bool_false;
 
     lh_return_if(lh_null_eq(area) || lh_null_eq(count), lh_bool_false);
-    *area = 0U;
-    *count = 0U;
+    lh_ptr_deref(area) = 0U;
+    lh_ptr_deref(count) = 0U;
     lh_return_if(lh_null_eq(paint_dc), lh_bool_false);
     rgn = CreateRectRgn(0, 0, 0, 0);
     lh_return_if(lh_null_eq(rgn), lh_bool_false);
@@ -635,10 +635,10 @@ lh_os_system_window_get_paint_region(lh_ptr paint_dc, lh_u64_t *area, lh_u32_t *
                                  lh_ptr_rcast(const lh_byte_t, buffer) + header->dwSize);
             for (i = 0U; i < header->nCount; ++i)
             {
-                *area += lh_cast_static(lh_u64_t, rects[i].right - rects[i].left) *
+                lh_ptr_deref(area) += lh_cast_static(lh_u64_t, rects[i].right - rects[i].left) *
                          lh_cast_static(lh_u64_t, rects[i].bottom - rects[i].top);
             }
-            *count = lh_cast_static(lh_u32_t, header->nCount);
+            lh_ptr_deref(count) = lh_cast_static(lh_u32_t, header->nCount);
             ok = lh_bool_true;
         }
     }
@@ -655,7 +655,7 @@ lh_os_system_window_get_position(lh_os_system_window_handle_t handle, int *x, in
     lh_return_if(lh_null_eq(handle) || lh_null_eq(x) || lh_null_eq(y), lh_bool_false);
     hwnd = lh_cast_reinterpret(lh_os_system_win_hwnd_t, handle);
     lh_return_if(GetWindowRect(hwnd, lh_addr_of(window)) == 0, lh_bool_false);
-    *x = window.left;
-    *y = window.top;
+    lh_ptr_deref(x) = window.left;
+    lh_ptr_deref(y) = window.top;
     return lh_bool_true;
 }

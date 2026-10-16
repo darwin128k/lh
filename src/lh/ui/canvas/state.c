@@ -65,9 +65,8 @@ lh_ui_canvas_state_cut(const lh_ui_canvas_state_t *self, const lh_ui_rect_t *tar
     }
     else
     {
-        *out = *target;
+        lh_ptr_deref(out) = lh_ptr_deref(target);
     }
-    return;
 }
 
 lh_void

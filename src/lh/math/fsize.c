@@ -63,8 +63,7 @@ lh_math_fsize_from_extent(const lh_math_fpoint_t *min, const lh_math_fpoint_t *m
     lh_math_fsize_t s;
     lh_math_fsize_init(lh_addr_of(s), lh_math_fpoint_get_x(max) - lh_math_fpoint_get_x(min),
                        lh_math_fpoint_get_y(max) - lh_math_fpoint_get_y(min));
-    *out = s;
-    return;
+    lh_ptr_deref(out) = s;
 }
 
 /* ── Conversions ─────────────────────────────────────────────────────────── */
@@ -77,8 +76,7 @@ lh_math_fsize_to_size(lh_math_fsize_t self, lh_math_size_t *out)
     lh_math_size_init(lh_addr_of(result),
                       lh_cast_static(lh_math_scalar_t, lh_math_fsize_get_width(lh_addr_of(self))),
                       lh_cast_static(lh_math_scalar_t, lh_math_fsize_get_height(lh_addr_of(self))));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_void
@@ -90,8 +88,7 @@ lh_math_size_to_fsize(lh_math_size_t self, lh_math_fsize_t *out)
         lh_addr_of(result),
         lh_cast_static(lh_math_fscalar_t, lh_math_size_get_width(lh_addr_of(self))),
         lh_cast_static(lh_math_fscalar_t, lh_math_size_get_height(lh_addr_of(self))));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
@@ -163,8 +160,7 @@ lh_math_fsize_min(const lh_math_fsize_t *a, const lh_math_fsize_t *b, lh_math_fs
     lh_assert_runtime_ref(b);
     lh_math_fsize_t result;
     lh_math_size_pairwise(lh_math_fsize, lh_math_min, a, b, lh_addr_of(result));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_void
@@ -175,8 +171,7 @@ lh_math_fsize_max(const lh_math_fsize_t *a, const lh_math_fsize_t *b, lh_math_fs
     lh_assert_runtime_ref(b);
     lh_math_fsize_t result;
     lh_math_size_pairwise(lh_math_fsize, lh_math_max, a, b, lh_addr_of(result));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_math_fscalar_t
@@ -196,6 +191,5 @@ lh_math_fsize_inset(const lh_math_fsize_t *self, lh_math_fscalar_t dx, lh_math_f
     lh_math_fsize_t result;
     lh_math_fsize_init(lh_addr_of(result), lh_math_fsize_get_width(self) - dx - dx,
                        lh_math_fsize_get_height(self) - dy - dy);
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }

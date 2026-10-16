@@ -170,7 +170,7 @@ mb_answer(lh_byte_t *adu, lh_u8_t unit, lh_u8_t fc, const lh_u16_t *values, lh_u
 
         adu[at] = (lh_byte_t)(crc & 0xFF);
         adu[at + 1] = (lh_byte_t)(crc >> 8);
-        *length = (lh_u16_t)(at + 2);
+        lh_ptr_deref(length) = (lh_u16_t)(at + 2);
     }
 }
 

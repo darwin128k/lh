@@ -95,8 +95,7 @@ lh_math_slice_get_sub(const lh_math_slice_t *self, lh_usize_t offset, lh_usize_t
 
     lh_assert_runtime_ifn(offset <= size && count <= size - offset, lh_runtime_error_code_out_of_range);
     lh_math_slice_init(lh_addr_of(sub), count == 0U ? lh_null : self->first + offset, count);
-    *out = sub;
-    return;
+    lh_ptr_deref(out) = sub;
 }
 
 lh_void

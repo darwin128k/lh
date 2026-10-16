@@ -14,6 +14,5 @@ lh_ui_web_html_attr(const lh_str_ptr name, const lh_str_ptr value, lh_ui_web_htm
 
     a.name = name;
     a.value = value;
-    *out = a;
-    return;
+    lh_ptr_deref(out) = a;
 }

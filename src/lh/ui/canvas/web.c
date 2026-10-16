@@ -163,7 +163,7 @@ web_atlas_find(const web_atlas_t *atlas, lh_byte_cptr px, unsigned n, int w, int
 
         if (id < 0)
         {
-            *slot = s;
+            lh_ptr_deref(slot) = s;
             return -1;
         }
         if (atlas->hash[id] == hash && atlas->w[id] == w && atlas->h[id] == h && atlas->len[id] == n &&
@@ -207,7 +207,7 @@ web_glyphs(lh_ui_canvas_web_t *self)
 {
     if (self->glyphs == lh_null)
     {
-        self->glyphs = lh_ptr_rcast(lh_ui_canvas_web_glyphs_t, lh_runtime_allocator_alloc(sizeof(*self->glyphs)));
+        self->glyphs = lh_ptr_rcast(lh_ui_canvas_web_glyphs_t, lh_runtime_allocator_alloc(sizeof(lh_ptr_deref(self->glyphs))));
         self->glyphs_owned = (self->glyphs != lh_null) ? lh_bool_true : lh_bool_false;
         lh_ui_canvas_web_glyphs_reset(self->glyphs);
     }
@@ -238,7 +238,7 @@ web_atlas_intern(lh_ui_canvas_web_t *self, lh_byte_cptr px, int w, int h, int *i
     unsigned slot = 0;
     int id;
 
-    *is_new = 1;
+    lh_ptr_deref(is_new) = 1;
     id = web_atlas_find(atlas, px, n, w, h, hash, lh_addr_of(slot));
     if (id < 0)
     {
@@ -255,7 +255,7 @@ web_atlas_intern(lh_ui_canvas_web_t *self, lh_byte_cptr px, int w, int h, int *i
     }
     if (glyphs->sent[id] != 0u)
     {
-        *is_new = 0;
+        lh_ptr_deref(is_new) = 0;
     }
     glyphs->sent[id] = 1u;
     return id;
@@ -478,7 +478,7 @@ lh_ui_canvas_web_open_mem(lh_ui_canvas_web_t *self, char *buf, lh_usize_t cap, u
     {
         return lh_bool_false;
     }
-    lh_memory_set(self, sizeof(*self), 0);
+    lh_memory_set(self, sizeof(lh_ptr_deref(self)), 0);
     web_reset(self, width, height);
     self->mem = buf;
     self->cap = cap;

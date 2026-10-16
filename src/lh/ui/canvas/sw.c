@@ -19,7 +19,7 @@ lh_ui_canvas_sw_set_pixmap(lh_ui_canvas_sw_t *self, const lh_ui_pixmap_t *pixmap
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(pixmap);
-    self->pixmap = *pixmap;
+    self->pixmap = lh_ptr_deref(pixmap);
     lh_ui_pixmap_get_bounds(pixmap, lh_addr_of(self->limit));
     lh_ui_canvas_clip_init_empty(lh_addr_of(self->clip));
 }
@@ -45,8 +45,7 @@ lh_ui_canvas_sw_get_limit(const lh_ui_canvas_sw_t *self, lh_ui_rect_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    *out = self->limit;
-    return;
+    lh_ptr_deref(out) = self->limit;
 }
 
 lh_bool_t
@@ -509,7 +508,7 @@ lh_ui_canvas_sw_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip)
     lh_ui_canvas_clip_init_empty(lh_addr_of(self->clip));
     self->limit = bounds;
     lh_return_if(lh_null_eq(clip));
-    self->clip = *clip;
+    self->clip = lh_ptr_deref(clip);
     lh_ui_rect_intersection(lh_addr_of(bounds), lh_ui_canvas_clip_get_rect(clip), lh_addr_of(self->limit));
 }
 

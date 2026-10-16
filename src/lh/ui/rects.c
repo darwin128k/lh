@@ -150,7 +150,7 @@ lh_ui_rects_add(lh_ui_rects_t *self, const lh_ui_rect_t *rect)
         lh_ui_rects_squeeze(self, rect);
         return;
     }
-    self->rects[self->count] = *rect;
+    self->rects[self->count] = lh_ptr_deref(rect);
     ++self->count;
     lh_ui_rects_close(self);
 }

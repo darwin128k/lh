@@ -79,8 +79,8 @@ lh_ui_canvas_round_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh
        through the per-pixel path, which is where the savings are — the square
        used to send the whole corner there, interior included. */
     lh_ui_radius_full_span(rect, radius, y, x0, x1);
-    *x0 = lh_math_max(*x0, left);
-    *x1 = lh_math_max(lh_math_min(*x1, right), *x0);
+    lh_ptr_deref(x0) = lh_math_max(lh_ptr_deref(x0), left);
+    lh_ptr_deref(x1) = lh_math_max(lh_math_min(lh_ptr_deref(x1), right), lh_ptr_deref(x0));
 }
 
 lh_void

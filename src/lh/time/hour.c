@@ -12,7 +12,7 @@ lh_time_hour_set(lh_time_hour_t *self, lh_uint_t value)
     lh_assert_runtime_ref(self);
     overflow = lh_interval_closed_wrap_set(&cur, lh_cast_static(lh_ullong_t, value), 0,
                                            lh_cast_static(lh_ullong_t, LH_TIME_HOUR_MAX));
-    *self = lh_cast_static(lh_time_hour_t, cur);
+    lh_ptr_deref(self) = lh_cast_static(lh_time_hour_t, cur);
     return overflow;
 }
 
@@ -20,14 +20,14 @@ lh_void
 lh_time_hour_init(lh_time_hour_t *self, lh_time_hour_t value)
 {
     lh_assert_runtime_ref(self);
-    *self = value;
+    lh_ptr_deref(self) = value;
 }
 
 lh_time_hour_t
 lh_time_hour_get(const lh_time_hour_t *self)
 {
     lh_assert_runtime_ref(self);
-    return *self;
+    return lh_ptr_deref(self);
 }
 
 lh_uint_t
@@ -38,7 +38,7 @@ lh_time_hour_add(lh_time_hour_t *self, lh_uint_t value)
 
     overflow = lh_interval_closed_wrap_add(&cur, lh_cast_static(lh_ullong_t, value), 0,
                                            lh_cast_static(lh_ullong_t, LH_TIME_HOUR_MAX));
-    *self = lh_cast_static(lh_time_hour_t, cur);
+    lh_ptr_deref(self) = lh_cast_static(lh_time_hour_t, cur);
     return overflow;
 }
 
@@ -50,7 +50,7 @@ lh_time_hour_sub(lh_time_hour_t *self, lh_uint_t value)
 
     overflow = lh_interval_closed_wrap_sub(&cur, lh_cast_static(lh_ullong_t, value), 0,
                                            lh_cast_static(lh_ullong_t, LH_TIME_HOUR_MAX));
-    *self = lh_cast_static(lh_time_hour_t, cur);
+    lh_ptr_deref(self) = lh_cast_static(lh_time_hour_t, cur);
     return overflow;
 }
 

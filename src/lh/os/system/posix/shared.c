@@ -18,8 +18,7 @@ lh_void
 lh_os_system_shared_get_ext(lh_str_view_t *out)
 {
     lh_assert_runtime_ref(out);
-    *out = lh_str_view_lit(".so");
-    return;
+    lh_ptr_deref(out) = lh_str_view_lit(".so");
 }
 
 /* Name of the image behind `map`. dladdr on its own dynamic section also

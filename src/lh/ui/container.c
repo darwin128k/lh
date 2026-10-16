@@ -14,7 +14,7 @@ lh_void
 lh_ui_container_on_focusable(const lh_ui_entity_event_t *event)
 {
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_focusable);
-    *lh_ui_entity_event_get_focusable(event) = lh_bool_true;
+    lh_ptr_deref(lh_ui_entity_event_get_focusable(event)) = lh_bool_true;
 }
 
 const lh_ui_layout_t *
@@ -77,8 +77,7 @@ lh_ui_container_get_viewport_size(const lh_ui_container_t *self, lh_ui_size_t *o
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    *out = *lh_ui_rect_get_size_as_const(lh_addr_of(self->entity.rect));
-    return;
+    lh_ptr_deref(out) = lh_ptr_deref(lh_ui_rect_get_size_as_const(lh_addr_of(self->entity.rect)));
 }
 
 lh_void
@@ -103,7 +102,7 @@ lh_ui_container_get_content_far(const lh_ui_container_t *self, lh_ui_point_t *ou
     lh_ui_entity_get_content_bounds(lh_addr_of(self->entity), lh_addr_of(bounds));
     if (lh_ui_rect_is_empty(lh_addr_of(bounds)))
     {
-        *out = *lh_ui_rect_get_origin_as_const(lh_addr_of(self->entity.rect));
+        lh_ptr_deref(out) = lh_ptr_deref(lh_ui_rect_get_origin_as_const(lh_addr_of(self->entity.rect)));
         return;
     }
     {
@@ -111,7 +110,6 @@ lh_ui_container_get_content_far(const lh_ui_container_t *self, lh_ui_point_t *ou
         lh_ui_rect_far(lh_addr_of(bounds), lh_addr_of(far));
         lh_ui_container_pad_far(self, far, out);
     }
-    return;
 }
 
 lh_void
@@ -217,8 +215,7 @@ lh_ui_container_get_key_delta(const lh_ui_container_t *self, const lh_ui_key_inp
     lh_ui_point_t delta;
 
     lh_ui_point_init(lh_addr_of(delta), across ? step : lh_ui_scalar(0), across ? lh_ui_scalar(0) : step);
-    *out = delta;
-    return;
+    lh_ptr_deref(out) = delta;
 }
 
 lh_void

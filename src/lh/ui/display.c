@@ -92,7 +92,7 @@ lh_ui_display_set_sink(lh_ui_display_t *self, lh_u32_t index, const lh_ui_presen
     {
         return;
     }
-    self->sinks[index] = *sink;
+    self->sinks[index] = lh_ptr_deref(sink);
     if (self->sink_count <= index)
     {
         self->sink_count = index + 1u;

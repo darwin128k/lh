@@ -84,8 +84,7 @@ lh_math_vec3_to_vec4(lh_math_vec3_t v, lh_float_t w, lh_math_vec4_t *out)
     lh_math_vec4_t result;
     lh_math_vec4_init(lh_addr_of(result), lh_math_vec3_get_x(lh_addr_of(v)),
                       lh_math_vec3_get_y(lh_addr_of(v)), lh_math_vec3_get_z(lh_addr_of(v)), w);
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_void
@@ -95,8 +94,7 @@ lh_math_vec4_to_vec3(lh_math_vec4_t v, lh_math_vec3_t *out)
     lh_math_vec3_t result;
     lh_math_vec3_init(lh_addr_of(result), lh_math_vec4_get_x(lh_addr_of(v)),
                       lh_math_vec4_get_y(lh_addr_of(v)), lh_math_vec4_get_z(lh_addr_of(v)));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_void
@@ -109,8 +107,7 @@ lh_math_vec4_add(lh_math_vec4_t a, lh_math_vec4_t b, lh_math_vec4_t *out)
                       lh_math_vec4_get_y(lh_addr_of(a)) + lh_math_vec4_get_y(lh_addr_of(b)),
                       lh_math_vec4_get_z(lh_addr_of(a)) + lh_math_vec4_get_z(lh_addr_of(b)),
                       lh_math_vec4_get_w(lh_addr_of(a)) + lh_math_vec4_get_w(lh_addr_of(b)));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_void
@@ -123,8 +120,7 @@ lh_math_vec4_sub(lh_math_vec4_t a, lh_math_vec4_t b, lh_math_vec4_t *out)
                       lh_math_vec4_get_y(lh_addr_of(a)) - lh_math_vec4_get_y(lh_addr_of(b)),
                       lh_math_vec4_get_z(lh_addr_of(a)) - lh_math_vec4_get_z(lh_addr_of(b)),
                       lh_math_vec4_get_w(lh_addr_of(a)) - lh_math_vec4_get_w(lh_addr_of(b)));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_void
@@ -135,8 +131,7 @@ lh_math_vec4_scale(lh_math_vec4_t v, lh_float_t s, lh_math_vec4_t *out)
     lh_math_vec4_init(lh_addr_of(result), lh_math_vec4_get_x(lh_addr_of(v)) * s,
                       lh_math_vec4_get_y(lh_addr_of(v)) * s, lh_math_vec4_get_z(lh_addr_of(v)) * s,
                       lh_math_vec4_get_w(lh_addr_of(v)) * s);
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_void
@@ -158,8 +153,7 @@ lh_math_vec4_neg(lh_math_vec4_t v, lh_math_vec4_t *out)
     lh_math_vec4_init(lh_addr_of(result), -lh_math_vec4_get_x(lh_addr_of(v)),
                       -lh_math_vec4_get_y(lh_addr_of(v)), -lh_math_vec4_get_z(lh_addr_of(v)),
                       -lh_math_vec4_get_w(lh_addr_of(v)));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 /* lh_math_vec4_view_of reads the vector as lh_float_t[4]: the components must
@@ -176,8 +170,7 @@ lh_math_vec4_view_of(const lh_math_vec4_t *v, lh_math_view_t *out)
 
     lh_math_slice_init(lh_addr_of(slice), lh_ptr_rcast(const lh_float_t, v), 4U);
     lh_math_view_init_by_slice(lh_addr_of(view), lh_addr_of(slice));
-    *out = view;
-    return;
+    lh_ptr_deref(out) = view;
 }
 
 lh_float_t
@@ -216,11 +209,10 @@ lh_math_vec4_normalize(lh_math_vec4_t v, lh_math_vec4_t *out)
     const lh_float_t length = lh_math_vec4_length(v);
     if (length == 0.0f)
     {
-        *out = v;
+        lh_ptr_deref(out) = v;
         return;
     }
     lh_math_vec4_scale(v, 1.0f / length, out);
-    return;
 }
 
 lh_void
@@ -238,8 +230,7 @@ lh_math_vec4_lerp(lh_math_vec4_t a, lh_math_vec4_t b, lh_float_t t, lh_math_vec4
             (lh_math_vec4_get_z(lh_addr_of(b)) - lh_math_vec4_get_z(lh_addr_of(a))) * t,
         lh_math_vec4_get_w(lh_addr_of(a)) +
             (lh_math_vec4_get_w(lh_addr_of(b)) - lh_math_vec4_get_w(lh_addr_of(a))) * t);
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_bool_t

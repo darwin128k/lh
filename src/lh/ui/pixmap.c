@@ -93,8 +93,7 @@ lh_ui_pixmap_get_bounds(const lh_ui_pixmap_t *self, lh_ui_rect_t *out)
 
     lh_assert_runtime_ref(self);
     lh_ui_rect_init(lh_addr_of(bounds), 0, 0, self->width, self->height);
-    *out = bounds;
-    return;
+    lh_ptr_deref(out) = bounds;
 }
 
 lh_byte_ptr
@@ -135,12 +134,11 @@ lh_ui_pixmap_unpack(const lh_ui_pixmap_t *self, lh_u32_t word, lh_ui_color_t *ou
     if (lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)))
     {
         lh_ui_color_init_rgb565(lh_addr_of(color), lh_ui_pixmap_order_16(self, word));
-        *out = color;
+        lh_ptr_deref(out) = color;
         return;
     }
     lh_ui_color_init_argb(lh_addr_of(color), word);
-    *out = color;
-    return;
+    lh_ptr_deref(out) = color;
 }
 
 lh_u32_t
@@ -159,10 +157,10 @@ lh_ui_pixmap_write_word(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_u32_t w
 
     if (lh_ui_pixmap_format_is_16(self->format))
     {
-        *lh_ptr_rcast(lh_u16_t, at) = lh_cast_static(lh_u16_t, word);
+        lh_ptr_deref(lh_ptr_rcast(lh_u16_t, at)) = lh_cast_static(lh_u16_t, word);
         return;
     }
-    *lh_ptr_rcast(lh_u32_t, at) = word;
+    lh_ptr_deref(lh_ptr_rcast(lh_u32_t, at)) = word;
 }
 
 lh_void
@@ -191,7 +189,7 @@ lh_ui_pixmap_store_words32(lh_u32_t *at, lh_usize_t count, lh_u32_t word)
     }
     for (; count > 0U; --count, ++at)
     {
-        *at = word;
+        lh_ptr_deref(at) = word;
     }
 }
 
@@ -205,7 +203,7 @@ lh_ui_pixmap_store_words16(lh_u16_t *at, lh_usize_t count, lh_u16_t word)
     }
     for (; count > 0U; --count, ++at)
     {
-        *at = word;
+        lh_ptr_deref(at) = word;
     }
 }
 

@@ -13,8 +13,7 @@ lh_ui_web_html_doctype(lh_ui_web_html_t *out)
     lh_ui_web_html_t n;
 
     n.kind = lh_ui_web_html_kind_doctype;
-    *out = n;
-    return;
+    lh_ptr_deref(out) = n;
 }
 
 lh_void
@@ -25,8 +24,7 @@ lh_ui_web_html_text(const lh_str_ptr s, lh_ui_web_html_t *out)
 
     n.kind = lh_ui_web_html_kind_text;
     n.u.text = s;
-    *out = n;
-    return;
+    lh_ptr_deref(out) = n;
 }
 
 lh_void
@@ -37,8 +35,7 @@ lh_ui_web_html_raw(const lh_str_ptr s, lh_ui_web_html_t *out)
 
     n.kind = lh_ui_web_html_kind_raw;
     n.u.raw = s;
-    *out = n;
-    return;
+    lh_ptr_deref(out) = n;
 }
 
 lh_void
@@ -56,8 +53,7 @@ lh_ui_web_html_tag(const lh_str_ptr name, const lh_ui_web_html_attr_t *attrs, lh
     n.u.tag.kids = kids;
     n.u.tag.nkids = nkids;
     n.u.tag.void_el = void_el;
-    *out = n;
-    return;
+    lh_ptr_deref(out) = n;
 }
 
 /** Append @p s as element text: `&`, `<` and `>` escaped. */
@@ -68,11 +64,11 @@ html_put_esc_text(lh_ui_web_buf_t *out, const lh_str_ptr s)
     {
         return;
     }
-    while (*s != '\0')
+    while (lh_ptr_deref(s) != '\0')
     {
         lh_char_t c;
 
-        c = *s++;
+        c = lh_ptr_deref(s++);
         if (c == '&')
         {
             lh_ui_web_buf_lit(out, "&amp;", 5u);
@@ -100,11 +96,11 @@ html_put_esc_attr(lh_ui_web_buf_t *out, const lh_str_ptr s)
     {
         return;
     }
-    while (*s != '\0')
+    while (lh_ptr_deref(s) != '\0')
     {
         lh_char_t c;
 
-        c = *s++;
+        c = lh_ptr_deref(s++);
         if (c == '&')
         {
             lh_ui_web_buf_lit(out, "&amp;", 5u);

@@ -69,7 +69,7 @@ effect_begin_area(lh_ptr context, const lh_ui_rect_t *area)
 {
     effect_log *log = lh_ptr_rcast(effect_log, context);
 
-    log->area = *area;
+    log->area = lh_ptr_deref(area);
     ++log->areas;
 }
 
@@ -91,7 +91,7 @@ effect_glass(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t corner, lh
     (void)tint;
     (void)scratch;
     (void)bytes;
-    log->at = *rect;
+    log->at = lh_ptr_deref(rect);
     ++log->glass;
     return lh_bool_true;
 }
@@ -103,7 +103,7 @@ effect_round(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, co
 
     (void)radius;
     (void)color;
-    log->at = *rect;
+    log->at = lh_ptr_deref(rect);
     ++log->round;
     return lh_bool_true;
 }
@@ -263,7 +263,7 @@ drawn_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip)
         ++log->unclips;
         return;
     }
-    log->last_clip = *clip;
+    log->last_clip = lh_ptr_deref(clip);
 }
 
 lh_void
@@ -272,7 +272,7 @@ drawn_end(lh_ptr context, const lh_ui_rects_t *drawn)
     drawn_log *log = lh_ptr_rcast(drawn_log, context);
 
     ++log->ends;
-    log->drawn = *drawn;
+    log->drawn = lh_ptr_deref(drawn);
 }
 
 const lh_ui_canvas_backend_t g_drawn_backend = {

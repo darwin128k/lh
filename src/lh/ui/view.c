@@ -29,7 +29,7 @@ lh_ui_view_add_damage(lh_ui_view_t *self, const lh_ui_rect_t *rect)
     lh_return_if(lh_ui_rect_is_empty(rect));
     if (!self->has_pending)
     {
-        self->pending = *rect;
+        self->pending = lh_ptr_deref(rect);
         self->has_pending = lh_bool_true;
         return;
     }
@@ -42,7 +42,7 @@ lh_ui_view_take_damage(lh_ui_view_t *self, lh_ui_rect_t *out)
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(out);
     lh_return_if(!self->has_pending, lh_bool_false);
-    *out = self->pending;
+    lh_ptr_deref(out) = self->pending;
     self->has_pending = lh_bool_false;
     lh_ui_rect_init_empty(lh_addr_of(self->pending));
     return lh_bool_true;
@@ -76,7 +76,7 @@ lh_ui_view_fit_canvas(lh_ui_view_t *self)
 
     lh_return_if(lh_null_eq(self->root));
     lh_ui_entity_get_rect(self->root, lh_addr_of(rect));
-    lh_ui_canvas_set_size(self->canvas, *lh_ui_rect_get_size_as_const(lh_addr_of(rect)));
+    lh_ui_canvas_set_size(self->canvas, lh_ptr_deref(lh_ui_rect_get_size_as_const(lh_addr_of(rect))));
 }
 
 lh_void
@@ -151,12 +151,11 @@ lh_ui_view_get_strip(const lh_ui_view_t *self, lh_ui_scalar_t index, lh_ui_rect_
     /* Past the last strip, and never a strip taller than the target itself. */
     if (height <= lh_ui_scalar(0) || index < lh_ui_scalar(0) || index * height >= whole)
     {
-        *out = strip;
+        lh_ptr_deref(out) = strip;
         return;
     }
     lh_ui_rect_init(lh_addr_of(strip), lh_ui_scalar(0), top, lh_ui_size_get_width(lh_addr_of(size)), height);
-    *out = strip;
-    return;
+    lh_ptr_deref(out) = strip;
 }
 
 lh_void
@@ -183,7 +182,7 @@ lh_ui_view_add_whole_area(lh_ui_view_t *self, const lh_ui_rect_t *rect)
     lh_assert_runtime_ref(rect);
     lh_return_if(lh_ui_rect_is_empty(rect), lh_bool_false);
     lh_return_if(self->whole_count >= LH_UI_VIEW_WHOLE_MAX, lh_bool_false);
-    self->whole[self->whole_count] = *rect;
+    self->whole[self->whole_count] = lh_ptr_deref(rect);
     ++self->whole_count;
     return lh_bool_true;
 }
@@ -447,8 +446,7 @@ lh_ui_view_slow_down(lh_ui_point_t velocity, lh_ui_point_t *out)
 
     lh_ui_point_init(lh_addr_of(slower), lh_ui_point_get_x(lh_addr_of(velocity)) * LH_UI_VIEW_THROW_KEEP / 100,
                      lh_ui_point_get_y(lh_addr_of(velocity)) * LH_UI_VIEW_THROW_KEEP / 100);
-    *out = slower;
-    return;
+    lh_ptr_deref(out) = slower;
 }
 
 lh_void

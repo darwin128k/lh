@@ -21,7 +21,7 @@ lh_ui_image_on_baseline(const lh_ui_image_t *self, const lh_ui_entity_event_t *e
 
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_baseline);
     answer = lh_ui_entity_event_get_baseline(lh_ptr_rcast(lh_ui_entity_event_t, event));
-    *answer = self->baseline;
+    lh_ptr_deref(answer) = self->baseline;
 }
 
 lh_void
@@ -97,7 +97,7 @@ lh_ui_image_set_tint(lh_ui_image_t *self, const lh_ui_color_t *tint)
 {
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(tint));
-    self->tint = *tint;
+    self->tint = lh_ptr_deref(tint);
 }
 
 lh_void
@@ -113,8 +113,7 @@ lh_ui_image_get_size(const lh_ui_image_t *self, lh_ui_size_t *out)
         lh_ui_size_init(lh_addr_of(size), lh_ui_scalar_of(lh_ui_mask_get_width(self->mask)),
                         lh_ui_scalar_of(lh_ui_mask_get_height(self->mask)));
     }
-    *out = size;
-    return;
+    lh_ptr_deref(out) = size;
 }
 
 lh_void
@@ -126,7 +125,7 @@ lh_ui_image_get_origin(const lh_ui_image_t *self, lh_ui_point_t *out)
     lh_ui_entity_get_rect(entity, lh_addr_of(rect));
     lh_ui_insets_t padding;
     lh_ui_entity_get_padding(entity, lh_addr_of(padding));
-    const lh_ui_point_t corner = *lh_ui_rect_get_origin_as_const(lh_addr_of(rect));
+    const lh_ui_point_t corner = lh_ptr_deref(lh_ui_rect_get_origin_as_const(lh_addr_of(rect)));
     lh_ui_point_t origin;
 
     /* The corner of the box, moved in by the padding: the picture is not
@@ -134,8 +133,7 @@ lh_ui_image_get_origin(const lh_ui_image_t *self, lh_ui_point_t *out)
     lh_ui_point_init(lh_addr_of(origin),
                      lh_ui_point_get_x(&corner) + lh_ui_insets_get_left(&padding),
                      lh_ui_point_get_y(&corner) + lh_ui_insets_get_top(&padding));
-    *out = origin;
-    return;
+    lh_ptr_deref(out) = origin;
 }
 
 /** @copydoc lh_ui_image_draw(const struct lh_ui_image *, struct lh_ui_canvas *) */

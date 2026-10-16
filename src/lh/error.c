@@ -35,8 +35,7 @@ lh_error_get_desc(const lh_error_t *self, lh_str_view_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    *out = self->desc;
-    return;
+    lh_ptr_deref(out) = self->desc;
 }
 
 lh_void
@@ -121,8 +120,7 @@ lh_error_get_desc_or(const lh_error_t *self, lh_str_view_t fallback, lh_str_view
         lh_error_get_desc(self, out);
         return;
     }
-    *out = fallback;
-    return;
+    lh_ptr_deref(out) = fallback;
 }
 
 lh_bool_t

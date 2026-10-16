@@ -11,7 +11,7 @@ lh_str_ptr_scanf_next(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out
     lh_assert_runtime_ref(pos);
     lh_assert_runtime_ref(out);
 
-    fmt_pos = *pos;
+    fmt_pos = lh_ptr_deref(pos);
 
     out->kind = lh_str_scanf_spec_kind_invalid;
     out->zero_pad = lh_bool_false;
@@ -38,7 +38,7 @@ lh_str_ptr_scanf_next(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out
         out->kind = lh_str_scanf_spec_kind_literal;
         out->literal = fmt + run_start;
         out->literal_size = fmt_pos - run_start;
-        *pos = fmt_pos;
+        lh_ptr_deref(pos) = fmt_pos;
         return lh_bool_true;
     }
 
@@ -66,7 +66,7 @@ lh_str_ptr_scanf_next(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out
     {
         if (!lh_char_digit_accumulate(lh_addr_of(out->width), lh_char_to_digit(fmt[fmt_pos])))
         {
-            *pos = fmt_pos;
+            lh_ptr_deref(pos) = fmt_pos;
             return lh_bool_true; /* kind stays invalid */
         }
         fmt_pos++;
@@ -81,7 +81,7 @@ lh_str_ptr_scanf_next(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out
             if (!lh_char_digit_accumulate(lh_addr_of(out->precision),
                                           lh_char_to_digit(fmt[fmt_pos])))
             {
-                *pos = fmt_pos;
+                lh_ptr_deref(pos) = fmt_pos;
                 return lh_bool_true;
             }
             fmt_pos++;
@@ -91,7 +91,7 @@ lh_str_ptr_scanf_next(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out
     spec = fmt[fmt_pos];
     if (spec == '\0')
     {
-        *pos = fmt_pos;
+        lh_ptr_deref(pos) = fmt_pos;
         return lh_bool_true; /* '%' at the end, no conversion */
     }
     fmt_pos++;
@@ -125,6 +125,6 @@ lh_str_ptr_scanf_next(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out
         break; /* kind stays invalid */
     }
 
-    *pos = fmt_pos;
+    lh_ptr_deref(pos) = fmt_pos;
     return lh_bool_true;
 }

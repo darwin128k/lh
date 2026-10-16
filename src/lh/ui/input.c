@@ -82,7 +82,7 @@ lh_ui_input_on_focusable(const lh_ui_entity_event_t *event)
        widget no person and no key can ever reach. The label underneath says no, which
        is right for a label; this is the one thing a field is and a label is not. */
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_focusable);
-    *lh_ui_entity_event_get_focusable(event) = lh_bool_true;
+    lh_ptr_deref(lh_ui_entity_event_get_focusable(event)) = lh_bool_true;
 }
 
 lh_ui_entity_t *
@@ -484,13 +484,13 @@ lh_ui_input_get_caret_rect(const lh_ui_input_t *self, lh_ui_rect_t *out)
     lh_ui_rect_init_empty(lh_addr_of(caret));
     if (lh_null_eq(self->buffer))
     {
-        *out = caret;
+        lh_ptr_deref(out) = caret;
         return;
     }
     font = lh_ui_label_get_font(lh_addr_of(self->label));
     if (lh_null_eq(font))
     {
-        *out = caret;
+        lh_ptr_deref(out) = caret;
         return;
     }
 
@@ -527,8 +527,7 @@ lh_ui_input_get_caret_rect(const lh_ui_input_t *self, lh_ui_rect_t *out)
        as visible as the one it was. */
     lh_ui_rect_init(lh_addr_of(caret), at, lh_ui_input_get_line_top(self, font), width,
                     lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font)));
-    *out = caret;
-    return;
+    lh_ptr_deref(out) = caret;
 }
 
 const lh_ui_color_t *
@@ -570,7 +569,7 @@ lh_ui_input_on_draw_caret(const lh_ui_input_t *self, const lh_ui_entity_event_t 
 
         lh_ui_color_init_argb(lh_addr_of(white), 0xFFFFFFFFU);
         (void)lh_ui_text_draw_code(canvas, font, lh_ui_text_next_code(lh_addr_of(at)),
-                                   *lh_ui_rect_get_origin_as_const(lh_addr_of(caret)),
+                                   lh_ptr_deref(lh_ui_rect_get_origin_as_const(lh_addr_of(caret))),
                                    lh_null_eq(under) ? lh_addr_of(white) : under);
     }
 }

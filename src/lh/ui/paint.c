@@ -31,7 +31,7 @@ lh_ui_paint_init_copy(lh_ui_paint_t *self, const lh_ui_paint_t *other)
 {
     lh_ui_paint_init(self);
     lh_return_if(lh_null_eq(other));
-    *self = *other;
+    lh_ptr_deref(self) = lh_ptr_deref(other);
 }
 
 lh_ui_paint_kind_t
@@ -65,7 +65,7 @@ lh_ui_paint_init_gradient(lh_ui_paint_t *self, const lh_ui_gradient_t *gradient)
     lh_return_if(lh_null_eq(gradient) || lh_ui_gradient_get_stop_count(gradient) == 0);
     self->kind = lh_ui_paint_kind_gradient;
     self->gradient = gradient;
-    self->color = *lh_ui_gradient_stop_get_color_as_const(lh_ui_gradient_get_stop_as_const(gradient, 0));
+    self->color = lh_ptr_deref(lh_ui_gradient_stop_get_color_as_const(lh_ui_gradient_get_stop_as_const(gradient, 0)));
 }
 
 const lh_ui_gradient_t *

@@ -16,12 +16,12 @@ lh_ui_text_next_code(const lh_char_t **cursor)
     lh_u32_t code;
     lh_u32_t left;
     lh_u32_t at;
-    const lh_byte_t first = lh_cast_static(lh_byte_t, **cursor);
+    const lh_byte_t first = lh_cast_static(lh_byte_t, lh_ptr_deref(lh_ptr_deref(cursor)));
 
     lh_return_if(first == 0U, 0U);
     if (first < 0x80U)
     {
-        ++*cursor;
+        ++lh_ptr_deref(cursor);
         return lh_cast_static(lh_u32_t, first);
     }
     /* UTF-8, and **this is the place to change it**: the lead byte says how many bytes
@@ -49,13 +49,13 @@ lh_ui_text_next_code(const lh_char_t **cursor)
         /* A continuation byte where a lead byte should be: a broken string, and one
            byte is as far as it is safe to go. Swallowing it would make the measuring
            below walk past a character nobody can see. */
-        ++*cursor;
+        ++lh_ptr_deref(cursor);
         return lh_cast_static(lh_u32_t, first);
     }
-    ++*cursor;
+    ++lh_ptr_deref(cursor);
     for (at = 0U; at < left; ++at)
     {
-        const lh_byte_t next = lh_cast_static(lh_byte_t, **cursor);
+        const lh_byte_t next = lh_cast_static(lh_byte_t, lh_ptr_deref(lh_ptr_deref(cursor)));
 
         if ((next & 0xC0U) != 0x80U)
         {
@@ -64,7 +64,7 @@ lh_ui_text_next_code(const lh_char_t **cursor)
             return code;
         }
         code = (code << 6) | lh_cast_static(lh_u32_t, next & 0x3FU);
-        ++*cursor;
+        ++lh_ptr_deref(cursor);
     }
     return code;
 }
@@ -311,8 +311,7 @@ lh_ui_text_get_ink_rect_wrapped(const lh_ui_font_t *font, const lh_char_t *text,
         lh_ui_rect_union(lh_addr_of(ink), lh_addr_of(line_ink), lh_addr_of(ink));
         down += line_height;
     }
-    *out = ink;
-    return;
+    lh_ptr_deref(out) = ink;
 }
 
 lh_void
@@ -356,8 +355,7 @@ lh_ui_text_get_line_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_point_get_x(lh_addr_of(origin)), lh_ui_point_get_y(lh_addr_of(origin)),
                     lh_ui_text_get_line_width(font, line),
                     lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font)));
-    *out = rect;
-    return;
+    lh_ptr_deref(out) = rect;
 }
 
 /* ── Drawing ─────────────────────────────────────────────────────────────── */
@@ -406,7 +404,7 @@ lh_ui_text_draw_laid_line(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, cons
        case asks the ink too. */
     if (!lh_ui_canvas_covers_rect(canvas, lh_addr_of(box)))
     {
-        lh_ui_text_line_t inked = *line;
+        lh_ui_text_line_t inked = lh_ptr_deref(line);
         lh_ui_rect_t ink;
 
         lh_ui_text_line_measure_ink(lh_addr_of(inked), font);

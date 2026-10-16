@@ -168,8 +168,7 @@ lh_time_from_seconds_of_day(lh_uint_t seconds, lh_time_t *out)
     lh_time_set(lh_addr_of(time), lh_cast_static(lh_time_hour_t, lh_math_div(seconds, LH_TIME_SECONDS_PER_HOUR)),
                lh_cast_static(lh_time_minute_t, lh_math_div(seconds_of_hour, LH_TIME_SECONDS_PER_MINUTE)),
                lh_cast_static(lh_time_second_t, lh_math_mod(seconds, LH_TIME_SECONDS_PER_MINUTE)));
-    *out = time;
-    return;
+    lh_ptr_deref(out) = time;
 }
 
 lh_bool_t

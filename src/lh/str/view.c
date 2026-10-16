@@ -258,11 +258,10 @@ lh_str_view_tail(const lh_str_view_t *self, lh_uoffset_t offset, lh_str_view_t *
            null pointer: views reject size 0, so init(lh_null) would die here. */
         lh_str_view_t _lh_tmp;
         lh_str_view_init_empty(lh_addr_of(_lh_tmp));
-        *out = _lh_tmp;
+        lh_ptr_deref(out) = _lh_tmp;
         return;
     }
     lh_str_view_from_offset(self, offset, lh_math_sub(size, offset), out);
-    return;
 }
 
 lh_void

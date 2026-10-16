@@ -25,7 +25,7 @@ lh_mb_crc16(lh_byte_cptr bytes, lh_u16_t length)
     {
         lh_u8_t bit;
 
-        crc ^= lh_cast_static(lh_u16_t, (*bytes));
+        crc ^= lh_cast_static(lh_u16_t, (lh_ptr_deref(bytes)));
         ++bytes;
         --length;
         for (bit = 0; bit < 8; ++bit)
@@ -158,11 +158,11 @@ lh_mb_parse_pdu(lh_byte_cptr pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect,
 
     if (out != lh_null)
     {
-        *out = 0;
+        lh_ptr_deref(out) = 0;
     }
     if (exception != lh_null)
     {
-        *exception = 0;
+        lh_ptr_deref(exception) = 0;
     }
     lh_return_if(lh_null_eq(pdu), lh_mb_status_garbage);
     /* The **exception first, and the length of an exception is two.** That is the
@@ -184,7 +184,7 @@ lh_mb_parse_pdu(lh_byte_cptr pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect,
     {
         if (exception != lh_null)
         {
-            *exception = pdu[1];
+            lh_ptr_deref(exception) = pdu[1];
         }
         return lh_mb_status_exception;
     }
@@ -221,7 +221,7 @@ lh_mb_parse_pdu(lh_byte_cptr pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect,
     }
     if (out != lh_null)
     {
-        *out = got;
+        lh_ptr_deref(out) = got;
     }
     return got < expect ? lh_mb_status_partial : lh_mb_status_ok;
 }
@@ -232,7 +232,7 @@ lh_mb_parse_pdu_write(lh_byte_cptr pdu, lh_u16_t length, lh_u16_t address, lh_u1
 {
     if (exception != lh_null)
     {
-        *exception = 0;
+        lh_ptr_deref(exception) = 0;
     }
     lh_return_if(lh_null_eq(pdu), lh_mb_status_garbage);
     /* The refusal first, for the reason ::lh_mb_parse_pdu gives: it is two bytes,
@@ -242,7 +242,7 @@ lh_mb_parse_pdu_write(lh_byte_cptr pdu, lh_u16_t length, lh_u16_t address, lh_u1
     {
         if (exception != lh_null)
         {
-            *exception = pdu[1];
+            lh_ptr_deref(exception) = pdu[1];
         }
         return lh_mb_status_exception;
     }
@@ -261,7 +261,7 @@ lh_mb_parse_pdu_write_one(lh_byte_cptr pdu, lh_u16_t length, lh_u16_t address, l
 {
     if (exception != lh_null)
     {
-        *exception = 0;
+        lh_ptr_deref(exception) = 0;
     }
     lh_return_if(lh_null_eq(pdu), lh_mb_status_garbage);
     lh_return_if(length < 2, lh_mb_status_short);
@@ -269,7 +269,7 @@ lh_mb_parse_pdu_write_one(lh_byte_cptr pdu, lh_u16_t length, lh_u16_t address, l
     {
         if (exception != lh_null)
         {
-            *exception = pdu[1];
+            lh_ptr_deref(exception) = pdu[1];
         }
         return lh_mb_status_exception;
     }
@@ -292,11 +292,11 @@ lh_mb_parse_read(lh_byte_cptr adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh
 
     if (out != lh_null)
     {
-        *out = 0;
+        lh_ptr_deref(out) = 0;
     }
     if (exception != lh_null)
     {
-        *exception = 0;
+        lh_ptr_deref(exception) = 0;
     }
     lh_return_if(lh_null_eq(adu), lh_mb_status_garbage);
     /* unit, code, reason: under that there is nothing to look at. */
@@ -322,7 +322,7 @@ lh_mb_parse_read(lh_byte_cptr adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh
     {
         if (exception != lh_null)
         {
-            *exception = adu[2];
+            lh_ptr_deref(exception) = adu[2];
         }
         return lh_mb_status_exception;
     }

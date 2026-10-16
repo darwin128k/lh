@@ -285,6 +285,6 @@ lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nod
             lh_ui_entity_add_child(nodes[row->parent], nodes[index]);
         }
     }
-    *root = tree;
+    lh_ptr_deref(root) = tree;
     return lh_bool_true;
 }

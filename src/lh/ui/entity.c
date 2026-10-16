@@ -27,8 +27,7 @@ lh_ui_entity_get_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    *out = self->rect;
-    return;
+    lh_ptr_deref(out) = self->rect;
 }
 
 const lh_ui_place_t *
@@ -43,7 +42,7 @@ lh_ui_entity_set_place(lh_ui_entity_t *self, const lh_ui_place_t *place)
 {
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(place));
-    self->place = *place;
+    self->place = lh_ptr_deref(place);
 }
 
 const lh_ui_style_t *
@@ -136,8 +135,7 @@ lh_ui_entity_get_padding(const lh_ui_entity_t *self, lh_ui_insets_t *out)
 
     lh_assert_runtime_ref(self);
     lh_ui_insets_init_all(lh_addr_of(none), lh_ui_scalar(0));
-    *out = lh_null_eq(self->style) ? none : *lh_ui_style_get_padding(self->style);
-    return;
+    lh_ptr_deref(out) = lh_null_eq(self->style) ? none : lh_ptr_deref(lh_ui_style_get_padding(self->style));
 }
 
 lh_bool_t
@@ -400,11 +398,10 @@ lh_ui_entity_extend_bounds(const lh_ui_entity_t *self, lh_ui_rect_t bounds, lh_u
     lh_assert_runtime_ref(self);
     if (self->hidden)
     {
-        *out = bounds;
+        lh_ptr_deref(out) = bounds;
         return;
     }
     lh_ui_rect_union(lh_addr_of(bounds), lh_addr_of(self->rect), out);
-    return;
 }
 
 lh_void
@@ -421,8 +418,7 @@ lh_ui_entity_get_children_bounds(const lh_ui_entity_t *self, lh_ui_rect_t *out)
     {
         lh_ui_entity_extend_bounds(child, bounds, lh_addr_of(bounds));
     }
-    *out = bounds;
-    return;
+    lh_ptr_deref(out) = bounds;
 }
 
 lh_ui_scalar_t
@@ -446,8 +442,7 @@ lh_ui_entity_get_measure_bounds(const lh_ui_entity_t *self, lh_ui_rect_t *out)
     lh_assert_runtime_ref(self);
     lh_ui_rect_init_empty(lh_addr_of(bounds));
     lh_ui_entity_send(self, lh_ui_entity_event_measure, lh_addr_of(bounds));
-    *out = bounds;
-    return;
+    lh_ptr_deref(out) = bounds;
 }
 
 lh_void
@@ -499,8 +494,7 @@ lh_ui_entity_get_root_offset(const lh_ui_entity_t *self, lh_ui_point_t *out)
     {
         lh_ui_entity_add_children_offset(self, total, lh_addr_of(total));
     }
-    *out = total;
-    return;
+    lh_ptr_deref(out) = total;
 }
 
 lh_void
@@ -631,7 +625,7 @@ lh_ui_entity_find_at_local(lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_poin
     hit = lh_ui_entity_find_child_at(self, point, local);
     lh_return_if(lh_null_ne(hit), hit);
     lh_return_if(!lh_ui_entity_contains_point(self, point), lh_null);
-    *local = point;
+    lh_ptr_deref(local) = point;
     return self;
 }
 
