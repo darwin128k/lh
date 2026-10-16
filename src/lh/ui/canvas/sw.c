@@ -3,25 +3,11 @@
  * @brief Implementation of `lh/ui/canvas/sw.h`.
  */
 
-#include <lh/assert/runtime.h>
 #include <lh/byte/limits.h>
-#include <lh/byte/ptr.h>
-#include <lh/math.h>
-#include <lh/math/isqrt.h>
 #include <lh/memory.h>
-#include <lh/null.h>
-#include <lh/cast/static.h>
 #include <lh/ui/blur.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/canvas/sw.h>
-#include <lh/ui/mask.h>
-#include <lh/ui/pixmap.h>
-#include <lh/ui/radius.h>
-#include <lh/ui/shadow.h>
-#include <lh/ui/shadow/ramp.h>
-#include <lh/ui/shadow/shape.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 /* ── Lifetime ────────────────────────────────────────────────────────────── */

@@ -1,10 +1,7 @@
 #include <lh/str/format/ullong.h>
 #include <lh/assert.h>
-#include <lh/byte.h>
-#include <lh/char.h>
 #include <lh/memory/std.h>
 #include <lh/str/format/uint.h>
-#include <lh/cast/static.h>
 
 /* 10^9 fits in ::lh_uint_t and is nine decimal digits — one call of
    ::lh_str_ptr_format_uint per chunk, not a second digit loop. */

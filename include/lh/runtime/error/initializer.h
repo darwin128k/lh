@@ -6,7 +6,6 @@
 #ifndef LH_RUNTIME_ERROR_INITIALIZER_H
 #define LH_RUNTIME_ERROR_INITIALIZER_H
 
-#include <lh/initializer.h>
 #include <lh/runtime/error/code.h>
 
 /**

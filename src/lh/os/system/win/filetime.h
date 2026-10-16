@@ -11,13 +11,9 @@
 #define LH_SRC_OS_SYSTEM_WIN_FILETIME_H
 
 #include <lh/attribute/static.h>
-#include <lh/cast/static.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/os/system/win/kernel32.h>
 #include <lh/timestamp.h>
 #include <lh/bit/half.h>
-#include <lh/math.h>
-#include <lh/math/floor.h>
 
 /** 100-ns intervals between the FILETIME epoch (1601-01-01) and the Unix
    epoch (1970-01-01) - a fixed, well-known constant. */

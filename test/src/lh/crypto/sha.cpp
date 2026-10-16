@@ -4,7 +4,6 @@
 
 #include <lh/crypto/sha.h>
 #include <lh/str/format/bytes.h>
-#include <lh/util/addr.h>
 
 namespace
 {

@@ -8,20 +8,9 @@
 
 #include <gtest/gtest.h>
 
-#include <lh/compiler/os.h>
-#include <lh/null.h>
 #include <lh/os/system/surface.h>
-#include <lh/ui/canvas.h>
 #include <lh/ui/canvas/sw.h>
-#include <lh/ui/color.h>
-#include <lh/ui/pixmap.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
-#include <lh/ui/size.h>
 #include <lh/ui/surface.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS
 

@@ -1,10 +1,7 @@
 ﻿#include <gtest/gtest.h>
 #include <type_traits>
 
-#include <lh/math/fpoint.h>
 #include <lh/math/fsize.h>
-#include <lh/math/point.h>
-#include <lh/math/fscalar.h>
 #include <lh/util/addr.h>
 #include <lh/test/out.h>
 

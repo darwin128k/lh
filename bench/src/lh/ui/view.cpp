@@ -13,8 +13,6 @@
 
 #include "screen.h"
 
-#include <lh/ui/point.h>
-
 #include <memory>
 
 using namespace lh_bench_ui;

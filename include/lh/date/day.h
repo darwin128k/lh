@@ -9,11 +9,8 @@
 #ifndef LH_DATE_DAY_H
 #define LH_DATE_DAY_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/date/month.h>
 #include <lh/date/year.h>
-#include <lh/numeric/fixed/types.h>
 
 /**
  * @typedef lh_date_day_t

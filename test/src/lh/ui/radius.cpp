@@ -1,11 +1,6 @@
 #include <gtest/gtest.h>
-#include <lh/bool.h>
-#include <lh/ui/point.h>
 
-#include <lh/math/isqrt.h>
 #include <lh/ui/radius.h>
-#include <lh/ui/rect.h>
-#include <lh/util/addr.h>
 
 namespace
 {

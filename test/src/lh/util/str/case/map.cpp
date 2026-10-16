@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include <lh/expect/death.h>
-#include <lh/null.h>
 #include <lh/util/str/ptr.h>
 
 namespace

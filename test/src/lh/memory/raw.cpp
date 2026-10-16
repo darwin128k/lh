@@ -3,7 +3,6 @@
 #include <lh/expect/death.h>
 #include <lh/memory/raw.h>
 #include <lh/null.h>
-#include <lh/size.h>
 
 namespace
 {

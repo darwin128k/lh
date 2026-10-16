@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <lh/math/div_round.h>
+#include <lh/math.h>
 #include <lh/math/scalar/centre.h>
 
 namespace
@@ -30,9 +30,9 @@ TEST(math_scalar_centre, half_up_far_side)
 
 TEST(math_div_round, half_up_non_negative)
 {
-    EXPECT_EQ(lh_math_div_round_u32(0U, 3U), 0U);
-    EXPECT_EQ(lh_math_div_round_u32(1U, 3U), 0U);
-    EXPECT_EQ(lh_math_div_round_u32(2U, 3U), 1U);
+    EXPECT_EQ(lh_math_div_round(0U, 3U), 0U);
+    EXPECT_EQ(lh_math_div_round(1U, 3U), 0U);
+    EXPECT_EQ(lh_math_div_round(2U, 3U), 1U);
     EXPECT_EQ(lh_math_div_round(10, 4), 3);
     EXPECT_EQ(lh_math_div_round(255 * 128, 256), 128);
 }

@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include <lh/numeric/parse/bytes.h>
-#include <lh/util/addr.h>
 
 TEST(numeric_parse_bytes, unpacks_four_bytes_high_first)
 {

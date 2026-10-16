@@ -14,7 +14,6 @@
 
 #include <lh/str/cstr.h>
 #include <lh/util/str/ptr.h>
-#include <lh/cast/static.h>
 
 lh_usize_t
 lh_str_len(lh_str_cptr str)

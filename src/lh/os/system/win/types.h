@@ -13,9 +13,7 @@
 #ifndef LH_SRC_OS_SYSTEM_WIN_TYPES_H
 #define LH_SRC_OS_SYSTEM_WIN_TYPES_H
 
-#include <lh/numeric/types.h>
 #include <lh/ptr.h>
-#include <lh/size.h>
 
 /* Win32 is LLP64 on every Windows target: long is 32-bit, so DWORD is
    `unsigned long`, exactly as <windows.h> spells it. */

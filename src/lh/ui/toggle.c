@@ -3,13 +3,7 @@
  * @brief Implementation of `lh/ui/toggle.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/null.h>
-#include <lh/ui/entity.h>
-#include <lh/ui/button.h>
 #include <lh/ui/toggle.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 const lh_ui_entity_class_t lh_ui_toggle_class = {

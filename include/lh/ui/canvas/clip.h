@@ -17,13 +17,8 @@
 #ifndef LH_UI_CANVAS_CLIP_H
 #define LH_UI_CANVAS_CLIP_H
 
-#include <lh/byte.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/ui/canvas/clip/fields.h>
 #include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_canvas_clip_round

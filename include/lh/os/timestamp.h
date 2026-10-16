@@ -21,8 +21,6 @@
 #ifndef LH_OS_TIMESTAMP_H
 #define LH_OS_TIMESTAMP_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/timestamp.h>
 

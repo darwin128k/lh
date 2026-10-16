@@ -15,22 +15,9 @@
 #ifndef LH_UI_CANVAS_H
 #define LH_UI_CANVAS_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
 #include <lh/ui/canvas/backend.h>
-#include <lh/ui/canvas/clip.h>
 #include <lh/ui/canvas/fields.h>
 #include <lh/ui/canvas/state.h>
-#include <lh/ui/color.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/rects.h>
-#include <lh/ui/scalar.h>
-#include <lh/ui/size.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_canvas

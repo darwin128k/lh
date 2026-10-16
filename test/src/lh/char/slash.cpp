@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <lh/char/map.h>
 #include <lh/char/slash.h>
 
 namespace

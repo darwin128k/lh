@@ -1,15 +1,9 @@
-#include <lh/os/shared.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
-#include <lh/cast/static.h>
-#include <lh/null.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
-#include <lh/os/fs/path.h>
 #include <lh/os/system/fs/path.h>
 #include <lh/os/system/shared.h>
-#include <lh/str.h>
-#include <lh/util/addr.h>
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
 

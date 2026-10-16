@@ -21,19 +21,9 @@
 #ifndef LH_UI_SCROLLBAR_H
 #define LH_UI_SCROLLBAR_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/ui/axis.h>
-#include <lh/ui/canvas.h>
-#include <lh/ui/entity.h>
 #include <lh/ui/container.h>
 #include <lh/ui/scrollbar/fields.h>
 #include <lh/ui/scrollbar/mode.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
-#include <lh/ui/style.h>
-#include <lh/void.h>
 
 /**
  * @def LH_UI_SCROLLBAR_THUMB_MIN

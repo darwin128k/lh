@@ -1,11 +1,6 @@
 #include <lh/wstr.h>
-#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
-#include <lh/null.h>
-#include <lh/util/addr.h>
-#include <lh/math.h>
-#include <lh/util/ptr.h>
 
 /* What an empty string with no buffer of its own reads as. */
 static const lh_wchar_t m_wstr_empty[1] = {0};

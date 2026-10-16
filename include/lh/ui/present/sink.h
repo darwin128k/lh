@@ -14,12 +14,9 @@
 #ifndef LH_UI_PRESENT_SINK_H
 #define LH_UI_PRESENT_SINK_H
 
-#include <lh/compiler/extern/c.h>
-#include <lh/ptr.h>
 #include <lh/ui/pixmap.h>
 #include <lh/ui/present/sink/fields.h>
 #include <lh/ui/rects.h>
-#include <lh/void.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

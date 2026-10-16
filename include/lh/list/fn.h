@@ -6,7 +6,6 @@
 #ifndef LH_LIST_FN_H
 #define LH_LIST_FN_H
 
-#include <lh/numeric/types.h>
 #include <lh/ptr.h>
 
 struct lh_list_node;

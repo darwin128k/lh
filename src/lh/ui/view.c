@@ -3,21 +3,7 @@
  * @brief Implementation of lh/ui/view.h — entity tree on an lh_ui_canvas_t.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/math.h>
-#include <lh/null.h>
-#include <lh/ui/button.h>
-#include <lh/ui/container.h>
-#include <lh/ui/scrollbar.h>
-#include <lh/ui/key.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/shadow.h>
-#include <lh/ui/size.h>
-#include <lh/ui/transition.h>
 #include <lh/ui/view.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 lh_void

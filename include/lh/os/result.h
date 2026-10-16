@@ -16,9 +16,7 @@
 #ifndef LH_OS_RESULT_H
 #define LH_OS_RESULT_H
 
-#include <lh/cast/static.h>
 #include <lh/io/pending.h>
-#include <lh/size.h>
 
 /**
  * @def LH_OS_RESULT_INVALID

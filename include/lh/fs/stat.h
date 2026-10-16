@@ -14,8 +14,6 @@
 #ifndef LH_FS_STAT_H
 #define LH_FS_STAT_H
 
-#include <lh/void.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/fs/attr.h>
 #include <lh/fs/kind.h>
 #include <lh/fs/perm.h>

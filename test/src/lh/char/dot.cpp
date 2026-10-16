@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include <lh/char/dot.h>
-#include <lh/char/map.h>
 
 namespace
 {

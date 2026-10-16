@@ -1,13 +1,5 @@
 #include <lh/timestamp.h>
-#include <lh/assert/runtime.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
-#include <lh/date.h>
-#include <lh/datetime.h>
-#include <lh/time.h>
-#include <lh/util/addr.h>
-#include <lh/math.h>
-#include <lh/math/floor.h>
 
 lh_s64_t
 lh_timestamp_floor_div(lh_s64_t a, lh_s64_t b)

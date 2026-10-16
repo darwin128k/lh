@@ -3,9 +3,7 @@
  * @brief Implementation of `lh/ui/layout/place.h`.
  */
 
-#include <lh/assert/runtime.h>
 #include <lh/ui/layout/place.h>
-#include <lh/util/addr.h>
 
 lh_void
 lh_ui_place_init(lh_ui_place_t *self, lh_ui_place_size_t size_mode, lh_ui_scalar_t size)

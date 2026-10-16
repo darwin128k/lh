@@ -7,7 +7,6 @@
 #define LH_WERROR_INITIALIZER_H
 
 #include <lh/error/code.h>
-#include <lh/initializer.h>
 
 /**
  * @def lh_werror_initializer(code, ...)

@@ -1,12 +1,5 @@
 #include <lh/wstr/view.h>
-#include <lh/assert/runtime.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
-#include <lh/null.h>
-#include <lh/util/addr.h>
-#include <lh/math.h>
-#include <lh/util/ptr.h>
-#include <lh/util/wstr/ptr.h>
 
 lh_void
 lh_wstr_view_init_by_size(lh_wstr_view_t *self, lh_wstr_cptr data, lh_usize_t size)

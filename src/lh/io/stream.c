@@ -1,8 +1,5 @@
 #include <lh/io/stream.h>
-#include <lh/assert/runtime.h>
 #include <lh/assert.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 
 lh_void
 lh_io_stream_init(lh_io_stream_t *self, const lh_io_reader_t *reader, const lh_io_writer_t *writer)

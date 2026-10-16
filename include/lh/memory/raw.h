@@ -13,7 +13,6 @@
 #ifndef LH_MEMORY_RAW_H
 #define LH_MEMORY_RAW_H
 
-#include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

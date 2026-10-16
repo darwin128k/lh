@@ -16,9 +16,6 @@ lh_usize_t g_test_alloc_last_size = 0;
 int g_test_alloc_calls = 0;
 int g_test_dealloc_calls = 0;
 
-#include <lh/compiler/extern/c.h>
-#include <lh/self.h>
-
 LH_COMPILER_EXTERN_C_BEGIN
 
 lh_ptr
@@ -439,7 +436,6 @@ TEST(memory_allocator_death, get_alloc_cb_null_self)
 {
     LH_EXPECT_DEATH((void)lh_memory_allocator_get_alloc_cb(nullptr));
 }
-
 
 /* Allocator failures are lh_runtime_check_* — they die in every build. */
 

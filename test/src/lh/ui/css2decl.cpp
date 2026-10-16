@@ -2,17 +2,7 @@
 
 #include <lh/test/ui/draw_log.h>
 
-#include <lh/null.h>
-#include <lh/ui/color.h>
-#include <lh/ui/container.h>
 #include <lh/ui/decl.h>
-#include <lh/ui/entity.h>
-#include <lh/ui/entity/transform.h>
-#include <lh/ui/label.h>
-#include <lh/ui/image.h>
-#include <lh/ui/style.h>
-#include <lh/ui/toggle.h>
-#include <lh/util/addr.h>
 #include <lh/test/out.h>
 
 /* Written into the build tree from css2decl.css by scripts/css2decl.py, and compiled

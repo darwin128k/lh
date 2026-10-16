@@ -1,16 +1,10 @@
 #include <lh/str/format/text.h>
 #include <lh/assert.h>
-#include <lh/bool.h>
-#include <lh/cast/static.h>
 #include <lh/memory/std.h>
-#include <lh/null.h>
-#include <lh/numeric/types.h>
 #include <lh/str/format/hex.h>
 #include <lh/str/format/sint.h>
 #include <lh/str/format/uint.h>
 #include <lh/str/scanf/next.h>
-#include <lh/util/addr.h>
-#include <lh/util/str/ptr.h>
 
 /* lh_sint_t/lh_uint_t are 32-bit; "-2147483648" (11 chars) is the longest
  * conversion this engine ever builds into a local buffer. %s bypasses this

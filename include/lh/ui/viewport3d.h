@@ -15,12 +15,8 @@
 #ifndef LH_UI_VIEWPORT3D_H
 #define LH_UI_VIEWPORT3D_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/ptr.h>
 #include <lh/ui/rect.h>
-#include <lh/void.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/viewport3d.h requires LH_LIBRARY_OPTION_UI"

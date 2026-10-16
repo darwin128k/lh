@@ -1,11 +1,4 @@
-#include <lh/memory/view.h>
-#include <lh/assert/runtime.h>
-#include <lh/memory/view/initializer.h>
-#include <lh/initializer.h>
 #include <lh/assert.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
-#include <lh/math.h>
 
 const lh_ptr
 lh_memory_view_get_begin(const lh_memory_view_t *self)

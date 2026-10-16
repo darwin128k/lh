@@ -15,9 +15,7 @@
 #ifndef LH_IO_READER_FN_H
 #define LH_IO_READER_FN_H
 
-#include <lh/ptr.h>
 #include <lh/self.h>
-#include <lh/size.h>
 
 /**
  * @typedef lh_io_reader_read_fn

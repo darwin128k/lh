@@ -7,8 +7,6 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/os/system/serial.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 lh_void

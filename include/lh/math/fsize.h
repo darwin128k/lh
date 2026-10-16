@@ -17,13 +17,8 @@
 #ifndef LH_MATH_FSIZE_H
 #define LH_MATH_FSIZE_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/math/size.h>
-#include <lh/math/size/fields.h>
 #include <lh/math/fpoint.h>
-#include <lh/math/fscalar.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_math_fsize

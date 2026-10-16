@@ -4,17 +4,11 @@
  */
 
 #include <lh/assert/runtime.h>
-#include <lh/bool.h>
 #include <lh/util/return.h>
-#include <lh/cast/static.h>
 #include <lh/config.h>
 #if LH_LIBRARY_OPTION_MATH_FPU
 #    include <lh/math/float/round.h>
 #endif
-#include <lh/math/point.h>
-#include <lh/math/size.h>
-#include <lh/null.h>
-#include <lh/math.h>
 
 /* ── init ────────────────────────────────────────────────────────────────── */
 

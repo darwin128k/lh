@@ -1,18 +1,12 @@
 #include <lh/os/system/fs/stat.h>
-#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
-#include <lh/cast/static.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
 #include <lh/os/system/win/filetime.h>
 #include <lh/os/system/win/fs/kind.h>
 #include <lh/os/system/win/kernel32.h>
-#include <lh/util/addr.h>
-#include <lh/bit.h>
 #include <lh/bit/half.h>
-#include <lh/math.h>
 
 LH_ATTRIBUTE_STATIC
 lh_fs_perm_t

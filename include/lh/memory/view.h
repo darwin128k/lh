@@ -35,7 +35,6 @@
 #ifndef LH_MEMORY_VIEW_H
 #define LH_MEMORY_VIEW_H
 
-#include <lh/void.h>
 #include <lh/memory/view/slice.h>
 
 /**

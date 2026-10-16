@@ -18,11 +18,7 @@
 #ifndef LH_RUNTIME_WRITER_H
 #define LH_RUNTIME_WRITER_H
 
-#include <lh/compiler/extern/c.h>
 #include <lh/io/writer.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
-#include <lh/str/ptr.h>
 
 #include <stdarg.h>
 

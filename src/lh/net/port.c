@@ -1,10 +1,6 @@
 #include <lh/net/port.h>
-#include <lh/assert/runtime.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
-#include <lh/math.h>
 #include <lh/str/parse/uint.h>
-#include <lh/util/addr.h>
 
 lh_bool_t
 lh_net_port_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_port_t *out)

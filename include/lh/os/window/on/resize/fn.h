@@ -9,7 +9,6 @@
 #define LH_OS_WINDOW_ON_RESIZE_FN_H
 
 #include <lh/ptr.h>
-#include <lh/void.h>
 
 struct lh_os_window;
 

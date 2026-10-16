@@ -14,15 +14,9 @@
 #ifndef LH_UI_FONT_H
 #define LH_UI_FONT_H
 
-#include <lh/bool.h>
-#include <lh/byte.h>
-#include <lh/byte/ptr.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/ui/font/fields.h>
 #include <lh/ui/font/range.h>
 #include <lh/ui/mask.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_font

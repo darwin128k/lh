@@ -6,10 +6,7 @@
 #ifndef LH_OS_WINDOW_FIELDS_H
 #define LH_OS_WINDOW_FIELDS_H
 
-#include <lh/bool.h>
 #include <lh/list.h>
-#include <lh/list/node.h>
-#include <lh/numeric/types.h>
 #include <lh/os/window/frame.h>
 #include <lh/os/window/on/click/cb.h>
 #include <lh/os/window/on/close/cb.h>
@@ -24,7 +21,6 @@
 #include <lh/os/window/on/tick/cb.h>
 #include <lh/os/window/on/wheel/cb.h>
 #include <lh/os/window/placement.h>
-#include <lh/ptr.h>
 
 /* Declared here and defined in `lh/ui/frame/stats.h`: a window holds a pointer to it
    and needs nothing else from the UI to do so. */

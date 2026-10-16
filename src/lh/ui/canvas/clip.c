@@ -3,14 +3,9 @@
  * @brief Implementation of `lh/ui/canvas/clip.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/math.h>
-#include <lh/null.h>
-#include <lh/runtime/error/code.h>
 #include <lh/ui/canvas/clip.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/radius.h>
-#include <lh/util/addr.h>
 
 /* ── One rounded cut ─────────────────────────────────────────────────────── */
 

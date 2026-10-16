@@ -8,9 +8,7 @@
 #ifndef LH_IO_WRITER_FN_H
 #define LH_IO_WRITER_FN_H
 
-#include <lh/ptr.h>
 #include <lh/self.h>
-#include <lh/size.h>
 
 /**
  * @typedef lh_io_writer_write_fn

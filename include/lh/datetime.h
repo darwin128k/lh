@@ -11,13 +11,8 @@
 #ifndef LH_DATETIME_H
 #define LH_DATETIME_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/date.h>
 #include <lh/datetime/view/fields.h>
-#include <lh/size.h>
-#include <lh/str/ptr.h>
 #include <lh/time.h>
 
 /**

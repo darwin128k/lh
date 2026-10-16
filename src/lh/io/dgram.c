@@ -1,8 +1,5 @@
 #include <lh/io/dgram.h>
-#include <lh/assert/runtime.h>
 #include <lh/assert.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 
 lh_void
 lh_io_dgram_init(lh_io_dgram_t *self, const lh_io_dgram_reader_t *reader,

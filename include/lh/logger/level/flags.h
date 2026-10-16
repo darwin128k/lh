@@ -10,7 +10,6 @@
 #ifndef LH_LOGGER_LEVEL_FLAGS_H
 #define LH_LOGGER_LEVEL_FLAGS_H
 
-#include <lh/byte.h>
 #include <lh/logger/level.h>
 #include <lh/bit.h>
 

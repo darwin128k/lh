@@ -3,14 +3,7 @@
  * @brief Implementation of `lh/ui/insets.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/bool.h>
-#include <lh/math.h>
 #include <lh/ui/insets.h>
-#include <lh/ui/point.h>
-#include <lh/ui/scalar.h>
-#include <lh/ui/size.h>
-#include <lh/util/addr.h>
 
 lh_void
 lh_ui_insets_init(lh_ui_insets_t *self, lh_ui_scalar_t left, lh_ui_scalar_t top, lh_ui_scalar_t right,

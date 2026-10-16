@@ -22,12 +22,7 @@
 #ifndef LH_UI_RECTS_H
 #define LH_UI_RECTS_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
-#include <lh/void.h>
 
 /**
  * @def LH_UI_RECTS_MAX

@@ -8,12 +8,9 @@
 #ifndef LH_UI_WEB_JS_X_H
 #define LH_UI_WEB_JS_X_H
 
-#include <lh/str/ptr.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/ui/web/buf.h>
 #include <lh/ui/web/x.h>
-#include <lh/void.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/web/js/x.h requires LH_LIBRARY_OPTION_UI"

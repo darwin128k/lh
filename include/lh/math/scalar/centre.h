@@ -14,10 +14,26 @@
 
 #include <lh/attribute/force_inline.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/math.h>
+#include <lh/math/ops.h>
 #include <lh/math/scalar.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @def lh_math_slack(room, own)
+ * @brief `max(0, room - own)` for any arithmetic type; the one slack formula
+ *        (::lh_math_scalar_slack, ::lh_ui_scalar_slack). Arguments are
+ *        evaluated more than once.
+ */
+#define lh_math_slack(room, own) lh_math_max(lh_math_sub((room), (own)), 0)
+
+/**
+ * @def lh_math_centre_half(room, own)
+ * @brief `(room - own + 1) / 2` for any arithmetic type, before truncation and
+ *        the zero clamp: the one centring formula (::lh_math_scalar_centre,
+ *        ::lh_ui_scalar_centre).
+ */
+#define lh_math_centre_half(room, own) lh_math_div(lh_math_add(lh_math_sub((room), (own)), 1), 2)
 
 /**
  * @brief Non-negative leftover room: `max(0, room - own)`.
@@ -26,7 +42,7 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_math_scalar_t
 lh_math_scalar_slack(lh_math_scalar_t room, lh_math_scalar_t own)
 {
-    return lh_math_max(lh_math_sub(room, own), 0);
+    return lh_math_slack(room, own);
 }
 
 /**
@@ -40,7 +56,7 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_math_scalar_t
 lh_math_scalar_centre(lh_math_scalar_t room, lh_math_scalar_t own)
 {
-    return lh_math_max(lh_math_div(lh_math_add(lh_math_sub(room, own), 1), 2), 0);
+    return lh_math_max(lh_math_centre_half(room, own), 0);
 }
 
 LH_COMPILER_EXTERN_C_END

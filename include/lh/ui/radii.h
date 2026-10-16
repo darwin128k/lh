@@ -15,13 +15,8 @@
 #ifndef LH_UI_RADII_H
 #define LH_UI_RADII_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/types.h>
 #include <lh/ui/radii/fields.h>
 #include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_radii

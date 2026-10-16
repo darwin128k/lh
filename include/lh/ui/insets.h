@@ -10,13 +10,8 @@
 #ifndef LH_UI_INSETS_H
 #define LH_UI_INSETS_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/ui/axis.h>
 #include <lh/ui/insets/fields.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_insets

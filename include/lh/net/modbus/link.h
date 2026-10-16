@@ -30,16 +30,8 @@
 #ifndef LH_NET_MODBUS_LINK_H
 #define LH_NET_MODBUS_LINK_H
 
-#include <lh/bool.h>
-#include <lh/byte/ptr.h>
 #include <lh/net/modbus.h>
-#include <lh/char.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/io/stream.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/util/ptr.h>
-#include <lh/void.h>
-#include <lh/cast/static.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

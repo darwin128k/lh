@@ -19,7 +19,6 @@
 #ifndef LH_RUNTIME_ALLOCATOR_H
 #define LH_RUNTIME_ALLOCATOR_H
 
-#include <lh/void.h>
 #include <lh/memory/allocator.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

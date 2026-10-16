@@ -20,22 +20,8 @@
 #ifndef LH_OS_RENDER_BACKEND_GDI_H
 #define LH_OS_RENDER_BACKEND_GDI_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/compiler/os.h>
 #include <lh/config.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/os/system/window/handle.h>
-#include <lh/ptr.h>
-#include <lh/ui/canvas.h>
-#include <lh/ui/canvas/sw.h>
-#include <lh/ui/color.h>
-#include <lh/ui/mask.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
-#include <lh/ui/surface.h>
-#include <lh/void.h>
 
 #include <lh/os/render/backend/gdi/fields.h>
 

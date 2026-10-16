@@ -1,9 +1,5 @@
 #include <lh/logger.h>
 #include <lh/assert.h>
-#include <lh/null.h>
-#include <lh/runtime/error.h>
-#include <lh/bit.h>
-#include <lh/util/ptr.h>
 
 lh_void
 lh_logger_set(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emergency_cb,

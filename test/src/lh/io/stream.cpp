@@ -4,7 +4,6 @@
 #include <string>
 
 #include <lh/io/stream.h>
-#include <lh/self.h>
 #include <lh/test/out.h>
 
 namespace

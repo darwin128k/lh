@@ -21,7 +21,6 @@
 #ifndef LH_RUNTIME_LOGGER_H
 #define LH_RUNTIME_LOGGER_H
 
-#include <lh/compiler/extern/c.h>
 #include <lh/logger.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

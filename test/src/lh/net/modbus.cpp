@@ -3,8 +3,6 @@
 #include <cstring>
 
 #include <lh/net/modbus.h>
-#include <lh/null.h>
-#include <lh/util/addr.h>
 
 #include <cstdio>
 

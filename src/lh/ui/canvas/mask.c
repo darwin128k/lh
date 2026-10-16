@@ -3,12 +3,9 @@
  * @brief Implementation of `lh/ui/canvas/mask.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/null.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/canvas/mask.h>
 #include <lh/ui/canvas/round.h>
-#include <lh/util/addr.h>
 #include <lh/util/return.h>
 
 lh_void

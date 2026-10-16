@@ -15,7 +15,6 @@
 #define LH_VOID_PTR_H
 
 #include <lh/addr.h>
-#include <lh/void.h>
 #include <lh/cast/reinterpret.h>
 
 /**

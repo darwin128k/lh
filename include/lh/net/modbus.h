@@ -26,12 +26,7 @@
 #ifndef LH_NET_MODBUS_H
 #define LH_NET_MODBUS_H
 
-#include <lh/bool.h>
-#include <lh/byte.h>
 #include <lh/byte/ptr.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/cast/static.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

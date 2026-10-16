@@ -18,14 +18,8 @@
 #ifndef LH_MATH_VEC4_H
 #define LH_MATH_VEC4_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/float.h>
-#include <lh/math/fscalar.h>
 #include <lh/math/vec3.h>
 #include <lh/math/vec4/fields.h>
-#include <lh/math/view.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_math_vec4

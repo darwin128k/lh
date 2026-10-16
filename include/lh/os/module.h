@@ -31,18 +31,11 @@
 #ifndef LH_OS_MODULE_H
 #define LH_OS_MODULE_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/fs/path.h>
 #include <lh/list/node.h>
 #include <lh/os/module/fields.h>
 #include <lh/os/module/ops.h>
 #include <lh/os/shared.h>
-#include <lh/os/system/shared/handle.h>
-#include <lh/ptr.h>
-#include <lh/str/ptr.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/module.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

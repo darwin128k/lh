@@ -7,7 +7,6 @@
 #define LH_MEMORY_TYPED_INITIALIZER_H
 
 #include <lh/memory/bounds/initializer.h>
-#include <lh/math.h>
 #include <lh/util/ptr.h>
 
 /**

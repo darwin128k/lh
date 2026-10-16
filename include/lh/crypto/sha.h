@@ -10,13 +10,8 @@
 #ifndef LH_CRYPTO_SHA_H
 #define LH_CRYPTO_SHA_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/crypto/sha/kind.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/ptr.h>
-#include <lh/size.h>
 
 /**
  * @def LH_CRYPTO_SHA1_DIGEST_SIZE

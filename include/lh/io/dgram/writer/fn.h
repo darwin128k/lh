@@ -13,9 +13,7 @@
 #define LH_IO_DGRAM_WRITER_FN_H
 
 #include <lh/net/socket/addr/ip4.h>
-#include <lh/ptr.h>
 #include <lh/self.h>
-#include <lh/size.h>
 
 /**
  * @typedef lh_io_dgram_writer_send_fn

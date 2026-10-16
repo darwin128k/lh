@@ -1,10 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/expect/death.h>
-#include <lh/math/vec2.h>
-#include <lh/math/vec3.h>
 #include <lh/math/vec4.h>
-#include <lh/math/view.h>
 #include <lh/util/addr.h>
 
 #include <cmath>

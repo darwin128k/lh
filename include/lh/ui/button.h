@@ -24,18 +24,9 @@
 #ifndef LH_UI_BUTTON_H
 #define LH_UI_BUTTON_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/ptr.h>
-#include <lh/ui/entity.h>
 #include <lh/ui/container.h>
 #include <lh/ui/button/fields.h>
 #include <lh/ui/button/on/click/cb.h>
-#include <lh/ui/button/on/click/fn.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/style.h>
-#include <lh/util/addr.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_button

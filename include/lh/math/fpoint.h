@@ -17,12 +17,8 @@
 #ifndef LH_MATH_FPOINT_H
 #define LH_MATH_FPOINT_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/math/point.h>
-#include <lh/math/point/fields.h>
 #include <lh/math/fscalar.h>
-#include <lh/void.h>
 
 struct lh_math_fsize;
 

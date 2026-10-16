@@ -25,10 +25,8 @@
 
 #include <gtest/gtest.h>
 
-#include <lh/bool.h>
 #include <lh/char/map.h>
 #include <lh/expect/death.h>
-#include <lh/null.h>
 #include <lh/str/cstr.h>
 #include <lh/util/str/ptr.h>
 

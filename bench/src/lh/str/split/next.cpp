@@ -1,7 +1,6 @@
 #include <benchmark/benchmark.h>
 
 #include <lh/str/split/next.h>
-#include <lh/util/addr.h>
 
 #include <cstring>
 

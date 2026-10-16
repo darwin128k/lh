@@ -6,8 +6,6 @@
 #include <lh/assert/runtime.h>
 #include <lh/math/float/sqrt.h>
 #include <lh/math/view.h>
-#include <lh/runtime/error/code.h>
-#include <lh/util/addr.h>
 #include <lh/util/interval.h>
 #include <lh/util/return.h>
 

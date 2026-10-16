@@ -10,10 +10,7 @@
 #ifndef LH_SRC_OS_SYSTEM_WIN_WS2_32_H
 #define LH_SRC_OS_SYSTEM_WIN_WS2_32_H
 
-#include <lh/cast/static.h>
-#include <lh/char.h>
 #include <lh/os/system/win/types.h>
-#include <lh/numeric/types.h>
 #include <lh/os/system/win/ws2_32/fd_set/fields.h>
 #include <lh/os/system/win/ws2_32/in_addr/fields.h>
 #include <lh/os/system/win/ws2_32/sockaddr/fields.h>

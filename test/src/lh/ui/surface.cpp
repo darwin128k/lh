@@ -1,12 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/expect/death.h>
-#include <lh/null.h>
-#include <lh/ui/pixmap.h>
-#include <lh/ui/scalar.h>
-#include <lh/ui/size.h>
 #include <lh/ui/surface.h>
-#include <lh/util/addr.h>
 
 namespace
 {

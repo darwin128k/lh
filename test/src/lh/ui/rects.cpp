@@ -4,14 +4,8 @@
    on the screen. These pin the shape that does not. */
 
 #include <gtest/gtest.h>
-#include <lh/bool.h>
-#include <lh/null.h>
 
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
 #include <lh/ui/rects.h>
-#include <lh/ui/size.h>
-#include <lh/util/addr.h>
 
 namespace
 {

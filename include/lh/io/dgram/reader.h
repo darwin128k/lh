@@ -10,13 +10,8 @@
 #ifndef LH_IO_DGRAM_READER_H
 #define LH_IO_DGRAM_READER_H
 
-#include <lh/void.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/io/dgram/reader/cb.h>
 #include <lh/io/dgram/reader/fields.h>
-#include <lh/net/socket/addr/ip4.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
 
 /**
  * @struct lh_io_dgram_reader

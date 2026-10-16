@@ -1,11 +1,7 @@
-#include <lh/memory/allocator.h>
 #include <lh/memory.h>
-#include <lh/math.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 #include <lh/assert.h>
 #include <lh/config.h>
-#include <lh/null.h>
 
 lh_void
 lh_memory_allocator_set_alloc_cb(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb)

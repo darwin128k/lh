@@ -38,12 +38,8 @@
 #define LH_RUNTIME_ASSERT_H
 
 #include <lh/compiler/trap.h>
-#include <lh/null.h>
 #include <lh/runtime/check.h>
-#include <lh/str/view/initializer.h>
 #include <lh/util/arg.h>
-#include <lh/util/ptr.h>
-#include <lh/cast/static.h>
 
 /**
  * @def LH_RUNTIME_ASSERT_ENABLED

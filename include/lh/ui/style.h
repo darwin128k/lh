@@ -15,21 +15,15 @@
 #ifndef LH_UI_STYLE_H
 #define LH_UI_STYLE_H
 
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/types.h>
-#include <lh/ui/color.h>
 #include <lh/ui/easing.h>
 #include <lh/ui/font.h>
 #include <lh/ui/paint.h>
-#include <lh/ui/insets.h>
 #include <lh/ui/radii.h>
 #include <lh/ui/radius.h>
-#include <lh/ui/scalar.h>
 #include <lh/ui/shadow.h>
 #include <lh/ui/style/fields.h>
 #include <lh/ui/text/align.h>
 #include <lh/ui/text/overflow.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_style

@@ -14,8 +14,6 @@
 #ifndef LH_EXCEPTION_ORIGIN_H
 #define LH_EXCEPTION_ORIGIN_H
 
-#include <lh/numeric/types.h>
-#include <lh/str/ptr.h>
 #include <lh/str/view.h>
 
 /**

@@ -1,10 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <lh/null.h>
-#include <lh/ui/color.h>
 #include <lh/ui/paint.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 
 TEST(ui_paint, init_is_empty)
 {

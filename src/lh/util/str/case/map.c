@@ -11,13 +11,9 @@
  * (include/lh/config.h) — see that option's doc comment in cmake/library_options.cmake.
  */
 
-#include <lh/util/str/ptr.h>
 #include <lh/util/interval.h>
-#include <lh/size.h>
 #include <lh/char/case/pair.h>
-#include <lh/util/array/ptr.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
 #include <lh/config.h>
 #include <lh/foreach.h>
 

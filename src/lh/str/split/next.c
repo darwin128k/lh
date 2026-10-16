@@ -1,12 +1,6 @@
 #include <lh/str/split/next.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
-#include <lh/char/limits.h>
 #include <lh/memory.h>
-#include <lh/null.h>
-#include <lh/numeric/limits.h>
-#include <lh/str/view/initializer.h>
-#include <lh/util/addr.h>
 
 lh_bool_t
 lh_str_ptr_split_next_of(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr delims,

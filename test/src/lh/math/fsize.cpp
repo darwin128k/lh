@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <lh/math/fpoint.h>
 #include <lh/math/fsize.h>
 #include <lh/util/addr.h>
 #include <lh/test/out.h>

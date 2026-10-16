@@ -16,14 +16,8 @@
 #ifndef LH_UI_GRADIENT_SAMPLER_H
 #define LH_UI_GRADIENT_SAMPLER_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/ui/color.h>
 #include <lh/ui/gradient.h>
 #include <lh/ui/gradient/sampler/fields.h>
-#include <lh/ui/rect.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_gradient_sampler

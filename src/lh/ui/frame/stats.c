@@ -3,13 +3,7 @@
  * @brief Implementation of `lh/ui/frame/stats.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/cast/static.h>
-#include <lh/null.h>
 #include <lh/ui/frame/stats.h>
-#include <lh/ui/point.h>
-#include <lh/ui/size.h>
-#include <lh/util/addr.h>
 #include <lh/util/return.h>
 
 lh_void

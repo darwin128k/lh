@@ -20,13 +20,8 @@
 #ifndef LH_MATH_FRECT_H
 #define LH_MATH_FRECT_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/math/rect.h>
-#include <lh/math/rect/fields.h>
-#include <lh/math/fpoint.h>
 #include <lh/math/fsize.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_math_frect

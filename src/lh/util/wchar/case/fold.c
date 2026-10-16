@@ -12,7 +12,6 @@
 
 #include <lh/util/wchar.h>
 #include <lh/util/interval.h>
-#include <lh/size.h>
 #include <lh/wchar/case/pair.h>
 #include <lh/util/array/ptr.h>
 

@@ -17,12 +17,8 @@
 #ifndef LH_UI_TRANSITION_H
 #define LH_UI_TRANSITION_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/types.h>
 #include <lh/ui/style.h>
 #include <lh/ui/transition/fields.h>
-#include <lh/void.h>
 
 struct lh_ui_entity;
 

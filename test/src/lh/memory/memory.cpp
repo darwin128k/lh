@@ -2,7 +2,6 @@
 
 #include <lh/expect/death.h>
 #include <lh/memory.h>
-#include <lh/null.h>
 
 namespace
 {

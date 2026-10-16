@@ -13,18 +13,8 @@
  * ::lh_ui_gradient_sampler_t, its corner pixels at their coverage.
  */
 
-#include <lh/math.h>
-#include <lh/assert/runtime.h>
-#include <lh/null.h>
-#include <lh/ui/canvas.h>
 #include <lh/ui/canvas/box.h>
 #include <lh/ui/canvas/round.h>
-#include <lh/ui/gradient.h>
-#include <lh/ui/gradient/sampler.h>
-#include <lh/ui/paint.h>
-#include <lh/ui/radii.h>
-#include <lh/ui/radius.h>
-#include <lh/util/addr.h>
 #include <lh/util/return.h>
 
 /** How many pixels of a row are coloured before they are sent. */

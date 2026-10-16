@@ -1,11 +1,6 @@
 #include <lh/memory/bounds/slice.h>
-#include <lh/assert/runtime.h>
-#include <lh/memory/view/slice/initializer.h>
-#include <lh/util/addr.h>
 #include <lh/attribute/static.h>
 #include <lh/memory/bounds/slice/initializer.h>
-#include <lh/initializer.h>
-#include <lh/memory/view/slice.h>
 #include <lh/cast/const.h>
 #include <lh/memory/raw.h>
 #include <lh/assert.h>

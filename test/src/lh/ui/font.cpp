@@ -3,9 +3,7 @@
 #include <lh/test/ui/tiny_font.h>
 
 #include <lh/config.h>
-#include <lh/null.h>
 #include <lh/ui/font.h>
-#include <lh/util/addr.h>
 
 #if LH_LIBRARY_OPTION_UI_FONT_ROBOTO
 #    include <lh/ui/font/roboto.h>

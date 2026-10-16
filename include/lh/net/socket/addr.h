@@ -16,13 +16,7 @@
 #ifndef LH_NET_SOCKET_ADDR_H
 #define LH_NET_SOCKET_ADDR_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/net/socket/addr/ip4.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/size.h>
-#include <lh/str/ptr.h>
 
 /**
  * @typedef lh_net_socket_addr_family_t

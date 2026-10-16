@@ -8,8 +8,6 @@
 #ifndef LH_UI_ENTITY_VISIT_FN_H
 #define LH_UI_ENTITY_VISIT_FN_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
 
 struct lh_ui_entity;

@@ -1,7 +1,6 @@
 #include <lh/werror.h>
 #include <lh/assert/runtime.h>
 #include <lh/error.h>
-#include <lh/util/ptr.h>
 
 lh_void
 lh_werror_set(lh_werror_t *self, lh_error_code_t code, lh_wstr_view_t desc)

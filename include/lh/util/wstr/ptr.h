@@ -11,10 +11,7 @@
 #ifndef LH_UTIL_WSTR_PTR_H
 #define LH_UTIL_WSTR_PTR_H
 
-#include <lh/compiler/extern/c.h>
-#include <lh/size.h>
 #include <lh/size/limits.h>
-#include <lh/bool.h>
 #include <lh/wstr/ptr.h>
 #include <lh/util/array/ptr.h>
 

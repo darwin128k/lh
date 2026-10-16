@@ -10,7 +10,6 @@
 
 #include <lh/os/window/close/reason.h>
 #include <lh/ptr.h>
-#include <lh/void.h>
 
 struct lh_os_window;
 

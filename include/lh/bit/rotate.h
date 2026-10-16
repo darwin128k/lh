@@ -25,7 +25,6 @@
 #include <lh/attribute/force_inline.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/compiler/type.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/size.h>
 

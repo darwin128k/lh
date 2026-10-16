@@ -1,7 +1,6 @@
 #include <benchmark/benchmark.h>
 
 #include <lh/fs/path.h>
-#include <lh/str/view.h>
 
 static void
 BM_fs_path_set(benchmark::State &state)

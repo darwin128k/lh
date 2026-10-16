@@ -3,14 +3,8 @@
  * @brief Implementation of `lh/ui/scrollbar.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/null.h>
-#include <lh/ui/entity/class.h>
 #include <lh/ui/scrollbar.h>
 #include <lh/ui/range.h>
-#include <lh/ui/size.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 /* ── Class ───────────────────────────────────────────────────────────────── */

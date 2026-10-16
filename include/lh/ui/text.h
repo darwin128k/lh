@@ -13,22 +13,9 @@
 #ifndef LH_UI_TEXT_H
 #define LH_UI_TEXT_H
 
-#include <lh/bool.h>
-#include <lh/char.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/numeric/types.h>
 #include <lh/ui/canvas.h>
-#include <lh/ui/color.h>
-#include <lh/ui/font.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
-#include <lh/ui/size.h>
-#include <lh/ui/text/align.h>
 #include <lh/ui/text/block.h>
 #include <lh/ui/text/line.h>
-#include <lh/void.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

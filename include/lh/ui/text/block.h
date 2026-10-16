@@ -13,16 +13,8 @@
 #ifndef LH_UI_TEXT_BLOCK_H
 #define LH_UI_TEXT_BLOCK_H
 
-#include <lh/char.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/ui/font.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
-#include <lh/ui/size.h>
 #include <lh/ui/text/block/fields.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_text_block

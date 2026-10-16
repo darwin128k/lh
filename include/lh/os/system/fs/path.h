@@ -12,7 +12,6 @@
 #ifndef LH_OS_SYSTEM_FS_PATH_H
 #define LH_OS_SYSTEM_FS_PATH_H
 
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/fs/path/style.h>
 

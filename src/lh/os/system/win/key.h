@@ -8,7 +8,6 @@
 
 #include <lh/bool.h>
 #include <lh/key.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/os/system/win/types.h>
 
 /** @brief Virtual-key codes ::lh_os_system_win_key_from_vk knows, in order. */

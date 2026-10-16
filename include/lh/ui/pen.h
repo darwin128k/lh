@@ -9,11 +9,8 @@
 #ifndef LH_UI_PEN_H
 #define LH_UI_PEN_H
 
-#include <lh/compiler/extern/c.h>
 #include <lh/ui/paint.h>
 #include <lh/ui/pen/fields.h>
-#include <lh/ui/scalar.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_pen

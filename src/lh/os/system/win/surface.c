@@ -3,17 +3,11 @@
  * @brief Win32 off-screen surface: DIB section + memory DC + BitBlt present.
  */
 
-#include <lh/bool.h>
-#include <lh/cast/reinterpret.h>
-#include <lh/cast/static.h>
 #include <lh/memory.h>
-#include <lh/null.h>
 #include <lh/os/alloc.h>
 #include <lh/os/system/surface.h>
 #include <lh/os/system/win/gdi32.h>
 #include <lh/runtime/allocator.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 /** An off-screen surface: a DIB section selected into a memory DC. */

@@ -7,14 +7,6 @@
 
 #include <lh/ui/canvas.h>
 #include <lh/ui/canvas/web.h>
-#include <lh/ui/color.h>
-#include <lh/null.h>
-#include <lh/ui/mask.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
-#include <lh/ui/shadow.h>
-#include <lh/util/addr.h>
 
 #include <cstring>
 #include <string>

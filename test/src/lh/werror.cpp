@@ -3,7 +3,6 @@
 
 #include <lh/werror.h>
 #include <lh/werror/initializer.h>
-#include <lh/wstr/view.h>
 #include <lh/expect/death.h>
 #include <lh/test/out.h>
 

@@ -2,20 +2,8 @@
 
 #include <lh/test/ui/draw_log.h>
 
-#include <lh/null.h>
-#include <lh/ui/canvas.h>
-#include <lh/ui/color.h>
-#include <lh/ui/entity.h>
-#include <lh/ui/button.h>
 #include <lh/ui/toggle.h>
-#include <lh/ui/paint.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
-#include <lh/ui/shadow.h>
-#include <lh/ui/style.h>
 #include <lh/ui/view.h>
-#include <lh/util/addr.h>
 
 namespace
 {

@@ -1,15 +1,9 @@
 #include <lh/os/system/fs/stat.h>
-#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
-#include <lh/cast/static.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/os.h>
 #include <lh/os/error/code.h>
 #include <lh/os/system/error/capture.h>
-#include <lh/util/addr.h>
-#include <lh/bit.h>
-#include <lh/math.h>
 
 #include <sys/stat.h>
 

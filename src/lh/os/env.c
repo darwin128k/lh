@@ -1,5 +1,4 @@
 #include <lh/os/env.h>
-#include <lh/null.h>
 #include <lh/os/system/env.h>
 
 lh_str_cptr

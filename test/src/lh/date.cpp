@@ -4,7 +4,6 @@
 
 #include <lh/date.h>
 #include <lh/date/initializer.h>
-#include <lh/date/month/index.h>
 #include <lh/test/out.h>
 
 namespace

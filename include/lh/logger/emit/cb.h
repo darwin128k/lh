@@ -9,7 +9,6 @@
 #define LH_LOGGER_EMIT_CB_H
 
 #include <lh/logger/emit/fn.h>
-#include <lh/util/ptr.h>
 
 /**
  * @def lh_logger_emit_cb

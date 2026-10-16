@@ -10,7 +10,6 @@
 #define LH_MATH_FSCALAR_ROUND_H
 
 #include <lh/attribute/force_inline.h>
-#include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/math/fscalar.h>
 #include <lh/numeric/fixed/types.h>

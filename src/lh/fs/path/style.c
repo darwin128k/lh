@@ -1,6 +1,4 @@
 #include <lh/fs/path/style.h>
-#include <lh/cast/static.h>
-#include <lh/char/map.h>
 #include <lh/char/slash.h>
 #include <lh/math.h>
 

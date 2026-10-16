@@ -20,14 +20,10 @@
 #ifndef LH_RUNTIME_CHECK_H
 #define LH_RUNTIME_CHECK_H
 
-#include <lh/void.h>
 #include <lh/attribute/noreturn.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/library/fallback.h>
-#include <lh/exception.h>
 #include <lh/runtime/check/fail/cb.h>
 #include <lh/runtime/check/report.h>
-#include <lh/exception/origin.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

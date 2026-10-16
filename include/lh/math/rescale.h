@@ -14,6 +14,7 @@
 
 #include <lh/attribute/force_inline.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/math/ops.h>
 #include <lh/numeric/fixed/types.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -30,7 +31,7 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_u32_t
 lh_math_rescale_u32(lh_u32_t value, lh_u32_t from_max, lh_u32_t to_max)
 {
-    return (value * to_max + from_max / 2U) / from_max;
+    return lh_math_div_round(value * to_max, from_max);
 }
 
 LH_COMPILER_EXTERN_C_END

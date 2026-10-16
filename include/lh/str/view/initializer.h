@@ -6,7 +6,6 @@
 #ifndef LH_STR_VIEW_INITIALIZER_H
 #define LH_STR_VIEW_INITIALIZER_H
 
-#include <lh/initializer.h>
 #include <lh/memory/view/initializer.h>
 #include <lh/util/str/ptr.h>
 

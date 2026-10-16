@@ -3,9 +3,7 @@
  * @brief Implementation of `lh/ui/entity/transform.h`.
  */
 
-#include <lh/assert/runtime.h>
 #include <lh/ui/entity/transform.h>
-#include <lh/util/addr.h>
 
 lh_void
 lh_ui_entity_transform_init(lh_ui_entity_transform_t *self)

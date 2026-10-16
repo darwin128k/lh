@@ -1,12 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <lh/bool.h>
-#include <lh/ui/axis.h>
 #include <lh/ui/insets.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/size.h>
-#include <lh/util/addr.h>
 #include <lh/test/out.h>
 
 TEST(ui_insets, sides_and_axis_ends)

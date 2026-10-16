@@ -1,7 +1,5 @@
 #include <benchmark/benchmark.h>
 
-#include <lh/math/point.h>
-#include <lh/math/rect.h>
 #include <lh/util/addr.h>
 
 static void

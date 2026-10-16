@@ -1,7 +1,6 @@
 #include <lh/str/format/float.h>
 #include <lh/assert.h>
 #include <lh/memory/std.h>
-#include <lh/cast/static.h>
 
 /*
  * A float is m * 2^e with m a 24-bit integer. To get N decimal digits that are

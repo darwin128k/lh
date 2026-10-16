@@ -3,14 +3,8 @@
  * @brief Implementation of `lh/ui/decl.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/byte/ptr.h>
-#include <lh/null.h>
 #include <lh/ui/decl.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
-#include <lh/cast/static.h>
 
 /** Record @p code at row @p index in @p fault, when the caller asked for one. */
 static lh_void

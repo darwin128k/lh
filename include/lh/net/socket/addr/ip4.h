@@ -17,14 +17,8 @@
 #ifndef LH_NET_SOCKET_ADDR_IP4_H
 #define LH_NET_SOCKET_ADDR_IP4_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/net/ip.h>
-#include <lh/net/port.h>
 #include <lh/net/socket/addr/fields.h>
-#include <lh/size.h>
-#include <lh/str/ptr.h>
 
 /**
  * @def LH_NET_IP4_SOCKET_ADDR_TEXT_MAX

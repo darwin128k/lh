@@ -4,9 +4,7 @@
 #include <lh/expect/death.h>
 #include <lh/memory/allocator/initializer.h>
 #include <lh/memory/tree.h>
-#include <lh/null.h>
 #include <lh/runtime/allocator.h>
-#include <lh/self.h>
 
 #include <cstdint>
 #include <cstdlib>
@@ -25,8 +23,6 @@ struct counting_heap
 
 /* What destructors ran, in order. */
 std::string g_destroyed;
-
-#include <lh/compiler/extern/c.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

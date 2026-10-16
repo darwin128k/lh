@@ -15,7 +15,6 @@
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 
 /**
  * @def LH_CPU_ID_EAX

@@ -3,15 +3,8 @@
  * @brief Implementation of `lh/ui/blur.h`.
  */
 
-#include <lh/math/div_round.h>
-#include <lh/assert/runtime.h>
-#include <lh/cast/static.h>
-#include <lh/math.h>
-#include <lh/null.h>
 #include <lh/ui/blur.h>
 #include <lh/ui/radius.h>
-#include <lh/ui/rect.h>
-#include <lh/util/addr.h>
 #include <lh/util/return.h>
 
 lh_void

@@ -7,16 +7,11 @@
 #ifndef LH_UI_CANVAS_BOX_H
 #define LH_UI_CANVAS_BOX_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/gradient/sampler.h>
 #include <lh/ui/paint.h>
 #include <lh/ui/radii.h>
 #include <lh/ui/radius.h>
-#include <lh/ui/rect.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_canvas_box_frame

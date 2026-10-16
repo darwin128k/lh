@@ -10,9 +10,7 @@
 #define LH_UI_COLOR_H
 
 #include <lh/bool.h>
-#include <lh/byte.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/ui/color/channels.h>
 #include <lh/ui/color/fields.h>
 #include <lh/void.h>

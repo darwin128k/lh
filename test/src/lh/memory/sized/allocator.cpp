@@ -1,12 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <lh/expect/death.h>
-#include <lh/memory/allocator.h>
 #include <lh/memory/allocator/initializer.h>
 #include <lh/memory/sized/allocator.h>
-#include <lh/null.h>
-#include <lh/numeric/limits.h>
-#include <lh/self.h>
 
 #include <cstdint>
 #include <cstdlib>
@@ -24,8 +20,6 @@ struct recording_heap
     lh_ptr last_alloc_block;
     lh_ptr last_dealloc_block;
 };
-
-#include <lh/compiler/extern/c.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

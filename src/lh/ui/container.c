@@ -3,17 +3,7 @@
  * @brief Implementation of `lh/ui/container.h`.
  */
 
-#include <lh/ui/scalar.h>
-#include <lh/assert/runtime.h>
-#include <lh/math.h>
-#include <lh/null.h>
-#include <lh/ui/entity/class.h>
 #include <lh/ui/container.h>
-#include <lh/ui/entity/transform.h>
-#include <lh/ui/key.h>
-#include <lh/ui/rect.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 const lh_ui_entity_class_t lh_ui_container_class = {

@@ -18,13 +18,9 @@
 #ifndef LH_MATH_VEC2_H
 #define LH_MATH_VEC2_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/float.h>
 #include <lh/math/fscalar.h>
 #include <lh/math/vec2/fields.h>
 #include <lh/math/view.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_math_vec2

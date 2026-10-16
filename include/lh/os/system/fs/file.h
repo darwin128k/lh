@@ -20,14 +20,10 @@
 #ifndef LH_OS_SYSTEM_FS_FILE_H
 #define LH_OS_SYSTEM_FS_FILE_H
 
-#include <lh/void.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/result.h>
 #include <lh/os/system/fs/file/handle.h>
 #include <lh/fs/file/mode.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
 #include <lh/str/ptr.h>
 
 #if !LH_LIBRARY_OPTION_OS

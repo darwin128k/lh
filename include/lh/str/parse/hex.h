@@ -6,10 +6,6 @@
 #ifndef LH_STR_PARSE_HEX_H
 #define LH_STR_PARSE_HEX_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/types.h>
-#include <lh/size.h>
 #include <lh/str/ptr.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

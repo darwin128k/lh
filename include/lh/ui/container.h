@@ -16,16 +16,9 @@
 #ifndef LH_UI_CONTAINER_H
 #define LH_UI_CONTAINER_H
 
-#include <lh/compiler/extern/c.h>
-#include <lh/ui/entity.h>
 #include <lh/ui/container/fields.h>
 #include <lh/ui/layout.h>
-#include <lh/ui/entity/transform.h>
-#include <lh/key.h>
 #include <lh/ui/key.h>
-#include <lh/ui/point.h>
-#include <lh/ui/size.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_entity_container

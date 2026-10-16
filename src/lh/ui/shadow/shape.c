@@ -3,17 +3,11 @@
  * @brief Implementation of `lh/ui/shadow/shape.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/byte/ptr.h>
-#include <lh/math/isqrt.h>
 #include <lh/memory.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/radius.h>
 #include <lh/ui/shadow/ramp.h>
-#include <lh/ui/shadow/shape.h>
-#include <lh/util/addr.h>
 #include <lh/util/return.h>
-#include <lh/cast/static.h>
 
 lh_void
 lh_ui_shadow_shape_init(lh_ui_shadow_shape_t *self, const lh_ui_shadow_t *shadow, const lh_ui_rect_t *rect,

@@ -6,11 +6,7 @@
 #ifndef LH_UI_VIEW_FIELDS_H
 #define LH_UI_VIEW_FIELDS_H
 
-#include <lh/bool.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/ui/scrollbar.h>
-#include <lh/ui/point.h>
-#include <lh/ui/scalar.h>
 #include <lh/ui/transition.h>
 
 /**

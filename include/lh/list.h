@@ -22,18 +22,12 @@
 #ifndef LH_LIST_H
 #define LH_LIST_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/index.h>
 #include <lh/index/limits.h>
 #include <lh/list/cb.h>
 #include <lh/list/fields.h>
 #include <lh/list/node.h>
-#include <lh/null.h>
-#include <lh/size.h>
 #include <lh/util/offset.h>
-#include <lh/util/ptr.h>
 
 /**
  * @def LH_LIST_INVALID

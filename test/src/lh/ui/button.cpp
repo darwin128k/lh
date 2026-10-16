@@ -2,17 +2,9 @@
 
 #include <lh/test/ui/draw_log.h>
 
-#include <lh/null.h>
-#include <lh/ui/entity.h>
 #include <lh/ui/button.h>
-#include <lh/ui/container.h>
 #include <lh/ui/image.h>
 #include <lh/ui/label.h>
-#include <lh/ui/layout.h>
-#include <lh/ui/paint.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/style.h>
-#include <lh/util/addr.h>
 #include <lh/test/out.h>
 
 namespace

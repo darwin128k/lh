@@ -1,7 +1,6 @@
 #include <lh/assert/runtime.h>
 #include <lh/math/quat.h>
 #include <lh/math/float/sin_cos.h>
-#include <lh/util/addr.h>
 
 lh_void
 lh_math_quat_init(lh_math_quat_t *self, lh_float_t x, lh_float_t y, lh_float_t z, lh_float_t w)

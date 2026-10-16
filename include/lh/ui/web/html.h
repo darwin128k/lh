@@ -12,14 +12,9 @@
 #ifndef LH_UI_WEB_HTML_H
 #define LH_UI_WEB_HTML_H
 
-#include <lh/bool.h>
-#include <lh/str/ptr.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/ui/web/buf.h>
 #include <lh/ui/web/html/attr.h>
-#include <lh/void.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/web/html.h requires LH_LIBRARY_OPTION_UI"

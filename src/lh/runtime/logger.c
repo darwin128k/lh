@@ -1,10 +1,6 @@
 #include <lh/runtime/logger.h>
 #include <lh/attribute/thread_local.h>
 #include <lh/config.h>
-#include <lh/library/option.h>
-#include <lh/null.h>
-#include <lh/util/addr.h>
-#include <lh/cast/static.h>
 
 #if (LH_LIBRARY_OPTION_RUNTIME_LOGGER_USE_STDLIB == LH_LIBRARY_OPTION_ON)
 #    include <lh/self.h>

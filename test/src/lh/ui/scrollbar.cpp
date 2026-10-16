@@ -2,15 +2,7 @@
 
 #include <lh/test/ui/draw_log.h>
 
-#include <lh/null.h>
-#include <lh/ui/canvas.h>
-#include <lh/ui/color.h>
-#include <lh/ui/container.h>
 #include <lh/ui/scrollbar.h>
-#include <lh/ui/paint.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/style.h>
-#include <lh/util/addr.h>
 #include <lh/test/out.h>
 
 namespace

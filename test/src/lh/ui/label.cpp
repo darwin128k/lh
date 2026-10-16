@@ -6,21 +6,10 @@
 #include <lh/test/ui/fill_probe.h>
 #include <lh/test/ui/tiny_font.h>
 
-#include <lh/ui/canvas.h>
 #include <lh/ui/canvas/sw.h>
-#include <lh/ui/color.h>
-#include <lh/ui/font.h>
-#include <lh/ui/entity.h>
 #include <lh/ui/label.h>
 #include <lh/ui/view.h>
-#include <lh/ui/paint.h>
-#include <lh/ui/pixmap.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/style.h>
 #include <lh/ui/text.h>
-#include <lh/ui/text/align.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/test/out.h>
 
 TEST(entity_label, init_keeps_the_rect_and_the_text_pointer)

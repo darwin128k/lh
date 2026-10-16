@@ -1,10 +1,6 @@
 #include <lh/array.h>
-#include <lh/byte/ptr.h>
 #include <lh/memory.h>
-#include <lh/memory/std.h>
-#include <lh/math.h>
 #include <lh/util/return.h>
-#include <lh/util/ptr.h>
 #include <lh/config.h>
 #include <lh/assert.h>
 

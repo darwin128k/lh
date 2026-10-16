@@ -8,14 +8,9 @@
 
 #include <lh/ui/web/page.h>
 
-#include <lh/cast/static.h>
-#include <lh/null.h>
-#include <lh/ui/web/buf.h>
 #include <lh/ui/web/html.h>
 #include <lh/ui/web/js.h>
 #include <lh/ui/web/js/x.h>
-#include <lh/ui/web/x.h>
-#include <lh/util/addr.h>
 
 /** Append string literal @p s to @p j, its length taken at compile time. */
 #define page_lit(j, s) lh_ui_web_buf_lit((j), (s), lh_cast_static(lh_usize_t, (sizeof(s) - 1u)))

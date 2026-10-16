@@ -3,15 +3,10 @@
  * @brief Implementation of `lh/ui/entity/event.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/null.h>
-#include <lh/runtime/error/code.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/entity/event.h>
 #include <lh/ui/entity/transform.h>
 #include <lh/ui/key.h>
-#include <lh/ui/point.h>
-#include <lh/util/ptr.h>
 
 lh_void
 lh_ui_entity_event_init(lh_ui_entity_event_t *self, lh_ui_entity_event_code_t code, lh_ptr context)

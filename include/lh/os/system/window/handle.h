@@ -10,7 +10,6 @@
 #define LH_OS_SYSTEM_WINDOW_HANDLE_H
 
 #include <lh/null.h>
-#include <lh/ptr.h>
 
 /**
  * @typedef lh_os_system_window_handle_t

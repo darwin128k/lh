@@ -20,13 +20,7 @@
 #ifndef LH_BIT_ENDIAN_H
 #define LH_BIT_ENDIAN_H
 
-#include <lh/void.h>
-#include <lh/byte/ptr.h>
 #include <lh/assert.h>
-#include <lh/attribute/force_inline.h>
-#include <lh/cast/static.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/bit/half.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

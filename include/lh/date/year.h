@@ -12,11 +12,7 @@
 #ifndef LH_DATE_YEAR_H
 #define LH_DATE_YEAR_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/limits.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/numeric/types.h>
 #include <lh/util/interval.h>
 
 /**

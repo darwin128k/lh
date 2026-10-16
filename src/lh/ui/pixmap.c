@@ -3,22 +3,12 @@
  * @brief Implementation of `lh/ui/pixmap.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/byte/ptr.h>
 #include <lh/bit/bswap.h>
 #include <lh/byte/limits.h>
-#include <lh/cast/static.h>
-#include <lh/compiler/attribute/force_inline.h>
 #include <lh/cpu/simd.h>
-#include <lh/math.h>
 #include <lh/memory.h>
-#include <lh/null.h>
 #include <lh/numeric/float.h>
-#include <lh/runtime/error/code.h>
-#include <lh/size.h>
 #include <lh/ui/pixmap.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2

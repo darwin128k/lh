@@ -3,12 +3,7 @@
  * @brief Implementation of `lh/ui/pen.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/null.h>
-#include <lh/runtime/error/code.h>
 #include <lh/ui/pen.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 
 lh_void
 lh_ui_pen_init(lh_ui_pen_t *self)

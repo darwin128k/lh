@@ -9,12 +9,7 @@
 #ifndef LH_UI_AXIS_H
 #define LH_UI_AXIS_H
 
-#include <lh/compiler/extern/c.h>
-#include <lh/ui/point.h>
 #include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
-#include <lh/ui/size.h>
-#include <lh/void.h>
 
 /**
  * @enum lh_ui_axis

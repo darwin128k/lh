@@ -1,8 +1,6 @@
 #include <lh/os/error.h>
 #include <lh/assert/runtime.h>
 #include <lh/error.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 
 lh_void
 lh_os_error_set(lh_os_error_t *self, lh_error_code_t code, lh_os_error_desc_t desc)

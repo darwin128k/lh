@@ -4,7 +4,6 @@
 #include <string>
 
 #include <lh/io/reader.h>
-#include <lh/self.h>
 
 namespace
 {

@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include <lh/fs/path.h>
-#include <lh/str/view.h>
 #include <lh/test/out.h>
 
 namespace

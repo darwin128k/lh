@@ -20,8 +20,6 @@
 #ifndef LH_OS_SYSTEM_H
 #define LH_OS_SYSTEM_H
 
-#include <lh/void.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/system/error.h>
 

@@ -4,9 +4,6 @@
 #include <string>
 
 #include <lh/io/dgram.h>
-#include <lh/net/ip.h>
-#include <lh/net/socket/addr/ip4.h>
-#include <lh/self.h>
 #include <lh/test/out.h>
 
 namespace

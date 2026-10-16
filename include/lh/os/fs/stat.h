@@ -13,12 +13,9 @@
 #ifndef LH_OS_FS_STAT_H
 #define LH_OS_FS_STAT_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/fs/path.h>
 #include <lh/fs/stat.h>
-#include <lh/fs/time.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/fs/stat.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

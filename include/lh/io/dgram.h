@@ -13,13 +13,8 @@
 #ifndef LH_IO_DGRAM_H
 #define LH_IO_DGRAM_H
 
-#include <lh/void.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/io/dgram/reader.h>
 #include <lh/io/dgram/writer.h>
-#include <lh/net/socket/addr/ip4.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
 
 /**
  * @struct lh_io_dgram

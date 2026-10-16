@@ -2,23 +2,9 @@
 
 #include <lh/test/ui/draw_log.h>
 
-#include <lh/null.h>
-#include <lh/ptr.h>
-#include <lh/ui/canvas.h>
 #include <lh/ui/canvas/sw.h>
-#include <lh/ui/color.h>
-#include <lh/ui/entity.h>
-#include <lh/ui/button.h>
-#include <lh/ui/container.h>
 #include <lh/ui/label.h>
-#include <lh/ui/scrollbar.h>
-#include <lh/ui/pixmap.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
 #include <lh/ui/view.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/test/out.h>
 
 namespace

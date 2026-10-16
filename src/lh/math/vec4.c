@@ -1,10 +1,6 @@
 #include <lh/assert/runtime.h>
 #include <lh/assert/static.h>
 #include <lh/math/vec4.h>
-#include <lh/math/view.h>
-#include <lh/util/ptr.h>
-#include <lh/cast/static.h>
-#include <lh/util/addr.h>
 #include <lh/util/offset.h>
 
 lh_void

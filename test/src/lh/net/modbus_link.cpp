@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 
 #include <lh/net/modbus/link.h>
-#include <lh/null.h>
-#include <lh/util/addr.h>
 
 #include <cstring>
 

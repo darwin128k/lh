@@ -3,20 +3,10 @@
  * @brief Implementation of lh/ui/gradient.h and lh/ui/gradient/stop.h.
  */
 
-#include <lh/math.h>
-#include <lh/assert/runtime.h>
-#include <lh/byte.h>
-#include <lh/byte/ptr.h>
 #include <lh/byte/limits.h>
-#include <lh/cast/static.h>
 #include <lh/config.h>
-#include <lh/null.h>
-#include <lh/runtime/error/code.h>
 #include <lh/ui/gradient.h>
 #include <lh/ui/gradient/sine.h>
-#include <lh/ui/gradient/stop/count.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 /* ── Stop ────────────────────────────────────────────────────────────────── */

@@ -3,12 +3,8 @@
  * @brief Implementation of `lh/ui/radii.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/math.h>
 #include <lh/ui/radii.h>
 #include <lh/ui/radius.h>
-#include <lh/util/addr.h>
-#include <lh/cast/static.h>
 
 lh_void
 lh_ui_radii_init(lh_ui_radii_t *self, lh_ui_scalar_t top_left, lh_ui_scalar_t top_right,

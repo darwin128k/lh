@@ -30,26 +30,10 @@
 #ifndef LH_UI_DECL_H
 #define LH_UI_DECL_H
 
-#include <lh/byte.h>
-#include <lh/byte/ptr.h>
-#include <lh/bool.h>
-#include <lh/char.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/types.h>
-#include <lh/ptr.h>
-#include <lh/ui/button.h>
-#include <lh/ui/container.h>
-#include <lh/ui/entity.h>
 #include <lh/ui/image.h>
 #include <lh/ui/input.h>
-#include <lh/ui/label.h>
-#include <lh/ui/layout.h>
-#include <lh/ui/layout/place.h>
 #include <lh/ui/scrollbar.h>
-#include <lh/ui/style.h>
 #include <lh/ui/toggle.h>
-#include <lh/util/addr.h>
-#include <lh/cast/static.h>
 
 /**
  * @brief @p parent of a row that is a root: no parent, and exactly one row of a

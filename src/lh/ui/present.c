@@ -4,8 +4,6 @@
  */
 #include <lh/ui/present.h>
 
-#include <lh/null.h>
-
 lh_u32_t
 lh_ui_present_enable_all(lh_u32_t count)
 {

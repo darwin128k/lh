@@ -5,11 +5,7 @@
 
 #include <lh/ui/text/block.h>
 
-#include <lh/assert/runtime.h>
-#include <lh/cast/static.h>
-#include <lh/math.h>
 #include <lh/ui/text/line.h>
-#include <lh/util/addr.h>
 
 lh_void
 lh_ui_text_block_init(lh_ui_text_block_t *self)

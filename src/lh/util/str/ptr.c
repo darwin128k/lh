@@ -1,12 +1,8 @@
-#include <lh/util/str/ptr.h>
-#include <lh/char/limits.h>
 #include <lh/char/map.h>
 #include <lh/memory.h>
 #include <lh/optional/ref.h>
 #include <lh/util/char.h>
-#include <lh/math.h>
 #include <lh/util/return.h>
-#include <lh/util/addr.h>
 #include <lh/assert.h>
 
 static const lh_char_t m_whitespace_chars[] = {lh_char_map_space, lh_char_map_lf, lh_char_map_cr,

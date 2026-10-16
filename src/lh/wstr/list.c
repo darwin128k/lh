@@ -1,14 +1,6 @@
 #include <lh/wstr/list.h>
-#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
-#include <lh/cast/static.h>
-#include <lh/memory/view.h>
-#include <lh/null.h>
-#include <lh/runtime/error.h>
-#include <lh/util/addr.h>
-#include <lh/math.h>
-#include <lh/util/ptr.h>
 
 /** Where one element sits in the shared buffer; its NUL follows at
    offset + size. */

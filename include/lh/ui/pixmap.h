@@ -18,17 +18,10 @@
 #ifndef LH_UI_PIXMAP_H
 #define LH_UI_PIXMAP_H
 
-#include <lh/bool.h>
-#include <lh/byte.h>
-#include <lh/byte/ptr.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/size.h>
 #include <lh/ui/color.h>
 #include <lh/ui/pixmap/fields.h>
 #include <lh/ui/pixmap/format.h>
 #include <lh/ui/rect.h>
-#include <lh/void.h>
 
 /**
  * @def LH_UI_PIXMAP_RUN

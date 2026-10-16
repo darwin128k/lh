@@ -4,7 +4,6 @@
  */
 
 #include <lh/assert/runtime.h>
-#include <lh/runtime/error/code.h>
 #include <lh/ui/key.h>
 
 lh_void

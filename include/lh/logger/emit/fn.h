@@ -14,9 +14,7 @@
 #define LH_LOGGER_EMIT_FN_H
 
 #include <lh/logger/level.h>
-#include <lh/ptr.h>
 #include <lh/self.h>
-#include <lh/size.h>
 #include <lh/str/ptr.h>
 
 #include <stdarg.h>

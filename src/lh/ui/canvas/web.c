@@ -4,24 +4,11 @@
  */
 
 #include <lh/ui/canvas/web.h>
-#include <lh/byte/ptr.h>
 
 #include <lh/cast/const.h>
 #include <lh/memory.h>
-#include <lh/null.h>
 #include <lh/runtime/allocator.h>
 #include <lh/str/format/sint.h>
-#include <lh/ui/color.h>
-#include <lh/ui/mask.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/rects.h>
-#include <lh/ui/scalar.h>
-#include <lh/ui/shadow.h>
-#include <lh/ui/size.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
-#include <lh/cast/static.h>
 
 /** Every write goes through here. A buffer always keeps one byte free, so close
  * can terminate it without a check of its own. */

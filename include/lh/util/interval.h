@@ -13,7 +13,6 @@
 #define LH_UTIL_INTERVAL_H
 
 #include <lh/math.h>
-#include <lh/bool.h>
 
 /**
  * @def lh_interval_sub_below_min_exclusive(a, b, min, max, add_overflow_macro)

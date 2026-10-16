@@ -9,7 +9,6 @@
 #define LH_UI_TOGGLE_ON_CLICK_FN_H
 
 #include <lh/ptr.h>
-#include <lh/void.h>
 
 struct lh_ui_toggle;
 

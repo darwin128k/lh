@@ -16,16 +16,8 @@
 #ifndef LH_STR_LIST_H
 #define LH_STR_LIST_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/index.h>
-#include <lh/size.h>
 #include <lh/str.h>
 #include <lh/str/list/fields.h>
-#include <lh/str/ptr.h>
-#include <lh/str/view.h>
-#include <lh/array.h>
 
 /**
  * @struct lh_str_list

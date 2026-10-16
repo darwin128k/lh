@@ -11,8 +11,6 @@
 #ifndef LH_SRC_OS_SYSTEM_WIN_GDI32_H
 #define LH_SRC_OS_SYSTEM_WIN_GDI32_H
 
-#include <lh/void.h>
-#include <lh/numeric/types.h>
 #include <lh/os/system/win/gdi32/bitmapinfoheader/fields.h>
 #include <lh/os/system/win/gdi32/bitmapv5header/fields.h>
 #include <lh/os/system/win/types.h>

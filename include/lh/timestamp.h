@@ -21,11 +21,7 @@
 #ifndef LH_TIMESTAMP_H
 #define LH_TIMESTAMP_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/datetime.h>
-#include <lh/numeric/fixed/types.h>
 
 /**
  * @typedef lh_timestamp_t

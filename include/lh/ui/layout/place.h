@@ -29,13 +29,8 @@
 #ifndef LH_UI_LAYOUT_PLACE_H
 #define LH_UI_LAYOUT_PLACE_H
 
-#include <lh/compiler/extern/c.h>
-#include <lh/ui/axis.h>
 #include <lh/ui/insets.h>
 #include <lh/ui/layout/place/fields.h>
-#include <lh/ui/scalar.h>
-#include <lh/ui/size.h>
-#include <lh/void.h>
 
 /**
  * @enum lh_ui_place_size

@@ -11,15 +11,9 @@
 #ifndef LH_DATE_H
 #define LH_DATE_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/date/day.h>
-#include <lh/date/month.h>
 #include <lh/date/view/fields.h>
 #include <lh/date/week/index.h>
-#include <lh/date/year.h>
-#include <lh/size.h>
 #include <lh/str/ptr.h>
 
 /**

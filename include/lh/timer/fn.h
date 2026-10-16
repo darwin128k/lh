@@ -9,7 +9,6 @@
 #define LH_TIMER_FN_H
 
 #include <lh/ptr.h>
-#include <lh/void.h>
 
 struct lh_timer;
 

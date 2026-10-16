@@ -19,13 +19,7 @@
 #ifndef LH_WSTR_VIEW_H
 #define LH_WSTR_VIEW_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/memory/view.h>
-#include <lh/size.h>
-#include <lh/void.h>
-#include <lh/wchar.h>
-#include <lh/wstr/ptr.h>
 #include <lh/wstr/view/initializer.h>
 
 /**

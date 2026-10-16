@@ -11,14 +11,8 @@
 #ifndef LH_UI_WEB_WS_H
 #define LH_UI_WEB_WS_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/byte.h>
 #include <lh/byte/ptr.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/size.h>
-#include <lh/cast/static.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/web/ws.h requires LH_LIBRARY_OPTION_UI"

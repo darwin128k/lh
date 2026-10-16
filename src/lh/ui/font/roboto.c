@@ -8,9 +8,6 @@
  */
 #include <lh/ui/font/roboto.h>
 
-#include <lh/null.h>
-#include <lh/numeric/fixed/types.h>
-
 const lh_byte_t lh_ui_font_roboto_bits[] = {
     0x0A, 0xC0, 0x0A, 0xC0, 0x0A, 0xC0, 0x0A, 0xC0, 0x0A, 0xC0, 0x09, 0xB0,
     0x09, 0xB0, 0x09, 0xB0, 0x05, 0x70, 0x00, 0x00, 0x04, 0x60, 0x08, 0xC0,
@@ -1239,7 +1236,6 @@ const lh_ui_font_range_t lh_ui_font_roboto_ranges[] = {
     {8211, 2, 221},
     {8470, 1, 223},
 };
-
 
 const lh_ui_font_t lh_ui_font_roboto = {
     lh_ui_font_roboto_glyphs, lh_ui_font_roboto_advances, lh_ui_font_roboto_tops, lh_ui_font_roboto_ranges,

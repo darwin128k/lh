@@ -1,11 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <lh/io/pending.h>
-#include <lh/net/modbus.h>
 #include <lh/net/modbus/link.h>
-#include <lh/null.h>
 #include <lh/os/serial.h>
-#include <lh/util/addr.h>
 
 #include <cstring>
 

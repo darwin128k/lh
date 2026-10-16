@@ -12,11 +12,6 @@
 #ifndef LH_SRC_OS_SYSTEM_WIN_KERNEL32_H
 #define LH_SRC_OS_SYSTEM_WIN_KERNEL32_H
 
-#include <lh/cast/reinterpret.h>
-#include <lh/cast/static.h>
-#include <lh/char.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/byte.h>
 #include <lh/os/system/win/kernel32/commtimeouts/fields.h>
 #include <lh/os/system/win/kernel32/dcb/fields.h>
 #include <lh/os/system/win/kernel32/file_attribute_data/fields.h>
@@ -24,8 +19,6 @@
 #include <lh/os/system/win/kernel32/find_data/fields.h>
 #include <lh/os/system/win/types.h>
 #include <lh/str/ptr.h>
-#include <lh/void.h>
-#include <lh/wchar.h>
 #include <lh/wstr/ptr.h>
 
 /** `INVALID_HANDLE_VALUE`: (HANDLE)(LONG_PTR)-1. */

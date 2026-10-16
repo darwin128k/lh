@@ -3,12 +3,7 @@
 
 #include <lh/cpu/simd.h>
 #include <lh/expect/death.h>
-#include <lh/ui/color.h>
 #include <lh/ui/pixmap.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/size.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/test/out.h>
 
 namespace

@@ -2,9 +2,7 @@
 
 #include <lh/config.h>
 #include <lh/expect/death.h>
-#include <lh/null.h>
 #include <lh/ui/scalar.h>
-#include <lh/util/addr.h>
 #include <lh/test/out.h>
 
 TEST(ui_scalar, centre_matches_layout_half_up)

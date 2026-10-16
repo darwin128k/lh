@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include <lh/memory.h>
-#include <lh/null.h>
 
 #include <cstddef>
 

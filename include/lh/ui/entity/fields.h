@@ -8,9 +8,7 @@
 
 struct lh_ui_view;
 
-#include <lh/compiler/cxx.h>
 #include <lh/list.h>
-#include <lh/list/node.h>
 
 /**
  * @def lh_ui_entity_fields(rect_type, style_type, class_type, bool_type, entity_type)

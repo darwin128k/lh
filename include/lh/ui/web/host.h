@@ -20,16 +20,9 @@
 #ifndef LH_UI_WEB_HOST_H
 #define LH_UI_WEB_HOST_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/key.h>
 #include <lh/net/port.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
 #include <lh/ui/view.h>
-#include <lh/void.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/web/host.h requires LH_LIBRARY_OPTION_UI"

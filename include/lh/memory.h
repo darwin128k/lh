@@ -18,25 +18,13 @@
 #ifndef LH_MEMORY_H
 #define LH_MEMORY_H
 
-#include <lh/compiler/extern/c.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
-
 /* Umbrella: the memory core. This header also carries the sized helpers
    (lh_memory_* in src/lh/memory.c), which is why its name and the directory
    lh/memory/ collide — see ARCHITECTURE.md. */
-#include <lh/memory/allocator.h>
-#include <lh/memory/bounds.h>
-#include <lh/memory/bounds/allocated.h>
-#include <lh/memory/bounds/slice.h>
 #include <lh/memory/raw.h>
-#include <lh/memory/sized/allocator.h>
 #include <lh/memory/std.h>
 #include <lh/memory/tree.h>
-#include <lh/memory/typed.h>
 #include <lh/memory/typed/allocated.h>
-#include <lh/memory/view.h>
-#include <lh/memory/view/slice.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

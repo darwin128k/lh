@@ -4,13 +4,9 @@
  */
 
 #include <lh/net/modbus.h>
-#include <lh/byte/ptr.h>
 
 #include <lh/memory/std.h>
-#include <lh/null.h>
-#include <lh/util/addr.h>
 #include <lh/util/return.h>
-#include <lh/cast/static.h>
 
 /* ── CRC ─────────────────────────────────────────────────────────────────────
    Reflected 0x8005, which Modbus writes as 0xA001 with the low byte first. This

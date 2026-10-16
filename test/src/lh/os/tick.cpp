@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <lh/numeric/types.h>
 #include <lh/os/tick.h>
-#include <lh/timer/tick.h>
 
 namespace
 {

@@ -13,7 +13,6 @@
 
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/ui/font/range/fields.h>
 #include <lh/void.h>
 

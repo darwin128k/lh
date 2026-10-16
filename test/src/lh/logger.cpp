@@ -4,7 +4,6 @@
 #include <string>
 
 #include <lh/logger.h>
-#include <lh/self.h>
 #include <lh/str/format/text.h>
 
 namespace

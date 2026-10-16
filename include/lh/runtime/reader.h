@@ -16,10 +16,7 @@
 #ifndef LH_RUNTIME_READER_H
 #define LH_RUNTIME_READER_H
 
-#include <lh/compiler/extern/c.h>
 #include <lh/io/reader.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

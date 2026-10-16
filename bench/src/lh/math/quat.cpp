@@ -1,7 +1,6 @@
 #include <benchmark/benchmark.h>
 
 #include <lh/math/quat.h>
-#include <lh/math/vec3.h>
 #include <lh/util/addr.h>
 
 static void

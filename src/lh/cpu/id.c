@@ -1,9 +1,7 @@
 #include <lh/cpu/id.h>
 
 #include <lh/assert.h>
-#include <lh/cast/static.h>
 #include <lh/compiler/arch/family.h>
-#include <lh/compiler/type.h>
 
 #if LH_COMPILER_ARCH_FAMILY_IS_X86 &&                                                              \
     (LH_COMPILER_TYPE_IS_GCC_LIKE || (LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC))

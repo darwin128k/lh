@@ -7,7 +7,6 @@
 
 #include <lh/config.h>
 #include <lh/library/option.h>
-#include <lh/null.h>
 #include <lh/runtime/logger.h>
 #include <lh/str/format/text.h>
 

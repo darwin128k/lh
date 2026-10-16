@@ -1,10 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <lh/cast/static.h>
 #include <lh/expect/death.h>
 #include <lh/memory/view.h>
 #include <lh/memory/view/initializer.h>
-#include <lh/null.h>
 #include <lh/test/out.h>
 
 namespace

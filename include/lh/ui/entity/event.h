@@ -8,13 +8,8 @@
 #ifndef LH_UI_ENTITY_EVENT_H
 #define LH_UI_ENTITY_EVENT_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/ptr.h>
 #include <lh/ui/entity/event/fields.h>
-#include <lh/ui/point.h>
 #include <lh/ui/rect.h>
-#include <lh/void.h>
 
 struct lh_ui_canvas;
 struct lh_ui_entity_transform;

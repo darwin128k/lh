@@ -11,9 +11,7 @@
 #ifndef LH_OS_TICK_H
 #define LH_OS_TICK_H
 
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/timer/tick.h>
 
 #if !LH_LIBRARY_OPTION_OS

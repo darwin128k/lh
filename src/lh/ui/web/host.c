@@ -4,35 +4,21 @@
  */
 
 #include <lh/ui/web/host.h>
-#include <lh/assert/runtime.h>
 #include <lh/ui/web/page.h>
 #include <lh/ui/web/ws.h>
 
-#include <lh/byte.h>
-#include <lh/byte/ptr.h>
 #include <lh/cast/const.h>
 #include <lh/crypto/sha.h>
 #include <lh/memory.h>
-#include <lh/net/ip.h>
-#include <lh/net/socket/addr/ip4.h>
-#include <lh/null.h>
 #include <lh/os/alloc.h>
 #include <lh/os/net.h>
 #include <lh/os/net/socket.h>
-#include <lh/os/result.h>
 #include <lh/os/tick.h>
 #include <lh/runtime/allocator.h>
 #include <lh/runtime/logger.h>
 #include <lh/str/format/text.h>
 #include <lh/str/parse/text.h>
-#include <lh/ui/canvas.h>
 #include <lh/ui/canvas/web.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
-#include <lh/cast/static.h>
 
 /** WebSocket clients served at once; one more is closed on arrival. */
 #define HOST_WS_MAX 8u

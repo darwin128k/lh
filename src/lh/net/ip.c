@@ -1,14 +1,9 @@
 #include <lh/net/ip.h>
-#include <lh/assert/runtime.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
 #include <lh/memory.h>
-#include <lh/memory/std.h>
-#include <lh/runtime/error.h>
 #include <lh/str/format/uint.h>
 #include <lh/str/parse/uint.h>
 #include <lh/str/split/next.h>
-#include <lh/util/addr.h>
 
 lh_void
 lh_net_ip4_init(lh_net_ip4_t *self, lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet2, lh_u8_t octet3)

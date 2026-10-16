@@ -3,17 +3,8 @@
  * @brief Implementation of `lh/ui/image.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/null.h>
-#include <lh/ui/canvas.h>
 #include <lh/ui/canvas/mask.h>
-#include <lh/ui/entity.h>
 #include <lh/ui/image.h>
-#include <lh/ui/insets.h>
-#include <lh/ui/point.h>
-#include <lh/ui/size.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 const lh_ui_entity_class_t lh_ui_image_class = {lh_ui_image_event, lh_addr_of(lh_ui_entity_class)};

@@ -3,12 +3,7 @@
  * @brief Implementation of `lh/ui/text/align.h`.
  */
 
-#include <lh/math.h>
-#include <lh/ui/scalar.h>
-#include <lh/assert/runtime.h>
-#include <lh/null.h>
 #include <lh/ui/text/align.h>
-#include <lh/util/addr.h>
 
 lh_void
 lh_ui_text_align_get_origin(const lh_ui_rect_t *box, const lh_ui_insets_t *padding, lh_ui_size_t size,

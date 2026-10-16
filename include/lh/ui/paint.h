@@ -10,13 +10,9 @@
 #ifndef LH_UI_PAINT_H
 #define LH_UI_PAINT_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/ui/color.h>
 #include <lh/ui/gradient.h>
 #include <lh/ui/paint/fields.h>
 #include <lh/ui/paint/kind.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_paint

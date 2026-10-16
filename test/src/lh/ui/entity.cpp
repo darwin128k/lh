@@ -2,24 +2,9 @@
 
 #include <lh/test/ui/fill_probe.h>
 
-#include <lh/bool.h>
 #include <lh/expect/death.h>
-#include <lh/null.h>
-#include <lh/ui/canvas.h>
 #include <lh/ui/canvas/sw.h>
-#include <lh/ui/color.h>
-#include <lh/ui/entity.h>
 #include <lh/ui/container.h>
-#include <lh/ui/entity/event.h>
-#include <lh/ui/pixmap.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/paint.h>
-#include <lh/ui/shadow.h>
-#include <lh/ui/style.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
-#include <lh/void.h>
 #include <lh/test/out.h>
 
 namespace

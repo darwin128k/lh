@@ -1,13 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/exception.h>
 #include <lh/expect/death.h>
 #include <lh/runtime/assert.h>
-#include <lh/runtime/check.h>
-#include <lh/runtime/error/code.h>
-#include <lh/str/view.h>
 #include <lh/test/out.h>
 
 #include <cstdio>

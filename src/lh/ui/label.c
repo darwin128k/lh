@@ -3,17 +3,8 @@
  * @brief Implementation of `lh/ui/label.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/cast/static.h>
-#include <lh/math.h>
-#include <lh/null.h>
-#include <lh/ui/canvas.h>
-#include <lh/ui/entity/event.h>
-#include <lh/ui/entity/transform.h>
 #include <lh/ui/label.h>
 #include <lh/ui/text.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 /* ── Class ───────────────────────────────────────────────────────────────── */

@@ -10,13 +10,7 @@
 #ifndef LH_UI_PRESENT_H
 #define LH_UI_PRESENT_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/ui/pixmap.h>
 #include <lh/ui/present/sink.h>
-#include <lh/ui/rects.h>
-#include <lh/void.h>
 
 /**
  * @def LH_UI_PRESENT_SINKS_MAX

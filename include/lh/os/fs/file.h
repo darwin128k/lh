@@ -16,22 +16,13 @@
 #ifndef LH_OS_FS_FILE_H
 #define LH_OS_FS_FILE_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/fs/path.h>
-#include <lh/io/reader.h>
 #include <lh/io/stream.h>
-#include <lh/io/writer.h>
 #include <lh/os/fs/file/fields.h>
 #include <lh/os/result.h>
 #include <lh/os/system/fs/file/handle.h>
 #include <lh/fs/file/mode.h>
-#include <lh/ptr.h>
-#include <lh/self.h>
-#include <lh/size.h>
-#include <lh/str/ptr.h>
 
 #include <stdarg.h>
 

@@ -4,8 +4,6 @@
  */
 #include <lh/ui/present/sink.h>
 
-#include <lh/null.h>
-
 lh_void
 lh_ui_present_sink_init(lh_ui_present_sink_t *self, const char *name, lh_ui_present_fn *present,
                         lh_ptr context)

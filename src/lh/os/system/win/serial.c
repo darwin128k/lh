@@ -6,15 +6,10 @@
 #include <lh/os/system/serial.h>
 
 #include <lh/assert/runtime.h>
-#include <lh/cast/reinterpret.h>
-#include <lh/cast/static.h>
 #include <lh/memory.h>
-#include <lh/null.h>
-#include <lh/os/str.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
 #include <lh/os/system/win/kernel32.h>
-#include <lh/util/addr.h>
 #include <lh/util/return.h>
 
 /** Room for `\\.\` and a port name; nothing longer is a port. */

@@ -1,12 +1,7 @@
 #include <lh/os/system/error/capture.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
 #include <lh/char/map.h>
-#include <lh/null.h>
-#include <lh/numeric/limits.h>
 #include <lh/os/system/win/kernel32.h>
-#include <lh/math.h>
-#include <lh/util/str/ptr.h>
 #include <lh/util/wstr/ptr.h>
 
 lh_os_system_error_code_t

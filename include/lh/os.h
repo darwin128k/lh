@@ -20,11 +20,7 @@
 #ifndef LH_OS_H
 #define LH_OS_H
 
-#include <lh/void.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/error/code.h>
-#include <lh/initializer.h>
 #include <lh/os/error.h>
 #include <lh/os/error/initializer.h>
 
@@ -41,11 +37,8 @@
 #include <lh/os/fs/stat.h>
 #include <lh/os/env.h>
 #include <lh/os/loader.h>
-#include <lh/os/module.h>
 #include <lh/os/net.h>
 #include <lh/os/net/socket.h>
-#include <lh/os/result.h>
-#include <lh/os/shared.h>
 #include <lh/os/str.h>
 #include <lh/os/system.h>
 #include <lh/os/tick.h>

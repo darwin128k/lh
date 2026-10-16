@@ -25,14 +25,9 @@
 #ifndef LH_OS_SYSTEM_SHARED_H
 #define LH_OS_SYSTEM_SHARED_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/system/shared/handle.h>
-#include <lh/ptr.h>
 #include <lh/str.h>
-#include <lh/str/ptr.h>
-#include <lh/str/view.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/system/shared.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

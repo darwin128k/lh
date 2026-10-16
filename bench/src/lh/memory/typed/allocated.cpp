@@ -1,6 +1,5 @@
 #include <benchmark/benchmark.h>
 
-#include <lh/memory/typed.h>
 #include <lh/memory/typed/allocated.h>
 
 static void

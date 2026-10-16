@@ -4,13 +4,8 @@
  */
 
 #include <lh/assert/runtime.h>
-#include <lh/bool.h>
 #include <lh/byte/limits.h>
-#include <lh/cast/static.h>
-#include <lh/math.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/ui/color.h>
-#include <lh/util/addr.h>
 #include <lh/util/return.h>
 
 #if LH_UI_COLOR_HAVE_SMLAD
@@ -170,7 +165,7 @@ lh_ui_color_channel_t
 lh_ui_color_blend_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t src_w, lh_u32_t dst_w)
 {
     const lh_u32_t total = src_w + dst_w;
-    return lh_cast_static(lh_ui_color_channel_t, (src * src_w + dst * dst_w + total / 2U) / total);
+    return lh_cast_static(lh_ui_color_channel_t, lh_math_div_round(src * src_w + dst * dst_w, total));
 }
 
 lh_void

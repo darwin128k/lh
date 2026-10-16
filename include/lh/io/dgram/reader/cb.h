@@ -9,7 +9,6 @@
 #define LH_IO_DGRAM_READER_CB_H
 
 #include <lh/io/dgram/reader/fn.h>
-#include <lh/util/ptr.h>
 
 /**
  * @def lh_io_dgram_reader_recv_cb

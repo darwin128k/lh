@@ -15,16 +15,9 @@
 #ifndef LH_UI_TEXT_LINE_H
 #define LH_UI_TEXT_LINE_H
 
-#include <lh/bool.h>
-#include <lh/char.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/ui/font.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
 #include <lh/ui/text/align.h>
 #include <lh/ui/text/line/fields.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_text_line

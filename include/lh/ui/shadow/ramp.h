@@ -14,11 +14,8 @@
 #ifndef LH_UI_SHADOW_RAMP_H
 #define LH_UI_SHADOW_RAMP_H
 
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/ui/shadow/ramp/fields.h>
 #include <lh/ui/shadow/shape.h>
-#include <lh/void.h>
 
 /** @brief The most thresholds a ramp holds: one below every alpha but the peak. */
 #define LH_UI_SHADOW_RAMP_LEVELS 255

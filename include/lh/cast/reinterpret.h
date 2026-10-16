@@ -10,7 +10,6 @@
 #ifndef LH_CAST_REINTERPRET_H
 #define LH_CAST_REINTERPRET_H
 
-#include <lh/compiler/cxx.h>
 #include <lh/cast/static.h>
 
 /**

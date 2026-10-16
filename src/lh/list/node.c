@@ -1,11 +1,7 @@
 #include <lh/list/node.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
-#include <lh/cast/static.h>
 #include <lh/list/node/link.h>
-#include <lh/null.h>
-#include <lh/runtime/error.h>
-#include <lh/util/ptr.h>
 
 lh_void
 lh_list_node_set_next(lh_list_node_t *self, lh_list_node_t *next)

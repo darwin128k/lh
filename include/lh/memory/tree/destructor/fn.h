@@ -7,7 +7,6 @@
 #define LH_MEMORY_TREE_DESTRUCTOR_FN_H
 
 #include <lh/ptr.h>
-#include <lh/void.h>
 
 /**
  * @typedef lh_memory_tree_destructor_fn

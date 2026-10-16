@@ -36,16 +36,8 @@
 #ifndef LH_UI_LAYOUT_H
 #define LH_UI_LAYOUT_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/ui/axis.h>
 #include <lh/ui/entity.h>
 #include <lh/ui/layout/fields.h>
-#include <lh/ui/layout/place.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
-#include <lh/void.h>
 
 /**
  * @enum lh_ui_justify

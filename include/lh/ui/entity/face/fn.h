@@ -8,9 +8,7 @@
 #ifndef LH_UI_ENTITY_FACE_FN_H
 #define LH_UI_ENTITY_FACE_FN_H
 
-#include <lh/compiler/extern/c.h>
 #include <lh/ui/entity/event.h>
-#include <lh/void.h>
 
 struct lh_ui_entity;
 

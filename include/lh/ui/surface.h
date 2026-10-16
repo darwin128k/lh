@@ -12,17 +12,11 @@
 #ifndef LH_UI_SURFACE_H
 #define LH_UI_SURFACE_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/system/surface/handle.h>
-#include <lh/ptr.h>
 #include <lh/ui/pixmap.h>
-#include <lh/ui/rect.h>
 #include <lh/ui/rects.h>
-#include <lh/ui/size.h>
 #include <lh/ui/surface/fields.h>
-#include <lh/void.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/surface.h requires LH_LIBRARY_OPTION_UI"

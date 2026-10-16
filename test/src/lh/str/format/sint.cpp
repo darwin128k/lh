@@ -2,7 +2,6 @@
 
 #include <string>
 
-#include <lh/numeric/limits.h>
 #include <lh/str/format/sint.h>
 
 namespace

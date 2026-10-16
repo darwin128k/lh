@@ -3,12 +3,7 @@
  * @brief Implementation of `lh/ui/paint.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/cast/static.h>
-#include <lh/null.h>
 #include <lh/ui/paint.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 lh_void
