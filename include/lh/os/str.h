@@ -4,12 +4,12 @@
  *
  * lh text is UTF-8 everywhere. The kernel's is not always:
  *
- *   Windows РІР‚вЂќ UTF-16 (::lh_wstr_t, `...W` calls). The `...A` calls take the
+ *   Windows — UTF-16 (::lh_wstr_t, `...W` calls). The `...A` calls take the
  *             ANSI code page, not UTF-8, so lh never uses them.
- *   POSIX   РІР‚вЂќ bytes, UTF-8 by convention (::lh_str_t): no conversion.
+ *   POSIX   — bytes, UTF-8 by convention (::lh_str_t): no conversion.
  *
  * ::lh_os_str_t names that text so code that crosses into the kernel does
- * not hardcode wide vs. narrow РІР‚вЂќ same idea as ::lh_os_error_desc_t
+ * not hardcode wide vs. narrow — same idea as ::lh_os_error_desc_t
  * (`lh/os/error/desc.h`). The two representations share one API shape
  * (both are an ::lh_array_t of characters), so the `lh_os_str_*` names map
  * one to one onto `lh_wstr_*` / `lh_str_*`.

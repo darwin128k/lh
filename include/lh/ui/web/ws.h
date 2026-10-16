@@ -47,7 +47,7 @@ lh_usize_t
 lh_ui_web_ws_frame_size(lh_usize_t payload_len);
 
 /**
- * @brief Write an unmasked frame (server в†’ client) into @p out.
+ * @brief Write an unmasked frame (server → client) into @p out.
  *
  * @return Bytes written, or 0 if @p cap is too small or @p opcode is not a frame.
  */

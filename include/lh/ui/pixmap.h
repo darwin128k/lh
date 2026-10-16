@@ -45,7 +45,7 @@ typedef struct lh_ui_pixmap lh_ui_pixmap_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* в”Ђв”Ђ Lifetime and shape в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ── Lifetime and shape ──────────────────────────────────────────────────── */
 
 /**
  * @brief True for the 16-bit formats (RGB565, plain or swapped).
@@ -117,7 +117,7 @@ lh_ui_pixmap_get_row(const lh_ui_pixmap_t *self, lh_s32_t y);
 lh_byte_ptr
 lh_ui_pixmap_get_address(const lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y);
 
-/* в”Ђв”Ђ Pixels в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ── Pixels ──────────────────────────────────────────────────────────────── */
 
 /**
  * @brief @p word with its two bytes swapped when @p self is
@@ -179,7 +179,7 @@ lh_void
 lh_ui_pixmap_cover_pixel(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color,
                          lh_byte_t coverage);
 
-/* в”Ђв”Ђ Spans and boxes в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ── Spans and boxes ─────────────────────────────────────────────────────── */
 
 /**
  * @brief Store @p word in @p count 32-bit words from @p at, eight per turn.
@@ -200,7 +200,7 @@ lh_ui_pixmap_store_words16(lh_u16_t *at, lh_usize_t count, lh_u16_t word);
 lh_void
 lh_ui_pixmap_store_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_u32_t word);
 
-/* в”Ђв”Ђ Row kernels в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ── Row kernels ─────────────────────────────────────────────────────────── */
 
 /**
  * @brief `0xRRGGBB` of @p src at alpha @p a over opaque @p dst (both
@@ -332,9 +332,9 @@ lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_b
  * @brief SSE2 form of ::lh_ui_pixmap_blend_alpha_32, four pixels at a time.
  *
  * Blocks of four, the last one to three pixels included: they are read into a
- * block and written back word by word. The scalar kernel branches per pixel three times вЂ” on `alpha[i]`, on it being
+ * block and written back word by word. The scalar kernel branches per pixel three times — on `alpha[i]`, on it being
  * `255`, and (inside ::lh_ui_pixmap_mix_argb) on whether the destination is
- * opaque at all вЂ” and rebuilds a word per pixel. All three are removable: the
+ * opaque at all — and rebuilds a word per pixel. All three are removable: the
  * general form `(src * a + dst * (255 - a) + 127) / 255` already *is* the
  * `a == 0` case (it returns `dst`) and the `a == 255` case (it returns `src`),
  * so one branch-free pass covers every alpha, and `255` as the divisor becomes

@@ -6,7 +6,7 @@
  *
  * Every element's characters live back to back in a single ::lh_wstr_t, each
  * followed by a NUL, with a side table of (offset, size) per element. Adding
- * an element is an append to that buffer вЂ” no allocation of its own вЂ” and
+ * an element is an append to that buffer — no allocation of its own — and
  * reading one is a view into it (::lh_wstr_list_get) or a NUL-terminated
  * pointer (::lh_wstr_list_get_data), never a copy.
  *
@@ -78,7 +78,7 @@ lh_wstr_list_get(const lh_wstr_list_t *self, lh_uindex_t index, lh_wstr_view_t *
 
 /**
  * @brief Element @p index as a NUL-terminated pointer into the shared
- *        buffer вЂ” ready for a C / OS API without a copy.
+ *        buffer — ready for a C / OS API without a copy.
  *
  * @fails ::lh_runtime_error_code_out_of_range @p index is not below
  *        ::lh_wstr_list_get_size.

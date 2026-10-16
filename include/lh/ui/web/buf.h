@@ -3,7 +3,7 @@
  * @brief Byte sink for web page serialization (HTML and JS text).
  *
  * Construct markup / JS with their own entities, then write through this API.
- * Callers do not touch the fields вЂ” use ::lh_ui_web_buf_init / lit / raw / fail.
+ * Callers do not touch the fields — use ::lh_ui_web_buf_init / lit / raw / fail.
  *
  * Requires ::LH_LIBRARY_OPTION_UI.
  */

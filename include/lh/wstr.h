@@ -2,7 +2,7 @@
  * @file wstr.h
  * @brief Owning, growable, NUL-terminated wide string (::lh_wstr_t).
  *
- * Wide counterpart of ::lh_str_t вЂ” same shape, ::lh_wchar_t elements
+ * Wide counterpart of ::lh_str_t — same shape, ::lh_wchar_t elements
  * instead of ::lh_char_t. ::lh_str_format / ::lh_str_format_v have no
  * counterpart here: they depend on the narrow `lh_str_ptr_format_text_*`
  * formatter, and no wide equivalent exists in the library yet.
@@ -28,7 +28,7 @@ typedef lh_array_t lh_wstr_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* в”Ђв”Ђ init / deinit в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ── init / deinit ───────────────────────────────────────────────────────── */
 
 /**
  * @brief Initialize @p self as an empty, NUL-terminated wide string.
@@ -43,7 +43,7 @@ lh_wstr_init(lh_wstr_t *self);
 lh_void
 lh_wstr_deinit(lh_wstr_t *self);
 
-/* в”Ђв”Ђ accessors в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ── accessors ───────────────────────────────────────────────────────────── */
 
 /**
  * @brief Return a pointer to the NUL-terminated character data.
@@ -63,7 +63,7 @@ lh_wstr_get_size(const lh_wstr_t *self);
 lh_bool_t
 lh_wstr_is_empty(const lh_wstr_t *self);
 
-/* в”Ђв”Ђ mutation в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ── mutation ────────────────────────────────────────────────────────────── */
 
 /**
  * @brief Append @p ch to the end of @p self, growing it if needed.
@@ -126,7 +126,7 @@ lh_wstr_clear(lh_wstr_t *self);
 lh_void
 lh_wstr_truncate(lh_wstr_t *self, lh_usize_t n);
 
-/* в”Ђв”Ђ view в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ── view ────────────────────────────────────────────────────────────────── */
 
 /**
  * @brief Return a non-owning view over @p self's current contents.

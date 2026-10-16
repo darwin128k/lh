@@ -4,12 +4,12 @@
  *
  * A configurator does not read a handful of registers. A device card is a few
  * hundred of them, several devices answer at once, and there is no real device on
- * the desk to develop against вЂ” so the two things worth getting right here are the
+ * the desk to develop against — so the two things worth getting right here are the
  * ones that do not need one:
  *
- * - **the wire** вЂ” build a request, parse a response, check the CRC. All of it
+ * - **the wire** — build a request, parse a response, check the CRC. All of it
  *   arithmetic over bytes, all of it testable with a device that never existed;
- * - **the plan** вЂ” a card is address-ordered, and consecutive registers that are
+ * - **the plan** — a card is address-ordered, and consecutive registers that are
  *   wanted with the same function code can be asked for in **one** request
  *   instead of one each (::lh_mb_plan_reads). This is where the speed comes from
  *   and it is decided by the map, not by the loop: a hundred scattered registers
@@ -33,7 +33,7 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* в”Ђв”Ђ The wire в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ── The wire ────────────────────────────────────────────────────────────── */
 
 /** @brief Function code: read holding registers. */
 #define LH_MB_FC_READ_HOLDING (lh_cast_static(lh_u8_t, 0x03))
@@ -53,9 +53,9 @@ LH_COMPILER_EXTERN_C_BEGIN
  * The widest answer a link can ask for is a read of ::LH_MB_READ_MAX registers, and
  * its two framings do **not** come out the same size:
  *
- * - **RTU** вЂ” unit, function code, byte count, 250 data bytes, CRC low byte first:
+ * - **RTU** — unit, function code, byte count, 250 data bytes, CRC low byte first:
  *   1 + 1 + 1 + 250 + 2 = **255**;
- * - **Modbus TCP** вЂ” transaction id, protocol id, length, unit, then the same PDU
+ * - **Modbus TCP** — transaction id, protocol id, length, unit, then the same PDU
  *   with no CRC at all: 7 + 1 + 1 + 250 = **259**.
  *
  * The larger one is what a buffer has to be. It used to be 256, which is the RTU
@@ -66,7 +66,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * nothing is logged: the answer is simply never completed, which looks exactly like a
  * device that stopped answering halfway.
  *
- * So 260, with the arithmetic above rather than a remembered number вЂ” the figure 256
+ * So 260, with the arithmetic above rather than a remembered number — the figure 256
  * is the number that was remembered, and it was wrong for one of the two framings this
  * library speaks.
  */
@@ -153,13 +153,13 @@ typedef enum lh_mb_status
     lh_mb_status_lost
 } lh_mb_status_t;
 
-/* The PDU вЂ” function code and data, no unit and no CRC вЂ” is the part of a frame
+/* The PDU — function code and data, no unit and no CRC — is the part of a frame
    that is the same on every line, and it is what `lh/net/modbus/link.h` hands to
    whichever framing it has. The three below are the PDU on its own; the three after
    them are the same work with the envelope still on. */
 
 /**
- * @brief Build a read request **PDU** вЂ” function code and data, no unit, no CRC.
+ * @brief Build a read request **PDU** — function code and data, no unit, no CRC.
  *
  * @param pdu    Where the PDU goes.
  * @param cap    How much @p pdu really has; 6 bytes is enough for a read.
@@ -173,14 +173,14 @@ lh_u16_t
 lh_mb_build_pdu_read(lh_byte_ptr pdu, lh_u16_t cap, lh_u8_t fc, lh_u16_t address, lh_u16_t count);
 
 /**
- * @brief Build a "write many registers" **PDU** вЂ” no unit, no CRC.
+ * @brief Build a "write many registers" **PDU** — no unit, no CRC.
  */
 lh_u16_t
 lh_mb_build_pdu_write(lh_byte_ptr pdu, lh_u16_t cap, lh_u16_t address, const lh_u16_t *values,
                       lh_u16_t count);
 
 /**
- * @brief Build a "write one register" (0x06) **PDU** вЂ” no unit, no CRC.
+ * @brief Build a "write one register" (0x06) **PDU** — no unit, no CRC.
  *
  * Five bytes: the code, the address and the value. The function some devices
  * accept where they refuse 0x10, and the cheaper one for a single word either way.
@@ -275,7 +275,7 @@ lh_mb_status_t
 lh_mb_parse_pdu_write_one(const lh_byte_ptr pdu, lh_u16_t length, lh_u16_t address, lh_u16_t value,
                           lh_u8_t *exception);
 
-/* в”Ђв”Ђ The plan в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ── The plan ────────────────────────────────────────────────────────────── */
 
 /**
  * @brief One register somebody wants.
@@ -343,7 +343,7 @@ lh_mb_plan_reads(const lh_mb_want_t *wants, lh_u16_t count, lh_mb_read_t *reads,
  * @brief How many requests a list of wants would need, without building them.
  *
  * The number to put in front of a customer, and the one to check against
- * ::lh_mb_plan_reads вЂ” a plan that returns more reads than this says are two paths
+ * ::lh_mb_plan_reads — a plan that returns more reads than this says are two paths
  * that disagree, and a plan that returns fewer is dropping something.
  */
 lh_u16_t

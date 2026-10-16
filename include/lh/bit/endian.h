@@ -6,7 +6,7 @@
  * to hand a 16-bit field to a wire format (a socket address's port today; any
  * future length-prefixed or fixed-header protocol tomorrow) is exactly the
  * kind of small, easy-to-subtly-reimplement primitive this library prefers to
- * name once вЂ” see `lh/bit/scan.h` for the same reasoning applied to
+ * name once — see `lh/bit/scan.h` for the same reasoning applied to
  * bit-scan.
  *
  * Named `pack`/`unpack` for the wire-byte conversion itself
