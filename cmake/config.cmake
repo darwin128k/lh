@@ -174,6 +174,12 @@ function(lh_generate_config)
         set(ValSimdHaveAvx2 0)
     endif ()
 
+    if (LH_SIMD_HAVE_AESNI)
+        set(ValSimdHaveAesni 1)
+    else ()
+        set(ValSimdHaveAesni 0)
+    endif ()
+
     if (NOT LH_LIBRARY_OPTION_MEMORY_STD_BACKEND MATCHES "^(AUTO|OWN|LIBC)$")
         message(FATAL_ERROR "LH_LIBRARY_OPTION_MEMORY_STD_BACKEND must be AUTO, OWN or LIBC "
                 "(got '${LH_LIBRARY_OPTION_MEMORY_STD_BACKEND}')")

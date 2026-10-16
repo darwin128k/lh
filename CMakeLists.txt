@@ -11,7 +11,7 @@ include(cmake/library_options.cmake)
 include(cmake/check_simd.cmake)
 
 # Compile-only SIMD tier probes (see cmake/check_simd.cmake) — sets
-# LH_SIMD_HAVE_SSE2 / LH_SIMD_HAVE_AVX2, consumed by lh_generate_config() below.
+# LH_SIMD_HAVE_SSE2 / _SSSE3 / _AVX2 / _AESNI, consumed by lh_generate_config() below.
 lh_check_simd()
 
 # ---------------------------------------------------------------------------

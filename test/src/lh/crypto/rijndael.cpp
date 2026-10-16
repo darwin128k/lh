@@ -115,6 +115,87 @@ TEST(crypto_rijndael, cbc_round_trip)
     EXPECT_EQ(std::memcmp(back, pt, 16), 0);
 }
 
+/* FIPS-197 appendix C: one known answer per AES key size, both directions. On a CPU
+   with AES-NI these run the hardware path, so they pin it to the standard rather than
+   to the table path it replaced. */
+TEST(crypto_rijndael, aes_ecb_fips197_all_key_sizes)
+{
+    struct known_answer
+    {
+        lh_usize_t key_size;
+        const char *ct;
+    };
+    static const known_answer cases[] = {
+        {16, "69c4e0d86a7b0430d8cdb78070b4c55a"},
+        {24, "dda97ca4864cdfe06eaf70a0ec0d7191"},
+        {32, "8ea2b7ca516745bfeafc49904b496089"},
+    };
+    lh_byte_t key[32];
+    lh_byte_t pt[16];
+    lh_usize_t i;
+
+    for (i = 0; i < 32U; ++i)
+    {
+        key[i] = static_cast<lh_byte_t>(i);
+    }
+    for (i = 0; i < 16U; ++i)
+    {
+        pt[i] = static_cast<lh_byte_t>(i * 0x11U);
+    }
+
+    for (const known_answer &c : cases)
+    {
+        lh_byte_t ct[16] = {};
+        lh_byte_t back[16] = {};
+        lh_crypto_rijndael_t aes;
+
+        ASSERT_TRUE(lh_crypto_rijndael_init(lh_addr_of(aes), key, c.key_size, lh_null, 0, 16,
+                                            lh_crypto_rijndael_mode_ecb));
+        ASSERT_TRUE(lh_crypto_rijndael_encrypt_block(lh_addr_of(aes), pt, ct));
+        EXPECT_EQ(bytes_hex(ct, 16), c.ct) << "key size " << c.key_size;
+        ASSERT_TRUE(lh_crypto_rijndael_decrypt_block(lh_addr_of(aes), ct, back));
+        EXPECT_EQ(bytes_hex(back, 16), bytes_hex(pt, 16)) << "key size " << c.key_size;
+    }
+}
+
+/* NIST SP 800-38A F.2.1 / F.2.2 (CBC-AES128) and F.3.13 / F.3.14 (CFB128-AES128),
+   first block. */
+TEST(crypto_rijndael, aes128_cbc_cfb_sp800_38a)
+{
+    const lh_byte_t key[16] = {0x2B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6,
+                                0xAB, 0xF7, 0x15, 0x88, 0x09, 0xCF, 0x4F, 0x3C};
+    const lh_byte_t iv[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                               0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F};
+    const lh_byte_t pt[16] = {0x6B, 0xC1, 0xBE, 0xE2, 0x2E, 0x40, 0x9F, 0x96,
+                               0xE9, 0x3D, 0x7E, 0x11, 0x73, 0x93, 0x17, 0x2A};
+    static const struct
+    {
+        lh_crypto_rijndael_mode_t mode;
+        const char *ct;
+    } cases[] = {
+        {lh_crypto_rijndael_mode_cbc, "7649abac8119b246cee98e9b12e9197d"},
+        {lh_crypto_rijndael_mode_cfb, "3b3fd92eb72dad20333449f8e83cfb4a"},
+    };
+
+    for (const auto &c : cases)
+    {
+        lh_byte_t ct[16] = {};
+        lh_byte_t back[16] = {};
+        lh_crypto_rijndael_t aes;
+
+        ASSERT_TRUE(lh_crypto_rijndael_init(lh_addr_of(aes), const_cast<lh_byte_t *>(key), 16,
+                                            const_cast<lh_byte_t *>(iv), 16, 16, c.mode));
+        ASSERT_TRUE(
+            lh_crypto_rijndael_encrypt_block(lh_addr_of(aes), const_cast<lh_byte_t *>(pt), ct));
+        EXPECT_EQ(bytes_hex(ct, 16), c.ct) << "mode " << static_cast<int>(c.mode);
+
+        ASSERT_TRUE(lh_crypto_rijndael_init(lh_addr_of(aes), const_cast<lh_byte_t *>(key), 16,
+                                            const_cast<lh_byte_t *>(iv), 16, 16, c.mode));
+        ASSERT_TRUE(lh_crypto_rijndael_decrypt_block(lh_addr_of(aes), ct, back));
+        EXPECT_EQ(bytes_hex(back, 16), bytes_hex(pt, 16)) << "mode " << static_cast<int>(c.mode);
+    }
+}
+
 TEST(crypto_rijndael, rejects_bad_sizes)
 {
     lh_byte_t key[16] = {};

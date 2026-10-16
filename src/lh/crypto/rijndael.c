@@ -5,6 +5,20 @@
 #include <lh/bit/endian.h>
 #include <lh/bit/rotate.h>
 #include <lh/math.h>
+#include <lh/config.h>
+
+#if LH_LIBRARY_OPTION_SIMD_HAVE_AESNI
+#    include <lh/compiler/type.h>
+#    include <lh/cpu/simd.h>
+#    include <immintrin.h>
+
+/** @brief Compile one function for AES-NI (GCC / Clang `target`; MSVC needs none). */
+#    if LH_COMPILER_TYPE_IS_GCC_LIKE
+#        define LH_CRYPTO_RIJNDAEL_AESNI_TARGET __attribute__((target("aes,sse2")))
+#    else
+#        define LH_CRYPTO_RIJNDAEL_AESNI_TARGET
+#    endif
+#endif
 
 static const lh_byte_t m_sbox[256] = {
     0x63U, 0x7CU, 0x77U, 0x7BU, 0xF2U, 0x6BU, 0x6FU, 0xC5U, 0x30U, 0x01U, 0x67U, 0x2BU, 0xFEU,
@@ -259,6 +273,80 @@ lh_crypto_rijndael_get_block_size(const lh_crypto_rijndael_t *self)
     return block_size;
 }
 
+#if LH_LIBRARY_OPTION_SIMD_HAVE_AESNI
+
+/* AES-NI only knows the 16-byte block, which is all of AES; Rijndael's 24- and
+   32-byte blocks stay on the table path. The expanded key is already in the byte
+   order AESENC wants: FIPS-197 round keys, 16 bytes per round. */
+
+#    define LH_CRYPTO_RIJNDAEL_AESNI_UNKNOWN 0U
+#    define LH_CRYPTO_RIJNDAEL_AESNI_NO 1U
+#    define LH_CRYPTO_RIJNDAEL_AESNI_YES 2U
+
+/* CPUID once per process, like the lh_memory_std_* dispatch: a race only repeats the
+   same answer. */
+static lh_byte_t m_aesni = LH_CRYPTO_RIJNDAEL_AESNI_UNKNOWN;
+
+static lh_bool_t
+lh_crypto_rijndael_has_aesni(void)
+{
+    if (m_aesni == LH_CRYPTO_RIJNDAEL_AESNI_UNKNOWN)
+    {
+        m_aesni = lh_cpu_simd_has_aesni() ? LH_CRYPTO_RIJNDAEL_AESNI_YES
+                                          : LH_CRYPTO_RIJNDAEL_AESNI_NO;
+    }
+    return lh_cast_static(lh_bool_t, m_aesni == LH_CRYPTO_RIJNDAEL_AESNI_YES);
+}
+
+LH_CRYPTO_RIJNDAEL_AESNI_TARGET
+static __m128i
+lh_crypto_rijndael_aesni_round_key(const lh_crypto_rijndael_t *self, lh_usize_t round)
+{
+    return _mm_loadu_si128(lh_ptr_rcast(const __m128i, self->expanded_key + round * 16U));
+}
+
+LH_CRYPTO_RIJNDAEL_AESNI_TARGET
+static lh_void
+lh_crypto_rijndael_aesni_encrypt(const lh_crypto_rijndael_t *self, lh_byte_cptr in,
+                                 lh_byte_ptr out)
+{
+    const lh_usize_t nr = self->round_count;
+    __m128i state = _mm_loadu_si128(lh_ptr_rcast(const __m128i, in));
+    lh_usize_t round;
+
+    state = _mm_xor_si128(state, lh_crypto_rijndael_aesni_round_key(self, 0U));
+    for (round = 1; round < nr; ++round)
+    {
+        state = _mm_aesenc_si128(state, lh_crypto_rijndael_aesni_round_key(self, round));
+    }
+    state = _mm_aesenclast_si128(state, lh_crypto_rijndael_aesni_round_key(self, nr));
+    _mm_storeu_si128(lh_ptr_rcast(__m128i, out), state);
+}
+
+/* The equivalent inverse cipher (FIPS-197 5.3.5): AESDEC wants the middle round keys
+   passed through InvMixColumns, which AESIMC does here rather than in a second key
+   schedule kept in the session. */
+LH_CRYPTO_RIJNDAEL_AESNI_TARGET
+static lh_void
+lh_crypto_rijndael_aesni_decrypt(const lh_crypto_rijndael_t *self, lh_byte_cptr in,
+                                 lh_byte_ptr out)
+{
+    const lh_usize_t nr = self->round_count;
+    __m128i state = _mm_loadu_si128(lh_ptr_rcast(const __m128i, in));
+    lh_usize_t round;
+
+    state = _mm_xor_si128(state, lh_crypto_rijndael_aesni_round_key(self, nr));
+    for (round = nr - 1U; round > 0U; --round)
+    {
+        state = _mm_aesdec_si128(
+            state, _mm_aesimc_si128(lh_crypto_rijndael_aesni_round_key(self, round)));
+    }
+    state = _mm_aesdeclast_si128(state, lh_crypto_rijndael_aesni_round_key(self, 0U));
+    _mm_storeu_si128(lh_ptr_rcast(__m128i, out), state);
+}
+
+#endif /* LH_LIBRARY_OPTION_SIMD_HAVE_AESNI */
+
 static lh_void
 lh_crypto_rijndael_cipher(const lh_crypto_rijndael_t *self, lh_byte_cptr in, lh_byte_ptr out,
                           lh_bool_t decrypt)
@@ -268,6 +356,21 @@ lh_crypto_rijndael_cipher(const lh_crypto_rijndael_t *self, lh_byte_cptr in, lh_
     lh_usize_t nb = block_size / 4U;
     lh_usize_t nr = self->round_count;
     lh_usize_t round;
+
+#if LH_LIBRARY_OPTION_SIMD_HAVE_AESNI
+    if (block_size == LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MIN && lh_crypto_rijndael_has_aesni())
+    {
+        if (decrypt)
+        {
+            lh_crypto_rijndael_aesni_decrypt(self, in, out);
+        }
+        else
+        {
+            lh_crypto_rijndael_aesni_encrypt(self, in, out);
+        }
+        return;
+    }
+#endif
 
     lh_memory_std_copy(state, in, block_size);
 
