@@ -3,7 +3,6 @@
 #include <lh/config.h>
 #include <lh/expect/death.h>
 #include <lh/runtime/assert.h>
-#include <lh/test/out.h>
 
 #include <cstdio>
 
@@ -22,17 +21,16 @@ void
 test_check_handler_prints(const lh_exception_t *exception)
 {
     const lh_exception_origin_t *origin = lh_exception_get_origin(exception);
-    lh_str_view_t desc = lh_test::out(lh_runtime_error_get_desc, lh_exception_get_error(exception));
-    const bool has_desc = !lh_str_view_is_empty(&desc);
+    const char *desc = lh_runtime_error_get_desc(lh_exception_get_error(exception));
+    const bool has_desc = desc != nullptr && *desc != '\0';
 
     /* "known"/"none" rather than the number: the death-test regexes below must
        work with googletest's simple regex (Windows, no [0-9]) and POSIX ERE
        (Linux, no \d) alike. */
-    std::fprintf(stderr, "custom handler saw error %d line %s message %.*s\n",
+    std::fprintf(stderr, "custom handler saw error %d line %s message %s\n",
                  lh_exception_get_code(exception),
                  origin != nullptr && origin->line != 0u ? "known" : "none",
-                 has_desc ? static_cast<int>(lh_str_view_get_size(&desc)) : 4,
-                 has_desc ? lh_str_view_get_data(&desc) : "none");
+                 has_desc ? desc : "none");
     std::fflush(stderr);
 }
 

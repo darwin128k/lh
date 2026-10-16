@@ -20,7 +20,7 @@
  *
  * @param code Native error code (::lh_os_system_error_code_t).
  * @param ...  Optional remainder of the initializer list
- *             (e.g. an ::lh_os_error_desc_t initializer or @c .desc = ...).
+ *             (e.g. an ::lh_os_error_desc_lit or @c .desc = ...).
  *
  * @see lh_initializer
  * @see lh_os_system_error_t

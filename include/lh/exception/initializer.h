@@ -22,7 +22,7 @@
  *                                              lh_str_view_empty_initializer(), __LINE__};
  * const lh_exception_t exception = lh_exception_initializer(
  *     lh_runtime_error_initializer(lh_runtime_error_code_invalid_argument,
- *                                  lh_str_view_initializer_lit("x must be positive")),
+ *                                  "x must be positive"),
  *     &origin);
  * @endcode
  */

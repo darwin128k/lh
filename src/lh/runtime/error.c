@@ -3,7 +3,7 @@
 
 lh_void
 lh_runtime_error_set(lh_runtime_error_t *self, lh_runtime_error_code_t code,
-                     lh_str_view_t desc)
+                     const lh_error_desc_ptr desc)
 {
     lh_error_set(lh_ptr_cast(lh_error_t, self), code, desc);
 }
@@ -15,7 +15,7 @@ lh_runtime_error_set_code(lh_runtime_error_t *self, lh_runtime_error_code_t code
 }
 
 lh_void
-lh_runtime_error_set_desc(lh_runtime_error_t *self, lh_str_view_t desc)
+lh_runtime_error_set_desc(lh_runtime_error_t *self, const lh_error_desc_ptr desc)
 {
     lh_error_set_desc(lh_ptr_cast(lh_error_t, self), desc);
 }
@@ -26,16 +26,16 @@ lh_runtime_error_get_code(const lh_runtime_error_t *self)
     return lh_error_get_code(lh_ptr_ccast(lh_error_t, self));
 }
 
-lh_void
-lh_runtime_error_get_desc(const lh_runtime_error_t *self, lh_str_view_t *out)
+const lh_error_desc_ptr
+lh_runtime_error_get_desc(const lh_runtime_error_t *self)
 {
-    lh_error_get_desc(lh_ptr_ccast(lh_error_t, self), out);
+    return lh_error_get_desc(lh_ptr_ccast(lh_error_t, self));
 }
 
-lh_void
-lh_runtime_error_get_desc_or(const lh_runtime_error_t *self, lh_str_view_t fallback, lh_str_view_t *out)
+const lh_error_desc_ptr
+lh_runtime_error_get_desc_or(const lh_runtime_error_t *self, const lh_error_desc_ptr fallback)
 {
-    lh_error_get_desc_or(lh_ptr_ccast(lh_error_t, self), fallback, out);
+    return lh_error_get_desc_or(lh_ptr_ccast(lh_error_t, self), fallback);
 }
 
 lh_bool_t
@@ -100,7 +100,7 @@ lh_runtime_error_clear(lh_runtime_error_t *self)
 
 lh_void
 lh_runtime_error_init(lh_runtime_error_t *self, lh_runtime_error_code_t code,
-                      lh_str_view_t desc)
+                      const lh_error_desc_ptr desc)
 {
     lh_error_init(lh_ptr_cast(lh_error_t, self), code, desc);
 }
@@ -124,7 +124,7 @@ lh_runtime_error_init_by_code(lh_runtime_error_t *self, lh_runtime_error_code_t 
 }
 
 lh_void
-lh_runtime_error_init_by_desc(lh_runtime_error_t *self, lh_str_view_t desc)
+lh_runtime_error_init_by_desc(lh_runtime_error_t *self, const lh_error_desc_ptr desc)
 {
     lh_runtime_error_init(self, lh_runtime_error_code_interrupt, desc);
 }

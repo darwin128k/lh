@@ -33,7 +33,7 @@
  *
  * Example usage:
  * @code{.c}
- * lh_error_set_desc(&err, lh_str_view_empty());
+ * lh_str_view_t v = lh_str_view_empty();
  * @endcode
  *
  * @see lh_str_view_empty_initializer
@@ -69,7 +69,7 @@
  *
  * Example usage:
  * @code{.c}
- * lh_error_set(&err, 1, lh_str_view_lit("failed"));
+ * lh_str_view_t v = lh_str_view_lit("failed");
  * @endcode
  *
  * @see lh_str_view_initializer_lit

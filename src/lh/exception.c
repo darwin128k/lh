@@ -2,6 +2,8 @@
 #include <lh/attribute/static.h>
 #include <lh/memory/std.h>
 #include <lh/str/format/text.h>
+#include <lh/util/str/ptr.h>
+#include <lh/util/str/ptr/empty.h>
 #include <lh/math.h>
 
 #include <stdarg.h>
@@ -50,20 +52,19 @@ lh_usize_t
 lh_exception_format_walk(const lh_exception_t *self, lh_str_ptr str, lh_usize_t str_size)
 {
     const lh_exception_origin_t *origin = lh_exception_get_origin(self);
-    lh_str_view_t desc;
-    lh_runtime_error_get_desc(lh_exception_get_error(self), lh_addr_of(desc));
+    const lh_str_cptr desc = lh_runtime_error_get_desc(lh_exception_get_error(self));
     lh_usize_t pos;
 
     pos = lh_exception_format_put(str, str_size, 0U, "lh: runtime check failed: error %d",
                                   lh_cast_static(lh_sint_t, lh_exception_get_code(self)));
-    if (!lh_str_view_is_empty(lh_addr_of(desc)))
+    if (!lh_str_ptr_is_empty(desc))
     {
-        const lh_usize_t desc_size = lh_str_view_get_size(lh_addr_of(desc));
+        const lh_usize_t desc_size = lh_str_ptr_len(desc);
 
         pos = lh_exception_format_put(str, str_size, pos, ", ");
         if (lh_ptr_is_set(str))
         {
-            lh_memory_std_copy(str + pos, lh_str_view_get_data(lh_addr_of(desc)), desc_size);
+            lh_memory_std_copy(str + pos, desc, desc_size);
         }
         pos = lh_math_add(pos, desc_size);
     }

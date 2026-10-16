@@ -19,14 +19,12 @@
  *
  * @param code Error code (::lh_runtime_error_code_t).
  * @param ...  Optional remainder of the initializer list
- *             (e.g. a ::lh_str_view_t or @c .desc = ...).
+ *             (e.g. an ::lh_error_desc_ptr literal or @c .desc = ...).
  *
  * Example usage:
  * @code{.c}
- * lh_runtime_error_t err = lh_runtime_error_initializer(lh_runtime_error_code_interrupt,
- *                                                       lh_str_view_empty_initializer());
- * lh_runtime_error_t e2  = lh_runtime_error_initializer(lh_runtime_error_code_null_pointer,
- *                                                       lh_str_view_lit("msg"));
+ * lh_runtime_error_t err = lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_null);
+ * lh_runtime_error_t e2  = lh_runtime_error_initializer(lh_runtime_error_code_null_pointer, "msg");
  * @endcode
  *
  * @see lh_initializer

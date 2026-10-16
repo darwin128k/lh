@@ -3,7 +3,6 @@
 #include <lh/exception.h>
 #include <lh/exception/initializer.h>
 #include <lh/runtime/error/initializer.h>
-#include <lh/test/out.h>
 
 #include <string>
 
@@ -13,12 +12,8 @@ namespace
 std::string
 desc_of(const lh_exception_t *exception)
 {
-    lh_str_view_t desc = lh_test::out(lh_runtime_error_get_desc, lh_exception_get_error(exception));
-    if (lh_str_view_is_empty(&desc))
-    {
-        return std::string();
-    }
-    return std::string(lh_str_view_get_data(&desc), lh_str_view_get_size(&desc));
+    const char *desc = lh_runtime_error_get_desc(lh_exception_get_error(exception));
+    return desc == nullptr ? std::string() : std::string(desc);
 }
 
 TEST(exception, getters_read_error_and_site)
@@ -27,7 +22,7 @@ TEST(exception, getters_read_error_and_site)
                                                  lh_str_view_empty_initializer(), 42u};
     const lh_exception_t exception = lh_exception_initializer(
         lh_runtime_error_initializer(lh_runtime_error_code_invalid_argument,
-                                     lh_str_view_initializer_lit("x must be positive")),
+                                     "x must be positive"),
         &origin);
 
     EXPECT_EQ(lh_exception_get_code(&exception), lh_runtime_error_code_invalid_argument);
@@ -42,7 +37,7 @@ TEST(exception, empty_message_and_no_site)
 {
     const lh_exception_t exception =
         lh_exception_initializer(lh_runtime_error_initializer(lh_runtime_error_code_overflow,
-                                                              lh_str_view_empty_initializer()),
+                                                              nullptr),
                                  nullptr);
 
     EXPECT_EQ(lh_exception_get_code(&exception), lh_runtime_error_code_overflow);
@@ -65,7 +60,7 @@ TEST(exception_format, full_report)
                                                  lh_str_view_empty_initializer(), 42u};
     const lh_exception_t exception = lh_exception_initializer(
         lh_runtime_error_initializer(lh_runtime_error_code_invalid_argument,
-                                     lh_str_view_initializer_lit("x must be positive")),
+                                     "x must be positive"),
         &origin);
 
     EXPECT_EQ(format_of(&exception), "lh: runtime check failed: error 9, x must be positive\n"
@@ -77,7 +72,7 @@ TEST(exception_format, code_only_without_origin)
 {
     const lh_exception_t exception =
         lh_exception_initializer(lh_runtime_error_initializer(lh_runtime_error_code_overflow,
-                                                              lh_str_view_empty_initializer()),
+                                                              nullptr),
                                  nullptr);
 
     EXPECT_EQ(format_of(&exception), "lh: runtime check failed: error 13\n");
@@ -89,7 +84,7 @@ TEST(exception_format, location_level_has_no_condition_or_function)
                                                  lh_str_view_empty_initializer(), 7u};
     const lh_exception_t exception =
         lh_exception_initializer(lh_runtime_error_initializer(lh_runtime_error_code_null_pointer,
-                                                              lh_str_view_empty_initializer()),
+                                                              nullptr),
                                  &origin);
 
     EXPECT_EQ(format_of(&exception), "lh: runtime check failed: error 2\n  at a/b.c:7\n");
@@ -101,7 +96,7 @@ TEST(exception_format, too_small_writes_nothing)
                                                  lh_str_view_empty_initializer(), 42u};
     const lh_exception_t exception = lh_exception_initializer(
         lh_runtime_error_initializer(lh_runtime_error_code_invalid_argument,
-                                     lh_str_view_empty_initializer()),
+                                     nullptr),
         &origin);
     const lh_usize_t size = lh_exception_format_size(&exception);
     char text[512];

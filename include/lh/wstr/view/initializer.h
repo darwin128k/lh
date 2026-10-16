@@ -40,7 +40,7 @@
  *
  * Example usage:
  * @code{.c}
- * lh_werror_set_desc(&err, lh_wstr_view_empty());
+ * lh_wstr_view_t v = lh_wstr_view_empty();
  * @endcode
  *
  * @see lh_wstr_view_empty_initializer
@@ -76,7 +76,7 @@
  *
  * Example usage:
  * @code{.c}
- * lh_werror_set(&err, 1, lh_wstr_view_lit(L"failed"));
+ * lh_wstr_view_t v = lh_wstr_view_lit(L"failed");
  * @endcode
  *
  * @see lh_wstr_view_initializer_lit

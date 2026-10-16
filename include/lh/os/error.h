@@ -3,14 +3,14 @@
  * @brief OS-layer error value type (::lh_os_error_t) and field accessors.
  *
  * Same shape as ::lh_error_t (code + description), but the description
- * type is ::lh_os_error_desc_t — ::lh_wstr_view_t or ::lh_str_view_t,
- * whichever ::LH_LIBRARY_OPTION_OS_WERROR selects. Both are layout-compatible
- * with ::lh_memory_view_t, so every function here delegates to the
- * ::lh_error_* counterpart through a pointer cast, the same way ::lh_werror_t
- * delegates today.
+ * is ::lh_os_error_desc_ptr — ::lh_wstr_ptr or ::lh_str_ptr, whichever
+ * ::LH_LIBRARY_OPTION_OS_WERROR selects. Either is one pointer, so every
+ * function here delegates to the ::lh_error_* counterpart through a pointer
+ * cast, the same way ::lh_werror_t does; only the description-content
+ * checks use ::lh_os_error_desc_is_empty.
  *
  * @see lh_error_t
- * @see lh_os_error_desc_t
+ * @see lh_os_error_desc_ptr
  */
 
 #ifndef LH_OS_ERROR_H
@@ -25,12 +25,12 @@
 
 /**
  * @struct lh_os_error
- * @brief OS-layer error code plus a description in ::lh_os_error_desc_t.
+ * @brief OS-layer error code plus a description in ::lh_os_error_desc_ptr.
  */
 struct lh_os_error
 {
     /** Members: ::lh_error_fields. */
-    lh_error_fields(lh_error_code_t, lh_os_error_desc_t);
+    lh_error_fields(lh_error_code_t, const lh_os_error_desc_ptr);
 };
 /** @copybrief lh_os_error */
 typedef struct lh_os_error lh_os_error_t;
@@ -43,7 +43,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Replace @p self with @p code and @p desc.
  */
 lh_void
-lh_os_error_set(lh_os_error_t *self, lh_error_code_t code, lh_os_error_desc_t desc);
+lh_os_error_set(lh_os_error_t *self, lh_error_code_t code, const lh_os_error_desc_ptr desc);
 
 /**
  * @brief Replace only the error code stored in @p self.
@@ -55,7 +55,7 @@ lh_os_error_set_code(lh_os_error_t *self, lh_error_code_t code);
  * @brief Replace only the description stored in @p self.
  */
 lh_void
-lh_os_error_set_desc(lh_os_error_t *self, lh_os_error_desc_t desc);
+lh_os_error_set_desc(lh_os_error_t *self, const lh_os_error_desc_ptr desc);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
 
@@ -68,14 +68,14 @@ lh_os_error_get_code(const lh_os_error_t *self);
 /**
  * @brief Return the description stored in @p self.
  */
-lh_void
-lh_os_error_get_desc(const lh_os_error_t *self, lh_os_error_desc_t *out);
+const lh_os_error_desc_ptr
+lh_os_error_get_desc(const lh_os_error_t *self);
 
 /**
  * @brief Return the description stored in @p self, or @p fallback when empty.
  */
-lh_void
-lh_os_error_get_desc_or(const lh_os_error_t *self, lh_os_error_desc_t fallback, lh_os_error_desc_t *out);
+const lh_os_error_desc_ptr
+lh_os_error_get_desc_or(const lh_os_error_t *self, const lh_os_error_desc_ptr fallback);
 
 /**
  * @brief Test whether @p self stores @p code.
@@ -108,7 +108,7 @@ lh_bool_t
 lh_os_error_is_empty(const lh_os_error_t *self);
 
 /**
- * @brief Test whether two OS errors store the same code and description span.
+ * @brief Test whether two OS errors store the same code and description pointer.
  */
 lh_bool_t
 lh_os_error_equals(const lh_os_error_t *self, const lh_os_error_t *other);
@@ -145,7 +145,7 @@ lh_os_error_clear(lh_os_error_t *self);
  * @brief Initialize @p self with @p code and @p desc.
  */
 lh_void
-lh_os_error_init(lh_os_error_t *self, lh_error_code_t code, lh_os_error_desc_t desc);
+lh_os_error_init(lh_os_error_t *self, lh_error_code_t code, const lh_os_error_desc_ptr desc);
 
 /**
  * @brief Initialize @p self by copying from @p other.
