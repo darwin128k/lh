@@ -27,7 +27,7 @@ lh_ui_shadow_ramp_init(lh_ui_shadow_ramp_t *self, const lh_ui_shadow_shape_t *sh
         if (shape->step > 0)
         {
             least = limit / shape->step;
-            if (limit % shape->step != 0 && limit < 0)
+            if (!lh_math_is_multiple_of(limit, shape->step) && limit < 0)
             {
                 --least;
             }
@@ -35,7 +35,7 @@ lh_ui_shadow_ramp_init(lh_ui_shadow_ramp_t *self, const lh_ui_shadow_shape_t *sh
         }
         else
         {
-            least = limit < 0 ? -lh_cast_static(lh_s64_t, shape->spread): lh_cast_static(lh_s64_t, shape->spread);
+            least = limit < 0 ? lh_math_neg(lh_cast_static(lh_s64_t, shape->spread)): lh_cast_static(lh_s64_t, shape->spread);
         }
         if (least < 1 - lh_cast_static(lh_s64_t, shape->spread))
         {

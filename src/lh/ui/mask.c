@@ -184,7 +184,7 @@ lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s
     x = x0;
     if (x < 0)
     {
-        const lh_s32_t skip = lh_math_min(-x, x1 - x0);
+        const lh_s32_t skip = lh_math_min(lh_math_neg(x), x1 - x0);
 
         lh_memory_set(out, lh_cast_static(lh_usize_t, skip), 0U);
         x = 0;
@@ -239,7 +239,7 @@ lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s
            255, so the division is a multiply -- a division by 15 here was once most
            of what a letter cost. With SSE2 a four-bit mask only reaches this loop
            for the pixels of a run past the mask's width. */
-        const lh_u32_t step = (255U % top) == 0U ? 255U / top : 0U;
+        const lh_u32_t step = lh_math_is_multiple_of(255U, top) ? 255U / top : 0U;
 
         for (; x < x1; ++x)
         {

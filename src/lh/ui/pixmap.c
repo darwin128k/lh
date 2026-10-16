@@ -42,7 +42,7 @@ lh_ui_pixmap_init(lh_ui_pixmap_t *self, lh_byte_ptr bits, lh_s32_t width, lh_s32
     const lh_s32_t bytes = lh_ui_pixmap_format_get_bytes(format);
 
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_ifn(width >= 0 && height >= 0 && stride >= width * bytes && stride % bytes == 0,
+    lh_assert_runtime_ifn(width >= 0 && height >= 0 && stride >= width * bytes && lh_math_is_multiple_of(stride, bytes),
                           lh_runtime_error_code_invalid_argument);
     lh_assert_runtime_ifn(lh_null_ne(bits) || width == 0 || height == 0, lh_runtime_error_code_invalid_argument);
     self->bits = bits;

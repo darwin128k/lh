@@ -138,8 +138,8 @@ lh_math_quat_conjugate(lh_math_quat_t q, lh_math_quat_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_math_quat_t result;
-    lh_math_quat_init(lh_addr_of(result), -lh_math_quat_get_x(lh_addr_of(q)),
-                      -lh_math_quat_get_y(lh_addr_of(q)), -lh_math_quat_get_z(lh_addr_of(q)),
+    lh_math_quat_init(lh_addr_of(result), lh_math_neg(lh_math_quat_get_x(lh_addr_of(q))),
+                      lh_math_neg(lh_math_quat_get_y(lh_addr_of(q))), lh_math_neg(lh_math_quat_get_z(lh_addr_of(q))),
                       lh_math_quat_get_w(lh_addr_of(q)));
     lh_ptr_deref(out) = result;
 }

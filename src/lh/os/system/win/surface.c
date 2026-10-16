@@ -47,7 +47,7 @@ lh_os_system_surface_create(int width, int height, int bits)
     lh_memory_set(lh_addr_of(info), sizeof(info), 0);
     info.bV5Header.biSize = lh_cast_static(lh_os_system_win_dword_t, sizeof(info));
     info.bV5Header.biWidth = width;
-    info.bV5Header.biHeight = -height; /* top-down */
+    info.bV5Header.biHeight = lh_math_neg(height); /* top-down */
     info.bV5Header.biPlanes = 1;
     info.bV5Header.biBitCount = lh_cast_static(lh_os_system_win_word_t, bits);
     info.bV5Header.biCompression = LH_OS_SYSTEM_WIN_BI_RGB;

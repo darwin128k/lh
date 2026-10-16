@@ -78,7 +78,7 @@ lh_ui_shadow_shape_fade(const lh_ui_shadow_shape_t *self, lh_s32_t distance)
     lh_s64_t fade;
 
     lh_return_if(distance >= self->spread, 0);
-    lh_return_if(distance <= -self->spread, lh_cast_static(lh_byte_t, self->peak));
+    lh_return_if(distance <= lh_math_neg(self->spread), lh_cast_static(lh_byte_t, self->peak));
     fade = (self->start - lh_cast_static(lh_s64_t, distance)* self->step) >> 16;
     return (lh_byte_t)(fade <= 0 ? 0 : (fade > self->peak ? self->peak : fade));
 }

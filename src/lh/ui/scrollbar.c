@@ -290,7 +290,7 @@ lh_ui_scrollbar_get_page_toward(const lh_ui_scrollbar_t *self, lh_ui_point_t poi
     lh_return_if(lh_ui_rect_contains_point(lh_addr_of(thumb), point), lh_ui_scalar(0));
     return lh_ui_point_get_along(lh_addr_of(point), self->axis) <
                    lh_ui_point_get_along(lh_ui_rect_get_origin_as_const(lh_addr_of(thumb)), self->axis)
-               ? -page
+               ? lh_math_neg(page)
                : page;
 }
 

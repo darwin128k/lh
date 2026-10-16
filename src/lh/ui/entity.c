@@ -464,8 +464,8 @@ lh_ui_entity_to_children_space(const lh_ui_entity_t *self, lh_ui_point_t point, 
     lh_ui_point_t offset;
 
     (void)lh_ui_entity_get_children_transform(self, lh_addr_of(offset));
-    lh_ui_point_offset(lh_addr_of(point), -lh_ui_point_get_x(lh_addr_of(offset)),
-                              -lh_ui_point_get_y(lh_addr_of(offset)), out);
+    lh_ui_point_offset(lh_addr_of(point), lh_math_neg(lh_ui_point_get_x(lh_addr_of(offset))),
+                              lh_math_neg(lh_ui_point_get_y(lh_addr_of(offset))), out);
 }
 
 lh_void
@@ -519,8 +519,8 @@ lh_ui_entity_to_local(const lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_poi
     lh_ui_point_t offset;
     lh_ui_entity_get_root_offset(self, lh_addr_of(offset));
 
-    lh_ui_point_offset(lh_addr_of(point), -lh_ui_point_get_x(lh_addr_of(offset)),
-                              -lh_ui_point_get_y(lh_addr_of(offset)), out);
+    lh_ui_point_offset(lh_addr_of(point), lh_math_neg(lh_ui_point_get_x(lh_addr_of(offset))),
+                              lh_math_neg(lh_ui_point_get_y(lh_addr_of(offset))), out);
 }
 
 lh_void

@@ -237,7 +237,7 @@ lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, lh_byte_cptr key,
     {
         lh_u32_t temp = w[i - 1U];
 
-        if (i % nk == 0)
+        if (lh_math_is_multiple_of(i, nk))
         {
             temp = lh_crypto_rijndael_sub_word(lh_crypto_rijndael_rot_word(temp)) ^ rcon;
             rcon = lh_cast_static(lh_u32_t, lh_crypto_rijndael_xtime(

@@ -331,7 +331,7 @@ lh_memory_std_copy_words(lh_ptr dst, const lh_ptr src, lh_usize_t n)
        each sits on a word boundary aligns the source and the destination in the
        same pass — neither is ever touched through a misaligned pointer, which is
        the access a strict-alignment target faults on. */
-    while (n > 0U && ((lh_ptr_to_uaddr(d) % w) != 0U || (lh_ptr_to_uaddr(s) % w) != 0U))
+    while (n > 0U && (!lh_math_is_multiple_of(lh_ptr_to_uaddr(d), w) || !lh_math_is_multiple_of(lh_ptr_to_uaddr(s), w)))
     {
         lh_ptr_deref(d++) = lh_ptr_deref(s++);
         --n;
@@ -361,7 +361,7 @@ lh_memory_std_fill_words(lh_ptr dst, lh_usize_t word, lh_usize_t n)
     const lh_byte_t byte = lh_cast_static(lh_byte_t, word);
     lh_byte_ptr d = lh_ptr_cast(lh_byte_t, dst);
 
-    while (n > 0U && (lh_ptr_to_uaddr(d) % w) != 0U)
+    while (n > 0U && !lh_math_is_multiple_of(lh_ptr_to_uaddr(d), w))
     {
         lh_ptr_deref(d++) = byte;
         --n;

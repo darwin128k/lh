@@ -290,7 +290,7 @@ lh_ui_text_get_ink_rect_wrapped(const lh_ui_font_t *font, const lh_char_t *text,
         lh_ui_text_block_get_ink_rect(lh_addr_of(block), origin, out);
         return;
     }
-    down = -lh_ui_text_block_get_ink_top(lh_addr_of(block));
+    down = lh_math_neg(lh_ui_text_block_get_ink_top(lh_addr_of(block)));
     lh_ui_rect_init_empty(lh_addr_of(ink));
     for (; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width); text = lh_ui_text_line_get_next(lh_addr_of(laid)))
     {
@@ -434,7 +434,7 @@ lh_ui_text_draw_wrapped_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, c
     const lh_ui_scalar_t block = align == lh_ui_text_align_h_left ? lh_ui_scalar(0)
                                                                    : lh_ui_text_get_wrapped_width(font, text, width);
     lh_ui_point_t box;
-    lh_ui_point_offset(lh_addr_of(origin), lh_ui_scalar(0), -ink_top, lh_addr_of(box));
+    lh_ui_point_offset(lh_addr_of(origin), lh_ui_scalar(0), lh_math_neg(ink_top), lh_addr_of(box));
     lh_ui_text_line_t laid;
 
     /* @p origin is where the ink goes, so the first line box starts that far

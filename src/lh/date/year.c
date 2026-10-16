@@ -6,15 +6,15 @@
 lh_bool_t
 lh_date_year_is_leap(lh_date_year_t self)
 {
-    if (self % LH_DATE_YEAR_LEAP_CYCLE != 0)
+    if (!lh_math_is_multiple_of(self, LH_DATE_YEAR_LEAP_CYCLE))
     {
         return lh_bool_false;
     }
-    if (self % LH_DATE_YEAR_CENTURY != 0)
+    if (!lh_math_is_multiple_of(self, LH_DATE_YEAR_CENTURY))
     {
         return lh_bool_true;
     }
-    return lh_cast_static(lh_bool_t, self % LH_DATE_YEAR_GREGORIAN_CYCLE == 0);
+    return lh_cast_static(lh_bool_t, lh_math_is_multiple_of(self, LH_DATE_YEAR_GREGORIAN_CYCLE));
 }
 
 lh_s64_t

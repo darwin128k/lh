@@ -189,9 +189,9 @@ lh_ui_container_get_key_step(const lh_ui_container_t *self, lh_key_t key)
 
     lh_return_if(key == lh_key_up || key == lh_key_left, -LH_UI_CONTAINER_KEY_STEP);
     lh_return_if(key == lh_key_down || key == lh_key_right, LH_UI_CONTAINER_KEY_STEP);
-    lh_return_if(key == lh_key_page_up, -lh_ui_size_get_height(lh_addr_of(page)));
+    lh_return_if(key == lh_key_page_up, lh_math_neg(lh_ui_size_get_height(lh_addr_of(page))));
     lh_return_if(key == lh_key_page_down, lh_ui_size_get_height(lh_addr_of(page)));
-    lh_return_if(key == lh_key_home, -lh_ui_point_get_y(lh_addr_of(scroll)));
+    lh_return_if(key == lh_key_home, lh_math_neg(lh_ui_point_get_y(lh_addr_of(scroll))));
     lh_return_if(key == lh_key_end, lh_ui_point_get_y(lh_addr_of(max)) - lh_ui_point_get_y(lh_addr_of(scroll)));
     return lh_ui_scalar(0);
 }
@@ -231,8 +231,8 @@ lh_ui_container_place_children(const lh_ui_container_t *self,
         placing->placing = lh_bool_false;
     }
     lh_ui_container_get_scroll(self, lh_addr_of(scroll));
-    lh_ui_point_init(lh_addr_of(offset), -lh_ui_point_get_x(lh_addr_of(scroll)),
-                     -lh_ui_point_get_y(lh_addr_of(scroll)));
+    lh_ui_point_init(lh_addr_of(offset), lh_math_neg(lh_ui_point_get_x(lh_addr_of(scroll))),
+                     lh_math_neg(lh_ui_point_get_y(lh_addr_of(scroll))));
     lh_ui_entity_transform_set_offset(transform, offset);
     lh_ui_entity_transform_set_clip(transform, lh_bool_true);
 }
