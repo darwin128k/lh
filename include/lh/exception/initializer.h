@@ -19,7 +19,7 @@
  * Example usage:
  * @code{.c}
  * static const lh_exception_origin_t origin = {__FILE__, __func__, "x > 0",
- *                                              lh_str_view_empty_initializer(), __LINE__};
+ *                                              lh_null, __LINE__};
  * const lh_exception_t exception = lh_exception_initializer(
  *     lh_runtime_error_initializer(lh_runtime_error_code_invalid_argument,
  *                                  "x must be positive"),

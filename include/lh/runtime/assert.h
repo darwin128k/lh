@@ -88,15 +88,15 @@
 #define lh_runtime_check_code(...)                                                                 \
     lh_arg_expand(lh_arg_concat(lh_runtime_check_code_, lh_arg_get_count(__VA_ARGS__))(__VA_ARGS__))
 
-/** @brief ::lh_runtime_check_desc for a `code` argument alone: an empty view. */
-#define lh_runtime_check_desc_1(code) lh_str_view_empty_initializer()
-/** @brief ::lh_runtime_check_desc for `code, message`: a view of literal @p message. */
-#define lh_runtime_check_desc_2(code, message) lh_str_view_initializer_lit(message)
+/** @brief ::lh_runtime_check_desc for a `code` argument alone: ::lh_null. */
+#define lh_runtime_check_desc_1(code) lh_cast_static(const lh_str_ptr, lh_null)
+/** @brief ::lh_runtime_check_desc for `code, message`: literal @p message. */
+#define lh_runtime_check_desc_2(code, message) (message)
 
 /**
  * @def lh_runtime_check_desc(...)
- * @brief Initializer of the ::lh_str_view_t message of a check's
- *        `code [, message]` argument — empty when there is none. The message
+ * @brief The ::lh_str_ptr message of a check's
+ *        `code [, message]` argument — ::lh_null when there is none. The message
  *        must be a string literal.
  */
 #define lh_runtime_check_desc(...)                                                                 \

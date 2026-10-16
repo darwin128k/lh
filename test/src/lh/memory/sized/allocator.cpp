@@ -3,6 +3,7 @@
 #include <lh/expect/death.h>
 #include <lh/memory/allocator/initializer.h>
 #include <lh/memory/sized/allocator.h>
+#include <lh/size/limits.h>
 
 #include <cstdint>
 #include <cstdlib>

@@ -1,3 +1,4 @@
+#include <lh/str/view.h>
 #include <lh/assert.h>
 #include <lh/math.h>
 

@@ -3,6 +3,7 @@
 #include <lh/byte/ptr.h>
 #include <lh/char/xdigit.h>
 #include <lh/math.h>
+#include <lh/size/limits.h>
 
 /* One dump line for @p count bytes: "hhhhhhhh: " + "xx " * count + "\n". */
 LH_ATTRIBUTE_STATIC

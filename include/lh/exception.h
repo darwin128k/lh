@@ -18,6 +18,7 @@
 
 #include <lh/exception/origin.h>
 #include <lh/runtime/error.h>
+#include <lh/size.h>
 
 /**
  * @struct lh_exception
