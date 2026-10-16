@@ -8,7 +8,7 @@
 #include <lh/byte/ptr.h>
 #include <lh/cast/const.h>
 #include <lh/memory.h>
-#include <lh/str/cstr.h>
+#include <lh/util/str/ptr.h>
 
 lh_void
 lh_ui_web_buf_init(lh_ui_web_buf_t *self, lh_byte_ptr mem, lh_usize_t cap)
@@ -78,7 +78,7 @@ lh_ui_web_buf_raw(lh_ui_web_buf_t *self, const lh_str_ptr s)
     {
         return;
     }
-    lh_ui_web_buf_lit(self, s, lh_str_len(s));
+    lh_ui_web_buf_lit(self, s, lh_str_ptr_len(s));
 }
 
 lh_void

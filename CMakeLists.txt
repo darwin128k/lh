@@ -145,7 +145,6 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/util/str/ptr.c
         ${LH_LIB_SRC_PATH}/util/wchar.c
         ${LH_LIB_SRC_PATH}/str/view.c
-${LH_LIB_SRC_PATH}/str/cstr.c
         ${LH_LIB_SRC_PATH}/wstr/view.c
         ${LH_LIB_SRC_PATH}/str.c
         ${LH_LIB_SRC_PATH}/wstr.c

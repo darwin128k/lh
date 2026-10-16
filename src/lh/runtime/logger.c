@@ -4,8 +4,8 @@
 
 #if (LH_LIBRARY_OPTION_RUNTIME_LOGGER_USE_STDLIB == LH_LIBRARY_OPTION_ON)
 #    include <lh/self.h>
-#    include <lh/str/cstr.h>
 #    include <lh/str/format/text.h>
+#    include <lh/util/str/ptr.h>
 
 #    include <stdio.h>
 
@@ -26,7 +26,7 @@ lh_runtime_logger_stderr(lh_self_ptr self, lh_logger_level_t level, lh_str_cptr 
     if (n == 0u)
     {
         text = fmt;
-        n = lh_str_len(fmt);
+        n = lh_str_ptr_len(fmt);
     }
     if (fwrite(text, 1u, lh_cast_static(size_t, n), stderr) != lh_cast_static(size_t, n)|| fputc('\n', stderr) == EOF)
     {
