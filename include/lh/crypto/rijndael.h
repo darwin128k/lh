@@ -8,6 +8,11 @@
  * chaining value for CBC/CFB.
  *
  * Pure computation — no OS, no allocator.
+ *
+ * On x86 a 16-byte block (all of AES) runs on AES-NI when the toolchain can
+ * build it (`LH_LIBRARY_OPTION_SIMD_HAVE_AESNI`) and the CPU has it
+ * (::lh_cpu_simd_has_aesni, checked once per process). The result is the same
+ * bytes as the table path, which every other block size and CPU uses.
  */
 
 #ifndef LH_CRYPTO_RIJNDAEL_H
