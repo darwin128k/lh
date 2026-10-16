@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/math.h>
 #include <lh/math/frect.h>
 #include <lh/util/return.h>
 

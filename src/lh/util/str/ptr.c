@@ -2,6 +2,7 @@
 #include <lh/memory.h>
 #include <lh/optional/ref.h>
 #include <lh/util/char.h>
+#include <lh/math.h>
 #include <lh/util/return.h>
 #include <lh/assert.h>
 

@@ -14,6 +14,7 @@
 #define LH_RUNTIME_TERMINATE_H
 
 #include <lh/library/fallback.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/attribute/noreturn.h>
 #include <lh/runtime/terminate/cb.h>
 

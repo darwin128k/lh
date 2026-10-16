@@ -3,6 +3,7 @@
 #include <lh/attribute/static.h>
 #include <lh/memory.h>
 #include <lh/os/system/error/capture.h>
+#include <lh/math.h>
 #include <lh/util/return.h>
 
 #include <errno.h>

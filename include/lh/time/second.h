@@ -17,6 +17,8 @@
 #ifndef LH_TIME_SECOND_H
 #define LH_TIME_SECOND_H
 
+#include <lh/void.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/util/interval.h>
 
 /**

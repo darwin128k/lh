@@ -5,6 +5,7 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/util/return.h>
+#include <lh/math.h>
 #include <lh/math/fsize.h>
 
 /* ── init ────────────────────────────────────────────────────────────────── */

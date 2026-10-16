@@ -6,6 +6,7 @@
  * is a force-inline copy in the header.
  */
 
+#include <lh/math.h>
 #include <lh/math/scalar/centre.h>
 #include <lh/ui/scalar.h>
 

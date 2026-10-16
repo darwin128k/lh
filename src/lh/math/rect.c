@@ -7,6 +7,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/math.h>
 #include <lh/util/return.h>
 
 /* ── Constructors ────────────────────────────────────────────────────────── */

@@ -4,6 +4,7 @@
 #include <lh/os/fs/path.h>
 #include <lh/os/system/fs/file.h>
 #include <lh/os/system/fs/path.h>
+#include <lh/math.h>
 
 #include <stdarg.h>
 

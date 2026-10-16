@@ -17,6 +17,7 @@
 #define LH_MEMORY_ALLOCATOR_ALLOC_FN_H
 
 #include <lh/self.h>
+#include <lh/size.h>
 
 /**
  * @typedef lh_memory_allocator_alloc_fn

@@ -2,6 +2,7 @@
 #include <lh/assert.h>
 #include <lh/char/map.h>
 #include <lh/os/system/win/kernel32.h>
+#include <lh/math.h>
 #include <lh/util/wstr/ptr.h>
 
 lh_os_system_error_code_t

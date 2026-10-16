@@ -3,6 +3,7 @@
 
 #include <lh/config.h>
 #include <lh/numeric/float.h>
+#include <lh/math.h>
 #include <lh/ui/scalar.h>
 #if LH_LIBRARY_OPTION_MATH_FPU
 #    include <lh/math/fscalar.h>

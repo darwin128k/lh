@@ -4,6 +4,7 @@
 #include <lh/str/parse/hex.h>
 #include <lh/str/parse/uint.h>
 #include <lh/str/scanf/next.h>
+#include <lh/math.h>
 
 static lh_usize_t
 lh_str_ptr_parse_text_limit(lh_usize_t remaining, const lh_str_scanf_spec_t *spec)

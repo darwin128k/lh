@@ -8,6 +8,7 @@
 #include <lh/os/system/win/fs/kind.h>
 #include <lh/os/system/win/kernel32.h>
 #include <lh/runtime/allocator.h>
+#include <lh/math.h>
 #include <lh/util/wstr/ptr.h>
 
 /** An open directory listing: the `FindFirstFileW` handle and the entry in hand. */

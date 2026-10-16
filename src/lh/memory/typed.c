@@ -1,6 +1,7 @@
 #include <lh/memory/typed.h>
 #include <lh/memory/typed/initializer.h>
 #include <lh/util/return.h>
+#include <lh/math.h>
 #include <lh/util/swap.h>
 #include <lh/cast/const.h>
 #include <lh/assert.h>

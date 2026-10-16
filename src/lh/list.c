@@ -2,6 +2,7 @@
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
 #include <lh/list/node/link.h>
+#include <lh/math.h>
 
 LH_ATTRIBUTE_STATIC
 lh_list_node_t *

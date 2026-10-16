@@ -16,6 +16,7 @@
 #define LH_IO_READER_FN_H
 
 #include <lh/self.h>
+#include <lh/size.h>
 
 /**
  * @typedef lh_io_reader_read_fn

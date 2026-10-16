@@ -13,6 +13,10 @@
 #ifndef LH_UTIL_MEMORY_H
 #define LH_UTIL_MEMORY_H
 
+#include <lh/attribute/force_inline.h>
+#include <lh/bool.h>
+#include <lh/compiler/extern/c.h>
+#include <lh/size.h>
 #include <lh/size/limits.h>
 #include <lh/util/ptr.h>
 

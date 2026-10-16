@@ -1,4 +1,5 @@
 #include <lh/assert.h>
+#include <lh/math.h>
 
 lh_void
 lh_str_init_by_size(lh_str_view_t *self, lh_str_cptr data, lh_usize_t size)

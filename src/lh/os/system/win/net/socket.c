@@ -5,6 +5,7 @@
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/net/socket/addr.h>
 #include <lh/os/system/win/ws2_32.h>
+#include <lh/math.h>
 #include <lh/util/return.h>
 
 LH_ATTRIBUTE_STATIC

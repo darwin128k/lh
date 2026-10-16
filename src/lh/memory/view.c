@@ -1,4 +1,5 @@
 #include <lh/assert.h>
+#include <lh/math.h>
 
 const lh_ptr
 lh_memory_view_get_begin(const lh_memory_view_t *self)

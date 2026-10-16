@@ -4,6 +4,7 @@
 #include <lh/os.h>
 #include <lh/os/error/code.h>
 #include <lh/os/system/error/capture.h>
+#include <lh/math.h>
 
 #include <sys/stat.h>
 

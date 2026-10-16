@@ -14,6 +14,7 @@
 #include <lh/fs/kind.h>
 #include <lh/os/system/win/kernel32.h>
 #include <lh/bit.h>
+#include <lh/math.h>
 
 /** A reparse point is not necessarily a symlink (junctions, dedup, cloud
    placeholders are reparse points too): only its tag says so. The tag is in

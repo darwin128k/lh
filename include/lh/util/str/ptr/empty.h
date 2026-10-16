@@ -11,7 +11,10 @@
 #ifndef LH_UTIL_STR_PTR_EMPTY_H
 #define LH_UTIL_STR_PTR_EMPTY_H
 
+#include <lh/attribute/force_inline.h>
+#include <lh/bool.h>
 #include <lh/char/map.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/str/ptr.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

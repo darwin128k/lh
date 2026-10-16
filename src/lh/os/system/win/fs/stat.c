@@ -7,6 +7,7 @@
 #include <lh/os/system/win/fs/kind.h>
 #include <lh/os/system/win/kernel32.h>
 #include <lh/bit/half.h>
+#include <lh/math.h>
 
 LH_ATTRIBUTE_STATIC
 lh_fs_perm_t

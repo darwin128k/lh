@@ -1,5 +1,6 @@
 #include <lh/array.h>
 #include <lh/memory.h>
+#include <lh/math.h>
 #include <lh/util/return.h>
 #include <lh/config.h>
 #include <lh/assert.h>

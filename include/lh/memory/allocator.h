@@ -20,6 +20,7 @@
 #ifndef LH_MEMORY_ALLOCATOR_H
 #define LH_MEMORY_ALLOCATOR_H
 
+#include <lh/compiler/extern/c.h>
 #include <lh/memory/allocator/alloc/cb.h>
 #include <lh/memory/allocator/dealloc/cb.h>
 #include <lh/memory/allocator/fields.h>

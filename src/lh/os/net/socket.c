@@ -1,6 +1,7 @@
 #include <lh/os/net/socket.h>
 #include <lh/assert.h>
 #include <lh/os/system/net/socket.h>
+#include <lh/math.h>
 #include <lh/util/return.h>
 
 lh_void

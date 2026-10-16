@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/text/line.h`.
  */
 
+#include <lh/math.h>
 #include <lh/ui/text.h>
 #include <lh/util/return.h>
 

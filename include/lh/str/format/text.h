@@ -20,6 +20,8 @@
 #ifndef LH_STR_FORMAT_TEXT_H
 #define LH_STR_FORMAT_TEXT_H
 
+#include <lh/compiler/extern/c.h>
+#include <lh/size.h>
 #include <lh/size/limits.h>
 #include <lh/str/ptr.h>
 

@@ -6,6 +6,9 @@
 #ifndef LH_STR_FORMAT_HEX_H
 #define LH_STR_FORMAT_HEX_H
 
+#include <lh/bool.h>
+#include <lh/compiler/extern/c.h>
+#include <lh/size.h>
 #include <lh/str/ptr.h>
 
 /**

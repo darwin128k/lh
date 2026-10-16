@@ -2,6 +2,7 @@
 #include <lh/attribute/static.h>
 #include <lh/memory/std.h>
 #include <lh/str/format/text.h>
+#include <lh/math.h>
 
 #include <stdarg.h>
 

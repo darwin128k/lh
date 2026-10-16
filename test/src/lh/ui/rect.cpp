@@ -2,6 +2,7 @@
 #include <type_traits>
 
 #include <lh/config.h>
+#include <lh/math/rect.h>
 #include <lh/ui/rect.h>
 
 namespace

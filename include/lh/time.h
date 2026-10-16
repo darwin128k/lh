@@ -12,6 +12,7 @@
 #ifndef LH_TIME_H
 #define LH_TIME_H
 
+#include <lh/size.h>
 #include <lh/str/ptr.h>
 #include <lh/time/hour.h>
 #include <lh/time/minute.h>

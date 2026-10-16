@@ -15,8 +15,11 @@
 #ifndef LH_LIST_NODE_H
 #define LH_LIST_NODE_H
 
+#include <lh/bool.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/list/node/fields.h>
 #include <lh/ptr.h>
+#include <lh/size.h>
 
 /**
  * @struct lh_list_node

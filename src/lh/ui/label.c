@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/label.h`.
  */
 
+#include <lh/math.h>
 #include <lh/ui/label.h>
 #include <lh/ui/text.h>
 #include <lh/util/return.h>

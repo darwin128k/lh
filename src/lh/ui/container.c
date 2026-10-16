@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/container.h`.
  */
 
+#include <lh/math.h>
 #include <lh/ui/container.h>
 #include <lh/util/return.h>
 

@@ -15,6 +15,7 @@
 
 #include <lh/logger/level.h>
 #include <lh/self.h>
+#include <lh/size.h>
 #include <lh/str/ptr.h>
 
 #include <stdarg.h>

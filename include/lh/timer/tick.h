@@ -6,6 +6,8 @@
 #ifndef LH_TIMER_TICK_H
 #define LH_TIMER_TICK_H
 
+#include <lh/bool.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/limits.h>
 
 /**

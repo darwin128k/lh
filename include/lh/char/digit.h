@@ -22,6 +22,7 @@
 #define LH_CHAR_DIGIT_H
 
 #include <lh/assert.h>
+#include <lh/attribute/force_inline.h>
 #include <lh/util/char.h>
 
 /**

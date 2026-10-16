@@ -8,6 +8,7 @@
 #ifndef LH_OS_WINDOW_ON_KEY_FN_H
 #define LH_OS_WINDOW_ON_KEY_FN_H
 
+#include <lh/bool.h>
 #include <lh/key.h>
 #include <lh/ptr.h>
 

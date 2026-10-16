@@ -1,6 +1,7 @@
 #include <lh/util/wstr/ptr.h>
 #include <lh/char/map.h>
 #include <lh/memory.h>
+#include <lh/math.h>
 #include <lh/util/wchar.h>
 #include <lh/util/return.h>
 #include <lh/assert.h>

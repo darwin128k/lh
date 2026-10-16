@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/input.h`.
  */
 
+#include <lh/math.h>
 #include <lh/ui/input.h>
 #include <lh/util/return.h>
 

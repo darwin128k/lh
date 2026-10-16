@@ -6,6 +6,7 @@
 #include <lh/bit/bswap.h>
 #include <lh/byte/limits.h>
 #include <lh/cpu/simd.h>
+#include <lh/math.h>
 #include <lh/memory.h>
 #include <lh/numeric/float.h>
 #include <lh/ui/pixmap.h>

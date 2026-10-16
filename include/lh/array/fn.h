@@ -6,6 +6,7 @@
 #ifndef LH_ARRAY_FN_H
 #define LH_ARRAY_FN_H
 
+#include <lh/bool.h>
 #include <lh/ptr.h>
 
 /**

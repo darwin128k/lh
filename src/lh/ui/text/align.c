@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/text/align.h`.
  */
 
+#include <lh/math.h>
 #include <lh/ui/text/align.h>
 
 lh_void

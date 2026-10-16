@@ -6,6 +6,7 @@
 #include <lh/os/system/str.h>
 #include <lh/os/system/win/kernel32.h>
 #include <lh/runtime/allocator.h>
+#include <lh/math.h>
 
 /* The longest path Windows accepts, in UTF-16 units, NUL included. */
 #define LH_OS_SYSTEM_WIN_SHARED_PATH_MAX 32768U

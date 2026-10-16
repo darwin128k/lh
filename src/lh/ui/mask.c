@@ -6,6 +6,7 @@
 #include <lh/cpu/simd.h>
 #include <lh/memory.h>
 #include <lh/bit/packed.h>
+#include <lh/math.h>
 #include <lh/ui/mask.h>
 #include <lh/util/return.h>
 

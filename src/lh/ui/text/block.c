@@ -5,6 +5,7 @@
 
 #include <lh/ui/text/block.h>
 
+#include <lh/math.h>
 #include <lh/ui/text/line.h>
 
 lh_void
