@@ -3,6 +3,7 @@
 
 #include <lh/werror.h>
 #include <lh/werror/initializer.h>
+#include <lh/wstr/view/initializer.h>
 #include <lh/expect/death.h>
 #include <lh/test/out.h>
 
@@ -250,7 +251,7 @@ TEST(werror_init, matches_make)
 
 TEST(werror_is_empty, returns_true_for_ok_code_without_desc)
 {
-    const lh_werror_t err = lh_werror_empty_initializer();
+    const lh_werror_t err = lh_werror_empty_initializer(lh_wstr_view_empty_initializer());
 
     EXPECT_TRUE(lh_werror_is_empty(&err));
 }
@@ -280,8 +281,8 @@ TEST(werror_equals, returns_true_for_same_code_and_desc_pointer)
 
 TEST(werror_equals, returns_true_for_equal_empty_errors)
 {
-    const lh_werror_t lhs = lh_werror_empty_initializer();
-    const lh_werror_t rhs = lh_werror_empty_initializer();
+    const lh_werror_t lhs = lh_werror_empty_initializer(lh_wstr_view_empty_initializer());
+    const lh_werror_t rhs = lh_werror_empty_initializer(lh_wstr_view_empty_initializer());
 
     EXPECT_TRUE(lh_werror_equals(&lhs, &rhs));
 }
@@ -341,7 +342,7 @@ TEST(werror_has_diff_code, returns_false_for_same_code)
 
 TEST(werror_death, assign_null_self)
 {
-    lh_werror_t other = lh_werror_empty_initializer();
+    lh_werror_t other = lh_werror_empty_initializer(lh_wstr_view_empty_initializer());
     LH_EXPECT_DEATH(lh_werror_assign(nullptr, &other));
 }
 
@@ -358,7 +359,7 @@ TEST(werror_death, init_null_self)
 
 TEST(werror_death, init_by_other_null_self)
 {
-    lh_werror_t src = lh_werror_empty_initializer();
+    lh_werror_t src = lh_werror_empty_initializer(lh_wstr_view_empty_initializer());
     LH_EXPECT_DEATH(lh_werror_init_by_other(nullptr, &src));
 }
 
@@ -434,37 +435,37 @@ TEST(werror_death, is_empty_null_self)
 
 TEST(werror_death, equals_null_self)
 {
-    const lh_werror_t err = lh_werror_empty_initializer();
+    const lh_werror_t err = lh_werror_empty_initializer(lh_wstr_view_empty_initializer());
     LH_EXPECT_DEATH(lh_werror_equals(nullptr, &err));
 }
 
 TEST(werror_death, equals_null_other)
 {
-    const lh_werror_t err = lh_werror_empty_initializer();
+    const lh_werror_t err = lh_werror_empty_initializer(lh_wstr_view_empty_initializer());
     LH_EXPECT_DEATH(lh_werror_equals(&err, nullptr));
 }
 
 TEST(werror_death, has_same_code_null_self)
 {
-    const lh_werror_t err = lh_werror_empty_initializer();
+    const lh_werror_t err = lh_werror_empty_initializer(lh_wstr_view_empty_initializer());
     LH_EXPECT_DEATH(lh_werror_has_same_code(nullptr, &err));
 }
 
 TEST(werror_death, has_same_code_null_other)
 {
-    const lh_werror_t err = lh_werror_empty_initializer();
+    const lh_werror_t err = lh_werror_empty_initializer(lh_wstr_view_empty_initializer());
     LH_EXPECT_DEATH(lh_werror_has_same_code(&err, nullptr));
 }
 
 TEST(werror_death, has_diff_code_null_self)
 {
-    const lh_werror_t err = lh_werror_empty_initializer();
+    const lh_werror_t err = lh_werror_empty_initializer(lh_wstr_view_empty_initializer());
     LH_EXPECT_DEATH(lh_werror_has_diff_code(nullptr, &err));
 }
 
 TEST(werror_death, has_diff_code_null_other)
 {
-    const lh_werror_t err = lh_werror_empty_initializer();
+    const lh_werror_t err = lh_werror_empty_initializer(lh_wstr_view_empty_initializer());
     LH_EXPECT_DEATH(lh_werror_has_diff_code(&err, nullptr));
 }
 

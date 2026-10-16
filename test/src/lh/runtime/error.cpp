@@ -2,6 +2,7 @@
 
 #include <lh/runtime/error.h>
 #include <lh/runtime/error/initializer.h>
+#include <lh/str/view/initializer.h>
 #include <lh/expect/death.h>
 #include <lh/test/out.h>
 
@@ -71,7 +72,7 @@ TEST(runtime_error_get_desc_or, returns_fallback_when_desc_is_null)
 
 TEST(runtime_error_is_ok, returns_true_for_ok_code)
 {
-    const lh_runtime_error_t err = lh_runtime_error_empty_initializer();
+    const lh_runtime_error_t err = lh_runtime_error_empty_initializer(lh_str_view_empty_initializer());
     EXPECT_TRUE(lh_runtime_error_is_ok(&err));
 }
 
@@ -91,7 +92,7 @@ TEST(runtime_error_is_failure, returns_true_for_non_ok_code)
 
 TEST(runtime_error_is_failure, returns_false_for_ok_code)
 {
-    const lh_runtime_error_t err = lh_runtime_error_empty_initializer();
+    const lh_runtime_error_t err = lh_runtime_error_empty_initializer(lh_str_view_empty_initializer());
     EXPECT_FALSE(lh_runtime_error_is_failure(&err));
 }
 
@@ -125,7 +126,7 @@ TEST(runtime_error_has_desc, returns_false_for_null_desc)
 
 TEST(runtime_error_is_empty, returns_true_for_ok_code_without_desc)
 {
-    const lh_runtime_error_t err = lh_runtime_error_empty_initializer();
+    const lh_runtime_error_t err = lh_runtime_error_empty_initializer(lh_str_view_empty_initializer());
     EXPECT_TRUE(lh_runtime_error_is_empty(&err));
 }
 
@@ -185,7 +186,7 @@ TEST(runtime_error_assign, copies_from_other)
 {
     const lh_runtime_error_t src =
         lh_runtime_error_initializer(lh_runtime_error_code_interrupt, lh_str_view_lit("src"));
-    lh_runtime_error_t dst = lh_runtime_error_empty_initializer();
+    lh_runtime_error_t dst = lh_runtime_error_empty_initializer(lh_str_view_empty_initializer());
     lh_runtime_error_assign(&dst, &src);
     EXPECT_EQ(lh_runtime_error_get_code(&dst), lh_runtime_error_code_interrupt);
     EXPECT_STREQ(desc_cstr(lh_test::out(lh_runtime_error_get_desc, &dst)), "src");
@@ -310,7 +311,7 @@ TEST(runtime_error_death, clear_null_self)
 
 TEST(runtime_error_death, assign_null_self)
 {
-    lh_runtime_error_t other = lh_runtime_error_empty_initializer();
+    lh_runtime_error_t other = lh_runtime_error_empty_initializer(lh_str_view_empty_initializer());
     LH_EXPECT_DEATH(lh_runtime_error_assign(nullptr, &other));
 }
 
