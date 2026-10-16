@@ -307,6 +307,9 @@ set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/shadow.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/style.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/text.cpp
+        # lh/ui.h as a whole, from C++ and (umbrella.c) from C11.
+        ${LH_TEST_SRC_PATH}/lh/ui/umbrella.c
+        ${LH_TEST_SRC_PATH}/lh/ui/umbrella.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/view.cpp
         # lh_ui_surface_t is a Windows DIB behind an OS surface, so it is only
         # there when there is a native window to hold one — the same guard its
