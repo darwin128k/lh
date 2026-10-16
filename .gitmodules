@@ -3,5 +3,4 @@
 	url = https://github.com/google/googletest.git
 [submodule "bench/lib/benchmark"]
 	path = bench/lib/benchmark
-	url = https://github.com/darwin128k/benchmark.git
-	branch = lh/v1.7.1-cstdint-fix
+	url = https://github.com/google/benchmark.git

@@ -16,25 +16,25 @@ jobs:
       matrix:
         include:
           - name: Linux GCC
-            os: ubuntu-latest
+            os: ubuntu-24.04
             cc: gcc
             cxx: g++
           - name: Linux Clang
-            os: ubuntu-latest
+            os: ubuntu-24.04
             cc: clang
             cxx: clang++
           - name: Windows MSVC
-            os: windows-latest
+            os: windows-2025-vs2026
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
 
       - name: Setup MSVC environment
         if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
 
       - name: Configure (Linux)
         if: runner.os == 'Linux'
@@ -59,3 +59,53 @@ jobs:
 
       - name: Run tests
         run: ctest --test-dir build --build-config Release --output-on-failure
+
+  # Legacy Windows API-level builds (XP / Vista).
+  #
+  # These jobs run the project's batch wrappers (scripts\build-windows-xp.bat and
+  # scripts\build-windows-vista.bat -> scripts\build-windows-legacy.bat), which
+  # configure with -DWINVER=/-D_WIN32_WINNT= set to 0x0501 (XP) or 0x0600 (Vista)
+  # and CMAKE_SYSTEM_VERSION 5.1 / 6.0, on modern windows-2025-vs2026 runners.
+  #
+  # They verify that the code compiles and that the tests pass against the
+  # XP/Vista API level. They do NOT run anything on real Windows XP/Vista: there
+  # are no GitHub-hosted XP/Vista runners. The runner's current MSVC toolset and its
+  # CRT do not produce binaries that run on XP (and target Vista only in theory),
+  # so the binaries built here are not XP/Vista-deployable. Real runtime
+  # verification would need the v141_xp toolset (or an XP-capable MinGW) and real
+  # XP/Vista VMs.
+  #
+  # The script defaults to the "MinGW Makefiles" generator, so we pass
+  # "NMake Makefiles" plus cl explicitly; NMake comes with the MSVC environment
+  # set up by msvc-dev-cmd. XP is built 32-bit (x86), Vista 64-bit (x64).
+  windows-legacy:
+    name: Windows legacy (${{ matrix.target }})
+    runs-on: windows-2025-vs2026
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: xp
+            arch: x86
+          - target: vista
+            arch: x64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+
+      - name: Setup MSVC environment (${{ matrix.arch }})
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+        with:
+          arch: ${{ matrix.arch }}
+
+      - name: Build and test (${{ matrix.target }})
+        shell: cmd
+        run: >
+          call scripts\build-windows-${{ matrix.target }}.bat
+          --config Release
+          --generator "NMake Makefiles"
+          --cc cl --cxx cl
+          --no-docs --tests --run-tests

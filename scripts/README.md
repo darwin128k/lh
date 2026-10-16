@@ -66,7 +66,7 @@ header declaring them, `--notice` adds a licence line. The built-in Roboto
 ```sh
 python scripts/font.py --font fonts/Roboto-Regular.ttf --size 16 --bpp 4 --lang ru \
     --name lh_ui_font_roboto \
-    --notice "Roboto is Copyright 2011 Google Inc. and licensed under the Apache License 2.0." \
+    --notice "Roboto is Copyright 2015 Google Inc. and licensed under the Apache License 2.0." \
     --header include/lh/ui/font/roboto.h --include lh/ui/font/roboto.h -o src/lh/ui/font/roboto.c
 ```
 
