@@ -218,15 +218,15 @@ build_by_hand(scene &s, hand_tree &tree, lh_ui_entity_t **nodes, lh_ui_entity_t 
    sits, which flow places it and what it carries. Every material — a style, a text,
    a mask, a flow, a callback — is the app's own object, named here by address. */
 const lh_ui_decl_t g_rows[k_rows] = {
-    {lh_ui_decl_kind_entity, 0, 0, 200, 140, LH_UI_DECL_ROOT, nullptr, nullptr, nullptr, {}},
-    {lh_ui_decl_kind_container, 10, 10, 160, 60, 0, nullptr, nullptr, nullptr, {}},
-    {lh_ui_decl_kind_label, 0, 0, 150, 20, 1, nullptr, nullptr, nullptr, {}},
-    {lh_ui_decl_kind_label, 0, 0, 150, 20, 1, nullptr, nullptr, nullptr, {}},
-    {lh_ui_decl_kind_button, 10, 80, 140, 30, 0, nullptr, nullptr, nullptr, {}},
-    {lh_ui_decl_kind_image, 0, 0, 4, 2, 4, nullptr, nullptr, nullptr, {}},
-    {lh_ui_decl_kind_label, 0, 0, 60, 14, 4, nullptr, nullptr, nullptr, {}},
-    {lh_ui_decl_kind_scrollbar, 180, 10, 10, 60, 0, nullptr, nullptr, nullptr, {}},
-    {lh_ui_decl_kind_toggle, 160, 110, 24, 24, 0, nullptr, nullptr, nullptr, {}},
+    {lh_ui_decl_kind_entity, 0, 0, 200, 140, LH_UI_DECL_ROOT, nullptr, nullptr, nullptr, {}, lh_bool_false},
+    {lh_ui_decl_kind_container, 10, 10, 160, 60, 0, nullptr, nullptr, nullptr, {}, lh_bool_false},
+    {lh_ui_decl_kind_label, 0, 0, 150, 20, 1, nullptr, nullptr, nullptr, {}, lh_bool_false},
+    {lh_ui_decl_kind_label, 0, 0, 150, 20, 1, nullptr, nullptr, nullptr, {}, lh_bool_false},
+    {lh_ui_decl_kind_button, 10, 80, 140, 30, 0, nullptr, nullptr, nullptr, {}, lh_bool_false},
+    {lh_ui_decl_kind_image, 0, 0, 4, 2, 4, nullptr, nullptr, nullptr, {}, lh_bool_false},
+    {lh_ui_decl_kind_label, 0, 0, 60, 14, 4, nullptr, nullptr, nullptr, {}, lh_bool_false},
+    {lh_ui_decl_kind_scrollbar, 180, 10, 10, 60, 0, nullptr, nullptr, nullptr, {}, lh_bool_false},
+    {lh_ui_decl_kind_toggle, 160, 110, 24, 24, 0, nullptr, nullptr, nullptr, {}, lh_bool_false},
 };
 
 /* The materials of the tree, filled into a copy of the table: styles, flows, places,

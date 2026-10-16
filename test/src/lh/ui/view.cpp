@@ -131,7 +131,8 @@ partial_probe_backend()
 {
     static const lh_ui_canvas_backend_t backend = {
         partial_probe_begin,   partial_probe_begin_area, partial_probe_end,   partial_probe_clear,
-        partial_probe_fill_rect, partial_probe_fill_round_rect, nullptr,     nullptr};
+        partial_probe_fill_rect, partial_probe_fill_round_rect, nullptr,     nullptr,
+        nullptr,                 nullptr,                       nullptr,     nullptr};
     return &backend;
 }
 

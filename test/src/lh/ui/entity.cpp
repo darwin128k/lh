@@ -62,7 +62,7 @@ log_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *col
 }
 
 const lh_ui_canvas_backend_t g_fill_log_backend = {nullptr, nullptr, nullptr, nullptr, log_fill_rect, nullptr,
-                                                     nullptr, nullptr};
+                                                     nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
 
 /* Derived classes over lh_ui_entity_class: one skips the base, one calls it. */
 lh_void

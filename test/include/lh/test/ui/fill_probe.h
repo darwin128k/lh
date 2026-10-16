@@ -66,7 +66,7 @@ inline const lh_ui_canvas_backend_t *
 fill_probe_backend()
 {
     static const lh_ui_canvas_backend_t backend = {nullptr, nullptr, nullptr, nullptr, fill_probe_fill_rect,
-                                                   nullptr, nullptr, nullptr};
+                                                   nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
     return &backend;
 }
 
@@ -74,8 +74,9 @@ fill_probe_backend()
 inline const lh_ui_canvas_backend_t *
 fill_probe_round_backend()
 {
-    static const lh_ui_canvas_backend_t backend = {nullptr, nullptr, nullptr, nullptr, fill_probe_fill_rect,
-                                                   fill_probe_fill_round_rect, nullptr, nullptr};
+    static const lh_ui_canvas_backend_t backend = {
+        nullptr, nullptr, nullptr, nullptr, fill_probe_fill_rect, fill_probe_fill_round_rect,
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
     return &backend;
 }
 

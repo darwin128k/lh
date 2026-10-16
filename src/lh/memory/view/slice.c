@@ -376,25 +376,19 @@ lh_memory_view_slice_find_offset_from_ptr(const lh_memory_view_slice_t *self, co
     }
 
     const lh_usize_t size = lh_memory_view_slice_get_size(self);
-    const lh_uoffset_t ptr_offset = lh_memory_view_slice_get_offset_from_begin(self, ptr);
-    const lh_uoffset_t max_offset = lh_math_sub_one(size);
+    /* Offsets inside a slice fit lh_soffset_t (an object is never larger than
+       the signed pointer-difference range), so the check runs on signed operands
+       with the signed offset as the addend: closed range [0, max_offset]. */
+    const lh_soffset_t ptr_offset =
+        lh_type_cast(lh_soffset_t, lh_memory_view_slice_get_offset_from_begin(self, ptr));
+    const lh_soffset_t max_offset = lh_type_cast(lh_soffset_t, lh_math_sub_one(size));
 
-    if (lh_math_is_negative(offset))
+    if (lh_interval_closed_is_add_overflow(ptr_offset, offset, 0, max_offset))
     {
-        const lh_uoffset_t abs_offset = lh_type_cast(lh_uoffset_t, lh_math_neg(offset));
-        if (lh_interval_closed_is_sub_overflow(ptr_offset, abs_offset, 0, max_offset))
-        {
-            return lh_runtime_error_code_underflow;
-        }
-        lh_ptr_deref(out) = lh_math_sub(ptr_offset, abs_offset);
-        return lh_runtime_error_code_ok;
+        return lh_math_is_negative(offset) ? lh_runtime_error_code_underflow
+                                           : lh_runtime_error_code_overflow;
     }
-
-    if (lh_interval_closed_is_add_overflow(ptr_offset, lh_type_cast(lh_uoffset_t, offset), 0, max_offset))
-    {
-        return lh_runtime_error_code_overflow;
-    }
-    lh_ptr_deref(out) = lh_math_add(ptr_offset, lh_type_cast(lh_uoffset_t, offset));
+    lh_ptr_deref(out) = lh_type_cast(lh_uoffset_t, lh_math_add(ptr_offset, offset));
     return lh_runtime_error_code_ok;
 }
 
