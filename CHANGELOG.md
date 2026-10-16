@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh/util/ptr/of.h`: `lh_ptr_of` / `lh_cptr_of` on their own, so `lh/byte/ptr.h` no longer needs `lh/util/ptr.h`
+- `lh_test_ui` checks `lh/ui.h` from C++ and as C11 (`test/src/lh/ui/umbrella.cpp`, `umbrella.c`)
 - `lh_ui_layout_run` and its bricks (`lh/ui/layout.h`): `lh_ui_layout_run_t` / `lh_ui_layout_cross_t`, `lh_ui_layout_run_init`, `lh_ui_layout_run_measure_child`, `lh_ui_layout_run_measure`, `lh_ui_layout_justify_lead`, `lh_ui_layout_run_justify`, `lh_ui_layout_run_length`, `lh_ui_layout_run_place_child`, `lh_ui_layout_run_place`, `lh_ui_layout_cross_fit`, `lh_ui_layout_cross_at`, `lh_ui_layout_child_line`: one line of the flow measured, justified and placed a child at a time
 - `lh_ui_canvas_box_frame_t`, `lh_ui_canvas_box_frame_init`, `lh_ui_canvas_box_corners_init`, `lh_ui_canvas_box_row_is_upper`, `lh_ui_canvas_box_zone`, `lh_ui_canvas_box_row_reach`, `lh_ui_canvas_box_rows` (`lh/ui/canvas/box.h`): the shown edges of a box and its rows, corners and bands
 - `lh_ui_blur_pass_t`, `lh_ui_blur_pass_init`, `lh_ui_blur_column`, `lh_ui_blur_window_span`, `lh_ui_blur_window_take_samples`, `lh_ui_blur_window_drop_samples`, `lh_ui_blur_window_average_color`, `lh_ui_blur_sample_color` (`lh/ui/blur.h`): the column pass one column at a time
@@ -29,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `lh/ui.h` is now a complete umbrella: it also includes `lh/ui/canvas/box.h`, `canvas/web.h`, `display.h`, `display/fields.h`, `gradient/sampler.h`, `gradient/sampler/fields.h`, `gradient/sine.h`, `present.h`, `present/sink.h`, `present/sink/fields.h`, `viewport3d.h`, `web/buf.h`, `web/html.h`, `web/html/attr.h`, `web/js.h`, `web/js/x.h`, `web/page.h`, `web/ws.h`, `web/x.h`, plus `font/roboto.h` when `LH_LIBRARY_OPTION_UI_FONT_ROBOTO` is on and `web/host.h` when `LH_LIBRARY_OPTION_OS` is on
+- `lh/byte/ptr.h` includes `lh/util/ptr/of.h` instead of `lh/util/ptr.h`, breaking the `lh/util/ptr.h` <-> `lh/byte/ptr.h` include cycle; `lh/bit/packed.h`, `lh/net/modbus.h`, `lh/numeric/parse/bytes.h`, `lh/ui/web/page.h` and `lh/ui/web/ws.h` now include `lh/util/ptr.h` themselves instead of getting it through `lh/byte/ptr.h`
 - Operator macros (arithmetic, comparison / selection, bitwise, overflow checks, `lh_math_div_round`) moved from `lh/math.h` to their own `lh/math/ops.h`; `lh/math.h` is now a pure umbrella and also pulls in `lh/math/floor.h` and `lh/math/rescale.h`. Headers under `lh/math/` include `lh/math/ops.h` instead of the umbrella, which removes the include cycle; `lh/math/div_round.h` is gone (`lh_math_div_round` lives in `lh/math/ops.h`)
 - One formula, one place: removed `lh_math_div_round_u32` (it only forwarded to `lh_math_div_round`; pass `lh_u32_t` operands for unsigned semantics); `lh_math_rescale_u32` and `lh_ui_color_blend_channel` now use `lh_math_div_round` instead of open-coding the half-add; new generic `lh_math_slack` / `lh_math_centre_half` (`lh/math/scalar/centre.h`) back both `lh_math_scalar_slack` / `_centre` and `lh_ui_scalar_slack` / `_centre`; the layout cross slot uses `lh_ui_scalar_slack`; `lh_math_size_*` and `lh_math_fsize_*` min / max / min_side share `lh_math_size_pairwise` / `lh_math_size_min_side_of` (`lh/math/size/ops.h`). Results are bit-identical with FPU on and off
 

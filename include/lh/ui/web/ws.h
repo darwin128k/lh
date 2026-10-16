@@ -12,8 +12,8 @@
 #define LH_UI_WEB_WS_H
 
 #include <lh/bool.h>
-#include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/util/ptr.h>
 #include <lh/config.h>
 #include <lh/size.h>
 
