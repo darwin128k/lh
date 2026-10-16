@@ -323,9 +323,31 @@ lh_crypto_rijndael_aesni_encrypt(const lh_crypto_rijndael_t *self, lh_byte_cptr 
     _mm_storeu_si128(lh_ptr_rcast(__m128i, out), state);
 }
 
+LH_CRYPTO_RIJNDAEL_AESNI_TARGET
+static __m128i
+lh_crypto_rijndael_aesni_dec_round_key(const lh_crypto_rijndael_t *self, lh_usize_t round)
+{
+    return _mm_loadu_si128(lh_ptr_rcast(const __m128i, self->aesni_dec_key + round * 16U));
+}
+
 /* The equivalent inverse cipher (FIPS-197 5.3.5): AESDEC wants the middle round keys
-   passed through InvMixColumns, which AESIMC does here rather than in a second key
-   schedule kept in the session. */
+   passed through InvMixColumns. AESIMC does that once here, at key setup, into
+   self->aesni_dec_key at the same round index; rounds 0 and nr are used unchanged
+   from self->expanded_key. */
+LH_CRYPTO_RIJNDAEL_AESNI_TARGET
+static lh_void
+lh_crypto_rijndael_aesni_expand_dec_key(lh_crypto_rijndael_t *self)
+{
+    const lh_usize_t nr = self->round_count;
+    lh_usize_t round;
+
+    for (round = 1; round < nr; ++round)
+    {
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, self->aesni_dec_key + round * 16U),
+                         _mm_aesimc_si128(lh_crypto_rijndael_aesni_round_key(self, round)));
+    }
+}
+
 LH_CRYPTO_RIJNDAEL_AESNI_TARGET
 static lh_void
 lh_crypto_rijndael_aesni_decrypt(const lh_crypto_rijndael_t *self, lh_byte_cptr in,
@@ -338,11 +360,22 @@ lh_crypto_rijndael_aesni_decrypt(const lh_crypto_rijndael_t *self, lh_byte_cptr 
     state = _mm_xor_si128(state, lh_crypto_rijndael_aesni_round_key(self, nr));
     for (round = nr - 1U; round > 0U; --round)
     {
-        state = _mm_aesdec_si128(
-            state, _mm_aesimc_si128(lh_crypto_rijndael_aesni_round_key(self, round)));
+        state = _mm_aesdec_si128(state, lh_crypto_rijndael_aesni_dec_round_key(self, round));
     }
     state = _mm_aesdeclast_si128(state, lh_crypto_rijndael_aesni_round_key(self, 0U));
     _mm_storeu_si128(lh_ptr_rcast(__m128i, out), state);
+}
+
+/* Fills self->aesni_dec_key when the AES-NI decrypt path will be taken; done for every
+   key setup since it is cheap and init does not know whether decrypt follows. */
+static lh_void
+lh_crypto_rijndael_aesni_setup(lh_crypto_rijndael_t *self)
+{
+    lh_memory_std_set(self->aesni_dec_key, 0, LH_CRYPTO_RIJNDAEL_AESNI_DEC_KEY_SIZE_MAX);
+    if (self->block_size == LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MIN && lh_crypto_rijndael_has_aesni())
+    {
+        lh_crypto_rijndael_aesni_expand_dec_key(self);
+    }
 }
 
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_AESNI */
@@ -444,6 +477,9 @@ lh_crypto_rijndael_init(lh_crypto_rijndael_t *self, const lh_ptr key, lh_usize_t
     lh_memory_std_set(self->expanded_key, 0, LH_CRYPTO_RIJNDAEL_EXPANDED_KEY_SIZE_MAX);
     lh_memory_std_set(self->chain, 0, LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MAX);
     lh_crypto_rijndael_expand_key(self, lh_ptr_rcast(const lh_byte_t, key), key_size);
+#if LH_LIBRARY_OPTION_SIMD_HAVE_AESNI
+    lh_crypto_rijndael_aesni_setup(self);
+#endif
 
     if (mode != lh_crypto_rijndael_mode_ecb)
     {
