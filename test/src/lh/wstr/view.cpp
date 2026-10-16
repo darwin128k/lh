@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <lh/expect/death.h>
 #include <lh/wstr/view.h>
 #include <lh/test/out.h>
 

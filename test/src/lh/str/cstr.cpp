@@ -103,14 +103,18 @@ TEST(str_len, an_empty_string_is_zero_and_a_present_value)
     EXPECT_EQ(lh_str_len(""), lh_str_ptr_len(""));
 }
 
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
 TEST(str_len_death, a_null_pointer_is_a_bug_not_an_empty_string)
 {
     /* The asymmetry is the point: `""` is 0, and null **dies**. A null that answered 0
        would be indistinguishable from an empty string, and "no device name" and "the
        device's name is empty" are two different bugs. ::lh_str_view_init says the same
        thing in the same words. */
-    EXPECT_DEATH(lh_str_len(lh_null), "");
+    LH_EXPECT_DEATH(lh_str_len(lh_null));
 }
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 TEST(str_eq, agrees_with_the_mutable_spelling)
 {
@@ -193,8 +197,12 @@ TEST(str_eq, a_prefix_is_not_the_string)
     EXPECT_TRUE(lh_str_eq("JL205", "JL205", lh_bool_false));
 }
 
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
 TEST(str_eq_death, a_null_operand_is_a_bug)
 {
-    EXPECT_DEATH(lh_str_eq(lh_null, "a", lh_bool_false), "");
-    EXPECT_DEATH(lh_str_eq("a", lh_null, lh_bool_false), "");
+    LH_EXPECT_DEATH(lh_str_eq(lh_null, "a", lh_bool_false));
+    LH_EXPECT_DEATH(lh_str_eq("a", lh_null, lh_bool_false));
 }
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
