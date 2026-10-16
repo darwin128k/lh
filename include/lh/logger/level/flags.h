@@ -11,7 +11,7 @@
 #define LH_LOGGER_LEVEL_FLAGS_H
 
 #include <lh/logger/level.h>
-#include <lh/bit.h>
+#include <lh/bit/ops.h>
 
 /**
  * @def lh_logger_level_flags_none

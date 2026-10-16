@@ -14,7 +14,7 @@
 #include <lh/bool.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/bit.h>
+#include <lh/bit/ops.h>
 
 /**
  * @typedef lh_fs_perm_t

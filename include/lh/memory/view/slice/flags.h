@@ -7,7 +7,7 @@
 #define LH_MEMORY_VIEW_SLICE_FLAGS_H
 
 #include <lh/byte.h>
-#include <lh/bit.h>
+#include <lh/bit/ops.h>
 
 /** @brief Neither end of the slice is set. */
 #define lh_memory_view_slice_flags_uninitialized 0

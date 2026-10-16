@@ -1,6 +1,6 @@
 #include <lh/cpu/simd.h>
 
-#include <lh/bit.h>
+#include <lh/bit/ops.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/arch.h>
 #include <lh/compiler/arch/family.h>
