@@ -623,7 +623,7 @@ lh_ui_canvas_shadow(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, lh_ui_scalar
     outset = lh_ui_shadow_get_outset(shadow, &target);
     lh_return_if(outset <= 0, lh_bool_false);
     corner = lh_ui_radius_clamp(&target, radius);
-    lh_ui_rect_inset(lh_addr_of(target), lh_ui_scalar_of(-outset), lh_ui_scalar_of(-outset), lh_addr_of(bounds));
+    lh_ui_rect_inset(lh_addr_of(target), lh_ui_scalar_of(lh_math_neg(outset)), lh_ui_scalar_of(lh_math_neg(outset)), lh_addr_of(bounds));
     lh_ui_canvas_add_damage(self, lh_addr_of(bounds));
     /* No `can_send_whole` here, unlike a rounded fill: a shadow reads no pixels, it
        is the box and the shadow alone, so every area that clips it draws its own

@@ -33,14 +33,14 @@ lh_math_float_sin_cos(lh_float_t x, lh_float_t *sin_out, lh_float_t *cos_out)
         break;
     case 1:
         lh_ptr_deref(sin_out) = c;
-        lh_ptr_deref(cos_out) = -s;
+        lh_ptr_deref(cos_out) = lh_math_neg(s);
         break;
     case 2:
-        lh_ptr_deref(sin_out) = -s;
-        lh_ptr_deref(cos_out) = -c;
+        lh_ptr_deref(sin_out) = lh_math_neg(s);
+        lh_ptr_deref(cos_out) = lh_math_neg(c);
         break;
     default:
-        lh_ptr_deref(sin_out) = -c;
+        lh_ptr_deref(sin_out) = lh_math_neg(c);
         lh_ptr_deref(cos_out) = s;
         break;
     }

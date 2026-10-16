@@ -149,9 +149,9 @@ lh_math_vec4_neg(lh_math_vec4_t v, lh_math_vec4_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_math_vec4_t result;
-    lh_math_vec4_init(lh_addr_of(result), -lh_math_vec4_get_x(lh_addr_of(v)),
-                      -lh_math_vec4_get_y(lh_addr_of(v)), -lh_math_vec4_get_z(lh_addr_of(v)),
-                      -lh_math_vec4_get_w(lh_addr_of(v)));
+    lh_math_vec4_init(lh_addr_of(result), lh_math_neg(lh_math_vec4_get_x(lh_addr_of(v))),
+                      lh_math_neg(lh_math_vec4_get_y(lh_addr_of(v))), lh_math_neg(lh_math_vec4_get_z(lh_addr_of(v))),
+                      lh_math_neg(lh_math_vec4_get_w(lh_addr_of(v))));
     lh_ptr_deref(out) = result;
 }
 
@@ -241,10 +241,10 @@ lh_math_vec4_near(lh_math_vec4_t a, lh_math_vec4_t b, lh_float_t eps)
     const lh_float_t dy = lh_math_vec4_get_y(lh_addr_of(d));
     const lh_float_t dz = lh_math_vec4_get_z(lh_addr_of(d));
     const lh_float_t dw = lh_math_vec4_get_w(lh_addr_of(d));
-    return lh_cast_static(lh_bool_t, (dx <= eps && -dx <= eps)
-                                   && (dy <= eps && -dy <= eps)
-                                   && (dz <= eps && -dz <= eps)
-                                   && (dw <= eps && -dw <= eps));
+    return lh_cast_static(lh_bool_t, (dx <= eps && lh_math_neg(dx) <= eps)
+                                   && (dy <= eps && lh_math_neg(dy) <= eps)
+                                   && (dz <= eps && lh_math_neg(dz) <= eps)
+                                   && (dw <= eps && lh_math_neg(dw) <= eps));
 }
 
 lh_bool_t

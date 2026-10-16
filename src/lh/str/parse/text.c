@@ -167,7 +167,7 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
             if (is_negative)
             {
                 lh_ptr_deref(out) = (magnitude == (0U - lh_cast_static(lh_uint_t, LH_SINT_T_MIN))) ? LH_SINT_T_MIN
-                                                                      : -lh_cast_static(lh_sint_t, magnitude);
+                                                                      : lh_math_neg(lh_cast_static(lh_sint_t, magnitude));
             }
             else
             {

@@ -197,7 +197,7 @@ lh_mb_parse_pdu(lh_byte_cptr pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect,
         return lh_mb_status_wrong_code;
     }
     bytes = pdu[1];
-    if ((bytes % 2) != 0)
+    if (!lh_math_is_multiple_of(bytes, 2))
     {
         return lh_mb_status_garbage; /* not a whole number of words */
     }

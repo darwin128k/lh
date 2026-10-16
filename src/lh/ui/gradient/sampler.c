@@ -328,7 +328,7 @@ lh_ui_gradient_sampler_radial_row(const lh_ui_gradient_sampler_t *self, lh_s32_t
        the middle is its mirror's -- walked too when the mirror is past the end of
        the row. */
     const lh_s64_t middle = self->middle_x;
-    const lh_s32_t centre = lh_cast_static(lh_s32_t, (middle >= 0 ? middle / 2 : -((1 - middle) / 2)));
+    const lh_s32_t centre = lh_cast_static(lh_s32_t, (middle >= 0 ? middle / 2 : lh_math_neg((1 - middle) / 2)));
     const lh_s32_t right = lh_math_max(x0, centre);
     const lh_s32_t lone = lh_math_min(lh_math_min(x1, centre), lh_cast_static(lh_s32_t, (middle - x1)));
     lh_s32_t x;

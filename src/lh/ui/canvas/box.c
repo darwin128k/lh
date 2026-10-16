@@ -30,7 +30,7 @@ lh_ui_canvas_box_rows_are_one_colour(const lh_ui_paint_t *paint)
 
     lh_return_if(lh_null_eq(gradient), lh_bool_true);
     return lh_ui_gradient_get_shape(gradient) == lh_ui_gradient_shape_linear &&
-                   (lh_ui_gradient_get_angle(gradient) % 180) == 0
+                   lh_math_is_multiple_of(lh_ui_gradient_get_angle(gradient), 180)
                ? lh_bool_true
                : lh_bool_false;
 }

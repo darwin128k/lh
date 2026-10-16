@@ -165,7 +165,7 @@ lh_ui_radius_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t
     /* The first pixel whose center is at or past that point: center(x) is
        x * SUBPIXEL + half, so x is the ceiling of (inside - half) / SUBPIXEL. */
     at = lh_cast_static(lh_s32_t,
-                        -lh_math_floor_div(LH_UI_RADIUS_SUBPIXEL / 2 - inside, LH_UI_RADIUS_SUBPIXEL));
+                        lh_math_neg(lh_math_floor_div(LH_UI_RADIUS_SUBPIXEL / 2 - inside, LH_UI_RADIUS_SUBPIXEL)));
     lh_ptr_deref(out_x0) = lh_math_max(at, left);
     lh_ptr_deref(out_x1) = lh_math_max(right - (lh_ptr_deref(out_x0) - left), lh_ptr_deref(out_x0));
 }

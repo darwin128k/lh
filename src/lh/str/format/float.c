@@ -132,7 +132,7 @@ floor_log10_pow2(int x)
 {
     const long scaled = lh_cast_static(long, x)* 78913L;
 
-    return (int)(scaled >= 0 ? (scaled >> 18) : -(((-scaled) + ((1L << 18) - 1L)) >> 18));
+    return (int)(scaled >= 0 ? (scaled >> 18) : lh_math_neg(((lh_math_neg(scaled)) + ((1L << 18) - 1L)) >> 18));
 }
 
 static lh_usize_t
@@ -227,13 +227,13 @@ lh_str_ptr_format_float(lh_float_t value, lh_usize_t digits, lh_str_ptr str, lh_
     }
     else if (e < 0)
     {
-        big_shl(&den, lh_cast_static(lh_usize_t, (-e)));
+        big_shl(&den, lh_cast_static(lh_usize_t, (lh_math_neg(e))));
     }
     for (i = 0U; d10 > 0 && i < lh_cast_static(lh_usize_t, d10); ++i)
     {
         big_mul_small(&den, 10U);
     }
-    for (i = 0U; d10 < 0 && i < lh_cast_static(lh_usize_t, (-d10)); ++i)
+    for (i = 0U; d10 < 0 && i < lh_cast_static(lh_usize_t, (lh_math_neg(d10))); ++i)
     {
         big_mul_small(&num, 10U);
     }
@@ -331,7 +331,7 @@ lh_str_ptr_format_float(lh_float_t value, lh_usize_t digits, lh_str_ptr str, lh_
         {
             tmp[n++] = '0';
             tmp[n++] = '.';
-            for (i = 0U; i < lh_cast_static(lh_usize_t, (-d10 - 1)); ++i)
+            for (i = 0U; i < lh_cast_static(lh_usize_t, (lh_math_neg(d10) - 1)); ++i)
             {
                 tmp[n++] = '0';
             }
@@ -358,7 +358,7 @@ lh_str_ptr_format_float(lh_float_t value, lh_usize_t digits, lh_str_ptr str, lh_
         if (x < 0)
         {
             tmp[n++] = '-';
-            x = -x;
+            x = lh_math_neg(x);
         }
         else
         {

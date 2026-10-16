@@ -608,7 +608,7 @@ lh_os_system_posix_window_is_placed(const lh_os_system_posix_window_t *self)
     lh_return_if(x->XTranslateCoordinates(lh_os_system_posix_display, self->window, lh_os_system_posix_root, 0, 0,
                                           lh_addr_of(at_x), lh_addr_of(at_y), lh_addr_of(child)) == 0,
                  lh_bool_false);
-    return at_x > -self->width && at_y > -self->height &&
+    return at_x > lh_math_neg(self->width) && at_y > lh_math_neg(self->height) &&
                    at_x < x->XDisplayWidth(lh_os_system_posix_display, lh_os_system_posix_screen) &&
                    at_y < x->XDisplayHeight(lh_os_system_posix_display, lh_os_system_posix_screen)
                ? lh_bool_true

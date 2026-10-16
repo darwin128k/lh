@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/gradient/sine.h`.
  */
 
+#include <lh/math/ops.h>
 #include <lh/ui/gradient/sine.h>
 
 /** sin(d) for d in 0 .. 90 degrees, times 4096. Whole degrees are all CSS angles a sheet
@@ -36,7 +37,7 @@ lh_ui_gradient_sine(lh_s32_t degrees)
     }
     if (degrees <= 270)
     {
-        return -lh_ui_gradient_sine_table[degrees - 180];
+        return lh_math_neg(lh_ui_gradient_sine_table[degrees - 180]);
     }
-    return -lh_ui_gradient_sine_table[360 - degrees];
+    return lh_math_neg(lh_ui_gradient_sine_table[360 - degrees]);
 }
