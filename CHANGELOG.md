@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- AES-NI for `lh_crypto_rijndael_t` (`lh/crypto/rijndael.h`): 16-byte (AES) blocks encrypt and decrypt with `AESENC` / `AESDEC` when the CPU has AES-NI, in every mode and for 16/24/32-byte keys; 24/32-byte Rijndael blocks and CPUs without AES-NI keep the table path, same bytes. About 32x faster encrypt and 64x faster decrypt per block on an i7-3770K (AES-128: 765 → 24 ns, 1661 → 26 ns)
+- AES-NI for `lh_crypto_rijndael_t` (`lh/crypto/rijndael.h`): 16-byte (AES) blocks encrypt and decrypt with `AESENC` / `AESDEC` when the CPU has AES-NI, in every mode and for 16/24/32-byte keys; 24/32-byte Rijndael blocks and CPUs without AES-NI keep the table path, same bytes. `lh_crypto_rijndael_init` also prepares the `AESDEC` round keys (`AESIMC`) once, so decrypt runs as fast as encrypt; the session gains `aesni_dec_key` (240 bytes) when `LH_LIBRARY_OPTION_SIMD_HAVE_AESNI` is on, so library and caller must share one `lh/config.h`. About 32x faster encrypt and 70x faster decrypt per block on an i7-3770K (AES-128: 765 → 24 ns, 1661 → 24 ns)
 - `lh_cpu_simd_has_aesni` (`lh/cpu/simd.h`) and `LH_LIBRARY_OPTION_SIMD_HAVE_AESNI` (`lh/config.h`, compile-only probe in `cmake/check_simd.cmake`): runtime and toolchain checks for AES-NI
 - FIPS-197 known answers for AES-128/192/256 (encrypt and decrypt) and SP 800-38A first blocks for CBC and CFB in `test/src/lh/crypto/rijndael.cpp`
 - Third-party notices in `LICENSE.md` with license texts in `LICENSES/` (`Apache-2.0.txt` for the Roboto font compiled into `lh/ui/font/roboto.c`, `Unicode-3.0.txt` for the Unicode Character Database 16.0.0 under `tools/data/unicode/`); `requirements.txt` pins Pillow for the `scripts/` generators
