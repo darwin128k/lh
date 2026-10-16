@@ -8,6 +8,13 @@
 
 A lightweight C utility library (headers + a small static library) with portable numeric and character types, compiler portability macros, safe cast helpers, **structured errors** (`lh_error_t`), and **runtime checks** that report a failure as an `lh_exception_t` (error plus the check's origin) to a host-installed handler — no setjmp/longjmp, no unwinding.
 
+lh is written in C11 and builds as one static library from CMake. Beyond the
+core utilities it has an optional OS layer (files, directories, sockets, clock,
+windows) and an optional UI model (`lh/ui/`). Float math is opt-in
+(`LH_LIBRARY_OPTION_MATH_FPU`, default `OFF`). The same code targets a
+microcontroller with no OS (STM32F407 + ILI9341), a desktop window (Win32 GDI
+from Windows XP up, X11) and a browser — see [Usage](#usage).
+
 ## Features
 
 - **Portable types** — fixed-width integers (`lh_uint_t`, `lh_sllong_t`, …), explicit `lh_byte_t` / `lh_schar_t`, `lh_bool_t`, `lh_void` / `lh_void_ptr`
@@ -297,6 +304,33 @@ checks are compiled in.
 the validity of the range. Passing a backward or otherwise invalid range
 produces a logically inconsistent slice and may cause failures in any
 subsequent operation that requires a valid slice.
+
+## UI
+
+`LH_LIBRARY_OPTION_UI` (default `ON`) compiles the UI model under `lh/ui/`:
+color, paint, gradient, shadow, blur, style, transition, layout, canvas and the
+entity tree. It needs no OS; the host supplies where the pixels go.
+
+- **View** — `lh_ui_view_t` (`lh/ui/view.h`) binds an entity tree to a canvas,
+  draws it (`lh_ui_view_draw`), takes input (press / release / wheel / key /
+  text) and accumulates damage for partial redraw.
+- **Canvas backends** — software, into a pixel buffer (`lh/ui/canvas/sw.h`);
+  GDI, the same software renderer plus one `BitBlt` into a window
+  (`lh/os/render/backend/gdi.h`); web, recording primitives as JSON
+  (`lh/ui/canvas/web.h`).
+- **Present sink** (`lh/ui/present/sink.h`) — shows an already drawn buffer
+  on a TFT, a log or a second screen.
+- **Scalar mode** — `LH_LIBRARY_OPTION_MATH_FPU` picks the UI coordinate type
+  `lh_ui_scalar_t` (`lh/ui/scalar.h`): `OFF` uses integer `lh_math_scalar_t`,
+  `ON` uses float `lh_math_fscalar_t`.
+- **Font** — `LH_LIBRARY_OPTION_UI_FONT_ROBOTO` (default `ON`) bakes Roboto
+  16 px, 4 bpp, Latin + Cyrillic; it also builds with UI `OFF`.
+- **Limits** — `LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS` (default `2`) and
+  `LH_LIBRARY_OPTION_UI_CANVAS_DEPTH` (default `8`, nested `lh_ui_canvas_push`
+  levels).
+
+Frame times against LVGL on the same scenes are in
+[bench/lvgl/RESULTS.md](bench/lvgl/RESULTS.md).
 
 ## Scene
 
