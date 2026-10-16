@@ -3,16 +3,7 @@
  * @brief Implementation of `lh/ui/text/line.h`.
  */
 
-#include <lh/ui/text/line.h>
-
-#include <lh/assert/runtime.h>
-#include <lh/cast/static.h>
-#include <lh/math.h>
-#include <lh/ui/scalar.h>
-#include <lh/null.h>
-#include <lh/ui/mask.h>
 #include <lh/ui/text.h>
-#include <lh/util/addr.h>
 #include <lh/util/return.h>
 
 lh_void

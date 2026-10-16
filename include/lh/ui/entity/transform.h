@@ -11,11 +11,8 @@
 #ifndef LH_UI_ENTITY_TRANSFORM_H
 #define LH_UI_ENTITY_TRANSFORM_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/ui/entity/transform/fields.h>
 #include <lh/ui/point.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_entity_transform

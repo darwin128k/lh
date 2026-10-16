@@ -29,13 +29,8 @@
 #ifndef LH_MEMORY_TREE_H
 #define LH_MEMORY_TREE_H
 
-#include <lh/void.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/memory/allocator.h>
 #include <lh/memory/sized/allocator.h>
 #include <lh/memory/tree/destructor/cb.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

@@ -15,10 +15,8 @@
 #ifndef LH_OS_ALLOC_H
 #define LH_OS_ALLOC_H
 
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/ptr.h>
-#include <lh/size.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/alloc.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

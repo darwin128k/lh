@@ -7,7 +7,6 @@
 #define LH_UI_ENTITY_FACE_CB_H
 
 #include <lh/ui/entity/face/fn.h>
-#include <lh/util/ptr.h>
 
 /**
  * @def lh_ui_entity_face_cb

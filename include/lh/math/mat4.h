@@ -22,13 +22,8 @@
 #ifndef LH_MATH_MAT4_H
 #define LH_MATH_MAT4_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/math/mat4/fields.h>
 #include <lh/math/quat.h>
-#include <lh/math/vec3.h>
-#include <lh/math/vec4.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_math_mat4

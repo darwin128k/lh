@@ -4,12 +4,6 @@
  */
 #include <lh/ui/display.h>
 
-#include <lh/cast/static.h>
-#include <lh/math.h>
-#include <lh/null.h>
-#include <lh/ui/canvas/backend.h>
-#include <lh/util/addr.h>
-
 /** Point the pixmap at @p bits, sized to the panel or the strip; empty when there is nothing to
  * bind. */
 static lh_void

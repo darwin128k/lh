@@ -10,13 +10,8 @@
 #ifndef LH_UI_CANVAS_STATE_H
 #define LH_UI_CANVAS_STATE_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/ui/canvas/state/fields.h>
-#include <lh/ui/point.h>
 #include <lh/ui/rect.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_canvas_state

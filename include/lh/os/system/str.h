@@ -18,13 +18,9 @@
 #ifndef LH_OS_SYSTEM_STR_H
 #define LH_OS_SYSTEM_STR_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/str.h>
-#include <lh/size.h>
 #include <lh/str.h>
-#include <lh/str/ptr.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/system/str.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

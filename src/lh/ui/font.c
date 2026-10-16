@@ -3,14 +3,8 @@
  * @brief Implementation of `lh/ui/font.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/byte/ptr.h>
-#include <lh/cast/static.h>
 #include <lh/config.h>
-#include <lh/null.h>
-#include <lh/runtime/error/code.h>
 #include <lh/ui/font.h>
-#include <lh/util/addr.h>
 #include <lh/util/return.h>
 
 #if LH_LIBRARY_OPTION_UI_FONT_ROBOTO

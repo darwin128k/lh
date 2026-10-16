@@ -1,18 +1,11 @@
 #include <lh/os/system/shared.h>
-#include <lh/assert/runtime.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
-#include <lh/null.h>
 #include <lh/os.h>
-#include <lh/os/alloc.h>
 #include <lh/os/error/code.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
 #include <lh/os/system/win/kernel32.h>
 #include <lh/runtime/allocator.h>
-#include <lh/util/addr.h>
-#include <lh/math.h>
-#include <lh/util/ptr.h>
 
 /* The longest path Windows accepts, in UTF-16 units, NUL included. */
 #define LH_OS_SYSTEM_WIN_SHARED_PATH_MAX 32768U

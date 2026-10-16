@@ -26,18 +26,10 @@
 #ifndef LH_OS_LOADER_H
 #define LH_OS_LOADER_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/fs/path.h>
-#include <lh/index.h>
 #include <lh/list.h>
 #include <lh/os/loader/fields.h>
 #include <lh/os/module.h>
-#include <lh/size.h>
-#include <lh/str.h>
-#include <lh/str/ptr.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/loader.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

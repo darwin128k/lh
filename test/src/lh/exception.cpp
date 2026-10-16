@@ -3,8 +3,6 @@
 #include <lh/exception.h>
 #include <lh/exception/initializer.h>
 #include <lh/runtime/error/initializer.h>
-#include <lh/str/view.h>
-#include <lh/str/view/initializer.h>
 #include <lh/test/out.h>
 
 #include <string>

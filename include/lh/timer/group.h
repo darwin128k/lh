@@ -10,11 +10,8 @@
 #ifndef LH_TIMER_GROUP_H
 #define LH_TIMER_GROUP_H
 
-#include <lh/compiler/extern/c.h>
-#include <lh/list.h>
 #include <lh/timer/group/fields.h>
 #include <lh/timer/tick.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_timer_group

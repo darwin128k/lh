@@ -4,12 +4,6 @@
  */
 
 #include <lh/ui/web/ws.h>
-#include <lh/byte/ptr.h>
-
-#include <lh/null.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/util/ptr.h>
-#include <lh/cast/static.h>
 
 /** Whether @p opcode is one RFC 6455 defines: data 0..2 or control 8..10. */
 static unsigned

@@ -13,17 +13,11 @@
 #ifndef LH_OS_SYSTEM_WINDOW_H
 #define LH_OS_SYSTEM_WINDOW_H
 
-#include <lh/bool.h>
-#include <lh/char.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/system/window/handle.h>
 #include <lh/os/window/frame.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/os/window/placement.h>
-#include <lh/ptr.h>
 #include <lh/timer/tick.h>
-#include <lh/void.h>
 
 #if !LH_LIBRARY_OPTION_OS_WINDOW
 #    error "lh/os/system/window.h requires LH_LIBRARY_OPTION_OS_WINDOW"

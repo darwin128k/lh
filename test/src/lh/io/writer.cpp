@@ -4,8 +4,6 @@
 #include <string>
 
 #include <lh/io/writer.h>
-#include <lh/self.h>
-#include <lh/bool.h>
 
 namespace
 {

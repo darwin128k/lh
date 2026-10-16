@@ -1,9 +1,7 @@
 #include <lh/version.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
 #include <lh/str/format/text.h>
 #include <lh/str/parse/text.h>
-#include <lh/util/addr.h>
 
 lh_void
 lh_version_set_major(lh_version_t *self, lh_version_major_t major)

@@ -14,10 +14,8 @@
 #ifndef LH_ARRAY_H
 #define LH_ARRAY_H
 
-#include <lh/void.h>
 #include <lh/array/cb.h>
 #include <lh/array/fields.h>
-#include <lh/index.h>
 #include <lh/index/limits.h>
 #include <lh/memory/typed/allocated.h>
 

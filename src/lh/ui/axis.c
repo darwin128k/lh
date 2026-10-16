@@ -3,7 +3,6 @@
  * @brief Implementation of `lh/ui/axis.h`.
  */
 
-#include <lh/assert/runtime.h>
 #include <lh/ui/axis.h>
 
 lh_ui_axis_t

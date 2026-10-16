@@ -1,7 +1,5 @@
 #include <lh/io/reader.h>
 #include <lh/assert.h>
-#include <lh/null.h>
-#include <lh/runtime/error.h>
 
 lh_void
 lh_io_reader_set_read_cb(lh_io_reader_t *self, lh_io_reader_read_cb read_cb)

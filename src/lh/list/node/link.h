@@ -11,7 +11,6 @@
 #ifndef LH_SRC_LIST_NODE_LINK_H
 #define LH_SRC_LIST_NODE_LINK_H
 
-#include <lh/void.h>
 #include <lh/list/node.h>
 
 /** @brief Point @p self's `next` at @p next. Nothing else changes. */

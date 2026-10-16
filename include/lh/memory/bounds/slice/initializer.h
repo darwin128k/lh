@@ -6,7 +6,6 @@
 #ifndef LH_MEMORY_BOUNDS_SLICE_INITIALIZER_H
 #define LH_MEMORY_BOUNDS_SLICE_INITIALIZER_H
 
-#include <lh/interval/bounds/initializer.h>
 #include <lh/null.h>
 
 /**

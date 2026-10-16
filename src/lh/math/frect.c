@@ -4,11 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
-#include <lh/bool.h>
-#include <lh/cast/static.h>
-#include <lh/math.h>
 #include <lh/math/frect.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 /* ── Constructors ────────────────────────────────────────────────────────── */

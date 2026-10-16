@@ -7,22 +7,9 @@
 
 #include <stdio.h>
 
-#include <lh/ui/canvas.h>
 #include <lh/ui/canvas/box.h>
 #include <lh/ui/canvas/sw.h>
-#include <lh/ui/color.h>
-#include <lh/ui/container.h>
-#include <lh/ui/entity.h>
-#include <lh/ui/font.h>
-#include <lh/ui/gradient.h>
 #include <lh/ui/label.h>
-#include <lh/ui/layout.h>
-#include <lh/ui/layout/place.h>
-#include <lh/ui/paint.h>
-#include <lh/ui/pixmap.h>
-#include <lh/ui/radii.h>
-#include <lh/ui/shadow.h>
-#include <lh/ui/style.h>
 #include <lh/ui/text.h>
 #include <lh/ui/view.h>
 

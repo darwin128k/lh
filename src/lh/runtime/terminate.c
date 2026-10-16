@@ -1,6 +1,5 @@
 #include <lh/runtime/terminate.h>
 #include <lh/attribute/thread_local.h>
-#include <lh/null.h>
 
 #if (LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB == LH_LIBRARY_OPTION_ON)
 #    include <stdlib.h>

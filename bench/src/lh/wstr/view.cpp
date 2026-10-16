@@ -1,6 +1,5 @@
 #include <benchmark/benchmark.h>
 
-#include <lh/util/addr.h>
 #include <lh/wstr/view.h>
 
 static void

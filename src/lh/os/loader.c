@@ -1,12 +1,8 @@
 #include <lh/os/loader.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
-#include <lh/null.h>
 #include <lh/os/alloc.h>
 #include <lh/runtime/allocator.h>
-#include <lh/runtime/error.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
 

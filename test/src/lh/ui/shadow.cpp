@@ -1,10 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <lh/ui/rect.h>
-#include <lh/ui/shadow.h>
 #include <lh/ui/shadow/ramp.h>
-#include <lh/ui/shadow/shape.h>
-#include <lh/util/addr.h>
 #include <lh/test/out.h>
 
 namespace

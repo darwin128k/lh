@@ -1,12 +1,7 @@
 #include <lh/time.h>
-#include <lh/assert/runtime.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
-#include <lh/numeric/types.h>
 #include <lh/str/format/text.h>
 #include <lh/str/parse/uint.h>
-#include <lh/util/addr.h>
-#include <lh/math.h>
 
 lh_void
 lh_time_set_hour(lh_time_t *self, lh_time_hour_t hour)

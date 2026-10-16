@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 
 #include <lh/ui/brush.h>
-#include <lh/ui/paint.h>
-#include <lh/util/addr.h>
 
 #include <type_traits>
 

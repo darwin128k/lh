@@ -12,14 +12,7 @@
 
 #include <lh/ui/canvas/box.h>
 #include <lh/ui/canvas/mask.h>
-#include <lh/ui/font.h>
-#include <lh/ui/gradient.h>
-#include <lh/ui/paint.h>
-#include <lh/ui/point.h>
-#include <lh/ui/radii.h>
-#include <lh/ui/shadow.h>
 #include <lh/ui/text.h>
-#include <lh/ui/text/line.h>
 
 #include <string>
 

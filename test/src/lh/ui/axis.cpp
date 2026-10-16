@@ -3,7 +3,6 @@
 #include <lh/test/ui/draw_log.h>
 
 #include <lh/ui/axis.h>
-#include <lh/util/addr.h>
 
 using lh_test::rect_is;
 using lh_test::rect_of;

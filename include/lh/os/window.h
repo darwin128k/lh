@@ -22,26 +22,9 @@
 #ifndef LH_OS_WINDOW_H
 #define LH_OS_WINDOW_H
 
-#include <lh/bool.h>
-#include <lh/char.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/system/window/handle.h>
-#include <lh/os/window/close/reason.h>
 #include <lh/os/window/fields.h>
-#include <lh/os/window/frame.h>
-#include <lh/os/window/on/click/cb.h>
-#include <lh/os/window/on/close/cb.h>
-#include <lh/os/window/on/move/cb.h>
-#include <lh/os/window/on/paint/cb.h>
-#include <lh/os/window/on/press/cb.h>
-#include <lh/os/window/on/release/cb.h>
-#include <lh/os/window/on/resize/cb.h>
-#include <lh/os/window/on/zone/cb.h>
-#include <lh/os/window/on/wheel/cb.h>
-#include <lh/os/window/zone.h>
-#include <lh/ptr.h>
-#include <lh/void.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/window.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

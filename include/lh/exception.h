@@ -16,11 +16,8 @@
 #ifndef LH_EXCEPTION_H
 #define LH_EXCEPTION_H
 
-#include <lh/compiler/extern/c.h>
 #include <lh/exception/origin.h>
 #include <lh/runtime/error.h>
-#include <lh/size.h>
-#include <lh/str/ptr.h>
 
 /**
  * @struct lh_exception

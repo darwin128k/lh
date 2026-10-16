@@ -3,17 +3,8 @@
  * @brief Implementation of `lh/ui/surface.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/byte/ptr.h>
-#include <lh/cast/static.h>
-#include <lh/null.h>
 #include <lh/os/system/surface.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/size.h>
 #include <lh/ui/surface.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 /**

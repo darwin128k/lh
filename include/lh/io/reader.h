@@ -13,13 +13,9 @@
 #ifndef LH_IO_READER_H
 #define LH_IO_READER_H
 
-#include <lh/void.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/io/pending.h>
 #include <lh/io/reader/cb.h>
 #include <lh/io/reader/fields.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
 
 /**
  * @struct lh_io_reader

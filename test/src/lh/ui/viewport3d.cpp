@@ -5,10 +5,7 @@
 
 #include <gtest/gtest.h>
 
-#include <lh/null.h>
-#include <lh/ui/rect.h>
 #include <lh/ui/viewport3d.h>
-#include <lh/util/addr.h>
 
 TEST(viewport3d, null_backend_is_not_a_web_op)
 {

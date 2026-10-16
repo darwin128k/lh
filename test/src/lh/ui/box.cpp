@@ -3,16 +3,8 @@
 #include <lh/test/ui/draw_log.h>
 #include <lh/test/ui/fill_probe.h>
 
-#include <lh/ui/canvas.h>
 #include <lh/ui/canvas/box.h>
 #include <lh/ui/canvas/sw.h>
-#include <lh/ui/color.h>
-#include <lh/ui/gradient.h>
-#include <lh/ui/paint.h>
-#include <lh/ui/pixmap.h>
-#include <lh/ui/radii.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/test/out.h>
 
 namespace

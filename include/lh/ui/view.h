@@ -23,20 +23,9 @@
 #ifndef LH_UI_VIEW_H
 #define LH_UI_VIEW_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/ui/canvas.h>
-#include <lh/ui/color.h>
-#include <lh/ui/entity.h>
 #include <lh/ui/button.h>
-#include <lh/ui/container.h>
-#include <lh/ui/scrollbar.h>
-#include <lh/ui/key.h>
-#include <lh/ui/point.h>
-#include <lh/ui/scalar.h>
 #include <lh/ui/view/fields.h>
-#include <lh/void.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/view.h requires LH_LIBRARY_OPTION_UI"

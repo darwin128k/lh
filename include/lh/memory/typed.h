@@ -1,7 +1,6 @@
 #ifndef LH_MEMORY_TYPED_H
 #define LH_MEMORY_TYPED_H
 
-#include <lh/void.h>
 #include <lh/memory/typed/fields.h>
 #include <lh/memory/bounds.h>
 #include <lh/index.h>

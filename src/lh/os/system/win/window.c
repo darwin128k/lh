@@ -4,19 +4,13 @@
  */
 
 #include <lh/assert/runtime.h>
-#include <lh/cast/reinterpret.h>
-#include <lh/cast/static.h>
 #include <lh/memory.h>
-#include <lh/null.h>
 #include <lh/os/system/win/gdi32.h>
 #include <lh/os/system/win/kernel32.h>
 #include <lh/os/system/win/key.h>
 #include <lh/os/system/win/user32.h>
 #include <lh/os/system/window.h>
 #include <lh/os/window.h>
-#include <lh/timer/tick.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 /** The window class every window of ours is registered under. */

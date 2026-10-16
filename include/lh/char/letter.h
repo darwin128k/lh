@@ -14,7 +14,6 @@
 
 #include <lh/attribute/force_inline.h>
 #include <lh/bool.h>
-#include <lh/char.h>
 #include <lh/compiler/extern/c.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

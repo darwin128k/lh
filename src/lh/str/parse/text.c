@@ -1,18 +1,9 @@
 #include <lh/str/parse/text.h>
-#include <lh/assert/runtime.h>
 #include <lh/assert.h>
-#include <lh/bool.h>
-#include <lh/cast/static.h>
 #include <lh/memory/std.h>
-#include <lh/null.h>
-#include <lh/numeric/limits.h>
-#include <lh/numeric/types.h>
 #include <lh/str/parse/hex.h>
 #include <lh/str/parse/uint.h>
 #include <lh/str/scanf/next.h>
-#include <lh/util/addr.h>
-#include <lh/math.h>
-#include <lh/util/str/ptr.h>
 
 static lh_usize_t
 lh_str_ptr_parse_text_limit(lh_usize_t remaining, const lh_str_scanf_spec_t *spec)

@@ -6,10 +6,7 @@
 #ifndef LH_TIMER_FIELDS_H
 #define LH_TIMER_FIELDS_H
 
-#include <lh/bool.h>
 #include <lh/list/node.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/ptr.h>
 #include <lh/timer/cb.h>
 #include <lh/timer/tick.h>
 

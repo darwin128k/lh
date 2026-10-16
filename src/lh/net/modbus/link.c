@@ -4,15 +4,10 @@
  */
 
 #include <lh/net/modbus/link.h>
-#include <lh/byte/ptr.h>
 
 #include <lh/assert/runtime.h>
 #include <lh/memory/std.h>
-#include <lh/null.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
-#include <lh/cast/static.h>
 
 /* ── Framing ──────────────────────────────────────────────────────────────────
    The PDU is the part that is the same everywhere: function code, then data. The

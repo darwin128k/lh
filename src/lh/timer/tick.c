@@ -1,6 +1,4 @@
 #include <lh/timer/tick.h>
-#include <lh/cast/static.h>
-#include <lh/math.h>
 
 lh_bool_t
 lh_tick_equals(lh_tick_t self, lh_tick_t other)

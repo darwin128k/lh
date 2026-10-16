@@ -7,7 +7,6 @@
 #define LH_RUNTIME_CHECK_FAIL_CB_H
 
 #include <lh/runtime/check/fail/fn.h>
-#include <lh/util/ptr.h>
 
 /**
  * @def lh_runtime_check_fail_cb

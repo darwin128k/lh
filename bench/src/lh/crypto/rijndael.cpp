@@ -1,7 +1,6 @@
 #include <benchmark/benchmark.h>
 
 #include <lh/crypto/rijndael.h>
-#include <lh/null.h>
 #include <lh/util/addr.h>
 
 #include <cstring>

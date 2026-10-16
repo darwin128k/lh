@@ -5,8 +5,6 @@
 
 #include <lh/ui/web/js.h>
 
-#include <lh/null.h>
-
 lh_void
 lh_ui_web_js_var(lh_ui_web_buf_t *self, const lh_str_ptr name, const lh_str_ptr expr)
 {

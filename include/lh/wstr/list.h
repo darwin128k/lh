@@ -18,16 +18,8 @@
 #ifndef LH_WSTR_LIST_H
 #define LH_WSTR_LIST_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/index.h>
-#include <lh/size.h>
 #include <lh/str/list/fields.h>
 #include <lh/wstr.h>
-#include <lh/wstr/ptr.h>
-#include <lh/wstr/view.h>
-#include <lh/array.h>
 
 /**
  * @struct lh_wstr_list

@@ -3,15 +3,8 @@
  * @brief Implementation of `lh/ui/text.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/cast/static.h>
-#include <lh/math.h>
-#include <lh/null.h>
 #include <lh/ui/canvas/mask.h>
 #include <lh/ui/text.h>
-#include <lh/ui/text/block.h>
-#include <lh/ui/text/line.h>
-#include <lh/util/addr.h>
 #include <lh/util/return.h>
 
 /* ── Reading ─────────────────────────────────────────────────────────────── */

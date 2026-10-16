@@ -6,11 +6,8 @@
 #ifndef LH_UI_GRADIENT_STOP_H
 #define LH_UI_GRADIENT_STOP_H
 
-#include <lh/byte.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/ui/color.h>
 #include <lh/ui/gradient/stop/fields.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_gradient_stop

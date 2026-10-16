@@ -1,7 +1,5 @@
 #include <lh/io/dgram/writer.h>
 #include <lh/assert.h>
-#include <lh/null.h>
-#include <lh/runtime/error.h>
 
 lh_void
 lh_io_dgram_writer_set_send_cb(lh_io_dgram_writer_t *self, lh_io_dgram_writer_send_cb send_cb)

@@ -2,14 +2,10 @@
 
 #include <cstddef>
 
-#include <lh/bool.h>
 #include <lh/char/map.h>
 #include <lh/expect/death.h>
-#include <lh/null.h>
-#include <lh/size.h>
 #include <lh/util/wchar.h>
 #include <lh/util/wstr/ptr.h>
-#include <lh/wchar.h>
 
 namespace
 {

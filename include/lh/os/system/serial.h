@@ -19,15 +19,10 @@
 #ifndef LH_OS_SYSTEM_SERIAL_H
 #define LH_OS_SYSTEM_SERIAL_H
 
-#include <lh/void.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/os/result.h>
 #include <lh/os/serial/parity.h>
 #include <lh/os/system/serial/handle.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
 #include <lh/str/ptr.h>
 
 #if !LH_LIBRARY_OPTION_OS

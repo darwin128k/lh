@@ -2,7 +2,6 @@
 
 #include <lh/io/reader.h>
 #include <lh/io/writer.h>
-#include <lh/self.h>
 
 #include <cstring>
 #include <vector>

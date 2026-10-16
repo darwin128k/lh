@@ -1,23 +1,13 @@
 #include <lh/os/system/fs/dir.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
-#include <lh/bool.h>
-#include <lh/cast/static.h>
 #include <lh/char/slash.h>
-#include <lh/null.h>
 #include <lh/os/alloc.h>
-#include <lh/os/result.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
 #include <lh/os/system/win/fs/kind.h>
 #include <lh/os/system/win/kernel32.h>
 #include <lh/runtime/allocator.h>
-#include <lh/str.h>
-#include <lh/str/view.h>
-#include <lh/util/addr.h>
-#include <lh/bit.h>
-#include <lh/math.h>
-#include <lh/util/ptr.h>
 #include <lh/util/wstr/ptr.h>
 
 /** An open directory listing: the `FindFirstFileW` handle and the entry in hand. */

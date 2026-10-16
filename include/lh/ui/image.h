@@ -18,17 +18,8 @@
 #ifndef LH_UI_IMAGE_H
 #define LH_UI_IMAGE_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/ptr.h>
-#include <lh/ui/color.h>
 #include <lh/ui/entity.h>
 #include <lh/ui/image/fields.h>
-#include <lh/ui/mask.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/size.h>
-#include <lh/util/addr.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_image

@@ -7,7 +7,6 @@
 
 #include <lh/cast/const.h>
 #include <lh/memory.h>
-#include <lh/null.h>
 #include <lh/str/cstr.h>
 
 lh_void

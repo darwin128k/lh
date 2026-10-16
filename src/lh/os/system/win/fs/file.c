@@ -1,16 +1,9 @@
 #include <lh/os/system/fs/file.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
-#include <lh/cast/reinterpret.h>
-#include <lh/cast/static.h>
-#include <lh/null.h>
-#include <lh/os/result.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
 #include <lh/os/system/win/kernel32.h>
-#include <lh/runtime/error.h>
-#include <lh/util/addr.h>
-#include <lh/math.h>
 
 LH_ATTRIBUTE_STATIC
 lh_os_system_win_handle_t

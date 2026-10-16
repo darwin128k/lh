@@ -1,13 +1,9 @@
 #include <gtest/gtest.h>
 
-#include <lh/net/ip.h>
 #include <lh/net/modbus/link.h>
-#include <lh/net/socket/addr/ip4.h>
-#include <lh/null.h>
 #include <lh/os/net.h>
 #include <lh/os/net/socket.h>
 #include <lh/os/tick.h>
-#include <lh/util/addr.h>
 #include <lh/test/out.h>
 
 #include <chrono>

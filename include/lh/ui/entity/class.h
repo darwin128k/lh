@@ -9,12 +9,8 @@
 #ifndef LH_UI_ENTITY_CLASS_H
 #define LH_UI_ENTITY_CLASS_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/ui/entity/class/fields.h>
-#include <lh/ui/entity/event.h>
 #include <lh/ui/entity/face/cb.h>
-#include <lh/void.h>
 
 struct lh_ui_entity;
 struct lh_ui_canvas;

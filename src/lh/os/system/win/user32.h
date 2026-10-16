@@ -11,19 +11,11 @@
 #ifndef LH_SRC_OS_SYSTEM_WIN_USER32_H
 #define LH_SRC_OS_SYSTEM_WIN_USER32_H
 
-#include <lh/byte.h>
-#include <lh/char.h>
-#include <lh/compiler/arch.h>
-#include <lh/numeric/types.h>
 #include <lh/os/system/win/types.h>
 #include <lh/os/system/win/window/msg/fields.h>
 #include <lh/os/system/win/window/paintstruct/fields.h>
 #include <lh/os/system/win/window/wndclassexw/fields.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
 #include <lh/str/ptr.h>
-#include <lh/void.h>
-#include <lh/cast/static.h>
 
 /** @brief `HDC`. Present since Windows 95. */
 typedef lh_ptr lh_os_system_win_hdc_t;

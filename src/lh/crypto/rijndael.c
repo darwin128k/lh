@@ -1,17 +1,8 @@
 #include <lh/crypto/rijndael.h>
-#include <lh/assert/runtime.h>
-#include <lh/byte/ptr.h>
-#include <lh/assert.h>
-#include <lh/cast/static.h>
 #include <lh/compiler/unreachable.h>
 #include <lh/memory/std.h>
-#include <lh/null.h>
-#include <lh/runtime/error.h>
-#include <lh/util/addr.h>
 #include <lh/bit/endian.h>
 #include <lh/bit/rotate.h>
-#include <lh/math.h>
-#include <lh/util/ptr.h>
 
 static const lh_byte_t m_sbox[256] = {
     0x63U, 0x7CU, 0x77U, 0x7BU, 0xF2U, 0x6BU, 0x6FU, 0xC5U, 0x30U, 0x01U, 0x67U, 0x2BU, 0xFEU,

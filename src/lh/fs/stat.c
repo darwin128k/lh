@@ -1,6 +1,5 @@
 #include <lh/fs/stat.h>
 #include <lh/assert.h>
-#include <lh/util/ptr.h>
 
 lh_void
 lh_fs_stat_init(lh_fs_stat_t *self)

@@ -2,7 +2,6 @@
 
 #include <lh/date.h>
 #include <lh/date/initializer.h>
-#include <lh/util/addr.h>
 
 static void
 BM_date_parse(benchmark::State &state)

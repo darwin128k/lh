@@ -1,8 +1,6 @@
 #include <lh/str/format/uint.h>
-#include <lh/assert.h>
 #include <lh/char/digit.h>
 #include <lh/memory/std.h>
-#include <lh/util/addr.h>
 
 /* lh_uint_t is 32-bit; "4294967295" is its longest decimal form. */
 #define LH_STR_FORMAT_UINT_DIGITS_MAX 10U

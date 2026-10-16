@@ -1,8 +1,5 @@
 #include <lh/str/scanf/next.h>
-#include <lh/assert/runtime.h>
-#include <lh/assert.h>
 #include <lh/char/digit.h>
-#include <lh/util/addr.h>
 
 lh_bool_t
 lh_str_ptr_scanf_next(lh_str_cptr fmt, lh_usize_t *pos, lh_str_scanf_spec_t *out)

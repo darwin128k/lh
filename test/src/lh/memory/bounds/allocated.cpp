@@ -3,7 +3,6 @@
 #include <lh/expect/death.h>
 #include <lh/memory/bounds/allocated.h>
 #include <lh/memory/bounds/allocated/initializer.h>
-#include <lh/null.h>
 
 #include <cstring>
 

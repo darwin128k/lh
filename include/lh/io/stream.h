@@ -14,12 +14,8 @@
 #ifndef LH_IO_STREAM_H
 #define LH_IO_STREAM_H
 
-#include <lh/void.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/io/reader.h>
 #include <lh/io/writer.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
 
 /**
  * @struct lh_io_stream

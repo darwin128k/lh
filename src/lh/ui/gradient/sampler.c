@@ -3,16 +3,9 @@
  * @brief Implementation of `lh/ui/gradient/sampler.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/math.h>
 #include <lh/ui/gradient/sampler.h>
 #include <lh/ui/gradient/sine.h>
-#include <lh/ui/point.h>
-#include <lh/ui/scalar.h>
-#include <lh/ui/size.h>
-#include <lh/util/addr.h>
 #include <lh/util/return.h>
-#include <lh/cast/static.h>
 
 /** `ceil(1448 * k / 255)` squared: the least squared distance, on the 1024-to-a-side
    scale ::lh_ui_gradient_frac_at puts a radial gradient on, whose whole square root

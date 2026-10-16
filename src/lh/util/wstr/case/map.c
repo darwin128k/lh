@@ -10,11 +10,8 @@
  */
 
 #include <lh/util/wstr/ptr.h>
-#include <lh/cast/static.h>
 #include <lh/util/interval.h>
 #include <lh/wchar/case/pair.h>
-#include <lh/wchar.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/assert.h>
 #include <lh/config.h>
 #include <lh/foreach.h>

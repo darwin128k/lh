@@ -3,14 +3,8 @@
  * @brief Implementation of `lh/ui/entity/class.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/null.h>
-#include <lh/ui/canvas.h>
 #include <lh/ui/canvas/box.h>
 #include <lh/ui/entity.h>
-#include <lh/ui/entity/class.h>
-#include <lh/ui/shadow.h>
-#include <lh/util/addr.h>
 #include <lh/util/return.h>
 
 lh_void

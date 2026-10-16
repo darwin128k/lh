@@ -2,7 +2,6 @@
 
 #include <lh/expect/death.h>
 #include <lh/memory/view/slice.h>
-#include <lh/null.h>
 #include <lh/test/out.h>
 
 namespace

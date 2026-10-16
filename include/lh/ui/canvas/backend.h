@@ -10,20 +10,12 @@
 #ifndef LH_UI_CANVAS_BACKEND_H
 #define LH_UI_CANVAS_BACKEND_H
 
-#include <lh/compiler/extern/c.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
 #include <lh/ui/axis.h>
 #include <lh/ui/canvas/backend/fields.h>
 #include <lh/ui/canvas/clip.h>
-#include <lh/ui/color.h>
 #include <lh/ui/mask.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
 #include <lh/ui/rects.h>
-#include <lh/ui/scalar.h>
 #include <lh/ui/shadow.h>
-#include <lh/void.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

@@ -6,8 +6,6 @@
 #ifndef LH_OS_APP_FIELDS_H
 #define LH_OS_APP_FIELDS_H
 
-#include <lh/bool.h>
-#include <lh/list.h>
 #include <lh/timer/group.h>
 
 /**

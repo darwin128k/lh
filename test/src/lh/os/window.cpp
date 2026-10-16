@@ -1,10 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <lh/null.h>
 #include <lh/os/app.h>
 #include <lh/os/window.h>
-#include <lh/os/window/close/reason.h>
-#include <lh/util/addr.h>
 
 #if !defined(_WIN32)
 #    include <cstdlib>

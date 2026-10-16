@@ -20,22 +20,9 @@
 #ifndef LH_UI_DISPLAY_H
 #define LH_UI_DISPLAY_H
 
-#include <lh/bool.h>
-#include <lh/byte.h>
-#include <lh/byte/ptr.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/ui/canvas.h>
 #include <lh/ui/canvas/sw.h>
 #include <lh/ui/display/fields.h>
-#include <lh/ui/pixmap.h>
-#include <lh/ui/pixmap/format.h>
 #include <lh/ui/present.h>
-#include <lh/ui/present/sink.h>
-#include <lh/ui/rects.h>
-#include <lh/ui/scalar.h>
-#include <lh/ui/size.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_display

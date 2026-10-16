@@ -6,9 +6,8 @@
  * is a force-inline copy in the header.
  */
 
-#include <lh/math.h>
+#include <lh/math/scalar/centre.h>
 #include <lh/ui/scalar.h>
-#include <lh/util/addr.h>
 
 #if LH_LIBRARY_OPTION_MATH_FPU
 #    include <lh/assert/runtime.h>
@@ -25,7 +24,7 @@ lh_ui_scalar_trunc(lh_ui_scalar_t v, lh_ui_scalar_t *out)
 lh_ui_scalar_t
 lh_ui_scalar_slack(lh_ui_scalar_t room, lh_ui_scalar_t own)
 {
-    return lh_math_max(room - own, lh_ui_scalar(0));
+    return lh_math_slack(room, own);
 }
 
 lh_ui_scalar_t
@@ -33,6 +32,6 @@ lh_ui_scalar_centre(lh_ui_scalar_t room, lh_ui_scalar_t own)
 {
     lh_ui_scalar_t half;
 
-    lh_ui_scalar_trunc((room - own + lh_ui_scalar(1)) / lh_ui_scalar(2), lh_addr_of(half));
+    lh_ui_scalar_trunc(lh_math_centre_half(room, own), lh_addr_of(half));
     return lh_math_max(half, lh_ui_scalar(0));
 }

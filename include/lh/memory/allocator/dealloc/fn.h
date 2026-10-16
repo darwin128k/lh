@@ -13,8 +13,6 @@
 #ifndef LH_MEMORY_ALLOCATOR_DEALLOC_FN_H
 #define LH_MEMORY_ALLOCATOR_DEALLOC_FN_H
 
-#include <lh/void.h>
-#include <lh/ptr.h>
 #include <lh/self.h>
 
 /**

@@ -15,12 +15,7 @@
 #ifndef LH_BIT_PACKED_H
 #define LH_BIT_PACKED_H
 
-#include <lh/attribute/force_inline.h>
-#include <lh/byte.h>
 #include <lh/byte/ptr.h>
-#include <lh/cast/static.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

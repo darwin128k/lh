@@ -17,22 +17,8 @@
 #ifndef LH_UI_LABEL_H
 #define LH_UI_LABEL_H
 
-#include <lh/bool.h>
-#include <lh/char.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/ui/canvas.h>
-#include <lh/ui/color.h>
 #include <lh/ui/container.h>
 #include <lh/ui/label/fields.h>
-#include <lh/ui/font.h>
-#include <lh/ui/insets.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
-#include <lh/ui/size.h>
-#include <lh/ui/text/align.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_entity_label

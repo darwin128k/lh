@@ -19,44 +19,16 @@
 #    error "lh/ui.h requires LH_LIBRARY_OPTION_UI (CMake: -DLH_LIBRARY_OPTION_UI=ON)"
 #endif
 
-#include <lh/ui/axis.h>
 #include <lh/ui/brush.h>
-#include <lh/ui/canvas.h>
 #include <lh/ui/canvas/sw.h>
-#include <lh/ui/color.h>
-#include <lh/ui/entity.h>
-#include <lh/ui/button.h>
-#include <lh/ui/container.h>
 #include <lh/ui/decl.h>
-#include <lh/ui/label.h>
-#include <lh/ui/scrollbar.h>
-#include <lh/ui/toggle.h>
-#include <lh/ui/font.h>
-#include <lh/ui/gradient.h>
-#include <lh/ui/image.h>
-#include <lh/ui/insets.h>
-#include <lh/ui/key.h>
-#include <lh/ui/layout.h>
-#include <lh/ui/layout/place.h>
-#include <lh/ui/mask.h>
-#include <lh/ui/paint.h>
-#include <lh/ui/pixmap.h>
 #include <lh/ui/pen.h>
-#include <lh/ui/point.h>
-#include <lh/ui/radius.h>
 #include <lh/ui/range.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/rects.h>
-#include <lh/ui/scalar.h>
-#include <lh/ui/size.h>
-#include <lh/ui/style.h>
-#include <lh/ui/text.h>
 #include <lh/ui/view.h>
 #include <lh/ui/blur.h>
 #include <lh/ui/canvas/mask.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/frame/stats.h>
-#include <lh/ui/input.h>
 #if LH_LIBRARY_OPTION_OS && LH_LIBRARY_OPTION_OS_WINDOW
 #    include <lh/ui/surface.h>
 #endif

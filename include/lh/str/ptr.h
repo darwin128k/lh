@@ -9,7 +9,6 @@
 #ifndef LH_STR_PTR_H
 #define LH_STR_PTR_H
 
-#include <lh/char.h>
 #include <lh/util/ptr.h>
 
 /**

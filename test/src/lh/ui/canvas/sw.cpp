@@ -1,27 +1,9 @@
 #include <gtest/gtest.h>
 
-#include <lh/null.h>
-#include <lh/ui/canvas.h>
-#include <lh/ui/canvas/clip.h>
 #include <lh/ui/canvas/mask.h>
 #include <lh/ui/canvas/sw.h>
-#include <lh/ui/color.h>
-#include <lh/ui/entity.h>
-#include <lh/ui/font.h>
 #include <lh/ui/container.h>
-#include <lh/ui/mask.h>
-#include <lh/ui/paint.h>
-#include <lh/ui/pixmap.h>
-#include <lh/ui/point.h>
-#include <lh/ui/radius.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/shadow.h>
-#include <lh/ui/style.h>
-#include <lh/util/addr.h>
 #include <lh/ui/canvas/box.h>
-#include <lh/ui/gradient.h>
-#include <lh/ui/radii.h>
-#include <lh/util/ptr.h>
 #include <lh/test/out.h>
 
 namespace

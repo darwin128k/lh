@@ -2,8 +2,6 @@
 #include <type_traits>
 
 #include <lh/math/frect.h>
-#include <lh/math/rect.h>
-#include <lh/math/fscalar.h>
 #include <lh/util/addr.h>
 #include <lh/test/out.h>
 

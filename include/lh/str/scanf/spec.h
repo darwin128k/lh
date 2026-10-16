@@ -11,9 +11,6 @@
 #ifndef LH_STR_SCANF_SPEC_H
 #define LH_STR_SCANF_SPEC_H
 
-#include <lh/bool.h>
-#include <lh/numeric/types.h>
-#include <lh/size.h>
 #include <lh/str/ptr.h>
 #include <lh/str/scanf/spec/kind.h>
 

@@ -3,23 +3,7 @@
  * @brief Implementation of `lh/ui/entity.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/bool.h>
-#include <lh/list.h>
-#include <lh/list/node.h>
-#include <lh/null.h>
-#include <lh/runtime/error/code.h>
-#include <lh/ui/canvas.h>
-#include <lh/ui/entity.h>
-#include <lh/ui/insets.h>
-#include <lh/ui/paint.h>
-#include <lh/ui/point.h>
-#include <lh/ui/shadow.h>
-#include <lh/ui/size.h>
-#include <lh/ui/style.h>
 #include <lh/ui/view.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 lh_void

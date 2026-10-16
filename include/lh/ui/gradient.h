@@ -18,17 +18,11 @@
 #ifndef LH_UI_GRADIENT_H
 #define LH_UI_GRADIENT_H
 
-#include <lh/byte.h>
-#include <lh/byte/ptr.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/ui/color.h>
 #include <lh/ui/gradient/fields.h>
 #include <lh/ui/gradient/stop.h>
 #include <lh/ui/gradient/stop/count.h>
-#include <lh/numeric/types.h>
 #include <lh/ui/rect.h>
-#include <lh/void.h>
 
 /**
  * @enum lh_ui_gradient_shape

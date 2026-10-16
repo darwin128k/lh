@@ -6,7 +6,6 @@
 #include <benchmark/benchmark.h>
 
 #include <lh/timer.h>
-#include <lh/timer/group.h>
 
 #include <vector>
 

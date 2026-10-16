@@ -1,14 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <lh/byte.h>
 #include <lh/config.h>
-#include <lh/null.h>
-#include <lh/ui/color.h>
-#include <lh/ui/gradient.h>
 #include <lh/ui/gradient/sampler.h>
-#include <lh/ui/rect.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/test/out.h>
 
 namespace

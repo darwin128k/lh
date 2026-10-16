@@ -8,11 +8,8 @@
 #ifndef LH_OS_WINDOW_ON_TEXT_FN_H
 #define LH_OS_WINDOW_ON_TEXT_FN_H
 
-#include <lh/bool.h>
 #include <lh/key.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/ptr.h>
-#include <lh/void.h>
 
 struct lh_os_window;
 

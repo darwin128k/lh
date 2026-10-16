@@ -12,10 +12,7 @@
 #ifndef LH_ADDR_H
 #define LH_ADDR_H
 
-#include <lh/compiler/arch.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/numeric/fixed/limits.h>
-#include <lh/util/type.h>
 
 #if LH_COMPILER_ARCH == LH_COMPILER_ARCH_64
 

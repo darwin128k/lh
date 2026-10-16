@@ -17,14 +17,8 @@
 #ifndef LH_UI_SHADOW_SHAPE_H
 #define LH_UI_SHADOW_SHAPE_H
 
-#include <lh/compiler/extern/c.h>
-#include <lh/byte/ptr.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
 #include <lh/ui/shadow.h>
 #include <lh/ui/shadow/shape/fields.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_shadow_shape

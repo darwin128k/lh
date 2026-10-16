@@ -1,14 +1,10 @@
 #include <lh/cpu/simd.h>
 
 #include <lh/bit.h>
-#include <lh/cast/static.h>
-#include <lh/compiler/arch.h>
 #include <lh/compiler/arch/family.h>
 #include <lh/compiler/cpu.h>
-#include <lh/compiler/type.h>
 #include <lh/config.h>
 #include <lh/cpu/id.h>
-#include <lh/numeric/fixed/types.h>
 
 /* CPUID leaves / bits shared by the MSVC hand-rolled probes and by
  * ::lh_cpu_simd_has_erms (which always goes through ::lh_cpu_id — GCC has no

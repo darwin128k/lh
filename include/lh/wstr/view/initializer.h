@@ -6,7 +6,6 @@
 #ifndef LH_WSTR_VIEW_INITIALIZER_H
 #define LH_WSTR_VIEW_INITIALIZER_H
 
-#include <lh/initializer.h>
 #include <lh/memory/view/initializer.h>
 #include <lh/util/wstr/ptr.h>
 

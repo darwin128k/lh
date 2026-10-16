@@ -1,5 +1,4 @@
 #include <lh/os/system/timestamp.h>
-#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/os/system/win/filetime.h>
 #include <lh/os/system/win/kernel32.h>

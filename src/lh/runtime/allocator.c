@@ -1,9 +1,6 @@
 #include <lh/runtime/allocator.h>
-#include <lh/library/fallback.h>
 #include <lh/attribute/thread_local.h>
 #include <lh/memory/allocator/initializer.h>
-#include <lh/null.h>
-#include <lh/self.h>
 
 #if (LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB == LH_LIBRARY_OPTION_ON)
 #    include LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_INCLUDE

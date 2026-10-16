@@ -17,10 +17,6 @@
 #ifndef LH_UI_FRAME_H
 #define LH_UI_FRAME_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/ptr.h>
 #include <lh/ui/rect.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

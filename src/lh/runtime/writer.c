@@ -1,11 +1,6 @@
 #include <lh/runtime/writer.h>
 #include <lh/attribute/thread_local.h>
-#include <lh/cast/static.h>
 #include <lh/config.h>
-#include <lh/library/option.h>
-#include <lh/null.h>
-#include <lh/self.h>
-#include <lh/util/addr.h>
 
 #if (LH_LIBRARY_OPTION_RUNTIME_IO_USE_STDLIB == LH_LIBRARY_OPTION_ON)
 #    include <stdio.h>

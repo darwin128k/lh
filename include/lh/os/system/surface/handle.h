@@ -9,7 +9,6 @@
 #define LH_OS_SYSTEM_SURFACE_HANDLE_H
 
 #include <lh/null.h>
-#include <lh/ptr.h>
 
 /**
  * @typedef lh_os_system_surface_handle_t

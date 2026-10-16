@@ -14,17 +14,8 @@
 #ifndef LH_CHAR_XDIGIT_H
 #define LH_CHAR_XDIGIT_H
 
-#include <lh/assert.h>
-#include <lh/attribute/force_inline.h>
-#include <lh/bool.h>
-#include <lh/cast/static.h>
 #include <lh/char/digit.h>
 #include <lh/char/letter.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/types.h>
-#include <lh/runtime/error.h>
-#include <lh/util/char.h>
-#include <lh/util/numeric.h>
 
 /**
  * @def LH_CHAR_XDIGIT_RADIX

@@ -2,10 +2,8 @@
 #include <lh/util/char.h>
 #include <lh/util/interval.h>
 #include <lh/uchar.h>
-#include <lh/size.h>
 #include <lh/char/case/pair.h>
 #include <lh/util/array/ptr.h>
-#include <lh/cast/static.h>
 
 static const lh_char_case_pair_t m_char_case_fold_table[] = {
     /* clang-format off */

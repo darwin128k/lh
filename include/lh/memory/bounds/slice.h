@@ -25,14 +25,6 @@
 #ifndef LH_MEMORY_BOUNDS_SLICE_H
 #define LH_MEMORY_BOUNDS_SLICE_H
 
-#include <lh/void.h>
-#include <lh/ptr.h>
-#include <lh/bool.h>
-#include <lh/size.h>
-#include <lh/offset.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/memory/view/slice/flags.h>
-#include <lh/memory/view/slice/direction.h>
 #include <lh/memory/bounds/slice/fields.h>
 #include <lh/memory/view/slice.h>
 

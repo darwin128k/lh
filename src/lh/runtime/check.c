@@ -2,12 +2,8 @@
 #include <lh/attribute/static.h>
 #include <lh/attribute/thread_local.h>
 #include <lh/exception/initializer.h>
-#include <lh/null.h>
 #include <lh/runtime/error/initializer.h>
 #include <lh/runtime/terminate.h>
-#include <lh/str/view/initializer.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 
 #if (LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB == LH_LIBRARY_OPTION_ON)
 #    include <lh/math.h>

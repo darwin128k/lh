@@ -1,7 +1,5 @@
 #include <lh/date/month/index.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
-#include <lh/math.h>
 #include <lh/util/interval/wrap.h>
 
 lh_uint_t

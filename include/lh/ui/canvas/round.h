@@ -13,13 +13,8 @@
 #ifndef LH_UI_CANVAS_ROUND_H
 #define LH_UI_CANVAS_ROUND_H
 
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/ui/axis.h>
 #include <lh/ui/color.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
-#include <lh/void.h>
 
 struct lh_ui_canvas;
 

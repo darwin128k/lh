@@ -6,9 +6,6 @@
 #include <lh/ui/web/html.h>
 #include <lh/assert/runtime.h>
 
-#include <lh/null.h>
-#include <lh/util/addr.h>
-
 lh_void
 lh_ui_web_html_doctype(lh_ui_web_html_t *out)
 {

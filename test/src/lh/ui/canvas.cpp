@@ -5,15 +5,9 @@
 
 #include <lh/config.h>
 #include <lh/expect/death.h>
-#include <lh/null.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/canvas/mask.h>
-#include <lh/ui/color.h>
-#include <lh/ui/mask.h>
 #include <lh/ui/radius.h>
-#include <lh/ui/rect.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/test/out.h>
 
 namespace

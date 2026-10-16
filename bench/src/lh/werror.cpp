@@ -1,10 +1,6 @@
 #include <benchmark/benchmark.h>
 
-#include <lh/util/addr.h>
-#include <lh/util/wstr/ptr.h>
 #include <lh/werror.h>
-#include <lh/wstr/view.h>
-#include <lh/wstr/view/initializer.h>
 
 namespace
 {

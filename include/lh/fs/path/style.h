@@ -16,9 +16,7 @@
 #define LH_FS_PATH_STYLE_H
 
 #include <lh/bool.h>
-#include <lh/char.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 
 /**
  * @typedef lh_fs_path_style_t

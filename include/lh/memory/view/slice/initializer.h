@@ -6,7 +6,6 @@
 #ifndef LH_MEMORY_VIEW_SLICE_INITIALIZER_H
 #define LH_MEMORY_VIEW_SLICE_INITIALIZER_H
 
-#include <lh/interval/bounds/initializer.h>
 #include <lh/null.h>
 
 /** @brief Initializer of a slice from @p begin to @p end (both ends inclusive). */

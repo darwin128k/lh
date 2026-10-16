@@ -8,10 +8,6 @@
 
 #include <benchmark/benchmark.h>
 
-#include <lh/fs/path.h>
-#include <lh/fs/stat.h>
-#include <lh/net/ip.h>
-#include <lh/net/socket/addr/ip4.h>
 #include <lh/os/fs/dir.h>
 #include <lh/os/fs/file.h>
 #include <lh/os/fs/stat.h>
@@ -19,7 +15,6 @@
 #include <lh/os/net/socket.h>
 #include <lh/os/tick.h>
 #include <lh/os/timestamp.h>
-#include <lh/str/view.h>
 
 #include <cstdio>
 #include <vector>

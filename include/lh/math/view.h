@@ -14,13 +14,8 @@
 #ifndef LH_MATH_VIEW_H
 #define LH_MATH_VIEW_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/math/slice.h>
 #include <lh/math/view/fields.h>
-#include <lh/numeric/float.h>
-#include <lh/size.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_math_view

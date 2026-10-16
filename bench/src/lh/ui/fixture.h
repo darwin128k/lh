@@ -9,12 +9,7 @@
 #ifndef LH_BENCH_UI_FIXTURE_H
 #define LH_BENCH_UI_FIXTURE_H
 
-#include <lh/ui/canvas.h>
 #include <lh/ui/canvas/sw.h>
-#include <lh/ui/color.h>
-#include <lh/ui/pixmap.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/size.h>
 
 #include <cstdint>
 #include <vector>

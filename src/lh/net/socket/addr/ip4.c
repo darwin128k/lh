@@ -1,12 +1,8 @@
 #include <lh/net/socket/addr/ip4.h>
-#include <lh/assert/runtime.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
 #include <lh/memory/std.h>
 #include <lh/str/format/uint.h>
 #include <lh/str/split/next.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 
 lh_void
 lh_net_ip4_socket_addr_init(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *ip,

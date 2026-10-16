@@ -6,9 +6,6 @@
 #ifndef LH_STR_FORMAT_UINT_H
 #define LH_STR_FORMAT_UINT_H
 
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/types.h>
-#include <lh/size.h>
 #include <lh/str/ptr.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

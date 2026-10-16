@@ -3,22 +3,7 @@
  * @brief Implementation of `lh/ui/input.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/cast/static.h>
-#include <lh/math.h>
-#include <lh/null.h>
-#include <lh/ptr.h>
-#include <lh/ui/canvas.h>
-#include <lh/ui/container.h>
-#include <lh/ui/entity.h>
 #include <lh/ui/input.h>
-#include <lh/ui/key.h>
-#include <lh/ui/label.h>
-#include <lh/ui/paint.h>
-#include <lh/ui/style.h>
-#include <lh/ui/text.h>
-#include <lh/ui/text/align.h>
-#include <lh/util/addr.h>
 #include <lh/util/return.h>
 
 /* ── Boundaries ──────────────────────────────────────────────────────────────

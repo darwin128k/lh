@@ -2,7 +2,6 @@
 #include <lh/attribute/thread_local.h>
 #include <lh/runtime/reader.h>
 #include <lh/runtime/writer.h>
-#include <lh/util/addr.h>
 
 LH_ATTRIBUTE_THREAD_LOCAL
 lh_io_stream_t m_runtime_stream;

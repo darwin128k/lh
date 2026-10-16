@@ -1,8 +1,6 @@
 #include <lh/os/system.h>
 #include <lh/assert/runtime.h>
 #include <lh/attribute/thread_local.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 
 /* No explicit initializer: static zero-init already matches
  * lh_os_system_error_empty_initializer() (code 0 == lh_os_system_error_code_ok,

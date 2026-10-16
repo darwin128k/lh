@@ -3,7 +3,6 @@
 #include <lh/test/ui/draw_log.h>
 
 #include <lh/ui/mask.h>
-#include <lh/util/addr.h>
 #include <lh/test/out.h>
 
 namespace

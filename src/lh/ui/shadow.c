@@ -3,19 +3,8 @@
  * @brief Implementation of `lh/ui/shadow.h`.
  */
 
-#include <lh/math/div_round.h>
-#include <lh/assert/runtime.h>
-#include <lh/cast/static.h>
-#include <lh/math.h>
-#include <lh/math/isqrt.h>
 #include <lh/ui/shadow/shape.h>
-#include <lh/null.h>
-#include <lh/ui/color.h>
-#include <lh/ui/point.h>
 #include <lh/ui/radius.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/size.h>
-#include <lh/ui/shadow.h>
 #include <lh/util/return.h>
 
 lh_void

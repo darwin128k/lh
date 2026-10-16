@@ -1,15 +1,10 @@
 #include <lh/memory/typed.h>
-#include <lh/assert/runtime.h>
 #include <lh/memory/typed/initializer.h>
 #include <lh/util/return.h>
-#include <lh/math.h>
-#include <lh/util/type.h>
-#include <lh/util/ptr.h>
 #include <lh/util/swap.h>
 #include <lh/cast/const.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
-#include <lh/util/addr.h>
 
 LH_ATTRIBUTE_STATIC
 lh_void

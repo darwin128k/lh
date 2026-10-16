@@ -12,7 +12,6 @@
 #define LH_RETURN_CODE_H
 
 #include <lh/numeric/limits.h>
-#include <lh/numeric/types.h>
 
 /**
  * @typedef lh_return_code_t

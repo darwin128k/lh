@@ -3,18 +3,8 @@
 #include <lh/test/ui/draw_log.h>
 #include <lh/test/ui/tiny_font.h>
 
-#include <lh/bool.h>
-#include <lh/ui/container.h>
-#include <lh/ui/entity.h>
-#include <lh/ui/font.h>
 #include <lh/ui/image.h>
 #include <lh/ui/label.h>
-#include <lh/ui/layout.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/size.h>
-#include <lh/ui/style.h>
-#include <lh/util/addr.h>
 #include <lh/test/out.h>
 
 namespace

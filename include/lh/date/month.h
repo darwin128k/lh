@@ -9,11 +9,7 @@
 #ifndef LH_DATE_MONTH_H
 #define LH_DATE_MONTH_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/date/month/index.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/numeric/types.h>
 
 /**
  * @typedef lh_date_month_t

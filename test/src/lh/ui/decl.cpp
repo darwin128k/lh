@@ -3,12 +3,7 @@
 #include <lh/test/ui/draw_log.h>
 #include <lh/test/ui/tiny_font.h>
 
-#include <lh/null.h>
-#include <lh/ui/canvas.h>
 #include <lh/ui/decl.h>
-#include <lh/ui/entity.h>
-#include <lh/ui/style.h>
-#include <lh/util/addr.h>
 #include <lh/test/out.h>
 
 namespace

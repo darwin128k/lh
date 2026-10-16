@@ -1,4 +1,3 @@
-#include <lh/numeric/fixed/types.h>
 #include <lh/assert/static.h>
 #include <lh/util/type.h>
 

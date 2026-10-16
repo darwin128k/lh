@@ -12,7 +12,6 @@
 #include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/key.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/ui/key/fields.h>
 #include <lh/void.h>
 

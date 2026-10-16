@@ -3,12 +3,9 @@
  * @brief Implementation of `lh/ui/canvas/round.h`.
  */
 
-#include <lh/math.h>
-#include <lh/null.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/radius.h>
-#include <lh/util/addr.h>
 #include <lh/util/return.h>
 
 lh_s32_t

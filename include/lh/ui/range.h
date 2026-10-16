@@ -11,7 +11,6 @@
 #ifndef LH_UI_RANGE_H
 #define LH_UI_RANGE_H
 
-#include <lh/compiler/extern/c.h>
 #include <lh/ui/scalar.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

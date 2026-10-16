@@ -1,6 +1,5 @@
 #include <benchmark/benchmark.h>
 
-#include <lh/numeric/limits.h>
 #include <lh/str/parse/uint.h>
 
 static void

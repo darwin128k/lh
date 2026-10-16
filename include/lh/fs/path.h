@@ -24,18 +24,10 @@
 #ifndef LH_FS_PATH_H
 #define LH_FS_PATH_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/char.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/fs/path/fields.h>
 #include <lh/fs/path/root/kind.h>
 #include <lh/fs/path/style.h>
-#include <lh/index.h>
-#include <lh/size.h>
 #include <lh/str.h>
-#include <lh/str/ptr.h>
-#include <lh/str/view.h>
 
 /**
  * @struct lh_fs_path

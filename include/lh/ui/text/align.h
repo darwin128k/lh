@@ -7,11 +7,7 @@
 #ifndef LH_UI_TEXT_ALIGN_H
 #define LH_UI_TEXT_ALIGN_H
 
-#include <lh/compiler/extern/c.h>
 #include <lh/ui/insets.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
-#include <lh/ui/size.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

@@ -1,6 +1,5 @@
 #include <benchmark/benchmark.h>
 
-#include <lh/datetime.h>
 #include <lh/timestamp.h>
 
 /* Times around 2026-10-15 12:34:56 UTC, in steps of 17 days and an hour that wrap

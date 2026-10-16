@@ -3,15 +3,7 @@
  * @brief Implementation of `lh/ui/layout.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/bool.h>
-#include <lh/math.h>
-#include <lh/null.h>
-#include <lh/runtime/error/code.h>
-#include <lh/ui/insets.h>
 #include <lh/ui/layout.h>
-#include <lh/ui/size.h>
-#include <lh/util/addr.h>
 #include <lh/util/return.h>
 
 lh_void
@@ -141,7 +133,7 @@ layout_slot(const lh_ui_layout_t *self, const lh_ui_place_t *place, const lh_ui_
     lh_ui_rect_t slot;
 
     lh_ui_rect_init_along(lh_addr_of(slot), content, cross, before,
-                          lh_math_max(room - before - after, lh_ui_scalar(0)));
+                          lh_ui_scalar_slack(room - before, after));
     *out = slot;
     return;
 }

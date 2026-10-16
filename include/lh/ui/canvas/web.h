@@ -14,13 +14,8 @@
 #ifndef LH_UI_CANVAS_WEB_H
 #define LH_UI_CANVAS_WEB_H
 
-#include <lh/bool.h>
-#include <lh/byte.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
-#include <lh/size.h>
 #include <lh/ui/canvas/backend.h>
-#include <lh/void.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/canvas/web.h requires LH_LIBRARY_OPTION_UI"

@@ -16,19 +16,11 @@
 #ifndef LH_OS_SERIAL_H
 #define LH_OS_SERIAL_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/io/stream.h>
-#include <lh/numeric/fixed/types.h>
 #include <lh/os/serial/fields.h>
 #include <lh/os/serial/parity.h>
 #include <lh/os/system/serial/handle.h>
-#include <lh/ptr.h>
-#include <lh/self.h>
-#include <lh/size.h>
-#include <lh/str/ptr.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/serial.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

@@ -14,13 +14,7 @@
 #ifndef LH_WSTR_H
 #define LH_WSTR_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/size.h>
 #include <lh/array.h>
-#include <lh/wchar.h>
-#include <lh/wstr/ptr.h>
 #include <lh/wstr/view.h>
 
 /**

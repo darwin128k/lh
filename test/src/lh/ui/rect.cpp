@@ -2,12 +2,7 @@
 #include <type_traits>
 
 #include <lh/config.h>
-#include <lh/math/rect.h>
-#include <lh/ui/point.h>
 #include <lh/ui/rect.h>
-#include <lh/ui/scalar.h>
-#include <lh/ui/size.h>
-#include <lh/util/addr.h>
 
 namespace
 {

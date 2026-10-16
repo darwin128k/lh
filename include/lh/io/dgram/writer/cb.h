@@ -9,7 +9,6 @@
 #define LH_IO_DGRAM_WRITER_CB_H
 
 #include <lh/io/dgram/writer/fn.h>
-#include <lh/util/ptr.h>
 
 /**
  * @def lh_io_dgram_writer_send_cb

@@ -22,18 +22,11 @@
 #ifndef LH_OS_SYSTEM_NET_SOCKET_H
 #define LH_OS_SYSTEM_NET_SOCKET_H
 
-#include <lh/void.h>
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/net/socket/addr/ip4.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/numeric/types.h>
 #include <lh/os/result.h>
 #include <lh/os/system/net/socket/handle.h>
 #include <lh/os/system/net/socket/type.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/system/net/socket.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

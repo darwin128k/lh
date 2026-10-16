@@ -13,13 +13,8 @@
 #ifndef LH_CRYPTO_RIJNDAEL_H
 #define LH_CRYPTO_RIJNDAEL_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/crypto/rijndael/mode.h>
 #include <lh/null.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/ptr.h>
-#include <lh/size.h>
 
 /**
  * @def LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MIN

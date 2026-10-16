@@ -4,16 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
-#include <lh/cast/static.h>
-#include <lh/list.h>
-#include <lh/list/node.h>
-#include <lh/math.h>
-#include <lh/null.h>
-#include <lh/numeric/types.h>
-#include <lh/runtime/error/code.h>
 #include <lh/timer.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 
 lh_list_t *
 lh_timer_group_get_timers(lh_timer_group_t *self)

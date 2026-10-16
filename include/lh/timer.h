@@ -10,17 +10,8 @@
 #ifndef LH_TIMER_H
 #define LH_TIMER_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/list/node.h>
-#include <lh/numeric/fixed/types.h>
-#include <lh/numeric/types.h>
-#include <lh/ptr.h>
-#include <lh/timer/cb.h>
 #include <lh/timer/fields.h>
 #include <lh/timer/group.h>
-#include <lh/timer/tick.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_timer

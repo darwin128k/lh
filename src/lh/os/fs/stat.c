@@ -1,13 +1,7 @@
 #include <lh/os/fs/stat.h>
-#include <lh/assert/runtime.h>
 #include <lh/assert.h>
-#include <lh/null.h>
 #include <lh/os/fs/path.h>
 #include <lh/os/system/fs/stat.h>
-#include <lh/str.h>
-#include <lh/util/addr.h>
-#include <lh/bit.h>
-#include <lh/util/ptr.h>
 
 lh_bool_t
 lh_os_fs_stat(const lh_fs_path_t *path, lh_fs_stat_t *out)

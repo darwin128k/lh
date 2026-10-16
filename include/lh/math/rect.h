@@ -19,13 +19,8 @@
 #ifndef LH_MATH_RECT_H
 #define LH_MATH_RECT_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/math/scalar.h>
-#include <lh/math/point.h>
 #include <lh/math/rect/fields.h>
 #include <lh/math/size.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_math_rect

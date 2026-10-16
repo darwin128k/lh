@@ -18,15 +18,7 @@
 
 #include <lh/os/app.h>
 #include <lh/os/window.h>
-#include <lh/os/window/close/reason.h>
-#include <lh/math/point.h>
-#include <lh/math/rect.h>
-#include <lh/math/size.h>
-#include <lh/os/window/on/close/fn.h>
-#include <lh/os/window/on/paint/fn.h>
-#include <lh/os/window/on/tick/fn.h>
 #include <lh/ui/frame/stats.h>
-#include <lh/util/addr.h>
 
 #if defined(_WIN32)
 #    define WIN32_LEAN_AND_MEAN

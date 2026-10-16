@@ -3,18 +3,10 @@
  * @brief Implementation of `lh/ui/mask.h`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/byte/ptr.h>
 #include <lh/cpu/simd.h>
 #include <lh/memory.h>
 #include <lh/bit/packed.h>
-#include <lh/cast/static.h>
-#include <lh/math.h>
-#include <lh/math/rescale.h>
-#include <lh/runtime/error/code.h>
 #include <lh/ui/mask.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2

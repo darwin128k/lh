@@ -25,8 +25,6 @@
 
 #include <lh/numeric/interval/initializer.h>
 #include <lh/numeric/interval/types.h>
-#include <lh/numeric/types.h>
-#include <lh/util/type.h>
 
 /* ── unsigned intervals ─────────────────────────────────────────────────── */
 

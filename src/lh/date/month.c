@@ -1,8 +1,5 @@
 #include <lh/date/month.h>
 #include <lh/assert.h>
-#include <lh/cast/static.h>
-#include <lh/math.h>
-#include <lh/math.h>
 
 lh_date_month_index_t
 lh_date_month_to_index(lh_date_month_t month)

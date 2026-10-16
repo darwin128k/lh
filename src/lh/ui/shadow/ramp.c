@@ -3,9 +3,7 @@
  * @brief Implementation of `lh/ui/shadow/ramp.h`.
  */
 
-#include <lh/assert/runtime.h>
 #include <lh/ui/shadow/ramp.h>
-#include <lh/cast/static.h>
 
 lh_void
 lh_ui_shadow_ramp_init(lh_ui_shadow_ramp_t *self, const lh_ui_shadow_shape_t *shape)

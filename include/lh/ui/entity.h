@@ -16,22 +16,13 @@
 #ifndef LH_UI_ENTITY_H
 #define LH_UI_ENTITY_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/ptr.h>
 #include <lh/ui/canvas.h>
-#include <lh/ui/color.h>
 #include <lh/ui/entity/class.h>
-#include <lh/ui/entity/event.h>
-#include <lh/ui/entity/face/cb.h>
 #include <lh/ui/entity/fields.h>
 #include <lh/ui/entity/transform.h>
 #include <lh/ui/entity/visit/cb.h>
 #include <lh/ui/layout/place.h>
-#include <lh/ui/point.h>
-#include <lh/ui/rect.h>
 #include <lh/ui/style.h>
-#include <lh/void.h>
 
 /**
  * @struct lh_ui_entity

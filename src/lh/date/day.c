@@ -1,6 +1,4 @@
 #include <lh/date/day.h>
-#include <lh/cast/static.h>
-#include <lh/math.h>
 
 lh_date_day_t
 lh_date_days_in_month(lh_date_year_t year, lh_date_month_t month)

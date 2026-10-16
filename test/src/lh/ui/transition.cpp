@@ -2,20 +2,8 @@
 
 #include <lh/test/ui/draw_log.h>
 
-#include <lh/ui/canvas.h>
 #include <lh/ui/canvas/sw.h>
-#include <lh/ui/color.h>
-#include <lh/ui/easing.h>
-#include <lh/ui/entity.h>
-#include <lh/ui/paint.h>
-#include <lh/ui/pixmap.h>
-#include <lh/ui/radii.h>
-#include <lh/ui/shadow.h>
-#include <lh/ui/style.h>
-#include <lh/ui/transition.h>
 #include <lh/ui/view.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 
 namespace
 {

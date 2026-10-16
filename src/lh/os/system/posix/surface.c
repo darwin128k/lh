@@ -15,25 +15,17 @@
  * keeps on Windows. Anywhere else, the plain path: the pixels in the request.
  */
 
-#include <lh/bool.h>
-#include <lh/byte.h>
-#include <lh/byte/ptr.h>
 #include <lh/memory.h>
-#include <lh/null.h>
 #include <lh/os/alloc.h>
 #include <lh/os/system/posix/connection.h>
 #include <lh/os/system/posix/paint.h>
 #include <lh/os/system/posix/surface/fields.h>
 #include <lh/os/system/surface.h>
 #include <lh/runtime/allocator.h>
-#include <lh/size.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#include <lh/cast/static.h>
 
 /** @brief A surface: its pixels and what they look like. */
 struct lh_os_system_posix_surface

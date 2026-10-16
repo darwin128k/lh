@@ -6,7 +6,6 @@
 #ifndef LH_RUNTIME_CHECK_FAIL_FN_H
 #define LH_RUNTIME_CHECK_FAIL_FN_H
 
-#include <lh/void.h>
 #include <lh/exception.h>
 
 /**

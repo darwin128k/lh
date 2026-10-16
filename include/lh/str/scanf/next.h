@@ -14,10 +14,6 @@
 #ifndef LH_STR_SCANF_NEXT_H
 #define LH_STR_SCANF_NEXT_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/size.h>
-#include <lh/str/ptr.h>
 #include <lh/str/scanf/spec.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

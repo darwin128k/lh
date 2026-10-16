@@ -12,12 +12,8 @@
 #ifndef LH_OS_APP_H
 #define LH_OS_APP_H
 
-#include <lh/bool.h>
-#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/app/fields.h>
-#include <lh/timer/group.h>
-#include <lh/void.h>
 
 #if !LH_LIBRARY_OPTION_OS
 #    error "lh/os/app.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"

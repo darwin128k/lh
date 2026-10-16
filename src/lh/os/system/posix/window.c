@@ -15,10 +15,7 @@
  */
 
 #include <lh/assert/runtime.h>
-#include <lh/byte.h>
-#include <lh/byte/ptr.h>
 #include <lh/memory.h>
-#include <lh/null.h>
 #include <lh/os/alloc.h>
 #include <lh/os/system/posix/connection.h>
 #include <lh/os/system/posix/key.h>
@@ -29,12 +26,9 @@
 #include <lh/os/tick.h>
 #include <lh/os/window.h>
 #include <lh/runtime/allocator.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 #include <poll.h>
-#include <lh/cast/static.h>
 
 /** @brief One window of ours. */
 struct lh_os_system_posix_window

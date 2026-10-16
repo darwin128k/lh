@@ -4,15 +4,10 @@
 #endif
 
 #include <lh/os/system/shared.h>
-#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
-#include <lh/null.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
-#include <lh/util/addr.h>
-#include <lh/math.h>
-#include <lh/util/ptr.h>
 #include <lh/util/str/ptr/empty.h>
 
 #include <dlfcn.h>

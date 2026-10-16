@@ -3,8 +3,6 @@
  * @brief Implementation of `lh/os/tick.h`.
  */
 
-#include <lh/cast/static.h>
-#include <lh/compiler/os.h>
 #include <lh/os/tick.h>
 
 #if LH_COMPILER_OS == LH_COMPILER_OS_WINDOWS

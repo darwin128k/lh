@@ -2,7 +2,7 @@
  * @file floor.h
  * @brief Floor division and modulo on ::lh_s64_t.
  *
- * ::lh_math_div / ::lh_math_mod (`lh/math.h`) are plain wrappers around
+ * ::lh_math_div / ::lh_math_mod (`lh/math/ops.h`) are plain wrappers around
  * `/` and `%`, which truncate toward zero - the wrong rounding for anything
  * indexed by whole units relative to an origin that can go negative (day
  * offsets before an epoch, seconds-of-day for a negative timestamp, etc).
@@ -20,7 +20,7 @@
 #include <lh/attribute/force_inline.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
-#include <lh/math.h>
+#include <lh/math/ops.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

@@ -9,11 +9,7 @@
 #ifndef LH_MATH_ISQRT_H
 #define LH_MATH_ISQRT_H
 
-#include <lh/attribute/force_inline.h>
 #include <lh/bit/scan.h>
-#include <lh/cast/static.h>
-#include <lh/compiler/extern/c.h>
-#include <lh/numeric/fixed/types.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

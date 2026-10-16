@@ -11,6 +11,7 @@ include/lh/config.h
 build
 build-h
 build-rel
+build-fpu
 build-static
 build-bench
 build-bench-static

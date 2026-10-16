@@ -6,13 +6,6 @@
  * the same code for the integer and the float scalar, so it needs no FPU.
  */
 
-#include <lh/math/div_round.h>
-#include <lh/assert/runtime.h>
-#include <lh/byte/ptr.h>
-#include <lh/cast/static.h>
-#include <lh/math.h>
-#include <lh/math/floor.h>
-#include <lh/math/isqrt.h>
 #include <lh/memory.h>
 #include <lh/ui/radius.h>
 #include <lh/util/return.h>

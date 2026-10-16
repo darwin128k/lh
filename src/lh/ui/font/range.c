@@ -4,9 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
-#include <lh/runtime/error/code.h>
 #include <lh/ui/font/range.h>
-#include <lh/util/addr.h>
 
 lh_void
 lh_ui_font_range_init(lh_ui_font_range_t *self, lh_u32_t first, lh_u32_t length, lh_u32_t base)

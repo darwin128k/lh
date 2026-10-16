@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <lh/null.h>
 #include <lh/timer.h>
-#include <lh/util/addr.h>
 
 namespace
 {

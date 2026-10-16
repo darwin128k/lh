@@ -1,10 +1,8 @@
 #include <lh/cpu/cache.h>
 
-#include <lh/bool.h>
 #include <lh/cast/static.h>
 #include <lh/cpu/id.h>
 #include <lh/cpu/vendor.h>
-#include <lh/numeric/fixed/types.h>
 
 /* Intel: deterministic cache parameters, one sub-leaf per cache until the type
  * field reads 0 ("no more caches"). */

@@ -13,7 +13,6 @@
 #include <lh/os/system/serial.h>
 
 #include <lh/assert/runtime.h>
-#include <lh/cast/static.h>
 #include <lh/os/system/error/capture.h>
 
 #include <errno.h>

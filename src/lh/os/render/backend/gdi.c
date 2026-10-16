@@ -3,17 +3,10 @@
  * @brief GDI as a screen: ::lh_ui_canvas_backend_sw into a surface, `BitBlt`.
  */
 
-#include <lh/assert/runtime.h>
-#include <lh/cast/static.h>
-#include <lh/null.h>
 #include <lh/os/render/backend/gdi.h>
 #include <lh/os/system/surface.h>
 #include <lh/os/system/window.h>
 #include <lh/os/tick.h>
-#include <lh/ui/pixmap.h>
-#include <lh/ui/size.h>
-#include <lh/util/addr.h>
-#include <lh/util/ptr.h>
 #include <lh/util/return.h>
 
 /* ── Context ─────────────────────────────────────────────────────────────── */

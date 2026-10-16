@@ -1,16 +1,7 @@
 #include <lh/io/writer.h>
 #include <lh/assert.h>
-#include <lh/bool.h>
-#include <lh/byte.h>
-#include <lh/byte/ptr.h>
 #include <lh/cast/const.h>
-#include <lh/cast/static.h>
-#include <lh/char.h>
-#include <lh/null.h>
-#include <lh/runtime/error.h>
-#include <lh/size/limits.h>
 #include <lh/str/format/text.h>
-#include <lh/util/ptr.h>
 
 lh_void
 lh_io_writer_set_write_cb(lh_io_writer_t *self, lh_io_writer_write_cb write_cb)

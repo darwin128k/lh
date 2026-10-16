@@ -9,13 +9,7 @@
 
 #include "fixture.h"
 
-#include <lh/ui/container.h>
-#include <lh/ui/entity.h>
 #include <lh/ui/label.h>
-#include <lh/ui/layout.h>
-#include <lh/ui/layout/place.h>
-#include <lh/ui/paint.h>
-#include <lh/ui/style.h>
 #include <lh/ui/text.h>
 #include <lh/ui/view.h>
 

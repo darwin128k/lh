@@ -1,11 +1,7 @@
 #include <lh/assert/runtime.h>
 #include <lh/assert/static.h>
 #include <lh/math/vec2.h>
-#include <lh/math/view.h>
-#include <lh/util/ptr.h>
-#include <lh/util/addr.h>
 #include <lh/util/offset.h>
-#include <lh/cast/static.h>
 
 lh_void
 lh_math_vec2_init(lh_math_vec2_t *self, lh_float_t x, lh_float_t y)

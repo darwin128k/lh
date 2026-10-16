@@ -1,9 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <lh/null.h>
 #include <lh/ui/frame/stats.h>
-#include <lh/ui/rect.h>
-#include <lh/util/addr.h>
 
 namespace
 {

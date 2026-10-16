@@ -10,7 +10,6 @@
 #define LH_OS_SYSTEM_FS_DIR_HANDLE_H
 
 #include <lh/null.h>
-#include <lh/ptr.h>
 
 /**
  * @typedef lh_os_system_fs_dir_handle_t

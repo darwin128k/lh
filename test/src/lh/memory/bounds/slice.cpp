@@ -1,9 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <lh/cast/static.h>
 #include <lh/expect/death.h>
 #include <lh/memory/bounds/slice.h>
-#include <lh/null.h>
 #include <lh/test/out.h>
 
 namespace

@@ -1,13 +1,6 @@
 #include <lh/str.h>
-#include <lh/assert/runtime.h>
 #include <lh/assert.h>
 #include <lh/attribute/static.h>
-#include <lh/null.h>
-#include <lh/str/format/text.h>
-#include <lh/util/addr.h>
-#include <lh/math.h>
-#include <lh/util/ptr.h>
-#include <lh/util/str/ptr.h>
 
 /* What an empty string with no buffer of its own reads as. */
 static const lh_char_t m_str_empty[1] = {'\0'};

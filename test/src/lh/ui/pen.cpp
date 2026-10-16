@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <lh/ui/paint.h>
 #include <lh/ui/pen.h>
-#include <lh/util/addr.h>
 
 TEST(ui_pen, init_starts_empty_with_width_one)
 {
