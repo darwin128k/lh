@@ -2,6 +2,7 @@
 #include <lh/assert.h>
 #include <lh/memory/std.h>
 #include <lh/str/split/next.h>
+#include <lh/math.h>
 
 lh_void
 lh_datetime_set_date(lh_datetime_t *self, const lh_date_t *date)

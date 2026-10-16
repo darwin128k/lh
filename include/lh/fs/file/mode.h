@@ -11,7 +11,11 @@
 #ifndef LH_FS_FILE_MODE_H
 #define LH_FS_FILE_MODE_H
 
-#include <lh/math.h>
+#include <lh/attribute/force_inline.h>
+#include <lh/bool.h>
+#include <lh/cast/static.h>
+#include <lh/compiler/extern/c.h>
+#include <lh/math/ops.h>
 
 /**
  * @typedef lh_fs_file_mode_t

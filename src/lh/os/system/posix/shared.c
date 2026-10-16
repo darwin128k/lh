@@ -8,6 +8,7 @@
 #include <lh/attribute/static.h>
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
+#include <lh/math.h>
 #include <lh/util/str/ptr/empty.h>
 
 #include <dlfcn.h>

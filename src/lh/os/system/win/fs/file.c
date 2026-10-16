@@ -4,6 +4,7 @@
 #include <lh/os/system/error/capture.h>
 #include <lh/os/system/str.h>
 #include <lh/os/system/win/kernel32.h>
+#include <lh/math.h>
 
 LH_ATTRIBUTE_STATIC
 lh_os_system_win_handle_t

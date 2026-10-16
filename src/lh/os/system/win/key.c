@@ -3,6 +3,7 @@
  * @brief Implementation of `src/lh/os/system/win/key.h`.
  */
 
+#include <lh/bool.h>
 #include <lh/os/system/win/kernel32.h>
 #include <lh/os/system/win/key.h>
 #include <lh/os/system/win/user32.h>

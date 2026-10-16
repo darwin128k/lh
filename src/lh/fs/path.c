@@ -3,6 +3,7 @@
 #include <lh/attribute/static.h>
 #include <lh/char/dot.h>
 #include <lh/char/letter.h>
+#include <lh/math.h>
 
 /*
  * Layout: `text` is the whole path, normalized, with `/` as the only

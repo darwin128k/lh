@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <lh/math/size.h>
 #include <lh/util/addr.h>
 #include <lh/test/out.h>
 

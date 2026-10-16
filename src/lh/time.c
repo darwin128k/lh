@@ -2,6 +2,7 @@
 #include <lh/assert.h>
 #include <lh/str/format/text.h>
 #include <lh/str/parse/uint.h>
+#include <lh/math.h>
 
 lh_void
 lh_time_set_hour(lh_time_t *self, lh_time_hour_t hour)

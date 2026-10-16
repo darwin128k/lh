@@ -9,6 +9,8 @@
 #ifndef LH_IO_WRITER_H
 #define LH_IO_WRITER_H
 
+#include <lh/bool.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/io/pending.h>
 #include <lh/io/writer/cb.h>
 #include <lh/io/writer/fields.h>

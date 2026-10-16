@@ -10,6 +10,9 @@
 #ifndef LH_VERSION_H
 #define LH_VERSION_H
 
+#include <lh/bool.h>
+#include <lh/compiler/extern/c.h>
+#include <lh/size.h>
 #include <lh/str/ptr.h>
 #include <lh/version/major.h>
 #include <lh/version/minor.h>

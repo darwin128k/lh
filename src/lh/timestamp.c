@@ -1,5 +1,6 @@
 #include <lh/timestamp.h>
 #include <lh/assert.h>
+#include <lh/math.h>
 
 lh_s64_t
 lh_timestamp_floor_div(lh_s64_t a, lh_s64_t b)

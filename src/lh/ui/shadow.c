@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/shadow.h`.
  */
 
+#include <lh/math.h>
 #include <lh/ui/shadow/shape.h>
 #include <lh/ui/radius.h>
 #include <lh/util/return.h>

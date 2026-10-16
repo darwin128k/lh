@@ -5,6 +5,7 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/byte/limits.h>
+#include <lh/math.h>
 #include <lh/ui/color.h>
 #include <lh/util/return.h>
 

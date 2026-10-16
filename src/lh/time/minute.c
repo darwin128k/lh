@@ -1,6 +1,7 @@
 #include <lh/time/minute.h>
 #include <lh/assert.h>
 #include <lh/util/interval/wrap.h>
+#include <lh/math.h>
 
 lh_uint_t
 lh_time_minute_set(lh_time_minute_t *self, lh_uint_t value)

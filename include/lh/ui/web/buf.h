@@ -11,8 +11,11 @@
 #ifndef LH_UI_WEB_BUF_H
 #define LH_UI_WEB_BUF_H
 
+#include <lh/bool.h>
 #include <lh/str/ptr.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
+#include <lh/size.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/web/buf.h requires LH_LIBRARY_OPTION_UI"

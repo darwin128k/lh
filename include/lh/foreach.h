@@ -11,6 +11,7 @@
 #ifndef LH_FOREACH_H
 #define LH_FOREACH_H
 
+#include <lh/size.h>
 #include <lh/util/arg.h>
 #include <lh/util/ptr.h>
 

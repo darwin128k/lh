@@ -9,6 +9,7 @@
 #if LH_LIBRARY_OPTION_MATH_FPU
 #    include <lh/math/float/round.h>
 #endif
+#include <lh/math.h>
 
 /* ── init ────────────────────────────────────────────────────────────────── */
 

@@ -4,6 +4,7 @@
  */
 
 #include <lh/byte/limits.h>
+#include <lh/math.h>
 #include <lh/memory.h>
 #include <lh/ui/blur.h>
 #include <lh/ui/canvas/round.h>

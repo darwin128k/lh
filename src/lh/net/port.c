@@ -1,5 +1,6 @@
 #include <lh/net/port.h>
 #include <lh/assert.h>
+#include <lh/math.h>
 #include <lh/str/parse/uint.h>
 
 lh_bool_t

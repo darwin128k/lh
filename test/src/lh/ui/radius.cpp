@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <lh/math/isqrt.h>
 #include <lh/ui/radius.h>
 
 namespace

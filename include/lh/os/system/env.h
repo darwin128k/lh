@@ -10,6 +10,7 @@
 #ifndef LH_OS_SYSTEM_ENV_H
 #define LH_OS_SYSTEM_ENV_H
 
+#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/str/ptr.h>
 

@@ -15,7 +15,9 @@
 #ifndef LH_MEMORY_STD_H
 #define LH_MEMORY_STD_H
 
+#include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
+#include <lh/size.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

@@ -3,6 +3,7 @@
  * @brief ::lh_ui_display_t — host buffer + sw canvas + present sinks.
  */
 #include <lh/ui/display.h>
+#include <lh/math.h>
 
 /** Point the pixmap at @p bits, sized to the panel or the strip; empty when there is nothing to
  * bind. */

@@ -3,6 +3,7 @@
 #include <lh/memory/std.h>
 #include <lh/bit/endian.h>
 #include <lh/bit/rotate.h>
+#include <lh/math.h>
 
 static const lh_byte_t m_sbox[256] = {
     0x63U, 0x7CU, 0x77U, 0x7BU, 0xF2U, 0x6BU, 0x6FU, 0xC5U, 0x30U, 0x01U, 0x67U, 0x2BU, 0xFEU,

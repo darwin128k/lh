@@ -19,6 +19,7 @@
 #ifndef LH_OS_SYSTEM_FS_DIR_H
 #define LH_OS_SYSTEM_FS_DIR_H
 
+#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/fs/kind.h>
 #include <lh/os/result.h>

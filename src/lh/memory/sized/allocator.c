@@ -1,5 +1,6 @@
 #include <lh/memory/sized/allocator.h>
 #include <lh/assert.h>
+#include <lh/math.h>
 #include <lh/util/return.h>
 
 /* User data <-> block start, and the size stored at the block start. */

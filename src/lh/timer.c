@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/math.h>
 #include <lh/timer.h>
 
 lh_list_t *

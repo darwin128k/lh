@@ -2,6 +2,7 @@
 #include <lh/util/char.h>
 #include <lh/util/interval.h>
 #include <lh/uchar.h>
+#include <lh/size.h>
 #include <lh/char/case/pair.h>
 #include <lh/util/array/ptr.h>
 

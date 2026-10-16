@@ -18,6 +18,7 @@
 
 #include <lh/os/app.h>
 #include <lh/os/window.h>
+#include <lh/math/rect.h>
 #include <lh/ui/frame/stats.h>
 
 #if defined(_WIN32)

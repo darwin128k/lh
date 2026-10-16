@@ -1,4 +1,5 @@
 #include <lh/memory/typed/allocated.h>
+#include <lh/math.h>
 
 lh_void
 lh_memory_typed_allocated_clear(lh_memory_typed_allocated_t *self)

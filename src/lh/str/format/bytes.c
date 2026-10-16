@@ -1,6 +1,7 @@
 #include <lh/str/format/bytes.h>
 #include <lh/attribute/static.h>
 #include <lh/char/xdigit.h>
+#include <lh/math.h>
 
 /* One dump line for @p count bytes: "hhhhhhhh: " + "xx " * count + "\n". */
 LH_ATTRIBUTE_STATIC

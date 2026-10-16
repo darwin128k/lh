@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/insets.h`.
  */
 
+#include <lh/math.h>
 #include <lh/ui/insets.h>
 
 lh_void

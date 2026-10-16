@@ -9,6 +9,7 @@
 #define LH_UI_WEB_HTML_ATTR_H
 
 #include <lh/str/ptr.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 
 #if !LH_LIBRARY_OPTION_UI

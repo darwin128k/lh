@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/canvas.h` and the null backend.
  */
 
+#include <lh/math.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/shadow/shape.h>
 #include <lh/ui/canvas/round.h>

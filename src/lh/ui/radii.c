@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/radii.h`.
  */
 
+#include <lh/math.h>
 #include <lh/ui/radii.h>
 #include <lh/ui/radius.h>
 

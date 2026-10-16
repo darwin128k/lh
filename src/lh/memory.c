@@ -1,6 +1,7 @@
 #include <lh/memory.h>
 #include <lh/assert.h>
 #include <lh/config.h>
+#include <lh/math.h>
 #include <lh/util/memory.h>
 #include <lh/util/return.h>
 

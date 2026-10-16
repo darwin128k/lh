@@ -13,6 +13,7 @@
  * ::lh_ui_gradient_sampler_t, its corner pixels at their coverage.
  */
 
+#include <lh/math.h>
 #include <lh/ui/canvas/box.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/util/return.h>

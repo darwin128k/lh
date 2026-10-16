@@ -11,8 +11,11 @@
 #ifndef LH_UI_WEB_PAGE_H
 #define LH_UI_WEB_PAGE_H
 
+#include <lh/bool.h>
 #include <lh/byte/ptr.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
+#include <lh/size.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/web/page.h requires LH_LIBRARY_OPTION_UI"

@@ -19,6 +19,7 @@
 #ifndef LH_OS_SYSTEM_SERIAL_H
 #define LH_OS_SYSTEM_SERIAL_H
 
+#include <lh/compiler/extern/c.h>
 #include <lh/config.h>
 #include <lh/os/result.h>
 #include <lh/os/serial/parity.h>

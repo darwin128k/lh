@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/rects.h`.
  */
 
+#include <lh/math.h>
 #include <lh/ui/rects.h>
 #include <lh/util/return.h>
 

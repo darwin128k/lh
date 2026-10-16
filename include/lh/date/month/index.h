@@ -9,6 +9,7 @@
 #ifndef LH_DATE_MONTH_INDEX_H
 #define LH_DATE_MONTH_INDEX_H
 
+#include <lh/compiler/extern/c.h>
 #include <lh/util/interval.h>
 
 /**

@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/layout.h`.
  */
 
+#include <lh/math.h>
 #include <lh/ui/layout.h>
 #include <lh/util/return.h>
 

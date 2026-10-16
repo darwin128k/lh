@@ -19,7 +19,7 @@
 #ifndef LH_BIT_H
 #define LH_BIT_H
 
-#include <lh/math.h>
+#include <lh/math/ops.h>
 
 /**
  * @def lh_bit_mask(n)

@@ -11,6 +11,9 @@
 #ifndef LH_UTIL_INTERVAL_WRAP_H
 #define LH_UTIL_INTERVAL_WRAP_H
 
+#include <lh/attribute/force_inline.h>
+#include <lh/cast/static.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/util/interval.h>
 
 LH_COMPILER_EXTERN_C_BEGIN

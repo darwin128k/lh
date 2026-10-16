@@ -13,6 +13,7 @@
 #ifndef LH_IO_READER_H
 #define LH_IO_READER_H
 
+#include <lh/compiler/extern/c.h>
 #include <lh/io/pending.h>
 #include <lh/io/reader/cb.h>
 #include <lh/io/reader/fields.h>

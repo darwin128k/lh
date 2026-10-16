@@ -13,6 +13,7 @@
 #include <lh/cpu/simd.h>
 #include <lh/cpu/vendor.h>
 #include <lh/bit/bswap.h>
+#include <lh/bit/scan.h>
 #include <lh/util/memory.h>
 
 #if LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC

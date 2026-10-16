@@ -17,6 +17,7 @@
 #define LH_UI_SCALAR_H
 
 #include <lh/assert/runtime.h>
+#include <lh/attribute/force_inline.h>
 #include <lh/config.h>
 
 #if LH_LIBRARY_OPTION_MATH_FPU

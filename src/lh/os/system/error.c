@@ -1,6 +1,7 @@
 #include <lh/os/system/error.h>
 #include <lh/assert.h>
 #include <lh/os/system/error/initializer.h>
+#include <lh/math.h>
 
 lh_void
 lh_os_system_error_set_code(lh_os_system_error_t *self, lh_os_system_error_code_t code)

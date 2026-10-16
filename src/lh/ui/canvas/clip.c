@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/canvas/clip.h`.
  */
 
+#include <lh/math.h>
 #include <lh/ui/canvas/clip.h>
 #include <lh/ui/canvas/round.h>
 #include <lh/ui/radius.h>

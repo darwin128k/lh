@@ -25,7 +25,10 @@
 #ifndef LH_MEMORY_VIEW_SLICE_H
 #define LH_MEMORY_VIEW_SLICE_H
 
+#include <lh/bool.h>
+#include <lh/size.h>
 #include <lh/offset.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/memory/view/slice/direction.h>
 #include <lh/memory/view/slice/flags.h>
 #include <lh/memory/view/slice/initializer.h>

@@ -11,6 +11,8 @@
 #define LH_NUMERIC_PARSE_BYTES_H
 
 #include <lh/byte/ptr.h>
+#include <lh/compiler/extern/c.h>
+#include <lh/size.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 

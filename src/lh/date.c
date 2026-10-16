@@ -2,6 +2,7 @@
 #include <lh/assert.h>
 #include <lh/str/format/text.h>
 #include <lh/str/parse/uint.h>
+#include <lh/math.h>
 
 #define LH_DATE_EPOCH_YEAR 1970U
 

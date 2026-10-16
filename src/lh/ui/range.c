@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/range.h`.
  */
 
+#include <lh/math.h>
 #include <lh/ui/range.h>
 #include <lh/util/return.h>
 

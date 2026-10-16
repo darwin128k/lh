@@ -14,6 +14,7 @@
 #include <lh/date/day.h>
 #include <lh/date/view/fields.h>
 #include <lh/date/week/index.h>
+#include <lh/size.h>
 #include <lh/str/ptr.h>
 
 /**

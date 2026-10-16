@@ -13,6 +13,8 @@
 #ifndef LH_TIME_MINUTE_H
 #define LH_TIME_MINUTE_H
 
+#include <lh/void.h>
+#include <lh/compiler/extern/c.h>
 #include <lh/util/interval.h>
 
 /**

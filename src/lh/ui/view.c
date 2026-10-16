@@ -3,6 +3,7 @@
  * @brief Implementation of lh/ui/view.h — entity tree on an lh_ui_canvas_t.
  */
 
+#include <lh/math.h>
 #include <lh/ui/view.h>
 #include <lh/util/return.h>
 

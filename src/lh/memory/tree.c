@@ -1,6 +1,7 @@
 #include <lh/memory/tree.h>
 #include <lh/assert.h>
 #include <lh/memory/tree/header.h>
+#include <lh/math.h>
 #include <lh/util/return.h>
 
 /* User data <-> its header. */
