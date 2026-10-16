@@ -12,7 +12,7 @@
 
 #include <lh/cast/static.h>
 #include <lh/config.h>
-#include <lh/bit.h>
+#include <lh/bit/ops.h>
 
 /**
  * @def lh_type_size(T)
