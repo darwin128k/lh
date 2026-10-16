@@ -7,7 +7,6 @@ generator=""
 c_compiler=""
 cxx_compiler=""
 target=""
-shared="ON"
 docs="ON"
 tests="ON"
 clean=0
@@ -25,8 +24,6 @@ Options:
   --cc <path>          C compiler passed to CMake
   --cxx <path>         C++ compiler passed to CMake
   --target <name>      Build a specific target
-  --shared             Build shared library (default)
-  --static             Build static library
   --docs               Configure documentation target (default)
   --no-docs            Disable documentation target
   --tests              Build tests (default)
@@ -63,14 +60,6 @@ while [ "$#" -gt 0 ]; do
         --target)
             target="$2"
             shift 2
-            ;;
-        --shared)
-            shared="ON"
-            shift
-            ;;
-        --static)
-            shared="OFF"
-            shift
             ;;
         --docs)
             docs="ON"
@@ -150,7 +139,7 @@ fi
 
 set -- "$@" \
     "-DCMAKE_BUILD_TYPE=$config" \
-    "-DLH_BUILD_SHARED=$shared" \
+\
     "-DLH_BUILD_DOCS=$docs" \
     "-DLH_BUILD_TESTS=$tests"
 

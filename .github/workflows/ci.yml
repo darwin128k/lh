@@ -7,6 +7,9 @@ on:
       - master
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
     name: ${{ matrix.name }}
@@ -19,10 +22,19 @@ jobs:
             os: ubuntu-24.04
             cc: gcc
             cxx: g++
+            build_type: Release
+          # Debug keeps LH_RUNTIME_ASSERT_ENABLED on, so the contract death tests
+          # (LH_EXPECT_DEATH) actually run; in Release they compile but are skipped.
+          - name: Linux GCC Debug
+            os: ubuntu-24.04
+            cc: gcc
+            cxx: g++
+            build_type: Debug
           - name: Linux Clang
             os: ubuntu-24.04
             cc: clang
             cxx: clang++
+            build_type: Release
           - name: Windows MSVC
             os: windows-2025-vs2026
 
@@ -43,7 +55,7 @@ jobs:
           CXX: ${{ matrix.cxx }}
         run: >
           cmake -S . -B build
-          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DLH_BUILD_DOCS=OFF
           -DLH_BUILD_TESTS=ON
 

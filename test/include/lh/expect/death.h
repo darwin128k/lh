@@ -1,9 +1,11 @@
 /**
- * @file expect_death.h
+ * @file death.h
  * @brief GoogleTest death-test helper for lh APIs that fail via lh_runtime_check_ref.
  *
  * Include from test sources that assert on null pointers and similar runtime checks.
- * Use LH_TEST_EXPECT_DEATH_ENABLED to guard whole `TEST` blocks.
+ * LH_EXPECT_DEATH / LH_EXPECT_CHECK_DEATH are always defined: where death tests cannot
+ * run they compile the statement without running it. LH_TEST_EXPECT_DEATH_ENABLED
+ * still says whether they run, for guarding whole `TEST` blocks.
  *
  * LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB is checked because it selects
  * the **compile-time default** for lh_runtime_terminate(): ON → initial handler
@@ -24,6 +26,20 @@
 
 #include <lh/runtime/assert.h>
 
+/**
+ * LH_TEST_EXPECT_DEATH_SKIP(stmt): compile @p stmt behind `if (false)` and never run
+ * it. The test body keeps being checked, and the locals it uses do not turn into
+ * "unused variable" warnings (MSVC C4101).
+ */
+#define LH_TEST_EXPECT_DEATH_SKIP(stmt)                                                            \
+    do                                                                                             \
+    {                                                                                              \
+        if (false)                                                                                 \
+        {                                                                                          \
+            (void)(stmt);                                                                          \
+        }                                                                                          \
+    } while (0)
+
 #if GTEST_HAS_DEATH_TEST && LH_LIBRARY_OPTION_RUNTIME_TERMINATE_USE_STDLIB
 
 /**
@@ -35,21 +51,13 @@
  * LH_EXPECT_DEATH(stmt): @p stmt breaks a contract (lh_runtime_assert_* /
  * lh_assert_runtime_*). Those checks are compiled out without
  * LH_RUNTIME_ASSERT_ENABLED (Release), and running a contract violation with
- * no check is undefined behaviour — so there @p stmt is not run at all. It is
- * still compiled (behind `if (false)`): the test body keeps being checked, and
- * the locals it uses do not turn into "unused variable" warnings (MSVC C4101).
+ * no check is undefined behaviour — so there @p stmt is not run at all
+ * (LH_TEST_EXPECT_DEATH_SKIP).
  */
 #    if LH_RUNTIME_ASSERT_ENABLED
 #        define LH_EXPECT_DEATH(stmt) EXPECT_DEATH((stmt), ".*")
 #    else
-#        define LH_EXPECT_DEATH(stmt)                                                              \
-            do                                                                                     \
-            {                                                                                      \
-                if (false)                                                                         \
-                {                                                                                  \
-                    (void)(stmt);                                                                  \
-                }                                                                                  \
-            } while (0)
+#        define LH_EXPECT_DEATH(stmt) LH_TEST_EXPECT_DEATH_SKIP(stmt)
 #    endif
 
 /**
@@ -61,6 +69,11 @@
 #    define LH_TEST_EXPECT_DEATH_ENABLED 1
 
 #else
+
+/* No death tests here (no GTEST_HAS_DEATH_TEST, or terminate is not abort()):
+   both macros compile their statement and never run it. */
+#    define LH_EXPECT_DEATH(stmt) LH_TEST_EXPECT_DEATH_SKIP(stmt)
+#    define LH_EXPECT_CHECK_DEATH(stmt) LH_TEST_EXPECT_DEATH_SKIP(stmt)
 
 #    define LH_TEST_EXPECT_DEATH_ENABLED 0
 
