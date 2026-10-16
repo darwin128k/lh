@@ -32,7 +32,6 @@
 
 /* Umbrella: the rest of lh/str/. str/list.h is left out on purpose — it is built
    on lh_str_t from this header, so it depends on us rather than the other way. */
-#include <lh/str/cstr.h>
 #include <lh/str/format/bytes.h>
 #include <lh/str/format/hex.h>
 #include <lh/str/format/sint.h>
