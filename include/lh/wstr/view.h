@@ -124,7 +124,7 @@ lh_wstr_view_from_offset(const lh_wstr_view_t *self, lh_uoffset_t offset, lh_usi
 /**
  * @brief The wide characters of @p self from @p offset to its end.
  *
- * Empty when @p offset equals the size of @p self вЂ” including an empty
+ * Empty when @p offset equals the size of @p self — including an empty
  * @p self with @p offset 0.
  *
  * Example usage:

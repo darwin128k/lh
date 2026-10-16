@@ -5,7 +5,7 @@
  * The semantic "one byte" name, layered on the numeric base: ::lh_byte_t is
  * the ::lh_u8_t alias from <lh/numeric/fixed/types.h>, which is in turn the
  * base 8-bit type from <lh/char.h>. Use this name for raw bytes and binary
- * data вЂ” buffers, memory, packed fields, hash blocks, color channels,
+ * data — buffers, memory, packed fields, hash blocks, color channels,
  * addresses; use ::lh_char_t for text and ::lh_schar_t for a character with
  * explicit signedness.
  *

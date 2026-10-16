@@ -10,7 +10,7 @@
  * Invalid UTF-8 going in is an error, never silently replaced: a path that
  * does not round-trip must not name a different file. Coming out on
  * Windows, an unpaired UTF-16 surrogate (possible in NTFS names) becomes
- * U+FFFD вЂ” rejecting it needs `WC_ERR_INVALID_CHARS`, which XP lacks.
+ * U+FFFD — rejecting it needs `WC_ERR_INVALID_CHARS`, which XP lacks.
  *
  * Requires ::LH_LIBRARY_OPTION_OS.
  */
@@ -55,7 +55,7 @@ lh_os_system_str_to_utf8(const lh_os_str_ptr text, lh_usize_t count, lh_str_t *o
 /**
  * @brief Initialize @p self as NUL-terminated UTF-8 @p text in OS text.
  *
- * @p self is initialized either way вЂ” empty on failure вЂ” so one
+ * @p self is initialized either way — empty on failure — so one
  * ::lh_os_str_deinit afterwards is always right:
  * @code{.c}
  * lh_os_str_t os_path;

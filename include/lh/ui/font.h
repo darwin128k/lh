@@ -73,7 +73,7 @@ lh_ui_font_get_line_height(const lh_ui_font_t *self);
 /**
  * @brief Cap height of @p self: the baseline up to a capital letter, in pixels.
  *
- * The one metric that is about no particular glyph and all of them at once вЂ”
+ * The one metric that is about no particular glyph and all of them at once —
  * where a capital letter of @p font starts above the line it sits on. It is
  * what `LH_UI_TRIM_CAPITAL_BASELINE` measures, and it is why a text is centred
  * by it and not by its ink: the ink of a word is as tall as the tallest and the
@@ -104,7 +104,7 @@ lh_ui_font_get_range(const lh_ui_font_t *self, lh_u32_t index);
  * @brief Lowest code @p self has a glyph for.
  *
  * With Cyrillic beside Latin this is the space, not a statement that the font
- * covers everything up to it вЂ” that is what the runs are for.
+ * covers everything up to it — that is what the runs are for.
  */
 lh_u32_t
 lh_ui_font_get_first(const lh_ui_font_t *self);
@@ -191,7 +191,7 @@ lh_ui_font_get_top(const lh_ui_font_t *self, lh_u32_t code);
  *
  * The line box is not the ink. A font whose line is 22 px and ascent 17 puts a
  * capital letter's ink well below the middle of that box, so a line centred by
- * its box draws its text low вЂ” this is the number that says where the pixels
+ * its box draws its text low — this is the number that says where the pixels
  * actually are. A code with no ink gives a rect of no height.
  */
 lh_s32_t
