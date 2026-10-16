@@ -5,6 +5,7 @@
 #include <lh/str/format/sint.h>
 #include <lh/str/format/uint.h>
 #include <lh/str/scanf/next.h>
+#include <lh/util/str/ptr.h>
 
 /* lh_sint_t/lh_uint_t are 32-bit; "-2147483648" (11 chars) is the longest
  * conversion this engine ever builds into a local buffer. %s bypasses this

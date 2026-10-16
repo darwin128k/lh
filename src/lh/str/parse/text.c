@@ -4,6 +4,7 @@
 #include <lh/str/parse/hex.h>
 #include <lh/str/parse/uint.h>
 #include <lh/str/scanf/next.h>
+#include <lh/util/str/ptr.h>
 #include <lh/math.h>
 
 static lh_usize_t

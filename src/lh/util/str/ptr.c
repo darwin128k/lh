@@ -1,3 +1,4 @@
+#include <lh/util/str/ptr.h>
 #include <lh/char/limits.h>
 #include <lh/char/map.h>
 #include <lh/memory.h>

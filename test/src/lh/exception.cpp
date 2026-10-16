@@ -19,7 +19,7 @@ desc_of(const lh_exception_t *exception)
 TEST(exception, getters_read_error_and_site)
 {
     static const lh_exception_origin_t origin = {"file.c", "fn", "x > 0",
-                                                 lh_str_view_empty_initializer(), 42u};
+                                                 nullptr, 42u};
     const lh_exception_t exception = lh_exception_initializer(
         lh_runtime_error_initializer(lh_runtime_error_code_invalid_argument,
                                      "x must be positive"),
@@ -57,7 +57,7 @@ format_of(const lh_exception_t *exception)
 TEST(exception_format, full_report)
 {
     static const lh_exception_origin_t origin = {"file.c", "fn", "x > 0",
-                                                 lh_str_view_empty_initializer(), 42u};
+                                                 nullptr, 42u};
     const lh_exception_t exception = lh_exception_initializer(
         lh_runtime_error_initializer(lh_runtime_error_code_invalid_argument,
                                      "x must be positive"),
@@ -81,7 +81,7 @@ TEST(exception_format, code_only_without_origin)
 TEST(exception_format, location_level_has_no_condition_or_function)
 {
     static const lh_exception_origin_t origin = {"a/b.c", nullptr, nullptr,
-                                                 lh_str_view_empty_initializer(), 7u};
+                                                 nullptr, 7u};
     const lh_exception_t exception =
         lh_exception_initializer(lh_runtime_error_initializer(lh_runtime_error_code_null_pointer,
                                                               nullptr),
@@ -93,7 +93,7 @@ TEST(exception_format, location_level_has_no_condition_or_function)
 TEST(exception_format, too_small_writes_nothing)
 {
     static const lh_exception_origin_t origin = {"file.c", "fn", "x > 0",
-                                                 lh_str_view_empty_initializer(), 42u};
+                                                 nullptr, 42u};
     const lh_exception_t exception = lh_exception_initializer(
         lh_runtime_error_initializer(lh_runtime_error_code_invalid_argument,
                                      nullptr),
