@@ -23,15 +23,15 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 # lh/os/system/win are the real fence; this stops SDK headers that still get
 # pulled elsewhere from exposing Vista+ APIs by default. One value for C and
 # C++ alike; scripts/build-windows-legacy.bat passes 0x0600 for Vista.
-set(LH_WINVER "0x0501" CACHE STRING "WINVER / _WIN32_WINNT for Windows builds (0x0501 = XP, 0x0600 = Vista)")
-set_property(CACHE LH_WINVER PROPERTY STRINGS 0x0501 0x0600)
+set(LH_OS_WINDOWS_VERSION "0x0501" CACHE STRING "WINVER / _WIN32_WINNT for Windows builds (0x0501 = XP, 0x0600 = Vista)")
+set_property(CACHE LH_OS_WINDOWS_VERSION PROPERTY STRINGS 0x0501 0x0600)
 # Four hex digits, 0x0501 (XP) or newer: a typo such as 0x500 or 600 would otherwise
 # build quietly against the wrong API level.
-if (NOT LH_WINVER MATCHES "^0x0(50[1-9A-Fa-f]|5[1-9A-Fa-f][0-9A-Fa-f]|[6-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])$")
-    message(FATAL_ERROR "LH_WINVER must be four hex digits, 0x0501 (XP) or newer (got '${LH_WINVER}')")
+if (NOT LH_OS_WINDOWS_VERSION MATCHES "^0x0(50[1-9A-Fa-f]|5[1-9A-Fa-f][0-9A-Fa-f]|[6-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])$")
+    message(FATAL_ERROR "LH_OS_WINDOWS_VERSION must be four hex digits, 0x0501 (XP) or newer (got '${LH_OS_WINDOWS_VERSION}')")
 endif ()
 if (WIN32)
-    add_compile_definitions(WINVER=${LH_WINVER} _WIN32_WINNT=${LH_WINVER})
+    add_compile_definitions(WINVER=${LH_OS_WINDOWS_VERSION} _WIN32_WINNT=${LH_OS_WINDOWS_VERSION})
 endif ()
 
 # ---------------------------------------------------------------------------

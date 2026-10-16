@@ -87,7 +87,7 @@ jobs:
   #
   # These jobs run the project's batch wrappers (scripts\build-windows-xp.bat and
   # scripts\build-windows-vista.bat -> scripts\build-windows-legacy.bat), which
-  # configure with -DLH_WINVER=0x0501 (XP) or 0x0600 (Vista)
+  # configure with -DLH_OS_WINDOWS_VERSION=0x0501 (XP) or 0x0600 (Vista)
   # and CMAKE_SYSTEM_VERSION 5.1 / 6.0, on modern windows-2025-vs2026 runners.
   #
   # They verify that the code compiles and that the tests pass against the
