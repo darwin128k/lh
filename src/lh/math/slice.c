@@ -30,12 +30,6 @@ lh_math_slice_init_empty(lh_math_slice_t *self)
     lh_math_slice_set(self, lh_null, lh_null);
 }
 
-lh_void
-lh_math_slice_init_by_other(lh_math_slice_t *self, const lh_math_slice_t *other)
-{
-    lh_math_slice_set(self, lh_math_slice_get_begin(other), lh_math_slice_get_end(other));
-}
-
 const lh_float_t *
 lh_math_slice_get_begin(const lh_math_slice_t *self)
 {
@@ -48,6 +42,12 @@ lh_math_slice_get_end(const lh_math_slice_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->second;
+}
+
+lh_void
+lh_math_slice_init_by_other(lh_math_slice_t *self, const lh_math_slice_t *other)
+{
+    lh_math_slice_set(self, lh_math_slice_get_begin(other), lh_math_slice_get_end(other));
 }
 
 lh_bool_t

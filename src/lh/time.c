@@ -33,6 +33,27 @@ lh_time_set(lh_time_t *self, lh_time_hour_t hour, lh_time_minute_t minute, lh_ti
     lh_time_set_second(self, second);
 }
 
+lh_time_hour_t
+lh_time_get_hour(const lh_time_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->hour;
+}
+
+lh_time_minute_t
+lh_time_get_minute(const lh_time_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->minute;
+}
+
+lh_time_second_t
+lh_time_get_second(const lh_time_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->second;
+}
+
 lh_void
 lh_time_assign(lh_time_t *self, const lh_time_t *other)
 {
@@ -125,27 +146,6 @@ lh_time_sub(lh_time_t *self, const lh_time_t *other)
     return lh_time_sub_custom(self, lh_cast_static(lh_uint_t, lh_time_get_hour(other)),
                               lh_cast_static(lh_uint_t, lh_time_get_minute(other)),
                               lh_cast_static(lh_uint_t, lh_time_get_second(other)));
-}
-
-lh_time_hour_t
-lh_time_get_hour(const lh_time_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->hour;
-}
-
-lh_time_minute_t
-lh_time_get_minute(const lh_time_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->minute;
-}
-
-lh_time_second_t
-lh_time_get_second(const lh_time_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->second;
 }
 
 lh_uint_t

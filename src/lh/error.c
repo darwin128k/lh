@@ -3,13 +3,6 @@
 #include <lh/assert.h>
 
 lh_void
-lh_error_set(lh_error_t *self, lh_error_code_t code, lh_str_view_t desc)
-{
-    lh_error_set_code(self, code);
-    lh_error_set_desc(self, desc);
-}
-
-lh_void
 lh_error_set_code(lh_error_t *self, lh_error_code_t code)
 {
     lh_assert_runtime_ref(self);
@@ -21,6 +14,13 @@ lh_error_set_desc(lh_error_t *self, lh_str_view_t desc)
 {
     lh_assert_runtime_ref(self);
     self->desc = desc;
+}
+
+lh_void
+lh_error_set(lh_error_t *self, lh_error_code_t code, lh_str_view_t desc)
+{
+    lh_error_set_code(self, code);
+    lh_error_set_desc(self, desc);
 }
 
 lh_error_code_t
@@ -36,19 +36,6 @@ lh_error_get_desc(const lh_error_t *self, lh_str_view_t *out)
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
     *out = self->desc;
-    return;
-}
-
-lh_void
-lh_error_get_desc_or(const lh_error_t *self, lh_str_view_t fallback, lh_str_view_t *out)
-{
-    lh_assert_runtime_ref(out);
-    if (lh_error_has_desc(self))
-    {
-        lh_error_get_desc(self, out);
-        return;
-    }
-    *out = fallback;
     return;
 }
 
@@ -123,6 +110,19 @@ lh_error_has_desc(const lh_error_t *self)
     lh_str_view_t desc;
     lh_error_get_desc(self, lh_addr_of(desc));
     return !lh_str_view_is_empty(&desc);
+}
+
+lh_void
+lh_error_get_desc_or(const lh_error_t *self, lh_str_view_t fallback, lh_str_view_t *out)
+{
+    lh_assert_runtime_ref(out);
+    if (lh_error_has_desc(self))
+    {
+        lh_error_get_desc(self, out);
+        return;
+    }
+    *out = fallback;
+    return;
 }
 
 lh_bool_t

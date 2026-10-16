@@ -522,19 +522,6 @@ lh_memory_view_to_slice(const lh_memory_view_t *self, lh_memory_view_slice_t *ou
 }
 
 lh_void
-lh_memory_view_return_of_slice(const lh_memory_view_slice_t *slice, lh_memory_view_t *out)
-{
-    lh_assert_runtime_ref(out);
-    if (lh_memory_view_slice_is_uninitialized(slice))
-    {
-        lh_memory_view_return_empty(out);
-        return;
-    }
-    lh_memory_view_return_init_of_slice(slice, out);
-    return;
-}
-
-lh_void
 lh_memory_view_return_init_of_slice(const lh_memory_view_slice_t *slice, lh_memory_view_t *out)
 {
     lh_assert_runtime_ref(out);
@@ -553,6 +540,19 @@ lh_memory_view_return_empty(lh_memory_view_t *out)
 
     lh_memory_view_init_empty(&view);
     *out = view;
+    return;
+}
+
+lh_void
+lh_memory_view_return_of_slice(const lh_memory_view_slice_t *slice, lh_memory_view_t *out)
+{
+    lh_assert_runtime_ref(out);
+    if (lh_memory_view_slice_is_uninitialized(slice))
+    {
+        lh_memory_view_return_empty(out);
+        return;
+    }
+    lh_memory_view_return_init_of_slice(slice, out);
     return;
 }
 

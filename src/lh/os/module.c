@@ -146,17 +146,6 @@ lh_os_module_init(lh_os_module_t *self)
     lh_list_node_init(lh_os_module_get_node(self));
 }
 
-lh_void
-lh_os_module_deinit(lh_os_module_t *self)
-{
-    /* A child still in its owner's list would leave the list pointing at freed memory. */
-    lh_assert_runtime_if(
-        lh_list_node_is_linked(lh_os_module_get_node(self)), lh_runtime_error_code_invalid_argument,
-        "module is still held by its loader: unload it with lh_os_loader_unload_child");
-    lh_os_module_close(self);
-    lh_os_shared_deinit(lh_os_module_get_image(self));
-}
-
 lh_os_module_t *
 lh_os_module_create(void)
 {
@@ -168,15 +157,6 @@ lh_os_module_create(void)
     }
     return self;
 }
-
-lh_void
-lh_os_module_destroy(lh_os_module_t *self)
-{
-    lh_os_module_deinit(self);
-    lh_runtime_allocator_free(self);
-}
-
-/* ── privilege ───────────────────────────────────────────────────────────── */
 
 lh_os_loader_t *
 lh_os_module_grant_loader(lh_os_module_t *self, lh_str_cptr entry)
@@ -210,7 +190,7 @@ lh_os_module_revoke_loader(lh_os_module_t *self)
     lh_os_module_set_loader(self, lh_null);
 }
 
-/* ── lifecycle ───────────────────────────────────────────────────────────── */
+/* ── privilege ───────────────────────────────────────────────────────────── */
 
 lh_bool_t
 lh_os_module_start(lh_os_module_t *self)
@@ -246,7 +226,7 @@ lh_os_module_stop(lh_os_module_t *self)
     lh_os_module_set_started(self, lh_bool_false);
 }
 
-/* ── image ───────────────────────────────────────────────────────────────── */
+/* ── lifecycle ───────────────────────────────────────────────────────────── */
 
 lh_bool_t
 lh_os_module_open(lh_os_module_t *self, const lh_fs_path_t *path)
@@ -259,6 +239,8 @@ lh_os_module_bind(lh_os_module_t *self, lh_ptr addr)
 {
     return lh_os_shared_bind(lh_os_module_get_image(self), addr);
 }
+
+/* ── image ───────────────────────────────────────────────────────────────── */
 
 lh_bool_t
 lh_os_module_bind_executable(lh_os_module_t *self)
@@ -276,6 +258,24 @@ lh_os_module_close(lh_os_module_t *self)
     /* The table normally lives in the image just released. */
     lh_os_module_set_ops(self, lh_null);
     return ok;
+}
+
+lh_void
+lh_os_module_deinit(lh_os_module_t *self)
+{
+    /* A child still in its owner's list would leave the list pointing at freed memory. */
+    lh_assert_runtime_if(
+        lh_list_node_is_linked(lh_os_module_get_node(self)), lh_runtime_error_code_invalid_argument,
+        "module is still held by its loader: unload it with lh_os_loader_unload_child");
+    lh_os_module_close(self);
+    lh_os_shared_deinit(lh_os_module_get_image(self));
+}
+
+lh_void
+lh_os_module_destroy(lh_os_module_t *self)
+{
+    lh_os_module_deinit(self);
+    lh_runtime_allocator_free(self);
 }
 
 /* ── symbols ─────────────────────────────────────────────────────────────── */

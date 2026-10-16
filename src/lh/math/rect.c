@@ -12,6 +12,75 @@
 
 /* ── Constructors ────────────────────────────────────────────────────────── */
 
+lh_math_point_t *
+lh_math_rect_get_origin(lh_math_rect_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->origin);
+}
+
+const lh_math_point_t *
+lh_math_rect_get_origin_as_const(const lh_math_rect_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->origin);
+}
+
+lh_math_size_t *
+lh_math_rect_get_size(lh_math_rect_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->size);
+}
+
+const lh_math_size_t *
+lh_math_rect_get_size_as_const(const lh_math_rect_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->size);
+}
+
+lh_void
+lh_math_rect_set_origin(lh_math_rect_t *self, lh_math_point_t origin)
+{
+    lh_assert_runtime_ref(self);
+    lh_ptr_deref(lh_math_rect_get_origin(self)) = origin;
+}
+
+/* ── Accessors ───────────────────────────────────────────────────────────── */
+
+lh_void
+lh_math_rect_set_size(lh_math_rect_t *self, lh_math_size_t size)
+{
+    lh_assert_runtime_ref(self);
+    lh_ptr_deref(lh_math_rect_get_size(self)) = size;
+}
+
+lh_void
+lh_math_rect_init_origin_size(lh_math_rect_t *self, lh_math_point_t origin, lh_math_size_t size)
+{
+    lh_assert_runtime_ref(self);
+    lh_math_rect_set_origin(self, origin);
+    lh_math_rect_set_size(self, size);
+}
+
+lh_void
+lh_math_rect_init(lh_math_rect_t *self, lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t width,
+                  lh_math_scalar_t height)
+{
+    lh_math_point_t origin;
+    lh_math_point_init(lh_addr_of(origin), x, y);
+    lh_math_size_t size;
+    lh_math_size_init(lh_addr_of(size), width, height);
+    lh_math_rect_init_origin_size(self, origin, size);
+}
+
+lh_void
+lh_math_rect_init_empty(lh_math_rect_t *self)
+{
+    lh_math_rect_init(self, 0, 0, 0, 0);
+}
+
 lh_void
 lh_math_rect_from_extent(const lh_math_point_t *min, const lh_math_point_t *max, lh_math_rect_t *out)
 {
@@ -48,75 +117,6 @@ lh_math_rect_from_min_max(lh_math_scalar_t x_min, lh_math_scalar_t y_min,
 }
 
 lh_void
-lh_math_rect_init(lh_math_rect_t *self, lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t width,
-                  lh_math_scalar_t height)
-{
-    lh_math_point_t origin;
-    lh_math_point_init(lh_addr_of(origin), x, y);
-    lh_math_size_t size;
-    lh_math_size_init(lh_addr_of(size), width, height);
-    lh_math_rect_init_origin_size(self, origin, size);
-}
-
-lh_void
-lh_math_rect_init_origin_size(lh_math_rect_t *self, lh_math_point_t origin, lh_math_size_t size)
-{
-    lh_assert_runtime_ref(self);
-    lh_math_rect_set_origin(self, origin);
-    lh_math_rect_set_size(self, size);
-}
-
-lh_void
-lh_math_rect_init_empty(lh_math_rect_t *self)
-{
-    lh_math_rect_init(self, 0, 0, 0, 0);
-}
-
-/* ── Accessors ───────────────────────────────────────────────────────────── */
-
-lh_math_point_t *
-lh_math_rect_get_origin(lh_math_rect_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->origin);
-}
-
-const lh_math_point_t *
-lh_math_rect_get_origin_as_const(const lh_math_rect_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->origin);
-}
-
-lh_math_size_t *
-lh_math_rect_get_size(lh_math_rect_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->size);
-}
-
-const lh_math_size_t *
-lh_math_rect_get_size_as_const(const lh_math_rect_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->size);
-}
-
-lh_void
-lh_math_rect_set_origin(lh_math_rect_t *self, lh_math_point_t origin)
-{
-    lh_assert_runtime_ref(self);
-    lh_ptr_deref(lh_math_rect_get_origin(self)) = origin;
-}
-
-lh_void
-lh_math_rect_set_size(lh_math_rect_t *self, lh_math_size_t size)
-{
-    lh_assert_runtime_ref(self);
-    lh_ptr_deref(lh_math_rect_get_size(self)) = size;
-}
-
-lh_void
 lh_math_rect_far(const lh_math_rect_t *self, lh_math_point_t *out)
 {
     lh_assert_runtime_ref(self);
@@ -146,16 +146,6 @@ lh_math_rect_contains_point(const lh_math_rect_t *self, lh_math_point_t point)
     lh_math_rect_far(self, lh_addr_of(far));
     return lh_math_point_in_extent(lh_addr_of(point), lh_math_rect_get_origin_as_const(self),
                                    lh_addr_of(far));
-}
-
-lh_bool_t
-lh_math_rect_intersects(const lh_math_rect_t *a, const lh_math_rect_t *b)
-{
-    lh_math_rect_t overlap;
-    lh_assert_runtime_ref(a);
-    lh_assert_runtime_ref(b);
-    lh_math_rect_intersection(a, b, lh_addr_of(overlap));
-    return !lh_math_rect_is_empty(lh_addr_of(overlap));
 }
 
 lh_bool_t
@@ -254,8 +244,6 @@ lh_math_rect_far_max(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_math_p
     return;
 }
 
-/* ── Set ops ────────────────────────────────────────────────────────────── */
-
 lh_void
 lh_math_rect_intersection(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_math_rect_t *out)
 {
@@ -275,6 +263,18 @@ lh_math_rect_intersection(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_m
     lh_math_rect_far_min(a, b, lh_addr_of(far));
     lh_math_rect_from_extent(lh_addr_of(origin), lh_addr_of(far), out);
     return;
+}
+
+/* ── Set ops ────────────────────────────────────────────────────────────── */
+
+lh_bool_t
+lh_math_rect_intersects(const lh_math_rect_t *a, const lh_math_rect_t *b)
+{
+    lh_math_rect_t overlap;
+    lh_assert_runtime_ref(a);
+    lh_assert_runtime_ref(b);
+    lh_math_rect_intersection(a, b, lh_addr_of(overlap));
+    return !lh_math_rect_is_empty(lh_addr_of(overlap));
 }
 
 lh_void

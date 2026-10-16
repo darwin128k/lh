@@ -210,20 +210,6 @@ lh_array_insert(lh_array_t *self, lh_uindex_t index, const lh_ptr value)
 }
 
 lh_void
-lh_array_erase(lh_array_t *self, lh_uindex_t index, lh_ptr dst)
-{
-    lh_assert_runtime_ifn(lh_array_is_valid_index(self, index),
-                          lh_runtime_error_code_out_of_range);
-
-    if (lh_ptr_is_set(dst))
-    {
-        lh_memory_typed_get_value_into(lh_addr_of(self->typed), index, dst);
-    }
-
-    lh_array_erase_of(self, index, 1);
-}
-
-lh_void
 lh_array_erase_of(lh_array_t *self, lh_uindex_t index, lh_usize_t count)
 {
     const lh_usize_t size = lh_array_get_size(self);
@@ -239,6 +225,20 @@ lh_array_erase_of(lh_array_t *self, lh_uindex_t index, lh_usize_t count)
     }
 
     self->size = lh_math_sub(size, count);
+}
+
+lh_void
+lh_array_erase(lh_array_t *self, lh_uindex_t index, lh_ptr dst)
+{
+    lh_assert_runtime_ifn(lh_array_is_valid_index(self, index),
+                          lh_runtime_error_code_out_of_range);
+
+    if (lh_ptr_is_set(dst))
+    {
+        lh_memory_typed_get_value_into(lh_addr_of(self->typed), index, dst);
+    }
+
+    lh_array_erase_of(self, index, 1);
 }
 
 lh_void

@@ -2,16 +2,6 @@
 #include <lh/math/quat.h>
 #include <lh/math/float/sin_cos.h>
 
-lh_void
-lh_math_quat_init(lh_math_quat_t *self, lh_float_t x, lh_float_t y, lh_float_t z, lh_float_t w)
-{
-    lh_assert_runtime_ref(self);
-    lh_math_quat_set_x(self, x);
-    lh_math_quat_set_y(self, y);
-    lh_math_quat_set_z(self, z);
-    lh_math_quat_set_w(self, w);
-}
-
 lh_float_t
 lh_math_quat_get_x(const lh_math_quat_t *self)
 {
@@ -66,6 +56,16 @@ lh_math_quat_set_w(lh_math_quat_t *self, lh_float_t w)
 {
     lh_assert_runtime_ref(self);
     self->w = w;
+}
+
+lh_void
+lh_math_quat_init(lh_math_quat_t *self, lh_float_t x, lh_float_t y, lh_float_t z, lh_float_t w)
+{
+    lh_assert_runtime_ref(self);
+    lh_math_quat_set_x(self, x);
+    lh_math_quat_set_y(self, y);
+    lh_math_quat_set_z(self, z);
+    lh_math_quat_set_w(self, w);
 }
 
 lh_void

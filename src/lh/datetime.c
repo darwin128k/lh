@@ -26,6 +26,24 @@ lh_datetime_set(lh_datetime_t *self, const lh_date_t *date, const lh_time_t *tim
 }
 
 lh_void
+lh_datetime_get_date(const lh_datetime_t *self, lh_date_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_assert_runtime_ref(self);
+    *out = self->date;
+    return;
+}
+
+lh_void
+lh_datetime_get_time(const lh_datetime_t *self, lh_time_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_assert_runtime_ref(self);
+    *out = self->time;
+    return;
+}
+
+lh_void
 lh_datetime_assign(lh_datetime_t *self, const lh_datetime_t *other)
 {
     lh_date_t date;
@@ -82,24 +100,6 @@ lh_datetime_sub(lh_datetime_t *self, const lh_datetime_t *other)
     overflow = lh_math_add(overflow, lh_date_sub_day(lh_addr_of(date), day_borrow));
     lh_datetime_set(self, lh_addr_of(date), lh_addr_of(time));
     return overflow;
-}
-
-lh_void
-lh_datetime_get_date(const lh_datetime_t *self, lh_date_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_assert_runtime_ref(self);
-    *out = self->date;
-    return;
-}
-
-lh_void
-lh_datetime_get_time(const lh_datetime_t *self, lh_time_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_assert_runtime_ref(self);
-    *out = self->time;
-    return;
 }
 
 lh_bool_t

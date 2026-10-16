@@ -3,22 +3,6 @@
 #include <lh/math/vec4.h>
 #include <lh/util/offset.h>
 
-lh_void
-lh_math_vec4_init(lh_math_vec4_t *self, lh_float_t x, lh_float_t y, lh_float_t z, lh_float_t w)
-{
-    lh_assert_runtime_ref(self);
-    lh_math_vec4_set_x(self, x);
-    lh_math_vec4_set_y(self, y);
-    lh_math_vec4_set_z(self, z);
-    lh_math_vec4_set_w(self, w);
-}
-
-lh_void
-lh_math_vec4_init_empty(lh_math_vec4_t *self)
-{
-    lh_math_vec4_init(self, 0, 0, 0, 0);
-}
-
 lh_float_t
 lh_math_vec4_get_x(const lh_math_vec4_t *self)
 {
@@ -73,6 +57,22 @@ lh_math_vec4_set_w(lh_math_vec4_t *self, lh_float_t w)
 {
     lh_assert_runtime_ref(self);
     self->w = w;
+}
+
+lh_void
+lh_math_vec4_init(lh_math_vec4_t *self, lh_float_t x, lh_float_t y, lh_float_t z, lh_float_t w)
+{
+    lh_assert_runtime_ref(self);
+    lh_math_vec4_set_x(self, x);
+    lh_math_vec4_set_y(self, y);
+    lh_math_vec4_set_z(self, z);
+    lh_math_vec4_set_w(self, w);
+}
+
+lh_void
+lh_math_vec4_init_empty(lh_math_vec4_t *self)
+{
+    lh_math_vec4_init(self, 0, 0, 0, 0);
 }
 
 /* ── Conversions ─────────────────────────────────────────────────────────── */

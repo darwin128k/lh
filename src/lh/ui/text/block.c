@@ -88,6 +88,17 @@ lh_ui_text_block_get_ink_top(const lh_ui_text_block_t *self)
 }
 
 lh_void
+lh_ui_text_block_get_ink_rect(const lh_ui_text_block_t *self, lh_ui_point_t origin, lh_ui_rect_t *out)
+{
+    lh_assert_runtime_ref(self);
+    /* The union skips empty rects, so moving the hull is the hull of the moved
+       lines -- including when nothing is inked and the hull is the last line's box. */
+    lh_ui_rect_offset(lh_addr_of(self->ink), lh_ui_point_get_x(lh_addr_of(origin)),
+                             lh_ui_point_get_y(lh_addr_of(origin)) - self->ink_top, out);
+    return;
+}
+
+lh_void
 lh_ui_text_block_get_size(const lh_ui_text_block_t *self, const lh_ui_font_t *font, lh_ui_size_t *out)
 {
     lh_assert_runtime_ref(out);
@@ -119,16 +130,5 @@ lh_ui_text_block_get_size(const lh_ui_text_block_t *self, const lh_ui_font_t *fo
                                         lh_ui_scalar_of(lh_ui_font_get_line_height(font)) +
                                     lh_ui_scalar_of(lh_ui_font_get_cap_height(font)));
     *out = size;
-    return;
-}
-
-lh_void
-lh_ui_text_block_get_ink_rect(const lh_ui_text_block_t *self, lh_ui_point_t origin, lh_ui_rect_t *out)
-{
-    lh_assert_runtime_ref(self);
-    /* The union skips empty rects, so moving the hull is the hull of the moved
-       lines -- including when nothing is inked and the hull is the last line's box. */
-    lh_ui_rect_offset(lh_addr_of(self->ink), lh_ui_point_get_x(lh_addr_of(origin)),
-                             lh_ui_point_get_y(lh_addr_of(origin)) - self->ink_top, out);
     return;
 }

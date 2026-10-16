@@ -13,21 +13,6 @@ static const lh_wchar_t m_whitespace_chars[] = {
 
 static const lh_usize_t m_whitespace_size = lh_wstr_ptr_get_size(m_whitespace_chars);
 
-lh_usize_t
-lh_wstr_ptr_index_of_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
-                             lh_usize_t src_size, lh_bool_t ignore_case)
-{
-    /* empty needle matches at position 0 by convention */
-    lh_return_ifn(src_size, LH_USIZE_T_MIN);
-    if (lh_math_lt(str_size, src_size))
-    {
-        return LH_WSTR_PTR_INVALID;
-    }
-
-    const lh_wstr_ptr ptr = lh_wstr_ptr_find(str, str_size, src, src_size, ignore_case);
-    return lh_null_ne(ptr) ? (lh_ptr_udiff(ptr, str) / LH_WCHAR_T_SIZE) : LH_WSTR_PTR_INVALID;
-}
-
 const lh_wstr_ptr
 lh_wstr_ptr_find_char(const lh_wstr_ptr str, lh_usize_t size, lh_wchar_t val)
 {
@@ -40,84 +25,6 @@ lh_wstr_ptr_rfind_char(const lh_wstr_ptr str, lh_usize_t size, lh_wchar_t val)
 {
     return lh_memory_rfind_step(str, size * LH_WCHAR_T_SIZE, lh_addr_of(val), LH_WCHAR_T_SIZE,
                                 LH_WCHAR_T_SIZE);
-}
-
-const lh_wstr_ptr
-lh_wstr_ptr_find_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
-                          lh_usize_t chars_size)
-{
-    lh_assert_runtime_ref(str);
-    lh_assert_runtime_ref(chars);
-    lh_return_ifn(chars_size, lh_null);
-
-    for (lh_usize_t i = 0; i < str_size; ++i)
-    {
-        if (lh_wstr_ptr_contains_char(chars, chars_size, str[i]))
-        {
-            return str + i;
-        }
-    }
-    return lh_null;
-}
-
-const lh_wstr_ptr
-lh_wstr_ptr_rfind_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
-                           lh_usize_t chars_size)
-{
-    lh_assert_runtime_ref(str);
-    lh_assert_runtime_ref(chars);
-    lh_return_ifn(chars_size, lh_null);
-
-    /* do-while starts with i = str_size; --i would wrap on unsigned 0 */
-    lh_return_ifn(str_size, lh_null);
-    lh_usize_t i = str_size;
-    do
-    {
-        --i;
-        if (lh_wstr_ptr_contains_char(chars, chars_size, str[i]))
-        {
-            return str + i;
-        }
-    } while (i > 0);
-    return lh_null;
-}
-
-const lh_wstr_ptr
-lh_wstr_ptr_find_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
-                              lh_usize_t chars_size)
-{
-    lh_assert_runtime_ref(str);
-    lh_assert_runtime_ref(chars);
-
-    for (lh_usize_t i = 0; i < str_size; ++i)
-    {
-        if (!lh_wstr_ptr_contains_char(chars, chars_size, str[i]))
-        {
-            return str + i;
-        }
-    }
-    return lh_null;
-}
-
-const lh_wstr_ptr
-lh_wstr_ptr_rfind_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
-                               lh_usize_t chars_size)
-{
-    lh_assert_runtime_ref(str);
-    lh_assert_runtime_ref(chars);
-
-    /* do-while starts with i = str_size; --i would wrap on unsigned 0 */
-    lh_return_ifn(str_size, lh_null);
-    lh_usize_t i = str_size;
-    do
-    {
-        --i;
-        if (!lh_wstr_ptr_contains_char(chars, chars_size, str[i]))
-        {
-            return str + i;
-        }
-    } while (i > 0);
-    return lh_null;
 }
 
 const lh_wstr_ptr
@@ -262,6 +169,21 @@ lh_wstr_ptr_find(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr s
                                              src_size * LH_WCHAR_T_SIZE, LH_WCHAR_T_SIZE);
 }
 
+lh_usize_t
+lh_wstr_ptr_index_of_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
+                             lh_usize_t src_size, lh_bool_t ignore_case)
+{
+    /* empty needle matches at position 0 by convention */
+    lh_return_ifn(src_size, LH_USIZE_T_MIN);
+    if (lh_math_lt(str_size, src_size))
+    {
+        return LH_WSTR_PTR_INVALID;
+    }
+
+    const lh_wstr_ptr ptr = lh_wstr_ptr_find(str, str_size, src, src_size, ignore_case);
+    return lh_null_ne(ptr) ? (lh_ptr_udiff(ptr, str) / LH_WCHAR_T_SIZE) : LH_WSTR_PTR_INVALID;
+}
+
 const lh_wstr_ptr
 lh_wstr_ptr_rfind(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                   lh_usize_t src_size, lh_bool_t ignore_case)
@@ -291,12 +213,6 @@ lh_wstr_ptr_rcompare(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_p
 }
 
 lh_bool_t
-lh_wstr_ptr_contains(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case)
-{
-    return lh_math_ne(lh_wstr_ptr_index_of(str, src, ignore_case), LH_WSTR_PTR_INVALID);
-}
-
-lh_bool_t
 lh_wstr_ptr_contains_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr src,
                              lh_usize_t src_size, lh_bool_t ignore_case)
 {
@@ -312,10 +228,9 @@ lh_wstr_ptr_index_of(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ign
 }
 
 lh_bool_t
-lh_wstr_ptr_starts_with(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case)
+lh_wstr_ptr_contains(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case)
 {
-    return lh_wstr_ptr_starts_with_by_size(str, lh_wstr_ptr_len(str), src, lh_wstr_ptr_len(src),
-                                           ignore_case);
+    return lh_math_ne(lh_wstr_ptr_index_of(str, src, ignore_case), LH_WSTR_PTR_INVALID);
 }
 
 lh_bool_t
@@ -330,10 +245,10 @@ lh_wstr_ptr_starts_with_by_size(const lh_wstr_ptr str, lh_usize_t str_size, cons
 }
 
 lh_bool_t
-lh_wstr_ptr_ends_with(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case)
+lh_wstr_ptr_starts_with(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case)
 {
-    return lh_wstr_ptr_ends_with_by_size(str, lh_wstr_ptr_len(str), src, lh_wstr_ptr_len(src),
-                                         ignore_case);
+    return lh_wstr_ptr_starts_with_by_size(str, lh_wstr_ptr_len(str), src, lh_wstr_ptr_len(src),
+                                           ignore_case);
 }
 
 lh_bool_t
@@ -345,6 +260,13 @@ lh_wstr_ptr_ends_with_by_size(const lh_wstr_ptr str, lh_usize_t str_size, const 
         return lh_bool_false;
     }
     return lh_null_eq(lh_wstr_ptr_rcompare(str, str_size, src, src_size, ignore_case));
+}
+
+lh_bool_t
+lh_wstr_ptr_ends_with(const lh_wstr_ptr str, const lh_wstr_ptr src, lh_bool_t ignore_case)
+{
+    return lh_wstr_ptr_ends_with_by_size(str, lh_wstr_ptr_len(str), src, lh_wstr_ptr_len(src),
+                                         ignore_case);
 }
 
 lh_bool_t
@@ -366,6 +288,134 @@ lh_bool_t
 lh_wstr_ptr_contains_char(const lh_wstr_ptr chars, lh_usize_t chars_size, lh_wchar_t ch)
 {
     return lh_null_ne(lh_wstr_ptr_find_char(chars, chars_size, ch));
+}
+
+const lh_wstr_ptr
+lh_wstr_ptr_find_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
+                          lh_usize_t chars_size)
+{
+    lh_assert_runtime_ref(str);
+    lh_assert_runtime_ref(chars);
+    lh_return_ifn(chars_size, lh_null);
+
+    for (lh_usize_t i = 0; i < str_size; ++i)
+    {
+        if (lh_wstr_ptr_contains_char(chars, chars_size, str[i]))
+        {
+            return str + i;
+        }
+    }
+    return lh_null;
+}
+
+const lh_wstr_ptr
+lh_wstr_ptr_rfind_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
+                           lh_usize_t chars_size)
+{
+    lh_assert_runtime_ref(str);
+    lh_assert_runtime_ref(chars);
+    lh_return_ifn(chars_size, lh_null);
+
+    /* do-while starts with i = str_size; --i would wrap on unsigned 0 */
+    lh_return_ifn(str_size, lh_null);
+    lh_usize_t i = str_size;
+    do
+    {
+        --i;
+        if (lh_wstr_ptr_contains_char(chars, chars_size, str[i]))
+        {
+            return str + i;
+        }
+    } while (i > 0);
+    return lh_null;
+}
+
+const lh_wstr_ptr
+lh_wstr_ptr_find_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
+                              lh_usize_t chars_size)
+{
+    lh_assert_runtime_ref(str);
+    lh_assert_runtime_ref(chars);
+
+    for (lh_usize_t i = 0; i < str_size; ++i)
+    {
+        if (!lh_wstr_ptr_contains_char(chars, chars_size, str[i]))
+        {
+            return str + i;
+        }
+    }
+    return lh_null;
+}
+
+const lh_wstr_ptr
+lh_wstr_ptr_rfind_not_of_chars(const lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr chars,
+                               lh_usize_t chars_size)
+{
+    lh_assert_runtime_ref(str);
+    lh_assert_runtime_ref(chars);
+
+    /* do-while starts with i = str_size; --i would wrap on unsigned 0 */
+    lh_return_ifn(str_size, lh_null);
+    lh_usize_t i = str_size;
+    do
+    {
+        --i;
+        if (!lh_wstr_ptr_contains_char(chars, chars_size, str[i]))
+        {
+            return str + i;
+        }
+    } while (i > 0);
+    return lh_null;
+}
+
+lh_wstr_ptr
+lh_wstr_ptr_rtrim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr whitespace_chars,
+                         lh_usize_t whitespace_size)
+{
+    lh_assert_runtime_ref(str);
+    lh_assert_runtime_ref(whitespace_chars);
+
+    if (!str_size || !whitespace_size)
+    {
+        return str;
+    }
+
+    lh_usize_t end = str_size;
+    while (lh_math_is_positive(end) &&
+           lh_wstr_ptr_contains_char(whitespace_chars, whitespace_size, str[end - 1]))
+    {
+        --end;
+    }
+
+    str[end] = lh_wstr_ptr_cat_va(lh_char_map_nul);
+    return str;
+}
+
+lh_wstr_ptr
+lh_wstr_ptr_rtrim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
+                      lh_usize_t whitespace_size)
+{
+    return lh_wstr_ptr_rtrim_custom(str, lh_wstr_ptr_len(str), whitespace_chars, whitespace_size);
+}
+
+lh_wstr_ptr
+lh_wstr_ptr_rtrim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars)
+{
+    return lh_wstr_ptr_rtrim_set(str, whitespace_chars, lh_wstr_ptr_len(whitespace_chars));
+}
+
+lh_wstr_ptr
+lh_wstr_ptr_erase(lh_wstr_ptr str, lh_usize_t index)
+{
+    lh_assert_runtime_ref(str);
+    str[index] = lh_wstr_ptr_cat_va(lh_char_map_nul);
+    return str;
+}
+
+lh_wstr_ptr
+lh_wstr_ptr_clear(lh_wstr_ptr str)
+{
+    return lh_wstr_ptr_erase(str, 0);
 }
 
 lh_wstr_ptr
@@ -399,29 +449,6 @@ lh_wstr_ptr_ltrim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr
 }
 
 lh_wstr_ptr
-lh_wstr_ptr_rtrim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr whitespace_chars,
-                         lh_usize_t whitespace_size)
-{
-    lh_assert_runtime_ref(str);
-    lh_assert_runtime_ref(whitespace_chars);
-
-    if (!str_size || !whitespace_size)
-    {
-        return str;
-    }
-
-    lh_usize_t end = str_size;
-    while (lh_math_is_positive(end) &&
-           lh_wstr_ptr_contains_char(whitespace_chars, whitespace_size, str[end - 1]))
-    {
-        --end;
-    }
-
-    str[end] = lh_wstr_ptr_cat_va(lh_char_map_nul);
-    return str;
-}
-
-lh_wstr_ptr
 lh_wstr_ptr_trim_custom(lh_wstr_ptr str, lh_usize_t str_size, const lh_wstr_ptr whitespace_chars,
                         lh_usize_t whitespace_size)
 {
@@ -434,13 +461,6 @@ lh_wstr_ptr_ltrim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
                       lh_usize_t whitespace_size)
 {
     return lh_wstr_ptr_ltrim_custom(str, lh_wstr_ptr_len(str), whitespace_chars, whitespace_size);
-}
-
-lh_wstr_ptr
-lh_wstr_ptr_rtrim_set(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars,
-                      lh_usize_t whitespace_size)
-{
-    return lh_wstr_ptr_rtrim_custom(str, lh_wstr_ptr_len(str), whitespace_chars, whitespace_size);
 }
 
 lh_wstr_ptr
@@ -457,29 +477,9 @@ lh_wstr_ptr_ltrim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars)
 }
 
 lh_wstr_ptr
-lh_wstr_ptr_rtrim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars)
-{
-    return lh_wstr_ptr_rtrim_set(str, whitespace_chars, lh_wstr_ptr_len(whitespace_chars));
-}
-
-lh_wstr_ptr
 lh_wstr_ptr_trim_auto(lh_wstr_ptr str, const lh_wstr_ptr whitespace_chars)
 {
     return lh_wstr_ptr_trim_set(str, whitespace_chars, lh_wstr_ptr_len(whitespace_chars));
-}
-
-lh_wstr_ptr
-lh_wstr_ptr_erase(lh_wstr_ptr str, lh_usize_t index)
-{
-    lh_assert_runtime_ref(str);
-    str[index] = lh_wstr_ptr_cat_va(lh_char_map_nul);
-    return str;
-}
-
-lh_wstr_ptr
-lh_wstr_ptr_clear(lh_wstr_ptr str)
-{
-    return lh_wstr_ptr_erase(str, 0);
 }
 
 lh_wstr_ptr

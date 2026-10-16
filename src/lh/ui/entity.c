@@ -46,77 +46,11 @@ lh_ui_entity_set_place(lh_ui_entity_t *self, const lh_ui_place_t *place)
     self->place = *place;
 }
 
-lh_void
-lh_ui_entity_set_rect(lh_ui_entity_t *self, lh_ui_rect_t rect)
-{
-    lh_assert_runtime_ref(self);
-    /* The same rect is what a layout writes on every poll. Recording it would
-       paint the whole table to put each row back where it already is. */
-    lh_return_if(lh_ui_rect_eq(lh_addr_of(self->rect), lh_addr_of(rect)));
-    lh_ui_entity_note(self);
-    self->rect = rect;
-    lh_ui_entity_note(self);
-}
-
 const lh_ui_style_t *
 lh_ui_entity_get_style(const lh_ui_entity_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->style;
-}
-
-/** The view the tree of @p self belongs to, read off its root; may be ::lh_null. */
-static struct lh_ui_view *
-lh_ui_entity_own_view(const lh_ui_entity_t *self);
-
-lh_void
-lh_ui_entity_set_style(lh_ui_entity_t *self, const lh_ui_style_t *style)
-{
-    struct lh_ui_view *view;
-
-    lh_assert_runtime_ref(self);
-    view = lh_ui_entity_own_view(self);
-    if (lh_null_ne(view))
-    {
-        /* Already on its way there: a hover that is asked for on every move of the
-           pointer must not start the fade again on every move. */
-        lh_return_if(lh_null_ne(style) && lh_ui_view_get_transition_target(view, self) == style);
-        if (lh_null_ne(style) && lh_null_ne(self->style) && self->style != style &&
-            lh_ui_style_get_transition(style) > 0 && lh_ui_view_start_transition(view, self, style))
-        {
-            return;
-        }
-        /* At once: whatever was in flight is over, from the look it had. */
-        lh_ui_view_drop_transition(view, self);
-    }
-    lh_ui_entity_set_style_at_once(self, style);
-}
-
-lh_void
-lh_ui_entity_set_style_at_once(lh_ui_entity_t *self, const lh_ui_style_t *style)
-{
-    lh_assert_runtime_ref(self);
-    /* A shared style switched to itself is the steady state of a card that was
-       already selected. Both looks are recorded: a shadow that only the old
-       one casts would otherwise stay on the surface. */
-    lh_return_if(self->style == style);
-    lh_ui_entity_note(self);
-    self->style = style;
-    lh_ui_entity_note(self);
-}
-
-const lh_ui_color_t *
-lh_ui_entity_get_fill_color(const lh_ui_entity_t *self)
-{
-    const lh_ui_style_t *style;
-
-    lh_assert_runtime_ref(self);
-    style = lh_ui_entity_get_style_now(self);
-    if (lh_null_eq(style))
-    {
-        return lh_null;
-    }
-    return lh_ui_style_get_fill_color(style);
 }
 
 lh_bool_t
@@ -125,6 +59,10 @@ lh_ui_entity_is_pressed(const lh_ui_entity_t *self)
     lh_assert_runtime_ref(self);
     return self->pressed;
 }
+
+/** The view the tree of @p self belongs to, read off its root; may be ::lh_null. */
+static struct lh_ui_view *
+lh_ui_entity_own_view(const lh_ui_entity_t *self);
 
 lh_void
 lh_ui_entity_set_pressed(lh_ui_entity_t *self, lh_bool_t pressed)
@@ -150,6 +88,20 @@ lh_ui_entity_get_style_now(const lh_ui_entity_t *self)
         return style;
     }
     return lh_null_eq(lh_ui_style_get_pressed(style)) ? style : lh_ui_style_get_pressed(style);
+}
+
+const lh_ui_color_t *
+lh_ui_entity_get_fill_color(const lh_ui_entity_t *self)
+{
+    const lh_ui_style_t *style;
+
+    lh_assert_runtime_ref(self);
+    style = lh_ui_entity_get_style_now(self);
+    if (lh_null_eq(style))
+    {
+        return lh_null;
+    }
+    return lh_ui_style_get_fill_color(style);
 }
 
 lh_ui_scalar_t
@@ -210,55 +162,11 @@ lh_ui_entity_set_class(lh_ui_entity_t *self, const lh_ui_entity_class_t *class)
     self->class = class;
 }
 
-lh_void
-lh_ui_entity_move_by(lh_ui_entity_t *self, lh_ui_scalar_t dx, lh_ui_scalar_t dy)
-{
-    lh_ui_entity_t *child;
-
-    lh_assert_runtime_ref(self);
-    lh_return_if(dx == lh_ui_scalar(0) && dy == lh_ui_scalar(0));
-    lh_ui_entity_note(self);
-    lh_ui_rect_offset(lh_addr_of(self->rect), dx, dy, lh_addr_of(self->rect));
-    for (child = lh_ui_entity_get_first_child(self); lh_null_ne(child);
-         child = lh_ui_entity_get_next_child(self, child))
-    {
-        lh_ui_entity_move_by(child, dx, dy);
-    }
-    lh_ui_entity_note(self);
-}
-
-lh_void
-lh_ui_entity_move_to(lh_ui_entity_t *self, lh_ui_point_t origin)
-{
-    const lh_ui_point_t *from = lh_ui_rect_get_origin_as_const(lh_addr_of(self->rect));
-
-    lh_ui_entity_move_by(self, lh_ui_point_get_x(lh_addr_of(origin)) - lh_ui_point_get_x(from),
-                         lh_ui_point_get_y(lh_addr_of(origin)) - lh_ui_point_get_y(from));
-}
-
 lh_bool_t
 lh_ui_entity_is_hidden(const lh_ui_entity_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->hidden;
-}
-
-lh_void
-lh_ui_entity_set_hidden(lh_ui_entity_t *self, lh_bool_t hidden)
-{
-    lh_assert_runtime_ref(self);
-    lh_return_if(self->hidden == hidden);
-    /* Hide records the rect that is still on screen. Show records the rect
-       that is about to be: noting a hidden node is a no
-       (::lh_ui_entity_note), so the flag has to change first. */
-    if (hidden)
-    {
-        lh_ui_entity_note(self);
-        self->hidden = hidden;
-        return;
-    }
-    self->hidden = hidden;
-    lh_ui_entity_note(self);
 }
 
 /** Whether @p self and every ancestor of it are shown. */
@@ -287,50 +195,6 @@ lh_ui_entity_own_view(const lh_ui_entity_t *self)
         top = top->parent;
     }
     return top->view;
-}
-
-lh_void
-lh_ui_entity_note_rect(const lh_ui_entity_t *self, const lh_ui_rect_t *rect)
-{
-    struct lh_ui_view *view;
-    lh_ui_rect_t moved;
-    lh_ui_point_t offset;
-
-    lh_return_if(lh_null_eq(self) || lh_null_eq(rect) || lh_ui_rect_is_empty(rect));
-    lh_return_if(!lh_ui_entity_chain_shown(self));
-    view = lh_ui_entity_own_view(self);
-    lh_return_if(lh_null_eq(view));
-    lh_ui_entity_get_root_offset(self, lh_addr_of(offset));
-    lh_ui_rect_offset(rect, lh_ui_point_get_x(lh_addr_of(offset)), lh_ui_point_get_y(lh_addr_of(offset)), lh_addr_of(moved));
-    lh_ui_view_add_damage(view, lh_addr_of(moved));
-}
-
-lh_void
-lh_ui_entity_note(const lh_ui_entity_t *self)
-{
-    lh_ui_rect_t rect;
-
-    lh_return_if(lh_null_eq(self));
-    lh_return_if(!lh_ui_entity_chain_shown(self));
-    lh_ui_entity_get_painted_rect(self, lh_addr_of(rect));
-    /* A label draws past its box and on purpose (::lh_ui_label_on_children: the tail
-       of a 'p', and any text wider than the box it was given), so the box alone is
-       not what is on screen. Recording only the box left the overflow behind when the
-       text changed: "Конфигуратор" in a 38-wide crumb became "JL205" over
-       "...игуратор", and "УСТРОЙСТВА · 1" kept showing the 0 it used to end in.
-       A leaf only: a parent's measure is its children, and a scrolled pane's children
-       are the whole table. */
-    if (lh_null_eq(lh_ui_entity_get_first_child(self)))
-    {
-        lh_ui_rect_t content;
-        lh_ui_entity_get_measure_bounds(self, lh_addr_of(content));
-
-        if (!lh_ui_rect_is_empty(lh_addr_of(content)))
-        {
-            lh_ui_rect_union(lh_addr_of(rect), lh_addr_of(content), lh_addr_of(rect));
-        }
-    }
-    lh_ui_entity_note_rect(self, lh_addr_of(rect));
 }
 
 lh_ui_entity_t *
@@ -439,8 +303,6 @@ lh_ui_entity_walk_children(const lh_ui_entity_t *self, lh_ui_entity_visit_cb vis
     return all;
 }
 
-/* ── Class queries ───────────────────────────────────────────────────────── */
-
 lh_void
 lh_ui_entity_send(const lh_ui_entity_t *self, lh_ui_entity_event_code_t code, lh_ptr context)
 {
@@ -501,16 +363,6 @@ lh_ui_entity_click_target(lh_ui_entity_t *self)
     return self;
 }
 
-lh_void
-lh_ui_entity_send_pointer(const lh_ui_entity_t *self, lh_ui_entity_event_code_t code, lh_ui_point_t point)
-{
-    lh_ui_point_t local;
-
-    lh_return_if(lh_null_eq(self));
-    lh_ui_entity_to_local(self, point, lh_addr_of(local));
-    lh_ui_entity_send(self, code, lh_addr_of(local));
-}
-
 lh_ui_entity_t *
 lh_ui_entity_find_focusable(lh_ui_entity_t *self)
 {
@@ -539,7 +391,7 @@ lh_ui_entity_get_children_transform(const lh_ui_entity_t *self, lh_ui_point_t *o
     return lh_ui_entity_transform_is_clip(lh_addr_of(transform));
 }
 
-/* ── Geometry ────────────────────────────────────────────────────────────── */
+/* ── Class queries ───────────────────────────────────────────────────────── */
 
 lh_void
 lh_ui_entity_extend_bounds(const lh_ui_entity_t *self, lh_ui_rect_t bounds, lh_ui_rect_t *out)
@@ -652,6 +504,24 @@ lh_ui_entity_get_root_offset(const lh_ui_entity_t *self, lh_ui_point_t *out)
 }
 
 lh_void
+lh_ui_entity_note_rect(const lh_ui_entity_t *self, const lh_ui_rect_t *rect)
+{
+    struct lh_ui_view *view;
+    lh_ui_rect_t moved;
+    lh_ui_point_t offset;
+
+    lh_return_if(lh_null_eq(self) || lh_null_eq(rect) || lh_ui_rect_is_empty(rect));
+    lh_return_if(!lh_ui_entity_chain_shown(self));
+    view = lh_ui_entity_own_view(self);
+    lh_return_if(lh_null_eq(view));
+    lh_ui_entity_get_root_offset(self, lh_addr_of(offset));
+    lh_ui_rect_offset(rect, lh_ui_point_get_x(lh_addr_of(offset)), lh_ui_point_get_y(lh_addr_of(offset)), lh_addr_of(moved));
+    lh_ui_view_add_damage(view, lh_addr_of(moved));
+}
+
+/* ── Geometry ────────────────────────────────────────────────────────────── */
+
+lh_void
 lh_ui_entity_to_local(const lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_point_t *out)
 {
     lh_assert_runtime_ref(out);
@@ -661,6 +531,16 @@ lh_ui_entity_to_local(const lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_poi
     lh_ui_point_offset(lh_addr_of(point), -lh_ui_point_get_x(lh_addr_of(offset)),
                               -lh_ui_point_get_y(lh_addr_of(offset)), out);
     return;
+}
+
+lh_void
+lh_ui_entity_send_pointer(const lh_ui_entity_t *self, lh_ui_entity_event_code_t code, lh_ui_point_t point)
+{
+    lh_ui_point_t local;
+
+    lh_return_if(lh_null_eq(self));
+    lh_ui_entity_to_local(self, point, lh_addr_of(local));
+    lh_ui_entity_send(self, code, lh_addr_of(local));
 }
 
 lh_void
@@ -675,14 +555,52 @@ lh_ui_entity_get_root_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out)
     return;
 }
 
-/* ── Hit test ────────────────────────────────────────────────────────────── */
-
 lh_bool_t
 lh_ui_entity_is_hit(const lh_ui_entity_t *self, lh_ui_point_t point)
 {
     lh_assert_runtime_ref(self);
     lh_return_if(!lh_ui_entity_contains_point(self, point), lh_bool_false);
     return lh_ui_entity_is_shown(self);
+}
+
+lh_bool_t
+lh_ui_entity_push_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
+{
+    lh_ui_entity_transform_t transform;
+    lh_ui_rect_t rect;
+
+    lh_return_if(lh_null_eq(canvas), lh_bool_false);
+    lh_ui_entity_ask_children(self, lh_addr_of(transform));
+    lh_return_if(lh_ui_entity_transform_is_identity(lh_addr_of(transform)), lh_bool_false);
+    rect = self->rect;
+    lh_ui_point_t point;
+    lh_ui_entity_transform_get_offset(lh_addr_of(transform), lh_addr_of(point));
+    lh_ui_canvas_push_round(canvas, point,
+                            lh_ui_entity_transform_is_clip(lh_addr_of(transform)) ? lh_addr_of(rect) : lh_null,
+                            lh_ui_entity_get_radius_now(self));
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_ui_entity_is_clipping(const lh_ui_entity_t *self)
+{
+    lh_ui_point_t offset;
+
+    return lh_ui_entity_get_children_transform(self, lh_addr_of(offset));
+}
+
+lh_bool_t
+lh_ui_entity_searches_children_at(const lh_ui_entity_t *self, lh_ui_point_t point)
+{
+    lh_assert_runtime_ref(self);
+    /* The shape it is drawn and clipped with, not the shape it is hit with: a
+       clipping parent must not hand its cut corner to a child, and a plain one
+       must, because a plain parent draws children outside its rounded shape. */
+    lh_return_if(lh_ui_radius_contains(lh_addr_of(self->rect), lh_ui_entity_get_radius_now(self), point),
+                 lh_bool_true);
+    /* Outside: only children could be hit, and asking about the clip may measure content. */
+    lh_return_if(lh_null_eq(lh_ui_entity_get_first_child(self)), lh_bool_false);
+    return !lh_ui_entity_is_clipping(self) ? lh_bool_true : lh_bool_false;
 }
 
 lh_ui_entity_t *
@@ -703,18 +621,18 @@ lh_ui_entity_find_child_at(const lh_ui_entity_t *self, lh_ui_point_t point, lh_u
     return hit;
 }
 
-lh_bool_t
-lh_ui_entity_searches_children_at(const lh_ui_entity_t *self, lh_ui_point_t point)
+lh_ui_entity_t *
+lh_ui_entity_find_at_local(lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_point_t *local)
 {
-    lh_assert_runtime_ref(self);
-    /* The shape it is drawn and clipped with, not the shape it is hit with: a
-       clipping parent must not hand its cut corner to a child, and a plain one
-       must, because a plain parent draws children outside its rounded shape. */
-    lh_return_if(lh_ui_radius_contains(lh_addr_of(self->rect), lh_ui_entity_get_radius_now(self), point),
-                 lh_bool_true);
-    /* Outside: only children could be hit, and asking about the clip may measure content. */
-    lh_return_if(lh_null_eq(lh_ui_entity_get_first_child(self)), lh_bool_false);
-    return !lh_ui_entity_is_clipping(self) ? lh_bool_true : lh_bool_false;
+    lh_ui_entity_t *hit;
+
+    lh_assert_runtime_ref(local);
+    lh_return_if(!lh_ui_entity_is_shown(self), lh_null);
+    hit = lh_ui_entity_find_child_at(self, point, local);
+    lh_return_if(lh_null_ne(hit), hit);
+    lh_return_if(!lh_ui_entity_contains_point(self, point), lh_null);
+    *local = point;
+    return self;
 }
 
 lh_bool_t
@@ -730,19 +648,7 @@ lh_ui_entity_may_hit(const lh_ui_entity_t *self, lh_ui_point_t point)
     return lh_ui_entity_contains_point(self, point) || lh_ui_entity_searches_children_at(self, point);
 }
 
-lh_ui_entity_t *
-lh_ui_entity_find_at_local(lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_point_t *local)
-{
-    lh_ui_entity_t *hit;
-
-    lh_assert_runtime_ref(local);
-    lh_return_if(!lh_ui_entity_is_shown(self), lh_null);
-    hit = lh_ui_entity_find_child_at(self, point, local);
-    lh_return_if(lh_null_ne(hit), hit);
-    lh_return_if(!lh_ui_entity_contains_point(self, point), lh_null);
-    *local = point;
-    return self;
-}
+/* ── Hit test ────────────────────────────────────────────────────────────── */
 
 lh_ui_entity_t *
 lh_ui_entity_find_at(lh_ui_entity_t *self, lh_ui_point_t point)
@@ -772,34 +678,6 @@ lh_ui_entity_click(lh_ui_entity_t *self, lh_ui_point_t point)
     return target;
 }
 
-/* ── Draw ────────────────────────────────────────────────────────────────── */
-
-lh_bool_t
-lh_ui_entity_push_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
-{
-    lh_ui_entity_transform_t transform;
-    lh_ui_rect_t rect;
-
-    lh_return_if(lh_null_eq(canvas), lh_bool_false);
-    lh_ui_entity_ask_children(self, lh_addr_of(transform));
-    lh_return_if(lh_ui_entity_transform_is_identity(lh_addr_of(transform)), lh_bool_false);
-    rect = self->rect;
-    lh_ui_point_t point;
-    lh_ui_entity_transform_get_offset(lh_addr_of(transform), lh_addr_of(point));
-    lh_ui_canvas_push_round(canvas, point,
-                            lh_ui_entity_transform_is_clip(lh_addr_of(transform)) ? lh_addr_of(rect) : lh_null,
-                            lh_ui_entity_get_radius_now(self));
-    return lh_bool_true;
-}
-
-lh_bool_t
-lh_ui_entity_is_clipping(const lh_ui_entity_t *self)
-{
-    lh_ui_point_t offset;
-
-    return lh_ui_entity_get_children_transform(self, lh_addr_of(offset));
-}
-
 /* What an entity paints is not only its rect: a shadow reaches past the box of
    the thing casting it — the panel card in the demo drops one 18 rows below its own
    box — and the damage side has said so for a while (::lh_ui_view_damage_looks
@@ -820,6 +698,128 @@ lh_ui_entity_get_painted_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out)
 
     lh_ui_rect_inset(lh_addr_of(self->rect), lh_math_neg(outset), lh_math_neg(outset), out);
     return;
+}
+
+lh_void
+lh_ui_entity_note(const lh_ui_entity_t *self)
+{
+    lh_ui_rect_t rect;
+
+    lh_return_if(lh_null_eq(self));
+    lh_return_if(!lh_ui_entity_chain_shown(self));
+    lh_ui_entity_get_painted_rect(self, lh_addr_of(rect));
+    /* A label draws past its box and on purpose (::lh_ui_label_on_children: the tail
+       of a 'p', and any text wider than the box it was given), so the box alone is
+       not what is on screen. Recording only the box left the overflow behind when the
+       text changed: "Конфигуратор" in a 38-wide crumb became "JL205" over
+       "...игуратор", and "УСТРОЙСТВА · 1" kept showing the 0 it used to end in.
+       A leaf only: a parent's measure is its children, and a scrolled pane's children
+       are the whole table. */
+    if (lh_null_eq(lh_ui_entity_get_first_child(self)))
+    {
+        lh_ui_rect_t content;
+        lh_ui_entity_get_measure_bounds(self, lh_addr_of(content));
+
+        if (!lh_ui_rect_is_empty(lh_addr_of(content)))
+        {
+            lh_ui_rect_union(lh_addr_of(rect), lh_addr_of(content), lh_addr_of(rect));
+        }
+    }
+    lh_ui_entity_note_rect(self, lh_addr_of(rect));
+}
+
+lh_void
+lh_ui_entity_set_rect(lh_ui_entity_t *self, lh_ui_rect_t rect)
+{
+    lh_assert_runtime_ref(self);
+    /* The same rect is what a layout writes on every poll. Recording it would
+       paint the whole table to put each row back where it already is. */
+    lh_return_if(lh_ui_rect_eq(lh_addr_of(self->rect), lh_addr_of(rect)));
+    lh_ui_entity_note(self);
+    self->rect = rect;
+    lh_ui_entity_note(self);
+}
+
+lh_void
+lh_ui_entity_set_style_at_once(lh_ui_entity_t *self, const lh_ui_style_t *style)
+{
+    lh_assert_runtime_ref(self);
+    /* A shared style switched to itself is the steady state of a card that was
+       already selected. Both looks are recorded: a shadow that only the old
+       one casts would otherwise stay on the surface. */
+    lh_return_if(self->style == style);
+    lh_ui_entity_note(self);
+    self->style = style;
+    lh_ui_entity_note(self);
+}
+
+lh_void
+lh_ui_entity_set_style(lh_ui_entity_t *self, const lh_ui_style_t *style)
+{
+    struct lh_ui_view *view;
+
+    lh_assert_runtime_ref(self);
+    view = lh_ui_entity_own_view(self);
+    if (lh_null_ne(view))
+    {
+        /* Already on its way there: a hover that is asked for on every move of the
+           pointer must not start the fade again on every move. */
+        lh_return_if(lh_null_ne(style) && lh_ui_view_get_transition_target(view, self) == style);
+        if (lh_null_ne(style) && lh_null_ne(self->style) && self->style != style &&
+            lh_ui_style_get_transition(style) > 0 && lh_ui_view_start_transition(view, self, style))
+        {
+            return;
+        }
+        /* At once: whatever was in flight is over, from the look it had. */
+        lh_ui_view_drop_transition(view, self);
+    }
+    lh_ui_entity_set_style_at_once(self, style);
+}
+
+/* ── Draw ────────────────────────────────────────────────────────────────── */
+
+lh_void
+lh_ui_entity_move_by(lh_ui_entity_t *self, lh_ui_scalar_t dx, lh_ui_scalar_t dy)
+{
+    lh_ui_entity_t *child;
+
+    lh_assert_runtime_ref(self);
+    lh_return_if(dx == lh_ui_scalar(0) && dy == lh_ui_scalar(0));
+    lh_ui_entity_note(self);
+    lh_ui_rect_offset(lh_addr_of(self->rect), dx, dy, lh_addr_of(self->rect));
+    for (child = lh_ui_entity_get_first_child(self); lh_null_ne(child);
+         child = lh_ui_entity_get_next_child(self, child))
+    {
+        lh_ui_entity_move_by(child, dx, dy);
+    }
+    lh_ui_entity_note(self);
+}
+
+lh_void
+lh_ui_entity_move_to(lh_ui_entity_t *self, lh_ui_point_t origin)
+{
+    const lh_ui_point_t *from = lh_ui_rect_get_origin_as_const(lh_addr_of(self->rect));
+
+    lh_ui_entity_move_by(self, lh_ui_point_get_x(lh_addr_of(origin)) - lh_ui_point_get_x(from),
+                         lh_ui_point_get_y(lh_addr_of(origin)) - lh_ui_point_get_y(from));
+}
+
+lh_void
+lh_ui_entity_set_hidden(lh_ui_entity_t *self, lh_bool_t hidden)
+{
+    lh_assert_runtime_ref(self);
+    lh_return_if(self->hidden == hidden);
+    /* Hide records the rect that is still on screen. Show records the rect
+       that is about to be: noting a hidden node is a no
+       (::lh_ui_entity_note), so the flag has to change first. */
+    if (hidden)
+    {
+        lh_ui_entity_note(self);
+        self->hidden = hidden;
+        return;
+    }
+    self->hidden = hidden;
+    lh_ui_entity_note(self);
 }
 
 lh_bool_t
@@ -851,30 +851,6 @@ lh_ui_entity_shows_children_on(const lh_ui_entity_t *self, const lh_ui_canvas_t 
     /* The rect test is cheap; the clip question may measure content. */
     lh_return_if(lh_ui_entity_shows_on(self, canvas), lh_bool_true);
     return !lh_ui_entity_is_clipping(self) ? lh_bool_true : lh_bool_false;
-}
-
-lh_void
-lh_ui_entity_draw_each_child(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
-{
-    lh_ui_entity_t *child;
-
-    for (child = lh_ui_entity_get_first_child(self); lh_null_ne(child);
-         child = lh_ui_entity_get_next_child(self, child))
-    {
-        lh_ui_entity_draw(child, canvas);
-    }
-}
-
-lh_void
-lh_ui_entity_draw_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
-{
-    lh_bool_t pushed;
-
-    lh_return_if(!lh_ui_entity_shows_children_on(self, canvas));
-    pushed = lh_ui_entity_push_children(self, canvas);
-    lh_ui_entity_draw_each_child(self, canvas);
-    lh_return_if(!pushed);
-    lh_ui_canvas_pop(canvas);
 }
 
 lh_void
@@ -956,6 +932,30 @@ lh_ui_entity_draw_border(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
     lh_ui_entity_fill_edge(canvas, x, y + height - bottom, width, bottom, color);
     lh_ui_entity_fill_edge(canvas, x, y + top, left, height - top - bottom, color);
     lh_ui_entity_fill_edge(canvas, x + width - right, y + top, right, height - top - bottom, color);
+}
+
+lh_void
+lh_ui_entity_draw_each_child(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
+{
+    lh_ui_entity_t *child;
+
+    for (child = lh_ui_entity_get_first_child(self); lh_null_ne(child);
+         child = lh_ui_entity_get_next_child(self, child))
+    {
+        lh_ui_entity_draw(child, canvas);
+    }
+}
+
+lh_void
+lh_ui_entity_draw_children(const lh_ui_entity_t *self, lh_ui_canvas_t *canvas)
+{
+    lh_bool_t pushed;
+
+    lh_return_if(!lh_ui_entity_shows_children_on(self, canvas));
+    pushed = lh_ui_entity_push_children(self, canvas);
+    lh_ui_entity_draw_each_child(self, canvas);
+    lh_return_if(!pushed);
+    lh_ui_canvas_pop(canvas);
 }
 
 lh_void

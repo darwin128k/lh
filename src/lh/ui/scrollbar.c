@@ -13,51 +13,6 @@ const lh_ui_entity_class_t lh_ui_scrollbar_class = {
     lh_ui_scrollbar_event, lh_addr_of(lh_ui_entity_class)};
 
 lh_void
-lh_ui_scrollbar_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *event)
-{
-    /* The entity is the first field: self is the scrollbar. */
-    const lh_ui_scrollbar_t *scrollbar = lh_ptr_rcast(const lh_ui_scrollbar_t, self);
-
-    lh_ui_entity_class_event_base(lh_addr_of(lh_ui_scrollbar_class), self, event);
-    lh_ui_scrollbar_on_draw(scrollbar, event);
-    if (lh_ui_entity_event_get_code(event) == lh_ui_entity_event_clickable)
-    {
-        /* The thumb is drawn by this class and not by a child of its own, but the
-           answer is the same one a button gives: the pointer over a scrollbar is the
-           scrollbar's. */
-        *lh_ui_entity_event_get_clickable(event) = lh_bool_true;
-    }
-    lh_ui_scrollbar_on_click(scrollbar, event);
-    lh_ui_scrollbar_on_visible(scrollbar, event);
-}
-
-lh_void
-lh_ui_scrollbar_on_draw(const lh_ui_scrollbar_t *self, const lh_ui_entity_event_t *event)
-{
-    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_draw);
-    lh_ui_scrollbar_draw_thumb(self, lh_ui_entity_event_get_canvas(event));
-}
-
-lh_void
-lh_ui_scrollbar_on_click(const lh_ui_scrollbar_t *self, const lh_ui_entity_event_t *event)
-{
-    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_click);
-    lh_ui_point_t point;
-    lh_ui_entity_event_get_point(event, lh_addr_of(point));
-    lh_ui_scrollbar_page_toward(self, point);
-}
-
-lh_void
-lh_ui_scrollbar_on_visible(const lh_ui_scrollbar_t *self, const lh_ui_entity_event_t *event)
-{
-    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_visible);
-    lh_return_if(lh_ui_scrollbar_is_visible(self));
-    *lh_ui_entity_event_get_visible(event) = lh_bool_false;
-}
-
-/* ── Lifetime and fields ─────────────────────────────────────────────────── */
-
-lh_void
 lh_ui_scrollbar_init(lh_ui_scrollbar_t *self, lh_ui_rect_t rect, lh_ui_axis_t axis,
                             lh_ui_container_t *container)
 {
@@ -95,6 +50,8 @@ lh_ui_scrollbar_get_container(const lh_ui_scrollbar_t *self)
     return self->container;
 }
 
+/* ── Lifetime and fields ─────────────────────────────────────────────────── */
+
 lh_ui_axis_t
 lh_ui_scrollbar_get_axis(const lh_ui_scrollbar_t *self)
 {
@@ -129,8 +86,6 @@ lh_ui_scrollbar_set_thumb_style(lh_ui_scrollbar_t *self, const lh_ui_style_t *st
     lh_assert_runtime_ref(self);
     self->thumb_style = style;
 }
-
-/* ── The container on this axis ──────────────────────────────────────────── */
 
 lh_ui_scalar_t
 lh_ui_scrollbar_get_scroll(const lh_ui_scrollbar_t *self)
@@ -168,6 +123,8 @@ lh_ui_scrollbar_get_content_length(const lh_ui_scrollbar_t *self)
     return lh_ui_size_get_along(lh_addr_of(content), self->axis);
 }
 
+/* ── The container on this axis ──────────────────────────────────────────── */
+
 lh_bool_t
 lh_ui_scrollbar_is_needed(const lh_ui_scrollbar_t *self)
 {
@@ -184,7 +141,13 @@ lh_ui_scrollbar_is_visible(const lh_ui_scrollbar_t *self)
                : lh_bool_false;
 }
 
-/* ── Thumb ───────────────────────────────────────────────────────────────── */
+lh_void
+lh_ui_scrollbar_on_visible(const lh_ui_scrollbar_t *self, const lh_ui_entity_event_t *event)
+{
+    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_visible);
+    lh_return_if(lh_ui_scrollbar_is_visible(self));
+    *lh_ui_entity_event_get_visible(event) = lh_bool_false;
+}
 
 lh_ui_scalar_t
 lh_ui_scrollbar_get_track_length(const lh_ui_scrollbar_t *self)
@@ -215,6 +178,8 @@ lh_ui_scrollbar_get_thumb_start_within(const lh_ui_scrollbar_t *self, lh_ui_poin
                                     lh_ui_point_get_along(lh_addr_of(scroll), self->axis),
                                     lh_ui_point_get_along(lh_addr_of(max), self->axis));
 }
+
+/* ── Thumb ───────────────────────────────────────────────────────────────── */
 
 lh_ui_scalar_t
 lh_ui_scrollbar_get_thumb_length(const lh_ui_scrollbar_t *self)
@@ -293,6 +258,13 @@ lh_ui_scrollbar_draw_thumb(const lh_ui_scrollbar_t *self, lh_ui_canvas_t *canvas
     lh_ui_canvas_fill_round_rect(canvas, lh_addr_of(thumb), lh_ui_style_get_radius(self->thumb_style), color);
 }
 
+lh_void
+lh_ui_scrollbar_on_draw(const lh_ui_scrollbar_t *self, const lh_ui_entity_event_t *event)
+{
+    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_draw);
+    lh_ui_scrollbar_draw_thumb(self, lh_ui_entity_event_get_canvas(event));
+}
+
 lh_bool_t
 lh_ui_scrollbar_contains_thumb(const lh_ui_scrollbar_t *self, lh_ui_point_t point)
 {
@@ -308,8 +280,6 @@ lh_ui_scrollbar_set_scroll_at(lh_ui_scrollbar_t *self, lh_ui_point_t point)
 {
     lh_ui_scrollbar_set_thumb_start(self, lh_ui_scrollbar_get_thumb_start_at(self, point));
 }
-
-/* ── Paging ──────────────────────────────────────────────────────────────── */
 
 lh_ui_scalar_t
 lh_ui_scrollbar_get_page_toward(const lh_ui_scrollbar_t *self, lh_ui_point_t point)
@@ -334,6 +304,36 @@ lh_ui_scrollbar_page_toward(const lh_ui_scrollbar_t *self, lh_ui_point_t point)
                            lh_ui_scalar(0));
     lh_ui_container_scroll_by(self->container, lh_ui_point_get_x(lh_addr_of(delta)),
                                      lh_ui_point_get_y(lh_addr_of(delta)));
+}
+
+/* ── Paging ──────────────────────────────────────────────────────────────── */
+
+lh_void
+lh_ui_scrollbar_on_click(const lh_ui_scrollbar_t *self, const lh_ui_entity_event_t *event)
+{
+    lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_click);
+    lh_ui_point_t point;
+    lh_ui_entity_event_get_point(event, lh_addr_of(point));
+    lh_ui_scrollbar_page_toward(self, point);
+}
+
+lh_void
+lh_ui_scrollbar_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *event)
+{
+    /* The entity is the first field: self is the scrollbar. */
+    const lh_ui_scrollbar_t *scrollbar = lh_ptr_rcast(const lh_ui_scrollbar_t, self);
+
+    lh_ui_entity_class_event_base(lh_addr_of(lh_ui_scrollbar_class), self, event);
+    lh_ui_scrollbar_on_draw(scrollbar, event);
+    if (lh_ui_entity_event_get_code(event) == lh_ui_entity_event_clickable)
+    {
+        /* The thumb is drawn by this class and not by a child of its own, but the
+           answer is the same one a button gives: the pointer over a scrollbar is the
+           scrollbar's. */
+        *lh_ui_entity_event_get_clickable(event) = lh_bool_true;
+    }
+    lh_ui_scrollbar_on_click(scrollbar, event);
+    lh_ui_scrollbar_on_visible(scrollbar, event);
 }
 
 /* ── Finding and damage ──────────────────────────────────────────────────── */

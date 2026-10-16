@@ -21,21 +21,6 @@ lh_logger_set(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_c
 }
 
 lh_void
-lh_logger_assign(lh_logger_t *self, const lh_logger_t *other)
-{
-    lh_logger_set(self, lh_logger_get_flags(other),
-                  lh_logger_get_emit_cb(other, lh_logger_level_emergency),
-                  lh_logger_get_emit_cb(other, lh_logger_level_alert),
-                  lh_logger_get_emit_cb(other, lh_logger_level_critical),
-                  lh_logger_get_emit_cb(other, lh_logger_level_error),
-                  lh_logger_get_emit_cb(other, lh_logger_level_warning),
-                  lh_logger_get_emit_cb(other, lh_logger_level_notice),
-                  lh_logger_get_emit_cb(other, lh_logger_level_info),
-                  lh_logger_get_emit_cb(other, lh_logger_level_debug),
-                  lh_logger_get_context(other));
-}
-
-lh_void
 lh_logger_init_of(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_cb emergency_cb,
                   lh_logger_emit_cb alert_cb, lh_logger_emit_cb critical_cb,
                   lh_logger_emit_cb error_cb, lh_logger_emit_cb warning_cb,
@@ -102,6 +87,21 @@ lh_logger_get_context(const lh_logger_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->context;
+}
+
+lh_void
+lh_logger_assign(lh_logger_t *self, const lh_logger_t *other)
+{
+    lh_logger_set(self, lh_logger_get_flags(other),
+                  lh_logger_get_emit_cb(other, lh_logger_level_emergency),
+                  lh_logger_get_emit_cb(other, lh_logger_level_alert),
+                  lh_logger_get_emit_cb(other, lh_logger_level_critical),
+                  lh_logger_get_emit_cb(other, lh_logger_level_error),
+                  lh_logger_get_emit_cb(other, lh_logger_level_warning),
+                  lh_logger_get_emit_cb(other, lh_logger_level_notice),
+                  lh_logger_get_emit_cb(other, lh_logger_level_info),
+                  lh_logger_get_emit_cb(other, lh_logger_level_debug),
+                  lh_logger_get_context(other));
 }
 
 lh_ssize_t

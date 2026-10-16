@@ -40,6 +40,24 @@ lh_list_is_empty(const lh_list_t *self)
     return lh_cast_static(lh_bool_t, !lh_list_node_is_linked(lh_list_get_head_as_const(self)));
 }
 
+lh_list_node_t *
+lh_list_get_first(const lh_list_t *self)
+{
+    return lh_list_as_element(self, lh_list_node_get_next(lh_list_get_head_as_const(self)));
+}
+
+lh_list_node_t *
+lh_list_get_last(const lh_list_t *self)
+{
+    return lh_list_as_element(self, lh_list_node_get_prev(lh_list_get_head_as_const(self)));
+}
+
+lh_list_node_t *
+lh_list_get_next(const lh_list_t *self, const lh_list_node_t *node)
+{
+    return lh_list_as_element(self, lh_list_node_get_next(node));
+}
+
 lh_usize_t
 lh_list_get_size(const lh_list_t *self)
 {
@@ -54,18 +72,6 @@ lh_list_get_size(const lh_list_t *self)
 }
 
 lh_list_node_t *
-lh_list_get_first(const lh_list_t *self)
-{
-    return lh_list_as_element(self, lh_list_node_get_next(lh_list_get_head_as_const(self)));
-}
-
-lh_list_node_t *
-lh_list_get_last(const lh_list_t *self)
-{
-    return lh_list_as_element(self, lh_list_node_get_prev(lh_list_get_head_as_const(self)));
-}
-
-lh_list_node_t *
 lh_list_get_at(const lh_list_t *self, lh_uindex_t index)
 {
     lh_list_node_t *node = lh_list_get_first(self);
@@ -76,12 +82,6 @@ lh_list_get_at(const lh_list_t *self, lh_uindex_t index)
         index = lh_math_sub_one(index);
     }
     return node;
-}
-
-lh_list_node_t *
-lh_list_get_next(const lh_list_t *self, const lh_list_node_t *node)
-{
-    return lh_list_as_element(self, lh_list_node_get_next(node));
 }
 
 lh_list_node_t *

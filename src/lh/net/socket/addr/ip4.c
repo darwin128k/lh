@@ -5,35 +5,6 @@
 #include <lh/str/split/next.h>
 
 lh_void
-lh_net_ip4_socket_addr_init(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *ip,
-                            lh_net_port_t port)
-{
-    lh_net_ip4_socket_addr_set(self, ip, port);
-}
-
-lh_void
-lh_net_ip4_socket_addr_set(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *ip,
-                           lh_net_port_t port)
-{
-    lh_assert_runtime_ref(self);
-
-    lh_net_ip4_socket_addr_set_ip(self, ip);
-    lh_net_ip4_socket_addr_set_port(self, port);
-}
-
-lh_void
-lh_net_ip4_socket_addr_assign(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_socket_addr_t *other)
-{
-    lh_net_ip4_t ip;
-
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(other);
-
-    lh_net_ip4_socket_addr_get_ip(other, lh_addr_of(ip));
-    lh_net_ip4_socket_addr_set(self, lh_addr_of(ip), lh_net_ip4_socket_addr_get_port(other));
-}
-
-lh_void
 lh_net_ip4_socket_addr_get_ip(const lh_net_ip4_socket_addr_t *self, lh_net_ip4_t *out)
 {
     lh_assert_runtime_ref(out);
@@ -62,6 +33,35 @@ lh_net_ip4_socket_addr_set_port(lh_net_ip4_socket_addr_t *self, lh_net_port_t po
 {
     lh_assert_runtime_ref(self);
     self->port = port;
+}
+
+lh_void
+lh_net_ip4_socket_addr_set(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *ip,
+                           lh_net_port_t port)
+{
+    lh_assert_runtime_ref(self);
+
+    lh_net_ip4_socket_addr_set_ip(self, ip);
+    lh_net_ip4_socket_addr_set_port(self, port);
+}
+
+lh_void
+lh_net_ip4_socket_addr_init(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *ip,
+                            lh_net_port_t port)
+{
+    lh_net_ip4_socket_addr_set(self, ip, port);
+}
+
+lh_void
+lh_net_ip4_socket_addr_assign(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_socket_addr_t *other)
+{
+    lh_net_ip4_t ip;
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(other);
+
+    lh_net_ip4_socket_addr_get_ip(other, lh_addr_of(ip));
+    lh_net_ip4_socket_addr_set(self, lh_addr_of(ip), lh_net_ip4_socket_addr_get_port(other));
 }
 
 lh_bool_t

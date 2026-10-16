@@ -24,13 +24,6 @@ lh_io_dgram_writer_set(lh_io_dgram_writer_t *self, lh_io_dgram_writer_send_cb se
 }
 
 lh_void
-lh_io_dgram_writer_assign(lh_io_dgram_writer_t *self, const lh_io_dgram_writer_t *other)
-{
-    lh_io_dgram_writer_set(self, lh_io_dgram_writer_get_send_cb(other),
-                           lh_io_dgram_writer_get_context(other));
-}
-
-lh_void
 lh_io_dgram_writer_init(lh_io_dgram_writer_t *self, lh_io_dgram_writer_send_cb send_cb,
                         lh_ptr context)
 {
@@ -55,6 +48,13 @@ lh_io_dgram_writer_get_context(const lh_io_dgram_writer_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->context;
+}
+
+lh_void
+lh_io_dgram_writer_assign(lh_io_dgram_writer_t *self, const lh_io_dgram_writer_t *other)
+{
+    lh_io_dgram_writer_set(self, lh_io_dgram_writer_get_send_cb(other),
+                           lh_io_dgram_writer_get_context(other));
 }
 
 lh_ssize_t

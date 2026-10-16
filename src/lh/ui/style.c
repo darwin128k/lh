@@ -122,6 +122,45 @@ lh_ui_style_mix_paint(lh_ui_paint_t *out, const lh_ui_paint_t *from, const lh_ui
     lh_ui_paint_init_color(out, lh_addr_of(mixed));
 }
 
+const lh_ui_color_t *
+lh_ui_style_get_fill_color(const lh_ui_style_t *self)
+{
+    return lh_ui_paint_get_color(lh_ui_style_get_fill(self));
+}
+
+lh_ui_scalar_t
+lh_ui_style_get_radius(const lh_ui_style_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->radius;
+}
+
+lh_void
+lh_ui_style_set_radius(lh_ui_style_t *self, lh_ui_scalar_t radius)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_if(radius < lh_ui_scalar(0), lh_runtime_error_code_invalid_argument);
+    self->radius = radius;
+    lh_ui_radii_init_all(lh_addr_of(self->radii), radius);
+}
+
+const lh_ui_radii_t *
+lh_ui_style_get_radii(const lh_ui_style_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_addr_of(self->radii);
+}
+
+lh_void
+lh_ui_style_set_radii(lh_ui_style_t *self, const lh_ui_radii_t *radii)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(radii);
+    lh_assert_runtime_if(lh_ui_radii_get_min(radii) < lh_ui_scalar(0), lh_runtime_error_code_invalid_argument);
+    self->radii = *radii;
+    self->radius = lh_ui_radii_get_min(radii);
+}
+
 lh_void
 lh_ui_style_init_blend(lh_ui_style_t *self, const lh_ui_style_t *from, const lh_ui_style_t *to,
                        lh_u32_t weight)
@@ -191,45 +230,6 @@ lh_ui_style_init_blend(lh_ui_style_t *self, const lh_ui_style_t *from, const lh_
     }
 }
 
-const lh_ui_color_t *
-lh_ui_style_get_fill_color(const lh_ui_style_t *self)
-{
-    return lh_ui_paint_get_color(lh_ui_style_get_fill(self));
-}
-
-lh_ui_scalar_t
-lh_ui_style_get_radius(const lh_ui_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->radius;
-}
-
-lh_void
-lh_ui_style_set_radius(lh_ui_style_t *self, lh_ui_scalar_t radius)
-{
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_if(radius < lh_ui_scalar(0), lh_runtime_error_code_invalid_argument);
-    self->radius = radius;
-    lh_ui_radii_init_all(lh_addr_of(self->radii), radius);
-}
-
-const lh_ui_radii_t *
-lh_ui_style_get_radii(const lh_ui_style_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return lh_addr_of(self->radii);
-}
-
-lh_void
-lh_ui_style_set_radii(lh_ui_style_t *self, const lh_ui_radii_t *radii)
-{
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(radii);
-    lh_assert_runtime_if(lh_ui_radii_get_min(radii) < lh_ui_scalar(0), lh_runtime_error_code_invalid_argument);
-    self->radii = *radii;
-    self->radius = lh_ui_radii_get_min(radii);
-}
-
 lh_ui_scalar_t
 lh_ui_style_get_hit_radius(const lh_ui_style_t *self)
 {
@@ -253,15 +253,6 @@ lh_ui_style_get_padding(const lh_ui_style_t *self)
 }
 
 lh_void
-lh_ui_style_set_padding(lh_ui_style_t *self, lh_ui_scalar_t padding)
-{
-    lh_ui_insets_t all;
-
-    lh_ui_insets_init_all(lh_addr_of(all), padding);
-    lh_ui_style_set_padding_insets(self, lh_addr_of(all));
-}
-
-lh_void
 lh_ui_style_set_padding_insets(lh_ui_style_t *self, const lh_ui_insets_t *padding)
 {
     lh_assert_runtime_ref(self);
@@ -270,6 +261,15 @@ lh_ui_style_set_padding_insets(lh_ui_style_t *self, const lh_ui_insets_t *paddin
                              padding->right < lh_ui_scalar(0) || padding->bottom < lh_ui_scalar(0),
                          lh_runtime_error_code_invalid_argument);
     self->padding = *padding;
+}
+
+lh_void
+lh_ui_style_set_padding(lh_ui_style_t *self, lh_ui_scalar_t padding)
+{
+    lh_ui_insets_t all;
+
+    lh_ui_insets_init_all(lh_addr_of(all), padding);
+    lh_ui_style_set_padding_insets(self, lh_addr_of(all));
 }
 
 const lh_ui_font_t *

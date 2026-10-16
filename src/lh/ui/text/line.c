@@ -118,6 +118,20 @@ lh_ui_text_line_measure(lh_ui_text_line_t *self, const lh_ui_font_t *font, const
     return lh_bool_true;
 }
 
+const lh_char_t *
+lh_ui_text_line_get_begin(const lh_ui_text_line_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->begin;
+}
+
+const lh_char_t *
+lh_ui_text_line_get_end(const lh_ui_text_line_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->end;
+}
+
 lh_void
 lh_ui_text_line_measure_ink(lh_ui_text_line_t *self, const lh_ui_font_t *font)
 {
@@ -140,20 +154,6 @@ lh_ui_text_line_measure_ink(lh_ui_text_line_t *self, const lh_ui_font_t *font)
             lh_ui_text_line_take_ink(self, font, index);
         }
     }
-}
-
-const lh_char_t *
-lh_ui_text_line_get_begin(const lh_ui_text_line_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->begin;
-}
-
-const lh_char_t *
-lh_ui_text_line_get_end(const lh_ui_text_line_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->end;
 }
 
 const lh_char_t *

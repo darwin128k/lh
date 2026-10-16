@@ -8,38 +8,6 @@
 #include <lh/util/return.h>
 
 lh_void
-lh_ui_view_init(lh_ui_view_t *self)
-{
-    int i;
-
-    lh_assert_runtime_ref(self);
-    self->canvas = lh_null;
-    self->root = lh_null;
-    self->clear = lh_null;
-    self->strip_height = lh_ui_scalar(0);
-    self->scrolling = lh_null;
-    self->throwing = lh_null;
-    self->focus = lh_null;
-    self->whole_count = 0;
-    lh_ui_rect_init_empty(lh_addr_of(self->pending));
-    self->has_pending = lh_bool_false;
-    lh_ui_point_init(lh_addr_of(self->velocity), lh_ui_scalar(0), lh_ui_scalar(0));
-    lh_ui_view_reset_pointer(self);
-    for (i = 0; i < LH_UI_VIEW_TRANSITION_MAX; ++i)
-    {
-        lh_ui_transition_init(lh_addr_of(self->transitions[i]));
-    }
-}
-
-lh_void
-lh_ui_view_deinit(lh_ui_view_t *self)
-{
-    /* Every entity in flight points into this view's slots: they land first. */
-    lh_ui_view_finish_transitions(self, lh_null);
-    lh_ui_view_init(self);
-}
-
-lh_void
 lh_ui_view_set_canvas(lh_ui_view_t *self, lh_ui_canvas_t *canvas)
 {
     lh_assert_runtime_ref(self);
@@ -51,35 +19,6 @@ lh_ui_view_get_canvas(const lh_ui_view_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->canvas;
-}
-
-lh_void
-lh_ui_view_set_root(lh_ui_view_t *self, lh_ui_entity_t *root)
-{
-    lh_ui_entity_t *top;
-
-    lh_assert_runtime_ref(self);
-    /* The tree that leaves takes its looks with it, landed: its entities must not
-       point into a view that no longer holds them. */
-    if (self->root != root)
-    {
-        lh_ui_view_finish_transitions(self, lh_null);
-    }
-    /* The pointer lives on the top of the tree, which is where a setter walks
-       to find this view. A root that is itself parented still records on the
-       top, or the walk would stop one short of it. */
-    if (lh_null_ne(self->root) && self->root->view == self)
-    {
-        self->root->view = lh_null;
-    }
-    self->root = root;
-    lh_return_if(lh_null_eq(root));
-    top = root;
-    while (lh_null_ne(top->parent))
-    {
-        top = top->parent;
-    }
-    top->view = self;
 }
 
 lh_void
@@ -131,14 +70,6 @@ lh_ui_view_get_clear(const lh_ui_view_t *self)
 }
 
 lh_void
-lh_ui_view_paint(lh_ui_view_t *self)
-{
-    lh_ui_view_draw(self, lh_null);
-}
-
-/* ── Draw ────────────────────────────────────────────────────────────────── */
-
-lh_void
 lh_ui_view_fit_canvas(lh_ui_view_t *self)
 {
     lh_ui_rect_t rect;
@@ -180,6 +111,8 @@ lh_ui_view_draw_frame(lh_ui_view_t *self, const lh_ui_rect_t *damage)
     lh_ui_canvas_pop(self->canvas);
     lh_ui_canvas_end(self->canvas);
 }
+
+/* ── Draw ────────────────────────────────────────────────────────────────── */
 
 lh_void
 lh_ui_view_set_strip_height(lh_ui_view_t *self, lh_ui_scalar_t height)
@@ -243,6 +176,60 @@ lh_ui_view_draw_frame_on(lh_ui_view_t *self, const lh_ui_rect_t *area, const lh_
     lh_ui_canvas_end(self->canvas);
 }
 
+lh_bool_t
+lh_ui_view_add_whole_area(lh_ui_view_t *self, const lh_ui_rect_t *rect)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(rect);
+    lh_return_if(lh_ui_rect_is_empty(rect), lh_bool_false);
+    lh_return_if(self->whole_count >= LH_UI_VIEW_WHOLE_MAX, lh_bool_false);
+    self->whole[self->whole_count] = *rect;
+    ++self->whole_count;
+    return lh_bool_true;
+}
+
+lh_void
+lh_ui_view_clear_whole_areas(lh_ui_view_t *self)
+{
+    lh_assert_runtime_ref(self);
+    self->whole_count = 0;
+}
+
+lh_void
+lh_ui_view_area_whole(const lh_ui_view_t *self, const lh_ui_rect_t *area, const lh_ui_rect_t *reach, lh_ui_rect_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_ui_size_t size;
+    lh_ui_canvas_get_size(self->canvas, lh_addr_of(size));
+    lh_ui_rect_t target;
+    lh_ui_rect_t grown;
+    lh_u32_t i;
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(reach);
+    lh_ui_rect_init(lh_addr_of(target), 0, 0, lh_ui_size_get_width(lh_addr_of(size)),
+                    lh_ui_size_get_height(lh_addr_of(size)));
+    /* ::lh_null is the whole target, the way ::lh_ui_canvas_damage_in reads it:
+       the damage of a frame is that when nothing was said. */
+    if (lh_null_eq(area))
+    {
+        grown = target;
+    }
+    else
+    {
+        lh_ui_rect_intersection(area, lh_addr_of(target), lh_addr_of(grown));
+    }
+    for (i = 0; i < self->whole_count; ++i)
+    {
+        if (lh_ui_rect_intersects(reach, lh_addr_of(self->whole[i])))
+        {
+            lh_ui_rect_union(lh_addr_of(grown), lh_addr_of(self->whole[i]), lh_addr_of(grown));
+        }
+    }
+    lh_ui_rect_intersection(lh_addr_of(grown), lh_addr_of(target), out);
+    return;
+}
+
 lh_void
 lh_ui_view_draw_strips(lh_ui_view_t *self, const lh_ui_rect_t *damage)
 {
@@ -300,60 +287,6 @@ lh_ui_view_draw_strips(lh_ui_view_t *self, const lh_ui_rect_t *damage)
     }
 }
 
-lh_bool_t
-lh_ui_view_add_whole_area(lh_ui_view_t *self, const lh_ui_rect_t *rect)
-{
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(rect);
-    lh_return_if(lh_ui_rect_is_empty(rect), lh_bool_false);
-    lh_return_if(self->whole_count >= LH_UI_VIEW_WHOLE_MAX, lh_bool_false);
-    self->whole[self->whole_count] = *rect;
-    ++self->whole_count;
-    return lh_bool_true;
-}
-
-lh_void
-lh_ui_view_clear_whole_areas(lh_ui_view_t *self)
-{
-    lh_assert_runtime_ref(self);
-    self->whole_count = 0;
-}
-
-lh_void
-lh_ui_view_area_whole(const lh_ui_view_t *self, const lh_ui_rect_t *area, const lh_ui_rect_t *reach, lh_ui_rect_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_ui_size_t size;
-    lh_ui_canvas_get_size(self->canvas, lh_addr_of(size));
-    lh_ui_rect_t target;
-    lh_ui_rect_t grown;
-    lh_u32_t i;
-
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(reach);
-    lh_ui_rect_init(lh_addr_of(target), 0, 0, lh_ui_size_get_width(lh_addr_of(size)),
-                    lh_ui_size_get_height(lh_addr_of(size)));
-    /* ::lh_null is the whole target, the way ::lh_ui_canvas_damage_in reads it:
-       the damage of a frame is that when nothing was said. */
-    if (lh_null_eq(area))
-    {
-        grown = target;
-    }
-    else
-    {
-        lh_ui_rect_intersection(area, lh_addr_of(target), lh_addr_of(grown));
-    }
-    for (i = 0; i < self->whole_count; ++i)
-    {
-        if (lh_ui_rect_intersects(reach, lh_addr_of(self->whole[i])))
-        {
-            lh_ui_rect_union(lh_addr_of(grown), lh_addr_of(self->whole[i]), lh_addr_of(grown));
-        }
-    }
-    lh_ui_rect_intersection(lh_addr_of(grown), lh_addr_of(target), out);
-    return;
-}
-
 lh_void
 lh_ui_view_draw(lh_ui_view_t *self, const lh_ui_rect_t *damage)
 {
@@ -372,7 +305,11 @@ lh_ui_view_draw(lh_ui_view_t *self, const lh_ui_rect_t *damage)
     lh_ui_canvas_reset_damage(self->canvas);
 }
 
-/* ── Hit and click ───────────────────────────────────────────────────────── */
+lh_void
+lh_ui_view_paint(lh_ui_view_t *self)
+{
+    lh_ui_view_draw(self, lh_null);
+}
 
 lh_ui_entity_t *
 lh_ui_view_hit_test(lh_ui_view_t *self, lh_ui_point_t point)
@@ -380,54 +317,6 @@ lh_ui_view_hit_test(lh_ui_view_t *self, lh_ui_point_t point)
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(self->root), lh_null);
     return lh_ui_entity_find_at(self->root, point);
-}
-
-lh_ui_entity_t *
-lh_ui_view_click(lh_ui_view_t *self, lh_ui_point_t point)
-{
-    lh_assert_runtime_ref(self);
-    lh_return_if(lh_null_eq(self->root), lh_null);
-    return lh_ui_view_click_scrolling(
-        self, lh_ui_scrollbar_get_driven(lh_ui_view_hit_test(self, point)), point);
-}
-
-/** A click may change what the thing clicked looks like — a toggle flips, a row
-   re-styles itself — and it happens after the release damaged the looks the
-   target had then. So the target is damaged once more, now: the same rect, and
-   the union grows only as far as the *new* look reaches. One rect union per
-   click, and no extra pixels unless a look really did reach further. */
-static lh_ui_entity_t *
-lh_ui_view_click_plain(lh_ui_view_t *self, lh_ui_point_t point)
-{
-    lh_ui_entity_t *clicked = lh_ui_entity_click(self->root, point);
-
-    lh_ui_view_damage_shape(self, clicked);
-    return clicked;
-}
-
-lh_ui_entity_t *
-lh_ui_view_click_scrolling(lh_ui_view_t *self, lh_ui_container_t *box, lh_ui_point_t point)
-{
-    lh_ui_point_t before;
-    lh_ui_entity_t *clicked;
-
-    lh_return_if(lh_null_eq(box), lh_ui_view_click_plain(self, point));
-    lh_ui_container_get_scroll(box, lh_addr_of(before));
-    clicked = lh_ui_view_click_plain(self, point);
-    (void)lh_ui_view_damage_scroll(self, box, before);
-    lh_ui_view_end_scroll(self);
-    return clicked;
-}
-
-/* ── Scroll gestures ─────────────────────────────────────────────────────── */
-
-lh_void
-lh_ui_view_begin_scroll(lh_ui_view_t *self, lh_ui_container_t *box)
-{
-    lh_return_if(self->scrolling == box);
-    lh_ui_view_end_scroll(self);
-    self->scrolling = box;
-    lh_ui_entity_send(lh_ui_container_as_entity(box), lh_ui_entity_event_scroll_begin, lh_null);
 }
 
 lh_void
@@ -439,6 +328,17 @@ lh_ui_view_end_scroll(lh_ui_view_t *self)
     self->scrolling = lh_null;
     lh_ui_entity_send(lh_ui_container_as_entity(box), lh_ui_entity_event_scroll_end, lh_null);
 }
+
+lh_void
+lh_ui_view_begin_scroll(lh_ui_view_t *self, lh_ui_container_t *box)
+{
+    lh_return_if(self->scrolling == box);
+    lh_ui_view_end_scroll(self);
+    self->scrolling = box;
+    lh_ui_entity_send(lh_ui_container_as_entity(box), lh_ui_entity_event_scroll_begin, lh_null);
+}
+
+/* ── Hit and click ───────────────────────────────────────────────────────── */
 
 lh_bool_t
 lh_ui_view_damage_scroll(lh_ui_view_t *self, lh_ui_container_t *box, lh_ui_point_t before)
@@ -489,20 +389,6 @@ lh_ui_view_scroll_by(lh_ui_view_t *self, lh_ui_container_t *box, lh_ui_scalar_t 
 }
 
 lh_bool_t
-lh_ui_view_wheel(lh_ui_view_t *self, lh_ui_point_t point, lh_ui_scalar_t dx, lh_ui_scalar_t dy)
-{
-    lh_bool_t changed;
-
-    lh_ui_view_stop_throw(self);
-    changed = lh_ui_view_scroll_by(self, lh_ui_scrollbar_find_scrolled(lh_ui_view_hit_test(self, point)),
-                                   dx, dy);
-    lh_ui_view_end_scroll(self);
-    return changed;
-}
-
-/* ── Throw ───────────────────────────────────────────────────────────────── */
-
-lh_bool_t
 lh_ui_view_is_slow(lh_ui_point_t velocity, lh_ui_scalar_t limit)
 {
     return lh_math_abs(lh_ui_point_get_x(lh_addr_of(velocity))) < limit &&
@@ -519,6 +405,20 @@ lh_ui_view_stop_throw(lh_ui_view_t *self)
     lh_return_if(lh_null_eq(self->throwing));
     self->throwing = lh_null;
     lh_ui_view_end_scroll(self);
+}
+
+/* ── Scroll gestures ─────────────────────────────────────────────────────── */
+
+lh_bool_t
+lh_ui_view_wheel(lh_ui_view_t *self, lh_ui_point_t point, lh_ui_scalar_t dx, lh_ui_scalar_t dy)
+{
+    lh_bool_t changed;
+
+    lh_ui_view_stop_throw(self);
+    changed = lh_ui_view_scroll_by(self, lh_ui_scrollbar_find_scrolled(lh_ui_view_hit_test(self, point)),
+                                   dx, dy);
+    lh_ui_view_end_scroll(self);
+    return changed;
 }
 
 lh_void
@@ -539,26 +439,6 @@ lh_ui_view_is_gliding(const lh_ui_view_t *self)
     return lh_null_ne(self->throwing) ? lh_bool_true : lh_bool_false;
 }
 
-lh_bool_t
-lh_ui_view_tick(lh_ui_view_t *self)
-{
-    lh_bool_t moved;
-
-    lh_bool_t faded;
-
-    lh_assert_runtime_ref(self);
-    /* Looks first, whether or not anything glides: a frame that only fades is a
-       frame to paint. */
-    faded = lh_ui_view_advance(self, LH_UI_VIEW_FRAME_MS);
-    lh_return_if(lh_null_eq(self->throwing), faded);
-    lh_ui_view_slow_down(self->velocity, lh_addr_of(self->velocity));
-    moved = lh_ui_view_scroll_by(self, self->throwing, lh_ui_point_get_x(lh_addr_of(self->velocity)),
-                                 lh_ui_point_get_y(lh_addr_of(self->velocity)));
-    lh_return_if(moved && !lh_ui_view_is_slow(self->velocity, lh_ui_scalar(1)), lh_bool_true);
-    lh_ui_view_stop_throw(self);
-    return moved ? lh_bool_true : faded;
-}
-
 lh_void
 lh_ui_view_slow_down(lh_ui_point_t velocity, lh_ui_point_t *out)
 {
@@ -571,8 +451,6 @@ lh_ui_view_slow_down(lh_ui_point_t velocity, lh_ui_point_t *out)
     return;
 }
 
-/* ── Pointer session ─────────────────────────────────────────────────────── */
-
 lh_void
 lh_ui_view_reset_pointer(lh_ui_view_t *self)
 {
@@ -583,6 +461,32 @@ lh_ui_view_reset_pointer(lh_ui_view_t *self)
     self->dragged = lh_bool_false;
     self->target = lh_null;
     self->drag = lh_null;
+}
+
+/* ── Throw ───────────────────────────────────────────────────────────────── */
+
+lh_void
+lh_ui_view_init(lh_ui_view_t *self)
+{
+    int i;
+
+    lh_assert_runtime_ref(self);
+    self->canvas = lh_null;
+    self->root = lh_null;
+    self->clear = lh_null;
+    self->strip_height = lh_ui_scalar(0);
+    self->scrolling = lh_null;
+    self->throwing = lh_null;
+    self->focus = lh_null;
+    self->whole_count = 0;
+    lh_ui_rect_init_empty(lh_addr_of(self->pending));
+    self->has_pending = lh_bool_false;
+    lh_ui_point_init(lh_addr_of(self->velocity), lh_ui_scalar(0), lh_ui_scalar(0));
+    lh_ui_view_reset_pointer(self);
+    for (i = 0; i < LH_UI_VIEW_TRANSITION_MAX; ++i)
+    {
+        lh_ui_transition_init(lh_addr_of(self->transitions[i]));
+    }
 }
 
 lh_ui_scalar_t
@@ -613,44 +517,6 @@ lh_ui_view_get_drag_box(lh_ui_entity_t *hit)
 {
     lh_return_if(lh_null_ne(lh_ui_entity_as_scrollbar(hit)), lh_null);
     return lh_ui_entity_find_container(hit);
-}
-
-lh_void
-lh_ui_view_start_pointer(lh_ui_view_t *self, lh_ui_point_t point)
-{
-    lh_ui_view_stop_throw(self);
-    /* A press still open when a new one starts (a second pointer down, or an
-       app that went away without a release) is let go rather than left pressed
-       under nothing — that is the one way a pressed look could stick. */
-    lh_ui_view_set_pressed(self, self->target, lh_bool_false);
-    lh_ui_view_reset_pointer(self);
-    self->pressed = lh_bool_true;
-    self->press_point = point;
-    self->last_point = point;
-}
-
-lh_void
-lh_ui_view_press_on(lh_ui_view_t *self, lh_ui_entity_t *hit, lh_ui_point_t point)
-{
-    self->target = hit;
-    /* Pressed is the entity's own state and this is the one place that sets it:
-       a press is a look (::lh_ui_entity_get_style_now), so it has to be paired
-       with the rect it changed, or the picture keeps the old look until
-       something else draws. The rect is ::lh_ui_view_take_damage's. */
-    lh_ui_view_set_pressed(self, hit, lh_bool_true);
-    lh_ui_entity_send_pointer(hit, lh_ui_entity_event_press, point);
-    lh_ui_view_set_focus(self, lh_ui_entity_find_focusable(hit));
-    lh_ui_view_grab_thumb(self, lh_ui_entity_as_scrollbar(hit), point);
-    self->drag = lh_null_eq(self->grab) ? lh_ui_view_get_drag_box(hit) : lh_null;
-}
-
-lh_void
-lh_ui_view_set_pressed(lh_ui_view_t *self, lh_ui_entity_t *entity, lh_bool_t pressed)
-{
-    lh_assert_runtime_ref(self);
-    lh_return_if(lh_null_eq(entity) || lh_ui_entity_is_pressed(entity) == pressed);
-    lh_ui_view_damage_shape(self, entity);
-    lh_ui_entity_set_pressed(entity, pressed);
 }
 
 /** The rect plus whichever of two looks reaches further with its shadow. Both
@@ -703,6 +569,68 @@ lh_ui_view_damage_shape(lh_ui_view_t *self, const lh_ui_entity_t *entity)
     lh_ui_view_damage_looks(self, entity, style, lh_null_eq(style) ? lh_null : lh_ui_style_get_pressed(style));
 }
 
+/* ── Pointer session ─────────────────────────────────────────────────────── */
+
+/** A click may change what the thing clicked looks like — a toggle flips, a row
+   re-styles itself — and it happens after the release damaged the looks the
+   target had then. So the target is damaged once more, now: the same rect, and
+   the union grows only as far as the *new* look reaches. One rect union per
+   click, and no extra pixels unless a look really did reach further. */
+static lh_ui_entity_t *
+lh_ui_view_click_plain(lh_ui_view_t *self, lh_ui_point_t point)
+{
+    lh_ui_entity_t *clicked = lh_ui_entity_click(self->root, point);
+
+    lh_ui_view_damage_shape(self, clicked);
+    return clicked;
+}
+
+lh_ui_entity_t *
+lh_ui_view_click_scrolling(lh_ui_view_t *self, lh_ui_container_t *box, lh_ui_point_t point)
+{
+    lh_ui_point_t before;
+    lh_ui_entity_t *clicked;
+
+    lh_return_if(lh_null_eq(box), lh_ui_view_click_plain(self, point));
+    lh_ui_container_get_scroll(box, lh_addr_of(before));
+    clicked = lh_ui_view_click_plain(self, point);
+    (void)lh_ui_view_damage_scroll(self, box, before);
+    lh_ui_view_end_scroll(self);
+    return clicked;
+}
+
+lh_ui_entity_t *
+lh_ui_view_click(lh_ui_view_t *self, lh_ui_point_t point)
+{
+    lh_assert_runtime_ref(self);
+    lh_return_if(lh_null_eq(self->root), lh_null);
+    return lh_ui_view_click_scrolling(
+        self, lh_ui_scrollbar_get_driven(lh_ui_view_hit_test(self, point)), point);
+}
+
+lh_void
+lh_ui_view_set_pressed(lh_ui_view_t *self, lh_ui_entity_t *entity, lh_bool_t pressed)
+{
+    lh_assert_runtime_ref(self);
+    lh_return_if(lh_null_eq(entity) || lh_ui_entity_is_pressed(entity) == pressed);
+    lh_ui_view_damage_shape(self, entity);
+    lh_ui_entity_set_pressed(entity, pressed);
+}
+
+lh_void
+lh_ui_view_start_pointer(lh_ui_view_t *self, lh_ui_point_t point)
+{
+    lh_ui_view_stop_throw(self);
+    /* A press still open when a new one starts (a second pointer down, or an
+       app that went away without a release) is let go rather than left pressed
+       under nothing — that is the one way a pressed look could stick. */
+    lh_ui_view_set_pressed(self, self->target, lh_bool_false);
+    lh_ui_view_reset_pointer(self);
+    self->pressed = lh_bool_true;
+    self->press_point = point;
+    self->last_point = point;
+}
+
 lh_void
 lh_ui_view_set_hot(lh_ui_view_t *self, lh_ui_button_t *button, lh_bool_t hot)
 {
@@ -714,15 +642,6 @@ lh_ui_view_set_hot(lh_ui_view_t *self, lh_ui_button_t *button, lh_bool_t hot)
     lh_ui_view_damage_looks(self, lh_ui_button_as_entity(button), lh_ui_button_get_style(button),
                             lh_ui_button_get_hot_style(button));
     lh_ui_button_set_hot(button, hot);
-}
-
-lh_void
-lh_ui_view_press(lh_ui_view_t *self, lh_ui_point_t point)
-{
-    lh_ui_view_start_pointer(self, point);
-    /* Pressing is clicking: what the pointer went down on is the thing that takes
-       the pointer, not whatever is painted under it. */
-    lh_ui_view_press_on(self, lh_ui_entity_click_target(lh_ui_view_hit_test(self, point)), point);
 }
 
 lh_bool_t
@@ -814,8 +733,6 @@ lh_ui_view_release(lh_ui_view_t *self, lh_ui_point_t point)
     return lh_ui_view_click(self, point);
 }
 
-/* ── Focus and keys ──────────────────────────────────────────────────────── */
-
 lh_ui_entity_t *
 lh_ui_view_get_focus(const lh_ui_view_t *self)
 {
@@ -837,6 +754,30 @@ lh_ui_view_set_focus(lh_ui_view_t *self, lh_ui_entity_t *entity)
     lh_ui_entity_send(entity, lh_ui_entity_event_focus, lh_null);
 }
 
+lh_void
+lh_ui_view_press_on(lh_ui_view_t *self, lh_ui_entity_t *hit, lh_ui_point_t point)
+{
+    self->target = hit;
+    /* Pressed is the entity's own state and this is the one place that sets it:
+       a press is a look (::lh_ui_entity_get_style_now), so it has to be paired
+       with the rect it changed, or the picture keeps the old look until
+       something else draws. The rect is ::lh_ui_view_take_damage's. */
+    lh_ui_view_set_pressed(self, hit, lh_bool_true);
+    lh_ui_entity_send_pointer(hit, lh_ui_entity_event_press, point);
+    lh_ui_view_set_focus(self, lh_ui_entity_find_focusable(hit));
+    lh_ui_view_grab_thumb(self, lh_ui_entity_as_scrollbar(hit), point);
+    self->drag = lh_null_eq(self->grab) ? lh_ui_view_get_drag_box(hit) : lh_null;
+}
+
+lh_void
+lh_ui_view_press(lh_ui_view_t *self, lh_ui_point_t point)
+{
+    lh_ui_view_start_pointer(self, point);
+    /* Pressing is clicking: what the pointer went down on is the thing that takes
+       the pointer, not whatever is painted under it. */
+    lh_ui_view_press_on(self, lh_ui_entity_click_target(lh_ui_view_hit_test(self, point)), point);
+}
+
 lh_bool_t
 lh_ui_view_visit_focus(const lh_ui_entity_t *entity, lh_ptr context)
 {
@@ -851,6 +792,8 @@ lh_ui_view_visit_focus(const lh_ui_entity_t *entity, lh_ptr context)
     walk->passed = entity == walk->current ? lh_bool_true : walk->passed;
     return lh_bool_true;
 }
+
+/* ── Focus and keys ──────────────────────────────────────────────────────── */
 
 lh_ui_entity_t *
 lh_ui_view_get_next_focus(const lh_ui_view_t *self)
@@ -909,8 +852,6 @@ lh_ui_view_text(lh_ui_view_t *self, lh_u32_t code)
     return lh_ui_view_send_input(self, lh_addr_of(input));
 }
 
-/* ── Transitions ──────────────────────────────────────────────────────────── */
-
 /** The slot @p entity is in flight in, or ::lh_null. */
 static lh_ui_transition_t *
 lh_ui_view_slot_of(const lh_ui_view_t *self, const lh_ui_entity_t *entity)
@@ -963,6 +904,8 @@ lh_ui_view_start_transition(lh_ui_view_t *self, lh_ui_entity_t *entity, const lh
     return lh_bool_true;
 }
 
+/* ── Transitions ──────────────────────────────────────────────────────────── */
+
 const lh_ui_style_t *
 lh_ui_view_get_transition_target(const lh_ui_view_t *self, const lh_ui_entity_t *entity)
 {
@@ -1013,6 +956,43 @@ lh_ui_view_finish_transitions(lh_ui_view_t *self, const lh_ui_entity_t *subtree)
     }
 }
 
+lh_void
+lh_ui_view_deinit(lh_ui_view_t *self)
+{
+    /* Every entity in flight points into this view's slots: they land first. */
+    lh_ui_view_finish_transitions(self, lh_null);
+    lh_ui_view_init(self);
+}
+
+lh_void
+lh_ui_view_set_root(lh_ui_view_t *self, lh_ui_entity_t *root)
+{
+    lh_ui_entity_t *top;
+
+    lh_assert_runtime_ref(self);
+    /* The tree that leaves takes its looks with it, landed: its entities must not
+       point into a view that no longer holds them. */
+    if (self->root != root)
+    {
+        lh_ui_view_finish_transitions(self, lh_null);
+    }
+    /* The pointer lives on the top of the tree, which is where a setter walks
+       to find this view. A root that is itself parented still records on the
+       top, or the walk would stop one short of it. */
+    if (lh_null_ne(self->root) && self->root->view == self)
+    {
+        self->root->view = lh_null;
+    }
+    self->root = root;
+    lh_return_if(lh_null_eq(root));
+    top = root;
+    while (lh_null_ne(top->parent))
+    {
+        top = top->parent;
+    }
+    top->view = self;
+}
+
 lh_bool_t
 lh_ui_view_advance(lh_ui_view_t *self, lh_u16_t ms)
 {
@@ -1041,4 +1021,24 @@ lh_ui_view_advance(lh_ui_view_t *self, lh_u16_t ms)
         lh_ui_entity_note(entity);
     }
     return moved;
+}
+
+lh_bool_t
+lh_ui_view_tick(lh_ui_view_t *self)
+{
+    lh_bool_t moved;
+
+    lh_bool_t faded;
+
+    lh_assert_runtime_ref(self);
+    /* Looks first, whether or not anything glides: a frame that only fades is a
+       frame to paint. */
+    faded = lh_ui_view_advance(self, LH_UI_VIEW_FRAME_MS);
+    lh_return_if(lh_null_eq(self->throwing), faded);
+    lh_ui_view_slow_down(self->velocity, lh_addr_of(self->velocity));
+    moved = lh_ui_view_scroll_by(self, self->throwing, lh_ui_point_get_x(lh_addr_of(self->velocity)),
+                                 lh_ui_point_get_y(lh_addr_of(self->velocity)));
+    lh_return_if(moved && !lh_ui_view_is_slow(self->velocity, lh_ui_scalar(1)), lh_bool_true);
+    lh_ui_view_stop_throw(self);
+    return moved ? lh_bool_true : faded;
 }

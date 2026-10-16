@@ -596,147 +596,6 @@ lh_os_system_posix_is_repeat(const lh_os_system_posix_xevent_t *release)
                : lh_bool_false;
 }
 
-/** Hand one X event to the window it is for. */
-static lh_void
-lh_os_system_posix_dispatch(lh_os_system_posix_xevent_t *event)
-{
-    lh_os_system_posix_window_t *self = lh_os_system_posix_window_find_xid(event->any.window);
-
-    lh_return_if(lh_null_eq(self));
-    switch (event->type)
-    {
-    case LH_OS_SYSTEM_POSIX_X_EXPOSE:
-        lh_os_system_posix_window_damage(self, event->expose.x, event->expose.y,
-                                         event->expose.x + event->expose.width,
-                                         event->expose.y + event->expose.height);
-        return;
-    case LH_OS_SYSTEM_POSIX_X_CONFIGURE_NOTIFY:
-        if (event->configure.configured == self->window &&
-            (event->configure.width != self->width || event->configure.height != self->height))
-        {
-            self->width = event->configure.width;
-            self->height = event->configure.height;
-            if (self->backing != LH_OS_SYSTEM_POSIX_X_NONE)
-            {
-                lh_os_system_posix_window_back(self);
-            }
-            /* A window of another size is drawn again whole, as a Windows class
-               with CS_HREDRAW | CS_VREDRAW is. */
-            lh_os_system_posix_window_damage(self, 0, 0, self->width, self->height);
-            lh_os_system_posix_window_cut(self);
-            lh_os_window_on_native_resize(self->user, self->width, self->height, self->maximized);
-        }
-        return;
-    case LH_OS_SYSTEM_POSIX_X_PROPERTY_NOTIFY:
-        if (event->property.atom == lh_os_system_posix_atom_net_wm_state)
-        {
-            const lh_bool_t maximized = lh_os_system_posix_window_read_maximized(self);
-
-            if (maximized != self->maximized)
-            {
-                self->maximized = maximized;
-                lh_os_system_posix_window_cut(self);
-                lh_os_window_on_native_resize(self->user, self->width, self->height, maximized);
-            }
-        }
-        return;
-    case LH_OS_SYSTEM_POSIX_X_CLIENT_MESSAGE:
-        if (event->client.message_type == lh_os_system_posix_atom_wm_protocols &&
-            lh_cast_static(lh_os_system_posix_xid_t, event->client.data[0])== lh_os_system_posix_atom_wm_delete_window)
-        {
-            /* The close button of the window manager's frame. On Windows this is
-               WM_CLOSE, which with no handler destroys the window -- and the
-               portable layer learns about it the same way, from the destroy. */
-            lh_os_system_window_close(self);
-        }
-        return;
-    default:
-        break;
-    }
-
-    /* Input. A window disabled for a modal child of its own gets none, as a
-       disabled window on Windows gets none. */
-    lh_return_if(!self->enabled);
-    switch (event->type)
-    {
-    case LH_OS_SYSTEM_POSIX_X_BUTTON_PRESS:
-        switch (event->button.button)
-        {
-        case LH_OS_SYSTEM_POSIX_X_BUTTON_LEFT:
-            if (!lh_os_system_posix_window_begin_moveresize(
-                    self, lh_os_window_zone_at(self->user, event->button.x, event->button.y), event->button.x_root,
-                    event->button.y_root))
-            {
-                lh_os_window_on_native_press(self->user, event->button.x, event->button.y);
-            }
-            return;
-        case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_UP:
-        case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_DOWN:
-        {
-            /* One notch is one step, up is positive, and Shift turns the wheel
-               sideways -- the same three rules as the Windows backend. */
-            const int step = event->button.button == LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_UP ? 1 : -1;
-
-            if ((event->button.state & LH_OS_SYSTEM_POSIX_X_SHIFT_MASK) != 0U)
-            {
-                lh_os_window_on_native_wheel(self->user, event->button.x, event->button.y, step, 0);
-                return;
-            }
-            lh_os_window_on_native_wheel(self->user, event->button.x, event->button.y, 0, step);
-            return;
-        }
-        case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_LEFT:
-        case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_RIGHT:
-            lh_os_window_on_native_wheel(self->user, event->button.x, event->button.y,
-                                         event->button.button == LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_LEFT ? 1 : -1, 0);
-            return;
-        default:
-            return;
-        }
-    case LH_OS_SYSTEM_POSIX_X_BUTTON_RELEASE:
-        if (event->button.button == LH_OS_SYSTEM_POSIX_X_BUTTON_LEFT)
-        {
-            lh_os_window_on_native_release(self->user, event->button.x, event->button.y);
-        }
-        return;
-    case LH_OS_SYSTEM_POSIX_X_MOTION_NOTIFY:
-        lh_os_window_on_native_move(self->user, event->motion.x, event->motion.y);
-        return;
-    case LH_OS_SYSTEM_POSIX_X_KEY_PRESS:
-    case LH_OS_SYSTEM_POSIX_X_KEY_RELEASE:
-    {
-        char text[8];
-        lh_os_system_posix_xid_t keysym = LH_OS_SYSTEM_POSIX_X_NONE;
-        const lh_bool_t pressed = event->type == LH_OS_SYSTEM_POSIX_X_KEY_PRESS ? lh_bool_true : lh_bool_false;
-
-        if (!pressed && lh_os_system_posix_is_repeat(event))
-        {
-            return;
-        }
-        /* The keysym with the layout and Shift applied: what the key means now. */
-        (void)lh_os_system_posix_x->XLookupString(lh_addr_of(event->key), text, lh_cast_static(int, sizeof(text)),
-                                                  lh_addr_of(keysym), lh_null);
-        lh_os_window_on_native_key(self->user, lh_os_system_posix_key_from_keysym(keysym), pressed);
-        /* Text only from a press, and not from a chord: Ctrl+C is a command, and
-           Windows sends no WM_CHAR for Alt+key either. The window may have gone in
-           the key callback, so it is looked up again. */
-        if (pressed && (event->key.state & (LH_OS_SYSTEM_POSIX_X_CONTROL_MASK | LH_OS_SYSTEM_POSIX_X_MOD1_MASK)) == 0U &&
-            lh_null_ne(lh_os_system_posix_window_find_xid(event->any.window)))
-        {
-            const lh_u32_t code = lh_os_system_posix_text_from_keysym(keysym);
-
-            if (code != 0U)
-            {
-                lh_os_window_on_native_text(self->user, code);
-            }
-        }
-        return;
-    }
-    default:
-        return;
-    }
-}
-
 /** Whether the top-left corner of the window is anywhere a person could see it. */
 static lh_bool_t
 lh_os_system_posix_window_is_placed(const lh_os_system_posix_window_t *self)
@@ -1109,6 +968,147 @@ lh_os_system_window_close(lh_os_system_window_handle_t handle)
     if (lh_null_ne(user) && user->handle == handle)
     {
         lh_os_window_on_native_destroy(user);
+    }
+}
+
+/** Hand one X event to the window it is for. */
+static lh_void
+lh_os_system_posix_dispatch(lh_os_system_posix_xevent_t *event)
+{
+    lh_os_system_posix_window_t *self = lh_os_system_posix_window_find_xid(event->any.window);
+
+    lh_return_if(lh_null_eq(self));
+    switch (event->type)
+    {
+    case LH_OS_SYSTEM_POSIX_X_EXPOSE:
+        lh_os_system_posix_window_damage(self, event->expose.x, event->expose.y,
+                                         event->expose.x + event->expose.width,
+                                         event->expose.y + event->expose.height);
+        return;
+    case LH_OS_SYSTEM_POSIX_X_CONFIGURE_NOTIFY:
+        if (event->configure.configured == self->window &&
+            (event->configure.width != self->width || event->configure.height != self->height))
+        {
+            self->width = event->configure.width;
+            self->height = event->configure.height;
+            if (self->backing != LH_OS_SYSTEM_POSIX_X_NONE)
+            {
+                lh_os_system_posix_window_back(self);
+            }
+            /* A window of another size is drawn again whole, as a Windows class
+               with CS_HREDRAW | CS_VREDRAW is. */
+            lh_os_system_posix_window_damage(self, 0, 0, self->width, self->height);
+            lh_os_system_posix_window_cut(self);
+            lh_os_window_on_native_resize(self->user, self->width, self->height, self->maximized);
+        }
+        return;
+    case LH_OS_SYSTEM_POSIX_X_PROPERTY_NOTIFY:
+        if (event->property.atom == lh_os_system_posix_atom_net_wm_state)
+        {
+            const lh_bool_t maximized = lh_os_system_posix_window_read_maximized(self);
+
+            if (maximized != self->maximized)
+            {
+                self->maximized = maximized;
+                lh_os_system_posix_window_cut(self);
+                lh_os_window_on_native_resize(self->user, self->width, self->height, maximized);
+            }
+        }
+        return;
+    case LH_OS_SYSTEM_POSIX_X_CLIENT_MESSAGE:
+        if (event->client.message_type == lh_os_system_posix_atom_wm_protocols &&
+            lh_cast_static(lh_os_system_posix_xid_t, event->client.data[0])== lh_os_system_posix_atom_wm_delete_window)
+        {
+            /* The close button of the window manager's frame. On Windows this is
+               WM_CLOSE, which with no handler destroys the window -- and the
+               portable layer learns about it the same way, from the destroy. */
+            lh_os_system_window_close(self);
+        }
+        return;
+    default:
+        break;
+    }
+
+    /* Input. A window disabled for a modal child of its own gets none, as a
+       disabled window on Windows gets none. */
+    lh_return_if(!self->enabled);
+    switch (event->type)
+    {
+    case LH_OS_SYSTEM_POSIX_X_BUTTON_PRESS:
+        switch (event->button.button)
+        {
+        case LH_OS_SYSTEM_POSIX_X_BUTTON_LEFT:
+            if (!lh_os_system_posix_window_begin_moveresize(
+                    self, lh_os_window_zone_at(self->user, event->button.x, event->button.y), event->button.x_root,
+                    event->button.y_root))
+            {
+                lh_os_window_on_native_press(self->user, event->button.x, event->button.y);
+            }
+            return;
+        case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_UP:
+        case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_DOWN:
+        {
+            /* One notch is one step, up is positive, and Shift turns the wheel
+               sideways -- the same three rules as the Windows backend. */
+            const int step = event->button.button == LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_UP ? 1 : -1;
+
+            if ((event->button.state & LH_OS_SYSTEM_POSIX_X_SHIFT_MASK) != 0U)
+            {
+                lh_os_window_on_native_wheel(self->user, event->button.x, event->button.y, step, 0);
+                return;
+            }
+            lh_os_window_on_native_wheel(self->user, event->button.x, event->button.y, 0, step);
+            return;
+        }
+        case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_LEFT:
+        case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_RIGHT:
+            lh_os_window_on_native_wheel(self->user, event->button.x, event->button.y,
+                                         event->button.button == LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_LEFT ? 1 : -1, 0);
+            return;
+        default:
+            return;
+        }
+    case LH_OS_SYSTEM_POSIX_X_BUTTON_RELEASE:
+        if (event->button.button == LH_OS_SYSTEM_POSIX_X_BUTTON_LEFT)
+        {
+            lh_os_window_on_native_release(self->user, event->button.x, event->button.y);
+        }
+        return;
+    case LH_OS_SYSTEM_POSIX_X_MOTION_NOTIFY:
+        lh_os_window_on_native_move(self->user, event->motion.x, event->motion.y);
+        return;
+    case LH_OS_SYSTEM_POSIX_X_KEY_PRESS:
+    case LH_OS_SYSTEM_POSIX_X_KEY_RELEASE:
+    {
+        char text[8];
+        lh_os_system_posix_xid_t keysym = LH_OS_SYSTEM_POSIX_X_NONE;
+        const lh_bool_t pressed = event->type == LH_OS_SYSTEM_POSIX_X_KEY_PRESS ? lh_bool_true : lh_bool_false;
+
+        if (!pressed && lh_os_system_posix_is_repeat(event))
+        {
+            return;
+        }
+        /* The keysym with the layout and Shift applied: what the key means now. */
+        (void)lh_os_system_posix_x->XLookupString(lh_addr_of(event->key), text, lh_cast_static(int, sizeof(text)),
+                                                  lh_addr_of(keysym), lh_null);
+        lh_os_window_on_native_key(self->user, lh_os_system_posix_key_from_keysym(keysym), pressed);
+        /* Text only from a press, and not from a chord: Ctrl+C is a command, and
+           Windows sends no WM_CHAR for Alt+key either. The window may have gone in
+           the key callback, so it is looked up again. */
+        if (pressed && (event->key.state & (LH_OS_SYSTEM_POSIX_X_CONTROL_MASK | LH_OS_SYSTEM_POSIX_X_MOD1_MASK)) == 0U &&
+            lh_null_ne(lh_os_system_posix_window_find_xid(event->any.window)))
+        {
+            const lh_u32_t code = lh_os_system_posix_text_from_keysym(keysym);
+
+            if (code != 0U)
+            {
+                lh_os_window_on_native_text(self->user, code);
+            }
+        }
+        return;
+    }
+    default:
+        return;
     }
 }
 

@@ -72,28 +72,17 @@ lh_ui_rects_waste(const lh_ui_rect_t *a, const lh_ui_rect_t *b)
 }
 
 lh_void
-lh_ui_rects_add(lh_ui_rects_t *self, const lh_ui_rect_t *rect)
+lh_ui_rects_drop(lh_ui_rects_t *self, lh_u32_t index)
 {
-    lh_assert_runtime_ref(self);
-    lh_assert_runtime_ref(rect);
-    lh_return_if(lh_ui_rect_is_empty(rect));
-    if (self->count >= lh_cast_static(lh_u32_t, LH_UI_RECTS_MAX))
-    {
-        lh_ui_rects_squeeze(self, rect);
-        return;
-    }
-    self->rects[self->count] = *rect;
-    ++self->count;
-    lh_ui_rects_close(self);
-}
+    lh_u32_t i;
 
-lh_void
-lh_ui_rects_close(lh_ui_rects_t *self)
-{
     lh_assert_runtime_ref(self);
-    while (lh_ui_rects_join_once(self))
+    lh_return_if(index >= self->count);
+    for (i = index; i + 1u < self->count; ++i)
     {
+        self->rects[i] = self->rects[i + 1u];
     }
+    --self->count;
 }
 
 lh_bool_t
@@ -120,17 +109,12 @@ lh_ui_rects_join_once(lh_ui_rects_t *self)
 }
 
 lh_void
-lh_ui_rects_drop(lh_ui_rects_t *self, lh_u32_t index)
+lh_ui_rects_close(lh_ui_rects_t *self)
 {
-    lh_u32_t i;
-
     lh_assert_runtime_ref(self);
-    lh_return_if(index >= self->count);
-    for (i = index; i + 1u < self->count; ++i)
+    while (lh_ui_rects_join_once(self))
     {
-        self->rects[i] = self->rects[i + 1u];
     }
-    --self->count;
 }
 
 lh_void
@@ -152,5 +136,21 @@ lh_ui_rects_squeeze(lh_ui_rects_t *self, const lh_ui_rect_t *rect)
         }
     }
     lh_ui_rect_union(lh_addr_of(self->rects[cheapest]), rect, lh_addr_of(self->rects[cheapest]));
+    lh_ui_rects_close(self);
+}
+
+lh_void
+lh_ui_rects_add(lh_ui_rects_t *self, const lh_ui_rect_t *rect)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(rect);
+    lh_return_if(lh_ui_rect_is_empty(rect));
+    if (self->count >= lh_cast_static(lh_u32_t, LH_UI_RECTS_MAX))
+    {
+        lh_ui_rects_squeeze(self, rect);
+        return;
+    }
+    self->rects[self->count] = *rect;
+    ++self->count;
     lh_ui_rects_close(self);
 }

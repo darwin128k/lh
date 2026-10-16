@@ -338,51 +338,6 @@ lh_os_window_invalidate_rect(lh_os_window_t *self, int left, int top, int right,
 }
 
 lh_void
-lh_os_window_close(lh_os_window_t *self)
-{
-    lh_os_window_t *child;
-
-    lh_assert_runtime_ref(self);
-    /* The timer stops with the window, and not on the way out of the native one alone:
-       a window that is closed and reopened from the same struct must not come back with
-       the timer it had before, ticking into an app that has already put the session
-       away. The native side kills it on destroy; this makes the **period** zero too, so
-       an open that follows is not a window that starts ticking by itself. */
-    if (lh_os_system_window_is_valid(self->handle))
-    {
-        lh_os_system_window_set_timer(self->handle, 0U);
-    }
-    self->tick_ms = 0U;
-    for (;;)
-    {
-        child = lh_os_window_get_first_child(self);
-        if (lh_null_eq(child))
-        {
-            break;
-        }
-        lh_os_window_close(child);
-    }
-    if (lh_os_system_window_is_valid(self->handle))
-    {
-        self->closing = lh_bool_true;
-        lh_os_system_window_close(self->handle);
-    }
-    if (lh_null_ne(self->handle) || lh_list_node_is_linked(lh_addr_of(self->link)))
-    {
-        lh_os_window_on_native_destroy(self);
-    }
-}
-
-lh_void
-lh_os_window_deinit(lh_os_window_t *self)
-{
-    lh_assert_runtime_ref(self);
-    lh_os_window_close(self);
-    self->on_close = lh_null;
-    self->on_close_context = lh_null;
-}
-
-lh_void
 lh_os_window_set_frame(lh_os_window_t *self, lh_os_window_frame_t frame)
 {
     lh_assert_runtime_ref(self);
@@ -695,4 +650,49 @@ lh_os_window_on_native_destroy(lh_os_window_t *self)
             lh_os_app_quit(app);
         }
     }
+}
+
+lh_void
+lh_os_window_close(lh_os_window_t *self)
+{
+    lh_os_window_t *child;
+
+    lh_assert_runtime_ref(self);
+    /* The timer stops with the window, and not on the way out of the native one alone:
+       a window that is closed and reopened from the same struct must not come back with
+       the timer it had before, ticking into an app that has already put the session
+       away. The native side kills it on destroy; this makes the **period** zero too, so
+       an open that follows is not a window that starts ticking by itself. */
+    if (lh_os_system_window_is_valid(self->handle))
+    {
+        lh_os_system_window_set_timer(self->handle, 0U);
+    }
+    self->tick_ms = 0U;
+    for (;;)
+    {
+        child = lh_os_window_get_first_child(self);
+        if (lh_null_eq(child))
+        {
+            break;
+        }
+        lh_os_window_close(child);
+    }
+    if (lh_os_system_window_is_valid(self->handle))
+    {
+        self->closing = lh_bool_true;
+        lh_os_system_window_close(self->handle);
+    }
+    if (lh_null_ne(self->handle) || lh_list_node_is_linked(lh_addr_of(self->link)))
+    {
+        lh_os_window_on_native_destroy(self);
+    }
+}
+
+lh_void
+lh_os_window_deinit(lh_os_window_t *self)
+{
+    lh_assert_runtime_ref(self);
+    lh_os_window_close(self);
+    self->on_close = lh_null;
+    self->on_close_context = lh_null;
 }

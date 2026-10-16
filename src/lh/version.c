@@ -33,13 +33,6 @@ lh_version_set(lh_version_t *self, lh_version_major_t major, lh_version_minor_t 
     lh_version_set_patch(self, patch);
 }
 
-lh_void
-lh_version_assign(lh_version_t *self, const lh_version_t *other)
-{
-    lh_version_set(self, lh_version_get_major(other), lh_version_get_minor(other),
-                   lh_version_get_patch(other));
-}
-
 lh_version_major_t
 lh_version_get_major(const lh_version_t *self)
 {
@@ -59,6 +52,13 @@ lh_version_get_patch(const lh_version_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->patch;
+}
+
+lh_void
+lh_version_assign(lh_version_t *self, const lh_version_t *other)
+{
+    lh_version_set(self, lh_version_get_major(other), lh_version_get_minor(other),
+                   lh_version_get_patch(other));
 }
 
 lh_bool_t

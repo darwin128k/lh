@@ -20,31 +20,6 @@ lh_os_app_init(lh_os_app_t *self)
     self->quit = lh_bool_false;
 }
 
-lh_void
-lh_os_app_deinit(lh_os_app_t *self)
-{
-    lh_os_window_t *window;
-
-    lh_assert_runtime_ref(self);
-    for (;;)
-    {
-        window = lh_os_app_get_first_window(self);
-        if (lh_null_eq(window))
-        {
-            break;
-        }
-        lh_os_window_close(window);
-    }
-    lh_timer_group_deinit(lh_addr_of(self->timers));
-    self->quit = lh_bool_false;
-}
-
-lh_os_window_t *
-lh_os_app_get_window(const lh_os_app_t *self)
-{
-    return lh_os_app_get_first_window(self);
-}
-
 lh_timer_group_t *
 lh_os_app_get_timers(lh_os_app_t *self)
 {
@@ -72,6 +47,31 @@ lh_os_app_get_first_window(const lh_os_app_t *self)
 {
     lh_assert_runtime_ref(self);
     return lh_list_entry(lh_os_window_t, link, lh_list_get_first(lh_addr_of(self->windows)));
+}
+
+lh_void
+lh_os_app_deinit(lh_os_app_t *self)
+{
+    lh_os_window_t *window;
+
+    lh_assert_runtime_ref(self);
+    for (;;)
+    {
+        window = lh_os_app_get_first_window(self);
+        if (lh_null_eq(window))
+        {
+            break;
+        }
+        lh_os_window_close(window);
+    }
+    lh_timer_group_deinit(lh_addr_of(self->timers));
+    self->quit = lh_bool_false;
+}
+
+lh_os_window_t *
+lh_os_app_get_window(const lh_os_app_t *self)
+{
+    return lh_os_app_get_first_window(self);
 }
 
 /** @copydoc lh_os_app_get_next_window(const lh_os_app_t *, const struct lh_os_window *) */

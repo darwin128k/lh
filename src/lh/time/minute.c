@@ -23,6 +23,13 @@ lh_time_minute_init(lh_time_minute_t *self, lh_time_minute_t value)
     *self = value;
 }
 
+lh_time_minute_t
+lh_time_minute_get(const lh_time_minute_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return *self;
+}
+
 lh_uint_t
 lh_time_minute_add(lh_time_minute_t *self, lh_uint_t value)
 {
@@ -45,13 +52,6 @@ lh_time_minute_sub(lh_time_minute_t *self, lh_uint_t value)
                                            lh_cast_static(lh_ullong_t, LH_TIME_MINUTE_MAX));
     *self = lh_cast_static(lh_time_minute_t, cur);
     return overflow;
-}
-
-lh_time_minute_t
-lh_time_minute_get(const lh_time_minute_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return *self;
 }
 
 lh_bool_t

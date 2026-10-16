@@ -15,15 +15,6 @@
 /* ── Lifetime ────────────────────────────────────────────────────────────── */
 
 lh_void
-lh_ui_canvas_sw_init(lh_ui_canvas_sw_t *self)
-{
-    lh_ui_pixmap_t empty;
-
-    lh_ui_pixmap_init_empty(lh_addr_of(empty));
-    lh_ui_canvas_sw_set_pixmap(self, lh_addr_of(empty));
-}
-
-lh_void
 lh_ui_canvas_sw_set_pixmap(lh_ui_canvas_sw_t *self, const lh_ui_pixmap_t *pixmap)
 {
     lh_assert_runtime_ref(self);
@@ -31,6 +22,15 @@ lh_ui_canvas_sw_set_pixmap(lh_ui_canvas_sw_t *self, const lh_ui_pixmap_t *pixmap
     self->pixmap = *pixmap;
     lh_ui_pixmap_get_bounds(pixmap, lh_addr_of(self->limit));
     lh_ui_canvas_clip_init_empty(lh_addr_of(self->clip));
+}
+
+lh_void
+lh_ui_canvas_sw_init(lh_ui_canvas_sw_t *self)
+{
+    lh_ui_pixmap_t empty;
+
+    lh_ui_pixmap_init_empty(lh_addr_of(empty));
+    lh_ui_canvas_sw_set_pixmap(self, lh_addr_of(empty));
 }
 
 const lh_ui_pixmap_t *
@@ -202,16 +202,6 @@ lh_ui_canvas_sw_cover_run(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_
 }
 
 lh_void
-lh_ui_canvas_sw_cover_span(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0,
-                           lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
-{
-    struct lh_ui_radius_run run;
-
-    lh_ui_radius_run_init(lh_addr_of(run), rect, radius);
-    lh_ui_canvas_sw_cover_span_run(self, lh_addr_of(run), x0, x1, y, color);
-}
-
-lh_void
 lh_ui_canvas_sw_cover_span_run(lh_ui_canvas_sw_t *self, const struct lh_ui_radius_run *run, lh_s32_t x0, lh_s32_t x1,
                                lh_s32_t y, const lh_ui_color_t *color)
 {
@@ -223,6 +213,16 @@ lh_ui_canvas_sw_cover_span_run(lh_ui_canvas_sw_t *self, const struct lh_ui_radiu
         end = lh_math_min(x1, x0 + LH_UI_PIXMAP_RUN);
         lh_ui_canvas_sw_cover_run_row(self, run, x0, end, y, color);
     }
+}
+
+lh_void
+lh_ui_canvas_sw_cover_span(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0,
+                           lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
+{
+    struct lh_ui_radius_run run;
+
+    lh_ui_radius_run_init(lh_addr_of(run), rect, radius);
+    lh_ui_canvas_sw_cover_span_run(self, lh_addr_of(run), x0, x1, y, color);
 }
 
 lh_void
