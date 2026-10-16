@@ -167,14 +167,14 @@ if "%GENERATOR%"=="" (
     cmake -S "%REPO_ROOT%" -B "%BUILD_PATH%" ^
         "-DCMAKE_BUILD_TYPE=%CONFIG%" ^
         "-DCMAKE_SYSTEM_VERSION=%SYSTEM_VERSION%" ^
-        "-DLH_WINVER=%WINVER_HEX%" ^
+        "-DLH_OS_WINDOWS_VERSION=%WINVER_HEX%" ^
         "-DLH_BUILD_DOCS=%DOCS%" ^
         "-DLH_BUILD_TESTS=%TESTS%"
 ) else (
     cmake -S "%REPO_ROOT%" -B "%BUILD_PATH%" -G "%GENERATOR%" ^
         "-DCMAKE_BUILD_TYPE=%CONFIG%" ^
         "-DCMAKE_SYSTEM_VERSION=%SYSTEM_VERSION%" ^
-        "-DLH_WINVER=%WINVER_HEX%" ^
+        "-DLH_OS_WINDOWS_VERSION=%WINVER_HEX%" ^
         "-DLH_BUILD_DOCS=%DOCS%" ^
         "-DLH_BUILD_TESTS=%TESTS%"
 )
