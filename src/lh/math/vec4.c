@@ -142,7 +142,6 @@ lh_math_vec4_madd(lh_math_vec4_t a, lh_math_vec4_t b, lh_float_t s, lh_math_vec4
                       lh_math_vec4_get_y(lh_addr_of(a)) + lh_math_vec4_get_y(lh_addr_of(b)) * s,
                       lh_math_vec4_get_z(lh_addr_of(a)) + lh_math_vec4_get_z(lh_addr_of(b)) * s,
                       lh_math_vec4_get_w(lh_addr_of(a)) + lh_math_vec4_get_w(lh_addr_of(b)) * s);
-    return;
 }
 
 lh_void

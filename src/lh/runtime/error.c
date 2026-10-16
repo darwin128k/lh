@@ -30,14 +30,12 @@ lh_void
 lh_runtime_error_get_desc(const lh_runtime_error_t *self, lh_str_view_t *out)
 {
     lh_error_get_desc(lh_ptr_ccast(lh_error_t, self), out);
-    return;
 }
 
 lh_void
 lh_runtime_error_get_desc_or(const lh_runtime_error_t *self, lh_str_view_t fallback, lh_str_view_t *out)
 {
     lh_error_get_desc_or(lh_ptr_ccast(lh_error_t, self), fallback, out);
-    return;
 }
 
 lh_bool_t

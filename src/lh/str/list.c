@@ -52,7 +52,6 @@ lh_str_list_get_span(const lh_str_list_t *self, lh_uindex_t index, lh_str_list_s
     lh_assert_runtime_ref(out);
     lh_ptr_deref(out) = lh_ptr_deref(
         lh_ptr_cast(const lh_str_list_span_t, lh_array_get_ptr(lh_str_list_get_spans_as_const(self), index)));
-    return;
 }
 
 lh_void

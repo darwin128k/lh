@@ -252,7 +252,6 @@ lh_ui_text_get_line_ink_rect(const lh_ui_font_t *font, const lh_char_t *line, lh
     (void)lh_ui_text_line_measure(lh_addr_of(laid), font, line, lh_ui_scalar(0));
     lh_ui_text_line_measure_ink(lh_addr_of(laid), font);
     lh_ui_text_line_get_ink_rect(lh_addr_of(laid), origin, out);
-    return;
 }
 
 lh_ui_scalar_t
@@ -318,7 +317,6 @@ lh_void
 lh_ui_text_get_ink_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin, lh_ui_rect_t *out)
 {
     lh_ui_text_get_ink_rect_wrapped(font, text, origin, lh_ui_scalar(0), lh_ui_text_align_h_left, out);
-    return;
 }
 
 lh_void
@@ -329,21 +327,18 @@ lh_ui_text_get_size_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_
 
     lh_ui_text_block_measure(lh_addr_of(block), font, text, width);
     lh_ui_text_block_get_size(lh_addr_of(block), font, out);
-    return;
 }
 
 lh_void
 lh_ui_text_get_size(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_size_t *out)
 {
     lh_ui_text_get_size_wrapped(font, text, lh_ui_scalar(0), out);
-    return;
 }
 
 lh_void
 lh_ui_text_get_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin, lh_ui_rect_t *out)
 {
     lh_ui_text_get_ink_rect(font, text, origin, out);
-    return;
 }
 
 lh_void

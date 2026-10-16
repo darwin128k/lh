@@ -112,7 +112,6 @@ lh_math_rect_from_min_max(lh_math_scalar_t x_min, lh_math_scalar_t y_min,
     lh_math_point_init(lh_addr_of(min), x_min, y_min);
     lh_math_point_init(lh_addr_of(max), x_max, y_max);
     lh_math_rect_from_extent(lh_addr_of(min), lh_addr_of(max), out);
-    return;
 }
 
 lh_void
@@ -121,7 +120,6 @@ lh_math_rect_far(const lh_math_rect_t *self, lh_math_point_t *out)
     lh_assert_runtime_ref(self);
     lh_math_point_offset_size(lh_math_rect_get_origin_as_const(self),
                                      lh_math_rect_get_size_as_const(self), out);
-    return;
 }
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
@@ -203,7 +201,6 @@ lh_math_rect_origin_min(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_mat
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
     lh_math_point_min(lh_math_rect_get_origin_as_const(a), lh_math_rect_get_origin_as_const(b), out);
-    return;
 }
 
 lh_void
@@ -212,7 +209,6 @@ lh_math_rect_origin_max(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_mat
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
     lh_math_point_max(lh_math_rect_get_origin_as_const(a), lh_math_rect_get_origin_as_const(b), out);
-    return;
 }
 
 lh_void
@@ -226,7 +222,6 @@ lh_math_rect_far_min(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_math_p
     lh_math_rect_far(a, lh_addr_of(far_a));
     lh_math_rect_far(b, lh_addr_of(far_b));
     lh_math_point_min(lh_addr_of(far_a), lh_addr_of(far_b), out);
-    return;
 }
 
 lh_void
@@ -240,7 +235,6 @@ lh_math_rect_far_max(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_math_p
     lh_math_rect_far(a, lh_addr_of(far_a));
     lh_math_rect_far(b, lh_addr_of(far_b));
     lh_math_point_max(lh_addr_of(far_a), lh_addr_of(far_b), out);
-    return;
 }
 
 lh_void

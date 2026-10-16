@@ -43,7 +43,6 @@ lh_wstr_view_from_offset(const lh_wstr_view_t *self, lh_uoffset_t offset, lh_usi
     /* Memory views count bytes; wide views count characters. */
     lh_memory_view_from_offset(self, lh_math_mul(offset, lh_cast_static(lh_uoffset_t, LH_WCHAR_T_SIZE)),
         lh_math_mul(size, lh_cast_static(lh_usize_t, LH_WCHAR_T_SIZE)), out);
-    return;
 }
 
 lh_wstr_cptr

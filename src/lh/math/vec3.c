@@ -76,7 +76,6 @@ lh_void
 lh_math_vec2_to_vec3_z0(lh_math_vec2_t v, lh_math_vec3_t *out)
 {
     lh_math_vec2_to_vec3(v, 0.0f, out);
-    return;
 }
 
 lh_void
@@ -130,7 +129,6 @@ lh_math_vec3_madd(lh_math_vec3_t a, lh_math_vec3_t b, lh_float_t s, lh_math_vec3
                       lh_math_vec3_get_x(lh_addr_of(a)) + lh_math_vec3_get_x(lh_addr_of(b)) * s,
                       lh_math_vec3_get_y(lh_addr_of(a)) + lh_math_vec3_get_y(lh_addr_of(b)) * s,
                       lh_math_vec3_get_z(lh_addr_of(a)) + lh_math_vec3_get_z(lh_addr_of(b)) * s);
-    return;
 }
 
 lh_void

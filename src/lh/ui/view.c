@@ -226,7 +226,6 @@ lh_ui_view_area_whole(const lh_ui_view_t *self, const lh_ui_rect_t *area, const 
         }
     }
     lh_ui_rect_intersection(lh_addr_of(grown), lh_addr_of(target), out);
-    return;
 }
 
 lh_void

@@ -89,7 +89,6 @@ lh_fs_path_get_rest(const lh_fs_path_t *self, lh_str_view_t *out)
     lh_str_as_view(lh_fs_path_get_text(self), lh_addr_of(text));
     lh_str_view_tail(lh_addr_of(text),
                                  lh_fs_path_root_len(lh_fs_path_get_root_kind(self)), out);
-    return;
 }
 
 lh_void
