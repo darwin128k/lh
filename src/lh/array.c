@@ -1,4 +1,5 @@
 #include <lh/array.h>
+#include <lh/byte/ptr.h>
 #include <lh/memory.h>
 #include <lh/math.h>
 #include <lh/util/return.h>

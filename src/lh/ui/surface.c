@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/surface.h`.
  */
 
+#include <lh/byte/ptr.h>
 #include <lh/os/system/surface.h>
 #include <lh/ui/surface.h>
 #include <lh/util/return.h>

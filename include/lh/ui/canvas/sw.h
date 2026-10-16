@@ -23,6 +23,7 @@
 #ifndef LH_UI_CANVAS_SW_H
 #define LH_UI_CANVAS_SW_H
 
+#include <lh/byte/ptr.h>
 #include <lh/ui/canvas.h>
 #include <lh/ui/canvas/sw/fields.h>
 #include <lh/ui/pixmap.h>

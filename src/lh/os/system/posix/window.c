@@ -15,6 +15,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/byte/ptr.h>
 #include <lh/memory.h>
 #include <lh/os/alloc.h>
 #include <lh/os/system/posix/connection.h>

@@ -1,4 +1,5 @@
 #include <lh/crypto/rijndael.h>
+#include <lh/byte/ptr.h>
 #include <lh/compiler/unreachable.h>
 #include <lh/memory/std.h>
 #include <lh/bit/endian.h>

@@ -8,6 +8,7 @@
 
 #include <lh/ui/web/page.h>
 
+#include <lh/byte/ptr.h>
 #include <lh/ui/web/html.h>
 #include <lh/ui/web/js.h>
 #include <lh/ui/web/js/x.h>

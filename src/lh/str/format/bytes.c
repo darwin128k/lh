@@ -1,5 +1,6 @@
 #include <lh/str/format/bytes.h>
 #include <lh/attribute/static.h>
+#include <lh/byte/ptr.h>
 #include <lh/char/xdigit.h>
 #include <lh/math.h>
 

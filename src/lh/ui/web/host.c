@@ -4,6 +4,7 @@
  */
 
 #include <lh/ui/web/host.h>
+#include <lh/byte/ptr.h>
 #include <lh/ui/web/page.h>
 #include <lh/ui/web/ws.h>
 

@@ -1,4 +1,5 @@
 #include <lh/crypto/sha.h>
+#include <lh/byte/ptr.h>
 #include <lh/memory/std.h>
 #include <lh/bit/endian.h>
 #include <lh/bit/rotate.h>

@@ -5,6 +5,7 @@
 
 #include <lh/net/modbus.h>
 
+#include <lh/byte/ptr.h>
 #include <lh/memory/std.h>
 #include <lh/util/return.h>
 

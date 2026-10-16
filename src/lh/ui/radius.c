@@ -6,6 +6,7 @@
  * the same code for the integer and the float scalar, so it needs no FPU.
  */
 
+#include <lh/byte/ptr.h>
 #include <lh/math.h>
 #include <lh/memory.h>
 #include <lh/ui/radius.h>
