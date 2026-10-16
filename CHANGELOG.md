@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Third-party notices in `LICENSE.md` with license texts in `LICENSES/` (`Apache-2.0.txt` for the Roboto font compiled into `lh/ui/font/roboto.c`, `Unicode-3.0.txt` for the Unicode Character Database 16.0.0 under `tools/data/unicode/`); `requirements.txt` pins Pillow for the `scripts/` generators
+- CI: Windows legacy jobs build and test through `scripts/build-windows-xp.bat` (x86) and `build-windows-vista.bat` (x64) at the XP / Vista API level on a modern MSVC (compile and test only, not XP / Vista-deployable binaries)
 - `lh_test_ui` checks `lh/ui.h` from C++ and as C11 (`test/src/lh/ui/umbrella.cpp`, `umbrella.c`)
 - `lh_ui_layout_run` and its bricks (`lh/ui/layout.h`): `lh_ui_layout_run_t` / `lh_ui_layout_cross_t`, `lh_ui_layout_run_init`, `lh_ui_layout_run_measure_child`, `lh_ui_layout_run_measure`, `lh_ui_layout_justify_lead`, `lh_ui_layout_run_justify`, `lh_ui_layout_run_length`, `lh_ui_layout_run_place_child`, `lh_ui_layout_run_place`, `lh_ui_layout_cross_fit`, `lh_ui_layout_cross_at`, `lh_ui_layout_child_line`: one line of the flow measured, justified and placed a child at a time
 - `lh_ui_canvas_box_frame_t`, `lh_ui_canvas_box_frame_init`, `lh_ui_canvas_box_corners_init`, `lh_ui_canvas_box_row_is_upper`, `lh_ui_canvas_box_zone`, `lh_ui_canvas_box_row_reach`, `lh_ui_canvas_box_rows` (`lh/ui/canvas/box.h`): the shown edges of a box and its rows, corners and bands
@@ -30,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Test / bench dependencies updated to the newest releases that still build as C++14: GoogleTest v1.13.0 → v1.16.0; Google Benchmark moved from the `darwin128k/benchmark` fork (v1.7.1 + a `<cstdint>` fix) back to upstream v1.8.5, which no longer needs the fix
+- CI pinned: `actions/checkout` v4 → v7.0.1 and `ilammy/msvc-dev-cmd` v1.13.0 by commit SHA; runners `ubuntu-24.04` and `windows-2025-vs2026` instead of `-latest` (the images `-latest` points to today)
 - `lh/ui.h` is now a complete umbrella: it also includes `lh/ui/canvas/box.h`, `canvas/web.h`, `display.h`, `display/fields.h`, `gradient/sampler.h`, `gradient/sampler/fields.h`, `gradient/sine.h`, `present.h`, `present/sink.h`, `present/sink/fields.h`, `viewport3d.h`, `web/buf.h`, `web/html.h`, `web/html/attr.h`, `web/js.h`, `web/js/x.h`, `web/page.h`, `web/ws.h`, `web/x.h`, plus `font/roboto.h` when `LH_LIBRARY_OPTION_UI_FONT_ROBOTO` is on and `web/host.h` when `LH_LIBRARY_OPTION_OS` is on
 - `lh_byte_ptr` / `lh_byte_cptr` moved to `lh/util/byte/ptr.h`; `lh/byte/ptr.h` stays as a compatibility header that only includes it, and the new `lh/util/byte.h` pulls in the pointer and byte-pointer helpers in one include
 - `lh_ptr_of` / `lh_cptr_of` live in `lh/util/ptr.h`; `lh/byte/ptr.h` includes `lh/util/ptr.h` one-way (`lh/util/ptr.h` no longer includes `lh/byte/ptr.h`), breaking the include cycle; files using `lh_byte_ptr` / `lh_byte_cptr` include `lh/byte/ptr.h` directly
@@ -52,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Roboto copyright year in `lh/ui/font/roboto.h`, `src/lh/ui/font/roboto.c` and the `scripts/README.md` font example: 2015, matching the font file (was 2011)
 - Building with `LH_LIBRARY_OPTION_MATH_FPU=ON` failed: `lh_ui_scalar` (a literal-only macro that pastes `e0f`) was given variables and calls in `lh/ui` and its tests; those sites now use the new `lh_ui_scalar_of` (`lh/ui/scalar.h`), a cast for any arithmetic expression on both paths. `lh_ui_view_t::whole_count` and its loop index are `lh_u32_t` instead of `lh_ui_scalar_t` (a float cannot index an array)
 - `lh_ui_point_to_point` / `lh_ui_point_from_point` and `lh_ui_rect_to_rect` / `lh_ui_rect_from_rect` take an out-parameter on the `MATH_FPU=OFF` path too, matching the float path
 - `test/src/lh/os/serial.cpp` called `lh_os_serial_get_stream` with its old by-value signature

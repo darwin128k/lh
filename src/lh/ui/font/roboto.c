@@ -4,7 +4,7 @@
  * Ranges (7): U+0020-007E U+00A0-00AC U+00AE-00B7 U+00B9-00BF U+0400-045F U+2013-2014 U+2116-2116
  * Glyphs: 224  line: 22px  ascent: 17  cap: 12  glyphs cropped to ink
  * Rows are packed high-bit first, the same way LVGL's font converter packs them.
- * Roboto is Copyright 2011 Google Inc. and licensed under the Apache License 2.0.
+ * Roboto is Copyright 2015 Google Inc. and licensed under the Apache License 2.0.
  */
 #include <lh/ui/font/roboto.h>
 
