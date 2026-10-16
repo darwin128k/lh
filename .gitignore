@@ -16,6 +16,7 @@ build-static
 build-bench
 build-bench-static
 build-msvc
+build-debug
 cmake-build-debug
 cmake-build-release
 

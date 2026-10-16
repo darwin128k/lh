@@ -76,6 +76,7 @@ jobs:
           cmake -S . -B build
           -DLH_BUILD_DOCS=OFF
           -DLH_BUILD_TESTS=ON
+          ${{ matrix.cmake_args }}
 
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }}
