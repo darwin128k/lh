@@ -20,7 +20,7 @@
 #ifndef LH_BIT_ENDIAN_H
 #define LH_BIT_ENDIAN_H
 
-#include <lh/assert.h>
+#include <lh/assert/runtime.h>
 #include <lh/bit/half.h>
 #include <lh/byte/ptr.h>
 

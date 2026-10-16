@@ -43,7 +43,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * Delegated to ::lh_str_ptr_len, including what happens when there is no terminator: that
  * is a **contract violation and it terminates** (::lh_runtime_error_code_no_null_terminator),
  * which is the answer this library gives everywhere else it is handed a string that ends
- * nowhere. A length that quietly came back as a plausible number would be worse than a
+ * nowhere. Like every contract check that holds while ::LH_RUNTIME_ASSERT_ENABLED is 1;
+ * without it (Release by default) a null or unterminated @p str is undefined behaviour. A length that quietly came back as a plausible number would be worse than a
  * crash -- a register's tag that is one byte short prints as the right row with the wrong
  * name.
  *

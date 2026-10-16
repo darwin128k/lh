@@ -180,6 +180,8 @@ TEST_F(MemoryTree, set_parent_moves_ownership)
     EXPECT_EQ(heap.live, 0);
 }
 
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
 TEST_F(MemoryTree, set_parent_refuses_a_cycle)
 {
     lh_ptr root = lh_memory_tree_alloc(&sized, 0);
@@ -188,6 +190,8 @@ TEST_F(MemoryTree, set_parent_refuses_a_cycle)
     LH_EXPECT_DEATH(lh_memory_tree_set_parent(root, root));
     lh_memory_tree_free(root);
 }
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 TEST_F(MemoryTree, as_runtime_allocator_lh_containers_land_in_the_sandbox)
 {

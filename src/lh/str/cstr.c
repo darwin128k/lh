@@ -21,8 +21,11 @@ lh_str_len(lh_str_cptr str)
     /* Nothing is checked here on purpose. `lh_str_ptr_len` terminates on a string with no
        terminator, and `lh_str_ptr_equals` reaches `lh_str_ptr_len` for both operands, so
        both rules -- no terminator, and null among the operands -- already hold one call
-       down, where they are tested. A second `if` here would be a second answer to the same
-       question, and the two could disagree the day one of them changed. */
+       down, where they are tested. They are contract checks: they hold while
+       LH_RUNTIME_ASSERT_ENABLED is 1 (not in Release by default), and without them a null
+       or unterminated string is undefined behaviour here as well as there. A second `if`
+       here would be a second answer to the same question, and the two could disagree the
+       day one of them changed. */
     return lh_str_ptr_len(lh_cast_static(lh_str_ptr, str));
 }
 

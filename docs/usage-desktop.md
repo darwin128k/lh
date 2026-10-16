@@ -22,16 +22,19 @@ project(my_app LANGUAGES C)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-# Same floor as lh: Windows XP. Nothing here may want a newer API than lh asks for.
-if (WIN32)
-    add_compile_definitions(WINVER=0x0501 _WIN32_WINNT=0x0501)
-endif ()
+# One Windows API level for lh and the app: lh reads LH_WINVER (default 0x0501, XP)
+# and defines WINVER / _WIN32_WINNT from it. Don't add your own WINVER definitions
+# before add_subdirectory -- lh's sources would get two different values.
+set(LH_WINVER "0x0501" CACHE STRING "Windows API level for lh and my_app")
 
 set(LH_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/lh" CACHE PATH "Path to lh")
 add_subdirectory("${LH_DIR}" "${CMAKE_BINARY_DIR}/lh" EXCLUDE_FROM_ALL)
 
 add_executable(my_app src/main.c)
 target_link_libraries(my_app PRIVATE lh)   # brings user32, gdi32, ws2_32
+if (WIN32)
+    target_compile_definitions(my_app PRIVATE WINVER=${LH_WINVER} _WIN32_WINNT=${LH_WINVER})
+endif ()
 ```
 
 Worth copying from `configurator/CMakeLists.txt`:
