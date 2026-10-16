@@ -8,7 +8,6 @@ set "GENERATOR=MinGW Makefiles"
 set "C_COMPILER="
 set "CXX_COMPILER="
 set "TARGET="
-set "SHARED=ON"
 set "DOCS=OFF"
 set "TESTS=OFF"
 set "CLEAN=0"
@@ -58,16 +57,6 @@ if /I "%~1"=="--cxx" (
 if /I "%~1"=="--target" (
     set "TARGET=%~2"
     shift
-    shift
-    goto parse
-)
-if /I "%~1"=="--shared" (
-    set "SHARED=ON"
-    shift
-    goto parse
-)
-if /I "%~1"=="--static" (
-    set "SHARED=OFF"
     shift
     goto parse
 )
@@ -171,7 +160,6 @@ if "%CLEAN%"=="1" if exist "%BUILD_PATH%" (
 )
 
 echo Configuring lh for Windows %TARGET_OS% (%CONFIG%)
-set "C_FLAGS=-DWINVER=%WINVER_HEX% -D_WIN32_WINNT=%WINVER_HEX%"
 if not "%C_COMPILER%"=="" set "CC=%C_COMPILER%"
 if not "%CXX_COMPILER%"=="" set "CXX=%CXX_COMPILER%"
 
@@ -179,16 +167,14 @@ if "%GENERATOR%"=="" (
     cmake -S "%REPO_ROOT%" -B "%BUILD_PATH%" ^
         "-DCMAKE_BUILD_TYPE=%CONFIG%" ^
         "-DCMAKE_SYSTEM_VERSION=%SYSTEM_VERSION%" ^
-        "-DCMAKE_C_FLAGS=%C_FLAGS%" ^
-        "-DLH_BUILD_SHARED=%SHARED%" ^
+        "-DLH_WINVER=%WINVER_HEX%" ^
         "-DLH_BUILD_DOCS=%DOCS%" ^
         "-DLH_BUILD_TESTS=%TESTS%"
 ) else (
     cmake -S "%REPO_ROOT%" -B "%BUILD_PATH%" -G "%GENERATOR%" ^
         "-DCMAKE_BUILD_TYPE=%CONFIG%" ^
         "-DCMAKE_SYSTEM_VERSION=%SYSTEM_VERSION%" ^
-        "-DCMAKE_C_FLAGS=%C_FLAGS%" ^
-        "-DLH_BUILD_SHARED=%SHARED%" ^
+        "-DLH_WINVER=%WINVER_HEX%" ^
         "-DLH_BUILD_DOCS=%DOCS%" ^
         "-DLH_BUILD_TESTS=%TESTS%"
 )
@@ -225,8 +211,6 @@ echo   --generator ^<name^>        CMake generator, for example "MinGW Makefiles
 echo   --cc ^<path^>               C compiler passed to CMake
 echo   --cxx ^<path^>              C++ compiler passed to CMake
 echo   --target ^<name^>           Build a specific target
-echo   --shared                    Build shared library
-echo   --static                    Build static library
 echo   --docs / --no-docs          Enable or disable docs target
 echo   --tests / --no-tests        Enable or disable tests
 echo   --clean                     Remove build directory first

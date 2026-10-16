@@ -34,7 +34,7 @@ The XP/Vista wrappers call `build-windows-legacy.bat`, which sets:
 Useful options:
 
 ```bat
-scripts\build-windows-vista.bat --static --no-docs --no-tests
+scripts\build-windows-vista.bat --no-docs --no-tests
 scripts\build-windows-vista.bat --tests --run-tests
 scripts\build-windows-legacy.bat --help
 ```

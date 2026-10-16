@@ -19,11 +19,13 @@ lh_check_simd()
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-# Windows target floor: XP (5.1). Handwritten Win32 decls in lh/os/system/win
-# are the real fence; this stops SDK headers that still get pulled elsewhere
-# from exposing Vista+ APIs by default.
+# Windows target floor: XP (5.1) by default. Handwritten Win32 decls in
+# lh/os/system/win are the real fence; this stops SDK headers that still get
+# pulled elsewhere from exposing Vista+ APIs by default. One value for C and
+# C++ alike; scripts/build-windows-legacy.bat passes 0x0600 for Vista.
+set(LH_WINVER "0x0501" CACHE STRING "WINVER / _WIN32_WINNT for Windows builds (0x0501 = XP, 0x0600 = Vista)")
 if (WIN32)
-    add_compile_definitions(WINVER=0x0501 _WIN32_WINNT=0x0501)
+    add_compile_definitions(WINVER=${LH_WINVER} _WIN32_WINNT=${LH_WINVER})
 endif ()
 
 # ---------------------------------------------------------------------------
