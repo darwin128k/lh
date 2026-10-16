@@ -6,6 +6,7 @@
 #include <lh/math.h>
 #include <lh/ui/input.h>
 #include <lh/util/return.h>
+#include <lh/util/str/ptr.h>
 
 /* ── Boundaries ──────────────────────────────────────────────────────────────
  *
@@ -270,6 +271,12 @@ lh_void
 lh_ui_input_init(lh_ui_input_t *self, lh_ui_rect_t rect, lh_char_t *buffer, lh_u16_t capacity)
 {
     lh_assert_runtime_ref(self);
+    /* Emptied before the label sees it: lh_ui_label_init hashes its text, and the
+       caller's buffer is usually fresh, unterminated storage. */
+    if (!lh_null_eq(buffer))
+    {
+        lh_str_ptr_clear(buffer);
+    }
     lh_ui_label_init(lh_addr_of(self->label), rect, buffer);
     self->buffer = buffer;
     self->capacity = capacity;
@@ -281,10 +288,6 @@ lh_ui_input_init(lh_ui_input_t *self, lh_ui_rect_t rect, lh_char_t *buffer, lh_u
     /* The label's own text **is** the buffer, so the drawing the label inherited
        shows what was typed without one call being made to say so. */
     lh_ui_entity_set_class(lh_ui_input_as_entity(self), lh_addr_of(lh_ui_input_class));
-    if (!lh_null_eq(buffer))
-    {
-        buffer[0] = '\0';
-    }
 }
 
 lh_ui_entity_t *

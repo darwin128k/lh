@@ -1358,6 +1358,16 @@ lh_void
 lh_memory_view_slice_return_init_v(const lh_ptr begin, const lh_ptr end, lh_memory_view_slice_t *out);
 
 /**
+ * @brief Write the closed slice <tt>[begin, end]</tt> to @p out without validating it.
+ *
+ * @param begin First byte.
+ * @param end   Last byte.
+ * @param out   Receives the slice; must not be null.
+ */
+lh_void
+lh_memory_view_slice_return_unsafe(const lh_ptr begin, const lh_ptr end, lh_memory_view_slice_t *out);
+
+/**
  * @brief Return a validated closed slice of @p size bytes at @p begin.
  *
  * @param begin First byte.
