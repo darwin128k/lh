@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_ui_layout_run` and its bricks (`lh/ui/layout.h`): `lh_ui_layout_run_t` / `lh_ui_layout_cross_t`, `lh_ui_layout_run_init`, `lh_ui_layout_run_measure_child`, `lh_ui_layout_run_measure`, `lh_ui_layout_justify_lead`, `lh_ui_layout_run_justify`, `lh_ui_layout_run_length`, `lh_ui_layout_run_place_child`, `lh_ui_layout_run_place`, `lh_ui_layout_cross_fit`, `lh_ui_layout_cross_at`, `lh_ui_layout_child_line`: one line of the flow measured, justified and placed a child at a time
+- `lh_ui_canvas_box_frame_t`, `lh_ui_canvas_box_frame_init`, `lh_ui_canvas_box_corners_init`, `lh_ui_canvas_box_row_is_upper`, `lh_ui_canvas_box_zone`, `lh_ui_canvas_box_row_reach`, `lh_ui_canvas_box_rows` (`lh/ui/canvas/box.h`): the shown edges of a box and its rows, corners and bands
+- `lh_ui_blur_pass_t`, `lh_ui_blur_pass_init`, `lh_ui_blur_column`, `lh_ui_blur_window_span`, `lh_ui_blur_window_take_samples`, `lh_ui_blur_window_drop_samples`, `lh_ui_blur_window_average_color`, `lh_ui_blur_sample_color` (`lh/ui/blur.h`): the column pass one column at a time
+- `lh_ui_canvas_sw_shadow_pass_t`, `lh_ui_canvas_sw_shadow_pass_init`, `lh_ui_canvas_sw_shadow_row`, `lh_ui_canvas_sw_shadow_span` (`lh/ui/canvas/sw.h`): the software box shadow a row at a time
+- `lh_math_quat_axis_x` / `_y` / `_z` and `lh_math_quat_axis_cyclic` (`lh/math/quat.h`): where a unit quaternion takes each axis; `lh_math_mat4_set_column_vec3` (`lh/math/mat4.h`)
+- `lh_ui_gradient_sampler_lerp_t` with `lh_ui_gradient_sampler_lerp_init` / `_next` / `_color`, `lh_ui_gradient_sampler_stop_frac`, `lh_ui_gradient_sampler_segment_at`, `lh_ui_gradient_sampler_is_flat`, `lh_ui_gradient_sampler_flat_run`, `lh_ui_gradient_sampler_linear_run`, `lh_ui_gradient_sampler_radial_row` (`lh/ui/gradient/sampler.h`)
+- `lh_math_scalar_slack`, `lh_math_scalar_centre` (`lh/math/scalar/centre.h`): non-negative leftover room and half-up centre offset `(room - own + 1) / 2` on discrete scalars
+- `lh_math_div_round` / `lh_math_div_round_u32` (`lh/math/div_round.h`): half-up integer division `(numer + denom / 2) / denom` for non-negative values
+- `lh_math_size_min`, `lh_math_size_max`, `lh_math_size_min_side` (`lh/math/size.h`) and `lh_math_fsize_*` counterparts: component-wise min/max and the shorter side
+- `lh_ui_scalar_slack`, `lh_ui_scalar_centre` (`lh/ui/scalar.h`): UI leftovers and half-up centring through `lh_ui_scalar_trunc`, same pixels with FPU on or off
 - `lh_math_slice_t` (`lh/math/slice.h`) and `lh_math_view_t` (`lh/math/view.h`): read-only closed slice and strided view of `lh_float_t` values, built on `lh_memory_view_slice_fields` and `lh_interval_closed_*`
 - `LH_FLOAT_T_MIN`, `LH_FLOAT_T_MAX` and `LH_FLOAT_T_EPS` (`lh/numeric/float.h`): `FLT_MIN` (smallest positive normalized value), `FLT_MAX` and `FLT_EPSILON` limits for `lh_float_t`
 - `lh_memory_view_return_of_slice`, `lh_memory_view_return_empty`, `lh_memory_view_return_init_v`, `lh_memory_view_return_init_by_size` (`lh/memory/view.h`): half-open view constructors and the closed-to-half-open conversion
@@ -19,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Heavy functions split into the bricks above, same pixels and results with `LH_LIBRARY_OPTION_MATH_FPU` on and off: the layout pass (`layout_run`, 32 locals → `lh_ui_layout_run`, 2), `lh_ui_canvas_fill_box` (21 → 7), `lh_ui_blur_columns` (23 → 2), `lh_ui_canvas_sw_shadow` (19 → 3), `lh_math_mat4_from_quat` (13 → 1), the gradient sampler's table fill (21 → 8) and row / column (13 → 2, 8 → 3, one shared linear walk)
+- Layout / text centring and end-align leftover use `lh_ui_scalar_centre` / `lh_ui_scalar_slack` (`lh/ui/layout`, `lh/ui/text/align`, `lh/ui/text/line`, justify-center lead); blur / shadow / radius coverage use `lh_math_div_round`; gradient length and byte clamp use `lh_math_abs` / `lh_math_clamp`; radius max and insets shrink use `lh_ui_size_min_side` / `lh_ui_scalar_slack`
+- `lh_ui_scalar_trunc` (`lh/ui/scalar.h`): on the int path (`LH_LIBRARY_OPTION_MATH_FPU` off) it is now a force-inline copy in the header, so call sites pay no function call in Debug or without LTO; same signature, null check and address-takeable; the float path stays an exported function. Covered by new tests in `test/src/lh/ui/scalar.cpp`
 - Pure forward wrappers no longer assert `out` themselves when the function they forward it to already does (40 functions in `lh/math`, `lh/memory`, `lh/str`, `lh/wstr`, `lh/os`, `lh/runtime`, `lh/werror`, `lh/timestamp`, `lh/ui`); a null `out` is still caught, by the callee
 - `lh_math_mat4_mul_vec4`, `lh_math_mat4_mul`, `lh_math_quat_rotate` and `lh_math_quat_nlerp` use fewer temporaries (10 → 1, 5 → 1, 7 → 2, 4 → 2), built from `lh_math_vec4_madd` / `lh_math_vec3_madd`; `lh_math_mat4_mul` stays safe when `out` is where `a` or `b` came from
 - `lh_memory_view_slice_*_ropen` and `lh_memory_view_slice_from_view` are built from short public bricks. Signatures and results stay the same, including empty `[x, x)` and the order of range checks

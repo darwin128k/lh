@@ -27,6 +27,7 @@
 #ifndef LH_UI_BLUR_H
 #define LH_UI_BLUR_H
 
+#include <lh/bool.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/types.h>
 #include <lh/ui/color.h>
@@ -54,6 +55,27 @@ struct lh_ui_blur_window
 };
 /** @copybrief lh_ui_blur_window */
 typedef struct lh_ui_blur_window lh_ui_blur_window_t;
+
+/**
+ * @struct lh_ui_blur_pass
+ * @brief What the column pass of ::lh_ui_blur_columns reads for every column:
+ *        filled by ::lh_ui_blur_pass_init.
+ */
+struct lh_ui_blur_pass
+{
+    const lh_u8_t *scratch;      /**< What ::lh_ui_blur_rows left, addressed from row `y0`. */
+    const lh_ui_rect_t *shape;   /**< Rounded shape to cut the write to, or ::lh_null. */
+    lh_ui_scalar_t corner;       /**< Its corner radius, clamped; `0` with no shape. */
+    lh_s32_t left;               /**< Rect left column. */
+    lh_s32_t top;                /**< Rect top row. */
+    lh_s32_t width;              /**< Rect width. */
+    lh_s32_t height;             /**< Rect height. */
+    lh_s32_t radius;             /**< Blur radius in pixels. */
+    lh_s32_t y0;                 /**< First row held in the scratch. */
+    lh_s32_t y1;                 /**< One past the last row held in the scratch. */
+};
+/** @copybrief lh_ui_blur_pass */
+typedef struct lh_ui_blur_pass lh_ui_blur_pass_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -95,6 +117,58 @@ lh_ui_blur_scratch_size(const lh_ui_rect_t *rect, lh_s32_t radius);
  */
 lh_void
 lh_ui_blur_rows(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t radius, lh_u8_t *scratch);
+
+/**
+ * @brief The colour of one RGBA scratch @p sample (four bytes) into @p out.
+ */
+lh_void
+lh_ui_blur_sample_color(const lh_u8_t *sample, lh_ui_color_t *out);
+
+/**
+ * @brief Add @p count scratch samples, @p stride bytes apart from @p sample, to
+ *        the running sum. A @p count of `0` or less adds nothing.
+ */
+lh_void
+lh_ui_blur_window_take_samples(lh_ui_blur_window_t *self, const lh_u8_t *sample, lh_usize_t stride, lh_s32_t count);
+
+/**
+ * @brief Take @p count scratch samples, @p stride bytes apart from @p sample,
+ *        back out of the running sum. A @p count of `0` or less takes nothing.
+ */
+lh_void
+lh_ui_blur_window_drop_samples(lh_ui_blur_window_t *self, const lh_u8_t *sample, lh_usize_t stride, lh_s32_t count);
+
+/**
+ * @brief The average of the window, all four channels
+ *        (::lh_ui_blur_window_average), over @p count pixels into @p out.
+ */
+lh_void
+lh_ui_blur_window_average_color(const lh_ui_blur_window_t *self, lh_s32_t count, lh_ui_color_t *out);
+
+/**
+ * @brief The window `[at - radius, at + radius + 1)` cut to `[lo, hi)`, into
+ *        @p win0 and @p win1. Neither may be null (::lh_assert_runtime_ref).
+ */
+lh_void
+lh_ui_blur_window_span(lh_s32_t at, lh_s32_t radius, lh_s32_t lo, lh_s32_t hi, lh_s32_t *win0, lh_s32_t *win1);
+
+/**
+ * @brief Prepare the column pass of @p rect over @p pixmap into @p out
+ *        (parameters as ::lh_ui_blur_columns). False when there is nothing to
+ *        write: a negative @p radius, null @p scratch or an empty rect.
+ *
+ * @p out must not be null (::lh_assert_runtime_ref).
+ */
+lh_bool_t
+lh_ui_blur_pass_init(const lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t radius, const lh_u8_t *scratch,
+                     const lh_ui_rect_t *shape, lh_ui_scalar_t corner, lh_ui_blur_pass_t *out);
+
+/**
+ * @brief Blur column @p x (from the rect's left) of a prepared @p pass down
+ *        into @p pixmap, cut to the pass's shape.
+ */
+lh_void
+lh_ui_blur_column(lh_ui_pixmap_t *pixmap, const lh_ui_blur_pass_t *pass, lh_s32_t x);
 
 /**
  * @brief Blur @p rect down its columns, reading @p scratch, writing @p pixmap.

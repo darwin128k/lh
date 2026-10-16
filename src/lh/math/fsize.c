@@ -8,6 +8,7 @@
 #include <lh/cast/static.h>
 #include <lh/math.h>
 #include <lh/math/fsize.h>
+#include <lh/util/addr.h>
 #include <lh/util/return.h>
 
 /* ── init ────────────────────────────────────────────────────────────────── */
@@ -152,6 +153,43 @@ lh_math_fsize_is_empty(const lh_math_fsize_t *self)
     lh_assert_runtime_ref(self);
     return lh_math_le(lh_math_fsize_get_width(self), 0)
         || lh_math_le(lh_math_fsize_get_height(self), 0);
+}
+
+/* ── Component-wise ─────────────────────────────────────────────────────── */
+
+lh_void
+lh_math_fsize_min(const lh_math_fsize_t *a, const lh_math_fsize_t *b, lh_math_fsize_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_assert_runtime_ref(a);
+    lh_assert_runtime_ref(b);
+    lh_math_fsize_t result;
+    lh_math_fsize_init(lh_addr_of(result),
+                       lh_math_min(lh_math_fsize_get_width(a), lh_math_fsize_get_width(b)),
+                       lh_math_min(lh_math_fsize_get_height(a), lh_math_fsize_get_height(b)));
+    *out = result;
+    return;
+}
+
+lh_void
+lh_math_fsize_max(const lh_math_fsize_t *a, const lh_math_fsize_t *b, lh_math_fsize_t *out)
+{
+    lh_assert_runtime_ref(out);
+    lh_assert_runtime_ref(a);
+    lh_assert_runtime_ref(b);
+    lh_math_fsize_t result;
+    lh_math_fsize_init(lh_addr_of(result),
+                       lh_math_max(lh_math_fsize_get_width(a), lh_math_fsize_get_width(b)),
+                       lh_math_max(lh_math_fsize_get_height(a), lh_math_fsize_get_height(b)));
+    *out = result;
+    return;
+}
+
+lh_math_fscalar_t
+lh_math_fsize_min_side(const lh_math_fsize_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return lh_math_min(lh_math_fsize_get_width(self), lh_math_fsize_get_height(self));
 }
 
 /* ── Set ops ────────────────────────────────────────────────────────────── */

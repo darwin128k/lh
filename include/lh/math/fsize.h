@@ -146,6 +146,26 @@ lh_math_fsize_is_greater(const lh_math_fsize_t *self, const lh_math_fsize_t *oth
 lh_bool_t
 lh_math_fsize_is_empty(const lh_math_fsize_t *self);
 
+/* ── Component-wise ─────────────────────────────────────────────────────── */
+
+/**
+ * @brief Component-wise minimum of @p a and @p b into @p out.
+ */
+lh_void
+lh_math_fsize_min(const lh_math_fsize_t *a, const lh_math_fsize_t *b, lh_math_fsize_t *out);
+
+/**
+ * @brief Component-wise maximum of @p a and @p b into @p out.
+ */
+lh_void
+lh_math_fsize_max(const lh_math_fsize_t *a, const lh_math_fsize_t *b, lh_math_fsize_t *out);
+
+/**
+ * @brief The shorter side of @p self: `min(width, height)`.
+ */
+lh_math_fscalar_t
+lh_math_fsize_min_side(const lh_math_fsize_t *self);
+
 /* ── Set ops ────────────────────────────────────────────────────────────── */
 
 /**

@@ -69,56 +69,115 @@ lh_ui_gradient_sampler_floor_div(lh_s64_t a, lh_s64_t b, lh_s64_t *rest)
     return quotient;
 }
 
+lh_void
+lh_ui_gradient_sampler_lerp_init(lh_ui_gradient_sampler_lerp_t *self, const lh_ui_color_t *from,
+                                 const lh_ui_color_t *to, lh_s32_t span, lh_s32_t at)
+{
+    const lh_s32_t f[4] = {lh_ui_color_get_r(from), lh_ui_color_get_g(from), lh_ui_color_get_b(from),
+                           lh_ui_color_get_a(from)};
+    const lh_s32_t t[4] = {lh_ui_color_get_r(to), lh_ui_color_get_g(to), lh_ui_color_get_b(to),
+                           lh_ui_color_get_a(to)};
+    lh_s32_t c;
+
+    lh_assert_runtime_ref(self);
+    self->span = span;
+    for (c = 0; c < 4; ++c)
+    {
+        const lh_s32_t moved = t[c] - f[c];
+        const lh_s32_t whole = f[c] * (span - at) + t[c] * at;
+
+        self->quotient[c] = whole / span;
+        self->rest[c] = whole % span;
+        self->step[c] = moved / span;
+        self->step_rest[c] = moved % span;
+        if (self->step_rest[c] < 0)
+        {
+            --self->step[c];
+            self->step_rest[c] += span;
+        }
+    }
+}
+
+lh_void
+lh_ui_gradient_sampler_lerp_next(lh_ui_gradient_sampler_lerp_t *self)
+{
+    lh_s32_t c;
+
+    lh_assert_runtime_ref(self);
+    for (c = 0; c < 4; ++c)
+    {
+        self->quotient[c] += self->step[c];
+        self->rest[c] += self->step_rest[c];
+        if (self->rest[c] >= self->span)
+        {
+            self->rest[c] -= self->span;
+            ++self->quotient[c];
+        }
+    }
+}
+
+lh_void
+lh_ui_gradient_sampler_lerp_color(const lh_ui_gradient_sampler_lerp_t *self, lh_ui_color_t *out)
+{
+    lh_assert_runtime_ref(self);
+    lh_ui_color_init(out, lh_cast_static(lh_ui_color_channel_t, self->quotient[0]),
+                     lh_cast_static(lh_ui_color_channel_t, self->quotient[1]),
+                     lh_cast_static(lh_ui_color_channel_t, self->quotient[2]),
+                     lh_cast_static(lh_ui_color_channel_t, self->quotient[3]));
+}
+
+lh_s32_t
+lh_ui_gradient_sampler_stop_frac(const lh_ui_gradient_t *gradient, lh_s32_t index)
+{
+    return lh_ui_gradient_stop_get_frac(
+        lh_ui_gradient_get_stop_as_const(gradient, lh_cast_static(lh_ui_gradient_stop_count_t, index)));
+}
+
+lh_s32_t
+lh_ui_gradient_sampler_segment_at(const lh_ui_gradient_t *gradient, lh_s32_t segment, lh_s32_t frac)
+{
+    const lh_s32_t count = lh_ui_gradient_get_stop_count(gradient);
+
+    /* The first stop at or past this step only moves on as the step does. */
+    while (segment < count && frac > lh_ui_gradient_sampler_stop_frac(gradient, segment))
+    {
+        ++segment;
+    }
+    return segment;
+}
+
 /** The colour of every step of the axis, as ::lh_ui_gradient_color_at has it. Between
    two stops each channel is `(from * (span - at) + to * at) / span`, and one step on
    adds `to - from` to what is divided: the quotient and its remainder are carried
-   instead of dividing again. A step before its stop's start -- stops out of order --
-   is asked of ::lh_ui_gradient_color_at itself. */
+   instead of dividing again (::lh_ui_gradient_sampler_lerp_t). A step before its
+   stop's start -- stops out of order -- is asked of ::lh_ui_gradient_color_at itself. */
 static lh_void
 lh_ui_gradient_sampler_fill(lh_ui_gradient_sampler_t *self)
 {
     const lh_ui_gradient_t *gradient = self->gradient;
     const lh_s32_t count = lh_ui_gradient_get_stop_count(gradient);
-    lh_s32_t quotient[4];
-    lh_s32_t rest[4];
-    lh_s32_t step[4];
-    lh_s32_t step_rest[4];
+    lh_ui_gradient_sampler_lerp_t lerp;
     lh_s32_t carried = 0;
     lh_s32_t segment = 1;
     lh_s32_t frac;
-    lh_s32_t c;
 
     for (frac = 0; frac < 256; ++frac)
     {
-        const lh_ui_gradient_stop_t *a;
-        const lh_ui_gradient_stop_t *b;
         lh_s32_t start;
         lh_s32_t span;
-        lh_s32_t at;
 
-        if (count <= 1 || frac <= lh_ui_gradient_stop_get_frac(lh_ui_gradient_get_stop_as_const(gradient, 0)))
+        if (count > 1 && frac > lh_ui_gradient_sampler_stop_frac(gradient, 0))
+        {
+            segment = lh_ui_gradient_sampler_segment_at(gradient, segment, frac);
+        }
+        if (count <= 1 || frac <= lh_ui_gradient_sampler_stop_frac(gradient, 0) || segment >= count)
         {
             lh_ui_gradient_color_at(gradient, lh_cast_static(lh_byte_t, frac), lh_addr_of(self->colors[frac]));
             continue;
         }
-        /* The first stop at or past this step only moves on as the step does. */
-        while (segment < count &&
-               frac > lh_ui_gradient_stop_get_frac(lh_ui_gradient_get_stop_as_const(gradient,
-                                                                                    lh_cast_static(lh_ui_gradient_stop_count_t, segment))))
-        {
-            ++segment;
-        }
-        if (segment >= count)
-        {
-            lh_ui_gradient_color_at(gradient, lh_cast_static(lh_byte_t, frac), lh_addr_of(self->colors[frac]));
-            continue;
-        }
-        a = lh_ui_gradient_get_stop_as_const(gradient, lh_cast_static(lh_ui_gradient_stop_count_t, (segment - 1)));
-        b = lh_ui_gradient_get_stop_as_const(gradient, lh_cast_static(lh_ui_gradient_stop_count_t, segment));
-        start = lh_ui_gradient_stop_get_frac(a);
-        span = lh_ui_gradient_stop_get_frac(b) - start;
-        at = frac - start;
-        if (span <= 0 || at < 0)
+        start = lh_ui_gradient_sampler_stop_frac(gradient, segment - 1);
+        span = lh_ui_gradient_sampler_stop_frac(gradient, segment) - start;
+        if (span <= 0 || frac - start < 0)
         {
             lh_ui_gradient_color_at(gradient, lh_cast_static(lh_byte_t, frac), lh_addr_of(self->colors[frac]));
             carried = 0;
@@ -126,46 +185,20 @@ lh_ui_gradient_sampler_fill(lh_ui_gradient_sampler_t *self)
         }
         if (carried != segment)
         {
-            const lh_ui_color_t *from = lh_ui_gradient_stop_get_color_as_const(a);
-            const lh_ui_color_t *to = lh_ui_gradient_stop_get_color_as_const(b);
-            const lh_s32_t f[4] = {lh_ui_color_get_r(from), lh_ui_color_get_g(from), lh_ui_color_get_b(from),
-                                   lh_ui_color_get_a(from)};
-            const lh_s32_t t[4] = {lh_ui_color_get_r(to), lh_ui_color_get_g(to), lh_ui_color_get_b(to),
-                                   lh_ui_color_get_a(to)};
-
-            for (c = 0; c < 4; ++c)
-            {
-                const lh_s32_t moved = t[c] - f[c];
-                const lh_s32_t whole = f[c] * (span - at) + t[c] * at;
-
-                quotient[c] = whole / span;
-                rest[c] = whole % span;
-                step[c] = moved / span;
-                step_rest[c] = moved % span;
-                if (step_rest[c] < 0)
-                {
-                    --step[c];
-                    step_rest[c] += span;
-                }
-            }
+            lh_ui_gradient_sampler_lerp_init(
+                lh_addr_of(lerp),
+                lh_ui_gradient_stop_get_color_as_const(lh_ui_gradient_get_stop_as_const(
+                    gradient, lh_cast_static(lh_ui_gradient_stop_count_t, (segment - 1)))),
+                lh_ui_gradient_stop_get_color_as_const(
+                    lh_ui_gradient_get_stop_as_const(gradient, lh_cast_static(lh_ui_gradient_stop_count_t, segment))),
+                span, frac - start);
             carried = segment;
         }
         else
         {
-            for (c = 0; c < 4; ++c)
-            {
-                quotient[c] += step[c];
-                rest[c] += step_rest[c];
-                if (rest[c] >= span)
-                {
-                    rest[c] -= span;
-                    ++quotient[c];
-                }
-            }
+            lh_ui_gradient_sampler_lerp_next(lh_addr_of(lerp));
         }
-        lh_ui_color_init(lh_addr_of(self->colors[frac]), lh_cast_static(lh_ui_color_channel_t, quotient[0]),
-                         lh_cast_static(lh_ui_color_channel_t, quotient[1]), lh_cast_static(lh_ui_color_channel_t, quotient[2]),
-                         lh_cast_static(lh_ui_color_channel_t, quotient[3]));
+        lh_ui_gradient_sampler_lerp_color(lh_addr_of(lerp), lh_addr_of(self->colors[frac]));
     }
 }
 
@@ -237,9 +270,84 @@ lh_ui_gradient_sampler_init(lh_ui_gradient_sampler_t *self, const lh_ui_gradient
     self->middle_y = 2 * lh_cast_static(lh_s64_t, lh_ui_scalar_floor_s32(lh_ui_point_get_y(origin)))+ self->height;
     self->sine = lh_ui_gradient_sine(lh_ui_gradient_get_angle(gradient));
     self->cosine = lh_ui_gradient_sine(lh_ui_gradient_get_angle(gradient) + 90);
-    self->length = (self->width * (self->sine < 0 ? -self->sine : self->sine) +
-                    self->height * (self->cosine < 0 ? -self->cosine : self->cosine)) *
-                   2;
+    self->length = (self->width * lh_math_abs(self->sine) + self->height * lh_math_abs(self->cosine)) * 2;
+}
+
+lh_bool_t
+lh_ui_gradient_sampler_is_flat(const lh_ui_gradient_sampler_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return (self->width <= 0 || self->height <= 0 ||
+            (self->shape != lh_ui_gradient_shape_radial && self->length == 0))
+               ? lh_bool_true
+               : lh_bool_false;
+}
+
+lh_void
+lh_ui_gradient_sampler_flat_run(const lh_ui_gradient_sampler_t *self, lh_s32_t count, lh_ui_color_t *out)
+{
+    const lh_ui_color_t first = self->colors[0];
+    lh_s32_t i;
+
+    for (i = 0; i < count; ++i)
+    {
+        out[i] = first;
+    }
+}
+
+lh_void
+lh_ui_gradient_sampler_linear_run(const lh_ui_gradient_sampler_t *self, lh_s64_t dx, lh_s64_t dy, lh_s64_t move,
+                                  lh_s32_t count, lh_ui_color_t *out)
+{
+    /* `(2 * along + length) * 255 / (2 * length)`, the along the line moving by
+       @p move / 255 / 2 a pixel: the quotient rounded down and carried with its
+       remainder. Where ::lh_ui_gradient_frac_at cuts toward zero instead the two
+       differ only below zero, and both are then the first step. */
+    const lh_s64_t divisor = 2 * self->length;
+    lh_s64_t rest;
+    lh_s64_t quotient = lh_ui_gradient_sampler_floor_div(
+        (2 * (dx * self->sine - dy * self->cosine) + self->length) * 255, divisor, lh_addr_of(rest));
+    lh_s64_t step_rest;
+    const lh_s64_t step = lh_ui_gradient_sampler_floor_div(move, divisor, lh_addr_of(step_rest));
+    lh_s32_t i;
+
+    for (i = 0; i < count; ++i)
+    {
+        out[i] = self->colors[lh_cast_static(lh_s32_t, lh_math_clamp(quotient, 0, 255))];
+        quotient += step;
+        rest += step_rest;
+        if (rest >= divisor)
+        {
+            rest -= divisor;
+            ++quotient;
+        }
+    }
+}
+
+lh_void
+lh_ui_gradient_sampler_radial_row(const lh_ui_gradient_sampler_t *self, lh_s32_t x0, lh_s32_t x1, lh_s64_t dy,
+                                  lh_ui_color_t *out)
+{
+    /* Two pixels the same distance either side of the middle are the same colour:
+       `dx * 1024 / w` is cut toward zero, which gives `-dx` the opposite of what it
+       gives `dx`. So the half from the middle on is walked, and each pixel left of
+       the middle is its mirror's -- walked too when the mirror is past the end of
+       the row. */
+    const lh_s64_t middle = self->middle_x;
+    const lh_s32_t centre = lh_cast_static(lh_s32_t, (middle >= 0 ? middle / 2 : -((1 - middle) / 2)));
+    const lh_s32_t right = lh_math_max(x0, centre);
+    const lh_s32_t lone = lh_math_min(lh_math_min(x1, centre), lh_cast_static(lh_s32_t, (middle - x1)));
+    lh_s32_t x;
+
+    lh_ui_gradient_sampler_radial_run(self, right, x1, dy, out + (right - x0));
+    if (x0 < lone)
+    {
+        lh_ui_gradient_sampler_radial_run(self, x0, lone, dy, out);
+    }
+    for (x = lh_math_max(x0, lone); x < lh_math_min(x1, centre); ++x)
+    {
+        out[x - x0] = out[lh_cast_static(lh_s32_t, (middle - 1 - x))- x0];
+    }
 }
 
 lh_void
@@ -250,69 +358,19 @@ lh_ui_gradient_sampler_row(lh_ui_gradient_sampler_t *self, lh_s32_t x0, lh_s32_t
        has it; each pixel to the right is two further along. */
     const lh_s64_t dx = 2 * lh_cast_static(lh_s64_t, x0)+ 1 - self->middle_x;
     const lh_s64_t dy = 2 * lh_cast_static(lh_s64_t, y)+ 1 - self->middle_y;
-    lh_s32_t x;
 
-    lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(out);
-    if (self->width <= 0 || self->height <= 0 ||
-        (self->shape != lh_ui_gradient_shape_radial && self->length == 0))
+    if (lh_ui_gradient_sampler_is_flat(self))
     {
-        const lh_ui_color_t first = self->colors[0];
-
-        for (x = x0; x < x1; ++x)
-        {
-            out[x - x0] = first;
-        }
+        lh_ui_gradient_sampler_flat_run(self, x1 - x0, out);
         return;
     }
     if (self->shape == lh_ui_gradient_shape_radial)
     {
-        /* Two pixels the same distance either side of the middle are the same colour:
-           `dx * 1024 / w` is cut toward zero, which gives `-dx` the opposite of what it
-           gives `dx`. So the half from the middle on is walked, and each pixel left of
-           the middle is its mirror's -- walked too when the mirror is past the end of
-           the row. */
-        const lh_s64_t middle = self->middle_x;
-        const lh_s32_t centre = lh_cast_static(lh_s32_t, (middle >= 0 ? middle / 2 : -((1 - middle) / 2)));
-        const lh_s32_t right = lh_math_max(x0, centre);
-        const lh_s32_t lone = lh_math_min(lh_math_min(x1, centre), lh_cast_static(lh_s32_t, (middle - x1)));
-
-        lh_ui_gradient_sampler_radial_run(self, right, x1, dy, out + (right - x0));
-        if (x0 < lone)
-        {
-            lh_ui_gradient_sampler_radial_run(self, x0, lone, dy, out);
-        }
-        for (x = lh_math_max(x0, lone); x < lh_math_min(x1, centre); ++x)
-        {
-            out[x - x0] = out[lh_cast_static(lh_s32_t, (middle - 1 - x))- x0];
-        }
+        lh_ui_gradient_sampler_radial_row(self, x0, x1, dy, out);
         return;
     }
-    {
-        /* `(2 * along + length) * 255 / (2 * length)`, the along the line moving by
-           `2 * sine` a pixel: the quotient rounded down and carried with its remainder.
-           Where ::lh_ui_gradient_frac_at cuts toward zero instead the two differ only
-           below zero, and both are then the first step. */
-        const lh_s64_t divisor = 2 * self->length;
-        lh_s64_t rest;
-        lh_s64_t quotient = lh_ui_gradient_sampler_floor_div(
-            (2 * (dx * self->sine - dy * self->cosine) + self->length) * 255, divisor, lh_addr_of(rest));
-        lh_s64_t step_rest;
-        const lh_s64_t step =
-            lh_ui_gradient_sampler_floor_div(4 * self->sine * 255, divisor, lh_addr_of(step_rest));
-
-        for (x = x0; x < x1; ++x)
-        {
-            out[x - x0] = self->colors[quotient < 0 ? 0 : (quotient > 255 ? 255 : lh_cast_static(lh_s32_t, quotient))];
-            quotient += step;
-            rest += step_rest;
-            if (rest >= divisor)
-            {
-                rest -= divisor;
-                ++quotient;
-            }
-        }
-    }
+    lh_ui_gradient_sampler_linear_run(self, dx, dy, 4 * self->sine * 255, x1 - x0, out);
 }
 
 lh_void
@@ -333,26 +391,6 @@ lh_ui_gradient_sampler_column(lh_ui_gradient_sampler_t *self, lh_s32_t x, lh_s32
         }
         return;
     }
-    {
-        /* As along a row, but a pixel down moves the along the line by `-2 * cosine`. */
-        const lh_s64_t divisor = 2 * self->length;
-        lh_s64_t rest;
-        lh_s64_t quotient = lh_ui_gradient_sampler_floor_div(
-            (2 * (dx * self->sine - dy * self->cosine) + self->length) * 255, divisor, lh_addr_of(rest));
-        lh_s64_t step_rest;
-        const lh_s64_t step =
-            lh_ui_gradient_sampler_floor_div(-4 * self->cosine * 255, divisor, lh_addr_of(step_rest));
-
-        for (y = y0; y < y1; ++y)
-        {
-            out[y - y0] = self->colors[quotient < 0 ? 0 : (quotient > 255 ? 255 : lh_cast_static(lh_s32_t, quotient))];
-            quotient += step;
-            rest += step_rest;
-            if (rest >= divisor)
-            {
-                rest -= divisor;
-                ++quotient;
-            }
-        }
-    }
+    /* As along a row, but a pixel down moves the along the line by `-2 * cosine`. */
+    lh_ui_gradient_sampler_linear_run(self, dx, dy, -4 * self->cosine * 255, y1 - y0, out);
 }

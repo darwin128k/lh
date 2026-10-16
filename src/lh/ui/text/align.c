@@ -4,6 +4,7 @@
  */
 
 #include <lh/math.h>
+#include <lh/ui/scalar.h>
 #include <lh/assert/runtime.h>
 #include <lh/null.h>
 #include <lh/ui/text/align.h>
@@ -45,34 +46,25 @@ lh_ui_text_align_get_origin(const lh_ui_rect_t *box, const lh_ui_insets_t *paddi
 
     if (horizontal == lh_ui_text_align_h_center)
     {
-        /* Rounded half up, on both axes, and the extra half-pixel goes to the
-           bottom and to the right. It is a tie and not a mistake: the box of a
-           28-row button centres on 194.0 while a 15-row ink can only sit on
-           193.5 or on 194.5, and `13 / 2` truncating put the text on the first
-           of them — half a pixel above the middle, which reads as "a bit high"
-           exactly as it is one. Measured on the demo's Hide panel button: the
-           box 180..207 centres on 194.0, the glyph and the caption both sat on
-           193.5. A tie broken the other way would be a coin toss, so the rule is
-           written down instead of left to the division: the leftover half-pixel
-           is the one under the text. */
-        dx = (lh_math_max(0, lh_ui_size_get_width(lh_addr_of(room)) - lh_ui_size_get_width(lh_addr_of(size))) + 1) /
-             2;
-        lh_ui_scalar_trunc(dx, lh_addr_of(dx));
+        /* ::lh_ui_scalar_centre: half-up, leftover half-pixel to the right / bottom.
+           Measured on the demo's Hide panel button (box 180..207, ink 15 rows). */
+        dx = lh_ui_scalar_centre(lh_ui_size_get_width(lh_addr_of(room)),
+                                 lh_ui_size_get_width(lh_addr_of(size)));
     }
     else if (horizontal == lh_ui_text_align_h_right)
     {
-        dx = lh_math_max(0, lh_ui_size_get_width(lh_addr_of(room)) - lh_ui_size_get_width(lh_addr_of(size)));
+        dx = lh_ui_scalar_slack(lh_ui_size_get_width(lh_addr_of(room)),
+                                lh_ui_size_get_width(lh_addr_of(size)));
     }
     if (vertical == lh_ui_text_align_v_center)
     {
-        dy = (lh_math_max(0, lh_ui_size_get_height(lh_addr_of(room)) - lh_ui_size_get_height(lh_addr_of(size))) +
-             1) /
-             2;
-        lh_ui_scalar_trunc(dy, lh_addr_of(dy));
+        dy = lh_ui_scalar_centre(lh_ui_size_get_height(lh_addr_of(room)),
+                                 lh_ui_size_get_height(lh_addr_of(size)));
     }
     else if (vertical == lh_ui_text_align_v_bottom)
     {
-        dy = lh_math_max(0, lh_ui_size_get_height(lh_addr_of(room)) - lh_ui_size_get_height(lh_addr_of(size)));
+        dy = lh_ui_scalar_slack(lh_ui_size_get_height(lh_addr_of(room)),
+                                lh_ui_size_get_height(lh_addr_of(size)));
     }
 
     lh_ui_point_init(lh_addr_of(origin),

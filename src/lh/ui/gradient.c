@@ -3,6 +3,7 @@
  * @brief Implementation of lh/ui/gradient.h and lh/ui/gradient/stop.h.
  */
 
+#include <lh/math.h>
 #include <lh/assert/runtime.h>
 #include <lh/byte.h>
 #include <lh/byte/ptr.h>
@@ -220,12 +221,12 @@ lh_ui_gradient_frac_at(const lh_ui_gradient_t *self, const lh_ui_rect_t *rect, l
         const lh_s64_t s = lh_ui_gradient_sine(self->angle);
         const lh_s64_t c = lh_ui_gradient_sine(self->angle + 90);
         const lh_s64_t along = dx * s - dy * c;
-        const lh_s64_t length = (w * (s < 0 ? -s : s) + h * (c < 0 ? -c : c)) * 2;
+        const lh_s64_t length = (w * lh_math_abs(s) + h * lh_math_abs(c)) * 2;
 
         lh_return_if(length == 0, 0);
         frac = ((2 * along + length) * 255) / (2 * length);
     }
-    return lh_cast_static(lh_byte_t, frac < 0 ? 0 : (frac > 255 ? 255 : frac));
+    return lh_cast_static(lh_byte_t, lh_math_clamp(frac, 0, 255));
 }
 
 lh_void

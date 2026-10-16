@@ -126,3 +126,73 @@ TEST(ui_gradient, a_sampled_row_is_every_pixel_asked_alone)
 }
 
 } // namespace
+
+/* -- Sampler bricks -------------------------------------------------------- */
+
+TEST(ui_gradient_sampler_bricks, lerp_walks_what_dividing_again_gives)
+{
+    const lh_ui_color_t from = rgba(0, 255, 10, 255);
+    const lh_ui_color_t to = rgba(255, 0, 200, 0);
+    lh_ui_gradient_sampler_lerp_t lerp;
+    lh_s32_t at;
+
+    lh_ui_gradient_sampler_lerp_init(&lerp, &from, &to, 7, 2);
+    for (at = 2; at <= 7; ++at)
+    {
+        const lh_ui_color_t got = lh_test::out(lh_ui_gradient_sampler_lerp_color, &lerp);
+
+        EXPECT_EQ(lh_ui_color_get_r(&got), (0 * (7 - at) + 255 * at) / 7);
+        EXPECT_EQ(lh_ui_color_get_g(&got), (255 * (7 - at) + 0 * at) / 7);
+        EXPECT_EQ(lh_ui_color_get_b(&got), (10 * (7 - at) + 200 * at) / 7);
+        EXPECT_EQ(lh_ui_color_get_a(&got), (255 * (7 - at) + 0 * at) / 7);
+        lh_ui_gradient_sampler_lerp_next(&lerp);
+    }
+}
+
+TEST(ui_gradient_sampler_bricks, flat_sampler_repeats_its_first_colour)
+{
+    const lh_ui_color_t colors[2] = {rgba(1, 2, 3, 255), rgba(200, 100, 50, 255)};
+    lh_ui_gradient_t gradient;
+    lh_ui_gradient_sampler_t sampler;
+    lh_ui_rect_t empty;
+    lh_ui_color_t row[3];
+
+    lh_ui_gradient_init(&gradient);
+    lh_ui_gradient_init_stops(&gradient, colors, lh_null, 2);
+    lh_ui_rect_init(&empty, lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar(4));
+    lh_ui_gradient_sampler_init(&sampler, &gradient, &empty);
+    EXPECT_TRUE(lh_ui_gradient_sampler_is_flat(&sampler));
+    lh_ui_gradient_sampler_flat_run(&sampler, 3, row);
+    for (const lh_ui_color_t &c : row)
+    {
+        EXPECT_EQ(lh_ui_color_get_r(&c), lh_ui_color_get_r(&sampler.colors[0]));
+    }
+    EXPECT_EQ(lh_ui_gradient_sampler_stop_frac(&gradient, 0), 0);
+    EXPECT_EQ(lh_ui_gradient_sampler_stop_frac(&gradient, 1), 255);
+    EXPECT_EQ(lh_ui_gradient_sampler_segment_at(&gradient, 1, 100), 1);
+}
+
+TEST(ui_gradient_sampler_bricks, linear_run_matches_row_and_column)
+{
+    const lh_ui_color_t colors[2] = {rgba(0, 0, 0, 255), rgba(255, 255, 255, 255)};
+    lh_ui_gradient_t gradient;
+    lh_ui_gradient_sampler_t sampler;
+    lh_ui_rect_t box;
+    lh_ui_color_t a[20];
+    lh_ui_color_t b[20];
+    int i;
+
+    lh_ui_gradient_init(&gradient);
+    lh_ui_gradient_init_stops(&gradient, colors, lh_null, 2);
+    lh_ui_gradient_set_linear(&gradient, 30);
+    lh_ui_rect_init(&box, lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar(20), lh_ui_scalar(20));
+    lh_ui_gradient_sampler_init(&sampler, &gradient, &box);
+    EXPECT_FALSE(lh_ui_gradient_sampler_is_flat(&sampler));
+    lh_ui_gradient_sampler_row(&sampler, 0, 20, 5, a);
+    lh_ui_gradient_sampler_linear_run(&sampler, 1 - sampler.middle_x, 11 - sampler.middle_y, 4 * sampler.sine * 255,
+                                      20, b);
+    for (i = 0; i < 20; ++i)
+    {
+        EXPECT_EQ(lh_ui_color_get_r(&a[i]), lh_ui_color_get_r(&b[i])) << i;
+    }
+}

@@ -741,3 +741,85 @@ TEST(ui_layout, children_that_stretch_fill_the_depth_of_their_line)
     EXPECT_TRUE(rect_at(&f.kids[0], 108, 58, 150, 70));
     EXPECT_TRUE(rect_at(&f.kids[1], 108, 132, 150, 70));
 }
+
+/* The bricks lh_ui_layout_run is made of. */
+
+TEST(ui_layout_bricks, justify_lead_shares_the_room_left)
+{
+    lh_ui_scalar_t lead;
+    lh_ui_scalar_t spread;
+
+    lh_ui_layout_justify_lead(lh_ui_justify_start, lh_ui_scalar(10), 3, &lead, &spread);
+    EXPECT_EQ(lead, lh_ui_scalar(0));
+    EXPECT_EQ(spread, lh_ui_scalar(0));
+    lh_ui_layout_justify_lead(lh_ui_justify_center, lh_ui_scalar(9), 3, &lead, &spread);
+    EXPECT_EQ(lead, lh_ui_scalar(5));
+    EXPECT_EQ(spread, lh_ui_scalar(0));
+    lh_ui_layout_justify_lead(lh_ui_justify_end, lh_ui_scalar(9), 3, &lead, &spread);
+    EXPECT_EQ(lead, lh_ui_scalar(9));
+    lh_ui_layout_justify_lead(lh_ui_justify_space_between, lh_ui_scalar(9), 3, &lead, &spread);
+    EXPECT_EQ(lead, lh_ui_scalar(0));
+    EXPECT_EQ(spread, lh_ui_scalar(4));
+    lh_ui_layout_justify_lead(lh_ui_justify_space_between, lh_ui_scalar(9), 1, &lead, &spread);
+    EXPECT_EQ(spread, lh_ui_scalar(0));
+    lh_ui_layout_justify_lead(lh_ui_justify_space_around, lh_ui_scalar(10), 3, &lead, &spread);
+    EXPECT_EQ(spread, lh_ui_scalar(3));
+    EXPECT_EQ(lead, lh_ui_scalar(1));
+    lh_ui_layout_justify_lead(lh_ui_justify_space_evenly, lh_ui_scalar(10), 3, &lead, &spread);
+    EXPECT_EQ(spread, lh_ui_scalar(2));
+    EXPECT_EQ(lead, lh_ui_scalar(2));
+}
+
+TEST(ui_layout_bricks, run_init_starts_at_the_content_origin)
+{
+    lh_ui_layout_t layout;
+    const lh_ui_rect_t content = rect_of(108, 58, 224, 144);
+
+    lh_ui_layout_init(&layout, lh_ui_axis_vertical, lh_ui_scalar(4));
+    const lh_ui_layout_run_t run = lh_test::out(lh_ui_layout_run_init, &layout, &content);
+
+    EXPECT_EQ(run.along, lh_ui_scalar(58));
+    EXPECT_EQ(run.line, lh_ui_scalar(-1));
+    EXPECT_EQ(run.used, lh_ui_scalar(0));
+    EXPECT_EQ(run.shown, 0);
+}
+
+TEST(ui_layout_bricks, cross_at_follows_the_align)
+{
+    lh_ui_layout_cross_t fit;
+
+    fit.start = lh_ui_scalar(60);
+    fit.own = lh_ui_scalar(9);
+    fit.room = lh_ui_scalar(16);
+    fit.before = lh_ui_scalar(2);
+    EXPECT_EQ(lh_ui_layout_cross_at(&fit, lh_ui_place_align_start, lh_ui_scalar(-1), lh_ui_scalar(-1)),
+              lh_ui_scalar(0));
+    EXPECT_EQ(lh_ui_layout_cross_at(&fit, lh_ui_place_align_center, lh_ui_scalar(-1), lh_ui_scalar(-1)),
+              lh_ui_scalar(4));
+    EXPECT_EQ(lh_ui_layout_cross_at(&fit, lh_ui_place_align_end, lh_ui_scalar(-1), lh_ui_scalar(-1)),
+              lh_ui_scalar(7));
+    EXPECT_EQ(lh_ui_layout_cross_at(&fit, lh_ui_place_align_baseline, lh_ui_scalar(7), lh_ui_scalar(12)),
+              lh_ui_scalar(3));
+    EXPECT_EQ(lh_ui_layout_cross_at(&fit, lh_ui_place_align_baseline, lh_ui_scalar(-1), lh_ui_scalar(12)),
+              lh_ui_scalar(4));
+}
+
+TEST(ui_layout_bricks, run_measure_counts_gaps_between_shown_children)
+{
+    layout_fixture f;
+    lh_ui_layout_t layout;
+    lh_ui_layout_run_t run;
+    const lh_ui_rect_t content = rect_of(108, 58, 224, 144);
+
+    for (int i = 0; i < 3; ++i)
+    {
+        place_child(&f.kids[i], lh_ui_place_size_fixed, lh_ui_scalar(30 + i * 10), lh_ui_place_align_start);
+    }
+    lh_ui_layout_init(&layout, lh_ui_axis_horizontal, lh_ui_scalar(4));
+    lh_ui_layout_run_init(&layout, &content, &run);
+    lh_ui_layout_run_measure(&layout, &run, &f.parent, lh_ui_entity_get_first_child(&f.parent), nullptr, &content);
+    EXPECT_EQ(run.shown, 3);
+    EXPECT_EQ(run.used, lh_ui_scalar(128));
+    EXPECT_EQ(run.left, lh_ui_scalar(96));
+    EXPECT_EQ(run.weights, lh_ui_scalar(0));
+}

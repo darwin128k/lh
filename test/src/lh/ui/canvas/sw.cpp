@@ -913,3 +913,45 @@ TEST(ui_canvas_sw, glass_leaves_the_square_corner_of_a_round_panel)
     EXPECT_EQ(f.at(4, 4), 0xffffffffu);
     EXPECT_NE(f.at(12, 12), 0xff000000u);
 }
+TEST(ui_canvas_sw_bricks, shadow_pass_is_the_box_grown_by_the_outset)
+{
+    sw_fixture f;
+    const lh_ui_shadow_t shadow = shadow_of(255, 4, 0, 0);
+    const lh_ui_shadow_t none = shadow_of(0, 0, 0, 0);
+    const lh_ui_rect_t box = rect_of(8, 8, 8, 8);
+    const lh_s32_t outset = static_cast<lh_s32_t>(lh_ui_shadow_get_outset(lh_addr_of(shadow), lh_addr_of(box)));
+    lh_ui_canvas_sw_shadow_pass_t pass;
+
+    ASSERT_GT(outset, 0);
+    EXPECT_TRUE(lh_ui_canvas_sw_shadow_pass_init(lh_addr_of(f.sw), lh_addr_of(box), lh_ui_scalar(2), lh_addr_of(shadow),
+                                                 lh_addr_of(pass)));
+    EXPECT_EQ(pass.left, 8 - outset);
+    EXPECT_EQ(pass.top, 8 - outset);
+    EXPECT_EQ(pass.right, 16 + outset);
+    EXPECT_EQ(pass.bottom, 16 + outset);
+    EXPECT_EQ(pass.rgb, 0u);
+    EXPECT_EQ(pass.rect, lh_addr_of(box));
+    EXPECT_FALSE(lh_ui_canvas_sw_shadow_pass_init(lh_addr_of(f.sw), lh_addr_of(box), lh_ui_scalar(2), lh_addr_of(none),
+                                                  lh_addr_of(pass)));
+}
+
+TEST(ui_canvas_sw_bricks, shadow_rows_draw_what_the_backend_draws)
+{
+    sw_fixture a;
+    sw_fixture b;
+    const lh_ui_shadow_t shadow = shadow_of(200, 4, 1, 2);
+    const lh_ui_rect_t box = rect_of(6, 7, 9, 8);
+    lh_ui_canvas_sw_shadow_pass_t pass;
+
+    EXPECT_TRUE(lh_ui_canvas_sw_shadow(lh_addr_of(a.sw), lh_addr_of(box), lh_ui_scalar(3), lh_addr_of(shadow)));
+    ASSERT_TRUE(lh_ui_canvas_sw_shadow_pass_init(lh_addr_of(b.sw), lh_addr_of(box), lh_ui_scalar(3), lh_addr_of(shadow),
+                                                 lh_addr_of(pass)));
+    for (lh_s32_t y = 0; y < side; ++y)
+    {
+        lh_ui_canvas_sw_shadow_row(lh_addr_of(b.sw), lh_addr_of(pass), y);
+    }
+    for (int i = 0; i < side * side; ++i)
+    {
+        EXPECT_EQ(a.words[i], b.words[i]) << i;
+    }
+}

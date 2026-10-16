@@ -149,6 +149,41 @@ lh_void
 lh_math_quat_conjugate(lh_math_quat_t q, lh_math_quat_t *out);
 
 /**
+ * @brief Where the rotation of a unit quaternion with vector part `(i, j, k)`
+ *        and scalar @p w takes the axis along `i`, in the order `(i, j, k)`:
+ *        `(1 - 2(j² + k²), 2(ij + wk), 2(ik - wj))`.
+ *
+ * Feeding the components in cyclic order `(x, y, z)`, `(y, z, x)` or
+ * `(z, x, y)` gives the image of the x, y or z axis, rotated into that order;
+ * ::lh_math_quat_axis_x, ::lh_math_quat_axis_y and ::lh_math_quat_axis_z put
+ * it back. @p out must not be null (::lh_assert_runtime_ref).
+ */
+lh_void
+lh_math_quat_axis_cyclic(lh_math_fscalar_t i, lh_math_fscalar_t j, lh_math_fscalar_t k, lh_math_fscalar_t w,
+                         lh_math_vec3_t *out);
+
+/**
+ * @brief Where the rotation of unit @p q takes the x axis: column 0 of
+ *        ::lh_math_mat4_from_quat.
+ */
+lh_void
+lh_math_quat_axis_x(lh_math_quat_t q, lh_math_vec3_t *out);
+
+/**
+ * @brief Where the rotation of unit @p q takes the y axis: column 1 of
+ *        ::lh_math_mat4_from_quat.
+ */
+lh_void
+lh_math_quat_axis_y(lh_math_quat_t q, lh_math_vec3_t *out);
+
+/**
+ * @brief Where the rotation of unit @p q takes the z axis: column 2 of
+ *        ::lh_math_mat4_from_quat.
+ */
+lh_void
+lh_math_quat_axis_z(lh_math_quat_t q, lh_math_vec3_t *out);
+
+/**
  * @brief 4D dot product. For unit quaternions, `|dot|` near 1 means nearly
  *        the same rotation.
  */

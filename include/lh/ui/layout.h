@@ -41,6 +41,7 @@
 #include <lh/ui/axis.h>
 #include <lh/ui/entity.h>
 #include <lh/ui/layout/fields.h>
+#include <lh/ui/layout/place.h>
 #include <lh/ui/point.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/scalar.h>
@@ -82,6 +83,52 @@ struct lh_ui_layout
 };
 /** @copybrief lh_ui_layout */
 typedef struct lh_ui_layout lh_ui_layout_t;
+
+/**
+ * @struct lh_ui_layout_cross
+ * @brief Where one child stands across the flow: filled by
+ *        ::lh_ui_layout_cross_fit.
+ */
+struct lh_ui_layout_cross
+{
+    /** Cross start of the child's slot (content box less its cross margin). */
+    lh_ui_scalar_t start;
+    /** The child's own cross length. */
+    lh_ui_scalar_t own;
+    /** Cross length of the slot. */
+    lh_ui_scalar_t room;
+    /** How far the slot starts past the content box across. */
+    lh_ui_scalar_t before;
+};
+
+/** @brief Alias for ::lh_ui_layout_cross. */
+typedef struct lh_ui_layout_cross lh_ui_layout_cross_t;
+
+/**
+ * @struct lh_ui_layout_run
+ * @brief State of one line of the flow while it is measured, justified and
+ *        placed (::lh_ui_layout_run).
+ */
+struct lh_ui_layout_run
+{
+    /** Length the shown children take along, margins and gaps included. */
+    lh_ui_scalar_t used;
+    /** Sum of the fill weights. */
+    lh_ui_scalar_t weights;
+    /** Room left along, never below zero. */
+    lh_ui_scalar_t left;
+    /** The row's baseline down from the content's cross origin, or -1. */
+    lh_ui_scalar_t line;
+    /** Where the next child starts along (absolute). */
+    lh_ui_scalar_t along;
+    /** Extra room after each shown child (`space-*` justify). */
+    lh_ui_scalar_t spread;
+    /** How many children take room. */
+    int shown;
+};
+
+/** @brief Alias for ::lh_ui_layout_run. */
+typedef struct lh_ui_layout_run lh_ui_layout_run_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -146,6 +193,107 @@ lh_ui_layout_get_line_gap(const lh_ui_layout_t *self);
  */
 lh_void
 lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent);
+
+/**
+ * @brief Slot start, own length, slot length and margin offset of @p child
+ *        across the flow of @p self in @p content, into @p out.
+ *
+ * @p out must not be null (::lh_assert_runtime_ref).
+ */
+lh_void
+lh_ui_layout_cross_fit(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_ui_rect_t *content,
+                       lh_ui_layout_cross_t *out);
+
+/**
+ * @brief Offset of a non-fill child inside its slot across, for @p align:
+ *        0 at the start, ::lh_ui_scalar_centre when centred, `room - own` at the
+ *        end, and on the row's @p line when both @p line and the child's
+ *        @p base are not negative (centred otherwise). May be negative; the
+ *        caller clamps.
+ */
+lh_ui_scalar_t
+lh_ui_layout_cross_at(const lh_ui_layout_cross_t *fit, lh_ui_place_align_t align, lh_ui_scalar_t base,
+                      lh_ui_scalar_t line);
+
+/**
+ * @brief The baseline row @p child would set for its line, down from the cross
+ *        origin of @p content: its centred place plus its own baseline; -1 when
+ *        the flow is vertical, the child is not baseline-aligned or has none.
+ */
+lh_ui_scalar_t
+lh_ui_layout_child_line(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_ui_rect_t *content);
+
+/**
+ * @brief Start a line in @p content: `along` at its origin, `line` -1, the
+ *        rest zero. @p out must not be null (::lh_assert_runtime_ref).
+ */
+lh_void
+lh_ui_layout_run_init(const lh_ui_layout_t *self, const lh_ui_rect_t *content, lh_ui_layout_run_t *out);
+
+/**
+ * @brief Count one child into @p run: its wanted length and margin, its fill
+ *        weight, and its baseline. A hidden child counts for nothing.
+ */
+lh_void
+lh_ui_layout_run_measure_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *run, lh_ui_entity_t *child,
+                               const lh_ui_rect_t *content);
+
+/**
+ * @brief Measure the children @p first up to @p end (::lh_null for the last)
+ *        into @p run, gaps between shown children included, and set `left`.
+ */
+lh_void
+lh_ui_layout_run_measure(const lh_ui_layout_t *self, lh_ui_layout_run_t *run, lh_ui_entity_t *parent,
+                         lh_ui_entity_t *first, lh_ui_entity_t *end, const lh_ui_rect_t *content);
+
+/**
+ * @brief Lead before the first child and @p spread after each one for
+ *        @p justify, with @p left room over @p shown children (`shown > 0`).
+ *
+ * Neither out may be null (::lh_assert_runtime_ref).
+ */
+lh_void
+lh_ui_layout_justify_lead(lh_ui_justify_t justify, lh_ui_scalar_t left, int shown, lh_ui_scalar_t *lead,
+                          lh_ui_scalar_t *spread);
+
+/**
+ * @brief Apply the justify of @p self to a measured @p run: moves `along` by
+ *        the lead and sets `spread`. Nothing when a child fills or none shows.
+ */
+lh_void
+lh_ui_layout_run_justify(const lh_ui_layout_t *self, lh_ui_layout_run_t *run);
+
+/**
+ * @brief Length of @p child along the flow: its share of `left` by weight when
+ *        it fills (held by its bounds), what it wants otherwise.
+ */
+lh_ui_scalar_t
+lh_ui_layout_run_length(const lh_ui_layout_t *self, const lh_ui_layout_run_t *run, lh_ui_entity_t *child);
+
+/**
+ * @brief Place one child at `along` in @p content and advance `along` past it.
+ *        A hidden child is left where it is.
+ */
+lh_void
+lh_ui_layout_run_place_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *run, lh_ui_entity_t *child,
+                             const lh_ui_rect_t *content);
+
+/**
+ * @brief Place the children @p first up to @p end (::lh_null for the last) by
+ *        a measured and justified @p run.
+ */
+lh_void
+lh_ui_layout_run_place(const lh_ui_layout_t *self, lh_ui_layout_run_t *run, lh_ui_entity_t *parent,
+                       lh_ui_entity_t *first, lh_ui_entity_t *end, const lh_ui_rect_t *content);
+
+/**
+ * @brief One line of the flow: the children @p first up to @p end (::lh_null
+ *        for the last), measured, justified and placed in @p content_box. A flow
+ *        that does not wrap is this once over every child in the content box.
+ */
+lh_void
+lh_ui_layout_run(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity_t *first, lh_ui_entity_t *end,
+                 const lh_ui_rect_t *content_box);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -223,6 +223,96 @@ lh_ui_canvas_box_band(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, lh_ui_gr
     }
 }
 
+lh_bool_t
+lh_ui_canvas_box_frame_init(const lh_ui_rect_t *box, const lh_ui_rect_t *cut, lh_ui_canvas_box_frame_t *out)
+{
+    lh_assert_runtime_ref(out);
+    out->left = lh_ui_canvas_round_left(box);
+    out->right = lh_ui_canvas_round_right(box);
+    out->top = lh_ui_canvas_round_top(box);
+    out->bottom = lh_ui_canvas_round_bottom(box);
+    /* Only the rows and columns the clip shows: a long gradient list scrolled to its
+       end does not colour the rows above the window, nor a wide one the columns off
+       to the side. */
+    out->first = lh_math_max(out->top, lh_ui_canvas_round_top(cut));
+    out->last = lh_math_min(out->bottom, lh_ui_canvas_round_bottom(cut));
+    out->shown_left = lh_math_max(out->left, lh_ui_canvas_round_left(cut));
+    out->shown_right = lh_math_min(out->right, lh_ui_canvas_round_right(cut));
+    return out->shown_right > out->shown_left ? lh_bool_true : lh_bool_false;
+}
+
+lh_void
+lh_ui_canvas_box_corners_init(const lh_ui_rect_t *box, const lh_ui_radii_t *fit, struct lh_ui_radius_run *out)
+{
+    lh_assert_runtime_ref(fit);
+    lh_assert_runtime_ref(out);
+    /* Each corner is the corner of a box rounded all round by its radius, and only
+       the pixels in that corner are asked about it. */
+    lh_ui_radius_run_init(out + 0, box, fit->top_left);
+    lh_ui_radius_run_init(out + 1, box, fit->top_right);
+    lh_ui_radius_run_init(out + 2, box, fit->bottom_left);
+    lh_ui_radius_run_init(out + 3, box, fit->bottom_right);
+}
+
+lh_bool_t
+lh_ui_canvas_box_row_is_upper(const lh_ui_canvas_box_frame_t *frame, lh_s32_t y)
+{
+    lh_assert_runtime_ref(frame);
+    return (2 * y + 1 < frame->top + frame->bottom) ? lh_bool_true : lh_bool_false;
+}
+
+lh_s32_t
+lh_ui_canvas_box_zone(lh_s32_t from_edge, lh_ui_scalar_t radius, lh_s32_t room)
+{
+    return from_edge < lh_ui_scalar_ceil_s32(radius) ? lh_math_min(lh_ui_scalar_ceil_s32(radius), room) : 0;
+}
+
+lh_bool_t
+lh_ui_canvas_box_row_reach(const lh_ui_canvas_box_frame_t *frame, const lh_ui_radii_t *fit, lh_s32_t y,
+                           lh_s32_t *near_end, lh_s32_t *far_start)
+{
+    const lh_bool_t upper = lh_ui_canvas_box_row_is_upper(frame, y);
+    const lh_s32_t from_edge = upper ? y - frame->top : frame->bottom - 1 - y;
+    const lh_s32_t zone_near = lh_ui_canvas_box_zone(from_edge, upper ? fit->top_left : fit->bottom_left,
+                                                     frame->right - frame->left);
+    const lh_s32_t zone_far = lh_ui_canvas_box_zone(from_edge, upper ? fit->top_right : fit->bottom_right,
+                                                    frame->right - frame->left - zone_near);
+
+    lh_assert_runtime_ref(near_end);
+    lh_assert_runtime_ref(far_start);
+    *near_end = frame->left + zone_near;
+    *far_start = frame->right - zone_far;
+    return (zone_near != 0 || zone_far != 0) ? lh_bool_true : lh_bool_false;
+}
+
+lh_void
+lh_ui_canvas_box_rows(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t *sampler,
+                      const lh_ui_canvas_box_frame_t *frame, const lh_ui_radii_t *fit,
+                      const struct lh_ui_radius_run *corners)
+{
+    lh_s32_t plain_from = frame->first;
+    lh_s32_t near_end;
+    lh_s32_t far_start;
+    lh_s32_t y;
+
+    for (y = frame->first; y < frame->last; ++y)
+    {
+        const lh_s32_t pair = lh_ui_canvas_box_row_is_upper(frame, y) ? 0 : 2;
+
+        if (!lh_ui_canvas_box_row_reach(frame, fit, y, lh_addr_of(near_end), lh_addr_of(far_start)))
+        {
+            continue;
+        }
+        /* A row a corner reaches: the rows before it that none did go out as one
+           band, then this one whole, its corners at their coverage. */
+        lh_ui_canvas_box_band(self, paint, sampler, frame->shown_left, frame->shown_right, plain_from, y);
+        plain_from = y + 1;
+        lh_ui_canvas_box_row(self, paint, sampler, frame->shown_left, frame->shown_right, y, near_end,
+                             corners + pair, far_start, corners + pair + 1);
+    }
+    lh_ui_canvas_box_band(self, paint, sampler, frame->shown_left, frame->shown_right, plain_from, frame->last);
+}
+
 lh_void
 lh_ui_canvas_fill_box(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_ui_radii_t *radii,
                       const lh_ui_paint_t *paint)
@@ -230,19 +320,10 @@ lh_ui_canvas_fill_box(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_u
     lh_ui_gradient_sampler_t sampler;
     lh_ui_gradient_sampler_t *colours = lh_null;
     struct lh_ui_radius_run corners[4];
+    lh_ui_canvas_box_frame_t frame;
     lh_ui_radii_t fit;
     lh_ui_rect_t box;
     lh_ui_rect_t cut;
-    lh_s32_t left;
-    lh_s32_t right;
-    lh_s32_t top;
-    lh_s32_t bottom;
-    lh_s32_t first;
-    lh_s32_t last;
-    lh_s32_t shown_left;
-    lh_s32_t shown_right;
-    lh_s32_t plain_from;
-    lh_s32_t y;
 
     lh_return_if(lh_null_eq(self) || lh_null_eq(rect) || lh_null_eq(radii) || lh_null_eq(paint));
     lh_return_if(lh_ui_paint_is_empty(paint));
@@ -257,52 +338,12 @@ lh_ui_canvas_fill_box(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_u
     lh_ui_canvas_state_to_target(lh_addr_of(self->state), rect, lh_addr_of(box));
     lh_ui_canvas_state_cut(lh_addr_of(self->state), lh_addr_of(box), lh_addr_of(cut));
     lh_return_if(lh_ui_rect_is_empty(lh_addr_of(cut)));
-    left = lh_ui_canvas_round_left(lh_addr_of(box));
-    right = lh_ui_canvas_round_right(lh_addr_of(box));
-    top = lh_ui_canvas_round_top(lh_addr_of(box));
-    bottom = lh_ui_canvas_round_bottom(lh_addr_of(box));
-    /* Only the rows and columns the clip shows: a long gradient list scrolled to its
-       end does not colour the rows above the window, nor a wide one the columns off
-       to the side. */
-    first = lh_math_max(top, lh_ui_canvas_round_top(lh_addr_of(cut)));
-    last = lh_math_min(bottom, lh_ui_canvas_round_bottom(lh_addr_of(cut)));
-    shown_left = lh_math_max(left, lh_ui_canvas_round_left(lh_addr_of(cut)));
-    shown_right = lh_math_min(right, lh_ui_canvas_round_right(lh_addr_of(cut)));
-    lh_return_if(shown_right <= shown_left);
+    lh_return_if(!lh_ui_canvas_box_frame_init(lh_addr_of(box), lh_addr_of(cut), lh_addr_of(frame)));
     if (lh_null_ne(lh_ui_paint_get_gradient(paint)))
     {
         lh_ui_gradient_sampler_init(lh_addr_of(sampler), lh_ui_paint_get_gradient(paint), lh_addr_of(box));
         colours = lh_addr_of(sampler);
     }
-    /* Each corner is the corner of a box rounded all round by its radius, and only
-       the pixels in that corner are asked about it. */
-    lh_ui_radius_run_init(lh_addr_of(corners[0]), lh_addr_of(box), fit.top_left);
-    lh_ui_radius_run_init(lh_addr_of(corners[1]), lh_addr_of(box), fit.top_right);
-    lh_ui_radius_run_init(lh_addr_of(corners[2]), lh_addr_of(box), fit.bottom_left);
-    lh_ui_radius_run_init(lh_addr_of(corners[3]), lh_addr_of(box), fit.bottom_right);
-    plain_from = first;
-    for (y = first; y < last; ++y)
-    {
-        const lh_bool_t upper = (2 * y + 1 < top + bottom) ? lh_bool_true : lh_bool_false;
-        const lh_ui_scalar_t near = upper ? fit.top_left : fit.bottom_left;
-        const lh_ui_scalar_t far = upper ? fit.top_right : fit.bottom_right;
-        const lh_s32_t from_edge = upper ? y - top : bottom - 1 - y;
-        const lh_s32_t zone_near =
-            from_edge < lh_ui_scalar_ceil_s32(near) ? lh_math_min(lh_ui_scalar_ceil_s32(near), right - left) : 0;
-        const lh_s32_t zone_far =
-            from_edge < lh_ui_scalar_ceil_s32(far) ? lh_math_min(lh_ui_scalar_ceil_s32(far), right - left - zone_near)
-                                                   : 0;
-
-        if (zone_near == 0 && zone_far == 0)
-        {
-            continue;
-        }
-        /* A row a corner reaches: the rows before it that none did go out as one
-           band, then this one whole, its corners at their coverage. */
-        lh_ui_canvas_box_band(self, paint, colours, shown_left, shown_right, plain_from, y);
-        plain_from = y + 1;
-        lh_ui_canvas_box_row(self, paint, colours, shown_left, shown_right, y, left + zone_near,
-                             lh_addr_of(corners[upper ? 0 : 2]), right - zone_far, lh_addr_of(corners[upper ? 1 : 3]));
-    }
-    lh_ui_canvas_box_band(self, paint, colours, shown_left, shown_right, plain_from, last);
+    lh_ui_canvas_box_corners_init(lh_addr_of(box), lh_addr_of(fit), corners);
+    lh_ui_canvas_box_rows(self, paint, colours, lh_addr_of(frame), lh_addr_of(fit), corners);
 }

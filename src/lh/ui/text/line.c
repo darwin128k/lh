@@ -8,6 +8,7 @@
 #include <lh/assert/runtime.h>
 #include <lh/cast/static.h>
 #include <lh/math.h>
+#include <lh/ui/scalar.h>
 #include <lh/null.h>
 #include <lh/ui/mask.h>
 #include <lh/ui/text.h>
@@ -219,14 +220,11 @@ lh_ui_text_line_get_shift(const lh_ui_text_line_t *self, lh_ui_scalar_t block, l
 
     if (align == lh_ui_text_align_h_center)
     {
-        lh_ui_scalar_t half;
-
-        lh_ui_scalar_trunc((block - width + lh_ui_scalar(1)) / lh_ui_scalar(2), lh_addr_of(half));
-        return lh_math_max(half, lh_ui_scalar(0));
+        return lh_ui_scalar_centre(block, width);
     }
     if (align == lh_ui_text_align_h_right)
     {
-        return lh_math_max(block - width, lh_ui_scalar(0));
+        return lh_ui_scalar_slack(block, width);
     }
     return lh_ui_scalar(0);
 }

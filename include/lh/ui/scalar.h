@@ -16,6 +16,8 @@
 #ifndef LH_UI_SCALAR_H
 #define LH_UI_SCALAR_H
 
+#include <lh/assert/runtime.h>
+#include <lh/attribute/force_inline.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>
@@ -79,15 +81,57 @@ typedef lh_math_scalar_t lh_ui_scalar_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
+#if LH_LIBRARY_OPTION_MATH_FPU
 /**
  * @brief @p v with its fraction dropped, toward zero, into @p out.
  *
  * Alignment halves leftover room; on the int path that division already
  * truncates toward zero, and this makes the float path land on the same
- * pixels (negative room included). The int path copies @p v.
+ * pixels (negative room included).
+ *
+ * Float path: an exported function. @p out may point at the variable
+ * @p v was read from. @p out must not be null (::lh_assert_runtime_ref).
  */
 lh_void
 lh_ui_scalar_trunc(lh_ui_scalar_t v, lh_ui_scalar_t *out);
+#else
+/**
+ * @brief @p v with its fraction dropped, toward zero, into @p out.
+ *
+ * Int path: the scalar is already whole, so this copies @p v. It is
+ * ::LH_ATTRIBUTE_FORCE_INLINE, so call sites pay no call even in Debug or
+ * without LTO; same signature and same null check as the float path, and
+ * its address can still be taken. @p out must not be null
+ * (::lh_assert_runtime_ref).
+ */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_void
+lh_ui_scalar_trunc(lh_ui_scalar_t v, lh_ui_scalar_t *out)
+{
+    lh_assert_runtime_ref(out);
+    *out = v;
+}
+#endif
+
+/**
+ * @brief Non-negative leftover room: `max(0, room - own)`.
+ *
+ * Text wider than its box, or a child taller than the cross slot, has nowhere
+ * to go: every alignment starts at the near edge.
+ */
+lh_ui_scalar_t
+lh_ui_scalar_slack(lh_ui_scalar_t room, lh_ui_scalar_t own);
+
+/**
+ * @brief Offset that centres @p own in @p room, half-up, same pixels on both
+ *        FPU paths: ::lh_ui_scalar_trunc of `(room - own + 1) / 2`, then not
+ *        below zero.
+ *
+ * Matches ::lh_math_scalar_centre on the int path. The leftover half-pixel of
+ * an odd slack goes to the far side (right / bottom).
+ */
+lh_ui_scalar_t
+lh_ui_scalar_centre(lh_ui_scalar_t room, lh_ui_scalar_t own);
 
 LH_COMPILER_EXTERN_C_END
 
