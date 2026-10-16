@@ -547,7 +547,6 @@ lh_memory_bounds_return_of_view(const lh_memory_view_t *view, lh_memory_bounds_t
         lh_memory_bounds_t, lh_memory_bounds_initializer,
         lh_cast_const(lh_ptr, lh_memory_view_get_begin(view)),
         lh_cast_const(lh_ptr, lh_memory_view_get_end(view)));
-    return;
 }
 
 lh_void
@@ -557,7 +556,6 @@ lh_memory_bounds_return_v(lh_ptr begin, lh_ptr end, lh_memory_bounds_t *out)
     lh_memory_view_t view;
     lh_memory_view_init(lh_addr_of(view), begin, end);
     lh_memory_bounds_return_of_view(lh_addr_of(view), out);
-    return;
 }
 
 lh_void
@@ -567,7 +565,6 @@ lh_memory_bounds_return_by_size(lh_ptr begin, lh_usize_t size, lh_memory_bounds_
     lh_memory_view_t view;
     lh_memory_view_init_by_size(lh_addr_of(view), begin, size);
     lh_memory_bounds_return_of_view(lh_addr_of(view), out);
-    return;
 }
 
 lh_void
@@ -664,7 +661,6 @@ lh_memory_bounds_take_first(lh_ptr begin, lh_ptr end, lh_usize_t n, lh_memory_bo
     lh_memory_view_t view;
     lh_memory_view_take_first(begin, end, n, lh_addr_of(view));
     lh_memory_bounds_return_of_view(lh_addr_of(view), out);
-    return;
 }
 
 lh_void
@@ -674,7 +670,6 @@ lh_memory_bounds_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n, lh_memory_bou
     lh_memory_view_t view;
     lh_memory_view_take_last(begin, end, n, lh_addr_of(view));
     lh_memory_bounds_return_of_view(lh_addr_of(view), out);
-    return;
 }
 
 lh_void
@@ -685,7 +680,6 @@ lh_memory_bounds_from_begin(const lh_memory_bounds_t *self, lh_usize_t size, lh_
     lh_memory_view_t view;
     lh_memory_view_from_begin(s, size, lh_addr_of(view));
     lh_memory_bounds_return_of_view(lh_addr_of(view), out);
-    return;
 }
 
 lh_void
@@ -696,7 +690,6 @@ lh_memory_bounds_from_end(const lh_memory_bounds_t *self, lh_usize_t size, lh_me
     lh_memory_view_t view;
     lh_memory_view_from_end(s, size, lh_addr_of(view));
     lh_memory_bounds_return_of_view(lh_addr_of(view), out);
-    return;
 }
 
 lh_void
@@ -707,7 +700,6 @@ lh_memory_bounds_between(const lh_memory_bounds_t *self, lh_ptr begin, lh_ptr en
     lh_memory_view_t view;
     lh_memory_view_between(s, begin, end, lh_addr_of(view));
     lh_memory_bounds_return_of_view(lh_addr_of(view), out);
-    return;
 }
 
 lh_void
@@ -720,7 +712,6 @@ lh_memory_bounds_from_offset(const lh_memory_bounds_t *self, lh_uoffset_t offset
     lh_memory_view_t view;
     lh_memory_view_from_offset(s, offset, size, lh_addr_of(view));
     lh_memory_bounds_return_of_view(lh_addr_of(view), out);
-    return;
 }
 
 lh_void
@@ -731,7 +722,6 @@ lh_memory_bounds_drop_first(const lh_memory_bounds_t *self, lh_usize_t n, lh_mem
     lh_memory_view_t view;
     lh_memory_view_drop_first(s, n, lh_addr_of(view));
     lh_memory_bounds_return_of_view(lh_addr_of(view), out);
-    return;
 }
 
 lh_void
@@ -742,7 +732,6 @@ lh_memory_bounds_drop_last(const lh_memory_bounds_t *self, lh_usize_t n, lh_memo
     lh_memory_view_t view;
     lh_memory_view_drop_last(s, n, lh_addr_of(view));
     lh_memory_bounds_return_of_view(lh_addr_of(view), out);
-    return;
 }
 
 lh_void
@@ -753,7 +742,6 @@ lh_memory_bounds_trim(const lh_memory_bounds_t *self, lh_usize_t left, lh_usize_
     lh_memory_view_t view;
     lh_memory_view_trim(s, left, right, lh_addr_of(view));
     lh_memory_bounds_return_of_view(lh_addr_of(view), out);
-    return;
 }
 
 lh_void

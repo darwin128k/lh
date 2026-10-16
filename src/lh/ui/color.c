@@ -327,7 +327,6 @@ lh_ui_color_over(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_ui_col
     {
         lh_ui_color_over_translucent(dst, color, out);
     }
-    return;
 }
 
 lh_void

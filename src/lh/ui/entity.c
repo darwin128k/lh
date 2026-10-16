@@ -455,7 +455,6 @@ lh_ui_entity_get_content_bounds(const lh_ui_entity_t *self, lh_ui_rect_t *out)
     lh_ui_entity_get_children_bounds(self, lh_addr_of(children));
 
     lh_ui_rect_union(lh_addr_of(measured), lh_addr_of(children), out);
-    return;
 }
 
 lh_void
@@ -467,7 +466,6 @@ lh_ui_entity_to_children_space(const lh_ui_entity_t *self, lh_ui_point_t point, 
     (void)lh_ui_entity_get_children_transform(self, lh_addr_of(offset));
     lh_ui_point_offset(lh_addr_of(point), -lh_ui_point_get_x(lh_addr_of(offset)),
                               -lh_ui_point_get_y(lh_addr_of(offset)), out);
-    return;
 }
 
 lh_void
@@ -479,7 +477,6 @@ lh_ui_entity_add_children_offset(const lh_ui_entity_t *self, lh_ui_point_t point
     (void)lh_ui_entity_get_children_transform(self, lh_addr_of(offset));
     lh_ui_point_offset(lh_addr_of(point), lh_ui_point_get_x(lh_addr_of(offset)),
                               lh_ui_point_get_y(lh_addr_of(offset)), out);
-    return;
 }
 
 lh_void
@@ -524,7 +521,6 @@ lh_ui_entity_to_local(const lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_poi
 
     lh_ui_point_offset(lh_addr_of(point), -lh_ui_point_get_x(lh_addr_of(offset)),
                               -lh_ui_point_get_y(lh_addr_of(offset)), out);
-    return;
 }
 
 lh_void
@@ -546,7 +542,6 @@ lh_ui_entity_get_root_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out)
 
     lh_ui_rect_offset(lh_addr_of(self->rect), lh_ui_point_get_x(lh_addr_of(offset)),
                              lh_ui_point_get_y(lh_addr_of(offset)), out);
-    return;
 }
 
 lh_bool_t
@@ -691,7 +686,6 @@ lh_ui_entity_get_painted_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out)
                           : lh_ui_shadow_get_outset(lh_ui_style_get_shadow(style), lh_addr_of(self->rect));
 
     lh_ui_rect_inset(lh_addr_of(self->rect), lh_math_neg(outset), lh_math_neg(outset), out);
-    return;
 }
 
 lh_void

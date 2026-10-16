@@ -165,7 +165,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
          * branchless block walk so wchar search hits the same fast path as bytes. */
         lh_byte_cptr needle = lh_ptr_cast(const lh_byte_t, rhs);
 
-        if ((LH_MEMORY_SCAN_BLOCK % step) == 0)
+        if (lh_math_is_multiple_of(LH_MEMORY_SCAN_BLOCK, step))
         {
             /* Unit by unit up to the first aligned block (see
              * lh_memory_scan_is_unaligned). A haystack that is not step-aligned never

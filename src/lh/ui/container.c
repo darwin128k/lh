@@ -89,7 +89,6 @@ lh_ui_container_pad_far(const lh_ui_container_t *self, lh_ui_point_t far, lh_ui_
 
     lh_ui_point_offset(lh_addr_of(far), lh_ui_insets_get_right(lh_addr_of(padding)),
                               lh_ui_insets_get_bottom(lh_addr_of(padding)), out);
-    return;
 }
 
 lh_void
@@ -124,7 +123,6 @@ lh_ui_container_get_content_size(const lh_ui_container_t *self, lh_ui_size_t *ou
     lh_ui_container_get_content_far(self, lh_addr_of(corner));
     lh_ui_point_max(lh_addr_of(corner), origin, lh_addr_of(corner));
     lh_ui_size_from_extent(origin, lh_addr_of(corner), out);
-    return;
 }
 
 lh_void
@@ -141,7 +139,6 @@ lh_ui_container_get_scroll_max(const lh_ui_container_t *self, lh_ui_point_t *out
                                         lh_ui_size_get_width(lh_addr_of(viewport))),
                      lh_ui_scalar_slack(lh_ui_size_get_height(lh_addr_of(content)),
                                         lh_ui_size_get_height(lh_addr_of(viewport))));
-    return;
 }
 
 lh_void
@@ -153,7 +150,6 @@ lh_ui_container_clamp_scroll_to(lh_ui_point_t scroll, lh_ui_point_t max, lh_ui_p
     lh_ui_point_init(lh_addr_of(zero), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_ui_point_max(lh_addr_of(scroll), lh_addr_of(zero), lh_addr_of(scroll));
     lh_ui_point_min(lh_addr_of(scroll), lh_addr_of(max), out);
-    return;
 }
 
 lh_void
@@ -165,7 +161,6 @@ lh_ui_container_clamp_scroll(const lh_ui_container_t *self, lh_ui_point_t scroll
         lh_ui_container_get_scroll_max(self, lh_addr_of(max));
         lh_ui_container_clamp_scroll_to(scroll, max, out);
     }
-    return;
 }
 
 lh_void
@@ -173,7 +168,6 @@ lh_ui_container_get_scroll_within(const lh_ui_container_t *self, lh_ui_point_t m
 {
     lh_assert_runtime_ref(self);
     lh_ui_container_clamp_scroll_to(self->scroll, max, out);
-    return;
 }
 
 lh_void
@@ -181,7 +175,6 @@ lh_ui_container_get_scroll(const lh_ui_container_t *self, lh_ui_point_t *out)
 {
     lh_assert_runtime_ref(self);
     lh_ui_container_clamp_scroll(self, self->scroll, out);
-    return;
 }
 
 lh_ui_scalar_t

@@ -36,7 +36,6 @@ lh_ui_canvas_state_to_target(const lh_ui_canvas_state_t *self, const lh_ui_rect_
     lh_assert_runtime_ref(self);
     lh_ui_rect_offset(rect, lh_ui_point_get_x(lh_addr_of(self->offset)),
                              lh_ui_point_get_y(lh_addr_of(self->offset)), out);
-    return;
 }
 
 lh_void

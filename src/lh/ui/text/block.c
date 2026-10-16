@@ -95,7 +95,6 @@ lh_ui_text_block_get_ink_rect(const lh_ui_text_block_t *self, lh_ui_point_t orig
        lines -- including when nothing is inked and the hull is the last line's box. */
     lh_ui_rect_offset(lh_addr_of(self->ink), lh_ui_point_get_x(lh_addr_of(origin)),
                              lh_ui_point_get_y(lh_addr_of(origin)) - self->ink_top, out);
-    return;
 }
 
 lh_void

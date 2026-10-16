@@ -15,7 +15,6 @@ lh_memory_typed_return_bounds_by_size(lh_ptr begin, lh_usize_t size, lh_memory_b
     lh_memory_bounds_t bounds;
     lh_memory_bounds_init_by_size(lh_addr_of(bounds), begin, size);
     lh_ptr_deref(out) = bounds;
-    return;
 }
 
 lh_memory_bounds_t *
@@ -291,7 +290,6 @@ lh_memory_typed_get_value_bounds(const lh_memory_typed_t *self, lh_uindex_t inde
     lh_assert_runtime_ref(out);
     lh_ptr begin = lh_memory_typed_get_ptr_from_begin(self, index);
     lh_memory_typed_return_bounds_by_size(begin, lh_memory_typed_get_type_size(self), out);
-    return;
 }
 
 lh_void
@@ -303,7 +301,6 @@ lh_memory_typed_get_range_bounds(const lh_memory_typed_t *self, lh_uindex_t inde
 
     lh_ptr begin = lh_memory_typed_get_ptr_from_begin(self, index);
     lh_memory_typed_return_bounds_by_size(begin, lh_math_mul(count, lh_memory_typed_get_type_size(self)), out);
-    return;
 }
 
 lh_void

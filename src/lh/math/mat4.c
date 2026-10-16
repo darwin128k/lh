@@ -46,7 +46,6 @@ lh_math_mat4_from_scale(lh_math_vec3_t factors, lh_math_mat4_t *out)
     lh_math_vec4_t column3;
     lh_math_vec4_init(lh_addr_of(column3), 0.0f, 0.0f, 0.0f, 1.0f);
     lh_math_mat4_from_columns(column0, column1, column2, column3, out);
-    return;
 }
 
 lh_void
@@ -56,7 +55,6 @@ lh_math_mat4_identity(lh_math_mat4_t *out)
     lh_math_vec3_t result;
     lh_math_vec3_init(lh_addr_of(result), 1.0f, 1.0f, 1.0f);
     lh_math_mat4_from_scale(result, out);
-    return;
 }
 
 lh_void
@@ -130,7 +128,6 @@ lh_math_mat4_mul(lh_math_mat4_t a, lh_math_mat4_t b, lh_math_mat4_t *out)
         lh_math_mat4_mul_vec4(a, column, lh_addr_of(column));
         lh_math_mat4_set_column(out, c, column);
     }
-    return;
 }
 
 lh_void
@@ -186,7 +183,6 @@ lh_math_mat4_transpose(lh_math_mat4_t m, lh_math_mat4_t *out)
                       lh_math_vec4_get_w(lh_addr_of(c1)), lh_math_vec4_get_w(lh_addr_of(c2)),
                       lh_math_vec4_get_w(lh_addr_of(c3)));
     lh_math_mat4_from_columns(column0, column1, column2, column3, out);
-    return;
 }
 
 lh_bool_t

@@ -208,5 +208,4 @@ lh_math_point_offset_size(const lh_math_point_t *self, const lh_math_size_t *siz
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(size);
     lh_math_point_offset(self, lh_math_size_get_width(size), lh_math_size_get_height(size), out);
-    return;
 }

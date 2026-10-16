@@ -102,7 +102,6 @@ lh_void
 lh_math_slice_take_first(const lh_math_slice_t *self, lh_usize_t n, lh_math_slice_t *out)
 {
     lh_math_slice_get_sub(self, 0U, n, out);
-    return;
 }
 
 lh_void
@@ -110,7 +109,6 @@ lh_math_slice_take_last(const lh_math_slice_t *self, lh_usize_t n, lh_math_slice
 {
     lh_assert_runtime_ifn(n <= lh_math_slice_get_size(self), lh_runtime_error_code_out_of_range);
     lh_math_slice_get_sub(self, lh_math_slice_get_size(self) - n, n, out);
-    return;
 }
 
 lh_void
@@ -118,7 +116,6 @@ lh_math_slice_drop_first(const lh_math_slice_t *self, lh_usize_t n, lh_math_slic
 {
     lh_assert_runtime_ifn(n <= lh_math_slice_get_size(self), lh_runtime_error_code_out_of_range);
     lh_math_slice_get_sub(self, n, lh_math_slice_get_size(self) - n, out);
-    return;
 }
 
 lh_void
@@ -126,7 +123,6 @@ lh_math_slice_drop_last(const lh_math_slice_t *self, lh_usize_t n, lh_math_slice
 {
     lh_assert_runtime_ifn(n <= lh_math_slice_get_size(self), lh_runtime_error_code_out_of_range);
     lh_math_slice_get_sub(self, 0U, lh_math_slice_get_size(self) - n, out);
-    return;
 }
 
 lh_bool_t
