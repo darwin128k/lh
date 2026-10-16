@@ -288,6 +288,6 @@ TEST(entity_toggle, a_flip_damages_the_look_it_arrives_on)
 
     damage = lh_ui_canvas_get_damage(&canvas);
     ASSERT_NE(damage, nullptr);
-    EXPECT_TRUE(rect_is(*damage, rect_of(14, 14, 52, 32)))
+    EXPECT_TRUE(rect_is(lh_ptr_deref(damage), rect_of(14, 14, 52, 32)))
         << "the shadow of the look the toggle arrived on is not in the damage";
 }

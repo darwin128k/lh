@@ -94,8 +94,7 @@ lh_ui_entity_event_get_point(const lh_ui_entity_event_t *self, lh_ui_point_t *ou
     lh_assert_runtime_ifn(lh_ui_entity_event_is_pointer(self), lh_runtime_error_code_invalid_argument);
     point = lh_ptr_rcast(const lh_ui_point_t, self->context);
     lh_assert_runtime_ref(point);
-    *out = *point;
-    return;
+    lh_ptr_deref(out) = lh_ptr_deref(point);
 }
 
 struct lh_ui_entity_transform *

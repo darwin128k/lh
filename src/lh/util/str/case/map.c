@@ -205,7 +205,7 @@ lh_str_ptr_to_lower(lh_str_ptr str, lh_usize_t n)
         lh_char_t c = lh_ptr_deref(p);
 
 #if LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE
-        *p = m_char_to_lower_dense[lh_cast_static(lh_byte_t, c)];
+        lh_ptr_deref(p) = m_char_to_lower_dense[lh_cast_static(lh_byte_t, c)];
 #else
         lh_char_case_pair_t r;
         lh_bool_t is_founded = lh_bool_false;
@@ -214,7 +214,7 @@ lh_str_ptr_to_lower(lh_str_ptr str, lh_usize_t n)
                                         m_char_to_lower_table_size, lh_cast_static(lh_usize_t, c),
                                         first, r, is_founded);
 
-        *p = is_founded ? r.second : c;
+        lh_ptr_deref(p) = is_founded ? r.second : c;
 #endif
     }
 
@@ -231,7 +231,7 @@ lh_str_ptr_to_upper(lh_str_ptr str, lh_usize_t n)
         lh_char_t c = lh_ptr_deref(p);
 
 #if LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE
-        *p = m_char_to_upper_dense[lh_cast_static(lh_byte_t, c)];
+        lh_ptr_deref(p) = m_char_to_upper_dense[lh_cast_static(lh_byte_t, c)];
 #else
         lh_char_case_pair_t r;
         lh_bool_t is_founded = lh_bool_false;
@@ -240,7 +240,7 @@ lh_str_ptr_to_upper(lh_str_ptr str, lh_usize_t n)
                                         m_char_to_upper_table_size, lh_cast_static(lh_usize_t, c),
                                         first, r, is_founded);
 
-        *p = is_founded ? r.second : c;
+        lh_ptr_deref(p) = is_founded ? r.second : c;
 #endif
     }
 

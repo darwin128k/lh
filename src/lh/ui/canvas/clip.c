@@ -15,7 +15,7 @@ lh_ui_canvas_clip_round_init(lh_ui_canvas_clip_round_t *self, const lh_ui_rect_t
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(rect);
-    self->rect = *rect;
+    self->rect = lh_ptr_deref(rect);
     self->radius = lh_ui_radius_clamp(rect, radius);
 }
 
@@ -33,8 +33,8 @@ lh_ui_canvas_clip_round_narrow_row(const lh_ui_canvas_clip_round_t *self, lh_s32
     lh_s32_t x1;
 
     lh_ui_canvas_round_full_span(lh_addr_of(self->rect), self->radius, y, lh_addr_of(x0), lh_addr_of(x1));
-    *lo = lh_math_max(*lo, x0);
-    *hi = lh_math_min(*hi, x1);
+    lh_ptr_deref(lo) = lh_math_max(lh_ptr_deref(lo), x0);
+    lh_ptr_deref(hi) = lh_math_min(lh_ptr_deref(hi), x1);
 }
 
 /* ── The clip ────────────────────────────────────────────────────────────── */
@@ -46,7 +46,7 @@ lh_ui_canvas_clip_init(lh_ui_canvas_clip_t *self, const lh_ui_rect_t *rect, cons
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(rect);
     lh_assert_runtime_ifn(count == 0U || lh_null_ne(rounds), lh_runtime_error_code_invalid_argument);
-    self->rect = *rect;
+    self->rect = lh_ptr_deref(rect);
     self->rounds = rounds;
     self->round_count = count;
 }
@@ -106,6 +106,6 @@ lh_ui_canvas_clip_split_row(const lh_ui_canvas_clip_t *self, lh_s32_t x0, lh_s32
     {
         lh_ui_canvas_clip_round_narrow_row(self->rounds + i, y, lh_addr_of(lo), lh_addr_of(hi));
     }
-    *mid0 = lh_math_clamp(lo, x0, x1);
-    *mid1 = lh_math_clamp(hi, *mid0, x1);
+    lh_ptr_deref(mid0) = lh_math_clamp(lo, x0, x1);
+    lh_ptr_deref(mid1) = lh_math_clamp(hi, lh_ptr_deref(mid0), x1);
 }

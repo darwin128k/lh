@@ -14,7 +14,7 @@ lh_memory_typed_return_bounds_by_size(lh_ptr begin, lh_usize_t size, lh_memory_b
     lh_assert_runtime_ref(out);
     lh_memory_bounds_t bounds;
     lh_memory_bounds_init_by_size(lh_addr_of(bounds), begin, size);
-    *out = bounds;
+    lh_ptr_deref(out) = bounds;
     return;
 }
 

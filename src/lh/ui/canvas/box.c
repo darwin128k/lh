@@ -64,7 +64,7 @@ lh_ui_canvas_box_paint_row(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t 
     }
     for (x = x0; x < x1; ++x)
     {
-        out[x - x0] = *lh_ui_paint_get_color(paint);
+        out[x - x0] = lh_ptr_deref(lh_ui_paint_get_color(paint));
     }
 }
 
@@ -79,12 +79,11 @@ lh_ui_canvas_box_row_colour(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t
 
     if (lh_null_eq(sampler))
     {
-        *out = *lh_ui_paint_get_color(paint);
+        lh_ptr_deref(out) = lh_ptr_deref(lh_ui_paint_get_color(paint));
         return;
     }
     lh_ui_gradient_sampler_column(sampler, x, y, y + 1, lh_addr_of(colour));
-    *out = colour;
-    return;
+    lh_ptr_deref(out) = colour;
 }
 
 /** Pixels @p x0 .. @p x1 - 1 of row @p y in one colour @p colour, each at its
@@ -271,8 +270,8 @@ lh_ui_canvas_box_row_reach(const lh_ui_canvas_box_frame_t *frame, const lh_ui_ra
 
     lh_assert_runtime_ref(near_end);
     lh_assert_runtime_ref(far_start);
-    *near_end = frame->left + zone_near;
-    *far_start = frame->right - zone_far;
+    lh_ptr_deref(near_end) = frame->left + zone_near;
+    lh_ptr_deref(far_start) = frame->right - zone_far;
     return (zone_near != 0 || zone_far != 0) ? lh_bool_true : lh_bool_false;
 }
 

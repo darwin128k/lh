@@ -150,7 +150,7 @@ lh_ui_button_event(const lh_ui_entity_t *self, const lh_ui_entity_event_t *event
         /* A button takes the pointer over everything inside it: the caption and the
            picture are the button's, not two things of their own that take a click
            away from it. */
-        *lh_ui_entity_event_get_clickable(event) = lh_bool_true;
+        lh_ptr_deref(lh_ui_entity_event_get_clickable(event)) = lh_bool_true;
     }
     lh_ui_button_on_click(button, event);
 }

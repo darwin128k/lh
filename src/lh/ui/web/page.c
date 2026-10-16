@@ -56,7 +56,7 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     j = lh_addr_of(js);
     if (out_len != lh_null)
     {
-        *out_len = 0u;
+        lh_ptr_deref(out_len) = 0u;
     }
 
     /* ── markup tree (construct, then serialize) ──────────────────────────── */
@@ -736,7 +736,7 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     }
     if (out_len != lh_null)
     {
-        *out_len = lh_ui_web_buf_len(j);
+        lh_ptr_deref(out_len) = lh_ui_web_buf_len(j);
     }
     return lh_bool_true;
 }

@@ -14,6 +14,6 @@ lh_os_system_timestamp_now(lh_timestamp_t *out)
         lh_os_system_error_capture();
         return lh_bool_false;
     }
-    *out = lh_cast_static(lh_timestamp_t, now);
+    lh_ptr_deref(out) = lh_cast_static(lh_timestamp_t, now);
     return lh_bool_true;
 }

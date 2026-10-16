@@ -104,8 +104,7 @@ lh_ui_canvas_get_size(const lh_ui_canvas_t *self, lh_ui_size_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    *out = self->size;
-    return;
+    lh_ptr_deref(out) = self->size;
 }
 
 lh_void
@@ -163,12 +162,11 @@ lh_ui_canvas_damage_in(const lh_ui_rect_t *area, const lh_ui_rect_t *damage, lh_
     /* No damage is the whole target: nothing was said, so everything still holds. */
     if (lh_null_eq(damage))
     {
-        *out = *area;
+        lh_ptr_deref(out) = lh_ptr_deref(area);
         return;
     }
     lh_ui_rect_intersection(area, damage, lh_addr_of(part));
-    *out = part;
-    return;
+    lh_ptr_deref(out) = part;
 }
 
 /* ── Offset and clip ─────────────────────────────────────────────────────── */
@@ -231,8 +229,7 @@ lh_ui_canvas_get_offset(const lh_ui_canvas_t *self, lh_ui_point_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    *out = self->state.offset;
-    return;
+    lh_ptr_deref(out) = self->state.offset;
 }
 
 const lh_ui_rect_t *
@@ -331,7 +328,7 @@ lh_ui_canvas_begin_area(lh_ui_canvas_t *self, const lh_ui_rect_t *area)
         return;
     }
     at = lh_ui_rect_get_origin_as_const(area);
-    self->frame_at = *at;
+    self->frame_at = lh_ptr_deref(at);
     /* (0, 0) of the buffer is the area corner, so the space the backend draws
        in is the target space moved by minus the area origin. */
     lh_ui_point_init(lh_addr_of(origin), lh_math_neg(lh_ui_point_get_x(at)), lh_math_neg(lh_ui_point_get_y(at)));

@@ -98,12 +98,12 @@ blur_band(const lh_ui_pixmap_t *pixmap, lh_s32_t top, lh_s32_t height, lh_s32_t 
     const lh_s32_t pix_h = lh_ui_pixmap_get_height(pixmap);
     lh_s32_t last = top + height + (radius > 0 ? radius : 0);
 
-    *y0 = radius > 0 && top > radius ? top - radius : 0;
+    lh_ptr_deref(y0) = radius > 0 && top > radius ? top - radius : 0;
     if (last > pix_h)
     {
         last = pix_h;
     }
-    *y1 = last;
+    lh_ptr_deref(y1) = last;
 }
 
 /** One row, blurred across. The window reads the pixmap, out to @p radius past
@@ -267,8 +267,8 @@ lh_ui_blur_window_span(lh_s32_t at, lh_s32_t radius, lh_s32_t lo, lh_s32_t hi, l
 {
     lh_assert_runtime_ref(win0);
     lh_assert_runtime_ref(win1);
-    *win0 = lh_math_max(at - radius, lo);
-    *win1 = lh_math_min(at + radius + 1, hi);
+    lh_ptr_deref(win0) = lh_math_max(at - radius, lo);
+    lh_ptr_deref(win1) = lh_math_min(at + radius + 1, hi);
 }
 
 lh_bool_t

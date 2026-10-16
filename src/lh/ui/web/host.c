@@ -189,7 +189,7 @@ host_query(const char *req, lh_usize_t len, const char *key, lh_usize_t key_len,
         {
             ++n;
         }
-        *value = req + off;
+        lh_ptr_deref(value) = req + off;
         return n;
     }
 }
@@ -232,8 +232,7 @@ host_point(int x, int y, lh_ui_point_t *out)
     lh_ui_point_t point;
 
     lh_ui_point_init(lh_addr_of(point), lh_cast_static(lh_ui_scalar_t, x), lh_cast_static(lh_ui_scalar_t, y));
-    *out = point;
-    return;
+    lh_ptr_deref(out) = point;
 }
 
 /** A press at (@p x, @p y): the app's hook, or ::lh_ui_view_press without one. */
@@ -309,12 +308,12 @@ host_resize(const lh_ui_web_host_hooks_t *hooks, unsigned *width, unsigned *heig
     {
         h = HOST_SIZE_MAX;
     }
-    if (lh_cast_static(unsigned, w) == *width && lh_cast_static(unsigned, h) == *height)
+    if (lh_cast_static(unsigned, w) == lh_ptr_deref(width) && lh_cast_static(unsigned, h) == lh_ptr_deref(height))
     {
         return lh_bool_false;
     }
-    *width = lh_cast_static(unsigned, w);
-    *height = lh_cast_static(unsigned, h);
+    lh_ptr_deref(width) = lh_cast_static(unsigned, w);
+    lh_ptr_deref(height) = lh_cast_static(unsigned, h);
     if (hooks != lh_null && hooks->resize != lh_null)
     {
         hooks->resize(w, h, hooks->ctx);
@@ -360,7 +359,7 @@ host_bump(unsigned *gen)
 {
     if (gen != lh_null)
     {
-        ++*gen;
+        ++lh_ptr_deref(gen);
     }
 }
 
@@ -414,7 +413,7 @@ host_ws_upgrade(lh_os_net_socket_t *client, const char *req, lh_usize_t len)
         return lh_bool_false;
     }
     k += sizeof("Sec-WebSocket-Key:") - 1u;
-    while (k < req + len && *k == ' ')
+    while (k < req + len && lh_ptr_deref(k) == ' ')
     {
         ++k;
     }
@@ -544,7 +543,7 @@ host_ws_enqueue(host_ws_cli_t *c, unsigned opcode, const void *payload, lh_usize
         host_ws_drop(c);
         return lh_bool_false;
     }
-    q = lh_ptr_rcast(host_ws_q_t, lh_os_alloc(sizeof(*q)));
+    q = lh_ptr_rcast(host_ws_q_t, lh_os_alloc(sizeof(lh_ptr_deref(q))));
     bytes = lh_ptr_rcast(lh_byte_t, lh_os_alloc(need));
     if (q == lh_null || bytes == lh_null ||
         lh_ui_web_ws_write(bytes, need, opcode, lh_bool_true, payload, plen) != need)
@@ -778,7 +777,7 @@ host_ws_attach(host_ws_cli_t *slots, lh_os_net_socket_t *client, unsigned now)
             lh_os_net_socket_close(client);
             return;
         }
-        c->sock = *client;
+        c->sock = lh_ptr_deref(client);
         c->rx_len = 0u;
         c->msg = lh_null;
         c->msg_len = 0u;
@@ -951,19 +950,19 @@ host_handle(lh_ui_view_t *view, unsigned *width, unsigned *height, char *json, l
     if (host_route(req, len, host_lit("/ui.rev")))
     {
         char body[32];
-        const lh_usize_t n = lh_str_ptr_format_text(body, sizeof(body), "%u\n", lh_cast_static(lh_uint_t, (gen != lh_null ? *gen : 0u)));
+        const lh_usize_t n = lh_str_ptr_format_text(body, sizeof(body), "%u\n", lh_cast_static(lh_uint_t, (gen != lh_null ? lh_ptr_deref(gen) : 0u)));
 
         host_reply_text(client, 200u, body, n);
         return lh_bool_false;
     }
     if (host_route(req, len, host_lit("/ui.json")))
     {
-        if (gen != lh_null && host_query_uint(req, len, host_lit("rev=")) == *gen)
+        if (gen != lh_null && host_query_uint(req, len, host_lit("rev=")) == lh_ptr_deref(gen))
         {
             host_reply_text(client, 304u, host_lit(""));
             return lh_bool_false;
         }
-        if (!host_draw(view, *width, *height, json, json_cap, lh_addr_of(web), lh_null))
+        if (!host_draw(view, lh_ptr_deref(width), lh_ptr_deref(height), json, json_cap, lh_addr_of(web), lh_null))
         {
             host_reply_text(client, 500u, host_lit("draw failed\n"));
             return lh_bool_false;

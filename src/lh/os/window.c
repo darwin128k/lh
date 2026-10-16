@@ -311,10 +311,10 @@ lh_os_window_get_paint_rect(const lh_os_window_t *self, int *left, int *top, int
     lh_assert_runtime_ref(top);
     lh_assert_runtime_ref(right);
     lh_assert_runtime_ref(bottom);
-    *left = self->paint_left;
-    *top = self->paint_top;
-    *right = self->paint_right;
-    *bottom = self->paint_bottom;
+    lh_ptr_deref(left) = self->paint_left;
+    lh_ptr_deref(top) = self->paint_top;
+    lh_ptr_deref(right) = self->paint_right;
+    lh_ptr_deref(bottom) = self->paint_bottom;
 }
 
 lh_void

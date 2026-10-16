@@ -120,7 +120,7 @@ lh_ui_text_block_get_size(const lh_ui_text_block_t *self, const lh_ui_font_t *fo
 
     lh_ui_point_init(lh_addr_of(origin), lh_ui_scalar(0), lh_ui_scalar(0));
     lh_ui_text_block_get_ink_rect(self, origin, lh_addr_of(ink));
-    size = *lh_ui_rect_get_size_as_const(lh_addr_of(ink));
+    size = lh_ptr_deref(lh_ui_rect_get_size_as_const(lh_addr_of(ink)));
     /* Nothing inked is nothing drawn, and a label with nothing in it collapses
        however tall its font is. */
     lh_ui_size_set_height(lh_addr_of(size),
@@ -129,6 +129,5 @@ lh_ui_text_block_get_size(const lh_ui_text_block_t *self, const lh_ui_font_t *fo
                               : (lh_cast_static(lh_ui_scalar_t, lh_ui_text_block_get_lines(self)) - lh_ui_scalar(1)) *
                                         lh_ui_scalar_of(lh_ui_font_get_line_height(font)) +
                                     lh_ui_scalar_of(lh_ui_font_get_cap_height(font)));
-    *out = size;
-    return;
+    lh_ptr_deref(out) = size;
 }

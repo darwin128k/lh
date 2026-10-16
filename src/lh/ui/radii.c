@@ -74,7 +74,7 @@ lh_ui_radii_clamp(const lh_ui_radii_t *self, const lh_ui_rect_t *rect, lh_ui_rad
     size = lh_ui_rect_get_size_as_const(rect);
     width = lh_ui_size_get_width(size);
     height = lh_ui_size_get_height(size);
-    result = *self;
+    result = lh_ptr_deref(self);
     result.top_left = lh_math_max(result.top_left, lh_ui_scalar(0));
     result.top_right = lh_math_max(result.top_right, lh_ui_scalar(0));
     result.bottom_right = lh_math_max(result.bottom_right, lh_ui_scalar(0));
@@ -109,8 +109,7 @@ lh_ui_radii_clamp(const lh_ui_radii_t *self, const lh_ui_rect_t *rect, lh_ui_rad
     result.top_right = lh_math_min(result.top_right, half);
     result.bottom_right = lh_math_min(result.bottom_right, half);
     result.bottom_left = lh_math_min(result.bottom_left, half);
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_ui_scalar_t

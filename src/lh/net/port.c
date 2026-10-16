@@ -15,7 +15,7 @@ lh_net_port_parse(lh_str_cptr str, lh_usize_t str_size, lh_net_port_t *out)
         return lh_bool_false;
     }
 
-    *out = lh_cast_static(lh_net_port_t, value);
+    lh_ptr_deref(out) = lh_cast_static(lh_net_port_t, value);
     return lh_bool_true;
 }
 

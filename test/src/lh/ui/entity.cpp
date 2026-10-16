@@ -57,8 +57,8 @@ log_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *col
 {
     fill_log *log = lh_ptr_rcast(fill_log, context);
     ++log->count;
-    log->rect = *rect;
-    log->color = *color;
+    log->rect = lh_ptr_deref(rect);
+    log->color = lh_ptr_deref(color);
 }
 
 const lh_ui_canvas_backend_t g_fill_log_backend = {nullptr, nullptr, nullptr, nullptr, log_fill_rect, nullptr,

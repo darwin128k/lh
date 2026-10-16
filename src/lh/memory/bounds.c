@@ -543,7 +543,7 @@ lh_void
 lh_memory_bounds_return_of_view(const lh_memory_view_t *view, lh_memory_bounds_t *out)
 {
     lh_assert_runtime_ref(out);
-    *out = lh_initializer_of(
+    lh_ptr_deref(out) = lh_initializer_of(
         lh_memory_bounds_t, lh_memory_bounds_initializer,
         lh_cast_const(lh_ptr, lh_memory_view_get_begin(view)),
         lh_cast_const(lh_ptr, lh_memory_view_get_end(view)));
@@ -574,8 +574,7 @@ lh_void
 lh_memory_bounds_return_empty(lh_memory_bounds_t *out)
 {
     lh_assert_runtime_ref(out);
-    *out = lh_initializer_of(lh_memory_bounds_t, lh_memory_bounds_empty_initializer);
-    return;
+    lh_ptr_deref(out) = lh_initializer_of(lh_memory_bounds_t, lh_memory_bounds_empty_initializer);
 }
 
 lh_void
@@ -652,11 +651,10 @@ lh_memory_bounds_to_slice(const lh_memory_bounds_t *self, lh_memory_bounds_slice
     const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
     lh_memory_view_slice_t slice;
     lh_memory_view_to_slice(s, lh_addr_of(slice));
-    *out = lh_initializer_of(
+    lh_ptr_deref(out) = lh_initializer_of(
         lh_memory_bounds_slice_t, lh_memory_bounds_slice_initializer,
         lh_cast_const(lh_ptr, lh_memory_view_slice_get_begin(lh_addr_of(slice))),
         lh_cast_const(lh_ptr, lh_memory_view_slice_get_end(lh_addr_of(slice))));
-    return;
 }
 
 lh_void
@@ -767,6 +765,5 @@ lh_memory_bounds_as_view(const lh_memory_bounds_t *self, lh_memory_view_t *out)
                        lh_memory_bounds_get_end(self));
     /* A reinterpretation of the same endpoints, so raw set: init would validate
        and reject the null, null pair an empty bounds reinterprets to. */
-    *out = view;
-    return;
+    lh_ptr_deref(out) = view;
 }

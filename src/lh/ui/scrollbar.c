@@ -146,7 +146,7 @@ lh_ui_scrollbar_on_visible(const lh_ui_scrollbar_t *self, const lh_ui_entity_eve
 {
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_visible);
     lh_return_if(lh_ui_scrollbar_is_visible(self));
-    *lh_ui_entity_event_get_visible(event) = lh_bool_false;
+    lh_ptr_deref(lh_ui_entity_event_get_visible(event)) = lh_bool_false;
 }
 
 lh_ui_scalar_t
@@ -241,8 +241,7 @@ lh_ui_scrollbar_get_thumb_rect(const lh_ui_scrollbar_t *self, lh_ui_rect_t *out)
     lh_ui_rect_init_along(lh_addr_of(thumb), lh_addr_of(self->entity.rect), self->axis,
                           lh_ui_scrollbar_get_thumb_start_within(self, max),
                           lh_ui_scrollbar_get_thumb_length_within(self, max));
-    *out = thumb;
-    return;
+    lh_ptr_deref(out) = thumb;
 }
 
 lh_void
@@ -330,7 +329,7 @@ lh_ui_scrollbar_event(const struct lh_ui_entity *self, const lh_ui_entity_event_
         /* The thumb is drawn by this class and not by a child of its own, but the
            answer is the same one a button gives: the pointer over a scrollbar is the
            scrollbar's. */
-        *lh_ui_entity_event_get_clickable(event) = lh_bool_true;
+        lh_ptr_deref(lh_ui_entity_event_get_clickable(event)) = lh_bool_true;
     }
     lh_ui_scrollbar_on_click(scrollbar, event);
     lh_ui_scrollbar_on_visible(scrollbar, event);

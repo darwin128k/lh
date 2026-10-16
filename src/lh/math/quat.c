@@ -76,8 +76,7 @@ lh_math_quat_to_vec4(lh_math_quat_t q, lh_math_vec4_t *out)
     lh_math_vec4_init(lh_addr_of(result), lh_math_quat_get_x(lh_addr_of(q)),
                       lh_math_quat_get_y(lh_addr_of(q)), lh_math_quat_get_z(lh_addr_of(q)),
                       lh_math_quat_get_w(lh_addr_of(q)));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_void
@@ -88,8 +87,7 @@ lh_math_quat_from_vec4(lh_math_vec4_t v, lh_math_quat_t *out)
     lh_math_quat_init(lh_addr_of(result), lh_math_vec4_get_x(lh_addr_of(v)),
                       lh_math_vec4_get_y(lh_addr_of(v)), lh_math_vec4_get_z(lh_addr_of(v)),
                       lh_math_vec4_get_w(lh_addr_of(v)));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_void
@@ -98,8 +96,7 @@ lh_math_quat_identity(lh_math_quat_t *out)
     lh_assert_runtime_ref(out);
     lh_math_quat_t _lh_tmp;
     lh_math_quat_init(lh_addr_of(_lh_tmp), 0.0f, 0.0f, 0.0f, 1.0f);
-    *out = _lh_tmp;
-    return;
+    lh_ptr_deref(out) = _lh_tmp;
 }
 
 lh_void
@@ -113,8 +110,7 @@ lh_math_quat_from_axis_angle(lh_math_vec3_t axis, lh_float_t angle, lh_math_quat
     lh_math_quat_init(lh_addr_of(result), lh_math_vec3_get_x(lh_addr_of(axis)) * s,
                       lh_math_vec3_get_y(lh_addr_of(axis)) * s,
                       lh_math_vec3_get_z(lh_addr_of(axis)) * s, c);
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_void
@@ -134,8 +130,7 @@ lh_math_quat_mul(lh_math_quat_t a, lh_math_quat_t b, lh_math_quat_t *out)
                              aw * by - ax * bz + ay * bw + az * bx,
                              aw * bz + ax * by - ay * bx + az * bw,
                              aw * bw - ax * bx - ay * by - az * bz);
-    *out = _lh_tmp;
-    return;
+    lh_ptr_deref(out) = _lh_tmp;
 }
 
 lh_void
@@ -146,8 +141,7 @@ lh_math_quat_conjugate(lh_math_quat_t q, lh_math_quat_t *out)
     lh_math_quat_init(lh_addr_of(result), -lh_math_quat_get_x(lh_addr_of(q)),
                       -lh_math_quat_get_y(lh_addr_of(q)), -lh_math_quat_get_z(lh_addr_of(q)),
                       lh_math_quat_get_w(lh_addr_of(q)));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_void
@@ -224,8 +218,7 @@ lh_math_quat_rotate(lh_math_quat_t q, lh_math_vec3_t v, lh_math_vec3_t *out)
     lh_math_vec3_scale(t, 2.0f, lh_addr_of(t));
     lh_math_vec3_madd(v, t, lh_math_quat_get_w(lh_addr_of(q)), out);
     lh_math_vec3_cross(u, t, lh_addr_of(u));
-    lh_math_vec3_add(*out, u, out);
-    return;
+    lh_math_vec3_add(lh_ptr_deref(out), u, out);
 }
 
 lh_void

@@ -63,8 +63,7 @@ lh_math_fpoint_to_point(lh_math_fpoint_t self, lh_math_point_t *out)
     lh_math_point_init(lh_addr_of(result),
                        lh_cast_static(lh_math_scalar_t, lh_math_fpoint_get_x(lh_addr_of(self))),
                        lh_cast_static(lh_math_scalar_t, lh_math_fpoint_get_y(lh_addr_of(self))));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_void
@@ -75,8 +74,7 @@ lh_math_point_to_fpoint(lh_math_point_t self, lh_math_fpoint_t *out)
     lh_math_fpoint_init(lh_addr_of(result),
                         lh_cast_static(lh_math_fscalar_t, lh_math_point_get_x(lh_addr_of(self))),
                         lh_cast_static(lh_math_fscalar_t, lh_math_point_get_y(lh_addr_of(self))));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 /* ── Queries ────────────────────────────────────────────────────────────── */
@@ -140,8 +138,7 @@ lh_math_fpoint_min(const lh_math_fpoint_t *a, const lh_math_fpoint_t *b, lh_math
     lh_math_fpoint_init(lh_addr_of(result),
                         lh_math_min(lh_math_fpoint_get_x(a), lh_math_fpoint_get_x(b)),
                         lh_math_min(lh_math_fpoint_get_y(a), lh_math_fpoint_get_y(b)));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_void
@@ -154,8 +151,7 @@ lh_math_fpoint_max(const lh_math_fpoint_t *a, const lh_math_fpoint_t *b, lh_math
     lh_math_fpoint_init(lh_addr_of(result),
                         lh_math_max(lh_math_fpoint_get_x(a), lh_math_fpoint_get_x(b)),
                         lh_math_max(lh_math_fpoint_get_y(a), lh_math_fpoint_get_y(b)));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_bool_t
@@ -194,8 +190,7 @@ lh_math_fpoint_offset(const lh_math_fpoint_t *self, lh_math_fscalar_t dx, lh_mat
     lh_math_fpoint_t result;
     lh_math_fpoint_init(lh_addr_of(result), lh_math_fpoint_get_x(self) + dx,
                         lh_math_fpoint_get_y(self) + dy);
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 /** @copydoc lh_math_fpoint_offset_size(const lh_math_fpoint_t *, const struct lh_math_fsize *) */

@@ -52,11 +52,11 @@ lh_ui_text_line_next_of(const lh_char_t *end, lh_ui_scalar_t width)
     lh_return_if(lh_ui_text_is_line_end(code), cursor);
     if (width > lh_ui_scalar(0) && code == lh_cast_static(lh_u32_t, ' '))
     {
-        while (*cursor == ' ')
+        while (lh_ptr_deref(cursor) == ' ')
         {
             ++cursor;
         }
-        lh_return_if(*cursor == '\0', lh_null);
+        lh_return_if(lh_ptr_deref(cursor) == '\0', lh_null);
         return cursor;
     }
     return end;
@@ -93,7 +93,7 @@ lh_ui_text_line_measure(lh_ui_text_line_t *self, const lh_ui_font_t *font, const
         {
             if (has_space)
             {
-                *self = at_space;
+                lh_ptr_deref(self) = at_space;
                 break;
             }
             if (before == text)
@@ -108,7 +108,7 @@ lh_ui_text_line_measure(lh_ui_text_line_t *self, const lh_ui_font_t *font, const
         }
         if (code == lh_cast_static(lh_u32_t, ' '))
         {
-            at_space = *self;
+            at_space = lh_ptr_deref(self);
             at_space.end = before;
             has_space = lh_bool_true;
         }
@@ -201,8 +201,7 @@ lh_ui_text_line_get_ink_rect(const lh_ui_text_line_t *self, lh_ui_point_t origin
                     lh_ui_point_get_y(lh_addr_of(origin)) + lh_ui_text_line_get_ink_top(self),
                     lh_ui_text_line_get_width(self),
                     lh_ui_text_line_get_ink_bottom(self) - lh_ui_text_line_get_ink_top(self));
-    *out = rect;
-    return;
+    lh_ptr_deref(out) = rect;
 }
 
 lh_ui_scalar_t

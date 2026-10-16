@@ -568,9 +568,8 @@ lh_void
 lh_memory_bounds_slice_return_unsafe(lh_ptr begin, lh_ptr end, lh_memory_bounds_slice_t *out)
 {
     lh_assert_runtime_ref(out);
-    *out = lh_initializer_of(lh_memory_bounds_slice_t, lh_memory_bounds_slice_initializer, begin,
+    lh_ptr_deref(out) = lh_initializer_of(lh_memory_bounds_slice_t, lh_memory_bounds_slice_initializer, begin,
                              end);
-    return;
 }
 
 /* The memory bounds slice over the memory a view slice describes: same layout,
@@ -581,7 +580,7 @@ lh_void
 lh_memory_bounds_slice_return_of_view_slice(const lh_memory_view_slice_t *view, lh_memory_bounds_slice_t *out)
 {
     lh_assert_runtime_ref(out);
-    *out = lh_initializer_of(
+    lh_ptr_deref(out) = lh_initializer_of(
         lh_memory_bounds_slice_t, lh_memory_bounds_slice_initializer,
         lh_cast_const(lh_ptr, lh_memory_view_slice_get_begin(view)),
         lh_cast_const(lh_ptr, lh_memory_view_slice_get_end(view)));
@@ -614,8 +613,7 @@ lh_void
 lh_memory_bounds_slice_return_empty(lh_memory_bounds_slice_t *out)
 {
     lh_assert_runtime_ref(out);
-    *out = lh_initializer_of(lh_memory_bounds_slice_t, lh_memory_bounds_slice_initializer_empty);
-    return;
+    lh_ptr_deref(out) = lh_initializer_of(lh_memory_bounds_slice_t, lh_memory_bounds_slice_initializer_empty);
 }
 
 lh_void
@@ -791,8 +789,7 @@ lh_void
 lh_memory_bounds_slice_as_view(const lh_memory_bounds_slice_t *self, lh_memory_view_slice_t *out)
 {
     lh_assert_runtime_ref(out);
-    *out = lh_initializer_of(lh_memory_view_slice_t, lh_memory_view_slice_initializer,
+    lh_ptr_deref(out) = lh_initializer_of(lh_memory_view_slice_t, lh_memory_view_slice_initializer,
                              lh_memory_bounds_slice_get_begin(self),
                              lh_memory_bounds_slice_get_end(self));
-    return;
 }

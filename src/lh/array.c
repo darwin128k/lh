@@ -348,8 +348,8 @@ lh_array_reverse(lh_array_t *self)
     {
         for (lh_usize_t i = 0; i < type_size; ++i, ++lo)
         {
-            const lh_byte_t byte = *lo;
-            *lo = hi[i];
+            const lh_byte_t byte = lh_ptr_deref(lo);
+            lh_ptr_deref(lo) = hi[i];
             hi[i] = byte;
         }
     }

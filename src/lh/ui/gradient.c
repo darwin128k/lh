@@ -232,12 +232,12 @@ lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac, lh_ui_colo
     lh_ui_color_init(lh_addr_of(result), 0, 0, 0, 0);
     if (self->stops_count == 0)
     {
-        *out = result;
+        lh_ptr_deref(out) = result;
         return;
     }
     if (self->stops_count == 1 || frac <= lh_ui_gradient_stop_get_frac(lh_addr_of(self->stops[0])))
     {
-        *out = *lh_ui_gradient_stop_get_color_as_const(lh_addr_of(self->stops[0]));
+        lh_ptr_deref(out) = lh_ptr_deref(lh_ui_gradient_stop_get_color_as_const(lh_addr_of(self->stops[0])));
         return;
     }
     for (i = 1; i < self->stops_count; ++i)
@@ -256,7 +256,7 @@ lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac, lh_ui_colo
 
             if (span <= 0)
             {
-                *out = *to;
+                lh_ptr_deref(out) = lh_ptr_deref(to);
                 return;
             }
             /* Each channel, alpha with them, mixed in proportion to how far along the
@@ -271,10 +271,9 @@ lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac, lh_ui_colo
                                (lh_ui_color_get_b(from) * (span - at) + lh_ui_color_get_b(to) * at) / span),
                 lh_cast_static(lh_ui_color_channel_t,
                                (lh_ui_color_get_a(from) * (span - at) + lh_ui_color_get_a(to) * at) / span));
-            *out = result;
+            lh_ptr_deref(out) = result;
             return;
         }
     }
-    *out = *lh_ui_gradient_stop_get_color_as_const(lh_addr_of(self->stops[self->stops_count - 1]));
-    return;
+    lh_ptr_deref(out) = lh_ptr_deref(lh_ui_gradient_stop_get_color_as_const(lh_addr_of(self->stops[self->stops_count - 1])));
 }

@@ -98,7 +98,7 @@ lh_os_loader_deinit(lh_os_loader_t *self)
 lh_os_loader_t *
 lh_os_loader_create(lh_os_module_t *owner, lh_str_cptr entry)
 {
-    lh_os_loader_t *const self = lh_ptr_cast(lh_os_loader_t, lh_os_alloc(sizeof(*self)));
+    lh_os_loader_t *const self = lh_ptr_cast(lh_os_loader_t, lh_os_alloc(sizeof(lh_ptr_deref(self))));
 
     if (lh_null_ne(self))
     {

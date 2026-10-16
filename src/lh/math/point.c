@@ -69,7 +69,7 @@ lh_math_point_to_vec2(lh_math_point_t self, lh_math_vec2_t *out)
     lh_math_vec2_init(lh_addr_of(v),
                       lh_cast_static(lh_float_t, lh_math_point_get_x(lh_addr_of(self))),
                       lh_cast_static(lh_float_t, lh_math_point_get_y(lh_addr_of(self))));
-    *out = v;
+    lh_ptr_deref(out) = v;
 }
 
 lh_void
@@ -83,7 +83,7 @@ lh_math_vec2_to_point(lh_math_vec2_t v, lh_math_point_t *out)
         lh_addr_of(p),
         lh_cast_static(lh_math_scalar_t, lh_math_float_ceil_to_int(lh_math_vec2_get_x(lh_addr_of(v)) - 0.5f)),
         lh_cast_static(lh_math_scalar_t, lh_math_float_ceil_to_int(lh_math_vec2_get_y(lh_addr_of(v)) - 0.5f)));
-    *out = p;
+    lh_ptr_deref(out) = p;
 }
 #endif
 
@@ -147,8 +147,7 @@ lh_math_point_min(const lh_math_point_t *a, const lh_math_point_t *b, lh_math_po
     lh_math_point_t p;
     lh_math_point_init(lh_addr_of(p), lh_math_min(lh_math_point_get_x(a), lh_math_point_get_x(b)),
                        lh_math_min(lh_math_point_get_y(a), lh_math_point_get_y(b)));
-    *out = p;
-    return;
+    lh_ptr_deref(out) = p;
 }
 
 lh_void
@@ -160,8 +159,7 @@ lh_math_point_max(const lh_math_point_t *a, const lh_math_point_t *b, lh_math_po
     lh_math_point_t p;
     lh_math_point_init(lh_addr_of(p), lh_math_max(lh_math_point_get_x(a), lh_math_point_get_x(b)),
                        lh_math_max(lh_math_point_get_y(a), lh_math_point_get_y(b)));
-    *out = p;
-    return;
+    lh_ptr_deref(out) = p;
 }
 
 lh_bool_t
@@ -200,8 +198,7 @@ lh_math_point_offset(const lh_math_point_t *self, lh_math_scalar_t dx, lh_math_s
     lh_math_point_t p;
     lh_math_point_init(lh_addr_of(p), lh_math_point_get_x(self) + dx,
                        lh_math_point_get_y(self) + dy);
-    *out = p;
-    return;
+    lh_ptr_deref(out) = p;
 }
 
 /** @copydoc lh_math_point_offset_size(const lh_math_point_t *, const struct lh_math_size *) */

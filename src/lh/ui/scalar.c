@@ -18,7 +18,7 @@ lh_void
 lh_ui_scalar_trunc(lh_ui_scalar_t v, lh_ui_scalar_t *out)
 {
     lh_assert_runtime_ref(out);
-    *out = lh_ui_scalar_of(lh_cast_static(lh_s32_t, v));
+    lh_ptr_deref(out) = lh_ui_scalar_of(lh_cast_static(lh_s32_t, v));
 }
 #endif
 

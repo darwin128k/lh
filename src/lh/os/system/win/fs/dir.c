@@ -59,7 +59,7 @@ lh_os_system_fs_dir_open(lh_str_cptr path)
     lh_assert_runtime_ref(path);
     struct lh_os_system_fs_dir_state *const state =
         lh_os_system_fs_dir_pattern(path, lh_addr_of(pattern))
-            ? lh_ptr_cast(struct lh_os_system_fs_dir_state, lh_os_alloc(sizeof(*state)))
+            ? lh_ptr_cast(struct lh_os_system_fs_dir_state, lh_os_alloc(sizeof(lh_ptr_deref(state))))
             : lh_null;
     if (lh_null_eq(state))
     {

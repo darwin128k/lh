@@ -50,7 +50,7 @@ lh_void
 lh_str_list_get_span(const lh_str_list_t *self, lh_uindex_t index, lh_str_list_span_t *out)
 {
     lh_assert_runtime_ref(out);
-    *out = lh_ptr_deref(
+    lh_ptr_deref(out) = lh_ptr_deref(
         lh_ptr_cast(const lh_str_list_span_t, lh_array_get_ptr(lh_str_list_get_spans_as_const(self), index)));
     return;
 }
@@ -100,12 +100,11 @@ lh_str_list_get(const lh_str_list_t *self, lh_uindex_t index, lh_str_view_t *out
     {
         lh_str_view_t _lh_tmp;
         lh_str_view_init_empty(lh_addr_of(_lh_tmp));
-        *out = _lh_tmp;
+        lh_ptr_deref(out) = _lh_tmp;
         return;
     }
     lh_str_as_view(lh_str_list_get_chars_as_const(self), lh_addr_of(chars));
     lh_str_view_from_offset(lh_addr_of(chars), span.offset, span.size, out);
-    return;
 }
 
 lh_str_cptr

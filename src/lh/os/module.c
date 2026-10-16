@@ -149,7 +149,7 @@ lh_os_module_init(lh_os_module_t *self)
 lh_os_module_t *
 lh_os_module_create(void)
 {
-    lh_os_module_t *const self = lh_ptr_cast(lh_os_module_t, lh_os_alloc(sizeof(*self)));
+    lh_os_module_t *const self = lh_ptr_cast(lh_os_module_t, lh_os_alloc(sizeof(lh_ptr_deref(self))));
 
     if (lh_null_ne(self))
     {

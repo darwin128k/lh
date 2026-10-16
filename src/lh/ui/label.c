@@ -48,7 +48,7 @@ lh_ui_label_hash(const lh_char_t *text, lh_u32_t *length)
             hash = (hash ^ lh_cast_static(lh_u32_t, lh_cast_static(lh_u8_t, text[n]))) * 16777619U;
         }
     }
-    *length = n;
+    lh_ptr_deref(length) = n;
     return hash;
 }
 
@@ -243,8 +243,7 @@ lh_void
 lh_ui_label_get_text_origin(const lh_ui_label_t *self, lh_ui_point_t *out)
 {
     lh_assert_runtime_ref(out);
-    *out = lh_ui_label_measured(self)->metrics_origin;
-    return;
+    lh_ptr_deref(out) = lh_ui_label_measured(self)->metrics_origin;
 }
 
 lh_ui_scalar_t
@@ -295,15 +294,14 @@ lh_ui_label_on_baseline(const lh_ui_label_t *self, const lh_ui_entity_event_t *e
        that line is follows the alignment and the padding, not the box: a label
        centred in 28 rows has its baseline in the middle of them. */
     answer = lh_ui_entity_event_get_baseline(lh_ptr_rcast(lh_ui_entity_event_t, event));
-    *answer = lh_ui_label_get_baseline(self);
+    lh_ptr_deref(answer) = lh_ui_label_get_baseline(self);
 }
 
 lh_void
 lh_ui_label_get_text_rect(const lh_ui_label_t *self, lh_ui_rect_t *out)
 {
     lh_assert_runtime_ref(out);
-    *out = lh_ui_label_measured(self)->metrics_ink;
-    return;
+    lh_ptr_deref(out) = lh_ui_label_measured(self)->metrics_ink;
 }
 
 lh_void
@@ -332,12 +330,11 @@ lh_ui_label_get_ink_reach(lh_ui_label_t *self, lh_ui_rect_t *out)
 
     if (lh_ui_rect_is_empty(lh_addr_of(text)))
     {
-        *out = text;
+        lh_ptr_deref(out) = text;
         return;
     }
     lh_ui_rect_offset(lh_addr_of(text), lh_math_neg(lh_ui_point_get_x(origin)),
                              lh_math_neg(lh_ui_point_get_y(origin)), out);
-    return;
 }
 
 lh_void
@@ -415,9 +412,9 @@ lh_ui_label_shorten(const lh_ui_font_t *font, const lh_char_t *text, lh_s32_t ro
     lh_u32_t used;
 
     /* A line that fits, or text of several lines, is drawn as it is. */
-    for (cursor = text; *cursor != '\0'; ++cursor)
+    for (cursor = text; lh_ptr_deref(cursor) != '\0'; ++cursor)
     {
-        lh_return_if(*cursor == '\n', lh_bool_false);
+        lh_return_if(lh_ptr_deref(cursor) == '\n', lh_bool_false);
     }
     lh_return_if(lh_ui_text_get_width(font, text) <= room, lh_bool_false);
 
@@ -434,7 +431,7 @@ lh_ui_label_shorten(const lh_ui_font_t *font, const lh_char_t *text, lh_s32_t ro
     used = lh_cast_static(lh_u32_t, (fits - text));
     for (cursor = text; cursor < fits; ++cursor)
     {
-        out[cursor - text] = *cursor;
+        out[cursor - text] = lh_ptr_deref(cursor);
     }
     if (has_ellipsis)
     {

@@ -91,11 +91,11 @@ lh_ui_web_ws_read(lh_byte_cptr p, lh_usize_t n, unsigned *opcode, lh_bool_t *fin
     }
     if (opcode != lh_null)
     {
-        *opcode = lh_cast_static(unsigned, (p[0] & 0x0fu));
+        lh_ptr_deref(opcode) = lh_cast_static(unsigned, (p[0] & 0x0fu));
     }
     if (fin != lh_null)
     {
-        *fin = (p[0] & 0x80u) ? lh_bool_true : lh_bool_false;
+        lh_ptr_deref(fin) = (p[0] & 0x80u) ? lh_bool_true : lh_bool_false;
     }
     if (!ws_ok_opcode(lh_cast_static(unsigned, (p[0] & 0x0fu))))
     {
@@ -146,13 +146,13 @@ lh_ui_web_ws_read(lh_byte_cptr p, lh_usize_t n, unsigned *opcode, lh_bool_t *fin
         }
         if (mask != lh_null)
         {
-            *mask = p + off;
+            lh_ptr_deref(mask) = p + off;
         }
         off += 4u;
     }
     else if (mask != lh_null)
     {
-        *mask = lh_null;
+        lh_ptr_deref(mask) = lh_null;
     }
     if (n < off + plen)
     {
@@ -160,11 +160,11 @@ lh_ui_web_ws_read(lh_byte_cptr p, lh_usize_t n, unsigned *opcode, lh_bool_t *fin
     }
     if (payload != lh_null)
     {
-        *payload = p + off;
+        lh_ptr_deref(payload) = p + off;
     }
     if (payload_len != lh_null)
     {
-        *payload_len = plen;
+        lh_ptr_deref(payload_len) = plen;
     }
     return off + plen;
 }

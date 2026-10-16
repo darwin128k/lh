@@ -9,8 +9,7 @@ lh_net_ip4_socket_addr_get_ip(const lh_net_ip4_socket_addr_t *self, lh_net_ip4_t
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    *out = self->ip;
-    return;
+    lh_ptr_deref(out) = self->ip;
 }
 
 lh_void

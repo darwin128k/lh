@@ -18,7 +18,7 @@ lh_test_has_display()
 #else
     const char *display = std::getenv("DISPLAY");
 
-    return display != nullptr && *display != '\0';
+    return display != nullptr && lh_ptr_deref(display) != '\0';
 #endif
 }
 

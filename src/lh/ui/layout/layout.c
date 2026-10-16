@@ -135,8 +135,7 @@ layout_slot(const lh_ui_layout_t *self, const lh_ui_place_t *place, const lh_ui_
 
     lh_ui_rect_init_along(lh_addr_of(slot), content, cross, before,
                           lh_ui_scalar_slack(room - before, after));
-    *out = slot;
-    return;
+    lh_ptr_deref(out) = slot;
 }
 
 lh_void
@@ -210,17 +209,17 @@ layout_across(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_ui_rec
     lh_ui_layout_cross_fit(self, child, content, lh_addr_of(fit));
     if (align == lh_ui_place_align_fill)
     {
-        *length = lh_ui_place_clamp(place, lh_ui_axis_get_cross(self->axis), fit.room);
+        lh_ptr_deref(length) = lh_ui_place_clamp(place, lh_ui_axis_get_cross(self->axis), fit.room);
     }
     else
     {
-        *length = fit.own;
+        lh_ptr_deref(length) = fit.own;
         at = lh_ui_layout_cross_at(lh_addr_of(fit), align,
                                    align == lh_ui_place_align_baseline ? lh_ui_entity_get_baseline(child)
                                                                        : lh_ui_scalar(-1),
                                    line);
     }
-    *start = lh_math_max(fit.start + lh_math_max(at, lh_ui_scalar(0)), lh_ui_scalar(0));
+    lh_ptr_deref(start) = lh_math_max(fit.start + lh_math_max(at, lh_ui_scalar(0)), lh_ui_scalar(0));
 }
 
 lh_ui_scalar_t
@@ -330,15 +329,15 @@ lh_ui_layout_justify_lead(lh_ui_justify_t justify, lh_ui_scalar_t left, int show
     lh_assert_runtime_ref(lead);
     lh_assert_runtime_ref(spread);
     lh_assert_runtime_if(shown <= 0, lh_runtime_error_code_invalid_argument);
-    *lead = lh_ui_scalar(0);
-    *spread = lh_ui_scalar(0);
+    lh_ptr_deref(lead) = lh_ui_scalar(0);
+    lh_ptr_deref(spread) = lh_ui_scalar(0);
     switch (justify)
     {
     case lh_ui_justify_center:
-        *lead = lh_ui_scalar_centre(left, lh_ui_scalar(0));
+        lh_ptr_deref(lead) = lh_ui_scalar_centre(left, lh_ui_scalar(0));
         break;
     case lh_ui_justify_end:
-        *lead = left;
+        lh_ptr_deref(lead) = left;
         break;
     case lh_ui_justify_space_between:
         /* One child has nothing to be between, and sits at the start. */
@@ -346,11 +345,11 @@ lh_ui_layout_justify_lead(lh_ui_justify_t justify, lh_ui_scalar_t left, int show
         break;
     case lh_ui_justify_space_around:
         lh_ui_scalar_trunc(left / shown, spread);
-        lh_ui_scalar_trunc(*spread / 2, lead);
+        lh_ui_scalar_trunc(lh_ptr_deref(spread) / 2, lead);
         break;
     case lh_ui_justify_space_evenly:
         lh_ui_scalar_trunc(left / (shown + 1), spread);
-        *lead = *spread;
+        lh_ptr_deref(lead) = lh_ptr_deref(spread);
         break;
     default:
         break;
@@ -410,7 +409,7 @@ lh_ui_layout_run_place_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *run
     /* Moved, not resized: a child that carries a subtree has to take it along
        (::lh_ui_entity_move_to), and the size comes after, because moving is
        a delta and the child has to still be where it was for it to be right. */
-    lh_ui_entity_move_to(child, *lh_ui_rect_get_origin_as_const(lh_addr_of(placed)));
+    lh_ui_entity_move_to(child, lh_ptr_deref(lh_ui_rect_get_origin_as_const(lh_addr_of(placed))));
     lh_ui_entity_set_rect(child, placed);
     if (wants > lh_ui_scalar(0) || before + after > lh_ui_scalar(0))
     {
@@ -434,7 +433,7 @@ lh_void
 lh_ui_layout_run(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity_t *first, lh_ui_entity_t *end,
                  const lh_ui_rect_t *content_box)
 {
-    const lh_ui_rect_t content = *content_box;
+    const lh_ui_rect_t content = lh_ptr_deref(content_box);
     lh_ui_layout_run_t run;
 
     lh_assert_runtime_ref(parent);
@@ -474,7 +473,7 @@ layout_line_end(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity
     int count = 0;
     lh_ui_entity_t *child;
 
-    *depth = lh_ui_scalar(0);
+    lh_ptr_deref(depth) = lh_ui_scalar(0);
     for (child = first; lh_null_ne(child); child = lh_ui_entity_get_next_child(parent, child))
     {
         lh_ui_scalar_t size;
@@ -490,7 +489,7 @@ layout_line_end(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity
         }
         used += (count > 0 ? self->gap : lh_ui_scalar(0)) + size;
         ++count;
-        *depth = lh_math_max(*depth, layout_depth(self, child));
+        lh_ptr_deref(depth) = lh_math_max(lh_ptr_deref(depth), layout_depth(self, child));
     }
     return lh_null;
 }

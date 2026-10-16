@@ -22,13 +22,13 @@ lh_date_month_add(lh_date_month_t *self, lh_uint_t value)
     lh_uint_t years;
 
     lh_assert_runtime_ref(self);
-    if (*self < LH_DATE_MONTH_MIN || *self > LH_DATE_MONTH_MAX)
+    if (lh_ptr_deref(self) < LH_DATE_MONTH_MIN || lh_ptr_deref(self) > LH_DATE_MONTH_MAX)
     {
         return 0;
     }
-    index = lh_date_month_to_index(*self);
+    index = lh_date_month_to_index(lh_ptr_deref(self));
     years = lh_date_month_index_add(&index, value);
-    *self = lh_date_month_from_index(index);
+    lh_ptr_deref(self) = lh_date_month_from_index(index);
     return years;
 }
 
@@ -39,13 +39,13 @@ lh_date_month_sub(lh_date_month_t *self, lh_uint_t value)
     lh_uint_t years;
 
     lh_assert_runtime_ref(self);
-    if (*self < LH_DATE_MONTH_MIN || *self > LH_DATE_MONTH_MAX)
+    if (lh_ptr_deref(self) < LH_DATE_MONTH_MIN || lh_ptr_deref(self) > LH_DATE_MONTH_MAX)
     {
         return 0;
     }
-    index = lh_date_month_to_index(*self);
+    index = lh_date_month_to_index(lh_ptr_deref(self));
     years = lh_date_month_index_sub(&index, value);
-    *self = lh_date_month_from_index(index);
+    lh_ptr_deref(self) = lh_date_month_from_index(index);
     return years;
 }
 

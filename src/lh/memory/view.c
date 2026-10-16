@@ -526,10 +526,9 @@ lh_memory_view_return_init_of_slice(const lh_memory_view_slice_t *slice, lh_memo
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ifn(lh_memory_view_slice_is_valid(slice), lh_runtime_error_code_invalid_range);
-    *out = lh_initializer_of(lh_memory_view_t, lh_memory_view_initializer,
+    lh_ptr_deref(out) = lh_initializer_of(lh_memory_view_t, lh_memory_view_initializer,
                              lh_memory_view_slice_get_begin(slice),
                              lh_memory_view_slice_get_ropen_end(slice));
-    return;
 }
 
 lh_void
@@ -539,8 +538,7 @@ lh_memory_view_return_empty(lh_memory_view_t *out)
     lh_memory_view_t view;
 
     lh_memory_view_init_empty(&view);
-    *out = view;
-    return;
+    lh_ptr_deref(out) = view;
 }
 
 lh_void
@@ -563,8 +561,7 @@ lh_memory_view_return_init_v(const lh_ptr begin, const lh_ptr end, lh_memory_vie
     lh_memory_view_t view;
 
     lh_memory_view_init(&view, begin, end);
-    *out = view;
-    return;
+    lh_ptr_deref(out) = view;
 }
 
 lh_void
@@ -574,8 +571,7 @@ lh_memory_view_return_init_by_size(const lh_ptr begin, lh_usize_t size, lh_memor
     lh_memory_view_t view;
 
     lh_memory_view_init_by_size(&view, begin, size);
-    *out = view;
-    return;
+    lh_ptr_deref(out) = view;
 }
 
 lh_void

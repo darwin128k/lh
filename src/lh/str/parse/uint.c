@@ -35,7 +35,7 @@ lh_str_ptr_parse_uint_digits(lh_str_cptr str, lh_usize_t str_size, lh_uint_t max
         return lh_bool_false;
     }
 
-    *out = value;
+    lh_ptr_deref(out) = value;
     return lh_bool_true;
 }
 

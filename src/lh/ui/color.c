@@ -184,8 +184,7 @@ lh_ui_color_blend(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_u32_t
                      lh_ui_color_blend_channel(color->g, dst->g, src_w, dst_w),
                      lh_ui_color_blend_channel(color->b, dst->b, src_w, dst_w),
                      lh_ui_color_weight_to_alpha(src_w + dst_w));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_u32_t
@@ -294,8 +293,7 @@ lh_ui_color_over_opaque(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh
     lh_ui_color_init(lh_addr_of(result), lh_ui_color_over_opaque_channel(color->r, dst->r, color->a),
                      lh_ui_color_over_opaque_channel(color->g, dst->g, color->a),
                      lh_ui_color_over_opaque_channel(color->b, dst->b, color->a), LH_BYTE_T_MAX);
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }
 
 lh_void
@@ -308,13 +306,12 @@ lh_ui_color_over_translucent(const lh_ui_color_t *dst, const lh_ui_color_t *colo
     lh_ui_color_init(lh_addr_of(clear), 0, 0, 0, 0);
     if (src_w + dst_w == 0U)
     {
-        *out = clear;
+        lh_ptr_deref(out) = clear;
     }
     else
     {
         lh_ui_color_blend(dst, color, src_w, dst_w, out);
     }
-    return;
 }
 
 lh_void
@@ -339,8 +336,7 @@ lh_ui_color_with_coverage(const lh_ui_color_t *color, lh_byte_t coverage, lh_ui_
     lh_assert_runtime_ref(out);
     lh_ui_color_t result;
     lh_assert_runtime_ref(color);
-    result = *color;
+    result = lh_ptr_deref(color);
     result.a = lh_cast_static(lh_ui_color_channel_t, lh_math_div_round(color->a * coverage, LH_BYTE_T_MAX));
-    *out = result;
-    return;
+    lh_ptr_deref(out) = result;
 }

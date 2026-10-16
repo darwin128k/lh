@@ -164,7 +164,7 @@ lh_fs_path_get_segment(const lh_fs_path_t *self, lh_uindex_t index, lh_str_view_
     {
         if (lh_math_eq(seen, index))
         {
-            *out = field;
+            lh_ptr_deref(out) = field;
             return;
         }
         seen = lh_math_add_one(seen);
@@ -172,8 +172,7 @@ lh_fs_path_get_segment(const lh_fs_path_t *self, lh_uindex_t index, lh_str_view_
     lh_assert_runtime_if(lh_bool_true, lh_runtime_error_code_out_of_range);
     lh_str_view_t _lh_tmp;
     lh_str_view_init_empty(lh_addr_of(_lh_tmp));
-    *out = _lh_tmp;
-    return;
+    lh_ptr_deref(out) = _lh_tmp;
 }
 
 lh_bool_t

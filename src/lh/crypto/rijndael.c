@@ -99,15 +99,15 @@ lh_crypto_rijndael_shift_offsets(lh_usize_t nb, lh_usize_t *c1, lh_usize_t *c2, 
 {
     if (nb == 8U)
     {
-        *c1 = 1U;
-        *c2 = 3U;
-        *c3 = 4U;
+        lh_ptr_deref(c1) = 1U;
+        lh_ptr_deref(c2) = 3U;
+        lh_ptr_deref(c3) = 4U;
     }
     else
     {
-        *c1 = 1U;
-        *c2 = 2U;
-        *c3 = 3U;
+        lh_ptr_deref(c1) = 1U;
+        lh_ptr_deref(c2) = 2U;
+        lh_ptr_deref(c3) = 3U;
     }
 }
 

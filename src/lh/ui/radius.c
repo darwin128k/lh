@@ -133,16 +133,16 @@ lh_ui_radius_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t
     lh_assert_runtime_ref(out_x0);
     if (dy < 0)
     {
-        *out_x0 = left;
-        *out_x1 = left;
+        lh_ptr_deref(out_x0) = left;
+        lh_ptr_deref(out_x1) = left;
         return;
     }
     /* The straight part between the corners: the whole width is wholly inside,
        which is what lh_ui_radius_coverage_run answers for a dy of 0. */
     if (dy == 0)
     {
-        *out_x0 = left;
-        *out_x1 = right;
+        lh_ptr_deref(out_x0) = left;
+        lh_ptr_deref(out_x1) = right;
         return;
     }
 
@@ -166,8 +166,8 @@ lh_ui_radius_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t
        x * SUBPIXEL + half, so x is the ceiling of (inside - half) / SUBPIXEL. */
     at = lh_cast_static(lh_s32_t,
                         -lh_math_floor_div(LH_UI_RADIUS_SUBPIXEL / 2 - inside, LH_UI_RADIUS_SUBPIXEL));
-    *out_x0 = lh_math_max(at, left);
-    *out_x1 = lh_math_max(right - (*out_x0 - left), *out_x0);
+    lh_ptr_deref(out_x0) = lh_math_max(at, left);
+    lh_ptr_deref(out_x1) = lh_math_max(right - (lh_ptr_deref(out_x0) - left), lh_ptr_deref(out_x0));
 }
 
 lh_void

@@ -59,7 +59,7 @@ lh_ui_gradient_sampler_floor_div(lh_s64_t a, lh_s64_t b, lh_s64_t *rest)
         --quotient;
         remainder += b;
     }
-    *rest = remainder;
+    lh_ptr_deref(rest) = remainder;
     return quotient;
 }
 

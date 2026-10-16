@@ -171,7 +171,7 @@ lh_ui_font_find_index(const lh_ui_font_t *self, lh_u32_t code, lh_u32_t *index)
     lh_assert_runtime_ref(index);
     run = lh_ui_font_get_range_of(self, code);
     lh_return_if(lh_null_eq(run), lh_bool_false);
-    *index = lh_ui_font_range_get_base(run) + (code - lh_ui_font_range_get_first(run));
+    lh_ptr_deref(index) = lh_ui_font_range_get_base(run) + (code - lh_ui_font_range_get_first(run));
     return lh_bool_true;
 }
 
@@ -255,7 +255,7 @@ lh_ui_font_get_glyph(const lh_ui_font_t *self, lh_u32_t code, lh_ui_mask_t *mask
     lh_assert_runtime_ref(mask);
     run = lh_ui_font_get_range_of(self, code);
     lh_return_if(lh_null_eq(run), lh_bool_false);
-    *mask = self->glyphs[lh_ui_font_range_get_base(run) + (code - lh_ui_font_range_get_first(run))];
+    lh_ptr_deref(mask) = self->glyphs[lh_ui_font_range_get_base(run) + (code - lh_ui_font_range_get_first(run))];
     return lh_bool_true;
 }
 

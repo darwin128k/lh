@@ -421,7 +421,7 @@ lh_str_ptr_copy_except(lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr src
         {
             lh_optional_ref(replace)
             {
-                str[di++] = *replace;
+                str[di++] = lh_ptr_deref(replace);
             }
             continue;
         }

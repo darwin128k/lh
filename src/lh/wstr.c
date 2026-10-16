@@ -154,12 +154,11 @@ lh_wstr_as_view(const lh_wstr_t *self, lh_wstr_view_t *out)
     if (lh_wstr_is_empty(self))
     {
         lh_wstr_view_init_empty(lh_addr_of(view));
-        *out = view;
+        lh_ptr_deref(out) = view;
         return;
     }
     lh_wstr_view_init_by_size(lh_addr_of(view), lh_wstr_get_data(self), lh_wstr_get_size(self));
-    *out = view;
-    return;
+    lh_ptr_deref(out) = view;
 }
 
 lh_void

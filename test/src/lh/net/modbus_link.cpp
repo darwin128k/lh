@@ -163,7 +163,7 @@ setup(lh_test_link *self, lh_u8_t fc)
     lh_io_reader_t reader;
     lh_io_writer_t writer;
 
-    memset(self, 0, sizeof(*self));
+    memset(self, 0, sizeof(lh_ptr_deref(self)));
     lh_io_reader_init(lh_addr_of(reader), test_recv, lh_addr_of(self->tcp));
     lh_io_writer_init(lh_addr_of(writer), test_send, lh_addr_of(self->tcp));
     lh_io_stream_init(lh_addr_of(self->stream), lh_addr_of(reader), lh_addr_of(writer));

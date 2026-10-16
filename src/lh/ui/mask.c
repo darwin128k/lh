@@ -259,6 +259,5 @@ lh_ui_mask_get_rect(const lh_ui_mask_t *self, lh_ui_point_t origin, lh_ui_rect_t
 
     lh_ui_rect_init(lh_addr_of(rect), lh_ui_point_get_x(lh_addr_of(origin)), lh_ui_point_get_y(lh_addr_of(origin)),
                     lh_ui_mask_get_width(self), lh_ui_mask_get_height(self));
-    *out = rect;
-    return;
+    lh_ptr_deref(out) = rect;
 }

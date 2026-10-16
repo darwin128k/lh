@@ -10,6 +10,6 @@ lh_os_system_timestamp_now(lh_timestamp_t *out)
 
     lh_assert_runtime_ref(out);
     GetSystemTimeAsFileTime(&ft);
-    *out = lh_os_system_timestamp_from_filetime(&ft);
+    lh_ptr_deref(out) = lh_os_system_timestamp_from_filetime(&ft);
     return lh_bool_true;
 }

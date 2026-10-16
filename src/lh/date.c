@@ -69,8 +69,7 @@ lh_date_from_epoch_days(lh_s64_t days, lh_date_t *out)
                 lh_cast_static(lh_date_day_t,
                                lh_math_add_one(lh_math_sub(day_of_year,
                                                            lh_cast_static(lh_s64_t, lh_date_days_before_month(year, month))))));
-    *out = date;
-    return;
+    lh_ptr_deref(out) = date;
 }
 
 lh_date_year_t

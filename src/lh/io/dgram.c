@@ -6,8 +6,7 @@ lh_io_dgram_get_reader(const lh_io_dgram_t *self, lh_io_dgram_reader_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    *out = self->reader;
-    return;
+    lh_ptr_deref(out) = self->reader;
 }
 
 lh_void
@@ -23,8 +22,7 @@ lh_io_dgram_get_writer(const lh_io_dgram_t *self, lh_io_dgram_writer_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    *out = self->writer;
-    return;
+    lh_ptr_deref(out) = self->writer;
 }
 
 lh_void

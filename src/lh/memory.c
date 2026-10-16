@@ -121,7 +121,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
                      off = lh_math_add(off, 1))
                 {
                     lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-                    if (*cand == needle)
+                    if (lh_ptr_deref(cand) == needle)
                     {
                         return cand;
                     }
@@ -139,7 +139,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
             for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), 1); off = lh_math_add(off, 1))
             {
                 lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-                if (*cand == needle)
+                if (lh_ptr_deref(cand) == needle)
                 {
                     return cand;
                 }
@@ -150,7 +150,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
         for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), 1); off = lh_math_add(off, step))
         {
             lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-            if (*cand == needle)
+            if (lh_ptr_deref(cand) == needle)
             {
                 return cand;
             }
@@ -226,7 +226,7 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
         for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), rhs_size); off = lh_math_add(off, step))
         {
             lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-            if (*cand == first && !lh_memory_compare(cand, lh_memory_size_rest(lhs_size, off), rhs, rhs_size))
+            if (lh_ptr_deref(cand) == first && !lh_memory_compare(cand, lh_memory_size_rest(lhs_size, off), rhs, rhs_size))
             {
                 return cand;
             }
@@ -280,7 +280,7 @@ lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh
         for (;;)
         {
             lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-            if (*cand == needle)
+            if (lh_ptr_deref(cand) == needle)
             {
                 return cand;
             }
@@ -319,7 +319,7 @@ lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh
         for (;;)
         {
             lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-            if (*cand == first && !lh_memory_compare(cand, lhs_size - off, rhs, rhs_size))
+            if (lh_ptr_deref(cand) == first && !lh_memory_compare(cand, lhs_size - off, rhs, rhs_size))
             {
                 return cand;
             }
@@ -353,7 +353,7 @@ lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usiz
 
     if (src_size == 1)
     {
-        return lh_memory_std_set(d, *s, dst_size);
+        return lh_memory_std_set(d, lh_ptr_deref(s), dst_size);
     }
 
     /* Doubling, as PHP's str_repeat does: write the pattern once, then copy the

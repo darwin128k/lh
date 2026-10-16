@@ -157,8 +157,7 @@ lh_os_fs_file_get_reader(lh_os_fs_file_t *self, lh_io_reader_t *out)
 
     lh_assert_runtime_ref(self);
     lh_io_reader_init(lh_addr_of(reader), lh_os_fs_file_read, self);
-    *out = reader;
-    return;
+    lh_ptr_deref(out) = reader;
 }
 
 lh_void
@@ -169,8 +168,7 @@ lh_os_fs_file_get_writer(lh_os_fs_file_t *self, lh_io_writer_t *out)
 
     lh_assert_runtime_ref(self);
     lh_io_writer_init(lh_addr_of(writer), lh_os_fs_file_write, self);
-    *out = writer;
-    return;
+    lh_ptr_deref(out) = writer;
 }
 
 lh_void
@@ -184,8 +182,7 @@ lh_os_fs_file_get_stream(lh_os_fs_file_t *self, lh_io_stream_t *out)
 
     lh_io_stream_t stream;
     lh_io_stream_init(lh_addr_of(stream), lh_addr_of(reader), lh_addr_of(writer));
-    *out = stream;
-    return;
+    lh_ptr_deref(out) = stream;
 }
 
 lh_bool_t

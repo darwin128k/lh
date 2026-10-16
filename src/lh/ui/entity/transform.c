@@ -18,8 +18,7 @@ lh_ui_entity_transform_get_offset(const lh_ui_entity_transform_t *self, lh_ui_po
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    *out = self->offset;
-    return;
+    lh_ptr_deref(out) = self->offset;
 }
 
 lh_void

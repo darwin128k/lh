@@ -28,7 +28,7 @@ TEST(ui_text, next_code_reads_one_code_and_stops_at_the_end)
     EXPECT_EQ(lh_ui_text_next_code(lh_addr_of(cursor)), static_cast<lh_u32_t>('b'));
     EXPECT_EQ(lh_ui_text_next_code(lh_addr_of(cursor)), 0U);
     EXPECT_EQ(lh_ui_text_next_code(lh_addr_of(cursor)), 0U);
-    EXPECT_EQ(*cursor, '\0');
+    EXPECT_EQ(lh_ptr_deref(cursor), '\0');
 }
 
 TEST(ui_text, is_line_end_takes_newline_and_end)

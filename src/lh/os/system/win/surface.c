@@ -34,7 +34,7 @@ lh_os_system_surface_create(int width, int height, int bits)
 
     lh_return_if(width <= 0 || height <= 0, LH_OS_SYSTEM_SURFACE_HANDLE_INVALID);
 
-    surface = lh_ptr_rcast(lh_os_system_win_surface_t, lh_os_alloc(sizeof(*surface)));
+    surface = lh_ptr_rcast(lh_os_system_win_surface_t, lh_os_alloc(sizeof(lh_ptr_deref(surface))));
     lh_return_if(lh_null_eq(surface), LH_OS_SYSTEM_SURFACE_HANDLE_INVALID);
 
     dc = CreateCompatibleDC(lh_null);

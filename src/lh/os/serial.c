@@ -67,6 +67,5 @@ lh_os_serial_get_stream(lh_os_serial_t *self, lh_io_stream_t *out)
     lh_io_reader_init(lh_addr_of(reader), lh_os_serial_read, self);
     lh_io_writer_init(lh_addr_of(writer), lh_os_serial_write, self);
     lh_io_stream_init(lh_addr_of(stream), lh_addr_of(reader), lh_addr_of(writer));
-    *out = stream;
-    return;
+    lh_ptr_deref(out) = stream;
 }

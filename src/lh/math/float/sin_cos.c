@@ -6,6 +6,7 @@
 #include <lh/cast/static.h>
 #include <lh/math/float/sin_cos.h>
 #include <lh/numeric/types.h>
+#include <lh/util/ptr.h>
 
 lh_void
 lh_math_float_sin_cos(lh_float_t x, lh_float_t *sin_out, lh_float_t *cos_out)
@@ -27,20 +28,20 @@ lh_math_float_sin_cos(lh_float_t x, lh_float_t *sin_out, lh_float_t *cos_out)
     switch (k & 3)
     {
     case 0:
-        *sin_out = s;
-        *cos_out = c;
+        lh_ptr_deref(sin_out) = s;
+        lh_ptr_deref(cos_out) = c;
         break;
     case 1:
-        *sin_out = c;
-        *cos_out = -s;
+        lh_ptr_deref(sin_out) = c;
+        lh_ptr_deref(cos_out) = -s;
         break;
     case 2:
-        *sin_out = -s;
-        *cos_out = -c;
+        lh_ptr_deref(sin_out) = -s;
+        lh_ptr_deref(cos_out) = -c;
         break;
     default:
-        *sin_out = -c;
-        *cos_out = s;
+        lh_ptr_deref(sin_out) = -c;
+        lh_ptr_deref(cos_out) = s;
         break;
     }
 }

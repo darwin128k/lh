@@ -57,7 +57,7 @@ lh_ui_place_set_margin(lh_ui_place_t *self, const lh_ui_insets_t *margin)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(margin);
-    self->margin = *margin;
+    self->margin = lh_ptr_deref(margin);
 }
 
 const lh_ui_insets_t *
@@ -79,8 +79,7 @@ lh_ui_place_get_min(const lh_ui_place_t *self, lh_ui_size_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    *out = self->min;
-    return;
+    lh_ptr_deref(out) = self->min;
 }
 
 lh_void
@@ -95,8 +94,7 @@ lh_ui_place_get_max(const lh_ui_place_t *self, lh_ui_size_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    *out = self->max;
-    return;
+    lh_ptr_deref(out) = self->max;
 }
 
 lh_ui_scalar_t

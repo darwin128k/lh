@@ -197,11 +197,11 @@ lh_os_system_posix_window_unlist(lh_os_system_posix_window_t *self)
 {
     lh_os_system_posix_window_t **at;
 
-    for (at = lh_addr_of(lh_os_system_posix_windows); lh_null_ne(*at); at = lh_addr_of((*at)->next))
+    for (at = lh_addr_of(lh_os_system_posix_windows); lh_null_ne(lh_ptr_deref(at)); at = lh_addr_of((lh_ptr_deref(at))->next))
     {
-        if (*at == self)
+        if (lh_ptr_deref(at) == self)
         {
-            *at = self->next;
+            lh_ptr_deref(at) = self->next;
             return;
         }
     }
@@ -489,10 +489,10 @@ lh_os_system_posix_workarea(int *x, int *y, int *width, int *height)
     unsigned long after = 0UL;
     lh_byte_ptr data = lh_null;
 
-    *x = 0;
-    *y = 0;
-    *width = xlib->XDisplayWidth(lh_os_system_posix_display, lh_os_system_posix_screen);
-    *height = xlib->XDisplayHeight(lh_os_system_posix_display, lh_os_system_posix_screen);
+    lh_ptr_deref(x) = 0;
+    lh_ptr_deref(y) = 0;
+    lh_ptr_deref(width) = xlib->XDisplayWidth(lh_os_system_posix_display, lh_os_system_posix_screen);
+    lh_ptr_deref(height) = xlib->XDisplayHeight(lh_os_system_posix_display, lh_os_system_posix_screen);
     if (xlib->XGetWindowProperty(lh_os_system_posix_display, lh_os_system_posix_root,
                                  lh_os_system_posix_atom_net_workarea, 0L, 4L, 0, LH_OS_SYSTEM_POSIX_X_XA_CARDINAL,
                                  lh_addr_of(type), lh_addr_of(format), lh_addr_of(count), lh_addr_of(after),
@@ -507,10 +507,10 @@ lh_os_system_posix_workarea(int *x, int *y, int *width, int *height)
         /* The first desktop's area: x, y, width, height. */
         if (format == 32 && count >= 4UL && area[2] > 0 && area[3] > 0)
         {
-            *x = lh_cast_static(int, area[0]);
-            *y = lh_cast_static(int, area[1]);
-            *width = lh_cast_static(int, area[2]);
-            *height = lh_cast_static(int, area[3]);
+            lh_ptr_deref(x) = lh_cast_static(int, area[0]);
+            lh_ptr_deref(y) = lh_cast_static(int, area[1]);
+            lh_ptr_deref(width) = lh_cast_static(int, area[2]);
+            lh_ptr_deref(height) = lh_cast_static(int, area[3]);
         }
         (void)xlib->XFree(data);
     }
@@ -685,9 +685,9 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     x = lh_os_system_posix_x;
     owner_window = lh_os_system_posix_window_find(owner);
 
-    self = lh_ptr_rcast(lh_os_system_posix_window_t, lh_os_alloc(sizeof(*self)));
+    self = lh_ptr_rcast(lh_os_system_posix_window_t, lh_os_alloc(sizeof(lh_ptr_deref(self))));
     lh_return_if(lh_null_eq(self), LH_OS_SYSTEM_WINDOW_HANDLE_INVALID);
-    lh_memory_set(self, sizeof(*self), 0);
+    lh_memory_set(self, sizeof(lh_ptr_deref(self)), 0);
     self->user = lh_ptr_rcast(lh_os_window_t, user);
     self->owner = owner_window;
     self->width = width;
@@ -1282,8 +1282,8 @@ lh_os_system_window_get_client_size(lh_os_system_window_handle_t handle, int *wi
     const lh_os_system_posix_window_t *self = lh_os_system_posix_window_find(handle);
 
     lh_return_if(lh_null_eq(self) || lh_null_eq(width) || lh_null_eq(height), lh_bool_false);
-    *width = self->width;
-    *height = self->height;
+    lh_ptr_deref(width) = self->width;
+    lh_ptr_deref(height) = self->height;
     return lh_bool_true;
 }
 
@@ -1293,12 +1293,12 @@ lh_os_system_window_get_paint_region(lh_ptr paint_dc, lh_u64_t *area, lh_u32_t *
     const lh_os_system_posix_paint_t *paint = lh_ptr_rcast(const lh_os_system_posix_paint_t, paint_dc);
 
     lh_return_if(lh_null_eq(area) || lh_null_eq(count), lh_bool_false);
-    *area = 0U;
-    *count = 0U;
+    lh_ptr_deref(area) = 0U;
+    lh_ptr_deref(count) = 0U;
     lh_return_if(lh_null_eq(paint), lh_bool_false);
     /* One rectangle, the bounding box: that is all this backend keeps. */
-    *area = paint->area;
-    *count = paint->rects;
+    lh_ptr_deref(area) = paint->area;
+    lh_ptr_deref(count) = paint->rects;
     return lh_bool_true;
 }
 

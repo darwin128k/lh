@@ -26,8 +26,7 @@ lh_void
 lh_os_get_last_error(lh_os_error_t *out)
 {
     lh_assert_runtime_ref(out);
-    *out = lh_ptr_deref(lh_os_last_error());
-    return;
+    lh_ptr_deref(out) = lh_ptr_deref(lh_os_last_error());
 }
 
 lh_error_code_t
