@@ -59,6 +59,12 @@ lh_void
 lh_math_mat4_set_column(lh_math_mat4_t *self, unsigned index, lh_math_vec4_t column);
 
 /**
+ * @brief Replace column @p index (`0..3`) of @p self with `(xyz, w)`.
+ */
+lh_void
+lh_math_mat4_set_column_vec3(lh_math_mat4_t *self, unsigned index, lh_math_vec3_t xyz, lh_math_fscalar_t w);
+
+/**
  * @brief The identity: transforms every vector to itself.
  */
 lh_void

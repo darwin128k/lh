@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/shadow.h`.
  */
 
+#include <lh/math/div_round.h>
 #include <lh/assert/runtime.h>
 #include <lh/cast/static.h>
 #include <lh/math.h>
@@ -166,7 +167,7 @@ shadow_falloff_sub(lh_s64_t distance, lh_s64_t spread, lh_byte_t peak)
     {
         return 0;
     }
-    fade = (fade + span / 2) / span;
+    fade = lh_math_div_round(fade, span);
     if (fade > peak)
     {
         fade = peak;

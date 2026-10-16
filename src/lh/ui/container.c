@@ -3,6 +3,7 @@
  * @brief Implementation of `lh/ui/container.h`.
  */
 
+#include <lh/ui/scalar.h>
 #include <lh/assert/runtime.h>
 #include <lh/math.h>
 #include <lh/null.h>
@@ -234,16 +235,14 @@ lh_ui_container_get_scroll_max(const lh_ui_container_t *self, lh_ui_point_t *out
     lh_assert_runtime_ref(out);
     lh_ui_size_t content;
     lh_ui_size_t viewport;
-    lh_ui_scalar_t dx;
-    lh_ui_scalar_t dy;
-    lh_ui_point_t max;
 
     lh_ui_container_get_content_size(self, lh_addr_of(content));
     lh_ui_container_get_viewport_size(self, lh_addr_of(viewport));
-    dx = lh_ui_size_get_width(lh_addr_of(content)) - lh_ui_size_get_width(lh_addr_of(viewport));
-    dy = lh_ui_size_get_height(lh_addr_of(content)) - lh_ui_size_get_height(lh_addr_of(viewport));
-    lh_ui_point_init(lh_addr_of(max), lh_math_max(dx, lh_ui_scalar(0)), lh_math_max(dy, lh_ui_scalar(0)));
-    *out = max;
+    lh_ui_point_init(out,
+                     lh_ui_scalar_slack(lh_ui_size_get_width(lh_addr_of(content)),
+                                        lh_ui_size_get_width(lh_addr_of(viewport))),
+                     lh_ui_scalar_slack(lh_ui_size_get_height(lh_addr_of(content)),
+                                        lh_ui_size_get_height(lh_addr_of(viewport))));
     return;
 }
 

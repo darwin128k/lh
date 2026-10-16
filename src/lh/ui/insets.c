@@ -8,6 +8,7 @@
 #include <lh/math.h>
 #include <lh/ui/insets.h>
 #include <lh/ui/point.h>
+#include <lh/ui/scalar.h>
 #include <lh/ui/size.h>
 #include <lh/util/addr.h>
 
@@ -88,8 +89,8 @@ lh_ui_insets_shrink(const lh_ui_insets_t *self, const lh_ui_rect_t *rect, lh_ui_
 
     lh_assert_runtime_ref(self);
     lh_ui_rect_init(lh_addr_of(inner), lh_ui_point_get_x(origin) + self->left, lh_ui_point_get_y(origin) + self->top,
-                    lh_math_max(lh_ui_size_get_width(size) - self->left - self->right, lh_ui_scalar(0)),
-                    lh_math_max(lh_ui_size_get_height(size) - self->top - self->bottom, lh_ui_scalar(0)));
+                    lh_ui_scalar_slack(lh_ui_size_get_width(size) - self->left, self->right),
+                    lh_ui_scalar_slack(lh_ui_size_get_height(size) - self->top, self->bottom));
     *out = inner;
     return;
 }

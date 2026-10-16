@@ -6,6 +6,7 @@
  * the same code for the integer and the float scalar, so it needs no FPU.
  */
 
+#include <lh/math/div_round.h>
 #include <lh/assert/runtime.h>
 #include <lh/byte/ptr.h>
 #include <lh/cast/static.h>
@@ -31,9 +32,7 @@ lh_ui_radius_pixel_center(lh_s32_t i)
 lh_ui_scalar_t
 lh_ui_radius_get_max(const lh_ui_rect_t *rect)
 {
-    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
-    const lh_ui_scalar_t short_side = lh_math_min(lh_ui_size_get_width(size), lh_ui_size_get_height(size));
-    return lh_math_max(short_side / lh_ui_scalar(2), lh_ui_scalar(0));
+    return lh_math_max(lh_ui_size_min_side(lh_ui_rect_get_size_as_const(rect)) / lh_ui_scalar(2), lh_ui_scalar(0));
 }
 
 lh_ui_scalar_t
@@ -56,7 +55,7 @@ lh_byte_t
 lh_ui_radius_cover_from_distance(lh_s64_t r, lh_s64_t d)
 {
     const lh_s64_t cover = lh_math_clamp(r + LH_UI_RADIUS_SUBPIXEL / 2 - d, 0, LH_UI_RADIUS_SUBPIXEL);
-    return lh_cast_static(lh_byte_t, (cover * 255 + LH_UI_RADIUS_SUBPIXEL / 2) / LH_UI_RADIUS_SUBPIXEL);
+    return lh_cast_static(lh_byte_t, lh_math_div_round(cover * 255, LH_UI_RADIUS_SUBPIXEL));
 }
 
 lh_bool_t

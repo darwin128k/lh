@@ -61,6 +61,9 @@ typedef lh_math_size_t lh_ui_size_t;
 #define lh_ui_size_is_less LH_UI_SIZE_FN(is_less)
 #define lh_ui_size_is_greater LH_UI_SIZE_FN(is_greater)
 #define lh_ui_size_is_empty LH_UI_SIZE_FN(is_empty)
+#define lh_ui_size_min LH_UI_SIZE_FN(min)
+#define lh_ui_size_max LH_UI_SIZE_FN(max)
+#define lh_ui_size_min_side LH_UI_SIZE_FN(min_side)
 #define lh_ui_size_inset LH_UI_SIZE_FN(inset)
 /** @} */
 

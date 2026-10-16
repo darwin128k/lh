@@ -121,3 +121,41 @@ TEST(mat4, singular_matrix_has_no_inverse)
 }
 
 } // namespace
+
+TEST(math_mat4_bricks, set_column_vec3_writes_xyz_and_w)
+{
+    lh_math_mat4_t m;
+    lh_math_vec3_t v;
+
+    lh_math_mat4_identity(&m);
+    lh_math_vec3_init(&v, 1.0f, 2.0f, 3.0f);
+    lh_math_mat4_set_column_vec3(&m, 2, v, 4.0f);
+    const lh_math_vec4_t c = lh_test::out(lh_math_mat4_get_column, &m, 2u);
+    EXPECT_EQ(lh_math_vec4_get_x(&c), 1.0f);
+    EXPECT_EQ(lh_math_vec4_get_y(&c), 2.0f);
+    EXPECT_EQ(lh_math_vec4_get_z(&c), 3.0f);
+    EXPECT_EQ(lh_math_vec4_get_w(&c), 4.0f);
+}
+
+TEST(math_mat4_bricks, from_quat_is_the_textbook_matrix_exactly)
+{
+    const lh_float_t x = 0.1f, y = -0.7f, z = 0.3f, w = 0.62f;
+    lh_math_quat_t q;
+    lh_math_mat4_t m;
+
+    lh_math_quat_init(&q, x, y, z, w);
+    lh_math_mat4_from_quat(q, &m);
+    const lh_float_t xx = x * x, yy = y * y, zz = z * z, xy = x * y, xz = x * z, yz = y * z;
+    const lh_float_t wx = w * x, wy = w * y, wz = w * z;
+    const lh_float_t want[3][3] = {{1.0f - 2.0f * (yy + zz), 2.0f * (xy + wz), 2.0f * (xz - wy)},
+                                   {2.0f * (xy - wz), 1.0f - 2.0f * (xx + zz), 2.0f * (yz + wx)},
+                                   {2.0f * (xz + wy), 2.0f * (yz - wx), 1.0f - 2.0f * (xx + yy)}};
+    for (unsigned i = 0; i < 3; ++i)
+    {
+        const lh_math_vec4_t c = lh_test::out(lh_math_mat4_get_column, &m, i);
+        EXPECT_EQ(lh_math_vec4_get_x(&c), want[i][0]);
+        EXPECT_EQ(lh_math_vec4_get_y(&c), want[i][1]);
+        EXPECT_EQ(lh_math_vec4_get_z(&c), want[i][2]);
+        EXPECT_EQ(lh_math_vec4_get_w(&c), 0.0f);
+    }
+}

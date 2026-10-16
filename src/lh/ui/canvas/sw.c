@@ -387,74 +387,85 @@ lh_ui_canvas_sw_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_
     return lh_bool_true;
 }
 
-/** Blend the shadow of @p shape over pixels `x0 .. x1 - 1` of row @p y, cut to the clip. */
-static lh_void
-sw_shadow_span(lh_ui_canvas_sw_t *self, const lh_ui_shadow_shape_t *shape, const lh_ui_shadow_ramp_t *ramp,
-               lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_u32_t rgb, lh_bool_t rounded)
+lh_bool_t
+lh_ui_canvas_sw_shadow_pass_init(const lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+                                 const lh_ui_shadow_t *shadow, lh_ui_canvas_sw_shadow_pass_t *out)
+{
+    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
+    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
+    const lh_s32_t outset = lh_ui_shadow_get_outset(shadow, rect);
+    lh_ui_color_t color;
+
+    lh_assert_runtime_ref(out);
+    lh_ui_shadow_get_color(shadow, lh_addr_of(color));
+    out->rect = rect;
+    out->rgb = lh_ui_color_get_argb(lh_addr_of(color)) & 0x00FFFFFFU;
+    out->corner = lh_ui_radius_clamp(rect, radius);
+    out->rounded = lh_ui_canvas_sw_is_rounded(self);
+    out->left = lh_ui_point_get_x(origin) - outset;
+    out->top = lh_ui_point_get_y(origin) - outset;
+    out->right = out->left + lh_ui_size_get_width(size) + outset * 2;
+    out->bottom = out->top + lh_ui_size_get_height(size) + outset * 2;
+    lh_return_if(outset <= 0, lh_bool_false);
+    lh_ui_shadow_shape_init(lh_addr_of(out->shape), shadow, rect, out->corner);
+    lh_ui_shadow_ramp_init(lh_addr_of(out->ramp), lh_addr_of(out->shape));
+    return lh_bool_true;
+}
+
+lh_void
+lh_ui_canvas_sw_shadow_span(lh_ui_canvas_sw_t *self, const lh_ui_canvas_sw_shadow_pass_t *pass, lh_s32_t x0,
+                            lh_s32_t x1, lh_s32_t y)
 {
     lh_byte_t alpha[LH_UI_PIXMAP_RUN];
     lh_s32_t end;
+    lh_s32_t i;
 
     x0 = lh_ui_canvas_sw_cut_x0(self, x0);
     x1 = lh_ui_canvas_sw_cut_x1(self, x1);
     for (; x0 < x1; x0 = end)
     {
-        lh_s32_t i;
-
         end = lh_math_min(x1, x0 + LH_UI_PIXMAP_RUN);
-        lh_ui_shadow_shape_span(shape, ramp, y, x0, end, alpha);
+        lh_ui_shadow_shape_span(lh_addr_of(pass->shape), lh_addr_of(pass->ramp), y, x0, end, alpha);
         /* The shadow is soft on its own account and then cut by the clip, in that
            order — the same order the canvas fallback rounds in. What the shape hands
            back already carries the peak, so it goes in as the alpha and the coverage
            is the full 255: scaling it by the colour alpha a second time is what makes
            a slot shadow lighter than the very same shadow drawn without a slot. */
-        if (rounded)
+        for (i = 0; pass->rounded && i < end - x0; ++i)
         {
-            for (i = 0; i < end - x0; ++i)
-            {
-                alpha[i] = lh_ui_canvas_sw_edge_alpha(self, alpha[i], 255, x0 + i, y);
-            }
+            alpha[i] = lh_ui_canvas_sw_edge_alpha(self, alpha[i], 255, x0 + i, y);
         }
-        lh_ui_pixmap_blend_alpha_span(lh_addr_of(self->pixmap), x0, end, y, rgb, alpha);
+        lh_ui_pixmap_blend_alpha_span(lh_addr_of(self->pixmap), x0, end, y, pass->rgb, alpha);
     }
+}
+
+lh_void
+lh_ui_canvas_sw_shadow_row(lh_ui_canvas_sw_t *self, const lh_ui_canvas_sw_shadow_pass_t *pass, lh_s32_t y)
+{
+    const lh_s32_t x0 = lh_ui_canvas_sw_cut_x0(self, pass->left);
+    const lh_s32_t x1 = lh_ui_canvas_sw_cut_x1(self, pass->right);
+    lh_s32_t full0;
+    lh_s32_t full1;
+
+    /* The span the fill covers wholly is a span the shadow does not paint
+       (::lh_ui_shadow_alpha_at_pixel). Skipping it is the same pixels, and
+       it is most of a card. */
+    lh_ui_radius_full_span(pass->rect, pass->corner, y, lh_addr_of(full0), lh_addr_of(full1));
+    lh_ui_canvas_sw_shadow_span(self, pass, x0, lh_math_min(x1, full0), y);
+    lh_ui_canvas_sw_shadow_span(self, pass, lh_math_max(x0, full1), x1, y);
 }
 
 lh_bool_t
 lh_ui_canvas_sw_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, const lh_ui_shadow_t *shadow)
 {
     lh_ui_canvas_sw_t *self = lh_ui_canvas_sw_from(context);
-    const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
-    const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
-    lh_ui_color_t color;
-    lh_ui_shadow_get_color(shadow, lh_addr_of(color));
-    const lh_u32_t rgb = lh_ui_color_get_argb(&color) & 0x00FFFFFFU;
-    const lh_ui_scalar_t corner = lh_ui_radius_clamp(rect, radius);
-    const lh_bool_t rounded = lh_ui_canvas_sw_is_rounded(self);
-    const lh_s32_t outset = lh_ui_shadow_get_outset(shadow, rect);
-    const lh_s32_t left = lh_ui_point_get_x(origin) - outset;
-    const lh_s32_t top = lh_ui_point_get_y(origin) - outset;
-    const lh_s32_t right = left + lh_ui_size_get_width(size) + outset * 2;
-    const lh_s32_t bottom = top + lh_ui_size_get_height(size) + outset * 2;
-    lh_ui_shadow_shape_t shape;
-    lh_ui_shadow_ramp_t ramp;
+    lh_ui_canvas_sw_shadow_pass_t pass;
     lh_s32_t y;
 
-    lh_return_if(outset <= 0, lh_bool_false);
-    lh_ui_shadow_shape_init(&shape, shadow, rect, corner);
-    lh_ui_shadow_ramp_init(&ramp, &shape);
-    for (y = lh_ui_canvas_sw_cut_y0(self, top); y < lh_ui_canvas_sw_cut_y1(self, bottom); ++y)
+    lh_return_if(!lh_ui_canvas_sw_shadow_pass_init(self, rect, radius, shadow, lh_addr_of(pass)), lh_bool_false);
+    for (y = lh_ui_canvas_sw_cut_y0(self, pass.top); y < lh_ui_canvas_sw_cut_y1(self, pass.bottom); ++y)
     {
-        const lh_s32_t x0 = lh_ui_canvas_sw_cut_x0(self, left);
-        const lh_s32_t x1 = lh_ui_canvas_sw_cut_x1(self, right);
-        lh_s32_t full0;
-        lh_s32_t full1;
-
-        /* The span the fill covers wholly is a span the shadow does not paint
-           (::lh_ui_shadow_alpha_at_pixel). Skipping it is the same pixels, and
-           it is most of a card. */
-        lh_ui_radius_full_span(rect, corner, y, &full0, &full1);
-        sw_shadow_span(self, &shape, &ramp, x0, lh_math_min(x1, full0), y, rgb, rounded);
-        sw_shadow_span(self, &shape, &ramp, lh_math_max(x0, full1), x1, y, rgb, rounded);
+        lh_ui_canvas_sw_shadow_row(self, lh_addr_of(pass), y);
     }
     return lh_bool_true;
 }

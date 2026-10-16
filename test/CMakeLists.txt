@@ -145,6 +145,7 @@ set(LH_TEST_MATH_SOURCES
         ${LH_TEST_SRC_PATH}/lh/math/size.cpp
         ${LH_TEST_SRC_PATH}/lh/math/rect.cpp
         ${LH_TEST_SRC_PATH}/lh/math/rescale.cpp
+        ${LH_TEST_SRC_PATH}/lh/math/scalar_centre.cpp
 )
 if (LH_LIBRARY_OPTION_MATH_FPU)
     list(APPEND LH_TEST_MATH_SOURCES ${LH_TEST_MATH_FPU_SOURCES})
@@ -302,6 +303,7 @@ set(LH_TEST_UI_SOURCES
         ${LH_TEST_SRC_PATH}/lh/ui/range.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/rect.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/rects.cpp
+        ${LH_TEST_SRC_PATH}/lh/ui/scalar.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/shadow.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/style.cpp
         ${LH_TEST_SRC_PATH}/lh/ui/text.cpp

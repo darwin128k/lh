@@ -151,6 +151,42 @@ lh_math_quat_conjugate(lh_math_quat_t q, lh_math_quat_t *out)
     return;
 }
 
+lh_void
+lh_math_quat_axis_cyclic(lh_math_fscalar_t i, lh_math_fscalar_t j, lh_math_fscalar_t k, lh_math_fscalar_t w,
+                         lh_math_vec3_t *out)
+{
+    lh_math_vec3_init(out, 1.0f - 2.0f * (j * j + k * k), 2.0f * (i * j + w * k), 2.0f * (i * k - w * j));
+}
+
+lh_void
+lh_math_quat_axis_x(lh_math_quat_t q, lh_math_vec3_t *out)
+{
+    lh_math_quat_axis_cyclic(lh_math_quat_get_x(lh_addr_of(q)), lh_math_quat_get_y(lh_addr_of(q)),
+                             lh_math_quat_get_z(lh_addr_of(q)), lh_math_quat_get_w(lh_addr_of(q)), out);
+}
+
+lh_void
+lh_math_quat_axis_y(lh_math_quat_t q, lh_math_vec3_t *out)
+{
+    lh_math_vec3_t yzx;
+
+    lh_math_quat_axis_cyclic(lh_math_quat_get_y(lh_addr_of(q)), lh_math_quat_get_z(lh_addr_of(q)),
+                             lh_math_quat_get_x(lh_addr_of(q)), lh_math_quat_get_w(lh_addr_of(q)), lh_addr_of(yzx));
+    lh_math_vec3_init(out, lh_math_vec3_get_z(lh_addr_of(yzx)), lh_math_vec3_get_x(lh_addr_of(yzx)),
+                      lh_math_vec3_get_y(lh_addr_of(yzx)));
+}
+
+lh_void
+lh_math_quat_axis_z(lh_math_quat_t q, lh_math_vec3_t *out)
+{
+    lh_math_vec3_t zxy;
+
+    lh_math_quat_axis_cyclic(lh_math_quat_get_z(lh_addr_of(q)), lh_math_quat_get_x(lh_addr_of(q)),
+                             lh_math_quat_get_y(lh_addr_of(q)), lh_math_quat_get_w(lh_addr_of(q)), lh_addr_of(zxy));
+    lh_math_vec3_init(out, lh_math_vec3_get_y(lh_addr_of(zxy)), lh_math_vec3_get_z(lh_addr_of(zxy)),
+                      lh_math_vec3_get_x(lh_addr_of(zxy)));
+}
+
 lh_float_t
 lh_math_quat_dot(lh_math_quat_t a, lh_math_quat_t b)
 {

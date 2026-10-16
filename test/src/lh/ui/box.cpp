@@ -232,3 +232,54 @@ TEST(ui_canvas_box, a_gradient_fill_runs_from_its_first_stop_to_its_last)
     EXPECT_NEAR(red_of(s.at(10, 50)), 127, 4);
     EXPECT_EQ(s.at(0, 50), s.at(19, 50)) << "a row of a top-to-bottom gradient is one colour";
 }
+
+/* -- Bricks ---------------------------------------------------------------- */
+
+TEST(ui_canvas_box_bricks, zone_is_the_corner_width_while_the_row_is_in_it)
+{
+    EXPECT_EQ(lh_ui_canvas_box_zone(0, lh_ui_scalar(5), 100), 5);
+    EXPECT_EQ(lh_ui_canvas_box_zone(4, lh_ui_scalar(5), 100), 5);
+    EXPECT_EQ(lh_ui_canvas_box_zone(5, lh_ui_scalar(5), 100), 0);
+    EXPECT_EQ(lh_ui_canvas_box_zone(0, lh_ui_scalar(5), 3), 3);
+    EXPECT_EQ(lh_ui_canvas_box_zone(0, lh_ui_scalar(0), 100), 0);
+}
+
+TEST(ui_canvas_box_bricks, frame_is_the_box_cut_by_the_clip)
+{
+    const lh_ui_rect_t box = rect_of(10, 20, 30, 40);
+    const lh_ui_rect_t cut = rect_of(15, 25, 100, 5);
+    lh_ui_canvas_box_frame_t frame;
+
+    EXPECT_TRUE(lh_ui_canvas_box_frame_init(&box, &cut, &frame));
+    EXPECT_EQ(frame.left, 10);
+    EXPECT_EQ(frame.right, 40);
+    EXPECT_EQ(frame.top, 20);
+    EXPECT_EQ(frame.bottom, 60);
+    EXPECT_EQ(frame.shown_left, 15);
+    EXPECT_EQ(frame.shown_right, 40);
+    EXPECT_EQ(frame.first, 25);
+    EXPECT_EQ(frame.last, 30);
+    const lh_ui_rect_t aside = rect_of(50, 20, 10, 10);
+    EXPECT_FALSE(lh_ui_canvas_box_frame_init(&box, &aside, &frame));
+}
+
+TEST(ui_canvas_box_bricks, row_reach_finds_the_corners_of_a_row)
+{
+    const lh_ui_rect_t box = rect_of(0, 0, 40, 20);
+    lh_ui_canvas_box_frame_t frame;
+    lh_ui_radii_t radii;
+    lh_s32_t near_end;
+    lh_s32_t far_start;
+
+    lh_ui_canvas_box_frame_init(&box, &box, &frame);
+    lh_ui_radii_init(&radii, lh_ui_scalar(4), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_scalar(6));
+    EXPECT_TRUE(lh_ui_canvas_box_row_is_upper(&frame, 9));
+    EXPECT_FALSE(lh_ui_canvas_box_row_is_upper(&frame, 10));
+    EXPECT_TRUE(lh_ui_canvas_box_row_reach(&frame, &radii, 0, &near_end, &far_start));
+    EXPECT_EQ(near_end, 4);
+    EXPECT_EQ(far_start, 40);
+    EXPECT_FALSE(lh_ui_canvas_box_row_reach(&frame, &radii, 4, &near_end, &far_start));
+    EXPECT_TRUE(lh_ui_canvas_box_row_reach(&frame, &radii, 19, &near_end, &far_start));
+    EXPECT_EQ(near_end, 6); /* bottom left: 6, bottom right: none */
+    EXPECT_EQ(far_start, 40);
+}

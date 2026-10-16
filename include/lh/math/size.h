@@ -126,6 +126,26 @@ lh_math_size_is_greater(const lh_math_size_t *self, const lh_math_size_t *other)
 lh_bool_t
 lh_math_size_is_empty(const lh_math_size_t *self);
 
+/* ── Component-wise ─────────────────────────────────────────────────────── */
+
+/**
+ * @brief Component-wise minimum of @p a and @p b into @p out.
+ */
+lh_void
+lh_math_size_min(const lh_math_size_t *a, const lh_math_size_t *b, lh_math_size_t *out);
+
+/**
+ * @brief Component-wise maximum of @p a and @p b into @p out.
+ */
+lh_void
+lh_math_size_max(const lh_math_size_t *a, const lh_math_size_t *b, lh_math_size_t *out);
+
+/**
+ * @brief The shorter side of @p self: `min(width, height)`.
+ */
+lh_math_scalar_t
+lh_math_size_min_side(const lh_math_size_t *self);
+
 /* ── Set ops ────────────────────────────────────────────────────────────── */
 
 /**

@@ -348,3 +348,70 @@ TEST(ui_blur, a_neighbour_outside_the_rect_still_counts)
     EXPECT_EQ(f.red_at(1, 3), 255);
     EXPECT_GT(f.red_at(3, 3), 0);
 }
+/* -- Column-pass bricks ---------------------------------------------------- */
+
+TEST(ui_blur_bricks, sample_color_reads_four_bytes)
+{
+    const lh_u8_t sample[4] = {10, 20, 30, 40};
+    const lh_ui_color_t c = lh_test::out(lh_ui_blur_sample_color, sample);
+
+    EXPECT_EQ(lh_ui_color_get_r(&c), 10);
+    EXPECT_EQ(lh_ui_color_get_g(&c), 20);
+    EXPECT_EQ(lh_ui_color_get_b(&c), 30);
+    EXPECT_EQ(lh_ui_color_get_a(&c), 40);
+}
+
+TEST(ui_blur_bricks, window_span_is_cut_to_the_band)
+{
+    lh_s32_t win0;
+    lh_s32_t win1;
+
+    lh_ui_blur_window_span(5, 2, 0, 10, &win0, &win1);
+    EXPECT_EQ(win0, 3);
+    EXPECT_EQ(win1, 8);
+    lh_ui_blur_window_span(1, 3, 0, 3, &win0, &win1);
+    EXPECT_EQ(win0, 0);
+    EXPECT_EQ(win1, 3);
+}
+
+TEST(ui_blur_bricks, samples_taken_then_dropped_leave_nothing)
+{
+    /* Two samples in a column of a 2-pixel-wide scratch: stride 8 bytes. */
+    const lh_u8_t scratch[16] = {255, 0, 0, 255, 9, 9, 9, 9, 0, 0, 255, 255, 9, 9, 9, 9};
+    lh_ui_blur_window_t sum = {0, 0, 0, 0};
+
+    lh_ui_blur_window_take_samples(&sum, scratch, 8, 2);
+    EXPECT_EQ(sum.r, 255 * 255);
+    EXPECT_EQ(sum.b, 255 * 255);
+    EXPECT_EQ(sum.a, 510);
+    const lh_ui_color_t avg = lh_test::out(lh_ui_blur_window_average_color, &sum, 2);
+    EXPECT_EQ(lh_ui_color_get_r(&avg), 128);
+    EXPECT_EQ(lh_ui_color_get_b(&avg), 128);
+    EXPECT_EQ(lh_ui_color_get_a(&avg), 255);
+    lh_ui_blur_window_drop_samples(&sum, scratch, 8, 2);
+    lh_ui_blur_window_take_samples(&sum, scratch, 8, 0);
+    EXPECT_EQ(sum.r, 0);
+    EXPECT_EQ(sum.g, 0);
+    EXPECT_EQ(sum.b, 0);
+    EXPECT_EQ(sum.a, 0);
+}
+
+TEST(ui_blur_bricks, pass_init_refuses_nothing_to_write)
+{
+    blur_fixture f;
+    lh_ui_blur_pass_t pass;
+    lh_ui_rect_t rect;
+    const lh_u8_t scratch[4] = {0, 0, 0, 0};
+
+    lh_ui_rect_init(&rect, lh_ui_scalar(2), lh_ui_scalar(1), lh_ui_scalar(4), lh_ui_scalar(3));
+    EXPECT_TRUE(lh_ui_blur_pass_init(&f.pixmap, &rect, 1, scratch, lh_null, lh_ui_scalar(0), &pass));
+    EXPECT_EQ(pass.left, 2);
+    EXPECT_EQ(pass.top, 1);
+    EXPECT_EQ(pass.width, 4);
+    EXPECT_EQ(pass.height, 3);
+    EXPECT_EQ(pass.y0, 0);
+    EXPECT_EQ(pass.y1, 5);
+    EXPECT_EQ(pass.shape, lh_null);
+    EXPECT_FALSE(lh_ui_blur_pass_init(&f.pixmap, &rect, -1, scratch, lh_null, lh_ui_scalar(0), &pass));
+    EXPECT_FALSE(lh_ui_blur_pass_init(&f.pixmap, &rect, 1, lh_null, lh_null, lh_ui_scalar(0), &pass));
+}

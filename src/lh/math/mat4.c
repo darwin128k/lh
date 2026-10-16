@@ -77,33 +77,28 @@ lh_math_mat4_from_scale(lh_math_vec3_t factors, lh_math_mat4_t *out)
 }
 
 lh_void
+lh_math_mat4_set_column_vec3(lh_math_mat4_t *self, unsigned index, lh_math_vec3_t xyz, lh_math_fscalar_t w)
+{
+    lh_math_vec4_t column;
+
+    lh_math_vec4_init(lh_addr_of(column), lh_math_vec3_get_x(lh_addr_of(xyz)), lh_math_vec3_get_y(lh_addr_of(xyz)),
+                      lh_math_vec3_get_z(lh_addr_of(xyz)), w);
+    lh_math_mat4_set_column(self, index, column);
+}
+
+lh_void
 lh_math_mat4_from_quat(lh_math_quat_t q, lh_math_mat4_t *out)
 {
-    lh_assert_runtime_ref(out);
-    const lh_float_t xx = lh_math_quat_get_x(lh_addr_of(q)) * lh_math_quat_get_x(lh_addr_of(q));
-    const lh_float_t yy = lh_math_quat_get_y(lh_addr_of(q)) * lh_math_quat_get_y(lh_addr_of(q));
-    const lh_float_t zz = lh_math_quat_get_z(lh_addr_of(q)) * lh_math_quat_get_z(lh_addr_of(q));
-    const lh_float_t xy = lh_math_quat_get_x(lh_addr_of(q)) * lh_math_quat_get_y(lh_addr_of(q));
-    const lh_float_t xz = lh_math_quat_get_x(lh_addr_of(q)) * lh_math_quat_get_z(lh_addr_of(q));
-    const lh_float_t yz = lh_math_quat_get_y(lh_addr_of(q)) * lh_math_quat_get_z(lh_addr_of(q));
-    const lh_float_t wx = lh_math_quat_get_w(lh_addr_of(q)) * lh_math_quat_get_x(lh_addr_of(q));
-    const lh_float_t wy = lh_math_quat_get_w(lh_addr_of(q)) * lh_math_quat_get_y(lh_addr_of(q));
-    const lh_float_t wz = lh_math_quat_get_w(lh_addr_of(q)) * lh_math_quat_get_z(lh_addr_of(q));
+    lh_math_vec3_t axis;
 
-    lh_math_vec4_t column0;
-    lh_math_vec4_init(lh_addr_of(column0), 1.0f - 2.0f * (yy + zz), 2.0f * (xy + wz),
-                      2.0f * (xz - wy), 0.0f);
-    lh_math_vec4_t column1;
-    lh_math_vec4_init(lh_addr_of(column1), 2.0f * (xy - wz), 1.0f - 2.0f * (xx + zz),
-                      2.0f * (yz + wx), 0.0f);
-    lh_math_vec4_t column2;
-    lh_math_vec4_init(lh_addr_of(column2), 2.0f * (xz + wy), 2.0f * (yz - wx),
-                      1.0f - 2.0f * (xx + yy), 0.0f);
-    lh_math_vec4_t column3;
-    lh_math_vec4_init(lh_addr_of(column3), 0.0f, 0.0f, 0.0f, 1.0f);
-    /* Column c is where the rotation takes axis c. */
-    lh_math_mat4_from_columns(column0, column1, column2, column3, out);
-    return;
+    /* Column c is where the rotation takes axis c; the last stays (0, 0, 0, 1). */
+    lh_math_mat4_identity(out);
+    lh_math_quat_axis_x(q, lh_addr_of(axis));
+    lh_math_mat4_set_column_vec3(out, 0, axis, 0.0f);
+    lh_math_quat_axis_y(q, lh_addr_of(axis));
+    lh_math_mat4_set_column_vec3(out, 1, axis, 0.0f);
+    lh_math_quat_axis_z(q, lh_addr_of(axis));
+    lh_math_mat4_set_column_vec3(out, 2, axis, 0.0f);
 }
 
 lh_void

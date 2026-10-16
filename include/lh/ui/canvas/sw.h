@@ -40,6 +40,9 @@
 #include <lh/ui/point.h>
 #include <lh/ui/rect.h>
 #include <lh/ui/scalar.h>
+#include <lh/ui/shadow.h>
+#include <lh/ui/shadow/ramp.h>
+#include <lh/ui/shadow/shape.h>
 #include <lh/void.h>
 
 /**
@@ -53,6 +56,28 @@ struct lh_ui_canvas_sw
 };
 /** @copybrief lh_ui_canvas_sw */
 typedef struct lh_ui_canvas_sw lh_ui_canvas_sw_t;
+
+/**
+ * @struct lh_ui_canvas_sw_shadow_pass
+ * @brief One box shadow ready to draw row by row: filled by
+ *        ::lh_ui_canvas_sw_shadow_pass_init.
+ */
+struct lh_ui_canvas_sw_shadow_pass
+{
+    lh_ui_shadow_shape_t shape; /**< The shadow's shape (::lh_ui_shadow_shape_init). */
+    lh_ui_shadow_ramp_t ramp;   /**< Its alpha ramp (::lh_ui_shadow_ramp_init). */
+    const lh_ui_rect_t *rect;   /**< The box casting it. */
+    lh_ui_scalar_t corner;      /**< The box radius, clamped to the box. */
+    lh_u32_t rgb;               /**< Shadow colour, `0x00RRGGBB`. */
+    lh_bool_t rounded;          /**< True when the canvas clip is rounded. */
+    lh_s32_t left;              /**< Left of the box grown by the outset. */
+    lh_s32_t top;               /**< Its top. */
+    lh_s32_t right;             /**< One past its right. */
+    lh_s32_t bottom;            /**< One past its bottom. */
+};
+
+/** @brief Alias for ::lh_ui_canvas_sw_shadow_pass. */
+typedef struct lh_ui_canvas_sw_shadow_pass lh_ui_canvas_sw_shadow_pass_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -294,6 +319,30 @@ lh_ui_canvas_sw_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip);
 lh_bool_t
 lh_ui_canvas_sw_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,
                           const lh_ui_color_t *color);
+
+/**
+ * @brief Prepare the shadow of @p rect rounded by @p radius on @p self into
+ *        @p out. False, with only the edges set, when the shadow has no outset
+ *        and draws nothing. @p out must not be null (::lh_assert_runtime_ref).
+ */
+lh_bool_t
+lh_ui_canvas_sw_shadow_pass_init(const lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+                                 const lh_ui_shadow_t *shadow, lh_ui_canvas_sw_shadow_pass_t *out);
+
+/**
+ * @brief Blend the shadow of @p pass over pixels `x0 .. x1 - 1` of row @p y,
+ *        cut to the clip (and its rounded edge).
+ */
+lh_void
+lh_ui_canvas_sw_shadow_span(lh_ui_canvas_sw_t *self, const lh_ui_canvas_sw_shadow_pass_t *pass, lh_s32_t x0,
+                            lh_s32_t x1, lh_s32_t y);
+
+/**
+ * @brief Row @p y of the shadow of @p pass: both sides of the span the box
+ *        covers wholly (::lh_ui_radius_full_span), which it skips.
+ */
+lh_void
+lh_ui_canvas_sw_shadow_row(lh_ui_canvas_sw_t *self, const lh_ui_canvas_sw_shadow_pass_t *pass, lh_s32_t y);
 
 /**
  * @brief Backend `shadow`: ::lh_ui_shadow_alpha_at_pixel over the box grown by
