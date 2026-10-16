@@ -18,10 +18,14 @@ TEST(str_raw_find_of_char, returns_first_match_or_null)
     EXPECT_TRUE(lh_null_eq(miss));
 }
 
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
 TEST(str_raw_find_of_char_death, null_str)
 {
     LH_EXPECT_DEATH(lh_str_ptr_find_of_char(lh_null, 1, 'x'));
 }
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 TEST(str_raw_rfind_of_char, returns_last_match_or_null)
 {
@@ -49,11 +53,15 @@ TEST(str_raw_find_of_null_terminator_by_size, finds_nul_inside_prefix_or_null)
     EXPECT_TRUE(lh_null_eq(miss_absent));
 }
 
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
 TEST(str_raw_find_of_null_terminator_by_size_death, null_str)
 {
     LH_EXPECT_DEATH(
         lh_str_ptr_find_of_null_terminator_by_size(lh_null, 1));
 }
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 TEST(str_raw_find_of_null_terminator, finds_first_nul)
 {
@@ -63,10 +71,14 @@ TEST(str_raw_find_of_null_terminator, finds_first_nul)
     EXPECT_EQ(p, &s[1]);
 }
 
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
 TEST(str_raw_find_of_null_terminator_death, null_str)
 {
     LH_EXPECT_DEATH(lh_str_ptr_find_of_null_terminator(lh_null));
 }
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 TEST(str_raw_len, counts_chars_before_nul)
 {
@@ -80,6 +92,8 @@ TEST(str_raw_len, counts_chars_before_nul)
     EXPECT_EQ(lh_str_ptr_len(abc), 3U);
 }
 
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
 TEST(str_raw_len_death, no_null_terminator_when_scan_size_is_zero)
 {
     // ::lh_memory_scan bound is `LH_USIZE_T_MAX - lh_ptr_to_uaddr(str)` bytes.
@@ -90,6 +104,8 @@ TEST(str_raw_len_death, no_null_terminator_when_scan_size_is_zero)
     ASSERT_TRUE(lh_null_ne(p));
     LH_EXPECT_DEATH((void)lh_str_ptr_len(p));
 }
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 TEST(str_raw_contains, returns_true_if_substring_exists)
 {
@@ -332,6 +348,8 @@ TEST(str_raw_trim_default, uses_builtin_whitespace_set)
     EXPECT_STREQ(lh_str_ptr_trim(s3), "abc");
 }
 
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
 TEST(str_raw_trim_death, null_arguments)
 {
     lh_char_t s[] = "abc";
@@ -347,6 +365,8 @@ TEST(str_raw_trim_death, null_arguments)
     LH_EXPECT_DEATH(
         lh_str_ptr_ltrim_custom(s, lh_str_ptr_len(s), lh_null, 1));
 }
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 TEST(str_raw_trim_auto, ltrim_and_rtrim_variants)
 {
@@ -663,6 +683,8 @@ TEST(str_raw_erase, writes_nul_at_index)
     EXPECT_EQ(lh_str_ptr_len(s), 1U);
 }
 
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
 TEST(str_raw_clear_death, null_str)
 {
     LH_EXPECT_DEATH(lh_str_ptr_clear(lh_null));
@@ -672,5 +694,7 @@ TEST(str_raw_erase_death, null_str)
 {
     LH_EXPECT_DEATH(lh_str_ptr_erase(lh_null, 0));
 }
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 } // namespace

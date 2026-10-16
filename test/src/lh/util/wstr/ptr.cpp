@@ -33,10 +33,14 @@ TEST(wstr_raw_find_char, returns_aligned_pointer_to_matching_code_unit)
     EXPECT_TRUE(lh_null_eq(miss));
 }
 
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
 TEST(wstr_raw_find_char_death, null_str)
 {
     LH_EXPECT_DEATH(lh_wstr_ptr_find_char(lh_null, 1, L'x'));
 }
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 TEST(wstr_raw_rfind_char, returns_last_match_or_null)
 {
@@ -67,11 +71,15 @@ TEST(wstr_raw_find_of_null_terminator_by_size, finds_wide_nul_or_null)
     EXPECT_TRUE(lh_null_eq(miss_absent));
 }
 
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
 TEST(wstr_raw_find_of_null_terminator_by_size_death, null_str)
 {
     LH_EXPECT_DEATH(
         lh_wstr_ptr_find_of_null_terminator_by_size(lh_null, 1));
 }
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 TEST(wstr_raw_find_of_null_terminator, finds_first_wide_nul)
 {
@@ -83,10 +91,14 @@ TEST(wstr_raw_find_of_null_terminator, finds_first_wide_nul)
     EXPECT_EQ(*p, lh_wstr_ptr_cat_va(lh_char_map_nul));
 }
 
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
 TEST(wstr_raw_find_of_null_terminator_death, null_str)
 {
     LH_EXPECT_DEATH(lh_wstr_ptr_find_of_null_terminator(lh_null));
 }
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 TEST(wstr_raw_len, counts_wide_chars_before_nul)
 {
@@ -100,6 +112,8 @@ TEST(wstr_raw_len, counts_wide_chars_before_nul)
     EXPECT_EQ(lh_wstr_ptr_len(abc), 3U);
 }
 
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
 TEST(wstr_raw_len_death, no_null_terminator_when_scan_size_is_zero)
 {
     const lh_uaddr_t addr = static_cast<lh_uaddr_t>(LH_USIZE_T_MAX);
@@ -107,6 +121,8 @@ TEST(wstr_raw_len_death, no_null_terminator_when_scan_size_is_zero)
     ASSERT_TRUE(lh_null_ne(p));
     LH_EXPECT_DEATH((void)lh_wstr_ptr_len(p));
 }
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 TEST(wstr_raw_copy, copies_code_units)
 {
@@ -523,6 +539,8 @@ TEST(wstr_raw_trim_auto, ltrim_and_rtrim_variants)
     EXPECT_STREQ(lh_wstr_ptr_rtrim_auto(s2, ws), L"  abc");
 }
 
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
 TEST(wstr_raw_trim_death, null_arguments)
 {
     lh_wchar_t s[] = L"abc";
@@ -538,6 +556,8 @@ TEST(wstr_raw_trim_death, null_arguments)
     LH_EXPECT_DEATH(lh_wstr_ptr_ltrim_custom(s, lh_wstr_ptr_len(s),
                                              lh_null, 1));
 }
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 TEST(wstr_raw_clear, writes_nul_at_index_zero)
 {
@@ -556,6 +576,8 @@ TEST(wstr_raw_erase, writes_nul_at_index)
     EXPECT_EQ(lh_wstr_ptr_len(s), 1U);
 }
 
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
 TEST(wstr_raw_clear_death, null_str)
 {
     LH_EXPECT_DEATH(lh_wstr_ptr_clear(lh_null));
@@ -565,5 +587,7 @@ TEST(wstr_raw_erase_death, null_str)
 {
     LH_EXPECT_DEATH(lh_wstr_ptr_erase(lh_null, 0));
 }
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 } // namespace

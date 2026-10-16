@@ -15,8 +15,11 @@
 #   LH_SIMD_HAVE_AVX2  — same, for the AVX2 tier.
 #   LH_SIMD_HAVE_AESNI — same, for the AES-NI tier (AESENC / AESDEC / AESIMC).
 #
-# Both are plain (non-cache) variables — this is a toolchain fact, not a user
-# choice, same treatment as LH_IPO_SUPPORTED in the top-level CMakeLists.txt.
+# Each is a toolchain fact, not a user choice, so nothing here declares it as an
+# option. A value already set (e.g. -DLH_SIMD_HAVE_AESNI=0 on the command line)
+# skips that probe — check_c_source_compiles only runs for an undefined result
+# variable — which is how a tier is turned off on purpose (CI builds one job
+# with -DLH_SIMD_HAVE_AESNI=0 to keep the table AES path tested).
 # -----------------------------------------------------------------------------
 include(CheckCSourceCompiles)
 

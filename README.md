@@ -88,6 +88,7 @@ Details are in [scripts/README.md](scripts/README.md).
 | `LH_BUILD_BENCH` | `OFF` | Build Google Benchmark microbenchmarks (`bench/lib/benchmark` submodule) |
 | `LH_DOCS_GRAPHS` | `ON` | Include Graphviz dependency graphs |
 | `LH_ENABLE_RELEASE_MAX_OPT` | `ON` | Aggressive Release optimizations for the library (`-O3`, section GC; `/O2 /Oi /Ot /Gy` on MSVC) |
+| `LH_WINVER` | `0x0501` | Windows only: `WINVER` / `_WIN32_WINNT` for lh's C and C++ (`0x0501` = XP, `0x0600` = Vista; four hex digits, `0x0501` or newer). The `scripts/build-windows-*.bat` wrappers set it |
 | `LH_LIBRARY_OPTION_LTO` | `FAT` | Release LTO of the static library: `OFF` (machine code, links anywhere), `ON` (IR only, host must link with LTO and the same compiler), `FAT` (IR + machine code, links with or without LTO; falls back to `ON` on MSVC / Clang < 17) |
 
 lh is built as a static library only.
@@ -213,6 +214,11 @@ binary actually runs on supports it (`lh/cpu/simd.h`, checked once and cached
 behind a self-rewriting function pointer). Everywhere either doesn't hold, it
 falls back to the portable scalar path, unchanged.
 
+The probe's answers (`LH_SIMD_HAVE_SSE2`, `_SSSE3`, `_AVX2`, `_AESNI`) can be
+overridden on the CMake command line: a value given with `-D` skips that probe.
+`-DLH_SIMD_HAVE_AESNI=0`, for example, builds lh without the AES-NI tier, so
+AES runs on the table path even on a CPU that has AES-NI.
+
 Throughput against the platform CRT, measured on this project's own x86-64
 GCC/MinGW Release build (`CMAKE_BUILD_TYPE=Release`, SSE2 present, no AVX2 —
 an AVX2-capable CPU pushes the SIMD numbers further still):
@@ -282,7 +288,10 @@ Most public APIs in this library validate their arguments: a broken contract
 `lh_exception_t` to the check handler and ends the program
 (`lh_runtime_terminate`). These contract checks are compiled in while
 `LH_RUNTIME_ASSERT_ENABLED` is `1` — by default in builds without `NDEBUG` —
-and compiled out in Release. Expected failures (a missing file, a closed
+and compiled out in Release, where breaking such a contract is undefined
+behaviour rather than a reported error. Pointer parameters must be non-null
+even when the matching size is `0`: `lh_str_ptr_find_of_chars(p, n, NULL, 0)`
+breaks the contract the same way a non-empty call would. Expected failures (a missing file, a closed
 socket) are returned as results instead. A small number of functions are intentionally
 **unsafe** — they skip range validation to let callers who have already
 verified invariants avoid redundant checks. These functions are explicitly

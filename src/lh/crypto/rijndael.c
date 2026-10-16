@@ -4,7 +4,7 @@
 #include <lh/memory/std.h>
 #include <lh/bit/endian.h>
 #include <lh/bit/rotate.h>
-#include <lh/math.h>
+#include <lh/math/ops.h>
 #include <lh/config.h>
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_AESNI
@@ -298,11 +298,20 @@ lh_crypto_rijndael_has_aesni(void)
     return lh_cast_static(lh_bool_t, m_aesni == LH_CRYPTO_RIJNDAEL_AESNI_YES);
 }
 
+/* Byte offset of round key @p round in a 16-byte-block schedule (expanded_key and
+   aesni_dec_key alike). */
+static lh_usize_t
+lh_crypto_rijndael_aesni_key_offset(lh_usize_t round)
+{
+    return round * LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MIN;
+}
+
 LH_CRYPTO_RIJNDAEL_AESNI_TARGET
 static __m128i
 lh_crypto_rijndael_aesni_round_key(const lh_crypto_rijndael_t *self, lh_usize_t round)
 {
-    return _mm_loadu_si128(lh_ptr_rcast(const __m128i, self->expanded_key + round * 16U));
+    return _mm_loadu_si128(lh_ptr_rcast(
+        const __m128i, self->expanded_key + lh_crypto_rijndael_aesni_key_offset(round)));
 }
 
 LH_CRYPTO_RIJNDAEL_AESNI_TARGET
@@ -327,7 +336,8 @@ LH_CRYPTO_RIJNDAEL_AESNI_TARGET
 static __m128i
 lh_crypto_rijndael_aesni_dec_round_key(const lh_crypto_rijndael_t *self, lh_usize_t round)
 {
-    return _mm_loadu_si128(lh_ptr_rcast(const __m128i, self->aesni_dec_key + round * 16U));
+    return _mm_loadu_si128(lh_ptr_rcast(
+        const __m128i, self->aesni_dec_key + lh_crypto_rijndael_aesni_key_offset(round)));
 }
 
 /* The equivalent inverse cipher (FIPS-197 5.3.5): AESDEC wants the middle round keys
@@ -343,7 +353,8 @@ lh_crypto_rijndael_aesni_expand_dec_key(lh_crypto_rijndael_t *self)
 
     for (round = 1; round < nr; ++round)
     {
-        _mm_storeu_si128(lh_ptr_rcast(__m128i, self->aesni_dec_key + round * 16U),
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, self->aesni_dec_key +
+                                                   lh_crypto_rijndael_aesni_key_offset(round)),
                          _mm_aesimc_si128(lh_crypto_rijndael_aesni_round_key(self, round)));
     }
 }

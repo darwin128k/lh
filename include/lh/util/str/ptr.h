@@ -260,7 +260,9 @@ lh_str_ptr_find_of_null_terminator(const lh_str_ptr str);
  *
  * @note If no NUL is found within the scan bound used by ::lh_str_ptr_find_of_null_terminator,
  *       a failed check terminates (::lh_runtime_terminate) with
- *       ::lh_runtime_error_code_no_null_terminator.
+ *       ::lh_runtime_error_code_no_null_terminator. That and the null check on @p str are
+ *       contract checks (::LH_RUNTIME_ASSERT_ENABLED); without them, in Release by default,
+ *       a null or unterminated @p str is undefined behaviour.
  *
  * @see lh_str_ptr_find_of_null_terminator
  * @see lh_memory_scan

@@ -135,6 +135,8 @@ TEST_F(SizedAllocator, realloc_null_allocates_and_zero_frees)
     EXPECT_EQ(heap.allocs, heap.deallocs);
 }
 
+#if LH_TEST_EXPECT_DEATH_ENABLED
+
 TEST_F(SizedAllocator, overflowing_size_fails)
 {
     LH_EXPECT_DEATH(lh_memory_sized_allocator_alloc(&sized, LH_USIZE_T_MAX));
@@ -145,5 +147,7 @@ TEST(SizedAllocatorDeath, null_arguments)
     LH_EXPECT_DEATH(lh_memory_sized_allocator_alloc(nullptr, 8));
     LH_EXPECT_DEATH(lh_memory_sized_allocator_get_size(lh_null));
 }
+
+#endif /* LH_TEST_EXPECT_DEATH_ENABLED */
 
 } // namespace

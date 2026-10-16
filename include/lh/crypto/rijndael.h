@@ -25,6 +25,12 @@
 #include <lh/null.h>
 #include <lh/size.h>
 
+/* The session layout below depends on this option, so a config.h without it would
+   silently read it as 0 and disagree with a library built with it on. */
+#ifndef LH_LIBRARY_OPTION_SIMD_HAVE_AESNI
+#    error "lh/config.h does not define LH_LIBRARY_OPTION_SIMD_HAVE_AESNI (0 or 1); lh_crypto_rijndael_t's layout depends on it"
+#endif
+
 /**
  * @def LH_CRYPTO_RIJNDAEL_BLOCK_SIZE_MIN
  * @brief Smallest supported block length in bytes (16 — AES).
