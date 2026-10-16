@@ -15,6 +15,7 @@
  * keeps on Windows. Anywhere else, the plain path: the pixels in the request.
  */
 
+#include <lh/byte/ptr.h>
 #include <lh/memory.h>
 #include <lh/os/alloc.h>
 #include <lh/os/system/posix/connection.h>

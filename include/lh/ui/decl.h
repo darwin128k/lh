@@ -30,6 +30,7 @@
 #ifndef LH_UI_DECL_H
 #define LH_UI_DECL_H
 
+#include <lh/byte/ptr.h>
 #include <lh/ui/image.h>
 #include <lh/ui/input.h>
 #include <lh/ui/scrollbar.h>

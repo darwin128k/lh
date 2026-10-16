@@ -18,6 +18,7 @@
 #ifndef LH_UI_PIXMAP_H
 #define LH_UI_PIXMAP_H
 
+#include <lh/byte/ptr.h>
 #include <lh/ui/color.h>
 #include <lh/ui/pixmap/fields.h>
 #include <lh/ui/pixmap/format.h>

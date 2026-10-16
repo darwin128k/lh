@@ -18,6 +18,7 @@
 #ifndef LH_UI_GRADIENT_H
 #define LH_UI_GRADIENT_H
 
+#include <lh/byte/ptr.h>
 #include <lh/config.h>
 #include <lh/ui/gradient/fields.h>
 #include <lh/ui/gradient/stop.h>

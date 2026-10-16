@@ -5,6 +5,7 @@
 
 #include <lh/ui/web/buf.h>
 
+#include <lh/byte/ptr.h>
 #include <lh/cast/const.h>
 #include <lh/memory.h>
 #include <lh/str/cstr.h>

@@ -4,6 +4,7 @@
  */
 
 #include <lh/ui/decl.h>
+#include <lh/byte/ptr.h>
 #include <lh/util/return.h>
 
 /** Record @p code at row @p index in @p fault, when the caller asked for one. */

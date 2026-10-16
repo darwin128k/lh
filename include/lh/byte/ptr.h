@@ -18,7 +18,7 @@
 #define LH_BYTE_PTR_H
 
 #include <lh/byte.h>
-#include <lh/util/ptr/of.h>
+#include <lh/util/ptr.h>
 
 /**
  * @def lh_byte_ptr

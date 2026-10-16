@@ -12,6 +12,7 @@
 #define LH_UI_WEB_BUF_H
 
 #include <lh/bool.h>
+#include <lh/byte/ptr.h>
 #include <lh/str/ptr.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/config.h>

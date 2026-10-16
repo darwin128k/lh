@@ -27,6 +27,7 @@
 #define LH_NET_MODBUS_H
 
 #include <lh/bool.h>
+#include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/util/ptr.h>
 

@@ -15,6 +15,7 @@
 
 #include <lh/attribute/force_inline.h>
 #include <lh/bool.h>
+#include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/size.h>
 #include <lh/size/limits.h>

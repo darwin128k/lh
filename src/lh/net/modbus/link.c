@@ -6,6 +6,7 @@
 #include <lh/net/modbus/link.h>
 
 #include <lh/assert/runtime.h>
+#include <lh/byte/ptr.h>
 #include <lh/memory/std.h>
 #include <lh/util/return.h>
 

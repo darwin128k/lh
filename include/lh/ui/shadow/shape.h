@@ -17,6 +17,7 @@
 #ifndef LH_UI_SHADOW_SHAPE_H
 #define LH_UI_SHADOW_SHAPE_H
 
+#include <lh/byte/ptr.h>
 #include <lh/ui/shadow.h>
 #include <lh/ui/shadow/shape/fields.h>
 

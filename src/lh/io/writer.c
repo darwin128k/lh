@@ -1,5 +1,6 @@
 #include <lh/io/writer.h>
 #include <lh/assert.h>
+#include <lh/byte/ptr.h>
 #include <lh/cast/const.h>
 #include <lh/str/format/text.h>
 
