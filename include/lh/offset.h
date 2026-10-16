@@ -3,8 +3,8 @@
  * @brief Pointer-width offset aliases ::lh_uoffset_t / ::lh_soffset_t.
  *
  * Limits (::LH_UOFFSET_T_MIN, ::LH_UOFFSET_T_MAX, ::LH_UOFFSET_T_SIZE,
- * ::LH_SOFFSET_T_MIN, ::LH_SOFFSET_T_MAX, ::LH_SOFFSET_T_SIZE,
- * ::LH_OFFSET_T_SIZE) live in <lh/offset/limits.h>.
+ * ::LH_SOFFSET_T_MIN, ::LH_SOFFSET_T_MAX, ::LH_SOFFSET_T_SIZE) live in
+ * <lh/offset/limits.h>.
  */
 
 #ifndef LH_OFFSET_H

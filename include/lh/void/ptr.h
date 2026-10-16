@@ -14,7 +14,7 @@
 #ifndef LH_VOID_PTR_H
 #define LH_VOID_PTR_H
 
-#include <lh/addr.h>
+#include <lh/addr/limits.h>
 #include <lh/void.h>
 #include <lh/cast/reinterpret.h>
 

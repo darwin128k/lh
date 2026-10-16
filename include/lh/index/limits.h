@@ -16,9 +16,9 @@
  * @def LH_INDEX_T_SIZE
  * @brief Size in bytes of ::lh_sindex_t and ::lh_uindex_t.
  *
- * Expands to ::LH_SIZE_T_SIZE.
+ * Expands to ::LH_USIZE_T_SIZE.
  */
-#    define LH_INDEX_T_SIZE LH_SIZE_T_SIZE
+#    define LH_INDEX_T_SIZE LH_USIZE_T_SIZE
 #endif /* LH_INDEX_T_SIZE */
 
 #ifndef LH_SINDEX_T_MIN

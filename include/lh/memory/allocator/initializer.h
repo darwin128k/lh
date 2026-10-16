@@ -6,6 +6,7 @@
 #ifndef LH_MEMORY_ALLOCATOR_INITIALIZER_H
 #define LH_MEMORY_ALLOCATOR_INITIALIZER_H
 
+#include <lh/initializer.h>
 #include <lh/memory/allocator/alloc/cb.h>
 #include <lh/memory/allocator/dealloc/cb.h>
 #include <lh/memory/allocator/realloc/cb.h>

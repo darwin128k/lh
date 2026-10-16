@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <lh/numeric/limits.h>
 #include <lh/str/parse/hex.h>
 
 namespace
