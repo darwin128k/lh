@@ -10,7 +10,7 @@
  * `lh/os/system/error/code.h`.
  *
  * The slot is a value holder only — it does not own a text buffer; a
- * description is either a literal (::lh_os_error_desc_lit) or a view into
+ * description is either a literal (::lh_os_error_desc_lit) or a pointer into
  * whatever buffer the caller keeps alive (native capture keeps its own,
  * once `lh/os/system/error/capture.h` exists).
  *
@@ -61,8 +61,8 @@ lh_os_system_get_last_error_code(void);
 /**
  * @brief Description of the last native error on this thread.
  */
-lh_void
-lh_os_system_get_last_error_desc(lh_os_error_desc_t *out);
+const lh_os_error_desc_ptr
+lh_os_system_get_last_error_desc(void);
 
 LH_COMPILER_EXTERN_C_END
 

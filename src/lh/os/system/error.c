@@ -11,14 +11,14 @@ lh_os_system_error_set_code(lh_os_system_error_t *self, lh_os_system_error_code_
 }
 
 lh_void
-lh_os_system_error_set_desc(lh_os_system_error_t *self, lh_os_error_desc_t desc)
+lh_os_system_error_set_desc(lh_os_system_error_t *self, const lh_os_error_desc_ptr desc)
 {
     lh_assert_runtime_ref(self);
     self->desc = desc;
 }
 
 lh_void
-lh_os_system_error_set(lh_os_system_error_t *self, lh_os_system_error_code_t code, lh_os_error_desc_t desc)
+lh_os_system_error_set(lh_os_system_error_t *self, lh_os_system_error_code_t code, const lh_os_error_desc_ptr desc)
 {
     lh_os_system_error_set_code(self, code);
     lh_os_system_error_set_desc(self, desc);
@@ -31,20 +31,17 @@ lh_os_system_error_get_code(const lh_os_system_error_t *self)
     return self->code;
 }
 
-lh_void
-lh_os_system_error_get_desc(const lh_os_system_error_t *self, lh_os_error_desc_t *out)
+const lh_os_error_desc_ptr
+lh_os_system_error_get_desc(const lh_os_system_error_t *self)
 {
-    lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
-    lh_ptr_deref(out) = self->desc;
+    return self->desc;
 }
 
 lh_void
 lh_os_system_error_assign(lh_os_system_error_t *self, const lh_os_system_error_t *other)
 {
-    lh_os_error_desc_t desc;
-    lh_os_system_error_get_desc(other, lh_addr_of(desc));
-    lh_os_system_error_set(self, lh_os_system_error_get_code(other), desc);
+    lh_os_system_error_set(self, lh_os_system_error_get_code(other), lh_os_system_error_get_desc(other));
 }
 
 lh_void
@@ -55,7 +52,7 @@ lh_os_system_error_clear(lh_os_system_error_t *self)
 }
 
 lh_void
-lh_os_system_error_init(lh_os_system_error_t *self, lh_os_system_error_code_t code, lh_os_error_desc_t desc)
+lh_os_system_error_init(lh_os_system_error_t *self, lh_os_system_error_code_t code, const lh_os_error_desc_ptr desc)
 {
     lh_os_system_error_set(self, code, desc);
 }
@@ -75,11 +72,7 @@ lh_os_system_error_init_by_empty(lh_os_system_error_t *self)
 lh_void
 lh_os_system_error_init_by_code(lh_os_system_error_t *self, lh_os_system_error_code_t code)
 {
-#if LH_LIBRARY_OPTION_OS_WERROR
-    lh_os_system_error_init(self, code, lh_wstr_view_empty());
-#else
-    lh_os_system_error_init(self, code, lh_str_view_empty());
-#endif
+    lh_os_system_error_init(self, code, lh_null);
 }
 
 lh_os_system_error_code_t
@@ -111,21 +104,13 @@ lh_os_system_error_is_failure(const lh_os_system_error_t *self)
 lh_bool_t
 lh_os_system_error_has_desc(const lh_os_system_error_t *self)
 {
-    lh_os_error_desc_t desc;
-    lh_os_system_error_get_desc(self, lh_addr_of(desc));
-    return lh_cast_static(lh_bool_t, !lh_memory_view_is_empty(lh_addr_of(desc)));
+    return lh_cast_static(lh_bool_t, !lh_os_error_desc_is_empty(lh_os_system_error_get_desc(self)));
 }
 
-lh_void
-lh_os_system_error_get_desc_or(const lh_os_system_error_t *self, lh_os_error_desc_t fallback, lh_os_error_desc_t *out)
+const lh_os_error_desc_ptr
+lh_os_system_error_get_desc_or(const lh_os_system_error_t *self, const lh_os_error_desc_ptr fallback)
 {
-    lh_assert_runtime_ref(out);
-    if (lh_os_system_error_has_desc(self))
-    {
-        lh_os_system_error_get_desc(self, out);
-        return;
-    }
-    lh_ptr_deref(out) = fallback;
+    return lh_os_system_error_has_desc(self) ? lh_os_system_error_get_desc(self) : fallback;
 }
 
 lh_bool_t
@@ -150,13 +135,7 @@ lh_os_system_error_has_diff_code(const lh_os_system_error_t *self, const lh_os_s
 lh_bool_t
 lh_os_system_error_equals(const lh_os_system_error_t *self, const lh_os_system_error_t *other)
 {
-    lh_os_error_desc_t a;
-    lh_os_system_error_get_desc(self, lh_addr_of(a));
-    lh_os_error_desc_t b;
-    lh_os_system_error_get_desc(other, lh_addr_of(b));
-
     return lh_cast_static(lh_bool_t,
                           lh_os_system_error_has_same_code(self, other) &&
-                              lh_math_eq(lh_memory_view_get_begin(lh_addr_of(a)), lh_memory_view_get_begin(lh_addr_of(b))) &&
-                              lh_math_eq(lh_memory_view_get_end(lh_addr_of(a)), lh_memory_view_get_end(lh_addr_of(b))));
+                              lh_ptr_eq(lh_os_system_error_get_desc(self), lh_os_system_error_get_desc(other)));
 }

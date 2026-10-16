@@ -1,6 +1,8 @@
 #include <benchmark/benchmark.h>
 
 #include <lh/werror.h>
+#include <lh/wstr/view.h>
+#include <lh/wstr/view/initializer.h>
 
 namespace
 {
@@ -47,7 +49,7 @@ BM_werror_make_lit(benchmark::State &state)
     for (auto _ : state)
     {
         lh_werror_t err;
-        lh_werror_init(lh_addr_of(err), 1, lh_wstr_view_lit(k_desc));
+        lh_werror_init(lh_addr_of(err), 1, k_desc);
         benchmark::DoNotOptimize(err);
     }
 }
@@ -65,39 +67,6 @@ BM_werror_make_by_code(benchmark::State &state)
     }
 }
 BENCHMARK(BM_werror_make_by_code);
-
-static void
-BM_werror_make_from_ptr_size(benchmark::State &state)
-{
-    for (auto _ : state)
-    {
-        lh_wstr_view_t desc;
-        lh_wstr_view_init_by_size(lh_addr_of(desc), lh_wstr_ptr_get_begin(k_desc),
-                                  lh_wstr_ptr_get_size(k_desc));
-        lh_werror_t err;
-
-        lh_werror_init(lh_addr_of(err), 1, desc);
-        benchmark::DoNotOptimize(err);
-    }
-}
-BENCHMARK(BM_werror_make_from_ptr_size);
-
-static void
-BM_werror_make_from_ptr_len(benchmark::State &state)
-{
-    lh_wstr_cptr text = k_desc;
-    for (auto _ : state)
-    {
-        lh_wstr_view_t desc;
-        lh_wstr_view_init_by_size(lh_addr_of(desc), text,
-                                  lh_wstr_ptr_len(const_cast<lh_wstr_ptr>(text)));
-        lh_werror_t err;
-
-        lh_werror_init(lh_addr_of(err), 1, desc);
-        benchmark::DoNotOptimize(err);
-    }
-}
-BENCHMARK(BM_werror_make_from_ptr_len);
 
 static void
 BM_wstr_view_lit(benchmark::State &state)
@@ -142,7 +111,7 @@ BM_werror_init_lit(benchmark::State &state)
     for (auto _ : state)
     {
         lh_werror_t err;
-        lh_werror_init(lh_addr_of(err), 1, lh_wstr_view_lit(k_desc));
+        lh_werror_init(lh_addr_of(err), 1, k_desc);
         benchmark::DoNotOptimize(err);
     }
 }
@@ -154,7 +123,7 @@ BM_werror_make_empty(benchmark::State &state)
     for (auto _ : state)
     {
         lh_werror_t err;
-        lh_werror_init(lh_addr_of(err), 1, lh_wstr_view_empty());
+        lh_werror_init(lh_addr_of(err), 1, lh_null);
         benchmark::DoNotOptimize(err);
     }
 }

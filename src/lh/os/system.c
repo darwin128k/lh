@@ -4,7 +4,7 @@
 
 /* No explicit initializer: static zero-init already matches
  * lh_os_system_error_empty_initializer() (code 0 == lh_os_system_error_code_ok,
- * desc a null view). Kept implicit (rather than relying on
+ * desc a null pointer). Kept implicit (rather than relying on
  * lh_os_system_error_code_ok being a literal) to match lh/os.c's TLS
  * initializer style - see the comment there. */
 LH_ATTRIBUTE_THREAD_LOCAL
@@ -35,8 +35,8 @@ lh_os_system_get_last_error_code(void)
     return lh_os_system_error_get_code(lh_os_system_last_error());
 }
 
-lh_void
-lh_os_system_get_last_error_desc(lh_os_error_desc_t *out)
+const lh_os_error_desc_ptr
+lh_os_system_get_last_error_desc(void)
 {
-    lh_os_system_error_get_desc(lh_os_system_last_error(), out);
+    return lh_os_system_error_get_desc(lh_os_system_last_error());
 }

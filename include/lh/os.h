@@ -5,7 +5,7 @@
  * One thread-local ::lh_os_error_t, the OS-layer counterpart to
  * ::lh_runtime_allocator's thread-local instance. The slot is a value
  * holder only — it does not own a text buffer; a description is either
- * a literal (::lh_os_error_desc_lit) or a view into whatever buffer the
+ * a literal (::lh_os_error_desc_lit) or a pointer into whatever buffer the
  * caller keeps alive.
  *
  * This is OUR slot — codes lh itself raises before ever asking the OS
@@ -104,8 +104,8 @@ lh_os_get_last_error_code(void);
 /**
  * @brief Description of the last error on this thread.
  */
-lh_void
-lh_os_get_last_error_desc(lh_os_error_desc_t *out);
+const lh_os_error_desc_ptr
+lh_os_get_last_error_desc(void);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -19,7 +19,7 @@
  * Example usage:
  * @code{.c}
  * struct lh_error {
- *     lh_error_fields(lh_error_code_t, lh_str_view_t);
+ *     lh_error_fields(lh_error_code_t, const lh_error_desc_ptr);
  * };
  * typedef struct lh_error lh_error_t;
  * @endcode

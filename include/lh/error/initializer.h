@@ -19,12 +19,12 @@
  *
  * @param code Error code (::lh_error_code_t).
  * @param ...  Optional remainder of the initializer list
- *             (e.g. a ::lh_str_view_t initializer or @c .desc = ...).
+ *             (e.g. an ::lh_error_desc_ptr literal or @c .desc = ...).
  *
  * Example usage:
  * @code{.c}
- * lh_error_t err = lh_error_initializer(lh_error_code_ok, lh_str_view_empty_initializer());
- * lh_error_t e2 = lh_error_initializer(42, lh_str_view_lit("message"));
+ * lh_error_t err = lh_error_initializer(lh_error_code_ok, lh_null);
+ * lh_error_t e2 = lh_error_initializer(42, "message");
  * @endcode
  *
  * @see lh_initializer
@@ -37,7 +37,7 @@
  * @brief Initializer for a cleared / success error (::lh_error_code_ok).
  *
  * Expands to ::lh_error_initializer(::lh_error_code_ok, __VA_ARGS__).
- * With no arguments, @c desc is value-initialized (empty view).
+ * With no arguments, @c desc is value-initialized (null).
  * Extra tokens are forwarded as the tail of the initializer list.
  *
  * @param ... Optional tail passed to ::lh_error_initializer after the code.

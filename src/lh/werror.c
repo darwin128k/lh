@@ -1,11 +1,12 @@
 #include <lh/werror.h>
 #include <lh/assert/runtime.h>
 #include <lh/error.h>
+#include <lh/util/wstr/ptr/empty.h>
 
 lh_void
-lh_werror_set(lh_werror_t *self, lh_error_code_t code, lh_wstr_view_t desc)
+lh_werror_set(lh_werror_t *self, lh_error_code_t code, const lh_werror_desc_ptr desc)
 {
-    lh_error_set(lh_ptr_cast(lh_error_t, self), code, desc);
+    lh_error_set(lh_ptr_cast(lh_error_t, self), code, lh_cast_reinterpret(const lh_error_desc_ptr, desc));
 }
 
 lh_void
@@ -15,9 +16,9 @@ lh_werror_set_code(lh_werror_t *self, lh_error_code_t code)
 }
 
 lh_void
-lh_werror_set_desc(lh_werror_t *self, lh_wstr_view_t desc)
+lh_werror_set_desc(lh_werror_t *self, const lh_werror_desc_ptr desc)
 {
-    lh_error_set_desc(lh_ptr_cast(lh_error_t, self), desc);
+    lh_error_set_desc(lh_ptr_cast(lh_error_t, self), lh_cast_reinterpret(const lh_error_desc_ptr, desc));
 }
 
 lh_error_code_t
@@ -26,16 +27,16 @@ lh_werror_get_code(const lh_werror_t *self)
     return lh_error_get_code(lh_ptr_ccast(lh_error_t, self));
 }
 
-lh_void
-lh_werror_get_desc(const lh_werror_t *self, lh_wstr_view_t *out)
+const lh_werror_desc_ptr
+lh_werror_get_desc(const lh_werror_t *self)
 {
-    lh_error_get_desc(lh_ptr_ccast(lh_error_t, self), out);
+    return lh_cast_reinterpret(const lh_werror_desc_ptr, lh_error_get_desc(lh_ptr_ccast(lh_error_t, self)));
 }
 
-lh_void
-lh_werror_get_desc_or(const lh_werror_t *self, lh_wstr_view_t fallback, lh_wstr_view_t *out)
+const lh_werror_desc_ptr
+lh_werror_get_desc_or(const lh_werror_t *self, const lh_werror_desc_ptr fallback)
 {
-    lh_error_get_desc_or(lh_ptr_ccast(lh_error_t, self), fallback, out);
+    return lh_werror_has_desc(self) ? lh_werror_get_desc(self) : fallback;
 }
 
 lh_bool_t
@@ -59,13 +60,13 @@ lh_werror_is_failure(const lh_werror_t *self)
 lh_bool_t
 lh_werror_has_desc(const lh_werror_t *self)
 {
-    return lh_error_has_desc(lh_ptr_ccast(lh_error_t, self));
+    return !lh_wstr_ptr_is_empty(lh_werror_get_desc(self));
 }
 
 lh_bool_t
 lh_werror_is_empty(const lh_werror_t *self)
 {
-    return lh_error_is_empty(lh_ptr_ccast(lh_error_t, self));
+    return lh_werror_is_ok(self) && !lh_werror_has_desc(self);
 }
 
 lh_bool_t
@@ -99,9 +100,9 @@ lh_werror_clear(lh_werror_t *self)
 }
 
 lh_void
-lh_werror_init(lh_werror_t *self, lh_error_code_t code, lh_wstr_view_t desc)
+lh_werror_init(lh_werror_t *self, lh_error_code_t code, const lh_werror_desc_ptr desc)
 {
-    lh_error_init(lh_ptr_cast(lh_error_t, self), code, desc);
+    lh_error_init(lh_ptr_cast(lh_error_t, self), code, lh_cast_reinterpret(const lh_error_desc_ptr, desc));
 }
 
 lh_void

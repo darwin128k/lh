@@ -16,12 +16,12 @@
  * field layout as ::lh_error_t while remaining in the runtime namespace.
  *
  * @param code_type Type of the @c code field (e.g. ::lh_runtime_error_code_t).
- * @param desc_type Type of the @c desc field (e.g. ::lh_str_view_t).
+ * @param desc_type Type of the @c desc field (e.g. `const` ::lh_error_desc_ptr).
  *
  * Example usage:
  * @code{.c}
  * struct lh_runtime_error {
- *     lh_runtime_error_fields(lh_runtime_error_code_t, lh_str_view_t);
+ *     lh_runtime_error_fields(lh_runtime_error_code_t, const lh_error_desc_ptr);
  * };
  * typedef struct lh_runtime_error lh_runtime_error_t;
  * @endcode

@@ -28,12 +28,12 @@
 
 /**
  * @struct lh_os_system_error
- * @brief Native OS error code plus a description in ::lh_os_error_desc_t.
+ * @brief Native OS error code plus a description in ::lh_os_error_desc_ptr.
  */
 struct lh_os_system_error
 {
     /** Members: ::lh_error_fields. */
-    lh_error_fields(lh_os_system_error_code_t, lh_os_error_desc_t);
+    lh_error_fields(lh_os_system_error_code_t, const lh_os_error_desc_ptr);
 };
 /** @copybrief lh_os_system_error */
 typedef struct lh_os_system_error lh_os_system_error_t;
@@ -46,7 +46,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Replace @p self with @p code and @p desc.
  */
 lh_void
-lh_os_system_error_set(lh_os_system_error_t *self, lh_os_system_error_code_t code, lh_os_error_desc_t desc);
+lh_os_system_error_set(lh_os_system_error_t *self, lh_os_system_error_code_t code, const lh_os_error_desc_ptr desc);
 
 /**
  * @brief Replace only the error code stored in @p self.
@@ -58,7 +58,7 @@ lh_os_system_error_set_code(lh_os_system_error_t *self, lh_os_system_error_code_
  * @brief Replace only the description stored in @p self.
  */
 lh_void
-lh_os_system_error_set_desc(lh_os_system_error_t *self, lh_os_error_desc_t desc);
+lh_os_system_error_set_desc(lh_os_system_error_t *self, const lh_os_error_desc_ptr desc);
 
 /* ── accessors ───────────────────────────────────────────────────────────── */
 
@@ -71,14 +71,14 @@ lh_os_system_error_get_code(const lh_os_system_error_t *self);
 /**
  * @brief Return the description stored in @p self.
  */
-lh_void
-lh_os_system_error_get_desc(const lh_os_system_error_t *self, lh_os_error_desc_t *out);
+const lh_os_error_desc_ptr
+lh_os_system_error_get_desc(const lh_os_system_error_t *self);
 
 /**
  * @brief Return the description stored in @p self, or @p fallback when empty.
  */
-lh_void
-lh_os_system_error_get_desc_or(const lh_os_system_error_t *self, lh_os_error_desc_t fallback, lh_os_error_desc_t *out);
+const lh_os_error_desc_ptr
+lh_os_system_error_get_desc_or(const lh_os_system_error_t *self, const lh_os_error_desc_ptr fallback);
 
 /**
  * @brief Test whether @p self stores @p code.
@@ -111,7 +111,7 @@ lh_bool_t
 lh_os_system_error_is_empty(const lh_os_system_error_t *self);
 
 /**
- * @brief Test whether two native errors store the same code and description span.
+ * @brief Test whether two native errors store the same code and description pointer.
  */
 lh_bool_t
 lh_os_system_error_equals(const lh_os_system_error_t *self, const lh_os_system_error_t *other);
@@ -148,7 +148,7 @@ lh_os_system_error_clear(lh_os_system_error_t *self);
  * @brief Initialize @p self with @p code and @p desc.
  */
 lh_void
-lh_os_system_error_init(lh_os_system_error_t *self, lh_os_system_error_code_t code, lh_os_error_desc_t desc);
+lh_os_system_error_init(lh_os_system_error_t *self, lh_os_system_error_code_t code, const lh_os_error_desc_ptr desc);
 
 /**
  * @brief Initialize @p self by copying from @p other.

@@ -2,6 +2,8 @@
 
 #include <lh/error.h>
 #include <lh/runtime/error.h>
+#include <lh/str/view.h>
+#include <lh/str/view/initializer.h>
 
 namespace
 {
@@ -56,7 +58,7 @@ BM_error_make_lit(benchmark::State &state)
     for (auto _ : state)
     {
         lh_error_t err;
-        lh_error_init(lh_addr_of(err), 1, lh_str_view_lit(k_desc));
+        lh_error_init(lh_addr_of(err), 1, k_desc);
         benchmark::DoNotOptimize(err);
     }
 }
@@ -76,45 +78,13 @@ BM_error_make_by_code(benchmark::State &state)
 BENCHMARK(BM_error_make_by_code);
 
 static void
-BM_error_make_from_ptr_size(benchmark::State &state)
-{
-    for (auto _ : state)
-    {
-        lh_str_view_t desc;
-        lh_str_init_by_size(lh_addr_of(desc), lh_str_ptr_get_begin(k_desc),
-                            lh_str_ptr_get_size(k_desc));
-        lh_error_t err;
-
-        lh_error_init(lh_addr_of(err), 1, desc);
-        benchmark::DoNotOptimize(err);
-    }
-}
-BENCHMARK(BM_error_make_from_ptr_size);
-
-static void
-BM_error_make_from_ptr_len(benchmark::State &state)
-{
-    lh_str_cptr text = k_desc;
-    for (auto _ : state)
-    {
-        lh_str_view_t desc;
-        lh_str_init_by_size(lh_addr_of(desc), text, lh_str_ptr_len(const_cast<lh_str_ptr>(text)));
-        lh_error_t err;
-
-        lh_error_init(lh_addr_of(err), 1, desc);
-        benchmark::DoNotOptimize(err);
-    }
-}
-BENCHMARK(BM_error_make_from_ptr_len);
-
-static void
 BM_runtime_error_make_lit(benchmark::State &state)
 {
     for (auto _ : state)
     {
         lh_runtime_error_t err;
         lh_runtime_error_init(lh_addr_of(err), lh_runtime_error_code_null_pointer,
-                              lh_str_view_lit("invalid reference to null pointer"));
+                              "invalid reference to null pointer");
         benchmark::DoNotOptimize(err);
     }
 }
@@ -163,7 +133,7 @@ BM_error_init_lit(benchmark::State &state)
     for (auto _ : state)
     {
         lh_error_t err;
-        lh_error_init(lh_addr_of(err), 1, lh_str_view_lit(k_desc));
+        lh_error_init(lh_addr_of(err), 1, k_desc);
         benchmark::DoNotOptimize(err);
     }
 }
@@ -175,7 +145,7 @@ BM_error_make_empty(benchmark::State &state)
     for (auto _ : state)
     {
         lh_error_t err;
-        lh_error_init(lh_addr_of(err), 1, lh_str_view_empty());
+        lh_error_init(lh_addr_of(err), 1, lh_null);
         benchmark::DoNotOptimize(err);
     }
 }
