@@ -35,14 +35,14 @@ TEST(memory_view_slice_getters, return_stored_endpoints)
 TEST(memory_view_slice_get_flags, uninitialized_when_null)
 {
     lh_memory_view_slice_t s = slice(lh_null, lh_null);
-    EXPECT_EQ(lh_memory_view_slice_get_flags(&s), lh_memory_view_slice_flags_uninitialized);
+    EXPECT_EQ(lh_memory_view_slice_get_flags(&s), lh_memory_view_flags_uninitialized);
 }
 
 TEST(memory_view_slice_get_flags, initialized_when_both_set)
 {
     const unsigned char buf[2] = {10, 20};
     lh_memory_view_slice_t s = slice(p(buf), p(buf + 1));
-    EXPECT_EQ(lh_memory_view_slice_get_flags(&s), lh_memory_view_slice_flags_initialized);
+    EXPECT_EQ(lh_memory_view_slice_get_flags(&s), lh_memory_view_flags_initialized);
 }
 
 TEST(memory_view_slice_is_uninitialized, true_for_empty_slice)
@@ -66,7 +66,7 @@ TEST(memory_view_slice_get_direction, forward_when_begin_le_end)
 {
     const unsigned char buf[2] = {10, 20};
     lh_memory_view_slice_t s = slice(p(buf), p(buf + 1));
-    EXPECT_EQ(lh_memory_view_slice_get_direction(&s), lh_memory_view_slice_direction_forward);
+    EXPECT_EQ(lh_memory_view_slice_get_direction(&s), lh_memory_view_direction_forward);
 }
 
 TEST(memory_view_slice_get_direction, unknown_when_uninitialized)
@@ -74,7 +74,7 @@ TEST(memory_view_slice_get_direction, unknown_when_uninitialized)
     lh_memory_view_slice_t s;
 
     lh_memory_view_slice_init_empty(lh_addr_of(s));
-    EXPECT_EQ(lh_memory_view_slice_get_direction(&s), lh_memory_view_slice_direction_unknown);
+    EXPECT_EQ(lh_memory_view_slice_get_direction(&s), lh_memory_view_direction_unknown);
 }
 
 TEST(memory_view_slice_is_forward, true_for_valid_range)

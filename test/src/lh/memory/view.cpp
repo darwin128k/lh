@@ -58,23 +58,23 @@ TEST(memory_view_classification, distinguishes_states)
     EXPECT_TRUE(lh_memory_view_is_empty(&empty));
 
     lh_memory_view_t unknown = view(p(buf), lh_null);
-    EXPECT_EQ(lh_memory_view_get_direction(&unknown), lh_memory_view_slice_direction_unknown);
+    EXPECT_EQ(lh_memory_view_get_direction(&unknown), lh_memory_view_direction_unknown);
 
     lh_memory_view_t forward = view(p(buf), p(buf + 4));
     EXPECT_TRUE(lh_memory_view_is_initialized(&forward));
-    EXPECT_EQ(lh_memory_view_get_direction(&forward), lh_memory_view_slice_direction_forward);
+    EXPECT_EQ(lh_memory_view_get_direction(&forward), lh_memory_view_direction_forward);
     EXPECT_TRUE(lh_memory_view_is_forward(&forward));
     EXPECT_TRUE(lh_memory_view_is_valid(&forward));
 
     // [x, x) is the empty range - valid and forward, not a reversed/corrupted state.
     lh_memory_view_t equal = view(p(buf), p(buf));
-    EXPECT_EQ(lh_memory_view_get_direction(&equal), lh_memory_view_slice_direction_forward);
+    EXPECT_EQ(lh_memory_view_get_direction(&equal), lh_memory_view_direction_forward);
     EXPECT_TRUE(lh_memory_view_is_forward(&equal));
     EXPECT_TRUE(lh_memory_view_is_valid(&equal));
     EXPECT_TRUE(lh_memory_view_is_empty(&equal));
 
     lh_memory_view_t backward = view(p(buf + 4), p(buf));
-    EXPECT_EQ(lh_memory_view_get_direction(&backward), lh_memory_view_slice_direction_backward);
+    EXPECT_EQ(lh_memory_view_get_direction(&backward), lh_memory_view_direction_backward);
     EXPECT_TRUE(lh_memory_view_is_backward(&backward));
     EXPECT_FALSE(lh_memory_view_is_valid(&backward));
 }
@@ -329,8 +329,8 @@ TEST(memory_view_uninitialized, safe_queries)
     EXPECT_FALSE(lh_memory_view_is_initialized(&v));
     EXPECT_FALSE(lh_memory_view_is_valid(&v));
     EXPECT_TRUE(lh_memory_view_is_empty(&v));
-    EXPECT_EQ(lh_memory_view_get_direction(&v), lh_memory_view_slice_direction_unknown);
-    EXPECT_EQ(lh_memory_view_get_flags(&v), lh_memory_view_slice_flags_uninitialized);
+    EXPECT_EQ(lh_memory_view_get_direction(&v), lh_memory_view_direction_unknown);
+    EXPECT_EQ(lh_memory_view_get_flags(&v), lh_memory_view_flags_uninitialized);
     EXPECT_FALSE(lh_memory_view_slice_is_ropen_empty(&v));
 }
 
