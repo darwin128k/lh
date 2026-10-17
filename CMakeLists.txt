@@ -88,6 +88,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/runtime/stream.c
         ${LH_LIB_SRC_PATH}/runtime/check.c
         ${LH_LIB_SRC_PATH}/exception.c
+        ${LH_LIB_SRC_PATH}/exception/origin.c
 
         ${LH_LIB_SRC_PATH}/numeric/fixed/types.c
         ${LH_LIB_SRC_PATH}/numeric/fixed/limits.c

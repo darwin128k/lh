@@ -29,7 +29,7 @@ test_check_handler_prints(const lh_exception_t *exception)
        (Linux, no \d) alike. */
     std::fprintf(stderr, "custom handler saw error %d line %s message %s\n",
                  lh_exception_get_code(exception),
-                 origin != nullptr && origin->line != 0u ? "known" : "none",
+                 origin != nullptr && lh_exception_origin_get_line(origin) != 0u ? "known" : "none",
                  has_desc ? desc : "none");
     std::fflush(stderr);
 }

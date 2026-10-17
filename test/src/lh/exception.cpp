@@ -30,7 +30,7 @@ TEST(exception, getters_read_error_and_site)
               lh_runtime_error_code_invalid_argument);
     EXPECT_EQ(desc_of(&exception), "x must be positive");
     EXPECT_EQ(lh_exception_get_origin(&exception), &origin);
-    EXPECT_EQ(lh_exception_get_origin(&exception)->line, 42u);
+    EXPECT_EQ(lh_exception_origin_get_line(lh_exception_get_origin(&exception)), 42u);
 }
 
 TEST(exception, empty_message_and_no_site)
