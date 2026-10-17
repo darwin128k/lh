@@ -3,6 +3,7 @@
  * @brief Implementation of `src/lh/os/system/win/input.h`.
  */
 
+#include <lh/os/input/wheel.h>
 #include <lh/os/system/win/input.h>
 
 lh_os_input_button_t
@@ -77,6 +78,30 @@ lh_os_system_win_input_wheel_of(lh_u32_t msg, lh_os_system_win_wparam_t wparam, 
     /* Windows counts the sideways wheel positive to the right; an event counts left. */
     lh_ptr_deref(dx) = msg == LH_OS_SYSTEM_WIN_WM_MOUSEHWHEEL ? lh_math_neg(delta) : 0;
     lh_ptr_deref(dy) = msg == LH_OS_SYSTEM_WIN_WM_MOUSEHWHEEL ? 0 : delta;
+}
+
+lh_u32_t
+lh_os_system_win_input_wheel_lines_of(lh_os_system_win_bool_t got, lh_os_system_win_uint_t lines)
+{
+    if (got == LH_OS_SYSTEM_WIN_FALSE)
+    {
+        return lh_type_cast(lh_u32_t, LH_OS_INPUT_WHEEL_LINES_DEFAULT);
+    }
+    if (lines == LH_OS_SYSTEM_WIN_WHEEL_PAGESCROLL)
+    {
+        return lh_type_cast(lh_u32_t, LH_OS_INPUT_WHEEL_LINES_PAGE);
+    }
+    return lh_type_cast(lh_u32_t, lines);
+}
+
+lh_u32_t
+lh_os_system_win_input_get_wheel_lines(lh_void)
+{
+    lh_os_system_win_uint_t lines = 0U;
+    const lh_os_system_win_bool_t got =
+        SystemParametersInfoA(LH_OS_SYSTEM_WIN_SPI_GETWHEELSCROLLLINES, 0U, lh_addr_of(lines), 0U);
+
+    return lh_os_system_win_input_wheel_lines_of(got, lines);
 }
 
 /** @p mod when the virtual key @p vk is down (or, with @p toggled, toggled on), else `0`. */

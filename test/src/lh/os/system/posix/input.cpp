@@ -6,6 +6,8 @@
    includes only the public tree. */
 extern "C" lh_os_input_button_t
 lh_os_system_posix_input_button_of(lh_u32_t xbutton);
+extern "C" lh_s32_t
+lh_os_system_posix_input_wheel_increment_of(lh_u32_t xbutton);
 extern "C" lh_bool_t
 lh_os_system_posix_input_wheel_of(lh_u32_t xbutton, lh_s32_t *dx, lh_s32_t *dy);
 extern "C" lh_os_input_mods_t
@@ -25,6 +27,20 @@ TEST(os_system_posix_input, x_numbers_its_buttons_left_middle_right)
     EXPECT_EQ(lh_os_system_posix_input_button_of(8U), lh_os_input_button_back);
     EXPECT_EQ(lh_os_system_posix_input_button_of(9U), lh_os_input_button_forward);
     EXPECT_EQ(lh_os_system_posix_input_button_of(4U), lh_os_input_button_none) << "the wheel";
+}
+
+/* Core X11 has no increment: buttons 4..7 come one press a notch, so every press is a
+   whole notch and nothing else carries one. */
+TEST(os_system_posix_input, a_core_wheel_press_is_one_whole_notch)
+{
+    for (lh_u32_t xbutton = 4U; xbutton <= 7U; ++xbutton)
+    {
+        EXPECT_EQ(lh_os_system_posix_input_wheel_increment_of(xbutton), LH_OS_INPUT_WHEEL_NOTCH)
+            << "button " << xbutton;
+    }
+    EXPECT_EQ(lh_os_system_posix_input_wheel_increment_of(1U), 0);
+    EXPECT_EQ(lh_os_system_posix_input_wheel_increment_of(3U), 0);
+    EXPECT_EQ(lh_os_system_posix_input_wheel_increment_of(8U), 0) << "back is no wheel";
 }
 
 TEST(os_system_posix_input, a_wheel_button_is_one_notch_positive_up_and_left)

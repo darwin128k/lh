@@ -287,6 +287,15 @@ typedef struct lh_os_system_win_createstructa lh_os_system_win_createstructa_t;
 /** `WHEEL_DELTA`: one notch of `WM_MOUSEWHEEL`. Present since Windows 98 / NT 4.0. */
 #define LH_OS_SYSTEM_WIN_WHEEL_DELTA 120
 
+/** `SPI_GETWHEELSCROLLLINES`: the ::SystemParametersInfoA action that writes how many
+   lines one wheel notch scrolls into a `UINT`. Present since Windows 98 / NT 4.0. */
+#define LH_OS_SYSTEM_WIN_SPI_GETWHEELSCROLLLINES 0x0068U
+
+/** `WHEEL_PAGESCROLL`: the ::LH_OS_SYSTEM_WIN_SPI_GETWHEELSCROLLLINES answer that means a
+   page a notch ("one screen at a time" in the Mouse control panel), not a count of
+   lines. Present since Windows 98 / NT 4.0. */
+#define LH_OS_SYSTEM_WIN_WHEEL_PAGESCROLL 0xFFFFFFFFU
+
 /** @{ */
 /** Keyboard messages. Present since Windows 95. With an ANSI window class,
    `WM_CHAR` carries one byte of the ANSI code page. */
@@ -509,6 +518,13 @@ MsgWaitForMultipleObjects(lh_os_system_win_dword_t nCount,
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_lresult_t LH_OS_SYSTEM_WIN_CALL
 DefWindowProcA(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_uint_t Msg,
                lh_os_system_win_wparam_t wParam, lh_os_system_win_lparam_t lParam);
+
+/** Read or set a system-wide setting: @p uiAction is an `SPI_*`
+   (::LH_OS_SYSTEM_WIN_SPI_GETWHEELSCROLLLINES), @p pvParam is where a read lands and
+   @p fWinIni is 0 for a read. Present since Windows 95. */
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
+SystemParametersInfoA(lh_os_system_win_uint_t uiAction, lh_os_system_win_uint_t uiParam,
+                      lh_ptr pvParam, lh_os_system_win_uint_t fWinIni);
 
 #if LH_COMPILER_ARCH == LH_COMPILER_ARCH_64
 

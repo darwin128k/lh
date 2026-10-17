@@ -186,6 +186,7 @@ lh_add_test_core(lh_test_numeric
 )
 
 set(LH_TEST_OS_SOURCES
+        ${LH_TEST_SRC_PATH}/lh/os/input.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/modbus_tcp.cpp
         ${LH_TEST_SRC_PATH}/lh/os/net/socket.cpp
         ${LH_TEST_SRC_PATH}/lh/os/serial.cpp
@@ -194,9 +195,12 @@ set(LH_TEST_OS_SOURCES
         ${LH_TEST_SRC_PATH}/lh/os/render/backend/gdi.cpp
         ${LH_TEST_SRC_PATH}/lh/os/system/posix/input.cpp
         ${LH_TEST_SRC_PATH}/lh/os/system/posix/key.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/system/unix/input.cpp
         ${LH_TEST_SRC_PATH}/lh/os/system/win/input.cpp
 )
 if (NOT LH_LIBRARY_OPTION_OS)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/input.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/input.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/tick.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/tick.cpp)
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/net/modbus_tcp.cpp)
@@ -209,6 +213,10 @@ endif ()
 if (NOT (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW))
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/window.cpp)
     list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/window.cpp)
+endif ()
+if (WIN32 OR NOT LH_LIBRARY_OPTION_OS)
+    list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/system/unix/input.cpp)
+    list(REMOVE_ITEM LH_TEST_OS_SOURCES ${LH_TEST_SRC_PATH}/lh/os/system/unix/input.cpp)
 endif ()
 if (WIN32 OR NOT (LH_LIBRARY_OPTION_OS AND LH_LIBRARY_OPTION_OS_WINDOW))
     list(APPEND LH_TEST_OPTION_OFF_SOURCES ${LH_TEST_SRC_PATH}/lh/os/system/posix/key.cpp)
@@ -258,12 +266,13 @@ lh_add_test_core(lh_test_time
         ${LH_TEST_SRC_PATH}/lh/timestamp.cpp
 )
 
-# lh/os/input: the event, the queue and the recognizer need no OS, so they are tested
-# in every build.
+# lh/os/input: the event, the queue, the recognizer and the wheel step's conversion
+# need no OS, so they are tested in every build.
 lh_add_test_core(lh_test_os_input
         ${LH_TEST_SRC_PATH}/lh/os/input/event.cpp
         ${LH_TEST_SRC_PATH}/lh/os/input/queue.cpp
         ${LH_TEST_SRC_PATH}/lh/os/input/recognizer.cpp
+        ${LH_TEST_SRC_PATH}/lh/os/input/wheel.cpp
 )
 
 lh_add_test_core(lh_test_timer

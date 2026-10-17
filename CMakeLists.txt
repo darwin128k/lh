@@ -138,6 +138,7 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/os/input/queue.c
         ${LH_LIB_SRC_PATH}/os/input/recognizer.c
         ${LH_LIB_SRC_PATH}/os/input/recognizer/config.c
+        ${LH_LIB_SRC_PATH}/os/input/wheel.c
         ${LH_LIB_SRC_PATH}/error.c
         ${LH_LIB_SRC_PATH}/werror.c
         ${LH_LIB_SRC_PATH}/runtime/error.c
@@ -206,6 +207,7 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/timestamp.c
             ${LH_LIB_SRC_PATH}/os/tick.c
             ${LH_LIB_SRC_PATH}/os/env.c
+            ${LH_LIB_SRC_PATH}/os/input.c
             ${LH_LIB_SRC_PATH}/os/fs/path.c
             ${LH_LIB_SRC_PATH}/os/fs/stat.c
             ${LH_LIB_SRC_PATH}/os/fs/file.c
@@ -241,6 +243,12 @@ if (LH_LIBRARY_OPTION_OS)
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/shared.c
             ${LH_LIB_SRC_PATH}/os/system/${LH_OS_SYSTEM_BACKEND}/str.c
     )
+    # Unix kernel: what the input driver says, apart from any window system (X11 is
+    # posix/). Built wherever the posix backend is; lh/os/input.c calls it on Linux
+    # and macOS.
+    if (NOT WIN32)
+        list(APPEND LH_LIB_SOURCES ${LH_LIB_SRC_PATH}/os/system/unix/input.c)
+    endif ()
     if (LH_LIBRARY_OPTION_OS_WINDOW)
         list(APPEND LH_LIB_SOURCES
                 ${LH_LIB_SRC_PATH}/os/app.c

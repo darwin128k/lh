@@ -30,6 +30,7 @@
 
 #include <lh/config.h>
 #include <lh/os/input/event.h>
+#include <lh/os/input/wheel.h>
 #include <lh/ui/button.h>
 #include <lh/ui/view/fields.h>
 
@@ -81,9 +82,17 @@ typedef struct lh_ui_view lh_ui_view_t;
 /**
  * @def LH_UI_VIEW_WHEEL_STEP
  * @brief How far one wheel notch (::LH_OS_INPUT_WHEEL_NOTCH) scrolls, in content
- *        units, when it comes in through ::lh_ui_view_input.
+ *        units, when it comes in through ::lh_ui_view_input in a build without the OS
+ *        layer (::LH_LIBRARY_OPTION_OS off).
+ *
+ * With the OS layer the view asks the system instead, ::lh_os_input_get_wheel_step on
+ * each wheel event. The fallback is the OS layer's own default,
+ * ::LH_OS_INPUT_WHEEL_STEP_DEFAULT (40), so a notch scrolls the same with and without
+ * it while the system is at its default.
  */
-#define LH_UI_VIEW_WHEEL_STEP 40
+#ifndef LH_UI_VIEW_WHEEL_STEP
+#    define LH_UI_VIEW_WHEEL_STEP LH_OS_INPUT_WHEEL_STEP_DEFAULT
+#endif /* LH_UI_VIEW_WHEEL_STEP */
 
 /**
  * @struct lh_ui_view_focus_walk
@@ -666,7 +675,8 @@ lh_ui_view_cancel(lh_ui_view_t *self);
  * | `text`                                  | ::lh_ui_view_text           |
  *
  * Only the first pointer (`pointer` 0) is followed. A wheel notch up or left
- * scrolls ::LH_UI_VIEW_WHEEL_STEP content units back toward the start. Other
+ * scrolls back toward the start by the system's step, ::lh_os_input_get_wheel_step
+ * content units (::LH_UI_VIEW_WHEEL_STEP without ::LH_LIBRARY_OPTION_OS). Other
  * buttons, other pointers, controllers and every synthesized event
  * (::lh_os_input_event_is_synthesized) are not for the view.
  *

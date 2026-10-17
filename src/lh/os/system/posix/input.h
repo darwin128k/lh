@@ -19,8 +19,21 @@ lh_os_input_button_t
 lh_os_system_posix_input_button_of(lh_u32_t xbutton);
 
 /**
+ * @brief The distance one press of X button @p xbutton carries, in 1/120 notch
+ *        (::LH_OS_INPUT_WHEEL_NOTCH); `0` for a button that is not the wheel.
+ *
+ * Core X11 reports the wheel as buttons 4..7, one press a notch, with no increment of
+ * its own: every press is exactly one notch. A finer increment would come from the
+ * XInput2 scroll valuators (`XIScrollClassInfo::increment`), which this backend does
+ * not open, so this is core X11 only.
+ */
+lh_s32_t
+lh_os_system_posix_input_wheel_increment_of(lh_u32_t xbutton);
+
+/**
  * @brief The wheel distance of X button @p xbutton, in 1/120 notch, positive left /
- *        up; `0`, `0` for a button that is not the wheel.
+ *        up (::lh_os_system_posix_input_wheel_increment_of a press); `0`, `0` for a
+ *        button that is not the wheel.
  * @return True when @p xbutton is the wheel.
  */
 lh_bool_t

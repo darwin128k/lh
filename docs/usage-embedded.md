@@ -325,6 +325,16 @@ for long press or double tap, feed the events through an
 `lh_os_input_recognizer_t` and call `lh_os_input_recognizer_update` from the
 same timer.
 
+A wheel or rotary encoder sends `wheel` events in 1/120 notch
+(`LH_OS_INPUT_WHEEL_NOTCH` a detent). With `LH_LIBRARY_OPTION_OS=OFF` there
+is no system to ask how far a notch goes, so `lh_ui_view_input` scrolls
+`LH_UI_VIEW_WHEEL_STEP` content units a notch: 40, the OS layer's own
+default `LH_OS_INPUT_WHEEL_STEP_DEFAULT`. Both are `#ifndef`; define
+`LH_UI_VIEW_WHEEL_STEP` for the build (e.g. `-DLH_UI_VIEW_WHEEL_STEP=20` in
+the compile definitions) to change it. A build with the OS layer on a
+platform without a kernel for it (STM32 and the like) gets the same 40 from
+`lh_os_input_get_wheel_step`.
+
 ---
 
 ## Checklist for a new MCU project
