@@ -11,9 +11,9 @@
  * @brief A key going down or up, or one typed character.
  *
  * A key input has `key` and `pressed`, `code` 0. A text input has `code`
- * (a Unicode code point), `key` ::lh_key_other and `pressed` true.
+ * (a Unicode code point), `key` ::lh_os_key_other and `pressed` true.
  *
- * @param key_type  ::lh_key_t.
+ * @param key_type  ::lh_os_key_t.
  * @param bool_type ::lh_bool_t.
  * @param code_type ::lh_u32_t.
  */

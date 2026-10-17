@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
-#include <lh/key.h>
+#include <lh/os/key.h>
 #include <lh/numeric/fixed/types.h>
 
 /* Backend-private (src/lh/os/system/posix/key.h), so declared here: the test
    includes only the public tree. */
-extern "C" lh_key_t
+extern "C" lh_os_key_t
 lh_os_system_posix_key_from_keysym(unsigned long keysym);
 extern "C" lh_u32_t
 lh_os_system_posix_text_from_keysym(unsigned long keysym);
@@ -15,12 +15,12 @@ namespace
 
 TEST(os_system_posix_key, the_keys_the_ui_listens_for_are_known)
 {
-    EXPECT_EQ(lh_os_system_posix_key_from_keysym(0xff0dUL), lh_key_enter) << "Return";
-    EXPECT_EQ(lh_os_system_posix_key_from_keysym(0xff8dUL), lh_key_enter) << "the keypad's Enter too";
-    EXPECT_EQ(lh_os_system_posix_key_from_keysym(0xff08UL), lh_key_backspace);
-    EXPECT_EQ(lh_os_system_posix_key_from_keysym(0xff51UL), lh_key_left);
-    EXPECT_EQ(lh_os_system_posix_key_from_keysym(0xffe2UL), lh_key_shift) << "the right Shift is Shift";
-    EXPECT_EQ(lh_os_system_posix_key_from_keysym(0x61UL), lh_key_other) << "a letter is text, not a key";
+    EXPECT_EQ(lh_os_system_posix_key_from_keysym(0xff0dUL), lh_os_key_enter) << "Return";
+    EXPECT_EQ(lh_os_system_posix_key_from_keysym(0xff8dUL), lh_os_key_enter) << "the keypad's Enter too";
+    EXPECT_EQ(lh_os_system_posix_key_from_keysym(0xff08UL), lh_os_key_backspace);
+    EXPECT_EQ(lh_os_system_posix_key_from_keysym(0xff51UL), lh_os_key_left);
+    EXPECT_EQ(lh_os_system_posix_key_from_keysym(0xffe2UL), lh_os_key_shift) << "the right Shift is Shift";
+    EXPECT_EQ(lh_os_system_posix_key_from_keysym(0x61UL), lh_os_key_other) << "a letter is text, not a key";
 }
 
 TEST(os_system_posix_key, latin_text_is_its_own_code_point)

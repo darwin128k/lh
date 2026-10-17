@@ -55,7 +55,7 @@ type(lh_ui_input_t *self, lh_u32_t code)
 
 /** Press @p key on a field that has the focus. */
 bool
-press_key(lh_ui_input_t *self, lh_key_t key_id)
+press_key(lh_ui_input_t *self, lh_os_key_t key_id)
 {
     lh_ui_entity_event_t event;
     lh_ui_key_input_t key;
@@ -276,14 +276,14 @@ TEST(entity_input, a_three_byte_character_deletes_as_a_whole_and_not_as_two_byte
     ASSERT_EQ(lh_ui_input_get_caret(lh_addr_of(f.input)), 4);
 
     lh_ui_input_home(lh_addr_of(f.input));
-    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_key_right), true);
+    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_os_key_right), true);
     EXPECT_EQ(lh_ui_input_get_caret(lh_addr_of(f.input)), 1);
     /* One step over three bytes: the arrow moves over a character, and a character is
        three bytes here. A step of two would land inside it -- a caret the text can
        still not be typed at. */
-    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_key_right), true);
+    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_os_key_right), true);
     EXPECT_EQ(lh_ui_input_get_caret(lh_addr_of(f.input)), 4);
-    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_key_right), false);
+    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_os_key_right), false);
 }
 
 TEST(entity_input, a_four_byte_character_is_a_character_and_not_a_pair_of_surrogates)
@@ -342,23 +342,23 @@ TEST(entity_input, backspace_and_the_arrows_move_over_a_whole_character)
     type(lh_addr_of(f.input), 'B');
     EXPECT_EQ(lh_ui_input_get_caret(lh_addr_of(f.input)), 4);
 
-    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_key_left), true);
+    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_os_key_left), true);
     EXPECT_EQ(lh_ui_input_get_caret(lh_addr_of(f.input)), 3); /* before 'B' */
-    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_key_left), true);
+    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_os_key_left), true);
     /* One step, not two: the character before byte 3 is two bytes long and the arrow
        steps over a character, which is the only unit the text is written in. */
     EXPECT_EQ(lh_ui_input_get_caret(lh_addr_of(f.input)), 1);
-    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_key_right), true);
+    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_os_key_right), true);
     EXPECT_EQ(lh_ui_input_get_caret(lh_addr_of(f.input)), 3);
 
-    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_key_home), true);
+    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_os_key_home), true);
     EXPECT_EQ(lh_ui_input_get_caret(lh_addr_of(f.input)), 0);
-    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_key_left), false);
-    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_key_right), true);
+    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_os_key_left), false);
+    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_os_key_right), true);
     EXPECT_EQ(lh_ui_input_get_caret(lh_addr_of(f.input)), 1);
-    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_key_end), true);
+    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_os_key_end), true);
     EXPECT_EQ(lh_ui_input_get_caret(lh_addr_of(f.input)), 4);
-    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_key_right), false);
+    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_os_key_right), false);
 }
 
 TEST(entity_input, a_key_the_field_does_not_own_is_refused)
@@ -370,9 +370,9 @@ TEST(entity_input, a_key_the_field_does_not_own_is_refused)
     /* Enter, Tab and Escape are the form's: what a field does with them is a question
        about what is around it. Answering "yes" here would swallow the key from the
        application that is supposed to act on it. */
-    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_key_enter), false);
-    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_key_tab), false);
-    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_key_escape), false);
+    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_os_key_enter), false);
+    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_os_key_tab), false);
+    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_os_key_escape), false);
     EXPECT_STREQ(lh_ui_input_get_text(lh_addr_of(f.input)), "");
 }
 
@@ -397,7 +397,7 @@ TEST(entity_input, keys_before_the_focus_do_nothing)
     field_init(lh_addr_of(f), 16);
 
     EXPECT_EQ(type(lh_addr_of(f.input), 'A'), false);
-    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_key_backspace), false);
+    EXPECT_EQ(press_key(lh_addr_of(f.input), lh_os_key_backspace), false);
     EXPECT_STREQ(lh_ui_input_get_text(lh_addr_of(f.input)), "");
 
     give_focus(lh_addr_of(f.input));

@@ -841,12 +841,12 @@ lh_ui_view_send_input(lh_ui_view_t *self, const lh_ui_key_input_t *input)
 }
 
 lh_bool_t
-lh_ui_view_key(lh_ui_view_t *self, lh_key_t key, lh_bool_t pressed)
+lh_ui_view_key(lh_ui_view_t *self, lh_os_key_t key, lh_bool_t pressed)
 {
     lh_ui_key_input_t input;
 
     lh_assert_runtime_ref(self);
-    if (key == lh_key_tab && pressed)
+    if (key == lh_os_key_tab && pressed)
     {
         lh_ui_view_set_focus(self, lh_ui_view_get_next_focus(self));
         return lh_bool_false;

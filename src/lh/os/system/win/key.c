@@ -20,13 +20,14 @@ const lh_u32_t lh_os_system_win_key_vks[] = {
     LH_OS_SYSTEM_WIN_VK_PRIOR,   LH_OS_SYSTEM_WIN_VK_NEXT,   LH_OS_SYSTEM_WIN_VK_SHIFT,
     LH_OS_SYSTEM_WIN_VK_CONTROL, LH_OS_SYSTEM_WIN_VK_MENU,
 };
-const lh_key_t lh_os_system_win_key_keys[] = {
-    lh_key_tab,     lh_key_enter,     lh_key_escape, lh_key_backspace, lh_key_delete, lh_key_space,
-    lh_key_left,    lh_key_right,     lh_key_up,     lh_key_down,      lh_key_home,   lh_key_end,
-    lh_key_page_up, lh_key_page_down, lh_key_shift,  lh_key_control,   lh_key_alt,
+const lh_os_key_t lh_os_system_win_key_keys[] = {
+    lh_os_key_tab,     lh_os_key_enter, lh_os_key_escape,  lh_os_key_backspace, lh_os_key_delete,
+    lh_os_key_space,   lh_os_key_left,  lh_os_key_right,   lh_os_key_up,        lh_os_key_down,
+    lh_os_key_home,    lh_os_key_end,   lh_os_key_page_up, lh_os_key_page_down, lh_os_key_shift,
+    lh_os_key_control, lh_os_key_alt,
 };
 
-lh_key_t
+lh_os_key_t
 lh_os_system_win_key_from_vk(lh_u32_t vk)
 {
     lh_u32_t i;
@@ -35,7 +36,7 @@ lh_os_system_win_key_from_vk(lh_u32_t vk)
     {
         lh_return_if(lh_os_system_win_key_vks[i] == vk, lh_os_system_win_key_keys[i]);
     }
-    return lh_key_other;
+    return lh_os_key_other;
 }
 
 lh_u32_t

@@ -3,6 +3,7 @@
 #include <lh/expect/death.h>
 #include <lh/math/vec4.h>
 #include <lh/util/addr.h>
+#include <lh/math/slice/initializer.h>
 #include <lh/math/view/initializer.h>
 
 #include <cmath>

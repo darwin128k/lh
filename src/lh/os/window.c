@@ -566,7 +566,7 @@ lh_os_window_on_native_release(lh_os_window_t *self, int x, int y)
 }
 
 lh_void
-lh_os_window_on_native_key(lh_os_window_t *self, lh_key_t key, lh_bool_t pressed)
+lh_os_window_on_native_key(lh_os_window_t *self, lh_os_key_t key, lh_bool_t pressed)
 {
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(lh_ptr_rcast(lh_void, self->on_key)));

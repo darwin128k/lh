@@ -9,7 +9,7 @@
 #define LH_OS_WINDOW_ON_KEY_FN_H
 
 #include <lh/bool.h>
-#include <lh/key.h>
+#include <lh/os/key.h>
 #include <lh/ptr.h>
 
 struct lh_os_window;
@@ -18,10 +18,10 @@ struct lh_os_window;
  * @typedef lh_os_window_on_key_fn
  * @brief Called when a key goes down (@p pressed true, repeated while held) or up.
  *
- * @p key is the portable code (::lh_key_t); keys outside it come as
- * ::lh_key_other.
+ * @p key is the portable code (::lh_os_key_t); keys outside it come as
+ * ::lh_os_key_other.
  */
-typedef lh_void(lh_os_window_on_key_fn)(struct lh_os_window *self, lh_key_t key, lh_bool_t pressed,
-                                        lh_ptr context);
+typedef lh_void(lh_os_window_on_key_fn)(struct lh_os_window *self, lh_os_key_t key,
+                                        lh_bool_t pressed, lh_ptr context);
 
 #endif /* LH_OS_WINDOW_ON_KEY_FN_H */
