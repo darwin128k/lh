@@ -5,6 +5,7 @@
 #include <lh/null.h>
 #include <lh/util/addr.h>
 #include <lh/test/out.h>
+#include <lh/math/slice/initializer.h>
 
 #include <cmath>
 
@@ -211,5 +212,22 @@ TEST(math_slice_death, size_of_a_reversed_slice_and_dot_of_different_sizes)
 }
 
 #endif
+
+TEST(math_slice_initializer, takes_first_and_last_element)
+{
+    static const lh_float_t data[3] = {1.0f, 2.0f, 3.0f};
+    const lh_math_slice_t slice = lh_math_slice_initializer(&data[0], &data[2]);
+
+    EXPECT_EQ(slice.first, &data[0]);
+    EXPECT_EQ(slice.second, &data[2]);
+}
+
+TEST(math_slice_empty_initializer, has_both_bounds_null)
+{
+    const lh_math_slice_t slice = lh_math_slice_empty_initializer();
+
+    EXPECT_EQ(slice.first, nullptr);
+    EXPECT_EQ(slice.second, nullptr);
+}
 
 } // namespace

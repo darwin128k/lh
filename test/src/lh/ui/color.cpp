@@ -3,6 +3,7 @@
 #include <lh/ui/color.h>
 #include <lh/util/addr.h>
 #include <lh/test/out.h>
+#include <lh/ui/color/initializer.h>
 
 namespace
 {
@@ -280,6 +281,16 @@ TEST(ui_color, argb_over_opaque_is_the_channel_formula_word_for_word)
     /* The ends: alpha 255 is the source, alpha 0 the destination. */
     EXPECT_EQ(lh_ui_color_argb_over_opaque(0xFF123456u, 0xFFABCDEFu), 0xFFABCDEFu);
     EXPECT_EQ(lh_ui_color_argb_over_opaque(0xFF123456u, 0x00ABCDEFu), 0xFF123456u);
+}
+
+TEST(ui_color_initializer, fills_channels_in_order)
+{
+    const lh_ui_color_t c = lh_ui_color_initializer(1, 2, 3, 4);
+
+    EXPECT_EQ(lh_ui_color_get_r(lh_addr_of(c)), 1);
+    EXPECT_EQ(lh_ui_color_get_g(lh_addr_of(c)), 2);
+    EXPECT_EQ(lh_ui_color_get_b(lh_addr_of(c)), 3);
+    EXPECT_EQ(lh_ui_color_get_a(lh_addr_of(c)), 4);
 }
 
 } // namespace

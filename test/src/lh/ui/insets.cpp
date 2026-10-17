@@ -2,6 +2,7 @@
 
 #include <lh/ui/insets.h>
 #include <lh/test/out.h>
+#include <lh/ui/insets/initializer.h>
 
 TEST(ui_insets, sides_and_axis_ends)
 {
@@ -33,4 +34,14 @@ TEST(ui_insets, shrink_moves_each_side_in_and_stops_at_zero_size)
     lh_ui_insets_init_all(lh_addr_of(in), lh_ui_scalar(50));
     inner = lh_test::out(lh_ui_insets_shrink, lh_addr_of(in), lh_addr_of(rect));
     EXPECT_EQ(lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(inner))), lh_ui_scalar(0));
+}
+
+TEST(ui_insets_initializer, fills_left_top_right_bottom)
+{
+    const lh_ui_insets_t in = lh_ui_insets_initializer(1, 2, 3, 4);
+
+    EXPECT_EQ(in.left, lh_ui_scalar(1));
+    EXPECT_EQ(in.top, lh_ui_scalar(2));
+    EXPECT_EQ(in.right, lh_ui_scalar(3));
+    EXPECT_EQ(in.bottom, lh_ui_scalar(4));
 }

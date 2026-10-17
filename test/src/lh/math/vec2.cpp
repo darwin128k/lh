@@ -3,6 +3,7 @@
 #include <lh/math/vec2.h>
 #include <lh/util/addr.h>
 #include <lh/test/out.h>
+#include <lh/math/vec2/initializer.h>
 
 #include <cstddef>
 
@@ -78,6 +79,14 @@ TEST(vec2, view_of_reads_the_components_in_order)
     EXPECT_EQ(lh_math_view_get_size(lh_addr_of(view)), 2U);
     EXPECT_EQ(lh_math_view_get_at(lh_addr_of(view), 0U), lh_math_vec2_get_x(lh_addr_of(v)));
     EXPECT_EQ(lh_math_view_get_at(lh_addr_of(view), 1U), lh_math_vec2_get_y(lh_addr_of(v)));
+}
+
+TEST(math_vec2_initializer, fills_components_in_order)
+{
+    const lh_math_vec2_t value = lh_math_vec2_initializer(1.0f, 2.0f);
+
+    EXPECT_FLOAT_EQ(value.x, 1.0f);
+    EXPECT_FLOAT_EQ(value.y, 2.0f);
 }
 
 } // namespace

@@ -3,6 +3,7 @@
 #include <string>
 
 #include <lh/net/ip.h>
+#include <lh/net/ip/initializer.h>
 
 namespace
 {
@@ -175,6 +176,16 @@ TEST(net_ip4_is_private, matches_rfc1918)
     EXPECT_TRUE(lh_net_ip4_is_private(&one_ninety_two));
     EXPECT_FALSE(lh_net_ip4_is_private(&public_addr));
     EXPECT_FALSE(lh_net_ip4_is_private(&loop));
+}
+
+TEST(net_ip4_initializer, takes_octets_in_dotted_order)
+{
+    const lh_net_ip4_t ip = lh_net_ip4_initializer(192, 168, 0, 1);
+
+    EXPECT_EQ(ip.octets[0], 192);
+    EXPECT_EQ(ip.octets[1], 168);
+    EXPECT_EQ(ip.octets[2], 0);
+    EXPECT_EQ(ip.octets[3], 1);
 }
 
 } // namespace

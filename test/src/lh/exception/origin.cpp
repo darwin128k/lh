@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/exception/origin.h>
+#include <lh/exception/origin/initializer.h>
 
 #include <string>
 
@@ -87,6 +88,31 @@ TEST(exception_origin, location_level_origin)
     EXPECT_FALSE(lh_exception_origin_has_message(&origin));
     EXPECT_EQ(std::string(lh_exception_origin_get_file(&origin)), "a/b.c");
     EXPECT_EQ(lh_exception_origin_get_line(&origin), 7u);
+}
+
+/* -- initializers ---------------------------------------------------------- */
+
+TEST(exception_origin_initializer, fills_members_in_order)
+{
+    static const lh_exception_origin_t origin =
+        lh_exception_origin_initializer("file.c", "fn", "x > 0", "x must be positive", 42u);
+
+    EXPECT_EQ(std::string(lh_exception_origin_get_file(&origin)), "file.c");
+    EXPECT_EQ(std::string(lh_exception_origin_get_function(&origin)), "fn");
+    EXPECT_EQ(std::string(lh_exception_origin_get_condition(&origin)), "x > 0");
+    EXPECT_EQ(std::string(lh_exception_origin_get_message(&origin)), "x must be positive");
+    EXPECT_EQ(lh_exception_origin_get_line(&origin), 42u);
+}
+
+TEST(exception_origin_empty_initializer, leaves_nothing_filled)
+{
+    static const lh_exception_origin_t origin = lh_exception_origin_empty_initializer();
+
+    EXPECT_FALSE(lh_exception_origin_has_file(&origin));
+    EXPECT_FALSE(lh_exception_origin_has_function(&origin));
+    EXPECT_FALSE(lh_exception_origin_has_condition(&origin));
+    EXPECT_FALSE(lh_exception_origin_has_message(&origin));
+    EXPECT_EQ(lh_exception_origin_get_line(&origin), 0u);
 }
 
 } // namespace

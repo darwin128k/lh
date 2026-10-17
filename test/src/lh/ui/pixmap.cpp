@@ -5,6 +5,7 @@
 #include <lh/expect/death.h>
 #include <lh/ui/pixmap.h>
 #include <lh/test/out.h>
+#include <lh/ui/pixmap/initializer.h>
 
 namespace
 {
@@ -678,6 +679,19 @@ TEST(ui_pixmap, blend_alpha_16_words_is_the_reference_for_every_length_and_start
             }
         }
     }
+}
+
+TEST(ui_pixmap_initializer, fills_members_in_order)
+{
+    lh_byte_t pixels[4 * 4 * 2] = {};
+    const lh_ui_pixmap_t pixmap =
+        lh_ui_pixmap_initializer(pixels, 4, 2, 4 * 4, lh_ui_pixmap_format_argb8888);
+
+    EXPECT_EQ(pixmap.bits, pixels);
+    EXPECT_EQ(pixmap.width, 4);
+    EXPECT_EQ(pixmap.height, 2);
+    EXPECT_EQ(pixmap.stride, 16);
+    EXPECT_EQ(pixmap.format, lh_ui_pixmap_format_argb8888);
 }
 
 } // namespace

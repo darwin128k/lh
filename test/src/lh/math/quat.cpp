@@ -3,6 +3,7 @@
 #include <lh/math/quat.h>
 #include <lh/util/addr.h>
 #include <lh/test/out.h>
+#include <lh/math/quat/initializer.h>
 
 #include <cmath>
 #include <cstddef>
@@ -117,6 +118,16 @@ TEST(quat, nlerp_ends_and_short_way)
     const lh_float_t h = std::sqrt(0.5f);
     expect_vec3_near(lh_test::out(lh_math_quat_rotate, lh_test::out(lh_math_quat_nlerp, a, b, 0.5f), ([&]() { lh_math_vec3_t _v; lh_math_vec3_init(lh_addr_of(_v), 1, 0, 0); return _v; })()), h, h, 0);
     expect_vec3_near(lh_test::out(lh_math_quat_rotate, lh_test::out(lh_math_quat_nlerp, a, neg_b, 0.5f), ([&]() { lh_math_vec3_t _v; lh_math_vec3_init(lh_addr_of(_v), 1, 0, 0); return _v; })()), h, h, 0);
+}
+
+TEST(math_quat_initializer, fills_components_in_order)
+{
+    const lh_math_quat_t value = lh_math_quat_initializer(1.0f, 2.0f, 3.0f, 4.0f);
+
+    EXPECT_FLOAT_EQ(value.x, 1.0f);
+    EXPECT_FLOAT_EQ(value.y, 2.0f);
+    EXPECT_FLOAT_EQ(value.z, 3.0f);
+    EXPECT_FLOAT_EQ(value.w, 4.0f);
 }
 
 } // namespace

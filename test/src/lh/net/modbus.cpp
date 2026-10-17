@@ -3,6 +3,7 @@
 #include <cstring>
 
 #include <lh/net/modbus.h>
+#include <lh/net/modbus/initializer.h>
 
 #include <cstdio>
 
@@ -479,4 +480,22 @@ TEST(lh_mb, nothing_to_ask_is_no_requests_rather_than_one_empty_one)
 
     EXPECT_EQ(lh_mb_plan_reads(lh_null, 4, reads, 4), (lh_u16_t)0);
     EXPECT_EQ(lh_mb_count_requests(lh_null, 4), (lh_u16_t)0);
+}
+
+TEST(mb_want_initializer, fills_address_then_registers)
+{
+    const lh_mb_want_t want = lh_mb_want_initializer(100, 4);
+
+    EXPECT_EQ(want.address, 100);
+    EXPECT_EQ(want.registers, 4);
+}
+
+TEST(mb_read_initializer, fills_members_in_order)
+{
+    const lh_mb_read_t read = lh_mb_read_initializer(100, 8, 0, 1);
+
+    EXPECT_EQ(read.start, 100);
+    EXPECT_EQ(read.count, 8);
+    EXPECT_EQ(read.first, 0);
+    EXPECT_EQ(read.last, 1);
 }

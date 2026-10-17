@@ -3,6 +3,7 @@
 #include <lh/math/rect.h>
 #include <lh/util/addr.h>
 #include <lh/test/out.h>
+#include <lh/math/rect/initializer.h>
 
 namespace
 {
@@ -131,6 +132,16 @@ TEST(math_rect, compare_suite_origin_then_size)
     EXPECT_EQ(lh_math_rect_is_less(lh_addr_of(a), lh_addr_of(c)), lh_bool_true);
     EXPECT_EQ(lh_math_rect_is_greater(lh_addr_of(c), lh_addr_of(a)), lh_bool_true);
     EXPECT_EQ(lh_math_rect_is_at_least(lh_addr_of(b), lh_addr_of(a)), lh_bool_true);
+}
+
+TEST(math_rect_initializer, fills_origin_then_size)
+{
+    const lh_math_rect_t rect = lh_math_rect_initializer(lh_initializer(10, 20), lh_initializer(640, 480));
+
+    EXPECT_EQ(rect.origin.x, 10);
+    EXPECT_EQ(rect.origin.y, 20);
+    EXPECT_EQ(rect.size.width, 640);
+    EXPECT_EQ(rect.size.height, 480);
 }
 
 } // namespace

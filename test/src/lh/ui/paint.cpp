@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/ui/paint.h>
+#include <lh/ui/paint/initializer.h>
 
 TEST(ui_paint, init_is_empty)
 {
@@ -43,4 +44,15 @@ TEST(ui_paint, init_color_null_is_empty)
     lh_ui_paint_init_color(lh_addr_of(paint), lh_null);
     EXPECT_TRUE(lh_ui_paint_is_empty(lh_addr_of(paint)));
     EXPECT_TRUE(lh_null_eq(lh_ui_paint_get_color(lh_addr_of(paint))));
+}
+
+TEST(ui_paint_initializer, fills_kind_color_and_gradient)
+{
+    const lh_ui_paint_t paint = lh_ui_paint_initializer(
+        lh_ui_paint_kind_solid, lh_initializer(0x20, 0x40, 0x80, 0xFF), nullptr);
+
+    EXPECT_EQ(paint.kind, lh_ui_paint_kind_solid);
+    EXPECT_EQ(paint.color.r, 0x20);
+    EXPECT_EQ(paint.color.a, 0xFF);
+    EXPECT_EQ(paint.gradient, nullptr);
 }

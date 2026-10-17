@@ -3,6 +3,7 @@
 #include <lh/math/fsize.h>
 #include <lh/util/addr.h>
 #include <lh/test/out.h>
+#include <lh/math/fsize/initializer.h>
 
 namespace
 {
@@ -38,6 +39,14 @@ TEST(math_fsize, inset_shrinks_both_sides)
     const lh_math_fsize_t inner = lh_test::out(lh_math_fsize_inset, lh_addr_of(size), 1.f, 2.f);
     EXPECT_EQ(lh_math_fsize_get_width(lh_addr_of(inner)), 8.f);
     EXPECT_EQ(lh_math_fsize_get_height(lh_addr_of(inner)), 4.f);
+}
+
+TEST(math_fsize_initializer, fills_width_then_height)
+{
+    const lh_math_fsize_t value = lh_math_fsize_initializer(0.5f, 2.0f);
+
+    EXPECT_FLOAT_EQ(value.width, 0.5f);
+    EXPECT_FLOAT_EQ(value.height, 2.0f);
 }
 
 } /* namespace */

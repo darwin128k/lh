@@ -1,9 +1,10 @@
-﻿#include <gtest/gtest.h>
+#include <gtest/gtest.h>
 #include <type_traits>
 
 #include <lh/math/frect.h>
 #include <lh/util/addr.h>
 #include <lh/test/out.h>
+#include <lh/math/frect/initializer.h>
 
 namespace
 {
@@ -104,6 +105,17 @@ TEST(math_frect, to_rect_truncates_toward_zero)
     EXPECT_EQ(lh_math_point_get_y(lh_math_rect_get_origin_as_const(lh_addr_of(screen))), -3);
     EXPECT_EQ(lh_math_size_get_width(lh_math_rect_get_size_as_const(lh_addr_of(screen))), 8);
     EXPECT_EQ(lh_math_size_get_height(lh_math_rect_get_size_as_const(lh_addr_of(screen))), 1);
+}
+
+TEST(math_frect_initializer, fills_origin_then_size)
+{
+    const lh_math_frect_t rect =
+        lh_math_frect_initializer(lh_initializer(1.0f, 2.0f), lh_initializer(3.0f, 4.0f));
+
+    EXPECT_FLOAT_EQ(rect.origin.x, 1.0f);
+    EXPECT_FLOAT_EQ(rect.origin.y, 2.0f);
+    EXPECT_FLOAT_EQ(rect.size.width, 3.0f);
+    EXPECT_FLOAT_EQ(rect.size.height, 4.0f);
 }
 
 } /* namespace */

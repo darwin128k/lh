@@ -1,9 +1,10 @@
-﻿#include <gtest/gtest.h>
+#include <gtest/gtest.h>
 #include <type_traits>
 
 #include <lh/math/fsize.h>
 #include <lh/util/addr.h>
 #include <lh/test/out.h>
+#include <lh/math/fpoint/initializer.h>
 
 namespace
 {
@@ -120,6 +121,14 @@ TEST(math_fpoint, in_extent_is_half_open)
     EXPECT_TRUE(lh_math_fpoint_in_extent(lh_addr_of(min), lh_addr_of(min), lh_addr_of(max)));
     EXPECT_TRUE(lh_math_fpoint_in_extent(lh_addr_of(inside), lh_addr_of(min), lh_addr_of(max)));
     EXPECT_FALSE(lh_math_fpoint_in_extent(lh_addr_of(max), lh_addr_of(min), lh_addr_of(max)));
+}
+
+TEST(math_fpoint_initializer, fills_x_then_y)
+{
+    const lh_math_fpoint_t value = lh_math_fpoint_initializer(1.5f, 2.0f);
+
+    EXPECT_FLOAT_EQ(value.x, 1.5f);
+    EXPECT_FLOAT_EQ(value.y, 2.0f);
 }
 
 } /* namespace */
