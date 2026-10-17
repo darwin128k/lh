@@ -24,3 +24,15 @@ lh_tick_is_greater(lh_tick_t self, lh_tick_t other)
 {
     return lh_tick_is_less(other, self);
 }
+
+lh_tick_t
+lh_tick_elapsed(lh_tick_t since, lh_tick_t now)
+{
+    return lh_type_cast(lh_tick_t, now - since);
+}
+
+lh_bool_t
+lh_tick_is_after(lh_tick_t self, lh_tick_t other)
+{
+    return lh_type_cast(lh_bool_t, lh_type_cast(lh_s32_t, lh_tick_elapsed(other, self)) > 0);
+}

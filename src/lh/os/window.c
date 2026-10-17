@@ -57,20 +57,9 @@ lh_os_window_init(lh_os_window_t *self)
     self->on_paint = lh_null;
     self->on_paint_context = lh_null;
     self->frame_stats = lh_null;
-    self->on_press = lh_null;
-    self->on_press_context = lh_null;
-    self->on_move = lh_null;
-    self->on_move_context = lh_null;
-    self->on_release = lh_null;
-    self->on_release_context = lh_null;
-    self->on_wheel = lh_null;
-    self->on_wheel_context = lh_null;
-    self->on_key = lh_null;
-    self->on_key_context = lh_null;
-    self->on_text = lh_null;
-    self->on_text_context = lh_null;
-    self->on_click = lh_null;
-    self->on_click_context = lh_null;
+    self->on_input = lh_null;
+    self->on_input_context = lh_null;
+    self->pressed_buttons = 0U;
     self->on_close = lh_null;
     self->on_close_context = lh_null;
 }
@@ -208,60 +197,18 @@ lh_os_window_get_frame_stats(const lh_os_window_t *self)
 }
 
 lh_void
-lh_os_window_set_on_press(lh_os_window_t *self, lh_os_window_on_press_cb on_press, lh_ptr context)
+lh_os_window_set_on_input(lh_os_window_t *self, lh_os_input_sink_cb on_input, lh_ptr context)
 {
     lh_assert_runtime_ref(self);
-    self->on_press = on_press;
-    self->on_press_context = context;
+    self->on_input = on_input;
+    self->on_input_context = context;
 }
 
-lh_void
-lh_os_window_set_on_move(lh_os_window_t *self, lh_os_window_on_move_cb on_move, lh_ptr context)
+lh_u32_t
+lh_os_window_get_pressed_buttons(const lh_os_window_t *self)
 {
     lh_assert_runtime_ref(self);
-    self->on_move = on_move;
-    self->on_move_context = context;
-}
-
-lh_void
-lh_os_window_set_on_release(lh_os_window_t *self, lh_os_window_on_release_cb on_release,
-                            lh_ptr context)
-{
-    lh_assert_runtime_ref(self);
-    self->on_release = on_release;
-    self->on_release_context = context;
-}
-
-lh_void
-lh_os_window_set_on_wheel(lh_os_window_t *self, lh_os_window_on_wheel_cb on_wheel, lh_ptr context)
-{
-    lh_assert_runtime_ref(self);
-    self->on_wheel = on_wheel;
-    self->on_wheel_context = context;
-}
-
-lh_void
-lh_os_window_set_on_key(lh_os_window_t *self, lh_os_window_on_key_cb on_key, lh_ptr context)
-{
-    lh_assert_runtime_ref(self);
-    self->on_key = on_key;
-    self->on_key_context = context;
-}
-
-lh_void
-lh_os_window_set_on_text(lh_os_window_t *self, lh_os_window_on_text_cb on_text, lh_ptr context)
-{
-    lh_assert_runtime_ref(self);
-    self->on_text = on_text;
-    self->on_text_context = context;
-}
-
-lh_void
-lh_os_window_set_on_click(lh_os_window_t *self, lh_os_window_on_click_cb on_click, lh_ptr context)
-{
-    lh_assert_runtime_ref(self);
-    self->on_click = on_click;
-    self->on_click_context = context;
+    return self->pressed_buttons;
 }
 
 lh_void
@@ -520,95 +467,35 @@ lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc, int left, in
     self->paint_bottom = 0;
 }
 
-lh_void
-lh_os_window_on_native_press(lh_os_window_t *self, int x, int y)
+/** The buttons @p event leaves held over @p self: a pointer event says, a cancel or a focus
+   loss lets go of all of them, anything else leaves them as they were. */
+static lh_void
+lh_os_window_track_buttons(lh_os_window_t *self, lh_os_input_event_cptr event)
 {
-    lh_os_window_on_press_cb on_press;
-    lh_ptr on_press_context;
-
-    lh_assert_runtime_ref(self);
-    on_press = self->on_press;
-    on_press_context = self->on_press_context;
-    if (lh_null_ne(lh_ptr_rcast(lh_void, on_press)))
+    switch (lh_os_input_event_get_kind(event))
     {
-        on_press(self, x, y, on_press_context);
+    case lh_os_input_kind_pointer_down:
+    case lh_os_input_kind_pointer_up:
+    case lh_os_input_kind_pointer_move:
+        self->pressed_buttons = lh_os_input_event_get_buttons(event);
+        break;
+    case lh_os_input_kind_pointer_cancel:
+    case lh_os_input_kind_focus_out:
+        self->pressed_buttons = 0U;
+        break;
+    default:
+        break;
     }
 }
 
 lh_void
-lh_os_window_on_native_move(lh_os_window_t *self, int x, int y)
-{
-    lh_os_window_on_move_cb on_move;
-    lh_ptr on_move_context;
-
-    lh_assert_runtime_ref(self);
-    on_move = self->on_move;
-    on_move_context = self->on_move_context;
-    if (lh_null_ne(lh_ptr_rcast(lh_void, on_move)))
-    {
-        on_move(self, x, y, on_move_context);
-    }
-}
-
-lh_void
-lh_os_window_on_native_release(lh_os_window_t *self, int x, int y)
-{
-    lh_os_window_on_release_cb on_release;
-    lh_ptr on_release_context;
-
-    lh_assert_runtime_ref(self);
-    on_release = self->on_release;
-    on_release_context = self->on_release_context;
-    if (lh_null_ne(lh_ptr_rcast(lh_void, on_release)))
-    {
-        on_release(self, x, y, on_release_context);
-    }
-}
-
-lh_void
-lh_os_window_on_native_key(lh_os_window_t *self, lh_os_key_t key, lh_bool_t pressed)
+lh_os_window_on_native_input(lh_os_window_t *self, lh_os_input_event_cptr event)
 {
     lh_assert_runtime_ref(self);
-    lh_return_if(lh_null_eq(lh_ptr_rcast(lh_void, self->on_key)));
-    self->on_key(self, key, pressed, self->on_key_context);
-}
-
-lh_void
-lh_os_window_on_native_text(lh_os_window_t *self, lh_u32_t code)
-{
-    lh_assert_runtime_ref(self);
-    lh_return_if(lh_null_eq(lh_ptr_rcast(lh_void, self->on_text)));
-    self->on_text(self, code, self->on_text_context);
-}
-
-lh_void
-lh_os_window_on_native_wheel(lh_os_window_t *self, int x, int y, int dx, int dy)
-{
-    lh_os_window_on_wheel_cb on_wheel;
-    lh_ptr on_wheel_context;
-
-    lh_assert_runtime_ref(self);
-    on_wheel = self->on_wheel;
-    on_wheel_context = self->on_wheel_context;
-    if (lh_null_ne(lh_ptr_rcast(lh_void, on_wheel)))
-    {
-        on_wheel(self, x, y, dx, dy, on_wheel_context);
-    }
-}
-
-lh_void
-lh_os_window_on_native_click(lh_os_window_t *self, int x, int y)
-{
-    lh_os_window_on_click_cb on_click;
-    lh_ptr on_click_context;
-
-    lh_assert_runtime_ref(self);
-    on_click = self->on_click;
-    on_click_context = self->on_click_context;
-    if (lh_null_ne(lh_ptr_rcast(lh_void, on_click)))
-    {
-        on_click(self, x, y, on_click_context);
-    }
+    lh_assert_runtime_ref(event);
+    lh_os_window_track_buttons(self, event);
+    lh_return_if(lh_null_eq(lh_ptr_rcast(lh_void, self->on_input)));
+    self->on_input(event, self->on_input_context);
 }
 
 lh_void

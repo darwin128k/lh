@@ -314,9 +314,16 @@ for (y = 0; y < F4VE_TFT_HEIGHT; y += F4VE_FB_STRIP_H)
 }
 ```
 
-XPT2046 touch goes into the same tree: `lh_ui_view_press` /
-`lh_ui_view_release` with panel coordinates, and `lh_ui_view_tick` from a
-~60 Hz timer for kinetic scrolling.
+XPT2046 touch goes into the same tree as input events (`lh/os/input/`, no OS
+needed): the touch interrupt builds a `pointer_down` / `pointer_move` /
+`pointer_up` with `lh_os_input_event_init_pointer` (device kind `touch`,
+panel coordinates via `lh_os_input_coord_from_int`) and pushes it into an
+`lh_os_input_queue_t`; the main loop drains the queue into a sink that calls
+`lh_ui_view_input`. `lh_ui_view_press` / `lh_ui_view_release` still work
+directly. `lh_ui_view_tick` from a ~60 Hz timer drives kinetic scrolling;
+for long press or double tap, feed the events through an
+`lh_os_input_recognizer_t` and call `lh_os_input_recognizer_update` from the
+same timer.
 
 ---
 

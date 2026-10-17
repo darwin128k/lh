@@ -20,6 +20,7 @@
 #include <lh/str/format/text.h>
 #include <lh/str/parse/text.h>
 #include <lh/ui/canvas/web.h>
+#include <lh/util/return.h>
 
 /** WebSocket clients served at once; one more is closed on arrival. */
 #define HOST_WS_MAX 8u
@@ -230,59 +231,66 @@ host_query_uint(const char *req, lh_usize_t len, const char *key, lh_usize_t key
     return (unsigned)v;
 }
 
-/** (@p x, @p y) as an ::lh_ui_point_t. */
-static lh_void
-host_point(int x, int y, lh_ui_point_t *out)
+/** Query parameter @p key as a flag: @p absent when it is not there, otherwise true for any
+   number but 0. */
+static lh_bool_t
+host_query_flag(const char *req, lh_usize_t len, const char *key, lh_usize_t key_len,
+                lh_bool_t absent)
 {
-    lh_assert_runtime_ref(out);
-    lh_ui_point_t point;
+    const char *value = lh_null;
 
-    lh_ui_point_init(lh_addr_of(point), lh_cast_static(lh_ui_scalar_t, x),
-                     lh_cast_static(lh_ui_scalar_t, y));
-    lh_ptr_deref(out) = point;
-}
-
-/** A press at (@p x, @p y): the app's hook, or ::lh_ui_view_press without one. */
-static lh_void
-host_press(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int y)
-{
-    if (hooks != lh_null && hooks->press != lh_null)
+    if (host_query(req, len, key, key_len, lh_addr_of(value)) == 0u)
     {
-        hooks->press(x, y, hooks->ctx);
-        return;
+        return absent;
     }
-    lh_ui_point_t point;
-    host_point(x, y, lh_addr_of(point));
-    lh_ui_view_press(view, point);
+    return (host_query_int(req, len, key, key_len) != 0) ? lh_bool_true : lh_bool_false;
 }
 
-/** A release at (@p x, @p y): the app's hook, or ::lh_ui_view_release without one. */
-static lh_void
-host_release(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int y)
+/** @p event to the app's input hook, or to ::lh_ui_view_input without one. True when
+   the tree may have changed: always for a hook, which the host cannot see into. */
+static lh_bool_t
+host_input(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks,
+           const lh_os_input_event_t *event)
 {
-    if (hooks != lh_null && hooks->release != lh_null)
+    if (hooks != lh_null && hooks->input != lh_null)
     {
-        hooks->release(x, y, hooks->ctx);
-        return;
+        hooks->input(event, hooks->ctx);
+        return lh_bool_true;
     }
-    lh_ui_point_t point;
-    host_point(x, y, lh_addr_of(point));
-    (void)lh_ui_view_release(view, point);
+    return lh_ui_view_input(view, event);
 }
 
-/** A wheel notch at (@p x, @p y): the app's hook, or ::lh_ui_view_wheel without one. */
-static lh_void
+/** The player's pointer, which is a mouse with one button: @p kind at view pixel
+   (@p x, @p y). A move comes only while the button is down, so it holds it. */
+static lh_bool_t
+host_pointer(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, lh_os_input_kind_t kind,
+             int x, int y)
+{
+    lh_os_input_event_t event;
+    const lh_bool_t up = lh_type_cast(lh_bool_t, kind == lh_os_input_kind_pointer_up);
+    const lh_os_input_button_t button = kind == lh_os_input_kind_pointer_move
+                                            ? lh_os_input_button_none
+                                            : lh_os_input_button_primary;
+
+    lh_os_input_event_init_pointer(lh_addr_of(event), kind, lh_os_input_device_kind_mouse, 0U,
+                                   button, lh_os_input_coord_from_int(x),
+                                   lh_os_input_coord_from_int(y), lh_os_tick_ms());
+    lh_os_input_event_set_buttons(lh_addr_of(event),
+                                  up ? 0U : lh_os_input_button_to_mask(lh_os_input_button_primary));
+    return host_input(view, hooks, lh_addr_of(event));
+}
+
+/** A wheel notch at (@p x, @p y): @p dx, @p dy are notches, 1 is left / up. */
+static lh_bool_t
 host_wheel(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int y, int dx, int dy)
 {
-    if (hooks != lh_null && hooks->wheel != lh_null)
-    {
-        hooks->wheel(x, y, dx, dy, hooks->ctx);
-        return;
-    }
-    lh_ui_point_t point;
-    host_point(x, y, lh_addr_of(point));
-    (void)lh_ui_view_wheel(view, point, lh_cast_static(lh_ui_scalar_t, dx),
-                           lh_cast_static(lh_ui_scalar_t, dy));
+    lh_os_input_event_t event;
+
+    lh_os_input_event_init_wheel(
+        lh_addr_of(event), lh_os_input_coord_from_int(x), lh_os_input_coord_from_int(y),
+        lh_type_cast(lh_s32_t, dx) * LH_OS_INPUT_WHEEL_NOTCH,
+        lh_type_cast(lh_s32_t, dy) * LH_OS_INPUT_WHEEL_NOTCH, lh_os_tick_ms());
+    return host_input(view, hooks, lh_addr_of(event));
 }
 
 /** @{ */
@@ -330,36 +338,31 @@ host_resize(const lh_ui_web_host_hooks_t *hooks, unsigned *width, unsigned *heig
     return lh_bool_true;
 }
 
-/** A key from the player (an ::lh_os_key_t, anything else is `other`) to the hook or the view. */
-static lh_void
-host_key(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int k)
+/** A key from the player (an ::lh_os_key_t, anything else is `other`) going down (@p pressed)
+   or up. */
+static lh_bool_t
+host_key(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int k, lh_bool_t pressed)
 {
+    lh_os_input_event_t event;
+
     if (k < lh_cast_static(int, lh_os_key_other) || k > lh_cast_static(int, lh_os_key_alt))
     {
         k = lh_cast_static(int, lh_os_key_other);
     }
-    if (hooks != lh_null && hooks->key != lh_null)
-    {
-        hooks->key(lh_cast_static(lh_os_key_t, k), lh_bool_true, hooks->ctx);
-        return;
-    }
-    (void)lh_ui_view_key(view, lh_cast_static(lh_os_key_t, k), lh_bool_true);
+    lh_os_input_event_init_key(lh_addr_of(event), lh_type_cast(lh_os_key_t, k), pressed,
+                               lh_bool_false, 0U, lh_os_tick_ms());
+    return host_input(view, hooks, lh_addr_of(event));
 }
 
-/** A typed code point from the player to the hook or the view; 0 is ignored. */
-static lh_void
+/** A typed code point from the player; 0 is ignored. */
+static lh_bool_t
 host_text(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, lh_u32_t code)
 {
-    if (code == 0u)
-    {
-        return;
-    }
-    if (hooks != lh_null && hooks->text != lh_null)
-    {
-        hooks->text(code, hooks->ctx);
-        return;
-    }
-    (void)lh_ui_view_text(view, code);
+    lh_os_input_event_t event;
+
+    lh_return_if(code == 0U, lh_bool_false);
+    lh_os_input_event_init_text(lh_addr_of(event), code, lh_os_tick_ms());
+    return host_input(view, hooks, lh_addr_of(event));
 }
 
 /** Mark the tree changed: the next frame is due for every client. */
@@ -455,8 +458,9 @@ host_ws_upgrade(lh_os_net_socket_t *client, const char *req, lh_usize_t len)
     return lh_bool_true;
 }
 
-/** One input from the player: `p x y`, `r x y`, `w x y dx dy`, `k key`, `t code`,
-   `z w h` (layout-mode size). */
+/** One input from the player: `p x y`, `r x y`, `m x y` (a move while a button is down),
+   `w x y dx dy`, `k key pressed` (`1` down, `0` up), `t code`, `z w h` (layout-mode size).
+   `k key` without the flag is what a player from before key-up sends, and is a key going down. */
 static lh_void
 host_event_line(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *width,
                 unsigned *height, unsigned *gen, const char *line, lh_usize_t len)
@@ -466,29 +470,46 @@ host_event_line(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigne
     lh_sint_t dx = 0;
     lh_sint_t dy = 0;
     lh_sint_t k = 0;
+    lh_sint_t pressed = 0;
     lh_uint_t code = 0u;
 
     if (lh_str_ptr_parse_text(line, len, "p %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
     {
-        host_press(view, hooks, lh_cast_static(int, x), lh_cast_static(int, y));
+        (void)host_pointer(view, hooks, lh_os_input_kind_pointer_down, lh_cast_static(int, x),
+                           lh_cast_static(int, y));
     }
     else if (lh_str_ptr_parse_text(line, len, "r %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
     {
-        host_release(view, hooks, lh_cast_static(int, x), lh_cast_static(int, y));
+        (void)host_pointer(view, hooks, lh_os_input_kind_pointer_up, lh_cast_static(int, x),
+                           lh_cast_static(int, y));
     }
     else if (lh_str_ptr_parse_text(line, len, "w %d %d %d %d", lh_addr_of(x), lh_addr_of(y),
                                    lh_addr_of(dx), lh_addr_of(dy)) != 0u)
     {
-        host_wheel(view, hooks, lh_cast_static(int, x), lh_cast_static(int, y),
-                   lh_cast_static(int, dx), lh_cast_static(int, dy));
+        (void)host_wheel(view, hooks, lh_cast_static(int, x), lh_cast_static(int, y),
+                         lh_cast_static(int, dx), lh_cast_static(int, dy));
+    }
+    else if (lh_str_ptr_parse_text(line, len, "m %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
+    {
+        /* A drag sends one every frame; one that changed nothing is not worth a draw. */
+        if (!host_pointer(view, hooks, lh_os_input_kind_pointer_move, lh_cast_static(int, x),
+                          lh_cast_static(int, y)))
+        {
+            return;
+        }
+    }
+    else if (lh_str_ptr_parse_text(line, len, "k %d %d", lh_addr_of(k), lh_addr_of(pressed)) != 0u)
+    {
+        (void)host_key(view, hooks, lh_cast_static(int, k),
+                       (pressed != 0) ? lh_bool_true : lh_bool_false);
     }
     else if (lh_str_ptr_parse_text(line, len, "k %d", lh_addr_of(k)) != 0u)
     {
-        host_key(view, hooks, lh_cast_static(int, k));
+        (void)host_key(view, hooks, lh_cast_static(int, k), lh_bool_true);
     }
     else if (lh_str_ptr_parse_text(line, len, "t %u", lh_addr_of(code)) != 0u)
     {
-        host_text(view, hooks, lh_cast_static(lh_u32_t, code));
+        (void)host_text(view, hooks, lh_cast_static(lh_u32_t, code));
     }
     else if (lh_str_ptr_parse_text(line, len, "z %d %d", lh_addr_of(x), lh_addr_of(y)) != 0u)
     {
@@ -892,29 +913,36 @@ host_handle_input(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsig
 
     if (host_route(req, len, host_lit("/ui/click")))
     {
-        host_press(view, hooks, x, y);
-        host_release(view, hooks, x, y);
+        (void)host_pointer(view, hooks, lh_os_input_kind_pointer_down, x, y);
+        (void)host_pointer(view, hooks, lh_os_input_kind_pointer_up, x, y);
     }
     else if (host_route(req, len, host_lit("/ui/press")))
     {
-        host_press(view, hooks, x, y);
+        (void)host_pointer(view, hooks, lh_os_input_kind_pointer_down, x, y);
     }
     else if (host_route(req, len, host_lit("/ui/release")))
     {
-        host_release(view, hooks, x, y);
+        (void)host_pointer(view, hooks, lh_os_input_kind_pointer_up, x, y);
+    }
+    else if (host_route(req, len, host_lit("/ui/move")))
+    {
+        (void)host_pointer(view, hooks, lh_os_input_kind_pointer_move, x, y);
     }
     else if (host_route(req, len, host_lit("/ui/wheel")))
     {
-        host_wheel(view, hooks, x, y, host_query_int(req, len, host_lit("dx=")),
-                   host_query_int(req, len, host_lit("dy=")));
+        (void)host_wheel(view, hooks, x, y, host_query_int(req, len, host_lit("dx=")),
+                         host_query_int(req, len, host_lit("dy=")));
     }
     else if (host_route(req, len, host_lit("/ui/key")))
     {
-        host_key(view, hooks, host_query_int(req, len, host_lit("k=")));
+        /* `p=` is the direction; without it the request is a key going down, as before. */
+        (void)host_key(view, hooks, host_query_int(req, len, host_lit("k=")),
+                       host_query_flag(req, len, host_lit("p="), lh_bool_true));
     }
     else if (host_route(req, len, host_lit("/ui/text")))
     {
-        host_text(view, hooks, lh_cast_static(lh_u32_t, host_query_uint(req, len, host_lit("c="))));
+        (void)host_text(view, hooks,
+                        lh_cast_static(lh_u32_t, host_query_uint(req, len, host_lit("c="))));
     }
     else if (host_route(req, len, host_lit("/ui/size")))
     {

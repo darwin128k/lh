@@ -19,6 +19,7 @@
 #include <lh/memory.h>
 #include <lh/os/alloc.h>
 #include <lh/os/system/posix/connection.h>
+#include <lh/os/system/posix/input.h>
 #include <lh/os/system/posix/key.h>
 #include <lh/os/system/posix/paint.h>
 #include <lh/os/system/posix/window/fields.h>
@@ -56,12 +57,6 @@ typedef struct lh_os_system_posix_window lh_os_system_posix_window_t;
 #define LH_OS_SYSTEM_POSIX_MOVERESIZE_MOVE 8L
 /** @} */
 
-/** @{ */
-/** Modifier bits that mean a key is a command rather than text. */
-#define LH_OS_SYSTEM_POSIX_X_CONTROL_MASK (1U << 2)
-#define LH_OS_SYSTEM_POSIX_X_MOD1_MASK (1U << 3)
-/** @} */
-
 /* -- The connection --------------------------------------------------------
    One per process, opened by the first window and kept: the pump is one thread's,
    as it is on Windows, and reconnecting for every window that opens would buy
@@ -85,6 +80,9 @@ static lh_bool_t lh_os_system_posix_quit;
 static lh_bool_t lh_os_system_posix_failed;
 /** -1 not asked yet, 0 the server has no SHAPE, 1 it has. */
 static int lh_os_system_posix_shape = -1;
+/** The keycode of the key release last skipped as an auto-repeat, `0` for none: the
+   press that follows it is that key repeating (X keycodes start at 8). */
+static lh_u32_t lh_os_system_posix_repeat_keycode;
 
 /** @{ */
 /** Atoms interned once by ::lh_os_system_posix_connect, named as the protocol names them. */
@@ -612,7 +610,8 @@ lh_os_system_posix_window_begin_moveresize(lh_os_system_posix_window_t *self,
 
 /** A key release that X sends only because the key is auto-repeating: the next
    event is a press of the same key at the same moment. Windows repeats a held key
-   as presses with no releases between them, and the portable layer expects that. */
+   as presses with no releases between them, and an event stream does the same: the
+   release is dropped and the press is marked ::LH_OS_INPUT_FLAG_REPEAT. */
 static lh_bool_t
 lh_os_system_posix_is_repeat(const lh_os_system_posix_xevent_t *release)
 {
@@ -758,7 +757,8 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
         LH_OS_SYSTEM_POSIX_X_KEY_PRESS_MASK | LH_OS_SYSTEM_POSIX_X_KEY_RELEASE_MASK |
         LH_OS_SYSTEM_POSIX_X_BUTTON_PRESS_MASK | LH_OS_SYSTEM_POSIX_X_BUTTON_RELEASE_MASK |
         LH_OS_SYSTEM_POSIX_X_POINTER_MOTION_MASK | LH_OS_SYSTEM_POSIX_X_EXPOSURE_MASK |
-        LH_OS_SYSTEM_POSIX_X_STRUCTURE_NOTIFY_MASK | LH_OS_SYSTEM_POSIX_X_PROPERTY_CHANGE_MASK;
+        LH_OS_SYSTEM_POSIX_X_STRUCTURE_NOTIFY_MASK | LH_OS_SYSTEM_POSIX_X_PROPERTY_CHANGE_MASK |
+        LH_OS_SYSTEM_POSIX_X_FOCUS_CHANGE_MASK;
     render = lh_os_system_posix_xrender_load();
     lh_memory_set(lh_addr_of(info), sizeof(info), 0);
     if (lh_null_ne(render) &&
@@ -1017,6 +1017,115 @@ lh_os_system_window_close(lh_os_system_window_handle_t handle)
     }
 }
 
+/* -- Input ----------------------------------------------------------------- */
+
+/** The buttons held, from an X @p state and the side buttons this window last heard
+   go down: X keeps a bit for the first three and none for the back and forward. */
+static lh_u32_t
+lh_os_system_posix_window_buttons_held(const lh_os_system_posix_window_t *self, lh_u32_t state)
+{
+    const lh_u32_t side = lh_os_input_button_to_mask(lh_os_input_button_back) |
+                          lh_os_input_button_to_mask(lh_os_input_button_forward);
+
+    return lh_os_system_posix_input_buttons_of(state) |
+           (lh_os_window_get_pressed_buttons(self->user) & side);
+}
+
+/** A wheel notch as a wheel event; false, and nothing sent, for any other button. */
+static lh_bool_t
+lh_os_system_posix_window_send_wheel(lh_os_system_posix_window_t *self,
+                                     const lh_os_system_posix_xevent_t *event)
+{
+    lh_os_input_event_t input;
+    lh_s32_t dx;
+    lh_s32_t dy;
+
+    lh_return_if(
+        !lh_os_system_posix_input_wheel_of(event->button.button, lh_addr_of(dx), lh_addr_of(dy)),
+        lh_bool_false);
+    lh_os_input_event_init_wheel(lh_addr_of(input), lh_os_input_coord_from_int(event->button.x),
+                                 lh_os_input_coord_from_int(event->button.y), dx, dy,
+                                 lh_os_tick_ms());
+    lh_os_input_event_set_buttons(
+        lh_addr_of(input), lh_os_system_posix_window_buttons_held(self, event->button.state));
+    lh_os_input_event_set_mods(lh_addr_of(input),
+                               lh_os_system_posix_input_mods_of(event->button.state));
+    lh_os_window_on_native_input(self->user, lh_addr_of(input));
+    return lh_bool_true;
+}
+
+/** A button going @p down or up. X's `state` is what was held *before* the event, so
+   the button itself is added or taken away to say what is held after it. */
+static lh_void
+lh_os_system_posix_window_send_button(lh_os_system_posix_window_t *self,
+                                      const lh_os_system_posix_xevent_t *event, lh_bool_t down)
+{
+    lh_os_input_event_t input;
+    const lh_os_input_button_t button = lh_os_system_posix_input_button_of(event->button.button);
+    const lh_u32_t mask = lh_os_input_button_to_mask(button);
+    const lh_u32_t held = lh_os_system_posix_window_buttons_held(self, event->button.state);
+
+    lh_os_input_event_init_pointer(
+        lh_addr_of(input), down ? lh_os_input_kind_pointer_down : lh_os_input_kind_pointer_up,
+        lh_os_input_device_kind_mouse, 0U, button, lh_os_input_coord_from_int(event->button.x),
+        lh_os_input_coord_from_int(event->button.y), lh_os_tick_ms());
+    lh_os_input_event_set_buttons(lh_addr_of(input), down ? held | mask : held & ~mask);
+    lh_os_input_event_set_mods(lh_addr_of(input),
+                               lh_os_system_posix_input_mods_of(event->button.state));
+    lh_os_window_on_native_input(self->user, lh_addr_of(input));
+}
+
+/** A key going down or up, and the text a press types. The keycode goes along as the
+   scancode, so a key ::lh_os_key_t has no name for can still be told apart. */
+static lh_void
+lh_os_system_posix_window_send_key(lh_os_system_posix_window_t *self,
+                                   lh_os_system_posix_xevent_t *event)
+{
+    char text[8];
+    lh_os_input_event_t input;
+    lh_os_system_posix_xid_t keysym = LH_OS_SYSTEM_POSIX_X_NONE;
+    const lh_u32_t keycode = lh_type_cast(lh_u32_t, event->key.keycode);
+    const lh_os_input_mods_t mods = lh_os_system_posix_input_mods_of(event->key.state);
+    const lh_bool_t pressed =
+        event->type == LH_OS_SYSTEM_POSIX_X_KEY_PRESS ? lh_bool_true : lh_bool_false;
+    lh_bool_t repeat = lh_bool_false;
+
+    if (!pressed && lh_os_system_posix_is_repeat(event))
+    {
+        lh_os_system_posix_repeat_keycode = keycode;
+        return;
+    }
+    if (pressed)
+    {
+        repeat = lh_type_cast(lh_bool_t, lh_os_system_posix_repeat_keycode == keycode);
+    }
+    lh_os_system_posix_repeat_keycode = 0U;
+    /* The keysym with the layout and Shift applied: what the key means now. */
+    (void)lh_os_system_posix_x->XLookupString(
+        lh_addr_of(event->key), text, lh_type_cast(int, sizeof(text)), lh_addr_of(keysym), lh_null);
+    lh_os_input_event_init_key(lh_addr_of(input), lh_os_system_posix_key_from_keysym(keysym),
+                               pressed, repeat, keycode, lh_os_tick_ms());
+    lh_os_input_event_set_mods(lh_addr_of(input), mods);
+    lh_os_window_on_native_input(self->user, lh_addr_of(input));
+    /* Text only from a press, and not from a chord: Ctrl+C is a command, and Windows
+       sends no WM_CHAR for Alt+key either. The window may have gone in the sink, so
+       it is looked up again. */
+    if (pressed &&
+        (event->key.state & (LH_OS_SYSTEM_POSIX_X_CONTROL_MASK | LH_OS_SYSTEM_POSIX_X_MOD1_MASK)) ==
+            0U &&
+        lh_null_ne(lh_os_system_posix_window_find_xid(event->any.window)))
+    {
+        const lh_u32_t code = lh_os_system_posix_text_from_keysym(keysym);
+
+        if (code != 0U)
+        {
+            lh_os_input_event_init_text(lh_addr_of(input), code, lh_os_tick_ms());
+            lh_os_input_event_set_mods(lh_addr_of(input), mods);
+            lh_os_window_on_native_input(self->user, lh_addr_of(input));
+        }
+    }
+}
+
 /** Hand one X event to the window it is for. */
 static lh_void
 lh_os_system_posix_dispatch(lh_os_system_posix_xevent_t *event)
@@ -1082,81 +1191,61 @@ lh_os_system_posix_dispatch(lh_os_system_posix_xevent_t *event)
     switch (event->type)
     {
     case LH_OS_SYSTEM_POSIX_X_BUTTON_PRESS:
-        switch (event->button.button)
+        if (lh_os_system_posix_window_send_wheel(self, event))
         {
-        case LH_OS_SYSTEM_POSIX_X_BUTTON_LEFT:
-            if (!lh_os_system_posix_window_begin_moveresize(
-                    self, lh_os_window_zone_at(self->user, event->button.x, event->button.y),
-                    event->button.x_root, event->button.y_root))
-            {
-                lh_os_window_on_native_press(self->user, event->button.x, event->button.y);
-            }
-            return;
-        case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_UP:
-        case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_DOWN:
-        {
-            /* One notch is one step, up is positive, and Shift turns the wheel
-               sideways -- the same three rules as the Windows backend. */
-            const int step = event->button.button == LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_UP ? 1 : -1;
-
-            if ((event->button.state & LH_OS_SYSTEM_POSIX_X_SHIFT_MASK) != 0U)
-            {
-                lh_os_window_on_native_wheel(self->user, event->button.x, event->button.y, step, 0);
-                return;
-            }
-            lh_os_window_on_native_wheel(self->user, event->button.x, event->button.y, 0, step);
             return;
         }
-        case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_LEFT:
-        case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_RIGHT:
-            lh_os_window_on_native_wheel(
-                self->user, event->button.x, event->button.y,
-                event->button.button == LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_LEFT ? 1 : -1, 0);
-            return;
-        default:
+        if (event->button.button == LH_OS_SYSTEM_POSIX_X_BUTTON_LEFT &&
+            lh_os_system_posix_window_begin_moveresize(
+                self, lh_os_window_zone_at(self->user, event->button.x, event->button.y),
+                event->button.x_root, event->button.y_root))
+        {
             return;
         }
+        lh_os_system_posix_window_send_button(self, event, lh_bool_true);
+        return;
     case LH_OS_SYSTEM_POSIX_X_BUTTON_RELEASE:
-        if (event->button.button == LH_OS_SYSTEM_POSIX_X_BUTTON_LEFT)
+        /* The wheel's release half says nothing a press did not. */
+        if (lh_os_system_posix_input_button_of(event->button.button) != lh_os_input_button_none)
         {
-            lh_os_window_on_native_release(self->user, event->button.x, event->button.y);
+            lh_os_system_posix_window_send_button(self, event, lh_bool_false);
         }
         return;
     case LH_OS_SYSTEM_POSIX_X_MOTION_NOTIFY:
-        lh_os_window_on_native_move(self->user, event->motion.x, event->motion.y);
+    {
+        lh_os_input_event_t input;
+
+        lh_os_input_event_init_pointer(
+            lh_addr_of(input), lh_os_input_kind_pointer_move, lh_os_input_device_kind_mouse, 0U,
+            lh_os_input_button_none, lh_os_input_coord_from_int(event->motion.x),
+            lh_os_input_coord_from_int(event->motion.y), lh_os_tick_ms());
+        lh_os_input_event_set_buttons(
+            lh_addr_of(input), lh_os_system_posix_window_buttons_held(self, event->motion.state));
+        lh_os_input_event_set_mods(lh_addr_of(input),
+                                   lh_os_system_posix_input_mods_of(event->motion.state));
+        lh_os_window_on_native_input(self->user, lh_addr_of(input));
         return;
+    }
     case LH_OS_SYSTEM_POSIX_X_KEY_PRESS:
     case LH_OS_SYSTEM_POSIX_X_KEY_RELEASE:
+        lh_os_system_posix_window_send_key(self, event);
+        return;
+    case LH_OS_SYSTEM_POSIX_X_FOCUS_IN:
+    case LH_OS_SYSTEM_POSIX_X_FOCUS_OUT:
     {
-        char text[8];
-        lh_os_system_posix_xid_t keysym = LH_OS_SYSTEM_POSIX_X_NONE;
-        const lh_bool_t pressed =
-            event->type == LH_OS_SYSTEM_POSIX_X_KEY_PRESS ? lh_bool_true : lh_bool_false;
+        lh_os_input_event_t input;
 
-        if (!pressed && lh_os_system_posix_is_repeat(event))
-        {
-            return;
-        }
-        /* The keysym with the layout and Shift applied: what the key means now. */
-        (void)lh_os_system_posix_x->XLookupString(lh_addr_of(event->key), text,
-                                                  lh_cast_static(int, sizeof(text)),
-                                                  lh_addr_of(keysym), lh_null);
-        lh_os_window_on_native_key(self->user, lh_os_system_posix_key_from_keysym(keysym), pressed);
-        /* Text only from a press, and not from a chord: Ctrl+C is a command, and
-           Windows sends no WM_CHAR for Alt+key either. The window may have gone in
-           the key callback, so it is looked up again. */
-        if (pressed &&
-            (event->key.state &
-             (LH_OS_SYSTEM_POSIX_X_CONTROL_MASK | LH_OS_SYSTEM_POSIX_X_MOD1_MASK)) == 0U &&
-            lh_null_ne(lh_os_system_posix_window_find_xid(event->any.window)))
-        {
-            const lh_u32_t code = lh_os_system_posix_text_from_keysym(keysym);
-
-            if (code != 0U)
-            {
-                lh_os_window_on_native_text(self->user, code);
-            }
-        }
+        /* A grab moves the focus for a moment without the window losing it, and a
+           pointer detail is about the window under the mouse, not this one. */
+        lh_return_if(event->focus.mode == LH_OS_SYSTEM_POSIX_X_NOTIFY_GRAB ||
+                     event->focus.mode == LH_OS_SYSTEM_POSIX_X_NOTIFY_UNGRAB ||
+                     event->focus.detail == LH_OS_SYSTEM_POSIX_X_NOTIFY_POINTER);
+        lh_os_input_event_init(lh_addr_of(input),
+                               event->type == LH_OS_SYSTEM_POSIX_X_FOCUS_IN
+                                   ? lh_os_input_kind_focus_in
+                                   : lh_os_input_kind_focus_out,
+                               lh_os_input_device_kind_keyboard, lh_os_tick_ms());
+        lh_os_window_on_native_input(self->user, lh_addr_of(input));
         return;
     }
     default:

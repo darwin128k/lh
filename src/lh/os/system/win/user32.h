@@ -255,6 +255,31 @@ typedef struct lh_os_system_win_createstructa lh_os_system_win_createstructa_t;
 #define LH_OS_SYSTEM_WIN_WM_MOUSEMOVE 0x0200U
 #define LH_OS_SYSTEM_WIN_WM_LBUTTONDOWN 0x0201U
 #define LH_OS_SYSTEM_WIN_WM_LBUTTONUP 0x0202U
+#define LH_OS_SYSTEM_WIN_WM_RBUTTONDOWN 0x0204U
+#define LH_OS_SYSTEM_WIN_WM_RBUTTONUP 0x0205U
+#define LH_OS_SYSTEM_WIN_WM_MBUTTONDOWN 0x0207U
+#define LH_OS_SYSTEM_WIN_WM_MBUTTONUP 0x0208U
+/** @} */
+/** @{ */
+/** `WM_XBUTTONDOWN` / `WM_XBUTTONUP`: the side buttons, which one in the high word of
+   `wParam` (::LH_OS_SYSTEM_WIN_XBUTTON1, ::LH_OS_SYSTEM_WIN_XBUTTON2). Present since
+   Windows 2000. */
+#define LH_OS_SYSTEM_WIN_WM_XBUTTONDOWN 0x020BU
+#define LH_OS_SYSTEM_WIN_WM_XBUTTONUP 0x020CU
+#define LH_OS_SYSTEM_WIN_XBUTTON1 0x0001U
+#define LH_OS_SYSTEM_WIN_XBUTTON2 0x0002U
+/** @} */
+/** `WM_MOUSEHWHEEL`: the sideways wheel, positive to the right. Present since Windows
+   Vista; XP never sends it. */
+#define LH_OS_SYSTEM_WIN_WM_MOUSEHWHEEL 0x020EU
+/** `WM_CAPTURECHANGED`: this window lost the mouse capture; `lParam` is the window
+   that took it. Present since Windows 95. */
+#define LH_OS_SYSTEM_WIN_WM_CAPTURECHANGED 0x0215U
+/** @{ */
+/** `WM_SETFOCUS` / `WM_KILLFOCUS`: the keyboard focus came or went. Present since
+   Windows 95. */
+#define LH_OS_SYSTEM_WIN_WM_SETFOCUS 0x0007U
+#define LH_OS_SYSTEM_WIN_WM_KILLFOCUS 0x0008U
 /** @} */
 /** `WM_MOUSEWHEEL`. Present since Windows 98 / Windows NT 4.0 SP3. */
 #define LH_OS_SYSTEM_WIN_WM_MOUSEWHEEL 0x020AU
@@ -268,6 +293,12 @@ typedef struct lh_os_system_win_createstructa lh_os_system_win_createstructa_t;
 #define LH_OS_SYSTEM_WIN_WM_KEYDOWN 0x0100U
 #define LH_OS_SYSTEM_WIN_WM_KEYUP 0x0101U
 #define LH_OS_SYSTEM_WIN_WM_CHAR 0x0102U
+/** @} */
+/** @{ */
+/** `WM_SYSKEYDOWN` / `WM_SYSKEYUP`: a key with Alt held, and F10. Present since Windows
+   95. `DefWindowProc` must still see them, or Alt+F4 and the system menu stop working. */
+#define LH_OS_SYSTEM_WIN_WM_SYSKEYDOWN 0x0104U
+#define LH_OS_SYSTEM_WIN_WM_SYSKEYUP 0x0105U
 /** @} */
 
 /** @{ */
@@ -289,11 +320,23 @@ typedef struct lh_os_system_win_createstructa lh_os_system_win_createstructa_t;
 #define LH_OS_SYSTEM_WIN_VK_RIGHT 0x27U
 #define LH_OS_SYSTEM_WIN_VK_DOWN 0x28U
 #define LH_OS_SYSTEM_WIN_VK_DELETE 0x2EU
+#define LH_OS_SYSTEM_WIN_VK_CAPITAL 0x14U
+#define LH_OS_SYSTEM_WIN_VK_LWIN 0x5BU
+#define LH_OS_SYSTEM_WIN_VK_RWIN 0x5CU
+#define LH_OS_SYSTEM_WIN_VK_NUMLOCK 0x90U
 /** @} */
 
-/** Mouse-message key state (low word of `wParam`): Shift held. Present since
-   Windows 95. */
+/** @{ */
+/** Mouse-message key state (low word of `wParam`): the buttons and keys held. Present
+   since Windows 95; the X buttons since Windows 2000. */
+#define LH_OS_SYSTEM_WIN_MK_LBUTTON 0x0001U
+#define LH_OS_SYSTEM_WIN_MK_RBUTTON 0x0002U
 #define LH_OS_SYSTEM_WIN_MK_SHIFT 0x0004U
+#define LH_OS_SYSTEM_WIN_MK_CONTROL 0x0008U
+#define LH_OS_SYSTEM_WIN_MK_MBUTTON 0x0010U
+#define LH_OS_SYSTEM_WIN_MK_XBUTTON1 0x0020U
+#define LH_OS_SYSTEM_WIN_MK_XBUTTON2 0x0040U
+/** @} */
 
 /** PeekMessage. Present since Windows 95. */
 #define LH_OS_SYSTEM_WIN_PM_REMOVE 0x0001U
@@ -424,6 +467,11 @@ GetWindowRect(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_rect_t *lpRect);
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 SetWindowRgn(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_handle_t hRgn,
              lh_os_system_win_bool_t bRedraw);
+
+/** The state of a key when the current message was posted: the high bit is down, the
+   low bit is toggled on (Caps Lock, Num Lock). Present since Windows 95. */
+LH_OS_SYSTEM_WIN_IMPORT lh_sshort_t LH_OS_SYSTEM_WIN_CALL
+GetKeyState(lh_int_t nVirtKey);
 
 /** The window that has the mouse capture, or null. Present since Windows 95. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_hwnd_t LH_OS_SYSTEM_WIN_CALL GetCapture(lh_void);

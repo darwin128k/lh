@@ -23,6 +23,7 @@
 #define LH_OS_WINDOW_H
 
 #include <lh/config.h>
+#include <lh/os/input/event.h>
 #include <lh/os/system/window/handle.h>
 #include <lh/os/window/fields.h>
 
@@ -290,64 +291,42 @@ struct lh_ui_frame_stats *
 lh_os_window_get_frame_stats(const lh_os_window_t *self);
 
 /**
- * @brief Notify @p on_press on a primary-button press in client coordinates.
+ * @brief Hand every input event of @p self to @p on_input, with @p context.
  *
- * @p context is passed through. ::lh_null clears the slot.
- */
-lh_void
-lh_os_window_set_on_press(lh_os_window_t *self, lh_os_window_on_press_cb on_press, lh_ptr context);
-
-/**
- * @brief Notify @p on_move on pointer move in client coordinates.
+ * The one input slot of a window: pointer down, up, move and cancel for every
+ * mouse button, the wheel in 1/120 notch, keys down (with repeats) and up, typed
+ * text, focus in and out — each one ::lh_os_input_event_t with its modifiers and
+ * a time on the ::lh_os_tick_ms clock. ::lh_null clears the slot.
  *
- * @p context is passed through. ::lh_null clears the slot.
- */
-lh_void
-lh_os_window_set_on_move(lh_os_window_t *self, lh_os_window_on_move_cb on_move, lh_ptr context);
-
-/**
- * @brief Notify @p on_release on a primary-button release in client coordinates.
+ * Gestures (click, double click, long press, drag) are not the window's: feed
+ * the events to an ::lh_os_input_recognizer_t, and either kind to
+ * ::lh_ui_view_input.
  *
- * @p context is passed through. ::lh_null clears the slot. Click synthesis
- * (press then release without a drag) is the caller's job — the Win32
- * backend does not also fire ::lh_os_window_set_on_click.
- */
-lh_void
-lh_os_window_set_on_release(lh_os_window_t *self, lh_os_window_on_release_cb on_release,
-                            lh_ptr context);
-
-/**
- * @brief Notify @p on_wheel on a mouse-wheel tick in client coordinates.
+ * Example usage:
+ * @code{.c}
+ * static lh_void
+ * on_input(const lh_os_input_event_ptr event, lh_ptr context)
+ * {
+ *     struct my_main *self = lh_ptr_rcast(struct my_main, context);
  *
- * @p context is passed through. ::lh_null clears the slot. The callback gets
- * notches per axis (::lh_os_window_on_wheel_fn).
- */
-lh_void
-lh_os_window_set_on_wheel(lh_os_window_t *self, lh_os_window_on_wheel_cb on_wheel, lh_ptr context);
-
-/**
- * @brief Notify @p on_key when a key goes down or up (::lh_os_window_on_key_fn).
- *        ::lh_null clears the slot.
- */
-lh_void
-lh_os_window_set_on_key(lh_os_window_t *self, lh_os_window_on_key_cb on_key, lh_ptr context);
-
-/**
- * @brief Notify @p on_text with each typed character (::lh_os_window_on_text_fn).
- *        ::lh_null clears the slot.
- */
-lh_void
-lh_os_window_set_on_text(lh_os_window_t *self, lh_os_window_on_text_cb on_text, lh_ptr context);
-
-/**
- * @brief Notify @p on_click on a primary-button click in client coordinates.
+ *     if (lh_ui_view_input(lh_addr_of(self->view), event))
+ *     {
+ *         lh_os_window_invalidate(lh_addr_of(self->window));
+ *     }
+ * }
  *
- * Kept for callers that still wire a click; the Win32 backend does not fire
- * it (use press/release and synthesize above). @p context is passed through.
- * ::lh_null clears the slot.
+ * lh_os_window_set_on_input(lh_addr_of(window), on_input, lh_addr_of(self));
+ * @endcode
  */
 lh_void
-lh_os_window_set_on_click(lh_os_window_t *self, lh_os_window_on_click_cb on_click, lh_ptr context);
+lh_os_window_set_on_input(lh_os_window_t *self, lh_os_input_sink_cb on_input, lh_ptr context);
+
+/**
+ * @brief The pointer buttons held over @p self as the last pointer event left
+ *        them (::lh_os_input_button_to_mask); `0` after a cancel or a focus loss.
+ */
+lh_u32_t
+lh_os_window_get_pressed_buttons(const lh_os_window_t *self);
 
 /**
  * @brief Notify @p on_tick every @p ms (::lh_os_window_on_tick_fn), or @p ms `0` to
@@ -469,57 +448,15 @@ lh_void
 lh_os_window_on_native_resize(lh_os_window_t *self, int width, int height, lh_bool_t maximized);
 
 /**
- * @brief Called from the native backend on a primary-button press.
+ * @brief Called from the native backend with one input event.
  *
- * @p x and @p y are client-area coordinates.
+ * Records the buttons a pointer event leaves held
+ * (::lh_os_window_get_pressed_buttons; a pointer cancel and a focus loss clear
+ * them), then hands @p event to ::lh_os_window_set_on_input's sink, if any.
+ * The window may be gone when this returns: the sink may close it.
  */
 lh_void
-lh_os_window_on_native_press(lh_os_window_t *self, int x, int y);
-
-/**
- * @brief Called from the native backend on pointer move.
- *
- * @p x and @p y are client-area coordinates.
- */
-lh_void
-lh_os_window_on_native_move(lh_os_window_t *self, int x, int y);
-
-/**
- * @brief Called from the native backend on a primary-button release.
- *
- * @p x and @p y are client-area coordinates.
- */
-lh_void
-lh_os_window_on_native_release(lh_os_window_t *self, int x, int y);
-
-/**
- * @brief Called from the native backend on a mouse-wheel tick.
- *
- * @p x and @p y are client-area coordinates. @p dx / @p dy are notches.
- */
-lh_void
-lh_os_window_on_native_wheel(lh_os_window_t *self, int x, int y, int dx, int dy);
-
-/**
- * @brief Called from the native backend when @p key goes down or up.
- */
-lh_void
-lh_os_window_on_native_key(lh_os_window_t *self, lh_os_key_t key, lh_bool_t pressed);
-
-/**
- * @brief Called from the native backend with one typed code point.
- */
-lh_void
-lh_os_window_on_native_text(lh_os_window_t *self, lh_u32_t code);
-
-/**
- * @brief Called from the native backend on a primary-button click.
- *
- * @p x and @p y are client-area coordinates. Kept for tests and callers that
- * fire a click without going through press/release.
- */
-lh_void
-lh_os_window_on_native_click(lh_os_window_t *self, int x, int y);
+lh_os_window_on_native_input(lh_os_window_t *self, const lh_os_input_event_ptr event);
 
 LH_COMPILER_EXTERN_C_END
 
