@@ -4,6 +4,7 @@
 
 #include <lh/net/socket/addr/ip4.h>
 #include <lh/test/out.h>
+#include <lh/net/socket/addr/ip4/initializer.h>
 
 namespace
 {
@@ -150,6 +151,16 @@ TEST(net_ip4_socket_addr_compare, ip_then_port)
     EXPECT_EQ(lh_net_ip4_socket_addr_is_less(&a, &c), lh_bool_true);
     EXPECT_EQ(lh_net_ip4_socket_addr_is_greater(&c, &a), lh_bool_true);
     EXPECT_EQ(lh_net_ip4_socket_addr_is_at_least(&b, &a), lh_bool_true);
+}
+
+TEST(net_ip4_socket_addr_initializer, fills_ip_then_port)
+{
+    const lh_net_ip4_socket_addr_t addr =
+        lh_net_ip4_socket_addr_initializer(lh_initializer(lh_initializer(127, 0, 0, 1)), 502);
+
+    EXPECT_EQ(addr.ip.octets[0], 127);
+    EXPECT_EQ(addr.ip.octets[3], 1);
+    EXPECT_EQ(addr.port, 502);
 }
 
 } // namespace

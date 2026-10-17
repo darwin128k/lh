@@ -3,6 +3,7 @@
 #include <lh/math/size.h>
 #include <lh/util/addr.h>
 #include <lh/test/out.h>
+#include <lh/math/point/initializer.h>
 
 namespace
 {
@@ -73,6 +74,14 @@ TEST(math_point, in_extent_is_half_open)
     EXPECT_TRUE(lh_math_point_in_extent(lh_addr_of(inside), lh_addr_of(min), lh_addr_of(max)));
     EXPECT_FALSE(lh_math_point_in_extent(lh_addr_of(max), lh_addr_of(min), lh_addr_of(max)));
     EXPECT_FALSE(lh_math_point_in_extent(lh_addr_of(on_bottom), lh_addr_of(min), lh_addr_of(max)));
+}
+
+TEST(math_point_initializer, fills_x_then_y)
+{
+    const lh_math_point_t value = lh_math_point_initializer(3, 4);
+
+    EXPECT_EQ(value.x, 3);
+    EXPECT_EQ(value.y, 4);
 }
 
 } // namespace

@@ -3,6 +3,7 @@
 #include <lh/math/mat4.h>
 #include <lh/util/addr.h>
 #include <lh/test/out.h>
+#include <lh/math/mat4/initializer.h>
 
 #include <cstddef>
 
@@ -118,6 +119,20 @@ TEST(mat4, singular_matrix_has_no_inverse)
     lh_math_mat4_t out = lh_test::out(lh_math_mat4_identity);
     EXPECT_FALSE(lh_math_mat4_inverse(flat, &out));
     EXPECT_TRUE(lh_math_mat4_near(out, lh_test::out(lh_math_mat4_identity), 0.0f)); // untouched
+}
+
+TEST(mat4_initializer, takes_one_column_per_argument)
+{
+    const lh_math_mat4_t m = lh_math_mat4_initializer(lh_initializer(1.0f, 2.0f, 3.0f, 4.0f),
+                                                      lh_initializer(5.0f, 6.0f, 7.0f, 8.0f),
+                                                      lh_initializer(9.0f, 10.0f, 11.0f, 12.0f),
+                                                      lh_initializer(13.0f, 14.0f, 15.0f, 16.0f));
+    const float *f = &m.columns[0].x;
+
+    for (unsigned i = 0; i < 16; ++i)
+    {
+        EXPECT_FLOAT_EQ(f[i], static_cast<float>(i + 1));
+    }
 }
 
 } // namespace

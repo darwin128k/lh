@@ -3,6 +3,7 @@
 #include <lh/math/size.h>
 #include <lh/util/addr.h>
 #include <lh/test/out.h>
+#include <lh/math/size/initializer.h>
 
 namespace
 {
@@ -61,6 +62,14 @@ TEST(math_size, compare_suite_is_lexicographic)
     EXPECT_EQ(lh_math_size_is_less(lh_addr_of(a), lh_addr_of(c)), lh_bool_true);
     EXPECT_EQ(lh_math_size_is_greater(lh_addr_of(c), lh_addr_of(a)), lh_bool_true);
     EXPECT_EQ(lh_math_size_is_at_least(lh_addr_of(b), lh_addr_of(a)), lh_bool_true);
+}
+
+TEST(math_size_initializer, fills_width_then_height)
+{
+    const lh_math_size_t value = lh_math_size_initializer(640, 480);
+
+    EXPECT_EQ(value.width, 640);
+    EXPECT_EQ(value.height, 480);
 }
 
 } // namespace

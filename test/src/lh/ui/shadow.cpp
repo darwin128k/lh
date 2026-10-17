@@ -2,6 +2,7 @@
 
 #include <lh/ui/shadow/ramp.h>
 #include <lh/test/out.h>
+#include <lh/ui/shadow/initializer.h>
 
 namespace
 {
@@ -236,6 +237,18 @@ TEST(ui_shadow, a_span_reads_the_same_alphas_as_each_pixel)
             }
         }
     }
+}
+
+TEST(ui_shadow_initializer, fills_color_spread_and_offset)
+{
+    const lh_ui_shadow_t shadow =
+        lh_ui_shadow_initializer(lh_initializer(0x10, 0x20, 0x30, 0x40), 8, 1, 2);
+
+    EXPECT_EQ(shadow.color.r, 0x10);
+    EXPECT_EQ(shadow.color.a, 0x40);
+    EXPECT_EQ(shadow.spread, lh_ui_scalar(8));
+    EXPECT_EQ(shadow.offset_x, lh_ui_scalar(1));
+    EXPECT_EQ(shadow.offset_y, lh_ui_scalar(2));
 }
 
 } // namespace

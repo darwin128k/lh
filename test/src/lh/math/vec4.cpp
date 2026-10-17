@@ -3,6 +3,7 @@
 #include <lh/math/vec4.h>
 #include <lh/util/addr.h>
 #include <lh/test/out.h>
+#include <lh/math/vec4/initializer.h>
 
 #include <cstddef>
 
@@ -151,6 +152,16 @@ TEST(vec4, view_of_reads_the_components_in_order)
     EXPECT_EQ(lh_math_view_get_at(lh_addr_of(view), 1U), lh_math_vec4_get_y(lh_addr_of(v)));
     EXPECT_EQ(lh_math_view_get_at(lh_addr_of(view), 2U), lh_math_vec4_get_z(lh_addr_of(v)));
     EXPECT_EQ(lh_math_view_get_at(lh_addr_of(view), 3U), lh_math_vec4_get_w(lh_addr_of(v)));
+}
+
+TEST(math_vec4_initializer, fills_components_in_order)
+{
+    const lh_math_vec4_t value = lh_math_vec4_initializer(1.0f, 2.0f, 3.0f, 4.0f);
+
+    EXPECT_FLOAT_EQ(value.x, 1.0f);
+    EXPECT_FLOAT_EQ(value.y, 2.0f);
+    EXPECT_FLOAT_EQ(value.z, 3.0f);
+    EXPECT_FLOAT_EQ(value.w, 4.0f);
 }
 
 } // namespace

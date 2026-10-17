@@ -4,6 +4,7 @@
 
 #include <lh/ui/mask.h>
 #include <lh/test/out.h>
+#include <lh/ui/mask/initializer.h>
 
 namespace
 {
@@ -199,6 +200,18 @@ TEST(ui_mask, coverage_8_is_eight_per_pixel_coverages)
             }
         }
     }
+}
+
+TEST(ui_mask_initializer, fills_members_in_order)
+{
+    static const lh_byte_t bits[2] = {0xF0, 0x0F};
+    const lh_ui_mask_t mask = lh_ui_mask_initializer(bits, 8, 2, 1, 1);
+
+    EXPECT_EQ(mask.bits, bits);
+    EXPECT_EQ(mask.width, 8);
+    EXPECT_EQ(mask.height, 2);
+    EXPECT_EQ(mask.row_bytes, 1);
+    EXPECT_EQ(mask.bpp, 1);
 }
 
 } // namespace

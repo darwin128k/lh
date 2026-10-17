@@ -3,6 +3,7 @@
 #include <lh/expect/death.h>
 #include <lh/math/vec4.h>
 #include <lh/util/addr.h>
+#include <lh/math/view/initializer.h>
 
 #include <cmath>
 #include <cstdint>
@@ -178,5 +179,17 @@ TEST(math_view_death, dot_of_different_sizes)
 }
 
 #endif
+
+TEST(math_view_initializer, fills_slice_stride_and_count)
+{
+    static const lh_float_t data[4] = {1.0f, 2.0f, 3.0f, 4.0f};
+    const lh_math_view_t view =
+        lh_math_view_initializer(lh_math_slice_initializer(&data[0], &data[3]), 2, 2);
+
+    EXPECT_EQ(view.slice.first, &data[0]);
+    EXPECT_EQ(view.slice.second, &data[3]);
+    EXPECT_EQ(view.stride, 2u);
+    EXPECT_EQ(view.count, 2u);
+}
 
 } // namespace
