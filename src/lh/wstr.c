@@ -98,7 +98,7 @@ lh_wstr_append_view(lh_wstr_t *self, lh_wstr_view_t view)
         return;
     }
     lh_wstr_append(self, lh_wstr_view_get_data(lh_addr_of(view)),
-                  lh_wstr_view_get_size(lh_addr_of(view)));
+                   lh_wstr_view_get_size(lh_addr_of(view)));
 }
 
 lh_void
@@ -172,8 +172,8 @@ lh_wstr_append_str(lh_wstr_t *self, const lh_wstr_t *other)
         {
             return;
         }
-        lh_array_reserve(self, lh_array_get_grown_capacity(
-                                    lh_array_get_capacity(self), lh_math_add(n + n, 1U)));
+        lh_array_reserve(
+            self, lh_array_get_grown_capacity(lh_array_get_capacity(self), lh_math_add(n + n, 1U)));
         lh_wstr_append(self, lh_wstr_get_data(self), n);
         return;
     }

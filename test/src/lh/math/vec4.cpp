@@ -100,7 +100,7 @@ TEST(vec4, lerp_and_near)
     EXPECT_FALSE(lh_math_vec4_near(m, ([&]() { lh_math_vec4_t _v; lh_math_vec4_init(lh_addr_of(_v), 2.0f, 4.0f, -2.0f, 1.1f); return _v; })(), 0.01f));
 }
 
-/* ── conversions ────────────────────────────────────────────────────────── */
+/* -- conversions ----------------------------------------------------------- */
 
 TEST(vec4, vec3_to_vec4_sets_w)
 {

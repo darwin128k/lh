@@ -71,7 +71,7 @@
  */
 #ifndef LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT
 #    define LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT 2 /* LH_RUNTIME_CHECK_REPORT_FULL */
-#endif /* LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT */
+#endif                                               /* LH_LIBRARY_OPTION_RUNTIME_CHECK_REPORT */
 
 /**
  * @def LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_USE_STDLIB
@@ -272,7 +272,8 @@
 
 /**
  * @def LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD
- * @brief GCC/Clang x86 no-SIMD copy: below this size avoid REP MOVSB. Fallback: 512 (CMake default).
+ * @brief GCC/Clang x86 no-SIMD copy: below this size avoid REP MOVSB. Fallback: 512 (CMake
+ * default).
  */
 #ifndef LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD
 #    define LH_LIBRARY_OPTION_MEMORY_STD_GCC_REP_MOVSB_THRESHOLD 512

@@ -18,6 +18,6 @@ typedef enum lh_ui_scrollbar_mode
     lh_ui_scrollbar_mode_hidden = 0, /**< Never shown. */
     lh_ui_scrollbar_mode_auto = 1,   /**< Shown only when the container overflows on the axis. */
     lh_ui_scrollbar_mode_always = 2  /**< Always shown; with no overflow the thumb is the track. */
-} lh_ui_scrollbar_mode_t; /**< The scrollbar's answer to ::lh_ui_entity_event_visible. */
+} lh_ui_scrollbar_mode_t;            /**< The scrollbar's answer to ::lh_ui_entity_event_visible. */
 
 #endif /* LH_UI_SCROLLBAR_MODE_H */

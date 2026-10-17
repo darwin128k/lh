@@ -81,7 +81,8 @@ lh_ui_gradient_sampler_stop_frac(const lh_ui_gradient_t *gradient, lh_s32_t inde
  *        stop count when none is).
  */
 lh_s32_t
-lh_ui_gradient_sampler_segment_at(const lh_ui_gradient_t *gradient, lh_s32_t segment, lh_s32_t frac);
+lh_ui_gradient_sampler_segment_at(const lh_ui_gradient_t *gradient, lh_s32_t segment,
+                                  lh_s32_t frac);
 
 /**
  * @brief @p gradient laid over @p rect. @p gradient is read as rows are asked for, so
@@ -119,7 +120,8 @@ lh_ui_gradient_sampler_is_flat(const lh_ui_gradient_sampler_t *self);
  * @brief @p count pixels of the first colour of @p self into @p out.
  */
 lh_void
-lh_ui_gradient_sampler_flat_run(const lh_ui_gradient_sampler_t *self, lh_s32_t count, lh_ui_color_t *out);
+lh_ui_gradient_sampler_flat_run(const lh_ui_gradient_sampler_t *self, lh_s32_t count,
+                                lh_ui_color_t *out);
 
 /**
  * @brief @p count pixels of a linear gradient into @p out, from the pixel
@@ -128,8 +130,8 @@ lh_ui_gradient_sampler_flat_run(const lh_ui_gradient_sampler_t *self, lh_s32_t c
  *        `-4 * cosine * 255` down a column).
  */
 lh_void
-lh_ui_gradient_sampler_linear_run(const lh_ui_gradient_sampler_t *self, lh_s64_t dx, lh_s64_t dy, lh_s64_t move,
-                                  lh_s32_t count, lh_ui_color_t *out);
+lh_ui_gradient_sampler_linear_run(const lh_ui_gradient_sampler_t *self, lh_s64_t dx, lh_s64_t dy,
+                                  lh_s64_t move, lh_s32_t count, lh_ui_color_t *out);
 
 /**
  * @brief Pixels @p x0 .. @p x1 - 1 of a radial gradient's row whose doubled
@@ -137,8 +139,8 @@ lh_ui_gradient_sampler_linear_run(const lh_ui_gradient_sampler_t *self, lh_s64_t
  *        middle on walked, the other half mirrored.
  */
 lh_void
-lh_ui_gradient_sampler_radial_row(const lh_ui_gradient_sampler_t *self, lh_s32_t x0, lh_s32_t x1, lh_s64_t dy,
-                                  lh_ui_color_t *out);
+lh_ui_gradient_sampler_radial_row(const lh_ui_gradient_sampler_t *self, lh_s32_t x0, lh_s32_t x1,
+                                  lh_s64_t dy, lh_ui_color_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

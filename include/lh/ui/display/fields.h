@@ -26,17 +26,17 @@
  * @param sink_type    ::lh_ui_present_sink_t[::LH_UI_PRESENT_SINKS_MAX].
  * @param u32_type     ::lh_u32_t (sink_count, sink_enable).
  */
-#define lh_ui_display_fields(size_type, scalar_type, format_type, pixmap_type, sw_type, canvas_type, \
-                             sink_type, u32_type)                                                   \
-    size_type panel;                                                                                \
-    scalar_type strip_height;                                                                       \
-    scalar_type strip_y;                                                                            \
-    format_type format;                                                                             \
-    pixmap_type pixmap;                                                                             \
-    sw_type sw;                                                                                     \
-    canvas_type canvas;                                                                             \
-    sink_type sinks[LH_UI_PRESENT_SINKS_MAX];                                                       \
-    u32_type sink_count;                                                                            \
+#define lh_ui_display_fields(size_type, scalar_type, format_type, pixmap_type, sw_type,            \
+                             canvas_type, sink_type, u32_type)                                     \
+    size_type panel;                                                                               \
+    scalar_type strip_height;                                                                      \
+    scalar_type strip_y;                                                                           \
+    format_type format;                                                                            \
+    pixmap_type pixmap;                                                                            \
+    sw_type sw;                                                                                    \
+    canvas_type canvas;                                                                            \
+    sink_type sinks[LH_UI_PRESENT_SINKS_MAX];                                                      \
+    u32_type sink_count;                                                                           \
     u32_type sink_enable
 
 #endif /* LH_UI_DISPLAY_FIELDS_H */

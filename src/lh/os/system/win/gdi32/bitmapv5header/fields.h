@@ -8,7 +8,8 @@
 #define LH_SRC_OS_SYSTEM_WIN_GDI32_BITMAPV5HEADER_FIELDS_H
 
 /**
- * @def lh_os_system_win_bitmapv5header_fields(header_type, dword_type, long_type, word_type, byte_type)
+ * @def lh_os_system_win_bitmapv5header_fields(header_type, dword_type, long_type, word_type,
+ * byte_type)
  * @brief `BITMAPV5HEADER`: the 124-byte description of a device-independent bitmap
  *        that says where each channel *is*.
  *
@@ -26,20 +27,21 @@
  * that wrong makes the header 232 bytes, `CreateDIBSection` refuses the `biSize` it is
  * handed, and every frame after it draws into nothing.
  */
-#define lh_os_system_win_bitmapv5header_fields(header_type, dword_type, long_type, word_type, byte_type)  \
-    header_type bV5Header;                                                                            \
-    dword_type bV5RedMask;                                                                            \
-    dword_type bV5GreenMask;                                                                          \
-    dword_type bV5BlueMask;                                                                           \
-    dword_type bV5AlphaMask;                                                                          \
-    dword_type bV5CSType;                                                                             \
-    byte_type bV5Endpoints[36];                                                                       \
-    dword_type bV5GammaRed;                                                                           \
-    dword_type bV5GammaGreen;                                                                         \
-    dword_type bV5GammaBlue;                                                                          \
-    dword_type bV5Intent;                                                                             \
-    dword_type bV5ProfileData;                                                                        \
-    dword_type bV5ProfileSize;                                                                        \
+#define lh_os_system_win_bitmapv5header_fields(header_type, dword_type, long_type, word_type,      \
+                                               byte_type)                                          \
+    header_type bV5Header;                                                                         \
+    dword_type bV5RedMask;                                                                         \
+    dword_type bV5GreenMask;                                                                       \
+    dword_type bV5BlueMask;                                                                        \
+    dword_type bV5AlphaMask;                                                                       \
+    dword_type bV5CSType;                                                                          \
+    byte_type bV5Endpoints[36];                                                                    \
+    dword_type bV5GammaRed;                                                                        \
+    dword_type bV5GammaGreen;                                                                      \
+    dword_type bV5GammaBlue;                                                                       \
+    dword_type bV5Intent;                                                                          \
+    dword_type bV5ProfileData;                                                                     \
+    dword_type bV5ProfileSize;                                                                     \
     dword_type bV5Reserved
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_GDI32_BITMAPV5HEADER_FIELDS_H */

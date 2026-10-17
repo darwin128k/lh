@@ -11,7 +11,7 @@
 #endif
 #include <lh/math.h>
 
-/* ── init ────────────────────────────────────────────────────────────────── */
+/* -- init ------------------------------------------------------------------ */
 
 lh_math_scalar_t
 lh_math_point_get_x(const lh_math_point_t *self)
@@ -27,7 +27,7 @@ lh_math_point_get_y(const lh_math_point_t *self)
     return self->y;
 }
 
-/* ── Accessors ───────────────────────────────────────────────────────────── */
+/* -- Accessors ------------------------------------------------------------- */
 
 lh_void
 lh_math_point_set_x(lh_math_point_t *self, lh_math_scalar_t x)
@@ -56,9 +56,9 @@ lh_math_point_init_empty(lh_math_point_t *self)
     lh_math_point_init(self, 0, 0);
 }
 
-/* ── Queries ────────────────────────────────────────────────────────────── */
+/* -- Queries --------------------------------------------------------------- */
 
-/* ── Conversions ─────────────────────────────────────────────────────────── */
+/* -- Conversions ----------------------------------------------------------- */
 
 #if LH_LIBRARY_OPTION_MATH_FPU
 lh_void
@@ -81,13 +81,15 @@ lh_math_vec2_to_point(lh_math_vec2_t v, lh_math_point_t *out)
     lh_math_point_t p;
     lh_math_point_init(
         lh_addr_of(p),
-        lh_cast_static(lh_math_scalar_t, lh_math_float_ceil_to_int(lh_math_vec2_get_x(lh_addr_of(v)) - 0.5f)),
-        lh_cast_static(lh_math_scalar_t, lh_math_float_ceil_to_int(lh_math_vec2_get_y(lh_addr_of(v)) - 0.5f)));
+        lh_cast_static(lh_math_scalar_t,
+                       lh_math_float_ceil_to_int(lh_math_vec2_get_x(lh_addr_of(v)) - 0.5f)),
+        lh_cast_static(lh_math_scalar_t,
+                       lh_math_float_ceil_to_int(lh_math_vec2_get_y(lh_addr_of(v)) - 0.5f)));
     lh_ptr_deref(out) = p;
 }
 #endif
 
-/* ── Queries ────────────────────────────────────────────────────────────── */
+/* -- Queries --------------------------------------------------------------- */
 
 lh_bool_t
 lh_math_point_eq(const lh_math_point_t *a, const lh_math_point_t *b)
@@ -95,8 +97,8 @@ lh_math_point_eq(const lh_math_point_t *a, const lh_math_point_t *b)
     lh_return_if(a == b, lh_bool_true);
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
-    return lh_math_eq(lh_math_point_get_x(a), lh_math_point_get_x(b))
-        && lh_math_eq(lh_math_point_get_y(a), lh_math_point_get_y(b));
+    return lh_math_eq(lh_math_point_get_x(a), lh_math_point_get_x(b)) &&
+           lh_math_eq(lh_math_point_get_y(a), lh_math_point_get_y(b));
 }
 
 lh_bool_t
@@ -188,10 +190,11 @@ lh_math_point_in_extent(const lh_math_point_t *self, const lh_math_point_t *min,
     return lh_bool_true;
 }
 
-/* ── Set ops ────────────────────────────────────────────────────────────── */
+/* -- Set ops --------------------------------------------------------------- */
 
 lh_void
-lh_math_point_offset(const lh_math_point_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy, lh_math_point_t *out)
+lh_math_point_offset(const lh_math_point_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy,
+                     lh_math_point_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);
@@ -203,7 +206,8 @@ lh_math_point_offset(const lh_math_point_t *self, lh_math_scalar_t dx, lh_math_s
 
 /** @copydoc lh_math_point_offset_size(const lh_math_point_t *, const struct lh_math_size *) */
 lh_void
-lh_math_point_offset_size(const lh_math_point_t *self, const lh_math_size_t *size, lh_math_point_t *out)
+lh_math_point_offset_size(const lh_math_point_t *self, const lh_math_size_t *size,
+                          lh_math_point_t *out)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(size);

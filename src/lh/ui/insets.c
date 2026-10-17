@@ -7,8 +7,8 @@
 #include <lh/ui/insets.h>
 
 lh_void
-lh_ui_insets_init(lh_ui_insets_t *self, lh_ui_scalar_t left, lh_ui_scalar_t top, lh_ui_scalar_t right,
-                  lh_ui_scalar_t bottom)
+lh_ui_insets_init(lh_ui_insets_t *self, lh_ui_scalar_t left, lh_ui_scalar_t top,
+                  lh_ui_scalar_t right, lh_ui_scalar_t bottom)
 {
     lh_assert_runtime_ref(self);
     self->left = left;
@@ -60,15 +60,16 @@ lh_ui_insets_get_start(const lh_ui_insets_t *self, lh_ui_axis_t axis)
 lh_ui_scalar_t
 lh_ui_insets_get_end(const lh_ui_insets_t *self, lh_ui_axis_t axis)
 {
-    return axis == lh_ui_axis_vertical ? lh_ui_insets_get_bottom(self) : lh_ui_insets_get_right(self);
+    return axis == lh_ui_axis_vertical ? lh_ui_insets_get_bottom(self)
+                                       : lh_ui_insets_get_right(self);
 }
 
 lh_bool_t
 lh_ui_insets_is_zero(const lh_ui_insets_t *self)
 {
     lh_assert_runtime_ref(self);
-    return self->left == lh_ui_scalar(0) && self->top == lh_ui_scalar(0) && self->right == lh_ui_scalar(0) &&
-                   self->bottom == lh_ui_scalar(0)
+    return self->left == lh_ui_scalar(0) && self->top == lh_ui_scalar(0) &&
+                   self->right == lh_ui_scalar(0) && self->bottom == lh_ui_scalar(0)
                ? lh_bool_true
                : lh_bool_false;
 }
@@ -82,7 +83,8 @@ lh_ui_insets_shrink(const lh_ui_insets_t *self, const lh_ui_rect_t *rect, lh_ui_
     lh_ui_rect_t inner;
 
     lh_assert_runtime_ref(self);
-    lh_ui_rect_init(lh_addr_of(inner), lh_ui_point_get_x(origin) + self->left, lh_ui_point_get_y(origin) + self->top,
+    lh_ui_rect_init(lh_addr_of(inner), lh_ui_point_get_x(origin) + self->left,
+                    lh_ui_point_get_y(origin) + self->top,
                     lh_ui_scalar_slack(lh_ui_size_get_width(size) - self->left, self->right),
                     lh_ui_scalar_slack(lh_ui_size_get_height(size) - self->top, self->bottom));
     lh_ptr_deref(out) = inner;

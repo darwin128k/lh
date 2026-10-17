@@ -20,7 +20,7 @@ lh_ui_shadow_ramp_init(lh_ui_shadow_ramp_t *self, const lh_ui_shadow_shape_t *sh
            in, where the peak gives way -- and between, where the fade
            `(start - d * step) >> 16` first drops to `level`, which is
            `d * step > start - ((level + 1) << 16)`. */
-        const lh_s64_t limit = shape->start - (lh_cast_static(lh_s64_t, (level + 1))<< 16);
+        const lh_s64_t limit = shape->start - (lh_cast_static(lh_s64_t, (level + 1)) << 16);
         lh_s64_t least;
         lh_s64_t reach;
 
@@ -35,7 +35,8 @@ lh_ui_shadow_ramp_init(lh_ui_shadow_ramp_t *self, const lh_ui_shadow_shape_t *sh
         }
         else
         {
-            least = limit < 0 ? lh_math_neg(lh_cast_static(lh_s64_t, shape->spread)): lh_cast_static(lh_s64_t, shape->spread);
+            least = limit < 0 ? lh_math_neg(lh_cast_static(lh_s64_t, shape->spread))
+                              : lh_cast_static(lh_s64_t, shape->spread);
         }
         if (least < 1 - lh_cast_static(lh_s64_t, shape->spread))
         {
@@ -49,7 +50,7 @@ lh_ui_shadow_ramp_init(lh_ui_shadow_ramp_t *self, const lh_ui_shadow_shape_t *sh
            `root - r`, and `root` is the whole square root of the squared distance,
            so `root >= least + r` is the squared distance reaching `(least + r)^2`. */
         reach = least + shape->r;
-        self->square[level] = reach > 0 ? lh_cast_static(lh_u64_t, (reach * reach)): 0U;
+        self->square[level] = reach > 0 ? lh_cast_static(lh_u64_t, (reach * reach)) : 0U;
     }
 }
 

@@ -85,9 +85,9 @@ lh_os_window_open(lh_os_app_t *app, lh_os_window_t *self, const lh_char_t *title
     lh_assert_runtime_if(lh_null_ne(self->handle), lh_runtime_error_code_invalid_argument);
     lh_assert_runtime_if(lh_list_node_is_linked(lh_addr_of(self->link)),
                          lh_runtime_error_code_invalid_argument);
-    self->handle = lh_os_system_window_open(title, width, height, self,
-                                            LH_OS_SYSTEM_WINDOW_HANDLE_INVALID, self->frame, self->corner,
-                                            self->placement);
+    self->handle =
+        lh_os_system_window_open(title, width, height, self, LH_OS_SYSTEM_WINDOW_HANDLE_INVALID,
+                                 self->frame, self->corner, self->placement);
     if (!lh_os_system_window_is_valid(self->handle))
     {
         return lh_bool_false;
@@ -304,7 +304,8 @@ lh_os_window_get_paint_dc(const lh_os_window_t *self)
 }
 
 lh_void
-lh_os_window_get_paint_rect(const lh_os_window_t *self, int *left, int *top, int *right, int *bottom)
+lh_os_window_get_paint_rect(const lh_os_window_t *self, int *left, int *top, int *right,
+                            int *bottom)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(left);
@@ -392,7 +393,8 @@ lh_os_window_zone_at(lh_os_window_t *self, int x, int y)
 }
 
 lh_void
-lh_os_window_set_on_resize(lh_os_window_t *self, lh_os_window_on_resize_cb on_resize, lh_ptr context)
+lh_os_window_set_on_resize(lh_os_window_t *self, lh_os_window_on_resize_cb on_resize,
+                           lh_ptr context)
 {
     lh_assert_runtime_ref(self);
     self->on_resize = on_resize;
@@ -495,8 +497,8 @@ lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc, int left, in
            on: what the window system collected from every invalidation, against the
            one rectangle it hands the paint. */
         lh_ui_rect_init(lh_addr_of(frame.drawn), left, top, right - left, bottom - top);
-        frame.asked_known =
-            lh_os_system_window_get_paint_region(paint_dc, lh_addr_of(frame.asked_px), lh_addr_of(frame.rects));
+        frame.asked_known = lh_os_system_window_get_paint_region(
+            paint_dc, lh_addr_of(frame.asked_px), lh_addr_of(frame.rects));
         started_us = lh_os_tick_us();
     }
 #endif

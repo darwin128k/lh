@@ -89,7 +89,8 @@ lh_math_vec2_neg(lh_math_vec2_t v, lh_math_vec2_t *out)
 
 /* lh_math_vec2_view_of reads the vector as lh_float_t[2]: the components must
    follow each other with no padding, from the first byte. */
-lh_assert_static(sizeof(lh_math_vec2_t) == 2U * sizeof(lh_float_t), "lh_math_vec2_t must be laid out as lh_float_t[2]");
+lh_assert_static(sizeof(lh_math_vec2_t) == 2U * sizeof(lh_float_t),
+                 "lh_math_vec2_t must be laid out as lh_float_t[2]");
 lh_assert_static(lh_offset_of(lh_math_vec2_t, x) == 0U, "lh_math_vec2_t must start with x");
 
 lh_void
@@ -167,14 +168,15 @@ lh_math_vec2_near(lh_math_vec2_t a, lh_math_vec2_t b, lh_float_t eps)
     lh_math_vec2_sub(a, b, lh_addr_of(d));
     const lh_float_t dx = lh_math_vec2_get_x(lh_addr_of(d));
     const lh_float_t dy = lh_math_vec2_get_y(lh_addr_of(d));
-    return lh_cast_static(lh_bool_t, (dx <= eps && lh_math_neg(dx) <= eps) && (dy <= eps && lh_math_neg(dy) <= eps));
+    return lh_cast_static(lh_bool_t, (dx <= eps && lh_math_neg(dx) <= eps) &&
+                                         (dy <= eps && lh_math_neg(dy) <= eps));
 }
 
 lh_bool_t
 lh_math_vec2_equals(lh_math_vec2_t self, lh_math_vec2_t other)
 {
     return lh_cast_static(lh_bool_t, lh_math_eq(lh_math_vec2_get_x(lh_addr_of(self)),
-                                               lh_math_vec2_get_x(lh_addr_of(other))) &&
+                                                lh_math_vec2_get_x(lh_addr_of(other))) &&
                                          lh_math_eq(lh_math_vec2_get_y(lh_addr_of(self)),
                                                     lh_math_vec2_get_y(lh_addr_of(other))));
 }

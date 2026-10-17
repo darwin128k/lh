@@ -16,7 +16,7 @@ struct lh_os_system_fs_dir_state
 {
     lh_os_system_win_handle_t find;    /**< the listing, from FindFirstFileW */
     lh_os_system_win_find_data_t data; /**< the entry FindFirstFileW / FindNextFileW last wrote */
-    lh_str_t name;   /**< data.cFileName as UTF-8: what read hands out. */
+    lh_str_t name;                     /**< data.cFileName as UTF-8: what read hands out. */
     lh_bool_t ready; /**< data holds an entry not yet reported (FindFirstFile's). */
 };
 
@@ -40,7 +40,8 @@ lh_os_system_fs_dir_pattern(lh_str_cptr path, lh_os_str_t *out)
     lh_str_view_init(lh_addr_of(view), path);
 
     lh_str_init_by_view(lh_addr_of(pattern), view);
-    if (!lh_str_view_is_empty(lh_addr_of(view)) && !lh_char_is_slash(lh_str_view_get_last_char(lh_addr_of(view))) &&
+    if (!lh_str_view_is_empty(lh_addr_of(view)) &&
+        !lh_char_is_slash(lh_str_view_get_last_char(lh_addr_of(view))) &&
         !lh_char_is_backslash(lh_str_view_get_last_char(lh_addr_of(view))))
     {
         lh_str_push_back(lh_addr_of(pattern), lh_char_map_backslash);
@@ -59,7 +60,8 @@ lh_os_system_fs_dir_open(lh_str_cptr path)
     lh_assert_runtime_ref(path);
     struct lh_os_system_fs_dir_state *const state =
         lh_os_system_fs_dir_pattern(path, lh_addr_of(pattern))
-            ? lh_ptr_cast(struct lh_os_system_fs_dir_state, lh_os_alloc(sizeof(lh_ptr_deref(state))))
+            ? lh_ptr_cast(struct lh_os_system_fs_dir_state,
+                          lh_os_alloc(sizeof(lh_ptr_deref(state))))
             : lh_null;
     if (lh_null_eq(state))
     {

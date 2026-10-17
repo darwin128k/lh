@@ -19,7 +19,7 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Reading ─────────────────────────────────────────────────────────────── */
+/* -- Reading --------------------------------------------------------------- */
 
 /**
  * @brief The code at @p cursor, and @p cursor moved past it.
@@ -103,7 +103,7 @@ lh_ui_text_get_next_line(const lh_char_t *line);
 lh_u32_t
 lh_ui_text_count_lines(const lh_char_t *text);
 
-/* ── Measuring ───────────────────────────────────────────────────────────── */
+/* -- Measuring ------------------------------------------------------------- */
 
 /**
  * @brief Width of the line starting at @p line: the sum of its advances.
@@ -148,21 +148,24 @@ lh_ui_text_get_ink_top(const lh_ui_font_t *font, const lh_char_t *text);
  * line) is a rect of no height.
  */
 lh_void
-lh_ui_text_get_line_ink_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_point_t origin, lh_ui_rect_t *out);
+lh_ui_text_get_line_ink_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_point_t origin,
+                             lh_ui_rect_t *out);
 
 /**
  * @brief The rect the ink of @p text covers when its first line starts at
  *        @p origin.
  */
 lh_void
-lh_ui_text_get_ink_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin, lh_ui_rect_t *out);
+lh_ui_text_get_ink_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin,
+                        lh_ui_rect_t *out);
 
 /**
  * @brief The rect @p text covers when it starts at @p origin: its ink, which is
  *        what ::lh_ui_text_draw draws into.
  */
 lh_void
-lh_ui_text_get_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin, lh_ui_rect_t *out);
+lh_ui_text_get_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin,
+                    lh_ui_rect_t *out);
 
 /**
  * @brief The line box the line starting at @p line covers at @p origin: as wide
@@ -170,9 +173,10 @@ lh_ui_text_get_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point
  *        what the next line is placed a line height below.
  */
 lh_void
-lh_ui_text_get_line_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_point_t origin, lh_ui_rect_t *out);
+lh_ui_text_get_line_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_point_t origin,
+                         lh_ui_rect_t *out);
 
-/* ── Drawing ─────────────────────────────────────────────────────────────── */
+/* -- Drawing --------------------------------------------------------------- */
 
 /**
  * @brief Draw the glyph at @p index (::lh_ui_font_find_index) with its cell at
@@ -181,16 +185,17 @@ lh_ui_text_get_line_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_
  * @return The advance of the glyph.
  */
 lh_ui_scalar_t
-lh_ui_text_draw_glyph_at(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, lh_u32_t index, lh_ui_point_t origin,
-                         const lh_ui_color_t *color);
+lh_ui_text_draw_glyph_at(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, lh_u32_t index,
+                         lh_ui_point_t origin, const lh_ui_color_t *color);
 
 /**
  * @brief Draw a line laid out by ::lh_ui_text_line_measure with its line box at
  *        @p origin; nothing when the clip misses its ink.
  */
 lh_void
-lh_ui_text_draw_laid_line(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_ui_text_line_t *line,
-                          lh_ui_point_t origin, const lh_ui_color_t *color);
+lh_ui_text_draw_laid_line(lh_ui_canvas_t *canvas, const lh_ui_font_t *font,
+                          const lh_ui_text_line_t *line, lh_ui_point_t origin,
+                          const lh_ui_color_t *color);
 
 /**
  * @brief Draw the glyph of @p code with its cell at @p origin.
@@ -198,8 +203,8 @@ lh_ui_text_draw_laid_line(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, cons
  * @return The advance of @p code (`0` without a glyph).
  */
 lh_ui_scalar_t
-lh_ui_text_draw_code(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, lh_u32_t code, lh_ui_point_t origin,
-                     const lh_ui_color_t *color);
+lh_ui_text_draw_code(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, lh_u32_t code,
+                     lh_ui_point_t origin, const lh_ui_color_t *color);
 
 /**
  * @brief Draw the line starting at @p line at @p origin; nothing when the
@@ -218,8 +223,8 @@ lh_ui_text_draw_line(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_
  * pixels land exactly in ::lh_ui_text_get_ink_rect.
  */
 lh_void
-lh_ui_text_draw(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin,
-                const lh_ui_color_t *color);
+lh_ui_text_draw(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text,
+                lh_ui_point_t origin, const lh_ui_color_t *color);
 
 /**
  * @brief ::lh_ui_text_draw with the ink shift already known.
@@ -232,7 +237,7 @@ lh_void
 lh_ui_text_draw_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text,
                      lh_ui_point_t origin, const lh_ui_color_t *color, lh_ui_scalar_t ink_top);
 
-/* ── Wrapped ─────────────────────────────────────────────────────────────── */
+/* -- Wrapped --------------------------------------------------------------- */
 
 /*
  * The same measures and the same drawing for text broken into lines @p width wide:
@@ -251,13 +256,15 @@ lh_ui_text_draw_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_
  * @brief ::lh_ui_text_get_size of @p text broken into lines @p width wide.
  */
 lh_void
-lh_ui_text_get_size_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width, lh_ui_size_t *out);
+lh_ui_text_get_size_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width,
+                            lh_ui_size_t *out);
 
 /**
  * @brief ::lh_ui_text_get_ink_top of @p text broken into lines @p width wide.
  */
 lh_ui_scalar_t
-lh_ui_text_get_ink_top_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width);
+lh_ui_text_get_ink_top_wrapped(const lh_ui_font_t *font, const lh_char_t *text,
+                               lh_ui_scalar_t width);
 
 /**
  * @brief Width of the widest line of @p text broken into lines @p width wide
@@ -271,7 +278,8 @@ lh_ui_text_get_wrapped_width(const lh_ui_font_t *font, const lh_char_t *text, lh
  *        line breaks only, the same as ::lh_ui_text_count_lines).
  */
 lh_u32_t
-lh_ui_text_count_lines_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width);
+lh_ui_text_count_lines_wrapped(const lh_ui_font_t *font, const lh_char_t *text,
+                               lh_ui_scalar_t width);
 
 /**
  * @brief ::lh_ui_text_draw_wrapped with the first ink row already known: what a
@@ -280,8 +288,9 @@ lh_ui_text_count_lines_wrapped(const lh_ui_font_t *font, const lh_char_t *text, 
  * @param ink_top ::lh_ui_text_get_ink_top_wrapped of the same text and width.
  */
 lh_void
-lh_ui_text_draw_wrapped_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text,
-                             lh_ui_point_t origin, const lh_ui_color_t *color, lh_ui_scalar_t ink_top,
+lh_ui_text_draw_wrapped_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font,
+                             const lh_char_t *text, lh_ui_point_t origin,
+                             const lh_ui_color_t *color, lh_ui_scalar_t ink_top,
                              lh_ui_scalar_t width, lh_ui_text_align_h_t align);
 
 /**
@@ -289,9 +298,9 @@ lh_ui_text_draw_wrapped_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, c
  *        placed by @p align inside the widest.
  */
 lh_void
-lh_ui_text_get_ink_rect_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin,
-                                lh_ui_scalar_t width, lh_ui_text_align_h_t align,
-                                lh_ui_rect_t *out);
+lh_ui_text_get_ink_rect_wrapped(const lh_ui_font_t *font, const lh_char_t *text,
+                                lh_ui_point_t origin, lh_ui_scalar_t width,
+                                lh_ui_text_align_h_t align, lh_ui_rect_t *out);
 
 /**
  * @brief ::lh_ui_text_draw of @p text broken into lines @p width wide, each placed

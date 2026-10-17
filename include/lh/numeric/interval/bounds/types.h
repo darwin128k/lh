@@ -23,7 +23,7 @@
 #include <lh/interval/bounds/fields.h>
 #include <lh/numeric/types.h>
 
-/* ── unsigned ──────────────────────────────────────────────────────────── */
+/* -- unsigned -------------------------------------------------------------- */
 
 /**
  * @struct lh_ushort_interval_bounds
@@ -93,7 +93,7 @@ struct lh_ullong_interval_bounds
     lh_interval_bounds_fields(lh_ullong_t);
 };
 
-/* ── signed (explicit) ─────────────────────────────────────────────────── */
+/* -- signed (explicit) ----------------------------------------------------- */
 
 /**
  * @struct lh_sshort_interval_bounds
@@ -162,7 +162,7 @@ struct lh_sllong_interval_bounds
     lh_interval_bounds_fields(lh_sllong_t);
 };
 
-/* ── typedefs ──────────────────────────────────────────────────────────── */
+/* -- typedefs -------------------------------------------------------------- */
 
 /** @typedef lh_ushort_interval_bounds_t
  *  @brief Convenience alias for struct ::lh_ushort_interval_bounds. */

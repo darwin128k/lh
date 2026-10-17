@@ -20,12 +20,12 @@
  * @param entity_type Type of the entity in flight.
  * @param style_type  ::lh_ui_style_t.
  */
-#define lh_ui_transition_fields(entity_type, style_type)                                            \
-    entity_type *entity;                                                                            \
-    const style_type *to;                                                                           \
-    style_type from;                                                                                \
-    style_type look;                                                                                \
-    lh_u16_t elapsed;                                                                               \
+#define lh_ui_transition_fields(entity_type, style_type)                                           \
+    entity_type *entity;                                                                           \
+    const style_type *to;                                                                          \
+    style_type from;                                                                               \
+    style_type look;                                                                               \
+    lh_u16_t elapsed;                                                                              \
     lh_u16_t total
 
 #endif /* LH_UI_TRANSITION_FIELDS_H */

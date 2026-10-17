@@ -15,8 +15,9 @@
 static lh_usize_t
 lh_memory_sized_allocator_block_size(lh_usize_t size)
 {
-    lh_runtime_check_if(lh_math_gt(size, lh_math_sub(LH_USIZE_T_MAX, LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE)),
-                        lh_runtime_error_code_overflow);
+    lh_runtime_check_if(
+        lh_math_gt(size, lh_math_sub(LH_USIZE_T_MAX, LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE)),
+        lh_runtime_error_code_overflow);
     return lh_math_add(size, LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE);
 }
 
@@ -40,7 +41,8 @@ lh_memory_sized_allocator_dealloc(lh_memory_sized_allocator_t *self, lh_ptr ptr)
 }
 
 lh_ptr
-lh_memory_sized_allocator_realloc(lh_memory_sized_allocator_t *self, lh_ptr ptr, lh_usize_t new_size)
+lh_memory_sized_allocator_realloc(lh_memory_sized_allocator_t *self, lh_ptr ptr,
+                                  lh_usize_t new_size)
 {
     lh_assert_runtime_ref(self);
     lh_return_ifn(ptr, lh_memory_sized_allocator_alloc(self, new_size));
@@ -52,9 +54,9 @@ lh_memory_sized_allocator_realloc(lh_memory_sized_allocator_t *self, lh_ptr ptr,
 
     lh_ptr old_block = lh_memory_sized_allocator_block_of(ptr);
     const lh_usize_t old_size = lh_memory_sized_allocator_size_at(old_block);
-    lh_ptr block = lh_memory_allocator_realloc(self, old_block,
-                                               lh_math_add(old_size, LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE),
-                                               lh_memory_sized_allocator_block_size(new_size));
+    lh_ptr block = lh_memory_allocator_realloc(
+        self, old_block, lh_math_add(old_size, LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE),
+        lh_memory_sized_allocator_block_size(new_size));
     lh_memory_sized_allocator_size_at(block) = new_size;
     return lh_memory_sized_allocator_data_of(block);
 }

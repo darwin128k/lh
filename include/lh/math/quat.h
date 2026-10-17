@@ -44,10 +44,10 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Fill @p self with the given components.
  */
 lh_void
-lh_math_quat_init(lh_math_quat_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y, lh_math_fscalar_t z,
-                  lh_math_fscalar_t w);
+lh_math_quat_init(lh_math_quat_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y,
+                  lh_math_fscalar_t z, lh_math_fscalar_t w);
 
-/* ── Accessors ───────────────────────────────────────────────────────────── */
+/* -- Accessors ------------------------------------------------------------- */
 
 /**
  * @brief X component (vector part) of @p self.
@@ -154,8 +154,8 @@ lh_math_quat_conjugate(lh_math_quat_t q, lh_math_quat_t *out);
  * it back. @p out must not be null (::lh_assert_runtime_ref).
  */
 lh_void
-lh_math_quat_axis_cyclic(lh_math_fscalar_t i, lh_math_fscalar_t j, lh_math_fscalar_t k, lh_math_fscalar_t w,
-                         lh_math_vec3_t *out);
+lh_math_quat_axis_cyclic(lh_math_fscalar_t i, lh_math_fscalar_t j, lh_math_fscalar_t k,
+                         lh_math_fscalar_t w, lh_math_vec3_t *out);
 
 /**
  * @brief Where the rotation of unit @p q takes the x axis: column 0 of

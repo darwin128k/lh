@@ -46,14 +46,14 @@ lh_math_fsize_init(lh_math_fsize_t *self, lh_math_fscalar_t width, lh_math_fscal
 lh_void
 lh_math_fsize_init_empty(lh_math_fsize_t *self);
 
-
 /**
  * @brief Size spanning from @p min (inclusive) to @p max (exclusive).
  */
 lh_void
-lh_math_fsize_from_extent(const lh_math_fpoint_t *min, const lh_math_fpoint_t *max, lh_math_fsize_t *out);
+lh_math_fsize_from_extent(const lh_math_fpoint_t *min, const lh_math_fpoint_t *max,
+                          lh_math_fsize_t *out);
 
-/* ── Accessors ───────────────────────────────────────────────────────────── */
+/* -- Accessors ------------------------------------------------------------- */
 
 /**
  * @brief Width of @p self.
@@ -79,7 +79,7 @@ lh_math_fsize_set_width(lh_math_fsize_t *self, lh_math_fscalar_t width);
 lh_void
 lh_math_fsize_set_height(lh_math_fsize_t *self, lh_math_fscalar_t height);
 
-/* ── Conversions ─────────────────────────────────────────────────────────── */
+/* -- Conversions ----------------------------------------------------------- */
 
 /**
  * @brief Narrow @p self to a screen size.
@@ -97,7 +97,7 @@ lh_math_fsize_to_size(lh_math_fsize_t self, lh_math_size_t *out);
 lh_void
 lh_math_size_to_fsize(lh_math_size_t self, lh_math_fsize_t *out);
 
-/* ── Queries ────────────────────────────────────────────────────────────── */
+/* -- Queries --------------------------------------------------------------- */
 
 /**
  * @brief Element-wise equality.
@@ -141,7 +141,7 @@ lh_math_fsize_is_greater(const lh_math_fsize_t *self, const lh_math_fsize_t *oth
 lh_bool_t
 lh_math_fsize_is_empty(const lh_math_fsize_t *self);
 
-/* ── Component-wise ─────────────────────────────────────────────────────── */
+/* -- Component-wise -------------------------------------------------------- */
 
 /**
  * @brief Component-wise minimum of @p a and @p b into @p out.
@@ -161,14 +161,15 @@ lh_math_fsize_max(const lh_math_fsize_t *a, const lh_math_fsize_t *b, lh_math_fs
 lh_math_fscalar_t
 lh_math_fsize_min_side(const lh_math_fsize_t *self);
 
-/* ── Set ops ────────────────────────────────────────────────────────────── */
+/* -- Set ops --------------------------------------------------------------- */
 
 /**
  * @brief Inset @p self by `(@p dx, @p dy)` on each side (positive shrinks,
  *        negative grows).
  */
 lh_void
-lh_math_fsize_inset(const lh_math_fsize_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy, lh_math_fsize_t *out);
+lh_math_fsize_inset(const lh_math_fsize_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy,
+                    lh_math_fsize_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

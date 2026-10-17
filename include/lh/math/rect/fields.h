@@ -13,8 +13,8 @@
  * @param point_type  Type of `origin`.
  * @param size_type   Type of `size`.
  */
-#define lh_math_rect_fields(point_type, size_type)                                                  \
-    point_type origin;                                                                              \
+#define lh_math_rect_fields(point_type, size_type)                                                 \
+    point_type origin;                                                                             \
     size_type size
 
 #endif /* LH_MATH_RECT_FIELDS_H */

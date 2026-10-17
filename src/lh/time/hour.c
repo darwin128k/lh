@@ -63,8 +63,7 @@ lh_time_hour_equals(const lh_time_hour_t *self, const lh_time_hour_t *other)
 lh_bool_t
 lh_time_hour_is_at_least(const lh_time_hour_t *self, const lh_time_hour_t *minimum)
 {
-    return lh_cast_static(lh_bool_t,
-                          lh_math_ge(lh_time_hour_get(self), lh_time_hour_get(minimum)));
+    return lh_cast_static(lh_bool_t, lh_math_ge(lh_time_hour_get(self), lh_time_hour_get(minimum)));
 }
 
 lh_bool_t

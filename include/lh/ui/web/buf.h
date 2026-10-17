@@ -36,7 +36,7 @@ typedef struct lh_ui_web_buf
     lh_usize_t cap;  /**< Size of ::mem. */
     lh_usize_t len;  /**< Bytes written so far. */
     lh_bool_t ok;    /**< False once a write did not fit; later writes are no-ops. */
-} lh_ui_web_buf_t; /**< Scratch that accumulates text bytes. */
+} lh_ui_web_buf_t;   /**< Scratch that accumulates text bytes. */
 
 /**
  * @brief Start an empty buffer over @p mem.

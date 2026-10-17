@@ -28,7 +28,7 @@
 
 #include <stdarg.h>
 
-/* ── shortcuts ───────────────────────────────────────────────────────────── */
+/* -- shortcuts ------------------------------------------------------------- */
 
 /**
  * @def lh_logger_emergency(self, ...)
@@ -102,7 +102,7 @@
  */
 #define lh_logger_debug(self, ...) lh_logger_log((self), lh_logger_level_debug, __VA_ARGS__)
 
-/* ── struct ──────────────────────────────────────────────────────────────── */
+/* -- struct ---------------------------------------------------------------- */
 
 /**
  * @struct lh_logger
@@ -120,7 +120,7 @@ typedef struct lh_logger lh_logger_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── set / init ──────────────────────────────────────────────────────────── */
+/* -- set / init ------------------------------------------------------------ */
 
 /**
  * @brief Copy logger state from @p other into @p self.
@@ -205,7 +205,7 @@ lh_logger_init(lh_logger_t *self, lh_logger_level_flags_t flags, lh_logger_emit_
 lh_void
 lh_logger_deinit(lh_logger_t *self);
 
-/* ── accessors ───────────────────────────────────────────────────────────── */
+/* -- accessors ------------------------------------------------------------- */
 
 /**
  * @brief Get the current level filter from @p self.
@@ -231,7 +231,7 @@ lh_logger_get_emit_cb(const lh_logger_t *self, lh_logger_level_t level);
 lh_ptr
 lh_logger_get_context(const lh_logger_t *self);
 
-/* ── operation ───────────────────────────────────────────────────────────── */
+/* -- operation ------------------------------------------------------------- */
 
 /**
  * @brief Dispatch @p fmt / @p args at @p level, if flags and the slot allow.

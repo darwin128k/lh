@@ -7,8 +7,8 @@
 /* Intel: deterministic cache parameters, one sub-leaf per cache until the type
  * field reads 0 ("no more caches"). */
 #define LH_CPU_CACHE_CPUID_LEAF_DETERMINISTIC 4U
-#define LH_CPU_CACHE_LEAF4_TYPE_MASK 0x1FU     /* EAX[4:0], 0 = no more caches */
-#define LH_CPU_CACHE_LEAF4_LEVEL_SHIFT 5       /* EAX[7:5] */
+#define LH_CPU_CACHE_LEAF4_TYPE_MASK 0x1FU /* EAX[4:0], 0 = no more caches */
+#define LH_CPU_CACHE_LEAF4_LEVEL_SHIFT 5   /* EAX[7:5] */
 #define LH_CPU_CACHE_LEAF4_LEVEL_MASK 0x7U
 #define LH_CPU_CACHE_LEAF4_WAYS_SHIFT 22       /* EBX[31:22], minus 1 */
 #define LH_CPU_CACHE_LEAF4_PARTITIONS_SHIFT 12 /* EBX[21:12], minus 1 */
@@ -41,8 +41,8 @@ lh_cpu_cache_l3_size_intel(void)
             break;
         }
 
-        level = (regs[LH_CPU_ID_EAX] >> LH_CPU_CACHE_LEAF4_LEVEL_SHIFT) &
-                LH_CPU_CACHE_LEAF4_LEVEL_MASK;
+        level =
+            (regs[LH_CPU_ID_EAX] >> LH_CPU_CACHE_LEAF4_LEVEL_SHIFT) & LH_CPU_CACHE_LEAF4_LEVEL_MASK;
         if (level == LH_CPU_CACHE_LEVEL_L3)
         {
             const lh_u32_t ebx = regs[LH_CPU_ID_EBX];

@@ -292,7 +292,7 @@ TEST(ui_css2decl, an_image_color_is_its_tint)
     EXPECT_EQ(lh_ui_color_get_b(tint), 0xE2);
 }
 
-/* -- A screen written the way the web writes one ----------------------------- */
+/* -- A screen written the way the web writes one --------------------------- */
 
 namespace
 {

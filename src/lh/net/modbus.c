@@ -10,7 +10,7 @@
 #include <lh/memory/std.h>
 #include <lh/util/return.h>
 
-/* ── CRC ─────────────────────────────────────────────────────────────────────
+/* -- CRC -------------------------------------------------------------------
    Reflected 0x8005, which Modbus writes as 0xA001 with the low byte first. This
    is the whole reason a frame from a device nobody trusts can be checked at all,
    so it is the one function here that gets its own test with the vectors from the
@@ -44,7 +44,7 @@ lh_mb_crc16(lh_byte_cptr bytes, lh_u16_t length)
     return crc;
 }
 
-/* ── Frames ──────────────────────────────────────────────────────────────────
+/* -- Frames ----------------------------------------------------------------
    An RTU frame is unit, function, data, and two CRC bytes low first. There is no
    length field, which is why a parser has to be told how much it has: a frame that
    has not all arrived is not a short frame, it is a frame still on the wire.
@@ -58,7 +58,8 @@ lh_mb_build_pdu_read(lh_byte_ptr pdu, lh_u16_t cap, lh_u8_t fc, lh_u16_t address
 {
     lh_return_if(lh_null_eq(pdu), lh_cast_static(lh_u16_t, 0));
     lh_return_if(cap < 6 || count == 0 || count > LH_MB_READ_MAX, lh_cast_static(lh_u16_t, 0));
-    lh_return_ifn(fc == LH_MB_FC_READ_HOLDING || fc == LH_MB_FC_READ_INPUT, lh_cast_static(lh_u16_t, 0));
+    lh_return_ifn(fc == LH_MB_FC_READ_HOLDING || fc == LH_MB_FC_READ_INPUT,
+                  lh_cast_static(lh_u16_t, 0));
 
     pdu[0] = fc;
     pdu[1] = lh_cast_static(lh_byte_t, ((address >> 8) & 0xFF));
@@ -115,7 +116,8 @@ lh_mb_build_read(lh_byte_ptr adu, lh_u16_t cap, lh_u8_t unit, lh_u8_t fc, lh_u16
     lh_return_if(lh_null_eq(adu), lh_cast_static(lh_u16_t, 0));
     /* unit, PDU, CRC. */
     lh_return_if(cap < 8, lh_cast_static(lh_u16_t, 0));
-    pdu_length = lh_mb_build_pdu_read(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), fc, address, count);
+    pdu_length =
+        lh_mb_build_pdu_read(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), fc, address, count);
     lh_return_if(pdu_length == 0, lh_cast_static(lh_u16_t, 0));
 
     adu[0] = unit;
@@ -138,7 +140,8 @@ lh_mb_build_write(lh_byte_ptr adu, lh_u16_t cap, lh_u8_t unit, lh_u16_t address,
     /* unit, PDU, CRC. */
     lh_return_if(count == 0 || count > LH_MB_READ_MAX, lh_cast_static(lh_u16_t, 0));
     lh_return_if(cap < lh_cast_static(lh_u16_t, (9 + count * 2)), lh_cast_static(lh_u16_t, 0));
-    pdu_length = lh_mb_build_pdu_write(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), address, values, count);
+    pdu_length =
+        lh_mb_build_pdu_write(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), address, values, count);
     lh_return_if(pdu_length == 0, lh_cast_static(lh_u16_t, 0));
 
     adu[0] = unit;
@@ -150,8 +153,8 @@ lh_mb_build_write(lh_byte_ptr adu, lh_u16_t cap, lh_u8_t unit, lh_u16_t address,
 }
 
 lh_mb_status_t
-lh_mb_parse_pdu(lh_byte_cptr pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect,
-                lh_u16_t *values, lh_u16_t cap, lh_u16_t *out, lh_u8_t *exception)
+lh_mb_parse_pdu(lh_byte_cptr pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect, lh_u16_t *values,
+                lh_u16_t cap, lh_u16_t *out, lh_u8_t *exception)
 {
     lh_u8_t bytes;
     lh_u16_t got;
@@ -207,7 +210,7 @@ lh_mb_parse_pdu(lh_byte_cptr pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect,
        device that says eight words and sends four has not answered, and taking
        its word for how much came is how a parser reads the next frame as its
        own. */
-    if (lh_cast_static(lh_u16_t, (length - 2))< bytes)
+    if (lh_cast_static(lh_u16_t, (length - 2)) < bytes)
     {
         return lh_mb_status_short;
     }
@@ -217,7 +220,8 @@ lh_mb_parse_pdu(lh_byte_cptr pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect,
 
         for (i = 0; i < take; ++i)
         {
-            values[i] = lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, pdu[2 + i * 2])<< 8 | pdu[3 + i * 2]));
+            values[i] = lh_cast_static(
+                lh_u16_t, (lh_cast_static(lh_u16_t, pdu[2 + i * 2]) << 8 | pdu[3 + i * 2]));
         }
     }
     if (out != lh_null)
@@ -250,9 +254,10 @@ lh_mb_parse_pdu_write(lh_byte_cptr pdu, lh_u16_t length, lh_u16_t address, lh_u1
     lh_return_if(length < 5, lh_mb_status_short);
     lh_return_if(pdu[0] != LH_MB_FC_WRITE_MANY, lh_mb_status_wrong_code);
     /* The echo has to be this write: the same address and the same count. */
-    lh_return_if((lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, pdu[1])<< 8 | pdu[2]))) != address ||
-                     (lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, pdu[3])<< 8 | pdu[4]))) != count,
-                 lh_mb_status_garbage);
+    lh_return_if(
+        (lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, pdu[1]) << 8 | pdu[2]))) != address ||
+            (lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, pdu[3]) << 8 | pdu[4]))) != count,
+        lh_mb_status_garbage);
     return lh_mb_status_ok;
 }
 
@@ -278,9 +283,10 @@ lh_mb_parse_pdu_write_one(lh_byte_cptr pdu, lh_u16_t length, lh_u16_t address, l
     lh_return_if(pdu[0] != LH_MB_FC_WRITE_ONE, lh_mb_status_wrong_code);
     /* The whole request comes back, so the value is checked as well as the
        address: a device that stored something else says so here. */
-    lh_return_if((lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, pdu[1])<< 8 | pdu[2]))) != address ||
-                     (lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, pdu[3])<< 8 | pdu[4]))) != value,
-                 lh_mb_status_garbage);
+    lh_return_if(
+        (lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, pdu[1]) << 8 | pdu[2]))) != address ||
+            (lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, pdu[3]) << 8 | pdu[4]))) != value,
+        lh_mb_status_garbage);
     return lh_mb_status_ok;
 }
 
@@ -335,17 +341,19 @@ lh_mb_parse_read(lh_byte_cptr adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh
        anything is taken out of the frame: a corrupted byte count would send the
        copy off the end of the buffer on the strength of a bad byte. */
     if (lh_mb_crc16(adu, lh_cast_static(lh_u16_t, (length - 2))) !=
-        lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, adu[length - 1])<< 8 | adu[length - 2])))
+        lh_cast_static(lh_u16_t,
+                       (lh_cast_static(lh_u16_t, adu[length - 1]) << 8 | adu[length - 2])))
     {
         return lh_mb_status_crc;
     }
     pdu[0] = adu[1];
-    lh_memory_std_copy(lh_addr_of(pdu[1]), lh_addr_of(adu[2]), lh_cast_static(lh_usize_t, (length - 4)));
+    lh_memory_std_copy(lh_addr_of(pdu[1]), lh_addr_of(adu[2]),
+                       lh_cast_static(lh_usize_t, (length - 4)));
     pdu_length = lh_cast_static(lh_u16_t, (length - 3));
     return lh_mb_parse_pdu(pdu, pdu_length, fc, expect, values, cap, out, lh_null);
 }
 
-/* ── The plan ────────────────────────────────────────────────────────────────
+/* -- The plan --------------------------------------------------------------
    One pass over an address-ordered list. The list is already sorted because a
    device map is sorted for exactly this reason, and sorting it here would put a
    second pass on the one path that runs for every device.
@@ -361,7 +369,8 @@ lh_mb_parse_read(lh_byte_cptr adu, lh_u16_t length, lh_u8_t unit, lh_u8_t fc, lh
 static lh_u16_t
 mb_reach(lh_u16_t start, lh_u16_t end, const lh_mb_want_t *next)
 {
-    const lh_u16_t next_end = lh_cast_static(lh_u16_t, (next->address + (next->registers ? next->registers : 1)));
+    const lh_u16_t next_end =
+        lh_cast_static(lh_u16_t, (next->address + (next->registers ? next->registers : 1)));
     const lh_u16_t reach = next_end > end ? next_end : end;
 
     if (next->address > end && next->address - end > LH_MB_GAP_MAX)
@@ -387,7 +396,8 @@ lh_mb_plan_reads(const lh_mb_want_t *wants, lh_u16_t count, lh_mb_read_t *reads,
     while (i < count && made < cap)
     {
         const lh_u16_t start = wants[i].address;
-        lh_u16_t end = lh_cast_static(lh_u16_t, (start + (wants[i].registers ? wants[i].registers : 1)));
+        lh_u16_t end =
+            lh_cast_static(lh_u16_t, (start + (wants[i].registers ? wants[i].registers : 1)));
         lh_u16_t j = i;
         lh_mb_read_t *one;
 
@@ -427,7 +437,8 @@ lh_mb_count_requests(const lh_mb_want_t *wants, lh_u16_t count)
     while (i < count)
     {
         const lh_u16_t start = wants[i].address;
-        lh_u16_t end = lh_cast_static(lh_u16_t, (start + (wants[i].registers ? wants[i].registers : 1)));
+        lh_u16_t end =
+            lh_cast_static(lh_u16_t, (start + (wants[i].registers ? wants[i].registers : 1)));
         lh_u16_t j = i;
 
         while (j + 1 < count)

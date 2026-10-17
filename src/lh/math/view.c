@@ -17,12 +17,13 @@ lh_math_view_get_span(lh_usize_t stride, lh_usize_t count)
 }
 
 lh_void
-lh_math_view_init(lh_math_view_t *self, const lh_math_slice_t *base, lh_usize_t offset, lh_usize_t stride,
-                  lh_usize_t count)
+lh_math_view_init(lh_math_view_t *self, const lh_math_slice_t *base, lh_usize_t offset,
+                  lh_usize_t stride, lh_usize_t count)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ifn(stride != 0U, lh_runtime_error_code_invalid_range);
-    lh_math_slice_get_sub(base, offset, lh_math_view_get_span(stride, count), lh_addr_of(self->slice));
+    lh_math_slice_get_sub(base, offset, lh_math_view_get_span(stride, count),
+                          lh_addr_of(self->slice));
     self->stride = stride;
     self->count = count;
 }
@@ -60,9 +61,11 @@ lh_math_view_dot(const lh_math_view_t *a, const lh_math_view_t *b)
     lh_float_t sum;
     lh_usize_t i;
 
-    lh_assert_runtime_ifn(lh_math_view_get_size(a) == lh_math_view_get_size(b), lh_runtime_error_code_invalid_range);
+    lh_assert_runtime_ifn(lh_math_view_get_size(a) == lh_math_view_get_size(b),
+                          lh_runtime_error_code_invalid_range);
     lh_return_if(lh_math_view_is_empty(a), 0.0f);
-    for (sum = lh_math_view_get_at(a, 0U) * lh_math_view_get_at(b, 0U), i = 1U; i < lh_math_view_get_size(a); ++i)
+    for (sum = lh_math_view_get_at(a, 0U) * lh_math_view_get_at(b, 0U), i = 1U;
+         i < lh_math_view_get_size(a); ++i)
     {
         sum += lh_math_view_get_at(a, i) * lh_math_view_get_at(b, i);
     }

@@ -19,7 +19,7 @@ slice(const lh_ptr begin, const lh_ptr end)
     return {begin, end};
 }
 
-/* ── getters ─────────────────────────────────────────────────────────────── */
+/* -- getters --------------------------------------------------------------- */
 
 TEST(memory_view_slice_getters, return_stored_endpoints)
 {
@@ -30,7 +30,7 @@ TEST(memory_view_slice_getters, return_stored_endpoints)
     EXPECT_EQ(lh_memory_view_slice_get_end(&s), p(buf + 3));
 }
 
-/* ── flags / initialization ─────────────────────────────────────────────── */
+/* -- flags / initialization ------------------------------------------------ */
 
 TEST(memory_view_slice_get_flags, uninitialized_when_null)
 {
@@ -60,7 +60,7 @@ TEST(memory_view_slice_is_initialized, true_for_valid_slice)
     EXPECT_TRUE(lh_memory_view_slice_is_initialized(&s));
 }
 
-/* ── direction / validity ───────────────────────────────────────────────── */
+/* -- direction / validity -------------------------------------------------- */
 
 TEST(memory_view_slice_get_direction, forward_when_begin_le_end)
 {
@@ -99,7 +99,7 @@ TEST(memory_view_slice_is_valid, false_for_uninitialized)
     EXPECT_FALSE(lh_memory_view_slice_is_valid(&s));
 }
 
-/* ── make ───────────────────────────────────────────────────────────────── */
+/* -- make ------------------------------------------------------------------ */
 
 TEST(memory_view_slice_make_by_size, stores_closed_const_span)
 {
@@ -112,7 +112,7 @@ TEST(memory_view_slice_make_by_size, stores_closed_const_span)
     EXPECT_EQ(lh_memory_view_slice_get_size(&s), 4u);
 }
 
-/* ── size / empty ───────────────────────────────────────────────────────── */
+/* -- size / empty ---------------------------------------------------------- */
 
 TEST(memory_view_slice_is_empty, true_for_uninitialized)
 {
@@ -138,7 +138,7 @@ TEST(memory_view_slice_is_valid_offset, true_within_bounds_false_at_size)
     EXPECT_FALSE(lh_memory_view_slice_is_valid_offset(&s, 4));
 }
 
-/* ── offsets ────────────────────────────────────────────────────────────── */
+/* -- offsets --------------------------------------------------------------- */
 
 TEST(memory_view_slice_get_offset_from_begin, returns_byte_distance)
 {
@@ -177,7 +177,7 @@ TEST(memory_view_slice_get_offset_from_ptr, null_ptr_uses_by_offset)
     EXPECT_EQ(lh_memory_view_slice_get_offset_from_ptr(&s, lh_null, 2), 2u);
 }
 
-/* ── ptr access ─────────────────────────────────────────────────────────── */
+/* -- ptr access ------------------------------------------------------------ */
 
 TEST(memory_view_slice_get_ptr_from_begin, returns_const_pointer)
 {
@@ -208,7 +208,7 @@ TEST(memory_view_slice_seek_ptr, returns_null_on_out_of_range)
     EXPECT_EQ(lh_memory_view_slice_prev_ptr(&s, p(buf)), lh_null);
 }
 
-/* ── contains ───────────────────────────────────────────────────────────── */
+/* -- contains -------------------------------------------------------------- */
 
 TEST(memory_view_slice_contains_ptr, true_for_begin_and_end)
 {
@@ -236,7 +236,7 @@ TEST(memory_view_slice_contains, true_when_other_is_subslice)
     EXPECT_FALSE(lh_memory_view_slice_contains(&inner, &outer));
 }
 
-/* ── overlaps ───────────────────────────────────────────────────────────── */
+/* -- overlaps -------------------------------------------------------------- */
 
 TEST(memory_view_slice_overlaps_of, true_for_partial_overlap_false_when_disjoint)
 {
@@ -254,7 +254,7 @@ TEST(memory_view_slice_overlaps, true_for_overlapping_slices)
     EXPECT_TRUE(lh_memory_view_slice_overlaps(&a, &b));
 }
 
-/* ── alignment / multiple ───────────────────────────────────────────────── */
+/* -- alignment / multiple -------------------------------------------------- */
 
 TEST(memory_view_slice_is_multiple_of, true_when_size_divisible)
 {
@@ -279,7 +279,7 @@ TEST(memory_view_slice_is_aligned, true_when_both_ends_aligned_to_one)
     EXPECT_TRUE(lh_memory_view_slice_is_aligned(&s, 1));
 }
 
-/* ── equals ─────────────────────────────────────────────────────────────── */
+/* -- equals ---------------------------------------------------------------- */
 
 TEST(memory_view_slice_equals_of, true_for_same_range_false_for_different)
 {
@@ -297,7 +297,7 @@ TEST(memory_view_slice_equals, true_for_equal_slices)
     EXPECT_TRUE(lh_memory_view_slice_equals(&a, &b));
 }
 
-/* ── values ─────────────────────────────────────────────────────────────── */
+/* -- values ---------------------------------------------------------------- */
 
 TEST(memory_view_slice_get_value_from_begin, returns_byte_at_offset)
 {
@@ -358,7 +358,7 @@ TEST(memory_view_slice_prev_value, returns_value_at_prev_ptr)
     EXPECT_EQ(lh_memory_view_slice_prev_value(&s, p(buf + 2)), 20);
 }
 
-/* ── slicing ────────────────────────────────────────────────────────────── */
+/* -- slicing --------------------------------------------------------------- */
 
 TEST(memory_view_slice_make_from_offset, returns_const_subslice)
 {
@@ -420,7 +420,7 @@ TEST(memory_view_slice_trim, removes_from_both_sides)
     EXPECT_TRUE(lh_memory_view_slice_equals_of(&r, p(buf + 1), p(buf + 3)));
 }
 
-/* ── mutation ───────────────────────────────────────────────────────────── */
+/* -- mutation -------------------------------------------------------------- */
 
 TEST(memory_view_slice_clear, resets_to_uninitialized)
 {
@@ -472,7 +472,7 @@ TEST(memory_view_slice_init_by_other, copies_const_endpoints)
     EXPECT_TRUE(lh_memory_view_slice_equals(&s, &other));
 }
 
-/* ── death tests ────────────────────────────────────────────────────────── */
+/* -- death tests ----------------------------------------------------------- */
 
 TEST(memory_view_slice_ropen_bricks, convert_half_open_storage)
 {

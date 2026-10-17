@@ -46,8 +46,8 @@ lh_math_view_get_span(lh_usize_t stride, lh_usize_t count);
  * @fails ::lh_runtime_error_code_out_of_range the last element is past @p base.
  */
 lh_void
-lh_math_view_init(lh_math_view_t *self, const lh_math_slice_t *base, lh_usize_t offset, lh_usize_t stride,
-                  lh_usize_t count);
+lh_math_view_init(lh_math_view_t *self, const lh_math_slice_t *base, lh_usize_t offset,
+                  lh_usize_t stride, lh_usize_t count);
 
 /**
  * @brief A view of every element of @p base (stride `1`).

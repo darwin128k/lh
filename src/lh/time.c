@@ -57,7 +57,8 @@ lh_time_get_second(const lh_time_t *self)
 lh_void
 lh_time_assign(lh_time_t *self, const lh_time_t *other)
 {
-    lh_time_set(self, lh_time_get_hour(other), lh_time_get_minute(other), lh_time_get_second(other));
+    lh_time_set(self, lh_time_get_hour(other), lh_time_get_minute(other),
+                lh_time_get_second(other));
 }
 
 lh_uint_t
@@ -151,11 +152,13 @@ lh_time_sub(lh_time_t *self, const lh_time_t *other)
 lh_uint_t
 lh_time_seconds_of_day(const lh_time_t *self)
 {
-    const lh_uint_t hour_seconds = lh_math_mul(lh_cast_static(lh_uint_t, lh_time_get_hour(self)), LH_TIME_SECONDS_PER_HOUR);
-    const lh_uint_t minute_seconds =
-        lh_math_mul(lh_cast_static(lh_uint_t, lh_time_get_minute(self)), LH_TIME_SECONDS_PER_MINUTE);
+    const lh_uint_t hour_seconds =
+        lh_math_mul(lh_cast_static(lh_uint_t, lh_time_get_hour(self)), LH_TIME_SECONDS_PER_HOUR);
+    const lh_uint_t minute_seconds = lh_math_mul(
+        lh_cast_static(lh_uint_t, lh_time_get_minute(self)), LH_TIME_SECONDS_PER_MINUTE);
 
-    return lh_math_add(lh_math_add(hour_seconds, minute_seconds), lh_cast_static(lh_uint_t, lh_time_get_second(self)));
+    return lh_math_add(lh_math_add(hour_seconds, minute_seconds),
+                       lh_cast_static(lh_uint_t, lh_time_get_second(self)));
 }
 
 lh_void
@@ -165,18 +168,21 @@ lh_time_from_seconds_of_day(lh_uint_t seconds, lh_time_t *out)
     lh_time_t time;
     const lh_uint_t seconds_of_hour = lh_math_mod(seconds, LH_TIME_SECONDS_PER_HOUR);
 
-    lh_time_set(lh_addr_of(time), lh_cast_static(lh_time_hour_t, lh_math_div(seconds, LH_TIME_SECONDS_PER_HOUR)),
-               lh_cast_static(lh_time_minute_t, lh_math_div(seconds_of_hour, LH_TIME_SECONDS_PER_MINUTE)),
-               lh_cast_static(lh_time_second_t, lh_math_mod(seconds, LH_TIME_SECONDS_PER_MINUTE)));
+    lh_time_set(
+        lh_addr_of(time),
+        lh_cast_static(lh_time_hour_t, lh_math_div(seconds, LH_TIME_SECONDS_PER_HOUR)),
+        lh_cast_static(lh_time_minute_t, lh_math_div(seconds_of_hour, LH_TIME_SECONDS_PER_MINUTE)),
+        lh_cast_static(lh_time_second_t, lh_math_mod(seconds, LH_TIME_SECONDS_PER_MINUTE)));
     lh_ptr_deref(out) = time;
 }
 
 lh_bool_t
 lh_time_equals(const lh_time_t *self, const lh_time_t *other)
 {
-    return lh_cast_static(lh_bool_t, lh_math_eq(lh_time_get_hour(self), lh_time_get_hour(other)) &&
-                                     lh_math_eq(lh_time_get_minute(self), lh_time_get_minute(other)) &&
-                                     lh_math_eq(lh_time_get_second(self), lh_time_get_second(other)));
+    return lh_cast_static(lh_bool_t,
+                          lh_math_eq(lh_time_get_hour(self), lh_time_get_hour(other)) &&
+                              lh_math_eq(lh_time_get_minute(self), lh_time_get_minute(other)) &&
+                              lh_math_eq(lh_time_get_second(self), lh_time_get_second(other)));
 }
 
 lh_bool_t
@@ -199,7 +205,8 @@ lh_time_is_at_least(const lh_time_t *self, const lh_time_t *minimum)
     {
         return lh_cast_static(lh_bool_t, lh_math_gt(self_minute, minimum_minute));
     }
-    return lh_cast_static(lh_bool_t, lh_math_ge(lh_time_get_second(self), lh_time_get_second(minimum)));
+    return lh_cast_static(lh_bool_t,
+                          lh_math_ge(lh_time_get_second(self), lh_time_get_second(minimum)));
 }
 
 lh_bool_t

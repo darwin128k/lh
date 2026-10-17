@@ -20,13 +20,14 @@
 #    endif
 #endif
 
-/* ── Lifetime and shape ──────────────────────────────────────────────────── */
+/* -- Lifetime and shape ---------------------------------------------------- */
 
 lh_bool_t
 lh_ui_pixmap_format_is_16(lh_ui_pixmap_format_t format)
 {
-    return format == lh_ui_pixmap_format_rgb565 || format == lh_ui_pixmap_format_rgb565_swapped ? lh_bool_true
-                                                                                                 : lh_bool_false;
+    return format == lh_ui_pixmap_format_rgb565 || format == lh_ui_pixmap_format_rgb565_swapped
+               ? lh_bool_true
+               : lh_bool_false;
 }
 
 lh_s32_t
@@ -36,15 +37,17 @@ lh_ui_pixmap_format_get_bytes(lh_ui_pixmap_format_t format)
 }
 
 lh_void
-lh_ui_pixmap_init(lh_ui_pixmap_t *self, lh_byte_ptr bits, lh_s32_t width, lh_s32_t height, lh_s32_t stride,
-                  lh_ui_pixmap_format_t format)
+lh_ui_pixmap_init(lh_ui_pixmap_t *self, lh_byte_ptr bits, lh_s32_t width, lh_s32_t height,
+                  lh_s32_t stride, lh_ui_pixmap_format_t format)
 {
     const lh_s32_t bytes = lh_ui_pixmap_format_get_bytes(format);
 
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_ifn(width >= 0 && height >= 0 && stride >= width * bytes && lh_math_is_multiple_of(stride, bytes),
+    lh_assert_runtime_ifn(width >= 0 && height >= 0 && stride >= width * bytes &&
+                              lh_math_is_multiple_of(stride, bytes),
                           lh_runtime_error_code_invalid_argument);
-    lh_assert_runtime_ifn(lh_null_ne(bits) || width == 0 || height == 0, lh_runtime_error_code_invalid_argument);
+    lh_assert_runtime_ifn(lh_null_ne(bits) || width == 0 || height == 0,
+                          lh_runtime_error_code_invalid_argument);
     self->bits = bits;
     self->width = width;
     self->height = height;
@@ -109,7 +112,7 @@ lh_ui_pixmap_get_address(const lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y)
     return lh_ui_pixmap_get_row(self, y) + x * lh_ui_pixmap_get_pixel_bytes(self);
 }
 
-/* ── Pixels ──────────────────────────────────────────────────────────────── */
+/* -- Pixels ---------------------------------------------------------------- */
 
 lh_u32_t
 lh_ui_pixmap_order_16(const lh_ui_pixmap_t *self, lh_u32_t word)
@@ -121,7 +124,8 @@ lh_ui_pixmap_order_16(const lh_ui_pixmap_t *self, lh_u32_t word)
 lh_u32_t
 lh_ui_pixmap_pack(const lh_ui_pixmap_t *self, const lh_ui_color_t *color)
 {
-    lh_return_if(!lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)), lh_ui_color_get_argb(color));
+    lh_return_if(!lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)),
+                 lh_ui_color_get_argb(color));
     return lh_ui_pixmap_order_16(self, lh_ui_color_get_rgb565(color));
 }
 
@@ -147,7 +151,7 @@ lh_ui_pixmap_read_word(const lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y)
     lh_byte_cptr at = lh_ui_pixmap_get_address(self, x, y);
 
     return lh_ui_pixmap_format_is_16(self->format) ? *lh_ptr_rcast(const lh_u16_t, at)
-                                                      : *lh_ptr_rcast(const lh_u32_t, at);
+                                                   : *lh_ptr_rcast(const lh_u32_t, at);
 }
 
 lh_void
@@ -206,7 +210,7 @@ lh_ui_pixmap_store_words16(lh_u16_t *at, lh_usize_t count, lh_u16_t word)
     }
 }
 
-/* ── Spans and boxes ─────────────────────────────────────────────────────── */
+/* -- Spans and boxes ------------------------------------------------------- */
 
 lh_void
 lh_ui_pixmap_store_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_u32_t word)
@@ -220,7 +224,8 @@ lh_ui_pixmap_store_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t
                                    lh_cast_static(lh_u16_t, word));
         return;
     }
-    lh_ui_pixmap_store_words32(lh_ptr_rcast(lh_u32_t, at), lh_cast_static(lh_usize_t, x1 - x0), word);
+    lh_ui_pixmap_store_words32(lh_ptr_rcast(lh_u32_t, at), lh_cast_static(lh_usize_t, x1 - x0),
+                               word);
 }
 
 lh_u32_t
@@ -241,7 +246,7 @@ lh_ui_pixmap_mix_any(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_
     return lh_ui_pixmap_pack(self, lh_addr_of(under));
 }
 
-/* ── Row kernels ─────────────────────────────────────────────────────────── */
+/* -- Row kernels ----------------------------------------------------------- */
 
 lh_u32_t
 lh_ui_pixmap_mix_argb(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a)
@@ -293,15 +298,17 @@ lh_ui_pixmap_mix_16(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u
        at a time: red and blue go through one multiply pair (0x00FF00FF lanes),
        green through the other. This is the RGB565 path an MCU runs. */
     return lh_ui_pixmap_order_16(
-        self, lh_ui_pixmap_565_of(lh_ui_color_mix_pair(lh_ui_pixmap_rb_of_565(word), src & 0x00FF00FFU, a),
-                                  lh_ui_color_mix_pair(lh_ui_pixmap_g_of_565(word), (src >> 8) & 0xFFU, a)));
+        self, lh_ui_pixmap_565_of(
+                  lh_ui_color_mix_pair(lh_ui_pixmap_rb_of_565(word), src & 0x00FF00FFU, a),
+                  lh_ui_color_mix_pair(lh_ui_pixmap_g_of_565(word), (src >> 8) & 0xFFU, a)));
 }
 
 lh_u32_t
 lh_ui_pixmap_mix_word(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t a)
 {
-    return lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)) ? lh_ui_pixmap_mix_16(self, dst, src, a)
-                                                                      : lh_ui_pixmap_mix_argb(self, dst, src, a);
+    return lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self))
+               ? lh_ui_pixmap_mix_16(self, dst, src, a)
+               : lh_ui_pixmap_mix_argb(self, dst, src, a);
 }
 
 lh_u32_t
@@ -317,14 +324,16 @@ lh_ui_pixmap_over_16(const lh_ui_pixmap_t *self, lh_u32_t dst, const lh_ui_color
 lh_u32_t
 lh_ui_pixmap_over_word(const lh_ui_pixmap_t *self, lh_u32_t dst, const lh_ui_color_t *color)
 {
-    return lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self)) ? lh_ui_pixmap_over_16(self, dst, color)
-                                                                      : lh_ui_pixmap_over_argb(self, dst, color);
+    return lh_ui_pixmap_format_is_16(lh_ui_pixmap_get_format(self))
+               ? lh_ui_pixmap_over_16(self, dst, color)
+               : lh_ui_pixmap_over_argb(self, dst, color);
 }
 
 lh_void
 lh_ui_pixmap_blend_pixel(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color)
 {
-    lh_ui_pixmap_write_word(self, x, y, lh_ui_pixmap_over_word(self, lh_ui_pixmap_read_word(self, x, y), color));
+    lh_ui_pixmap_write_word(
+        self, x, y, lh_ui_pixmap_over_word(self, lh_ui_pixmap_read_word(self, x, y), color));
 }
 
 lh_void
@@ -344,7 +353,8 @@ lh_ui_pixmap_cover_pixel(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, const lh_
 }
 
 lh_u32_t
-lh_ui_pixmap_blend_16_one(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t solid, lh_u32_t a)
+lh_ui_pixmap_blend_16_one(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t solid,
+                          lh_u32_t a)
 {
     lh_return_if(a == 0U, dst);
     lh_return_if(a == LH_BYTE_T_MAX, solid);
@@ -352,8 +362,8 @@ lh_ui_pixmap_blend_16_one(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src
 }
 
 lh_u32_t
-lh_ui_pixmap_blend_16_pair(const lh_ui_pixmap_t *self, lh_u32_t pair, lh_u32_t src, lh_u32_t solid, lh_u32_t a_lo,
-                           lh_u32_t a_hi)
+lh_ui_pixmap_blend_16_pair(const lh_ui_pixmap_t *self, lh_u32_t pair, lh_u32_t src, lh_u32_t solid,
+                           lh_u32_t a_lo, lh_u32_t a_hi)
 {
     return lh_ui_pixmap_blend_16_one(self, pair & 0xFFFFU, src, solid, a_lo) |
            (lh_ui_pixmap_blend_16_one(self, pair >> 16, src, solid, a_hi) << 16);
@@ -362,15 +372,17 @@ lh_ui_pixmap_blend_16_pair(const lh_ui_pixmap_t *self, lh_u32_t pair, lh_u32_t s
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
 /* One channel of four pixels, `(s * src_w + d * dst_w + total / 2) / total`: the
    channel at bit @p shift of every pixel, as floats, over its own divisor. */
-#define LH_UI_PIXMAP_OVER_CHANNEL(pix, shift, src_word, src_w, dst_w, half, total)                        \
-    _mm_cvttps_epi32(_mm_div_ps(                                                                          \
-        _mm_add_ps(_mm_add_ps(_mm_mul_ps(_mm_set1_ps(lh_cast_static(lh_float_t, ((src_word) >> (shift)) & 0xFFU)), \
-                                         (src_w)),                                                        \
-                              _mm_mul_ps(_mm_cvtepi32_ps(_mm_and_si128(_mm_srli_epi32(pix, shift),         \
-                                                                       _mm_set1_epi32(0xFF))),            \
-                                         (dst_w))),                                                       \
-                   (half)),                                                                               \
-        (total)))
+#    define LH_UI_PIXMAP_OVER_CHANNEL(pix, shift, src_word, src_w, dst_w, half, total)             \
+        _mm_cvttps_epi32(_mm_div_ps(                                                               \
+            _mm_add_ps(                                                                            \
+                _mm_add_ps(_mm_mul_ps(_mm_set1_ps(lh_cast_static(                                  \
+                                          lh_float_t, ((src_word) >> (shift)) & 0xFFU)),           \
+                                      (src_w)),                                                    \
+                           _mm_mul_ps(_mm_cvtepi32_ps(_mm_and_si128(_mm_srli_epi32(pix, shift),    \
+                                                                    _mm_set1_epi32(0xFF))),        \
+                                      (dst_w))),                                                   \
+                (half)),                                                                           \
+            (total)))
 
 /* The translucent "over" of four words in registers: four alphas, one per 32-bit
    lane of @p a32. */
@@ -428,7 +440,8 @@ lh_ui_pixmap_blend_quad_m128(__m128i pix, __m128i a8, lh_u32_t src)
        it to one lane each, duplicate each lane, then pair them up into
        "the four lanes of pixel 0" and "the four lanes of pixel 1". Skipping
        either duplication blends pixel 0's green with pixel 1's alpha. */
-    const __m128i a_dup = _mm_unpacklo_epi16(_mm_unpacklo_epi8(a8, zero), _mm_unpacklo_epi8(a8, zero));
+    const __m128i a_dup =
+        _mm_unpacklo_epi16(_mm_unpacklo_epi8(a8, zero), _mm_unpacklo_epi8(a8, zero));
     const __m128i a_lo = _mm_unpacklo_epi32(a_dup, a_dup);
     const __m128i a_hi = _mm_unpackhi_epi32(a_dup, a_dup);
     __m128i lo = _mm_unpacklo_epi8(pix, zero);
@@ -450,9 +463,11 @@ lh_ui_pixmap_blend_quad_m128(__m128i pix, __m128i a8, lh_u32_t src)
        lanes. Every product and every partial sum is <= 65025, so mullo and
        add cannot wrap; the widest intermediate is 65252 + 254 + 1 = 65507,
        still inside 16 bits. */
-    lo = _mm_add_epi16(_mm_add_epi16(_mm_mullo_epi16(src_lo, a_lo), _mm_mullo_epi16(lo, _mm_sub_epi16(full, a_lo))),
+    lo = _mm_add_epi16(_mm_add_epi16(_mm_mullo_epi16(src_lo, a_lo),
+                                     _mm_mullo_epi16(lo, _mm_sub_epi16(full, a_lo))),
                        round);
-    hi = _mm_add_epi16(_mm_add_epi16(_mm_mullo_epi16(src_hi, a_hi), _mm_mullo_epi16(hi, _mm_sub_epi16(full, a_hi))),
+    hi = _mm_add_epi16(_mm_add_epi16(_mm_mullo_epi16(src_hi, a_hi),
+                                     _mm_mullo_epi16(hi, _mm_sub_epi16(full, a_hi))),
                        round);
     /* 255 is odd, so x / 255 never ties at .5 and this round-to-nearest is
        the same value as the scalar (x + 127) / 255 for every x <= 65535. */
@@ -470,7 +485,8 @@ lh_ui_pixmap_gather_32(const lh_u32_t *at, lh_usize_t count)
 {
     const lh_s32_t opaque = lh_cast_static(lh_s32_t, 0xFF000000U);
 
-    return _mm_setr_epi32(lh_cast_static(lh_s32_t, at[0]), count > 1U ? lh_cast_static(lh_s32_t, at[1]) : opaque,
+    return _mm_setr_epi32(lh_cast_static(lh_s32_t, at[0]),
+                          count > 1U ? lh_cast_static(lh_s32_t, at[1]) : opaque,
                           count > 2U ? lh_cast_static(lh_s32_t, at[2]) : opaque, opaque);
 }
 
@@ -509,11 +525,13 @@ lh_ui_pixmap_blend_alpha_32_over_quad_sse2(lh_u32_t *at, lh_byte_cptr alpha, lh_
     const __m128i pix = _mm_loadu_si128(lh_ptr_rcast(const __m128i, at));
     const __m128i a8 = _mm_cvtsi32_si128(lh_ptr_rcast(const lh_s32_t, alpha)[0]);
 
-    _mm_storeu_si128(lh_ptr_rcast(__m128i, at), lh_ui_pixmap_over_quad_m128(pix, lh_ui_pixmap_alpha_lanes_32(a8), src));
+    _mm_storeu_si128(lh_ptr_rcast(__m128i, at),
+                     lh_ui_pixmap_over_quad_m128(pix, lh_ui_pixmap_alpha_lanes_32(a8), src));
 }
 
 lh_void
-lh_ui_pixmap_blend_alpha_32_over_sse2(lh_u32_t *at, lh_byte_cptr alpha, lh_usize_t count, lh_u32_t src)
+lh_ui_pixmap_blend_alpha_32_over_sse2(lh_u32_t *at, lh_byte_cptr alpha, lh_usize_t count,
+                                      lh_u32_t src)
 {
     lh_usize_t i;
 
@@ -521,15 +539,17 @@ lh_ui_pixmap_blend_alpha_32_over_sse2(lh_u32_t *at, lh_byte_cptr alpha, lh_usize
     {
         const __m128i a8 = _mm_cvtsi32_si128(lh_ptr_rcast(const lh_s32_t, alpha + i)[0]);
 
-        _mm_storeu_si128(lh_ptr_rcast(__m128i, at + i),
-                         lh_ui_pixmap_over_quad_m128(_mm_loadu_si128(lh_ptr_rcast(const __m128i, at + i)),
-                                                     lh_ui_pixmap_alpha_lanes_32(a8), src));
+        _mm_storeu_si128(
+            lh_ptr_rcast(__m128i, at + i),
+            lh_ui_pixmap_over_quad_m128(_mm_loadu_si128(lh_ptr_rcast(const __m128i, at + i)),
+                                        lh_ui_pixmap_alpha_lanes_32(a8), src));
     }
     lh_return_if(i == count);
-    lh_ui_pixmap_scatter_32(at + i, count - i,
-                            lh_ui_pixmap_over_quad_m128(lh_ui_pixmap_gather_32(at + i, count - i),
-                                                        lh_ui_pixmap_alpha_lanes_32(lh_ui_pixmap_gather_alpha(alpha + i, count - i)),
-                                                        src));
+    lh_ui_pixmap_scatter_32(
+        at + i, count - i,
+        lh_ui_pixmap_over_quad_m128(
+            lh_ui_pixmap_gather_32(at + i, count - i),
+            lh_ui_pixmap_alpha_lanes_32(lh_ui_pixmap_gather_alpha(alpha + i, count - i)), src));
 }
 
 lh_void
@@ -542,8 +562,8 @@ lh_ui_pixmap_blend_alpha_32_quad_sse2(lh_u32_t *at, lh_byte_cptr alpha, lh_u32_t
 }
 
 lh_void
-lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_byte_cptr alpha, lh_usize_t count,
-                                 lh_u32_t src)
+lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_byte_cptr alpha,
+                                 lh_usize_t count, lh_u32_t src)
 {
     lh_usize_t i;
 
@@ -555,16 +575,18 @@ lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_by
         const __m128i a8 = _mm_cvtsi32_si128(lh_ptr_rcast(const lh_s32_t, alpha + i)[0]);
 
         _mm_storeu_si128(lh_ptr_rcast(__m128i, at + i),
-                         lh_ui_pixmap_blend_quad_m128(_mm_loadu_si128(lh_ptr_rcast(const __m128i, at + i)), a8, src));
+                         lh_ui_pixmap_blend_quad_m128(
+                             _mm_loadu_si128(lh_ptr_rcast(const __m128i, at + i)), a8, src));
     }
     lh_return_if(i == count);
     /* The last one to three pixels are a block too, not a scalar loop that
        branched per pixel on a coverage that is noise to the predictor: a glyph
        row is six to fourteen pixels, so this tail is part of every row a caption
        draws. */
-    lh_ui_pixmap_scatter_32(at + i, count - i,
-                            lh_ui_pixmap_blend_quad_m128(lh_ui_pixmap_gather_32(at + i, count - i),
-                                                         lh_ui_pixmap_gather_alpha(alpha + i, count - i), src));
+    lh_ui_pixmap_scatter_32(
+        at + i, count - i,
+        lh_ui_pixmap_blend_quad_m128(lh_ui_pixmap_gather_32(at + i, count - i),
+                                     lh_ui_pixmap_gather_alpha(alpha + i, count - i), src));
 }
 
 lh_void
@@ -576,27 +598,31 @@ lh_ui_pixmap_blend_cover_32_sse2(lh_u32_t *at, lh_usize_t count, lh_u64_t cover,
     lh_assert_runtime(count >= 1U && count <= 8U, lh_runtime_error_code_invalid_argument);
     if (count < 4U)
     {
-        lh_ui_pixmap_scatter_32(at, count, lh_ui_pixmap_blend_quad_m128(lh_ui_pixmap_gather_32(at, count), a8, src));
+        lh_ui_pixmap_scatter_32(
+            at, count, lh_ui_pixmap_blend_quad_m128(lh_ui_pixmap_gather_32(at, count), a8, src));
         return;
     }
-    _mm_storeu_si128(lh_ptr_rcast(__m128i, at),
-                     lh_ui_pixmap_blend_quad_m128(_mm_loadu_si128(lh_ptr_rcast(const __m128i, at)), a8, src));
+    _mm_storeu_si128(
+        lh_ptr_rcast(__m128i, at),
+        lh_ui_pixmap_blend_quad_m128(_mm_loadu_si128(lh_ptr_rcast(const __m128i, at)), a8, src));
     if (count == 8U)
     {
         _mm_storeu_si128(lh_ptr_rcast(__m128i, at + 4),
-                         lh_ui_pixmap_blend_quad_m128(_mm_loadu_si128(lh_ptr_rcast(const __m128i, at + 4)), a8_hi, src));
+                         lh_ui_pixmap_blend_quad_m128(
+                             _mm_loadu_si128(lh_ptr_rcast(const __m128i, at + 4)), a8_hi, src));
     }
     else if (count > 4U)
     {
-        lh_ui_pixmap_scatter_32(at + 4, count - 4U,
-                                lh_ui_pixmap_blend_quad_m128(lh_ui_pixmap_gather_32(at + 4, count - 4U), a8_hi, src));
+        lh_ui_pixmap_scatter_32(
+            at + 4, count - 4U,
+            lh_ui_pixmap_blend_quad_m128(lh_ui_pixmap_gather_32(at + 4, count - 4U), a8_hi, src));
     }
 }
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
 
 lh_void
-lh_ui_pixmap_blend_alpha_32(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_byte_cptr alpha, lh_usize_t count,
-                            lh_u32_t src)
+lh_ui_pixmap_blend_alpha_32(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_byte_cptr alpha,
+                            lh_usize_t count, lh_u32_t src)
 {
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
     if (lh_cpu_simd_has_sse2())
@@ -612,7 +638,8 @@ lh_ui_pixmap_blend_alpha_32(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_byte_cp
         {
             if (alpha[i] != 0U)
             {
-                at[i] = alpha[i] == 0xFFU ? 0xFF000000U | src : lh_ui_pixmap_mix_argb(self, at[i], src, alpha[i]);
+                at[i] = alpha[i] == 0xFFU ? 0xFF000000U | src
+                                          : lh_ui_pixmap_mix_argb(self, at[i], src, alpha[i]);
             }
         }
     }
@@ -622,7 +649,8 @@ lh_ui_pixmap_blend_alpha_32(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_byte_cp
 /* (x + 127) / 255, in 16-bit lanes, for x <= 65535 — the same value the scalar
    kernel divides its way to, with no divide at all. 255 is odd, so x / 255 never
    lands exactly on .5 and this round-to-nearest cannot disagree with it. */
-#define LH_UI_PIXMAP_DIV255(x) _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(x, _mm_srli_epi16(x, 8)), one), 8)
+#    define LH_UI_PIXMAP_DIV255(x)                                                                 \
+        _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(x, _mm_srli_epi16(x, 8)), one), 8)
 
 /* One channel plane of eight pixels: widen the stored bits to a byte, blend,
    narrow back, and leave the result in that plane's own register. The three
@@ -637,14 +665,15 @@ lh_ui_pixmap_blend_alpha_32(const lh_ui_pixmap_t *self, lh_u32_t *at, lh_byte_cp
    (g6 * 17) >> 2 spreads g6/4 into the low bits where the scalar spreads g6/16,
    so every green value from 16 up came out a shade too light. Same two shifts,
    no cleverness, exactly the value the scalar kernel computes. */
-#define LH_UI_PIXMAP_BLEND_PLANE(out8, bits, src8, up, down, narrow)                                     \
-    do                                                                                                   \
-    {                                                                                                    \
-        const __m128i dst8 = _mm_or_si128(_mm_slli_epi16(bits, up), _mm_srli_epi16(bits, down));          \
-        const __m128i t = _mm_add_epi16(                                                                 \
-            _mm_add_epi16(_mm_mullo_epi16(src8, alpha16), _mm_mullo_epi16(dst8, inv)), round);            \
-        out8 = _mm_srli_epi16(LH_UI_PIXMAP_DIV255(t), narrow);                                            \
-    } while (0)
+#    define LH_UI_PIXMAP_BLEND_PLANE(out8, bits, src8, up, down, narrow)                           \
+        do                                                                                         \
+        {                                                                                          \
+            const __m128i dst8 =                                                                   \
+                _mm_or_si128(_mm_slli_epi16(bits, up), _mm_srli_epi16(bits, down));                \
+            const __m128i t = _mm_add_epi16(                                                       \
+                _mm_add_epi16(_mm_mullo_epi16(src8, alpha16), _mm_mullo_epi16(dst8, inv)), round); \
+            out8 = _mm_srli_epi16(LH_UI_PIXMAP_DIV255(t), narrow);                                 \
+        } while (0)
 
 /* Eight RGB565 words blended in registers, pixel k at byte k of @p a8. */
 LH_COMPILER_ATTRIBUTE_FORCE_INLINE __m128i
@@ -751,16 +780,18 @@ lh_ui_pixmap_scatter_16(lh_u16_t *at, lh_usize_t count, __m128i v)
 }
 
 lh_void
-lh_ui_pixmap_blend_alpha_16_octet_sse2(lh_u16_t *at, lh_byte_cptr alpha, lh_u32_t src, lh_bool_t swap)
+lh_ui_pixmap_blend_alpha_16_octet_sse2(lh_u16_t *at, lh_byte_cptr alpha, lh_u32_t src,
+                                       lh_bool_t swap)
 {
     _mm_storeu_si128(lh_ptr_rcast(__m128i, at),
-                     lh_ui_pixmap_blend_octet_m128(_mm_loadu_si128(lh_ptr_rcast(const __m128i, at)),
-                                                   _mm_loadl_epi64(lh_ptr_rcast(const __m128i, alpha)), src, swap));
+                     lh_ui_pixmap_blend_octet_m128(
+                         _mm_loadu_si128(lh_ptr_rcast(const __m128i, at)),
+                         _mm_loadl_epi64(lh_ptr_rcast(const __m128i, alpha)), src, swap));
 }
 
 lh_void
-lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha, lh_usize_t count,
-                                 lh_u32_t src)
+lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha,
+                                 lh_usize_t count, lh_u32_t src)
 {
     const lh_bool_t swap = lh_ui_pixmap_get_format(self) == lh_ui_pixmap_format_rgb565_swapped;
     lh_usize_t i;
@@ -768,19 +799,21 @@ lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_by
     for (i = 0U; i + 8U <= count; i += 8U)
     {
         _mm_storeu_si128(lh_ptr_rcast(__m128i, at + i),
-                         lh_ui_pixmap_blend_octet_m128(_mm_loadu_si128(lh_ptr_rcast(const __m128i, at + i)),
-                                                       _mm_loadl_epi64(lh_ptr_rcast(const __m128i, alpha + i)), src,
-                                                       swap));
+                         lh_ui_pixmap_blend_octet_m128(
+                             _mm_loadu_si128(lh_ptr_rcast(const __m128i, at + i)),
+                             _mm_loadl_epi64(lh_ptr_rcast(const __m128i, alpha + i)), src, swap));
     }
     lh_return_if(i == count);
     /* The tail is a block too, as in ::lh_ui_pixmap_blend_alpha_32_sse2. */
-    lh_ui_pixmap_scatter_16(at + i, count - i,
-                            lh_ui_pixmap_blend_octet_m128(lh_ui_pixmap_gather_16(at + i, count - i),
-                                                          lh_ui_pixmap_gather_alpha(alpha + i, count - i), src, swap));
+    lh_ui_pixmap_scatter_16(
+        at + i, count - i,
+        lh_ui_pixmap_blend_octet_m128(lh_ui_pixmap_gather_16(at + i, count - i),
+                                      lh_ui_pixmap_gather_alpha(alpha + i, count - i), src, swap));
 }
 
 lh_void
-lh_ui_pixmap_blend_cover_16_sse2(lh_u16_t *at, lh_usize_t count, lh_u64_t cover, lh_u32_t src, lh_bool_t swap)
+lh_ui_pixmap_blend_cover_16_sse2(lh_u16_t *at, lh_usize_t count, lh_u64_t cover, lh_u32_t src,
+                                 lh_bool_t swap)
 {
     const __m128i a8 = _mm_loadl_epi64(lh_ptr_rcast(const __m128i, lh_addr_of(cover)));
 
@@ -788,16 +821,18 @@ lh_ui_pixmap_blend_cover_16_sse2(lh_u16_t *at, lh_usize_t count, lh_u64_t cover,
     if (count == 8U)
     {
         _mm_storeu_si128(lh_ptr_rcast(__m128i, at),
-                         lh_ui_pixmap_blend_octet_m128(_mm_loadu_si128(lh_ptr_rcast(const __m128i, at)), a8, src, swap));
+                         lh_ui_pixmap_blend_octet_m128(
+                             _mm_loadu_si128(lh_ptr_rcast(const __m128i, at)), a8, src, swap));
         return;
     }
-    lh_ui_pixmap_scatter_16(at, count, lh_ui_pixmap_blend_octet_m128(lh_ui_pixmap_gather_16(at, count), a8, src, swap));
+    lh_ui_pixmap_scatter_16(
+        at, count, lh_ui_pixmap_blend_octet_m128(lh_ui_pixmap_gather_16(at, count), a8, src, swap));
 }
 #endif /* LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 */
 
 lh_void
-lh_ui_pixmap_blend_16_pair_at(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha, lh_u32_t src,
-                              lh_u32_t solid)
+lh_ui_pixmap_blend_16_pair_at(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha,
+                              lh_u32_t src, lh_u32_t solid)
 {
     /* Each pixel through its own 16-bit access (a 32-bit lvalue on a 16-bit buffer
        is an aliasing violation; the compiler may merge the two). Joining them into
@@ -818,8 +853,8 @@ lh_ui_pixmap_pack_rgb(const lh_ui_pixmap_t *self, lh_u32_t src)
 }
 
 lh_void
-lh_ui_pixmap_blend_alpha_16_words(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha, lh_usize_t count,
-                                  lh_u32_t src)
+lh_ui_pixmap_blend_alpha_16_words(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha,
+                                  lh_usize_t count, lh_u32_t src)
 {
     const lh_u32_t solid = lh_ui_pixmap_order_16(self, lh_ui_pixmap_pack_rgb(self, src));
     lh_usize_t i = 0U;
@@ -828,7 +863,8 @@ lh_ui_pixmap_blend_alpha_16_words(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_b
        before that and an odd last one go alone. */
     if (count > 0U && (lh_ptr_to_uaddr(at) & 2U) != 0U)
     {
-        at[0] = lh_cast_static(lh_u16_t, lh_ui_pixmap_blend_16_one(self, at[0], src, solid, alpha[0]));
+        at[0] =
+            lh_cast_static(lh_u16_t, lh_ui_pixmap_blend_16_one(self, at[0], src, solid, alpha[0]));
         i = 1U;
     }
     for (; i + 2U <= count; i += 2U)
@@ -837,13 +873,14 @@ lh_ui_pixmap_blend_alpha_16_words(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_b
     }
     if (i < count)
     {
-        at[i] = lh_cast_static(lh_u16_t, lh_ui_pixmap_blend_16_one(self, at[i], src, solid, alpha[i]));
+        at[i] =
+            lh_cast_static(lh_u16_t, lh_ui_pixmap_blend_16_one(self, at[i], src, solid, alpha[i]));
     }
 }
 
 lh_void
-lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha, lh_usize_t count,
-                            lh_u32_t src)
+lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cptr alpha,
+                            lh_usize_t count, lh_u32_t src)
 {
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
     if (lh_cpu_simd_has_sse2())
@@ -856,22 +893,25 @@ lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, lh_byte_cp
 }
 
 lh_void
-lh_ui_pixmap_blend_alpha_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_u32_t src,
-                              lh_byte_cptr alpha)
+lh_ui_pixmap_blend_alpha_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                              lh_u32_t src, lh_byte_cptr alpha)
 {
     lh_byte_ptr at = lh_ui_pixmap_get_address(self, x0, y);
 
     lh_return_if(x1 <= x0);
     if (lh_ui_pixmap_format_is_16(self->format))
     {
-        lh_ui_pixmap_blend_alpha_16(self, lh_ptr_rcast(lh_u16_t, at), alpha, lh_cast_static(lh_usize_t, x1 - x0), src);
+        lh_ui_pixmap_blend_alpha_16(self, lh_ptr_rcast(lh_u16_t, at), alpha,
+                                    lh_cast_static(lh_usize_t, x1 - x0), src);
         return;
     }
-    lh_ui_pixmap_blend_alpha_32(self, lh_ptr_rcast(lh_u32_t, at), alpha, lh_cast_static(lh_usize_t, x1 - x0), src);
+    lh_ui_pixmap_blend_alpha_32(self, lh_ptr_rcast(lh_u32_t, at), alpha,
+                                lh_cast_static(lh_usize_t, x1 - x0), src);
 }
 
 lh_void
-lh_ui_pixmap_blend_cover_8(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_s32_t count, lh_u64_t cover, lh_u32_t src)
+lh_ui_pixmap_blend_cover_8(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_s32_t count,
+                           lh_u64_t cover, lh_u32_t src)
 {
     lh_byte_t alpha[8];
     lh_s32_t i;
@@ -884,11 +924,13 @@ lh_ui_pixmap_blend_cover_8(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_s32_
 
         if (lh_ui_pixmap_format_is_16(self->format))
         {
-            lh_ui_pixmap_blend_cover_16_sse2(lh_ptr_rcast(lh_u16_t, at), lh_cast_static(lh_usize_t, count), cover, src,
+            lh_ui_pixmap_blend_cover_16_sse2(lh_ptr_rcast(lh_u16_t, at),
+                                             lh_cast_static(lh_usize_t, count), cover, src,
                                              self->format == lh_ui_pixmap_format_rgb565_swapped);
             return;
         }
-        lh_ui_pixmap_blend_cover_32_sse2(lh_ptr_rcast(lh_u32_t, at), lh_cast_static(lh_usize_t, count), cover, src);
+        lh_ui_pixmap_blend_cover_32_sse2(lh_ptr_rcast(lh_u32_t, at),
+                                         lh_cast_static(lh_usize_t, count), cover, src);
         return;
     }
 #endif
@@ -900,7 +942,8 @@ lh_ui_pixmap_blend_cover_8(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_s32_
 }
 
 lh_void
-lh_ui_pixmap_blend_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
+lh_ui_pixmap_blend_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                        const lh_ui_color_t *color)
 {
     lh_byte_t alpha[LH_UI_PIXMAP_RUN];
     lh_s32_t end;
@@ -909,12 +952,14 @@ lh_ui_pixmap_blend_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t
     for (; x0 < x1; x0 = end)
     {
         end = lh_math_min(x1, x0 + LH_UI_PIXMAP_RUN);
-        lh_ui_pixmap_blend_alpha_span(self, x0, end, y, lh_ui_color_get_argb(color) & 0x00FFFFFFU, alpha);
+        lh_ui_pixmap_blend_alpha_span(self, x0, end, y, lh_ui_color_get_argb(color) & 0x00FFFFFFU,
+                                      alpha);
     }
 }
 
 lh_void
-lh_ui_pixmap_fill_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
+lh_ui_pixmap_fill_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                       const lh_ui_color_t *color)
 {
     if (lh_ui_color_get_a(color) == LH_BYTE_T_MAX)
     {
@@ -953,7 +998,8 @@ lh_ui_pixmap_fill_colors_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh
 }
 
 lh_void
-lh_ui_pixmap_store_box(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t y0, lh_s32_t x1, lh_s32_t y1, lh_u32_t word)
+lh_ui_pixmap_store_box(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t y0, lh_s32_t x1, lh_s32_t y1,
+                       lh_u32_t word)
 {
     lh_s32_t y;
 

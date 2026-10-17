@@ -29,7 +29,7 @@
 #include <lh/char/interval/types.h>
 #include <lh/numeric/interval/initializer.h>
 
-/* ── unsigned interval ─────────────────────────────────────────────────── */
+/* -- unsigned interval ----------------------------------------------------- */
 
 /**
  * @var LH_UCHAR_T_INTERVAL
@@ -41,7 +41,7 @@
 static const lh_uchar_interval_t LH_UCHAR_T_INTERVAL =
     lh_numeric_interval_initializer_unsigned(lh_uchar_t, lh_interval_flags_closed);
 
-/* ── signed interval ───────────────────────────────────────────────────── */
+/* -- signed interval ------------------------------------------------------- */
 
 /**
  * @var LH_SCHAR_T_INTERVAL
@@ -53,7 +53,7 @@ static const lh_uchar_interval_t LH_UCHAR_T_INTERVAL =
 static const lh_schar_interval_t LH_SCHAR_T_INTERVAL =
     lh_numeric_interval_initializer_signed(lh_schar_t, lh_interval_flags_closed);
 
-/* ── sizes ──────────────────────────────────────────────────────────────── */
+/* -- sizes ----------------------------------------------------------------- */
 
 #ifndef LH_UCHAR_T_SIZE
 /**
@@ -83,7 +83,7 @@ static const lh_schar_interval_t LH_SCHAR_T_INTERVAL =
 #    define LH_CHAR_T_SIZE lh_type_size(lh_char_t)
 #endif /* LH_CHAR_T_SIZE */
 
-/* ── unsigned limits ───────────────────────────────────────────────────── */
+/* -- unsigned limits ------------------------------------------------------- */
 
 #ifndef LH_UCHAR_T_MIN
 /**
@@ -105,7 +105,7 @@ static const lh_schar_interval_t LH_SCHAR_T_INTERVAL =
 #    define LH_UCHAR_T_MAX LH_UCHAR_T_INTERVAL.bounds.second
 #endif /* LH_UCHAR_T_MAX */
 
-/* ── signed limits ─────────────────────────────────────────────────────── */
+/* -- signed limits --------------------------------------------------------- */
 
 #ifndef LH_SCHAR_T_MIN
 /**

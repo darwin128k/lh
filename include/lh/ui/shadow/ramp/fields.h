@@ -14,8 +14,8 @@
  *
  * @param levels ::LH_UI_SHADOW_RAMP_LEVELS.
  */
-#define lh_ui_shadow_ramp_fields(levels)                                                            \
-    lh_u64_t square[levels];                                                                        \
+#define lh_ui_shadow_ramp_fields(levels)                                                           \
+    lh_u64_t square[levels];                                                                       \
     lh_s32_t count
 
 #endif /* LH_UI_SHADOW_RAMP_FIELDS_H */

@@ -37,7 +37,7 @@ typedef struct lh_exception_origin lh_exception_origin_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* oo accessors ooooooooooooooooooooooooooooooooooooooooooo */
+/* -- getters --------------------------------------------------------------- */
 
 /**
  * @brief Return the source file stored in @p self.
@@ -80,7 +80,7 @@ lh_exception_origin_get_message(const lh_exception_origin_t *self);
 lh_uint_t
 lh_exception_origin_get_line(const lh_exception_origin_t *self);
 
-/* oo predicates oooooooooooooooooooooooooooooooooooooooooo */
+/* -- predicates ------------------------------------------------------------ */
 
 /**
  * @brief Test whether @p self has a non-empty source file.

@@ -33,7 +33,7 @@ typedef enum lh_ui_gradient_shape
 {
     lh_ui_gradient_shape_linear = 0, /**< Along a line at ::lh_ui_gradient_get_angle. */
     lh_ui_gradient_shape_radial      /**< Out from the middle to the farthest corner. */
-} lh_ui_gradient_shape_t; /**< How the stops lie over a box. */
+} lh_ui_gradient_shape_t;            /**< How the stops lie over a box. */
 
 /**
  * @struct lh_ui_gradient
@@ -42,8 +42,8 @@ typedef enum lh_ui_gradient_shape
 struct lh_ui_gradient
 {
     /** Members: ::lh_ui_gradient_fields. */
-    lh_ui_gradient_fields(lh_ui_gradient_stop_t, lh_ui_gradient_stop_count_t, lh_ui_gradient_shape_t,
-                          lh_s16_t);
+    lh_ui_gradient_fields(lh_ui_gradient_stop_t, lh_ui_gradient_stop_count_t,
+                          lh_ui_gradient_shape_t, lh_s16_t);
 };
 /** @copybrief lh_ui_gradient */
 typedef struct lh_ui_gradient lh_ui_gradient_t;
@@ -65,8 +65,8 @@ lh_ui_gradient_init(lh_ui_gradient_t *self);
  * in `1..LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS`.
  */
 lh_void
-lh_ui_gradient_init_stops(lh_ui_gradient_t *self, const lh_ui_color_t *colors, const lh_byte_ptr fracs,
-                          lh_ui_gradient_stop_count_t num_stops);
+lh_ui_gradient_init_stops(lh_ui_gradient_t *self, const lh_ui_color_t *colors,
+                          const lh_byte_ptr fracs, lh_ui_gradient_stop_count_t num_stops);
 
 /**
  * @brief Number of used stops in @p self.
@@ -115,7 +115,8 @@ lh_ui_gradient_get_angle(const lh_ui_gradient_t *self);
  *        @p rect, `0 .. 255`: the first stop's end of the box is 0.
  */
 lh_byte_t
-lh_ui_gradient_frac_at(const lh_ui_gradient_t *self, const lh_ui_rect_t *rect, lh_s32_t x, lh_s32_t y);
+lh_ui_gradient_frac_at(const lh_ui_gradient_t *self, const lh_ui_rect_t *rect, lh_s32_t x,
+                       lh_s32_t y);
 
 /**
  * @brief The colour of @p self at @p frac on its stop axis: the stops either side

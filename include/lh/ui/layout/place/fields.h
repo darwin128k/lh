@@ -17,12 +17,12 @@
  * @param insets_type    Type of ::lh_ui_insets_t, for the margin.
  * @param size_type      Type of ::lh_ui_size_t, for the minimum and the maximum.
  */
-#define lh_ui_place_fields(size_mode_type, scalar_type, align_type, insets_type, size_type) \
-    size_mode_type size_mode;                                                               \
-    scalar_type size;                                                                       \
-    align_type align;                                                                       \
-    insets_type margin;                                                                     \
-    size_type min;                                                                          \
+#define lh_ui_place_fields(size_mode_type, scalar_type, align_type, insets_type, size_type)        \
+    size_mode_type size_mode;                                                                      \
+    scalar_type size;                                                                              \
+    align_type align;                                                                              \
+    insets_type margin;                                                                            \
+    size_type min;                                                                                 \
     size_type max
 
 #endif /* LH_UI_LAYOUT_PLACE_FIELDS_H */

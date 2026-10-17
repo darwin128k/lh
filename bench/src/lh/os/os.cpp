@@ -61,7 +61,7 @@ loopback(lh_net_port_t port)
 
 } // namespace
 
-/* ── Clocks ───────────────────────────────────────────────────────────────── */
+/* -- Clocks ---------------------------------------------------------------- */
 
 static void
 BM_os_tick_us(benchmark::State &state)
@@ -96,7 +96,7 @@ BM_os_timestamp_now(benchmark::State &state)
 }
 BENCHMARK(BM_os_timestamp_now);
 
-/* ── Files ────────────────────────────────────────────────────────────────── */
+/* -- Files ----------------------------------------------------------------- */
 
 /** Open, write the argument's bytes, close: a whole small-file save. */
 static void
@@ -212,7 +212,7 @@ BM_os_fs_dir_list(benchmark::State &state)
 }
 BENCHMARK(BM_os_fs_dir_list)->Unit(benchmark::kMicrosecond);
 
-/* ── Sockets over loopback ────────────────────────────────────────────────── */
+/* -- Sockets over loopback ------------------------------------------------- */
 
 /** One request and its echo of the argument's bytes over a connected TCP pair. */
 static void

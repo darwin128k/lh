@@ -268,7 +268,8 @@ lh_ui_view_clear_whole_areas(lh_ui_view_t *self);
  * buffer and a longer present for nothing.
  */
 lh_void
-lh_ui_view_area_whole(const lh_ui_view_t *self, const lh_ui_rect_t *area, const lh_ui_rect_t *reach, lh_ui_rect_t *out);
+lh_ui_view_area_whole(const lh_ui_view_t *self, const lh_ui_rect_t *area, const lh_ui_rect_t *reach,
+                      lh_ui_rect_t *out);
 
 /**
  * @brief Draw @p self strip by strip, skipping the strips @p damage does not
@@ -562,7 +563,8 @@ lh_ui_view_release(lh_ui_view_t *self, lh_ui_point_t point);
  *        Returns ::lh_ui_view_damage_scroll.
  */
 lh_bool_t
-lh_ui_view_scroll_by(lh_ui_view_t *self, lh_ui_container_t *box, lh_ui_scalar_t dx, lh_ui_scalar_t dy);
+lh_ui_view_scroll_by(lh_ui_view_t *self, lh_ui_container_t *box, lh_ui_scalar_t dx,
+                     lh_ui_scalar_t dy);
 
 /**
  * @brief Scroll the container under @p point
@@ -574,7 +576,7 @@ lh_ui_view_scroll_by(lh_ui_view_t *self, lh_ui_container_t *box, lh_ui_scalar_t 
 lh_bool_t
 lh_ui_view_wheel(lh_ui_view_t *self, lh_ui_point_t point, lh_ui_scalar_t dx, lh_ui_scalar_t dy);
 
-/* ── Focus and keys ──────────────────────────────────────────────────────── */
+/* -- Focus and keys -------------------------------------------------------- */
 
 /**
  * @brief The entity keys go to, or ::lh_null.

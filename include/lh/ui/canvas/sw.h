@@ -66,7 +66,7 @@ typedef struct lh_ui_canvas_sw_shadow_pass lh_ui_canvas_sw_shadow_pass_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Lifetime ────────────────────────────────────────────────────────────── */
+/* -- Lifetime -------------------------------------------------------------- */
 
 /**
  * @brief No pixmap yet: every write is cut away.
@@ -106,7 +106,7 @@ lh_ui_canvas_sw_is_rounded(const lh_ui_canvas_sw_t *self);
 lh_ui_canvas_sw_t *
 lh_ui_canvas_sw_from(lh_ptr context);
 
-/* ── Cutting to the limit ────────────────────────────────────────────────── */
+/* -- Cutting to the limit -------------------------------------------------- */
 
 /**
  * @brief @p x moved right to the first column of the limit, if before it.
@@ -132,7 +132,7 @@ lh_ui_canvas_sw_cut_y0(const lh_ui_canvas_sw_t *self, lh_s32_t y);
 lh_s32_t
 lh_ui_canvas_sw_cut_y1(const lh_ui_canvas_sw_t *self, lh_s32_t y);
 
-/* ── Pixels and rows ─────────────────────────────────────────────────────── */
+/* -- Pixels and rows ------------------------------------------------------- */
 
 /**
  * @brief Alpha a shape edge pixel is painted with: @p alpha at the shape
@@ -140,7 +140,8 @@ lh_ui_canvas_sw_cut_y1(const lh_ui_canvas_sw_t *self, lh_s32_t y);
  *        the order the canvas fallback rounds in.
  */
 lh_byte_t
-lh_ui_canvas_sw_edge_alpha(const lh_ui_canvas_sw_t *self, lh_byte_t alpha, lh_byte_t coverage, lh_s32_t x, lh_s32_t y);
+lh_ui_canvas_sw_edge_alpha(const lh_ui_canvas_sw_t *self, lh_byte_t alpha, lh_byte_t coverage,
+                           lh_s32_t x, lh_s32_t y);
 
 /**
  * @brief Paint `x0 .. x1 - 1` of row @p y (at most ::LH_UI_PIXMAP_RUN, cut
@@ -149,8 +150,8 @@ lh_ui_canvas_sw_edge_alpha(const lh_ui_canvas_sw_t *self, lh_byte_t alpha, lh_by
  *        (::lh_ui_canvas_sw_edge_alpha), then one row kernel blends the run.
  */
 lh_void
-lh_ui_canvas_sw_blend_run(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color,
-                          lh_byte_ptr coverage);
+lh_ui_canvas_sw_blend_run(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                          const lh_ui_color_t *color, lh_byte_ptr coverage);
 
 /**
  * @brief Paint `x0 .. x1 - 1` of row @p y with @p color at its clip coverage
@@ -166,30 +167,31 @@ lh_ui_canvas_sw_clip_pixels(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, l
  *        under rounded cuts its middle as a span and its ends per pixel.
  */
 lh_void
-lh_ui_canvas_sw_fill_span(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
+lh_ui_canvas_sw_fill_span(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                          const lh_ui_color_t *color);
 
 /**
  * @brief ::lh_ui_canvas_sw_fill_span on rows `y0 .. y1 - 1`.
  */
 lh_void
-lh_ui_canvas_sw_fill_rows(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t y0, lh_s32_t x1, lh_s32_t y1,
-                          const lh_ui_color_t *color);
+lh_ui_canvas_sw_fill_rows(lh_ui_canvas_sw_t *self, lh_s32_t x0, lh_s32_t y0, lh_s32_t x1,
+                          lh_s32_t y1, const lh_ui_color_t *color);
 
 /**
  * @brief One run (at most ::LH_UI_PIXMAP_RUN, cut already) of
  *        ::lh_ui_canvas_sw_cover_span.
  */
 lh_void
-lh_ui_canvas_sw_cover_run(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0,
-                          lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
+lh_ui_canvas_sw_cover_run(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+                          lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
 
 /**
  * @brief Pixels `x0 .. x1 - 1` of row @p y at their coverage of the rounded
  *        @p rect (::lh_ui_radius_coverage), cut to the limit across, in runs.
  */
 lh_void
-lh_ui_canvas_sw_cover_span(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0,
-                           lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
+lh_ui_canvas_sw_cover_span(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+                           lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
 
 /**
  * @brief One run (at most ::LH_UI_PIXMAP_RUN, cut already) of
@@ -197,8 +199,8 @@ lh_ui_canvas_sw_cover_span(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh
  *        ::lh_ui_radius_run.
  */
 lh_void
-lh_ui_canvas_sw_cover_run_row(lh_ui_canvas_sw_t *self, const struct lh_ui_radius_run *run, lh_s32_t x0, lh_s32_t x1,
-                              lh_s32_t y, const lh_ui_color_t *color);
+lh_ui_canvas_sw_cover_run_row(lh_ui_canvas_sw_t *self, const struct lh_ui_radius_run *run,
+                              lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
 
 /**
  * @brief ::lh_ui_canvas_sw_cover_span against an already prepared
@@ -212,8 +214,8 @@ lh_ui_canvas_sw_cover_run_row(lh_ui_canvas_sw_t *self, const struct lh_ui_radius
  * one array plus one kernel call was paying for.
  */
 lh_void
-lh_ui_canvas_sw_cover_span_run(lh_ui_canvas_sw_t *self, const struct lh_ui_radius_run *run, lh_s32_t x0, lh_s32_t x1,
-                               lh_s32_t y, const lh_ui_color_t *color);
+lh_ui_canvas_sw_cover_span_run(lh_ui_canvas_sw_t *self, const struct lh_ui_radius_run *run,
+                               lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
 
 /**
  * @brief Rows `y0 .. y1 - 1` of the rounded @p rect: the span wholly inside it
@@ -225,8 +227,8 @@ lh_ui_canvas_sw_cover_span_run(lh_ui_canvas_sw_t *self, const struct lh_ui_radiu
  * pixels as ::lh_ui_canvas_sw_round_row called per row.
  */
 lh_void
-lh_ui_canvas_sw_round_band(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y0,
-                           lh_s32_t y1, const lh_ui_color_t *color);
+lh_ui_canvas_sw_round_band(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+                           lh_s32_t y0, lh_s32_t y1, const lh_ui_color_t *color);
 
 /**
  * @brief Row @p y of the rounded @p rect: the span wholly inside it
@@ -235,24 +237,25 @@ lh_ui_canvas_sw_round_band(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh
  *        ::lh_ui_canvas_fill_round_rect_by_rects.
  */
 lh_void
-lh_ui_canvas_sw_round_row(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y,
-                          const lh_ui_color_t *color);
+lh_ui_canvas_sw_round_row(lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+                          lh_s32_t y, const lh_ui_color_t *color);
 
 /**
  * @brief One run of ::lh_ui_canvas_sw_mask_row: pixmap `x0 .. x1 - 1` of row
  *        @p y from mask pixel (@p mx, @p my) on.
  */
 lh_void
-lh_ui_canvas_sw_mask_run(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_s32_t mx, lh_s32_t my, lh_s32_t x0,
-                         lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
+lh_ui_canvas_sw_mask_run(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_s32_t mx,
+                         lh_s32_t my, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                         const lh_ui_color_t *color);
 
 /**
  * @brief Row @p y of @p mask placed with its top-left at (@p x0, @p y0): each
  *        pixel at its mask coverage, cut to the limit across.
  */
 lh_void
-lh_ui_canvas_sw_mask_row(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_s32_t x0, lh_s32_t y0, lh_s32_t y,
-                         const lh_ui_color_t *color);
+lh_ui_canvas_sw_mask_row(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_s32_t x0,
+                         lh_s32_t y0, lh_s32_t y, const lh_ui_color_t *color);
 
 /**
  * @brief Row @p y of @p mask (top-left pixel at @p x0, @p y0) in @p color, eight
@@ -262,10 +265,10 @@ lh_ui_canvas_sw_mask_row(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_s
  *        so); ::lh_ui_canvas_sw_mask_row is the row with one.
  */
 lh_void
-lh_ui_canvas_sw_cover_row(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_s32_t x0, lh_s32_t y0, lh_s32_t y,
-                          const lh_ui_color_t *color);
+lh_ui_canvas_sw_cover_row(lh_ui_canvas_sw_t *self, const lh_ui_mask_t *mask, lh_s32_t x0,
+                          lh_s32_t y0, lh_s32_t y, const lh_ui_color_t *color);
 
-/* ── Backend slots (context: ::lh_ui_canvas_sw_t) ────────────────────────── */
+/* -- Backend slots (context: ::lh_ui_canvas_sw_t) -------------------------- */
 
 /**
  * @brief Backend `clear`: store @p color in the whole pixmap (the clip does
@@ -311,23 +314,25 @@ lh_ui_canvas_sw_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_
  *        and draws nothing. @p out must not be null (::lh_assert_runtime_ref).
  */
 lh_bool_t
-lh_ui_canvas_sw_shadow_pass_init(const lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
-                                 const lh_ui_shadow_t *shadow, lh_ui_canvas_sw_shadow_pass_t *out);
+lh_ui_canvas_sw_shadow_pass_init(const lh_ui_canvas_sw_t *self, const lh_ui_rect_t *rect,
+                                 lh_ui_scalar_t radius, const lh_ui_shadow_t *shadow,
+                                 lh_ui_canvas_sw_shadow_pass_t *out);
 
 /**
  * @brief Blend the shadow of @p pass over pixels `x0 .. x1 - 1` of row @p y,
  *        cut to the clip (and its rounded edge).
  */
 lh_void
-lh_ui_canvas_sw_shadow_span(lh_ui_canvas_sw_t *self, const lh_ui_canvas_sw_shadow_pass_t *pass, lh_s32_t x0,
-                            lh_s32_t x1, lh_s32_t y);
+lh_ui_canvas_sw_shadow_span(lh_ui_canvas_sw_t *self, const lh_ui_canvas_sw_shadow_pass_t *pass,
+                            lh_s32_t x0, lh_s32_t x1, lh_s32_t y);
 
 /**
  * @brief Row @p y of the shadow of @p pass: both sides of the span the box
  *        covers wholly (::lh_ui_radius_full_span), which it skips.
  */
 lh_void
-lh_ui_canvas_sw_shadow_row(lh_ui_canvas_sw_t *self, const lh_ui_canvas_sw_shadow_pass_t *pass, lh_s32_t y);
+lh_ui_canvas_sw_shadow_row(lh_ui_canvas_sw_t *self, const lh_ui_canvas_sw_shadow_pass_t *pass,
+                           lh_s32_t y);
 
 /**
  * @brief Backend `shadow`: ::lh_ui_shadow_alpha_at_pixel over the box grown by
@@ -346,16 +351,17 @@ lh_ui_canvas_sw_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t 
  * not draw.
  */
 lh_bool_t
-lh_ui_canvas_sw_blur(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t blur_radius, lh_u8_t *scratch,
-                     lh_usize_t bytes);
+lh_ui_canvas_sw_blur(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t blur_radius,
+                     lh_u8_t *scratch, lh_usize_t bytes);
 
 /**
  * @brief Backend `glass`: blur what is behind the rect, writing only where the
  *        rounded rect covers, then fill that rounded rect with the tint.
  */
 lh_bool_t
-lh_ui_canvas_sw_glass(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t corner, lh_ui_scalar_t blur_radius,
-                      const lh_ui_color_t *tint, lh_u8_t *scratch, lh_usize_t bytes);
+lh_ui_canvas_sw_glass(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t corner,
+                      lh_ui_scalar_t blur_radius, const lh_ui_color_t *tint, lh_u8_t *scratch,
+                      lh_usize_t bytes);
 
 /**
  * @brief Backend `fill_colors`: each row inside the limit, ::lh_ui_pixmap_fill_colors_span

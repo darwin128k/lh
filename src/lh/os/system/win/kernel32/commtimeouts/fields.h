@@ -12,7 +12,7 @@
  *
  * @param dword_type `DWORD` (::lh_os_system_win_dword_t).
  */
-#define lh_os_system_win_commtimeouts_fields(dword_type) \
+#define lh_os_system_win_commtimeouts_fields(dword_type)                                           \
     dword_type ReadIntervalTimeout;                                                                \
     dword_type ReadTotalTimeoutMultiplier;                                                         \
     dword_type ReadTotalTimeoutConstant;                                                           \

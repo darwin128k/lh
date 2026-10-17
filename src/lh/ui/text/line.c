@@ -24,9 +24,11 @@ lh_ui_text_line_init(lh_ui_text_line_t *self)
 static lh_void
 lh_ui_text_line_take_ink(lh_ui_text_line_t *self, const lh_ui_font_t *font, lh_u32_t index)
 {
-    const lh_ui_scalar_t at = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_ascent(font) + lh_ui_font_get_top_at(font, index));
+    const lh_ui_scalar_t at = lh_cast_static(
+        lh_ui_scalar_t, lh_ui_font_get_ascent(font) + lh_ui_font_get_top_at(font, index));
     const lh_ui_scalar_t to =
-        at + lh_cast_static(lh_ui_scalar_t, lh_ui_mask_get_height(lh_ui_font_get_glyph_at(font, index)));
+        at +
+        lh_cast_static(lh_ui_scalar_t, lh_ui_mask_get_height(lh_ui_font_get_glyph_at(font, index)));
 
     lh_return_if(to <= at); /* a space: it moves the pen and draws nothing */
     if (!self->inked || at < self->ink_top)
@@ -81,7 +83,8 @@ lh_ui_text_line_measure(lh_ui_text_line_t *self, const lh_ui_font_t *font, const
         lh_u32_t index = 0U;
         const lh_bool_t found = lh_ui_font_find_index(font, code, lh_addr_of(index));
         const lh_ui_scalar_t advance =
-            found ? lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance_at(font, index)) : lh_ui_scalar(0);
+            found ? lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance_at(font, index))
+                  : lh_ui_scalar(0);
 
         if (lh_ui_text_is_line_end(code))
         {
@@ -89,7 +92,8 @@ lh_ui_text_line_measure(lh_ui_text_line_t *self, const lh_ui_font_t *font, const
             break;
         }
         /* A space may hang past the edge: it is where the line breaks, not ink. */
-        if (width > lh_ui_scalar(0) && code != lh_cast_static(lh_u32_t, ' ') && self->width + advance > width)
+        if (width > lh_ui_scalar(0) && code != lh_cast_static(lh_u32_t, ' ') &&
+            self->width + advance > width)
         {
             if (has_space)
             {
@@ -149,7 +153,8 @@ lh_ui_text_line_measure_ink(lh_ui_text_line_t *self, const lh_ui_font_t *font)
     {
         lh_u32_t index = 0U;
 
-        if (lh_ui_font_find_index(font, lh_ui_text_next_code(lh_addr_of(cursor)), lh_addr_of(index)))
+        if (lh_ui_font_find_index(font, lh_ui_text_next_code(lh_addr_of(cursor)),
+                                  lh_addr_of(index)))
         {
             lh_ui_text_line_take_ink(self, font, index);
         }
@@ -205,7 +210,8 @@ lh_ui_text_line_get_ink_rect(const lh_ui_text_line_t *self, lh_ui_point_t origin
 }
 
 lh_ui_scalar_t
-lh_ui_text_line_get_shift(const lh_ui_text_line_t *self, lh_ui_scalar_t block, lh_ui_text_align_h_t align)
+lh_ui_text_line_get_shift(const lh_ui_text_line_t *self, lh_ui_scalar_t block,
+                          lh_ui_text_align_h_t align)
 {
     const lh_ui_scalar_t width = lh_ui_text_line_get_width(self);
 

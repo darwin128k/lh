@@ -18,7 +18,7 @@
  * - `children`: the blocks this one owns, oldest first.
  * - `destructor`: run before the block is freed, or null.
  */
-#define lh_memory_tree_header_fields(allocator_type, header_type, node_type, list_type,           \
+#define lh_memory_tree_header_fields(allocator_type, header_type, node_type, list_type,            \
                                      destructor_type)                                              \
     allocator_type *allocator;                                                                     \
     header_type *parent;                                                                           \

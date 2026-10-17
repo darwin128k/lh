@@ -35,14 +35,14 @@
  * @param count_type  Type of a count.
  * @param range_type  Type of one run (::lh_ui_font_range_t).
  */
-#define lh_ui_font_fields(byte_type, mask_type, length_type, count_type, range_type)                    \
-    const mask_type *glyphs;                                                                            \
-    const byte_type *advances;                                                                          \
-    const length_type *tops;                                                                            \
-    const range_type *ranges;                                                                           \
-    length_type line_height;                                                                            \
-    length_type ascent;                                                                                 \
-    length_type cap_height;                                                                             \
+#define lh_ui_font_fields(byte_type, mask_type, length_type, count_type, range_type)               \
+    const mask_type *glyphs;                                                                       \
+    const byte_type *advances;                                                                     \
+    const length_type *tops;                                                                       \
+    const range_type *ranges;                                                                      \
+    length_type line_height;                                                                       \
+    length_type ascent;                                                                            \
+    length_type cap_height;                                                                        \
     count_type range_count
 
 #endif /* LH_UI_FONT_FIELDS_H */

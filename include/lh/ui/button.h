@@ -35,14 +35,15 @@
 struct lh_ui_button
 {
     /** Members: ::lh_ui_button_fields. */
-    lh_ui_button_fields(lh_ui_container_t, lh_ui_style_t, lh_bool_t, lh_ui_button_on_click_cb, lh_ptr);
+    lh_ui_button_fields(lh_ui_container_t, lh_ui_style_t, lh_bool_t, lh_ui_button_on_click_cb,
+                        lh_ptr);
 };
 /** @copybrief lh_ui_button */
 typedef struct lh_ui_button lh_ui_button_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Class ───────────────────────────────────────────────────────────────── */
+/* -- Class ----------------------------------------------------------------- */
 
 /**
  * @brief Class of ::lh_ui_button_t, derived from ::lh_ui_entity_class.
@@ -65,7 +66,7 @@ lh_ui_button_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *
 lh_void
 lh_ui_button_on_click(const struct lh_ui_button *self, const lh_ui_entity_event_t *event);
 
-/* ── Lifetime and fields ─────────────────────────────────────────────────── */
+/* -- Lifetime and fields --------------------------------------------------- */
 
 /**
  * @brief A button at @p rect: no styles, not hovered, no callback.
@@ -97,7 +98,7 @@ lh_ui_button_as_container(lh_ui_button_t *self);
 lh_ui_button_t *
 lh_ui_entity_as_button(lh_ui_entity_t *entity);
 
-/* ── Looks ───────────────────────────────────────────────────────────────── */
+/* -- Looks ----------------------------------------------------------------- */
 
 /**
  * @brief The resting style of @p self (not owned, ::lh_null for none). It shows
@@ -136,7 +137,7 @@ lh_ui_button_set_hot_style(lh_ui_button_t *self, const lh_ui_style_t *style);
 const lh_ui_style_t *
 lh_ui_button_get_style_now(const lh_ui_button_t *self);
 
-/* ── Hover ───────────────────────────────────────────────────────────────── */
+/* -- Hover ----------------------------------------------------------------- */
 
 /**
  * @brief True while the pointer is on @p self.
@@ -152,7 +153,7 @@ lh_ui_button_get_hot(const lh_ui_button_t *self);
 lh_void
 lh_ui_button_set_hot(lh_ui_button_t *self, lh_bool_t hot);
 
-/* ── Click ───────────────────────────────────────────────────────────────── */
+/* -- Click ----------------------------------------------------------------- */
 
 /**
  * @brief Who to tell about a click on @p self, and with what context

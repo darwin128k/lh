@@ -4,7 +4,7 @@
 #include <lh/os/error/code.h>
 #include <lh/runtime/allocator.h>
 
-/* ── accessors ───────────────────────────────────────────────────────────── */
+/* -- accessors ------------------------------------------------------------- */
 
 LH_ATTRIBUTE_STATIC
 lh_os_shared_t *
@@ -132,7 +132,7 @@ lh_os_module_set_loader(lh_os_module_t *self, lh_os_loader_t *loader)
     self->loader = loader;
 }
 
-/* ── init / deinit ───────────────────────────────────────────────────────── */
+/* -- init / deinit --------------------------------------------------------- */
 
 lh_void
 lh_os_module_init(lh_os_module_t *self)
@@ -149,7 +149,8 @@ lh_os_module_init(lh_os_module_t *self)
 lh_os_module_t *
 lh_os_module_create(void)
 {
-    lh_os_module_t *const self = lh_ptr_cast(lh_os_module_t, lh_os_alloc(sizeof(lh_ptr_deref(self))));
+    lh_os_module_t *const self =
+        lh_ptr_cast(lh_os_module_t, lh_os_alloc(sizeof(lh_ptr_deref(self))));
 
     if (lh_null_ne(self))
     {
@@ -190,7 +191,7 @@ lh_os_module_revoke_loader(lh_os_module_t *self)
     lh_os_module_set_loader(self, lh_null);
 }
 
-/* ── privilege ───────────────────────────────────────────────────────────── */
+/* -- privilege ------------------------------------------------------------- */
 
 lh_bool_t
 lh_os_module_start(lh_os_module_t *self)
@@ -226,7 +227,7 @@ lh_os_module_stop(lh_os_module_t *self)
     lh_os_module_set_started(self, lh_bool_false);
 }
 
-/* ── lifecycle ───────────────────────────────────────────────────────────── */
+/* -- lifecycle ------------------------------------------------------------- */
 
 lh_bool_t
 lh_os_module_open(lh_os_module_t *self, const lh_fs_path_t *path)
@@ -240,7 +241,7 @@ lh_os_module_bind(lh_os_module_t *self, lh_ptr addr)
     return lh_os_shared_bind(lh_os_module_get_image(self), addr);
 }
 
-/* ── image ───────────────────────────────────────────────────────────────── */
+/* -- image ----------------------------------------------------------------- */
 
 lh_bool_t
 lh_os_module_bind_executable(lh_os_module_t *self)
@@ -278,7 +279,7 @@ lh_os_module_destroy(lh_os_module_t *self)
     lh_runtime_allocator_free(self);
 }
 
-/* ── symbols ─────────────────────────────────────────────────────────────── */
+/* -- symbols --------------------------------------------------------------- */
 
 lh_ptr
 lh_os_module_get_sym(const lh_os_module_t *self, lh_str_cptr name)

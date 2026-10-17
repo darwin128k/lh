@@ -86,7 +86,7 @@ press_at(lh_ui_input_t *self, lh_ui_point_t at)
 
 } // namespace
 
-/* ── Lifetime ─────────────────────────────────────────────────────────────── */
+/* -- Lifetime -------------------------------------------------------------- */
 
 TEST(entity_input, init_keeps_the_buffer_and_starts_empty)
 {
@@ -118,7 +118,7 @@ TEST(entity_input, a_field_is_found_as_a_label_and_a_label_is_not_a_field)
     EXPECT_EQ(lh_ui_entity_as_input(lh_ui_label_as_entity(lh_addr_of(label))), static_cast<lh_ui_input_t *>(lh_null));
 }
 
-/* ── Text and editing ──────────────────────────────────────────────────────── */
+/* -- Text and editing ------------------------------------------------------ */
 
 TEST(entity_input, insert_at_the_end_appends_and_steps_over)
 {
@@ -318,7 +318,7 @@ TEST(entity_input, set_text_puts_the_caret_at_the_end_and_clear_puts_it_at_the_s
     EXPECT_EQ(lh_ui_input_get_caret(lh_addr_of(f.input)), 0);
 }
 
-/* ── Keys ─────────────────────────────────────────────────────────────────── */
+/* -- Keys ------------------------------------------------------------------ */
 
 TEST(entity_input, a_typed_character_is_inserted)
 {
@@ -414,7 +414,7 @@ TEST(entity_input, keys_before_the_focus_do_nothing)
     EXPECT_STREQ(lh_ui_input_get_text(lh_addr_of(f.input)), "A");
 }
 
-/* ── The caret ────────────────────────────────────────────────────────────── */
+/* -- The caret ------------------------------------------------------------- */
 
 TEST(entity_input, the_caret_sits_where_the_text_before_it_ends)
 {
@@ -565,7 +565,7 @@ TEST(entity_input, a_field_with_no_font_has_no_caret_rect)
     EXPECT_EQ(lh_ui_rect_is_empty(lh_addr_of(caret)), lh_bool_true);
 }
 
-/* ── The text calls this is built on ──────────────────────────────────────── */
+/* -- The text calls this is built on --------------------------------------- */
 
 TEST(entity_input, a_press_puts_the_caret_where_the_pointer_is)
 {

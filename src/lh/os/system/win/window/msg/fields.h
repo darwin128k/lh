@@ -15,13 +15,13 @@
  * @param wparam_type `WPARAM`.
  * @param lparam_type `LPARAM`.
  */
-#define lh_os_system_win_msg_fields(hwnd_type, dword_type, wparam_type, lparam_type)              \
-    hwnd_type   hwnd;                                                                             \
-    dword_type  message;                                                                          \
-    wparam_type wParam;                                                                           \
-    lparam_type lParam;                                                                           \
-    dword_type  time;                                                                             \
-    dword_type  pt_x;                                                                             \
-    dword_type  pt_y
+#define lh_os_system_win_msg_fields(hwnd_type, dword_type, wparam_type, lparam_type)               \
+    hwnd_type hwnd;                                                                                \
+    dword_type message;                                                                            \
+    wparam_type wParam;                                                                            \
+    lparam_type lParam;                                                                            \
+    dword_type time;                                                                               \
+    dword_type pt_x;                                                                               \
+    dword_type pt_y
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_WINDOW_MSG_FIELDS_H */

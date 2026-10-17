@@ -28,8 +28,8 @@ extern const lh_s32_t lh_ui_font_roboto_tops[];
 /** The runs of code points of ::lh_ui_font_roboto, in table order. */
 extern const lh_ui_font_range_t lh_ui_font_roboto_ranges[];
 
-/** Roboto-Regular at 16px, 224 glyphs over 7 run(s): U+0020-007E U+00A0-00AC U+00AE-00B7 U+00B9-00BF U+0400-045F U+2013-2014 U+2116-2116
- *  (4 bits per pixel). */
+/** Roboto-Regular at 16px, 224 glyphs over 7 run(s): U+0020-007E U+00A0-00AC U+00AE-00B7
+ * U+00B9-00BF U+0400-045F U+2013-2014 U+2116-2116 (4 bits per pixel). */
 extern const lh_ui_font_t lh_ui_font_roboto;
 
 LH_COMPILER_EXTERN_C_END

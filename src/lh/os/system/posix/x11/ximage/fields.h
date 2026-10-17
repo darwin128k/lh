@@ -12,7 +12,7 @@
  *        memory that `XPutImage` copies to a window. `f` is the six function pointers
  *        `XInitImage` fills in; nothing here calls them.
  */
-#define lh_os_system_posix_ximage_fields \
+#define lh_os_system_posix_ximage_fields                                                           \
     int width;                                                                                     \
     int height;                                                                                    \
     int xoffset;                                                                                   \

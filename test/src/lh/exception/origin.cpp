@@ -7,6 +7,8 @@
 namespace
 {
 
+/* -- getters --------------------------------------------------------------- */
+
 TEST(exception_origin, getters_read_filled_origin)
 {
     static const lh_exception_origin_t origin = {"file.c", "fn", "x > 0",
@@ -30,17 +32,6 @@ TEST(exception_origin, getters_return_stored_pointers)
     EXPECT_EQ(lh_exception_origin_get_message(&origin), origin.message);
 }
 
-TEST(exception_origin, has_is_true_on_filled_origin)
-{
-    static const lh_exception_origin_t origin = {"file.c", "fn", "x > 0",
-                                                 "x must be positive", 42u};
-
-    EXPECT_TRUE(lh_exception_origin_has_file(&origin));
-    EXPECT_TRUE(lh_exception_origin_has_function(&origin));
-    EXPECT_TRUE(lh_exception_origin_has_condition(&origin));
-    EXPECT_TRUE(lh_exception_origin_has_message(&origin));
-}
-
 TEST(exception_origin, getters_read_null_origin)
 {
     static const lh_exception_origin_t origin = {nullptr, nullptr, nullptr, nullptr, 0u};
@@ -50,6 +41,19 @@ TEST(exception_origin, getters_read_null_origin)
     EXPECT_EQ(lh_exception_origin_get_condition(&origin), nullptr);
     EXPECT_EQ(lh_exception_origin_get_message(&origin), nullptr);
     EXPECT_EQ(lh_exception_origin_get_line(&origin), 0u);
+}
+
+/* -- predicates ------------------------------------------------------------ */
+
+TEST(exception_origin, has_is_true_on_filled_origin)
+{
+    static const lh_exception_origin_t origin = {"file.c", "fn", "x > 0",
+                                                 "x must be positive", 42u};
+
+    EXPECT_TRUE(lh_exception_origin_has_file(&origin));
+    EXPECT_TRUE(lh_exception_origin_has_function(&origin));
+    EXPECT_TRUE(lh_exception_origin_has_condition(&origin));
+    EXPECT_TRUE(lh_exception_origin_has_message(&origin));
 }
 
 TEST(exception_origin, has_is_false_on_null_origin)

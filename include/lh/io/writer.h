@@ -46,7 +46,7 @@ typedef struct lh_io_writer lh_io_writer_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── set / init ──────────────────────────────────────────────────────────── */
+/* -- set / init ------------------------------------------------------------ */
 
 /**
  * @brief Copy the writer state from @p other into @p self.
@@ -97,7 +97,7 @@ lh_io_writer_init(lh_io_writer_t *self, lh_io_writer_write_cb write_cb, lh_ptr c
 lh_void
 lh_io_writer_deinit(lh_io_writer_t *self);
 
-/* ── accessors ───────────────────────────────────────────────────────────── */
+/* -- accessors ------------------------------------------------------------- */
 
 /**
  * @brief Get the current write callback from @p self.
@@ -115,7 +115,7 @@ lh_io_writer_get_write_cb(const lh_io_writer_t *self);
 lh_ptr
 lh_io_writer_get_context(const lh_io_writer_t *self);
 
-/* ── operation ───────────────────────────────────────────────────────────── */
+/* -- operation ------------------------------------------------------------- */
 
 /**
  * @brief Write @p size bytes from @p buf via @p self's callback.

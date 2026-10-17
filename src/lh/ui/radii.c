@@ -118,12 +118,14 @@ lh_ui_radii_get_at(const lh_ui_radii_t *self, const lh_ui_rect_t *rect, lh_s32_t
     const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
     const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
     /* Pixel centres against the middle, both doubled, so an odd box has no half. */
-    const lh_bool_t left =
-        lh_cast_static(lh_ui_scalar_t, (2 * x + 1))< 2 * lh_ui_point_get_x(origin) + lh_ui_size_get_width(size) ? lh_bool_true
-                                                                                                : lh_bool_false;
-    const lh_bool_t top =
-        lh_cast_static(lh_ui_scalar_t, (2 * y + 1))< 2 * lh_ui_point_get_y(origin) + lh_ui_size_get_height(size) ? lh_bool_true
-                                                                                                 : lh_bool_false;
+    const lh_bool_t left = lh_cast_static(lh_ui_scalar_t, (2 * x + 1)) <
+                                   2 * lh_ui_point_get_x(origin) + lh_ui_size_get_width(size)
+                               ? lh_bool_true
+                               : lh_bool_false;
+    const lh_bool_t top = lh_cast_static(lh_ui_scalar_t, (2 * y + 1)) <
+                                  2 * lh_ui_point_get_y(origin) + lh_ui_size_get_height(size)
+                              ? lh_bool_true
+                              : lh_bool_false;
 
     lh_assert_runtime_ref(self);
     if (top)

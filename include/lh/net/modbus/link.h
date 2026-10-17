@@ -36,7 +36,7 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Framing ─────────────────────────────────────────────────────────────── */
+/* -- Framing --------------------------------------------------------------- */
 
 /**
  * @brief How a request is wrapped for the wire it goes out on.
@@ -114,7 +114,7 @@ lh_bool_t
 lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, const lh_byte_ptr frame, lh_u16_t length,
              lh_byte_ptr pdu, lh_u16_t *pdu_length);
 
-/* ── Link ────────────────────────────────────────────────────────────────── */
+/* -- Link ------------------------------------------------------------------ */
 
 /** @brief How many words one link holds; the most a single read may ask for. */
 #define LH_MB_LINK_VALUES (lh_cast_static(lh_u16_t, LH_MB_READ_MAX))
@@ -135,10 +135,10 @@ lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, const lh_byte_ptr frame, lh_
  */
 typedef enum lh_mb_link_state
 {
-    lh_mb_link_idle = 0,  /**< nothing in flight */
-    lh_mb_link_waiting,   /**< a question is out and no answer has come back yet */
-    lh_mb_link_answered,  /**< an answer arrived and was parsed; ::lh_mb_link_take takes it */
-    lh_mb_link_failed     /**< the stream gave up, or the answer was not ours */
+    lh_mb_link_idle = 0, /**< nothing in flight */
+    lh_mb_link_waiting,  /**< a question is out and no answer has come back yet */
+    lh_mb_link_answered, /**< an answer arrived and was parsed; ::lh_mb_link_take takes it */
+    lh_mb_link_failed    /**< the stream gave up, or the answer was not ours */
 } lh_mb_link_state_t;
 
 /**
@@ -150,9 +150,9 @@ typedef enum lh_mb_link_state
  */
 typedef struct lh_mb_link_counters
 {
-    lh_u32_t sent;    /**< requests written to the stream */
-    lh_u32_t done;    /**< answers parsed in full */
-    lh_u32_t failed;  /**< timeouts and stream errors, and nothing else */
+    lh_u32_t sent;   /**< requests written to the stream */
+    lh_u32_t done;   /**< answers parsed in full */
+    lh_u32_t failed; /**< timeouts and stream errors, and nothing else */
     /** @brief Answers the device understood and refused: a Modbus exception.
      *
      *  **This is an answer, and it is the most useful one a device can give.** It
@@ -200,9 +200,9 @@ typedef struct lh_mb_link
      *  every ten seconds for the next eight hours.
      */
     lh_mb_status_t reason;
-    lh_u16_t address;   /**< what the question in flight asked for */
-    lh_u16_t expected;  /**< how many words it asked for */
-    lh_u16_t got;       /**< how many the answer carried */
+    lh_u16_t address;  /**< what the question in flight asked for */
+    lh_u16_t expected; /**< how many words it asked for */
+    lh_u16_t got;      /**< how many the answer carried */
     /** @brief The word a "write one register" sent, which its echo has to carry back. */
     lh_u16_t written;
     /** @brief Bytes received and not yet consumed.
@@ -214,7 +214,7 @@ typedef struct lh_mb_link
      *  stream that has lost its place empties it. Over RTU there is no length to
      *  find the next frame by, and it is emptied whenever a question ends. */
     lh_u16_t held;
-    lh_u16_t tx;        /**< next transaction id, for MBAP */
+    lh_u16_t tx; /**< next transaction id, for MBAP */
     /** @brief The transaction id of the question in flight, for MBAP.
      *
      *  The only thing that tells an answer to *this* question from a late answer
@@ -249,7 +249,7 @@ typedef struct lh_mb_link
     /** Not called by the link: a slot for the application's own notification. */
     lh_void (*on_change)(lh_ptr self, lh_ptr link);
     lh_ptr owner; /**< not read by the link: the application's own back pointer */
-} lh_mb_link_t; /**< One device: the question in flight, the answer, and what it cost. */
+} lh_mb_link_t;   /**< One device: the question in flight, the answer, and what it cost. */
 
 /**
  * @brief Point @p self at @p stream and start empty.

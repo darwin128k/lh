@@ -72,7 +72,8 @@ lh_memory_allocator_set(lh_memory_allocator_t *self, lh_memory_allocator_alloc_c
  * @brief Write only the allocation callback.
  */
 lh_void
-lh_memory_allocator_set_alloc_cb(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb);
+lh_memory_allocator_set_alloc_cb(lh_memory_allocator_t *self,
+                                 lh_memory_allocator_alloc_cb alloc_cb);
 
 /**
  * @brief Write only the deallocation callback.
@@ -166,7 +167,8 @@ lh_memory_allocator_realloc(lh_memory_allocator_t *self, lh_ptr old_ptr, lh_usiz
  * callbacks. Setting alloc or dealloc afterwards clears it again.
  */
 lh_void
-lh_memory_allocator_set_realloc_cb(lh_memory_allocator_t *self, lh_memory_allocator_realloc_cb realloc_cb);
+lh_memory_allocator_set_realloc_cb(lh_memory_allocator_t *self,
+                                   lh_memory_allocator_realloc_cb realloc_cb);
 
 /**
  * @brief Current native reallocation callback, or ::lh_null.

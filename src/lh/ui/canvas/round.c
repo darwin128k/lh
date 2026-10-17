@@ -56,7 +56,8 @@ lh_ui_canvas_round_is_corner_row(const lh_ui_rect_t *rect, lh_ui_scalar_t radius
     const lh_s32_t bottom = lh_ui_canvas_round_bottom(rect);
     const lh_s32_t zone = lh_ui_scalar_ceil_s32(radius);
 
-    return y < lh_ui_canvas_round_near_end(top, bottom, zone) || y >= lh_ui_canvas_round_far_start(top, bottom, zone)
+    return y < lh_ui_canvas_round_near_end(top, bottom, zone) ||
+                   y >= lh_ui_canvas_round_far_start(top, bottom, zone)
                ? lh_bool_true
                : lh_bool_false;
 }
@@ -64,11 +65,13 @@ lh_ui_canvas_round_is_corner_row(const lh_ui_rect_t *rect, lh_ui_scalar_t radius
 lh_bool_t
 lh_ui_canvas_round_has_row(const lh_ui_rect_t *rect, lh_s32_t y)
 {
-    return y >= lh_ui_canvas_round_top(rect) && y < lh_ui_canvas_round_bottom(rect) ? lh_bool_true : lh_bool_false;
+    return y >= lh_ui_canvas_round_top(rect) && y < lh_ui_canvas_round_bottom(rect) ? lh_bool_true
+                                                                                    : lh_bool_false;
 }
 
 lh_void
-lh_ui_canvas_round_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y, lh_s32_t *x0, lh_s32_t *x1)
+lh_ui_canvas_round_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y,
+                             lh_s32_t *x0, lh_s32_t *x1)
 {
     const lh_s32_t left = lh_ui_canvas_round_left(rect);
     const lh_s32_t right = lh_ui_canvas_round_right(rect);
@@ -136,8 +139,9 @@ lh_ui_canvas_fill_colors(struct lh_ui_canvas *self, lh_s32_t x, lh_s32_t y, lh_s
 }
 
 lh_void
-lh_ui_canvas_fill_coverage_pixel(struct lh_ui_canvas *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
-                                 lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color)
+lh_ui_canvas_fill_coverage_pixel(struct lh_ui_canvas *self, const lh_ui_rect_t *rect,
+                                 lh_ui_scalar_t radius, lh_s32_t x, lh_s32_t y,
+                                 const lh_ui_color_t *color)
 {
     const lh_byte_t cover = lh_ui_radius_coverage(rect, radius, x, y);
     lh_ui_color_t edge;
@@ -147,8 +151,9 @@ lh_ui_canvas_fill_coverage_pixel(struct lh_ui_canvas *self, const lh_ui_rect_t *
 }
 
 lh_void
-lh_ui_canvas_fill_coverage_span(struct lh_ui_canvas *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
-                                lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
+lh_ui_canvas_fill_coverage_span(struct lh_ui_canvas *self, const lh_ui_rect_t *rect,
+                                lh_ui_scalar_t radius, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                                const lh_ui_color_t *color)
 {
     lh_s32_t x;
     for (x = x0; x < x1; ++x)
@@ -158,26 +163,30 @@ lh_ui_canvas_fill_coverage_span(struct lh_ui_canvas *self, const lh_ui_rect_t *r
 }
 
 lh_void
-lh_ui_canvas_fill_coverage_row(struct lh_ui_canvas *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
-                               lh_s32_t y, const lh_ui_color_t *color)
+lh_ui_canvas_fill_coverage_row(struct lh_ui_canvas *self, const lh_ui_rect_t *rect,
+                               lh_ui_scalar_t radius, lh_s32_t y, const lh_ui_color_t *color)
 {
     const lh_s32_t left = lh_ui_canvas_round_left(rect);
     const lh_s32_t right = lh_ui_canvas_round_right(rect);
     const lh_s32_t zone = lh_ui_scalar_ceil_s32(radius);
-    lh_ui_canvas_fill_coverage_span(self, rect, radius, left, lh_ui_canvas_round_near_end(left, right, zone), y, color);
-    lh_ui_canvas_fill_coverage_span(self, rect, radius, lh_ui_canvas_round_far_start(left, right, zone), right, y, color);
+    lh_ui_canvas_fill_coverage_span(self, rect, radius, left,
+                                    lh_ui_canvas_round_near_end(left, right, zone), y, color);
+    lh_ui_canvas_fill_coverage_span(
+        self, rect, radius, lh_ui_canvas_round_far_start(left, right, zone), right, y, color);
 }
 
 lh_void
-lh_ui_canvas_fill_round_band(struct lh_ui_canvas *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
-                             lh_s32_t y0, lh_s32_t y1, const lh_ui_color_t *color)
+lh_ui_canvas_fill_round_band(struct lh_ui_canvas *self, const lh_ui_rect_t *rect,
+                             lh_ui_scalar_t radius, lh_s32_t y0, lh_s32_t y1,
+                             const lh_ui_color_t *color)
 {
     const lh_s32_t left = lh_ui_canvas_round_left(rect);
     const lh_s32_t right = lh_ui_canvas_round_right(rect);
     const lh_s32_t zone = lh_ui_scalar_ceil_s32(radius);
     const lh_s32_t near_end = lh_ui_canvas_round_near_end(left, right, zone);
     lh_s32_t y;
-    lh_ui_canvas_fill_pixels(self, near_end, y0, lh_ui_canvas_round_far_start(left, right, zone) - near_end, y1 - y0,
+    lh_ui_canvas_fill_pixels(self, near_end, y0,
+                             lh_ui_canvas_round_far_start(left, right, zone) - near_end, y1 - y0,
                              color);
     for (y = y0; y < y1; ++y)
     {
@@ -196,7 +205,7 @@ lh_ui_canvas_fill_round_rect_by_rects(struct lh_ui_canvas *self, const lh_ui_rec
     const lh_s32_t bottom_start = lh_ui_canvas_round_far_start(top, bottom, zone);
     lh_ui_canvas_fill_round_band(self, rect, radius, top, top_end, color);
     lh_ui_canvas_fill_pixels(self, lh_ui_canvas_round_left(rect), top_end,
-                             lh_ui_canvas_round_right(rect) - lh_ui_canvas_round_left(rect), bottom_start - top_end,
-                             color);
+                             lh_ui_canvas_round_right(rect) - lh_ui_canvas_round_left(rect),
+                             bottom_start - top_end, color);
     lh_ui_canvas_fill_round_band(self, rect, radius, bottom_start, bottom, color);
 }

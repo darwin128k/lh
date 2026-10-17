@@ -52,8 +52,8 @@ lh_ui_web_ws_frame_size(lh_usize_t payload_len);
  * @return Bytes written, or 0 if @p cap is too small or @p opcode is not a frame.
  */
 lh_usize_t
-lh_ui_web_ws_write(lh_byte_ptr out, lh_usize_t cap, unsigned opcode, lh_bool_t fin, const void *payload,
-                   lh_usize_t payload_len);
+lh_ui_web_ws_write(lh_byte_ptr out, lh_usize_t cap, unsigned opcode, lh_bool_t fin,
+                   const void *payload, lh_usize_t payload_len);
 
 /**
  * @brief Parse one frame at @p p.

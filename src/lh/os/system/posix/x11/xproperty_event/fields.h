@@ -10,7 +10,7 @@
  * @def lh_os_system_posix_xproperty_event_fields
  * @brief `XPropertyEvent`: a property of the window changed (`_NET_WM_STATE`, for maximize).
  */
-#define lh_os_system_posix_xproperty_event_fields \
+#define lh_os_system_posix_xproperty_event_fields                                                  \
     lh_os_system_posix_xany_event_fields;                                                          \
     lh_os_system_posix_xid_t atom;                                                                 \
     unsigned long time;                                                                            \

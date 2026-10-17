@@ -42,7 +42,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @p out must not be null (::lh_assert_runtime_ref).
  */
 lh_bool_t
-lh_ui_canvas_box_frame_init(const lh_ui_rect_t *box, const lh_ui_rect_t *cut, lh_ui_canvas_box_frame_t *out);
+lh_ui_canvas_box_frame_init(const lh_ui_rect_t *box, const lh_ui_rect_t *cut,
+                            lh_ui_canvas_box_frame_t *out);
 
 /**
  * @brief The four corner runs of @p box, each rounded all round by its radius
@@ -50,7 +51,8 @@ lh_ui_canvas_box_frame_init(const lh_ui_rect_t *box, const lh_ui_rect_t *cut, lh
  *        bottom-right).
  */
 lh_void
-lh_ui_canvas_box_corners_init(const lh_ui_rect_t *box, const lh_ui_radii_t *fit, struct lh_ui_radius_run *out);
+lh_ui_canvas_box_corners_init(const lh_ui_rect_t *box, const lh_ui_radii_t *fit,
+                              struct lh_ui_radius_run *out);
 
 /**
  * @brief True when row @p y lies in the upper half of @p frame (its corners
@@ -74,8 +76,8 @@ lh_ui_canvas_box_zone(lh_s32_t from_edge, lh_ui_scalar_t radius, lh_s32_t room);
  * Neither out may be null (::lh_assert_runtime_ref).
  */
 lh_bool_t
-lh_ui_canvas_box_row_reach(const lh_ui_canvas_box_frame_t *frame, const lh_ui_radii_t *fit, lh_s32_t y,
-                           lh_s32_t *near_end, lh_s32_t *far_start);
+lh_ui_canvas_box_row_reach(const lh_ui_canvas_box_frame_t *frame, const lh_ui_radii_t *fit,
+                           lh_s32_t y, lh_s32_t *near_end, lh_s32_t *far_start);
 
 /**
  * @brief Draw the shown rows of @p frame with @p paint (coloured by @p sampler
@@ -84,9 +86,9 @@ lh_ui_canvas_box_row_reach(const lh_ui_canvas_box_frame_t *frame, const lh_ui_ra
  *        (::lh_ui_canvas_box_corners_init) at their coverage.
  */
 lh_void
-lh_ui_canvas_box_rows(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t *sampler,
-                      const lh_ui_canvas_box_frame_t *frame, const lh_ui_radii_t *fit,
-                      const struct lh_ui_radius_run *corners);
+lh_ui_canvas_box_rows(lh_ui_canvas_t *self, const lh_ui_paint_t *paint,
+                      lh_ui_gradient_sampler_t *sampler, const lh_ui_canvas_box_frame_t *frame,
+                      const lh_ui_radii_t *fit, const struct lh_ui_radius_run *corners);
 
 /**
  * @brief Fill @p rect with @p paint, each corner rounded by its own radius in

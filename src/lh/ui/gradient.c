@@ -11,7 +11,7 @@
 #include <lh/ui/gradient/sine.h>
 #include <lh/util/return.h>
 
-/* ── Stop ────────────────────────────────────────────────────────────────── */
+/* -- Stop ------------------------------------------------------------------ */
 
 const lh_ui_color_t *
 lh_ui_gradient_stop_get_color_as_const(const lh_ui_gradient_stop_t *self)
@@ -56,7 +56,7 @@ lh_ui_gradient_stop_init(lh_ui_gradient_stop_t *self, lh_ui_color_t color, lh_by
     lh_ui_gradient_stop_set_frac(self, frac);
 }
 
-/* ── Gradient ────────────────────────────────────────────────────────────── */
+/* -- Gradient -------------------------------------------------------------- */
 
 lh_void
 lh_ui_gradient_init(lh_ui_gradient_t *self)
@@ -123,14 +123,14 @@ lh_ui_gradient_get_stop(lh_ui_gradient_t *self, lh_ui_gradient_stop_count_t inde
     return lh_addr_of(self->stops[index]);
 }
 
-/* ── Over a box ──────────────────────────────────────────────────────────── */
+/* -- Over a box ------------------------------------------------------------ */
 
 /** The integer square root of @p v: the largest r with r * r <= v. */
 static lh_s64_t
 lh_ui_gradient_isqrt(lh_s64_t v)
 {
     lh_s64_t r = 0;
-    lh_s64_t bit = lh_cast_static(lh_s64_t, 1)<< 40;
+    lh_s64_t bit = lh_cast_static(lh_s64_t, 1) << 40;
 
     while (bit > v)
     {
@@ -183,15 +183,20 @@ lh_ui_gradient_get_angle(const lh_ui_gradient_t *self)
 }
 
 lh_byte_t
-lh_ui_gradient_frac_at(const lh_ui_gradient_t *self, const lh_ui_rect_t *rect, lh_s32_t x, lh_s32_t y)
+lh_ui_gradient_frac_at(const lh_ui_gradient_t *self, const lh_ui_rect_t *rect, lh_s32_t x,
+                       lh_s32_t y)
 {
     const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
     const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
     const lh_s64_t w = lh_ui_scalar_floor_s32(lh_ui_size_get_width(size));
     const lh_s64_t h = lh_ui_scalar_floor_s32(lh_ui_size_get_height(size));
     /* The pixel's centre from the middle of the box, both doubled so no half is lost. */
-    const lh_s64_t dx = 2 * lh_cast_static(lh_s64_t, x)+ 1 - (2 * lh_cast_static(lh_s64_t, lh_ui_scalar_floor_s32(lh_ui_point_get_x(origin)))+ w);
-    const lh_s64_t dy = 2 * lh_cast_static(lh_s64_t, y)+ 1 - (2 * lh_cast_static(lh_s64_t, lh_ui_scalar_floor_s32(lh_ui_point_get_y(origin)))+ h);
+    const lh_s64_t dx =
+        2 * lh_cast_static(lh_s64_t, x) + 1 -
+        (2 * lh_cast_static(lh_s64_t, lh_ui_scalar_floor_s32(lh_ui_point_get_x(origin))) + w);
+    const lh_s64_t dy =
+        2 * lh_cast_static(lh_s64_t, y) + 1 -
+        (2 * lh_cast_static(lh_s64_t, lh_ui_scalar_floor_s32(lh_ui_point_get_y(origin))) + h);
     lh_s64_t frac;
 
     lh_assert_runtime_ref(self);
@@ -237,7 +242,8 @@ lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac, lh_ui_colo
     }
     if (self->stops_count == 1 || frac <= lh_ui_gradient_stop_get_frac(lh_addr_of(self->stops[0])))
     {
-        lh_ptr_deref(out) = lh_ptr_deref(lh_ui_gradient_stop_get_color_as_const(lh_addr_of(self->stops[0])));
+        lh_ptr_deref(out) =
+            lh_ptr_deref(lh_ui_gradient_stop_get_color_as_const(lh_addr_of(self->stops[0])));
         return;
     }
     for (i = 1; i < self->stops_count; ++i)
@@ -249,10 +255,10 @@ lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac, lh_ui_colo
         const lh_s32_t start = lh_ui_gradient_stop_get_frac(a);
         const lh_s32_t end = lh_ui_gradient_stop_get_frac(b);
 
-        if (lh_cast_static(lh_s32_t, frac)<= end)
+        if (lh_cast_static(lh_s32_t, frac) <= end)
         {
             const lh_s32_t span = end - start;
-            const lh_s32_t at = lh_cast_static(lh_s32_t, frac)- start;
+            const lh_s32_t at = lh_cast_static(lh_s32_t, frac) - start;
 
             if (span <= 0)
             {
@@ -263,17 +269,22 @@ lh_ui_gradient_color_at(const lh_ui_gradient_t *self, lh_byte_t frac, lh_ui_colo
                span the pixel is. */
             lh_ui_color_init(
                 lh_addr_of(result),
-                lh_cast_static(lh_ui_color_channel_t,
-                               (lh_ui_color_get_r(from) * (span - at) + lh_ui_color_get_r(to) * at) / span),
-                lh_cast_static(lh_ui_color_channel_t,
-                               (lh_ui_color_get_g(from) * (span - at) + lh_ui_color_get_g(to) * at) / span),
-                lh_cast_static(lh_ui_color_channel_t,
-                               (lh_ui_color_get_b(from) * (span - at) + lh_ui_color_get_b(to) * at) / span),
-                lh_cast_static(lh_ui_color_channel_t,
-                               (lh_ui_color_get_a(from) * (span - at) + lh_ui_color_get_a(to) * at) / span));
+                lh_cast_static(
+                    lh_ui_color_channel_t,
+                    (lh_ui_color_get_r(from) * (span - at) + lh_ui_color_get_r(to) * at) / span),
+                lh_cast_static(
+                    lh_ui_color_channel_t,
+                    (lh_ui_color_get_g(from) * (span - at) + lh_ui_color_get_g(to) * at) / span),
+                lh_cast_static(
+                    lh_ui_color_channel_t,
+                    (lh_ui_color_get_b(from) * (span - at) + lh_ui_color_get_b(to) * at) / span),
+                lh_cast_static(
+                    lh_ui_color_channel_t,
+                    (lh_ui_color_get_a(from) * (span - at) + lh_ui_color_get_a(to) * at) / span));
             lh_ptr_deref(out) = result;
             return;
         }
     }
-    lh_ptr_deref(out) = lh_ptr_deref(lh_ui_gradient_stop_get_color_as_const(lh_addr_of(self->stops[self->stops_count - 1])));
+    lh_ptr_deref(out) = lh_ptr_deref(
+        lh_ui_gradient_stop_get_color_as_const(lh_addr_of(self->stops[self->stops_count - 1])));
 }

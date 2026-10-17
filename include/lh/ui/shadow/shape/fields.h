@@ -17,21 +17,21 @@
  * @param rect_type   ::lh_ui_rect_t.
  * @param scalar_type ::lh_ui_scalar_t.
  */
-#define lh_ui_shadow_shape_fields(rect_type, scalar_type)                                           \
-    rect_type box;                                                                                  \
-    scalar_type corner;                                                                             \
-    lh_s32_t box_x0;                                                                                \
-    lh_s32_t box_x1;                                                                                \
-    lh_s32_t box_y0;                                                                                \
-    lh_s32_t box_y1;                                                                                \
-    lh_s32_t cx;                                                                                    \
-    lh_s32_t cy;                                                                                    \
-    lh_s32_t hx;                                                                                    \
-    lh_s32_t hy;                                                                                    \
-    lh_s32_t r;                                                                                     \
-    lh_s32_t spread;                                                                                \
-    lh_s32_t peak;                                                                                  \
-    lh_s64_t start;                                                                                 \
+#define lh_ui_shadow_shape_fields(rect_type, scalar_type)                                          \
+    rect_type box;                                                                                 \
+    scalar_type corner;                                                                            \
+    lh_s32_t box_x0;                                                                               \
+    lh_s32_t box_x1;                                                                               \
+    lh_s32_t box_y0;                                                                               \
+    lh_s32_t box_y1;                                                                               \
+    lh_s32_t cx;                                                                                   \
+    lh_s32_t cy;                                                                                   \
+    lh_s32_t hx;                                                                                   \
+    lh_s32_t hy;                                                                                   \
+    lh_s32_t r;                                                                                    \
+    lh_s32_t spread;                                                                               \
+    lh_s32_t peak;                                                                                 \
+    lh_s64_t start;                                                                                \
     lh_s64_t step
 
 #endif /* LH_UI_SHADOW_SHAPE_FIELDS_H */

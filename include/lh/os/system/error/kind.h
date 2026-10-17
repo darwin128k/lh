@@ -21,7 +21,8 @@
 #include <lh/os/system/error/code.h>
 
 #if !LH_LIBRARY_OPTION_OS
-#    error "lh/os/system/error/kind.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
+#    error                                                                                         \
+        "lh/os/system/error/kind.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
 #endif
 
 LH_COMPILER_EXTERN_C_BEGIN

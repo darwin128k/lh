@@ -13,12 +13,12 @@
 /** An off-screen surface: a DIB section selected into a memory DC. */
 struct lh_os_system_win_surface
 {
-    lh_os_system_win_hdc_t dc;           /**< memory DC the bitmap is selected into */
-    lh_os_system_win_handle_t bitmap;    /**< the DIB section */
-    lh_os_system_win_handle_t previous;  /**< the DC's bitmap before ours, restored on free */
-    lh_ptr bits;                         /**< the DIB's pixels */
-    int width;                           /**< width in pixels */
-    int height;                          /**< height in pixels */
+    lh_os_system_win_hdc_t dc;          /**< memory DC the bitmap is selected into */
+    lh_os_system_win_handle_t bitmap;   /**< the DIB section */
+    lh_os_system_win_handle_t previous; /**< the DC's bitmap before ours, restored on free */
+    lh_ptr bits;                        /**< the DIB's pixels */
+    int width;                          /**< width in pixels */
+    int height;                         /**< height in pixels */
 };
 /** @copybrief lh_os_system_win_surface */
 typedef struct lh_os_system_win_surface lh_os_system_win_surface_t;
@@ -63,8 +63,9 @@ lh_os_system_surface_create(int width, int height, int bits)
     }
 
     bits_pointer = lh_null;
-    bitmap = CreateDIBSection(dc, lh_cast_reinterpret(const lh_os_system_win_bitmapinfo_t *, lh_addr_of(info)),
-                              LH_OS_SYSTEM_WIN_DIB_RGB_COLORS, lh_addr_of(bits_pointer), lh_null, 0);
+    bitmap = CreateDIBSection(
+        dc, lh_cast_reinterpret(const lh_os_system_win_bitmapinfo_t *, lh_addr_of(info)),
+        LH_OS_SYSTEM_WIN_DIB_RGB_COLORS, lh_addr_of(bits_pointer), lh_null, 0);
     if (lh_null_eq(bitmap) || lh_null_eq(bits_pointer))
     {
         DeleteDC(dc);
@@ -155,9 +156,8 @@ lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr d
     lh_return_if(width <= 0 || height <= 0, lh_bool_false);
     surface = lh_ptr_rcast(const lh_os_system_win_surface_t, handle);
     dest_dc = lh_cast_reinterpret(lh_os_system_win_hdc_t, dest);
-    return lh_cast_static(lh_bool_t,
-                          BitBlt(dest_dc, x, y, width, height, surface->dc, src_x, src_y,
-                                 LH_OS_SYSTEM_WIN_SRCCOPY) != 0);
+    return lh_cast_static(lh_bool_t, BitBlt(dest_dc, x, y, width, height, surface->dc, src_x, src_y,
+                                            LH_OS_SYSTEM_WIN_SRCCOPY) != 0);
 }
 
 lh_bool_t
@@ -167,7 +167,8 @@ lh_os_system_surface_present_at(lh_os_system_surface_handle_t handle, lh_ptr des
 
     lh_return_if(lh_null_eq(handle) || lh_null_eq(dest), lh_bool_false);
     surface = lh_ptr_rcast(const lh_os_system_win_surface_t, handle);
-    return lh_os_system_surface_present_part(handle, dest, x, y, 0, 0, surface->width, surface->height);
+    return lh_os_system_surface_present_part(handle, dest, x, y, 0, 0, surface->width,
+                                             surface->height);
 }
 
 lh_bool_t
@@ -183,7 +184,8 @@ lh_os_system_surface_present_fit(lh_os_system_surface_handle_t handle, lh_ptr de
     int ox;
     int oy;
 
-    lh_return_if(lh_null_eq(handle) || lh_null_eq(dest) || dest_w <= 0 || dest_h <= 0, lh_bool_false);
+    lh_return_if(lh_null_eq(handle) || lh_null_eq(dest) || dest_w <= 0 || dest_h <= 0,
+                 lh_bool_false);
     surface = lh_ptr_rcast(const lh_os_system_win_surface_t, handle);
     dest_dc = lh_cast_reinterpret(lh_os_system_win_hdc_t, dest);
     if (dest_w * surface->height > dest_h * surface->width)
@@ -215,6 +217,7 @@ lh_os_system_surface_present_fit(lh_os_system_surface_handle_t handle, lh_ptr de
         (void)DeleteObject(brush);
     }
     (void)SetStretchBltMode(dest_dc, LH_OS_SYSTEM_WIN_COLORONCOLOR);
-    return lh_cast_static(lh_bool_t, StretchBlt(dest_dc, ox, oy, dw, dh, surface->dc, 0, 0, surface->width,
-                                                surface->height, LH_OS_SYSTEM_WIN_SRCCOPY) != 0);
+    return lh_cast_static(lh_bool_t,
+                          StretchBlt(dest_dc, ox, oy, dw, dh, surface->dc, 0, 0, surface->width,
+                                     surface->height, LH_OS_SYSTEM_WIN_SRCCOPY) != 0);
 }

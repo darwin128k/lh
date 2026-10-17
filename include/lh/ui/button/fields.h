@@ -29,12 +29,12 @@
  * @param cb_type     ::lh_ui_button_on_click_cb.
  * @param ptr_type    ::lh_ptr.
  */
-#define lh_ui_button_fields(entity_type, style_type, bool_type, cb_type, ptr_type)                    \
-    entity_type container;                                                                           \
-    const style_type *rest_style;                                                                    \
-    const style_type *hot_style;                                                                     \
-    bool_type hot;                                                                                   \
-    cb_type on_click;                                                                                \
+#define lh_ui_button_fields(entity_type, style_type, bool_type, cb_type, ptr_type)                 \
+    entity_type container;                                                                         \
+    const style_type *rest_style;                                                                  \
+    const style_type *hot_style;                                                                   \
+    bool_type hot;                                                                                 \
+    cb_type on_click;                                                                              \
     ptr_type click_context
 
 #endif /* LH_UI_BUTTON_FIELDS_H */

@@ -20,13 +20,13 @@
  * Higher @c priority runs earlier when several timers are due.
  */
 #define lh_timer_fields(tick_type, cb_type)                                                        \
-    lh_list_node_t link;                                                                            \
-    tick_type period;                                                                               \
-    tick_type last;                                                                                 \
-    lh_u8_t priority;                                                                               \
-    lh_bool_t repeat;                                                                               \
-    lh_bool_t paused;                                                                               \
-    cb_type cb;                                                                                     \
+    lh_list_node_t link;                                                                           \
+    tick_type period;                                                                              \
+    tick_type last;                                                                                \
+    lh_u8_t priority;                                                                              \
+    lh_bool_t repeat;                                                                              \
+    lh_bool_t paused;                                                                              \
+    cb_type cb;                                                                                    \
     lh_ptr context
 
 #endif /* LH_TIMER_FIELDS_H */

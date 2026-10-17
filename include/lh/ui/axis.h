@@ -19,7 +19,7 @@ typedef enum lh_ui_axis
 {
     lh_ui_axis_horizontal = 0, /**< `x` and width; left to right. */
     lh_ui_axis_vertical = 1    /**< `y` and height; top to bottom. */
-} lh_ui_axis_t; /**< Horizontal (`x`, width) or vertical (`y`, height). */
+} lh_ui_axis_t;                /**< Horizontal (`x`, width) or vertical (`y`, height). */
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -45,7 +45,8 @@ lh_ui_point_set_along(lh_ui_point_t *self, lh_ui_axis_t axis, lh_ui_scalar_t val
  * @brief Fill @p self with @p along on @p axis and @p across on the other axis.
  */
 lh_void
-lh_ui_point_init_along(lh_ui_point_t *self, lh_ui_axis_t axis, lh_ui_scalar_t along, lh_ui_scalar_t across);
+lh_ui_point_init_along(lh_ui_point_t *self, lh_ui_axis_t axis, lh_ui_scalar_t along,
+                       lh_ui_scalar_t across);
 
 /**
  * @brief The extent of @p self on @p axis (width or height).
@@ -64,8 +65,8 @@ lh_ui_size_set_along(lh_ui_size_t *self, lh_ui_axis_t axis, lh_ui_scalar_t value
  *        the origin of @p base) for @p length; across @p axis it is @p base.
  */
 lh_void
-lh_ui_rect_init_along(lh_ui_rect_t *self, const lh_ui_rect_t *base, lh_ui_axis_t axis, lh_ui_scalar_t start,
-                      lh_ui_scalar_t length);
+lh_ui_rect_init_along(lh_ui_rect_t *self, const lh_ui_rect_t *base, lh_ui_axis_t axis,
+                      lh_ui_scalar_t start, lh_ui_scalar_t length);
 
 LH_COMPILER_EXTERN_C_END
 

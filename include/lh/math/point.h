@@ -40,7 +40,7 @@ typedef struct lh_math_point lh_math_point_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── init ────────────────────────────────────────────────────────────────── */
+/* -- init ------------------------------------------------------------------ */
 
 /**
  * @brief Fill @p self from explicit coordinates.
@@ -54,7 +54,7 @@ lh_math_point_init(lh_math_point_t *self, lh_math_scalar_t x, lh_math_scalar_t y
 lh_void
 lh_math_point_init_empty(lh_math_point_t *self);
 
-/* ── Accessors ───────────────────────────────────────────────────────────── */
+/* -- Accessors ------------------------------------------------------------- */
 
 /**
  * @brief X coordinate of @p self.
@@ -80,7 +80,7 @@ lh_math_point_set_x(lh_math_point_t *self, lh_math_scalar_t x);
 lh_void
 lh_math_point_set_y(lh_math_point_t *self, lh_math_scalar_t y);
 
-/* ── Conversions ─────────────────────────────────────────────────────────── */
+/* -- Conversions ----------------------------------------------------------- */
 
 #if LH_LIBRARY_OPTION_MATH_FPU
 /**
@@ -110,7 +110,7 @@ lh_void
 lh_math_vec2_to_point(lh_math_vec2_t v, lh_math_point_t *out);
 #endif
 
-/* ── Queries ────────────────────────────────────────────────────────────── */
+/* -- Queries --------------------------------------------------------------- */
 
 /**
  * @brief Element-wise equality.
@@ -167,19 +167,21 @@ lh_bool_t
 lh_math_point_in_extent(const lh_math_point_t *self, const lh_math_point_t *min,
                         const lh_math_point_t *max);
 
-/* ── Set ops ────────────────────────────────────────────────────────────── */
+/* -- Set ops --------------------------------------------------------------- */
 
 /**
  * @brief Translate @p self by `(@p dx, @p dy)`.
  */
 lh_void
-lh_math_point_offset(const lh_math_point_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy, lh_math_point_t *out);
+lh_math_point_offset(const lh_math_point_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy,
+                     lh_math_point_t *out);
 
 /**
  * @brief Exclusive far corner: @p self offset by @p size (`x + width`, `y + height`).
  */
 lh_void
-lh_math_point_offset_size(const lh_math_point_t *self, const struct lh_math_size *size, lh_math_point_t *out);
+lh_math_point_offset_size(const lh_math_point_t *self, const struct lh_math_size *size,
+                          lh_math_point_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

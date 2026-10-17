@@ -14,7 +14,8 @@ lh_os_system_error_get_native_code(void)
 #if LH_LIBRARY_OPTION_OS_WERROR
 
 lh_os_error_desc_ptr
-lh_os_system_error_format(lh_os_system_error_code_t code, lh_os_error_desc_ptr dest, lh_usize_t dest_size)
+lh_os_system_error_format(lh_os_system_error_code_t code, lh_os_error_desc_ptr dest,
+                          lh_usize_t dest_size)
 {
     lh_assert_runtime_ref(dest);
     const lh_os_system_win_dword_t n =

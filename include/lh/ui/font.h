@@ -38,8 +38,7 @@ LH_COMPILER_EXTERN_C_BEGIN
  *        (`lh/ui/font/roboto.h`) under ::LH_LIBRARY_OPTION_UI_FONT_ROBOTO,
  *        else ::lh_null.
  */
-const lh_ui_font_t *
-lh_ui_font_get_default(lh_void);
+const lh_ui_font_t *lh_ui_font_get_default(lh_void);
 
 /**
  * @brief Fill @p self over @p glyphs, @p advances and @p tops: one entry per

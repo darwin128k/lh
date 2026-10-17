@@ -37,7 +37,7 @@ typedef struct lh_math_frect lh_math_frect_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Constructors ────────────────────────────────────────────────────────── */
+/* -- Constructors ---------------------------------------------------------- */
 
 /**
  * @brief Make a `::lh_math_frect_t` from exclusive extent corners.
@@ -46,20 +46,22 @@ LH_COMPILER_EXTERN_C_BEGIN
  * ::lh_math_rect_init_empty.
  */
 lh_void
-lh_math_frect_from_extent(const lh_math_fpoint_t *min, const lh_math_fpoint_t *max, lh_math_frect_t *out);
+lh_math_frect_from_extent(const lh_math_fpoint_t *min, const lh_math_fpoint_t *max,
+                          lh_math_frect_t *out);
 
 /**
  * @brief Fill @p self from origin coordinates and extents.
  */
 lh_void
-lh_math_frect_init(lh_math_frect_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y, lh_math_fscalar_t width,
-                   lh_math_fscalar_t height);
+lh_math_frect_init(lh_math_frect_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y,
+                   lh_math_fscalar_t width, lh_math_fscalar_t height);
 
 /**
  * @brief Fill @p self from @p origin and @p size.
  */
 lh_void
-lh_math_frect_init_origin_size(lh_math_frect_t *self, lh_math_fpoint_t origin, lh_math_fsize_t size);
+lh_math_frect_init_origin_size(lh_math_frect_t *self, lh_math_fpoint_t origin,
+                               lh_math_fsize_t size);
 
 /**
  * @brief Fill @p self with the empty rectangle sentinel `(0, 0)` size.
@@ -67,7 +69,7 @@ lh_math_frect_init_origin_size(lh_math_frect_t *self, lh_math_fpoint_t origin, l
 lh_void
 lh_math_frect_init_empty(lh_math_frect_t *self);
 
-/* ── Accessors ───────────────────────────────────────────────────────────── */
+/* -- Accessors ------------------------------------------------------------- */
 
 /**
  * @brief Pointer to the top-left corner of @p self.
@@ -135,7 +137,7 @@ lh_math_frect_far_min(const lh_math_frect_t *a, const lh_math_frect_t *b, lh_mat
 lh_void
 lh_math_frect_far_max(const lh_math_frect_t *a, const lh_math_frect_t *b, lh_math_fpoint_t *out);
 
-/* ── Conversions ─────────────────────────────────────────────────────────── */
+/* -- Conversions ----------------------------------------------------------- */
 
 /**
  * @brief Narrow @p self to a screen rectangle.
@@ -151,7 +153,7 @@ lh_math_frect_to_rect(lh_math_frect_t self, lh_math_rect_t *out);
 lh_void
 lh_math_rect_to_frect(lh_math_rect_t self, lh_math_frect_t *out);
 
-/* ── Queries ────────────────────────────────────────────────────────────── */
+/* -- Queries --------------------------------------------------------------- */
 
 /**
  * @brief Test whether @p self is empty (zero or negative extent).
@@ -208,14 +210,15 @@ lh_math_frect_is_less(const lh_math_frect_t *self, const lh_math_frect_t *other)
 lh_bool_t
 lh_math_frect_is_greater(const lh_math_frect_t *self, const lh_math_frect_t *other);
 
-/* ── Set ops ────────────────────────────────────────────────────────────── */
+/* -- Set ops --------------------------------------------------------------- */
 
 /**
  * @brief Intersection of @p a and @p b. Returns ::lh_math_rect_init_empty if they
  *        do not overlap.
  */
 lh_void
-lh_math_frect_intersection(const lh_math_frect_t *a, const lh_math_frect_t *b, lh_math_frect_t *out);
+lh_math_frect_intersection(const lh_math_frect_t *a, const lh_math_frect_t *b,
+                           lh_math_frect_t *out);
 
 /**
  * @brief Union of @p a and @p b: the smallest rectangle containing both.
@@ -228,14 +231,16 @@ lh_math_frect_union(const lh_math_frect_t *a, const lh_math_frect_t *b, lh_math_
  * @brief Translate @p self by `(@p dx, @p dy)`.
  */
 lh_void
-lh_math_frect_offset(const lh_math_frect_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy, lh_math_frect_t *out);
+lh_math_frect_offset(const lh_math_frect_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy,
+                     lh_math_frect_t *out);
 
 /**
  * @brief Inset @p self by `(@p dx, @p dy)` on each side (positive shrinks,
  *        negative grows).
  */
 lh_void
-lh_math_frect_inset(const lh_math_frect_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy, lh_math_frect_t *out);
+lh_math_frect_inset(const lh_math_frect_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy,
+                    lh_math_frect_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

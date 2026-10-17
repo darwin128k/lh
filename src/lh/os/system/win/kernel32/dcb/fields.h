@@ -17,7 +17,7 @@
  * @param byte_type  `BYTE` (::lh_byte_t).
  * @param char_type  `char` (::lh_char_t).
  */
-#define lh_os_system_win_dcb_fields(dword_type, word_type, byte_type, char_type) \
+#define lh_os_system_win_dcb_fields(dword_type, word_type, byte_type, char_type)                   \
     dword_type DCBlength;                                                                          \
     dword_type BaudRate;                                                                           \
     dword_type flags;                                                                              \

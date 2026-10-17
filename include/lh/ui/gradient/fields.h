@@ -29,10 +29,10 @@ lh_assert_static(LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS >= 1 &&
  * @param shape_type Type of ::lh_ui_gradient_shape_t.
  * @param angle_type Type of the angle, in whole degrees.
  */
-#define lh_ui_gradient_fields(stop_type, count_type, shape_type, angle_type)                        \
-    stop_type stops[LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS];                                       \
-    count_type stops_count;                                                                         \
-    shape_type shape;                                                                               \
+#define lh_ui_gradient_fields(stop_type, count_type, shape_type, angle_type)                       \
+    stop_type stops[LH_LIBRARY_OPTION_UI_GRADIENT_MAX_STOPS];                                      \
+    count_type stops_count;                                                                        \
+    shape_type shape;                                                                              \
     angle_type angle
 
 #endif /* LH_UI_GRADIENT_FIELDS_H */

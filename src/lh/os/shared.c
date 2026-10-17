@@ -5,7 +5,7 @@
 #include <lh/os/system/fs/path.h>
 #include <lh/os/system/shared.h>
 
-/* ── accessors ───────────────────────────────────────────────────────────── */
+/* -- accessors ------------------------------------------------------------- */
 
 LH_ATTRIBUTE_STATIC
 lh_fs_path_t *
@@ -43,7 +43,7 @@ lh_os_shared_is_open(const lh_os_shared_t *self)
     return lh_cast_static(lh_bool_t, lh_null_ne(lh_os_shared_get_handle(self)));
 }
 
-/* ── init / deinit ───────────────────────────────────────────────────────── */
+/* -- init / deinit --------------------------------------------------------- */
 
 lh_void
 lh_os_shared_init(lh_os_shared_t *self)
@@ -65,7 +65,7 @@ lh_os_shared_is_free(const lh_os_shared_t *self)
     return lh_bool_true;
 }
 
-/* ── open / close ────────────────────────────────────────────────────────── */
+/* -- open / close ---------------------------------------------------------- */
 
 lh_bool_t
 lh_os_shared_open(lh_os_shared_t *self, const lh_fs_path_t *path)
@@ -107,8 +107,7 @@ lh_os_shared_adopt(lh_os_shared_t *self, lh_os_system_shared_handle_t handle)
     {
         lh_str_view_t view;
         lh_str_as_view(lh_addr_of(text), lh_addr_of(view));
-        lh_fs_path_set(lh_os_shared_get_path(self), view,
-                       lh_os_system_fs_path_style_native());
+        lh_fs_path_set(lh_os_shared_get_path(self), view, lh_os_system_fs_path_style_native());
         lh_os_shared_set_handle(self, handle);
     }
     else
@@ -159,7 +158,7 @@ lh_os_shared_deinit(lh_os_shared_t *self)
     lh_fs_path_deinit(lh_os_shared_get_path(self));
 }
 
-/* ── symbols ─────────────────────────────────────────────────────────────── */
+/* -- symbols --------------------------------------------------------------- */
 
 lh_ptr
 lh_os_shared_get_sym(const lh_os_shared_t *self, lh_str_cptr name)

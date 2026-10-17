@@ -35,8 +35,9 @@ lh_date_ymd_is_valid(lh_uint_t year, lh_uint_t month, lh_uint_t day)
         return lh_bool_false;
     }
 
-    return lh_cast_static(lh_bool_t, day <= lh_date_days_in_month(lh_cast_static(lh_date_year_t, year),
-                                                                  lh_cast_static(lh_date_month_t, month)));
+    return lh_cast_static(lh_bool_t,
+                          day <= lh_date_days_in_month(lh_cast_static(lh_date_year_t, year),
+                                                       lh_cast_static(lh_date_month_t, month)));
 }
 
 lh_void
@@ -57,18 +58,23 @@ lh_date_from_epoch_days(lh_s64_t days, lh_date_t *out)
     const lh_s64_t day_of_year = lh_math_sub(absolute, lh_date_year_days_from_zero(year64));
     /* Every month is at most 31 days, so day_of_year / 31 never runs past the month
        the day is in; at most two steps forward find it. */
-    lh_date_month_t month = lh_cast_static(lh_date_month_t, lh_math_add_one(day_of_year / LH_DATE_DAY_MAX));
+    lh_date_month_t month =
+        lh_cast_static(lh_date_month_t, lh_math_add_one(day_of_year / LH_DATE_DAY_MAX));
     lh_date_t date;
 
     while (lh_math_lt(month, LH_DATE_MONTH_MAX) &&
-           lh_math_le(lh_cast_static(lh_s64_t, lh_date_days_before_month(year, lh_math_add_one(month))), day_of_year))
+           lh_math_le(
+               lh_cast_static(lh_s64_t, lh_date_days_before_month(year, lh_math_add_one(month))),
+               day_of_year))
     {
         month = lh_cast_static(lh_date_month_t, lh_math_add_one(month));
     }
-    lh_date_set(lh_addr_of(date), year, month,
-                lh_cast_static(lh_date_day_t,
-                               lh_math_add_one(lh_math_sub(day_of_year,
-                                                           lh_cast_static(lh_s64_t, lh_date_days_before_month(year, month))))));
+    lh_date_set(
+        lh_addr_of(date), year, month,
+        lh_cast_static(
+            lh_date_day_t,
+            lh_math_add_one(lh_math_sub(
+                day_of_year, lh_cast_static(lh_s64_t, lh_date_days_before_month(year, month))))));
     lh_ptr_deref(out) = date;
 }
 
@@ -114,7 +120,8 @@ lh_date_days_since_epoch(const lh_date_t *self)
 
     year = lh_date_get_year(self);
     month = lh_date_get_month(self);
-    days = lh_math_sub(lh_date_year_days_from_zero(year), lh_date_year_days_from_zero(LH_DATE_EPOCH_YEAR));
+    days = lh_math_sub(lh_date_year_days_from_zero(year),
+                       lh_date_year_days_from_zero(LH_DATE_EPOCH_YEAR));
     days = lh_math_add(days, lh_cast_static(lh_s64_t, lh_date_days_before_month(year, month)));
     days = lh_math_add(days, lh_math_sub_one(lh_cast_static(lh_s64_t, lh_date_get_day(self))));
     return days;
@@ -132,7 +139,8 @@ lh_date_add_month(lh_date_t *self, lh_uint_t value)
     year = lh_date_get_year(self);
     overflow = lh_date_year_add(lh_addr_of(year), lh_date_month_add(lh_addr_of(month), value));
     max_day = lh_date_days_in_month(year, month);
-    lh_date_set(self, year, month, lh_math_gt(lh_date_get_day(self), max_day) ? max_day : lh_date_get_day(self));
+    lh_date_set(self, year, month,
+                lh_math_gt(lh_date_get_day(self), max_day) ? max_day : lh_date_get_day(self));
     return overflow;
 }
 
@@ -148,7 +156,8 @@ lh_date_sub_month(lh_date_t *self, lh_uint_t value)
     year = lh_date_get_year(self);
     overflow = lh_date_year_sub(lh_addr_of(year), lh_date_month_sub(lh_addr_of(month), value));
     max_day = lh_date_days_in_month(year, month);
-    lh_date_set(self, year, month, lh_math_gt(lh_date_get_day(self), max_day) ? max_day : lh_date_get_day(self));
+    lh_date_set(self, year, month,
+                lh_math_gt(lh_date_get_day(self), max_day) ? max_day : lh_date_get_day(self));
     return overflow;
 }
 
@@ -169,7 +178,9 @@ lh_date_add_day(lh_date_t *self, lh_uint_t value)
 {
     lh_date_year_t before = lh_date_get_year(self);
     lh_date_t result;
-    lh_date_from_epoch_days(lh_math_add(lh_date_days_since_epoch(self), lh_cast_static(lh_s64_t, value)), lh_addr_of(result));
+    lh_date_from_epoch_days(
+        lh_math_add(lh_date_days_since_epoch(self), lh_cast_static(lh_s64_t, value)),
+        lh_addr_of(result));
 
     lh_date_assign(self, lh_addr_of(result));
     return lh_cast_static(lh_uint_t, lh_math_lt(lh_date_get_year(self), before));
@@ -180,7 +191,9 @@ lh_date_sub_day(lh_date_t *self, lh_uint_t value)
 {
     lh_date_year_t before = lh_date_get_year(self);
     lh_date_t result;
-    lh_date_from_epoch_days(lh_math_sub(lh_date_days_since_epoch(self), lh_cast_static(lh_s64_t, value)), lh_addr_of(result));
+    lh_date_from_epoch_days(
+        lh_math_sub(lh_date_days_since_epoch(self), lh_cast_static(lh_s64_t, value)),
+        lh_addr_of(result));
 
     lh_date_assign(self, lh_addr_of(result));
     return lh_cast_static(lh_uint_t, lh_math_gt(lh_date_get_year(self), before));
@@ -225,9 +238,10 @@ lh_date_sub(lh_date_t *self, const lh_date_t *other)
 lh_bool_t
 lh_date_equals(const lh_date_t *self, const lh_date_t *other)
 {
-    return lh_cast_static(lh_bool_t, lh_math_eq(lh_date_get_year(self), lh_date_get_year(other)) &&
-                                     lh_math_eq(lh_date_get_month(self), lh_date_get_month(other)) &&
-                                     lh_math_eq(lh_date_get_day(self), lh_date_get_day(other)));
+    return lh_cast_static(lh_bool_t,
+                          lh_math_eq(lh_date_get_year(self), lh_date_get_year(other)) &&
+                              lh_math_eq(lh_date_get_month(self), lh_date_get_month(other)) &&
+                              lh_math_eq(lh_date_get_day(self), lh_date_get_day(other)));
 }
 
 lh_bool_t

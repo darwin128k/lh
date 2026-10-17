@@ -70,7 +70,8 @@ lh_os_fs_dir_read(lh_os_fs_dir_t *self, lh_str_view_t *name, lh_os_fs_dir_entry_
 
     do
     {
-        n = lh_os_system_fs_dir_read(lh_os_fs_dir_get_handle(self), lh_addr_of(entry), lh_addr_of(entry_kind));
+        n = lh_os_system_fs_dir_read(lh_os_fs_dir_get_handle(self), lh_addr_of(entry),
+                                     lh_addr_of(entry_kind));
         if (!lh_math_gt(n, 0))
         {
             if (lh_math_is_zero(n))

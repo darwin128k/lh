@@ -19,13 +19,14 @@ lh_ui_text_block_init(lh_ui_text_block_t *self)
 }
 
 lh_void
-lh_ui_text_block_measure_layout(lh_ui_text_block_t *self, const lh_ui_font_t *font, const lh_char_t *text,
-                                lh_ui_scalar_t width)
+lh_ui_text_block_measure_layout(lh_ui_text_block_t *self, const lh_ui_font_t *font,
+                                const lh_char_t *text, lh_ui_scalar_t width)
 {
     lh_ui_text_line_t laid;
 
     lh_ui_text_block_init(self);
-    for (; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width); text = lh_ui_text_line_get_next(lh_addr_of(laid)))
+    for (; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width);
+         text = lh_ui_text_line_get_next(lh_addr_of(laid)))
     {
         self->width = lh_math_max(self->width, lh_ui_text_line_get_width(lh_addr_of(laid)));
         ++self->lines;
@@ -36,14 +37,16 @@ lh_void
 lh_ui_text_block_measure(lh_ui_text_block_t *self, const lh_ui_font_t *font, const lh_char_t *text,
                          lh_ui_scalar_t width)
 {
-    const lh_ui_scalar_t line_height = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font));
+    const lh_ui_scalar_t line_height =
+        lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font));
     lh_ui_text_line_t laid;
     lh_ui_point_t box;
     lh_bool_t inked = lh_bool_false;
 
     lh_ui_text_block_init(self);
     lh_ui_point_init(lh_addr_of(box), lh_ui_scalar(0), lh_ui_scalar(0));
-    for (; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width); text = lh_ui_text_line_get_next(lh_addr_of(laid)))
+    for (; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width);
+         text = lh_ui_text_line_get_next(lh_addr_of(laid)))
     {
         lh_ui_rect_t line_ink;
         lh_ui_scalar_t at;
@@ -88,17 +91,19 @@ lh_ui_text_block_get_ink_top(const lh_ui_text_block_t *self)
 }
 
 lh_void
-lh_ui_text_block_get_ink_rect(const lh_ui_text_block_t *self, lh_ui_point_t origin, lh_ui_rect_t *out)
+lh_ui_text_block_get_ink_rect(const lh_ui_text_block_t *self, lh_ui_point_t origin,
+                              lh_ui_rect_t *out)
 {
     lh_assert_runtime_ref(self);
     /* The union skips empty rects, so moving the hull is the hull of the moved
        lines -- including when nothing is inked and the hull is the last line's box. */
     lh_ui_rect_offset(lh_addr_of(self->ink), lh_ui_point_get_x(lh_addr_of(origin)),
-                             lh_ui_point_get_y(lh_addr_of(origin)) - self->ink_top, out);
+                      lh_ui_point_get_y(lh_addr_of(origin)) - self->ink_top, out);
 }
 
 lh_void
-lh_ui_text_block_get_size(const lh_ui_text_block_t *self, const lh_ui_font_t *font, lh_ui_size_t *out)
+lh_ui_text_block_get_size(const lh_ui_text_block_t *self, const lh_ui_font_t *font,
+                          lh_ui_size_t *out)
 {
     lh_assert_runtime_ref(out);
     /* The cap line down to the baseline, not the line box and not the ink.
@@ -122,11 +127,12 @@ lh_ui_text_block_get_size(const lh_ui_text_block_t *self, const lh_ui_font_t *fo
     size = lh_ptr_deref(lh_ui_rect_get_size_as_const(lh_addr_of(ink)));
     /* Nothing inked is nothing drawn, and a label with nothing in it collapses
        however tall its font is. */
-    lh_ui_size_set_height(lh_addr_of(size),
-                          lh_ui_rect_is_empty(lh_addr_of(ink))
-                              ? lh_ui_scalar(0)
-                              : (lh_cast_static(lh_ui_scalar_t, lh_ui_text_block_get_lines(self)) - lh_ui_scalar(1)) *
-                                        lh_ui_scalar_of(lh_ui_font_get_line_height(font)) +
-                                    lh_ui_scalar_of(lh_ui_font_get_cap_height(font)));
+    lh_ui_size_set_height(
+        lh_addr_of(size),
+        lh_ui_rect_is_empty(lh_addr_of(ink))
+            ? lh_ui_scalar(0)
+            : (lh_cast_static(lh_ui_scalar_t, lh_ui_text_block_get_lines(self)) - lh_ui_scalar(1)) *
+                      lh_ui_scalar_of(lh_ui_font_get_line_height(font)) +
+                  lh_ui_scalar_of(lh_ui_font_get_cap_height(font)));
     lh_ptr_deref(out) = size;
 }

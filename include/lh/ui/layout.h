@@ -193,8 +193,8 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent);
  * @p out must not be null (::lh_assert_runtime_ref).
  */
 lh_void
-lh_ui_layout_cross_fit(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_ui_rect_t *content,
-                       lh_ui_layout_cross_t *out);
+lh_ui_layout_cross_fit(const lh_ui_layout_t *self, lh_ui_entity_t *child,
+                       const lh_ui_rect_t *content, lh_ui_layout_cross_t *out);
 
 /**
  * @brief Offset of a non-fill child inside its slot across, for @p align:
@@ -204,8 +204,8 @@ lh_ui_layout_cross_fit(const lh_ui_layout_t *self, lh_ui_entity_t *child, const 
  *        caller clamps.
  */
 lh_ui_scalar_t
-lh_ui_layout_cross_at(const lh_ui_layout_cross_t *fit, lh_ui_place_align_t align, lh_ui_scalar_t base,
-                      lh_ui_scalar_t line);
+lh_ui_layout_cross_at(const lh_ui_layout_cross_t *fit, lh_ui_place_align_t align,
+                      lh_ui_scalar_t base, lh_ui_scalar_t line);
 
 /**
  * @brief The baseline row @p child would set for its line, down from the cross
@@ -213,30 +213,33 @@ lh_ui_layout_cross_at(const lh_ui_layout_cross_t *fit, lh_ui_place_align_t align
  *        the flow is vertical, the child is not baseline-aligned or has none.
  */
 lh_ui_scalar_t
-lh_ui_layout_child_line(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_ui_rect_t *content);
+lh_ui_layout_child_line(const lh_ui_layout_t *self, lh_ui_entity_t *child,
+                        const lh_ui_rect_t *content);
 
 /**
  * @brief Start a line in @p content: `along` at its origin, `line` -1, the
  *        rest zero. @p out must not be null (::lh_assert_runtime_ref).
  */
 lh_void
-lh_ui_layout_run_init(const lh_ui_layout_t *self, const lh_ui_rect_t *content, lh_ui_layout_run_t *out);
+lh_ui_layout_run_init(const lh_ui_layout_t *self, const lh_ui_rect_t *content,
+                      lh_ui_layout_run_t *out);
 
 /**
  * @brief Count one child into @p run: its wanted length and margin, its fill
  *        weight, and its baseline. A hidden child counts for nothing.
  */
 lh_void
-lh_ui_layout_run_measure_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *run, lh_ui_entity_t *child,
-                               const lh_ui_rect_t *content);
+lh_ui_layout_run_measure_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *run,
+                               lh_ui_entity_t *child, const lh_ui_rect_t *content);
 
 /**
  * @brief Measure the children @p first up to @p end (::lh_null for the last)
  *        into @p run, gaps between shown children included, and set `left`.
  */
 lh_void
-lh_ui_layout_run_measure(const lh_ui_layout_t *self, lh_ui_layout_run_t *run, lh_ui_entity_t *parent,
-                         lh_ui_entity_t *first, lh_ui_entity_t *end, const lh_ui_rect_t *content);
+lh_ui_layout_run_measure(const lh_ui_layout_t *self, lh_ui_layout_run_t *run,
+                         lh_ui_entity_t *parent, lh_ui_entity_t *first, lh_ui_entity_t *end,
+                         const lh_ui_rect_t *content);
 
 /**
  * @brief Lead before the first child and @p spread after each one for
@@ -245,8 +248,8 @@ lh_ui_layout_run_measure(const lh_ui_layout_t *self, lh_ui_layout_run_t *run, lh
  * Neither out may be null (::lh_assert_runtime_ref).
  */
 lh_void
-lh_ui_layout_justify_lead(lh_ui_justify_t justify, lh_ui_scalar_t left, int shown, lh_ui_scalar_t *lead,
-                          lh_ui_scalar_t *spread);
+lh_ui_layout_justify_lead(lh_ui_justify_t justify, lh_ui_scalar_t left, int shown,
+                          lh_ui_scalar_t *lead, lh_ui_scalar_t *spread);
 
 /**
  * @brief Apply the justify of @p self to a measured @p run: moves `along` by
@@ -260,15 +263,16 @@ lh_ui_layout_run_justify(const lh_ui_layout_t *self, lh_ui_layout_run_t *run);
  *        it fills (held by its bounds), what it wants otherwise.
  */
 lh_ui_scalar_t
-lh_ui_layout_run_length(const lh_ui_layout_t *self, const lh_ui_layout_run_t *run, lh_ui_entity_t *child);
+lh_ui_layout_run_length(const lh_ui_layout_t *self, const lh_ui_layout_run_t *run,
+                        lh_ui_entity_t *child);
 
 /**
  * @brief Place one child at `along` in @p content and advance `along` past it.
  *        A hidden child is left where it is.
  */
 lh_void
-lh_ui_layout_run_place_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *run, lh_ui_entity_t *child,
-                             const lh_ui_rect_t *content);
+lh_ui_layout_run_place_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *run,
+                             lh_ui_entity_t *child, const lh_ui_rect_t *content);
 
 /**
  * @brief Place the children @p first up to @p end (::lh_null for the last) by
@@ -284,8 +288,8 @@ lh_ui_layout_run_place(const lh_ui_layout_t *self, lh_ui_layout_run_t *run, lh_u
  *        that does not wrap is this once over every child in the content box.
  */
 lh_void
-lh_ui_layout_run(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity_t *first, lh_ui_entity_t *end,
-                 const lh_ui_rect_t *content_box);
+lh_ui_layout_run(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity_t *first,
+                 lh_ui_entity_t *end, const lh_ui_rect_t *content_box);
 
 LH_COMPILER_EXTERN_C_END
 

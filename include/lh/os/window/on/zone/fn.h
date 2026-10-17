@@ -26,6 +26,7 @@ struct lh_os_window;
  * press means, and while the pointer moves over a zone. Keep it a hit test and not
  * a decision.
  */
-typedef lh_os_window_zone_t(lh_os_window_on_zone_fn)(struct lh_os_window *self, int x, int y, lh_ptr context);
+typedef lh_os_window_zone_t(lh_os_window_on_zone_fn)(struct lh_os_window *self, int x, int y,
+                                                     lh_ptr context);
 
 #endif /* LH_OS_WINDOW_ON_ZONE_FN_H */

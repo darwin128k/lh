@@ -31,7 +31,8 @@
 #endif
 
 #if !LH_LIBRARY_OPTION_OS_WINDOW
-#    error "lh/os/window.h requires LH_LIBRARY_OPTION_OS_WINDOW (CMake: -DLH_LIBRARY_OPTION_OS_WINDOW=ON)"
+#    error                                                                                         \
+        "lh/os/window.h requires LH_LIBRARY_OPTION_OS_WINDOW (CMake: -DLH_LIBRARY_OPTION_OS_WINDOW=ON)"
 #endif
 
 struct lh_os_app;
@@ -188,7 +189,8 @@ lh_os_window_get_client_size(const lh_os_window_t *self, int *width, int *height
  * maximize, and neither announces itself through a paint.
  */
 lh_void
-lh_os_window_set_on_resize(lh_os_window_t *self, lh_os_window_on_resize_cb on_resize, lh_ptr context);
+lh_os_window_set_on_resize(lh_os_window_t *self, lh_os_window_on_resize_cb on_resize,
+                           lh_ptr context);
 
 /**
  * @brief Open @p self as a top-level window under @p app and show it.
@@ -386,7 +388,8 @@ lh_os_window_get_paint_dc(const lh_os_window_t *self);
  *        exclusive), or zeros outside a paint.
  */
 lh_void
-lh_os_window_get_paint_rect(const lh_os_window_t *self, int *left, int *top, int *right, int *bottom);
+lh_os_window_get_paint_rect(const lh_os_window_t *self, int *left, int *top, int *right,
+                            int *bottom);
 
 /**
  * @brief Ask the OS to redraw @p self (posts a paint of the whole client).

@@ -62,7 +62,7 @@ lh_bool_t
 lh_fs_file_mode_is_readable(lh_fs_file_mode_t mode)
 {
     return lh_cast_static(lh_bool_t, lh_math_eq(mode, lh_fs_file_mode_read) ||
-                                     lh_math_eq(mode, lh_fs_file_mode_readwrite));
+                                         lh_math_eq(mode, lh_fs_file_mode_readwrite));
 }
 
 /**
@@ -73,7 +73,7 @@ lh_bool_t
 lh_fs_file_mode_is_writable(lh_fs_file_mode_t mode)
 {
     return lh_cast_static(lh_bool_t, lh_math_eq(mode, lh_fs_file_mode_write) ||
-                                     lh_math_eq(mode, lh_fs_file_mode_readwrite));
+                                         lh_math_eq(mode, lh_fs_file_mode_readwrite));
 }
 
 LH_COMPILER_EXTERN_C_END

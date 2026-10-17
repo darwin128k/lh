@@ -35,7 +35,7 @@ typedef struct lh_ui_image lh_ui_image_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Class ───────────────────────────────────────────────────────────────── */
+/* -- Class ----------------------------------------------------------------- */
 
 /**
  * @brief Class of ::lh_ui_image_t, derived from ::lh_ui_entity_class.
@@ -72,7 +72,7 @@ lh_ui_image_on_measure(const struct lh_ui_image *self, const struct lh_ui_entity
 lh_void
 lh_ui_image_on_baseline(const struct lh_ui_image *self, const struct lh_ui_entity_event *event);
 
-/* ── Lifetime and fields ─────────────────────────────────────────────────── */
+/* -- Lifetime and fields --------------------------------------------------- */
 
 /**
  * @brief An image at @p rect showing @p mask (::lh_null for none) in opaque
@@ -126,7 +126,7 @@ lh_ui_image_as_entity(lh_ui_image_t *self);
 lh_ui_image_t *
 lh_ui_entity_as_image(lh_ui_entity_t *entity);
 
-/* ── Picture ─────────────────────────────────────────────────────────────── */
+/* -- Picture --------------------------------------------------------------- */
 
 /**
  * @brief The mask @p self shows (not owned, ::lh_null for none: then it draws

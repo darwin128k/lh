@@ -163,7 +163,7 @@ lh_memory_bounds_is_backward(const lh_memory_bounds_t *self);
 lh_bool_t
 lh_memory_bounds_is_valid(const lh_memory_bounds_t *self);
 
-/* -- validated access, size, containment ---------------------------------- */
+/* -- validated access, size, containment ----------------------------------- */
 
 /**
  * @brief Return @c first after validating @p self.
@@ -347,7 +347,7 @@ lh_memory_bounds_contains(const lh_memory_bounds_t *self, const lh_memory_bounds
 lh_bool_t
 lh_memory_bounds_contains_v(const lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
-/* -- pointer and value access --------------------------------------------- */
+/* -- pointer and value access ---------------------------------------------- */
 
 /**
  * @brief Return pointer at byte @p offset from @c first.
@@ -633,7 +633,7 @@ lh_memory_bounds_next_value(const lh_memory_bounds_t *self, const lh_ptr ptr);
 lh_byte_t
 lh_memory_bounds_prev_value(const lh_memory_bounds_t *self, const lh_ptr ptr);
 
-/* -- overlap, alignment, equality ----------------------------------------- */
+/* -- overlap, alignment, equality ------------------------------------------ */
 
 /**
  * @brief True if half-open range <tt>[begin, end)</tt> overlaps @p self.
@@ -1245,7 +1245,7 @@ lh_memory_bounds_swap_and_clear(lh_memory_bounds_t *self, lh_memory_bounds_t *ot
 lh_void
 lh_memory_bounds_to_slice(const lh_memory_bounds_t *self, lh_memory_bounds_slice_t *out);
 
-/* -- sub-range construction -------------------------------------------------- */
+/* -- sub-range construction ------------------------------------------------ */
 
 /**
  * @brief Build bounds containing the first @p n bytes of a valid half-open range.
@@ -1303,7 +1303,8 @@ lh_memory_bounds_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n, lh_memory_bou
  *        @p size is greater than the source bounds size.
  */
 lh_void
-lh_memory_bounds_from_begin(const lh_memory_bounds_t *self, lh_usize_t size, lh_memory_bounds_t *out);
+lh_memory_bounds_from_begin(const lh_memory_bounds_t *self, lh_usize_t size,
+                            lh_memory_bounds_t *out);
 
 /**
  * @brief Build bounds containing the last @p size bytes of @p self.
@@ -1340,7 +1341,8 @@ lh_memory_bounds_from_end(const lh_memory_bounds_t *self, lh_usize_t size, lh_me
  *        <tt>[begin, end)</tt> is not valid bounds.
  */
 lh_void
-lh_memory_bounds_between(const lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end, lh_memory_bounds_t *out);
+lh_memory_bounds_between(const lh_memory_bounds_t *self, lh_ptr begin, lh_ptr end,
+                         lh_memory_bounds_t *out);
 
 /**
  * @brief Build sub-bounds starting at @p offset with @p size bytes.
@@ -1360,9 +1362,8 @@ lh_memory_bounds_between(const lh_memory_bounds_t *self, lh_ptr begin, lh_ptr en
  *        <tt>[offset, offset + size)</tt> is outside @p self.
  */
 lh_void
-lh_memory_bounds_from_offset(const lh_memory_bounds_t *self, lh_uoffset_t offset,
-                                  lh_usize_t size,
-                                  lh_memory_bounds_t *out);
+lh_memory_bounds_from_offset(const lh_memory_bounds_t *self, lh_uoffset_t offset, lh_usize_t size,
+                             lh_memory_bounds_t *out);
 
 /**
  * @brief Build bounds with @p n bytes removed from the beginning.
@@ -1420,9 +1421,10 @@ lh_memory_bounds_drop_last(const lh_memory_bounds_t *self, lh_usize_t n, lh_memo
  *        @p left + @p right is greater than the source bounds size.
  */
 lh_void
-lh_memory_bounds_trim(const lh_memory_bounds_t *self, lh_usize_t left, lh_usize_t right, lh_memory_bounds_t *out);
+lh_memory_bounds_trim(const lh_memory_bounds_t *self, lh_usize_t left, lh_usize_t right,
+                      lh_memory_bounds_t *out);
 
-/* ── view ────────────────────────────────────────────────────────────────── */
+/* -- view ------------------------------------------------------------------ */
 
 /**
  * @brief A read-only view of the memory @p self describes.

@@ -65,7 +65,8 @@ lh_os_system_serial_speed(lh_u32_t baud)
 }
 
 lh_os_system_serial_handle_t
-lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t parity, lh_u8_t stop_bits)
+lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t parity,
+                         lh_u8_t stop_bits)
 {
     const speed_t speed = lh_os_system_serial_speed(baud);
     struct termios tty;
@@ -96,7 +97,8 @@ lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t 
     /* Raw: every byte as it came, nothing translated, nothing echoed, no line
        editing and no signals -- a Modbus frame is binary, and a 0x0D in it is a
        byte of a register, not the end of a line. */
-    tty.c_iflag &= ~(tcflag_t)(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON | IXOFF | IXANY);
+    tty.c_iflag &= ~(tcflag_t)(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON |
+                               IXOFF | IXANY);
     tty.c_oflag &= ~(tcflag_t)OPOST;
     tty.c_lflag &= ~(tcflag_t)(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
     tty.c_cflag &= ~(tcflag_t)(CSIZE | PARENB | PARODD | CSTOPB);
@@ -120,7 +122,8 @@ lh_os_system_serial_open(lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t 
     /* A read returns what there is, at once: no minimum count, no wait. */
     tty.c_cc[VMIN] = 0;
     tty.c_cc[VTIME] = 0;
-    if (cfsetispeed(&tty, speed) != 0 || cfsetospeed(&tty, speed) != 0 || tcsetattr(fd, TCSANOW, &tty) != 0)
+    if (cfsetispeed(&tty, speed) != 0 || cfsetospeed(&tty, speed) != 0 ||
+        tcsetattr(fd, TCSANOW, &tty) != 0)
     {
         lh_os_system_error_capture();
         (void)close(fd);

@@ -12,12 +12,12 @@
  *
  * Times are Unix seconds.
  */
-#define lh_fs_stat_fields(kind_type, perm_type, size_type, time_type, attr_type)                \
+#define lh_fs_stat_fields(kind_type, perm_type, size_type, time_type, attr_type)                   \
     kind_type kind;                                                                                \
     perm_type perm;                                                                                \
     size_type size;                                                                                \
     time_type atime;                                                                               \
-    time_type mtime;                                                                                \
+    time_type mtime;                                                                               \
     time_type ctime;                                                                               \
     attr_type attr
 

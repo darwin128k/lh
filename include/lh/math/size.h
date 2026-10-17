@@ -32,7 +32,7 @@ typedef struct lh_math_size lh_math_size_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── init ────────────────────────────────────────────────────────────────── */
+/* -- init ------------------------------------------------------------------ */
 
 /**
  * @brief Fill @p self from explicit extents.
@@ -50,9 +50,10 @@ lh_math_size_init_empty(lh_math_size_t *self);
  * @brief Size spanning from @p min (inclusive) to @p max (exclusive).
  */
 lh_void
-lh_math_size_from_extent(const lh_math_point_t *min, const lh_math_point_t *max, lh_math_size_t *out);
+lh_math_size_from_extent(const lh_math_point_t *min, const lh_math_point_t *max,
+                         lh_math_size_t *out);
 
-/* ── Accessors ───────────────────────────────────────────────────────────── */
+/* -- Accessors ------------------------------------------------------------- */
 
 /**
  * @brief Width of @p self.
@@ -78,7 +79,7 @@ lh_math_size_set_width(lh_math_size_t *self, lh_math_scalar_t width);
 lh_void
 lh_math_size_set_height(lh_math_size_t *self, lh_math_scalar_t height);
 
-/* ── Queries ────────────────────────────────────────────────────────────── */
+/* -- Queries --------------------------------------------------------------- */
 
 /**
  * @brief Element-wise equality.
@@ -122,7 +123,7 @@ lh_math_size_is_greater(const lh_math_size_t *self, const lh_math_size_t *other)
 lh_bool_t
 lh_math_size_is_empty(const lh_math_size_t *self);
 
-/* ── Component-wise ─────────────────────────────────────────────────────── */
+/* -- Component-wise -------------------------------------------------------- */
 
 /**
  * @brief Component-wise minimum of @p a and @p b into @p out.
@@ -142,14 +143,15 @@ lh_math_size_max(const lh_math_size_t *a, const lh_math_size_t *b, lh_math_size_
 lh_math_scalar_t
 lh_math_size_min_side(const lh_math_size_t *self);
 
-/* ── Set ops ────────────────────────────────────────────────────────────── */
+/* -- Set ops --------------------------------------------------------------- */
 
 /**
  * @brief Inset @p self by `(@p dx, @p dy)` on each side (positive shrinks,
  *        negative grows): width `-= 2 * dx`, height `-= 2 * dy`.
  */
 lh_void
-lh_math_size_inset(const lh_math_size_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy, lh_math_size_t *out);
+lh_math_size_inset(const lh_math_size_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy,
+                   lh_math_size_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

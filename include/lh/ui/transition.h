@@ -67,8 +67,8 @@ lh_ui_transition_get_look(const lh_ui_transition_t *self);
  * round half way sets out from the pixel on screen.
  */
 lh_void
-lh_ui_transition_start(lh_ui_transition_t *self, struct lh_ui_entity *entity, const lh_ui_style_t *from,
-                       const lh_ui_style_t *to);
+lh_ui_transition_start(lh_ui_transition_t *self, struct lh_ui_entity *entity,
+                       const lh_ui_style_t *from, const lh_ui_style_t *to);
 
 /**
  * @brief Spend @p ms and make the look again.

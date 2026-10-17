@@ -31,8 +31,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Set each side of @p self.
  */
 lh_void
-lh_ui_insets_init(lh_ui_insets_t *self, lh_ui_scalar_t left, lh_ui_scalar_t top, lh_ui_scalar_t right,
-                  lh_ui_scalar_t bottom);
+lh_ui_insets_init(lh_ui_insets_t *self, lh_ui_scalar_t left, lh_ui_scalar_t top,
+                  lh_ui_scalar_t right, lh_ui_scalar_t bottom);
 
 /**
  * @brief @p value on every side.

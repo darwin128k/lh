@@ -13,8 +13,8 @@
  * @param paint_type Type of the outline paint (held by value).
  * @param width_type Type of the line width.
  */
-#define lh_ui_pen_fields(paint_type, width_type)                                                    \
-    paint_type paint;                                                                               \
+#define lh_ui_pen_fields(paint_type, width_type)                                                   \
+    paint_type paint;                                                                              \
     width_type width
 
 #endif /* LH_UI_PEN_FIELDS_H */

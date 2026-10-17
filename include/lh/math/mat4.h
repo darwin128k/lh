@@ -39,7 +39,7 @@ typedef struct lh_math_mat4 lh_math_mat4_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Accessors ───────────────────────────────────────────────────────────── */
+/* -- Accessors ------------------------------------------------------------- */
 
 /**
  * @brief Column @p index (`0..3`) of @p self.
@@ -57,7 +57,8 @@ lh_math_mat4_set_column(lh_math_mat4_t *self, unsigned index, lh_math_vec4_t col
  * @brief Replace column @p index (`0..3`) of @p self with `(xyz, w)`.
  */
 lh_void
-lh_math_mat4_set_column_vec3(lh_math_mat4_t *self, unsigned index, lh_math_vec3_t xyz, lh_math_fscalar_t w);
+lh_math_mat4_set_column_vec3(lh_math_mat4_t *self, unsigned index, lh_math_vec3_t xyz,
+                             lh_math_fscalar_t w);
 
 /**
  * @brief The identity: transforms every vector to itself.
@@ -69,7 +70,8 @@ lh_math_mat4_identity(lh_math_mat4_t *out);
  * @brief Matrix with the given columns.
  */
 lh_void
-lh_math_mat4_from_columns(lh_math_vec4_t c0, lh_math_vec4_t c1, lh_math_vec4_t c2, lh_math_vec4_t c3, lh_math_mat4_t *out);
+lh_math_mat4_from_columns(lh_math_vec4_t c0, lh_math_vec4_t c1, lh_math_vec4_t c2,
+                          lh_math_vec4_t c3, lh_math_mat4_t *out);
 
 /**
  * @brief Moves points by @p offset; directions are unaffected.

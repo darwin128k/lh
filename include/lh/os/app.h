@@ -20,7 +20,8 @@
 #endif
 
 #if !LH_LIBRARY_OPTION_OS_WINDOW
-#    error "lh/os/app.h requires LH_LIBRARY_OPTION_OS_WINDOW (CMake: -DLH_LIBRARY_OPTION_OS_WINDOW=ON)"
+#    error                                                                                         \
+        "lh/os/app.h requires LH_LIBRARY_OPTION_OS_WINDOW (CMake: -DLH_LIBRARY_OPTION_OS_WINDOW=ON)"
 #endif
 
 struct lh_os_window;

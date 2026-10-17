@@ -187,7 +187,7 @@ TEST(entity_scrollbar, draw_fills_the_track_then_the_thumb)
     EXPECT_EQ(log.round_radii[0], lh_ui_scalar(5));
 }
 
-/* ── Show modes ──────────────────────────────────────────────────────────── */
+/* -- Show modes ------------------------------------------------------------ */
 
 namespace
 {
@@ -250,7 +250,7 @@ TEST(entity_scrollbar, hidden_mode_still_lets_the_container_scroll)
     EXPECT_EQ(f.scroll_y(), 120);
 }
 
-/* ── Public parts ────────────────────────────────────────────────────────── */
+/* -- Public parts ---------------------------------------------------------- */
 
 TEST(entity_scrollbar, reads_the_container_on_its_axis)
 {

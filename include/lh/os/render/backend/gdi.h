@@ -29,7 +29,6 @@
 #    error "lh/os/render/backend/gdi.h requires LH_LIBRARY_OPTION_OS_WINDOW"
 #endif
 
-
 /**
  * @struct lh_os_render_backend_gdi_context
  * @brief GDI target: window, paint DC, off-screen surface, software context.
@@ -37,15 +36,15 @@
 struct lh_os_render_backend_gdi_context
 {
     /** Members: ::lh_os_render_backend_gdi_fields. */
-    lh_os_render_backend_gdi_fields(lh_os_system_window_handle_t, lh_ptr, lh_ui_surface_t, lh_ui_canvas_sw_t,
-                                    lh_u32_t, lh_u64_t, lh_ui_point_t);
+    lh_os_render_backend_gdi_fields(lh_os_system_window_handle_t, lh_ptr, lh_ui_surface_t,
+                                    lh_ui_canvas_sw_t, lh_u32_t, lh_u64_t, lh_ui_point_t);
 };
 /** @copybrief lh_os_render_backend_gdi_context */
 typedef struct lh_os_render_backend_gdi_context lh_os_render_backend_gdi_context_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Context ─────────────────────────────────────────────────────────────── */
+/* -- Context --------------------------------------------------------------- */
 
 /**
  * @brief Clear @p self: no window, no DC, empty surface, no pixels to draw.
@@ -134,7 +133,7 @@ lh_void
 lh_os_render_backend_gdi_context_set_format(lh_os_render_backend_gdi_context_t *self,
                                             lh_ui_pixmap_format_t format);
 
-/* ── Counters ──────────────────────────────────────────────────────────────
+/* -- Counters --------------------------------------------------------------
  * They cover what the last `begin` or `begin_area` opened, and nothing more:
  * a whole-target frame is one of those, a partial frame is one per strip, so
  * under PARTIAL these are the last strip's numbers. */
@@ -176,7 +175,7 @@ lh_os_render_backend_gdi_context_get_clip_calls(const lh_os_render_backend_gdi_c
 lh_u64_t
 lh_os_render_backend_gdi_context_get_frame_us(const lh_os_render_backend_gdi_context_t *self);
 
-/* ── Backend slots (context: ::lh_os_render_backend_gdi_context_t) ───────── */
+/* -- Backend slots (context: ::lh_os_render_backend_gdi_context_t) --------- */
 
 /**
  * @brief Backend `begin`: the client rectangle as the frame area, then point
@@ -215,14 +214,15 @@ lh_os_render_backend_gdi_clear(lh_ptr context, const lh_ui_color_t *color);
  * @brief Backend `fill_rect`: counted, then ::lh_ui_canvas_sw_fill_rect.
  */
 lh_void
-lh_os_render_backend_gdi_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *color);
+lh_os_render_backend_gdi_fill_rect(lh_ptr context, const lh_ui_rect_t *rect,
+                                   const lh_ui_color_t *color);
 
 /**
  * @brief Backend `fill_round_rect`: counted, then ::lh_ui_canvas_sw_fill_round_rect.
  */
 lh_bool_t
-lh_os_render_backend_gdi_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
-                                         const lh_ui_color_t *color);
+lh_os_render_backend_gdi_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect,
+                                         lh_ui_scalar_t radius, const lh_ui_color_t *color);
 
 /**
  * @brief Backend `set_clip`: counted, ::lh_ui_canvas_sw_set_clip, and the
@@ -235,30 +235,30 @@ lh_os_render_backend_gdi_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *cli
  * @brief Backend `fill_mask`: counted, then ::lh_ui_canvas_sw_fill_mask.
  */
 lh_bool_t
-lh_os_render_backend_gdi_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,
-                                   const lh_ui_color_t *color);
+lh_os_render_backend_gdi_fill_mask(lh_ptr context, const lh_ui_point_t *origin,
+                                   const lh_ui_mask_t *mask, const lh_ui_color_t *color);
 
 /**
  * @brief Backend `shadow`: ::lh_ui_canvas_sw_shadow on the surface.
  */
 lh_bool_t
 lh_os_render_backend_gdi_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
-                               const lh_ui_shadow_t *shadow);
+                                const lh_ui_shadow_t *shadow);
 
 /**
  * @brief Backend `blur`: ::lh_ui_canvas_sw_blur on the surface.
  */
 lh_bool_t
 lh_os_render_backend_gdi_blur(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t blur_radius,
-                             lh_u8_t *scratch, lh_usize_t bytes);
+                              lh_u8_t *scratch, lh_usize_t bytes);
 
 /**
  * @brief Backend `glass`: ::lh_ui_canvas_sw_glass on the surface.
  */
 lh_bool_t
 lh_os_render_backend_gdi_glass(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t corner,
-                              lh_ui_scalar_t blur_radius, const lh_ui_color_t *tint, lh_u8_t *scratch,
-                              lh_usize_t bytes);
+                               lh_ui_scalar_t blur_radius, const lh_ui_color_t *tint,
+                               lh_u8_t *scratch, lh_usize_t bytes);
 
 /**
  * @brief The GDI backend table: software drawing into the surface, GDI blit.

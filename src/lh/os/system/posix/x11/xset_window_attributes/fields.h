@@ -11,7 +11,7 @@
  * @brief `XSetWindowAttributes`, all of it: `XCreateWindow` reads the fields its value
  *        mask names, at the offsets Xlib has them, so none may be left out.
  */
-#define lh_os_system_posix_xset_window_attributes_fields \
+#define lh_os_system_posix_xset_window_attributes_fields                                           \
     lh_os_system_posix_xid_t background_pixmap;                                                    \
     unsigned long background_pixel;                                                                \
     lh_os_system_posix_xid_t border_pixmap;                                                        \

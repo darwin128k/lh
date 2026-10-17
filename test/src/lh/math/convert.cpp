@@ -20,7 +20,7 @@ y_of(lh_math_point_t p)
     return lh_math_point_get_y(lh_addr_of(p));
 }
 
-/* ── point ↔ vec2 ───────────────────────────────────────────────────────── */
+/* -- point ↔ vec2 ---------------------------------------------------------- */
 
 TEST(convert_point_vec2, point_to_vec2_is_exact)
 {
@@ -51,7 +51,7 @@ TEST(convert_point_vec2, point_round_trip_is_lossless)
     EXPECT_EQ(y_of(back), -34);
 }
 
-/* ── the float → pixel boundary agrees with the rasterizer ──────────────── */
+/* -- the float → pixel boundary agrees with the rasterizer ----------------- */
 
 /* Pixel coverage typically uses `ceil(x - 0.5f)`.
  * A vec2_to_point at the same position must land on the same pixel, or a

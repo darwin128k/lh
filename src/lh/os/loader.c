@@ -4,7 +4,7 @@
 #include <lh/os/alloc.h>
 #include <lh/runtime/allocator.h>
 
-/* ── accessors ───────────────────────────────────────────────────────────── */
+/* -- accessors ------------------------------------------------------------- */
 
 LH_ATTRIBUTE_STATIC
 lh_list_t *
@@ -53,7 +53,7 @@ lh_os_loader_get_entry(const lh_os_loader_t *self)
     return lh_str_get_data(lh_addr_of(self->entry));
 }
 
-/* ── init / deinit ───────────────────────────────────────────────────────── */
+/* -- init / deinit --------------------------------------------------------- */
 
 lh_void
 lh_os_loader_init(lh_os_loader_t *self, lh_os_module_t *owner, lh_str_cptr entry)
@@ -98,7 +98,8 @@ lh_os_loader_deinit(lh_os_loader_t *self)
 lh_os_loader_t *
 lh_os_loader_create(lh_os_module_t *owner, lh_str_cptr entry)
 {
-    lh_os_loader_t *const self = lh_ptr_cast(lh_os_loader_t, lh_os_alloc(sizeof(lh_ptr_deref(self))));
+    lh_os_loader_t *const self =
+        lh_ptr_cast(lh_os_loader_t, lh_os_alloc(sizeof(lh_ptr_deref(self))));
 
     if (lh_null_ne(self))
     {
@@ -114,7 +115,7 @@ lh_os_loader_destroy(lh_os_loader_t *self)
     lh_runtime_allocator_free(self);
 }
 
-/* ── load ────────────────────────────────────────────────────────────────── */
+/* -- load ------------------------------------------------------------------ */
 
 /* Open, take the method table the image exports under `entry`, start. The
    owner is set before start runs, so start may already reach its parent. */
@@ -155,7 +156,7 @@ lh_os_loader_load(lh_os_loader_t *self, const lh_fs_path_t *path)
     return child;
 }
 
-/* ── children ────────────────────────────────────────────────────────────── */
+/* -- children -------------------------------------------------------------- */
 
 lh_usize_t
 lh_os_loader_get_loaded(const lh_os_loader_t *self)

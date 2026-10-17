@@ -23,17 +23,21 @@ lh_date_year_days_from_zero(lh_s64_t year)
     const lh_s64_t y = lh_math_sub_one(year);
     const lh_s64_t leap_4 = lh_math_floor_div(y, lh_cast_static(lh_s64_t, LH_DATE_YEAR_LEAP_CYCLE));
     const lh_s64_t leap_100 = lh_math_floor_div(y, lh_cast_static(lh_s64_t, LH_DATE_YEAR_CENTURY));
-    const lh_s64_t leap_400 = lh_math_floor_div(y, lh_cast_static(lh_s64_t, LH_DATE_YEAR_GREGORIAN_CYCLE));
-    const lh_s64_t leap_count = lh_math_add_one(lh_math_add(lh_math_sub(leap_4, leap_100), leap_400));
+    const lh_s64_t leap_400 =
+        lh_math_floor_div(y, lh_cast_static(lh_s64_t, LH_DATE_YEAR_GREGORIAN_CYCLE));
+    const lh_s64_t leap_count =
+        lh_math_add_one(lh_math_add(lh_math_sub(leap_4, leap_100), leap_400));
 
-    return lh_math_add(lh_math_mul(lh_cast_static(lh_s64_t, LH_DATE_YEAR_DAYS_COMMON), year), leap_count);
+    return lh_math_add(lh_math_mul(lh_cast_static(lh_s64_t, LH_DATE_YEAR_DAYS_COMMON), year),
+                       leap_count);
 }
 
 lh_s64_t
 lh_date_year_from_days_from_zero(lh_s64_t days)
 {
-    lh_s64_t year = lh_math_floor_div(lh_math_mul(days, lh_cast_static(lh_s64_t, LH_DATE_YEAR_GREGORIAN_CYCLE)),
-                                      lh_cast_static(lh_s64_t, LH_DATE_YEAR_GREGORIAN_CYCLE_DAYS));
+    lh_s64_t year =
+        lh_math_floor_div(lh_math_mul(days, lh_cast_static(lh_s64_t, LH_DATE_YEAR_GREGORIAN_CYCLE)),
+                          lh_cast_static(lh_s64_t, LH_DATE_YEAR_GREGORIAN_CYCLE_DAYS));
 
     while (lh_math_le(lh_date_year_days_from_zero(lh_math_add_one(year)), days))
     {
@@ -49,8 +53,9 @@ lh_date_year_from_days_from_zero(lh_s64_t days)
 lh_u16_t
 lh_date_year_days(lh_date_year_t self)
 {
-    return lh_cast_static(lh_u16_t, lh_date_year_is_leap(self) ? lh_math_add_one(LH_DATE_YEAR_DAYS_COMMON)
-                                                                : LH_DATE_YEAR_DAYS_COMMON);
+    return lh_cast_static(lh_u16_t, lh_date_year_is_leap(self)
+                                        ? lh_math_add_one(LH_DATE_YEAR_DAYS_COMMON)
+                                        : LH_DATE_YEAR_DAYS_COMMON);
 }
 
 lh_uint_t

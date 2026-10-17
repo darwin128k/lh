@@ -22,7 +22,8 @@ lh_ui_entity_class_fill(const struct lh_ui_entity *self, lh_ui_canvas_t *canvas)
        (::lh_ui_canvas_fill_box). The clip a parent cuts its children with is the
        smallest corner (::lh_ui_style_get_radius), so a child never shows past a
        corner that is rounder than the clip. */
-    lh_ui_canvas_fill_box(canvas, lh_addr_of(rect), lh_ui_style_get_radii(style), lh_ui_style_get_fill(style));
+    lh_ui_canvas_fill_box(canvas, lh_addr_of(rect), lh_ui_style_get_radii(style),
+                          lh_ui_style_get_fill(style));
 }
 
 lh_void

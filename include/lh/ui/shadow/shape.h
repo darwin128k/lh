@@ -44,8 +44,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * `0`, and every pixel of it is `0`.
  */
 lh_void
-lh_ui_shadow_shape_init(lh_ui_shadow_shape_t *self, const lh_ui_shadow_t *shadow, const lh_ui_rect_t *rect,
-                        lh_ui_scalar_t radius);
+lh_ui_shadow_shape_init(lh_ui_shadow_shape_t *self, const lh_ui_shadow_t *shadow,
+                        const lh_ui_rect_t *rect, lh_ui_scalar_t radius);
 
 /**
  * @brief The part of a pixel's distance that only its row decides, for
@@ -71,8 +71,8 @@ lh_ui_shadow_shape_alpha(const lh_ui_shadow_shape_t *self, lh_s32_t row, lh_s32_
  * instead of each taking a square root.
  */
 lh_void
-lh_ui_shadow_shape_span(const lh_ui_shadow_shape_t *self, const struct lh_ui_shadow_ramp *ramp, lh_s32_t y,
-                        lh_s32_t x0, lh_s32_t x1, lh_byte_ptr out);
+lh_ui_shadow_shape_span(const lh_ui_shadow_shape_t *self, const struct lh_ui_shadow_ramp *ramp,
+                        lh_s32_t y, lh_s32_t x0, lh_s32_t x1, lh_byte_ptr out);
 
 LH_COMPILER_EXTERN_C_END
 

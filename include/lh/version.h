@@ -60,7 +60,7 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── struct ──────────────────────────────────────────────────────────────── */
+/* -- struct ---------------------------------------------------------------- */
 
 /**
  * @struct lh_version
@@ -82,7 +82,7 @@ struct lh_version
  */
 typedef struct lh_version lh_version_t;
 
-/* ── set ─────────────────────────────────────────────────────────────────── */
+/* -- set ------------------------------------------------------------------- */
 
 /**
  * @brief Copy the version state from @p other into @p self.
@@ -122,7 +122,7 @@ lh_version_set_minor(lh_version_t *self, lh_version_minor_t minor);
 lh_void
 lh_version_set_patch(lh_version_t *self, lh_version_patch_t patch);
 
-/* ── getters ─────────────────────────────────────────────────────────────── */
+/* -- getters --------------------------------------------------------------- */
 
 /**
  * @brief Return the major component of @p self.
@@ -148,7 +148,7 @@ lh_version_get_minor(const lh_version_t *self);
 lh_version_patch_t
 lh_version_get_patch(const lh_version_t *self);
 
-/* ── comparison ──────────────────────────────────────────────────────────── */
+/* -- comparison ------------------------------------------------------------ */
 
 /**
  * @brief Lexicographic order: true if @p self is not less than @p minimum
@@ -207,7 +207,7 @@ lh_version_is_greater(const lh_version_t *self, const lh_version_t *other);
 lh_bool_t
 lh_version_is_compatible(const lh_version_t *self, const lh_version_t *required);
 
-/* ── parse / format ──────────────────────────────────────────────────────── */
+/* -- parse / format -------------------------------------------------------- */
 
 /**
  * @brief Parse a strict SemVer core version (`major.minor.patch`).

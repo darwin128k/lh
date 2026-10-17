@@ -4,7 +4,7 @@
 
 #include <cstring>
 
-/* ── Frames captured from a device ──────────────────────────────────────────────
+/* -- Frames captured from a device -----------------------------------------
    These bytes are not written down from memory. They were taken off a socket from
    a Modbus server somebody else wrote, by asking it to read three holding
    registers at address 10, and they are here exactly as they arrived:
@@ -64,7 +64,7 @@ const lh_byte_t kException[] = {0x00, 0x01, 0x00, 0x00, 0x00, 0x03, 0x01, 0x83, 
 const lh_byte_t kRefusedByDevice[] = {0x00, 0x07, 0x00, 0x00, 0x00, 0x03,
                                       0x01, 0x83, 0x03};
 
-/* ── A stream that hands out bytes one read at a time ───────────────────────────
+/* -- A stream that hands out bytes one read at a time ----------------------
    No sockets, no device, no clock: what goes out is recorded and what comes back is
    whatever the test put in the queue. That is the whole reason a link reads a
    stream and not a socket. Nothing queued is ::LH_IO_PENDING, as on a quiet socket
@@ -189,7 +189,7 @@ append(lh_test_link *self, const lh_byte_t *bytes, lh_u16_t length)
 
 } /* namespace */
 
-/* ── How long a frame is ────────────────────────────────────────────────────────
+/* -- How long a frame is ---------------------------------------------------
    Modbus TCP's length field counts the unit identifier and everything after it.
    The seven-byte header counts the unit identifier too. Adding the field to the
    header therefore counts one byte twice, and the frame that comes out is one byte
@@ -260,7 +260,7 @@ TEST(lh_mb_link, another_devices_frame_is_not_ours)
         << "unit 1 on the wire, asked for by unit 2";
 }
 
-/* ── The PDU out of a frame ──────────────────────────────────────────────────────
+/* -- The PDU out of a frame ------------------------------------------------
    The PDU is everything past the seven-byte header and there is nothing else. A
    reader that counts the header plus one is dropping the last byte of every answer,
    and for a read that is the top byte of the last register: a number that is wrong
@@ -301,7 +301,7 @@ TEST(lh_mb_link, decoding_does_not_truncate_the_final_register)
     EXPECT_EQ(values[0], (lh_u16_t)0xABCD) << "0x00AB is the answer of a parser that drops a byte";
 }
 
-/* ── How long a frame we build is ────────────────────────────────────────────────
+/* -- How long a frame we build is ------------------------------------------
    The length **field** counts the unit and the PDU. The frame is the header and the
    PDU, and the unit is already one of the header's seven bytes. Adding one byte too
    many puts a stale byte from the buffer on the wire, and it hides: the reader below
@@ -326,7 +326,7 @@ TEST(lh_mb_link, an_encoded_tcp_request_is_twelve_bytes_with_no_byte_after_the_p
     EXPECT_EQ(frame[11], (lh_u8_t)19);
 }
 
-/* ── How wide the frame buffer has to be ────────────────────────────────────────
+/* -- How wide the frame buffer has to be -----------------------------------
    A read of 125 registers is the most Modbus allows. Over RTU its answer is 255
    bytes; over TCP it is 259, because the seven-byte header replaces a one-byte unit
    and a two-byte CRC and so comes out five bytes the longer. A buffer of 256 asks
@@ -391,7 +391,7 @@ TEST(lh_mb_link, the_frame_buffer_holds_the_widest_answer_the_link_may_ask_for)
               (lh_u16_t)5);
 }
 
-/* ── The question a link asks ─────────────────────────────────────────────────────
+/* -- The question a link asks ----------------------------------------------
    The function code was a field on the link and a constant in the code that built
    the request. The answer came back carrying 0x03, the reader was holding 0x04, and
    the frame was called somebody else's — on a device that had answered the question
@@ -443,7 +443,7 @@ TEST(lh_mb_link, a_holding_answer_answers_a_holding_question_in_both_banks)
         << "an answer to the question that was asked, read with the code it was asked under";
 }
 
-/* ── What an answer is worth ────────────────────────────────────────────────────── */
+/* -- What an answer is worth ----------------------------------------------- */
 
 TEST(lh_mb_link, the_answer_a_device_sent_is_the_answer_the_link_holds)
 {
@@ -493,7 +493,7 @@ TEST(lh_mb_link, an_answer_arriving_one_byte_at_a_time_is_the_same_answer)
     EXPECT_EQ(count, (lh_u16_t)3);
 }
 
-/* ── A failure is one question ─────────────────────────────────────────────────────
+/* -- A failure is one question ---------------------------------------------
    A link left in `failed` is a link that can never be asked anything again, because
    asking needs idle. One would-block on a full send buffer, one reset, one timeout,
    and that device is out for the rest of the session while every other device keeps
@@ -531,7 +531,7 @@ TEST(lh_mb_link, a_device_that_stops_answering_still_counts_as_failed)
     EXPECT_EQ(t.link.reason, lh_mb_status_short) << "not yet a frame, and never one";
 }
 
-/* ── A refusal is an answer ────────────────────────────────────────────────────
+/* -- A refusal is an answer ------------------------------------------------
    The ninth thing a real controller showed, and the only one a simulator cannot
    show at all: it answers every address. Every question in this file until now was
    answered, so "no registers came back" and "the device is gone" were the same
@@ -631,7 +631,7 @@ TEST(lh_mb_link, an_answer_to_the_other_question_is_not_an_answer_to_this_one)
         << "a frame carrying 0x03 is not the answer to a 0x04 question";
 }
 
-/* ── How wide a timestamp has to be ───────────────────────────────────────────────
+/* -- How wide a timestamp has to be ----------------------------------------
    `lh_mb_link_t.since_us` held microseconds since boot in 32 bits. Thirty-two bits of
    microseconds run out after 4294 seconds, so on a machine that had been up for
    seventy-one minutes the stored time came back wrapped and `now - since_us` read
@@ -676,7 +676,7 @@ TEST(lh_mb_link, the_timestamp_is_as_wide_as_the_clock_that_fills_it)
     EXPECT_GT(far_future, 4294967295ull) << "and it has to be past the end of a 32-bit field";
 }
 
-/* ── Only one question at a time ────────────────────────────────────────────────────
+/* -- Only one question at a time -------------------------------------------
    A second request sent while the first is unanswered comes back after its own
    answer and is read as somebody else's frame. */
 
@@ -706,7 +706,7 @@ TEST(lh_mb_link, a_link_does_not_wait_for_an_answer_it_has_not_asked_for)
     EXPECT_EQ(t.link.state, (lh_u8_t)lh_mb_link_idle);
 }
 
-/* ── RTU still holds ───────────────────────────────────────────────────────────────
+/* -- RTU still holds -------------------------------------------------------
    The length field is the only thing that is different about TCP, and the frame
    arithmetic below is the RTU one, checked against the CRC rather than a header. */
 
@@ -743,7 +743,7 @@ TEST(lh_mb_link, an_rtu_request_is_the_unit_the_pdu_and_two_crc_bytes)
                   answer_length);
     }
 }
-/* ── Writing ──────────────────────────────────────────────────────────────────
+/* -- Writing ---------------------------------------------------------------
    Every frame below came off a socket from the write-capable copy of the emulator
    (a separate implementation that shares no code with this link): a write of 1 and 2
    at address 10, its echo, a read of the same two registers back, and the refusal of a
@@ -837,7 +837,7 @@ TEST(lh_mb_link, after_a_write_the_link_reads_with_its_own_code_again)
     EXPECT_EQ(count, (lh_u16_t)3);
 }
 
-/* ── A stream, not a sequence of frames ─────────────────────────────────────────
+/* -- A stream, not a sequence of frames ------------------------------------
    Over TCP a recv hands over whatever has arrived: half a frame, a frame and the
    start of the next, or the answer to a question that already timed out followed by
    the answer to this one. A link that treats each recv as one frame reads the wrong
@@ -1042,7 +1042,7 @@ TEST(lh_mb_link, an_rtu_frame_for_another_unit_is_not_ours)
     EXPECT_TRUE(lh_mb_decode(lh_mb_framing_rtu, 2, answer, length, pdu, lh_addr_of(pdu_length)));
 }
 
-/* ── Write one register over a link ─────────────────────────────────────────────
+/* -- Write one register over a link ----------------------------------------
    Transaction 1, unit 1: 0x1234 to register 10. The request and its echo are the
    same twelve bytes, header and all. */
 namespace
@@ -1119,7 +1119,7 @@ TEST(lh_mb_link, after_a_single_write_the_link_reads_again)
     EXPECT_EQ(count, (lh_u16_t)3);
 }
 
-/* ── The stream, not the question ───────────────────────────────────────────────
+/* -- The stream, not the question ------------------------------------------
    `0` from a read is the end of the stream, ::LH_IO_PENDING is "nothing yet", and
    the two have opposite answers: one is a new connection, the other is patience. A
    link that mixed them up either waits for ever on a socket the device closed, or

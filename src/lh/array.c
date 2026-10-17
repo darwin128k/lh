@@ -184,8 +184,7 @@ lh_array_get_ptr(const lh_array_t *self, lh_uindex_t index)
      * own capacity via lh_memory_typed_get_size (division + a validity check of its own) —
      * redundant, since lh_array_is_valid_index (a plain field compare against self->size)
      * already guarantees index < size <= capacity. Compute the pointer directly instead. */
-    lh_assert_runtime_ifn(lh_array_is_valid_index(self, index),
-                          lh_runtime_error_code_out_of_range);
+    lh_assert_runtime_ifn(lh_array_is_valid_index(self, index), lh_runtime_error_code_out_of_range);
     return lh_ptr_add_by_offset_unsafe(lh_void, lh_array_get_begin(self),
                                        lh_math_mul(index, lh_array_get_type_size(self)));
 }
@@ -230,8 +229,7 @@ lh_array_erase_of(lh_array_t *self, lh_uindex_t index, lh_usize_t count)
 lh_void
 lh_array_erase(lh_array_t *self, lh_uindex_t index, lh_ptr dst)
 {
-    lh_assert_runtime_ifn(lh_array_is_valid_index(self, index),
-                          lh_runtime_error_code_out_of_range);
+    lh_assert_runtime_ifn(lh_array_is_valid_index(self, index), lh_runtime_error_code_out_of_range);
 
     if (lh_ptr_is_set(dst))
     {
@@ -278,8 +276,8 @@ lh_array_append(lh_array_t *self, const lh_array_t *other)
     /* Grow first, then read other's data: when other is self, growing moves the
      * block, and the source pointer must point into the moved one. */
     const lh_usize_t capacity = lh_array_get_capacity(self);
-    lh_array_reserve(self, lh_array_get_grown_capacity(
-                               capacity, lh_math_add(lh_array_get_size(self), count)));
+    lh_array_reserve(
+        self, lh_array_get_grown_capacity(capacity, lh_math_add(lh_array_get_size(self), count)));
     lh_array_push_back_of(self, lh_array_get_data(other), count);
 }
 
@@ -311,9 +309,8 @@ lh_array_index_of(const lh_array_t *self, const lh_ptr value)
 
     const lh_usize_t type_size = lh_array_get_type_size(self);
     const lh_ptr begin = lh_array_get_begin(self);
-    const lh_ptr found =
-        lh_memory_find_step(begin, lh_math_mul(lh_array_get_size(self), type_size), value,
-                            type_size, type_size);
+    const lh_ptr found = lh_memory_find_step(begin, lh_math_mul(lh_array_get_size(self), type_size),
+                                             value, type_size, type_size);
     lh_return_if(lh_ptr_is_null(found), LH_ARRAY_INVALID);
     return lh_math_div(lh_math_sub(lh_ptr_to_uaddr(found), lh_ptr_to_uaddr(begin)), type_size);
 }
@@ -331,8 +328,8 @@ lh_array_fill(lh_array_t *self, const lh_ptr value)
     lh_return_if(lh_array_is_empty(self));
 
     const lh_usize_t type_size = lh_array_get_type_size(self);
-    lh_memory_set_pattern(lh_array_get_begin(self),
-                          lh_math_mul(lh_array_get_size(self), type_size), value, type_size);
+    lh_memory_set_pattern(lh_array_get_begin(self), lh_math_mul(lh_array_get_size(self), type_size),
+                          value, type_size);
 }
 
 lh_void

@@ -49,8 +49,8 @@ lh_void
 lh_wstr_list_get_span(const lh_wstr_list_t *self, lh_uindex_t index, lh_wstr_list_span_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_ptr_deref(out) = lh_ptr_deref(
-        lh_ptr_cast(const lh_wstr_list_span_t, lh_array_get_ptr(lh_wstr_list_get_spans_as_const(self), index)));
+    lh_ptr_deref(out) = lh_ptr_deref(lh_ptr_cast(
+        const lh_wstr_list_span_t, lh_array_get_ptr(lh_wstr_list_get_spans_as_const(self), index)));
 }
 
 lh_void
@@ -115,7 +115,8 @@ lh_wstr_list_get_data(const lh_wstr_list_t *self, lh_uindex_t index)
     lh_wstr_as_view(lh_wstr_list_get_chars_as_const(self), lh_addr_of(chars));
     return lh_ptr_cast(const lh_wchar_t,
                        lh_memory_view_get_ptr_from_begin(
-                           lh_addr_of(chars), lh_math_mul(span.offset, lh_cast_static(lh_usize_t, LH_WCHAR_T_SIZE))));
+                           lh_addr_of(chars),
+                           lh_math_mul(span.offset, lh_cast_static(lh_usize_t, LH_WCHAR_T_SIZE))));
 }
 
 lh_uindex_t
@@ -126,7 +127,8 @@ lh_wstr_list_push_back(lh_wstr_list_t *self, lh_wstr_view_t text)
 
     chars = lh_wstr_list_get_chars(self);
     span.offset = lh_wstr_get_size(chars);
-    span.size = lh_wstr_view_is_empty(lh_addr_of(text)) ? 0U : lh_wstr_view_get_size(lh_addr_of(text));
+    span.size =
+        lh_wstr_view_is_empty(lh_addr_of(text)) ? 0U : lh_wstr_view_get_size(lh_addr_of(text));
     lh_wstr_append_view(chars, text);
     lh_wstr_push_back(chars, lh_cast_static(lh_wchar_t, 0));
     return lh_array_push_back(lh_wstr_list_get_spans(self), lh_addr_of(span));

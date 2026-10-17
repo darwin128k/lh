@@ -135,7 +135,10 @@ shadow_sd(lh_s64_t px, lh_s64_t py, const lh_ui_rect_t *rect, lh_ui_scalar_t rad
     {
         return oy + inside - r;
     }
-    return (lh_s64_t)lh_math_isqrt_u64(lh_cast_static(lh_u64_t, ox)* lh_cast_static(lh_u64_t, ox)+ lh_cast_static(lh_u64_t, oy)* lh_cast_static(lh_u64_t, oy)) + inside - r;
+    return (lh_s64_t)lh_math_isqrt_u64(lh_cast_static(lh_u64_t, ox) * lh_cast_static(lh_u64_t, ox) +
+                                       lh_cast_static(lh_u64_t, oy) *
+                                           lh_cast_static(lh_u64_t, oy)) +
+           inside - r;
 }
 
 /** @p distance and @p spread are in the same fixed point. The public falloff
@@ -151,7 +154,7 @@ lh_ui_shadow_falloff_sub(lh_s64_t distance, lh_s64_t spread, lh_byte_t peak)
     {
         return 0;
     }
-    fade = lh_cast_static(lh_s64_t, peak)* (spread - distance);
+    fade = lh_cast_static(lh_s64_t, peak) * (spread - distance);
     if (fade <= 0)
     {
         return 0;
@@ -165,7 +168,8 @@ lh_ui_shadow_falloff_sub(lh_s64_t distance, lh_s64_t spread, lh_byte_t peak)
 }
 
 lh_s32_t
-lh_ui_shadow_distance(lh_ui_scalar_t x, lh_ui_scalar_t y, const lh_ui_rect_t *rect, lh_ui_scalar_t radius)
+lh_ui_shadow_distance(lh_ui_scalar_t x, lh_ui_scalar_t y, const lh_ui_rect_t *rect,
+                      lh_ui_scalar_t radius)
 {
     return (lh_s32_t)(shadow_sd(lh_ui_radius_to_fixed(x), lh_ui_radius_to_fixed(y), rect, radius) /
                       LH_UI_RADIUS_SUBPIXEL);
@@ -189,8 +193,8 @@ lh_ui_shadow_falloff(lh_s32_t distance, lh_ui_scalar_t spread, lh_byte_t peak)
 }
 
 lh_byte_t
-lh_ui_shadow_alpha_at(const lh_ui_shadow_t *self, lh_ui_scalar_t x, lh_ui_scalar_t y, const lh_ui_rect_t *rect,
-                      lh_ui_scalar_t radius)
+lh_ui_shadow_alpha_at(const lh_ui_shadow_t *self, lh_ui_scalar_t x, lh_ui_scalar_t y,
+                      const lh_ui_rect_t *rect, lh_ui_scalar_t radius)
 {
     const lh_ui_size_t *size;
     const lh_ui_point_t *origin;
@@ -213,10 +217,11 @@ lh_ui_shadow_alpha_at(const lh_ui_shadow_t *self, lh_ui_scalar_t x, lh_ui_scalar
        at half strength under a fill that covers half of it. Counting distance zero
        as inside is what leaves a bright line a pixel wide along every straight
        edge, which is the very thing the half-open square avoids. */
-    if (corner <= 0
-            ? (x >= lh_ui_point_get_x(origin) && x < lh_ui_point_get_x(origin) + lh_ui_size_get_width(size) &&
-               y >= lh_ui_point_get_y(origin) && y < lh_ui_point_get_y(origin) + lh_ui_size_get_height(size))
-            : lh_ui_shadow_distance(x, y, rect, corner) < 0)
+    if (corner <= 0 ? (x >= lh_ui_point_get_x(origin) &&
+                       x < lh_ui_point_get_x(origin) + lh_ui_size_get_width(size) &&
+                       y >= lh_ui_point_get_y(origin) &&
+                       y < lh_ui_point_get_y(origin) + lh_ui_size_get_height(size))
+                    : lh_ui_shadow_distance(x, y, rect, corner) < 0)
     {
         return 0;
     }
@@ -230,8 +235,8 @@ lh_ui_shadow_alpha_at(const lh_ui_shadow_t *self, lh_ui_scalar_t x, lh_ui_scalar
 }
 
 lh_byte_t
-lh_ui_shadow_alpha_at_pixel(const lh_ui_shadow_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_rect_t *rect,
-                            lh_ui_scalar_t radius)
+lh_ui_shadow_alpha_at_pixel(const lh_ui_shadow_t *self, lh_s32_t x, lh_s32_t y,
+                            const lh_ui_rect_t *rect, lh_ui_scalar_t radius)
 {
     lh_ui_shadow_shape_t shape;
 

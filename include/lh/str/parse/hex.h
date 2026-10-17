@@ -61,7 +61,8 @@ lh_str_ptr_parse_hex(const lh_str_ptr str, lh_usize_t str_size, lh_uint_t max, l
  *        @p str or @p out is ::lh_null.
  */
 lh_usize_t
-lh_str_ptr_parse_hex_prefix(const lh_str_ptr str, lh_usize_t str_size, lh_uint_t max, lh_uint_t *out);
+lh_str_ptr_parse_hex_prefix(const lh_str_ptr str, lh_usize_t str_size, lh_uint_t max,
+                            lh_uint_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

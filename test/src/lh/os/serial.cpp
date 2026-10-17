@@ -30,7 +30,7 @@ TEST(os_serial, a_port_that_does_not_exist_is_not_opened)
 
 #if !defined(_WIN32)
 
-/* ── A cable on this machine ─────────────────────────────────────────────────────
+/* -- A cable on this machine -----------------------------------------------
    A pseudo-terminal is a pair of ends that behave as the two ends of a serial cable:
    what one writes the other reads, and the "port" end is a tty that takes termios
    like any /dev/ttyUSB0. The port end is opened through lh as a serial port; the

@@ -98,7 +98,9 @@ web_comma(lh_ui_canvas_web_t *self)
 static lh_void
 web_color(lh_ui_canvas_web_t *self, const lh_ui_color_t *color)
 {
-    web_quad(self, lh_cast_static(long, lh_ui_color_get_r(color)), lh_cast_static(long, lh_ui_color_get_g(color)), lh_cast_static(long, lh_ui_color_get_b(color)),
+    web_quad(self, lh_cast_static(long, lh_ui_color_get_r(color)),
+             lh_cast_static(long, lh_ui_color_get_g(color)),
+             lh_cast_static(long, lh_ui_color_get_b(color)),
              lh_cast_static(long, lh_ui_color_get_a(color)));
 }
 
@@ -109,8 +111,10 @@ web_rect(lh_ui_canvas_web_t *self, const lh_ui_rect_t *rect)
     const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
     const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
 
-    web_quad(self, lh_cast_static(long, lh_ui_point_get_x(origin)), lh_cast_static(long, lh_ui_point_get_y(origin)),
-             lh_cast_static(long, lh_ui_size_get_width(size)), lh_cast_static(long, lh_ui_size_get_height(size)));
+    web_quad(self, lh_cast_static(long, lh_ui_point_get_x(origin)),
+             lh_cast_static(long, lh_ui_point_get_y(origin)),
+             lh_cast_static(long, lh_ui_size_get_width(size)),
+             lh_cast_static(long, lh_ui_size_get_height(size)));
 }
 
 /** Distinct glyph covers the process-wide table holds. */
@@ -129,8 +133,8 @@ typedef struct web_atlas
     unsigned len[WEB_ATLAS_MAX];   /**< bytes of each cover */
     unsigned hash[WEB_ATLAS_MAX];  /**< content hash of each cover */
     lh_byte_ptr px[WEB_ATLAS_MAX]; /**< the coverage bytes of each cover (owned) */
-    int slot[WEB_ATLAS_SLOTS]; /**< open addressing by content hash: id + 1, 0 = empty */
-} web_atlas_t; /**< Every distinct glyph cover sent so far. */
+    int slot[WEB_ATLAS_SLOTS];     /**< open addressing by content hash: id + 1, 0 = empty */
+} web_atlas_t;                     /**< Every distinct glyph cover sent so far. */
 
 /** Cover identity is process-wide so `m` does not reshuffle when the tree
  * changes. `self->glyphs` is only which ids the reader already holds. */
@@ -140,7 +144,7 @@ static web_atlas_t g_web_atlas;
 static unsigned
 web_atlas_hash(lh_byte_cptr px, unsigned n, int w, int h)
 {
-    unsigned x = 2166136261u ^ (lh_cast_static(unsigned, w)* 131u + lh_cast_static(unsigned, h));
+    unsigned x = 2166136261u ^ (lh_cast_static(unsigned, w) * 131u + lh_cast_static(unsigned, h));
     unsigned i;
 
     for (i = 0; i < n; ++i)
@@ -166,7 +170,8 @@ web_atlas_find(const web_atlas_t *atlas, lh_byte_cptr px, unsigned n, int w, int
             lh_ptr_deref(slot) = s;
             return -1;
         }
-        if (atlas->hash[id] == hash && atlas->w[id] == w && atlas->h[id] == h && atlas->len[id] == n &&
+        if (atlas->hash[id] == hash && atlas->w[id] == w && atlas->h[id] == h &&
+            atlas->len[id] == n &&
             lh_memory_compare(atlas->px[id], n, lh_cast_const(lh_ptr, px), n) == lh_null)
         {
             return id;
@@ -196,7 +201,7 @@ web_atlas_add(web_atlas_t *atlas, lh_byte_cptr px, unsigned n, int w, int h, uns
     atlas->h[id] = h;
     atlas->len[id] = n;
     atlas->hash[id] = hash;
-    atlas->slot[slot] = lh_cast_static(int, id)+ 1;
+    atlas->slot[slot] = lh_cast_static(int, id) + 1;
     ++atlas->n;
     return (int)id;
 }
@@ -207,7 +212,8 @@ web_glyphs(lh_ui_canvas_web_t *self)
 {
     if (self->glyphs == lh_null)
     {
-        self->glyphs = lh_ptr_rcast(lh_ui_canvas_web_glyphs_t, lh_runtime_allocator_alloc(sizeof(lh_ptr_deref(self->glyphs))));
+        self->glyphs = lh_ptr_rcast(lh_ui_canvas_web_glyphs_t,
+                                    lh_runtime_allocator_alloc(sizeof(lh_ptr_deref(self->glyphs))));
         self->glyphs_owned = (self->glyphs != lh_null) ? lh_bool_true : lh_bool_false;
         lh_ui_canvas_web_glyphs_reset(self->glyphs);
     }
@@ -231,7 +237,7 @@ web_glyphs_free(lh_ui_canvas_web_t *self)
 static int
 web_atlas_intern(lh_ui_canvas_web_t *self, lh_byte_cptr px, int w, int h, int *is_new)
 {
-    const unsigned n = lh_cast_static(unsigned, w)* lh_cast_static(unsigned, h);
+    const unsigned n = lh_cast_static(unsigned, w) * lh_cast_static(unsigned, h);
     const unsigned hash = web_atlas_hash(px, n, w, h);
     web_atlas_t *atlas = lh_addr_of(g_web_atlas);
     lh_ui_canvas_web_glyphs_t *glyphs;
@@ -357,7 +363,8 @@ web_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *clip)
 
 /** Backend `shadow`: record a `shadow` op. */
 static lh_bool_t
-web_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, const lh_ui_shadow_t *shadow)
+web_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+           const lh_ui_shadow_t *shadow)
 {
     lh_ui_canvas_web_t *self = lh_ptr_rcast(lh_ui_canvas_web_t, context);
     lh_ui_color_t color;
@@ -409,7 +416,8 @@ web_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *m
     lh_ui_canvas_web_t *self = lh_ptr_rcast(lh_ui_canvas_web_t, context);
     const int w = lh_cast_static(int, lh_ui_mask_get_width(mask));
     const int h = lh_cast_static(int, lh_ui_mask_get_height(mask));
-    const unsigned n = (w > 0 && h > 0) ? lh_cast_static(unsigned, w)* lh_cast_static(unsigned, h): 0u;
+    const unsigned n =
+        (w > 0 && h > 0) ? lh_cast_static(unsigned, w) * lh_cast_static(unsigned, h) : 0u;
     lh_byte_t px[WEB_ATLAS_PIX];
     int is_new = 1;
     int id = -1;
@@ -438,7 +446,8 @@ web_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *m
     }
     for (y = 0; y < h; ++y)
     {
-        lh_ui_mask_coverage_run(mask, 0, w, y, px + lh_cast_static(unsigned, y)* lh_cast_static(unsigned, w));
+        lh_ui_mask_coverage_run(mask, 0, w, y,
+                                px + lh_cast_static(unsigned, y) * lh_cast_static(unsigned, w));
     }
     id = web_atlas_intern(self, px, w, h, lh_addr_of(is_new));
     if (id >= 0)

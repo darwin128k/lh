@@ -41,7 +41,7 @@ TEST(os_render_backend_gdi, the_format_is_reachable_before_the_first_frame)
     lh_os_render_backend_gdi_context_deinit(lh_addr_of(gdi));
 }
 
-/* ── The present ──────────────────────────────────────────────────────────
+/* -- The present -----------------------------------------------------------
    A backend presents the pixels it drew and nothing else. The canvas clears and
    draws the damage, which in a partial frame is smaller than the area, and a
    DIB holds no promise about the rest: `begin_area` drops it whenever the area

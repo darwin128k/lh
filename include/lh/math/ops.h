@@ -11,7 +11,7 @@
 #ifndef LH_MATH_OPS_H
 #define LH_MATH_OPS_H
 
-/* ── arithmetic ────────────────────────────────────────────────────────── */
+/* -- arithmetic ------------------------------------------------------------ */
 
 /**
  * @def lh_math_add(a, b)
@@ -116,7 +116,7 @@
  */
 #define lh_math_abs(a) (lh_math_is_negative(a) ? lh_math_neg(a) : (a))
 
-/* ── increment / decrement ─────────────────────────────────────────────── */
+/* -- increment / decrement ------------------------------------------------- */
 
 /**
  * @def lh_math_add_one(a)
@@ -142,7 +142,7 @@
  */
 #define lh_math_sub_one(a) ((a) - 1)
 
-/* ── comparison / selection ────────────────────────────────────────────── */
+/* -- comparison / selection ------------------------------------------------ */
 
 /**
  * @def lh_math_eq(a, b)
@@ -272,7 +272,7 @@
  */
 #define lh_math_is_negative(a) lh_math_lt((a), 0)
 
-/* ── bitwise ───────────────────────────────────────────────────────────── */
+/* -- bitwise --------------------------------------------------------------- */
 
 /**
  * @def lh_math_bit_mask(n)

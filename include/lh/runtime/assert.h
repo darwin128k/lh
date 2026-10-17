@@ -74,7 +74,7 @@
 #    define LH_RUNTIME_ASSERT_TRAP 0
 #endif
 
-/* ── the error argument: code [, message] ─────────────────────────────── */
+/* -- the error argument: code [, message] ---------------------------------- */
 
 /** @brief ::lh_runtime_check_code for a `code` argument alone: @p code. */
 #define lh_runtime_check_code_1(code) (code)
@@ -102,7 +102,7 @@
 #define lh_runtime_check_desc(...)                                                                 \
     lh_arg_expand(lh_arg_concat(lh_runtime_check_desc_, lh_arg_get_count(__VA_ARGS__))(__VA_ARGS__))
 
-/* ── failure reporting ─────────────────────────────────────────────────── */
+/* -- failure reporting ----------------------------------------------------- */
 
 /**
  * @def lh_runtime_check_fail_here(expr, ...)
@@ -127,17 +127,17 @@
         do                                                                                         \
         {                                                                                          \
             static const lh_exception_origin_t _lh_exception_origin = {                            \
-                __FILE__, lh_cast_static(const lh_str_ptr, lh_null), lh_cast_static(const lh_str_ptr, lh_null),                              \
-                lh_runtime_check_desc(__VA_ARGS__), __LINE__};                                     \
+                __FILE__, lh_cast_static(const lh_str_ptr, lh_null),                               \
+                lh_cast_static(const lh_str_ptr, lh_null), lh_runtime_check_desc(__VA_ARGS__),     \
+                __LINE__};                                                                         \
             lh_runtime_check_fail(&_lh_exception_origin, lh_runtime_check_code(__VA_ARGS__));      \
         } while (0)
 #else
 #    define lh_runtime_check_fail_here(expr, ...)                                                  \
-        lh_runtime_check_fail(lh_null,                                                             \
-                              lh_runtime_check_code(__VA_ARGS__))
+        lh_runtime_check_fail(lh_null, lh_runtime_check_code(__VA_ARGS__))
 #endif
 
-/* ── always-on checks ──────────────────────────────────────────────────── */
+/* -- always-on checks ------------------------------------------------------ */
 
 /**
  * @def lh_runtime_check_if(expr, ...)
@@ -169,7 +169,7 @@
  */
 #define lh_runtime_check_ifn(expr, ...) lh_runtime_check_if(!(expr), __VA_ARGS__)
 
-/* ── contract assertions (not in Release) ──────────────────────────────── */
+/* -- contract assertions (not in Release) ---------------------------------- */
 
 /**
  * @def lh_runtime_assert_if(expr, ...)

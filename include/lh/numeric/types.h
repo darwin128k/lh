@@ -59,7 +59,7 @@ typedef long lh_long_t;
  */
 typedef long long lh_llong_t;
 
-/* ── unsigned ──────────────────────────────────────────────────────────── */
+/* -- unsigned -------------------------------------------------------------- */
 
 /**
  * @typedef lh_ushort_t
@@ -96,7 +96,7 @@ typedef unsigned long lh_ulong_t;
  */
 typedef unsigned long long lh_ullong_t;
 
-/* ── signed ────────────────────────────────────────────────────────────── */
+/* -- signed ---------------------------------------------------------------- */
 
 /**
  * @typedef lh_sshort_t

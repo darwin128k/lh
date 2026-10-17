@@ -6,10 +6,10 @@
 #include <lh/ui/button.h>
 #include <lh/util/return.h>
 
-const lh_ui_entity_class_t lh_ui_button_class = {
-    lh_ui_button_event, lh_addr_of(lh_ui_container_class)};
+const lh_ui_entity_class_t lh_ui_button_class = {lh_ui_button_event,
+                                                 lh_addr_of(lh_ui_container_class)};
 
-/* ── Events ──────────────────────────────────────────────────────────────── */
+/* -- Events ---------------------------------------------------------------- */
 
 lh_void
 lh_ui_button_init(lh_ui_button_t *self, lh_ui_rect_t rect)
@@ -34,7 +34,7 @@ lh_ui_button_as_entity(lh_ui_button_t *self)
     return lh_ui_container_as_entity(lh_addr_of(self->container));
 }
 
-/* ── Lifetime and fields ─────────────────────────────────────────────────── */
+/* -- Lifetime and fields --------------------------------------------------- */
 
 lh_ui_container_t *
 lh_ui_button_as_container(lh_ui_button_t *self)
@@ -47,8 +47,9 @@ lh_ui_button_t *
 lh_ui_entity_as_button(lh_ui_entity_t *entity)
 {
     lh_return_if(lh_null_eq(entity), lh_null);
-    lh_return_if(!lh_ui_entity_class_is(lh_ui_entity_get_class(entity), lh_addr_of(lh_ui_button_class)),
-                 lh_null);
+    lh_return_if(
+        !lh_ui_entity_class_is(lh_ui_entity_get_class(entity), lh_addr_of(lh_ui_button_class)),
+        lh_null);
     return lh_ptr_rcast(lh_ui_button_t, entity);
 }
 
@@ -70,7 +71,7 @@ lh_ui_button_set_style(lh_ui_button_t *self, const lh_ui_style_t *style)
     }
 }
 
-/* ── Looks ───────────────────────────────────────────────────────────────── */
+/* -- Looks ----------------------------------------------------------------- */
 
 const lh_ui_style_t *
 lh_ui_button_get_hot_style(const lh_ui_button_t *self)
@@ -112,7 +113,7 @@ lh_ui_button_set_hot(lh_ui_button_t *self, lh_bool_t hot)
     lh_ui_entity_set_style(lh_ui_button_as_entity(self), lh_ui_button_get_style_now(self));
 }
 
-/* ── Hover ───────────────────────────────────────────────────────────────── */
+/* -- Hover ----------------------------------------------------------------- */
 
 lh_ui_button_on_click_cb
 lh_ui_button_get_on_click(const lh_ui_button_t *self)
@@ -135,7 +136,7 @@ lh_ui_button_on_click(const lh_ui_button_t *self, const lh_ui_entity_event_t *ev
     on_click(lh_ptr_rcast(lh_ui_button_t, self), self->click_context);
 }
 
-/* ── Click ───────────────────────────────────────────────────────────────── */
+/* -- Click ----------------------------------------------------------------- */
 
 /** @copydoc lh_ui_button_event(const struct lh_ui_entity *, const lh_ui_entity_event_t *) */
 lh_void

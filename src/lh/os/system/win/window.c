@@ -106,12 +106,12 @@ lh_os_system_win_window_centered_origin(const lh_os_system_win_rect_t *window_re
         return;
     }
 
-    centered_x = monitor_info.work.left +
-                 (monitor_info.work.right - monitor_info.work.left -
-                  (window_rect->right - window_rect->left)) / 2;
-    centered_y = monitor_info.work.top +
-                 (monitor_info.work.bottom - monitor_info.work.top -
-                  (window_rect->bottom - window_rect->top)) / 2;
+    centered_x = monitor_info.work.left + (monitor_info.work.right - monitor_info.work.left -
+                                           (window_rect->right - window_rect->left)) /
+                                              2;
+    centered_y = monitor_info.work.top + (monitor_info.work.bottom - monitor_info.work.top -
+                                          (window_rect->bottom - window_rect->top)) /
+                                             2;
     lh_ptr_deref(x) = centered_x > monitor_info.work.left ? centered_x : monitor_info.work.left;
     lh_ptr_deref(y) = centered_y > monitor_info.work.top ? centered_y : monitor_info.work.top;
 }
@@ -149,8 +149,8 @@ lh_os_system_window_set_corner_radius(lh_os_system_window_handle_t handle, int r
        exactly on the corner the app did not paint. right and bottom are exclusive,
        hence +1, and the corner ellipses are asked for by their full width, hence
        radius * 2. The window keeps the region; nothing here has to delete it. */
-    region = CreateRoundRectRgn(0, 0, window.right - window.left + 1, window.bottom - window.top + 1,
-                                radius * 2, radius * 2);
+    region = CreateRoundRectRgn(0, 0, window.right - window.left + 1,
+                                window.bottom - window.top + 1, radius * 2, radius * 2);
     if (lh_null_eq(region))
     {
         return;
@@ -166,8 +166,8 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
 
     if (msg == LH_OS_SYSTEM_WIN_WM_NCCREATE)
     {
-        const lh_os_system_win_createstructa_t *cs =
-            lh_ptr_rcast(const lh_os_system_win_createstructa_t, lh_cast_reinterpret(lh_ptr, lparam));
+        const lh_os_system_win_createstructa_t *cs = lh_ptr_rcast(
+            const lh_os_system_win_createstructa_t, lh_cast_reinterpret(lh_ptr, lparam));
         window = lh_ptr_rcast(lh_os_window_t, cs->lpCreateParams);
         SetWindowLongPtrA(hwnd, LH_OS_SYSTEM_WIN_GWLP_USERDATA,
                           lh_cast_reinterpret(lh_os_system_win_lparam_t, window));
@@ -177,8 +177,9 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
         }
     }
 
-    window = lh_cast_reinterpret(lh_os_window_t *,
-                                 lh_cast_reinterpret(lh_ptr, GetWindowLongPtrA(hwnd, LH_OS_SYSTEM_WIN_GWLP_USERDATA)));
+    window = lh_cast_reinterpret(
+        lh_os_window_t *,
+        lh_cast_reinterpret(lh_ptr, GetWindowLongPtrA(hwnd, LH_OS_SYSTEM_WIN_GWLP_USERDATA)));
 
     switch (msg)
     {
@@ -189,8 +190,10 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
                and it is the app that knows what its own chrome is. */
             lh_os_system_win_point_t at;
 
-            at.x = lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam)));
-            at.y = lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam)));
+            at.x =
+                lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam)));
+            at.y =
+                lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam)));
             ScreenToClient(hwnd, lh_addr_of(at));
             return lh_os_system_win_window_hit(lh_os_window_zone_at(window, at.x, at.y));
         }
@@ -248,15 +251,19 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
         if (lh_null_ne(window))
         {
             SetCapture(hwnd);
-            lh_os_window_on_native_press(window, lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam))),
-                                         lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam))));
+            lh_os_window_on_native_press(
+                window,
+                lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam))),
+                lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam))));
         }
         return 0;
     case LH_OS_SYSTEM_WIN_WM_MOUSEMOVE:
         if (lh_null_ne(window))
         {
-            lh_os_window_on_native_move(window, lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam))),
-                                        lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam))));
+            lh_os_window_on_native_move(
+                window,
+                lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam))),
+                lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam))));
         }
         return 0;
     case LH_OS_SYSTEM_WIN_WM_LBUTTONUP:
@@ -266,8 +273,10 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
             {
                 ReleaseCapture();
             }
-            lh_os_window_on_native_release(window, lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam))),
-                                           lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam))));
+            lh_os_window_on_native_release(
+                window,
+                lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam))),
+                lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam))));
         }
         return 0;
     case LH_OS_SYSTEM_WIN_WM_MOUSEWHEEL:
@@ -276,10 +285,13 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
             lh_os_system_win_point_t cursor;
             int delta;
 
-            cursor.x = lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam)));
-            cursor.y = lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam)));
+            cursor.x =
+                lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam)));
+            cursor.y =
+                lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam)));
             ScreenToClient(hwnd, lh_addr_of(cursor));
-            delta = lh_cast_static(int, LH_OS_SYSTEM_WIN_GET_WHEEL_DELTA_WPARAM(wparam))/ LH_OS_SYSTEM_WIN_WHEEL_DELTA;
+            delta = lh_cast_static(int, LH_OS_SYSTEM_WIN_GET_WHEEL_DELTA_WPARAM(wparam)) /
+                    LH_OS_SYSTEM_WIN_WHEEL_DELTA;
             if ((LH_OS_SYSTEM_WIN_LOWORD(wparam) & LH_OS_SYSTEM_WIN_MK_SHIFT) != 0U)
             {
                 lh_os_window_on_native_wheel(window, cursor.x, cursor.y, delta, 0);
@@ -292,8 +304,9 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
     case LH_OS_SYSTEM_WIN_WM_KEYUP:
         if (lh_null_ne(window))
         {
-            lh_os_window_on_native_key(window, lh_os_system_win_key_from_vk(lh_cast_static(lh_u32_t, wparam)),
-                                       msg == LH_OS_SYSTEM_WIN_WM_KEYDOWN ? lh_bool_true : lh_bool_false);
+            lh_os_window_on_native_key(
+                window, lh_os_system_win_key_from_vk(lh_cast_static(lh_u32_t, wparam)),
+                msg == LH_OS_SYSTEM_WIN_WM_KEYDOWN ? lh_bool_true : lh_bool_false);
         }
         return 0;
     case LH_OS_SYSTEM_WIN_WM_CHAR:
@@ -314,7 +327,8 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
                another piece of code put on this window must not be read as the app's
                tick -- the callback would then run at that one's period, which is the one
                number the app chose not to. */
-            if (lh_cast_static(lh_os_system_win_uintptr_t, wparam)== lh_cast_static(lh_os_system_win_uintptr_t, LH_OS_SYSTEM_WIN_TIMER_ID))
+            if (lh_cast_static(lh_os_system_win_uintptr_t, wparam) ==
+                lh_cast_static(lh_os_system_win_uintptr_t, LH_OS_SYSTEM_WIN_TIMER_ID))
             {
                 lh_os_window_on_native_tick(window);
             }
@@ -403,7 +417,8 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
        work area is in screen coordinates, the same ones this call passes. */
     if (placement == lh_os_window_placement_center)
     {
-        lh_os_system_win_window_centered_origin(lh_addr_of(rect), owner_hwnd, lh_addr_of(x), lh_addr_of(y));
+        lh_os_system_win_window_centered_origin(lh_addr_of(rect), owner_hwnd, lh_addr_of(x),
+                                                lh_addr_of(y));
     }
 
     hwnd = CreateWindowExA(ex_style, LH_OS_SYSTEM_WIN_WINDOW_CLASS_NAME, title, style, x, y,
@@ -414,7 +429,8 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
         return LH_OS_SYSTEM_WINDOW_HANDLE_INVALID;
     }
 
-    lh_os_system_window_set_corner_radius(lh_cast_reinterpret(lh_os_system_window_handle_t, hwnd), corner);
+    lh_os_system_window_set_corner_radius(lh_cast_reinterpret(lh_os_system_window_handle_t, hwnd),
+                                          corner);
 
     ShowWindow(hwnd, LH_OS_SYSTEM_WIN_SW_SHOW);
     UpdateWindow(hwnd);
@@ -530,8 +546,8 @@ lh_os_system_window_invalidate(lh_os_system_window_handle_t handle)
 }
 
 lh_void
-lh_os_system_window_invalidate_rect(lh_os_system_window_handle_t handle, int left, int top, int right,
-                                    int bottom)
+lh_os_system_window_invalidate_rect(lh_os_system_window_handle_t handle, int left, int top,
+                                    int right, int bottom)
 {
     lh_os_system_win_hwnd_t hwnd;
     lh_os_system_win_rect_t area;
@@ -575,9 +591,11 @@ lh_os_system_window_set_timer(lh_os_system_window_handle_t handle, lh_u32_t ms)
        Retried at the system's floor rather than left dead: a caller asking for 1 ms on
        a system whose resolution is 15.6 ms asked for as fast as it can, and refusing
        turns a too-fast request into no timer at all. */
-    if (SetTimer(hwnd, LH_OS_SYSTEM_WIN_TIMER_ID, lh_cast_static(lh_os_system_win_uint_t, ms), lh_null) == 0)
+    if (SetTimer(hwnd, LH_OS_SYSTEM_WIN_TIMER_ID, lh_cast_static(lh_os_system_win_uint_t, ms),
+                 lh_null) == 0)
     {
-        SetTimer(hwnd, LH_OS_SYSTEM_WIN_TIMER_ID, lh_cast_static(lh_os_system_win_uint_t, LH_OS_SYSTEM_WIN_TIMER_FLOOR_MS), lh_null);
+        SetTimer(hwnd, LH_OS_SYSTEM_WIN_TIMER_ID,
+                 lh_cast_static(lh_os_system_win_uint_t, LH_OS_SYSTEM_WIN_TIMER_FLOOR_MS), lh_null);
     }
 }
 
@@ -603,7 +621,8 @@ lh_os_system_window_get_paint_region(lh_ptr paint_dc, lh_u64_t *area, lh_u32_t *
        that does not fit is reported as unknown rather than allocated for inside a
        paint. */
     lh_os_system_win_rect_t buffer[256];
-    const lh_os_system_win_rgndataheader_t *header = lh_ptr_rcast(const lh_os_system_win_rgndataheader_t, buffer);
+    const lh_os_system_win_rgndataheader_t *header =
+        lh_ptr_rcast(const lh_os_system_win_rgndataheader_t, buffer);
     const lh_os_system_win_rect_t *rects;
     lh_os_system_win_handle_t rgn;
     lh_os_system_win_dword_t bytes;
@@ -617,7 +636,8 @@ lh_os_system_window_get_paint_region(lh_ptr paint_dc, lh_u64_t *area, lh_u32_t *
     lh_return_if(lh_null_eq(paint_dc), lh_bool_false);
     rgn = CreateRectRgn(0, 0, 0, 0);
     lh_return_if(lh_null_eq(rgn), lh_bool_false);
-    got = GetRandomRgn(lh_cast_reinterpret(lh_os_system_win_hdc_t, paint_dc), rgn, LH_OS_SYSTEM_WIN_SYSRGN);
+    got = GetRandomRgn(lh_cast_reinterpret(lh_os_system_win_hdc_t, paint_dc), rgn,
+                       LH_OS_SYSTEM_WIN_SYSRGN);
     if (got == 0)
     {
         /* No system region: nothing was asked for. */
@@ -636,7 +656,7 @@ lh_os_system_window_get_paint_region(lh_ptr paint_dc, lh_u64_t *area, lh_u32_t *
             for (i = 0U; i < header->nCount; ++i)
             {
                 lh_ptr_deref(area) += lh_cast_static(lh_u64_t, rects[i].right - rects[i].left) *
-                         lh_cast_static(lh_u64_t, rects[i].bottom - rects[i].top);
+                                      lh_cast_static(lh_u64_t, rects[i].bottom - rects[i].top);
             }
             lh_ptr_deref(count) = lh_cast_static(lh_u32_t, header->nCount);
             ok = lh_bool_true;

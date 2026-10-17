@@ -16,9 +16,9 @@
  * @param color_type    Type of the solid color.
  * @param gradient_type Type of the gradient pointed at.
  */
-#define lh_ui_paint_fields(kind_type, color_type, gradient_type)                                    \
-    kind_type kind;                                                                                 \
-    color_type color;                                                                               \
+#define lh_ui_paint_fields(kind_type, color_type, gradient_type)                                   \
+    kind_type kind;                                                                                \
+    color_type color;                                                                              \
     const gradient_type *gradient
 
 #endif /* LH_UI_PAINT_FIELDS_H */

@@ -17,9 +17,9 @@
  * @param present_fn   ::lh_ui_present_fn.
  * @param context_type ::lh_ptr.
  */
-#define lh_ui_present_sink_fields(name_type, present_fn, context_type) \
-    name_type name;                                                    \
-    present_fn *present;                                               \
+#define lh_ui_present_sink_fields(name_type, present_fn, context_type)                             \
+    name_type name;                                                                                \
+    present_fn *present;                                                                           \
     context_type context
 
 #endif /* LH_UI_PRESENT_SINK_FIELDS_H */

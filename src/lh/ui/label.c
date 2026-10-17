@@ -8,10 +8,10 @@
 #include <lh/ui/text.h>
 #include <lh/util/return.h>
 
-/* ── Class ───────────────────────────────────────────────────────────────── */
+/* -- Class ----------------------------------------------------------------- */
 
-const lh_ui_entity_class_t lh_ui_label_class = {
-    lh_ui_label_event, lh_addr_of(lh_ui_container_class)};
+const lh_ui_entity_class_t lh_ui_label_class = {lh_ui_label_event,
+                                                lh_addr_of(lh_ui_container_class)};
 
 lh_void
 lh_ui_label_on_children(const lh_ui_label_t *self, const lh_ui_entity_event_t *event)
@@ -81,7 +81,7 @@ lh_ui_label_as_container(lh_ui_label_t *self)
     return lh_addr_of(self->container);
 }
 
-/* ── Lifetime and fields ─────────────────────────────────────────────────── */
+/* -- Lifetime and fields --------------------------------------------------- */
 
 const lh_char_t *
 lh_ui_label_get_text(const lh_ui_label_t *self)
@@ -129,10 +129,12 @@ lh_ui_label_get_wrap_width(const lh_ui_label_t *self)
     lh_ui_insets_t padding;
     lh_ui_scalar_t width;
 
-    lh_return_if(lh_null_eq(style) || lh_ui_style_get_wrap(style) != lh_ui_text_wrap_words, lh_ui_scalar(0));
+    lh_return_if(lh_null_eq(style) || lh_ui_style_get_wrap(style) != lh_ui_text_wrap_words,
+                 lh_ui_scalar(0));
     lh_ui_entity_get_padding(entity, lh_addr_of(padding));
     width = lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(entity->rect))) -
-            lh_ui_insets_get_left(lh_addr_of(padding)) - lh_ui_insets_get_right(lh_addr_of(padding));
+            lh_ui_insets_get_left(lh_addr_of(padding)) -
+            lh_ui_insets_get_right(lh_addr_of(padding));
     /* A box with no room still wraps, one letter a line, rather than not at all. */
     return lh_math_max(width, lh_ui_scalar(1));
 }
@@ -180,7 +182,8 @@ lh_ui_label_measured(const lh_ui_label_t *self)
     lh_ui_entity_get_padding(entity, lh_addr_of(padding));
     const lh_ui_text_align_h_t align_h =
         lh_null_eq(style) ? lh_ui_text_align_h_left : lh_ui_style_get_align_h(style);
-    const lh_ui_text_align_v_t align_v = lh_null_eq(style) ? lh_ui_text_align_v_top : lh_ui_style_get_align_v(style);
+    const lh_ui_text_align_v_t align_v =
+        lh_null_eq(style) ? lh_ui_text_align_v_top : lh_ui_style_get_align_v(style);
     const lh_ui_scalar_t wrap = lh_ui_label_get_wrap_width(self);
     lh_ui_size_t aligned;
 
@@ -221,17 +224,19 @@ lh_ui_label_measured(const lh_ui_label_t *self)
     {
         aligned = label->metrics_size;
     }
-    lh_ui_text_align_get_origin(lh_addr_of(entity->rect), lh_addr_of(padding), aligned, align_h, align_v, lh_addr_of(label->metrics_origin));
+    lh_ui_text_align_get_origin(lh_addr_of(entity->rect), lh_addr_of(padding), aligned, align_h,
+                                align_v, lh_addr_of(label->metrics_origin));
     lh_ui_rect_init_empty(lh_addr_of(label->metrics_ink));
     if (lh_null_ne(font) && lh_null_ne(self->text))
     {
-        lh_ui_text_get_ink_rect_wrapped(font, self->text, label->metrics_origin, wrap, align_h, lh_addr_of(label->metrics_ink));
+        lh_ui_text_get_ink_rect_wrapped(font, self->text, label->metrics_origin, wrap, align_h,
+                                        lh_addr_of(label->metrics_ink));
     }
     label->metrics_ready = lh_bool_true;
     return self;
 }
 
-/* ── Text ────────────────────────────────────────────────────────────────── */
+/* -- Text ------------------------------------------------------------------ */
 
 lh_ui_scalar_t
 lh_ui_label_get_ink_top(const lh_ui_label_t *self)
@@ -261,7 +266,8 @@ lh_ui_label_get_baseline(const lh_ui_label_t *self)
     {
         return lh_ui_scalar(-1);
     }
-    lh_return_if(lh_ui_size_get_height(lh_addr_of(measured->metrics_size)) == lh_ui_scalar(0), lh_ui_scalar(-1));
+    lh_return_if(lh_ui_size_get_height(lh_addr_of(measured->metrics_size)) == lh_ui_scalar(0),
+                 lh_ui_scalar(-1));
     /* The line the letters stand on is where the **tallest letter of this run**
        ends, and the origin is where the ink of the run goes, so the line is the
        ascent down from where that tallest letter's ink begins — `ascent -
@@ -279,7 +285,8 @@ lh_ui_label_get_baseline(const lh_ui_label_t *self)
 
        The first line's, which is what a row lines up on. */
     baseline = lh_ui_point_get_y(lh_addr_of(origin)) - lh_ui_point_get_y(box) +
-               lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_ascent(font)) - measured->metrics_ink_top;
+               lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_ascent(font)) -
+               measured->metrics_ink_top;
     return baseline;
 }
 
@@ -334,7 +341,7 @@ lh_ui_label_get_ink_reach(lh_ui_label_t *self, lh_ui_rect_t *out)
         return;
     }
     lh_ui_rect_offset(lh_addr_of(text), lh_math_neg(lh_ui_point_get_x(origin)),
-                             lh_math_neg(lh_ui_point_get_y(origin)), out);
+                      lh_math_neg(lh_ui_point_get_y(origin)), out);
 }
 
 lh_void
@@ -364,8 +371,10 @@ lh_ui_label_set_text(lh_ui_label_t *self, const lh_char_t *text)
     {
         lh_ui_label_get_ink_reach(self, lh_addr_of(self->text_noted));
     }
-    lh_ui_rect_offset(lh_addr_of(self->text_noted), lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(lh_addr_of(box))),
-                                lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(box))), lh_addr_of(old_ink));
+    lh_ui_rect_offset(lh_addr_of(self->text_noted),
+                      lh_ui_point_get_x(lh_ui_rect_get_origin_as_const(lh_addr_of(box))),
+                      lh_ui_point_get_y(lh_ui_rect_get_origin_as_const(lh_addr_of(box))),
+                      lh_addr_of(old_ink));
     lh_ui_entity_note_rect(entity, lh_addr_of(box));
     lh_ui_entity_note_rect(entity, lh_addr_of(old_ink));
 
@@ -422,7 +431,8 @@ lh_ui_label_shorten(const lh_ui_font_t *font, const lh_char_t *text, lh_s32_t ro
     while ((code = lh_ui_text_next_code(lh_addr_of(cursor))) != 0U)
     {
         width += lh_ui_font_get_advance(font, code);
-        if (width + tail > room || lh_cast_static(lh_u32_t, (cursor - text))+ tail_bytes + 1U > size)
+        if (width + tail > room ||
+            lh_cast_static(lh_u32_t, (cursor - text)) + tail_bytes + 1U > size)
         {
             break;
         }
@@ -467,7 +477,8 @@ lh_ui_label_draw_text(const lh_ui_label_t *self, lh_ui_canvas_t *canvas)
         lh_ui_entity_get_rect(entity, lh_addr_of(rect));
         const lh_s32_t room = lh_ui_scalar_floor_s32(
             lh_ui_size_get_width(lh_ui_rect_get_size_as_const(lh_addr_of(rect))) -
-            lh_ui_insets_get_left(lh_addr_of(padding)) - lh_ui_insets_get_right(lh_addr_of(padding)));
+            lh_ui_insets_get_left(lh_addr_of(padding)) -
+            lh_ui_insets_get_right(lh_addr_of(padding)));
 
         /* A line that does not fit is drawn from where it starts anyway -- a line wider
            than its box starts at the left whatever the alignment -- so the shortened
@@ -484,9 +495,10 @@ lh_ui_label_draw_text(const lh_ui_label_t *self, lh_ui_canvas_t *canvas)
         /* Wrapped or not: with no width to wrap at, these are the plain lines. */
         lh_ui_point_t point;
         lh_ui_label_get_text_origin(self, lh_addr_of(point));
-        lh_ui_text_draw_wrapped_from(canvas, lh_ui_label_get_font(self), text, point,
-                                     lh_ui_label_get_text_color(self), lh_ui_label_get_ink_top(self),
-                                     lh_ui_label_get_wrap_width(self), lh_ui_label_get_line_align(self));
+        lh_ui_text_draw_wrapped_from(
+            canvas, lh_ui_label_get_font(self), text, point, lh_ui_label_get_text_color(self),
+            lh_ui_label_get_ink_top(self), lh_ui_label_get_wrap_width(self),
+            lh_ui_label_get_line_align(self));
     }
     else
     {

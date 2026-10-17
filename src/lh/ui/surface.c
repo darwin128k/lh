@@ -95,7 +95,8 @@ lh_ui_surface_set_size(lh_ui_surface_t *self, lh_ui_size_t size)
     self->handle = LH_OS_SYSTEM_SURFACE_HANDLE_INVALID;
     self->size = size;
     lh_return_if(width <= 0 || height <= 0, lh_bool_false);
-    self->handle = lh_os_system_surface_create(width, height, lh_ui_surface_format_bits(self->format));
+    self->handle =
+        lh_os_system_surface_create(width, height, lh_ui_surface_format_bits(self->format));
     return lh_ui_surface_is_valid(self);
 }
 
@@ -106,7 +107,8 @@ lh_ui_surface_get_pixmap(const lh_ui_surface_t *self, lh_ui_pixmap_t *pixmap)
     lh_byte_ptr bits = lh_ptr_rcast(lh_byte_t, lh_os_system_surface_get_pixels(self->handle));
 
     lh_return_if(lh_null_eq(bits), lh_bool_false);
-    lh_ui_pixmap_init(pixmap, bits, width, lh_cast_static(lh_s32_t, lh_ui_size_get_height(lh_addr_of(self->size))),
+    lh_ui_pixmap_init(pixmap, bits, width,
+                      lh_cast_static(lh_s32_t, lh_ui_size_get_height(lh_addr_of(self->size))),
                       width * (lh_ui_surface_format_bits(self->format) / 8), self->format);
     return lh_bool_true;
 }
@@ -115,7 +117,8 @@ lh_bool_t
 lh_ui_surface_present_at(const lh_ui_surface_t *self, lh_ptr dest, lh_ui_point_t at)
 {
     lh_assert_runtime_ref(self);
-    return lh_os_system_surface_present_at(self->handle, dest, lh_cast_static(int, lh_ui_point_get_x(lh_addr_of(at))),
+    return lh_os_system_surface_present_at(self->handle, dest,
+                                           lh_cast_static(int, lh_ui_point_get_x(lh_addr_of(at))),
                                            lh_cast_static(int, lh_ui_point_get_y(lh_addr_of(at))));
 }
 
@@ -135,10 +138,11 @@ lh_ui_surface_present_part(const lh_ui_surface_t *self, lh_ptr dest, const lh_ui
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(part);
-    return lh_os_system_surface_present_part(
-        self->handle, dest, x, y, lh_cast_static(int, lh_ui_point_get_x(from)),
-        lh_cast_static(int, lh_ui_point_get_y(from)), lh_cast_static(int, lh_ui_size_get_width(size)),
-        lh_cast_static(int, lh_ui_size_get_height(size)));
+    return lh_os_system_surface_present_part(self->handle, dest, x, y,
+                                             lh_cast_static(int, lh_ui_point_get_x(from)),
+                                             lh_cast_static(int, lh_ui_point_get_y(from)),
+                                             lh_cast_static(int, lh_ui_size_get_width(size)),
+                                             lh_cast_static(int, lh_ui_size_get_height(size)));
 }
 
 lh_bool_t
@@ -151,8 +155,9 @@ lh_ui_surface_present_rects(const lh_ui_surface_t *self, lh_ptr dest, const lh_u
     lh_assert_runtime_ref(rects);
     for (i = 0u; i < lh_ui_rects_get_count(rects); ++i)
     {
-        lh_return_if(!lh_ui_surface_present_part(self, dest, lh_ui_rects_get_as_const(rects, i), at),
-                     lh_bool_false);
+        lh_return_if(
+            !lh_ui_surface_present_part(self, dest, lh_ui_rects_get_as_const(rects, i), at),
+            lh_bool_false);
     }
     return lh_bool_true;
 }

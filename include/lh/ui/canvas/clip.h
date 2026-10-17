@@ -46,14 +46,15 @@ typedef struct lh_ui_canvas_clip lh_ui_canvas_clip_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── One rounded cut ─────────────────────────────────────────────────────── */
+/* -- One rounded cut ------------------------------------------------------- */
 
 /**
  * @brief @p rect (target space) with @p radius clamped to it
  *        (::lh_ui_radius_clamp).
  */
 lh_void
-lh_ui_canvas_clip_round_init(lh_ui_canvas_clip_round_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius);
+lh_ui_canvas_clip_round_init(lh_ui_canvas_clip_round_t *self, const lh_ui_rect_t *rect,
+                             lh_ui_scalar_t radius);
 
 /**
  * @brief Coverage `0..255` of pixel (@p x, @p y) by @p self
@@ -67,16 +68,17 @@ lh_ui_canvas_clip_round_coverage(const lh_ui_canvas_clip_round_t *self, lh_s32_t
  *        (::lh_ui_canvas_round_full_span).
  */
 lh_void
-lh_ui_canvas_clip_round_narrow_row(const lh_ui_canvas_clip_round_t *self, lh_s32_t y, lh_s32_t *lo, lh_s32_t *hi);
+lh_ui_canvas_clip_round_narrow_row(const lh_ui_canvas_clip_round_t *self, lh_s32_t y, lh_s32_t *lo,
+                                   lh_s32_t *hi);
 
-/* ── The clip ────────────────────────────────────────────────────────────── */
+/* -- The clip -------------------------------------------------------------- */
 
 /**
  * @brief @p rect, and @p count rounded cuts at @p rounds (not copied).
  */
 lh_void
-lh_ui_canvas_clip_init(lh_ui_canvas_clip_t *self, const lh_ui_rect_t *rect, const lh_ui_canvas_clip_round_t *rounds,
-                       lh_u32_t count);
+lh_ui_canvas_clip_init(lh_ui_canvas_clip_t *self, const lh_ui_rect_t *rect,
+                       const lh_ui_canvas_clip_round_t *rounds, lh_u32_t count);
 
 /**
  * @brief No clip at all: an empty rect that is never read, no rounds.
@@ -117,8 +119,8 @@ lh_ui_canvas_clip_coverage(const lh_ui_canvas_clip_t *self, lh_s32_t x, lh_s32_t
  *        ::lh_ui_canvas_clip_coverage per pixel. `x0 <= *mid0 <= *mid1 <= x1`.
  */
 lh_void
-lh_ui_canvas_clip_split_row(const lh_ui_canvas_clip_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_s32_t *mid0,
-                            lh_s32_t *mid1);
+lh_ui_canvas_clip_split_row(const lh_ui_canvas_clip_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                            lh_s32_t *mid0, lh_s32_t *mid1);
 
 LH_COMPILER_EXTERN_C_END
 

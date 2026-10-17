@@ -408,8 +408,7 @@
  * @brief ::lh_interval_wrap_get_overflow using a kind's origin/size macros.
  */
 #define lh_interval_wrap_overflow_of(get_origin, get_size, value, lower, upper)                    \
-    lh_interval_wrap_get_overflow((value), get_origin((lower), (upper)),                           \
-                                  get_size((lower), (upper)))
+    lh_interval_wrap_get_overflow((value), get_origin((lower), (upper)), get_size((lower), (upper)))
 
 /**
  * @def lh_interval_wrap_value_of(get_origin, get_size, value, lower, upper)
@@ -423,7 +422,7 @@
  * @brief Overflow count folding @p value into [@p lower, @p upper].
  */
 #define lh_interval_closed_wrap_overflow(value, lower, upper)                                      \
-    lh_interval_wrap_overflow_of(lh_interval_closed_get_origin, lh_interval_closed_get_size,      \
+    lh_interval_wrap_overflow_of(lh_interval_closed_get_origin, lh_interval_closed_get_size,       \
                                  (value), (lower), (upper))
 
 /**
@@ -444,9 +443,9 @@
 #define lh_interval_wrap_unsigned_sub_overflow(a, b, origin, size)                                 \
     ((lh_math_le((b), lh_math_sub((a), (origin))))                                                 \
          ? 0                                                                                       \
-         : lh_math_div(lh_math_add(lh_math_sub((b), lh_math_sub((a), (origin))),                   \
-                                   lh_math_sub((size), 1)),                                        \
-                       (size)))
+         : lh_math_div(                                                                            \
+               lh_math_add(lh_math_sub((b), lh_math_sub((a), (origin))), lh_math_sub((size), 1)),  \
+               (size)))
 
 /**
  * @def lh_interval_wrap_unsigned_sub_value(a, b, origin, size)
@@ -459,8 +458,8 @@
          ? lh_math_sub((a), (b))                                                                   \
          : lh_math_add((origin),                                                                   \
                        lh_math_sub(lh_math_add(lh_math_mul(lh_interval_wrap_unsigned_sub_overflow( \
-                                                                (a), (b), (origin), (size)),       \
-                                                            (size)),                               \
+                                                               (a), (b), (origin), (size)),        \
+                                                           (size)),                                \
                                                lh_math_sub((a), (origin))),                        \
                                    (b))))
 
@@ -469,8 +468,8 @@
  * @brief ::lh_interval_wrap_unsigned_sub_overflow on a closed interval.
  */
 #define lh_interval_closed_unsigned_sub_wrap_overflow(a, b, lower, upper)                          \
-    lh_interval_wrap_unsigned_sub_overflow((a), (b), lh_interval_closed_get_origin((lower),        \
-                                                                                  (upper)),        \
+    lh_interval_wrap_unsigned_sub_overflow((a), (b),                                               \
+                                           lh_interval_closed_get_origin((lower), (upper)),        \
                                            lh_interval_closed_get_size((lower), (upper)))
 
 /**
@@ -478,7 +477,7 @@
  * @brief ::lh_interval_wrap_unsigned_sub_value on a closed interval.
  */
 #define lh_interval_closed_unsigned_sub_wrap_value(a, b, lower, upper)                             \
-    lh_interval_wrap_unsigned_sub_value((a), (b), lh_interval_closed_get_origin((lower), (upper)),  \
+    lh_interval_wrap_unsigned_sub_value((a), (b), lh_interval_closed_get_origin((lower), (upper)), \
                                         lh_interval_closed_get_size((lower), (upper)))
 
 /**
@@ -486,15 +485,15 @@
  * @brief Overflow count folding @p value into (@p lower, @p upper].
  */
 #define lh_interval_lopen_wrap_overflow(value, lower, upper)                                       \
-    lh_interval_wrap_overflow_of(lh_interval_lopen_get_origin, lh_interval_lopen_get_size, (value), \
-                                 (lower), (upper))
+    lh_interval_wrap_overflow_of(lh_interval_lopen_get_origin, lh_interval_lopen_get_size,         \
+                                 (value), (lower), (upper))
 
 /**
  * @def lh_interval_lopen_wrap_value(value, lower, upper)
  * @brief Remainder folding @p value into (@p lower, @p upper].
  */
 #define lh_interval_lopen_wrap_value(value, lower, upper)                                          \
-    lh_interval_wrap_value_of(lh_interval_lopen_get_origin, lh_interval_lopen_get_size, (value),    \
+    lh_interval_wrap_value_of(lh_interval_lopen_get_origin, lh_interval_lopen_get_size, (value),   \
                               (lower), (upper))
 
 /**
@@ -502,15 +501,15 @@
  * @brief Overflow count folding @p value into [@p lower, @p upper).
  */
 #define lh_interval_ropen_wrap_overflow(value, lower, upper)                                       \
-    lh_interval_wrap_overflow_of(lh_interval_ropen_get_origin, lh_interval_ropen_get_size, (value), \
-                                 (lower), (upper))
+    lh_interval_wrap_overflow_of(lh_interval_ropen_get_origin, lh_interval_ropen_get_size,         \
+                                 (value), (lower), (upper))
 
 /**
  * @def lh_interval_ropen_wrap_value(value, lower, upper)
  * @brief Remainder folding @p value into [@p lower, @p upper).
  */
 #define lh_interval_ropen_wrap_value(value, lower, upper)                                          \
-    lh_interval_wrap_value_of(lh_interval_ropen_get_origin, lh_interval_ropen_get_size, (value),    \
+    lh_interval_wrap_value_of(lh_interval_ropen_get_origin, lh_interval_ropen_get_size, (value),   \
                               (lower), (upper))
 
 /**
@@ -518,7 +517,7 @@
  * @brief Overflow count folding @p value into (@p lower, @p upper).
  */
 #define lh_interval_open_wrap_overflow(value, lower, upper)                                        \
-    lh_interval_wrap_overflow_of(lh_interval_open_get_origin, lh_interval_open_get_size, (value),   \
+    lh_interval_wrap_overflow_of(lh_interval_open_get_origin, lh_interval_open_get_size, (value),  \
                                  (lower), (upper))
 
 /**
@@ -526,7 +525,7 @@
  * @brief Remainder folding @p value into (@p lower, @p upper).
  */
 #define lh_interval_open_wrap_value(value, lower, upper)                                           \
-    lh_interval_wrap_value_of(lh_interval_open_get_origin, lh_interval_open_get_size, (value),      \
+    lh_interval_wrap_value_of(lh_interval_open_get_origin, lh_interval_open_get_size, (value),     \
                               (lower), (upper))
 
 /**
@@ -561,26 +560,26 @@
  * @param upper Upper bound of the interval.
  */
 #define lh_interval_closed_add_wrap_overflow(a, b, lower, upper)                                   \
-    lh_interval_op_wrap_overflow(lh_interval_closed_wrap_overflow, lh_math_add, (a), (b),          \
-                                 (lower), (upper))
+    lh_interval_op_wrap_overflow(lh_interval_closed_wrap_overflow, lh_math_add, (a), (b), (lower), \
+                                 (upper))
 #define lh_interval_closed_add_wrap_value(a, b, lower, upper)                                      \
     lh_interval_op_wrap_value(lh_interval_closed_wrap_value, lh_math_add, (a), (b), (lower),       \
                               (upper))
 #define lh_interval_closed_sub_wrap_overflow(a, b, lower, upper)                                   \
-    lh_interval_op_wrap_overflow(lh_interval_closed_wrap_overflow, lh_math_sub, (a), (b),          \
-                                 (lower), (upper))
+    lh_interval_op_wrap_overflow(lh_interval_closed_wrap_overflow, lh_math_sub, (a), (b), (lower), \
+                                 (upper))
 #define lh_interval_closed_sub_wrap_value(a, b, lower, upper)                                      \
     lh_interval_op_wrap_value(lh_interval_closed_wrap_value, lh_math_sub, (a), (b), (lower),       \
                               (upper))
 #define lh_interval_closed_mul_wrap_overflow(a, b, lower, upper)                                   \
-    lh_interval_op_wrap_overflow(lh_interval_closed_wrap_overflow, lh_math_mul, (a), (b),          \
-                                 (lower), (upper))
+    lh_interval_op_wrap_overflow(lh_interval_closed_wrap_overflow, lh_math_mul, (a), (b), (lower), \
+                                 (upper))
 #define lh_interval_closed_mul_wrap_value(a, b, lower, upper)                                      \
     lh_interval_op_wrap_value(lh_interval_closed_wrap_value, lh_math_mul, (a), (b), (lower),       \
                               (upper))
 #define lh_interval_closed_div_wrap_overflow(a, b, lower, upper)                                   \
-    lh_interval_op_wrap_overflow(lh_interval_closed_wrap_overflow, lh_math_div, (a), (b),          \
-                                 (lower), (upper))
+    lh_interval_op_wrap_overflow(lh_interval_closed_wrap_overflow, lh_math_div, (a), (b), (lower), \
+                                 (upper))
 #define lh_interval_closed_div_wrap_value(a, b, lower, upper)                                      \
     lh_interval_op_wrap_value(lh_interval_closed_wrap_value, lh_math_div, (a), (b), (lower),       \
                               (upper))
@@ -607,26 +606,22 @@
     lh_interval_op_wrap_overflow(lh_interval_lopen_wrap_overflow, lh_math_add, (a), (b), (lower),  \
                                  (upper))
 #define lh_interval_lopen_add_wrap_value(a, b, lower, upper)                                       \
-    lh_interval_op_wrap_value(lh_interval_lopen_wrap_value, lh_math_add, (a), (b), (lower),        \
-                              (upper))
+    lh_interval_op_wrap_value(lh_interval_lopen_wrap_value, lh_math_add, (a), (b), (lower), (upper))
 #define lh_interval_lopen_sub_wrap_overflow(a, b, lower, upper)                                    \
     lh_interval_op_wrap_overflow(lh_interval_lopen_wrap_overflow, lh_math_sub, (a), (b), (lower),  \
                                  (upper))
 #define lh_interval_lopen_sub_wrap_value(a, b, lower, upper)                                       \
-    lh_interval_op_wrap_value(lh_interval_lopen_wrap_value, lh_math_sub, (a), (b), (lower),        \
-                              (upper))
+    lh_interval_op_wrap_value(lh_interval_lopen_wrap_value, lh_math_sub, (a), (b), (lower), (upper))
 #define lh_interval_lopen_mul_wrap_overflow(a, b, lower, upper)                                    \
     lh_interval_op_wrap_overflow(lh_interval_lopen_wrap_overflow, lh_math_mul, (a), (b), (lower),  \
                                  (upper))
 #define lh_interval_lopen_mul_wrap_value(a, b, lower, upper)                                       \
-    lh_interval_op_wrap_value(lh_interval_lopen_wrap_value, lh_math_mul, (a), (b), (lower),        \
-                              (upper))
+    lh_interval_op_wrap_value(lh_interval_lopen_wrap_value, lh_math_mul, (a), (b), (lower), (upper))
 #define lh_interval_lopen_div_wrap_overflow(a, b, lower, upper)                                    \
     lh_interval_op_wrap_overflow(lh_interval_lopen_wrap_overflow, lh_math_div, (a), (b), (lower),  \
                                  (upper))
 #define lh_interval_lopen_div_wrap_value(a, b, lower, upper)                                       \
-    lh_interval_op_wrap_value(lh_interval_lopen_wrap_value, lh_math_div, (a), (b), (lower),        \
-                              (upper))
+    lh_interval_op_wrap_value(lh_interval_lopen_wrap_value, lh_math_div, (a), (b), (lower), (upper))
 /** @} */
 
 /**
@@ -650,26 +645,22 @@
     lh_interval_op_wrap_overflow(lh_interval_ropen_wrap_overflow, lh_math_add, (a), (b), (lower),  \
                                  (upper))
 #define lh_interval_ropen_add_wrap_value(a, b, lower, upper)                                       \
-    lh_interval_op_wrap_value(lh_interval_ropen_wrap_value, lh_math_add, (a), (b), (lower),        \
-                              (upper))
+    lh_interval_op_wrap_value(lh_interval_ropen_wrap_value, lh_math_add, (a), (b), (lower), (upper))
 #define lh_interval_ropen_sub_wrap_overflow(a, b, lower, upper)                                    \
     lh_interval_op_wrap_overflow(lh_interval_ropen_wrap_overflow, lh_math_sub, (a), (b), (lower),  \
                                  (upper))
 #define lh_interval_ropen_sub_wrap_value(a, b, lower, upper)                                       \
-    lh_interval_op_wrap_value(lh_interval_ropen_wrap_value, lh_math_sub, (a), (b), (lower),        \
-                              (upper))
+    lh_interval_op_wrap_value(lh_interval_ropen_wrap_value, lh_math_sub, (a), (b), (lower), (upper))
 #define lh_interval_ropen_mul_wrap_overflow(a, b, lower, upper)                                    \
     lh_interval_op_wrap_overflow(lh_interval_ropen_wrap_overflow, lh_math_mul, (a), (b), (lower),  \
                                  (upper))
 #define lh_interval_ropen_mul_wrap_value(a, b, lower, upper)                                       \
-    lh_interval_op_wrap_value(lh_interval_ropen_wrap_value, lh_math_mul, (a), (b), (lower),        \
-                              (upper))
+    lh_interval_op_wrap_value(lh_interval_ropen_wrap_value, lh_math_mul, (a), (b), (lower), (upper))
 #define lh_interval_ropen_div_wrap_overflow(a, b, lower, upper)                                    \
     lh_interval_op_wrap_overflow(lh_interval_ropen_wrap_overflow, lh_math_div, (a), (b), (lower),  \
                                  (upper))
 #define lh_interval_ropen_div_wrap_value(a, b, lower, upper)                                       \
-    lh_interval_op_wrap_value(lh_interval_ropen_wrap_value, lh_math_div, (a), (b), (lower),        \
-                              (upper))
+    lh_interval_op_wrap_value(lh_interval_ropen_wrap_value, lh_math_div, (a), (b), (lower), (upper))
 /** @} */
 
 /**

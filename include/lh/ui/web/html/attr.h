@@ -26,7 +26,7 @@ typedef struct lh_ui_web_html_attr
 {
     const lh_str_ptr name;  /**< Attribute name. Not owned. */
     const lh_str_ptr value; /**< Attribute value, or ::lh_null for a bare attribute. Not owned. */
-} lh_ui_web_html_attr_t; /**< An HTML attribute: name and optional value. */
+} lh_ui_web_html_attr_t;    /**< An HTML attribute: name and optional value. */
 
 /**
  * @brief An attribute of @p name and @p value. Neither string is copied.

@@ -213,7 +213,7 @@ BM_ui_canvas_push_pop(benchmark::State &state)
 }
 BENCHMARK(BM_ui_canvas_push_pop);
 
-/* ── Text ─────────────────────────────────────────────────────────────────── */
+/* -- Text ------------------------------------------------------------------ */
 
 static void
 BM_ui_text_draw(benchmark::State &state)
@@ -389,7 +389,7 @@ BM_ui_text_next_code(benchmark::State &state)
 }
 BENCHMARK(BM_ui_text_next_code);
 
-/* ── Pixmap and colour kernels ────────────────────────────────────────────── */
+/* -- Pixmap and colour kernels --------------------------------------------- */
 
 static void
 BM_ui_pixmap_fill_span(benchmark::State &state)

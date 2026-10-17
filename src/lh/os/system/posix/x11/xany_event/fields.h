@@ -11,7 +11,7 @@
  * @brief `XAnyEvent`: the head every event starts with. `window` is the window the event is
  *        reported on (`event` in the structure-notify events).
  */
-#define lh_os_system_posix_xany_event_fields \
+#define lh_os_system_posix_xany_event_fields                                                       \
     int type;                                                                                      \
     unsigned long serial;                                                                          \
     int send_event;                                                                                \

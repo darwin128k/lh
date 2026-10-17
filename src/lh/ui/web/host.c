@@ -50,29 +50,29 @@ typedef struct host_ws_q
     lh_byte_ptr bytes;      /**< the whole frame, header included */
     unsigned len;           /**< bytes in ::bytes */
     unsigned off;           /**< bytes of it already sent */
-} host_ws_q_t; /**< One encoded WebSocket frame waiting to be sent. */
+} host_ws_q_t;              /**< One encoded WebSocket frame waiting to be sent. */
 
 /** One WebSocket client: its socket, what it sent, and what is queued for it. */
 typedef struct host_ws_cli
 {
-    lh_os_net_socket_t sock;  /**< the connection, non-blocking */
-    lh_byte_ptr rx;           /**< received bytes not yet parsed (::HOST_WS_RX) */
-    unsigned rx_len;          /**< bytes in ::rx */
-    lh_byte_ptr msg;          /**< a fragmented message being assembled */
-    unsigned msg_len;         /**< bytes in ::msg */
-    unsigned msg_cap;         /**< capacity of ::msg */
-    unsigned msg_op;          /**< opcode of the message in ::msg */
-    lh_bool_t msg_on;         /**< a fragmented message is in progress */
-    host_ws_q_t *qhead;       /**< first frame to send */
-    host_ws_q_t *qtail;       /**< last frame to send */
-    unsigned queued;          /**< bytes queued, against ::HOST_WS_QMAX */
-    unsigned seen;            /**< tree generation of the last frame it got */
-    unsigned last_rx_ms;      /**< when it last sent anything */
-    unsigned last_ping_ms;    /**< when it was last pinged */
-    lh_bool_t used;           /**< this slot holds a client */
-    lh_bool_t closing;        /**< a close was exchanged; drop once the queue drains */
+    lh_os_net_socket_t sock; /**< the connection, non-blocking */
+    lh_byte_ptr rx;          /**< received bytes not yet parsed (::HOST_WS_RX) */
+    unsigned rx_len;         /**< bytes in ::rx */
+    lh_byte_ptr msg;         /**< a fragmented message being assembled */
+    unsigned msg_len;        /**< bytes in ::msg */
+    unsigned msg_cap;        /**< capacity of ::msg */
+    unsigned msg_op;         /**< opcode of the message in ::msg */
+    lh_bool_t msg_on;        /**< a fragmented message is in progress */
+    host_ws_q_t *qhead;      /**< first frame to send */
+    host_ws_q_t *qtail;      /**< last frame to send */
+    unsigned queued;         /**< bytes queued, against ::HOST_WS_QMAX */
+    unsigned seen;           /**< tree generation of the last frame it got */
+    unsigned last_rx_ms;     /**< when it last sent anything */
+    unsigned last_ping_ms;   /**< when it was last pinged */
+    lh_bool_t used;          /**< this slot holds a client */
+    lh_bool_t closing;       /**< a close was exchanged; drop once the queue drains */
     lh_bool_t synced; /**< got the last frame sent, so it holds every cover that frame assumed */
-} host_ws_cli_t; /**< One WebSocket client. */
+} host_ws_cli_t;      /**< One WebSocket client. */
 
 /** What the stream of WS frames shares between iterations. */
 typedef struct host_ws_stream
@@ -105,15 +105,19 @@ host_send_all(lh_os_net_socket_t *client, const char *p, lh_usize_t left)
 
 /** Answer an HTTP request with status @p code, content type @p type and @p body. */
 static lh_void
-host_reply(lh_os_net_socket_t *client, unsigned code, const char *type, const char *body, lh_usize_t len)
+host_reply(lh_os_net_socket_t *client, unsigned code, const char *type, const char *body,
+           lh_usize_t len)
 {
     char head[256];
     const char *reason =
-        (code == 200u) ? "OK" : ((code == 304u) ? "Not Modified" : ((code == 500u) ? "Error" : "Not Found"));
-    const lh_usize_t n = lh_str_ptr_format_text(head, sizeof(head),
-                                                "HTTP/1.1 %u %s\r\nContent-Type: %s\r\nContent-Length: %u\r\n"
-                                                "Connection: close\r\nCache-Control: no-store\r\n\r\n",
-                                                lh_cast_static(lh_uint_t, code), reason, type, lh_cast_static(lh_uint_t, len));
+        (code == 200u)
+            ? "OK"
+            : ((code == 304u) ? "Not Modified" : ((code == 500u) ? "Error" : "Not Found"));
+    const lh_usize_t n = lh_str_ptr_format_text(
+        head, sizeof(head),
+        "HTTP/1.1 %u %s\r\nContent-Type: %s\r\nContent-Length: %u\r\n"
+        "Connection: close\r\nCache-Control: no-store\r\n\r\n",
+        lh_cast_static(lh_uint_t, code), reason, type, lh_cast_static(lh_uint_t, len));
 
     host_send_all(client, head, n);
     host_send_all(client, body, len);
@@ -130,8 +134,8 @@ host_reply_text(lh_os_net_socket_t *client, unsigned code, const char *text, lh_
 static lh_bool_t
 host_starts(const char *p, lh_usize_t len, const char *lit, lh_usize_t lit_len)
 {
-    return (len >= lit_len &&
-            lh_memory_compare(lh_cast_const(lh_ptr, p), lit_len, lh_cast_const(lh_ptr, lit), lit_len) == lh_null)
+    return (len >= lit_len && lh_memory_compare(lh_cast_const(lh_ptr, p), lit_len,
+                                                lh_cast_const(lh_ptr, lit), lit_len) == lh_null)
                ? lh_bool_true
                : lh_bool_false;
 }
@@ -141,10 +145,12 @@ host_starts(const char *p, lh_usize_t len, const char *lit, lh_usize_t lit_len)
 static const char *
 host_find(const char *p, lh_usize_t len, const char *needle, lh_usize_t needle_len)
 {
-    const char *at = lh_ptr_rcast(const char, lh_memory_find(lh_cast_const(lh_ptr, p), len,
-                                                              lh_cast_const(lh_ptr, needle), needle_len));
+    const char *at =
+        lh_ptr_rcast(const char, lh_memory_find(lh_cast_const(lh_ptr, p), len,
+                                                lh_cast_const(lh_ptr, needle), needle_len));
 
-    return (at != lh_null && lh_cast_static(lh_usize_t, (at - p))+ needle_len <= len) ? at : lh_null;
+    return (at != lh_null && lh_cast_static(lh_usize_t, (at - p)) + needle_len <= len) ? at
+                                                                                       : lh_null;
 }
 
 /** `GET <path>` or `POST <path>` at the start of the request. */
@@ -179,13 +185,13 @@ host_query(const char *req, lh_usize_t len, const char *key, lh_usize_t key_len,
         {
             return 0u;
         }
-        off = lh_cast_static(lh_usize_t, (at - req))+ key_len;
+        off = lh_cast_static(lh_usize_t, (at - req)) + key_len;
         if (at == req || (at[-1] != '?' && at[-1] != '&'))
         {
             continue;
         }
-        while (off + n < len && req[off + n] != '&' && req[off + n] != ' ' && req[off + n] != '\r' &&
-               req[off + n] != '\n')
+        while (off + n < len && req[off + n] != '&' && req[off + n] != ' ' &&
+               req[off + n] != '\r' && req[off + n] != '\n')
         {
             ++n;
         }
@@ -231,7 +237,8 @@ host_point(int x, int y, lh_ui_point_t *out)
     lh_assert_runtime_ref(out);
     lh_ui_point_t point;
 
-    lh_ui_point_init(lh_addr_of(point), lh_cast_static(lh_ui_scalar_t, x), lh_cast_static(lh_ui_scalar_t, y));
+    lh_ui_point_init(lh_addr_of(point), lh_cast_static(lh_ui_scalar_t, x),
+                     lh_cast_static(lh_ui_scalar_t, y));
     lh_ptr_deref(out) = point;
 }
 
@@ -274,7 +281,8 @@ host_wheel(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int x, int y
     }
     lh_ui_point_t point;
     host_point(x, y, lh_addr_of(point));
-    (void)lh_ui_view_wheel(view, point, lh_cast_static(lh_ui_scalar_t, dx), lh_cast_static(lh_ui_scalar_t, dy));
+    (void)lh_ui_view_wheel(view, point, lh_cast_static(lh_ui_scalar_t, dx),
+                           lh_cast_static(lh_ui_scalar_t, dy));
 }
 
 /** @{ */
@@ -308,7 +316,8 @@ host_resize(const lh_ui_web_host_hooks_t *hooks, unsigned *width, unsigned *heig
     {
         h = HOST_SIZE_MAX;
     }
-    if (lh_cast_static(unsigned, w) == lh_ptr_deref(width) && lh_cast_static(unsigned, h) == lh_ptr_deref(height))
+    if (lh_cast_static(unsigned, w) == lh_ptr_deref(width) &&
+        lh_cast_static(unsigned, h) == lh_ptr_deref(height))
     {
         return lh_bool_false;
     }
@@ -325,7 +334,7 @@ host_resize(const lh_ui_web_host_hooks_t *hooks, unsigned *width, unsigned *heig
 static lh_void
 host_key(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int k)
 {
-    if (k < lh_cast_static(int, lh_key_other)|| k > lh_cast_static(int, lh_key_alt))
+    if (k < lh_cast_static(int, lh_key_other) || k > lh_cast_static(int, lh_key_alt))
     {
         k = lh_cast_static(int, lh_key_other);
     }
@@ -373,7 +382,9 @@ host_b64_sha1(lh_byte_cptr in, char *out)
 
     for (i = 0; i < 18u; i += 3u)
     {
-        const unsigned n = (lh_cast_static(unsigned, in[i])<< 16) | (lh_cast_static(unsigned, in[i + 1u])<< 8) | lh_cast_static(unsigned, in[i + 2u]);
+        const unsigned n = (lh_cast_static(unsigned, in[i]) << 16) |
+                           (lh_cast_static(unsigned, in[i + 1u]) << 8) |
+                           lh_cast_static(unsigned, in[i + 2u]);
 
         out[o++] = tab[(n >> 18) & 63u];
         out[o++] = tab[(n >> 12) & 63u];
@@ -381,7 +392,8 @@ host_b64_sha1(lh_byte_cptr in, char *out)
         out[o++] = tab[n & 63u];
     }
     {
-        const unsigned n = (lh_cast_static(unsigned, in[18])<< 16) | (lh_cast_static(unsigned, in[19])<< 8);
+        const unsigned n =
+            (lh_cast_static(unsigned, in[18]) << 16) | (lh_cast_static(unsigned, in[19]) << 8);
 
         out[o++] = tab[(n >> 18) & 63u];
         out[o++] = tab[(n >> 12) & 63u];
@@ -424,7 +436,8 @@ host_ws_upgrade(lh_os_net_socket_t *client, const char *req, lh_usize_t len)
     }
     lh_memory_copy(cat + n, sizeof(cat) - n, lh_cast_const(lh_ptr, guid), sizeof(guid) - 1u);
     n += sizeof(guid) - 1u;
-    if (lh_crypto_sha_hash(lh_crypto_sha_kind_1, cat, n, digest, sizeof(digest)) != LH_CRYPTO_SHA1_DIGEST_SIZE)
+    if (lh_crypto_sha_hash(lh_crypto_sha_kind_1, cat, n, digest, sizeof(digest)) !=
+        LH_CRYPTO_SHA1_DIGEST_SIZE)
     {
         return lh_bool_false;
     }
@@ -445,8 +458,8 @@ host_ws_upgrade(lh_os_net_socket_t *client, const char *req, lh_usize_t len)
 /** One input from the player: `p x y`, `r x y`, `w x y dx dy`, `k key`, `t code`,
    `z w h` (layout-mode size). */
 static lh_void
-host_event_line(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *width, unsigned *height,
-                unsigned *gen, const char *line, lh_usize_t len)
+host_event_line(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *width,
+                unsigned *height, unsigned *gen, const char *line, lh_usize_t len)
 {
     lh_sint_t x = 0;
     lh_sint_t y = 0;
@@ -463,10 +476,11 @@ host_event_line(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigne
     {
         host_release(view, hooks, lh_cast_static(int, x), lh_cast_static(int, y));
     }
-    else if (lh_str_ptr_parse_text(line, len, "w %d %d %d %d", lh_addr_of(x), lh_addr_of(y), lh_addr_of(dx),
-                                   lh_addr_of(dy)) != 0u)
+    else if (lh_str_ptr_parse_text(line, len, "w %d %d %d %d", lh_addr_of(x), lh_addr_of(y),
+                                   lh_addr_of(dx), lh_addr_of(dy)) != 0u)
     {
-        host_wheel(view, hooks, lh_cast_static(int, x), lh_cast_static(int, y), lh_cast_static(int, dx), lh_cast_static(int, dy));
+        host_wheel(view, hooks, lh_cast_static(int, x), lh_cast_static(int, y),
+                   lh_cast_static(int, dx), lh_cast_static(int, dy));
     }
     else if (lh_str_ptr_parse_text(line, len, "k %d", lh_addr_of(k)) != 0u)
     {
@@ -528,7 +542,8 @@ host_ws_drop(host_ws_cli_t *c)
 /** Queue one frame for a client, at the front for control frames; drops a client over
  * ::HOST_WS_QMAX. */
 static lh_bool_t
-host_ws_enqueue(host_ws_cli_t *c, unsigned opcode, const void *payload, lh_usize_t plen, lh_bool_t front)
+host_ws_enqueue(host_ws_cli_t *c, unsigned opcode, const void *payload, lh_usize_t plen,
+                lh_bool_t front)
 {
     const lh_usize_t need = lh_ui_web_ws_frame_size(plen);
     host_ws_q_t *q;
@@ -538,7 +553,7 @@ host_ws_enqueue(host_ws_cli_t *c, unsigned opcode, const void *payload, lh_usize
     {
         return lh_bool_false;
     }
-    if (need == 0u || c->queued + lh_cast_static(unsigned, need)> HOST_WS_QMAX)
+    if (need == 0u || c->queued + lh_cast_static(unsigned, need) > HOST_WS_QMAX)
     {
         host_ws_drop(c);
         return lh_bool_false;
@@ -589,8 +604,8 @@ host_ws_flush(host_ws_cli_t *c)
     while (c != lh_null && c->used && c->qhead != lh_null)
     {
         host_ws_q_t *q = c->qhead;
-        const lh_ssize_t w =
-            lh_os_net_socket_send(lh_addr_of(c->sock), q->bytes + q->off, lh_cast_static(lh_usize_t, (q->len - q->off)));
+        const lh_ssize_t w = lh_os_net_socket_send(lh_addr_of(c->sock), q->bytes + q->off,
+                                                   lh_cast_static(lh_usize_t, (q->len - q->off)));
 
         if (w == LH_OS_RESULT_PENDING)
         {
@@ -626,11 +641,11 @@ host_ws_msg_add(host_ws_cli_t *c, lh_byte_cptr p, lh_usize_t n)
 {
     lh_byte_ptr grow;
 
-    if (c->msg_len + lh_cast_static(unsigned, n)> LH_UI_WEB_WS_MAX_MSG)
+    if (c->msg_len + lh_cast_static(unsigned, n) > LH_UI_WEB_WS_MAX_MSG)
     {
         return lh_bool_false;
     }
-    if (c->msg_len + lh_cast_static(unsigned, n)> c->msg_cap)
+    if (c->msg_len + lh_cast_static(unsigned, n) > c->msg_cap)
     {
         const unsigned cap = c->msg_len + lh_cast_static(unsigned, n);
         const unsigned next = (c->msg_cap == 0u) ? 256u : (c->msg_cap * 2u);
@@ -651,8 +666,8 @@ host_ws_msg_add(host_ws_cli_t *c, lh_byte_cptr p, lh_usize_t n)
 
 /** Parse every whole frame received: answer pings and closes, run text messages as input lines. */
 static lh_void
-host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *width,
-               unsigned *height, unsigned *gen, unsigned now)
+host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks,
+               unsigned *width, unsigned *height, unsigned *gen, unsigned now)
 {
     while (c->used && c->rx_len >= 2u)
     {
@@ -661,8 +676,9 @@ host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_
         lh_byte_cptr payload = lh_null;
         lh_usize_t plen = 0;
         lh_byte_cptr mask = lh_null;
-        const lh_usize_t n = lh_ui_web_ws_read(c->rx, c->rx_len, lh_addr_of(opcode), lh_addr_of(fin),
-                                               lh_addr_of(payload), lh_addr_of(plen), lh_addr_of(mask));
+        const lh_usize_t n =
+            lh_ui_web_ws_read(c->rx, c->rx_len, lh_addr_of(opcode), lh_addr_of(fin),
+                              lh_addr_of(payload), lh_addr_of(plen), lh_addr_of(mask));
         lh_byte_ptr body;
 
         if (n == 0u)
@@ -714,8 +730,8 @@ host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_
             {
                 if (c->msg_op == LH_UI_WEB_WS_TEXT)
                 {
-                    host_event_line(view, hooks, width, height, gen, lh_ptr_rcast(const char, c->msg),
-                                    c->msg_len);
+                    host_event_line(view, hooks, width, height, gen,
+                                    lh_ptr_rcast(const char, c->msg), c->msg_len);
                 }
                 c->msg_on = lh_bool_false;
                 c->msg_len = 0u;
@@ -732,7 +748,8 @@ host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_
             {
                 if (opcode == LH_UI_WEB_WS_TEXT)
                 {
-                    host_event_line(view, hooks, width, height, gen, lh_ptr_rcast(const char, body), plen);
+                    host_event_line(view, hooks, width, height, gen, lh_ptr_rcast(const char, body),
+                                    plen);
                 }
             }
             else
@@ -752,7 +769,8 @@ host_ws_ingest(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_
             host_ws_drop(c);
             return;
         }
-        lh_memory_move(c->rx, HOST_WS_RX, c->rx + n, lh_cast_static(lh_usize_t, (c->rx_len - lh_cast_static(unsigned, n))));
+        lh_memory_move(c->rx, HOST_WS_RX, c->rx + n,
+                       lh_cast_static(lh_usize_t, (c->rx_len - lh_cast_static(unsigned, n))));
         c->rx_len -= lh_cast_static(unsigned, n);
     }
 }
@@ -799,8 +817,8 @@ host_ws_attach(host_ws_cli_t *slots, lh_os_net_socket_t *client, unsigned now)
 
 /** Ping, time out, read and answer one client; one pass, never blocks. */
 static lh_void
-host_ws_pump(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *width,
-             unsigned *height, unsigned *gen, unsigned now)
+host_ws_pump(host_ws_cli_t *c, lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks,
+             unsigned *width, unsigned *height, unsigned *gen, unsigned now)
 {
     lh_ssize_t got;
 
@@ -866,8 +884,8 @@ host_draw(lh_ui_view_t *view, unsigned width, unsigned height, char *json, lh_us
 
 /** An input over HTTP: the same lines as WS, with the numbers in the query. */
 static lh_bool_t
-host_handle_input(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *width, unsigned *height,
-                  const char *req, lh_usize_t len)
+host_handle_input(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, unsigned *width,
+                  unsigned *height, const char *req, lh_usize_t len)
 {
     const int x = host_query_int(req, len, host_lit("x="));
     const int y = host_query_int(req, len, host_lit("y="));
@@ -950,7 +968,9 @@ host_handle(lh_ui_view_t *view, unsigned *width, unsigned *height, char *json, l
     if (host_route(req, len, host_lit("/ui.rev")))
     {
         char body[32];
-        const lh_usize_t n = lh_str_ptr_format_text(body, sizeof(body), "%u\n", lh_cast_static(lh_uint_t, (gen != lh_null ? lh_ptr_deref(gen) : 0u)));
+        const lh_usize_t n = lh_str_ptr_format_text(
+            body, sizeof(body), "%u\n",
+            lh_cast_static(lh_uint_t, (gen != lh_null ? lh_ptr_deref(gen) : 0u)));
 
         host_reply_text(client, 200u, body, n);
         return lh_bool_false;
@@ -962,12 +982,14 @@ host_handle(lh_ui_view_t *view, unsigned *width, unsigned *height, char *json, l
             host_reply_text(client, 304u, host_lit(""));
             return lh_bool_false;
         }
-        if (!host_draw(view, lh_ptr_deref(width), lh_ptr_deref(height), json, json_cap, lh_addr_of(web), lh_null))
+        if (!host_draw(view, lh_ptr_deref(width), lh_ptr_deref(height), json, json_cap,
+                       lh_addr_of(web), lh_null))
         {
             host_reply_text(client, 500u, host_lit("draw failed\n"));
             return lh_bool_false;
         }
-        host_reply(client, 200u, "application/json; charset=utf-8", lh_ui_canvas_web_bytes(lh_addr_of(web)),
+        host_reply(client, 200u, "application/json; charset=utf-8",
+                   lh_ui_canvas_web_bytes(lh_addr_of(web)),
                    lh_ui_canvas_web_length(lh_addr_of(web)));
         return lh_bool_false;
     }
@@ -988,7 +1010,8 @@ host_handle(lh_ui_view_t *view, unsigned *width, unsigned *height, char *json, l
 static lh_bool_t
 host_ws_wants(const host_ws_cli_t *c, unsigned gen)
 {
-    return (c->used && !c->closing && c->seen != gen && c->qhead == lh_null) ? lh_bool_true : lh_bool_false;
+    return (c->used && !c->closing && c->seen != gen && c->qhead == lh_null) ? lh_bool_true
+                                                                             : lh_bool_false;
 }
 
 /** Keep a copy of the frame just sent, to skip sending an equal one. */
@@ -997,7 +1020,8 @@ host_ws_remember(host_ws_stream_t *stream, const char *body, lh_usize_t len)
 {
     if (len > stream->last_cap)
     {
-        char *grow = lh_ptr_rcast(char, lh_runtime_allocator_realloc(stream->last, stream->last_cap, len));
+        char *grow =
+            lh_ptr_rcast(char, lh_runtime_allocator_realloc(stream->last, stream->last_cap, len));
 
         if (grow == lh_null)
         {
@@ -1046,7 +1070,8 @@ host_ws_frame(host_ws_cli_t *cli, host_ws_stream_t *stream, lh_ui_view_t *view, 
             }
         }
     }
-    if (!want || !host_draw(view, width, height, json, json_cap, lh_addr_of(web), lh_addr_of(stream->glyphs)))
+    if (!want || !host_draw(view, width, height, json, json_cap, lh_addr_of(web),
+                            lh_addr_of(stream->glyphs)))
     {
         return;
     }
@@ -1090,9 +1115,9 @@ host_ws_frame(host_ws_cli_t *cli, host_ws_stream_t *stream, lh_ui_view_t *view, 
 
 /** Accept and serve every connection waiting on the listener. */
 static lh_void
-host_accept_all(lh_os_net_socket_t *listen_fd, host_ws_cli_t *cli, lh_ui_view_t *view, unsigned *width,
-                unsigned *height, char *json, lh_usize_t json_cap, const lh_ui_web_host_hooks_t *hooks,
-                unsigned *gen, unsigned now)
+host_accept_all(lh_os_net_socket_t *listen_fd, host_ws_cli_t *cli, lh_ui_view_t *view,
+                unsigned *width, unsigned *height, char *json, lh_usize_t json_cap,
+                const lh_ui_web_host_hooks_t *hooks, unsigned *gen, unsigned now)
 {
     for (;;)
     {
@@ -1142,15 +1167,16 @@ host_wait(lh_os_net_socket_t *listen_fd, host_ws_cli_t *cli, unsigned timeout_ms
             write[nw++] = lh_addr_of(cli[i].sock);
         }
     }
-    if (lh_os_net_socket_wait(read, nr, write, nw, lh_cast_static(lh_u32_t, timeout_ms)) == LH_OS_RESULT_INVALID)
+    if (lh_os_net_socket_wait(read, nr, write, nw, lh_cast_static(lh_u32_t, timeout_ms)) ==
+        LH_OS_RESULT_INVALID)
     {
         (void)lh_os_net_socket_wait(read, 1u, lh_null, 0u, lh_cast_static(lh_u32_t, timeout_ms));
     }
 }
 
 lh_bool_t
-lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *json, lh_usize_t json_cap,
-                   lh_net_port_t port, const lh_ui_web_host_hooks_t *hooks)
+lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *json,
+                   lh_usize_t json_cap, lh_net_port_t port, const lh_ui_web_host_hooks_t *hooks)
 {
     lh_os_net_socket_t listen_fd;
     lh_net_ip4_t ip;
@@ -1213,12 +1239,12 @@ lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *js
             {
                 hooks->tick(hooks->ctx);
             }
-            host_accept_all(lh_addr_of(listen_fd), cli, view, lh_addr_of(frame_w), lh_addr_of(frame_h), json,
-                            json_cap, hooks, lh_addr_of(gen), now);
+            host_accept_all(lh_addr_of(listen_fd), cli, view, lh_addr_of(frame_w),
+                            lh_addr_of(frame_h), json, json_cap, hooks, lh_addr_of(gen), now);
             for (i = 0u; i < HOST_WS_MAX; ++i)
             {
-                host_ws_pump(lh_addr_of(cli[i]), view, hooks, lh_addr_of(frame_w), lh_addr_of(frame_h),
-                             lh_addr_of(gen), now);
+                host_ws_pump(lh_addr_of(cli[i]), view, hooks, lh_addr_of(frame_w),
+                             lh_addr_of(frame_h), lh_addr_of(gen), now);
             }
             /* After the input, not before it: an event and the damage it caused
                are one change and one frame, not two. */
@@ -1228,7 +1254,8 @@ lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *js
             }
             host_ws_frame(cli, lh_addr_of(stream), view, frame_w, frame_h, json, json_cap, gen);
             spent = lh_cast_static(unsigned, lh_os_tick_ms()) - now;
-            host_wait(lh_addr_of(listen_fd), cli, (spent >= HOST_TICK_MS) ? 0u : HOST_TICK_MS - spent);
+            host_wait(lh_addr_of(listen_fd), cli,
+                      (spent >= HOST_TICK_MS) ? 0u : HOST_TICK_MS - spent);
         }
     }
 }

@@ -163,7 +163,7 @@ lh_memory_bounds_slice_is_backward(const lh_memory_bounds_slice_t *self);
 lh_bool_t
 lh_memory_bounds_slice_is_valid(const lh_memory_bounds_slice_t *self);
 
-/* -- validated access, size, containment ---------------------------------- */
+/* -- validated access, size, containment ----------------------------------- */
 
 /**
  * @brief Return @c first after validating @p self.
@@ -758,7 +758,7 @@ lh_ptr
 lh_memory_bounds_slice_fill_pattern(lh_memory_bounds_slice_t *self,
                                     const lh_memory_bounds_slice_t *other);
 
-/* -- pointer and value access --------------------------------------------- */
+/* -- pointer and value access ---------------------------------------------- */
 
 /**
  * @brief Return pointer at byte @p offset from @c first.
@@ -1093,7 +1093,7 @@ lh_memory_bounds_slice_next_value(const lh_memory_bounds_slice_t *self, const lh
 lh_byte_t
 lh_memory_bounds_slice_prev_value(const lh_memory_bounds_slice_t *self, const lh_ptr ptr);
 
-/* -- mutation ------------------------------------------------------------- */
+/* -- mutation -------------------------------------------------------------- */
 
 /**
  * @brief Reset @p self to the uninitialized empty slice.
@@ -1192,7 +1192,8 @@ lh_memory_bounds_slice_set_v(lh_memory_bounds_slice_t *self, lh_ptr begin, lh_pt
  *        @p n is greater than the source range size.
  */
 lh_void
-lh_memory_bounds_slice_take_first(lh_ptr begin, lh_ptr end, lh_usize_t n, lh_memory_bounds_slice_t *out);
+lh_memory_bounds_slice_take_first(lh_ptr begin, lh_ptr end, lh_usize_t n,
+                                  lh_memory_bounds_slice_t *out);
 
 /**
  * @brief Build a slice containing the last @p n bytes of a valid closed range.
@@ -1211,7 +1212,8 @@ lh_memory_bounds_slice_take_first(lh_ptr begin, lh_ptr end, lh_usize_t n, lh_mem
  *        @p n is greater than the source range size.
  */
 lh_void
-lh_memory_bounds_slice_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n, lh_memory_bounds_slice_t *out);
+lh_memory_bounds_slice_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n,
+                                 lh_memory_bounds_slice_t *out);
 
 /**
  * @brief Build a slice containing the first @p size bytes of @p self.
@@ -1230,7 +1232,8 @@ lh_memory_bounds_slice_take_last(lh_ptr begin, lh_ptr end, lh_usize_t n, lh_memo
  *        @p size is greater than the source slice size.
  */
 lh_void
-lh_memory_bounds_slice_from_begin(const lh_memory_bounds_slice_t *self, lh_usize_t size, lh_memory_bounds_slice_t *out);
+lh_memory_bounds_slice_from_begin(const lh_memory_bounds_slice_t *self, lh_usize_t size,
+                                  lh_memory_bounds_slice_t *out);
 
 /**
  * @brief Build a slice containing the last @p size bytes of @p self.
@@ -1249,7 +1252,8 @@ lh_memory_bounds_slice_from_begin(const lh_memory_bounds_slice_t *self, lh_usize
  *        @p size is greater than the source slice size.
  */
 lh_void
-lh_memory_bounds_slice_from_end(const lh_memory_bounds_slice_t *self, lh_usize_t size, lh_memory_bounds_slice_t *out);
+lh_memory_bounds_slice_from_end(const lh_memory_bounds_slice_t *self, lh_usize_t size,
+                                lh_memory_bounds_slice_t *out);
 
 /**
  * @brief Build a sub-slice between @p begin and @p end inside @p self.
@@ -1267,7 +1271,8 @@ lh_memory_bounds_slice_from_end(const lh_memory_bounds_slice_t *self, lh_usize_t
  *        <tt>[begin, end]</tt> is not a valid slice.
  */
 lh_void
-lh_memory_bounds_slice_between(const lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr end, lh_memory_bounds_slice_t *out);
+lh_memory_bounds_slice_between(const lh_memory_bounds_slice_t *self, lh_ptr begin, lh_ptr end,
+                               lh_memory_bounds_slice_t *out);
 
 /**
  * @brief Build a sub-slice starting at @p offset with @p size bytes.
@@ -1288,8 +1293,7 @@ lh_memory_bounds_slice_between(const lh_memory_bounds_slice_t *self, lh_ptr begi
  */
 lh_void
 lh_memory_bounds_slice_from_offset(const lh_memory_bounds_slice_t *self, lh_uoffset_t offset,
-                                        lh_usize_t size,
-                                        lh_memory_bounds_slice_t *out);
+                                   lh_usize_t size, lh_memory_bounds_slice_t *out);
 
 /**
  * @brief Build a slice with @p n bytes removed from the beginning.
@@ -1308,7 +1312,8 @@ lh_memory_bounds_slice_from_offset(const lh_memory_bounds_slice_t *self, lh_uoff
  *        @p n is greater than the source slice size.
  */
 lh_void
-lh_memory_bounds_slice_drop_first(const lh_memory_bounds_slice_t *self, lh_usize_t n, lh_memory_bounds_slice_t *out);
+lh_memory_bounds_slice_drop_first(const lh_memory_bounds_slice_t *self, lh_usize_t n,
+                                  lh_memory_bounds_slice_t *out);
 
 /**
  * @brief Build a slice with @p n bytes removed from the end.
@@ -1327,7 +1332,8 @@ lh_memory_bounds_slice_drop_first(const lh_memory_bounds_slice_t *self, lh_usize
  *        @p n is greater than the source slice size.
  */
 lh_void
-lh_memory_bounds_slice_drop_last(const lh_memory_bounds_slice_t *self, lh_usize_t n, lh_memory_bounds_slice_t *out);
+lh_memory_bounds_slice_drop_last(const lh_memory_bounds_slice_t *self, lh_usize_t n,
+                                 lh_memory_bounds_slice_t *out);
 
 /**
  * @brief Build a slice with bytes removed from both sides.
@@ -1347,8 +1353,7 @@ lh_memory_bounds_slice_drop_last(const lh_memory_bounds_slice_t *self, lh_usize_
  *        @p left + @p right is greater than the source slice size.
  */
 lh_void
-lh_memory_bounds_slice_trim(const lh_memory_bounds_slice_t *self, lh_usize_t left,
-                            lh_usize_t right,
+lh_memory_bounds_slice_trim(const lh_memory_bounds_slice_t *self, lh_usize_t left, lh_usize_t right,
                             lh_memory_bounds_slice_t *out);
 
 /**
@@ -1520,7 +1525,7 @@ lh_void
 lh_memory_bounds_slice_swap_and_clear(lh_memory_bounds_slice_t *self,
                                       lh_memory_bounds_slice_t *other);
 
-/* ── view ────────────────────────────────────────────────────────────────── */
+/* -- view ------------------------------------------------------------------ */
 
 /**
  * @brief A read-only view slice of the memory @p self describes.

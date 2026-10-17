@@ -52,8 +52,8 @@ lh_ui_canvas_box_columns_are_one_colour(const lh_ui_paint_t *paint)
 /** The colours of pixels @p x0 .. @p x1 - 1 of row @p y into @p out: the gradient's
    when there is @p sampler, else the paint's one colour. */
 static lh_void
-lh_ui_canvas_box_paint_row(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t *sampler, lh_s32_t x0,
-                           lh_s32_t x1, lh_s32_t y, lh_ui_color_t *out)
+lh_ui_canvas_box_paint_row(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t *sampler,
+                           lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_ui_color_t *out)
 {
     lh_s32_t x;
 
@@ -70,9 +70,8 @@ lh_ui_canvas_box_paint_row(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t 
 
 /** The one colour of row @p y of a paint whose rows are one colour each. */
 static lh_void
-lh_ui_canvas_box_row_colour(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t *sampler, lh_s32_t x,
-                            lh_s32_t y,
-                            lh_ui_color_t *out)
+lh_ui_canvas_box_row_colour(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t *sampler,
+                            lh_s32_t x, lh_s32_t y, lh_ui_color_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_ui_color_t colour;
@@ -89,8 +88,8 @@ lh_ui_canvas_box_row_colour(const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t
 /** Pixels @p x0 .. @p x1 - 1 of row @p y in one colour @p colour, each at its
    coverage by the corner @p corner (::lh_ui_radius_run_init). */
 static lh_void
-lh_ui_canvas_box_corner(lh_ui_canvas_t *self, const lh_ui_color_t *colour, const struct lh_ui_radius_run *corner,
-                        lh_s32_t x0, lh_s32_t x1, lh_s32_t y)
+lh_ui_canvas_box_corner(lh_ui_canvas_t *self, const lh_ui_color_t *colour,
+                        const struct lh_ui_radius_run *corner, lh_s32_t x0, lh_s32_t x1, lh_s32_t y)
 {
     lh_ui_color_t colours[LH_UI_CANVAS_BOX_RUN];
     lh_byte_t cover[LH_UI_CANVAS_BOX_RUN];
@@ -115,9 +114,10 @@ lh_ui_canvas_box_corner(lh_ui_canvas_t *self, const lh_ui_color_t *colour, const
    of one colour sends its corners as colours and the middle as one span; any other
    goes out whole as a row of colours. */
 static lh_void
-lh_ui_canvas_box_row(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t *sampler,
-                     lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_s32_t near_end, const struct lh_ui_radius_run *near,
-                     lh_s32_t far_start, const struct lh_ui_radius_run *far)
+lh_ui_canvas_box_row(lh_ui_canvas_t *self, const lh_ui_paint_t *paint,
+                     lh_ui_gradient_sampler_t *sampler, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                     lh_s32_t near_end, const struct lh_ui_radius_run *near, lh_s32_t far_start,
+                     const struct lh_ui_radius_run *far)
 {
     lh_ui_color_t colours[LH_UI_CANVAS_BOX_RUN];
     lh_byte_t cover[LH_UI_CANVAS_BOX_RUN];
@@ -147,7 +147,8 @@ lh_ui_canvas_box_row(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, lh_ui_gra
             lh_ui_radius_run_row(near, x0, cut, y, cover);
             for (x = x0; x < cut; ++x)
             {
-                lh_ui_color_with_coverage(colours + (x - x0), cover[x - x0], lh_addr_of(colours[x - x0]));
+                lh_ui_color_with_coverage(colours + (x - x0), cover[x - x0],
+                                          lh_addr_of(colours[x - x0]));
             }
         }
         cut = lh_math_max(x0, far_start);
@@ -156,7 +157,8 @@ lh_ui_canvas_box_row(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, lh_ui_gra
             lh_ui_radius_run_row(far, cut, end, y, cover);
             for (x = cut; x < end; ++x)
             {
-                lh_ui_color_with_coverage(colours + (x - x0), cover[x - cut], lh_addr_of(colours[x - x0]));
+                lh_ui_color_with_coverage(colours + (x - x0), cover[x - cut],
+                                          lh_addr_of(colours[x - x0]));
             }
         }
         lh_ui_canvas_fill_colors(self, x0, y, end - x0, 1, colours, lh_ui_axis_horizontal);
@@ -167,8 +169,9 @@ lh_ui_canvas_box_row(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, lh_ui_gra
    colour, one box of a colour a row or a colour a column when it changes only one
    way, else a row of colours a row. */
 static lh_void
-lh_ui_canvas_box_band(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t *sampler,
-                      lh_s32_t x0, lh_s32_t x1, lh_s32_t y0, lh_s32_t y1)
+lh_ui_canvas_box_band(lh_ui_canvas_t *self, const lh_ui_paint_t *paint,
+                      lh_ui_gradient_sampler_t *sampler, lh_s32_t x0, lh_s32_t x1, lh_s32_t y0,
+                      lh_s32_t y1)
 {
     lh_s32_t y;
 
@@ -214,7 +217,8 @@ lh_ui_canvas_box_band(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, lh_ui_gr
 }
 
 lh_bool_t
-lh_ui_canvas_box_frame_init(const lh_ui_rect_t *box, const lh_ui_rect_t *cut, lh_ui_canvas_box_frame_t *out)
+lh_ui_canvas_box_frame_init(const lh_ui_rect_t *box, const lh_ui_rect_t *cut,
+                            lh_ui_canvas_box_frame_t *out)
 {
     lh_assert_runtime_ref(out);
     out->left = lh_ui_canvas_round_left(box);
@@ -232,7 +236,8 @@ lh_ui_canvas_box_frame_init(const lh_ui_rect_t *box, const lh_ui_rect_t *cut, lh
 }
 
 lh_void
-lh_ui_canvas_box_corners_init(const lh_ui_rect_t *box, const lh_ui_radii_t *fit, struct lh_ui_radius_run *out)
+lh_ui_canvas_box_corners_init(const lh_ui_rect_t *box, const lh_ui_radii_t *fit,
+                              struct lh_ui_radius_run *out)
 {
     lh_assert_runtime_ref(fit);
     lh_assert_runtime_ref(out);
@@ -254,19 +259,22 @@ lh_ui_canvas_box_row_is_upper(const lh_ui_canvas_box_frame_t *frame, lh_s32_t y)
 lh_s32_t
 lh_ui_canvas_box_zone(lh_s32_t from_edge, lh_ui_scalar_t radius, lh_s32_t room)
 {
-    return from_edge < lh_ui_scalar_ceil_s32(radius) ? lh_math_min(lh_ui_scalar_ceil_s32(radius), room) : 0;
+    return from_edge < lh_ui_scalar_ceil_s32(radius)
+               ? lh_math_min(lh_ui_scalar_ceil_s32(radius), room)
+               : 0;
 }
 
 lh_bool_t
-lh_ui_canvas_box_row_reach(const lh_ui_canvas_box_frame_t *frame, const lh_ui_radii_t *fit, lh_s32_t y,
-                           lh_s32_t *near_end, lh_s32_t *far_start)
+lh_ui_canvas_box_row_reach(const lh_ui_canvas_box_frame_t *frame, const lh_ui_radii_t *fit,
+                           lh_s32_t y, lh_s32_t *near_end, lh_s32_t *far_start)
 {
     const lh_bool_t upper = lh_ui_canvas_box_row_is_upper(frame, y);
     const lh_s32_t from_edge = upper ? y - frame->top : frame->bottom - 1 - y;
-    const lh_s32_t zone_near = lh_ui_canvas_box_zone(from_edge, upper ? fit->top_left : fit->bottom_left,
-                                                     frame->right - frame->left);
-    const lh_s32_t zone_far = lh_ui_canvas_box_zone(from_edge, upper ? fit->top_right : fit->bottom_right,
-                                                    frame->right - frame->left - zone_near);
+    const lh_s32_t zone_near = lh_ui_canvas_box_zone(
+        from_edge, upper ? fit->top_left : fit->bottom_left, frame->right - frame->left);
+    const lh_s32_t zone_far =
+        lh_ui_canvas_box_zone(from_edge, upper ? fit->top_right : fit->bottom_right,
+                              frame->right - frame->left - zone_near);
 
     lh_assert_runtime_ref(near_end);
     lh_assert_runtime_ref(far_start);
@@ -276,9 +284,9 @@ lh_ui_canvas_box_row_reach(const lh_ui_canvas_box_frame_t *frame, const lh_ui_ra
 }
 
 lh_void
-lh_ui_canvas_box_rows(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, lh_ui_gradient_sampler_t *sampler,
-                      const lh_ui_canvas_box_frame_t *frame, const lh_ui_radii_t *fit,
-                      const struct lh_ui_radius_run *corners)
+lh_ui_canvas_box_rows(lh_ui_canvas_t *self, const lh_ui_paint_t *paint,
+                      lh_ui_gradient_sampler_t *sampler, const lh_ui_canvas_box_frame_t *frame,
+                      const lh_ui_radii_t *fit, const struct lh_ui_radius_run *corners)
 {
     lh_s32_t plain_from = frame->first;
     lh_s32_t near_end;
@@ -295,12 +303,14 @@ lh_ui_canvas_box_rows(lh_ui_canvas_t *self, const lh_ui_paint_t *paint, lh_ui_gr
         }
         /* A row a corner reaches: the rows before it that none did go out as one
            band, then this one whole, its corners at their coverage. */
-        lh_ui_canvas_box_band(self, paint, sampler, frame->shown_left, frame->shown_right, plain_from, y);
+        lh_ui_canvas_box_band(self, paint, sampler, frame->shown_left, frame->shown_right,
+                              plain_from, y);
         plain_from = y + 1;
-        lh_ui_canvas_box_row(self, paint, sampler, frame->shown_left, frame->shown_right, y, near_end,
-                             corners + pair, far_start, corners + pair + 1);
+        lh_ui_canvas_box_row(self, paint, sampler, frame->shown_left, frame->shown_right, y,
+                             near_end, corners + pair, far_start, corners + pair + 1);
     }
-    lh_ui_canvas_box_band(self, paint, sampler, frame->shown_left, frame->shown_right, plain_from, frame->last);
+    lh_ui_canvas_box_band(self, paint, sampler, frame->shown_left, frame->shown_right, plain_from,
+                          frame->last);
 }
 
 lh_void
@@ -331,7 +341,8 @@ lh_ui_canvas_fill_box(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, const lh_u
     lh_return_if(!lh_ui_canvas_box_frame_init(lh_addr_of(box), lh_addr_of(cut), lh_addr_of(frame)));
     if (lh_null_ne(lh_ui_paint_get_gradient(paint)))
     {
-        lh_ui_gradient_sampler_init(lh_addr_of(sampler), lh_ui_paint_get_gradient(paint), lh_addr_of(box));
+        lh_ui_gradient_sampler_init(lh_addr_of(sampler), lh_ui_paint_get_gradient(paint),
+                                    lh_addr_of(box));
         colours = lh_addr_of(sampler);
     }
     lh_ui_canvas_box_corners_init(lh_addr_of(box), lh_addr_of(fit), corners);

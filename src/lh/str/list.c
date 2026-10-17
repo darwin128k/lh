@@ -50,8 +50,8 @@ lh_void
 lh_str_list_get_span(const lh_str_list_t *self, lh_uindex_t index, lh_str_list_span_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_ptr_deref(out) = lh_ptr_deref(
-        lh_ptr_cast(const lh_str_list_span_t, lh_array_get_ptr(lh_str_list_get_spans_as_const(self), index)));
+    lh_ptr_deref(out) = lh_ptr_deref(lh_ptr_cast(
+        const lh_str_list_span_t, lh_array_get_ptr(lh_str_list_get_spans_as_const(self), index)));
 }
 
 lh_void
@@ -126,7 +126,8 @@ lh_str_list_push_back(lh_str_list_t *self, lh_str_view_t text)
 
     chars = lh_str_list_get_chars(self);
     span.offset = lh_str_get_size(chars);
-    span.size = lh_str_view_is_empty(lh_addr_of(text)) ? 0U : lh_str_view_get_size(lh_addr_of(text));
+    span.size =
+        lh_str_view_is_empty(lh_addr_of(text)) ? 0U : lh_str_view_get_size(lh_addr_of(text));
     lh_str_append_view(chars, text);
     lh_str_push_back(chars, lh_char_map_nul);
     return lh_array_push_back(lh_str_list_get_spans(self), lh_addr_of(span));
@@ -191,7 +192,8 @@ lh_str_list_join(const lh_str_list_t *self, lh_str_t *out, lh_char_t sep)
 }
 
 lh_void
-lh_str_list_split_of(lh_str_list_t *self, lh_str_view_t text, lh_str_cptr delims, lh_usize_t delim_count)
+lh_str_list_split_of(lh_str_list_t *self, lh_str_view_t text, lh_str_cptr delims,
+                     lh_usize_t delim_count)
 {
     lh_usize_t pos = 0U;
     lh_str_view_t piece;

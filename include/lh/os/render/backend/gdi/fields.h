@@ -10,8 +10,8 @@
 #include <lh/ui/surface.h>
 
 /**
- * @def lh_os_render_backend_gdi_fields(hwnd_type, hdc_type, surface_type, sw_type, count_type, tick_type,
- *                                      point_type)
+ * @def lh_os_render_backend_gdi_fields(hwnd_type, hdc_type, surface_type, sw_type, count_type,
+ * tick_type, point_type)
  * @brief Window, paint-time destination DC, off-screen surface, software
  *        context, per-primitive call counts, and frame start tick.
  *
@@ -41,8 +41,8 @@
  * @param tick_type    Frame start time (::lh_u64_t microseconds).
  * @param point_type   Type of the present corner.
  */
-#define lh_os_render_backend_gdi_fields(hwnd_type, hdc_type, surface_type, sw_type, count_type,       \
-                                        tick_type, point_type)                                         \
+#define lh_os_render_backend_gdi_fields(hwnd_type, hdc_type, surface_type, sw_type, count_type,    \
+                                        tick_type, point_type)                                     \
     hwnd_type hwnd;                                                                                \
     hdc_type hdc;                                                                                  \
     surface_type surface;                                                                          \

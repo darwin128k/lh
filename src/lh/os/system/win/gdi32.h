@@ -35,8 +35,8 @@ struct lh_os_system_win_bitmapv5header
 {
     /** Members: ::lh_os_system_win_bitmapv5header_fields. */
     lh_os_system_win_bitmapv5header_fields(lh_os_system_win_bitmapinfoheader_t,
-                                           lh_os_system_win_dword_t, lh_int_t, lh_os_system_win_word_t,
-                                           lh_byte_t);
+                                           lh_os_system_win_dword_t, lh_int_t,
+                                           lh_os_system_win_word_t, lh_byte_t);
 };
 /** @copybrief lh_os_system_win_bitmapv5header */
 typedef struct lh_os_system_win_bitmapv5header lh_os_system_win_bitmapv5header_t;
@@ -106,8 +106,7 @@ CreateDIBSection(lh_os_system_win_hdc_t hdc, const lh_os_system_win_bitmapinfo_t
 
 /** Finish queued GDI drawing of this thread, so DIB bits can be touched
    directly. Present since Windows 95 / NT 3.1. */
-LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
-GdiFlush(lh_void);
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL GdiFlush(lh_void);
 
 /** `BitBlt` raster op: copy source to destination. */
 #define LH_OS_SYSTEM_WIN_SRCCOPY 0x00CC0020UL

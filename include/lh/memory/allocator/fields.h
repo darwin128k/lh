@@ -21,7 +21,8 @@
  *                         the member is `deallocator_type *dealloc_cb`.
  * @param reallocator_type Function type for reallocation (e.g. ::lh_memory_allocator_realloc_fn);
  *                         the member is `reallocator_type *realloc_cb` — null means "no native
- *                         realloc": ::lh_memory_allocator_realloc falls back to alloc + copy + dealloc.
+ *                         realloc": ::lh_memory_allocator_realloc falls back to alloc + copy +
+ * dealloc.
  * @param context_type     Type of `context`, the allocator's own state handed to every callback
  *                         (::lh_ptr).
  *

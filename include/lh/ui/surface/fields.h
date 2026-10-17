@@ -20,8 +20,8 @@
  * together and kept in that order.
  */
 #define lh_ui_surface_fields(size_type, format_type, handle_type)                                  \
-    size_type size;                                                                                 \
-    format_type format;                                                                             \
+    size_type size;                                                                                \
+    format_type format;                                                                            \
     handle_type handle
 
 #endif /* LH_UI_SURFACE_FIELDS_H */

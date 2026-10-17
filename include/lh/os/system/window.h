@@ -121,8 +121,8 @@ lh_os_system_window_invalidate(lh_os_system_window_handle_t handle);
  *        right and bottom exclusive).
  */
 lh_void
-lh_os_system_window_invalidate_rect(lh_os_system_window_handle_t handle, int left, int top, int right,
-                                    int bottom);
+lh_os_system_window_invalidate_rect(lh_os_system_window_handle_t handle, int left, int top,
+                                    int right, int bottom);
 
 /**
  * @brief Ask the window system to call back every @p ms, or stop with `0`.

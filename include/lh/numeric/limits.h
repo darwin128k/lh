@@ -26,7 +26,7 @@
 #include <lh/numeric/interval/initializer.h>
 #include <lh/numeric/interval/types.h>
 
-/* ── unsigned intervals ─────────────────────────────────────────────────── */
+/* -- unsigned intervals ---------------------------------------------------- */
 
 /**
  * @var LH_USHORT_T_INTERVAL
@@ -68,7 +68,7 @@ static const lh_ulong_interval_t LH_ULONG_T_INTERVAL =
 static const lh_ullong_interval_t LH_ULLONG_T_INTERVAL =
     lh_numeric_interval_initializer_unsigned(lh_ullong_t, lh_interval_flags_closed);
 
-/* ── signed intervals ───────────────────────────────────────────────────── */
+/* -- signed intervals ------------------------------------------------------ */
 
 /**
  * @var LH_SSHORT_T_INTERVAL
@@ -138,7 +138,7 @@ static const lh_slong_interval_t LH_LONG_T_INTERVAL =
 static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
     lh_numeric_interval_initializer_signed(lh_llong_t, lh_interval_flags_closed);
 
-/* ── sizes ──────────────────────────────────────────────────────────────── */
+/* -- sizes ----------------------------------------------------------------- */
 
 #ifndef LH_USHORT_T_SIZE
 /**
@@ -252,7 +252,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
 #    define LH_LLONG_T_SIZE lh_type_size(lh_llong_t)
 #endif /* LH_LLONG_T_SIZE */
 
-/* ── unsigned limits ────────────────────────────────────────────────────── */
+/* -- unsigned limits ------------------------------------------------------- */
 
 #ifndef LH_USHORT_T_MIN
 /**
@@ -334,7 +334,7 @@ static const lh_sllong_interval_t LH_LLONG_T_INTERVAL =
 #    define LH_ULLONG_T_MAX LH_ULLONG_T_INTERVAL.bounds.second
 #endif /* LH_ULLONG_T_MAX */
 
-/* ── signed limits ──────────────────────────────────────────────────────── */
+/* -- signed limits --------------------------------------------------------- */
 
 #ifndef LH_SHORT_T_MIN
 /**

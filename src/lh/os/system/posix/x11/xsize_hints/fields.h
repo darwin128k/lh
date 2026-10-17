@@ -10,7 +10,7 @@
  * @def lh_os_system_posix_xsize_hints_fields
  * @brief `XSizeHints` (`WM_NORMAL_HINTS`): where the window asks to be put.
  */
-#define lh_os_system_posix_xsize_hints_fields \
+#define lh_os_system_posix_xsize_hints_fields                                                      \
     long flags;                                                                                    \
     int x;                                                                                         \
     int y;                                                                                         \

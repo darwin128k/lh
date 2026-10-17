@@ -91,7 +91,9 @@ lh_bool_t
 lh_memory_view_is_valid_offset(const lh_memory_view_t *self, lh_uoffset_t offset)
 {
     if (lh_memory_view_slice_is_ropen_empty(self))
+    {
         return lh_bool_false;
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
     return lh_memory_view_slice_is_valid_offset(&slice, offset);
@@ -101,7 +103,9 @@ lh_uoffset_t
 lh_memory_view_get_offset_from_begin(const lh_memory_view_t *self, const lh_ptr ptr)
 {
     if (lh_memory_view_slice_is_ropen_empty(self))
+    {
         lh_assert_runtime_if(lh_bool_true, lh_runtime_error_code_out_of_range);
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
     return lh_memory_view_slice_get_offset_from_begin(&slice, ptr);
@@ -111,7 +115,9 @@ lh_uoffset_t
 lh_memory_view_get_offset_from_end(const lh_memory_view_t *self, const lh_ptr ptr)
 {
     if (lh_memory_view_slice_is_ropen_empty(self))
+    {
         lh_assert_runtime_if(lh_bool_true, lh_runtime_error_code_out_of_range);
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
     return lh_memory_view_slice_get_offset_from_end(&slice, ptr);
@@ -121,7 +127,9 @@ lh_bool_t
 lh_memory_view_contains_ptr(const lh_memory_view_t *self, const lh_ptr ptr)
 {
     if (lh_memory_view_slice_is_ropen_empty(self))
+    {
         return lh_bool_false;
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
     return lh_memory_view_slice_contains_ptr(&slice, ptr);
@@ -131,10 +139,13 @@ lh_bool_t
 lh_memory_view_contains_of(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end)
 {
     if (lh_memory_view_slice_needs_ropen(self, begin, end))
+    {
         return lh_memory_view_slice_contains_ropen(self, begin, end);
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
-    return lh_memory_view_slice_contains_range(&slice, begin, lh_memory_view_slice_get_ropen_last(end));
+    return lh_memory_view_slice_contains_range(&slice, begin,
+                                               lh_memory_view_slice_get_ropen_last(end));
 }
 
 lh_bool_t
@@ -161,7 +172,9 @@ const lh_ptr
 lh_memory_view_get_ptr_from_begin(const lh_memory_view_t *self, lh_uoffset_t offset)
 {
     if (lh_memory_view_slice_is_ropen_empty(self))
+    {
         lh_assert_runtime_if(lh_bool_true, lh_runtime_error_code_out_of_range);
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
     return lh_memory_view_slice_get_ptr_from_begin(&slice, offset);
@@ -172,7 +185,9 @@ const lh_ptr
 lh_memory_view_get_ptr_from_end(const lh_memory_view_t *self, lh_uoffset_t offset)
 {
     if (lh_memory_view_slice_is_ropen_empty(self))
+    {
         lh_assert_runtime_if(lh_bool_true, lh_runtime_error_code_out_of_range);
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
     return lh_memory_view_slice_get_ptr_from_end(&slice, offset);
@@ -194,7 +209,9 @@ const lh_ptr
 lh_memory_view_get_ptr(const lh_memory_view_t *self, lh_soffset_t offset)
 {
     if (lh_memory_view_slice_is_ropen_empty(self))
+    {
         lh_assert_runtime_if(lh_bool_true, lh_runtime_error_code_out_of_range);
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
     return lh_memory_view_slice_get_ptr(&slice, offset);
@@ -237,7 +254,9 @@ lh_memory_view_get_offset_from_ptr(const lh_memory_view_t *self, const lh_ptr pt
                                    lh_soffset_t offset)
 {
     if (lh_memory_view_slice_is_ropen_empty(self))
+    {
         lh_assert_runtime_if(lh_bool_true, lh_runtime_error_code_out_of_range);
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
     return lh_memory_view_slice_get_offset_from_ptr(&slice, ptr, offset);
@@ -247,7 +266,9 @@ const lh_ptr
 lh_memory_view_seek_ptr(const lh_memory_view_t *self, const lh_ptr ptr, lh_soffset_t offset)
 {
     if (lh_memory_view_slice_is_ropen_empty(self))
+    {
         lh_assert_runtime_if(lh_bool_true, lh_runtime_error_code_out_of_range);
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
     return lh_memory_view_slice_seek_ptr(&slice, ptr, offset);
@@ -269,7 +290,9 @@ lh_byte_t
 lh_memory_view_seek_value(const lh_memory_view_t *self, const lh_ptr ptr)
 {
     if (lh_memory_view_slice_is_ropen_empty(self))
+    {
         lh_assert_runtime_if(lh_bool_true, lh_runtime_error_code_out_of_range);
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
     return lh_memory_view_slice_seek_value(&slice, ptr);
@@ -279,7 +302,9 @@ lh_byte_t
 lh_memory_view_next_value(const lh_memory_view_t *self, const lh_ptr ptr)
 {
     if (lh_memory_view_slice_is_ropen_empty(self))
+    {
         lh_assert_runtime_if(lh_bool_true, lh_runtime_error_code_out_of_range);
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
     return lh_memory_view_slice_next_value(&slice, ptr);
@@ -289,7 +314,9 @@ lh_byte_t
 lh_memory_view_prev_value(const lh_memory_view_t *self, const lh_ptr ptr)
 {
     if (lh_memory_view_slice_is_ropen_empty(self))
+    {
         lh_assert_runtime_if(lh_bool_true, lh_runtime_error_code_out_of_range);
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
     return lh_memory_view_slice_prev_value(&slice, ptr);
@@ -299,10 +326,13 @@ lh_bool_t
 lh_memory_view_overlaps_of(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end)
 {
     if (lh_memory_view_slice_needs_ropen(self, begin, end))
+    {
         return lh_memory_view_slice_overlaps_ropen(self, begin, end);
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
-    return lh_memory_view_slice_overlaps_range(&slice, begin, lh_memory_view_slice_get_ropen_last(end));
+    return lh_memory_view_slice_overlaps_range(&slice, begin,
+                                               lh_memory_view_slice_get_ropen_last(end));
 }
 
 lh_bool_t
@@ -329,7 +359,10 @@ lh_bool_t
 lh_memory_view_is_multiple_of(const lh_memory_view_t *self, lh_usize_t alignment)
 {
     lh_assert_runtime_if(lh_math_is_zero(alignment), lh_runtime_error_code_division_by_zero);
-    if (lh_memory_view_slice_is_ropen_empty(self)) return lh_bool_true;
+    if (lh_memory_view_slice_is_ropen_empty(self))
+    {
+        return lh_bool_true;
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
     return lh_memory_view_slice_is_multiple_of(&slice, alignment);
@@ -371,7 +404,9 @@ const lh_ptr
 lh_memory_view_find_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end)
 {
     if (lh_memory_view_slice_needs_ropen(self, begin, end))
+    {
         return lh_memory_view_slice_find_ropen(self, begin, end);
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
     return lh_memory_view_slice_find_range(&slice, begin, lh_memory_view_slice_get_ropen_last(end));
@@ -388,10 +423,13 @@ const lh_ptr
 lh_memory_view_rfind_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end)
 {
     if (lh_memory_view_slice_needs_ropen(self, begin, end))
+    {
         return lh_memory_view_slice_rfind_ropen(self, begin, end);
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
-    return lh_memory_view_slice_rfind_range(&slice, begin, lh_memory_view_slice_get_ropen_last(end));
+    return lh_memory_view_slice_rfind_range(&slice, begin,
+                                            lh_memory_view_slice_get_ropen_last(end));
 }
 
 const lh_ptr
@@ -405,10 +443,13 @@ const lh_ptr
 lh_memory_view_compare_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end)
 {
     if (lh_memory_view_slice_needs_ropen(self, begin, end))
+    {
         return lh_memory_view_slice_compare_ropen(self, begin, end);
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
-    return lh_memory_view_slice_compare_range(&slice, begin, lh_memory_view_slice_get_ropen_last(end));
+    return lh_memory_view_slice_compare_range(&slice, begin,
+                                              lh_memory_view_slice_get_ropen_last(end));
 }
 
 const lh_ptr
@@ -422,10 +463,13 @@ const lh_ptr
 lh_memory_view_rcompare_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end)
 {
     if (lh_memory_view_slice_needs_ropen(self, begin, end))
+    {
         return lh_memory_view_slice_rcompare_ropen(self, begin, end);
+    }
     lh_memory_view_slice_t slice;
     lh_memory_view_slice_from_view(self, lh_addr_of(slice));
-    return lh_memory_view_slice_rcompare_range(&slice, begin, lh_memory_view_slice_get_ropen_last(end));
+    return lh_memory_view_slice_rcompare_range(&slice, begin,
+                                               lh_memory_view_slice_get_ropen_last(end));
 }
 
 const lh_ptr
@@ -526,10 +570,11 @@ lh_void
 lh_memory_view_return_init_of_slice(const lh_memory_view_slice_t *slice, lh_memory_view_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_assert_runtime_ifn(lh_memory_view_slice_is_valid(slice), lh_runtime_error_code_invalid_range);
+    lh_assert_runtime_ifn(lh_memory_view_slice_is_valid(slice),
+                          lh_runtime_error_code_invalid_range);
     lh_ptr_deref(out) = lh_initializer_of(lh_memory_view_t, lh_memory_view_initializer,
-                             lh_memory_view_slice_get_begin(slice),
-                             lh_memory_view_slice_get_ropen_end(slice));
+                                          lh_memory_view_slice_get_begin(slice),
+                                          lh_memory_view_slice_get_ropen_end(slice));
 }
 
 lh_void
@@ -595,19 +640,20 @@ lh_memory_view_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_
 lh_void
 lh_memory_view_from_begin(const lh_memory_view_t *self, lh_usize_t size, lh_memory_view_t *out)
 {
-    lh_memory_view_take_first(lh_memory_view_get_begin(self), lh_memory_view_get_end(self),
-                                     size, out);
+    lh_memory_view_take_first(lh_memory_view_get_begin(self), lh_memory_view_get_end(self), size,
+                              out);
 }
 
 lh_void
 lh_memory_view_from_end(const lh_memory_view_t *self, lh_usize_t size, lh_memory_view_t *out)
 {
-    lh_memory_view_take_last(lh_memory_view_get_begin(self), lh_memory_view_get_end(self),
-                                    size, out);
+    lh_memory_view_take_last(lh_memory_view_get_begin(self), lh_memory_view_get_end(self), size,
+                             out);
 }
 
 lh_void
-lh_memory_view_between(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end, lh_memory_view_t *out)
+lh_memory_view_between(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end,
+                       lh_memory_view_t *out)
 {
     /* [p, p) is a valid empty view and has no closed slice. */
     lh_assert_runtime_ifn(lh_memory_view_contains_range(self, begin, end),
@@ -616,7 +662,8 @@ lh_memory_view_between(const lh_memory_view_t *self, const lh_ptr begin, const l
 }
 
 lh_void
-lh_memory_view_from_offset(const lh_memory_view_t *self, lh_uoffset_t offset, lh_usize_t size, lh_memory_view_t *out)
+lh_memory_view_from_offset(const lh_memory_view_t *self, lh_uoffset_t offset, lh_usize_t size,
+                           lh_memory_view_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_memory_view_slice_t slice;
@@ -643,7 +690,8 @@ lh_memory_view_drop_last(const lh_memory_view_t *self, lh_usize_t n, lh_memory_v
 }
 
 lh_void
-lh_memory_view_trim(const lh_memory_view_t *self, lh_usize_t left, lh_usize_t right, lh_memory_view_t *out)
+lh_memory_view_trim(const lh_memory_view_t *self, lh_usize_t left, lh_usize_t right,
+                    lh_memory_view_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_memory_view_t dropped;

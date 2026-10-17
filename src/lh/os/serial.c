@@ -33,8 +33,8 @@ lh_os_serial_close(lh_os_serial_t *self)
 }
 
 lh_bool_t
-lh_os_serial_open(lh_os_serial_t *self, lh_str_cptr name, lh_u32_t baud, lh_os_serial_parity_t parity,
-                  lh_u8_t stop_bits)
+lh_os_serial_open(lh_os_serial_t *self, lh_str_cptr name, lh_u32_t baud,
+                  lh_os_serial_parity_t parity, lh_u8_t stop_bits)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(name);

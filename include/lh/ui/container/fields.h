@@ -35,6 +35,10 @@
  * @param layout_type Type of the flow.
  * @param bool_type   Type of the flag.
  */
-#define lh_ui_container_fields(entity_type, point_type, layout_type, bool_type)                    entity_type entity;                                                                                 point_type scroll;                                                                                   const layout_type *layout;                                                                           bool_type placing
+#define lh_ui_container_fields(entity_type, point_type, layout_type, bool_type)                    \
+    entity_type entity;                                                                            \
+    point_type scroll;                                                                             \
+    const layout_type *layout;                                                                     \
+    bool_type placing
 
 #endif /* LH_UI_CONTAINER_FIELDS_H */

@@ -66,7 +66,8 @@
 #endif
 
 /** @brief Block size of the branchless compare / find scan. */
-#define LH_MEMORY_STD_SCAN_BLOCK (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK))
+#define LH_MEMORY_STD_SCAN_BLOCK                                                                   \
+    (lh_cast_static(lh_usize_t, LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK))
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 #    define LH_MEMORY_STD_KIND_AVX2 1U
@@ -93,7 +94,6 @@
 #    define LH_MEMORY_STD_STREAM_SET_TRAFFIC 1U
 #endif
 
-
 #include "std/words.c"
 #include "std/x86/cpuid.c"
 #include "std/x86/sse2.c"
@@ -104,7 +104,7 @@
 static lh_byte_t m_simd_kind;
 static lh_byte_t m_copy_rev_kind;
 
-#if !LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC
+#    if !LH_LIBRARY_OPTION_MEMORY_STD_BACKEND_LIBC
 
 typedef lh_void (*lh_memory_std_copy_simd_fn)(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n);
 typedef lh_void (*lh_memory_std_copy_rev_simd_fn)(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n);
@@ -113,12 +113,18 @@ typedef lh_void (*lh_memory_std_set_simd_fn)(lh_byte_ptr dst, lh_byte_t val, lh_
 typedef const lh_ptr (*lh_memory_std_compare_fn)(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
 typedef const lh_ptr (*lh_memory_std_rcompare_fn)(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
 
-static lh_void lh_memory_std_copy_simd_dispatch(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n);
-static lh_void lh_memory_std_copy_rev_simd_dispatch(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n);
-static lh_void lh_memory_std_rcopy_simd_dispatch(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n);
-static lh_void lh_memory_std_set_simd_dispatch(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n);
-static const lh_ptr lh_memory_std_compare_dispatch(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
-static const lh_ptr lh_memory_std_rcompare_dispatch(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
+static lh_void
+lh_memory_std_copy_simd_dispatch(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n);
+static lh_void
+lh_memory_std_copy_rev_simd_dispatch(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n);
+static lh_void
+lh_memory_std_rcopy_simd_dispatch(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n);
+static lh_void
+lh_memory_std_set_simd_dispatch(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n);
+static const lh_ptr
+lh_memory_std_compare_dispatch(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
+static const lh_ptr
+lh_memory_std_rcompare_dispatch(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
 
 static lh_memory_std_copy_simd_fn m_copy_simd_impl = lh_memory_std_copy_simd_dispatch;
 static lh_memory_std_copy_simd_fn m_copy_stream_impl = lh_null;
@@ -129,9 +135,8 @@ static lh_memory_std_set_simd_fn m_set_stream_impl = lh_null;
 static lh_memory_std_compare_fn m_compare_impl = lh_memory_std_compare_dispatch;
 static lh_memory_std_rcompare_fn m_rcompare_impl = lh_memory_std_rcompare_dispatch;
 
-#endif /* !LIBC */
-#endif /* SSE2 || AVX2 */
-
+#    endif /* !LIBC */
+#endif     /* SSE2 || AVX2 */
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
@@ -163,7 +168,8 @@ lh_memory_std_copy_simd_dispatch(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n
 
     /* Honour the stream threshold on this first call too — otherwise a first-ever
      * multi-MB copy would resolve the pointers and then run the plain SIMD tier. */
-    if (lh_memory_std_is_stream_size(n, LH_MEMORY_STD_STREAM_COPY_TRAFFIC) && m_copy_stream_impl != lh_null)
+    if (lh_memory_std_is_stream_size(n, LH_MEMORY_STD_STREAM_COPY_TRAFFIC) &&
+        m_copy_stream_impl != lh_null)
     {
         m_copy_stream_impl(dst, src, n);
     }
@@ -520,7 +526,8 @@ lh_memory_std_move(lh_ptr dst, const lh_ptr src, lh_usize_t n)
 #    if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
         if (n > 16U && lh_memory_std_has_sse2())
         {
-            lh_memory_std_move_forward_sse2(lh_ptr_cast(lh_byte_t, dst), lh_ptr_ccast(lh_byte_t, src), n);
+            lh_memory_std_move_forward_sse2(lh_ptr_cast(lh_byte_t, dst),
+                                            lh_ptr_ccast(lh_byte_t, src), n);
             return lh_ptr_add_by_offset(lh_void, dst, n);
         }
 #    endif
@@ -559,7 +566,8 @@ lh_memory_std_set_simd_dispatch(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
         m_simd_kind = LH_MEMORY_STD_KIND_SCALAR;
     }
 
-    if (lh_memory_std_is_stream_size(n, LH_MEMORY_STD_STREAM_SET_TRAFFIC) && m_set_stream_impl != lh_null)
+    if (lh_memory_std_is_stream_size(n, LH_MEMORY_STD_STREAM_SET_TRAFFIC) &&
+        m_set_stream_impl != lh_null)
     {
         m_set_stream_impl(dst, val, n);
     }

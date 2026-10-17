@@ -39,7 +39,7 @@ typedef struct lh_ui_entity lh_ui_entity_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Lifetime and fields ─────────────────────────────────────────────────── */
+/* -- Lifetime and fields --------------------------------------------------- */
 
 /**
  * @brief Fill @p self so it covers @p rect with no style, parent, or children.
@@ -270,7 +270,7 @@ lh_ui_entity_note(const lh_ui_entity_t *self);
 lh_void
 lh_ui_entity_note_rect(const lh_ui_entity_t *self, const lh_ui_rect_t *rect);
 
-/* ── Tree ────────────────────────────────────────────────────────────────── */
+/* -- Tree ------------------------------------------------------------------ */
 
 /**
  * @brief Parent of @p self, or ::lh_null for a root.
@@ -344,7 +344,7 @@ lh_ui_entity_walk(const lh_ui_entity_t *self, lh_ui_entity_visit_cb visit, lh_pt
 lh_bool_t
 lh_ui_entity_walk_children(const lh_ui_entity_t *self, lh_ui_entity_visit_cb visit, lh_ptr context);
 
-/* ── Class queries ───────────────────────────────────────────────────────── */
+/* -- Class queries --------------------------------------------------------- */
 
 /**
  * @brief Send the event @p code with @p context to the class of @p self.
@@ -401,7 +401,8 @@ lh_ui_entity_find_focusable(lh_ui_entity_t *self);
  *        the rect space of @p self. Nothing for a ::lh_null @p self.
  */
 lh_void
-lh_ui_entity_send_pointer(const lh_ui_entity_t *self, lh_ui_entity_event_code_t code, lh_ui_point_t point);
+lh_ui_entity_send_pointer(const lh_ui_entity_t *self, lh_ui_entity_event_code_t code,
+                          lh_ui_point_t point);
 
 /**
  * @brief How @p self places its children: the one answer draw and hit test use.
@@ -424,7 +425,7 @@ lh_ui_entity_get_children_transform(const lh_ui_entity_t *self, lh_ui_point_t *o
 lh_void
 lh_ui_entity_ask_children(const lh_ui_entity_t *self, lh_ui_entity_transform_t *transform);
 
-/* ── Geometry ────────────────────────────────────────────────────────────── */
+/* -- Geometry -------------------------------------------------------------- */
 
 /**
  * @brief @p bounds grown to cover the rect of @p self; unchanged when @p self
@@ -498,7 +499,8 @@ lh_ui_entity_to_children_space(const lh_ui_entity_t *self, lh_ui_point_t point, 
  *        ::lh_ui_entity_to_children_space.
  */
 lh_void
-lh_ui_entity_add_children_offset(const lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_point_t *out);
+lh_ui_entity_add_children_offset(const lh_ui_entity_t *self, lh_ui_point_t point,
+                                 lh_ui_point_t *out);
 
 /**
  * @brief Sum of the children offsets of every ancestor of @p self: where the
@@ -523,7 +525,7 @@ lh_ui_entity_to_local(const lh_ui_entity_t *self, lh_ui_point_t point, lh_ui_poi
 lh_void
 lh_ui_entity_get_root_rect(const lh_ui_entity_t *self, lh_ui_rect_t *out);
 
-/* ── Hit test ────────────────────────────────────────────────────────────── */
+/* -- Hit test -------------------------------------------------------------- */
 
 /**
  * @brief True when @p point lies in the hit shape of @p self
@@ -602,7 +604,7 @@ lh_ui_entity_find_at(lh_ui_entity_t *self, lh_ui_point_t point);
 lh_ui_entity_t *
 lh_ui_entity_click(lh_ui_entity_t *self, lh_ui_point_t point);
 
-/* ── Draw ────────────────────────────────────────────────────────────────── */
+/* -- Draw ------------------------------------------------------------------ */
 
 /**
  * @brief Push the children transform of @p self on @p canvas, when it does

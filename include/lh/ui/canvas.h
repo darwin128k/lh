@@ -147,8 +147,8 @@ lh_ui_canvas_push(lh_ui_canvas_t *self, lh_ui_point_t offset_delta, const lh_ui_
  * Radius `0` or a ::lh_null @p clip_rect is a plain ::lh_ui_canvas_push.
  */
 lh_void
-lh_ui_canvas_push_round(lh_ui_canvas_t *self, lh_ui_point_t offset_delta, const lh_ui_rect_t *clip_rect,
-                        lh_ui_scalar_t radius);
+lh_ui_canvas_push_round(lh_ui_canvas_t *self, lh_ui_point_t offset_delta,
+                        const lh_ui_rect_t *clip_rect, lh_ui_scalar_t radius);
 
 /**
  * @brief Add the rounded cut @p clip_rect (pre-offset space) with @p radius to
@@ -261,37 +261,39 @@ lh_ui_canvas_clear(lh_ui_canvas_t *self, const lh_ui_color_t *color);
  *        `fill_rect` as is (no offset, no cut); nothing when empty.
  */
 lh_void
-lh_ui_canvas_send_box(lh_ui_canvas_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
+lh_ui_canvas_send_box(lh_ui_canvas_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                      const lh_ui_color_t *color);
 
 /**
  * @brief Send pixel (@p x, @p y) with @p color at its @p clip coverage
  *        (::lh_ui_canvas_clip_coverage); nothing where it is `0`.
  */
 lh_void
-lh_ui_canvas_send_clip_pixel(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x, lh_s32_t y,
-                             const lh_ui_color_t *color);
+lh_ui_canvas_send_clip_pixel(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x,
+                             lh_s32_t y, const lh_ui_color_t *color);
 
 /**
  * @brief ::lh_ui_canvas_send_clip_pixel for `x0 .. x1 - 1` of row @p y.
  */
 lh_void
-lh_ui_canvas_send_clip_pixels(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x0, lh_s32_t x1,
-                              lh_s32_t y, const lh_ui_color_t *color);
+lh_ui_canvas_send_clip_pixels(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x0,
+                              lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
 
 /**
  * @brief Row @p y of `x0 .. x1 - 1` under the rounded cuts of @p clip: the
  *        middle as one box, the ends per pixel (::lh_ui_canvas_clip_split_row).
  */
 lh_void
-lh_ui_canvas_send_clip_row(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x0, lh_s32_t x1,
-                           lh_s32_t y, const lh_ui_color_t *color);
+lh_ui_canvas_send_clip_row(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x0,
+                           lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
 
 /**
  * @brief ::lh_ui_canvas_send_clip_row for every row of @p cut (already cut to
  *        the clip rect, target space).
  */
 lh_void
-lh_ui_canvas_send_clip_rows(lh_ui_canvas_t *self, const lh_ui_rect_t *cut, const lh_ui_color_t *color);
+lh_ui_canvas_send_clip_rows(lh_ui_canvas_t *self, const lh_ui_rect_t *cut,
+                            const lh_ui_color_t *color);
 
 /**
  * @brief Send @p cut (cut to the clip rect) when the canvas cuts itself: one
@@ -321,7 +323,8 @@ lh_ui_canvas_can_send_whole(const lh_ui_canvas_t *self, const lh_ui_rect_t *targ
  *        `fill_rect`.
  */
 lh_void
-lh_ui_canvas_fill_target_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *target, const lh_ui_color_t *color);
+lh_ui_canvas_fill_target_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *target,
+                              const lh_ui_color_t *color);
 
 /**
  * @brief True when some of @p target (target space) is left inside the clip;
@@ -393,10 +396,10 @@ lh_ui_canvas_try_fill_round(lh_ui_canvas_t *self, const lh_ui_rect_t *target, lh
  *        (no slot, or it drew nothing) ::lh_ui_canvas_fill_round_rect_by_rects.
  */
 lh_void
-lh_ui_canvas_fill_target_round_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *target, lh_ui_scalar_t radius,
-                                    const lh_ui_color_t *color);
+lh_ui_canvas_fill_target_round_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *target,
+                                    lh_ui_scalar_t radius, const lh_ui_color_t *color);
 
-/* ── Effects ─────────────────────────────────────────────────────────────── */
+/* -- Effects --------------------------------------------------------------- */
 
 /**
  * @brief Paint @p shadow behind @p rect (corners @p radius), anti-aliased.
@@ -426,8 +429,9 @@ lh_ui_canvas_shadow(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, lh_ui_scalar
  * hands it to a backend that has no `shadow` slot and wants the same pixels.
  */
 lh_void
-lh_ui_canvas_shadow_fallback(lh_ui_canvas_t *self, const lh_ui_rect_t *bounds, const lh_ui_rect_t *target,
-                             lh_ui_scalar_t radius, const lh_ui_shadow_t *shadow);
+lh_ui_canvas_shadow_fallback(lh_ui_canvas_t *self, const lh_ui_rect_t *bounds,
+                             const lh_ui_rect_t *target, lh_ui_scalar_t radius,
+                             const lh_ui_shadow_t *shadow);
 
 /**
  * @brief Soften what is already on @p rect of the target, @p blur_radius out.

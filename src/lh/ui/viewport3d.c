@@ -26,7 +26,8 @@ const lh_ui_viewport3d_backend_t lh_ui_viewport3d_backend_null = {
 };
 
 lh_void
-lh_ui_viewport3d_begin(const lh_ui_viewport3d_backend_t *backend, lh_ptr context, const lh_ui_rect_t *rect)
+lh_ui_viewport3d_begin(const lh_ui_viewport3d_backend_t *backend, lh_ptr context,
+                       const lh_ui_rect_t *rect)
 {
     if (backend == lh_null || backend->begin == lh_null)
     {

@@ -105,7 +105,7 @@ TEST(ui_radii, a_pixel_takes_the_radius_of_the_corner_whose_quarter_it_is_in)
     EXPECT_EQ(lh_ui_radii_get_min(&radii), lh_ui_scalar(1));
 }
 
-/* -- Gradient over a box ------------------------------------------------------ */
+/* -- Gradient over a box --------------------------------------------------- */
 
 TEST(ui_gradient, a_linear_gradient_runs_the_way_its_angle_points)
 {
@@ -152,7 +152,7 @@ TEST(ui_gradient, a_colour_between_two_stops_is_the_two_mixed_in_proportion)
     EXPECT_EQ(lh_ui_color_get_b(&mid), 20);
 }
 
-/* -- Filling a box ------------------------------------------------------------ */
+/* -- Filling a box --------------------------------------------------------- */
 
 /* One colour and one radius are the backend's own rounded fill, as they always were. */
 TEST(ui_canvas_box, a_solid_box_with_one_radius_is_the_backends_rounded_fill)

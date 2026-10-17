@@ -32,7 +32,7 @@ typedef enum lh_ui_web_html_kind
     lh_ui_web_html_kind_text,        /**< Text, HTML-escaped on emit. */
     lh_ui_web_html_kind_raw,         /**< Markup written as is. */
     lh_ui_web_html_kind_tag          /**< An element with attributes and children. */
-} lh_ui_web_html_kind_t; /**< What an ::lh_ui_web_html_t node is. */
+} lh_ui_web_html_kind_t;             /**< What an ::lh_ui_web_html_t node is. */
 
 /**
  * @brief One markup node.

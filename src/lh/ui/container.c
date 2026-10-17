@@ -7,8 +7,8 @@
 #include <lh/ui/container.h>
 #include <lh/util/return.h>
 
-const lh_ui_entity_class_t lh_ui_container_class = {
-    lh_ui_container_event, lh_addr_of(lh_ui_entity_class)};
+const lh_ui_entity_class_t lh_ui_container_class = {lh_ui_container_event,
+                                                    lh_addr_of(lh_ui_entity_class)};
 
 lh_void
 lh_ui_container_on_focusable(const lh_ui_entity_event_t *event)
@@ -53,9 +53,9 @@ lh_ui_container_t *
 lh_ui_entity_as_container(lh_ui_entity_t *entity)
 {
     lh_return_if(lh_null_eq(entity), lh_null);
-    lh_return_if(!lh_ui_entity_class_is(lh_ui_entity_get_class(entity),
-                                        lh_addr_of(lh_ui_container_class)),
-                 lh_null);
+    lh_return_if(
+        !lh_ui_entity_class_is(lh_ui_entity_get_class(entity), lh_addr_of(lh_ui_container_class)),
+        lh_null);
     return lh_ptr_rcast(lh_ui_container_t, entity);
 }
 
@@ -88,7 +88,7 @@ lh_ui_container_pad_far(const lh_ui_container_t *self, lh_ui_point_t far, lh_ui_
     lh_ui_entity_get_padding(lh_addr_of(self->entity), lh_addr_of(padding));
 
     lh_ui_point_offset(lh_addr_of(far), lh_ui_insets_get_right(lh_addr_of(padding)),
-                              lh_ui_insets_get_bottom(lh_addr_of(padding)), out);
+                       lh_ui_insets_get_bottom(lh_addr_of(padding)), out);
 }
 
 lh_void
@@ -101,7 +101,8 @@ lh_ui_container_get_content_far(const lh_ui_container_t *self, lh_ui_point_t *ou
     lh_ui_entity_get_content_bounds(lh_addr_of(self->entity), lh_addr_of(bounds));
     if (lh_ui_rect_is_empty(lh_addr_of(bounds)))
     {
-        lh_ptr_deref(out) = lh_ptr_deref(lh_ui_rect_get_origin_as_const(lh_addr_of(self->entity.rect)));
+        lh_ptr_deref(out) =
+            lh_ptr_deref(lh_ui_rect_get_origin_as_const(lh_addr_of(self->entity.rect)));
         return;
     }
     {
@@ -153,7 +154,8 @@ lh_ui_container_clamp_scroll_to(lh_ui_point_t scroll, lh_ui_point_t max, lh_ui_p
 }
 
 lh_void
-lh_ui_container_clamp_scroll(const lh_ui_container_t *self, lh_ui_point_t scroll, lh_ui_point_t *out)
+lh_ui_container_clamp_scroll(const lh_ui_container_t *self, lh_ui_point_t scroll,
+                             lh_ui_point_t *out)
 {
     lh_assert_runtime_ref(out);
     {
@@ -164,7 +166,8 @@ lh_ui_container_clamp_scroll(const lh_ui_container_t *self, lh_ui_point_t scroll
 }
 
 lh_void
-lh_ui_container_get_scroll_within(const lh_ui_container_t *self, lh_ui_point_t max, lh_ui_point_t *out)
+lh_ui_container_get_scroll_within(const lh_ui_container_t *self, lh_ui_point_t max,
+                                  lh_ui_point_t *out)
 {
     lh_assert_runtime_ref(self);
     lh_ui_container_clamp_scroll_to(self->scroll, max, out);
@@ -192,28 +195,32 @@ lh_ui_container_get_key_step(const lh_ui_container_t *self, lh_key_t key)
     lh_return_if(key == lh_key_page_up, lh_math_neg(lh_ui_size_get_height(lh_addr_of(page))));
     lh_return_if(key == lh_key_page_down, lh_ui_size_get_height(lh_addr_of(page)));
     lh_return_if(key == lh_key_home, lh_math_neg(lh_ui_point_get_y(lh_addr_of(scroll))));
-    lh_return_if(key == lh_key_end, lh_ui_point_get_y(lh_addr_of(max)) - lh_ui_point_get_y(lh_addr_of(scroll)));
+    lh_return_if(key == lh_key_end,
+                 lh_ui_point_get_y(lh_addr_of(max)) - lh_ui_point_get_y(lh_addr_of(scroll)));
     return lh_ui_scalar(0);
 }
 
 lh_void
-lh_ui_container_get_key_delta(const lh_ui_container_t *self, const lh_ui_key_input_t *input, lh_ui_point_t *out)
+lh_ui_container_get_key_delta(const lh_ui_container_t *self, const lh_ui_key_input_t *input,
+                              lh_ui_point_t *out)
 {
     lh_assert_runtime_ref(out);
     const lh_key_t key = lh_ui_key_input_get_key(input);
-    const lh_bool_t across = key == lh_key_left || key == lh_key_right ? lh_bool_true : lh_bool_false;
-    const lh_ui_scalar_t step = lh_ui_key_input_get_code(input) == 0U && lh_ui_key_input_is_pressed(input)
-                                    ? lh_ui_container_get_key_step(self, key)
-                                    : lh_ui_scalar(0);
+    const lh_bool_t across =
+        key == lh_key_left || key == lh_key_right ? lh_bool_true : lh_bool_false;
+    const lh_ui_scalar_t step =
+        lh_ui_key_input_get_code(input) == 0U && lh_ui_key_input_is_pressed(input)
+            ? lh_ui_container_get_key_step(self, key)
+            : lh_ui_scalar(0);
     lh_ui_point_t delta;
 
-    lh_ui_point_init(lh_addr_of(delta), across ? step : lh_ui_scalar(0), across ? lh_ui_scalar(0) : step);
+    lh_ui_point_init(lh_addr_of(delta), across ? step : lh_ui_scalar(0),
+                     across ? lh_ui_scalar(0) : step);
     lh_ptr_deref(out) = delta;
 }
 
 lh_void
-lh_ui_container_place_children(const lh_ui_container_t *self,
-                                      lh_ui_entity_transform_t *transform)
+lh_ui_container_place_children(const lh_ui_container_t *self, lh_ui_entity_transform_t *transform)
 {
     lh_ui_point_t scroll;
     lh_ui_point_t offset;
@@ -269,7 +276,8 @@ lh_ui_container_on_key(lh_ui_container_t *self, const lh_ui_entity_event_t *even
 
     lh_return_if(lh_ui_entity_event_get_code(event) != lh_ui_entity_event_key);
     lh_ui_container_get_key_delta(self, lh_ui_entity_event_get_key(event), lh_addr_of(delta));
-    lh_ui_container_scroll_by(self, lh_ui_point_get_x(lh_addr_of(delta)), lh_ui_point_get_y(lh_addr_of(delta)));
+    lh_ui_container_scroll_by(self, lh_ui_point_get_x(lh_addr_of(delta)),
+                              lh_ui_point_get_y(lh_addr_of(delta)));
 }
 
 lh_void

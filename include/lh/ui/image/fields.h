@@ -28,10 +28,10 @@
  * @param color_type  Type of the tint.
  * @param scalar_type Type of the baseline offset.
  */
-#define lh_ui_image_fields(entity_type, mask_type, color_type, scalar_type) \
-    entity_type entity;                                                     \
-    const mask_type *mask;                                                  \
-    color_type tint;                                                        \
+#define lh_ui_image_fields(entity_type, mask_type, color_type, scalar_type)                        \
+    entity_type entity;                                                                            \
+    const mask_type *mask;                                                                         \
+    color_type tint;                                                                               \
     scalar_type baseline
 
 #endif /* LH_UI_IMAGE_FIELDS_H */

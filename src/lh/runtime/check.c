@@ -62,9 +62,8 @@ lh_void
 lh_runtime_check_fail(const lh_exception_origin_t *origin, lh_runtime_error_code_t code)
 {
     const lh_exception_t exception = lh_exception_initializer(
-        lh_runtime_error_initializer(code,
-                                     lh_ptr_is_set(origin) ? lh_exception_origin_get_message(origin)
-                                                           : lh_null),
+        lh_runtime_error_initializer(
+            code, lh_ptr_is_set(origin) ? lh_exception_origin_get_message(origin) : lh_null),
         origin);
 
     m_runtime_check_fail(lh_addr_of(exception));

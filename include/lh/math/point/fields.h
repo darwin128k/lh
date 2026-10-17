@@ -12,8 +12,8 @@
  *
  * @param coord_type  Type of `x` and `y`.
  */
-#define lh_math_point_fields(coord_type)                                                            \
-    coord_type x;                                                                                   \
+#define lh_math_point_fields(coord_type)                                                           \
+    coord_type x;                                                                                  \
     coord_type y
 
 #endif /* LH_MATH_POINT_FIELDS_H */

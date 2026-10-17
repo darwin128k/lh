@@ -11,7 +11,7 @@
  * @brief `XClientMessageEvent`: a message from another client, the window manager's
  *        `WM_DELETE_WINDOW` among them. Only the `long` view of the data is mirrored.
  */
-#define lh_os_system_posix_xclient_message_event_fields \
+#define lh_os_system_posix_xclient_message_event_fields                                            \
     lh_os_system_posix_xany_event_fields;                                                          \
     lh_os_system_posix_xid_t message_type;                                                         \
     int format;                                                                                    \

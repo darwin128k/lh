@@ -30,7 +30,7 @@ typedef struct lh_error lh_error_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── set ─────────────────────────────────────────────────────────────────── */
+/* -- set ------------------------------------------------------------------- */
 
 /**
  * @brief Replace @p self with @p code and @p desc.
@@ -60,7 +60,7 @@ lh_error_set_code(lh_error_t *self, lh_error_code_t code);
 lh_void
 lh_error_set_desc(lh_error_t *self, const lh_error_desc_ptr desc);
 
-/* ── accessors ───────────────────────────────────────────────────────────── */
+/* -- accessors ------------------------------------------------------------- */
 
 /**
  * @brief Return the error code stored in @p self.
@@ -173,7 +173,7 @@ lh_error_has_same_code(const lh_error_t *self, const lh_error_t *other);
 lh_bool_t
 lh_error_has_diff_code(const lh_error_t *self, const lh_error_t *other);
 
-/* ── copy / clear ────────────────────────────────────────────────────────── */
+/* -- copy / clear ---------------------------------------------------------- */
 
 /**
  * @brief Copy the error state from @p other into @p self.
@@ -193,7 +193,7 @@ lh_error_assign(lh_error_t *self, const lh_error_t *other);
 lh_void
 lh_error_clear(lh_error_t *self);
 
-/* ── init ────────────────────────────────────────────────────────────────── */
+/* -- init ------------------------------------------------------------------ */
 
 /**
  * @brief Initialize @p self with @p code and @p desc.

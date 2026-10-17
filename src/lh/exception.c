@@ -78,11 +78,11 @@ lh_exception_format_walk(const lh_exception_t *self, lh_str_ptr str, lh_usize_t 
     {
         const lh_bool_t has_function = lh_exception_origin_has_function(origin);
 
-        pos = lh_exception_format_put(str, str_size, pos, "  at %s:%u%s%s\n",
-                                      lh_exception_origin_get_file(origin),
-                                      lh_cast_static(lh_uint_t, lh_exception_origin_get_line(origin)),
-                                      has_function ? " in " : "",
-                                      has_function ? lh_exception_origin_get_function(origin) : "");
+        pos = lh_exception_format_put(
+            str, str_size, pos, "  at %s:%u%s%s\n", lh_exception_origin_get_file(origin),
+            lh_cast_static(lh_uint_t, lh_exception_origin_get_line(origin)),
+            has_function ? " in " : "",
+            has_function ? lh_exception_origin_get_function(origin) : "");
     }
     return pos;
 }

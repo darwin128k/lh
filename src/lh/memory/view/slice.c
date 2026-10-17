@@ -114,8 +114,7 @@ lh_usize_t
 lh_memory_view_slice_get_size(const lh_memory_view_slice_t *self)
 {
     lh_assert_runtime_ifn(lh_memory_view_slice_is_valid(self), lh_runtime_error_code_invalid_range);
-    return lh_interval_closed_get_size(lh_ptr_to_uaddr(self->first),
-                                       lh_ptr_to_uaddr(self->second));
+    return lh_interval_closed_get_size(lh_ptr_to_uaddr(self->first), lh_ptr_to_uaddr(self->second));
 }
 
 lh_bool_t
@@ -365,8 +364,8 @@ lh_memory_view_slice_get_last_value(const lh_memory_view_slice_t *self)
    range. Shared by the asserting getter and by seek, which turns "out of
    range" into lh_null without going through an exception. */
 lh_runtime_error_code_t
-lh_memory_view_slice_find_offset_from_ptr(const lh_memory_view_slice_t *self, const lh_ptr ptr, lh_soffset_t offset,
-                                          lh_uoffset_t *out)
+lh_memory_view_slice_find_offset_from_ptr(const lh_memory_view_slice_t *self, const lh_ptr ptr,
+                                          lh_soffset_t offset, lh_uoffset_t *out)
 {
     if (lh_ptr_is_null(ptr))
     {
@@ -502,17 +501,20 @@ lh_memory_view_slice_set_v(lh_memory_view_slice_t *self, const lh_ptr begin, con
 }
 
 lh_void
-lh_memory_view_slice_return_unsafe(const lh_ptr begin, const lh_ptr end, lh_memory_view_slice_t *out)
+lh_memory_view_slice_return_unsafe(const lh_ptr begin, const lh_ptr end,
+                                   lh_memory_view_slice_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_ptr_deref(out) = lh_initializer_of(lh_memory_view_slice_t, lh_memory_view_slice_initializer, begin, end);
+    lh_ptr_deref(out) =
+        lh_initializer_of(lh_memory_view_slice_t, lh_memory_view_slice_initializer, begin, end);
 }
 
 lh_void
 lh_memory_view_slice_return_empty(lh_memory_view_slice_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_ptr_deref(out) = lh_initializer_of(lh_memory_view_slice_t, lh_memory_view_slice_initializer_empty);
+    lh_ptr_deref(out) =
+        lh_initializer_of(lh_memory_view_slice_t, lh_memory_view_slice_initializer_empty);
 }
 
 lh_void
@@ -563,9 +565,8 @@ lh_memory_view_slice_set_by_size(lh_memory_view_slice_t *self, const lh_ptr begi
 
     /* Built here, not through init_by_size: those two called each other and
        recursed until the stack ran out. */
-    lh_memory_view_slice_set(self, begin,
-                             lh_ptr_add_by_offset_unsafe(const lh_void, begin,
-                                                        lh_math_sub(size, 1)));
+    lh_memory_view_slice_set(
+        self, begin, lh_ptr_add_by_offset_unsafe(const lh_void, begin, lh_math_sub(size, 1)));
 }
 
 lh_void
@@ -575,7 +576,8 @@ lh_memory_view_slice_init(lh_memory_view_slice_t *self, const lh_ptr begin, cons
 }
 
 lh_void
-lh_memory_view_slice_return_init_v(const lh_ptr begin, const lh_ptr end, lh_memory_view_slice_t *out)
+lh_memory_view_slice_return_init_v(const lh_ptr begin, const lh_ptr end,
+                                   lh_memory_view_slice_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_memory_view_slice_t slice;
@@ -587,18 +589,19 @@ lh_memory_view_slice_return_init_v(const lh_ptr begin, const lh_ptr end, lh_memo
 }
 
 lh_void
-lh_memory_view_slice_return_init_by_size(const lh_ptr begin, lh_usize_t size, lh_memory_view_slice_t *out)
+lh_memory_view_slice_return_init_by_size(const lh_ptr begin, lh_usize_t size,
+                                         lh_memory_view_slice_t *out)
 {
     lh_assert_runtime_ifn(lh_ptr_is_set(begin), lh_runtime_error_code_invalid_argument);
     lh_assert_runtime_if(lh_math_is_zero(size), lh_runtime_error_code_invalid_range);
 
-    lh_memory_view_slice_return_init_v(begin, lh_ptr_add_by_offset_unsafe(const lh_void, begin, lh_math_sub_one(size)), out);
+    lh_memory_view_slice_return_init_v(
+        begin, lh_ptr_add_by_offset_unsafe(const lh_void, begin, lh_math_sub_one(size)), out);
 }
 
 lh_void
 lh_memory_view_slice_between(const lh_memory_view_slice_t *self, const lh_ptr begin,
-                                  const lh_ptr end,
-                                  lh_memory_view_slice_t *out)
+                             const lh_ptr end, lh_memory_view_slice_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ifn(lh_memory_view_slice_contains_range(self, begin, end),
@@ -621,19 +624,19 @@ lh_memory_view_slice_init_empty(lh_memory_view_slice_t *self)
 }
 
 lh_void
-lh_memory_view_slice_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_memory_view_slice_t *out)
+lh_memory_view_slice_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t n,
+                                lh_memory_view_slice_t *out)
 {
     lh_assert_runtime_ref(out);
     if (lh_math_is_zero(n))
     {
         lh_memory_view_slice_t _lh_tmp;
-    lh_memory_view_slice_init_empty(lh_addr_of(_lh_tmp));
-    lh_ptr_deref(out) = _lh_tmp;
-    return;
+        lh_memory_view_slice_init_empty(lh_addr_of(_lh_tmp));
+        lh_ptr_deref(out) = _lh_tmp;
+        return;
     }
 
     lh_memory_view_slice_t base;
-
 
     lh_memory_view_slice_init(lh_addr_of(base), begin, end);
     const lh_usize_t total = lh_memory_view_slice_get_size(lh_addr_of(base));
@@ -645,19 +648,19 @@ lh_memory_view_slice_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t
 }
 
 lh_void
-lh_memory_view_slice_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_memory_view_slice_t *out)
+lh_memory_view_slice_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t n,
+                               lh_memory_view_slice_t *out)
 {
     lh_assert_runtime_ref(out);
     if (lh_math_is_zero(n))
     {
         lh_memory_view_slice_t _lh_tmp;
-    lh_memory_view_slice_init_empty(lh_addr_of(_lh_tmp));
-    lh_ptr_deref(out) = _lh_tmp;
-    return;
+        lh_memory_view_slice_init_empty(lh_addr_of(_lh_tmp));
+        lh_ptr_deref(out) = _lh_tmp;
+        return;
     }
 
     lh_memory_view_slice_t base;
-
 
     lh_memory_view_slice_init(lh_addr_of(base), begin, end);
     const lh_usize_t total = lh_memory_view_slice_get_size(lh_addr_of(base));
@@ -670,23 +673,24 @@ lh_memory_view_slice_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t 
 }
 
 lh_void
-lh_memory_view_slice_from_begin(const lh_memory_view_slice_t *self, lh_usize_t size, lh_memory_view_slice_t *out)
+lh_memory_view_slice_from_begin(const lh_memory_view_slice_t *self, lh_usize_t size,
+                                lh_memory_view_slice_t *out)
 {
     lh_memory_view_slice_take_first(lh_memory_view_slice_get_begin(self),
-                                           lh_memory_view_slice_get_end(self), size, out);
+                                    lh_memory_view_slice_get_end(self), size, out);
 }
 
 lh_void
-lh_memory_view_slice_from_end(const lh_memory_view_slice_t *self, lh_usize_t size, lh_memory_view_slice_t *out)
+lh_memory_view_slice_from_end(const lh_memory_view_slice_t *self, lh_usize_t size,
+                              lh_memory_view_slice_t *out)
 {
     lh_memory_view_slice_take_last(lh_memory_view_slice_get_begin(self),
-                                          lh_memory_view_slice_get_end(self), size, out);
+                                   lh_memory_view_slice_get_end(self), size, out);
 }
 
 lh_void
 lh_memory_view_slice_from_offset(const lh_memory_view_slice_t *self, lh_uoffset_t offset,
-                                      lh_usize_t size,
-                                      lh_memory_view_slice_t *out)
+                                 lh_usize_t size, lh_memory_view_slice_t *out)
 {
     lh_assert_runtime_ref(out);
     const lh_usize_t total = lh_memory_view_slice_get_size(self);
@@ -695,22 +699,23 @@ lh_memory_view_slice_from_offset(const lh_memory_view_slice_t *self, lh_uoffset_
     if (lh_math_is_zero(size))
     {
         lh_memory_view_slice_t _lh_tmp;
-    lh_memory_view_slice_init_empty(lh_addr_of(_lh_tmp));
-    lh_ptr_deref(out) = _lh_tmp;
-    return;
+        lh_memory_view_slice_init_empty(lh_addr_of(_lh_tmp));
+        lh_ptr_deref(out) = _lh_tmp;
+        return;
     }
 
     lh_assert_runtime_ifn(lh_math_le(size, lh_math_sub(total, offset)),
                           lh_runtime_error_code_out_of_range);
 
     lh_memory_view_slice_t slice;
-    lh_memory_view_slice_init_by_size(
-        lh_addr_of(slice), lh_memory_view_slice_get_ptr_from_begin(self, offset), size);
+    lh_memory_view_slice_init_by_size(lh_addr_of(slice),
+                                      lh_memory_view_slice_get_ptr_from_begin(self, offset), size);
     lh_ptr_deref(out) = slice;
 }
 
 lh_void
-lh_memory_view_slice_drop_first(const lh_memory_view_slice_t *self, lh_usize_t n, lh_memory_view_slice_t *out)
+lh_memory_view_slice_drop_first(const lh_memory_view_slice_t *self, lh_usize_t n,
+                                lh_memory_view_slice_t *out)
 {
     lh_assert_runtime_ref(out);
     const lh_usize_t total = lh_memory_view_slice_get_size(self);
@@ -719,7 +724,8 @@ lh_memory_view_slice_drop_first(const lh_memory_view_slice_t *self, lh_usize_t n
 }
 
 lh_void
-lh_memory_view_slice_drop_last(const lh_memory_view_slice_t *self, lh_usize_t n, lh_memory_view_slice_t *out)
+lh_memory_view_slice_drop_last(const lh_memory_view_slice_t *self, lh_usize_t n,
+                               lh_memory_view_slice_t *out)
 {
     lh_assert_runtime_ref(out);
     const lh_usize_t total = lh_memory_view_slice_get_size(self);
@@ -728,7 +734,8 @@ lh_memory_view_slice_drop_last(const lh_memory_view_slice_t *self, lh_usize_t n,
 }
 
 lh_void
-lh_memory_view_slice_trim(const lh_memory_view_slice_t *self, lh_usize_t left, lh_usize_t right, lh_memory_view_slice_t *out)
+lh_memory_view_slice_trim(const lh_memory_view_slice_t *self, lh_usize_t left, lh_usize_t right,
+                          lh_memory_view_slice_t *out)
 {
     lh_assert_runtime_ref(out);
     const lh_usize_t total = lh_memory_view_slice_get_size(self);
@@ -876,11 +883,13 @@ lh_memory_view_slice_needs_ropen(const lh_memory_view_slice_t *self, const lh_pt
 }
 
 lh_void
-lh_memory_view_slice_return_of_ropen_v(const lh_memory_view_slice_t *self, lh_memory_view_slice_t *out)
+lh_memory_view_slice_return_of_ropen_v(const lh_memory_view_slice_t *self,
+                                       lh_memory_view_slice_t *out)
 {
     lh_assert_runtime_ref(out);
     const lh_ptr begin = lh_memory_view_slice_get_begin_v(self);
-    lh_memory_view_slice_return_init_v(begin, lh_memory_view_slice_get_ropen_last(lh_memory_view_slice_get_end_v(self)), out);
+    lh_memory_view_slice_return_init_v(
+        begin, lh_memory_view_slice_get_ropen_last(lh_memory_view_slice_get_end_v(self)), out);
 }
 
 lh_void
@@ -917,9 +926,8 @@ lh_memory_view_slice_contains_ropen(const lh_memory_view_slice_t *self, const lh
                                     const lh_ptr end)
 {
     const lh_ptr self_begin = lh_memory_view_slice_get_begin_v(self);
-    return lh_memory_view_slice_ropen_contains_range(self_begin,
-                                                     lh_memory_view_slice_get_end_v(self), begin,
-                                                     end);
+    return lh_memory_view_slice_ropen_contains_range(
+        self_begin, lh_memory_view_slice_get_end_v(self), begin, end);
 }
 
 lh_bool_t
@@ -927,9 +935,8 @@ lh_memory_view_slice_overlaps_ropen(const lh_memory_view_slice_t *self, const lh
                                     const lh_ptr end)
 {
     const lh_ptr self_begin = lh_memory_view_slice_get_begin_v(self);
-    return lh_memory_view_slice_ropen_overlaps_range(self_begin,
-                                                     lh_memory_view_slice_get_end_v(self), begin,
-                                                     end);
+    return lh_memory_view_slice_ropen_overlaps_range(
+        self_begin, lh_memory_view_slice_get_end_v(self), begin, end);
 }
 
 const lh_ptr
@@ -982,7 +989,8 @@ lh_memory_view_slice_assert_ropen_not_empty(const lh_ptr begin, const lh_ptr end
 }
 
 lh_void
-lh_memory_view_slice_take_first_ropen(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_memory_view_slice_t *out)
+lh_memory_view_slice_take_first_ropen(const lh_ptr begin, const lh_ptr end, lh_usize_t n,
+                                      lh_memory_view_slice_t *out)
 {
     lh_assert_runtime_ref(out);
     if (lh_math_is_zero(n))
@@ -995,7 +1003,8 @@ lh_memory_view_slice_take_first_ropen(const lh_ptr begin, const lh_ptr end, lh_u
 }
 
 lh_void
-lh_memory_view_slice_take_last_ropen(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_memory_view_slice_t *out)
+lh_memory_view_slice_take_last_ropen(const lh_ptr begin, const lh_ptr end, lh_usize_t n,
+                                     lh_memory_view_slice_t *out)
 {
     lh_assert_runtime_ref(out);
     if (lh_math_is_zero(n))
@@ -1011,7 +1020,9 @@ lh_usize_t
 lh_memory_view_slice_get_ropen_view_size(const lh_memory_view_slice_t *self)
 {
     if (lh_memory_view_slice_is_ropen_empty(self))
+    {
         return 0U;
+    }
     return lh_memory_view_slice_get_ropen_size(lh_memory_view_slice_get_begin_v(self),
                                                lh_memory_view_slice_get_end_v(self));
 }
@@ -1034,8 +1045,7 @@ lh_memory_view_slice_get_ropen_ptr(const lh_memory_view_slice_t *self, lh_uoffse
 
 lh_void
 lh_memory_view_slice_return_ropen_sub(const lh_memory_view_slice_t *self, lh_uoffset_t offset,
-                                      lh_usize_t size,
-                                      lh_memory_view_slice_t *out)
+                                      lh_usize_t size, lh_memory_view_slice_t *out)
 {
     lh_assert_runtime_ref(out);
     if (lh_math_is_zero(size))
@@ -1043,14 +1053,13 @@ lh_memory_view_slice_return_ropen_sub(const lh_memory_view_slice_t *self, lh_uof
         lh_memory_view_slice_return_empty(out);
         return;
     }
-    lh_memory_view_slice_return_init_by_size(lh_memory_view_slice_get_ropen_ptr(self, offset),
-                                                    size, out);
+    lh_memory_view_slice_return_init_by_size(lh_memory_view_slice_get_ropen_ptr(self, offset), size,
+                                             out);
 }
 
 lh_void
 lh_memory_view_slice_from_offset_ropen(const lh_memory_view_slice_t *self, lh_uoffset_t offset,
-                                       lh_usize_t size,
-                                       lh_memory_view_slice_t *out)
+                                       lh_usize_t size, lh_memory_view_slice_t *out)
 {
     lh_assert_runtime_ref(out);
     const lh_usize_t total = lh_memory_view_slice_get_ropen_view_size(self);

@@ -29,7 +29,7 @@ struct lh_exception
 {
     lh_runtime_error_t error;            /**< Code and message (empty when none is given). */
     const lh_exception_origin_t *origin; /**< Where the check sits; ::lh_null at REPORT_NONE. */
-};                        /**< Typedef for struct ::lh_exception. */
+}; /**< Typedef for struct ::lh_exception. */
 typedef struct lh_exception lh_exception_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -54,7 +54,7 @@ lh_exception_get_code(const lh_exception_t *self);
 const lh_exception_origin_t *
 lh_exception_get_origin(const lh_exception_t *self);
 
-/* ── text ────────────────────────────────────────────────────────────────── */
+/* -- text ------------------------------------------------------------------ */
 
 /**
  * @brief Write @p self as the report the default check handler prints.

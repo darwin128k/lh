@@ -86,7 +86,8 @@ lh_ui_container_get_key_step(const lh_ui_container_t *self, lh_key_t key);
  *        other key along y; zero for text and key-up.
  */
 lh_void
-lh_ui_container_get_key_delta(const lh_ui_container_t *self, const lh_ui_key_input_t *input, lh_ui_point_t *out);
+lh_ui_container_get_key_delta(const lh_ui_container_t *self, const lh_ui_key_input_t *input,
+                              lh_ui_point_t *out);
 
 /**
  * @brief Answer for the children of @p self: place them by
@@ -97,8 +98,7 @@ lh_ui_container_get_key_delta(const lh_ui_container_t *self, const lh_ui_key_inp
  * nothing else in the tree is in a position to rewrite them.
  */
 lh_void
-lh_ui_container_place_children(const lh_ui_container_t *self,
-                                      lh_ui_entity_transform_t *transform);
+lh_ui_container_place_children(const lh_ui_container_t *self, lh_ui_entity_transform_t *transform);
 
 /**
  * @brief The flow @p self places its children by, or ::lh_null when it has none
@@ -190,14 +190,16 @@ lh_ui_container_clamp_scroll_to(lh_ui_point_t scroll, lh_ui_point_t max, lh_ui_p
  *        (::lh_ui_container_get_scroll_max).
  */
 lh_void
-lh_ui_container_clamp_scroll(const lh_ui_container_t *self, lh_ui_point_t scroll, lh_ui_point_t *out);
+lh_ui_container_clamp_scroll(const lh_ui_container_t *self, lh_ui_point_t scroll,
+                             lh_ui_point_t *out);
 
 /**
  * @brief The stored scroll of @p self clamped to @p max, which the caller got
  *        from ::lh_ui_container_get_scroll_max (no second measure).
  */
 lh_void
-lh_ui_container_get_scroll_within(const lh_ui_container_t *self, lh_ui_point_t max, lh_ui_point_t *out);
+lh_ui_container_get_scroll_within(const lh_ui_container_t *self, lh_ui_point_t max,
+                                  lh_ui_point_t *out);
 
 /**
  * @brief How far the content of @p self is scrolled, clamped on read: when the

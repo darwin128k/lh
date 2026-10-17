@@ -57,7 +57,7 @@ typedef enum lh_ui_decl_kind
     lh_ui_decl_kind_image,      /**< ::lh_ui_image_t, its mask and its tint. */
     lh_ui_decl_kind_scrollbar,  /**< ::lh_ui_scrollbar_t over the container of another row. */
     lh_ui_decl_kind_input       /**< ::lh_ui_input_t over a buffer the app owns. */
-} lh_ui_decl_kind_t; /**< What a row builds. */
+} lh_ui_decl_kind_t;            /**< What a row builds. */
 
 /**
  * @struct lh_ui_decl
@@ -73,13 +73,14 @@ typedef enum lh_ui_decl_kind
 typedef struct lh_ui_decl
 {
     lh_ui_decl_kind_t kind; /**< What this row builds. */
-    lh_ui_scalar_t x;       /**< Left of the rect, in the parent's space (absolute, as everywhere). */
-    lh_ui_scalar_t y;       /**< Top of the rect. */
-    lh_ui_scalar_t w;       /**< Width of the rect. */
-    lh_ui_scalar_t h;       /**< Height of the rect. */
-    lh_s32_t parent;        /**< Row that holds this one, or ::LH_UI_DECL_ROOT. Must be lower. */
+    lh_ui_scalar_t x; /**< Left of the rect, in the parent's space (absolute, as everywhere). */
+    lh_ui_scalar_t y; /**< Top of the rect. */
+    lh_ui_scalar_t w; /**< Width of the rect. */
+    lh_ui_scalar_t h; /**< Height of the rect. */
+    lh_s32_t parent;  /**< Row that holds this one, or ::LH_UI_DECL_ROOT. Must be lower. */
     const lh_ui_style_t *style; /**< Look of @p self (not owned, may be ::lh_null). */
-    const lh_ui_place_t *place; /**< What this row wants a flow to give it (not owned, may be ::lh_null). */
+    const lh_ui_place_t
+        *place; /**< What this row wants a flow to give it (not owned, may be ::lh_null). */
     /**
      * @brief The flow that places this row's children (not owned, may be
      *        ::lh_null: no flow, and its children stay where they were put).
@@ -121,16 +122,16 @@ typedef struct lh_ui_decl
         /** lh_ui_decl_kind_image */
         struct
         {
-            const lh_ui_mask_t *mask;      /**< What it shows (may be ::lh_null for none). */
-            const lh_ui_color_t *tint;     /**< The colour it shows it in (may be ::lh_null: white). */
+            const lh_ui_mask_t *mask;  /**< What it shows (may be ::lh_null for none). */
+            const lh_ui_color_t *tint; /**< The colour it shows it in (may be ::lh_null: white). */
         } image;
 
         /** lh_ui_decl_kind_scrollbar */
         struct
         {
-            lh_s32_t box;                  /**< Row of the container it scrolls (lower than this one). */
-            lh_ui_axis_t axis;             /**< Axis it scrolls on. */
-            lh_ui_scrollbar_mode_t mode;   /**< When it is shown (default auto). */
+            lh_s32_t box;      /**< Row of the container it scrolls (lower than this one). */
+            lh_ui_axis_t axis; /**< Axis it scrolls on. */
+            lh_ui_scrollbar_mode_t mode; /**< When it is shown (default auto). */
         } scrollbar;
 
         /** lh_ui_decl_kind_input */
@@ -159,13 +160,13 @@ typedef struct lh_ui_decl
  */
 typedef enum lh_ui_decl_error
 {
-    lh_ui_decl_error_none = 0,     /**< It built. */
-    lh_ui_decl_error_kind,         /**< @c kind is not a widget this build knows. */
-    lh_ui_decl_error_parent,       /**< @c parent is out of range, or not lower than this row. */
-    lh_ui_decl_error_roots,        /**< Not exactly one row is a root. */
-    lh_ui_decl_error_box,          /**< A scrollbar names a row that is not a container, or is higher. */
-    lh_ui_decl_error_storage      /**< The pool is too small for these rows. */
-} lh_ui_decl_error_t; /**< What a build refused. */
+    lh_ui_decl_error_none = 0, /**< It built. */
+    lh_ui_decl_error_kind,     /**< @c kind is not a widget this build knows. */
+    lh_ui_decl_error_parent,   /**< @c parent is out of range, or not lower than this row. */
+    lh_ui_decl_error_roots,    /**< Not exactly one row is a root. */
+    lh_ui_decl_error_box,    /**< A scrollbar names a row that is not a container, or is higher. */
+    lh_ui_decl_error_storage /**< The pool is too small for these rows. */
+} lh_ui_decl_error_t;        /**< What a build refused. */
 
 /**
  * @struct lh_ui_decl_fault
@@ -177,7 +178,7 @@ typedef struct lh_ui_decl_fault
 {
     lh_ui_decl_error_t code; /**< ::lh_ui_decl_error_none when the build worked. */
     lh_u32_t index;          /**< Row that was refused; the last row for a whole-table fault. */
-} lh_ui_decl_fault_t; /**< Which row a build refused, and why. */
+} lh_ui_decl_fault_t;        /**< Which row a build refused, and why. */
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -204,15 +205,18 @@ LH_COMPILER_EXTERN_C_BEGIN
  *         half-built tree that looks finished.
  */
 lh_bool_t
-lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nodes, lh_byte_ptr storage,
-                 lh_u32_t bytes, lh_ui_entity_t **root, lh_ui_decl_fault_t *fault);
+lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nodes,
+                 lh_byte_ptr storage, lh_u32_t bytes, lh_ui_entity_t **root,
+                 lh_ui_decl_fault_t *fault);
 
 /**
  * @brief Bytes one row takes when it is any widget at all: the widest node, so an
  *        app that wants a static pool of a known row count can size it without
  *        measuring anything. Dense packing usually needs less.
  */
-#define LH_UI_DECL_NODE_MAX                                                                           (sizeof(lh_ui_toggle_t) > sizeof(lh_ui_input_t) ? sizeof(lh_ui_toggle_t) : sizeof(lh_ui_input_t))
+#define LH_UI_DECL_NODE_MAX                                                                        \
+    (sizeof(lh_ui_toggle_t) > sizeof(lh_ui_input_t) ? sizeof(lh_ui_toggle_t)                       \
+                                                    : sizeof(lh_ui_input_t))
 
 LH_COMPILER_EXTERN_C_END
 

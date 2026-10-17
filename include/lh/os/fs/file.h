@@ -165,7 +165,7 @@ lh_os_fs_file_read(lh_self_ptr self, lh_ptr buf, lh_usize_t size);
 lh_ssize_t
 lh_os_fs_file_write(lh_self_ptr self, const lh_ptr buf, lh_usize_t size);
 
-/* ── lh_io adapters ──────────────────────────────────────────────────────── */
+/* -- lh_io adapters -------------------------------------------------------- */
 
 /**
  * @brief Build an ::lh_io_reader_t that reads from @p self.
