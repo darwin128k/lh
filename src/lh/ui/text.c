@@ -8,7 +8,7 @@
 #include <lh/ui/text.h>
 #include <lh/util/return.h>
 
-/* ── Reading ─────────────────────────────────────────────────────────────── */
+/* -- Reading --------------------------------------------------------------- */
 
 lh_u32_t
 lh_ui_text_next_code(const lh_char_t **cursor)
@@ -75,7 +75,7 @@ lh_ui_text_is_line_end(lh_u32_t code)
     return code == 0U || code == lh_cast_static(lh_u32_t, '\n') ? lh_bool_true : lh_bool_false;
 }
 
-/* ── Writing ────────────────────────────────────────────────────────────────
+/* -- Writing ---------------------------------------------------------------
  *
  * The engine decodes code points but never had to write one: everything drawn so
  * far was a string the application had already encoded. A text **field** is the
@@ -151,24 +151,24 @@ lh_ui_text_encode_code(lh_char_t *out, lh_u32_t bytes, lh_u32_t code)
 
     switch (size)
     {
-        case 1U:
-            out[0] = lh_cast_static(lh_char_t, code);
-            break;
-        case 2U:
-            out[0] = lh_cast_static(lh_char_t, 0xC0U | (code >> 6));
-            out[1] = lh_cast_static(lh_char_t, 0x80U | (code & 0x3FU));
-            break;
-        case 3U:
-            out[0] = lh_cast_static(lh_char_t, 0xE0U | (code >> 12));
-            out[1] = lh_cast_static(lh_char_t, 0x80U | ((code >> 6) & 0x3FU));
-            out[2] = lh_cast_static(lh_char_t, 0x80U | (code & 0x3FU));
-            break;
-        default:
-            out[0] = lh_cast_static(lh_char_t, 0xF0U | (code >> 18));
-            out[1] = lh_cast_static(lh_char_t, 0x80U | ((code >> 12) & 0x3FU));
-            out[2] = lh_cast_static(lh_char_t, 0x80U | ((code >> 6) & 0x3FU));
-            out[3] = lh_cast_static(lh_char_t, 0x80U | (code & 0x3FU));
-            break;
+    case 1U:
+        out[0] = lh_cast_static(lh_char_t, code);
+        break;
+    case 2U:
+        out[0] = lh_cast_static(lh_char_t, 0xC0U | (code >> 6));
+        out[1] = lh_cast_static(lh_char_t, 0x80U | (code & 0x3FU));
+        break;
+    case 3U:
+        out[0] = lh_cast_static(lh_char_t, 0xE0U | (code >> 12));
+        out[1] = lh_cast_static(lh_char_t, 0x80U | ((code >> 6) & 0x3FU));
+        out[2] = lh_cast_static(lh_char_t, 0x80U | (code & 0x3FU));
+        break;
+    default:
+        out[0] = lh_cast_static(lh_char_t, 0xF0U | (code >> 18));
+        out[1] = lh_cast_static(lh_char_t, 0x80U | ((code >> 12) & 0x3FU));
+        out[2] = lh_cast_static(lh_char_t, 0x80U | ((code >> 6) & 0x3FU));
+        out[3] = lh_cast_static(lh_char_t, 0x80U | (code & 0x3FU));
+        break;
     }
     return size;
 }
@@ -206,7 +206,7 @@ lh_ui_text_count_lines(const lh_char_t *text)
     return count;
 }
 
-/* ── Lines a width breaks ────────────────────────────────────────────────── */
+/* -- Lines a width breaks -------------------------------------------------- */
 
 lh_ui_scalar_t
 lh_ui_text_get_line_width(const lh_ui_font_t *font, const lh_char_t *line)
@@ -233,7 +233,8 @@ lh_ui_text_get_width(const lh_ui_font_t *font, const lh_char_t *text)
 }
 
 lh_u32_t
-lh_ui_text_count_lines_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width)
+lh_ui_text_count_lines_wrapped(const lh_ui_font_t *font, const lh_char_t *text,
+                               lh_ui_scalar_t width)
 {
     lh_ui_text_block_t block;
 
@@ -241,10 +242,11 @@ lh_ui_text_count_lines_wrapped(const lh_ui_font_t *font, const lh_char_t *text, 
     return lh_ui_text_block_get_lines(lh_addr_of(block));
 }
 
-/* ── Ink ─────────────────────────────────────────────────────────────────── */
+/* -- Ink ------------------------------------------------------------------- */
 
 lh_void
-lh_ui_text_get_line_ink_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_point_t origin, lh_ui_rect_t *out)
+lh_ui_text_get_line_ink_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_point_t origin,
+                             lh_ui_rect_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_ui_text_line_t laid;
@@ -255,7 +257,8 @@ lh_ui_text_get_line_ink_rect(const lh_ui_font_t *font, const lh_char_t *line, lh
 }
 
 lh_ui_scalar_t
-lh_ui_text_get_ink_top_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width)
+lh_ui_text_get_ink_top_wrapped(const lh_ui_font_t *font, const lh_char_t *text,
+                               lh_ui_scalar_t width)
 {
     lh_ui_text_block_t block;
 
@@ -270,12 +273,13 @@ lh_ui_text_get_ink_top(const lh_ui_font_t *font, const lh_char_t *text)
 }
 
 lh_void
-lh_ui_text_get_ink_rect_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin,
-                                lh_ui_scalar_t width, lh_ui_text_align_h_t align,
-                                lh_ui_rect_t *out)
+lh_ui_text_get_ink_rect_wrapped(const lh_ui_font_t *font, const lh_char_t *text,
+                                lh_ui_point_t origin, lh_ui_scalar_t width,
+                                lh_ui_text_align_h_t align, lh_ui_rect_t *out)
 {
     lh_assert_runtime_ref(out);
-    const lh_ui_scalar_t line_height = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font));
+    const lh_ui_scalar_t line_height =
+        lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font));
     lh_ui_text_block_t block;
     lh_ui_text_line_t laid;
     lh_ui_scalar_t down;
@@ -292,13 +296,17 @@ lh_ui_text_get_ink_rect_wrapped(const lh_ui_font_t *font, const lh_char_t *text,
     }
     down = lh_math_neg(lh_ui_text_block_get_ink_top(lh_addr_of(block)));
     lh_ui_rect_init_empty(lh_addr_of(ink));
-    for (; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width); text = lh_ui_text_line_get_next(lh_addr_of(laid)))
+    for (; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width);
+         text = lh_ui_text_line_get_next(lh_addr_of(laid)))
     {
         /* Every line box starts that far above @p origin, because @p origin is
            where the ink is and a line box is taller than what it draws. */
         lh_ui_point_t box;
-        lh_ui_point_offset(lh_addr_of(origin), lh_ui_text_line_get_shift(lh_addr_of(laid), lh_ui_text_block_get_width(lh_addr_of(block)), align),
-            down, lh_addr_of(box));
+        lh_ui_point_offset(lh_addr_of(origin),
+                           lh_ui_text_line_get_shift(lh_addr_of(laid),
+                                                     lh_ui_text_block_get_width(lh_addr_of(block)),
+                                                     align),
+                           down, lh_addr_of(box));
         lh_ui_rect_t line_ink;
 
         lh_ui_text_line_measure_ink(lh_addr_of(laid), font);
@@ -314,13 +322,16 @@ lh_ui_text_get_ink_rect_wrapped(const lh_ui_font_t *font, const lh_char_t *text,
 }
 
 lh_void
-lh_ui_text_get_ink_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin, lh_ui_rect_t *out)
+lh_ui_text_get_ink_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin,
+                        lh_ui_rect_t *out)
 {
-    lh_ui_text_get_ink_rect_wrapped(font, text, origin, lh_ui_scalar(0), lh_ui_text_align_h_left, out);
+    lh_ui_text_get_ink_rect_wrapped(font, text, origin, lh_ui_scalar(0), lh_ui_text_align_h_left,
+                                    out);
 }
 
 lh_void
-lh_ui_text_get_size_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width, lh_ui_size_t *out)
+lh_ui_text_get_size_wrapped(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_scalar_t width,
+                            lh_ui_size_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_ui_text_block_t block;
@@ -336,28 +347,30 @@ lh_ui_text_get_size(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_size_
 }
 
 lh_void
-lh_ui_text_get_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin, lh_ui_rect_t *out)
+lh_ui_text_get_rect(const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin,
+                    lh_ui_rect_t *out)
 {
     lh_ui_text_get_ink_rect(font, text, origin, out);
 }
 
 lh_void
-lh_ui_text_get_line_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_point_t origin, lh_ui_rect_t *out)
+lh_ui_text_get_line_rect(const lh_ui_font_t *font, const lh_char_t *line, lh_ui_point_t origin,
+                         lh_ui_rect_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_ui_rect_t rect;
 
-    lh_ui_rect_init(lh_addr_of(rect), lh_ui_point_get_x(lh_addr_of(origin)), lh_ui_point_get_y(lh_addr_of(origin)),
-                    lh_ui_text_get_line_width(font, line),
+    lh_ui_rect_init(lh_addr_of(rect), lh_ui_point_get_x(lh_addr_of(origin)),
+                    lh_ui_point_get_y(lh_addr_of(origin)), lh_ui_text_get_line_width(font, line),
                     lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font)));
     lh_ptr_deref(out) = rect;
 }
 
-/* ── Drawing ─────────────────────────────────────────────────────────────── */
+/* -- Drawing --------------------------------------------------------------- */
 
 lh_ui_scalar_t
-lh_ui_text_draw_glyph_at(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, lh_u32_t index, lh_ui_point_t origin,
-                         const lh_ui_color_t *color)
+lh_ui_text_draw_glyph_at(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, lh_u32_t index,
+                         lh_ui_point_t origin, const lh_ui_color_t *color)
 {
     lh_ui_point_t at;
 
@@ -371,8 +384,8 @@ lh_ui_text_draw_glyph_at(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, lh_u3
 }
 
 lh_ui_scalar_t
-lh_ui_text_draw_code(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, lh_u32_t code, lh_ui_point_t origin,
-                     const lh_ui_color_t *color)
+lh_ui_text_draw_code(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, lh_u32_t code,
+                     lh_ui_point_t origin, const lh_ui_color_t *color)
 {
     lh_u32_t index = 0U;
 
@@ -381,15 +394,17 @@ lh_ui_text_draw_code(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, lh_u32_t 
 }
 
 lh_void
-lh_ui_text_draw_laid_line(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_ui_text_line_t *line,
-                          lh_ui_point_t origin, const lh_ui_color_t *color)
+lh_ui_text_draw_laid_line(lh_ui_canvas_t *canvas, const lh_ui_font_t *font,
+                          const lh_ui_text_line_t *line, lh_ui_point_t origin,
+                          const lh_ui_color_t *color)
 {
     const lh_char_t *cursor = lh_ui_text_line_get_begin(line);
     const lh_char_t *end = lh_ui_text_line_get_end(line);
     lh_ui_rect_t box;
 
-    lh_ui_rect_init(lh_addr_of(box), lh_ui_point_get_x(lh_addr_of(origin)), lh_ui_point_get_y(lh_addr_of(origin)),
-                    lh_ui_text_line_get_width(line), lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font)));
+    lh_ui_rect_init(lh_addr_of(box), lh_ui_point_get_x(lh_addr_of(origin)),
+                    lh_ui_point_get_y(lh_addr_of(origin)), lh_ui_text_line_get_width(line),
+                    lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font)));
     /* The ink sits inside the line box (Roboto 16: line 22, the highest glyph
        starts at row 2). A clip that holds the whole box holds the ink, and
        measuring the ink first would walk every letter to learn that. A clip
@@ -410,8 +425,9 @@ lh_ui_text_draw_laid_line(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, cons
     {
         const lh_u32_t code = lh_ui_text_next_code(lh_addr_of(cursor));
 
-        lh_ui_point_offset(lh_addr_of(origin), lh_ui_text_draw_code(canvas, font, code, origin, color),
-                                    lh_ui_scalar(0), lh_addr_of(origin));
+        lh_ui_point_offset(lh_addr_of(origin),
+                           lh_ui_text_draw_code(canvas, font, code, origin, color), lh_ui_scalar(0),
+                           lh_addr_of(origin));
     }
 }
 
@@ -426,13 +442,16 @@ lh_ui_text_draw_line(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_
 }
 
 lh_void
-lh_ui_text_draw_wrapped_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text,
-                             lh_ui_point_t origin, const lh_ui_color_t *color, lh_ui_scalar_t ink_top,
+lh_ui_text_draw_wrapped_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font,
+                             const lh_char_t *text, lh_ui_point_t origin,
+                             const lh_ui_color_t *color, lh_ui_scalar_t ink_top,
                              lh_ui_scalar_t width, lh_ui_text_align_h_t align)
 {
-    const lh_ui_scalar_t line_height = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font));
-    const lh_ui_scalar_t block = align == lh_ui_text_align_h_left ? lh_ui_scalar(0)
-                                                                   : lh_ui_text_get_wrapped_width(font, text, width);
+    const lh_ui_scalar_t line_height =
+        lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_line_height(font));
+    const lh_ui_scalar_t block = align == lh_ui_text_align_h_left
+                                     ? lh_ui_scalar(0)
+                                     : lh_ui_text_get_wrapped_width(font, text, width);
     lh_ui_point_t box;
     lh_ui_point_offset(lh_addr_of(origin), lh_ui_scalar(0), lh_math_neg(ink_top), lh_addr_of(box));
     lh_ui_text_line_t laid;
@@ -440,29 +459,29 @@ lh_ui_text_draw_wrapped_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, c
     /* @p origin is where the ink goes, so the first line box starts that far
        above it; each next one is a line height lower. The pixels land where
        ::lh_ui_text_get_ink_rect_wrapped says, which is the whole point. */
-    for (; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width); text = lh_ui_text_line_get_next(lh_addr_of(laid)))
+    for (; lh_ui_text_line_measure(lh_addr_of(laid), font, text, width);
+         text = lh_ui_text_line_get_next(lh_addr_of(laid)))
     {
         const lh_ui_scalar_t shift = lh_ui_text_line_get_shift(lh_addr_of(laid), block, align);
 
         lh_ui_point_t point1;
         lh_ui_point_offset(lh_addr_of(box), shift, lh_ui_scalar(0), lh_addr_of(point1));
-        lh_ui_text_draw_laid_line(canvas, font, lh_addr_of(laid),
-                                  point1, color);
+        lh_ui_text_draw_laid_line(canvas, font, lh_addr_of(laid), point1, color);
         lh_ui_point_offset(lh_addr_of(box), lh_ui_scalar(0), line_height, lh_addr_of(box));
     }
 }
 
 lh_void
-lh_ui_text_draw_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin,
-                     const lh_ui_color_t *color, lh_ui_scalar_t ink_top)
+lh_ui_text_draw_from(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text,
+                     lh_ui_point_t origin, const lh_ui_color_t *color, lh_ui_scalar_t ink_top)
 {
     lh_ui_text_draw_wrapped_from(canvas, font, text, origin, color, ink_top, lh_ui_scalar(0),
                                  lh_ui_text_align_h_left);
 }
 
 lh_void
-lh_ui_text_draw(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text, lh_ui_point_t origin,
-                const lh_ui_color_t *color)
+lh_ui_text_draw(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const lh_char_t *text,
+                lh_ui_point_t origin, const lh_ui_color_t *color)
 {
     lh_ui_text_draw_from(canvas, font, text, origin, color, lh_ui_text_get_ink_top(font, text));
 }
@@ -475,6 +494,6 @@ lh_ui_text_draw_wrapped(lh_ui_canvas_t *canvas, const lh_ui_font_t *font, const 
     lh_ui_text_block_t block;
 
     lh_ui_text_block_measure(lh_addr_of(block), font, text, width);
-    lh_ui_text_draw_wrapped_from(canvas, font, text, origin, color, lh_ui_text_block_get_ink_top(lh_addr_of(block)),
-                                 width, align);
+    lh_ui_text_draw_wrapped_from(canvas, font, text, origin, color,
+                                 lh_ui_text_block_get_ink_top(lh_addr_of(block)), width, align);
 }

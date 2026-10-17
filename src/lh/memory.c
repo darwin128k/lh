@@ -17,14 +17,15 @@
  * multiple of the block size, so an aligned block never leaves the page holding
  * the needle (the rule glibc's strlen/memchr follow). That needs a power-of-two
  * block no larger than the smallest page size. */
-#if (LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK & (LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK - 1)) != 0 ||  \
+#if (LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK &                                                   \
+     (LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK - 1)) != 0 ||                                      \
     LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK > 4096
 #    error "LH_LIBRARY_OPTION_ALGORITHM_COMPARE_BLOCK must be a power of two no larger than 4096"
 #endif
 
 /* True while @p off still has @p base + @p off short of a block boundary. */
 #define lh_memory_scan_is_unaligned(base, off)                                                     \
-    ((lh_ptr_to_uaddr(lh_ptr_add_by_offset_unsafe(const lh_byte_t, (base), (off))) &              \
+    ((lh_ptr_to_uaddr(lh_ptr_add_by_offset_unsafe(const lh_byte_t, (base), (off))) &               \
       (LH_MEMORY_SCAN_BLOCK - 1U)) != 0U)
 
 lh_ptr
@@ -195,7 +196,8 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
             }
         }
 
-        for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), rhs_size); off = lh_math_add(off, step))
+        for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), rhs_size);
+             off = lh_math_add(off, step))
         {
             lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
             if (lh_memory_bytes_eq(cand, needle, rhs_size))
@@ -224,10 +226,12 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
     {
         const lh_byte_t first = *lh_ptr_cast(const lh_byte_t, rhs);
 
-        for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), rhs_size); off = lh_math_add(off, step))
+        for (; lh_math_ge(lh_memory_size_rest(lhs_size, off), rhs_size);
+             off = lh_math_add(off, step))
         {
             lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-            if (lh_ptr_deref(cand) == first && !lh_memory_compare(cand, lh_memory_size_rest(lhs_size, off), rhs, rhs_size))
+            if (lh_ptr_deref(cand) == first &&
+                !lh_memory_compare(cand, lh_memory_size_rest(lhs_size, off), rhs, rhs_size))
             {
                 return cand;
             }
@@ -320,7 +324,8 @@ lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh
         for (;;)
         {
             lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-            if (lh_ptr_deref(cand) == first && !lh_memory_compare(cand, lhs_size - off, rhs, rhs_size))
+            if (lh_ptr_deref(cand) == first &&
+                !lh_memory_compare(cand, lhs_size - off, rhs, rhs_size))
             {
                 return cand;
             }

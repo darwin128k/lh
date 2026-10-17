@@ -20,7 +20,7 @@
 typedef struct lh_str_format_float_big
 {
     lh_u32_t w[LH_STR_FORMAT_FLOAT_WORDS]; /**< 32-bit words, least significant first */
-} lh_str_format_float_big_t; /**< An unsigned 256-bit number. */
+} lh_str_format_float_big_t;               /**< An unsigned 256-bit number. */
 
 static void
 big_set(lh_str_format_float_big_t *b, lh_u32_t value)
@@ -42,7 +42,7 @@ big_mul_small(lh_str_format_float_big_t *b, lh_u32_t k)
 
     for (i = 0U; i < LH_STR_FORMAT_FLOAT_WORDS; ++i)
     {
-        const lh_u64_t p = lh_cast_static(lh_u64_t, b->w[i])* lh_cast_static(lh_u64_t, k)+ carry;
+        const lh_u64_t p = lh_cast_static(lh_u64_t, b->w[i]) * lh_cast_static(lh_u64_t, k) + carry;
 
         b->w[i] = lh_cast_static(lh_u32_t, (p & 0xFFFFFFFFU));
         carry = p >> 32;
@@ -97,7 +97,7 @@ big_sub(lh_str_format_float_big_t *a, const lh_str_format_float_big_t *b)
     for (i = 0U; i < LH_STR_FORMAT_FLOAT_WORDS; ++i)
     {
         const lh_u64_t x = lh_cast_static(lh_u64_t, a->w[i]);
-        const lh_u64_t y = lh_cast_static(lh_u64_t, b->w[i])+ borrow;
+        const lh_u64_t y = lh_cast_static(lh_u64_t, b->w[i]) + borrow;
 
         if (x >= y)
         {
@@ -130,9 +130,10 @@ bit_length_minus_one(lh_u32_t m)
 static int
 floor_log10_pow2(int x)
 {
-    const long scaled = lh_cast_static(long, x)* 78913L;
+    const long scaled = lh_cast_static(long, x) * 78913L;
 
-    return (int)(scaled >= 0 ? (scaled >> 18) : lh_math_neg(((lh_math_neg(scaled)) + ((1L << 18) - 1L)) >> 18));
+    return (int)(scaled >= 0 ? (scaled >> 18)
+                             : lh_math_neg(((lh_math_neg(scaled)) + ((1L << 18) - 1L)) >> 18));
 }
 
 static lh_usize_t
@@ -214,7 +215,7 @@ lh_str_ptr_format_float(lh_float_t value, lh_usize_t digits, lh_str_ptr str, lh_
     else
     {
         mantissa |= 0x800000U;
-        e = lh_cast_static(int, exp_bits)- 150;
+        e = lh_cast_static(int, exp_bits) - 150;
     }
 
     /* num / den = v / 10^d10, which must land in [1, 10). */
@@ -274,7 +275,8 @@ lh_str_ptr_format_float(lh_float_t value, lh_usize_t digits, lh_str_ptr str, lh_
     /* Round to nearest, ties to even, on what is left. */
     big_mul_small(&num, 2U);
     i = big_cmp(&num, &den) > 0 ||
-                (big_cmp(&num, &den) == 0 && ((lh_cast_static(lh_u32_t, (d[precision - 1U] - '0')) & 1U) != 0U))
+                (big_cmp(&num, &den) == 0 &&
+                 ((lh_cast_static(lh_u32_t, (d[precision - 1U] - '0')) & 1U) != 0U))
             ? 1U
             : 0U;
     if (i != 0U)
@@ -312,7 +314,7 @@ lh_str_ptr_format_float(lh_float_t value, lh_usize_t digits, lh_str_ptr str, lh_
     {
         if (d10 >= 0)
         {
-            const lh_usize_t int_digits = lh_cast_static(lh_usize_t, d10)+ 1U;
+            const lh_usize_t int_digits = lh_cast_static(lh_usize_t, d10) + 1U;
 
             for (i = 0U; i < int_digits; ++i)
             {

@@ -18,9 +18,9 @@
  * @param rect_type   ::lh_ui_rect_t.
  * @param clip_type   ::lh_ui_canvas_clip_t.
  */
-#define lh_ui_canvas_sw_fields(pixmap_type, rect_type, clip_type)                                   \
-    pixmap_type pixmap;                                                                             \
-    rect_type limit;                                                                                \
+#define lh_ui_canvas_sw_fields(pixmap_type, rect_type, clip_type)                                  \
+    pixmap_type pixmap;                                                                            \
+    rect_type limit;                                                                               \
     clip_type clip
 
 #endif /* LH_UI_CANVAS_SW_FIELDS_H */

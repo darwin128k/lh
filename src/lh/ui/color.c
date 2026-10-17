@@ -14,7 +14,7 @@
 #    include <stdint.h>
 #endif
 
-/* ── Constructors ────────────────────────────────────────────────────────── */
+/* -- Constructors ---------------------------------------------------------- */
 
 lh_void
 lh_ui_color_init(lh_ui_color_t *self, lh_ui_color_channel_t r, lh_ui_color_channel_t g,
@@ -30,7 +30,8 @@ lh_ui_color_init(lh_ui_color_t *self, lh_ui_color_channel_t r, lh_ui_color_chann
 lh_ui_color_channel_t
 lh_ui_color_hex_channel(lh_u32_t hex, lh_u32_t shift)
 {
-    return lh_cast_static(lh_ui_color_channel_t, (hex >> shift) & lh_cast_static(lh_u32_t, LH_BYTE_T_MAX));
+    return lh_cast_static(lh_ui_color_channel_t,
+                          (hex >> shift) & lh_cast_static(lh_u32_t, LH_BYTE_T_MAX));
 }
 
 lh_void
@@ -59,26 +60,28 @@ lh_ui_color_channel_t
 lh_ui_color_expand_bits(lh_u32_t value, lh_u32_t bits)
 {
     /* Replicate the top bits into the bottom: 0 → 0, all ones → 255. */
-    return lh_cast_static(lh_ui_color_channel_t, (value << (8U - bits)) | (value >> (2U * bits - 8U)));
+    return lh_cast_static(lh_ui_color_channel_t,
+                          (value << (8U - bits)) | (value >> (2U * bits - 8U)));
 }
 
 lh_void
 lh_ui_color_init_rgb565(lh_ui_color_t *self, lh_u32_t rgb565)
 {
     lh_ui_color_init(self, lh_ui_color_expand_bits((rgb565 >> 11) & 0x1FU, 5U),
-                     lh_ui_color_expand_bits((rgb565 >> 5) & 0x3FU, 6U), lh_ui_color_expand_bits(rgb565 & 0x1FU, 5U),
-                     LH_BYTE_T_MAX);
+                     lh_ui_color_expand_bits((rgb565 >> 5) & 0x3FU, 6U),
+                     lh_ui_color_expand_bits(rgb565 & 0x1FU, 5U), LH_BYTE_T_MAX);
 }
 
 lh_u32_t
 lh_ui_color_get_rgb565(const lh_ui_color_t *self)
 {
     lh_assert_runtime_ref(self);
-    return ((lh_cast_static(lh_u32_t, self->r) >> 3) << 11) | ((lh_cast_static(lh_u32_t, self->g) >> 2) << 5) |
+    return ((lh_cast_static(lh_u32_t, self->r) >> 3) << 11) |
+           ((lh_cast_static(lh_u32_t, self->g) >> 2) << 5) |
            (lh_cast_static(lh_u32_t, self->b) >> 3);
 }
 
-/* ── Accessors ───────────────────────────────────────────────────────────── */
+/* -- Accessors ------------------------------------------------------------- */
 
 lh_ui_color_channel_t
 lh_ui_color_get_r(const lh_ui_color_t *self)
@@ -141,11 +144,12 @@ lh_ui_color_equals(const lh_ui_color_t *self, const lh_ui_color_t *other)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(other);
-    return lh_cast_static(lh_bool_t, lh_math_eq(self->r, other->r) && lh_math_eq(self->g, other->g) &&
-                                     lh_math_eq(self->b, other->b) && lh_math_eq(self->a, other->a));
+    return lh_cast_static(lh_bool_t,
+                          lh_math_eq(self->r, other->r) && lh_math_eq(self->g, other->g) &&
+                              lh_math_eq(self->b, other->b) && lh_math_eq(self->a, other->a));
 }
 
-/* ── Blend ───────────────────────────────────────────────────────────────── */
+/* -- Blend ----------------------------------------------------------------- */
 
 lh_u32_t
 lh_ui_color_over_src_weight(const lh_ui_color_t *color)
@@ -166,7 +170,8 @@ lh_ui_color_channel_t
 lh_ui_color_blend_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t src_w, lh_u32_t dst_w)
 {
     const lh_u32_t total = src_w + dst_w;
-    return lh_cast_static(lh_ui_color_channel_t, lh_math_div_round(src * src_w + dst * dst_w, total));
+    return lh_cast_static(lh_ui_color_channel_t,
+                          lh_math_div_round(src * src_w + dst * dst_w, total));
 }
 
 lh_ui_color_channel_t
@@ -176,7 +181,8 @@ lh_ui_color_weight_to_alpha(lh_u32_t weight)
 }
 
 lh_void
-lh_ui_color_blend(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_u32_t src_w, lh_u32_t dst_w, lh_ui_color_t *out)
+lh_ui_color_blend(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_u32_t src_w,
+                  lh_u32_t dst_w, lh_ui_color_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_ui_color_t result;
@@ -213,8 +219,9 @@ lh_u32_t
 lh_ui_color_dual_mac(lh_u32_t x, lh_u32_t y, lh_u32_t acc)
 {
 #if LH_UI_COLOR_HAVE_SMLAD
-    return lh_cast_static(lh_u32_t, __smlad(lh_cast_static(int16x2_t, x), lh_cast_static(int16x2_t, y),
-                                           lh_cast_static(int32_t, acc)));
+    return lh_cast_static(lh_u32_t,
+                          __smlad(lh_cast_static(int16x2_t, x), lh_cast_static(int16x2_t, y),
+                                  lh_cast_static(int32_t, acc)));
 #else
     return acc + (x & 0xFFFFU) * (y & 0xFFFFU) + (x >> 16) * (y >> 16);
 #endif
@@ -235,12 +242,14 @@ lh_ui_color_over_opaque_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t a)
     /* src * a + dst * (255 - a) is one dual multiply-accumulate: SMLAD on a core
        with the DSP extension (Cortex-M4 and up). */
     return lh_cast_static(lh_ui_color_channel_t,
-                          lh_ui_color_div255_round(lh_ui_color_dual_mac(src | (dst << 16), a | ((LH_BYTE_T_MAX - a) << 16), 0U)));
+                          lh_ui_color_div255_round(lh_ui_color_dual_mac(
+                              src | (dst << 16), a | ((LH_BYTE_T_MAX - a) << 16), 0U)));
 #else
     /* Without SMLAD the two products are written out: packing them into halfwords
        only for lh_ui_color_dual_mac to unpack them again costs shifts, masks and
        ORs a channel on cores without the extension (ESP32, RISC-V). */
-    return lh_cast_static(lh_ui_color_channel_t, lh_ui_color_div255_round(src * a + dst * (LH_BYTE_T_MAX - a)));
+    return lh_cast_static(lh_ui_color_channel_t,
+                          lh_ui_color_div255_round(src * a + dst * (LH_BYTE_T_MAX - a)));
 #endif
 }
 
@@ -267,21 +276,26 @@ lh_ui_color_argb_over_translucent(lh_u32_t dst, lh_u32_t src)
 {
     const lh_u32_t a = lh_ui_color_hex_channel(src, 24);
     const lh_u32_t src_w = a * LH_BYTE_T_MAX;
-    const lh_u32_t dst_w = lh_cast_static(lh_u32_t, lh_ui_color_hex_channel(dst, 24)) * (LH_BYTE_T_MAX - a);
+    const lh_u32_t dst_w =
+        lh_cast_static(lh_u32_t, lh_ui_color_hex_channel(dst, 24)) * (LH_BYTE_T_MAX - a);
 
     lh_return_if(src_w + dst_w == 0U, 0U);
     return lh_ui_color_argb_make(
-        lh_ui_color_blend_channel(lh_ui_color_hex_channel(src, 16), lh_ui_color_hex_channel(dst, 16), src_w, dst_w),
-        lh_ui_color_blend_channel(lh_ui_color_hex_channel(src, 8), lh_ui_color_hex_channel(dst, 8), src_w, dst_w),
-        lh_ui_color_blend_channel(lh_ui_color_hex_channel(src, 0), lh_ui_color_hex_channel(dst, 0), src_w, dst_w),
+        lh_ui_color_blend_channel(lh_ui_color_hex_channel(src, 16),
+                                  lh_ui_color_hex_channel(dst, 16), src_w, dst_w),
+        lh_ui_color_blend_channel(lh_ui_color_hex_channel(src, 8), lh_ui_color_hex_channel(dst, 8),
+                                  src_w, dst_w),
+        lh_ui_color_blend_channel(lh_ui_color_hex_channel(src, 0), lh_ui_color_hex_channel(dst, 0),
+                                  src_w, dst_w),
         lh_ui_color_weight_to_alpha(src_w + dst_w));
 }
 
 lh_u32_t
 lh_ui_color_argb_over(lh_u32_t dst, lh_u32_t src)
 {
-    return lh_ui_color_hex_channel(dst, 24) == LH_BYTE_T_MAX ? lh_ui_color_argb_over_opaque(dst, src)
-                                                             : lh_ui_color_argb_over_translucent(dst, src);
+    return lh_ui_color_hex_channel(dst, 24) == LH_BYTE_T_MAX
+               ? lh_ui_color_argb_over_opaque(dst, src)
+               : lh_ui_color_argb_over_translucent(dst, src);
 }
 
 lh_void
@@ -290,14 +304,16 @@ lh_ui_color_over_opaque(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh
     lh_assert_runtime_ref(out);
     lh_ui_color_t result;
 
-    lh_ui_color_init(lh_addr_of(result), lh_ui_color_over_opaque_channel(color->r, dst->r, color->a),
+    lh_ui_color_init(lh_addr_of(result),
+                     lh_ui_color_over_opaque_channel(color->r, dst->r, color->a),
                      lh_ui_color_over_opaque_channel(color->g, dst->g, color->a),
                      lh_ui_color_over_opaque_channel(color->b, dst->b, color->a), LH_BYTE_T_MAX);
     lh_ptr_deref(out) = result;
 }
 
 lh_void
-lh_ui_color_over_translucent(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_ui_color_t *out)
+lh_ui_color_over_translucent(const lh_ui_color_t *dst, const lh_ui_color_t *color,
+                             lh_ui_color_t *out)
 {
     lh_assert_runtime_ref(out);
     const lh_u32_t src_w = lh_ui_color_over_src_weight(color);
@@ -336,6 +352,7 @@ lh_ui_color_with_coverage(const lh_ui_color_t *color, lh_byte_t coverage, lh_ui_
     lh_ui_color_t result;
     lh_assert_runtime_ref(color);
     result = lh_ptr_deref(color);
-    result.a = lh_cast_static(lh_ui_color_channel_t, lh_math_div_round(color->a * coverage, LH_BYTE_T_MAX));
+    result.a = lh_cast_static(lh_ui_color_channel_t,
+                              lh_math_div_round(color->a * coverage, LH_BYTE_T_MAX));
     lh_ptr_deref(out) = result;
 }

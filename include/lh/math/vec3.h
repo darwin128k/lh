@@ -39,7 +39,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Fill @p self with the given components.
  */
 lh_void
-lh_math_vec3_init(lh_math_vec3_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y, lh_math_fscalar_t z);
+lh_math_vec3_init(lh_math_vec3_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y,
+                  lh_math_fscalar_t z);
 
 /**
  * @brief Fill @p self with zero components.
@@ -47,7 +48,7 @@ lh_math_vec3_init(lh_math_vec3_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y
 lh_void
 lh_math_vec3_init_empty(lh_math_vec3_t *self);
 
-/* ── Accessors ───────────────────────────────────────────────────────────── */
+/* -- Accessors ------------------------------------------------------------- */
 
 /**
  * @brief X component of @p self.
@@ -85,7 +86,7 @@ lh_math_vec3_set_y(lh_math_vec3_t *self, lh_math_fscalar_t y);
 lh_void
 lh_math_vec3_set_z(lh_math_vec3_t *self, lh_math_fscalar_t z);
 
-/* ── Conversions ─────────────────────────────────────────────────────────── */
+/* -- Conversions ----------------------------------------------------------- */
 
 /**
  * @brief Widen @p v to the plane `z = @p z`.

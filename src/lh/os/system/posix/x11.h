@@ -158,7 +158,8 @@ struct lh_os_system_posix_xset_window_attributes
     lh_os_system_posix_xset_window_attributes_fields;
 };
 /** @copybrief lh_os_system_posix_xset_window_attributes */
-typedef struct lh_os_system_posix_xset_window_attributes lh_os_system_posix_xset_window_attributes_t;
+typedef struct lh_os_system_posix_xset_window_attributes
+    lh_os_system_posix_xset_window_attributes_t;
 
 /** @brief `XSizeHints`. */
 struct lh_os_system_posix_xsize_hints
@@ -214,7 +215,7 @@ struct lh_os_system_posix_xshm_segment_info
 /** @copybrief lh_os_system_posix_xshm_segment_info */
 typedef struct lh_os_system_posix_xshm_segment_info lh_os_system_posix_xshm_segment_info_t;
 
-/* ── Constants (X.h, Xutil.h, keysymdef.h) ───────────────────────────────── */
+/* -- Constants (X.h, Xutil.h, keysymdef.h) --------------------------------- */
 
 /** `None`: no resource. */
 #define LH_OS_SYSTEM_POSIX_X_NONE 0UL
@@ -313,7 +314,7 @@ typedef struct lh_os_system_posix_xshm_segment_info lh_os_system_posix_xshm_segm
 #define LH_OS_SYSTEM_POSIX_X_PICT_STANDARD_RGB24 1
 /** @} */
 
-/* ── The library ─────────────────────────────────────────────────────────── */
+/* -- The library ----------------------------------------------------------- */
 
 #include <lh/os/system/posix/x11/fields.h>
 

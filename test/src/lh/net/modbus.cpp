@@ -6,7 +6,7 @@
 
 #include <cstdio>
 
-/* ── CRC ─────────────────────────────────────────────────────────────────────
+/* -- CRC -------------------------------------------------------------------
    One external anchor: the check value the specification publishes, for the nine
    digits and nothing else. The string has to be exactly "123456789" — an "ABCD"
    in front of it is still a perfectly good string to checksum and a completely
@@ -28,7 +28,7 @@ TEST(lh_mb, crc16_of_nothing_is_the_seed_and_not_zero)
     EXPECT_EQ(lh_mb_crc16(lh_null, 8), (lh_u16_t)0xFFFF);
 }
 
-/* ── Frames ────────────────────────────────────────────────────────────────────
+/* -- Frames ----------------------------------------------------------------
    The bytes of a request are asserted directly. Its CRC is **not** asserted as a
    constant, because a constant here is a number remembered rather than derived —
    and a remembered number is how this file came to claim a frame was 0xF5C8 when
@@ -108,7 +108,7 @@ TEST(lh_mb, a_write_of_many_stops_at_123_registers_and_not_at_the_read_limit)
         << "and the read limit is not the write limit";
 }
 
-/* ── Write one register (0x06) ────────────────────────────────────────────────
+/* -- Write one register (0x06) ---------------------------------------------
    Written out byte by byte from the specification, not round-tripped through our
    own builder: 0x1234 to register 10 is `06 00 0A 12 34`, and the device answers
    with the same five bytes. */
@@ -147,7 +147,7 @@ TEST(lh_mb, the_echo_of_a_single_write_answers_it_with_the_value)
     }
 }
 
-/* ── Answers ──────────────────────────────────────────────────────────────────
+/* -- Answers ---------------------------------------------------------------
    The frame a device sends back for the read above: unit 1, code 3, two words. */
 
 static void
@@ -325,7 +325,7 @@ TEST(lh_mb, a_frame_with_a_broken_crc_is_not_read_as_its_bytes_say)
     EXPECT_EQ(values[0], (lh_u16_t)0) << "the words were taken out of a frame nobody should believe";
 }
 
-/* ── The plan ─────────────────────────────────────────────────────────────────
+/* -- The plan --------------------------------------------------------------
    This is the number the speed claim is made of, so every test here says how many
    requests a list costs — and one of them compares the planner against the
    counter, because a slide and the code that produces it disagreeing is the whole

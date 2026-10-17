@@ -59,8 +59,8 @@ lh_os_serial_init(lh_os_serial_t *self);
  *         ::lh_os_system_last_error.
  */
 lh_bool_t
-lh_os_serial_open(lh_os_serial_t *self, const lh_str_ptr name, lh_u32_t baud, lh_os_serial_parity_t parity,
-                  lh_u8_t stop_bits);
+lh_os_serial_open(lh_os_serial_t *self, const lh_str_ptr name, lh_u32_t baud,
+                  lh_os_serial_parity_t parity, lh_u8_t stop_bits);
 
 /**
  * @brief Close the port. Safe on one that is not open.

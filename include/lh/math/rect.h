@@ -36,7 +36,7 @@ typedef struct lh_math_rect lh_math_rect_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── init / from ─────────────────────────────────────────────────────────── */
+/* -- init / from ----------------------------------------------------------- */
 
 /**
  * @brief Build a `::lh_math_rect_t` from exclusive extent corners.
@@ -44,23 +44,23 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @p max is exclusive (`origin + size`). Empty size yields an empty rectangle.
  */
 lh_void
-lh_math_rect_from_extent(const lh_math_point_t *min, const lh_math_point_t *max, lh_math_rect_t *out);
+lh_math_rect_from_extent(const lh_math_point_t *min, const lh_math_point_t *max,
+                         lh_math_rect_t *out);
 
 /**
  * @brief Build a `::lh_math_rect_t` from min/max scalars (Win32-style:
  *        left, top, right, bottom — right/bottom are exclusive).
  */
 lh_void
-lh_math_rect_from_min_max(lh_math_scalar_t x_min, lh_math_scalar_t y_min,
-                          lh_math_scalar_t x_max, lh_math_scalar_t y_max,
-                          lh_math_rect_t *out);
+lh_math_rect_from_min_max(lh_math_scalar_t x_min, lh_math_scalar_t y_min, lh_math_scalar_t x_max,
+                          lh_math_scalar_t y_max, lh_math_rect_t *out);
 
 /**
  * @brief Fill @p self from origin coordinates and extents.
  */
 lh_void
-lh_math_rect_init(lh_math_rect_t *self, lh_math_scalar_t x, lh_math_scalar_t y, lh_math_scalar_t width,
-                  lh_math_scalar_t height);
+lh_math_rect_init(lh_math_rect_t *self, lh_math_scalar_t x, lh_math_scalar_t y,
+                  lh_math_scalar_t width, lh_math_scalar_t height);
 
 /**
  * @brief Fill @p self from @p origin and @p size.
@@ -74,7 +74,7 @@ lh_math_rect_init_origin_size(lh_math_rect_t *self, lh_math_point_t origin, lh_m
 lh_void
 lh_math_rect_init_empty(lh_math_rect_t *self);
 
-/* ── Accessors ───────────────────────────────────────────────────────────── */
+/* -- Accessors ------------------------------------------------------------- */
 
 /**
  * @brief Pointer to the top-left corner of @p self.
@@ -142,7 +142,7 @@ lh_math_rect_far_min(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_math_p
 lh_void
 lh_math_rect_far_max(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_math_point_t *out);
 
-/* ── Queries ────────────────────────────────────────────────────────────── */
+/* -- Queries --------------------------------------------------------------- */
 
 /**
  * @brief Test whether @p self is empty (::lh_math_size_is_empty on its size).
@@ -199,7 +199,7 @@ lh_math_rect_is_less(const lh_math_rect_t *self, const lh_math_rect_t *other);
 lh_bool_t
 lh_math_rect_is_greater(const lh_math_rect_t *self, const lh_math_rect_t *other);
 
-/* ── Set ops ────────────────────────────────────────────────────────────── */
+/* -- Set ops --------------------------------------------------------------- */
 
 /**
  * @brief Intersection of @p a and @p b. Returns ::lh_math_rect_init_empty if they do
@@ -219,14 +219,16 @@ lh_math_rect_union(const lh_math_rect_t *a, const lh_math_rect_t *b, lh_math_rec
  * @brief Translate @p self by `(@p dx, @p dy)`.
  */
 lh_void
-lh_math_rect_offset(const lh_math_rect_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy, lh_math_rect_t *out);
+lh_math_rect_offset(const lh_math_rect_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy,
+                    lh_math_rect_t *out);
 
 /**
  * @brief Inset @p self by `(@p dx, @p dy)` on each side (positive shrinks,
  *        negative grows).
  */
 lh_void
-lh_math_rect_inset(const lh_math_rect_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy, lh_math_rect_t *out);
+lh_math_rect_inset(const lh_math_rect_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy,
+                   lh_math_rect_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

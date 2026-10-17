@@ -20,10 +20,10 @@
  * @param bool_type  Type of the clip flag.
  * @param count_type Type of the round count.
  */
-#define lh_ui_canvas_state_fields(point_type, rect_type, bool_type, count_type)                     \
-    point_type offset;                                                                              \
-    rect_type clip;                                                                                 \
-    bool_type clipped;                                                                              \
+#define lh_ui_canvas_state_fields(point_type, rect_type, bool_type, count_type)                    \
+    point_type offset;                                                                             \
+    rect_type clip;                                                                                \
+    bool_type clipped;                                                                             \
     count_type round_count
 
 #endif /* LH_UI_CANVAS_STATE_FIELDS_H */

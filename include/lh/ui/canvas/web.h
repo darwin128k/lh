@@ -45,16 +45,17 @@ typedef struct lh_ui_canvas_web_glyphs
  */
 typedef struct lh_ui_canvas_web
 {
-    char *mem;         /**< The caller's buffer. Not owned. */
-    lh_usize_t cap;    /**< Size of ::mem. */
-    lh_usize_t len;    /**< Bytes written so far. */
-    unsigned width;    /**< Frame width in pixels. */
-    unsigned height;   /**< Frame height in pixels. */
-    unsigned ops;      /**< Ops recorded so far. */
-    int comma;         /**< Non-zero when the next op needs a separating comma. */
-    lh_bool_t ok;      /**< False once the buffer ran out; the frame is then unusable. */
-    lh_ui_canvas_web_glyphs_t *glyphs; /**< Which covers the reader has; ::lh_null = this frame's own. */
-    lh_bool_t glyphs_owned;            /**< @c glyphs was allocated here and is freed on close. */
+    char *mem;       /**< The caller's buffer. Not owned. */
+    lh_usize_t cap;  /**< Size of ::mem. */
+    lh_usize_t len;  /**< Bytes written so far. */
+    unsigned width;  /**< Frame width in pixels. */
+    unsigned height; /**< Frame height in pixels. */
+    unsigned ops;    /**< Ops recorded so far. */
+    int comma;       /**< Non-zero when the next op needs a separating comma. */
+    lh_bool_t ok;    /**< False once the buffer ran out; the frame is then unusable. */
+    lh_ui_canvas_web_glyphs_t
+        *glyphs;            /**< Which covers the reader has; ::lh_null = this frame's own. */
+    lh_bool_t glyphs_owned; /**< @c glyphs was allocated here and is freed on close. */
 } lh_ui_canvas_web_t;
 
 /** The table ::lh_ui_canvas_init wants. */

@@ -26,7 +26,8 @@
 #include <lh/size.h>
 
 #if !LH_LIBRARY_OPTION_OS
-#    error "lh/os/system/error/capture.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
+#    error                                                                                         \
+        "lh/os/system/error/capture.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
 #endif
 
 #ifndef LH_OS_SYSTEM_ERROR_BUFFER_SIZE
@@ -58,7 +59,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return @p dest.
  */
 lh_os_error_desc_ptr
-lh_os_system_error_format(lh_os_system_error_code_t code, lh_os_error_desc_ptr dest, lh_usize_t dest_size);
+lh_os_system_error_format(lh_os_system_error_code_t code, lh_os_error_desc_ptr dest,
+                          lh_usize_t dest_size);
 
 /**
  * @brief The calling thread's native last-error code, unformatted

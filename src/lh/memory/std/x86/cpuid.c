@@ -5,11 +5,10 @@
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2 || LH_LIBRARY_OPTION_SIMD_HAVE_AVX2
 
-#if LH_LIBRARY_OPTION_MEMORY_STD_USE_ERMS
+#    if LH_LIBRARY_OPTION_MEMORY_STD_USE_ERMS
 static lh_byte_t m_erms_copy_kind;
-#endif
+#    endif
 static lh_usize_t m_stream_cache_size;
-
 
 LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
@@ -34,8 +33,7 @@ lh_memory_std_use_erms_copy(void)
 {
     if (m_erms_copy_kind == 0U)
     {
-        m_erms_copy_kind =
-            (lh_cpu_vendor_is_intel() && lh_cpu_simd_has_erms()) ? 1U : 2U;
+        m_erms_copy_kind = (lh_cpu_vendor_is_intel() && lh_cpu_simd_has_erms()) ? 1U : 2U;
     }
     return lh_cast_static(lh_bool_t, m_erms_copy_kind == 1U);
 }

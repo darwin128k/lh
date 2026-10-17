@@ -11,7 +11,7 @@
  * @brief `XConfigureEvent`: the window moved or changed size. The head's `window` is the
  *        window reporting it (`event`); `configured` is the one that changed.
  */
-#define lh_os_system_posix_xconfigure_event_fields \
+#define lh_os_system_posix_xconfigure_event_fields                                                 \
     lh_os_system_posix_xany_event_fields;                                                          \
     lh_os_system_posix_xid_t configured;                                                           \
     int x;                                                                                         \

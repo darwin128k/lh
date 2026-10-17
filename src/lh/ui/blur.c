@@ -49,15 +49,15 @@ lh_ui_blur_window_average(const lh_ui_blur_window_t *self, lh_s32_t channel, lh_
     }
     switch (channel)
     {
-        case 0:
-            sum = self->r;
-            break;
-        case 1:
-            sum = self->g;
-            break;
-        default:
-            sum = self->b;
-            break;
+    case 0:
+        sum = self->r;
+        break;
+    case 1:
+        sum = self->g;
+        break;
+    default:
+        sum = self->b;
+        break;
     }
     lh_return_if(sum == 0 || self->a <= 0, lh_cast_static(lh_u8_t, 0));
     /* Every pixel opaque is the picture a frame actually blurs, and that average
@@ -87,13 +87,14 @@ lh_ui_blur_scratch_size(const lh_ui_rect_t *rect, lh_s32_t radius)
     {
         rows += radius * 2;
     }
-    return (lh_usize_t)lh_ui_size_get_width(size) * lh_cast_static(lh_usize_t, rows)* 4U;
+    return (lh_usize_t)lh_ui_size_get_width(size) * lh_cast_static(lh_usize_t, rows) * 4U;
 }
 
 /** Rows the column pass has to already hold: the rect, and up to @p radius rows
    past it on each side, cut to the pixmap. The scratch is addressed from @p y0. */
 static lh_void
-blur_band(const lh_ui_pixmap_t *pixmap, lh_s32_t top, lh_s32_t height, lh_s32_t radius, lh_s32_t *y0, lh_s32_t *y1)
+blur_band(const lh_ui_pixmap_t *pixmap, lh_s32_t top, lh_s32_t height, lh_s32_t radius,
+          lh_s32_t *y0, lh_s32_t *y1)
 {
     const lh_s32_t pix_h = lh_ui_pixmap_get_height(pixmap);
     lh_s32_t last = top + height + (radius > 0 ? radius : 0);
@@ -109,7 +110,8 @@ blur_band(const lh_ui_pixmap_t *pixmap, lh_s32_t top, lh_s32_t height, lh_s32_t 
 /** One row, blurred across. The window reads the pixmap, out to @p radius past
    the rect and no further than the pixmap; @p out receives only the rect. */
 static lh_void
-blur_row_x(const lh_ui_pixmap_t *pixmap, lh_s32_t y, lh_s32_t left, lh_s32_t width, lh_s32_t radius, lh_u8_t *out)
+blur_row_x(const lh_ui_pixmap_t *pixmap, lh_s32_t y, lh_s32_t left, lh_s32_t width, lh_s32_t radius,
+           lh_u8_t *out)
 {
     const lh_s32_t pix_w = lh_ui_pixmap_get_width(pixmap);
     const lh_s32_t read0 = radius > 0 && left > radius ? left - radius : 0;
@@ -199,8 +201,8 @@ lh_ui_blur_rows(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t radiu
 /** Write a blurred pixel, cut to the rounded @p shape when there is one: kept out of its square
  * corners, blended on its edge. */
 static lh_void
-blur_put(lh_ui_pixmap_t *pixmap, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color, const lh_ui_rect_t *shape,
-         lh_ui_scalar_t corner)
+blur_put(lh_ui_pixmap_t *pixmap, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color,
+         const lh_ui_rect_t *shape, lh_ui_scalar_t corner)
 {
     lh_byte_t cover;
 
@@ -232,7 +234,8 @@ lh_ui_blur_sample_color(const lh_u8_t *sample, lh_ui_color_t *out)
 }
 
 lh_void
-lh_ui_blur_window_take_samples(lh_ui_blur_window_t *self, const lh_u8_t *sample, lh_usize_t stride, lh_s32_t count)
+lh_ui_blur_window_take_samples(lh_ui_blur_window_t *self, const lh_u8_t *sample, lh_usize_t stride,
+                               lh_s32_t count)
 {
     lh_ui_color_t pixel;
 
@@ -244,7 +247,8 @@ lh_ui_blur_window_take_samples(lh_ui_blur_window_t *self, const lh_u8_t *sample,
 }
 
 lh_void
-lh_ui_blur_window_drop_samples(lh_ui_blur_window_t *self, const lh_u8_t *sample, lh_usize_t stride, lh_s32_t count)
+lh_ui_blur_window_drop_samples(lh_ui_blur_window_t *self, const lh_u8_t *sample, lh_usize_t stride,
+                               lh_s32_t count)
 {
     lh_ui_color_t pixel;
 
@@ -258,12 +262,14 @@ lh_ui_blur_window_drop_samples(lh_ui_blur_window_t *self, const lh_u8_t *sample,
 lh_void
 lh_ui_blur_window_average_color(const lh_ui_blur_window_t *self, lh_s32_t count, lh_ui_color_t *out)
 {
-    lh_ui_color_init(out, lh_ui_blur_window_average(self, 0, count), lh_ui_blur_window_average(self, 1, count),
-                     lh_ui_blur_window_average(self, 2, count), lh_ui_blur_window_average(self, 3, count));
+    lh_ui_color_init(
+        out, lh_ui_blur_window_average(self, 0, count), lh_ui_blur_window_average(self, 1, count),
+        lh_ui_blur_window_average(self, 2, count), lh_ui_blur_window_average(self, 3, count));
 }
 
 lh_void
-lh_ui_blur_window_span(lh_s32_t at, lh_s32_t radius, lh_s32_t lo, lh_s32_t hi, lh_s32_t *win0, lh_s32_t *win1)
+lh_ui_blur_window_span(lh_s32_t at, lh_s32_t radius, lh_s32_t lo, lh_s32_t hi, lh_s32_t *win0,
+                       lh_s32_t *win1)
 {
     lh_assert_runtime_ref(win0);
     lh_assert_runtime_ref(win1);
@@ -272,8 +278,9 @@ lh_ui_blur_window_span(lh_s32_t at, lh_s32_t radius, lh_s32_t lo, lh_s32_t hi, l
 }
 
 lh_bool_t
-lh_ui_blur_pass_init(const lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t radius, const lh_u8_t *scratch,
-                     const lh_ui_rect_t *shape, lh_ui_scalar_t corner, lh_ui_blur_pass_t *out)
+lh_ui_blur_pass_init(const lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t radius,
+                     const lh_u8_t *scratch, const lh_ui_rect_t *shape, lh_ui_scalar_t corner,
+                     lh_ui_blur_pass_t *out)
 {
     const lh_ui_point_t *origin = lh_ui_rect_get_origin_as_const(rect);
     const lh_ui_size_t *size = lh_ui_rect_get_size_as_const(rect);
@@ -285,10 +292,11 @@ lh_ui_blur_pass_init(const lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_
     out->width = lh_ui_size_get_width(size);
     out->height = lh_ui_size_get_height(size);
     out->radius = radius;
-    out->corner =
-        lh_null_ne(shape) && corner > lh_ui_scalar(0) ? lh_ui_radius_clamp(shape, corner) : lh_ui_scalar(0);
+    out->corner = lh_null_ne(shape) && corner > lh_ui_scalar(0) ? lh_ui_radius_clamp(shape, corner)
+                                                                : lh_ui_scalar(0);
     out->shape = out->corner > lh_ui_scalar(0) ? shape : lh_null;
-    lh_return_if(radius < 0 || lh_null_eq(scratch) || out->width <= 0 || out->height <= 0, lh_bool_false);
+    lh_return_if(radius < 0 || lh_null_eq(scratch) || out->width <= 0 || out->height <= 0,
+                 lh_bool_false);
     blur_band(pixmap, out->top, out->height, radius, lh_addr_of(out->y0), lh_addr_of(out->y1));
     return lh_bool_true;
 }
@@ -307,33 +315,37 @@ lh_ui_blur_column(lh_ui_pixmap_t *pixmap, const lh_ui_blur_pass_t *pass, lh_s32_
     lh_s32_t next1;
     lh_s32_t y;
 
-    lh_ui_blur_window_span(pass->top, pass->radius, pass->y0, pass->y1, lh_addr_of(win0), lh_addr_of(win1));
-    lh_ui_blur_window_take_samples(lh_addr_of(sum), column + lh_cast_static(lh_usize_t, win0 - pass->y0) * stride,
+    lh_ui_blur_window_span(pass->top, pass->radius, pass->y0, pass->y1, lh_addr_of(win0),
+                           lh_addr_of(win1));
+    lh_ui_blur_window_take_samples(lh_addr_of(sum),
+                                   column + lh_cast_static(lh_usize_t, win0 - pass->y0) * stride,
                                    stride, win1 - win0);
     for (y = pass->top; y < pass->top + pass->height; ++y)
     {
         lh_ui_blur_window_average_color(lh_addr_of(sum), win1 - win0, lh_addr_of(out));
         blur_put(pixmap, pass->left + x, y, lh_addr_of(out), pass->shape, pass->corner);
-        lh_ui_blur_window_span(y + 1, pass->radius, pass->y0, pass->y1, lh_addr_of(next0), lh_addr_of(next1));
-        lh_ui_blur_window_drop_samples(lh_addr_of(sum),
-                                       column + lh_cast_static(lh_usize_t, win0 - pass->y0) * stride, stride,
-                                       next0 - win0);
-        lh_ui_blur_window_take_samples(lh_addr_of(sum),
-                                       column + lh_cast_static(lh_usize_t, win1 - pass->y0) * stride, stride,
-                                       next1 - win1);
+        lh_ui_blur_window_span(y + 1, pass->radius, pass->y0, pass->y1, lh_addr_of(next0),
+                               lh_addr_of(next1));
+        lh_ui_blur_window_drop_samples(
+            lh_addr_of(sum), column + lh_cast_static(lh_usize_t, win0 - pass->y0) * stride, stride,
+            next0 - win0);
+        lh_ui_blur_window_take_samples(
+            lh_addr_of(sum), column + lh_cast_static(lh_usize_t, win1 - pass->y0) * stride, stride,
+            next1 - win1);
         win0 = lh_math_max(win0, next0);
         win1 = lh_math_max(win1, next1);
     }
 }
 
 lh_void
-lh_ui_blur_columns(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t radius, const lh_u8_t *scratch,
-                   const lh_ui_rect_t *shape, lh_ui_scalar_t corner)
+lh_ui_blur_columns(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t radius,
+                   const lh_u8_t *scratch, const lh_ui_rect_t *shape, lh_ui_scalar_t corner)
 {
     lh_ui_blur_pass_t pass;
     lh_s32_t x;
 
-    lh_return_if(!lh_ui_blur_pass_init(pixmap, rect, radius, scratch, shape, corner, lh_addr_of(pass)));
+    lh_return_if(
+        !lh_ui_blur_pass_init(pixmap, rect, radius, scratch, shape, corner, lh_addr_of(pass)));
     for (x = 0; x < pass.width; ++x)
     {
         lh_ui_blur_column(pixmap, lh_addr_of(pass), x);
@@ -341,7 +353,8 @@ lh_ui_blur_columns(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_s32_t ra
 }
 
 lh_void
-lh_ui_blur_rect(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_u8_t *scratch)
+lh_ui_blur_rect(lh_ui_pixmap_t *pixmap, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
+                lh_u8_t *scratch)
 {
     lh_ui_rect_t bounds;
     lh_ui_pixmap_get_bounds(pixmap, lh_addr_of(bounds));

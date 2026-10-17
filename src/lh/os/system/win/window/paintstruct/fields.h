@@ -19,12 +19,12 @@
  * @param rect_type ::lh_os_system_win_rect_t.
  * @param byte_type `BYTE`, for the 32 reserved bytes.
  */
-#define lh_os_system_win_paintstruct_fields(hdc_type, bool_type, rect_type, byte_type)            \
-    hdc_type hdc;                                                                                 \
-    bool_type fErase;                                                                             \
-    rect_type rcPaint;                                                                            \
-    bool_type fRestore;                                                                           \
-    bool_type fIncUpdate;                                                                         \
+#define lh_os_system_win_paintstruct_fields(hdc_type, bool_type, rect_type, byte_type)             \
+    hdc_type hdc;                                                                                  \
+    bool_type fErase;                                                                              \
+    rect_type rcPaint;                                                                             \
+    bool_type fRestore;                                                                            \
+    bool_type fIncUpdate;                                                                          \
     byte_type rgbReserved[32]
 
 #endif /* LH_SRC_OS_SYSTEM_WIN_WINDOW_PAINTSTRUCT_FIELDS_H */

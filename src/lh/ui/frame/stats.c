@@ -23,7 +23,8 @@ lh_ui_frame_stats_init(lh_ui_frame_stats_t *self)
 }
 
 lh_void
-lh_ui_frame_stats_set_on_frame(lh_ui_frame_stats_t *self, lh_ui_frame_stats_on_frame_cb cb, lh_ptr context)
+lh_ui_frame_stats_set_on_frame(lh_ui_frame_stats_t *self, lh_ui_frame_stats_on_frame_cb cb,
+                               lh_ptr context)
 {
     lh_assert_runtime_ref(self);
     self->on_frame = cb;

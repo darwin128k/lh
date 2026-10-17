@@ -43,7 +43,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return Characters consumed from @p str, or 0 on failure.
  */
 lh_usize_t
-lh_str_ptr_parse_text_v(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt, va_list args);
+lh_str_ptr_parse_text_v(const lh_str_ptr str, lh_usize_t str_size, const lh_str_ptr fmt,
+                        va_list args);
 
 /**
  * @brief Parse @p str against @p fmt and the following destinations.

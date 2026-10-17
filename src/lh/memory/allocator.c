@@ -22,7 +22,8 @@ lh_memory_allocator_set_dealloc_cb(lh_memory_allocator_t *self,
 }
 
 lh_void
-lh_memory_allocator_set_realloc_cb(lh_memory_allocator_t *self, lh_memory_allocator_realloc_cb realloc_cb)
+lh_memory_allocator_set_realloc_cb(lh_memory_allocator_t *self,
+                                   lh_memory_allocator_realloc_cb realloc_cb)
 {
     lh_assert_runtime_ref(self);
     self->realloc_cb = realloc_cb;
@@ -139,13 +140,15 @@ lh_memory_allocator_realloc(lh_memory_allocator_t *self, lh_ptr old_ptr, lh_usiz
     if (lh_ptr_is_set(realloc_cb))
     {
         /* Native realloc may extend the block in place — no copy at all. */
-        lh_ptr grown = realloc_cb(lh_memory_allocator_get_context(self), old_ptr, old_size, new_size);
+        lh_ptr grown =
+            realloc_cb(lh_memory_allocator_get_context(self), old_ptr, old_size, new_size);
         lh_runtime_check_ifn(grown, lh_runtime_error_code_memory_not_allocated);
 #if (LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_INIT_ALLOCATED == LH_LIBRARY_OPTION_ON)
         /* Same promise as lh_memory_allocator_alloc: new bytes read as zero. */
         if (lh_math_gt(new_size, old_size))
         {
-            lh_memory_set(lh_ptr_add_by_offset_unsafe(lh_void, grown, old_size), lh_math_sub(new_size, old_size), 0);
+            lh_memory_set(lh_ptr_add_by_offset_unsafe(lh_void, grown, old_size),
+                          lh_math_sub(new_size, old_size), 0);
         }
 #endif
         return grown;

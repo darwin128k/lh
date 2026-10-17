@@ -10,7 +10,7 @@
 #include <lh/memory/std.h>
 #include <lh/util/return.h>
 
-/* ── Framing ──────────────────────────────────────────────────────────────────
+/* -- Framing ---------------------------------------------------------------
    The PDU is the part that is the same everywhere: function code, then data. The
    framing is the part that is not — a serial line has no header and ends a frame
    with a CRC, a network has a header with a length in it and no CRC. */
@@ -23,7 +23,8 @@ lh_mb_encode(lh_mb_framing_t framing, lh_u8_t unit, lh_u16_t tx, lh_byte_cptr pd
 
     if (framing == lh_mb_framing_mbap)
     {
-        lh_return_if(cap < lh_cast_static(lh_u16_t, (LH_MB_MBAP_HEAD + pdu_length)), lh_cast_static(lh_u16_t, 0));
+        lh_return_if(cap < lh_cast_static(lh_u16_t, (LH_MB_MBAP_HEAD + pdu_length)),
+                     lh_cast_static(lh_u16_t, 0));
         /* Transaction id, protocol id (0 is Modbus), length, unit. The length is
            everything after itself: the unit and the PDU, and **not** the six bytes
            before it. A length that counts the wrong thing is a frame no device
@@ -81,14 +82,14 @@ rtu_length(lh_byte_cptr frame, lh_u16_t have, lh_u8_t fc)
     }
     switch (fc)
     {
-        case LH_MB_FC_READ_HOLDING:
-        case LH_MB_FC_READ_INPUT:
-            return (lh_u16_t)(5 + frame[2]); /* unit, code, byte count, words, CRC */
-        case LH_MB_FC_WRITE_ONE:
-        case LH_MB_FC_WRITE_MANY:
-            return 8; /* the write echoes its own header back */
-        default:
-            return 0; /* a code this program never sent */
+    case LH_MB_FC_READ_HOLDING:
+    case LH_MB_FC_READ_INPUT:
+        return (lh_u16_t)(5 + frame[2]); /* unit, code, byte count, words, CRC */
+    case LH_MB_FC_WRITE_ONE:
+    case LH_MB_FC_WRITE_MANY:
+        return 8; /* the write echoes its own header back */
+    default:
+        return 0; /* a code this program never sent */
     }
 }
 
@@ -125,7 +126,7 @@ lh_mb_frame_length(lh_mb_framing_t framing, lh_byte_cptr frame, lh_u16_t have, l
         {
             return 0; /* protocol id 0 is Modbus; anything else is not a frame we can size */
         }
-        length = lh_cast_static(lh_u16_t, ((lh_cast_static(lh_u16_t, frame[4])<< 8) | frame[5]));
+        length = lh_cast_static(lh_u16_t, ((lh_cast_static(lh_u16_t, frame[4]) << 8) | frame[5]));
         if (length < 2 || length > lh_cast_static(lh_u16_t, (LH_MB_ADU_MAX - LH_MB_MBAP_HEAD + 1)))
         {
             /* Unit and a function code at least, and no more than the buffer holds.
@@ -175,7 +176,8 @@ lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, lh_byte_cptr frame, lh_u16_t
         return lh_bool_false; /* a good frame for another unit on the same line */
     }
     if (lh_mb_crc16(frame, lh_cast_static(lh_u16_t, (length - 2))) !=
-        lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, frame[length - 1])<< 8 | frame[length - 2])))
+        lh_cast_static(lh_u16_t,
+                       (lh_cast_static(lh_u16_t, frame[length - 1]) << 8 | frame[length - 2])))
     {
         return lh_bool_false;
     }
@@ -184,7 +186,7 @@ lh_mb_decode(lh_mb_framing_t framing, lh_u8_t unit, lh_byte_cptr frame, lh_u16_t
     return lh_bool_true;
 }
 
-/* ── A link ───────────────────────────────────────────────────────────────── */
+/* -- A link ---------------------------------------------------------------- */
 
 lh_void
 lh_mb_link_init(lh_mb_link_t *self, const lh_io_stream_t *stream, lh_mb_framing_t framing,
@@ -274,7 +276,8 @@ lh_mb_link_consume(lh_mb_link_t *self, lh_u16_t n)
         self->held = 0;
         return;
     }
-    lh_memory_std_move(self->frame, lh_addr_of(self->frame[n]), lh_cast_static(lh_usize_t, (self->held - n)));
+    lh_memory_std_move(self->frame, lh_addr_of(self->frame[n]),
+                       lh_cast_static(lh_usize_t, (self->held - n)));
     self->held = lh_cast_static(lh_u16_t, (self->held - n));
 }
 
@@ -303,7 +306,8 @@ lh_mb_link_send(lh_mb_link_t *self, lh_byte_cptr pdu, lh_u16_t pdu_length, lh_u1
     {
         return lh_bool_false;
     }
-    wrote = lh_io_stream_write(lh_addr_of(self->stream), out, lh_cast_static(lh_usize_t, pdu_length));
+    wrote =
+        lh_io_stream_write(lh_addr_of(self->stream), out, lh_cast_static(lh_usize_t, pdu_length));
     if (wrote == LH_IO_PENDING)
     {
         /* Nothing went out: the send buffer is full for the moment. Not a fault --
@@ -365,7 +369,8 @@ lh_mb_link_ask(lh_mb_link_t *self, lh_u16_t address, lh_u16_t count)
        holding 0x04 and calls it somebody else's frame. It looked like a device
        answering the wrong question, which is the most expensive kind of bug to
        chase and the least likely — the answer was fine, the reader was wrong. */
-    pdu_length = lh_mb_build_pdu_read(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), self->fc, address, count);
+    pdu_length =
+        lh_mb_build_pdu_read(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), self->fc, address, count);
     return lh_mb_link_send(self, pdu, pdu_length, address, count, self->fc);
 }
 
@@ -377,9 +382,10 @@ lh_mb_link_write(lh_mb_link_t *self, lh_u16_t address, const lh_u16_t *values, l
     lh_assert_runtime_ref(self);
     lh_return_ifn(self->state == lh_cast_static(lh_u8_t, lh_mb_link_idle), lh_bool_false);
     lh_return_ifn(lh_null_ne(values) && count > 0, lh_bool_false);
-    return lh_mb_link_send(self, pdu,
-                           lh_mb_build_pdu_write(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), address, values, count),
-                           address, count, LH_MB_FC_WRITE_MANY);
+    return lh_mb_link_send(
+        self, pdu,
+        lh_mb_build_pdu_write(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), address, values, count),
+        address, count, LH_MB_FC_WRITE_MANY);
 }
 
 lh_bool_t
@@ -389,7 +395,9 @@ lh_mb_link_write_one(lh_mb_link_t *self, lh_u16_t address, lh_u16_t value)
 
     lh_assert_runtime_ref(self);
     lh_return_ifn(self->state == lh_cast_static(lh_u8_t, lh_mb_link_idle), lh_bool_false);
-    lh_return_ifn(lh_mb_link_send(self, pdu, lh_mb_build_pdu_write_one(pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), address, value),
+    lh_return_ifn(lh_mb_link_send(self, pdu,
+                                  lh_mb_build_pdu_write_one(
+                                      pdu, lh_cast_static(lh_u16_t, sizeof(pdu)), address, value),
                                   address, 1, LH_MB_FC_WRITE_ONE),
                   lh_bool_false);
     /* After the send, which starts a question by forgetting the last one's. */
@@ -407,13 +415,15 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
     lh_mb_status_t status;
 
     lh_assert_runtime_ref(self);
-    lh_return_ifn(self->state == lh_cast_static(lh_u8_t, lh_mb_link_waiting), lh_cast_static(lh_mb_link_state_t, self->state));
+    lh_return_ifn(self->state == lh_cast_static(lh_u8_t, lh_mb_link_waiting),
+                  lh_cast_static(lh_mb_link_state_t, self->state));
 
     /* Nothing to ask for when the buffer is full: it holds a whole frame at least,
        and the loop below consumes it. A read of zero bytes is not a harmless call on
        a real socket -- it returns 0, which is how a socket says the peer has
        closed. */
-    got = self->held < lh_cast_static(lh_u16_t, sizeof(self->frame))? lh_io_stream_read(lh_addr_of(self->stream), lh_addr_of(self->frame[self->held]),
+    got = self->held < lh_cast_static(lh_u16_t, sizeof(self->frame))
+              ? lh_io_stream_read(lh_addr_of(self->stream), lh_addr_of(self->frame[self->held]),
                                   lh_cast_static(lh_usize_t, (sizeof(self->frame) - self->held)))
               : LH_IO_PENDING;
     if (got == 0 || (got < 0 && got != LH_IO_PENDING))
@@ -468,7 +478,8 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
                "not yet" into "never", and that check is what stops one dead device
                from holding a place in every pass for ever. */
             const lh_u64_t now = self->now_us != lh_null ? self->now_us(self->clock) : 0;
-            if (self->now_us != lh_null && timeout_us > 0 && now - self->since_us > lh_cast_static(lh_u64_t, timeout_us))
+            if (self->now_us != lh_null && timeout_us > 0 &&
+                now - self->since_us > lh_cast_static(lh_u64_t, timeout_us))
             {
                 /* Over MBAP what has arrived of a frame is kept: if the rest of a
                    slow answer comes later, it completes the frame and the frame is
@@ -492,10 +503,12 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
            difference between a bus and a fault. The transaction id is checked
            because nothing else can tell a late answer from this one: asked for the
            same registers, it parses perfectly, and its values are stale. */
-        ours = lh_mb_decode(self->framing, self->unit, self->frame, need, pdu, lh_addr_of(pdu_length));
+        ours =
+            lh_mb_decode(self->framing, self->unit, self->frame, need, pdu, lh_addr_of(pdu_length));
         if (ours && self->framing == lh_mb_framing_mbap)
         {
-            ours = lh_cast_static(lh_bool_t, (((lh_cast_static(lh_u16_t, self->frame[0])<< 8) | self->frame[1]) == self->asked_tx));
+            ours = lh_cast_static(lh_bool_t, (((lh_cast_static(lh_u16_t, self->frame[0]) << 8) |
+                                               self->frame[1]) == self->asked_tx));
         }
         lh_mb_link_consume(self, need);
         if (ours)
@@ -518,7 +531,8 @@ lh_mb_link_poll(lh_mb_link_t *self, lh_u32_t timeout_us)
     else
     {
         status = lh_mb_parse_pdu(pdu, pdu_length, self->asked_fc, self->expected, self->values,
-                                 lh_cast_static(lh_u16_t, LH_MB_LINK_VALUES), lh_addr_of(self->got), lh_null);
+                                 lh_cast_static(lh_u16_t, LH_MB_LINK_VALUES), lh_addr_of(self->got),
+                                 lh_null);
     }
     self->reason = status;
     if (status != lh_mb_status_ok && status != lh_mb_status_partial)
@@ -554,7 +568,8 @@ const lh_u16_t *
 lh_mb_link_take(lh_mb_link_t *self, lh_u16_t *count)
 {
     lh_assert_runtime_ref(self);
-    lh_return_ifn(self->state == lh_cast_static(lh_u8_t, lh_mb_link_answered), lh_ptr_ccast(lh_u16_t, lh_null));
+    lh_return_ifn(self->state == lh_cast_static(lh_u8_t, lh_mb_link_answered),
+                  lh_ptr_ccast(lh_u16_t, lh_null));
     if (count != lh_null)
     {
         lh_ptr_deref(count) = self->got;

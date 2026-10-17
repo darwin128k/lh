@@ -10,7 +10,7 @@
  * @def lh_os_system_posix_xkey_event_fields
  * @brief `XKeyEvent`: `KeyPress` and `KeyRelease`.
  */
-#define lh_os_system_posix_xkey_event_fields \
+#define lh_os_system_posix_xkey_event_fields                                                       \
     lh_os_system_posix_xany_event_fields;                                                          \
     lh_os_system_posix_xid_t root;                                                                 \
     lh_os_system_posix_xid_t subwindow;                                                            \

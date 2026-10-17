@@ -40,8 +40,8 @@ lh_ui_canvas_can_fill_mask(const struct lh_ui_canvas *self, const lh_ui_rect_t *
  *        take it (::lh_ui_canvas_can_fill_mask). True only when the slot drew.
  */
 lh_bool_t
-lh_ui_canvas_try_fill_mask(struct lh_ui_canvas *self, const lh_ui_mask_t *mask, const lh_ui_rect_t *target,
-                           const lh_ui_color_t *color);
+lh_ui_canvas_try_fill_mask(struct lh_ui_canvas *self, const lh_ui_mask_t *mask,
+                           const lh_ui_rect_t *target, const lh_ui_color_t *color);
 
 /**
  * @brief Paint @p mask over @p target (target space, the mask rect already
@@ -49,31 +49,31 @@ lh_ui_canvas_try_fill_mask(struct lh_ui_canvas *self, const lh_ui_mask_t *mask, 
  *        ::lh_ui_canvas_fill_mask_by_pixels.
  */
 lh_void
-lh_ui_canvas_fill_target_mask(struct lh_ui_canvas *self, const lh_ui_mask_t *mask, const lh_ui_rect_t *target,
-                              const lh_ui_color_t *color);
+lh_ui_canvas_fill_target_mask(struct lh_ui_canvas *self, const lh_ui_mask_t *mask,
+                              const lh_ui_rect_t *target, const lh_ui_color_t *color);
 
 /**
  * @brief Paint @p mask with its top-left pixel at (@p x0, @p y0) (target
  *        space) through `fill_rect` alone, row by row.
  */
 lh_void
-lh_ui_canvas_fill_mask_by_pixels(struct lh_ui_canvas *self, const lh_ui_mask_t *mask, lh_s32_t x0, lh_s32_t y0,
-                                 const lh_ui_color_t *color);
+lh_ui_canvas_fill_mask_by_pixels(struct lh_ui_canvas *self, const lh_ui_mask_t *mask, lh_s32_t x0,
+                                 lh_s32_t y0, const lh_ui_color_t *color);
 
 /**
  * @brief Row @p y of ::lh_ui_canvas_fill_mask_by_pixels.
  */
 lh_void
-lh_ui_canvas_fill_mask_row(struct lh_ui_canvas *self, const lh_ui_mask_t *mask, lh_s32_t x0, lh_s32_t y0,
-                           lh_s32_t y, const lh_ui_color_t *color);
+lh_ui_canvas_fill_mask_row(struct lh_ui_canvas *self, const lh_ui_mask_t *mask, lh_s32_t x0,
+                           lh_s32_t y0, lh_s32_t y, const lh_ui_color_t *color);
 
 /**
  * @brief Pixel (@p x, @p y) of the mask at (@p x0, @p y0): @p color with the
  *        coverage in its alpha; nothing where the coverage is `0`.
  */
 lh_void
-lh_ui_canvas_fill_mask_pixel(struct lh_ui_canvas *self, const lh_ui_mask_t *mask, lh_s32_t x0, lh_s32_t y0,
-                             lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color);
+lh_ui_canvas_fill_mask_pixel(struct lh_ui_canvas *self, const lh_ui_mask_t *mask, lh_s32_t x0,
+                             lh_s32_t y0, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -94,22 +94,28 @@ lh_ui_style_mix(lh_ui_scalar_t from, lh_ui_scalar_t to, lh_u32_t weight)
 /** @p from moved @p weight of the way to @p to, every channel and the alpha with them:
    a shadow fading in from nothing is a colour whose alpha grows. */
 static lh_void
-lh_ui_style_mix_color(const lh_ui_color_t *from, const lh_ui_color_t *to, lh_u32_t weight, lh_ui_color_t *out)
+lh_ui_style_mix_color(const lh_ui_color_t *from, const lh_ui_color_t *to, lh_u32_t weight,
+                      lh_ui_color_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_ui_color_t result;
 
     lh_ui_color_init(lh_addr_of(result),
-                     lh_ui_color_blend_channel(lh_ui_color_get_r(to), lh_ui_color_get_r(from), weight, 255U - weight),
-                     lh_ui_color_blend_channel(lh_ui_color_get_g(to), lh_ui_color_get_g(from), weight, 255U - weight),
-                     lh_ui_color_blend_channel(lh_ui_color_get_b(to), lh_ui_color_get_b(from), weight, 255U - weight),
-                     lh_ui_color_blend_channel(lh_ui_color_get_a(to), lh_ui_color_get_a(from), weight, 255U - weight));
+                     lh_ui_color_blend_channel(lh_ui_color_get_r(to), lh_ui_color_get_r(from),
+                                               weight, 255U - weight),
+                     lh_ui_color_blend_channel(lh_ui_color_get_g(to), lh_ui_color_get_g(from),
+                                               weight, 255U - weight),
+                     lh_ui_color_blend_channel(lh_ui_color_get_b(to), lh_ui_color_get_b(from),
+                                               weight, 255U - weight),
+                     lh_ui_color_blend_channel(lh_ui_color_get_a(to), lh_ui_color_get_a(from),
+                                               weight, 255U - weight));
     lh_ptr_deref(out) = result;
 }
 
 /** @p to's paint, or -- when both ends are one colour -- the colour between them. */
 static lh_void
-lh_ui_style_mix_paint(lh_ui_paint_t *out, const lh_ui_paint_t *from, const lh_ui_paint_t *to, lh_u32_t weight)
+lh_ui_style_mix_paint(lh_ui_paint_t *out, const lh_ui_paint_t *from, const lh_ui_paint_t *to,
+                      lh_u32_t weight)
 {
     const lh_ui_color_t *a = lh_ui_paint_get_color(from);
     const lh_ui_color_t *b = lh_ui_paint_get_color(to);
@@ -155,7 +161,8 @@ lh_ui_style_set_radii(lh_ui_style_t *self, const lh_ui_radii_t *radii)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(radii);
-    lh_assert_runtime_if(lh_ui_radii_get_min(radii) < lh_ui_scalar(0), lh_runtime_error_code_invalid_argument);
+    lh_assert_runtime_if(lh_ui_radii_get_min(radii) < lh_ui_scalar(0),
+                         lh_runtime_error_code_invalid_argument);
     self->radii = lh_ptr_deref(radii);
     self->radius = lh_ui_radii_get_min(radii);
 }
@@ -173,11 +180,14 @@ lh_ui_style_init_blend(lh_ui_style_t *self, const lh_ui_style_t *from, const lh_
     lh_assert_runtime_ref(to);
     lh_ptr_deref(self) = lh_ptr_deref(to);
     lh_return_if(weight >= 255U);
-    lh_ui_style_mix_paint(lh_addr_of(self->fill), lh_addr_of(from->fill), lh_addr_of(to->fill), weight);
-    lh_ui_style_mix_paint(lh_addr_of(self->text), lh_addr_of(from->text), lh_addr_of(to->text), weight);
-    lh_ui_style_mix_paint(lh_addr_of(self->border_fill), lh_addr_of(from->border_fill), lh_addr_of(to->border_fill),
+    lh_ui_style_mix_paint(lh_addr_of(self->fill), lh_addr_of(from->fill), lh_addr_of(to->fill),
                           weight);
-    lh_ui_radii_init(lh_addr_of(radii), lh_ui_style_mix(from->radii.top_left, to->radii.top_left, weight),
+    lh_ui_style_mix_paint(lh_addr_of(self->text), lh_addr_of(from->text), lh_addr_of(to->text),
+                          weight);
+    lh_ui_style_mix_paint(lh_addr_of(self->border_fill), lh_addr_of(from->border_fill),
+                          lh_addr_of(to->border_fill), weight);
+    lh_ui_radii_init(lh_addr_of(radii),
+                     lh_ui_style_mix(from->radii.top_left, to->radii.top_left, weight),
                      lh_ui_style_mix(from->radii.top_right, to->radii.top_right, weight),
                      lh_ui_style_mix(from->radii.bottom_right, to->radii.bottom_right, weight),
                      lh_ui_style_mix(from->radii.bottom_left, to->radii.bottom_left, weight));

@@ -5,7 +5,8 @@
 
 #include <lh/ui/web/js/x.h>
 
-static lh_void js_emit_x(lh_ui_web_buf_t *self, const lh_ui_web_x_t *x);
+static lh_void
+js_emit_x(lh_ui_web_buf_t *self, const lh_ui_web_x_t *x);
 
 /** Append @p n in decimal. */
 static lh_void

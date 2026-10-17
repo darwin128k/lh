@@ -15,9 +15,9 @@
  * @param slice_type ::lh_math_slice_t.
  * @param size_type  ::lh_usize_t.
  */
-#define lh_math_view_fields(slice_type, size_type)                                                     \
-    slice_type slice;                                                                                  \
-    size_type stride;                                                                                  \
+#define lh_math_view_fields(slice_type, size_type)                                                 \
+    slice_type slice;                                                                              \
+    size_type stride;                                                                              \
     size_type count
 
 #endif /* LH_MATH_VIEW_FIELDS_H */

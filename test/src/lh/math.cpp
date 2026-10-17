@@ -47,7 +47,7 @@ TEST(ui_scalar, literal_follows_the_fpu_option)
 #endif
 }
 
-/* ── floor_div / floor_mod ─────────────────────────────────────────────── */
+/* -- floor_div / floor_mod ------------------------------------------------- */
 
 TEST(math_floor_div, rounds_toward_negative_infinity)
 {
@@ -64,7 +64,7 @@ TEST(math_floor_mod, always_has_sign_of_divisor)
     EXPECT_EQ(lh_math_floor_mod(-6, 2), 0);
 }
 
-/* ── add_over_max_exclusive ─────────────────────────────────────────────── */
+/* -- add_over_max_exclusive ------------------------------------------------ */
 
 TEST(math_add_over_max_exclusive, unsigned_no_overflow)
 {
@@ -98,7 +98,7 @@ TEST(math_add_over_max_exclusive, signed_negative_range_overflow)
     EXPECT_TRUE(lh_math_add_over_max_exclusive(-2, 1, -2)); // -1 > -2
 }
 
-/* ── add_over_max_inclusive ─────────────────────────────────────────────── */
+/* -- add_over_max_inclusive ------------------------------------------------ */
 
 TEST(math_add_over_max_inclusive, unsigned_no_overflow)
 {
@@ -136,7 +136,7 @@ TEST(math_add_over_max_inclusive, signed_negative_range_overflow)
     EXPECT_TRUE(lh_math_add_over_max_inclusive(-3, 2, -2)); // -1 >= -2
 }
 
-/* ── add_below_min_exclusive ────────────────────────────────────────────── */
+/* -- add_below_min_exclusive ----------------------------------------------- */
 
 TEST(math_add_below_min_exclusive, signed_no_underflow)
 {
@@ -157,7 +157,7 @@ TEST(math_add_below_min_exclusive, signed_positive_range)
     EXPECT_TRUE(lh_math_add_below_min_exclusive(5, -3, 3));  // 2 < 3
 }
 
-/* ── add_below_min_inclusive ────────────────────────────────────────────── */
+/* -- add_below_min_inclusive ----------------------------------------------- */
 
 TEST(math_add_below_min_inclusive, signed_no_underflow)
 {

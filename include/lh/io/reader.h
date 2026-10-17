@@ -34,7 +34,7 @@ typedef struct lh_io_reader lh_io_reader_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── set / init ──────────────────────────────────────────────────────────── */
+/* -- set / init ------------------------------------------------------------ */
 
 /**
  * @brief Copy the reader state from @p other into @p self.
@@ -85,7 +85,7 @@ lh_io_reader_init(lh_io_reader_t *self, lh_io_reader_read_cb read_cb, lh_ptr con
 lh_void
 lh_io_reader_deinit(lh_io_reader_t *self);
 
-/* ── accessors ───────────────────────────────────────────────────────────── */
+/* -- accessors ------------------------------------------------------------- */
 
 /**
  * @brief Get the current read callback from @p self.
@@ -103,7 +103,7 @@ lh_io_reader_get_read_cb(const lh_io_reader_t *self);
 lh_ptr
 lh_io_reader_get_context(const lh_io_reader_t *self);
 
-/* ── operation ───────────────────────────────────────────────────────────── */
+/* -- operation ------------------------------------------------------------- */
 
 /**
  * @brief Read up to @p size bytes into @p buf via @p self's callback.

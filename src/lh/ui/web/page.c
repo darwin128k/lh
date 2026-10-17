@@ -59,7 +59,7 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
         lh_ptr_deref(out_len) = 0u;
     }
 
-    /* ── markup tree (construct, then serialize) ──────────────────────────── */
+    /* -- markup tree (construct, then serialize) ------------------------------- */
     lh_ui_web_html_doctype(lh_addr_of(doc_type));
     lh_ui_web_html_attr("lang", "ru", lh_addr_of(attr_lang));
     html_attrs[0] = attr_lang;
@@ -67,21 +67,25 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
 
     lh_ui_web_html_attr("charset", "utf-8", lh_addr_of(attr_charset));
     meta_cs_attrs[0] = attr_charset;
-    lh_ui_web_html_tag("meta", meta_cs_attrs, 1u, lh_null, 0u, lh_bool_true, lh_addr_of(el_meta_cs));
+    lh_ui_web_html_tag("meta", meta_cs_attrs, 1u, lh_null, 0u, lh_bool_true,
+                       lh_addr_of(el_meta_cs));
 
     lh_ui_web_html_attr("name", "viewport", lh_addr_of(attr_vp_name));
-    lh_ui_web_html_attr("content", "width=device-width,initial-scale=1", lh_addr_of(attr_vp_content));
+    lh_ui_web_html_attr("content", "width=device-width,initial-scale=1",
+                        lh_addr_of(attr_vp_content));
     meta_vp_attrs[0] = attr_vp_name;
     meta_vp_attrs[1] = attr_vp_content;
-    lh_ui_web_html_tag("meta", meta_vp_attrs, 2u, lh_null, 0u, lh_bool_true, lh_addr_of(el_meta_vp));
+    lh_ui_web_html_tag("meta", meta_vp_attrs, 2u, lh_null, 0u, lh_bool_true,
+                       lh_addr_of(el_meta_vp));
 
     lh_ui_web_html_text("lh_ui", lh_addr_of(title_text));
     title_kids[0] = lh_addr_of(title_text);
     lh_ui_web_html_tag("title", lh_null, 0u, title_kids, 1u, lh_bool_false, lh_addr_of(el_title));
 
     lh_ui_web_html_raw("html,body{margin:0;height:100%;background:#edf0f5;overflow:hidden}"
-        "#c{display:block;position:absolute;cursor:pointer;outline:none}"
-        "#v3d{position:absolute;display:none;pointer-events:none}", lh_addr_of(style_raw));
+                       "#c{display:block;position:absolute;cursor:pointer;outline:none}"
+                       "#v3d{position:absolute;display:none;pointer-events:none}",
+                       lh_addr_of(style_raw));
     style_kids[0] = lh_addr_of(style_raw);
     lh_ui_web_html_tag("style", lh_null, 0u, style_kids, 1u, lh_bool_false, lh_addr_of(el_style));
 
@@ -99,11 +103,13 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     canvas_c_attrs[1] = attr_c_w;
     canvas_c_attrs[2] = attr_c_h;
     canvas_c_attrs[3] = attr_c_tab;
-    lh_ui_web_html_tag("canvas", canvas_c_attrs, 4u, lh_null, 0u, lh_bool_false, lh_addr_of(el_canvas_c));
+    lh_ui_web_html_tag("canvas", canvas_c_attrs, 4u, lh_null, 0u, lh_bool_false,
+                       lh_addr_of(el_canvas_c));
 
     lh_ui_web_html_attr("id", "v3d", lh_addr_of(attr_v3d_id));
     canvas_v3d_attrs[0] = attr_v3d_id;
-    lh_ui_web_html_tag("canvas", canvas_v3d_attrs, 1u, lh_null, 0u, lh_bool_false, lh_addr_of(el_canvas_v3d));
+    lh_ui_web_html_tag("canvas", canvas_v3d_attrs, 1u, lh_null, 0u, lh_bool_false,
+                       lh_addr_of(el_canvas_v3d));
 
     lh_ui_web_html_tag("body", lh_null, 0u, lh_null, 0u, lh_bool_false, lh_addr_of(el_body));
     lh_ui_web_html_tag("script", lh_null, 0u, lh_null, 0u, lh_bool_false, lh_addr_of(el_script));
@@ -117,7 +123,7 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_html_open(j, lh_addr_of(el_script));
     lh_ui_web_buf_lit(j, "\n", 1u);
 
-    /* ── rgba ─────────────────────────────────────────────────────────────── */
+    /* -- rgba ------------------------------------------------------------------ */
     lh_ui_web_js_fun_open(j, "rgba", "c");
     {
         lh_ui_web_x_t xc;
@@ -169,10 +175,12 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     }
     lh_ui_web_js_fun_close(j);
 
-    lh_ui_web_js_vars(j, "atlas=[],tints={},ntint=0,fw=980,fh=620,cssS=1,lastD=null,pend=null,raf=0,v3on=0");
-    lh_ui_web_js_vars(j, "scaleMode=(/scale=fit/.test(location.search)?'fit':'layout'),lastZW=0,lastZH=0");
+    lh_ui_web_js_vars(
+        j, "atlas=[],tints={},ntint=0,fw=980,fh=620,cssS=1,lastD=null,pend=null,raf=0,v3on=0");
+    lh_ui_web_js_vars(
+        j, "scaleMode=(/scale=fit/.test(location.search)?'fit':'layout'),lastZW=0,lastZH=0");
 
-    /* ── hexv ─────────────────────────────────────────────────────────────── */
+    /* -- hexv ------------------------------------------------------------------ */
     lh_ui_web_js_fun_open(j, "hexv", "c");
     {
         lh_ui_web_x_t xc;
@@ -200,7 +208,7 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     }
     lh_ui_web_js_fun_close(j);
 
-    /* ── decodeCover ──────────────────────────────────────────────────────── */
+    /* -- decodeCover ----------------------------------------------------------- */
     lh_ui_web_js_fun_open(j, "decodeCover", "w,h,cv");
     lh_ui_web_js_var(j, "im", "document.createElement('canvas')");
     lh_ui_web_js_assign(j, "im.width", "w");
@@ -210,13 +218,14 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_js_end(j);
     lh_ui_web_js_vars(j, "g=im.getContext('2d'),id=g.createImageData(w,h),p=id.data,n=w*h,i,j,k");
     /* Pixel loop stays dense — expanding it gains nothing readable. */
-    lh_ui_web_buf_raw(j, "for(i=0,j=0;i<n;i++,j+=4){k=i*2;p[j]=p[j+1]=p[j+2]=255;"
-                        "p[j+3]=k+1<cv.length?(hexv(cv.charCodeAt(k))<<4)|hexv(cv.charCodeAt(k+1)):0;}\n");
+    lh_ui_web_buf_raw(
+        j, "for(i=0,j=0;i<n;i++,j+=4){k=i*2;p[j]=p[j+1]=p[j+2]=255;"
+           "p[j+3]=k+1<cv.length?(hexv(cv.charCodeAt(k))<<4)|hexv(cv.charCodeAt(k+1)):0;}\n");
     lh_ui_web_js_stmt(j, "g.putImageData(id,0,0)");
     lh_ui_web_js_ret(j, "im");
     lh_ui_web_js_fun_close(j);
 
-    /* ── ingest ───────────────────────────────────────────────────────────── */
+    /* -- ingest ---------------------------------------------------------------- */
     lh_ui_web_js_fun_open(j, "ingest", "d");
     lh_ui_web_js_vars(j, "ops=d.ops||[],i,op");
     lh_ui_web_js_for(j, "i=0;i<ops.length;i++");
@@ -227,7 +236,7 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_js_end(j);
     lh_ui_web_js_fun_close(j);
 
-    /* ── tint ─────────────────────────────────────────────────────────────── */
+    /* -- tint ------------------------------------------------------------------ */
     lh_ui_web_js_fun_open(j, "tint", "a,c");
     lh_ui_web_js_var(j, "t", "document.createElement('canvas')");
     lh_ui_web_js_assign(j, "t.width", "a.width");
@@ -243,7 +252,7 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_js_ret(j, "t");
     lh_ui_web_js_fun_close(j);
 
-    /* ── glyph ────────────────────────────────────────────────────────────── */
+    /* -- glyph ----------------------------------------------------------------- */
     lh_ui_web_js_fun_open(j, "glyph", "op");
     lh_ui_web_js_var(j, "c", "op.color");
     lh_ui_web_js_if(j, "typeof op.m!=='number'");
@@ -267,7 +276,7 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_js_ret(j, "t");
     lh_ui_web_js_fun_close(j);
 
-    /* ── round ────────────────────────────────────────────────────────────── */
+    /* -- round ----------------------------------------------------------------- */
     lh_ui_web_js_fun_open(j, "round", "x,r,rad");
     lh_ui_web_js_stmt(j, "x.beginPath()");
     lh_ui_web_js_if(j, "x.roundRect");
@@ -277,9 +286,10 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_js_end(j);
     lh_ui_web_js_fun_close(j);
 
-    /* ── pane3d ───────────────────────────────────────────────────────────── */
+    /* -- pane3d ---------------------------------------------------------------- */
     lh_ui_web_js_fun_open(j, "pane3d", "d");
-    lh_ui_web_js_vars(j, "v=document.getElementById('v3d'),r=d.viewport3d,c=document.getElementById('c')");
+    lh_ui_web_js_vars(
+        j, "v=document.getElementById('v3d'),r=d.viewport3d,c=document.getElementById('c')");
     lh_ui_web_js_if(j, "!r");
     lh_ui_web_js_if(j, "v3on");
     lh_ui_web_js_assign(j, "v.style.display", "'none'");
@@ -301,10 +311,11 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_js_end(j);
     lh_ui_web_js_fun_close(j);
 
-    /* ── fit ──────────────────────────────────────────────────────────────── */
+    /* -- fit ------------------------------------------------------------------- */
     lh_ui_web_js_fun_open(j, "fit", "");
-    lh_ui_web_js_vars(j, "c=document.getElementById('c'),vw=window.innerWidth,vh=window.innerHeight,"
-                         "dpr=window.devicePixelRatio||1,s,bw,bh");
+    lh_ui_web_js_vars(j,
+                      "c=document.getElementById('c'),vw=window.innerWidth,vh=window.innerHeight,"
+                      "dpr=window.devicePixelRatio||1,s,bw,bh");
     lh_ui_web_js_if(j, "scaleMode==='layout'");
     lh_ui_web_js_assign(j, "cssS", "1");
     lh_ui_web_js_assign(j, "bw", "Math.max(1,Math.round(fw*dpr))");
@@ -341,7 +352,7 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_js_ret(j, "c.getContext('2d')");
     lh_ui_web_js_fun_close(j);
 
-    /* ── play (switch stays one raw block) ────────────────────────────────── */
+    /* -- play (switch stays one raw block) ------------------------------------- */
     lh_ui_web_js_fun_open(j, "play", "d");
     lh_ui_web_js_assign(j, "lastD", "d");
     lh_ui_web_js_assign(j, "fw", "d.width");
@@ -349,21 +360,23 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_js_vars(j, "x=fit(),ops=d.ops||[],i,op,s,fs=null,dpr=window.devicePixelRatio||1");
     lh_ui_web_js_stmt(j, "x.setTransform(cssS*dpr,0,0,cssS*dpr,0,0)");
     lh_ui_web_js_stmt(j, "pane3d(d)");
-    lh_ui_web_buf_raw(j,
-                     "for(i=0;i<ops.length;i++){op=ops[i];switch(op.op){"
-                     "case 'fill_mask':{var g=glyph(op);if(g)x.drawImage(g,op.origin[0],op.origin[1]);break;}"
-                     "case 'fill_rect':s=rgba(op.color);if(s!==fs){x.fillStyle=s;fs=s;}"
-                     "x.fillRect(op.rect[0],op.rect[1],op.rect[2],op.rect[3]);break;"
-                     "case 'fill_round_rect':s=rgba(op.color);if(s!==fs){x.fillStyle=s;fs=s;}"
-                     "round(x,op.rect,op.radius||0);x.fill();break;"
-                     "case 'clear':s=rgba(op.color);if(s!==fs){x.fillStyle=s;fs=s;}x.fillRect(0,0,fw,fh);break;"
-                     "case 'shadow':x.save();x.shadowColor=rgba(op.color);x.shadowBlur=op.spread||0;"
-                     "x.shadowOffsetX=op.offset?op.offset[0]:0;x.shadowOffsetY=op.offset?op.offset[1]:0;"
-                     "x.fillStyle=rgba(op.color);round(x,op.rect,op.radius||0);x.fill();x.restore();fs=null;break;"
-                     "}}\n");
+    lh_ui_web_buf_raw(
+        j,
+        "for(i=0;i<ops.length;i++){op=ops[i];switch(op.op){"
+        "case 'fill_mask':{var g=glyph(op);if(g)x.drawImage(g,op.origin[0],op.origin[1]);break;}"
+        "case 'fill_rect':s=rgba(op.color);if(s!==fs){x.fillStyle=s;fs=s;}"
+        "x.fillRect(op.rect[0],op.rect[1],op.rect[2],op.rect[3]);break;"
+        "case 'fill_round_rect':s=rgba(op.color);if(s!==fs){x.fillStyle=s;fs=s;}"
+        "round(x,op.rect,op.radius||0);x.fill();break;"
+        "case 'clear':s=rgba(op.color);if(s!==fs){x.fillStyle=s;fs=s;}x.fillRect(0,0,fw,fh);break;"
+        "case 'shadow':x.save();x.shadowColor=rgba(op.color);x.shadowBlur=op.spread||0;"
+        "x.shadowOffsetX=op.offset?op.offset[0]:0;x.shadowOffsetY=op.offset?op.offset[1]:0;"
+        "x.fillStyle=rgba(op.color);round(x,op.rect,op.radius||0);x.fill();x.restore();fs=null;"
+        "break;"
+        "}}\n");
     lh_ui_web_js_fun_close(j);
 
-    /* ── sized / show / pos / viewSize / reportSize ───────────────────────── */
+    /* -- sized / show / pos / viewSize / reportSize ---------------------------- */
     lh_ui_web_js_fun_open(j, "sized", "d");
     {
         lh_ui_web_x_t scale;
@@ -447,8 +460,9 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
         lh_ui_web_x_id("raf", lh_addr_of(raf));
         lh_ui_web_x_un("!", lh_addr_of(raf), lh_addr_of(not_raf));
         lh_ui_web_js_if_x(j, lh_addr_of(not_raf));
-        lh_ui_web_js_assign(j, "raf",
-                            "requestAnimationFrame(function(){raf=0;var p=pend;pend=null;if(p)play(p);})");
+        lh_ui_web_js_assign(
+            j, "raf",
+            "requestAnimationFrame(function(){raf=0;var p=pend;pend=null;if(p)play(p);})");
         lh_ui_web_js_end(j);
     }
     lh_ui_web_js_fun_close(j);
@@ -618,11 +632,12 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     }
     lh_ui_web_js_fun_close(j);
 
-    lh_ui_web_js_assign(j, "window.onresize",
-                        "function(){if(scaleMode==='layout')reportSize();else if(lastD)play(lastD);}");
+    lh_ui_web_js_assign(
+        j, "window.onresize",
+        "function(){if(scaleMode==='layout')reportSize();else if(lastD)play(lastD);}");
     lh_ui_web_js_vars(j, "busy=0,rev=-1");
 
-    /* ── load / poll / emit ───────────────────────────────────────────────── */
+    /* -- load / poll / emit ---------------------------------------------------- */
     lh_ui_web_js_fun_open(j, "load", "");
     lh_ui_web_js_if(j, "busy");
     lh_ui_web_js_ret(j, "busy");
@@ -645,10 +660,12 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_js_end(j);
     lh_ui_web_js_var(j, "p", "line.split(' ')");
     lh_ui_web_js_if(j, "p[0]==='p'");
-    lh_ui_web_js_ret(j, "fetch('/ui/press?x='+p[1]+'&y='+p[2]).then(function(){rev=-1;return load();})");
+    lh_ui_web_js_ret(
+        j, "fetch('/ui/press?x='+p[1]+'&y='+p[2]).then(function(){rev=-1;return load();})");
     lh_ui_web_js_end(j);
     lh_ui_web_js_if(j, "p[0]==='r'");
-    lh_ui_web_js_ret(j, "fetch('/ui/release?x='+p[1]+'&y='+p[2]).then(function(){rev=-1;return load();})");
+    lh_ui_web_js_ret(
+        j, "fetch('/ui/release?x='+p[1]+'&y='+p[2]).then(function(){rev=-1;return load();})");
     lh_ui_web_js_end(j);
     lh_ui_web_js_if(j, "p[0]==='w'");
     lh_ui_web_js_ret(j, "fetch('/ui/wheel?x='+p[1]+'&y='+p[2]+'&dx='+p[3]+'&dy='+p[4])"
@@ -661,18 +678,20 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_js_ret(j, "fetch('/ui/text?c='+p[1]).then(function(){rev=-1;return load();})");
     lh_ui_web_js_end(j);
     lh_ui_web_js_if(j, "p[0]==='z'");
-    lh_ui_web_js_ret(j, "fetch('/ui/size?w='+p[1]+'&h='+p[2]).then(function(){rev=-1;return load();})");
+    lh_ui_web_js_ret(
+        j, "fetch('/ui/size?w='+p[1]+'&h='+p[2]).then(function(){rev=-1;return load();})");
     lh_ui_web_js_end(j);
     lh_ui_web_js_fun_close(j);
 
-    /* ── canvas handlers + websocket ──────────────────────────────────────── */
+    /* -- canvas handlers + websocket ------------------------------------------- */
     lh_ui_web_js_var(j, "c", "document.getElementById('c')");
     lh_ui_web_js_prop(j, "c", "onmousedown", "function(e){var p=pos(e);emit('p '+p.x+' '+p.y);}");
     lh_ui_web_js_prop(j, "c", "onmouseup", "function(e){var p=pos(e);emit('r '+p.x+' '+p.y);}");
-    lh_ui_web_js_prop(j, "c", "onwheel",
-                      "function(e){e.preventDefault();var p=pos(e);"
-                      "var dy=e.deltaY===0?0:(e.deltaY>0?-1:1);var dx=e.deltaX===0?0:(e.deltaX>0?-1:1);"
-                      "if(e.shiftKey&&dy){dx=dy;dy=0;}emit('w '+p.x+' '+p.y+' '+dx+' '+dy);}");
+    lh_ui_web_js_prop(
+        j, "c", "onwheel",
+        "function(e){e.preventDefault();var p=pos(e);"
+        "var dy=e.deltaY===0?0:(e.deltaY>0?-1:1);var dx=e.deltaX===0?0:(e.deltaX>0?-1:1);"
+        "if(e.shiftKey&&dy){dx=dy;dy=0;}emit('w '+p.x+' '+p.y+' '+dx+' '+dy);}");
 
     lh_ui_web_js_var(j, "keys",
                      "{Tab:1,Enter:2,Escape:3,Backspace:4,Delete:5,ArrowLeft:7,ArrowRight:8,"
@@ -711,8 +730,8 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_js_ret(j, lh_null);
     lh_ui_web_js_end(j);
     lh_ui_web_buf_raw(j, "try{sock=new WebSocket((location.protocol==='https:'?'wss://':'ws://')"
-                        "+location.host+'/ws');}\n"
-                        "catch(e){sock=null;startPoll();armRetry();return;}\n");
+                         "+location.host+'/ws');}\n"
+                         "catch(e){sock=null;startPoll();armRetry();return;}\n");
     lh_ui_web_js_prop(j, "sock", "onopen", "function(){retry=200;stopPoll();reportSize(1);}");
     lh_ui_web_js_prop(j, "sock", "onmessage", "function(ev){show(JSON.parse(ev.data));}");
     lh_ui_web_js_prop(j, "sock", "onclose", "function(){sock=null;startPoll();armRetry();}");
@@ -720,10 +739,12 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_js_fun_close(j);
 
     /* Layout: HTTP size before WS so the first frame is not 980×620. */
-    page_lit(j, "if(scaleMode==='layout'){(function(){var s=viewSize();lastZW=s.w;lastZH=s.h;"
-                "fetch('/ui/size?w='+s.w+'&h='+s.h).then(function(){rev=-1;return load();},function(){})."
-                "then(function(){openWs();},function(){openWs();});})();}\n"
-                "else{load();openWs();}\n");
+    page_lit(
+        j,
+        "if(scaleMode==='layout'){(function(){var s=viewSize();lastZW=s.w;lastZH=s.h;"
+        "fetch('/ui/size?w='+s.w+'&h='+s.h).then(function(){rev=-1;return load();},function(){})."
+        "then(function(){openWs();},function(){openWs();});})();}\n"
+        "else{load();openWs();}\n");
 
     lh_ui_web_html_close(j, lh_addr_of(el_script));
     lh_ui_web_html_close(j, lh_addr_of(el_body));

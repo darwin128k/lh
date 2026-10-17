@@ -40,9 +40,12 @@ static int lh_os_system_posix_xrender_state;
         }                                                                                          \
         *(void **)(&(table).name) = symbol;                                                        \
     } while (0)
-#define LH_OS_SYSTEM_POSIX_X11_LOAD(name) LH_OS_SYSTEM_POSIX_X11_LOAD_INTO(lh_os_system_posix_x11, name)
-#define LH_OS_SYSTEM_POSIX_XEXT_LOAD(name) LH_OS_SYSTEM_POSIX_X11_LOAD_INTO(lh_os_system_posix_xext, name)
-#define LH_OS_SYSTEM_POSIX_XRENDER_LOAD(name) LH_OS_SYSTEM_POSIX_X11_LOAD_INTO(lh_os_system_posix_xrender, name)
+#define LH_OS_SYSTEM_POSIX_X11_LOAD(name)                                                          \
+    LH_OS_SYSTEM_POSIX_X11_LOAD_INTO(lh_os_system_posix_x11, name)
+#define LH_OS_SYSTEM_POSIX_XEXT_LOAD(name)                                                         \
+    LH_OS_SYSTEM_POSIX_X11_LOAD_INTO(lh_os_system_posix_xext, name)
+#define LH_OS_SYSTEM_POSIX_XRENDER_LOAD(name)                                                      \
+    LH_OS_SYSTEM_POSIX_X11_LOAD_INTO(lh_os_system_posix_xrender, name)
 /** @} */
 
 /** Load libX11 and every symbol the backend calls; ::lh_null when it is not there. */

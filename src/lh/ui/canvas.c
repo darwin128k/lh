@@ -10,13 +10,13 @@
 #include <lh/ui/radius.h>
 #include <lh/util/return.h>
 
-/* ── Null backend ────────────────────────────────────────────────────────── */
+/* -- Null backend ---------------------------------------------------------- */
 
-const lh_ui_canvas_backend_t lh_ui_canvas_backend_null = {
-    lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null, lh_null,
-    lh_null};
+const lh_ui_canvas_backend_t lh_ui_canvas_backend_null = {lh_null, lh_null, lh_null, lh_null,
+                                                          lh_null, lh_null, lh_null, lh_null,
+                                                          lh_null, lh_null, lh_null, lh_null};
 
-/* ── Lifetime ────────────────────────────────────────────────────────────── */
+/* -- Lifetime -------------------------------------------------------------- */
 
 lh_void
 lh_ui_canvas_init(lh_ui_canvas_t *self, const lh_ui_canvas_backend_t *backend, lh_ptr context)
@@ -63,7 +63,7 @@ lh_ui_canvas_deinit(lh_ui_canvas_t *self)
     lh_ui_canvas_init(self, lh_null, lh_null);
 }
 
-/* ── Accessors ───────────────────────────────────────────────────────────── */
+/* -- Accessors ------------------------------------------------------------- */
 
 lh_void
 lh_ui_canvas_set_backend(lh_ui_canvas_t *self, const lh_ui_canvas_backend_t *backend)
@@ -117,7 +117,7 @@ lh_ui_canvas_add_damage(lh_ui_canvas_t *self, const lh_ui_rect_t *rect)
        part of the target this frame covers. */
     lh_ui_rect_t drawn;
     lh_ui_rect_offset(rect, lh_ui_point_get_x(lh_addr_of(self->frame_at)),
-                                                 lh_ui_point_get_y(lh_addr_of(self->frame_at)), lh_addr_of(drawn));
+                      lh_ui_point_get_y(lh_addr_of(self->frame_at)), lh_addr_of(drawn));
 
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(rect);
@@ -170,14 +170,15 @@ lh_ui_canvas_damage_in(const lh_ui_rect_t *area, const lh_ui_rect_t *damage, lh_
     lh_ptr_deref(out) = part;
 }
 
-/* ── Offset and clip ─────────────────────────────────────────────────────── */
+/* -- Offset and clip ------------------------------------------------------- */
 
 lh_bool_t
 lh_ui_canvas_is_cutting(const lh_ui_canvas_t *self)
 {
     lh_assert_runtime_ref(self);
     lh_return_if(!self->state.clipped, lh_bool_false);
-    return lh_null_eq(self->backend) || lh_null_eq(self->backend->set_clip) ? lh_bool_true : lh_bool_false;
+    return lh_null_eq(self->backend) || lh_null_eq(self->backend->set_clip) ? lh_bool_true
+                                                                            : lh_bool_false;
 }
 
 const lh_ui_canvas_clip_t *
@@ -185,7 +186,8 @@ lh_ui_canvas_describe_clip(const lh_ui_canvas_t *self, lh_ui_canvas_clip_t *out)
 {
     lh_assert_runtime_ref(self);
     lh_return_if(!self->state.clipped, lh_null);
-    lh_ui_canvas_clip_init(out, lh_addr_of(self->state.clip), self->rounds, self->state.round_count);
+    lh_ui_canvas_clip_init(out, lh_addr_of(self->state.clip), self->rounds,
+                           self->state.round_count);
     return out;
 }
 
@@ -200,7 +202,8 @@ lh_void
 lh_ui_canvas_save(lh_ui_canvas_t *self)
 {
     lh_assert_runtime_ref(self);
-    lh_assert_runtime_if(self->depth >= LH_LIBRARY_OPTION_UI_CANVAS_DEPTH, lh_runtime_error_code_overflow);
+    lh_assert_runtime_if(self->depth >= LH_LIBRARY_OPTION_UI_CANVAS_DEPTH,
+                         lh_runtime_error_code_overflow);
     self->saved[self->depth] = self->state;
     ++self->depth;
 }
@@ -221,7 +224,8 @@ lh_ui_canvas_add_round(lh_ui_canvas_t *self, const lh_ui_rect_t *clip_rect, lh_u
 
     lh_return_if(lh_null_eq(clip_rect) || radius <= lh_ui_scalar(0));
     lh_ui_canvas_state_to_target(lh_addr_of(self->state), clip_rect, lh_addr_of(target));
-    lh_ui_canvas_clip_round_init(self->rounds + self->state.round_count, lh_addr_of(target), radius);
+    lh_ui_canvas_clip_round_init(self->rounds + self->state.round_count, lh_addr_of(target),
+                                 radius);
     ++self->state.round_count;
 }
 
@@ -272,8 +276,8 @@ lh_ui_canvas_sync_clip(lh_ui_canvas_t *self, const lh_ui_canvas_state_t *before)
 }
 
 lh_void
-lh_ui_canvas_push_round(lh_ui_canvas_t *self, lh_ui_point_t offset_delta, const lh_ui_rect_t *clip_rect,
-                        lh_ui_scalar_t radius)
+lh_ui_canvas_push_round(lh_ui_canvas_t *self, lh_ui_point_t offset_delta,
+                        const lh_ui_rect_t *clip_rect, lh_ui_scalar_t radius)
 {
     lh_ui_canvas_save(self);
     lh_ui_canvas_add_round(self, clip_rect, radius);
@@ -299,7 +303,7 @@ lh_ui_canvas_pop(lh_ui_canvas_t *self)
     lh_ui_canvas_sync_clip(self, lh_addr_of(dropped));
 }
 
-/* ── Frame ───────────────────────────────────────────────────────────────── */
+/* -- Frame ----------------------------------------------------------------- */
 
 lh_void
 lh_ui_canvas_begin(lh_ui_canvas_t *self)
@@ -332,7 +336,8 @@ lh_ui_canvas_begin_area(lh_ui_canvas_t *self, const lh_ui_rect_t *area)
     self->frame_at = lh_ptr_deref(at);
     /* (0, 0) of the buffer is the area corner, so the space the backend draws
        in is the target space moved by minus the area origin. */
-    lh_ui_point_init(lh_addr_of(origin), lh_math_neg(lh_ui_point_get_x(at)), lh_math_neg(lh_ui_point_get_y(at)));
+    lh_ui_point_init(lh_addr_of(origin), lh_math_neg(lh_ui_point_get_x(at)),
+                     lh_math_neg(lh_ui_point_get_y(at)));
     lh_ui_canvas_state_set_origin(lh_addr_of(self->state), origin);
     lh_ui_rects_init(lh_addr_of(self->drawn));
     self->backend->begin_area(self->context, area);
@@ -368,10 +373,11 @@ lh_ui_canvas_clear(lh_ui_canvas_t *self, const lh_ui_color_t *color)
     lh_ui_canvas_add_damage(self, lh_addr_of(area));
 }
 
-/* ── Fills ───────────────────────────────────────────────────────────────── */
+/* -- Fills ----------------------------------------------------------------- */
 
 lh_void
-lh_ui_canvas_send_box(lh_ui_canvas_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
+lh_ui_canvas_send_box(lh_ui_canvas_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                      const lh_ui_color_t *color)
 {
     lh_ui_rect_t box;
 
@@ -381,8 +387,8 @@ lh_ui_canvas_send_box(lh_ui_canvas_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y
 }
 
 lh_void
-lh_ui_canvas_send_clip_pixel(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x, lh_s32_t y,
-                             const lh_ui_color_t *color)
+lh_ui_canvas_send_clip_pixel(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x,
+                             lh_s32_t y, const lh_ui_color_t *color)
 {
     const lh_byte_t kept = lh_ui_canvas_clip_coverage(clip, x, y);
     lh_ui_color_t edge;
@@ -393,8 +399,8 @@ lh_ui_canvas_send_clip_pixel(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *cl
 }
 
 lh_void
-lh_ui_canvas_send_clip_pixels(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x0, lh_s32_t x1,
-                              lh_s32_t y, const lh_ui_color_t *color)
+lh_ui_canvas_send_clip_pixels(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x0,
+                              lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
 {
     for (; x0 < x1; ++x0)
     {
@@ -403,8 +409,8 @@ lh_ui_canvas_send_clip_pixels(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *c
 }
 
 lh_void
-lh_ui_canvas_send_clip_row(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x0, lh_s32_t x1,
-                           lh_s32_t y, const lh_ui_color_t *color)
+lh_ui_canvas_send_clip_row(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip, lh_s32_t x0,
+                           lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color)
 {
     lh_s32_t mid0;
     lh_s32_t mid1;
@@ -416,7 +422,8 @@ lh_ui_canvas_send_clip_row(lh_ui_canvas_t *self, const lh_ui_canvas_clip_t *clip
 }
 
 lh_void
-lh_ui_canvas_send_clip_rows(lh_ui_canvas_t *self, const lh_ui_rect_t *cut, const lh_ui_color_t *color)
+lh_ui_canvas_send_clip_rows(lh_ui_canvas_t *self, const lh_ui_rect_t *cut,
+                            const lh_ui_color_t *color)
 {
     lh_ui_canvas_clip_t clip;
     const lh_s32_t y1 = lh_ui_canvas_round_bottom(cut);
@@ -442,7 +449,8 @@ lh_ui_canvas_send_cut(lh_ui_canvas_t *self, const lh_ui_rect_t *cut, const lh_ui
 }
 
 lh_void
-lh_ui_canvas_fill_target_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *target, const lh_ui_color_t *color)
+lh_ui_canvas_fill_target_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *target,
+                              const lh_ui_color_t *color)
 {
     lh_ui_rect_t cut;
 
@@ -484,7 +492,8 @@ lh_ui_canvas_covers_rect(const lh_ui_canvas_t *self, const lh_ui_rect_t *rect)
     lh_ui_rect_t cut;
     lh_ui_canvas_state_cut(lh_addr_of(self->state), lh_addr_of(target), lh_addr_of(cut));
 
-    return !lh_ui_rect_is_empty(lh_addr_of(target)) && lh_ui_rect_eq(lh_addr_of(cut), lh_addr_of(target))
+    return !lh_ui_rect_is_empty(lh_addr_of(target)) &&
+                   lh_ui_rect_eq(lh_addr_of(cut), lh_addr_of(target))
                ? lh_bool_true
                : lh_bool_false;
 }
@@ -508,7 +517,8 @@ lh_ui_canvas_can_send_whole(const lh_ui_canvas_t *self, const lh_ui_rect_t *targ
        (unrounded) one. A rounded cut is refused as well, because a backend that
        clips knows it and a software one does not. */
     lh_return_if(!self->state.clipped, lh_bool_true);
-    return self->state.round_count == 0U && lh_ui_canvas_state_contains(lh_addr_of(self->state), target)
+    return self->state.round_count == 0U &&
+                   lh_ui_canvas_state_contains(lh_addr_of(self->state), target)
                ? lh_bool_true
                : lh_bool_false;
 }
@@ -516,7 +526,8 @@ lh_ui_canvas_can_send_whole(const lh_ui_canvas_t *self, const lh_ui_rect_t *targ
 lh_bool_t
 lh_ui_canvas_can_fill_round(const lh_ui_canvas_t *self, const lh_ui_rect_t *target)
 {
-    lh_return_if(lh_null_eq(self->backend) || lh_null_eq(self->backend->fill_round_rect), lh_bool_false);
+    lh_return_if(lh_null_eq(self->backend) || lh_null_eq(self->backend->fill_round_rect),
+                 lh_bool_false);
     /* A rounded box is a shape and not a reading: it is drawn whole and cut by
        whoever clips, so a backend that clips may have it even when the clip
        cuts it. Keeping that shortcut here and not in ::lh_ui_canvas_can_send_whole
@@ -534,8 +545,8 @@ lh_ui_canvas_try_fill_round(lh_ui_canvas_t *self, const lh_ui_rect_t *target, lh
 }
 
 lh_void
-lh_ui_canvas_fill_target_round_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *target, lh_ui_scalar_t radius,
-                                    const lh_ui_color_t *color)
+lh_ui_canvas_fill_target_round_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *target,
+                                    lh_ui_scalar_t radius, const lh_ui_color_t *color)
 {
     lh_ui_rect_t cut;
 
@@ -560,12 +571,14 @@ lh_ui_canvas_fill_round_rect(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, lh_
     lh_assert_runtime_ref(rect);
     lh_assert_runtime_ref(color);
     lh_ui_canvas_state_to_target(lh_addr_of(self->state), rect, lh_addr_of(target));
-    lh_ui_canvas_fill_target_round_rect(self, lh_addr_of(target), lh_ui_radius_clamp(rect, radius), color);
+    lh_ui_canvas_fill_target_round_rect(self, lh_addr_of(target), lh_ui_radius_clamp(rect, radius),
+                                        color);
 }
 
 lh_void
-lh_ui_canvas_shadow_fallback(lh_ui_canvas_t *self, const lh_ui_rect_t *bounds, const lh_ui_rect_t *target,
-                             lh_ui_scalar_t radius, const lh_ui_shadow_t *shadow)
+lh_ui_canvas_shadow_fallback(lh_ui_canvas_t *self, const lh_ui_rect_t *bounds,
+                             const lh_ui_rect_t *target, lh_ui_scalar_t radius,
+                             const lh_ui_shadow_t *shadow)
 {
     const lh_ui_point_t *cut_origin;
     const lh_ui_size_t *cut_size;
@@ -602,7 +615,8 @@ lh_ui_canvas_shadow_fallback(lh_ui_canvas_t *self, const lh_ui_rect_t *bounds, c
             }
             lh_ui_shadow_get_color(shadow, lh_addr_of(color));
             lh_ui_color_set_a(&color, alpha);
-            lh_ui_rect_init(lh_addr_of(pixel), lh_ui_scalar_of(x), lh_ui_scalar_of(y), lh_ui_scalar(1), lh_ui_scalar(1));
+            lh_ui_rect_init(lh_addr_of(pixel), lh_ui_scalar_of(x), lh_ui_scalar_of(y),
+                            lh_ui_scalar(1), lh_ui_scalar(1));
             lh_ui_canvas_fill_target_rect(self, lh_addr_of(pixel), &color);
         }
     }
@@ -624,7 +638,8 @@ lh_ui_canvas_shadow(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, lh_ui_scalar
     outset = lh_ui_shadow_get_outset(shadow, &target);
     lh_return_if(outset <= 0, lh_bool_false);
     corner = lh_ui_radius_clamp(&target, radius);
-    lh_ui_rect_inset(lh_addr_of(target), lh_ui_scalar_of(lh_math_neg(outset)), lh_ui_scalar_of(lh_math_neg(outset)), lh_addr_of(bounds));
+    lh_ui_rect_inset(lh_addr_of(target), lh_ui_scalar_of(lh_math_neg(outset)),
+                     lh_ui_scalar_of(lh_math_neg(outset)), lh_addr_of(bounds));
     lh_ui_canvas_add_damage(self, lh_addr_of(bounds));
     /* No `can_send_whole` here, unlike a rounded fill: a shadow reads no pixels, it
        is the box and the shadow alone, so every area that clips it draws its own
@@ -658,7 +673,8 @@ lh_ui_canvas_blur(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_t
        visible seam every strip. It says it cannot be drawn instead. */
     lh_return_if(!lh_ui_canvas_can_send_whole(self, lh_addr_of(target)), lh_bool_false);
     lh_ui_canvas_add_damage(self, lh_addr_of(target));
-    return self->backend->blur(self->context, lh_addr_of(target), blur_radius, self->scratch, self->scratch_bytes);
+    return self->backend->blur(self->context, lh_addr_of(target), blur_radius, self->scratch,
+                               self->scratch_bytes);
 }
 
 lh_bool_t
@@ -678,6 +694,7 @@ lh_ui_canvas_glass(lh_ui_canvas_t *self, const lh_ui_rect_t *rect, lh_ui_scalar_
        is a fill, and a fill that only looks like glass is worse than none. */
     lh_return_if(!lh_ui_canvas_can_send_whole(self, lh_addr_of(target)), lh_bool_false);
     lh_ui_canvas_add_damage(self, lh_addr_of(target));
-    return self->backend->glass(self->context, lh_addr_of(target), lh_ui_radius_clamp(lh_addr_of(target), corner),
-                                blur_radius, tint, self->scratch, self->scratch_bytes);
+    return self->backend->glass(self->context, lh_addr_of(target),
+                                lh_ui_radius_clamp(lh_addr_of(target), corner), blur_radius, tint,
+                                self->scratch, self->scratch_bytes);
 }

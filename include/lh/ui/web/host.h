@@ -71,8 +71,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @return ::lh_bool_false when the socket would not listen (or @p view is null).
  */
 lh_bool_t
-lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *json, lh_usize_t json_cap,
-                   lh_net_port_t port, const lh_ui_web_host_hooks_t *hooks);
+lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *json,
+                   lh_usize_t json_cap, lh_net_port_t port, const lh_ui_web_host_hooks_t *hooks);
 
 LH_COMPILER_EXTERN_C_END
 

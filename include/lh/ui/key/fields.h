@@ -17,9 +17,9 @@
  * @param bool_type ::lh_bool_t.
  * @param code_type ::lh_u32_t.
  */
-#define lh_ui_key_input_fields(key_type, bool_type, code_type)                                      \
-    key_type key;                                                                                   \
-    bool_type pressed;                                                                              \
+#define lh_ui_key_input_fields(key_type, bool_type, code_type)                                     \
+    key_type key;                                                                                  \
+    bool_type pressed;                                                                             \
     code_type code
 
 #endif /* LH_UI_KEY_FIELDS_H */

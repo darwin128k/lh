@@ -27,7 +27,8 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
 lh_wstr_ptr_is_empty(const lh_wstr_ptr text)
 {
-    return (lh_null_eq(text) || lh_ptr_deref(text) == lh_wstr_ptr_cat('\0')) ? lh_bool_true : lh_bool_false;
+    return (lh_null_eq(text) || lh_ptr_deref(text) == lh_wstr_ptr_cat('\0')) ? lh_bool_true
+                                                                             : lh_bool_false;
 }
 
 LH_COMPILER_EXTERN_C_END

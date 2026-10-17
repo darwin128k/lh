@@ -20,8 +20,8 @@
  * @param code_type    Type of the event code.
  * @param context_type Type of the per-event context.
  */
-#define lh_ui_entity_event_fields(code_type, context_type)                                          \
-    code_type code;                                                                                 \
+#define lh_ui_entity_event_fields(code_type, context_type)                                         \
+    code_type code;                                                                                \
     context_type context
 
 #endif /* LH_UI_ENTITY_EVENT_FIELDS_H */

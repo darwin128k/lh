@@ -6,8 +6,8 @@
 #include <lh/ui/toggle.h>
 #include <lh/util/return.h>
 
-const lh_ui_entity_class_t lh_ui_toggle_class = {
-    lh_ui_toggle_event, lh_addr_of(lh_ui_button_class)};
+const lh_ui_entity_class_t lh_ui_toggle_class = {lh_ui_toggle_event,
+                                                 lh_addr_of(lh_ui_button_class)};
 
 /** The looks of the state @p self is in, put on the button — which re-aims the
    entity by itself: ::lh_ui_button_set_style puts the resting one back when the
@@ -24,7 +24,7 @@ lh_ui_toggle_push_looks(lh_ui_toggle_t *self)
     lh_ui_button_set_hot_style(button, self->checked ? self->on_hot_style : self->off_hot_style);
 }
 
-/* ── Events ──────────────────────────────────────────────────────────────── */
+/* -- Events ---------------------------------------------------------------- */
 
 lh_void
 lh_ui_toggle_init(lh_ui_toggle_t *self, lh_ui_rect_t rect)
@@ -51,7 +51,7 @@ lh_ui_toggle_as_entity(lh_ui_toggle_t *self)
     return lh_ui_button_as_entity(lh_addr_of(self->button));
 }
 
-/* ── Lifetime and fields ─────────────────────────────────────────────────── */
+/* -- Lifetime and fields --------------------------------------------------- */
 
 lh_ui_button_t *
 lh_ui_toggle_as_button(lh_ui_toggle_t *self)
@@ -64,14 +64,15 @@ lh_ui_toggle_t *
 lh_ui_entity_as_toggle(lh_ui_entity_t *entity)
 {
     lh_return_if(lh_null_eq(entity), lh_null);
-    lh_return_if(!lh_ui_entity_class_is(lh_ui_entity_get_class(entity),
-                                        lh_addr_of(lh_ui_toggle_class)),
-                 lh_null);
+    lh_return_if(
+        !lh_ui_entity_class_is(lh_ui_entity_get_class(entity), lh_addr_of(lh_ui_toggle_class)),
+        lh_null);
     return lh_ptr_rcast(lh_ui_toggle_t, entity);
 }
 
 lh_void
-lh_ui_toggle_set_off_style(lh_ui_toggle_t *self, const lh_ui_style_t *rest, const lh_ui_style_t *hot)
+lh_ui_toggle_set_off_style(lh_ui_toggle_t *self, const lh_ui_style_t *rest,
+                           const lh_ui_style_t *hot)
 {
     lh_assert_runtime_ref(self);
     self->off_style = rest;
@@ -89,7 +90,7 @@ lh_ui_toggle_get_off_style(const lh_ui_toggle_t *self)
     return self->off_style;
 }
 
-/* ── Looks ───────────────────────────────────────────────────────────────── */
+/* -- Looks ----------------------------------------------------------------- */
 
 const lh_ui_style_t *
 lh_ui_toggle_get_off_hot_style(const lh_ui_toggle_t *self)
@@ -140,7 +141,7 @@ lh_ui_toggle_set_checked(lh_ui_toggle_t *self, lh_bool_t checked)
     lh_ui_toggle_push_looks(self);
 }
 
-/* ── State ───────────────────────────────────────────────────────────────── */
+/* -- State ----------------------------------------------------------------- */
 
 lh_ui_toggle_on_click_cb
 lh_ui_toggle_get_on_click(const lh_ui_toggle_t *self)
@@ -158,14 +159,13 @@ lh_ui_toggle_on_click(const lh_ui_toggle_t *self, const lh_ui_entity_event_t *ev
     /* A toggle answers with itself: what a click means here is that the state
        changed, and that is this component's business. The app is told after the
        flip, so it reads the new state rather than tracking which way it went. */
-    lh_ui_toggle_set_checked(lh_ptr_rcast(lh_ui_toggle_t, self),
-                             !lh_ui_toggle_get_checked(self));
+    lh_ui_toggle_set_checked(lh_ptr_rcast(lh_ui_toggle_t, self), !lh_ui_toggle_get_checked(self));
     on_click = lh_ui_toggle_get_on_click(self);
     lh_return_if(lh_null_eq(on_click));
     on_click(lh_ptr_rcast(lh_ui_toggle_t, self), self->click_context);
 }
 
-/* ── Click ───────────────────────────────────────────────────────────────── */
+/* -- Click ----------------------------------------------------------------- */
 
 /** @copydoc lh_ui_toggle_event(const struct lh_ui_entity *, const lh_ui_entity_event_t *) */
 lh_void

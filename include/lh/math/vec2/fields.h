@@ -12,7 +12,7 @@
  *
  * @param component_type Type of each component (::lh_math_fscalar_t).
  */
-#define lh_math_vec2_fields(component_type)                                                             \
+#define lh_math_vec2_fields(component_type)                                                        \
     component_type x;                                                                              \
     component_type y
 

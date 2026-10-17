@@ -126,7 +126,8 @@ lh_str_view_init_by_other(lh_str_view_t *self, const lh_str_view_t *other);
  *        <tt>[offset, offset + size)</tt> is outside @p self.
  */
 lh_void
-lh_str_view_from_offset(const lh_str_view_t *self, lh_uoffset_t offset, lh_usize_t size, lh_str_view_t *out);
+lh_str_view_from_offset(const lh_str_view_t *self, lh_uoffset_t offset, lh_usize_t size,
+                        lh_str_view_t *out);
 
 /**
  * @brief The characters of @p self from @p offset to its end.

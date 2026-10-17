@@ -130,7 +130,8 @@ lh_str_list_join(const lh_str_list_t *self, lh_str_t *out, lh_char_t sep);
  * Does not clear @p self first — it appends, mirroring ::lh_str_list_join.
  */
 lh_void
-lh_str_list_split_of(lh_str_list_t *self, lh_str_view_t text, const lh_str_ptr delims, lh_usize_t delim_count);
+lh_str_list_split_of(lh_str_list_t *self, lh_str_view_t text, const lh_str_ptr delims,
+                     lh_usize_t delim_count);
 
 LH_COMPILER_EXTERN_C_END
 

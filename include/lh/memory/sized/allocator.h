@@ -94,7 +94,8 @@ lh_memory_sized_allocator_dealloc(lh_memory_sized_allocator_t *self, lh_ptr ptr)
  *        The allocation callback could not allocate.
  */
 lh_ptr
-lh_memory_sized_allocator_realloc(lh_memory_sized_allocator_t *self, lh_ptr ptr, lh_usize_t new_size);
+lh_memory_sized_allocator_realloc(lh_memory_sized_allocator_t *self, lh_ptr ptr,
+                                  lh_usize_t new_size);
 
 /**
  * @brief Size, in bytes, the block at @p ptr was last allocated or resized to.

@@ -33,7 +33,7 @@
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── The wire ────────────────────────────────────────────────────────────── */
+/* -- The wire -------------------------------------------------------------- */
 
 /** @brief Function code: read holding registers. */
 #define LH_MB_FC_READ_HOLDING (lh_cast_static(lh_u8_t, 0x03))
@@ -209,8 +209,8 @@ lh_mb_build_pdu_write_one(lh_byte_ptr pdu, lh_u16_t cap, lh_u16_t address, lh_u1
  * @return What came back. @see lh_mb_status_t
  */
 lh_mb_status_t
-lh_mb_parse_pdu(const lh_byte_ptr pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect, lh_u16_t *values,
-                lh_u16_t cap, lh_u16_t *out, lh_u8_t *exception);
+lh_mb_parse_pdu(const lh_byte_ptr pdu, lh_u16_t length, lh_u8_t fc, lh_u16_t expect,
+                lh_u16_t *values, lh_u16_t cap, lh_u16_t *out, lh_u8_t *exception);
 
 /**
  * @brief Read what a device answered into @p values.
@@ -275,7 +275,7 @@ lh_mb_status_t
 lh_mb_parse_pdu_write_one(const lh_byte_ptr pdu, lh_u16_t length, lh_u16_t address, lh_u16_t value,
                           lh_u8_t *exception);
 
-/* ── The plan ────────────────────────────────────────────────────────────── */
+/* -- The plan -------------------------------------------------------------- */
 
 /**
  * @brief One register somebody wants.

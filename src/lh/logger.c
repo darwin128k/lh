@@ -92,16 +92,15 @@ lh_logger_get_context(const lh_logger_t *self)
 lh_void
 lh_logger_assign(lh_logger_t *self, const lh_logger_t *other)
 {
-    lh_logger_set(self, lh_logger_get_flags(other),
-                  lh_logger_get_emit_cb(other, lh_logger_level_emergency),
-                  lh_logger_get_emit_cb(other, lh_logger_level_alert),
-                  lh_logger_get_emit_cb(other, lh_logger_level_critical),
-                  lh_logger_get_emit_cb(other, lh_logger_level_error),
-                  lh_logger_get_emit_cb(other, lh_logger_level_warning),
-                  lh_logger_get_emit_cb(other, lh_logger_level_notice),
-                  lh_logger_get_emit_cb(other, lh_logger_level_info),
-                  lh_logger_get_emit_cb(other, lh_logger_level_debug),
-                  lh_logger_get_context(other));
+    lh_logger_set(
+        self, lh_logger_get_flags(other), lh_logger_get_emit_cb(other, lh_logger_level_emergency),
+        lh_logger_get_emit_cb(other, lh_logger_level_alert),
+        lh_logger_get_emit_cb(other, lh_logger_level_critical),
+        lh_logger_get_emit_cb(other, lh_logger_level_error),
+        lh_logger_get_emit_cb(other, lh_logger_level_warning),
+        lh_logger_get_emit_cb(other, lh_logger_level_notice),
+        lh_logger_get_emit_cb(other, lh_logger_level_info),
+        lh_logger_get_emit_cb(other, lh_logger_level_debug), lh_logger_get_context(other));
 }
 
 lh_ssize_t

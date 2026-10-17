@@ -1125,7 +1125,7 @@ TEST(memory_std_move, matches_memmove_for_large_sizes)
     }
 }
 
-/* -- the portable word kernel ------------------------------------------------
+/* -- the portable word kernel ----------------------------------------------
  *
  * lh_memory_std_copy_words is what runs when no vector unit was compiled in: on
  * ARM, RISC-V, anything but x86 it IS the copy. It is compiled and tested here on

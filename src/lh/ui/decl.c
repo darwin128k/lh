@@ -59,7 +59,8 @@ lh_ui_decl_check(const lh_ui_decl_t *decls, lh_u32_t index)
     }
     /* A child cannot exist before the thing that holds it, so a parent is a lower
        index or nothing at all. */
-    if (row->parent != LH_UI_DECL_ROOT && (row->parent < 0 || lh_cast_static(lh_u32_t, row->parent)>= index))
+    if (row->parent != LH_UI_DECL_ROOT &&
+        (row->parent < 0 || lh_cast_static(lh_u32_t, row->parent) >= index))
     {
         return lh_ui_decl_error_parent;
     }
@@ -67,7 +68,7 @@ lh_ui_decl_check(const lh_ui_decl_t *decls, lh_u32_t index)
        asked once the nodes are placed, because the answer is a property of the
        component the row builds and not of the kind it wrote. */
     if (row->kind == lh_ui_decl_kind_scrollbar &&
-        (row->as.scrollbar.box < 0 || lh_cast_static(lh_u32_t, row->as.scrollbar.box)>= index))
+        (row->as.scrollbar.box < 0 || lh_cast_static(lh_u32_t, row->as.scrollbar.box) >= index))
     {
         return lh_ui_decl_error_box;
     }
@@ -171,8 +172,9 @@ lh_ui_decl_place_row(const lh_ui_decl_t *row, lh_byte_ptr slot, lh_ui_entity_t *
 }
 
 lh_bool_t
-lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nodes, lh_byte_ptr storage,
-                 lh_u32_t bytes, lh_ui_entity_t **root, lh_ui_decl_fault_t *fault)
+lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nodes,
+                 lh_byte_ptr storage, lh_u32_t bytes, lh_ui_entity_t **root,
+                 lh_ui_decl_fault_t *fault)
 {
     lh_ui_entity_t *tree = lh_null;
     lh_u32_t roots = 0;
@@ -180,8 +182,8 @@ lh_ui_decl_build(const lh_ui_decl_t *decls, lh_u32_t count, lh_ui_entity_t **nod
     lh_u32_t index;
 
     lh_ui_decl_fault(fault, lh_ui_decl_error_none, count);
-    lh_return_if(lh_null_eq(decls) || lh_null_eq(nodes) || lh_null_eq(storage) || lh_null_eq(root) ||
-                     count == 0,
+    lh_return_if(lh_null_eq(decls) || lh_null_eq(nodes) || lh_null_eq(storage) ||
+                     lh_null_eq(root) || count == 0,
                  lh_bool_false);
 
     for (index = 0; index < count; ++index)

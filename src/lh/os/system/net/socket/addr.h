@@ -63,8 +63,8 @@ lh_os_system_net_socket_native_addr_from_ip4(lh_os_system_net_socket_native_addr
 /** Read @p native_addr back into @p addr. */
 LH_ATTRIBUTE_STATIC
 lh_void
-lh_os_system_net_socket_ip4_from_native_addr(lh_net_ip4_socket_addr_t *addr,
-                                             const lh_os_system_net_socket_native_addr_t *native_addr)
+lh_os_system_net_socket_ip4_from_native_addr(
+    lh_net_ip4_socket_addr_t *addr, const lh_os_system_net_socket_native_addr_t *native_addr)
 {
     lh_byte_cptr addr_bytes;
     lh_net_ip4_t ip;

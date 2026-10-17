@@ -20,12 +20,12 @@
  */
 typedef enum lh_ui_easing
 {
-    lh_ui_easing_ease = 0,    /**< `cubic-bezier(.25, .1, .25, 1)`: quick, then settling. */
-    lh_ui_easing_linear,      /**< The same speed throughout. */
-    lh_ui_easing_ease_in,     /**< `cubic-bezier(.42, 0, 1, 1)`: slow to start. */
-    lh_ui_easing_ease_out,    /**< `cubic-bezier(0, 0, .58, 1)`: slow to stop. */
-    lh_ui_easing_ease_in_out  /**< `cubic-bezier(.42, 0, .58, 1)`: slow at both ends. */
-} lh_ui_easing_t; /**< A curve from the start of a transition to its end. */
+    lh_ui_easing_ease = 0,   /**< `cubic-bezier(.25, .1, .25, 1)`: quick, then settling. */
+    lh_ui_easing_linear,     /**< The same speed throughout. */
+    lh_ui_easing_ease_in,    /**< `cubic-bezier(.42, 0, 1, 1)`: slow to start. */
+    lh_ui_easing_ease_out,   /**< `cubic-bezier(0, 0, .58, 1)`: slow to stop. */
+    lh_ui_easing_ease_in_out /**< `cubic-bezier(.42, 0, .58, 1)`: slow at both ends. */
+} lh_ui_easing_t;            /**< A curve from the start of a transition to its end. */
 
 LH_COMPILER_EXTERN_C_BEGIN
 

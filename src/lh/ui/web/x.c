@@ -94,7 +94,8 @@ lh_ui_web_x_idx(const lh_ui_web_x_t *obj, const lh_ui_web_x_t *ix, lh_ui_web_x_t
 }
 
 lh_void
-lh_ui_web_x_call(const lh_ui_web_x_t *fn, const lh_ui_web_x_t *const *args, lh_u16_t n, lh_ui_web_x_t *out)
+lh_ui_web_x_call(const lh_ui_web_x_t *fn, const lh_ui_web_x_t *const *args, lh_u16_t n,
+                 lh_ui_web_x_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_ui_web_x_t x;
@@ -107,7 +108,8 @@ lh_ui_web_x_call(const lh_ui_web_x_t *fn, const lh_ui_web_x_t *const *args, lh_u
 }
 
 lh_void
-lh_ui_web_x_call_id(const lh_str_ptr name, const lh_ui_web_x_t *const *args, lh_u16_t n, lh_ui_web_x_t *out)
+lh_ui_web_x_call_id(const lh_str_ptr name, const lh_ui_web_x_t *const *args, lh_u16_t n,
+                    lh_ui_web_x_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_ui_web_x_t x;
@@ -120,7 +122,8 @@ lh_ui_web_x_call_id(const lh_str_ptr name, const lh_ui_web_x_t *const *args, lh_
 }
 
 lh_void
-lh_ui_web_x_bin(const lh_ui_web_x_t *a, const lh_str_ptr op, const lh_ui_web_x_t *b, lh_ui_web_x_t *out)
+lh_ui_web_x_bin(const lh_ui_web_x_t *a, const lh_str_ptr op, const lh_ui_web_x_t *b,
+                lh_ui_web_x_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_ui_web_x_t x;
@@ -145,7 +148,8 @@ lh_ui_web_x_un(const lh_str_ptr op, const lh_ui_web_x_t *a, lh_ui_web_x_t *out)
 }
 
 lh_void
-lh_ui_web_x_tern(const lh_ui_web_x_t *c, const lh_ui_web_x_t *t, const lh_ui_web_x_t *f, lh_ui_web_x_t *out)
+lh_ui_web_x_tern(const lh_ui_web_x_t *c, const lh_ui_web_x_t *t, const lh_ui_web_x_t *f,
+                 lh_ui_web_x_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_ui_web_x_t x;
@@ -169,7 +173,8 @@ lh_ui_web_x_typeof(const lh_ui_web_x_t *a, lh_ui_web_x_t *out)
 }
 
 lh_void
-lh_ui_web_x_obj(const lh_str_ptr *keys, const lh_ui_web_x_t *const *vals, lh_u16_t n, lh_ui_web_x_t *out)
+lh_ui_web_x_obj(const lh_str_ptr *keys, const lh_ui_web_x_t *const *vals, lh_u16_t n,
+                lh_ui_web_x_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_ui_web_x_t x;

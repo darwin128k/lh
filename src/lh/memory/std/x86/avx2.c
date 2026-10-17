@@ -92,7 +92,8 @@ lh_memory_std_copy_avx2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
         if (n >= 512U)
         {
-            lh_byte_ptr aligned_dst = lh_ptr_align_up(lh_byte_t, dst, lh_cast_static(lh_uaddr_t, 32));
+            lh_byte_ptr aligned_dst =
+                lh_ptr_align_up(lh_byte_t, dst, lh_cast_static(lh_uaddr_t, 32));
             lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
             if (head > n)
@@ -415,7 +416,8 @@ lh_memory_std_set_avx2(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 
         if (n >= 512U)
         {
-            lh_byte_ptr aligned_dst = lh_ptr_align_up(lh_byte_t, dst, lh_cast_static(lh_uaddr_t, 32));
+            lh_byte_ptr aligned_dst =
+                lh_ptr_align_up(lh_byte_t, dst, lh_cast_static(lh_uaddr_t, 32));
             lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
             /* The misaligned head (< 32 bytes) goes out as one unaligned vector

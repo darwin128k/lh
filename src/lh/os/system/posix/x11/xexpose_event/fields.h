@@ -10,7 +10,7 @@
  * @def lh_os_system_posix_xexpose_event_fields
  * @brief `XExposeEvent`: part of the window the server lost and wants painted again.
  */
-#define lh_os_system_posix_xexpose_event_fields \
+#define lh_os_system_posix_xexpose_event_fields                                                    \
     lh_os_system_posix_xany_event_fields;                                                          \
     int x;                                                                                         \
     int y;                                                                                         \

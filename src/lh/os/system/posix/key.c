@@ -16,10 +16,11 @@ static const unsigned long lh_os_system_posix_key_keysyms[] = {
 };
 /** The portable key of each entry of ::lh_os_system_posix_key_keysyms, in the same order. */
 static const lh_key_t lh_os_system_posix_key_keys[] = {
-    lh_key_tab,     lh_key_enter,     lh_key_enter,   lh_key_escape,  lh_key_backspace, lh_key_delete,
-    lh_key_delete,  lh_key_space,     lh_key_left,    lh_key_right,   lh_key_up,        lh_key_down,
-    lh_key_home,    lh_key_end,       lh_key_page_up, lh_key_page_down, lh_key_shift,   lh_key_shift,
-    lh_key_control, lh_key_control,   lh_key_alt,     lh_key_alt,
+    lh_key_tab,       lh_key_enter,  lh_key_enter, lh_key_escape,  lh_key_backspace,
+    lh_key_delete,    lh_key_delete, lh_key_space, lh_key_left,    lh_key_right,
+    lh_key_up,        lh_key_down,   lh_key_home,  lh_key_end,     lh_key_page_up,
+    lh_key_page_down, lh_key_shift,  lh_key_shift, lh_key_control, lh_key_control,
+    lh_key_alt,       lh_key_alt,
 };
 
 /** keysymdef.h, 0x6a1..0x6bf: the letters of Serbian, Macedonian, Ukrainian and
@@ -44,7 +45,9 @@ lh_os_system_posix_key_from_keysym(unsigned long keysym)
 {
     lh_u32_t i;
 
-    for (i = 0U; i < sizeof(lh_os_system_posix_key_keysyms) / sizeof(lh_os_system_posix_key_keysyms[0]); ++i)
+    for (i = 0U;
+         i < sizeof(lh_os_system_posix_key_keysyms) / sizeof(lh_os_system_posix_key_keysyms[0]);
+         ++i)
     {
         lh_return_if(lh_os_system_posix_key_keysyms[i] == keysym, lh_os_system_posix_key_keys[i]);
     }

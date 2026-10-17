@@ -17,11 +17,13 @@ lh_os_system_fs_perm_from_win_attrs(lh_os_system_win_dword_t attrs)
 
     if (lh_math_is_zero(lh_bit_and(attrs, LH_OS_SYSTEM_WIN_FILE_ATTRIBUTE_READONLY)))
     {
-        perm = lh_bit_or(perm, lh_bit_or(lh_bit_or(lh_fs_perm_iwusr, lh_fs_perm_iwgrp), lh_fs_perm_iwoth));
+        perm = lh_bit_or(
+            perm, lh_bit_or(lh_bit_or(lh_fs_perm_iwusr, lh_fs_perm_iwgrp), lh_fs_perm_iwoth));
     }
     if (!lh_math_is_zero(lh_bit_and(attrs, LH_OS_SYSTEM_WIN_FILE_ATTRIBUTE_DIRECTORY)))
     {
-        perm = lh_bit_or(perm, lh_bit_or(lh_bit_or(lh_fs_perm_ixusr, lh_fs_perm_ixgrp), lh_fs_perm_ixoth));
+        perm = lh_bit_or(
+            perm, lh_bit_or(lh_bit_or(lh_fs_perm_ixusr, lh_fs_perm_ixgrp), lh_fs_perm_ixoth));
     }
     return perm;
 }

@@ -97,9 +97,8 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
             if (lh_str_ptr_scanf_next(fmt, lh_addr_of(peek_pos), lh_addr_of(next)) &&
                 next.kind == lh_str_scanf_spec_kind_literal && next.literal_size > 0U)
             {
-                const lh_str_ptr found =
-                    lh_str_ptr_find(str + in_pos, remaining, next.literal, next.literal_size,
-                                    lh_bool_false);
+                const lh_str_ptr found = lh_str_ptr_find(str + in_pos, remaining, next.literal,
+                                                         next.literal_size, lh_bool_false);
                 lh_usize_t offset;
 
                 if (found == lh_null)
@@ -157,7 +156,8 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
                 in_pos++;
                 digit_limit = limit - 1U;
             }
-            max = is_negative ? (0U - lh_cast_static(lh_uint_t, LH_SINT_T_MIN)) : lh_cast_static(lh_uint_t, LH_SINT_T_MAX);
+            max = is_negative ? (0U - lh_cast_static(lh_uint_t, LH_SINT_T_MIN))
+                              : lh_cast_static(lh_uint_t, LH_SINT_T_MAX);
             consumed =
                 lh_str_ptr_parse_uint_prefix(str + in_pos, digit_limit, max, lh_addr_of(magnitude));
             if (lh_math_is_zero(consumed))
@@ -167,8 +167,9 @@ lh_str_ptr_parse_text_v(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr fmt, v
             in_pos = lh_math_add(in_pos, consumed);
             if (is_negative)
             {
-                lh_ptr_deref(out) = (magnitude == (0U - lh_cast_static(lh_uint_t, LH_SINT_T_MIN))) ? LH_SINT_T_MIN
-                                                                      : lh_math_neg(lh_cast_static(lh_sint_t, magnitude));
+                lh_ptr_deref(out) = (magnitude == (0U - lh_cast_static(lh_uint_t, LH_SINT_T_MIN)))
+                                        ? LH_SINT_T_MIN
+                                        : lh_math_neg(lh_cast_static(lh_sint_t, magnitude));
             }
             else
             {

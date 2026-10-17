@@ -8,7 +8,7 @@
 #include <lh/math.h>
 #include <lh/math/size/ops.h>
 
-/* ── init ────────────────────────────────────────────────────────────────── */
+/* -- init ------------------------------------------------------------------ */
 
 lh_math_scalar_t
 lh_math_size_get_width(const lh_math_size_t *self)
@@ -31,7 +31,7 @@ lh_math_size_set_width(lh_math_size_t *self, lh_math_scalar_t width)
     self->width = width;
 }
 
-/* ── Accessors ───────────────────────────────────────────────────────────── */
+/* -- Accessors ------------------------------------------------------------- */
 
 lh_void
 lh_math_size_set_height(lh_math_size_t *self, lh_math_scalar_t height)
@@ -54,7 +54,8 @@ lh_math_size_init_empty(lh_math_size_t *self)
 }
 
 lh_void
-lh_math_size_from_extent(const lh_math_point_t *min, const lh_math_point_t *max, lh_math_size_t *out)
+lh_math_size_from_extent(const lh_math_point_t *min, const lh_math_point_t *max,
+                         lh_math_size_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(min);
@@ -65,7 +66,7 @@ lh_math_size_from_extent(const lh_math_point_t *min, const lh_math_point_t *max,
     lh_ptr_deref(out) = s;
 }
 
-/* ── Queries ────────────────────────────────────────────────────────────── */
+/* -- Queries --------------------------------------------------------------- */
 
 lh_bool_t
 lh_math_size_eq(const lh_math_size_t *a, const lh_math_size_t *b)
@@ -73,8 +74,8 @@ lh_math_size_eq(const lh_math_size_t *a, const lh_math_size_t *b)
     lh_return_if(a == b, lh_bool_true);
     lh_assert_runtime_ref(a);
     lh_assert_runtime_ref(b);
-    return lh_math_eq(lh_math_size_get_width(a), lh_math_size_get_width(b))
-        && lh_math_eq(lh_math_size_get_height(a), lh_math_size_get_height(b));
+    return lh_math_eq(lh_math_size_get_width(a), lh_math_size_get_width(b)) &&
+           lh_math_eq(lh_math_size_get_height(a), lh_math_size_get_height(b));
 }
 
 lh_bool_t
@@ -123,7 +124,7 @@ lh_math_size_is_empty(const lh_math_size_t *self)
     return (lh_math_size_get_width(self) <= 0) || (lh_math_size_get_height(self) <= 0);
 }
 
-/* ── Component-wise ─────────────────────────────────────────────────────── */
+/* -- Component-wise -------------------------------------------------------- */
 
 lh_void
 lh_math_size_min(const lh_math_size_t *a, const lh_math_size_t *b, lh_math_size_t *out)
@@ -154,10 +155,11 @@ lh_math_size_min_side(const lh_math_size_t *self)
     return lh_math_size_min_side_of(lh_math_size, self);
 }
 
-/* ── Set ops ────────────────────────────────────────────────────────────── */
+/* -- Set ops --------------------------------------------------------------- */
 
 lh_void
-lh_math_size_inset(const lh_math_size_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy, lh_math_size_t *out)
+lh_math_size_inset(const lh_math_size_t *self, lh_math_scalar_t dx, lh_math_scalar_t dy,
+                   lh_math_size_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_assert_runtime_ref(self);

@@ -31,7 +31,7 @@ typedef struct lh_io_stream lh_io_stream_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── construct / set ─────────────────────────────────────────────────────── */
+/* -- construct / set ------------------------------------------------------- */
 
 /**
  * @brief Initialize @p self from a reader and a writer.
@@ -61,7 +61,7 @@ lh_io_stream_set(lh_io_stream_t *self, const lh_io_reader_t *reader, const lh_io
 lh_void
 lh_io_stream_assign(lh_io_stream_t *self, const lh_io_stream_t *other);
 
-/* ── accessors ───────────────────────────────────────────────────────────── */
+/* -- accessors ------------------------------------------------------------- */
 
 /**
  * @brief Return the read half of @p self.
@@ -95,7 +95,7 @@ lh_io_stream_get_writer(const lh_io_stream_t *self, lh_io_writer_t *out);
 lh_void
 lh_io_stream_set_writer(lh_io_stream_t *self, const lh_io_writer_t *writer);
 
-/* ── operations ──────────────────────────────────────────────────────────── */
+/* -- operations ------------------------------------------------------------ */
 
 /**
  * @brief Read via @p self's reader. Same contract as ::lh_io_reader_read.

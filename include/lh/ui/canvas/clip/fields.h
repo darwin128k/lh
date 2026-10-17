@@ -13,8 +13,8 @@
  * @param rect_type   ::lh_ui_rect_t.
  * @param scalar_type ::lh_ui_scalar_t.
  */
-#define lh_ui_canvas_clip_round_fields(rect_type, scalar_type)                                      \
-    rect_type rect;                                                                                 \
+#define lh_ui_canvas_clip_round_fields(rect_type, scalar_type)                                     \
+    rect_type rect;                                                                                \
     scalar_type radius
 
 /**
@@ -28,9 +28,9 @@
  * @param round_type ::lh_ui_canvas_clip_round_t.
  * @param count_type Type of the round count.
  */
-#define lh_ui_canvas_clip_fields(rect_type, round_type, count_type)                                 \
-    rect_type rect;                                                                                 \
-    const round_type *rounds;                                                                       \
+#define lh_ui_canvas_clip_fields(rect_type, round_type, count_type)                                \
+    rect_type rect;                                                                                \
+    const round_type *rounds;                                                                      \
     count_type round_count
 
 #endif /* LH_UI_CANVAS_CLIP_FIELDS_H */

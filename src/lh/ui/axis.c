@@ -31,7 +31,8 @@ lh_ui_point_set_along(lh_ui_point_t *self, lh_ui_axis_t axis, lh_ui_scalar_t val
 }
 
 lh_void
-lh_ui_point_init_along(lh_ui_point_t *self, lh_ui_axis_t axis, lh_ui_scalar_t along, lh_ui_scalar_t across)
+lh_ui_point_init_along(lh_ui_point_t *self, lh_ui_axis_t axis, lh_ui_scalar_t along,
+                       lh_ui_scalar_t across)
 {
     lh_assert_runtime_ref(self);
     lh_ui_point_init(self, across, across);
@@ -58,8 +59,8 @@ lh_ui_size_set_along(lh_ui_size_t *self, lh_ui_axis_t axis, lh_ui_scalar_t value
 }
 
 lh_void
-lh_ui_rect_init_along(lh_ui_rect_t *self, const lh_ui_rect_t *base, lh_ui_axis_t axis, lh_ui_scalar_t start,
-                      lh_ui_scalar_t length)
+lh_ui_rect_init_along(lh_ui_rect_t *self, const lh_ui_rect_t *base, lh_ui_axis_t axis,
+                      lh_ui_scalar_t start, lh_ui_scalar_t length)
 {
     lh_ui_point_t *origin;
 

@@ -60,7 +60,8 @@ lh_str_ptr_format_bytes_hex(const lh_ptr data, lh_usize_t data_size, lh_bool_t u
     for (i = 0; i < data_size; ++i)
     {
         str[i * 2U] = lh_char_from_xdigit(lh_cast_static(lh_byte_t, (bytes[i] >> 4)), uppercase);
-        str[i * 2U + 1U] = lh_char_from_xdigit(lh_cast_static(lh_byte_t, (bytes[i] & 0x0FU)), uppercase);
+        str[i * 2U + 1U] =
+            lh_char_from_xdigit(lh_cast_static(lh_byte_t, (bytes[i] & 0x0FU)), uppercase);
     }
     return needed;
 }
@@ -98,7 +99,8 @@ lh_str_ptr_format_bytes_hex_dump(const lh_ptr data, lh_usize_t data_size, lh_boo
 
         for (d = LH_STR_FORMAT_BYTES_HEX_DUMP_OFFSET_DIGITS; d > 0U; --d)
         {
-            str[pos + d - 1U] = lh_char_from_xdigit(lh_cast_static(lh_byte_t, (rest & 0x0FU)), uppercase);
+            str[pos + d - 1U] =
+                lh_char_from_xdigit(lh_cast_static(lh_byte_t, (rest & 0x0FU)), uppercase);
             rest >>= 4;
         }
         pos += LH_STR_FORMAT_BYTES_HEX_DUMP_OFFSET_DIGITS;

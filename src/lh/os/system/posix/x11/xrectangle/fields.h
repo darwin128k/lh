@@ -10,7 +10,7 @@
  * @def lh_os_system_posix_xrectangle_fields
  * @brief `XRectangle`: one rectangle of a shape, in 16-bit coordinates.
  */
-#define lh_os_system_posix_xrectangle_fields \
+#define lh_os_system_posix_xrectangle_fields                                                       \
     short x;                                                                                       \
     short y;                                                                                       \
     unsigned short width;                                                                          \

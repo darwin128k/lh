@@ -352,7 +352,7 @@ TEST(entity_label, align_v_moves_the_text_down_the_padded_box)
     EXPECT_EQ(lh_ui_point_get_x(lh_addr_of(centred)), lh_ui_scalar(10));
 }
 
-/* ── The label's baseline ────────────────────────────────────────────────────
+/* -- The label's baseline --------------------------------------------------
    A row of an icon and a caption stands on one line rather than in the middle of
    the same room twice (::lh_ui_place_align_baseline), and what the label answers
    is the row the letters are standing on: measured down from the top of its own

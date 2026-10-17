@@ -97,7 +97,8 @@ typedef struct lh_os_system_win_sockaddr lh_os_system_win_sockaddr_t;
 struct lh_os_system_win_fd_set
 {
     /** Members: ::lh_os_system_win_fd_set_fields. */
-    lh_os_system_win_fd_set_fields(lh_uint_t, lh_os_system_win_socket_t, LH_OS_SYSTEM_WIN_FD_SETSIZE);
+    lh_os_system_win_fd_set_fields(lh_uint_t, lh_os_system_win_socket_t,
+                                   LH_OS_SYSTEM_WIN_FD_SETSIZE);
 };
 /** @copybrief lh_os_system_win_fd_set */
 typedef struct lh_os_system_win_fd_set lh_os_system_win_fd_set_t;
@@ -115,7 +116,8 @@ typedef struct lh_os_system_win_timeval lh_os_system_win_timeval_t;
 struct lh_os_system_win_sockaddr_in
 {
     /** Members: ::lh_os_system_win_sockaddr_in_fields. */
-    lh_os_system_win_sockaddr_in_fields(lh_ushort_t, lh_ushort_t, lh_os_system_win_in_addr_t, lh_char_t);
+    lh_os_system_win_sockaddr_in_fields(lh_ushort_t, lh_ushort_t, lh_os_system_win_in_addr_t,
+                                        lh_char_t);
 };
 /** @copybrief lh_os_system_win_sockaddr_in */
 typedef struct lh_os_system_win_sockaddr_in lh_os_system_win_sockaddr_in_t;
@@ -164,11 +166,13 @@ getsockname(lh_os_system_win_socket_t s, lh_os_system_win_sockaddr_t *name, lh_i
 
 /** Set a socket option. Present since Windows 95 / NT 4.0 (Winsock 2). */
 LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
-setsockopt(lh_os_system_win_socket_t s, lh_int_t level, lh_int_t optname, lh_str_cptr optval, lh_int_t optlen);
+setsockopt(lh_os_system_win_socket_t s, lh_int_t level, lh_int_t optname, lh_str_cptr optval,
+           lh_int_t optlen);
 
 /** Read a socket option. Present since Windows 95 / NT 4.0 (Winsock 2). */
 LH_OS_SYSTEM_WIN_IMPORT lh_int_t LH_OS_SYSTEM_WIN_CALL
-getsockopt(lh_os_system_win_socket_t s, lh_int_t level, lh_int_t optname, lh_str_ptr optval, lh_int_t *optlen);
+getsockopt(lh_os_system_win_socket_t s, lh_int_t level, lh_int_t optname, lh_str_ptr optval,
+           lh_int_t *optlen);
 
 /** Socket control, e.g. `FIONBIO` for non-blocking mode.
  * Present since Windows 95 / NT 4.0 (Winsock 2). */

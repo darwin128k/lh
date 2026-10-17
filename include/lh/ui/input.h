@@ -76,17 +76,17 @@ typedef enum lh_ui_input_caret_shape
  */
 struct lh_ui_input
 {
-    lh_ui_label_t label;      /**< The label this input is (first field). */
-    lh_char_t *buffer;        /**< The text, edited in place. **Not owned**: the application
-                                   owns it and it must outlive the input, and it must be
-                                   at least @p capacity + 1 bytes, because the text is
-                                   always terminated. See ::lh_ui_input_init. */
-    lh_u16_t capacity;        /**< How many bytes may be used, terminator aside. */
-    lh_u16_t used;            /**< How many bytes are in use, terminator aside. */
-    lh_u16_t caret;           /**< Where the caret is, in bytes from the start. Always on a
-                                   code point boundary, and never past @p used. */
-    lh_bool_t focused;        /**< True while it holds the focus. The caret is drawn only
-                                   when this is true. */
+    lh_ui_label_t label;              /**< The label this input is (first field). */
+    lh_char_t *buffer;                /**< The text, edited in place. **Not owned**: the application
+                                           owns it and it must outlive the input, and it must be
+                                           at least @p capacity + 1 bytes, because the text is
+                                           always terminated. See ::lh_ui_input_init. */
+    lh_u16_t capacity;                /**< How many bytes may be used, terminator aside. */
+    lh_u16_t used;                    /**< How many bytes are in use, terminator aside. */
+    lh_u16_t caret;                   /**< Where the caret is, in bytes from the start. Always on a
+                                           code point boundary, and never past @p used. */
+    lh_bool_t focused;                /**< True while it holds the focus. The caret is drawn only
+                                           when this is true. */
     const lh_ui_color_t *caret_color; /**< What the caret is drawn in, or ::lh_null for the
                                            text's own colour. Not owned. */
     lh_ui_input_caret_shape_t caret_shape; /**< Bar or block; bar after init. */
@@ -96,7 +96,7 @@ typedef struct lh_ui_input lh_ui_input_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* -- Class ---------------------------------------------------------------- */
+/* -- Class ----------------------------------------------------------------- */
 
 /** @brief Class of ::lh_ui_input_t, derived from ::lh_ui_label_class. */
 extern const lh_ui_entity_class_t lh_ui_input_class;
@@ -155,7 +155,7 @@ lh_ui_input_on_press(const lh_ui_input_t *self, const lh_ui_entity_event_t *even
 lh_void
 lh_ui_input_on_draw_caret(const lh_ui_input_t *self, const lh_ui_entity_event_t *event);
 
-/* -- Lifetime ------------------------------------------------------------- */
+/* -- Lifetime -------------------------------------------------------------- */
 
 /**
  * @brief An empty input at @p rect, editing @p buffer (not owned).
@@ -195,7 +195,7 @@ lh_ui_input_as_label(lh_ui_input_t *self);
 lh_ui_input_t *
 lh_ui_entity_as_input(lh_ui_entity_t *entity);
 
-/* -- Text ----------------------------------------------------------------- */
+/* -- Text ------------------------------------------------------------------ */
 
 /**
  * @brief The text @p self holds, terminated, or ::lh_null when it has no buffer.
@@ -232,7 +232,7 @@ lh_ui_input_clear(lh_ui_input_t *self);
 lh_u16_t
 lh_ui_input_get_length(const lh_ui_input_t *self);
 
-/* -- Editing -------------------------------------------------------------- */
+/* -- Editing --------------------------------------------------------------- */
 
 /**
  * @brief Put @p code at the caret and step over it.
@@ -262,7 +262,7 @@ lh_ui_input_backspace(lh_ui_input_t *self);
 lh_bool_t
 lh_ui_input_delete_forward(lh_ui_input_t *self);
 
-/* -- Caret ---------------------------------------------------------------- */
+/* -- Caret ----------------------------------------------------------------- */
 
 /**
  * @brief Where the caret is, in bytes from the start.

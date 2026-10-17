@@ -48,7 +48,7 @@ typedef struct lh_os_net_socket lh_os_net_socket_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── construct / lifetime ────────────────────────────────────────────────── */
+/* -- construct / lifetime -------------------------------------------------- */
 
 /**
  * @brief Set @p self to the empty (not-yet-open) state.
@@ -84,7 +84,7 @@ lh_os_net_socket_open(lh_os_net_socket_t *self, lh_os_system_net_socket_type_t t
 lh_void
 lh_os_net_socket_close(lh_os_net_socket_t *self);
 
-/* ── accessors ───────────────────────────────────────────────────────────── */
+/* -- accessors ------------------------------------------------------------- */
 
 /**
  * @brief Return the raw handle stored in @p self.
@@ -103,7 +103,7 @@ lh_os_net_socket_get_handle(const lh_os_net_socket_t *self);
 lh_bool_t
 lh_os_net_socket_is_valid(const lh_os_net_socket_t *self);
 
-/* ── operations ──────────────────────────────────────────────────────────── */
+/* -- operations ------------------------------------------------------------ */
 
 /**
  * @brief Connect an open @p self to @p addr (blocking).
@@ -245,8 +245,8 @@ lh_os_net_socket_set_no_delay(lh_os_net_socket_t *self, lh_bool_t enabled);
  *        ::LH_OS_SYSTEM_NET_SOCKET_WAIT_MAX) and answer @p count.
  */
 lh_usize_t
-lh_os_net_socket_get_handles(lh_os_system_net_socket_handle_t *out, lh_os_net_socket_t *const *sockets,
-                             lh_usize_t count);
+lh_os_net_socket_get_handles(lh_os_system_net_socket_handle_t *out,
+                             lh_os_net_socket_t *const *sockets, lh_usize_t count);
 
 /**
  * @brief Wait at most @p timeout_ms until one of @p read can be read (or
@@ -260,8 +260,9 @@ lh_os_net_socket_get_handles(lh_os_system_net_socket_handle_t *out, lh_os_net_so
  *         time ran out, ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
-lh_os_net_socket_wait(lh_os_net_socket_t *const *read, lh_usize_t read_count, lh_os_net_socket_t *const *write,
-                      lh_usize_t write_count, lh_u32_t timeout_ms);
+lh_os_net_socket_wait(lh_os_net_socket_t *const *read, lh_usize_t read_count,
+                      lh_os_net_socket_t *const *write, lh_usize_t write_count,
+                      lh_u32_t timeout_ms);
 
 /**
  * @brief ::lh_io_writer_write_fn backed by @p context's socket.
@@ -331,7 +332,7 @@ lh_ssize_t
 lh_os_net_socket_recvfrom(lh_self_ptr self, lh_ptr buf, lh_usize_t size,
                           lh_net_ip4_socket_addr_t *addr);
 
-/* ── lh_io adapters ──────────────────────────────────────────────────────── */
+/* -- lh_io adapters -------------------------------------------------------- */
 
 /**
  * @brief Build an ::lh_io_reader_t that reads from @p self.

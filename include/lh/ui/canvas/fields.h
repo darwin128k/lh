@@ -24,9 +24,9 @@ lh_assert_static(LH_LIBRARY_OPTION_UI_CANVAS_DEPTH >= 1 && LH_LIBRARY_OPTION_UI_
  *
  * Capacity of `saved` is ::LH_LIBRARY_OPTION_UI_CANVAS_DEPTH; `depth` is how
  * many are in use. `rounds` holds the rounded cuts of the pushed clips, in
- * push order; the current state says how many are active. `size` is the whole target (for `clear` damage).
- * `frame_at` is the target-space origin of the buffer the current frame draws
- * into: `(0, 0)` on ::lh_ui_canvas_begin, the area origin on
+ * push order; the current state says how many are active. `size` is the whole target (for `clear`
+ * damage). `frame_at` is the target-space origin of the buffer the current frame draws into: `(0,
+ * 0)` on ::lh_ui_canvas_begin, the area origin on
  * ::lh_ui_canvas_begin_area. Primitives reach the backend already moved by it;
  * damage is put back, so `damage` unions every primitive rect already cut to
  * the clip in target space; empty when `has_damage` is false.
@@ -56,21 +56,21 @@ lh_assert_static(LH_LIBRARY_OPTION_UI_CANVAS_DEPTH >= 1 && LH_LIBRARY_OPTION_UI_
  * @param usize_type   Type of a byte count.
  * @param rects_type   ::lh_ui_rects_t, the drawn list.
  */
-#define lh_ui_canvas_fields(backend_type, context_type, state_type, depth_type, size_type,          \
-                            point_type, rect_type, bool_type, round_type, byte_type, usize_type,    \
+#define lh_ui_canvas_fields(backend_type, context_type, state_type, depth_type, size_type,         \
+                            point_type, rect_type, bool_type, round_type, byte_type, usize_type,   \
                             rects_type)                                                            \
-    const backend_type *backend;                                                                    \
-    context_type context;                                                                           \
-    state_type state;                                                                               \
-    state_type saved[LH_LIBRARY_OPTION_UI_CANVAS_DEPTH];                                            \
-    depth_type depth;                                                                               \
-    size_type size;                                                                                 \
-    point_type frame_at;                                                                            \
-    rect_type damage;                                                                               \
-    bool_type has_damage;                                                                           \
-    round_type rounds[LH_LIBRARY_OPTION_UI_CANVAS_DEPTH];                                           \
-    rects_type drawn;                                                                               \
-    byte_type *scratch;                                                                             \
+    const backend_type *backend;                                                                   \
+    context_type context;                                                                          \
+    state_type state;                                                                              \
+    state_type saved[LH_LIBRARY_OPTION_UI_CANVAS_DEPTH];                                           \
+    depth_type depth;                                                                              \
+    size_type size;                                                                                \
+    point_type frame_at;                                                                           \
+    rect_type damage;                                                                              \
+    bool_type has_damage;                                                                          \
+    round_type rounds[LH_LIBRARY_OPTION_UI_CANVAS_DEPTH];                                          \
+    rects_type drawn;                                                                              \
+    byte_type *scratch;                                                                            \
     usize_type scratch_bytes
 
 #endif /* LH_UI_CANVAS_FIELDS_H */

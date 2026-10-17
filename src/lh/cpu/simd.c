@@ -79,9 +79,9 @@ lh_cpu_simd_has_ssse3(void)
     {
         return lh_bool_false;
     }
-    return lh_cast_static(lh_bool_t,
-                          !lh_bit_disjoint(regs[LH_CPU_ID_ECX],
-                                           lh_bit_mask(LH_CPU_SIMD_CPUID_ECX_SSSE3_BIT)));
+    return lh_cast_static(
+        lh_bool_t,
+        !lh_bit_disjoint(regs[LH_CPU_ID_ECX], lh_bit_mask(LH_CPU_SIMD_CPUID_ECX_SSSE3_BIT)));
 #    else
     return lh_bool_false;
 #    endif
@@ -148,9 +148,9 @@ lh_cpu_simd_has_aesni(void)
     {
         return lh_bool_false;
     }
-    return lh_cast_static(lh_bool_t,
-                          !lh_bit_disjoint(regs[LH_CPU_ID_ECX],
-                                           lh_bit_mask(LH_CPU_SIMD_CPUID_ECX_AESNI_BIT)));
+    return lh_cast_static(
+        lh_bool_t,
+        !lh_bit_disjoint(regs[LH_CPU_ID_ECX], lh_bit_mask(LH_CPU_SIMD_CPUID_ECX_AESNI_BIT)));
 #    else
     return lh_bool_false;
 #    endif

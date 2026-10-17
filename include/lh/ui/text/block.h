@@ -55,8 +55,8 @@ lh_ui_text_block_measure(lh_ui_text_block_t *self, const lh_ui_font_t *font, con
  *        of an empty block.
  */
 lh_void
-lh_ui_text_block_measure_layout(lh_ui_text_block_t *self, const lh_ui_font_t *font, const lh_char_t *text,
-                                lh_ui_scalar_t width);
+lh_ui_text_block_measure_layout(lh_ui_text_block_t *self, const lh_ui_font_t *font,
+                                const lh_char_t *text, lh_ui_scalar_t width);
 
 /**
  * @brief How many lines the text broke into.
@@ -82,7 +82,8 @@ lh_ui_text_block_get_ink_top(const lh_ui_text_block_t *self);
  *        is at @p origin (the first line box ::lh_ui_text_block_get_ink_top above it).
  */
 lh_void
-lh_ui_text_block_get_ink_rect(const lh_ui_text_block_t *self, lh_ui_point_t origin, lh_ui_rect_t *out);
+lh_ui_text_block_get_ink_rect(const lh_ui_text_block_t *self, lh_ui_point_t origin,
+                              lh_ui_rect_t *out);
 
 /**
  * @brief The size a label takes for the text: as wide as its ink, and from the cap
@@ -92,7 +93,8 @@ lh_ui_text_block_get_ink_rect(const lh_ui_text_block_t *self, lh_ui_point_t orig
  * @param font The font the block was measured in.
  */
 lh_void
-lh_ui_text_block_get_size(const lh_ui_text_block_t *self, const lh_ui_font_t *font, lh_ui_size_t *out);
+lh_ui_text_block_get_size(const lh_ui_text_block_t *self, const lh_ui_font_t *font,
+                          lh_ui_size_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

@@ -12,8 +12,8 @@
  *
  * @param coord_type  Type of `width` and `height`.
  */
-#define lh_math_size_fields(coord_type)                                                             \
-    coord_type width;                                                                               \
+#define lh_math_size_fields(coord_type)                                                            \
+    coord_type width;                                                                              \
     coord_type height
 
 #endif /* LH_MATH_SIZE_FIELDS_H */

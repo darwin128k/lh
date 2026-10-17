@@ -71,7 +71,8 @@
 #define lh_memory_allocator_initializer_with_context(malloc_fn, dealloc_fn, realloc_fn, context)   \
     lh_initializer(lh_cast_static(lh_ptr_of(lh_memory_allocator_alloc_fn), malloc_fn),             \
                    lh_cast_static(lh_ptr_of(lh_memory_allocator_dealloc_fn), dealloc_fn),          \
-                   lh_cast_static(lh_ptr_of(lh_memory_allocator_realloc_fn), realloc_fn), (context))
+                   lh_cast_static(lh_ptr_of(lh_memory_allocator_realloc_fn), realloc_fn),          \
+                   (context))
 
 /**
  * @def lh_memory_allocator_empty_initializer()

@@ -40,8 +40,8 @@ lh_ui_transition_get_look(const lh_ui_transition_t *self)
 }
 
 lh_void
-lh_ui_transition_start(lh_ui_transition_t *self, struct lh_ui_entity *entity, const lh_ui_style_t *from,
-                       const lh_ui_style_t *to)
+lh_ui_transition_start(lh_ui_transition_t *self, struct lh_ui_entity *entity,
+                       const lh_ui_style_t *from, const lh_ui_style_t *to)
 {
     lh_ui_style_t start;
 
@@ -67,7 +67,7 @@ lh_ui_transition_advance(lh_ui_transition_t *self, lh_u16_t ms)
 
     lh_assert_runtime_ref(self);
     lh_return_if(lh_null_eq(self->entity) || lh_null_eq(self->to), lh_bool_false);
-    spent = lh_cast_static(lh_u32_t, self->elapsed)+ lh_cast_static(lh_u32_t, ms);
+    spent = lh_cast_static(lh_u32_t, self->elapsed) + lh_cast_static(lh_u32_t, ms);
     if (spent >= lh_cast_static(lh_u32_t, self->total))
     {
         self->elapsed = self->total;

@@ -1112,7 +1112,7 @@ TEST(entity, padding_and_radius_come_from_the_style)
     EXPECT_EQ(lh_ui_entity_get_radius(lh_addr_of(e)), lh_ui_scalar(4));
 }
 
-/* ── The look a press may change ────────────────────────────────────────────── */
+/* -- The look a press may change ------------------------------------------- */
 
 /* A card's own pixels are never darkened by its own shadow. That is a property of the
    shadow and not of the order the two are drawn in: ::lh_ui_shadow_alpha_at paints

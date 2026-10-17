@@ -39,8 +39,8 @@ LH_COMPILER_EXTERN_C_BEGIN
  * @brief Fill @p self with the given components.
  */
 lh_void
-lh_math_vec4_init(lh_math_vec4_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y, lh_math_fscalar_t z,
-                  lh_math_fscalar_t w);
+lh_math_vec4_init(lh_math_vec4_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y,
+                  lh_math_fscalar_t z, lh_math_fscalar_t w);
 
 /**
  * @brief Fill @p self with zero components.
@@ -48,7 +48,7 @@ lh_math_vec4_init(lh_math_vec4_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y
 lh_void
 lh_math_vec4_init_empty(lh_math_vec4_t *self);
 
-/* ── Accessors ───────────────────────────────────────────────────────────── */
+/* -- Accessors ------------------------------------------------------------- */
 
 /**
  * @brief X component of @p self.
@@ -98,7 +98,7 @@ lh_math_vec4_set_z(lh_math_vec4_t *self, lh_math_fscalar_t z);
 lh_void
 lh_math_vec4_set_w(lh_math_vec4_t *self, lh_math_fscalar_t w);
 
-/* ── Conversions ─────────────────────────────────────────────────────────── */
+/* -- Conversions ----------------------------------------------------------- */
 
 /**
  * @brief Widen @p v to homogeneous space with `w = @p w`.

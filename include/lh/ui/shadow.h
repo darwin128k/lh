@@ -34,10 +34,10 @@
  */
 struct lh_ui_shadow
 {
-    lh_ui_color_t color;      /**< peak colour; its alpha is the peak opacity */
-    lh_ui_scalar_t spread;    /**< how far the fade reaches, in pixels */
-    lh_ui_scalar_t offset_x;  /**< shift right */
-    lh_ui_scalar_t offset_y;  /**< shift down */
+    lh_ui_color_t color;     /**< peak colour; its alpha is the peak opacity */
+    lh_ui_scalar_t spread;   /**< how far the fade reaches, in pixels */
+    lh_ui_scalar_t offset_x; /**< shift right */
+    lh_ui_scalar_t offset_y; /**< shift down */
 };
 /** @copybrief lh_ui_shadow */
 typedef struct lh_ui_shadow lh_ui_shadow_t;
@@ -136,8 +136,8 @@ lh_ui_shadow_alpha_at(const lh_ui_shadow_t *self, lh_ui_scalar_t x, lh_ui_scalar
  * circle rather than along `width / 2` of the box.
  */
 lh_byte_t
-lh_ui_shadow_alpha_at_pixel(const lh_ui_shadow_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_rect_t *rect,
-                            lh_ui_scalar_t radius);
+lh_ui_shadow_alpha_at_pixel(const lh_ui_shadow_t *self, lh_s32_t x, lh_s32_t y,
+                            const lh_ui_rect_t *rect, lh_ui_scalar_t radius);
 
 /**
  * @brief Signed distance from (@p x, @p y) to @p rect with corners rounded by
@@ -147,7 +147,8 @@ lh_ui_shadow_alpha_at_pixel(const lh_ui_shadow_t *self, lh_s32_t x, lh_s32_t y, 
  * its own needs, and a plain function of its arguments.
  */
 lh_s32_t
-lh_ui_shadow_distance(lh_ui_scalar_t x, lh_ui_scalar_t y, const lh_ui_rect_t *rect, lh_ui_scalar_t radius);
+lh_ui_shadow_distance(lh_ui_scalar_t x, lh_ui_scalar_t y, const lh_ui_rect_t *rect,
+                      lh_ui_scalar_t radius);
 
 /**
  * @brief The smoothstep of @p distance into `0 .. @p peak`: `peak` one spread

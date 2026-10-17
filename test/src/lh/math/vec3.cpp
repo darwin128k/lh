@@ -161,7 +161,7 @@ TEST(vec3, near)
     EXPECT_FALSE(lh_math_vec3_near(a, ([&]() { lh_math_vec3_t _v; lh_math_vec3_init(lh_addr_of(_v), 0.99f, 2.0f, 3.0f); return _v; })(), 0.001f));
 }
 
-/* ── conversions ────────────────────────────────────────────────────────── */
+/* -- conversions ----------------------------------------------------------- */
 
 TEST(vec3, vec2_to_vec3_adds_z)
 {

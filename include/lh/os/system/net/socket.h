@@ -29,7 +29,8 @@
 #include <lh/os/system/net/socket/type.h>
 
 #if !LH_LIBRARY_OPTION_OS
-#    error "lh/os/system/net/socket.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
+#    error                                                                                         \
+        "lh/os/system/net/socket.h requires LH_LIBRARY_OPTION_OS (CMake: -DLH_LIBRARY_OPTION_OS=ON)"
 #endif
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -57,7 +58,8 @@ lh_os_system_net_socket_close(lh_os_system_net_socket_handle_t handle);
  * @return ::lh_bool_true on success, ::lh_bool_false if the native call failed.
  */
 lh_bool_t
-lh_os_system_net_socket_connect(lh_os_system_net_socket_handle_t handle, const lh_net_ip4_socket_addr_t *addr);
+lh_os_system_net_socket_connect(lh_os_system_net_socket_handle_t handle,
+                                const lh_net_ip4_socket_addr_t *addr);
 
 /**
  * @brief Put @p handle into blocking or non-blocking mode.
@@ -102,7 +104,8 @@ lh_os_system_net_socket_connect_wait(lh_os_system_net_socket_handle_t handle, lh
  * @return ::lh_bool_true on success, ::lh_bool_false if the native call failed.
  */
 lh_bool_t
-lh_os_system_net_socket_bind(lh_os_system_net_socket_handle_t handle, const lh_net_ip4_socket_addr_t *addr);
+lh_os_system_net_socket_bind(lh_os_system_net_socket_handle_t handle,
+                             const lh_net_ip4_socket_addr_t *addr);
 
 /**
  * @brief Mark a bound TCP @p handle as listening.
@@ -122,14 +125,16 @@ lh_os_system_net_socket_listen(lh_os_system_net_socket_handle_t handle, lh_int_t
  *         on failure.
  */
 lh_os_system_net_socket_handle_t
-lh_os_system_net_socket_accept(lh_os_system_net_socket_handle_t handle, lh_net_ip4_socket_addr_t *peer);
+lh_os_system_net_socket_accept(lh_os_system_net_socket_handle_t handle,
+                               lh_net_ip4_socket_addr_t *peer);
 
 /**
  * @brief Read the local IPv4 address bound to @p handle into @p out.
  * @return ::lh_bool_true on success, ::lh_bool_false if the native call failed.
  */
 lh_bool_t
-lh_os_system_net_socket_get_local_addr(lh_os_system_net_socket_handle_t handle, lh_net_ip4_socket_addr_t *out);
+lh_os_system_net_socket_get_local_addr(lh_os_system_net_socket_handle_t handle,
+                                       lh_net_ip4_socket_addr_t *out);
 
 /**
  * @brief Enable or disable `SO_REUSEADDR` on @p handle.
@@ -186,7 +191,8 @@ lh_os_system_net_socket_wait(const lh_os_system_net_socket_handle_t *read, lh_us
  *         handle's buffer is full, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
-lh_os_system_net_socket_send(lh_os_system_net_socket_handle_t handle, const lh_ptr buf, lh_usize_t size);
+lh_os_system_net_socket_send(lh_os_system_net_socket_handle_t handle, const lh_ptr buf,
+                             lh_usize_t size);
 
 /**
  * @brief Receive up to @p size bytes into @p buf from a connected @p handle.
@@ -210,8 +216,8 @@ lh_os_system_net_socket_recv(lh_os_system_net_socket_handle_t handle, lh_ptr buf
  * @return Bytes actually sent, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
-lh_os_system_net_socket_sendto(lh_os_system_net_socket_handle_t handle, const lh_ptr buf, lh_usize_t size,
-                               const lh_net_ip4_socket_addr_t *addr);
+lh_os_system_net_socket_sendto(lh_os_system_net_socket_handle_t handle, const lh_ptr buf,
+                               lh_usize_t size, const lh_net_ip4_socket_addr_t *addr);
 
 /**
  * @brief How many bytes are sitting in @p handle's receive buffer, without reading them.
@@ -235,8 +241,8 @@ lh_os_system_net_socket_pending(lh_os_system_net_socket_handle_t handle);
  * @return Bytes actually received, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
-lh_os_system_net_socket_recvfrom(lh_os_system_net_socket_handle_t handle, lh_ptr buf, lh_usize_t size,
-                                 lh_net_ip4_socket_addr_t *addr);
+lh_os_system_net_socket_recvfrom(lh_os_system_net_socket_handle_t handle, lh_ptr buf,
+                                 lh_usize_t size, lh_net_ip4_socket_addr_t *addr);
 
 LH_COMPILER_EXTERN_C_END
 

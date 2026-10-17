@@ -20,10 +20,10 @@
  * @param scalar_type ::lh_ui_scalar_t.
  * @param count_type  ::lh_u32_t.
  */
-#define lh_ui_text_block_fields(rect_type, scalar_type, count_type)                                       \
-    rect_type ink;                                                                                        \
-    scalar_type width;                                                                                    \
-    scalar_type ink_top;                                                                                  \
+#define lh_ui_text_block_fields(rect_type, scalar_type, count_type)                                \
+    rect_type ink;                                                                                 \
+    scalar_type width;                                                                             \
+    scalar_type ink_top;                                                                           \
     count_type lines
 
 #endif /* LH_UI_TEXT_BLOCK_FIELDS_H */

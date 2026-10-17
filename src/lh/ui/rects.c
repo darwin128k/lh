@@ -100,7 +100,8 @@ lh_ui_rects_join_once(lh_ui_rects_t *self)
             {
                 continue;
             }
-            lh_ui_rect_union(lh_addr_of(self->rects[keep]), lh_addr_of(self->rects[drop]), lh_addr_of(self->rects[keep]));
+            lh_ui_rect_union(lh_addr_of(self->rects[keep]), lh_addr_of(self->rects[drop]),
+                             lh_addr_of(self->rects[keep]));
             lh_ui_rects_drop(self, drop);
             return lh_bool_true;
         }
@@ -129,8 +130,8 @@ lh_ui_rects_squeeze(lh_ui_rects_t *self, const lh_ui_rect_t *rect)
     cheapest = 0u;
     for (i = 1u; i < self->count; ++i)
     {
-        if (lh_ui_rects_waste(lh_addr_of(self->rects[i]), rect)
-            < lh_ui_rects_waste(lh_addr_of(self->rects[cheapest]), rect))
+        if (lh_ui_rects_waste(lh_addr_of(self->rects[i]), rect) <
+            lh_ui_rects_waste(lh_addr_of(self->rects[cheapest]), rect))
         {
             cheapest = i;
         }

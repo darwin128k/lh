@@ -117,11 +117,11 @@ lh_void
 lh_memory_typed_init_empty(lh_memory_typed_t *self, lh_usize_t type_size);
 
 lh_void
-lh_memory_typed_get_value_bounds(const lh_memory_typed_t *self, lh_uindex_t index, lh_memory_bounds_t *out);
+lh_memory_typed_get_value_bounds(const lh_memory_typed_t *self, lh_uindex_t index,
+                                 lh_memory_bounds_t *out);
 
 lh_void
-lh_memory_typed_get_range_bounds(const lh_memory_typed_t *self, lh_uindex_t index,
-                                 lh_usize_t count,
+lh_memory_typed_get_range_bounds(const lh_memory_typed_t *self, lh_uindex_t index, lh_usize_t count,
                                  lh_memory_bounds_t *out);
 
 lh_void

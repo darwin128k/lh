@@ -9,7 +9,7 @@
 
 const lh_ui_entity_class_t lh_ui_image_class = {lh_ui_image_event, lh_addr_of(lh_ui_entity_class)};
 
-/* ── Events ──────────────────────────────────────────────────────────────── */
+/* -- Events ---------------------------------------------------------------- */
 
 /**
  * @copydoc lh_ui_image_on_baseline(const struct lh_ui_image *, const struct lh_ui_entity_event *)
@@ -38,7 +38,7 @@ lh_ui_image_get_baseline(const lh_ui_image_t *self)
     return self->baseline;
 }
 
-/* ── Lifetime and fields ─────────────────────────────────────────────────── */
+/* -- Lifetime and fields --------------------------------------------------- */
 
 lh_void
 lh_ui_image_init(lh_ui_image_t *self, lh_ui_rect_t rect, const lh_ui_mask_t *mask)
@@ -64,8 +64,9 @@ lh_ui_image_t *
 lh_ui_entity_as_image(lh_ui_entity_t *entity)
 {
     lh_return_if(lh_null_eq(entity), lh_null);
-    lh_return_if(!lh_ui_entity_class_is(lh_ui_entity_get_class(entity), lh_addr_of(lh_ui_image_class)),
-                 lh_null);
+    lh_return_if(
+        !lh_ui_entity_class_is(lh_ui_entity_get_class(entity), lh_addr_of(lh_ui_image_class)),
+        lh_null);
     return lh_ptr_rcast(lh_ui_image_t, entity);
 }
 
@@ -90,7 +91,7 @@ lh_ui_image_get_tint(const lh_ui_image_t *self)
     return lh_addr_of(self->tint);
 }
 
-/* ── Picture ─────────────────────────────────────────────────────────────── */
+/* -- Picture --------------------------------------------------------------- */
 
 lh_void
 lh_ui_image_set_tint(lh_ui_image_t *self, const lh_ui_color_t *tint)
@@ -169,7 +170,8 @@ lh_ui_image_on_measure(const lh_ui_image_t *self, const lh_ui_entity_event_t *ev
     lh_ui_image_get_origin(self, lh_addr_of(origin));
     lh_ui_image_get_size(self, lh_addr_of(size));
     lh_ui_rect_init(lh_addr_of(picture), lh_ui_point_get_x(&origin), lh_ui_point_get_y(&origin),
-                    lh_ui_size_get_width(lh_addr_of(size)), lh_ui_size_get_height(lh_addr_of(size)));
+                    lh_ui_size_get_width(lh_addr_of(size)),
+                    lh_ui_size_get_height(lh_addr_of(size)));
     lh_ui_rect_union(bounds, lh_addr_of(picture), bounds);
 }
 

@@ -503,7 +503,8 @@ lh_memory_std_move_forward_sse2(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
     }
     while (n - i > 16U)
     {
-        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + i), _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + i)));
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + i),
+                         _mm_loadu_si128(lh_ptr_rcast(const __m128i, src + i)));
         i += 16U;
     }
     _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + n - 16U), tail);
@@ -543,7 +544,8 @@ lh_memory_std_set_sse2(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 
         if (n >= 512U)
         {
-            lh_byte_ptr aligned_dst = lh_ptr_align_up(lh_byte_t, dst, lh_cast_static(lh_uaddr_t, 16));
+            lh_byte_ptr aligned_dst =
+                lh_ptr_align_up(lh_byte_t, dst, lh_cast_static(lh_uaddr_t, 16));
             lh_usize_t head = lh_cast_static(lh_usize_t, lh_ptr_udiff(aligned_dst, dst));
 
             /* The misaligned head (< 16 bytes) goes out as one unaligned vector
@@ -791,7 +793,8 @@ lh_memory_std_find_sse2(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh_
         const __m128i a = _mm_loadu_si128(lh_ptr_rcast(const __m128i, hay + off));
         const __m128i b = _mm_loadu_si128(lh_ptr_rcast(const __m128i, hay + off + m - 1U));
         lh_u32_t mask = lh_cast_static(
-            lh_u32_t, _mm_movemask_epi8(_mm_and_si128(_mm_cmpeq_epi8(a, first), _mm_cmpeq_epi8(b, last))));
+            lh_u32_t,
+            _mm_movemask_epi8(_mm_and_si128(_mm_cmpeq_epi8(a, first), _mm_cmpeq_epi8(b, last))));
 
         while (mask != 0U)
         {

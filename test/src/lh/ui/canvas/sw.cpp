@@ -332,7 +332,7 @@ TEST(ui_canvas_sw, rgb565_round_rect_and_mask_match_the_canvas_fallback)
     EXPECT_EQ(sw.at(11, 11) >> 16, 0u); /* 16-bit words */
 }
 
-/* ── Rounded clip ────────────────────────────────────────────────────────── */
+/* -- Rounded clip ---------------------------------------------------------- */
 
 namespace
 {
@@ -669,7 +669,7 @@ TEST(ui_canvas_sw, container_cuts_its_children_along_its_corners)
     EXPECT_EQ(f.alpha_at(3, 5), lh_ui_radius_coverage(&box_rect, lh_ui_scalar(8), 3, 5));
 }
 
-/* ── Effects ───────────────────────────────────────────────────────────────── */
+/* -- Effects --------------------------------------------------------------- */
 
 lh_ui_shadow_t
 shadow_of(int peak, int spread, int dx, int dy)

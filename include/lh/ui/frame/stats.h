@@ -52,7 +52,7 @@ typedef struct lh_ui_frame_stats
     /** called after each frame is counted; may be ::lh_null */
     lh_ui_frame_stats_on_frame_cb on_frame;
     lh_ptr on_frame_context; /**< passed to ::on_frame */
-} lh_ui_frame_stats_t; /**< Running totals over frames. */
+} lh_ui_frame_stats_t;       /**< Running totals over frames. */
 
 /** @brief Zero every total and drop the callback. */
 lh_void
@@ -60,7 +60,8 @@ lh_ui_frame_stats_init(lh_ui_frame_stats_t *self);
 
 /** @brief Call @p cb with every frame from now on; ::lh_null stops it. */
 lh_void
-lh_ui_frame_stats_set_on_frame(lh_ui_frame_stats_t *self, lh_ui_frame_stats_on_frame_cb cb, lh_ptr context);
+lh_ui_frame_stats_set_on_frame(lh_ui_frame_stats_t *self, lh_ui_frame_stats_on_frame_cb cb,
+                               lh_ptr context);
 
 /** @brief Count @p frame, then hand it to the callback. */
 lh_void

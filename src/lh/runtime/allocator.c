@@ -25,7 +25,8 @@ lh_runtime_allocator_default_dealloc(lh_self_ptr self, lh_ptr ptr)
 
 #    if LH_LIBRARY_OPTION_MEMORY_ALLOCATOR_DEFAULT_HAS_REALLOC
 static lh_ptr
-lh_runtime_allocator_default_realloc(lh_self_ptr self, lh_ptr ptr, lh_usize_t old_size, lh_usize_t new_size)
+lh_runtime_allocator_default_realloc(lh_self_ptr self, lh_ptr ptr, lh_usize_t old_size,
+                                     lh_usize_t new_size)
 {
     (void)self;
     (void)old_size;
@@ -37,10 +38,9 @@ lh_runtime_allocator_default_realloc(lh_self_ptr self, lh_ptr ptr, lh_usize_t ol
 #    endif
 
 LH_ATTRIBUTE_THREAD_LOCAL
-lh_memory_allocator_t m_runtime_allocator =
-    lh_memory_allocator_initializer_with_realloc(lh_runtime_allocator_default_alloc,
-                                                 lh_runtime_allocator_default_dealloc,
-                                                 LH_RUNTIME_ALLOCATOR_DEFAULT_REALLOC);
+lh_memory_allocator_t m_runtime_allocator = lh_memory_allocator_initializer_with_realloc(
+    lh_runtime_allocator_default_alloc, lh_runtime_allocator_default_dealloc,
+    LH_RUNTIME_ALLOCATOR_DEFAULT_REALLOC);
 #else
 LH_ATTRIBUTE_THREAD_LOCAL
 lh_memory_allocator_t m_runtime_allocator = lh_memory_allocator_empty_initializer();

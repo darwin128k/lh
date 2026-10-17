@@ -42,8 +42,8 @@ lh_ui_mask_is_bpp(lh_u32_t bpp);
  * @p row_bytes is at least ::lh_bit_packed_bytes(width, bpp).
  */
 lh_void
-lh_ui_mask_init(lh_ui_mask_t *self, const lh_byte_ptr bits, lh_s32_t width, lh_s32_t height, lh_s32_t row_bytes,
-                lh_byte_t bpp);
+lh_ui_mask_init(lh_ui_mask_t *self, const lh_byte_ptr bits, lh_s32_t width, lh_s32_t height,
+                lh_s32_t row_bytes, lh_byte_t bpp);
 
 /**
  * @brief Width of @p self, in pixels.
@@ -100,7 +100,8 @@ lh_ui_mask_get_coverage(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y);
  * @param out Receives `x1 - x0` bytes.
  */
 lh_void
-lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_byte_ptr out);
+lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                        lh_byte_ptr out);
 
 /**
  * @brief Coverage of pixels `x .. x + 7` of row @p y in one register, pixel

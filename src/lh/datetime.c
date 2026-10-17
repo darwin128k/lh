@@ -112,8 +112,9 @@ lh_datetime_equals(const lh_datetime_t *self, const lh_datetime_t *other)
     lh_time_t other_time;
     lh_datetime_get_time(other, lh_addr_of(other_time));
 
-    return lh_cast_static(lh_bool_t, lh_date_equals(lh_addr_of(self_date), lh_addr_of(other_date)) &&
-                                     lh_time_equals(lh_addr_of(self_time), lh_addr_of(other_time)));
+    return lh_cast_static(lh_bool_t,
+                          lh_date_equals(lh_addr_of(self_date), lh_addr_of(other_date)) &&
+                              lh_time_equals(lh_addr_of(self_time), lh_addr_of(other_time)));
 }
 
 lh_bool_t

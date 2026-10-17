@@ -46,20 +46,20 @@
  * @param glass_fn        ::lh_ui_canvas_glass_fn.
  * @param fill_colors_fn  ::lh_ui_canvas_fill_colors_fn.
  */
-#define lh_ui_canvas_backend_fields(begin_fn, begin_area_fn, end_fn, clear_fn, fill_rect_fn,          \
-                                    fill_round_rect_fn, set_clip_fn, fill_mask_fn, shadow_fn, blur_fn, \
-                                    glass_fn, fill_colors_fn)                                            \
-    begin_fn *begin;                                                                                  \
-    begin_area_fn *begin_area;                                                                        \
-    end_fn *end;                                                                                      \
-    clear_fn *clear;                                                                                  \
-    fill_rect_fn *fill_rect;                                                                          \
-    fill_round_rect_fn *fill_round_rect;                                                              \
-    set_clip_fn *set_clip;                                                                            \
-    fill_mask_fn *fill_mask;                                                                          \
-    shadow_fn *shadow;                                                                                \
-    blur_fn *blur;                                                                                    \
-    glass_fn *glass;                                                                                  \
+#define lh_ui_canvas_backend_fields(begin_fn, begin_area_fn, end_fn, clear_fn, fill_rect_fn,       \
+                                    fill_round_rect_fn, set_clip_fn, fill_mask_fn, shadow_fn,      \
+                                    blur_fn, glass_fn, fill_colors_fn)                             \
+    begin_fn *begin;                                                                               \
+    begin_area_fn *begin_area;                                                                     \
+    end_fn *end;                                                                                   \
+    clear_fn *clear;                                                                               \
+    fill_rect_fn *fill_rect;                                                                       \
+    fill_round_rect_fn *fill_round_rect;                                                           \
+    set_clip_fn *set_clip;                                                                         \
+    fill_mask_fn *fill_mask;                                                                       \
+    shadow_fn *shadow;                                                                             \
+    blur_fn *blur;                                                                                 \
+    glass_fn *glass;                                                                               \
     fill_colors_fn *fill_colors
 
 #endif /* LH_UI_CANVAS_BACKEND_FIELDS_H */

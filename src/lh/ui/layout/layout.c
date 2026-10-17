@@ -70,7 +70,7 @@ lh_ui_layout_set_justify(lh_ui_layout_t *self, lh_ui_justify_t justify)
     self->justify = justify;
 }
 
-/* ── The pass ────────────────────────────────────────────────────────────── */
+/* -- The pass -------------------------------------------------------------- */
 
 /** What one child wants along the flow, before anything is shared out: its own
    length, or its content, or nothing at all for a child that wants to fill —
@@ -95,8 +95,9 @@ layout_wants(const lh_ui_layout_t *self, lh_ui_entity_t *child)
         return lh_ui_place_clamp(place, self->axis, lh_ui_place_get_size(place));
     }
     lh_ui_entity_get_content_bounds(child, lh_addr_of(content));
-    return lh_ui_place_clamp(place, self->axis,
-                             lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(content)), self->axis));
+    return lh_ui_place_clamp(
+        place, self->axis,
+        lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(content)), self->axis));
 }
 
 /** How much of the fill a filling child weighs. Its length is read by nothing when
@@ -123,7 +124,8 @@ layout_margin_along(const lh_ui_layout_t *self, const lh_ui_place_t *place)
 /** The room a child is placed in across the flow: the content box, less the margin
    the child keeps on either side of it across. */
 static lh_void
-layout_slot(const lh_ui_layout_t *self, const lh_ui_place_t *place, const lh_ui_rect_t *content, lh_ui_rect_t *out)
+layout_slot(const lh_ui_layout_t *self, const lh_ui_place_t *place, const lh_ui_rect_t *content,
+            lh_ui_rect_t *out)
 {
     lh_assert_runtime_ref(out);
     const lh_ui_axis_t cross = lh_ui_axis_get_cross(self->axis);
@@ -139,8 +141,8 @@ layout_slot(const lh_ui_layout_t *self, const lh_ui_place_t *place, const lh_ui_
 }
 
 lh_void
-lh_ui_layout_cross_fit(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_ui_rect_t *content,
-                       lh_ui_layout_cross_t *out)
+lh_ui_layout_cross_fit(const lh_ui_layout_t *self, lh_ui_entity_t *child,
+                       const lh_ui_rect_t *content, lh_ui_layout_cross_t *out)
 {
     const lh_ui_axis_t cross = lh_ui_axis_get_cross(self->axis);
     lh_ui_rect_t rect;
@@ -154,12 +156,13 @@ lh_ui_layout_cross_fit(const lh_ui_layout_t *self, lh_ui_entity_t *child, const 
     out->room = lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(slot)), cross);
     /* The line is measured from the content box; the slot starts the margin further
        in, so the line is that much nearer to it. */
-    out->before = out->start - lh_ui_point_get_along(lh_ui_rect_get_origin_as_const(content), cross);
+    out->before =
+        out->start - lh_ui_point_get_along(lh_ui_rect_get_origin_as_const(content), cross);
 }
 
 lh_ui_scalar_t
-lh_ui_layout_cross_at(const lh_ui_layout_cross_t *fit, lh_ui_place_align_t align, lh_ui_scalar_t base,
-                      lh_ui_scalar_t line)
+lh_ui_layout_cross_at(const lh_ui_layout_cross_t *fit, lh_ui_place_align_t align,
+                      lh_ui_scalar_t base, lh_ui_scalar_t line)
 {
     lh_assert_runtime_ref(fit);
     if (align == lh_ui_place_align_center)
@@ -184,8 +187,9 @@ lh_ui_layout_cross_at(const lh_ui_layout_cross_t *fit, lh_ui_place_align_t align
        arrangement nobody could explain. So the answer for a child with no
        baseline, and for everybody in a vertical flow where there is no cross
        row to stand on, is the centring above. */
-    return (base >= lh_ui_scalar(0) && line >= lh_ui_scalar(0)) ? line - fit->before - base
-                                                                 : lh_ui_scalar_centre(fit->room, fit->own);
+    return (base >= lh_ui_scalar(0) && line >= lh_ui_scalar(0))
+               ? line - fit->before - base
+               : lh_ui_scalar_centre(fit->room, fit->own);
 }
 
 /** A child across the flow keeps the size it has and is put where it asked; only
@@ -215,15 +219,18 @@ layout_across(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_ui_rec
     {
         lh_ptr_deref(length) = fit.own;
         at = lh_ui_layout_cross_at(lh_addr_of(fit), align,
-                                   align == lh_ui_place_align_baseline ? lh_ui_entity_get_baseline(child)
-                                                                       : lh_ui_scalar(-1),
+                                   align == lh_ui_place_align_baseline
+                                       ? lh_ui_entity_get_baseline(child)
+                                       : lh_ui_scalar(-1),
                                    line);
     }
-    lh_ptr_deref(start) = lh_math_max(fit.start + lh_math_max(at, lh_ui_scalar(0)), lh_ui_scalar(0));
+    lh_ptr_deref(start) =
+        lh_math_max(fit.start + lh_math_max(at, lh_ui_scalar(0)), lh_ui_scalar(0));
 }
 
 lh_ui_scalar_t
-lh_ui_layout_child_line(const lh_ui_layout_t *self, lh_ui_entity_t *child, const lh_ui_rect_t *content)
+lh_ui_layout_child_line(const lh_ui_layout_t *self, lh_ui_entity_t *child,
+                        const lh_ui_rect_t *content)
 {
     const lh_ui_scalar_t at = lh_ui_entity_get_baseline(child);
     lh_ui_layout_cross_t fit;
@@ -241,7 +248,8 @@ lh_ui_layout_child_line(const lh_ui_layout_t *self, lh_ui_entity_t *child, const
 }
 
 lh_void
-lh_ui_layout_run_init(const lh_ui_layout_t *self, const lh_ui_rect_t *content, lh_ui_layout_run_t *out)
+lh_ui_layout_run_init(const lh_ui_layout_t *self, const lh_ui_rect_t *content,
+                      lh_ui_layout_run_t *out)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(out);
@@ -255,8 +263,8 @@ lh_ui_layout_run_init(const lh_ui_layout_t *self, const lh_ui_rect_t *content, l
 }
 
 lh_void
-lh_ui_layout_run_measure_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *run, lh_ui_entity_t *child,
-                               const lh_ui_rect_t *content)
+lh_ui_layout_run_measure_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *run,
+                               lh_ui_entity_t *child, const lh_ui_rect_t *content)
 {
     const lh_ui_place_t *place = lh_ui_entity_get_place(child);
     const lh_bool_t fills_too = lh_ui_place_get_size_mode(place) == lh_ui_place_size_fill;
@@ -299,8 +307,9 @@ lh_ui_layout_run_measure_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *r
 }
 
 lh_void
-lh_ui_layout_run_measure(const lh_ui_layout_t *self, lh_ui_layout_run_t *run, lh_ui_entity_t *parent,
-                         lh_ui_entity_t *first, lh_ui_entity_t *end, const lh_ui_rect_t *content)
+lh_ui_layout_run_measure(const lh_ui_layout_t *self, lh_ui_layout_run_t *run,
+                         lh_ui_entity_t *parent, lh_ui_entity_t *first, lh_ui_entity_t *end,
+                         const lh_ui_rect_t *content)
 {
     lh_ui_entity_t *child;
 
@@ -318,13 +327,13 @@ lh_ui_layout_run_measure(const lh_ui_layout_t *self, lh_ui_layout_run_t *run, lh
     }
     /* A row that does not fit still starts where the content box does: going
        backwards would put the first child before its own parent. */
-    run->left = lh_ui_scalar_slack(lh_ui_size_get_along(lh_ui_rect_get_size_as_const(content), self->axis),
-                                   run->used);
+    run->left = lh_ui_scalar_slack(
+        lh_ui_size_get_along(lh_ui_rect_get_size_as_const(content), self->axis), run->used);
 }
 
 lh_void
-lh_ui_layout_justify_lead(lh_ui_justify_t justify, lh_ui_scalar_t left, int shown, lh_ui_scalar_t *lead,
-                          lh_ui_scalar_t *spread)
+lh_ui_layout_justify_lead(lh_ui_justify_t justify, lh_ui_scalar_t left, int shown,
+                          lh_ui_scalar_t *lead, lh_ui_scalar_t *spread)
 {
     lh_assert_runtime_ref(lead);
     lh_assert_runtime_ref(spread);
@@ -363,13 +372,14 @@ lh_ui_layout_run_justify(const lh_ui_layout_t *self, lh_ui_layout_run_t *run)
 
     lh_assert_runtime_ref(run);
     lh_return_if(run->weights > lh_ui_scalar(0) || run->shown <= 0);
-    lh_ui_layout_justify_lead(lh_ui_layout_get_justify(self), run->left, run->shown, lh_addr_of(lead),
-                              lh_addr_of(run->spread));
+    lh_ui_layout_justify_lead(lh_ui_layout_get_justify(self), run->left, run->shown,
+                              lh_addr_of(lead), lh_addr_of(run->spread));
     run->along += lead;
 }
 
 lh_ui_scalar_t
-lh_ui_layout_run_length(const lh_ui_layout_t *self, const lh_ui_layout_run_t *run, lh_ui_entity_t *child)
+lh_ui_layout_run_length(const lh_ui_layout_t *self, const lh_ui_layout_run_t *run,
+                        lh_ui_entity_t *child)
 {
     const lh_ui_place_t *place = lh_ui_entity_get_place(child);
     lh_ui_scalar_t share;
@@ -384,8 +394,8 @@ lh_ui_layout_run_length(const lh_ui_layout_t *self, const lh_ui_layout_run_t *ru
 }
 
 lh_void
-lh_ui_layout_run_place_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *run, lh_ui_entity_t *child,
-                             const lh_ui_rect_t *content)
+lh_ui_layout_run_place_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *run,
+                             lh_ui_entity_t *child, const lh_ui_rect_t *content)
 {
     /* ::lh_ui_rect_init_along measures `start` past the origin of its base, and
        the rects a child carries are absolute, so the slice is cut out of nothing
@@ -402,10 +412,12 @@ lh_ui_layout_run_place_child(const lh_ui_layout_t *self, lh_ui_layout_run_t *run
     lh_assert_runtime_ref(run);
     lh_return_if(lh_ui_entity_is_hidden(child));
     wants = lh_ui_layout_run_length(self, run, child);
-    layout_across(self, child, content, run->line, lh_addr_of(across_start), lh_addr_of(across_length));
-    lh_ui_rect_init_along(lh_addr_of(placed), lh_addr_of(nowhere), self->axis, run->along + before, wants);
-    lh_ui_rect_init_along(lh_addr_of(placed), lh_addr_of(placed), lh_ui_axis_get_cross(self->axis), across_start,
-                          across_length);
+    layout_across(self, child, content, run->line, lh_addr_of(across_start),
+                  lh_addr_of(across_length));
+    lh_ui_rect_init_along(lh_addr_of(placed), lh_addr_of(nowhere), self->axis, run->along + before,
+                          wants);
+    lh_ui_rect_init_along(lh_addr_of(placed), lh_addr_of(placed), lh_ui_axis_get_cross(self->axis),
+                          across_start, across_length);
     /* Moved, not resized: a child that carries a subtree has to take it along
        (::lh_ui_entity_move_to), and the size comes after, because moving is
        a delta and the child has to still be where it was for it to be right. */
@@ -430,8 +442,8 @@ lh_ui_layout_run_place(const lh_ui_layout_t *self, lh_ui_layout_run_t *run, lh_u
 }
 
 lh_void
-lh_ui_layout_run(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity_t *first, lh_ui_entity_t *end,
-                 const lh_ui_rect_t *content_box)
+lh_ui_layout_run(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity_t *first,
+                 lh_ui_entity_t *end, const lh_ui_rect_t *content_box)
 {
     const lh_ui_rect_t content = lh_ptr_deref(content_box);
     lh_ui_layout_run_t run;
@@ -466,8 +478,8 @@ layout_depth(const lh_ui_layout_t *self, lh_ui_entity_t *child)
    A line always takes its first child, so a child longer than the room is a line on
    its own rather than none. */
 static lh_ui_entity_t *
-layout_line_end(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity_t *first, lh_ui_scalar_t room,
-                lh_ui_scalar_t *depth)
+layout_line_end(const lh_ui_layout_t *self, lh_ui_entity_t *parent, lh_ui_entity_t *first,
+                lh_ui_scalar_t room, lh_ui_scalar_t *depth)
 {
     lh_ui_scalar_t used = lh_ui_scalar(0);
     int count = 0;
@@ -504,8 +516,10 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
     lh_ui_rect_t content;
     lh_ui_insets_shrink(lh_addr_of(padding), lh_addr_of(rect), lh_addr_of(content));
     const lh_ui_axis_t cross = lh_ui_axis_get_cross(self->axis);
-    const lh_ui_scalar_t room = lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(content)), self->axis);
-    const lh_ui_scalar_t room_across = lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(content)), cross);
+    const lh_ui_scalar_t room =
+        lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(content)), self->axis);
+    const lh_ui_scalar_t room_across =
+        lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(content)), cross);
     lh_ui_scalar_t depths = lh_ui_scalar(0);
     lh_ui_scalar_t extra = lh_ui_scalar(0);
     lh_ui_scalar_t at = lh_ui_scalar(0);
@@ -518,7 +532,8 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
     lh_assert_runtime_ref(parent);
     if (!self->wrap)
     {
-        lh_ui_layout_run(self, parent, lh_ui_entity_get_first_child(parent), lh_null, lh_addr_of(content));
+        lh_ui_layout_run(self, parent, lh_ui_entity_get_first_child(parent), lh_null,
+                         lh_addr_of(content));
         return;
     }
     /* How many lines, and how deep they are together; what is left across is then
@@ -532,7 +547,8 @@ lh_ui_layout_apply(const lh_ui_layout_t *self, lh_ui_entity_t *parent)
     lh_return_if(lines == 0);
     if (room_across - depths - self->line_gap * (lines - 1) > lh_ui_scalar(0))
     {
-        lh_ui_scalar_trunc((room_across - depths - self->line_gap * (lines - 1)) / lines, lh_addr_of(extra));
+        lh_ui_scalar_trunc((room_across - depths - self->line_gap * (lines - 1)) / lines,
+                           lh_addr_of(extra));
     }
     for (first = lh_ui_entity_get_first_child(parent); lh_null_ne(first); first = end)
     {

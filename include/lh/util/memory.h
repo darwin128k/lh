@@ -36,8 +36,7 @@
  * @see lh_memory_scan_bound
  * @see lh_memory_find_step
  */
-#define lh_memory_size_rest(size, off)                                                             \
-    (lh_math_le((off), (size)) ? lh_math_sub((size), (off)) : 0)
+#define lh_memory_size_rest(size, off) (lh_math_le((off), (size)) ? lh_math_sub((size), (off)) : 0)
 
 /**
  * @def lh_memory_scan_bound(ptr)

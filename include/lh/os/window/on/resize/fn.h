@@ -24,6 +24,7 @@ struct lh_os_window;
  *
  * The window is not damaged by this, and nothing is repainted until the app says so.
  */
-typedef lh_void(lh_os_window_on_resize_fn)(struct lh_os_window *self, int width, int height, lh_ptr context);
+typedef lh_void(lh_os_window_on_resize_fn)(struct lh_os_window *self, int width, int height,
+                                           lh_ptr context);
 
 #endif /* LH_OS_WINDOW_ON_RESIZE_FN_H */

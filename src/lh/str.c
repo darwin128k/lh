@@ -222,8 +222,8 @@ lh_str_append_str(lh_str_t *self, const lh_str_t *other)
         {
             return;
         }
-        lh_array_reserve(self, lh_array_get_grown_capacity(
-                                    lh_array_get_capacity(self), lh_math_add(n + n, 1U)));
+        lh_array_reserve(
+            self, lh_array_get_grown_capacity(lh_array_get_capacity(self), lh_math_add(n + n, 1U)));
         lh_str_append(self, lh_str_get_data(self), n);
         return;
     }

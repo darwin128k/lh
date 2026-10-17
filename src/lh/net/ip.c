@@ -48,8 +48,7 @@ lh_net_ip4_assign(lh_net_ip4_t *self, const lh_net_ip4_t *other)
 lh_bool_t
 lh_net_ip4_is_loopback(const lh_net_ip4_t *self)
 {
-    return lh_cast_static(lh_bool_t,
-                          lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_0) == 127U);
+    return lh_cast_static(lh_bool_t, lh_net_ip4_get_octet(self, LH_NET_IP4_OCTET_INDEX_0) == 127U);
 }
 
 lh_bool_t
@@ -144,8 +143,9 @@ lh_net_ip4_format(const lh_net_ip4_t *self, lh_str_ptr str, lh_usize_t str_size)
             pos++;
         }
 
-        written = lh_str_ptr_format_uint(lh_cast_static(lh_uint_t, lh_net_ip4_get_octet(self, octet_index)),
-                                         scratch + pos, LH_NET_IP4_TEXT_MAX - pos);
+        written = lh_str_ptr_format_uint(
+            lh_cast_static(lh_uint_t, lh_net_ip4_get_octet(self, octet_index)), scratch + pos,
+            LH_NET_IP4_TEXT_MAX - pos);
         if (written == 0)
         {
             return 0; /* unreachable: each octet is <= 3 digits and scratch always has room,

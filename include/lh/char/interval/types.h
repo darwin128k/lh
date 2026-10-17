@@ -17,7 +17,7 @@
 #include <lh/char/interval/bounds/types.h>
 #include <lh/interval/fields.h>
 
-/* ── unsigned ──────────────────────────────────────────────────────────── */
+/* -- unsigned -------------------------------------------------------------- */
 
 /**
  * @struct lh_uchar_interval
@@ -36,7 +36,7 @@ struct lh_uchar_interval
     lh_interval_fields(struct lh_uchar_interval_bounds);
 };
 
-/* ── signed (explicit) ─────────────────────────────────────────────────── */
+/* -- signed (explicit) ----------------------------------------------------- */
 
 /**
  * @struct lh_schar_interval
@@ -55,7 +55,7 @@ struct lh_schar_interval
     lh_interval_fields(struct lh_schar_interval_bounds);
 };
 
-/* ── typedefs ──────────────────────────────────────────────────────────── */
+/* -- typedefs -------------------------------------------------------------- */
 
 /** @typedef lh_uchar_interval_t
  *  @brief Convenience alias for struct ::lh_uchar_interval. */

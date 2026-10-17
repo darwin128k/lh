@@ -121,7 +121,8 @@ lh_memory_std_copy_rev_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
         do
         {
             d_end -= 8;
-            lh_ptr_deref(lh_ptr_rcast(lh_u64_t, d_end)) = lh_bit_bswap_u64(*lh_ptr_rcast(const lh_u64_t, src));
+            lh_ptr_deref(lh_ptr_rcast(lh_u64_t, d_end)) =
+                lh_bit_bswap_u64(*lh_ptr_rcast(const lh_u64_t, src));
             src += 8;
             n -= 8U;
         } while (n >= 8U);
@@ -331,7 +332,8 @@ lh_memory_std_copy_words(lh_ptr dst, const lh_ptr src, lh_usize_t n)
        each sits on a word boundary aligns the source and the destination in the
        same pass — neither is ever touched through a misaligned pointer, which is
        the access a strict-alignment target faults on. */
-    while (n > 0U && (!lh_math_is_multiple_of(lh_ptr_to_uaddr(d), w) || !lh_math_is_multiple_of(lh_ptr_to_uaddr(s), w)))
+    while (n > 0U && (!lh_math_is_multiple_of(lh_ptr_to_uaddr(d), w) ||
+                      !lh_math_is_multiple_of(lh_ptr_to_uaddr(s), w)))
     {
         lh_ptr_deref(d++) = lh_ptr_deref(s++);
         --n;
@@ -435,8 +437,8 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_bool_t
 lh_memory_std_find_is_match(lh_byte_cptr cand, lh_byte_cptr needle, lh_usize_t m)
 {
-    return lh_cast_static(lh_bool_t,
-                          m <= 2U || lh_null_eq(lh_memory_std_compare(cand + 1, needle + 1, m - 2U)));
+    return lh_cast_static(
+        lh_bool_t, m <= 2U || lh_null_eq(lh_memory_std_compare(cand + 1, needle + 1, m - 2U)));
 }
 
 /** Scalar ::lh_memory_std_find from offset @p off: first and last byte as a filter,

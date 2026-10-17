@@ -29,8 +29,8 @@ lh_ui_web_ws_frame_size(lh_usize_t payload_len)
 }
 
 lh_usize_t
-lh_ui_web_ws_write(lh_byte_ptr out, lh_usize_t cap, unsigned opcode, lh_bool_t fin, const void *payload,
-                   lh_usize_t payload_len)
+lh_ui_web_ws_write(lh_byte_ptr out, lh_usize_t cap, unsigned opcode, lh_bool_t fin,
+                   const void *payload, lh_usize_t payload_len)
 {
     const lh_usize_t need = lh_ui_web_ws_frame_size(payload_len);
     lh_byte_cptr src = lh_ptr_ccast(lh_byte_t, payload);
@@ -109,7 +109,7 @@ lh_ui_web_ws_read(lh_byte_cptr p, lh_usize_t n, unsigned *opcode, lh_bool_t *fin
         {
             return 0;
         }
-        plen = (lh_cast_static(lh_usize_t, p[2])<< 8) | lh_cast_static(lh_usize_t, p[3]);
+        plen = (lh_cast_static(lh_usize_t, p[2]) << 8) | lh_cast_static(lh_usize_t, p[3]);
         off = 4u;
     }
     else if (len7 == 127u)

@@ -26,9 +26,9 @@
  *                  `lh_byte_t` cannot hold it).
  * @param count_type Type of the length and the base (::lh_u32_t).
  */
-#define lh_ui_font_range_fields(code_type, count_type)                                                  \
-    code_type first;                                                                                  \
-    count_type length;                                                                                \
+#define lh_ui_font_range_fields(code_type, count_type)                                             \
+    code_type first;                                                                               \
+    count_type length;                                                                             \
     count_type base
 
 #endif /* LH_UI_FONT_RANGE_FIELDS_H */

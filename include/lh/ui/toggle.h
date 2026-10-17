@@ -36,21 +36,21 @@
  */
 struct lh_ui_toggle
 {
-    lh_ui_button_t button;            /**< The button this toggle is (first field). */
-    const lh_ui_style_t *off_style;   /**< Resting look while off. */
+    lh_ui_button_t button;              /**< The button this toggle is (first field). */
+    const lh_ui_style_t *off_style;     /**< Resting look while off. */
     const lh_ui_style_t *off_hot_style; /**< Hovered look while off. */
-    const lh_ui_style_t *on_style;    /**< Resting look while on. */
-    const lh_ui_style_t *on_hot_style; /**< Hovered look while on. */
-    lh_bool_t checked;                /**< True while it is on. */
-    lh_ui_toggle_on_click_cb on_click; /**< Who to tell about a click. */
-    lh_ptr click_context;             /**< What to tell them with. */
+    const lh_ui_style_t *on_style;      /**< Resting look while on. */
+    const lh_ui_style_t *on_hot_style;  /**< Hovered look while on. */
+    lh_bool_t checked;                  /**< True while it is on. */
+    lh_ui_toggle_on_click_cb on_click;  /**< Who to tell about a click. */
+    lh_ptr click_context;               /**< What to tell them with. */
 };
 /** @copybrief lh_ui_toggle */
 typedef struct lh_ui_toggle lh_ui_toggle_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Class ───────────────────────────────────────────────────────────────── */
+/* -- Class ----------------------------------------------------------------- */
 
 /**
  * @brief Class of ::lh_ui_toggle_t, derived from ::lh_ui_button_class.
@@ -74,7 +74,7 @@ lh_ui_toggle_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *
 lh_void
 lh_ui_toggle_on_click(const lh_ui_toggle_t *self, const lh_ui_entity_event_t *event);
 
-/* ── Lifetime and fields ─────────────────────────────────────────────────── */
+/* -- Lifetime and fields --------------------------------------------------- */
 
 /**
  * @brief A toggle at @p rect: no styles, off, not hovered, no callback.
@@ -107,14 +107,15 @@ lh_ui_toggle_as_button(lh_ui_toggle_t *self);
 lh_ui_toggle_t *
 lh_ui_entity_as_toggle(lh_ui_entity_t *entity);
 
-/* ── Looks ───────────────────────────────────────────────────────────────── */
+/* -- Looks ----------------------------------------------------------------- */
 
 /**
  * @brief The two looks while @p self is off (not owned, either ::lh_null for
  *        none).
  */
 lh_void
-lh_ui_toggle_set_off_style(lh_ui_toggle_t *self, const lh_ui_style_t *rest, const lh_ui_style_t *hot);
+lh_ui_toggle_set_off_style(lh_ui_toggle_t *self, const lh_ui_style_t *rest,
+                           const lh_ui_style_t *hot);
 
 /**
  * @brief The resting look while off (::lh_null for none).
@@ -133,7 +134,8 @@ lh_ui_toggle_get_off_hot_style(const lh_ui_toggle_t *self);
  *        none). Shows them at once when @p self is already on.
  */
 lh_void
-lh_ui_toggle_set_on_style(lh_ui_toggle_t *self, const lh_ui_style_t *rest, const lh_ui_style_t *hot);
+lh_ui_toggle_set_on_style(lh_ui_toggle_t *self, const lh_ui_style_t *rest,
+                          const lh_ui_style_t *hot);
 
 /**
  * @brief The resting look while on (::lh_null for none).
@@ -147,7 +149,7 @@ lh_ui_toggle_get_on_style(const lh_ui_toggle_t *self);
 const lh_ui_style_t *
 lh_ui_toggle_get_on_hot_style(const lh_ui_toggle_t *self);
 
-/* ── State ───────────────────────────────────────────────────────────────── */
+/* -- State ----------------------------------------------------------------- */
 
 /**
  * @brief True while @p self is on.
@@ -162,7 +164,7 @@ lh_ui_toggle_get_checked(const lh_ui_toggle_t *self);
 lh_void
 lh_ui_toggle_set_checked(lh_ui_toggle_t *self, lh_bool_t checked);
 
-/* ── Click ───────────────────────────────────────────────────────────────── */
+/* -- Click ----------------------------------------------------------------- */
 
 /**
  * @brief Who to tell about a click on @p self, and with what context

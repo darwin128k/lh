@@ -58,7 +58,7 @@ typedef struct lh_os_module lh_os_module_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── init / deinit ───────────────────────────────────────────────────────── */
+/* -- init / deinit --------------------------------------------------------- */
 
 /**
  * @brief Empty module: no image, no methods, no owner, no loader. Does not
@@ -98,7 +98,7 @@ lh_os_module_create(void);
 lh_void
 lh_os_module_destroy(lh_os_module_t *self);
 
-/* ── accessors ───────────────────────────────────────────────────────────── */
+/* -- accessors ------------------------------------------------------------- */
 
 /**
  * @brief The module's image. Read-only: the module opens and closes it,
@@ -212,7 +212,7 @@ lh_os_module_get_parent(const lh_os_module_t *self);
 struct lh_os_loader *
 lh_os_module_get_loader(const lh_os_module_t *self);
 
-/* ── privilege ───────────────────────────────────────────────────────────── */
+/* -- privilege ------------------------------------------------------------- */
 
 /**
  * @brief Give @p self a loader for children.
@@ -226,7 +226,7 @@ lh_os_module_get_loader(const lh_os_module_t *self);
 struct lh_os_loader *
 lh_os_module_grant_loader(lh_os_module_t *self, const lh_str_ptr entry);
 
-/* ── image ───────────────────────────────────────────────────────────────── */
+/* -- image ----------------------------------------------------------------- */
 
 /**
  * @brief Open @p path into an empty module (::lh_os_shared_open).
@@ -269,7 +269,7 @@ lh_os_module_bind_executable(lh_os_module_t *self);
 lh_bool_t
 lh_os_module_close(lh_os_module_t *self);
 
-/* ── lifecycle ───────────────────────────────────────────────────────────── */
+/* -- lifecycle ------------------------------------------------------------- */
 
 /**
  * @brief Run the module's start. No methods, or no start: started as is.
@@ -289,7 +289,7 @@ lh_os_module_start(lh_os_module_t *self);
 lh_void
 lh_os_module_stop(lh_os_module_t *self);
 
-/* ── symbols ─────────────────────────────────────────────────────────────── */
+/* -- symbols --------------------------------------------------------------- */
 
 /**
  * @brief Exported symbol @p name, or ::lh_null if no image / missing.

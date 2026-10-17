@@ -10,7 +10,7 @@
  * @def lh_os_system_posix_xbutton_event_fields
  * @brief `XButtonEvent`: `ButtonPress` and `ButtonRelease`; buttons 4 to 7 are the wheel.
  */
-#define lh_os_system_posix_xbutton_event_fields \
+#define lh_os_system_posix_xbutton_event_fields                                                    \
     lh_os_system_posix_xany_event_fields;                                                          \
     lh_os_system_posix_xid_t root;                                                                 \
     lh_os_system_posix_xid_t subwindow;                                                            \

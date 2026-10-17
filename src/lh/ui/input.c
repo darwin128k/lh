@@ -8,7 +8,7 @@
 #include <lh/util/return.h>
 #include <lh/util/str/ptr.h>
 
-/* ── Boundaries ──────────────────────────────────────────────────────────────
+/* -- Boundaries ------------------------------------------------------------
  *
  * Every caret position in this file is a byte offset that is **on** a code point,
  * and these two are what keeps it there. A field that steps back over one byte of a
@@ -55,7 +55,7 @@ lh_ui_input_is_boundary(const lh_ui_input_t *self, lh_u16_t at)
     return at == 0U || (self->buffer[at] & 0xC0) != 0x80 ? lh_bool_true : lh_bool_false;
 }
 
-/* ── Events ───────────────────────────────────────────────────────────────── */
+/* -- Events ---------------------------------------------------------------- */
 
 lh_void
 lh_ui_input_on_focus(const lh_ui_input_t *self, const lh_ui_entity_event_t *event)
@@ -126,12 +126,13 @@ lh_ui_input_t *
 lh_ui_entity_as_input(lh_ui_entity_t *entity)
 {
     lh_return_if(lh_null_eq(entity), lh_null);
-    lh_return_if(!lh_ui_entity_class_is(lh_ui_entity_get_class(entity), lh_addr_of(lh_ui_input_class)),
-                 lh_null);
+    lh_return_if(
+        !lh_ui_entity_class_is(lh_ui_entity_get_class(entity), lh_addr_of(lh_ui_input_class)),
+        lh_null);
     return lh_ptr_rcast(lh_ui_input_t, entity);
 }
 
-/* ── Lifetime and fields ───────────────────────────────────────────────────── */
+/* -- Lifetime and fields --------------------------------------------------- */
 
 const lh_char_t *
 lh_ui_input_get_text(const lh_ui_input_t *self)
@@ -204,7 +205,7 @@ lh_ui_input_get_length(const lh_ui_input_t *self)
     return self->used;
 }
 
-/* ── Text ──────────────────────────────────────────────────────────────────── */
+/* -- Text ------------------------------------------------------------------ */
 
 lh_bool_t
 lh_ui_input_insert(lh_ui_input_t *self, lh_u32_t code)
@@ -224,8 +225,8 @@ lh_ui_input_insert(lh_ui_input_t *self, lh_u32_t code)
     {
         self->buffer[at] = self->buffer[at - 1U];
     }
-    lh_ui_text_encode_code(&self->buffer[self->caret], lh_cast_static(lh_u32_t, self->capacity - self->caret),
-                           code);
+    lh_ui_text_encode_code(&self->buffer[self->caret],
+                           lh_cast_static(lh_u32_t, self->capacity - self->caret), code);
     self->used = lh_cast_static(lh_u16_t, self->used + size);
     self->caret = lh_cast_static(lh_u16_t, self->caret + size);
     self->buffer[self->used] = '\0';
@@ -257,7 +258,8 @@ lh_ui_input_backspace(lh_ui_input_t *self)
 lh_bool_t
 lh_ui_input_delete_forward(lh_ui_input_t *self)
 {
-    const lh_u32_t size = lh_ui_text_lead_size(lh_cast_static(lh_byte_t, self->buffer[self->caret]));
+    const lh_u32_t size =
+        lh_ui_text_lead_size(lh_cast_static(lh_byte_t, self->buffer[self->caret]));
     lh_u16_t at;
 
     lh_assert_runtime_ref(self);
@@ -289,7 +291,7 @@ lh_ui_input_get_caret(const lh_ui_input_t *self)
     return self->caret;
 }
 
-/* ── Editing ───────────────────────────────────────────────────────────────── */
+/* -- Editing --------------------------------------------------------------- */
 
 lh_bool_t
 lh_ui_input_set_caret(lh_ui_input_t *self, lh_u16_t caret)
@@ -363,7 +365,7 @@ lh_ui_input_home(lh_ui_input_t *self)
     self->caret = 0U;
 }
 
-/* ── Caret ─────────────────────────────────────────────────────────────────── */
+/* -- Caret ----------------------------------------------------------------- */
 
 lh_void
 lh_ui_input_end(lh_ui_input_t *self)
@@ -408,13 +410,14 @@ lh_ui_input_on_key(const lh_ui_input_t *self, const lh_ui_entity_event_t *event)
     }
     if (lh_ui_key_input_is_down(key, lh_key_right))
     {
-        const lh_u32_t size = self->caret < self->used
-                                  ? lh_ui_text_lead_size(lh_cast_static(lh_byte_t, self->buffer[self->caret]))
-                                  : 0U;
+        const lh_u32_t size =
+            self->caret < self->used
+                ? lh_ui_text_lead_size(lh_cast_static(lh_byte_t, self->buffer[self->caret]))
+                : 0U;
 
-        return size == 0U ? lh_bool_false
-                          : lh_ui_input_set_caret(input,
-                                                  lh_cast_static(lh_u16_t, self->caret + size));
+        return size == 0U
+                   ? lh_bool_false
+                   : lh_ui_input_set_caret(input, lh_cast_static(lh_u16_t, self->caret + size));
     }
     if (lh_ui_key_input_is_down(key, lh_key_home))
     {
@@ -446,7 +449,8 @@ lh_ui_input_get_line_top(const lh_ui_input_t *self, const lh_ui_font_t *font)
     const lh_ui_scalar_t ascent = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_ascent(font));
     /* A run with no height (".", a space) stands on nothing, and the label says so with
        a negative baseline: that takes the same answer as an empty field. */
-    const lh_ui_scalar_t own = self->used > 0U ? lh_ui_label_get_baseline(lh_addr_of(self->label)) : lh_ui_scalar(-1);
+    const lh_ui_scalar_t own =
+        self->used > 0U ? lh_ui_label_get_baseline(lh_addr_of(self->label)) : lh_ui_scalar(-1);
     lh_ui_scalar_t baseline;
 
     if (own >= lh_ui_scalar(0))
@@ -464,7 +468,9 @@ lh_ui_input_get_line_top(const lh_ui_input_t *self, const lh_ui_font_t *font)
 
         lh_ui_size_init(lh_addr_of(size), 0, cap);
         lh_ui_text_align_get_origin(box, lh_addr_of(padding), size, lh_ui_text_align_h_left,
-                                             lh_null_eq(style) ? lh_ui_text_align_v_top : lh_ui_style_get_align_v(style), lh_addr_of(origin));
+                                    lh_null_eq(style) ? lh_ui_text_align_v_top
+                                                      : lh_ui_style_get_align_v(style),
+                                    lh_addr_of(origin));
         baseline = lh_ui_point_get_y(lh_addr_of(origin)) + cap;
     }
     return baseline - ascent;
@@ -509,7 +515,8 @@ lh_ui_input_get_caret_rect(const lh_ui_input_t *self, lh_ui_rect_t *out)
         /* The character under the caret, or a '0' past the end: a block as wide as
            nothing is a bar, and the end of the text is where a block sits most. */
         const lh_char_t *next = lh_addr_of(self->buffer[self->caret]);
-        const lh_u32_t code = self->caret < self->used ? lh_ui_text_next_code(lh_addr_of(next)) : '0';
+        const lh_u32_t code =
+            self->caret < self->used ? lh_ui_text_next_code(lh_addr_of(next)) : '0';
 
         width = lh_cast_static(lh_ui_scalar_t, lh_ui_font_get_advance(font, code));
         if (width <= lh_ui_scalar(0))
@@ -562,8 +569,10 @@ lh_ui_input_on_draw_caret(const lh_ui_input_t *self, const lh_ui_entity_event_t 
            fill, or white for a field without one. Same font, same line top, same
            column: the glyph lands exactly where the label put it. */
         const lh_ui_font_t *font = lh_ui_label_get_font(lh_addr_of(self->label));
-        const lh_ui_style_t *style = lh_ui_entity_get_style(lh_addr_of(self->label.container.entity));
-        const lh_ui_color_t *under = lh_null_eq(style) ? lh_null : lh_ui_paint_get_color(lh_ui_style_get_fill(style));
+        const lh_ui_style_t *style =
+            lh_ui_entity_get_style(lh_addr_of(self->label.container.entity));
+        const lh_ui_color_t *under =
+            lh_null_eq(style) ? lh_null : lh_ui_paint_get_color(lh_ui_style_get_fill(style));
         const lh_char_t *at = lh_addr_of(self->buffer[self->caret]);
         lh_ui_color_t white;
 
@@ -585,24 +594,24 @@ lh_ui_input_event(const struct lh_ui_entity *self, const lh_ui_entity_event_t *e
 
     switch (lh_ui_entity_event_get_code(event))
     {
-        case lh_ui_entity_event_focus:
-        case lh_ui_entity_event_defocus:
-            lh_ui_input_on_focus(input, event);
-            break;
-        case lh_ui_entity_event_focusable:
-            lh_ui_input_on_focusable(event);
-            break;
-        case lh_ui_entity_event_key:
-            (void)lh_ui_input_on_key(input, event);
-            break;
-        case lh_ui_entity_event_press:
-            (void)lh_ui_input_on_press(input, event);
-            break;
-        case lh_ui_entity_event_draw:
-            lh_ui_input_on_draw_caret(input, event);
-            break;
-        default:
-            break;
+    case lh_ui_entity_event_focus:
+    case lh_ui_entity_event_defocus:
+        lh_ui_input_on_focus(input, event);
+        break;
+    case lh_ui_entity_event_focusable:
+        lh_ui_input_on_focusable(event);
+        break;
+    case lh_ui_entity_event_key:
+        (void)lh_ui_input_on_key(input, event);
+        break;
+    case lh_ui_entity_event_press:
+        (void)lh_ui_input_on_press(input, event);
+        break;
+    case lh_ui_entity_event_draw:
+        lh_ui_input_on_draw_caret(input, event);
+        break;
+    default:
+        break;
     }
 }
 
@@ -634,7 +643,6 @@ lh_ui_input_is_focused(const lh_ui_input_t *self)
     return self->focused;
 }
 
-/* ── Class ─────────────────────────────────────────────────────────────────── */
+/* -- Class ----------------------------------------------------------------- */
 
-const lh_ui_entity_class_t lh_ui_input_class = {
-    lh_ui_input_event, lh_addr_of(lh_ui_label_class)};
+const lh_ui_entity_class_t lh_ui_input_class = {lh_ui_input_event, lh_addr_of(lh_ui_label_class)};

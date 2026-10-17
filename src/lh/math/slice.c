@@ -82,18 +82,21 @@ lh_math_slice_is_valid_index(const lh_math_slice_t *self, lh_usize_t index)
 lh_float_t
 lh_math_slice_get_at(const lh_math_slice_t *self, lh_usize_t index)
 {
-    lh_assert_runtime_ifn(lh_math_slice_is_valid_index(self, index), lh_runtime_error_code_out_of_range);
+    lh_assert_runtime_ifn(lh_math_slice_is_valid_index(self, index),
+                          lh_runtime_error_code_out_of_range);
     return self->first[index];
 }
 
 lh_void
-lh_math_slice_get_sub(const lh_math_slice_t *self, lh_usize_t offset, lh_usize_t count, lh_math_slice_t *out)
+lh_math_slice_get_sub(const lh_math_slice_t *self, lh_usize_t offset, lh_usize_t count,
+                      lh_math_slice_t *out)
 {
     lh_assert_runtime_ref(out);
     const lh_usize_t size = lh_math_slice_get_size(self);
     lh_math_slice_t sub;
 
-    lh_assert_runtime_ifn(offset <= size && count <= size - offset, lh_runtime_error_code_out_of_range);
+    lh_assert_runtime_ifn(offset <= size && count <= size - offset,
+                          lh_runtime_error_code_out_of_range);
     lh_math_slice_init(lh_addr_of(sub), count == 0U ? lh_null : self->first + offset, count);
     lh_ptr_deref(out) = sub;
 }
@@ -163,7 +166,8 @@ lh_math_slice_dot(const lh_math_slice_t *a, const lh_math_slice_t *b)
     lh_assert_runtime_ifn(lh_math_slice_get_size(a) == lh_math_slice_get_size(b),
                           lh_runtime_error_code_invalid_range);
     lh_return_if(lh_math_slice_is_empty(a), 0.0f);
-    for (sum = lh_math_slice_get_at(a, 0U) * lh_math_slice_get_at(b, 0U), i = 1U; i < lh_math_slice_get_size(a); ++i)
+    for (sum = lh_math_slice_get_at(a, 0U) * lh_math_slice_get_at(b, 0U), i = 1U;
+         i < lh_math_slice_get_size(a); ++i)
     {
         sum += lh_math_slice_get_at(a, i) * lh_math_slice_get_at(b, i);
     }

@@ -16,10 +16,11 @@ lh_math_mat4_set_column(lh_math_mat4_t *self, unsigned index, lh_math_vec4_t col
     self->columns[index] = column;
 }
 
-/* ── Accessors ───────────────────────────────────────────────────────────── */
+/* -- Accessors ------------------------------------------------------------- */
 
 lh_void
-lh_math_mat4_from_columns(lh_math_vec4_t c0, lh_math_vec4_t c1, lh_math_vec4_t c2, lh_math_vec4_t c3, lh_math_mat4_t *out)
+lh_math_mat4_from_columns(lh_math_vec4_t c0, lh_math_vec4_t c1, lh_math_vec4_t c2,
+                          lh_math_vec4_t c3, lh_math_mat4_t *out)
 {
     lh_assert_runtime_ref(out);
     lh_math_mat4_t m;
@@ -72,12 +73,13 @@ lh_math_mat4_from_translation(lh_math_vec3_t offset, lh_math_mat4_t *out)
 }
 
 lh_void
-lh_math_mat4_set_column_vec3(lh_math_mat4_t *self, unsigned index, lh_math_vec3_t xyz, lh_math_fscalar_t w)
+lh_math_mat4_set_column_vec3(lh_math_mat4_t *self, unsigned index, lh_math_vec3_t xyz,
+                             lh_math_fscalar_t w)
 {
     lh_math_vec4_t column;
 
-    lh_math_vec4_init(lh_addr_of(column), lh_math_vec3_get_x(lh_addr_of(xyz)), lh_math_vec3_get_y(lh_addr_of(xyz)),
-                      lh_math_vec3_get_z(lh_addr_of(xyz)), w);
+    lh_math_vec4_init(lh_addr_of(column), lh_math_vec3_get_x(lh_addr_of(xyz)),
+                      lh_math_vec3_get_y(lh_addr_of(xyz)), lh_math_vec3_get_z(lh_addr_of(xyz)), w);
     lh_math_mat4_set_column(self, index, column);
 }
 
@@ -232,8 +234,8 @@ lh_math_mat4_inverse(lh_math_mat4_t m, lh_math_mat4_t *out)
              a[5] * a[3] * a[10] - a[9] * a[2] * a[7] + a[9] * a[3] * a[6];
     inv[7] = a[0] * a[6] * a[11] - a[0] * a[7] * a[10] - a[4] * a[2] * a[11] + a[4] * a[3] * a[10] +
              a[8] * a[2] * a[7] - a[8] * a[3] * a[6];
-    inv[11] = lh_math_neg(a[0]) * a[5] * a[11] + a[0] * a[7] * a[9] + a[4] * a[1] * a[11] - a[4] * a[3] * a[9] -
-              a[8] * a[1] * a[7] + a[8] * a[3] * a[5];
+    inv[11] = lh_math_neg(a[0]) * a[5] * a[11] + a[0] * a[7] * a[9] + a[4] * a[1] * a[11] -
+              a[4] * a[3] * a[9] - a[8] * a[1] * a[7] + a[8] * a[3] * a[5];
     inv[15] = a[0] * a[5] * a[10] - a[0] * a[6] * a[9] - a[4] * a[1] * a[10] + a[4] * a[2] * a[9] +
               a[8] * a[1] * a[6] - a[8] * a[2] * a[5];
 

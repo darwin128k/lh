@@ -85,7 +85,7 @@ struct scene
 
 } // namespace
 
-/* -- Curves ------------------------------------------------------------------- */
+/* -- Curves ---------------------------------------------------------------- */
 
 TEST(ui_easing, every_curve_starts_at_nothing_and_ends_at_everything)
 {
@@ -111,7 +111,7 @@ TEST(ui_easing, ease_in_is_slow_to_start_and_ease_out_slow_to_stop)
     EXPECT_GT(lh_ui_easing_apply(lh_ui_easing_ease, 128), 190u) << "CSS's ease is most of the way at half time";
 }
 
-/* -- A look between two ---------------------------------------------------------- */
+/* -- A look between two ---------------------------------------------------- */
 
 TEST(ui_style_blend, everything_with_an_amount_is_mixed)
 {
@@ -160,7 +160,7 @@ TEST(ui_style_blend, a_shadow_cast_at_one_end_only_fades_in_from_nothing)
     EXPECT_NEAR((int)lh_ui_color_get_a(&mid.shadow.color), 100, 2);
 }
 
-/* -- Flight ---------------------------------------------------------------------- */
+/* -- Flight ---------------------------------------------------------------- */
 
 TEST(ui_transition, a_style_with_no_time_is_taken_at_once)
 {
@@ -292,7 +292,7 @@ TEST(ui_transition, a_press_shows_the_pressed_look_of_where_it_is_going)
     EXPECT_EQ(lh_ui_entity_get_style_now(&s.box), &pressed.style);
 }
 
-/* -- On screen ---------------------------------------------------------------------- */
+/* -- On screen ------------------------------------------------------------- */
 
 /* What the fill draws is the look in flight, not the style it is heading for: the
    pixel in the middle of the box half way through is between the two colours. */

@@ -44,14 +44,14 @@ typedef struct lh_net_ip4_socket_addr lh_net_ip4_socket_addr_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── init / set ──────────────────────────────────────────────────────────── */
+/* -- init / set ------------------------------------------------------------ */
 
 /**
  * @brief Fill @p self from @p ip and @p port.
  */
 lh_void
 lh_net_ip4_socket_addr_init(lh_net_ip4_socket_addr_t *self, const lh_net_ip4_t *ip,
-                             lh_net_port_t port);
+                            lh_net_port_t port);
 
 /**
  * @brief Replace both the IP and the port of @p self.
@@ -73,7 +73,7 @@ lh_void
 lh_net_ip4_socket_addr_assign(lh_net_ip4_socket_addr_t *self,
                               const lh_net_ip4_socket_addr_t *other);
 
-/* ── accessors ───────────────────────────────────────────────────────────── */
+/* -- accessors ------------------------------------------------------------- */
 
 /**
  * @brief Return the IP address stored in @p self.
@@ -107,7 +107,7 @@ lh_net_ip4_socket_addr_get_port(const lh_net_ip4_socket_addr_t *self);
 lh_void
 lh_net_ip4_socket_addr_set_port(lh_net_ip4_socket_addr_t *self, lh_net_port_t port);
 
-/* ── parse / format / compare ────────────────────────────────────────────── */
+/* -- parse / format / compare ---------------------------------------------- */
 
 /**
  * @brief Parse a strict `ip:port` address (e.g. `192.168.0.1:27015`).
@@ -123,7 +123,8 @@ lh_net_ip4_socket_addr_set_port(lh_net_ip4_socket_addr_t *self, lh_net_port_t po
  *         `ip:port` pair, ::lh_bool_false otherwise.
  */
 lh_bool_t
-lh_net_ip4_socket_addr_parse(const lh_str_ptr str, lh_usize_t str_size, lh_net_ip4_socket_addr_t *out);
+lh_net_ip4_socket_addr_parse(const lh_str_ptr str, lh_usize_t str_size,
+                             lh_net_ip4_socket_addr_t *out);
 
 /**
  * @brief Format @p self as `ip:port` text.

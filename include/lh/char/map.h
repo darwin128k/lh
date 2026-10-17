@@ -16,7 +16,7 @@
 #ifndef LH_CHAR_MAP_H
 #define LH_CHAR_MAP_H
 
-/* ── C0 controls (0x00–0x1F) ────────────────────────────────────────────── */
+/* -- C0 controls (0x00–0x1F) ----------------------------------------------- */
 
 /**
  * @def lh_char_map_nul
@@ -210,7 +210,7 @@
  */
 #define lh_char_map_us '\x1f'
 
-/* ── Space and punctuation (0x20–0x2F) ─────────────────────────────────── */
+/* -- Space and punctuation (0x20–0x2F) ------------------------------------- */
 
 /**
  * @def lh_char_map_space
@@ -308,7 +308,7 @@
  */
 #define lh_char_map_slash '/'
 
-/* ── Decimal digits (0x30–0x39) ─────────────────────────────────────────── */
+/* -- Decimal digits (0x30–0x39) -------------------------------------------- */
 
 /**
  * @def lh_char_map_digit_0
@@ -370,7 +370,7 @@
  */
 #define lh_char_map_digit_9 '9'
 
-/* ── Punctuation (0x3A–0x40) ─────────────────────────────────────────────── */
+/* -- Punctuation (0x3A–0x40) ----------------------------------------------- */
 
 /**
  * @def lh_char_map_colon
@@ -414,7 +414,7 @@
  */
 #define lh_char_map_at '@'
 
-/* ── Latin capital letters A–Z (0x41–0x5A) ───────────────────────────────── */
+/* -- Latin capital letters A–Z (0x41–0x5A) --------------------------------- */
 
 /**
  * @def lh_char_map_capital_a
@@ -572,7 +572,7 @@
  */
 #define lh_char_map_capital_z 'Z'
 
-/* ── Punctuation (0x5B–0x60) ───────────────────────────────────────────── */
+/* -- Punctuation (0x5B–0x60) ----------------------------------------------- */
 
 /**
  * @def lh_char_map_lbracket
@@ -610,7 +610,7 @@
  */
 #define lh_char_map_grave '`'
 
-/* ── Latin small letters a–z (0x61–0x7A) ─────────────────────────────────── */
+/* -- Latin small letters a–z (0x61–0x7A) ----------------------------------- */
 
 /**
  * @def lh_char_map_small_a
@@ -768,7 +768,7 @@
  */
 #define lh_char_map_small_z 'z'
 
-/* ── Punctuation (0x7B–0x7E) ─────────────────────────────────────────── */
+/* -- Punctuation (0x7B–0x7E) ----------------------------------------------- */
 
 /**
  * @def lh_char_map_lbrace
@@ -794,7 +794,7 @@
  */
 #define lh_char_map_tilde '~'
 
-/* ── Delete (0x7F) ──────────────────────────────────────────────────────── */
+/* -- Delete (0x7F) --------------------------------------------------------- */
 
 /**
  * @def lh_char_map_del

@@ -44,7 +44,8 @@ extern const lh_ui_viewport3d_backend_t lh_ui_viewport3d_backend_null;
  * @brief Start a frame in @p rect (window / canvas space). ::lh_null @p rect hides it.
  */
 lh_void
-lh_ui_viewport3d_begin(const lh_ui_viewport3d_backend_t *backend, lh_ptr context, const lh_ui_rect_t *rect);
+lh_ui_viewport3d_begin(const lh_ui_viewport3d_backend_t *backend, lh_ptr context,
+                       const lh_ui_rect_t *rect);
 
 /**
  * @brief Finish the frame.

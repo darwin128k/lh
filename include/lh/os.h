@@ -86,7 +86,7 @@ lh_os_set_last_error(lh_os_error_t error);
  * @param text A string literal.
  */
 #define lh_os_set_last_error_lit(code, text)                                                       \
-    lh_os_set_last_error(lh_initializer_of(lh_os_error_t, lh_os_error_initializer, code,             \
+    lh_os_set_last_error(lh_initializer_of(lh_os_error_t, lh_os_error_initializer, code,           \
                                            lh_os_error_desc_lit(text)))
 
 /**

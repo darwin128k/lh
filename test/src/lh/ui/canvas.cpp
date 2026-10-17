@@ -515,7 +515,7 @@ TEST(ui_canvas, round_rect_fallback_is_anti_aliased_and_draws_each_pixel_once)
     EXPECT_GT(partial, 0);
 }
 
-/* ── Frames ───────────────────────────────────────────────────────────────── */
+/* -- Frames ---------------------------------------------------------------- */
 
 TEST(ui_canvas, begin_area_moves_the_primitives_and_the_clip_into_the_buffer)
 {
@@ -658,7 +658,7 @@ TEST(canvas, damage_in_an_area_is_the_damage_clipped_to_it)
     EXPECT_TRUE(lh_ui_rect_is_empty(lh_addr_of(short_of)));
 }
 
-/* ── Offset and clip ─────────────────────────────────────────────────────── */
+/* -- Offset and clip ------------------------------------------------------- */
 
 using lh_test::draw_log;
 using lh_test::rect_is;

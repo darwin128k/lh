@@ -75,8 +75,9 @@ lh_str_ptr_split_next(const lh_str_ptr str, lh_usize_t str_size, lh_char_t delim
  * view (leading or doubled delimiter).
  */
 lh_bool_t
-lh_str_view_split_next_of(const lh_str_view_t *self, const lh_str_ptr delims, lh_usize_t delim_count,
-                          lh_usize_t *pos, lh_str_view_t *field, lh_bool_t *had_delim);
+lh_str_view_split_next_of(const lh_str_view_t *self, const lh_str_ptr delims,
+                          lh_usize_t delim_count, lh_usize_t *pos, lh_str_view_t *field,
+                          lh_bool_t *had_delim);
 
 LH_COMPILER_EXTERN_C_END
 

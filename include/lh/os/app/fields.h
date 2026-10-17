@@ -19,8 +19,8 @@
  * @param timers_type Type of the timer group (::lh_timer_group_t).
  */
 #define lh_os_app_fields(list_type, timers_type)                                                   \
-    list_type windows;                                                                              \
-    timers_type timers;                                                                             \
+    list_type windows;                                                                             \
+    timers_type timers;                                                                            \
     lh_bool_t quit
 
 #endif /* LH_OS_APP_FIELDS_H */

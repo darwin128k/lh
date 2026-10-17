@@ -48,8 +48,7 @@ lh_math_fpoint_init(lh_math_fpoint_t *self, lh_math_fscalar_t x, lh_math_fscalar
 lh_void
 lh_math_fpoint_init_empty(lh_math_fpoint_t *self);
 
-
-/* ── Accessors ───────────────────────────────────────────────────────────── */
+/* -- Accessors ------------------------------------------------------------- */
 
 /**
  * @brief X component of @p self.
@@ -75,7 +74,7 @@ lh_math_fpoint_set_x(lh_math_fpoint_t *self, lh_math_fscalar_t x);
 lh_void
 lh_math_fpoint_set_y(lh_math_fpoint_t *self, lh_math_fscalar_t y);
 
-/* ── Conversions ─────────────────────────────────────────────────────────── */
+/* -- Conversions ----------------------------------------------------------- */
 
 /**
  * @brief Narrow @p self to a screen point.
@@ -93,7 +92,7 @@ lh_math_fpoint_to_point(lh_math_fpoint_t self, lh_math_point_t *out);
 lh_void
 lh_math_point_to_fpoint(lh_math_point_t self, lh_math_fpoint_t *out);
 
-/* ── Queries ────────────────────────────────────────────────────────────── */
+/* -- Queries --------------------------------------------------------------- */
 
 /**
  * @brief Element-wise equality.
@@ -150,19 +149,21 @@ lh_bool_t
 lh_math_fpoint_in_extent(const lh_math_fpoint_t *self, const lh_math_fpoint_t *min,
                          const lh_math_fpoint_t *max);
 
-/* ── Set ops ────────────────────────────────────────────────────────────── */
+/* -- Set ops --------------------------------------------------------------- */
 
 /**
  * @brief Translate @p self by `(@p dx, @p dy)`.
  */
 lh_void
-lh_math_fpoint_offset(const lh_math_fpoint_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy, lh_math_fpoint_t *out);
+lh_math_fpoint_offset(const lh_math_fpoint_t *self, lh_math_fscalar_t dx, lh_math_fscalar_t dy,
+                      lh_math_fpoint_t *out);
 
 /**
  * @brief Exclusive far corner: @p self offset by @p size (`x + width`, `y + height`).
  */
 lh_void
-lh_math_fpoint_offset_size(const lh_math_fpoint_t *self, const struct lh_math_fsize *size, lh_math_fpoint_t *out);
+lh_math_fpoint_offset_size(const lh_math_fpoint_t *self, const struct lh_math_fsize *size,
+                           lh_math_fpoint_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

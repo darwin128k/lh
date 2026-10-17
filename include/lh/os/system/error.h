@@ -40,13 +40,14 @@ typedef struct lh_os_system_error lh_os_system_error_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── set ─────────────────────────────────────────────────────────────────── */
+/* -- set ------------------------------------------------------------------- */
 
 /**
  * @brief Replace @p self with @p code and @p desc.
  */
 lh_void
-lh_os_system_error_set(lh_os_system_error_t *self, lh_os_system_error_code_t code, const lh_os_error_desc_ptr desc);
+lh_os_system_error_set(lh_os_system_error_t *self, lh_os_system_error_code_t code,
+                       const lh_os_error_desc_ptr desc);
 
 /**
  * @brief Replace only the error code stored in @p self.
@@ -60,7 +61,7 @@ lh_os_system_error_set_code(lh_os_system_error_t *self, lh_os_system_error_code_
 lh_void
 lh_os_system_error_set_desc(lh_os_system_error_t *self, const lh_os_error_desc_ptr desc);
 
-/* ── accessors ───────────────────────────────────────────────────────────── */
+/* -- accessors ------------------------------------------------------------- */
 
 /**
  * @brief Return the error code stored in @p self.
@@ -78,7 +79,8 @@ lh_os_system_error_get_desc(const lh_os_system_error_t *self);
  * @brief Return the description stored in @p self, or @p fallback when empty.
  */
 const lh_os_error_desc_ptr
-lh_os_system_error_get_desc_or(const lh_os_system_error_t *self, const lh_os_error_desc_ptr fallback);
+lh_os_system_error_get_desc_or(const lh_os_system_error_t *self,
+                               const lh_os_error_desc_ptr fallback);
 
 /**
  * @brief Test whether @p self stores @p code.
@@ -120,15 +122,17 @@ lh_os_system_error_equals(const lh_os_system_error_t *self, const lh_os_system_e
  * @brief Test whether two native errors store the same code.
  */
 lh_bool_t
-lh_os_system_error_has_same_code(const lh_os_system_error_t *self, const lh_os_system_error_t *other);
+lh_os_system_error_has_same_code(const lh_os_system_error_t *self,
+                                 const lh_os_system_error_t *other);
 
 /**
  * @brief Test whether two native errors store different codes.
  */
 lh_bool_t
-lh_os_system_error_has_diff_code(const lh_os_system_error_t *self, const lh_os_system_error_t *other);
+lh_os_system_error_has_diff_code(const lh_os_system_error_t *self,
+                                 const lh_os_system_error_t *other);
 
-/* ── copy / clear ────────────────────────────────────────────────────────── */
+/* -- copy / clear ---------------------------------------------------------- */
 
 /**
  * @brief Copy the error state from @p other into @p self.
@@ -142,13 +146,14 @@ lh_os_system_error_assign(lh_os_system_error_t *self, const lh_os_system_error_t
 lh_void
 lh_os_system_error_clear(lh_os_system_error_t *self);
 
-/* ── init ────────────────────────────────────────────────────────────────── */
+/* -- init ------------------------------------------------------------------ */
 
 /**
  * @brief Initialize @p self with @p code and @p desc.
  */
 lh_void
-lh_os_system_error_init(lh_os_system_error_t *self, lh_os_system_error_code_t code, const lh_os_error_desc_ptr desc);
+lh_os_system_error_init(lh_os_system_error_t *self, lh_os_system_error_code_t code,
+                        const lh_os_error_desc_ptr desc);
 
 /**
  * @brief Initialize @p self by copying from @p other.

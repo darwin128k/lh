@@ -211,9 +211,9 @@ lh_ui_font_get_index(const lh_ui_font_t *self, lh_u32_t code)
     lh_assert_runtime_ref(self);
     run = lh_ui_font_get_range_of(self, code);
     lh_assert_runtime_ifn(lh_null_ne(run), lh_runtime_error_code_out_of_range);
-    return lh_null_eq(run) ? 0U
-                           : lh_ui_font_range_get_base(run) +
-                                 (code - lh_ui_font_range_get_first(run));
+    return lh_null_eq(run)
+               ? 0U
+               : lh_ui_font_range_get_base(run) + (code - lh_ui_font_range_get_first(run));
 }
 
 lh_s32_t
@@ -226,7 +226,8 @@ lh_ui_font_get_advance(const lh_ui_font_t *self, lh_u32_t code)
        same runs again, and a line of text asks this once per letter. */
     run = lh_ui_font_get_range_of(self, code);
     lh_return_if(lh_null_eq(run), 0);
-    return self->advances[lh_ui_font_range_get_base(run) + (code - lh_ui_font_range_get_first(run))];
+    return self
+        ->advances[lh_ui_font_range_get_base(run) + (code - lh_ui_font_range_get_first(run))];
 }
 
 lh_s32_t
@@ -255,7 +256,8 @@ lh_ui_font_get_glyph(const lh_ui_font_t *self, lh_u32_t code, lh_ui_mask_t *mask
     lh_assert_runtime_ref(mask);
     run = lh_ui_font_get_range_of(self, code);
     lh_return_if(lh_null_eq(run), lh_bool_false);
-    lh_ptr_deref(mask) = self->glyphs[lh_ui_font_range_get_base(run) + (code - lh_ui_font_range_get_first(run))];
+    lh_ptr_deref(mask) =
+        self->glyphs[lh_ui_font_range_get_base(run) + (code - lh_ui_font_range_get_first(run))];
     return lh_bool_true;
 }
 
@@ -265,5 +267,6 @@ lh_ui_font_get_ink_bottom(const lh_ui_font_t *self, lh_u32_t code)
     lh_ui_mask_t mask;
 
     lh_return_if(!lh_ui_font_get_glyph(self, code, lh_addr_of(mask)), 0);
-    return lh_ui_font_get_ink_top(self, code) + lh_cast_static(lh_s32_t, lh_ui_mask_get_height(lh_addr_of(mask)));
+    return lh_ui_font_get_ink_top(self, code) +
+           lh_cast_static(lh_s32_t, lh_ui_mask_get_height(lh_addr_of(mask)));
 }

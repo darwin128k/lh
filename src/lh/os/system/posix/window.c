@@ -62,7 +62,7 @@ typedef struct lh_os_system_posix_window lh_os_system_posix_window_t;
 #define LH_OS_SYSTEM_POSIX_X_MOD1_MASK (1U << 3)
 /** @} */
 
-/* ── The connection ───────────────────────────────────────────────────────────
+/* -- The connection --------------------------------------------------------
    One per process, opened by the first window and kept: the pump is one thread's,
    as it is on Windows, and reconnecting for every window that opens would buy
    nothing but round trips. */
@@ -104,7 +104,8 @@ static lh_os_system_posix_xid_t lh_os_system_posix_atom_motif_wm_hints;
    gone when a request about it arrives -- the window manager closed it a moment
    before -- is not a reason to end the program, so errors are dropped here. */
 static int
-lh_os_system_posix_on_error(lh_os_system_posix_display_t *display, lh_os_system_posix_xerror_event_t *error)
+lh_os_system_posix_on_error(lh_os_system_posix_display_t *display,
+                            lh_os_system_posix_xerror_event_t *error)
 {
     (void)display;
     (void)error;
@@ -143,24 +144,33 @@ lh_os_system_posix_connect(void)
     lh_os_system_posix_x = x;
     (void)x->XSetErrorHandler(lh_os_system_posix_on_error);
     lh_os_system_posix_screen = x->XDefaultScreen(lh_os_system_posix_display);
-    lh_os_system_posix_depth = x->XDefaultDepth(lh_os_system_posix_display, lh_os_system_posix_screen);
+    lh_os_system_posix_depth =
+        x->XDefaultDepth(lh_os_system_posix_display, lh_os_system_posix_screen);
     lh_os_system_posix_root = x->XRootWindow(lh_os_system_posix_display, lh_os_system_posix_screen);
-    lh_os_system_posix_atom_wm_protocols = x->XInternAtom(lh_os_system_posix_display, "WM_PROTOCOLS", 0);
-    lh_os_system_posix_atom_wm_delete_window = x->XInternAtom(lh_os_system_posix_display, "WM_DELETE_WINDOW", 0);
-    lh_os_system_posix_atom_net_wm_name = x->XInternAtom(lh_os_system_posix_display, "_NET_WM_NAME", 0);
-    lh_os_system_posix_atom_utf8_string = x->XInternAtom(lh_os_system_posix_display, "UTF8_STRING", 0);
-    lh_os_system_posix_atom_net_wm_state = x->XInternAtom(lh_os_system_posix_display, "_NET_WM_STATE", 0);
+    lh_os_system_posix_atom_wm_protocols =
+        x->XInternAtom(lh_os_system_posix_display, "WM_PROTOCOLS", 0);
+    lh_os_system_posix_atom_wm_delete_window =
+        x->XInternAtom(lh_os_system_posix_display, "WM_DELETE_WINDOW", 0);
+    lh_os_system_posix_atom_net_wm_name =
+        x->XInternAtom(lh_os_system_posix_display, "_NET_WM_NAME", 0);
+    lh_os_system_posix_atom_utf8_string =
+        x->XInternAtom(lh_os_system_posix_display, "UTF8_STRING", 0);
+    lh_os_system_posix_atom_net_wm_state =
+        x->XInternAtom(lh_os_system_posix_display, "_NET_WM_STATE", 0);
     lh_os_system_posix_atom_net_wm_state_max_vert =
         x->XInternAtom(lh_os_system_posix_display, "_NET_WM_STATE_MAXIMIZED_VERT", 0);
     lh_os_system_posix_atom_net_wm_state_max_horz =
         x->XInternAtom(lh_os_system_posix_display, "_NET_WM_STATE_MAXIMIZED_HORZ", 0);
-    lh_os_system_posix_atom_net_workarea = x->XInternAtom(lh_os_system_posix_display, "_NET_WORKAREA", 0);
-    lh_os_system_posix_atom_net_wm_moveresize = x->XInternAtom(lh_os_system_posix_display, "_NET_WM_MOVERESIZE", 0);
-    lh_os_system_posix_atom_motif_wm_hints = x->XInternAtom(lh_os_system_posix_display, "_MOTIF_WM_HINTS", 0);
+    lh_os_system_posix_atom_net_workarea =
+        x->XInternAtom(lh_os_system_posix_display, "_NET_WORKAREA", 0);
+    lh_os_system_posix_atom_net_wm_moveresize =
+        x->XInternAtom(lh_os_system_posix_display, "_NET_WM_MOVERESIZE", 0);
+    lh_os_system_posix_atom_motif_wm_hints =
+        x->XInternAtom(lh_os_system_posix_display, "_MOTIF_WM_HINTS", 0);
     return lh_bool_true;
 }
 
-/* ── Windows of ours ──────────────────────────────────────────────────────────
+/* -- Windows of ours -------------------------------------------------------
    A handle is a pointer to one of these, and every call checks it is still in the
    list: an event or a call for a window that has gone finds nothing and does
    nothing, rather than reading freed memory. */
@@ -197,7 +207,8 @@ lh_os_system_posix_window_unlist(lh_os_system_posix_window_t *self)
 {
     lh_os_system_posix_window_t **at;
 
-    for (at = lh_addr_of(lh_os_system_posix_windows); lh_null_ne(lh_ptr_deref(at)); at = lh_addr_of((lh_ptr_deref(at))->next))
+    for (at = lh_addr_of(lh_os_system_posix_windows); lh_null_ne(lh_ptr_deref(at));
+         at = lh_addr_of((lh_ptr_deref(at))->next))
     {
         if (lh_ptr_deref(at) == self)
         {
@@ -211,7 +222,8 @@ lh_os_system_posix_window_unlist(lh_os_system_posix_window_t *self)
    keeps the update region itself; here it is the bounding box of what was asked
    for, which is what a paint on Windows is handed too (`rcPaint`). */
 static lh_void
-lh_os_system_posix_window_damage(lh_os_system_posix_window_t *self, int left, int top, int right, int bottom)
+lh_os_system_posix_window_damage(lh_os_system_posix_window_t *self, int left, int top, int right,
+                                 int bottom)
 {
     left = left < 0 ? 0 : left;
     top = top < 0 ? 0 : top;
@@ -260,7 +272,8 @@ lh_os_system_posix_corner_inset(int radius, int row)
    per row of the top corners and the bottom ones, and one for everything between.
    Returns how many. */
 static int
-lh_os_system_posix_corner_rows(lh_os_system_posix_xrectangle_t *rows, int width, int height, int radius)
+lh_os_system_posix_corner_rows(lh_os_system_posix_xrectangle_t *rows, int width, int height,
+                               int radius)
 {
     int count = 0;
     int row;
@@ -328,26 +341,30 @@ lh_os_system_posix_window_cut(lh_os_system_posix_window_t *self)
         int error_base = 0;
 
         lh_os_system_posix_shape =
-            ext->XShapeQueryExtension(lh_os_system_posix_display, lh_addr_of(event_base), lh_addr_of(error_base)) != 0
+            ext->XShapeQueryExtension(lh_os_system_posix_display, lh_addr_of(event_base),
+                                      lh_addr_of(error_base)) != 0
                 ? 1
                 : 0;
     }
     lh_return_if(lh_os_system_posix_shape == 0);
     if (radius <= 0)
     {
-        ext->XShapeCombineMask(lh_os_system_posix_display, self->window, LH_OS_SYSTEM_POSIX_X_SHAPE_BOUNDING, 0, 0,
-                               LH_OS_SYSTEM_POSIX_X_NONE, LH_OS_SYSTEM_POSIX_X_SHAPE_SET);
+        ext->XShapeCombineMask(lh_os_system_posix_display, self->window,
+                               LH_OS_SYSTEM_POSIX_X_SHAPE_BOUNDING, 0, 0, LH_OS_SYSTEM_POSIX_X_NONE,
+                               LH_OS_SYSTEM_POSIX_X_SHAPE_SET);
         return;
     }
-    ext->XShapeCombineRectangles(lh_os_system_posix_display, self->window, LH_OS_SYSTEM_POSIX_X_SHAPE_BOUNDING, 0, 0,
-                                 rows, lh_os_system_posix_corner_rows(rows, self->width, self->height, radius),
-                                 LH_OS_SYSTEM_POSIX_X_SHAPE_SET, LH_OS_SYSTEM_POSIX_X_SHAPE_UNSORTED);
+    ext->XShapeCombineRectangles(
+        lh_os_system_posix_display, self->window, LH_OS_SYSTEM_POSIX_X_SHAPE_BOUNDING, 0, 0, rows,
+        lh_os_system_posix_corner_rows(rows, self->width, self->height, radius),
+        LH_OS_SYSTEM_POSIX_X_SHAPE_SET, LH_OS_SYSTEM_POSIX_X_SHAPE_UNSORTED);
 }
 
 /** The rows of the corners that are outside a round-rect of @p radius: on the left
    and the right of every row of the cut. Returns how many. */
 static int
-lh_os_system_posix_corner_outside(lh_os_system_posix_xrectangle_t *rows, int width, int height, int radius)
+lh_os_system_posix_corner_outside(lh_os_system_posix_xrectangle_t *rows, int width, int height,
+                                  int radius)
 {
     int count = 0;
     int row;
@@ -391,12 +408,15 @@ lh_os_system_posix_window_back(lh_os_system_posix_window_t *self)
     {
         (void)x->XFreePixmap(lh_os_system_posix_display, self->backing);
     }
-    self->backing = x->XCreatePixmap(lh_os_system_posix_display, self->window, lh_cast_static(unsigned int, self->width),
-                                     lh_cast_static(unsigned int, self->height), lh_cast_static(unsigned int, lh_os_system_posix_depth));
+    self->backing = x->XCreatePixmap(lh_os_system_posix_display, self->window,
+                                     lh_cast_static(unsigned int, self->width),
+                                     lh_cast_static(unsigned int, self->height),
+                                     lh_cast_static(unsigned int, lh_os_system_posix_depth));
     self->backing_picture = render->XRenderCreatePicture(
         lh_os_system_posix_display, self->backing,
-        render->XRenderFindStandardFormat(lh_os_system_posix_display, LH_OS_SYSTEM_POSIX_X_PICT_STANDARD_RGB24), 0UL,
-        lh_null);
+        render->XRenderFindStandardFormat(lh_os_system_posix_display,
+                                          LH_OS_SYSTEM_POSIX_X_PICT_STANDARD_RGB24),
+        0UL, lh_null);
 }
 
 /** Paint the dirty rectangle of @p self through the app, then show it. */
@@ -415,28 +435,33 @@ lh_os_system_posix_window_paint(lh_os_system_posix_window_t *self)
     paint.window = self->backing != LH_OS_SYSTEM_POSIX_X_NONE ? self->backing : self->window;
     paint.gc = self->gc;
     paint.depth = lh_os_system_posix_depth;
-    paint.area = lh_cast_static(lh_u64_t, (right - left))* lh_cast_static(lh_u64_t, (bottom - top));
+    paint.area =
+        lh_cast_static(lh_u64_t, (right - left)) * lh_cast_static(lh_u64_t, (bottom - top));
     paint.rects = 1U;
     lh_os_window_on_native_paint(self->user, lh_addr_of(paint), left, top, right, bottom);
     /* What the paint put in the pixmap goes into the window, opaque, and the
        corners outside the cut go back to transparent -- every paint, because every
        paint can cover them. The window may have been closed by the paint. */
-    if (lh_null_ne(lh_os_system_posix_window_find(self)) && self->backing != LH_OS_SYSTEM_POSIX_X_NONE)
+    if (lh_null_ne(lh_os_system_posix_window_find(self)) &&
+        self->backing != LH_OS_SYSTEM_POSIX_X_NONE)
     {
         const lh_os_system_posix_xrender_t *render = lh_os_system_posix_xrender_load();
         const int radius = lh_os_system_posix_window_radius(self);
 
-        render->XRenderComposite(lh_os_system_posix_display, LH_OS_SYSTEM_POSIX_X_PICT_OP_SRC, self->backing_picture,
-                                 LH_OS_SYSTEM_POSIX_X_NONE, self->window_picture, left, top, 0, 0, left, top,
-                                 lh_cast_static(unsigned int, (right - left)), lh_cast_static(unsigned int, (bottom - top)));
+        render->XRenderComposite(lh_os_system_posix_display, LH_OS_SYSTEM_POSIX_X_PICT_OP_SRC,
+                                 self->backing_picture, LH_OS_SYSTEM_POSIX_X_NONE,
+                                 self->window_picture, left, top, 0, 0, left, top,
+                                 lh_cast_static(unsigned int, (right - left)),
+                                 lh_cast_static(unsigned int, (bottom - top)));
         if (radius > 0)
         {
             const lh_os_system_posix_xrender_color_t transparent = {0U, 0U, 0U, 0U};
             lh_os_system_posix_xrectangle_t rows[4 * LH_OS_SYSTEM_POSIX_CORNER_MAX];
 
-            render->XRenderFillRectangles(lh_os_system_posix_display, LH_OS_SYSTEM_POSIX_X_PICT_OP_SRC,
-                                          self->window_picture, lh_addr_of(transparent), rows,
-                                          lh_os_system_posix_corner_outside(rows, self->width, self->height, radius));
+            render->XRenderFillRectangles(
+                lh_os_system_posix_display, LH_OS_SYSTEM_POSIX_X_PICT_OP_SRC, self->window_picture,
+                lh_addr_of(transparent), rows,
+                lh_os_system_posix_corner_outside(rows, self->width, self->height, radius));
         }
     }
 }
@@ -456,9 +481,10 @@ lh_os_system_posix_window_read_maximized(const lh_os_system_posix_window_t *self
     lh_bool_t horizontal = lh_bool_false;
     unsigned long i;
 
-    if (x->XGetWindowProperty(lh_os_system_posix_display, self->window, lh_os_system_posix_atom_net_wm_state, 0L,
-                              64L, 0, LH_OS_SYSTEM_POSIX_X_XA_ATOM, lh_addr_of(type), lh_addr_of(format),
-                              lh_addr_of(count), lh_addr_of(after), lh_addr_of(data)) != LH_OS_SYSTEM_POSIX_X_SUCCESS)
+    if (x->XGetWindowProperty(
+            lh_os_system_posix_display, self->window, lh_os_system_posix_atom_net_wm_state, 0L, 64L,
+            0, LH_OS_SYSTEM_POSIX_X_XA_ATOM, lh_addr_of(type), lh_addr_of(format),
+            lh_addr_of(count), lh_addr_of(after), lh_addr_of(data)) != LH_OS_SYSTEM_POSIX_X_SUCCESS)
     {
         return lh_bool_false;
     }
@@ -469,8 +495,10 @@ lh_os_system_posix_window_read_maximized(const lh_os_system_posix_window_t *self
 
         for (i = 0UL; format == 32 && i < count; ++i)
         {
-            vertical = atoms[i] == lh_os_system_posix_atom_net_wm_state_max_vert ? lh_bool_true : vertical;
-            horizontal = atoms[i] == lh_os_system_posix_atom_net_wm_state_max_horz ? lh_bool_true : horizontal;
+            vertical =
+                atoms[i] == lh_os_system_posix_atom_net_wm_state_max_vert ? lh_bool_true : vertical;
+            horizontal = atoms[i] == lh_os_system_posix_atom_net_wm_state_max_horz ? lh_bool_true
+                                                                                   : horizontal;
         }
         (void)x->XFree(data);
     }
@@ -491,11 +519,14 @@ lh_os_system_posix_workarea(int *x, int *y, int *width, int *height)
 
     lh_ptr_deref(x) = 0;
     lh_ptr_deref(y) = 0;
-    lh_ptr_deref(width) = xlib->XDisplayWidth(lh_os_system_posix_display, lh_os_system_posix_screen);
-    lh_ptr_deref(height) = xlib->XDisplayHeight(lh_os_system_posix_display, lh_os_system_posix_screen);
+    lh_ptr_deref(width) =
+        xlib->XDisplayWidth(lh_os_system_posix_display, lh_os_system_posix_screen);
+    lh_ptr_deref(height) =
+        xlib->XDisplayHeight(lh_os_system_posix_display, lh_os_system_posix_screen);
     if (xlib->XGetWindowProperty(lh_os_system_posix_display, lh_os_system_posix_root,
-                                 lh_os_system_posix_atom_net_workarea, 0L, 4L, 0, LH_OS_SYSTEM_POSIX_X_XA_CARDINAL,
-                                 lh_addr_of(type), lh_addr_of(format), lh_addr_of(count), lh_addr_of(after),
+                                 lh_os_system_posix_atom_net_workarea, 0L, 4L, 0,
+                                 LH_OS_SYSTEM_POSIX_X_XA_CARDINAL, lh_addr_of(type),
+                                 lh_addr_of(format), lh_addr_of(count), lh_addr_of(after),
                                  lh_addr_of(data)) != LH_OS_SYSTEM_POSIX_X_SUCCESS)
     {
         return;
@@ -521,8 +552,8 @@ lh_os_system_posix_workarea(int *x, int *y, int *width, int *height)
    grabbed the pointer for us, and the window manager cannot take it while we
    hold it. */
 static lh_bool_t
-lh_os_system_posix_window_begin_moveresize(lh_os_system_posix_window_t *self, lh_os_window_zone_t zone, int x_root,
-                                           int y_root)
+lh_os_system_posix_window_begin_moveresize(lh_os_system_posix_window_t *self,
+                                           lh_os_window_zone_t zone, int x_root, int y_root)
 {
     lh_os_system_posix_xevent_t event;
     long direction;
@@ -560,7 +591,8 @@ lh_os_system_posix_window_begin_moveresize(lh_os_system_posix_window_t *self, lh
     default:
         return lh_bool_false;
     }
-    (void)lh_os_system_posix_x->XUngrabPointer(lh_os_system_posix_display, LH_OS_SYSTEM_POSIX_X_CURRENT_TIME);
+    (void)lh_os_system_posix_x->XUngrabPointer(lh_os_system_posix_display,
+                                               LH_OS_SYSTEM_POSIX_X_CURRENT_TIME);
     lh_memory_set(lh_addr_of(event), sizeof(event), 0);
     event.client.type = LH_OS_SYSTEM_POSIX_X_CLIENT_MESSAGE;
     event.client.window = self->window;
@@ -571,10 +603,10 @@ lh_os_system_posix_window_begin_moveresize(lh_os_system_posix_window_t *self, lh
     event.client.data[2] = direction;
     event.client.data[3] = lh_cast_static(long, LH_OS_SYSTEM_POSIX_X_BUTTON_LEFT);
     event.client.data[4] = 1L; /* source: an application */
-    (void)lh_os_system_posix_x->XSendEvent(
-        lh_os_system_posix_display, lh_os_system_posix_root, 0,
-        LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_REDIRECT_MASK | LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_NOTIFY_MASK,
-        lh_addr_of(event));
+    (void)lh_os_system_posix_x->XSendEvent(lh_os_system_posix_display, lh_os_system_posix_root, 0,
+                                           LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_REDIRECT_MASK |
+                                               LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_NOTIFY_MASK,
+                                           lh_addr_of(event));
     return lh_bool_true;
 }
 
@@ -586,8 +618,8 @@ lh_os_system_posix_is_repeat(const lh_os_system_posix_xevent_t *release)
 {
     lh_os_system_posix_xevent_t next;
 
-    lh_return_if(lh_os_system_posix_x->XEventsQueued(lh_os_system_posix_display,
-                                                     LH_OS_SYSTEM_POSIX_X_QUEUED_AFTER_READING) == 0,
+    lh_return_if(lh_os_system_posix_x->XEventsQueued(
+                     lh_os_system_posix_display, LH_OS_SYSTEM_POSIX_X_QUEUED_AFTER_READING) == 0,
                  lh_bool_false);
     (void)lh_os_system_posix_x->XPeekEvent(lh_os_system_posix_display, lh_addr_of(next));
     return next.type == LH_OS_SYSTEM_POSIX_X_KEY_PRESS && next.key.window == release->key.window &&
@@ -605,8 +637,9 @@ lh_os_system_posix_window_is_placed(const lh_os_system_posix_window_t *self)
     int at_x = 0;
     int at_y = 0;
 
-    lh_return_if(x->XTranslateCoordinates(lh_os_system_posix_display, self->window, lh_os_system_posix_root, 0, 0,
-                                          lh_addr_of(at_x), lh_addr_of(at_y), lh_addr_of(child)) == 0,
+    lh_return_if(x->XTranslateCoordinates(lh_os_system_posix_display, self->window,
+                                          lh_os_system_posix_root, 0, 0, lh_addr_of(at_x),
+                                          lh_addr_of(at_y), lh_addr_of(child)) == 0,
                  lh_bool_false);
     return at_x > lh_math_neg(self->width) && at_y > lh_math_neg(self->height) &&
                    at_x < x->XDisplayWidth(lh_os_system_posix_display, lh_os_system_posix_screen) &&
@@ -627,7 +660,8 @@ lh_os_system_posix_window_is_placed(const lh_os_system_posix_window_t *self)
 static lh_void
 lh_os_system_posix_window_wait_placed(lh_os_system_posix_window_t *self)
 {
-    const lh_u64_t until = lh_os_tick_us() + lh_cast_static(lh_u64_t, LH_OS_SYSTEM_POSIX_WINDOW_MAP_WAIT_MS)* 1000U;
+    const lh_u64_t until =
+        lh_os_tick_us() + lh_cast_static(lh_u64_t, LH_OS_SYSTEM_POSIX_WINDOW_MAP_WAIT_MS) * 1000U;
     lh_os_system_posix_xevent_t event;
     lh_bool_t mapped = lh_bool_false;
     struct pollfd watch;
@@ -638,9 +672,9 @@ lh_os_system_posix_window_wait_placed(lh_os_system_posix_window_t *self)
     {
         const lh_u64_t now = lh_os_tick_us();
 
-        if (!mapped && lh_os_system_posix_x->XCheckTypedWindowEvent(lh_os_system_posix_display, self->window,
-                                                                    LH_OS_SYSTEM_POSIX_X_MAP_NOTIFY,
-                                                                    lh_addr_of(event)))
+        if (!mapped && lh_os_system_posix_x->XCheckTypedWindowEvent(
+                           lh_os_system_posix_display, self->window,
+                           LH_OS_SYSTEM_POSIX_X_MAP_NOTIFY, lh_addr_of(event)))
         {
             mapped = lh_bool_true;
         }
@@ -649,7 +683,8 @@ lh_os_system_posix_window_wait_placed(lh_os_system_posix_window_t *self)
         /* Asked again every few milliseconds once mapped: the move that places it is
            the window manager's, and it does not always tell the window. */
         watch.revents = 0;
-        (void)poll(lh_addr_of(watch), 1, mapped ? 5 : lh_cast_static(int, ((until - now) / 1000U))+ 1);
+        (void)poll(lh_addr_of(watch), 1,
+                   mapped ? 5 : lh_cast_static(int, ((until - now) / 1000U)) + 1);
     }
 }
 
@@ -667,7 +702,8 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     lh_os_system_posix_xid_t root;
     lh_os_system_posix_xvisual_info_t info;
     const lh_os_system_posix_xrender_t *render;
-    const unsigned long mask = LH_OS_SYSTEM_POSIX_X_CW_BACK_PIXMAP | LH_OS_SYSTEM_POSIX_X_CW_BIT_GRAVITY |
+    const unsigned long mask = LH_OS_SYSTEM_POSIX_X_CW_BACK_PIXMAP |
+                               LH_OS_SYSTEM_POSIX_X_CW_BIT_GRAVITY |
                                LH_OS_SYSTEM_POSIX_X_CW_EVENT_MASK;
     int event_base = 0;
     int error_base = 0;
@@ -718,35 +754,39 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
        paint, which is a flash of it on every resize. The app paints all of it. */
     attributes.background_pixmap = LH_OS_SYSTEM_POSIX_X_NONE;
     attributes.bit_gravity = LH_OS_SYSTEM_POSIX_X_NORTH_WEST_GRAVITY;
-    attributes.event_mask = LH_OS_SYSTEM_POSIX_X_KEY_PRESS_MASK | LH_OS_SYSTEM_POSIX_X_KEY_RELEASE_MASK |
-                            LH_OS_SYSTEM_POSIX_X_BUTTON_PRESS_MASK | LH_OS_SYSTEM_POSIX_X_BUTTON_RELEASE_MASK |
-                            LH_OS_SYSTEM_POSIX_X_POINTER_MOTION_MASK | LH_OS_SYSTEM_POSIX_X_EXPOSURE_MASK |
-                            LH_OS_SYSTEM_POSIX_X_STRUCTURE_NOTIFY_MASK | LH_OS_SYSTEM_POSIX_X_PROPERTY_CHANGE_MASK;
+    attributes.event_mask =
+        LH_OS_SYSTEM_POSIX_X_KEY_PRESS_MASK | LH_OS_SYSTEM_POSIX_X_KEY_RELEASE_MASK |
+        LH_OS_SYSTEM_POSIX_X_BUTTON_PRESS_MASK | LH_OS_SYSTEM_POSIX_X_BUTTON_RELEASE_MASK |
+        LH_OS_SYSTEM_POSIX_X_POINTER_MOTION_MASK | LH_OS_SYSTEM_POSIX_X_EXPOSURE_MASK |
+        LH_OS_SYSTEM_POSIX_X_STRUCTURE_NOTIFY_MASK | LH_OS_SYSTEM_POSIX_X_PROPERTY_CHANGE_MASK;
     render = lh_os_system_posix_xrender_load();
     lh_memory_set(lh_addr_of(info), sizeof(info), 0);
     if (lh_null_ne(render) &&
-        render->XRenderQueryExtension(lh_os_system_posix_display, lh_addr_of(event_base), lh_addr_of(error_base)) != 0 &&
-        x->XMatchVisualInfo(lh_os_system_posix_display, lh_os_system_posix_screen, 32, LH_OS_SYSTEM_POSIX_X_TRUE_COLOR,
-                            lh_addr_of(info)) != 0)
+        render->XRenderQueryExtension(lh_os_system_posix_display, lh_addr_of(event_base),
+                                      lh_addr_of(error_base)) != 0 &&
+        x->XMatchVisualInfo(lh_os_system_posix_display, lh_os_system_posix_screen, 32,
+                            LH_OS_SYSTEM_POSIX_X_TRUE_COLOR, lh_addr_of(info)) != 0)
     {
         /* Every window is a 32-bit one where it can be, not only one that has round
            corners when it opens: the corners are the window's to change at any
            time, and the visual is not. A visual other than the root's needs a
            colormap and a border pixel of its own, or the server refuses the window. */
-        self->colormap = x->XCreateColormap(lh_os_system_posix_display, lh_os_system_posix_root, info.visual,
-                                            LH_OS_SYSTEM_POSIX_X_ALLOC_NONE);
+        self->colormap = x->XCreateColormap(lh_os_system_posix_display, lh_os_system_posix_root,
+                                            info.visual, LH_OS_SYSTEM_POSIX_X_ALLOC_NONE);
         attributes.border_pixel = 0UL;
         attributes.colormap = self->colormap;
-        self->window = x->XCreateWindow(lh_os_system_posix_display, lh_os_system_posix_root, at_x, at_y,
-                                        lh_cast_static(unsigned int, width), lh_cast_static(unsigned int, height), 0U, 32,
-                                        LH_OS_SYSTEM_POSIX_X_INPUT_OUTPUT, info.visual,
-                                        mask | LH_OS_SYSTEM_POSIX_X_CW_BORDER_PIXEL | LH_OS_SYSTEM_POSIX_X_CW_COLORMAP,
-                                        lh_addr_of(attributes));
+        self->window = x->XCreateWindow(
+            lh_os_system_posix_display, lh_os_system_posix_root, at_x, at_y,
+            lh_cast_static(unsigned int, width), lh_cast_static(unsigned int, height), 0U, 32,
+            LH_OS_SYSTEM_POSIX_X_INPUT_OUTPUT, info.visual,
+            mask | LH_OS_SYSTEM_POSIX_X_CW_BORDER_PIXEL | LH_OS_SYSTEM_POSIX_X_CW_COLORMAP,
+            lh_addr_of(attributes));
         if (self->window != LH_OS_SYSTEM_POSIX_X_NONE)
         {
             self->window_picture = render->XRenderCreatePicture(
                 lh_os_system_posix_display, self->window,
-                render->XRenderFindVisualFormat(lh_os_system_posix_display, info.visual), 0UL, lh_null);
+                render->XRenderFindVisualFormat(lh_os_system_posix_display, info.visual), 0UL,
+                lh_null);
             lh_os_system_posix_window_back(self);
         }
         else
@@ -760,10 +800,11 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
         /* No 32-bit visual or no RENDER: the screen's own visual, drawn into as it
            is. Round corners are then cut by SHAPE alone, and a compositor shows
            them black. */
-        self->window = x->XCreateWindow(lh_os_system_posix_display, lh_os_system_posix_root, at_x, at_y,
-                                        lh_cast_static(unsigned int, width), lh_cast_static(unsigned int, height), 0U,
-                                        LH_OS_SYSTEM_POSIX_X_COPY_FROM_PARENT, LH_OS_SYSTEM_POSIX_X_INPUT_OUTPUT,
-                                        lh_null, mask, lh_addr_of(attributes));
+        self->window = x->XCreateWindow(
+            lh_os_system_posix_display, lh_os_system_posix_root, at_x, at_y,
+            lh_cast_static(unsigned int, width), lh_cast_static(unsigned int, height), 0U,
+            LH_OS_SYSTEM_POSIX_X_COPY_FROM_PARENT, LH_OS_SYSTEM_POSIX_X_INPUT_OUTPUT, lh_null, mask,
+            lh_addr_of(attributes));
     }
     if (self->window == LH_OS_SYSTEM_POSIX_X_NONE)
     {
@@ -772,8 +813,9 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     }
     /* On whatever a paint draws into; a GC is bound to a depth, not to a drawable,
        so the one made on the first backing pixmap serves every one after it. */
-    self->gc = x->XCreateGC(lh_os_system_posix_display,
-                            self->backing != LH_OS_SYSTEM_POSIX_X_NONE ? self->backing : self->window, 0UL, lh_null);
+    self->gc = x->XCreateGC(
+        lh_os_system_posix_display,
+        self->backing != LH_OS_SYSTEM_POSIX_X_NONE ? self->backing : self->window, 0UL, lh_null);
 
     /* The title twice: WM_NAME for the window managers that read only that, and
        _NET_WM_NAME in UTF-8 for every current one -- WM_NAME is Latin-1, and a
@@ -783,9 +825,10 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
         ++title_length;
     }
     (void)x->XStoreName(lh_os_system_posix_display, self->window, title);
-    (void)x->XChangeProperty(lh_os_system_posix_display, self->window, lh_os_system_posix_atom_net_wm_name,
-                             lh_os_system_posix_atom_utf8_string, 8, LH_OS_SYSTEM_POSIX_X_PROP_MODE_REPLACE,
-                             lh_ptr_rcast(const lh_byte_t, title), lh_cast_static(int, title_length));
+    (void)x->XChangeProperty(
+        lh_os_system_posix_display, self->window, lh_os_system_posix_atom_net_wm_name,
+        lh_os_system_posix_atom_utf8_string, 8, LH_OS_SYSTEM_POSIX_X_PROP_MODE_REPLACE,
+        lh_ptr_rcast(const lh_byte_t, title), lh_cast_static(int, title_length));
 
     /* The close button sends a message instead of killing the connection. */
     protocols[0] = lh_os_system_posix_atom_wm_delete_window;
@@ -805,7 +848,8 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     }
     if (lh_null_ne(owner_window))
     {
-        (void)x->XSetTransientForHint(lh_os_system_posix_display, self->window, owner_window->window);
+        (void)x->XSetTransientForHint(lh_os_system_posix_display, self->window,
+                                      owner_window->window);
     }
     if (frame == lh_os_window_frame_own)
     {
@@ -813,9 +857,10 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
            off: flags = decorations, decorations = none. */
         const long motif[5] = {2L, 0L, 0L, 0L, 0L};
 
-        (void)x->XChangeProperty(lh_os_system_posix_display, self->window, lh_os_system_posix_atom_motif_wm_hints,
-                                 lh_os_system_posix_atom_motif_wm_hints, 32, LH_OS_SYSTEM_POSIX_X_PROP_MODE_REPLACE,
-                                 lh_ptr_rcast(const lh_byte_t, motif), 5);
+        (void)x->XChangeProperty(
+            lh_os_system_posix_display, self->window, lh_os_system_posix_atom_motif_wm_hints,
+            lh_os_system_posix_atom_motif_wm_hints, 32, LH_OS_SYSTEM_POSIX_X_PROP_MODE_REPLACE,
+            lh_ptr_rcast(const lh_byte_t, motif), 5);
     }
 
     /* Listed before it is mapped: the events of its first moments are for it. And
@@ -832,9 +877,9 @@ lh_os_system_window_open(const lh_char_t *title, int width, int height, lh_ptr u
     lh_os_system_posix_window_wait_placed(self);
 
     /* The size it was given, which the window manager may not have honoured. */
-    if (x->XGetGeometry(lh_os_system_posix_display, self->window, lh_addr_of(root), lh_addr_of(at_x),
-                        lh_addr_of(at_y), lh_addr_of(got_width), lh_addr_of(got_height), lh_addr_of(border),
-                        lh_addr_of(depth)) != 0 &&
+    if (x->XGetGeometry(lh_os_system_posix_display, self->window, lh_addr_of(root),
+                        lh_addr_of(at_x), lh_addr_of(at_y), lh_addr_of(got_width),
+                        lh_addr_of(got_height), lh_addr_of(border), lh_addr_of(depth)) != 0 &&
         got_width > 0U && got_height > 0U)
     {
         self->width = lh_cast_static(int, got_width);
@@ -876,7 +921,8 @@ lh_os_system_window_minimize(lh_os_system_window_handle_t handle)
     lh_os_system_posix_window_t *self = lh_os_system_posix_window_find(handle);
 
     lh_return_if(lh_null_eq(self));
-    (void)lh_os_system_posix_x->XIconifyWindow(lh_os_system_posix_display, self->window, lh_os_system_posix_screen);
+    (void)lh_os_system_posix_x->XIconifyWindow(lh_os_system_posix_display, self->window,
+                                               lh_os_system_posix_screen);
     (void)lh_os_system_posix_x->XFlush(lh_os_system_posix_display);
 }
 
@@ -898,10 +944,10 @@ lh_os_system_window_set_maximized(lh_os_system_window_handle_t handle, lh_bool_t
     event.client.data[1] = lh_cast_static(long, lh_os_system_posix_atom_net_wm_state_max_vert);
     event.client.data[2] = lh_cast_static(long, lh_os_system_posix_atom_net_wm_state_max_horz);
     event.client.data[3] = 1L;
-    (void)lh_os_system_posix_x->XSendEvent(
-        lh_os_system_posix_display, lh_os_system_posix_root, 0,
-        LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_REDIRECT_MASK | LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_NOTIFY_MASK,
-        lh_addr_of(event));
+    (void)lh_os_system_posix_x->XSendEvent(lh_os_system_posix_display, lh_os_system_posix_root, 0,
+                                           LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_REDIRECT_MASK |
+                                               LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_NOTIFY_MASK,
+                                           lh_addr_of(event));
     (void)lh_os_system_posix_x->XFlush(lh_os_system_posix_display);
 }
 
@@ -1017,7 +1063,8 @@ lh_os_system_posix_dispatch(lh_os_system_posix_xevent_t *event)
         return;
     case LH_OS_SYSTEM_POSIX_X_CLIENT_MESSAGE:
         if (event->client.message_type == lh_os_system_posix_atom_wm_protocols &&
-            lh_cast_static(lh_os_system_posix_xid_t, event->client.data[0])== lh_os_system_posix_atom_wm_delete_window)
+            lh_cast_static(lh_os_system_posix_xid_t, event->client.data[0]) ==
+                lh_os_system_posix_atom_wm_delete_window)
         {
             /* The close button of the window manager's frame. On Windows this is
                WM_CLOSE, which with no handler destroys the window -- and the
@@ -1039,8 +1086,8 @@ lh_os_system_posix_dispatch(lh_os_system_posix_xevent_t *event)
         {
         case LH_OS_SYSTEM_POSIX_X_BUTTON_LEFT:
             if (!lh_os_system_posix_window_begin_moveresize(
-                    self, lh_os_window_zone_at(self->user, event->button.x, event->button.y), event->button.x_root,
-                    event->button.y_root))
+                    self, lh_os_window_zone_at(self->user, event->button.x, event->button.y),
+                    event->button.x_root, event->button.y_root))
             {
                 lh_os_window_on_native_press(self->user, event->button.x, event->button.y);
             }
@@ -1062,8 +1109,9 @@ lh_os_system_posix_dispatch(lh_os_system_posix_xevent_t *event)
         }
         case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_LEFT:
         case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_RIGHT:
-            lh_os_window_on_native_wheel(self->user, event->button.x, event->button.y,
-                                         event->button.button == LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_LEFT ? 1 : -1, 0);
+            lh_os_window_on_native_wheel(
+                self->user, event->button.x, event->button.y,
+                event->button.button == LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_LEFT ? 1 : -1, 0);
             return;
         default:
             return;
@@ -1082,20 +1130,24 @@ lh_os_system_posix_dispatch(lh_os_system_posix_xevent_t *event)
     {
         char text[8];
         lh_os_system_posix_xid_t keysym = LH_OS_SYSTEM_POSIX_X_NONE;
-        const lh_bool_t pressed = event->type == LH_OS_SYSTEM_POSIX_X_KEY_PRESS ? lh_bool_true : lh_bool_false;
+        const lh_bool_t pressed =
+            event->type == LH_OS_SYSTEM_POSIX_X_KEY_PRESS ? lh_bool_true : lh_bool_false;
 
         if (!pressed && lh_os_system_posix_is_repeat(event))
         {
             return;
         }
         /* The keysym with the layout and Shift applied: what the key means now. */
-        (void)lh_os_system_posix_x->XLookupString(lh_addr_of(event->key), text, lh_cast_static(int, sizeof(text)),
+        (void)lh_os_system_posix_x->XLookupString(lh_addr_of(event->key), text,
+                                                  lh_cast_static(int, sizeof(text)),
                                                   lh_addr_of(keysym), lh_null);
         lh_os_window_on_native_key(self->user, lh_os_system_posix_key_from_keysym(keysym), pressed);
         /* Text only from a press, and not from a chord: Ctrl+C is a command, and
            Windows sends no WM_CHAR for Alt+key either. The window may have gone in
            the key callback, so it is looked up again. */
-        if (pressed && (event->key.state & (LH_OS_SYSTEM_POSIX_X_CONTROL_MASK | LH_OS_SYSTEM_POSIX_X_MOD1_MASK)) == 0U &&
+        if (pressed &&
+            (event->key.state &
+             (LH_OS_SYSTEM_POSIX_X_CONTROL_MASK | LH_OS_SYSTEM_POSIX_X_MOD1_MASK)) == 0U &&
             lh_null_ne(lh_os_system_posix_window_find_xid(event->any.window)))
         {
             const lh_u32_t code = lh_os_system_posix_text_from_keysym(keysym);
@@ -1216,15 +1268,17 @@ lh_os_system_window_pump_wait(lh_tick_t timeout_ms)
     }
 
     now = lh_os_tick_us();
-    for (window = lh_os_system_posix_first_due(now); lh_null_ne(window); window = lh_os_system_posix_first_due(now))
+    for (window = lh_os_system_posix_first_due(now); lh_null_ne(window);
+         window = lh_os_system_posix_first_due(now))
     {
         /* From now, not from when it was due: a tick that is late does not come
            back twice to catch up, which a busy UI would only fall further behind on. */
-        window->tick_due_us = now + lh_cast_static(lh_u64_t, window->tick_ms)* 1000U;
+        window->tick_due_us = now + lh_cast_static(lh_u64_t, window->tick_ms) * 1000U;
         lh_os_window_on_native_tick(window->user);
         handled = lh_bool_true;
     }
-    for (window = lh_os_system_posix_first_dirty(); lh_null_ne(window); window = lh_os_system_posix_first_dirty())
+    for (window = lh_os_system_posix_first_dirty(); lh_null_ne(window);
+         window = lh_os_system_posix_first_dirty())
     {
         lh_os_system_posix_window_paint(window);
         handled = lh_bool_true;
@@ -1257,8 +1311,8 @@ lh_os_system_window_invalidate(lh_os_system_window_handle_t handle)
 }
 
 lh_void
-lh_os_system_window_invalidate_rect(lh_os_system_window_handle_t handle, int left, int top, int right,
-                                    int bottom)
+lh_os_system_window_invalidate_rect(lh_os_system_window_handle_t handle, int left, int top,
+                                    int right, int bottom)
 {
     lh_os_system_posix_window_t *self = lh_os_system_posix_window_find(handle);
 
@@ -1273,7 +1327,7 @@ lh_os_system_window_set_timer(lh_os_system_window_handle_t handle, lh_u32_t ms)
 
     lh_return_if(lh_null_eq(self));
     self->tick_ms = ms;
-    self->tick_due_us = lh_os_tick_us() + lh_cast_static(lh_u64_t, ms)* 1000U;
+    self->tick_due_us = lh_os_tick_us() + lh_cast_static(lh_u64_t, ms) * 1000U;
 }
 
 lh_bool_t
@@ -1290,7 +1344,8 @@ lh_os_system_window_get_client_size(lh_os_system_window_handle_t handle, int *wi
 lh_bool_t
 lh_os_system_window_get_paint_region(lh_ptr paint_dc, lh_u64_t *area, lh_u32_t *count)
 {
-    const lh_os_system_posix_paint_t *paint = lh_ptr_rcast(const lh_os_system_posix_paint_t, paint_dc);
+    const lh_os_system_posix_paint_t *paint =
+        lh_ptr_rcast(const lh_os_system_posix_paint_t, paint_dc);
 
     lh_return_if(lh_null_eq(area) || lh_null_eq(count), lh_bool_false);
     lh_ptr_deref(area) = 0U;
@@ -1313,7 +1368,8 @@ lh_os_system_window_get_position(lh_os_system_window_handle_t handle, int *x, in
        window inside a window of its own, so the position X keeps is relative to
        that and says nothing about the screen. */
     return lh_os_system_posix_x->XTranslateCoordinates(lh_os_system_posix_display, self->window,
-                                                       lh_os_system_posix_root, 0, 0, x, y, lh_addr_of(child)) != 0
+                                                       lh_os_system_posix_root, 0, 0, x, y,
+                                                       lh_addr_of(child)) != 0
                ? lh_bool_true
                : lh_bool_false;
 }

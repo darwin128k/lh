@@ -180,7 +180,8 @@ lh_timer_get_priority(const lh_timer_t *self)
 lh_bool_t
 lh_timer_priority_equals(const lh_timer_t *self, const lh_timer_t *other)
 {
-    return lh_cast_static(lh_bool_t, lh_math_eq(lh_timer_get_priority(self), lh_timer_get_priority(other)));
+    return lh_cast_static(lh_bool_t,
+                          lh_math_eq(lh_timer_get_priority(self), lh_timer_get_priority(other)));
 }
 
 lh_bool_t

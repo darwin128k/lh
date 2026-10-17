@@ -48,7 +48,7 @@ lh_math_vec2_init(lh_math_vec2_t *self, lh_math_fscalar_t x, lh_math_fscalar_t y
 lh_void
 lh_math_vec2_init_empty(lh_math_vec2_t *self);
 
-/* ── Accessors ───────────────────────────────────────────────────────────── */
+/* -- Accessors ------------------------------------------------------------- */
 
 /**
  * @brief X component of @p self.
@@ -74,7 +74,7 @@ lh_math_vec2_set_x(lh_math_vec2_t *self, lh_math_fscalar_t x);
 lh_void
 lh_math_vec2_set_y(lh_math_vec2_t *self, lh_math_fscalar_t y);
 
-/* ── Operations ─────────────────────────────────────────────────────────── */
+/* -- Operations ------------------------------------------------------------ */
 
 /**
  * @brief Component-wise sum @p a + @p b.

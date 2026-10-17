@@ -335,7 +335,7 @@ TEST(view, wheel_sideways_scrolls_a_wide_container_horizontally)
     EXPECT_EQ(lh_ui_point_get_y(lh_addr_of(scroll)), lh_ui_scalar(0));
 }
 
-/* ── Partial frames ───────────────────────────────────────────────────────── */
+/* -- Partial frames -------------------------------------------------------- */
 
 /* A scene with everything that can be wrong in a strip: a rounded panel, a
    scrolling box with a round thumb, and text (masks). Its own styles are a
@@ -570,7 +570,7 @@ TEST(view, a_whole_area_the_view_has_no_room_for_is_refused)
                         lh_test::rect_of(0, 96, 160, 24)));
 }
 
-/* ── Pressing ──────────────────────────────────────────────────────────────── */
+/* -- Pressing -------------------------------------------------------------- */
 
 /* The panel of the scene above, given a pressed look: the same card in another
    colour with a shadow under it, so a press has something to say. */

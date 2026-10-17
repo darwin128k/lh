@@ -60,7 +60,7 @@ lh_math_vec3_init_empty(lh_math_vec3_t *self)
     lh_math_vec3_init(self, 0, 0, 0);
 }
 
-/* ── Conversions ─────────────────────────────────────────────────────────── */
+/* -- Conversions ----------------------------------------------------------- */
 
 lh_void
 lh_math_vec2_to_vec3(lh_math_vec2_t v, lh_float_t z, lh_math_vec3_t *out)
@@ -137,13 +137,15 @@ lh_math_vec3_neg(lh_math_vec3_t v, lh_math_vec3_t *out)
     lh_assert_runtime_ref(out);
     lh_math_vec3_t result;
     lh_math_vec3_init(lh_addr_of(result), lh_math_neg(lh_math_vec3_get_x(lh_addr_of(v))),
-                      lh_math_neg(lh_math_vec3_get_y(lh_addr_of(v))), lh_math_neg(lh_math_vec3_get_z(lh_addr_of(v))));
+                      lh_math_neg(lh_math_vec3_get_y(lh_addr_of(v))),
+                      lh_math_neg(lh_math_vec3_get_z(lh_addr_of(v))));
     lh_ptr_deref(out) = result;
 }
 
 /* lh_math_vec3_view_of reads the vector as lh_float_t[3]: the components must
    follow each other with no padding, from the first byte. */
-lh_assert_static(sizeof(lh_math_vec3_t) == 3U * sizeof(lh_float_t), "lh_math_vec3_t must be laid out as lh_float_t[3]");
+lh_assert_static(sizeof(lh_math_vec3_t) == 3U * sizeof(lh_float_t),
+                 "lh_math_vec3_t must be laid out as lh_float_t[3]");
 lh_assert_static(lh_offset_of(lh_math_vec3_t, x) == 0U, "lh_math_vec3_t must start with x");
 
 lh_void
@@ -224,16 +226,16 @@ lh_math_vec3_near(lh_math_vec3_t a, lh_math_vec3_t b, lh_float_t eps)
     const lh_float_t dx = lh_math_vec3_get_x(lh_addr_of(d));
     const lh_float_t dy = lh_math_vec3_get_y(lh_addr_of(d));
     const lh_float_t dz = lh_math_vec3_get_z(lh_addr_of(d));
-    return lh_cast_static(lh_bool_t, (dx <= eps && lh_math_neg(dx) <= eps)
-                                   && (dy <= eps && lh_math_neg(dy) <= eps)
-                                   && (dz <= eps && lh_math_neg(dz) <= eps));
+    return lh_cast_static(lh_bool_t, (dx <= eps && lh_math_neg(dx) <= eps) &&
+                                         (dy <= eps && lh_math_neg(dy) <= eps) &&
+                                         (dz <= eps && lh_math_neg(dz) <= eps));
 }
 
 lh_bool_t
 lh_math_vec3_equals(lh_math_vec3_t self, lh_math_vec3_t other)
 {
     return lh_cast_static(lh_bool_t, lh_math_eq(lh_math_vec3_get_x(lh_addr_of(self)),
-                                               lh_math_vec3_get_x(lh_addr_of(other))) &&
+                                                lh_math_vec3_get_x(lh_addr_of(other))) &&
                                          lh_math_eq(lh_math_vec3_get_y(lh_addr_of(self)),
                                                     lh_math_vec3_get_y(lh_addr_of(other))) &&
                                          lh_math_eq(lh_math_vec3_get_z(lh_addr_of(self)),

@@ -84,8 +84,8 @@ typedef struct lh_os_system_win_rect lh_os_system_win_rect_t;
 struct lh_os_system_win_monitorinfo
 {
     lh_os_system_win_dword_t cb_size; /**< `sizeof` the struct; set before the call */
-    lh_os_system_win_rect_t monitor; /**< the whole display, in virtual-screen coordinates */
-    lh_os_system_win_rect_t work;    /**< the same minus taskbars and docked app bars */
+    lh_os_system_win_rect_t monitor;  /**< the whole display, in virtual-screen coordinates */
+    lh_os_system_win_rect_t work;     /**< the same minus taskbars and docked app bars */
     lh_os_system_win_dword_t flags;   /**< ::LH_OS_SYSTEM_WIN_MONITORINFOF_PRIMARY or 0 */
 };
 /** @copybrief lh_os_system_win_monitorinfo */
@@ -210,9 +210,9 @@ typedef struct lh_os_system_win_createstructa lh_os_system_win_createstructa_t;
 #define LH_OS_SYSTEM_WIN_WS_THICKFRAME 0x00040000UL
 #define LH_OS_SYSTEM_WIN_WS_MINIMIZEBOX 0x00020000UL
 #define LH_OS_SYSTEM_WIN_WS_MAXIMIZEBOX 0x00010000UL
-#define LH_OS_SYSTEM_WIN_WS_OVERLAPPEDWINDOW                                                        \
-    (LH_OS_SYSTEM_WIN_WS_OVERLAPPED | LH_OS_SYSTEM_WIN_WS_CAPTION | LH_OS_SYSTEM_WIN_WS_SYSMENU |    \
-     LH_OS_SYSTEM_WIN_WS_THICKFRAME | LH_OS_SYSTEM_WIN_WS_MINIMIZEBOX |                             \
+#define LH_OS_SYSTEM_WIN_WS_OVERLAPPEDWINDOW                                                       \
+    (LH_OS_SYSTEM_WIN_WS_OVERLAPPED | LH_OS_SYSTEM_WIN_WS_CAPTION | LH_OS_SYSTEM_WIN_WS_SYSMENU |  \
+     LH_OS_SYSTEM_WIN_WS_THICKFRAME | LH_OS_SYSTEM_WIN_WS_MINIMIZEBOX |                            \
      LH_OS_SYSTEM_WIN_WS_MAXIMIZEBOX)
 /** @} */
 
@@ -308,9 +308,11 @@ typedef struct lh_os_system_win_createstructa lh_os_system_win_createstructa_t;
 /** @} */
 
 /** `LOWORD`: the low 16 bits of @p v. */
-#define LH_OS_SYSTEM_WIN_LOWORD(v) (lh_cast_static(lh_os_system_win_word_t, (lh_cast_static(lh_usize_t, (v))& 0xffffU)))
+#define LH_OS_SYSTEM_WIN_LOWORD(v)                                                                 \
+    (lh_cast_static(lh_os_system_win_word_t, (lh_cast_static(lh_usize_t, (v)) & 0xffffU)))
 /** `HIWORD`: bits 16..31 of @p v. */
-#define LH_OS_SYSTEM_WIN_HIWORD(v) (lh_cast_static(lh_os_system_win_word_t, ((lh_cast_static(lh_usize_t, (v))>> 16) & 0xffffU)))
+#define LH_OS_SYSTEM_WIN_HIWORD(v)                                                                 \
+    (lh_cast_static(lh_os_system_win_word_t, ((lh_cast_static(lh_usize_t, (v)) >> 16) & 0xffffU)))
 /** `GET_WHEEL_DELTA_WPARAM`: the signed wheel distance in @p w, in ::LH_OS_SYSTEM_WIN_WHEEL_DELTA
  * units. */
 #define LH_OS_SYSTEM_WIN_GET_WHEEL_DELTA_WPARAM(w)                                                 \
@@ -326,10 +328,11 @@ LoadCursorA(lh_os_system_win_hinstance_t instance, lh_str_cptr name);
 
 /** Create a window of a registered class. Present since Windows 95. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_hwnd_t LH_OS_SYSTEM_WIN_CALL
-CreateWindowExA(lh_os_system_win_dword_t dwExStyle, lh_str_cptr lpClassName, lh_str_cptr lpWindowName,
-                lh_os_system_win_dword_t dwStyle, lh_int_t x, lh_int_t y, lh_int_t nWidth,
-                lh_int_t nHeight, lh_os_system_win_hwnd_t hWndParent, lh_os_system_win_hgdi_t hMenu,
-                lh_os_system_win_hinstance_t hInstance, lh_ptr lpParam);
+CreateWindowExA(lh_os_system_win_dword_t dwExStyle, lh_str_cptr lpClassName,
+                lh_str_cptr lpWindowName, lh_os_system_win_dword_t dwStyle, lh_int_t x, lh_int_t y,
+                lh_int_t nWidth, lh_int_t nHeight, lh_os_system_win_hwnd_t hWndParent,
+                lh_os_system_win_hgdi_t hMenu, lh_os_system_win_hinstance_t hInstance,
+                lh_ptr lpParam);
 
 /** Show, hide, minimize, maximize or restore a window (`SW_*`). Present since Windows 95. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
@@ -350,7 +353,7 @@ EnableWindow(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_bool_t bEnable);
 /** Grow a client rectangle to the window rectangle a style needs. Present since Windows 95. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 AdjustWindowRect(lh_os_system_win_rect_t *lpRect, lh_os_system_win_dword_t dwStyle,
-                  lh_os_system_win_bool_t bMenu);
+                 lh_os_system_win_bool_t bMenu);
 
 /** The client area, with its top-left at (0, 0). Present since Windows 95. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
@@ -389,8 +392,7 @@ LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
 KillTimer(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_uintptr_t nIDEvent);
 
 /** End the mouse capture of ::SetCapture. Present since Windows 95. */
-LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
-ReleaseCapture(lh_void);
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL ReleaseCapture(lh_void);
 
 /** Where a window's own corners are, in screen coordinates; only its size matters
    here. Present since Windows 95. */
@@ -420,11 +422,11 @@ GetWindowRect(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_rect_t *lpRect);
    ownership of @p region and deletes it, so handing it lh_null is how a window goes
    back to square. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
-SetWindowRgn(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_handle_t hRgn, lh_os_system_win_bool_t bRedraw);
+SetWindowRgn(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_handle_t hRgn,
+             lh_os_system_win_bool_t bRedraw);
 
 /** The window that has the mouse capture, or null. Present since Windows 95. */
-LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_hwnd_t LH_OS_SYSTEM_WIN_CALL
-GetCapture(lh_void);
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_hwnd_t LH_OS_SYSTEM_WIN_CALL GetCapture(lh_void);
 
 /** Turn a screen point into a window's client coordinates. Present since Windows 95. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
@@ -450,7 +452,8 @@ PostQuitMessage(lh_int_t nExitCode);
 
 /** Wait for handles or for input in the queue (`QS_*`). Present since Windows 95. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_dword_t LH_OS_SYSTEM_WIN_CALL
-MsgWaitForMultipleObjects(lh_os_system_win_dword_t nCount, const lh_os_system_win_handle_t *pHandles,
+MsgWaitForMultipleObjects(lh_os_system_win_dword_t nCount,
+                          const lh_os_system_win_handle_t *pHandles,
                           lh_os_system_win_bool_t bWaitAll, lh_os_system_win_dword_t dwMilliseconds,
                           lh_os_system_win_dword_t dwWakeMask);
 
@@ -463,7 +466,8 @@ DefWindowProcA(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_uint_t Msg,
 
 /** Set a pointer-sized window value (`GWLP_*`). Present since Windows 2000 (64-bit). */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_lparam_t LH_OS_SYSTEM_WIN_CALL
-SetWindowLongPtrA(lh_os_system_win_hwnd_t hWnd, lh_int_t nIndex, lh_os_system_win_lparam_t dwNewLong);
+SetWindowLongPtrA(lh_os_system_win_hwnd_t hWnd, lh_int_t nIndex,
+                  lh_os_system_win_lparam_t dwNewLong);
 
 /** Read a pointer-sized window value (`GWLP_*`). Present since Windows 2000 (64-bit). */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_lparam_t LH_OS_SYSTEM_WIN_CALL
@@ -478,10 +482,11 @@ SetWindowLongA(lh_os_system_win_hwnd_t hWnd, lh_int_t nIndex, lh_long_t dwNewLon
 LH_OS_SYSTEM_WIN_IMPORT lh_long_t LH_OS_SYSTEM_WIN_CALL
 GetWindowLongA(lh_os_system_win_hwnd_t hWnd, lh_int_t nIndex);
 
-#define SetWindowLongPtrA(hwnd, index, value)                                                      \
-    SetWindowLongA((hwnd), (index), lh_cast_static(lh_long_t, lh_cast_static(lh_ssize_t, (value))))
-#define GetWindowLongPtrA(hwnd, index)                                                             \
-    (lh_cast_static(lh_os_system_win_lparam_t, GetWindowLongA((hwnd), (index))))
+#    define SetWindowLongPtrA(hwnd, index, value)                                                  \
+        SetWindowLongA((hwnd), (index),                                                            \
+                       lh_cast_static(lh_long_t, lh_cast_static(lh_ssize_t, (value))))
+#    define GetWindowLongPtrA(hwnd, index)                                                         \
+        (lh_cast_static(lh_os_system_win_lparam_t, GetWindowLongA((hwnd), (index))))
 
 #endif
 

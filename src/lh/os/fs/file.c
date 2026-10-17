@@ -39,8 +39,9 @@ lh_os_fs_file_get_handle_as_const(const lh_os_fs_file_t *self)
 lh_bool_t
 lh_os_fs_file_is_valid(const lh_os_fs_file_t *self)
 {
-    return lh_cast_static(
-        lh_bool_t, lh_math_ne(lh_ptr_deref(lh_os_fs_file_get_handle_as_const(self)), LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID));
+    return lh_cast_static(lh_bool_t,
+                          lh_math_ne(lh_ptr_deref(lh_os_fs_file_get_handle_as_const(self)),
+                                     LH_OS_SYSTEM_FS_FILE_HANDLE_INVALID));
 }
 
 lh_fs_file_mode_t
@@ -139,14 +140,16 @@ lh_ssize_t
 lh_os_fs_file_read(lh_self_ptr self, lh_ptr buf, lh_usize_t size)
 {
     return lh_os_system_fs_file_read(
-        lh_ptr_deref(lh_os_fs_file_get_handle_as_const(lh_ptr_cast(lh_os_fs_file_t, self))), buf, size);
+        lh_ptr_deref(lh_os_fs_file_get_handle_as_const(lh_ptr_cast(lh_os_fs_file_t, self))), buf,
+        size);
 }
 
 lh_ssize_t
 lh_os_fs_file_write(lh_self_ptr self, const lh_ptr buf, lh_usize_t size)
 {
     return lh_os_system_fs_file_write(
-        lh_ptr_deref(lh_os_fs_file_get_handle_as_const(lh_ptr_cast(lh_os_fs_file_t, self))), buf, size);
+        lh_ptr_deref(lh_os_fs_file_get_handle_as_const(lh_ptr_cast(lh_os_fs_file_t, self))), buf,
+        size);
 }
 
 lh_void

@@ -4225,13 +4225,13 @@ lh_wstr_ptr_to_lower(lh_wstr_ptr str, lh_usize_t n)
 #    endif /* LH_WCHAR_T_MAX > 0xFFFF */
         {
             const lh_u8_t block = m_wchar_to_lower_stage1[lh_cast_static(lh_usize_t, c) >> 8];
-            lh_ptr_deref(p) = (block == 0xFFU)
-                     ? c
-                     : lh_cast_static(lh_wchar_t,
-                                      m_wchar_to_lower_stage2[lh_cast_static(lh_usize_t, block) *
-                                                                  256U +
-                                                              (lh_cast_static(lh_usize_t, c) &
-                                                               0xFFU)]);
+            lh_ptr_deref(p) =
+                (block == 0xFFU)
+                    ? c
+                    : lh_cast_static(
+                          lh_wchar_t,
+                          m_wchar_to_lower_stage2[lh_cast_static(lh_usize_t, block) * 256U +
+                                                  (lh_cast_static(lh_usize_t, c) & 0xFFU)]);
         }
     }
 
@@ -4290,13 +4290,13 @@ lh_wstr_ptr_to_upper(lh_wstr_ptr str, lh_usize_t n)
 #    endif /* LH_WCHAR_T_MAX > 0xFFFF */
         {
             const lh_u8_t block = m_wchar_to_upper_stage1[lh_cast_static(lh_usize_t, c) >> 8];
-            lh_ptr_deref(p) = (block == 0xFFU)
-                     ? c
-                     : lh_cast_static(lh_wchar_t,
-                                      m_wchar_to_upper_stage2[lh_cast_static(lh_usize_t, block) *
-                                                                  256U +
-                                                              (lh_cast_static(lh_usize_t, c) &
-                                                               0xFFU)]);
+            lh_ptr_deref(p) =
+                (block == 0xFFU)
+                    ? c
+                    : lh_cast_static(
+                          lh_wchar_t,
+                          m_wchar_to_upper_stage2[lh_cast_static(lh_usize_t, block) * 256U +
+                                                  (lh_cast_static(lh_usize_t, c) & 0xFFU)]);
         }
     }
 

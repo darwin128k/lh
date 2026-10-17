@@ -28,7 +28,7 @@ typedef lh_array_t lh_wstr_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── init / deinit ───────────────────────────────────────────────────────── */
+/* -- init / deinit --------------------------------------------------------- */
 
 /**
  * @brief Initialize @p self as an empty, NUL-terminated wide string.
@@ -43,7 +43,7 @@ lh_wstr_init(lh_wstr_t *self);
 lh_void
 lh_wstr_deinit(lh_wstr_t *self);
 
-/* ── accessors ───────────────────────────────────────────────────────────── */
+/* -- accessors ------------------------------------------------------------- */
 
 /**
  * @brief Return a pointer to the NUL-terminated character data.
@@ -63,7 +63,7 @@ lh_wstr_get_size(const lh_wstr_t *self);
 lh_bool_t
 lh_wstr_is_empty(const lh_wstr_t *self);
 
-/* ── mutation ────────────────────────────────────────────────────────────── */
+/* -- mutation -------------------------------------------------------------- */
 
 /**
  * @brief Append @p ch to the end of @p self, growing it if needed.
@@ -126,7 +126,7 @@ lh_wstr_clear(lh_wstr_t *self);
 lh_void
 lh_wstr_truncate(lh_wstr_t *self, lh_usize_t n);
 
-/* ── view ────────────────────────────────────────────────────────────────── */
+/* -- view ------------------------------------------------------------------ */
 
 /**
  * @brief Return a non-owning view over @p self's current contents.

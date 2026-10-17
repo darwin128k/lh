@@ -28,7 +28,8 @@ lh_os_system_error_get_native_code(void)
 }
 
 lh_os_error_desc_ptr
-lh_os_system_error_format(lh_os_system_error_code_t code, lh_os_error_desc_ptr dest, lh_usize_t dest_size)
+lh_os_system_error_format(lh_os_system_error_code_t code, lh_os_error_desc_ptr dest,
+                          lh_usize_t dest_size)
 {
     lh_assert_runtime_ref(dest);
     if (strerror_r(lh_cast_static(int, code), dest, dest_size) != 0)

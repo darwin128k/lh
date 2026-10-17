@@ -10,7 +10,7 @@
  * @def lh_os_system_posix_xvisual_info_fields
  * @brief `XVisualInfo`: a visual, and what its pixels are made of.
  */
-#define lh_os_system_posix_xvisual_info_fields \
+#define lh_os_system_posix_xvisual_info_fields                                                     \
     lh_os_system_posix_visual_t *visual;                                                           \
     unsigned long visualid;                                                                        \
     int screen;                                                                                    \

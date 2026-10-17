@@ -170,22 +170,22 @@ lh_crypto_rijndael_mix_columns(lh_byte_ptr state, lh_usize_t nb, lh_bool_t inver
 
         if (inverse)
         {
-            col[0] = lh_cast_static(lh_byte_t, (lh_crypto_rijndael_gf_mul(a0, 0x0EU) ^
-                                  lh_crypto_rijndael_gf_mul(a1, 0x0BU) ^
-                                  lh_crypto_rijndael_gf_mul(a2, 0x0DU) ^
-                                  lh_crypto_rijndael_gf_mul(a3, 0x09U)));
-            col[1] = lh_cast_static(lh_byte_t, (lh_crypto_rijndael_gf_mul(a0, 0x09U) ^
-                                  lh_crypto_rijndael_gf_mul(a1, 0x0EU) ^
-                                  lh_crypto_rijndael_gf_mul(a2, 0x0BU) ^
-                                  lh_crypto_rijndael_gf_mul(a3, 0x0DU)));
-            col[2] = lh_cast_static(lh_byte_t, (lh_crypto_rijndael_gf_mul(a0, 0x0DU) ^
-                                  lh_crypto_rijndael_gf_mul(a1, 0x09U) ^
-                                  lh_crypto_rijndael_gf_mul(a2, 0x0EU) ^
-                                  lh_crypto_rijndael_gf_mul(a3, 0x0BU)));
-            col[3] = lh_cast_static(lh_byte_t, (lh_crypto_rijndael_gf_mul(a0, 0x0BU) ^
-                                  lh_crypto_rijndael_gf_mul(a1, 0x0DU) ^
-                                  lh_crypto_rijndael_gf_mul(a2, 0x09U) ^
-                                  lh_crypto_rijndael_gf_mul(a3, 0x0EU)));
+            col[0] = lh_cast_static(
+                lh_byte_t,
+                (lh_crypto_rijndael_gf_mul(a0, 0x0EU) ^ lh_crypto_rijndael_gf_mul(a1, 0x0BU) ^
+                 lh_crypto_rijndael_gf_mul(a2, 0x0DU) ^ lh_crypto_rijndael_gf_mul(a3, 0x09U)));
+            col[1] = lh_cast_static(
+                lh_byte_t,
+                (lh_crypto_rijndael_gf_mul(a0, 0x09U) ^ lh_crypto_rijndael_gf_mul(a1, 0x0EU) ^
+                 lh_crypto_rijndael_gf_mul(a2, 0x0BU) ^ lh_crypto_rijndael_gf_mul(a3, 0x0DU)));
+            col[2] = lh_cast_static(
+                lh_byte_t,
+                (lh_crypto_rijndael_gf_mul(a0, 0x0DU) ^ lh_crypto_rijndael_gf_mul(a1, 0x09U) ^
+                 lh_crypto_rijndael_gf_mul(a2, 0x0EU) ^ lh_crypto_rijndael_gf_mul(a3, 0x0BU)));
+            col[3] = lh_cast_static(
+                lh_byte_t,
+                (lh_crypto_rijndael_gf_mul(a0, 0x0BU) ^ lh_crypto_rijndael_gf_mul(a1, 0x0DU) ^
+                 lh_crypto_rijndael_gf_mul(a2, 0x09U) ^ lh_crypto_rijndael_gf_mul(a3, 0x0EU)));
         }
         else
         {
@@ -206,7 +206,8 @@ static lh_u32_t
 lh_crypto_rijndael_sub_word(lh_u32_t w)
 {
     return (lh_cast_static(lh_u32_t, m_sbox[(w >> 24) & 0xFFU]) << 24) |
-           (lh_cast_static(lh_u32_t, m_sbox[(w >> 16) & 0xFFU]) << 16) | (lh_cast_static(lh_u32_t, m_sbox[(w >> 8) & 0xFFU]) << 8) |
+           (lh_cast_static(lh_u32_t, m_sbox[(w >> 16) & 0xFFU]) << 16) |
+           (lh_cast_static(lh_u32_t, m_sbox[(w >> 8) & 0xFFU]) << 8) |
            lh_cast_static(lh_u32_t, m_sbox[w & 0xFFU]);
 }
 
@@ -217,8 +218,7 @@ lh_crypto_rijndael_rot_word(lh_u32_t w)
 }
 
 static lh_void
-lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, lh_byte_cptr key,
-                              lh_usize_t key_size)
+lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, lh_byte_cptr key, lh_usize_t key_size)
 {
     lh_usize_t nk = key_size / 4U;
     lh_usize_t nb = self->block_size / 4U;
@@ -240,8 +240,8 @@ lh_crypto_rijndael_expand_key(lh_crypto_rijndael_t *self, lh_byte_cptr key,
         if (lh_math_is_multiple_of(i, nk))
         {
             temp = lh_crypto_rijndael_sub_word(lh_crypto_rijndael_rot_word(temp)) ^ rcon;
-            rcon = lh_cast_static(lh_u32_t, lh_crypto_rijndael_xtime(
-                                               lh_cast_static(lh_byte_t, rcon >> 24)))
+            rcon = lh_cast_static(lh_u32_t,
+                                  lh_crypto_rijndael_xtime(lh_cast_static(lh_byte_t, rcon >> 24)))
                    << 24;
         }
         else if (nk > 6U && (i % nk) == 4U)
@@ -292,8 +292,8 @@ lh_crypto_rijndael_has_aesni(void)
 {
     if (m_aesni == LH_CRYPTO_RIJNDAEL_AESNI_UNKNOWN)
     {
-        m_aesni = lh_cpu_simd_has_aesni() ? LH_CRYPTO_RIJNDAEL_AESNI_YES
-                                          : LH_CRYPTO_RIJNDAEL_AESNI_NO;
+        m_aesni =
+            lh_cpu_simd_has_aesni() ? LH_CRYPTO_RIJNDAEL_AESNI_YES : LH_CRYPTO_RIJNDAEL_AESNI_NO;
     }
     return lh_cast_static(lh_bool_t, m_aesni == LH_CRYPTO_RIJNDAEL_AESNI_YES);
 }
@@ -316,8 +316,7 @@ lh_crypto_rijndael_aesni_round_key(const lh_crypto_rijndael_t *self, lh_usize_t 
 
 LH_CRYPTO_RIJNDAEL_AESNI_TARGET
 static lh_void
-lh_crypto_rijndael_aesni_encrypt(const lh_crypto_rijndael_t *self, lh_byte_cptr in,
-                                 lh_byte_ptr out)
+lh_crypto_rijndael_aesni_encrypt(const lh_crypto_rijndael_t *self, lh_byte_cptr in, lh_byte_ptr out)
 {
     const lh_usize_t nr = self->round_count;
     __m128i state = _mm_loadu_si128(lh_ptr_rcast(const __m128i, in));
@@ -353,16 +352,15 @@ lh_crypto_rijndael_aesni_expand_dec_key(lh_crypto_rijndael_t *self)
 
     for (round = 1; round < nr; ++round)
     {
-        _mm_storeu_si128(lh_ptr_rcast(__m128i, self->aesni_dec_key +
-                                                   lh_crypto_rijndael_aesni_key_offset(round)),
-                         _mm_aesimc_si128(lh_crypto_rijndael_aesni_round_key(self, round)));
+        _mm_storeu_si128(
+            lh_ptr_rcast(__m128i, self->aesni_dec_key + lh_crypto_rijndael_aesni_key_offset(round)),
+            _mm_aesimc_si128(lh_crypto_rijndael_aesni_round_key(self, round)));
     }
 }
 
 LH_CRYPTO_RIJNDAEL_AESNI_TARGET
 static lh_void
-lh_crypto_rijndael_aesni_decrypt(const lh_crypto_rijndael_t *self, lh_byte_cptr in,
-                                 lh_byte_ptr out)
+lh_crypto_rijndael_aesni_decrypt(const lh_crypto_rijndael_t *self, lh_byte_cptr in, lh_byte_ptr out)
 {
     const lh_usize_t nr = self->round_count;
     __m128i state = _mm_loadu_si128(lh_ptr_rcast(const __m128i, in));

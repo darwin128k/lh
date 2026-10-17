@@ -113,16 +113,20 @@ lh_os_system_surface_create(int width, int height, int bits)
 
     lh_return_if(width <= 0 || height <= 0, LH_OS_SYSTEM_SURFACE_HANDLE_INVALID);
     lh_return_if(bits != 16 && bits != 32, LH_OS_SYSTEM_SURFACE_HANDLE_INVALID);
-    surface = lh_ptr_rcast(lh_os_system_posix_surface_t, lh_os_alloc(sizeof(lh_ptr_deref(surface))));
+    surface =
+        lh_ptr_rcast(lh_os_system_posix_surface_t, lh_os_alloc(sizeof(lh_ptr_deref(surface))));
     lh_return_if(lh_null_eq(surface), LH_OS_SYSTEM_SURFACE_HANDLE_INVALID);
     lh_memory_set(surface, sizeof(lh_ptr_deref(surface)), 0);
     /* Only 32 bits are shared: a 16-bit surface is widened on its way out, so the
        server never reads it as it is. */
     if (bits != 32 ||
-        !lh_os_system_posix_surface_share(surface, lh_cast_static(lh_usize_t, width)* lh_cast_static(lh_usize_t, height)* 4U))
+        !lh_os_system_posix_surface_share(surface, lh_cast_static(lh_usize_t, width) *
+                                                       lh_cast_static(lh_usize_t, height) * 4U))
     {
         surface->bits =
-            lh_ptr_rcast(lh_byte_t, lh_os_alloc(lh_cast_static(lh_usize_t, width)* lh_cast_static(lh_usize_t, height)* lh_cast_static(lh_usize_t, (bits / 8))));
+            lh_ptr_rcast(lh_byte_t, lh_os_alloc(lh_cast_static(lh_usize_t, width) *
+                                                lh_cast_static(lh_usize_t, height) *
+                                                lh_cast_static(lh_usize_t, (bits / 8))));
         if (lh_null_eq(surface->bits))
         {
             lh_runtime_allocator_free(surface);
@@ -151,7 +155,8 @@ lh_os_system_surface_destroy(lh_os_system_surface_handle_t handle)
         /* Detached and synced before the memory goes: the server may still be
            reading the last present out of it. */
         lh_os_system_posix_surface_settle(surface);
-        (void)lh_os_system_posix_xext_load()->XShmDetach(surface->display, lh_addr_of(surface->segment));
+        (void)lh_os_system_posix_xext_load()->XShmDetach(surface->display,
+                                                         lh_addr_of(surface->segment));
         (void)lh_os_system_posix_x11_load()->XSync(surface->display, 0);
         (void)shmdt(surface->segment.shmaddr);
     }
@@ -203,9 +208,9 @@ lh_os_system_surface_get_dc(lh_os_system_surface_handle_t handle)
 static lh_u32_t
 lh_os_system_posix_surface_from_565(lh_u16_t pixel)
 {
-    const lh_u32_t r = lh_cast_static(lh_u32_t, (pixel >> 11))& 0x1fU;
-    const lh_u32_t g = lh_cast_static(lh_u32_t, (pixel >> 5))& 0x3fU;
-    const lh_u32_t b = lh_cast_static(lh_u32_t, pixel)& 0x1fU;
+    const lh_u32_t r = lh_cast_static(lh_u32_t, (pixel >> 11)) & 0x1fU;
+    const lh_u32_t g = lh_cast_static(lh_u32_t, (pixel >> 5)) & 0x3fU;
+    const lh_u32_t b = lh_cast_static(lh_u32_t, pixel) & 0x1fU;
 
     return ((r << 3 | r >> 2) << 16) | ((g << 2 | g >> 4) << 8) | (b << 3 | b >> 2);
 }
@@ -213,10 +218,10 @@ lh_os_system_posix_surface_from_565(lh_u16_t pixel)
 /** The rows of a 16-bit surface that a present covers, widened into the staging
    buffer. Grown, never shrunk: a window presents the same sizes frame after frame. */
 static lh_u32_t *
-lh_os_system_posix_surface_widen(lh_os_system_posix_surface_t *surface, int src_x, int src_y, int width,
-                                 int height)
+lh_os_system_posix_surface_widen(lh_os_system_posix_surface_t *surface, int src_x, int src_y,
+                                 int width, int height)
 {
-    const lh_usize_t words = lh_cast_static(lh_usize_t, width)* lh_cast_static(lh_usize_t, height);
+    const lh_usize_t words = lh_cast_static(lh_usize_t, width) * lh_cast_static(lh_usize_t, height);
     int x;
     int y;
 
@@ -234,11 +239,14 @@ lh_os_system_posix_surface_widen(lh_os_system_posix_surface_t *surface, int src_
     }
     for (y = 0; y < height; ++y)
     {
-        const lh_u16_t *row = lh_ptr_rcast(const lh_u16_t, surface->bits) + lh_cast_static(lh_usize_t, (src_y + y))* lh_cast_static(lh_usize_t, surface->width);
+        const lh_u16_t *row =
+            lh_ptr_rcast(const lh_u16_t, surface->bits) +
+            lh_cast_static(lh_usize_t, (src_y + y)) * lh_cast_static(lh_usize_t, surface->width);
 
         for (x = 0; x < width; ++x)
         {
-            surface->staging[lh_cast_static(lh_usize_t, y)* lh_cast_static(lh_usize_t, width)+ lh_cast_static(lh_usize_t, x)] =
+            surface->staging[lh_cast_static(lh_usize_t, y) * lh_cast_static(lh_usize_t, width) +
+                             lh_cast_static(lh_usize_t, x)] =
                 lh_os_system_posix_surface_from_565(row[src_x + x]);
         }
     }
@@ -270,7 +278,8 @@ lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr d
 
     if (surface->pixel_bits == 16)
     {
-        data = lh_ptr_rcast(lh_byte_t, lh_os_system_posix_surface_widen(surface, src_x, src_y, width, height));
+        data = lh_ptr_rcast(lh_byte_t,
+                            lh_os_system_posix_surface_widen(surface, src_x, src_y, width, height));
         lh_return_if(lh_null_eq(data), lh_bool_false);
         image_width = width;
         image_height = height;
@@ -291,8 +300,9 @@ lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr d
     image.data = lh_ptr_rcast(char, data);
     /* The words are in this machine's byte order; Xlib swaps them if the server's
        is the other one. */
-    image.byte_order = *lh_ptr_rcast(const lh_byte_t, lh_addr_of(one)) == 1U ? LH_OS_SYSTEM_POSIX_X_LSB_FIRST
-                                                                            : LH_OS_SYSTEM_POSIX_X_MSB_FIRST;
+    image.byte_order = *lh_ptr_rcast(const lh_byte_t, lh_addr_of(one)) == 1U
+                           ? LH_OS_SYSTEM_POSIX_X_LSB_FIRST
+                           : LH_OS_SYSTEM_POSIX_X_MSB_FIRST;
     image.bitmap_unit = 32;
     image.bitmap_bit_order = image.byte_order;
     image.bitmap_pad = 32;
@@ -310,14 +320,15 @@ lh_os_system_surface_present_part(lh_os_system_surface_handle_t handle, lh_ptr d
     lh_return_if(paint->x11->XInitImage(lh_addr_of(image)) == 0, lh_bool_false);
     if (surface->shared && surface->display == paint->display)
     {
-        (void)lh_os_system_posix_xext_load()->XShmPutImage(paint->display, paint->window, paint->gc, lh_addr_of(image),
-                                                           src_x, src_y, x, y, lh_cast_static(unsigned int, width),
-                                                           lh_cast_static(unsigned int, height), 0);
+        (void)lh_os_system_posix_xext_load()->XShmPutImage(
+            paint->display, paint->window, paint->gc, lh_addr_of(image), src_x, src_y, x, y,
+            lh_cast_static(unsigned int, width), lh_cast_static(unsigned int, height), 0);
         surface->pending = lh_bool_true;
         return lh_bool_true;
     }
-    paint->x11->XPutImage(paint->display, paint->window, paint->gc, lh_addr_of(image), src_x, src_y, x, y,
-                          lh_cast_static(unsigned int, width), lh_cast_static(unsigned int, height));
+    paint->x11->XPutImage(paint->display, paint->window, paint->gc, lh_addr_of(image), src_x, src_y,
+                          x, y, lh_cast_static(unsigned int, width),
+                          lh_cast_static(unsigned int, height));
     return lh_bool_true;
 }
 
@@ -328,7 +339,8 @@ lh_os_system_surface_present_at(lh_os_system_surface_handle_t handle, lh_ptr des
 
     lh_return_if(lh_null_eq(handle) || lh_null_eq(dest), lh_bool_false);
     surface = lh_ptr_rcast(const lh_os_system_posix_surface_t, handle);
-    return lh_os_system_surface_present_part(handle, dest, x, y, 0, 0, surface->width, surface->height);
+    return lh_os_system_surface_present_part(handle, dest, x, y, 0, 0, surface->width,
+                                             surface->height);
 }
 
 lh_bool_t

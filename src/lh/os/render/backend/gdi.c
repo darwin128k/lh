@@ -9,12 +9,13 @@
 #include <lh/os/tick.h>
 #include <lh/util/return.h>
 
-/* ── Context ─────────────────────────────────────────────────────────────── */
+/* -- Context --------------------------------------------------------------- */
 
 lh_os_render_backend_gdi_context_t *
 lh_os_render_backend_gdi_context_from(lh_ptr context)
 {
-    lh_os_render_backend_gdi_context_t *gdi = lh_ptr_rcast(lh_os_render_backend_gdi_context_t, context);
+    lh_os_render_backend_gdi_context_t *gdi =
+        lh_ptr_rcast(lh_os_render_backend_gdi_context_t, context);
 
     lh_assert_runtime_ref(gdi);
     return gdi;
@@ -103,7 +104,7 @@ lh_os_render_backend_gdi_context_init(lh_os_render_backend_gdi_context_t *self)
     self->frame_start_us = 0;
 }
 
-/* ── Counters ────────────────────────────────────────────────────────────── */
+/* -- Counters -------------------------------------------------------------- */
 
 lh_void
 lh_os_render_backend_gdi_context_deinit(lh_os_render_backend_gdi_context_t *self)
@@ -148,7 +149,7 @@ lh_os_render_backend_gdi_context_get_frame_us(const lh_os_render_backend_gdi_con
     return lh_os_tick_us() - self->frame_start_us;
 }
 
-/* ── Backend slots ───────────────────────────────────────────────────────── */
+/* -- Backend slots --------------------------------------------------------- */
 
 lh_void
 lh_os_render_backend_gdi_begin_area(lh_ptr context, const lh_ui_rect_t *area)
@@ -160,7 +161,8 @@ lh_os_render_backend_gdi_begin_area(lh_ptr context, const lh_ui_rect_t *area)
        960 KB of RGB565 DIB, a 32-row strip is 48 KB, and the pixels that did not
        change are never cleared, drawn or blitted at all. */
     gdi->present_at = lh_ptr_deref(lh_ui_rect_get_origin_as_const(area));
-    (void)lh_ui_surface_set_size(lh_addr_of(gdi->surface), lh_ptr_deref(lh_ui_rect_get_size_as_const(area)));
+    (void)lh_ui_surface_set_size(lh_addr_of(gdi->surface),
+                                 lh_ptr_deref(lh_ui_rect_get_size_as_const(area)));
     lh_ui_pixmap_init_empty(lh_addr_of(pixmap));
     (void)lh_ui_surface_get_pixmap(lh_addr_of(gdi->surface), lh_addr_of(pixmap));
     lh_ui_canvas_sw_set_pixmap(lh_addr_of(gdi->sw), lh_addr_of(pixmap));
@@ -187,10 +189,13 @@ lh_os_render_backend_gdi_begin(lh_ptr context)
     }
     else
     {
-        lh_return_if(!lh_os_system_window_get_client_size(gdi->hwnd, lh_addr_of(width), lh_addr_of(height)));
+        lh_return_if(
+            !lh_os_system_window_get_client_size(gdi->hwnd, lh_addr_of(width), lh_addr_of(height)));
     }
-    lh_ui_size_init(lh_addr_of(size), lh_cast_static(lh_ui_scalar_t, width), lh_cast_static(lh_ui_scalar_t, height));
-    lh_ui_rect_init(lh_addr_of(area), lh_ui_scalar(0), lh_ui_scalar(0), lh_ui_size_get_width(lh_addr_of(size)),
+    lh_ui_size_init(lh_addr_of(size), lh_cast_static(lh_ui_scalar_t, width),
+                    lh_cast_static(lh_ui_scalar_t, height));
+    lh_ui_rect_init(lh_addr_of(area), lh_ui_scalar(0), lh_ui_scalar(0),
+                    lh_ui_size_get_width(lh_addr_of(size)),
                     lh_ui_size_get_height(lh_addr_of(size)));
     lh_os_render_backend_gdi_begin_area(context, lh_addr_of(area));
 }
@@ -206,12 +211,14 @@ lh_os_render_backend_gdi_end(lh_ptr context, const lh_ui_rects_t *drawn)
         int client_w = 0;
         int client_h = 0;
 
-        if (lh_os_system_window_get_client_size(gdi->hwnd, lh_addr_of(client_w), lh_addr_of(client_h)) &&
-            (client_w != lh_cast_static(int, gdi->logical_w)|| client_h != lh_cast_static(int, gdi->logical_h)))
+        if (lh_os_system_window_get_client_size(gdi->hwnd, lh_addr_of(client_w),
+                                                lh_addr_of(client_h)) &&
+            (client_w != lh_cast_static(int, gdi->logical_w) ||
+             client_h != lh_cast_static(int, gdi->logical_h)))
         {
             /* 0x00BBGGRR of `--canvas` #EDF0F5, for the letterbox. */
-            (void)lh_os_system_surface_present_fit(gdi->surface.handle, gdi->hdc, client_w, client_h,
-                                                   0x00F5F0EDu);
+            (void)lh_os_system_surface_present_fit(gdi->surface.handle, gdi->hdc, client_w,
+                                                   client_h, 0x00F5F0EDu);
             return;
         }
     }
@@ -240,7 +247,8 @@ lh_os_render_backend_gdi_clear(lh_ptr context, const lh_ui_color_t *color)
 }
 
 lh_void
-lh_os_render_backend_gdi_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, const lh_ui_color_t *color)
+lh_os_render_backend_gdi_fill_rect(lh_ptr context, const lh_ui_rect_t *rect,
+                                   const lh_ui_color_t *color)
 {
     lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
 
@@ -249,8 +257,8 @@ lh_os_render_backend_gdi_fill_rect(lh_ptr context, const lh_ui_rect_t *rect, con
 }
 
 lh_bool_t
-lh_os_render_backend_gdi_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
-                                         const lh_ui_color_t *color)
+lh_os_render_backend_gdi_fill_round_rect(lh_ptr context, const lh_ui_rect_t *rect,
+                                         lh_ui_scalar_t radius, const lh_ui_color_t *color)
 {
     lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
 
@@ -273,8 +281,8 @@ lh_os_render_backend_gdi_set_clip(lh_ptr context, const lh_ui_canvas_clip_t *cli
 }
 
 lh_bool_t
-lh_os_render_backend_gdi_fill_mask(lh_ptr context, const lh_ui_point_t *origin, const lh_ui_mask_t *mask,
-                                   const lh_ui_color_t *color)
+lh_os_render_backend_gdi_fill_mask(lh_ptr context, const lh_ui_point_t *origin,
+                                   const lh_ui_mask_t *mask, const lh_ui_color_t *color)
 {
     lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
 
@@ -289,7 +297,7 @@ lh_os_render_backend_gdi_fill_mask(lh_ptr context, const lh_ui_point_t *origin, 
    them in raw does not draw a little wrong, it reads a different struct. */
 lh_bool_t
 lh_os_render_backend_gdi_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
-                               const lh_ui_shadow_t *shadow)
+                                const lh_ui_shadow_t *shadow)
 {
     lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
 
@@ -298,7 +306,7 @@ lh_os_render_backend_gdi_shadow(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_
 
 lh_bool_t
 lh_os_render_backend_gdi_blur(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t blur_radius,
-                             lh_u8_t *scratch, lh_usize_t bytes)
+                              lh_u8_t *scratch, lh_usize_t bytes)
 {
     lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
 
@@ -307,25 +315,20 @@ lh_os_render_backend_gdi_blur(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_sc
 
 lh_bool_t
 lh_os_render_backend_gdi_glass(lh_ptr context, const lh_ui_rect_t *rect, lh_ui_scalar_t corner,
-                              lh_ui_scalar_t blur_radius, const lh_ui_color_t *tint, lh_u8_t *scratch,
-                              lh_usize_t bytes)
+                               lh_ui_scalar_t blur_radius, const lh_ui_color_t *tint,
+                               lh_u8_t *scratch, lh_usize_t bytes)
 {
     lh_os_render_backend_gdi_context_t *gdi = lh_os_render_backend_gdi_context_from(context);
 
-    return lh_ui_canvas_sw_glass(lh_addr_of(gdi->sw), rect, corner, blur_radius, tint, scratch, bytes);
+    return lh_ui_canvas_sw_glass(lh_addr_of(gdi->sw), rect, corner, blur_radius, tint, scratch,
+                                 bytes);
 }
 
 const lh_ui_canvas_backend_t lh_os_render_backend_gdi = {
-    lh_os_render_backend_gdi_begin,
-    lh_os_render_backend_gdi_begin_area,
-    lh_os_render_backend_gdi_end,
-    lh_os_render_backend_gdi_clear,
-    lh_os_render_backend_gdi_fill_rect,
-    lh_os_render_backend_gdi_fill_round_rect,
-    lh_os_render_backend_gdi_set_clip,
-    lh_os_render_backend_gdi_fill_mask,
-    lh_os_render_backend_gdi_shadow,
-    lh_os_render_backend_gdi_blur,
-    lh_os_render_backend_gdi_glass,
-    lh_null,
+    lh_os_render_backend_gdi_begin,     lh_os_render_backend_gdi_begin_area,
+    lh_os_render_backend_gdi_end,       lh_os_render_backend_gdi_clear,
+    lh_os_render_backend_gdi_fill_rect, lh_os_render_backend_gdi_fill_round_rect,
+    lh_os_render_backend_gdi_set_clip,  lh_os_render_backend_gdi_fill_mask,
+    lh_os_render_backend_gdi_shadow,    lh_os_render_backend_gdi_blur,
+    lh_os_render_backend_gdi_glass,     lh_null,
 };

@@ -17,8 +17,8 @@
  * @param rect_type  ::lh_ui_rect_t.
  * @param count_type Unsigned type of the used count.
  */
-#define lh_ui_rects_fields(rect_type, count_type)                                                      \
-    rect_type rects[LH_UI_RECTS_MAX];                                                                  \
+#define lh_ui_rects_fields(rect_type, count_type)                                                  \
+    rect_type rects[LH_UI_RECTS_MAX];                                                              \
     count_type count
 
 #endif /* LH_UI_RECTS_FIELDS_H */

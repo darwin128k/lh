@@ -38,7 +38,7 @@ typedef struct lh_runtime_error lh_runtime_error_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── set ─────────────────────────────────────────────────────────────────── */
+/* -- set ------------------------------------------------------------------- */
 
 /**
  * @brief Replace @p self with @p code and @p desc.
@@ -69,7 +69,7 @@ lh_runtime_error_set_code(lh_runtime_error_t *self, lh_runtime_error_code_t code
 lh_void
 lh_runtime_error_set_desc(lh_runtime_error_t *self, const lh_error_desc_ptr desc);
 
-/* ── accessors ───────────────────────────────────────────────────────────── */
+/* -- accessors ------------------------------------------------------------- */
 
 /**
  * @brief Return the error code stored in @p self.
@@ -97,7 +97,7 @@ lh_runtime_error_get_desc(const lh_runtime_error_t *self);
 const lh_error_desc_ptr
 lh_runtime_error_get_desc_or(const lh_runtime_error_t *self, const lh_error_desc_ptr fallback);
 
-/* ── predicates ──────────────────────────────────────────────────────────── */
+/* -- predicates ------------------------------------------------------------ */
 
 /**
  * @brief Test whether @p self stores @p code.
@@ -173,7 +173,7 @@ lh_runtime_error_has_same_code(const lh_runtime_error_t *self, const lh_runtime_
 lh_bool_t
 lh_runtime_error_has_diff_code(const lh_runtime_error_t *self, const lh_runtime_error_t *other);
 
-/* ── copy / clear ────────────────────────────────────────────────────────── */
+/* -- copy / clear ---------------------------------------------------------- */
 
 /**
  * @brief Copy the error state from @p other into @p self.
@@ -190,7 +190,7 @@ lh_runtime_error_assign(lh_runtime_error_t *self, const lh_runtime_error_t *othe
 lh_void
 lh_runtime_error_clear(lh_runtime_error_t *self);
 
-/* ── init ────────────────────────────────────────────────────────────────── */
+/* -- init ------------------------------------------------------------------ */
 
 /**
  * @brief Initialize @p self with @p code and @p desc.

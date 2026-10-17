@@ -11,7 +11,7 @@
  * @brief `XShmSegmentInfo`: a System V shared-memory segment as both sides know it --
  *        the server by `shmseg`, this process by `shmid` and `shmaddr`.
  */
-#define lh_os_system_posix_xshm_segment_info_fields \
+#define lh_os_system_posix_xshm_segment_info_fields                                                \
     lh_os_system_posix_xid_t shmseg;                                                               \
     int shmid;                                                                                     \
     char *shmaddr;                                                                                 \

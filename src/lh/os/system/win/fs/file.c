@@ -55,8 +55,7 @@ lh_os_system_fs_file_handle_t
 lh_os_system_fs_file_open(lh_str_cptr path, lh_fs_file_mode_t mode)
 {
     lh_assert_runtime_ref(path);
-    lh_assert_runtime_if(!lh_fs_file_mode_is_readable(mode) &&
-                             !lh_fs_file_mode_is_writable(mode),
+    lh_assert_runtime_if(!lh_fs_file_mode_is_readable(mode) && !lh_fs_file_mode_is_writable(mode),
                          lh_runtime_error_code_invalid_argument);
 
     lh_os_str_t os_path;

@@ -14,11 +14,11 @@
  * @param length_type Type of the width, height and row stride.
  * @param depth_type  Type of the bits per pixel.
  */
-#define lh_ui_mask_fields(byte_type, length_type, depth_type)                                       \
-    const byte_type *bits;                                                                          \
-    length_type width;                                                                              \
-    length_type height;                                                                             \
-    length_type row_bytes;                                                                          \
+#define lh_ui_mask_fields(byte_type, length_type, depth_type)                                      \
+    const byte_type *bits;                                                                         \
+    length_type width;                                                                             \
+    length_type height;                                                                            \
+    length_type row_bytes;                                                                         \
     depth_type bpp
 
 #endif /* LH_UI_MASK_FIELDS_H */

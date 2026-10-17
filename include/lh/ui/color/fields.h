@@ -12,10 +12,10 @@
  *
  * @param channel_type Type of each channel.
  */
-#define lh_ui_color_fields(channel_type)                                                            \
-    channel_type r;                                                                                 \
-    channel_type g;                                                                                 \
-    channel_type b;                                                                                 \
+#define lh_ui_color_fields(channel_type)                                                           \
+    channel_type r;                                                                                \
+    channel_type g;                                                                                \
+    channel_type b;                                                                                \
     channel_type a
 
 #endif /* LH_UI_COLOR_FIELDS_H */

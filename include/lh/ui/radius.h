@@ -143,8 +143,8 @@ lh_ui_radius_coverage(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t 
  * not reach, and the whole width for a row between the corners.
  */
 lh_void
-lh_ui_radius_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y, lh_s32_t *out_x0,
-                       lh_s32_t *out_x1);
+lh_ui_radius_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y,
+                       lh_s32_t *out_x0, lh_s32_t *out_x1);
 
 /**
  * @brief Row of a rounded rect, prepared once for a run of rows.
@@ -161,11 +161,11 @@ lh_ui_radius_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t
  */
 struct lh_ui_radius_run
 {
-    lh_s64_t r;   /**< the radius in fixed point */
-    lh_s64_t lo;  /**< the rect's left edge in fixed point */
-    lh_s64_t hi;  /**< its right edge */
-    lh_s64_t near; /**< the left corner circle center, `lo + r` */
-    lh_s64_t far;  /**< the right corner circle center, `hi - r` */
+    lh_s64_t r;         /**< the radius in fixed point */
+    lh_s64_t lo;        /**< the rect's left edge in fixed point */
+    lh_s64_t hi;        /**< its right edge */
+    lh_s64_t near;      /**< the left corner circle center, `lo + r` */
+    lh_s64_t far;       /**< the right corner circle center, `hi - r` */
     lh_ui_scalar_t top; /**< the rect's top edge, in the units lh_ui_radius_axis_distance takes */
     lh_ui_scalar_t height; /**< the rect's height */
     lh_ui_scalar_t radius; /**< the corner radius, as given */
@@ -175,7 +175,8 @@ struct lh_ui_radius_run
  * @brief Prepare @p self for the rows of the rounded @p rect.
  */
 lh_void
-lh_ui_radius_run_init(struct lh_ui_radius_run *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius);
+lh_ui_radius_run_init(struct lh_ui_radius_run *self, const lh_ui_rect_t *rect,
+                      lh_ui_scalar_t radius);
 
 /**
  * @brief Coverage `0..255` of pixels `x0 .. x1 - 1` of row @p y, written to
@@ -188,7 +189,8 @@ lh_ui_radius_run_init(struct lh_ui_radius_run *self, const lh_ui_rect_t *rect, l
  * @param out Receives `x1 - x0` bytes.
  */
 lh_void
-lh_ui_radius_run_row(const struct lh_ui_radius_run *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_byte_ptr out);
+lh_ui_radius_run_row(const struct lh_ui_radius_run *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                     lh_byte_ptr out);
 
 /**
  * @brief Coverage `0..255` of pixels `x0 .. x1 - 1` of row @p y, written to
@@ -205,8 +207,8 @@ lh_ui_radius_run_row(const struct lh_ui_radius_run *self, lh_s32_t x0, lh_s32_t 
  * @param out Receives `x1 - x0` bytes.
  */
 lh_void
-lh_ui_radius_coverage_run(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
-                          lh_byte_ptr out);
+lh_ui_radius_coverage_run(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t x0, lh_s32_t x1,
+                          lh_s32_t y, lh_byte_ptr out);
 
 LH_COMPILER_EXTERN_C_END
 

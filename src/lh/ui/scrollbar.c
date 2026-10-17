@@ -7,14 +7,14 @@
 #include <lh/ui/range.h>
 #include <lh/util/return.h>
 
-/* ── Class ───────────────────────────────────────────────────────────────── */
+/* -- Class ----------------------------------------------------------------- */
 
-const lh_ui_entity_class_t lh_ui_scrollbar_class = {
-    lh_ui_scrollbar_event, lh_addr_of(lh_ui_entity_class)};
+const lh_ui_entity_class_t lh_ui_scrollbar_class = {lh_ui_scrollbar_event,
+                                                    lh_addr_of(lh_ui_entity_class)};
 
 lh_void
 lh_ui_scrollbar_init(lh_ui_scrollbar_t *self, lh_ui_rect_t rect, lh_ui_axis_t axis,
-                            lh_ui_container_t *container)
+                     lh_ui_container_t *container)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(container);
@@ -37,9 +37,9 @@ lh_ui_scrollbar_t *
 lh_ui_entity_as_scrollbar(lh_ui_entity_t *entity)
 {
     lh_return_if(lh_null_eq(entity), lh_null);
-    lh_return_if(!lh_ui_entity_class_is(lh_ui_entity_get_class(entity),
-                                        lh_addr_of(lh_ui_scrollbar_class)),
-                 lh_null);
+    lh_return_if(
+        !lh_ui_entity_class_is(lh_ui_entity_get_class(entity), lh_addr_of(lh_ui_scrollbar_class)),
+        lh_null);
     return lh_ptr_rcast(lh_ui_scrollbar_t, entity);
 }
 
@@ -50,7 +50,7 @@ lh_ui_scrollbar_get_container(const lh_ui_scrollbar_t *self)
     return self->container;
 }
 
-/* ── Lifetime and fields ─────────────────────────────────────────────────── */
+/* -- Lifetime and fields --------------------------------------------------- */
 
 lh_ui_axis_t
 lh_ui_scrollbar_get_axis(const lh_ui_scrollbar_t *self)
@@ -123,7 +123,7 @@ lh_ui_scrollbar_get_content_length(const lh_ui_scrollbar_t *self)
     return lh_ui_size_get_along(lh_addr_of(content), self->axis);
 }
 
-/* ── The container on this axis ──────────────────────────────────────────── */
+/* -- The container on this axis -------------------------------------------- */
 
 lh_bool_t
 lh_ui_scrollbar_is_needed(const lh_ui_scrollbar_t *self)
@@ -153,7 +153,8 @@ lh_ui_scalar_t
 lh_ui_scrollbar_get_track_length(const lh_ui_scrollbar_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(self->entity.rect)), self->axis);
+    return lh_ui_size_get_along(lh_ui_rect_get_size_as_const(lh_addr_of(self->entity.rect)),
+                                self->axis);
 }
 
 lh_ui_scalar_t
@@ -179,7 +180,7 @@ lh_ui_scrollbar_get_thumb_start_within(const lh_ui_scrollbar_t *self, lh_ui_poin
                                     lh_ui_point_get_along(lh_addr_of(max), self->axis));
 }
 
-/* ── Thumb ───────────────────────────────────────────────────────────────── */
+/* -- Thumb ----------------------------------------------------------------- */
 
 lh_ui_scalar_t
 lh_ui_scrollbar_get_thumb_length(const lh_ui_scrollbar_t *self)
@@ -187,8 +188,7 @@ lh_ui_scrollbar_get_thumb_length(const lh_ui_scrollbar_t *self)
     lh_assert_runtime_ref(self);
     lh_ui_point_t point;
     lh_ui_container_get_scroll_max(self->container, lh_addr_of(point));
-    return lh_ui_scrollbar_get_thumb_length_within(
-        self, point);
+    return lh_ui_scrollbar_get_thumb_length_within(self, point);
 }
 
 lh_ui_scalar_t
@@ -197,8 +197,7 @@ lh_ui_scrollbar_get_thumb_start(const lh_ui_scrollbar_t *self)
     lh_assert_runtime_ref(self);
     lh_ui_point_t point;
     lh_ui_container_get_scroll_max(self->container, lh_addr_of(point));
-    return lh_ui_scrollbar_get_thumb_start_within(
-        self, point);
+    return lh_ui_scrollbar_get_thumb_start_within(self, point);
 }
 
 lh_ui_scalar_t
@@ -254,7 +253,8 @@ lh_ui_scrollbar_draw_thumb(const lh_ui_scrollbar_t *self, lh_ui_canvas_t *canvas
     color = lh_ui_style_get_fill_color(self->thumb_style);
     lh_return_if(lh_null_eq(color));
     lh_ui_scrollbar_get_thumb_rect(self, lh_addr_of(thumb));
-    lh_ui_canvas_fill_round_rect(canvas, lh_addr_of(thumb), lh_ui_style_get_radius(self->thumb_style), color);
+    lh_ui_canvas_fill_round_rect(canvas, lh_addr_of(thumb),
+                                 lh_ui_style_get_radius(self->thumb_style), color);
 }
 
 lh_void
@@ -289,7 +289,8 @@ lh_ui_scrollbar_get_page_toward(const lh_ui_scrollbar_t *self, lh_ui_point_t poi
 
     lh_return_if(lh_ui_rect_contains_point(lh_addr_of(thumb), point), lh_ui_scalar(0));
     return lh_ui_point_get_along(lh_addr_of(point), self->axis) <
-                   lh_ui_point_get_along(lh_ui_rect_get_origin_as_const(lh_addr_of(thumb)), self->axis)
+                   lh_ui_point_get_along(lh_ui_rect_get_origin_as_const(lh_addr_of(thumb)),
+                                         self->axis)
                ? lh_math_neg(page)
                : page;
 }
@@ -299,13 +300,13 @@ lh_ui_scrollbar_page_toward(const lh_ui_scrollbar_t *self, lh_ui_point_t point)
 {
     lh_ui_point_t delta;
 
-    lh_ui_point_init_along(lh_addr_of(delta), self->axis, lh_ui_scrollbar_get_page_toward(self, point),
-                           lh_ui_scalar(0));
+    lh_ui_point_init_along(lh_addr_of(delta), self->axis,
+                           lh_ui_scrollbar_get_page_toward(self, point), lh_ui_scalar(0));
     lh_ui_container_scroll_by(self->container, lh_ui_point_get_x(lh_addr_of(delta)),
-                                     lh_ui_point_get_y(lh_addr_of(delta)));
+                              lh_ui_point_get_y(lh_addr_of(delta)));
 }
 
-/* ── Paging ──────────────────────────────────────────────────────────────── */
+/* -- Paging ---------------------------------------------------------------- */
 
 lh_void
 lh_ui_scrollbar_on_click(const lh_ui_scrollbar_t *self, const lh_ui_entity_event_t *event)
@@ -335,7 +336,7 @@ lh_ui_scrollbar_event(const struct lh_ui_entity *self, const lh_ui_entity_event_
     lh_ui_scrollbar_on_visible(scrollbar, event);
 }
 
-/* ── Finding and damage ──────────────────────────────────────────────────── */
+/* -- Finding and damage ---------------------------------------------------- */
 
 lh_ui_container_t *
 lh_ui_scrollbar_get_driven(lh_ui_entity_t *entity)
@@ -364,7 +365,7 @@ lh_ui_scrollbar_get_bound(lh_ui_entity_t *entity, const lh_ui_container_t *conta
 
 lh_void
 lh_ui_scrollbar_add_bound_damage(lh_ui_entity_t *entity, const lh_ui_container_t *container,
-                                        lh_ui_canvas_t *canvas)
+                                 lh_ui_canvas_t *canvas)
 {
     lh_ui_scrollbar_t *bar = lh_ui_scrollbar_get_bound(entity, container);
 

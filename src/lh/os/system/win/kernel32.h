@@ -71,7 +71,8 @@
 struct lh_os_system_win_dcb
 {
     /** Members: ::lh_os_system_win_dcb_fields. */
-    lh_os_system_win_dcb_fields(lh_os_system_win_dword_t, lh_os_system_win_word_t, lh_byte_t, lh_char_t);
+    lh_os_system_win_dcb_fields(lh_os_system_win_dword_t, lh_os_system_win_word_t, lh_byte_t,
+                                lh_char_t);
 };
 /** @copybrief lh_os_system_win_dcb */
 typedef struct lh_os_system_win_dcb lh_os_system_win_dcb_t;
@@ -132,7 +133,8 @@ typedef struct lh_os_system_win_find_data lh_os_system_win_find_data_t;
 struct lh_os_system_win_file_attribute_data
 {
     /** Members: ::lh_os_system_win_file_attribute_data_fields. */
-    lh_os_system_win_file_attribute_data_fields(lh_os_system_win_dword_t, lh_os_system_win_filetime_t);
+    lh_os_system_win_file_attribute_data_fields(lh_os_system_win_dword_t,
+                                                lh_os_system_win_filetime_t);
 };
 /** @copybrief lh_os_system_win_file_attribute_data */
 typedef struct lh_os_system_win_file_attribute_data lh_os_system_win_file_attribute_data_t;
@@ -177,9 +179,9 @@ GetLastError(void);
 
 /** Text of a system error code. Present since Windows 95. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_dword_t LH_OS_SYSTEM_WIN_CALL
-FormatMessageW(lh_os_system_win_dword_t dwFlags, const lh_ptr lpSource, lh_os_system_win_dword_t dwMessageId,
-               lh_os_system_win_dword_t dwLanguageId, lh_wstr_ptr lpBuffer, lh_os_system_win_dword_t nSize,
-               lh_ptr Arguments);
+FormatMessageW(lh_os_system_win_dword_t dwFlags, const lh_ptr lpSource,
+               lh_os_system_win_dword_t dwMessageId, lh_os_system_win_dword_t dwLanguageId,
+               lh_wstr_ptr lpBuffer, lh_os_system_win_dword_t nSize, lh_ptr Arguments);
 
 /* Files. `lpSecurityAttributes` / `lpOverlapped` are always null here, so
    they are plain pointers rather than mirrored structs. */
@@ -215,12 +217,14 @@ PurgeComm(lh_os_system_win_handle_t hFile, lh_os_system_win_dword_t dwFlags);
 
 /** Read from a file or device. Present since Windows 95. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
-ReadFile(lh_os_system_win_handle_t hFile, lh_ptr lpBuffer, lh_os_system_win_dword_t nNumberOfBytesToRead,
+ReadFile(lh_os_system_win_handle_t hFile, lh_ptr lpBuffer,
+         lh_os_system_win_dword_t nNumberOfBytesToRead,
          lh_os_system_win_dword_t *lpNumberOfBytesRead, lh_ptr lpOverlapped);
 
 /** Write to a file or device. Present since Windows 95. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_bool_t LH_OS_SYSTEM_WIN_CALL
-WriteFile(lh_os_system_win_handle_t hFile, const lh_ptr lpBuffer, lh_os_system_win_dword_t nNumberOfBytesToWrite,
+WriteFile(lh_os_system_win_handle_t hFile, const lh_ptr lpBuffer,
+          lh_os_system_win_dword_t nNumberOfBytesToWrite,
           lh_os_system_win_dword_t *lpNumberOfBytesWritten, lh_ptr lpOverlapped);
 
 /** Attributes, size and times of a path. Present since Windows NT 4.0 / 98. */
@@ -279,8 +283,7 @@ GetModuleHandleA(lh_str_cptr lpModuleName);
 
 /** Millisecond tick. Present since Windows 95. Wraps ~49.7 days; fine for the
    app pump. (`GetTickCount64` is Vista+ — do not call it.) */
-LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_dword_t LH_OS_SYSTEM_WIN_CALL
-GetTickCount(lh_void);
+LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_dword_t LH_OS_SYSTEM_WIN_CALL GetTickCount(lh_void);
 
 /**
  * @brief `LARGE_INTEGER`: QPC counter / frequency. Present since Windows XP

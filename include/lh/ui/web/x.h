@@ -29,22 +29,22 @@ LH_COMPILER_EXTERN_C_BEGIN
  */
 typedef enum lh_ui_web_x_kind
 {
-    lh_ui_web_x_kind_id = 0, /**< A bare identifier, written as is. */
-    lh_ui_web_x_kind_num,    /**< A whole number. */
-    lh_ui_web_x_kind_str,    /**< A string literal, quoted and escaped. */
-    lh_ui_web_x_kind_null,   /**< `null`. */
-    lh_ui_web_x_kind_true,   /**< `true`. */
-    lh_ui_web_x_kind_false,  /**< `false`. */
-    lh_ui_web_x_kind_dot,    /**< `(obj).name`. */
-    lh_ui_web_x_kind_idx,    /**< `(obj)[ix]`. */
-    lh_ui_web_x_kind_call,   /**< `(fn)(args...)`. */
+    lh_ui_web_x_kind_id = 0,  /**< A bare identifier, written as is. */
+    lh_ui_web_x_kind_num,     /**< A whole number. */
+    lh_ui_web_x_kind_str,     /**< A string literal, quoted and escaped. */
+    lh_ui_web_x_kind_null,    /**< `null`. */
+    lh_ui_web_x_kind_true,    /**< `true`. */
+    lh_ui_web_x_kind_false,   /**< `false`. */
+    lh_ui_web_x_kind_dot,     /**< `(obj).name`. */
+    lh_ui_web_x_kind_idx,     /**< `(obj)[ix]`. */
+    lh_ui_web_x_kind_call,    /**< `(fn)(args...)`. */
     lh_ui_web_x_kind_call_id, /**< `name(args...)`. */
-    lh_ui_web_x_kind_bin,    /**< `(a)op(b)`. */
-    lh_ui_web_x_kind_un,     /**< `op(a)`. */
-    lh_ui_web_x_kind_tern,   /**< `(c)?(t):(f)`. */
-    lh_ui_web_x_kind_typeof, /**< `typeof(a)`. */
-    lh_ui_web_x_kind_obj     /**< `{key:value,...}`. */
-} lh_ui_web_x_kind_t; /**< What an ::lh_ui_web_x_t node is. */
+    lh_ui_web_x_kind_bin,     /**< `(a)op(b)`. */
+    lh_ui_web_x_kind_un,      /**< `op(a)`. */
+    lh_ui_web_x_kind_tern,    /**< `(c)?(t):(f)`. */
+    lh_ui_web_x_kind_typeof,  /**< `typeof(a)`. */
+    lh_ui_web_x_kind_obj      /**< `{key:value,...}`. */
+} lh_ui_web_x_kind_t;         /**< What an ::lh_ui_web_x_t node is. */
 
 /**
  * @brief One JS expression node.
@@ -180,11 +180,13 @@ lh_ui_web_x_idx(const lh_ui_web_x_t *obj, const lh_ui_web_x_t *ix, lh_ui_web_x_t
  * @return The node.
  */
 lh_void
-lh_ui_web_x_call(const lh_ui_web_x_t *fn, const lh_ui_web_x_t *const *args, lh_u16_t n, lh_ui_web_x_t *out);
+lh_ui_web_x_call(const lh_ui_web_x_t *fn, const lh_ui_web_x_t *const *args, lh_u16_t n,
+                 lh_ui_web_x_t *out);
 
 /** Call a bare identifier: `name(args…)`. */
 lh_void
-lh_ui_web_x_call_id(const lh_str_ptr name, const lh_ui_web_x_t *const *args, lh_u16_t n, lh_ui_web_x_t *out);
+lh_ui_web_x_call_id(const lh_str_ptr name, const lh_ui_web_x_t *const *args, lh_u16_t n,
+                    lh_ui_web_x_t *out);
 
 /**
  * @brief Binary operation `(a)op(b)`.
@@ -194,7 +196,8 @@ lh_ui_web_x_call_id(const lh_str_ptr name, const lh_ui_web_x_t *const *args, lh_
  * @return The node.
  */
 lh_void
-lh_ui_web_x_bin(const lh_ui_web_x_t *a, const lh_str_ptr op, const lh_ui_web_x_t *b, lh_ui_web_x_t *out);
+lh_ui_web_x_bin(const lh_ui_web_x_t *a, const lh_str_ptr op, const lh_ui_web_x_t *b,
+                lh_ui_web_x_t *out);
 
 /**
  * @brief Unary operation `op(a)`.
@@ -213,7 +216,8 @@ lh_ui_web_x_un(const lh_str_ptr op, const lh_ui_web_x_t *a, lh_ui_web_x_t *out);
  * @return The node.
  */
 lh_void
-lh_ui_web_x_tern(const lh_ui_web_x_t *c, const lh_ui_web_x_t *t, const lh_ui_web_x_t *f, lh_ui_web_x_t *out);
+lh_ui_web_x_tern(const lh_ui_web_x_t *c, const lh_ui_web_x_t *t, const lh_ui_web_x_t *f,
+                 lh_ui_web_x_t *out);
 
 /**
  * @brief `typeof(a)`.
@@ -225,7 +229,8 @@ lh_ui_web_x_typeof(const lh_ui_web_x_t *a, lh_ui_web_x_t *out);
 
 /** Object literal `{keys[i]:vals[i],…}` — @p keys and @p vals must both have @p n entries. */
 lh_void
-lh_ui_web_x_obj(const lh_str_ptr *keys, const lh_ui_web_x_t *const *vals, lh_u16_t n, lh_ui_web_x_t *out);
+lh_ui_web_x_obj(const lh_str_ptr *keys, const lh_ui_web_x_t *const *vals, lh_u16_t n,
+                lh_ui_web_x_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

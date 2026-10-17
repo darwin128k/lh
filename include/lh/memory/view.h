@@ -165,7 +165,7 @@ lh_memory_view_is_backward(const lh_memory_view_t *self);
 lh_bool_t
 lh_memory_view_is_valid(const lh_memory_view_t *self);
 
-/* -- validated access, size, containment ---------------------------------- */
+/* -- validated access, size, containment ----------------------------------- */
 
 /**
  * @brief Return @c first after validating @p self.
@@ -348,7 +348,7 @@ lh_memory_view_contains(const lh_memory_view_t *self, const lh_memory_view_t *ot
 lh_bool_t
 lh_memory_view_contains_v(const lh_memory_view_t *self, const lh_memory_view_t *other);
 
-/* -- pointer and value access --------------------------------------------- */
+/* -- pointer and value access ---------------------------------------------- */
 
 /**
  * @brief Return pointer at byte @p offset from @c first.
@@ -617,7 +617,7 @@ lh_memory_view_next_value(const lh_memory_view_t *self, const lh_ptr ptr);
 lh_byte_t
 lh_memory_view_prev_value(const lh_memory_view_t *self, const lh_ptr ptr);
 
-/* -- overlap, alignment, equality ----------------------------------------- */
+/* -- overlap, alignment, equality ------------------------------------------ */
 
 /**
  * @brief True if half-open range <tt>[begin, end)</tt> overlaps @p self.
@@ -1134,7 +1134,7 @@ lh_memory_view_return_init_v(const lh_ptr begin, const lh_ptr end, lh_memory_vie
 lh_void
 lh_memory_view_return_init_by_size(const lh_ptr begin, lh_usize_t size, lh_memory_view_t *out);
 
-/* -- sub-range construction -------------------------------------------------- */
+/* -- sub-range construction ------------------------------------------------ */
 
 /**
  * @brief Build a view containing the first @p n bytes of a valid half-open range.
@@ -1153,7 +1153,8 @@ lh_memory_view_return_init_by_size(const lh_ptr begin, lh_usize_t size, lh_memor
  *        @p n is greater than the source range size.
  */
 lh_void
-lh_memory_view_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_memory_view_t *out);
+lh_memory_view_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t n,
+                          lh_memory_view_t *out);
 
 /**
  * @brief Build a view containing the last @p n bytes of a valid half-open range.
@@ -1228,7 +1229,8 @@ lh_memory_view_from_end(const lh_memory_view_t *self, lh_usize_t size, lh_memory
  *        <tt>[begin, end)</tt> is not a valid view.
  */
 lh_void
-lh_memory_view_between(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end, lh_memory_view_t *out);
+lh_memory_view_between(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end,
+                       lh_memory_view_t *out);
 
 /**
  * @brief Build a sub-view starting at @p offset with @p size bytes.
@@ -1248,7 +1250,8 @@ lh_memory_view_between(const lh_memory_view_t *self, const lh_ptr begin, const l
  *        <tt>[offset, offset + size)</tt> is outside @p self.
  */
 lh_void
-lh_memory_view_from_offset(const lh_memory_view_t *self, lh_uoffset_t offset, lh_usize_t size, lh_memory_view_t *out);
+lh_memory_view_from_offset(const lh_memory_view_t *self, lh_uoffset_t offset, lh_usize_t size,
+                           lh_memory_view_t *out);
 
 /**
  * @brief Build a view with @p n bytes removed from the beginning.
@@ -1306,7 +1309,8 @@ lh_memory_view_drop_last(const lh_memory_view_t *self, lh_usize_t n, lh_memory_v
  *        @p left + @p right is greater than the source view size.
  */
 lh_void
-lh_memory_view_trim(const lh_memory_view_t *self, lh_usize_t left, lh_usize_t right, lh_memory_view_t *out);
+lh_memory_view_trim(const lh_memory_view_t *self, lh_usize_t left, lh_usize_t right,
+                    lh_memory_view_t *out);
 
 LH_COMPILER_EXTERN_C_END
 

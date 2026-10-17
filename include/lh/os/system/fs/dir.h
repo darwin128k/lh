@@ -60,7 +60,8 @@ lh_os_system_fs_dir_close(lh_os_system_fs_dir_handle_t handle);
  *         exhausted, or ::LH_OS_RESULT_INVALID on failure.
  */
 lh_ssize_t
-lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, const lh_str_ptr *name, lh_fs_kind_t *kind);
+lh_os_system_fs_dir_read(lh_os_system_fs_dir_handle_t handle, const lh_str_ptr *name,
+                         lh_fs_kind_t *kind);
 
 /**
  * @brief Longest directory-entry name the platform reports, in `char`s,

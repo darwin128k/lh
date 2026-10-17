@@ -38,15 +38,15 @@
 struct lh_ui_entity_scrollbar
 {
     /** Members: ::lh_ui_scrollbar_fields. */
-    lh_ui_scrollbar_fields(lh_ui_entity_t, lh_ui_axis_t, lh_ui_scrollbar_mode_t,
-                                  lh_ui_container_t, lh_ui_style_t);
+    lh_ui_scrollbar_fields(lh_ui_entity_t, lh_ui_axis_t, lh_ui_scrollbar_mode_t, lh_ui_container_t,
+                           lh_ui_style_t);
 };
 /** @copybrief lh_ui_entity_scrollbar */
 typedef struct lh_ui_entity_scrollbar lh_ui_scrollbar_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Class ───────────────────────────────────────────────────────────────── */
+/* -- Class ----------------------------------------------------------------- */
 
 /**
  * @brief Class of ::lh_ui_scrollbar_t, derived from ::lh_ui_entity_class.
@@ -81,7 +81,7 @@ lh_ui_scrollbar_on_click(const lh_ui_scrollbar_t *self, const lh_ui_entity_event
 lh_void
 lh_ui_scrollbar_on_visible(const lh_ui_scrollbar_t *self, const lh_ui_entity_event_t *event);
 
-/* ── Lifetime and fields ─────────────────────────────────────────────────── */
+/* -- Lifetime and fields --------------------------------------------------- */
 
 /**
  * @brief Fill @p self: track @p rect, @p axis, driving @p container (not
@@ -89,7 +89,7 @@ lh_ui_scrollbar_on_visible(const lh_ui_scrollbar_t *self, const lh_ui_entity_eve
  */
 lh_void
 lh_ui_scrollbar_init(lh_ui_scrollbar_t *self, lh_ui_rect_t rect, lh_ui_axis_t axis,
-                            lh_ui_container_t *container);
+                     lh_ui_container_t *container);
 
 /**
  * @brief The entity @p self embeds.
@@ -140,7 +140,7 @@ lh_ui_scrollbar_get_thumb_style(const lh_ui_scrollbar_t *self);
 lh_void
 lh_ui_scrollbar_set_thumb_style(lh_ui_scrollbar_t *self, const lh_ui_style_t *style);
 
-/* ── The container on this axis ──────────────────────────────────────────── */
+/* -- The container on this axis -------------------------------------------- */
 
 /**
  * @brief Container scroll on the axis of @p self.
@@ -178,7 +178,7 @@ lh_ui_scrollbar_is_needed(const lh_ui_scrollbar_t *self);
 lh_bool_t
 lh_ui_scrollbar_is_visible(const lh_ui_scrollbar_t *self);
 
-/* ── Thumb ───────────────────────────────────────────────────────────────── */
+/* -- Thumb ----------------------------------------------------------------- */
 
 /**
  * @brief Length of the track (the rect of @p self) on its axis.
@@ -258,7 +258,7 @@ lh_ui_scrollbar_contains_thumb(const lh_ui_scrollbar_t *self, lh_ui_point_t poin
 lh_void
 lh_ui_scrollbar_set_scroll_at(lh_ui_scrollbar_t *self, lh_ui_point_t point);
 
-/* ── Paging ──────────────────────────────────────────────────────────────── */
+/* -- Paging ---------------------------------------------------------------- */
 
 /**
  * @brief Scroll step for a click at @p point (track space): minus a page
@@ -273,7 +273,7 @@ lh_ui_scrollbar_get_page_toward(const lh_ui_scrollbar_t *self, lh_ui_point_t poi
 lh_void
 lh_ui_scrollbar_page_toward(const lh_ui_scrollbar_t *self, lh_ui_point_t point);
 
-/* ── Finding and damage ──────────────────────────────────────────────────── */
+/* -- Finding and damage ---------------------------------------------------- */
 
 /**
  * @brief The container @p entity drives when it is a scrollbar, else
@@ -302,7 +302,7 @@ lh_ui_scrollbar_get_bound(lh_ui_entity_t *entity, const lh_ui_container_t *conta
  */
 lh_void
 lh_ui_scrollbar_add_bound_damage(lh_ui_entity_t *entity, const lh_ui_container_t *container,
-                                        lh_ui_canvas_t *canvas);
+                                 lh_ui_canvas_t *canvas);
 
 /**
  * @brief Union scroll damage of @p container into @p canvas: its viewport

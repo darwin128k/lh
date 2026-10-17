@@ -459,7 +459,7 @@ TEST(ui_axis, cross_swaps_the_axes)
     EXPECT_EQ(lh_ui_axis_get_cross(lh_ui_axis_vertical), lh_ui_axis_horizontal);
 }
 
-/* ── The row's line ─────────────────────────────────────────────────────────
+/* -- The row's line --------------------------------------------------------
    An icon beside a caption is one line of text, and the numbers below are where
    the two part company, because the room is **11** rows and odd:
 

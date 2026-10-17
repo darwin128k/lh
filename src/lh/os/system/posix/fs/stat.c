@@ -70,9 +70,11 @@ lh_os_system_fs_stat(lh_str_cptr path, lh_fs_stat_t *out)
     }
     const lh_os_system_fs_unix_mode_t mode_bits =
         lh_cast_static(lh_os_system_fs_unix_mode_t, info.st_mode);
-    lh_fs_stat_set(out, lh_os_system_fs_kind_from_unix_mode(mode_bits),
-                   lh_cast_static(lh_fs_perm_t, lh_bit_and(mode_bits, LH_OS_SYSTEM_FS_PERM_UNIX_MASK)),
-                   lh_cast_static(lh_fs_size_t, info.st_size), lh_cast_static(lh_fs_time_t, info.st_atime),
-                   lh_cast_static(lh_fs_time_t, info.st_mtime), lh_cast_static(lh_fs_time_t, info.st_ctime), 0U);
+    lh_fs_stat_set(
+        out, lh_os_system_fs_kind_from_unix_mode(mode_bits),
+        lh_cast_static(lh_fs_perm_t, lh_bit_and(mode_bits, LH_OS_SYSTEM_FS_PERM_UNIX_MASK)),
+        lh_cast_static(lh_fs_size_t, info.st_size), lh_cast_static(lh_fs_time_t, info.st_atime),
+        lh_cast_static(lh_fs_time_t, info.st_mtime), lh_cast_static(lh_fs_time_t, info.st_ctime),
+        0U);
     return lh_bool_true;
 }

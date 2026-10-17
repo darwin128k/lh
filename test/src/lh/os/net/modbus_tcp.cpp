@@ -10,7 +10,7 @@
 #include <cstring>
 #include <thread>
 
-/* ── A device on this machine ───────────────────────────────────────────────────
+/* -- A device on this machine ----------------------------------------------
    Everything in lh_mb_link was tested over a pair of arrays. These are the same
    questions over a real socket: a listener on 127.0.0.1 plays the device, with the
    ordinary blocking socket calls, and the link on the other end reads the socket's

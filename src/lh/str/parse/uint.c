@@ -79,8 +79,8 @@ lh_str_ptr_split_next_uint_digits(lh_str_cptr str, lh_usize_t str_size, lh_char_
     lh_usize_t field_size;
     lh_bool_t had_delim;
 
-    if (!lh_str_ptr_split_next(str, str_size, delim, pos, lh_addr_of(field),
-                               lh_addr_of(field_size), lh_addr_of(had_delim)))
+    if (!lh_str_ptr_split_next(str, str_size, delim, pos, lh_addr_of(field), lh_addr_of(field_size),
+                               lh_addr_of(had_delim)))
     {
         return lh_bool_false;
     }

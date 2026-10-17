@@ -25,8 +25,8 @@ lh_ui_mask_is_bpp(lh_u32_t bpp)
 }
 
 lh_void
-lh_ui_mask_init(lh_ui_mask_t *self, lh_byte_cptr bits, lh_s32_t width, lh_s32_t height, lh_s32_t row_bytes,
-                lh_byte_t bpp)
+lh_ui_mask_init(lh_ui_mask_t *self, lh_byte_cptr bits, lh_s32_t width, lh_s32_t height,
+                lh_s32_t row_bytes, lh_byte_t bpp)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(bits);
@@ -87,8 +87,9 @@ lh_ui_mask_get_sample(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y)
 lh_byte_t
 lh_ui_mask_get_coverage(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y)
 {
-    return lh_cast_static(lh_byte_t, lh_math_rescale_u32(lh_ui_mask_get_sample(self, x, y),
-                                                         lh_bit_packed_max(lh_ui_mask_get_bpp(self)), 255U));
+    return lh_cast_static(lh_byte_t,
+                          lh_math_rescale_u32(lh_ui_mask_get_sample(self, x, y),
+                                              lh_bit_packed_max(lh_ui_mask_get_bpp(self)), 255U));
 }
 
 #if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
@@ -109,11 +110,13 @@ lh_ui_mask_unpack_4_sse2(lh_u64_t bytes, lh_bool_t odd)
     const __m128i v = _mm_loadl_epi64(lh_ptr_rcast(const __m128i, lh_addr_of(bytes)));
     const __m128i low = _mm_and_si128(v, nibble);
     const __m128i high = _mm_and_si128(_mm_srli_epi16(v, 4), nibble);
-    const __m128i pixels = odd ? _mm_unpacklo_epi8(low, _mm_srli_si128(high, 1)) : _mm_unpacklo_epi8(high, low);
+    const __m128i pixels =
+        odd ? _mm_unpacklo_epi8(low, _mm_srli_si128(high, 1)) : _mm_unpacklo_epi8(high, low);
 
     lh_u64_t out;
 
-    _mm_storel_epi64(lh_ptr_rcast(__m128i, lh_addr_of(out)), _mm_mullo_epi16(pixels, _mm_set1_epi16(17)));
+    _mm_storel_epi64(lh_ptr_rcast(__m128i, lh_addr_of(out)),
+                     _mm_mullo_epi16(pixels, _mm_set1_epi16(17)));
     return out;
 }
 #endif
@@ -163,7 +166,8 @@ lh_ui_mask_get_coverage_8(const lh_ui_mask_t *self, lh_s32_t x, lh_s32_t y)
 }
 
 lh_void
-lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_byte_ptr out)
+lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                        lh_byte_ptr out)
 {
     lh_byte_cptr row;
     lh_s32_t x;
@@ -246,7 +250,8 @@ lh_ui_mask_coverage_run(const lh_ui_mask_t *self, lh_s32_t x0, lh_s32_t x1, lh_s
             const lh_u32_t sample =
                 x < width ? lh_bit_packed_get(row, lh_cast_static(lh_u32_t, x), self->bpp) : 0U;
 
-            out[x - x0] = lh_cast_static(lh_byte_t, step != 0U ? sample * step : lh_math_rescale_u32(sample, top, 255U));
+            out[x - x0] = lh_cast_static(
+                lh_byte_t, step != 0U ? sample * step : lh_math_rescale_u32(sample, top, 255U));
         }
     }
 }
@@ -257,7 +262,8 @@ lh_ui_mask_get_rect(const lh_ui_mask_t *self, lh_ui_point_t origin, lh_ui_rect_t
     lh_assert_runtime_ref(out);
     lh_ui_rect_t rect;
 
-    lh_ui_rect_init(lh_addr_of(rect), lh_ui_point_get_x(lh_addr_of(origin)), lh_ui_point_get_y(lh_addr_of(origin)),
-                    lh_ui_mask_get_width(self), lh_ui_mask_get_height(self));
+    lh_ui_rect_init(lh_addr_of(rect), lh_ui_point_get_x(lh_addr_of(origin)),
+                    lh_ui_point_get_y(lh_addr_of(origin)), lh_ui_mask_get_width(self),
+                    lh_ui_mask_get_height(self));
     lh_ptr_deref(out) = rect;
 }

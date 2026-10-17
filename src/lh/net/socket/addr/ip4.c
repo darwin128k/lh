@@ -127,9 +127,9 @@ lh_net_ip4_socket_addr_format(const lh_net_ip4_socket_addr_t *self, lh_str_ptr s
             pos++;
         }
 
-        written =
-            lh_str_ptr_format_uint(lh_cast_static(lh_uint_t, lh_net_ip4_get_octet(lh_addr_of(ip), octet_index)),
-                                   scratch + pos, LH_NET_IP4_SOCKET_ADDR_TEXT_MAX - pos);
+        written = lh_str_ptr_format_uint(
+            lh_cast_static(lh_uint_t, lh_net_ip4_get_octet(lh_addr_of(ip), octet_index)),
+            scratch + pos, LH_NET_IP4_SOCKET_ADDR_TEXT_MAX - pos);
         if (written == 0)
         {
             return 0; /* unreachable: each octet is <= 3 digits and scratch always has room */
@@ -140,8 +140,9 @@ lh_net_ip4_socket_addr_format(const lh_net_ip4_socket_addr_t *self, lh_str_ptr s
     scratch[pos] = ':';
     pos++;
 
-    written = lh_str_ptr_format_uint(lh_cast_static(lh_uint_t, lh_net_ip4_socket_addr_get_port(self)),
-                                     scratch + pos, LH_NET_IP4_SOCKET_ADDR_TEXT_MAX - pos);
+    written =
+        lh_str_ptr_format_uint(lh_cast_static(lh_uint_t, lh_net_ip4_socket_addr_get_port(self)),
+                               scratch + pos, LH_NET_IP4_SOCKET_ADDR_TEXT_MAX - pos);
     if (written == 0)
     {
         return 0; /* unreachable: a port is <= 5 digits and scratch always has room */

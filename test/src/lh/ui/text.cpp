@@ -292,7 +292,7 @@ TEST(ui_text_align, a_null_box_is_the_empty_one_and_a_null_padding_is_none)
 
 } // namespace
 
-/* ── Where the line is, on the font that is actually in the binary ────────────
+/* -- Where the line is, on the font that is actually in the binary ---------
    The instrument, not a claim: the tiny font has cap height 2 out of a line of 2 and
    an ascent of 2, so all three of its metrics are the same number and it cannot tell
    two rules apart — it says a baseline is 4 and a cap height is 4 and never notices
@@ -442,7 +442,7 @@ TEST(ui_text, a_code_the_font_has_no_glyph_for_draws_nothing_and_moves_nothing)
     lh_ui_text_draw(lh_addr_of(canvas), font, "\xC2\xAD", point_of(10, 20), lh_addr_of(color));
     EXPECT_EQ(log.mask_count, 0);
 }
-/* -- Lines a width breaks --------------------------------------------------- */
+/* -- Lines a width breaks -------------------------------------------------- */
 
 /* The tiny font: 'A' 3 wide and inked, ' ' no glyph and no width. Three words of
    "AA" are 6 each; in 7 the second word would not fit after the first, so every word

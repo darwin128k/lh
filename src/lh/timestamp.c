@@ -59,7 +59,8 @@ lh_timestamp_get_date(lh_timestamp_t self, lh_date_t *out)
 lh_void
 lh_timestamp_get_time(lh_timestamp_t self, lh_time_t *out)
 {
-    lh_time_from_seconds_of_day(lh_cast_static(lh_uint_t, lh_timestamp_get_seconds_of_day(self)), out);
+    lh_time_from_seconds_of_day(lh_cast_static(lh_uint_t, lh_timestamp_get_seconds_of_day(self)),
+                                out);
 }
 
 lh_void

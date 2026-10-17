@@ -76,7 +76,7 @@ typedef struct lh_net_ip4 lh_net_ip4_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── init / set ────────────────────────────────────────────────────────────── */
+/* -- init / set ------------------------------------------------------------ */
 
 /**
  * @brief Fill @p self from four octets.
@@ -104,7 +104,7 @@ lh_net_ip4_set(lh_net_ip4_t *self, lh_u8_t octet0, lh_u8_t octet1, lh_u8_t octet
 lh_void
 lh_net_ip4_assign(lh_net_ip4_t *self, const lh_net_ip4_t *other);
 
-/* ── octet access ────────────────────────────────────────────────────────── */
+/* -- octet access ---------------------------------------------------------- */
 
 /**
  * @brief Return the octet at @p index.
@@ -147,7 +147,7 @@ lh_net_ip4_is_loopback(const lh_net_ip4_t *self);
 lh_bool_t
 lh_net_ip4_is_private(const lh_net_ip4_t *self);
 
-/* ── parse / format / compare ────────────────────────────────────────────── */
+/* -- parse / format / compare ---------------------------------------------- */
 
 /**
  * @brief Parse a strict dotted-decimal IPv4 address.

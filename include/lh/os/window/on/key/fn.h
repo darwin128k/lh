@@ -21,6 +21,7 @@ struct lh_os_window;
  * @p key is the portable code (::lh_key_t); keys outside it come as
  * ::lh_key_other.
  */
-typedef lh_void(lh_os_window_on_key_fn)(struct lh_os_window *self, lh_key_t key, lh_bool_t pressed, lh_ptr context);
+typedef lh_void(lh_os_window_on_key_fn)(struct lh_os_window *self, lh_key_t key, lh_bool_t pressed,
+                                        lh_ptr context);
 
 #endif /* LH_OS_WINDOW_ON_KEY_FN_H */

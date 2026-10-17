@@ -45,7 +45,7 @@ typedef struct lh_ui_pixmap lh_ui_pixmap_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Lifetime and shape ──────────────────────────────────────────────────── */
+/* -- Lifetime and shape ---------------------------------------------------- */
 
 /**
  * @brief True for the 16-bit formats (RGB565, plain or swapped).
@@ -66,8 +66,8 @@ lh_ui_pixmap_format_get_bytes(lh_ui_pixmap_format_t format);
  * @p stride is at least `width * bytes` and a multiple of the pixel size.
  */
 lh_void
-lh_ui_pixmap_init(lh_ui_pixmap_t *self, lh_byte_ptr bits, lh_s32_t width, lh_s32_t height, lh_s32_t stride,
-                  lh_ui_pixmap_format_t format);
+lh_ui_pixmap_init(lh_ui_pixmap_t *self, lh_byte_ptr bits, lh_s32_t width, lh_s32_t height,
+                  lh_s32_t stride, lh_ui_pixmap_format_t format);
 
 /**
  * @brief No pixels, size zero (ARGB8888).
@@ -117,7 +117,7 @@ lh_ui_pixmap_get_row(const lh_ui_pixmap_t *self, lh_s32_t y);
 lh_byte_ptr
 lh_ui_pixmap_get_address(const lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y);
 
-/* ── Pixels ──────────────────────────────────────────────────────────────── */
+/* -- Pixels ---------------------------------------------------------------- */
 
 /**
  * @brief @p word with its two bytes swapped when @p self is
@@ -179,7 +179,7 @@ lh_void
 lh_ui_pixmap_cover_pixel(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color,
                          lh_byte_t coverage);
 
-/* ── Spans and boxes ─────────────────────────────────────────────────────── */
+/* -- Spans and boxes ------------------------------------------------------- */
 
 /**
  * @brief Store @p word in @p count 32-bit words from @p at, eight per turn.
@@ -200,7 +200,7 @@ lh_ui_pixmap_store_words16(lh_u16_t *at, lh_usize_t count, lh_u16_t word);
 lh_void
 lh_ui_pixmap_store_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_u32_t word);
 
-/* ── Row kernels ─────────────────────────────────────────────────────────── */
+/* -- Row kernels ----------------------------------------------------------- */
 
 /**
  * @brief `0xRRGGBB` of @p src at alpha @p a over opaque @p dst (both
@@ -256,23 +256,24 @@ lh_ui_pixmap_565_of(lh_u32_t rb, lh_u32_t g);
  *        @p solid (the packed @p src) at `255`, ::lh_ui_pixmap_mix_16 between.
  */
 lh_u32_t
-lh_ui_pixmap_blend_16_one(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t solid, lh_u32_t a);
+lh_ui_pixmap_blend_16_one(const lh_ui_pixmap_t *self, lh_u32_t dst, lh_u32_t src, lh_u32_t solid,
+                          lh_u32_t a);
 
 /**
  * @brief Two 16-bit pixels in one 32-bit word @p pair (the low half first in
  *        memory), each through ::lh_ui_pixmap_blend_16_one at its own alpha.
  */
 lh_u32_t
-lh_ui_pixmap_blend_16_pair(const lh_ui_pixmap_t *self, lh_u32_t pair, lh_u32_t src, lh_u32_t solid, lh_u32_t a_lo,
-                           lh_u32_t a_hi);
+lh_ui_pixmap_blend_16_pair(const lh_ui_pixmap_t *self, lh_u32_t pair, lh_u32_t src, lh_u32_t solid,
+                           lh_u32_t a_lo, lh_u32_t a_hi);
 
 /**
  * @brief The two pixels at @p at, each through ::lh_ui_pixmap_blend_16_one at its
  *        own alpha with its own 16-bit access (left alone when both alphas are 0).
  */
 lh_void
-lh_ui_pixmap_blend_16_pair_at(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_ptr alpha, lh_u32_t src,
-                              lh_u32_t solid);
+lh_ui_pixmap_blend_16_pair_at(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_ptr alpha,
+                              lh_u32_t src, lh_u32_t solid);
 
 /**
  * @brief Pixel word @p dst (format of @p self) with RGB @p src at alpha @p a
@@ -318,22 +319,22 @@ lh_ui_pixmap_pack_rgb(const lh_ui_pixmap_t *self, lh_u32_t src);
  *        @p alpha (`0` skipped, `255` stored).
  */
 lh_void
-lh_ui_pixmap_blend_alpha_32(const lh_ui_pixmap_t *self, lh_u32_t *at, const lh_byte_ptr alpha, lh_usize_t count,
-                            lh_u32_t src);
+lh_ui_pixmap_blend_alpha_32(const lh_ui_pixmap_t *self, lh_u32_t *at, const lh_byte_ptr alpha,
+                            lh_usize_t count, lh_u32_t src);
 
 /**
  * @brief ::lh_ui_pixmap_blend_alpha_32 for the 16-bit formats.
  */
 lh_void
-lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_ptr alpha, lh_usize_t count,
-                            lh_u32_t src);
+lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_ptr alpha,
+                            lh_usize_t count, lh_u32_t src);
 
 /**
  * @brief SSE2 form of ::lh_ui_pixmap_blend_alpha_32, four pixels at a time.
  *
  * Blocks of four, the last one to three pixels included: they are read into a
- * block and written back word by word. The scalar kernel branches per pixel three times — on `alpha[i]`, on it being
- * `255`, and (inside ::lh_ui_pixmap_mix_argb) on whether the destination is
+ * block and written back word by word. The scalar kernel branches per pixel three times — on
+ * `alpha[i]`, on it being `255`, and (inside ::lh_ui_pixmap_mix_argb) on whether the destination is
  * opaque at all — and rebuilds a word per pixel. All three are removable: the
  * general form `(src * a + dst * (255 - a) + 127) / 255` already *is* the
  * `a == 0` case (it returns `dst`) and the `a == 255` case (it returns `src`),
@@ -352,8 +353,8 @@ lh_ui_pixmap_blend_alpha_16(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_b
  * the scalar kernel directly instead of only through the dispatcher.
  */
 lh_void
-lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, const lh_byte_ptr alpha, lh_usize_t count,
-                                 lh_u32_t src);
+lh_ui_pixmap_blend_alpha_32_sse2(const lh_ui_pixmap_t *self, lh_u32_t *at, const lh_byte_ptr alpha,
+                                 lh_usize_t count, lh_u32_t src);
 
 /**
  * @brief One block of ::lh_ui_pixmap_blend_alpha_32_sse2: exactly four words at
@@ -395,7 +396,8 @@ lh_ui_pixmap_blend_cover_32_sse2(lh_u32_t *at, lh_usize_t count, lh_u64_t cover,
  * pixel in it; exposed so it can be tested and reused on its own.
  */
 lh_void
-lh_ui_pixmap_blend_alpha_32_over_sse2(lh_u32_t *at, const lh_byte_ptr alpha, lh_usize_t count, lh_u32_t src);
+lh_ui_pixmap_blend_alpha_32_over_sse2(lh_u32_t *at, const lh_byte_ptr alpha, lh_usize_t count,
+                                      lh_u32_t src);
 
 /**
  * @brief SSE2 form of ::lh_ui_pixmap_blend_alpha_16, eight pixels at a time.
@@ -409,8 +411,8 @@ lh_ui_pixmap_blend_alpha_32_over_sse2(lh_u32_t *at, const lh_byte_ptr alpha, lh_
  * and one mask, green with another, blue with a third, giving three registers of
  * eight lanes each, one channel per register and one pixel per lane. Widening
  * the stored bits to a byte is the shift pair `(v << up) | (v >> down)` and
- * narrowing is a shift, so nothing ever has to be shuffled between lanes and pixel k of @p alpha is lane k of all
- * three planes. A swapped format (::lh_ui_pixmap_format_rgb565_swapped) costs one
+ * narrowing is a shift, so nothing ever has to be shuffled between lanes and pixel k of @p alpha is
+ * lane k of all three planes. A swapped format (::lh_ui_pixmap_format_rgb565_swapped) costs one
  * 16-bit byte swap on the way in and one on the way out.
  *
  * Only meaningful when `LH_LIBRARY_OPTION_SIMD_HAVE_SSE2` is on and the running
@@ -418,8 +420,8 @@ lh_ui_pixmap_blend_alpha_32_over_sse2(lh_u32_t *at, const lh_byte_ptr alpha, lh_
  * what to call, and it dispatches.
  */
 lh_void
-lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_ptr alpha, lh_usize_t count,
-                                 lh_u32_t src);
+lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_ptr alpha,
+                                 lh_usize_t count, lh_u32_t src);
 
 /**
  * @brief The portable form of ::lh_ui_pixmap_blend_alpha_16: two pixels a 32-bit
@@ -427,8 +429,8 @@ lh_ui_pixmap_blend_alpha_16_sse2(const lh_ui_pixmap_t *self, lh_u16_t *at, const
  *        unaligned first and odd last pixel alone. What runs without SSE2.
  */
 lh_void
-lh_ui_pixmap_blend_alpha_16_words(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_ptr alpha, lh_usize_t count,
-                                  lh_u32_t src);
+lh_ui_pixmap_blend_alpha_16_words(const lh_ui_pixmap_t *self, lh_u16_t *at, const lh_byte_ptr alpha,
+                                  lh_usize_t count, lh_u32_t src);
 
 /**
  * @brief One block of ::lh_ui_pixmap_blend_alpha_16_sse2: exactly eight RGB565
@@ -436,7 +438,8 @@ lh_ui_pixmap_blend_alpha_16_words(const lh_ui_pixmap_t *self, lh_u16_t *at, cons
  *        ::lh_ui_pixmap_format_rgb565_swapped.
  */
 lh_void
-lh_ui_pixmap_blend_alpha_16_octet_sse2(lh_u16_t *at, const lh_byte_ptr alpha, lh_u32_t src, lh_bool_t swap);
+lh_ui_pixmap_blend_alpha_16_octet_sse2(lh_u16_t *at, const lh_byte_ptr alpha, lh_u32_t src,
+                                       lh_bool_t swap);
 
 /**
  * @brief ::lh_ui_pixmap_blend_cover_32_sse2 for RGB565: the first @p count
@@ -444,7 +447,8 @@ lh_ui_pixmap_blend_alpha_16_octet_sse2(lh_u16_t *at, const lh_byte_ptr alpha, lh
  *        ::lh_ui_pixmap_format_rgb565_swapped.
  */
 lh_void
-lh_ui_pixmap_blend_cover_16_sse2(lh_u16_t *at, lh_usize_t count, lh_u64_t cover, lh_u32_t src, lh_bool_t swap);
+lh_ui_pixmap_blend_cover_16_sse2(lh_u16_t *at, lh_usize_t count, lh_u64_t cover, lh_u32_t src,
+                                 lh_bool_t swap);
 
 /**
  * @brief The row kernel: blend @p src (`0xRRGGBB`) over pixels `x0 .. x1 - 1`
@@ -453,8 +457,8 @@ lh_ui_pixmap_blend_cover_16_sse2(lh_u16_t *at, lh_usize_t count, lh_u64_t cover,
  *        ::lh_ui_pixmap_blend_pixel per pixel, without its per-pixel calls.
  */
 lh_void
-lh_ui_pixmap_blend_alpha_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, lh_u32_t src,
-                              const lh_byte_ptr alpha);
+lh_ui_pixmap_blend_alpha_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                              lh_u32_t src, const lh_byte_ptr alpha);
 
 /**
  * @brief Blend @p src (`0xRRGGBB`) over the @p count (1 .. 8) pixels of row @p y
@@ -464,21 +468,24 @@ lh_ui_pixmap_blend_alpha_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh
  *        ::lh_ui_pixmap_blend_alpha_span does with the same coverages in a buffer.
  */
 lh_void
-lh_ui_pixmap_blend_cover_8(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_s32_t count, lh_u64_t cover, lh_u32_t src);
+lh_ui_pixmap_blend_cover_8(lh_ui_pixmap_t *self, lh_s32_t x, lh_s32_t y, lh_s32_t count,
+                           lh_u64_t cover, lh_u32_t src);
 
 /**
  * @brief Blend @p color over pixels `x0 .. x1 - 1` of row @p y (the row
  *        kernel, one alpha for all).
  */
 lh_void
-lh_ui_pixmap_blend_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
+lh_ui_pixmap_blend_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                        const lh_ui_color_t *color);
 
 /**
  * @brief Paint @p color over pixels `x0 .. x1 - 1` of row @p y: a store when
  *        it is opaque (the result is the same), else a blend.
  */
 lh_void
-lh_ui_pixmap_fill_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
+lh_ui_pixmap_fill_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                       const lh_ui_color_t *color);
 
 /**
  * @brief Paint pixels `x0 .. x1 - 1` of row @p y each with its own colour,
@@ -496,7 +503,8 @@ lh_ui_pixmap_fill_colors_span(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t x1, lh
  * @brief ::lh_ui_pixmap_store_span on rows `y0 .. y1 - 1`.
  */
 lh_void
-lh_ui_pixmap_store_box(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t y0, lh_s32_t x1, lh_s32_t y1, lh_u32_t word);
+lh_ui_pixmap_store_box(lh_ui_pixmap_t *self, lh_s32_t x0, lh_s32_t y0, lh_s32_t x1, lh_s32_t y1,
+                       lh_u32_t word);
 
 /**
  * @brief ::lh_ui_pixmap_blend_span on rows `y0 .. y1 - 1`.

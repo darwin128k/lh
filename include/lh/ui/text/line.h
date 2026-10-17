@@ -121,7 +121,8 @@ lh_ui_text_line_is_inked(const lh_ui_text_line_t *self);
  *        advance, from the first ink row to the last (height `0` when nothing is inked).
  */
 lh_void
-lh_ui_text_line_get_ink_rect(const lh_ui_text_line_t *self, lh_ui_point_t origin, lh_ui_rect_t *out);
+lh_ui_text_line_get_ink_rect(const lh_ui_text_line_t *self, lh_ui_point_t origin,
+                             lh_ui_rect_t *out);
 
 /**
  * @brief How far right @p align puts the line inside a block @p block wide:
@@ -129,7 +130,8 @@ lh_ui_text_line_get_ink_rect(const lh_ui_text_line_t *self, lh_ui_point_t origin
  *        for centre, never negative.
  */
 lh_ui_scalar_t
-lh_ui_text_line_get_shift(const lh_ui_text_line_t *self, lh_ui_scalar_t block, lh_ui_text_align_h_t align);
+lh_ui_text_line_get_shift(const lh_ui_text_line_t *self, lh_ui_scalar_t block,
+                          lh_ui_text_align_h_t align);
 
 LH_COMPILER_EXTERN_C_END
 

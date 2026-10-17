@@ -21,13 +21,13 @@
  * @param scalar_type ::lh_ui_scalar_t.
  * @param bool_type   ::lh_bool_t.
  */
-#define lh_ui_text_line_fields(char_type, scalar_type, bool_type)                                         \
-    const char_type *begin;                                                                               \
-    const char_type *end;                                                                                 \
-    const char_type *next;                                                                                \
-    scalar_type width;                                                                                    \
-    scalar_type ink_top;                                                                                  \
-    scalar_type ink_bottom;                                                                               \
+#define lh_ui_text_line_fields(char_type, scalar_type, bool_type)                                  \
+    const char_type *begin;                                                                        \
+    const char_type *end;                                                                          \
+    const char_type *next;                                                                         \
+    scalar_type width;                                                                             \
+    scalar_type ink_top;                                                                           \
+    scalar_type ink_bottom;                                                                        \
     bool_type inked
 
 #endif /* LH_UI_TEXT_LINE_FIELDS_H */

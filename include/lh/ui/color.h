@@ -29,7 +29,7 @@ typedef struct lh_ui_color lh_ui_color_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
-/* ── Constructors ────────────────────────────────────────────────────────── */
+/* -- Constructors ---------------------------------------------------------- */
 
 /**
  * @brief Fill @p self from channels in `0..255`.
@@ -47,7 +47,7 @@ lh_ui_color_init(lh_ui_color_t *self, lh_ui_color_channel_t r, lh_ui_color_chann
 lh_void
 lh_ui_color_init_hex(lh_ui_color_t *self, lh_u32_t hex);
 
-/* ── Accessors ───────────────────────────────────────────────────────────── */
+/* -- Accessors ------------------------------------------------------------- */
 
 /**
  * @brief Red of @p self.
@@ -103,7 +103,7 @@ lh_ui_color_set_a(lh_ui_color_t *self, lh_ui_color_channel_t a);
 lh_bool_t
 lh_ui_color_equals(const lh_ui_color_t *self, const lh_ui_color_t *other);
 
-/* ── Blend ───────────────────────────────────────────────────────────────── */
+/* -- Blend ----------------------------------------------------------------- */
 
 /**
  * @brief Paint @p color over @p dst (Porter-Duff "over"). Straight alpha.
@@ -120,7 +120,8 @@ lh_ui_color_over(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_ui_col
  *        back by the result alpha.
  */
 lh_void
-lh_ui_color_over_translucent(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_ui_color_t *out);
+lh_ui_color_over_translucent(const lh_ui_color_t *dst, const lh_ui_color_t *color,
+                             lh_ui_color_t *out);
 
 /**
  * @brief ::lh_ui_color_over for an opaque @p dst: `(c * a + d * (255 - a)) / 255`
@@ -176,7 +177,8 @@ lh_ui_color_over_opaque_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t a);
  *        (`__ARM_FEATURE_DSP`, Cortex-M4 and up): ::lh_ui_color_dual_mac is then
  *        the `SMLAD` instruction. `0` elsewhere.
  */
-#if defined(__ARM_FEATURE_DSP) && __ARM_FEATURE_DSP && defined(__ARM_FEATURE_SIMD32) && __ARM_FEATURE_SIMD32
+#if defined(__ARM_FEATURE_DSP) && __ARM_FEATURE_DSP && defined(__ARM_FEATURE_SIMD32) &&            \
+    __ARM_FEATURE_SIMD32
 #    define LH_UI_COLOR_HAVE_SMLAD 1
 #else
 #    define LH_UI_COLOR_HAVE_SMLAD 0
@@ -242,7 +244,8 @@ lh_ui_color_blend_channel(lh_u32_t src, lh_u32_t dst, lh_u32_t src_w, lh_u32_t d
  *        be `0`.
  */
 lh_void
-lh_ui_color_blend(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_u32_t src_w, lh_u32_t dst_w, lh_ui_color_t *out);
+lh_ui_color_blend(const lh_ui_color_t *dst, const lh_ui_color_t *color, lh_u32_t src_w,
+                  lh_u32_t dst_w, lh_ui_color_t *out);
 
 /**
  * @brief A summed ::lh_ui_color_over weight (alpha scaled by 255) back to an

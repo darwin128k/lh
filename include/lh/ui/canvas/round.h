@@ -76,7 +76,8 @@ lh_ui_canvas_round_has_row(const lh_ui_rect_t *rect, lh_s32_t y);
  *        it has ::lh_ui_radius_coverage `255`.
  */
 lh_void
-lh_ui_canvas_round_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y, lh_s32_t *x0, lh_s32_t *x1);
+lh_ui_canvas_round_full_span(const lh_ui_rect_t *rect, lh_ui_scalar_t radius, lh_s32_t y,
+                             lh_s32_t *x0, lh_s32_t *x1);
 
 /**
  * @brief Fill the pixel box (@p x, @p y, @p w, @p h); an empty box sends nothing.
@@ -100,30 +101,33 @@ lh_ui_canvas_fill_colors(struct lh_ui_canvas *self, lh_s32_t x, lh_s32_t y, lh_s
  *        @p rect; a pixel the shape misses sends nothing.
  */
 lh_void
-lh_ui_canvas_fill_coverage_pixel(struct lh_ui_canvas *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
-                                 lh_s32_t x, lh_s32_t y, const lh_ui_color_t *color);
+lh_ui_canvas_fill_coverage_pixel(struct lh_ui_canvas *self, const lh_ui_rect_t *rect,
+                                 lh_ui_scalar_t radius, lh_s32_t x, lh_s32_t y,
+                                 const lh_ui_color_t *color);
 
 /**
  * @brief ::lh_ui_canvas_fill_coverage_pixel for pixels `x0 .. x1 - 1` of row @p y.
  */
 lh_void
-lh_ui_canvas_fill_coverage_span(struct lh_ui_canvas *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
-                                lh_s32_t x0, lh_s32_t x1, lh_s32_t y, const lh_ui_color_t *color);
+lh_ui_canvas_fill_coverage_span(struct lh_ui_canvas *self, const lh_ui_rect_t *rect,
+                                lh_ui_scalar_t radius, lh_s32_t x0, lh_s32_t x1, lh_s32_t y,
+                                const lh_ui_color_t *color);
 
 /**
  * @brief Both corner spans of row @p y (the straight middle is not sent).
  */
 lh_void
-lh_ui_canvas_fill_coverage_row(struct lh_ui_canvas *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
-                               lh_s32_t y, const lh_ui_color_t *color);
+lh_ui_canvas_fill_coverage_row(struct lh_ui_canvas *self, const lh_ui_rect_t *rect,
+                               lh_ui_scalar_t radius, lh_s32_t y, const lh_ui_color_t *color);
 
 /**
  * @brief Rows `y0 .. y1 - 1` of a corner band: the straight middle as one box,
  *        the corners pixel by pixel.
  */
 lh_void
-lh_ui_canvas_fill_round_band(struct lh_ui_canvas *self, const lh_ui_rect_t *rect, lh_ui_scalar_t radius,
-                             lh_s32_t y0, lh_s32_t y1, const lh_ui_color_t *color);
+lh_ui_canvas_fill_round_band(struct lh_ui_canvas *self, const lh_ui_rect_t *rect,
+                             lh_ui_scalar_t radius, lh_s32_t y0, lh_s32_t y1,
+                             const lh_ui_color_t *color);
 
 /**
  * @brief The whole rounded fill of @p rect: top band, middle box, bottom band.
