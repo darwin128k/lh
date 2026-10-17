@@ -238,7 +238,7 @@ TEST(memory_view_empty_range, reports_zero_size_and_no_containment)
     lh_memory_view_t empty = view(p(buf), p(buf));
     lh_memory_view_t other = view(p(buf), p(buf + 2));
 
-    EXPECT_TRUE(lh_memory_view_slice_is_ropen_empty(&empty));
+    EXPECT_TRUE(lh_memory_view_is_valid(&empty));
     EXPECT_EQ(lh_memory_view_get_size(&empty), 0u);
     EXPECT_TRUE(lh_memory_view_is_empty(&empty));
     EXPECT_FALSE(lh_memory_view_is_valid_offset(&empty, 0));
@@ -296,7 +296,6 @@ TEST(memory_view_uninitialized, safe_queries)
     EXPECT_TRUE(lh_memory_view_is_empty(&v));
     EXPECT_EQ(lh_memory_view_get_direction(&v), lh_memory_view_direction_unknown);
     EXPECT_EQ(lh_memory_view_get_flags(&v), lh_memory_view_flags_uninitialized);
-    EXPECT_FALSE(lh_memory_view_slice_is_ropen_empty(&v));
 }
 
 #if LH_TEST_EXPECT_DEATH_ENABLED

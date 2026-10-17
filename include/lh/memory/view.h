@@ -8,12 +8,6 @@
  * points one byte past the last byte. Consequently, size is
  * @c second @c - @c first for initialized forward views.
  *
- * This is intentionally different from ::lh_memory_view_slice_t helpers,
- * which treat the same two-field storage as a closed interval
- * <tt>[first, second]</tt>. The public typedef is layout-compatible with the
- * slice type, but every function in this header interprets @c second as an
- * exclusive endpoint.
- *
  * The view can also represent incomplete storage: each endpoint may be
  * ::lh_null. Endpoint presence is reported as
  * ::lh_memory_view_flags_t, and initialized views are classified by
@@ -24,7 +18,7 @@
  * containment / indexed access / raw byte operation helpers require valid
  * views and may raise runtime errors when that precondition is not met.
  *
- * @see lh_memory_view_slice_t
+ * @see lh_memory_view_fields
  * @see lh_memory_view_flags_t
  * @see lh_memory_view_direction_t
  */
@@ -32,15 +26,29 @@
 #ifndef LH_MEMORY_VIEW_H
 #define LH_MEMORY_VIEW_H
 
-#include <lh/memory/view/slice.h>
+#include <lh/bool.h>
+#include <lh/size.h>
+#include <lh/offset.h>
+#include <lh/compiler/extern/c.h>
+#include <lh/memory/view/direction.h>
+#include <lh/memory/view/flags.h>
+#include <lh/memory/view/fields.h>
+#include <lh/util/ptr.h>
 
 /**
- * @brief Non-owning read-only half-open byte view.
+ * @struct lh_memory_view
+ * @brief Non-owning read-only half-open byte view: two <tt>const ::lh_ptr</tt> endpoints.
  *
  * Endpoints describe <tt>[first, second)</tt> in address space when both are
  * non-null and ordered. Public typedef: ::lh_memory_view_t.
  */
-typedef lh_memory_view_slice_t lh_memory_view_t;
+struct lh_memory_view
+{
+    /** Members: ::lh_memory_view_fields. */
+    lh_memory_view_fields(lh_void);
+};
+/** @copybrief lh_memory_view */
+typedef struct lh_memory_view lh_memory_view_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 

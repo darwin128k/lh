@@ -358,18 +358,22 @@ lh_memory_bounds_equals(const lh_memory_bounds_t *self, const lh_memory_bounds_t
     return lh_memory_view_equals(s, o);
 }
 
+/* Bytes in [begin, end). */
+LH_ATTRIBUTE_STATIC
+lh_usize_t
+lh_memory_bounds_range_size(const lh_ptr begin, const lh_ptr end)
+{
+    lh_assert_runtime_ref(end);
+    return lh_ptr_udiff(end, begin);
+}
+
 lh_ptr
 lh_memory_bounds_copy_range(lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end)
 {
-    lh_ptr self_begin;
-    lh_ptr self_end;
-
-    self_begin = lh_memory_bounds_get_begin_v(self);
-
-    self_end = lh_memory_bounds_get_end_v(self);
+    lh_ptr self_begin = lh_memory_bounds_get_begin_v(self);
     return lh_memory_std_copy(self_begin, begin,
-                              lh_math_min(lh_memory_view_slice_get_ropen_size(self_begin, self_end),
-                                          lh_memory_view_slice_get_ropen_size(begin, end)));
+                              lh_math_min(lh_memory_bounds_get_size(self),
+                                          lh_memory_bounds_range_size(begin, end)));
 }
 
 lh_ptr
@@ -387,15 +391,10 @@ lh_memory_bounds_copy(lh_memory_bounds_t *self, const lh_memory_bounds_t *other)
 lh_ptr
 lh_memory_bounds_move_range(lh_memory_bounds_t *self, const lh_ptr begin, const lh_ptr end)
 {
-    lh_ptr self_begin;
-    lh_ptr self_end;
-
-    self_begin = lh_memory_bounds_get_begin_v(self);
-
-    self_end = lh_memory_bounds_get_end_v(self);
+    lh_ptr self_begin = lh_memory_bounds_get_begin_v(self);
     return lh_memory_std_move(self_begin, begin,
-                              lh_math_min(lh_memory_view_slice_get_ropen_size(self_begin, self_end),
-                                          lh_memory_view_slice_get_ropen_size(begin, end)));
+                              lh_math_min(lh_memory_bounds_get_size(self),
+                                          lh_memory_bounds_range_size(begin, end)));
 }
 
 lh_ptr
@@ -474,13 +473,8 @@ lh_memory_bounds_rcompare(const lh_memory_bounds_t *self, const lh_memory_bounds
 lh_ptr
 lh_memory_bounds_fill(lh_memory_bounds_t *self, lh_byte_t value)
 {
-    lh_ptr begin;
-    lh_ptr end;
-
-    begin = lh_memory_bounds_get_begin_v(self);
-
-    end = lh_memory_bounds_get_end_v(self);
-    return lh_memory_std_set(begin, value, lh_memory_view_slice_get_ropen_size(begin, end));
+    lh_ptr begin = lh_memory_bounds_get_begin_v(self);
+    return lh_memory_std_set(begin, value, lh_memory_bounds_get_size(self));
 }
 
 lh_ptr
