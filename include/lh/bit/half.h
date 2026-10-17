@@ -19,8 +19,8 @@
 #include <lh/attribute/force_inline.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
+#include <lh/bit/ops.h>
 #include <lh/numeric/fixed/types.h>
-#include <lh/math/ops.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -42,7 +42,7 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_u64_t
 lh_bit_make_u64(lh_u32_t high, lh_u32_t low)
 {
-    return lh_cast_static(lh_u64_t, high) << 32 | low;
+    return lh_bit_shl(lh_cast_static(lh_u64_t, high), 32) | low;
 }
 
 /**
@@ -55,7 +55,7 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_u32_t
 lh_bit_get_high_u32(lh_u64_t x)
 {
-    return lh_cast_static(lh_u32_t, lh_math_bit_shr(x, 32));
+    return lh_cast_static(lh_u32_t, lh_bit_shr(x, 32));
 }
 
 /**
