@@ -468,8 +468,10 @@ into its sink through `lh_os_controller_sink` as well: it would be fed twice.
   calls the optional `update_cb`; `lh_os_controller_cancel` drops every gesture
   silently, then calls the optional `cancel_cb` (`lh_ui_view_cancel` for the view).
 - `lh_os_controller_set_enabled(..., lh_bool_false)` mutes the handler (a modal
-  overlay, a screen not shown); the flags are `lh_os_controller_flags_enabled`
-  and `lh_os_controller_flags_gestures`, both set by `lh_os_controller_init`.
+  overlay, a screen not shown) and leaves the recognizer where it is, on
+  `feed` and on `update`; `update_cb` still runs. The flags are
+  `lh_os_controller_flags_enabled` and `lh_os_controller_flags_gestures`, both
+  set by `lh_os_controller_init`.
 - The handler is a plain function pointer with the object as `self`
   (`lh_os_controller_handlers_handle_fn`), not a vtable; the controller needs no
   OS and knows nothing of the UI. The view ignores the synthesized gestures, so it

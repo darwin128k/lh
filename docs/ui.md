@@ -609,7 +609,10 @@ Two flags (`lh_os_controller_flags_value_t`) switch it:
 
 - `lh_os_controller_flags_enabled`: the handler gets events. Clear it with
   `lh_os_controller_set_enabled(c, lh_bool_false)` to mute a screen that is
-  hidden or covered by a dialog.
+  hidden or covered by a dialog. While it is clear, `feed` and `update` leave
+  the recognizer where it is; `update_cb` still runs. The next enabled
+  `update` (or a `feed` whose event is already past a deadline) sends what
+  came due in between.
 - `lh_os_controller_flags_gestures`: `feed` runs the recognizer.
 
 `lh_os_controller_init` sets both. For a `static` controller there is

@@ -97,6 +97,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `lh_os_controller_update` on a disabled controller advanced the recognizer and then dropped the gesture, so a long press that came due while muted was lost and the later release was no click. It now leaves the recognizer where it is, as `lh_os_controller_feed` does; `update_cb` still runs. A window does not keep a timer armed for a deadline that controller cannot meet yet
+- A Win32 touch or pen contact gave its pointer id back before the up or cancel was delivered. A handler that pumped messages could hand that id to the next contact, and the outer up released the new one. The id is freed after `lh_os_window_on_native_input` returns
 - Roboto copyright year in `lh/ui/font/roboto.h`, `src/lh/ui/font/roboto.c` and the `scripts/README.md` font example: 2015, matching the font file (was 2011)
 - Building with `LH_LIBRARY_OPTION_MATH_FPU=ON` failed: `lh_ui_scalar` (a literal-only macro that pastes `e0f`) was given variables and calls in `lh/ui` and its tests; those sites now use the new `lh_ui_scalar_of` (`lh/ui/scalar.h`), a cast for any arithmetic expression on both paths. `lh_ui_view_t::whole_count` and its loop index are `lh_u32_t` instead of `lh_ui_scalar_t` (a float cannot index an array)
 - `lh_ui_point_to_point` / `lh_ui_point_from_point` and `lh_ui_rect_to_rect` / `lh_ui_rect_from_rect` take an out-parameter on the `MATH_FPU=OFF` path too, matching the float path

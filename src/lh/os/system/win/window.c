@@ -304,13 +304,15 @@ lh_os_system_win_window_send_contact(lh_os_window_t *window, lh_os_system_win_hw
                                       ? lh_os_input_button_to_mask(lh_os_input_button_primary)
                                       : 0U);
     lh_os_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
-    /* The id is free again before the event goes out: a handler that closes the window
-       leaves nothing of the contact behind. */
+    lh_os_window_on_native_input(window, lh_addr_of(event));
+    /* After the event, not before it. The table is one for the process, and the handler
+       may pump messages: a down that arrives while this up is still in its handler must
+       not be given the pointer id this event already carries. The slot is freed once the
+       handler returns, including when that handler closed the window. */
     if (kind == lh_os_input_kind_pointer_up || kind == lh_os_input_kind_pointer_cancel)
     {
         lh_os_input_contacts_release(lh_addr_of(lh_os_system_win_window_contacts), pointer);
     }
-    lh_os_window_on_native_input(window, lh_addr_of(event));
     return lh_bool_true;
 }
 

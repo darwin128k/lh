@@ -20,7 +20,8 @@
  * | ::lh_os_controller_feed     | the event, then its gestures (with the gestures    |
  * |                             | flag), or just the event (without it)              |
  * | ::lh_os_controller_handle   | the event, past the recognizer                     |
- * | ::lh_os_controller_update   | the gestures due by `now`, then `update_cb`        |
+ * | ::lh_os_controller_update   | the gestures due by `now` (while enabled), then    |
+ * |                             | `update_cb`                                        |
  * | ::lh_os_controller_cancel   | `cancel_cb`, once the recognizer forgot everything |
  * | ::lh_os_controller_sink     | what ::lh_os_controller_feed sends                 |
  *
@@ -30,9 +31,11 @@
  * ::lh_os_controller_sink is for a source that has only a sink, such as
  * ::lh_os_input_queue_drain.
  *
- * Without ::lh_os_controller_flags_enabled nothing reaches `handle_cb`.
- * Needs no ::LH_LIBRARY_OPTION_OS: time is the events' `time` and the `now`
- * given to ::lh_os_controller_update.
+ * Without ::lh_os_controller_flags_enabled nothing reaches `handle_cb`, and
+ * neither ::lh_os_controller_feed nor ::lh_os_controller_update moves the
+ * recognizer: a muted controller stays where the last enabled call left it.
+ * `update_cb` still runs. Needs no ::LH_LIBRARY_OPTION_OS: time is the events'
+ * `time` and the `now` given to ::lh_os_controller_update.
  *
  * Example usage:
  * @code{.c}
@@ -191,6 +194,10 @@ lh_os_controller_feed(lh_os_controller_t *self, const lh_os_input_event_ptr even
  *        ::lh_os_controller_flags_gestures, then `update_cb`, if any.
  *
  * Call it from a timer on the same ::lh_tick_t clock as the events' `time`.
+ * Without ::lh_os_controller_flags_enabled the recognizer is left as it is,
+ * the same as ::lh_os_controller_feed; `update_cb` is still called. The next
+ * enabled ::lh_os_controller_update, or a ::lh_os_controller_feed whose event
+ * is already past a deadline, sends what came due in between.
  *
  * @return True when `handle_cb` acted on a gesture this call sent.
  */
