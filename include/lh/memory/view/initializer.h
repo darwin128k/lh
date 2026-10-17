@@ -6,13 +6,14 @@
 #ifndef LH_MEMORY_VIEW_INITIALIZER_H
 #define LH_MEMORY_VIEW_INITIALIZER_H
 
-#include <lh/memory/view/slice/initializer.h>
+#include <lh/null.h>
+#include <lh/interval/bounds/initializer.h>
 
 /**
  * @def lh_memory_view_initializer(begin, end)
  * @brief Produces a brace-enclosed initializer for ::lh_memory_view_t.
  *
- * Expands to ::lh_memory_view_slice_initializer with @p begin as @c first
+ * Expands to ::lh_interval_bounds_initializer with @p begin as @c first
  * and @p end as @c second. For ::lh_memory_view_t, the endpoints are
  * interpreted as a half-open interval <tt>[begin, end)</tt>; @p end is one
  * past the last byte.
@@ -27,9 +28,9 @@
  * @endcode
  *
  * @see lh_memory_view_t
- * @see lh_memory_view_slice_initializer
+ * @see lh_interval_bounds_initializer
  */
-#define lh_memory_view_initializer(begin, end) lh_memory_view_slice_initializer(begin, end)
+#define lh_memory_view_initializer(begin, end) lh_interval_bounds_initializer(begin, end)
 
 /**
  * @def lh_memory_view_empty_initializer()

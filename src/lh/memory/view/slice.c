@@ -1,3 +1,4 @@
+#include <lh/memory/view/slice.h>
 #include <lh/attribute/force_inline.h>
 #include <lh/attribute/static.h>
 #include <lh/util/return.h>
