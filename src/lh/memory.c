@@ -317,15 +317,23 @@ lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh
         return lh_null;
     }
 
-    /* Same first-byte filter as lh_memory_find_step's general path. */
+    /* Byte grid with a real haystack length: the same first/last filter as find. */
+    if (step == 1U && lhs_size != lh_memory_scan_bound(lhs))
     {
-        const lh_byte_t first = *lh_ptr_cast(const lh_byte_t, rhs);
+        return lh_memory_std_rfind(lhs, lhs_size, rhs, rhs_size);
+    }
+
+    {
+        lh_byte_cptr needle = lh_ptr_cast(const lh_byte_t, rhs);
+        const lh_byte_t first = needle[0];
+        const lh_byte_t last = needle[rhs_size - 1U];
 
         for (;;)
         {
             lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-            if (lh_ptr_deref(cand) == first &&
-                !lh_memory_compare(cand, lhs_size - off, rhs, rhs_size))
+            if (lh_ptr_deref(cand) == first && cand[rhs_size - 1U] == last &&
+                (rhs_size <= 2U ||
+                 lh_memory_std_compare(cand + 1, needle + 1, rhs_size - 2U) == lh_null))
             {
                 return cand;
             }

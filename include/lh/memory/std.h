@@ -265,6 +265,24 @@ lh_memory_std_rcompare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
 const lh_ptr
 lh_memory_std_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size);
 
+/**
+ * @brief Find the last occurrence of @p rhs (@p rhs_size bytes) inside the first
+ *        @p lhs_size bytes at @p lhs.
+ *
+ * Same first-and-last-byte filter as ::lh_memory_std_find, walked from the last
+ * candidate toward the start. The middle is compared only when both ends match.
+ *
+ * @param lhs Haystack.
+ * @param lhs_size Haystack size in bytes.
+ * @param rhs Needle.
+ * @param rhs_size Needle size in bytes.
+ *
+ * @return Pointer to the last match inside @p lhs; ::lh_null when there is none,
+ *         when @p rhs_size is 0, or when @p rhs_size exceeds @p lhs_size.
+ */
+const lh_ptr
+lh_memory_std_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_MEMORY_STD_H */

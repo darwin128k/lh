@@ -264,22 +264,66 @@ lh_memory_std_set_bytes(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 #endif
 }
 
-/** Scalar ::lh_memory_std_compare: the first differing byte of @p lhs, or ::lh_null. */
+/** First byte of a machine word already known to differ. */
+LH_ATTRIBUTE_FORCE_INLINE
+const lh_ptr
+lh_memory_std_compare_word_byte(lh_byte_cptr lhs, lh_byte_cptr rhs)
+{
+    while (lh_ptr_deref(lhs) == lh_ptr_deref(rhs))
+    {
+        ++lhs;
+        ++rhs;
+    }
+    return lhs;
+}
+
+/** Last byte of a machine word already known to differ. @p n is the word size. */
+LH_ATTRIBUTE_FORCE_INLINE
+const lh_ptr
+lh_memory_std_rcompare_word_byte(lh_byte_cptr lhs, lh_byte_cptr rhs, lh_usize_t n)
+{
+    lh_usize_t i = n;
+
+    do
+    {
+        --i;
+    } while (lhs[i] == rhs[i]);
+    return lhs + i;
+}
+
+/** Scalar ::lh_memory_std_compare: the first differing byte of @p lhs, or ::lh_null.
+ *  Equal runs go by machine word once both pointers are aligned. */
 static const lh_ptr
 lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
+    const lh_usize_t w = sizeof(lh_usize_t);
     lh_byte_cptr l = lh_ptr_ccast(lh_byte_t, lhs);
     lh_byte_cptr r = lh_ptr_ccast(lh_byte_t, rhs);
 
-    while (n >= LH_MEMORY_STD_SCAN_BLOCK)
+    while (n > 0U && (!lh_math_is_multiple_of(lh_ptr_to_uaddr(l), w) ||
+                      !lh_math_is_multiple_of(lh_ptr_to_uaddr(r), w)))
     {
-        if (lh_memory_bytes_any_ne(l, r, LH_MEMORY_STD_SCAN_BLOCK))
+        if (lh_ptr_deref(l) != lh_ptr_deref(r))
         {
-            break;
+            return l;
         }
-        l += LH_MEMORY_STD_SCAN_BLOCK;
-        r += LH_MEMORY_STD_SCAN_BLOCK;
-        n -= LH_MEMORY_STD_SCAN_BLOCK;
+        ++l;
+        ++r;
+        --n;
+    }
+
+    while (n >= w)
+    {
+        const lh_usize_t lw = *lh_ptr_rcast(const lh_usize_t, l);
+        const lh_usize_t rw = *lh_ptr_rcast(const lh_usize_t, r);
+
+        if (lw != rw)
+        {
+            return lh_memory_std_compare_word_byte(l, r);
+        }
+        l += w;
+        r += w;
+        n -= w;
     }
 
     while (n--)
@@ -294,21 +338,48 @@ lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
     return lh_null;
 }
 
-/** Scalar ::lh_memory_std_rcompare: the last differing byte of @p lhs, or ::lh_null. */
+/** Scalar ::lh_memory_std_rcompare: the last differing byte of @p lhs, or ::lh_null.
+ *  The suffix is compared by machine word once both ends are aligned. */
 static const lh_ptr
 lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 {
-    lh_byte_cptr l = lh_ptr_ccast(lh_byte_t, lhs) + (n - 1U);
-    lh_byte_cptr r = lh_ptr_ccast(lh_byte_t, rhs) + (n - 1U);
+    const lh_usize_t w = sizeof(lh_usize_t);
+    lh_byte_cptr l = lh_ptr_ccast(lh_byte_t, lhs);
+    lh_byte_cptr r = lh_ptr_ccast(lh_byte_t, rhs);
+
+    if (n == 0U)
+    {
+        return lh_null;
+    }
+
+    while (n > 0U && (!lh_math_is_multiple_of(lh_ptr_to_uaddr(l) + n, w) ||
+                      !lh_math_is_multiple_of(lh_ptr_to_uaddr(r) + n, w)))
+    {
+        --n;
+        if (l[n] != r[n])
+        {
+            return l + n;
+        }
+    }
+
+    while (n >= w)
+    {
+        const lh_usize_t lw = *lh_ptr_rcast(const lh_usize_t, l + (n - w));
+        const lh_usize_t rw = *lh_ptr_rcast(const lh_usize_t, r + (n - w));
+
+        if (lw != rw)
+        {
+            return lh_memory_std_rcompare_word_byte(l + (n - w), r + (n - w), w);
+        }
+        n -= w;
+    }
 
     while (n--)
     {
-        if (lh_ptr_deref(l) != lh_ptr_deref(r))
+        if (l[n] != r[n])
         {
-            return l;
+            return l + n;
         }
-        --l;
-        --r;
     }
     return lh_null;
 }
@@ -458,6 +529,30 @@ lh_memory_std_find_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, l
         {
             return hay + off;
         }
+    }
+    return lh_null;
+}
+
+/** Scalar ::lh_memory_std_rfind: last match, first and last byte as a filter. */
+static const lh_ptr
+lh_memory_std_rfind_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh_usize_t m)
+{
+    const lh_byte_t first = needle[0];
+    const lh_byte_t last = needle[m - 1U];
+    lh_usize_t off = n - m;
+
+    for (;;)
+    {
+        if (hay[off] == first && hay[off + m - 1U] == last &&
+            lh_memory_std_find_is_match(hay + off, needle, m))
+        {
+            return hay + off;
+        }
+        if (off == 0U)
+        {
+            break;
+        }
+        --off;
     }
     return lh_null;
 }

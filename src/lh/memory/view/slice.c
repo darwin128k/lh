@@ -1,3 +1,4 @@
+#include <lh/attribute/force_inline.h>
 #include <lh/attribute/static.h>
 #include <lh/util/return.h>
 #include <lh/optional/ref.h>
@@ -779,86 +780,111 @@ lh_memory_view_slice_get_ropen_size(const lh_ptr begin, const lh_ptr end)
     return lh_ptr_udiff(end, begin);
 }
 
+/* Closed [begin, end] as a byte count. */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_usize_t
+lh_memory_view_slice_closed_nbytes(const lh_ptr begin, const lh_ptr end)
+{
+    return lh_memory_view_slice_get_ropen_size(begin, lh_memory_view_slice_get_ropen_past(end));
+}
+
+LH_ATTRIBUTE_FORCE_INLINE
+const lh_ptr
+lh_memory_view_slice_checked_span(const lh_memory_view_slice_t *self, lh_usize_t *size)
+{
+    lh_assert_runtime_ifn(lh_memory_view_slice_is_valid(self), lh_runtime_error_code_invalid_range);
+    *size = lh_memory_view_slice_closed_nbytes(self->first, self->second);
+    return self->first;
+}
+
 const lh_ptr
 lh_memory_view_slice_find_range(const lh_memory_view_slice_t *self, const lh_ptr begin,
                                 const lh_ptr end)
 {
-    const lh_ptr self_begin = lh_memory_view_slice_get_begin_v(self);
-    const lh_ptr self_end = lh_memory_view_slice_get_end_v(self);
-    const lh_usize_t self_size = lh_memory_view_slice_get_ropen_size(
-        self_begin, lh_memory_view_slice_get_ropen_past(self_end));
-    const lh_usize_t size =
-        lh_memory_view_slice_get_ropen_size(begin, lh_memory_view_slice_get_ropen_past(end));
-    return lh_memory_find(self_begin, self_size, begin, size);
+    lh_usize_t self_size;
+    const lh_ptr self_begin = lh_memory_view_slice_checked_span(self, &self_size);
+
+    return lh_memory_find(self_begin, self_size, begin,
+                           lh_memory_view_slice_closed_nbytes(begin, end));
 }
 
 const lh_ptr
 lh_memory_view_slice_find(const lh_memory_view_slice_t *self, const lh_memory_view_slice_t *other)
 {
-    const lh_ptr begin = lh_memory_view_slice_get_begin_v(other);
-    return lh_memory_view_slice_find_range(self, begin, lh_memory_view_slice_get_end_v(other));
+    lh_usize_t self_size;
+    lh_usize_t other_size;
+    const lh_ptr other_begin = lh_memory_view_slice_checked_span(other, &other_size);
+    const lh_ptr self_begin = lh_memory_view_slice_checked_span(self, &self_size);
+
+    return lh_memory_find(self_begin, self_size, other_begin, other_size);
 }
 
 const lh_ptr
 lh_memory_view_slice_rfind_range(const lh_memory_view_slice_t *self, const lh_ptr begin,
                                  const lh_ptr end)
 {
-    const lh_ptr self_begin = lh_memory_view_slice_get_begin_v(self);
-    const lh_ptr self_end = lh_memory_view_slice_get_end_v(self);
-    const lh_usize_t self_size = lh_memory_view_slice_get_ropen_size(
-        self_begin, lh_memory_view_slice_get_ropen_past(self_end));
-    const lh_usize_t size =
-        lh_memory_view_slice_get_ropen_size(begin, lh_memory_view_slice_get_ropen_past(end));
-    return lh_memory_rfind(self_begin, self_size, begin, size);
+    lh_usize_t self_size;
+    const lh_ptr self_begin = lh_memory_view_slice_checked_span(self, &self_size);
+
+    return lh_memory_rfind(self_begin, self_size, begin,
+                           lh_memory_view_slice_closed_nbytes(begin, end));
 }
 
 const lh_ptr
 lh_memory_view_slice_rfind(const lh_memory_view_slice_t *self, const lh_memory_view_slice_t *other)
 {
-    const lh_ptr begin = lh_memory_view_slice_get_begin_v(other);
-    return lh_memory_view_slice_rfind_range(self, begin, lh_memory_view_slice_get_end_v(other));
+    lh_usize_t self_size;
+    lh_usize_t other_size;
+    const lh_ptr other_begin = lh_memory_view_slice_checked_span(other, &other_size);
+    const lh_ptr self_begin = lh_memory_view_slice_checked_span(self, &self_size);
+
+    return lh_memory_rfind(self_begin, self_size, other_begin, other_size);
 }
 
 const lh_ptr
 lh_memory_view_slice_compare_range(const lh_memory_view_slice_t *self, const lh_ptr begin,
                                    const lh_ptr end)
 {
-    const lh_ptr self_begin = lh_memory_view_slice_get_begin_v(self);
-    const lh_ptr self_end = lh_memory_view_slice_get_end_v(self);
-    const lh_usize_t self_size = lh_memory_view_slice_get_ropen_size(
-        self_begin, lh_memory_view_slice_get_ropen_past(self_end));
-    const lh_usize_t size =
-        lh_memory_view_slice_get_ropen_size(begin, lh_memory_view_slice_get_ropen_past(end));
-    return lh_memory_compare(self_begin, self_size, begin, size);
+    lh_usize_t self_size;
+    const lh_ptr self_begin = lh_memory_view_slice_checked_span(self, &self_size);
+
+    return lh_memory_compare(self_begin, self_size, begin,
+                             lh_memory_view_slice_closed_nbytes(begin, end));
 }
 
 const lh_ptr
 lh_memory_view_slice_compare(const lh_memory_view_slice_t *self,
                              const lh_memory_view_slice_t *other)
 {
-    const lh_ptr begin = lh_memory_view_slice_get_begin_v(other);
-    return lh_memory_view_slice_compare_range(self, begin, lh_memory_view_slice_get_end_v(other));
+    lh_usize_t self_size;
+    lh_usize_t other_size;
+    const lh_ptr other_begin = lh_memory_view_slice_checked_span(other, &other_size);
+    const lh_ptr self_begin = lh_memory_view_slice_checked_span(self, &self_size);
+
+    return lh_memory_compare(self_begin, self_size, other_begin, other_size);
 }
 
 const lh_ptr
 lh_memory_view_slice_rcompare_range(const lh_memory_view_slice_t *self, const lh_ptr begin,
                                     const lh_ptr end)
 {
-    const lh_ptr self_begin = lh_memory_view_slice_get_begin_v(self);
-    const lh_ptr self_end = lh_memory_view_slice_get_end_v(self);
-    const lh_usize_t self_size = lh_memory_view_slice_get_ropen_size(
-        self_begin, lh_memory_view_slice_get_ropen_past(self_end));
-    const lh_usize_t size =
-        lh_memory_view_slice_get_ropen_size(begin, lh_memory_view_slice_get_ropen_past(end));
-    return lh_memory_rcompare(self_begin, self_size, begin, size);
+    lh_usize_t self_size;
+    const lh_ptr self_begin = lh_memory_view_slice_checked_span(self, &self_size);
+
+    return lh_memory_rcompare(self_begin, self_size, begin,
+                              lh_memory_view_slice_closed_nbytes(begin, end));
 }
 
 const lh_ptr
 lh_memory_view_slice_rcompare(const lh_memory_view_slice_t *self,
                               const lh_memory_view_slice_t *other)
 {
-    const lh_ptr begin = lh_memory_view_slice_get_begin_v(other);
-    return lh_memory_view_slice_rcompare_range(self, begin, lh_memory_view_slice_get_end_v(other));
+    lh_usize_t self_size;
+    lh_usize_t other_size;
+    const lh_ptr other_begin = lh_memory_view_slice_checked_span(other, &other_size);
+    const lh_ptr self_begin = lh_memory_view_slice_checked_span(self, &self_size);
+
+    return lh_memory_rcompare(self_begin, self_size, other_begin, other_size);
 }
 
 lh_bool_t

@@ -869,3 +869,21 @@ lh_memory_std_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_u
 #endif
     return lh_memory_std_find_scalar(hay, lhs_size, needle, rhs_size, 0U);
 }
+
+const lh_ptr
+lh_memory_std_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size)
+{
+    lh_byte_cptr hay;
+    lh_byte_cptr needle;
+
+    lh_assert_runtime_ref(lhs);
+    lh_assert_runtime_ref(rhs);
+
+    if (rhs_size == 0U || lhs_size < rhs_size)
+    {
+        return lh_null;
+    }
+    hay = lh_ptr_ccast(lh_byte_t, lhs);
+    needle = lh_ptr_ccast(lh_byte_t, rhs);
+    return lh_memory_std_rfind_scalar(hay, lhs_size, needle, rhs_size);
+}
