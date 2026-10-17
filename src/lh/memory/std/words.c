@@ -414,7 +414,7 @@ lh_memory_std_xor_bytes(lh_byte_ptr dst, lh_byte_cptr lhs, lh_byte_cptr rhs, lh_
 
     for (i = 0U; lh_math_lt(i, n); i = lh_math_add_one(i))
     {
-        dst[i] = lh_cast_static(lh_byte_t, lh_math_bit_xor(lhs[i], rhs[i]));
+        dst[i] = lh_cast_static(lh_byte_t, lh_bit_xor(lhs[i], rhs[i]));
     }
 }
 

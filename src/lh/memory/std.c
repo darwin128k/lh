@@ -14,6 +14,7 @@
 #include <lh/cpu/simd.h>
 #include <lh/cpu/vendor.h>
 #include <lh/bit/bswap.h>
+#include <lh/bit/ops.h>
 #include <lh/bit/scan.h>
 #include <lh/util/memory.h>
 
