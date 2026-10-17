@@ -40,6 +40,7 @@
 #include <lh/ui/pen.h>
 #include <lh/ui/range.h>
 #include <lh/ui/view.h>
+#include <lh/ui/view/controller.h>
 #include <lh/ui/viewport3d.h>
 #include <lh/ui/web/html.h>
 #include <lh/ui/web/js.h>

@@ -9,8 +9,8 @@
 #include <lh/util/return.h>
 
 #include <lh/os/system/window.h>
+#include <lh/os/tick.h>
 #if LH_LIBRARY_OPTION_UI
-#    include <lh/os/tick.h>
 #    include <lh/ui/frame/stats.h>
 #endif
 
@@ -59,6 +59,8 @@ lh_os_window_init(lh_os_window_t *self)
     self->frame_stats = lh_null;
     self->on_input = lh_null;
     self->on_input_context = lh_null;
+    self->controller = lh_null;
+    self->controller_armed = lh_bool_false;
     self->pressed_buttons = 0U;
     self->on_close = lh_null;
     self->on_close_context = lh_null;
@@ -204,11 +206,81 @@ lh_os_window_set_on_input(lh_os_window_t *self, lh_os_input_sink_cb on_input, lh
     self->on_input_context = context;
 }
 
+lh_void
+lh_os_window_set_controller(lh_os_window_t *self, lh_os_controller_t *controller)
+{
+    lh_assert_runtime_ref(self);
+    self->controller = controller;
+}
+
+lh_os_controller_t *
+lh_os_window_get_controller(const lh_os_window_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->controller;
+}
+
 lh_u32_t
 lh_os_window_get_pressed_buttons(const lh_os_window_t *self)
 {
     lh_assert_runtime_ref(self);
     return self->pressed_buttons;
+}
+
+/* -- Controller timer ------------------------------------------------------ */
+
+/** When the recognizer of @p self's controller next has something to send, into @p out;
+   false, @p out untouched, with no controller, no gestures or nothing waiting on time. */
+static lh_bool_t
+lh_os_window_get_controller_deadline(lh_os_window_t *self, lh_tick_t *out)
+{
+    lh_os_controller_t *controller = lh_os_window_get_controller(self);
+
+    lh_return_if(lh_null_eq(controller), lh_bool_false);
+    lh_return_if(!lh_os_controller_has_flag(controller, lh_os_controller_flags_gestures),
+                 lh_bool_false);
+    return lh_os_input_recognizer_get_next_deadline(lh_os_controller_get_recognizer(controller),
+                                                    out);
+}
+
+/** The window timer of @p self for its controller, when no `on_tick` period runs it: armed
+   for the recognizer's next deadline -- again when @p rearm, else only when it is not
+   running yet -- and stopped once nothing waits on time. */
+static lh_void
+lh_os_window_arm_controller(lh_os_window_t *self, lh_bool_t rearm)
+{
+    lh_tick_t deadline = 0U;
+    lh_tick_t now;
+    lh_bool_t waits;
+
+    lh_return_if(self->tick_ms != 0U || !lh_os_system_window_is_valid(self->handle));
+    waits = lh_os_window_get_controller_deadline(self, lh_addr_of(deadline));
+    if (!waits && self->controller_armed)
+    {
+        self->controller_armed = lh_bool_false;
+        lh_os_system_window_set_timer(self->handle, 0U);
+    }
+    lh_return_if(!waits || (self->controller_armed && !rearm));
+    now = lh_os_tick_ms();
+    /* Due already is due at the next tick the system can make, never a timer of 0 ms:
+       that is the call that stops it. */
+    lh_os_system_window_set_timer(self->handle,
+                                  lh_tick_is_after(deadline, now)
+                                      ? lh_type_cast(lh_u32_t, lh_tick_elapsed(now, deadline))
+                                      : 1U);
+    self->controller_armed = lh_bool_true;
+}
+
+/** The controller's timers at @p self's tick: what is due by now, then the timer for the
+   next deadline. */
+static lh_void
+lh_os_window_update_controller(lh_os_window_t *self)
+{
+    lh_os_controller_t *controller = lh_os_window_get_controller(self);
+
+    lh_return_if(lh_null_eq(controller));
+    (void)lh_os_controller_update(controller, lh_os_tick_ms());
+    lh_os_window_arm_controller(self, lh_bool_true);
 }
 
 lh_void
@@ -225,6 +297,10 @@ lh_os_window_set_on_tick(lh_os_window_t *self, lh_os_window_on_tick_cb on_tick, 
        works, which is a thing an app has to remember about every call it makes. */
     lh_return_if(!lh_os_system_window_is_valid(self->handle));
     lh_os_system_window_set_timer(self->handle, ms);
+    /* The period, or none: either way the controller's own timer is over, and without
+       a period the controller may still have a deadline to be woken for. */
+    self->controller_armed = lh_bool_false;
+    lh_os_window_arm_controller(self, lh_bool_true);
 }
 
 lh_void
@@ -234,6 +310,9 @@ lh_os_window_on_native_tick(lh_os_window_t *self)
     lh_ptr context;
 
     lh_assert_runtime_ref(self);
+    /* The controller first, so `on_tick` paints what a long press that just came due
+       did to the view. */
+    lh_os_window_update_controller(self);
     on_tick = self->on_tick;
     /* Read the pair before the call and not after: a tick that stops its own timer -- or
        that stops it and starts it at another period -- would otherwise be talking about
@@ -467,11 +546,13 @@ lh_os_window_on_native_paint(lh_os_window_t *self, lh_ptr paint_dc, int left, in
     self->paint_bottom = 0;
 }
 
-/** The buttons @p event leaves held over @p self: a pointer event says, a cancel or a focus
-   loss lets go of all of them, anything else leaves them as they were. */
+/** The mouse buttons @p event leaves held over @p self: an event of pointer `0` says, its
+   cancel or a focus loss lets go of all of them, anything else -- a touch contact
+   included -- leaves them as they were. */
 static lh_void
 lh_os_window_track_buttons(lh_os_window_t *self, lh_os_input_event_cptr event)
 {
+    lh_return_if(lh_os_input_event_is_pointer(event) && lh_os_input_event_get_pointer(event) != 0U);
     switch (lh_os_input_event_get_kind(event))
     {
     case lh_os_input_kind_pointer_down:
@@ -488,14 +569,39 @@ lh_os_window_track_buttons(lh_os_window_t *self, lh_os_input_event_cptr event)
     }
 }
 
+/** @p event to @p self's controller, if any: fed, the whole controller cancelled after a
+   focus loss, and its timer armed for a deadline the event may have set. */
+static lh_void
+lh_os_window_feed_controller(lh_os_window_t *self, lh_os_input_event_cptr event)
+{
+    lh_os_controller_t *controller = lh_os_window_get_controller(self);
+    const lh_os_input_kind_t kind = lh_os_input_event_get_kind(event);
+
+    lh_return_if(lh_null_eq(controller));
+    (void)lh_os_controller_feed(controller, event);
+    if (kind == lh_os_input_kind_focus_out)
+    {
+        lh_os_controller_cancel(controller);
+    }
+    /* Only a press starts a new wait; anything else can only end one, so the timer that
+       already runs is left alone instead of being set again on every move. */
+    lh_os_window_arm_controller(self,
+                                lh_type_cast(lh_bool_t, kind == lh_os_input_kind_pointer_down));
+}
+
 lh_void
 lh_os_window_on_native_input(lh_os_window_t *self, lh_os_input_event_cptr event)
 {
     lh_assert_runtime_ref(self);
     lh_assert_runtime_ref(event);
     lh_os_window_track_buttons(self, event);
-    lh_return_if(lh_null_eq(lh_ptr_rcast(lh_void, self->on_input)));
-    self->on_input(event, self->on_input_context);
+    /* The raw tap first, then the consumer: the sink is the low level and sees the event
+       as the backend built it, whatever the controller's handler then does. */
+    if (lh_null_ne(lh_ptr_rcast(lh_void, self->on_input)))
+    {
+        self->on_input(self->on_input_context, event);
+    }
+    lh_os_window_feed_controller(self, event);
 }
 
 lh_void
@@ -520,6 +626,7 @@ lh_os_window_on_native_destroy(lh_os_window_t *self)
     }
     reason = self->closing ? lh_os_window_close_reason_api : lh_os_window_close_reason_os;
     self->closing = lh_bool_false;
+    self->controller_armed = lh_bool_false;
     self->handle = LH_OS_SYSTEM_WINDOW_HANDLE_INVALID;
     if (modal && lh_null_ne(parent) && lh_os_system_window_is_valid(parent->handle))
     {
@@ -557,6 +664,7 @@ lh_os_window_close(lh_os_window_t *self)
         lh_os_system_window_set_timer(self->handle, 0U);
     }
     self->tick_ms = 0U;
+    self->controller_armed = lh_bool_false;
     for (;;)
     {
         child = lh_os_window_get_first_child(self);

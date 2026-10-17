@@ -1,11 +1,12 @@
 /**
  * @file input.h
- * @brief Backend-private: Win32 mouse and keyboard messages read into the pieces of an
- *        ::lh_os_input_event_t.
+ * @brief Backend-private: Win32 mouse, pointer (touch, pen) and keyboard messages
+ *        read into the pieces of an ::lh_os_input_event_t.
  *
- * Pure functions of the message, `wParam` and `lParam`, apart from
- * ::lh_os_system_win_input_get_mods and ::lh_os_system_win_input_get_wheel_lines,
- * so they can be tested without a window.
+ * Pure functions of the message, `wParam`, `lParam` and what the system says of a
+ * pointer, apart from ::lh_os_system_win_input_get_mods and
+ * ::lh_os_system_win_input_get_wheel_lines, so they can be tested without a window
+ * and without a touch screen.
  */
 
 #ifndef LH_SRC_OS_SYSTEM_WIN_INPUT_H
@@ -73,6 +74,51 @@ lh_os_system_win_input_wheel_lines_of(lh_os_system_win_bool_t got, lh_os_system_
  *        ::lh_os_system_win_input_wheel_lines_of.
  */
 lh_u32_t lh_os_system_win_input_get_wheel_lines(lh_void);
+
+/**
+ * @brief The device a pointer of @p type is: ::LH_OS_SYSTEM_WIN_PT_TOUCH a touch
+ *        contact, ::LH_OS_SYSTEM_WIN_PT_PEN a pen, ::LH_OS_SYSTEM_WIN_PT_MOUSE and
+ *        ::LH_OS_SYSTEM_WIN_PT_TOUCHPAD the mouse; ::lh_os_input_device_kind_none for
+ *        anything else (the generic ::LH_OS_SYSTEM_WIN_PT_POINTER included).
+ */
+lh_os_input_device_kind_t
+lh_os_system_win_input_device_kind_of_pointer_type(lh_os_system_win_pointer_input_type_t type);
+
+/**
+ * @brief The pointer flags a pointer message carries in its @p wparam: the high word,
+ *        which is the low half of `POINTER_FLAGS` (::LH_OS_SYSTEM_WIN_POINTER_FLAG_INCONTACT,
+ *        ::LH_OS_SYSTEM_WIN_POINTER_FLAG_CANCELED).
+ */
+lh_os_system_win_pointer_flags_t
+lh_os_system_win_input_pointer_flags_of(lh_os_system_win_wparam_t wparam);
+
+/**
+ * @brief The event a pointer @p msg with @p flags is: `WM_POINTERDOWN`
+ *        ::lh_os_input_kind_pointer_down, `WM_POINTERUPDATE`
+ *        ::lh_os_input_kind_pointer_move, `WM_POINTERUP` ::lh_os_input_kind_pointer_up,
+ *        `WM_POINTERCAPTURECHANGED` ::lh_os_input_kind_pointer_cancel; any of them
+ *        with ::LH_OS_SYSTEM_WIN_POINTER_FLAG_CANCELED a cancel too (the contact will
+ *        not end in an up worth acting on). ::lh_os_input_kind_none for any other
+ *        message.
+ */
+lh_os_input_kind_t
+lh_os_system_win_input_pointer_kind_of(lh_u32_t msg, lh_os_system_win_pointer_flags_t flags);
+
+/**
+ * @brief True when @p extra, what `GetMessageExtraInfo` answers for a mouse message,
+ *        says the system made the message out of a pen or a touch contact
+ *        (`(extra & 0xFFFFFF00) == 0xFF515700`).
+ */
+lh_bool_t
+lh_os_system_win_input_is_promoted_mouse(lh_os_system_win_lparam_t extra);
+
+/**
+ * @brief The device a mouse message with @p extra came from: a touch contact or a pen
+ *        when the system made it out of one (::lh_os_system_win_input_is_promoted_mouse,
+ *        bit ::LH_OS_SYSTEM_WIN_MI_WP_TOUCH telling the two apart), else the mouse.
+ */
+lh_os_input_device_kind_t
+lh_os_system_win_input_device_kind_of_mouse(lh_os_system_win_lparam_t extra);
 
 /**
  * @brief The modifiers held as the current message was posted (`GetKeyState`).

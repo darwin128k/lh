@@ -269,10 +269,17 @@ lh_add_test_core(lh_test_time
 # lh/os/input: the event, the queue, the recognizer and the wheel step's conversion
 # need no OS, so they are tested in every build.
 lh_add_test_core(lh_test_os_input
+        ${LH_TEST_SRC_PATH}/lh/os/input/contacts.cpp
         ${LH_TEST_SRC_PATH}/lh/os/input/event.cpp
         ${LH_TEST_SRC_PATH}/lh/os/input/queue.cpp
         ${LH_TEST_SRC_PATH}/lh/os/input/recognizer.cpp
         ${LH_TEST_SRC_PATH}/lh/os/input/wheel.cpp
+)
+
+# lh/os/controller: the controller between an input source and its handler needs no
+# OS either, so it is tested in every build.
+lh_add_test_core(lh_test_os_controller
+        ${LH_TEST_SRC_PATH}/lh/os/controller.cpp
 )
 
 lh_add_test_core(lh_test_timer

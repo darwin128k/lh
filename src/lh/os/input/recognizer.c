@@ -190,7 +190,7 @@ lh_os_input_recognizer_send(lh_os_input_event_t *event, lh_os_input_flags_t flag
 {
     lh_os_input_event_set_flags(
         event, lh_type_cast(lh_os_input_flags_t, lh_os_input_event_get_flags(event) | flags));
-    sink(event, context);
+    sink(context, event);
 }
 
 /* -- The recognizer -------------------------------------------------------- */
@@ -514,7 +514,7 @@ lh_os_input_recognizer_send_shifted_wheel(lh_os_input_recognizer_t *self,
                  lh_bool_false);
     sideways = lh_ptr_deref(event);
     lh_os_input_event_set_delta(lh_addr_of(sideways), lh_os_input_event_get_dy(event), 0);
-    sink(lh_addr_of(sideways), context);
+    sink(context, lh_addr_of(sideways));
     return lh_bool_true;
 }
 
@@ -526,7 +526,7 @@ lh_os_input_recognizer_feed(lh_os_input_recognizer_t *self, lh_os_input_event_cp
     lh_assert_runtime_ref(event);
     lh_os_input_recognizer_update(self, lh_os_input_event_get_time(event), sink, context);
     lh_return_if(lh_os_input_recognizer_send_shifted_wheel(self, event, sink, context));
-    sink(event, context);
+    sink(context, event);
     lh_return_if(lh_os_input_event_is_synthesized(event));
     if (lh_os_input_event_get_kind(event) == lh_os_input_kind_focus_out)
     {

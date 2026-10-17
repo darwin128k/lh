@@ -5,6 +5,8 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/memory.h>
+#include <lh/os/input/contacts.h>
+#include <lh/os/input/contacts/initializer.h>
 #include <lh/os/system/win/gdi32.h>
 #include <lh/os/system/win/input.h>
 #include <lh/os/system/win/kernel32.h>
@@ -79,7 +81,9 @@ lh_os_system_win_window_coord_y(lh_os_system_win_lparam_t lparam)
 }
 
 /** One mouse event of @p kind about @p button to @p window, at the client point in
-   @p lparam, with the buttons in @p wparam held after it. */
+   @p lparam, with the buttons in @p wparam held after it. Pointer `0` whatever made it:
+   a mouse message the system made out of a touch contact or a pen (Windows 7, or no
+   pointer API) says so in its device kind. */
 static lh_void
 lh_os_system_win_window_send_pointer(lh_os_window_t *window, lh_os_input_kind_t kind,
                                      lh_os_input_button_t button, lh_os_system_win_wparam_t wparam,
@@ -87,9 +91,10 @@ lh_os_system_win_window_send_pointer(lh_os_window_t *window, lh_os_input_kind_t 
 {
     lh_os_input_event_t event;
 
-    lh_os_input_event_init_pointer(lh_addr_of(event), kind, lh_os_input_device_kind_mouse, 0U,
-                                   button, lh_os_system_win_window_coord_x(lparam),
-                                   lh_os_system_win_window_coord_y(lparam), lh_os_tick_ms());
+    lh_os_input_event_init_pointer(
+        lh_addr_of(event), kind, lh_os_system_win_input_device_kind_of_mouse(GetMessageExtraInfo()),
+        0U, button, lh_os_system_win_window_coord_x(lparam),
+        lh_os_system_win_window_coord_y(lparam), lh_os_tick_ms());
     lh_os_input_event_set_buttons(lh_addr_of(event), lh_os_system_win_input_buttons_of(wparam));
     lh_os_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
     lh_os_window_on_native_input(window, lh_addr_of(event));
@@ -137,6 +142,176 @@ lh_os_system_win_window_send_wheel(lh_os_window_t *window, lh_os_system_win_hwnd
     lh_os_input_event_set_buttons(lh_addr_of(event), lh_os_system_win_input_buttons_of(wparam));
     lh_os_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
     lh_os_window_on_native_input(window, lh_addr_of(event));
+}
+
+/* -- Touch and pen --------------------------------------------------------- */
+
+/** Whether the pointer API has been looked up in user32 yet: it is there from
+   Windows 8 on, and importing it would keep the program from starting on Windows 7
+   and XP. */
+static lh_bool_t lh_os_system_win_window_pointer_api_looked_up;
+
+/** `GetPointerType`, or null where the system has no pointer API. */
+static lh_os_system_win_get_pointer_type_proc_t lh_os_system_win_window_get_pointer_type;
+
+/** `GetPointerInfo`, or null where the system has no pointer API. */
+static lh_os_system_win_get_pointer_info_proc_t lh_os_system_win_window_get_pointer_info;
+
+/** The pointer id each live touch contact and pen goes by. One table for the process:
+   the system's pointer ids are unique across its windows, and a contact belongs to the
+   window it went down on until it goes up. */
+static lh_os_input_contacts_t lh_os_system_win_window_contacts =
+    lh_os_input_contacts_empty_initializer();
+
+/** True when this system sends pointer messages (Windows 8 and later); the API is
+   looked up on the first call. */
+static lh_bool_t
+lh_os_system_win_window_has_pointer_api(lh_void)
+{
+    if (!lh_os_system_win_window_pointer_api_looked_up)
+    {
+        const lh_os_system_win_handle_t user32 = GetModuleHandleA("user32.dll");
+
+        lh_os_system_win_window_pointer_api_looked_up = lh_bool_true;
+        if (lh_null_ne(user32))
+        {
+            lh_os_system_win_window_get_pointer_type = lh_cast_reinterpret(
+                lh_os_system_win_get_pointer_type_proc_t, GetProcAddress(user32, "GetPointerType"));
+            lh_os_system_win_window_get_pointer_info = lh_cast_reinterpret(
+                lh_os_system_win_get_pointer_info_proc_t, GetProcAddress(user32, "GetPointerInfo"));
+        }
+    }
+    return lh_null_ne(lh_ptr_rcast(lh_void, lh_os_system_win_window_get_pointer_type));
+}
+
+/** True when the mouse message being handled is one the system made out of a pen or a
+   touch contact that the pointer messages already delivered as itself. Where there is
+   no pointer API (Windows 7, XP) such a message is all there is of the contact, so it
+   stays, as pointer `0` with the device kind it came from. */
+static lh_bool_t
+lh_os_system_win_window_is_contact_echo(lh_void)
+{
+    return lh_type_cast(lh_bool_t,
+                        lh_os_system_win_window_has_pointer_api() &&
+                            lh_os_system_win_input_is_promoted_mouse(GetMessageExtraInfo()));
+}
+
+/** What the system says of pointer @p pointer_id at the current message: its device
+   kind, its flags and its point on the screen. `GetPointerInfo` when it answers, else
+   `GetPointerType` with the flags of @p wparam and the point of @p lparam. False, the
+   outs untouched, when the system no longer knows the pointer. */
+static lh_bool_t
+lh_os_system_win_window_read_pointer(lh_os_system_win_pointer_id_t pointer_id,
+                                     lh_os_system_win_wparam_t wparam,
+                                     lh_os_system_win_lparam_t lparam,
+                                     lh_os_input_device_kind_t *device_kind,
+                                     lh_os_system_win_pointer_flags_t *flags,
+                                     lh_os_system_win_point_t *at)
+{
+    lh_os_system_win_pointer_info_t info;
+    lh_os_system_win_pointer_input_type_t type = 0UL;
+
+    if (lh_null_ne(lh_ptr_rcast(lh_void, lh_os_system_win_window_get_pointer_info)) &&
+        lh_os_system_win_window_get_pointer_info(pointer_id, lh_addr_of(info)))
+    {
+        lh_ptr_deref(device_kind) =
+            lh_os_system_win_input_device_kind_of_pointer_type(info.pointer_type);
+        lh_ptr_deref(flags) = info.pointer_flags;
+        lh_ptr_deref(at) = info.pixel_location;
+        return lh_bool_true;
+    }
+    lh_return_if(!lh_os_system_win_window_get_pointer_type(pointer_id, lh_addr_of(type)),
+                 lh_bool_false);
+    lh_ptr_deref(device_kind) = lh_os_system_win_input_device_kind_of_pointer_type(type);
+    lh_ptr_deref(flags) = lh_os_system_win_input_pointer_flags_of(wparam);
+    at->x = lh_type_cast(int, lh_type_cast(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam)));
+    at->y = lh_type_cast(int, lh_type_cast(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam)));
+    return lh_bool_true;
+}
+
+/** The pointer id the contact of @p kind goes by, into @p pointer: a press takes the
+   lowest free one, anything else finds the one its press took. False when there is
+   none -- every id taken, or a contact never seen going down (a pen hovering). */
+static lh_bool_t
+lh_os_system_win_window_contact_pointer(lh_os_system_win_pointer_id_t pointer_id,
+                                        lh_os_input_kind_t kind,
+                                        lh_os_input_device_kind_t device_kind,
+                                        lh_os_input_pointer_id_t *pointer)
+{
+    lh_return_if(kind == lh_os_input_kind_pointer_down,
+                 lh_os_input_contacts_take(lh_addr_of(lh_os_system_win_window_contacts), pointer_id,
+                                           device_kind, pointer));
+    return lh_os_input_contacts_find(lh_addr_of(lh_os_system_win_window_contacts), pointer_id,
+                                     pointer);
+}
+
+/** A pointer message about a touch contact or a pen, to @p window as an event of the
+   pointer id its contact goes by (`1` and up, `0` stays the mouse's), at its client
+   point. True when the message is taken. False for one that is left to
+   `DefWindowProc`: no pointer API, a mouse or a touchpad (their mouse messages
+   follow), a pointer the system and the table both no longer know. */
+static lh_bool_t
+lh_os_system_win_window_send_contact(lh_os_window_t *window, lh_os_system_win_hwnd_t hwnd,
+                                     lh_os_system_win_uint_t msg, lh_os_system_win_wparam_t wparam,
+                                     lh_os_system_win_lparam_t lparam)
+{
+    const lh_os_system_win_pointer_id_t pointer_id = LH_OS_SYSTEM_WIN_GET_POINTERID_WPARAM(wparam);
+    lh_os_input_device_kind_t device_kind = lh_os_input_device_kind_none;
+    lh_os_system_win_pointer_flags_t flags = 0U;
+    lh_os_system_win_point_t at = {0, 0};
+    lh_os_input_pointer_id_t pointer = 0U;
+    lh_os_input_kind_t kind;
+    lh_os_input_event_t event;
+
+    lh_return_if(!lh_os_system_win_window_has_pointer_api(), lh_bool_false);
+    if (!lh_os_system_win_window_read_pointer(pointer_id, wparam, lparam, lh_addr_of(device_kind),
+                                              lh_addr_of(flags), lh_addr_of(at)))
+    {
+        /* Gone from the system before its message came (a capture change after the
+           contact ended): only a contact still in the table is ours to cancel. */
+        lh_return_if(!lh_os_input_contacts_find(lh_addr_of(lh_os_system_win_window_contacts),
+                                                pointer_id, lh_addr_of(pointer)),
+                     lh_bool_false);
+        device_kind = lh_os_input_contacts_get_device_kind(
+            lh_addr_of(lh_os_system_win_window_contacts), pointer);
+        flags = LH_OS_SYSTEM_WIN_POINTER_FLAG_CANCELED;
+    }
+    lh_return_if(device_kind != lh_os_input_device_kind_touch &&
+                     device_kind != lh_os_input_device_kind_pen,
+                 lh_bool_false);
+    kind = lh_os_system_win_input_pointer_kind_of(lh_type_cast(lh_u32_t, msg), flags);
+    /* A contact with no id is not delivered at all, and not handed on either: its
+       mouse echo would only be skipped. */
+    lh_return_if(!lh_os_system_win_window_contact_pointer(pointer_id, kind, device_kind,
+                                                          lh_addr_of(pointer)),
+                 lh_type_cast(lh_bool_t, kind == lh_os_input_kind_pointer_down));
+    if (kind != lh_os_input_kind_pointer_cancel)
+    {
+        ScreenToClient(hwnd, lh_addr_of(at));
+    }
+    lh_os_input_event_init_pointer(
+        lh_addr_of(event), kind, device_kind, pointer,
+        kind == lh_os_input_kind_pointer_down || kind == lh_os_input_kind_pointer_up
+            ? lh_os_input_button_primary
+            : lh_os_input_button_none,
+        lh_os_input_coord_from_int(kind == lh_os_input_kind_pointer_cancel ? 0 : at.x),
+        lh_os_input_coord_from_int(kind == lh_os_input_kind_pointer_cancel ? 0 : at.y),
+        lh_os_tick_ms());
+    lh_os_input_event_set_buttons(lh_addr_of(event),
+                                  (flags & LH_OS_SYSTEM_WIN_POINTER_FLAG_INCONTACT) != 0U &&
+                                          kind != lh_os_input_kind_pointer_up &&
+                                          kind != lh_os_input_kind_pointer_cancel
+                                      ? lh_os_input_button_to_mask(lh_os_input_button_primary)
+                                      : 0U);
+    lh_os_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
+    /* The id is free again before the event goes out: a handler that closes the window
+       leaves nothing of the contact behind. */
+    if (kind == lh_os_input_kind_pointer_up || kind == lh_os_input_kind_pointer_cancel)
+    {
+        lh_os_input_contacts_release(lh_addr_of(lh_os_system_win_window_contacts), pointer);
+    }
+    lh_os_window_on_native_input(window, lh_addr_of(event));
+    return lh_bool_true;
 }
 
 /** A key message, plain or with Alt (`WM_SYS*`); the virtual key goes along as the
@@ -354,7 +529,9 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
     case LH_OS_SYSTEM_WIN_WM_RBUTTONUP:
     case LH_OS_SYSTEM_WIN_WM_MBUTTONUP:
     case LH_OS_SYSTEM_WIN_WM_XBUTTONUP:
-        if (lh_null_ne(window))
+        /* A press the system made out of a contact the pointer messages delivered
+           is not a second press. */
+        if (lh_null_ne(window) && !lh_os_system_win_window_is_contact_echo())
         {
             lh_os_system_win_window_send_button(window, hwnd, msg, wparam, lparam);
         }
@@ -363,7 +540,7 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
                    ? LH_OS_SYSTEM_WIN_TRUE
                    : 0;
     case LH_OS_SYSTEM_WIN_WM_MOUSEMOVE:
-        if (lh_null_ne(window))
+        if (lh_null_ne(window) && !lh_os_system_win_window_is_contact_echo())
         {
             lh_os_system_win_window_send_pointer(window, lh_os_input_kind_pointer_move,
                                                  lh_os_input_button_none, wparam, lparam);
@@ -380,6 +557,16 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
                                                  lh_os_input_button_none, 0U, 0);
         }
         return 0;
+    case LH_OS_SYSTEM_WIN_WM_POINTERDOWN:
+    case LH_OS_SYSTEM_WIN_WM_POINTERUPDATE:
+    case LH_OS_SYSTEM_WIN_WM_POINTERUP:
+    case LH_OS_SYSTEM_WIN_WM_POINTERCAPTURECHANGED:
+        if (lh_null_ne(window) &&
+            lh_os_system_win_window_send_contact(window, hwnd, msg, wparam, lparam))
+        {
+            return 0;
+        }
+        break;
     case LH_OS_SYSTEM_WIN_WM_MOUSEWHEEL:
     case LH_OS_SYSTEM_WIN_WM_MOUSEHWHEEL:
         if (lh_null_ne(window))

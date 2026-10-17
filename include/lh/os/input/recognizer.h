@@ -28,9 +28,9 @@
  * static lh_os_input_recognizer_t recognizer;
  *
  * static lh_void
- * on_input(const lh_os_input_event_ptr event, lh_ptr context)
+ * on_input(lh_self_ptr self, const lh_os_input_event_ptr event)
  * {
- *     lh_os_input_recognizer_feed(&recognizer, event, on_gesture, context);
+ *     lh_os_input_recognizer_feed(&recognizer, event, on_gesture, self);
  * }
  *
  * // and on a timer:
@@ -76,7 +76,8 @@ lh_os_input_recognizer_init(lh_os_input_recognizer_t *self,
  *
  * Timeouts due by the event's time (a long press) go out first, as
  * ::lh_os_input_recognizer_update would have sent them. A synthesized event is
- * passed on and not looked at again.
+ * passed on and not looked at again. @p sink gets @p context as its `self`,
+ * here and in ::lh_os_input_recognizer_update and ::lh_os_input_recognizer_reset.
  */
 lh_void
 lh_os_input_recognizer_feed(lh_os_input_recognizer_t *self, const lh_os_input_event_ptr event,

@@ -63,8 +63,8 @@ lh_bool_t
 lh_os_input_queue_pop(lh_os_input_queue_t *self, lh_os_input_event_t *out);
 
 /**
- * @brief Pop every event and hand each to @p sink with @p context, oldest
- *        first.
+ * @brief Pop every event and hand each to @p sink, with @p context as its
+ *        `self`, oldest first.
  *
  * Events pushed while it runs are handed on too.
  *

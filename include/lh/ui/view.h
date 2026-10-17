@@ -17,6 +17,18 @@
  * page click, key). ::lh_ui_view_wheel scrolls the container under the
  * cursor; ::lh_ui_view_key / ::lh_ui_view_text go to the focus, Tab moves it.
  *
+ * Several pointers: every pointer id below ::LH_OS_INPUT_POINTER_MAX has a session
+ * of its own (::lh_ui_view_pointer_t, kept in the view, no heap) --
+ * ::lh_ui_view_press_pointer / ::lh_ui_view_move_pointer /
+ * ::lh_ui_view_release_pointer / ::lh_ui_view_cancel_pointer. Two fingers on two
+ * buttons press both and click both. A click is a release over the entity its own
+ * pointer went down on. A container one pointer drags, or whose thumb it holds,
+ * stays that pointer's until it lets go: another pointer may press inside it, but
+ * does not move it. An entity two pointers press stays pressed until the last of
+ * them lets go. The functions without a pointer id are pointer `0`, the mouse.
+ * Hover is not a session: ::lh_ui_view_set_hot is the app's, and the app decides
+ * which pointer it follows (the mouse, as a rule -- a finger has no hover).
+ *
  * Input events: ::lh_ui_view_input takes one ::lh_os_input_event_t, the event a
  * window's sink (::lh_os_window_set_on_input) or the web host hands over, and
  * calls the right one of the functions above. The view makes its own click from
@@ -30,9 +42,11 @@
 
 #include <lh/config.h>
 #include <lh/os/input/event.h>
+#include <lh/os/input/pointer/id.h>
 #include <lh/os/input/wheel.h>
 #include <lh/ui/button.h>
 #include <lh/ui/view/fields.h>
+#include <lh/ui/view/pointer.h>
 
 #if !LH_LIBRARY_OPTION_UI
 #    error "lh/ui/view.h requires LH_LIBRARY_OPTION_UI"
@@ -45,7 +59,8 @@
 struct lh_ui_view
 {
     /** Members: ::lh_ui_view_fields. */
-    lh_ui_view_fields(lh_ui_canvas_t, lh_ui_entity_t, lh_ui_color_t, lh_ui_rect_t);
+    lh_ui_view_fields(lh_ui_canvas_t, lh_ui_entity_t, lh_ui_color_t, lh_ui_rect_t,
+                      lh_ui_view_pointer_t);
 };
 /** @copybrief lh_ui_view */
 typedef struct lh_ui_view lh_ui_view_t;
@@ -444,10 +459,19 @@ lh_void
 lh_ui_view_finish_transitions(lh_ui_view_t *self, const lh_ui_entity_t *subtree);
 
 /**
- * @brief Clear grab, pressed, dragged, the pressed entity and the drag box.
+ * @brief Clear the session of every pointer (::lh_ui_view_pointer_reset): grab,
+ *        pressed, dragged, the pressed entity and the drag box. What an entity
+ *        shows as pressed is left as it is (::lh_ui_view_cancel lets it go).
  */
 lh_void
 lh_ui_view_reset_pointer(lh_ui_view_t *self);
+
+/**
+ * @brief The session of pointer @p id, or ::lh_null for an id at or above
+ *        ::LH_OS_INPUT_POINTER_MAX, which the view does not follow.
+ */
+const lh_ui_view_pointer_t *
+lh_ui_view_get_pointer(const lh_ui_view_t *self, lh_os_input_pointer_id_t id);
 
 /**
  * @brief ::lh_ui_scrollbar_get_thumb_start_at for @p point in the root
@@ -457,18 +481,21 @@ lh_ui_scalar_t
 lh_ui_view_get_thumb_start_at(const lh_ui_scrollbar_t *bar, lh_ui_point_t point);
 
 /**
- * @brief Grab @p bar when @p point (root space) is on its thumb; nothing for a
- *        ::lh_null @p bar or a point off the thumb.
+ * @brief @p pointer grabs @p bar when @p point (root space) is on its thumb;
+ *        nothing for a ::lh_null @p bar, a point off the thumb, or a bar whose
+ *        container another pointer of @p self already drags.
  */
 lh_void
-lh_ui_view_grab_thumb(lh_ui_view_t *self, lh_ui_scrollbar_t *bar, lh_ui_point_t point);
+lh_ui_view_grab_thumb(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_scrollbar_t *bar,
+                      lh_ui_point_t point);
 
 /**
  * @brief Move the thumb of @p bar under @p point (root space), keeping the
- *        grab offset. Returns ::lh_ui_view_damage_scroll.
+ *        grab offset of @p pointer. Returns ::lh_ui_view_damage_scroll.
  */
 lh_bool_t
-lh_ui_view_drag_thumb(lh_ui_view_t *self, lh_ui_scrollbar_t *bar, lh_ui_point_t point);
+lh_ui_view_drag_thumb(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_scrollbar_t *bar,
+                      lh_ui_point_t point);
 
 /**
  * @brief The container a press on @p hit may drag: the nearest one at or
@@ -478,19 +505,22 @@ lh_ui_container_t *
 lh_ui_view_get_drag_box(lh_ui_entity_t *hit);
 
 /**
- * @brief Begin a pointer session at @p point: stop a glide, reset the state.
+ * @brief Begin the session of @p pointer at @p point: stop a glide, let go of a
+ *        press of @p pointer still open, reset its state.
  */
 lh_void
-lh_ui_view_start_pointer(lh_ui_view_t *self, lh_ui_point_t point);
+lh_ui_view_start_pointer(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_point_t point);
 
 /**
- * @brief The press reaching @p hit: press event, focus, thumb grab, drag box.
+ * @brief The press of @p pointer reaching @p hit: press event, focus, thumb grab,
+ *        drag box -- none when another pointer already drags that container.
  *
  * Also presses it (::lh_ui_entity_set_pressed), so an entity paints its pressed
  * style and the caller has the damage to show it.
  */
 lh_void
-lh_ui_view_press_on(lh_ui_view_t *self, lh_ui_entity_t *hit, lh_ui_point_t point);
+lh_ui_view_press_on(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_entity_t *hit,
+                    lh_ui_point_t point);
 
 /**
  * @brief Press @p entity or let it go, damaging what either look painted
@@ -533,47 +563,72 @@ lh_void
 lh_ui_view_set_hot(lh_ui_view_t *self, lh_ui_button_t *button, lh_bool_t hot);
 
 /**
- * @brief True when @p point is ::LH_UI_VIEW_DRAG_THRESHOLD or more from the press.
- */
-lh_bool_t
-lh_ui_view_is_past_threshold(const lh_ui_view_t *self, lh_ui_point_t point);
-
-/**
- * @brief Move the tracked pointer to @p point and update the glide velocity.
- */
-lh_void
-lh_ui_view_track(lh_ui_view_t *self, lh_ui_point_t point);
-
-/**
- * @brief Drag the content of the drag box with the pointer once past the
+ * @brief Drag the content of the drag box of @p pointer with it once past the
  *        threshold. Returns ::lh_ui_view_damage_scroll.
  */
 lh_bool_t
-lh_ui_view_drag_content(lh_ui_view_t *self, lh_ui_point_t point);
+lh_ui_view_drag_content(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_point_t point);
 
 /**
- * @brief End of a press: glide after a content drag, else close the gesture.
+ * @brief End of a press of @p pointer: glide at its speed after a content drag,
+ *        else close the gesture -- unless another pointer still drives the
+ *        container it is about.
  */
 lh_void
-lh_ui_view_finish_gesture(lh_ui_view_t *self);
+lh_ui_view_finish_gesture(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer);
 
 /**
- * @brief Start a pointer press: let go of a press still open, grab a scrollbar
- *        thumb when hit, else mark pressed for a later click.
+ * @brief Pointer @p id goes down at @p point: let go of a press of that pointer
+ *        still open, press the entity that takes the pointer there, move the focus,
+ *        grab a scrollbar thumb when hit, else mark pressed for a later click.
+ *
+ * Nothing for an @p id at or above ::LH_OS_INPUT_POINTER_MAX. The other pointers'
+ * presses stay as they are.
+ */
+lh_void
+lh_ui_view_press_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id, lh_ui_point_t point);
+
+/**
+ * @brief Pointer @p id moves to @p point: drag the thumb it holds, or the content
+ *        it went down on once past the threshold. Returns true when scroll changed.
+ */
+lh_bool_t
+lh_ui_view_move_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id, lh_ui_point_t point);
+
+/**
+ * @brief Pointer @p id goes up at @p point: the entity it went down on hears the
+ *        release and is let go (::lh_ui_view_set_pressed) unless another pointer
+ *        still presses it; with no drag, and over that same entity, a click
+ *        (::lh_ui_view_click).
+ *
+ * Returns the clicked entity, or ::lh_null.
+ */
+lh_ui_entity_t *
+lh_ui_view_release_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id, lh_ui_point_t point);
+
+/**
+ * @brief Abandon the press of pointer @p id without a click (::lh_ui_view_cancel
+ *        for one pointer): its entity hears the release at the last point the
+ *        pointer was seen and is let go unless another pointer presses it, its
+ *        thumb is dropped, its drag stops where it is. Nothing when it has no press.
+ */
+lh_void
+lh_ui_view_cancel_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id);
+
+/**
+ * @brief ::lh_ui_view_press_pointer of pointer `0`, the mouse.
  */
 lh_void
 lh_ui_view_press(lh_ui_view_t *self, lh_ui_point_t point);
 
 /**
- * @brief Pointer move: drag a grabbed thumb, or the content past the
- *        threshold. Returns true when scroll changed.
+ * @brief ::lh_ui_view_move_pointer of pointer `0`, the mouse.
  */
 lh_bool_t
 lh_ui_view_move(lh_ui_view_t *self, lh_ui_point_t point);
 
 /**
- * @brief End a pointer press: clear grab and let go of the pressed entity
- *        (::lh_ui_view_set_pressed); if not dragged, ::lh_ui_view_click.
+ * @brief ::lh_ui_view_release_pointer of pointer `0`, the mouse.
  *
  * Returns the clicked entity, or ::lh_null.
  */
@@ -649,14 +704,15 @@ lh_ui_view_text(lh_ui_view_t *self, lh_u32_t code);
 /* -- Input events ------------------------------------------------------------ */
 
 /**
- * @brief Abandon the press in progress without a click: the pressed entity is let
- *        go, a grabbed thumb dropped, a drag stopped where it is (no glide).
+ * @brief Abandon every press in progress without a click
+ *        (::lh_ui_view_cancel_pointer of each pointer): the pressed entities are
+ *        let go, grabbed thumbs dropped, drags stopped where they are (no glide).
  *
- * For the pointer the system took away (::lh_os_input_kind_pointer_cancel) and
- * for the window losing the focus mid-press. The target still hears
- * ::lh_ui_entity_event_release, at the last point the pointer was seen, so a
- * press is always paired; what it never gets is the click. Does nothing when no
- * press is open.
+ * For the window losing the focus mid-press; the one pointer the system took
+ * away (::lh_os_input_kind_pointer_cancel) is ::lh_ui_view_cancel_pointer. Each
+ * target still hears ::lh_ui_entity_event_release, at the last point its pointer
+ * was seen, so a press is always paired; what it never gets is the click. Does
+ * nothing when no press is open.
  */
 lh_void
 lh_ui_view_cancel(lh_ui_view_t *self);
@@ -666,19 +722,22 @@ lh_ui_view_cancel(lh_ui_view_t *self);
  *
  * | Event                                   | Goes to                     |
  * |-----------------------------------------|-----------------------------|
- * | `pointer_down` of the primary button    | ::lh_ui_view_press          |
- * | `pointer_move`                          | ::lh_ui_view_move           |
- * | `pointer_up` of the primary button      | ::lh_ui_view_release        |
- * | `pointer_cancel`, `focus_out`           | ::lh_ui_view_cancel         |
+ * | `pointer_down` of the primary button    | ::lh_ui_view_press_pointer  |
+ * | `pointer_move`                          | ::lh_ui_view_move_pointer   |
+ * | `pointer_up` of the primary button      | ::lh_ui_view_release_pointer|
+ * | `pointer_cancel`                        | ::lh_ui_view_cancel_pointer |
+ * | `focus_out`                             | ::lh_ui_view_cancel         |
  * | `wheel`                                 | ::lh_ui_view_wheel          |
  * | `key_down` (a repeat too) / `key_up`    | ::lh_ui_view_key            |
  * | `text`                                  | ::lh_ui_view_text           |
  *
- * Only the first pointer (`pointer` 0) is followed. A wheel notch up or left
- * scrolls back toward the start by the system's step, ::lh_os_input_get_wheel_step
- * content units (::LH_UI_VIEW_WHEEL_STEP without ::LH_LIBRARY_OPTION_OS). Other
- * buttons, other pointers, controllers and every synthesized event
- * (::lh_os_input_event_is_synthesized) are not for the view.
+ * Each pointer below ::LH_OS_INPUT_POINTER_MAX is followed in a session of its own,
+ * the event's `pointer` the id: the mouse `0`, touch contacts and pens from `1`. A
+ * wheel notch up or left scrolls back toward the start by the system's step,
+ * ::lh_os_input_get_wheel_step content units (::LH_UI_VIEW_WHEEL_STEP without
+ * ::LH_LIBRARY_OPTION_OS). Other buttons, pointers at or above the limit,
+ * controllers and every synthesized event (::lh_os_input_event_is_synthesized) are
+ * not for the view.
  *
  * @return True when the view acted on @p event; repaint what
  *         ::lh_ui_view_take_damage then returns. A move or a wheel notch acts
@@ -687,9 +746,9 @@ lh_ui_view_cancel(lh_ui_view_t *self);
  *
  * @code
  * lh_void
- * on_input(const lh_os_input_event_ptr event, lh_ptr context)
+ * on_input(lh_self_ptr self, const lh_os_input_event_ptr event)
  * {
- *     lh_ui_view_t *view = lh_ptr_rcast(lh_ui_view_t, context);
+ *     lh_ui_view_t *view = lh_ptr_rcast(lh_ui_view_t, self);
  *
  *     if (lh_ui_view_input(view, event)) // pressed, scrolled, typed into
  *     {

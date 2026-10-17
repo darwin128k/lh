@@ -63,9 +63,9 @@ struct event_log
 };
 
 lh_void
-record(const lh_os_input_event_t *event, lh_ptr context)
+record(lh_self_ptr self, const lh_os_input_event_t *event)
 {
-    static_cast<event_log *>(context)->events.push_back(*event);
+    static_cast<event_log *>(self)->events.push_back(*event);
 }
 
 struct fixture

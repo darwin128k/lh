@@ -460,13 +460,21 @@ lh_ui_view_slow_down(lh_ui_point_t velocity, lh_ui_point_t *out)
 lh_void
 lh_ui_view_reset_pointer(lh_ui_view_t *self)
 {
+    lh_os_input_pointer_id_t id;
+
     lh_assert_runtime_ref(self);
-    self->grab = lh_null;
-    self->grab_offset = lh_ui_scalar(0);
-    self->pressed = lh_bool_false;
-    self->dragged = lh_bool_false;
-    self->target = lh_null;
-    self->drag = lh_null;
+    for (id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
+    {
+        lh_ui_view_pointer_reset(lh_addr_of(self->pointers[id]));
+    }
+}
+
+const lh_ui_view_pointer_t *
+lh_ui_view_get_pointer(const lh_ui_view_t *self, lh_os_input_pointer_id_t id)
+{
+    lh_assert_runtime_ref(self);
+    lh_return_if(id >= LH_OS_INPUT_POINTER_MAX, lh_null);
+    return lh_addr_of(self->pointers[id]);
 }
 
 /* -- Throw ----------------------------------------------------------------- */
@@ -474,6 +482,7 @@ lh_ui_view_reset_pointer(lh_ui_view_t *self)
 lh_void
 lh_ui_view_init(lh_ui_view_t *self)
 {
+    lh_os_input_pointer_id_t id;
     int i;
 
     lh_assert_runtime_ref(self);
@@ -488,7 +497,10 @@ lh_ui_view_init(lh_ui_view_t *self)
     lh_ui_rect_init_empty(lh_addr_of(self->pending));
     self->has_pending = lh_bool_false;
     lh_ui_point_init(lh_addr_of(self->velocity), lh_ui_scalar(0), lh_ui_scalar(0));
-    lh_ui_view_reset_pointer(self);
+    for (id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
+    {
+        lh_ui_view_pointer_init(lh_addr_of(self->pointers[id]));
+    }
     for (i = 0; i < LH_UI_VIEW_TRANSITION_MAX; ++i)
     {
         lh_ui_transition_init(lh_addr_of(self->transitions[i]));
@@ -505,18 +517,82 @@ lh_ui_view_get_thumb_start_at(const lh_ui_scrollbar_t *bar, lh_ui_point_t point)
     return lh_ui_scrollbar_get_thumb_start_at(bar, point1);
 }
 
-lh_void
-lh_ui_view_grab_thumb(lh_ui_view_t *self, lh_ui_scrollbar_t *bar, lh_ui_point_t point)
+/** The session of pointer @p id in @p self, or ::lh_null for an id the view does
+   not follow. */
+static lh_ui_view_pointer_t *
+lh_ui_view_get_slot(lh_ui_view_t *self, lh_os_input_pointer_id_t id)
 {
-    lh_return_if(lh_null_eq(bar));
+    lh_return_if(id >= LH_OS_INPUT_POINTER_MAX, lh_null);
+    return lh_addr_of(self->pointers[id]);
+}
+
+/** True when a pointer of @p self other than @p pointer drives @p box: drags its
+   content or holds the thumb of a bar that scrolls it. A box is one pointer's at a
+   time -- two fingers pulling one list two ways is no scroll anybody meant. */
+static lh_bool_t
+lh_ui_view_is_driven_by_other(const lh_ui_view_t *self, const lh_ui_view_pointer_t *pointer,
+                              const lh_ui_container_t *box)
+{
+    lh_os_input_pointer_id_t id;
+
+    lh_return_if(lh_null_eq(box), lh_bool_false);
+    for (id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
     {
-        lh_ui_point_t _lh_local;
-        lh_ui_entity_to_local(lh_ui_scrollbar_as_entity(bar), point, lh_addr_of(_lh_local));
-        lh_return_if(!lh_ui_scrollbar_contains_thumb(bar, _lh_local));
+        const lh_ui_view_pointer_t *other = lh_addr_of(self->pointers[id]);
+        const lh_ui_scrollbar_t *grab = lh_ui_view_pointer_get_grab(other);
+
+        if (other != pointer && (lh_ui_view_pointer_get_drag(other) == box ||
+                                 (lh_null_ne(grab) && lh_ui_scrollbar_get_container(grab) == box)))
+        {
+            return lh_bool_true;
+        }
     }
-    self->grab = bar;
-    self->grab_offset =
-        lh_ui_view_get_thumb_start_at(bar, point) - lh_ui_scrollbar_get_thumb_start(bar);
+    return lh_bool_false;
+}
+
+/** True when a pointer of @p self other than @p pointer went down on @p entity
+   and has not let go of it. */
+static lh_bool_t
+lh_ui_view_is_held_by_other(const lh_ui_view_t *self, const lh_ui_view_pointer_t *pointer,
+                            const lh_ui_entity_t *entity)
+{
+    lh_os_input_pointer_id_t id;
+
+    lh_return_if(lh_null_eq(entity), lh_bool_false);
+    for (id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
+    {
+        const lh_ui_view_pointer_t *other = lh_addr_of(self->pointers[id]);
+
+        if (other != pointer && lh_ui_view_pointer_get_target(other) == entity)
+        {
+            return lh_bool_true;
+        }
+    }
+    return lh_bool_false;
+}
+
+/** Close the scroll gesture of @p self as @p pointer lets go, unless another
+   pointer still drives the container it is about: that one's gesture is not over. */
+static lh_void
+lh_ui_view_end_scroll_of(lh_ui_view_t *self, const lh_ui_view_pointer_t *pointer)
+{
+    lh_return_if(lh_ui_view_is_driven_by_other(self, pointer, self->scrolling));
+    lh_ui_view_end_scroll(self);
+}
+
+lh_void
+lh_ui_view_grab_thumb(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_scrollbar_t *bar,
+                      lh_ui_point_t point)
+{
+    lh_ui_point_t local;
+
+    lh_return_if(lh_null_eq(bar));
+    lh_ui_entity_to_local(lh_ui_scrollbar_as_entity(bar), point, lh_addr_of(local));
+    lh_return_if(!lh_ui_scrollbar_contains_thumb(bar, local));
+    lh_return_if(lh_ui_view_is_driven_by_other(self, pointer, lh_ui_scrollbar_get_container(bar)));
+    lh_ui_view_pointer_set_grab(pointer, bar,
+                                lh_ui_view_get_thumb_start_at(bar, point) -
+                                    lh_ui_scrollbar_get_thumb_start(bar));
 }
 
 lh_ui_container_t *
@@ -628,18 +704,28 @@ lh_ui_view_set_pressed(lh_ui_view_t *self, lh_ui_entity_t *entity, lh_bool_t pre
     lh_ui_entity_set_pressed(entity, pressed);
 }
 
-lh_void
-lh_ui_view_start_pointer(lh_ui_view_t *self, lh_ui_point_t point)
+/** Let go of the entity @p pointer went down on, unless another pointer of @p self
+   still presses it: the pressed look is the last finger's to end. */
+static lh_void
+lh_ui_view_unpress_target(lh_ui_view_t *self, const lh_ui_view_pointer_t *pointer)
 {
+    lh_ui_entity_t *target = lh_ui_view_pointer_get_target(pointer);
+
+    lh_return_if(lh_ui_view_is_held_by_other(self, pointer, target));
+    lh_ui_view_set_pressed(self, target, lh_bool_false);
+}
+
+lh_void
+lh_ui_view_start_pointer(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_point_t point)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(pointer);
     lh_ui_view_stop_throw(self);
-    /* A press still open when a new one starts (a second pointer down, or an
-       app that went away without a release) is let go rather than left pressed
-       under nothing — that is the one way a pressed look could stick. */
-    lh_ui_view_set_pressed(self, self->target, lh_bool_false);
-    lh_ui_view_reset_pointer(self);
-    self->pressed = lh_bool_true;
-    self->press_point = point;
-    self->last_point = point;
+    /* A press of this pointer still open when it goes down again (an app that
+       went away without a release) is let go rather than left pressed under
+       nothing — that is the one way a pressed look could stick. */
+    lh_ui_view_unpress_target(self, pointer);
+    lh_ui_view_pointer_start(pointer, point);
 }
 
 lh_void
@@ -656,98 +742,109 @@ lh_ui_view_set_hot(lh_ui_view_t *self, lh_ui_button_t *button, lh_bool_t hot)
 }
 
 lh_bool_t
-lh_ui_view_drag_thumb(lh_ui_view_t *self, lh_ui_scrollbar_t *bar, lh_ui_point_t point)
+lh_ui_view_drag_thumb(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_scrollbar_t *bar,
+                      lh_ui_point_t point)
 {
     lh_ui_container_t *box = lh_ui_scrollbar_get_container(bar);
     lh_ui_point_t before;
     lh_ui_container_get_scroll(box, lh_addr_of(before));
 
-    lh_ui_scrollbar_set_thumb_start(bar,
-                                    lh_ui_view_get_thumb_start_at(bar, point) - self->grab_offset);
+    lh_ui_scrollbar_set_thumb_start(bar, lh_ui_view_get_thumb_start_at(bar, point) -
+                                             lh_ui_view_pointer_get_grab_offset(pointer));
     return lh_ui_view_damage_scroll(self, box, before);
 }
 
 lh_bool_t
-lh_ui_view_is_past_threshold(const lh_ui_view_t *self, lh_ui_point_t point)
+lh_ui_view_drag_content(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_point_t point)
 {
-    lh_ui_point_t moved;
+    lh_ui_point_t from;
 
-    lh_ui_point_init(
-        lh_addr_of(moved),
-        lh_ui_point_get_x(lh_addr_of(point)) - lh_ui_point_get_x(lh_addr_of(self->press_point)),
-        lh_ui_point_get_y(lh_addr_of(point)) - lh_ui_point_get_y(lh_addr_of(self->press_point)));
-    return !lh_ui_view_is_slow(moved, LH_UI_VIEW_DRAG_THRESHOLD);
-}
-
-lh_void
-lh_ui_view_track(lh_ui_view_t *self, lh_ui_point_t point)
-{
-    const lh_ui_scalar_t dx =
-        lh_ui_point_get_x(lh_addr_of(self->last_point)) - lh_ui_point_get_x(lh_addr_of(point));
-    const lh_ui_scalar_t dy =
-        lh_ui_point_get_y(lh_addr_of(self->last_point)) - lh_ui_point_get_y(lh_addr_of(point));
-
-    /* The content follows the pointer; the glide keeps half the old speed. */
-    lh_ui_point_init(lh_addr_of(self->velocity),
-                     (lh_ui_point_get_x(lh_addr_of(self->velocity)) + dx) / 2,
-                     (lh_ui_point_get_y(lh_addr_of(self->velocity)) + dy) / 2);
-    self->last_point = point;
-}
-
-lh_bool_t
-lh_ui_view_drag_content(lh_ui_view_t *self, lh_ui_point_t point)
-{
-    const lh_ui_point_t from = self->last_point;
-
-    lh_return_if(!self->dragged && !lh_ui_view_is_past_threshold(self, point), lh_bool_false);
-    self->dragged = lh_bool_true;
-    lh_ui_view_track(self, point);
+    lh_ui_view_pointer_get_last_point(pointer, lh_addr_of(from));
+    lh_return_if(!lh_ui_view_pointer_is_dragged(pointer) &&
+                     !lh_ui_view_pointer_is_past_threshold(pointer, point),
+                 lh_bool_false);
+    lh_ui_view_pointer_set_dragged(pointer, lh_bool_true);
+    lh_ui_view_pointer_track(pointer, point);
     return lh_ui_view_scroll_by(
-        self, self->drag,
+        self, lh_ui_view_pointer_get_drag(pointer),
         lh_ui_point_get_x(lh_addr_of(from)) - lh_ui_point_get_x(lh_addr_of(point)),
         lh_ui_point_get_y(lh_addr_of(from)) - lh_ui_point_get_y(lh_addr_of(point)));
 }
 
 lh_bool_t
+lh_ui_view_move_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id, lh_ui_point_t point)
+{
+    lh_ui_view_pointer_t *pointer;
+    lh_ui_scrollbar_t *grab;
+
+    lh_assert_runtime_ref(self);
+    pointer = lh_ui_view_get_slot(self, id);
+    lh_return_if(lh_null_eq(pointer), lh_bool_false);
+    grab = lh_ui_view_pointer_get_grab(pointer);
+    if (lh_null_ne(grab))
+    {
+        lh_ui_view_pointer_set_dragged(pointer, lh_bool_true);
+        return lh_ui_view_drag_thumb(self, pointer, grab, point);
+    }
+    lh_return_if(!lh_ui_view_pointer_is_pressed(pointer) ||
+                     lh_null_eq(lh_ui_view_pointer_get_drag(pointer)),
+                 lh_bool_false);
+    return lh_ui_view_drag_content(self, pointer, point);
+}
+
+lh_bool_t
 lh_ui_view_move(lh_ui_view_t *self, lh_ui_point_t point)
 {
-    lh_assert_runtime_ref(self);
-    if (lh_null_ne(self->grab))
-    {
-        self->dragged = lh_bool_true;
-        return lh_ui_view_drag_thumb(self, self->grab, point);
-    }
-    lh_return_if(!self->pressed || lh_null_eq(self->drag), lh_bool_false);
-    return lh_ui_view_drag_content(self, point);
+    return lh_ui_view_move_pointer(self, 0U, point);
 }
 
 lh_void
-lh_ui_view_finish_gesture(lh_ui_view_t *self)
+lh_ui_view_finish_gesture(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer)
 {
-    if (lh_null_ne(self->drag) && self->dragged)
+    lh_ui_container_t *box = lh_ui_view_pointer_get_drag(pointer);
+
+    if (lh_null_ne(box) && lh_ui_view_pointer_is_dragged(pointer))
     {
-        lh_ui_view_start_throw(self, self->drag);
+        /* The glide is the view's, at the speed of the finger that let go. */
+        lh_ui_view_pointer_get_velocity(pointer, lh_addr_of(self->velocity));
+        lh_ui_view_start_throw(self, box);
         return;
     }
-    lh_ui_view_end_scroll(self);
+    lh_ui_view_end_scroll_of(self, pointer);
+}
+
+lh_ui_entity_t *
+lh_ui_view_release_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id, lh_ui_point_t point)
+{
+    lh_ui_view_pointer_t *pointer;
+    lh_ui_entity_t *target;
+    lh_bool_t clicked;
+
+    lh_assert_runtime_ref(self);
+    pointer = lh_ui_view_get_slot(self, id);
+    lh_return_if(lh_null_eq(pointer), lh_null);
+    target = lh_ui_view_pointer_get_target(pointer);
+    lh_ui_entity_send_pointer(target, lh_ui_entity_event_release, point);
+    /* Released before the click, and on the entity the press went down on: a
+       click may move the pointer onto something else, and that thing was never
+       pressed. */
+    lh_ui_view_unpress_target(self, pointer);
+    lh_ui_view_finish_gesture(self, pointer);
+    /* A click is a press and a release on one thing: a finger that slid off the
+       button it went down on and lifted over another one clicked neither. */
+    clicked = lh_type_cast(
+        lh_bool_t, lh_ui_view_pointer_is_pressed(pointer) &&
+                       !lh_ui_view_pointer_is_dragged(pointer) &&
+                       lh_ui_entity_click_target(lh_ui_view_hit_test(self, point)) == target);
+    lh_ui_view_pointer_reset(pointer);
+    lh_return_if(!clicked, lh_null);
+    return lh_ui_view_click(self, point);
 }
 
 lh_ui_entity_t *
 lh_ui_view_release(lh_ui_view_t *self, lh_ui_point_t point)
 {
-    lh_bool_t clicked;
-
-    lh_assert_runtime_ref(self);
-    lh_ui_entity_send_pointer(self->target, lh_ui_entity_event_release, point);
-    /* Released before the click, and on the entity the press went down on: a
-       click may move the pointer onto something else, and that thing was never
-       pressed. */
-    lh_ui_view_set_pressed(self, self->target, lh_bool_false);
-    lh_ui_view_finish_gesture(self);
-    clicked = self->pressed && !self->dragged ? lh_bool_true : lh_bool_false;
-    lh_ui_view_reset_pointer(self);
-    lh_return_if(!clicked, lh_null);
-    return lh_ui_view_click(self, point);
+    return lh_ui_view_release_pointer(self, 0U, point);
 }
 
 lh_ui_entity_t *
@@ -772,9 +869,14 @@ lh_ui_view_set_focus(lh_ui_view_t *self, lh_ui_entity_t *entity)
 }
 
 lh_void
-lh_ui_view_press_on(lh_ui_view_t *self, lh_ui_entity_t *hit, lh_ui_point_t point)
+lh_ui_view_press_on(lh_ui_view_t *self, lh_ui_view_pointer_t *pointer, lh_ui_entity_t *hit,
+                    lh_ui_point_t point)
 {
-    self->target = hit;
+    lh_ui_container_t *box;
+
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(pointer);
+    lh_ui_view_pointer_set_target(pointer, hit);
     /* Pressed is the entity's own state and this is the one place that sets it:
        a press is a look (::lh_ui_entity_get_style_now), so it has to be paired
        with the rect it changed, or the picture keeps the old look until
@@ -782,17 +884,33 @@ lh_ui_view_press_on(lh_ui_view_t *self, lh_ui_entity_t *hit, lh_ui_point_t point
     lh_ui_view_set_pressed(self, hit, lh_bool_true);
     lh_ui_entity_send_pointer(hit, lh_ui_entity_event_press, point);
     lh_ui_view_set_focus(self, lh_ui_entity_find_focusable(hit));
-    lh_ui_view_grab_thumb(self, lh_ui_entity_as_scrollbar(hit), point);
-    self->drag = lh_null_eq(self->grab) ? lh_ui_view_get_drag_box(hit) : lh_null;
+    lh_ui_view_grab_thumb(self, pointer, lh_ui_entity_as_scrollbar(hit), point);
+    box = lh_null_eq(lh_ui_view_pointer_get_grab(pointer)) ? lh_ui_view_get_drag_box(hit) : lh_null;
+    /* A container another pointer drags stays that pointer's: this one presses and
+       may click inside it, but does not pull the content from under the other. */
+    lh_ui_view_pointer_set_drag(pointer,
+                                lh_ui_view_is_driven_by_other(self, pointer, box) ? lh_null : box);
+}
+
+lh_void
+lh_ui_view_press_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id, lh_ui_point_t point)
+{
+    lh_ui_view_pointer_t *pointer;
+
+    lh_assert_runtime_ref(self);
+    pointer = lh_ui_view_get_slot(self, id);
+    lh_return_if(lh_null_eq(pointer));
+    lh_ui_view_start_pointer(self, pointer, point);
+    /* Pressing is clicking: what the pointer went down on is the thing that takes
+       the pointer, not whatever is painted under it. */
+    lh_ui_view_press_on(self, pointer, lh_ui_entity_click_target(lh_ui_view_hit_test(self, point)),
+                        point);
 }
 
 lh_void
 lh_ui_view_press(lh_ui_view_t *self, lh_ui_point_t point)
 {
-    lh_ui_view_start_pointer(self, point);
-    /* Pressing is clicking: what the pointer went down on is the thing that takes
-       the pointer, not whatever is painted under it. */
-    lh_ui_view_press_on(self, lh_ui_entity_click_target(lh_ui_view_hit_test(self, point)), point);
+    lh_ui_view_press_pointer(self, 0U, point);
 }
 
 lh_bool_t
@@ -924,14 +1042,32 @@ lh_ui_view_start_transition(lh_ui_view_t *self, lh_ui_entity_t *entity, const lh
 /* -- Input events ------------------------------------------------------------ */
 
 lh_void
+lh_ui_view_cancel_pointer(lh_ui_view_t *self, lh_os_input_pointer_id_t id)
+{
+    lh_ui_view_pointer_t *pointer;
+    lh_ui_point_t last;
+
+    lh_assert_runtime_ref(self);
+    pointer = lh_ui_view_get_slot(self, id);
+    lh_return_if(lh_null_eq(pointer) || !lh_ui_view_pointer_is_active(pointer));
+    lh_ui_view_pointer_get_last_point(pointer, lh_addr_of(last));
+    lh_ui_entity_send_pointer(lh_ui_view_pointer_get_target(pointer), lh_ui_entity_event_release,
+                              last);
+    lh_ui_view_unpress_target(self, pointer);
+    lh_ui_view_end_scroll_of(self, pointer);
+    lh_ui_view_pointer_reset(pointer);
+}
+
+lh_void
 lh_ui_view_cancel(lh_ui_view_t *self)
 {
+    lh_os_input_pointer_id_t id;
+
     lh_assert_runtime_ref(self);
-    lh_return_if(!self->pressed && lh_null_eq(self->grab));
-    lh_ui_entity_send_pointer(self->target, lh_ui_entity_event_release, self->last_point);
-    lh_ui_view_set_pressed(self, self->target, lh_bool_false);
-    lh_ui_view_end_scroll(self);
-    lh_ui_view_reset_pointer(self);
+    for (id = 0U; id < LH_OS_INPUT_POINTER_MAX; ++id)
+    {
+        lh_ui_view_cancel_pointer(self, id);
+    }
 }
 
 /** Where @p event happened, in whole view units. */
@@ -987,25 +1123,28 @@ lh_ui_view_is_primary_press(lh_os_input_event_cptr event)
                         lh_os_input_event_get_button(event) == lh_os_input_button_primary);
 }
 
-/** The pointer half of ::lh_ui_view_input. */
+/** The pointer half of ::lh_ui_view_input: each pointer the view follows to its own
+   session. */
 static lh_bool_t
 lh_ui_view_input_pointer(lh_ui_view_t *self, lh_os_input_event_cptr event)
 {
-    lh_return_if(lh_os_input_event_get_pointer(event) != 0U, lh_bool_false);
+    const lh_os_input_pointer_id_t id = lh_os_input_event_get_pointer(event);
+
+    lh_return_if(id >= LH_OS_INPUT_POINTER_MAX, lh_bool_false);
     switch (lh_os_input_event_get_kind(event))
     {
     case lh_os_input_kind_pointer_down:
         lh_return_if(!lh_ui_view_is_primary_press(event), lh_bool_false);
-        lh_ui_view_press(self, lh_ui_view_point_of(event));
+        lh_ui_view_press_pointer(self, id, lh_ui_view_point_of(event));
         return lh_bool_true;
     case lh_os_input_kind_pointer_move:
-        return lh_ui_view_move(self, lh_ui_view_point_of(event));
+        return lh_ui_view_move_pointer(self, id, lh_ui_view_point_of(event));
     case lh_os_input_kind_pointer_up:
         lh_return_if(!lh_ui_view_is_primary_press(event), lh_bool_false);
-        (void)lh_ui_view_release(self, lh_ui_view_point_of(event));
+        (void)lh_ui_view_release_pointer(self, id, lh_ui_view_point_of(event));
         return lh_bool_true;
     case lh_os_input_kind_pointer_cancel:
-        lh_ui_view_cancel(self);
+        lh_ui_view_cancel_pointer(self, id);
         return lh_bool_true;
     case lh_os_input_kind_wheel:
         return lh_ui_view_input_wheel(self, event);

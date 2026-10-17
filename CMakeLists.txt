@@ -134,11 +134,13 @@ set(LH_LIB_SOURCES
         ${LH_LIB_SRC_PATH}/timestamp.c
         ${LH_LIB_SRC_PATH}/timer.c
         ${LH_LIB_SRC_PATH}/timer/tick.c
+        ${LH_LIB_SRC_PATH}/os/input/contacts.c
         ${LH_LIB_SRC_PATH}/os/input/event.c
         ${LH_LIB_SRC_PATH}/os/input/queue.c
         ${LH_LIB_SRC_PATH}/os/input/recognizer.c
         ${LH_LIB_SRC_PATH}/os/input/recognizer/config.c
         ${LH_LIB_SRC_PATH}/os/input/wheel.c
+        ${LH_LIB_SRC_PATH}/os/controller.c
         ${LH_LIB_SRC_PATH}/error.c
         ${LH_LIB_SRC_PATH}/werror.c
         ${LH_LIB_SRC_PATH}/runtime/error.c
@@ -321,6 +323,8 @@ if (LH_LIBRARY_OPTION_UI)
             ${LH_LIB_SRC_PATH}/ui/button.c
              ${LH_LIB_SRC_PATH}/ui/toggle.c
             ${LH_LIB_SRC_PATH}/ui/view.c
+            ${LH_LIB_SRC_PATH}/ui/view/controller.c
+            ${LH_LIB_SRC_PATH}/ui/view/pointer.c
             ${LH_LIB_SRC_PATH}/ui/mask.c
             ${LH_LIB_SRC_PATH}/ui/font.c
              ${LH_LIB_SRC_PATH}/ui/font/range.c

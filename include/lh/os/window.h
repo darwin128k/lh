@@ -16,6 +16,13 @@
  * — move it, resize it, or leave the press to the app. What that looks like is the
  * caller's, so a project draws and hit-tests its own title bar and its own buttons.
  *
+ * Input has two levels. The standard one is a controller
+ * (::lh_os_window_set_controller): the window feeds it every event, cancels it when
+ * the focus goes and runs its gesture timers, so a view behind
+ * `lh_ui_view_controller_handle` needs nothing else wired. The low level is the
+ * sink (::lh_os_window_set_on_input), which sees every raw event first; with no
+ * controller it is the only consumer.
+ *
  * Requires ::LH_LIBRARY_OPTION_OS_WINDOW (itself requires ::LH_LIBRARY_OPTION_OS).
  */
 
@@ -23,6 +30,7 @@
 #define LH_OS_WINDOW_H
 
 #include <lh/config.h>
+#include <lh/os/controller.h>
 #include <lh/os/input/event.h>
 #include <lh/os/system/window/handle.h>
 #include <lh/os/window/fields.h>
@@ -45,7 +53,8 @@ struct lh_os_app;
 struct lh_os_window
 {
     /** Members: ::lh_os_window_fields. */
-    lh_os_window_fields(lh_os_system_window_handle_t, struct lh_os_app, struct lh_os_window);
+    lh_os_window_fields(lh_os_system_window_handle_t, struct lh_os_app, struct lh_os_window,
+                        struct lh_os_controller);
 };
 /** @copybrief lh_os_window */
 typedef struct lh_os_window lh_os_window_t;
@@ -291,27 +300,32 @@ struct lh_ui_frame_stats *
 lh_os_window_get_frame_stats(const lh_os_window_t *self);
 
 /**
- * @brief Hand every input event of @p self to @p on_input, with @p context.
+ * @brief Hand every input event of @p self to @p on_input, with @p context as
+ *        its `self`.
  *
- * The one input slot of a window: pointer down, up, move and cancel for every
- * mouse button, the wheel in 1/120 notch, keys down (with repeats) and up, typed
- * text, focus in and out — each one ::lh_os_input_event_t with its modifiers and
- * a time on the ::lh_os_tick_ms clock. ::lh_null clears the slot.
+ * The low-level input slot of a window: pointer down, up, move and cancel for
+ * every mouse button and every touch or pen contact, the wheel in 1/120 notch,
+ * keys down (with repeats) and up, typed text, focus in and out — each one
+ * ::lh_os_input_event_t with its modifiers and a time on the ::lh_os_tick_ms
+ * clock, raw: no gestures. ::lh_null clears the slot.
  *
- * Gestures (click, double click, long press, drag) are not the window's: feed
- * the events to an ::lh_os_input_recognizer_t, and either kind to
- * ::lh_ui_view_input.
+ * The sink sees each event before the controller of ::lh_os_window_set_controller
+ * does, and the controller sees it whatever the sink did with it: the sink is a
+ * tap (a log, a shortcut, an app that routes input itself), the controller the
+ * consumer. Without a controller the sink is the only one. Do not also plug the
+ * window's own controller in here through ::lh_os_controller_sink: it would get
+ * every event twice.
  *
  * Example usage:
  * @code{.c}
  * static lh_void
- * on_input(const lh_os_input_event_ptr event, lh_ptr context)
+ * on_input(lh_self_ptr self, const lh_os_input_event_ptr event)
  * {
- *     struct my_main *self = lh_ptr_rcast(struct my_main, context);
+ *     struct my_main *my = lh_ptr_rcast(struct my_main, self);
  *
- *     if (lh_ui_view_input(lh_addr_of(self->view), event))
+ *     if (lh_ui_view_input(lh_addr_of(my->view), event))
  *     {
- *         lh_os_window_invalidate(lh_addr_of(self->window));
+ *         lh_os_window_invalidate(lh_addr_of(my->window));
  *     }
  * }
  *
@@ -322,8 +336,50 @@ lh_void
 lh_os_window_set_on_input(lh_os_window_t *self, lh_os_input_sink_cb on_input, lh_ptr context);
 
 /**
- * @brief The pointer buttons held over @p self as the last pointer event left
- *        them (::lh_os_input_button_to_mask); `0` after a cancel or a focus loss.
+ * @brief Make @p controller the consumer of @p self's input; ::lh_null for none.
+ *
+ * The standard input path of a window, and all of it in one call:
+ *
+ * - every event ::lh_os_window_on_native_input gets goes to
+ *   ::lh_os_controller_feed, after the sink of ::lh_os_window_set_on_input, if any;
+ * - a focus loss (::lh_os_input_kind_focus_out) is fed and then
+ *   ::lh_os_controller_cancel'led, so every press and gesture is let go;
+ * - every tick of the window calls ::lh_os_controller_update at ::lh_os_tick_ms,
+ *   before `on_tick`. Without an `on_tick` period (::lh_os_window_set_on_tick) the
+ *   window arms its timer by itself, for the recognizer's next deadline
+ *   (::lh_os_input_recognizer_get_next_deadline) and for that only, so a long
+ *   press arrives on time and an idle window has no timer. With a period, the
+ *   update rides on it: a deadline is then late by up to one period.
+ *
+ * The window does not repaint for the controller: its handler, or `on_tick`, asks
+ * for the paint (`lh_ui_view_take_damage`, ::lh_os_window_invalidate_rect), as a
+ * sink did. Do not call ::lh_os_controller_update for this controller from
+ * `on_tick` too: the window already has. The controller is the caller's and must
+ * outlive the window, or be cleared first. A focus that leaves while the
+ * controller is replaced is not seen by the new one.
+ *
+ * The OS layer knows nothing of the UI: a view becomes the handler through
+ * `lh_ui_view_controller_handle` (`lh/ui/view/controller.h`).
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_os_controller_init(lh_addr_of(controller), lh_ui_view_controller_handle, // the view
+ *                       lh_addr_of(view), lh_null);                           // defaults
+ * lh_os_controller_set_cancel_cb(lh_addr_of(controller), lh_ui_view_controller_cancel);
+ * lh_os_window_set_controller(lh_addr_of(window), lh_addr_of(controller));
+ * @endcode
+ */
+lh_void
+lh_os_window_set_controller(lh_os_window_t *self, lh_os_controller_t *controller);
+
+/** @brief The controller @p self feeds (::lh_os_window_set_controller), or ::lh_null. */
+lh_os_controller_t *
+lh_os_window_get_controller(const lh_os_window_t *self);
+
+/**
+ * @brief The mouse buttons held over @p self as the last event of pointer `0`
+ *        left them (::lh_os_input_button_to_mask); `0` after its cancel or a focus
+ *        loss. Touch and pen contacts (pointer `1` and up) leave it alone.
  */
 lh_u32_t
 lh_os_window_get_pressed_buttons(const lh_os_window_t *self);
@@ -407,7 +463,8 @@ lh_os_window_on_native_destroy(lh_os_window_t *self);
 /**
  * @brief Called from the native backend when the window's timer goes off.
  *
- * Invokes the on-tick callback if there is one. The native side owns the schedule; this
+ * Updates the controller first (::lh_os_window_set_controller), then invokes the
+ * on-tick callback if there is one. The native side owns the schedule; this
  * is only the delivery, and it is a no-op for a window with no callback rather than a
  * crash -- a window whose timer was stopped by the window system, or one that was never
  * given a period, still gets messages.
@@ -450,10 +507,13 @@ lh_os_window_on_native_resize(lh_os_window_t *self, int width, int height, lh_bo
 /**
  * @brief Called from the native backend with one input event.
  *
- * Records the buttons a pointer event leaves held
+ * Records the buttons a mouse event leaves held
  * (::lh_os_window_get_pressed_buttons; a pointer cancel and a focus loss clear
- * them), then hands @p event to ::lh_os_window_set_on_input's sink, if any.
- * The window may be gone when this returns: the sink may close it.
+ * them), then hands @p event to ::lh_os_window_set_on_input's sink, if any, and
+ * then to the controller of ::lh_os_window_set_controller, if any (cancelled
+ * after a focus loss, its timer rearmed). Every backend, Win32 and X11, delivers
+ * through here. The window may be closed when this returns: the sink or the
+ * controller's handler may close it.
  */
 lh_void
 lh_os_window_on_native_input(lh_os_window_t *self, const lh_os_input_event_ptr event);

@@ -21,7 +21,7 @@
 struct lh_ui_frame_stats;
 
 /**
- * @def lh_os_window_fields(handle_type, app_type, window_type)
+ * @def lh_os_window_fields(handle_type, app_type, window_type, controller_type)
  * @brief Native handle, app or parent, children, input/paint/close notify, and link.
  *
  * Top-level windows are added from outside into the app list (`app` set).
@@ -42,10 +42,17 @@ struct lh_ui_frame_stats;
  * `frame_stats` is the caller's, and every paint is recorded into it when it is set
  * (::lh_os_window_set_frame_stats).
  * Input is one sink: `on_input` takes every ::lh_os_input_event_t the backend builds
- * (pointer, wheel, key, text, focus), with `on_input_context`; see
+ * (pointer, wheel, key, text, focus), with `on_input_context` as its `self`; see
  * ::lh_os_window_set_on_input. `pressed_buttons` is the mask of pointer buttons the
  * last pointer event left held, `0` after a cancel or a focus loss, so a backend can
  * tell whether losing the pointer capture interrupted a press.
+ *
+ * `controller` is the standard consumer of that input: every event the sink saw goes
+ * on to it (::lh_os_controller_feed), a focus loss also cancels it, and the window
+ * keeps its recognizer's timers running (::lh_os_controller_update) on the window
+ * timer; see ::lh_os_window_set_controller. `controller_armed` is true while the
+ * window timer runs for the controller alone -- no `on_tick` asked for one -- to bring
+ * the recognizer's next deadline (a long press) on time.
  *
  * `on_tick` and `tick_ms` are the window's timer: `tick_ms` is the period the window
  * system was asked for and `0` means no timer is running. It exists because an app
@@ -53,11 +60,12 @@ struct lh_ui_frame_stats;
  * on its own is a paint -- and work done inside a paint can only ask for the **next**
  * one, which is a spin, not a schedule. See ::lh_os_window_set_on_tick.
  *
- * @param handle_type Type of `handle` (::lh_os_system_window_handle_t).
- * @param app_type    Type of the owning app pointer (::lh_os_app_t).
- * @param window_type Type of the parent / child window pointer.
+ * @param handle_type     Type of `handle` (::lh_os_system_window_handle_t).
+ * @param app_type        Type of the owning app pointer (::lh_os_app_t).
+ * @param window_type     Type of the parent / child window pointer.
+ * @param controller_type Type of the controller pointer (::lh_os_controller_t).
  */
-#define lh_os_window_fields(handle_type, app_type, window_type)                                    \
+#define lh_os_window_fields(handle_type, app_type, window_type, controller_type)                   \
     handle_type handle;                                                                            \
     app_type *app;                                                                                 \
     window_type *parent;                                                                           \
@@ -83,6 +91,8 @@ struct lh_ui_frame_stats;
     struct lh_ui_frame_stats *frame_stats;                                                         \
     lh_os_input_sink_cb on_input;                                                                  \
     lh_ptr on_input_context;                                                                       \
+    controller_type *controller;                                                                   \
+    lh_bool_t controller_armed;                                                                    \
     lh_u32_t pressed_buttons;                                                                      \
     lh_os_window_on_close_cb on_close;                                                             \
     lh_ptr on_close_context;                                                                       \
