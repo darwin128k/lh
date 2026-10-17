@@ -167,7 +167,6 @@ lh_add_test_core(lh_test_memory
         ${LH_TEST_SRC_PATH}/lh/memory/tree.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/typed.cpp
         ${LH_TEST_SRC_PATH}/lh/memory/view.cpp
-        ${LH_TEST_SRC_PATH}/lh/memory/view/slice.cpp
 )
 
 lh_add_test_core(lh_test_net

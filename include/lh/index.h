@@ -19,8 +19,7 @@
  * Non-negative values count from the beginning; negative values count from
  * the end (@c -1 is the last element, @c -2 the second-to-last, etc.),
  * matching the @c lh_soffset_t convention used by
- * ::lh_memory_view_get_ptr, ::lh_memory_bounds_get_ptr, and
- * ::lh_memory_view_slice_get_ptr.
+ * ::lh_memory_view_get_ptr and ::lh_memory_bounds_get_ptr.
  */
 typedef lh_ssize_t lh_sindex_t;
 
@@ -31,7 +30,7 @@ typedef lh_ssize_t lh_sindex_t;
  * Always counts from the beginning; there is no from-the-end convention,
  * matching the @c lh_uoffset_t convention used by
  * ::lh_memory_view_get_ptr_from_begin, ::lh_memory_view_get_ptr_from_end,
- * and their bounds and slice equivalents.
+ * and their bounds equivalents.
  */
 typedef lh_usize_t lh_uindex_t;
 
