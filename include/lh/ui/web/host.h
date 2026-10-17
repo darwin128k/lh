@@ -22,6 +22,7 @@
 
 #include <lh/config.h>
 #include <lh/net/port.h>
+#include <lh/os/controller.h>
 #include <lh/os/input/sink/cb.h>
 #include <lh/ui/view.h>
 
@@ -36,10 +37,20 @@
  * @brief What a window would call: the application, not the JSON player.
  *
  * Any function may be ::lh_null. Every input line of the player arrives as one
- * ::lh_os_input_event_t, the same event a desktop window's sink gets
- * (::lh_os_window_set_on_input): at @p input when it is set, else at
- * ::lh_ui_view_input on the served view. A hook that wants the view to see the
- * event as well passes it on to ::lh_ui_view_input itself.
+ * ::lh_os_input_event_t, the same event a desktop window gets, and takes the same
+ * two levels (::lh_os_window_set_on_input, ::lh_os_window_set_controller):
+ *
+ * - @p input, when set, sees it first, raw: the low-level tap;
+ * - @p controller, when set, gets it next (::lh_os_controller_feed), and the host
+ *   calls ::lh_os_controller_update on it at every tick, before @p tick;
+ * - with neither, the host feeds a controller of its own, made with
+ *   `lh_ui_view_controller_handle` and `lh_ui_view_controller_cancel` on the
+ *   served view and the default thresholds, so the view gets every event as
+ *   ::lh_ui_view_input would have, the gestures go along (and are ignored by it).
+ *
+ * @p input alone is what it always was: the host hands the event to nothing else,
+ * and a hook that wants the view to see it passes it on itself. The player has no
+ * focus to lose, so the host never cancels a controller.
  *
  * | Line           | Event                                              |
  * |----------------|----------------------------------------------------|
@@ -57,10 +68,14 @@ struct lh_ui_web_host_hooks
     lh_ptr ctx; /**< Passed to every hook. */
     /** About every 20 ms, and between requests. */
     lh_void (*tick)(lh_ptr ctx);
-    /** One input event from the player; @p context is ::ctx. */
+    /** One input event from the player; its `self` is ::ctx. */
     lh_os_input_sink_cb input;
     /** Layout-mode tab size; ::lh_null keeps the host's initial width/height. */
     lh_void (*resize)(int width, int height, lh_ptr ctx);
+    /** Takes every input event after ::input and is updated every tick; the caller's,
+        and must outlive the run. ::lh_null with no ::input: the host's own view
+        controller. */
+    lh_os_controller_t *controller;
 };
 /** @copybrief lh_ui_web_host_hooks */
 typedef struct lh_ui_web_host_hooks lh_ui_web_host_hooks_t;

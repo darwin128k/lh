@@ -21,6 +21,17 @@ extern "C" lh_u32_t
 lh_os_system_win_input_wheel_lines_of(int got, unsigned int lines);
 extern "C" lh_u32_t
 lh_os_system_win_input_get_wheel_lines(void);
+/* POINTER_INPUT_TYPE is a DWORD, an unsigned long; POINTER_FLAGS a UINT32. */
+extern "C" lh_os_input_device_kind_t
+lh_os_system_win_input_device_kind_of_pointer_type(unsigned long type);
+extern "C" lh_u32_t
+lh_os_system_win_input_pointer_flags_of(lh_usize_t wparam);
+extern "C" lh_os_input_kind_t
+lh_os_system_win_input_pointer_kind_of(lh_u32_t msg, lh_u32_t flags);
+extern "C" lh_bool_t
+lh_os_system_win_input_is_promoted_mouse(lh_ssize_t extra);
+extern "C" lh_os_input_device_kind_t
+lh_os_system_win_input_device_kind_of_mouse(lh_ssize_t extra);
 
 namespace
 {
@@ -105,6 +116,66 @@ TEST(os_system_win_input, a_line_count_is_taken_as_it_is)
 TEST(os_system_win_input, the_system_answers_a_count_of_lines)
 {
     EXPECT_NE(lh_os_system_win_input_get_wheel_lines(), 0xFFFFFFFFU);
+}
+
+/* PT_POINTER 1, PT_TOUCH 2, PT_PEN 3, PT_MOUSE 4, PT_TOUCHPAD 5. */
+TEST(os_system_win_input, each_pointer_type_names_its_device)
+{
+    EXPECT_EQ(lh_os_system_win_input_device_kind_of_pointer_type(2UL),
+              lh_os_input_device_kind_touch);
+    EXPECT_EQ(lh_os_system_win_input_device_kind_of_pointer_type(3UL), lh_os_input_device_kind_pen);
+    EXPECT_EQ(lh_os_system_win_input_device_kind_of_pointer_type(4UL),
+              lh_os_input_device_kind_mouse);
+    EXPECT_EQ(lh_os_system_win_input_device_kind_of_pointer_type(5UL),
+              lh_os_input_device_kind_mouse)
+        << "a touchpad is the mouse";
+    EXPECT_EQ(lh_os_system_win_input_device_kind_of_pointer_type(1UL),
+              lh_os_input_device_kind_none);
+    EXPECT_EQ(lh_os_system_win_input_device_kind_of_pointer_type(0UL),
+              lh_os_input_device_kind_none);
+}
+
+/* WM_POINTERUPDATE 0x0245, DOWN 0x0246, UP 0x0247, CAPTURECHANGED 0x024C. */
+TEST(os_system_win_input, each_pointer_message_names_its_event)
+{
+    EXPECT_EQ(lh_os_system_win_input_pointer_kind_of(0x0246U, 0x0004U),
+              lh_os_input_kind_pointer_down);
+    EXPECT_EQ(lh_os_system_win_input_pointer_kind_of(0x0245U, 0x0004U),
+              lh_os_input_kind_pointer_move);
+    EXPECT_EQ(lh_os_system_win_input_pointer_kind_of(0x0247U, 0U), lh_os_input_kind_pointer_up);
+    EXPECT_EQ(lh_os_system_win_input_pointer_kind_of(0x024CU, 0U), lh_os_input_kind_pointer_cancel)
+        << "the window lost the contact";
+    EXPECT_EQ(lh_os_system_win_input_pointer_kind_of(0x0200U, 0U), lh_os_input_kind_none)
+        << "WM_MOUSEMOVE is no pointer message";
+}
+
+TEST(os_system_win_input, a_cancelled_contact_is_a_cancel_whatever_the_message)
+{
+    EXPECT_EQ(lh_os_system_win_input_pointer_kind_of(0x0247U, 0x00008000U),
+              lh_os_input_kind_pointer_cancel);
+    EXPECT_EQ(lh_os_system_win_input_pointer_kind_of(0x0245U, 0x00008004U),
+              lh_os_input_kind_pointer_cancel);
+}
+
+/* The id is the low word of wParam, the flags its high word. */
+TEST(os_system_win_input, the_pointer_flags_are_the_high_word)
+{
+    EXPECT_EQ(lh_os_system_win_input_pointer_flags_of(0x80040123U), 0x8004U);
+    EXPECT_EQ(lh_os_system_win_input_pointer_flags_of(0x00000123U), 0U);
+}
+
+/* MI_WP_SIGNATURE 0xFF515700 in the top three bytes; 0x80 of the low byte is touch. */
+TEST(os_system_win_input, a_mouse_message_made_of_a_contact_is_told_apart)
+{
+    EXPECT_TRUE(lh_os_system_win_input_is_promoted_mouse(static_cast<lh_ssize_t>(0xFF515780U)));
+    EXPECT_TRUE(lh_os_system_win_input_is_promoted_mouse(static_cast<lh_ssize_t>(0xFF515701U)));
+    EXPECT_FALSE(lh_os_system_win_input_is_promoted_mouse(0));
+    EXPECT_FALSE(lh_os_system_win_input_is_promoted_mouse(static_cast<lh_ssize_t>(0xFF515600U)));
+    EXPECT_EQ(lh_os_system_win_input_device_kind_of_mouse(static_cast<lh_ssize_t>(0xFF515780U)),
+              lh_os_input_device_kind_touch);
+    EXPECT_EQ(lh_os_system_win_input_device_kind_of_mouse(static_cast<lh_ssize_t>(0xFF515701U)),
+              lh_os_input_device_kind_pen);
+    EXPECT_EQ(lh_os_system_win_input_device_kind_of_mouse(0), lh_os_input_device_kind_mouse);
 }
 
 } // namespace

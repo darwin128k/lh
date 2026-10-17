@@ -104,6 +104,54 @@ typedef struct lh_os_system_win_monitorinfo lh_os_system_win_monitorinfo_t;
 #define LH_OS_SYSTEM_WIN_MONITOR_DEFAULTTONEAREST 2
 /** @} */
 
+/** @brief `POINTER_INPUT_TYPE`: what a pointer is (`PT_*`). Present since Windows 8. */
+typedef lh_os_system_win_dword_t lh_os_system_win_pointer_input_type_t;
+
+/** @brief `POINTER_FLAGS`: the state of a pointer (`POINTER_FLAG_*`). Present since
+ *         Windows 8. */
+typedef lh_u32_t lh_os_system_win_pointer_flags_t;
+
+/** @brief The `UINT32` id the system gives a pointer for as long as it lasts. Present
+ *         since Windows 8. */
+typedef lh_u32_t lh_os_system_win_pointer_id_t;
+
+/**
+ * @struct lh_os_system_win_pointer_info
+ * @brief `POINTER_INFO`: what ::GetPointerInfo knows of one pointer at the current
+ *        message. Present since Windows 8; field for field the SDK's layout.
+ */
+struct lh_os_system_win_pointer_info
+{
+    lh_os_system_win_pointer_input_type_t pointer_type; /**< `PT_*` */
+    lh_os_system_win_pointer_id_t pointer_id;           /**< the system's id */
+    lh_u32_t frame_id;                                  /**< the input frame */
+    lh_os_system_win_pointer_flags_t pointer_flags;     /**< `POINTER_FLAG_*` */
+    lh_os_system_win_handle_t source_device;            /**< the device */
+    lh_os_system_win_hwnd_t hwnd_target;                /**< the window it is for */
+    lh_os_system_win_point_t pixel_location;            /**< screen pixels */
+    lh_os_system_win_point_t himetric_location;         /**< screen, 0.01 mm */
+    lh_os_system_win_point_t pixel_location_raw;        /**< before prediction */
+    lh_os_system_win_point_t himetric_location_raw;     /**< before prediction */
+    lh_os_system_win_dword_t time;                      /**< message time, ms */
+    lh_u32_t history_count;                             /**< samples coalesced */
+    lh_s32_t input_data;                                /**< wheel delta */
+    lh_os_system_win_dword_t key_states;                /**< `MK_*` */
+    lh_u64_t performance_count;                         /**< QPC time */
+    lh_int_t button_change_type;                        /**< `POINTER_CHANGE_*` */
+};
+/** @copybrief lh_os_system_win_pointer_info */
+typedef struct lh_os_system_win_pointer_info lh_os_system_win_pointer_info_t;
+
+/** @brief `GetPointerType`, looked up at run time: user32 has it since Windows 8, and a
+ *         direct import would keep the program from starting on Windows 7 and XP. */
+typedef lh_os_system_win_bool_t(LH_OS_SYSTEM_WIN_CALL *lh_os_system_win_get_pointer_type_proc_t)(
+    lh_os_system_win_pointer_id_t pointer_id, lh_os_system_win_pointer_input_type_t *pointer_type);
+
+/** @brief `GetPointerInfo`, looked up at run time for the same reason. Present since
+ *         Windows 8. */
+typedef lh_os_system_win_bool_t(LH_OS_SYSTEM_WIN_CALL *lh_os_system_win_get_pointer_info_proc_t)(
+    lh_os_system_win_pointer_id_t pointer_id, lh_os_system_win_pointer_info_t *pointer_info);
+
 /** The display @p hwnd is on. Present since Windows 2000. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_handle_t LH_OS_SYSTEM_WIN_CALL
 MonitorFromWindow(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_dword_t flags);
@@ -284,6 +332,47 @@ typedef struct lh_os_system_win_createstructa lh_os_system_win_createstructa_t;
 /** `WM_MOUSEWHEEL`. Present since Windows 98 / Windows NT 4.0 SP3. */
 #define LH_OS_SYSTEM_WIN_WM_MOUSEWHEEL 0x020AU
 
+/** @{ */
+/** Pointer messages: a touch contact or a pen moved (`WM_POINTERUPDATE`), went down,
+   went up, or the window lost it (`WM_POINTERCAPTURECHANGED`). The id is the low word of
+   `wParam` (::LH_OS_SYSTEM_WIN_GET_POINTERID_WPARAM), the low half of the pointer flags
+   its high word, the point on the screen in `lParam`. Present since Windows 8; earlier
+   systems never send them. */
+#define LH_OS_SYSTEM_WIN_WM_POINTERUPDATE 0x0245U
+#define LH_OS_SYSTEM_WIN_WM_POINTERDOWN 0x0246U
+#define LH_OS_SYSTEM_WIN_WM_POINTERUP 0x0247U
+#define LH_OS_SYSTEM_WIN_WM_POINTERCAPTURECHANGED 0x024CU
+/** @} */
+
+/** @{ */
+/** `PT_*`: what a pointer is (::lh_os_system_win_pointer_input_type_t). Present since
+   Windows 8. */
+#define LH_OS_SYSTEM_WIN_PT_POINTER 1UL
+#define LH_OS_SYSTEM_WIN_PT_TOUCH 2UL
+#define LH_OS_SYSTEM_WIN_PT_PEN 3UL
+#define LH_OS_SYSTEM_WIN_PT_MOUSE 4UL
+#define LH_OS_SYSTEM_WIN_PT_TOUCHPAD 5UL
+/** @} */
+
+/** @{ */
+/** `POINTER_FLAG_*` (::lh_os_system_win_pointer_flags_t): the contact touches the
+   screen, and the system cancelled it -- the contact is not going to end with an up the
+   app may act on. Their low halves are the `POINTER_MESSAGE_FLAG_*` of `wParam`.
+   Present since Windows 8. */
+#define LH_OS_SYSTEM_WIN_POINTER_FLAG_INCONTACT 0x00000004U
+#define LH_OS_SYSTEM_WIN_POINTER_FLAG_CANCELED 0x00008000U
+/** @} */
+
+/** @{ */
+/** `MI_WP_SIGNATURE` / `SIGNATURE_MASK`: what ::GetMessageExtraInfo answers for a mouse
+   message the system made out of a pen or a touch contact, the low byte aside; bit
+   `0x80` of it set for touch, clear for a pen. Present since Windows XP Tablet PC
+   Edition (pen) and Windows 7 (touch). */
+#define LH_OS_SYSTEM_WIN_MI_WP_SIGNATURE 0xFF515700U
+#define LH_OS_SYSTEM_WIN_MI_WP_SIGNATURE_MASK 0xFFFFFF00U
+#define LH_OS_SYSTEM_WIN_MI_WP_TOUCH 0x00000080U
+/** @} */
+
 /** `WHEEL_DELTA`: one notch of `WM_MOUSEWHEEL`. Present since Windows 98 / NT 4.0. */
 #define LH_OS_SYSTEM_WIN_WHEEL_DELTA 120
 
@@ -365,6 +454,10 @@ typedef struct lh_os_system_win_createstructa lh_os_system_win_createstructa_t;
 /** `HIWORD`: bits 16..31 of @p v. */
 #define LH_OS_SYSTEM_WIN_HIWORD(v)                                                                 \
     (lh_cast_static(lh_os_system_win_word_t, ((lh_cast_static(lh_usize_t, (v)) >> 16) & 0xffffU)))
+/** `GET_POINTERID_WPARAM`: the pointer id of a pointer message's @p w. Present since
+ * Windows 8. */
+#define LH_OS_SYSTEM_WIN_GET_POINTERID_WPARAM(w)                                                   \
+    (lh_cast_static(lh_os_system_win_pointer_id_t, LH_OS_SYSTEM_WIN_LOWORD(w)))
 /** `GET_WHEEL_DELTA_WPARAM`: the signed wheel distance in @p w, in ::LH_OS_SYSTEM_WIN_WHEEL_DELTA
  * units. */
 #define LH_OS_SYSTEM_WIN_GET_WHEEL_DELTA_WPARAM(w)                                                 \
@@ -481,6 +574,12 @@ SetWindowRgn(lh_os_system_win_hwnd_t hWnd, lh_os_system_win_handle_t hRgn,
    low bit is toggled on (Caps Lock, Num Lock). Present since Windows 95. */
 LH_OS_SYSTEM_WIN_IMPORT lh_sshort_t LH_OS_SYSTEM_WIN_CALL
 GetKeyState(lh_int_t nVirtKey);
+
+/** What the system attached to the message being handled: for a mouse message it
+   made out of a pen or a touch contact, ::LH_OS_SYSTEM_WIN_MI_WP_SIGNATURE. Present
+   since Windows 95. */
+LH_OS_SYSTEM_WIN_IMPORT
+lh_os_system_win_lparam_t LH_OS_SYSTEM_WIN_CALL GetMessageExtraInfo(lh_void);
 
 /** The window that has the mouse capture, or null. Present since Windows 95. */
 LH_OS_SYSTEM_WIN_IMPORT lh_os_system_win_hwnd_t LH_OS_SYSTEM_WIN_CALL GetCapture(lh_void);

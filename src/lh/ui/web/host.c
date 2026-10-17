@@ -20,6 +20,7 @@
 #include <lh/str/format/text.h>
 #include <lh/str/parse/text.h>
 #include <lh/ui/canvas/web.h>
+#include <lh/ui/view/controller.h>
 #include <lh/util/return.h>
 
 /** WebSocket clients served at once; one more is closed on arrival. */
@@ -246,18 +247,28 @@ host_query_flag(const char *req, lh_usize_t len, const char *key, lh_usize_t key
     return (host_query_int(req, len, key, key_len) != 0) ? lh_bool_true : lh_bool_false;
 }
 
-/** @p event to the app's input hook, or to ::lh_ui_view_input without one. True when
-   the tree may have changed: always for a hook, which the host cannot see into. */
+/** @p event to the app's input hook, then to the controller of @p hooks -- the app's, or
+   the host's own on the view (see host_route_hooks). With neither, which a run never
+   hands in, straight to ::lh_ui_view_input. True when the tree may have changed:
+   always for a hook, which the host cannot see into, else what the controller says. */
 static lh_bool_t
 host_input(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks,
            const lh_os_input_event_t *event)
 {
-    if (hooks != lh_null && hooks->input != lh_null)
+    lh_bool_t changed = lh_bool_false;
+
+    lh_return_if(hooks == lh_null || (hooks->input == lh_null && hooks->controller == lh_null),
+                 lh_ui_view_input(view, event));
+    if (hooks->input != lh_null)
     {
-        hooks->input(event, hooks->ctx);
-        return lh_bool_true;
+        hooks->input(hooks->ctx, event);
+        changed = lh_bool_true;
     }
-    return lh_ui_view_input(view, event);
+    if (hooks->controller != lh_null && lh_os_controller_feed(hooks->controller, event))
+    {
+        changed = lh_bool_true;
+    }
+    return changed;
 }
 
 /** The player's pointer, which is a mouse with one button: @p kind at view pixel
@@ -1202,10 +1213,30 @@ host_wait(lh_os_net_socket_t *listen_fd, host_ws_cli_t *cli, unsigned timeout_ms
     }
 }
 
+/** The hooks a run works with, into @p out: a copy of @p hooks (none when ::lh_null), whose
+   controller is @p view_controller -- set up on @p view here -- when the app gave neither
+   an input hook nor a controller. */
+static lh_void
+host_route_hooks(const lh_ui_web_host_hooks_t *hooks, lh_ui_view_t *view,
+                 lh_os_controller_t *view_controller, lh_ui_web_host_hooks_t *out)
+{
+    lh_memory_set(out, sizeof(lh_ptr_deref(out)), 0);
+    if (hooks != lh_null)
+    {
+        lh_ptr_deref(out) = lh_ptr_deref(hooks);
+    }
+    lh_return_if(out->input != lh_null || out->controller != lh_null);
+    lh_os_controller_init(view_controller, lh_ui_view_controller_handle, view, lh_null);
+    lh_os_controller_set_cancel_cb(view_controller, lh_ui_view_controller_cancel);
+    out->controller = view_controller;
+}
+
 lh_bool_t
 lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *json,
                    lh_usize_t json_cap, lh_net_port_t port, const lh_ui_web_host_hooks_t *hooks)
 {
+    lh_os_controller_t view_controller;
+    lh_ui_web_host_hooks_t routed;
     lh_os_net_socket_t listen_fd;
     lh_net_ip4_t ip;
     lh_net_ip4_socket_addr_t addr;
@@ -1214,6 +1245,7 @@ lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *js
     {
         return lh_bool_false;
     }
+    host_route_hooks(hooks, view, lh_addr_of(view_controller), lh_addr_of(routed));
     if (!lh_os_net_init())
     {
         return lh_bool_false;
@@ -1263,15 +1295,22 @@ lh_ui_web_host_run(lh_ui_view_t *view, unsigned width, unsigned height, char *js
             const unsigned now = lh_cast_static(unsigned, lh_os_tick_ms());
             unsigned spent;
 
-            if (hooks != lh_null && hooks->tick != lh_null)
+            /* The controller's timers before the app's tick, as a window does: a long
+               press that came due is in the view by the time the app looks. */
+            if (routed.controller != lh_null)
             {
-                hooks->tick(hooks->ctx);
+                (void)lh_os_controller_update(routed.controller, lh_os_tick_ms());
+            }
+            if (routed.tick != lh_null)
+            {
+                routed.tick(routed.ctx);
             }
             host_accept_all(lh_addr_of(listen_fd), cli, view, lh_addr_of(frame_w),
-                            lh_addr_of(frame_h), json, json_cap, hooks, lh_addr_of(gen), now);
+                            lh_addr_of(frame_h), json, json_cap, lh_addr_of(routed),
+                            lh_addr_of(gen), now);
             for (i = 0u; i < HOST_WS_MAX; ++i)
             {
-                host_ws_pump(lh_addr_of(cli[i]), view, hooks, lh_addr_of(frame_w),
+                host_ws_pump(lh_addr_of(cli[i]), view, lh_addr_of(routed), lh_addr_of(frame_w),
                              lh_addr_of(frame_h), lh_addr_of(gen), now);
             }
             /* After the input, not before it: an event and the damage it caused

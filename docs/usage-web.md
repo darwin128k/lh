@@ -36,7 +36,7 @@ handlers are the same.
 Input travels as one text line per event over the WebSocket (with the socket
 down, the player sends the same numbers as an HTTP query instead):
 
-| Line | HTTP fallback | Event (to the `input` hook, else `lh_ui_view_input`) |
+| Line | HTTP fallback | Event (to the `input` hook and the `controller`, see section 3) |
 |---|---|---|
 | `p x y` / `r x y` | `/ui/press`, `/ui/release` `?x=&y=` | `pointer_down` / `pointer_up`, primary button |
 | `m x y` | `/ui/move?x=&y=` | `pointer_move`, primary held (sent only while a button is down, at most once per animation frame) |
@@ -98,10 +98,16 @@ Notes:
 
 - In the web build `on_resize` lays the tree out again but does **not** call
   `lh_os_window_invalidate` — damage on the view is enough for the next frame.
-- Any hook may be `lh_null`. Without `input` the host hands every event to
-  `lh_ui_view_input` on the served view itself; with it, the hook gets every
-  event (moves included) and passes on to `lh_ui_view_input` what the view
-  should see.
+- Any hook may be `lh_null`. Input takes the same two levels as a window:
+  `input` (the low-level sink) sees every event first, raw, moves included;
+  `controller` (an `lh_os_controller_t *`, the standard path) gets it next and
+  is updated by the host at every tick, before `tick`, so long presses come
+  due. With neither, the host feeds a controller of its own made with
+  `lh_ui_view_controller_handle` / `lh_ui_view_controller_cancel` on the
+  served view, which is `lh_ui_view_input` with the gestures alongside. With
+  `input` alone the hook is the only consumer, as before, and passes on to
+  `lh_ui_view_input` what the view should see. The player has no focus to
+  lose, so the host never cancels a controller.
 - The events carry `lh_os_tick_ms` as their time and no modifiers.
 - `tick` runs about every 20 ms **and between requests**, so device polling is
   not starved by HTTP.
@@ -137,10 +143,11 @@ main(int argc, char **argv)
         if (argc > 1)
             port = (lh_net_port_t)atoi(argv[1]);
 
-        hooks.ctx    = lh_addr_of(self);
-        hooks.tick   = web_tick;
-        hooks.input  = on_input;   /* the desktop sink, unchanged */
-        hooks.resize = web_resize;
+        hooks.ctx        = lh_addr_of(self);
+        hooks.tick       = web_tick;
+        hooks.input      = lh_null;                        /* no low-level tap */
+        hooks.resize     = web_resize;
+        hooks.controller = lh_addr_of(self.controller);    /* the desktop one */
 
         /* Does not return on success. */
         if (!lh_ui_web_host_run(lh_addr_of(self.view), 980u, 620u,
@@ -155,7 +162,7 @@ main(int argc, char **argv)
     (void)argc; (void)argv;
 #endif
 
-    /* ... desktop branch: set_on_input and the rest, lh_os_window_open, lh_os_app_run ... */
+    /* ... desktop branch: set_controller and the rest, lh_os_window_open, lh_os_app_run ... */
 }
 ```
 

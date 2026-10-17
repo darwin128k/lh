@@ -6,8 +6,9 @@
  * The host is a loop that does not return, so one runs on a thread of its own for the whole
  * test program and the tests talk to it the way the player does: WebSocket lines, and the
  * HTTP fallback. What it did is read back through its hooks -- `input` logs every key and
- * hands every event on to the view, and `tick`, which runs on the host's thread once a
- * pass, copies the scroll the view is at.
+ * hands every event on to the view, `controller` counts what reaches it after `input` and
+ * how often the host updates it, and `tick`, which runs on the host's thread once a pass,
+ * copies the scroll the view is at.
  */
 
 #include <gtest/gtest.h>
@@ -18,6 +19,7 @@
 
 #    include <lh/test/ui/draw_log.h>
 
+#    include <lh/os/controller.h>
 #    include <lh/os/input.h>
 #    include <lh/os/net.h>
 #    include <lh/os/net/socket.h>
@@ -59,6 +61,10 @@ struct host_world
     int pressed[key_log_max];
     std::atomic<int> ticks;
     std::atomic<int> scroll_y;
+    lh_os_controller_t controller;
+    std::atomic<int> controlled_presses;
+    std::atomic<int> controlled_clicks;
+    std::atomic<int> controller_updates;
 };
 
 host_world s_world;
@@ -77,9 +83,9 @@ world_tick(lh_ptr ctx)
 /* Every line is one event: a key is logged, and everything goes on to the view, as an
    application's own sink would pass it. */
 lh_void
-world_input(const lh_os_input_event_ptr event, lh_ptr ctx)
+world_input(lh_self_ptr self, const lh_os_input_event_ptr event)
 {
-    auto *world = static_cast<host_world *>(ctx);
+    auto *world = static_cast<host_world *>(self);
     const lh_os_input_kind_t kind = lh_os_input_event_get_kind(event);
 
     if (kind == lh_os_input_kind_key_down || kind == lh_os_input_kind_key_up)
@@ -94,6 +100,30 @@ world_input(const lh_os_input_event_ptr event, lh_ptr ctx)
         world->keys.store(at + 1);
     }
     (void)lh_ui_view_input(lh_addr_of(world->view), event);
+}
+
+/* The controller's handler: presses and the recognizer's clicks, counted. */
+lh_bool_t
+world_control(lh_self_ptr self, const lh_os_input_event_ptr event)
+{
+    auto *world = static_cast<host_world *>(self);
+    const lh_os_input_kind_t kind = lh_os_input_event_get_kind(event);
+
+    if (kind == lh_os_input_kind_pointer_down)
+    {
+        world->controlled_presses.fetch_add(1);
+    }
+    if (kind == lh_os_input_kind_click)
+    {
+        world->controlled_clicks.fetch_add(1);
+    }
+    return lh_bool_false;
+}
+
+lh_void
+world_update(lh_self_ptr self, lh_tick_t /*now*/)
+{
+    static_cast<host_world *>(self)->controller_updates.fetch_add(1);
 }
 
 /* A port nothing listens on right now: bind to 0, read what was given, let it go. */
@@ -181,6 +211,10 @@ host_up()
     s_world.hooks.ctx = lh_addr_of(s_world);
     s_world.hooks.tick = world_tick;
     s_world.hooks.input = world_input;
+    lh_os_controller_init(lh_addr_of(s_world.controller), world_control, lh_addr_of(s_world),
+                          lh_null);
+    lh_os_controller_set_update_cb(lh_addr_of(s_world.controller), world_update);
+    s_world.hooks.controller = lh_addr_of(s_world.controller);
     s_world.port = free_port();
     if (s_world.port == 0u)
     {
@@ -417,6 +451,22 @@ TEST(web_host, a_wheel_line_scrolls_one_step_per_notch)
     EXPECT_TRUE(wait_for([] { return s_world.scroll_y.load() == lh_os_input_get_wheel_step(); }));
     ASSERT_TRUE(ws.line("w 50 50 0 1"));
     EXPECT_TRUE(wait_for([] { return s_world.scroll_y.load() == 0; }));
+}
+
+/* The hooks' controller takes every event after `input` and is updated at every pass:
+   a click over HTTP is a press to it, and the recognizer's click after the release. */
+TEST(web_host, the_controller_gets_the_events_after_input_and_is_updated_every_pass)
+{
+    LH_TEST_NEEDS_HOST();
+    const int presses = s_world.controlled_presses.load();
+    const int clicks = s_world.controlled_clicks.load();
+    const int updates = s_world.controller_updates.load();
+
+    EXPECT_NE(http_get("/ui/click?x=150&y=150").find(" 200 "), std::string::npos);
+    EXPECT_TRUE(wait_for([&] { return s_world.controlled_clicks.load() == clicks + 1; }));
+    EXPECT_EQ(s_world.controlled_presses.load(), presses + 1);
+    wait_passes();
+    EXPECT_GE(s_world.controller_updates.load(), updates + 2);
 }
 
 #endif /* LH_LIBRARY_OPTION_OS */

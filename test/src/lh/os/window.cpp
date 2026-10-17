@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <lh/os/app.h>
+#include <lh/os/system/window.h>
+#include <lh/os/tick.h>
 #include <lh/os/window.h>
 
 #if !defined(_WIN32)
@@ -98,9 +100,9 @@ struct InputSink
 };
 
 lh_void
-on_input(const lh_os_input_event_ptr event, lh_ptr context)
+on_input(lh_self_ptr self, const lh_os_input_event_ptr event)
 {
-    auto *sink = static_cast<InputSink *>(context);
+    auto *sink = static_cast<InputSink *>(self);
 
     if (sink == nullptr)
     {
@@ -381,6 +383,182 @@ TEST(os_window, a_key_event_leaves_the_buttons_alone)
     lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(key));
     EXPECT_EQ(lh_os_window_get_pressed_buttons(lh_addr_of(window)), primary);
     lh_os_window_deinit(lh_addr_of(window));
+}
+
+/* What a window's controller was handed, and what the window's sink had seen by then. */
+struct ControllerLog
+{
+    InputSink sink;
+    int handled;
+    int raw;
+    int long_presses;
+    int sink_count_at_first;
+    int updates;
+    int cancels;
+    lh_os_input_kind_t last;
+};
+
+lh_bool_t
+controller_handle(lh_self_ptr self, const lh_os_input_event_ptr event)
+{
+    auto *log = static_cast<ControllerLog *>(self);
+
+    if (log->handled == 0)
+    {
+        log->sink_count_at_first = log->sink.log.count;
+    }
+    log->handled++;
+    log->raw += lh_os_input_event_is_synthesized(event) ? 0 : 1;
+    log->long_presses += lh_os_input_event_get_kind(event) == lh_os_input_kind_long_press ? 1 : 0;
+    log->last = lh_os_input_event_get_kind(event);
+    return lh_bool_true;
+}
+
+lh_void
+controller_update(lh_self_ptr self, lh_tick_t /*now*/)
+{
+    static_cast<ControllerLog *>(self)->updates++;
+}
+
+lh_void
+controller_cancel(lh_self_ptr self)
+{
+    static_cast<ControllerLog *>(self)->cancels++;
+}
+
+/* The sink keeps seeing every raw event, and first; the controller sees each one after
+   it, with the gestures it makes of them. */
+TEST(os_window, the_controller_gets_every_event_after_the_sink)
+{
+    lh_os_window_t window{};
+    lh_os_controller_t controller{};
+    ControllerLog log{};
+    const lh_u32_t primary = lh_os_input_button_to_mask(lh_os_input_button_primary);
+    lh_os_input_event_t down =
+        mouse_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, primary, 5, 6);
+    lh_os_input_event_t up =
+        mouse_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, 0U, 5, 6);
+
+    lh_os_window_init(lh_addr_of(window));
+    lh_os_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
+    log.sink.window = lh_addr_of(window);
+    lh_os_window_set_on_input(lh_addr_of(window), on_input, lh_addr_of(log.sink));
+    EXPECT_EQ(lh_os_window_get_controller(lh_addr_of(window)), nullptr);
+    lh_os_window_set_controller(lh_addr_of(window), lh_addr_of(controller));
+    EXPECT_EQ(lh_os_window_get_controller(lh_addr_of(window)), lh_addr_of(controller));
+    lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(down));
+    lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(up));
+    EXPECT_EQ(log.sink.log.count, 2);
+    EXPECT_EQ(log.sink_count_at_first, 1) << "the sink had the press before the controller";
+    EXPECT_EQ(log.raw, 2);
+    EXPECT_EQ(log.last, lh_os_input_kind_click) << "the recognizer's click follows the release";
+    lh_os_window_set_controller(lh_addr_of(window), lh_null);
+    lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(down));
+    EXPECT_EQ(log.raw, 2) << "a cleared controller hears nothing";
+    EXPECT_EQ(log.sink.log.count, 3);
+    lh_os_window_deinit(lh_addr_of(window));
+}
+
+TEST(os_window, a_focus_loss_cancels_the_controller)
+{
+    lh_os_window_t window{};
+    lh_os_controller_t controller{};
+    ControllerLog log{};
+    lh_os_input_event_t focus_out{};
+
+    lh_os_input_event_init(lh_addr_of(focus_out), lh_os_input_kind_focus_out,
+                           lh_os_input_device_kind_keyboard, 0U);
+    lh_os_window_init(lh_addr_of(window));
+    lh_os_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
+    lh_os_controller_set_cancel_cb(lh_addr_of(controller), controller_cancel);
+    lh_os_window_set_controller(lh_addr_of(window), lh_addr_of(controller));
+    lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(focus_out));
+    EXPECT_EQ(log.raw, 1) << "the handler hears the focus loss itself";
+    EXPECT_EQ(log.cancels, 1);
+    lh_os_window_deinit(lh_addr_of(window));
+}
+
+TEST(os_window, a_tick_updates_the_controller_before_on_tick)
+{
+    lh_os_window_t window{};
+    lh_os_controller_t controller{};
+    ControllerLog log{};
+
+    lh_os_window_init(lh_addr_of(window));
+    lh_os_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
+    lh_os_controller_set_update_cb(lh_addr_of(controller), controller_update);
+    lh_os_window_on_native_tick(lh_addr_of(window));
+    EXPECT_EQ(log.updates, 0);
+    lh_os_window_set_controller(lh_addr_of(window), lh_addr_of(controller));
+    lh_os_window_on_native_tick(lh_addr_of(window));
+    lh_os_window_on_native_tick(lh_addr_of(window));
+    EXPECT_EQ(log.updates, 2);
+    lh_os_window_deinit(lh_addr_of(window));
+}
+
+/* A touch contact is not the mouse: the mask the window keeps for a lost capture is
+   pointer 0's alone. */
+TEST(os_window, a_touch_contact_leaves_the_mouse_buttons_alone)
+{
+    lh_os_window_t window{};
+    const lh_u32_t primary = lh_os_input_button_to_mask(lh_os_input_button_primary);
+    lh_os_input_event_t touch{};
+    lh_os_input_event_t cancel{};
+
+    lh_os_input_event_init_pointer(lh_addr_of(touch), lh_os_input_kind_pointer_down,
+                                   lh_os_input_device_kind_touch, 1U, lh_os_input_button_primary,
+                                   lh_os_input_coord_from_int(1), lh_os_input_coord_from_int(2),
+                                   0U);
+    lh_os_input_event_set_buttons(lh_addr_of(touch), primary);
+    lh_os_input_event_init_pointer(
+        lh_addr_of(cancel), lh_os_input_kind_pointer_cancel, lh_os_input_device_kind_touch, 1U,
+        lh_os_input_button_none, lh_os_input_coord_from_int(1), lh_os_input_coord_from_int(2), 0U);
+    lh_os_window_init(lh_addr_of(window));
+    lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(touch));
+    EXPECT_EQ(lh_os_window_get_pressed_buttons(lh_addr_of(window)), 0U);
+    lh_os_input_event_t mouse =
+        mouse_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, primary, 1, 2);
+    lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(mouse));
+    lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(cancel));
+    EXPECT_EQ(lh_os_window_get_pressed_buttons(lh_addr_of(window)), primary)
+        << "the cancel of a contact does not let go of the mouse";
+    lh_os_window_deinit(lh_addr_of(window));
+}
+
+/* No on_tick: the window arms its timer for the recognizer's deadline by itself, and the
+   long press arrives through the message pump alone. */
+TEST(os_window, a_long_press_comes_due_on_the_window_timer_alone)
+{
+    LH_TEST_NEEDS_DISPLAY();
+    lh_os_app_t app{};
+    lh_os_window_t window{};
+    lh_os_controller_t controller{};
+    ControllerLog log{};
+    lh_os_input_event_t down{};
+    lh_tick_t started;
+
+    lh_os_app_init(lh_addr_of(app));
+    lh_os_window_init(lh_addr_of(window));
+    lh_os_controller_init(lh_addr_of(controller), controller_handle, lh_addr_of(log), lh_null);
+    lh_os_window_set_controller(lh_addr_of(window), lh_addr_of(controller));
+    ASSERT_EQ(
+        lh_os_window_open(lh_addr_of(app), lh_addr_of(window), "lh_test long press", 160, 120),
+        lh_bool_true);
+    lh_os_input_event_init_pointer(lh_addr_of(down), lh_os_input_kind_pointer_down,
+                                   lh_os_input_device_kind_touch, 1U, lh_os_input_button_primary,
+                                   lh_os_input_coord_from_int(10), lh_os_input_coord_from_int(10),
+                                   lh_os_tick_ms());
+    lh_os_input_event_set_buttons(lh_addr_of(down),
+                                  lh_os_input_button_to_mask(lh_os_input_button_primary));
+    lh_os_window_on_native_input(lh_addr_of(window), lh_addr_of(down));
+    started = lh_os_tick_ms();
+    while (log.long_presses == 0 && lh_tick_elapsed(started, lh_os_tick_ms()) < 3000U)
+    {
+        (void)lh_os_system_window_pump_wait(50U);
+    }
+    EXPECT_EQ(log.long_presses, 1);
+    lh_os_window_close(lh_addr_of(window));
+    lh_os_app_deinit(lh_addr_of(app));
 }
 
 TEST(os_window, zone_is_client_until_the_caller_says_otherwise)

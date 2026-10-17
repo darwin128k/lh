@@ -319,7 +319,10 @@ needed): the touch interrupt builds a `pointer_down` / `pointer_move` /
 `pointer_up` with `lh_os_input_event_init_pointer` (device kind `touch`,
 panel coordinates via `lh_os_input_coord_from_int`) and pushes it into an
 `lh_os_input_queue_t`; the main loop drains the queue into a sink that calls
-`lh_ui_view_input`. `lh_ui_view_press` / `lh_ui_view_release` still work
+`lh_ui_view_input`. A single-touch panel is pointer `0`; a multi-touch one
+gives each contact its own id below `LH_OS_INPUT_POINTER_MAX`, and the view
+keeps a press session for each. `lh_ui_view_press` / `lh_ui_view_release`
+(pointer `0`) and `lh_ui_view_press_pointer` / `_release_pointer` still work
 directly. `lh_ui_view_tick` from a ~60 Hz timer drives kinetic scrolling;
 for long press or double tap, feed the events through an
 `lh_os_input_recognizer_t` and call `lh_os_input_recognizer_update` from the

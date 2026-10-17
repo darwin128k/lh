@@ -34,9 +34,9 @@ key(lh_tick_t time)
 }
 
 lh_void
-collect(const lh_os_input_event_t *event, lh_ptr context)
+collect(lh_self_ptr self, const lh_os_input_event_t *event)
 {
-    static_cast<std::vector<lh_tick_t> *>(context)->push_back(lh_os_input_event_get_time(event));
+    static_cast<std::vector<lh_tick_t> *>(self)->push_back(lh_os_input_event_get_time(event));
 }
 
 TEST(os_input_queue, empty_initializer_matches_init)

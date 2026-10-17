@@ -5,6 +5,7 @@
 
 #include <lh/os/input/wheel.h>
 #include <lh/os/system/win/input.h>
+#include <lh/util/return.h>
 
 lh_os_input_button_t
 lh_os_system_win_input_button_of(lh_u32_t msg, lh_os_system_win_wparam_t wparam)
@@ -102,6 +103,69 @@ lh_os_system_win_input_get_wheel_lines(lh_void)
         SystemParametersInfoA(LH_OS_SYSTEM_WIN_SPI_GETWHEELSCROLLLINES, 0U, lh_addr_of(lines), 0U);
 
     return lh_os_system_win_input_wheel_lines_of(got, lines);
+}
+
+lh_os_input_device_kind_t
+lh_os_system_win_input_device_kind_of_pointer_type(lh_os_system_win_pointer_input_type_t type)
+{
+    switch (type)
+    {
+    case LH_OS_SYSTEM_WIN_PT_TOUCH:
+        return lh_os_input_device_kind_touch;
+    case LH_OS_SYSTEM_WIN_PT_PEN:
+        return lh_os_input_device_kind_pen;
+    case LH_OS_SYSTEM_WIN_PT_MOUSE:
+    case LH_OS_SYSTEM_WIN_PT_TOUCHPAD:
+        return lh_os_input_device_kind_mouse;
+    default:
+        return lh_os_input_device_kind_none;
+    }
+}
+
+lh_os_system_win_pointer_flags_t
+lh_os_system_win_input_pointer_flags_of(lh_os_system_win_wparam_t wparam)
+{
+    return lh_type_cast(lh_os_system_win_pointer_flags_t, LH_OS_SYSTEM_WIN_HIWORD(wparam));
+}
+
+lh_os_input_kind_t
+lh_os_system_win_input_pointer_kind_of(lh_u32_t msg, lh_os_system_win_pointer_flags_t flags)
+{
+    const lh_bool_t cancelled =
+        lh_type_cast(lh_bool_t, (flags & LH_OS_SYSTEM_WIN_POINTER_FLAG_CANCELED) != 0U);
+
+    switch (msg)
+    {
+    case LH_OS_SYSTEM_WIN_WM_POINTERDOWN:
+        return cancelled ? lh_os_input_kind_pointer_cancel : lh_os_input_kind_pointer_down;
+    case LH_OS_SYSTEM_WIN_WM_POINTERUPDATE:
+        return cancelled ? lh_os_input_kind_pointer_cancel : lh_os_input_kind_pointer_move;
+    case LH_OS_SYSTEM_WIN_WM_POINTERUP:
+        return cancelled ? lh_os_input_kind_pointer_cancel : lh_os_input_kind_pointer_up;
+    case LH_OS_SYSTEM_WIN_WM_POINTERCAPTURECHANGED:
+        return lh_os_input_kind_pointer_cancel;
+    default:
+        return lh_os_input_kind_none;
+    }
+}
+
+lh_bool_t
+lh_os_system_win_input_is_promoted_mouse(lh_os_system_win_lparam_t extra)
+{
+    const lh_u32_t signature = lh_type_cast(lh_u32_t, lh_type_cast(lh_usize_t, extra));
+
+    return lh_type_cast(lh_bool_t, (signature & LH_OS_SYSTEM_WIN_MI_WP_SIGNATURE_MASK) ==
+                                       LH_OS_SYSTEM_WIN_MI_WP_SIGNATURE);
+}
+
+lh_os_input_device_kind_t
+lh_os_system_win_input_device_kind_of_mouse(lh_os_system_win_lparam_t extra)
+{
+    const lh_u32_t signature = lh_type_cast(lh_u32_t, lh_type_cast(lh_usize_t, extra));
+
+    lh_return_if(!lh_os_system_win_input_is_promoted_mouse(extra), lh_os_input_device_kind_mouse);
+    return (signature & LH_OS_SYSTEM_WIN_MI_WP_TOUCH) != 0U ? lh_os_input_device_kind_touch
+                                                            : lh_os_input_device_kind_pen;
 }
 
 /** @p mod when the virtual key @p vk is down (or, with @p toggled, toggled on), else `0`. */

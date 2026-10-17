@@ -111,10 +111,13 @@ Lessons from configurator:
   polling, animations and `lh_ui_view_tick` belong there, not in `on_paint`.
 - **One pass per call.** A callback that loops "while there is work" stops
   the message pump: the window cannot paint, take a click, or be closed.
-- **All input is one callback.** `lh_os_window_set_on_input` takes every mouse,
-  wheel, key, text and focus event as one `lh_os_input_event_t`; there are no
-  per-event setters. A click is not an event of the window: the view makes it
-  from press and release (section 5).
+- **All input is one event type.** Every mouse, touch, pen, wheel, key, text
+  and focus event is one `lh_os_input_event_t`; there are no per-event setters.
+  The standard consumer is a controller (`lh_os_window_set_controller`, section
+  5), which the window feeds, cancels on a focus loss and ticks itself;
+  `lh_os_window_set_on_input` is the low-level sink that sees every raw event
+  first. A click is not an event of the window: the view makes it from press
+  and release (section 5).
 
 ---
 
@@ -340,27 +343,40 @@ sink; the view dispatches it to entities:
 
 ```c
 static lh_void
-on_input(const lh_os_input_event_ptr event, lh_ptr context)
+on_input(lh_self_ptr self, const lh_os_input_event_ptr event)
 {
-    struct my_main *self = lh_ptr_rcast(struct my_main, context);
+    struct my_main *my = lh_ptr_rcast(struct my_main, self);
 
-    if (lh_ui_view_input(lh_addr_of(self->view), event)) /* pressed, scrolled, typed */
-        my_invalidate(self);
+    if (lh_ui_view_input(lh_addr_of(my->view), event)) /* pressed, scrolled, typed */
+        my_invalidate(my);
 }
 ```
+
+A sink takes the object it runs on first, as `self`, like the project's other
+callbacks: it is the context given to `lh_os_window_set_on_input`.
 
 `lh_ui_view_input` reads the event and makes the call the view needs:
 
 | Event | View call |
 |---|---|
-| `pointer_down` / `pointer_up`, primary button | `lh_ui_view_press` / `lh_ui_view_release` (click, focus, drag) |
-| `pointer_move` | `lh_ui_view_move` (drag-scroll the content, drag a scrollbar thumb) |
-| `pointer_cancel`, `focus_out` | `lh_ui_view_cancel` (the press ends, no click) |
+| `pointer_down` / `pointer_up`, primary button | `lh_ui_view_press_pointer` / `lh_ui_view_release_pointer` (click, focus, drag) |
+| `pointer_move` | `lh_ui_view_move_pointer` (drag-scroll the content, drag a scrollbar thumb) |
+| `pointer_cancel` | `lh_ui_view_cancel_pointer` (that pointer's press ends, no click) |
+| `focus_out` | `lh_ui_view_cancel` (every press ends, no click) |
 | `wheel` | `lh_ui_view_wheel`, `lh_os_input_get_wheel_step()` per notch (the system's setting) |
 | `key_down` / `key_up` | `lh_ui_view_key` (Tab moves focus) |
 | `text` | `lh_ui_view_text` (a character into an input) |
 
 `on_tick` still drives `lh_ui_view_tick` (~60 Hz: scroll glide, transitions).
+
+Every pointer id below `LH_OS_INPUT_POINTER_MAX` (the mouse is `0`, touch
+contacts and pens `1` and up) has a press session of its own in the view
+(`lh_ui_view_pointer_t`, inside the view, no heap). Two fingers on two
+buttons press and click both; a click is a release over the entity that same
+pointer went down on; a list one finger drags stays that finger's until it
+lifts, even when another finger goes down in it. `lh_ui_view_press` /
+`_move` / `_release` are pointer `0`. Hover (`lh_ui_view_set_hot`) is the
+app's to drive, from the mouse.
 
 What an event carries:
 
@@ -387,6 +403,16 @@ What an event carries:
   and `LH_OS_INPUT_FLAG_REPEAT` for auto-repeat (X11 no longer drops it).
 - **Focus**: `focus_in` / `focus_out` when the window gains or loses the
   keyboard; a lost mouse capture on Windows is a `pointer_cancel`.
+- **Touch and pen on Windows**: from Windows 8 on the window takes
+  `WM_POINTERDOWN` / `UPDATE` / `UP` / `CAPTURECHANGED`; each touch contact and
+  pen is a pointer of its own from `1` (the mouse stays `0`), with device kind
+  `touch` / `pen`, client coordinates, the primary button, and a
+  `pointer_cancel` when the system cancels the contact or the window loses it.
+  The mouse messages Windows makes out of those contacts are skipped. The
+  pointer API is looked up in user32 at run time, so the program still starts
+  on Windows 7 and XP: there touch and pen arrive as Windows makes them, mouse
+  messages of pointer `0`, but with device kind `touch` / `pen`
+  (`GetMessageExtraInfo`). `WM_TOUCH` (Windows 7 multi-touch) is not used.
 
 **Gestures** — click count, double click, long press, drag begin / drag / end —
 come from `lh_os_input_recognizer_t` (`lh/os/input/recognizer.h`): feed it
@@ -394,6 +420,60 @@ the raw events, call `lh_os_input_recognizer_update` from `on_tick`, and it
 passes every raw event on to its own sink with the gestures among them, marked
 `LH_OS_INPUT_FLAG_SYNTHESIZED`. `lh_ui_view_input` ignores synthesized events,
 so one sink can take both.
+
+**The controller** (`lh/os/controller.h`) does that wiring once, and it is the
+standard input path of a window: an `lh_os_controller_t` holds the recognizer,
+a handler and the object the handler works on, and the window drives it:
+
+```c
+#include <lh/os/controller.h>
+#include <lh/ui/view/controller.h>
+
+lh_os_controller_init(lh_addr_of(self->controller), lh_ui_view_controller_handle,
+                      lh_addr_of(self->view), lh_null); /* default thresholds */
+lh_os_controller_set_cancel_cb(lh_addr_of(self->controller), lh_ui_view_controller_cancel);
+lh_os_window_set_controller(lh_addr_of(self->window), lh_addr_of(self->controller));
+```
+
+What the window then does with it, on Win32 and X11 alike (both backends
+deliver through `lh_os_window_on_native_input`):
+
+- every event goes to `lh_os_controller_feed`, after the sink of
+  `lh_os_window_set_on_input` if one is set;
+- a `focus_out` is fed and then `lh_os_controller_cancel`'led, so every press
+  and gesture is let go;
+- every window tick calls `lh_os_controller_update(controller,
+  lh_os_tick_ms())` before `on_tick`. Without an `on_tick` period the window
+  arms its timer by itself for the recognizer's next deadline only, so a long
+  press arrives on time and an idle window has no timer; with a period the
+  update rides on it (a deadline is late by up to one period). Do not call
+  `lh_os_controller_update` for this controller from `on_tick` as well.
+
+The window does not repaint for the controller: take the view's damage in
+`on_tick` (or in a handler of your own) and invalidate it, as before.
+
+**Two levels, on purpose.** `lh_os_window_set_on_input` stays: it is the
+low-level tap that sees each raw event first (a log, a global shortcut, an app
+that routes input itself), and with no controller it is the only consumer. The
+controller is the consumer on top of it. Do not plug the window's controller
+into its sink through `lh_os_controller_sink` as well: it would be fed twice.
+`lh_os_controller_sink` remains for sources that only have a sink
+(`lh_os_input_queue_drain`).
+
+- `lh_os_controller_feed` (what `lh_os_controller_sink` calls) passes each raw
+  event to the handler and, with `lh_os_controller_flags_gestures`, the
+  gestures after it; it returns true when the handler acted on any of them, the
+  moment to repaint. `lh_os_controller_handle` skips the recognizer.
+- `lh_os_controller_update` sends what is due by `now` (a long press), then
+  calls the optional `update_cb`; `lh_os_controller_cancel` drops every gesture
+  silently, then calls the optional `cancel_cb` (`lh_ui_view_cancel` for the view).
+- `lh_os_controller_set_enabled(..., lh_bool_false)` mutes the handler (a modal
+  overlay, a screen not shown); the flags are `lh_os_controller_flags_enabled`
+  and `lh_os_controller_flags_gestures`, both set by `lh_os_controller_init`.
+- The handler is a plain function pointer with the object as `self`
+  (`lh_os_controller_handlers_handle_fn`), not a vtable; the controller needs no
+  OS and knows nothing of the UI. The view ignores the synthesized gestures, so it
+  clicks once; with the default config a Shift+wheel reaches it already sideways.
 
 **Events from somewhere else** (an interrupt, a thread) go through
 `lh_os_input_queue_t` (`lh/os/input/queue.h`): one producer pushes, the UI
