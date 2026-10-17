@@ -1,9 +1,11 @@
 #include <lh/memory/bounds/slice.h>
+#include <lh/memory/std.h>
 #include <lh/attribute/static.h>
 #include <lh/memory/bounds/slice/initializer.h>
 #include <lh/cast/const.h>
 #include <lh/memory/raw.h>
 #include <lh/assert.h>
+#include <lh/math.h>
 
 lh_ptr
 lh_memory_bounds_slice_get_begin(const lh_memory_bounds_slice_t *self)
@@ -377,8 +379,11 @@ lh_memory_bounds_slice_copy_range(lh_memory_bounds_slice_t *self, const lh_ptr b
     self_begin = lh_memory_bounds_slice_get_begin_v(self);
 
     self_end = lh_memory_bounds_slice_get_end_v(self);
-    return lh_memory_raw_copy(self_begin, lh_ptr_add_by_offset_unsafe(lh_void, self_end, 1U), begin,
-                              lh_ptr_add_by_offset_unsafe(lh_void, end, 1U));
+    return lh_memory_std_copy(
+        self_begin, begin,
+        lh_math_min(lh_memory_view_slice_get_ropen_size(
+                        self_begin, lh_memory_view_slice_get_ropen_past(self_end)),
+                    lh_memory_view_slice_get_ropen_size(begin, lh_memory_view_slice_get_ropen_past(end))));
 }
 
 lh_ptr
@@ -403,8 +408,11 @@ lh_memory_bounds_slice_move_range(lh_memory_bounds_slice_t *self, const lh_ptr b
     self_begin = lh_memory_bounds_slice_get_begin_v(self);
 
     self_end = lh_memory_bounds_slice_get_end_v(self);
-    return lh_memory_raw_move(self_begin, lh_ptr_add_by_offset_unsafe(lh_void, self_end, 1U), begin,
-                              lh_ptr_add_by_offset_unsafe(lh_void, end, 1U));
+    return lh_memory_std_move(
+        self_begin, begin,
+        lh_math_min(lh_memory_view_slice_get_ropen_size(
+                        self_begin, lh_memory_view_slice_get_ropen_past(self_end)),
+                    lh_memory_view_slice_get_ropen_size(begin, lh_memory_view_slice_get_ropen_past(end))));
 }
 
 lh_ptr
@@ -496,7 +504,9 @@ lh_memory_bounds_slice_fill(lh_memory_bounds_slice_t *self, lh_byte_t value)
     begin = lh_memory_bounds_slice_get_begin_v(self);
 
     end = lh_memory_bounds_slice_get_end_v(self);
-    return lh_memory_raw_set(begin, lh_ptr_add_by_offset_unsafe(lh_void, end, 1U), value);
+    return lh_memory_std_set(begin, value,
+                              lh_memory_view_slice_get_ropen_size(
+                                  begin, lh_memory_view_slice_get_ropen_past(end)));
 }
 
 lh_ptr

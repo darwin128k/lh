@@ -1,9 +1,11 @@
 #include <lh/memory/bounds.h>
+#include <lh/memory/std.h>
 #include <lh/attribute/static.h>
 #include <lh/memory/bounds/initializer.h>
 #include <lh/memory/raw.h>
 #include <lh/cast/const.h>
 #include <lh/assert.h>
+#include <lh/math.h>
 
 lh_ptr
 lh_memory_bounds_get_begin(const lh_memory_bounds_t *self)
@@ -365,7 +367,9 @@ lh_memory_bounds_copy_range(lh_memory_bounds_t *self, const lh_ptr begin, const 
     self_begin = lh_memory_bounds_get_begin_v(self);
 
     self_end = lh_memory_bounds_get_end_v(self);
-    return lh_memory_raw_copy(self_begin, self_end, begin, end);
+    return lh_memory_std_copy(self_begin, begin,
+                              lh_math_min(lh_memory_view_slice_get_ropen_size(self_begin, self_end),
+                                          lh_memory_view_slice_get_ropen_size(begin, end)));
 }
 
 lh_ptr
@@ -389,7 +393,9 @@ lh_memory_bounds_move_range(lh_memory_bounds_t *self, const lh_ptr begin, const 
     self_begin = lh_memory_bounds_get_begin_v(self);
 
     self_end = lh_memory_bounds_get_end_v(self);
-    return lh_memory_raw_move(self_begin, self_end, begin, end);
+    return lh_memory_std_move(self_begin, begin,
+                              lh_math_min(lh_memory_view_slice_get_ropen_size(self_begin, self_end),
+                                          lh_memory_view_slice_get_ropen_size(begin, end)));
 }
 
 lh_ptr
@@ -474,7 +480,7 @@ lh_memory_bounds_fill(lh_memory_bounds_t *self, lh_byte_t value)
     begin = lh_memory_bounds_get_begin_v(self);
 
     end = lh_memory_bounds_get_end_v(self);
-    return lh_memory_raw_set(begin, end, value);
+    return lh_memory_std_set(begin, value, lh_memory_view_slice_get_ropen_size(begin, end));
 }
 
 lh_ptr
