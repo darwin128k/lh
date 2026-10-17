@@ -4,6 +4,7 @@
  */
 
 #include <lh/assert/runtime.h>
+#include <lh/bit/ops.h>
 #include <lh/initializer.h>
 #include <lh/os/controller.h>
 #include <lh/util/return.h>
@@ -95,7 +96,7 @@ lh_os_controller_get_flags(lh_os_controller_cptr self)
 lh_bool_t
 lh_os_controller_has_flag(lh_os_controller_cptr self, lh_os_controller_flags_t flag)
 {
-    return lh_type_cast(lh_bool_t, (lh_os_controller_get_flags(self) & flag) == flag);
+    return lh_type_cast(lh_bool_t, lh_bit_and(lh_os_controller_get_flags(self), flag) == flag);
 }
 
 lh_bool_t
@@ -110,10 +111,11 @@ lh_os_controller_set_enabled(lh_os_controller_t *self, lh_bool_t enabled)
     const lh_os_controller_flags_t flags = lh_os_controller_get_flags(self);
 
     lh_os_controller_set_flags(
-        self, lh_type_cast(lh_os_controller_flags_t,
-                           enabled ? (flags | lh_os_controller_flags_enabled)
-                                   : (flags & ~lh_type_cast(lh_os_controller_flags_t,
-                                                            lh_os_controller_flags_enabled))));
+        self,
+        lh_type_cast(lh_os_controller_flags_t,
+                     enabled ? lh_bit_or(flags, lh_os_controller_flags_enabled)
+                             : lh_bit_and(flags, lh_bit_not(lh_type_cast(lh_os_controller_flags_t,
+                                                                         lh_os_controller_flags_enabled)))));
 }
 
 lh_void
@@ -127,7 +129,7 @@ lh_os_controller_init(lh_os_controller_t *self, lh_os_controller_handlers_handle
     lh_os_input_recognizer_init(lh_os_controller_get_recognizer(self), config);
     lh_os_controller_set_flags(
         self, lh_type_cast(lh_os_controller_flags_t,
-                           lh_os_controller_flags_enabled | lh_os_controller_flags_gestures));
+                           lh_bit_or(lh_os_controller_flags_enabled, lh_os_controller_flags_gestures)));
 }
 
 /* -- Events ---------------------------------------------------------------- */

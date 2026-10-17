@@ -22,6 +22,7 @@
 
 #include <lh/assert/runtime.h>
 #include <lh/bit/half.h>
+#include <lh/bit/ops.h>
 #include <lh/byte/ptr.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
@@ -38,8 +39,8 @@ lh_void
 lh_bit_pack_be16(lh_u16_t value, lh_byte_ptr out)
 {
     lh_assert_runtime_ref(out);
-    out[0] = lh_cast_static(lh_byte_t, value >> 8);
-    out[1] = lh_cast_static(lh_byte_t, value & 0xFFU);
+    out[0] = lh_cast_static(lh_byte_t, lh_bit_shr(value, 8));
+    out[1] = lh_cast_static(lh_byte_t, lh_bit_and(value, 0xFFU));
 }
 
 /**
@@ -55,7 +56,8 @@ lh_u16_t
 lh_bit_unpack_be16(const lh_byte_ptr in)
 {
     lh_assert_runtime_ref(in);
-    return lh_cast_static(lh_u16_t, (lh_cast_static(lh_u16_t, in[0]) << 8) | in[1]);
+    return lh_cast_static(lh_u16_t,
+                          lh_bit_or(lh_bit_shl(lh_cast_static(lh_u16_t, in[0]), 8), in[1]));
 }
 
 /**
@@ -71,7 +73,7 @@ lh_bit_pack_le16(lh_u16_t value, lh_byte_ptr out)
 {
     lh_assert_runtime_ref(out);
     out[0] = lh_cast_static(lh_byte_t, value);
-    out[1] = lh_cast_static(lh_byte_t, value >> 8);
+    out[1] = lh_cast_static(lh_byte_t, lh_bit_shr(value, 8));
 }
 
 /**
@@ -87,7 +89,8 @@ lh_u16_t
 lh_bit_unpack_le16(const lh_byte_ptr in)
 {
     lh_assert_runtime_ref(in);
-    return lh_cast_static(lh_u16_t, in[0] | (lh_cast_static(lh_u16_t, in[1]) << 8));
+    return lh_cast_static(lh_u16_t,
+                          lh_bit_or(in[0], lh_bit_shl(lh_cast_static(lh_u16_t, in[1]), 8)));
 }
 
 /**
@@ -102,9 +105,9 @@ lh_void
 lh_bit_pack_be32(lh_u32_t value, lh_byte_ptr out)
 {
     lh_assert_runtime_ref(out);
-    out[0] = lh_cast_static(lh_byte_t, value >> 24);
-    out[1] = lh_cast_static(lh_byte_t, value >> 16);
-    out[2] = lh_cast_static(lh_byte_t, value >> 8);
+    out[0] = lh_cast_static(lh_byte_t, lh_bit_shr(value, 24));
+    out[1] = lh_cast_static(lh_byte_t, lh_bit_shr(value, 16));
+    out[2] = lh_cast_static(lh_byte_t, lh_bit_shr(value, 8));
     out[3] = lh_cast_static(lh_byte_t, value);
 }
 
@@ -121,8 +124,10 @@ lh_u32_t
 lh_bit_unpack_be32(const lh_byte_ptr in)
 {
     lh_assert_runtime_ref(in);
-    return (lh_cast_static(lh_u32_t, in[0]) << 24) | (lh_cast_static(lh_u32_t, in[1]) << 16) |
-           (lh_cast_static(lh_u32_t, in[2]) << 8) | lh_cast_static(lh_u32_t, in[3]);
+    return lh_bit_or(lh_bit_or(lh_bit_shl(lh_cast_static(lh_u32_t, in[0]), 24),
+                              lh_bit_shl(lh_cast_static(lh_u32_t, in[1]), 16)),
+                     lh_bit_or(lh_bit_shl(lh_cast_static(lh_u32_t, in[2]), 8),
+                               lh_cast_static(lh_u32_t, in[3])));
 }
 
 /**
@@ -138,9 +143,9 @@ lh_bit_pack_le32(lh_u32_t value, lh_byte_ptr out)
 {
     lh_assert_runtime_ref(out);
     out[0] = lh_cast_static(lh_byte_t, value);
-    out[1] = lh_cast_static(lh_byte_t, value >> 8);
-    out[2] = lh_cast_static(lh_byte_t, value >> 16);
-    out[3] = lh_cast_static(lh_byte_t, value >> 24);
+    out[1] = lh_cast_static(lh_byte_t, lh_bit_shr(value, 8));
+    out[2] = lh_cast_static(lh_byte_t, lh_bit_shr(value, 16));
+    out[3] = lh_cast_static(lh_byte_t, lh_bit_shr(value, 24));
 }
 
 /**
@@ -156,8 +161,10 @@ lh_u32_t
 lh_bit_unpack_le32(const lh_byte_ptr in)
 {
     lh_assert_runtime_ref(in);
-    return lh_cast_static(lh_u32_t, in[0]) | (lh_cast_static(lh_u32_t, in[1]) << 8) |
-           (lh_cast_static(lh_u32_t, in[2]) << 16) | (lh_cast_static(lh_u32_t, in[3]) << 24);
+    return lh_bit_or(lh_bit_or(lh_cast_static(lh_u32_t, in[0]),
+                              lh_bit_shl(lh_cast_static(lh_u32_t, in[1]), 8)),
+                     lh_bit_or(lh_bit_shl(lh_cast_static(lh_u32_t, in[2]), 16),
+                               lh_bit_shl(lh_cast_static(lh_u32_t, in[3]), 24)));
 }
 
 /**

@@ -25,6 +25,7 @@
 #define LH_BIT_SCAN_H
 
 #include <lh/attribute/force_inline.h>
+#include <lh/bit/ops.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
@@ -58,7 +59,7 @@ lh_bit_scan_forward_u32(lh_u32_t x)
     /* Portable fallback for any other standards-conforming compiler: x is nonzero
      * per this function's own precondition, so this always terminates. */
     lh_usize_t i = 0U;
-    while (((x >> i) & 1U) == 0U)
+    while (lh_bit_disjoint(lh_bit_shr(x, i), 1U))
     {
         ++i;
     }
@@ -85,7 +86,7 @@ lh_bit_scan_reverse_u32(lh_u32_t x)
     return lh_cast_static(lh_usize_t, index);
 #else
     lh_usize_t i = 31U;
-    while (((x >> i) & 1U) == 0U)
+    while (lh_bit_disjoint(lh_bit_shr(x, i), 1U))
     {
         --i;
     }
@@ -163,17 +164,17 @@ lh_bit_scan_forward_u64(lh_u64_t x)
      * scans instead — check the low half first, only fall back to the high half
      * (offset by 32) if the low half is entirely zero. */
     {
-        const lh_u32_t lo = lh_cast_static(lh_u32_t, x & 0xFFFFFFFFULL);
+        const lh_u32_t lo = lh_cast_static(lh_u32_t, lh_bit_and(x, 0xFFFFFFFFULL));
         if (lo != 0U)
         {
             return lh_bit_scan_forward_u32(lo);
         }
-        return 32U + lh_bit_scan_forward_u32(lh_cast_static(lh_u32_t, x >> 32));
+        return 32U + lh_bit_scan_forward_u32(lh_cast_static(lh_u32_t, lh_bit_shr(x, 32)));
     }
 #    endif
 #else
     lh_usize_t i = 0U;
-    while (((x >> i) & 1U) == 0U)
+    while (lh_bit_disjoint(lh_bit_shr(x, i), 1U))
     {
         ++i;
     }
@@ -200,17 +201,17 @@ lh_bit_scan_reverse_u64(lh_u64_t x)
     return lh_cast_static(lh_usize_t, index);
 #    else
     {
-        const lh_u32_t hi = lh_cast_static(lh_u32_t, x >> 32);
+        const lh_u32_t hi = lh_cast_static(lh_u32_t, lh_bit_shr(x, 32));
         if (hi != 0U)
         {
             return 32U + lh_bit_scan_reverse_u32(hi);
         }
-        return lh_bit_scan_reverse_u32(lh_cast_static(lh_u32_t, x & 0xFFFFFFFFULL));
+        return lh_bit_scan_reverse_u32(lh_cast_static(lh_u32_t, lh_bit_and(x, 0xFFFFFFFFULL)));
     }
 #    endif
 #else
     lh_usize_t i = 63U;
-    while (((x >> i) & 1U) == 0U)
+    while (lh_bit_disjoint(lh_bit_shr(x, i), 1U))
     {
         --i;
     }

@@ -23,6 +23,7 @@
 #ifndef LH_SRC_OS_SYSTEM_POSIX_X11_H
 #define LH_SRC_OS_SYSTEM_POSIX_X11_H
 
+#include <lh/bit/ops.h>
 #include <lh/numeric/types.h>
 #include <lh/void.h>
 
@@ -251,32 +252,32 @@ typedef struct lh_os_system_posix_xshm_segment_info lh_os_system_posix_xshm_segm
 
 /** @{ */
 /** Event masks. */
-#define LH_OS_SYSTEM_POSIX_X_KEY_PRESS_MASK (1L << 0)
-#define LH_OS_SYSTEM_POSIX_X_KEY_RELEASE_MASK (1L << 1)
-#define LH_OS_SYSTEM_POSIX_X_BUTTON_PRESS_MASK (1L << 2)
-#define LH_OS_SYSTEM_POSIX_X_BUTTON_RELEASE_MASK (1L << 3)
-#define LH_OS_SYSTEM_POSIX_X_POINTER_MOTION_MASK (1L << 6)
-#define LH_OS_SYSTEM_POSIX_X_EXPOSURE_MASK (1L << 15)
-#define LH_OS_SYSTEM_POSIX_X_STRUCTURE_NOTIFY_MASK (1L << 17)
-#define LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_NOTIFY_MASK (1L << 19)
-#define LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_REDIRECT_MASK (1L << 20)
-#define LH_OS_SYSTEM_POSIX_X_FOCUS_CHANGE_MASK (1L << 21)
-#define LH_OS_SYSTEM_POSIX_X_PROPERTY_CHANGE_MASK (1L << 22)
+#define LH_OS_SYSTEM_POSIX_X_KEY_PRESS_MASK lh_bit_shl(1L, 0)
+#define LH_OS_SYSTEM_POSIX_X_KEY_RELEASE_MASK lh_bit_shl(1L, 1)
+#define LH_OS_SYSTEM_POSIX_X_BUTTON_PRESS_MASK lh_bit_shl(1L, 2)
+#define LH_OS_SYSTEM_POSIX_X_BUTTON_RELEASE_MASK lh_bit_shl(1L, 3)
+#define LH_OS_SYSTEM_POSIX_X_POINTER_MOTION_MASK lh_bit_shl(1L, 6)
+#define LH_OS_SYSTEM_POSIX_X_EXPOSURE_MASK lh_bit_shl(1L, 15)
+#define LH_OS_SYSTEM_POSIX_X_STRUCTURE_NOTIFY_MASK lh_bit_shl(1L, 17)
+#define LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_NOTIFY_MASK lh_bit_shl(1L, 19)
+#define LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_REDIRECT_MASK lh_bit_shl(1L, 20)
+#define LH_OS_SYSTEM_POSIX_X_FOCUS_CHANGE_MASK lh_bit_shl(1L, 21)
+#define LH_OS_SYSTEM_POSIX_X_PROPERTY_CHANGE_MASK lh_bit_shl(1L, 22)
 /** @} */
 
 /** @{ */
 /** Modifier and button state, the `state` of a key, button or motion event: what was
    held just before it. `Mod1` is Alt, `Mod2` Num Lock and `Mod4` Super on every
    keymap a desktop ships with. */
-#define LH_OS_SYSTEM_POSIX_X_SHIFT_MASK (1U << 0)
-#define LH_OS_SYSTEM_POSIX_X_LOCK_MASK (1U << 1)
-#define LH_OS_SYSTEM_POSIX_X_CONTROL_MASK (1U << 2)
-#define LH_OS_SYSTEM_POSIX_X_MOD1_MASK (1U << 3)
-#define LH_OS_SYSTEM_POSIX_X_MOD2_MASK (1U << 4)
-#define LH_OS_SYSTEM_POSIX_X_MOD4_MASK (1U << 6)
-#define LH_OS_SYSTEM_POSIX_X_BUTTON1_MASK (1U << 8)
-#define LH_OS_SYSTEM_POSIX_X_BUTTON2_MASK (1U << 9)
-#define LH_OS_SYSTEM_POSIX_X_BUTTON3_MASK (1U << 10)
+#define LH_OS_SYSTEM_POSIX_X_SHIFT_MASK lh_bit_mask(0)
+#define LH_OS_SYSTEM_POSIX_X_LOCK_MASK lh_bit_mask(1)
+#define LH_OS_SYSTEM_POSIX_X_CONTROL_MASK lh_bit_mask(2)
+#define LH_OS_SYSTEM_POSIX_X_MOD1_MASK lh_bit_mask(3)
+#define LH_OS_SYSTEM_POSIX_X_MOD2_MASK lh_bit_mask(4)
+#define LH_OS_SYSTEM_POSIX_X_MOD4_MASK lh_bit_mask(6)
+#define LH_OS_SYSTEM_POSIX_X_BUTTON1_MASK lh_bit_mask(8)
+#define LH_OS_SYSTEM_POSIX_X_BUTTON2_MASK lh_bit_mask(9)
+#define LH_OS_SYSTEM_POSIX_X_BUTTON3_MASK lh_bit_mask(10)
 /** @} */
 
 /** @{ */
@@ -292,12 +293,12 @@ typedef struct lh_os_system_posix_xshm_segment_info lh_os_system_posix_xshm_segm
 /** XCreateWindow: class, and the value-mask bits for the attributes set. */
 #define LH_OS_SYSTEM_POSIX_X_INPUT_OUTPUT 1U
 #define LH_OS_SYSTEM_POSIX_X_COPY_FROM_PARENT 0
-#define LH_OS_SYSTEM_POSIX_X_CW_BACK_PIXMAP (1UL << 0)
-#define LH_OS_SYSTEM_POSIX_X_CW_BACK_PIXEL (1UL << 1)
-#define LH_OS_SYSTEM_POSIX_X_CW_BORDER_PIXEL (1UL << 3)
-#define LH_OS_SYSTEM_POSIX_X_CW_BIT_GRAVITY (1UL << 4)
-#define LH_OS_SYSTEM_POSIX_X_CW_EVENT_MASK (1UL << 11)
-#define LH_OS_SYSTEM_POSIX_X_CW_COLORMAP (1UL << 13)
+#define LH_OS_SYSTEM_POSIX_X_CW_BACK_PIXMAP lh_bit_shl(1UL, 0)
+#define LH_OS_SYSTEM_POSIX_X_CW_BACK_PIXEL lh_bit_shl(1UL, 1)
+#define LH_OS_SYSTEM_POSIX_X_CW_BORDER_PIXEL lh_bit_shl(1UL, 3)
+#define LH_OS_SYSTEM_POSIX_X_CW_BIT_GRAVITY lh_bit_shl(1UL, 4)
+#define LH_OS_SYSTEM_POSIX_X_CW_EVENT_MASK lh_bit_shl(1UL, 11)
+#define LH_OS_SYSTEM_POSIX_X_CW_COLORMAP lh_bit_shl(1UL, 13)
 #define LH_OS_SYSTEM_POSIX_X_TRUE_COLOR 4
 #define LH_OS_SYSTEM_POSIX_X_ALLOC_NONE 0
 #define LH_OS_SYSTEM_POSIX_X_NORTH_WEST_GRAVITY 1
@@ -323,8 +324,8 @@ typedef struct lh_os_system_posix_xshm_segment_info lh_os_system_posix_xshm_segm
 
 /** @{ */
 /** XSizeHints flags. */
-#define LH_OS_SYSTEM_POSIX_X_US_POSITION (1L << 0)
-#define LH_OS_SYSTEM_POSIX_X_P_POSITION (1L << 2)
+#define LH_OS_SYSTEM_POSIX_X_US_POSITION lh_bit_shl(1L, 0)
+#define LH_OS_SYSTEM_POSIX_X_P_POSITION lh_bit_shl(1L, 2)
 /** @} */
 
 /** @{ */
