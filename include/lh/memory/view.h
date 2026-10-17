@@ -12,10 +12,7 @@
  * which treat the same two-field storage as a closed interval
  * <tt>[first, second]</tt>. The public typedef is layout-compatible with the
  * slice type, but every function in this header interprets @c second as an
- * exclusive endpoint. View functions delegate to ::lh_memory_view_slice_*
- * through the conversion <tt>[first, second)</tt> &lt;-&gt;
- * <tt>[first, second - 1]</tt>. A valid empty view <tt>[x, x)</tt> has no
- * closed form and is handled before that conversion.
+ * exclusive endpoint.
  *
  * The view can also represent incomplete storage: each endpoint may be
  * ::lh_null. Endpoint presence is reported as
@@ -1049,55 +1046,6 @@ lh_memory_view_init_empty(lh_memory_view_t *self);
  */
 lh_void
 lh_memory_view_init_by_other(lh_memory_view_t *self, const lh_memory_view_t *other);
-
-/* -- slice conversion ------------------------------------------------------ */
-
-/**
- * @brief Build a closed slice copy from half-open @p self.
- *
- * Valid view <tt>[begin, end)</tt> becomes closed slice
- * <tt>[begin, end - 1]</tt>. Uninitialized empty view becomes an empty slice.
- *
- * @param self View to copy as a closed slice.
- * @return Converted slice value.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is not a valid half-open view, including a valid empty
- *        view <tt>[x, x)</tt>, which has no closed form.
- */
-lh_void
-lh_memory_view_to_slice(const lh_memory_view_t *self, lh_memory_view_slice_t *out);
-
-/**
- * @brief Build a half-open view from closed @p slice.
- *
- * Valid slice <tt>[begin, end]</tt> becomes view <tt>[begin, end + 1)</tt>.
- * An uninitialized slice becomes an uninitialized view.
- *
- * @param slice Closed slice to copy as a half-open view.
- * @return Converted view value.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p slice is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p slice is initialized but not a valid closed slice.
- */
-lh_void
-lh_memory_view_return_of_slice(const lh_memory_view_slice_t *slice, lh_memory_view_t *out);
-
-/**
- * @brief Return the half-open view of a valid closed @p slice.
- *
- * @param slice Valid closed slice <tt>[begin, end]</tt>.
- * @return View <tt>[begin, end + 1)</tt>.
- *
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p slice is not valid.
- */
-lh_void
-lh_memory_view_return_init_of_slice(const lh_memory_view_slice_t *slice, lh_memory_view_t *out);
 
 /**
  * @brief Return an uninitialized empty view.

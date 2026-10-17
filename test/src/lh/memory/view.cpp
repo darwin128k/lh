@@ -29,25 +29,6 @@ TEST(memory_view_getters, return_stored_endpoints)
     EXPECT_EQ(lh_memory_view_get_end(&v), p(buf + 4));
 }
 
-TEST(memory_view_make_slice, copies_half_open_view_as_closed_slice)
-{
-    const unsigned char buf[8] = {};
-    lh_memory_view_t v = view(p(buf + 1), p(buf + 5));
-
-    lh_memory_view_slice_t s = lh_test::out(lh_memory_view_to_slice, &v);
-
-    EXPECT_TRUE(lh_memory_view_slice_equals_of(&s, p(buf + 1), p(buf + 4)));
-}
-
-TEST(memory_view_make_slice, copies_uninitialized_view_as_empty_slice)
-{
-    lh_memory_view_t v = view(lh_null, lh_null);
-
-    lh_memory_view_slice_t s = lh_test::out(lh_memory_view_to_slice, &v);
-
-    EXPECT_TRUE(lh_memory_view_slice_equals_of(&s, lh_null, lh_null));
-}
-
 TEST(memory_view_classification, distinguishes_states)
 {
     const unsigned char buf[4] = {};
@@ -294,22 +275,6 @@ TEST(memory_view_one_byte, shifts_end_offsets_by_one)
     EXPECT_TRUE(lh_memory_view_is_aligned(&empty, 16));
 }
 
-TEST(memory_view_slice_round_trip, converts_non_empty_and_uninitialized)
-{
-    const unsigned char buf[8] = {1, 2, 3, 4, 5, 6, 7, 8};
-    lh_memory_view_t v = view(p(buf + 1), p(buf + 5));
-    lh_memory_view_slice_t slice = lh_test::out(lh_memory_view_to_slice, &v);
-    lh_memory_view_t back = lh_test::out(lh_memory_view_return_of_slice, &slice);
-
-    EXPECT_TRUE(lh_memory_view_slice_equals_of(&slice, p(buf + 1), p(buf + 4)));
-    EXPECT_TRUE(lh_memory_view_equals(&back, &v));
-
-    lh_memory_view_t uninit = lh_test::out(lh_memory_view_return_empty);
-    lh_memory_view_slice_t empty_slice = lh_test::out(lh_memory_view_to_slice, &uninit);
-    lh_memory_view_t uninit_back = lh_test::out(lh_memory_view_return_of_slice, &empty_slice);
-    EXPECT_TRUE(lh_memory_view_is_uninitialized(&uninit_back));
-}
-
 TEST(memory_view_between, keeps_empty_subrange)
 {
     const unsigned char buf[4] = {};
@@ -369,14 +334,6 @@ TEST(memory_view_make_by_size, rejects_null_begin_death)
         lh_memory_view_t v;
         lh_memory_view_init_by_size(lh_addr_of(v), lh_null, 1);
     }()));
-}
-
-TEST(memory_view_make_slice, rejects_invalid_view_death)
-{
-    const unsigned char buf[2] = {};
-    lh_memory_view_t v = view(p(buf), p(buf));
-
-    LH_EXPECT_DEATH((void)lh_test::out(lh_memory_view_to_slice, &v));
 }
 
 TEST(memory_view_next_value, rejects_end_boundary_death)
