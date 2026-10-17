@@ -22,6 +22,7 @@
 
 #include <lh/config.h>
 #include <lh/net/port.h>
+#include <lh/os/input/sink/cb.h>
 #include <lh/ui/view.h>
 
 #if !LH_LIBRARY_OPTION_UI
@@ -34,24 +35,30 @@
 /**
  * @brief What a window would call: the application, not the JSON player.
  *
- * Any function may be ::lh_null. A missing press/release falls back to
- * ::lh_ui_view_press / ::lh_ui_view_release on the served view.
+ * Any function may be ::lh_null. Every input line of the player arrives as one
+ * ::lh_os_input_event_t, the same event a desktop window's sink gets
+ * (::lh_os_window_set_on_input): at @p input when it is set, else at
+ * ::lh_ui_view_input on the served view. A hook that wants the view to see the
+ * event as well passes it on to ::lh_ui_view_input itself.
+ *
+ * | Line           | Event                                              |
+ * |----------------|----------------------------------------------------|
+ * | `p x y`        | `pointer_down`, primary button                     |
+ * | `r x y`        | `pointer_up`, primary button                       |
+ * | `m x y`        | `pointer_move`, primary button held                |
+ * | `w x y dx dy`  | `wheel`, `dx` / `dy` notches times 120             |
+ * | `k key 1`/`0`  | `key_down` / `key_up`                              |
+ * | `t code`       | `text`                                             |
+ *
+ * The events carry ::lh_os_tick_ms as their time and no modifiers.
  */
 struct lh_ui_web_host_hooks
 {
     lh_ptr ctx; /**< Passed to every hook. */
     /** About every 20 ms, and between requests. */
     lh_void (*tick)(lh_ptr ctx);
-    /** Pointer down at view pixel (@p x, @p y). */
-    lh_void (*press)(int x, int y, lh_ptr ctx);
-    /** Pointer up at view pixel (@p x, @p y). */
-    lh_void (*release)(int x, int y, lh_ptr ctx);
-    /** One wheel notch at (@p x, @p y): @p dx, @p dy are -1, 0 or 1 (1 is left / up). */
-    lh_void (*wheel)(int x, int y, int dx, int dy, lh_ptr ctx);
-    /** Key @p key went down (@p pressed) or up. */
-    lh_void (*key)(lh_os_key_t key, lh_bool_t pressed, lh_ptr ctx);
-    /** One typed character, as a Unicode code point. */
-    lh_void (*text)(lh_u32_t code, lh_ptr ctx);
+    /** One input event from the player; @p context is ::ctx. */
+    lh_os_input_sink_cb input;
     /** Layout-mode tab size; ::lh_null keeps the host's initial width/height. */
     lh_void (*resize)(int width, int height, lh_ptr ctx);
 };

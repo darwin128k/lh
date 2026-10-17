@@ -80,11 +80,7 @@ main(void)
     lh_os_window_set_on_paint  (lh_addr_of(window), on_paint,   lh_addr_of(self));
     lh_os_window_set_on_resize (lh_addr_of(window), on_resize,  lh_addr_of(self));
     lh_os_window_set_on_close  (lh_addr_of(window), on_close,   lh_addr_of(self));
-    lh_os_window_set_on_press  (lh_addr_of(window), on_press,   lh_addr_of(self));
-    lh_os_window_set_on_release(lh_addr_of(window), on_release, lh_addr_of(self));
-    lh_os_window_set_on_wheel  (lh_addr_of(window), on_wheel,   lh_addr_of(self));
-    lh_os_window_set_on_key    (lh_addr_of(window), on_key,     lh_addr_of(self));
-    lh_os_window_set_on_text   (lh_addr_of(window), on_text,    lh_addr_of(self));
+    lh_os_window_set_on_input  (lh_addr_of(window), on_input,   lh_addr_of(self)); /* section 5 */
     lh_os_window_set_on_tick   (lh_addr_of(window), on_tick,    lh_addr_of(self), 20U); /* ms */
 
     if (!lh_os_window_open(lh_addr_of(app), lh_addr_of(window), "My app", 980, 620))
@@ -115,8 +111,10 @@ Lessons from configurator:
   polling, animations and `lh_ui_view_tick` belong there, not in `on_paint`.
 - **One pass per call.** A callback that loops "while there is work" stops
   the message pump: the window cannot paint, take a click, or be closed.
-- `lh_os_window_set_on_click` is never fired by the Win32 backend — clicks
-  come from `press`/`release` through `lh_ui_view_release` (section 5).
+- **All input is one callback.** `lh_os_window_set_on_input` takes every mouse,
+  wheel, key, text and focus event as one `lh_os_input_event_t`; there are no
+  per-event setters. A click is not an event of the window: the view makes it
+  from press and release (section 5).
 
 ---
 
@@ -337,46 +335,61 @@ Icons come from an lh generator too: `lib/lh/scripts/gen-icons.py` (16×16,
 
 ## 5. Input
 
-The window delivers raw events; the view dispatches them to entities:
+The window delivers every input as one event (`lh/os/input/event.h`) to one
+sink; the view dispatches it to entities:
 
 ```c
 static lh_void
-on_press(lh_os_window_t *window, int x, int y, lh_ptr context)
+on_input(const lh_os_input_event_ptr event, lh_ptr context)
 {
     struct my_main *self = lh_ptr_rcast(struct my_main, context);
-    lh_ui_point_t p;
-    lh_ui_point_init(&p, x, y);
-    lh_ui_view_press(lh_addr_of(self->view), p);
-    my_invalidate(self, window);
-}
 
-static lh_void
-on_release(lh_os_window_t *window, int x, int y, lh_ptr context)
-{
-    struct my_main *self = lh_ptr_rcast(struct my_main, context);
-    lh_ui_point_t p;
-    lh_ui_point_init(&p, x, y);
-    (void)lh_ui_view_release(lh_addr_of(self->view), p);  /* synthesizes the click */
-    my_invalidate(self, window);
+    if (lh_ui_view_input(lh_addr_of(self->view), event)) /* pressed, scrolled, typed */
+        my_invalidate(self);
 }
 ```
 
-| Window event | View call |
+`lh_ui_view_input` reads the event and makes the call the view needs:
+
+| Event | View call |
 |---|---|
-| `on_press` / `on_release` | `lh_ui_view_press` / `lh_ui_view_release` (click, focus, drag) |
-| `on_wheel` | `lh_ui_view_wheel` or `lh_ui_view_scroll_by` |
-| `on_key` | `lh_ui_view_key` (Tab moves focus) |
-| `on_text` | `lh_ui_view_text` (a character into an input) |
-| `on_tick` | `lh_ui_view_tick` (~60 Hz: scroll glide, transitions) |
+| `pointer_down` / `pointer_up`, primary button | `lh_ui_view_press` / `lh_ui_view_release` (click, focus, drag) |
+| `pointer_move` | `lh_ui_view_move` (drag-scroll the content, drag a scrollbar thumb) |
+| `pointer_cancel`, `focus_out` | `lh_ui_view_cancel` (the press ends, no click) |
+| `wheel` | `lh_ui_view_wheel`, `LH_UI_VIEW_WHEEL_STEP` per notch |
+| `key_down` / `key_up` | `lh_ui_view_key` (Tab moves focus) |
+| `text` | `lh_ui_view_text` (a character into an input) |
 
-**Write handlers so that `window` may be `lh_null`.** Then the same functions
-plug into the web host unchanged ([usage-web.md](usage-web.md)) — which is
-exactly what configurator does:
+`on_tick` still drives `lh_ui_view_tick` (~60 Hz: scroll glide, transitions).
 
-```c
-if (window != lh_null)
-    lh_os_window_invalidate(window);
-```
+What an event carries:
+
+- **Coordinates** are client pixels in Q24.8 (`lh_os_input_coord_to_int`).
+- **Wheel** distances are 1/120 notch (`LH_OS_INPUT_WHEEL_NOTCH`), positive
+  up / left. The backends no longer turn Shift+wheel sideways; the gesture
+  recognizer does, when asked to.
+- **Buttons**: `button` is the one that changed, `buttons` what is held after
+  the event; `lh_os_window_get_pressed_buttons` keeps the same mask. Windows
+  delivers all five mouse buttons, X11 too.
+- **Keys** carry `lh_os_key_t`, the native code as `scancode`, the modifiers
+  and `LH_OS_INPUT_FLAG_REPEAT` for auto-repeat (X11 no longer drops it).
+- **Focus**: `focus_in` / `focus_out` when the window gains or loses the
+  keyboard; a lost mouse capture on Windows is a `pointer_cancel`.
+
+**Gestures** — click count, double click, long press, drag begin / drag / end —
+come from `lh_os_input_recognizer_t` (`lh/os/input/recognizer.h`): feed it
+the raw events, call `lh_os_input_recognizer_update` from `on_tick`, and it
+passes every raw event on to its own sink with the gestures among them, marked
+`LH_OS_INPUT_FLAG_SYNTHESIZED`. `lh_ui_view_input` ignores synthesized events,
+so one sink can take both.
+
+**Events from somewhere else** (an interrupt, a thread) go through
+`lh_os_input_queue_t` (`lh/os/input/queue.h`): one producer pushes, the UI
+thread drains it into the sink.
+
+The sink has no window parameter, so the same function plugs into the web host
+unchanged ([usage-web.md](usage-web.md)) — which is exactly what configurator
+does.
 
 ---
 

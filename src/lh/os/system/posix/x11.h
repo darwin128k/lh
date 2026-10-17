@@ -45,6 +45,7 @@ typedef struct lh_os_system_posix_xrender_format lh_os_system_posix_xrender_form
 #include <lh/os/system/posix/x11/xclient_message_event/fields.h>
 #include <lh/os/system/posix/x11/xconfigure_event/fields.h>
 #include <lh/os/system/posix/x11/xexpose_event/fields.h>
+#include <lh/os/system/posix/x11/xfocus_change_event/fields.h>
 #include <lh/os/system/posix/x11/ximage/fields.h>
 #include <lh/os/system/posix/x11/xkey_event/fields.h>
 #include <lh/os/system/posix/x11/xmotion_event/fields.h>
@@ -91,6 +92,15 @@ struct lh_os_system_posix_xmotion_event
 };
 /** @copybrief lh_os_system_posix_xmotion_event */
 typedef struct lh_os_system_posix_xmotion_event lh_os_system_posix_xmotion_event_t;
+
+/** @brief `XFocusChangeEvent`. */
+struct lh_os_system_posix_xfocus_change_event
+{
+    /** Members: ::lh_os_system_posix_xfocus_change_event_fields. */
+    lh_os_system_posix_xfocus_change_event_fields;
+};
+/** @copybrief lh_os_system_posix_xfocus_change_event */
+typedef struct lh_os_system_posix_xfocus_change_event lh_os_system_posix_xfocus_change_event_t;
 
 /** @brief `XExposeEvent`. */
 struct lh_os_system_posix_xexpose_event
@@ -143,6 +153,7 @@ union lh_os_system_posix_xevent
     lh_os_system_posix_xbutton_event_t button;         /**< `ButtonPress` / `ButtonRelease` */
     lh_os_system_posix_xmotion_event_t motion;         /**< `MotionNotify` */
     lh_os_system_posix_xexpose_event_t expose;         /**< `Expose` */
+    lh_os_system_posix_xfocus_change_event_t focus;    /**< `FocusIn` / `FocusOut` */
     lh_os_system_posix_xconfigure_event_t configure;   /**< `ConfigureNotify` */
     lh_os_system_posix_xclient_message_event_t client; /**< `ClientMessage` */
     lh_os_system_posix_xproperty_event_t property;     /**< `PropertyNotify` */
@@ -229,6 +240,8 @@ typedef struct lh_os_system_posix_xshm_segment_info lh_os_system_posix_xshm_segm
 #define LH_OS_SYSTEM_POSIX_X_BUTTON_PRESS 4
 #define LH_OS_SYSTEM_POSIX_X_BUTTON_RELEASE 5
 #define LH_OS_SYSTEM_POSIX_X_MOTION_NOTIFY 6
+#define LH_OS_SYSTEM_POSIX_X_FOCUS_IN 9
+#define LH_OS_SYSTEM_POSIX_X_FOCUS_OUT 10
 #define LH_OS_SYSTEM_POSIX_X_EXPOSE 12
 #define LH_OS_SYSTEM_POSIX_X_MAP_NOTIFY 19
 #define LH_OS_SYSTEM_POSIX_X_CONFIGURE_NOTIFY 22
@@ -247,11 +260,33 @@ typedef struct lh_os_system_posix_xshm_segment_info lh_os_system_posix_xshm_segm
 #define LH_OS_SYSTEM_POSIX_X_STRUCTURE_NOTIFY_MASK (1L << 17)
 #define LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_NOTIFY_MASK (1L << 19)
 #define LH_OS_SYSTEM_POSIX_X_SUBSTRUCTURE_REDIRECT_MASK (1L << 20)
+#define LH_OS_SYSTEM_POSIX_X_FOCUS_CHANGE_MASK (1L << 21)
 #define LH_OS_SYSTEM_POSIX_X_PROPERTY_CHANGE_MASK (1L << 22)
 /** @} */
 
-/** Modifier state. */
+/** @{ */
+/** Modifier and button state, the `state` of a key, button or motion event: what was
+   held just before it. `Mod1` is Alt, `Mod2` Num Lock and `Mod4` Super on every
+   keymap a desktop ships with. */
 #define LH_OS_SYSTEM_POSIX_X_SHIFT_MASK (1U << 0)
+#define LH_OS_SYSTEM_POSIX_X_LOCK_MASK (1U << 1)
+#define LH_OS_SYSTEM_POSIX_X_CONTROL_MASK (1U << 2)
+#define LH_OS_SYSTEM_POSIX_X_MOD1_MASK (1U << 3)
+#define LH_OS_SYSTEM_POSIX_X_MOD2_MASK (1U << 4)
+#define LH_OS_SYSTEM_POSIX_X_MOD4_MASK (1U << 6)
+#define LH_OS_SYSTEM_POSIX_X_BUTTON1_MASK (1U << 8)
+#define LH_OS_SYSTEM_POSIX_X_BUTTON2_MASK (1U << 9)
+#define LH_OS_SYSTEM_POSIX_X_BUTTON3_MASK (1U << 10)
+/** @} */
+
+/** @{ */
+/** `FocusIn` / `FocusOut` modes: the focus moving because of a keyboard grab, which
+   is not the window losing it. */
+#define LH_OS_SYSTEM_POSIX_X_NOTIFY_GRAB 1
+#define LH_OS_SYSTEM_POSIX_X_NOTIFY_UNGRAB 2
+/** `FocusIn` / `FocusOut` detail: about the window under the pointer, not this one. */
+#define LH_OS_SYSTEM_POSIX_X_NOTIFY_POINTER 5
+/** @} */
 
 /** @{ */
 /** XCreateWindow: class, and the value-mask bits for the attributes set. */
@@ -293,12 +328,17 @@ typedef struct lh_os_system_posix_xshm_segment_info lh_os_system_posix_xshm_segm
 /** @} */
 
 /** @{ */
-/** Pointer buttons. 4 and 5 are the vertical wheel, 6 and 7 the horizontal one. */
+/** Pointer buttons. 4 and 5 are the vertical wheel, 6 and 7 the horizontal one, 8 and
+   9 the side buttons. */
 #define LH_OS_SYSTEM_POSIX_X_BUTTON_LEFT 1U
+#define LH_OS_SYSTEM_POSIX_X_BUTTON_MIDDLE 2U
+#define LH_OS_SYSTEM_POSIX_X_BUTTON_RIGHT 3U
 #define LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_UP 4U
 #define LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_DOWN 5U
 #define LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_LEFT 6U
 #define LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_RIGHT 7U
+#define LH_OS_SYSTEM_POSIX_X_BUTTON_BACK 8U
+#define LH_OS_SYSTEM_POSIX_X_BUTTON_FORWARD 9U
 /** @} */
 
 /** @{ */

@@ -917,6 +917,103 @@ lh_ui_view_start_transition(lh_ui_view_t *self, lh_ui_entity_t *entity, const lh
     return lh_bool_true;
 }
 
+/* -- Input events ------------------------------------------------------------ */
+
+lh_void
+lh_ui_view_cancel(lh_ui_view_t *self)
+{
+    lh_assert_runtime_ref(self);
+    lh_return_if(!self->pressed && lh_null_eq(self->grab));
+    lh_ui_entity_send_pointer(self->target, lh_ui_entity_event_release, self->last_point);
+    lh_ui_view_set_pressed(self, self->target, lh_bool_false);
+    lh_ui_view_end_scroll(self);
+    lh_ui_view_reset_pointer(self);
+}
+
+/** Where @p event happened, in whole view units. */
+static lh_ui_point_t
+lh_ui_view_point_of(lh_os_input_event_cptr event)
+{
+    lh_ui_point_t point;
+
+    lh_ui_point_init(
+        lh_addr_of(point),
+        lh_type_cast(lh_ui_scalar_t, lh_os_input_coord_to_int(lh_os_input_event_get_x(event))),
+        lh_type_cast(lh_ui_scalar_t, lh_os_input_coord_to_int(lh_os_input_event_get_y(event))));
+    return point;
+}
+
+/** A wheel distance in 1/120 notch (positive up / left) as content units to
+   scroll by (positive down / right). */
+static lh_ui_scalar_t
+lh_ui_view_wheel_distance(lh_s32_t notch_120)
+{
+    return lh_type_cast(lh_ui_scalar_t,
+                        lh_math_neg(notch_120) * LH_UI_VIEW_WHEEL_STEP / LH_OS_INPUT_WHEEL_NOTCH);
+}
+
+/** True when @p event is a button of the first pointer that the view presses with. */
+static lh_bool_t
+lh_ui_view_is_primary_press(lh_os_input_event_cptr event)
+{
+    return lh_type_cast(lh_bool_t,
+                        lh_os_input_event_get_button(event) == lh_os_input_button_primary);
+}
+
+/** The pointer half of ::lh_ui_view_input. */
+static lh_bool_t
+lh_ui_view_input_pointer(lh_ui_view_t *self, lh_os_input_event_cptr event)
+{
+    lh_return_if(lh_os_input_event_get_pointer(event) != 0U, lh_bool_false);
+    switch (lh_os_input_event_get_kind(event))
+    {
+    case lh_os_input_kind_pointer_down:
+        lh_return_if(!lh_ui_view_is_primary_press(event), lh_bool_false);
+        lh_ui_view_press(self, lh_ui_view_point_of(event));
+        return lh_bool_true;
+    case lh_os_input_kind_pointer_move:
+        return lh_ui_view_move(self, lh_ui_view_point_of(event));
+    case lh_os_input_kind_pointer_up:
+        lh_return_if(!lh_ui_view_is_primary_press(event), lh_bool_false);
+        (void)lh_ui_view_release(self, lh_ui_view_point_of(event));
+        return lh_bool_true;
+    case lh_os_input_kind_pointer_cancel:
+        lh_ui_view_cancel(self);
+        return lh_bool_true;
+    case lh_os_input_kind_wheel:
+        return lh_ui_view_wheel(self, lh_ui_view_point_of(event),
+                                lh_ui_view_wheel_distance(lh_os_input_event_get_dx(event)),
+                                lh_ui_view_wheel_distance(lh_os_input_event_get_dy(event)));
+    default:
+        return lh_bool_false;
+    }
+}
+
+lh_bool_t
+lh_ui_view_input(lh_ui_view_t *self, lh_os_input_event_cptr event)
+{
+    lh_assert_runtime_ref(self);
+    lh_assert_runtime_ref(event);
+    lh_return_if(lh_os_input_event_is_synthesized(event), lh_bool_false);
+    switch (lh_os_input_event_get_kind(event))
+    {
+    case lh_os_input_kind_key_down:
+    case lh_os_input_kind_key_up:
+        (void)lh_ui_view_key(self, lh_os_input_event_get_key(event),
+                             lh_type_cast(lh_bool_t, lh_os_input_event_get_kind(event) ==
+                                                         lh_os_input_kind_key_down));
+        return lh_bool_true;
+    case lh_os_input_kind_text:
+        (void)lh_ui_view_text(self, lh_os_input_event_get_code(event));
+        return lh_bool_true;
+    case lh_os_input_kind_focus_out:
+        lh_ui_view_cancel(self);
+        return lh_bool_true;
+    default:
+        return lh_ui_view_input_pointer(self, event);
+    }
+}
+
 /* -- Transitions ----------------------------------------------------------- */
 
 const lh_ui_style_t *

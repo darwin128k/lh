@@ -321,8 +321,16 @@ color, paint, gradient, shadow, blur, style, transition, layout, canvas and the
 entity tree. It needs no OS; the host supplies where the pixels go.
 
 - **View** — `lh_ui_view_t` (`lh/ui/view.h`) binds an entity tree to a canvas,
-  draws it (`lh_ui_view_draw`), takes input (press / release / wheel / key /
-  text) and accumulates damage for partial redraw.
+  draws it (`lh_ui_view_draw`), takes input (press / move / release / wheel /
+  key / text, or one `lh_os_input_event_t` through `lh_ui_view_input`) and
+  accumulates damage for partial redraw.
+- **Input** — `lh/os/input/` (no OS needed): one event type
+  `lh_os_input_event_t` for pointer, wheel, key, text, controller and focus
+  input, one sink callback, a single-producer ring `lh_os_input_queue_t` for
+  events from an interrupt or a thread, and the gesture recognizer
+  `lh_os_input_recognizer_t` (click count, double click, long press, drag).
+  A desktop window delivers its input to one sink
+  (`lh_os_window_set_on_input`), the web host to its `input` hook.
 - **Canvas backends** — software, into a pixel buffer (`lh/ui/canvas/sw.h`);
   GDI, the same software renderer plus one `BitBlt` into a window
   (`lh/os/render/backend/gdi.h`); web, recording primitives as JSON

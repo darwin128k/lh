@@ -1,0 +1,72 @@
+#include <gtest/gtest.h>
+
+#include <lh/os/input/event.h>
+#include <lh/size.h>
+
+/* Backend-private (src/lh/os/system/win/input.h), so declared here: the test
+   includes only the public tree. wParam is a UINT_PTR and lParam a LONG_PTR. */
+extern "C" lh_os_input_button_t
+lh_os_system_win_input_button_of(lh_u32_t msg, lh_usize_t wparam);
+extern "C" lh_bool_t
+lh_os_system_win_input_is_button_down(lh_u32_t msg);
+extern "C" lh_u32_t
+lh_os_system_win_input_buttons_of(lh_usize_t wparam);
+extern "C" lh_bool_t
+lh_os_system_win_input_is_repeat(lh_ssize_t lparam);
+extern "C" lh_void
+lh_os_system_win_input_wheel_of(lh_u32_t msg, lh_usize_t wparam, lh_s32_t *dx, lh_s32_t *dy);
+
+namespace
+{
+
+TEST(os_system_win_input, each_button_message_names_its_button)
+{
+    EXPECT_EQ(lh_os_system_win_input_button_of(0x0201U, 0U), lh_os_input_button_primary);
+    EXPECT_EQ(lh_os_system_win_input_button_of(0x0205U, 0U), lh_os_input_button_secondary);
+    EXPECT_EQ(lh_os_system_win_input_button_of(0x0207U, 0U), lh_os_input_button_middle);
+    EXPECT_EQ(lh_os_system_win_input_button_of(0x020BU, 0x00010000U), lh_os_input_button_back)
+        << "XBUTTON1 in the high word";
+    EXPECT_EQ(lh_os_system_win_input_button_of(0x020CU, 0x00020000U), lh_os_input_button_forward)
+        << "XBUTTON2 in the high word";
+    EXPECT_EQ(lh_os_system_win_input_button_of(0x0200U, 0U), lh_os_input_button_none)
+        << "a move is about no button";
+    EXPECT_TRUE(lh_os_system_win_input_is_button_down(0x0204U));
+    EXPECT_FALSE(lh_os_system_win_input_is_button_down(0x0202U));
+}
+
+TEST(os_system_win_input, the_mk_bits_read_as_buttons_held)
+{
+    EXPECT_EQ(lh_os_system_win_input_buttons_of(0x0001U),
+              lh_os_input_button_to_mask(lh_os_input_button_primary));
+    EXPECT_EQ(lh_os_system_win_input_buttons_of(0x0002U | 0x0010U),
+              lh_os_input_button_to_mask(lh_os_input_button_secondary) |
+                  lh_os_input_button_to_mask(lh_os_input_button_middle));
+    EXPECT_EQ(lh_os_system_win_input_buttons_of(0x0020U | 0x0040U),
+              lh_os_input_button_to_mask(lh_os_input_button_back) |
+                  lh_os_input_button_to_mask(lh_os_input_button_forward));
+    EXPECT_EQ(lh_os_system_win_input_buttons_of(0x0004U | 0x0008U), 0U)
+        << "MK_SHIFT and MK_CONTROL are no buttons";
+}
+
+TEST(os_system_win_input, bit_30_is_a_repeat)
+{
+    EXPECT_FALSE(lh_os_system_win_input_is_repeat(0x00000001));
+    EXPECT_TRUE(lh_os_system_win_input_is_repeat(0x40000001));
+}
+
+TEST(os_system_win_input, the_wheels_count_up_and_left_positive)
+{
+    lh_s32_t dx = 7;
+    lh_s32_t dy = 7;
+
+    lh_os_system_win_input_wheel_of(0x020AU, 0x00780000U, &dx, &dy);
+    EXPECT_EQ(dx, 0);
+    EXPECT_EQ(dy, 120) << "a notch up";
+    lh_os_system_win_input_wheel_of(0x020AU, 0xFF880000U, &dx, &dy);
+    EXPECT_EQ(dy, -120) << "a notch down";
+    lh_os_system_win_input_wheel_of(0x020EU, 0x00780000U, &dx, &dy);
+    EXPECT_EQ(dx, -120) << "Windows counts right positive, an event left";
+    EXPECT_EQ(dy, 0);
+}
+
+} // namespace

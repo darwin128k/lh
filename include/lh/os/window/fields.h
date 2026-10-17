@@ -7,19 +7,13 @@
 #define LH_OS_WINDOW_FIELDS_H
 
 #include <lh/list.h>
+#include <lh/os/input/sink/cb.h>
 #include <lh/os/window/frame.h>
-#include <lh/os/window/on/click/cb.h>
 #include <lh/os/window/on/close/cb.h>
-#include <lh/os/window/on/move/cb.h>
 #include <lh/os/window/on/paint/cb.h>
-#include <lh/os/window/on/press/cb.h>
-#include <lh/os/window/on/release/cb.h>
 #include <lh/os/window/on/resize/cb.h>
 #include <lh/os/window/on/zone/cb.h>
-#include <lh/os/window/on/key/cb.h>
-#include <lh/os/window/on/text/cb.h>
 #include <lh/os/window/on/tick/cb.h>
-#include <lh/os/window/on/wheel/cb.h>
 #include <lh/os/window/placement.h>
 
 /* Declared here and defined in `lh/ui/frame/stats.h`: a window holds a pointer to it
@@ -47,9 +41,11 @@ struct lh_ui_frame_stats;
  * `paint_dc` is set only for the duration of ::lh_os_window_on_paint_fn.
  * `frame_stats` is the caller's, and every paint is recorded into it when it is set
  * (::lh_os_window_set_frame_stats).
- * Click synthesis (press then release without a drag) lives above the OS:
- * the backend fires press / move / release / wheel / key / text; ::lh_os_window_on_click
- * stays for callers that still wire it.
+ * Input is one sink: `on_input` takes every ::lh_os_input_event_t the backend builds
+ * (pointer, wheel, key, text, focus), with `on_input_context`; see
+ * ::lh_os_window_set_on_input. `pressed_buttons` is the mask of pointer buttons the
+ * last pointer event left held, `0` after a cancel or a focus loss, so a backend can
+ * tell whether losing the pointer capture interrupted a press.
  *
  * `on_tick` and `tick_ms` are the window's timer: `tick_ms` is the period the window
  * system was asked for and `0` means no timer is running. It exists because an app
@@ -85,20 +81,9 @@ struct lh_ui_frame_stats;
     lh_os_window_on_paint_cb on_paint;                                                             \
     lh_ptr on_paint_context;                                                                       \
     struct lh_ui_frame_stats *frame_stats;                                                         \
-    lh_os_window_on_press_cb on_press;                                                             \
-    lh_ptr on_press_context;                                                                       \
-    lh_os_window_on_move_cb on_move;                                                               \
-    lh_ptr on_move_context;                                                                        \
-    lh_os_window_on_release_cb on_release;                                                         \
-    lh_ptr on_release_context;                                                                     \
-    lh_os_window_on_wheel_cb on_wheel;                                                             \
-    lh_ptr on_wheel_context;                                                                       \
-    lh_os_window_on_key_cb on_key;                                                                 \
-    lh_ptr on_key_context;                                                                         \
-    lh_os_window_on_text_cb on_text;                                                               \
-    lh_ptr on_text_context;                                                                        \
-    lh_os_window_on_click_cb on_click;                                                             \
-    lh_ptr on_click_context;                                                                       \
+    lh_os_input_sink_cb on_input;                                                                  \
+    lh_ptr on_input_context;                                                                       \
+    lh_u32_t pressed_buttons;                                                                      \
     lh_os_window_on_close_cb on_close;                                                             \
     lh_ptr on_close_context;                                                                       \
     lh_os_window_on_tick_cb on_tick;                                                               \

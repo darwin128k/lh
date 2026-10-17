@@ -8,13 +8,86 @@
 
 #include <lh/ui/web/page.h>
 
+#include <lh/assert/static.h>
 #include <lh/byte/ptr.h>
+#include <lh/os/key.h>
+#include <lh/str/format/text.h>
+#include <lh/str/ptr.h>
 #include <lh/ui/web/html.h>
 #include <lh/ui/web/js.h>
 #include <lh/ui/web/js/x.h>
 
 /** Append string literal @p s to @p j, its length taken at compile time. */
 #define page_lit(j, s) lh_ui_web_buf_lit((j), (s), lh_cast_static(lh_usize_t, (sizeof(s) - 1u)))
+
+/* -- keys ------------------------------------------------------------------ */
+
+/** Room for one key table as JS text, braces and NUL included. */
+#define PAGE_KEY_TABLE_CAP 512u
+
+/** A browser `KeyboardEvent.key` and the ::lh_os_key_t the player sends for it. */
+typedef struct page_key
+{
+    lh_str_cptr name;   /**< `e.key` as the browser spells it */
+    lh_os_key_t key;    /**< what the host is sent */
+    lh_bool_t modifier; /**< held with other keys, so the browser keeps its default */
+} page_key_t;           /**< A browser key name and the ::lh_os_key_t for it. */
+
+/** Every ::lh_os_key_t but ::lh_os_key_other, by the name a browser gives it. The player's
+   table is written from this, so the numbers on the wire are the enum's own; a key added to
+   the enum without a name here stops the build at the check below. */
+static const page_key_t page_keys[] = {
+    {"Tab", lh_os_key_tab, lh_bool_false},        {"Enter", lh_os_key_enter, lh_bool_false},
+    {"Escape", lh_os_key_escape, lh_bool_false},  {"Backspace", lh_os_key_backspace, lh_bool_false},
+    {"Delete", lh_os_key_delete, lh_bool_false},  {" ", lh_os_key_space, lh_bool_false},
+    {"ArrowLeft", lh_os_key_left, lh_bool_false}, {"ArrowRight", lh_os_key_right, lh_bool_false},
+    {"ArrowUp", lh_os_key_up, lh_bool_false},     {"ArrowDown", lh_os_key_down, lh_bool_false},
+    {"Home", lh_os_key_home, lh_bool_false},      {"End", lh_os_key_end, lh_bool_false},
+    {"PageUp", lh_os_key_page_up, lh_bool_false}, {"PageDown", lh_os_key_page_down, lh_bool_false},
+    {"Shift", lh_os_key_shift, lh_bool_true},     {"Control", lh_os_key_control, lh_bool_true},
+    {"Alt", lh_os_key_alt, lh_bool_true},
+};
+
+/** Entries in ::page_keys. */
+#define PAGE_KEY_COUNT (sizeof(page_keys) / sizeof(page_keys[0]))
+
+lh_assert_static(PAGE_KEY_COUNT == lh_cast_static(lh_usize_t, lh_os_key_alt),
+                 "page_keys must name every lh_os_key_t but lh_os_key_other");
+
+/** `var <name>={'<e.key>':<lh_os_key_t>,...};` from ::page_keys, only the modifiers when
+   @p modifiers_only. Fails @p j when the table would not fit ::PAGE_KEY_TABLE_CAP. */
+static lh_void
+page_emit_key_table(lh_ui_web_buf_t *j, lh_str_cptr name, lh_bool_t modifiers_only)
+{
+    lh_char_t table[PAGE_KEY_TABLE_CAP];
+    lh_usize_t len = 0u;
+    lh_usize_t i;
+
+    table[len++] = '{';
+    for (i = 0u; i < PAGE_KEY_COUNT; ++i)
+    {
+        lh_usize_t n;
+
+        if (modifiers_only && !page_keys[i].modifier)
+        {
+            continue;
+        }
+        n = lh_str_ptr_format_text(table + len, sizeof(table) - len, "%s'%s':%u",
+                                   (len > 1u) ? "," : "", page_keys[i].name,
+                                   lh_cast_static(lh_uint_t, page_keys[i].key));
+        if (n == 0u || len + n + 2u > sizeof(table))
+        {
+            lh_ui_web_buf_fail(j);
+            return;
+        }
+        len += n;
+    }
+    table[len++] = '}';
+    table[len] = '\0';
+    lh_ui_web_js_var(j, name, table);
+}
+
+/* -- page ------------------------------------------------------------------ */
 
 lh_bool_t
 lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
@@ -671,8 +744,13 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
     lh_ui_web_js_ret(j, "fetch('/ui/wheel?x='+p[1]+'&y='+p[2]+'&dx='+p[3]+'&dy='+p[4])"
                         ".then(function(){rev=-1;return load();})");
     lh_ui_web_js_end(j);
+    lh_ui_web_js_if(j, "p[0]==='m'");
+    lh_ui_web_js_ret(
+        j, "fetch('/ui/move?x='+p[1]+'&y='+p[2]).then(function(){rev=-1;return load();})");
+    lh_ui_web_js_end(j);
     lh_ui_web_js_if(j, "p[0]==='k'");
-    lh_ui_web_js_ret(j, "fetch('/ui/key?k='+p[1]).then(function(){rev=-1;return load();})");
+    lh_ui_web_js_ret(j, "fetch('/ui/key?k='+p[1]+(p.length>2?'&p='+p[2]:''))"
+                        ".then(function(){rev=-1;return load();})");
     lh_ui_web_js_end(j);
     lh_ui_web_js_if(j, "p[0]==='t'");
     lh_ui_web_js_ret(j, "fetch('/ui/text?c='+p[1]).then(function(){rev=-1;return load();})");
@@ -685,22 +763,49 @@ lh_ui_web_page_build(lh_byte_ptr mem, lh_usize_t cap, lh_usize_t *out_len)
 
     /* -- canvas handlers + websocket ------------------------------------------- */
     lh_ui_web_js_var(j, "c", "document.getElementById('c')");
-    lh_ui_web_js_prop(j, "c", "onmousedown", "function(e){var p=pos(e);emit('p '+p.x+' '+p.y);}");
-    lh_ui_web_js_prop(j, "c", "onmouseup", "function(e){var p=pos(e);emit('r '+p.x+' '+p.y);}");
+    lh_ui_web_js_vars(j, "held=0,mv=null,mvRaf=0");
+    lh_ui_web_js_fun_open(j, "flushMove", "");
+    lh_ui_web_js_if(j, "mvRaf");
+    lh_ui_web_js_stmt(j, "cancelAnimationFrame(mvRaf)");
+    lh_ui_web_js_assign(j, "mvRaf", "0");
+    lh_ui_web_js_end(j);
+    lh_ui_web_js_if(j, "mv");
+    lh_ui_web_js_stmt(j, "emit('m '+mv.x+' '+mv.y)");
+    lh_ui_web_js_assign(j, "mv", "null");
+    lh_ui_web_js_end(j);
+    lh_ui_web_js_fun_close(j);
+    lh_ui_web_js_prop(j, "c", "onmousedown",
+                      "function(e){var p=pos(e);held=1;emit('p '+p.x+' '+p.y);}");
+    /* Up and move on the window, not the canvas: a drag that leaves the canvas is still the
+       drag, as a captured pointer is on the desktop. Moves go only while a button is held, at
+       most one per animation frame, and the last one goes before the release. */
+    lh_ui_web_js_assign(j, "window.onmouseup",
+                        "function(e){if(!held)return;held=0;flushMove();var p=pos(e);"
+                        "emit('r '+p.x+' '+p.y);}");
+    lh_ui_web_js_assign(j, "window.onmousemove",
+                        "function(e){if(!held)return;if(e.buttons===0){window.onmouseup(e);return;}"
+                        "mv=pos(e);if(!mvRaf)mvRaf=requestAnimationFrame(function(){mvRaf=0;"
+                        "flushMove();});}");
     lh_ui_web_js_prop(
         j, "c", "onwheel",
         "function(e){e.preventDefault();var p=pos(e);"
         "var dy=e.deltaY===0?0:(e.deltaY>0?-1:1);var dx=e.deltaX===0?0:(e.deltaX>0?-1:1);"
         "if(e.shiftKey&&dy){dx=dy;dy=0;}emit('w '+p.x+' '+p.y+' '+dx+' '+dy);}");
 
-    lh_ui_web_js_var(j, "keys",
-                     "{Tab:1,Enter:2,Escape:3,Backspace:4,Delete:5,ArrowLeft:7,ArrowRight:8,"
-                     "ArrowUp:9,ArrowDown:10,Home:11,End:12,PageUp:13,PageDown:14}");
+    /* A key goes as `k <key> 1` down and `k <key> 0` up, and a key that also types (Space)
+       sends its text after it, as the desktop's key-down and character messages do. A modifier
+       keeps the browser's default; every other key the player takes. */
+    page_emit_key_table(j, "keys", lh_bool_false);
+    page_emit_key_table(j, "mods", lh_bool_true);
     lh_ui_web_js_assign(j, "document.onkeydown",
-                        "function(e){var k=keys[e.key];"
-                        "if(k){e.preventDefault();emit('k '+k);return;}"
-                        "if(e.key&&e.key.length===1&&!e.ctrlKey&&!e.altKey&&!e.metaKey){"
-                        "e.preventDefault();emit('t '+e.key.codePointAt(0));}}");
+                        "function(e){var k=keys[e.key],m=mods[e.key];"
+                        "var t=e.key&&e.key.length===1&&!e.ctrlKey&&!e.altKey&&!e.metaKey;"
+                        "if((k&&!m)||t)e.preventDefault();"
+                        "if(k)emit('k '+k+' 1');"
+                        "if(t)emit('t '+e.key.codePointAt(0));}");
+    lh_ui_web_js_assign(j, "document.onkeyup",
+                        "function(e){var k=keys[e.key];if(!k)return;"
+                        "if(!mods[e.key])e.preventDefault();emit('k '+k+' 0');}");
     lh_ui_web_js_stmt(j, "c.focus()");
     lh_ui_web_js_vars(j, "sock=null,retry=200,pollId=0,retryId=0");
 

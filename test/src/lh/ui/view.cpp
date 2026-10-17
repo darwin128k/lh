@@ -841,3 +841,153 @@ TEST(view, a_press_on_a_caption_presses_the_button_it_is_in)
     lh_ui_view_release(lh_addr_of(f.view), point_of(30, 24));
     EXPECT_EQ(lh_ui_entity_is_pressed(lh_ui_button_as_entity(lh_addr_of(f.button))), lh_bool_false);
 }
+
+/* -- lh_ui_view_input --------------------------------------------------------- */
+
+namespace
+{
+lh_os_input_event_t
+pointer_event(lh_os_input_kind_t kind, lh_os_input_button_t button, int x, int y, lh_u8_t pointer = 0U)
+{
+    lh_os_input_event_t event{};
+
+    lh_os_input_event_init_pointer(lh_addr_of(event), kind, lh_os_input_device_kind_mouse, pointer, button,
+                                   lh_os_input_coord_from_int(x), lh_os_input_coord_from_int(y), 0U);
+    return event;
+}
+
+lh_os_input_event_t
+wheel_event(int x, int y, lh_s32_t dx, lh_s32_t dy)
+{
+    lh_os_input_event_t event{};
+
+    lh_os_input_event_init_wheel(lh_addr_of(event), lh_os_input_coord_from_int(x), lh_os_input_coord_from_int(y),
+                                 dx, dy, 0U);
+    return event;
+}
+
+lh_bool_t
+feed(view_fixture &f, lh_os_input_event_t event)
+{
+    return lh_ui_view_input(lh_addr_of(f.view), lh_addr_of(event));
+}
+} // namespace
+
+/* The same page click as release_without_drag_pages_and_records_scroll_damage, as events. */
+TEST(view, input_a_primary_press_and_release_click)
+{
+    view_fixture f;
+
+    EXPECT_TRUE(feed(f, pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 105, 150)));
+    EXPECT_TRUE(feed(f, pointer_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, 105, 150)));
+    EXPECT_EQ(scroll_y_of(f.box), 100);
+}
+
+TEST(view, input_another_button_or_pointer_does_not_press)
+{
+    view_fixture f;
+
+    EXPECT_FALSE(feed(f, pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_secondary, 105, 150)));
+    EXPECT_FALSE(feed(f, pointer_event(lh_os_input_kind_pointer_up, lh_os_input_button_secondary, 105, 150)));
+    EXPECT_FALSE(feed(f, pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 105, 150, 1U)));
+    EXPECT_FALSE(feed(f, pointer_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, 105, 150, 1U)));
+    EXPECT_EQ(scroll_y_of(f.box), 0);
+}
+
+TEST(view, input_a_move_drags_the_thumb)
+{
+    view_fixture f;
+
+    EXPECT_TRUE(feed(f, pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 105, 10)));
+    EXPECT_TRUE(feed(f, pointer_event(lh_os_input_kind_pointer_move, lh_os_input_button_none, 105, 85)));
+    EXPECT_EQ(scroll_y_of(f.box), 150);
+    EXPECT_TRUE(feed(f, pointer_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, 105, 85)));
+    EXPECT_EQ(scroll_y_of(f.box), 150);
+}
+
+/* A notch down (negative: the event counts up as positive) scrolls one step toward
+   the end, a notch up comes back. */
+TEST(view, input_a_wheel_notch_scrolls_one_step)
+{
+    view_fixture f;
+
+    EXPECT_TRUE(feed(f, wheel_event(50, 50, 0, -LH_OS_INPUT_WHEEL_NOTCH)));
+    EXPECT_EQ(scroll_y_of(f.box), LH_UI_VIEW_WHEEL_STEP);
+    EXPECT_TRUE(feed(f, wheel_event(50, 50, 0, LH_OS_INPUT_WHEEL_NOTCH)));
+    EXPECT_EQ(scroll_y_of(f.box), 0);
+    EXPECT_FALSE(feed(f, wheel_event(50, 50, 0, LH_OS_INPUT_WHEEL_NOTCH))) << "already at the top";
+    EXPECT_FALSE(feed(f, pointer_event(lh_os_input_kind_pointer_move, lh_os_input_button_none, 60, 60)))
+        << "a move with nothing pressed scrolls nothing";
+}
+
+TEST(view, input_a_cancel_ends_the_press_without_a_click)
+{
+    view_fixture f;
+
+    EXPECT_TRUE(feed(f, pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 105, 150)));
+    EXPECT_TRUE(feed(f, pointer_event(lh_os_input_kind_pointer_cancel, lh_os_input_button_none, 0, 0)));
+    EXPECT_TRUE(feed(f, pointer_event(lh_os_input_kind_pointer_up, lh_os_input_button_primary, 105, 150)));
+    EXPECT_EQ(scroll_y_of(f.box), 0) << "the release after a cancel is no click";
+}
+
+TEST(view, input_losing_the_focus_lets_the_press_go)
+{
+    scene s;
+    pressed_panel p;
+    lh_ui_view_t view;
+    lh_ui_canvas_t canvas;
+    lh_os_input_event_t down = pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 140, 100);
+    lh_os_input_event_t focus_out{};
+
+    build_scene(s);
+    build_pressed_panel(p);
+    lh_ui_entity_set_style(lh_addr_of(s.panel), lh_addr_of(p.style));
+    lh_ui_canvas_init(lh_addr_of(canvas), lh_addr_of(lh_ui_canvas_backend_null), lh_null);
+    lh_ui_view_init(lh_addr_of(view));
+    lh_ui_view_set_canvas(lh_addr_of(view), lh_addr_of(canvas));
+    lh_ui_view_set_root(lh_addr_of(view), lh_addr_of(s.panel));
+    lh_os_input_event_init(lh_addr_of(focus_out), lh_os_input_kind_focus_out, lh_os_input_device_kind_keyboard, 0U);
+
+    EXPECT_TRUE(lh_ui_view_input(lh_addr_of(view), lh_addr_of(down)));
+    EXPECT_TRUE(lh_ui_entity_is_pressed(lh_addr_of(s.panel)));
+    EXPECT_TRUE(lh_ui_view_input(lh_addr_of(view), lh_addr_of(focus_out)));
+    EXPECT_FALSE(lh_ui_entity_is_pressed(lh_addr_of(s.panel))) << "a press outlived the focus";
+}
+
+TEST(view, input_a_cancel_with_no_press_open_does_nothing)
+{
+    view_fixture f;
+
+    lh_ui_view_cancel(lh_addr_of(f.view));
+    EXPECT_EQ(f.damage(), nullptr);
+}
+
+/* The view makes its own click: a recognizer's gesture fed to it as well would be
+   the click twice. */
+TEST(view, input_a_synthesized_event_is_not_for_the_view)
+{
+    view_fixture f;
+    lh_os_input_event_t click = pointer_event(lh_os_input_kind_click, lh_os_input_button_primary, 105, 150);
+    lh_os_input_event_t down = pointer_event(lh_os_input_kind_pointer_down, lh_os_input_button_primary, 105, 150);
+
+    lh_os_input_event_set_flags(lh_addr_of(click), LH_OS_INPUT_FLAG_SYNTHESIZED);
+    lh_os_input_event_set_flags(lh_addr_of(down), LH_OS_INPUT_FLAG_SYNTHESIZED);
+    EXPECT_FALSE(feed(f, click));
+    EXPECT_FALSE(feed(f, down));
+    EXPECT_EQ(scroll_y_of(f.box), 0);
+}
+
+TEST(view, input_keys_and_text_go_to_the_view)
+{
+    view_fixture f;
+    lh_os_input_event_t key{};
+    lh_os_input_event_t text{};
+    lh_os_input_event_t axis{};
+
+    lh_os_input_event_init_key(lh_addr_of(key), lh_os_key_tab, lh_bool_true, lh_bool_false, 0U, 0U);
+    lh_os_input_event_init_text(lh_addr_of(text), 0x0416U, 0U);
+    lh_os_input_event_init_controller_axis(lh_addr_of(axis), 0U, lh_os_input_axis_left_x, 100, 0U);
+    EXPECT_TRUE(feed(f, key));
+    EXPECT_TRUE(feed(f, text));
+    EXPECT_FALSE(feed(f, axis)) << "a controller is not for the view";
+}

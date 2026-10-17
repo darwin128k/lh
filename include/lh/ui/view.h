@@ -17,6 +17,11 @@
  * page click, key). ::lh_ui_view_wheel scrolls the container under the
  * cursor; ::lh_ui_view_key / ::lh_ui_view_text go to the focus, Tab moves it.
  *
+ * Input events: ::lh_ui_view_input takes one ::lh_os_input_event_t, the event a
+ * window's sink (::lh_os_window_set_on_input) or the web host hands over, and
+ * calls the right one of the functions above. The view makes its own click from
+ * press and release, so the gestures a recognizer synthesizes are not for it.
+ *
  * Requires ::LH_LIBRARY_OPTION_UI.
  */
 
@@ -24,6 +29,7 @@
 #define LH_UI_VIEW_H
 
 #include <lh/config.h>
+#include <lh/os/input/event.h>
 #include <lh/ui/button.h>
 #include <lh/ui/view/fields.h>
 
@@ -71,6 +77,13 @@ typedef struct lh_ui_view lh_ui_view_t;
  *        instead -- not on top of the tick.
  */
 #define LH_UI_VIEW_FRAME_MS 16
+
+/**
+ * @def LH_UI_VIEW_WHEEL_STEP
+ * @brief How far one wheel notch (::LH_OS_INPUT_WHEEL_NOTCH) scrolls, in content
+ *        units, when it comes in through ::lh_ui_view_input.
+ */
+#define LH_UI_VIEW_WHEEL_STEP 40
 
 /**
  * @struct lh_ui_view_focus_walk
@@ -623,6 +636,60 @@ lh_ui_view_key(lh_ui_view_t *self, lh_os_key_t key, lh_bool_t pressed);
  */
 lh_bool_t
 lh_ui_view_text(lh_ui_view_t *self, lh_u32_t code);
+
+/* -- Input events ------------------------------------------------------------ */
+
+/**
+ * @brief Abandon the press in progress without a click: the pressed entity is let
+ *        go, a grabbed thumb dropped, a drag stopped where it is (no glide).
+ *
+ * For the pointer the system took away (::lh_os_input_kind_pointer_cancel) and
+ * for the window losing the focus mid-press. The target still hears
+ * ::lh_ui_entity_event_release, at the last point the pointer was seen, so a
+ * press is always paired; what it never gets is the click. Does nothing when no
+ * press is open.
+ */
+lh_void
+lh_ui_view_cancel(lh_ui_view_t *self);
+
+/**
+ * @brief One input event, to the pointer session or the focus.
+ *
+ * | Event                                   | Goes to                     |
+ * |-----------------------------------------|-----------------------------|
+ * | `pointer_down` of the primary button    | ::lh_ui_view_press          |
+ * | `pointer_move`                          | ::lh_ui_view_move           |
+ * | `pointer_up` of the primary button      | ::lh_ui_view_release        |
+ * | `pointer_cancel`, `focus_out`           | ::lh_ui_view_cancel         |
+ * | `wheel`                                 | ::lh_ui_view_wheel          |
+ * | `key_down` (a repeat too) / `key_up`    | ::lh_ui_view_key            |
+ * | `text`                                  | ::lh_ui_view_text           |
+ *
+ * Only the first pointer (`pointer` 0) is followed. A wheel notch up or left
+ * scrolls ::LH_UI_VIEW_WHEEL_STEP content units back toward the start. Other
+ * buttons, other pointers, controllers and every synthesized event
+ * (::lh_os_input_event_is_synthesized) are not for the view.
+ *
+ * @return True when the view acted on @p event; repaint what
+ *         ::lh_ui_view_take_damage then returns. A move or a wheel notch acts
+ *         only when it scrolled something (::lh_ui_view_move,
+ *         ::lh_ui_view_wheel). False for an event the view has no use for.
+ *
+ * @code
+ * lh_void
+ * on_input(const lh_os_input_event_ptr event, lh_ptr context)
+ * {
+ *     lh_ui_view_t *view = lh_ptr_rcast(lh_ui_view_t, context);
+ *
+ *     if (lh_ui_view_input(view, event)) // pressed, scrolled, typed into
+ *     {
+ *         repaint(view);                 // the app's own: draw the damage
+ *     }
+ * }
+ * @endcode
+ */
+lh_bool_t
+lh_ui_view_input(lh_ui_view_t *self, const lh_os_input_event_ptr event);
 
 LH_COMPILER_EXTERN_C_END
 

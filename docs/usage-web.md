@@ -27,9 +27,30 @@ handlers are the same.
   - `GET /` — the Canvas2D HTML player (built by `lh_ui_web_page_build`);
   - `GET /ui.json` — one frame;
   - `ws://…/ws` — pushes a frame **only when the tree changed**;
-  - clicks, wheel and tab size come back and call the hooks.
+  - presses, releases, moves while a button is down, wheel, keys (down and
+    up), text and the tab size come back: the input as one
+    `lh_os_input_event_t` each, the size through the `resize` hook.
 - No Python, Node or external web server — everything runs in the process.
 - Several tabs can watch one process.
+
+Input travels as one text line per event over the WebSocket (with the socket
+down, the player sends the same numbers as an HTTP query instead):
+
+| Line | HTTP fallback | Event (to the `input` hook, else `lh_ui_view_input`) |
+|---|---|---|
+| `p x y` / `r x y` | `/ui/press`, `/ui/release` `?x=&y=` | `pointer_down` / `pointer_up`, primary button |
+| `m x y` | `/ui/move?x=&y=` | `pointer_move`, primary held (sent only while a button is down, at most once per animation frame) |
+| `w x y dx dy` | `/ui/wheel?x=&y=&dx=&dy=` | `wheel`, `dx` / `dy` notches × 120, positive up / left |
+| `k key pressed` | `/ui/key?k=&p=` | `key_down` / `key_up`; `pressed` is `1` down, `0` up |
+| `t code` | `/ui/text?c=` | `text` |
+| `z w h` | `/ui/size?w=&h=` | `resize` hook (layout mode), no event |
+
+`/ui/click?x=&y=` is a `pointer_down` and a `pointer_up` at one point.
+
+`key` is an `lh_os_key_t` (`lh/os/key.h`); the player's key table is written
+from that enum when the page is built, so the numbers cannot drift. A key
+that also types (Space) sends its `t` line after the `k` line, as the desktop
+does. A `k key` line without the flag (an older player) is a key going down.
 
 Requires `LH_LIBRARY_OPTION_UI=ON` and `LH_LIBRARY_OPTION_OS=ON` (sockets).
 The host does not need a window (`OS_WINDOW`).
@@ -59,19 +80,17 @@ In `main.c`:
 
 ## 3. Hooks: the same handlers, `window = NULL`
 
-The web host knows nothing about `lh_os_window_t`. The desktop handlers are
-plugged in through thin wrappers — **which is why they must survive
-`window == lh_null`**:
+The web host knows nothing about `lh_os_window_t`. Its `input` hook has the
+signature of a window's sink (`lh_os_input_sink_cb`), so the desktop `on_input`
+plugs in as it is; only the tick and the resize need thin wrappers — **which is
+why they must survive `window == lh_null`**:
 
 ```c
 #if MY_WEB_HOST
 #include <lh/ui/web/host.h>
 
-static lh_void web_tick   (lh_ptr c)                              { on_tick(lh_null, c); }
-static lh_void web_press  (int x, int y, lh_ptr c)                { on_press(lh_null, x, y, c); }
-static lh_void web_release(int x, int y, lh_ptr c)                { on_release(lh_null, x, y, c); }
-static lh_void web_wheel  (int x, int y, int dx, int dy, lh_ptr c){ on_wheel(lh_null, x, y, dx, dy, c); }
-static lh_void web_resize (int w, int h, lh_ptr c)                { on_resize(lh_null, w, h, c); }
+static lh_void web_tick  (lh_ptr c)               { on_tick(lh_null, c); }
+static lh_void web_resize(int w, int h, lh_ptr c) { on_resize(lh_null, w, h, c); }
 #endif
 ```
 
@@ -79,8 +98,11 @@ Notes:
 
 - In the web build `on_resize` lays the tree out again but does **not** call
   `lh_os_window_invalidate` — damage on the view is enough for the next frame.
-- Any hook may be `lh_null`. Without `press` / `release` the host calls
-  `lh_ui_view_press` / `lh_ui_view_release` itself.
+- Any hook may be `lh_null`. Without `input` the host hands every event to
+  `lh_ui_view_input` on the served view itself; with it, the hook gets every
+  event (moves included) and passes on to `lh_ui_view_input` what the view
+  should see.
+- The events carry `lh_os_tick_ms` as their time and no modifiers.
 - `tick` runs about every 20 ms **and between requests**, so device polling is
   not starved by HTTP.
 
@@ -115,14 +137,10 @@ main(int argc, char **argv)
         if (argc > 1)
             port = (lh_net_port_t)atoi(argv[1]);
 
-        hooks.ctx     = lh_addr_of(self);
-        hooks.tick    = web_tick;
-        hooks.press   = web_press;
-        hooks.release = web_release;
-        hooks.wheel   = web_wheel;
-        hooks.key     = lh_null;
-        hooks.text    = lh_null;
-        hooks.resize  = web_resize;
+        hooks.ctx    = lh_addr_of(self);
+        hooks.tick   = web_tick;
+        hooks.input  = on_input;   /* the desktop sink, unchanged */
+        hooks.resize = web_resize;
 
         /* Does not return on success. */
         if (!lh_ui_web_host_run(lh_addr_of(self.view), 980u, 620u,
@@ -137,7 +155,7 @@ main(int argc, char **argv)
     (void)argc; (void)argv;
 #endif
 
-    /* ... desktop branch: set_on_*, lh_os_window_open, lh_os_app_run ... */
+    /* ... desktop branch: set_on_input and the rest, lh_os_window_open, lh_os_app_run ... */
 }
 ```
 

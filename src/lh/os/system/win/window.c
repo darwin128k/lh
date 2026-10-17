@@ -6,10 +6,12 @@
 #include <lh/assert/runtime.h>
 #include <lh/memory.h>
 #include <lh/os/system/win/gdi32.h>
+#include <lh/os/system/win/input.h>
 #include <lh/os/system/win/kernel32.h>
 #include <lh/os/system/win/key.h>
 #include <lh/os/system/win/user32.h>
 #include <lh/os/system/window.h>
+#include <lh/os/tick.h>
 #include <lh/os/window.h>
 #include <lh/util/return.h>
 
@@ -56,6 +58,103 @@ lh_os_system_win_window_hit(lh_os_window_zone_t zone)
     default:
         return LH_OS_SYSTEM_WIN_HTCLIENT;
     }
+}
+
+/* -- Input ----------------------------------------------------------------- */
+
+/** The client point packed in a mouse message's @p lparam, as an event coordinate. */
+static lh_os_input_coord_t
+lh_os_system_win_window_coord_x(lh_os_system_win_lparam_t lparam)
+{
+    return lh_os_input_coord_from_int(
+        lh_type_cast(int, lh_type_cast(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam))));
+}
+
+/** The y of ::lh_os_system_win_window_coord_x. */
+static lh_os_input_coord_t
+lh_os_system_win_window_coord_y(lh_os_system_win_lparam_t lparam)
+{
+    return lh_os_input_coord_from_int(
+        lh_type_cast(int, lh_type_cast(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam))));
+}
+
+/** One mouse event of @p kind about @p button to @p window, at the client point in
+   @p lparam, with the buttons in @p wparam held after it. */
+static lh_void
+lh_os_system_win_window_send_pointer(lh_os_window_t *window, lh_os_input_kind_t kind,
+                                     lh_os_input_button_t button, lh_os_system_win_wparam_t wparam,
+                                     lh_os_system_win_lparam_t lparam)
+{
+    lh_os_input_event_t event;
+
+    lh_os_input_event_init_pointer(lh_addr_of(event), kind, lh_os_input_device_kind_mouse, 0U,
+                                   button, lh_os_system_win_window_coord_x(lparam),
+                                   lh_os_system_win_window_coord_y(lparam), lh_os_tick_ms());
+    lh_os_input_event_set_buttons(lh_addr_of(event), lh_os_system_win_input_buttons_of(wparam));
+    lh_os_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
+    lh_os_window_on_native_input(window, lh_addr_of(event));
+}
+
+/** A button message: the capture follows the buttons, so a drag that leaves the
+   window still ends here -- taken on the first press, let go once none is held. */
+static lh_void
+lh_os_system_win_window_send_button(lh_os_window_t *window, lh_os_system_win_hwnd_t hwnd,
+                                    lh_os_system_win_uint_t msg, lh_os_system_win_wparam_t wparam,
+                                    lh_os_system_win_lparam_t lparam)
+{
+    const lh_bool_t down = lh_os_system_win_input_is_button_down(msg);
+
+    if (down)
+    {
+        SetCapture(hwnd);
+    }
+    lh_os_system_win_window_send_pointer(
+        window, down ? lh_os_input_kind_pointer_down : lh_os_input_kind_pointer_up,
+        lh_os_system_win_input_button_of(msg, wparam), wparam, lparam);
+    if (!down && lh_os_system_win_input_buttons_of(wparam) == 0U && GetCapture() == hwnd)
+    {
+        ReleaseCapture();
+    }
+}
+
+/** A wheel message: its point is on the screen, the event's in the client. */
+static lh_void
+lh_os_system_win_window_send_wheel(lh_os_window_t *window, lh_os_system_win_hwnd_t hwnd,
+                                   lh_os_system_win_uint_t msg, lh_os_system_win_wparam_t wparam,
+                                   lh_os_system_win_lparam_t lparam)
+{
+    lh_os_input_event_t event;
+    lh_os_system_win_point_t cursor;
+    lh_s32_t dx;
+    lh_s32_t dy;
+
+    cursor.x = lh_type_cast(int, lh_type_cast(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam)));
+    cursor.y = lh_type_cast(int, lh_type_cast(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam)));
+    ScreenToClient(hwnd, lh_addr_of(cursor));
+    lh_os_system_win_input_wheel_of(msg, wparam, lh_addr_of(dx), lh_addr_of(dy));
+    lh_os_input_event_init_wheel(lh_addr_of(event), lh_os_input_coord_from_int(cursor.x),
+                                 lh_os_input_coord_from_int(cursor.y), dx, dy, lh_os_tick_ms());
+    lh_os_input_event_set_buttons(lh_addr_of(event), lh_os_system_win_input_buttons_of(wparam));
+    lh_os_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
+    lh_os_window_on_native_input(window, lh_addr_of(event));
+}
+
+/** A key message, plain or with Alt (`WM_SYS*`); the virtual key goes along as the
+   scancode, so a key ::lh_os_key_t has no name for can still be told apart. */
+static lh_void
+lh_os_system_win_window_send_key(lh_os_window_t *window, lh_os_system_win_uint_t msg,
+                                 lh_os_system_win_wparam_t wparam, lh_os_system_win_lparam_t lparam)
+{
+    lh_os_input_event_t event;
+    const lh_u32_t vk = lh_type_cast(lh_u32_t, wparam);
+    const lh_bool_t down = lh_type_cast(lh_bool_t, msg == LH_OS_SYSTEM_WIN_WM_KEYDOWN ||
+                                                       msg == LH_OS_SYSTEM_WIN_WM_SYSKEYDOWN);
+
+    lh_os_input_event_init_key(lh_addr_of(event), lh_os_system_win_key_from_vk(vk), down,
+                               down ? lh_os_system_win_input_is_repeat(lparam) : lh_bool_false, vk,
+                               lh_os_tick_ms());
+    lh_os_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
+    lh_os_window_on_native_input(window, lh_addr_of(event));
 }
 
 /** Where a window opens. Win32 has exactly one answer for this — `CW_USEDEFAULT`,
@@ -248,76 +347,87 @@ lh_os_system_win_window_proc(lh_os_system_win_hwnd_t hwnd, lh_os_system_win_uint
         return 0;
     }
     case LH_OS_SYSTEM_WIN_WM_LBUTTONDOWN:
+    case LH_OS_SYSTEM_WIN_WM_RBUTTONDOWN:
+    case LH_OS_SYSTEM_WIN_WM_MBUTTONDOWN:
+    case LH_OS_SYSTEM_WIN_WM_XBUTTONDOWN:
+    case LH_OS_SYSTEM_WIN_WM_LBUTTONUP:
+    case LH_OS_SYSTEM_WIN_WM_RBUTTONUP:
+    case LH_OS_SYSTEM_WIN_WM_MBUTTONUP:
+    case LH_OS_SYSTEM_WIN_WM_XBUTTONUP:
         if (lh_null_ne(window))
         {
-            SetCapture(hwnd);
-            lh_os_window_on_native_press(
-                window,
-                lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam))),
-                lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam))));
+            lh_os_system_win_window_send_button(window, hwnd, msg, wparam, lparam);
         }
-        return 0;
+        /* An X button message says it was handled by returning TRUE, every other by 0. */
+        return msg == LH_OS_SYSTEM_WIN_WM_XBUTTONDOWN || msg == LH_OS_SYSTEM_WIN_WM_XBUTTONUP
+                   ? LH_OS_SYSTEM_WIN_TRUE
+                   : 0;
     case LH_OS_SYSTEM_WIN_WM_MOUSEMOVE:
         if (lh_null_ne(window))
         {
-            lh_os_window_on_native_move(
-                window,
-                lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam))),
-                lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam))));
+            lh_os_system_win_window_send_pointer(window, lh_os_input_kind_pointer_move,
+                                                 lh_os_input_button_none, wparam, lparam);
         }
         return 0;
-    case LH_OS_SYSTEM_WIN_WM_LBUTTONUP:
-        if (lh_null_ne(window))
+    case LH_OS_SYSTEM_WIN_WM_CAPTURECHANGED:
+        /* Another window took the mouse while a button was held here: that press is
+           never going to be released to us, so it is cancelled rather than left down.
+           Our own ReleaseCapture comes after the last button went up, with none held. */
+        if (lh_null_ne(window) && lh_cast_reinterpret(lh_os_system_win_hwnd_t, lparam) != hwnd &&
+            lh_os_window_get_pressed_buttons(window) != 0U)
         {
-            if (GetCapture() == hwnd)
-            {
-                ReleaseCapture();
-            }
-            lh_os_window_on_native_release(
-                window,
-                lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam))),
-                lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam))));
+            lh_os_system_win_window_send_pointer(window, lh_os_input_kind_pointer_cancel,
+                                                 lh_os_input_button_none, 0U, 0);
         }
         return 0;
     case LH_OS_SYSTEM_WIN_WM_MOUSEWHEEL:
+    case LH_OS_SYSTEM_WIN_WM_MOUSEHWHEEL:
         if (lh_null_ne(window))
         {
-            lh_os_system_win_point_t cursor;
-            int delta;
-
-            cursor.x =
-                lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_LOWORD(lparam)));
-            cursor.y =
-                lh_cast_static(int, lh_cast_static(lh_sshort_t, LH_OS_SYSTEM_WIN_HIWORD(lparam)));
-            ScreenToClient(hwnd, lh_addr_of(cursor));
-            delta = lh_cast_static(int, LH_OS_SYSTEM_WIN_GET_WHEEL_DELTA_WPARAM(wparam)) /
-                    LH_OS_SYSTEM_WIN_WHEEL_DELTA;
-            if ((LH_OS_SYSTEM_WIN_LOWORD(wparam) & LH_OS_SYSTEM_WIN_MK_SHIFT) != 0U)
-            {
-                lh_os_window_on_native_wheel(window, cursor.x, cursor.y, delta, 0);
-                return 0;
-            }
-            lh_os_window_on_native_wheel(window, cursor.x, cursor.y, 0, delta);
+            lh_os_system_win_window_send_wheel(window, hwnd, msg, wparam, lparam);
         }
         return 0;
     case LH_OS_SYSTEM_WIN_WM_KEYDOWN:
     case LH_OS_SYSTEM_WIN_WM_KEYUP:
         if (lh_null_ne(window))
         {
-            lh_os_window_on_native_key(
-                window, lh_os_system_win_key_from_vk(lh_cast_static(lh_u32_t, wparam)),
-                msg == LH_OS_SYSTEM_WIN_WM_KEYDOWN ? lh_bool_true : lh_bool_false);
+            lh_os_system_win_window_send_key(window, msg, wparam, lparam);
         }
         return 0;
+    case LH_OS_SYSTEM_WIN_WM_SYSKEYDOWN:
+    case LH_OS_SYSTEM_WIN_WM_SYSKEYUP:
+        /* Heard, and then still handed on: Alt+F4 and the system menu live there. */
+        if (lh_null_ne(window))
+        {
+            lh_os_system_win_window_send_key(window, msg, wparam, lparam);
+        }
+        break;
     case LH_OS_SYSTEM_WIN_WM_CHAR:
         if (lh_null_ne(window))
         {
-            const lh_u32_t code = lh_os_system_win_text_from_char(lh_cast_static(lh_u32_t, wparam));
+            const lh_u32_t code = lh_os_system_win_text_from_char(lh_type_cast(lh_u32_t, wparam));
 
             if (lh_os_system_win_is_text(code))
             {
-                lh_os_window_on_native_text(window, code);
+                lh_os_input_event_t event;
+
+                lh_os_input_event_init_text(lh_addr_of(event), code, lh_os_tick_ms());
+                lh_os_input_event_set_mods(lh_addr_of(event), lh_os_system_win_input_get_mods());
+                lh_os_window_on_native_input(window, lh_addr_of(event));
             }
+        }
+        return 0;
+    case LH_OS_SYSTEM_WIN_WM_SETFOCUS:
+    case LH_OS_SYSTEM_WIN_WM_KILLFOCUS:
+        if (lh_null_ne(window))
+        {
+            lh_os_input_event_t event;
+
+            lh_os_input_event_init(lh_addr_of(event),
+                                   msg == LH_OS_SYSTEM_WIN_WM_SETFOCUS ? lh_os_input_kind_focus_in
+                                                                       : lh_os_input_kind_focus_out,
+                                   lh_os_input_device_kind_keyboard, lh_os_tick_ms());
+            lh_os_window_on_native_input(window, lh_addr_of(event));
         }
         return 0;
     case LH_OS_SYSTEM_WIN_WM_TIMER:

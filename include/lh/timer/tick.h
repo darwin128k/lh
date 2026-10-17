@@ -54,6 +54,39 @@ lh_tick_is_less(lh_tick_t self, lh_tick_t other);
 lh_bool_t
 lh_tick_is_greater(lh_tick_t self, lh_tick_t other);
 
+/**
+ * @brief Milliseconds from @p since to @p now, across a wrap of the counter.
+ *
+ * `now - since` modulo 2^32: a tick that wrapped from `0xFFFFFFF0` to `0x10`
+ * is `0x20` later, not four billion earlier. Valid while the real distance is
+ * below 2^32 ms (about 49.7 days).
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_tick_elapsed(0xFFFFFFF0U, 0x10U);  // 0x20
+ * lh_tick_elapsed(100U, 150U);          // 50
+ * @endcode
+ */
+lh_tick_t
+lh_tick_elapsed(lh_tick_t since, lh_tick_t now);
+
+/**
+ * @brief True if @p self comes strictly after @p other, across a wrap of the
+ *        counter.
+ *
+ * Wrap-aware, unlike ::lh_tick_is_greater: the distance `self - other`, read
+ * as a signed 32-bit number, is positive. Valid while the two are less than
+ * 2^31 ms (about 24.8 days) apart.
+ *
+ * Example usage:
+ * @code{.c}
+ * lh_tick_is_after(0x10U, 0xFFFFFFF0U);  // true: 0x20 ms after the wrap
+ * lh_tick_is_after(5U, 5U);              // false
+ * @endcode
+ */
+lh_bool_t
+lh_tick_is_after(lh_tick_t self, lh_tick_t other);
+
 LH_COMPILER_EXTERN_C_END
 
 #endif /* LH_TIMER_TICK_H */
