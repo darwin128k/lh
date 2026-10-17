@@ -7,6 +7,10 @@
 #include <lh/ui/view.h>
 #include <lh/util/return.h>
 
+#if LH_LIBRARY_OPTION_OS
+#    include <lh/os/input.h>
+#endif
+
 lh_void
 lh_ui_view_set_canvas(lh_ui_view_t *self, lh_ui_canvas_t *canvas)
 {
@@ -943,13 +947,36 @@ lh_ui_view_point_of(lh_os_input_event_cptr event)
     return point;
 }
 
-/** A wheel distance in 1/120 notch (positive up / left) as content units to
-   scroll by (positive down / right). */
-static lh_ui_scalar_t
-lh_ui_view_wheel_distance(lh_s32_t notch_120)
+/** Content units one wheel notch scrolls: the system's step
+   (::lh_os_input_get_wheel_step), or ::LH_UI_VIEW_WHEEL_STEP where there is no OS layer
+   to ask. */
+static lh_s32_t
+lh_ui_view_wheel_step(lh_void)
 {
-    return lh_type_cast(lh_ui_scalar_t,
-                        lh_math_neg(notch_120) * LH_UI_VIEW_WHEEL_STEP / LH_OS_INPUT_WHEEL_NOTCH);
+#if LH_LIBRARY_OPTION_OS
+    return lh_os_input_get_wheel_step();
+#else
+    return LH_UI_VIEW_WHEEL_STEP;
+#endif
+}
+
+/** A wheel distance in 1/120 notch (positive up / left) as content units to
+   scroll by (positive down / right), @p step units a notch. */
+static lh_ui_scalar_t
+lh_ui_view_wheel_distance(lh_s32_t notch_120, lh_s32_t step)
+{
+    return lh_type_cast(lh_ui_scalar_t, lh_math_neg(notch_120) * step / LH_OS_INPUT_WHEEL_NOTCH);
+}
+
+/** The wheel case of ::lh_ui_view_input: both axes by one step, asked once. */
+static lh_bool_t
+lh_ui_view_input_wheel(lh_ui_view_t *self, lh_os_input_event_cptr event)
+{
+    const lh_s32_t step = lh_ui_view_wheel_step();
+
+    return lh_ui_view_wheel(self, lh_ui_view_point_of(event),
+                            lh_ui_view_wheel_distance(lh_os_input_event_get_dx(event), step),
+                            lh_ui_view_wheel_distance(lh_os_input_event_get_dy(event), step));
 }
 
 /** True when @p event is a button of the first pointer that the view presses with. */
@@ -981,9 +1008,7 @@ lh_ui_view_input_pointer(lh_ui_view_t *self, lh_os_input_event_cptr event)
         lh_ui_view_cancel(self);
         return lh_bool_true;
     case lh_os_input_kind_wheel:
-        return lh_ui_view_wheel(self, lh_ui_view_point_of(event),
-                                lh_ui_view_wheel_distance(lh_os_input_event_get_dx(event)),
-                                lh_ui_view_wheel_distance(lh_os_input_event_get_dy(event)));
+        return lh_ui_view_input_wheel(self, event);
     default:
         return lh_bool_false;
     }

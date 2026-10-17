@@ -18,6 +18,7 @@
 
 #    include <lh/test/ui/draw_log.h>
 
+#    include <lh/os/input.h>
 #    include <lh/os/net.h>
 #    include <lh/os/net/socket.h>
 #    include <lh/os/tick.h>
@@ -402,7 +403,8 @@ TEST(web_host, a_move_while_held_drags_the_thumb_and_one_not_held_does_nothing)
 }
 
 /* A `w` line is a notch, positive up: one down scrolls the view one step, one up brings it
-   back -- the same direction a desktop wheel scrolls. */
+   back -- the same direction a desktop wheel scrolls. The step is the host machine's
+   (lh_os_input_get_wheel_step): the view asks the OS layer, not the browser. */
 TEST(web_host, a_wheel_line_scrolls_one_step_per_notch)
 {
     LH_TEST_NEEDS_HOST();
@@ -412,7 +414,7 @@ TEST(web_host, a_wheel_line_scrolls_one_step_per_notch)
     wait_passes();
     ASSERT_EQ(s_world.scroll_y.load(), 0);
     ASSERT_TRUE(ws.line("w 50 50 0 -1"));
-    EXPECT_TRUE(wait_for([] { return s_world.scroll_y.load() == LH_UI_VIEW_WHEEL_STEP; }));
+    EXPECT_TRUE(wait_for([] { return s_world.scroll_y.load() == lh_os_input_get_wheel_step(); }));
     ASSERT_TRUE(ws.line("w 50 50 0 1"));
     EXPECT_TRUE(wait_for([] { return s_world.scroll_y.load() == 0; }));
 }

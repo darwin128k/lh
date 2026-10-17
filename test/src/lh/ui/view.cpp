@@ -7,6 +7,10 @@
 #include <lh/ui/view.h>
 #include <lh/test/out.h>
 
+#if LH_LIBRARY_OPTION_OS
+#    include <lh/os/input.h>
+#endif
+
 namespace
 {
 using lh_test::rect_is;
@@ -871,6 +875,18 @@ feed(view_fixture &f, lh_os_input_event_t event)
 {
     return lh_ui_view_input(lh_addr_of(f.view), lh_addr_of(event));
 }
+
+/* What one notch scrolls in this build: the system's step with the OS layer (40 while
+   the system is at its default), the fallback without it. */
+int
+wheel_step()
+{
+#if LH_LIBRARY_OPTION_OS
+    return static_cast<int>(lh_os_input_get_wheel_step());
+#else
+    return LH_UI_VIEW_WHEEL_STEP;
+#endif
+}
 } // namespace
 
 /* The same page click as release_without_drag_pages_and_records_scroll_damage, as events. */
@@ -911,13 +927,23 @@ TEST(view, input_a_wheel_notch_scrolls_one_step)
 {
     view_fixture f;
 
+    ASSERT_GT(wheel_step(), 0) << "the system is set not to scroll on the wheel";
+    ASSERT_LE(wheel_step(), 300) << "the fixture scrolls 300 at most";
     EXPECT_TRUE(feed(f, wheel_event(50, 50, 0, -LH_OS_INPUT_WHEEL_NOTCH)));
-    EXPECT_EQ(scroll_y_of(f.box), LH_UI_VIEW_WHEEL_STEP);
+    EXPECT_EQ(scroll_y_of(f.box), wheel_step());
     EXPECT_TRUE(feed(f, wheel_event(50, 50, 0, LH_OS_INPUT_WHEEL_NOTCH)));
     EXPECT_EQ(scroll_y_of(f.box), 0);
     EXPECT_FALSE(feed(f, wheel_event(50, 50, 0, LH_OS_INPUT_WHEEL_NOTCH))) << "already at the top";
     EXPECT_FALSE(feed(f, pointer_event(lh_os_input_kind_pointer_move, lh_os_input_button_none, 60, 60)))
         << "a move with nothing pressed scrolls nothing";
+}
+
+/* Without the OS layer there is no system to ask, and a notch has to scroll what it did
+   before the view asked one: the OS layer's own default, 40. */
+TEST(view, input_the_fallback_wheel_step_is_the_os_default)
+{
+    EXPECT_EQ(LH_UI_VIEW_WHEEL_STEP, LH_OS_INPUT_WHEEL_STEP_DEFAULT);
+    EXPECT_EQ(LH_UI_VIEW_WHEEL_STEP, 40);
 }
 
 TEST(view, input_a_cancel_ends_the_press_without_a_click)

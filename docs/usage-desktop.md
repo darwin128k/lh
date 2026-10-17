@@ -356,7 +356,7 @@ on_input(const lh_os_input_event_ptr event, lh_ptr context)
 | `pointer_down` / `pointer_up`, primary button | `lh_ui_view_press` / `lh_ui_view_release` (click, focus, drag) |
 | `pointer_move` | `lh_ui_view_move` (drag-scroll the content, drag a scrollbar thumb) |
 | `pointer_cancel`, `focus_out` | `lh_ui_view_cancel` (the press ends, no click) |
-| `wheel` | `lh_ui_view_wheel`, `LH_UI_VIEW_WHEEL_STEP` per notch |
+| `wheel` | `lh_ui_view_wheel`, `lh_os_input_get_wheel_step()` per notch (the system's setting) |
 | `key_down` / `key_up` | `lh_ui_view_key` (Tab moves focus) |
 | `text` | `lh_ui_view_text` (a character into an input) |
 
@@ -368,6 +368,18 @@ What an event carries:
 - **Wheel** distances are 1/120 notch (`LH_OS_INPUT_WHEEL_NOTCH`), positive
   up / left. The backends no longer turn Shift+wheel sideways; the gesture
   recognizer does, when asked to.
+- **Wheel step**: how far a notch scrolls is the system's, asked on every
+  wheel event through `lh_os_input_get_wheel_step()` (`lh/os/input.h`). The
+  system counts lines and the view content units; one line is 40 / 3 units
+  (`LH_OS_INPUT_WHEEL_STEP_DEFAULT` / `LH_OS_INPUT_WHEEL_LINES_DEFAULT`, both
+  `#ifndef`), so the default 3 lines stay 40. Windows reads
+  `SystemParametersInfo(SPI_GETWHEELSCROLLLINES)`: 3 when the call fails, 0
+  (scrolling off) as 0, "one screen at a time" as
+  `LH_OS_INPUT_WHEEL_LINES_PAGE` (20) lines, anything past
+  `LH_OS_INPUT_WHEEL_LINES_MAX` (100) as 100. Linux and macOS have no
+  setting lh can read without libinput / evdev, so they scroll the default
+  40; X11 itself sends a core wheel press as exactly one notch (no XInput2
+  increment). Windows without the window backend scrolls 40 too.
 - **Buttons**: `button` is the one that changed, `buttons` what is held after
   the event; `lh_os_window_get_pressed_buttons` keeps the same mask. Windows
   delivers all five mouse buttons, X11 too.

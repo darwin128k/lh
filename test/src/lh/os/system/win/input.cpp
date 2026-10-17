@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <lh/os/input/event.h>
+#include <lh/os/input/wheel.h>
 #include <lh/size.h>
 
 /* Backend-private (src/lh/os/system/win/input.h), so declared here: the test
@@ -15,6 +16,11 @@ extern "C" lh_bool_t
 lh_os_system_win_input_is_repeat(lh_ssize_t lparam);
 extern "C" lh_void
 lh_os_system_win_input_wheel_of(lh_u32_t msg, lh_usize_t wparam, lh_s32_t *dx, lh_s32_t *dy);
+/* BOOL is an int and UINT an unsigned int. */
+extern "C" lh_u32_t
+lh_os_system_win_input_wheel_lines_of(int got, unsigned int lines);
+extern "C" lh_u32_t
+lh_os_system_win_input_get_wheel_lines(void);
 
 namespace
 {
@@ -67,6 +73,38 @@ TEST(os_system_win_input, the_wheels_count_up_and_left_positive)
     lh_os_system_win_input_wheel_of(0x020EU, 0x00780000U, &dx, &dy);
     EXPECT_EQ(dx, -120) << "Windows counts right positive, an event left";
     EXPECT_EQ(dy, 0);
+}
+
+TEST(os_system_win_input, a_failed_spi_call_reads_as_the_default_lines)
+{
+    EXPECT_EQ(lh_os_system_win_input_wheel_lines_of(0, 7U),
+              static_cast<lh_u32_t>(LH_OS_INPUT_WHEEL_LINES_DEFAULT))
+        << "what the call left behind is not an answer";
+    EXPECT_EQ(lh_os_system_win_input_wheel_lines_of(0, 0xFFFFFFFFU),
+              static_cast<lh_u32_t>(LH_OS_INPUT_WHEEL_LINES_DEFAULT));
+}
+
+TEST(os_system_win_input, page_scroll_reads_as_a_page_of_lines)
+{
+    EXPECT_EQ(lh_os_system_win_input_wheel_lines_of(1, 0xFFFFFFFFU),
+              static_cast<lh_u32_t>(LH_OS_INPUT_WHEEL_LINES_PAGE))
+        << "WHEEL_PAGESCROLL is a page a notch, not four billion lines";
+}
+
+TEST(os_system_win_input, a_line_count_is_taken_as_it_is)
+{
+    EXPECT_EQ(lh_os_system_win_input_wheel_lines_of(1, 3U), 3U);
+    EXPECT_EQ(lh_os_system_win_input_wheel_lines_of(1, 1U), 1U);
+    EXPECT_EQ(lh_os_system_win_input_wheel_lines_of(1, 0U), 0U) << "wheel scrolling turned off";
+    EXPECT_EQ(lh_os_system_win_input_wheel_lines_of(1, 250U), 250U)
+        << "cut to the most by the step, not here";
+}
+
+/* What this machine is set to is its own business; that the answer has been through
+   lh_os_system_win_input_wheel_lines_of - no raw WHEEL_PAGESCROLL - is the kernel's. */
+TEST(os_system_win_input, the_system_answers_a_count_of_lines)
+{
+    EXPECT_NE(lh_os_system_win_input_get_wheel_lines(), 0xFFFFFFFFU);
 }
 
 } // namespace

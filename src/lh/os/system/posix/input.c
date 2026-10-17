@@ -26,25 +26,41 @@ lh_os_system_posix_input_button_of(lh_u32_t xbutton)
     }
 }
 
+lh_s32_t
+lh_os_system_posix_input_wheel_increment_of(lh_u32_t xbutton)
+{
+    switch (xbutton)
+    {
+    case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_UP:
+    case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_DOWN:
+    case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_LEFT:
+    case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_RIGHT:
+        return LH_OS_INPUT_WHEEL_NOTCH;
+    default:
+        return 0;
+    }
+}
+
 lh_bool_t
 lh_os_system_posix_input_wheel_of(lh_u32_t xbutton, lh_s32_t *dx, lh_s32_t *dy)
 {
+    const lh_s32_t increment = lh_os_system_posix_input_wheel_increment_of(xbutton);
     lh_s32_t x = 0;
     lh_s32_t y = 0;
 
     switch (xbutton)
     {
     case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_UP:
-        y = LH_OS_INPUT_WHEEL_NOTCH;
+        y = increment;
         break;
     case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_DOWN:
-        y = lh_math_neg(LH_OS_INPUT_WHEEL_NOTCH);
+        y = lh_math_neg(increment);
         break;
     case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_LEFT:
-        x = LH_OS_INPUT_WHEEL_NOTCH;
+        x = increment;
         break;
     case LH_OS_SYSTEM_POSIX_X_BUTTON_WHEEL_RIGHT:
-        x = lh_math_neg(LH_OS_INPUT_WHEEL_NOTCH);
+        x = lh_math_neg(increment);
         break;
     default:
         break;
