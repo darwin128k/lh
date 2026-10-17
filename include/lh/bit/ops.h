@@ -41,8 +41,8 @@
  *
  * Example usage:
  * @code{.c}
- * unsigned flags = 0x0Cu;
- * unsigned mask  = 0x04u;
+ * unsigned flags = 0x0Cu;                             // bits 2 and 3
+ * unsigned mask  = 0x04u;                             // bit 2
  * unsigned only_masked_bits = lh_bit_and(flags, mask); // 0x04u
  * @endcode
  *
@@ -53,6 +53,8 @@
 /**
  * @def lh_bit_disjoint(a, b)
  * @brief Non-zero if @p a and @p b share no one-bits (`(a & b) == 0`).
+ * @param a First operand.
+ * @param b Second operand (typically a mask).
  *
  * Example usage:
  * @code{.c}
@@ -119,7 +121,7 @@
  *
  * Example usage:
  * @code{.c}
- * unsigned mask = 0x00FFu;
+ * unsigned mask = 0x00FFu;          // low byte set
  * unsigned inv  = lh_bit_not(mask); // inverts bits in promoted width
  * @endcode
  *
@@ -131,11 +133,12 @@
  * @def lh_bit_shl(a, n)
  * @brief Left shift by `n` bits (`a << n`).
  * @param a Value to shift.
- * @param n Shift count; invalid ranges are undefined behavior (see ::lh_math_bit_shl()).
+ * @param n Shift count; invalid ranges are undefined behavior
+ *          (see ::lh_math_bit_shl()).
  *
  * Example usage:
  * @code{.c}
- * unsigned one = 1u;
+ * unsigned one  = 1u;                 // bit 0
  * unsigned bit3 = lh_bit_shl(one, 3); // 8: single-bit mask for bit 3
  * @endcode
  *
@@ -147,7 +150,8 @@
  * @def lh_bit_shr(a, n)
  * @brief Right shift by `n` bits (`a >> n`).
  * @param a Value to shift.
- * @param n Shift count; invalid ranges are undefined behavior (see ::lh_math_bit_shr()).
+ * @param n Shift count; invalid ranges are undefined behavior
+ *          (see ::lh_math_bit_shr()).
  *
  * Example usage:
  * @code{.c}

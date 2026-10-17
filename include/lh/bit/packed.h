@@ -16,6 +16,7 @@
 #define LH_BIT_PACKED_H
 
 #include <lh/attribute/force_inline.h>
+#include <lh/bit/ops.h>
 #include <lh/byte/ptr.h>
 #include <lh/compiler/extern/c.h>
 
@@ -30,7 +31,7 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_u32_t
 lh_bit_packed_max(lh_u32_t bits)
 {
-    return (1U << bits) - 1U;
+    return lh_bit_mask(bits) - 1U;
 }
 
 /**
@@ -57,8 +58,8 @@ lh_bit_packed_get(const lh_byte_ptr row, lh_u32_t index, lh_u32_t bits)
 {
     const lh_u32_t bit = index * bits;
 
-    return lh_cast_static(lh_u32_t, row[bit / 8U] >> (8U - bits - bit % 8U)) &
-           lh_bit_packed_max(bits);
+    return lh_bit_and(lh_cast_static(lh_u32_t, lh_bit_shr(row[bit / 8U], 8U - bits - bit % 8U)),
+                      lh_bit_packed_max(bits));
 }
 
 LH_COMPILER_EXTERN_C_END
