@@ -330,20 +330,20 @@ host_resize(const lh_ui_web_host_hooks_t *hooks, unsigned *width, unsigned *heig
     return lh_bool_true;
 }
 
-/** A key from the player (an ::lh_key_t, anything else is `other`) to the hook or the view. */
+/** A key from the player (an ::lh_os_key_t, anything else is `other`) to the hook or the view. */
 static lh_void
 host_key(lh_ui_view_t *view, const lh_ui_web_host_hooks_t *hooks, int k)
 {
-    if (k < lh_cast_static(int, lh_key_other) || k > lh_cast_static(int, lh_key_alt))
+    if (k < lh_cast_static(int, lh_os_key_other) || k > lh_cast_static(int, lh_os_key_alt))
     {
-        k = lh_cast_static(int, lh_key_other);
+        k = lh_cast_static(int, lh_os_key_other);
     }
     if (hooks != lh_null && hooks->key != lh_null)
     {
-        hooks->key(lh_cast_static(lh_key_t, k), lh_bool_true, hooks->ctx);
+        hooks->key(lh_cast_static(lh_os_key_t, k), lh_bool_true, hooks->ctx);
         return;
     }
-    (void)lh_ui_view_key(view, lh_cast_static(lh_key_t, k), lh_bool_true);
+    (void)lh_ui_view_key(view, lh_cast_static(lh_os_key_t, k), lh_bool_true);
 }
 
 /** A typed code point from the player to the hook or the view; 0 is ignored. */

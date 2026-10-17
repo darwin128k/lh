@@ -49,7 +49,7 @@ struct lh_ui_web_host_hooks
     /** One wheel notch at (@p x, @p y): @p dx, @p dy are -1, 0 or 1 (1 is left / up). */
     lh_void (*wheel)(int x, int y, int dx, int dy, lh_ptr ctx);
     /** Key @p key went down (@p pressed) or up. */
-    lh_void (*key)(lh_key_t key, lh_bool_t pressed, lh_ptr ctx);
+    lh_void (*key)(lh_os_key_t key, lh_bool_t pressed, lh_ptr ctx);
     /** One typed character, as a Unicode code point. */
     lh_void (*text)(lh_u32_t code, lh_ptr ctx);
     /** Layout-mode tab size; ::lh_null keeps the host's initial width/height. */

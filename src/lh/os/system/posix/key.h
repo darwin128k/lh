@@ -1,6 +1,6 @@
 /**
  * @file key.h
- * @brief Backend-private: X keysyms as ::lh_key_t and as text.
+ * @brief Backend-private: X keysyms as ::lh_os_key_t and as text.
  *
  * A keysym is what X says a key means once the keyboard layout and Shift have
  * been applied (`XLookupString`): `0xff0d` is Return, `0x6c1` is Cyrillic `а`.
@@ -12,15 +12,15 @@
 #define LH_SRC_OS_SYSTEM_POSIX_KEY_H
 
 #include <lh/compiler/extern/c.h>
-#include <lh/key.h>
+#include <lh/os/key.h>
 #include <lh/numeric/fixed/types.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief The portable key for @p keysym, or ::lh_key_other.
+ * @brief The portable key for @p keysym, or ::lh_os_key_other.
  */
-lh_key_t
+lh_os_key_t
 lh_os_system_posix_key_from_keysym(unsigned long keysym);
 
 /**

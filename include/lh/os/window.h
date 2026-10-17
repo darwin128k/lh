@@ -504,7 +504,7 @@ lh_os_window_on_native_wheel(lh_os_window_t *self, int x, int y, int dx, int dy)
  * @brief Called from the native backend when @p key goes down or up.
  */
 lh_void
-lh_os_window_on_native_key(lh_os_window_t *self, lh_key_t key, lh_bool_t pressed);
+lh_os_window_on_native_key(lh_os_window_t *self, lh_os_key_t key, lh_bool_t pressed);
 
 /**
  * @brief Called from the native backend with one typed code point.

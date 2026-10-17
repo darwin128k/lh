@@ -616,7 +616,7 @@ lh_ui_view_send_input(lh_ui_view_t *self, const lh_ui_key_input_t *input);
  *        goes to it. True when that scrolled something.
  */
 lh_bool_t
-lh_ui_view_key(lh_ui_view_t *self, lh_key_t key, lh_bool_t pressed);
+lh_ui_view_key(lh_ui_view_t *self, lh_os_key_t key, lh_bool_t pressed);
 
 /**
  * @brief One typed character (code point @p code) for the focus.

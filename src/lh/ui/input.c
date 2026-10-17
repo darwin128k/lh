@@ -394,21 +394,21 @@ lh_ui_input_on_key(const lh_ui_input_t *self, const lh_ui_entity_event_t *event)
         return lh_ui_input_insert(input, code);
     }
 
-    if (lh_ui_key_input_is_down(key, lh_key_backspace))
+    if (lh_ui_key_input_is_down(key, lh_os_key_backspace))
     {
         return lh_ui_input_backspace(input);
     }
-    if (lh_ui_key_input_is_down(key, lh_key_delete))
+    if (lh_ui_key_input_is_down(key, lh_os_key_delete))
     {
         return lh_ui_input_delete_forward(input);
     }
-    if (lh_ui_key_input_is_down(key, lh_key_left))
+    if (lh_ui_key_input_is_down(key, lh_os_key_left))
     {
         const lh_u16_t at = lh_ui_input_boundary_before(self, self->caret);
 
         return self->caret == 0U ? lh_bool_false : lh_ui_input_set_caret(input, at);
     }
-    if (lh_ui_key_input_is_down(key, lh_key_right))
+    if (lh_ui_key_input_is_down(key, lh_os_key_right))
     {
         const lh_u32_t size =
             self->caret < self->used
@@ -419,12 +419,12 @@ lh_ui_input_on_key(const lh_ui_input_t *self, const lh_ui_entity_event_t *event)
                    ? lh_bool_false
                    : lh_ui_input_set_caret(input, lh_cast_static(lh_u16_t, self->caret + size));
     }
-    if (lh_ui_key_input_is_down(key, lh_key_home))
+    if (lh_ui_key_input_is_down(key, lh_os_key_home))
     {
         lh_ui_input_home(input);
         return lh_bool_true;
     }
-    if (lh_ui_key_input_is_down(key, lh_key_end))
+    if (lh_ui_key_input_is_down(key, lh_os_key_end))
     {
         lh_ui_input_end(input);
         return lh_bool_true;

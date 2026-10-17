@@ -9,7 +9,7 @@
 #define LH_OS_WINDOW_ON_TEXT_FN_H
 
 #include <lh/bool.h>
-#include <lh/key.h>
+#include <lh/os/key.h>
 #include <lh/ptr.h>
 
 struct lh_os_window;
