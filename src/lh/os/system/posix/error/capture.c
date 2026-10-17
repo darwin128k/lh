@@ -12,6 +12,7 @@
 
 #include <lh/os/system/error/capture.h>
 #include <lh/assert.h>
+#include <lh/util/str/ptr.h>
 
 #include <errno.h>
 #include <string.h>
