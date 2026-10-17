@@ -10,8 +10,8 @@
  *
  * The bounds can also represent incomplete storage: each endpoint may be
  * ::lh_null. Endpoint presence is reported as
- * ::lh_memory_view_slice_flags_t, and initialized bounds are classified by
- * direction using ::lh_memory_view_slice_direction_t.
+ * ::lh_memory_view_flags_t, and initialized bounds are classified by
+ * direction using ::lh_memory_view_direction_t.
  *
  * Valid bounds are initialized and forward ordered for a right-open interval
  * (@c first &lt; @c second). Functions with the @c _v suffix and all size /
@@ -19,8 +19,8 @@
  * bounds and may raise runtime errors when that precondition is not met.
  *
  * @see lh_memory_bounds_fields
- * @see lh_memory_view_slice_flags_t
- * @see lh_memory_view_slice_direction_t
+ * @see lh_memory_view_flags_t
+ * @see lh_memory_view_direction_t
  */
 
 #ifndef LH_MEMORY_BOUNDS_H
@@ -90,12 +90,12 @@ lh_memory_bounds_get_end(const lh_memory_bounds_t *self);
  * @c second is non-null.
  *
  * @param self Bounds to inspect.
- * @return Bit pattern from ::lh_memory_view_slice_flags_t.
+ * @return Bit pattern from ::lh_memory_view_flags_t.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-lh_memory_view_slice_flags_t
+lh_memory_view_flags_t
 lh_memory_bounds_get_flags(const lh_memory_bounds_t *self);
 
 /**
@@ -121,17 +121,17 @@ lh_memory_bounds_is_initialized(const lh_memory_bounds_t *self);
 /**
  * @brief Classify initialized endpoint order for a half-open interval.
  *
- * Returns ::lh_memory_view_slice_direction_unknown until both endpoints are
+ * Returns ::lh_memory_view_direction_unknown until both endpoints are
  * initialized. Otherwise returns forward for @c first &lt; @c second and
  * backward for equal or reversed bounds.
  *
  * @param self Bounds to inspect.
- * @return Direction value from ::lh_memory_view_slice_direction_t.
+ * @return Direction value from ::lh_memory_view_direction_t.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
  */
-lh_memory_view_slice_direction_t
+lh_memory_view_direction_t
 lh_memory_bounds_get_direction(const lh_memory_bounds_t *self);
 
 /**

@@ -23,13 +23,13 @@ lh_memory_view_get_end(const lh_memory_view_t *self)
     return lh_memory_view_slice_get_end(self);
 }
 
-lh_memory_view_slice_direction_t
+lh_memory_view_direction_t
 lh_memory_view_get_direction(const lh_memory_view_t *self)
 {
     return lh_memory_view_slice_get_direction(self);
 }
 
-lh_memory_view_slice_flags_t
+lh_memory_view_flags_t
 lh_memory_view_get_flags(const lh_memory_view_t *self)
 {
     return lh_memory_view_slice_get_flags(self);

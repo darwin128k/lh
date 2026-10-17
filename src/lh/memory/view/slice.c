@@ -28,21 +28,21 @@ lh_memory_view_slice_get_end(const lh_memory_view_slice_t *self)
     return self->second;
 }
 
-lh_memory_view_slice_flags_t
+lh_memory_view_flags_t
 lh_memory_view_slice_get_flags(const lh_memory_view_slice_t *self)
 {
-    lh_memory_view_slice_flags_t flags = lh_memory_view_slice_flags_uninitialized;
+    lh_memory_view_flags_t flags = lh_memory_view_flags_uninitialized;
 
     lh_assert_runtime_ref(self);
 
     if (lh_ptr_is_set(self->first))
     {
-        lh_bit_set(flags, lh_memory_view_slice_flags_initialized_begin);
+        lh_bit_set(flags, lh_memory_view_flags_initialized_begin);
     }
 
     if (lh_ptr_is_set(self->second))
     {
-        lh_bit_set(flags, lh_memory_view_slice_flags_initialized_end);
+        lh_bit_set(flags, lh_memory_view_flags_initialized_end);
     }
 
     return flags;
@@ -51,29 +51,29 @@ lh_memory_view_slice_get_flags(const lh_memory_view_slice_t *self)
 lh_bool_t
 lh_memory_view_slice_is_uninitialized(const lh_memory_view_slice_t *self)
 {
-    return lh_memory_view_slice_get_flags(self) == lh_memory_view_slice_flags_uninitialized;
+    return lh_memory_view_slice_get_flags(self) == lh_memory_view_flags_uninitialized;
 }
 
 lh_bool_t
 lh_memory_view_slice_is_initialized(const lh_memory_view_slice_t *self)
 {
-    return lh_memory_view_slice_get_flags(self) == lh_memory_view_slice_flags_initialized;
+    return lh_memory_view_slice_get_flags(self) == lh_memory_view_flags_initialized;
 }
 
-lh_memory_view_slice_direction_t
+lh_memory_view_direction_t
 lh_memory_view_slice_get_direction(const lh_memory_view_slice_t *self)
 {
-    lh_memory_view_slice_direction_t direction = lh_memory_view_slice_direction_unknown;
+    lh_memory_view_direction_t direction = lh_memory_view_direction_unknown;
     if (lh_memory_view_slice_is_initialized(self))
     {
         if (lh_interval_closed_is_valid(lh_ptr_to_uaddr(self->first),
                                         lh_ptr_to_uaddr(self->second)))
         {
-            direction = lh_memory_view_slice_direction_forward;
+            direction = lh_memory_view_direction_forward;
         }
         else
         {
-            direction = lh_memory_view_slice_direction_backward;
+            direction = lh_memory_view_direction_backward;
         }
     }
     return direction;
@@ -82,13 +82,13 @@ lh_memory_view_slice_get_direction(const lh_memory_view_slice_t *self)
 lh_bool_t
 lh_memory_view_slice_is_forward(const lh_memory_view_slice_t *self)
 {
-    return lh_memory_view_slice_get_direction(self) == lh_memory_view_slice_direction_forward;
+    return lh_memory_view_slice_get_direction(self) == lh_memory_view_direction_forward;
 }
 
 lh_bool_t
 lh_memory_view_slice_is_backward(const lh_memory_view_slice_t *self)
 {
-    return lh_memory_view_slice_get_direction(self) == lh_memory_view_slice_direction_backward;
+    return lh_memory_view_slice_get_direction(self) == lh_memory_view_direction_backward;
 }
 
 lh_bool_t
