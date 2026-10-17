@@ -69,6 +69,7 @@ lh_add_test_core(lh_test_core
         ${LH_TEST_SRC_PATH}/lh/array.cpp
         ${LH_TEST_SRC_PATH}/lh/error.cpp
         ${LH_TEST_SRC_PATH}/lh/exception.cpp
+        ${LH_TEST_SRC_PATH}/lh/exception/origin.cpp
         ${LH_TEST_SRC_PATH}/lh/foreach.cpp
         ${LH_TEST_SRC_PATH}/lh/list.cpp
         ${LH_TEST_SRC_PATH}/lh/logger.cpp

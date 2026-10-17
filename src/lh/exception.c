@@ -69,16 +69,20 @@ lh_exception_format_walk(const lh_exception_t *self, lh_str_ptr str, lh_usize_t 
         pos = lh_math_add(pos, desc_size);
     }
     pos = lh_exception_format_put(str, str_size, pos, "\n");
-    if (lh_ptr_is_set(origin) && lh_ptr_is_set(origin->condition))
+    if (lh_ptr_is_set(origin) && lh_exception_origin_has_condition(origin))
     {
-        pos = lh_exception_format_put(str, str_size, pos, "  condition: %s\n", origin->condition);
+        pos = lh_exception_format_put(str, str_size, pos, "  condition: %s\n",
+                                      lh_exception_origin_get_condition(origin));
     }
-    if (lh_ptr_is_set(origin) && lh_ptr_is_set(origin->file))
+    if (lh_ptr_is_set(origin) && lh_exception_origin_has_file(origin))
     {
-        pos = lh_exception_format_put(str, str_size, pos, "  at %s:%u%s%s\n", origin->file,
-                                      lh_cast_static(lh_uint_t, origin->line),
-                                      lh_ptr_is_set(origin->function) ? " in " : "",
-                                      lh_ptr_is_set(origin->function) ? origin->function : "");
+        const lh_bool_t has_function = lh_exception_origin_has_function(origin);
+
+        pos = lh_exception_format_put(str, str_size, pos, "  at %s:%u%s%s\n",
+                                      lh_exception_origin_get_file(origin),
+                                      lh_cast_static(lh_uint_t, lh_exception_origin_get_line(origin)),
+                                      has_function ? " in " : "",
+                                      has_function ? lh_exception_origin_get_function(origin) : "");
     }
     return pos;
 }
