@@ -230,13 +230,16 @@ lh_os_window_get_pressed_buttons(const lh_os_window_t *self)
 /* -- Controller timer ------------------------------------------------------ */
 
 /** When the recognizer of @p self's controller next has something to send, into @p out;
-   false, @p out untouched, with no controller, no gestures or nothing waiting on time. */
+   false, @p out untouched, with no controller, a disabled one, no gestures or nothing
+   waiting on time. A disabled controller does not advance on update, so a deadline it
+   cannot meet yet must not keep a 1 ms timer spinning. */
 static lh_bool_t
 lh_os_window_get_controller_deadline(lh_os_window_t *self, lh_tick_t *out)
 {
     lh_os_controller_t *controller = lh_os_window_get_controller(self);
 
     lh_return_if(lh_null_eq(controller), lh_bool_false);
+    lh_return_if(!lh_os_controller_is_enabled(controller), lh_bool_false);
     lh_return_if(!lh_os_controller_has_flag(controller, lh_os_controller_flags_gestures),
                  lh_bool_false);
     return lh_os_input_recognizer_get_next_deadline(lh_os_controller_get_recognizer(controller),

@@ -189,7 +189,11 @@ lh_os_controller_update(lh_os_controller_t *self, lh_tick_t now)
     lh_os_controller_dispatch_t dispatch = lh_os_controller_dispatch_initializer(self);
     lh_os_controller_handlers_update_cb update_cb = lh_os_controller_get_update_cb(self);
 
-    if (lh_os_controller_has_flag(self, lh_os_controller_flags_gestures))
+    /* Disabled freezes the recognizer, as feed does. Running it here would
+       change the phase and then drop the gesture in handle, so a long press
+       that came due while muted would be gone once the controller is enabled. */
+    if (lh_os_controller_is_enabled(self) &&
+        lh_os_controller_has_flag(self, lh_os_controller_flags_gestures))
     {
         lh_os_input_recognizer_update(lh_os_controller_get_recognizer(self), now,
                                       lh_os_controller_dispatch_sink, lh_addr_of(dispatch));

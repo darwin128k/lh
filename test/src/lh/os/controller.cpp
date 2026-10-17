@@ -178,6 +178,28 @@ TEST(os_controller, feed_when_disabled_reaches_nothing)
     EXPECT_EQ(f.log.events.size(), 1U);
 }
 
+/* feed already leaves a disabled recognizer alone. update used to run it anyway and
+   drop the long press in handle, so the phase became holding and the click was gone. */
+TEST(os_controller, update_when_disabled_leaves_the_press_pending)
+{
+    fixture f;
+
+    EXPECT_TRUE(f.down(0U));
+    lh_os_controller_set_enabled(&f.controller, lh_bool_false);
+    lh_os_controller_set_update_cb(&f.controller, record_update);
+    EXPECT_FALSE(lh_os_controller_update(&f.controller, 600U));
+    EXPECT_EQ(f.log.kinds(), (std::vector<lh_os_input_kind_t>{lh_os_input_kind_pointer_down}));
+    EXPECT_EQ(f.log.updates, (std::vector<lh_tick_t>{600U}));
+    EXPECT_EQ(lh_os_input_recognizer_get_phase(lh_os_controller_get_recognizer(&f.controller), 0U),
+              lh_os_input_recognizer_phase_pending);
+
+    lh_os_controller_set_enabled(&f.controller, lh_bool_true);
+    EXPECT_TRUE(lh_os_controller_update(&f.controller, 600U));
+    EXPECT_EQ(f.log.kinds().back(), lh_os_input_kind_long_press);
+    EXPECT_EQ(lh_os_input_recognizer_get_phase(lh_os_controller_get_recognizer(&f.controller), 0U),
+              lh_os_input_recognizer_phase_holding);
+}
+
 TEST(os_controller, feed_answers_false_when_the_handler_acts_on_nothing)
 {
     fixture f;
