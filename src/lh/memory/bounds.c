@@ -647,19 +647,6 @@ lh_memory_bounds_init_by_other(lh_memory_bounds_t *self, const lh_memory_bounds_
 }
 
 lh_void
-lh_memory_bounds_to_slice(const lh_memory_bounds_t *self, lh_memory_bounds_slice_t *out)
-{
-    lh_assert_runtime_ref(out);
-    const lh_memory_view_t *s = lh_ptr_ccast(lh_memory_view_t, self);
-    lh_memory_view_slice_t slice;
-    lh_memory_view_to_slice(s, lh_addr_of(slice));
-    lh_ptr_deref(out) =
-        lh_initializer_of(lh_memory_bounds_slice_t, lh_memory_bounds_slice_initializer,
-                          lh_cast_const(lh_ptr, lh_memory_view_slice_get_begin(lh_addr_of(slice))),
-                          lh_cast_const(lh_ptr, lh_memory_view_slice_get_end(lh_addr_of(slice))));
-}
-
-lh_void
 lh_memory_bounds_take_first(lh_ptr begin, lh_ptr end, lh_usize_t n, lh_memory_bounds_t *out)
 {
     lh_assert_runtime_ref(out);
