@@ -1,5 +1,7 @@
 #include <lh/memory/view.h>
 #include <lh/memory/view/initializer.h>
+#include <lh/memory/std.h>
+#include <lh/attribute/force_inline.h>
 #include <lh/assert.h>
 #include <lh/math.h>
 
@@ -400,83 +402,103 @@ lh_memory_view_equals(const lh_memory_view_t *self, const lh_memory_view_t *othe
     return lh_memory_view_slice_equals(self, other);
 }
 
+LH_ATTRIBUTE_FORCE_INLINE
+const lh_ptr
+lh_memory_view_open_begin(const lh_memory_view_t *self, lh_usize_t *size)
+{
+    lh_assert_runtime_ifn(lh_memory_view_is_valid(self), lh_runtime_error_code_invalid_range);
+    *size = lh_memory_view_slice_get_ropen_size(self->first, self->second);
+    return self->first;
+}
+
 const lh_ptr
 lh_memory_view_find_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end)
 {
-    if (lh_memory_view_slice_needs_ropen(self, begin, end))
-    {
-        return lh_memory_view_slice_find_ropen(self, begin, end);
-    }
-    lh_memory_view_slice_t slice;
-    lh_memory_view_slice_from_view(self, lh_addr_of(slice));
-    return lh_memory_view_slice_find_range(&slice, begin, lh_memory_view_slice_get_ropen_last(end));
+    lh_usize_t self_size;
+    const lh_ptr self_begin = lh_memory_view_open_begin(self, &self_size);
+
+    return lh_memory_std_find(self_begin, self_size, begin,
+                              lh_memory_view_slice_get_ropen_size(begin, end));
 }
 
 const lh_ptr
 lh_memory_view_find(const lh_memory_view_t *self, const lh_memory_view_t *other)
 {
-    return lh_memory_view_find_range(self, lh_memory_view_get_begin_v(other),
-                                     lh_memory_view_get_end_v(other));
+    lh_usize_t self_size;
+    lh_usize_t other_size;
+    const lh_ptr other_begin = lh_memory_view_open_begin(other, &other_size);
+    const lh_ptr self_begin = lh_memory_view_open_begin(self, &self_size);
+
+    return lh_memory_std_find(self_begin, self_size, other_begin, other_size);
 }
 
 const lh_ptr
 lh_memory_view_rfind_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end)
 {
-    if (lh_memory_view_slice_needs_ropen(self, begin, end))
-    {
-        return lh_memory_view_slice_rfind_ropen(self, begin, end);
-    }
-    lh_memory_view_slice_t slice;
-    lh_memory_view_slice_from_view(self, lh_addr_of(slice));
-    return lh_memory_view_slice_rfind_range(&slice, begin,
-                                            lh_memory_view_slice_get_ropen_last(end));
+    lh_usize_t self_size;
+    const lh_ptr self_begin = lh_memory_view_open_begin(self, &self_size);
+
+    return lh_memory_std_rfind(self_begin, self_size, begin,
+                               lh_memory_view_slice_get_ropen_size(begin, end));
 }
 
 const lh_ptr
 lh_memory_view_rfind(const lh_memory_view_t *self, const lh_memory_view_t *other)
 {
-    return lh_memory_view_rfind_range(self, lh_memory_view_get_begin_v(other),
-                                      lh_memory_view_get_end_v(other));
+    lh_usize_t self_size;
+    lh_usize_t other_size;
+    const lh_ptr other_begin = lh_memory_view_open_begin(other, &other_size);
+    const lh_ptr self_begin = lh_memory_view_open_begin(self, &self_size);
+
+    return lh_memory_std_rfind(self_begin, self_size, other_begin, other_size);
 }
 
 const lh_ptr
 lh_memory_view_compare_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end)
 {
-    if (lh_memory_view_slice_needs_ropen(self, begin, end))
-    {
-        return lh_memory_view_slice_compare_ropen(self, begin, end);
-    }
-    lh_memory_view_slice_t slice;
-    lh_memory_view_slice_from_view(self, lh_addr_of(slice));
-    return lh_memory_view_slice_compare_range(&slice, begin,
-                                              lh_memory_view_slice_get_ropen_last(end));
+    lh_usize_t self_size;
+    const lh_ptr self_begin = lh_memory_view_open_begin(self, &self_size);
+
+    return lh_memory_std_compare(self_begin, begin,
+                                 lh_math_min(self_size, lh_memory_view_slice_get_ropen_size(begin, end)));
 }
 
 const lh_ptr
 lh_memory_view_compare(const lh_memory_view_t *self, const lh_memory_view_t *other)
 {
-    return lh_memory_view_compare_range(self, lh_memory_view_get_begin_v(other),
-                                        lh_memory_view_get_end_v(other));
+    lh_usize_t self_size;
+    lh_usize_t other_size;
+    const lh_ptr other_begin = lh_memory_view_open_begin(other, &other_size);
+    const lh_ptr self_begin = lh_memory_view_open_begin(self, &self_size);
+
+    return lh_memory_std_compare(self_begin, other_begin, lh_math_min(self_size, other_size));
 }
 
 const lh_ptr
 lh_memory_view_rcompare_range(const lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end)
 {
-    if (lh_memory_view_slice_needs_ropen(self, begin, end))
-    {
-        return lh_memory_view_slice_rcompare_ropen(self, begin, end);
-    }
-    lh_memory_view_slice_t slice;
-    lh_memory_view_slice_from_view(self, lh_addr_of(slice));
-    return lh_memory_view_slice_rcompare_range(&slice, begin,
-                                               lh_memory_view_slice_get_ropen_last(end));
+    lh_usize_t self_size;
+    const lh_ptr self_begin = lh_memory_view_open_begin(self, &self_size);
+    const lh_usize_t size = lh_memory_view_slice_get_ropen_size(begin, end);
+    const lh_usize_t n = lh_math_min(self_size, size);
+
+    return lh_memory_std_rcompare(
+        lh_ptr_add_by_offset_unsafe(const lh_void, self_begin, lh_math_sub(self_size, n)),
+        lh_ptr_add_by_offset_unsafe(const lh_void, begin, lh_math_sub(size, n)), n);
 }
 
 const lh_ptr
 lh_memory_view_rcompare(const lh_memory_view_t *self, const lh_memory_view_t *other)
 {
-    return lh_memory_view_rcompare_range(self, lh_memory_view_get_begin_v(other),
-                                         lh_memory_view_get_end_v(other));
+    lh_usize_t self_size;
+    lh_usize_t other_size;
+    const lh_ptr other_begin = lh_memory_view_open_begin(other, &other_size);
+    const lh_ptr self_begin = lh_memory_view_open_begin(self, &self_size);
+    const lh_usize_t n = lh_math_min(self_size, other_size);
+
+    return lh_memory_std_rcompare(
+        lh_ptr_add_by_offset_unsafe(const lh_void, self_begin, lh_math_sub(self_size, n)),
+        lh_ptr_add_by_offset_unsafe(const lh_void, other_begin, lh_math_sub(other_size, n)), n);
 }
 
 lh_void
