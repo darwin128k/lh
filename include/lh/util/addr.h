@@ -192,7 +192,7 @@
  * @brief Clamp `v` to the inclusive range `[lo, hi]` (::lh_math_clamp). Requires `lo <= hi`.
  *
  * @code{.c}
- * lh_uaddr_t v = lh_addr_clamp(0x1500, 0x1000, 0x2000); // 0x1500
+ * lh_uaddr_t v = lh_addr_clamp(0x1500, 0x1000, 0x2000);     // 0x1500
  * lh_uaddr_t below = lh_addr_clamp(0x0500, 0x1000, 0x2000); // 0x1000
  * lh_uaddr_t above = lh_addr_clamp(0x3000, 0x1000, 0x2000); // 0x2000
  * @endcode
