@@ -196,8 +196,8 @@
  * @code{.c}
  * lh_type_msb(lh_byte_t);    // → 0x80       (128u)
  * lh_type_msb(lh_schar_t);   // → -128       (SCHAR_MIN)
- * lh_type_msb(lh_uint_t);     // → 0x80000000 (2147483648u)
- * lh_type_msb(lh_sint_t);     // → 0x80000000 (INT_MIN, -2147483648)
+ * lh_type_msb(lh_uint_t);    // → 0x80000000 (2147483648u)
+ * lh_type_msb(lh_sint_t);    // → 0x80000000 (INT_MIN, -2147483648)
  * @endcode
  */
 #define lh_type_msb(T)                                                                             \
