@@ -20,6 +20,7 @@
 #define LH_BIT_BSWAP_H
 
 #include <lh/attribute/force_inline.h>
+#include <lh/bit/ops.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
@@ -45,7 +46,7 @@ lh_bit_bswap_u16(lh_u16_t x)
 #elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
     return _byteswap_ushort(x);
 #else
-    return lh_cast_static(lh_u16_t, (x << 8) | (x >> 8));
+    return lh_cast_static(lh_u16_t, lh_bit_or(lh_bit_shl(x, 8), lh_bit_shr(x, 8)));
 #endif
 }
 
@@ -64,7 +65,8 @@ lh_bit_bswap_u32(lh_u32_t x)
 #elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
     return _byteswap_ulong(x);
 #else
-    return (x << 24) | ((x << 8) & 0x00FF0000U) | ((x >> 8) & 0x0000FF00U) | (x >> 24);
+    return lh_bit_or(lh_bit_or(lh_bit_shl(x, 24), lh_bit_and(lh_bit_shl(x, 8), 0x00FF0000U)),
+                     lh_bit_or(lh_bit_and(lh_bit_shr(x, 8), 0x0000FF00U), lh_bit_shr(x, 24)));
 #endif
 }
 
@@ -83,8 +85,9 @@ lh_bit_bswap_u64(lh_u64_t x)
 #elif LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
     return _byteswap_uint64(x);
 #else
-    return (lh_cast_static(lh_u64_t, lh_bit_bswap_u32(lh_cast_static(lh_u32_t, x))) << 32) |
-           lh_bit_bswap_u32(lh_cast_static(lh_u32_t, x >> 32));
+    return lh_bit_or(
+        lh_bit_shl(lh_cast_static(lh_u64_t, lh_bit_bswap_u32(lh_cast_static(lh_u32_t, x))), 32),
+        lh_bit_bswap_u32(lh_cast_static(lh_u32_t, lh_bit_shr(x, 32))));
 #endif
 }
 

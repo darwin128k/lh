@@ -23,6 +23,7 @@
 #define LH_BIT_ROTATE_H
 
 #include <lh/attribute/force_inline.h>
+#include <lh/bit/ops.h>
 #include <lh/cast/static.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/numeric/fixed/types.h>
@@ -45,11 +46,12 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_u32_t
 lh_bit_rotate_left_u32(lh_u32_t x, lh_usize_t r)
 {
-    r &= 31U;
+    r = lh_bit_and(r, 31U);
 #if LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
     return _rotl(x, lh_cast_static(int, r));
 #else
-    return (r == 0U) ? x : lh_cast_static(lh_u32_t, ((x << r) | (x >> (32U - r))));
+    return (r == 0U) ? x
+                     : lh_cast_static(lh_u32_t, lh_bit_or(lh_bit_shl(x, r), lh_bit_shr(x, 32U - r)));
 #endif
 }
 
@@ -66,11 +68,12 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_u32_t
 lh_bit_rotate_right_u32(lh_u32_t x, lh_usize_t r)
 {
-    r &= 31U;
+    r = lh_bit_and(r, 31U);
 #if LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
     return _rotr(x, lh_cast_static(int, r));
 #else
-    return (r == 0U) ? x : lh_cast_static(lh_u32_t, ((x >> r) | (x << (32U - r))));
+    return (r == 0U) ? x
+                     : lh_cast_static(lh_u32_t, lh_bit_or(lh_bit_shr(x, r), lh_bit_shl(x, 32U - r)));
 #endif
 }
 
@@ -85,11 +88,12 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_u64_t
 lh_bit_rotate_left_u64(lh_u64_t x, lh_usize_t r)
 {
-    r &= 63U;
+    r = lh_bit_and(r, 63U);
 #if LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
     return _rotl64(x, lh_cast_static(int, r));
 #else
-    return (r == 0U) ? x : lh_cast_static(lh_u64_t, ((x << r) | (x >> (64U - r))));
+    return (r == 0U) ? x
+                     : lh_cast_static(lh_u64_t, lh_bit_or(lh_bit_shl(x, r), lh_bit_shr(x, 64U - r)));
 #endif
 }
 
@@ -106,11 +110,12 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_u64_t
 lh_bit_rotate_right_u64(lh_u64_t x, lh_usize_t r)
 {
-    r &= 63U;
+    r = lh_bit_and(r, 63U);
 #if LH_COMPILER_TYPE == LH_COMPILER_TYPE_MSVC
     return _rotr64(x, lh_cast_static(int, r));
 #else
-    return (r == 0U) ? x : lh_cast_static(lh_u64_t, ((x >> r) | (x << (64U - r))));
+    return (r == 0U) ? x
+                     : lh_cast_static(lh_u64_t, lh_bit_or(lh_bit_shr(x, r), lh_bit_shl(x, 64U - r)));
 #endif
 }
 

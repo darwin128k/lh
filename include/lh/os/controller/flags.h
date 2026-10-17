@@ -9,12 +9,12 @@
 #ifndef LH_OS_CONTROLLER_FLAGS_H
 #define LH_OS_CONTROLLER_FLAGS_H
 
-#include <lh/numeric/fixed/types.h>
+#include <lh/byte.h>
 
 /**
  * @typedef lh_os_controller_flags_t
  * @brief A set of ::lh_os_controller_flags_value_t bits.
  */
-typedef lh_u8_t lh_os_controller_flags_t;
+typedef lh_byte_t lh_os_controller_flags_t;
 
 #endif /* LH_OS_CONTROLLER_FLAGS_H */

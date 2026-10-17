@@ -6,6 +6,7 @@
 #ifndef LH_OS_INPUT_BUTTON_H
 #define LH_OS_INPUT_BUTTON_H
 
+#include <lh/bit/ops.h>
 #include <lh/numeric/fixed/types.h>
 #include <lh/util/type.h>
 
@@ -54,6 +55,6 @@ typedef enum lh_os_input_button
  * lh_os_input_button_to_mask(lh_os_input_button_secondary);  // 0x4
  * @endcode
  */
-#define lh_os_input_button_to_mask(button) (lh_type_cast(lh_u32_t, 1U) << (button))
+#define lh_os_input_button_to_mask(button) lh_bit_shl(lh_type_cast(lh_u32_t, 1U), (button))
 
 #endif /* LH_OS_INPUT_BUTTON_H */

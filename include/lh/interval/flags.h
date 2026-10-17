@@ -10,6 +10,7 @@
 #ifndef LH_INTERVAL_FLAGS_H
 #define LH_INTERVAL_FLAGS_H
 
+#include <lh/bit/ops.h>
 #include <lh/byte.h>
 
 /**
@@ -26,7 +27,7 @@
  *
  * Bit 0
  */
-#define lh_interval_flags_open_left (1u << 0)
+#define lh_interval_flags_open_left lh_bit_mask(0)
 
 /**
  * @def lh_interval_flags_open_right
@@ -34,7 +35,7 @@
  *
  * Bit 1
  */
-#define lh_interval_flags_open_right (1u << 1)
+#define lh_interval_flags_open_right lh_bit_mask(1)
 
 /**
  * @def lh_interval_flags_open
@@ -42,7 +43,7 @@
  *
  * Convenience alias = open_left | open_right
  */
-#define lh_interval_flags_open (lh_interval_flags_open_left | lh_interval_flags_open_right)
+#define lh_interval_flags_open lh_bit_or(lh_interval_flags_open_left, lh_interval_flags_open_right)
 
 /**
  * @typedef lh_interval_flags_t
