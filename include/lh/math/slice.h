@@ -3,8 +3,7 @@
  * @brief Read-only closed slice of ::lh_float_t values: ::lh_math_slice_t.
  *
  * A slice names elements it does not own: `first` and `second` point to its first
- * and its last element, the closed interval `[first, second]` of
- * ::lh_memory_view_slice_t over floats instead of bytes, so its size is
+ * and its last element, the closed interval `[first, second]`, so its size is
  * `second - first + 1` (::lh_interval_closed_get_size). An empty slice has both
  * bounds ::lh_null. Taking or dropping elements makes a new slice over the same
  * data; nothing is ever copied.
