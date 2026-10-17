@@ -6,13 +6,14 @@
 #ifndef LH_MATH_SLICE_INITIALIZER_H
 #define LH_MATH_SLICE_INITIALIZER_H
 
-#include <lh/memory/view/slice/initializer.h>
+#include <lh/null.h>
+#include <lh/interval/bounds/initializer.h>
 
 /**
  * @def lh_math_slice_initializer(first, last)
  * @brief Produces a brace-enclosed initializer for ::lh_math_slice_t.
  *
- * Expands to ::lh_memory_view_slice_initializer with @p first as @c first and
+ * Expands to ::lh_interval_bounds_initializer with @p first as @c first and
  * @p last as @c second. The slice is closed: <tt>[first, last]</tt>, both ends
  * are elements of it.
  *
@@ -26,9 +27,9 @@
  * @endcode
  *
  * @see lh_math_slice_t
- * @see lh_memory_view_slice_initializer
+ * @see lh_interval_bounds_initializer
  */
-#define lh_math_slice_initializer(first, last) lh_memory_view_slice_initializer(first, last)
+#define lh_math_slice_initializer(first, last) lh_interval_bounds_initializer(first, last)
 
 /**
  * @def lh_math_slice_empty_initializer()

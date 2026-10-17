@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lh_math_div_round` (`lh/math/ops.h`): half-up integer division `(numer + denom / 2) / denom` for non-negative values
 - `lh_math_size_min`, `lh_math_size_max`, `lh_math_size_min_side` (`lh/math/size.h`) and `lh_math_fsize_*` counterparts: component-wise min/max and the shorter side
 - `lh_ui_scalar_slack`, `lh_ui_scalar_centre` (`lh/ui/scalar.h`): UI leftovers and half-up centring through `lh_ui_scalar_trunc`, same pixels with FPU on or off
-- `lh_math_slice_t` (`lh/math/slice.h`) and `lh_math_view_t` (`lh/math/view.h`): read-only closed slice and strided view of `lh_float_t` values, built on `lh_memory_view_slice_fields` and `lh_interval_closed_*`
+- `lh_math_slice_t` (`lh/math/slice.h`) and `lh_math_view_t` (`lh/math/view.h`): read-only closed slice and strided view of `lh_float_t` values, built on `lh_interval_bounds_fields` and `lh_interval_closed_*`
 - `LH_FLOAT_T_MIN`, `LH_FLOAT_T_MAX` and `LH_FLOAT_T_EPS` (`lh/numeric/float.h`): `FLT_MIN` (smallest positive normalized value), `FLT_MAX` and `FLT_EPSILON` limits for `lh_float_t`
 - `lh_memory_view_return_of_slice`, `lh_memory_view_return_empty`, `lh_memory_view_return_init_v`, `lh_memory_view_return_init_by_size` (`lh/memory/view.h`): half-open view constructors and the closed-to-half-open conversion
 - `lh_memory_view_slice_return_empty`, `lh_memory_view_slice_return_init_v`, `lh_memory_view_slice_return_init_by_size`, `lh_memory_view_slice_find_offset_from_ptr` (`lh/memory/view/slice.h`): previously file-local bricks, now public
