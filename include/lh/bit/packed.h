@@ -41,7 +41,7 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_u32_t
 lh_bit_packed_bytes(lh_u32_t count, lh_u32_t bits)
 {
-    return (count * bits + 7U) / 8U;
+    return lh_math_div_ceil(count * bits, 8U);
 }
 
 /**
