@@ -92,6 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `lh_memory_bounds_slice_t` (`lh/memory/bounds/slice.h`, with `slice/fields.h` and `slice/initializer.h`) and all of its `lh_memory_bounds_slice_*` functions, and `lh_memory_bounds_to_slice`: a closed mutable slice nothing in the library used. `lh_memory_bounds_t` is now its own `struct lh_memory_bounds` over `lh_memory_bounds_fields`, same layout
 - The per-event window input API, replaced by one input sink (`lh_os_window_set_on_input`), with no deprecation period: `lh_os_window_set_on_press`, `_set_on_move`, `_set_on_release`, `_set_on_wheel`, `_set_on_key`, `_set_on_text`, `_set_on_click`; `lh_os_window_on_native_press`, `_on_native_move`, `_on_native_release`, `_on_native_wheel`, `_on_native_key`, `_on_native_text`, `_on_native_click`; the callback types `lh_os_window_on_{press,move,release,wheel,key,text,click}_fn` / `_cb` with their headers `lh/os/window/on/{press,move,release,wheel,key,text,click}/fn.h` and `cb.h`; and the fourteen `on_*` / `on_*_context` fields of `lh_os_window_t`. A window click was never fired by any backend; the click is made by `lh_ui_view_release`, as before
 - The `press`, `release`, `wheel`, `key` and `text` hooks of `lh_ui_web_host_hooks_t` (`lh/ui/web/host.h`), replaced by one `input` hook
 

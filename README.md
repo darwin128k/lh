@@ -301,10 +301,9 @@ Current unsafe functions:
 
 | Function | What is skipped |
 |---|---|
-| `lh_memory_bounds_slice_set` | range check on `[begin, end]` |
-| `lh_memory_bounds_slice_assign` | range check on the source slice |
-| `lh_memory_bounds_slice_make` | range check on `[begin, end]` |
-| `lh_memory_bounds_slice_swap` | range check on both operands |
+| `lh_memory_bounds_set` | range check on `[begin, end)` |
+| `lh_memory_bounds_swap` | range check on both operands |
+| `lh_memory_view_set` | range check on `[begin, end)` |
 
 Null-pointer checks are still enforced in unsafe functions whenever contract
 checks are compiled in.

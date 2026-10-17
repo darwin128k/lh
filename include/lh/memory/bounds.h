@@ -8,12 +8,6 @@
  * past the last byte. Consequently, size is @c second @c - @c first for
  * initialized forward bounds.
  *
- * This is intentionally different from ::lh_memory_bounds_slice_t helpers,
- * which treat the same two-field storage as a closed interval
- * <tt>[first, second]</tt>. The public typedef is layout-compatible with the
- * slice type, but every function in this header interprets @c second as an
- * exclusive endpoint.
- *
  * The bounds can also represent incomplete storage: each endpoint may be
  * ::lh_null. Endpoint presence is reported as
  * ::lh_memory_view_slice_flags_t, and initialized bounds are classified by
@@ -24,7 +18,7 @@
  * containment / indexed access / raw byte operation helpers require valid
  * bounds and may raise runtime errors when that precondition is not met.
  *
- * @see lh_memory_bounds_slice_t
+ * @see lh_memory_bounds_fields
  * @see lh_memory_view_slice_flags_t
  * @see lh_memory_view_slice_direction_t
  */
@@ -32,16 +26,23 @@
 #ifndef LH_MEMORY_BOUNDS_H
 #define LH_MEMORY_BOUNDS_H
 
-#include <lh/memory/bounds/slice.h>
+#include <lh/memory/bounds/fields.h>
 #include <lh/memory/view.h>
 
 /**
- * @brief Non-owning mutable half-open byte bounds.
+ * @struct lh_memory_bounds
+ * @brief Non-owning mutable half-open byte bounds: two ::lh_ptr endpoints.
  *
  * Endpoints describe <tt>[first, second)</tt> in address space when both are
  * non-null and ordered. Public typedef: ::lh_memory_bounds_t.
  */
-typedef lh_memory_bounds_slice_t lh_memory_bounds_t;
+struct lh_memory_bounds
+{
+    /** Members: ::lh_memory_bounds_fields. */
+    lh_memory_bounds_fields(lh_void);
+};
+/** @copybrief lh_memory_bounds */
+typedef struct lh_memory_bounds lh_memory_bounds_t;
 
 LH_COMPILER_EXTERN_C_BEGIN
 
@@ -1225,25 +1226,6 @@ lh_memory_bounds_swap_v(lh_memory_bounds_t *self, lh_memory_bounds_t *other);
  */
 lh_void
 lh_memory_bounds_swap_and_clear(lh_memory_bounds_t *self, lh_memory_bounds_t *other);
-
-/* -- slice conversion ------------------------------------------------------ */
-
-/**
- * @brief Build a closed slice copy from half-open @p self.
- *
- * Valid bounds <tt>[begin, end)</tt> become closed slice
- * <tt>[begin, end - 1]</tt>. Uninitialized empty bounds become an empty slice.
- *
- * @param self Bounds to copy as a closed slice.
- * @return Converted slice value.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is neither uninitialized nor valid half-open bounds.
- */
-lh_void
-lh_memory_bounds_to_slice(const lh_memory_bounds_t *self, lh_memory_bounds_slice_t *out);
 
 /* -- sub-range construction ------------------------------------------------ */
 

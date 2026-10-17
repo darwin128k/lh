@@ -29,25 +29,6 @@ TEST(memory_bounds_getters, return_stored_endpoints)
     EXPECT_EQ(lh_memory_bounds_get_end(&b), p(buf + 4));
 }
 
-TEST(memory_bounds_make_slice, copies_half_open_bounds_as_closed_slice)
-{
-    unsigned char buf[8];
-    lh_memory_bounds_t b = bounds(p(buf + 1), p(buf + 5));
-
-    lh_memory_bounds_slice_t s = lh_test::out(lh_memory_bounds_to_slice, &b);
-
-    EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, p(buf + 1), p(buf + 4)));
-}
-
-TEST(memory_bounds_make_slice, copies_uninitialized_bounds_as_empty_slice)
-{
-    lh_memory_bounds_t b = bounds(lh_null, lh_null);
-
-    lh_memory_bounds_slice_t s = lh_test::out(lh_memory_bounds_to_slice, &b);
-
-    EXPECT_TRUE(lh_memory_bounds_slice_equals_of(&s, lh_null, lh_null));
-}
-
 TEST(memory_bounds_classification, distinguishes_states)
 {
     unsigned char buf[4];
@@ -367,14 +348,6 @@ TEST(memory_bounds_make_by_size, rejects_null_begin_death)
         lh_memory_bounds_t v;
         lh_memory_bounds_init_by_size(lh_addr_of(v), lh_null, 1);
     }()));
-}
-
-TEST(memory_bounds_make_slice, rejects_invalid_bounds_death)
-{
-    unsigned char buf[2];
-    lh_memory_bounds_t b = bounds(p(buf), p(buf));
-
-    LH_EXPECT_DEATH((void)lh_test::out(lh_memory_bounds_to_slice, &b));
 }
 
 TEST(memory_bounds_next_value, rejects_end_boundary_death)
