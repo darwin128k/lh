@@ -37,4 +37,16 @@ TEST(math_div_round, half_up_non_negative)
     EXPECT_EQ(lh_math_div_round(255 * 128, 256), 128);
 }
 
+TEST(math_div_ceil, round_up_non_negative)
+{
+    EXPECT_EQ(lh_math_div_ceil(0U, 8U), 0U);
+    EXPECT_EQ(lh_math_div_ceil(1U, 8U), 1U);
+    EXPECT_EQ(lh_math_div_ceil(8U, 8U), 1U);
+    EXPECT_EQ(lh_math_div_ceil(9U, 8U), 2U);
+    EXPECT_EQ(lh_math_div_ceil(56U, 8U), 7U);
+    EXPECT_EQ(lh_math_div_ceil(10, 4), 3);
+    EXPECT_EQ(lh_math_div_ceil(12, 4), 3);
+    EXPECT_EQ(lh_math_div_ceil(7, 1), 7);
+}
+
 } // namespace

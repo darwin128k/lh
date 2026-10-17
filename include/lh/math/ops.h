@@ -76,6 +76,35 @@
     lh_math_div(lh_math_add((numer), lh_math_div((denom), 2)), (denom))
 
 /**
+ * @def lh_math_div_ceil(a, b)
+ * @brief Integer division rounded up: `(a + b - 1) / b`.
+ * @param a Dividend, non-negative.
+ * @param b Divisor, positive (non-zero).
+ *
+ * Ceiling counterpart of ::lh_math_div: the smallest integer not less than
+ * `a / b`, e.g. the whole bytes a run of bits takes. Pass unsigned operands
+ * (e.g. `lh_u32_t`) for unsigned semantics; the result has the usual
+ * arithmetic conversion of @p a and @p b.
+ *
+ * @warning @p b must be non-zero (division by zero is undefined behavior) and
+ *          both operands non-negative; negative inputs keep C's toward-zero
+ *          truncation after the add and are not "ceiling".
+ * @warning `a + b - 1` must fit the operand type: near its maximum the sum
+ *          wraps (unsigned) or overflows with undefined behavior (signed).
+ * @warning @p b is evaluated more than once - do not pass expressions with
+ *          side effects.
+ *
+ * @code{.c}
+ * lh_u32_t full = lh_math_div_ceil(16U, 8U); // 2: exact, no round-up
+ * lh_u32_t part = lh_math_div_ceil(9U, 8U);  // 2: one bit spills over
+ * lh_u32_t none = lh_math_div_ceil(0U, 8U);  // 0
+ * @endcode
+ *
+ * @see lh_math_div(), lh_math_div_round()
+ */
+#define lh_math_div_ceil(a, b) lh_math_div(lh_math_sub_one(lh_math_add((a), (b))), (b))
+
+/**
  * @def lh_math_mod(a, b)
  * @brief Modulo (remainder) operation
  * @param a dividend
