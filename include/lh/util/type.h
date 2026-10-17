@@ -167,18 +167,42 @@
  * @def lh_type_msb(T)
  * @brief Value of type @p T with only the most significant bit set.
  *
- * Equivalent to `(T)1 << lh_type_msb_pos(T)`.
- * For signed types this is the minimum representable value (the sign bit);
- * for unsigned types it is half the range plus one.
+ * Computed as `(T)(-((T)1 << (lh_type_msb_pos(T) - 1)) * 2)`, i.e.
+ * `(T)(-(1 << (bits - 2)) * 2)`, rather than the naive `(T)1 << lh_type_msb_pos(T)`.
+ * The naive shift moves a 1 into the sign bit of a signed type of rank `int` or
+ * higher; that is undefined behaviour in C11 (6.5.7p4), so the result is not an
+ * integer constant expression either (GCC `-pedantic`: "initializer element is
+ * not a constant expression"). The formula below is well defined for every
+ * integer type and stays a constant expression:
  *
- * @param T Any complete numeric type.
+ * - Signed `int`, `long`, `long long`: `1 << (bits - 2)` is `2^(bits-2)` and is
+ *   representable; negating gives `-2^(bits-2)` and doubling gives `-2^(bits-1)`,
+ *   the minimum value. No step overflows; the final cast is a no-op.
+ * - 8- and 16-bit types, signed or unsigned: the operand is promoted to `int`
+ *   before the shift, so the whole computation is done in `int`
+ *   (`-(1 << 6) * 2 == -128`, `-(1 << 14) * 2 == -32768`) without overflow.
+ *   The final cast converts back to @p T: in range for a signed type (its
+ *   minimum); modulo `2^bits` for an unsigned type (`0x80`, `0x8000`).
+ * - Unsigned `int`, `long`, `long long`: arithmetic is modulo `2^bits`, so the
+ *   negation wraps to `2^bits - 2^(bits-2)` and doubling wraps to `2^(bits-1)`.
+ *   Unsigned wraparound is well defined.
+ *
+ * For signed types the result is the minimum representable value (the sign bit,
+ * assuming two's complement); for unsigned types it is `2^(bits-1)`, half the
+ * range plus one.
+ *
+ * @param T Any complete integer type.
  *
  * @code{.c}
  * lh_type_msb(lh_byte_t);    // → 0x80       (128u)
+ * lh_type_msb(lh_schar_t);   // → -128       (SCHAR_MIN)
  * lh_type_msb(lh_uint_t);     // → 0x80000000 (2147483648u)
  * lh_type_msb(lh_sint_t);     // → 0x80000000 (INT_MIN, -2147483648)
  * @endcode
  */
-#define lh_type_msb(T) lh_bit_shl(lh_type_one_v(T), lh_type_msb_pos(T))
+#define lh_type_msb(T)                                                                             \
+    lh_type_cast(                                                                                  \
+        T, lh_math_mul(                                                                            \
+               lh_math_neg(lh_bit_shl(lh_type_one_v(T), lh_math_sub_one(lh_type_msb_pos(T)))), 2))
 
 #endif /* LH_UTIL_TYPE_H */

@@ -771,7 +771,7 @@ TEST(ui_canvas_sw, the_shadow_without_a_slot_is_the_shadow_with_one)
     const lh_ui_rect_t everything = rect_of(0, 0, side, side);
     const lh_ui_color_t white = color_of(240, 240, 240, 255);
 
-    /* ill_rect, not clear: g_rect_only has no clear slot, so the two
+    /* fill_rect, not clear: g_rect_only has no clear slot, so the two
        backgrounds would not have been the same pixels to begin with. */
     lh_ui_canvas_fill_rect(lh_addr_of(slot.canvas), lh_addr_of(everything), lh_addr_of(white));
     lh_ui_canvas_shadow(lh_addr_of(slot.canvas), lh_addr_of(box), lh_ui_scalar(4), lh_addr_of(shadow));
