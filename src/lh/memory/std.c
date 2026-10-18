@@ -693,6 +693,13 @@ lh_memory_std_xor(lh_ptr dst, const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
         }
     }
 #endif
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+    if (n >= 32U && lh_memory_std_has_sse2())
+    {
+        lh_memory_std_xor_sse2(d, l, r, n);
+        return lh_ptr_add_unsafe(lh_void, dst, n);
+    }
+#endif
     lh_memory_std_xor_bytes(d, l, r, n);
     return lh_ptr_add_unsafe(lh_void, dst, n);
 }
@@ -885,5 +892,11 @@ lh_memory_std_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
     }
     hay = lh_ptr_ccast(lh_byte_t, lhs);
     needle = lh_ptr_ccast(lh_byte_t, rhs);
+#if LH_LIBRARY_OPTION_SIMD_HAVE_SSE2
+    if (lh_memory_std_has_sse2())
+    {
+        return lh_memory_std_rfind_sse2(hay, lhs_size, needle, rhs_size);
+    }
+#endif
     return lh_memory_std_rfind_scalar(hay, lhs_size, needle, rhs_size);
 }
