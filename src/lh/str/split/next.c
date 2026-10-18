@@ -1,7 +1,7 @@
 #include <lh/str/split/next.h>
 #include <lh/assert.h>
-#include <lh/char/limits.h>
-#include <lh/memory.h>
+#include <lh/math.h>
+#include <lh/util/str/ptr.h>
 
 lh_bool_t
 lh_str_ptr_split_next_of(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr delims,
@@ -10,40 +10,30 @@ lh_str_ptr_split_next_of(lh_str_cptr str, lh_usize_t str_size, lh_str_cptr delim
 {
     lh_usize_t start;
     lh_usize_t rest;
-    lh_usize_t i;
+    lh_str_cptr from;
     lh_str_cptr delim_at;
-    lh_str_cptr found;
 
     lh_assert_runtime_ref(str);
-    lh_assert_runtime_ref(delims);
     lh_assert_runtime_ref(pos);
     lh_assert_runtime_ref(field);
     lh_assert_runtime_ref(field_size);
     lh_assert_runtime_ref(had_delim);
 
     start = lh_ptr_deref(pos);
-    if (start >= str_size)
+    if (lh_math_ge(start, str_size))
     {
         return lh_bool_false;
     }
+    rest = lh_math_sub(str_size, start);
+    from = lh_ptr_add_by_offset_unsafe(const lh_char_t, str, start);
+    delim_at = lh_str_ptr_find_of_chars(from, rest, delims, delim_count);
 
-    rest = str_size - start;
-    delim_at = lh_null;
-    for (i = 0U; i < delim_count; ++i)
+    lh_ptr_deref(field) = from;
+    if (lh_ptr_is_set(delim_at))
     {
-        found = lh_memory_find(str + start, rest, delims + i, LH_CHAR_T_SIZE);
-        if (found != lh_null && (delim_at == lh_null || found < delim_at))
-        {
-            delim_at = found;
-        }
-    }
-
-    lh_ptr_deref(field) = str + start;
-    if (delim_at != lh_null)
-    {
-        lh_ptr_deref(field_size) = lh_cast_static(lh_usize_t, delim_at - (str + start));
+        lh_ptr_deref(field_size) = lh_ptr_udiff(delim_at, from);
         lh_ptr_deref(had_delim) = lh_bool_true;
-        lh_ptr_deref(pos) = start + lh_ptr_deref(field_size) + 1U;
+        lh_ptr_deref(pos) = lh_math_add_one(lh_math_add(start, lh_ptr_deref(field_size)));
     }
     else
     {
@@ -85,7 +75,7 @@ lh_str_view_split_next_of(const lh_str_view_t *self, lh_str_cptr delims, lh_usiz
         return lh_bool_false;
     }
 
-    if (piece_size == 0U)
+    if (lh_math_is_zero(piece_size))
     {
         lh_str_view_init_empty(field);
     }

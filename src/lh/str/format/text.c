@@ -6,135 +6,169 @@
 #include <lh/str/format/uint.h>
 #include <lh/str/scanf/next.h>
 #include <lh/util/str/ptr.h>
+#include <lh/char/map.h>
+#include <lh/math.h>
+#include <lh/util/return.h>
 
-/* lh_sint_t/lh_uint_t are 32-bit; "-2147483648" (11 chars) is the longest
- * conversion this engine ever builds into a local buffer. %s bypasses this
- * buffer entirely and is copied straight from the caller's argument. */
-#define LH_STR_FORMAT_TEXT_VALUE_BUF_MAX 16U
+lh_bool_t
+lh_str_ptr_format_text_put_text(lh_str_ptr str, lh_usize_t str_size, lh_usize_t *pos,
+                                lh_str_cptr text, lh_usize_t n)
+{
+    const lh_usize_t at = lh_ptr_deref(pos);
+
+    if (lh_ptr_is_set(str))
+    {
+        lh_return_if(lh_math_gt(n, lh_math_sub(str_size, at)), lh_bool_false);
+        lh_memory_std_copy(lh_ptr_add_by_offset_unsafe(lh_char_t, str, at), text, n);
+    }
+    lh_ptr_deref(pos) = lh_math_add(at, n);
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_str_ptr_format_text_put_run(lh_str_ptr str, lh_usize_t str_size, lh_usize_t *pos, lh_char_t ch,
+                               lh_usize_t n)
+{
+    const lh_usize_t at = lh_ptr_deref(pos);
+
+    if (lh_ptr_is_set(str))
+    {
+        lh_return_if(lh_math_gt(n, lh_math_sub(str_size, at)), lh_bool_false);
+        lh_memory_std_set(lh_ptr_add_by_offset_unsafe(lh_char_t, str, at), lh_cast_static(lh_byte_t, ch),
+                          n);
+    }
+    lh_ptr_deref(pos) = lh_math_add(at, n);
+    return lh_bool_true;
+}
+
+lh_bool_t
+lh_str_ptr_format_text_get_value(const lh_str_scanf_spec_t *spec, va_list *args, lh_str_ptr buf,
+                                 lh_str_cptr *content, lh_usize_t *size)
+{
+    const lh_str_scanf_spec_kind_t kind = lh_str_scanf_spec_get_kind(spec);
+    lh_usize_t n = 0U;
+
+    lh_ptr_deref(content) = buf;
+    switch (kind)
+    {
+    case lh_str_scanf_spec_kind_percent:
+        buf[0] = lh_char_map_percent;
+        n = 1U;
+        break;
+    case lh_str_scanf_spec_kind_char:
+        buf[0] = lh_cast_static(lh_char_t, va_arg(lh_ptr_deref(args), lh_sint_t));
+        n = 1U;
+        break;
+    case lh_str_scanf_spec_kind_uint:
+        n = lh_str_ptr_format_uint(va_arg(lh_ptr_deref(args), lh_uint_t), buf,
+                                   LH_STR_FORMAT_TEXT_VALUE_BUF_MAX);
+        break;
+    case lh_str_scanf_spec_kind_sint:
+        n = lh_str_ptr_format_sint(va_arg(lh_ptr_deref(args), lh_sint_t), buf,
+                                   LH_STR_FORMAT_TEXT_VALUE_BUF_MAX);
+        break;
+    case lh_str_scanf_spec_kind_hex:
+        n = lh_str_ptr_format_hex(va_arg(lh_ptr_deref(args), lh_uint_t),
+                                  lh_str_scanf_spec_get_uppercase(spec), buf,
+                                  LH_STR_FORMAT_TEXT_VALUE_BUF_MAX);
+        break;
+    case lh_str_scanf_spec_kind_str:
+        lh_ptr_deref(content) = va_arg(lh_ptr_deref(args), lh_str_cptr);
+        n = lh_str_ptr_len(lh_ptr_deref(content));
+        if (lh_str_scanf_spec_get_have_precision(spec))
+        {
+            n = lh_math_min(n, lh_cast_static(lh_usize_t, lh_str_scanf_spec_get_precision(spec)));
+        }
+        break;
+    default:
+        return lh_bool_false;
+    }
+    lh_ptr_deref(size) = n;
+    return lh_math_ne(n, 0U) || lh_math_eq(kind, lh_str_scanf_spec_kind_str);
+}
+
+lh_bool_t
+lh_str_ptr_format_text_put_field(lh_str_ptr str, lh_usize_t str_size, lh_usize_t *pos,
+                                 const lh_str_scanf_spec_t *spec, lh_str_cptr content,
+                                 lh_usize_t size)
+{
+    const lh_usize_t pad = lh_str_scanf_spec_get_pad(spec, size);
+    const lh_bool_t has_sign =
+        lh_math_gt(size, 0U) && lh_math_eq(content[0], lh_char_map_minus);
+    lh_usize_t at = lh_ptr_deref(pos);
+
+    /* All or nothing: room for the whole field first, then its pieces. */
+    lh_return_if(lh_ptr_is_set(str) && lh_math_gt(lh_math_add(pad, size), lh_math_sub(str_size, at)),
+                 lh_bool_false);
+
+    if (lh_str_scanf_spec_get_left_justify(spec))
+    {
+        lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at), content, size);
+        lh_str_ptr_format_text_put_run(str, str_size, lh_addr_of(at), lh_char_map_space, pad);
+    }
+    else if (lh_str_scanf_spec_get_zero_pad(spec) && has_sign)
+    {
+        lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at), content, 1U);
+        lh_str_ptr_format_text_put_run(str, str_size, lh_addr_of(at), lh_char_map_digit_0, pad);
+        lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at),
+                                        lh_ptr_add_by_offset_unsafe(const lh_char_t, content, 1U),
+                                        lh_math_sub_one(size));
+    }
+    else
+    {
+        lh_str_ptr_format_text_put_run(
+            str, str_size, lh_addr_of(at),
+            lh_str_scanf_spec_get_zero_pad(spec) ? lh_char_map_digit_0 : lh_char_map_space, pad);
+        lh_str_ptr_format_text_put_text(str, str_size, lh_addr_of(at), content, size);
+    }
+    lh_ptr_deref(pos) = at;
+    return lh_bool_true;
+}
 
 lh_usize_t
 lh_str_ptr_format_text_walk(lh_str_ptr str, lh_usize_t str_size, lh_str_cptr fmt, va_list args)
 {
-    const lh_bool_t counting = lh_null_eq(str);
-    lh_usize_t out_pos = 0;
-    lh_usize_t fmt_pos = 0;
+    /* Counting (no str) reports a bad mask as LH_STR_PTR_INVALID, writing as 0. */
+    const lh_usize_t failed = lh_ptr_is_null(str) ? LH_STR_PTR_INVALID : 0U;
+    lh_usize_t out_pos = 0U;
+    lh_usize_t fmt_pos = 0U;
     lh_str_scanf_spec_t spec;
+    va_list ap;
 
-
+    va_copy(ap, args);
     while (lh_str_ptr_scanf_next(fmt, lh_addr_of(fmt_pos), lh_addr_of(spec)))
     {
-        lh_char_t value_buf[LH_STR_FORMAT_TEXT_VALUE_BUF_MAX];
-        lh_str_cptr content = value_buf;
-        lh_usize_t content_len = 0;
+        const lh_str_scanf_spec_kind_t kind = lh_str_scanf_spec_get_kind(lh_addr_of(spec));
+        lh_char_t buf[LH_STR_FORMAT_TEXT_VALUE_BUF_MAX];
+        lh_str_cptr content;
+        lh_usize_t size;
+        lh_bool_t ok;
 
-        if (lh_str_scanf_spec_get_kind(lh_addr_of(spec)) == lh_str_scanf_spec_kind_invalid)
+        if (lh_math_eq(kind, lh_str_scanf_spec_kind_literal))
         {
-            return counting ? LH_STR_PTR_INVALID : 0;
+            ok = lh_str_ptr_format_text_put_text(
+                str, str_size, lh_addr_of(out_pos), lh_str_scanf_spec_get_literal(lh_addr_of(spec)),
+                lh_str_scanf_spec_get_literal_size(lh_addr_of(spec)));
         }
-
-        if (lh_str_scanf_spec_get_kind(lh_addr_of(spec)) == lh_str_scanf_spec_kind_literal)
+        else if (lh_math_eq(kind, lh_str_scanf_spec_kind_invalid) ||
+                 !lh_str_ptr_format_text_get_value(lh_addr_of(spec), lh_addr_of(ap), buf,
+                                                   lh_addr_of(content), lh_addr_of(size)))
         {
-            if (counting)
-            {
-                out_pos += lh_str_scanf_spec_get_literal_size(lh_addr_of(spec));
-                continue;
-            }
-            if (out_pos + lh_str_scanf_spec_get_literal_size(lh_addr_of(spec)) > str_size)
-            {
-                return 0;
-            }
-            lh_memory_std_copy(str + out_pos, lh_str_scanf_spec_get_literal(lh_addr_of(spec)), lh_str_scanf_spec_get_literal_size(lh_addr_of(spec)));
-            out_pos += lh_str_scanf_spec_get_literal_size(lh_addr_of(spec));
-            continue;
+            va_end(ap);
+            return failed;
         }
-
-        switch (lh_str_scanf_spec_get_kind(lh_addr_of(spec)))
+        else
         {
-        case lh_str_scanf_spec_kind_percent:
-            value_buf[0] = '%';
-            content_len = 1;
-            break;
-        case lh_str_scanf_spec_kind_char:
-            value_buf[0] = lh_cast_static(lh_char_t, va_arg(args, lh_sint_t));
-            content_len = 1;
-            break;
-        case lh_str_scanf_spec_kind_uint:
-            content_len = lh_str_ptr_format_uint(va_arg(args, lh_uint_t), value_buf,
-                                                 LH_STR_FORMAT_TEXT_VALUE_BUF_MAX);
-            break;
-        case lh_str_scanf_spec_kind_sint:
-            content_len = lh_str_ptr_format_sint(va_arg(args, lh_sint_t), value_buf,
-                                                 LH_STR_FORMAT_TEXT_VALUE_BUF_MAX);
-            break;
-        case lh_str_scanf_spec_kind_hex:
-            content_len = lh_str_ptr_format_hex(va_arg(args, lh_uint_t), lh_str_scanf_spec_get_uppercase(lh_addr_of(spec)), value_buf,
-                                                LH_STR_FORMAT_TEXT_VALUE_BUF_MAX);
-            break;
-        case lh_str_scanf_spec_kind_str:
-            content = va_arg(args, lh_str_cptr);
-            content_len = lh_str_ptr_len(content);
-            if (lh_str_scanf_spec_get_have_precision(lh_addr_of(spec)) && lh_str_scanf_spec_get_precision(lh_addr_of(spec)) < content_len)
-            {
-                content_len = lh_str_scanf_spec_get_precision(lh_addr_of(spec));
-            }
-            break;
-        default:
-            return counting ? LH_STR_PTR_INVALID : 0;
+            ok = lh_str_ptr_format_text_put_field(str, str_size, lh_addr_of(out_pos),
+                                                  lh_addr_of(spec), content, size);
         }
-
-        if (content_len == 0 && lh_str_scanf_spec_get_kind(lh_addr_of(spec)) != lh_str_scanf_spec_kind_str)
+        if (!ok)
         {
-            return counting ? LH_STR_PTR_INVALID : 0;
-        }
-
-        {
-            lh_bool_t has_sign = content_len > 0 && content[0] == '-';
-            lh_usize_t pad_len = lh_str_scanf_spec_get_width(lh_addr_of(spec)) > content_len ? lh_str_scanf_spec_get_width(lh_addr_of(spec)) - content_len : 0U;
-
-            if (counting)
-            {
-                out_pos += pad_len + content_len;
-                continue;
-            }
-
-            if (lh_str_scanf_spec_get_left_justify(lh_addr_of(spec)))
-            {
-                if (out_pos + content_len + pad_len > str_size)
-                {
-                    return 0;
-                }
-                lh_memory_std_copy(str + out_pos, content, content_len);
-                out_pos += content_len;
-                lh_memory_std_set(str + out_pos, lh_cast_static(lh_byte_t, ' '), pad_len);
-                out_pos += pad_len;
-            }
-            else if (lh_str_scanf_spec_get_zero_pad(lh_addr_of(spec)) && has_sign)
-            {
-                if (out_pos + 1U + pad_len + (content_len - 1U) > str_size)
-                {
-                    return 0;
-                }
-                str[out_pos++] = content[0];
-                lh_memory_std_set(str + out_pos, lh_cast_static(lh_byte_t, '0'), pad_len);
-                out_pos += pad_len;
-                lh_memory_std_copy(str + out_pos, content + 1, content_len - 1U);
-                out_pos += content_len - 1U;
-            }
-            else
-            {
-                lh_char_t pad_char = lh_str_scanf_spec_get_zero_pad(lh_addr_of(spec)) ? '0' : ' ';
-                if (out_pos + pad_len + content_len > str_size)
-                {
-                    return 0;
-                }
-                lh_memory_std_set(str + out_pos, lh_cast_static(lh_byte_t, pad_char), pad_len);
-                out_pos += pad_len;
-                lh_memory_std_copy(str + out_pos, content, content_len);
-                out_pos += content_len;
-            }
+            va_end(ap);
+            return 0U;
         }
     }
-
+    va_end(ap);
     return out_pos;
 }
 

@@ -1,4 +1,6 @@
 #include <lh/str/format/ullong.h>
+#include <lh/char/map.h>
+#include <lh/math.h>
 #include <lh/assert.h>
 #include <lh/memory/std.h>
 #include <lh/str/format/uint.h>
@@ -22,37 +24,40 @@ lh_str_ptr_format_ullong(lh_ullong_t value, lh_str_ptr str, lh_usize_t str_size)
 
     do
     {
-        parts[count++] = lh_cast_static(lh_uint_t, (x % LH_STR_FORMAT_ULLONG_CHUNK));
-        x /= LH_STR_FORMAT_ULLONG_CHUNK;
-    } while (x > 0U && count < LH_STR_FORMAT_ULLONG_PARTS_MAX);
+        parts[count] = lh_cast_static(lh_uint_t, lh_math_mod(x, LH_STR_FORMAT_ULLONG_CHUNK));
+        count = lh_math_add_one(count);
+        x = lh_math_div(x, LH_STR_FORMAT_ULLONG_CHUNK);
+    } while (lh_math_gt(x, 0U) && lh_math_lt(count, LH_STR_FORMAT_ULLONG_PARTS_MAX));
 
-    written = lh_str_ptr_format_uint(parts[count - 1U], str, str_size);
-    if (written == 0U)
+    written = lh_str_ptr_format_uint(parts[lh_math_sub_one(count)], str, str_size);
+    if (lh_math_is_zero(written))
     {
         return 0;
     }
 
     i = count;
-    while (i > 1U)
+    while (lh_math_gt(i, 1U))
     {
         lh_char_t digits[LH_STR_FORMAT_ULLONG_CHUNK_DIGITS];
         lh_usize_t n;
         lh_usize_t pad;
 
-        --i;
-        n = lh_str_ptr_format_uint(parts[i - 1U], digits, LH_STR_FORMAT_ULLONG_CHUNK_DIGITS);
-        if (n == 0U)
+        i = lh_math_sub_one(i);
+        n = lh_str_ptr_format_uint(parts[lh_math_sub_one(i)], digits, LH_STR_FORMAT_ULLONG_CHUNK_DIGITS);
+        if (lh_math_is_zero(n))
         {
             return 0;
         }
-        pad = LH_STR_FORMAT_ULLONG_CHUNK_DIGITS - n;
-        if (written + LH_STR_FORMAT_ULLONG_CHUNK_DIGITS > str_size)
+        pad = lh_math_sub(LH_STR_FORMAT_ULLONG_CHUNK_DIGITS, n);
+        if (lh_math_gt(lh_math_add(written, LH_STR_FORMAT_ULLONG_CHUNK_DIGITS), str_size))
         {
             return 0;
         }
-        lh_memory_std_set(str + written, (lh_byte_t)'0', pad);
-        lh_memory_std_copy(str + written + pad, digits, n);
-        written += LH_STR_FORMAT_ULLONG_CHUNK_DIGITS;
+        lh_memory_std_set(lh_ptr_add_by_offset_unsafe(lh_char_t, str, written),
+                          lh_cast_static(lh_byte_t, lh_char_map_digit_0), pad);
+        lh_memory_std_copy(lh_ptr_add_by_offset_unsafe(lh_char_t, str, lh_math_add(written, pad)), digits,
+                           n);
+        written = lh_math_add(written, LH_STR_FORMAT_ULLONG_CHUNK_DIGITS);
     }
     return written;
 }
