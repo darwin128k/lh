@@ -77,6 +77,31 @@ protected:
     lh_memory_sized_allocator_t sized;
 };
 
+TEST(memory_tree_get_block_size, adds_the_header)
+{
+    EXPECT_GT(lh_memory_tree_get_block_size(0), 0u);
+    EXPECT_EQ(lh_memory_tree_get_block_size(10), lh_memory_tree_get_block_size(0) + 10u);
+}
+
+TEST_F(MemoryTree, allocator_callbacks_put_blocks_under_the_root)
+{
+    lh_ptr root = lh_memory_tree_alloc(&sized, 0);
+
+    lh_ptr child = lh_memory_tree_allocator_alloc(root, 8);
+    EXPECT_EQ(lh_memory_tree_get_parent(child), root);
+    EXPECT_EQ(lh_memory_tree_get_size(child), 8u);
+
+    child = lh_memory_tree_allocator_realloc(root, child, 8, 32);
+    EXPECT_EQ(lh_memory_tree_get_parent(child), root);
+    EXPECT_EQ(lh_memory_tree_get_first_child(root), child);
+    EXPECT_EQ(lh_memory_tree_get_size(child), 32u);
+
+    lh_memory_tree_allocator_dealloc(root, child);
+    EXPECT_EQ(lh_memory_tree_get_first_child(root), lh_null);
+    lh_memory_tree_free(root);
+    EXPECT_EQ(heap.live, 0);
+}
+
 TEST_F(MemoryTree, freeing_a_block_frees_all_it_owns)
 {
     lh_ptr root = lh_memory_tree_alloc(&sized, 0);
