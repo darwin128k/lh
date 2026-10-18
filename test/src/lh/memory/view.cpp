@@ -18,7 +18,8 @@ p(const unsigned char *ptr)
 lh_memory_view_t
 view(const lh_ptr begin, const lh_ptr end)
 {
-    return {begin, end};
+    /* Any end, backward or null included: begin + size gives it back. */
+    return {begin, lh_ptr_udiff(end, begin)};
 }
 
 TEST(memory_view_getters, return_stored_endpoints)

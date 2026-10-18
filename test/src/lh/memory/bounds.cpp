@@ -17,7 +17,8 @@ p(unsigned char *ptr)
 lh_memory_bounds_t
 bounds(lh_ptr begin, lh_ptr end)
 {
-    return {begin, end};
+    /* Any end, backward or null included: begin + size gives it back. */
+    return {begin, lh_ptr_udiff(end, begin)};
 }
 
 TEST(memory_bounds_getters, return_stored_endpoints)

@@ -543,9 +543,10 @@ lh_void
 lh_memory_bounds_return_of_view(const lh_memory_view_t *view, lh_memory_bounds_t *out)
 {
     lh_assert_runtime_ref(out);
-    lh_ptr_deref(out) = lh_initializer_of(lh_memory_bounds_t, lh_memory_bounds_initializer,
-                                          lh_cast_const(lh_ptr, lh_memory_view_get_begin(view)),
-                                          lh_cast_const(lh_ptr, lh_memory_view_get_end(view)));
+    const lh_ptr begin = lh_memory_view_get_begin(view);
+    lh_ptr_deref(out) =
+        lh_initializer_of(lh_memory_bounds_t, lh_memory_bounds_initializer, lh_cast_const(lh_ptr, begin),
+                          lh_ptr_udiff(lh_memory_view_get_end(view), begin));
 }
 
 lh_void

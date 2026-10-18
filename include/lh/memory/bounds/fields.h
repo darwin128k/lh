@@ -1,27 +1,26 @@
 /**
  * @file fields.h
- * @brief Macro for declaring memory-bounds endpoint fields (`first` / `second`).
+ * @brief Macro for declaring memory-bounds fields (`begin` / `size`).
  *
- * Semantically names a contiguous byte span as a half-open pointer interval
- * <tt>[first, second)</tt>, using ::lh_interval_bounds_fields (same layout as
- * ::lh_pair_fields of two pointers).
+ * Names a contiguous byte span by its first byte and its length:
+ * <tt>[begin, begin + size)</tt>.
  */
 
 #ifndef LH_MEMORY_BOUNDS_FIELDS_H
 #define LH_MEMORY_BOUNDS_FIELDS_H
 
-#include <lh/interval/bounds/fields.h>
+#include <lh/size.h>
 
 /**
  * @def lh_memory_bounds_fields(elem_type)
- * @brief Expands to two `elem_type *` members via ::lh_interval_bounds_fields
- *        (`first`, `second`).
+ * @brief Expands to an `elem_type *begin` member and an ::lh_usize_t `size` member.
  *
- * Use inside a struct body when two pointers delimit memory bounds
- * (@c first inclusive begin, @c second exclusive end).
- * Equivalent to `lh_interval_bounds_fields(elem_type *)`.
+ * Use inside a struct body when a pointer and a length delimit memory bounds:
+ * @c begin is the first byte, @c size the number of bytes. @c size counts
+ * bytes whatever @p elem_type is, so the struct can be handed to the
+ * ::lh_memory_bounds_t / ::lh_memory_view_t functions as is.
  *
- * @param elem_type Pointee type (not a pointer type); each field has type
+ * @param elem_type Pointee type (not a pointer type); @c begin has type
  *                  `elem_type *`.
  *
  * Example usage:
@@ -30,9 +29,9 @@
  *     lh_memory_bounds_fields(void);
  * };
  * @endcode
- *
- * @see lh_interval_bounds_fields
  */
-#define lh_memory_bounds_fields(elem_type) lh_interval_bounds_fields(elem_type *)
+#define lh_memory_bounds_fields(elem_type)                                                         \
+    elem_type *begin;                                                                              \
+    lh_usize_t size
 
 #endif /* LH_MEMORY_BOUNDS_FIELDS_H */

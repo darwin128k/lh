@@ -2,19 +2,20 @@
  * @file view.h
  * @brief Half-open read-only byte view (::lh_memory_view_t) and helpers.
  *
- * A memory view object stores two @c const endpoints @c first and @c second
- * describing a right-open address interval <tt>[first, second)</tt>. The
- * first endpoint points to the first byte in the range; the second endpoint
- * points one byte past the last byte. Consequently, size is
- * @c second @c - @c first for initialized forward views.
+ * A memory view object stores a @c const pointer @c begin to its first byte
+ * and its length @c size in bytes, describing the right-open address interval
+ * <tt>[begin, begin + size)</tt>. Its exclusive end is @c begin + @c size,
+ * computed on the address, so any end that was set, backward or null
+ * included, reads back unchanged.
  *
- * The view can also represent incomplete storage: each endpoint may be
- * ::lh_null. Endpoint presence is reported as
+ * The view can also represent incomplete storage: @c begin or the end may
+ * be ::lh_null. Endpoint presence is reported as
  * ::lh_memory_view_flags_t, and initialized views are classified by
  * direction using ::lh_memory_view_direction_t.
  *
- * Valid views are initialized and forward ordered for a right-open interval
- * (@c first &lt; @c second). Functions with the @c _v suffix and all size /
+ * Valid views are initialized and forward ordered: @c begin + @c size does
+ * not wrap past the address space, so the end is at or after @c begin.
+ * Functions with the @c _v suffix and all size /
  * containment / indexed access / raw byte operation helpers require valid
  * views and may raise runtime errors when that precondition is not met.
  *
@@ -37,10 +38,10 @@
 
 /**
  * @struct lh_memory_view
- * @brief Non-owning read-only half-open byte view: two <tt>const ::lh_ptr</tt> endpoints.
+ * @brief Non-owning read-only half-open byte view: a <tt>const ::lh_ptr</tt> and a byte size.
  *
- * Endpoints describe <tt>[first, second)</tt> in address space when both are
- * non-null and ordered. Public typedef: ::lh_memory_view_t.
+ * @c begin and @c size describe <tt>[begin, begin + size)</tt> in address
+ * space when both ends are non-null and ordered. Public typedef: ::lh_memory_view_t.
  */
 struct lh_memory_view
 {
@@ -55,7 +56,7 @@ LH_COMPILER_EXTERN_C_BEGIN
 /* -- getters --------------------------------------------------------------- */
 
 /**
- * @brief Return @c first without validating the view range.
+ * @brief Return @c begin without validating the view range.
  * @param self View to read.
  * @return Stored begin pointer.
  *
@@ -77,7 +78,7 @@ const lh_ptr
 lh_memory_view_get_data(const lh_memory_view_t *self);
 
 /**
- * @brief Return @c second without validating the view range.
+ * @brief Return the exclusive end @c begin + @c size without validating the view range.
  * @param self View to read.
  * @return Stored exclusive end pointer.
  *
@@ -93,8 +94,8 @@ lh_memory_view_get_end(const lh_memory_view_t *self);
  * @brief Classify initialized endpoint order for a half-open interval.
  *
  * Returns ::lh_memory_view_direction_unknown until both endpoints are
- * initialized. Otherwise returns forward for @c first &lt; @c second and
- * backward for equal or reversed views.
+ * initialized. Otherwise returns forward when the end is at or after
+ * @c begin and backward when @c begin + @c size wraps past the address space.
  *
  * @param self View to inspect.
  * @return Direction value from ::lh_memory_view_direction_t.
@@ -108,8 +109,8 @@ lh_memory_view_get_direction(const lh_memory_view_t *self);
 /**
  * @brief Return endpoint-initialization flags for @p self.
  *
- * The begin flag is set when @c first is non-null. The end flag is set when
- * @c second is non-null.
+ * The begin flag is set when @c begin is non-null. The end flag is set when
+ * the end, @c begin + @c size, is non-null.
  *
  * @param self View to inspect.
  * @return Bit pattern from ::lh_memory_view_flags_t.
@@ -141,7 +142,7 @@ lh_bool_t
 lh_memory_view_is_initialized(const lh_memory_view_t *self);
 
 /**
- * @brief True if @p self is initialized and ordered @c first &lt; @c second.
+ * @brief True if @p self is initialized and forward ordered.
  * @param self View to inspect.
  *
  * @fails ::lh_runtime_error_code_null_pointer
@@ -173,7 +174,7 @@ lh_memory_view_is_valid(const lh_memory_view_t *self);
 /* -- validated access, size, containment ----------------------------------- */
 
 /**
- * @brief Return @c first after validating @p self.
+ * @brief Return @c begin after validating @p self.
  * @param self Valid view to read.
  * @return Stored begin pointer.
  *
@@ -186,7 +187,7 @@ const lh_ptr
 lh_memory_view_get_begin_v(const lh_memory_view_t *self);
 
 /**
- * @brief Return @c second after validating @p self.
+ * @brief Return the exclusive end @c begin + @c size after validating @p self.
  * @param self Valid view to read.
  * @return Stored exclusive end pointer.
  *
@@ -201,7 +202,7 @@ lh_memory_view_get_end_v(const lh_memory_view_t *self);
 /**
  * @brief Return half-open view size in bytes.
  *
- * For valid views this is @c second @c - @c first.
+ * For valid views this is @c size.
  *
  * @param self Valid view to read.
  * @return Number of bytes covered by the half-open interval.
@@ -217,9 +218,7 @@ lh_memory_view_get_size(const lh_memory_view_t *self);
 /**
  * @brief True if @p self is uninitialized or has zero size.
  *
- * Because valid half-open views require @c first &lt; @c second, initialized
- * valid views have non-zero size. The uninitialized state is therefore the
- * practical empty value in this API.
+ * A valid <tt>[x, x)</tt>, with @c size zero, is empty too.
  *
  * @param self View to inspect.
  *
@@ -238,7 +237,7 @@ lh_memory_view_is_empty(const lh_memory_view_t *self);
  * <tt>[0, lh_memory_view_get_size(self))</tt>.
  *
  * @param self   Valid view to inspect.
- * @param offset Byte offset from @c first.
+ * @param offset Byte offset from @c begin.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
@@ -249,11 +248,11 @@ lh_bool_t
 lh_memory_view_is_valid_offset(const lh_memory_view_t *self, lh_uoffset_t offset);
 
 /**
- * @brief Return byte offset of @p ptr from @c first.
+ * @brief Return byte offset of @p ptr from @c begin.
  *
  * @param self Valid view to inspect.
  * @param ptr  Pointer whose offset is requested.
- * @return Byte offset from @c first to @p ptr.
+ * @return Byte offset from @c begin to @p ptr.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
@@ -268,8 +267,8 @@ lh_memory_view_get_offset_from_begin(const lh_memory_view_t *self, const lh_ptr 
 /**
  * @brief Return byte offset of @p ptr from the last byte, walking backward.
  *
- * Offset @c 0 means @p ptr equals @c second - 1. The exclusive @c second
- * endpoint itself is not inside the view.
+ * Offset @c 0 means @p ptr equals @c begin + @c size - 1. The exclusive end
+ * itself is not inside the view.
  *
  * @param self Valid view to inspect.
  * @param ptr  Pointer whose reverse offset is requested.
@@ -356,7 +355,7 @@ lh_memory_view_contains_v(const lh_memory_view_t *self, const lh_memory_view_t *
 /* -- pointer and value access ---------------------------------------------- */
 
 /**
- * @brief Return pointer at byte @p offset from @c first.
+ * @brief Return pointer at byte @p offset from @c begin.
  *
  * @param self   Valid view to index.
  * @param offset Byte offset from the begin endpoint.
@@ -375,7 +374,7 @@ lh_memory_view_get_ptr_from_begin(const lh_memory_view_t *self, lh_uoffset_t off
 /**
  * @brief Return pointer at byte @p offset from the last byte, walking backward.
  *
- * Offset @c 0 returns @c second - 1, offset @c 1 returns the previous byte,
+ * Offset @c 0 returns @c begin + @c size - 1, offset @c 1 returns the previous byte,
  * and so on.
  *
  * @param self   Valid view to index.
@@ -395,7 +394,7 @@ lh_memory_view_get_ptr_from_end(const lh_memory_view_t *self, lh_uoffset_t offse
 /**
  * @brief Return pointer to the first byte.
  * @param self Valid view to index.
- * @return Pointer to @c first.
+ * @return Pointer to @c begin.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
@@ -408,7 +407,7 @@ lh_memory_view_get_first_ptr(const lh_memory_view_t *self);
 /**
  * @brief Return pointer to the last byte.
  * @param self Valid non-empty view to index.
- * @return Pointer to @c second - 1.
+ * @return Pointer to @c begin + @c size - 1.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
@@ -423,8 +422,8 @@ lh_memory_view_get_last_ptr(const lh_memory_view_t *self);
 /**
  * @brief Return pointer by signed offset.
  *
- * Non-negative offsets are measured from @c first. Negative offsets are
- * measured from the last byte: @c -1 addresses @c second - 1, @c -2 the
+ * Non-negative offsets are measured from @c begin. Negative offsets are
+ * measured from the last byte: @c -1 addresses @c begin + @c size - 1, @c -2 the
  * previous byte.
  *
  * @param self   Valid view to index.
@@ -442,7 +441,7 @@ const lh_ptr
 lh_memory_view_get_ptr(const lh_memory_view_t *self, lh_soffset_t offset);
 
 /**
- * @brief Read byte at @p offset from @c first.
+ * @brief Read byte at @p offset from @c begin.
  *
  * @param self   Valid view to index.
  * @param offset Byte offset from the begin endpoint.
@@ -496,7 +495,7 @@ lh_memory_view_get_value(const lh_memory_view_t *self, lh_soffset_t offset);
  * @brief Read the first byte of @p self.
  *
  * @param self Valid view to read.
- * @return Byte at @c first.
+ * @return Byte at @c begin.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
@@ -510,7 +509,7 @@ lh_memory_view_get_first_value(const lh_memory_view_t *self);
  * @brief Read the last byte of @p self.
  *
  * @param self Valid view to read.
- * @return Byte at @c second - 1.
+ * @return Byte at @c begin + @c size - 1.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
@@ -530,7 +529,7 @@ lh_memory_view_get_last_value(const lh_memory_view_t *self);
  * @param self   Valid view to seek in.
  * @param ptr    Base pointer inside @p self, or ::lh_null for absolute seek.
  * @param offset Signed byte offset.
- * @return Target byte offset from @c first.
+ * @return Target byte offset from @c begin.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
@@ -685,7 +684,7 @@ lh_bool_t
 lh_memory_view_is_multiple_of(const lh_memory_view_t *self, lh_usize_t alignment);
 
 /**
- * @brief True if @c first is aligned to @p align.
+ * @brief True if @c begin is aligned to @p align.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
@@ -965,8 +964,8 @@ lh_memory_view_swap_and_clear(lh_memory_view_t *self, lh_memory_view_t *other);
  * No range check is performed on @p begin or @p end.
  *
  * @param self  View to update.
- * @param begin New @c first endpoint.
- * @param end   New @c second endpoint.
+ * @param begin New @c begin.
+ * @param end   New exclusive end; @c size becomes <tt>end - begin</tt>.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
@@ -980,8 +979,8 @@ lh_memory_view_set(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr end)
  * @brief Store @p begin and @p end in @p self after validation.
  *
  * @param self  View to update.
- * @param begin New @c first endpoint.
- * @param end   New exclusive @c second endpoint.
+ * @param begin New @c begin.
+ * @param end   New exclusive end; @c size becomes <tt>end - begin</tt>.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
@@ -998,7 +997,7 @@ lh_memory_view_set_v(lh_memory_view_t *self, const lh_ptr begin, const lh_ptr en
  * non-zero.
  *
  * @param self  View to update.
- * @param begin New @c first endpoint.
+ * @param begin New @c begin.
  * @param size  Number of bytes in the half-open view.
  *
  * @fails ::lh_runtime_error_code_null_pointer

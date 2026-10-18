@@ -10,16 +10,19 @@
 #include <lh/util/str/ptr.h>
 
 /**
- * @def lh_str_view_initializer(begin, end)
- * @brief Brace-enclosed initializer for ::lh_str_view_t as <tt>[begin, end)</tt>.
+ * @def lh_str_view_initializer(begin, size)
+ * @brief Brace-enclosed initializer for ::lh_str_view_t as <tt>[begin, begin + size)</tt>.
  *
  * Delegates to ::lh_memory_view_initializer.
+ *
+ * @param begin First character.
+ * @param size  Number of characters (bytes).
  */
-#define lh_str_view_initializer(begin, end) lh_memory_view_initializer(begin, end)
+#define lh_str_view_initializer(begin, size) lh_memory_view_initializer(begin, size)
 
 /**
  * @def lh_str_view_empty_initializer()
- * @brief Uninitialized / empty view (::lh_null, ::lh_null).
+ * @brief Uninitialized / empty view (::lh_null, 0).
  *
  * Delegates to ::lh_memory_view_empty_initializer.
  */
@@ -29,7 +32,7 @@
  * @def lh_str_view_empty()
  * @brief Typed empty ::lh_str_view_t for function arguments.
  *
- * Same endpoints as ::lh_str_view_empty_initializer. No scan.
+ * Same fields as ::lh_str_view_empty_initializer. No scan.
  *
  * Example usage:
  * @code{.c}
@@ -45,8 +48,8 @@
  * @def lh_str_view_initializer_lit(s)
  * @brief Brace-enclosed view over a string literal @p s, length at compile time.
  *
- * Endpoints are ::lh_str_ptr_get_begin(@p s) and ::lh_str_ptr_get_end(@p s).
- * Payload length is ::lh_str_ptr_get_size (array capacity minus the stored NUL).
+ * Begin is ::lh_str_ptr_get_begin(@p s), size is ::lh_str_ptr_get_size(@p s)
+ * (array capacity minus the stored NUL).
  * @p s must be a string literal or a `char` array object, not a decayed pointer.
  *
  * Example usage:
@@ -58,13 +61,13 @@
  * @see lh_str_ptr_get_size
  */
 #define lh_str_view_initializer_lit(s)                                                             \
-    lh_str_view_initializer(lh_str_ptr_get_begin(s), lh_str_ptr_get_end(s))
+    lh_str_view_initializer(lh_str_ptr_get_begin(s), lh_str_ptr_get_size(s))
 
 /**
  * @def lh_str_view_lit(s)
  * @brief Compound literal ::lh_str_view_t over string literal @p s.
  *
- * Same endpoints as ::lh_str_view_initializer_lit, as a typed value for
+ * Same fields as ::lh_str_view_initializer_lit, as a typed value for
  * function arguments. No runtime scan of @p s.
  *
  * Example usage:

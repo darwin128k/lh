@@ -1,10 +1,10 @@
 /**
  * @file fields.h
- * @brief Macro for declaring string-view endpoint fields (`first` / `second`).
+ * @brief Macro for declaring string-view fields (`begin` / `size`).
  *
- * Injects the same pair of pointer fields as ::lh_memory_bounds_fields,
- * with a name that reflects non-owning string slice semantics
- * (half-open <tt>[first, second)</tt> like memory bounds).
+ * Injects the same fields as ::lh_memory_bounds_fields,
+ * with a name that reflects non-owning string semantics
+ * (<tt>[begin, begin + size)</tt>, @c size in bytes, like memory bounds).
  */
 
 #ifndef LH_STR_VIEW_FIELDS_H
@@ -16,11 +16,10 @@
  * @def lh_str_view_fields(elem_type)
  * @brief Expands to the same member declarations as ::lh_memory_bounds_fields.
  *
- * Use inside a struct body when two pointers delimit a string view.
- * Equivalent to `lh_memory_bounds_fields(elem_type)` and thus to
- * `lh_interval_bounds_fields(elem_type *)`.
+ * Use inside a struct body when a pointer and a byte length delimit a string view.
+ * Equivalent to `lh_memory_bounds_fields(elem_type)`.
  *
- * @param elem_type Pointee type (not a pointer type); each field has type
+ * @param elem_type Pointee type (not a pointer type); @c begin has type
  *                  `elem_type *`.
  *
  * Example usage:
@@ -31,7 +30,6 @@
  * @endcode
  *
  * @see lh_memory_bounds_fields
- * @see lh_interval_bounds_fields
  */
 #define lh_str_view_fields(elem_type) lh_memory_bounds_fields(elem_type)
 
