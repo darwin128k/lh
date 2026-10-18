@@ -3,13 +3,12 @@
 #include <lh/memory/tree/header.h>
 #include <lh/math.h>
 #include <lh/util/return.h>
+#include <lh/size/ops.h>
 
 lh_usize_t
 lh_memory_tree_get_block_size(lh_usize_t size)
 {
-    lh_runtime_check_if(lh_math_gt(size, lh_math_sub(LH_USIZE_T_MAX, LH_MEMORY_TREE_HEADER_SIZE)),
-                        lh_runtime_error_code_overflow);
-    return lh_math_add(size, LH_MEMORY_TREE_HEADER_SIZE);
+    return lh_size_add(size, LH_MEMORY_TREE_HEADER_SIZE);
 }
 
 lh_ptr

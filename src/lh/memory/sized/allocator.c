@@ -1,7 +1,6 @@
 #include <lh/memory/sized/allocator.h>
 #include <lh/assert.h>
-#include <lh/math.h>
-#include <lh/size/limits.h>
+#include <lh/size/ops.h>
 #include <lh/util/return.h>
 
 lh_ptr
@@ -19,10 +18,7 @@ lh_memory_sized_allocator_get_data(const lh_ptr block)
 lh_usize_t
 lh_memory_sized_allocator_get_block_size(lh_usize_t size)
 {
-    lh_runtime_check_if(
-        lh_math_gt(size, lh_math_sub(LH_USIZE_T_MAX, LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE)),
-        lh_runtime_error_code_overflow);
-    return lh_math_add(size, LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE);
+    return lh_size_add(size, LH_MEMORY_SIZED_ALLOCATOR_HEADER_SIZE);
 }
 
 /* The size sits at the block start, in front of the user data. */

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `lh_size_add` (`lh/size/ops.h`): `lh_usize_t` addition that fails with `lh_runtime_error_code_overflow` instead of wrapping; `lh_memory_sized_allocator_get_block_size` and `lh_memory_tree_get_block_size` are built on it
 - `lh_memory_tree_get_block_size` and the tree allocator callbacks `lh_memory_tree_allocator_alloc` / `_dealloc` / `_realloc` (`lh/memory/tree.h`), public instead of file-local; the tree header's fields go through library-private getters and setters (`src/lh/memory/tree/header.c`)
 - Public bricks that used to be file-local: `lh_memory_raw_get_size` (`lh/memory/raw.h`), the size of `[begin, end)`; `lh_memory_sized_allocator_get_block`, `_get_data`, `_get_block_size`, `_set_size` (`lh/memory/sized/allocator.h`); `lh_memory_view_find_offset_from_ptr`, `lh_memory_view_swap_v_other`
 - `lh_memory_typed_set_type_size` (`lh/memory/typed.h`)
