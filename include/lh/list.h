@@ -75,10 +75,16 @@ lh_bool_t
 lh_list_is_empty(const lh_list_t *self);
 
 /**
- * @brief Number of elements. O(n): the list keeps no count.
+ * @brief Make unlinked @p node the first element.
  */
-lh_usize_t
-lh_list_get_size(const lh_list_t *self);
+lh_void
+lh_list_push_front(lh_list_t *self, lh_list_node_t *node);
+
+/**
+ * @brief Make unlinked @p node the last element.
+ */
+lh_void
+lh_list_push_back(lh_list_t *self, lh_list_node_t *node);
 
 /**
  * @brief First element, or ::lh_null if @p self is empty.
@@ -91,18 +97,6 @@ lh_list_get_first(const lh_list_t *self);
  */
 lh_list_node_t *
 lh_list_get_last(const lh_list_t *self);
-
-/**
- * @brief Element number @p index from the front (0 is the first), or
- *        ::lh_null if @p self has no such element.
- *
- * O(@p index): a linked list has no random access, so this walks from the
- * front. For "the third one" that is fine; to visit every element use
- * ::lh_list_get_first / ::lh_list_get_next — a loop over `get_at(i)` is
- * O(n²).
- */
-lh_list_node_t *
-lh_list_get_at(const lh_list_t *self, lh_uindex_t index);
 
 /**
  * @brief Element after @p node, or ::lh_null if @p node is the last.
@@ -123,29 +117,29 @@ lh_list_node_t *
 lh_list_get_prev(const lh_list_t *self, const lh_list_node_t *node);
 
 /**
+ * @brief Number of elements. O(n): the list keeps no count.
+ */
+lh_usize_t
+lh_list_get_size(const lh_list_t *self);
+
+/**
+ * @brief Element number @p index from the front (0 is the first), or
+ *        ::lh_null if @p self has no such element.
+ *
+ * O(@p index): a linked list has no random access, so this walks from the
+ * front. For "the third one" that is fine; to visit every element use
+ * ::lh_list_get_first / ::lh_list_get_next — a loop over `get_at(i)` is
+ * O(n²).
+ */
+lh_list_node_t *
+lh_list_get_at(const lh_list_t *self, lh_uindex_t index);
+
+/**
  * @brief Position of @p node from the front (0 is the first), or
  *        ::LH_LIST_INVALID if @p node is not an element of @p self. O(n).
  */
 lh_uindex_t
 lh_list_index_of(const lh_list_t *self, const lh_list_node_t *node);
-
-/**
- * @brief True when @p node is an element of @p self. O(n).
- */
-lh_bool_t
-lh_list_contains(const lh_list_t *self, const lh_list_node_t *node);
-
-/**
- * @brief Make unlinked @p node the first element.
- */
-lh_void
-lh_list_push_front(lh_list_t *self, lh_list_node_t *node);
-
-/**
- * @brief Make unlinked @p node the last element.
- */
-lh_void
-lh_list_push_back(lh_list_t *self, lh_list_node_t *node);
 
 /**
  * @brief Insert unlinked @p node keeping @p self ordered by @p cmp.
@@ -161,6 +155,37 @@ lh_list_push_back(lh_list_t *self, lh_list_node_t *node);
  */
 lh_void
 lh_list_insert_sorted(lh_list_t *self, lh_list_node_t *node, lh_list_cmp_cb cmp, lh_ptr context);
+
+/**
+ * @brief Unlink and return the first element, or ::lh_null if empty.
+ */
+lh_list_node_t *
+lh_list_pop_front(lh_list_t *self);
+
+/**
+ * @brief Unlink and return the last element, or ::lh_null if empty.
+ */
+lh_list_node_t *
+lh_list_pop_back(lh_list_t *self);
+
+/**
+ * @brief Sort the elements by @p cmp: stable, O(n log n), allocates nothing.
+ *
+ * Bottom-up merge sort over the links themselves. Pointers to elements stay
+ * valid; only their order changes.
+ *
+ * @param self    List to sort in place.
+ * @param cmp     Order of two elements.
+ * @param context Passed to every @p cmp call.
+ */
+lh_void
+lh_list_sort(lh_list_t *self, lh_list_cmp_cb cmp, lh_ptr context);
+
+/**
+ * @brief True when @p node is an element of @p self. O(n).
+ */
+lh_bool_t
+lh_list_contains(const lh_list_t *self, const lh_list_node_t *node);
 
 /**
  * @brief Move every element of @p other, in order, to the end of @p self.
@@ -184,31 +209,6 @@ lh_list_splice_front(lh_list_t *self, lh_list_t *other);
  */
 lh_void
 lh_list_clear(lh_list_t *self);
-
-/**
- * @brief Sort the elements by @p cmp: stable, O(n log n), allocates nothing.
- *
- * Bottom-up merge sort over the links themselves. Pointers to elements stay
- * valid; only their order changes.
- *
- * @param self    List to sort in place.
- * @param cmp     Order of two elements.
- * @param context Passed to every @p cmp call.
- */
-lh_void
-lh_list_sort(lh_list_t *self, lh_list_cmp_cb cmp, lh_ptr context);
-
-/**
- * @brief Unlink and return the first element, or ::lh_null if empty.
- */
-lh_list_node_t *
-lh_list_pop_front(lh_list_t *self);
-
-/**
- * @brief Unlink and return the last element, or ::lh_null if empty.
- */
-lh_list_node_t *
-lh_list_pop_back(lh_list_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

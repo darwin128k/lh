@@ -36,6 +36,20 @@ struct IntVector
     }
 };
 
+TEST(array_size, set_and_measured_in_bytes)
+{
+    IntVector a;
+    a.push(1);
+    a.push(2);
+    a.push(3);
+    EXPECT_EQ(lh_array_get_size_of_bytes(&a.v), 3 * sizeof(int));
+
+    lh_array_set_size(&a.v, 2);
+    EXPECT_EQ(lh_array_get_size(&a.v), 2u);
+    EXPECT_EQ(lh_array_get_size_of_bytes(&a.v), 2 * sizeof(int));
+    EXPECT_EQ(lh_array_get_end(&a.v), static_cast<lh_ptr>(static_cast<int *>(lh_array_get_begin(&a.v)) + 2));
+}
+
 TEST(array_push_back, appends_from_empty_and_grows)
 {
     IntVector iv;

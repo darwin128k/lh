@@ -36,12 +36,6 @@ typedef struct lh_list_node lh_list_node_t;
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
- * @brief Unlinked node: links to itself both ways.
- */
-lh_void
-lh_list_node_init(lh_list_node_t *self);
-
-/**
  * @brief Next node in the ring (the list head after the last element).
  *
  * Raw link. To walk a list's elements, use ::lh_list_get_next, which stops
@@ -67,10 +61,24 @@ lh_ptr
 lh_list_node_get_entry(const lh_list_node_t *self, lh_usize_t offset);
 
 /**
+ * @brief Unlinked node: links to itself both ways.
+ */
+lh_void
+lh_list_node_init(lh_list_node_t *self);
+
+/**
  * @brief True when @p self is in a list.
  */
 lh_bool_t
 lh_list_node_is_linked(const lh_list_node_t *self);
+
+/**
+ * @brief Take @p self out of its list in O(1) and leave it unlinked.
+ *
+ * No-op on an unlinked node.
+ */
+lh_void
+lh_list_node_unlink(lh_list_node_t *self);
 
 /**
  * @brief Link unlinked @p self right after @p pos (an element or a head).
@@ -100,14 +108,6 @@ lh_list_node_move_after(lh_list_node_t *self, lh_list_node_t *pos);
  */
 lh_void
 lh_list_node_move_before(lh_list_node_t *self, lh_list_node_t *pos);
-
-/**
- * @brief Take @p self out of its list in O(1) and leave it unlinked.
- *
- * No-op on an unlinked node.
- */
-lh_void
-lh_list_node_unlink(lh_list_node_t *self);
 
 LH_COMPILER_EXTERN_C_END
 

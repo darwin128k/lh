@@ -1,6 +1,5 @@
 #include <lh/list/node.h>
 #include <lh/assert.h>
-#include <lh/attribute/static.h>
 #include <lh/list/node/link.h>
 
 lh_void
@@ -15,13 +14,6 @@ lh_list_node_set_prev(lh_list_node_t *self, lh_list_node_t *prev)
 {
     lh_assert_runtime_ref(self);
     self->prev = prev;
-}
-
-lh_void
-lh_list_node_init(lh_list_node_t *self)
-{
-    lh_list_node_set_next(self, self);
-    lh_list_node_set_prev(self, self);
 }
 
 lh_list_node_t *
@@ -48,14 +40,19 @@ lh_list_node_get_entry(const lh_list_node_t *self, lh_usize_t offset)
     return lh_ptr_sub_by_offset_unsafe(lh_void, self, offset);
 }
 
+lh_void
+lh_list_node_init(lh_list_node_t *self)
+{
+    lh_list_node_set_next(self, self);
+    lh_list_node_set_prev(self, self);
+}
+
 lh_bool_t
 lh_list_node_is_linked(const lh_list_node_t *self)
 {
     return lh_cast_static(lh_bool_t, lh_ptr_ne(lh_list_node_get_next(self), self));
 }
 
-/* Put `self` between neighbours `prev` and `next`. */
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_list_node_link(lh_list_node_t *self, lh_list_node_t *prev, lh_list_node_t *next)
 {
@@ -68,6 +65,17 @@ lh_list_node_link(lh_list_node_t *self, lh_list_node_t *prev, lh_list_node_t *ne
 }
 
 lh_void
+lh_list_node_unlink(lh_list_node_t *self)
+{
+    lh_list_node_t *const prev = lh_list_node_get_prev(self);
+    lh_list_node_t *const next = lh_list_node_get_next(self);
+
+    lh_list_node_set_next(prev, next);
+    lh_list_node_set_prev(next, prev);
+    lh_list_node_init(self);
+}
+
+lh_void
 lh_list_node_insert_after(lh_list_node_t *self, lh_list_node_t *pos)
 {
     lh_list_node_link(self, pos, lh_list_node_get_next(pos));
@@ -77,17 +85,6 @@ lh_void
 lh_list_node_insert_before(lh_list_node_t *self, lh_list_node_t *pos)
 {
     lh_list_node_link(self, lh_list_node_get_prev(pos), pos);
-}
-
-lh_void
-lh_list_node_unlink(lh_list_node_t *self)
-{
-    lh_list_node_t *const prev = lh_list_node_get_prev(self);
-    lh_list_node_t *const next = lh_list_node_get_next(self);
-
-    lh_list_node_set_next(prev, next);
-    lh_list_node_set_prev(next, prev);
-    lh_list_node_init(self);
 }
 
 lh_void
