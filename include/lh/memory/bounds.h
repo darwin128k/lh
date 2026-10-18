@@ -8,20 +8,14 @@
  * computed on the address, so any end that was set, backward or null
  * included, reads back unchanged.
  *
- * The bounds can also represent incomplete storage: @c begin or the end may
- * be ::lh_null. Endpoint presence is reported as
- * ::lh_memory_view_flags_t, and initialized bounds are classified by
- * direction using ::lh_memory_view_direction_t.
- *
- * Valid bounds are initialized and forward ordered: @c begin + @c size does
- * not wrap past the address space, so the end is at or after @c begin.
- * Functions with the @c _v suffix and all size /
- * containment / indexed access / raw byte operation helpers require valid
- * bounds and may raise runtime errors when that precondition is not met.
+ * Bounds whose @c begin is ::lh_null are uninitialized. Valid bounds have a
+ * non-null @c begin and a @c begin + @c size that does not wrap past the
+ * address space, so the end is at or after @c begin. Functions with the
+ * @c _v suffix and all size / containment / indexed access / raw byte
+ * operation helpers require valid bounds and may raise runtime errors when
+ * that precondition is not met.
  *
  * @see lh_memory_bounds_fields
- * @see lh_memory_view_flags_t
- * @see lh_memory_view_direction_t
  */
 
 #ifndef LH_MEMORY_BOUNDS_H
@@ -35,7 +29,8 @@
  * @brief Non-owning mutable half-open byte bounds: an ::lh_ptr and a byte size.
  *
  * @c begin and @c size describe <tt>[begin, begin + size)</tt> in address
- * space when both ends are non-null and ordered. Public typedef: ::lh_memory_bounds_t.
+ * space when @c begin is non-null and the sum does not wrap. Public typedef:
+ * ::lh_memory_bounds_t.
  */
 struct lh_memory_bounds
 {
@@ -85,22 +80,7 @@ lh_memory_bounds_get_end(const lh_memory_bounds_t *self);
 /* -- classification -------------------------------------------------------- */
 
 /**
- * @brief Return endpoint-initialization flags for @p self.
- *
- * The begin flag is set when @c begin is non-null. The end flag is set when
- * the end, @c begin + @c size, is non-null.
- *
- * @param self Bounds to inspect.
- * @return Bit pattern from ::lh_memory_view_flags_t.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- */
-lh_memory_view_flags_t
-lh_memory_bounds_get_flags(const lh_memory_bounds_t *self);
-
-/**
- * @brief True if neither endpoint is initialized.
+ * @brief True if @c begin is ::lh_null.
  * @param self Bounds to inspect.
  *
  * @fails ::lh_runtime_error_code_null_pointer
@@ -110,53 +90,8 @@ lh_bool_t
 lh_memory_bounds_is_uninitialized(const lh_memory_bounds_t *self);
 
 /**
- * @brief True if both endpoints are initialized.
- * @param self Bounds to inspect.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- */
-lh_bool_t
-lh_memory_bounds_is_initialized(const lh_memory_bounds_t *self);
-
-/**
- * @brief Classify initialized endpoint order for a half-open interval.
- *
- * Returns ::lh_memory_view_direction_unknown until both endpoints are
- * initialized. Otherwise returns forward when the end is at or after
- * @c begin and backward when @c begin + @c size wraps past the address space.
- *
- * @param self Bounds to inspect.
- * @return Direction value from ::lh_memory_view_direction_t.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- */
-lh_memory_view_direction_t
-lh_memory_bounds_get_direction(const lh_memory_bounds_t *self);
-
-/**
- * @brief True if @p self is initialized and forward ordered.
- * @param self Bounds to inspect.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- */
-lh_bool_t
-lh_memory_bounds_is_forward(const lh_memory_bounds_t *self);
-
-/**
- * @brief True if @p self is initialized and not forward.
- * @param self Bounds to inspect.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- */
-lh_bool_t
-lh_memory_bounds_is_backward(const lh_memory_bounds_t *self);
-
-/**
- * @brief True if @p self is initialized and forward ordered.
+ * @brief True if @c begin is set and @c begin + @c size does not wrap past
+ *        the address space.
  * @param self Bounds to inspect.
  *
  * @fails ::lh_runtime_error_code_null_pointer

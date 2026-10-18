@@ -8,20 +8,14 @@
  * computed on the address, so any end that was set, backward or null
  * included, reads back unchanged.
  *
- * The view can also represent incomplete storage: @c begin or the end may
- * be ::lh_null. Endpoint presence is reported as
- * ::lh_memory_view_flags_t, and initialized views are classified by
- * direction using ::lh_memory_view_direction_t.
- *
- * Valid views are initialized and forward ordered: @c begin + @c size does
- * not wrap past the address space, so the end is at or after @c begin.
- * Functions with the @c _v suffix and all size /
- * containment / indexed access / raw byte operation helpers require valid
- * views and may raise runtime errors when that precondition is not met.
+ * A view whose @c begin is ::lh_null is uninitialized. Valid views have a
+ * non-null @c begin and a @c begin + @c size that does not wrap past the
+ * address space, so the end is at or after @c begin. Functions with the
+ * @c _v suffix and all size / containment / indexed access / raw byte
+ * operation helpers require valid views and may raise runtime errors when
+ * that precondition is not met.
  *
  * @see lh_memory_view_fields
- * @see lh_memory_view_flags_t
- * @see lh_memory_view_direction_t
  */
 
 #ifndef LH_MEMORY_VIEW_H
@@ -31,8 +25,6 @@
 #include <lh/size.h>
 #include <lh/offset.h>
 #include <lh/compiler/extern/c.h>
-#include <lh/memory/view/direction.h>
-#include <lh/memory/view/flags.h>
 #include <lh/memory/view/fields.h>
 #include <lh/util/ptr.h>
 
@@ -41,7 +33,8 @@
  * @brief Non-owning read-only half-open byte view: a <tt>const ::lh_ptr</tt> and a byte size.
  *
  * @c begin and @c size describe <tt>[begin, begin + size)</tt> in address
- * space when both ends are non-null and ordered. Public typedef: ::lh_memory_view_t.
+ * space when @c begin is non-null and the sum does not wrap. Public typedef:
+ * ::lh_memory_view_t.
  */
 struct lh_memory_view
 {
@@ -91,38 +84,7 @@ lh_memory_view_get_end(const lh_memory_view_t *self);
 /* -- classification -------------------------------------------------------- */
 
 /**
- * @brief Classify initialized endpoint order for a half-open interval.
- *
- * Returns ::lh_memory_view_direction_unknown until both endpoints are
- * initialized. Otherwise returns forward when the end is at or after
- * @c begin and backward when @c begin + @c size wraps past the address space.
- *
- * @param self View to inspect.
- * @return Direction value from ::lh_memory_view_direction_t.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- */
-lh_memory_view_direction_t
-lh_memory_view_get_direction(const lh_memory_view_t *self);
-
-/**
- * @brief Return endpoint-initialization flags for @p self.
- *
- * The begin flag is set when @c begin is non-null. The end flag is set when
- * the end, @c begin + @c size, is non-null.
- *
- * @param self View to inspect.
- * @return Bit pattern from ::lh_memory_view_flags_t.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- */
-lh_memory_view_flags_t
-lh_memory_view_get_flags(const lh_memory_view_t *self);
-
-/**
- * @brief True if neither endpoint is initialized.
+ * @brief True if @c begin is ::lh_null.
  * @param self View to inspect.
  *
  * @fails ::lh_runtime_error_code_null_pointer
@@ -132,37 +94,8 @@ lh_bool_t
 lh_memory_view_is_uninitialized(const lh_memory_view_t *self);
 
 /**
- * @brief True if both endpoints are initialized.
- * @param self View to inspect.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- */
-lh_bool_t
-lh_memory_view_is_initialized(const lh_memory_view_t *self);
-
-/**
- * @brief True if @p self is initialized and forward ordered.
- * @param self View to inspect.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- */
-lh_bool_t
-lh_memory_view_is_forward(const lh_memory_view_t *self);
-
-/**
- * @brief True if @p self is initialized and not forward.
- * @param self View to inspect.
- *
- * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
- */
-lh_bool_t
-lh_memory_view_is_backward(const lh_memory_view_t *self);
-
-/**
- * @brief True if @p self is initialized and forward ordered.
+ * @brief True if @c begin is set and @c begin + @c size does not wrap past
+ *        the address space.
  * @param self View to inspect.
  *
  * @fails ::lh_runtime_error_code_null_pointer
