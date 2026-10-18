@@ -12,10 +12,16 @@
  */
 
 #include <lh/util/interval.h>
+#include <lh/attribute/force_inline.h>
+#include <lh/byte/ptr.h>
 #include <lh/char/case/pair.h>
 #include <lh/assert.h>
+#include <lh/cast/static.h>
 #include <lh/config.h>
 #include <lh/foreach.h>
+#include <lh/uchar.h>
+#include <lh/util/ptr.h>
+#include <lh/util/str/ptr.h>
 
 #if LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE
 
@@ -195,18 +201,109 @@ static const lh_usize_t m_char_to_upper_table_size = lh_array_ptr_get_size(m_cha
 
 #endif /* LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE */
 
+#if LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE
+LH_ATTRIBUTE_FORCE_INLINE lh_char_t
+lh_str_ptr_map_lower_one(lh_char_t c)
+{
+    const lh_uchar_t u = lh_cast_static(lh_uchar_t, c);
+
+    /* Pure ASCII: no dense-table load (flash on MCU). Non-ASCII keeps the table. */
+    if (u < 128U)
+    {
+        return (u >= 65U && u <= 90U) ? lh_cast_static(lh_char_t, u + 32U) : c;
+    }
+    return m_char_to_lower_dense[u];
+}
+
+LH_ATTRIBUTE_FORCE_INLINE lh_char_t
+lh_str_ptr_map_upper_one(lh_char_t c)
+{
+    const lh_uchar_t u = lh_cast_static(lh_uchar_t, c);
+
+    if (u < 128U)
+    {
+        return (u >= 97U && u <= 122U) ? lh_cast_static(lh_char_t, u - 32U) : c;
+    }
+    return m_char_to_upper_dense[u];
+}
+#endif
+
 lh_str_ptr
 lh_str_ptr_to_lower(lh_str_ptr str, lh_usize_t n)
 {
     lh_assert_runtime_ref(str);
 
+#if LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE
+    {
+        const lh_usize_t w = sizeof(lh_usize_t);
+        lh_byte_ptr p = lh_ptr_cast(lh_byte_t, str);
+        lh_byte_ptr end = p + n;
+        const lh_usize_t high = ((~(lh_usize_t)0) / 0xFFU) << 7;
+
+        while (p < end && (lh_ptr_to_uaddr(p) & (w - 1U)) != 0U)
+        {
+            lh_ptr_deref(lh_ptr_rcast(lh_char_t, p)) =
+                lh_str_ptr_map_lower_one(lh_ptr_deref(lh_ptr_rcast(lh_char_t, p)));
+            ++p;
+        }
+        {
+            const lh_usize_t ones = (~(lh_usize_t)0) / 0xFFU;
+            const lh_usize_t sub_a = ones * 65U;
+            const lh_usize_t add_z = ones * (127U - 90U);
+
+            while (p + (w + w) <= end)
+            {
+                const lh_usize_t v0 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
+                const lh_usize_t v1 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p + w));
+
+                if (((v0 | v1) & high) == 0U)
+                {
+                    const lh_usize_t not0 =
+                        ((v0 - sub_a) & ~v0 & high) | (((v0 + add_z) | v0) & high);
+                    const lh_usize_t not1 =
+                        ((v1 - sub_a) & ~v1 & high) | (((v1 + add_z) | v1) & high);
+
+                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p)) = v0 | (((~not0) & high) >> 2);
+                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p + w)) = v1 | (((~not1) & high) >> 2);
+                    p += w + w;
+                    continue;
+                }
+                break;
+            }
+            while (p + w <= end)
+            {
+                const lh_usize_t v = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
+                lh_usize_t lane;
+
+                if ((v & high) == 0U)
+                {
+                    const lh_usize_t not_az =
+                        ((v - sub_a) & ~v & high) | (((v + add_z) | v) & high);
+
+                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p)) = v | (((~not_az) & high) >> 2);
+                }
+                else
+                {
+                    for (lane = 0U; lane < w; ++lane)
+                    {
+                        lh_ptr_deref(lh_ptr_rcast(lh_char_t, p + lane)) =
+                            lh_str_ptr_map_lower_one(lh_ptr_deref(lh_ptr_rcast(lh_char_t, p + lane)));
+                    }
+                }
+                p += w;
+            }
+        }
+        while (p < end)
+        {
+            lh_ptr_deref(lh_ptr_rcast(lh_char_t, p)) =
+                lh_str_ptr_map_lower_one(lh_ptr_deref(lh_ptr_rcast(lh_char_t, p)));
+            ++p;
+        }
+    }
+#else
     lh_foreach(lh_char_t, p, str, n)
     {
         lh_char_t c = lh_ptr_deref(p);
-
-#if LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE
-        lh_ptr_deref(p) = m_char_to_lower_dense[lh_cast_static(lh_byte_t, c)];
-#else
         lh_char_case_pair_t r;
         lh_bool_t is_founded = lh_bool_false;
 
@@ -215,8 +312,8 @@ lh_str_ptr_to_lower(lh_str_ptr str, lh_usize_t n)
                                         first, r, is_founded);
 
         lh_ptr_deref(p) = is_founded ? r.second : c;
-#endif
     }
+#endif
 
     return str + n;
 }
@@ -226,13 +323,77 @@ lh_str_ptr_to_upper(lh_str_ptr str, lh_usize_t n)
 {
     lh_assert_runtime_ref(str);
 
+#if LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE
+    {
+        const lh_usize_t w = sizeof(lh_usize_t);
+        lh_byte_ptr p = lh_ptr_cast(lh_byte_t, str);
+        lh_byte_ptr end = p + n;
+        const lh_usize_t high = ((~(lh_usize_t)0) / 0xFFU) << 7;
+
+        while (p < end && (lh_ptr_to_uaddr(p) & (w - 1U)) != 0U)
+        {
+            lh_ptr_deref(lh_ptr_rcast(lh_char_t, p)) =
+                lh_str_ptr_map_upper_one(lh_ptr_deref(lh_ptr_rcast(lh_char_t, p)));
+            ++p;
+        }
+        {
+            const lh_usize_t ones = (~(lh_usize_t)0) / 0xFFU;
+            const lh_usize_t sub_a = ones * 97U;
+            const lh_usize_t add_z = ones * (127U - 122U);
+
+            while (p + (w + w) <= end)
+            {
+                const lh_usize_t v0 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
+                const lh_usize_t v1 = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p + w));
+
+                if (((v0 | v1) & high) == 0U)
+                {
+                    const lh_usize_t not0 =
+                        ((v0 - sub_a) & ~v0 & high) | (((v0 + add_z) | v0) & high);
+                    const lh_usize_t not1 =
+                        ((v1 - sub_a) & ~v1 & high) | (((v1 + add_z) | v1) & high);
+
+                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p)) = v0 & ~(((~not0) & high) >> 2);
+                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p + w)) = v1 & ~(((~not1) & high) >> 2);
+                    p += w + w;
+                    continue;
+                }
+                break;
+            }
+            while (p + w <= end)
+            {
+                const lh_usize_t v = lh_ptr_deref(lh_ptr_rcast(const lh_usize_t, p));
+                lh_usize_t lane;
+
+                if ((v & high) == 0U)
+                {
+                    const lh_usize_t not_az =
+                        ((v - sub_a) & ~v & high) | (((v + add_z) | v) & high);
+
+                    lh_ptr_deref(lh_ptr_rcast(lh_usize_t, p)) = v & ~(((~not_az) & high) >> 2);
+                }
+                else
+                {
+                    for (lane = 0U; lane < w; ++lane)
+                    {
+                        lh_ptr_deref(lh_ptr_rcast(lh_char_t, p + lane)) =
+                            lh_str_ptr_map_upper_one(lh_ptr_deref(lh_ptr_rcast(lh_char_t, p + lane)));
+                    }
+                }
+                p += w;
+            }
+        }
+        while (p < end)
+        {
+            lh_ptr_deref(lh_ptr_rcast(lh_char_t, p)) =
+                lh_str_ptr_map_upper_one(lh_ptr_deref(lh_ptr_rcast(lh_char_t, p)));
+            ++p;
+        }
+    }
+#else
     lh_foreach(lh_char_t, p, str, n)
     {
         lh_char_t c = lh_ptr_deref(p);
-
-#if LH_LIBRARY_OPTION_STR_CASE_MAP_USE_TABLE
-        lh_ptr_deref(p) = m_char_to_upper_dense[lh_cast_static(lh_byte_t, c)];
-#else
         lh_char_case_pair_t r;
         lh_bool_t is_founded = lh_bool_false;
 
@@ -241,8 +402,8 @@ lh_str_ptr_to_upper(lh_str_ptr str, lh_usize_t n)
                                         first, r, is_founded);
 
         lh_ptr_deref(p) = is_founded ? r.second : c;
-#endif
     }
+#endif
 
     return str + n;
 }

@@ -105,11 +105,19 @@ lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh
     }
 
     const lh_usize_t max_start = lhs_size - rhs_size;
-    lh_usize_t off = (max_start / step) * step;
+    /* Power-of-two step (byte, wchar): mask. Otherwise the usual truncate-to-grid. */
+    lh_usize_t off = lh_math_is_power_of_two(step) ? (max_start & ~(step - 1U))
+                                                   : (max_start / step) * step;
 
     if (rhs_size == 1)
     {
-        /* See the matching fast path in lh_memory_find_step. */
+        /* Known length on a byte grid: the std word/SIMD kernel. Unbounded scan
+         * keeps the scalar walk below — std must not read past a page edge. */
+        if (step == 1U && lhs_size != lh_memory_scan_bound(lhs))
+        {
+            return lh_memory_std_rfind(lhs, lhs_size, rhs, 1U);
+        }
+
         const lh_byte_t needle = *lh_ptr_cast(const lh_byte_t, rhs);
         for (;;)
         {
@@ -193,19 +201,75 @@ lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usiz
         return lh_memory_std_set(d, lh_ptr_deref(s), dst_size);
     }
 
+    /* Pattern tiles that divide a machine word: peel to alignment at phase 0,
+     * then store a pre-repeated word (2- and 4-byte fills on Cortex-M). */
+    {
+        const lh_usize_t w = sizeof(lh_usize_t);
+
+        if (src_size <= w && (w % src_size) == 0U)
+        {
+            lh_byte_ptr out = d;
+            lh_usize_t n = dst_size;
+            lh_usize_t phase = 0;
+            lh_byte_t rep_bytes[sizeof(lh_usize_t)];
+            lh_usize_t rep;
+            lh_usize_t i;
+
+            for (i = 0; i < w; ++i)
+            {
+                rep_bytes[i] = s[i % src_size];
+            }
+            lh_memory_std_copy(lh_addr_of(rep), rep_bytes, w);
+
+            while (n > 0U &&
+                   ((lh_ptr_to_uaddr(out) & (w - 1U)) != 0U || phase != 0U))
+            {
+                lh_ptr_deref(out++) = s[phase];
+                phase = lh_math_add_one(phase);
+                if (phase == src_size)
+                {
+                    phase = 0;
+                }
+                --n;
+            }
+
+            while (n >= w)
+            {
+                lh_ptr_deref(lh_ptr_rcast(lh_usize_t, out)) = rep;
+                out += w;
+                n -= w;
+            }
+
+            while (n > 0U)
+            {
+                lh_ptr_deref(out++) = s[phase];
+                phase = lh_math_add_one(phase);
+                if (phase == src_size)
+                {
+                    phase = 0;
+                }
+                --n;
+            }
+
+            return d + dst_size;
+        }
+    }
+
     /* Doubling, as PHP's str_repeat does: write the pattern once, then copy the
      * filled prefix onto what follows, twice as much each time — about log2 of
      * dst_size / src_size copies instead of one per repeat (a wide-char fill of
      * 4KB was 2048 calls). The filled length stays a multiple of src_size until
      * the last, partial chunk, so every copy keeps the period; source and
      * destination never overlap. */
-    lh_usize_t filled = lh_math_min(src_size, dst_size);
-    lh_memory_std_copy(d, s, filled);
-    while (filled < dst_size)
     {
-        const lh_usize_t chunk = lh_math_min(filled, dst_size - filled);
-        lh_memory_std_copy(d + filled, d, chunk);
-        filled += chunk;
+        lh_usize_t filled = lh_math_min(src_size, dst_size);
+        lh_memory_std_copy(d, s, filled);
+        while (filled < dst_size)
+        {
+            const lh_usize_t chunk = lh_math_min(filled, dst_size - filled);
+            lh_memory_std_copy(d + filled, d, chunk);
+            filled += chunk;
+        }
     }
 
     return d + dst_size;
@@ -227,10 +291,14 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
 
     if (rhs_size == 1)
     {
-        /* Single-byte needle (lh_str_ptr_find_of_char, lh_str_view_find_char, ... all
-         * bottom out here with rhs_size 1) — read it once and compare directly instead of
-         * paying a lh_memory_compare call (itself calling into lh_memory_std_compare) at
-         * every one of up to lhs_size candidate positions. */
+        /* Single-byte needle (lh_str_ptr_find_of_char, lh_str_view_find_char, ...).
+         * Known length on a byte grid goes to std. Unbounded scan keeps the
+         * page-safe aligned-block walk — std must not read past a page edge. */
+        if (step == 1U && lhs_size != lh_memory_scan_bound(lhs))
+        {
+            return lh_memory_std_find(lhs, lhs_size, rhs, 1U);
+        }
+
         const lh_byte_t needle = *lh_ptr_cast(const lh_byte_t, rhs);
 
         if (step == 1)
@@ -256,9 +324,13 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
             while (lh_math_ge(lh_memory_size_rest(lhs_size, off), LH_MEMORY_SCAN_BLOCK))
             {
                 lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-                if (lh_memory_bytes_any_eq(cand, LH_MEMORY_SCAN_BLOCK, needle))
                 {
-                    break;
+                    const lh_byte_t *hit =
+                        lh_memory_bytes_find(cand, LH_MEMORY_SCAN_BLOCK, needle);
+                    if (lh_null_ne(hit))
+                    {
+                        return hit;
+                    }
                 }
                 off = lh_math_add(off, LH_MEMORY_SCAN_BLOCK);
             }

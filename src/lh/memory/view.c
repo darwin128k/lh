@@ -181,6 +181,11 @@ lh_memory_view_is_multiple_of(const lh_memory_view_t *self, lh_usize_t alignment
 {
     lh_assert_runtime_if(lh_math_is_zero(alignment), lh_runtime_error_code_division_by_zero);
     const lh_usize_t size = lh_memory_view_get_size_v(self);
+
+    if (lh_math_is_power_of_two(alignment))
+    {
+        return lh_math_is_zero(size & (alignment - 1U));
+    }
     return lh_math_is_zero(lh_math_mod(size, alignment));
 }
 

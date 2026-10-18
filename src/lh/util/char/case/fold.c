@@ -72,7 +72,7 @@ static const lh_char_case_pair_t m_char_case_fold_table[] = {
 static const lh_usize_t m_char_case_fold_table_size = lh_array_ptr_get_size(m_char_case_fold_table);
 
 lh_char_t
-lh_char_fold_case(lh_char_t c)
+lh_char_fold_case_nonascii(lh_char_t c)
 {
     lh_char_case_pair_t r;
     lh_bool_t is_founded = lh_bool_false;
