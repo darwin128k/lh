@@ -1,10 +1,9 @@
 #include <lh/list.h>
 #include <lh/assert.h>
-#include <lh/attribute/static.h>
+#include <lh/list/head.h>
 #include <lh/list/node/link.h>
 #include <lh/math.h>
 
-LH_ATTRIBUTE_STATIC
 lh_list_node_t *
 lh_list_get_head(lh_list_t *self)
 {
@@ -12,7 +11,6 @@ lh_list_get_head(lh_list_t *self)
     return lh_addr_of(self->head);
 }
 
-LH_ATTRIBUTE_STATIC
 const lh_list_node_t *
 lh_list_get_head_as_const(const lh_list_t *self)
 {
@@ -20,8 +18,6 @@ lh_list_get_head_as_const(const lh_list_t *self)
     return lh_addr_of(self->head);
 }
 
-/* A raw link as an element: the head is where walking stops. */
-LH_ATTRIBUTE_STATIC
 lh_list_node_t *
 lh_list_as_element(const lh_list_t *self, lh_list_node_t *node)
 {
@@ -40,6 +36,18 @@ lh_list_is_empty(const lh_list_t *self)
     return lh_cast_static(lh_bool_t, !lh_list_node_is_linked(lh_list_get_head_as_const(self)));
 }
 
+lh_void
+lh_list_push_front(lh_list_t *self, lh_list_node_t *node)
+{
+    lh_list_node_insert_after(node, lh_list_get_head(self));
+}
+
+lh_void
+lh_list_push_back(lh_list_t *self, lh_list_node_t *node)
+{
+    lh_list_node_insert_before(node, lh_list_get_head(self));
+}
+
 lh_list_node_t *
 lh_list_get_first(const lh_list_t *self)
 {
@@ -56,6 +64,12 @@ lh_list_node_t *
 lh_list_get_next(const lh_list_t *self, const lh_list_node_t *node)
 {
     return lh_list_as_element(self, lh_list_node_get_next(node));
+}
+
+lh_list_node_t *
+lh_list_get_prev(const lh_list_t *self, const lh_list_node_t *node)
+{
+    return lh_list_as_element(self, lh_list_node_get_prev(node));
 }
 
 lh_usize_t
@@ -84,12 +98,6 @@ lh_list_get_at(const lh_list_t *self, lh_uindex_t index)
     return node;
 }
 
-lh_list_node_t *
-lh_list_get_prev(const lh_list_t *self, const lh_list_node_t *node)
-{
-    return lh_list_as_element(self, lh_list_node_get_prev(node));
-}
-
 lh_uindex_t
 lh_list_index_of(const lh_list_t *self, const lh_list_node_t *node)
 {
@@ -105,24 +113,6 @@ lh_list_index_of(const lh_list_t *self, const lh_list_node_t *node)
         index = lh_math_add_one(index);
     }
     return LH_LIST_INVALID;
-}
-
-lh_bool_t
-lh_list_contains(const lh_list_t *self, const lh_list_node_t *node)
-{
-    return lh_cast_static(lh_bool_t, lh_math_ne(lh_list_index_of(self, node), LH_LIST_INVALID));
-}
-
-lh_void
-lh_list_push_front(lh_list_t *self, lh_list_node_t *node)
-{
-    lh_list_node_insert_after(node, lh_list_get_head(self));
-}
-
-lh_void
-lh_list_push_back(lh_list_t *self, lh_list_node_t *node)
-{
-    lh_list_node_insert_before(node, lh_list_get_head(self));
 }
 
 lh_void
@@ -166,9 +156,6 @@ lh_list_pop_back(lh_list_t *self)
     return node;
 }
 
-/* Join every element of `other` between `prev` and `next`, which are
-   neighbours in another list, then leave `other` empty. */
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_list_splice_between(lh_list_t *other, lh_list_node_t *prev, lh_list_node_t *next)
 {
@@ -184,32 +171,6 @@ lh_list_splice_between(lh_list_t *other, lh_list_node_t *prev, lh_list_node_t *n
     lh_list_node_set_next(last, next);
     lh_list_node_set_prev(next, last);
     lh_list_init(other);
-}
-
-lh_void
-lh_list_splice_back(lh_list_t *self, lh_list_t *other)
-{
-    lh_assert_runtime_if(lh_ptr_eq(self, other), lh_runtime_error_code_invalid_argument);
-    lh_list_node_t *const head = lh_list_get_head(self);
-
-    lh_list_splice_between(other, lh_list_node_get_prev(head), head);
-}
-
-lh_void
-lh_list_splice_front(lh_list_t *self, lh_list_t *other)
-{
-    lh_assert_runtime_if(lh_ptr_eq(self, other), lh_runtime_error_code_invalid_argument);
-    lh_list_node_t *const head = lh_list_get_head(self);
-
-    lh_list_splice_between(other, head, lh_list_node_get_next(head));
-}
-
-lh_void
-lh_list_clear(lh_list_t *self)
-{
-    while (lh_ptr_is_set(lh_list_pop_front(self)))
-    {
-    }
 }
 
 /*
@@ -298,4 +259,36 @@ lh_list_sort(lh_list_t *self, lh_list_cmp_cb cmp, lh_ptr context)
     lh_list_node_set_next(head, chain);
     lh_list_node_set_next(prev, head);
     lh_list_node_set_prev(head, prev);
+}
+
+lh_bool_t
+lh_list_contains(const lh_list_t *self, const lh_list_node_t *node)
+{
+    return lh_cast_static(lh_bool_t, lh_math_ne(lh_list_index_of(self, node), LH_LIST_INVALID));
+}
+
+lh_void
+lh_list_splice_back(lh_list_t *self, lh_list_t *other)
+{
+    lh_assert_runtime_if(lh_ptr_eq(self, other), lh_runtime_error_code_invalid_argument);
+    lh_list_node_t *const head = lh_list_get_head(self);
+
+    lh_list_splice_between(other, lh_list_node_get_prev(head), head);
+}
+
+lh_void
+lh_list_splice_front(lh_list_t *self, lh_list_t *other)
+{
+    lh_assert_runtime_if(lh_ptr_eq(self, other), lh_runtime_error_code_invalid_argument);
+    lh_list_node_t *const head = lh_list_get_head(self);
+
+    lh_list_splice_between(other, head, lh_list_node_get_next(head));
+}
+
+lh_void
+lh_list_clear(lh_list_t *self)
+{
+    while (lh_ptr_is_set(lh_list_pop_front(self)))
+    {
+    }
 }
