@@ -241,9 +241,10 @@ lh_memory_std_rcompare(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n);
  * @brief Find the first occurrence of @p rhs (@p rhs_size bytes) inside the first
  *        @p lhs_size bytes at @p lhs.
  *
- * Filters candidate positions on the needle's first and last byte, 16 at a time
- * with SSE2 where available, and compares the middle only for positions that
- * pass (the technique of .NET's IndexOf, Go's strings.Index, Rust's memchr).
+ * Filters candidate positions on the needle's first and last byte, a machine
+ * word at a time on the scalar path and 16 bytes at a time with SSE2, and
+ * compares the middle only for positions that pass (the technique of .NET's
+ * IndexOf, Go's strings.Index, Rust's memchr).
  * Reads only inside the @p lhs_size bytes — unlike lh_memory_scan, this needs
  * a real haystack length.
  *
@@ -270,7 +271,8 @@ lh_memory_std_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_u
  *        @p lhs_size bytes at @p lhs.
  *
  * Same first-and-last-byte filter as ::lh_memory_std_find, walked from the last
- * candidate toward the start. The middle is compared only when both ends match.
+ * candidate toward the start, 16 bytes at a time with SSE2 where available.
+ * The middle is compared only when both ends match.
  *
  * @param lhs Haystack.
  * @param lhs_size Haystack size in bytes.

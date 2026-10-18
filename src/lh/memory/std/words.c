@@ -46,7 +46,6 @@ LH_ATTRIBUTE_FORCE_INLINE
 lh_void
 lh_memory_std_copy_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 {
-#if LH_MEMORY_STD_HAVE_COPY_TINY
     if (n < 16U)
     {
         lh_memory_std_copy_tiny(dst, src, n);
@@ -62,12 +61,6 @@ lh_memory_std_copy_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
     } while (n >= 8U);
 
     lh_memory_std_copy_tiny(dst, src, n);
-#else
-    while (n--)
-    {
-        lh_ptr_deref(dst++) = lh_ptr_deref(src++);
-    }
-#endif
 }
 
 /** ::lh_memory_std_copy_rev for fewer than 16 bytes: @p src byte-reversed into @p dst. */
@@ -133,10 +126,18 @@ lh_memory_std_copy_rev_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
     lh_memory_std_copy_rev_tiny(dst, src, n);
 #else
-    dst += n;
-    while (n--)
     {
-        lh_ptr_deref(--dst) = lh_ptr_deref(src++);
+        lh_byte_ptr d_end = dst + n;
+
+        while (n >= 4U)
+        {
+            d_end -= 4;
+            lh_ptr_deref(lh_ptr_rcast(lh_u32_t, d_end)) =
+                lh_bit_bswap_u32(*lh_ptr_rcast(const lh_u32_t, src));
+            src += 4;
+            n -= 4U;
+        }
+        lh_memory_std_copy_rev_tiny(dst, src, n);
     }
 #endif
 }
@@ -204,11 +205,24 @@ lh_memory_std_rcopy_bytes(lh_byte_ptr dst, lh_byte_cptr src, lh_usize_t n)
 
     lh_memory_std_rcopy_tiny(dst, src, n);
 #else
-    dst += n;
-    src += n;
-    while (n--)
     {
-        lh_ptr_deref(--dst) = lh_ptr_deref(--src);
+        const lh_usize_t w = sizeof(lh_usize_t);
+
+        while (n > 0U && ((lh_ptr_to_uaddr(dst + n) | lh_ptr_to_uaddr(src + n)) & (w - 1U)) != 0U)
+        {
+            --n;
+            dst[n] = src[n];
+        }
+        while (n >= w)
+        {
+            n -= w;
+            lh_ptr_deref(lh_ptr_rcast(lh_usize_t, dst + n)) = *lh_ptr_rcast(const lh_usize_t, src + n);
+        }
+        while (n > 0U)
+        {
+            --n;
+            dst[n] = src[n];
+        }
     }
 #endif
 }
@@ -257,9 +271,32 @@ lh_memory_std_set_bytes(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
         lh_ptr_deref(dst) = val;
     }
 #else
-    while (n--)
     {
-        lh_ptr_deref(dst++) = val;
+        const lh_usize_t w = sizeof(lh_usize_t);
+
+        if (n >= w)
+        {
+            const lh_usize_t v = ((~(lh_usize_t)0) / 0xFFU) * val;
+
+            do
+            {
+                lh_ptr_deref(lh_ptr_rcast(lh_usize_t, dst)) = v;
+                dst += w;
+                n -= w;
+            } while (n >= w);
+
+            if (n != 0U)
+            {
+                lh_ptr_deref(lh_ptr_rcast(lh_usize_t, dst + n - w)) = v;
+            }
+            return;
+        }
+
+        while (n > 0U)
+        {
+            lh_ptr_deref(dst++) = val;
+            --n;
+        }
     }
 #endif
 }
@@ -300,8 +337,7 @@ lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
     lh_byte_cptr l = lh_ptr_ccast(lh_byte_t, lhs);
     lh_byte_cptr r = lh_ptr_ccast(lh_byte_t, rhs);
 
-    while (n > 0U && (!lh_math_is_multiple_of(lh_ptr_to_uaddr(l), w) ||
-                      !lh_math_is_multiple_of(lh_ptr_to_uaddr(r), w)))
+    while (n > 0U && ((lh_ptr_to_uaddr(l) | lh_ptr_to_uaddr(r)) & (w - 1U)) != 0U)
     {
         if (lh_ptr_deref(l) != lh_ptr_deref(r))
         {
@@ -312,12 +348,29 @@ lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
         --n;
     }
 
-    while (n >= w)
+    while (n >= w * 2U)
     {
-        const lh_usize_t lw = *lh_ptr_rcast(const lh_usize_t, l);
-        const lh_usize_t rw = *lh_ptr_rcast(const lh_usize_t, r);
+        const lh_usize_t a0 = *lh_ptr_rcast(const lh_usize_t, l);
+        const lh_usize_t b0 = *lh_ptr_rcast(const lh_usize_t, r);
+        const lh_usize_t a1 = *lh_ptr_rcast(const lh_usize_t, l + w);
+        const lh_usize_t b1 = *lh_ptr_rcast(const lh_usize_t, r + w);
 
-        if (lw != rw)
+        if (a0 != b0)
+        {
+            return lh_memory_std_compare_word_byte(l, r);
+        }
+        if (a1 != b1)
+        {
+            return lh_memory_std_compare_word_byte(l + w, r + w);
+        }
+        l += w * 2U;
+        r += w * 2U;
+        n -= w * 2U;
+    }
+
+    if (n >= w)
+    {
+        if (*lh_ptr_rcast(const lh_usize_t, l) != *lh_ptr_rcast(const lh_usize_t, r))
         {
             return lh_memory_std_compare_word_byte(l, r);
         }
@@ -326,7 +379,7 @@ lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
         n -= w;
     }
 
-    while (n--)
+    while (n > 0U)
     {
         if (lh_ptr_deref(l) != lh_ptr_deref(r))
         {
@@ -334,6 +387,7 @@ lh_memory_std_compare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
         }
         ++l;
         ++r;
+        --n;
     }
     return lh_null;
 }
@@ -352,8 +406,8 @@ lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
         return lh_null;
     }
 
-    while (n > 0U && (!lh_math_is_multiple_of(lh_ptr_to_uaddr(l) + n, w) ||
-                      !lh_math_is_multiple_of(lh_ptr_to_uaddr(r) + n, w)))
+    while (n > 0U &&
+           ((lh_ptr_to_uaddr(l + n) | lh_ptr_to_uaddr(r + n)) & (w - 1U)) != 0U)
     {
         --n;
         if (l[n] != r[n])
@@ -364,18 +418,16 @@ lh_memory_std_rcompare_bytes(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t n)
 
     while (n >= w)
     {
-        const lh_usize_t lw = *lh_ptr_rcast(const lh_usize_t, l + (n - w));
-        const lh_usize_t rw = *lh_ptr_rcast(const lh_usize_t, r + (n - w));
-
-        if (lw != rw)
-        {
-            return lh_memory_std_rcompare_word_byte(l + (n - w), r + (n - w), w);
-        }
         n -= w;
+        if (*lh_ptr_rcast(const lh_usize_t, l + n) != *lh_ptr_rcast(const lh_usize_t, r + n))
+        {
+            return lh_memory_std_rcompare_word_byte(l + n, r + n, w);
+        }
     }
 
-    while (n--)
+    while (n > 0U)
     {
+        --n;
         if (l[n] != r[n])
         {
             return l + n;
@@ -476,16 +528,32 @@ lh_memory_std_set_simd_scalar(lh_byte_ptr dst, lh_byte_t val, lh_usize_t n)
 }
 #endif
 
-/** Scalar ::lh_memory_std_xor: @p dst = @p lhs ^ @p rhs, byte by byte. */
+/** Scalar ::lh_memory_std_xor: machine words, then a byte tail. */
 LH_ATTRIBUTE_FORCE_INLINE
 lh_void
 lh_memory_std_xor_bytes(lh_byte_ptr dst, lh_byte_cptr lhs, lh_byte_cptr rhs, lh_usize_t n)
 {
-    lh_usize_t i;
+    const lh_usize_t w = sizeof(lh_usize_t);
 
-    for (i = 0U; lh_math_lt(i, n); i = lh_math_add_one(i))
+    while (n > 0U &&
+           ((lh_ptr_to_uaddr(dst) | lh_ptr_to_uaddr(lhs) | lh_ptr_to_uaddr(rhs)) & (w - 1U)) != 0U)
     {
-        dst[i] = lh_cast_static(lh_byte_t, lh_bit_xor(lhs[i], rhs[i]));
+        lh_ptr_deref(dst++) = lh_cast_static(lh_byte_t, lh_ptr_deref(lhs++) ^ lh_ptr_deref(rhs++));
+        --n;
+    }
+    while (n >= w)
+    {
+        lh_ptr_deref(lh_ptr_rcast(lh_usize_t, dst)) =
+            *lh_ptr_rcast(const lh_usize_t, lhs) ^ *lh_ptr_rcast(const lh_usize_t, rhs);
+        dst += w;
+        lhs += w;
+        rhs += w;
+        n -= w;
+    }
+    while (n > 0U)
+    {
+        lh_ptr_deref(dst++) = lh_cast_static(lh_byte_t, lh_ptr_deref(lhs++) ^ lh_ptr_deref(rhs++));
+        --n;
     }
 }
 
@@ -512,8 +580,70 @@ lh_memory_std_find_is_match(lh_byte_cptr cand, lh_byte_cptr needle, lh_usize_t m
         lh_bool_t, m <= 2U || lh_null_eq(lh_memory_std_compare(cand + 1, needle + 1, m - 2U)));
 }
 
-/** Scalar ::lh_memory_std_find from offset @p off: first and last byte as a filter,
- * then the middle. */
+/** True when the candidate at @p off has the needle's first byte, last byte, and middle. */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_bool_t
+lh_memory_std_find_at(lh_byte_cptr hay, lh_usize_t off, lh_byte_cptr needle, lh_usize_t m,
+                      lh_byte_t first, lh_byte_t last)
+{
+    return lh_cast_static(lh_bool_t, hay[off] == first && hay[off + m - 1U] == last &&
+                                         lh_memory_std_find_is_match(hay + off, needle, m));
+}
+
+/** High bit of address-ordered lane @p lane inside a machine word. Lane 0 is the lowest address. */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_usize_t
+lh_memory_std_find_lane_bit(lh_usize_t lane)
+{
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+    lane = sizeof(lh_usize_t) - 1U - lane;
+#endif
+    return ((lh_usize_t)0x80U) << (lane << 3);
+}
+
+/** Lanes of a machine word whose first and last needle bytes both compare equal.
+ *  A lit lane is not proof: the subtract can light a neighbor, so the caller rechecks
+ *  those two bytes. @p ones is 0x0101... and @p high is 0x8080... */
+LH_ATTRIBUTE_FORCE_INLINE
+lh_usize_t
+lh_memory_std_find_word_mask(lh_byte_cptr at_first, lh_byte_cptr at_last, lh_usize_t ones,
+                             lh_usize_t high, lh_usize_t first_word, lh_usize_t last_word)
+{
+    const lh_usize_t xa = (*lh_ptr_rcast(const lh_usize_t, at_first)) ^ first_word;
+    const lh_usize_t xb = (*lh_ptr_rcast(const lh_usize_t, at_last)) ^ last_word;
+
+    return (xa - ones) & ~xa & (xb - ones) & ~xb & high;
+}
+
+/** First match among the word of candidates at @p off, lowest address first. */
+LH_ATTRIBUTE_FORCE_INLINE
+const lh_ptr
+lh_memory_std_find_word(lh_byte_cptr hay, lh_usize_t off, lh_byte_cptr needle, lh_usize_t m,
+                        lh_byte_t first, lh_byte_t last, lh_usize_t ones, lh_usize_t high,
+                        lh_usize_t first_word, lh_usize_t last_word)
+{
+    const lh_usize_t mask =
+        lh_memory_std_find_word_mask(hay + off, hay + off + (m - 1U), ones, high, first_word,
+                                     last_word);
+    lh_usize_t lane;
+
+    if (mask == 0U)
+    {
+        return lh_null;
+    }
+    for (lane = 0U; lane < sizeof(lh_usize_t); ++lane)
+    {
+        if (((mask & lh_memory_std_find_lane_bit(lane)) != 0U) &&
+            lh_memory_std_find_at(hay, off + lane, needle, m, first, last))
+        {
+            return hay + off + lane;
+        }
+    }
+    return lh_null;
+}
+
+/** Scalar ::lh_memory_std_find from offset @p off.
+ *  Full words of candidates move by sizeof(::lh_usize_t); the tail steps one byte. */
 static const lh_ptr
 lh_memory_std_find_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh_usize_t m,
                           lh_usize_t off)
@@ -521,11 +651,32 @@ lh_memory_std_find_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, l
     const lh_byte_t first = needle[0];
     const lh_byte_t last = needle[m - 1U];
     const lh_usize_t max_start = n - m;
+    const lh_usize_t w = sizeof(lh_usize_t);
+
+    /* Below 32 bytes the byte scan is shorter than the word prologue. */
+    if (n >= 32U && n >= m + w - 1U)
+    {
+        const lh_usize_t ones = (~(lh_usize_t)0) / 0xFFU;
+        const lh_usize_t high = ones << 7;
+        const lh_usize_t first_word = ones * first;
+        const lh_usize_t last_word = ones * last;
+        const lh_usize_t word_limit = n - (m + w - 1U);
+
+        while (off <= word_limit)
+        {
+            const lh_ptr found = lh_memory_std_find_word(hay, off, needle, m, first, last, ones,
+                                                         high, first_word, last_word);
+            if (found != lh_null)
+            {
+                return found;
+            }
+            off += w;
+        }
+    }
 
     for (; off <= max_start; ++off)
     {
-        if (hay[off] == first && hay[off + m - 1U] == last &&
-            lh_memory_std_find_is_match(hay + off, needle, m))
+        if (lh_memory_std_find_at(hay, off, needle, m, first, last))
         {
             return hay + off;
         }
@@ -533,18 +684,70 @@ lh_memory_std_find_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, l
     return lh_null;
 }
 
-/** Scalar ::lh_memory_std_rfind: last match, first and last byte as a filter. */
+/** Scalar ::lh_memory_std_rfind: same word filter, highest candidate first. */
 static const lh_ptr
 lh_memory_std_rfind_scalar(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh_usize_t m)
 {
     const lh_byte_t first = needle[0];
     const lh_byte_t last = needle[m - 1U];
-    lh_usize_t off = n - m;
+    const lh_usize_t max_start = n - m;
+    const lh_usize_t w = sizeof(lh_usize_t);
+    lh_usize_t off;
 
+    if (n >= 32U && n >= m + w - 1U)
+    {
+        const lh_usize_t ones = (~(lh_usize_t)0) / 0xFFU;
+        const lh_usize_t high = ones << 7;
+        const lh_usize_t first_word = ones * first;
+        const lh_usize_t last_word = ones * last;
+        const lh_usize_t word_limit = n - (m + w - 1U);
+        const lh_usize_t block = word_limit - (word_limit % w);
+
+        if (max_start >= block + w)
+        {
+            for (off = max_start;; --off)
+            {
+                if (lh_memory_std_find_at(hay, off, needle, m, first, last))
+                {
+                    return hay + off;
+                }
+                if (off == block + w)
+                {
+                    break;
+                }
+            }
+        }
+
+        off = block;
+        for (;;)
+        {
+            const lh_usize_t mask =
+                lh_memory_std_find_word_mask(hay + off, hay + off + (m - 1U), ones, high,
+                                             first_word, last_word);
+            if (mask != 0U)
+            {
+                lh_usize_t lane = w;
+                while (lane-- != 0U)
+                {
+                    if (((mask & lh_memory_std_find_lane_bit(lane)) != 0U) &&
+                        lh_memory_std_find_at(hay, off + lane, needle, m, first, last))
+                    {
+                        return hay + off + lane;
+                    }
+                }
+            }
+            if (off == 0U)
+            {
+                return lh_null;
+            }
+            off -= w;
+        }
+    }
+
+    off = max_start;
     for (;;)
     {
-        if (hay[off] == first && hay[off + m - 1U] == last &&
-            lh_memory_std_find_is_match(hay + off, needle, m))
+        if (lh_memory_std_find_at(hay, off, needle, m, first, last))
         {
             return hay + off;
         }

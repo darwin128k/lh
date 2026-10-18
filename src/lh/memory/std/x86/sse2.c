@@ -810,4 +810,101 @@ lh_memory_std_find_sse2(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh_
     return lh_memory_std_find_scalar(hay, n, needle, m, off);
 }
 
+LH_MEMORY_STD_SIMD_TARGET("sse2")
+static const lh_ptr
+lh_memory_std_rfind_sse2(lh_byte_cptr hay, lh_usize_t n, lh_byte_cptr needle, lh_usize_t m)
+{
+    const __m128i first = _mm_set1_epi8(lh_cast_static(char, needle[0]));
+    const __m128i last = _mm_set1_epi8(lh_cast_static(char, needle[m - 1U]));
+    const lh_usize_t max_start = n - m;
+
+    /* Same window as ::lh_memory_std_find_sse2, walked from the last block. */
+    if (n >= m + 15U)
+    {
+        const lh_byte_t first_byte = needle[0];
+        const lh_byte_t last_byte = needle[m - 1U];
+        const lh_usize_t word_limit = n - (m + 15U);
+        const lh_usize_t block = word_limit & ~15U;
+        lh_usize_t off;
+
+        if (max_start >= block + 16U)
+        {
+            for (off = max_start;; --off)
+            {
+                if (lh_memory_std_find_at(hay, off, needle, m, first_byte, last_byte))
+                {
+                    return hay + off;
+                }
+                if (off == block + 16U)
+                {
+                    break;
+                }
+            }
+        }
+
+        off = block;
+        for (;;)
+        {
+            const __m128i a = _mm_loadu_si128(lh_ptr_rcast(const __m128i, hay + off));
+            const __m128i b = _mm_loadu_si128(lh_ptr_rcast(const __m128i, hay + off + m - 1U));
+            lh_u32_t mask = lh_cast_static(
+                lh_u32_t,
+                _mm_movemask_epi8(_mm_and_si128(_mm_cmpeq_epi8(a, first), _mm_cmpeq_epi8(b, last))));
+
+            while (mask != 0U)
+            {
+                const lh_usize_t bit = lh_bit_scan_reverse_u32(mask);
+                const lh_usize_t i = off + bit;
+
+                if (lh_memory_std_find_is_match(hay + i, needle, m))
+                {
+                    return hay + i;
+                }
+                mask = lh_cast_static(lh_u32_t, mask & ~lh_bit_shl(1U, bit));
+            }
+            if (off == 0U)
+            {
+                return lh_null;
+            }
+            off -= 16U;
+        }
+    }
+
+    return lh_memory_std_rfind_scalar(hay, n, needle, m);
+}
+
+LH_MEMORY_STD_SIMD_TARGET("sse2")
+static lh_void
+lh_memory_std_xor_sse2(lh_byte_ptr dst, lh_byte_cptr lhs, lh_byte_cptr rhs, lh_usize_t n)
+{
+    while (n >= 32U)
+    {
+        const __m128i l0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, lhs));
+        const __m128i l1 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, lhs + 16));
+        const __m128i r0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, rhs));
+        const __m128i r1 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, rhs + 16));
+
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst), _mm_xor_si128(l0, r0));
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst + 16), _mm_xor_si128(l1, r1));
+        dst += 32;
+        lhs += 32;
+        rhs += 32;
+        n -= 32U;
+    }
+
+    if (n >= 16U)
+    {
+        const __m128i l0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, lhs));
+        const __m128i r0 = _mm_loadu_si128(lh_ptr_rcast(const __m128i, rhs));
+
+        _mm_storeu_si128(lh_ptr_rcast(__m128i, dst), _mm_xor_si128(l0, r0));
+        dst += 16;
+        lhs += 16;
+        rhs += 16;
+        n -= 16U;
+    }
+
+    lh_memory_std_xor_bytes(dst, lhs, rhs, n);
+}
+
 #endif /* SSE2 */
