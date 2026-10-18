@@ -5,30 +5,34 @@
 #include <lh/util/swap.h>
 #include <lh/cast/const.h>
 #include <lh/assert.h>
-#include <lh/attribute/static.h>
 
-LH_ATTRIBUTE_STATIC
-lh_void
-lh_memory_typed_return_bounds_by_size(lh_ptr begin, lh_usize_t size, lh_memory_bounds_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_memory_bounds_t bounds;
-    lh_memory_bounds_init_by_size(lh_addr_of(bounds), begin, size);
-    lh_ptr_deref(out) = bounds;
-}
-
+/* A typed struct starts with the fields of memory bounds, so it is its own bounds. */
 lh_memory_bounds_t *
 lh_memory_typed_get_bounds(lh_memory_typed_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_addr_of(self->bounds);
+    return lh_ptr_cast(lh_memory_bounds_t, self);
 }
 
 const lh_memory_bounds_t *
 lh_memory_typed_get_bounds_as_const(const lh_memory_typed_t *self)
 {
     lh_assert_runtime_ref(self);
-    return lh_addr_of(self->bounds);
+    return lh_ptr_ccast(lh_memory_bounds_t, self);
+}
+
+lh_usize_t
+lh_memory_typed_get_type_size(const lh_memory_typed_t *self)
+{
+    lh_assert_runtime_ref(self);
+    return self->type_size;
+}
+
+lh_void
+lh_memory_typed_set_type_size(lh_memory_typed_t *self, lh_usize_t type_size)
+{
+    lh_assert_runtime_ref(self);
+    self->type_size = type_size;
 }
 
 lh_ptr
@@ -50,54 +54,39 @@ lh_memory_typed_get_end(const lh_memory_typed_t *self)
 }
 
 lh_usize_t
-lh_memory_typed_get_type_size(const lh_memory_typed_t *self)
-{
-    lh_assert_runtime_ref(self);
-    return self->type_size;
-}
-
-lh_usize_t
 lh_memory_typed_get_size_of_bytes(const lh_memory_typed_t *self)
 {
-    const lh_memory_bounds_t *bounds = lh_memory_typed_get_bounds_as_const(self);
-    return lh_memory_bounds_get_size(bounds);
+    return lh_memory_bounds_get_size(lh_memory_typed_get_bounds_as_const(self));
+}
+
+lh_bool_t
+lh_memory_typed_is_empty(const lh_memory_typed_t *self)
+{
+    return lh_memory_bounds_is_empty(lh_memory_typed_get_bounds_as_const(self));
 }
 
 lh_bool_t
 lh_memory_typed_is_multiple_of(const lh_memory_typed_t *self)
 {
     const lh_usize_t type_size = lh_memory_typed_get_type_size(self);
-    const lh_memory_bounds_t *bounds = lh_memory_typed_get_bounds_as_const(self);
-    return lh_memory_bounds_is_multiple_of(bounds, type_size);
+    return lh_memory_bounds_is_multiple_of(lh_memory_typed_get_bounds_as_const(self), type_size);
+}
+
+/* The element count is not stored: no bytes is no elements, whatever type_size is. */
+lh_usize_t
+lh_memory_typed_get_size(const lh_memory_typed_t *self)
+{
+    const lh_usize_t size_of_bytes = lh_memory_typed_get_size_of_bytes(self);
+    return lh_math_is_zero(size_of_bytes)
+               ? 0U
+               : lh_math_div(size_of_bytes, lh_memory_typed_get_type_size(self));
 }
 
 lh_bool_t
 lh_memory_typed_is_valid(const lh_memory_typed_t *self)
 {
-    const lh_memory_bounds_t *bounds = lh_memory_typed_get_bounds_as_const(self);
-    return lh_memory_bounds_is_valid(bounds) && lh_memory_typed_is_multiple_of(self);
-}
-
-lh_bool_t
-lh_memory_typed_is_empty(const lh_memory_typed_t *self)
-{
-    const lh_memory_bounds_t *bounds = lh_memory_typed_get_bounds_as_const(self);
-    return lh_memory_bounds_is_empty(bounds);
-}
-
-lh_usize_t
-lh_memory_typed_get_size(const lh_memory_typed_t *self)
-{
-    /* size is a cached fact (element count), not derived from bounds here — every mutator
-     * that changes bounds or type_size (set, retype, clear, and the allocated resize/clear/
-     * exchange in typed/allocated.c) is responsible for keeping it correct. assign and swap
-     * get it for free, since it travels with the rest of the struct. This used to run
-     * is_empty + is_valid (bounds validity, multiple-of check) and a division on every call —
-     * measurably the dominant cost behind several "why is this slow" findings, since this is
-     * the function nearly everything else in this file (is_valid_index, get_ptr_from_begin,
-     * set_values, move_within, ...) calls, often more than once per operation. */
-    lh_assert_runtime_ref(self);
-    return self->size;
+    return lh_memory_bounds_is_valid(lh_memory_typed_get_bounds_as_const(self)) &&
+           lh_memory_typed_is_multiple_of(self);
 }
 
 lh_bool_t
@@ -167,10 +156,9 @@ lh_memory_typed_get_ptr(const lh_memory_typed_t *self, lh_sindex_t index)
 {
     if (lh_math_is_negative(index))
     {
-        const lh_uindex_t distance_from_end =
-            lh_type_cast(lh_uindex_t, lh_math_sub_one(lh_math_neg(index)));
-        return lh_memory_typed_get_ptr_from_begin(
-            self, lh_memory_typed_get_index_from_end(self, distance_from_end));
+        /* -(index + 1), not -index - 1: the negation of the minimum overflows. */
+        return lh_memory_typed_get_ptr_from_end(
+            self, lh_type_cast(lh_uindex_t, lh_math_neg(lh_math_add(index, 1))));
     }
 
     return lh_memory_typed_get_ptr_from_begin(self, lh_type_cast(lh_uindex_t, index));
@@ -198,37 +186,23 @@ lh_memory_typed_get_index_from_ptr(const lh_memory_typed_t *self, const lh_ptr p
 }
 
 lh_void
-lh_memory_typed_retype(lh_memory_typed_t *self, lh_usize_t type_size)
-{
-    /* Changing type_size changes how many type_size-sized elements the current byte range
-     * holds, so the cached element count has to be re-derived here — the one place a division
-     * is unavoidable, and it only runs when the caller actually retypes, not on every read. */
-    lh_assert_runtime_ref(self);
-    self->type_size = type_size;
-    self->size = lh_memory_typed_is_empty(self)
-                     ? 0
-                     : lh_math_div(lh_memory_typed_get_size_of_bytes(self), type_size);
-}
-
-lh_void
 lh_memory_typed_clear(lh_memory_typed_t *self)
 {
     lh_memory_bounds_clear(lh_memory_typed_get_bounds(self));
-    self->size = 0;
 }
 
 lh_void
 lh_memory_typed_init_empty(lh_memory_typed_t *self, lh_usize_t type_size)
 {
     lh_memory_typed_clear(self);
-    lh_memory_typed_retype(self, type_size);
+    lh_memory_typed_set_type_size(self, type_size);
 }
 
 lh_void
 lh_memory_typed_set(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size)
 {
     lh_memory_bounds_set(lh_memory_typed_get_bounds(self), begin, end);
-    lh_memory_typed_retype(self, type_size);
+    lh_memory_typed_set_type_size(self, type_size);
 }
 
 lh_void
@@ -236,12 +210,9 @@ lh_memory_typed_assign(lh_memory_typed_t *self, const lh_memory_typed_t *other)
 {
     lh_return_if(lh_math_eq(self, other));
 
-    /* Not lh_memory_typed_retype(self, ...): that re-derives size via division from self's
-     * (now other's) bounds. other already has a correct cached size — just copy it. */
     lh_memory_bounds_assign(lh_memory_typed_get_bounds(self),
                             lh_memory_typed_get_bounds_as_const(other));
-    self->type_size = lh_memory_typed_get_type_size(other);
-    self->size = lh_memory_typed_get_size(other);
+    lh_memory_typed_set_type_size(self, lh_memory_typed_get_type_size(other));
 }
 
 lh_void
@@ -254,8 +225,9 @@ lh_memory_typed_assign_v(lh_memory_typed_t *self, const lh_memory_typed_t *other
 lh_void
 lh_memory_typed_set_v(lh_memory_typed_t *self, lh_ptr begin, lh_ptr end, lh_usize_t type_size)
 {
-    const lh_memory_typed_t typed =
-        lh_memory_typed_initializer(begin, lh_ptr_udiff(end, begin), type_size);
+    lh_memory_typed_t typed;
+
+    lh_memory_typed_set(lh_addr_of(typed), begin, end, type_size);
     lh_memory_typed_assign_v(self, lh_addr_of(typed));
 }
 
@@ -289,7 +261,7 @@ lh_memory_typed_get_value_bounds(const lh_memory_typed_t *self, lh_uindex_t inde
 {
     lh_assert_runtime_ref(out);
     lh_ptr begin = lh_memory_typed_get_ptr_from_begin(self, index);
-    lh_memory_typed_return_bounds_by_size(begin, lh_memory_typed_get_type_size(self), out);
+    lh_memory_bounds_init_by_size(out, begin, lh_memory_typed_get_type_size(self));
 }
 
 lh_void
@@ -301,8 +273,7 @@ lh_memory_typed_get_range_bounds(const lh_memory_typed_t *self, lh_uindex_t inde
                           lh_runtime_error_code_out_of_range);
 
     lh_ptr begin = lh_memory_typed_get_ptr_from_begin(self, index);
-    lh_memory_typed_return_bounds_by_size(
-        begin, lh_math_mul(count, lh_memory_typed_get_type_size(self)), out);
+    lh_memory_bounds_init_by_size(out, begin, lh_math_mul(count, lh_memory_typed_get_type_size(self)));
 }
 
 lh_void
@@ -310,21 +281,18 @@ lh_memory_typed_set_value(lh_memory_typed_t *self, lh_uindex_t index, const lh_p
 {
     lh_memory_bounds_t value_bounds;
     lh_memory_typed_get_value_bounds(self, index, lh_addr_of(value_bounds));
-    lh_memory_bounds_t source;
-    lh_memory_typed_return_bounds_by_size(lh_cast_const(lh_ptr, value),
-                                          lh_memory_typed_get_type_size(self), lh_addr_of(source));
-    lh_memory_bounds_copy(lh_addr_of(value_bounds), lh_addr_of(source));
+    lh_memory_bounds_copy_by_size(lh_addr_of(value_bounds), value,
+                                  lh_memory_typed_get_type_size(self));
 }
 
 lh_void
 lh_memory_typed_get_value_into(const lh_memory_typed_t *self, lh_uindex_t index, lh_ptr dst)
 {
-    lh_memory_bounds_t value_bounds;
-    lh_memory_typed_get_value_bounds(self, index, lh_addr_of(value_bounds));
     lh_memory_bounds_t destination;
-    lh_memory_typed_return_bounds_by_size(dst, lh_memory_typed_get_type_size(self),
-                                          lh_addr_of(destination));
-    lh_memory_bounds_copy(lh_addr_of(destination), lh_addr_of(value_bounds));
+    lh_memory_bounds_init_by_size(lh_addr_of(destination), dst, lh_memory_typed_get_type_size(self));
+    lh_memory_bounds_copy_by_size(lh_addr_of(destination),
+                                  lh_memory_typed_get_ptr_from_begin(self, index),
+                                  lh_memory_typed_get_type_size(self));
 }
 
 lh_void
@@ -340,10 +308,8 @@ lh_memory_typed_value_equals(const lh_memory_typed_t *self, lh_uindex_t index, c
 {
     lh_memory_bounds_t value_bounds;
     lh_memory_typed_get_value_bounds(self, index, lh_addr_of(value_bounds));
-    const lh_usize_t type_size = lh_memory_typed_get_type_size(self);
-    const lh_ptr other_end = lh_ptr_add_by_offset_unsafe(lh_void, other, type_size);
-    return lh_ptr_is_null(
-        lh_memory_bounds_compare_range(lh_addr_of(value_bounds), other, other_end));
+    return lh_ptr_is_null(lh_memory_bounds_compare_by_size(lh_addr_of(value_bounds), other,
+                                                           lh_memory_typed_get_type_size(self)));
 }
 
 lh_void
@@ -354,11 +320,8 @@ lh_memory_typed_set_values(lh_memory_typed_t *self, lh_uindex_t index, const lh_
 
     lh_memory_bounds_t dest;
     lh_memory_typed_get_range_bounds(self, index, count, lh_addr_of(dest));
-    lh_memory_bounds_t source;
-    lh_memory_typed_return_bounds_by_size(lh_cast_const(lh_ptr, values),
-                                          lh_math_mul(count, lh_memory_typed_get_type_size(self)),
-                                          lh_addr_of(source));
-    lh_memory_bounds_copy(lh_addr_of(dest), lh_addr_of(source));
+    lh_memory_bounds_copy_by_size(lh_addr_of(dest), values,
+                                  lh_math_mul(count, lh_memory_typed_get_type_size(self)));
 }
 
 lh_void

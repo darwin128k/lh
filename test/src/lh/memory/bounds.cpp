@@ -33,7 +33,8 @@ TEST(memory_bounds_getters, return_stored_endpoints)
 TEST(memory_bounds_fields, read_and_write_through_getters_and_setters)
 {
     unsigned char buf[4] = {};
-    lh_memory_bounds_t b = lh_test::out(lh_memory_bounds_return_empty);
+    lh_memory_bounds_t b;
+    lh_memory_bounds_init_empty(&b);
 
     lh_memory_bounds_set_begin(&b, p(buf + 1));
     lh_memory_bounds_set_size(&b, 2);

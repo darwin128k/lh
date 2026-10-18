@@ -349,7 +349,8 @@ TEST(memory_view_empty_result, stays_where_it_was_taken)
 TEST(memory_view_fields, read_and_write_through_getters_and_setters)
 {
     const unsigned char buf[4] = {};
-    lh_memory_view_t v = lh_test::out(lh_memory_view_return_empty);
+    lh_memory_view_t v;
+    lh_memory_view_init_empty(&v);
 
     lh_memory_view_set_begin(&v, p(buf + 1));
     lh_memory_view_set_size(&v, 2);

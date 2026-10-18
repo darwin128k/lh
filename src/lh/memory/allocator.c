@@ -5,11 +5,19 @@
 #include <lh/config.h>
 
 lh_void
+lh_memory_allocator_set_realloc_cb(lh_memory_allocator_t *self,
+                                   lh_memory_allocator_realloc_cb realloc_cb)
+{
+    lh_assert_runtime_ref(self);
+    self->realloc_cb = realloc_cb;
+}
+
+lh_void
 lh_memory_allocator_set_alloc_cb(lh_memory_allocator_t *self, lh_memory_allocator_alloc_cb alloc_cb)
 {
     lh_assert_runtime_ref(self);
     self->alloc_cb = alloc_cb;
-    self->realloc_cb = lh_null; /* would no longer match the heap */
+    lh_memory_allocator_set_realloc_cb(self, lh_null); /* would no longer match the heap */
 }
 
 lh_void
@@ -18,15 +26,7 @@ lh_memory_allocator_set_dealloc_cb(lh_memory_allocator_t *self,
 {
     lh_assert_runtime_ref(self);
     self->dealloc_cb = dealloc_cb;
-    self->realloc_cb = lh_null; /* would no longer match the heap */
-}
-
-lh_void
-lh_memory_allocator_set_realloc_cb(lh_memory_allocator_t *self,
-                                   lh_memory_allocator_realloc_cb realloc_cb)
-{
-    lh_assert_runtime_ref(self);
-    self->realloc_cb = realloc_cb;
+    lh_memory_allocator_set_realloc_cb(self, lh_null); /* would no longer match the heap */
 }
 
 lh_void

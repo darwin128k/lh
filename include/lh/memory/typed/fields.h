@@ -1,54 +1,34 @@
 /**
  * @file fields.h
- * @brief Macro for declaring fields of typed memory bounds wrappers.
+ * @brief Macro for declaring fields of typed memory.
  */
 
 #ifndef LH_MEMORY_TYPED_FIELDS_H
 #define LH_MEMORY_TYPED_FIELDS_H
 
-#include <lh/size.h>
+#include <lh/memory/bounds/fields.h>
 
 /**
- * @def lh_memory_typed_fields(bounds_type)
- * @brief Declares `bounds`, `type_size`, and `size` members for typed-memory structs.
+ * @def lh_memory_typed_fields(elem_type)
+ * @brief The fields of ::lh_memory_bounds_fields plus `type_size`.
  *
- * @param bounds_type Type of the @c bounds field — a struct declared with
- *        ::lh_memory_bounds_fields (for example ::lh_memory_bounds_t,
- *        ::lh_memory_view_t).
+ * A typed struct starts with exactly the fields of memory bounds, so it can be
+ * handed to the ::lh_memory_bounds_t functions as is; `type_size` is the size
+ * of one element in bytes. The element count is not stored: it is the byte
+ * size divided by `type_size`.
  *
- * Example usage — creates a typed wrapper around lh_memory_bounds_t:
+ * @param elem_type Pointee type of @c begin (not a pointer type).
+ *
+ * Example usage:
  * @code{.c}
  * struct lh_memory_typed {
- *     lh_memory_typed_fields(lh_memory_bounds_t);
+ *     lh_memory_typed_fields(lh_void);
  * };
  * typedef struct lh_memory_typed lh_memory_typed_t;
  * @endcode
- *
- * The resulting struct has:
- * @code{.c}
- * lh_memory_bounds_t bounds;
- * lh_usize_t type_size;      // size of one element in bytes
- * lh_usize_t size;           // element count — a cached fact, not derived from bounds on
- *                            // read; every mutator that changes bounds or type_size is
- *                            // responsible for keeping this in sync (see typed.c)
- * @endcode
- *
- * Example usage — creates a typed wrapper around a custom bounds type:
- * @code{.c}
- * struct my_bounds {
- *     lh_memory_bounds_fields(void);
- * };
- * typedef struct my_bounds my_bounds_t;
- *
- * struct my_typed {
- *     lh_memory_typed_fields(my_bounds_t);
- * };
- * typedef struct my_typed my_typed_t;
- * @endcode
  */
-#define lh_memory_typed_fields(bounds_type)                                                        \
-    bounds_type bounds;                                                                            \
-    lh_usize_t type_size;                                                                          \
-    lh_usize_t size
+#define lh_memory_typed_fields(elem_type)                                                          \
+    lh_memory_bounds_fields(elem_type);                                                            \
+    lh_usize_t type_size
 
 #endif /* LH_MEMORY_TYPED_FIELDS_H */

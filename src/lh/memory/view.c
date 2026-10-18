@@ -1,7 +1,6 @@
 #include <lh/memory/view.h>
 #include <lh/memory/view/initializer.h>
 #include <lh/memory/std.h>
-#include <lh/attribute/static.h>
 #include <lh/util/interval.h>
 #include <lh/util/return.h>
 #include <lh/util/swap.h>
@@ -219,11 +218,6 @@ lh_memory_view_get_last_value(const lh_memory_view_t *self)
     return lh_memory_view_get_value_from_end(self, 0);
 }
 
-/* ptr moved by offset, as an offset from begin — or why it would leave the
-   range. Shared by the asserting getter and by seek, which turns "out of
-   range" into lh_null without going through an exception. A null ptr seeks
-   from the ends, as lh_memory_view_get_ptr does. */
-LH_ATTRIBUTE_STATIC
 lh_runtime_error_code_t
 lh_memory_view_find_offset_from_ptr(const lh_memory_view_t *self, const lh_ptr ptr,
                                     lh_soffset_t offset, lh_uoffset_t *out)
@@ -521,7 +515,6 @@ lh_memory_view_swap(lh_memory_view_t *self, lh_memory_view_t *other)
     lh_swap(lh_memory_view_t, lh_ptr_deref(self), lh_ptr_deref(other));
 }
 
-LH_ATTRIBUTE_STATIC
 lh_void
 lh_memory_view_swap_v_other(lh_memory_view_t *self, lh_memory_view_t *other)
 {
@@ -603,36 +596,6 @@ lh_memory_view_init_by_other(lh_memory_view_t *self, const lh_memory_view_t *oth
 }
 
 lh_void
-lh_memory_view_return_empty(lh_memory_view_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_memory_view_t view;
-
-    lh_memory_view_init_empty(&view);
-    lh_ptr_deref(out) = view;
-}
-
-lh_void
-lh_memory_view_return_init_v(const lh_ptr begin, const lh_ptr end, lh_memory_view_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_memory_view_t view;
-
-    lh_memory_view_init(&view, begin, end);
-    lh_ptr_deref(out) = view;
-}
-
-lh_void
-lh_memory_view_return_init_by_size(const lh_ptr begin, lh_usize_t size, lh_memory_view_t *out)
-{
-    lh_assert_runtime_ref(out);
-    lh_memory_view_t view;
-
-    lh_memory_view_init_by_size(&view, begin, size);
-    lh_ptr_deref(out) = view;
-}
-
-lh_void
 lh_memory_view_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_memory_view_t *out)
 {
     lh_assert_runtime_ref(out);
@@ -641,7 +604,7 @@ lh_memory_view_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh
     lh_assert_runtime_ifn(lh_math_le(n, lh_memory_view_get_size(lh_addr_of(base))),
                           lh_runtime_error_code_out_of_range);
     /* n == 0 is [begin, begin): empty, but still at begin. */
-    lh_memory_view_return_init_v(begin, lh_ptr_add_by_offset_unsafe(const lh_void, begin, n), out);
+    lh_memory_view_init(out, begin, lh_ptr_add_by_offset_unsafe(const lh_void, begin, n));
 }
 
 lh_void
@@ -653,7 +616,7 @@ lh_memory_view_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_
     lh_assert_runtime_ifn(lh_math_le(n, lh_memory_view_get_size(lh_addr_of(base))),
                           lh_runtime_error_code_out_of_range);
     /* n == 0 is [end, end): empty, but still at end. */
-    lh_memory_view_return_init_v(lh_ptr_sub_by_offset_unsafe(const lh_void, end, n), end, out);
+    lh_memory_view_init(out, lh_ptr_sub_by_offset_unsafe(const lh_void, end, n), end);
 }
 
 lh_void
@@ -676,7 +639,7 @@ lh_memory_view_between(const lh_memory_view_t *self, const lh_ptr begin, const l
 {
     lh_assert_runtime_ifn(lh_memory_view_contains_range(self, begin, end),
                           lh_runtime_error_code_out_of_range);
-    lh_memory_view_return_init_v(begin, end, out);
+    lh_memory_view_init(out, begin, end);
 }
 
 lh_void
@@ -692,8 +655,7 @@ lh_memory_view_from_offset(const lh_memory_view_t *self, lh_uoffset_t offset, lh
     /* offset may be total when size is 0: [end, end), past every byte but still inside. */
     const lh_ptr begin =
         lh_ptr_add_by_offset_unsafe(const lh_void, lh_memory_view_get_begin(self), offset);
-    lh_memory_view_return_init_v(begin, lh_ptr_add_by_offset_unsafe(const lh_void, begin, size),
-                                 out);
+    lh_memory_view_init(out, begin, lh_ptr_add_by_offset_unsafe(const lh_void, begin, size));
 }
 
 lh_void

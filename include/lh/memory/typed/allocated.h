@@ -3,7 +3,7 @@
  * @brief Helpers for ::lh_memory_typed_allocated_t — heap-owning typed memory.
  *
  * ::lh_memory_typed_allocated_t is layout-identical to ::lh_memory_typed_t, but
- * every function in this header treats the embedded @c bounds field as a block
+ * every function in this header treats its bounds (::lh_memory_typed_get_bounds) as a block
  * previously obtained from ::lh_runtime_allocator_alloc / ::lh_runtime_allocator_realloc
  * (as ::lh_memory_bounds_allocated_t) and manages it accordingly (freeing it on
  * clear/resize/exchange).

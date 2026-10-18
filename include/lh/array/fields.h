@@ -10,7 +10,7 @@
  * @def lh_array_fields(typed_type, size_type)
  * @brief The owned block and how much of it is in use.
  *
- * `typed.bounds` always spans the full allocated capacity; `size` is the
+ * `typed` always spans the full allocated capacity; `size` is the
  * number of elements actually in use, from the start of that capacity
  * (`size <= capacity`).
  *

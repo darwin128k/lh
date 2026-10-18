@@ -27,6 +27,7 @@
 #include <lh/offset.h>
 #include <lh/compiler/extern/c.h>
 #include <lh/memory/view/fields.h>
+#include <lh/runtime/error/code.h>
 #include <lh/util/ptr.h>
 
 /**
@@ -458,6 +459,33 @@ lh_memory_view_get_first_value(const lh_memory_view_t *self);
  */
 lh_byte_t
 lh_memory_view_get_last_value(const lh_memory_view_t *self);
+
+/**
+ * @brief Resolve @p ptr moved by @p offset to an offset from @c begin, or say
+ *        why it would leave the view.
+ *
+ * The brick ::lh_memory_view_get_offset_from_ptr (which fails on the code) and
+ * ::lh_memory_view_seek_ptr (which turns it into ::lh_null) share. A ::lh_null
+ * @p ptr seeks from the ends, as ::lh_memory_view_get_ptr does, and fails
+ * through it instead of returning a code.
+ *
+ * @param self   Valid view to seek in.
+ * @param ptr    Anchor inside @p self, or ::lh_null.
+ * @param offset Signed step from @p ptr.
+ * @param out    Receives the offset from @c begin; left unchanged on failure.
+ * @return ::lh_runtime_error_code_ok, ::lh_runtime_error_code_underflow or
+ *         ::lh_runtime_error_code_overflow.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p out is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p self is not valid.
+ * @fails ::lh_runtime_error_code_out_of_range
+ *        @p ptr is outside @p self.
+ */
+lh_runtime_error_code_t
+lh_memory_view_find_offset_from_ptr(const lh_memory_view_t *self, const lh_ptr ptr,
+                                    lh_soffset_t offset, lh_uoffset_t *out);
 
 /**
  * @brief Return target byte offset after applying signed @p offset.
@@ -943,6 +971,22 @@ lh_void
 lh_memory_view_swap(lh_memory_view_t *self, lh_memory_view_t *other);
 
 /**
+ * @brief Swap @p self with valid @p other; @p self is not checked.
+ *
+ * The brick ::lh_memory_view_swap_v and ::lh_memory_view_swap_and_clear share.
+ *
+ * @param self  View to swap.
+ * @param other Valid view to swap with.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p self or @p other is ::lh_null.
+ * @fails ::lh_runtime_error_code_invalid_range
+ *        @p other is not valid.
+ */
+lh_void
+lh_memory_view_swap_v_other(lh_memory_view_t *self, lh_memory_view_t *other);
+
+/**
  * @brief Swap two valid views.
  *
  * @param self  Valid view to swap.
@@ -1095,41 +1139,6 @@ lh_memory_view_init_empty(lh_memory_view_t *self);
  */
 lh_void
 lh_memory_view_init_by_other(lh_memory_view_t *self, const lh_memory_view_t *other);
-
-/**
- * @brief Return an uninitialized empty view.
- * @return View with both endpoints ::lh_null.
- */
-lh_void
-lh_memory_view_return_empty(lh_memory_view_t *out);
-
-/**
- * @brief Return a validated half-open view <tt>[begin, end)</tt>.
- *
- * @param begin First byte.
- * @param end   One past the last byte. Equal to @p begin for an empty view.
- * @return Validated view value.
- *
- * @fails ::lh_runtime_error_code_invalid_range
- *        <tt>[begin, end)</tt> is not a valid view.
- */
-lh_void
-lh_memory_view_return_init_v(const lh_ptr begin, const lh_ptr end, lh_memory_view_t *out);
-
-/**
- * @brief Return a validated half-open view of @p size bytes at @p begin.
- *
- * @param begin First byte.
- * @param size  Number of bytes. Must be non-zero.
- * @return View <tt>[begin, begin + size)</tt>.
- *
- * @fails ::lh_runtime_error_code_invalid_argument
- *        @p begin is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p size is zero.
- */
-lh_void
-lh_memory_view_return_init_by_size(const lh_ptr begin, lh_usize_t size, lh_memory_view_t *out);
 
 /* -- sub-range construction ------------------------------------------------ */
 

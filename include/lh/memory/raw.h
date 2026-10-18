@@ -4,7 +4,7 @@
  *
  * Each range is described by a start pointer and an end pointer: bytes covered are
  * <code>[ptr, ptr_end)</code>. Sizes in bytes are computed as the difference between
- * end and start (see ::lh_ptr_udiff). Behaviour matches ::lh/memory.h for the derived
+ * end and start (see ::lh_memory_raw_get_size). Behaviour matches ::lh/memory.h for the derived
  * lengths: transfers and comparisons use @c min(lhs_size, rhs_size) where applicable.
  *
  * In debug builds, end pointers are validated with ::lh_runtime_check_ref.
@@ -15,8 +15,24 @@
 
 #include <lh/compiler/extern/c.h>
 #include <lh/ptr.h>
+#include <lh/size.h>
 
 LH_COMPILER_EXTERN_C_BEGIN
+
+/**
+ * @brief Number of bytes in <code>[begin, end)</code>.
+ *
+ * The brick every function here measures its spans with.
+ *
+ * @param begin Start of the span.
+ * @param end   One past the last byte of the span.
+ * @return @c end - @c begin.
+ *
+ * @fails ::lh_runtime_error_code_null_pointer
+ *        @p end is ::lh_null.
+ */
+lh_usize_t
+lh_memory_raw_get_size(const lh_ptr begin, const lh_ptr end);
 
 /**
  * @brief Copy up to @c min(dst_end - dst, src_end - src) bytes

@@ -1230,36 +1230,6 @@ lh_void
 lh_memory_bounds_init_by_other(lh_memory_bounds_t *self, const lh_memory_bounds_t *other);
 
 /**
- * @brief Write the bounds <tt>[begin, end)</tt> to @p out, validated like
- *        ::lh_memory_view_init.
- *
- * @param begin First byte.
- * @param end   One past the last byte.
- * @param out   Receives the bounds; must not be null.
- */
-lh_void
-lh_memory_bounds_return_v(lh_ptr begin, lh_ptr end, lh_memory_bounds_t *out);
-
-/**
- * @brief Write the bounds of @p size bytes from @p begin to @p out, validated
- *        like ::lh_memory_view_init_by_size.
- *
- * @param begin First byte.
- * @param size  Byte count.
- * @param out   Receives the bounds; must not be null.
- */
-lh_void
-lh_memory_bounds_return_by_size(lh_ptr begin, lh_usize_t size, lh_memory_bounds_t *out);
-
-/**
- * @brief Write empty bounds to @p out.
- *
- * @param out Receives the bounds; must not be null.
- */
-lh_void
-lh_memory_bounds_return_empty(lh_memory_bounds_t *out);
-
-/**
  * @brief Swap @p self and @p other without range validation.
  *
  * The caller is responsible for ensuring both bounds are meaningful.
@@ -1494,24 +1464,25 @@ lh_memory_bounds_trim(const lh_memory_bounds_t *self, lh_usize_t left, lh_usize_
 /**
  * @brief A read-only view of the memory @p self describes.
  *
- * The safe direction of the two: it only drops write access, so any
- * function that reads through a ::lh_memory_view_t can be handed a
- * ::lh_memory_bounds_t. Nothing is copied — the view points at the
- * same memory, and is valid as long as that memory is.
+ * It only drops write access, so any function that reads through a
+ * ::lh_memory_view_t can be handed a ::lh_memory_bounds_t. There is no way
+ * back: a view never becomes writable bounds. Nothing is copied — the view
+ * points at the same memory, and is valid as long as that memory is.
  *
  * Example usage:
  * @code{.c}
  * lh_byte_t buf[16];
  * lh_memory_bounds_t b;
+ * lh_memory_view_t v;
  * lh_memory_bounds_init_by_size(lh_addr_of(b), buf, sizeof(buf));
- * lh_memory_view_t v = lh_memory_bounds_as_view(lh_addr_of(b));
+ * lh_memory_bounds_as_view(lh_addr_of(b), lh_addr_of(v));
  * @endcode
  *
  * @param self Source.
- * @return View with the same first and last pointers as @p self.
+ * @param out  Receives the view with the same @c begin and @c size as @p self.
  *
  * @fails ::lh_runtime_error_code_null_pointer
- *        @p self is ::lh_null.
+ *        @p self or @p out is ::lh_null.
  */
 lh_void
 lh_memory_bounds_as_view(const lh_memory_bounds_t *self, lh_memory_view_t *out);
