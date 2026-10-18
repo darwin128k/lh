@@ -1095,12 +1095,12 @@ lh_memory_view_return_init_by_size(const lh_ptr begin, lh_usize_t size, lh_memor
  * @brief Build a view containing the first @p n bytes of a valid half-open range.
  *
  * The source range is <tt>[begin, end)</tt>. If @p n is zero, the returned
- * view is empty.
+ * view is the empty <tt>[begin, begin)</tt>, still at @p begin.
  *
  * @param begin Source range begin pointer.
  * @param end   Source range exclusive end pointer.
  * @param n     Number of bytes to keep from the beginning.
- * @return View <tt>[begin, begin + n)</tt>, or an empty view when @p n is zero.
+ * @return View <tt>[begin, begin + n)</tt>.
  *
  * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not a valid view.
@@ -1115,12 +1115,12 @@ lh_memory_view_take_first(const lh_ptr begin, const lh_ptr end, lh_usize_t n,
  * @brief Build a view containing the last @p n bytes of a valid half-open range.
  *
  * The source range is <tt>[begin, end)</tt>. If @p n is zero, the returned
- * view is empty.
+ * view is the empty <tt>[end, end)</tt>, still at @p end.
  *
  * @param begin Source range begin pointer.
  * @param end   Source range exclusive end pointer.
  * @param n     Number of bytes to keep from the end.
- * @return View <tt>[end - n, end)</tt>, or an empty view when @p n is zero.
+ * @return View <tt>[end - n, end)</tt>.
  *
  * @fails ::lh_runtime_error_code_invalid_range
  *        <tt>[begin, end)</tt> is not a valid view.
@@ -1133,7 +1133,7 @@ lh_memory_view_take_last(const lh_ptr begin, const lh_ptr end, lh_usize_t n, lh_
 /**
  * @brief Build a view containing the first @p size bytes of @p self.
  *
- * If @p size is zero, the returned view is empty.
+ * If @p size is zero, the returned view is empty, at the source begin.
  *
  * @param self Source view.
  * @param size Number of bytes to keep from the beginning.
@@ -1152,7 +1152,7 @@ lh_memory_view_from_begin(const lh_memory_view_t *self, lh_usize_t size, lh_memo
 /**
  * @brief Build a view containing the last @p size bytes of @p self.
  *
- * If @p size is zero, the returned view is empty.
+ * If @p size is zero, the returned view is empty, at the source end.
  *
  * @param self Source view.
  * @param size Number of bytes to keep from the end.
@@ -1190,12 +1190,13 @@ lh_memory_view_between(const lh_memory_view_t *self, const lh_ptr begin, const l
 /**
  * @brief Build a sub-view starting at @p offset with @p size bytes.
  *
- * If @p size is zero, the returned view is empty.
+ * If @p size is zero, the returned view is empty, at @p offset, which may then
+ * equal the source size.
  *
  * @param self   Source view.
  * @param offset Offset from the source beginning.
  * @param size   Number of bytes in the returned view.
- * @return Constructed sub-view, or an empty view when @p size is zero.
+ * @return View <tt>[begin + offset, begin + offset + size)</tt>.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
@@ -1211,7 +1212,7 @@ lh_memory_view_from_offset(const lh_memory_view_t *self, lh_uoffset_t offset, lh
 /**
  * @brief Build a view with @p n bytes removed from the beginning.
  *
- * If @p n equals the source size, the returned view is empty.
+ * If @p n equals the source size, the returned view is empty, at the source end.
  *
  * @param self Source view.
  * @param n    Number of bytes to remove from the beginning.
@@ -1230,7 +1231,8 @@ lh_memory_view_drop_first(const lh_memory_view_t *self, lh_usize_t n, lh_memory_
 /**
  * @brief Build a view with @p n bytes removed from the end.
  *
- * If @p n equals the source size, the returned view is empty.
+ * If @p n equals the source size, the returned view is empty, at the source
+ * begin.
  *
  * @param self Source view.
  * @param n    Number of bytes to remove from the end.
@@ -1249,7 +1251,8 @@ lh_memory_view_drop_last(const lh_memory_view_t *self, lh_usize_t n, lh_memory_v
 /**
  * @brief Build a view with bytes removed from both sides.
  *
- * If @p left + @p right equals the source size, the returned view is empty.
+ * If @p left + @p right equals the source size, the returned view is empty,
+ * @p left bytes past the source begin.
  *
  * @param self  Source view.
  * @param left  Number of bytes to remove from the beginning.
