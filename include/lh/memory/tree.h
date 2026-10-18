@@ -35,6 +35,18 @@
 LH_COMPILER_EXTERN_C_BEGIN
 
 /**
+ * @brief Bytes the sized allocator is asked for to hold @p size bytes of user
+ *        data: the tree header plus @p size.
+ *
+ * @param size Bytes the caller needs.
+ * @return @p size plus the tree header.
+ * @fails ::lh_runtime_error_code_overflow
+ *        The sum does not fit in ::lh_usize_t.
+ */
+lh_usize_t
+lh_memory_tree_get_block_size(lh_usize_t size);
+
+/**
  * @brief Allocate a root block of @p size bytes from @p allocator.
  *
  * A @p size of 0 is allowed: an empty block that only owns children, which
@@ -146,6 +158,41 @@ lh_memory_tree_get_next_sibling(const lh_ptr ptr);
  */
 lh_void
 lh_memory_tree_set_destructor(lh_ptr ptr, lh_memory_tree_destructor_cb destructor);
+
+/**
+ * @brief ::lh_memory_allocator_alloc_fn of a tree allocator: a child of the
+ *        root @p self of @p size bytes.
+ *
+ * @param self The root the blocks go under.
+ * @param size Bytes the caller needs.
+ * @return The child's user data.
+ */
+lh_ptr
+lh_memory_tree_allocator_alloc(lh_self_ptr self, lh_usize_t size);
+
+/**
+ * @brief ::lh_memory_allocator_dealloc_fn of a tree allocator: frees @p ptr
+ *        and everything under it.
+ *
+ * @param self Unused.
+ * @param ptr  A tree block, or ::lh_null.
+ */
+lh_void
+lh_memory_tree_allocator_dealloc(lh_self_ptr self, lh_ptr ptr);
+
+/**
+ * @brief ::lh_memory_allocator_realloc_fn of a tree allocator: resizes @p ptr
+ *        to @p new_size bytes, keeping its place in the tree.
+ *
+ * @param self     Unused.
+ * @param ptr      A tree block (not ::lh_null).
+ * @param old_size Unused: the block knows its size.
+ * @param new_size Requested size in bytes.
+ * @return The (possibly moved) block's user data.
+ */
+lh_ptr
+lh_memory_tree_allocator_realloc(lh_self_ptr self, lh_ptr ptr, lh_usize_t old_size,
+                                 lh_usize_t new_size);
 
 /**
  * @brief Make @p self an allocator whose blocks are children of @p root.
