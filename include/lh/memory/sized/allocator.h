@@ -103,6 +103,17 @@ lh_void
 lh_memory_sized_allocator_set_size(lh_ptr ptr, lh_usize_t size);
 
 /**
+ * @brief Free the block at @p ptr; no size needed.
+ *
+ * ::lh_null is ignored.
+ *
+ * @param self Sized allocator that allocated @p ptr.
+ * @param ptr  Pointer returned by this allocator, or ::lh_null.
+ */
+lh_void
+lh_memory_sized_allocator_dealloc(lh_memory_sized_allocator_t *self, lh_ptr ptr);
+
+/**
  * @brief Allocate @p size bytes and remember @p size.
  *
  * A @p size of 0 is allowed: the block holds only its header and the returned
@@ -120,17 +131,6 @@ lh_memory_sized_allocator_set_size(lh_ptr ptr, lh_usize_t size);
  */
 lh_ptr
 lh_memory_sized_allocator_alloc(lh_memory_sized_allocator_t *self, lh_usize_t size);
-
-/**
- * @brief Free the block at @p ptr; no size needed.
- *
- * ::lh_null is ignored.
- *
- * @param self Sized allocator that allocated @p ptr.
- * @param ptr  Pointer returned by this allocator, or ::lh_null.
- */
-lh_void
-lh_memory_sized_allocator_dealloc(lh_memory_sized_allocator_t *self, lh_ptr ptr);
 
 /**
  * @brief Resize the block at @p ptr to @p new_size bytes; no old size needed.

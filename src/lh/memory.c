@@ -88,6 +88,130 @@ lh_memory_rcompare(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_u
 }
 
 const lh_ptr
+lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
+                     lh_usize_t step)
+{
+    lh_assert_runtime_ref(lhs);
+    lh_assert_runtime_ref(rhs);
+
+    lh_return_ifn(lhs_size, lh_null);
+    lh_return_ifn(rhs_size, lh_null);
+    lh_return_ifn(step, lh_null);
+
+    lh_byte_cptr base = lh_ptr_cast(const lh_byte_t, lhs);
+    if (lhs_size < rhs_size)
+    {
+        return lh_null;
+    }
+
+    const lh_usize_t max_start = lhs_size - rhs_size;
+    lh_usize_t off = (max_start / step) * step;
+
+    if (rhs_size == 1)
+    {
+        /* See the matching fast path in lh_memory_find_step. */
+        const lh_byte_t needle = *lh_ptr_cast(const lh_byte_t, rhs);
+        for (;;)
+        {
+            lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
+            if (lh_ptr_deref(cand) == needle)
+            {
+                return cand;
+            }
+            if (off < step)
+            {
+                break;
+            }
+            off -= step;
+        }
+        return lh_null;
+    }
+
+    if (rhs_size == step)
+    {
+        lh_byte_cptr needle = lh_ptr_cast(const lh_byte_t, rhs);
+        for (;;)
+        {
+            lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
+            if (lh_memory_bytes_eq(cand, needle, rhs_size))
+            {
+                return cand;
+            }
+            if (off < step)
+            {
+                break;
+            }
+            off -= step;
+        }
+        return lh_null;
+    }
+
+    /* Byte grid with a real haystack length: the same first/last filter as find. */
+    if (step == 1U && lhs_size != lh_memory_scan_bound(lhs))
+    {
+        return lh_memory_std_rfind(lhs, lhs_size, rhs, rhs_size);
+    }
+
+    {
+        lh_byte_cptr needle = lh_ptr_cast(const lh_byte_t, rhs);
+        const lh_byte_t first = needle[0];
+        const lh_byte_t last = needle[rhs_size - 1U];
+
+        for (;;)
+        {
+            lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
+            if (lh_ptr_deref(cand) == first && cand[rhs_size - 1U] == last &&
+                (rhs_size <= 2U ||
+                 lh_memory_std_compare(cand + 1, needle + 1, rhs_size - 2U) == lh_null))
+            {
+                return cand;
+            }
+            if (off < step)
+            {
+                break;
+            }
+            off -= step;
+        }
+    }
+    return lh_null;
+}
+
+lh_ptr
+lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size)
+{
+    lh_assert_runtime_ref(dst);
+    lh_assert_runtime_ref(src);
+
+    lh_return_ifn(dst_size, lh_null);
+    lh_return_ifn(src_size, lh_null);
+
+    lh_byte_ptr d = lh_ptr_cast(lh_byte_t, dst);
+    lh_byte_cptr s = lh_ptr_cast(const lh_byte_t, src);
+
+    if (src_size == 1)
+    {
+        return lh_memory_std_set(d, lh_ptr_deref(s), dst_size);
+    }
+
+    /* Doubling, as PHP's str_repeat does: write the pattern once, then copy the
+     * filled prefix onto what follows, twice as much each time — about log2 of
+     * dst_size / src_size copies instead of one per repeat (a wide-char fill of
+     * 4KB was 2048 calls). The filled length stays a multiple of src_size until
+     * the last, partial chunk, so every copy keeps the period; source and
+     * destination never overlap. */
+    lh_usize_t filled = lh_math_min(src_size, dst_size);
+    lh_memory_std_copy(d, s, filled);
+    while (filled < dst_size)
+    {
+        const lh_usize_t chunk = lh_math_min(filled, dst_size - filled);
+        lh_memory_std_copy(d + filled, d, chunk);
+        filled += chunk;
+    }
+
+    return d + dst_size;
+}
+
+const lh_ptr
 lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
                     lh_usize_t step)
 {
@@ -241,6 +365,12 @@ lh_memory_find_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_
 }
 
 const lh_ptr
+lh_memory_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size)
+{
+    return lh_memory_rfind_step(lhs, lhs_size, rhs, rhs_size, 1);
+}
+
+const lh_ptr
 lh_memory_find(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size)
 {
     return lh_memory_find_step(lhs, lhs_size, rhs, rhs_size, LH_UCHAR_T_SIZE);
@@ -256,134 +386,4 @@ const lh_ptr
 lh_memory_scan(const lh_ptr lhs, const lh_ptr rhs, lh_usize_t rhs_size)
 {
     return lh_memory_scan_step(lhs, rhs, rhs_size, LH_UCHAR_T_SIZE);
-}
-
-const lh_ptr
-lh_memory_rfind_step(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size,
-                     lh_usize_t step)
-{
-    lh_assert_runtime_ref(lhs);
-    lh_assert_runtime_ref(rhs);
-
-    lh_return_ifn(lhs_size, lh_null);
-    lh_return_ifn(rhs_size, lh_null);
-    lh_return_ifn(step, lh_null);
-
-    lh_byte_cptr base = lh_ptr_cast(const lh_byte_t, lhs);
-    if (lhs_size < rhs_size)
-    {
-        return lh_null;
-    }
-
-    const lh_usize_t max_start = lhs_size - rhs_size;
-    lh_usize_t off = (max_start / step) * step;
-
-    if (rhs_size == 1)
-    {
-        /* See the matching fast path in lh_memory_find_step. */
-        const lh_byte_t needle = *lh_ptr_cast(const lh_byte_t, rhs);
-        for (;;)
-        {
-            lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-            if (lh_ptr_deref(cand) == needle)
-            {
-                return cand;
-            }
-            if (off < step)
-            {
-                break;
-            }
-            off -= step;
-        }
-        return lh_null;
-    }
-
-    if (rhs_size == step)
-    {
-        lh_byte_cptr needle = lh_ptr_cast(const lh_byte_t, rhs);
-        for (;;)
-        {
-            lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-            if (lh_memory_bytes_eq(cand, needle, rhs_size))
-            {
-                return cand;
-            }
-            if (off < step)
-            {
-                break;
-            }
-            off -= step;
-        }
-        return lh_null;
-    }
-
-    /* Byte grid with a real haystack length: the same first/last filter as find. */
-    if (step == 1U && lhs_size != lh_memory_scan_bound(lhs))
-    {
-        return lh_memory_std_rfind(lhs, lhs_size, rhs, rhs_size);
-    }
-
-    {
-        lh_byte_cptr needle = lh_ptr_cast(const lh_byte_t, rhs);
-        const lh_byte_t first = needle[0];
-        const lh_byte_t last = needle[rhs_size - 1U];
-
-        for (;;)
-        {
-            lh_byte_cptr cand = lh_ptr_add_by_offset_unsafe(const lh_byte_t, base, off);
-            if (lh_ptr_deref(cand) == first && cand[rhs_size - 1U] == last &&
-                (rhs_size <= 2U ||
-                 lh_memory_std_compare(cand + 1, needle + 1, rhs_size - 2U) == lh_null))
-            {
-                return cand;
-            }
-            if (off < step)
-            {
-                break;
-            }
-            off -= step;
-        }
-    }
-    return lh_null;
-}
-
-const lh_ptr
-lh_memory_rfind(const lh_ptr lhs, lh_usize_t lhs_size, const lh_ptr rhs, lh_usize_t rhs_size)
-{
-    return lh_memory_rfind_step(lhs, lhs_size, rhs, rhs_size, 1);
-}
-
-lh_ptr
-lh_memory_set_pattern(lh_ptr dst, lh_usize_t dst_size, const lh_ptr src, lh_usize_t src_size)
-{
-    lh_assert_runtime_ref(dst);
-    lh_assert_runtime_ref(src);
-
-    lh_return_ifn(dst_size, lh_null);
-    lh_return_ifn(src_size, lh_null);
-
-    lh_byte_ptr d = lh_ptr_cast(lh_byte_t, dst);
-    lh_byte_cptr s = lh_ptr_cast(const lh_byte_t, src);
-
-    if (src_size == 1)
-    {
-        return lh_memory_std_set(d, lh_ptr_deref(s), dst_size);
-    }
-
-    /* Doubling, as PHP's str_repeat does: write the pattern once, then copy the
-     * filled prefix onto what follows, twice as much each time — about log2 of
-     * dst_size / src_size copies instead of one per repeat (a wide-char fill of
-     * 4KB was 2048 calls). The filled length stays a multiple of src_size until
-     * the last, partial chunk, so every copy keeps the period; source and
-     * destination never overlap. */
-    lh_usize_t filled = lh_math_min(src_size, dst_size);
-    lh_memory_std_copy(d, s, filled);
-    while (filled < dst_size)
-    {
-        const lh_usize_t chunk = lh_math_min(filled, dst_size - filled);
-        lh_memory_std_copy(d + filled, d, chunk);
-        filled += chunk;
-    }
-
-    return d + dst_size;
 }

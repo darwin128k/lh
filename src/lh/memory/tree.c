@@ -65,44 +65,6 @@ lh_memory_tree_free(lh_ptr ptr)
     }
 }
 
-lh_ptr
-lh_memory_tree_realloc(lh_ptr ptr, lh_usize_t new_size)
-{
-    lh_assert_runtime_ref(ptr);
-    const lh_usize_t block_size = lh_memory_tree_get_block_size(new_size);
-
-    /* The links point at the header's current address, from both sides: take
-     * the block out of its parent's list and its children out of its own list
-     * before it may move, and put both back into the moved header after. */
-    lh_memory_tree_header_t *header = lh_memory_tree_header_of(ptr);
-    lh_list_node_t *const sibling = lh_memory_tree_header_get_sibling(header);
-    lh_list_node_t *const prev =
-        lh_list_node_is_linked(sibling) ? lh_list_node_get_prev(sibling) : lh_null;
-    lh_list_t children;
-    lh_list_init(lh_addr_of(children));
-    lh_list_splice_back(lh_addr_of(children), lh_memory_tree_header_get_children(header));
-    lh_list_node_unlink(sibling);
-
-    header = lh_ptr_cast(lh_memory_tree_header_t,
-                         lh_memory_sized_allocator_realloc(
-                             lh_memory_tree_header_get_allocator(header), header, block_size));
-
-    lh_list_node_init(lh_memory_tree_header_get_sibling(header));
-    if (lh_ptr_is_set(prev))
-    {
-        lh_list_node_insert_after(lh_memory_tree_header_get_sibling(header), prev);
-    }
-    lh_list_t *const own = lh_memory_tree_header_get_children(header);
-    lh_list_init(own);
-    lh_list_splice_back(own, lh_addr_of(children));
-    for (lh_list_node_t *node = lh_list_get_first(own); lh_ptr_is_set(node);
-         node = lh_list_get_next(own, node))
-    {
-        lh_memory_tree_header_set_parent(lh_memory_tree_header_of_sibling(node), header);
-    }
-    return lh_memory_tree_header_get_data(header);
-}
-
 lh_usize_t
 lh_memory_tree_get_size(const lh_ptr ptr)
 {
@@ -167,7 +129,43 @@ lh_memory_tree_set_destructor(lh_ptr ptr, lh_memory_tree_destructor_cb destructo
     lh_memory_tree_header_set_destructor(lh_memory_tree_header_of(ptr), destructor);
 }
 
-/* lh_memory_allocator_t callbacks: self is the root the blocks go under. */
+lh_ptr
+lh_memory_tree_realloc(lh_ptr ptr, lh_usize_t new_size)
+{
+    lh_assert_runtime_ref(ptr);
+    const lh_usize_t block_size = lh_memory_tree_get_block_size(new_size);
+
+    /* The links point at the header's current address, from both sides: take
+     * the block out of its parent's list and its children out of its own list
+     * before it may move, and put both back into the moved header after. */
+    lh_memory_tree_header_t *header = lh_memory_tree_header_of(ptr);
+    lh_list_node_t *const sibling = lh_memory_tree_header_get_sibling(header);
+    lh_list_node_t *const prev =
+        lh_list_node_is_linked(sibling) ? lh_list_node_get_prev(sibling) : lh_null;
+    lh_list_t children;
+    lh_list_init(lh_addr_of(children));
+    lh_list_splice_back(lh_addr_of(children), lh_memory_tree_header_get_children(header));
+    lh_list_node_unlink(sibling);
+
+    header = lh_ptr_cast(lh_memory_tree_header_t,
+                         lh_memory_sized_allocator_realloc(
+                             lh_memory_tree_header_get_allocator(header), header, block_size));
+
+    lh_list_node_init(lh_memory_tree_header_get_sibling(header));
+    if (lh_ptr_is_set(prev))
+    {
+        lh_list_node_insert_after(lh_memory_tree_header_get_sibling(header), prev);
+    }
+    lh_list_t *const own = lh_memory_tree_header_get_children(header);
+    lh_list_init(own);
+    lh_list_splice_back(own, lh_addr_of(children));
+    for (lh_list_node_t *node = lh_list_get_first(own); lh_ptr_is_set(node);
+         node = lh_list_get_next(own, node))
+    {
+        lh_memory_tree_header_set_parent(lh_memory_tree_header_of_sibling(node), header);
+    }
+    return lh_memory_tree_header_get_data(header);
+}
 
 lh_ptr
 lh_memory_tree_allocator_alloc(lh_self_ptr self, lh_usize_t size)
