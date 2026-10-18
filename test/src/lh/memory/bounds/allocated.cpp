@@ -9,17 +9,17 @@
 namespace
 {
 
-TEST(memory_bounds_allocated_get_size, zero_for_uninitialized)
+TEST(memory_bounds_allocated_size, zero_for_uninitialized)
 {
     lh_memory_bounds_allocated_t a = lh_memory_bounds_allocated_initializer();
-    EXPECT_EQ(lh_memory_bounds_allocated_get_size(&a), 0u);
+    EXPECT_EQ(lh_memory_bounds_get_size(&a), 0u);
 }
 
-TEST(memory_bounds_allocated_get_size, matches_resized_size)
+TEST(memory_bounds_allocated_size, matches_resized_size)
 {
     lh_memory_bounds_allocated_t a = lh_memory_bounds_allocated_initializer();
     lh_memory_bounds_allocated_resize(&a, 16);
-    EXPECT_EQ(lh_memory_bounds_allocated_get_size(&a), 16u);
+    EXPECT_EQ(lh_memory_bounds_get_size(&a), 16u);
     lh_memory_bounds_allocated_clear(&a);
 }
 
@@ -28,7 +28,7 @@ TEST(memory_bounds_allocated_resize, grows_from_empty_and_is_writable)
     lh_memory_bounds_allocated_t a = lh_memory_bounds_allocated_initializer();
     lh_memory_bounds_allocated_resize(&a, 8);
 
-    ASSERT_EQ(lh_memory_bounds_allocated_get_size(&a), 8u);
+    ASSERT_EQ(lh_memory_bounds_get_size(&a), 8u);
     lh_ptr begin = lh_memory_bounds_get_begin(&a);
     ASSERT_NE(begin, nullptr);
     std::memset(begin, 0xAB, 8);
@@ -47,7 +47,7 @@ TEST(memory_bounds_allocated_resize, grows_and_preserves_prefix)
     bytes[3] = 4;
 
     lh_memory_bounds_allocated_resize(&a, 8);
-    ASSERT_EQ(lh_memory_bounds_allocated_get_size(&a), 8u);
+    ASSERT_EQ(lh_memory_bounds_get_size(&a), 8u);
     auto *grown = static_cast<unsigned char *>(lh_memory_bounds_get_begin(&a));
     EXPECT_EQ(grown[0], 1u);
     EXPECT_EQ(grown[1], 2u);
@@ -63,7 +63,7 @@ TEST(memory_bounds_allocated_resize, zero_size_leaves_empty)
     lh_memory_bounds_allocated_resize(&a, 8);
     lh_memory_bounds_allocated_resize(&a, 0);
 
-    EXPECT_EQ(lh_memory_bounds_allocated_get_size(&a), 0u);
+    EXPECT_EQ(lh_memory_bounds_get_size(&a), 0u);
     EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&a));
 }
 
@@ -88,7 +88,7 @@ TEST(memory_bounds_allocated_exchange, transfers_ownership_and_empties_other)
     lh_memory_bounds_allocated_exchange(&a, &b);
 
     EXPECT_EQ(lh_memory_bounds_get_begin(&a), b_begin);
-    EXPECT_EQ(lh_memory_bounds_allocated_get_size(&a), 6u);
+    EXPECT_EQ(lh_memory_bounds_get_size(&a), 6u);
     EXPECT_TRUE(lh_memory_bounds_is_uninitialized(&b));
 
     lh_memory_bounds_allocated_clear(&a);
@@ -119,11 +119,6 @@ TEST(memory_bounds_allocated_exchange, same_object_just_frees)
 }
 
 #if LH_TEST_EXPECT_DEATH_ENABLED
-
-TEST(memory_bounds_allocated_death, get_size_null_self)
-{
-    LH_EXPECT_DEATH(lh_memory_bounds_allocated_get_size(nullptr));
-}
 
 TEST(memory_bounds_allocated_death, clear_null_self)
 {

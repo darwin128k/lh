@@ -346,6 +346,40 @@ TEST(memory_view_empty_result, stays_where_it_was_taken)
     EXPECT_FALSE(lh_memory_view_is_uninitialized(&trimmed));
 }
 
+TEST(memory_view_fields, read_and_write_through_getters_and_setters)
+{
+    const unsigned char buf[4] = {};
+    lh_memory_view_t v = lh_test::out(lh_memory_view_return_empty);
+
+    lh_memory_view_set_begin(&v, p(buf + 1));
+    lh_memory_view_set_size(&v, 2);
+    EXPECT_EQ(lh_memory_view_get_begin(&v), p(buf + 1));
+    EXPECT_EQ(lh_memory_view_get_size(&v), 2u);
+    EXPECT_EQ(lh_memory_view_get_end(&v), p(buf + 3));
+    EXPECT_EQ(lh_memory_view_get_size_v(&v), 2u);
+
+    // The raw getter hands out what is stored, valid or not.
+    lh_memory_view_t backward = view(p(buf + 3), p(buf + 1));
+    EXPECT_FALSE(lh_memory_view_is_valid(&backward));
+    EXPECT_EQ(lh_memory_view_get_size(&backward), lh_ptr_udiff(p(buf + 1), p(buf + 3)));
+}
+
+TEST(memory_view_by_size, matches_range_and_view_forms)
+{
+    const unsigned char buf[6] = {1, 2, 3, 1, 2, 3};
+    lh_memory_view_t v = view(p(buf), p(buf + 6));
+    lh_memory_view_t needle = view(p(buf + 1), p(buf + 3));
+
+    EXPECT_EQ(lh_memory_view_find_by_size(&v, p(buf + 1), 2), p(buf + 1));
+    EXPECT_EQ(lh_memory_view_find_by_size(&v, p(buf + 1), 2), lh_memory_view_find(&v, &needle));
+    EXPECT_EQ(lh_memory_view_rfind_by_size(&v, p(buf + 1), 2), p(buf + 4));
+    EXPECT_EQ(lh_memory_view_rfind_by_size(&v, p(buf + 1), 2),
+              lh_memory_view_rfind_range(&v, p(buf + 1), p(buf + 3)));
+    EXPECT_EQ(lh_memory_view_compare_by_size(&v, p(buf + 3), 3), lh_null);
+    EXPECT_EQ(lh_memory_view_compare_by_size(&v, p(buf + 1), 2), p(buf));
+    EXPECT_EQ(lh_memory_view_rcompare_by_size(&v, p(buf), 3), lh_null);
+}
+
 TEST(memory_view_uninitialized, safe_queries)
 {
     lh_memory_view_t v = view(lh_null, lh_null);
@@ -442,19 +476,27 @@ TEST(memory_view_empty_range, rejects_indexed_access_death)
     LH_EXPECT_DEATH((void)lh_test::out(lh_memory_view_take_first, p(buf), p(buf), 1));
 }
 
-TEST(memory_view_get_size, rejects_backward_death)
+TEST(memory_view_get_size_v, rejects_backward_death)
 {
     const unsigned char buf[2] = {};
     lh_memory_view_t backward = view(p(buf + 1), p(buf));
 
-    LH_EXPECT_DEATH((void)lh_memory_view_get_size(&backward));
+    LH_EXPECT_DEATH((void)lh_memory_view_get_size_v(&backward));
 }
 
-TEST(memory_view_get_size, rejects_uninitialized_death)
+TEST(memory_view_get_size_v, rejects_uninitialized_death)
 {
     lh_memory_view_t v = view(lh_null, lh_null);
 
-    LH_EXPECT_DEATH((void)lh_memory_view_get_size(&v));
+    LH_EXPECT_DEATH((void)lh_memory_view_get_size_v(&v));
+}
+
+TEST(memory_view_find_range, rejects_backward_needle_death)
+{
+    const unsigned char buf[4] = {1, 2, 3, 4};
+    lh_memory_view_t v = view(p(buf), p(buf + 4));
+
+    LH_EXPECT_DEATH((void)lh_memory_view_find_range(&v, p(buf + 2), p(buf)));
 }
 
 TEST(memory_view_is_multiple_of, rejects_uninitialized_death)

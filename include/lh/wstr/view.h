@@ -192,16 +192,14 @@ lh_wstr_view_get_data(const lh_wstr_view_t *self);
 /**
  * @brief Return the number of wide characters in @p self.
  *
- * Byte length of the stored span divided by ::LH_WCHAR_T_SIZE.
- * Does not count a stored @c L'\\0' that sits at @c second.
+ * The stored byte size divided by ::LH_WCHAR_T_SIZE, without validating the
+ * view. Does not count a stored @c L'\\0' that sits at the end.
  *
- * @param self Valid view to read.
+ * @param self View to read.
  * @return Number of ::lh_wchar_t elements covered by the half-open interval.
  *
  * @fails ::lh_runtime_error_code_null_pointer
  *        @p self is ::lh_null.
- * @fails ::lh_runtime_error_code_invalid_range
- *        @p self is not valid.
  */
 lh_usize_t
 lh_wstr_view_get_size(const lh_wstr_view_t *self);

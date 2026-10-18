@@ -30,6 +30,38 @@ TEST(memory_bounds_getters, return_stored_endpoints)
     EXPECT_EQ(lh_memory_bounds_get_end(&b), p(buf + 4));
 }
 
+TEST(memory_bounds_fields, read_and_write_through_getters_and_setters)
+{
+    unsigned char buf[4] = {};
+    lh_memory_bounds_t b = lh_test::out(lh_memory_bounds_return_empty);
+
+    lh_memory_bounds_set_begin(&b, p(buf + 1));
+    lh_memory_bounds_set_size(&b, 2);
+    EXPECT_EQ(lh_memory_bounds_get_begin(&b), p(buf + 1));
+    EXPECT_EQ(lh_memory_bounds_get_size(&b), 2u);
+    EXPECT_EQ(lh_memory_bounds_get_end(&b), p(buf + 3));
+    EXPECT_EQ(lh_memory_bounds_get_size_v(&b), 2u);
+}
+
+TEST(memory_bounds_by_size, copies_moves_and_finds)
+{
+    unsigned char dst[4] = {};
+    const unsigned char src[3] = {7, 8, 9};
+    lh_memory_bounds_t b = bounds(p(dst), p(dst + 4));
+
+    lh_memory_bounds_copy_by_size(&b, lh_cast_static(lh_ptr, const_cast<unsigned char *>(src)), 3);
+    EXPECT_EQ(dst[0], 7);
+    EXPECT_EQ(dst[2], 9);
+    EXPECT_EQ(dst[3], 0);
+
+    lh_memory_bounds_move_by_size(&b, p(dst + 1), 2);
+    EXPECT_EQ(dst[0], 8);
+    EXPECT_EQ(dst[1], 9);
+
+    EXPECT_EQ(lh_memory_bounds_find_by_size(&b, p(dst + 2), 1), p(dst + 1));
+    EXPECT_EQ(lh_memory_bounds_compare_by_size(&b, p(dst), 4), lh_null);
+}
+
 TEST(memory_bounds_classification, distinguishes_states)
 {
     unsigned char buf[4];
